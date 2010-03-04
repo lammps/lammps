@@ -51,7 +51,8 @@ bool gb_gpu_init(int &ij_size, const int ntypes, const double gamma,
                  double **epsilon, double *host_lshape, int **form,
                  double **host_lj1, double **host_lj2, double **host_lj3, 
                  double **host_lj4, double **offset, double *special_lj, 
-                 const int max_nbors, const int thread, const int gpu_id);
+                 const int nlocal, const int nall, const int max_nbors, 
+                 const int thread, const int gpu_id);
 void gb_gpu_clear(const int thread);
 int * gb_gpu_reset_nbors(const int nall, const int nlocal, const int inum, 
                          int *ilist, const int *numj, const int *type,
@@ -80,22 +81,24 @@ typedef bool (*_gb_gpu_init)(int &ij_size, const int ntypes, const double gamma,
                  double **epsilon, double *host_lshape, int **form,
                  double **host_lj1, double **host_lj2, double **host_lj3, 
                  double **host_lj4, double **offset, double *special_lj, 
-                 const int max_nbors, const int thread, const int gpu_id);
+                 const int nlocal, const int nall, const int max_nbors, 
+                 const int thread, const int gpu_id);
 typedef void (*_gb_gpu_clear)(const int thread);
-typedef int * (*_gb_gpu_reset_nbors)(const int nall, const int nlocal, const int inum, 
-                         int *ilist, const int *numj, const int *type,
-                         const int thread, bool &success);
+typedef int * (*_gb_gpu_reset_nbors)(const int nall, const int nlocal, 
+                 const int inum, int *ilist, const int *numj, const int *type,
+                 const int thread, bool &success);
 typedef void (*_gb_gpu_nbors)(const int *ij, const int num_ij, const bool eflag, 
-                  const int thread);
-typedef void (*_gb_gpu_atom)(double **host_x, double **host_quat, const int *host_type, 
+                 const int thread);
+typedef void (*_gb_gpu_atom)(double **host_x, double **host_quat, 
+                 const int *host_type, const bool rebuild, const int thread);
+typedef void (*_gb_gpu_gayberne)(const bool eflag, const bool vflag, 
                  const bool rebuild, const int thread);
-typedef void (*_gb_gpu_gayberne)(const bool eflag, const bool vflag, const bool rebuild, 
-                     const int thread);
 typedef double (*_gb_gpu_forces)(double **f, double **tor, const int *ilist,
-                     const bool eflag, const bool vflag, const bool eflag_atom,
-                     const bool vflag_atom, double *eatom, double **vatom,
-                     double *virial, const int thread);
-typedef void (*_gb_gpu_name)(const int gpu_id, const int max_nbors, char * name);
+                 const bool eflag, const bool vflag, const bool eflag_atom,
+                 const bool vflag_atom, double *eatom, double **vatom,
+                 double *virial, const int thread);
+typedef void (*_gb_gpu_name)(const int gpu_id, const int max_nbors, 
+                 char * name);
 typedef void (*_gb_gpu_time)(const int thread);
 typedef int (*_gb_gpu_num_devices)();
 typedef double (*_gb_gpu_bytes)();
@@ -121,7 +124,8 @@ using namespace LAMMPS_NS;
 PairGayBerneGPU::PairGayBerneGPU(LAMMPS *lmp) : PairGayBerne(lmp), my_thread(0),
                                                 omp_chunk(0), nthreads(1),
                                                 multi_gpu_mode(ONE_NODE),
-                                                multi_gpu_param(0)
+                                                multi_gpu_param(0),
+                                                output_time(false)
 {
   ij_new[0]=NULL;
   
@@ -152,14 +156,16 @@ PairGayBerneGPU::PairGayBerneGPU(LAMMPS *lmp) : PairGayBerne(lmp), my_thread(0),
 
 PairGayBerneGPU::~PairGayBerneGPU()
 {
-  printf("\n\n-------------------------------------");
-  printf("--------------------------------\n");
-  printf("      GPU Time Stamps: ");
-  printf("\n-------------------------------------");
-  printf("--------------------------------\n");
-  gb_gpu_time(my_thread);
-  printf("-------------------------------------");
-  printf("--------------------------------\n\n");
+  if (output_time) {
+    printf("\n\n-------------------------------------");
+    printf("--------------------------------\n");
+    printf("      GPU Time Stamps (on proc 0): ");
+    printf("\n-------------------------------------");
+    printf("--------------------------------\n");
+    gb_gpu_time(my_thread);
+    printf("-------------------------------------");
+    printf("--------------------------------\n\n");
+  }
   
   #pragma omp parallel
   {
@@ -216,7 +222,7 @@ void PairGayBerneGPU::compute(int eflag, int vflag)
                                         success);
   #endif
   if (!success)
-    error->one("Total # of atoms exceeds maximum allowed per GPGPU");
+    error->one("Out of memory on GPGPU");
   
   // copy atom data to GPU
   gb_gpu_atom(atom->x,atom->quat,atom->type,rebuild,my_thread);
@@ -320,6 +326,8 @@ void PairGayBerneGPU::settings(int narg, char **arg)
 
 void PairGayBerneGPU::init_style()
 {
+  if (comm->me == 0)
+    output_time=true;
   if (force->pair_match("gpu",0) == NULL)
     error->all("Cannot use pair hybrid with multiple GPU pair styles");
   if (!atom->quat_flag || !atom->torque_flag || !atom->avec->shape_type)
@@ -387,9 +395,10 @@ void PairGayBerneGPU::init_style()
     bool init_ok=gb_gpu_init(ij_size, atom->ntypes+1, gamma, upsilon, mu, 
                              shape, well, cutsq, sigma, epsilon, lshape, form,
                              lj1, lj2, lj3, lj4, offset, force->special_lj, 
-                             neighbor->oneatom, my_thread, my_gpu);
+                             atom->nlocal, atom->nlocal+atom->nghost, 300, 
+                             my_thread, my_gpu);
     if (!init_ok)
-      error->one("At least one process could not allocate a CUDA-enabled gpu");
+      error->one("At least 1 proc could not allocate a CUDA gpu or memory");
     
     if (ij_new[my_thread]!=NULL)
       delete [] ij_new[my_thread];

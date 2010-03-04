@@ -21,7 +21,7 @@ PairStyle(gayberne/gpu,PairGayBerneGPU)
 #define LMP_PAIR_GPU_H
 
 #include "pair_gayberne.h"
-#define MAX_GPU_THREADS 4
+#define MAX_GPU_THREADS 1
 
 namespace LAMMPS_NS {
 
@@ -43,6 +43,7 @@ class PairGayBerneGPU : public PairGayBerne {
   int my_thread, nthreads, thread_inum[MAX_GPU_THREADS], omp_chunk;
  
   int last_neighbor, multi_gpu_mode, multi_gpu_param;
+  bool output_time;
 };
 
 }

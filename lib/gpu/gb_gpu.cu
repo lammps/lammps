@@ -36,7 +36,7 @@ static GB_GPU_Memory<PRECISION,ACC_PRECISION> GBMF[MAX_GPU_THREADS];
 // -- Only pack neighbors within cutoff
 // ---------------------------------------------------------------------------
 template<class numtyp>
-__global__ void kernel_pack_nbor(int *dev_nbor, const int nbor_pitch, 
+__global__ void kernel_pack_nbor(const vec4 *x_, int *dev_nbor, const int nbor_pitch, 
                                  const int start, const int inum, 
                                  const int *dev_ij, const int form_low, 
                                  const int form_high, const int nall) {
@@ -56,25 +56,24 @@ __global__ void kernel_pack_nbor(int *dev_nbor, const int nbor_pitch,
     int *nbor_newj=nbor;
     nbor+=nbor_pitch;
   
-    numtyp ix=_x_<numtyp>(i,0);
-    numtyp iy=_x_<numtyp>(i,1);
-    numtyp iz=_x_<numtyp>(i,2);
-    int itype=_x_<numtyp>(i,7);
+    vec4 ix=x_[i];
+    int itype=ix.w;
 
     int newj=0;  
     for ( ; list<list_end; list++) {
       int j=*list;
       if (j>=nall)
         j%=nall;
-      int jtype=_x_<numtyp>(j,7);
+      vec4 jx=x_[j];
+      int jtype=jx.w;
       
       if (_form_(itype,jtype)>=form_low && _form_(itype,jtype)<=form_high) {
         // Compute r12;
-        numtyp rsq=_x_<numtyp>(j,0)-ix;
+        numtyp rsq=jx.x-ix.x;
         rsq*=rsq;
-        numtyp t=_x_<numtyp>(j,1)-iy;
+        numtyp t=jx.y-ix.y;
         rsq+=t*t;
-        t=_x_<numtyp>(j,2)-iz;
+        t=jx.z-ix.z;
         rsq+=t*t;
 
         if (rsq< _cutsq_<numtyp>(itype,jtype)) {
@@ -95,7 +94,7 @@ __global__ void kernel_pack_nbor(int *dev_nbor, const int nbor_pitch,
 // -- Fast version of routine that uses shared memory for LJ constants
 // ---------------------------------------------------------------------------
 template<class numtyp>
-__global__ void kernel_pack_nbor_fast(int *dev_nbor, const int nbor_pitch, 
+__global__ void kernel_pack_nbor_fast(const vec4 *x_, int *dev_nbor, const int nbor_pitch, 
                                       const int start, const int inum, 
                                       const int *dev_ij, const int form_low, 
                                       const int form_high, const int nall) {
@@ -124,25 +123,25 @@ __global__ void kernel_pack_nbor_fast(int *dev_nbor, const int nbor_pitch,
     int *nbor_newj=nbor;
     nbor+=nbor_pitch;
   
-    numtyp ix=_x_<numtyp>(i,0);
-    numtyp iy=_x_<numtyp>(i,1);
-    numtyp iz=_x_<numtyp>(i,2);
-    int itype=INT_MUL(MAX_SHARED_TYPES,_x_<numtyp>(i,7));
+    vec4 ix=x_[i];
+    int itype=INT_MUL(MAX_SHARED_TYPES,ix.w);
 
     int newj=0;  
     for ( ; list<list_end; list++) {
       int j=*list;
       if (j>=nall)
         j%=nall;
-      int mtype=itype+_x_<numtyp>(j,7);
+      vec4 jx=x_[j];
+      int jtype=jx.w;
+      int mtype=itype+jtype;
       
       if (form[mtype]>=form_low && form[mtype]<=form_high) {
         // Compute r12;
-        numtyp rsq=_x_<numtyp>(j,0)-ix;
+        numtyp rsq=jx.x-ix.x;
         rsq*=rsq;
-        numtyp t=_x_<numtyp>(j,1)-iy;
+        numtyp t=jx.y-ix.y;
         rsq+=t*t;
-        t=_x_<numtyp>(j,2)-iz;
+        t=jx.z-ix.z;
         rsq+=t*t;
 
         if (rsq<cutsq[mtype]) {
@@ -159,13 +158,15 @@ __global__ void kernel_pack_nbor_fast(int *dev_nbor, const int nbor_pitch,
 template<class numtyp, class acctyp>
 void pack_nbors(GBMT &gbm, const int GX, const int BX, const int start, 
                 const int inum, const int form_low, const int form_high) {
-  if (gbm.shared_types)
+  if (gbm.shared_types) {
     kernel_pack_nbor_fast<numtyp><<<GX,BX,0,gbm.pair_stream>>>
-          (gbm.nbor.dev_nbor.begin(), gbm.nbor.dev_nbor.row_size(), start, inum,
+          ((vec4 *)gbm.atom.dev_x.begin(),gbm.nbor.dev_nbor.begin(), 
+           gbm.atom.inum(), start, inum,
            gbm.nbor.ij.begin(),form_low,form_high,gbm.atom.nall());
-  else
+  } else
     kernel_pack_nbor<numtyp><<<GX,BX,0,gbm.pair_stream>>>
-          (gbm.nbor.dev_nbor.begin(), gbm.nbor.dev_nbor.row_size(), start, inum,
+          ((vec4 *)gbm.atom.dev_x.begin(),gbm.nbor.dev_nbor.begin(), 
+           gbm.atom.inum(), start, inum,
            gbm.nbor.ij.begin(),form_low,form_high,gbm.atom.nall());
 }
 
@@ -188,9 +189,7 @@ EXTERN void gb_gpu_name(const int id, const int max_nbors, char * name) {
   string sname=GBMF[0].gpu.name(id)+", "+
               gb_gpu_toa(GBMF[0].gpu.cores(id))+" cores, "+
               gb_gpu_toa(GBMF[0].gpu.gigabytes(id))+" GB, "+
-              gb_gpu_toa(GBMF[0].gpu.clock_rate(id))+" GHZ, "+
-              gb_gpu_toa(GBMF[0].get_max_atoms(GBMF[0].gpu.bytes(id),
-                                               max_nbors))+" Atoms";
+              gb_gpu_toa(GBMF[0].gpu.clock_rate(id))+" GHZ";
   strcpy(name,sname.c_str());
 }
 
@@ -203,6 +202,7 @@ EXTERN bool gb_gpu_init(int &ij_size, const int ntypes, const double gamma,
                   double **epsilon, double *host_lshape, int **form,
                   double **host_lj1, double **host_lj2, double **host_lj3, 
                   double **host_lj4, double **offset, double *special_lj,
+                  const int nlocal, const int nall, 
                   const int max_nbors, const int thread, const int gpu_id) {
   assert(thread<MAX_GPU_THREADS);
   
@@ -215,7 +215,8 @@ EXTERN bool gb_gpu_init(int &ij_size, const int ntypes, const double gamma,
   return GBMF[thread].init(ij_size, ntypes, gamma, upsilon, mu, shape,
                            well, cutsq, sigma, epsilon, host_lshape, form,
                            host_lj1, host_lj2, host_lj3, host_lj4, offset,
-                           special_lj, max_nbors, false, gpu_id);
+                           special_lj, nlocal, nall, max_nbors, false, 
+                           gpu_id);
 }
 
 // ---------------------------------------------------------------------------
@@ -230,34 +231,23 @@ EXTERN void gb_gpu_clear(const int thread) {
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
 inline void _gb_gpu_atom(PairGPUAtom<numtyp,acctyp> &atom, double **host_x, 
-                         double **host_quat, const int *host_type, 
-                         const bool rebuild, cudaStream_t &stream) {
+                          double **host_quat, const int *host_type, 
+                          const bool rebuild, cudaStream_t &stream) {
   atom.time_atom.start();
   atom.reset_write_buffer();
  
   // Rows 1-3 of dev_x are position; rows 4-7 are quaternion
-  atom.add_atom_data(host_x[0],3);
-  atom.add_atom_data(host_x[0]+1,3);
-  atom.add_atom_data(host_x[0]+2,3);
-  atom.add_atom_data(host_quat[0],4);
-  atom.add_atom_data(host_quat[0]+1,4);
-  atom.add_atom_data(host_quat[0]+2,4);
-  atom.add_atom_data(host_quat[0]+3,4);
-   
-  int csize=7;
-  
-  // If a rebuild occured, copy type data
-  if (rebuild) {
-    atom.add_atom_data(host_type);
-    csize++;
-  }
-  
-  atom.copy_atom_data(csize,stream);
+  atom.add_x_data(host_x,host_type);
+  atom.add_q_data(host_quat[0]);
+
+  atom.copy_x_data(stream);
+  atom.copy_q_data(stream);
   atom.time_atom.stop();
 }
 
 EXTERN void gb_gpu_atom(double **host_x, double **host_quat, 
-                 const int *host_type, const bool rebuild, const int thread) {
+                        const int *host_type, const bool rebuild, 
+                        const int thread) {
   _gb_gpu_atom(GBMF[thread].atom, host_x, host_quat, host_type, rebuild,
                GBMF[thread].pair_stream);
 }
@@ -269,46 +259,111 @@ template <class gbmtyp>
 int * _gb_gpu_reset_nbors(gbmtyp &gbm, const int nall, const int nlocal, 
                           const int inum, int *ilist, const int *numj,
                           const int *type, bool &success) {
-  if (nall>gbm.max_atoms) {
-    success=false;
-    return 0;
-  }
   success=true;
     
   gbm.nbor.time_nbor.start();
 
+  int mn=0;
+  for (int i=0; i<inum; i++)
+    mn=std::max(mn,numj[i]);
+
+  if (nall>gbm.max_atoms)
+    gbm.resize_atom(nall,success);  
+  if (nlocal>gbm.max_local || mn>gbm._max_nbors)
+    gbm.resize_local(nlocal,mn,success);
+  if (!success)
+    return false;
+    
   gbm.atom.nall(nall);
   gbm.atom.inum(inum);
 
   if (gbm.multiple_forms) {
-    int p=0, acc=0;
-    for (int i=0; i<inum; i++) {
-      int itype=type[ilist[i]];
-      if (gbm.host_form[itype][itype]==ELLIPSE_ELLIPSE) {
-        gbm.host_olist[p]=ilist[i];
-        gbm.nbor.host_ij[p]=numj[ilist[i]];
-        gbm.nbor.host_ij[p+inum]=acc;
-        acc+=numj[ilist[i]];
-        p++;
+    int ij_size=gbm.nbor.host_ij.numel();
+    if (inum*2<ij_size) {
+      int p=0, acc=0;
+      for (int i=0; i<inum; i++) {
+        int itype=type[ilist[i]];
+        if (gbm.host_form[itype][itype]==ELLIPSE_ELLIPSE) {
+          gbm.host_olist[p]=ilist[i];
+          gbm.nbor.host_ij[p]=numj[ilist[i]];
+          gbm.nbor.host_ij[p+inum]=acc;
+          acc+=numj[ilist[i]];
+          p++;
+        }
       }
-    }
-    gbm.last_ellipse=p;
-    for (int i=0; i<inum; i++) {
-      int itype=type[ilist[i]];
-      if (gbm.host_form[itype][itype]!=ELLIPSE_ELLIPSE) {
-        gbm.host_olist[p]=ilist[i];
-        gbm.nbor.host_ij[p]=numj[ilist[i]];
-        gbm.nbor.host_ij[p+inum]=acc;
-        acc+=numj[ilist[i]];
-        p++;
+      gbm.last_ellipse=p;
+      for (int i=0; i<inum; i++) {
+        int itype=type[ilist[i]];
+        if (gbm.host_form[itype][itype]!=ELLIPSE_ELLIPSE) {
+          gbm.host_olist[p]=ilist[i];
+          gbm.nbor.host_ij[p]=numj[ilist[i]];
+          gbm.nbor.host_ij[p+inum]=acc;
+          acc+=numj[ilist[i]];
+          p++;
+        }
       }
+      gbm.nbor.ij_total=0;
+      gbm.nbor.dev_nbor.copy_from_host(gbm.host_olist.begin(),inum);
+      gbm.nbor.host_ij.copy_to_device(gbm.nbor.dev_nbor.begin()+inum,
+                                      2*inum,gbm.pair_stream);
+    } else {
+      int p=0, acc=0;
+      int offset=0;
+      int half=ij_size/2;
+      int hi=0;
+      for (int i=0; i<inum; i++) {
+        int itype=type[ilist[i]];
+        if (gbm.host_form[itype][itype]==ELLIPSE_ELLIPSE) {
+          gbm.host_olist[p]=ilist[i];
+          gbm.nbor.host_ij[hi]=numj[ilist[i]];
+          gbm.nbor.host_ij[hi+half]=acc;
+          acc+=numj[ilist[i]];
+          p++;
+          hi++;
+          if (hi==half) {
+            gbm.nbor.host_ij.copy_to_device(gbm.nbor.dev_nbor.begin()+inum+offset,
+                                            half,gbm.pair_stream);
+            gbm.nbor.host_ij.copy_to_device(half,gbm.nbor.dev_nbor.begin()+
+                                                 inum*2+offset,
+                                            half,gbm.pair_stream);
+            hi=0;
+            offset+=half;
+            CUDA_SAFE_CALL(cudaStreamSynchronize(gbm.pair_stream));
+          }
+        }
+      }
+      gbm.last_ellipse=p;
+      for (int i=0; i<inum; i++) {
+        int itype=type[ilist[i]];
+        if (gbm.host_form[itype][itype]!=ELLIPSE_ELLIPSE) {
+          gbm.host_olist[p]=ilist[i];
+          gbm.nbor.host_ij[hi]=numj[ilist[i]];
+          gbm.nbor.host_ij[hi+half]=acc;
+          acc+=numj[ilist[i]];
+          p++;
+          hi++;
+          if (hi==half) {
+            gbm.nbor.host_ij.copy_to_device(gbm.nbor.dev_nbor.begin()+inum+offset,
+                                            half,gbm.pair_stream);
+            gbm.nbor.host_ij.copy_to_device(half,gbm.nbor.dev_nbor.begin()+
+                                                 inum*2+offset,
+                                            half,gbm.pair_stream);
+            hi=0;
+            offset+=half;
+            CUDA_SAFE_CALL(cudaStreamSynchronize(gbm.pair_stream));
+          }
+        }
+      }
+      gbm.nbor.dev_nbor.copy_from_host(gbm.host_olist.begin(),inum);
+      if (hi>0) {
+        gbm.nbor.host_ij.copy_to_device(gbm.nbor.dev_nbor.begin()+inum+offset,
+                                        hi,gbm.pair_stream);
+        gbm.nbor.host_ij.copy_to_device(half,gbm.nbor.dev_nbor.begin()+
+                                             inum*2+offset,
+                                        hi,gbm.pair_stream);
+      }
+      gbm.nbor.ij_total=0;
     }
-    gbm.nbor.ij_total=0;
-    gbm.nbor.dev_nbor.copy_from_host(gbm.host_olist.begin(),inum);
-    gbm.nbor.host_ij.copy_to_2Ddevice(gbm.nbor.dev_nbor.begin()+
-                                      gbm.nbor.dev_nbor.row_size(),
-                                      gbm.nbor.dev_nbor.row_size(),2,inum,
-                                      gbm.pair_stream);
   } else {
     gbm.nbor.reset(inum,ilist,numj,gbm.pair_stream);
     gbm.last_ellipse=inum;
@@ -349,6 +404,14 @@ EXTERN void gb_gpu_nbors(const int *ij, const int num_ij, const bool eflag,
   _gb_gpu_nbors(GBMF[thread],ij,num_ij,eflag);
 }
 
+
+template<class numtyp, class acctyp>
+void _gb_gpu_enqueue(GBMT &gbm, const bool eflag, const bool vflag) {
+  gbm.atom.time_answer.start();
+  gbm.atom.copy_answers(eflag,vflag,gbm.pair_stream);
+  gbm.atom.time_answer.stop();
+}
+
 // ---------------------------------------------------------------------------
 // Calculate energies, forces, and torques for all ij interactions
 // ---------------------------------------------------------------------------
@@ -357,7 +420,12 @@ void _gb_gpu_gayberne(GBMT &gbm, const bool eflag, const bool vflag,
                       const bool rebuild) {
   // Compute the block size and grid size to keep all cores busy
   const int BX=BLOCK_1D;
-
+  int ans_pitch=6;
+  if (eflag)
+    ans_pitch++;
+  if (vflag)
+    ans_pitch+=6;
+  
   int GX=static_cast<int>(ceil(static_cast<double>(gbm.atom.inum())/BX));
 
   if (gbm.multiple_forms) {
@@ -371,9 +439,10 @@ void _gb_gpu_gayberne(GBMT &gbm, const bool eflag, const bool vflag,
   
       gbm.time_gayberne.start();                                 
       kernel_gayberne<numtyp,acctyp><<<GX,BX,0,gbm.pair_stream>>>
-           (gbm.gamma_upsilon_mu.begin(), gbm.special_lj.begin(), 
-            gbm.nbor.dev_nbor.begin(), gbm.nbor.dev_nbor.row_size(),
-            gbm.atom.ans.begin(), gbm.atom.ans.row_size(),gbm.dev_error.begin(),
+           ((vec4*)gbm.atom.dev_x.begin(), (vec4*)gbm.atom.dev_q.begin(), 
+            gbm.gamma_upsilon_mu.begin(), gbm.special_lj.begin(), 
+            gbm.nbor.dev_nbor.begin(), gbm.atom.inum(),
+            gbm.atom.ans.begin(), ans_pitch,gbm.dev_error.begin(),
             eflag, vflag, gbm.last_ellipse, gbm.atom.nall());
       gbm.time_gayberne.stop();
 
@@ -393,14 +462,15 @@ void _gb_gpu_gayberne(GBMT &gbm, const bool eflag, const bool vflag,
       GX=static_cast<int>(ceil(static_cast<double>(gbm.atom.inum()-
                                gbm.last_ellipse)/BX));
       pack_nbors(gbm,GX,BX,gbm.last_ellipse,gbm.atom.inum(),ELLIPSE_SPHERE,
-                 ELLIPSE_SPHERE);
+                  ELLIPSE_SPHERE);
       gbm.time_kernel2.stop();
 
       gbm.time_gayberne2.start();
       kernel_sphere_gb<numtyp,acctyp><<<GX,BX,0,gbm.pair_stream>>>
-           (gbm.gamma_upsilon_mu.begin(), gbm.special_lj.begin(), 
-            gbm.nbor.dev_nbor.begin(), gbm.nbor.dev_nbor.row_size(), 
-            gbm.atom.ans.begin(), gbm.atom.ans.row_size(),gbm.dev_error.begin(),
+           ((vec4*)gbm.atom.dev_x.begin(), (vec4*)gbm.atom.dev_q.begin(), 
+            gbm.gamma_upsilon_mu.begin(), gbm.special_lj.begin(), 
+            gbm.nbor.dev_nbor.begin(), gbm.atom.inum(),
+            gbm.atom.ans.begin(), ans_pitch,gbm.dev_error.begin(),
             eflag, vflag, gbm.last_ellipse, gbm.atom.inum(), gbm.atom.nall());
       gbm.time_gayberne2.stop();
    } else {
@@ -419,16 +489,15 @@ void _gb_gpu_gayberne(GBMT &gbm, const bool eflag, const bool vflag,
     if (gbm.last_ellipse<gbm.atom.inum()) {
       if (gbm.shared_types)
         kernel_lj_fast<numtyp,acctyp><<<GX,BX,0,gbm.pair_stream>>>
-           (gbm.special_lj.begin(), gbm.nbor.dev_nbor.begin(), 
-            gbm.nbor.ij.begin(), gbm.nbor.dev_nbor.row_size(), 
-            gbm.atom.ans.begin(), gbm.atom.ans.row_size(), 
-            gbm.dev_error.begin(), eflag, vflag, gbm.last_ellipse, 
-            gbm.atom.inum(), gbm.atom.nall());
+           ((vec4*)gbm.atom.dev_x.begin(), gbm.special_lj.begin(), 
+            gbm.nbor.dev_nbor.begin(), gbm.atom.inum(), gbm.nbor.ij.begin(),
+            gbm.atom.ans.begin(), ans_pitch, gbm.dev_error.begin(), eflag, 
+            vflag, gbm.last_ellipse, gbm.atom.inum(), gbm.atom.nall());
       else
         kernel_lj<numtyp,acctyp><<<GX,BX,0,gbm.pair_stream>>>
-           (gbm.special_lj.begin(), gbm.nbor.dev_nbor.begin(), 
-            gbm.nbor.ij.begin(), gbm.nbor.dev_nbor.row_size(), 
-            gbm.atom.ans.begin(), gbm.atom.ans.row_size(),gbm.dev_error.begin(),
+           ((vec4*)gbm.atom.dev_x.begin(), gbm.special_lj.begin(), 
+            gbm.nbor.dev_nbor.begin(), gbm.atom.inum(), gbm.nbor.ij.begin(),
+            gbm.atom.ans.begin(), ans_pitch,gbm.dev_error.begin(),
             eflag, vflag, gbm.last_ellipse, gbm.atom.inum(), gbm.atom.nall());
     }
     gbm.time_pair.stop();
@@ -437,19 +506,21 @@ void _gb_gpu_gayberne(GBMT &gbm, const bool eflag, const bool vflag,
     pack_nbors(gbm, GX, BX, 0, gbm.atom.inum(),SPHERE_SPHERE,ELLIPSE_ELLIPSE);
     gbm.time_kernel.stop();
   
-    gbm.time_gayberne.start();                                 
+    gbm.time_gayberne.start(); 
     kernel_gayberne<numtyp,acctyp><<<GX,BX,0,gbm.pair_stream>>>
-         (gbm.gamma_upsilon_mu.begin(), gbm.special_lj.begin(), 
-          gbm.nbor.dev_nbor.begin(), gbm.nbor.dev_nbor.row_size(), 
-          gbm.atom.ans.begin(), gbm.atom.ans.row_size(), gbm.dev_error.begin(), 
+         ((vec4*)gbm.atom.dev_x.begin(), (vec4*)gbm.atom.dev_q.begin(), 
+          gbm.gamma_upsilon_mu.begin(), gbm.special_lj.begin(), 
+          gbm.nbor.dev_nbor.begin(), gbm.atom.inum(),
+          gbm.atom.ans.begin(), ans_pitch, gbm.dev_error.begin(), 
           eflag, vflag, gbm.atom.inum(), gbm.atom.nall());
     gbm.time_gayberne.stop();
   }
 }
 
 EXTERN void gb_gpu_gayberne(const bool eflag, const bool vflag, const bool rebuild, 
-                     const int thread) {
+                            const int thread) {
   _gb_gpu_gayberne<PRECISION,ACC_PRECISION>(GBMF[thread],eflag,vflag,rebuild);
+  _gb_gpu_enqueue<PRECISION,ACC_PRECISION>(GBMF[thread],eflag,vflag);
 }
 
 // ---------------------------------------------------------------------------
@@ -462,9 +533,6 @@ double _gb_gpu_forces(GBMT &gbm, double **f, double **tor, const int *ilist,
                       double *virial) {
   double evdw;
 
-  gbm.atom.time_answer.start();
-  gbm.atom.copy_answers(eflag,vflag,gbm.pair_stream);
-
   gbm.atom.time_atom.add_to_total();
   gbm.nbor.time_nbor.add_to_total();
   gbm.time_kernel.add_to_total();
@@ -475,11 +543,19 @@ double _gb_gpu_forces(GBMT &gbm, double **f, double **tor, const int *ilist,
     gbm.time_pair.add_to_total();
   }      
   CUDA_SAFE_CALL(cudaStreamSynchronize(gbm.pair_stream));
-  
-  evdw=gbm.atom.energy_virial(ilist,eflag_atom,vflag_atom,eatom,vatom,virial);
-  gbm.atom.add_forces(ilist,f);
-  gbm.atom.add_torques(ilist,tor,gbm.last_ellipse);
-  gbm.atom.time_answer.stop();
+  if (gbm.last_ellipse>gbm.atom.inum()) {
+    if (eflag || vflag)
+      evdw=gbm.atom.energy_virial(ilist,eflag_atom,vflag_atom,eatom,vatom,virial,
+                                  f,tor,gbm.atom.inum());
+    else
+      gbm.atom.copy_asphere(ilist,f,tor,gbm.atom.inum());
+  } else {
+    if (eflag || vflag)
+      evdw=gbm.atom.energy_virial(ilist,eflag_atom,vflag_atom,eatom,vatom,virial,
+                                  f,tor,gbm.last_ellipse);
+    else
+      gbm.atom.copy_asphere(ilist,f,tor,gbm.last_ellipse);
+  }
   gbm.atom.time_answer.add_to_total();
   return evdw;
 }
@@ -516,3 +592,4 @@ EXTERN int gb_gpu_num_devices() {
 EXTERN double gb_gpu_bytes() {
   return GBMF[0].host_memory_usage();
 }
+

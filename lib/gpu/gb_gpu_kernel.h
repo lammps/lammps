@@ -92,16 +92,19 @@ static __inline__ __device__ void compute_eta_torque(numtyp m[9],
 		    m[6]*m[1]*m2[7]-(numtyp)2.0*m2[8]*m[3]*m[1])*den;
 }
 
+#include "gb_gpu_kernel.h"
+
 template<class numtyp, class acctyp>
-__global__ void kernel_gayberne(const numtyp *gum, const numtyp *special_lj,
-                                const int *dev_nbor, const int nbor_pitch, 
+__global__ void kernel_gayberne(const vec4* x_, const vec4 *q,
+                                const numtyp *gum, const numtyp *special_lj,
+                                const int *dev_nbor, const size_t nbor_pitch, 
                                 acctyp *ans, size_t ans_pitch, int *err_flag, 
                                 const bool eflag, const bool vflag,
                                 const int inum, const int nall) {
                                 
   __shared__ numtyp sp_lj[4];
 
-   // ii indexes the two interacting particles in gi
+  // ii indexes the two interacting particles in gi
   int ii=threadIdx.x;
   if (ii<4)
     sp_lj[ii]=special_lj[ii];    
@@ -109,7 +112,7 @@ __global__ void kernel_gayberne(const numtyp *gum, const numtyp *special_lj,
   __syncthreads();
 
   if (ii<inum) {
-  
+
   acctyp energy=(numtyp)0;
   acctyp fx=(numtyp)0;
   acctyp fy=(numtyp)0;
@@ -128,16 +131,14 @@ __global__ void kernel_gayberne(const numtyp *gum, const numtyp *special_lj,
   nbor+=nbor_pitch;
   int numj=*nbor;
   nbor+=nbor_pitch;
-  const int *nbor_end=nbor+INT_MUL(nbor_pitch,numj);
+  const int *nbor_end=nbor+nbor_pitch*numj;
   
-  numtyp ix=_x_<numtyp>(i,0);
-  numtyp iy=_x_<numtyp>(i,1);
-  numtyp iz=_x_<numtyp>(i,2);
-  int itype=_x_<numtyp>(i,7);
+  vec4 ix=x_[i];
+  int itype=ix.w;
   numtyp a1[9], b1[9], g1[9];
   {
     numtyp t[9];
-    gpu_quat_to_mat_trans(i,a1);
+    gpu_quat_to_mat_trans(q,i,a1);
     gpu_shape_times3(itype,a1,t);
     gpu_transpose_times3(a1,t,g1);
     gpu_well_times3(itype,a1,t);
@@ -146,7 +147,7 @@ __global__ void kernel_gayberne(const numtyp *gum, const numtyp *special_lj,
 
   numtyp factor_lj;
   for ( ; nbor<nbor_end; nbor+=nbor_pitch) {
-  
+
   int j=*nbor;
   if (j < nall) 
     factor_lj = (numtyp)1.0;
@@ -154,20 +155,21 @@ __global__ void kernel_gayberne(const numtyp *gum, const numtyp *special_lj,
     factor_lj = sp_lj[j/nall];
     j %= nall;
   }
-  int jtype=_x_<numtyp>(j,7);
+  vec4 jx=x_[j];
+  int jtype=jx.w;
 
   // Compute r12
   numtyp r12[3];
-  r12[0] = _x_<numtyp>(j,0)-ix;
-  r12[1] = _x_<numtyp>(j,1)-iy;
-  r12[2] = _x_<numtyp>(j,2)-iz;
+  r12[0] = jx.x-ix.x;
+  r12[1] = jx.y-ix.y;
+  r12[2] = jx.z-ix.z;
   numtyp ir = gpu_dot3(r12,r12);
 
   ir = rsqrt(ir);
   numtyp r = (numtyp)1.0/ir;
 
   numtyp a2[9];
-  gpu_quat_to_mat_trans(j,a2);
+  gpu_quat_to_mat_trans(q,j,a2);
   
   numtyp u_r, dUr[3], tUr[3], eta, teta[3];
   { // Compute U_r, dUr, eta, and teta
@@ -366,35 +368,37 @@ __global__ void kernel_gayberne(const numtyp *gum, const numtyp *special_lj,
   } // for nbor
 
   // Store answers
-  acctyp *ap1=ans+ii;
+  acctyp *ap1=ans+ii*ans_pitch;
   if (eflag) {
     *ap1=energy;
-    ap1+=ans_pitch;
+    ap1++;
   }
   if (vflag) {
     for (int i=0; i<6; i++) {
       *ap1=virial[i];
-      ap1+=ans_pitch;
+      ap1++;
     }
   }
   *ap1=fx;
-  ap1+=ans_pitch;
+  ap1++;
   *ap1=fy;
-  ap1+=ans_pitch;
+  ap1++;
   *ap1=fz;
-  ap1+=ans_pitch;
+  ap1++;
   *ap1=torx;
-  ap1+=ans_pitch;
+  ap1++;
   *ap1=tory;
-  ap1+=ans_pitch;
+  ap1++;
   *ap1=torz;
 
   } // if ii
+
 }
 
 template<class numtyp, class acctyp>
-__global__ void kernel_sphere_gb(const numtyp *gum, const numtyp *special_lj,
-                                 const int *dev_nbor, const int nbor_pitch, 
+__global__ void kernel_sphere_gb(const vec4 *x_, const vec4 *q,
+                                 const numtyp *gum, const numtyp *special_lj,
+                                 const int *dev_nbor, const size_t nbor_pitch,
                                  acctyp *ans, size_t ans_pitch, int *err_flag, 
                                  const bool eflag, const bool vflag,
                                  const int start, const int inum, 
@@ -425,12 +429,10 @@ __global__ void kernel_sphere_gb(const numtyp *gum, const numtyp *special_lj,
     nbor+=nbor_pitch;
     int numj=*nbor;
     nbor+=nbor_pitch;
-    const int *nbor_end=nbor+INT_MUL(nbor_pitch,numj);
+    const int *nbor_end=nbor+nbor_pitch*numj;
   
-    numtyp ix=_x_<numtyp>(i,0);
-    numtyp iy=_x_<numtyp>(i,1);
-    numtyp iz=_x_<numtyp>(i,2);
-    int itype=_x_<numtyp>(i,7);
+    vec4 ix=x_[i];
+    int itype=ix.w;
       
     numtyp oner=_shape_<numtyp>(itype,0);
     numtyp one_well=_well_<numtyp>(itype,0);
@@ -445,13 +447,14 @@ __global__ void kernel_sphere_gb(const numtyp *gum, const numtyp *special_lj,
         factor_lj = sp_lj[j/nall];
         j %= nall;
       }
-      int jtype=_x_<numtyp>(j,7);
+      vec4 jx=x_[j];
+      int jtype=jx.w;
 
       // Compute r12
       numtyp r12[3];
-      r12[0] = _x_<numtyp>(j,0)-ix;
-      r12[1] = _x_<numtyp>(j,1)-iy;
-      r12[2] = _x_<numtyp>(j,2)-iz;
+      r12[0] = jx.x-ix.x;
+      r12[1] = jx.y-ix.y;
+      r12[2] = jx.z-ix.z;
       numtyp ir = gpu_dot3(r12,r12);
 
       ir = rsqrt(ir);
@@ -463,7 +466,7 @@ __global__ void kernel_sphere_gb(const numtyp *gum, const numtyp *special_lj,
       r12hat[2]=r12[2]*ir;
 
       numtyp a2[9];
-      gpu_quat_to_mat_trans(j,a2);
+      gpu_quat_to_mat_trans(q,j,a2);
   
       numtyp u_r, dUr[3], eta;
       { // Compute U_r, dUr, eta, and teta
@@ -611,28 +614,29 @@ __global__ void kernel_sphere_gb(const numtyp *gum, const numtyp *special_lj,
     } // for nbor
 
     // Store answers
-    acctyp *ap1=ans+ii;
+    acctyp *ap1=ans+ii*ans_pitch;
     if (eflag) {
       *ap1=energy;
-      ap1+=ans_pitch;
+      ap1++;
     }
     if (vflag) {
       for (int i=0; i<6; i++) {
         *ap1=virial[i];
-        ap1+=ans_pitch;
+        ap1++;
       }
     }
     *ap1=fx;
-    ap1+=ans_pitch;
+    ap1++;
     *ap1=fy;
-    ap1+=ans_pitch;
+    ap1++;
     *ap1=fz;
   } // if ii
 }
 
 template<class numtyp, class acctyp>
-__global__ void kernel_lj(const numtyp *special_lj, const int *dev_nbor, 
-                          const int *dev_ij, const int nbor_pitch, acctyp *ans, 
+__global__ void kernel_lj(const vec4 *x_,
+                          const numtyp *special_lj, const int *dev_nbor, 
+                          const size_t nbor_pitch, const int *dev_ij, acctyp *ans, 
                           size_t ans_pitch, int *err_flag, const bool eflag, 
                           const bool vflag, const int start, const int inum,
                           const int nall) {
@@ -663,10 +667,8 @@ __global__ void kernel_lj(const numtyp *special_lj, const int *dev_nbor,
     const int *list=dev_ij+*nbor;
     const int *list_end=list+numj;
   
-    numtyp ix=_x_<numtyp>(i,0);
-    numtyp iy=_x_<numtyp>(i,1);
-    numtyp iz=_x_<numtyp>(i,2);
-    int itype=_x_<numtyp>(i,7);
+    vec4 ix=x_[i];
+    int itype=ix.w;
 
     numtyp factor_lj;
     for ( ; list<list_end; list++) {
@@ -678,12 +680,13 @@ __global__ void kernel_lj(const numtyp *special_lj, const int *dev_nbor,
         factor_lj = sp_lj[j/nall];
         j %= nall;
       }
-      int jtype=_x_<numtyp>(j,7);
+      vec4 jx=x_[j];
+      int jtype=jx.w;
 
       // Compute r12
-      numtyp delx = ix-_x_<numtyp>(j,0);
-      numtyp dely = iy-_x_<numtyp>(j,1);
-      numtyp delz = iz-_x_<numtyp>(j,2);
+      numtyp delx = ix.x-jx.x;
+      numtyp dely = ix.y-jx.y;
+      numtyp delz = ix.z-jx.z;
       numtyp r2inv = delx*delx+dely*dely+delz*delz;
         
       if (r2inv<_cutsq_<numtyp>(itype,jtype) &&
@@ -716,29 +719,30 @@ __global__ void kernel_lj(const numtyp *special_lj, const int *dev_nbor,
     } // for nbor
 
     // Store answers
-    acctyp *ap1=ans+ii;
+    acctyp *ap1=ans+ii*ans_pitch;
     if (eflag) {
       *ap1+=energy;
-      ap1+=ans_pitch;
+      ap1++;
     }
     if (vflag) {
       for (int i=0; i<6; i++) {
         *ap1+=virial[i];
-        ap1+=ans_pitch;
+        ap1++;
       }
     }
     *ap1+=fx;
-    ap1+=ans_pitch;
+    ap1++;
     *ap1+=fy;
-    ap1+=ans_pitch;
+    ap1++;
     *ap1+=fz;
 
   } // if ii
 }
 
 template<class numtyp, class acctyp>
-__global__ void kernel_lj_fast(const numtyp *special_lj, const int *dev_nbor, 
-                               const int *dev_ij, const int nbor_pitch, 
+__global__ void kernel_lj_fast(const vec4 *x_,
+                               const numtyp *special_lj, const int *dev_nbor, 
+                               const size_t nbor_pitch, const int *dev_ij, 
                                acctyp *ans, size_t ans_pitch,int *err_flag,
                                const bool eflag, const bool vflag, 
                                const int start, const int inum, const int nall){
@@ -788,10 +792,8 @@ __global__ void kernel_lj_fast(const numtyp *special_lj, const int *dev_nbor,
     const int *list=dev_ij+*nbor;
     const int *list_end=list+numj;
   
-    numtyp ix=_x_<numtyp>(i,0);
-    numtyp iy=_x_<numtyp>(i,1);
-    numtyp iz=_x_<numtyp>(i,2);
-    int itype=INT_MUL(MAX_SHARED_TYPES,_x_<numtyp>(i,7));
+    vec4 ix=x_[i];
+    int itype=INT_MUL(MAX_SHARED_TYPES,ix.w);
 
     numtyp factor_lj;
     for ( ; list<list_end; list++) {
@@ -803,12 +805,13 @@ __global__ void kernel_lj_fast(const numtyp *special_lj, const int *dev_nbor,
         factor_lj = sp_lj[j/nall];
         j %= nall;
       }
-      int mtype=itype+_x_<numtyp>(j,7);
+      vec4 jx=x_[j];
+      int mtype=itype+jx.w;
 
       // Compute r12
-      numtyp delx = ix-_x_<numtyp>(j,0);
-      numtyp dely = iy-_x_<numtyp>(j,1);
-      numtyp delz = iz-_x_<numtyp>(j,2);
+      numtyp delx = ix.x-jx.x;
+      numtyp dely = ix.y-jx.y;
+      numtyp delz = ix.z-jx.z;
       numtyp r2inv = delx*delx+dely*dely+delz*delz;
         
       if (r2inv<cutsq[mtype] && form[mtype]==SPHERE_SPHERE) {
@@ -837,21 +840,21 @@ __global__ void kernel_lj_fast(const numtyp *special_lj, const int *dev_nbor,
     } // for nbor
 
     // Store answers
-    acctyp *ap1=ans+ii;
+    acctyp *ap1=ans+ii*ans_pitch;
     if (eflag) {
       *ap1+=energy;
-      ap1+=ans_pitch;
+      ap1++;
     }
     if (vflag) {
       for (int i=0; i<6; i++) {
         *ap1+=virial[i];
-        ap1+=ans_pitch;
+        ap1++;
       }
     }
     *ap1+=fx;
-    ap1+=ans_pitch;
+    ap1++;
     *ap1+=fy;
-    ap1+=ans_pitch;
+    ap1++;
     *ap1+=fz;
 
   } // if ii

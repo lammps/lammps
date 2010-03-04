@@ -26,22 +26,13 @@ int LJ_GPU_MemoryT::bytes_per_atom(const int max_nbors) const {
 }
 
 template <class numtyp, class acctyp>
-int LJ_GPU_MemoryT::get_max_atoms(const size_t gpu_bytes, const int max_nbors) {
-  int matoms=static_cast<int>(PERCENT_GPU_MEMORY*gpu_bytes/
-                              bytes_per_atom(max_nbors));
-  if (matoms>MAX_ATOMS)
-    matoms=MAX_ATOMS;
-  return matoms;
-}
-  
-template <class numtyp, class acctyp>
 bool LJ_GPU_MemoryT::init(const int ij_size, const int ntypes, 
                           double **host_cutsq, double **host_sigma, 
                           double **host_epsilon, double **host_lj1, 
                           double **host_lj2, double **host_lj3, 
                           double **host_lj4, double **host_offset, 
                           double *host_special_lj, const int max_nbors, 
-                          const int me) {
+                          const int me, const int nlocal, const int nall) {
   if (allocated)
     clear();
     
@@ -55,9 +46,18 @@ bool LJ_GPU_MemoryT::init(const int ij_size, const int ntypes,
   time_pair.init();
 
   // Initialize atom and nbor data
-  max_atoms=get_max_atoms(gpu.bytes(),max_nbors);
-  atom.init(max_atoms);
-  nbor.init(ij_size,max_atoms,max_nbors);
+  max_local=static_cast<int>(static_cast<double>(nlocal)*1.10);
+  if (max_local==0)
+    max_local=1000;
+  if (nall<=nlocal)
+    max_atoms=max_local*2;
+  else
+    max_atoms=static_cast<int>(static_cast<double>(nall)*1.10);
+  
+  if (!atom.init(max_atoms))
+    return false;
+  if (!nbor.init(ij_size,max_local,max_nbors))
+    return false;
   
   // Get a stream for computing pair potentials
   CUDA_SAFE_CALL(cudaStreamCreate(&pair_stream));
@@ -112,7 +112,7 @@ bool LJ_GPU_MemoryT::init(const int ij_size, const int ntypes,
   allocated=true;
   return true;
 }
-  
+
 template <class numtyp, class acctyp>
 void LJ_GPU_MemoryT::clear() {
   if (!allocated)

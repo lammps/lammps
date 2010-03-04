@@ -28,7 +28,9 @@ int PairGPUAtomT::bytes_per_atom() const {
 }
 
 template <class numtyp, class acctyp>
-void PairGPUAtomT::init(const int max_atoms) {
+bool PairGPUAtomT::init(const int max_atoms) {
+  bool success=true;
+  
   if (allocated)
     clear();
     
@@ -39,28 +41,48 @@ void PairGPUAtomT::init(const int max_atoms) {
   time_answer.init();
 
   // Device matrices for atom and force data
-  dev_x.safe_alloc(atom_fields(),max_atoms,x_get_texture<numtyp>());
-  ans.safe_alloc(ans_fields(),max_atoms);
+  success=success && dev_x.alloc(max_atoms*sizeof(vec4));
+  success=success && dev_q.alloc(max_atoms*sizeof(vec4));
+  success=success && ans.alloc(ans_fields()*max_atoms);
+  // Get a host read/write buffer
+  success=success && host_read.alloc_rw(max_atoms*ans_fields());
 
   // Get a host write only buffer
-  host_write.safe_alloc_w(max_atoms*atom_fields());
-  // Get a host read/write buffer
-  host_read.safe_alloc_rw(ans.row_size()*ans_fields());
+  success=success && host_write.alloc_w(max_atoms*atom_fields());
     
   allocated=true;
+  
+  return success;
 }
   
+template <class numtyp, class acctyp>
+void PairGPUAtomT::resize(const int max_atoms, bool &success) {
+  ans.clear();
+  dev_x.clear();
+  dev_q.clear();
+  host_write.clear();
+  host_read.clear();
+
+  _max_atoms=max_atoms;
+
+  success = success && dev_x.alloc(_max_atoms*sizeof(vec4));
+  success = success && dev_q.alloc(_max_atoms*sizeof(vec4));
+  success = success && ans.alloc(ans_fields()*_max_atoms);
+  success = success && host_read.alloc_rw(_max_atoms*ans_fields());
+  success = success && host_write.alloc_w(_max_atoms*atom_fields());
+}  
+ 
 template <class numtyp, class acctyp>
 void PairGPUAtomT::clear() {
   if (!allocated)
       return;
   allocated=false;
       
-  dev_x.unbind();
-  ans.clear();                               
+  ans.clear();
+  dev_x.clear();
+  dev_q.clear();
   host_write.clear();
   host_read.clear();
-  dev_x.clear();
 }  
  
 template <class numtyp, class acctyp>
@@ -82,88 +104,88 @@ void PairGPUAtomT::copy_answers(const bool eflag, const bool vflag,
   if (!vflag)
     csize-=6;
       
-  host_read.copy_from_device(ans.begin(),ans.row_size()*csize,s);
+  host_read.copy_from_device(ans.begin(),_inum*csize,s);
 }
   
 template <class numtyp, class acctyp>
 double PairGPUAtomT::energy_virial(const int *ilist, const bool eflag_atom,
                                    const bool vflag_atom, double *eatom, 
-                                   double **vatom, double *virial) {
+                                   double **vatom, double *virial,
+                                   double **f, double **tor, const int n) {
   double evdwl=0.0;
-  int gap=ans.row_size()-_inum;
 
   acctyp *ap=host_read.begin();
-  if (_eflag) {
-    if (eflag_atom) {
-      for (int i=0; i<_inum; i++) {
+  for (int i=0; i<_inum; i++) {
+    int ii=ilist[i];
+    if (_eflag) {
+      if (eflag_atom) {
         evdwl+=*ap;
-        eatom[ilist[i]]+=*ap*0.5;
+        eatom[ii]+=*ap*0.5;
+        ap++;
+      } else {
+        evdwl+=*ap;
         ap++;
       }
-    } else
-      for (int i=0; i<_inum; i++) {
-        evdwl+=*ap;
-        ap++;
-      }
-    ap+=gap;
-    evdwl*=0.5;
-  }
-  _read_loc=ap;
-  gap=ans.row_size();
-  if (_vflag) {
-    if (vflag_atom) {
-      for (int ii=0; ii<_inum; ii++) {
-        int i=ilist[ii];
-        ap=_read_loc+ii;
+    }
+    if (_vflag) {
+      if (vflag_atom) {
         for (int j=0; j<6; j++) {
-          vatom[i][j]+=*ap*0.5;
+          vatom[ii][j]+=*ap*0.5;
           virial[j]+=*ap;
-          ap+=gap;
+          ap++;
         }
-      }
-    } else {
-      for (int ii=0; ii<_inum; ii++) {
-        ap=_read_loc+ii;
+      } else {
         for (int j=0; j<6; j++) {
           virial[j]+=*ap;
-          ap+=gap;
+          ap++;
         }
       }
     }
-    for (int j=0; j<6; j++)
-      virial[j]*=0.5;
-    _read_loc+=gap*6;
+    f[ii][0]+=*ap;
+    ap++;
+    f[ii][1]+=*ap;
+    ap++;
+    f[ii][2]+=*ap;
+    ap++;
+    if (i<n) {
+      tor[ii][0]+=*ap;
+      ap++;
+      tor[ii][1]+=*ap;
+      ap++;
+      tor[ii][2]+=*ap;
+      ap++;
+    } else {
+      ap+=3;
+    }
   }
-  
+  for (int j=0; j<6; j++)
+    virial[j]*=0.5;
+  evdwl*=0.5;
   return evdwl;
 }
 
 template <class numtyp, class acctyp>
-void PairGPUAtomT::add_forces(const int *ilist, double **f) {
-  int gap=ans.row_size();
-  for (int ii=0; ii<_inum; ii++) {
-    acctyp *ap=_read_loc+ii;
-    int i=ilist[ii];
-    f[i][0]+=*ap;
-    ap+=gap;
-    f[i][1]+=*ap;
-    ap+=gap;
-    f[i][2]+=*ap;
-  }
-}
-
-template <class numtyp, class acctyp>
-void PairGPUAtomT::add_torques(const int *ilist, double **tor, const int n) {
-  int gap=ans.row_size();
-  _read_loc+=gap*3;
-  for (int ii=0; ii<n; ii++) {
-    acctyp *ap=_read_loc+ii;
-    int i=ilist[ii];
-    tor[i][0]+=*ap;
-    ap+=gap;
-    tor[i][1]+=*ap;
-    ap+=gap;
-    tor[i][2]+=*ap;
+void PairGPUAtomT::copy_asphere(const int *ilist, double **f, double **tor, 
+                                const int n) {
+  acctyp *ap=host_read.begin();
+  for (int i=0; i<_inum; i++) {
+    int ii=ilist[i];
+    f[ii][0]+=*ap;
+    ap++;
+    f[ii][1]+=*ap;
+    ap++;
+    f[ii][2]+=*ap;
+    ap++;
+    if (i<n) {
+      tor[ii][0]+=*ap;
+      ap++;
+      tor[ii][1]+=*ap;
+      ap++;
+      tor[ii][2]+=*ap;
+      ap++;
+    } else {
+      ap+=3;
+    }
   }
 }
 

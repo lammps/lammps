@@ -298,24 +298,22 @@ static __inline__ __device__ void gpu_mldivide3(const numtyp m[9],
 ------------------------------------------------------------------------- */
 
 template <class numtyp>
-static __inline__ __device__ void gpu_quat_to_mat_trans(const int qi, 
+static __inline__ __device__ void gpu_quat_to_mat_trans(const vec4 *qif,
+                                                        const int qi, 
                                                         numtyp mat[9])
 {
-  numtyp qi3=_x_<numtyp>(qi,3);
-  numtyp qi4=_x_<numtyp>(qi,4);
-  numtyp qi5=_x_<numtyp>(qi,5);
-  numtyp qi6=_x_<numtyp>(qi,6);
-
-  numtyp w2 = qi3*qi3;
-  numtyp i2 = qi4*qi4;
-  numtyp j2 = qi5*qi5;
-  numtyp k2 = qi6*qi6;
-  numtyp twoij = (numtyp)2.0*qi4*qi5;
-  numtyp twoik = (numtyp)2.0*qi4*qi6;
-  numtyp twojk = (numtyp)2.0*qi5*qi6;
-  numtyp twoiw = (numtyp)2.0*qi4*qi3;
-  numtyp twojw = (numtyp)2.0*qi5*qi3;
-  numtyp twokw = (numtyp)2.0*qi6*qi3;
+  vec4 q=qif[qi];
+  
+  numtyp w2 = q.x*q.x;
+  numtyp i2 = q.y*q.y;
+  numtyp j2 = q.z*q.z;
+  numtyp k2 = q.w*q.w;
+  numtyp twoij = (numtyp)2.0*q.y*q.z;
+  numtyp twoik = (numtyp)2.0*q.y*q.w;
+  numtyp twojk = (numtyp)2.0*q.z*q.w;
+  numtyp twoiw = (numtyp)2.0*q.y*q.x;
+  numtyp twojw = (numtyp)2.0*q.z*q.x;
+  numtyp twokw = (numtyp)2.0*q.w*q.x;
 
   mat[0] = w2+i2-j2-k2;
   mat[3] = twoij-twokw;

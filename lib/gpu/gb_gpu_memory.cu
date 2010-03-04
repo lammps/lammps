@@ -41,14 +41,17 @@ bool GB_GPU_MemoryT::init(const int ij_size, const int ntypes,
                           double *host_lshape, int **h_form, double **host_lj1, 
                           double **host_lj2, double **host_lj3, 
                           double **host_lj4, double **host_offset, 
-                          double *host_special_lj, const int max_nbors, 
+                          double *host_special_lj, const int nlocal,
+                          const int nall, const int max_nbors, 
                           const bool force_d, const int me) {
+  _max_nbors=max_nbors;
   if (this->allocated)
     clear();
     
   bool p=LJ_GPU_MemoryT::init(ij_size,ntypes,host_cutsq,host_sigma,host_epsilon,
                               host_lj1, host_lj2, host_lj3, host_lj4, 
-                              host_offset, host_special_lj, max_nbors, me);
+                              host_offset, host_special_lj, max_nbors, me,
+                              nlocal, nall);
   if (!p)
     return false;                              
     
@@ -96,11 +99,28 @@ bool GB_GPU_MemoryT::init(const int ij_size, const int ntypes,
         multiple_forms=true;
         
   // Memory for ilist ordered by particle type
-  host_olist.safe_alloc_rw(this->max_atoms);
-
-  return true;
+  return host_olist.alloc_rw(this->max_local);
 }
-  
+
+template <class numtyp, class acctyp>
+void GB_GPU_MemoryT::resize_atom(const int nall, bool &success) {
+  this->max_atoms=static_cast<int>(static_cast<double>(nall)*1.10);
+  this->atom.resize(this->max_atoms, success);
+}
+
+template <class numtyp, class acctyp>
+void GB_GPU_MemoryT::resize_local(const int nlocal, const int max_nbors,
+                                  bool &success) {
+  if (nlocal>this->max_local) {
+    this->max_local=static_cast<int>(static_cast<double>(nlocal)*1.10);
+    host_olist.clear();
+    success=success && host_olist.alloc_rw(this->max_local);
+  }
+  if (max_nbors>_max_nbors)
+    _max_nbors=static_cast<int>(static_cast<double>(max_nbors)*1.10);
+  this->nbor.resize(this->max_local,_max_nbors,success);
+}
+
 template <class numtyp, class acctyp>
 void GB_GPU_MemoryT::clear() {
   if (!this->allocated)

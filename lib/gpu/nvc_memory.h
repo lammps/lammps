@@ -96,12 +96,33 @@ class NVC_Host {
     _end=_array+cols;
   }
 
+  // Allocate page-locked memory with fast write/slow read on host
+  inline bool alloc_w(const size_t cols) {
+    _cols=cols;
+    _row_bytes=cols*sizeof(numtyp);
+    if (cudaHostAlloc((void **)&_array,_row_bytes,cudaHostAllocWriteCombined)!=
+        cudaSuccess)
+      return false;
+    _end=_array+cols;
+    return true;
+  }
+
   // Allocate page-locked memory with fast read/write on host
   inline void safe_alloc_rw(const size_t cols) {
     _cols=cols;
     _row_bytes=cols*sizeof(numtyp);
     CUDA_SAFE_CALL(cudaMallocHost((void **)&_array,_row_bytes));
     _end=_array+cols;
+  }
+  
+  // Allocate page-locked memory with fast read/write on host
+  inline bool alloc_rw(const size_t cols) {
+    _cols=cols;
+    _row_bytes=cols*sizeof(numtyp);
+    if (cudaMallocHost((void **)&_array,_row_bytes)!=cudaSuccess)
+      return false;
+    _end=_array+cols;
+    return true;
   }
   
   /// Free any memory associated with device
@@ -163,6 +184,13 @@ class NVC_Host {
                                            cudaMemcpyHostToDevice,stream));
   }
   
+  /// Asynchronous copy to device (numel is not bytes)
+  inline void copy_to_device(size_t offset, numtyp *device_p, size_t numel,
+                             cudaStream_t &stream) {
+    CUDA_SAFE_CALL_NO_SYNC(cudaMemcpyAsync(device_p,_array+offset,numel*sizeof(numtyp),
+                                           cudaMemcpyHostToDevice,stream));
+  }
+  
   /// Asynchronous copy to 2D matrix on device (numel is not bytes)
   inline void copy_to_2Ddevice(numtyp *device_p, const size_t dev_row_size,
                                const size_t rows, const size_t cols,
@@ -194,6 +222,16 @@ class NVC_Vec {
     _end=_array+cols;
   }
   
+  // Row vector on device
+  inline bool alloc(const size_t cols) {
+    _cols=cols;
+    _row_bytes=cols*sizeof(numtyp);
+    if (cudaMalloc((void **)&_array,_row_bytes)!=cudaSuccess)
+      return false;
+    _end=_array+cols;
+    return true;
+  }
+  
   // Row vector on device (allocate and assign texture and bind)
   inline void safe_alloc(const size_t cols, textureReference *t) 
     { safe_alloc(cols); assign_texture(t); bind(); }
@@ -221,9 +259,20 @@ class NVC_Vec {
     { CUDA_SAFE_CALL(cudaMemcpy(_array,host_p,row_bytes(), 
                                 cudaMemcpyHostToDevice)); }
 
+  /// Copy from host (n elements)
+  inline void copy_from_host(const numtyp *host_p, const size_t n)
+    { CUDA_SAFE_CALL(cudaMemcpy(_array,host_p,n*sizeof(numtyp), 
+                                cudaMemcpyHostToDevice)); }
+
   /// Asynchronous copy from host
   inline void copy_from_host(const numtyp *host_p, cudaStream_t &stream)
     { CUDA_SAFE_CALL_NO_SYNC(cudaMemcpyAsync(_array,host_p,row_bytes(), 
+                             cudaMemcpyHostToDevice, stream)); }
+
+  /// Asynchronous copy from host (n elements)
+  inline void copy_from_host(const numtyp *host_p, const size_t n,
+                             cudaStream_t &stream)
+    { CUDA_SAFE_CALL_NO_SYNC(cudaMemcpyAsync(_array,host_p,n*sizeof(numtyp), 
                              cudaMemcpyHostToDevice, stream)); }
 
   /// Copy to host

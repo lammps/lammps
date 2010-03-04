@@ -40,8 +40,10 @@ class PairGPUNbor {
   void packing(const bool use_packing) { _use_packing=use_packing; }
   
   /// Called once to allocate memory
-  void init(const int ij_size, const int max_atoms, const int max_nbors);
+  bool init(const int ij_size, const int max_atoms, const int max_nbors);
   
+  void resize(const int nlocal, const int max_nbor, bool &success);
+
   /// Free all memory on host and device
   void clear();
  
@@ -73,7 +75,7 @@ class PairGPUNbor {
   // - 1st row is i
   // - 2nd row is numj (number of neighbors)
   // - 3rd row is starting address in host_ij of neighbors
-  NVC_MatI dev_nbor;
+  NVC_VecI dev_nbor;
 
   // --------------- Timing Stuff
   NVCTimer time_nbor;

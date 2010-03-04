@@ -31,32 +31,6 @@
 #define GB_GPU_DOUBLE
 #endif
 
-// ------------------------------- x ------------------------------------
-
-static texture<float, 2, cudaReadModeElementType> x_float_tex;
-static texture<int2, 2, cudaReadModeElementType> x_double_tex;
-template <class numtyp> inline textureReference * x_get_texture() {
-  const textureReference *ptr;
-  cudaGetTextureReference(&ptr,"x_float_tex");
-  return const_cast<textureReference *>(ptr);
-}
-template <> inline textureReference * x_get_texture<double>() {
-  const textureReference *ptr;
-  cudaGetTextureReference(&ptr,"x_double_tex");
-  return const_cast<textureReference *>(ptr);
-}
-template <class numtyp>
-static __inline__ __device__ numtyp _x_(const int i, const int j) {
-  return tex2D(x_float_tex,i,j);
-}
-#ifdef GB_GPU_DOUBLE
-template <>
-static __inline__ __device__ double _x_<double>(const int i,const int j) {
-  int2 t=tex2D(x_double_tex,i,j);
-  return __hiloint2double(t.y, t.x);
-}
-#endif
-
 // ------------------------------- form ------------------------------------
 
 static texture<int, 2, cudaReadModeElementType> form_tex;

@@ -17,6 +17,12 @@
                          Paul Crozier (SNL), pscrozi@sandia.gov
 ------------------------------------------------------------------------- */
 
+#if defined(__APPLE__)
+#if _GLIBCXX_ATOMIC_BUILTINS == 1
+#undef _GLIBCXX_ATOMIC_BUILTINS
+#endif // _GLIBCXX_ATOMIC_BUILTINS
+#endif // __APPLE__
+
 #include "pair_gpu_atom.cu"
 #include "lj_gpu.cu"
 #include "gb_gpu.cu"

@@ -26,18 +26,21 @@
 #define PRECISION float
 #define ACC_PRECISION double
 #define MAX_ATOMS 65536
+#define vec4 float4
 #endif
 
 #ifdef _DOUBLE_DOUBLE
 #define PRECISION double
 #define ACC_PRECISION double
 #define MAX_ATOMS 32768
+struct vec4 { double x; double y; double z; double w; };
 #endif
 
 #ifndef PRECISION
 #define PRECISION float
 #define ACC_PRECISION float
 #define MAX_ATOMS 65536
+#define vec4 float4
 #endif
 
 #include "nvc_timer.h"
@@ -71,7 +74,8 @@ class PairGPUAtom {
 
   /// Must be called once to allocate host and device memory
   /** \note atom_fields and ans_fields should be set first if not default **/
-  void init(const int max_atoms);
+  bool init(const int max_atoms);
+  void resize(const int max_atoms, bool &success);
   
   /// Free all memory on host and device
   void clear();
@@ -99,11 +103,35 @@ class PairGPUAtom {
     for (int i=0; i<t; i+=stride) { *_write_loc=hostptr[i]; _write_loc++; }
   }
   
-  /// Copy num_rows x nall() write buffer to x in GPU
-  /** num_rows<=atom_fields() **/
-  inline void copy_atom_data(const int num_rows, cudaStream_t &stream) 
-    { dev_x.copy_2Dfrom_host(host_write.begin(),num_rows,nall(),stream); }
+  /// Add positions to write buffer
+  /** Copies nall() elements **/
+  inline void add_x_data(double **host_ptr, const int *host_type) {
+    for (int i=0; i<_nall; i++) {
+      *_write_loc=host_ptr[i][0];
+      _write_loc++;
+      *_write_loc=host_ptr[i][1];
+      _write_loc++;
+      *_write_loc=host_ptr[i][2];
+      _write_loc++;
+      *_write_loc=host_type[i];
+      _write_loc++;
+    }
+  }      
 
+  /// Add quaternions to write buffer
+  /** Copies nall() elements **/
+  template<class cpytyp>
+  inline void add_q_data(const cpytyp *host_ptr) {
+    const int end=_nall*4;
+    for (int i=0; i<end; i++) { *_write_loc=host_ptr[i]; _write_loc++; } 
+  } 
+
+  /// Copy num_rows positions+type to x in GPU
+  /** num_rows<=atom_fields() **/
+  inline void copy_x_data(cudaStream_t &stream) 
+    { dev_x.copy_from_host(host_write.begin(),_nall*4,stream); }
+  inline void copy_q_data(cudaStream_t &stream) 
+    { dev_q.copy_from_host(host_write.begin()+_nall*4,_nall*4,stream); }
     
   // -------------------------COPY FROM GPU -------------------------------
 
@@ -113,22 +141,19 @@ class PairGPUAtom {
   /// Copy energy and virial data into LAMMPS memory
   double energy_virial(const int *ilist, const bool eflag_atom,
                        const bool vflag_atom, double *eatom, double **vatom,
-                       double *virial);
-
-  /// Add forces from the GPU into a LAMMPS pointer
-  void add_forces(const int *ilist, double **f);
-
-  /// Add torques from the GPU into a LAMMPS pointer
-  void add_torques(const int *ilist, double **tor, const int n);
-    
+                       double *virial, double **f, double **tor, const int);
+                       
+  /// Add forces and torques from the GPU into a LAMMPS pointer
+  void copy_asphere(const int *ilist, double **f, double **tor, const int n);
   // ------------------------------ DATA ----------------------------------
 
-  // atom_fields() x n (example: rows 1-3 position, 4 is type)
-  NVC_ConstMatT dev_x;
-  // ans_fields() x n Storage for Forces, etc.
-  // example: if (eflag and vflag) 1 is energy, 2-7 is virial, 8-10 is force 
-  // example: if (!eflag) 1-3 is force
-  NVC_Mat<acctyp> ans;                               
+  // atom coordinates
+  NVC_Vec<numtyp> dev_x;
+  // quaterions
+  NVC_Vec<numtyp> dev_q;
+  // ans_fields()
+  // example: if (eflag and vflag) 1 is energy, 2-7 is virial
+  NVC_Vec<acctyp> ans;                               
 
   // Buffer for moving floating point data to GPU
   NVC_HostT host_write;

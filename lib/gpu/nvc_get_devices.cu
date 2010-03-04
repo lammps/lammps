@@ -8,7 +8,6 @@
    certain rights in this software.  This software is distributed under 
    the GNU General Public License.
 
-   See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
@@ -16,6 +15,12 @@
                          Peng Wang (Nvidia), penwang@nvidia.com
                          Paul Crozier (SNL), pscrozi@sandia.gov
 ------------------------------------------------------------------------- */
+
+#if defined(__APPLE__)
+#if _GLIBCXX_ATOMIC_BUILTINS == 1
+#undef _GLIBCXX_ATOMIC_BUILTINS
+#endif // _GLIBCXX_ATOMIC_BUILTINS
+#endif // __APPLE__
 
 #include "nvc_device.h"
 

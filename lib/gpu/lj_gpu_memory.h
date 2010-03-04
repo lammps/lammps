@@ -28,7 +28,6 @@
 #define BLOCK_1D 64           // max value = 256
 #define CELL_SIZE BLOCK_1D
 #define MAX_SHARED_TYPES 8
-#define PERCENT_GPU_MEMORY 0.7
 #define BIG_NUMBER 100000000
 
 template <class numtyp, class acctyp>
@@ -42,14 +41,13 @@ class LJ_GPU_Memory {
             double **host_sigma, double **host_epsilon, 
             double **host_lj1, double **host_lj2, double **host_lj3, 
             double **host_lj4, double **host_offset, double *host_special_lj,
-            const int max_nbors, const int me);
+            const int max_nbors, const int me, const int nlocal,
+            const int nall);
   /// Free any memory on host and device
   void clear();
 
   /// Returns memory usage on GPU per atom
   int bytes_per_atom(const int max_nbors) const;
-  /// Maximum number of atoms that can be stored on GPU
-  int get_max_atoms(const size_t gpu_bytes, const int max_nbors);
   /// Total host memory used by library
   double host_memory_usage() const;
   
@@ -72,7 +70,7 @@ class LJ_GPU_Memory {
   NVC_ConstMat< typename nvc_vec_traits<numtyp>::vec2 > lj1, lj3;
   NVC_VecT special_lj;
   
-  size_t max_atoms;
+  size_t max_atoms, max_local;
   
   // Timing for pair calculation
   NVCTimer time_pair;

@@ -37,8 +37,11 @@ class GB_GPU_Memory : public LJ_GPU_Memory<numtyp,acctyp> {
             double **host_epsilon, double *host_lshape, int **h_form,
             double **host_lj1, double **host_lj2, double **host_lj3, 
             double **host_lj4, double **host_offset, double *host_special_lj,
-            const int max_nbors, const bool force_d, const int me);
+            const int max_nbors, const int nlocal, const int nall,
+            const bool force_d, const int me);
 
+  void resize_atom(const int nall, bool &success);
+  void resize_local(const int nlocal, const int max_nbors, bool &success);
   void clear();
  
   double host_memory_usage();
@@ -61,6 +64,7 @@ class GB_GPU_Memory : public LJ_GPU_Memory<numtyp,acctyp> {
   bool multiple_forms;
   int **host_form;
   int last_ellipse;
+  int _max_nbors;
    
  private:
 };

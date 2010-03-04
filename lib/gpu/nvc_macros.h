@@ -20,6 +20,12 @@
 #ifndef NVC_MACROS_H
 #define NVC_MACROS_H
 
+#if defined(__APPLE__)
+#if _GLIBCXX_ATOMIC_BUILTINS == 1
+#undef _GLIBCXX_ATOMIC_BUILTINS
+#endif // _GLIBCXX_ATOMIC_BUILTINS
+#endif // __APPLE__
+
 #include <stdio.h>
 #include "math_constants.h"
 #define INT_MUL(x,y)	(__mul24(x,y))

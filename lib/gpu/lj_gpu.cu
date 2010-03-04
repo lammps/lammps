@@ -74,7 +74,8 @@ EXTERN bool lj_gpu_init(int &ij_size, const int ntypes, double **cutsq,double **
   ij_size=IJ_SIZE;
 
   bool ret = LJMF.init(ij_size, ntypes, cutsq, sigma, epsilon, host_lj1, host_lj2, 
-		       host_lj3, host_lj4, offset, special_lj, max_nbors, gpu_id);
+		       host_lj3, host_lj4, offset, special_lj, max_nbors, gpu_id,
+                       0,0);
 
   ncellx = ceil(((boxhi[0] - boxlo[0]) + 2.0*cell_size) / cell_size);
   ncelly = ceil(((boxhi[1] - boxlo[1]) + 2.0*cell_size) / cell_size);
@@ -100,37 +101,6 @@ EXTERN void lj_gpu_clear() {
   LJMF.clear();
 }
 
-
-// ---------------------------------------------------------------------------
-// Calculate energies and forces for all ij interactions
-// ---------------------------------------------------------------------------
-template <class numtyp, class acctyp>
-void _lj_gpu(LJMT &ljm, const bool eflag, const bool vflag, const bool rebuild){
-  // Compute the block size and grid size to keep all cores busy
-  const int BX=BLOCK_1D;
-
-  int GX=static_cast<int>(ceil(static_cast<double>(ljm.atom.inum())/BX));
-
-  ljm.time_pair.start();
-
-  if (ljm.shared_types)
-    kernel_lj_fast<numtyp,acctyp><<<GX,BX,0,ljm.pair_stream>>>
-           (ljm.special_lj.begin(), ljm.nbor.dev_nbor.begin(), 
-            ljm.nbor.ij.begin(), ljm.nbor.dev_nbor.row_size(), 
-            ljm.atom.ans.begin(), ljm.atom.ans.row_size(), eflag,
-            vflag, ljm.atom.inum(), ljm.atom.nall());
-  else
-    kernel_lj<numtyp,acctyp><<<GX,BX,0,ljm.pair_stream>>>
-           (ljm.special_lj.begin(), ljm.nbor.dev_nbor.begin(), 
-            ljm.nbor.ij.begin(), ljm.nbor.dev_nbor.row_size(), 
-            ljm.atom.ans.begin(), ljm.atom.ans.row_size(), eflag, 
-            vflag, ljm.atom.inum(), ljm.atom.nall());
-	    ljm.time_pair.stop();
-}
-
-EXTERN void lj_gpu(const bool eflag, const bool vflag, const bool rebuild) {
-  _lj_gpu<PRECISION,ACC_PRECISION>(LJMF, eflag,vflag,rebuild);
-}
 
 template <class numtyp, class acctyp>
 double _lj_gpu_cell(LJMT &ljm, double **force, double *virial,

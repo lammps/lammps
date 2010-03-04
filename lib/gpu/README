@@ -74,13 +74,3 @@ NOTE: For Tesla and other graphics cards with compute capability>=1.3,
 NOTE: The gayberne/gpu pair style will only be installed if the ASPHERE
       package has been installed before installing the GPU package in LAMMPS.
       
-                           GPU MEMORY
-
-Upon initialization of the gayberne/gpu pair style, the library will reserve
-memory for 64K atoms per GPU or 70% of each cards GPU memory, whichever value
-is limiting.  The value of 70% can be changed by editing the
-PERCENT_GPU_MEMORY definition in the source file. For gayberne/gpu, the value
-of 64K cannot be increased and is the maximum number of atoms allowed per
-GPU. Using the 'neigh_modify one' modifier in your LAMMPS input script
-can help to increase maximum number of atoms per GPU for cards with
-limited memory.

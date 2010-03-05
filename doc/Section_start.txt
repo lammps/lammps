@@ -916,32 +916,6 @@ the LAMMPS gpu library for single vs double precision.  The latter
 requires that your GPU card supports double precision. The lj/cut/gpu
 pair style does not support double precision.
 
-GPU Memory :h4
-
-There are restrictions on the number of atoms per GPU when running
-the gayberne/gpu pair style. Upon initialization of the gayberne/gpu
-pair style, LAMMPS will reserve memory for 64K atoms per GPU or 70% 
-of each card's GPU memory, whichever value is limiting.  If the GPU
-library is compiled for double precision, the maximum number of 
-atoms per GPU is 32K.  When running a periodic system and/or in 
-parallel, this maximum atom count includes ghost atoms.
-
-The value of 70% can be changed by editing the PERCENT_GPU_MEMORY
-definition in the appopriate lammps/lib/gpu source file.  For the 
-gayberne/gpu pair style, the value of 64K cannot be increased and is
-the maximum number of atoms allowed per GPU.  By default, enough 
-memory to store at least the maximum number of neighbors per atom is
-reserved on the GPU, which is set by the 
-"neigh_modify one"_neigh_modify.html command.  The default value of
-2000 will be very high for many cases.  If memory on the graphics card
-is limiting, the number of atoms allowed can be increased by
-decreasing the maximum number of neighbors.  For example placing,
-
-neigh_modify one 100 :pre
-
-in the input script will decrease the maximum number of neighbors per
-atom to 100, allowing more atoms to be run on the GPU.
-
 :line
 
 2.9 Tips for users of previous LAMMPS versions :h4,link(2_9)

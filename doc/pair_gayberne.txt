@@ -166,16 +166,6 @@ Additional requirements in your input script to run with style
 
 The "newton pair"_newton.html setting must be {off}.
 
-You should use the "neigh_modify one"_neigh_modify.html command and
-set its value to something close (but slightly larger) than the number
-of pairwise neighbors/atom you expect to have in your model.  This is
-a function of the pairwise cutoff.  Note that the default for this
-setting is 2000, which is much larger than most models need.  Unlike
-neighbor lists in LAMMPS itself, the GPU version of this pair style
-uses that setting to allocate memory on the GPU for neighbor
-information.  If the setting is too large, it will limit the number of
-atoms that can be stored on the GPU.
-
 :line
 
 [Mixing, shift, table, tail correction, restart, rRESPA info]:

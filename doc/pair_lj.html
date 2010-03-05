@@ -209,16 +209,6 @@ manual.
 </P>
 <P>The <A HREF = "newton.html">newton pair</A> setting must be <I>off</I>.
 </P>
-<P>You should use the <A HREF = "neigh_modify.html">neigh_modify one</A> command and
-set its value to something close (but slightly larger) than the number
-of pairwise neighbors/atom you expect to have in your model.  This is
-a function of the pairwise cutoff.  Note that the default for this
-setting is 2000, which is much larger than most models need.  Unlike
-neighbor lists in LAMMPS itself, the GPU version of this pair style
-uses that setting to allocate memory on the GPU for neighbor
-information.  If the setting is too large, it will limit the number of
-atoms that can be stored on the GPU.
-</P>
 <HR>
 
 <P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:

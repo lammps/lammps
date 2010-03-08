@@ -193,7 +193,7 @@ void FixIndent::post_force(int vflag)
     domain->remap(ctr);
 
     double radius;
-    if (rstr) radius = input->variable->compute_equal(zvar);
+    if (rstr) radius = input->variable->compute_equal(rvar);
     else radius = rvalue;
 
     double **x = atom->x;

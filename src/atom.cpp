@@ -1528,7 +1528,7 @@ void Atom::add_callback(int flag)
 
 /* ----------------------------------------------------------------------
    unregister a callback to a fix
-   happens when fix is deleted
+   happens when fix is deleted, called by its destructor
    flag = 0 for grow, 1 for restart
 ------------------------------------------------------------------------- */
 
@@ -1541,10 +1541,17 @@ void Atom::delete_callback(const char *id, int flag)
   // compact the list of callbacks
 
   if (flag == 0) {
-    for (int i = ifix; i < nextra_grow-1; i++)
+    int match;
+    for (match = 0; match < nextra_grow; match++)
+      if (extra_grow[match] == ifix) break;
+    for (int i = match; i < nextra_grow-1; i++)
       extra_grow[i] = extra_grow[i+1];
     nextra_grow--;
+
   } else if (flag == 1) {
+    int match;
+    for (match = 0; match < nextra_grow; match++)
+      if (extra_restart[match] == ifix) break;
     for (int i = ifix; i < nextra_restart-1; i++)
       extra_restart[i] = extra_restart[i+1];
     nextra_restart--;

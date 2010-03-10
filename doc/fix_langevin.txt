@@ -34,10 +34,11 @@ fix 1 all langevin 1.0 1.1 100.0 48279 scale 3 1.5 :pre
 
 [Description:]
 
-Apply a Langevin thermostat to a group of atoms which models an
-interaction with a background implicit solvent.  Used with "fix
-nve"_fix_nve.html, this command performs Brownian dynamics (BD), since
-the total force on each atom will have the form:
+Apply a Langevin thermostat as described in "(Schneider)"_#Schneider
+to a group of atoms which models an interaction with a background
+implicit solvent.  Used with "fix nve"_fix_nve.html, this command
+performs Brownian dynamics (BD), since the total force on each atom
+will have the form:
 
 F = Fc + Ff + Fr
 Ff = - (m / damp) v
@@ -187,3 +188,6 @@ The option defaults are scale = 1.0 for all types and tally = no.
 
 :link(Dunweg)
 [(Dunweg)] Dunweg and Paul, Int J of Modern Physics C, 2, 817-27 (1991).
+
+:link(Schneider)
+[(Schneider)] Schneider and Stoll, Phys Rev B, 17, 1302 (1978). 

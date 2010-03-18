@@ -86,6 +86,13 @@ FixPrint::FixPrint(LAMMPS *lmp, int narg, char **arg) :
 
   copy = new char[MAXLINE];
   work = new char[MAXLINE];
+
+  // add nfirst to all computes that store invocation times
+  // since don't know a priori which are invoked via variables by this fix
+  // once in end_of_step() can set timestep for ones actually invoked
+
+  int nfirst = (update->ntimestep/nevery)*nevery + nevery;
+  modify->addstep_compute_all(nfirst);
 }
 
 /* ---------------------------------------------------------------------- */

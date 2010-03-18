@@ -432,7 +432,6 @@ void build_cell_list(double *atom_pos, int *atom_type,
 				 cell_list_gpu.idx, 
 				 cell_list_gpu.natom, d_pos);
     cudaMemset(d_rebuild, 0, sizeof(int));
-    int *temp = (int*)malloc(sizeof(int)*ncell);
     kernel_test_rebuild<<<grid, buffer>>>(cell_list_gpu.pos, 
 					 cell_list_gpu.natom,
 					 d_rebuild);

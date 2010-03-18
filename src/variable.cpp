@@ -1086,7 +1086,6 @@ double Variable::evaluate(char *str, Tree **tree)
 	  else if (group_function(word,contents,tree,
 				  treestack,ntreestack,argstack,nargstack));
 	  else error->all("Invalid math or group function in variable formula");
-
 	  delete [] contents;
 
 	// ----------------

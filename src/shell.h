@@ -28,6 +28,9 @@ class Shell : protected Pointers {
  public:
   Shell(class LAMMPS *);
   void command(int, char **);
+
+ private:
+  int me;
 };
 
 }

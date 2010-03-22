@@ -605,7 +605,6 @@ double FixTTM::compute_vector(int n)
 
 void FixTTM::write_restart(FILE *fp)
 {
- 
   int n = 0;
   double list[1 + nxnodes*nynodes*nznodes];  
   

@@ -605,21 +605,24 @@ double FixTTM::compute_vector(int n)
 
 void FixTTM::write_restart(FILE *fp)
 {
+  double *rlist = (double *) 
+    memory->smalloc((1+nxnodes*nynodes*nznodes)*sizeof(double),"TTM:rlist");
+
   int n = 0;
-  double list[1 + nxnodes*nynodes*nznodes];  
-  
-  list[n++] = seed;
+  rlist[n++] = seed;
  
   for (int ixnode = 0; ixnode < nxnodes; ixnode++)
     for (int iynode = 0; iynode < nynodes; iynode++)
       for (int iznode = 0; iznode < nznodes; iznode++)
-        list[n++] =  T_electron[ixnode][iynode][iznode];
+        rlist[n++] =  T_electron[ixnode][iynode][iznode];
   
   if (comm->me == 0) {
     int size = n * sizeof(double);
     fwrite(&size,sizeof(int),1,fp);
-    fwrite(list,sizeof(double),n,fp);
+    fwrite(rlist,sizeof(double),n,fp);
   }
+
+  memory->sfree(rlist);
 }
 
 /* ----------------------------------------------------------------------
@@ -629,15 +632,16 @@ void FixTTM::write_restart(FILE *fp)
 void FixTTM::restart(char *buf)
 {
   int n = 0;
-  double *list = (double *) buf;
+  double *rlist = (double *) buf;
   
   // the seed must be changed from the initial seed
-  seed = static_cast<int> (2*list[n++]);  
+
+  seed = static_cast<int> (0.5*rlist[n++]);
   
   for (int ixnode = 0; ixnode < nxnodes; ixnode++)
     for (int iynode = 0; iynode < nynodes; iynode++)
       for (int iznode = 0; iznode < nznodes; iznode++)
-        T_electron[ixnode][iynode][iznode] = list[n++];  
+        T_electron[ixnode][iynode][iznode] = rlist[n++];
   
   delete random;
   random = new RanMars(lmp,seed+comm->me);

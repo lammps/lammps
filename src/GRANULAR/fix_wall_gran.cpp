@@ -31,7 +31,7 @@
 
 using namespace LAMMPS_NS;
 
-enum{XPLANE,YPLANE,ZPLANE,ZCYLINDER};
+enum{XPLANE,YPLANE,ZPLANE,ZCYLINDER};    // XYZ PLANE need to be 0,1,2
 enum{HOOKE,HOOKE_HISTORY,HERTZ_HISTORY};
 
 #define BIG 1.0e20
@@ -255,8 +255,10 @@ void FixWallGran::post_force(int vflag)
   vwall[0] = vwall[1] = vwall[2] = 0.0;
   if (wiggle) {
     double arg = omega * (update->ntimestep - time_origin) * dt;
-    wlo = lo + amplitude - amplitude*cos(arg);
-    whi = hi + amplitude - amplitude*cos(arg);
+    if (wallstyle == axis) {
+      wlo = lo + amplitude - amplitude*cos(arg);
+      whi = hi + amplitude - amplitude*cos(arg);
+    }
     vwall[axis] = amplitude*omega*sin(arg);
   } else if (wshear) vwall[axis] = vshear;
 

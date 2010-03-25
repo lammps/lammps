@@ -64,14 +64,14 @@ your input script.  LAMMPS does not use the group until a simullation
 is run.
 
 The {sort} keyword turns on a spatial sorting or reordering of atoms
-within each processor's sub-domain every {Nfreq} timesteps.  This can
-improve cache performance and thus speed-up a LAMMPS simulation, as
-discussed in a paper by "(Meloni)"_#Meloni.  Its efficacy depends on
-the problem size (atoms/processor), how quickly the system becomes
-disordered, and various other factors.  As a general rule, sorting is
-typically more effective at speeding up simulations of liquids as
-opposed to solids.  In tests we have done, the speed-up can range from
-zero to 3-4x.
+within each processor's sub-domain every {Nfreq} timesteps.  If
+{Nfreq} is set to 0, then sorting is turned off.  Sorting can improve
+cache performance and thus speed-up a LAMMPS simulation, as discussed
+in a paper by "(Meloni)"_#Meloni.  Its efficacy depends on the problem
+size (atoms/processor), how quickly the system becomes disordered, and
+various other factors.  As a general rule, sorting is typically more
+effective at speeding up simulations of liquids as opposed to solids.
+In tests we have done, the speed-up can range from zero to 3-4x.
 
 Reordering is peformed every {Nfreq} timesteps during a dynamics run
 or iterations during a minimization.  More precisely, reordering

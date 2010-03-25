@@ -115,7 +115,7 @@ class Fix : protected Pointers {
   virtual void post_integrate_respa(int, int) {}
   virtual void pre_force_respa(int, int, int) {}
   virtual void post_force_respa(int, int, int) {}
-  virtual void final_integrate_respa(int) {}
+  virtual void final_integrate_respa(int, int) {}
 
   virtual void min_pre_exchange() {}
   virtual void min_post_force(int) {}

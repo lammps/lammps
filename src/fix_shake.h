@@ -102,6 +102,7 @@ class FixShake : public Fix {
   void find_clusters();
   int masscheck(double);
   void unconstrained_update();
+  void unconstrained_update_respa(int);
   void shake2(int);
   void shake3(int);
   void shake4(int);

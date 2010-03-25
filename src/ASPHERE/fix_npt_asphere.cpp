@@ -160,9 +160,9 @@ void FixNPTAsphere::initial_integrate(int vflag)
     }
   }
 
-  // remap simulation box and all owned atoms by 1/2 step
+  // remap simulation box by 1/2 step
 
-  remap(0);
+  remap();
 
   // update x by full step for atoms in group
 
@@ -192,10 +192,10 @@ void FixNPTAsphere::initial_integrate(int vflag)
     }
   }
 
-  // remap simulation box and all owned atoms by 1/2 step
+  // remap simulation box by 1/2 step
   // redo KSpace coeffs since volume has changed
 
-  remap(0);
+  remap();
   if (kspace_flag) force->kspace->setup();
 }
 

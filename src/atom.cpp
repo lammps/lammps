@@ -1496,7 +1496,8 @@ void Atom::add_callback(int flag)
 
   // find the fix
   // if find NULL ptr:
-  //   it's this one, since it is deleted at this point in creation
+  //   it's this one, since it is being replaced and has just been deleted
+  //   at this point in re-creation
   // if don't find NULL ptr:
   //   i is set to nfix = new one currently being added at end of list
 

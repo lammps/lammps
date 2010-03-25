@@ -407,9 +407,9 @@ void FixNPH::initial_integrate(int vflag)
     }
   }
 
-  // remap simulation box and all owned atoms by 1/2 step
+  // remap simulation box by 1/2 step
 
-  remap(0);
+  remap();
 
   // x update by full step only for atoms in NPH group
 
@@ -421,10 +421,10 @@ void FixNPH::initial_integrate(int vflag)
     }
   }
 
-  // remap simulation box and all owned atoms by 1/2 step
+  // remap simulation box by 1/2 step
   // redo KSpace coeffs since volume has changed
 
-  remap(0);
+  remap();
   if (kspace_flag) force->kspace->setup();
 }
 
@@ -499,18 +499,8 @@ void FixNPH::final_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixNPH::initial_integrate_respa(int vflag, int ilevel, int flag)
+void FixNPH::initial_integrate_respa(int vflag, int ilevel, int iloop)
 {
-  // if flag = 1, then is 2nd call at outermost level from rRESPA
-  // perform 2nd half of box remap on own + ghost atoms and return
-  // redo KSpace coeffs since volume has changed
-
-  if (flag == 1) {
-    remap(1);
-    if (kspace_flag) force->kspace->setup();
-    return;
-  }
-
   // set timesteps by level
 
   double dtfm;
@@ -578,9 +568,10 @@ void FixNPH::initial_integrate_respa(int vflag, int ilevel, int flag)
       }
     }
 
-    // remap simulation box and all owned atoms by 1/2 step
+    // remap simulation box by 1/2 step
 
-    remap(0);
+    remap();
+    remap2flag = 1;
 
   } else {
 
@@ -607,7 +598,11 @@ void FixNPH::initial_integrate_respa(int vflag, int ilevel, int flag)
     }
   }
 
-  // innermost level - also update x only for atoms in NPH group
+  // innermost level - also update x for atoms in group
+  // if remap2flag:
+  //   this is 1st call at innermost level from rRESPA after 1st half remap
+  //   perform 2nd half of box remap
+  //   redo KSpace coeffs since volume has changed
 
   if (ilevel == 0) {
     for (int i = 0; i < nlocal; i++) {
@@ -617,12 +612,17 @@ void FixNPH::initial_integrate_respa(int vflag, int ilevel, int flag)
 	x[i][2] += dtv * v[i][2];
       }
     }
+    if (remap2flag) {
+      remap();
+      if (kspace_flag) force->kspace->setup();
+      remap2flag = 0;
+    }
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixNPH::final_integrate_respa(int ilevel)
+void FixNPH::final_integrate_respa(int ilevel, int iloop)
 {
   double dtfm;
 
@@ -699,26 +699,24 @@ void FixNPH::couple()
 
 /* ----------------------------------------------------------------------
    change box size
-   remap owned or owned+ghost atoms depending on flag
    remap all atoms or fix group atoms depending on allremap flag
    if rigid bodies exist, scale rigid body centers-of-mass
 ------------------------------------------------------------------------- */
 
-void FixNPH::remap(int flag)
+void FixNPH::remap()
 {
-  int i,n;
+  int i;
   double oldlo,oldhi,ctr;
 
   double **x = atom->x;
   int *mask = atom->mask;
-  if (flag) n = atom->nlocal + atom->nghost;
-  else n = atom->nlocal;
+  int nlocal = atom->nlocal;
 
   // convert pertinent atoms and rigid bodies to lamda coords
 
-  if (allremap) domain->x2lamda(n);
+  if (allremap) domain->x2lamda(nlocal);
   else {
-    for (i = 0; i < n; i++)
+    for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
 	domain->x2lamda(x[i],x[i]);
   }
@@ -744,9 +742,9 @@ void FixNPH::remap(int flag)
 
   // convert pertinent atoms and rigid bodies back to box coords
 
-  if (allremap) domain->lamda2x(n);
+  if (allremap) domain->lamda2x(nlocal);
   else {
-    for (i = 0; i < n; i++)
+    for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
 	domain->lamda2x(x[i],x[i]);
   }

@@ -348,21 +348,21 @@ double Modify::thermo_energy()
    1st half of rRESPA integrate call, only for relevant fixes
 ------------------------------------------------------------------------- */
 
-void Modify::initial_integrate_respa(int vflag, int ilevel, int flag)
+void Modify::initial_integrate_respa(int vflag, int ilevel, int iloop)
 {
   for (int i = 0; i < n_initial_integrate_respa; i++)
     fix[list_initial_integrate_respa[i]]->
-      initial_integrate_respa(vflag,ilevel,flag);
+      initial_integrate_respa(vflag,ilevel,iloop);
 }
 
 /* ----------------------------------------------------------------------
    rRESPA post_integrate call, only for relevant fixes
 ------------------------------------------------------------------------- */
 
-void Modify::post_integrate_respa(int ilevel, int flag)
+void Modify::post_integrate_respa(int ilevel, int iloop)
 {
   for (int i = 0; i < n_post_integrate_respa; i++)
-    fix[list_post_integrate_respa[i]]->post_integrate_respa(ilevel,flag);
+    fix[list_post_integrate_respa[i]]->post_integrate_respa(ilevel,iloop);
 }
 
 /* ----------------------------------------------------------------------
@@ -389,10 +389,10 @@ void Modify::post_force_respa(int vflag, int ilevel, int iloop)
    2nd half of rRESPA integrate call, only for relevant fixes
 ------------------------------------------------------------------------- */
 
-void Modify::final_integrate_respa(int ilevel)
+void Modify::final_integrate_respa(int ilevel, int iloop)
 {
   for (int i = 0; i < n_final_integrate_respa; i++)
-    fix[list_final_integrate_respa[i]]->final_integrate_respa(ilevel);
+    fix[list_final_integrate_respa[i]]->final_integrate_respa(ilevel,iloop);
 }
 
 /* ----------------------------------------------------------------------
@@ -533,8 +533,10 @@ void Modify::add_fix(int narg, char **arg)
   //   error if new style does not match old style
   //     since can't replace it (all when-to-invoke ptrs would be invalid)
   //   warn if new group != old group
-  //   delete old fix
-  //   set ptr to NULL in case new fix scans list of fixes
+  //   delete old fix, but do not call update_callback(),
+  //     since will replace this fix and thus other fix locs will not change
+  //   set ptr to NULL in case new fix scans list of fixes,
+  //     e.g. scan will occur in add_callback() if called by new fix
   // if fix ID does not exist:
   //   set newflag = 1 so create new fix
   //   extend fix and fmask lists as necessary

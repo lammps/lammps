@@ -53,11 +53,11 @@ class Modify : protected Pointers {
   void end_of_step();
   double thermo_energy();
 
-  void initial_integrate_respa(int,int,int);
-  void post_integrate_respa(int,int);
-  void pre_force_respa(int,int,int);
-  void post_force_respa(int,int,int);
-  void final_integrate_respa(int);
+  void initial_integrate_respa(int, int, int);
+  void post_integrate_respa(int, int);
+  void pre_force_respa(int, int, int);
+  void post_force_respa(int, int, int);
+  void final_integrate_respa(int, int);
 
   void min_pre_exchange();
   void min_post_force(int);

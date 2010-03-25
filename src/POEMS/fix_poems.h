@@ -36,7 +36,7 @@ class FixPOEMS : public Fix  {
   void final_integrate();
   void initial_integrate_respa(int, int, int);
   void post_force_respa(int, int, int);
-  void final_integrate_respa(int);
+  void final_integrate_respa(int, int);
 
   void grow_arrays(int);
   void copy_arrays(int, int);

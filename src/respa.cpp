@@ -475,24 +475,17 @@ void Respa::recurse(int ilevel)
 
   for (int iloop = 0; iloop < loop[ilevel]; iloop++) {
 
-    modify->initial_integrate_respa(vflag,ilevel,0);
+    modify->initial_integrate_respa(vflag,ilevel,iloop);
     if (modify->n_post_integrate_respa)
       modify->post_integrate_respa(ilevel,iloop);
 
     if (ilevel) recurse(ilevel-1);
 
-    // at outermost level:
-    //   call initial_integrate w/ flag = 1 so fix NPT,NPH performs
-    //     2nd box deform at correct symmetric position in rRESPA hierarchy
-    //   check on rebuilding neighbor list
+    // at outermost level, check on rebuilding neighbor list
     // at innermost level, communicate
     // at middle levels, do nothing
 
     if (ilevel == nlevels-1) {
-      modify->initial_integrate_respa(vflag,ilevel,1);
-      if (modify->n_post_integrate_respa)
-	modify->post_integrate_respa(ilevel,iloop);
-
       int nflag = neighbor->decide();
       if (nflag) {
 	if (modify->n_pre_exchange) modify->pre_exchange();
@@ -570,7 +563,7 @@ void Respa::recurse(int ilevel)
   
     if (modify->n_post_force_respa)
       modify->post_force_respa(vflag,ilevel,iloop);
-    modify->final_integrate_respa(ilevel);
+    modify->final_integrate_respa(ilevel,iloop);
   }
 
   copy_f_flevel(ilevel);

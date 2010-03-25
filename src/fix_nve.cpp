@@ -145,10 +145,8 @@ void FixNVE::final_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVE::initial_integrate_respa(int vflag, int ilevel, int flag)
+void FixNVE::initial_integrate_respa(int vflag, int ilevel, int iloop)
 {
-  if (flag) return;             // only used by NPT,NPH
-
   dtv = step_respa[ilevel];
   dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
 
@@ -161,7 +159,7 @@ void FixNVE::initial_integrate_respa(int vflag, int ilevel, int flag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVE::final_integrate_respa(int ilevel)
+void FixNVE::final_integrate_respa(int ilevel, int iloop)
 {
   dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
   final_integrate();

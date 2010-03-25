@@ -769,10 +769,8 @@ void FixMove::final_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixMove::initial_integrate_respa(int vflag, int ilevel, int flag)
+void FixMove::initial_integrate_respa(int vflag, int ilevel, int iloop)
 {
-  if (flag) return;             // only used by NPT,NPH
-
   // outermost level - update v and x
   // all other levels - nothing
 
@@ -781,7 +779,7 @@ void FixMove::initial_integrate_respa(int vflag, int ilevel, int flag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixMove::final_integrate_respa(int ilevel)
+void FixMove::final_integrate_respa(int ilevel, int iloop)
 {
   if (ilevel == nlevels_respa-1) final_integrate();
 }

@@ -32,7 +32,7 @@ class FixNVE : public Fix {
   virtual void initial_integrate(int);
   virtual void final_integrate();
   void initial_integrate_respa(int, int, int);
-  void final_integrate_respa(int);
+  void final_integrate_respa(int, int);
   void reset_dt();
 
  protected:

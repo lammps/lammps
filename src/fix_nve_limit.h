@@ -32,7 +32,7 @@ class FixNVELimit : public Fix {
   void initial_integrate(int);
   void final_integrate();
   void initial_integrate_respa(int, int, int);
-  void final_integrate_respa(int);
+  void final_integrate_respa(int, int);
   void reset_dt();
   double compute_scalar();
 

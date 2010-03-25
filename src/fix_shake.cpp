@@ -498,11 +498,9 @@ void FixShake::post_force(int vflag)
   if (update->ntimestep == next_output) stats();
 
   // xshake = unconstrained move with current v,f
-
-  unconstrained_update();
-
   // communicate results if necessary
 
+  unconstrained_update();
   if (nprocs > 1) comm->forward_comm_fix(this);
 
   // virial setup
@@ -510,7 +508,48 @@ void FixShake::post_force(int vflag)
   if (vflag) v_setup(vflag);
   else evflag = 0;
 
-  // loop over clusters
+  // loop over clusters to add constraint forces
+
+  int m;
+  for (int i = 0; i < nlist; i++) {
+    m = list[i];
+    if (shake_flag[m] == 2) shake2(m);
+    else if (shake_flag[m] == 3) shake3(m);
+    else if (shake_flag[m] == 4) shake4(m);
+    else shake3angle(m);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   enforce SHAKE constraints from rRESPA
+   xshake prediction portion is different than Verlet
+------------------------------------------------------------------------- */
+
+void FixShake::post_force_respa(int vflag, int ilevel, int iloop)
+{
+  // call stats only on outermost level
+
+  printf("SHAKE POST FORCE ilevel %d iloop %d\n",ilevel,iloop);
+  stats();
+  //if (ilevel == nlevels_respa-1 && update->ntimestep == next_output) stats();
+
+  // enforce SHAKE constraints on every loop iteration of every rRESPA level
+  // except last loop iteration of inner levels
+
+  if (ilevel < nlevels_respa-1 && iloop == loop_respa[ilevel]-1) return;
+
+  // xshake = unconstrained move with current v,f as function of level
+  // communicate results if necessary
+
+  unconstrained_update_respa(ilevel);
+  if (nprocs > 1) comm->forward_comm_fix(this);
+
+  // virial setup, only need to compute on outermost level
+
+  if (ilevel == nlevels_respa-1 && vflag) v_setup(vflag);
+  else evflag = 0;
+
+  // loop over clusters to add constraint forces
 
   int m;
   for (int i = 0; i < nlist; i++) {
@@ -1192,6 +1231,63 @@ void FixShake::unconstrained_update()
 	xshake[i][0] = x[i][0] + dtv*v[i][0] + dtfmsq*f[i][0];
 	xshake[i][1] = x[i][1] + dtv*v[i][1] + dtfmsq*f[i][1];
 	xshake[i][2] = x[i][2] + dtv*v[i][2] + dtfmsq*f[i][2];
+      } else xshake[i][2] = xshake[i][1] = xshake[i][0] = 0.0;
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   update the unconstrained position of each atom in a rRESPA step
+   only for SHAKE clusters, else set to 0.0
+   assumes NVE update, seems to be accurate enough for NVT,NPT,NPH as well 
+------------------------------------------------------------------------- */
+
+void FixShake::unconstrained_update_respa(int ilevel)
+{
+  // xshake = atom coords after next x update in innermost loop
+  // depends on rRESPA level
+  // for levels > 0 this includes more than one velocity update
+  // xshake = predicted position from call to this routine at level N =
+  // x + dt0 (v + dtN/m fN + 1/2 dt(N-1)/m f(N-1) + ... + 1/2 dt0/m f0)
+  // also set dtfsq = dt0*dtN so that shake2,shake3,etc can use it
+
+  double ***f_level = ((FixRespa *) modify->fix[ifix_respa])->f_level;
+  dtfsq = dtf_inner * step_respa[ilevel];
+
+  double invmass,dtfmsq;
+  int jlevel;
+
+  if (rmass) {
+    for (int i = 0; i < nlocal; i++) {
+      if (shake_flag[i]) {
+	invmass = 1.0 / rmass[i];
+	dtfmsq = dtfsq * invmass;
+	xshake[i][0] = x[i][0] + dtv*v[i][0] + dtfmsq*f[i][0];
+	xshake[i][1] = x[i][1] + dtv*v[i][1] + dtfmsq*f[i][1];
+	xshake[i][2] = x[i][2] + dtv*v[i][2] + dtfmsq*f[i][2];
+	for (jlevel = 0; jlevel < ilevel; jlevel++) {
+	  dtfmsq = dtf_innerhalf * step_respa[jlevel] * invmass;
+	  xshake[i][0] += dtfmsq*f_level[i][jlevel][0];
+	  xshake[i][1] += dtfmsq*f_level[i][jlevel][1];
+	  xshake[i][2] += dtfmsq*f_level[i][jlevel][2];
+	}
+      } else xshake[i][2] = xshake[i][1] = xshake[i][0] = 0.0;
+    }
+
+  } else {
+    for (int i = 0; i < nlocal; i++) {
+      if (shake_flag[i]) {
+	invmass = 1.0 / mass[type[i]];
+	dtfmsq = dtfsq * invmass;
+	xshake[i][0] = x[i][0] + dtv*v[i][0] + dtfmsq*f[i][0];
+	xshake[i][1] = x[i][1] + dtv*v[i][1] + dtfmsq*f[i][1];
+	xshake[i][2] = x[i][2] + dtv*v[i][2] + dtfmsq*f[i][2];
+	for (jlevel = 0; jlevel < ilevel; jlevel++) {
+	  dtfmsq = dtf_innerhalf * step_respa[jlevel] * invmass;
+	  xshake[i][0] += dtfmsq*f_level[i][jlevel][0];
+	  xshake[i][1] += dtfmsq*f_level[i][jlevel][1];
+	  xshake[i][2] += dtfmsq*f_level[i][jlevel][2];
+	}
       } else xshake[i][2] = xshake[i][1] = xshake[i][0] = 0.0;
     }
   }
@@ -1935,6 +2031,10 @@ void FixShake::shake3angle(int m)
 
     v_tally(nlist,list,3.0,v);
   }
+
+  if (i0 < 20)
+    printf("AAA %d %d %d %g %g %g: %g\n",
+	   i0,i1,i2,lamda01,lamda02,lamda12,v[0]);
 }
 
 /* ----------------------------------------------------------------------
@@ -2263,91 +2363,6 @@ int FixShake::unpack_exchange(int nlocal, double *buf)
     shake_type[nlocal][2] = static_cast<int> (buf[m++]);
   }
   return m;
-}
-
-/* ----------------------------------------------------------------------
-   enforce SHAKE constraints from rRESPA
-   prediction portion is different than Verlet
-   rRESPA updating of atom coords is done with full v, but only portions of f
-------------------------------------------------------------------------- */
-
-void FixShake::post_force_respa(int vflag, int ilevel, int iloop)
-{
-  // call stats only on outermost level
-
-  if (ilevel == nlevels_respa-1 && update->ntimestep == next_output) stats();
-
-  // perform SHAKE on every loop iteration of every rRESPA level
-  // except last loop iteration of inner levels
-
-  if (ilevel < nlevels_respa-1 && iloop == loop_respa[ilevel]-1) return;
-  
-  // xshake = atom coords after next x update in innermost loop
-  // depends on rRESPA level
-  // for levels > 0 this includes more than one velocity update
-  // xshake = predicted position from call to this routine at level N =
-  // x + dt0 (v + dtN/m fN + 1/2 dt(N-1)/m f(N-1) + ... + 1/2 dt0/m f0)
-
-  double ***f_level = ((FixRespa *) modify->fix[ifix_respa])->f_level;
-  dtfsq = dtf_inner * step_respa[ilevel];
-
-  double invmass,dtfmsq;
-  int jlevel;
-
-  if (rmass) {
-    for (int i = 0; i < nlocal; i++) {
-      if (shake_flag[i]) {
-	invmass = 1.0 / rmass[i];
-	dtfmsq = dtfsq * invmass;
-	xshake[i][0] = x[i][0] + dtv*v[i][0] + dtfmsq*f[i][0];
-	xshake[i][1] = x[i][1] + dtv*v[i][1] + dtfmsq*f[i][1];
-	xshake[i][2] = x[i][2] + dtv*v[i][2] + dtfmsq*f[i][2];
-	for (jlevel = 0; jlevel < ilevel; jlevel++) {
-	  dtfmsq = dtf_innerhalf * step_respa[jlevel] * invmass;
-	  xshake[i][0] += dtfmsq*f_level[i][jlevel][0];
-	  xshake[i][1] += dtfmsq*f_level[i][jlevel][1];
-	  xshake[i][2] += dtfmsq*f_level[i][jlevel][2];
-	}
-      } else xshake[i][2] = xshake[i][1] = xshake[i][0] = 0.0;
-    }
-
-  } else {
-    for (int i = 0; i < nlocal; i++) {
-      if (shake_flag[i]) {
-	invmass = 1.0 / mass[type[i]];
-	dtfmsq = dtfsq * invmass;
-	xshake[i][0] = x[i][0] + dtv*v[i][0] + dtfmsq*f[i][0];
-	xshake[i][1] = x[i][1] + dtv*v[i][1] + dtfmsq*f[i][1];
-	xshake[i][2] = x[i][2] + dtv*v[i][2] + dtfmsq*f[i][2];
-	for (jlevel = 0; jlevel < ilevel; jlevel++) {
-	  dtfmsq = dtf_innerhalf * step_respa[jlevel] * invmass;
-	  xshake[i][0] += dtfmsq*f_level[i][jlevel][0];
-	  xshake[i][1] += dtfmsq*f_level[i][jlevel][1];
-	  xshake[i][2] += dtfmsq*f_level[i][jlevel][2];
-	}
-      } else xshake[i][2] = xshake[i][1] = xshake[i][0] = 0.0;
-    }
-  }
-
-  // communicate results if necessary
-
-  if (nprocs > 1) comm->forward_comm_fix(this);
-
-  // virial setup
-
-  if (vflag) v_setup(vflag);
-  else evflag = 0;
-
-  // loop over clusters
-
-  int m;
-  for (int i = 0; i < nlist; i++) {
-    m = list[i];
-    if (shake_flag[m] == 2) shake2(m);
-    else if (shake_flag[m] == 3) shake3(m);
-    else if (shake_flag[m] == 4) shake4(m);
-    else shake3angle(m);
-  }
 }
 
 /* ---------------------------------------------------------------------- */

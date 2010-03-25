@@ -34,7 +34,7 @@ class FixNPT : public Fix {
   virtual void initial_integrate(int);
   virtual void final_integrate();
   void initial_integrate_respa(int, int, int);
-  void final_integrate_respa(int);
+  void final_integrate_respa(int, int);
   double compute_scalar();
   void write_restart(FILE *);
   void restart(char *);
@@ -66,13 +66,14 @@ class FixNPT : public Fix {
 
   int nlevels_respa;
   double *step_respa;
+  int remap2flag;                  // flag for performing 2nd half remap()
 
   char *id_temp,*id_press;
   class Compute *temperature,*pressure;
   int tflag,pflag;
 
   void couple();
-  void remap(int);
+  void remap();
 };
 
 }

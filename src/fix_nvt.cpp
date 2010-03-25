@@ -442,10 +442,8 @@ void FixNVT::final_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVT::initial_integrate_respa(int vflag, int ilevel, int flag)
+void FixNVT::initial_integrate_respa(int vflag, int ilevel, int iloop)
 {
-  if (flag) return;             // only used by NPT,NPH
-
   // set timesteps by level
 
   double dtfm;
@@ -567,7 +565,7 @@ void FixNVT::initial_integrate_respa(int vflag, int ilevel, int flag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVT::final_integrate_respa(int ilevel)
+void FixNVT::final_integrate_respa(int ilevel, int iloop)
 {
   // set timesteps by level
 

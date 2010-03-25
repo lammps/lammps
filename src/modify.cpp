@@ -552,7 +552,6 @@ void Modify::add_fix(int narg, char **arg)
     if (fix[ifix]->igroup != igroup && comm->me == 0)
       error->warning("Replacing a fix, but new group != old group");
     delete fix[ifix];
-    atom->update_callback(ifix);
     fix[ifix] = NULL;
   } else {
     newflag = 1;

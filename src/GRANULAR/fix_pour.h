@@ -48,6 +48,7 @@ class FixPour : public Fix {
   double vxlo,vxhi,vylo,vyhi,vy,vz;
   double xlo,xhi,ylo,yhi,zlo,zhi;
   double xc,yc,rc;
+  double grav;
 
   int me,nprocs;
   int *recvcounts,*displs;

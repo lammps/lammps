@@ -164,21 +164,38 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
   recvcounts = new int[nprocs];
   displs = new int[nprocs];
 
+  // grav = gravity in distance/time^2 units
+  // assume grav = -magnitude at this point, enforce in init()
+
+  int ifix;
+  for (ifix = 0; ifix < modify->nfix; ifix++)
+    if (strcmp(modify->fix[ifix]->style,"gravity") == 0) break;
+  if (ifix == modify->nfix) 
+    error->all("No fix gravity defined for fix pour");
+  grav = - ((FixGravity *) modify->fix[ifix])->magnitude * force->ftm2v;
+
   // nfreq = timesteps between insertions
   // should be time for a particle to fall from top of insertion region
   //   to bottom, taking into account that the region may be moving
-  // 1st insertion on next timestep
+  // set these 2 eqs equal to each other, solve for smallest positive t
+  // x = zhi + vz*t + 0.5*grav*t^2
+  // x = zlo + rate*t
+  // gives t = [-(vz-rate) - sqrt((vz-rate)^2 - 2*grav*(zhi-zlo))] / grav
+  // where zhi-zlo > 0, grav < 0, and vz & rate can be either > 0 or < 0
 
   double v_relative,delta;
-  double g = 1.0;
   if (domain->dimension == 3) {
     v_relative = vz - rate;
-    delta = v_relative + sqrt(v_relative*v_relative + 2.0*g*(zhi-zlo)) / g;
+    delta = zhi - zlo;
   } else {
     v_relative = vy - rate;
-    delta = v_relative + sqrt(v_relative*v_relative + 2.0*g*(yhi-ylo)) / g;
+    delta = yhi - ylo;
   }
-  nfreq = static_cast<int> (delta/update->dt + 0.5);
+  double t = 
+    (-v_relative - sqrt(v_relative*v_relative - 2.0*grav*delta)) / grav;
+  nfreq = static_cast<int> (t/update->dt + 0.5);
+
+  // 1st insertion on next timestep
 
   force_reneighbor = 1;
   next_reneighbor = update->ntimestep + 1;
@@ -253,7 +270,7 @@ void FixPour::init()
   for (ifix = 0; ifix < modify->nfix; ifix++)
     if (strcmp(modify->fix[ifix]->style,"gravity") == 0) break;
   if (ifix == modify->nfix) 
-    error->all("Must use fix gravity with fix pour");
+    error->all("No fix gravity defined for fix pour");
 
   double xgrav = ((FixGravity *) modify->fix[ifix])->xgrav;
   double ygrav = ((FixGravity *) modify->fix[ifix])->ygrav;
@@ -268,6 +285,10 @@ void FixPour::init()
 	fabs(zgrav) > EPSILON)
       error->all("Gravity must point in -y to use with fix pour in 2d");
   }
+
+  double gnew = - ((FixGravity *) modify->fix[ifix])->magnitude * force->ftm2v;
+  if (gnew != grav)
+    error->all("Gravity changed since fix pour was created");
 }
 
 /* ----------------------------------------------------------------------
@@ -410,7 +431,6 @@ void FixPour::pre_exchange()
   AtomVec *avec = atom->avec;
   int j,m,flag;
   double denstmp,vxtmp,vytmp,vztmp;
-  double g = 1.0;
   double *sublo = domain->sublo;
   double *subhi = domain->subhi;
 
@@ -426,10 +446,10 @@ void FixPour::pre_exchange()
     if (domain->dimension == 3) {
       vxtmp = vxlo + random->uniform() * (vxhi-vxlo);
       vytmp = vylo + random->uniform() * (vyhi-vylo);
-      vztmp = vz - sqrt(2.0*g*(hi_current-coord[2]));
+      vztmp = vz - sqrt(2.0*grav*(coord[2]-hi_current));
     } else {
       vxtmp = vxlo + random->uniform() * (vxhi-vxlo);
-      vytmp = vy - sqrt(2.0*g*(hi_current-coord[1]));
+      vytmp = vy - sqrt(2.0*grav*(coord[1]-hi_current));
       vztmp = 0.0;
     }
 

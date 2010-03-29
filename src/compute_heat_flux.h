@@ -29,15 +29,11 @@ class ComputeHeatFlux : public Compute {
   ComputeHeatFlux(class LAMMPS *, int, char **);
   ~ComputeHeatFlux();
   void init();
-  void init_list(int, class NeighList *);
   void compute_vector();
 
  private:
-  double **cutsq;
-  class Pair *pair;
-  class NeighList *list;
-  class Compute *atomPE;
-  char *id_atomPE;
+  char *id_ke,*id_pe,*id_stress;
+  class Compute *c_ke,*c_pe,*c_stress;
 };
 
 }

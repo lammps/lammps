@@ -2031,10 +2031,6 @@ void FixShake::shake3angle(int m)
 
     v_tally(nlist,list,3.0,v);
   }
-
-  if (i0 < 20)
-    printf("AAA %d %d %d %g %g %g: %g\n",
-	   i0,i1,i2,lamda01,lamda02,lamda12,v[0]);
 }
 
 /* ----------------------------------------------------------------------

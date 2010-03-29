@@ -12,25 +12,18 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Reese Jones (Sandia)
-                         Philip Howell (Siemens)
-                         Vikas Varsney (Air Force Research Laboratory)
+   Contributing authors: German Samolyuk (ORNL) and
+                         Mario Pinto (Computational Research Lab, Pune, India)
 ------------------------------------------------------------------------- */
 
 #include "math.h"
 #include "string.h"
 #include "compute_heat_flux.h"
 #include "atom.h"
-#include "atom_vec.h"
 #include "update.h"
-#include "force.h"
-#include "comm.h"
-#include "pair.h"
 #include "modify.h"
+#include "force.h"
 #include "group.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -42,23 +35,38 @@ using namespace LAMMPS_NS;
 ComputeHeatFlux::ComputeHeatFlux(LAMMPS *lmp, int narg, char **arg) : 
   Compute(lmp, narg, arg)
 {
-  if (narg != 4) error->all("Illegal compute heat/flux command");
+  if (narg != 6) error->all("Illegal compute heat/flux command");
 
   vector_flag = 1;
   size_vector = 6;
   extvector = 1;
 
-  // store pe/atom ID used by heat flux computation
-  // insure it is valid for pe/atom computation
+  // store ke/atom, pe/atom, stress/atom IDs used by heat flux computation
+  // insure they are valid for these computations
 
   int n = strlen(arg[3]) + 1;
-  id_atomPE = new char[n];
-  strcpy(id_atomPE,arg[3]);
+  id_ke = new char[n];
+  strcpy(id_ke,arg[3]);
 
-  int icompute = modify->find_compute(id_atomPE);
-  if (icompute < 0) error->all("Could not find compute heat/flux compute ID");
-  if (modify->compute[icompute]->peatomflag == 0)
+  n = strlen(arg[4]) + 1;
+  id_pe = new char[n];
+  strcpy(id_pe,arg[4]);
+
+  n = strlen(arg[5]) + 1;
+  id_stress = new char[n];
+  strcpy(id_stress,arg[5]);
+
+  int ike = modify->find_compute(id_ke);
+  int ipe = modify->find_compute(id_pe);
+  int istress = modify->find_compute(id_stress);
+  if (ike < 0 || ipe < 0 || istress < 0)
+    error->all("Could not find compute heat/flux compute ID");
+  if (strcmp(modify->compute[ike]->style,"ke/atom") != 0)
+    error->all("Compute heat/flux compute ID does not compute ke/atom");
+  if (modify->compute[ipe]->peatomflag == 0)
     error->all("Compute heat/flux compute ID does not compute pe/atom");
+  if (modify->compute[istress]->pressatomflag == 0)
+    error->all("Compute heat/flux compute ID does not compute stress/atom");
 
   vector = new double[6];
 }
@@ -67,7 +75,9 @@ ComputeHeatFlux::ComputeHeatFlux(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeHeatFlux::~ComputeHeatFlux()
 { 
-  delete [] id_atomPE;
+  delete [] id_ke;
+  delete [] id_pe;
+  delete [] id_stress;
   delete [] vector;
 }
 
@@ -77,155 +87,81 @@ void ComputeHeatFlux::init()
 {
   // error checks
 
-  if (comm->ghost_velocity == 0)
-    error->all("Compute heat/flux requires ghost atoms store velocity");
+  int ike = modify->find_compute(id_ke);
+  int ipe = modify->find_compute(id_pe);
+  int istress = modify->find_compute(id_stress);
+  if (ike < 0 || ipe < 0 || istress < 0)
+    error->all("Could not find compute heat/flux compute ID");
 
-  if (force->pair == NULL || force->pair->single_enable == 0)
-    error->all("Pair style does not support compute heat/flux");
-
-  int icompute = modify->find_compute(id_atomPE);
-  if (icompute < 0) 
-    error->all("Compute ID for compute heat/flux does not exist");
-  atomPE = modify->compute[icompute];
-
-  pair = force->pair;
-  cutsq = force->pair->cutsq;
-
-  // need an occasional half neighbor list
-
-  int irequest = neighbor->request((void *) this);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->compute = 1;
-  neighbor->requests[irequest]->occasional = 1;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void ComputeHeatFlux::init_list(int id, NeighList *ptr)
-{
-  list = ptr;
+  c_ke = modify->compute[ike];
+  c_pe = modify->compute[ipe];
+  c_stress = modify->compute[istress];
 }
 
 /* ---------------------------------------------------------------------- */
 
 void ComputeHeatFlux::compute_vector()
 {
-  int i,j,ii,jj,inum,jnum,itype,jtype;
-  double xtmp,ytmp,ztmp,delx,dely,delz;
-  double rsq,eng,fpair,factor_coul,factor_lj,factor;
-  double fdotv,massone,ke,pe;
-  int *ilist,*jlist,*numneigh,**firstneigh;
-
   invoked_vector = update->ntimestep;
 
-  double **x = atom->x; 
-  double **v = atom->v; 
-  int *type = atom->type;
+  // invoke 3 computes if they haven't been already
+  
+  if (!(c_ke->invoked_flag & INVOKED_PERATOM)) {
+    c_ke->compute_peratom();
+    c_ke->invoked_flag |= INVOKED_PERATOM;
+  }
+  if (!(c_pe->invoked_flag & INVOKED_PERATOM)) {
+    c_pe->compute_peratom();
+    c_pe->invoked_flag |= INVOKED_PERATOM;
+  }
+  if (!(c_stress->invoked_flag & INVOKED_PERATOM)) {
+    c_stress->compute_peratom();
+    c_stress->invoked_flag |= INVOKED_PERATOM;
+  }
+
+  // heat flux vector = jc[3] + jv[3]
+  // jc[3] = convective portion of heat flux = sum_i (ke_i + pe_i) v_i[3]
+  // jv[3] = virial portion of heat flux = sum_i (stress_tensor_i . v_i[3])
+  // normalization by volume is not included
+
+  double *ke = c_ke->vector_atom;
+  double *pe = c_pe->vector_atom;
+  double **stress = c_stress->array_atom;
+
+  double **v = atom->v;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
-  double *special_coul = force->special_coul;
-  double *special_lj = force->special_lj;
-  int newton_pair = force->newton_pair;
 
-  // invoke half neighbor list (will copy or build if necessary)
-
-  neighbor->build_one(list->index);
-
-  // invoke ghost comm to insure ghost vels are up-to-date
-
-  comm->forward_comm();
-
-  inum = list->inum;
-  ilist = list->ilist;
-  numneigh = list->numneigh;
-  firstneigh = list->firstneigh;
-
-  // heat flux J = \sum_i e_i v_i + \sum_{i<j} (f_ij . v_j) x_ij
-
-  // virial-like contribution
-  // loop over neighbors of my atoms
-  // require either i or j be in compute group
-
-  double Jv[3] = {0.0,0.0,0.0};
-
-  for (ii = 0; ii < inum; ii++) {
-    i = ilist[ii];
-    xtmp = x[i][0];
-    ytmp = x[i][1];
-    ztmp = x[i][2];
-    itype = type[i];
-    jlist = firstneigh[i];
-    jnum = numneigh[i];
-
-    for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-
-      if (j < nall) factor_coul = factor_lj = 1.0;
-      else {
-	factor_coul = special_coul[j/nall];
-	factor_lj   = special_lj[j/nall];
-	j %= nall;
-      }
-
-      if (!(mask[i] & groupbit) && !(mask[j] & groupbit)) continue;
- 
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;
-      jtype = type[j];
-
-      if (rsq < cutsq[itype][jtype]) {
-	eng = pair->single(i,j,itype,jtype,rsq,factor_coul,factor_lj,fpair);
-	
-        if (newton_pair || j < nlocal) factor = 1.0;
-        else factor = 0.5; 
-
-        // symmetrize velocities
-
-        double vx = 0.5*(v[i][0]+v[j][0]);
-        double vy = 0.5*(v[i][1]+v[j][1]);
-        double vz = 0.5*(v[i][2]+v[j][2]);
-        fdotv = factor * fpair * (delx*vx + dely*vy + delz*vz); 
-
-	Jv[0] += fdotv*delx;
-	Jv[1] += fdotv*dely;
-	Jv[2] += fdotv*delz;
-      }                  
-    }                  
-  }
-
-  // energy convection contribution
-  // uses per-atom potential energy
-
-  if (!(atomPE->invoked_flag & INVOKED_PERATOM)) {
-    atomPE->compute_peratom();
-    atomPE->invoked_flag |= INVOKED_PERATOM;
-  }
-
-  double *mass = atom->mass;
-  double *rmass = atom->rmass;
-  double mvv2e = force->mvv2e;
-
-  double Jc[3] = {0.0,0.0,0.0};
+  double jc[3] = {0.0,0.0,0.0};
+  double jv[3] = {0.0,0.0,0.0};
+  double eng;
 
   for (int i = 0; i < nlocal; i++) { 
     if (mask[i] & groupbit) {
-      massone =  (rmass) ? rmass[i] : mass[type[i]];
-      ke = mvv2e * 0.5 * massone *
-	(v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
-      pe = atomPE->vector_atom[i]; 
-      eng = pe + ke;
-      Jc[0] += v[i][0]*eng; 
-      Jc[1] += v[i][1]*eng;
-      Jc[2] += v[i][2]*eng;
+      eng = pe[i] + ke[i];
+      jc[0] += eng*v[i][0]; 
+      jc[1] += eng*v[i][1];
+      jc[2] += eng*v[i][2];
+      jv[0] -= stress[i][0]*v[i][0] + stress[i][3]*v[i][1] + 
+	stress[i][4]*v[i][2];
+      jv[1] -= stress[i][3]*v[i][0] + stress[i][1]*v[i][1] + 
+	stress[i][5]*v[i][2];
+      jv[2] -= stress[i][4]*v[i][0] + stress[i][5]*v[i][1] + 
+	stress[i][2]*v[i][2];
     }
   } 
 
-  // total flux
+  // convert jv from stress*volume to energy units via nktv2p factor
 
-  double data[6] = {Jv[0]+Jc[0],Jv[1]+Jc[1],Jv[2]+Jc[2],
-		    Jc[0],Jc[1],Jc[2]};
+  double nktv2p = force->nktv2p;
+  jv[0] /= nktv2p;
+  jv[1] /= nktv2p;
+  jv[2] /= nktv2p;
+
+  // sum across all procs
+  // 1st 3 terms are total heat flux
+  // 2nd 3 terms are just conductive portion
+  
+  double data[6] = {jc[0]+jv[0],jc[1]+jv[1],jc[2]+jv[2],jc[0],jc[1],jc[2]};
   MPI_Allreduce(data,vector,6,MPI_DOUBLE,MPI_SUM,world);
 }

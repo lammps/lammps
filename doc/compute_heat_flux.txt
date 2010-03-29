@@ -10,65 +10,74 @@ compute heat/flux command :h3
 
 [Syntax:]
 
-compute ID group-ID heat/flux pe-ID :pre
+compute ID group-ID heat/flux ke-ID pe-ID stress-ID :pre
 
 ID, group-ID are documented in "compute"_compute.html command
 heat/flux = style name of this compute command
-pe-ID = ID of a compute that calculates per-atom potential energy :ul
+ke-ID = ID of a compute that calculates per-atom kinetic energy
+pe-ID = ID of a compute that calculates per-atom potential energy
+stress-ID = ID of a compute that calculates per-atom stress :ul
 
 [Examples:]
 
-compute myFlux all heat/flux myPE :pre 
+compute myFlux all heat/flux myKE myPE myStress :pre 
 
 [Description:]
 
 Define a computation that calculates the heat flux vector based on
-interactions between atoms in the specified group.  This can be used
-by itself to measure the heat flux between a hot and cold reservoir of
-particles or to calculate a thermal conductivity using the Green-Kubo
-formalism.
+contributions from atoms in the specified group.  This can be used by
+itself to measure the heat flux into or out of a reservoir of atoms,
+or to calculate a thermal conductivity using the Green-Kubo formalism.
 
 See the "fix thermal/conductivity"_fix_thermal_conductivity.html
 command for details on how to compute thermal conductivity in an
-alternate way, via the Muller-Plathe method.
+alternate way, via the Muller-Plathe method.  See the "fix
+heat"_fix_heat command for a way to control the heat added or
+subtracted to a group of atoms.
 
-The compute takes a {pe-ID} argument which is the ID of a "compute
-pe/atom"_compute_pe_atom.html that calculates per-atom potential
-energy.  Normally, it should be defined for the same group used by
-compute heat/flux, though LAMMPS does not check for this.
+The compute takes three arguments which are IDs of other
+"computes"_compute.html.  One calculates per-atom kinetic energy
+({ke-ID}), one calculates per-atom potential energy ({pe-ID)}, and the
+third calcualtes per-atom stress ({stress-ID}).  These should be
+defined for the same group used by compute heat/flux, though LAMMPS
+does not check for this.
 
 The Green-Kubo formulas relate the ensemble average of the
-auto-correlation of the heat flux J to the thermal conductivity kappa.
-
-:c,image(Eqs/heat_flux_k.jpg)
+auto-correlation of the heat flux J to the thermal conductivity kappa:
 
 :c,image(Eqs/heat_flux_J.jpg)
 
-Ei is the per-atom energy (potential and kinetic).  The potential
-portion is calculated by the compute {pe-ID} specified as an argument
-to the compute heat/flux command.
+:c,image(Eqs/heat_flux_k.jpg)
 
-IMPORTANT NOTE: The per-atom potential energy calculated by the
-{pe-ID} compute should only include pairwise energy, to be consistent
-with the second virial-like term in the formula for J.  Thus if any
-bonds, angles, etc exist in the system, the compute should limit its
-calculation to only the pair contribution.  E.g. it could be defined
-as follows.  Note that if {pair} is not listed as the last argument,
-it will be included by default, but so will other contributions such
-as bond, angle, etc.
+Ei in the first term of the equation for J is the per-atom energy
+(potential and kinetic).  This is calculated by the computes {ke-ID}
+and {pe-ID}.  Si in the second term of the equation for J is the
+per-atom stress tensor calculated by the compute {stress-ID}.  The
+tensor is multiplied by Vi as a 3x3 matrix-vector multiply to yield a
+vector.  Note that as discussed below, the 1/V scaling factor in the
+equation for J is NOT included in the calculation performed by this
+compute; you need to add it for a volume appropriate to the atoms
+included in the calculation.
 
-compute myPE all pe/atom pair :pre
+IMPORTANT NOTE: The "compute pe/atom"_compute_pe_atom.html and
+"compute stress/atom"_compute_stress_atom.html commands have options
+for which terms to include in their calculation (pair, bond, etc).
+The heat flux calculation will thus include exactly the same terms.
+Note that neither of those computes is able to include a long-range
+Coulombic contribution to the per-atom energy or stress.
 
-The second term of the heat flux equation for J is calculated by
-compute heat/flux for pairwise interactions for any I,J pair where one
-of the 2 atoms in is the compute group.
+This compute calculates 6 quantities and stores them in a 6-component
+vector.  The first 3 components are the x, y, z components of the full
+heat flux vector, i.e. (Jx, Jy, Jz).  The next 3 components are the x,
+y, z components of just the convective portion of the flux, i.e. the
+first term in the equation for J above.
 
 :line
 
-These quantities can be output every so many timesteps (e.g. via the
-thermo_style custom command).  Then as post-processing steps, an
-autocorrelation can be performed, its integral estimated, and the
-Green-Kubo formula evaluated.
+The heat flux can be output every so many timesteps (e.g. via the
+"thermo_style custom"_thermo_style.html command).  Then as a
+post-processing operation, an autocorrelation can be performed, its
+integral estimated, and the Green-Kubo formula above evaluated.
 
 Here is an example of this procedure.  First a LAMMPS input script for
 solid Ar is appended below.  A Python script
@@ -79,38 +88,53 @@ produced by the LAMMPS run.  It is invoked as
 correlate.py flux.log -c 3 -s 200 :pre
 
 The resulting data lists the autocorrelation in column 1 and the
-integral of the autocorrelation in column 2.  The integral of the
-correlation needs to be multiplied by V/(kB T^2) times the sample
-interval and the appropriate unit conversion factors.  For real
-"units"_units.html in LAMMPS, this is 2917703220.0 in this case.  The
-final thermal conductivity value obtained is 0.25 W/mK.
+integral of the autocorrelation in column 2.  After running the
+correlate.py script, the value of the integral is ~9e-11.  This has to
+be multiplied by V/(kB T^2) times the sample interval and the
+appropriate unit conversion factors.  For real "units"_units.html in
+LAMMPS,
 
-The 6 components of the vector calculated by this compute are as
-follows.  The first 3 components are the x, y, z components of the
-full heat flux.  The next 3 components are the x, y, z components of
-just the convective portion of the flux, which is the energy per atom
-times the velocity of the atom.
+lamda (KCal/(mol fmsec Ang K)) = V/(k_B*(T^2)) x "thermo" output frequency x timestep :pre
+
+where
+
+V = 10213.257 Angs^3
+k_B = 1.98816 KCal/(mol K)
+T = ~70K :pre
+
+Therefore, lamda = 3.7736e-6 (KCal/(mol fs A K)).
+
+Converting to W/mK gives:
+
+3.7736e-6 * (4182 / (1e-15 * 1e-10 * N_Avogradro)) = 
+3.7736e-6 * 69443.837 = 
+~0.26 W/mK :pre
+
+:line
 
 [Output info:]
 
-This compute calculates a global vector of length 6 (heat flux
-vector), which can be accessed by indices 1-6.  These values can be
-used by any command that uses global vector values from a compute as
-input.  See "this section"_Section_howto.html#4_15 for an overview of
-LAMMPS output options.
+This compute calculates a global vector of length 6 (total heat flux
+vector, followed by conductive heat flux vector), which can be
+accessed by indices 1-6.  These values can be used by any command that
+uses global vector values from a compute as input.  See "this
+section"_Section_howto.html#4_15 for an overview of LAMMPS output
+options.
 
-The vector values calculated by this compute are "extensive".  They
-should be divided by the appropriate volume to get a flux.  The vector
-values will be in energy*velocity "units"_units.html.
+The vector values calculated by this compute are "extensive", meaning
+they scale with the number of atoms in the simulation.  They can be
+divided by the appropriate volume to get a flux, which would then be
+an "intensive" value, meaning independent of the number of atoms in
+the simulation.  Note that if the compute is "all", then the
+appropriate volume to divide by is the simulation box volume.
+However, if a sub-group is used, it should be the volume containing
+those atoms.
 
-[Restrictions:] 
+The vector values will be in energy*velocity "units"_units.html.  Once
+divided by a volume the units will be that of flux, namely
+energy/area/time "units"_units.html
 
-Only pairwise interactions, as defined by the pair_style command, are
-included in this calculation.
-
-This compute requires you to use the "communicate vel
-yes"_communicate.html option so that velocites are stored by ghost
-atoms.
+[Restrictions:] none
 
 [Related commands:]
 
@@ -123,7 +147,6 @@ atoms.
 Sample LAMMPS input script :h4
 
 atom_style      atomic
-communicate	single vel yes
 units 		real
 dimension	3
 boundary	p p p
@@ -153,8 +176,10 @@ run 		8000 :pre
 # -------------- Flux calculation in nve --------------- :pre
 
 reset_timestep  0
-compute	        myPE all pe/atom pair
-compute 	flux all heat/flux myPE
+compute	        myKE all pe/atom
+compute	        myPE all ke/atom
+compute	        myStress all stress/atom
+compute 	flux all heat/flux myKE myPE myStress
 log     	flux.log
 variable        J equal c_flux\[1\]/vol
 thermo_style 	custom step temp v_J 

@@ -178,10 +178,10 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
   // should be time for a particle to fall from top of insertion region
   //   to bottom, taking into account that the region may be moving
   // set these 2 eqs equal to each other, solve for smallest positive t
-  // x = zhi + vz*t + 0.5*grav*t^2
-  // x = zlo + rate*t
-  // gives t = [-(vz-rate) - sqrt((vz-rate)^2 - 2*grav*(zhi-zlo))] / grav
-  // where zhi-zlo > 0, grav < 0, and vz & rate can be either > 0 or < 0
+  //   x = zhi + vz*t + 1/2 grav t^2
+  //   x = zlo + rate*t
+  //   gives t = [-(vz-rate) - sqrt((vz-rate)^2 - 2*grav*(zhi-zlo))] / grav
+  //   where zhi-zlo > 0, grav < 0, and vz & rate can be either > 0 or < 0
 
   double v_relative,delta;
   if (domain->dimension == 3) {
@@ -425,7 +425,10 @@ void FixPour::pre_exchange()
   // group mask set to "all" plus fix group
   // z velocity set to what velocity would be if particle
   //   had fallen from top of insertion region
-  // this gives continuous stream of atoms
+  //   this gives continuous stream of atoms
+  //   solution for v from these 2 eqs, after eliminate t:
+  //     v = vz + grav*t
+  //     coord[2] = hi_current + vz*t + 1/2 grav t^2
   // set npartner for new atom to 0 (assume not touching any others)
 
   AtomVec *avec = atom->avec;
@@ -446,10 +449,10 @@ void FixPour::pre_exchange()
     if (domain->dimension == 3) {
       vxtmp = vxlo + random->uniform() * (vxhi-vxlo);
       vytmp = vylo + random->uniform() * (vyhi-vylo);
-      vztmp = vz - sqrt(2.0*grav*(coord[2]-hi_current));
+      vztmp = -sqrt(vz*vz + 2.0*grav*(coord[2]-hi_current));
     } else {
       vxtmp = vxlo + random->uniform() * (vxhi-vxlo);
-      vytmp = vy - sqrt(2.0*grav*(coord[1]-hi_current));
+      vytmp = -sqrt(vy*vy + 2.0*grav*(coord[1]-hi_current));
       vztmp = 0.0;
     }
 

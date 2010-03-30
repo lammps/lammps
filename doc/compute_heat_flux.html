@@ -56,7 +56,7 @@ auto-correlation of the heat flux J to the thermal conductivity kappa:
 (potential and kinetic).  This is calculated by the computes <I>ke-ID</I>
 and <I>pe-ID</I>.  Si in the second term of the equation for J is the
 per-atom stress tensor calculated by the compute <I>stress-ID</I>.  The
-tensor is multiplied by Vi as a 3x3 matrix-vector multiply to yield a
+tensor multiplies Vi as a 3x3 matrix-vector multiply to yield a
 vector.  Note that as discussed below, the 1/V scaling factor in the
 equation for J is NOT included in the calculation performed by this
 compute; you need to add it for a volume appropriate to the atoms

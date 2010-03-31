@@ -99,7 +99,7 @@ lamda (KCal/(mol fmsec Ang K)) = V/(k_B*(T^2)) x "thermo" output frequency x tim
 where
 
 V = 10213.257 Angs^3
-k_B = 1.98816 KCal/(mol K)
+k_B = 1.98721e-3 KCal/(mol K)
 T = ~70K :pre
 
 Therefore, lamda = 3.7736e-6 (KCal/(mol fs A K)).
@@ -176,8 +176,8 @@ run 		8000 :pre
 # -------------- Flux calculation in nve --------------- :pre
 
 reset_timestep  0
-compute	        myKE all pe/atom
-compute	        myPE all ke/atom
+compute	        myKE all ke/atom
+compute	        myPE all pe/atom
 compute	        myStress all stress/atom
 compute 	flux all heat/flux myKE myPE myStress
 log     	flux.log

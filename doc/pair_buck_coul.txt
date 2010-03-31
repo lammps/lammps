@@ -45,18 +45,18 @@ and Coulombic terms respectively.
 
 The purpose of this pair style is to capture long-range interactions
 resulting from both attractive 1/r^6 Buckingham and Coulombic 1/r
-interactions.  This is done by use of the {flag_lj} and {flag_coul}
+interactions.  This is done by use of the {flag_buck} and {flag_coul}
 settings.  The ""Ismail"_#Ismail paper has more details on when it is
 appropriate to include long-range 1/r^6 interactions, using this
 potential.
 
-If {flag_lj} is set to {long}, no cutoff is used on the Buckingham
+If {flag_buck} is set to {long}, no cutoff is used on the Buckingham
 1/r^6 dispersion term.  The long-range portion is calculated by using
 the "kspace_style ewald/n"_kspace_style.html command.  The specified
 Buckingham cutoff then determines which portion of the Buckingham
 interactions are computed directly by the pair potential versus which
 part is computed in reciprocal space via the Kspace style.  If
-{flag_lj} is set to {cut}, the Buckingham interactions are simply
+{flag_buck} is set to {cut}, the Buckingham interactions are simply
 cutoff, as with "pair_style buck"_pair_buck.html.
 
 If {flag_coul} is set to {long}, no cutoff is used on the Coulombic

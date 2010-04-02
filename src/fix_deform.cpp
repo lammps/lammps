@@ -181,14 +181,14 @@ FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   if ((set[0].style && domain->xperiodic == 0) ||
       (set[1].style && domain->yperiodic == 0) ||
       (set[2].style && domain->zperiodic == 0))
-    error->all("Cannot fix deform on a non-periodic boundary");
+    error->all("Cannot use fix deform on a non-periodic boundary");
 
-  if (set[3].style && (domain->yperiodic == 0 || domain->zperiodic == 0))
-    error->all("Cannot fix deform on a non-periodic boundary");
-  if (set[4].style && (domain->xperiodic == 0 || domain->zperiodic == 0))
-    error->all("Cannot fix deform on a non-periodic boundary");
-  if (set[5].style && (domain->xperiodic == 0 || domain->yperiodic == 0))
-    error->all("Cannot fix deform on a non-periodic boundary");
+  if (set[3].style && domain->zperiodic == 0)
+    error->all("Cannot use fix deform on a 2nd non-periodic boundary");
+  if (set[4].style && domain->zperiodic == 0)
+    error->all("Cannot use fix deform on a 2nd non-periodic boundary");
+  if (set[5].style && domain->yperiodic == 0)
+    error->all("Cannot use fix deform on a 2nd non-periodic boundary");
 
   // apply scaling to FINAL,DELTA,VEL,WIGGLE since they have distance/vel units
 

@@ -44,6 +44,9 @@ namespace MathExtra {
   inline void transpose_times3(const double mat1[3][3], 
                                const double mat2[3][3],
                                double ans[3][3]);
+  inline void times3_transpose(const double mat1[3][3], 
+			       const double mat2[3][3],
+			       double ans[3][3]);
   inline void invert3(const double mat[3][3], double ans[3][3]);
   inline void times_column3(const double mat[3][3], const double*vec,
                             double *ans);
@@ -53,6 +56,7 @@ namespace MathExtra {
                                     double ans[3][3]);
   inline void row_times3(const double *v, const double m[3][3],
                          double *ans);
+  inline void scalar_times3(const double f, double m[3][3]); 
   inline void mldivide3(const double mat[3][3], const double *vec,
                         double *ans, LAMMPS_NS::Error *error);
   inline void write3(const double mat[3][3]);
@@ -210,6 +214,24 @@ void MathExtra::transpose_times3(const double m[3][3], const double m2[3][3],
 }
 
 /* ----------------------------------------------------------------------
+   multiply mat1 times transpose of mat2
+------------------------------------------------------------------------- */
+
+void MathExtra::times3_transpose(const double m[3][3], const double m2[3][3],
+                                 double ans[3][3])
+{
+  ans[0][0] = m[0][0]*m2[0][0]+m[0][1]*m2[0][1]+m[0][2]*m2[0][2];
+  ans[0][1] = m[0][0]*m2[1][0]+m[0][1]*m2[1][1]+m[0][2]*m2[1][2];
+  ans[0][2] = m[0][0]*m2[2][0]+m[0][1]*m2[2][1]+m[0][2]*m2[2][2];
+  ans[1][0] = m[1][0]*m2[0][0]+m[1][1]*m2[0][1]+m[1][2]*m2[0][2];
+  ans[1][1] = m[1][0]*m2[1][0]+m[1][1]*m2[1][1]+m[1][2]*m2[1][2];
+  ans[1][2] = m[1][0]*m2[2][0]+m[1][1]*m2[2][1]+m[1][2]*m2[2][2];
+  ans[2][0] = m[2][0]*m2[0][0]+m[2][1]*m2[0][1]+m[2][2]*m2[0][2];
+  ans[2][1] = m[2][0]*m2[1][0]+m[2][1]*m2[1][1]+m[2][2]*m2[1][2];
+  ans[2][2] = m[2][0]*m2[2][0]+m[2][1]*m2[2][1]+m[2][2]*m2[2][2];
+}
+
+/* ----------------------------------------------------------------------
    invert a matrix
    does NOT checks for singular or badly scaled matrix
 ------------------------------------------------------------------------- */
@@ -283,6 +305,23 @@ void MathExtra::row_times3(const double *v, const double m[3][3],
   ans[0] = m[0][0]*v[0]+v[1]*m[1][0]+v[2]*m[2][0];
   ans[1] = v[0]*m[0][1]+m[1][1]*v[1]+v[2]*m[2][1];
   ans[2] = v[0]*m[0][2]+v[1]*m[1][2]+m[2][2]*v[2];
+}
+
+/* ----------------------------------------------------------------------
+   matrix times scalar, in place
+------------------------------------------------------------------------- */
+
+inline void MathExtra::scalar_times3(const double f, double m[3][3]) 
+{
+  m[0][0] *= f; 
+  m[0][1] *= f;
+  m[0][2] *= f;
+  m[1][0] *= f;
+  m[1][1] *= f;
+  m[1][2] *= f;
+  m[2][0] *= f;
+  m[2][1] *= f;
+  m[2][2] *= f;
 }
 
 /* ----------------------------------------------------------------------

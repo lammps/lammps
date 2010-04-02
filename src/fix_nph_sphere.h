@@ -13,21 +13,21 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(nvt,FixNVT)
+FixStyle(nph/sphere,FixNPHSphere)
 
 #else
 
-#ifndef LMP_FIX_NVT_H
-#define LMP_FIX_NVT_H
+#ifndef LMP_FIX_NPH_SPHERE_H
+#define LMP_FIX_NPH_SPHERE_H
 
-#include "fix_nh.h"
+#include "fix_nh_sphere.h"
 
 namespace LAMMPS_NS {
 
-class FixNVT : public FixNH {
+class FixNPHSphere : public FixNHSphere {
  public:
-  FixNVT(class LAMMPS *, int, char **);
-  ~FixNVT() {}
+  FixNPHSphere(class LAMMPS *, int, char **);
+  ~FixNPHSphere() {}
 };
 
 }

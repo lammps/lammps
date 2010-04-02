@@ -45,8 +45,8 @@ using namespace LAMMPS_NS;
 #define ALPHA_MAX 1.0
 #define ALPHA_REDUCE 0.5
 #define BACKTRACK_SLOPE 0.4
-#define QUADRATIC_TOL 0.1
 #define IDEAL_TOL 1.0e-8
+#define QUADRATIC_TOL 0.1
 #define EPS_QUAD 1.0e-28
 
 // same as in other min classes
@@ -245,6 +245,15 @@ int MinLineSearch::linemin_backtrack(double eoriginal, double &alpha,
     }
   if (nextra_global) modify->min_store();
 
+  // Important diagnostic: test the gradient against energy
+  // double etmp;
+  // double alphatmp = alphamax*1.0e-4;
+  // etmp = alpha_step(alphatmp,1,nfunc);
+  // printf("alpha = %g dele = %g dele_force = %g err = %g\n",
+  //   	    alphatmp,etmp-eoriginal,-alphatmp*fdothall,
+  //        etmp-eoriginal+alphatmp*fdothall);
+  // alpha_step(0.0,1,nfunc);
+
   // backtrack with alpha until energy decrease is sufficient
 
   while (1) {
@@ -254,7 +263,13 @@ int MinLineSearch::linemin_backtrack(double eoriginal, double &alpha,
 
     de_ideal = -BACKTRACK_SLOPE*alpha*fdothall;
     de = ecurrent - eoriginal;
-    if (de <= de_ideal) return 0;
+    if (de <= de_ideal) {
+      if (nextra_global) {
+	int itmp = modify->min_reset_ref();
+	if (itmp) ecurrent = energy_force(1);
+      }
+      return 0;
+    }
 
     // reduce alpha
 
@@ -317,6 +332,7 @@ int MinLineSearch::linemin_quadratic(double eoriginal, double &alpha,
   double delfh,engprev,relerr,alphaprev,fhprev,ff,fh,alpha0,fh0,ff0;
   double dot[2],dotall[2];	
   double *xatom,*x0atom,*fatom,*hatom;
+  double alphamax;
 
   // fdothall = projection of search dir along downhill gradient
   // if search direction is not downhill, exit with error
@@ -336,18 +352,18 @@ int MinLineSearch::linemin_quadratic(double eoriginal, double &alpha,
   if (output->thermo->normflag) fdothall /= atom->natoms;
   if (fdothall <= 0.0) return DOWNHILL;
 
-  // set alpha so no dof is changed by more than max allowed amount
+  // set alphamax so no dof is changed by more than max allowed amount
   // for atom coords, max amount = dmax
   // for extra per-atom dof, max amount = extra_max[]
   // for extra global dof, max amount is set by fix
-  // also insure alpha <= ALPHA_MAX
+  // also insure alphamax <= ALPHA_MAX
   // else will have to backtrack from huge value when forces are tiny
   // if all search dir components are already 0.0, exit with error
 
   hme = 0.0;
   for (i = 0; i < n3; i++) hme = MAX(hme,fabs(h[i]));
   MPI_Allreduce(&hme,&hmaxall,1,MPI_DOUBLE,MPI_MAX,world);
-  alpha = MIN(ALPHA_MAX,dmax/hmaxall);
+  alphamax = MIN(ALPHA_MAX,dmax/hmaxall);
   if (nextra_atom)
     for (m = 0; m < nextra_atom; m++) {
       hme = 0.0;
@@ -355,15 +371,16 @@ int MinLineSearch::linemin_quadratic(double eoriginal, double &alpha,
       n = extra_nlen[m];
       for (i = 0; i < n; i++) hme = MAX(hme,fabs(hatom[i]));
       MPI_Allreduce(&hme,&hmax,1,MPI_DOUBLE,MPI_MAX,world);
-      alpha = MIN(alpha,extra_max[m]/hmax);
+      alphamax = MIN(alphamax,extra_max[m]/hmax);
       hmaxall = MAX(hmaxall,hmax);
     }
   if (nextra_global) {
     double alpha_extra = modify->max_alpha(hextra);
-    alpha = MIN(alpha,alpha_extra);
+    alphamax = MIN(alphamax,alpha_extra);
     for (i = 0; i < nextra_global; i++)
       hmaxall = MAX(hmaxall,fabs(hextra[i]));
   }
+
   if (hmaxall == 0.0) return ZEROFORCE;
 
   // store box and values of all dof at start of linesearch
@@ -382,9 +399,19 @@ int MinLineSearch::linemin_quadratic(double eoriginal, double &alpha,
   // backtrack with alpha until energy decrease is sufficient
   // or until get to small energy change, then perform quadratic projection
 
+  alpha = alphamax;
   fhprev = fdothall;
   engprev = eoriginal;
   alphaprev = 0.0;
+
+  // Important diagnostic: test the gradient against energy
+  // double etmp;
+  // double alphatmp = alphamax*1.0e-4;
+  // etmp = alpha_step(alphatmp,1,nfunc);
+  // printf("alpha = %g dele = %g dele_force = %g err = %g\n",
+  //        alphatmp,etmp-eoriginal,-alphatmp*fdothall,
+  //        etmp-eoriginal+alphatmp*fdothall);
+  // alpha_step(0.0,1,nfunc);
 
   while (1) {
     ecurrent = alpha_step(alpha,1,nfunc);
@@ -437,6 +464,10 @@ int MinLineSearch::linemin_quadratic(double eoriginal, double &alpha,
 
     if (relerr <= QUADRATIC_TOL && alpha0 > 0.0) {
       ecurrent = alpha_step(alpha0,1,nfunc);
+      if (nextra_global) {
+	int itmp = modify->min_reset_ref();
+	if (itmp) ecurrent = energy_force(1);
+      }
       return 0;
     }
 
@@ -444,7 +475,14 @@ int MinLineSearch::linemin_quadratic(double eoriginal, double &alpha,
 
     de_ideal = -BACKTRACK_SLOPE*alpha*fdothall;
     de = ecurrent - eoriginal;
-    if (de <= de_ideal) return 0;
+
+    if (de <= de_ideal) {
+      if (nextra_global) {
+	int itmp = modify->min_reset_ref();
+	if (itmp) ecurrent = energy_force(1);
+      }
+      return 0;
+    }
 
     // save previous state
 

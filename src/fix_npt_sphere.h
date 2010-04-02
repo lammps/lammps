@@ -20,20 +20,14 @@ FixStyle(npt/sphere,FixNPTSphere)
 #ifndef LMP_FIX_NPT_SPHERE_H
 #define LMP_FIX_NPT_SPHERE_H
 
-#include "fix_npt.h"
+#include "fix_nh_sphere.h"
 
 namespace LAMMPS_NS {
 
-class FixNPTSphere : public FixNPT {
+class FixNPTSphere : public FixNHSphere {
  public:
   FixNPTSphere(class LAMMPS *, int, char **);
   ~FixNPTSphere() {}
-  void init();
-  void initial_integrate(int);
-  void final_integrate();
-
- private:
-  double factor_rotate;
 };
 
 }

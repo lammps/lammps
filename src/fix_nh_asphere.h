@@ -11,26 +11,30 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef FIX_CLASS
-
-FixStyle(nvt,FixNVT)
-
-#else
-
-#ifndef LMP_FIX_NVT_H
-#define LMP_FIX_NVT_H
+#ifndef LMP_FIX_NH_ASPHERE_H
+#define LMP_FIX_NH_ASPHERE_H
 
 #include "fix_nh.h"
 
 namespace LAMMPS_NS {
 
-class FixNVT : public FixNH {
+class FixNHAsphere : public FixNH {
  public:
-  FixNVT(class LAMMPS *, int, char **);
-  ~FixNVT() {}
+  FixNHAsphere(class LAMMPS *, int, char **);
+  virtual ~FixNHAsphere();
+  void init();
+
+ protected:
+  double dtq;
+  double **inertia;
+
+  void richardson(double *, double *, double *);
+  void omega_from_mq(double *, double *, double *, double *);
+  void calculate_inertia();
+  void nve_v();
+  void nh_v_temp();
 };
 
 }
 
-#endif
 #endif

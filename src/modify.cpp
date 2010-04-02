@@ -514,6 +514,21 @@ int Modify::min_dof()
 }
 
 /* ----------------------------------------------------------------------
+   reset reference state of fix, only for relevant fixes
+------------------------------------------------------------------------- */
+
+int Modify::min_reset_ref()
+{
+  int itmp,itmpall;
+  itmpall = 0;
+  for (int i = 0; i < n_min_energy; i++) {
+    itmp = fix[list_min_energy[i]]->min_reset_ref();
+    if (itmp) itmpall = 1;
+  }
+  return itmpall;
+}
+
+/* ----------------------------------------------------------------------
    add a new fix or replace one with same ID
 ------------------------------------------------------------------------- */
 

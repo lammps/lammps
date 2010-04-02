@@ -38,7 +38,7 @@ class FixPressBerendsen : public Fix {
   int dimension,which;
   double bulkmodulus;
 
-  int press_couple,allremap;
+  int pstyle,pcouple,allremap;
   int p_flag[3];                   // 1 if control P on this dim, 0 if not
   double p_start[3],p_stop[3];
   double p_period[3],p_target[3];

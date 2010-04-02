@@ -1,0 +1,1872 @@
+/* ----------------------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under 
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   Contributing authors: Mark Stevens (SNL), Aidan Thompson (SNL)
+------------------------------------------------------------------------- */
+
+#include "string.h"
+#include "stdlib.h"
+#include "math.h"
+#include "fix_nh.h"
+#include "atom.h"
+#include "force.h"
+#include "comm.h"
+#include "modify.h"
+#include "fix_deform.h"
+#include "compute.h"
+#include "kspace.h"
+#include "update.h"
+#include "respa.h"
+#include "domain.h"
+#include "memory.h"
+#include "error.h"
+#include "math_extra.h"
+
+using namespace LAMMPS_NS;
+
+#define MIN(A,B) ((A) < (B)) ? (A) : (B)
+#define MAX(A,B) ((A) > (B)) ? (A) : (B)
+
+enum{NOBIAS,BIAS};
+enum{NONE,XYZ,XY,YZ,XZ};
+enum{ISO,ANISO,TRICLINIC};
+
+/* ----------------------------------------------------------------------
+   NVT,NPH,NPT integrators for improved Nose-Hoover equations of motion 
+ ---------------------------------------------------------------------- */
+
+FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
+{
+  if (narg < 4) error->all("Illegal fix nvt/npt/nph command");
+
+  restart_global = 1;
+  time_integrate = 1;
+  scalar_flag = 1;
+  vector_flag = 1;
+  global_freq = 1;
+  extscalar = 1;
+  extvector = 0;
+
+  // default values
+
+  pcouple = NONE;
+  drag = 0.0;
+  allremap = 1;
+  mtchain = mpchain = 3;
+  nc_tchain = nc_pchain = 1;
+  mtk_flag = 1;
+  deviatoric_flag = 0;
+  nreset_h0 = 0;
+
+  tstat_flag = 0;
+  double t_period = 0.0;
+
+  double p_period[6];
+  for (int i = 0; i < 6; i++) {
+    p_start[i] = p_stop[i] = p_period[i] = 0.0;
+    p_flag[i] = 0;
+    p_period[i] = 0.0;
+  }
+
+  // process keywords
+
+  dimension = domain->dimension;
+
+  int iarg = 3;
+
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"temp") == 0) {
+      if (iarg+4 > narg) error->all("Illegal fix nvt/npt/nph command");
+      tstat_flag = 1;
+      t_start = atof(arg[iarg+1]);
+      t_stop = atof(arg[iarg+2]);
+      t_period = atof(arg[iarg+3]);
+      if (t_start < 0.0 || t_stop <= 0.0)
+	error->all("Target T for fix nvt/npt/nph cannot be 0.0");
+      iarg += 4;
+
+    } else if (strcmp(arg[iarg],"iso") == 0) {
+      if (iarg+4 > narg) error->all("Illegal fix nvt/npt/nph command");
+      pcouple = XYZ;
+      p_start[0] = p_start[1] = p_start[2] = atof(arg[iarg+1]);
+      p_stop[0] = p_stop[1] = p_stop[2] = atof(arg[iarg+2]);
+      p_period[0] = p_period[1] = p_period[2] = atof(arg[iarg+3]);
+      p_flag[0] = p_flag[1] = p_flag[2] = 1;
+      if (dimension == 2) {
+	p_start[2] = p_stop[2] = p_period[2] = 0.0;
+	p_flag[2] = 0;
+      }
+      iarg += 4; 
+    } else if (strcmp(arg[iarg],"aniso") == 0) {
+      if (iarg+4 > narg) error->all("Illegal fix nvt/npt/nph command");
+      pcouple = NONE;
+      p_start[0] = p_start[1] = p_start[2] = atof(arg[iarg+1]);
+      p_stop[0] = p_stop[1] = p_stop[2] = atof(arg[iarg+2]);
+      p_period[0] = p_period[1] = p_period[2] = atof(arg[iarg+3]);
+      p_flag[0] = p_flag[1] = p_flag[2] = 1;
+      if (dimension == 2) {
+	p_start[2] = p_stop[2] = p_period[2] = 0.0;
+	p_flag[2] = 0;
+      }
+      iarg += 4;
+    } else if (strcmp(arg[iarg],"tri") == 0) {
+      if (iarg+4 > narg) error->all("Illegal fix nvt/npt/nph command");
+      pcouple = NONE;
+      p_start[0] = p_start[1] = p_start[2] = atof(arg[iarg+1]);
+      p_stop[0] = p_stop[1] = p_stop[2] = atof(arg[iarg+2]);
+      p_period[0] = p_period[1] = p_period[2] = atof(arg[iarg+3]);
+      p_flag[0] = p_flag[1] = p_flag[2] = 1;
+      p_start[3] = p_start[4] = p_start[5] = 0.0;
+      p_stop[3] = p_stop[4] = p_stop[5] = 0.0;
+      p_period[3] = p_period[4] = p_period[5] = atof(arg[iarg+3]);
+      p_flag[3] = p_flag[4] = p_flag[5] = 1;
+      if (dimension == 2) {
+	p_start[2] = p_stop[2] = p_period[2] = 0.0;
+	p_flag[2] = 0;
+	p_start[3] = p_stop[3] = p_period[3] = 0.0;
+	p_flag[3] = 0;
+	p_start[4] = p_stop[4] = p_period[4] = 0.0;
+	p_flag[4] = 0;
+      }
+      iarg += 4;
+
+    } else if (strcmp(arg[iarg],"x") == 0) {
+      if (iarg+4 > narg) error->all("Illegal fix nvt/npt/nph command");
+      p_start[0] = atof(arg[iarg+1]);
+      p_stop[0] = atof(arg[iarg+2]);
+      p_period[0] = atof(arg[iarg+3]);
+      p_flag[0] = 1;
+      deviatoric_flag = 1;
+      iarg += 4; 
+    } else if (strcmp(arg[iarg],"y") == 0) {
+      if (iarg+4 > narg) error->all("Illegal fix nvt/npt/nph command");
+      p_start[1] = atof(arg[iarg+1]);
+      p_stop[1] = atof(arg[iarg+2]);
+      p_period[1] = atof(arg[iarg+3]);
+      p_flag[1] = 1;
+      deviatoric_flag = 1;
+      iarg += 4; 
+    } else if (strcmp(arg[iarg],"z") == 0) {
+      if (iarg+4 > narg) error->all("Illegal fix nvt/npt/nph command");
+      p_start[2] = atof(arg[iarg+1]);
+      p_stop[2] = atof(arg[iarg+2]);
+      p_period[2] = atof(arg[iarg+3]);
+      p_flag[2] = 1;
+      deviatoric_flag = 1;
+      iarg += 4; 
+      if (dimension == 2)
+	error->all("Invalid fix nvt/npt/nph command for a 2d simulation");
+
+    } else if (strcmp(arg[iarg],"yz") == 0) {
+      if (iarg+4 > narg) error->all("Illegal fix nvt/npt/nph command");
+      p_start[3] = atof(arg[iarg+1]);
+      p_stop[3] = atof(arg[iarg+2]);
+      p_period[3] = atof(arg[iarg+3]);
+      p_flag[3] = 1;
+      deviatoric_flag = 1;
+      iarg += 4; 
+      if (dimension == 2)
+	error->all("Invalid fix nvt/npt/nph command for a 2d simulation");
+    } else if (strcmp(arg[iarg],"xz") == 0) {
+      if (iarg+4 > narg) error->all("Illegal fix nvt/npt/nph command");
+      p_start[4] = atof(arg[iarg+1]);
+      p_stop[4] = atof(arg[iarg+2]);
+      p_period[4] = atof(arg[iarg+3]);
+      p_flag[4] = 1;
+      deviatoric_flag = 1;
+      iarg += 4; 
+      if (dimension == 2)
+	error->all("Invalid fix nvt/npt/nph command for a 2d simulation");
+    } else if (strcmp(arg[iarg],"xy") == 0) {
+      if (iarg+4 > narg) error->all("Illegal fix nvt/npt/nph command");
+      p_start[5] = atof(arg[iarg+1]);
+      p_stop[5] = atof(arg[iarg+2]);
+      p_period[5] = atof(arg[iarg+3]);
+      p_flag[5] = 1;
+      deviatoric_flag = 1;
+      iarg += 4; 
+
+    } else if (strcmp(arg[iarg],"couple") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix nvt/npt/nph command");
+      if (strcmp(arg[iarg+1],"xyz") == 0) pcouple = XYZ;
+      else if (strcmp(arg[iarg+1],"xy") == 0) pcouple = XY;
+      else if (strcmp(arg[iarg+1],"yz") == 0) pcouple = YZ;
+      else if (strcmp(arg[iarg+1],"xz") == 0) pcouple = XZ;
+      else if (strcmp(arg[iarg+1],"none") == 0) pcouple = NONE;
+      else error->all("Illegal fix nvt/npt/nph command");
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"drag") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix nvt/npt/nph command");
+      drag = atof(arg[iarg+1]);
+      if (drag < 0.0) error->all("Illegal fix nvt/npt/nph command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"dilate") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix nvt/npt/nph command");
+      if (strcmp(arg[iarg+1],"all") == 0) allremap = 1;
+      else if (strcmp(arg[iarg+1],"partial") == 0) allremap = 0;
+      else error->all("Illegal fix nvt/npt/nph command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"tchain") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix nvt/npt/nph command");
+      mtchain = atoi(arg[iarg+1]);
+      if (mtchain < 1) error->all("Illegal fix nvt/npt/nph command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"pchain") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix nvt/npt/nph command");
+      mpchain = atoi(arg[iarg+1]);
+      if (mpchain < 0) error->all("Illegal fix nvt/npt/nph command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"mtk") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix nvt/npt/nph command");
+      if (strcmp(arg[iarg+1],"yes") == 0) mtk_flag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) mtk_flag = 0;
+      else error->all("Illegal fix nvt/npt/nph command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"tloop") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix nvt/npt/nph command");
+      nc_tchain = atoi(arg[iarg+1]);
+      if (nc_tchain < 0) error->all("Illegal fix nvt/npt/nph command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"ploop") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix nvt/npt/nph command");
+      nc_pchain = atoi(arg[iarg+1]);
+      if (nc_pchain < 0) error->all("Illegal fix nvt/npt/nph command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"nreset") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix nvt/npt/nph command");
+      nreset_h0 = atoi(arg[iarg+1]);
+      if (nreset_h0 < 0) error->all("Illegal fix nvt/npt/nph command");
+      iarg += 2;
+    } else error->all("Illegal fix nvt/npt/nph command");
+  }
+
+  // error checks
+
+  if (dimension == 2 && (p_flag[2] || p_flag[3] || p_flag[4]))
+    error->all("Invalid fix nvt/npt/nph command for a 2d simulation");
+  if (dimension == 2 && (pcouple == YZ || pcouple == XZ))
+    error->all("Invalid fix nvt/npt/nph command for a 2d simulation");
+
+  if (pcouple == XYZ && (p_flag[0] == 0 || p_flag[1] == 0 || p_flag[2] == 0))
+    error->all("Invalid fix nvt/npt/nph command pressure settings");
+  if (pcouple == XY && (p_flag[0] == 0 || p_flag[1] == 0))
+    error->all("Invalid fix nvt/npt/nph command pressure settings");
+  if (pcouple == YZ && (p_flag[1] == 0 || p_flag[2] == 0))
+    error->all("Invalid fix nvt/npt/nph command pressure settings");
+  if (pcouple == XZ && (p_flag[0] == 0 || p_flag[2] == 0))
+    error->all("Invalid fix nvt/npt/nph command pressure settings");
+
+  if (p_flag[0] && domain->xperiodic == 0)
+    error->all("Cannot use fix nvt/npt/nph on a non-periodic dimension");
+  if (p_flag[1] && domain->yperiodic == 0)
+    error->all("Cannot use fix nvt/npt/nph on a non-periodic dimension");
+  if (p_flag[2] && domain->zperiodic == 0)
+    error->all("Cannot use fix nvt/npt/nph on a non-periodic dimension");
+  if (p_flag[3] && domain->zperiodic == 0)
+    error->all("Cannot use fix nvt/npt/nph on a 2nd non-periodic dimension");
+  if (p_flag[4] && domain->zperiodic == 0)
+    error->all("Cannot use fix nvt/npt/nph on a 2nd non-periodic dimension");
+  if (p_flag[5] && domain->yperiodic == 0)
+    error->all("Cannot use fix nvt/npt/nph on a 2nd non-periodic dimension");
+
+  if (!domain->triclinic && (p_flag[3] || p_flag[4] || p_flag[5])) 
+    error->all("Can not specify Pxy/Pxz/Pyz in "
+	       "fix nvt/npt/nph with non-triclinic box");
+
+  if (pcouple == XYZ &&
+      (p_start[0] != p_start[1] || p_start[0] != p_start[2] || 
+       p_stop[0] != p_stop[1] || p_stop[0] != p_stop[2] || 
+       p_period[0] != p_period[1] || p_period[0] != p_period[2]))
+    error->all("Invalid fix nvt/npt/nph pressure settings");
+  if (pcouple == XY && 
+      (p_start[0] != p_start[1] || p_stop[0] != p_stop[1] || 
+       p_period[0] != p_period[1]))
+    error->all("Invalid fix nvt/npt/nph pressure settings");
+  if (pcouple == YZ && 
+      (p_start[1] != p_start[2] || p_stop[1] != p_stop[2] ||
+       p_period[1] != p_period[2]))
+    error->all("Invalid fix nvt/npt/nph pressure settings");
+  if (pcouple == XZ && 
+      (p_start[0] != p_start[2] || p_stop[0] != p_stop[2] ||
+       p_period[0] != p_period[2]))
+    error->all("Invalid fix nvt/npt/nph pressure settings");
+
+  if ((tstat_flag && t_period <= 0.0) || 
+      (p_flag[0] && p_period[0] <= 0.0) || 
+      (p_flag[1] && p_period[1] <= 0.0) || 
+      (p_flag[2] && p_period[2] <= 0.0) ||
+      (p_flag[3] && p_period[3] <= 0.0) || 
+      (p_flag[4] && p_period[4] <= 0.0) || 
+      (p_flag[5] && p_period[5] <= 0.0))
+    error->all("Fix nvt/npt/nph damping parameters must be > 0.0");
+
+  // set pstat_flag and box change variables
+
+  pstat_flag = 0;
+  for (int i = 0; i < 6; i++)
+    if (p_flag[i]) pstat_flag = 1;
+
+  if (pstat_flag) {
+    box_change = 1;
+    no_change_box = 1;
+  }
+
+  // pstyle = TRICLINIC if any off-diagonal term is controlled -> 6 dof
+  // else pstyle = ISO if XYZ coupling or XY coupling in 2d -> 1 dof
+  // else pstyle = ANISO -> 3 dof
+
+  if (p_flag[3] || p_flag[4] || p_flag[5]) pstyle = TRICLINIC;
+  else if (pcouple == XYZ || (dimension == 2 && pcouple == XY)) pstyle = ISO;
+  else pstyle = ANISO;
+
+  // convert input periods to frequencies
+
+  t_freq = 0.0;
+  p_freq[0] = p_freq[1] = p_freq[2] = p_freq[3] = p_freq[4] = p_freq[5] = 0.0;
+
+  if (tstat_flag) t_freq = 1.0 / t_period;
+  if (p_flag[0]) p_freq[0] = 1.0 / p_period[0];
+  if (p_flag[1]) p_freq[1] = 1.0 / p_period[1];
+  if (p_flag[2]) p_freq[2] = 1.0 / p_period[2];
+  if (p_flag[3]) p_freq[3] = 1.0 / p_period[3];
+  if (p_flag[4]) p_freq[4] = 1.0 / p_period[4];
+  if (p_flag[5]) p_freq[5] = 1.0 / p_period[5];
+
+  // Nose/Hoover temp and pressure init
+
+  size_vector = 0;
+
+  if (tstat_flag) {
+    int ich;
+    eta = new double[mtchain];
+
+    // add one extra dummy thermostat, set to zero
+
+    eta_dot = new double[mtchain+1];
+    eta_dot[mtchain] = 0.0;
+    eta_dotdot = new double[mtchain];
+    for (ich = 0; ich < mtchain; ich++) {
+      eta[ich] = eta_dot[ich] = eta_dotdot[ich] = 0.0;
+    }
+    eta_mass = new double[mtchain];
+    size_vector += 2*2*mtchain;
+  }
+
+  if (pstat_flag) {
+    omega[0] = omega[1] = omega[2] = 0.0;
+    omega_dot[0] = omega_dot[1] = omega_dot[2] = 0.0;
+    omega_mass[0] = omega_mass[1] = omega_mass[2] = 0.0;
+    omega[3] = omega[4] = omega[5] = 0.0;
+    omega_dot[3] = omega_dot[4] = omega_dot[5] = 0.0;
+    omega_mass[3] = omega_mass[4] = omega_mass[5] = 0.0;
+    if (pstyle == ISO) size_vector += 2*2*1;
+    else if (pstyle == ANISO) size_vector += 2*2*3;
+    else if (pstyle == TRICLINIC) size_vector += 2*2*6;
+    
+    if (mpchain) {
+      int ich;
+      etap = new double[mpchain];
+
+      // add one extra dummy thermostat, set to zero
+
+      etap_dot = new double[mpchain+1];
+      etap_dot[mpchain] = 0.0;
+      etap_dotdot = new double[mpchain];
+      for (ich = 0; ich < mpchain; ich++) {
+	etap[ich] = etap_dot[ich] = 
+	  etap_dotdot[ich] = 0.0;
+      }
+      etap_mass = new double[mpchain];
+      size_vector += 2*2*mpchain;
+    }
+
+    if (deviatoric_flag) size_vector += 1;
+  }
+
+  nrigid = 0;
+  rfix = NULL;
+
+  // initialize vol0,t0 to zero to signal uninitialized
+  // values then assigned in init(), if necessary
+
+  vol0 = t0 = 0.0;
+}
+  
+/* ---------------------------------------------------------------------- */
+  
+FixNH::~FixNH()
+{
+  delete [] rfix;
+
+  // delete temperature and pressure if fix created them
+
+  if (tflag) modify->delete_compute(id_temp);
+  delete [] id_temp;
+
+  if (tstat_flag) {
+    delete [] eta;
+    delete [] eta_dot;
+    delete [] eta_dotdot;
+    delete [] eta_mass;
+  }
+
+  if (pstat_flag) {
+    if (pflag) modify->delete_compute(id_press);
+    delete [] id_press;
+    if (mpchain) {
+      delete [] etap;
+      delete [] etap_dot;
+      delete [] etap_dotdot;
+      delete [] etap_mass;
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixNH::setmask()
+{
+  int mask = 0;
+  mask |= INITIAL_INTEGRATE;
+  mask |= FINAL_INTEGRATE;
+  mask |= THERMO_ENERGY;
+  mask |= INITIAL_INTEGRATE_RESPA;
+  mask |= FINAL_INTEGRATE_RESPA;
+  return mask;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixNH::init()
+{
+  // insure no conflict with fix deform
+
+  if (pstat_flag)
+    for (int i = 0; i < modify->nfix; i++)
+      if (strcmp(modify->fix[i]->style,"deform") == 0) {
+	int *dimflag = ((FixDeform *) modify->fix[i])->dimflag;
+	if ((p_flag[0] && dimflag[0]) || (p_flag[1] && dimflag[1]) || 
+	    (p_flag[2] && dimflag[2]) || (p_flag[3] && dimflag[3]) || 
+	    (p_flag[4] && dimflag[4]) || (p_flag[5] && dimflag[5]))
+	  error->all("Cannot use fix npt and fix deform on "
+		     "same component of stress tensor");
+      }
+
+  // set temperature and pressure ptrs
+
+  int icompute = modify->find_compute(id_temp);
+  if (icompute < 0) 
+    error->all("Temperature ID for fix nvt/nph/npt does not exist");
+  temperature = modify->compute[icompute];
+
+  if (temperature->tempbias) which = BIAS;
+  else which = NOBIAS;
+
+  if (pstat_flag) {
+    icompute = modify->find_compute(id_press);
+    if (icompute < 0) error->all("Pressure ID for fix npt/nph does not exist");
+    pressure = modify->compute[icompute];
+  }
+
+  // set timesteps and frequencies
+
+  dtv = update->dt;
+  dtf = 0.5 * update->dt * force->ftm2v;
+  dthalf = 0.5 * update->dt;
+  dt4 = 0.25 * update->dt;
+  dt8 = 0.125 * update->dt;
+
+  p_freq_max = 0.0;
+  if (pstat_flag) {
+    p_freq_max = MAX(p_freq[0],p_freq[1]);
+    p_freq_max = MAX(p_freq_max,p_freq[2]);
+    if (pstyle == TRICLINIC) {
+      p_freq_max = MAX(p_freq_max,p_freq[3]);
+      p_freq_max = MAX(p_freq_max,p_freq[4]);
+      p_freq_max = MAX(p_freq_max,p_freq[5]);
+    }
+    drag_factor = 1.0 - (update->dt * p_freq_max * drag);
+  }
+
+  if (tstat_flag)
+    drag_factor = 1.0 - (update->dt * MAX(p_freq_max,t_freq) * drag);
+
+  // tally the number of dimensions that are barostatted
+  // also compute the initial volume and reference cell  
+  // set initial volume and reference cell, if not already done
+
+  if (pstat_flag) {
+    pdim = p_flag[0] + p_flag[1] + p_flag[2];
+    if (vol0 == 0.0) {
+      if (dimension == 3) vol0 = domain->xprd * domain->yprd * domain->zprd;
+      else vol0 = domain->xprd * domain->yprd;
+      h0_inv[0] = domain->h_inv[0];
+      h0_inv[1] = domain->h_inv[1];
+      h0_inv[2] = domain->h_inv[2];
+      h0_inv[3] = domain->h_inv[3];
+      h0_inv[4] = domain->h_inv[4];
+      h0_inv[5] = domain->h_inv[5];
+    }
+  }
+
+  boltz = force->boltz;
+  nktv2p = force->nktv2p;
+
+  if (force->kspace) kspace_flag = 1;
+  else kspace_flag = 0;
+
+  if (strcmp(update->integrate_style,"respa") == 0) {
+    nlevels_respa = ((Respa *) update->integrate)->nlevels;
+    step_respa = ((Respa *) update->integrate)->step;
+  }
+
+  // detect if any rigid fixes exist so rigid bodies move when box is remapped
+  // rfix[] = indices to each fix rigid
+
+  delete [] rfix;
+  nrigid = 0;
+  rfix = NULL;
+
+  for (int i = 0; i < modify->nfix; i++)
+    if (modify->fix[i]->rigid_flag) nrigid++;
+  if (nrigid) {
+    rfix = new int[nrigid];
+    nrigid = 0;
+    for (int i = 0; i < modify->nfix; i++)
+      if (modify->fix[i]->rigid_flag) rfix[nrigid++] = i;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   compute T,P before integrator starts 
+------------------------------------------------------------------------- */
+
+void FixNH::setup(int vflag)
+{
+  // initialize some quantities that were not available earlier
+
+  if (mtk_flag) mtk_factor = 1.0 + 1.0/atom->natoms;
+  else mtk_factor = 1.0;
+  tdof = temperature->dof;
+
+  // t_target is used by compute_scalar(), even for NPH
+
+  if (tstat_flag) t_target = t_start;                      
+  else if (pstat_flag) {
+
+    // t0 = initial value for piston mass and energy conservation
+    // cannot be done in init() b/c temperature cannot be called there
+    // is b/c Modify::init() inits computes after fixes due to dof dependence
+    // guesstimate a unit-dependent t0 if actual T = 0.0
+    // if it was read in from a restart file, leave it be
+
+    if (t0 == 0.0) {
+      t0 = temperature->compute_scalar();
+      if (t0 == 0.0) {
+	if (strcmp(update->unit_style,"lj") == 0) t0 = 1.0;
+	else t0 = 300.0;
+      }
+    }
+    t_target = t0;
+  }
+
+  if (pstat_flag) compute_press_target();
+
+  t_current = temperature->compute_scalar();
+  if (pstat_flag) {
+    if (pstyle == ISO) double tmp = pressure->compute_scalar();
+    else pressure->compute_vector();
+    couple();
+    pressure->addstep(update->ntimestep+1);
+  }
+
+  // initial forces on thermostat variables
+
+  if (tstat_flag) {
+    eta_mass[0] = tdof * boltz * t_target / (t_freq*t_freq);
+    for (int ich = 1; ich < mtchain; ich++)
+      eta_mass[ich] = boltz * t_target / (t_freq*t_freq);
+    for (int ich = 1; ich < mtchain; ich++) {
+      eta_dotdot[ich] = (eta_mass[ich-1]*eta_dot[ich-1]*eta_dot[ich-1] -
+			 boltz*t_target) / eta_mass[ich];
+    }
+  }
+
+  if (pstat_flag) {
+    double kt = boltz * t_target;
+    double nkt = atom->natoms * kt;
+
+    for (int i = 0; i < 3; i++)
+      if (p_flag[i])
+	omega_mass[i] = nkt/(p_freq[i]*p_freq[i]);
+
+    if (pstyle == TRICLINIC) {
+      for (int i = 3; i < 6; i++)
+	if (p_flag[i]) omega_mass[i] = nkt/(p_freq[i]*p_freq[i]);
+    }
+
+  // initial forces on barostat thermostat variables
+
+    if (mpchain) {
+      etap_mass[0] = boltz * t_target / (p_freq_max*p_freq_max);
+      for (int ich = 1; ich < mpchain; ich++)
+	etap_mass[ich] = boltz * t_target / (p_freq_max*p_freq_max);
+      for (int ich = 1; ich < mpchain; ich++)
+	etap_dotdot[ich] = 
+	  (etap_mass[ich-1]*etap_dot[ich-1]*etap_dot[ich-1] -
+	   boltz*t_target) / etap_mass[ich];
+    }
+
+    // compute appropriately coupled elements of mvv_current
+
+    if (mtk_flag) couple_ke();
+  }
+}
+
+/* ----------------------------------------------------------------------
+   1st half of Verlet update 
+------------------------------------------------------------------------- */
+
+void FixNH::initial_integrate(int vflag)
+{
+  // update eta_press_dot
+
+  if (pstat_flag && mpchain) nhc_press_integrate();
+
+  // update eta_dot
+
+  if (tstat_flag) {
+    double delta = update->ntimestep - update->beginstep;
+    delta /= update->endstep - update->beginstep;
+    t_target = t_start + delta * (t_stop-t_start);
+    eta_mass[0] = tdof * boltz * t_target / (t_freq*t_freq);
+    for (int ich = 1; ich < mtchain; ich++)
+      eta_mass[ich] = boltz * t_target / (t_freq*t_freq);
+    nhc_temp_integrate();
+  }
+
+  // need to recompute pressure to account for change in KE
+  // t_current is up-to-date, but compute_temperature is not
+  // compute appropriately coupled elements of mvv_current
+
+  if (pstat_flag) {
+    if (pstyle == ISO) {
+      temperature->compute_scalar();
+      double tmp = pressure->compute_scalar();
+    } else {
+      temperature->compute_vector();
+      pressure->compute_vector();
+    }
+    couple();
+    pressure->addstep(update->ntimestep+1);
+    if (mtk_flag) couple_ke();
+  }
+
+  if (pstat_flag) {
+    compute_press_target();
+    nh_omega_dot();
+    nh_v_press();
+  }
+
+  nve_v();
+
+  // remap simulation box by 1/2 step
+
+  if (pstat_flag) remap();
+
+  nve_x();
+
+  // remap simulation box by 1/2 step
+  // redo KSpace coeffs since volume has changed
+
+  if (pstat_flag) {
+    remap();
+    if (kspace_flag) force->kspace->setup();
+  }
+}
+
+/* ----------------------------------------------------------------------
+   2nd half of Verlet update 
+------------------------------------------------------------------------- */
+
+void FixNH::final_integrate()
+{
+  nve_v();
+
+  if (pstat_flag) nh_v_press();
+
+  // compute new T,P
+  // compute appropriately coupled elements of mvv_current
+
+  t_current = temperature->compute_scalar();
+  if (pstat_flag) {
+    if (pstyle == ISO) double tmp = pressure->compute_scalar();
+    else pressure->compute_vector();
+    couple();
+    pressure->addstep(update->ntimestep+1);
+    if (mtk_flag) couple_ke();
+  }
+
+  if (pstat_flag) nh_omega_dot();
+
+  // update eta_dot
+
+  if (tstat_flag) nhc_temp_integrate();
+
+  // update eta_press_dot
+
+  if (pstat_flag && mpchain) nhc_press_integrate();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixNH::initial_integrate_respa(int vflag, int ilevel, int iloop)
+{
+  int i;
+
+  // set timesteps by level
+
+  dtv = step_respa[ilevel];
+  dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
+  dthalf = 0.5 * step_respa[ilevel];
+
+  // outermost level - update eta_dot and omega_dot, apply to v, remap box
+  // all other levels - NVE update of v
+  // x,v updates only performed for atoms in group
+
+  if (ilevel == nlevels_respa-1) {
+
+    // update eta_press_dot
+    
+    if (pstat_flag && mpchain) nhc_press_integrate();
+
+    // update eta_dot
+
+    if (tstat_flag) {
+      double delta = update->ntimestep - update->beginstep;
+      delta /= update->endstep - update->beginstep;
+      t_target = t_start + delta * (t_stop-t_start);
+      eta_mass[0] = tdof * boltz * t_target / (t_freq*t_freq);
+      for (int ich = 1; ich < mtchain; ich++)
+	eta_mass[ich] = boltz * t_target / (t_freq*t_freq);
+      nhc_temp_integrate();
+    }
+
+    // recompute pressure to account for change in KE
+    // t_current is up-to-date, but compute_temperature is not
+    // compute appropriately coupled elements of mvv_current
+
+    if (pstat_flag) {
+      if (pstyle == ISO) {
+	temperature->compute_scalar();
+	double tmp = pressure->compute_scalar();
+      } else {
+	temperature->compute_vector();
+	pressure->compute_vector();
+      }
+      couple();
+      pressure->addstep(update->ntimestep+1);
+      if (mtk_flag) couple_ke();
+    }
+
+    if (pstat_flag) {
+      compute_press_target();
+      nh_omega_dot();
+      nh_v_press();
+    }
+
+    nve_v();
+
+    // remap simulation box by 1/2 step
+
+    if (pstat_flag) remap();
+
+  } else nve_v();
+
+  // innermost level - also update x only for atoms in group
+  // if iloop = 0, then is 1st call at innermost level from rRESPA
+  // perform 2nd half of box remap
+  // redo KSpace coeffs since volume has changed
+
+  if (ilevel == 0) {
+    nve_x();
+    if (iloop == 0) {
+      remap();
+      if (kspace_flag) force->kspace->setup();
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixNH::final_integrate_respa(int ilevel, int iloop)
+{
+  // set timesteps by level
+
+  dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
+  dthalf = 0.5 * step_respa[ilevel];
+
+  // outermost level - update eta_dot and omega_dot, apply via final_integrate
+  // all other levels - NVE update of v
+
+  if (ilevel == nlevels_respa-1) final_integrate();
+  else nve_v();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixNH::couple()
+{
+  double *tensor = pressure->vector;
+
+  if (pstyle == ISO)
+    p_current[0] = p_current[1] = p_current[2] = pressure->scalar;
+  else if (pcouple == XYZ) {
+    double ave = 1.0/3.0 * (tensor[0] + tensor[1] + tensor[2]);
+    p_current[0] = p_current[1] = p_current[2] = ave;
+  } else if (pcouple == XY) {
+    double ave = 0.5 * (tensor[0] + tensor[1]);
+    p_current[0] = p_current[1] = ave;
+    p_current[2] = tensor[2];
+  } else if (pcouple == YZ) {
+    double ave = 0.5 * (tensor[1] + tensor[2]);
+    p_current[1] = p_current[2] = ave;
+    p_current[0] = tensor[0];
+  } else if (pcouple == XZ) {
+    double ave = 0.5 * (tensor[0] + tensor[2]);
+    p_current[0] = p_current[2] = ave;
+    p_current[1] = tensor[1];
+  } else {
+    p_current[0] = tensor[0];
+    p_current[1] = tensor[1];
+    p_current[2] = tensor[2];
+  }
+  
+  // switch order from xy-xz-yz to Voigt 
+  
+  if (pstyle == TRICLINIC) {
+    p_current[3] = tensor[5];
+    p_current[4] = tensor[4];
+    p_current[5] = tensor[3];
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixNH::couple_ke()
+{
+  double *tensor = temperature->vector;
+
+  if (pstyle == ISO)
+    mvv_current[0] = mvv_current[1] = mvv_current[2] = 
+      tdof * boltz * t_current/dimension;
+  else if (pcouple == XYZ) {
+    double ave = 1.0/3.0 * (tensor[0] + tensor[1] + tensor[2]);
+    mvv_current[0] = mvv_current[1] = mvv_current[2] = ave;
+  } else if (pcouple == XY) {
+    double ave = 0.5 * (tensor[0] + tensor[1]);
+    mvv_current[0] = mvv_current[1] = ave;
+    mvv_current[2] = tensor[2];
+  } else if (pcouple == YZ) {
+    double ave = 0.5 * (tensor[1] + tensor[2]);
+    mvv_current[1] = mvv_current[2] = ave;
+    mvv_current[0] = tensor[0];
+  } else if (pcouple == XZ) {
+    double ave = 0.5 * (tensor[0] + tensor[2]);
+    mvv_current[0] = mvv_current[2] = ave;
+    mvv_current[1] = tensor[1];
+  } else {
+    mvv_current[0] = tensor[0];
+    mvv_current[1] = tensor[1];
+    mvv_current[2] = tensor[2];
+  }
+}
+
+/* ----------------------------------------------------------------------
+   change box size
+   remap all atoms or fix group atoms depending on allremap flag
+   if rigid bodies exist, scale rigid body centers-of-mass
+------------------------------------------------------------------------- */
+
+void FixNH::remap()
+{
+  int i;
+  double oldlo,oldhi,ctr;
+
+  double **x = atom->x;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  // convert pertinent atoms and rigid bodies to lamda coords
+
+  if (allremap) domain->x2lamda(nlocal);
+  else {
+    for (i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit)
+	domain->x2lamda(x[i],x[i]);
+  }
+
+  if (nrigid)
+    for (i = 0; i < nrigid; i++)
+      modify->fix[rfix[i]]->deform(0);
+
+  // reset global and local box to new size/shape
+
+  if (pstyle == TRICLINIC) {
+    domain->yz += domain->zprd*dilation[3]; 
+    domain->xz += domain->zprd*dilation[4]; 
+    domain->xy += domain->yprd*dilation[5]; 
+    
+    if (domain->yz < -0.5*domain->yprd || domain->yz > 0.5*domain->yprd ||
+	domain->xz < -0.5*domain->xprd || domain->xz > 0.5*domain->xprd ||
+	domain->xy < -0.5*domain->xprd || domain->xy > 0.5*domain->xprd)
+      error->all("fix npt/nph has tilted box beyond 45 degrees");
+  }
+
+  for (i = 0; i < 3; i++) {
+    if (p_flag[i]) {
+      oldlo = domain->boxlo[i];
+      oldhi = domain->boxhi[i];
+      ctr = 0.5 * (oldlo + oldhi);
+      domain->boxlo[i] = (oldlo-ctr)*dilation[i] + ctr;
+      domain->boxhi[i] = (oldhi-ctr)*dilation[i] + ctr;
+    }
+  }
+
+  domain->set_global_box();
+  domain->set_local_box();
+
+  // convert pertinent atoms and rigid bodies back to box coords
+
+  if (allremap) domain->lamda2x(nlocal);
+  else {
+    for (i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit)
+	domain->lamda2x(x[i],x[i]);
+  }
+
+  if (nrigid)
+    for (i = 0; i < nrigid; i++)
+      modify->fix[rfix[i]]->deform(1);
+}
+
+/* ----------------------------------------------------------------------
+   pack entire state of Fix into one write 
+------------------------------------------------------------------------- */
+
+void FixNH::write_restart(FILE *fp)
+{
+  int nsize = 2;
+  if (tstat_flag) nsize += 1 + 2*mtchain;
+  if (pstat_flag) {
+    nsize += 16 + 2*mpchain;
+    if (deviatoric_flag) nsize += 6;
+  }
+
+  double* list = (double *) memory->smalloc(nsize*sizeof(double),"nh:list");
+
+  int n = 0;
+
+  list[n++] = tstat_flag;
+  if (tstat_flag) {
+    list[n++] = mtchain;
+    for (int ich = 0; ich < mtchain; ich++)
+      list[n++] = eta[ich];
+    for (int ich = 0; ich < mtchain; ich++)
+      list[n++] = eta_dot[ich];
+  }
+
+  list[n++] = pstat_flag;
+  if (pstat_flag) {
+    list[n++] = omega[0];
+    list[n++] = omega[1];
+    list[n++] = omega[2];
+    list[n++] = omega[3];
+    list[n++] = omega[4];
+    list[n++] = omega[5];
+    list[n++] = omega_dot[0];
+    list[n++] = omega_dot[1];
+    list[n++] = omega_dot[2];
+    list[n++] = omega_dot[3];
+    list[n++] = omega_dot[4];
+    list[n++] = omega_dot[5];
+    list[n++] = vol0;
+    list[n++] = t0;
+    list[n++] = mpchain;
+    if (mpchain) {
+      for (int ich = 0; ich < mpchain; ich++)
+	list[n++] = etap[ich];
+      for (int ich = 0; ich < mpchain; ich++)
+	list[n++] = etap_dot[ich];
+    }
+
+    list[n++] = deviatoric_flag;
+    if (deviatoric_flag) {
+      list[n++] = h0_inv[0];
+      list[n++] = h0_inv[1];
+      list[n++] = h0_inv[2];
+      list[n++] = h0_inv[3];
+      list[n++] = h0_inv[4];
+      list[n++] = h0_inv[5];
+    }
+  }
+
+  if (comm->me == 0) {
+    int size = nsize * sizeof(double);
+    fwrite(&size,sizeof(int),1,fp);
+    fwrite(list,sizeof(double),nsize,fp);
+  }
+
+  memory->sfree(list);
+}
+
+/* ----------------------------------------------------------------------
+   use state info from restart file to restart the Fix 
+------------------------------------------------------------------------- */
+
+void FixNH::restart(char *buf)
+{
+  int n = 0;
+  double *list = (double *) buf;
+  int flag = static_cast<int> (list[n++]);
+  if (flag) {
+    int m = static_cast<int> (list[n++]);
+    if (tstat_flag && m == mtchain) {
+      for (int ich = 0; ich < mtchain; ich++)
+	eta[ich] = list[n++];
+      for (int ich = 0; ich < mtchain; ich++)
+	eta_dot[ich] = list[n++];
+    } else n += 2*m;
+  }
+  flag = static_cast<int> (list[n++]);
+  if (flag) {
+    omega[0] = list[n++];
+    omega[1] = list[n++];
+    omega[2] = list[n++];
+    omega[3] = list[n++];
+    omega[4] = list[n++];
+    omega[5] = list[n++];
+    omega_dot[0] = list[n++];
+    omega_dot[1] = list[n++];
+    omega_dot[2] = list[n++];
+    omega_dot[3] = list[n++];
+    omega_dot[4] = list[n++];
+    omega_dot[5] = list[n++];
+    vol0 = list[n++];
+    t0 = list[n++];
+    int m = static_cast<int> (list[n++]);
+    if (pstat_flag && m == mpchain) {
+      for (int ich = 0; ich < mpchain; ich++)
+	etap[ich] = list[n++];
+      for (int ich = 0; ich < mpchain; ich++)
+	etap_dot[ich] = list[n++];
+    } else n+=2*m;
+    flag = static_cast<int> (list[n++]);
+    if (flag) {
+      h0_inv[0] = list[n++];
+      h0_inv[1] = list[n++];
+      h0_inv[2] = list[n++];
+      h0_inv[3] = list[n++];
+      h0_inv[4] = list[n++];
+      h0_inv[5] = list[n++];
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixNH::modify_param(int narg, char **arg)
+{
+  if (strcmp(arg[0],"temp") == 0) {
+    if (narg < 2) error->all("Illegal fix_modify command");
+    if (tflag) {
+      modify->delete_compute(id_temp);
+      tflag = 0;
+    }
+    delete [] id_temp;
+    int n = strlen(arg[1]) + 1;
+    id_temp = new char[n];
+    strcpy(id_temp,arg[1]);
+
+    int icompute = modify->find_compute(arg[1]);
+    if (icompute < 0) error->all("Could not find fix_modify temperature ID");
+    temperature = modify->compute[icompute];
+
+    if (temperature->tempflag == 0)
+      error->all("Fix_modify temperature ID does not compute temperature");
+    if (temperature->igroup != 0 && comm->me == 0)
+      error->warning("Temperature for fix modify is not for group all");
+
+    // reset id_temp of pressure to new temperature ID
+
+    if (pstat_flag) {
+      icompute = modify->find_compute(id_press);
+      if (icompute < 0) 
+	error->all("Pressure ID for fix modify does not exist");
+      modify->compute[icompute]->reset_extra_compute_fix(id_temp);
+    }
+
+    return 2;
+
+  } else if (strcmp(arg[0],"press") == 0) {
+    if (narg < 2) error->all("Illegal fix_modify command");
+    if (!pstat_flag) error->all("Illegal fix_modify command");
+    if (pflag) {
+      modify->delete_compute(id_press);
+      pflag = 0;
+    }
+    delete [] id_press;
+    int n = strlen(arg[1]) + 1;
+    id_press = new char[n];
+    strcpy(id_press,arg[1]);
+
+    int icompute = modify->find_compute(arg[1]);
+    if (icompute < 0) error->all("Could not find fix_modify pressure ID");
+    pressure = modify->compute[icompute];
+
+    if (pressure->pressflag == 0)
+      error->all("Fix_modify pressure ID does not compute pressure");
+    return 2;
+  }
+
+  return 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double FixNH::compute_scalar()
+{
+  int i;
+  double volume;
+  double energy;
+  double kt = boltz * t_target;
+  double lkt = tdof * kt;
+  double lkt_press = kt;
+  int ich;
+  if (dimension == 3) volume = domain->xprd * domain->yprd * domain->zprd;
+  else volume = domain->xprd * domain->yprd;
+
+  energy = 0.0;
+
+  // thermostat chain energy is equivalent to Eq. (2) in
+  // Martyna, Tuckerman, Tobias, Klein, Mol Phys, 87, 1117
+  // Sum(0.5*p_eta_k^2/Q_k,k=1,M) + L*k*T*eta_1 + Sum(k*T*eta_k,k=2,M),
+  // where L = tdof
+  //       M = mtchain
+  //       p_eta_k = Q_k*eta_dot[k-1]
+  //       Q_1 = L*k*T/t_freq^2
+  //       Q_k = k*T/t_freq^2, k > 1 
+
+  if (tstat_flag) {
+    energy += lkt * eta[0] + 0.5*eta_mass[0]*eta_dot[0]*eta_dot[0];
+    for (ich = 1; ich < mtchain; ich++)
+      energy += kt * eta[ich] + 0.5*eta_mass[ich]*eta_dot[ich]*eta_dot[ich];
+  }
+
+  if (pstat_flag) { 
+    // barostat energy is equivalent to Eq. (8) in
+    // Martyna, Tuckerman, Tobias, Klein, Mol Phys, 87, 1117
+    // Sum(0.5*p_omega^2/W + P*V),
+    // where N = natoms
+    //       p_omega = W*omega_dot
+    //       W = N*k*T/p_freq^2
+    //       sum is over barostatted dimensions
+
+    for (i = 0; i < 3; i++)
+      if (p_flag[i])
+	energy += 0.5*omega_dot[i]*omega_dot[i]*omega_mass[i] +
+	  p_hydro*(volume-vol0) / (pdim*nktv2p);
+
+    if (pstyle == TRICLINIC) {
+      for (i = 3; i < 6; i++)
+	if (p_flag[i])
+	  energy += 0.5*omega_dot[i]*omega_dot[i]*omega_mass[i]; 
+    }
+
+    // extra contributions from thermostat chain for barostat
+
+    if (mpchain) {
+      energy += lkt_press * etap[0] + 0.5*etap_mass[0]*etap_dot[0]*etap_dot[0];
+      for (ich = 1; ich < mpchain; ich++)
+	energy += kt * etap[ich] + 
+	  0.5*etap_mass[ich]*etap_dot[ich]*etap_dot[ich];
+    }
+
+    // extra contribution from strain energy
+
+    if (deviatoric_flag) energy += compute_strain_energy();
+  }
+
+  return energy;
+}
+
+/* ----------------------------------------------------------------------
+   return a single element of the following vectors, in this order:
+      eta[tchain], eta_dot[tchain], omega[ndof], omega_dot[ndof]
+      etap[pchain], etap_dot[pchain], PE_eta[tchain], KE_eta_dot[tchain]
+      PE_omega[ndof], KE_omega_dot[ndof], PE_etap[pchain], KE_etap_dot[pchain]
+      PE_strain[1]
+  if no thermostat exists, related quantities are omitted from the list
+  if no barostat exists, related quantities are omitted from the list
+  ndof = 1,3,6 degrees of freedom for pstyle = ISO,ANISO,TRI
+------------------------------------------------------------------------- */
+
+double FixNH::compute_vector(int n)
+{
+  int ilen;
+
+  if (tstat_flag) { 
+    ilen = mtchain;
+    if (n < ilen) return eta[n];
+    n -= ilen;
+    ilen = mtchain;
+    if (n < ilen) return eta_dot[n];
+    n -= ilen;
+  }
+
+  if (pstat_flag) { 
+    if (pstyle == ISO) {
+      ilen = 1;
+      if (n < ilen) return omega[n];
+      n -= ilen;
+    } else if (pstyle == ANISO) {
+      ilen = 3;
+      if (n < ilen) return omega[n];
+      n -= ilen;
+    } else {
+      ilen = 6;
+      if (n < ilen) return omega[n];
+      n -= ilen;
+    }
+    
+    if (pstyle == ISO) {
+      ilen = 1;
+      if (n < ilen) return omega_dot[n];
+      n -= ilen;
+    } else if (pstyle == ANISO) {
+      ilen = 3;
+      if (n < ilen) return omega_dot[n];
+      n -= ilen;
+    } else {
+      ilen = 6;
+      if (n < ilen) return omega_dot[n];
+      n -= ilen;
+    }
+    
+    if (mpchain) {
+      ilen = mpchain;
+      if (n < ilen) return etap[n];
+      n -= ilen;
+      ilen = mpchain;
+      if (n < ilen) return etap_dot[n];
+      n -= ilen;
+    }
+  }
+
+  int i;
+  double volume;
+  double kt = boltz * t_target;
+  double lkt = tdof * kt;
+  double lkt_press = kt;
+  int ich;
+  if (dimension == 3) volume = domain->xprd * domain->yprd * domain->zprd;
+  else volume = domain->xprd * domain->yprd;
+
+  if (tstat_flag) { 
+    ilen = mtchain;
+    if (n < ilen) { 
+      ich = n;
+      if (ich == 0)
+	return lkt * eta[0];
+      else
+	return kt * eta[ich];
+    }
+    n -= ilen;
+    ilen = mtchain;
+    if (n < ilen) {
+      ich = n;
+      if (ich == 0)
+	return 0.5*eta_mass[0]*eta_dot[0]*eta_dot[0];
+      else
+	return 0.5*eta_mass[ich]*eta_dot[ich]*eta_dot[ich];
+    }
+    n -= ilen;
+  }
+
+  if (pstat_flag) { 
+    if (pstyle == ISO) {
+      ilen = 1;
+      if (n < ilen) 
+	return p_hydro*(volume-vol0) / nktv2p;
+      n -= ilen;
+    } else if (pstyle == ANISO) {
+      ilen = 3;
+      if (n < ilen) 
+	if (p_flag[n])
+	  return p_hydro*(volume-vol0) / (pdim*nktv2p);
+	else
+	  return 0.0;
+      n -= ilen;
+    } else {
+      ilen = 6;
+      if (n < ilen)
+	if (n > 2) return 0.0;
+	else if (p_flag[n])
+	  return p_hydro*(volume-vol0) / (pdim*nktv2p);
+	else
+	  return 0.0;
+      n -= ilen;
+    }
+    
+    if (pstyle == ISO) {
+      ilen = 1;
+      if (n < ilen) 
+	return 0.5*omega_dot[n]*omega_dot[n]*omega_mass[n];
+      n -= ilen;
+    } else if (pstyle == ANISO) {
+      ilen = 3;
+      if (n < ilen) 
+	if (p_flag[n])
+	  return 0.5*omega_dot[n]*omega_dot[n]*omega_mass[n];
+	else return 0.0;
+      n -= ilen;
+    } else {
+      ilen = 6;
+      if (n < ilen)
+	if (p_flag[n])
+	  return 0.5*omega_dot[n]*omega_dot[n]*omega_mass[n];
+	else return 0.0;
+      n -= ilen;
+    }
+    
+    if (mpchain) {
+      ilen = mpchain;
+      if (n < ilen) {
+	ich = n;
+	if (ich == 0) return lkt_press * etap[0];
+	else return kt * etap[ich];
+      }
+      n -= ilen;
+      ilen = mpchain;
+      if (n < ilen) {
+	ich = n;
+	if (ich == 0)
+	  return 0.5*etap_mass[0]*etap_dot[0]*etap_dot[0];
+	else
+	  return 0.5*etap_mass[ich]*etap_dot[ich]*etap_dot[ich];
+      }
+      n -= ilen;
+    }
+
+    if (deviatoric_flag) {
+      ilen = 1;
+      if (n < ilen)
+	return compute_strain_energy();
+      n -= ilen;
+    }
+  }
+
+  return 0.0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixNH::reset_dt()
+{
+  dtv = update->dt;
+  dtf = 0.5 * update->dt * force->ftm2v;
+  dthalf = 0.5 * update->dt;
+  dt4 = 0.25 * update->dt;
+  dt8 = 0.125 * update->dt;
+  
+  p_freq_max = 0.0;
+  if (pstat_flag) {
+    p_freq_max = MAX(p_freq[0],p_freq[1]);
+    p_freq_max = MAX(p_freq_max,p_freq[2]);
+    if (pstyle == TRICLINIC) {
+      p_freq_max = MAX(p_freq_max,p_freq[3]);
+      p_freq_max = MAX(p_freq_max,p_freq[4]);
+      p_freq_max = MAX(p_freq_max,p_freq[5]);
+    }
+    drag_factor = 1.0 - (update->dt * p_freq_max * drag);
+  }
+
+  if (tstat_flag)
+    drag_factor = 1.0 - (update->dt * MAX(p_freq_max,t_freq) * drag);
+}
+
+/* ----------------------------------------------------------------------
+   perform half-step update of chain thermostat variables
+------------------------------------------------------------------------- */
+
+void FixNH::nhc_temp_integrate()
+{
+  int ich;
+  double expfac;
+
+  double lkt = tdof * boltz * t_target;
+  double kecurrent = tdof * boltz * t_current;
+  eta_dotdot[0] = (kecurrent - lkt)/eta_mass[0];
+
+  double ncfac = 1.0/nc_tchain;
+  for (int iloop = 0; iloop < nc_tchain; iloop++) {
+
+    for (ich = mtchain-1; ich > 0; ich--) {
+      expfac = exp(-ncfac*dt8*eta_dot[ich+1]);
+      eta_dot[ich] *= expfac;
+      eta_dot[ich] += eta_dotdot[ich] * ncfac*dt4;
+      eta_dot[ich] *= drag_factor;
+      eta_dot[ich] *= expfac;
+    }
+
+    expfac = exp(-ncfac*dt8*eta_dot[1]);
+    eta_dot[0] *= expfac;
+    eta_dot[0] += eta_dotdot[0] * ncfac*dt4;
+    eta_dot[0] *= drag_factor;
+    eta_dot[0] *= expfac;
+    
+    factor_eta = exp(-ncfac*dthalf*eta_dot[0]);
+    nh_v_temp();
+
+    // rescale temperature due to velocity scaling
+    // should not be necessary to explicitly recompute the temperature 
+
+    t_current *= factor_eta*factor_eta;
+    kecurrent = tdof * boltz * t_current;
+    eta_dotdot[0] = (kecurrent - lkt)/eta_mass[0];
+    
+    for (ich = 0; ich < mtchain; ich++)
+      eta[ich] += ncfac*dthalf*eta_dot[ich];
+    
+    eta_dot[0] *= expfac;
+    eta_dot[0] += eta_dotdot[0] * ncfac*dt4;
+    eta_dot[0] *= expfac;
+    
+    for (ich = 1; ich < mtchain; ich++) {
+      expfac = exp(-ncfac*dt8*eta_dot[ich+1]);
+      eta_dot[ich] *= expfac;
+      eta_dotdot[ich] = (eta_mass[ich-1]*eta_dot[ich-1]*eta_dot[ich-1] 
+			 - boltz * t_target)/eta_mass[ich];
+      eta_dot[ich] += eta_dotdot[ich] * ncfac*dt4;
+      eta_dot[ich] *= expfac;
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   perform half-step update of chain thermostat variables for barostat
+   scale barostat velocities
+------------------------------------------------------------------------- */
+
+void FixNH::nhc_press_integrate()
+{
+  int ich,i;
+  double expfac,factor_etap,wmass,kecurrent;
+  double kt = boltz * t_target;
+  double lkt_press = kt;
+
+  kecurrent = 0.0;
+  for (i = 0; i < 3; i++)
+    if (p_flag[i]) kecurrent += omega_mass[i]*omega_dot[i]*omega_dot[i];
+
+  if (pstyle == TRICLINIC) {
+    for (i = 3; i < 6; i++) 
+      if (p_flag[i]) kecurrent += omega_mass[i]*omega_dot[i]*omega_dot[i];
+  }
+
+  etap_dotdot[0] = (kecurrent - lkt_press)/etap_mass[0];
+
+  double ncfac = 1.0/nc_pchain;
+  for (int iloop = 0; iloop < nc_pchain; iloop++) {
+
+    for (ich = mpchain-1; ich > 0; ich--) {
+      expfac = exp(-ncfac*dt8*etap_dot[ich+1]);
+      etap_dot[ich] *= expfac;
+      etap_dot[ich] += etap_dotdot[ich] * ncfac*dt4;
+      etap_dot[ich] *= drag_factor;
+      etap_dot[ich] *= expfac;
+    }
+    
+    expfac = exp(-ncfac*dt8*etap_dot[1]);
+    etap_dot[0] *= expfac;
+    etap_dot[0] += etap_dotdot[0] * ncfac*dt4;
+    etap_dot[0] *= drag_factor;
+    etap_dot[0] *= expfac;
+    
+    for (ich = 0; ich < mpchain; ich++)
+      etap[ich] += ncfac*dthalf*etap_dot[ich];
+    
+    factor_etap = exp(-ncfac*dthalf*etap_dot[0]);
+    for (i = 0; i < 3; i++)
+      if (p_flag[i]) omega_dot[i] *= factor_etap;
+    
+    if (pstyle == TRICLINIC) {
+      for (i = 3; i < 6; i++)
+	if (p_flag[i]) omega_dot[i] *= factor_etap;
+    }
+    
+    kecurrent = 0.0;
+    for (i = 0; i < 3; i++)
+      if (p_flag[i]) kecurrent += omega_mass[i]*omega_dot[i]*omega_dot[i];
+    
+    if (pstyle == TRICLINIC) {
+      for (i = 3; i < 6; i++) 
+	if (p_flag[i]) kecurrent += omega_mass[i]*omega_dot[i]*omega_dot[i];
+    }
+    
+    etap_dotdot[0] = (kecurrent - lkt_press)/etap_mass[0];
+    
+    etap_dot[0] *= expfac;
+    etap_dot[0] += etap_dotdot[0] * ncfac*dt4;
+    etap_dot[0] *= expfac;
+    
+    for (ich = 1; ich < mpchain; ich++) {
+      expfac = exp(-ncfac*dt8*etap_dot[ich+1]);
+      etap_dot[ich] *= expfac;
+      etap_dotdot[ich] = 
+	(etap_mass[ich-1]*etap_dot[ich-1]*etap_dot[ich-1] - boltz*t_target) / 
+	etap_mass[ich];
+      etap_dot[ich] += etap_dotdot[ich] * ncfac*dt4;
+      etap_dot[ich] *= expfac;
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   perform half-step barostat scaling of velocities
+-----------------------------------------------------------------------*/
+
+void FixNH::nh_v_press()
+{
+  double **v = atom->v;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+  if (igroup == atom->firstgroup) nlocal = atom->nfirst;
+
+  if (which == NOBIAS) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+	v[i][0] *= factor[0];
+	v[i][1] *= factor[1];
+	v[i][2] *= factor[2];
+	if (pstyle == TRICLINIC) {
+	  v[i][0] += v[i][1]*factor[5] + v[i][2]*factor[4];
+	  v[i][1] += v[i][2]*factor[3];
+	}
+      }
+    }
+  } else if (which == BIAS) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+	temperature->remove_bias(i,v[i]);
+	v[i][0] *= factor[0];
+	v[i][1] *= factor[1];
+	v[i][2] *= factor[2];
+	if (pstyle == TRICLINIC) {
+	  v[i][0] += v[i][1]*factor[5] + v[i][2]*factor[4];
+	  v[i][1] += v[i][2]*factor[3];
+	}
+	temperature->restore_bias(i,v[i]);
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   perform half-step update of velocities
+-----------------------------------------------------------------------*/
+
+void FixNH::nve_v()
+{
+  double dtfm;
+  double **v = atom->v;
+  double **f = atom->f;
+  double *rmass = atom->rmass;
+  double *mass = atom->mass;
+  int *type = atom->type;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+  if (igroup == atom->firstgroup) nlocal = atom->nfirst;
+
+  if (rmass) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+	dtfm = dtf / rmass[i];
+	v[i][0] += dtfm*f[i][0];
+	v[i][1] += dtfm*f[i][1];
+	v[i][2] += dtfm*f[i][2];
+      }
+    }
+  } else {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+	dtfm = dtf / mass[type[i]];
+	v[i][0] += dtfm*f[i][0];
+	v[i][1] += dtfm*f[i][1];
+	v[i][2] += dtfm*f[i][2];
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   perform full-step update of positions
+-----------------------------------------------------------------------*/
+
+void FixNH::nve_x()
+{
+  double **x = atom->x;
+  double **v = atom->v;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+  if (igroup == atom->firstgroup) nlocal = atom->nfirst;
+
+  // x update by full step only for atoms in group
+
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) {
+      x[i][0] += dtv * v[i][0];
+      x[i][1] += dtv * v[i][1];
+      x[i][2] += dtv * v[i][2];
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   perform half-step thermostat scaling of velocities
+-----------------------------------------------------------------------*/
+
+void FixNH::nh_v_temp()
+{
+  double **v = atom->v;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+  if (igroup == atom->firstgroup) nlocal = atom->nfirst;
+
+  if (which == NOBIAS) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+	v[i][0] *= factor_eta;
+	v[i][1] *= factor_eta;
+	v[i][2] *= factor_eta;
+      }
+    }
+  } else if (which == BIAS) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+	temperature->remove_bias(i,v[i]);
+	v[i][0] *= factor_eta;
+	v[i][1] *= factor_eta;
+	v[i][2] *= factor_eta;
+	temperature->restore_bias(i,v[i]);
+      }
+    }
+  }
+}
+  
+/* ----------------------------------------------------------------------
+   compute sigma tensor
+   needed whenever p_target or h0_inv changes
+-----------------------------------------------------------------------*/
+
+void FixNH::compute_sigma()
+{
+  // if nreset_h0 > 0, reset vol0 and h0_inv 
+  // every nreset_h0 timesteps
+
+  if (nreset_h0 > 0) {
+    int delta = update->ntimestep - update->beginstep;
+    if (delta % nreset_h0 == 0) {
+      if (dimension == 3) vol0 = domain->xprd * domain->yprd * domain->zprd;
+      else vol0 = domain->xprd * domain->yprd;
+      h0_inv[0] = domain->h_inv[0];
+      h0_inv[1] = domain->h_inv[1];
+      h0_inv[2] = domain->h_inv[2];
+      h0_inv[3] = domain->h_inv[3];
+      h0_inv[4] = domain->h_inv[4];
+      h0_inv[5] = domain->h_inv[5];
+    }
+  }
+
+  // generate upper-triangular half of
+  // sigma = vol0*h0inv*(p_target-p_hydro)*h0inv^t
+  // units of sigma are are PV/L^2 e.g. atm.A 
+  //
+  // [ 0 5 4 ]   [ 0 5 4 ] [ 0 5 4 ] [ 0 - - ]
+  // [ 5 1 3 ] = [ - 1 3 ] [ 5 1 3 ] [ 5 1 - ]
+  // [ 4 3 2 ]   [ - - 2 ] [ 4 3 2 ] [ 4 3 2 ]
+
+  sigma[0] = 
+    vol0*(h0_inv[0]*((p_target[0]-p_hydro)*h0_inv[0] +
+		     p_target[5]*h0_inv[5]+p_target[4]*h0_inv[4]) +
+	  h0_inv[5]*(p_target[5]*h0_inv[0] +
+		     (p_target[1]-p_hydro)*h0_inv[5]+p_target[3]*h0_inv[4]) +
+	  h0_inv[4]*(p_target[4]*h0_inv[0]+p_target[3]*h0_inv[5] +
+		     (p_target[2]-p_hydro)*h0_inv[4]));
+  sigma[1] = 
+    vol0*(h0_inv[1]*((p_target[1]-p_hydro)*h0_inv[1] +
+		     p_target[3]*h0_inv[3]) +
+	  h0_inv[3]*(p_target[3]*h0_inv[1] + 
+		     (p_target[2]-p_hydro)*h0_inv[3]));
+  sigma[2] = 
+    vol0*(h0_inv[2]*((p_target[2]-p_hydro)*h0_inv[2]));
+  sigma[3] = 
+    vol0*(h0_inv[1]*(p_target[3]*h0_inv[2]) +
+	  h0_inv[3]*((p_target[2]-p_hydro)*h0_inv[2]));
+  sigma[4] = 
+    vol0*(h0_inv[0]*(p_target[4]*h0_inv[2]) +
+	  h0_inv[5]*(p_target[3]*h0_inv[2]) +
+	  h0_inv[4]*((p_target[2]-p_hydro)*h0_inv[2]));
+  sigma[5] = 
+    vol0*(h0_inv[0]*(p_target[5]*h0_inv[1]+p_target[4]*h0_inv[3]) +
+	  h0_inv[5]*((p_target[1]-p_hydro)*h0_inv[1]+p_target[3]*h0_inv[3]) +
+	  h0_inv[4]*(p_target[3]*h0_inv[1]+(p_target[2]-p_hydro)*h0_inv[3]));
+}
+
+/* ----------------------------------------------------------------------
+   compute strain energy
+-----------------------------------------------------------------------*/
+
+double FixNH::compute_strain_energy()
+{
+  // compute strain energy = 0.5*Tr(sigma*h*h^t) in energy units 
+
+  double* h = domain->h;
+  double d0,d1,d2;
+
+  d0 = 
+    sigma[0]*(h[0]*h[0]+h[5]*h[5]+h[4]*h[4]) +
+    sigma[5]*(          h[1]*h[5]+h[3]*h[4]) +
+    sigma[4]*(                    h[2]*h[4]);
+  d1 = 
+    sigma[5]*(          h[5]*h[1]+h[4]*h[3]) +
+    sigma[1]*(          h[1]*h[1]+h[3]*h[3]) +
+    sigma[3]*(                    h[2]*h[3]);
+  d2 = 
+    sigma[4]*(                    h[4]*h[2]) +
+    sigma[3]*(                    h[3]*h[2]) +
+    sigma[2]*(                    h[2]*h[2]);
+
+  double energy = 0.5*(d0+d1+d2)/nktv2p;
+  return energy;
+}
+
+/* ----------------------------------------------------------------------
+   compute deviatoric barostat force = h*sigma*h^t
+-----------------------------------------------------------------------*/
+
+void FixNH::compute_deviatoric()
+{
+  // generate upper-triangular part of h*sigma*h^t
+  // units of fdev are are PV, e.g. atm*A^3 
+  // [ 0 5 4 ]   [ 0 5 4 ] [ 0 5 4 ] [ 0 - - ]
+  // [ 5 1 3 ] = [ - 1 3 ] [ 5 1 3 ] [ 5 1 - ]
+  // [ 4 3 2 ]   [ - - 2 ] [ 4 3 2 ] [ 4 3 2 ]
+  
+  double* h = domain->h;
+   
+  fdev[0] = 
+    h[0]*(sigma[0]*h[0]+sigma[5]*h[5]+sigma[4]*h[4]) +
+    h[5]*(sigma[5]*h[0]+sigma[1]*h[5]+sigma[3]*h[4]) +
+    h[4]*(sigma[4]*h[0]+sigma[3]*h[5]+sigma[2]*h[4]);
+  fdev[1] = 
+    h[1]*(              sigma[1]*h[1]+sigma[3]*h[3]) +
+    h[3]*(              sigma[3]*h[1]+sigma[2]*h[3]);
+  fdev[2] = 
+    h[2]*(                            sigma[2]*h[2]);
+  fdev[3] = 
+    h[1]*(                            sigma[3]*h[2]) +
+    h[3]*(                            sigma[2]*h[2]);
+  fdev[4] = 
+    h[0]*(                            sigma[4]*h[2]) +
+    h[5]*(                            sigma[3]*h[2]) +
+    h[4]*(                            sigma[2]*h[2]);
+  fdev[5] = 
+    h[0]*(              sigma[5]*h[1]+sigma[4]*h[3]) +
+    h[5]*(              sigma[1]*h[1]+sigma[3]*h[3]) +
+    h[4]*(              sigma[3]*h[1]+sigma[2]*h[3]);
+}
+
+/* ----------------------------------------------------------------------
+   compute hydrostatic target pressure
+-----------------------------------------------------------------------*/
+
+void FixNH::compute_press_target()
+{
+  double delta = update->ntimestep - update->beginstep;
+  if (update->endstep > update->beginstep)
+    delta /= update->endstep - update->beginstep;
+  else delta = 0.0;
+      
+  p_hydro = 0.0;
+  for (int i = 0; i < 3; i++)
+    if (p_flag[i]) {
+      p_target[i] = p_start[i] + delta * (p_stop[i]-p_start[i]);
+      p_hydro += p_target[i];
+    }
+  p_hydro /= pdim;
+
+  if (pstyle == TRICLINIC)
+    for (int i = 3; i < 6; i++)
+      p_target[i] = p_start[i] + delta * (p_stop[i]-p_start[i]);
+
+  // if deviatoric, recompute sigma each time p_target changes
+
+  if (deviatoric_flag) compute_sigma();
+}
+
+/* ----------------------------------------------------------------------
+   update omega_dot, omega, dilation
+-----------------------------------------------------------------------*/
+
+void FixNH::nh_omega_dot()
+{
+  double mtk_term;
+  double f_omega,volume;
+  if (dimension == 3) volume = domain->xprd*domain->yprd*domain->zprd;
+  else volume = domain->xprd*domain->yprd;
+
+  if (deviatoric_flag) compute_deviatoric();
+
+  for (int i = 0; i < 3; i++) {    
+    if (p_flag[i]) {
+      if (mtk_flag) mtk_term = mvv_current[i]/(atom->natoms*volume) * nktv2p;
+      else mtk_term = 0.0;
+      f_omega = (p_current[i]-p_hydro+mtk_term)*volume /
+	(omega_mass[i] * nktv2p);
+      if (deviatoric_flag) f_omega -= fdev[i]/(omega_mass[i] * nktv2p);
+      omega_dot[i] += f_omega*dthalf;
+      omega_dot[i] *= drag_factor;
+    }
+    omega[i] += dthalf*omega_dot[i];
+    factor[i] = exp(-dthalf*omega_dot[i]*mtk_factor);
+    dilation[i] = exp(dthalf*omega_dot[i]);
+  }
+  
+  if (pstyle == TRICLINIC) {
+    for (int i = 3; i < 6; i++) {
+      if (p_flag[i]) {
+	f_omega = p_current[i]*volume/(omega_mass[i] * nktv2p);
+	if (deviatoric_flag) 
+	  f_omega -= fdev[i]/(omega_mass[i] * nktv2p);
+	omega_dot[i] += f_omega*dthalf;
+	omega_dot[i] *= drag_factor;
+      }
+      omega[i] += dthalf*omega_dot[i];
+      factor[i] = -dthalf*omega_dot[i];
+      dilation[i] = dthalf*omega_dot[i];
+    } 
+  }
+}

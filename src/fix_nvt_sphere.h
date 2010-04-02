@@ -20,17 +20,14 @@ FixStyle(nvt/sphere,FixNVTSphere)
 #ifndef LMP_FIX_NVT_SPHERE_H
 #define LMP_FIX_NVT_SPHERE_H
 
-#include "fix_nvt.h"
+#include "fix_nh_sphere.h"
 
 namespace LAMMPS_NS {
 
-class FixNVTSphere : public FixNVT {
+class FixNVTSphere : public FixNHSphere {
  public:
   FixNVTSphere(class LAMMPS *, int, char **);
   ~FixNVTSphere() {}
-  void init();
-  void initial_integrate(int);
-  void final_integrate();
 };
 
 }

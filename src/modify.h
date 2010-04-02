@@ -68,6 +68,7 @@ class Modify : protected Pointers {
   void min_clearstore();
   void min_pushstore();
   void min_popstore();
+  int min_reset_ref();
   double max_alpha(double *);
   int min_dof();
 

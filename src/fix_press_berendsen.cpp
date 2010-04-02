@@ -33,7 +33,8 @@ using namespace LAMMPS_NS;
 #define MAX(A,B) ((A) > (B)) ? (A) : (B)
 
 enum{NOBIAS,BIAS};
-enum{XYZ,XY,YZ,XZ,ANISO};
+enum{NONE,XYZ,XY,YZ,XZ};
+enum{ISO,ANISO};
 
 /* ---------------------------------------------------------------------- */
 
@@ -44,80 +45,89 @@ FixPressBerendsen::FixPressBerendsen(LAMMPS *lmp, int narg, char **arg) :
 
   box_change = 1;
 
-  // Berendsen barostat should be applied every step
+  // Berendsen barostat applied every step
 
   nevery = 1;
 
-  if (strcmp(arg[3],"xyz") == 0) {
-    if (narg < 7) error->all("Illegal fix press/berendsen command");
+  // default values
 
-    press_couple = XYZ;
-    p_start[0] = p_start[1] = p_start[2] = atof(arg[4]);
-    p_stop[0] = p_stop[1] = p_stop[2] = atof(arg[5]);
-    p_period[0] = p_period[1] = p_period[2] = atof(arg[6]);
-    p_flag[0] = p_flag[1] = p_flag[2] = 1;
-    if (domain->dimension == 2) {
-      p_start[2] = p_stop[2] = p_period[2] = 0.0;
-      p_flag[2] = 0;
-    }
-
-  } else {
-    if (strcmp(arg[3],"xy") == 0) press_couple = XY;
-    else if (strcmp(arg[3],"yz") == 0) press_couple = YZ;
-    else if (strcmp(arg[3],"xz") == 0) press_couple = XZ;
-    else if (strcmp(arg[3],"aniso") == 0) press_couple = ANISO;
-    else error->all("Illegal fix press/berendsen command");
-
-    if (narg < 8) error->all("Illegal fix press/berendsen command");
-
-    if (domain->dimension == 2 && 
-	(press_couple == XY || press_couple == YZ || press_couple == XZ))
-      error->all("Invalid fix press/berendsen command for a 2d simulation");
-
-    if (strcmp(arg[4],"NULL") == 0) {
-      p_start[0] = p_stop[0] = p_period[0] = 0.0;
-      p_flag[0] = 0;
-    } else {
-      p_start[0] = atof(arg[4]);
-      p_stop[0] = atof(arg[5]);
-      p_flag[0] = 1;
-    }
-    if (strcmp(arg[6],"NULL") == 0) {
-      p_start[1] = p_stop[1] = p_period[1] = 0.0;
-      p_flag[1] = 0;
-    } else {
-      p_start[1] = atof(arg[6]);
-      p_stop[1] = atof(arg[7]);
-      p_flag[1] = 1;
-    }
-    if (strcmp(arg[8],"NULL") == 0) {
-      p_start[2] = p_stop[2] = p_period[2] = 0.0;
-      p_flag[2] = 0;
-    } else {
-      if (domain->dimension == 2)
-	error->all("Invalid fix press/berendsen command for a 2d simulation");
-      p_start[2] = atof(arg[8]);
-      p_stop[2] = atof(arg[9]);
-      p_flag[2] = 1;
-    }
-
-    double period = atof(arg[10]);
-    if (p_flag[0]) p_period[0] = period;
-    if (p_flag[1]) p_period[1] = period;
-    if (p_flag[2]) p_period[2] = period;
-  }
-
-  // process extra keywords
-
+  pcouple = NONE;
   bulkmodulus = 10.0;
   allremap = 1;
 
-  int iarg;
-  if (press_couple == XYZ) iarg = 7;
-  else iarg = 11;
+  for (int i = 0; i < 3; i++) {
+    p_start[i] = p_stop[i] = p_period[i] = 0.0;
+    p_flag[i] = 0;
+    p_period[i] = 0.0;
+  }
+
+  // process keywords
+
+  dimension = domain->dimension;
+
+  int iarg = 3;
 
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"modulus") == 0) {
+    if (strcmp(arg[iarg],"iso") == 0) {
+      if (iarg+4 > narg) error->all("Illegal fix press/berendsen command");
+      pcouple = XYZ;
+      p_start[0] = p_start[1] = p_start[2] = atof(arg[iarg+1]);
+      p_stop[0] = p_stop[1] = p_stop[2] = atof(arg[iarg+2]);
+      p_period[0] = p_period[1] = p_period[2] = atof(arg[iarg+3]);
+      p_flag[0] = p_flag[1] = p_flag[2] = 1;
+      if (dimension == 2) {
+	p_start[2] = p_stop[2] = p_period[2] = 0.0;
+	p_flag[2] = 0;
+      }
+      iarg += 4; 
+    } else if (strcmp(arg[iarg],"aniso") == 0) {
+      if (iarg+4 > narg) error->all("Illegal fix press/berendsen command");
+      pcouple = NONE;
+      p_start[0] = p_start[1] = p_start[2] = atof(arg[iarg+1]);
+      p_stop[0] = p_stop[1] = p_stop[2] = atof(arg[iarg+2]);
+      p_period[0] = p_period[1] = p_period[2] = atof(arg[iarg+3]);
+      p_flag[0] = p_flag[1] = p_flag[2] = 1;
+      if (dimension == 2) {
+	p_start[2] = p_stop[2] = p_period[2] = 0.0;
+	p_flag[2] = 0;
+      }
+      iarg += 4;
+
+    } else if (strcmp(arg[iarg],"x") == 0) {
+      if (iarg+4 > narg) error->all("Illegal fix press/berendsen command");
+      p_start[0] = atof(arg[iarg+1]);
+      p_stop[0] = atof(arg[iarg+2]);
+      p_period[0] = atof(arg[iarg+3]);
+      p_flag[0] = 1;
+      iarg += 4; 
+    } else if (strcmp(arg[iarg],"y") == 0) {
+      if (iarg+4 > narg) error->all("Illegal fix press/berendsen command");
+      p_start[1] = atof(arg[iarg+1]);
+      p_stop[1] = atof(arg[iarg+2]);
+      p_period[1] = atof(arg[iarg+3]);
+      p_flag[1] = 1;
+      iarg += 4; 
+    } else if (strcmp(arg[iarg],"z") == 0) {
+      if (iarg+4 > narg) error->all("Illegal fix press/berendsen command");
+      p_start[2] = atof(arg[iarg+1]);
+      p_stop[2] = atof(arg[iarg+2]);
+      p_period[2] = atof(arg[iarg+3]);
+      p_flag[2] = 1;
+      iarg += 4; 
+      if (dimension == 2)
+	error->all("Invalid fix press/berendsen command for a 2d simulation");
+
+    } else if (strcmp(arg[iarg],"couple") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix press/berendsen command");
+      if (strcmp(arg[iarg+1],"xyz") == 0) pcouple = XYZ;
+      else if (strcmp(arg[iarg+1],"xy") == 0) pcouple = XY;
+      else if (strcmp(arg[iarg+1],"yz") == 0) pcouple = YZ;
+      else if (strcmp(arg[iarg+1],"xz") == 0) pcouple = XZ;
+      else if (strcmp(arg[iarg+1],"none") == 0) pcouple = NONE;
+      else error->all("Illegal fix press/berendsen command");
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"modulus") == 0) {
       if (iarg+2 > narg) error->all("Illegal fix press/berendsen command");
       bulkmodulus = atof(arg[iarg+1]);
       if (bulkmodulus <= 0.0) 
@@ -134,21 +144,18 @@ FixPressBerendsen::FixPressBerendsen(LAMMPS *lmp, int narg, char **arg) :
 
   // error checks
 
-  if (press_couple == XY && (p_flag[0] == 0 || p_flag[1] == 0))
-    error->all("Invalid fix press/berendsen command pressure settings");
-  if (press_couple == YZ && (p_flag[1] == 0 || p_flag[2] == 0))
-    error->all("Invalid fix press/berendsen command pressure settings");
-  if (press_couple == XZ && (p_flag[0] == 0 || p_flag[2] == 0))
-    error->all("Invalid fix press/berendsen command pressure settings");
+  if (dimension == 2 && p_flag[2])
+    error->all("Invalid fix press/berendsen command for a 2d simulation");
+  if (dimension == 2 && (pcouple == YZ || pcouple == XZ))
+    error->all("Invalid fix press/berendsen command for a 2d simulation");
 
-  if (press_couple == XY && 
-      (p_start[0] != p_start[1] || p_stop[0] != p_stop[1]))
+  if (pcouple == XYZ && (p_flag[0] == 0 || p_flag[1] == 0 || p_flag[2] == 0))
     error->all("Invalid fix press/berendsen command pressure settings");
-  if (press_couple == YZ && 
-      (p_start[1] != p_start[2] || p_stop[1] != p_stop[2]))
+  if (pcouple == XY && (p_flag[0] == 0 || p_flag[1] == 0))
     error->all("Invalid fix press/berendsen command pressure settings");
-  if (press_couple == XZ && 
-      (p_start[0] != p_start[2] || p_stop[0] != p_stop[2]))
+  if (pcouple == YZ && (p_flag[1] == 0 || p_flag[2] == 0))
+    error->all("Invalid fix press/berendsen command pressure settings");
+  if (pcouple == XZ && (p_flag[0] == 0 || p_flag[2] == 0))
     error->all("Invalid fix press/berendsen command pressure settings");
 
   if (p_flag[0] && domain->xperiodic == 0)
@@ -158,12 +165,34 @@ FixPressBerendsen::FixPressBerendsen(LAMMPS *lmp, int narg, char **arg) :
   if (p_flag[2] && domain->zperiodic == 0)
     error->all("Cannot use fix press/berendsen on a non-periodic dimension");
 
-  if (p_flag[0] && p_period[0] <= 0.0)
-    error->all("Fix press/berendsen period must be > 0.0");
-  if (p_flag[1] && p_period[1] <= 0.0)
-    error->all("Fix press/berendsen period must be > 0.0");
-  if (p_flag[2] && p_period[2] <= 0.0)
-    error->all("Fix press/berendsen period must be > 0.0");
+  if (pcouple == XYZ &&
+      (p_start[0] != p_start[1] || p_start[0] != p_start[2] || 
+       p_stop[0] != p_stop[1] || p_stop[0] != p_stop[2] || 
+       p_period[0] != p_period[1] || p_period[0] != p_period[2]))
+    error->all("Invalid fix press/berendsen pressure settings");
+  if (pcouple == XY && 
+      (p_start[0] != p_start[1] || p_stop[0] != p_stop[1] || 
+       p_period[0] != p_period[1]))
+    error->all("Invalid fix press/berendsen pressure settings");
+  if (pcouple == YZ && 
+      (p_start[1] != p_start[2] || p_stop[1] != p_stop[2] ||
+       p_period[1] != p_period[2]))
+    error->all("Invalid fix press/berendsen pressure settings");
+  if (pcouple == XZ && 
+      (p_start[0] != p_start[2] || p_stop[0] != p_stop[2] ||
+       p_period[0] != p_period[2]))
+    error->all("Invalid fix press/berendsen pressure settings");
+
+  if ((p_flag[0] && p_period[0] <= 0.0) || 
+      (p_flag[1] && p_period[1] <= 0.0) || 
+      (p_flag[2] && p_period[2] <= 0.0))
+    error->all("Fix press/berendsen damping parameters must be > 0.0");
+
+  // pstyle = ISO if XYZ coupling or XY coupling in 2d -> 1 dof
+  // else pstyle = ANISO -> 3 dof
+
+  if (pcouple == XYZ || (dimension == 2 && pcouple == XY)) pstyle = ISO;
+  else pstyle = ANISO;
 
   // create a new compute temp style
   // id = fix-ID + temp
@@ -235,13 +264,15 @@ void FixPressBerendsen::init()
   if (domain->triclinic) 
     error->all("Cannot use fix press/berendsen with triclinic box");
 
+  // insure no conflict with fix deform
+
   for (int i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"deform") == 0) {
       int *dimflag = ((FixDeform *) modify->fix[i])->dimflag;
       if ((p_flag[0] && dimflag[0]) || (p_flag[1] && dimflag[1]) || 
 	  (p_flag[2] && dimflag[2]))
 	error->all("Cannot use fix press/berendsen and "
-		   "fix deform on same dimension");
+		   "fix deform on same component of stress tensor");
     }
 
   // set temperature and pressure ptrs
@@ -298,7 +329,7 @@ void FixPressBerendsen::end_of_step()
 {
   // compute new T,P
 
-  if (press_couple == XYZ) {
+  if (pstyle == ISO) {
     double tmp = temperature->compute_scalar();
     tmp = pressure->compute_scalar();
   } else {
@@ -336,21 +367,24 @@ void FixPressBerendsen::couple()
 {
   double *tensor = pressure->vector;
 
-  if (press_couple == XYZ)
+  if (pstyle == ISO)
     p_current[0] = p_current[1] = p_current[2] = pressure->scalar;
-  else if (press_couple == XY) {
+  else if (pcouple == XYZ) {
+    double ave = 1.0/3.0 * (tensor[0] + tensor[1] + tensor[2]);
+    p_current[0] = p_current[1] = p_current[2] = ave;
+  } else if (pcouple == XY) {
     double ave = 0.5 * (tensor[0] + tensor[1]);
     p_current[0] = p_current[1] = ave;
     p_current[2] = tensor[2];
-  } else if (press_couple == YZ) {
+  } else if (pcouple == YZ) {
     double ave = 0.5 * (tensor[1] + tensor[2]);
     p_current[1] = p_current[2] = ave;
     p_current[0] = tensor[0];
-  } else if (press_couple == XZ) {
+  } else if (pcouple == XZ) {
     double ave = 0.5 * (tensor[0] + tensor[2]);
     p_current[0] = p_current[2] = ave;
     p_current[1] = tensor[1];
-  } if (press_couple == ANISO) {
+  } else {
     p_current[0] = tensor[0];
     p_current[1] = tensor[1];
     p_current[2] = tensor[2];

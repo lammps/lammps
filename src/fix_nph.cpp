@@ -13,7 +13,6 @@
 
 #include "string.h"
 #include "fix_nph.h"
-#include "group.h"
 #include "modify.h"
 #include "error.h"
 

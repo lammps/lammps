@@ -126,10 +126,10 @@ fix to add the potential energy of atom interactions with the grain
 boundary driving force to the system's potential energy as part of
 <A HREF = "thermo_style.html">thermodynamic output</A>.
 </P>
-<P>The potential energy change due to this fix is stored as a scalar
-quantity, which can be accessed by various <A HREF = "Section_howto.html#4_15">output
-commands</A>.  The scalar value calculated by
-this fix is "extensive".
+<P>This fix computes a global scalar which can be accessed by various
+<A HREF = "Section_howto.html#4_15">output commands</A>.  The scalar is the
+potential energy change due to this fix.  The scalar value calculated
+by this fix is "extensive".
 </P>
 <P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
 the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy

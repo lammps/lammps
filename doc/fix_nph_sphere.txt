@@ -1,0 +1,124 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+fix nph/sphere command :h3
+
+[Syntax:]
+
+fix ID group-ID nph/sphere args keyword value ... :pre
+
+ID, group-ID are documented in "fix"_fix.html command
+nph/sphere = style name of this fix command
+additional barostat related keyword/value pairs from the "fix nph"_fix_nh.html command can be appended :ul
+
+[Examples:]
+
+fix 1 all nph/sphere iso 0.0 0.0 1000.0
+fix 2 all nph/sphere x 5.0 5.0 1000.0
+fix 2 all nph/sphere x 5.0 5.0 1000.0 drag 0.2
+fix 2 water nph/sphere aniso 0.0 0.0 1000.0 dilate partial :pre
+
+[Description:]
+
+Perform constant NPH integration to update position, velocity, and
+angular velocity each timestep for extended spherical particles in the
+group using a Nose/Hoover pressure barostat.  P is pressure; H is
+enthalpy.  This creates a system trajectory consistent with the
+isenthalpic ensemble.
+
+This fix differs from the "fix nph"_fix_nh.html command, which assumes
+point particles and only updates their position and velocity.
+
+Additional parameters affecting the barostat are specified by keywords
+and values documented with the "fix nph"_fix_nh.html command.  See,
+for example, discussion of the {aniso}, and {dilate} keywords.
+
+The particles in the fix group are the only ones whose velocities and
+positions are updated by the velocity/position update portion of the
+NPH integration.
+
+Regardless of what particles are in the fix group, a global pressure is
+computed for all particles.  Similarly, when the size of the simulation
+box is changed, all particles are re-scaled to new positions, unless the
+keyword {dilate} is specified with a value of {partial}, in which case
+only the particles in the fix group are re-scaled.  The latter can be
+useful for leaving the coordinates of particles in a solid substrate
+unchanged and controlling the pressure of a surrounding fluid.
+
+:line
+
+This fix computes a temperature and pressure each timestep.  To do
+this, the fix creates its own computes of style "temp/sphere" and
+"pressure", as if these commands had been issued:
+
+compute fix-ID_temp all temp/sphere
+compute fix-ID_press all pressure fix-ID_temp :pre
+
+See the "compute temp/sphere"_compute_temp_sphere.html and "compute
+pressure"_compute_pressure.html commands for details.  Note that the
+IDs of the new computes are the fix-ID + underscore + "temp" or fix_ID
++ underscore + "press", and the group for the new computes is "all"
+since pressure is computed for the entire system.
+
+Note that these are NOT the computes used by thermodynamic output (see
+the "thermo_style"_thermo_style.html command) with ID = {thermo_temp}
+and {thermo_press}.  This means you can change the attributes of this
+fix's temperature or pressure via the
+"compute_modify"_compute_modify.html command or print this temperature
+or pressure during thermodynamic output via the "thermo_style
+custom"_thermo_style.html command using the appropriate compute-ID.
+It also means that changing attributes of {thermo_temp} or
+{thermo_press} will have no effect on this fix.
+
+[Restart, fix_modify, output, run start/stop, minimize info:]
+
+This fix writes the state of the Nose/Hoover barostat to "binary
+restart files"_restart.html.  See the "read_restart"_read_restart.html
+command for info on how to re-specify a fix in an input script that
+reads a restart file, so that the operation of the fix continues in an
+uninterrupted fashion.
+
+The "fix_modify"_fix_modify.html {temp} and {press} options are
+supported by this fix.  You can use them to assign a
+"compute"_compute.html you have defined to this fix which will be used
+in its thermostatting or barostatting procedure.  If you do this, note
+that the kinetic energy derived from the compute temperature should be
+consistent with the virial term computed using all atoms for the
+pressure.  LAMMPS will warn you if you choose to compute temperature
+on a subset of atoms.
+
+The "fix_modify"_fix_modify.html {energy} option is supported by this
+fix to add the energy change induced by Nose/Hoover barostatting to
+the system's potential energy as part of "thermodynamic
+output"_thermo_style.html.
+
+This fix computes the same global scalar and global vector of
+quantities as does the "fix nph"_fix_nh.html command.
+
+This fix can ramp its target pressure over multiple runs, using the
+{start} and {stop} keywords of the "run"_run.html command.  See the
+"run"_run.html command for details of how to do this.
+
+This fix is not invoked during "energy minimization"_minimize.html.
+
+[Restrictions:]
+
+This fix requires that atoms store torque and angular velocity (omega)
+as defined by the "atom_style"_atom_style.html.  It also require they
+store either a per-particle diameter or per-type "shape"_shape.html.
+
+All particles in the group must be finite-size spheres.  They cannot
+be point particles, nor can they be aspherical.
+
+[Related commands:]
+
+"fix nph"_fix_nh.html, "fix nve_sphere"_fix_nve_sphere.html, "fix
+nvt_sphere"_fix_nvt_sphere.html, "fix npt_sphere"_fix_npt_sphere.html,
+"fix_modify"_fix_modify.html
+
+[Default:] none

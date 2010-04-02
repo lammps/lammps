@@ -95,11 +95,11 @@ temp/deform</A> commands for more details.
 </P>
 <P>Any parameter varied by this command must refer to a periodic
 dimension - see the <A HREF = "boundary.html">boundary</A> command.  For parameters
-"xy", "xz", and "yz" this means both affected dimensions must be
-periodic, e.g. x and y for "xy".  Dimensions not varied by this
-command can be periodic or non-periodic.  Unspecified periodic
-dimensions can also be controlled by a <A HREF = "fix_npt.html">fix npt</A> or <A HREF = "fix_nph.html">fix
-nph</A> command.
+<I>xy</I>, <I>xz</I>, and <I>yz</I>, the 2nd dimension must be periodic, e.g. <I>y</I> for
+<I>xy</I>.  Dimensions not varied by this command can be periodic or
+non-periodic.  Dimensions corresponding to unspecified parameters can
+also be controlled by a <A HREF = "fix_nh.html">fix npt</A> or <A HREF = "fix_nh.html">fix nph</A>
+command.
 </P>
 <P>The size and shape of the simulation box at the beginning of the
 simulation run were either specified by the
@@ -227,7 +227,7 @@ fix deform) since that implies a density change.  Using the <I>volume</I>
 style for those 2 dimensions to keep the box volume constant may make
 more physical sense, but may also not be correct for materials and
 potentials whose Poisson ratio is not 0.5.  An alternative is to use
-<A HREF = "fix_npt.html">fix npt aniso</A> with zero applied pressure on those 2
+<A HREF = "fix_nh.html">fix npt aniso</A> with zero applied pressure on those 2
 dimensions, so that they respond to the tensile strain dynamically.
 </P>
 <P>The <I>wiggle</I> style oscillates the specified box length dimension
@@ -433,8 +433,8 @@ defined in terms of distance/time.
 </P>
 <P>No information about this fix is written to <A HREF = "restart.html">binary restart
 files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
-are relevant to this fix.  No global scalar or vector or per-atom
-quantities are stored by this fix for access by various <A HREF = "Section_howto.html#4_15">output
+are relevant to this fix.  No global or per-atom quantities are stored
+by this fix for access by various <A HREF = "Section_howto.html#4_15">output
 commands</A>.
 </P>
 <P>This fix can perform deformation over multiple runs, using the <I>start</I>

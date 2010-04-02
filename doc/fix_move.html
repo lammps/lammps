@@ -56,7 +56,7 @@ forces on the atoms.  This can be useful for boundary or other atoms,
 whose movement can influence nearby atoms.
 </P>
 <P>IMPORTANT NOTE: The atoms affected by this fix should not normally be
-time integrated by other fixes (e.g. <A HREF = "fix_nve.html">fix nve</A>, <A HREF = "fix_nvt.html">fix
+time integrated by other fixes (e.g. <A HREF = "fix_nve.html">fix nve</A>, <A HREF = "fix_nh.html">fix
 nvt</A>), since that will change their positions and
 velocities twice.
 </P>
@@ -188,9 +188,9 @@ uninterrupted fashion.
 fix.  
 </P>
 <P>This fix produces a per-atom array which can be accessed by various
-<A HREF = "Section_howto.html#4_15">output commands</A>.  The number of columns
-for each atom is 3, and the columns store the original unwrapped
-x,y,z coords of each atom.  The per-atom values be accessed on any
+<A HREF = "Section_howto.html#4_15">output commands</A>.  The number of columns for
+each atom is 3, and the columns store the original unwrapped x,y,z
+coords of each atom.  The per-atom values can be accessed on any
 timestep.
 </P>
 <P>No parameter of this fix can be used with the <I>start/stop</I> keywords of

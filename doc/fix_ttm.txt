@@ -139,7 +139,7 @@ This fix does not change the coordinates of its atoms; it only scales
 their velocities.  Thus a time integration fix (e.g. "fix
 nve"_fix_nve.html) should still be used to time integrate the affected
 atoms.  This fix should not normally be used on atoms that have their
-temperature controlled by another fix - e.g. "fix nvt"_fix_nvt.html or
+temperature controlled by another fix - e.g. "fix nvt"_fix_nh.html or
 "fix langevin"_fix_langevin.html.
 
 This fix computes 2 output quantities stored in a vector of
@@ -179,12 +179,12 @@ fix, where the simulation continues on the same as if no restart had
 taken place.  However, in a statistical sense, a restarted simulation
 should produce the same behavior.
 
-None of the "fix_modify"_fix_modify.html options
-are relevant to this fix.  No global scalar or vector or per-atom
-quantities are stored by this fix for access by various "output
-commands"_Section_howto.html#4_15.  No parameter of this fix can be
-used with the {start/stop} keywords of the "run"_run.html command.
-This fix is not invoked during "energy minimization"_minimize.html.
+None of the "fix_modify"_fix_modify.html options are relevant to this
+fix.  No global or per-atom quantities are stored by this fix for
+access by various "output commands"_Section_howto.html#4_15.  No
+parameter of this fix can be used with the {start/stop} keywords of
+the "run"_run.html command.  This fix is not invoked during "energy
+minimization"_minimize.html.
 
 [Restrictions:]
 

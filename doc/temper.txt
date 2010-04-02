@@ -33,7 +33,7 @@ processor partitions are defined using the -partition command-line
 switch (see "this section"_Section_start.html#2_6).  Each ensemble's
 temperature is typically controlled at a different value by a fix with
 ID {fix-ID} that controls temperature.  Possible fix styles are
-"nvt"_fix_nvt.html, "temp/berendsen"_fix_npt.html,
+"nvt"_fix_nh.html, "temp/berendsen"_fix_nh.html,
 "langevin"_fix_langevin.html and "temp/rescale"_fix_temp_rescale.html.
 The desired temperature is specified by {temp}, which is typically a
 variable previously set in the input script, so that each partition is

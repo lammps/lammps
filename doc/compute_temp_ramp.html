@@ -37,7 +37,7 @@ atoms, after subtracting out an ramped velocity profile before
 computing the kinetic energy.  A compute of this style can be used by
 any command that computes a temperature,
 e.g. <A HREF = "thermo_modify.html">thermo_modify</A>, <A HREF = "fix_temp_rescale.html">fix
-temp/rescale</A>, <A HREF = "fix_npt.html">fix npt</A>, etc.
+temp/rescale</A>, <A HREF = "fix_nh.html">fix npt</A>, etc.
 </P>
 <P>The meaning of the arguments for this command which define the
 velocity ramp are the same as for the <A HREF = "velocity.html">velocity ramp</A>
@@ -75,7 +75,7 @@ from the velocity of the atoms.  If this compute is used with a fix
 command that performs thermostatting then this bias will be subtracted
 from each atom, thermostatting of the remaining thermal velocity will
 be performed, and the bias will be added back in.  Thermostatting
-fixes that work in this way include <A HREF = "fix_nvt.html">fix nvt</A>, <A HREF = "fix_temp_rescale.html">fix
+fixes that work in this way include <A HREF = "fix_nh.html">fix nvt</A>, <A HREF = "fix_temp_rescale.html">fix
 temp/rescale</A>, <A HREF = "fix_temp_berendsen">fix
 temp/berendsen</A>, and <A HREF = "fix_langevin.html">fix
 langevin</A>.

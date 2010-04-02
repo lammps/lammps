@@ -49,9 +49,10 @@ incur overhead due to the cost of building neighbor lists.
 files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
 are relevant to this fix.
 </P>
-<P>The cummulative number of deleted atoms is stored as a scalar quantity
-by this fix.  This quantity can be accessed by various <A HREF = "Section_howto.html#4_15">output
-commands</A>.  The scalar value is "intensive".
+<P>This fix computes a global scalar, which can be accessed by various
+<A HREF = "Section_howto.html#4_15">output commands</A>.  The scalar is the
+cummulative number of deleted atoms.  The scalar value calculated by
+this fix is "intensive".
 </P>
 <P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
 the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy

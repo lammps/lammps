@@ -25,7 +25,7 @@ compute myTemp mobile temp :pre
 Define a computation that calculates the temperature of a group of
 atoms.  A compute of this style can be used by any command that
 computes a temperature, e.g. "thermo_modify"_thermo_modify.html, "fix
-temp/rescale"_fix_temp_rescale.html, "fix npt"_fix_npt.html, etc.
+temp/rescale"_fix_temp_rescale.html, "fix npt"_fix_nh.html, etc.
 
 The temperature is calculated by the formula KE = dim/2 N k T, where
 KE = total kinetic energy of the group of atoms (sum of 1/2 m v^2),

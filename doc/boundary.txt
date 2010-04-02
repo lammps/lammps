@@ -39,7 +39,7 @@ The style {p} means the box is periodic, so that particles interact
 across the boundary, and they can exit one end of the box and re-enter
 the other end.  A periodic dimension can change in size due to
 constant pressure boundary conditions or box deformation (see the "fix
-npt"_fix_npt.html and "fix deform"_fix_deform.html commands).  The {p}
+npt"_fix_nh.html and "fix deform"_fix_deform.html commands).  The {p}
 style must be applied to both faces of a dimension.
 
 The styles {f}, {s}, and {m} mean the box is non-periodic, so that

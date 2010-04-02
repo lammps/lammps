@@ -76,7 +76,7 @@ velocities with zero aggregate linear and/or angular momentum.
 </P>
 <P>IMPORTANT NOTE: This fix performs its operations at the same point in
 the timestep as other time integration fixes, such as <A HREF = "fix_nve.html">fix
-nve</A>, <A HREF = "fix_nvt.html">fix nvt</A>, or <A HREF = "fix_npt.html">fix npt</A>.
+nve</A>, <A HREF = "fix_nh.html">fix nvt</A>, or <A HREF = "fix_nh.html">fix npt</A>.
 Thus fix recenter should normally be the last such fix specified in
 the input script, since the adjustments it makes to atom coordinates
 should come after the changes made by time integration.  LAMMPS will
@@ -99,8 +99,8 @@ to tether the molecule in place.
 </P>
 <P>No information about this fix is written to <A HREF = "restart.html">binary restart
 files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
-are relevant to this fix.  No global scalar or vector or per-atom
-quantities are stored by this fix for access by various <A HREF = "Section_howto.html#4_15">output
+are relevant to this fix.  No global or per-atom quantities are stored
+by this fix for access by various <A HREF = "Section_howto.html#4_15">output
 commands</A>.  No parameter of this fix can be
 used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A> command.
 This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.

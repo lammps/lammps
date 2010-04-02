@@ -42,10 +42,11 @@ The "fix_modify"_fix_modify.html {energy} option is supported by this
 fix to add the energy stored in the per-atom springs to the system's
 potential energy as part of "thermodynamic output"_thermo_style.html.
 
-This fix computes a scalar energy which can be accessed by various
-"output commands"_Section_howto.html#4_15.  This energy is the sum of
-the spring energy for each atom, where the per-atom energy is 0.5 * K
-* r^2.
+This fix computes a global scalar which can be accessed by various
+"output commands"_Section_howto.html#4_15.  The scalar is an energy
+which is the sum of the spring energy for each atom, where the
+per-atom energy is 0.5 * K * r^2.  The scalar value calculated by this
+fix is "extensive".
 
 No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.

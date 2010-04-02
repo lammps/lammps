@@ -141,7 +141,7 @@ the Ith column of the global array calculated by the compute is used.
 which can sum per-atom quantities into a global scalar or vector which
 can thus be accessed by fix ave/time.  Or it can be a compute defined
 not in your input script, but by <A HREF = "thermo_style.html">thermodynamic
-output</A> or other fixes such as <A HREF = "fix_nvt.html">fix
+output</A> or other fixes such as <A HREF = "fix_nh.html">fix
 nvt</A> or <A HREF = "fix_temp_rescale.html">fix temp/rescale</A>.  See
 the doc pages for these commands which give the IDs of these computes.
 Users can also write code for their own compute styles and <A HREF = "Section_modify.html">add them
@@ -263,10 +263,11 @@ appropriate fields from the fix ave/time command.
 files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
 are relevant to this fix.
 </P>
-<P>This fix produces a global scalar or vector or array which can be
-accessed by various <A HREF = "Section_howto.html#4_15">output commands</A>.  The
-values can only be accessed on timesteps that are multiples of <I>Nfreq</I>
-since that is when averaging is performed.
+<P>This fix produces a global scalar or global vector or global array
+which can be accessed by various <A HREF = "Section_howto.html#4_15">output
+commands</A>.  The values can only be accessed on
+timesteps that are multiples of <I>Nfreq</I> since that is when averaging
+is performed.
 </P>
 <P>A scalar is produced if only a single input value is averaged and
 <I>mode</I> = scalar.  A vector is produced if multiple input values are

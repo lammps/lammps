@@ -13,68 +13,67 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>fix ID group-ID box/relax style args keyword value ... 
+<PRE>fix ID group-ID box/relax keyword value ... 
 </PRE>
 <UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
 
 <LI>box/relax = style name of this fix command 
 
-<LI>style = <I>xyz</I> or <I>xy</I> or <I>yz</I> or <I>xz</I> or <I>aniso</I> 
-
-<PRE>  <I>xyz</I> arg = P = desired pressure (pressure units)
-  <I>xy</I> or <I>yz</I> or <I>xz</I> or <I>aniso</I> args = Px Py Pz
-    Px,Py,Pz = desired pressure in x,y,z (pressure units) 
-</PRE>
-<LI>zero or more keyword/value pairs may be appended to the args 
-
-<LI>keyword = <I>dilate</I> or <I>vmax</I> 
-
-<PRE>  <I>dilate</I> value = <I>all</I> or <I>partial</I>
-  <I>vmax</I> value = fraction = max allowed volume change in one iteration 
+<PRE>one or more keyword value pairs may be appended
+keyword = <I>iso</I> or <I>aniso</I> or <I>tri</I> or <I>x</I> or <I>y</I> or <I>z</I> or <I>xy</I> or <I>yz</I> or <I>xz</I> or <I>couple</I> or <I>nreset</I> or <I>vmax</I> or <I>dilate</I>
+  <I>iso</I> or <I>aniso</I> or <I>tri</I> value = Ptarget = desired pressure (pressure units)
+  <I>x</I> or <I>y</I> or <I>z</I> or <I>xy</I> or <I>yz</I> or <I>xz</I> value = Ptarget = desired pressure (pressure units)
+  <I>couple</I> = <I>none</I> or <I>xyz</I> or <I>xy</I> or <I>yz</I> or <I>xz</I>
+  <I>nreset</I> value = reset reference cell every this many minimizer iterations
+  <I>vmax</I> value = fraction = max allowed volume change in one iteration
+  <I>dilate</I> value = <I>all</I> or <I>partial</I> 
 </PRE>
 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>fix 1 all box/relax xyz 0.0 vmax 0.001
-fix 2 water box/relax aniso 0.0 0.0 1000.0 dilate partial 
+<PRE>fix 1 all box/relax ixo 0.0 vmax 0.001
+fix 2 water box/relax aniso 0.0 dilate partial
+fix 2 ice box/relax tri 0.0 couple xy nreset 100 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Apply an external pressure to the simulation box during an <A HREF = "minimize.html">energy
-minimization</A>.  This allows the box dimensions to vary
-during the iterations of the minimizer so that the final configuration
-will be both an energy minimum for the potential energy of the atoms
-and the system pressure will be close to the desired pressure.
-Conceptually, specifying a positive pressure is like squeezing on the
-simulation box; a negative pressure typically allows the box to
-expand.
+<P>Apply an external pressure or stress tensor to the simulation box
+during an <A HREF = "minimize.html">energy minimization</A>.  This allows the box
+size and shape to vary during the iterations of the minimizer so that
+the final configuration will be both an energy minimum for the
+potential energy of the atoms, and the system pressure tensor will be
+close to the specified external tensor.  Conceptually, specifying a
+positive pressure is like squeezing on the simulation box; a negative
+pressure typically allows the box to expand.
 </P>
-<P>The pressure can be specified in one of several styles, as determined
-by the <I>style</I> argument.
+<HR>
+
+<P>The external pressure tensor is specified using one or more of the
+<I>iso</I>, <I>aniso</I>, <I>tri</I>, <I>x</I>, <I>y</I>, <I>z</I>, <I>xy</I>, <I>xz</I>, <I>yz</I>, and <I>couple</I>
+keywords.  These keywords give you the ability to specify all 6
+components of an external stress tensor, and to couple various of
+these components together so that the dimensions they represent are
+varied together during the mimimization.
 </P>
-<P>Style <I>xyz</I> means couple all 3 dimensions together when pressure is
-computed (isotropic pressure), and dilate/contract the 3 dimensions
-together.  Styles <I>xy</I> or <I>yz</I> or <I>xz</I> means that the 2 specified
-dimensions are coupled together, both for pressure computation and for
-dilation/contraction.  The 3rd dimension dilates/contracts
-independently according to its specified pressure.  For style <I>aniso</I>,
-all 3 dimensions dilate/contract independently according to the 3
-specified pressure values.
+<P>Orthogonal simulation boxes have 3 adjustable dimensions (x,y,z).
+Triclinic (non-orthogonal) simulation boxes have 6 adjustable
+dimensions (x,y,z,xy,xz,yz).  The <A HREF = "create_box.html">create_box</A>, <A HREF = "read_data.html">read
+data</A>, and <A HREF = "read_restart.html">read_restart</A> commands
+specify whether the simulation box is orthogonal or non-orthogonal
+(triclinic) and explain the meaning of the xy,xz,yz tilt factors.
 </P>
-<P>For any of the styles except <I>xyz</I>, the target pressure for any
-independent components (e.g. z in <I>xy</I>, or any dimension in <I>aniso</I>)
-can be specified as NULL.  This means that no pressure is applied to
-that dimension so that the box dimension remains unchanged during the
-minimization.
+<P>The target pressures <I>Ptarget</I> for each of the 6 components of the
+stress tensor can be specified independently via the <I>x</I>, <I>y</I>, <I>z</I>,
+<I>xy</I>, <I>xz</I>, <I>yz</I> keywords, which correspond to the 6 simulation box
+dimensions.  For example, if the <I>y</I> keyword is used, the y-box length
+will change during the minimization.  If the <I>xy</I> keyword is used, the
+xy tilt factor will change.  A box dimension will not change if that
+component is not specified.
 </P>
-<P>For styles <I>xy</I> and <I>yz</I> and <I>xz</I>, the target pressures must be the
-same for the two coupled dimensions and cannot be specified as NULL.
-</P>
-<P>For all pressure styles, the simulation box stays rectangular in
-shape.  Tilted boxes (triclinic symmetry) are supported by other
-LAMMPS commands (see <A HREF = "Section_howto.html#4_12">this section</A> of the
-manual), but not yet by this command.
+<P>Note that in order to use the <I>xy</I>, <I>xz</I>, or <I>yz</I> keywords, the
+simulation box must be triclinic, even if its initial tilt factors are
+0.0.
 </P>
 <P>When the size of the simulation box changes, all atoms are re-scaled
 to new positions, unless the keyword <I>dilate</I> is specified with a
@@ -83,15 +82,111 @@ re-scaled.  This can be useful for leaving the coordinates of atoms in
 a solid substrate unchanged and controlling the pressure of a
 surrounding fluid.
 </P>
+<HR>
+
+<P>The <I>couple</I> keyword allows two or three of the diagonal components of
+the pressure tensor to be "coupled" together.  The value specified
+with the keyword determines which are coupled.  For example, <I>xz</I>
+means the <I>Pxx</I> and <I>Pzz</I> components of the stress tensor are coupled.
+<I>Xyz</I> means all 3 diagonal components are coupled.  Coupling means two
+things: the instantaneous stress will be computed as an average of the
+corresponding diagonal components, and the coupled box dimensions will
+be changed together in lockstep, meaning coupled dimensions will be
+dilated or contracted by the same percentage every timestep.  The
+<I>Ptarget</I> values for any coupled dimensions must be identical.
+<I>Couple xyz</I> can be used for a 2d simulation; the <I>z</I> dimension is
+simply ignored.
+</P>
+<HR>
+
+<P>The <I>iso</I>, <I>aniso</I>, and <I>tri</I> keywords are simply shortcuts that are
+equivalent to specifying several other keywords together.
+</P>
+<P>The keyword <I>iso</I> means couple all 3 diagonal components together when
+pressure is computed (hydrostatic pressure), and dilate/contract the
+dimensions together.  Using "iso Ptarget" is the same as specifying
+these 4 keywords:
+</P>
+<PRE>x Ptarget
+y Ptarget
+z Ptarget
+couple xyz 
+</PRE>
+<P>The keyword <I>aniso</I> means <I>x</I>, <I>y</I>, and <I>z</I> dimensions are controlled
+independently using the <I>Pxx</I>, <I>Pyy</I>, and <I>Pzz</I> components of the
+stress tensor as the driving forces, and the specified scalar external
+pressure.  Using "aniso Ptarget" is the same as specifying these 4
+keywords:
+</P>
+<PRE>x Ptarget
+y Ptarget
+z Ptarget
+couple none 
+</PRE>
+<P>The keyword <I>tri</I> means <I>x</I>, <I>y</I>, <I>z</I>, <I>xy</I>, <I>xz</I>, and <I>yz</I> dimensions
+are controlled independently using their individual stress components
+as the driving forces, and the specified scalar pressure as the
+external normal stress.  Using "tri Ptarget" is the same as specifying
+these 7 keywords:
+</P>
+<PRE>x Ptarget
+y Ptarget
+z Ptarget
+xy 0.0 
+yz 0.0 
+xz 0.0 
+couple none 
+</PRE>
+<HR>
+
 <P>The <I>vmax</I> keyword can be used to limit the fractional change in the
 volume of the simulation box that can occur in one iteration of the
 minimizer.  If the pressure is not settling down during the
 minimization this can be because the volume is fluctuating too much.
-The specfied fraction must be greater than 0.0 and should be << 1.0.
+The specified fraction must be greater than 0.0 and should be << 1.0.
 A value of 0.001 means the volume cannot change by more than 1/10 of a
-percent in one iteration for style <I>xyz</I>.  For the other styles it
-means no linear dimension of the simulation box can change by more
-than 1/10 of a percent.
+percent in one iteration when <I>couple xyz</I> has been specified.  For
+any other case it means no linear dimension of the simulation box can
+change by more than 1/10 of a percent.
+</P>
+<HR>
+
+<P>With this fix, the potential energy used by the minimzer is augmented
+by an additional energy provided by the fix. The overall objective
+function then is:
+</P>
+<CENTER><IMG SRC = "Eqs/fix_box_relax1.jpg">
+</CENTER>
+<P>where <I>U</I> is the system potential energy, <I>P</I>_t is the desired
+hydrostatic pressure, <I>V</I> and <I>V</I>_0 are the system and reference
+volumes, respectively.  <I>E</I>_<I>strain</I> is the strain energy expression
+proposed by Parrinello and Rahman <A HREF = "#Parrinello1981">(Parrinello1981)</A>.
+Taking derivatives of <I>E</I> w.r.t. the box dimensions, and setting these
+to zero, we find that at the minimum of the objective function, the
+global system stress tensor <B>P</B> will satisfy the relation:
+</P>
+<CENTER><IMG SRC = "Eqs/fix_box_relax2.jpg">
+</CENTER>
+<P>where <B>I</B> is the identity matric, <B>h</B>_0 is the box dimension tensor of
+the reference cell, and <B>h</B>_0<I>d</I> is the diagonal part of
+<B>h</B>_0. <B>S</B>_<I>t</I> is a symmetric stress tensor that is chosen by LAMMPS
+so that the upper-triangular components of <B>P</B> equal the stress tensor
+specified by the user.
+</P>
+<P>This equation only applies when the box dimensions are equal to those
+of the reference dimensions. If this is not the case, then the
+converged stress tensor will not equal that specified by the user.  We
+can resolve this problem by periodically resetting the reference
+dimensions. The keyword <I>nreset_ref</I> controls how often this is done.
+If this keyword is not used, or is given a value of zero, then the
+reference dimensions are set to those of the initial simulation domain
+and are never changed. A value of <I>nstep</I> means that every <I>nstep</I>
+minimization steps, the reference dimensions are set to those of the
+current simulation domain. Note that resetting the reference
+dimensions changes the objective function and gradients, which
+sometimes causes the minimization to fail. This can be resolved by
+changing the value of <I>nreset</I>, or simply continuing the minimization
+from a restart file.
 </P>
 <P>IMPORTANT NOTE: As normally computed, pressure includes a kinetic-
 energy or temperature-dependent component; see the <A HREF = "compute_pressure.html">compute
@@ -103,19 +198,19 @@ temperature and you print the usual thermodynamic pressure, it may not
 appear the system is converging to your specified pressure.  The
 solution for this is to either (a) zero the velocities of all atoms
 before performing the minimization, or (b) make sure you are
-monitoring the pressure without its kinetic component.  The latter
-can be done by outputting the pressure from the fix this command
-creates (see below) or a pressure fix you define yourself.
+monitoring the pressure without its kinetic component.  The latter can
+be done by outputting the pressure from the fix this command creates
+(see below) or a pressure fix you define yourself.
 </P>
 <P>IMPORTANT NOTE: Because pressure is often a very sensitive function of
 volume, it can be difficult for the minimizer to equilibrate the
-system the desired pressure with high precision.  Some techiniques
-that seem to help are (a) use the "min_modify line quadratic" option
-when minimizing with box relaxtions, and (b) minimize several times in
-succession if need be, to drive the pressure closer to the target
-pressure.  Also note that some systems (e.g. liquids) will not sustain
-an anisotropic applied pressure, which means the minimizer will not
-converge.
+system the desired pressure with high precision, particularly for
+solids.  Some techiniques that seem to help are (a) use the
+"min_modify line quadratic" option when minimizing with box
+relaxations, and (b) minimize several times in succession if need be,
+to drive the pressure closer to the target pressure.  Also note that
+some systems (e.g. liquids) will not sustain a non-hydrostatic applied
+pressure, which means the minimizer will not converge.
 </P>
 <HR>
 
@@ -171,9 +266,11 @@ only if the <I>temp</I> keyword comes after the <I>press</I> keyword.  If the
 compute specified by the <I>press</I> keyword will be unaffected by the
 <I>temp</I> setting.
 </P>
-<P>No global scalar or vector or per-atom quantities are stored by this
-fix for access by various <A HREF = "Section_howto.html#4_15">output commands</A>.
-No parameter of this fix can be used with the <I>start/stop</I> keywords of
+<P>This fix computes a global scalar which can be accessed by various
+<A HREF = "Section_howto.html#4_15">output commands</A>.  The scalar is the
+pressure-volume energy, plus the strain energy, if it exists.
+</P>
+<P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
 the <A HREF = "run.html">run</A> command.
 </P>
 <P>This fix is invoked during <A HREF = "minimize.html">energy minimization</A>, but
@@ -183,16 +280,27 @@ described above.
 </P>
 <P><B>Restrictions:</B>
 </P>
-<P>Any box dimension adjusted by this fix must be periodic.  A dimension
-whose target pressure is specified as NULL can be non-periodic or
-periodic.
+<P>Only dimensions that are available can be adjusted by this fix.
+Non-periodic dimensions are not available.  <I>z</I>, <I>xz</I>, and <I>yz</I>, are
+not available for 2D simulations. <I>xy</I>, <I>xz</I>, and <I>yz</I> are only
+available if the simulation domain is non-orthogonal.  The
+<A HREF = "create_box.html">create_box</A>, <A HREF = "read_data.html">read data</A>, and
+<A HREF = "read_restart.html">read_restart</A> commands specify whether the
+simulation box is orthogonal or non-orthogonal (triclinic) and explain
+the meaning of the xy,xz,yz tilt factors.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "fix_nph.html">fix npt</A>, <A HREF = "minimize.html">minimize</A>
+<P><A HREF = "fix_nh.html">fix npt</A>, <A HREF = "minimize.html">minimize</A>
 </P>
 <P><B>Default:</B>
 </P>
-<P>The keyword defaults are dilate = all and vmax = 0.0001.
+<P>The keyword defaults are dilate = all, vmax = 0.0001, nreset = 0.
+</P>
+<HR>
+
+<A NAME = "Parrinello1981"></A>
+
+<P><B>(Parrinello1981)</B> Parrinello and Rahman, J Appl Phys, 52, 7182 (1981).
 </P>
 </HTML>

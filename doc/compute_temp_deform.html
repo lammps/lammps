@@ -33,7 +33,7 @@ of this style is created by the <A HREF = "fix_nvt_sllod.html">fix nvt/sllod</A>
 command to compute the thermal temperature of atoms for thermostatting
 purposes.  A compute of this style can also be used by any command
 that computes a temperature, e.g. <A HREF = "thermo_modify.html">thermo_modify</A>,
-<A HREF = "fix_temp_rescale.html">fix temp/rescale</A>, <A HREF = "fix_npt.html">fix npt</A>, etc.
+<A HREF = "fix_temp_rescale.html">fix temp/rescale</A>, <A HREF = "fix_nh.html">fix npt</A>, etc.
 </P>
 <P>The deformation fix changes the box size and/or shape over time, so
 each atom in the simulation box can be thought of as having a
@@ -80,7 +80,7 @@ from the velocity of the atoms.  If this compute is used with a fix
 command that performs thermostatting then this bias will be subtracted
 from each atom, thermostatting of the remaining thermal velocity will
 be performed, and the bias will be added back in.  Thermostatting
-fixes that work in this way include <A HREF = "fix_nvt.html">fix nvt</A>, <A HREF = "fix_temp_rescale.html">fix
+fixes that work in this way include <A HREF = "fix_nh.html">fix nvt</A>, <A HREF = "fix_temp_rescale.html">fix
 temp/rescale</A>, <A HREF = "fix_temp_berendsen">fix
 temp/berendsen</A>, and <A HREF = "fix_langevin.html">fix
 langevin</A>.

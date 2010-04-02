@@ -45,10 +45,11 @@ operation of the fix continues in an uninterrupted fashion.
 fix to add the energy stored in the per-atom springs to the system's
 potential energy as part of <A HREF = "thermo_style.html">thermodynamic output</A>.
 </P>
-<P>This fix computes a scalar energy which can be accessed by various
-<A HREF = "Section_howto.html#4_15">output commands</A>.  This energy is the sum of
-the spring energy for each atom, where the per-atom energy is 0.5 * K
-* r^2.
+<P>This fix computes a global scalar which can be accessed by various
+<A HREF = "Section_howto.html#4_15">output commands</A>.  The scalar is an energy
+which is the sum of the spring energy for each atom, where the
+per-atom energy is 0.5 * K * r^2.  The scalar value calculated by this
+fix is "extensive".
 </P>
 <P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
 the <A HREF = "run.html">run</A> command.

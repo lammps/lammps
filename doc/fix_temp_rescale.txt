@@ -48,14 +48,14 @@ difference between the actual and desired temperature.  E.g. if
 {fraction} = 1.0, the temperature is reset to exactly the desired
 value.
 
-IMPORTANT NOTE: Unlike the "fix nvt"_fix_nvt.html command which
+IMPORTANT NOTE: Unlike the "fix nvt"_fix_nh.html command which
 performs Nose/Hoover thermostatting AND time integration, this fix
 does NOT perform time integration.  It only modifies velocities to
 effect thermostatting.  Thus you must use a separate time integration
 fix, like "fix nve"_fix_nve.html to actually update the positions of
 atoms using the modified velocities.  Likewise, this fix should not
 normally be used on atoms that also have their temperature controlled
-by another fix - e.g. by "fix nvt"_fix_nvt.html or "fix
+by another fix - e.g. by "fix nvt"_fix_nh.html or "fix
 langevin"_fix_langevin.html commands.
 
 See "this howto section"_Section_howto.html#4_16 of the manual for a
@@ -113,10 +113,10 @@ fix to add the energy change implied by a velocity rescaling to the
 system's potential energy as part of "thermodynamic
 output"_thermo_style.html.
 
-The cummulative energy change due to this fix is stored as a scalar
-quantity, which can be accessed by various "output
-commands"_Section_howto.html#4_15.  The scalar value calculated by
-this fix is "extensive".
+This fix computes a global scalar which can be accessed by various
+"output commands"_Section_howto.html#4_15.  The scalar is the
+cummulative energy change due to this fix.  The scalar value
+calculated by this fix is "extensive".
 
 This fix can ramp its target temperature over multiple runs, using the
 {start} and {stop} keywords of the "run"_run.html command.  See the
@@ -128,7 +128,7 @@ This fix is not invoked during "energy minimization"_minimize.html.
 
 [Related commands:]
 
-"fix langevin"_fix_langevin.html, "fix nvt"_fix_nvt.html,
+"fix langevin"_fix_langevin.html, "fix nvt"_fix_nh.html,
 "fix_modify"_fix_modify.html
 
 [Default:] none

@@ -44,14 +44,14 @@ example, a value of 100.0 means to relax the temperature in a timespan
 of (roughly) 100 time units (tau or fmsec or psec - see the
 <A HREF = "units.html">units</A> command).
 </P>
-<P>IMPORTANT NOTE: Unlike the <A HREF = "fix_nvt.html">fix nvt</A> command which
+<P>IMPORTANT NOTE: Unlike the <A HREF = "fix_nh.html">fix nvt</A> command which
 performs Nose/Hoover thermostatting AND time integration, this fix
 does NOT perform time integration.  It only modifies velocities to
 effect thermostatting.  Thus you must use a separate time integration
 fix, like <A HREF = "fix_nve.html">fix nve</A> to actually update the positions of
 atoms using the modified velocities.  Likewise, this fix should not
 normally be used on atoms that also have their temperature controlled
-by another fix - e.g. by <A HREF = "fix_nvt.html">fix nvt</A> or <A HREF = "fix_langevin.html">fix
+by another fix - e.g. by <A HREF = "fix_nh.html">fix nvt</A> or <A HREF = "fix_langevin.html">fix
 langevin</A> commands.
 </P>
 <P>See <A HREF = "Section_howto.html#4_16">this howto section</A> of the manual for a
@@ -104,8 +104,8 @@ you have defined to this fix which will be used in its thermostatting
 procedure, as described above.  For consistency, the group used by
 this fix and by the compute should be the same.
 </P>
-<P>No global scalar or vector or per-atom quantities are stored by this
-fix for access by various <A HREF = "Section_howto.html#4_15">output commands</A>.
+<P>No global or per-atom quantities are stored by this fix for access by
+various <A HREF = "Section_howto.html#4_15">output commands</A>.
 </P>
 <P>This fix can ramp its target temperature over multiple runs, using the
 <I>start</I> and <I>stop</I> keywords of the <A HREF = "run.html">run</A> command.  See the
@@ -117,7 +117,7 @@ fix for access by various <A HREF = "Section_howto.html#4_15">output commands</A
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "fix_nve.html">fix nve</A>, <A HREF = "fix_nvt.html">fix nvt</A>, <A HREF = "fix_temp_rescale.html">fix
+<P><A HREF = "fix_nve.html">fix nve</A>, <A HREF = "fix_nh.html">fix nvt</A>, <A HREF = "fix_temp_rescale.html">fix
 temp/rescale</A>, <A HREF = "fix_langevin.html">fix langevin</A>,
 <A HREF = "fix_modify.html">fix_modify</A>, <A HREF = "compute_temp.html">compute temp</A>,
 <A HREF = "fix_press_berendsen.html">fix press/berendsen</A>

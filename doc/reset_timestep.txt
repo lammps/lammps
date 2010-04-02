@@ -55,7 +55,7 @@ and orientation.
 There are other fixes which use the current timestep which may produce
 unexpected behavior, but LAMMPS allows them to be in place when
 resetting the timestep.  For example, commands which thermostat the
-system, e.g. "fix nvt"_fix_nvt.html, allow you to specify a target
+system, e.g. "fix nvt"_fix_nh.html, allow you to specify a target
 temperature which ramps from Tstart to Tstop which may persist over
 several runs.  If you change the timestep, you may change the target
 temperature.

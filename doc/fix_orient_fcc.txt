@@ -123,10 +123,10 @@ fix to add the potential energy of atom interactions with the grain
 boundary driving force to the system's potential energy as part of
 "thermodynamic output"_thermo_style.html.
 
-The potential energy change due to this fix is stored as a scalar
-quantity, which can be accessed by various "output
-commands"_Section_howto.html#4_15.  The scalar value calculated by
-this fix is "extensive".
+This fix computes a global scalar which can be accessed by various
+"output commands"_Section_howto.html#4_15.  The scalar is the
+potential energy change due to this fix.  The scalar value calculated
+by this fix is "extensive".
 
 No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.  This fix is not invoked during "energy

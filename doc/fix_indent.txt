@@ -174,8 +174,8 @@ the system's potential energy as part of "thermodynamic
 output"_thermo_style.html.  The energy of each particle interacting
 with the indenter is K/3 (r - R)^3.
 
-This fix computes a scalar energy and a 3-vector of forces (on the
-indenter), which can be accessed by various "output
+This fix computes a global scalar energy and a global 3-vector of
+forces (on the indenter), which can be accessed by various "output
 commands"_Section_howto.html#4_15.  The scalar and vector values
 calculated by this fix are "extensive".
 

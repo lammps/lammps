@@ -40,7 +40,7 @@ thermostatting a collection of atoms undergoing a complex flow,
 e.g. via a profile-unbiased thermostat (PUT) as described in
 "(Evans)"_#Evans.  A compute of this style can be used by any command
 that computes a temperature, e.g. "thermo_modify"_thermo_modify.html,
-"fix temp/rescale"_fix_temp_rescale.html, "fix npt"_fix_npt.html, etc.
+"fix temp/rescale"_fix_temp_rescale.html, "fix npt"_fix_nh.html, etc.
 
 The {xflag}, {yflag}, {zflag} settings determine which components of
 average velocity are subtracted out.
@@ -86,7 +86,7 @@ from the velocity of the atoms.  If this compute is used with a fix
 command that performs thermostatting then this bias will be subtracted
 from each atom, thermostatting of the remaining thermal velocity will
 be performed, and the bias will be added back in.  Thermostatting
-fixes that work in this way include "fix nvt"_fix_nvt.html, "fix
+fixes that work in this way include "fix nvt"_fix_nh.html, "fix
 temp/rescale"_fix_temp_rescale.html, "fix
 temp/berendsen"_fix_temp_berendsen, and "fix
 langevin"_fix_langevin.html.

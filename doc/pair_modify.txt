@@ -113,7 +113,7 @@ printing of thermodynamic quantities (see the
 "thermo_style"_thermo_style.html command).  Their effect will also be
 included in constant NPT or NPH simulations where the pressure
 influences the simulation box dimensions (e.g. the "fix
-npt"_fix_npt.html and "fix nph"_fix_nph.html commands).  The formulas
+npt"_fix_nh.html and "fix nph"_fix_nh.html commands).  The formulas
 used for the long-range corrections come from equation 5 of
 "(Sun)"_#Sun.
 

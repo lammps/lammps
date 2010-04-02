@@ -135,7 +135,7 @@ which can sum per-atom quantities into a global scalar or vector which
 can thus be accessed by fix ave/histo.  Or it can be a compute defined
 not in your input script, but by "thermodynamic
 output"_thermo_style.html or other fixes such as "fix
-nvt"_fix_nvt.html or "fix temp/rescale"_fix_temp_rescale.html.  See
+nvt"_fix_nh.html or "fix temp/rescale"_fix_temp_rescale.html.  See
 the doc pages for these commands which give the IDs of these computes.
 Users can also write code for their own compute styles and "add them
 to LAMMPS"_Section_modify.html.

@@ -10,22 +10,16 @@ fix nvt/asphere command :h3
 
 [Syntax:]
 
-fix ID group-ID nvt/asphere Tstart Tstop Tdamp keyword value ... :pre
+fix ID group-ID nvt/asphere keyword value ... :pre
 
-ID, group-ID are documented in "fix"_fix.html command :ulb,l
-nvt/asphere = style name of this fix command :l
-Tstart,Tstop = desired temperature at start/end of run :l
-Tdamp = temperature damping parameter (time units) :l
-
-zero or more keyword/value pairs may be appended :l
-keyword = {drag} :l
-  {drag} value = drag factor added to thermostat (0.0 = no drag) :pre
-:ule
+ID, group-ID are documented in "fix"_fix.html command
+nvt/asphere = style name of this fix command
+additional thermostat related keyword/value pairs from the "fix nvt"_fix_nh.html command can be appended :ul
 
 [Examples:]
 
-fix 1 all nvt/asphere 300.0 300.0 100.0
-fix 1 all nvt/asphere 300.0 300.0 100.0 drag 0.2 :pre
+fix 1 all nvt/asphere temp 300.0 300.0 100.0
+fix 1 all nvt/asphere temp 300.0 300.0 100.0 drag 0.2 :pre
 
 [Description:]
 
@@ -35,6 +29,9 @@ ellipsoidal particles in the group using a Nose/Hoover temperature
 thermostat.  V is volume; T is temperature.  This creates a system
 trajectory consistent with the canonical ensemble.
 
+This fix differs from the "fix nvt"_fix_nh.html command, which
+assumes point particles and only updates their position and velocity.
+
 The thermostat is applied to both the translational and rotational
 degrees of freedom for the aspherical particles, assuming a compute is
 used which calculates a temperature that includes the rotational
@@ -42,22 +39,10 @@ degrees of freedom (see below).  The translational degrees of freedom
 can also have a bias velocity removed from them before thermostatting
 takes place; see the description below.
 
-The desired temperature at each timestep is a ramped value during the
-run from {Tstart} to {Tstop}.  The {Tdamp} parameter is specified in
-time units and determines how rapidly the temperature is relaxed.  For
-example, a value of 100.0 means to relax the temperature in a timespan
-of (roughly) 100 time units (tau or fmsec or psec - see the
-"units"_units.html command).
-
-In some cases (e.g. for solids) the temperature of the system can
-oscillate undesirably when a Nose/Hoover thermostat is applied.  The
-optional {drag} keyword will damp these oscillations, although it
-alters the Nose/Hoover equations.  A value of 0.0 (no drag) leaves the
-Nose/Hoover formalism unchanged.  A non-zero value adds a drag term;
-the larger the value specified, the greater the damping effect.
-Performing a short run and monitoring the temperature is the best way
-to determine if the drag term is working.  Typically a value between
-0.2 to 2.0 is sufficient to damp oscillations after a few periods.
+Additional parameters affecting the thermostat are specified by
+keywords and values documented with the "fix nvt"_fix_nh.html
+command.  See, for example, discussion of the {temp} and {drag}
+keywords.
 
 This fix computes a temperature each timestep.  To do this, the fix
 creates its own compute of style "temp/asphere", as if this command 
@@ -113,10 +98,8 @@ fix to add the energy change induced by Nose/Hoover thermostatting to
 the system's potential energy as part of "thermodynamic
 output"_thermo_style.html.
 
-The cummulative energy change due to this fix is stored as a scalar
-quantity, which can be accessed by various "output
-commands"_Section_howto.html#4_15.  The scalar value calculated by
-this fix is "extensive".
+This fix computes the same global scalar and global vector of
+quantities as does the "fix nvt"_fix_nh.html command.
 
 This fix can ramp its target temperature over multiple runs, using the
 {start} and {stop} keywords of the "run"_run.html command.  See the
@@ -139,15 +122,9 @@ diameter or per-particle mass.
 All particles in the group must be finite-size.  They cannot be point
 particles, but they can be aspherical or spherical.
 
-The final Tstop cannot be 0.0 since it would make the target T = 0.0
-at some timestep during the simulation which is not allowed in 
-the Nose/Hoover formulation.
-
 [Related commands:]
 
-"fix nvt"_fix_nvt.html, "fix nve_asphere"_fix_nve_asphere.html, "fix
+"fix nvt"_fix_nh.html, "fix nve_asphere"_fix_nve_asphere.html, "fix
 npt_asphere"_fix_npt_asphere.html, "fix_modify"_fix_modify.html
 
-[Default:]
-
-The keyword defaults are drag = 0.0.
+[Default:] none

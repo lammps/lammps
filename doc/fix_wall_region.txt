@@ -155,14 +155,14 @@ fix to add the energy of interaction between atoms and the wall to the
 system's potential energy as part of "thermodynamic
 output"_thermo_style.html.
 
-This fix computes a scalar energy and a 3-length vector of forces,
-which can be accessed by various "output
-commands"_Section_howto.html#4_15.  The scalar and vector values
-calculated by this fix are "extensive".  The scalar energy is the sum
-of energy interactions for all particles interacting with the wall
+This fix computes a global scalar energy and a global 3-length vector
+of forces, which can be accessed by various "output
+commands"_Section_howto.html#4_15.  The scalar energy is the sum of
+energy interactions for all particles interacting with the wall
 represented by the region surface.  The 3 vector quantities are the
 x,y,z components of the total force acting on the wall due to the
-particles.
+particles.  The scalar and vector values calculated by this fix are
+"extensive".
 
 No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.

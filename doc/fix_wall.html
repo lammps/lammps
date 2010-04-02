@@ -189,17 +189,17 @@ fix to add the energy of interaction between atoms and each wall to
 the system's potential energy as part of <A HREF = "thermo_style.html">thermodynamic
 output</A>.
 </P>
-<P>This fix computes a scalar energy and a 6-length vector of forces (one
-force magnitude per wall), which can be accessed by various <A HREF = "Section_howto.html#4_15">output
-commands</A>.  The scalar and vector values
-calculated by this fix are "extensive".  Note that the scalar energy
-is the sum of interactions with all defined walls.  If you want the
-energy on a per-wall basis, you need to use multiple fix wall
-commands.  The 6 vector quantities are the force on the <I>xlo</I> wall,
-the <I>xhi</I> wall, <I>ylo</I>, <I>yhi</I>, <I>zlo</I>, <I>zhi</I>.  These values will only be
-non-zero if the corresponding wall is defined.  Note that an outward
-force on a wall will be a negative value for <I>lo</I> walls and a positive
-value for <I>hi</I> walls.
+<P>This fix computes a global scalar energy and a global 6-length vector
+of forces (one force magnitude per wall), which can be accessed by
+various <A HREF = "Section_howto.html#4_15">output commands</A>.  Note that the
+scalar energy is the sum of interactions with all defined walls.  If
+you want the energy on a per-wall basis, you need to use multiple fix
+wall commands.  The 6 vector quantities are the force on the <I>xlo</I>
+wall, the <I>xhi</I> wall, <I>ylo</I>, <I>yhi</I>, <I>zlo</I>, <I>zhi</I>.  These values will
+only be non-zero if the corresponding wall is defined.  Note that an
+outward force on a wall will be a negative value for <I>lo</I> walls and a
+positive value for <I>hi</I> walls.  The scalar and vector values
+calculated by this fix are "extensive".
 </P>
 <P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
 the <A HREF = "run.html">run</A> command.

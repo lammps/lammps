@@ -44,7 +44,7 @@ time the fix is invoked.  If heat is subtracted from the system too
 aggressively so that the group's kinetic energy would go to zero,
 LAMMPS halts with an error message.
 
-Fix heat is different from a thermostat such as "fix nvt"_fix_nvt.html
+Fix heat is different from a thermostat such as "fix nvt"_fix_nh.html
 or "fix temp/rescale"_fix_temp_rescale.html in that energy is
 added/subtracted continually.  Thus if there isn't another mechanism
 in place to counterbalance this effect, the entire system will heat or
@@ -56,7 +56,7 @@ This fix does not change the coordinates of its atoms; it only scales
 their velocities.  Thus you must still use an integration fix
 (e.g. "fix nve"_fix_nve.html) on the affected atoms.  This fix should
 not normally be used on atoms that have their temperature controlled
-by another fix - e.g. "fix nvt"_fix_nvt.html or "fix
+by another fix - e.g. "fix nvt"_fix_nh.html or "fix
 langevin"_fix_langevin.html fix.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
@@ -65,10 +65,10 @@ No information about this fix is written to "binary restart
 files"_restart.html.  None of the "fix_modify"_fix_modify.html options
 are relevant to this fix.
 
-This fix computes a scalar which can be accessed by various "output
-commands"_Section_howto.html#4_15.  This scalar is the most recent
-value by which velocites were scaled.  The scalar value calculated by
-this fix is "intensive".
+This fix computes a global scalar which can be accessed by various
+"output commands"_Section_howto.html#4_15.  This scalar is the most
+recent value by which velocites were scaled.  The scalar value
+calculated by this fix is "intensive".
 
 No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.  This fix is not invoked during "energy

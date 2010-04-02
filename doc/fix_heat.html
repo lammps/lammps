@@ -47,7 +47,7 @@ time the fix is invoked.  If heat is subtracted from the system too
 aggressively so that the group's kinetic energy would go to zero,
 LAMMPS halts with an error message.
 </P>
-<P>Fix heat is different from a thermostat such as <A HREF = "fix_nvt.html">fix nvt</A>
+<P>Fix heat is different from a thermostat such as <A HREF = "fix_nh.html">fix nvt</A>
 or <A HREF = "fix_temp_rescale.html">fix temp/rescale</A> in that energy is
 added/subtracted continually.  Thus if there isn't another mechanism
 in place to counterbalance this effect, the entire system will heat or
@@ -59,7 +59,7 @@ from the system.
 their velocities.  Thus you must still use an integration fix
 (e.g. <A HREF = "fix_nve.html">fix nve</A>) on the affected atoms.  This fix should
 not normally be used on atoms that have their temperature controlled
-by another fix - e.g. <A HREF = "fix_nvt.html">fix nvt</A> or <A HREF = "fix_langevin.html">fix
+by another fix - e.g. <A HREF = "fix_nh.html">fix nvt</A> or <A HREF = "fix_langevin.html">fix
 langevin</A> fix.
 </P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
@@ -68,10 +68,10 @@ langevin</A> fix.
 files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
 are relevant to this fix.
 </P>
-<P>This fix computes a scalar which can be accessed by various <A HREF = "Section_howto.html#4_15">output
-commands</A>.  This scalar is the most recent
-value by which velocites were scaled.  The scalar value calculated by
-this fix is "intensive".
+<P>This fix computes a global scalar which can be accessed by various
+<A HREF = "Section_howto.html#4_15">output commands</A>.  This scalar is the most
+recent value by which velocites were scaled.  The scalar value
+calculated by this fix is "intensive".
 </P>
 <P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
 the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy

@@ -28,7 +28,7 @@ This is useful if the group is expected to have a non-zero net
 velocity for some reason.  A compute of this style can be used by any
 command that computes a temperature,
 e.g. "thermo_modify"_thermo_modify.html, "fix
-temp/rescale"_fix_temp_rescale.html, "fix npt"_fix_npt.html, etc.
+temp/rescale"_fix_temp_rescale.html, "fix npt"_fix_nh.html, etc.
 
 After the center-of-mass velocity has been subtracted from each atom,
 the temperature is calculated by the formula KE = dim/2 N k T, where
@@ -53,7 +53,7 @@ velocity of the atoms.  If this compute is used with a fix command
 that performs thermostatting then this bias will be subtracted from
 each atom, thermostatting of the remaining thermal velocity will be
 performed, and the bias will be added back in.  Thermostatting fixes
-that work in this way include "fix nvt"_fix_nvt.html, "fix
+that work in this way include "fix nvt"_fix_nh.html, "fix
 temp/rescale"_fix_temp_rescale.html, "fix
 temp/berendsen"_fix_temp_berendsen, and "fix
 langevin"_fix_langevin.html.

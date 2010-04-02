@@ -73,14 +73,14 @@ this fix.  The translational degrees of freedom can also have a bias
 velocity removed from them before thermostatting takes place; see the
 description below.
 
-IMPORTANT NOTE: Unlike the "fix nvt"_fix_nvt.html command which
+IMPORTANT NOTE: Unlike the "fix nvt"_fix_nh.html command which
 performs Nose/Hoover thermostatting AND time integration, this fix
 does NOT perform time integration.  It only modifies forces to effect
 thermostatting.  Thus you must use a separate time integration fix,
 like "fix nve"_fix_nve.html to actually update the velocities and
 positions of atoms using the modified forces.  Likewise, this fix
 should not normally be used on atoms that also have their temperature
-controlled by another fix - e.g. by "fix nvt"_fix_nvt.html or "fix
+controlled by another fix - e.g. by "fix nvt"_fix_nh.html or "fix
 temp/rescale"_fix_temp_rescale.html commands.
 
 See "this howto section"_Section_howto.html#4_16 of the manual for a
@@ -161,11 +161,11 @@ system's potential energy as part of "thermodynamic
 output"_thermo_style.html.  Note that use of this option requires
 setting the {tally} keyword to {yes}.
 
-The cummulative energy change due to this fix is stored as a scalar
-quantity, which can be accessed by various "output
-commands"_Section_howto.html#4_15.  The scalar value calculated by
-this fix is "extensive".  Note that calculation of this quantity
-requires setting the {tally} keyword to {yes}.
+This fix computes a global scalar which can be accessed by various
+"output commands"_Section_howto.html#4_15.  The scalar is the
+cummulative energy change due to this fix.  The scalar value
+calculated by this fix is "extensive".  Note that calculation of this
+quantity requires setting the {tally} keyword to {yes}.
 
 This fix can ramp its target temperature over multiple runs, using the
 {start} and {stop} keywords of the "run"_run.html command.  See the
@@ -177,8 +177,8 @@ This fix is not invoked during "energy minimization"_minimize.html.
 
 [Related commands:]
 
-"fix nvt"_fix_nvt.html, "fix temp/rescale"_fix_temp_rescale.html, "fix
-viscous"_fix_viscous.html, "fix nvt"_fix_nvt.html
+"fix nvt"_fix_nh.html, "fix temp/rescale"_fix_temp_rescale.html, "fix
+viscous"_fix_viscous.html, "fix nvt"_fix_nh.html
 
 [Default:]
 

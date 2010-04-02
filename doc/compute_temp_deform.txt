@@ -30,7 +30,7 @@ of this style is created by the "fix nvt/sllod"_fix_nvt_sllod.html
 command to compute the thermal temperature of atoms for thermostatting
 purposes.  A compute of this style can also be used by any command
 that computes a temperature, e.g. "thermo_modify"_thermo_modify.html,
-"fix temp/rescale"_fix_temp_rescale.html, "fix npt"_fix_npt.html, etc.
+"fix temp/rescale"_fix_temp_rescale.html, "fix npt"_fix_nh.html, etc.
 
 The deformation fix changes the box size and/or shape over time, so
 each atom in the simulation box can be thought of as having a
@@ -77,7 +77,7 @@ from the velocity of the atoms.  If this compute is used with a fix
 command that performs thermostatting then this bias will be subtracted
 from each atom, thermostatting of the remaining thermal velocity will
 be performed, and the bias will be added back in.  Thermostatting
-fixes that work in this way include "fix nvt"_fix_nvt.html, "fix
+fixes that work in this way include "fix nvt"_fix_nh.html, "fix
 temp/rescale"_fix_temp_rescale.html, "fix
 temp/berendsen"_fix_temp_berendsen, and "fix
 langevin"_fix_langevin.html.

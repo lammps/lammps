@@ -13,40 +13,18 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>fix ID group-ID npt/asphere Tstart Tstop Tdamp p-style args keyword value ... 
+<PRE>fix ID group-ID npt/asphere keyword value ... 
 </PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
-
-<LI>npt/asphere = style name of this fix command 
-
-<LI>Tstart,Tstop = desired temperature at start/end of run 
-
-<LI>Tdamp = temperature damping parameter (time units) 
-
-<LI>p-style = <I>xyz</I> or <I>xy</I> or <I>yz</I> or <I>xz</I> or <I>aniso</I> 
-
-<PRE>  <I>xyz</I> args = Pstart Pstop Pdamp
-    Pstart,Pstop = desired pressure at start/end of run (pressure units)
-    Pdamp = pressure damping parameter (time units)
-  <I>xy</I> or <I>yz</I> or <I>xz</I> or <I>aniso</I> args = Px_start Px_stop Py_start Py_stop Pz_start Pz_stop Pdamp
-    Px_start,Px_stop,... = desired pressure in x,y,z at start/end of run (pressure units)
-    Pdamp = pressure damping parameter (time units) 
-</PRE>
-<LI>zero or more keyword/value pairs may be appended 
-
-<LI>keyword = <I>drag</I> or <I>dilate</I> 
-
-<PRE>  <I>drag</I> value = drag factor added to barostat/thermostat (0.0 = no drag)
-  <I>dilate</I> value = <I>all</I> or <I>partial</I> 
-</PRE>
-
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
+<LI>npt/asphere = style name of this fix command
+<LI>additional thermostat and barostat related keyword/value pairs from the <A HREF = "fix_nh.html">fix npt</A> command can be appended 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>fix 1 all npt/asphere 300.0 300.0 100.0 xyz 0.0 0.0 1000.0
-fix 2 all npt/asphere 300.0 300.0 100.0 xz 5.0 5.0 NULL NULL 5.0 5.0 1000.0
-fix 2 all npt/asphere 300.0 300.0 100.0 xz 5.0 5.0 NULL NULL 5.0 5.0 1000.0 drag 0.2
-fix 2 water npt/asphere 300.0 300.0 100.0 aniso 0.0 0.0 0.0 0.0 NULL NULL 1000.0 dilate partial 
+<PRE>fix 1 all npt/asphere temp 300.0 300.0 100.0 iso 0.0 0.0 1000.0
+fix 2 all npt/asphere temp 300.0 300.0 100.0 x 5.0 5.0 1000.0
+fix 2 all npt/asphere temp 300.0 300.0 100.0 x 5.0 5.0 1000.0 drag 0.2
+fix 2 water npt/asphere temp 300.0 300.0 100.0 aniso 0.0 0.0 1000.0 dilate partial 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -57,6 +35,9 @@ thermostat and Nose/Hoover pressure barostat.  P is pressure; T is
 temperature.  This creates a system trajectory consistent with the
 isothermal-isobaric ensemble.
 </P>
+<P>This fix differs from the <A HREF = "fix_nh.html">fix npt</A> command, which
+assumes point particles and only updates their position and velocity.
+</P>
 <P>The thermostat is applied to both the translational and rotational
 degrees of freedom for the aspherical particles, assuming a compute is
 used which calculates a temperature that includes the rotational
@@ -64,12 +45,10 @@ degrees of freedom (see below).  The translational degrees of freedom
 can also have a bias velocity removed from them before thermostatting
 takes place; see the description below.
 </P>
-<P>The desired temperature at each timestep is a ramped value during the
-run from <I>Tstart</I> to <I>Tstop</I>.  The <I>Tdamp</I> parameter is specified in
-time units and determines how rapidly the temperature is relaxed.  For
-example, a value of 100.0 means to relax the temperature in a timespan
-of (roughly) 100 time units (tau or fmsec or psec - see the
-<A HREF = "units.html">units</A> command).
+<P>Additional parameters affecting the thermostat and barostat are
+specified by keywords and values documented with the <A HREF = "fix_nh.html">fix
+npt</A> command.  See, for example, discussion of the <I>temp</I>,
+<I>iso</I>, <I>aniso</I>, and <I>dilate</I> keywords.
 </P>
 <P>The particles in the fix group are the only ones whose velocities and
 positions are updated by the velocity/position update portion of the
@@ -85,71 +64,18 @@ unchanged and controlling the pressure of a surrounding fluid.
 </P>
 <HR>
 
-<P>The pressure can be controlled in one of several styles, as specified
-by the <I>p-style</I> argument.  In each case, the desired pressure at each
-timestep is a ramped value during the run from the starting value to
-the end value.
-</P>
-<P>Style <I>xyz</I> means couple all dimensions together when pressure is
-computed (isotropic pressure), and dilate/contract the dimensions
-together.
-</P>
-<P>Styles <I>xy</I> or <I>yz</I> or <I>xz</I> means that the 2 specified dimensions are
-coupled together, both for pressure computation and for
-dilation/contraction.  The 3rd dimension dilates/contracts
-independently, using its pressure component as the driving force.
-These styles cannot be used for a 2d simulation.
-</P>
-<P>For style <I>aniso</I>, all dimensions dilate/contract independently using
-their individual pressure components as the driving forces.
-</P>
-<P>For any of the styles except <I>xyz</I>, any of the independent pressure
-components (e.g. z in <I>xy</I>, or any dimension in <I>aniso</I>) can have
-their target pressures (both start and stop values) specified as NULL.
-This means that no pressure control is applied to that dimension so
-that the box dimension remains unchanged.  For a 2d simulation the z
-pressure components must be specified as NULL when using style
-<I>aniso</I>.
-</P>
-<P>For styles <I>xy</I> and <I>yz</I> and <I>xz</I>, the starting and stopping pressures
-must be the same for the two coupled dimensions and cannot be
-specified as NULL.
-</P>
-<P>In some cases (e.g. for solids) the pressure (volume) and/or
-temperature of the system can oscillate undesirably when a Nose/Hoover
-barostat and thermostat is applied.  The optional <I>drag</I> keyword will
-damp these oscillations, although it alters the Nose/Hoover equations.
-A value of 0.0 (no drag) leaves the Nose/Hoover formalism unchanged.
-A non-zero value adds a drag term; the larger the value specified, the
-greater the damping effect.  Performing a short run and monitoring the
-pressure and temperature is the best way to determine if the drag term
-is working.  Typically a value between 0.2 to 2.0 is sufficient to
-damp oscillations after a few periods.
-</P>
-<P>For all pressure styles, the simulation box stays rectangular in
-shape.  Parinello-Rahman boundary conditions (tilted box) are not yet
-implemented in LAMMPS.
-</P>
-<P>For all styles, the <I>Pdamp</I> parameter operates like the <I>Tdamp</I>
-parameter, determining the time scale on which pressure is relaxed.
-For example, a value of 1000.0 means to relax the pressure in a
-timespan of (roughly) 1000 time units (tau or fmsec or psec - see the
-<A HREF = "units.html">units</A> command).
-</P>
-<HR>
-
 <P>This fix computes a temperature and pressure each timestep.  To do
 this, the fix creates its own computes of style "temp/asphere" and 
 "pressure", as if these commands had been issued:
 </P>
-<PRE>compute fix-ID_temp group-ID temp/asphere
-compute fix-ID_press group-ID pressure fix-ID_temp 
+<PRE>compute fix-ID_temp all temp/asphere
+compute fix-ID_press all pressure fix-ID_temp 
 </PRE>
 <P>See the <A HREF = "compute_temp_asphere.html">compute temp/asphere</A> and <A HREF = "compute_pressure.html">compute
 pressure</A> commands for details.  Note that the
 IDs of the new computes are the fix-ID + underscore + "temp" or fix_ID
-+ underscore + "press", and the group for the new computes is the same
-as the fix group.
++ underscore + "press", and the group for the new computes is "all"
+since pressure is computed for the entire system.
 </P>
 <P>Note that these are NOT the computes used by thermodynamic output (see
 the <A HREF = "thermo_style.html">thermo_style</A> command) with ID = <I>thermo_temp</I>
@@ -198,10 +124,8 @@ fix to add the energy change induced by Nose/Hoover thermostatting and
 barostatting to the system's potential energy as part of
 <A HREF = "thermo_style.html">thermodynamic output</A>.
 </P>
-<P>The cummulative energy change due to this fix is stored as a scalar
-quantity, which can be accessed by various <A HREF = "Section_howto.html#4_15">output
-commands</A>.  The scalar value calculated by
-this fix is "extensive".
+<P>This fix computes the same global scalar and global vector of
+quantities as does the <A HREF = "fix_nh.html">fix npt</A> command.
 </P>
 <P>This fix can ramp its target temperature and pressure over multiple
 runs, using the <I>start</I> and <I>stop</I> keywords of the <A HREF = "run.html">run</A>
@@ -225,21 +149,11 @@ diameter or per-particle mass.
 <P>All particles in the group must be finite-size.  They cannot be point
 particles, but they can be aspherical or spherical.
 </P>
-<P>Any dimension being adjusted by this fix must be periodic.  A
-dimension whose target pressures are specified as NULL can be
-non-periodic or periodic.
-</P>
-<P>The final Tstop cannot be 0.0 since it would make the target T = 0.0
-at some timestep during the simulation which is not allowed in 
-the Nose/Hoover formulation.
-</P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "fix_npt.html">fix npt</A>, <A HREF = "fix_nve_asphere.html">fix nve_asphere</A>, <A HREF = "fix_npt_asphere.html">fix
-npt_asphere</A>, <A HREF = "fix_modify.html">fix_modify</A>
+<P><A HREF = "fix_nh.html">fix npt</A>, <A HREF = "fix_nve_asphere.html">fix nve_asphere</A>, <A HREF = "fix_nvt_asphere.html">fix
+nvt_asphere</A>, <A HREF = "fix_modify.html">fix_modify</A>
 </P>
-<P><B>Default:</B>
-</P>
-<P>The keyword defaults are drag = 0.0 and dilate = all.
+<P><B>Default:</B> none
 </P>
 </HTML>

@@ -33,8 +33,8 @@ temp/rescale"_fix_temp_rescale.html, etc.
 Note that a {region}-style temperature can be used to thermostat with
 "fix temp/rescale"_fix_temp_rescale.html or "fix
 langevin"_fix_langevin.html, but should probably not be used with
-Nose/Hoover style fixes ("fix nvt"_fix_nvt.html, "fix
-npt"_fix_npt.html, or "fix nph"_fix_nph.html), if the
+Nose/Hoover style fixes ("fix nvt"_fix_nh.html, "fix
+npt"_fix_nh.html, or "fix nph"_fix_nh.html), if the
 degrees-of-freedom included in the computed T varies with time.
 
 The temperature is calculated by the formula KE = dim/2 N k T, where
@@ -63,7 +63,7 @@ compute is used with a fix command that performs thermostatting then
 this bias will be subtracted from each atom, thermostatting of the
 remaining thermal velocity will be performed, and the bias will be
 added back in.  Thermostatting fixes that work in this way include
-"fix nvt"_fix_nvt.html, "fix temp/rescale"_fix_temp_rescale.html, "fix
+"fix nvt"_fix_nh.html, "fix temp/rescale"_fix_temp_rescale.html, "fix
 temp/berendsen"_fix_temp_berendsen, and "fix
 langevin"_fix_langevin.html.  This means any of the thermostatting
 fixes can operate on a geometric region of atoms, as defined by this

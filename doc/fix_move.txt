@@ -48,7 +48,7 @@ whose movement can influence nearby atoms.
 
 IMPORTANT NOTE: The atoms affected by this fix should not normally be
 time integrated by other fixes (e.g. "fix nve"_fix_nve.html, "fix
-nvt"_fix_nvt.html), since that will change their positions and
+nvt"_fix_nh.html), since that will change their positions and
 velocities twice.
 
 IMPORTANT NOTE: As atoms move due to this fix, they will pass thru
@@ -179,9 +179,9 @@ None of the "fix_modify"_fix_modify.html options are relevant to this
 fix.  
 
 This fix produces a per-atom array which can be accessed by various
-"output commands"_Section_howto.html#4_15.  The number of columns
-for each atom is 3, and the columns store the original unwrapped
-x,y,z coords of each atom.  The per-atom values be accessed on any
+"output commands"_Section_howto.html#4_15.  The number of columns for
+each atom is 3, and the columns store the original unwrapped x,y,z
+coords of each atom.  The per-atom values can be accessed on any
 timestep.
 
 No parameter of this fix can be used with the {start/stop} keywords of

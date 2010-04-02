@@ -303,7 +303,7 @@ processor partition, using the "variable"_variable.html command:
 
 variable t world 300.0 310.0 320.0 330.0 :pre
 
-Define a fix of style "nvt"_fix_nvt.html or "langevin"_fix_langevin.html
+Define a fix of style "nvt"_fix_nh.html or "langevin"_fix_langevin.html
 to control the temperature of each simulation:
 
 fix myfix all nvt $t $t 100.0 :pre
@@ -1255,7 +1255,7 @@ Thermostatting in LAMMPS is performed by "fixes"_fix.html.  Four
 thermostatting fixes are currently available: Nose-Hoover (nvt),
 Berendsen, Langevin, and direct rescaling (temp/rescale):
 
-"fix nvt"_fix_nvt.html
+"fix nvt"_fix_nh.html
 "fix nvt/sphere"_fix_nvt_sphere.html
 "fix nvt/asphere"_fix_nvt_asphere.html
 "fix nvt/sllod"_fix_nvt_sllod.html
@@ -1263,7 +1263,7 @@ Berendsen, Langevin, and direct rescaling (temp/rescale):
 "fix langevin"_fix_langevin.html
 "fix temp/rescale"_fix_temp_rescale.html :ul
 
-"Fix nvt"_fix_nvt.html only thermostats the translational velocity of
+"Fix nvt"_fix_nh.html only thermostats the translational velocity of
 particles.  "Fix nvt/sllod"_fix_nvt_sllod.html also does this, except
 that it subtracts out a velocity bias due to a deforming box and
 integrates the SLLOD equations of motion.  See the "NEMD
@@ -1298,20 +1298,20 @@ Barostatting in LAMMPS is also performed by "fixes"_fix.html.  Two
 barosttating methods are currently available: Nose-Hoover (npt and
 nph) and Berendsen:
 
-"fix npt"_fix_npt.html
+"fix npt"_fix_nh.html
 "fix npt/sphere"_fix_npt_sphere.html
 "fix npt/asphere"_fix_npt_asphere.html
-"fix nph"_fix_nph.html
+"fix nph"_fix_nh.html
 "fix press/berendsen"_fix_press_berendsen.html :ul
 
-The "fix npt"_fix_npt.html commands include a Nose-Hoover thermostat
-and barostat.  "Fix nph"_fix_nph.html is just a Nose/Hoover barostat;
-it does no thermostatting.  Both "fix nph"_fix_nph.html and "fix
+The "fix npt"_fix_nh.html commands include a Nose-Hoover thermostat
+and barostat.  "Fix nph"_fix_nh.html is just a Nose/Hoover barostat;
+it does no thermostatting.  Both "fix nph"_fix_nh.html and "fix
 press/bernendsen"_fix_press_berendsen.html can be used in conjunction
 with any of the thermostatting fixes.
 
-As with the thermostats, "fix npt"_fix_npt.html and "fix
-nph"_fix_nph.html only use translational motion of the particles in
+As with the thermostats, "fix npt"_fix_nh.html and "fix
+nph"_fix_nh.html only use translational motion of the particles in
 computing T and P and performing thermo/barostatting.  "Fix
 npt/sphere"_fix_npt_sphere.html and "fix
 npt/asphere"_fix_npt_asphere.html thermo/barostat using not only
@@ -1331,7 +1331,7 @@ pressure.  See the doc pages for the individual fixes and for the
 a temperature or pressure compute to a barostatting fix.
 
 IMPORTANT NOTE: As with the thermostats, the Nose/Hoover methods ("fix
-npt"_fix_npt.html and "fix nph"_fix_nph.html) perform time
+npt"_fix_nh.html and "fix nph"_fix_nh.html) perform time
 integration.  "Fix press/berendsen"_fix_press_berendsen.html does NOT,
 so it should be used with one of the constant NVE fixes or with one of
 the NVT fixes.
@@ -1370,7 +1370,7 @@ Their motion can be constrained by many different commands, so that
 they do not move at all, move together as a group at constant velocity
 or in response to a net force acting on them, move in a prescribed
 fashion (e.g. rotate around a point), etc.  Note that if a time
-integration fix like "fix nve"_fix_nve.html or "fix nvt"_fix_nvt.html
+integration fix like "fix nve"_fix_nve.html or "fix nvt"_fix_nh.html
 is not used with the group that contains wall particles, their
 positions and velocities will not be updated.
 

@@ -307,7 +307,7 @@ processor partition, using the <A HREF = "variable.html">variable</A> command:
 </P>
 <PRE>variable t world 300.0 310.0 320.0 330.0 
 </PRE>
-<P>Define a fix of style <A HREF = "fix_nvt.html">nvt</A> or <A HREF = "fix_langevin.html">langevin</A>
+<P>Define a fix of style <A HREF = "fix_nh.html">nvt</A> or <A HREF = "fix_langevin.html">langevin</A>
 to control the temperature of each simulation:
 </P>
 <PRE>fix myfix all nvt $t $t 100.0 
@@ -1266,7 +1266,7 @@ in prescribed ways.
 thermostatting fixes are currently available: Nose-Hoover (nvt),
 Berendsen, Langevin, and direct rescaling (temp/rescale):
 </P>
-<UL><LI><A HREF = "fix_nvt.html">fix nvt</A>
+<UL><LI><A HREF = "fix_nh.html">fix nvt</A>
 <LI><A HREF = "fix_nvt_sphere.html">fix nvt/sphere</A>
 <LI><A HREF = "fix_nvt_asphere.html">fix nvt/asphere</A>
 <LI><A HREF = "fix_nvt_sllod.html">fix nvt/sllod</A>
@@ -1274,7 +1274,7 @@ Berendsen, Langevin, and direct rescaling (temp/rescale):
 <LI><A HREF = "fix_langevin.html">fix langevin</A>
 <LI><A HREF = "fix_temp_rescale.html">fix temp/rescale</A> 
 </UL>
-<P><A HREF = "fix_nvt.html">Fix nvt</A> only thermostats the translational velocity of
+<P><A HREF = "fix_nh.html">Fix nvt</A> only thermostats the translational velocity of
 particles.  <A HREF = "fix_nvt_sllod.html">Fix nvt/sllod</A> also does this, except
 that it subtracts out a velocity bias due to a deforming box and
 integrates the SLLOD equations of motion.  See the <A HREF = "#4_13">NEMD
@@ -1309,19 +1309,19 @@ as these:
 barosttating methods are currently available: Nose-Hoover (npt and
 nph) and Berendsen:
 </P>
-<UL><LI><A HREF = "fix_npt.html">fix npt</A>
+<UL><LI><A HREF = "fix_nh.html">fix npt</A>
 <LI><A HREF = "fix_npt_sphere.html">fix npt/sphere</A>
 <LI><A HREF = "fix_npt_asphere.html">fix npt/asphere</A>
-<LI><A HREF = "fix_nph.html">fix nph</A>
+<LI><A HREF = "fix_nh.html">fix nph</A>
 <LI><A HREF = "fix_press_berendsen.html">fix press/berendsen</A> 
 </UL>
-<P>The <A HREF = "fix_npt.html">fix npt</A> commands include a Nose-Hoover thermostat
-and barostat.  <A HREF = "fix_nph.html">Fix nph</A> is just a Nose/Hoover barostat;
-it does no thermostatting.  Both <A HREF = "fix_nph.html">fix nph</A> and <A HREF = "fix_press_berendsen.html">fix
+<P>The <A HREF = "fix_nh.html">fix npt</A> commands include a Nose-Hoover thermostat
+and barostat.  <A HREF = "fix_nh.html">Fix nph</A> is just a Nose/Hoover barostat;
+it does no thermostatting.  Both <A HREF = "fix_nh.html">fix nph</A> and <A HREF = "fix_press_berendsen.html">fix
 press/bernendsen</A> can be used in conjunction
 with any of the thermostatting fixes.
 </P>
-<P>As with the thermostats, <A HREF = "fix_npt.html">fix npt</A> and <A HREF = "fix_nph.html">fix
+<P>As with the thermostats, <A HREF = "fix_nh.html">fix npt</A> and <A HREF = "fix_nh.html">fix
 nph</A> only use translational motion of the particles in
 computing T and P and performing thermo/barostatting.  <A HREF = "fix_npt_sphere.html">Fix
 npt/sphere</A> and <A HREF = "fix_npt_asphere.html">fix
@@ -1341,8 +1341,8 @@ pressure.  See the doc pages for the individual fixes and for the
 <A HREF = "fix_modify.html">fix_modify</A> command for instructions on how to assign
 a temperature or pressure compute to a barostatting fix.
 </P>
-<P>IMPORTANT NOTE: As with the thermostats, the Nose/Hoover methods (<A HREF = "fix_npt.html">fix
-npt</A> and <A HREF = "fix_nph.html">fix nph</A>) perform time
+<P>IMPORTANT NOTE: As with the thermostats, the Nose/Hoover methods (<A HREF = "fix_nh.html">fix
+npt</A> and <A HREF = "fix_nh.html">fix nph</A>) perform time
 integration.  <A HREF = "fix_press_berendsen.html">Fix press/berendsen</A> does NOT,
 so it should be used with one of the constant NVE fixes or with one of
 the NVT fixes.
@@ -1381,7 +1381,7 @@ or read in via the <A HREF = "read_data.html">read_data</A> command.
 they do not move at all, move together as a group at constant velocity
 or in response to a net force acting on them, move in a prescribed
 fashion (e.g. rotate around a point), etc.  Note that if a time
-integration fix like <A HREF = "fix_nve.html">fix nve</A> or <A HREF = "fix_nvt.html">fix nvt</A>
+integration fix like <A HREF = "fix_nve.html">fix nve</A> or <A HREF = "fix_nh.html">fix nvt</A>
 is not used with the group that contains wall particles, their
 positions and velocities will not be updated.
 </P>

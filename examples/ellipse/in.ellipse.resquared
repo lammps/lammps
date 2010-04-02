@@ -47,7 +47,7 @@ timestep     0.002
 dump	     1 all custom 100 dump.ellipse.resquared &
 	     id type x y z quatw quati quatj quatk
 
-fix	     1 all npt/asphere 2.0 2.0 0.1 xyz 0.0 1.0 1.0
+fix	     1 all npt/asphere temp 2.0 2.0 0.1 iso 0.0 1.0 1.0
 fix	     2 all enforce2d
 
 compute_modify 1_temp extra ${dof}

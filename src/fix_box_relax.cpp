@@ -182,7 +182,9 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
   if (dimension == 2 && (pcouple == YZ || pcouple == XZ))
     error->all("Invalid fix box/relax command for a 2d simulation");
 
-  if (pcouple == XYZ && (p_flag[0] == 0 || p_flag[1] == 0 || p_flag[2] == 0))
+  if (pcouple == XYZ && (p_flag[0] == 0 || p_flag[1] == 0))
+    error->all("Invalid fix box/relax command pressure settings");
+  if (pcouple == XYZ && dimension == 3 && p_flag[2] == 0)
     error->all("Invalid fix box/relax command pressure settings");
   if (pcouple == XY && (p_flag[0] == 0 || p_flag[1] == 0))
     error->all("Invalid fix box/relax command pressure settings");
@@ -208,8 +210,10 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
     error->all("Can not specify Pxy/Pxz/Pyz in "
 	       "fix box/relax with non-triclinic box");
 
-  if (pcouple == XYZ &&
+  if (pcouple == XYZ && dimension == 3 &&
       (p_target[0] != p_target[1] || p_target[0] != p_target[2]))
+    error->all("Invalid fix nvt/npt/nph pressure settings");
+  if (pcouple == XYZ && dimension == 2 && p_target[0] != p_target[1])
     error->all("Invalid fix box/relax pressure settings");
   if (pcouple == XY && p_target[0] != p_target[1])
     error->all("Invalid fix box/relax pressure settings");

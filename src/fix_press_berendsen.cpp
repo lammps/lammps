@@ -149,7 +149,9 @@ FixPressBerendsen::FixPressBerendsen(LAMMPS *lmp, int narg, char **arg) :
   if (dimension == 2 && (pcouple == YZ || pcouple == XZ))
     error->all("Invalid fix press/berendsen command for a 2d simulation");
 
-  if (pcouple == XYZ && (p_flag[0] == 0 || p_flag[1] == 0 || p_flag[2] == 0))
+  if (pcouple == XYZ && (p_flag[0] == 0 || p_flag[1] == 0))
+    error->all("Invalid fix press/berendsen command pressure settings");
+  if (pcouple == XYZ && dimension == 3 && p_flag[2] == 0)
     error->all("Invalid fix press/berendsen command pressure settings");
   if (pcouple == XY && (p_flag[0] == 0 || p_flag[1] == 0))
     error->all("Invalid fix press/berendsen command pressure settings");
@@ -165,11 +167,15 @@ FixPressBerendsen::FixPressBerendsen(LAMMPS *lmp, int narg, char **arg) :
   if (p_flag[2] && domain->zperiodic == 0)
     error->all("Cannot use fix press/berendsen on a non-periodic dimension");
 
-  if (pcouple == XYZ &&
+  if (pcouple == XYZ && dimension == 3 &&
       (p_start[0] != p_start[1] || p_start[0] != p_start[2] || 
        p_stop[0] != p_stop[1] || p_stop[0] != p_stop[2] || 
        p_period[0] != p_period[1] || p_period[0] != p_period[2]))
     error->all("Invalid fix press/berendsen pressure settings");
+  if (pcouple == XYZ && dimension == 2 &&
+      (p_start[0] != p_start[1] || p_stop[0] != p_stop[1] || 
+       p_period[0] != p_period[1]))
+    error->all("Invalid fix press_berendsen pressure settings");
   if (pcouple == XY && 
       (p_start[0] != p_start[1] || p_stop[0] != p_stop[1] || 
        p_period[0] != p_period[1]))

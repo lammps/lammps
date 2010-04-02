@@ -20,26 +20,14 @@ FixStyle(npt/asphere,FixNPTAsphere)
 #ifndef LMP_FIX_NPT_ASPHERE_H
 #define LMP_FIX_NPT_ASPHERE_H
 
-#include "fix_npt.h"
+#include "fix_nh_asphere.h"
 
 namespace LAMMPS_NS {
 
-class FixNPTAsphere : public FixNPT {
+class FixNPTAsphere : public FixNHAsphere {
  public:
   FixNPTAsphere(class LAMMPS *, int, char **);
-  ~FixNPTAsphere();
-  void init();
-  void initial_integrate(int);
-  void final_integrate();
-
- private:
-  double dtq;
-  double factor_rotate;
-  double **inertia;
-
-  void richardson(double *, double *, double *);
-  void omega_from_mq(double *, double *, double *, double *);
-  void calculate_inertia();
+  ~FixNPTAsphere() {}
 };
 
 }

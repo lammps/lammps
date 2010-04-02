@@ -12,8 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "string.h"
-#include "fix_nvt_asphere.h"
-#include "group.h"
+#include "fix_nph_asphere.h"
 #include "modify.h"
 #include "error.h"
 
@@ -21,16 +20,18 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-FixNVTAsphere::FixNVTAsphere(LAMMPS *lmp, int narg, char **arg) :
+FixNPHAsphere::FixNPHAsphere(LAMMPS *lmp, int narg, char **arg) :
   FixNHAsphere(lmp, narg, arg)
 {
-  if (!tstat_flag)
-    error->all("Temperature control must be used with fix nvt/asphere");
-  if (pstat_flag)
-    error->all("Pressure control can not be used with fix nvt/asphere");
+  if (tstat_flag)
+    error->all("Temperature control can not be used with fix nph/asphere");
+  if (!pstat_flag)
+    error->all("Pressure control must be used with fix nph/asphere");
 
   // create a new compute temp style
   // id = fix-ID + temp
+  // compute group = all since pressure is always global (group all)
+  // and thus its KE/temperature contribution should use group all
 
   int n = strlen(id) + 6;
   id_temp = new char[n];
@@ -39,10 +40,28 @@ FixNVTAsphere::FixNVTAsphere(LAMMPS *lmp, int narg, char **arg) :
   
   char **newarg = new char*[3];
   newarg[0] = id_temp;
-  newarg[1] = group->names[igroup];
+  newarg[1] = (char *) "all";
   newarg[2] = (char *) "temp/asphere";
 
   modify->add_compute(3,newarg);
   delete [] newarg;
   tflag = 1;
+
+  // create a new compute pressure style
+  // id = fix-ID + press, compute group = all
+  // pass id_temp as 4th arg to pressure constructor
+
+  n = strlen(id) + 7;
+  id_press = new char[n];
+  strcpy(id_press,id);
+  strcat(id_press,"_press");
+  
+  newarg = new char*[4];
+  newarg[0] = id_press;
+  newarg[1] = (char *) "all";
+  newarg[2] = (char *) "pressure";
+  newarg[3] = id_temp;
+  modify->add_compute(4,newarg);
+  delete [] newarg;
+  pflag = 1;
 }

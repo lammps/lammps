@@ -32,7 +32,7 @@ keyword = <I>iso</I> or <I>aniso</I> or <I>tri</I> or <I>x</I> or <I>y</I> or <I
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>fix 1 all box/relax ixo 0.0 vmax 0.001
+<PRE>fix 1 all box/relax iso 0.0 vmax 0.001
 fix 2 water box/relax aniso 0.0 dilate partial
 fix 2 ice box/relax tri 0.0 couple xy nreset 100 
 </PRE>
@@ -151,7 +151,7 @@ change by more than 1/10 of a percent.
 </P>
 <HR>
 
-<P>With this fix, the potential energy used by the minimzer is augmented
+<P>With this fix, the potential energy used by the minimizer is augmented
 by an additional energy provided by the fix. The overall objective
 function then is:
 </P>
@@ -167,7 +167,7 @@ global system stress tensor <B>P</B> will satisfy the relation:
 </P>
 <CENTER><IMG SRC = "Eqs/fix_box_relax2.jpg">
 </CENTER>
-<P>where <B>I</B> is the identity matric, <B>h</B>_0 is the box dimension tensor of
+<P>where <B>I</B> is the identity matrix, <B>h</B>_0 is the box dimension tensor of
 the reference cell, and <B>h</B>_0<I>d</I> is the diagonal part of
 <B>h</B>_0. <B>S</B>_<I>t</I> is a symmetric stress tensor that is chosen by LAMMPS
 so that the upper-triangular components of <B>P</B> equal the stress tensor
@@ -205,7 +205,7 @@ be done by outputting the pressure from the fix this command creates
 <P>IMPORTANT NOTE: Because pressure is often a very sensitive function of
 volume, it can be difficult for the minimizer to equilibrate the
 system the desired pressure with high precision, particularly for
-solids.  Some techiniques that seem to help are (a) use the
+solids.  Some techniques that seem to help are (a) use the
 "min_modify line quadratic" option when minimizing with box
 relaxations, and (b) minimize several times in succession if need be,
 to drive the pressure closer to the target pressure.  Also note that

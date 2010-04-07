@@ -219,7 +219,7 @@ is working.  Typically a value between 0.2 to 2.0 is sufficient to
 damp oscillations after a few periods. Note that use of the drag
 keyword will interfere with energy conservation and will also change
 the distribution of positions and velocities so that they do not
-correspond to the norminal NVT, NPT, or NPH ensembles.
+correspond to the nominal NVT, NPT, or NPH ensembles.
 </P>
 <P>An alternative way to control initial oscillations is to use chain
 thermostats. The keyword <I>tchain</I> determines the number of thermostats
@@ -227,7 +227,7 @@ in the particle thermostat. A value of 1 corresponds to the original
 Nose-Hoover thermostat. The keyword <I>pchain</I> specifies the number of
 thermostats in the chain thermostatting the barostat degrees of
 freedom. A value of 0 corresponds to no thermostatting of the
-bvarostat variables.
+barostat variables.
 </P>
 <P>The <I>mtk</I> keyword controls whether or not the correction terms due to
 Martyna, Tuckerman, and Klein are included in the equations of motion
@@ -258,7 +258,7 @@ to those of the current simulation domain.
 
 <P>IMPORTANT NOTE: Using a barostat coupled to tilt dimensions <I>xy</I>,
 <I>xz</I>, <I>yz</I> can sometimes result in arbitrarily large values of the
-tilt dimensions, i.e. a dratically deformed simulation box.  LAMMPS
+tilt dimensions, i.e. a dramatically deformed simulation box.  LAMMPS
 imposes reasonable limits on how large the tilt values can be, and
 exits with an error if these are exceeded.  This error typically
 indicates that there is something badly wrong with how the simulation
@@ -368,7 +368,7 @@ which can be accessed by various <A HREF = "Section_howto.html#4_15">output
 commands</A>.  The scalar values calculated by
 this fix are "extensive"; the vector values are "intensive".
 </P>
-<P>The scalar is the cummulative energy change due to the fix.
+<P>The scalar is the cumulative energy change due to the fix.
 </P>
 <P>The vector stores internal Nose/Hoover thermostat and barostat
 variables.  The number and meaning of the vector values depends on
@@ -386,18 +386,18 @@ simulation, otherwise its value is 3.
 follows.  The notation means there are tchain values for eta, followed
 by tchain for eta_dot, followed by ndof for omega, etc:
 </P>
-<UL><LI>eta<B>tchain</B> = what for each T chain
-<LI>eta_dot<B>tchain</B> = what for each T chain
-<LI>omega<B>ndof</B> = what for each barostat DOF
-<LI>omega_dot<B>ndof</B> = what for each barostat DOF
-<LI>etap<B>pchain</B> = what for each P chain
-<LI>etap_dot<B>pchain</B> = what for each P chain
-<LI>PE_eta<B>tchain</B> = potential energy for each T chain
-<LI>KE_eta_dot<B>tchain</B> = what for each T chain
-<LI>PE_omega<B>ndof</B> = what for each barostat DOF
-<LI>KE_omega_dot<B>ndof</B> = what for each barostat DOF
-<LI>PE_etap<B>pchain</B> = what for each P chain
-<LI>KE_etap_dot<B>pchain</B> = what for each P chain
+<UL><LI>eta<B>tchain</B> = particle thermostat displacements
+<LI>eta_dot<B>tchain</B> = particle thermostat velocities
+<LI>omega<B>ndof</B> = barostat displacements
+<LI>omega_dot<B>ndof</B> = barostat velocities
+<LI>etap<B>pchain</B> = barostat thermostat displacements
+<LI>etap_dot<B>pchain</B> = barostat thermostat velocities
+<LI>PE_eta<B>tchain</B> = potential energy of each particle thermostat displacement
+<LI>KE_eta_dot<B>tchain</B> = kinetic energy of each particle thermostat velocity
+<LI>PE_omega<B>ndof</B> = potential energy of each barostat displacement
+<LI>KE_omega_dot<B>ndof</B> = kinetic energy of each barostat velocity
+<LI>PE_etap<B>pchain</B> = potential energy of each barostat thermostat displacement
+<LI>KE_etap_dot<B>pchain</B> = kinetic energy of each barostat thermostat velocity
 <LI>PE_strain<B>1</B> = scalar strain energy 
 </UL>
 <P>These fixes can ramp their external temperature and pressure over
@@ -429,8 +429,8 @@ is not allowed in the Nose/Hoover formulation.
 </P>
 <P><B>Default:</B>
 </P>
-<P>The keyword defaults are tchain = 3, pchain = 0, mtk = yes, tloop =
-ploopt = 1, nreset = 0, drag = 0.0, dilate = all, and couple = none.
+<P>The keyword defaults are tchain = 3, pchain = 3, mtk = yes, tloop =
+ploop = 1, nreset = 0, drag = 0.0, dilate = all, and couple = none.
 </P>
 <HR>
 

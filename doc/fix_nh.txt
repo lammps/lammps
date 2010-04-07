@@ -29,7 +29,7 @@ keyword = {temp} or {iso} or {aniso} or {tri} or {x} or {y} or {z} or {xy} or {y
     Pdamp = stress damping parameter (time units)
   {couple} = {none} or {xyz} or {xy} or {yz} or {xz}
   {tchain} value = length of thermostat chain (1 = single thermostat)
-  {pchain} values = length of thermostat chain  on barostat (0 = no thermostat)
+  {pchain} values = length of thermostat chain on barostat (0 = no thermostat)
   {mtk} value = {yes} or {no} = add in MTK adjustment term or not
   {tloop} value = number of sub-cycles to perform on thermostat
   {ploop} value = number of sub-cycles to perform on barostat thermostat

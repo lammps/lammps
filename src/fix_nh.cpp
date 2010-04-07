@@ -711,7 +711,6 @@ void FixNH::initial_integrate(int vflag)
 
 void FixNH::final_integrate()
 {
-
   nve_v();
 
   if (pstat_flag) nh_v_press();
@@ -731,11 +730,9 @@ void FixNH::final_integrate()
   if (pstat_flag) nh_omega_dot();
 
   // update eta_dot
-
-  if (tstat_flag) nhc_temp_integrate();
-
   // update eta_press_dot
 
+  if (tstat_flag) nhc_temp_integrate();
   if (pstat_flag && mpchain) nhc_press_integrate();
 }
 
@@ -812,8 +809,8 @@ void FixNH::initial_integrate_respa(int vflag, int ilevel, int iloop)
   // if barostat, redo KSpace coeffs at outermost level, 
   // since volume has changed
 
-  if (ilevel == nlevels_respa-1 && kspace_flag && pstat_flag) force->kspace->setup();
-
+  if (ilevel == nlevels_respa-1 && kspace_flag && pstat_flag) 
+    force->kspace->setup();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1182,15 +1179,15 @@ double FixNH::compute_scalar()
       energy += kt * eta[ich] + 0.5*eta_mass[ich]*eta_dot[ich]*eta_dot[ich];
   }
 
-  if (pstat_flag) { 
-    // barostat energy is equivalent to Eq. (8) in
-    // Martyna, Tuckerman, Tobias, Klein, Mol Phys, 87, 1117
-    // Sum(0.5*p_omega^2/W + P*V),
-    // where N = natoms
-    //       p_omega = W*omega_dot
-    //       W = N*k*T/p_freq^2
-    //       sum is over barostatted dimensions
+  // barostat energy is equivalent to Eq. (8) in
+  // Martyna, Tuckerman, Tobias, Klein, Mol Phys, 87, 1117
+  // Sum(0.5*p_omega^2/W + P*V),
+  // where N = natoms
+  //       p_omega = W*omega_dot
+  //       W = N*k*T/p_freq^2
+  //       sum is over barostatted dimensions
 
+  if (pstat_flag) { 
     for (i = 0; i < 3; i++)
       if (p_flag[i])
 	energy += 0.5*omega_dot[i]*omega_dot[i]*omega_mass[i] +

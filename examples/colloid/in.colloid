@@ -30,7 +30,7 @@ pair_coeff	1 2  5.0 1.0 5.0 0.0 7.0
 pair_coeff	2 2 10.0 1.0 0.0 0.0 2.5
 
 fix		1 all npt temp 2.0 2.0 1.0 iso 0.0 1.0 10.0 drag 1.0 &
-			       mtk no pchain 0 tchain 1
+	        mtk no pchain 0 tchain 1
 fix		2 all enforce2d
 
 dump		1 all atom 200 dump.colloid

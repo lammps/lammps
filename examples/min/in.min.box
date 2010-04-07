@@ -36,9 +36,9 @@ dump_modify	1 every 25
 thermo		50
 minimize	1.0e-6 0.001 1000 10000
 
-fix             3 all box/relax x 1.0 y 2.0 vmax 1.0e-4 nreset 1000
+fix             3 all box/relax x 1.0 y 2.0 vmax 1.0e-4 nreset 100
 
 thermo_style    custom step temp pe pxx pyy pxy
 
 min_modify      line quadratic
-minimize	0.0 1.0e-3 10000 100000
+minimize	0.0 1.0e-6 10000 100000

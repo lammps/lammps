@@ -44,7 +44,7 @@ enum{ISO,ANISO,TRICLINIC};
 FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 4) error->all("Illegal fix box/relax command");
+  if (narg < 5) error->all("Illegal fix box/relax command");
 
   scalar_flag = 1;
   extscalar = 1;
@@ -62,6 +62,8 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
 
   p_target[0] = p_target[1] = p_target[2] = 
     p_target[3] = p_target[4] = p_target[5] = 0.0;
+  p_flag[0] = p_flag[1] = p_flag[2] = 
+    p_flag[3] = p_flag[4] = p_flag[5] = 0;
 
   // process keywords
 
@@ -71,7 +73,7 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"iso") == 0) {
-      if (iarg+4 > narg) error->all("Illegal fix box/relax command");
+      if (iarg+2 > narg) error->all("Illegal fix box/relax command");
       pcouple = XYZ;
       p_target[0] = p_target[1] = p_target[2] = atof(arg[iarg+1]);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
@@ -79,9 +81,9 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
 	p_target[2] = 0.0;
 	p_flag[2] = 0;
       }
-      iarg += 4; 
+      iarg += 2; 
     } else if (strcmp(arg[iarg],"aniso") == 0) {
-      if (iarg+4 > narg) error->all("Illegal fix box/relax command");
+      if (iarg+2 > narg) error->all("Illegal fix box/relax command");
       pcouple = NONE;
       p_target[0] = p_target[1] = p_target[2] = atof(arg[iarg+1]);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
@@ -89,9 +91,9 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
 	p_target[2] = 0.0;
 	p_flag[2] = 0;
       }
-      iarg += 4;
+      iarg += 2;
     } else if (strcmp(arg[iarg],"tri") == 0) {
-      if (iarg+4 > narg) error->all("Illegal fix box/relax command");
+      if (iarg+2 > narg) error->all("Illegal fix box/relax command");
       pcouple = NONE;
       p_target[0] = p_target[1] = p_target[2] = atof(arg[iarg+1]);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
@@ -101,51 +103,51 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
 	p_target[2] = p_target[3] = p_target[4] = 0.0;
 	p_flag[2] = p_flag[3] = p_flag[4] = 0;
       }
-      iarg += 4;
+      iarg += 2;
 
     } else if (strcmp(arg[iarg],"x") == 0) {
-      if (iarg+4 > narg) error->all("Illegal fix box/relax command");
+      if (iarg+2 > narg) error->all("Illegal fix box/relax command");
       p_target[0] = atof(arg[iarg+1]);
       p_flag[0] = 1;
       deviatoric_flag = 1;
-      iarg += 4; 
+      iarg += 2; 
     } else if (strcmp(arg[iarg],"y") == 0) {
-      if (iarg+4 > narg) error->all("Illegal fix box/relax command");
+      if (iarg+2 > narg) error->all("Illegal fix box/relax command");
       p_target[1] = atof(arg[iarg+1]);
       p_flag[1] = 1;
       deviatoric_flag = 1;
-      iarg += 4; 
+      iarg += 2; 
     } else if (strcmp(arg[iarg],"z") == 0) {
-      if (iarg+4 > narg) error->all("Illegal fix box/relax command");
+      if (iarg+2 > narg) error->all("Illegal fix box/relax command");
       p_target[2] = atof(arg[iarg+1]);
       p_flag[2] = 1;
       deviatoric_flag = 1;
-      iarg += 4; 
+      iarg += 2; 
       if (dimension == 2)
 	error->all("Invalid fix box/relax command for a 2d simulation");
 
     } else if (strcmp(arg[iarg],"yz") == 0) {
-      if (iarg+4 > narg) error->all("Illegal fix box/relax command");
+      if (iarg+2 > narg) error->all("Illegal fix box/relax command");
       p_target[3] = atof(arg[iarg+1]);
       p_flag[3] = 1;
       deviatoric_flag = 1;
-      iarg += 4; 
+      iarg += 2; 
       if (dimension == 2)
 	error->all("Invalid fix box/relax command for a 2d simulation");
     } else if (strcmp(arg[iarg],"xz") == 0) {
-      if (iarg+4 > narg) error->all("Illegal fix box/relax command");
+      if (iarg+2 > narg) error->all("Illegal fix box/relax command");
       p_target[4] = atof(arg[iarg+1]);
       p_flag[4] = 1;
       deviatoric_flag = 1;
-      iarg += 4; 
+      iarg += 2; 
       if (dimension == 2)
 	error->all("Invalid fix box/relax command for a 2d simulation");
     } else if (strcmp(arg[iarg],"xy") == 0) {
-      if (iarg+4 > narg) error->all("Illegal fix box/relax command");
+      if (iarg+2 > narg) error->all("Illegal fix box/relax command");
       p_target[5] = atof(arg[iarg+1]);
       p_flag[5] = 1;
       deviatoric_flag = 1;
-      iarg += 4; 
+      iarg += 2; 
 
     } else if (strcmp(arg[iarg],"couple") == 0) {
       if (iarg+2 > narg) error->all("Illegal fix box/relax command");

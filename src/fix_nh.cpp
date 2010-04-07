@@ -493,6 +493,7 @@ void FixNH::init()
   dthalf = 0.5 * update->dt;
   dt4 = 0.25 * update->dt;
   dt8 = 0.125 * update->dt;
+  dto = dthalf;
 
   p_freq_max = 0.0;
   if (pstat_flag) {
@@ -503,11 +504,11 @@ void FixNH::init()
       p_freq_max = MAX(p_freq_max,p_freq[4]);
       p_freq_max = MAX(p_freq_max,p_freq[5]);
     }
-    drag_factor = 1.0 - (update->dt * p_freq_max * drag);
+    pdrag_factor = 1.0 - (update->dt * p_freq_max * drag / nc_pchain);
   }
 
   if (tstat_flag)
-    drag_factor = 1.0 - (update->dt * MAX(p_freq_max,t_freq) * drag);
+    tdrag_factor = 1.0 - (update->dt * t_freq * drag / nc_tchain);
 
   // tally the number of dimensions that are barostatted
   // also compute the initial volume and reference cell  
@@ -536,6 +537,7 @@ void FixNH::init()
   if (strcmp(update->integrate_style,"respa") == 0) {
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
     step_respa = ((Respa *) update->integrate)->step;
+    dto = 0.5*step_respa[0];
   }
 
   // detect if any rigid fixes exist so rigid bodies move when box is remapped
@@ -709,6 +711,7 @@ void FixNH::initial_integrate(int vflag)
 
 void FixNH::final_integrate()
 {
+
   nve_v();
 
   if (pstat_flag) nh_v_press();
@@ -779,14 +782,14 @@ void FixNH::initial_integrate_respa(int vflag, int ilevel, int iloop)
 	temperature->compute_scalar();
 	double tmp = pressure->compute_scalar();
       } else {
-	temperature->compute_vector();
+       	temperature->compute_vector();
 	pressure->compute_vector();
       }
       couple();
       pressure->addstep(update->ntimestep+1);
       if (mtk_flag) couple_ke();
     }
-
+    
     if (pstat_flag) {
       compute_press_target();
       nh_omega_dot();
@@ -795,24 +798,22 @@ void FixNH::initial_integrate_respa(int vflag, int ilevel, int iloop)
 
     nve_v();
 
-    // remap simulation box by 1/2 step
-
-    if (pstat_flag) remap();
-
   } else nve_v();
 
   // innermost level - also update x only for atoms in group
-  // if iloop = 0, then is 1st call at innermost level from rRESPA
-  // perform 2nd half of box remap
-  // redo KSpace coeffs since volume has changed
+  // if barostat, perform 1/2 step remap before and after
 
   if (ilevel == 0) {
+    if (pstat_flag) remap();
     nve_x();
-    if (iloop == 0) {
-      remap();
-      if (kspace_flag) force->kspace->setup();
-    }
+    if (pstat_flag) remap();
   }
+
+  // if barostat, redo KSpace coeffs at outermost level, 
+  // since volume has changed
+
+  if (ilevel == nlevels_respa-1 && kspace_flag && pstat_flag) force->kspace->setup();
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1339,7 +1340,7 @@ double FixNH::compute_vector(int n)
     if (pstyle == ISO) {
       ilen = 1;
       if (n < ilen) 
-	return 0.5*omega_dot[n]*omega_dot[n]*omega_mass[n];
+	return pdim*0.5*omega_dot[n]*omega_dot[n]*omega_mass[n];
       n -= ilen;
     } else if (pstyle == ANISO) {
       ilen = 3;
@@ -1396,6 +1397,12 @@ void FixNH::reset_dt()
   dthalf = 0.5 * update->dt;
   dt4 = 0.25 * update->dt;
   dt8 = 0.125 * update->dt;
+  dto = dthalf;
+
+  // If using respa, then remap is performed in innermost level
+  
+  if (strcmp(update->integrate_style,"respa") == 0)
+    dto = 0.5*step_respa[0];
   
   p_freq_max = 0.0;
   if (pstat_flag) {
@@ -1406,11 +1413,11 @@ void FixNH::reset_dt()
       p_freq_max = MAX(p_freq_max,p_freq[4]);
       p_freq_max = MAX(p_freq_max,p_freq[5]);
     }
-    drag_factor = 1.0 - (update->dt * p_freq_max * drag);
+    pdrag_factor = 1.0 - (update->dt * p_freq_max * drag / nc_pchain);
   }
 
   if (tstat_flag)
-    drag_factor = 1.0 - (update->dt * MAX(p_freq_max,t_freq) * drag);
+    tdrag_factor = 1.0 - (update->dt * t_freq * drag / nc_tchain);
 }
 
 /* ----------------------------------------------------------------------
@@ -1433,14 +1440,14 @@ void FixNH::nhc_temp_integrate()
       expfac = exp(-ncfac*dt8*eta_dot[ich+1]);
       eta_dot[ich] *= expfac;
       eta_dot[ich] += eta_dotdot[ich] * ncfac*dt4;
-      eta_dot[ich] *= drag_factor;
+      eta_dot[ich] *= tdrag_factor;
       eta_dot[ich] *= expfac;
     }
 
     expfac = exp(-ncfac*dt8*eta_dot[1]);
     eta_dot[0] *= expfac;
     eta_dot[0] += eta_dotdot[0] * ncfac*dt4;
-    eta_dot[0] *= drag_factor;
+    eta_dot[0] *= tdrag_factor;
     eta_dot[0] *= expfac;
     
     factor_eta = exp(-ncfac*dthalf*eta_dot[0]);
@@ -1501,14 +1508,14 @@ void FixNH::nhc_press_integrate()
       expfac = exp(-ncfac*dt8*etap_dot[ich+1]);
       etap_dot[ich] *= expfac;
       etap_dot[ich] += etap_dotdot[ich] * ncfac*dt4;
-      etap_dot[ich] *= drag_factor;
+      etap_dot[ich] *= pdrag_factor;
       etap_dot[ich] *= expfac;
     }
     
     expfac = exp(-ncfac*dt8*etap_dot[1]);
     etap_dot[0] *= expfac;
     etap_dot[0] += etap_dotdot[0] * ncfac*dt4;
-    etap_dot[0] *= drag_factor;
+    etap_dot[0] *= pdrag_factor;
     etap_dot[0] *= expfac;
     
     for (ich = 0; ich < mpchain; ich++)
@@ -1854,11 +1861,11 @@ void FixNH::nh_omega_dot()
 	(omega_mass[i] * nktv2p);
       if (deviatoric_flag) f_omega -= fdev[i]/(omega_mass[i] * nktv2p);
       omega_dot[i] += f_omega*dthalf;
-      omega_dot[i] *= drag_factor;
+      omega_dot[i] *= pdrag_factor;
     }
     omega[i] += dthalf*omega_dot[i];
     factor[i] = exp(-dthalf*omega_dot[i]*mtk_factor);
-    dilation[i] = exp(dthalf*omega_dot[i]);
+    dilation[i] = exp(dto*omega_dot[i]);
   }
   
   if (pstyle == TRICLINIC) {
@@ -1868,11 +1875,11 @@ void FixNH::nh_omega_dot()
 	if (deviatoric_flag) 
 	  f_omega -= fdev[i]/(omega_mass[i] * nktv2p);
 	omega_dot[i] += f_omega*dthalf;
-	omega_dot[i] *= drag_factor;
+	omega_dot[i] *= pdrag_factor;
       }
       omega[i] += dthalf*omega_dot[i];
       factor[i] = -dthalf*omega_dot[i];
-      dilation[i] = dthalf*omega_dot[i];
+      dilation[i] = dto*omega_dot[i];
     } 
   }
 }

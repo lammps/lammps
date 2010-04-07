@@ -38,7 +38,7 @@ class FixNH : public Fix {
 
  protected:
   int dimension,which;
-  double dtv,dtf,dthalf,dt4,dt8;
+  double dtv,dtf,dthalf,dt4,dt8,dto;
   double boltz,nktv2p,tdof;
   double vol0,t0;
 
@@ -56,7 +56,8 @@ class FixNH : public Fix {
   double omega[6],omega_dot[6];
   double omega_mass[6];
   double p_current[6],dilation[6];
-  double drag,drag_factor;         // drag factor on particle thermostat
+  double drag,tdrag_factor;        // drag factor on particle thermostat
+  double pdrag_factor;             // drag factor on barostat
   double factor[6];                // velocity scaling due to barostat
   int kspace_flag;                 // 1 if KSpace invoked, 0 if not
   int nrigid;                      // number of rigid fixes

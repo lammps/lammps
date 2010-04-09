@@ -73,13 +73,13 @@ When used correctly, the time-averaged temperature and stress tensor
 of the particles will match the target values specified by
 Tstart/Tstop and Pstart/Pstop.
 </P>
-<P>The equations of motion used are those of Shinoda et al in
+<P>The equations of motion used are those of Shinoda et al. in
 <A HREF = "#Shinoda">(Shinoda)</A>, which combine the hydrostatic equations of
 Martyna, Tobias and Klein in <A HREF = "#Martyna">(Martyna)</A> with the strain
 energy proposed by Parrinello and Rahman in
-<A HREF = "#Parrinello">(Parrinello)</A>.  The time integration schemes follow the
-time-reversible measure-preserving integrators derived by Tuckerman et
-al in <A HREF = "#Tuckerman">(Tuckerman)</A>.
+<A HREF = "#Parrinello">(Parrinello)</A>.  The time integration schemes closely 
+follow the time-reversible measure-preserving Verlet and 
+rRESPA integrators derived by Tuckerman et al. in <A HREF = "#Tuckerman">(Tuckerman)</A>. 
 </P>
 <HR>
 
@@ -386,19 +386,19 @@ simulation, otherwise its value is 3.
 follows.  The notation means there are tchain values for eta, followed
 by tchain for eta_dot, followed by ndof for omega, etc:
 </P>
-<UL><LI>eta<B>tchain</B> = particle thermostat displacements
-<LI>eta_dot<B>tchain</B> = particle thermostat velocities
-<LI>omega<B>ndof</B> = barostat displacements
-<LI>omega_dot<B>ndof</B> = barostat velocities
-<LI>etap<B>pchain</B> = barostat thermostat displacements
-<LI>etap_dot<B>pchain</B> = barostat thermostat velocities
-<LI>PE_eta<B>tchain</B> = potential energy of each particle thermostat displacement
-<LI>KE_eta_dot<B>tchain</B> = kinetic energy of each particle thermostat velocity
-<LI>PE_omega<B>ndof</B> = potential energy of each barostat displacement
-<LI>KE_omega_dot<B>ndof</B> = kinetic energy of each barostat velocity
-<LI>PE_etap<B>pchain</B> = potential energy of each barostat thermostat displacement
-<LI>KE_etap_dot<B>pchain</B> = kinetic energy of each barostat thermostat velocity
-<LI>PE_strain<B>1</B> = scalar strain energy 
+<UL><LI>eta[tchain] = particle thermostat displacements
+<LI>eta_dot[tchain] = particle thermostat velocities
+<LI>omega[ndof] = barostat displacements
+<LI>omega_dot[ndof] = barostat velocities
+<LI>etap[pchain] = barostat thermostat displacements
+<LI>etap_dot[pchain] = barostat thermostat velocities
+<LI>PE_eta[tchain] = potential energy of each particle thermostat displacement
+<LI>KE_eta_dot[tchain] = kinetic energy of each particle thermostat velocity
+<LI>PE_omega[ndof] = potential energy of each barostat displacement
+<LI>KE_omega_dot[ndof] = kinetic energy of each barostat velocity
+<LI>PE_etap[pchain] = potential energy of each barostat thermostat displacement
+<LI>KE_etap_dot[pchain] = kinetic energy of each barostat thermostat velocity
+<LI>PE_strain[1] = scalar strain energy 
 </UL>
 <P>These fixes can ramp their external temperature and pressure over
 multiple runs, using the <I>start</I> and <I>stop</I> keywords of the
@@ -407,6 +407,25 @@ how to do this.
 </P>
 <P>These fixes are not invoked during <A HREF = "minimize.html">energy
 minimization</A>.
+</P>
+<P>These fixes can be used with either the <I>verlet</I> or <I>respa</I> 
+<A HREF = "run_style.html">integrators</A>. When using one of the barostat fixes
+with <I>respa</I>, LAMMPS uses an integrator constructed
+according to the following factorization of the Liouville propagator
+(for two rRESPA levels):
+</P>
+<CENTER><IMG SRC = "Eqs/fix_nh1.jpg">
+</CENTER>
+<P>This factorization differs somewhat from that of Tuckerman et al., in that
+the barostat is only updated at the outermost rRESPA level, whereas
+Tuckerman's factorization requires splitting the pressure into pieces
+corresponding to the forces computed at each rRESPA level. In theory, the
+latter method will exhibit better numerical stability. In practice,
+because Pdamp is normally chosen to be a large multiple of the 
+outermost rRESPA timestep, the barostat dynamics are not the 
+limiting factor for numerical stability. Both 
+factorizations are time-reversible and can be shown to preserve the phase 
+space measure of the underlying non-Hamiltonian equations of motion.
 </P>
 <P><B>Restrictions:</B>
 </P>
@@ -425,7 +444,7 @@ is not allowed in the Nose/Hoover formulation.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "fix_nve.html">fix nve</A>, <A HREF = "fix_modify.html">fix_modify</A>
+<P><A HREF = "fix_nve.html">fix nve</A>, <A HREF = "fix_modify.html">fix_modify</A>, <A HREF = "run_style.html">run_style</A>
 </P>
 <P><B>Default:</B>
 </P>

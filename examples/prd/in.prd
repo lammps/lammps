@@ -64,7 +64,7 @@ pair_coeff * * Si.sw Si
 
 thermo          10
 
-fix             1 all nvt temp $t $t 0.1
+fix             1 all nvt temp $t $t 0.1 tchain 1
 
 timestep        1.0e-3
 neighbor        1.0 bin

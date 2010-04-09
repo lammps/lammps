@@ -38,7 +38,7 @@ tar xvf lammps*.tar
 <P>This will create a LAMMPS directory containing two files and several
 sub-directories:
 </P>
-<DIV ALIGN=center><TABLE  BORDER=1 >
+<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
 <TR><TD >README</TD><TD > text file</TD></TR>
 <TR><TD >LICENSE</TD><TD > the GNU General Public License (GPL)</TD></TR>
 <TR><TD >bench</TD><TD > benchmark problems</TD></TR>
@@ -57,12 +57,7 @@ then you just get a single file:
 <P>Skip to the <A HREF = "#2_5">Running LAMMPS</A> section, to learn how to launch this
 executable on a Windows box.
 </P>
-<P>Note that this executable does not include an MPI or FFT library, so
-it can only be run on a single processor and it cannot perform
-simulations with long-range Coulombics using a
-<A HREF = "kspace_style.html">PPPM</A> solver.
-</P>
-<P>The Windows executage also only includes certain packages and
+<P>The Windows executable also only includes certain packages and
 bug-fixes/upgrades listed on <A HREF = "http://lammps.sandia.gov/bug.html">this
 page</A> up to a certain date, as
 stated on the download page.  If you want something with more packages
@@ -355,7 +350,7 @@ package".
 </P>
 <P>The current list of standard packages is as follows:
 </P>
-<DIV ALIGN=center><TABLE  BORDER=1 >
+<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
 <TR><TD >asphere </TD><TD > aspherical particles and force fields</TD></TR>
 <TR><TD >class2 </TD><TD > class 2 force fields</TD></TR>
 <TR><TD >colloid </TD><TD > colloidal particle force fields</TD></TR>
@@ -646,6 +641,14 @@ and OK.
 <LI>At the command prompt, type "lmp_windows < in.lj", replacing in.lj
 with the name of your LAMMPS input script. 
 </UL>
+<P>To run the Windows executable on multiple processors, you'll need
+to download and install 
+<A HREF = "http://www.mcs.anl.gov/research/projects/mpich2/downloads/index.php?s=downloads">MPICH2</A>
+for Windows, then using the mpiexec.exe
+and smpd.exe files in same directory (or path) as the LAMMPS Windows 
+executable, type something like this: 
+"mpiexec -np 4 -localonly lmp_windows < in.lj".
+</P>
 <P>The screen output from LAMMPS is described in the next section.  As it
 runs, LAMMPS also writes a log.lammps file with the same information.
 </P>
@@ -757,7 +760,7 @@ output is performed.
 <P>Specify a variable that will be defined for substitution purposes when
 the input script is read.  "Name" is the variable name which can be a
 single character (referenced as $x in the input script) or a full
-string (referenced as ${abc}).  The value can be any string.  Using
+string (referenced as $\<I>abc\</I>).  The value can be any string.  Using
 this command-line option is equivalent to putting the line "variable
 name index value" at the beginning of the input script.  Defining an
 index variable as a command-line argument overrides any setting for

@@ -52,12 +52,7 @@ lmp_windows.exe :pre
 Skip to the "Running LAMMPS"_#2_5 section, to learn how to launch this
 executable on a Windows box.
 
-Note that this executable does not include an MPI or FFT library, so
-it can only be run on a single processor and it cannot perform
-simulations with long-range Coulombics using a
-"PPPM"_kspace_style.html solver.
-
-The Windows executage also only includes certain packages and
+The Windows executable also only includes certain packages and
 bug-fixes/upgrades listed on "this
 page"_http://lammps.sandia.gov/bug.html up to a certain date, as
 stated on the download page.  If you want something with more packages
@@ -638,6 +633,14 @@ Move to the directory where you have saved lmp_windows.exe
 
 At the command prompt, type "lmp_windows < in.lj", replacing in.lj
 with the name of your LAMMPS input script. :l,ule
+
+To run the Windows executable on multiple processors, you'll need
+to download and install 
+"MPICH2"_http://www.mcs.anl.gov/research/projects/mpich2/downloads/index.php?s=downloads
+for Windows, then using the mpiexec.exe
+and smpd.exe files in same directory (or path) as the LAMMPS Windows 
+executable, type something like this: 
+"mpiexec -np 4 -localonly lmp_windows < in.lj".
 
 The screen output from LAMMPS is described in the next section.  As it
 runs, LAMMPS also writes a log.lammps file with the same information.

@@ -913,6 +913,10 @@ void FixNH::remap()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
+  // omega is not used, except for book-keeping
+
+  for (int i = 0; i < 6; i++) omega[i] += dto*omega_dot[i];
+
   // convert pertinent atoms and rigid bodies to lamda coords
 
   if (allremap) domain->x2lamda(nlocal);
@@ -1851,6 +1855,7 @@ void FixNH::nh_omega_dot()
   if (deviatoric_flag) compute_deviatoric();
 
   for (int i = 0; i < 3; i++) {    
+
     if (p_flag[i]) {
       if (mtk_flag) mtk_term = mvv_current[i]/(atom->natoms*volume) * nktv2p;
       else mtk_term = 0.0;
@@ -1860,13 +1865,15 @@ void FixNH::nh_omega_dot()
       omega_dot[i] += f_omega*dthalf;
       omega_dot[i] *= pdrag_factor;
     }
-    omega[i] += dthalf*omega_dot[i];
+
     factor[i] = exp(-dthalf*omega_dot[i]*mtk_factor);
     dilation[i] = exp(dto*omega_dot[i]);
+
   }
   
   if (pstyle == TRICLINIC) {
     for (int i = 3; i < 6; i++) {
+
       if (p_flag[i]) {
 	f_omega = p_current[i]*volume/(omega_mass[i] * nktv2p);
 	if (deviatoric_flag) 
@@ -1874,9 +1881,10 @@ void FixNH::nh_omega_dot()
 	omega_dot[i] += f_omega*dthalf;
 	omega_dot[i] *= pdrag_factor;
       }
-      omega[i] += dthalf*omega_dot[i];
+      
       factor[i] = -dthalf*omega_dot[i];
       dilation[i] = dto*omega_dot[i];
+
     } 
   }
 }

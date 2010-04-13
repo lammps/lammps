@@ -11,14 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef COMPUTE_CLASS
-
-ComputeStyle(centro/atom,ComputeCentroAtom)
-
-#else
-
-#ifndef LMP_COMPUTE_CENTRO_ATOM_H
-#define LMP_COMPUTE_CENTRO_ATOM_H
+#ifndef COMPUTE_CENTRO_ATOM_H
+#define COMPUTE_CENTRO_ATOM_H
 
 #include "compute.h"
 
@@ -34,7 +28,7 @@ class ComputeCentroAtom : public Compute {
   double memory_usage();
 
  private:
-  int nmax,maxneigh;
+  int nmax,maxneigh,nnn;
   double *distsq;
   int *nearest;
   class NeighList *list;
@@ -46,5 +40,4 @@ class ComputeCentroAtom : public Compute {
 
 }
 
-#endif
 #endif

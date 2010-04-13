@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "string.h"
+#include "stdlib.h"
 #include "compute_centro_atom.h"
 #include "atom.h"
 #include "update.h"
@@ -32,7 +33,14 @@ using namespace LAMMPS_NS;
 ComputeCentroAtom::ComputeCentroAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg != 3) error->all("Illegal compute centro/atom command");
+  if (narg != 4) error->all("Illegal compute centro/atom command");
+  
+  if (strcmp(arg[3],"fcc") == 0) nnn = 12;
+  else if (strcmp(arg[3],"bcc") == 0) nnn = 8;
+  else nnn = atoi(arg[3]);
+
+  if (nnn <= 0 || nnn % 2)
+    error->all("Illegal neighbor value for compute centro/atom command");
 
   peratom_flag = 1;
   size_peratom_cols = 0;
@@ -90,7 +98,6 @@ void ComputeCentroAtom::compute_peratom()
   int i,j,k,ii,jj,kk,n,inum,jnum;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq,value;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  double pairs[66];
 
   invoked_peratom = update->ntimestep;
 
@@ -112,6 +119,12 @@ void ComputeCentroAtom::compute_peratom()
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
+
+  // npairs = number of unique pairs
+
+  int nhalf = nnn/2;
+  int npairs = nnn * (nnn-1) / 2;
+  double *pairs = new double[npairs];
 
   // compute centro-symmetry parameter for each atom in group
   // use full neighbor list
@@ -161,24 +174,24 @@ void ComputeCentroAtom::compute_peratom()
 	}
       }
 
-      // if not 12 neighbors, centro = 0.0
+      // if not nnn neighbors, centro = 0.0
 
-      if (n < 12) {
+      if (n < nnn) {
 	centro[i] = 0.0;
 	continue;
       }
 
-      // store 12 nearest neighs in 1st 12 locations of distsq and nearest
+      // store nnn nearest neighs in 1st nnn locations of distsq and nearest
 
-      select2(12,n,distsq,nearest);
+      select2(nnn,n,distsq,nearest);
 
-      // R = Ri + Rj for each of 66 i,j pairs among 12 neighbors
+      // R = Ri + Rj for each of npairs i,j pairs among nnn neighbors
       // pairs = squared length of each R
 
       n = 0;
-      for (j = 0; j < 12; j++) {
+      for (j = 0; j < nnn; j++) {
 	jj = nearest[j];
-	for (k = j+1; k < 12; k++) {
+	for (k = j+1; k < nnn; k++) {
 	  kk = nearest[k];
 	  delx = x[jj][0] + x[kk][0] - 2.0*xtmp;
 	  dely = x[jj][1] + x[kk][1] - 2.0*ytmp;
@@ -187,17 +200,19 @@ void ComputeCentroAtom::compute_peratom()
 	}
       }
 
-      // store 6 smallest pair distances in 1st 6 locations of pairs
+      // store nhalf smallest pair distances in 1st nhalf locations of pairs
 
-      select(6,66,pairs);
+      select(nhalf,npairs,pairs);
 
-      // centrosymmetry = sum of 6 smallest squared values
+      // centrosymmetry = sum of nhalf smallest squared values
 
       value = 0.0;
-      for (j = 0; j < 6; j++) value += pairs[j];
+      for (j = 0; j < nhalf; j++) value += pairs[j];
       centro[i] = value;
     } else centro[i] = 0.0;
   }
+
+  delete [] pairs;
 }
 
 /* ----------------------------------------------------------------------

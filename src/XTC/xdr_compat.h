@@ -15,8 +15,8 @@ extern "C" {
  * most probably work on other platforms too. better make sure you
  * test that the xtc files produced are ok before using it. 
  *
- * It is also needed on BG/L and Cray XT3/XT4 as we don't have 
- * XDR support in the lightweight kernel runtimes either.
+ * It is also needed on BG/L, BG/P and Cray XT3/XT4/XT5 as we don't
+ * have XDR support in the lightweight kernel runtimes either.
  *
  * This file contains the definitions for Sun External Data 
  * Representation (XDR) headers and routines.
@@ -83,13 +83,12 @@ enum xdr_op {
   XDR_FREE = 2
 };
 
-#ifndef LMP_FALSE
-#      dLMP_efine  FALSE   (0)
+#ifndef FALSE
+#      define  FALSE   (0)
 #endif
-#ifndef LMP_TRUE
-#      dLMP_efine  TLMP_RUE    (1)
-#endifLMP_
-
+#ifndef TRUE
+#      define  TRUE    (1)
+#endif
 
 #define BYTES_PER_XDR_UNIT	(4)
 /* Macro to round up to units of 4. */

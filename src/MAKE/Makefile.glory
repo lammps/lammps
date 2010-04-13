@@ -5,17 +5,20 @@ SHELL = /bin/sh
 
 # this Makefile builds LAMMPS for mvapich running on Glory
 # to invoke this Makefile, you need these modules loaded:
-#   compilers/intel-10.1-f015-c015
-#   misc/env-mvapich
-#   mpi/mvapich-1.0.1_ofed_intel-10.1-f015-c015
-#   libraries/fftw-2.1.5_openmpi-1.2.7_ofed_intel-10.1-f015-c015
+#   compilers/intel-11.1-f064-c064
+#   mpi/mvapich-1.1_intel-11.1-f064-c064
+#   libraries/intel_fftw-11.1.064
+#   libraries/fftw-2.1.5
 # you can determine which modules are loaded by typing:
 #   module list
 # these modules are not the default ones, but can be enabled by 
 #   lines like this in your .cshrc or other start-up shell file
 #   or by typing them before you build LAMMPS:
-#     module swap mpi mpi/mvapich-1.0.1_ofed_intel-10.1-f015-c015
-#     module load libraries/fftw-2.1.5_openmpi-1.2.7_ofed_intel-10.1-f015-c015
+#     module swap mpi misc/env-mvapich
+#     module load compilers/intel-11.1-f064-c064
+#     module load mpi/mvapich-1.1_intel-11.1-f064-c064
+#     module load libraries/intel_fftw-11.1.064
+#     module load libraries/fftw-2.1.5
 # these same modules need to be loaded to submit a LAMMPS job,
 #   either interactively or via a batch script
 

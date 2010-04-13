@@ -46,25 +46,30 @@ else
 end
 while done == 0 & last_status == 0
     id = fgetl(dump);
-    switch id
-        case 'ITEM: TIMESTEP'
+    if (strcmpi(id,'ITEM: TIMESTEP'))
             if t == 0
                 timestep(i) = str2num(fgetl(dump));
                 t=1;
             end
-        case 'ITEM: NUMBER OF ATOMS'
+    else
+     if (strcmpi(id,'ITEM: NUMBER OF ATOMS'))
             Natoms = str2num(fgetl(dump));
-        case 'ITEM: BOX BOUNDS'
+     else
+      if (strcmpi(id,'ITEM: BOX BOUNDS'))
             x_bound(1,:) = str2num(fgetl(dump));
             y_bound(1,:) = str2num(fgetl(dump));
             z_bound(1,:) = str2num(fgetl(dump));
-        case 'ITEM: ATOMS'
+      else
+       if (strcmpi(id(1:11),'ITEM: ATOMS'))
             atom_data = zeros(Natoms,ncol);%Allocate memory for atom data
             for j = 1 : 1: Natoms
                 atom_data(j,:) = str2num(fgetl(dump));
             end
             done = 1;
             p = ftell(dump);
+       end
+      end 
+     end
     end
 end
 
@@ -88,20 +93,26 @@ if last_status == 1
     
     while ~feof(dump)
         id = fgetl(dump);
-        switch id
-            case 'ITEM: NUMBER OF ATOMS'
-                Natoms = str2num(fgetl(dump));
-            case 'ITEM: BOX BOUNDS'
-                x_bound(1,:) = str2num(fgetl(dump));
-                y_bound(1,:) = str2num(fgetl(dump));
-                z_bound(1,:) = str2num(fgetl(dump));
-            case 'ITEM: ATOMS'
-                atom_data = zeros(Natoms,ncol);%Allocate memory for atom data
-                for j = 1 : 1: Natoms
-                    atom_data(j,:) = str2num(fgetl(dump));
-                end
-        end
+     if (strcmpi(id,'ITEM: NUMBER OF ATOMS'))
+            Natoms = str2num(fgetl(dump));
+     else
+      if (strcmpi(id,'ITEM: BOX BOUNDS'))
+            x_bound(1,:) = str2num(fgetl(dump));
+            y_bound(1,:) = str2num(fgetl(dump));
+            z_bound(1,:) = str2num(fgetl(dump));
+      else
+       if (strcmpi(id(1:11),'ITEM: ATOMS'))
+            atom_data = zeros(Natoms,ncol);%Allocate memory for atom data
+            for j = 1 : 1: Natoms
+                atom_data(j,:) = str2num(fgetl(dump));
+            end
+       end
+      end 
+     end
     end
+  
+
+        
 end
 
 %----------Outputs-------------

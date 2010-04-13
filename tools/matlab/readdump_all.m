@@ -29,21 +29,26 @@ end
 i=1;
 while feof(dump) == 0
     id = fgetl(dump);
-    switch id
-        case 'ITEM: TIMESTEP'
+     if (strcmpi(id,'ITEM: TIMESTEP'))
             timestep(i) = str2num(fgetl(dump));
-        case 'ITEM: NUMBER OF ATOMS'
+    else
+     if (strcmpi(id,'ITEM: NUMBER OF ATOMS'))
             Natoms(i) = str2num(fgetl(dump));
-        case 'ITEM: BOX BOUNDS'
+     else
+      if (strcmpi(id,'ITEM: BOX BOUNDS'))
             x_bound(i,:) = str2num(fgetl(dump));
             y_bound(i,:) = str2num(fgetl(dump));
             z_bound(i,:) = str2num(fgetl(dump));
-        case 'ITEM: ATOMS'
+      else
+       if (strcmpi(id(1:11),'ITEM: ATOMS'))
             for j = 1 : 1: Natoms
                 atom_data(j,:,i) = str2num(fgetl(dump));
             end
             i=i+1;
-    end
+       end
+      end 
+     end
+   end
 end
 %----------Outputs-------------
 %OUTPUTS IN SAME VARIABLE STRUCTURE

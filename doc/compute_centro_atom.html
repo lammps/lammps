@@ -13,14 +13,17 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>compute ID group-ID centro/atom 
+<PRE>compute ID group-ID centro/atom lattice 
 </PRE>
 <UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
-<LI>centro/atom = style name of this compute command 
+<LI>centro/atom = style name of this compute command
+<LI>lattice = <I>fcc</I> or <I>bcc</I> or N = # of neighbors per atom to include 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>compute 1 all centro/atom 
+<PRE>compute 1 all centro/atom fcc 
+</PRE>
+<PRE>compute 1 all centro/atom 8 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -39,10 +42,32 @@ in the specified compute group.
 </P>
 <CENTER><IMG SRC = "Eqs/centro_symmetry.jpg">
 </CENTER>
-<P>where the 12 nearest neighbors are found (for fcc lattices) and Ri and
-Ri+6 are the vectors from the central atom to the opposite pair of
-nearest neighbors.  Atoms not in the group are included in the 12
-neighbors used in this calculation.
+<P>where the <I>N</I> nearest neighbors or each atom are identified and Ri and
+Ri+N/2 are vectors from the central atom to a particular pair of
+nearest neighbors.  There are N*(N-1)/2 possible neighbor pairs that
+can contribute to this formula.  The quantity in the sum is computed
+for each, and the N/2 smallest are used.  This will typically be for
+pairs of atoms in symmetrically opposite positions with respect to the
+central atom; hence the i+N/2 notation.
+</P>
+<P><I>N</I> is an input parameter, which should be set to correspond to the
+number of nearest neighbors in the underlying lattice of atoms.  If
+the keyword <I>fcc</I> or <I>bcc</I> is used, <I>N</I> is set to 12 and 8
+respectively.  More generally, <I>N</I> can be set to a positive, even
+integer.
+</P>
+<P>For an atom on a lattice site, surrounded by atoms on a perfect
+lattice, the centro-symmetry parameter will be 0.  It will be near 0
+for small thermal perturbations of a perfect lattice.  If a point
+defect exists, the symmetry is broken, and the parameter will be a
+larger positive value.  An atom at a surface will have a large
+positive parameter.  If the atom does not have <I>N</I> neighbors (within
+the potential cutoff), then its centro-symmetry parameter is set to
+0.0.
+</P>
+<P>Only atoms within the cutoff of the pairwise neighbor list are
+considered as possible neighbors.  Atoms not in the compute group are
+included in the <I>N</I> neighbors used in this calculation.
 </P>
 <P>The neighbor list needed to compute this quantity is constructed each
 time the calculation is performed (e.g. each time a snapshot of atoms
@@ -56,6 +81,12 @@ too frequently or to have multiple compute/dump commands, each with a
 any command that uses per-atom values from a compute as input.  See
 <A HREF = "Section_howto.html#4_15">this section</A> for an overview of LAMMPS
 output options.
+</P>
+<P>The per-atom vector values are unitless values >= 0.0.  Their
+magnitude depends on the lattice style due to the number of
+contibuting neighbor pairs in the summation in the formula above.  And
+it depends on the local defects surrounding the central atom, as
+described above.
 </P>
 <P><B>Restrictions:</B> none
 </P>

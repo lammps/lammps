@@ -398,7 +398,7 @@ K of HOH angle = 55
 theta of HOH angle = 104.52 :all(b),p
 
 These are the parameters to use for TIP3P with a long-range Coulombic
-solver (Ewald or PPPM in LAMMPS):
+solver (Ewald or PPPM in LAMMPS), see "(Price)"_#Price for details:
 
 O mass = 15.9994
 H mass = 1.008 :all(b),p
@@ -1441,3 +1441,6 @@ Fischer, Gao, Guo, Ha, et al, J Phys Chem, 102, 3586 (1998).
 :link(Jorgensen)
 [(Jorgensen)] Jorgensen, Chandrasekhar, Madura, Impey, Klein, J Chem
 Phys, 79, 926 (1983).
+
+:link(Price)
+[(Price)] Price and Brooks, J Chem Phys, 121, 10096 (2004).

@@ -7,7 +7,6 @@ SHELL = /bin/sh
 # to invoke this Makefile, you need these modules loaded:
 #   compilers/intel-11.1-f064-c064
 #   mpi/mvapich-1.1_intel-11.1-f064-c064
-#   libraries/intel_fftw-11.1.064
 #   libraries/fftw-2.1.5
 # you can determine which modules are loaded by typing:
 #   module list
@@ -17,7 +16,6 @@ SHELL = /bin/sh
 #     module swap mpi misc/env-mvapich
 #     module load compilers/intel-11.1-f064-c064
 #     module load mpi/mvapich-1.1_intel-11.1-f064-c064
-#     module load libraries/intel_fftw-11.1.064
 #     module load libraries/fftw-2.1.5
 # these same modules need to be loaded to submit a LAMMPS job,
 #   either interactively or via a batch script

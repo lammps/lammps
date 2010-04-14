@@ -84,8 +84,8 @@ interpolation "features" you may not like. :l
 Start with the linear style; it's the style least likely to have problems. :l
 
 Use {N} in the pair_style command equal to the "N" in the tabulation
-file, so additional interpolation is not needed.  See discussion
-below. :l
+file, and use the "RSQ" or "BITMAP" parameter, so additional interpolation
+is not needed.  See discussion below. :l
 
 Use as large an inner cutoff as possible.  This avoids fitting splines
 to very steep parts of the potential. :l,ule
@@ -126,7 +126,7 @@ Ntable are then used as described above, when computing energy and
 force for individual pair distances.  This means that if you want the
 interpolation tables of length Ntable to match exactly what is in the
 tabulated file (with effectively no preliminary interpolation), you
-should set Ntable = Nfile.
+should set Ntable = Nfile, and use the "RSQ" or "BITMAP" parameter.
 
 All other parameters are optional.  If "R" or "RSQ" or "BITMAP" does
 not appear, then the distances in each line of the table are used

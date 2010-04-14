@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Michel Perez (U Lyon) for non-fcc lattices
+------------------------------------------------------------------------- */
+
 #include "string.h"
 #include "stdlib.h"
 #include "compute_centro_atom.h"

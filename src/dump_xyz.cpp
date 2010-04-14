@@ -95,16 +95,19 @@ double DumpXYZ::memory_usage()
 
 void DumpXYZ::write_header(int n)
 {
+  // check bounds of atom IDs if group is all
   // all procs realloc types & coords if necessary
 
-  if (igroup == 0 && n != natoms) {
-    memory->sfree(types);
-    memory->sfree(coords);
+  if (igroup == 0) {
     if (atom->tag_consecutive() == 0)
-      error->all("Atom IDs must be consecutive for dump xyz");
-    natoms = n;
-    types = (int *) memory->smalloc(natoms*sizeof(int),"dump:types");
-    coords = (float *) memory->smalloc(3*natoms*sizeof(float),"dump:coords");
+      error->all("Atom IDs must be consecutive for dump xyz all");
+    if (n != natoms) {
+      memory->sfree(types);
+      memory->sfree(coords);
+      natoms = n;
+      types = (int *) memory->smalloc(natoms*sizeof(int),"dump:types");
+      coords = (float *) memory->smalloc(3*natoms*sizeof(float),"dump:coords");
+    }
   }
 
   // only proc 0 writes header

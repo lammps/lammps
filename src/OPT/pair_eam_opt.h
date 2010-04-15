@@ -115,15 +115,21 @@ void PairEAMOpt::eval()
     (fast_alpha_t*) malloc(ntypes2*(nr+1)*sizeof(fast_alpha_t));
   for (i = 0; i < ntypes; i++) for (j = 0; j < ntypes; j++) {
     fast_alpha_t* __restrict__ tab = &fast_alpha[i*ntypes*nr+j*nr];
-    for(int m = 1; m <= nr; m++) {
-      tab[m].rhor0i =  rhor_spline[type2rhor[i+1][j+1]][m][6];
-      tab[m].rhor1i =  rhor_spline[type2rhor[i+1][j+1]][m][5];
-      tab[m].rhor2i =  rhor_spline[type2rhor[i+1][j+1]][m][4];
-      tab[m].rhor3i =  rhor_spline[type2rhor[i+1][j+1]][m][3];
-      tab[m].rhor0j =  rhor_spline[type2rhor[j+1][i+1]][m][6];
-      tab[m].rhor1j =  rhor_spline[type2rhor[j+1][i+1]][m][5];
-      tab[m].rhor2j =  rhor_spline[type2rhor[j+1][i+1]][m][4];
-      tab[m].rhor3j =  rhor_spline[type2rhor[j+1][i+1]][m][3];
+    if (type2rhor[i+1][j+1] >= 0) {
+      for(int m = 1; m <= nr; m++) {
+	tab[m].rhor0i =  rhor_spline[type2rhor[i+1][j+1]][m][6];
+	tab[m].rhor1i =  rhor_spline[type2rhor[i+1][j+1]][m][5];
+	tab[m].rhor2i =  rhor_spline[type2rhor[i+1][j+1]][m][4];
+	tab[m].rhor3i =  rhor_spline[type2rhor[i+1][j+1]][m][3];
+      }
+    }
+    if (type2rhor[j+1][i+1] >= 0) {
+      for(int m = 1; m <= nr; m++) {
+	tab[m].rhor0j =  rhor_spline[type2rhor[j+1][i+1]][m][6];
+	tab[m].rhor1j =  rhor_spline[type2rhor[j+1][i+1]][m][5];
+	tab[m].rhor2j =  rhor_spline[type2rhor[j+1][i+1]][m][4];
+	tab[m].rhor3j =  rhor_spline[type2rhor[j+1][i+1]][m][3];
+      }
     }
   }
   fast_alpha_t* __restrict__ tabeight = fast_alpha;
@@ -132,20 +138,31 @@ void PairEAMOpt::eval()
     (fast_gamma_t*) malloc(ntypes2*(nr+1)*sizeof(fast_gamma_t));
   for (i = 0; i < ntypes; i++) for (j = 0; j < ntypes; j++) {
     fast_gamma_t* __restrict__ tab = &fast_gamma[i*ntypes*nr+j*nr];
-    for(int m = 1; m <= nr; m++) {
-      tab[m].rhor4i =  rhor_spline[type2rhor[i+1][j+1]][m][2];
-      tab[m].rhor5i =  rhor_spline[type2rhor[i+1][j+1]][m][1];
-      tab[m].rhor6i =  rhor_spline[type2rhor[i+1][j+1]][m][0];
-      tab[m].rhor4j =  rhor_spline[type2rhor[j+1][i+1]][m][2];
-      tab[m].rhor5j =  rhor_spline[type2rhor[j+1][i+1]][m][1];
-      tab[m].rhor6j =  rhor_spline[type2rhor[j+1][i+1]][m][0];
-      tab[m].z2r0 =  z2r_spline[type2z2r[i+1][j+1]][m][6];
-      tab[m].z2r1 =  z2r_spline[type2z2r[i+1][j+1]][m][5];
-      tab[m].z2r2 =  z2r_spline[type2z2r[i+1][j+1]][m][4];
-      tab[m].z2r3 =  z2r_spline[type2z2r[i+1][j+1]][m][3];
-      tab[m].z2r4 =  z2r_spline[type2z2r[i+1][j+1]][m][2];
-      tab[m].z2r5 =  z2r_spline[type2z2r[i+1][j+1]][m][1];
-      tab[m].z2r6 =  z2r_spline[type2z2r[i+1][j+1]][m][0];
+    if (type2rhor[i+1][j+1] >= 0) {
+      for(int m = 1; m <= nr; m++) {
+	tab[m].rhor4i =  rhor_spline[type2rhor[i+1][j+1]][m][2];
+	tab[m].rhor5i =  rhor_spline[type2rhor[i+1][j+1]][m][1];
+	tab[m].rhor6i =  rhor_spline[type2rhor[i+1][j+1]][m][0];
+      }
+    }
+    if (type2rhor[j+1][i+1] >= 0) {
+      for(int m = 1; m <= nr; m++) {
+	tab[m].rhor4j =  rhor_spline[type2rhor[j+1][i+1]][m][2];
+	tab[m].rhor5j =  rhor_spline[type2rhor[j+1][i+1]][m][1];
+	tab[m].rhor6j =  rhor_spline[type2rhor[j+1][i+1]][m][0];
+	tab[m].z2r6 =  z2r_spline[type2z2r[i+1][j+1]][m][0];
+      }
+    }
+    if (type2z2r[i+1][j+1] >= 0) {
+      for(int m = 1; m <= nr; m++) {
+	tab[m].z2r0 =  z2r_spline[type2z2r[i+1][j+1]][m][6];
+	tab[m].z2r1 =  z2r_spline[type2z2r[i+1][j+1]][m][5];
+	tab[m].z2r2 =  z2r_spline[type2z2r[i+1][j+1]][m][4];
+	tab[m].z2r3 =  z2r_spline[type2z2r[i+1][j+1]][m][3];
+	tab[m].z2r4 =  z2r_spline[type2z2r[i+1][j+1]][m][2];
+	tab[m].z2r5 =  z2r_spline[type2z2r[i+1][j+1]][m][1];
+	tab[m].z2r6 =  z2r_spline[type2z2r[i+1][j+1]][m][0];
+      }
     }
   }
   fast_gamma_t* __restrict__ tabss = fast_gamma;

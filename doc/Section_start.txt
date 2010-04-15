@@ -623,10 +623,14 @@ cd ../examples/lj
 mpirun -np 4 lmp_linux < in.lj.nve :pre
 
 On a Windows machine, when you have downloaded the Windows executable
-lmp_windows.exe, you do something different:
+lmp_windows.exe, you do something different. 
 
-Get a command prompt by going to Start->Run... , then typing "cmd"
-and OK. :ulb,l
+First, you'll need to download and install 
+"MPICH2"_http://www.mcs.anl.gov/research/projects/mpich2/downloads/index.php?s=downloads
+for Windows. :ulb,l
+
+Then, get a command prompt by going to Start->Run... , then typing "cmd"
+and OK.  :l
 
 Move to the directory where you have saved lmp_windows.exe
 (e.g. by typing: cd "My Documents"). :l
@@ -634,12 +638,10 @@ Move to the directory where you have saved lmp_windows.exe
 At the command prompt, type "lmp_windows < in.lj", replacing in.lj
 with the name of your LAMMPS input script. :l,ule
 
-To run the Windows executable on multiple processors, you'll need
-to download and install 
-"MPICH2"_http://www.mcs.anl.gov/research/projects/mpich2/downloads/index.php?s=downloads
-for Windows, then using the mpiexec.exe
-and smpd.exe files in same directory (or path) as the LAMMPS Windows 
-executable, type something like this: 
+To run the Windows executable on multiple processors, you'll need to use 
+the mpiexec.exe and smpd.exe files from the MPICH2 package. Put them in 
+same directory (or path) as the LAMMPS Windows executable, then type 
+something like this: 
 "mpiexec -np 4 -localonly lmp_windows < in.lj".
 
 The screen output from LAMMPS is described in the next section.  As it

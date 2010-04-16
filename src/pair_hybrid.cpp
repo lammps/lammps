@@ -194,7 +194,8 @@ void PairHybrid::settings(int narg, char **arg)
   // count sub-styles by skipping numeric args
   // one exception is 1st arg of style "table", which is non-numeric word
   // one exception is 1st two args of style "lj/coul", which are non-numeric
-  // one exception is 1st two args of style "lj/coul", which are non-numeric
+  // one exception is 1st two args of style "buck/coul", which are non-numeric
+  // one exception is 1st arg of any "gpu" style, which is non-numeric
   // need a better way to skip these exceptions
 
   nstyles = 0;
@@ -202,6 +203,8 @@ void PairHybrid::settings(int narg, char **arg)
   while (i < narg) {
     if (strcmp(arg[i],"table") == 0) i++;
     if (strcmp(arg[i],"lj/coul") == 0) i += 2;
+    if (strcmp(arg[i],"buck/coul") == 0) i += 2;
+    if (strstr(arg[i],"gpu")) i++;
     i++;
     while (i < narg && !isalpha(arg[i][0])) i++;
     nstyles++;
@@ -216,6 +219,7 @@ void PairHybrid::settings(int narg, char **arg)
   // define subset of args for a sub-style by skipping numeric args
   // one exception is 1st arg of style "table", which is non-numeric
   // one exception is 1st two args of style "lj/coul", which are non-numeric
+  // one exception is 1st two args of style "buck/coul", which are non-numeric
   // one exception is 1st arg of any "gpu" style, which is non-numeric
   // need a better way to skip these exceptions
 
@@ -235,6 +239,7 @@ void PairHybrid::settings(int narg, char **arg)
     istyle = i;
     if (strcmp(arg[i],"table") == 0) i++;
     if (strcmp(arg[i],"lj/coul") == 0) i += 2;
+    if (strcmp(arg[i],"buck/coul") == 0) i += 2;
     if (strstr(arg[i],"gpu")) i++;
     i++;
     while (i < narg && !isalpha(arg[i][0])) i++;

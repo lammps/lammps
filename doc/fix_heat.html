@@ -15,26 +15,41 @@
 </P>
 <PRE>fix ID group-ID heat N eflux 
 </PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
-<LI>heat = style name of this fix command
-<LI>N = add/subtract heat every this many timesteps
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>heat = style name of this fix command 
+
+<LI>N = add/subtract heat every this many timesteps 
+
 <LI>eflux = rate of heat addition or subtraction (energy/time units) 
+
+<LI>zero or more keyword/value pairs may be appended to args 
+
+<LI>keyword = <I>region</I>  
+
+<PRE>  <I>region</I> value = region-ID
+    region-ID = ID of region atoms must be in to have added force 
+</PRE>
+
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>fix 3 qin heat 1 1.0
-fix 4 qout heat 1 -1.0 
+fix 4 qout heat 1 -1.0 region top 
 </PRE>
 <P><B>Description:</B>
 </P>
 <P>Add non-translational kinetic energy (heat) to a group of atoms such
 that their aggregate momentum is conserved.  Two of these fixes can be
 used to establish a temperature gradient across a simulation domain by
-adding heat to one group of atoms (hot reservoir) and subtracting heat
-from another (cold reservoir).  E.g. a simulation sampling from the
-McDLT ensemble.  Note that the fix is applied to a group of atoms, not
-a geometric region, so that the same set of atoms is affected wherever
-they may move to.
+adding heat (energy) to one group of atoms (hot reservoir) and
+subtracting heat from another (cold reservoir).  E.g. a simulation
+sampling from the McDLT ensemble.
+</P>
+<P>If the <I>region</I> keyword is used, the atom must be in both the group
+and the specified geometric <A HREF = "region.html">region</A> in order to have
+energy added or subtracted to it.  If not specified, then the atoms in
+the group are affected wherever they may move to.
 </P>
 <P>Heat addition/subtraction is performed every N timesteps.  The <I>eflux</I>
 parameter determines the change in aggregate energy of the entire

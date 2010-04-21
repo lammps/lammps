@@ -27,15 +27,24 @@ namespace LAMMPS_NS {
 class FixEfield : public Fix {
  public:
   FixEfield(class LAMMPS *, int, char **);
+  ~FixEfield();
   int setmask();
   void init();
   void setup(int);
   void post_force(int);
   void post_force_respa(int, int, int);
+  double memory_usage();
 
  private:
   double ex,ey,ez;
+  int varflag;
+  char *xstr,*ystr,*zstr;
+  int xvar,yvar,zvar,xvarstyle,yvarstyle,zvarstyle;
   int nlevels_respa;
+  double efactor;
+
+  int maxatom;
+  double **efield;
 };
 
 }

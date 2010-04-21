@@ -33,6 +33,7 @@ class FixHeat : public Fix {
   double compute_scalar();
 
  private:
+  int iregion;
   double heat_input;
   double masstotal;
   double scale;

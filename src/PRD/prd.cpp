@@ -67,7 +67,7 @@ void PRD::command(int narg, char **arg)
     error->all("PRD command before simulation box is defined");
   if (universe->nworlds != universe->nprocs && 
       atom->map_style == 0) 
-    error->all("Cannot use PRD with multi-proc replicas "
+    error->all("Cannot use PRD with multi-processor replicas "
 	       "unless atom map exists");
   if (universe->nworlds == 1 && comm->me == 0) 
     error->warning("Running PRD with only one replica");

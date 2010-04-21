@@ -203,6 +203,7 @@ void Variable::set(int narg, char **arg)
 	  num[nvar] != num[jvar])
 	error->all("All universe/uloop variables must have same # of values");
 
+    /*
     if (me == 0) {
       if (universe->uscreen)
 	fprintf(universe->uscreen,
@@ -213,6 +214,7 @@ void Variable::set(int narg, char **arg)
 		"Initial ${%s} setting: value %d on partition %d\n",
 		arg[0],index[nvar]+1,universe->iworld);
     }
+    */
 
   // ATOM
   // remove pre-existing var if also style ATOM (allows it to be reset)

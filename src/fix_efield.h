@@ -39,7 +39,7 @@ class FixEfield : public Fix {
   double ex,ey,ez;
   int varflag;
   char *xstr,*ystr,*zstr;
-  int xvar,yvar,zvar,xvarstyle,yvarstyle,zvarstyle;
+  int xvar,yvar,zvar,xstyle,ystyle,zstyle;
   int nlevels_respa;
   double efactor;
 

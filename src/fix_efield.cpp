@@ -30,7 +30,7 @@
 
 using namespace LAMMPS_NS;
 
-enum{NONE,EQUAL,ATOM};
+enum{CONSTANT,EQUAL,ATOM};
 
 /* ---------------------------------------------------------------------- */
 
@@ -46,19 +46,28 @@ FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
     int n = strlen(&arg[3][2]) + 1;
     xstr = new char[n];
     strcpy(xstr,&arg[3][2]);
-  } else ex = efactor * atof(arg[3]);
+  } else {
+    ex = efactor * atof(arg[3]);
+    xstyle = CONSTANT;
+  }
 
   if (strstr(arg[4],"v_") == arg[4]) {
     int n = strlen(&arg[4][2]) + 1;
     xstr = new char[n];
     strcpy(xstr,&arg[4][2]);
-  } else ey = efactor * atof(arg[4]);
+  } else {
+    ey = efactor * atof(arg[4]);
+    ystyle = CONSTANT;
+  }
 
   if (strstr(arg[5],"v_") == arg[5]) {
     int n = strlen(&arg[5][2]) + 1;
     xstr = new char[n];
     strcpy(xstr,&arg[5][2]);
-  } else ez = efactor * atof(arg[5]);
+  } else {
+    ez = efactor * atof(arg[5]);
+    zstyle = CONSTANT;
+  }
 
   maxatom = 0;
   efield = NULL;
@@ -98,30 +107,30 @@ void FixEfield::init()
   if (xstr) {
     xvar = input->variable->find(xstr);
     if (xvar < 0) error->all("Variable name for fix efield does not exist");
-    if (input->variable->equalstyle(xvar)) xvarstyle = EQUAL;
-    else if (input->variable->atomstyle(xvar)) xvarstyle = ATOM;
+    if (input->variable->equalstyle(xvar)) xstyle = EQUAL;
+    else if (input->variable->atomstyle(xvar)) xstyle = ATOM;
     else error->all("Variable for fix efield is invalid style");
-  } else xvarstyle = NONE;
+  }
   if (ystr) {
     yvar = input->variable->find(ystr);
     if (yvar < 0) error->all("Variable name for fix efield does not exist");
-    if (input->variable->equalstyle(yvar)) yvarstyle = EQUAL;
-    else if (input->variable->atomstyle(yvar)) yvarstyle = ATOM;
+    if (input->variable->equalstyle(yvar)) ystyle = EQUAL;
+    else if (input->variable->atomstyle(yvar)) ystyle = ATOM;
     else error->all("Variable for fix efield is invalid style");
-  } else yvarstyle = NONE;
+  }
   if (zstr) {
     zvar = input->variable->find(zstr);
     if (zvar < 0) error->all("Variable name for fix efield does not exist");
-    if (input->variable->equalstyle(zvar)) zvarstyle = EQUAL;
-    else if (input->variable->atomstyle(zvar)) zvarstyle = ATOM;
+    if (input->variable->equalstyle(zvar)) zstyle = EQUAL;
+    else if (input->variable->atomstyle(zvar)) zstyle = ATOM;
     else error->all("Variable for fix efield is invalid style");
-  } else zvarstyle = NONE;
+  }
 
-  if (xvarstyle == ATOM || yvarstyle == ATOM || zvarstyle == ATOM)
+  if (xstyle == ATOM || ystyle == ATOM || zstyle == ATOM)
     varflag = ATOM;
-  else if (xvarstyle == EQUAL || yvarstyle == EQUAL || zvarstyle == EQUAL)
+  else if (xstyle == EQUAL || ystyle == EQUAL || zstyle == EQUAL)
     varflag = EQUAL;
-  else varflag = NONE;
+  else varflag = CONSTANT;
 
   if (strcmp(update->integrate_style,"respa") == 0)
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
@@ -159,7 +168,7 @@ void FixEfield::post_force(int vflag)
     efield = memory->create_2d_double_array(maxatom,3,"efield:efield");
   }
 
-  if (varflag == NONE) {
+  if (varflag == CONSTANT) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
 	f[i][0] += q[i]*ex;
@@ -168,32 +177,23 @@ void FixEfield::post_force(int vflag)
       }
 
   } else {
-    if (xstr) {
-      if (xvarstyle == EQUAL)
-	ex = efactor * input->variable->compute_equal(xvar);
-      else 
-	input->variable->compute_atom(xvar,igroup,&efield[0][0],3,0);
-    }
-    if (ystr) {
-      if (yvarstyle == EQUAL)
-	ey = efactor * input->variable->compute_equal(yvar);
-      else 
-	input->variable->compute_atom(yvar,igroup,&efield[0][1],3,0);
-    }
-    if (zstr) {
-      if (zvarstyle == EQUAL)
-	ez = efactor * input->variable->compute_equal(zvar);
-      else 
-	input->variable->compute_atom(zvar,igroup,&efield[0][2],3,0);
-    }
+    if (xstyle == EQUAL) ex = efactor * input->variable->compute_equal(xvar);
+    else if (xstyle == ATOM)
+      input->variable->compute_atom(xvar,igroup,&efield[0][0],3,0);
+    if (ystyle == EQUAL) ey = efactor * input->variable->compute_equal(yvar);
+    else if (ystyle == ATOM)
+      input->variable->compute_atom(yvar,igroup,&efield[0][1],3,0);
+    if (zstyle == EQUAL) ez = efactor * input->variable->compute_equal(zvar);
+    else if (zstyle == ATOM)
+      input->variable->compute_atom(zvar,igroup,&efield[0][2],3,0);
 
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	if (xvarstyle == ATOM) f[i][0] += q[i]*efield[i][0];
+	if (xstyle == ATOM) f[i][0] += q[i]*efield[i][0];
 	else f[i][0] += q[i]*ex;
-	if (yvarstyle == ATOM) f[i][1] += q[i]*efield[i][1];
+	if (ystyle == ATOM) f[i][1] += q[i]*efield[i][1];
 	else f[i][1] += q[i]*ey;
-	if (zvarstyle == ATOM) f[i][2] += q[i]*efield[i][2];
+	if (zstyle == ATOM) f[i][2] += q[i]*efield[i][2];
 	else f[i][2] += q[i]*ez;
       }
   }

@@ -16,6 +16,8 @@
 #include "fix_setforce.h"
 #include "atom.h"
 #include "update.h"
+#include "domain.h"
+#include "region.h"
 #include "respa.h"
 #include "input.h"
 #include "variable.h"
@@ -31,7 +33,7 @@ enum{NONE,CONSTANT,EQUAL,ATOM};
 FixSetForce::FixSetForce(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg != 6) error->all("Illegal fix setforce command");
+  if (narg < 6) error->all("Illegal fix setforce command");
 
   vector_flag = 1;
   size_vector = 3;
@@ -69,6 +71,20 @@ FixSetForce::FixSetForce(LAMMPS *lmp, int narg, char **arg) :
   } else {
     zvalue = atof(arg[5]);
     zstyle = CONSTANT;
+  }
+
+  // optional args
+
+  iregion = -1;
+
+  int iarg = 6;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"region") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix setforce command");
+      iregion = domain->find_region(arg[iarg+1]);
+      if (iregion == -1) error->all("Fix setforce region ID does not exist");
+      iarg += 2;
+    } else error->all("Illegal fix setforce command");
   }
 
   force_flag = 0;
@@ -162,6 +178,7 @@ void FixSetForce::min_setup(int vflag)
 
 void FixSetForce::post_force(int vflag)
 {
+  double **x = atom->x;
   double **f = atom->f;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -180,6 +197,10 @@ void FixSetForce::post_force(int vflag)
   if (varflag == CONSTANT) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
+	if (iregion >= 0 && 
+	    !domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
+	  continue;
+
 	foriginal[0] += f[i][0];
 	foriginal[1] += f[i][1];
 	foriginal[2] += f[i][2];
@@ -201,6 +222,10 @@ void FixSetForce::post_force(int vflag)
 
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
+	if (iregion >= 0 && 
+	    !domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
+	  continue;
+
 	foriginal[0] += f[i][0];
 	foriginal[1] += f[i][1];
 	foriginal[2] += f[i][2];

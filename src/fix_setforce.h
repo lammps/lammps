@@ -40,7 +40,7 @@ class FixSetForce : public Fix {
 
  private:
   double xvalue,yvalue,zvalue;
-  int varflag;
+  int varflag,iregion;
   char *xstr,*ystr,*zstr;
   int xvar,yvar,zvar,xstyle,ystyle,zstyle;
   double foriginal[3],foriginal_all[3];

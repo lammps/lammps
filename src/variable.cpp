@@ -40,7 +40,7 @@ using namespace LAMMPS_NS;
 enum{INDEX,LOOP,EQUAL,WORLD,UNIVERSE,ULOOP,ATOM};
 enum{ARG,OP};
 enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,UNARY,
-       EQ,NE,LT,LE,GT,GE,
+       EQ,NE,LT,LE,GT,GE,AND,OR,
        SQRT,EXP,LN,LOG,SIN,COS,TAN,ASIN,ACOS,ATAN,
        CEIL,FLOOR,ROUND,VALUE,ATOMARRAY,TYPEARRAY,INTARRAY};
 
@@ -63,12 +63,14 @@ Variable::Variable(LAMMPS *lmp) : Pointers(lmp)
   data = NULL;
 
   precedence[DONE] = 0;
-  precedence[EQ] = precedence[NE] = 1;
-  precedence[LT] = precedence[LE] = precedence[GT] = precedence[GE] = 2;
-  precedence[ADD] = precedence[SUBTRACT] = 3;
-  precedence[MULTIPLY] = precedence[DIVIDE] = 4;
-  precedence[CARAT] = 5;
-  precedence[UNARY] = 6;
+  precedence[OR] = 1;
+  precedence[AND] = 2;
+  precedence[EQ] = precedence[NE] = 3;
+  precedence[LT] = precedence[LE] = precedence[GT] = precedence[GE] = 4;
+  precedence[ADD] = precedence[SUBTRACT] = 5;
+  precedence[MULTIPLY] = precedence[DIVIDE] = 6;
+  precedence[CARAT] = 7;
+  precedence[UNARY] = 8;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1145,7 +1147,7 @@ double Variable::evaluate(char *str, Tree **tree)
     // math operator, including end-of-string
     // ----------------
 
-    } else if (strchr("+-*/^<>=!\0",onechar)) {
+    } else if (strchr("+-*/^<>=!&|\0",onechar)) {
       if (onechar == '+') op = ADD;
       else if (onechar == '-') op = SUBTRACT;
       else if (onechar == '*') op = MULTIPLY;
@@ -1171,7 +1173,16 @@ double Variable::evaluate(char *str, Tree **tree)
 	  op = GE;
 	  i++;
 	}
+      } else if (onechar == '&') {
+	if (str[i+1] != '&') error->all("Invalid syntax in variable formula");
+	op = AND;
+	i++;
+      } else if (onechar == '|') {
+	if (str[i+1] != '|') error->all("Invalid syntax in variable formula");
+	op = OR;
+	i++;
       } else op = DONE;
+
       i++;
 
       if (op == SUBTRACT && expect == ARG) {
@@ -1235,6 +1246,12 @@ double Variable::evaluate(char *str, Tree **tree)
 	    else argstack[nargstack++] = 0.0;
 	  } else if (opprevious == GE) {
 	    if (value1 >= value2) argstack[nargstack++] = 1.0;
+	    else argstack[nargstack++] = 0.0;
+	  } else if (opprevious == AND) {
+	    if (value1 != 0.0 && value2 != 0.0) argstack[nargstack++] = 1.0;
+	    else argstack[nargstack++] = 0.0;
+	  } else if (opprevious == OR) {
+	    if (value1 != 0.0 || value2 != 0.0) argstack[nargstack++] = 1.0;
 	    else argstack[nargstack++] = 0.0;
 	  }
 	}
@@ -1321,6 +1338,16 @@ double Variable::eval_tree(Tree *tree, int i)
   }
   if (tree->type == GE) {
     if (eval_tree(tree->left,i) >= eval_tree(tree->right,i)) return 1.0;
+    else return 0.0;
+  }
+  if (tree->type == AND) {
+    if (eval_tree(tree->left,i) != 0.0 && eval_tree(tree->right,i) != 0.0)
+      return 1.0;
+    else return 0.0;
+  }
+  if (tree->type == OR) {
+    if (eval_tree(tree->left,i) != 0.0 || eval_tree(tree->right,i) != 0.0)
+      return 1.0;
     else return 0.0;
   }
 

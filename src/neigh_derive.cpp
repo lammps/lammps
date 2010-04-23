@@ -138,8 +138,10 @@ void Neighbor::half_from_full_newton(NeighList *list)
       } else {
 	if (j >= nall) j %= nall;
 	if (x[j][2] < ztmp) continue;
-	if (x[j][2] == ztmp && x[j][1] < ytmp) continue;
-	if (x[j][2] == ztmp && x[j][1] == ytmp && x[j][0] < xtmp) continue;
+	if (x[j][2] == ztmp) {
+	  if (x[j][1] < ytmp) continue;
+	  if (x[j][1] == ytmp && x[j][0] < xtmp) continue;
+	}
       }
       neighptr[n++] = joriginal;
     }

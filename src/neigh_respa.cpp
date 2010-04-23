@@ -276,7 +276,7 @@ void Neighbor::respa_nsq_newton(NeighList *list)
 	  if ((itag+jtag) % 2 == 1) continue;
 	} else {
 	  if (x[j][2] < ztmp) continue;
-	  else if (x[j][2] == ztmp) {
+	  if (x[j][2] == ztmp) {
 	    if (x[j][1] < ytmp) continue;
 	    if (x[j][1] == ytmp && x[j][0] < xtmp) continue;
 	  }

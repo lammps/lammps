@@ -23,10 +23,11 @@ style = {delete} or {index} or {loop} or {world} or {universe} or {uloop} or {eq
   {equal} or {atom} args = one formula containing numbers, thermo keywords, math operations, group functions, atom values and vectors, compute/fix/variable references
     numbers = 0.0, 100, -5.4, 2.8e-4, etc
     thermo keywords = vol, ke, press, etc from "thermo_style"_thermo_style.html
-    math operations = (), -x, x+y, x-y, x*y, x/y, x^y, 
-                      sqrt(x), exp(x), ln(x), log(x),
-                      sin(x), cos(x), tan(x), asin(x), acos(x), atan(x),
-                      ceil(x), floor(x), round(x)
+    math operators = (), -x, x+y, x-y, x*y, x/y, x^y, 
+                     x==y, x!=y, x<y, x<=y, x>y, x>=y
+    math functions = sqrt(x), exp(x), ln(x), log(x),
+                     sin(x), cos(x), tan(x), asin(x), acos(x), atan(x),
+                     ceil(x), floor(x), round(x)
     group functions = count(group), mass(group), charge(group),
 		      xcm(group,dim), vcm(group,dim), fcm(group,dim),
 		      bound(group,xmin), gyration(group), ke(group)
@@ -233,12 +234,14 @@ valid (though strange) variable formula:
 variable x equal "pe + c_MyTemp / vol^(1/3)" :pre
 
 Specifically, an formula can contain numbers, thermo keywords, math
-operations, group functions, atom values, atom vectors, compute
-references, fix references, and references to other variables.
+operators, math functions, group functions, region functions, atom
+values, atom vectors, compute references, fix references, and
+references to other variables.
 
 Number: 0.2, 100, 1.0e20, -15.4, etc
 Thermo keywords: vol, pe, ebond, etc
-Math operations: (), -x, x+y, x-y, x*y, x/y, x^y, sqrt(x), exp(x), ln(x), log(x), sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), ceil(x), floor(x), round(x)
+Math operators: (), -x, x+y, x-y, x*y, x/y, x^y, x==y, x!=y, x<y, x<=y, x>y, x>=y
+Math functions: sqrt(x), exp(x), ln(x), log(x), sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), ceil(x), floor(x), round(x)
 Group functions: count(ID), mass(ID), charge(ID), xcm(ID,dim), \
                  vcm(ID,dim), fcm(ID,dim), bound(ID,dir), gyration(ID), ke(ID)
 Region functions: count(ID,IDR), mass(ID,IDR), charge(ID,IDR), xcm(ID,dim,IDR), \
@@ -275,19 +278,34 @@ evaluated directly in an input script (not during a run), then the
 values accessed by the thermo keyword must be current.  See the
 discussion below about "Variable Accuracy".
 
-Math operations are written in the usual way, where the "x" and "y" in
+Math operators are written in the usual way, where the "x" and "y" in
 the examples above can be another section of the formula.  Operators
-are evaluated left to right and have the usual precedence: unary minus
-before exponentiation ("^"), exponentiation before multiplication and
-division, and multiplication and division before addition and
-subtraction.  Parenthesis can be used to group one or more portions of
-a formula and enforce a desired order of operations.  Additional math
-operations can be specified as keywords followed by a parenthesized
-argument, e.g. sqrt(v_ke).  Note that ln() is the natural log; log()
-is the base 10 log.  The ceil(), floor(), and round() operations are
-those in the C math library.  Ceil() is the smallest integer not less
-than its argument.  Floor() if the largest integer not greater than
-its argument.  Round() is the nearest integer to its argument.
+are evaluated left to right and have the usual C-style precedence:
+unary minus before exponentiation ("^"); exponentiation before
+multiplication and division; multiplication and division before
+addition and subtraction; addition and subtraction before the 4
+relational operators "<", "<=", ">", and ">="; and those 4 relational
+operators before the remaining two relational operators "==" and "!=".
+Parenthesis can be used to group one or more portions of a formula and
+enforce a different order of evaluation than that invoked by the the
+default precedence.
+
+The 6 relational operators return either a 1.0 or 0.0 depending on
+whether the relationship between x and y is true or false.  For
+example the expression x<10.0 in an atom-style variable formula will
+return 1.0 for all atoms whose x-coordinate is less than 10.0, and 0.0
+for the others.  This can be used as a masking or selection operation
+in a formula.  For example, the number of such atoms could be
+calculated by taking the returned per-atom vector of ones and zeroes
+and passing it to the "compute reduce"_compute_reduce.html command.
+
+Math functions can be specified as keywords followed by a
+parenthesized argument, e.g. sqrt(v_ke).  Note that ln() is the
+natural log; log() is the base 10 log.  The ceil(), floor(), and
+round() operations are those in the C math library.  Ceil() is the
+smallest integer not less than its argument.  Floor() if the largest
+integer not greater than its argument.  Round() is the nearest integer
+to its argument.
 
 Group functions take one or two arguments in a specific format.  The
 first argument is the group-ID.  The {dim} argument, if it exists, is

@@ -266,6 +266,7 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
 	error->all("Variable name for compute reduce does not exist");
       if (input->variable->atomstyle(ivariable) == 0)
 	error->all("Compute reduce variable is not atom-style variable");
+      flavor[i] = PERATOM;
     }
   }
 

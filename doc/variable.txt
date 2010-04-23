@@ -24,7 +24,7 @@ style = {delete} or {index} or {loop} or {world} or {universe} or {uloop} or {eq
     numbers = 0.0, 100, -5.4, 2.8e-4, etc
     thermo keywords = vol, ke, press, etc from "thermo_style"_thermo_style.html
     math operators = (), -x, x+y, x-y, x*y, x/y, x^y, 
-                     x==y, x!=y, x<y, x<=y, x>y, x>=y
+                     x==y, x!=y, x<y, x<=y, x>y, x>=y, x&&y, x||y
     math functions = sqrt(x), exp(x), ln(x), log(x),
                      sin(x), cos(x), tan(x), asin(x), acos(x), atan(x),
                      ceil(x), floor(x), round(x)
@@ -240,7 +240,7 @@ references to other variables.
 
 Number: 0.2, 100, 1.0e20, -15.4, etc
 Thermo keywords: vol, pe, ebond, etc
-Math operators: (), -x, x+y, x-y, x*y, x/y, x^y, x==y, x!=y, x<y, x<=y, x>y, x>=y
+Math operators: (), -x, x+y, x-y, x*y, x/y, x^y, x==y, x!=y, x<y, x<=y, x>y, x>=y, x&&y, x||y
 Math functions: sqrt(x), exp(x), ln(x), log(x), sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), ceil(x), floor(x), round(x)
 Group functions: count(ID), mass(ID), charge(ID), xcm(ID,dim), \
                  vcm(ID,dim), fcm(ID,dim), bound(ID,dir), gyration(ID), ke(ID)
@@ -284,20 +284,26 @@ are evaluated left to right and have the usual C-style precedence:
 unary minus before exponentiation ("^"); exponentiation before
 multiplication and division; multiplication and division before
 addition and subtraction; addition and subtraction before the 4
-relational operators "<", "<=", ">", and ">="; and those 4 relational
-operators before the remaining two relational operators "==" and "!=".
+relational operators "<", "<=", ">", and ">="; those 4 relational
+operators before the remaining two relational operators "==" and "!=";
+those two relational operators before the logical AND operator "&&";
+and the AND operator "&&" before the logical OR operator "||".
 Parenthesis can be used to group one or more portions of a formula and
-enforce a different order of evaluation than that invoked by the the
+enforce a different order of evaluation than what would occur with the
 default precedence.
 
 The 6 relational operators return either a 1.0 or 0.0 depending on
 whether the relationship between x and y is true or false.  For
 example the expression x<10.0 in an atom-style variable formula will
 return 1.0 for all atoms whose x-coordinate is less than 10.0, and 0.0
-for the others.  This can be used as a masking or selection operation
-in a formula.  For example, the number of such atoms could be
-calculated by taking the returned per-atom vector of ones and zeroes
-and passing it to the "compute reduce"_compute_reduce.html command.
+for the others.  The logical AND operator will return 1.0 of both its
+arguments are non-zero, else return a 0.0.  The logical OR operator
+will return 1.0 of either of its arguments is non-zero, else return a
+0.0.  These relational and logical operators can be used as a masking
+or selection operation in a formula.  For example, the number of atoms
+whose properties satisy one or more criteria could be calculated by
+taking the returned per-atom vector of ones and zeroes and passing it
+to the "compute reduce"_compute_reduce.html command.
 
 Math functions can be specified as keywords followed by a
 parenthesized argument, e.g. sqrt(v_ke).  Note that ln() is the

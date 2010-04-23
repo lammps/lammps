@@ -42,7 +42,7 @@ class Variable : protected Pointers {
   int *num;                // # of values for each variable
   int *index;              // next available value for each variable
   char ***data;            // str value of each variable's values
-  int precedence[7];       // precedence level of math operators
+  int precedence[13];      // precedence level of math operators
 
   struct Tree {            // parse tree for atom-style variables
     double value;

@@ -40,6 +40,7 @@ using namespace LAMMPS_NS;
 enum{INDEX,LOOP,EQUAL,WORLD,UNIVERSE,ULOOP,ATOM};
 enum{ARG,OP};
 enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,UNARY,
+       EQ,NE,LT,LE,GT,GE,
        SQRT,EXP,LN,LOG,SIN,COS,TAN,ASIN,ACOS,ATAN,
        CEIL,FLOOR,ROUND,VALUE,ATOMARRAY,TYPEARRAY,INTARRAY};
 
@@ -62,10 +63,12 @@ Variable::Variable(LAMMPS *lmp) : Pointers(lmp)
   data = NULL;
 
   precedence[DONE] = 0;
-  precedence[ADD] = precedence[SUBTRACT] = 1;
-  precedence[MULTIPLY] = precedence[DIVIDE] = 2;
-  precedence[CARAT] = 3;
-  precedence[UNARY] = 4;
+  precedence[EQ] = precedence[NE] = 1;
+  precedence[LT] = precedence[LE] = precedence[GT] = precedence[GE] = 2;
+  precedence[ADD] = precedence[SUBTRACT] = 3;
+  precedence[MULTIPLY] = precedence[DIVIDE] = 4;
+  precedence[CARAT] = 5;
+  precedence[UNARY] = 6;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -527,6 +530,7 @@ void Variable::copy(int narg, char **from, char **to)
      number = 0.0, -5.45, 2.8e-4, ...
      thermo keyword = ke, vol, atoms, ...
      math operation = (),-x,x+y,x-y,x*y,x/y,x^y,
+                      x==y,x!=y,x<y,x<=y,x>y,x>=y,
                       sqrt(x),exp(x),ln(x),log(x),
 		      sin(x),cos(x),tan(x),asin(x),acos(x),atan(x)
      group function = count(group), mass(group), xcm(group,x), ...
@@ -1141,13 +1145,33 @@ double Variable::evaluate(char *str, Tree **tree)
     // math operator, including end-of-string
     // ----------------
 
-    } else if (strchr("+-*/^\0",onechar)) {
+    } else if (strchr("+-*/^<>=!\0",onechar)) {
       if (onechar == '+') op = ADD;
       else if (onechar == '-') op = SUBTRACT;
       else if (onechar == '*') op = MULTIPLY;
       else if (onechar == '/') op = DIVIDE;
       else if (onechar == '^') op = CARAT;
-      else op = DONE;
+      else if (onechar == '=') {
+	if (str[i+1] != '=') error->all("Invalid syntax in variable formula");
+	op = EQ;
+	i++;
+      } else if (onechar == '!') {
+	if (str[i+1] != '=') error->all("Invalid syntax in variable formula");
+	op = NE;
+	i++;
+      } else if (onechar == '<') {
+	if (str[i+1] != '=') op = LT;
+	else {
+	  op = LE;
+	  i++;
+	}
+      } else if (onechar == '>') {
+	if (str[i+1] != '=') op = GT;
+	else {
+	  op = GE;
+	  i++;
+	}
+      } else op = DONE;
       i++;
 
       if (op == SUBTRACT && expect == ARG) {
@@ -1192,8 +1216,27 @@ double Variable::evaluate(char *str, Tree **tree)
 	  } else if (opprevious == CARAT) {
 	    if (value2 == 0.0) error->all("Power by 0 in variable formula");
 	    argstack[nargstack++] = pow(value1,value2);
-	  } else if (opprevious == UNARY)
+	  } else if (opprevious == UNARY) {
 	    argstack[nargstack++] = -value2;
+	  } else if (opprevious == EQ) {
+	    if (value1 == value2) argstack[nargstack++] = 1.0;
+	    else argstack[nargstack++] = 0.0;
+	  } else if (opprevious == NE) {
+	    if (value1 != value2) argstack[nargstack++] = 1.0;
+	    else argstack[nargstack++] = 0.0;
+	  } else if (opprevious == LT) {
+	    if (value1 < value2) argstack[nargstack++] = 1.0;
+	    else argstack[nargstack++] = 0.0;
+	  } else if (opprevious == LE) {
+	    if (value1 <= value2) argstack[nargstack++] = 1.0;
+	    else argstack[nargstack++] = 0.0;
+	  } else if (opprevious == GT) {
+	    if (value1 > value2) argstack[nargstack++] = 1.0;
+	    else argstack[nargstack++] = 0.0;
+	  } else if (opprevious == GE) {
+	    if (value1 >= value2) argstack[nargstack++] = 1.0;
+	    else argstack[nargstack++] = 0.0;
+	  }
 	}
       }
 
@@ -1255,6 +1298,31 @@ double Variable::eval_tree(Tree *tree, int i)
   }
   if (tree->type == UNARY)
     return -eval_tree(tree->left,i);
+
+  if (tree->type == EQ) {
+    if (eval_tree(tree->left,i) == eval_tree(tree->right,i)) return 1.0;
+    else return 0.0;
+  }
+  if (tree->type == NE) {
+    if (eval_tree(tree->left,i) != eval_tree(tree->right,i)) return 1.0;
+    else return 0.0;
+  }
+  if (tree->type == LT) {
+    if (eval_tree(tree->left,i) < eval_tree(tree->right,i)) return 1.0;
+    else return 0.0;
+  }
+  if (tree->type == LE) {
+    if (eval_tree(tree->left,i) <= eval_tree(tree->right,i)) return 1.0;
+    else return 0.0;
+  }
+  if (tree->type == GT) {
+    if (eval_tree(tree->left,i) > eval_tree(tree->right,i)) return 1.0;
+    else return 0.0;
+  }
+  if (tree->type == GE) {
+    if (eval_tree(tree->left,i) >= eval_tree(tree->right,i)) return 1.0;
+    else return 0.0;
+  }
 
   if (tree->type == SQRT) {
     double arg = eval_tree(tree->left,i);

@@ -68,6 +68,8 @@ field with optional time-dependence as well.
 specified geometric <A HREF = "region.html">region</A> in order to have force added
 to it.
 </P>
+<HR>
+
 <P>Adding a force to atoms implies a change in their potential energy as
 they move due to the applied force field.  For dynamics via the "run"
 command, this energy can be optionally added to the system's potential
@@ -98,8 +100,10 @@ atom as function of its position.  Unlike variables used for <I>fx</I>,
 <P>Note that when the <I>energy</I> keyword is used during an energy
 minimization, you must insure that the formula defined for the
 atom-style <A HREF = "variable.html">variable</A> is consistent with the force
-variable formulas, i.e. that -Grad(E) = F.  If you don't, the
-minimization will not converge properly.
+variable formulas, i.e. that -Grad(E) = F.  For example, if the force
+were a spring-like F = kx, then the energy formula should be E =
+-0.5kx^2.  If you don't do this correctly, the minimization will not
+converge properly.
 </P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>

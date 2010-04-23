@@ -12,10 +12,15 @@ fix setforce command :h3
 
 fix ID group-ID setforce fx fy fz :pre
 
-ID, group-ID are documented in "fix"_fix.html command
-setforce = style name of this fix command
-fx,fy,fz = force component values
-any of fx,fy,fz can be a variable (see below) :ul
+ID, group-ID are documented in "fix"_fix.html command :ulb,l
+setforce = style name of this fix command :l
+fx,fy,fz = force component values :l
+any of fx,fy,fz can be a variable (see below) :l
+zero or more keyword/value pairs may be appended to args :l
+keyword = {region}  :l
+  {region} value = region-ID
+    region-ID = ID of region atoms must be in to have added force :pre
+:ule
 
 [Examples:]
 
@@ -50,6 +55,10 @@ Atom-style variables can specify the same formulas as equal-style
 variables but can also include per-atom values, such as atom
 coordinates.  Thus it is easy to specify a spatially-dependent force
 field with optional time-dependence as well.
+
+If the {region} keyword is used, the atom must also be in the
+specified geometric "region"_region.html in order to have force added
+to it.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 

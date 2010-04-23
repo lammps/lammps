@@ -15,10 +15,22 @@
 </P>
 <PRE>fix ID group-ID setforce fx fy fz 
 </PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
-<LI>setforce = style name of this fix command
-<LI>fx,fy,fz = force component values
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>setforce = style name of this fix command 
+
+<LI>fx,fy,fz = force component values 
+
 <LI>any of fx,fy,fz can be a variable (see below) 
+
+<LI>zero or more keyword/value pairs may be appended to args 
+
+<LI>keyword = <I>region</I>  
+
+<PRE>  <I>region</I> value = region-ID
+    region-ID = ID of region atoms must be in to have added force 
+</PRE>
+
 </UL>
 <P><B>Examples:</B>
 </P>
@@ -53,6 +65,10 @@ time.  Thus it is easy to specify a time-dependent force field.
 variables but can also include per-atom values, such as atom
 coordinates.  Thus it is easy to specify a spatially-dependent force
 field with optional time-dependence as well.
+</P>
+<P>If the <I>region</I> keyword is used, the atom must also be in the
+specified geometric <A HREF = "region.html">region</A> in order to have force added
+to it.
 </P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>

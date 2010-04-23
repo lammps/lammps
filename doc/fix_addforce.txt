@@ -58,6 +58,8 @@ If the {region} keyword is used, the atom must also be in the
 specified geometric "region"_region.html in order to have force added
 to it.
 
+:line
+
 Adding a force to atoms implies a change in their potential energy as
 they move due to the applied force field.  For dynamics via the "run"
 command, this energy can be optionally added to the system's potential

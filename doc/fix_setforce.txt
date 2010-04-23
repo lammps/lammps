@@ -14,12 +14,14 @@ fix ID group-ID setforce fx fy fz :pre
 
 ID, group-ID are documented in "fix"_fix.html command
 setforce = style name of this fix command
-fx,fy,fz = force component values :ul
+fx,fy,fz = force component values
+any of fx,fy,fz can be a variable (see below) :ul
 
 [Examples:]
 
 fix freeze indenter setforce 0.0 0.0 0.0
-fix 2 edge setforce NULL 0.0 0.0 :pre
+fix 2 edge setforce NULL 0.0 0.0
+fix 2 edge setforce NULL 0.0 v_oscillate :pre
 
 [Description:]
 
@@ -31,6 +33,23 @@ force, assuming their initial velocity zero.
 
 Any of the fx,fy,fz values can be specified as NULL which means do not
 alter the force component in that dimension.
+
+Any of the 3 quantities defining the force components can be
+specified as an equal-style or atom-style "variable"_variable, namely
+{fx}, {fy}, {fz}.  If the value is a variable, it should be specified
+as v_ID, where ID is the variable ID.  In this case, the variable will
+be evaluated each timestep, and its value used to determine the
+force component.
+
+Equal-style variables can specify formulas with various mathematical
+functions, and include "thermo_style"_thermo_style.html command
+keywords for the simulation box parameters and timestep and elapsed
+time.  Thus it is easy to specify a time-dependent force field.
+
+Atom-style variables can specify the same formulas as equal-style
+variables but can also include per-atom values, such as atom
+coordinates.  Thus it is easy to specify a spatially-dependent force
+field with optional time-dependence as well.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
@@ -48,7 +67,10 @@ No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.
 
 The forces due to this fix are imposed during an energy minimization,
-invoked by the "minimize"_minimize.html command.
+invoked by the "minimize"_minimize.html command.  You should not
+specify force components with a variable that has time-dependence for
+use with a minimizer, since the minimizer increments the timestep as
+the iteration count during the minimization.
 
 [Restrictions:] none
 

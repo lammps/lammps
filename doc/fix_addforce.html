@@ -21,18 +21,24 @@
 
 <LI>fx,fy,fz = force component values (force units) 
 
+<LI>any of fx,fy,fz can be a variable (see below) 
+
 <LI>zero or more keyword/value pairs may be appended to args 
 
 <LI>keyword = <I>region</I>  
 
 <PRE>  <I>region</I> value = region-ID
-    region-ID = ID of region atoms must be in to have added force 
+    region-ID = ID of region atoms must be in to have added force
+  <I>energy</I> value = variable-ID
+    variable-ID = ID of variable that calculates the potential energy of each atom in the added force field 
 </PRE>
 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>fix kick flow addforce 1.0 0.0 0.0 
+<PRE>fix kick flow addforce 1.0 0.0 0.0
+fix kick flow addforce 1.0 0.0 v_oscillate
+fix ff boundary addforce 0.0 0.0 v_push energy espace 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -41,9 +47,59 @@ the group.  This command can be used to give an additional push to
 atoms in a simulation, such as for a simulation of Poiseuille flow in
 a channel.
 </P>
+<P>Any of the 3 quantities defining the force components can be
+specified as an equal-style or atom-style <A HREF = "variable">variable</A>, namely
+<I>fx</I>, <I>fy</I>, <I>fz</I>.  If the value is a variable, it should be specified
+as v_ID, where ID is the variable ID.  In this case, the variable will
+be evaluated each timestep, and its value used to determine the
+force component.
+</P>
+<P>Equal-style variables can specify formulas with various mathematical
+functions, and include <A HREF = "thermo_style.html">thermo_style</A> command
+keywords for the simulation box parameters and timestep and elapsed
+time.  Thus it is easy to specify a time-dependent force field.
+</P>
+<P>Atom-style variables can specify the same formulas as equal-style
+variables but can also include per-atom values, such as atom
+coordinates.  Thus it is easy to specify a spatially-dependent force
+field with optional time-dependence as well.
+</P>
 <P>If the <I>region</I> keyword is used, the atom must also be in the
 specified geometric <A HREF = "region.html">region</A> in order to have force added
 to it.
+</P>
+<P>Adding a force to atoms implies a change in their potential energy as
+they move due to the applied force field.  For dynamics via the "run"
+command, this energy can be optionally added to the system's potential
+energy for thermodynamic output (see below).  For energy minimization
+via the "minimize" command, this energy must be added to the system's
+potential energy to formulate a self-consistent minimization problem
+(see below).
+</P>
+<P>The <I>energy</I> keyword is not allowed if the added force is a constant
+vector F = (fx,fy,fz), with all components defined as numeric
+constants and not as variables.  This is because LAMMPS can compute
+the energy for each atom directly as E = -x dot F = -(x*fx + y*fy +
+z*fz), so that -Grad(E) = F.
+</P>
+<P>The <I>energy</I> keyword is optional if the added force is defined with
+one or more variables, and if you are performing dynamics via the
+<A HREF = "run.html">run</A> command.  If the keyword is not used, LAMMPS will set
+the energy to 0.0, which is typically fine for dynamics.
+</P>
+<P>The <I>energy</I> keyword is required if the added force is defined with
+one or more variables, and you are performing energy minimization via
+the "minimize" command.  The keyword specifies the ID of an atom-style
+<A HREF = "variable.html">variable</A> which is used to compute the energy of each
+atom as function of its position.  Unlike variables used for <I>fx</I>,
+<I>fy</I>, <I>fz</I>, the energy variable is specified by ID only, without a
+"v_" prefix.
+</P>
+<P>Note that when the <I>energy</I> keyword is used during an energy
+minimization, you must insure that the formula defined for the
+atom-style <A HREF = "variable.html">variable</A> is consistent with the force
+variable formulas, i.e. that -Grad(E) = F.  If you don't, the
+minimization will not converge properly.
 </P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
@@ -70,7 +126,10 @@ scalar and vector values calculated by this fix are "extensive".
 the <A HREF = "run.html">run</A> command.
 </P>
 <P>The forces due to this fix are imposed during an energy minimization,
-invoked by the <A HREF = "minimize.html">minimize</A> command.
+invoked by the <A HREF = "minimize.html">minimize</A> command.  You should not
+specify force components with a variable that has time-dependence for
+use with a minimizer, since the minimizer increments the timestep as
+the iteration count during the minimization.
 </P>
 <P>IMPORTANT NOTE: If you want the fictitious potential energy associated
 with the added forces to be included in the total potential energy of

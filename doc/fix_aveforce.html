@@ -21,6 +21,8 @@
 
 <LI>fx,fy,fz = force component values (force units) 
 
+<LI>any of fx,fy,fz can be a variable (see below) 
+
 <LI>zero or more keyword/value pairs may be appended to args 
 
 <LI>keyword = <I>region</I>  
@@ -33,7 +35,8 @@
 <P><B>Examples:</B>
 </P>
 <PRE>fix pressdown topwall aveforce 0.0 -1.0 0.0
-fix 2 bottomwall aveforce NULL -1.0 0.0 region top 
+fix 2 bottomwall aveforce NULL -1.0 0.0 region top
+fix 2 bottomwall aveforce NULL -1.0 v_oscillate region top 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -47,10 +50,21 @@ component.  The actual force on each atom is then set to the average
 value plus the component specified in this command.  This means each
 atom in the group receives the same force.
 </P>
-<P>If any of the arguments is specified as NULL then the forces in that
-dimension are not changed.  Note that this is not the same as
-specifying a 0.0 value, since that sets all forces to the same average
-value without adding in any additional force.
+<P>Any of the fx,fy,fz values can be specified as NULL which means the
+force in that dimension is not changed.  Note that this is not the
+same as specifying a 0.0 value, since that sets all forces to the same
+average value without adding in any additional force.
+</P>
+<P>Any of the 3 quantities defining the force components can be specified
+as an equal-style <A HREF = "variable">variable</A>, namely <I>fx</I>, <I>fy</I>, <I>fz</I>.  If
+the value is a variable, it should be specified as v_ID, where ID is
+the variable ID.  In this case, the variable will be evaluated each
+timestep, and its value used to determine the average force.
+</P>
+<P>Equal-style variables can specify formulas with various mathematical
+functions, and include <A HREF = "thermo_style.html">thermo_style</A> command
+keywords for the simulation box parameters and timestep and elapsed
+time.  Thus it is easy to specify a time-dependent average force.
 </P>
 <P>If the <I>region</I> keyword is used, the atom must also be in the
 specified geometric <A HREF = "region.html">region</A> in order to have force added
@@ -72,7 +86,10 @@ fix are "extensive".
 the <A HREF = "run.html">run</A> command.
 </P>
 <P>The forces due to this fix are imposed during an energy minimization,
-invoked by the <A HREF = "minimize.html">minimize</A> command.
+invoked by the <A HREF = "minimize.html">minimize</A> command.  You should not
+specify force components with a variable that has time-dependence for
+use with a minimizer, since the minimizer increments the timestep as
+the iteration count during the minimization.
 </P>
 <P><B>Restrictions:</B> none
 </P>

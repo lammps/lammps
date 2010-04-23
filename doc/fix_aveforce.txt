@@ -15,6 +15,7 @@ fix ID group-ID aveforce fx fy fz keyword value ... :pre
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 aveforce = style name of this fix command :l
 fx,fy,fz = force component values (force units) :l
+any of fx,fy,fz can be a variable (see below) :l
 zero or more keyword/value pairs may be appended to args :l
 keyword = {region}  :l
   {region} value = region-ID
@@ -24,7 +25,8 @@ keyword = {region}  :l
 [Examples:]
 
 fix pressdown topwall aveforce 0.0 -1.0 0.0
-fix 2 bottomwall aveforce NULL -1.0 0.0 region top :pre
+fix 2 bottomwall aveforce NULL -1.0 0.0 region top
+fix 2 bottomwall aveforce NULL -1.0 v_oscillate region top :pre
 
 [Description:]
 
@@ -38,10 +40,21 @@ component.  The actual force on each atom is then set to the average
 value plus the component specified in this command.  This means each
 atom in the group receives the same force.
 
-If any of the arguments is specified as NULL then the forces in that
-dimension are not changed.  Note that this is not the same as
-specifying a 0.0 value, since that sets all forces to the same average
-value without adding in any additional force.
+Any of the fx,fy,fz values can be specified as NULL which means the
+force in that dimension is not changed.  Note that this is not the
+same as specifying a 0.0 value, since that sets all forces to the same
+average value without adding in any additional force.
+
+Any of the 3 quantities defining the force components can be specified
+as an equal-style "variable"_variable, namely {fx}, {fy}, {fz}.  If
+the value is a variable, it should be specified as v_ID, where ID is
+the variable ID.  In this case, the variable will be evaluated each
+timestep, and its value used to determine the average force.
+
+Equal-style variables can specify formulas with various mathematical
+functions, and include "thermo_style"_thermo_style.html command
+keywords for the simulation box parameters and timestep and elapsed
+time.  Thus it is easy to specify a time-dependent average force.
 
 If the {region} keyword is used, the atom must also be in the
 specified geometric "region"_region.html in order to have force added
@@ -63,7 +76,10 @@ No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.
 
 The forces due to this fix are imposed during an energy minimization,
-invoked by the "minimize"_minimize.html command.
+invoked by the "minimize"_minimize.html command.  You should not
+specify force components with a variable that has time-dependence for
+use with a minimizer, since the minimizer increments the timestep as
+the iteration count during the minimization.
 
 [Restrictions:] none
 

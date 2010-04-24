@@ -64,7 +64,6 @@ PairBuckCoul::PairBuckCoul(LAMMPS *lmp) : Pair(lmp)
 #define PAIR_MISSING	"Cut-offs missing in pair_style buck/coul"
 #define PAIR_LJ_OFF	"LJ6 off not supported in pair_style buck/coul"
 #define PAIR_COUL_CUT	"Coulombic cut not supported in pair_style buck/coul"
-#define PAIR_MANY	"Too many pair_style buck/coul commands"
 #define PAIR_LARGEST	"Using largest cut-off for buck/coul long long"
 #define PAIR_MIX	"Geometric mixing assumed for 1/r^6 coefficients"
 
@@ -86,6 +85,8 @@ void PairBuckCoul::options(char **arg, int order)
 
 void PairBuckCoul::settings(int narg, char **arg)
 {
+  if (narg != 3 && narg != 4) error->all("Illegal pair_style command");
+ 
   ewald_order = 0;
   ewald_off = 0;
   options(arg, 6);
@@ -97,8 +98,8 @@ void PairBuckCoul::settings(int narg, char **arg)
   if (!((ewald_order^ewald_off)&(1<<1))) error->all(PAIR_COUL_CUT);
   cut_buck_global = force->numeric(*(arg++));
   if (*arg&&(ewald_order&0x42==0x42)) error->all(PAIR_CUTOFF);
-  cut_coul = *arg ? force->numeric(*(arg++)) : cut_buck_global;
-  if (*arg) error->all(PAIR_MANY);
+  if (narg == 4) cut_coul = force->numeric(*arg);
+  else cut_coul = cut_buck_global;
 
   if (allocated) {					// reset explicit cuts
     int i,j;

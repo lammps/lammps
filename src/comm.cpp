@@ -55,7 +55,7 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
-  user_procgrid[0] = user_procgrid[1] = user_procgrid[2] = 0;
+  user_procgrid[0] = user_procgrid[1] = user_procgrid[2] = -1;
   grid2proc = NULL;
 
   bordergroup = 0;
@@ -114,12 +114,8 @@ Comm::~Comm()
 
 void Comm::set_procs()
 {
-  if (user_procgrid[0] == 0) procs2box();
-  else {
-    procgrid[0] = user_procgrid[0];
-    procgrid[1] = user_procgrid[1];
-    procgrid[2] = user_procgrid[2];
-  }
+  if (user_procgrid[0] == -1) procs2box(0,0,0);
+  else procs2box(user_procgrid[0],user_procgrid[1],user_procgrid[2]);
 
   if (procgrid[0]*procgrid[1]*procgrid[2] != nprocs)
     error->all("Bad grid of processors");
@@ -1356,10 +1352,41 @@ int Comm::irregular_lookup(double *x)
    for triclinic, area = cross product of 2 edge vectors stored in h matrix
 ------------------------------------------------------------------------- */
 
-void Comm::procs2box()
+void Comm::procs2box(int px, int py, int pz)
 {
   double area[3];
 
+  // for 2d-problems the z dimension is forced to 1;
+  if (domain->dimension == 2) pz=1;
+  
+  // all processor grid dimensions have been set. nothing to do.
+  if (px*py*pz != 0) {
+      procgrid[0] = px;
+      procgrid[1] = py;
+      procgrid[2] = pz;
+      return;
+  }
+
+  // two processor grid dimensions have been set which 
+  // automatically determines the third
+  if ((px==0) && (py>0) && (pz>0)) {
+      procgrid[0] = nprocs/(py*pz);
+      procgrid[1] = py;
+      procgrid[2] = pz;
+      return;
+  } else if ((px>0) && (py==0) && (pz>0)) {
+      procgrid[0] = px;
+      procgrid[1] = nprocs/(px*pz);
+      procgrid[2] = pz;
+      return;
+  } else if ((px>0) && (py>0) && (pz==0)) {
+      procgrid[0] = px;
+      procgrid[1] = py;
+      procgrid[2] = nprocs/(px*py);
+      return;
+  }
+      
+  // only one or no dimension has been set. optimize by area.
   if (domain->triclinic == 0) {
     area[0] = domain->xprd * domain->yprd;
     area[1] = domain->xprd * domain->zprd;
@@ -1384,15 +1411,67 @@ void Comm::procs2box()
   int ipx,ipy,ipz,nremain;
   double surf;
 
-  ipx = 1;
-  while (ipx <= nprocs) {
-    if (nprocs % ipx == 0) {
-      nremain = nprocs/ipx;
-      ipy = 1;
-      while (ipy <= nremain) {
-	if (nremain % ipy == 0) {
-	  ipz = nremain/ipy;
-	  if (domain->dimension == 3 || ipz == 1) {
+  // x grid is set.
+  if (px > 0) {
+    ipx=px;
+    nremain = nprocs/ipx;
+    ipy = 1;
+    while (ipy <= nremain) {
+      if (nremain % ipy == 0) {
+	ipz = nremain/ipy;
+	surf = area[0]/ipx/ipy + area[1]/ipx/ipz + area[2]/ipy/ipz;
+	if (surf < bestsurf) {
+	  bestsurf = surf;
+	  procgrid[0] = ipx;
+	  procgrid[1] = ipy;
+	  procgrid[2] = ipz;
+	}
+      }
+      ipy++;
+    }
+  } else if (py > 0) {
+    ipy=py;
+    nremain = nprocs/ipy;
+    ipx = 1;
+    while (ipx <= nremain) {
+      if (nremain % ipx == 0) {
+	ipz = nremain/ipx;
+	surf = area[0]/ipx/ipy + area[1]/ipx/ipz + area[2]/ipy/ipz;
+	if (surf < bestsurf) {
+	  bestsurf = surf;
+	  procgrid[0] = ipx;
+	  procgrid[1] = ipy;
+	  procgrid[2] = ipz;
+	}
+      }
+      ipx++;
+    }
+  } else if (pz > 0) {
+    ipz=pz;
+    nremain = nprocs/ipz;
+    ipx = 1;
+    while (ipx <= nremain) {
+      if (nremain % ipx == 0) {
+	ipy = nremain/ipx;
+	surf = area[0]/ipx/ipy + area[1]/ipx/ipz + area[2]/ipy/ipz;
+	if (surf < bestsurf) {
+	  bestsurf = surf;
+	  procgrid[0] = ipx;
+	  procgrid[1] = ipy;
+	  procgrid[2] = ipz;
+	}
+      }
+      ipx++;
+    }
+  } else {
+    ipx = 1;
+    while (ipx <= nprocs) {
+      if (nprocs % ipx == 0) {
+	nremain = nprocs/ipx;
+	ipy = 1;
+	while (ipy <= nremain) {
+	  if (nremain % ipy == 0) {
+	    ipz = nremain/ipy;
 	    surf = area[0]/ipx/ipy + area[1]/ipx/ipz + area[2]/ipy/ipz;
 	    if (surf < bestsurf) {
 	      bestsurf = surf;
@@ -1401,11 +1480,11 @@ void Comm::procs2box()
 	      procgrid[2] = ipz;
 	    }
 	  }
+	  ipy++;
 	}
-	ipy++;
       }
+      ipx++;
     }
-    ipx++;
   }
 }
 

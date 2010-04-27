@@ -409,7 +409,7 @@ int MinLineSearch::linemin_quadratic(double eoriginal, double &alpha,
   // double alphatmp = alphamax*1.0e-4;
   // etmp = alpha_step(alphatmp,1,nfunc);
   // printf("alpha = %g dele = %g dele_force = %g err = %g\n",
-  //        alphatmp,etmp-eoriginal,-alphatmp*fdothall,
+  //   	    alphatmp,etmp-eoriginal,-alphatmp*fdothall,
   //        etmp-eoriginal+alphatmp*fdothall);
   // alpha_step(0.0,1,nfunc);
 
@@ -462,7 +462,7 @@ int MinLineSearch::linemin_quadratic(double eoriginal, double &alpha,
     relerr = fabs(1.0-(0.5*(alpha-alphaprev)*(fh+fhprev)+ecurrent)/engprev);
     alpha0 = alpha - (alpha-alphaprev)*fh/delfh;
 
-    if (relerr <= QUADRATIC_TOL && alpha0 > 0.0) {
+    if (relerr <= QUADRATIC_TOL && alpha0 > 0.0 && alpha0 < alphamax) {
       ecurrent = alpha_step(alpha0,1,nfunc);
       if (ecurrent < eoriginal) {
 	if (nextra_global) {

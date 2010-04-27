@@ -173,8 +173,10 @@ void Neighbor::half_bin_newton(NeighList *list)
     for (j = bins[i]; j >= 0; j = bins[j]) {
       if (j >= nlocal) {
 	if (x[j][2] < ztmp) continue;
-	if (x[j][2] == ztmp && x[j][1] < ytmp) continue;
-	if (x[j][2] == ztmp && x[j][1] == ytmp && x[j][0] < xtmp) continue;
+	if (x[j][2] == ztmp) {
+	  if (x[j][1] < ytmp) continue;
+	  if (x[j][1] == ytmp && x[j][0] < xtmp) continue;
+	}
       }
 
       jtype = type[j];
@@ -282,15 +284,21 @@ void Neighbor::half_bin_newton_tri(NeighList *list)
 
     // loop over all atoms in bins in stencil
     // pairs for atoms j "below" i are excluded
-    // below = lower z or (equal z and lower y) or (equal zy and <= x)
-    // this excludes self-self interaction
+    // below = lower z or (equal z and lower y) or (equal zy and lower x)
+    //         (equal zyx and j <= i)
+    // latter excludes self-self interaction but allows superposed atoms
 
     ibin = coord2bin(x[i]);
     for (k = 0; k < nstencil; k++) {
       for (j = binhead[ibin+stencil[k]]; j >= 0; j = bins[j]) {
 	if (x[j][2] < ztmp) continue;
-	if (x[j][2] == ztmp && x[j][1] < ytmp) continue;
-	if (x[j][2] == ztmp && x[j][1] == ytmp && x[j][0] <= xtmp) continue;
+	if (x[j][2] == ztmp) {
+	  if (x[j][1] < ytmp) continue;
+	  if (x[j][1] == ytmp) {
+	    if (x[j][0] < xtmp) continue;
+	    if (x[j][0] == xtmp && j <= i) continue;
+	  }
+	}
 
 	jtype = type[j];
 	if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;

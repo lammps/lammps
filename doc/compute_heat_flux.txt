@@ -63,8 +63,11 @@ IMPORTANT NOTE: The "compute pe/atom"_compute_pe_atom.html and
 "compute stress/atom"_compute_stress_atom.html commands have options
 for which terms to include in their calculation (pair, bond, etc).
 The heat flux calculation will thus include exactly the same terms.
-Note that neither of those computes is able to include a long-range
-Coulombic contribution to the per-atom energy or stress.
+Normally you should use "compute stress/atom
+virial"_compute_stress_atom.html so as not to include a kinetic energy
+term in the heat flux.  Note that neither of those computes is able to
+include a long-range Coulombic contribution to the per-atom energy or
+stress.
 
 This compute calculates 6 quantities and stores them in a 6-component
 vector.  The first 3 components are the x, y, z components of the full
@@ -178,7 +181,7 @@ run 		8000 :pre
 reset_timestep  0
 compute	        myKE all ke/atom
 compute	        myPE all pe/atom
-compute	        myStress all stress/atom
+compute	        myStress all stress/atom virial
 compute 	flux all heat/flux myKE myPE myStress
 log     	flux.log
 variable        J equal c_flux\[1\]/vol

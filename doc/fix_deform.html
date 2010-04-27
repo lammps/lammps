@@ -202,10 +202,12 @@ length by a factor of 11 as it would with <I>erate</I>, but by a factor of
 </P>
 <P>Note that to change the volume (or cross-sectional area) of the
 simulation box at a constant rate, you can change multiple dimensions
-via <I>erate</I> or <I>trate</I>.  E.g. to double the box volume every
-picosecond, you could set "x trate M", "y trate M", "z trate M", with
-M = pow(2,1/3) - 1 = 1.26, since if each box dimension grows by 26%,
-the box volume doubles.
+via <I>erate</I> or <I>trate</I>.  E.g. to double the box volume in a picosecond
+picosecond, you could set "x erate M", "y erate M", "z erate M", with
+M = pow(2,1/3) - 1 = 0.26, since if each box dimension grows by 26%,
+the box volume doubles.  Or you could set "x trate M", "y trate M", "z
+trate M", with M = ln(1.26) = 0.231, and the box volume would double
+every picosecond.
 </P>
 <P>The <I>volume</I> style changes the specified dimension in such a way that
 the box volume remains constant while other box dimensions are changed

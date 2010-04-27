@@ -27,6 +27,7 @@ namespace LAMMPS_NS {
 class FixAddForce : public Fix {
  public:
   FixAddForce(class LAMMPS *, int, char **);
+  ~FixAddForce();
   int setmask();
   void init();
   void setup(int);
@@ -36,13 +37,19 @@ class FixAddForce : public Fix {
   void min_post_force(int);
   double compute_scalar();
   double compute_vector(int);
+  double memory_usage();
 
  private:
-  int iregion;
   double xvalue,yvalue,zvalue;
+  int varflag,iregion;
+  char *xstr,*ystr,*zstr,*estr;
+  int xvar,yvar,zvar,evar,xstyle,ystyle,zstyle,estyle;
   double foriginal[4],foriginal_all[4];
   int force_flag;
   int nlevels_respa;
+
+  int maxatom;
+  double **sforce;
 };
 
 }

@@ -15,6 +15,7 @@
    Contributing author: Christina Payne (Vanderbilt U)
 ------------------------------------------------------------------------- */
 
+#include "math.h"
 #include "string.h"
 #include "stdlib.h"
 #include "fix_efield.h"
@@ -22,10 +23,14 @@
 #include "update.h"
 #include "force.h"
 #include "respa.h"
+#include "input.h"
+#include "variable.h"
+#include "memory.h"
 #include "error.h"
-#include "math.h"
 
 using namespace LAMMPS_NS;
+
+enum{CONSTANT,EQUAL,ATOM};
 
 /* ---------------------------------------------------------------------- */
 
@@ -34,10 +39,48 @@ FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 6) error->all("Illegal fix efield command");
 
-  double factor = force->qe2f;
-  ex = factor * atof(arg[3]);
-  ey = factor * atof(arg[4]);
-  ez = factor * atof(arg[5]);
+  efactor = force->qe2f;
+  xstr = ystr = zstr = NULL;
+
+  if (strstr(arg[3],"v_") == arg[3]) {
+    int n = strlen(&arg[3][2]) + 1;
+    xstr = new char[n];
+    strcpy(xstr,&arg[3][2]);
+  } else {
+    ex = efactor * atof(arg[3]);
+    xstyle = CONSTANT;
+  }
+
+  if (strstr(arg[4],"v_") == arg[4]) {
+    int n = strlen(&arg[4][2]) + 1;
+    xstr = new char[n];
+    strcpy(xstr,&arg[4][2]);
+  } else {
+    ey = efactor * atof(arg[4]);
+    ystyle = CONSTANT;
+  }
+
+  if (strstr(arg[5],"v_") == arg[5]) {
+    int n = strlen(&arg[5][2]) + 1;
+    xstr = new char[n];
+    strcpy(xstr,&arg[5][2]);
+  } else {
+    ez = efactor * atof(arg[5]);
+    zstyle = CONSTANT;
+  }
+
+  maxatom = 0;
+  efield = NULL;
+}
+
+/* ---------------------------------------------------------------------- */
+
+FixEfield::~FixEfield()
+{
+  delete [] xstr;
+  delete [] ystr;
+  delete [] zstr;
+  memory->destroy_2d_double_array(efield);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -58,6 +101,36 @@ void FixEfield::init()
 
   if (atom->q == NULL)
     error->all("Must use charged atom style with fix efield");
+
+  // check variables
+
+  if (xstr) {
+    xvar = input->variable->find(xstr);
+    if (xvar < 0) error->all("Variable name for fix efield does not exist");
+    if (input->variable->equalstyle(xvar)) xstyle = EQUAL;
+    else if (input->variable->atomstyle(xvar)) xstyle = ATOM;
+    else error->all("Variable for fix efield is invalid style");
+  }
+  if (ystr) {
+    yvar = input->variable->find(ystr);
+    if (yvar < 0) error->all("Variable name for fix efield does not exist");
+    if (input->variable->equalstyle(yvar)) ystyle = EQUAL;
+    else if (input->variable->atomstyle(yvar)) ystyle = ATOM;
+    else error->all("Variable for fix efield is invalid style");
+  }
+  if (zstr) {
+    zvar = input->variable->find(zstr);
+    if (zvar < 0) error->all("Variable name for fix efield does not exist");
+    if (input->variable->equalstyle(zvar)) zstyle = EQUAL;
+    else if (input->variable->atomstyle(zvar)) zstyle = ATOM;
+    else error->all("Variable for fix efield is invalid style");
+  }
+
+  if (xstyle == ATOM || ystyle == ATOM || zstyle == ATOM)
+    varflag = ATOM;
+  else if (xstyle == EQUAL || ystyle == EQUAL || zstyle == EQUAL)
+    varflag = EQUAL;
+  else varflag = CONSTANT;
 
   if (strcmp(update->integrate_style,"respa") == 0)
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
@@ -87,12 +160,43 @@ void FixEfield::post_force(int vflag)
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
-      f[i][0] += q[i]*ex;
-      f[i][1] += q[i]*ey;
-      f[i][2] += q[i]*ez;
-    }
+  // reallocate efield array if necessary
+
+  if (varflag == ATOM && nlocal > maxatom) {
+    maxatom = atom->nmax;
+    memory->destroy_2d_double_array(efield);
+    efield = memory->create_2d_double_array(maxatom,3,"efield:efield");
+  }
+
+  if (varflag == CONSTANT) {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+	f[i][0] += q[i]*ex;
+	f[i][1] += q[i]*ey;
+	f[i][2] += q[i]*ez;
+      }
+
+  } else {
+    if (xstyle == EQUAL) ex = efactor * input->variable->compute_equal(xvar);
+    else if (xstyle == ATOM)
+      input->variable->compute_atom(xvar,igroup,&efield[0][0],3,0);
+    if (ystyle == EQUAL) ey = efactor * input->variable->compute_equal(yvar);
+    else if (ystyle == ATOM)
+      input->variable->compute_atom(yvar,igroup,&efield[0][1],3,0);
+    if (zstyle == EQUAL) ez = efactor * input->variable->compute_equal(zvar);
+    else if (zstyle == ATOM)
+      input->variable->compute_atom(zvar,igroup,&efield[0][2],3,0);
+
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+	if (xstyle == ATOM) f[i][0] += q[i]*efield[i][0];
+	else f[i][0] += q[i]*ex;
+	if (ystyle == ATOM) f[i][1] += q[i]*efield[i][1];
+	else f[i][1] += q[i]*ey;
+	if (zstyle == ATOM) f[i][2] += q[i]*efield[i][2];
+	else f[i][2] += q[i]*ez;
+      }
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -100,4 +204,15 @@ void FixEfield::post_force(int vflag)
 void FixEfield::post_force_respa(int vflag, int ilevel, int iloop)
 {
   if (ilevel == nlevels_respa-1) post_force(vflag);
+}
+
+/* ----------------------------------------------------------------------
+   memory usage of local atom-based array
+------------------------------------------------------------------------- */
+
+double FixEfield::memory_usage()
+{
+  double bytes = 0.0;
+  if (varflag == ATOM) bytes = atom->nmax*3 * sizeof(double);
+  return bytes;
 }

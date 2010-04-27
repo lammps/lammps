@@ -21,6 +21,7 @@
 #include "fix_heat.h"
 #include "atom.h"
 #include "domain.h"
+#include "region.h"
 #include "group.h"
 #include "force.h"
 #include "update.h"
@@ -42,6 +43,20 @@ FixHeat::FixHeat(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   if (nevery <= 0) error->all("Illegal fix heat command");
 
   heat_input = atof(arg[4]);
+
+  // optional args
+
+  iregion = -1;
+
+  int iarg = 6;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"region") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix heat command");
+      iregion = domain->find_region(arg[iarg+1]);
+      if (iregion == -1) error->all("Fix heat region ID does not exist");
+      iarg += 2;
+    } else error->all("Illegal fix heat command");
+  }
 
   scale = 1.0;
 }
@@ -69,15 +84,23 @@ void FixHeat::init()
 
 void FixHeat::end_of_step()
 { 
-  double **v = atom->v;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-
+  double heat,ke;
   double vsub[3],vcm[3];
+  Region *region = NULL;
+  if (iregion >= 0) region = domain->regions[iregion];
+  
+  if (region < 0) {
+    heat = heat_input*nevery*update->dt*force->ftm2v;
+    ke = group->ke(igroup)*force->ftm2v;
+    group->vcm(igroup,masstotal,vcm);
+  } else {
+    masstotal = group->mass(igroup,iregion);
+    if (masstotal == 0.0) error->all("Fix heat group has no atoms");
+    heat = heat_input*nevery*update->dt*force->ftm2v;
+    ke = group->ke(igroup,iregion)*force->ftm2v;
+    group->vcm(igroup,masstotal,vcm,iregion);
+  }
 
-  double heat = heat_input*nevery*update->dt*force->ftm2v;
-  double ke = group->ke(igroup)*force->ftm2v;
-  group->vcm(igroup,masstotal,vcm);
   double vcmsq = vcm[0]*vcm[0] + vcm[1]*vcm[1] + vcm[2]*vcm[2];
   double escale = (ke + heat - 0.5*vcmsq*masstotal)/(ke - 0.5*vcmsq*masstotal);
   if (escale < 0.0) error->all("Fix heat kinetic energy went negative");
@@ -86,13 +109,27 @@ void FixHeat::end_of_step()
   vsub[0] = (scale-1.0) * vcm[0];
   vsub[1] = (scale-1.0) * vcm[1];
   vsub[2] = (scale-1.0) * vcm[2];
-  
-  for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
-      v[i][0] = scale*v[i][0] - vsub[0];
-      v[i][1] = scale*v[i][1] - vsub[1];
-      v[i][2] = scale*v[i][2] - vsub[2];
-    }
+
+  double **x = atom->x;
+  double **v = atom->v;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  if (iregion < 0) {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+	v[i][0] = scale*v[i][0] - vsub[0];
+	v[i][1] = scale*v[i][1] - vsub[1];
+	v[i][2] = scale*v[i][2] - vsub[2];
+      }
+  } else {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
+	v[i][0] = scale*v[i][0] - vsub[0];
+	v[i][1] = scale*v[i][1] - vsub[1];
+	v[i][2] = scale*v[i][2] - vsub[2];
+      }
+  }
 }
 
 /* ---------------------------------------------------------------------- */

@@ -27,6 +27,7 @@ namespace LAMMPS_NS {
 class FixAveForce : public Fix {
  public:
   FixAveForce(class LAMMPS *, int, char **);
+  ~FixAveForce();
   int setmask();
   void init();
   void setup(int);
@@ -37,8 +38,11 @@ class FixAveForce : public Fix {
   double compute_vector(int);
 
  private:
-  int xflag,yflag,zflag,iregion;
   double xvalue,yvalue,zvalue;
+  int varflag;
+  char *xstr,*ystr,*zstr;
+  int xvar,yvar,zvar,xstyle,ystyle,zstyle;
+  int iregion;
   double foriginal_all[4];
   int nlevels_respa;
 };

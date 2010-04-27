@@ -464,11 +464,13 @@ int MinLineSearch::linemin_quadratic(double eoriginal, double &alpha,
 
     if (relerr <= QUADRATIC_TOL && alpha0 > 0.0) {
       ecurrent = alpha_step(alpha0,1,nfunc);
-      if (nextra_global) {
-	int itmp = modify->min_reset_ref();
-	if (itmp) ecurrent = energy_force(1);
+      if (ecurrent < eoriginal) {
+	if (nextra_global) {
+	  int itmp = modify->min_reset_ref();
+	  if (itmp) ecurrent = energy_force(1);
+	}
+	return 0;
       }
-      return 0;
     }
 
     // if backtracking energy change is better than ideal, exit with success

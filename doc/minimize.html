@@ -151,13 +151,22 @@ reduced.
 </P>
 <HR>
 
-<P>IMPORTANT NOTE: It is highly recommended that you use a <A HREF = "pair_style.html">pair
-style</A> that goes to 0.0 at the cutoff distance when
-performing minimization (even if you later change it when running
-dynamics).  If this is not done, the total energy of the system will
-have discontinuities when the relative distance between any pair of
-atoms changes from cutoff+epsilon to cutoff-epsilon and the minimizer
-may behave poorly.
+<P>IMPORTANT NOTE: There are several force fields in LAMMPS which have
+discontinuities or other approximations which may prevent you from
+performing an energy minimization to high tolerances.  For example,
+you should use a <A HREF = "pair_style.html">pair style</A> that goes to 0.0 at the
+cutoff distance when performing minimization (even if you later change
+it when running dynamics).  If you do not do this, the total energy of
+the system will have discontinuities when the relative distance
+between any pair of atoms changes from cutoff+epsilon to
+cutoff-epsilon and the minimizer may behave poorly.  Some of the
+manybody potentials use splines and other internal cutoffs that
+inherently have this problem.  The <A HREF = "kspace_style.html">long-range Coulombic
+styles</A> (PPPM, Ewald) are approximate to within the
+user-specified tolerance, which means their energy and forces may not
+agree to a higher precision than the Kspace-specified tolerance.  In
+all these cases, the minimizer may give up and stop before finding a
+minimum to the specified energy or force tolerance.
 </P>
 <P>Note that a cutoff Lennard-Jones potential (and others) can be shifted
 so that its energy is 0.0 at the cutoff via the

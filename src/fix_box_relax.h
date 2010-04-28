@@ -50,6 +50,7 @@ class FixBoxRelax : public Fix {
   double p_target[6],p_current[6];
   double vol0,xprdinit,yprdinit,zprdinit;
   double vmax,pv2e,pflagsum;
+  int kspace_flag;
 
   int current_lifo;              // LIFO stack pointer
   double boxlo0[2][3];           // box bounds at start of line search

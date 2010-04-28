@@ -58,6 +58,29 @@ EXTERN void lj_gpu_name(const int id, const int max_nbors, char * name) {
   strcpy(name,sname.c_str());
 }
 
+static bool _pc_cell_alloc;
+
+inline void _lj_gpu_clear() {
+  if (_pc_cell_alloc) {
+    free(energy);
+    free(v_temp);
+    cudaFreeHost(f_temp);
+    cudaFree(d_force);
+    cudaFree(d_energy);
+    cudaFree(d_virial);
+    clear_cell_list(cell_list_gpu);
+    _pc_cell_alloc=false;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Clear memory on host and device
+// ---------------------------------------------------------------------------
+EXTERN void lj_gpu_clear() {
+  _lj_gpu_clear();
+  LJMF.clear();
+}
+
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
@@ -67,6 +90,11 @@ EXTERN bool lj_gpu_init(int &ij_size, const int ntypes, double **cutsq,double **
 			 double *special_lj, double *boxlo, double *boxhi, 
 			 double cell_size, double skin,
 			 const int max_nbors, const int gpu_id) {
+  if (LJMF.is_allocated())
+    lj_gpu_clear();
+  else
+    _pc_cell_alloc=false;
+
   LJMF.gpu.init();
   if (LJMF.gpu.num_devices()==0)
     return false;                   
@@ -85,22 +113,6 @@ EXTERN bool lj_gpu_init(int &ij_size, const int ntypes, double **cutsq,double **
 
   return ret;
 }
-
-// ---------------------------------------------------------------------------
-// Clear memory on host and device
-// ---------------------------------------------------------------------------
-EXTERN void lj_gpu_clear() {
-  free(energy);
-  free(v_temp);
-  cudaFreeHost(f_temp);
-  cudaFree(d_force);
-  cudaFree(d_energy);
-  cudaFree(d_virial);
-  clear_cell_list(cell_list_gpu);
-
-  LJMF.clear();
-}
-
 
 template <class numtyp, class acctyp>
 double _lj_gpu_cell(LJMT &ljm, double **force, double *virial,
@@ -123,29 +135,10 @@ double _lj_gpu_cell(LJMT &ljm, double **force, double *virial,
 
   static int first_call = 1;
 
-  // allocate memory on CPU and GPU
-  if (first_call) {
-    energy    = (float*) malloc(inum*sizeof(float));
-    v_temp    = (float3*)malloc(inum*2*sizeof(float3));
-    cudaMallocHost((void**)&f_temp,   inum*sizeof(float3));
-
-    cudaMalloc((void**)&d_force,     inum*sizeof(float3));
-    cudaMalloc((void**)&d_energy,    inum*sizeof(float));
-    cudaMalloc((void**)&d_virial,    inum*3*sizeof(float3));
-
-    init_cell_list(cell_list_gpu, nall, ncell, blockSize);
-
+  if (first_call || ago == 0) {
     first_call = 0;
-  }
-
-  if (!first_call && ago == 0) {
-    free(energy);
-    free(v_temp);
-    cudaFreeHost(f_temp);
-    cudaFree(d_force);
-    cudaFree(d_energy);
-    cudaFree(d_virial);
-
+    _lj_gpu_clear();
+    
     energy    = (float*) malloc(inum*sizeof(float));
     v_temp    = (float3*)malloc(inum*2*sizeof(float3));
     cudaMallocHost((void**)&f_temp,   inum*sizeof(float3));
@@ -154,8 +147,8 @@ double _lj_gpu_cell(LJMT &ljm, double **force, double *virial,
     cudaMalloc((void**)&d_energy,    inum*sizeof(float));
     cudaMalloc((void**)&d_virial,    inum*3*sizeof(float3));
 
-    clear_cell_list(cell_list_gpu);
     init_cell_list(cell_list_gpu, nall, ncell, blockSize);
+    _pc_cell_alloc=true;
   }
 
   // build cell-list on GPU

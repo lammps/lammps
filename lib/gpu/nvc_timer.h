@@ -13,8 +13,6 @@
 
 /* ----------------------------------------------------------------------
    Contributing authors: Mike Brown (SNL), wmbrown@sandia.gov
-                         Peng Wang (Nvidia), penwang@nvidia.com
-                         Paul Crozier (SNL), pscrozi@sandia.gov
 ------------------------------------------------------------------------- */
 
 #ifndef NVC_TIMER_H
@@ -35,11 +33,13 @@ class NVCTimer {
   }
 
   inline void init() {
-    if (!initialized) {
-      initialized=true;
-      CUDA_SAFE_CALL( cudaEventCreate(&start_event) );
-      CUDA_SAFE_CALL( cudaEventCreate(&stop_event) );
+    if (initialized) {
+      cudaEventDestroy(start_event); 
+      cudaEventDestroy(stop_event);
     }
+    initialized=true;
+    CUDA_SAFE_CALL( cudaEventCreate(&start_event) );
+    CUDA_SAFE_CALL( cudaEventCreate(&stop_event) );
   }
   
   /// Start timing

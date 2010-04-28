@@ -35,6 +35,8 @@ class LJ_GPU_Memory {
  public:
   LJ_GPU_Memory() : allocated(false) {}
   ~LJ_GPU_Memory() { clear(); }
+  
+  inline bool is_allocated() { return allocated; }
  
   /// Allocate memory on host and device
   bool init(const int ij_size, const int ntypes, double **host_cutsq, 

@@ -24,6 +24,7 @@
 #include "update.h"
 #include "comm.h"
 #include "force.h"
+#include "kspace.h"
 #include "modify.h"
 #include "compute.h"
 #include "error.h"
@@ -318,6 +319,9 @@ void FixBoxRelax::init()
 
   pv2e = 1.0 / force->nktv2p;
 
+  if (force->kspace) kspace_flag = 1;
+  else kspace_flag = 0;
+
   // detect if any rigid fixes exist so rigid bodies move when box is remapped
   // rfix[] = indices to each fix rigid
 
@@ -528,6 +532,7 @@ void FixBoxRelax::min_step(double alpha, double *hextra)
     }
   }
   remap();
+  if (kspace_flag) force->kspace->setup();
 }
 
 /* ----------------------------------------------------------------------

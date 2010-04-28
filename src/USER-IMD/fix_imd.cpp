@@ -544,7 +544,7 @@ void FixIMD::post_force(int vflag)
       double **f = atom->f;
       buf = static_cast<struct commdata *>(force_buf);
 
-      /* XXX. this is in principle O(N**2) = not good. 
+      /* XXX. this is in principle O(N**2) == not good. 
        * however we assume for now that the number of atoms 
        * that we manipulate via IMD will be small compared 
        * to the total system size, so we don't hurt too much. */
@@ -552,9 +552,9 @@ void FixIMD::post_force(int vflag)
         for (int i=0; i < nlocal; ++i) {
           if (mask[i] & groupbit) {
             if (buf[j].tag == tag[i]) {
-              f[i][0] += buf[j].x;
-              f[i][1] += buf[j].y;
-              f[i][2] += buf[j].z;
+              f[i][0] += imd_fscale*buf[j].x;
+              f[i][1] += imd_fscale*buf[j].y;
+              f[i][2] += imd_fscale*buf[j].z;
             }
           }
         }

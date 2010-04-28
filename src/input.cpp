@@ -43,6 +43,10 @@
 #include "error.h"
 #include "memory.h"
 
+#if defined(_OPENMP)
+#include <omp.h>
+#endif
+
 using namespace LAMMPS_NS;
 
 #define MAXLINE 2048

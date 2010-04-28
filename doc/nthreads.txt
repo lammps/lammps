@@ -1,0 +1,58 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+nthreads command :h3
+
+[Syntax:]
+
+nthreads n :pre
+
+n = # of threads to be used per MPI task :ul
+
+[Examples:]
+
+nthreads 1
+nthreads 6
+nthreads * :pre
+
+[Description:]
+
+Specify how many threads are to be used per MPI task in a hybrid MPI/multi-threading environment.processors are mapped as a 3d logical grid to the global
+simulation box.
+
+When this command has not been specified, LAMMPS will choose n according
+to the defaults of the threading environment, e.g. in OpenMP according to
+the OMP_NUM_THREADS environment variable or using all available processors
+if that is not set.
+
+For a package like LAMMPS, threading is typically not as efficient as 
+a distributed data parallelization via domain decomposition using MPI
+message passing. Thus this keyword is mostly of use when MPI parallelization
+is becoming inefficient, e.g. when using a "slow" network (like GigE with
+TCP/IP) or when reaching the limit of scaling.
+
+[Restrictions:]
+
+This command cannot be used after the simulation box is defined by a
+"read_data"_read_data.html or "create_box"_create_box.html command.
+
+This command only has an effect and is only of use if LAMMPS was 
+built with the "user-openmp" package included.  See the "Making
+LAMMPS"_Section_start.html#2_3 section for more info.
+
+[Related commands:]
+
+"processors"_processors.html
+
+[Default:]
+
+nthreads * :pre
+
+or in case multi-threading support is not compiled in:
+
+nthreads 1 :pre

@@ -61,9 +61,10 @@ This means command A must precede command B in the input script if it
 is to have the desired effect.  For example, the
 "read_data"_read_data.html command initializes the system by setting
 up the simulation box and assigning atoms to processors.  If default
-values are not desired, the "processors"_processors.html and
-"boundary"_boundary.html commands need to be used before read_data to
-tell LAMMPS how to map processors to the simulation box.
+values are not desired, the "processors"_processors.html, 
+"nthreads"_nthreads.html, and "boundary"_boundary.html commands need
+to be used before read_data to tell LAMMPS how to map processors to 
+the simulation box.
 
 Many input script errors are detected by LAMMPS and an ERROR or
 WARNING message is printed.  "This section"_Section_errors.html gives
@@ -146,8 +147,9 @@ read-in from a file.
 
 The relevant commands are "units"_units.html,
 "dimension"_dimension.html, "newton"_newton.html,
-"processors"_processors.html, "boundary"_boundary.html,
-"atom_style"_atom_style.html, "atom_modify"_atom_modify.html.
+"nthreads"_nthreads.html, "processors"_processors.html,
+"boundary"_boundary.html, "atom_style"_atom_style.html,
+"atom_modify"_atom_modify.html.
 
 If force-field parameters appear in the files that will be read, these
 commands tell LAMMPS what kinds of force fields are being used:
@@ -222,7 +224,8 @@ Initialization:
 
 "atom_modify"_atom_modify.html, "atom_style"_atom_style.html,
 "boundary"_boundary.html, "dimension"_dimension.html,
-"newton"_newton.html, "processors"_processors.html, "units"_units.html
+"newton"_newton.html, "nthreads"_nthreads.html, 
+"processors"_processors.html, "units"_units.html
 
 Atom definition:
 
@@ -343,6 +346,7 @@ in the command's documentation.
 "neighbor"_neighbor.html,
 "newton"_newton.html,
 "next"_next.html,
+"nthreads"_nthreads.html,
 "pair_coeff"_pair_coeff.html,
 "pair_modify"_pair_modify.html,
 "pair_style"_pair_style.html,

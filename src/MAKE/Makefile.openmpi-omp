@@ -1,4 +1,4 @@
-# openmpi = Fedora Core 6, mpic++, OpenMPI-1.1, FFTW2
+# openmpi-omp = Fedora Core 12, g++-4.4.1, OpenMPI-1.4.1, FFTW2, OpenMP
 
 SHELL = /bin/sh
 

@@ -1041,6 +1041,7 @@ void Input::nthreads()
   if (nthreads > 0) {
 #if defined(_OPENMP)
     comm->nthreads = nthreads;
+    omp_set_num_threads(nthreads);
 #else
     if (me == 0) {
       if (screen) fprintf(screen,"No OpenMP support compiled in. Ignoring nthreads command.\n");

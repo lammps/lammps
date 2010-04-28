@@ -41,7 +41,7 @@ using namespace LAMMPS_NS;
 
 // customize a new keyword by adding to this list:
 
-// step, elapsed, elaplong, dt, cpu
+// step, elapsed, elaplong, dt, cpu, tpt, tps
 // atoms, temp, press, pe, ke, etotal, enthalpy
 // evdwl, ecoul, epair, ebond, eangle, edihed, eimp, emol, elong, etail
 // vol, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi, xy, xz, yz, xlat, ylat, zlat
@@ -85,6 +85,9 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   lostflag = ERROR;
   lostbefore = 0;
   flushflag = 0;
+  last_step = 0;
+  last_cpu  = 0.0;
+  last_time = 0.0;
 
   // set style and corresponding lineflag
   // custom style builds its own line of keywords
@@ -167,6 +170,12 @@ void Thermo::init()
   if (normuserflag) normvalue = normuser;
   else if (strcmp(update->unit_style,"lj") == 0) normvalue = 1;
   else normvalue = 0;
+
+  // initialize step-by-step performance measurement 
+  last_step = 0;
+  // XXX: dt can vary. need to find the proper accumulator
+  last_time = 0.0;
+  last_cpu  = 0.0;
 
   // add Volume field if volume changes and not style = custom
   // this check must come after domain init, so box_change is set
@@ -314,6 +323,12 @@ void Thermo::compute(int flag)
 
   // kludge for RedStorm timing issue
   // if (ntimestep == 100) return;
+
+  last_step = update->ntimestep;
+  // XXX: dt can vary. need to find the proper accumulator
+  last_time = update->dt*last_step; 
+  if (flag) last_cpu = timer->elapsed(TIME_LOOP);
+  else last_cpu = 0.0;
 
   // print line to screen and logfile
 
@@ -592,6 +607,10 @@ void Thermo::parse_fields(char *str)
       addfield("Dt",&Thermo::compute_dt,FLOAT);
     } else if (strcmp(word,"cpu") == 0) {
       addfield("CPU",&Thermo::compute_cpu,FLOAT);
+    } else if (strcmp(word,"tpt") == 0) {
+      addfield("Time/s",&Thermo::compute_tpt,FLOAT);
+    } else if (strcmp(word,"tps") == 0) {
+      addfield("Step/s",&Thermo::compute_tps,FLOAT);
 
     } else if (strcmp(word,"atoms") == 0) {
       addfield("Atoms",&Thermo::compute_atoms,INT);
@@ -907,6 +926,14 @@ int Thermo::evaluate_keyword(char *word, double *answer)
   } else if (strcmp(word,"cpu") == 0) {
     if (update->whichflag == 0) firststep = 0;
     compute_cpu();
+
+  } else if (strcmp(word,"tpt") == 0) {
+    if (update->whichflag == 0) firststep = 0;
+    compute_tpt();
+
+  } else if (strcmp(word,"tps") == 0) {
+    if (update->whichflag == 0) firststep = 0;
+    compute_tps();
 
   } else if (strcmp(word,"atoms") == 0) {
     compute_atoms();
@@ -1324,6 +1351,25 @@ void Thermo::compute_cpu()
 {
   if (firststep == 0) dvalue = 0.0;
   else dvalue = timer->elapsed(TIME_LOOP);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_tpt()
+{
+  double new_time = update->dt*update->ntimestep;
+  double cpu_diff  = timer->elapsed(TIME_LOOP) - last_cpu;
+  if (cpu_diff > 0.0) dvalue = (new_time-last_time) / cpu_diff;
+  else dvalue=0.0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_tps()
+{
+    double cpu_diff  = timer->elapsed(TIME_LOOP) - last_cpu;
+    if (cpu_diff > 0.0) dvalue = (update->ntimestep-last_step) / cpu_diff;
+    else dvalue=0.0;
 }
 
 /* ---------------------------------------------------------------------- */

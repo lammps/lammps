@@ -91,6 +91,7 @@ class Input : protected Pointers {
   void neigh_modify();
   void neighbor_command();
   void newton();
+  void nthreads();
   void pair_coeff();
   void pair_modify();
   void pair_style();

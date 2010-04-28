@@ -153,6 +153,8 @@ pair_lj_cut_opt.cpp
 pair_lj_cut_opt.h
 pair_morse_opt.cpp
 pair_morse_opt.h
+pair_omp.cpp
+pair_omp.h
 pair_resquared.cpp
 pair_resquared.h
 pair_sw.cpp

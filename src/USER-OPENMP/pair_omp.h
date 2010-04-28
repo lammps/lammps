@@ -39,8 +39,8 @@ class PairOMP : public Pair {
   virtual double memory_usage();
 
  protected:
-  void ev_setup(int, int);
-  void ev_reduce();
+  void ev_setup_thr(int, int);
+  void ev_reduce_thr();
   void ev_tally_thr(int, int, int, int, double, double, double,
 		    double, double, double, int);
 };

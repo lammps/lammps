@@ -27,18 +27,18 @@ using namespace LAMMPS_NS;
 
 PairOMP::PairOMP(LAMMPS *lmp) : Pair(lmp)
 {
-    // for hybrid OpenMP/MPI we need multiple copies
-    // of some accumulators to avoid race conditions
-    const int nthreads = comm->nthreads;
-    eng_vdwl_thr = (double *)memory->smalloc(nthreads*sizeof(double),
-					     "pair:eng_vdwl_thr");
-    eng_coul_thr = (double *)memory->smalloc(nthreads*sizeof(double),
-					     "pair:eng_coul_thr");
-    virial_thr = memory->create_2d_double_array(nthreads,6,"pair:virial_thr");
-
-    maxeatom_thr = maxvatom_thr = 0;
-    eatom_thr = NULL;
-    vatom_thr = NULL;
+  // for hybrid OpenMP/MPI we need multiple copies
+  // of some accumulators to avoid race conditions
+  const int nthreads = comm->nthreads;
+  eng_vdwl_thr = (double *)memory->smalloc(nthreads*sizeof(double),
+					   "pair:eng_vdwl_thr");
+  eng_coul_thr = (double *)memory->smalloc(nthreads*sizeof(double),
+					   "pair:eng_coul_thr");
+  virial_thr = memory->create_2d_double_array(nthreads,6,"pair:virial_thr");
+  
+  maxeatom_thr = maxvatom_thr = 0;
+  eatom_thr = NULL;
+  vatom_thr = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -53,14 +53,13 @@ PairOMP::~PairOMP()
 }
 
 /* ----------------------------------------------------------------------
-   setup for energy, virial computation
+   setup for energy, virial computation. additional code for multi-threading
    see integrate::ev_set() for values of eflag (0-3) and vflag (0-6)
 ------------------------------------------------------------------------- */
 
-void PairOMP::ev_setup(int eflag, int vflag)
+void PairOMP::ev_setup_thr(int eflag, int vflag)
 {
   int i,n,t;
-  
   const int nthreads = comm->nthreads;
 
   // reallocate per-atom arrays if necessary
@@ -109,8 +108,8 @@ void PairOMP::ev_setup(int eflag, int vflag)
 ------------------------------------------------------------------------- */
 
 void PairOMP::ev_tally_thr(int i, int j, int nlocal, int newton_pair,
-		    double evdwl, double ecoul, double fpair,
-            double delx, double dely, double delz, int tid)
+			   double evdwl, double ecoul, double fpair,
+			   double delx, double dely, double delz, int tid)
 {
   double evdwlhalf,ecoulhalf,epairhalf,v[6];
 
@@ -199,7 +198,7 @@ void PairOMP::ev_tally_thr(int i, int j, int nlocal, int newton_pair,
 /* ----------------------------------------------------------------------
    reduce the per thread accumulated E/V data into the canonical accumulators.
 ------------------------------------------------------------------------- */
-void PairOMP::ev_reduce()
+void PairOMP::ev_reduce_thr()
 {
   const int nthreads=comm->nthreads;
 

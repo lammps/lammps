@@ -73,8 +73,10 @@ void PairLJCutOMP::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  if (eflag || vflag) {
+    ev_setup(eflag,vflag);
+    ev_setup_thr(eflag,vflag);
+  } else evflag = vflag_fdotr = 0;
 
   double **x = atom->x;
   double **f = atom->f;
@@ -136,12 +138,12 @@ void PairLJCutOMP::compute(int eflag, int vflag)
 	  evdwl *= factor_lj;
 	}
 
-	if (evflag) ev_tally(i,j,nlocal,newton_pair,
-			     evdwl,0.0,fpair,delx,dely,delz);
+	if (evflag) ev_tally_thr(i,j,nlocal,newton_pair,
+				 evdwl,0.0,fpair,delx,dely,delz,0);
       }
     }
   }
-
+  ev_reduce_thr();
   if (vflag_fdotr) virial_compute();
 }
 
@@ -408,11 +410,12 @@ void PairLJCutOMP::compute_outer(int eflag, int vflag)
 	    fpair = factor_lj*forcelj*r2inv;
 	}
 
-	if (evflag) ev_tally(i,j,nlocal,newton_pair,
-			     evdwl,0.0,fpair,delx,dely,delz);
+	if (evflag) ev_tally_thr(i,j,nlocal,newton_pair,
+				 evdwl,0.0,fpair,delx,dely,delz,0);
       }
     }
   }
+  ev_reduce_thr();
 }
 
 /* ----------------------------------------------------------------------

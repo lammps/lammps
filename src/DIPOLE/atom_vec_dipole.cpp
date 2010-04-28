@@ -19,6 +19,7 @@
 #include "fix.h"
 #include "memory.h"
 #include "error.h"
+#include "comm.h" // for nthreads
 
 using namespace LAMMPS_NS;
 
@@ -68,7 +69,7 @@ void AtomVecDipole::grow(int n)
     memory->srealloc(atom->image,nmax*sizeof(int),"atom:image");
   x = atom->x = memory->grow_2d_double_array(atom->x,nmax,3,"atom:x");
   v = atom->v = memory->grow_2d_double_array(atom->v,nmax,3,"atom:v");
-  f = atom->f = memory->grow_2d_double_array(atom->f,nmax,3,"atom:f");
+  f = atom->f = memory->grow_2d_double_array(atom->f,nmax*comm->nthreads,3,"atom:f");
 
   q = atom->q = (double *) 
     memory->srealloc(atom->q,nmax*sizeof(double),"atom:q");
@@ -77,7 +78,7 @@ void AtomVecDipole::grow(int n)
   omega = atom->omega = 
     memory->grow_2d_double_array(atom->omega,nmax,3,"atom:omega");
   torque = atom->torque =
-    memory->grow_2d_double_array(atom->torque,nmax,3,"atom:torque");
+    memory->grow_2d_double_array(atom->torque,nmax*comm->nthreads,3,"atom:torque");
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++) 

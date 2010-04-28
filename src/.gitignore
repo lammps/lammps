@@ -149,6 +149,8 @@ pair_lj_cut_coul_long_tip4p.cpp
 pair_lj_cut_coul_long_tip4p.h
 pair_lj_cut_gpu.cpp
 pair_lj_cut_gpu.h
+pair_lj_cut_omp.cpp
+pair_lj_cut_omp.h
 pair_lj_cut_opt.cpp
 pair_lj_cut_opt.h
 pair_morse_opt.cpp

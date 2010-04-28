@@ -74,7 +74,7 @@ void PairOMP::ev_setup(int eflag, int vflag)
     maxvatom_thr = atom->nmax;
     memory->destroy_3d_double_array(vatom_thr);
     vatom_thr = memory->create_3d_double_array(nthreads,
-					       maxvatom,6,"pair:vatom_thr");
+					       maxvatom_thr,6,"pair:vatom_thr");
   }
   
   // zero per thread accumulators

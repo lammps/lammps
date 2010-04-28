@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Axel Kohlmeyer (Temple U)
+------------------------------------------------------------------------- */
+
 #ifndef LMP_PAIR_OMP_H
 #define LMP_PAIR_OMP_H
 
@@ -18,7 +22,7 @@
 
 namespace LAMMPS_NS {
 
-class PairOMP : protected Pair {
+class PairOMP : public Pair {
 
  protected:
   double *eng_vdwl_thr;         // per thread accumulated vdw energy

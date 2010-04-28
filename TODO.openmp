@@ -1,0 +1,5 @@
+Items that need to be done in the threading branch
+- implement "template" optimization trick
+- port the CGCMM pair style to threading
+- add OpenMP compatible makefile
+- think about adding threading to kspace/pppm

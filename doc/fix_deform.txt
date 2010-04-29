@@ -69,7 +69,7 @@ keyword = {remap} or {units} :l
 fix 1 all deform 1 x final 0.0 9.0 z final 0.0 5.0 units box
 fix 1 all deform 1 x trate 0.1 y volume z volume
 fix 1 all deform 1 xy erate 0.001 remap v
-fix 1 all deform 10 y delta 0.5 xz vel 1.0 :pre
+fix 1 all deform 10 y delta -0.5 0.5 xz vel 1.0 :pre
 
 [Description:]
 

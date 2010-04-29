@@ -448,7 +448,7 @@ void Velocity::ramp(int narg, char **arg)
   } else if (v_dim == 1) {
     v_lo = yscale*atof(arg[1]);
     v_hi = yscale*atof(arg[2]);
-  } else if (v_dim == 0) {
+  } else if (v_dim == 2) {
     v_lo = zscale*atof(arg[1]);
     v_hi = zscale*atof(arg[2]);
   }

@@ -6,12 +6,12 @@ atom_style	atomic
 
 lattice		fcc 0.8442
 Lattice spacing in x,y,z = 1.6796 1.6796 1.6796
-region		box block 0 10 0 10 0 10
+region		box block 0 20 0 20 0 20
 create_box	1 box
-Created orthogonal box = (0 0 0) to (16.796 16.796 16.796)
-  1 by 1 by 1 processor grid
+Created orthogonal box = (0 0 0) to (33.5919 33.5919 33.5919)
+  1 by 2 by 2 processor grid
 create_atoms	1 box
-Created 4000 atoms
+Created 32000 atoms
 mass		1 1.0
 
 velocity	all create 3.0 87287
@@ -28,30 +28,30 @@ dump		id all atom 50 dump.melt
 
 thermo		50
 run		250
-Memory usage per processor = 2.19362 Mbytes
+Memory usage per processor = 4.07636 Mbytes
 Step Temp E_pair E_mol TotEng Press 
-       0            3   -6.7733681            0   -2.2744931   -3.7033504 
-      50    1.6758903   -4.7955425            0   -2.2823355     5.670064 
-     100    1.6458363   -4.7492704            0   -2.2811332    5.8691042 
-     150    1.6324555   -4.7286791            0    -2.280608    5.9589514 
-     200    1.6630725   -4.7750988            0   -2.2811136    5.7364886 
-     250    1.6275257   -4.7224992            0    -2.281821    5.9567365 
-Loop time of 0.840309 on 1 procs for 250 steps with 4000 atoms
+       0            3   -6.7733681            0   -2.2735087   -3.7027964 
+      50    1.6751964    -4.793906            0     -2.28119    5.6449888 
+     100    1.6492395   -4.7543479            0   -2.2805659    5.8242183 
+     150    1.6468325   -4.7503201            0   -2.2801485     5.857928 
+     200      1.64095    -4.741475            0    -2.280127    5.8888655 
+     250    1.6425393   -4.7441579            0   -2.2804259    5.8751067 
+Loop time of 1.93913 on 4 procs for 250 steps with 32000 atoms
 
-Pair  time (%) = 0.700639 (83.3788)
-Neigh time (%) = 0.0911102 (10.8425)
-Comm  time (%) = 0.0121446 (1.44525)
-Outpt time (%) = 0.0186529 (2.21977)
-Other time (%) = 0.0177617 (2.11371)
+Pair  time (%) = 1.47562 (76.0972)
+Neigh time (%) = 0.179442 (9.25373)
+Comm  time (%) = 0.0962523 (4.96369)
+Outpt time (%) = 0.150516 (7.76206)
+Other time (%) = 0.0372962 (1.92335)
 
-Nlocal:    4000 ave 4000 max 4000 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    5499 ave 5499 max 5499 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    151513 ave 151513 max 151513 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:    8000 ave 8011 max 7981 min
+Histogram: 1 0 0 0 0 0 0 2 0 1
+Nghost:    8616 ave 8628 max 8605 min
+Histogram: 1 1 0 0 0 0 0 1 0 1
+Neighs:    303098 ave 306712 max 300441 min
+Histogram: 1 0 1 0 1 0 0 0 0 1
 
-Total # of neighbors = 151513
-Ave neighs/atom = 37.8783
+Total # of neighbors = 1212392
+Ave neighs/atom = 37.8873
 Neighbor list builds = 12
 Dangerous builds = 0

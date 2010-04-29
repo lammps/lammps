@@ -96,7 +96,7 @@ improper_harmonic.cpp
 improper_harmonic.h
 improper_hybrid.cpp
 improper_hybrid.h
-lmp_openmpi
+lmp_*
 pair_airebo.cpp
 pair_airebo.h
 pair_born_coul_long.cpp

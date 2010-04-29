@@ -357,12 +357,11 @@ void FixIMD::init()
    new connection was made, 0 if not. */
 int FixIMD::reconnect()
 {
-  /* set up IMD communication, but only if needed. */
-  imd_inactive = 0;
+  /* set up IMD communication. */
   imd_terminate = 0;
+  imd_inactive = 0;
   
   if (me == 0) {
-    if (clientsock) return 1;
     if (screen && connect_msg)
       if (nowait_flag)
         fprintf(screen,"Listening for IMD connection on port %d.\n",imd_port);

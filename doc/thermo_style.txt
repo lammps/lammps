@@ -17,7 +17,7 @@ args = list of arguments for a particular style :l
   {one} args = none
   {multi} args = none
   {custom} args = list of attributes
-    possible attributes = step, elapsed, elaplong, dt, cpu,
+    possible attributes = step, elapsed, elaplong, dt, cpu, tps, tpt,
                           atoms, temp, press, pe, ke, etotal, enthalpy,
                           evdwl, ecoul, epair, ebond, eangle, edihed, eimp,
                           emol, elong, etail,
@@ -32,6 +32,8 @@ args = list of arguments for a particular style :l
       elaplong = timesteps since start of initial run in a series of runs
       dt = timestep size
       cpu = elapsed CPU time
+      tps = timesteps per second
+      tpt = simulated time per second
       atoms = # of atoms
       temp = temperature
       press = pressure

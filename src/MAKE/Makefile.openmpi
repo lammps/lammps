@@ -12,7 +12,7 @@ CCFLAGS =	-O2 \
 DEPFLAGS =	-M
 LINK =		mpic++
 LINKFLAGS =	-O
-LIB =           -Wl,-rpath,/usr/lib64/openmpi/lib -lstdc++
+LIB =           -lstdc++
 ARCHIVE =	ar
 ARFLAGS =	-rcsv
 SIZE =		size
@@ -54,7 +54,7 @@ meam_SYSLIB =      -lifcore -lsvml -lompstub -limf
 reax_SYSLIB =      -lifcore -lsvml -lompstub -limf
 user-atc_SYSLIB =  -lblas -llapack
 
-gpu_SYSPATH =      -L$(HOME)/cuda/lib64 -Wl,-rpath,$(HOME)/cuda/lib64
+gpu_SYSPATH =      -L/usr/local/cuda/lib64
 meam_SYSPATH =     -L/opt/intel/fce/10.0.023/lib
 reax_SYSPATH =     -L/opt/intel/fce/10.0.023/lib
 user-atc_SYSPATH = 	

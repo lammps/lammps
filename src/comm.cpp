@@ -34,6 +34,10 @@
 #include "error.h"
 #include "memory.h"
 
+#if defined(_OPENMP)
+#include "omp.h"
+#endif
+
 using namespace LAMMPS_NS;
 
 #define BUFFACTOR 1.5
@@ -54,6 +58,17 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
+
+  // query OpenMP for number of threads
+  // we need to be in a parallel area for that.
+  nthreads = 1;
+#if defined (_OPENMP)
+#pragma omp parallel default(shared)
+  {
+#pragma omp master
+    { nthreads = omp_get_num_threads(); }
+  }
+#endif
 
   user_procgrid[0] = user_procgrid[1] = user_procgrid[2] = -1;
   grid2proc = NULL;
@@ -161,6 +176,12 @@ void Comm::set_procs()
 			procgrid[0],procgrid[1],procgrid[2]);
     if (logfile) fprintf(logfile,"  %d by %d by %d processor grid\n",
 			 procgrid[0],procgrid[1],procgrid[2]);
+
+#if defined(_OPENMP)
+    // This will be the indication that a binary was compiled with OpenMP support.
+    if (screen) fprintf(screen,"  using %d OpenMP thread(s) per MPI task\n", nthreads);
+    if (logfile) fprintf(logfile,"  using %d OpenMP thread(s) per MPI task\n", nthreads);
+#endif
   }
 }
 

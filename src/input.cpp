@@ -43,6 +43,10 @@
 #include "error.h"
 #include "memory.h"
 
+#if defined(_OPENMP)
+#include <omp.h>
+#endif
+
 using namespace LAMMPS_NS;
 
 #define MAXLINE 2048
@@ -438,6 +442,7 @@ int Input::execute_command()
   else if (!strcmp(command,"neigh_modify")) neigh_modify();
   else if (!strcmp(command,"neighbor")) neighbor_command();
   else if (!strcmp(command,"newton")) newton();
+  else if (!strcmp(command,"nthreads")) nthreads();
   else if (!strcmp(command,"pair_coeff")) pair_coeff();
   else if (!strcmp(command,"pair_modify")) pair_modify();
   else if (!strcmp(command,"pair_style")) pair_style();
@@ -1023,6 +1028,34 @@ void Input::newton()
 
   if (newton_pair || newton_bond) force->newton = 1;
   else force->newton = 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::nthreads()
+{
+  if (narg != 1) error->all("Illegal nthreads command");
+  if (domain->box_exist)
+    error->all("Nthreads command after simulation box is defined");
+
+  // wildcard. do nothing.
+  if (arg[0][0] == '*') return;
+
+  int nthreads = atoi(arg[0]);
+  if (nthreads > 0) {
+#if defined(_OPENMP)
+    comm->nthreads = nthreads;
+    omp_set_num_threads(nthreads);
+#else
+    if (me == 0) {
+      if (screen) fprintf(screen,"No OpenMP support compiled in. Ignoring nthreads command.\n");
+      if (logfile) fprintf(logfile,"No OpenMP support compiled in. Ignoring nthreads command.\n");
+    }
+    comm->nthreads = 1;
+#endif
+  } else {
+    error->all("Illegal nthreads command");
+  }
 }
 
 /* ---------------------------------------------------------------------- */

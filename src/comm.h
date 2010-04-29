@@ -20,7 +20,7 @@ namespace LAMMPS_NS {
 
 class Comm : protected Pointers {
  public:
-  int me,nprocs;                    // proc info
+  int me,nprocs,nthreads;           // proc info
   int style;                        // single vs multi-type comm
   int procgrid[3];                  // assigned # of procs in each dim
   int user_procgrid[3];             // user request for procs in each dim

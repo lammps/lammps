@@ -21,6 +21,7 @@
 #include "fix.h"
 #include "memory.h"
 #include "error.h"
+#include "comm.h" // for nthreads
 
 using namespace LAMMPS_NS;
 
@@ -71,7 +72,7 @@ void AtomVecGranular::grow(int n)
     memory->srealloc(atom->image,nmax*sizeof(int),"atom:image");
   x = atom->x = memory->grow_2d_double_array(atom->x,nmax,3,"atom:x");
   v = atom->v = memory->grow_2d_double_array(atom->v,nmax,3,"atom:v");
-  f = atom->f = memory->grow_2d_double_array(atom->f,nmax,3,"atom:f");
+  f = atom->f = memory->grow_2d_double_array(atom->f,nmax*comm->nthreads,3,"atom:f");
 
   radius = atom->radius = (double *)
     memory->srealloc(atom->radius,nmax*sizeof(double),"atom:radius");

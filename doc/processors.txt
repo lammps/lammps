@@ -54,7 +54,9 @@ This command cannot be used after the simulation box is defined by a
 It can be used before a restart file is read to change the 3d
 processor grid from what is specified in the restart file.
 
-[Related commands:] none
+[Related commands:]
+
+"nthreads"_nthreads.html
 
 [Default:]
 

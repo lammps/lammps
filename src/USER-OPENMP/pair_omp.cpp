@@ -1,0 +1,247 @@
+/* ----------------------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under 
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   Contributing author: Axel Kohlmeyer (Temple U)
+------------------------------------------------------------------------- */
+
+#include "atom.h"
+#include "comm.h"
+#include "force.h"
+#include "pair_omp.h"
+#include "memory.h"
+
+using namespace LAMMPS_NS;
+
+/* ---------------------------------------------------------------------- */
+
+PairOMP::PairOMP(LAMMPS *lmp) : Pair(lmp)
+{
+  // for hybrid OpenMP/MPI we need multiple copies
+  // of some accumulators to avoid race conditions
+  const int nthreads = comm->nthreads;
+  eng_vdwl_thr = (double *)memory->smalloc(nthreads*sizeof(double),
+					   "pair:eng_vdwl_thr");
+  eng_coul_thr = (double *)memory->smalloc(nthreads*sizeof(double),
+					   "pair:eng_coul_thr");
+  virial_thr = memory->create_2d_double_array(nthreads,6,"pair:virial_thr");
+  
+  maxeatom_thr = maxvatom_thr = 0;
+  eatom_thr = NULL;
+  vatom_thr = NULL;
+}
+
+/* ---------------------------------------------------------------------- */
+
+PairOMP::~PairOMP()
+{
+  memory->sfree(eng_vdwl_thr);
+  memory->sfree(eng_coul_thr);
+  memory->destroy_2d_double_array(virial_thr);
+  memory->destroy_2d_double_array(eatom_thr);
+  memory->destroy_3d_double_array(vatom_thr);
+}
+
+/* ----------------------------------------------------------------------
+   setup for energy, virial computation. additional code for multi-threading
+   see integrate::ev_set() for values of eflag (0-3) and vflag (0-6)
+------------------------------------------------------------------------- */
+
+void PairOMP::ev_setup_thr(int eflag, int vflag)
+{
+  int i,n,t;
+  const int nthreads = comm->nthreads;
+
+  // reallocate per-atom arrays if necessary
+  if (eflag_atom && atom->nmax > maxeatom_thr) {
+    maxeatom_thr = atom->nmax;
+    memory->destroy_2d_double_array(eatom_thr);
+    eatom_thr = memory->create_2d_double_array(nthreads,
+					       maxeatom_thr,"pair:eatom_thr");
+  }
+  if (vflag_atom && atom->nmax > maxvatom_thr) {
+    maxvatom_thr = atom->nmax;
+    memory->destroy_3d_double_array(vatom_thr);
+    vatom_thr = memory->create_3d_double_array(nthreads,
+					       maxvatom_thr,6,"pair:vatom_thr");
+  }
+  
+  // zero per thread accumulators
+  // use force->newton instead of newton_pair
+  //   b/c some bonds/dihedrals call pair::ev_tally with pairwise info
+  for (t = 0; t < nthreads; ++t) {
+    if (eflag_global) eng_vdwl_thr[t] = eng_coul_thr[t] = 0.0;
+    if (vflag_global) for (i = 0; i < 6; i++) virial_thr[t][i] = 0.0;
+    if (eflag_atom) {
+      n = atom->nlocal;
+      if (force->newton) n += atom->nghost;
+      for (i = 0; i < n; i++) eatom_thr[t][i] = 0.0;
+    }
+    if (vflag_atom) {
+      n = atom->nlocal;
+      if (force->newton) n += atom->nghost;
+      for (i = 0; i < n; i++) {
+	vatom_thr[t][i][0] = 0.0;
+	vatom_thr[t][i][1] = 0.0;
+	vatom_thr[t][i][2] = 0.0;
+	vatom_thr[t][i][3] = 0.0;
+	vatom_thr[t][i][4] = 0.0;
+	vatom_thr[t][i][5] = 0.0;
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   tally eng_vdwl and virial into per thread global and per-atom accumulators
+   need i < nlocal test since called by bond_quartic and dihedral_charmm
+------------------------------------------------------------------------- */
+
+void PairOMP::ev_tally_thr(int i, int j, int nlocal, int newton_pair,
+			   double evdwl, double ecoul, double fpair,
+			   double delx, double dely, double delz, int tid)
+{
+  double evdwlhalf,ecoulhalf,epairhalf,v[6];
+
+  if (eflag_either) {
+    if (eflag_global) {
+      if (newton_pair) {
+	eng_vdwl_thr[tid] += evdwl;
+	eng_coul_thr[tid] += ecoul;
+      } else {
+	evdwlhalf = 0.5*evdwl;
+	ecoulhalf = 0.5*ecoul;
+	if (i < nlocal) {
+	  eng_vdwl_thr[tid] += evdwlhalf;
+	  eng_coul_thr[tid] += ecoulhalf;
+	}
+	if (j < nlocal) {
+	  eng_vdwl_thr[tid] += evdwlhalf;
+	  eng_coul_thr[tid] += ecoulhalf;
+	}
+      }
+    }
+    if (eflag_atom) {
+      epairhalf = 0.5 * (evdwl + ecoul);
+      if (newton_pair || i < nlocal) eatom_thr[tid][i] += epairhalf;
+      if (newton_pair || j < nlocal) eatom_thr[tid][j] += epairhalf;
+    }
+  }
+
+  if (vflag_either) {
+    v[0] = delx*delx*fpair;
+    v[1] = dely*dely*fpair;
+    v[2] = delz*delz*fpair;
+    v[3] = delx*dely*fpair;
+    v[4] = delx*delz*fpair;
+    v[5] = dely*delz*fpair;
+
+    if (vflag_global) {
+      if (newton_pair) {
+	virial_thr[tid][0] += v[0];
+	virial_thr[tid][1] += v[1];
+	virial_thr[tid][2] += v[2];
+	virial_thr[tid][3] += v[3];
+	virial_thr[tid][4] += v[4];
+	virial_thr[tid][5] += v[5];
+      } else {
+	if (i < nlocal) {
+	  virial_thr[tid][0] += 0.5*v[0];
+	  virial_thr[tid][1] += 0.5*v[1];
+	  virial_thr[tid][2] += 0.5*v[2];
+	  virial_thr[tid][3] += 0.5*v[3];
+	  virial_thr[tid][4] += 0.5*v[4];
+	  virial_thr[tid][5] += 0.5*v[5];
+	}
+	if (j < nlocal) {
+	  virial_thr[tid][0] += 0.5*v[0];
+	  virial_thr[tid][1] += 0.5*v[1];
+	  virial_thr[tid][2] += 0.5*v[2];
+	  virial_thr[tid][3] += 0.5*v[3];
+	  virial_thr[tid][4] += 0.5*v[4];
+	  virial_thr[tid][5] += 0.5*v[5];
+	}
+      }
+    }
+
+    if (vflag_atom) {
+      if (newton_pair || i < nlocal) {
+	vatom_thr[tid][i][0] += 0.5*v[0];
+	vatom_thr[tid][i][1] += 0.5*v[1];
+	vatom_thr[tid][i][2] += 0.5*v[2];
+	vatom_thr[tid][i][3] += 0.5*v[3];
+	vatom_thr[tid][i][4] += 0.5*v[4];
+	vatom_thr[tid][i][5] += 0.5*v[5];
+      }
+      if (newton_pair || j < nlocal) {
+	vatom_thr[tid][j][0] += 0.5*v[0];
+	vatom_thr[tid][j][1] += 0.5*v[1];
+	vatom_thr[tid][j][2] += 0.5*v[2];
+	vatom_thr[tid][j][3] += 0.5*v[3];
+	vatom_thr[tid][j][4] += 0.5*v[4];
+	vatom_thr[tid][j][5] += 0.5*v[5];
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   reduce the per thread accumulated E/V data into the canonical accumulators.
+------------------------------------------------------------------------- */
+void PairOMP::ev_reduce_thr()
+{
+  const int nthreads=comm->nthreads;
+
+  for (int n = 0; n < nthreads; ++n) {
+    eng_vdwl += eng_vdwl_thr[n];
+    eng_coul += eng_coul_thr[n];
+    if (vflag_either) {
+      virial[0] += virial_thr[n][0];
+      virial[1] += virial_thr[n][1];
+      virial[2] += virial_thr[n][2];
+      virial[3] += virial_thr[n][3];
+      virial[4] += virial_thr[n][4];
+      virial[5] += virial_thr[n][5];
+      if (vflag_atom) {
+	for (int i = 0; i < atom->nmax; ++i) {
+	  vatom[i][0] += vatom_thr[n][i][0];
+	  vatom[i][1] += vatom_thr[n][i][1];
+	  vatom[i][2] += vatom_thr[n][i][2];
+	  vatom[i][3] += vatom_thr[n][i][3];
+	  vatom[i][4] += vatom_thr[n][i][4];
+	  vatom[i][5] += vatom_thr[n][i][5];
+	}
+      }
+    }
+    if (eflag_atom) {
+      for (int i = 0; i < atom->nmax; ++i) {
+	eatom[i] += eatom_thr[n][i];
+      }
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+double PairOMP::memory_usage()
+{
+  const int nthreads=comm->nthreads;
+  
+  double bytes = Pair::memory_usage();
+
+  bytes += nthreads * (2 + 7) * sizeof(double);
+  bytes += nthreads * maxeatom_thr * sizeof(double);
+  bytes += nthreads * maxvatom_thr * 6 * sizeof(double);
+
+  return bytes;
+}

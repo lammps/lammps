@@ -18,6 +18,7 @@
 #include "finish.h"
 #include "timer.h"
 #include "atom.h"
+#include "comm.h"
 #include "force.h"
 #include "kspace.h"
 #include "update.h"
@@ -86,6 +87,16 @@ void Finish::end(int flag)
     MPI_Allreduce(&rlocal,&natoms,1,MPI_DOUBLE,MPI_SUM,world);
     
     if (me == 0) {
+#if defined(_OPENMP)
+      if (screen) 
+	fprintf(screen,
+		"Loop time of %g on %d procs / %d threads for %d steps with %.15g atoms\n",
+		time_loop,nprocs,comm->nthreads,update->nsteps,natoms);
+      if (logfile)
+	fprintf(logfile,
+		"Loop time of %g on %d procs / %d threads for %d steps with %.15g atoms\n",
+		time_loop,nprocs,comm->nthreads,update->nsteps,natoms);
+#else
       if (screen) 
 	fprintf(screen,
 		"Loop time of %g on %d procs for %d steps with %.15g atoms\n",
@@ -94,8 +105,8 @@ void Finish::end(int flag)
 	fprintf(logfile,
 		"Loop time of %g on %d procs for %d steps with %.15g atoms\n",
 		time_loop,nprocs,update->nsteps,natoms);
+#endif
     }
-
     if (time_loop == 0.0) time_loop = 1.0;
   }
 

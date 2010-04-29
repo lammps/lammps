@@ -96,7 +96,7 @@ improper_harmonic.cpp
 improper_harmonic.h
 improper_hybrid.cpp
 improper_hybrid.h
-lmp_openmpi
+lmp_*
 pair_airebo.cpp
 pair_airebo.h
 pair_born_coul_long.cpp
@@ -149,10 +149,14 @@ pair_lj_cut_coul_long_tip4p.cpp
 pair_lj_cut_coul_long_tip4p.h
 pair_lj_cut_gpu.cpp
 pair_lj_cut_gpu.h
+pair_lj_cut_omp.cpp
+pair_lj_cut_omp.h
 pair_lj_cut_opt.cpp
 pair_lj_cut_opt.h
 pair_morse_opt.cpp
 pair_morse_opt.h
+pair_omp.cpp
+pair_omp.h
 pair_resquared.cpp
 pair_resquared.h
 pair_sw.cpp

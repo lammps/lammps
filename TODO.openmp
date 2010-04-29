@@ -1,5 +1,7 @@
 Items that need to be done in the threading branch
+- lj/charmm/coul/long pair style to threading
 - implement "template" optimization trick
 - port the CGCMM pair style to threading
-- add OpenMP compatible makefile
 - think about adding threading to kspace/pppm
+- port dpd pair style to threading
+- port other pair styles to threading

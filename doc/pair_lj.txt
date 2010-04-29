@@ -8,6 +8,7 @@
 
 pair_style lj/cut command :h3
 pair_style lj/cut/gpu command :h3
+pair_style lj/cut/omp command :h3
 pair_style lj/cut/opt command :h3
 pair_style lj/cut/coul/cut command :h3
 pair_style lj/cut/coul/debye command :h3
@@ -18,14 +19,16 @@ pair_style lj/cut/coul/long/tip4p command :h3
 
 pair_style style args :pre
 
-style = {lj/cut} or {lj/cut/gpu} or {lj/cut/opt} or {lj/cut/coul/cut} or {lj/cut/coul/debye} \
-        or {lj/cut/coul/long} or {lj/cut/coul/long/tip4p}
+style = {lj/cut} or {lj/cut/gpu} or {lj/cut/omp} or {lj/cut/opt} or {lj/cut/coul/cut} \
+        or {lj/cut/coul/debye} or {lj/cut/coul/long} or {lj/cut/coul/long/tip4p}
 args = list of arguments for a particular style :ul
   {lj/cut} args = cutoff
     cutoff = global cutoff for Lennard Jones interactions (distance units)
   {lj/cut/gpu} args = gpumode gpuID cutoff
     gpumode = {one/node} or {one/gpu} or {multi/gpu}
     gpuID = ID or number of GPUs
+    cutoff = global cutoff for Lennard Jones interactions (distance units)
+  {lj/cut/omp} args = cutoff
     cutoff = global cutoff for Lennard Jones interactions (distance units)
   {lj/cut/opt} args = cutoff
     cutoff = global cutoff for Lennard Jones interactions (distance units)
@@ -50,6 +53,7 @@ args = list of arguments for a particular style :ul
 
 pair_style lj/cut 2.5
 pair_style lj/cut/gpu one/node 0 2.5
+pair_style lj/cut/omp 2.5
 pair_style lj/cut/opt 2.5
 pair_coeff * * 1 1
 pair_coeff 1 1 1 1.1 2.8 :pre
@@ -89,6 +93,13 @@ Style {lj/cut/gpu} is a GPU-enabled version of style {lj/cut} that
 should give identical answers.  Depending on system size and the GPU
 processor you have on your system, it may be 4x faster (for the
 pairwise portion of the run time).  See more details below.
+
+Style {lj/cut/omp} is an version of style {lj/cut} that supports
+multi-threading using OpenMP directives. In most cases the message passing
+parallelization of LAMMPS is more efficient, but on clusters with a
+slow network or with a large number of processor cores per node, the 
+time spend on communication may dominate due to high latencies or low
+bandwidth and this pair style can be faster than {lj/cut} or {lj/cut/opt}.
 
 Style {lj/cut/opt} is an optimized version of style {lj/cut} that
 should give identical answers.  Depending on system size and the
@@ -240,8 +251,9 @@ See the "run_style"_run_style.html command for details.
 
 The {lj/cut/coul/long} and {lj/cut/coul/long/tip4p} styles are part of
 the "kspace" package.  The {lj/cut/gpu} style is part of the "gpu"
-package.  The {lj/cut/opt} style is part of the "opt" package.  They
-are only enabled if LAMMPS was built with those packages.  See the
+package.  The {lj/cut/omp} style is part of the "user-openmp" package.
+The {lj/cut/opt} style is part of the "opt" package.  They are only 
+enabled if LAMMPS was built with those packages.  See the
 "Making LAMMPS"_Section_start.html#2_3 section for more info.  Note
 that the "kspace" package is installed by default.
 

@@ -32,6 +32,10 @@
 #include "memory.h"
 #include "error.h"
 
+#if defined(_OPENMP)
+#include <omp.h>
+#endif
+
 using namespace LAMMPS_NS;
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
@@ -41,7 +45,7 @@ using namespace LAMMPS_NS;
 
 PairLJCutOMP::PairLJCutOMP(LAMMPS *lmp) : PairOMP(lmp)
 {
-  respa_enable = 1;
+  respa_enable = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -67,81 +71,125 @@ PairLJCutOMP::~PairLJCutOMP()
 
 void PairLJCutOMP::compute(int eflag, int vflag)
 {
-  int i,j,ii,jj,inum,jnum,itype,jtype;
-  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double rsq,r2inv,r6inv,forcelj,factor_lj;
-  int *ilist,*jlist,*numneigh,**firstneigh;
-
-  evdwl = 0.0;
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
     ev_setup_thr(eflag,vflag);
   } else evflag = vflag_fdotr = 0;
 
-  double **x = atom->x;
-  double **f = atom->f;
-  int *type = atom->type;
-  int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
-  double *special_lj = force->special_lj;
-  int newton_pair = force->newton_pair;
+#if defined(_OPENMP)
+#pragma omp parallel default(shared)
+#endif
+  {
+#if defined(_OPENMP)
+    const int tid = omp_get_thread_num();
+#else
+    const int tid = 0;
+#endif
+    const int nthreads = comm->nthreads;
 
-  inum = list->inum;
-  ilist = list->ilist;
-  numneigh = list->numneigh;
-  firstneigh = list->firstneigh;
+    int i,j,ii,jj,inum,jnum,itype,jtype;
+    double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
+    double rsq,r2inv,r6inv,forcelj,factor_lj;
+    int *ilist,*jlist,*numneigh,**firstneigh;
+
+    evdwl = 0.0;
+
+    const int nlocal = atom->nlocal;
+    const int nall = nlocal + atom->nghost;
+
+    double **x = atom->x;
+    // each thread operates on its own copy of the forces array
+    double **f = atom->f + nall*tid;
+    int *type = atom->type;
+    double *special_lj = force->special_lj;
+    int newton_pair = force->newton_pair;
+
+    inum = list->inum;
+    ilist = list->ilist;
+    numneigh = list->numneigh;
+    firstneigh = list->firstneigh;
   
-  // loop over neighbors of my atoms
+    // loop over neighbors of my atoms
+    // each thread works on a fixed chunk of atoms.
+    // XXX: no load balancing. 
+    // need to check how to estimate equal amounts of work. 
+    // add per thread profiling to see how large a difference.
+    const int iidelta = (nthreads > 1) ? 1 + inum/nthreads : inum;
+    const int iifrom = tid*iidelta;
+    const int iito   = ((iifrom + iidelta) > inum) ? inum : (iifrom + iidelta);
+    for (ii = iifrom; ii < iito; ++ii) {
+      i = ilist[ii];
+      xtmp = x[i][0];
+      ytmp = x[i][1];
+      ztmp = x[i][2];
+      itype = type[i];
+      jlist = firstneigh[i];
+      jnum = numneigh[i];
 
-  for (ii = 0; ii < inum; ii++) {
-    i = ilist[ii];
-    xtmp = x[i][0];
-    ytmp = x[i][1];
-    ztmp = x[i][2];
-    itype = type[i];
-    jlist = firstneigh[i];
-    jnum = numneigh[i];
+      for (jj = 0; jj < jnum; jj++) {
+	j = jlist[jj];
 
-    for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-
-      if (j < nall) factor_lj = 1.0;
-      else {
-	factor_lj = special_lj[j/nall];
-	j %= nall;
-      }
-
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;
-      jtype = type[j];
-
-      if (rsq < cutsq[itype][jtype]) {
-	r2inv = 1.0/rsq;
-	r6inv = r2inv*r2inv*r2inv;
-	forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-	fpair = factor_lj*forcelj*r2inv;
-
-	f[i][0] += delx*fpair;
-	f[i][1] += dely*fpair;
-	f[i][2] += delz*fpair;
-	if (newton_pair || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
+	if (j < nall) factor_lj = 1.0;
+	else {
+	  factor_lj = special_lj[j/nall];
+	  j %= nall;
 	}
 
-	if (eflag) {
-	  evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
-	    offset[itype][jtype];
-	  evdwl *= factor_lj;
-	}
+	delx = xtmp - x[j][0];
+	dely = ytmp - x[j][1];
+	delz = ztmp - x[j][2];
+	rsq = delx*delx + dely*dely + delz*delz;
+	jtype = type[j];
 
-	if (evflag) ev_tally_thr(i,j,nlocal,newton_pair,
-				 evdwl,0.0,fpair,delx,dely,delz,0);
+	if (rsq < cutsq[itype][jtype]) {
+	  r2inv = 1.0/rsq;
+	  r6inv = r2inv*r2inv*r2inv;
+	  forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
+	  fpair = factor_lj*forcelj*r2inv;
+
+	  f[i][0] += delx*fpair;
+	  f[i][1] += dely*fpair;
+	  f[i][2] += delz*fpair;
+	  if (newton_pair || j < nlocal) {
+	    f[j][0] -= delx*fpair;
+	    f[j][1] -= dely*fpair;
+	    f[j][2] -= delz*fpair;
+	  }
+
+	  if (eflag) {
+	    evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) 
+	      - offset[itype][jtype];
+	    evdwl *= factor_lj;
+	  }
+
+	  if (evflag) ev_tally_thr(i,j,nlocal,newton_pair,
+				   evdwl,0.0,fpair,delx,dely,delz,tid);
+	}
       }
     }
+
+    // reduce per thread forces into global force array.
+    // post a barrier to wait until all threads are done.
+    // the reduction can be threaded as well.
+#if defined(_OPENMP)
+#pragma omp barrier
+    double **fall = atom->f;
+    const int idelta = (nthreads > 1) ? 1 + nall/nthreads : nall;
+    const int ifrom = tid*idelta;
+    const int ito   = ((ifrom + idelta) > nall) ? nall : (ifrom + idelta);
+    for (int n = 1; n < nthreads; ++n) {
+      const int toffs = n*nall;
+      f = fall + toffs;
+      for (int m = ifrom; m < ito; ++m) {
+        fall[m][0] += f[m][0];
+        f[m][0] = 0.0;
+        fall[m][1] += f[m][1];
+        f[m][1] = 0.0;
+        fall[m][2] += f[m][2];
+        f[m][2] = 0.0;
+      }
+    }
+#endif
   }
   ev_reduce_thr();
   if (vflag_fdotr) virial_compute();

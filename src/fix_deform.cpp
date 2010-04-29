@@ -176,6 +176,9 @@ FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
     if (set[i].style == NONE) dimflag[i] = 0;
     else dimflag[i] = 1;
 
+  if (dimflag[0] || dimflag[1] || dimflag[2]) box_change_size = 1;
+  if (dimflag[3] || dimflag[4] || dimflag[5]) box_change_shape = 1;
+
   // check periodicity
 
   if ((set[0].style && domain->xperiodic == 0) ||

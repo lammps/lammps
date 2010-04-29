@@ -85,10 +85,6 @@ class Thermo : protected Pointers {
   char **id_variable;          // list of variable names
   int *variables;              // list of Variable indices
 
-  double last_time;            // simulation time at last print out
-  double last_cpu;             // cpu time at last print out
-  int  last_step;              // step number at last print out
-
   // private methods
 
   void allocate();
@@ -115,8 +111,6 @@ class Thermo : protected Pointers {
   void compute_elapsed_long();
   void compute_dt();
   void compute_cpu();
-  void compute_tpt();
-  void compute_tps();
 
   void compute_atoms();
   void compute_temp();

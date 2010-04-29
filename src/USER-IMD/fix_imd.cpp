@@ -290,6 +290,38 @@ FixIMD::FixIMD(LAMMPS *lmp, int narg, char **arg) :
   idmap = NULL;
   rev_idmap = NULL;
   
+  /* storage required to communicate a single coordinate or force. */
+  size_one = sizeof(struct commdata);
+}
+
+/*********************************
+ * Clean up on deleting the fix. *
+ *********************************/
+FixIMD::~FixIMD()
+{
+  inthash_t *hashtable = (inthash_t *)idmap;
+  memory->sfree(comm_buf);
+  memory->sfree(force_buf);
+  inthash_destroy(hashtable);
+  delete hashtable;
+  free(rev_idmap);
+  imdsock_shutdown(clientsock);
+  imdsock_destroy(localsock);
+  return;
+}
+
+/* ---------------------------------------------------------------------- */
+int FixIMD::setmask()
+{
+  int mask = 0;
+  mask |= POST_FORCE;
+  mask |= POST_FORCE_RESPA;
+  return mask;
+}
+
+/* ---------------------------------------------------------------------- */
+void FixIMD::init()
+{
   if (me == 0) {
     /* set up incoming socket on MPI rank 0. */
     imdsock_init();
@@ -307,44 +339,6 @@ FixIMD::FixIMD(LAMMPS *lmp, int narg, char **arg) :
   if (imd_terminate)
     error->all("LAMMPS Terminated on error in IMD.");
     
-  /* storage required to communicate a single coordinate or force. */
-  size_one = sizeof(struct commdata);
-}
-
-/*********************************
- * Clean up on deleting the fix. *
- *********************************/
-FixIMD::~FixIMD()
-{
-
-  inthash_t *hashtable = (inthash_t *)idmap;
-  memory->sfree(comm_buf);
-  memory->sfree(force_buf);
-  inthash_destroy(hashtable);
-  delete hashtable;
-  free(rev_idmap);
-  // close sockets
-  imdsock_shutdown(clientsock);
-  imdsock_destroy(clientsock);
-  imdsock_shutdown(localsock);
-  imdsock_destroy(localsock);
-  clientsock=NULL;
-  localsock=NULL;
-  return;
-}
-
-/* ---------------------------------------------------------------------- */
-int FixIMD::setmask()
-{
-  int mask = 0;
-  mask |= POST_FORCE;
-  mask |= POST_FORCE_RESPA;
-  return mask;
-}
-
-/* ---------------------------------------------------------------------- */
-void FixIMD::init()
-{
   if (strcmp(update->integrate_style,"respa") == 0)
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 

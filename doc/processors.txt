@@ -16,9 +16,7 @@ Px,Py,Pz = # of processors in each dimension of a 3d grid :ul
 
 [Examples:]
 
-processors 2 4 4 
-processors * 4 2
-processors * 2 * :pre
+processors 2 4 4 :pre
 
 [Description:]
 
@@ -28,9 +26,6 @@ simulation box.
 When this command has not been specified, LAMMPS will choose Px, Py,
 Pz based on the dimensions of the global simulation box so as to
 minimize the surface/volume ratio of each processor's sub-domain.
-
-A '*' as wildcard character can be used to let LAMMPS decide
-what kind of processor grid to use for that dimension.
 
 Since LAMMPS does not load-balance by changing the grid of 3d
 processors on-the-fly, this command should be used to override the
@@ -60,4 +55,4 @@ processor grid from what is specified in the restart file.
 
 [Default:]
 
-processors * * * :pre
+LAMMPS chooses Px, Py, Pz

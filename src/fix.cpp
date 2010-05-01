@@ -48,6 +48,8 @@ Fix::Fix(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   restart_peratom = 0;
   force_reneighbor = 0;
   box_change = 0;
+  box_change_size = 0;
+  box_change_shape = 0;
   thermo_energy = 0;
   rigid_flag = 0;
   virial_flag = 0;

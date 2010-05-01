@@ -174,7 +174,10 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
   // setup and error check
 
   for (int i = 0; i < nvalues; i++) {
-    if (which[i] == COMPUTE) {
+    if (which[i] == X || which[i] == V || which[i] == F)
+      flavor[i] = PERATOM;
+
+    else if (which[i] == COMPUTE) {
       int icompute = modify->find_compute(ids[i]);
       if (icompute < 0)
 	error->all("Compute ID for compute reduce does not exist");

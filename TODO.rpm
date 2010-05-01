@@ -1,0 +1,6 @@
+- test building the rpm version from svn/git
+- add script for automatic building
+- provide weekly(?) automatic builds ?
+- fedora now supports both mpich2 and openmpi
+  via modules. build both variants.
+- host rpm builds on cms web server

@@ -44,6 +44,7 @@ FixPressBerendsen::FixPressBerendsen(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 5) error->all("Illegal fix press/berendsen command");
 
   box_change = 1;
+  box_change_size = 1;
 
   // Berendsen barostat applied every step
 

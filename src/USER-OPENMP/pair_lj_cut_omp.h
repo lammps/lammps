@@ -30,23 +30,38 @@ namespace LAMMPS_NS {
 
 class PairLJCutOMP : public PairOMP {
  public:
+
   PairLJCutOMP(class LAMMPS *);
   ~PairLJCutOMP();
-  virtual void compute(int, int);
-  virtual void settings(int, char **);
-  void coeff(int, char **);
-  virtual void init_style();
-  void init_list(int, class NeighList *);
-  double init_one(int, int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
-  double single(int, int, int, int, double, double, double, double &);
 
-  void compute_inner();
-  void compute_middle();
-  void compute_outer(int, int);
+  virtual void compute(int, int);
+  virtual void compute_inner();
+  virtual void compute_middle();
+  virtual void compute_outer(int, int);
+
+  virtual double single(int, int, int, int, 
+			double, double, double, double &);
+
+  virtual void settings(int, char **);
+  virtual void coeff(int, char **);
+
+  virtual void init_style();
+  virtual void init_list(int, class NeighList *);
+  virtual double init_one(int, int);
+
+  virtual void write_restart(FILE *);
+  virtual void read_restart(FILE *);
+  virtual void write_restart_settings(FILE *);
+  virtual void read_restart_settings(FILE *);
+
+  virtual double memory_usage();
+
+ protected:
+  template <int EVFLAG, int EFLAG, int NEWTON_PAIR> void eval();
+  template <int NEWTON_PAIR> void eval_inner();
+  template <int NEWTON_PAIR> void eval_middle();
+  template <int EVFLAG, int EFLAG, int VFLAG, int NEWTON_PAIR> 
+  void eval_outer();
 
  protected:
   double cut_global;

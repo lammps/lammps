@@ -57,6 +57,13 @@ class PairLJCutOMP : public PairOMP {
   virtual double memory_usage();
 
  protected:
+  template <int EVFLAG, int EFLAG, int NEWTON_PAIR> void eval();
+  template <int NEWTON_PAIR> void eval_inner();
+  template <int NEWTON_PAIR> void eval_middle();
+  template <int EVFLAG, int EFLAG, int VFLAG, int NEWTON_PAIR> 
+  void eval_outer();
+
+ protected:
   double cut_global;
   double **cut;
   double **epsilon,**sigma;

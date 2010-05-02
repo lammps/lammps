@@ -76,6 +76,24 @@ void PairLJCutOMP::compute(int eflag, int vflag)
     ev_setup_thr(eflag,vflag);
   } else evflag = vflag_fdotr = 0;
 
+  if (evflag) {
+    if (eflag) {
+      if (force->newton_pair) return eval<1,1,1>();
+      else return eval<1,1,0>();
+    } else {
+      if (force->newton_pair) return eval<1,0,1>();
+      else return eval<1,0,0>();
+    }
+  } else {
+    if (force->newton_pair) return eval<0,0,1>();
+    else return eval<0,0,0>();
+  }
+}
+
+template <int EVFLAG, int EFLAG, int NEWTON_PAIR> 
+void PairLJCutOMP::eval() 
+{
+
 #if defined(_OPENMP)
 #pragma omp parallel default(shared)
 #endif
@@ -102,7 +120,6 @@ void PairLJCutOMP::compute(int eflag, int vflag)
     double **f = atom->f + nall*tid;
     int *type = atom->type;
     double *special_lj = force->special_lj;
-    int newton_pair = force->newton_pair;
 
     inum = list->inum;
     ilist = list->ilist;
@@ -150,19 +167,19 @@ void PairLJCutOMP::compute(int eflag, int vflag)
 	  f[i][0] += delx*fpair;
 	  f[i][1] += dely*fpair;
 	  f[i][2] += delz*fpair;
-	  if (newton_pair || j < nlocal) {
+	  if (NEWTON_PAIR || j < nlocal) {
 	    f[j][0] -= delx*fpair;
 	    f[j][1] -= dely*fpair;
 	    f[j][2] -= delz*fpair;
 	  }
 
-	  if (eflag) {
+	  if (EFLAG) {
 	    evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) 
 	      - offset[itype][jtype];
 	    evdwl *= factor_lj;
 	  }
 
-	  if (evflag) ev_tally_thr(i,j,nlocal,newton_pair,
+	  if (EVFLAG) ev_tally_thr(i,j,nlocal,NEWTON_PAIR,
 				   evdwl,0.0,fpair,delx,dely,delz,tid);
 	}
       }
@@ -199,7 +216,13 @@ void PairLJCutOMP::compute(int eflag, int vflag)
 
 void PairLJCutOMP::compute_inner()
 {
+  if (force->newton_pair) return eval_inner<1>();
+  else return eval_inner<0>();
+}
 
+template <int NEWTON_PAIR>
+void PairLJCutOMP::eval_inner() 
+{
 #if defined(_OPENMP)
 #pragma omp parallel default(shared)
 #endif
@@ -223,7 +246,6 @@ void PairLJCutOMP::compute_inner()
     double **f = atom->f + nall*tid;
     int *type = atom->type;
     double *special_lj = force->special_lj;
-    int newton_pair = force->newton_pair;
   
     inum = listinner->inum;
     ilist = listinner->ilist;
@@ -281,7 +303,7 @@ void PairLJCutOMP::compute_inner()
 	  f[i][0] += delx*fpair;
 	  f[i][1] += dely*fpair;
 	  f[i][2] += delz*fpair;
-	  if (newton_pair || j < nlocal) {
+	  if (NEWTON_PAIR || j < nlocal) {
 	    f[j][0] -= delx*fpair;
 	    f[j][1] -= dely*fpair;
 	    f[j][2] -= delz*fpair;
@@ -317,9 +339,16 @@ void PairLJCutOMP::compute_inner()
 
 /* ---------------------------------------------------------------------- */
 
+
 void PairLJCutOMP::compute_middle()
 {
+  if (force->newton_pair) return eval_middle<1>();
+  else return eval_middle<0>();
+}
 
+template <int NEWTON_PAIR>
+void PairLJCutOMP::eval_middle() 
+{
 #if defined(_OPENMP)
 #pragma omp parallel default(shared)
 #endif
@@ -342,7 +371,6 @@ void PairLJCutOMP::compute_middle()
     double **f = atom->f + nall*tid;
     int *type = atom->type;
     double *special_lj = force->special_lj;
-    int newton_pair = force->newton_pair;
 
     inum = listmiddle->inum;
     ilist = listmiddle->ilist;
@@ -409,7 +437,7 @@ void PairLJCutOMP::compute_middle()
 	  f[i][0] += delx*fpair;
 	  f[i][1] += dely*fpair;
 	  f[i][2] += delz*fpair;
-	  if (newton_pair || j < nlocal) {
+	  if (NEWTON_PAIR || j < nlocal) {
 	    f[j][0] -= delx*fpair;
 	    f[j][1] -= dely*fpair;
 	    f[j][2] -= delz*fpair;
@@ -447,7 +475,38 @@ void PairLJCutOMP::compute_middle()
 
 void PairLJCutOMP::compute_outer(int eflag, int vflag)
 {
+  if (eflag || vflag) {
+    ev_setup(eflag,vflag);
+    ev_setup_thr(eflag,vflag);
+  } else evflag = vflag_fdotr = 0;
 
+  if (evflag) {
+    if (eflag) {
+      if (vflag) {
+	if (force->newton_pair) return eval_outer<1,1,1,1>();
+	else return eval_outer<1,1,1,0>();
+      } else {
+	if (force->newton_pair) return eval_outer<1,1,0,1>();
+	else return eval_outer<1,1,0,0>();
+      }
+    } else {
+      if (vflag) {
+	if (force->newton_pair) return eval_outer<1,0,1,1>();
+	else return eval_outer<1,0,1,0>();
+      } else {
+	if (force->newton_pair) return eval_outer<1,0,0,1>();
+	else return eval_outer<1,0,0,0>();
+      }
+    }
+  } else {
+    if (force->newton_pair) return eval_outer<0,0,0,1>();
+    else return eval_outer<0,0,0,0>();
+  }
+}
+
+template <int EVFLAG, int EFLAG, int VFLAG, int NEWTON_PAIR> 
+void PairLJCutOMP::eval_outer() 
+{
 #if defined(_OPENMP)
 #pragma omp parallel default(shared)
 #endif
@@ -465,8 +524,6 @@ void PairLJCutOMP::compute_outer(int eflag, int vflag)
     int *ilist,*jlist,*numneigh,**firstneigh;
 
     evdwl = 0.0;
-    if (eflag || vflag) ev_setup(eflag,vflag);
-    else evflag = 0;
 
     double **x = atom->x;
     double **f = atom->f;
@@ -474,7 +531,6 @@ void PairLJCutOMP::compute_outer(int eflag, int vflag)
     int nlocal = atom->nlocal;
     int nall = nlocal + atom->nghost;
     double *special_lj = force->special_lj;
-    int newton_pair = force->newton_pair;
 
     inum = listouter->inum;
     ilist = listouter->ilist;
@@ -533,14 +589,14 @@ void PairLJCutOMP::compute_outer(int eflag, int vflag)
 	    f[i][0] += delx*fpair;
 	    f[i][1] += dely*fpair;
 	    f[i][2] += delz*fpair;
-	    if (newton_pair || j < nlocal) {
+	    if (NEWTON_PAIR || j < nlocal) {
 	      f[j][0] -= delx*fpair;
 	      f[j][1] -= dely*fpair;
 	      f[j][2] -= delz*fpair;
 	    }
 	  }
 
-	  if (eflag) {
+	  if (EFLAG) {
 	    r2inv = 1.0/rsq;
 	    r6inv = r2inv*r2inv*r2inv;
 	    evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
@@ -548,7 +604,7 @@ void PairLJCutOMP::compute_outer(int eflag, int vflag)
 	    evdwl *= factor_lj;
 	  }
 
-	  if (vflag) {
+	  if (VFLAG) {
 	    if (rsq <= cut_in_off_sq) {
 	      r2inv = 1.0/rsq;
 	      r6inv = r2inv*r2inv*r2inv;
@@ -558,7 +614,7 @@ void PairLJCutOMP::compute_outer(int eflag, int vflag)
 	      fpair = factor_lj*forcelj*r2inv;
 	  }
 
-	  if (evflag) ev_tally_thr(i,j,nlocal,newton_pair,
+	  if (EVFLAG) ev_tally_thr(i,j,nlocal,NEWTON_PAIR,
 				   evdwl,0.0,fpair,delx,dely,delz,0);
 	}
       }
@@ -587,6 +643,7 @@ void PairLJCutOMP::compute_outer(int eflag, int vflag)
 #endif
   }
   ev_reduce_thr();
+  if (vflag_fdotr) virial_compute();
 }
 
 /* ----------------------------------------------------------------------

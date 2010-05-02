@@ -888,3 +888,17 @@ double PairLJCutOMP::single(int i, int j, int itype, int jtype, double rsq,
     offset[itype][jtype];
   return factor_lj*philj;
 }
+
+/* ---------------------------------------------------------------------- */
+
+double PairLJCutOMP::memory_usage()
+{
+  const int n=atom->ntypes;
+  
+  double bytes = PairOMP::memory_usage();
+
+  bytes += 9*((n+1)*(n+1) * sizeof(double) + (n+1)*sizeof(double *));
+  bytes += 1*((n+1)*(n+1) * sizeof(int) + (n+1)*sizeof(int *));
+
+  return bytes;
+}

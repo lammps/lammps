@@ -36,9 +36,11 @@ class PairOMP : public Pair {
  public:
   PairOMP(class LAMMPS *);
   virtual ~PairOMP();
+
   virtual double memory_usage();
 
  protected:
+  // threading adapted versions of the ev_tally infrastructure.
   void ev_setup_thr(int, int);
   void ev_reduce_thr();
   void ev_tally_thr(int, int, int, int, double, double, double,

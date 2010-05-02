@@ -3,10 +3,7 @@
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
-   Copyright (2003) Sandia Corporation.  Under the terms of Contract
-   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
-   the GNU General Public License.
+   This software is distributed under the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
@@ -186,27 +183,7 @@ void PairLJCutOMP::eval()
     }
 
     // reduce per thread forces into global force array.
-    // post a barrier to wait until all threads are done.
-    // the reduction can be threaded as well.
-#if defined(_OPENMP)
-#pragma omp barrier
-    double **fall = atom->f;
-    const int idelta = (nthreads > 1) ? 1 + nall/nthreads : nall;
-    const int ifrom = tid*idelta;
-    const int ito   = ((ifrom + idelta) > nall) ? nall : (ifrom + idelta);
-    for (int n = 1; n < nthreads; ++n) {
-      const int toffs = n*nall;
-      f = fall + toffs;
-      for (int m = ifrom; m < ito; ++m) {
-	fall[m][0] += f[m][0];
-	f[m][0] = 0.0;
-	fall[m][1] += f[m][1];
-	f[m][1] = 0.0;
-	fall[m][2] += f[m][2];
-	f[m][2] = 0.0;
-      }
-    }
-#endif
+    force_reduce_thr(atom->f, nall, nthreads, tid);
   }
   ev_reduce_thr();
   if (vflag_fdotr) virial_compute();
@@ -313,27 +290,7 @@ void PairLJCutOMP::eval_inner()
     }
 
     // reduce per thread forces into global force array.
-    // post a barrier to wait until all threads are done.
-    // the reduction can be threaded as well.
-#if defined(_OPENMP)
-#pragma omp barrier
-    double **fall = atom->f;
-    const int idelta = (nthreads > 1) ? 1 + nall/nthreads : nall;
-    const int ifrom = tid*idelta;
-    const int ito   = ((ifrom + idelta) > nall) ? nall : (ifrom + idelta);
-    for (int n = 1; n < nthreads; ++n) {
-      const int toffs = n*nall;
-      f = fall + toffs;
-      for (int m = ifrom; m < ito; ++m) {
-	fall[m][0] += f[m][0];
-	f[m][0] = 0.0;
-	fall[m][1] += f[m][1];
-	f[m][1] = 0.0;
-	fall[m][2] += f[m][2];
-	f[m][2] = 0.0;
-      }
-    }
-#endif
+    force_reduce_thr(atom->f, nall, nthreads, tid);
   }
 }
 
@@ -447,27 +404,7 @@ void PairLJCutOMP::eval_middle()
     }
     
     // reduce per thread forces into global force array.
-    // post a barrier to wait until all threads are done.
-    // the reduction can be threaded as well.
-#if defined(_OPENMP)
-#pragma omp barrier
-    double **fall = atom->f;
-    const int idelta = (nthreads > 1) ? 1 + nall/nthreads : nall;
-    const int ifrom = tid*idelta;
-    const int ito   = ((ifrom + idelta) > nall) ? nall : (ifrom + idelta);
-    for (int n = 1; n < nthreads; ++n) {
-      const int toffs = n*nall;
-      f = fall + toffs;
-      for (int m = ifrom; m < ito; ++m) {
-	fall[m][0] += f[m][0];
-	f[m][0] = 0.0;
-	fall[m][1] += f[m][1];
-	f[m][1] = 0.0;
-	fall[m][2] += f[m][2];
-	f[m][2] = 0.0;
-      }
-    }
-#endif
+    force_reduce_thr(atom->f, nall, nthreads, tid);
   }
 }
 
@@ -620,28 +557,9 @@ void PairLJCutOMP::eval_outer()
       }
     }
     // reduce per thread forces into global force array.
-    // post a barrier to wait until all threads are done.
-    // the reduction can be threaded as well.
-#if defined(_OPENMP)
-#pragma omp barrier
-    double **fall = atom->f;
-    const int idelta = (nthreads > 1) ? 1 + nall/nthreads : nall;
-    const int ifrom = tid*idelta;
-    const int ito   = ((ifrom + idelta) > nall) ? nall : (ifrom + idelta);
-    for (int n = 1; n < nthreads; ++n) {
-      const int toffs = n*nall;
-      f = fall + toffs;
-      for (int m = ifrom; m < ito; ++m) {
-	fall[m][0] += f[m][0];
-	f[m][0] = 0.0;
-	fall[m][1] += f[m][1];
-	f[m][1] = 0.0;
-	fall[m][2] += f[m][2];
-	f[m][2] = 0.0;
-      }
-    }
-#endif
+    force_reduce_thr(atom->f, nall, nthreads, tid);
   }
+  // reduce per thread accumulators
   ev_reduce_thr();
   if (vflag_fdotr) virial_compute();
 }

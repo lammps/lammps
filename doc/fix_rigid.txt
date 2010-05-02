@@ -6,14 +6,16 @@
 
 :line
 
-fix rigid :h3
+fix rigid command :h3
+fix rigid/nve command :h3
+fix rigid/nvt command :h3
 
 [Syntax:]
 
-fix ID group-ID rigid bodystyle args keyword values ... :pre
+fix ID group-ID style bodystyle args keyword values ... :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
-rigid = style name of this fix command :l
+style = {rigid} or {rigid/nve} or {rigid/nvt} :l
 bodystyle = {single} or {molecule} or {group} :l
   {single} args = none
   {molecule} args = none
@@ -22,7 +24,19 @@ bodystyle = {single} or {molecule} or {group} :l
     groupID1, groupID2, ... = list of N group IDs :pre
 
 zero or more keyword/value pairs may be appended :l
-keyword = {force} or {torque} :l
+keyword = {temp} or {press} or {tparam} or {pparam} or {force} or {torque} :l
+  {temp} values = Tstart Tstop Tperiod
+    Tstart,Tstop = desired temperature at start/stop of run (temperature units)
+    Tdamp = temperature damping parameter (time units)
+  {press} values = Pstart Pstop Pperiod
+    Pstart,Pstop = desired temperature at start/stop of run (pressure units)
+    Pdamp = pressure damping parameter (time units)
+  {tparam} values = Tchain Titer Torder
+    Tchain = length of Nose/Hoover thermostat chain
+    Titer = number of thermostat iterations performed
+    Torder = 3 or 5 = Yoshida-Suzuki integration parameters
+  {pparam} values = Pchain
+    Pchain = length of Nose/Hoover barostat chain
   {force} values = M xflag yflag zflag
     M = which rigid body from 1-Nbody (see asterisk form below)
     xflag,yflag,zflag = off/on if component of center-of-mass force is active
@@ -35,9 +49,8 @@ keyword = {force} or {torque} :l
 
 fix 1 clump rigid single
 fix 1 clump rigid single force 1 off off on
-fix 1 polychains rigid molecule
+fix 1 polychains rigid/nvt molecule temp 1.0 1.0 5.0
 fix 1 polychains rigid molecule force 1*5 off off off force 6*10 off off on
-fix 2 fluid rigid group 3 clump1 clump2 clump3
 fix 2 fluid rigid group 3 clump1 clump2 clump3 torque * off off off :pre
 
 [Description:]
@@ -62,26 +75,26 @@ command can also be used to rigidify small molecules of 2, 3, or 4
 atoms, e.g. water molecules.  That fix treats the constituent atoms as
 point masses.
 
-The constituent particles within a rigid body can be point particles
-(the default in LAMMPS) or finite-size particles, such as spheroids
-and ellipsoids.  See the "shape"_shape.html command and "atom_style
-granular"_atom_style.html for more details on these kinds of
-particles.  Finite-size particles contribute differently to the moment
-of inertia of a rigid body than do point particles.  Finite-size
-particles can also experience torque (e.g. due to "frictional granular
-interactions"_pair_gran.html) and have an orientation.  These
-contributions are accounted for by the fix.
+These fixes also update the positions and velocities of the atoms in
+each rigid body via time integration.  The {rigid} and {rigid/nve}
+styles do this via constant NVE integration.  The only difference is
+that the {rigid} style uses an integration technique based on
+Richardson iterations.  The {rigid/nve} style uses the methods
+described in the paper by "Miller"_#Miller, which are thought to
+provide better energy conservation than an iterative approach.
 
-Forces between particles within a body do not contribute to the
-external force or torque on the body.  Thus for computational
-efficiency, you may wish to turn off pairwise and bond interactions
-between particles within each rigid body.  The "neigh_modify
-exclude"_neigh_modify.html and "delete_bonds"_delete_bonds.html
-commands are used to do this.  For finite-size particles this also
-means the particles can be highly overlapped when creating the rigid
-body.
+The {rigid/nvt} style performs constant NVT integration using a
+Nose/Hoover thermostat with chains as described originally in
+"(Hoover)"_#Hoover and "(Martyna)"_#Martyna, which thermostats both
+the translational and rotational degrees of freedom of the rigid
+bodies.  The rigid-body algorithm used by {rigid/nvt} is described in
+the paper by "Kamberaj"_#Kamberaj.
 
-IMPORTANT NOTE: This fix is overkill if you simply want to hold a
+IMPORTANT NOTE: You should not update the atoms in rigid bodies via
+other time-integration fixes (e.g. nve, nvt, npt), or you will be
+integrating their motion more than once each timestep.
+
+IMPORTANT NOTE: These fixes are overkill if you simply want to hold a
 collection of atoms stationary or have them move with a constant
 velocity.  A simpler way to hold atoms stationary is to not include
 those atoms in your time integration fix.  E.g. use "fix 1 mobile nve"
@@ -92,9 +105,26 @@ command), setting the force on them to 0.0 (via the "fix
 setforce"_fix_setforce.html command), and integrating them as usual
 (e.g. via the "fix nve"_fix_nve.html command).
 
-IMPORTANT NOTE: This fix updates the positions and velocities of the
-rigid atoms with a constant-energy time integration, so you should not
-update the same atoms via other fixes (e.g. nve, nvt, npt).
+:line
+
+The constituent particles within a rigid body can be point particles
+(the default in LAMMPS) or finite-size particles, such as spheroids
+and ellipsoids.  See the "shape"_shape.html command and "atom_style
+granular"_atom_style.html for more details on these kinds of
+particles.  Finite-size particles contribute differently to the moment
+of inertia of a rigid body than do point particles.  Finite-size
+particles can also experience torque (e.g. due to "frictional granular
+interactions"_pair_gran.html) and have an orientation.  These
+contributions are accounted for by these fixes.
+
+Forces between particles within a body do not contribute to the
+external force or torque on the body.  Thus for computational
+efficiency, you may wish to turn off pairwise and bond interactions
+between particles within each rigid body.  The "neigh_modify
+exclude"_neigh_modify.html and "delete_bonds"_delete_bonds.html
+commands are used to do this.  For finite-size particles this also
+means the particles can be highly overlapped when creating the rigid
+body.
 
 :line
 
@@ -146,24 +176,51 @@ bond interactions within each rigid body, as they no longer contribute
 to the motion.  The "neigh_modify exclude"_neigh_modify.html and
 "delete_bonds"_delete_bonds.html commands are used to do this.
 
-For computational efficiency, you should define one fix rigid which
-includes all the desired rigid bodies.  LAMMPS will allow multiple
-rigid fixes to be defined, but it is more expensive.
+For computational efficiency, you should typically define one fix
+rigid which includes all the desired rigid bodies.  LAMMPS will allow
+multiple rigid fixes to be defined, but it is more expensive.
 
-This fix uses constant-energy NVE-style integration, so you may need
-to impose additional constraints to control the temperature of an
-ensemble of rigid bodies.  You can use "fix
-langevin"_fix_langevin.html for this purpose to treat the system as
+:line
+
+As stated above, the {rigid} and {rigid/nve} styles perform constant
+NVE time integration.  Thus the {temp}, {press}, and {tparam} keywords
+cannot be used with these styles.
+
+The {rigid/nvt} style performs constant NVT time integration, using a
+temperature it computes for the rigid bodies which includes their
+translational and rotational motion.  The {temp} keyword must be used
+with this style.  The desired temperature at each timestep is a ramped
+value during the run from {Tstart} to {Tstop}.  The {Tdamp} parameter
+is specified in time units and determines how rapidly the temperature
+is relaxed.  For example, a value of 100.0 means to relax the
+temperature in a timespan of (roughly) 100 time units (tau or fmsec or
+psec - see the "units"_units.html command).
+
+Nose/Hoover chains are used in conjunction with this thermostat.  The
+{tparam} keyword can optionally be used to change the chain settings
+used.  {Tchain} is the number of thermostats in the Nose Hoover chain.
+This value, along with {Tdamp} can be varied to dampen undesirable
+oscillations in temperature that can occur in a simulation.  As a rule
+of thumb, increasing the chain length should lead to smaller
+oscillations.
+
+There are alternate ways to thermostat a system of rigid bodies.  You
+can use "fix langevin"_fix_langevin.html to treat the system as
 effectively immersed in an implicit solvent, e.g. a Brownian dynamics
-model.  Or you can thermostat only the non-rigid atoms that surround
-one or more rigid bodies (i.e. explicit solvent) by appropriate choice
-of groups in the compute and fix commands for temperature and
-thermostatting.
+model.  For hybrid systems with both rigid bodies and solvent
+particles, you can thermostat only the solvent particles that surround
+one or more rigid bodies by appropriate choice of groups in the
+compute and fix commands for temperature and thermostatting.  The
+solvent interactions with the rigid bodies should then effectively
+thermostat the rigid body temperature as well.
 
-If you calculate a temperature for particles in the rigid bodies, the
-degrees-of-freedom removed by each rigid body are accounted for in the
-temperature (and pressure) computation, but only if the temperature
-group includes all the particles in a particular rigid body.
+:line
+
+If you use a "temperature compute"_compute.html with a group that
+includes particles in rigid bodies, the degrees-of-freedom removed by
+each rigid body are accounted for in the temperature (and pressure)
+computation, but only if the temperature group includes all the
+particles in a particular rigid body.
 
 A 3d rigid body has 6 degrees of freedom (3 translational, 3
 rotational), except for a collection of point particles lying on a
@@ -172,7 +229,7 @@ degrees of freedom (2 translational, 1 rotational).
 
 IMPORTANT NOTE: You may wish to explicitly subtract additional
 degrees-of-freedom if you use the {force} and {torque} keywords to
-eliminate certain motions of one or more rigid bodies, as LAMMPS does
+eliminate certain motions of one or more rigid bodies.  LAMMPS does
 not do this automatically.
 
 The rigid body contribution to the pressure of the system (virial) is
@@ -192,13 +249,22 @@ between a pair of rigid bodies and the bond straddles a periodic
 boundary, you cannot use the "replicate"_replicate command to increase
 the system size.
 
+:line
+
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
-No information about this fix is written to "binary restart
-files"_restart.html.  None of the "fix_modify"_fix_modify.html options
-are relevant to this fix.
+No information about the {rigid} and {rigid/nve} fixes are written to
+"binary restart files"_restart.html.  For style {rigid/nvt} the state
+of the Nose/Hoover thermostat is written to "binary restart
+files"_restart.html.  See the "read_restart"_read_restart.html command
+for info on how to re-specify a fix in an input script that reads a
+restart file, so that the operation of the fix continues in an
+uninterrupted fashion.
 
-This fix computes a global array of values which can be accessed by
+None of the "fix_modify"_fix_modify.html options are relevant to these
+fixes.
+
+These fixes compute a global array of values which can be accessed by
 various "output commands"_Section_howto.html#4_15.  The number of rows
 in the array is equal to the number of rigid bodies.  The number of
 columns is 12.  Thus for each rigid body, 12 values are stored: the
@@ -215,17 +281,19 @@ For the {single} keyword there is just one rigid body.  For the
 For the {group} keyword, the list of group IDs determines the ordering
 of bodies.
 
-The array values calculated by this fix are "intensive".
+The array values calculated by these fixes are "intensive", meaning
+they are independent of the number of atoms in the simulation.
 
-No parameter of this fix can be used with the {start/stop} keywords of
-the "run"_run.html command.  This fix is not invoked during "energy
-minimization"_minimize.html.
+No parameter of these fixes can be used with the {start/stop} keywords
+of the "run"_run.html command.  These fixes are not invoked during
+"energy minimization"_minimize.html.
 
 [Restrictions:]
 
-This fix performs an MPI_Allreduce each timestep that is proportional
-in length to the number of rigid bodies.  Hence it will not scale well
-in parallel if large numbers of rigid bodies are simulated.
+These fixes performs an MPI_Allreduce each timestep that is
+proportional in length to the number of rigid bodies.  Hence they will
+not scale well in parallel if large numbers of rigid bodies are
+simulated.
 
 If the atoms in a single rigid body initially straddle a periodic
 boundary, the input data file must define the image flags for each
@@ -239,10 +307,25 @@ exclude
 
 [Default:]
 
-The option defaults are force * on on on and torque * on on on meaning
-all rigid bodies are acted on by center-of-mass force and torque.
+The option defaults are force * on on on and torque * on on on,
+meaning all rigid bodies are acted on by center-of-mass force and
+torque.  Also Tchain = 10, Titer = 1, Torder = 3.
 
 :line
+
+:link(Hoover)
+[(Hoover)] Hoover, Phys Rev A, 31, 1695 (1985).
+
+:link(Kamberaj)
+[(Kamberaj)] Kamberaj, Low, Neal, J Chem Phys, 122, 224114 (2005).
+
+:link(Martyna)
+[(Martyna)] Martyna, Klein, Tuckerman, J Chem Phys, 97, 2635 (1992);
+Martyna, Tuckerman, Tobias, Klein, Mol Phys, 87, 1117.
+
+:link(Miller)
+[(Miller)] Miller, Eleftheriou, Pattnaik, Ndirango, and Newns, 
+J Chem Phys, 116, 8649 (2002).
 
 :link(Zhang)
 [(Zhang)] Zhang, Glotzer, Nanoletters, 4, 1407-1413 (2004).

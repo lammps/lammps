@@ -106,11 +106,13 @@ since if the maximum tilt factor is 5 (as in this example), then
 configurations with tilt = ..., -15, -5, 5, 15, 25, ... are all
 equivalent.
 
-Many crystal structures are defined using three lattice constants {a}, {b},
-and {c}, and three angles {alpha}, {beta} and {gamma}. The relationships between
-these quantities and the LAMMPS box dimensions are as follows:
+Many crystal structures are defined using three lattice constants {a},
+{b}, and {c}, and three angles {alpha}, {beta} and {gamma}. The
+relationships between these quantities and the LAMMPS box dimensions
+(lx,ly,lz) = (xhi-zlo,yhi-ylo,zhi-zlo) and tilt factors (xy,xz,yz) are
+as follows:
 
- :c,image(Eqs/box.jpg) 
+:c,image(Eqs/box.jpg) 
 
 When a triclinic system is used, the simulation domain must be
 periodic in any dimensions with a non-zero tilt factor, as defined by

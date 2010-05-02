@@ -207,7 +207,11 @@ list of fix styles available in LAMMPS:
 "recenter"_fix_recenter.html - constrain the center-of-mass position \
   of a group of atoms
 "rigid"_fix_rigid.html - constrain one or more clusters of atoms to \
-     move as a rigid body
+     move as a rigid body with NVE integration
+"rigid/nve"_fix_rigid.html - constrain one or more clusters of atoms to \
+     move as a rigid body with alternate NVE integration
+"rigid/nvt"_fix_rigid.html - constrain one or more clusters of atoms to \
+     move as a rigid body with NVT integration
 "setforce"_fix_setforce.html - set the force on each atom
 "shake"_fix_shake.html - SHAKE constraints on bonds and/or angles
 "spring"_fix_spring.html - apply harmonic spring force to group of atoms

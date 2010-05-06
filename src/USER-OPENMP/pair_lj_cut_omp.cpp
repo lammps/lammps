@@ -42,7 +42,7 @@ using namespace LAMMPS_NS;
 
 PairLJCutOMP::PairLJCutOMP(LAMMPS *lmp) : PairOMP(lmp)
 {
-  respa_enable = 0;
+  respa_enable = 1;
 }
 
 /* ---------------------------------------------------------------------- */

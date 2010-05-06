@@ -70,7 +70,8 @@ value from Tstart to Tstop.
 <P>For style <I>dpd</I>, the pairwise energy associated with style <I>dpd</I> is
 only due to the conservative force term Fc.  The pairwise virial is
 calculated using all 3 terms.  For style <I>dpd/tstat</I> there is no
-pairwise energy or virial.
+pairwise energy, but the last two terms of the formula make a
+contribution to the virial.
 </P>
 <P>For style <I>dpd</I>, the following coefficients must be defined for each
 pair of atoms types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in

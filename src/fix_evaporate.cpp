@@ -194,7 +194,7 @@ void FixEvaporate::pre_exchange()
 
   // atomic deletions
   // choose atoms randomly across all procs and mark them for deletion
-  // shrink list of eligible candidates as my atoms get marked
+  // shrink eligible list as my atoms get marked
 
   if (molflag == 0) {
     for (i = 0; i < nwhack; i++) {
@@ -235,7 +235,7 @@ void FixEvaporate::pre_exchange()
       // bcast mol ID to delete all atoms from
       // only delete original iatom if mol ID = 0
 
-      MPI_Allreduce(&me,&proc,1,MPI_INT,MPI_SUM,world);
+      MPI_Allreduce(&me,&proc,1,MPI_INT,MPI_MAX,world);
       MPI_Bcast(&imolecule,1,MPI_INT,proc,world);
       ndelone = 0;
       for (i = 0; i < nlocal; i++) {
@@ -253,7 +253,7 @@ void FixEvaporate::pre_exchange()
       i = 0;
       while (i < ncount) {
 	if (mark[list[i]]) {
-	  list[i] = list[ncount];
+	  list[i] = list[ncount-1];
 	  ncount--;
 	} else i++;
       }

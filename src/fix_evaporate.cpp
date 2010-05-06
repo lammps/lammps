@@ -37,7 +37,7 @@ using namespace LAMMPS_NS;
 FixEvaporate::FixEvaporate(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg != 7) error->all("Illegal fix evaporate command");
+  if (narg < 7) error->all("Illegal fix evaporate command");
 
   scalar_flag = 1;
   global_freq = 1;
@@ -55,6 +55,21 @@ FixEvaporate::FixEvaporate(LAMMPS *lmp, int narg, char **arg) :
   // random number generator, same for all procs
 
   random = new RanPark(lmp,seed);
+
+  // optional args
+
+  molflag = 0;
+
+  int iarg = 7;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"molecule") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix evaporate command");
+      if (strcmp(arg[iarg+1],"no") == 0) molflag = 0;
+      else if (strcmp(arg[iarg+1],"yes") == 0) molflag = 1;
+      else error->all("Illegal fix evaporate command");
+      iarg += 2;
+    } else error->all("Illegal fix evaporate command");
+  }
 
   // set up reneighboring
 
@@ -107,6 +122,26 @@ void FixEvaporate::init()
     if (flagall)
       error->all("Cannot evaporate atoms in atom_modify first group");
   }
+
+  // if molflag not set, warn if any deletable atom has a mol ID
+
+  if (molflag == 0 && atom->molecule_flag) {
+    int *molecule = atom->molecule;
+    int *mask = atom->mask;
+    int nlocal = atom->nlocal;
+    int flag = 0;
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit)
+	if (molecule[i]) flag = 1;
+    int flagall;
+    MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
+    if (flagall && comm->me == 0)
+      error->
+	warning("Fix evaporate may delete atom with non-zero molecule ID");
+  }
+
+  if (molflag && atom->molecule_flag == 0)
+      error->all("Fix evaporate molecule requires atom attribute molecule");
 }
 
 /* ----------------------------------------------------------------------
@@ -131,8 +166,10 @@ void FixEvaporate::pre_exchange()
     mark = (int *) memory->smalloc(nmax*sizeof(int),"evaporate:mark");
   }
 
-  // nall = # of deletable atoms in region
+  // ncount = # of deletable atoms in region that I own
+  // nall = # on all procs
   // nbefore = # on procs before me
+  // list[ncount] = list of local indices
 
   double **x = atom->x;
   int *mask = atom->mask;
@@ -150,25 +187,90 @@ void FixEvaporate::pre_exchange()
   nbefore -= ncount;
   
   // nwhack = total number of atoms to delete
-  // choose atoms randomly across all procs and mark them for deletion
-  // shrink local list of candidates as my atoms get marked for deletion
+  // mark[] = 1 if deleted
 
   int nwhack = MIN(nflux,nall);
-
   for (i = 0; i < nlocal; i++) mark[i] = 0;
-  
-  for (i = 0; i < nwhack; i++) {
-    iwhichglobal = static_cast<int> (nall*random->uniform());
-    if (iwhichglobal < nbefore) nbefore--;
-    else if (iwhichglobal < nbefore + ncount) {
-      iwhichlocal = iwhichglobal - nbefore;
-      mark[list[iwhichlocal]] = 1;
-      list[iwhichlocal] = list[ncount-1];
-      ncount--;
-    }
+
+  // atomic deletions
+  // choose atoms randomly across all procs and mark them for deletion
+  // shrink list of eligible candidates as my atoms get marked
+
+  if (molflag == 0) {
+    for (i = 0; i < nwhack; i++) {
+      iwhichglobal = static_cast<int> (nall*random->uniform());
+      if (iwhichglobal < nbefore) nbefore--;
+      else if (iwhichglobal < nbefore + ncount) {
+	iwhichlocal = iwhichglobal - nbefore;
+	mark[list[iwhichlocal]] = 1;
+	list[iwhichlocal] = list[ncount-1];
+	ncount--;
+      }
     nall--;
+    }
+
+  // molecule deletions
+  // choose one atom in one molecule randomly across all procs
+  // bcast mol ID and delete all atoms in that molecule on any proc
+  // update deletion count by total # of atoms in molecule
+  // shrink list of eligible candidates as any of my atoms get marked
+
+  } else {
+    int me,proc,iatom,imolecule,ndelone,ndelall;
+    int *molecule = atom->molecule;
+
+    int ndel = 0;
+    while (ndel < nwhack) {
+
+      // pick an iatom,imolecule on proc me to delete
+
+      iwhichglobal = static_cast<int> (nall*random->uniform());
+      if (iwhichglobal >= nbefore && iwhichglobal < nbefore + ncount) {
+	iwhichlocal = iwhichglobal - nbefore;
+	iatom = list[iwhichlocal];
+	imolecule = molecule[iatom];
+	me = comm->me;
+      } else me = -1;
+
+      // bcast mol ID to delete all atoms from
+      // only delete original iatom if mol ID = 0
+
+      MPI_Allreduce(&me,&proc,1,MPI_INT,MPI_SUM,world);
+      MPI_Bcast(&imolecule,1,MPI_INT,proc,world);
+      ndelone = 0;
+      for (i = 0; i < nlocal; i++) {
+	if (imolecule && molecule[i] == imolecule) {
+	  mark[i] = 1;
+	  ndelone++;
+	} else if (me == proc && i == iatom) {
+	  mark[i] = 1;
+	  ndelone++;
+	}
+      }
+
+      // remove any atoms marked for deletion from my eligible list
+
+      i = 0;
+      while (i < ncount) {
+	if (mark[list[i]]) {
+	  list[i] = list[ncount];
+	  ncount--;
+	} else i++;
+      }
+
+      // ndel = total # of atoms deleted in this molecule
+
+      MPI_Allreduce(&ndelone,&ndelall,1,MPI_INT,MPI_SUM,world);
+      ndel += ndelall;
+
+      // update ncount,nall,nbefore after each molecule deletion
+
+      MPI_Allreduce(&ncount,&nall,1,MPI_INT,MPI_SUM,world);
+      MPI_Scan(&ncount,&nbefore,1,MPI_INT,MPI_SUM,world);
+      nbefore -= ncount;
+    }
   }
-  
+
   // delete my marked atoms
   // loop in reverse order to avoid copying marked atoms
   

@@ -86,7 +86,7 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg) error->all("Illegal fix langevin command");
       if (strcmp(arg[iarg+1],"no") == 0) tally = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) tally = 1;
-      else error->all("Illegal fix indent command");
+      else error->all("Illegal fix langevin command");
       iarg += 2;
     } else error->all("Illegal fix langevin command");
   }

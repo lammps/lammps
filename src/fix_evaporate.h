@@ -36,6 +36,7 @@ class FixEvaporate : public Fix {
 
  private:
   int nevery,nflux,iregion;
+  int molflag;
   int ndeleted;
 
   int nmax;

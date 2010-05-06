@@ -81,7 +81,9 @@ void Neighbor::full_nsq(NeighList *list)
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
       if (rsq <= cutneighsq[itype][jtype]) {
-	if (molecular) which = find_special(i,j);
+	if (molecular) which = find_special(atom->special[i],
+					    atom->nspecial[i],
+					    atom->tag[j]);
 	else which = 0;
 	if (which == 0) neighptr[n++] = j;
 	else if (which > 0) neighptr[n++] = which*nall + j;
@@ -170,7 +172,9 @@ void Neighbor::full_bin(NeighList *list)
 	rsq = delx*delx + dely*dely + delz*delz;
 
 	if (rsq <= cutneighsq[itype][jtype]) {
-	  if (molecular) which = find_special(i,j);
+	  if (molecular) which = find_special(atom->special[i],
+					      atom->nspecial[i],
+					      atom->tag[j]);
 	  else which = 0;
 	  if (which == 0) neighptr[n++] = j;
 	  else if (which > 0) neighptr[n++] = which*nall + j;
@@ -268,7 +272,9 @@ void Neighbor::full_multi(NeighList *list)
 	rsq = delx*delx + dely*dely + delz*delz;
 
 	if (rsq <= cutneighsq[itype][jtype]) {
-	  if (molecular) which = find_special(i,j);
+	  if (molecular) which = find_special(atom->special[i],
+					      atom->nspecial[i],
+					      atom->tag[j]);
 	  else which = 0;
 	  if (which == 0) neighptr[n++] = j;
 	  else if (which > 0) neighptr[n++] = which*nall + j;

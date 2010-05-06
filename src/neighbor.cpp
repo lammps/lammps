@@ -1444,43 +1444,6 @@ void Neighbor::modify_params(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   determine if atom j is in special list of atom i
-   if it is not, return 0
-   if it is and special flag is 0 (both coeffs are 0.0), return -1
-   if it is and special flag is 1 (both coeffs are 1.0), return 0
-   if it is and special flag is 2 (otherwise), return 1,2,3
-     for which neighbor it is (and which coeff it maps to)
-------------------------------------------------------------------------- */
-
-int Neighbor::find_special(int i, int j)
-{
-  int *list = atom->special[i];
-  int n1 = atom->nspecial[i][0];
-  int n2 = atom->nspecial[i][1];
-  int n3 = atom->nspecial[i][2];
-  int tag = atom->tag[j];
-
-  for (int i = 0; i < n3; i++) {
-    if (list[i] == tag) {
-      if (i < n1) {
-	if (special_flag[1] == 0) return -1;
-	else if (special_flag[1] == 1) return 0;
-	else return 1;
-      } else if (i < n2) {
-	if (special_flag[2] == 0) return -1;
-	else if (special_flag[2] == 1) return 0;
-	else return 2;
-      } else {
-	if (special_flag[3] == 0) return -1;
-	else if (special_flag[3] == 1) return 0;
-	else return 3;
-      }
-    }
-  }
-  return 0;
-}
-
-/* ----------------------------------------------------------------------
    bin owned and ghost atoms
 ------------------------------------------------------------------------- */
 

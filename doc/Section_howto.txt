@@ -1251,9 +1251,11 @@ that subtracts a velocity bias.  This allows the translational
 velocity of extended spherical or aspherical particles to be adjusted
 in prescribed ways.
 
-Thermostatting in LAMMPS is performed by "fixes"_fix.html.  Four
-thermostatting fixes are currently available: Nose-Hoover (nvt),
-Berendsen, Langevin, and direct rescaling (temp/rescale):
+Thermostatting in LAMMPS is performed by "fixes"_fix.html, or in one
+case by a pair style.  Four thermostatting fixes are currently
+available: Nose-Hoover (nvt), Berendsen, Langevin, and direct
+rescaling (temp/rescale).  Dissipative particle dynamics (DPD)
+thermostatting can be invoked via the {dpd/tstat} pair style:
 
 "fix nvt"_fix_nh.html
 "fix nvt/sphere"_fix_nvt_sphere.html
@@ -1261,7 +1263,8 @@ Berendsen, Langevin, and direct rescaling (temp/rescale):
 "fix nvt/sllod"_fix_nvt_sllod.html
 "fix temp/berendsen"_fix_temp_berendsen.html
 "fix langevin"_fix_langevin.html
-"fix temp/rescale"_fix_temp_rescale.html :ul
+"fix temp/rescale"_fix_temp_rescale.html
+"pair_style dpd/tstat"_pair_dpd.html :ul
 
 "Fix nvt"_fix_nh.html only thermostats the translational velocity of
 particles.  "Fix nvt/sllod"_fix_nvt_sllod.html also does this, except
@@ -1273,15 +1276,20 @@ nvt/asphere"_fix_nvt_asphere.html thermostat not only translation
 velocities but also rotational velocities for spherical and aspherical
 particles.
 
-Any of these fixes can use temperature computes that remove bias for
-two purposes: (a) computing the current temperature to compare to the
-requested target temperature, and (b) adjusting only the thermal
-temperature component of the particle's velocities.  See the doc pages
-for the individual fixes and for the "fix_modify"_fix_modify.html
-command for instructions on how to assign a temperature compute to a
-thermostatting fix.  For example, you can apply a thermostat to only
-the x and z components of velocity by using it in conjunction with
-"compute temp/partial"_compute_temp_partial.html.
+DPD thermostatting alters pairwise interactions in a manner analagous
+to the per-particle thermostatting of "fix
+langevin"_fix_langevin.html.
+
+Any of the thermostatting fixes can use temperature computes that
+remove bias for two purposes: (a) computing the current temperature to
+compare to the requested target temperature, and (b) adjusting only
+the thermal temperature component of the particle's velocities.  See
+the doc pages for the individual fixes and for the
+"fix_modify"_fix_modify.html command for instructions on how to assign
+a temperature compute to a thermostatting fix.  For example, you can
+apply a thermostat to only the x and z components of velocity by using
+it in conjunction with "compute
+temp/partial"_compute_temp_partial.html.
 
 IMPORTANT NOTE: Only the nvt fixes perform time integration, meaning
 they update the velocities and positions of particles due to forces

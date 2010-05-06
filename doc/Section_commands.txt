@@ -538,6 +538,7 @@ potentials.  Click on the style itself for a full description:
 "coul/long"_pair_coul.html,
 "dipole/cut"_pair_dipole.html,
 "dpd"_pair_dpd.html,
+"dpd/tstat"_pair_dpd.html,
 "dsmc"_pair_dsmc.html,
 "eam"_pair_eam.html,
 "eam/opt"_pair_eam.html,

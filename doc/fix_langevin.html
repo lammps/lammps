@@ -58,7 +58,10 @@ Fr is proportional to sqrt(Kb T m / (dt damp))
 interactions (<A HREF = "pair_style.html">pair_style</A>,
 <A HREF = "bond_style.html">bond_style</A>, etc).
 </P>
-<P>The Ff and Fr terms are added by this fix.
+<P>The Ff and Fr terms are added by this fix on a per-particle basis.
+See the <A HREF = "pair_dpd.html">pair_style dpd/tstat</A> command for a
+thermostatting option that adds similar terms on a pairwise basis to
+pairs of interacting particles.
 </P>
 <P>Ff is a frictional drag or viscous damping term proportional to the
 particle's velocity.  The proportionality constant for each atom is
@@ -188,7 +191,8 @@ quantity requires setting the <I>tally</I> keyword to <I>yes</I>.
 <P><B>Related commands:</B>
 </P>
 <P><A HREF = "fix_nh.html">fix nvt</A>, <A HREF = "fix_temp_rescale.html">fix temp/rescale</A>, <A HREF = "fix_viscous.html">fix
-viscous</A>, <A HREF = "fix_nh.html">fix nvt</A>
+viscous</A>, <A HREF = "fix_nh.html">fix nvt</A>, <A HREF = "pair_dpd.html">pair_style
+dpd/tstat</A>
 </P>
 <P><B>Default:</B>
 </P>

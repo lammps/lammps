@@ -89,6 +89,7 @@ void PairSW::compute(int eflag, int vflag)
   int *tag = atom->tag;
   int *type = atom->type;
   int nlocal = atom->nlocal;
+  int nall = nlocal + atom->nghost;
   int newton_pair = force->newton_pair;
 
   inum = list->inum;
@@ -113,6 +114,7 @@ void PairSW::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
+      j = (j > nall) ? j % nall : j;
       jtag = tag[j];
 
       if (itag > jtag) {
@@ -152,6 +154,7 @@ void PairSW::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnumm1; jj++) {
       j = jlist[jj];
+      j = (j > nall) ? j % nall : j;
       jtype = map[type[j]];
       ijparam = elem2param[itype][jtype][jtype];
       delr1[0] = x[j][0] - xtmp;
@@ -162,6 +165,7 @@ void PairSW::compute(int eflag, int vflag)
 
       for (kk = jj+1; kk < jnum; kk++) {
 	k = jlist[kk];
+	k = (k > nall) ? k % nall : k;
 	ktype = map[type[k]];
 	ikparam = elem2param[itype][ktype][ktype];
 	ijkparam = elem2param[itype][jtype][ktype];

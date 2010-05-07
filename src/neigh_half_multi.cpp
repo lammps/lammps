@@ -101,7 +101,9 @@ void Neighbor::half_multi_no_newton(NeighList *list)
 	rsq = delx*delx + dely*dely + delz*delz;
 
 	if (rsq <= cutneighsq[itype][jtype]) {
-	  if (molecular) which = find_special(i,j);
+	  if (molecular) which = find_special(atom->special[i],
+					      atom->nspecial[i],
+					      atom->tag[j]);
 	  else which = 0;
 	  if (which == 0) neighptr[n++] = j;
 	  else if (which > 0) neighptr[n++] = which*nall + j;
@@ -199,7 +201,9 @@ void Neighbor::half_multi_newton(NeighList *list)
       rsq = delx*delx + dely*dely + delz*delz;
 
       if (rsq <= cutneighsq[itype][jtype]) {
-	if (molecular) which = find_special(i,j);
+	if (molecular) which = find_special(atom->special[i],
+					    atom->nspecial[i],
+					    atom->tag[j]);
 	else which = 0;
 	if (which == 0) neighptr[n++] = j;
 	else if (which > 0) neighptr[n++] = which*nall + j;
@@ -227,7 +231,9 @@ void Neighbor::half_multi_newton(NeighList *list)
 	rsq = delx*delx + dely*dely + delz*delz;
 
 	if (rsq <= cutneighsq[itype][jtype]) {
-	  if (molecular) which = find_special(i,j);
+	  if (molecular) which = find_special(atom->special[i],
+					      atom->nspecial[i],
+					      atom->tag[j]);
 	  else which = 0;
 	  if (which == 0) neighptr[n++] = j;
 	  else if (which > 0) neighptr[n++] = which*nall + j;
@@ -337,7 +343,9 @@ void Neighbor::half_multi_newton_tri(NeighList *list)
 	rsq = delx*delx + dely*dely + delz*delz;
 
 	if (rsq <= cutneighsq[itype][jtype]) {
-	  if (molecular) which = find_special(i,j);
+	  if (molecular) which = find_special(atom->special[i],
+					      atom->nspecial[i],
+					      atom->tag[j]);
 	  else which = 0;
 	  if (which == 0) neighptr[n++] = j;
 	  else if (which > 0) neighptr[n++] = which*nall + j;

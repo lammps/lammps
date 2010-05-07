@@ -149,7 +149,10 @@ void PairDPD::compute(int eflag, int vflag)
 	}
 
 	if (eflag) {
-	  evdwl = -a0[itype][jtype] * r * (1.0 - 0.5*r/cut[itype][jtype]);
+          // unshifted eng
+	  //evdwl = -a0[itype][jtype]*r * (1.0-0.5*r/cut[itype][jtype]);
+	  // eng shifted to 0.0 at cutoff
+	  evdwl = 0.5*a0[itype][jtype]*cut[itype][jtype] * wd*wd;
 	  evdwl *= factor_dpd;
 	}
 

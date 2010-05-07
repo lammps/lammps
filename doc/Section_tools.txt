@@ -203,11 +203,10 @@ matlab tool :h4,link(matlab)
 
 The matlab sub-directory contains several "MATLAB"_matlab scripts for
 post-processing LAMMPS output.  The scripts include readers for log
-and dump files, a reader for radial distribution output from the "fix
-rdf"_fix_rdf.html command, a reader for EAM potential files, and a
-converter that reads LAMMPS dump files and produces CFG files that can
-be visualized with the
-"AtomEye"_http://164.107.79.177/Archive/Graphics/A visualizer.
+and dump files, a reader for EAM potential files, and a converter that
+reads LAMMPS dump files and produces CFG files that can be visualized
+with the "AtomEye"_http://164.107.79.177/Archive/Graphics/A
+visualizer.
 
 See the README.pdf file for more information.
 

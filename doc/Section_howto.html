@@ -1262,9 +1262,11 @@ that subtracts a velocity bias.  This allows the translational
 velocity of extended spherical or aspherical particles to be adjusted
 in prescribed ways.
 </P>
-<P>Thermostatting in LAMMPS is performed by <A HREF = "fix.html">fixes</A>.  Four
-thermostatting fixes are currently available: Nose-Hoover (nvt),
-Berendsen, Langevin, and direct rescaling (temp/rescale):
+<P>Thermostatting in LAMMPS is performed by <A HREF = "fix.html">fixes</A>, or in one
+case by a pair style.  Four thermostatting fixes are currently
+available: Nose-Hoover (nvt), Berendsen, Langevin, and direct
+rescaling (temp/rescale).  Dissipative particle dynamics (DPD)
+thermostatting can be invoked via the <I>dpd/tstat</I> pair style:
 </P>
 <UL><LI><A HREF = "fix_nh.html">fix nvt</A>
 <LI><A HREF = "fix_nvt_sphere.html">fix nvt/sphere</A>
@@ -1272,7 +1274,8 @@ Berendsen, Langevin, and direct rescaling (temp/rescale):
 <LI><A HREF = "fix_nvt_sllod.html">fix nvt/sllod</A>
 <LI><A HREF = "fix_temp_berendsen.html">fix temp/berendsen</A>
 <LI><A HREF = "fix_langevin.html">fix langevin</A>
-<LI><A HREF = "fix_temp_rescale.html">fix temp/rescale</A> 
+<LI><A HREF = "fix_temp_rescale.html">fix temp/rescale</A>
+<LI><A HREF = "pair_dpd.html">pair_style dpd/tstat</A> 
 </UL>
 <P><A HREF = "fix_nh.html">Fix nvt</A> only thermostats the translational velocity of
 particles.  <A HREF = "fix_nvt_sllod.html">Fix nvt/sllod</A> also does this, except
@@ -1284,15 +1287,20 @@ nvt/asphere</A> thermostat not only translation
 velocities but also rotational velocities for spherical and aspherical
 particles.
 </P>
-<P>Any of these fixes can use temperature computes that remove bias for
-two purposes: (a) computing the current temperature to compare to the
-requested target temperature, and (b) adjusting only the thermal
-temperature component of the particle's velocities.  See the doc pages
-for the individual fixes and for the <A HREF = "fix_modify.html">fix_modify</A>
-command for instructions on how to assign a temperature compute to a
-thermostatting fix.  For example, you can apply a thermostat to only
-the x and z components of velocity by using it in conjunction with
-<A HREF = "compute_temp_partial.html">compute temp/partial</A>.
+<P>DPD thermostatting alters pairwise interactions in a manner analagous
+to the per-particle thermostatting of <A HREF = "fix_langevin.html">fix
+langevin</A>.
+</P>
+<P>Any of the thermostatting fixes can use temperature computes that
+remove bias for two purposes: (a) computing the current temperature to
+compare to the requested target temperature, and (b) adjusting only
+the thermal temperature component of the particle's velocities.  See
+the doc pages for the individual fixes and for the
+<A HREF = "fix_modify.html">fix_modify</A> command for instructions on how to assign
+a temperature compute to a thermostatting fix.  For example, you can
+apply a thermostat to only the x and z components of velocity by using
+it in conjunction with <A HREF = "compute_temp_partial.html">compute
+temp/partial</A>.
 </P>
 <P>IMPORTANT NOTE: Only the nvt fixes perform time integration, meaning
 they update the velocities and positions of particles due to forces

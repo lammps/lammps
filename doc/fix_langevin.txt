@@ -48,7 +48,10 @@ Fc is the conservative force computed via the usual inter-particle
 interactions ("pair_style"_pair_style.html,
 "bond_style"_bond_style.html, etc).
 
-The Ff and Fr terms are added by this fix.
+The Ff and Fr terms are added by this fix on a per-particle basis.
+See the "pair_style dpd/tstat"_pair_dpd.html command for a
+thermostatting option that adds similar terms on a pairwise basis to
+pairs of interacting particles.
 
 Ff is a frictional drag or viscous damping term proportional to the
 particle's velocity.  The proportionality constant for each atom is
@@ -178,7 +181,8 @@ This fix is not invoked during "energy minimization"_minimize.html.
 [Related commands:]
 
 "fix nvt"_fix_nh.html, "fix temp/rescale"_fix_temp_rescale.html, "fix
-viscous"_fix_viscous.html, "fix nvt"_fix_nh.html
+viscous"_fix_viscous.html, "fix nvt"_fix_nh.html, "pair_style
+dpd/tstat"_pair_dpd.html
 
 [Default:]
 

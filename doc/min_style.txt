@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Chapter_commands.html#comm)
+:link(lc,Section_commands.html#comm)
 :line
 
 min_style command :h3

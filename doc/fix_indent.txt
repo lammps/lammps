@@ -89,13 +89,13 @@ the plane's current position will feel no force.  Vice versa if {side}
 is specified as {hi}.
 
 Any of the 4 quantities defining a spherical indenter's geometry can
-be specified as an equal-style "variable"_variable, namely {x}, {y},
-{z}, or {R}.  Similarly, for a cylindrical indenter, any of {c1},
+be specified as an equal-style "variable"_variable.html, namely {x},
+{y}, {z}, or {R}.  Similarly, for a cylindrical indenter, any of {c1},
 {c2}, or {R}, can be a variable.  For a planar indenter, {pos} can be
 a variable.  If the value is a variable, it should be specified as
 v_ID, where ID is the variable ID.  In this case, the variable will be
 evaluated each timestep, and its value used to define the indenter
-geometry. 
+geometry.
 
 Note that equal-style variables can specify formulas with various
 mathematical functions, and include "thermo_style"_thermo_style.html

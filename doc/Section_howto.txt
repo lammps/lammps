@@ -662,10 +662,10 @@ LAMMPS can create XTC files directly (via "dump xtc") which is GROMACS
 file format which can also be read by "VMD"_vmd for visualization.
 See the "dump"_dump.html command for more information on XTC files.
 
-:link(pizza,http://www.cs.sandia.gov/~sjplimp/pizza.html)
+:link(pizza,http://www.sandia.gov/~sjplimp/pizza.html)
 :link(vmd,http://www.ks.uiuc.edu/Research/vmd)
 :link(ensight,http://www.ensight.com)
-:link(atomeye,http://164.107.79.177/Archive/Graphics/A)
+:link(atomeye,http://mt.seas.upenn.edu/Archive/Graphics/A)
 
 :line
 
@@ -854,7 +854,7 @@ that generate torque:
 "pair_style gran/no_history"_pair_gran.html
 "pair_style dipole/cut"_pair_dipole.html
 "pair_style gayberne"_pair_gayberne.html
-"pair_style resquared"_pair_resuared.html
+"pair_style resquared"_pair_resquared.html
 "pair_style lubricate"_pair_lubricate.html :ul
 
 The "granular pair styles"_pair_gran.html are used with "atom_style
@@ -1243,8 +1243,8 @@ pressure"_compute_pressure.html command calculates pressure.
 
 All but the first 3 calculate velocity biases (i.e. advection
 velocities) that are removed when computing the thermal temperature.
-"Fix temp/sphere"_fix_temp_sphere.html and "fix
-temp/asphere"_fix_temp_asphere.html compute kinetic energy for
+"Compute temp/sphere"_compute_temp_sphere.html and "compute
+temp/asphere"_compute_temp_asphere.html compute kinetic energy for
 extended particles that includes rotational degrees of freedom.  They
 both allow, as an extra argument, which is another temperature compute
 that subtracts a velocity bias.  This allows the translational

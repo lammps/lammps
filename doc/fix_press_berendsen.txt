@@ -69,10 +69,10 @@ The barostat is specified using one or more of the {iso}, {aniso},
 ability to specify the 3 diagonal components of an external stress
 tensor, and to couple various of these components together so that the
 dimensions they represent are varied together during a
-constant-pressure simulation.  Unlike the "fix npt"_fix_npt.html and
-"fix nph"_fix_nph.html commands, this fix cannot be used with
-triclinic (non-orthogonal) simulation boxes to control all 6
-components of the general pressure tensor.
+constant-pressure simulation.  Unlike the "fix npt"_fix_nh.html and
+"fix nph"_fix_nh.html commands, this fix cannot be used with triclinic
+(non-orthogonal) simulation boxes to control all 6 components of the
+general pressure tensor.
 
 The target pressures for each of the 3 diagonal components of the
 stress tensor can be specified independently via the {x}, {y}, {z},

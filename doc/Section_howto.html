@@ -639,12 +639,12 @@ files.  The second is the <A HREF = "Section_tools.html#arc">lmp2arc tool</A> wh
 converts LAMMPS dump files into Accelrys' Insight MD program files.
 The third is the <A HREF = "Section_tools.html#cfg">lmp2cfg tool</A> which converts
 LAMMPS dump files into CFG files which can be read into the
-<A HREF = "http://164.107.79.177/Archive/Graphics/A">AtomEye</A> visualizer.
+<A HREF = "http://mt.seas.upenn.edu/Archive/Graphics/A">AtomEye</A> visualizer.
 </P>
 <P>A Python-based toolkit distributed by our group can read native LAMMPS
 dump files, including custom dump files with additional columns of
 user-specified atom information, and convert them to various formats
-or pipe them into visualization software directly.  See the <A HREF = "http://www.cs.sandia.gov/~sjplimp/pizza.html">Pizza.py
+or pipe them into visualization software directly.  See the <A HREF = "http://www.sandia.gov/~sjplimp/pizza.html">Pizza.py
 WWW site</A> for details.  Specifically, Pizza.py can convert
 LAMMPS dump files into PDB, XYZ, <A HREF = "http://www.ensight.com">Ensight</A>, and VTK formats.
 Pizza.py can pipe LAMMPS dump files directly into the Raster3d and
@@ -861,7 +861,7 @@ that generate torque:
 <LI><A HREF = "pair_gran.html">pair_style gran/no_history</A>
 <LI><A HREF = "pair_dipole.html">pair_style dipole/cut</A>
 <LI><A HREF = "pair_gayberne.html">pair_style gayberne</A>
-<LI><A HREF = "pair_resuared.html">pair_style resquared</A>
+<LI><A HREF = "pair_resquared.html">pair_style resquared</A>
 <LI><A HREF = "pair_lubricate.html">pair_style lubricate</A> 
 </UL>
 <P>The <A HREF = "pair_gran.html">granular pair styles</A> are used with <A HREF = "atom_style.html">atom_style
@@ -1254,7 +1254,7 @@ pressure</A> command calculates pressure.
 </UL>
 <P>All but the first 3 calculate velocity biases (i.e. advection
 velocities) that are removed when computing the thermal temperature.
-<A HREF = "fix_temp_sphere.html">Fix temp/sphere</A> and <A HREF = "fix_temp_asphere.html">fix
+<A HREF = "compute_temp_sphere.html">Compute temp/sphere</A> and <A HREF = "compute_temp_asphere.html">compute
 temp/asphere</A> compute kinetic energy for
 extended particles that includes rotational degrees of freedom.  They
 both allow, as an extra argument, which is another temperature compute

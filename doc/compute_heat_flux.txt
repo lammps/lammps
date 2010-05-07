@@ -32,7 +32,7 @@ or to calculate a thermal conductivity using the Green-Kubo formalism.
 See the "fix thermal/conductivity"_fix_thermal_conductivity.html
 command for details on how to compute thermal conductivity in an
 alternate way, via the Muller-Plathe method.  See the "fix
-heat"_fix_heat command for a way to control the heat added or
+heat"_fix_heat.html command for a way to control the heat added or
 subtracted to a group of atoms.
 
 The compute takes three arguments which are IDs of other

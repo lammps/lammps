@@ -71,7 +71,7 @@ output either directly (see the "print"_print.html, "fix
 print"_fix_print.html, and "run every"_run.html commands) or as part
 of thermodynamic output (see the "thermo_style"_thermo_style.html
 command), or used as input to an averaging fix (see the "fix
-ave/time"_fix_ave/time command).  Variables of style {atom} store a
+ave/time"_fix_ave_time command).  Variables of style {atom} store a
 formula which when evaluated produces one numeric value per atom which
 can be output to a dump file (see the "dump custom"_dump.html command)
 or used as input to an averaging fix (see the "fix
@@ -323,8 +323,8 @@ return components of the position and velocity of the center of mass
 of the group.  Fcm() returns a component of the total force on the
 group of atoms.  Bound() returns the min/max of a particular
 coordinate for all atoms in the group.  Gyration() computes the
-radius-of-gyration of the group of atoms.  See the "fix
-gyration"_fix_gyration.html command for a definition of the formula.
+radius-of-gyration of the group of atoms.  See the "compute
+gyration"_compute_gyration.html command for a definition of the formula.
 
 Region functions are exactly the same as group functions except they
 take an extra argument which is the region ID.  The function is

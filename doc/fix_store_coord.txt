@@ -79,8 +79,8 @@ minimization"_minimize.html.
 [Related commands:]
 
 "compute msd"_compute_msd.html, "compute
-displace/atom"_compute_displace_atom.html, "compute
-store/force"_compute_store_force.html
+displace/atom"_compute_displace_atom.html, "fix
+store/force"_fix_store_force.html
 
 [Default:]
 

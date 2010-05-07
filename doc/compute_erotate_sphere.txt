@@ -53,6 +53,6 @@ contribute to the rotational energy.
 
 [Related commands:]
 
-"compute erotate/asphere"_compute_rotate_asphere.html
+"compute erotate/asphere"_compute_erotate_asphere.html
 
 [Default:] none

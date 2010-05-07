@@ -46,9 +46,9 @@ same as specifying a 0.0 value, since that sets all forces to the same
 average value without adding in any additional force.
 
 Any of the 3 quantities defining the force components can be specified
-as an equal-style "variable"_variable, namely {fx}, {fy}, {fz}.  If
-the value is a variable, it should be specified as v_ID, where ID is
-the variable ID.  In this case, the variable will be evaluated each
+as an equal-style "variable"_variable.html, namely {fx}, {fy}, {fz}.
+If the value is a variable, it should be specified as v_ID, where ID
+is the variable ID.  In this case, the variable will be evaluated each
 timestep, and its value used to determine the average force.
 
 Equal-style variables can specify formulas with various mathematical

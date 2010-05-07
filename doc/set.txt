@@ -166,13 +166,14 @@ This command can be useful after a system has been equilibrated and
 atoms have diffused one or more box lengths in various directions.
 This command can then reset the image values for atoms so that they
 are effectively inside the simulation box, e.g if a diffusion
-coefficient is about to be measured via the "fix msd"_fix_msd.html
-command.  Care should be taken not to reset the image flags of two
-atoms in a bond to the same value if the bond straddles a periodic
-boundary (rather they should be different by +/- 1).  This will not
-affect the dynamics of a simulation, but may mess up analysis of the
-trajectories if a LAMMPS diagnostic or your own analysis relies on the
-image flags to unwrap a molecule which straddles the periodic box.
+coefficient is about to be measured via the "compute
+msd"_compute_msd.html command.  Care should be taken not to reset the
+image flags of two atoms in a bond to the same value if the bond
+straddles a periodic boundary (rather they should be different by +/-
+1).  This will not affect the dynamics of a simulation, but may mess
+up analysis of the trajectories if a LAMMPS diagnostic or your own
+analysis relies on the image flags to unwrap a molecule which
+straddles the periodic box.
 
 For the {diameter} and {density} and {volume} keywords, the "atom
 style"_atom_style.html being used must support the use of those

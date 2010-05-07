@@ -105,7 +105,7 @@ as described below.
 </P>
 <P>If you want there to be no interactions between a particular pair of
 atom types, you have 3 choices.  You can assign the type pair to some
-sub-style and use the <A HREF = "neigh_modify">neigh_modify exclude type</A>
+sub-style and use the <A HREF = "neigh_modify.html">neigh_modify exclude type</A>
 command.  You can assign it to some sub-style and set the coefficients
 so that there is effectively no interaction (e.g. epsilon = 0.0 in a
 LJ potential).  Or, for <I>hybrid</I> and <I>hybrid/overlay</I> simulations, you
@@ -147,11 +147,11 @@ associated sub-style supports it.
 </P>
 <P>For the hybrid pair styles, the list of sub-styles and their
 respective settings are written to <A HREF = "restart.html">binary restart
-files</A>, so a pair_style command does not need to
-specified in an input script that reads a restart file.  However, the
-coefficient information is not stored in the restart file.  Thus,
-pair_coeff commands need to be re-specified in the restart input
-script.
+files</A>, so a <A HREF = "pair_style.html">pair_style</A> command does
+not need to specified in an input script that reads a restart file.
+However, the coefficient information is not stored in the restart
+file.  Thus, pair_coeff commands need to be re-specified in the
+restart input script.
 </P>
 <P>These pair styles support the use of the <I>inner</I>, <I>middle</I>, and
 <I>outer</I> keywords of the <A HREF = "run_style.html">run_style respa</A> command, if
@@ -160,11 +160,11 @@ their sub-styles do.
 <P><B>Restrictions:</B>
 </P>
 <P>When using a long-range Coulombic solver (via the
-<A HREF = "kspace_style">kspace_style</A> command) with a hybrid pair_style, one or
-more sub-styles will be of the "long" variety, e.g. <I>lj/cut/coul/long</I>
-or <I>buck/coul/long</I>.  You must insure that the short-range Coulombic
-cutoff used by each of these long pair styles is the same or else
-LAMMPS will generate an error.
+<A HREF = "kspace_style.html">kspace_style</A> command) with a hybrid pair_style,
+one or more sub-styles will be of the "long" variety,
+e.g. <I>lj/cut/coul/long</I> or <I>buck/coul/long</I>.  You must insure that the
+short-range Coulombic cutoff used by each of these long pair styles is
+the same or else LAMMPS will generate an error.
 </P>
 <P><B>Related commands:</B>
 </P>

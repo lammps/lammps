@@ -233,7 +233,7 @@ coupled rigid body integration via the "POEMS"_fix_poems.html library
 "parallel tempering"_temper.html
 "parallel replica dynamics"_prd.html
 "Direct Simulation Monte Carlo"_pair_dsmc.html for low-density fluids
-"Peridynamics mesoscale modeling"_pair_peri.html
+"Peridynamics mesoscale modeling"_pair_peri_pmb.html
 "targeted"_fix_tmd.html and "steered"_fix_smd.html molecular dynamics
 "two-temperature electron model"_fix_ttm.html :ul
 
@@ -478,7 +478,7 @@ Here are various folks who have made significant contributions to
 features in LAMMPS.  The most recent contributions are at the top of
 the list.
 
-:link(sjp,http://www.cs.sandia.gov/~sjplimp)
+:link(sjp,http://www.sandia.gov/~sjplimp)
 
 pair yukawa/colloid : Randy Schunk (Sandia)
 fix wall/colloid : Jeremy Lechman (Sandia)

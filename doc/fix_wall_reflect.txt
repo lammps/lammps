@@ -58,13 +58,13 @@ A reflecting wall should not be used with rigid bodies such as those
 defined by a "fix rigid" command.  This is because the wall/reflect
 displaces atoms directly rather than exerts a force on them.  For
 rigid bodies, use a soft wall instead, such as "fix
-wall/lj93"_fix_wall_lj93.html.  LAMMPS will flag the use of a rigid
+wall/lj93"_fix_wall.html.  LAMMPS will flag the use of a rigid
 fix with fix wall/reflect with a warning, but will not generate an
 error.
 
 [Related commands:]
 
-"fix wall/lj93"_fix_wall_lj93.html command
+"fix wall/lj93"_fix_wall.html command
 
 [Default:] none
 

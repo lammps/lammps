@@ -101,7 +101,7 @@ as described below.
 
 If you want there to be no interactions between a particular pair of
 atom types, you have 3 choices.  You can assign the type pair to some
-sub-style and use the "neigh_modify exclude type"_neigh_modify
+sub-style and use the "neigh_modify exclude type"_neigh_modify.html
 command.  You can assign it to some sub-style and set the coefficients
 so that there is effectively no interaction (e.g. epsilon = 0.0 in a
 LJ potential).  Or, for {hybrid} and {hybrid/overlay} simulations, you
@@ -143,11 +143,11 @@ associated sub-style supports it.
 
 For the hybrid pair styles, the list of sub-styles and their
 respective settings are written to "binary restart
-files"_restart.html, so a pair_style command does not need to
-specified in an input script that reads a restart file.  However, the
-coefficient information is not stored in the restart file.  Thus,
-pair_coeff commands need to be re-specified in the restart input
-script.
+files"_restart.html, so a "pair_style"_pair_style.html command does
+not need to specified in an input script that reads a restart file.
+However, the coefficient information is not stored in the restart
+file.  Thus, pair_coeff commands need to be re-specified in the
+restart input script.
 
 These pair styles support the use of the {inner}, {middle}, and
 {outer} keywords of the "run_style respa"_run_style.html command, if
@@ -156,11 +156,11 @@ their sub-styles do.
 [Restrictions:]
 
 When using a long-range Coulombic solver (via the
-"kspace_style"_kspace_style command) with a hybrid pair_style, one or
-more sub-styles will be of the "long" variety, e.g. {lj/cut/coul/long}
-or {buck/coul/long}.  You must insure that the short-range Coulombic
-cutoff used by each of these long pair styles is the same or else
-LAMMPS will generate an error.
+"kspace_style"_kspace_style.html command) with a hybrid pair_style,
+one or more sub-styles will be of the "long" variety,
+e.g. {lj/cut/coul/long} or {buck/coul/long}.  You must insure that the
+short-range Coulombic cutoff used by each of these long pair styles is
+the same or else LAMMPS will generate an error.
 
 [Related commands:]
 

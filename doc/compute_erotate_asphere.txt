@@ -60,6 +60,6 @@ particles, but they can be aspherical or spherical.
 
 [Related commands:] none
 
-"compute erotate/sphere"_compute_rotate_sphere.html
+"compute erotate/sphere"_compute_erotate_sphere.html
 
 [Default:] none

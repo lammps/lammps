@@ -22,7 +22,7 @@ plotting, and visualization for LAMMPS simulations.  Pizza.py is
 written in "Python"_python and is available for download from "the
 Pizza.py WWW site"_pizza.
 
-:link(pizza,http://www.cs.sandia.gov/~sjplimp/pizza.html)
+:link(pizza,http://www.sandia.gov/~sjplimp/pizza.html)
 :link(python,http://www.python.org)
 
 Note that many users write their own setup or analysis tools or use
@@ -168,7 +168,7 @@ lmp2cfg tool :h4,link(cfg)
 
 The lmp2cfg sub-directory contains a tool for converting LAMMPS output
 files into a series of *.cfg files which can be read into the
-"AtomEye"_http://164.107.79.177/Archive/Graphics/A visualizer.  See
+"AtomEye"_http://mt.seas.upenn.edu/Archive/Graphics/A visualizer.  See
 the README file for more information.
 
 This tool was written by Ara Kooser at Sandia (askoose at sandia.gov).

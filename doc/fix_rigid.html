@@ -251,14 +251,14 @@ modified when the center-of-mass of the rigid body moves across a
 periodic boundary.  They are not incremented/decremented as they would
 be for non-rigid atoms.  This change does not affect dynamics, but
 means that any diagnostic computation based on the atomic image flag
-values must be adjusted accordingly.  For example, the <A HREF = "fix_msd.html">fix
+values must be adjusted accordingly.  For example, the <A HREF = "compute_msd.html">compute
 msd</A> will not compute the expected mean-squared
 displacement for such atoms, and the image flag values written to a
 <A HREF = "dump.html">dump file</A> will be different than they would be if the
 atoms were not in a rigid body.  It also means that if you have bonds
 between a pair of rigid bodies and the bond straddles a periodic
-boundary, you cannot use the <A HREF = "replicate">replicate</A> command to increase
-the system size.
+boundary, you cannot use the <A HREF = "replicate.html">replicate</A> command to
+increase the system size.
 </P>
 <HR>
 

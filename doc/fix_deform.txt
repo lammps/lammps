@@ -410,7 +410,7 @@ nvt/sllod"_fix_nvt_sllod.html does not currently do anything special
 for rigid particles.  If you wish to perform a NEMD simulation of
 rigid particles, you can either thermostat them independently or
 include a background fluid and thermostat the fluid via "fix
-nvt/sllod"_fix_nvt_sllod.
+nvt/sllod"_fix_nvt_sllod.html.
 
 The {units} keyword determines the meaning of the distance units used
 to define various arguments.  A {box} value selects standard distance

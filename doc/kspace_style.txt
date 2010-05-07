@@ -103,9 +103,10 @@ style {pppm/tip4p} and vice versa.
 
 [Related commands:]
 
-"kspace_modify"_kspace_modify.html, "pair_style"_pair_style.html
-lj/cut/coul/long, "pair_style"_pair_style.html lj/charmm/coul/long,
-"pair_style"_pair_style lj/coul, "pair_style"_pair_style buck/coul
+"kspace_modify"_kspace_modify.html, "pair_style
+lj/cut/coul/long"_pair_lj.html, "pair_style
+lj/charmm/coul/long"_pair_charmm.html, "pair_style
+lj/coul"_pair_lj_coul.html, "pair_style buck/coul/long"_pair_buck.html
 
 [Default:]
 

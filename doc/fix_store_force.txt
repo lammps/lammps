@@ -67,6 +67,6 @@ minimization"_minimize.html.
 
 [Related commands:]
 
-"compute store/coord"_compute_store_coord.html
+"fix store/coord"_fix_store_coord.html
 
 [Default:] none

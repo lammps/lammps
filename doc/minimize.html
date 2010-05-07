@@ -170,13 +170,14 @@ minimum to the specified energy or force tolerance.
 </P>
 <P>Note that a cutoff Lennard-Jones potential (and others) can be shifted
 so that its energy is 0.0 at the cutoff via the
-<A HREF = "pair_modify">pair_modify</A> command.  See the doc pages for inidividual
-<A HREF = "pair_style.html">pair styles</A> for details.  Note that Coulombic
-potentials always have a cutoff, unless versions with a long-range
-component are used (e.g. <A HREF = "pair_lj.html">pair_style lj/cut/coul/long</A>).
-The CHARMM potentials go to 0.0 at the cutoff (e.g. <A HREF = "pair_charmm.html</I>">pair_style
-lj/charmm/coul/charmm</A>, as do the GROMACS potentials
-(e.g. <A HREF = "pair_gromacs.html</I>">pair_style lj/gromacs</A>.
+<A HREF = "pair_modify.html">pair_modify</A> command.  See the doc pages for
+inidividual <A HREF = "pair_style.html">pair styles</A> for details.  Note that
+Coulombic potentials always have a cutoff, unless versions with a
+long-range component are used (e.g. <A HREF = "pair_lj.html">pair_style
+lj/cut/coul/long</A>).  The CHARMM potentials go to 0.0 at
+the cutoff (e.g. <A HREF = "pair_charmm.html">pair_style lj/charmm/coul/charmm</A>),
+as do the GROMACS potentials (e.g. <A HREF = "pair_gromacs.html">pair_style
+lj/gromacs</A>).
 </P>
 <P>If a soft potential (<A HREF = "pair_soft.html">pair_style soft</A>) is used the
 Astop value is used for the prefactor (no time dependence).

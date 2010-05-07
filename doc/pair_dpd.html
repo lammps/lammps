@@ -68,10 +68,10 @@ dropped.  Also, during the run, T is set each timestep to a ramped
 value from Tstart to Tstop.
 </P>
 <P>For style <I>dpd</I>, the pairwise energy associated with style <I>dpd</I> is
-only due to the conservative force term Fc.  The pairwise virial is
-calculated using all 3 terms.  For style <I>dpd/tstat</I> there is no
-pairwise energy, but the last two terms of the formula make a
-contribution to the virial.
+only due to the conservative force term Fc, and is shifted to be zero
+at the cutoff distance Rc.  The pairwise virial is calculated using
+all 3 terms.  For style <I>dpd/tstat</I> there is no pairwise energy, but
+the last two terms of the formula make a contribution to the virial.
 </P>
 <P>For style <I>dpd</I>, the following coefficients must be defined for each
 pair of atoms types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in
@@ -100,7 +100,9 @@ except that A is not included.
 I,J pairs must be specified explicitly.
 </P>
 <P>These pair styles do not support the <A HREF = "pair_modify.html">pair_modify</A>
-shift option for the energy of the pair interaction.
+shift option for the energy of the pair interaction.  Note that as
+discussed above, the energy due to the conservative Fc term is already
+shifted to be 0.0 at the cutoff distance Rc.
 </P>
 <P>The <A HREF = "pair_modify.html">pair_modify</A> table option is not relevant
 for these pair styles.

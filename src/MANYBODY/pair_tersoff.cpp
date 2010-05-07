@@ -93,6 +93,7 @@ void PairTersoff::compute(int eflag, int vflag)
   int *tag = atom->tag;
   int *type = atom->type;
   int nlocal = atom->nlocal;
+  int nall = nlocal + atom->nghost;
   int newton_pair = force->newton_pair;
 
   inum = list->inum;
@@ -117,6 +118,7 @@ void PairTersoff::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
+      j = (j > nall) ? j % nall : j;
       jtag = tag[j];
 
       if (itag > jtag) {
@@ -157,6 +159,7 @@ void PairTersoff::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
+      j = (j > nall) ? j % nall : j;
       jtype = map[type[j]];
       iparam_ij = elem2param[itype][jtype][jtype];
 
@@ -173,6 +176,7 @@ void PairTersoff::compute(int eflag, int vflag)
       for (kk = 0; kk < jnum; kk++) {
 	if (jj == kk) continue;
 	k = jlist[kk];
+	k = (k > nall) ? k % nall : k;
 	ktype = map[type[k]];
 	iparam_ijk = elem2param[itype][jtype][ktype];
 
@@ -204,6 +208,7 @@ void PairTersoff::compute(int eflag, int vflag)
       for (kk = 0; kk < jnum; kk++) {
 	if (jj == kk) continue;
 	k = jlist[kk];
+	k = (k > nall) ? k % nall : k;
 	ktype = map[type[k]];
 	iparam_ijk = elem2param[itype][jtype][ktype];
 

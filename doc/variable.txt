@@ -71,10 +71,10 @@ output either directly (see the "print"_print.html, "fix
 print"_fix_print.html, and "run every"_run.html commands) or as part
 of thermodynamic output (see the "thermo_style"_thermo_style.html
 command), or used as input to an averaging fix (see the "fix
-ave/time"_fix_ave_time command).  Variables of style {atom} store a
-formula which when evaluated produces one numeric value per atom which
-can be output to a dump file (see the "dump custom"_dump.html command)
-or used as input to an averaging fix (see the "fix
+ave/time"_fix_ave_time.html command).  Variables of style {atom} store
+a formula which when evaluated produces one numeric value per atom
+which can be output to a dump file (see the "dump custom"_dump.html
+command) or used as input to an averaging fix (see the "fix
 ave/spatial"_fix_ave_spatial.html and "fix ave/atom"_fix_ave_atom.html
 commands).
 
@@ -450,9 +450,9 @@ before a run where the simulation box size changes.  You might think
 this will assign the initial volume to the variable "v".  That is not
 the case.  Rather it assigns a formula which evaluates the volume
 (using the thermo_style keyword "vol") to the variable "v".  If you
-use the variable "v" in some other command like "fix ave/time" then
-the current volume of the box will be evaluated continuously during
-the run.
+use the variable "v" in some other command like "fix
+ave/time"_fix_ave_time.html then the current volume of the box will be
+evaluated continuously during the run.
 
 If you want to store the initial volume of the system, you can do it
 this way:

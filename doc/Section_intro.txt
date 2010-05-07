@@ -315,7 +315,7 @@ debugging purposes.  For high-quality visualization we recommend the
 following packages:
 
 "VMD"_http://www.ks.uiuc.edu/Research/vmd
-"AtomEye"_http://164.107.79.177/Archive/Graphics/A
+"AtomEye"_http://mt.seas.upenn.edu/Archive/Graphics/A
 "PyMol"_http://pymol.sourceforge.net
 "Raster3d"_http://www.bmsc.washington.edu/raster3d/raster3d.html
 "RasMol"_http://www.openrasmol.org :ul

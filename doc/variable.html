@@ -76,11 +76,11 @@ which when evaluated produces a single numeric value which can be
 output either directly (see the <A HREF = "print.html">print</A>, <A HREF = "fix_print.html">fix
 print</A>, and <A HREF = "run.html">run every</A> commands) or as part
 of thermodynamic output (see the <A HREF = "thermo_style.html">thermo_style</A>
-command), or used as input to an averaging fix (see the <A HREF = "fix_ave_time">fix
-ave/time</A> command).  Variables of style <I>atom</I> store a
-formula which when evaluated produces one numeric value per atom which
-can be output to a dump file (see the <A HREF = "dump.html">dump custom</A> command)
-or used as input to an averaging fix (see the <A HREF = "fix_ave_spatial.html">fix
+command), or used as input to an averaging fix (see the <A HREF = "fix_ave_time.html">fix
+ave/time</A> command).  Variables of style <I>atom</I> store
+a formula which when evaluated produces one numeric value per atom
+which can be output to a dump file (see the <A HREF = "dump.html">dump custom</A>
+command) or used as input to an averaging fix (see the <A HREF = "fix_ave_spatial.html">fix
 ave/spatial</A> and <A HREF = "fix_ave_atom.html">fix ave/atom</A>
 commands).
 </P>
@@ -461,9 +461,9 @@ define the variable "v" as
 this will assign the initial volume to the variable "v".  That is not
 the case.  Rather it assigns a formula which evaluates the volume
 (using the thermo_style keyword "vol") to the variable "v".  If you
-use the variable "v" in some other command like "fix ave/time" then
-the current volume of the box will be evaluated continuously during
-the run.
+use the variable "v" in some other command like <A HREF = "fix_ave_time.html">fix
+ave/time</A> then the current volume of the box will be
+evaluated continuously during the run.
 </P>
 <P>If you want to store the initial volume of the system, you can do it
 this way:

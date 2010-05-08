@@ -56,6 +56,7 @@ class PairOMP : public Pair {
     {
 #if defined(_OPENMP)
 #pragma omp barrier
+    {
       double **f;
       const int idelta = (nthreads > 1) ? 1 + nall/nthreads : nall;
       const int ifrom = tid*idelta;
@@ -71,6 +72,7 @@ class PairOMP : public Pair {
 	  fall[m][2] += f[m][2];
 	  f[m][2] = 0.0;
 	}
+      }
       }
 #endif
     };

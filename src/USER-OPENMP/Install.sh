@@ -8,6 +8,11 @@ if (test $1 = 1) then
   cp -p pair_omp.h ..
   cp -p pair_lj_cut_omp.h ..
 
+  if (test -e ../pair_lj_charmm_coul_long.cpp) then
+      cp -p pair_lj_charmm_coul_long_omp.cpp ..
+      cp -p pair_lj_charmm_coul_long_omp.h ..
+  fi
+
 elif (test $1 = 0) then
 
   rm ../pair_omp.cpp
@@ -15,5 +20,8 @@ elif (test $1 = 0) then
 
   rm ../pair_omp.h
   rm ../pair_lj_cut_omp.h
+
+  rm -f ../pair_lj_charmm_coul_long_omp.cpp
+  rm -f ../pair_lj_charmm_coul_long_omp.h
 
 fi

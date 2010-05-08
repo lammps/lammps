@@ -119,7 +119,7 @@ The {scale} argument determines how the size of the unit cell will be
 scaled when mapping it into the simulation box.  I.e. it determines a
 multiplicative factor to apply to the unit cell, to convert it to a
 lattice of the desired size and distance units in the simulation box.
-The meaning of the {scale} argument depends on the "units"_unit.html
+The meaning of the {scale} argument depends on the "units"_units.html
 being used in your simulation.
 
 For all unit styles except {lj}, the scale argument is specified in

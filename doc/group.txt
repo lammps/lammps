@@ -101,7 +101,7 @@ There can be no more than 32 groups defined at one time, including
 [Related commands:]
 
 "dump"_dump.html, "fix"_fix.html, "region"_region.html,
-"temperature"_temperature.html, "velocity"_velocity.html
+"velocity"_velocity.html
 
 [Default:]
 

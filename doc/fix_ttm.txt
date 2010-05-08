@@ -189,7 +189,7 @@ minimization"_minimize.html.
 [Restrictions:]
 
 This fix can only be used for 3d simulations and orthogonal
-simlulation boxes.  You must use periodic "boundary"_doc/boundary.html
+simlulation boxes.  You must use periodic "boundary"_boundary.html
 conditions with this fix.
 
 [Related commands:]

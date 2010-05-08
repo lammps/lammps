@@ -198,7 +198,7 @@ fix_modify commands for post-processing:
 
 "fix_modify AtC transfer fields"_USER/atc/man_hardy_fields.html
 "fix_modify AtC transfer gradients"_USER/atc/man_hardy_gradients.html
-"fix_modify AtC transfer rates"_USER/atc/man_hardy_rates.htm
+"fix_modify AtC transfer rates"_USER/atc/man_hardy_rates.html
 "fix_modify AtC transfer computes"_USER/atc/man_hardy_computes.html
 "fix_modify AtC set"_USER/atc/man_hardy_set.html
 "fix_modify AtC transfer on_the_fly"_USER/atc/man_hardy_on_the_fly.html
@@ -207,7 +207,7 @@ fix_modify commands for post-processing:
 
 miscellaneous fix_modify commands:
 
-"fix_modify AtC transfer atom_element_map"_USER/atc/man_atom_element_map.htm
+"fix_modify AtC transfer atom_element_map"_USER/atc/man_atom_element_map.html
 "fix_modify AtC transfer neighbor_reset_frequency"_USER/atc/man_neighbor_reset_frequency.html :ul
 
 [Default:] none

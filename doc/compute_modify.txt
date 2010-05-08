@@ -41,7 +41,7 @@ systems"_dimension.html which is a correction factor for an ensemble
 of velocities with zero total linear momentum.  You can use a negative
 number for the {extra} parameter if you need to add
 degrees-of-freedom.  See the "compute
-temp/asphere"_compute_temp_aspher.html command for an example.
+temp/asphere"_compute_temp_asphere.html command for an example.
 
 The {dynamic} keyword determines whether the number of atoms N in the
 compute group is re-computed each time a temperature is computed.

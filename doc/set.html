@@ -171,13 +171,14 @@ value for that dimension is unchanged.
 atoms have diffused one or more box lengths in various directions.
 This command can then reset the image values for atoms so that they
 are effectively inside the simulation box, e.g if a diffusion
-coefficient is about to be measured via the <A HREF = "fix_msd.html">fix msd</A>
-command.  Care should be taken not to reset the image flags of two
-atoms in a bond to the same value if the bond straddles a periodic
-boundary (rather they should be different by +/- 1).  This will not
-affect the dynamics of a simulation, but may mess up analysis of the
-trajectories if a LAMMPS diagnostic or your own analysis relies on the
-image flags to unwrap a molecule which straddles the periodic box.
+coefficient is about to be measured via the <A HREF = "compute_msd.html">compute
+msd</A> command.  Care should be taken not to reset the
+image flags of two atoms in a bond to the same value if the bond
+straddles a periodic boundary (rather they should be different by +/-
+1).  This will not affect the dynamics of a simulation, but may mess
+up analysis of the trajectories if a LAMMPS diagnostic or your own
+analysis relies on the image flags to unwrap a molecule which
+straddles the periodic box.
 </P>
 <P>For the <I>diameter</I> and <I>density</I> and <I>volume</I> keywords, the <A HREF = "atom_style.html">atom
 style</A> being used must support the use of those

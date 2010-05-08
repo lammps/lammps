@@ -117,8 +117,7 @@ LAMMPS"_Section_start.html#2_3 section for more info.
 
 [Related commands:]
 
-"pair_coeff"_pair_coeff.html, "fix nve/dipole"_fix_nve_dipole.html,
-"compute temp/dipole"_compute_temp_dipole.html
+"pair_coeff"_pair_coeff.html
 
 [Default:] none
 

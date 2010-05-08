@@ -79,7 +79,7 @@ from each atom, thermostatting of the remaining thermal velocity will
 be performed, and the bias will be added back in.  Thermostatting
 fixes that work in this way include "fix nvt"_fix_nh.html, "fix
 temp/rescale"_fix_temp_rescale.html, "fix
-temp/berendsen"_fix_temp_berendsen, and "fix
+temp/berendsen"_fix_temp_berendsen.html, and "fix
 langevin"_fix_langevin.html.
 
 This compute subtracts out degrees-of-freedom due to fixes that

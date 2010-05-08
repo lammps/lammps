@@ -37,7 +37,7 @@ command had been issued:
 
 fix compute-ID_store_coord group-ID store/coord :pre
 
-See the "fix store/coord"_fix_coord_original.html command for details.
+See the "fix store/coord"_fix_store_coord.html command for details.
 Note that the ID of the new fix is the compute-ID + underscore +
 "store_coord", and the group for the new fix is the same as the
 compute group.

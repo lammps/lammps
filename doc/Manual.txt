@@ -36,7 +36,7 @@ sjplimp,pscrozi,athomps at sandia.gov.  The "LAMMPS WWW Site"_lws at
 http://lammps.sandia.gov has more information about the code and its
 uses.
 
-:link(sjp,http://www.cs.sandia.gov/~sjplimp)
+:link(sjp,http://www.sandia.gov/~sjplimp)
 
 :line
 
@@ -134,6 +134,7 @@ listed above.
 :link(2_6,Section_start.html#2_6)
 :link(2_7,Section_start.html#2_7)
 :link(2_8,Section_start.html#2_8)
+:link(2_9,Section_start.html#2_9)
 
 :link(3_1,Section_commands.html#3_1)
 :link(3_2,Section_commands.html#3_2)
@@ -157,6 +158,7 @@ listed above.
 :link(4_14,Section_howto.html#4_14)
 :link(4_15,Section_howto.html#4_15)
 :link(4_16,Section_howto.html#4_16)
+:link(4_17,Section_howto.html#4_17)
 
 :link(9_1,Section_errors.html#9_1)
 :link(9_2,Section_errors.html#9_2)

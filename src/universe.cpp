@@ -17,6 +17,7 @@
 #include "stdio.h"
 #include "universe.h"
 #include "version.h"
+#include "local-version.h"
 #include "memory.h"
 
 using namespace LAMMPS_NS;
@@ -27,7 +28,7 @@ using namespace LAMMPS_NS;
 
 Universe::Universe(LAMMPS *lmp, MPI_Comm communicator) : Pointers(lmp)
 {
-  version = (char *) LAMMPS_VERSION;
+  version = (char *) LAMMPS_VERSION LAMMPS_LOCAL_VERSION;
 
   uworld = communicator;
   MPI_Comm_rank(uworld,&me);

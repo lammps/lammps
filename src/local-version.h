@@ -1,1 +1,0 @@
-#define LAMMPS_LOCAL_VERSION "-ICMS"

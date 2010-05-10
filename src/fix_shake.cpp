@@ -529,9 +529,7 @@ void FixShake::post_force_respa(int vflag, int ilevel, int iloop)
 {
   // call stats only on outermost level
 
-  printf("SHAKE POST FORCE ilevel %d iloop %d\n",ilevel,iloop);
-  stats();
-  //if (ilevel == nlevels_respa-1 && update->ntimestep == next_output) stats();
+  if (ilevel == nlevels_respa-1 && update->ntimestep == next_output) stats();
 
   // enforce SHAKE constraints on every loop iteration of every rRESPA level
   // except last loop iteration of inner levels

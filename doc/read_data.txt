@@ -109,7 +109,7 @@ equivalent.
 Many crystal structures are defined using three lattice constants {a},
 {b}, and {c}, and three angles {alpha}, {beta} and {gamma}. The
 relationships between these quantities and the LAMMPS box dimensions
-(lx,ly,lz) = (xhi-zlo,yhi-ylo,zhi-zlo) and tilt factors (xy,xz,yz) are
+(lx,ly,lz) = (xhi-xlo,yhi-ylo,zhi-zlo) and tilt factors (xy,xz,yz) are
 as follows:
 
 :c,image(Eqs/box.jpg) 

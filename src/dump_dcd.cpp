@@ -13,6 +13,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing author: Naveen Michaud-Agrawal (Johns Hopkins U)
+   Support for groups and non-consecutive ids: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
 #include "math.h"
@@ -54,20 +55,22 @@ static inline void fwrite_int32(FILE* fd, uint32_t i)
 DumpDCD::DumpDCD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
 {
   if (narg != 5) error->all("Illegal dump dcd command");
-  if (igroup != group->find("all")) error->all("Dump dcd must use group all");
   if (binary || compressed || multifile || multiproc)
     error->all("Invalid dump dcd filename");
 
+  // initialize
   size_one = 4;
   unwrap_flag = 0;
   format_default = NULL;
     
   // allocate global array for atom coords
 
-  natoms = static_cast<int> (atom->natoms);
+  if (igroup == group->find("all"))
+    natoms = static_cast<int> (atom->natoms);
+  else
+    natoms = static_cast<int> (group->count(igroup));
   if (natoms <= 0) error->all("Invalid natoms for dump dcd");
-  if (atom->tag_consecutive() == 0)
-    error->all("Atom IDs must be consecutive for dump dcd");
+
   coords = (float *) memory->smalloc(3*natoms*sizeof(float),"dump:coords");
   xf = &coords[0*natoms];
   yf = &coords[1*natoms];
@@ -131,6 +134,8 @@ double DumpDCD::memory_usage()
 {
   double bytes = maxbuf * sizeof(double);
   bytes += 3*natoms * sizeof(float);
+  bytes += natoms * size_one_id;
+
   return bytes;
 }
 
@@ -142,6 +147,8 @@ void DumpDCD::openfile()
     fp = fopen(filename,"wb");
     if (fp == NULL) error->one("Cannot open dump file");
   }
+  // build hash table for sorted output
+  build_idmap(natoms);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -192,7 +199,17 @@ void DumpDCD::write_header(int n)
 
 int DumpDCD::count()
 {
-  return atom->nlocal;
+  if (igroup == group->find("all"))
+    return atom->nlocal;
+
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  int m = 0;
+  for (int i=0; i<nlocal; ++i)
+    if (mask[i] & groupbit) ++m;
+
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -203,8 +220,7 @@ int DumpDCD::pack()
   double **x = atom->x;
   int *image = atom->image;
   int nlocal = atom->nlocal;
-
-  // assume group all, so no need to perform mask check
+  int *mask = atom->mask;
 
   int m = 0;
   if (unwrap_flag) {
@@ -213,18 +229,22 @@ int DumpDCD::pack()
     double zprd = domain->zprd;
 
     for (int i = 0; i < nlocal; i++) {
-      buf[m++] = tag[i];
-      buf[m++] = x[i][0] + ((image[i] & 1023) - 512) * xprd;
-      buf[m++] = x[i][1] + ((image[i] >> 10 & 1023) - 512) * yprd;
-      buf[m++] = x[i][2] + ((image[i] >> 20) - 512) * zprd;
+      if (mask[i] & groupbit) {
+	buf[m++] = tag[i];
+	buf[m++] = x[i][0] + ((image[i] & 1023) - 512) * xprd;
+	buf[m++] = x[i][1] + ((image[i] >> 10 & 1023) - 512) * yprd;
+	buf[m++] = x[i][2] + ((image[i] >> 20) - 512) * zprd;
+      }
     }
 
   } else {
     for (int i = 0; i < nlocal; i++) {
-      buf[m++] = tag[i];
-      buf[m++] = x[i][0];
-      buf[m++] = x[i][1];
-      buf[m++] = x[i][2];
+      if (mask[i] & groupbit) {
+	buf[m++] = tag[i];
+	buf[m++] = x[i][0];
+	buf[m++] = x[i][1];
+	buf[m++] = x[i][2];
+      }
     }
   }
 
@@ -240,7 +260,7 @@ void DumpDCD::write_data(int n, double *mybuf)
   int tag;
   int m = 0;
   for (int i = 0; i < n; i++) {
-    tag = static_cast<int> (mybuf[m]) - 1;
+    tag = lookup_id(static_cast<int> (mybuf[m]));
     xf[tag] = mybuf[m+1];
     yf[tag] = mybuf[m+2];
     zf[tag] = mybuf[m+3];

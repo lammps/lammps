@@ -257,9 +257,9 @@ void DumpDCD::write_data(int n, double *mybuf)
 {
   // spread buf atom coords into global arrays
 
-  int tag;
+  int i,tag;
   int m = 0;
-  for (int i = 0; i < n; i++) {
+  for (i = 0; i < n; i++) {
     tag = lookup_id(static_cast<int> (mybuf[m]));
     xf[tag] = mybuf[m+1];
     yf[tag] = mybuf[m+2];

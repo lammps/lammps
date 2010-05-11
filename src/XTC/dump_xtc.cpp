@@ -16,9 +16,10 @@
                          open-source XDR routines from
 			   Frans van Hoesel (http://md.chem.rug.nl/hoesel)
 			   are also included in this file
-                         Axel Kohlmeyer (UPenn)
+                         Axel Kohlmeyer (Temple U)
                            port to platforms without XDR support
                            added support for unwrapped trajectories
+			   added support for group dumps
 ------------------------------------------------------------------------- */
 
 #include "math.h"
@@ -28,6 +29,7 @@
 #include "limits.h"
 #include "dump_xtc.h"
 #include "domain.h"
+#include "output.h"
 #include "atom.h"
 #include "update.h"
 #include "group.h"
@@ -52,7 +54,6 @@ int xdr3dfcoord(XDR *, float *, int *, float *);
 DumpXTC::DumpXTC(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
 {
   if (narg != 5) error->all("Illegal dump xtc command");
-  if (igroup != group->find("all")) error->all("Dump xtc must use group all");
   if (binary || compressed || multifile || multiproc)
     error->all("Invalid dump xtc filename");
 
@@ -64,10 +65,11 @@ DumpXTC::DumpXTC(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
 
   // allocate global array for atom coords
 
-  natoms = static_cast<int> (atom->natoms);
+  if (igroup == group->find("all"))
+    natoms = static_cast<int> (atom->natoms);
+  else
+    natoms = static_cast<int> (group->count(igroup));
   if (natoms <= 0) error->all("Invalid natoms for dump xtc");
-  if (atom->tag_consecutive() == 0)
-    error->all("Atom IDs must be consecutive for dump xtc");
   coords = (float *) memory->smalloc(3*natoms*sizeof(float),"dump:coords");
 
   // sfactor = conversion of coords to XTC units
@@ -77,6 +79,7 @@ DumpXTC::DumpXTC(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
   if (strcmp(update->unit_style,"lj") == 0) sfactor = 1.0;
 
   openfile();
+  nevery_save = 0;
   ntotal = 0;
 }
 
@@ -99,6 +102,24 @@ void DumpXTC::init()
   // check that flush_flag is not set since dump::write() will use it
 
   if (flush_flag) error->all("Cannot set dump_modify flush for dump xtc");
+
+  if (unwrap_flag == 1 && domain->triclinic)
+    error->all("Dump xtc cannot dump unwrapped coords with triclinic box");
+  
+  // check that dump frequency has not changed
+
+  if (nevery_save == 0) {
+    int idump;
+    for (idump = 0; idump < output->ndump; idump++)
+      if (strcmp(id,output->dump[idump]->id) == 0) break;
+    nevery_save = output->dump_every[idump];
+  } else {
+    int idump;
+    for (idump = 0; idump < output->ndump; idump++)
+      if (strcmp(id,output->dump[idump]->id) == 0) break;
+    if (nevery_save != output->dump_every[idump])
+      error->all("Cannot change dump_modify every for dump xtc");
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -132,6 +153,8 @@ double DumpXTC::memory_usage()
 {
   double bytes = maxbuf * sizeof(double);
   bytes += 3*natoms * sizeof(float);
+  bytes += natoms * size_one_id;
+
   return bytes;
 }
 
@@ -145,6 +168,8 @@ void DumpXTC::openfile()
   fp = NULL;
   if (me == 0)
     if (xdropen(&xd,filename,"w") == 0) error->one("Cannot open dump file");
+
+  build_idmap(natoms);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -155,8 +180,6 @@ void DumpXTC::write_header(int n)
 
   if (n != natoms) {
     memory->sfree(coords);
-    if (atom->tag_consecutive() == 0)
-      error->all("Atom IDs must be consecutive for dump xtc");
     natoms = n;
     coords = (float *) memory->smalloc(3*natoms*sizeof(float),"dump:coords");
   }
@@ -188,7 +211,17 @@ void DumpXTC::write_header(int n)
 
 int DumpXTC::count()
 {
-  return atom->nlocal;
+  if (igroup == group->find("all"))
+    return atom->nlocal;
+
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  int m = 0;
+  for (int i=0; i<nlocal; ++i)
+    if (mask[i] & groupbit) ++m;
+
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -199,6 +232,7 @@ int DumpXTC::pack()
   double **x = atom->x;
   int *image = atom->image;
   int nlocal = atom->nlocal;
+  int *mask = atom->mask;
 
   // assume group all, so no need to perform mask check
 
@@ -209,18 +243,22 @@ int DumpXTC::pack()
     double zprd = domain->zprd;
 
     for (int i = 0; i < nlocal; i++) {
-      buf[m++] = tag[i];
-      buf[m++] = sfactor*(x[i][0] + ((image[i] & 1023) - 512) * xprd);
-      buf[m++] = sfactor*(x[i][1] + ((image[i] >> 10 & 1023) - 512) * yprd);
-      buf[m++] = sfactor*(x[i][2] + ((image[i] >> 20) - 512) * zprd);
+      if (mask[i] & groupbit) {
+	buf[m++] = tag[i];
+	buf[m++] = sfactor*(x[i][0] + ((image[i] & 1023) - 512) * xprd);
+	buf[m++] = sfactor*(x[i][1] + ((image[i] >> 10 & 1023) - 512) * yprd);
+	buf[m++] = sfactor*(x[i][2] + ((image[i] >> 20) - 512) * zprd);
+      }
     }
 
   } else {
     for (int i = 0; i < nlocal; i++) {
-      buf[m++] = tag[i];
-      buf[m++] = sfactor*x[i][0];
-      buf[m++] = sfactor*x[i][1];
-      buf[m++] = sfactor*x[i][2];
+      if (mask[i] & groupbit) {
+	buf[m++] = tag[i];
+	buf[m++] = sfactor*x[i][0];
+	buf[m++] = sfactor*x[i][1];
+	buf[m++] = sfactor*x[i][2];
+      }
     }
   }
 
@@ -231,16 +269,15 @@ int DumpXTC::pack()
 
 void DumpXTC::write_data(int n, double *mybuf)
 {
-  float *xyz;
-  int j,tag;
+  int i,j,tag;
 
   int m = 0;
-  for (int i = 0; i < n; i++) {
-    tag = static_cast<int> (mybuf[m]) - 1;
+  for (i = 0; i < n; i++) {
+    tag = lookup_id(static_cast<int> (mybuf[m]));
     j = 3*tag;
-    coords[j++] = mybuf[m+1];
-    coords[j++] = mybuf[m+2];
-    coords[j] = mybuf[m+3];
+    coords[j]   = mybuf[m+1];
+    coords[j+1] = mybuf[m+2];
+    coords[j+2] = mybuf[m+3];
     m += size_one;
   }
 

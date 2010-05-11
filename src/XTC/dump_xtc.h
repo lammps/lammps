@@ -39,7 +39,7 @@ class DumpXTC : public Dump {
   double memory_usage();
 	
  private:
-  int natoms,ntotal;
+  int natoms,ntotal,nevery_save;
   int unwrap_flag;            // 1 if atom coords are unwrapped, 0 if no
   float precision;            // user-adjustable precision setting
   float *coords;

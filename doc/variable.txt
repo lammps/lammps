@@ -13,13 +13,14 @@ variable command :h3
 variable name style args ... :pre
 
 name = name of variable to define :ulb,l
-style = {delete} or {index} or {loop} or {world} or {universe} or {uloop} or {equal} or {atom} :l
+style = {delete} or {index} or {loop} or {world} or {universe} or {uloop} or {string} or {equal} or {atom} :l
   {delete} = no args
   {index} args = one or more strings
   {loop} args = N = integer size of loop
   {world} args = one string for each partition of processors
   {universe} args = one or more strings
   {uloop} args = N = integer size of loop
+  {string} arg = one string
   {equal} or {atom} args = one formula containing numbers, thermo keywords, math operations, group functions, atom values and vectors, compute/fix/variable references
     numbers = 0.0, 100, -5.4, 2.8e-4, etc
     thermo keywords = vol, ke, press, etc from "thermo_style"_thermo_style.html
@@ -51,6 +52,7 @@ variable b1 equal "x\[234\] + 0.5*vol"
 variable b equal xcm(mol1,x)/2.0
 variable b equal c_myTemp
 variable b atom x*y/vol
+variable foo myfile
 variable temp world 300.0 310.0 320.0 $\{Tfinal\}
 variable x universe 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
 variable x uloop 15
@@ -106,10 +108,11 @@ will override a corresponding index variable setting in the input
 script.
 
 There are two exceptions to this rule.  First, variables of style
-{equal} and {atom} ARE redefined each time the command is encountered.
-This only changes their associated formula if the formula contains a
-substitution for another variable, e.g. $x.  But that can be useful,
-for example, in a loop.
+{string} and {equal} and {atom} ARE redefined each time the command is
+encountered.  This allows these style of variables to be redefined
+multiple times in an input script.  In a loop, this means the formula
+associated with an {equal} or {atom} style variable can change if it
+contains a substitution for another variable, e.g. $x.
 
 Second, as described below, if a variable is iterated on to the end of
 its list of strings via the "next"_next.html command, it is removed

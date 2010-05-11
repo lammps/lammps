@@ -17,7 +17,7 @@
 </PRE>
 <UL><LI>name = name of variable to define 
 
-<LI>style = <I>delete</I> or <I>index</I> or <I>loop</I> or <I>world</I> or <I>universe</I> or <I>uloop</I> or <I>equal</I> or <I>atom</I> 
+<LI>style = <I>delete</I> or <I>index</I> or <I>loop</I> or <I>world</I> or <I>universe</I> or <I>uloop</I> or <I>string</I> or <I>equal</I> or <I>atom</I> 
 
 <PRE>  <I>delete</I> = no args
   <I>index</I> args = one or more strings
@@ -25,6 +25,7 @@
   <I>world</I> args = one string for each partition of processors
   <I>universe</I> args = one or more strings
   <I>uloop</I> args = N = integer size of loop
+  <I>string</I> arg = one string
   <I>equal</I> or <I>atom</I> args = one formula containing numbers, thermo keywords, math operations, group functions, atom values and vectors, compute/fix/variable references
     numbers = 0.0, 100, -5.4, 2.8e-4, etc
     thermo keywords = vol, ke, press, etc from <A HREF = "thermo_style.html">thermo_style</A>
@@ -57,6 +58,7 @@ variable b1 equal "x[234] + 0.5*vol"
 variable b equal xcm(mol1,x)/2.0
 variable b equal c_myTemp
 variable b atom x*y/vol
+variable foo myfile
 variable temp world 300.0 310.0 320.0 ${Tfinal}
 variable x universe 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
 variable x uloop 15
@@ -112,10 +114,11 @@ will override a corresponding index variable setting in the input
 script.
 </P>
 <P>There are two exceptions to this rule.  First, variables of style
-<I>equal</I> and <I>atom</I> ARE redefined each time the command is encountered.
-This only changes their associated formula if the formula contains a
-substitution for another variable, e.g. $x.  But that can be useful,
-for example, in a loop.
+<I>string</I> and <I>equal</I> and <I>atom</I> ARE redefined each time the command is
+encountered.  This allows these style of variables to be redefined
+multiple times in an input script.  In a loop, this means the formula
+associated with an <I>equal</I> or <I>atom</I> style variable can change if it
+contains a substitution for another variable, e.g. $x.
 </P>
 <P>Second, as described below, if a variable is iterated on to the end of
 its list of strings via the <A HREF = "next.html">next</A> command, it is removed

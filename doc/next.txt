@@ -38,9 +38,11 @@ If multiple variables are used as arguments to the {next} command,
 then all must be of the same variable style: {index}, {loop},
 {universe}, or {uloop}.  An exception is that {universe}- and
 {uloop}-style variables can be mixed in the same {next} command.
-{Atom}- or {equal}- or {world}-style variables cannot be incremented
-by a next command.  All the variables specified are incremented by one
-value from their respective lists.
+
+All the variables specified with the next command are incremented by
+one value from their respective list or values.  {String-} or {atom}-
+or {equal}- or {world}-style variables cannot be used with the the
+next command, since they only store a single value.
 
 When any of the variables in the next command has no more values, a
 flag is set that causes the input script to skip the next

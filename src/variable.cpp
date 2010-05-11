@@ -188,19 +188,6 @@ void Variable::set(int narg, char **arg)
 	  num[nvar] != num[jvar])
 	error->all("All universe/uloop variables must have same # of values");
 
-    /*
-    if (me == 0) {
-      if (universe->uscreen)
-	fprintf(universe->uscreen,
-		"Initial ${%s} setting: value %d on partition %d\n",
-		arg[0],index[nvar]+1,universe->iworld);
-      if (universe->ulogfile)
-	fprintf(universe->ulogfile,
-		"Initial ${%s} setting: value %d on partition %d\n",
-		arg[0],index[nvar]+1,universe->iworld);
-    }
-    */
-
   // STRING
   // remove pre-existing var if also style STRING (allows it to be reset)
   // num = 1, index = 1st value

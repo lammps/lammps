@@ -567,6 +567,10 @@ Self-explanatory. :dd
 
 The frequency of writing dump dcd snapshots cannot be changed. :dd
 
+{Cannot change dump_modify every for dump xtc} :dt
+
+The frequency of writing dump xtc snapshots cannot be changed. :dd
+
 {Cannot change timestep with fix pour} :dt
 
 This fix pre-computes some values based on the timestep, so it cannot
@@ -1825,9 +1829,9 @@ dump output. :dd
 
 Cannot use unwrap option with non-orthogonal simulation box. :dd
 
-{Dump dcd must use group all} :dt
+{Dump xtc cannot dump unwrapped coords with triclinic box} :dt
 
-Self-explanatory. :dd
+Cannot use unwrap option with non-orthogonal simulation box. :dd
 
 {Dump dcd of non-matching # of atoms} :dt
 

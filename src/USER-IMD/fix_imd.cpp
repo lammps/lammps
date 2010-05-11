@@ -179,9 +179,6 @@ static void  imdsock_destroy(void *);
 
 using namespace LAMMPS_NS;
 
-/* adapted sort for in-place sorting of map indices. */
-static void id_sort(int *idmap, int left, int right);
-
 /* struct for packed data communication of coordinates and forces. */
 struct commdata { 
   int tag; 
@@ -799,44 +796,6 @@ double FixIMD::memory_usage(void)
 }
 
 /* End of FixIMD class implementation. */
-
-/************************************************************************
- * integer list sort code: 
- ************************************************************************/
-
-/* sort for integer map. initial call  id_sort(idmap, 0, natoms - 1); */
-void id_sort(int *idmap, int left, int right)
-{
-  int pivot, l_hold, r_hold;
-
-  l_hold = left;
-  r_hold = right;
-  pivot = idmap[left];
-  
-  while (left < right) {
-    while ((idmap[right] >= pivot) && (left < right))
-      right--;
-    if (left != right) {
-      idmap[left] = idmap[right];
-      left++;
-    }
-    while ((idmap[left] <= pivot) && (left < right))
-      left++;
-    if (left != right) {
-      idmap[right] = idmap[left];
-      right--;
-    }
-  }
-  idmap[left] = pivot;
-  pivot = left;
-  left = l_hold;
-  right = r_hold;
-
-  if (left < pivot)
-    id_sort(idmap, left, pivot-1);
-  if (right > pivot)
-    id_sort(idmap, pivot+1, right);
-}
 
 /***************************************************************************/
 

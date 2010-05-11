@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- -------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -60,6 +60,13 @@ class Dump : protected Pointers {
   double boxylo,boxyhi;      // lo/hi are bounding box for triclinic
   double boxzlo,boxzhi;
   double boxxy,boxxz,boxyz;
+
+  void *idmap;			// hashtable for sorted group dumps
+  int size_one_id;		// size of one idmap entry
+  
+  virtual void build_idmap(int);
+  virtual void release_idmap();
+  virtual int lookup_id(int tag);
 
   virtual void openfile();
   virtual int modify_param(int, char **) {return 0;}

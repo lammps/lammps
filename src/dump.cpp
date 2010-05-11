@@ -17,12 +17,15 @@
 #include "stdio.h"
 #include "dump.h"
 #include "atom.h"
+#include "comm.h"
 #include "update.h"
 #include "domain.h"
 #include "group.h"
 #include "output.h"
 #include "memory.h"
 #include "error.h"
+
+#include "inthash.h"
 
 using namespace LAMMPS_NS;
 
@@ -56,8 +59,12 @@ Dump::Dump(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   sort_flag = 0;
   append_flag = 0;
 
+  size_one = 0;
   maxbuf = 0;
   buf = NULL;
+
+  idmap = NULL;
+  size_one_id = sizeof(inthash_node_t);
 
   // parse filename for special syntax
   // if contains '%', write one file per proc and replace % with proc-ID
@@ -109,6 +116,9 @@ Dump::~Dump()
 
   memory->sfree(buf);
 
+  // delete hashtable, if it exists
+  release_idmap();
+
   // XTC style sets fp to NULL since it closes file in its destructor
 
   if (multifile == 0 && fp != NULL) {
@@ -119,6 +129,119 @@ Dump::~Dump()
       if (multiproc) fclose(fp);
       else if (me == 0) fclose(fp);
     }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   build hash table for sorted output
+------------------------------------------------------------------------- */
+void Dump::build_idmap(int natoms)
+{
+  /* nme:    number of atoms in group on this MPI task
+   * nmax:   max number of atoms in group across all MPI tasks
+   * nlocal: all local atoms */
+  int nmax,nme,nlocal;
+  int *mask  = atom->mask;
+  int *tag  = atom->tag;
+  nlocal = atom->nlocal;
+
+  int i,j;
+
+  nme=0;
+  for (i=0; i < nlocal; ++i)
+    if (mask[i] & groupbit) ++nme;
+
+  MPI_Allreduce(&nme,&nmax,1,MPI_INT,MPI_MAX,world);
+  int *comm_buf = new int[nmax];
+  int comm_size = nmax*sizeof(int);
+
+  MPI_Status status;
+  MPI_Request request;
+  int tmp, ndata;
+
+  if (me == 0) {
+    if (screen)
+      fprintf(screen,"Preparing index map for sorted dump of %d atoms\n",natoms);
+    if (logfile)
+      fprintf(logfile,"Preparing index map for sorted dump of %d atoms\n",natoms);
+
+    /* initialize and build hashtable. */
+    inthash_t *hashtable=new inthash_t;
+    inthash_init(hashtable, natoms);
+    idmap = (void *)hashtable;
+    int *taglist = new int[natoms];
+    int numtag=0; /* counter to map atoms to a 0-based consecutive index */
+    
+    for (i=0; i < nlocal; ++i) {
+      if (mask[i] & groupbit) {
+        taglist[numtag] = tag[i];
+        ++numtag;
+      }
+    }
+
+    /* loop over procs to receive remote data */
+    for (i=1; i < comm->nprocs; ++i) {
+      MPI_Irecv(comm_buf, comm_size, MPI_BYTE, i, 0, world, &request);
+      MPI_Send(&tmp, 0, MPI_INT, i, 0, world);
+      MPI_Wait(&request, &status);
+      MPI_Get_count(&status, MPI_BYTE, &ndata);
+      ndata /= sizeof(int);
+
+      for (j=0; j < ndata; ++j) {
+        taglist[numtag] = comm_buf[j];
+        ++numtag;
+      }
+    }
+
+    /* sort list of tags by value to have consistently the
+     * same list when running in parallel and build hash table. */
+    id_sort(taglist, 0, natoms-1);
+    for (i=0; i < natoms; ++i) {
+      inthash_insert(hashtable, taglist[i], i);
+    }
+    delete[] taglist;
+
+  } else {
+    nme=0;
+    for (i=0; i < nlocal; ++i) {
+      if (mask[i] & groupbit) {
+        comm_buf[nme] = tag[i];
+        ++nme;
+      }
+    }
+    /* blocking receive to wait until it is our turn to send data. */
+    MPI_Recv(&tmp, 0, MPI_INT, 0, 0, world, &status);
+    MPI_Rsend(comm_buf, nme*sizeof(int), MPI_BYTE, 0, 0, world);
+  }
+  // cleanup.
+  delete[] comm_buf;
+}
+
+/* ----------------------------------------------------------------------
+   delete hashtable 
+------------------------------------------------------------------------- */
+
+void Dump::release_idmap(void)
+{
+  if (idmap) {
+    inthash_t *hashtable = (inthash_t *)idmap;
+    inthash_destroy(hashtable);
+    delete hashtable;
+    hashtable = NULL;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   lookup id in hashtable.
+------------------------------------------------------------------------- */
+
+int Dump::lookup_id(int tag)
+{
+  if (idmap) {
+    inthash_t *hashtable = (inthash_t *)idmap;
+    return inthash_lookup(hashtable, tag);
+  } else {
+    return tag;
   }
 }
 

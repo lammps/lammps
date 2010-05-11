@@ -37,7 +37,7 @@ using namespace LAMMPS_NS;
 
 #define MYROUND(a) (( a-floor(a) ) >= .5) ? ceil(a) : floor(a)
 
-enum{INDEX,LOOP,EQUAL,WORLD,UNIVERSE,ULOOP,ATOM};
+enum{INDEX,LOOP,WORLD,UNIVERSE,ULOOP,STRING,EQUAL,ATOM};
 enum{ARG,OP};
 enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,UNARY,
        EQ,NE,LT,LE,GT,GE,AND,OR,
@@ -131,26 +131,6 @@ void Variable::set(int narg, char **arg)
     data[nvar] = new char*[num[nvar]];
     for (int i = 0; i < num[nvar]; i++) data[nvar][i] = NULL;
     
-  // EQUAL
-  // remove pre-existing var if also style EQUAL (allows it to be reset)
-  // num = 2, index = 1st value
-  // data = 2 values, 1st is string to eval, 2nd is filled on retrieval
-
-  } else if (strcmp(arg[1],"equal") == 0) {
-    if (narg != 3) error->all("Illegal variable command");
-    if (find(arg[0]) >= 0) {
-      if (style[find(arg[0])] != EQUAL)
-	error->all("Cannot redefine variable as a different style");
-      remove(find(arg[0]));
-    }
-    if (nvar == maxvar) extend();
-    style[nvar] = EQUAL;
-    num[nvar] = 2;
-    index[nvar] = 0;
-    data[nvar] = new char*[num[nvar]];
-    copy(1,&arg[2],data[nvar]);
-    data[nvar][1] = NULL;
-    
   // WORLD
   // num = listed args, index = partition this proc is in, data = copied args
   // error check that num = # of worlds in universe
@@ -221,6 +201,45 @@ void Variable::set(int narg, char **arg)
     }
     */
 
+  // STRING
+  // remove pre-existing var if also style STRING (allows it to be reset)
+  // num = 1, index = 1st value
+  // data = 1 value, string to eval
+
+  } else if (strcmp(arg[1],"string") == 0) {
+    if (narg != 3) error->all("Illegal variable command");
+    if (find(arg[0]) >= 0) {
+      if (style[find(arg[0])] != STRING)
+	error->all("Cannot redefine variable as a different style");
+      remove(find(arg[0]));
+    }
+    if (nvar == maxvar) extend();
+    style[nvar] = STRING;
+    num[nvar] = 1;
+    index[nvar] = 0;
+    data[nvar] = new char*[num[nvar]];
+    copy(1,&arg[2],data[nvar]);
+    
+  // EQUAL
+  // remove pre-existing var if also style EQUAL (allows it to be reset)
+  // num = 2, index = 1st value
+  // data = 2 values, 1st is string to eval, 2nd is filled on retrieval
+
+  } else if (strcmp(arg[1],"equal") == 0) {
+    if (narg != 3) error->all("Illegal variable command");
+    if (find(arg[0]) >= 0) {
+      if (style[find(arg[0])] != EQUAL)
+	error->all("Cannot redefine variable as a different style");
+      remove(find(arg[0]));
+    }
+    if (nvar == maxvar) extend();
+    style[nvar] = EQUAL;
+    num[nvar] = 2;
+    index[nvar] = 0;
+    data[nvar] = new char*[num[nvar]];
+    copy(1,&arg[2],data[nvar]);
+    data[nvar][1] = NULL;
+    
   // ATOM
   // remove pre-existing var if also style ATOM (allows it to be reset)
   // num = 1, index = 1st value
@@ -243,7 +262,7 @@ void Variable::set(int narg, char **arg)
   } else error->all("Illegal variable command");
 
   // set name of variable
-  // must come at end, since EQUAL/ATOM reset may have removed name
+  // must come at end, since STRING/EQUAL/ATOM reset may have removed name
   // name must be all alphanumeric chars or underscores
 
   int n = strlen(arg[0]) + 1;
@@ -259,6 +278,7 @@ void Variable::set(int narg, char **arg)
 
 /* ----------------------------------------------------------------------
    single-value INDEX variable created by command-line argument
+   make it INDEX rather than STRING so cannot be re-defined in input script
 ------------------------------------------------------------------------- */
 
 void Variable::set(char *name, char *value)
@@ -295,10 +315,10 @@ int Variable::next(int narg, char **arg)
       error->all("All variables in next command must be same style");
   }
 
-  // invalid styles EQUAL or WORLD or ATOM
+  // invalid styles STRING or EQUAL or WORLD or ATOM
 
   int istyle = style[find(arg[0])];
-  if (istyle == EQUAL || istyle == WORLD || istyle == ATOM)
+  if (istyle == STRING || istyle == EQUAL || istyle == WORLD || istyle == ATOM)
     error->all("Invalid variable style with next command");
 
   // increment all variables in list
@@ -373,7 +393,7 @@ char *Variable::retrieve(char *name)
 
   char *str;
   if (style[ivar] == INDEX || style[ivar] == WORLD || 
-      style[ivar] == UNIVERSE) {
+      style[ivar] == UNIVERSE || style[ivar] == STRING) {
     str = data[ivar][index[ivar]];
   } else if (style[ivar] == LOOP || style[ivar] == ULOOP) {
     char *value = new char[16];

@@ -29,6 +29,7 @@ couple:	  code example of how to link to LAMMPS as a library
 colloid:  big colloid particles in a small particle solvent, 2d system
 crack:	  crack propagation in a 2d solid
 dipole:   point dipolar particles, 2d system
+elastic:  zero temperature elastic constant tensor of silicon
 ellipse:  ellipsoidal particles in spherical solvent, 2d system
 flow:	  Couette and Poiseuille flow in a 2d channel
 friction: frictional contact of spherical asperities between 2d surfaces

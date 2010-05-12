@@ -72,7 +72,7 @@ FixAddForce::FixAddForce(LAMMPS *lmp, int narg, char **arg) :
   // optional args
 
   iregion = -1;
-  evar = NONE;
+  estyle = NONE;
   estr = NULL;
 
   int iarg = 6;

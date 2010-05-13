@@ -125,6 +125,8 @@ pair_eam_fs_opt.cpp
 pair_eam_fs_opt.h
 pair_eam_opt.cpp
 pair_eam_opt.h
+pair_gauss_cut.cpp
+pair_gauss_cut.h
 pair_gayberne.cpp
 pair_gayberne.h
 pair_gayberne_gpu.cpp

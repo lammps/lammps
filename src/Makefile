@@ -17,7 +17,7 @@ PACKAGE = asphere class2 colloid dipole dsmc gpu granular \
 	  kspace manybody meam molecule opt peri poems prd reax xtc
 
 PACKUSER = user-ackland user-atc user-cd-eam user-cg-cmm user-ewaldn \
-	   user-imd user-openmp user-smd
+	   user-gauss user-imd user-openmp user-smd
 
 PACKALL = $(PACKAGE) $(PACKUSER)
 

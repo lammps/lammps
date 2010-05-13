@@ -106,6 +106,7 @@ class Data {
   double *pair_gb_epsilon,*pair_gb_sigma;
   double *pair_gb_epsa,*pair_gb_epsb,*pair_gb_epsc;
   double *pair_lj_epsilon,*pair_lj_sigma;
+  double *pair_gauss_hgauss,*pair_gauss_rmh,*pair_gauss_sigmah;
   double **pair_cg_epsilon,**pair_cg_sigma;
   int **pair_cg_cmm_type, **pair_setflag;
   double **pair_cut_coul, **pair_cut_lj;
@@ -1529,7 +1530,39 @@ void pair(FILE *fp, Data &data, char *style, int flag)
   } else if (strcmp(style,"eam/alloy/opt") == 0) {
   } else if (strcmp(style,"eam/fs") == 0) {
   } else if (strcmp(style,"eam/fs/opt") == 0) {
+  } else if (strcmp(style,"gauss/cut") == 0) {
 
+    double cut_lj_global = read_double(fp);
+    int offset_flag = read_int(fp);
+    int mix_flag = read_int(fp);
+
+    if (!flag) return;
+
+    data.pair_gauss_hgauss = new double[data.ntypes+1];
+    data.pair_gauss_rmh = new double[data.ntypes+1];
+    data.pair_gauss_sigmah = new double[data.ntypes+1];
+
+    for (i = 1; i <= data.ntypes; i++)
+      for (j = i; j <= data.ntypes; j++) {
+	itmp = read_int(fp);
+	if (i == j && itmp == 0) {
+	  printf("ERROR: Pair coeff %d,%d is not in restart file\n",i,j);
+	  exit(1);
+	}
+	if (itmp) {
+	if (i == j) {
+	  data.pair_gauss_hgauss[i] = read_double(fp);
+	  data.pair_gauss_rmh[i] = read_double(fp);
+	  data.pair_gauss_sigmah[i] = read_double(fp);
+	  double cut_lj = read_double(fp);
+	} else {
+	  double dipole_hgauss = read_double(fp);
+	  double dipole_rmh = read_double(fp);
+	  double dipole_sigmah = read_double(fp);
+	  double cut_lj = read_double(fp);
+	}
+      }
+    }
   } else if (strcmp(style,"gayberne") == 0) {
 
     double gamma = read_double(fp);

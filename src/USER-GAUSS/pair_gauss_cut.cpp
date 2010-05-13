@@ -25,10 +25,8 @@
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "update.h"
 #include "integrate.h"
-#include "respa.h"
 #include "memory.h"
 #include "error.h"
 
@@ -67,7 +65,7 @@ void PairGaussCut::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double rsq,r,rexp,ugauss,forcelj,factor_lj;
+  double rsq,r,rexp,ugauss,factor_lj;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;

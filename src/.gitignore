@@ -111,6 +111,8 @@ pair_cg_cmm_coul_long.cpp
 pair_cg_cmm_coul_long.h
 pair_cmm_common.cpp
 pair_cmm_common.h
+pair_coul_diel.cpp
+pair_coul_diel.h
 pair_coul_long.cpp
 pair_coul_long.h
 pair_eam.cpp

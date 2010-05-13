@@ -41,9 +41,11 @@ letters, it can be used as ${myTemp}.
 then all must be of the same variable style: <I>index</I>, <I>loop</I>,
 <I>universe</I>, or <I>uloop</I>.  An exception is that <I>universe</I>- and
 <I>uloop</I>-style variables can be mixed in the same <I>next</I> command.
-<I>Atom</I>- or <I>equal</I>- or <I>world</I>-style variables cannot be incremented
-by a next command.  All the variables specified are incremented by one
-value from their respective lists.
+</P>
+<P>All the variables specified with the next command are incremented by
+one value from their respective list or values.  <I>String-</I> or <I>atom</I>-
+or <I>equal</I>- or <I>world</I>-style variables cannot be used with the the
+next command, since they only store a single value.
 </P>
 <P>When any of the variables in the next command has no more values, a
 flag is set that causes the input script to skip the next

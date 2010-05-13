@@ -191,7 +191,7 @@ void PairGaussCut::settings(int narg, char **arg)
 
 void PairGaussCut::coeff(int narg, char **arg)
 {
-  if (narg < 4 || narg > 5) error->all("Incorrect args for pair coefficients");
+  if (narg < 5 || narg > 6) error->all("Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -203,7 +203,7 @@ void PairGaussCut::coeff(int narg, char **arg)
   double sigmah_one = force->numeric(arg[4]);
 
   double cut_one = cut_global;
-  if (narg == 5) cut_one = force->numeric(arg[5]);
+  if (narg == 6) cut_one = force->numeric(arg[5]);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

@@ -171,6 +171,8 @@ pair_tersoff_zbl.cpp
 pair_tersoff_zbl.h
 pppm.cpp
 pppm.h
+pppm_cg.cpp
+pppm_cg.h
 pppm_tip4p.cpp
 pppm_tip4p.h
 remap.cpp

@@ -8,6 +8,9 @@ if (test $1 = 1) then
   cp cg_cmm_parms.h ..
   cp cg_cmm_parms.cpp ..
 
+  cp pppm_cg.h ..
+  cp pppm_cg.cpp ..
+
   cp pair_cmm_common.h ..
   cp pair_cmm_common.cpp ..
   cp pair_cg_cmm.cpp ..
@@ -24,6 +27,9 @@ elif (test $1 = 0) then
 
   rm ../cg_cmm_parms.h
   rm ../cg_cmm_parms.cpp
+
+  rm ../pppm_cg.h
+  rm ../pppm_cg.cpp
 
   rm ../pair_cmm_common.h
   rm ../pair_cmm_common.cpp

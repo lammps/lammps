@@ -20,8 +20,8 @@
 <P><B>Examples:</B>
 </P>
 <PRE>pair_style lj96/cut 2.5
-pair_coeff * * 1.0 1.0 0.5
-pair_coeff 1 1 1.0 1.0 -0.2 2.0 
+pair_coeff * * 1.0 1.0 4.0
+pair_coeff 1 1 1.0 1.0 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -40,7 +40,6 @@ commands, or by mixing as described below:
 </P>
 <UL><LI>epsilon (energy units)
 <LI>sigma (distance units)
-<LI>delta (distance units)
 <LI>cutoff (distance units) 
 </UL>
 <P>The last coefficient is optional.  If not specified, the global LJ

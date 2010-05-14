@@ -17,8 +17,8 @@ cutoff = global cutoff for lj96/cut interactions (distance units) :ul
 [Examples:]
 
 pair_style lj96/cut 2.5
-pair_coeff * * 1.0 1.0 0.5
-pair_coeff 1 1 1.0 1.0 -0.2 2.0 :pre
+pair_coeff * * 1.0 1.0 4.0
+pair_coeff 1 1 1.0 1.0 :pre
 
 [Description:]
 
@@ -37,7 +37,6 @@ commands, or by mixing as described below:
 
 epsilon (energy units)
 sigma (distance units)
-delta (distance units)
 cutoff (distance units) :ul
 
 The last coefficient is optional.  If not specified, the global LJ

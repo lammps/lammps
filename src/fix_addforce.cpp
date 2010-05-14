@@ -72,7 +72,6 @@ FixAddForce::FixAddForce(LAMMPS *lmp, int narg, char **arg) :
   // optional args
 
   iregion = -1;
-  evar = NONE;
   estr = NULL;
 
   int iarg = 6;
@@ -153,7 +152,7 @@ void FixAddForce::init()
     if (evar < 0) error->all("Variable name for fix addforce does not exist");
     if (input->variable->atomstyle(evar)) estyle = ATOM;
     else error->all("Variable for fix setforce is invalid style");
-  }
+  } else estyle = NONE;
 
   if (xstyle == ATOM || ystyle == ATOM || zstyle == ATOM) 
     varflag = ATOM;

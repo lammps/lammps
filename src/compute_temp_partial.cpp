@@ -69,14 +69,17 @@ void ComputeTempPartial::init()
   dof_compute();
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   DOF for a body of N atoms with S constraints (e.g. from SHAKE)
+   DOF = nper/dim (dim*N - S), where dim = dimensionality = 2 or 3
+------------------------------------------------------------------------- */
 
 void ComputeTempPartial::dof_compute()
 {
   double natoms = group->count(igroup);
   int nper = xflag+yflag+zflag;
   dof = nper * natoms;
-  dof -= extra_dof + fix_dof;
+  dof -= (1.0*nper/domain->dimension)*fix_dof + extra_dof;
   if (dof > 0) tfactor = force->mvv2e / (dof * force->boltz);
   else tfactor = 0.0;
 }

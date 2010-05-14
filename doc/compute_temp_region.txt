@@ -18,7 +18,7 @@ region-ID = ID of region to use for choosing atoms :ul
 
 [Examples:]
 
-temperature mine flow region boundary :pre
+compute mine flow temp/region boundary :pre
 
 [Description:]
 

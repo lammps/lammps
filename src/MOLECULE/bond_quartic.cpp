@@ -63,9 +63,10 @@ void BondQuartic::compute(int eflag, int vflag)
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = 0;
 
-  // insure pair ev is also setup since will call pair->ev_tally() below
+  // insure pair->ev_tally() will use 1-4 virial contribution
 
-  if (eflag || vflag) force->pair->ev_setup(eflag,vflag);
+  if (vflag_global == 2)
+    force->pair->vflag_either = force->pair->vflag_global = 1;
 
   double **cutsq = force->pair->cutsq;
   double **x = atom->x;

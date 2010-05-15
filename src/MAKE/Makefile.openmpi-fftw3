@@ -41,7 +41,7 @@ MPI_LIB =
 
 FFT_INC =       -DFFT_FFTW3
 FFT_PATH = 
-FFT_LIB =	-lfftw3
+FFT_LIB =	-lfftw3 -lfftw3f
 
 # additional system libraries needed by LAMMPS package libraries
 # these settings are IGNORED if the corresponding LAMMPS package

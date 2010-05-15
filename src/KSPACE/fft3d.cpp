@@ -78,8 +78,7 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
   double scalef = 1.0;
 #endif
 #ifdef FFT_FFTW3
-  fftw_plan the_plan;
-  int nlist[1];
+  FFTW_API(plan) the_plan;
 #endif
 
   // pre-remap to prepare for 1st FFTs if needed
@@ -133,9 +132,9 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
     fftw(plan->plan_fast_backward,total/length,data,1,length,NULL,0,0);
 #endif
 #ifdef FFT_FFTW3
-  the_plan = fftw_plan_many_dft(1,&length,total/length,data,NULL,1,length,data,NULL,1,length,flag,FFTW_ESTIMATE);
-  fftw_execute(the_plan);
-  fftw_destroy_plan(the_plan);
+  the_plan = FFTW_API(plan_many_dft)(1,&length,total/length,data,NULL,1,length,data,NULL,1,length,flag,FFTW_ESTIMATE);
+  FFTW_API(execute)(the_plan);
+  FFTW_API(destroy_plan)(the_plan);
 #endif
 
 
@@ -186,9 +185,9 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
     fftw(plan->plan_mid_backward,total/length,data,1,length,NULL,0,0);
 #endif
 #ifdef FFT_FFTW3
-  the_plan = fftw_plan_many_dft(1,&length,total/length,data,NULL,1,length,data,NULL,1,length,flag,FFTW_ESTIMATE);
-  fftw_execute(the_plan);
-  fftw_destroy_plan(the_plan);
+  the_plan = FFTW_API(plan_many_dft)(1,&length,total/length,data,NULL,1,length,data,NULL,1,length,flag,FFTW_ESTIMATE);
+  FFTW_API(execute)(the_plan);
+  FFTW_API(destroy_plan)(the_plan);
 #endif
 
   // 2nd mid-remap to prepare for 3rd FFTs
@@ -238,9 +237,9 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
     fftw(plan->plan_slow_backward,total/length,data,1,length,NULL,0,0);
 #endif
 #ifdef FFT_FFTW3
-  the_plan = fftw_plan_many_dft(1,&length,total/length,data,NULL,1,length,data,NULL,1,length,flag,FFTW_ESTIMATE);
-  fftw_execute(the_plan);
-  fftw_destroy_plan(the_plan);
+  the_plan = FFTW_API(plan_many_dft)(1,&length,total/length,data,NULL,1,length,data,NULL,1,length,flag,FFTW_ESTIMATE);
+  FFTW_API(execute)(the_plan);
+  FFTW_API(destroy_plan)(the_plan);
 #endif
 
   // post-remap to put data in output format if needed

@@ -91,6 +91,7 @@ typedef FFTW_COMPLEX FFT_DATA;
 #ifdef FFT_FFTW3
 #include "fftw3.h"
 typedef fftwf_complex FFT_DATA;
+#define FFTW_API(function)  fftwf_ ## function
 #endif
 
 #ifdef FFT_NONE
@@ -173,6 +174,7 @@ typedef FFTW_COMPLEX FFT_DATA;
 #ifdef FFT_FFTW3
 #include "fftw3.h"
 typedef fftw_complex FFT_DATA;
+#define FFTW_API(function)  fftw_ ## function
 #endif
 
 #ifdef FFT_NONE

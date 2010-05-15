@@ -77,6 +77,10 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
   int isys = 0;
   double scalef = 1.0;
 #endif
+#ifdef FFT_FFTW3
+  fftw_plan the_plan;
+  int nlist[1];
+#endif
 
   // pre-remap to prepare for 1st FFTs if needed
   // copy = loc for remap result 
@@ -128,6 +132,12 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
   else
     fftw(plan->plan_fast_backward,total/length,data,1,length,NULL,0,0);
 #endif
+#ifdef FFT_FFTW3
+  the_plan = fftw_plan_many_dft(1,&length,total/length,data,NULL,1,length,data,NULL,1,length,flag,FFTW_ESTIMATE);
+  fftw_execute(the_plan);
+  fftw_destroy_plan(the_plan);
+#endif
+
 
   // 1st mid-remap to prepare for 2nd FFTs
   // copy = loc for remap result 
@@ -174,6 +184,11 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
     fftw(plan->plan_mid_forward,total/length,data,1,length,NULL,0,0);
   else
     fftw(plan->plan_mid_backward,total/length,data,1,length,NULL,0,0);
+#endif
+#ifdef FFT_FFTW3
+  the_plan = fftw_plan_many_dft(1,&length,total/length,data,NULL,1,length,data,NULL,1,length,flag,FFTW_ESTIMATE);
+  fftw_execute(the_plan);
+  fftw_destroy_plan(the_plan);
 #endif
 
   // 2nd mid-remap to prepare for 3rd FFTs
@@ -222,6 +237,11 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
   else
     fftw(plan->plan_slow_backward,total/length,data,1,length,NULL,0,0);
 #endif
+#ifdef FFT_FFTW3
+  the_plan = fftw_plan_many_dft(1,&length,total/length,data,NULL,1,length,data,NULL,1,length,flag,FFTW_ESTIMATE);
+  fftw_execute(the_plan);
+  fftw_destroy_plan(the_plan);
+#endif
 
   // post-remap to put data in output format if needed
   // destination is always out 
@@ -237,8 +257,13 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
     norm = plan->norm;
     num = plan->normnum;
     for (i = 0; i < num; i++) {
+#ifdef FFT_FFTW3
+      out[i][0] *= norm;
+      out[i][1] *= norm;
+#else
       out[i].re *= norm;
       out[i].im *= norm;
+#endif
     }
   }
 #endif
@@ -729,6 +754,16 @@ struct fft_plan_3d *fft_3d_create_plan(
   }
 
 #endif
+#ifdef FFT_FFTW3
+  if (scaled == 0)
+    plan->scaled = 0;
+  else {
+    plan->scaled = 1;
+    plan->norm = 1.0/(nfast*nmid*nslow);
+    plan->normnum = (out_ihi-out_ilo+1) * (out_jhi-out_jlo+1) *
+      (out_khi-out_klo+1);
+  }
+#endif
 
   return plan;
 }
@@ -983,8 +1018,13 @@ void fft_1d_only(FFT_DATA *data, int nsize, int flag, struct fft_plan_3d *plan)
     norm = plan->norm;
     num = MIN(plan->normnum,nsize);
     for (i = 0; i < num; i++) {
+#ifdef FFT_FFTW3
+      data[i][0] *= norm;
+      data[i][1] *= norm;
+#else
       data[i].re *= norm;
       data[i].im *= norm;
+#endif
     }
   }
 #endif

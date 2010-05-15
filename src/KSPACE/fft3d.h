@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -88,6 +88,11 @@ extern "C" {
 typedef FFTW_COMPLEX FFT_DATA;
 #endif
 
+#ifdef FFT_FFTW3
+#include "fftw3.h"
+typedef fftwf_complex FFT_DATA;
+#endif
+
 #ifdef FFT_NONE
 typedef struct {
   float re;
@@ -163,6 +168,11 @@ extern "C" {
 #ifdef FFT_FFTW
 #include "fftw.h"
 typedef FFTW_COMPLEX FFT_DATA;
+#endif
+
+#ifdef FFT_FFTW3
+#include "fftw3.h"
+typedef fftw_complex FFT_DATA;
 #endif
 
 #ifdef FFT_NONE

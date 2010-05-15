@@ -18,6 +18,10 @@
 #include "memory.h"
 #include "error.h"
 
+#ifdef FFT_FFTW3
+#include "fftw3.h"
+#endif
+
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -31,7 +35,11 @@ Memory::Memory(LAMMPS *lmp) : Pointers(lmp) {}
 void *Memory::smalloc(int n, const char *name)
 {
   if (n == 0) return NULL;
+#ifdef FFT_FFTW3
+  void *ptr = fftw_malloc(n);
+#else
   void *ptr = malloc(n);
+#endif
   if (ptr == NULL) {
     char str[128];
     sprintf(str,"Failed to allocate %d bytes for array %s",n,name);
@@ -47,7 +55,11 @@ void *Memory::smalloc(int n, const char *name)
 void Memory::sfree(void *ptr)
 {
   if (ptr == NULL) return;
+#ifdef FFT_FFTW3
+  fftw_free(ptr);
+#else
   free(ptr);
+#endif
 }
 
 /* ----------------------------------------------------------------------

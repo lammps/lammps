@@ -13,6 +13,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing authors: Jim Shepherd (GA Tech) added SGI SCSL support
+                         Axel Kohlmeyer (Temple U) added FFTW3 support
 ------------------------------------------------------------------------- */
 
 #include "mpi.h"
@@ -761,13 +762,13 @@ struct fft_plan_3d *fft_3d_create_plan(
     FFTW_API(plan_many_dft)(1,&nfast,plan->total1/nfast,
 			    plan->dummy_data,NULL,1,nfast,
 			    plan->dummy_data,NULL,1,nfast,
-			    FFTW_FORWARD,FFTW_PATIENT|FFTW_UNALIGNED);
+			    FFTW_FORWARD,FFTW_PATIENT);
 
   plan->plan_fast_backward = 
     FFTW_API(plan_many_dft)(1,&nfast,plan->total1/nfast,
 			    plan->dummy_data,NULL,1,nfast,
 			    plan->dummy_data,NULL,1,nfast,
-			    FFTW_BACKWARD,FFTW_PATIENT|FFTW_UNALIGNED);
+			    FFTW_BACKWARD,FFTW_PATIENT);
 
   if (nmid == nfast) {
     plan->plan_mid_forward = plan->plan_fast_forward;
@@ -778,13 +779,13 @@ struct fft_plan_3d *fft_3d_create_plan(
       FFTW_API(plan_many_dft)(1,&nmid,plan->total2/nmid,
 			      plan->dummy_data,NULL,1,nmid,
 			      plan->dummy_data,NULL,1,nmid,
-			      FFTW_FORWARD,FFTW_PATIENT|FFTW_UNALIGNED);
+			      FFTW_FORWARD,FFTW_PATIENT);
 
     plan->plan_mid_backward = 
       FFTW_API(plan_many_dft)(1,&nmid,plan->total2/nmid,
 			      plan->dummy_data,NULL,1,nmid,
 			      plan->dummy_data,NULL,1,nmid,
-			      FFTW_BACKWARD,FFTW_PATIENT|FFTW_UNALIGNED);
+			      FFTW_BACKWARD,FFTW_PATIENT);
   }
 
   if (nslow == nfast) {
@@ -800,13 +801,13 @@ struct fft_plan_3d *fft_3d_create_plan(
       FFTW_API(plan_many_dft)(1,&nslow,plan->total3/nslow,
 			      plan->dummy_data,NULL,1,nslow,
 			      plan->dummy_data,NULL,1,nslow,
-			      FFTW_FORWARD,FFTW_PATIENT|FFTW_UNALIGNED);
+			      FFTW_FORWARD,FFTW_PATIENT);
 
     plan->plan_slow_backward = 
       FFTW_API(plan_many_dft)(1,&nslow,plan->total3/nslow,
 			      plan->dummy_data,NULL,1,nslow,
 			      plan->dummy_data,NULL,1,nslow,
-			      FFTW_BACKWARD,FFTW_PATIENT|FFTW_UNALIGNED);
+			      FFTW_BACKWARD,FFTW_PATIENT);
   }
 
   if (scaled == 0)

@@ -125,7 +125,7 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
     FFT_1D(&flag,&length,&scalef,&data[offset],&data[offset],plan->coeff1,
 	   plan->work1,&isys);
 #endif
-#ifdef FFT_FFTW
+#ifdef FFT_FFTW2
   if (flag == -1)
     fftw(plan->plan_fast_forward,total/length,data,1,length,NULL,0,0);
   else
@@ -178,7 +178,7 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
     FFT_1D(&flag,&length,&scalef,&data[offset],&data[offset],plan->coeff2,
 	   plan->work2,&isys);
 #endif
-#ifdef FFT_FFTW
+#ifdef FFT_FFTW2
   if (flag == -1)
     fftw(plan->plan_mid_forward,total/length,data,1,length,NULL,0,0);
   else
@@ -230,7 +230,7 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
     FFT_1D(&flag,&length,&scalef,&data[offset],&data[offset],plan->coeff3,
 	   plan->work3,&isys);
 #endif
-#ifdef FFT_FFTW
+#ifdef FFT_FFTW2
   if (flag == -1)
     fftw(plan->plan_slow_forward,total/length,data,1,length,NULL,0,0);
   else
@@ -710,7 +710,7 @@ struct fft_plan_3d *fft_3d_create_plan(
 
 #endif
 
-#ifdef FFT_FFTW
+#ifdef FFT_FFTW2
 
   plan->plan_fast_forward = 
     fftw_create_plan(nfast,FFTW_FORWARD,FFTW_ESTIMATE | FFTW_IN_PLACE);
@@ -807,7 +807,7 @@ void fft_3d_destroy_plan(struct fft_plan_3d *plan)
   free(plan->work2);
   free(plan->work3);
 #endif
-#ifdef FFT_FFTW
+#ifdef FFT_FFTW2
   if (plan->plan_slow_forward != plan->plan_mid_forward &&
       plan->plan_slow_forward != plan->plan_fast_forward) {
     fftw_destroy_plan(plan->plan_slow_forward);
@@ -997,7 +997,7 @@ void fft_1d_only(FFT_DATA *data, int nsize, int flag, struct fft_plan_3d *plan)
     FFT_1D(&flag,&length3,&scalef,&data[offset],&data[offset],plan->coeff3,
 	   plan->work3,&isys);
 #endif
-#ifdef FFT_FFTW
+#ifdef FFT_FFTW2
   if (flag == -1) {
     fftw(plan->plan_fast_forward,total1/length1,data,1,0,NULL,0,0);
     fftw(plan->plan_mid_forward,total2/length2,data,1,0,NULL,0,0);

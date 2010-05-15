@@ -18,6 +18,11 @@
 
 #define FFT_PRECISION 2
 
+// set default fftw library. switch to fftw3 when convenient.
+#ifdef FFT_FFTW
+#define FFT_FFTW2
+#endif
+
 // ------------------------------------------------------------------------- 
 
 // Data types for single-precision complex 
@@ -83,7 +88,7 @@ extern "C" {
 }
 #endif
 
-#ifdef FFT_FFTW
+#ifdef FFT_FFTW2
 #include "fftw.h"
 typedef FFTW_COMPLEX FFT_DATA;
 #endif
@@ -166,7 +171,7 @@ extern "C" {
 }
 #endif
 
-#ifdef FFT_FFTW
+#ifdef FFT_FFTW2
 #include "fftw.h"
 typedef FFTW_COMPLEX FFT_DATA;
 #endif
@@ -232,13 +237,21 @@ struct fft_plan_3d {
   double *work2;
   double *work3;
 #endif
-#ifdef FFT_FFTW
+#ifdef FFT_FFTW2
   fftw_plan plan_fast_forward;
   fftw_plan plan_fast_backward;
   fftw_plan plan_mid_forward;
   fftw_plan plan_mid_backward;
   fftw_plan plan_slow_forward;
   fftw_plan plan_slow_backward;
+#endif
+#ifdef FFT_FFTW3
+  FFTW_API(plan) plan_fast_forward;
+  FFTW_API(plan) plan_fast_backward;
+  FFTW_API(plan) plan_mid_forward;
+  FFTW_API(plan) plan_mid_backward;
+  FFTW_API(plan) plan_slow_forward;
+  FFTW_API(plan) plan_slow_backward;
 #endif
 };
 

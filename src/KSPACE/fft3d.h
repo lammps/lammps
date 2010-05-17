@@ -29,7 +29,7 @@
 
 #if FFT_PRECISION == 1
 
-#ifdef FFT_SGI
+#if defined(FFT_SGI)
 #include "fft.h"
 typedef complex FFT_DATA;
 #define FFT_1D cfft1d
@@ -39,9 +39,7 @@ extern "C" {
   FFT_DATA *cfft1di(int, FFT_DATA *);
 }
 
-#endif
-
-#ifdef FFT_SCSL
+#elif defined(FFT_SCSL)
 #include <scsl_fft.h>
 typedef scsl_complex FFT_DATA;
 typedef float FFT_PREC;
@@ -52,9 +50,7 @@ extern "C" {
                       FFT_PREC *, FFT_PREC *, int *);
 }
 
-#endif
-
-#ifdef FFT_INTEL
+#elif defined(FFT_INTEL)
 typedef struct {
   float re;
   float im;
@@ -64,9 +60,8 @@ typedef struct {
 extern "C" {
   void cfft1d_(FFT_DATA *, int *, int *, FFT_DATA *);
 }
-#endif
 
-#ifdef FFT_DEC
+#elif defined(FFT_DEC)
 typedef struct {
   float re;
   float im;
@@ -75,9 +70,8 @@ typedef struct {
 extern "C" {
   void cfft_(char *, char *, char *, FFT_DATA *, FFT_DATA *, int *, int *);
 }
-#endif
 
-#ifdef FFT_T3E
+#elif defined(FFT_T3E)
 #include <complex.h>
 typedef complex single FFT_DATA;
 #define FFT_1D GGFFT
@@ -86,35 +80,37 @@ extern "C" {
   void GGFFT(int *, int *, double *, FFT_DATA *, FFT_DATA *,
 	     double *, double *, int *);
 }
-#endif
 
-#ifdef FFT_FFTW2
+#elif defined(FFT_FFTW2)
 #include "fftw.h"
 typedef FFTW_COMPLEX FFT_DATA;
-#endif
 
-#ifdef FFT_FFTW3
+#elif defined(FFT_FFTW3)
 #include "fftw3.h"
 typedef fftwf_complex FFT_DATA;
 #define FFTW_API(function)  fftwf_ ## function
+
+#else
+
+/* use kiss fft as default fft */
+#ifndef FFT_KISSFFT
+#define FFT_KISSFFT
 #endif
 
-#ifdef FFT_NONE
+#define kiss_fft_scalar float
 typedef struct {
-  float re;
-  float im;
+    kiss_fft_scalar re;
+    kiss_fft_scalar im;
 } FFT_DATA;
-#endif
-
 #endif
 
 // ------------------------------------------------------------------------- 
 
 // Data types for double-precision complex 
 
-#if FFT_PRECISION == 2
+#elif FFT_PRECISION == 2
 
-#ifdef FFT_SGI
+#if defined(FFT_SGI)
 #include "fft.h"
 typedef zomplex FFT_DATA;
 #define FFT_1D zfft1d
@@ -123,9 +119,8 @@ extern "C" {
   int zfft1d(int, int, FFT_DATA *, int, FFT_DATA *);
   FFT_DATA *zfft1di(int, FFT_DATA *);
 }
-#endif
 
-#ifdef FFT_SCSL
+#elif defined(FFT_SCSL)
 #include <scsl_fft.h>
 typedef scsl_zomplex FFT_DATA;
 typedef double FFT_PREC;
@@ -135,9 +130,8 @@ extern "C" {
   int zzfft(int, int, FFT_PREC, FFT_DATA *, FFT_DATA *,
                       FFT_PREC *, FFT_PREC *, int *);
 }
-#endif
 
-#ifdef FFT_INTEL
+#elif defined(FFT_INTEL)
 typedef struct {
   double re;
   double im;
@@ -147,9 +141,8 @@ typedef struct {
 extern "C" {
   void zfft1d_(FFT_DATA *, int *, int *, FFT_DATA *);
 }
-#endif
 
-#ifdef FFT_DEC
+#elif defined(FFT_DEC)
 typedef struct {
   double re;
   double im;
@@ -158,9 +151,8 @@ typedef struct {
 extern "C" {
   void zfft_(char *, char *, char *, FFT_DATA *, FFT_DATA *, int *, int *);
 }
-#endif
 
-#ifdef FFT_T3E
+#elif defined(FFT_T3E)
 #include <complex.h>
 typedef complex double FFT_DATA;
 #define FFT_1D CCFFT
@@ -169,28 +161,53 @@ extern "C" {
   void CCFFT(int *, int *, double *, FFT_DATA *, FFT_DATA *,
 	     double *, double *, int *);
 }
-#endif
 
-#ifdef FFT_FFTW2
+#elif defined(FFT_FFTW2)
 #include "fftw.h"
 typedef FFTW_COMPLEX FFT_DATA;
-#endif
 
-#ifdef FFT_FFTW3
+#elif defined(FFT_FFTW3)
 #include "fftw3.h"
 typedef fftw_complex FFT_DATA;
 #define FFTW_API(function)  fftw_ ## function
+
+#else
+
+/* use kiss fft as default fft */
+#ifndef FFT_KISSFFT
+#define FFT_KISSFFT
 #endif
 
-#ifdef FFT_NONE
+#define kiss_fft_scalar double
 typedef struct {
-  double re;
-  double im;
+    kiss_fft_scalar re;
+    kiss_fft_scalar im;
 } FFT_DATA;
 #endif
 
+#else
+#error "FFT_PRECISION needs to be either 1 or 2"
 #endif
 
+// ------------------------------------------------------------------------- 
+// a stripped down kissfft source is included into the source as fallback 
+// FFT this has only the essential header info. the remaining prototypes,
+// copyright info and so on is in fft3d.cpp.
+#ifdef FFT_KISSFFT
+#define KISS_FFT_MALLOC malloc
+#define MAXFACTORS 32
+/* e.g. an fft of length 128 has 4 factors 
+ as far as kissfft is concerned: 4*4*4*2  */
+struct kiss_fft_state {
+    int nfft;
+    int inverse;
+    int factors[2*MAXFACTORS];
+    FFT_DATA twiddles[1];
+};
+typedef struct kiss_fft_state* kiss_fft_cfg;
+kiss_fft_cfg kiss_fft_alloc(int,int,void *,size_t *); 
+void kiss_fft(kiss_fft_cfg,const FFT_DATA *,FFT_DATA *);
+#endif
 // ------------------------------------------------------------------------- 
 
 // details of how to do a 3d FFT 
@@ -211,41 +228,36 @@ struct fft_plan_3d {
   double norm;                      // normalization factor for rescaling 
 
                                     // system specific 1d FFT info 
-#ifdef FFT_SGI
+#if defined(FFT_SGI)
   FFT_DATA *coeff1;
   FFT_DATA *coeff2;
   FFT_DATA *coeff3;
-#endif
-#ifdef FFT_SCSL
+#elif defined(FFT_SCSL)
   FFT_PREC *coeff1;
   FFT_PREC *coeff2;
   FFT_PREC *coeff3;
   FFT_PREC *work1;
   FFT_PREC *work2;
   FFT_PREC *work3;
-#endif
-#ifdef FFT_INTEL
+#elif defined(FFT_INTEL)
   FFT_DATA *coeff1;
   FFT_DATA *coeff2;
   FFT_DATA *coeff3;
-#endif
-#ifdef FFT_T3E
+#elif defined(FFT_T3E)
   double *coeff1;
   double *coeff2;
   double *coeff3;
   double *work1;
   double *work2;
   double *work3;
-#endif
-#ifdef FFT_FFTW2
+#elif defined(FFT_FFTW2)
   fftw_plan plan_fast_forward;
   fftw_plan plan_fast_backward;
   fftw_plan plan_mid_forward;
   fftw_plan plan_mid_backward;
   fftw_plan plan_slow_forward;
   fftw_plan plan_slow_backward;
-#endif
-#ifdef FFT_FFTW3
+#elif defined(FFT_FFTW3)
   FFT_DATA *dummy_data;
   FFTW_API(plan) plan_fast_forward;
   FFTW_API(plan) plan_fast_backward;
@@ -253,6 +265,13 @@ struct fft_plan_3d {
   FFTW_API(plan) plan_mid_backward;
   FFTW_API(plan) plan_slow_forward;
   FFTW_API(plan) plan_slow_backward;
+#else
+  kiss_fft_cfg cfg_fast_forward;
+  kiss_fft_cfg cfg_fast_backward;
+  kiss_fft_cfg cfg_mid_forward;
+  kiss_fft_cfg cfg_mid_backward;
+  kiss_fft_cfg cfg_slow_forward;
+  kiss_fft_cfg cfg_slow_backward;
 #endif
 };
 
@@ -266,3 +285,4 @@ void fft_3d_destroy_plan(struct fft_plan_3d *);
 void factor(int, int *, int *);
 void bifactor(int, int *, int *);
 void fft_1d_only(FFT_DATA *, int, int, struct fft_plan_3d *);
+

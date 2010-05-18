@@ -131,6 +131,7 @@ void Output::setup(int flag)
   // set next_dump_any to smallest next_dump
   // if no dumps, set next_dump_any to last+1 so will not influence next
   // wrap dumps that invoke computes with clear/add
+  // if dump not written now, add_all on future step since clear/add is noop
 
   int writeflag;
 
@@ -147,7 +148,10 @@ void Output::setup(int flag)
       }
       next_dump[idump] = 
 	(ntimestep/dump_every[idump])*dump_every[idump] + dump_every[idump];
-      if (dump[idump]->clearstep) modify->addstep_compute(next_dump[idump]);
+      if (dump[idump]->clearstep) {
+	if (writeflag) modify->addstep_compute(next_dump[idump]);
+	else modify->addstep_compute_all(next_dump[idump]);
+      }
       if (idump) next_dump_any = MYMIN(next_dump_any,next_dump[idump]);
       else next_dump_any = next_dump[0];
     }

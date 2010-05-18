@@ -360,8 +360,7 @@ struct fft_plan_3d *fft_3d_create_plan(
     plan->pre_plan =
       remap_3d_create_plan(comm,in_ilo,in_ihi,in_jlo,in_jhi,in_klo,in_khi,
 			   first_ilo,first_ihi,first_jlo,first_jhi,
-			   first_klo,first_khi,
-			   FFT_PRECISION,0,0,2);
+			   first_klo,first_khi,2,0,0,FFT_PRECISION);
     if (plan->pre_plan == NULL) return NULL;
   }
 
@@ -385,8 +384,7 @@ struct fft_plan_3d *fft_3d_create_plan(
 			   first_ilo,first_ihi,first_jlo,first_jhi,
 			   first_klo,first_khi,
 			   second_ilo,second_ihi,second_jlo,second_jhi,
-			   second_klo,second_khi,
-			   FFT_PRECISION,1,0,2);
+			   second_klo,second_khi,2,1,0,FFT_PRECISION);
   if (plan->mid1_plan == NULL) return NULL;
 
   // 1d FFTs along mid axis 
@@ -428,8 +426,7 @@ struct fft_plan_3d *fft_3d_create_plan(
 			 second_jlo,second_jhi,second_klo,second_khi,
 			 second_ilo,second_ihi,
 			 third_jlo,third_jhi,third_klo,third_khi,
-			 third_ilo,third_ihi,
-			 FFT_PRECISION,1,0,2);
+			 third_ilo,third_ihi,2,1,0,FFT_PRECISION);
   if (plan->mid2_plan == NULL) return NULL;
 
   // 1d FFTs along slow axis 
@@ -458,8 +455,7 @@ struct fft_plan_3d *fft_3d_create_plan(
 			   third_klo,third_khi,third_ilo,third_ihi,
 			   third_jlo,third_jhi,
 			   out_klo,out_khi,out_ilo,out_ihi,
-			   out_jlo,out_jhi,
-			   FFT_PRECISION,(permute+1)%3,0,2);
+			   out_jlo,out_jhi,2,(permute+1)%3,0,FFT_PRECISION);
     if (plan->post_plan == NULL) return NULL;
   }
 

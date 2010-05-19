@@ -65,6 +65,7 @@ help:
 	@/bin/sh Make.sh style
 	@cp -p *.cpp *.h Obj_$@
 	@cp MAKE/Makefile.$@ Obj_$@/Makefile
+	@if [ ! -e Makefile.package ]; then make package-regenerate; fi
 	@cp Makefile.package Obj_$@
 	@cd Obj_$@; \
 	$(MAKE) $(MFLAGS) "OBJ = $(OBJ)" "INC = $(INC)" "EXE = ../$(EXE)" ../$(EXE)
@@ -161,6 +162,7 @@ no-%:
 # status = list differences between src and package files
 # update = replace src files with newer package files
 # overwrite = overwrite package files with newer src files
+# regenerate = regenerate Makefile.package from Makefile.package.empty
 
 package-status:
 	@for p in $(PACKAGEUC); do /bin/sh Package.sh $$p status; done
@@ -176,3 +178,9 @@ package-overwrite:
 	@for p in $(PACKAGEUC); do /bin/sh Package.sh $$p overwrite; done
 	@echo ''
 	@for p in $(PACKUSERUC); do /bin/sh Package.sh $$p overwrite; done
+
+package-regenerate:
+	@cp Makefile.package.empty Makefile.package
+	@echo "Regenerating Makefile.package"
+	@for p in $(PACKAGEUC); do /bin/sh Package.sh $$p regenerate; done
+	@for p in $(PACKUSERUC); do /bin/sh Package.sh $$p regenerate; done

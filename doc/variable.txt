@@ -31,10 +31,12 @@ style = {delete} or {index} or {loop} or {world} or {universe} or {uloop} or {st
                      ceil(x), floor(x), round(x)
     group functions = count(group), mass(group), charge(group),
 		      xcm(group,dim), vcm(group,dim), fcm(group,dim),
-		      bound(group,xmin), gyration(group), ke(group)
+		      bound(group,xmin), gyration(group), ke(group),
+		      angmom(group,dim)
     region functions = count(group,region), mass(group,region), charge(group,region),
 		      xcm(group,dim,region), vcm(group,dim,region), fcm(group,dim,region),
-		      bound(group,xmin,region), gyration(group,region), ke(group,reigon)
+		      bound(group,xmin,region), gyration(group,region), ke(group,reigon),
+		      angmom(group,dim,region)
     atom value = mass\[i\], type\[i\], x\[i\], y\[i\], z\[i\], vx\[i\], vy\[i\], vz\[i\], fx\[i\], fy\[i\], fz\[i\]
     atom vector = mass, type, x, y, z, vx, vy, vz, fx, fy, fz
     compute references = c_ID, c_ID\[i\], c_ID\[i\]\[j\]
@@ -246,9 +248,12 @@ Thermo keywords: vol, pe, ebond, etc
 Math operators: (), -x, x+y, x-y, x*y, x/y, x^y, x==y, x!=y, x<y, x<=y, x>y, x>=y, x&&y, x||y
 Math functions: sqrt(x), exp(x), ln(x), log(x), sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), ceil(x), floor(x), round(x)
 Group functions: count(ID), mass(ID), charge(ID), xcm(ID,dim), \
-                 vcm(ID,dim), fcm(ID,dim), bound(ID,dir), gyration(ID), ke(ID)
-Region functions: count(ID,IDR), mass(ID,IDR), charge(ID,IDR), xcm(ID,dim,IDR), \
-                 vcm(ID,dim,IDR), fcm(ID,dim,IDR), bound(ID,dir,IDR), gyration(ID,IDR), ke(ID,IDR)
+                 vcm(ID,dim), fcm(ID,dim), bound(ID,dir), \
+		 gyration(ID), ke(ID), angmom(ID,dim)
+Region functions: count(ID,IDR), mass(ID,IDR), charge(ID,IDR), \
+		  xcm(ID,dim,IDR), vcm(ID,dim,IDR), fcm(ID,dim,IDR), \
+		  bound(ID,dir,IDR), gyration(ID,IDR), ke(ID,IDR), \
+		  angmom(ID,dim,IDR)
 Atom values: mass\[i\], type\[i\], x\[i\], y\[i\], z\[i\], \
              vx\[i\], vy\[i\], vz\[i\], fx\[i\], fy\[i\], fz\[i\]
 Atom vectors: mass, type, x, y, z, vx, vy, vz, fx, fy, fz
@@ -327,7 +332,9 @@ of the group.  Fcm() returns a component of the total force on the
 group of atoms.  Bound() returns the min/max of a particular
 coordinate for all atoms in the group.  Gyration() computes the
 radius-of-gyration of the group of atoms.  See the "compute
-gyration"_compute_gyration.html command for a definition of the formula.
+gyration"_compute_gyration.html command for a definition of the
+formula.  Angmom() returns components of the angular momentum of the
+group of atoms around its center of mass.
 
 Region functions are exactly the same as group functions except they
 take an extra argument which is the region ID.  The function is

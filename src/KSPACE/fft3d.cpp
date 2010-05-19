@@ -877,7 +877,7 @@ void fft_3d_destroy_plan(struct fft_plan_3d *plan)
   free(plan->work3);
 #elif defined(FFT_FFTW2)
   if (plan->plan_slow_forward != plan->plan_fast_forward &&
-      plan->plan_slow_forward != plan->plan_fast_forward) {
+      plan->plan_slow_forward != plan->plan_mid_forward) {
     fftw_destroy_plan(plan->plan_slow_forward);
     fftw_destroy_plan(plan->plan_slow_backward);
   }
@@ -889,7 +889,7 @@ void fft_3d_destroy_plan(struct fft_plan_3d *plan)
   fftw_destroy_plan(plan->plan_fast_backward);
 #elif defined(FFT_FFTW3)
   if (plan->plan_slow_forward != plan->plan_fast_forward &&
-      plan->plan_slow_forward != plan->plan_fast_forward) {
+      plan->plan_slow_forward != plan->plan_mid_forward) {
     FFTW_API(destroy_plan)(plan->plan_slow_forward);
     FFTW_API(destroy_plan)(plan->plan_slow_backward);
   }
@@ -902,7 +902,7 @@ void fft_3d_destroy_plan(struct fft_plan_3d *plan)
   free(plan->dummy_data);
 #else
   if (plan->cfg_slow_forward != plan->cfg_fast_forward &&
-      plan->cfg_slow_forward != plan->cfg_fast_forward) {
+      plan->cfg_slow_forward != plan->cfg_mid_forward) {
     free(plan->cfg_slow_forward);
     free(plan->cfg_slow_backward);
   }

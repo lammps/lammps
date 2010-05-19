@@ -369,7 +369,7 @@ void FixMove::initial_integrate(int vflag)
 {
   double dtfm;
   double xold[3],a[3],b[3],c[3],d[3],disp[3];
-  double x0dotr,dx,dy,dz;
+  double ddotr,dx,dy,dz;
 
   double delta = (update->ntimestep - time_origin) * dt;
 
@@ -497,8 +497,8 @@ void FixMove::initial_integrate(int vflag)
   // w = omega of rotation (from period)
   // X0 = xoriginal = initial coord of atom
   // R0 = runit = unit vector for R
-  // C = (X0 dot R0) R0 = projection of atom coord onto R
   // D = X0 - P = vector from P to X0
+  // C = (D dot R0) R0 = projection of atom coord onto R line
   // A = D - C = vector from R line to X0
   // B = R0 cross A = vector perp to A in plane of rotation
   // A,B define plane of circular rotation around R line
@@ -516,14 +516,13 @@ void FixMove::initial_integrate(int vflag)
 	xold[1] = x[i][1];
 	xold[2] = x[i][2];
 
-	x0dotr = xoriginal[i][0]*runit[0] + 
-	  xoriginal[i][1]*runit[1] + xoriginal[i][2]*runit[2]; 
-	c[0] = x0dotr * runit[0];
-	c[1] = x0dotr * runit[1];
-	c[2] = x0dotr * runit[2];
 	d[0] = xoriginal[i][0] - point[0];
 	d[1] = xoriginal[i][1] - point[1];
 	d[2] = xoriginal[i][2] - point[2];
+	ddotr = d[0]*runit[0] + d[1]*runit[1] + d[2]*runit[2]; 
+	c[0] = ddotr*runit[0];
+	c[1] = ddotr*runit[1];
+	c[2] = ddotr*runit[2];
 	a[0] = d[0] - c[0];
 	a[1] = d[1] - c[1];
 	a[2] = d[2] - c[2];

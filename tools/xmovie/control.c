@@ -43,7 +43,7 @@ typedef struct {
 
 typedef struct {
 	char	*name;
-	int	value;
+	long	value;
 	Widget	w;
 	}	ToggleStruct;
 
@@ -450,9 +450,9 @@ PRIVATE void NewThickness(Widget w, XtPointer client_data, XtPointer percent_ptr
 
 PRIVATE void AxisSelect(Widget w, XtPointer client_data, XtPointer call_data)
 {
-	int	new_axis;
+	PTR	new_axis;
 
-	new_axis  = (int) client_data;
+	new_axis  = (PTR) client_data;
 
 	if (new_axis == Common.axis) return;
 
@@ -472,9 +472,9 @@ PRIVATE void AxisSelect(Widget w, XtPointer client_data, XtPointer call_data)
 
 PRIVATE void DirectionSelect(Widget w, XtPointer client_data, XtPointer call_data)
 {
-	int	new_dir;
+	PTR	new_dir;
 
-	new_dir = (int) client_data;
+	new_dir = (PTR) client_data;
 
 	if (new_dir == Common.direction) return;
 
@@ -486,9 +486,9 @@ PRIVATE void DirectionSelect(Widget w, XtPointer client_data, XtPointer call_dat
 
 PRIVATE void MotionSelect(Widget w, XtPointer client_data, XtPointer call_data)
 {
-	int	new_dir;
+	PTR	new_dir;
 
-	new_dir = (int) client_data;
+	new_dir = (PTR) client_data;
 
 	Common.dstep = new_dir;
 }
@@ -839,7 +839,7 @@ PRIVATE void init_atoms(Widget parent)
 	Widget	apply, cancel, last;
 	char	formname[80], fglabel[80], sizelabel[80];
 	char	fgname[80], sizename[80], vname[80], iname[80];
-	int	i, j;
+	long	i, j;
 	size_t	size;
 
 	/* create a popup shell for atom colors */
@@ -1001,7 +1001,7 @@ PRIVATE void init_bonds(Widget parent)
 	Widget	apply, cancel, last;
 	char	formname[80], fglabel[80], sizelabel[80];
 	char	fgname[80], sizename[80], vname[80], iname[80];
-	int	i, j;
+	long	i, j;
 	size_t	size;
 
 	/* create a popup shell for bond colors */
@@ -1310,11 +1310,11 @@ PRIVATE void file_apply(Widget w, XtPointer client_data, XtPointer call_data)
 PRIVATE void visible_toggle(Widget w, XtPointer client_data, 
 	XtPointer call_data)
 {
-	int		i;
+	long		i;
 	XtPointer	data;
 	char		c;
 
-	i = (int) client_data;
+	i = (long) client_data;
 
 	XtVaGetValues(w, XtNradioData, &data, NULL);
 

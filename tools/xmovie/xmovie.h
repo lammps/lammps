@@ -21,8 +21,17 @@
 #define CopyBondID	104
 #define CopyAtomID	105
 
+#include <bits/wordsize.h>
+
+#if __WORDSIZE == 64
+typedef int 	INT4;
+typedef float	REAL4;
+typedef long    PTR;
+#else
+typedef int     PTR;
 typedef long	INT4;
 typedef float	REAL4;
+#endif
 
 typedef INT4	RECORD;
 typedef INT4	LENGTH;

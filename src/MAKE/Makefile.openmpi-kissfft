@@ -7,11 +7,11 @@ SHELL = /bin/sh
 # specify flags and libraries needed for your compiler
 
 CC =		mpic++
-CCFLAGS =	-O2 \
+CCFLAGS =	-O2 -g \
 		-funroll-loops -fstrict-aliasing -Wall -W -Wno-uninitialized
 DEPFLAGS =	-M
 LINK =		mpic++
-LINKFLAGS =	-O
+LINKFLAGS =	-O -g
 LIB =           -Wl,-rpath,/usr/lib64/openmpi/lib -lstdc++
 ARCHIVE =	ar
 ARFLAGS =	-rcsv

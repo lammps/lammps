@@ -55,7 +55,8 @@ void Run::command(int narg, char **arg)
   int preflag = 1;
   int postflag = 1;
   int nevery = 0;
-  int first,last,ncommands;
+  int ncommands = 0;
+  int first,last;
     
   int iarg = 1;
   while (iarg < narg) {

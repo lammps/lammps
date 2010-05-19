@@ -1,4 +1,4 @@
-# mac_mpi = Apple PowerBook G4 laptop, mpic++, fink LAM/MPI, fink FFTW 2.1.5
+# mac_mpi = Apple PowerBook G4 laptop, mpic++, gfortran, fink LAM/MPI, fink FFTW 2.1.5
 
 SHELL = /bin/sh
 

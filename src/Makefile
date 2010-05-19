@@ -181,6 +181,5 @@ package-overwrite:
 
 package-regenerate:
 	@cp Makefile.package.empty Makefile.package
-	@echo "Regenerating Makefile.package"
 	@for p in $(PACKAGEUC); do /bin/sh Package.sh $$p regenerate; done
 	@for p in $(PACKUSERUC); do /bin/sh Package.sh $$p regenerate; done

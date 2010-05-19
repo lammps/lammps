@@ -22,7 +22,6 @@ done
 # issue warning if any package file is not in src or is different
 
 if (test $2 = "status") then
-
   if (test $installed = 1) then
     echo "Installed YES: package $1"
     for file in *.cpp *.h; do
@@ -83,8 +82,8 @@ elif (test $2 = "overwrite") then
 # re-install so Install.sh will edit Makefile.pacakge
 
 elif (test $2 = "regenerate") then
-
   if (test $installed = 1) then
     /bin/sh Install.sh 1
   fi
+
 fi

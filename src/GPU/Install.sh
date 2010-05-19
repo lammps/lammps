@@ -4,12 +4,14 @@
 
 if (test $1 = 1) then
 
-  sed -i -e 's/[^ \t]*gpu //' ../Makefile.package
-  sed -i -e 's/[^ \t]*gpu_[^ \t]*) //' ../Makefile.package
-  sed -i -e 's|^PKG_PATH =[ \t]*|&-L../../lib/gpu |' ../Makefile.package
-  sed -i -e 's|^PKG_LIB =[ \t]*|&-lgpu |' ../Makefile.package
-  sed -i -e 's|^PKG_SYSPATH =[ \t]*|&$(gpu_SYSPATH) |' ../Makefile.package
-  sed -i -e 's|^PKG_SYSLIB =[ \t]*|&$(gpu_SYSLIB) |' ../Makefile.package
+  if (test -e ../Makefile.package) then
+    sed -i -e 's/[^ \t]*gpu //' ../Makefile.package
+    sed -i -e 's/[^ \t]*gpu_[^ \t]*) //' ../Makefile.package
+    sed -i -e 's|^PKG_PATH =[ \t]*|&-L../../lib/gpu |' ../Makefile.package
+    sed -i -e 's|^PKG_LIB =[ \t]*|&-lgpu |' ../Makefile.package
+    sed -i -e 's|^PKG_SYSPATH =[ \t]*|&$(gpu_SYSPATH) |' ../Makefile.package
+    sed -i -e 's|^PKG_SYSLIB =[ \t]*|&$(gpu_SYSLIB) |' ../Makefile.package
+  fi
 
   if (test -e ../pair_gayberne.cpp) then
     cp pair_gayberne_gpu.cpp ..
@@ -21,8 +23,10 @@ if (test $1 = 1) then
 
 elif (test $1 = 0) then
 
-  sed -i -e 's/[^ \t]*gpu //' ../Makefile.package
-  sed -i -e 's/[^ \t]*gpu_[^ \t]*) //' ../Makefile.package
+  if (test -e ../Makefile.package) then
+    sed -i -e 's/[^ \t]*gpu //' ../Makefile.package
+    sed -i -e 's/[^ \t]*gpu_[^ \t]*) //' ../Makefile.package
+  fi
 
   rm ../pair_gayberne_gpu.cpp
   rm ../pair_lj_cut_gpu.cpp

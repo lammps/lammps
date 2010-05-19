@@ -3,10 +3,12 @@
 
 if (test $1 = 1) then
 
-  sed -i -e 's/[^ \t]*poems //' ../Makefile.package
-  sed -i -e 's|^PKG_INC =[ \t]*|&-I../../lib/poems |' ../Makefile.package
-  sed -i -e 's|^PKG_PATH =[ \t]*|&-L../../lib/poems |' ../Makefile.package
-  sed -i -e 's|^PKG_LIB =[ \t]*|&-lpoems |' ../Makefile.package
+  if (test -e ../Makefile.package) then
+    sed -i -e 's/[^ \t]*poems //' ../Makefile.package
+    sed -i -e 's|^PKG_INC =[ \t]*|&-I../../lib/poems |' ../Makefile.package
+    sed -i -e 's|^PKG_PATH =[ \t]*|&-L../../lib/poems |' ../Makefile.package
+    sed -i -e 's|^PKG_LIB =[ \t]*|&-lpoems |' ../Makefile.package
+  fi
 
   cp fix_poems.cpp ..
 
@@ -14,7 +16,9 @@ if (test $1 = 1) then
 
 elif (test $1 = 0) then
 
-  sed -i -e 's/[^ \t]*poems //' ../Makefile.package
+  if (test -e ../Makefile.package) then
+    sed -i -e 's/[^ \t]*poems //' ../Makefile.package
+  fi
 
   rm ../fix_poems.cpp
 

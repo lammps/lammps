@@ -57,8 +57,8 @@ reax_SYSLIB =      -lgfortran
 user-atc_SYSLIB =  -lblas -llapack
 
 gpu_SYSPATH =      -L/usr/local/cuda/lib64
-meam_SYSPATH =     -L/usr/local/lib/x86_64
-reax_SYSPATH =     -L/usr/local/lib/x86_64
+meam_SYSPATH =     -L/usr/lib
+reax_SYSPATH =     -L/usr/lib
 user-atc_SYSPATH = 	
 
 # ---------------------------------------------------------------------

@@ -6,6 +6,9 @@
    also added multiply-array-index-by-size to enable arbitrary objects
 */
 
+#include <stdlib.h>
+#include <string.h>
+
 void hpsort(char *ra, int n, int size,
 	    int (*cmp)(const void *, const void *))
 {

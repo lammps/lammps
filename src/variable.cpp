@@ -1587,10 +1587,10 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
    word = group function
    contents = str bewteen parentheses with one,two,three args
    return 0 if not a match, 1 if successfully processed
-   customize by adding a group function:
+   customize by adding a group function with optional region arg:
      count(group),mass(group),charge(group),
      xcm(group,dim),vcm(group,dim),fcm(group,dim),
-     bound(group,xmin),gyration(group),ke(group)
+     bound(group,xmin),gyration(group),ke(group),angmom(group)
 ------------------------------------------------------------------------- */
 
 int Variable::group_function(char *word, char *contents, Tree **tree,
@@ -1732,6 +1732,24 @@ int Variable::group_function(char *word, char *contents, Tree **tree,
     else if (narg == 2) value = group->ke(igroup,region_function(arg2));
     else error->all("Invalid group function in variable formula");
 
+  } else if (strcmp(word,"angmom") == 0) {
+    atom->check_mass();
+    double xcm[3],lmom[3];
+    if (narg == 2) {
+      double masstotal = group->mass(igroup);
+      group->xcm(igroup,masstotal,xcm);
+      group->angmom(igroup,xcm,lmom);
+    } else if (narg == 3) {
+      int iregion = region_function(arg3);
+      double masstotal = group->mass(igroup,iregion);
+      group->xcm(igroup,masstotal,xcm,iregion);
+      group->angmom(igroup,xcm,lmom,iregion);
+    } else error->all("Invalid group function in variable formula");
+    if (strcmp(arg2,"x") == 0) value = lmom[0];
+    else if (strcmp(arg2,"y") == 0) value = lmom[1];
+    else if (strcmp(arg2,"z") == 0) value = lmom[2];
+    else error->all("Invalid group function in variable formula");
+
   } else return 0;
     
   delete [] arg1;
@@ -1743,17 +1761,7 @@ int Variable::group_function(char *word, char *contents, Tree **tree,
   return 1;
 }
 
-/* ----------------------------------------------------------------------
-   process a group function in formula with optional region arg
-   push result onto tree or arg stack
-   word = group function
-   contents = str bewteen parentheses with one,two,three args
-   return 0 if not a match, 1 if successfully processed
-   customize by adding a group function:
-     count(group),mass(group),charge(group),
-     xcm(group,dim),vcm(group,dim),fcm(group,dim),
-     bound(group,xmin),gyration(group)
-------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
 int Variable::region_function(char *id)
 {

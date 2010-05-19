@@ -1150,7 +1150,8 @@ double Group::gyration(int igroup, double masstotal, double *cm, int iregion)
 }
 
 /* ----------------------------------------------------------------------
-   compute the angular momentum L (lmom) of group around center-of-mass cm
+   compute the angular momentum L (lmom) of group
+   around center-of-mass cm
    must unwrap atoms to compute L correctly
 ------------------------------------------------------------------------- */
 
@@ -1177,6 +1178,52 @@ void Group::angmom(int igroup, double *cm, double *lmom)
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
+      xbox = (image[i] & 1023) - 512;
+      ybox = (image[i] >> 10 & 1023) - 512;
+      zbox = (image[i] >> 20) - 512;
+      dx = (x[i][0] + xbox*xprd) - cm[0];
+      dy = (x[i][1] + ybox*yprd) - cm[1];
+      dz = (x[i][2] + zbox*zprd) - cm[2];
+      if (rmass) massone = rmass[i];
+      else massone = mass[type[i]];
+      p[0] += massone * (dy*v[i][2] - dz*v[i][1]);
+      p[1] += massone * (dz*v[i][0] - dx*v[i][2]);
+      p[2] += massone * (dx*v[i][1] - dy*v[i][0]);
+    }
+
+  MPI_Allreduce(p,lmom,3,MPI_DOUBLE,MPI_SUM,world);
+}
+
+/* ----------------------------------------------------------------------
+   compute the angular momentum L (lmom) of group of atoms in region
+   around center-of-mass cm
+   must unwrap atoms to compute L correctly
+------------------------------------------------------------------------- */
+
+void Group::angmom(int igroup, double *cm, double *lmom, int iregion)
+{
+  int groupbit = bitmask[igroup];
+  Region *region = domain->regions[iregion];
+
+  double **x = atom->x;
+  double **v = atom->v;
+  int *mask = atom->mask;
+  int *type = atom->type;
+  int *image = atom->image;
+  double *mass = atom->mass;
+  double *rmass = atom->rmass;
+  int nlocal = atom->nlocal;
+
+  int xbox,ybox,zbox;
+  double dx,dy,dz,massone;
+  double xprd = domain->xprd;
+  double yprd = domain->yprd;
+  double zprd = domain->zprd;
+  double p[3];
+  p[0] = p[1] = p[2] = 0.0;
+
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
       xbox = (image[i] & 1023) - 512;
       ybox = (image[i] >> 10 & 1023) - 512;
       zbox = (image[i] >> 20) - 512;

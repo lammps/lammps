@@ -1,0 +1,93 @@
+# lam = FreeBSD box, mpic++, Intel ifort, LAM/MPI, FFTW
+
+SHELL = /bin/sh
+
+# ---------------------------------------------------------------------
+# compiler/linker settings
+# specify flags and libraries needed for your compiler
+
+CC =		mpic++
+CCFLAGS =	-O3
+DEPFLAGS =	-M
+LINK =		mpic++
+LINKFLAGS =	-O3
+LIB =           -lstdc++
+ARCHIVE =	ar
+ARFLAGS =	-rc
+SIZE =		size
+
+# ---------------------------------------------------------------------
+# LAMMPS-specific settings
+# specify settings for LAMMPS features you will use
+
+# LAMMPS ifdef options, see doc/Section_start.html
+
+LMP_INC =	-DLAMMPS_GZIP
+
+# MPI library, can be src/STUBS dummy lib
+# INC = path for mpi.h, MPI compiler settings
+# PATH = path for MPI library
+# LIB = name of MPI library
+
+MPI_INC =       
+MPI_PATH = 
+MPI_LIB =	-lmpi
+
+# FFT library, can be -DFFT_NONE if not using PPPM from KSPACE package
+# INC = -DFFT_FFTW, -DFFT_INTEL, -DFFT_NONE, etc, FFT compiler settings
+# PATH = path for FFT library
+# LIB = name of FFT library
+
+FFT_INC =       -DFFT_FFTW
+FFT_PATH = 
+FFT_LIB =	-lfftw
+
+# additional system libraries needed by LAMMPS package libraries
+# these settings are IGNORED if the corresponding LAMMPS package
+#   (e.g. gpu, meam) is NOT included in the LAMMPS build
+# SYSLIB = names of libraries
+# SYSPATH = paths of libraries
+
+gpu_SYSLIB =       -lcudart
+meam_SYSLIB =      -lifcore -lsvml -lompstub -limf
+reax_SYSLIB =      -lifcore -lsvml -lompstub -limf
+user-atc_SYSLIB =  -lblas -llapack
+
+gpu_SYSPATH =      -L/usr/local/cuda/lib64
+meam_SYSPATH =     -L/opt/intel/fce/10.0.023/lib
+reax_SYSPATH =     -L/opt/intel/fce/10.0.023/lib
+user-atc_SYSPATH = 	
+
+# ---------------------------------------------------------------------
+# build rules and dependencies
+# no need to edit this section
+
+include	Makefile.package
+
+EXTRA_INC = $(LMP_INC) $(PKG_INC) $(MPI_INC) $(FFT_INC)
+EXTRA_PATH = $(PKG_PATH) $(MPI_PATH) $(FFT_PATH) $(PKG_SYSPATH)
+EXTRA_LIB = $(PKG_LIB) $(MPI_LIB) $(FFT_LIB) $(PKG_SYSLIB)
+
+# Link target
+
+$(EXE):	$(OBJ)
+	$(LINK) $(LINKFLAGS) $(EXTRA_PATH) $(OBJ) $(EXTRA_LIB) $(LIB) -o $(EXE)
+	$(SIZE) $(EXE)
+
+# Library target
+
+lib:	$(OBJ)
+	$(ARCHIVE) $(ARFLAGS) $(EXE) $(OBJ)
+
+# Compilation rules
+
+%.o:%.cpp
+	$(CC) $(CCFLAGS) $(EXTRA_INC) -c $<
+
+%.d:%.cpp
+	$(CC) $(CCFLAGS) $(EXTRA_INC) $(DEPFLAGS) $< > $@
+
+# Individual dependencies
+
+DEPENDS = $(OBJ:.o=.d)
+include $(DEPENDS)

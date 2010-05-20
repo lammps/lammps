@@ -22,7 +22,7 @@
 <PRE>  <I>one</I> args = none
   <I>multi</I> args = none
   <I>custom</I> args = list of attributes
-    possible attributes = step, elapsed, elaplong, dt, cpu,
+    possible attributes = step, elapsed, elaplong, dt, cpu, tpcpu, spcpu,
                           atoms, temp, press, pe, ke, etotal, enthalpy,
                           evdwl, ecoul, epair, ebond, eangle, edihed, eimp,
                           emol, elong, etail,
@@ -36,7 +36,9 @@
       elapsed = timesteps since start of this run
       elaplong = timesteps since start of initial run in a series of runs
       dt = timestep size
-      cpu = elapsed CPU time
+      cpu = elapsed CPU time in seconds
+      tpcpu = time per CPU second
+      spcpu = timesteps per CPU second
       atoms = # of atoms
       temp = temperature
       press = pressure
@@ -204,6 +206,20 @@ an initial run in a series of runs.  See the <I>start</I> and <I>stop</I>
 keywords for the <A HREF = "run.html">run</A> for info on how to invoke a series of
 runs that keep track of an initial starting time.  If these keywords
 are not used, then <I>elapsed</I> and <I>elaplong</I> are the same value.
+</P>
+<P>The <I>cpu</I> keyword is elapsed CPU seconds since the beginning of this
+run.  The <I>tpcpu</I> and <I>spcpu</I> keywords are measures of how fast your
+simulation is currently running.  The <I>tpcpu</I> keyword is simulation
+time per CPU second, where simulation time is in time
+<A HREF = "units.html">units</A>.  E.g. for metal units, the <I>tpcpu</I> value would be
+picoseconds per CPU second.  The <I>spcpu</I> keyword is the number of
+timesteps per CPU second.  Both quantities are on-the-fly metrics,
+measured relative to the last time they were invoked.  Thus if you are
+printing out thermodyamic output every 100 timesteps, the two keywords
+will continually output the time and timestep rate for the last 100
+steps.  The <I>tpcpu</I> keyword does not attempt to track any changes in
+timestep size, e.g. due to using the <A HREF = "fix_dt_reset.html">fix dt/reset</A>
+command.
 </P>
 <P>The <I>c_ID</I> and <I>c_ID[I]</I> and <I>c_ID[I][J]</I> keywords allow global
 values calculated by a compute to be output.  As discussed on the

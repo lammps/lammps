@@ -17,7 +17,7 @@ args = list of arguments for a particular style :l
   {one} args = none
   {multi} args = none
   {custom} args = list of attributes
-    possible attributes = step, elapsed, elaplong, dt, cpu,
+    possible attributes = step, elapsed, elaplong, dt, cpu, tpcpu, spcpu,
                           atoms, temp, press, pe, ke, etotal, enthalpy,
                           evdwl, ecoul, epair, ebond, eangle, edihed, eimp,
                           emol, elong, etail,
@@ -31,7 +31,9 @@ args = list of arguments for a particular style :l
       elapsed = timesteps since start of this run
       elaplong = timesteps since start of initial run in a series of runs
       dt = timestep size
-      cpu = elapsed CPU time
+      cpu = elapsed CPU time in seconds
+      tpcpu = time per CPU second
+      spcpu = timesteps per CPU second
       atoms = # of atoms
       temp = temperature
       press = pressure
@@ -198,6 +200,20 @@ an initial run in a series of runs.  See the {start} and {stop}
 keywords for the "run"_run.html for info on how to invoke a series of
 runs that keep track of an initial starting time.  If these keywords
 are not used, then {elapsed} and {elaplong} are the same value.
+
+The {cpu} keyword is elapsed CPU seconds since the beginning of this
+run.  The {tpcpu} and {spcpu} keywords are measures of how fast your
+simulation is currently running.  The {tpcpu} keyword is simulation
+time per CPU second, where simulation time is in time
+"units"_units.html.  E.g. for metal units, the {tpcpu} value would be
+picoseconds per CPU second.  The {spcpu} keyword is the number of
+timesteps per CPU second.  Both quantities are on-the-fly metrics,
+measured relative to the last time they were invoked.  Thus if you are
+printing out thermodyamic output every 100 timesteps, the two keywords
+will continually output the time and timestep rate for the last 100
+steps.  The {tpcpu} keyword does not attempt to track any changes in
+timestep size, e.g. due to using the "fix dt/reset"_fix_dt_reset.html
+command.
 
 The {c_ID} and {c_ID\[I\]} and {c_ID\[I\]\[J\]} keywords allow global
 values calculated by a compute to be output.  As discussed on the

@@ -92,16 +92,12 @@ typedef fftwf_complex FFT_DATA;
 
 #else
 
-/* use kiss fft as default fft */
+/* use a stripped down version of kiss fft as default fft */
 #ifndef FFT_KISSFFT
 #define FFT_KISSFFT
 #endif
-
 #define kiss_fft_scalar float
-typedef struct {
-    kiss_fft_scalar re;
-    kiss_fft_scalar im;
-} FFT_DATA;
+#include "kissfft.h"
 #endif
 
 // ------------------------------------------------------------------------- 
@@ -167,47 +163,25 @@ extern "C" {
 typedef FFTW_COMPLEX FFT_DATA;
 
 #elif defined(FFT_FFTW3)
+#define FFTW3_SAFE_AND_SLOW
 #include "fftw3.h"
 typedef fftw_complex FFT_DATA;
 #define FFTW_API(function)  fftw_ ## function
 
 #else
 
-/* use kiss fft as default fft */
+/* use a stripped down version of kiss fft as default fft */
 #ifndef FFT_KISSFFT
 #define FFT_KISSFFT
 #endif
-
 #define kiss_fft_scalar double
-typedef struct {
-    kiss_fft_scalar re;
-    kiss_fft_scalar im;
-} FFT_DATA;
+#include "kissfft.h"
 #endif
 
 #else
 #error "FFT_PRECISION needs to be either 1 or 2"
 #endif
 
-// ------------------------------------------------------------------------- 
-// a stripped down kissfft source is included into the source as fallback 
-// FFT this has only the essential header info. the remaining prototypes,
-// copyright info and so on is in fft3d.cpp.
-#ifdef FFT_KISSFFT
-#define KISS_FFT_MALLOC malloc
-#define MAXFACTORS 32
-/* e.g. an fft of length 128 has 4 factors 
- as far as kissfft is concerned: 4*4*4*2  */
-struct kiss_fft_state {
-    int nfft;
-    int inverse;
-    int factors[2*MAXFACTORS];
-    FFT_DATA twiddles[1];
-};
-typedef struct kiss_fft_state* kiss_fft_cfg;
-kiss_fft_cfg kiss_fft_alloc(int,int,void *,size_t *); 
-void kiss_fft(kiss_fft_cfg,const FFT_DATA *,FFT_DATA *);
-#endif
 // ------------------------------------------------------------------------- 
 
 // details of how to do a 3d FFT 

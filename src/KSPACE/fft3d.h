@@ -258,7 +258,6 @@ struct fft_plan_3d {
   fftw_plan plan_slow_forward;
   fftw_plan plan_slow_backward;
 #elif defined(FFT_FFTW3)
-  FFT_DATA *dummy_data;
   FFTW_API(plan) plan_fast_forward;
   FFTW_API(plan) plan_fast_backward;
   FFTW_API(plan) plan_mid_forward;

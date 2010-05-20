@@ -16,8 +16,6 @@
                          Axel Kohlmeyer (Temple U) added FFTW3, KISSFFT support
 ------------------------------------------------------------------------- */
 
-#define INCLUDE_KISSFFT_CODE
-
 #include "mpi.h"
 #include "stdio.h"
 #include "stdlib.h"

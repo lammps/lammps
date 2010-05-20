@@ -81,7 +81,6 @@ typedef struct kiss_fft_state* kiss_fft_cfg;
 static kiss_fft_cfg kiss_fft_alloc(int,int,void *,size_t *); 
 static void kiss_fft(kiss_fft_cfg,const FFT_DATA *,FFT_DATA *);
 
-#ifdef INCLUDE_KISSFFT_CODE
 /*
   Explanation of macros dealing with complex math:
 
@@ -424,7 +423,7 @@ static void kf_factor(int n, int *facbuf)
  * The return value is a contiguous block of memory, allocated with malloc.  As such,
  * It can be freed with free(), rather than a kiss_fft-specific function.
  */
-kiss_fft_cfg kiss_fft_alloc(int nfft, int inverse_fft, void *mem, size_t *lenmem)
+static kiss_fft_cfg kiss_fft_alloc(int nfft, int inverse_fft, void *mem, size_t *lenmem)
 {
     kiss_fft_cfg st=NULL;
     size_t memneeded = sizeof(struct kiss_fft_state)
@@ -453,7 +452,7 @@ kiss_fft_cfg kiss_fft_alloc(int nfft, int inverse_fft, void *mem, size_t *lenmem
     return st;
 }
    
-void kiss_fft_stride(kiss_fft_cfg st, const FFT_DATA *fin, FFT_DATA *fout, int in_stride)
+static void kiss_fft_stride(kiss_fft_cfg st, const FFT_DATA *fin, FFT_DATA *fout, int in_stride)
 {
     if (fin == fout) {
         CHECKBUF(tmpbuf,ntmpbuf,st->nfft);
@@ -464,7 +463,7 @@ void kiss_fft_stride(kiss_fft_cfg st, const FFT_DATA *fin, FFT_DATA *fout, int i
     }
 }
 
-void kiss_fft(kiss_fft_cfg cfg, const FFT_DATA *fin, FFT_DATA *fout)
+static void kiss_fft(kiss_fft_cfg cfg, const FFT_DATA *fin, FFT_DATA *fout)
 {
     kiss_fft_stride(cfg,fin,fout,1);
 }
@@ -473,7 +472,7 @@ void kiss_fft(kiss_fft_cfg cfg, const FFT_DATA *fin, FFT_DATA *fout)
 /* not really necessary to call, but if someone is doing in-place ffts,
    they may want to free the buffers from CHECKBUF
  */ 
-void kiss_fft_cleanup(void)
+static void kiss_fft_cleanup(void)
 {
     free(scratchbuf);
     scratchbuf = NULL;
@@ -483,19 +482,4 @@ void kiss_fft_cleanup(void)
     ntmpbuf=0;
 }
 
-int kiss_fft_next_fast_size(int n)
-{
-    while(1) {
-        int m=n;
-        while ( (m%2) == 0 ) m/=2;
-        while ( (m%3) == 0 ) m/=3;
-        while ( (m%5) == 0 ) m/=5;
-        if (m<=1)
-            break; /* n is completely factorable by twos, threes, and fives */
-        n++;
-    }
-    return n;
-}
-
-#endif
 #endif

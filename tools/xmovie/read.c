@@ -844,14 +844,14 @@ PRIVATE void SortData(DATA *dptr)
            calling syntax does not change except for first argument 
            becomes arg-1, qsort -> hpsort in 2 places
 	*/
-	void hpsort(POSITION *, int, int, int (*)(POSITION *, POSITION *));
+	void hpsort(char *, int, int, int (*)(const void *, const void *));
 
 	if (!dptr) return;
 
 	/* sort by type */
 
-	hpsort((dptr->positions)-1, dptr->natoms, sizeof(POSITION), 
-		compare_atypes);
+	hpsort((char *)(dptr->positions)-1, dptr->natoms, sizeof(POSITION), 
+           (int (*)(const void *, const void *))compare_atypes);
 
 	/* find out how many of each type */
 
@@ -977,8 +977,8 @@ PRIVATE void SortData(DATA *dptr)
 
 	/* sort by type */
 
-	hpsort((dptr->bonds)-1, dptr->nbonds, sizeof(BOND), 
-		compare_btypes);
+	hpsort((char *)(dptr->bonds)-1, dptr->nbonds, sizeof(BOND), 
+           (int (*)(const void *, const void *))compare_btypes);
 
 	/* find out how many of each type */
 

@@ -57,6 +57,10 @@ class Thermo : protected Pointers {
   int lostflag,lostbefore;
   int flushflag,lineflag;
 
+  double last_tpcpu,last_spcpu;
+  double last_time;
+  int last_step;
+
                          // data used by routines that compute single values
   int ivalue;            // integer value to print
   double dvalue,natoms;  // dvalue = double value to print
@@ -111,6 +115,8 @@ class Thermo : protected Pointers {
   void compute_elapsed_long();
   void compute_dt();
   void compute_cpu();
+  void compute_tpcpu();
+  void compute_spcpu();
 
   void compute_atoms();
   void compute_temp();

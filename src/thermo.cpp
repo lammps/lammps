@@ -41,7 +41,7 @@ using namespace LAMMPS_NS;
 
 // customize a new keyword by adding to this list:
 
-// step, elapsed, elaplong, dt, cpu
+// step, elapsed, elaplong, dt, cpu, tpcpu, spcpu
 // atoms, temp, press, pe, ke, etotal, enthalpy
 // evdwl, ecoul, epair, ebond, eangle, edihed, eimp, emol, elong, etail
 // vol, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi, xy, xz, yz, xlat, ylat, zlat
@@ -592,6 +592,10 @@ void Thermo::parse_fields(char *str)
       addfield("Dt",&Thermo::compute_dt,FLOAT);
     } else if (strcmp(word,"cpu") == 0) {
       addfield("CPU",&Thermo::compute_cpu,FLOAT);
+    } else if (strcmp(word,"tpcpu") == 0) {
+      addfield("T/CPU",&Thermo::compute_tpcpu,FLOAT);
+    } else if (strcmp(word,"spcpu") == 0) {
+      addfield("S/CPU",&Thermo::compute_spcpu,FLOAT);
 
     } else if (strcmp(word,"atoms") == 0) {
       addfield("Atoms",&Thermo::compute_atoms,INT);
@@ -905,8 +909,19 @@ int Thermo::evaluate_keyword(char *word, double *answer)
     compute_dt();
 
   } else if (strcmp(word,"cpu") == 0) {
-    if (update->whichflag == 0) firststep = 0;
+    if (update->whichflag == 0) 
+      error->all("This variable thermo keyword cannot be used between runs");
     compute_cpu();
+
+  } else if (strcmp(word,"tpcpu") == 0) {
+    if (update->whichflag == 0) 
+      error->all("This variable thermo keyword cannot be used between runs");
+    compute_tpcpu();
+
+  } else if (strcmp(word,"spcpu") == 0) {
+    if (update->whichflag == 0) 
+      error->all("This variable thermo keyword cannot be used between runs");
+    compute_spcpu();
 
   } else if (strcmp(word,"atoms") == 0) {
     compute_atoms();
@@ -1324,6 +1339,50 @@ void Thermo::compute_cpu()
 {
   if (firststep == 0) dvalue = 0.0;
   else dvalue = timer->elapsed(TIME_LOOP);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_tpcpu()
+{
+  double new_cpu;
+  double new_time = update->ntimestep * update->dt;
+
+  if (firststep == 0) {
+    new_cpu = 0.0;
+    dvalue = 0.0;
+  } else {
+    new_cpu = timer->elapsed(TIME_LOOP);
+    double cpu_diff = new_cpu - last_tpcpu;
+    double time_diff = new_time - last_time;
+    if (time_diff > 0.0 && cpu_diff > 0.0) dvalue = time_diff/cpu_diff;
+    else dvalue = 0.0;
+  }
+
+  last_time = new_time;
+  last_tpcpu = new_cpu;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_spcpu()
+{
+  double new_cpu;
+  int new_step = update->ntimestep;
+
+  if (firststep == 0) {
+    new_cpu = 0.0;
+    dvalue = 0.0;
+  } else {
+    new_cpu = timer->elapsed(TIME_LOOP);
+    double cpu_diff = new_cpu - last_spcpu;
+    int step_diff = new_step - last_step;
+    if (cpu_diff > 0.0) dvalue = step_diff/cpu_diff;
+    else dvalue = 0.0;
+  }
+
+  last_step = new_step;
+  last_spcpu = new_cpu;
 }
 
 /* ---------------------------------------------------------------------- */

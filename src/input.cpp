@@ -1077,9 +1077,16 @@ void Input::processors()
   if (narg != 3) error->all("Illegal processors command");
   if (domain->box_exist)
     error->all("Processors command after simulation box is defined");
-  comm->user_procgrid[0] = atoi(arg[0]);
-  comm->user_procgrid[1] = atoi(arg[1]);
-  comm->user_procgrid[2] = atoi(arg[2]);
+
+  if (strcmp(arg[0],"*") == 0) comm->user_procgrid[0] = 0;
+  else comm->user_procgrid[0] = atoi(arg[0]);
+  if (strcmp(arg[1],"*") == 0) comm->user_procgrid[1] = 0;
+  else comm->user_procgrid[1] = atoi(arg[1]);
+  if (strcmp(arg[2],"*") == 0) comm->user_procgrid[2] = 0;
+  else comm->user_procgrid[2] = atoi(arg[2]);
+
+  if (comm->user_procgrid[0] < 0 || comm->user_procgrid[1] < 0 ||
+      comm->user_procgrid[2] < 0) error->all("Illegal processors command");
 }
 
 /* ---------------------------------------------------------------------- */

@@ -114,17 +114,12 @@ Comm::~Comm()
 
 void Comm::set_procs()
 {
-  if (user_procgrid[0] == 0) procs2box();
-  else {
-    procgrid[0] = user_procgrid[0];
-    procgrid[1] = user_procgrid[1];
-    procgrid[2] = user_procgrid[2];
-  }
+  procs2box();
 
   if (procgrid[0]*procgrid[1]*procgrid[2] != nprocs)
     error->all("Bad grid of processors");
   if (domain->dimension == 2 && procgrid[2] != 1)
-    error->all("Proc grid in z != 1 for 2d simulation");
+    error->all("Processor count in z must be 1 for 2d simulation");
 
   if (grid2proc) memory->destroy_3d_int_array(grid2proc);
   grid2proc = memory->create_3d_int_array(procgrid[0],procgrid[1],procgrid[2],
@@ -1358,8 +1353,31 @@ int Comm::irregular_lookup(double *x)
 
 void Comm::procs2box()
 {
-  double area[3];
+  procgrid[0] = user_procgrid[0];
+  procgrid[1] = user_procgrid[1];
+  procgrid[2] = user_procgrid[2];
 
+  // all 3 proc counts are specified
+
+  if (procgrid[0] && procgrid[1] && procgrid[2]) return;
+
+  // 2 out of 3 proc counts are specified
+
+  if (procgrid[0] > 0 && procgrid[1] > 0) {
+    procgrid[2] = nprocs/(procgrid[0]*procgrid[1]);
+    return;
+  } else if (procgrid[0] > 0 && procgrid[2] > 0) {
+    procgrid[1] = nprocs/(procgrid[0]*procgrid[2]);
+    return;
+  } else if (procgrid[1] > 0 && procgrid[2] > 0) {
+    procgrid[0] = nprocs/(procgrid[1]*procgrid[2]);
+    return;
+  } 
+
+  // determine cross-sectional areas for orthogonal and triclinic boxes
+  // area[0] = xy, area[1] = xz, area[2] = yz
+
+  double area[3];
   if (domain->triclinic == 0) {
     area[0] = domain->xprd * domain->yprd;
     area[1] = domain->xprd * domain->zprd;
@@ -1378,33 +1396,51 @@ void Comm::procs2box()
   double bestsurf = 2.0 * (area[0]+area[1]+area[2]);
 
   // loop thru all possible factorizations of nprocs
+  // only consider valid cases that match procgrid settings
   // surf = surface area of a proc sub-domain
-  // for 2d, insure ipz = 1
 
-  int ipx,ipy,ipz,nremain;
+  int ipx,ipy,ipz,valid;
   double surf;
 
   ipx = 1;
   while (ipx <= nprocs) {
-    if (nprocs % ipx == 0) {
-      nremain = nprocs/ipx;
-      ipy = 1;
-      while (ipy <= nremain) {
-	if (nremain % ipy == 0) {
-	  ipz = nremain/ipy;
-	  if (domain->dimension == 3 || ipz == 1) {
-	    surf = area[0]/ipx/ipy + area[1]/ipx/ipz + area[2]/ipy/ipz;
-	    if (surf < bestsurf) {
-	      bestsurf = surf;
-	      procgrid[0] = ipx;
-	      procgrid[1] = ipy;
-	      procgrid[2] = ipz;
-	    }
-	  }
-	}
-	ipy++;
-      }
+    valid = 1;
+    if (user_procgrid[0] && ipx != user_procgrid[0]) valid = 0;
+    if (nprocs % ipx) valid = 0;
+    if (!valid) {
+      ipx++;
+      continue;
     }
+
+    ipy = 1;
+    while (ipy <= nprocs/ipx) {
+      valid = 1;
+      if (user_procgrid[1] && ipy != user_procgrid[1]) valid = 0;
+      if ((nprocs/ipx) % ipy) valid = 0;
+      if (!valid) {
+	ipy++;
+	continue;
+      }
+      
+      ipz = nprocs/ipx/ipy;
+      valid = 1;
+      if (user_procgrid[2] && ipz != user_procgrid[2]) valid = 0;
+      if (domain->dimension == 2 && ipz != 1) valid = 0;
+      if (!valid) {
+	ipy++;
+	continue;
+      }
+      
+      surf = area[0]/ipx/ipy + area[1]/ipx/ipz + area[2]/ipy/ipz;
+      if (surf < bestsurf) {
+	bestsurf = surf;
+	procgrid[0] = ipx;
+	procgrid[1] = ipy;
+	procgrid[2] = ipz;
+      }
+      ipy++;
+    }
+
     ipx++;
   }
 }

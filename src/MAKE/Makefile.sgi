@@ -1,4 +1,4 @@
-# linux = RedHat Linux box, Intel icc, Intel ifort, MPICH2, FFTW
+# sgi = SGI Origin 350 64-bit, SGI MIPSpro CC, SGI MPI, SGI SCSL MP FFTs
 
 SHELL = /bin/sh
 
@@ -6,10 +6,10 @@ SHELL = /bin/sh
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-CC =		icc
-CCFLAGS =	-O
+CC =		CC
+CCFLAGS =	-64 -O -mp
 DEPFLAGS =	-M
-LINK =		icc
+LINK =		CC
 LINKFLAGS =	-O
 LIB =           -lstdc++
 ARCHIVE =	ar
@@ -29,18 +29,18 @@ LMP_INC =	-DLAMMPS_GZIP
 # PATH = path for MPI library
 # LIB = name of MPI library
 
-MPI_INC =       -DMPICH_IGNORE_CXX_SEEK 
+MPI_INC =       
 MPI_PATH = 
-MPI_LIB =	-lmpich -lpthread
+MPI_LIB =	
 
 # FFT library, can be -DFFT_NONE if not using PPPM from KSPACE package
 # INC = -DFFT_FFTW, -DFFT_INTEL, -DFFT_NONE, etc, FFT compiler settings
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC =       -DFFT_FFTW
+FFT_INC =       -DFFT_SCSL
 FFT_PATH = 
-FFT_LIB =	-lfftw
+FFT_LIB =	
 
 # additional system libraries needed by LAMMPS package libraries
 # these settings are IGNORED if the corresponding LAMMPS package

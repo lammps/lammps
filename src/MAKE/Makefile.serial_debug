@@ -1,4 +1,4 @@
-# serial_debug = RedHat Linux box, g++, no MPI, no FFTs
+# serial_debug = RedHat Linux box, g++4, gfortran,  no MPI, no FFTs
 
 SHELL = /bin/sh
 
@@ -6,10 +6,10 @@ SHELL = /bin/sh
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-CC =		g++
+CC =		g++4
 CCFLAGS =	-O -Wall -W -O2 -funroll-loops -fstrict-aliasing
 DEPFLAGS =	-M
-LINK =		g++
+LINK =		g++4
 LINKFLAGS =	-O
 LIB =           
 ARCHIVE =	ar
@@ -49,13 +49,13 @@ FFT_LIB =
 # SYSPATH = paths of libraries
 
 gpu_SYSLIB =       -lcudart
-meam_SYSLIB =      -lifcore -lsvml -lompstub -limf
-reax_SYSLIB =      -lifcore -lsvml -lompstub -limf
+meam_SYSLIB =      -lgfortran
+reax_SYSLIB =      -lgfortran
 user-atc_SYSLIB =  -lblas -llapack
 
 gpu_SYSPATH =      -L/usr/local/cuda/lib64
-meam_SYSPATH =     -L/opt/intel/fce/10.0.023/lib
-reax_SYSPATH =     -L/opt/intel/fce/10.0.023/lib
+meam_SYSPATH =     
+reax_SYSPATH =     
 user-atc_SYSPATH = 	
 
 # ---------------------------------------------------------------------

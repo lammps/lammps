@@ -17,11 +17,11 @@ for file in *.cpp *.h; do
   fi
 done
 
+# status
 # if installed:
 # issue warning if any package file is not in src or is different
 
 if (test $2 = "status") then
-
   if (test $installed = 1) then
     echo "Installed YES: package $1"
     for file in *.cpp *.h; do
@@ -35,11 +35,11 @@ if (test $2 = "status") then
     echo "Installed  NO: package $1"
   fi
 
+# update
 # if installed:
 # cp package file to src if doesn't exist or is different
 
 elif (test $2 = "update") then
-
   echo "Updating src files from $1 package files"
 
   if (test $installed = 1) then
@@ -56,16 +56,16 @@ elif (test $2 = "update") then
     echo "  $1 package is not installed, no action"
   fi
 
+# overwrite
 # if installed:
 # if package file not in src, issue warning
 # if src file different than package file, overwrite package file
 
 elif (test $2 = "overwrite") then
-
   echo "Overwriting $1 package files with src files"
 
   if (test $installed = 1) then
-    for file  in *.cpp *.h; do
+    for file in *.cpp *.h; do
       if (test ! -e ../$file) then
         echo "  src/$file does not exist"
       elif (test "`diff --brief $file ../$file`" != "") then
@@ -75,6 +75,15 @@ elif (test $2 = "overwrite") then
     done
   else
     echo "  $1 package is not installed, no action"
+  fi
+
+# regenernate Makefile.package from Makefile.package.empty
+# if installed:
+# re-install so Install.sh will edit Makefile.pacakge
+
+elif (test $2 = "regenerate") then
+  if (test $installed = 1) then
+    /bin/sh Install.sh 1
   fi
 
 fi

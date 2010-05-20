@@ -1,4 +1,4 @@
-# linux = RedHat Linux box, Intel icc, Intel ifort, MPICH2, FFTW
+# lam = FreeBSD box, mpic++, Intel ifort, LAM/MPI, FFTW
 
 SHELL = /bin/sh
 
@@ -6,11 +6,11 @@ SHELL = /bin/sh
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-CC =		icc
-CCFLAGS =	-O
+CC =		mpic++
+CCFLAGS =	-O3
 DEPFLAGS =	-M
-LINK =		icc
-LINKFLAGS =	-O
+LINK =		mpic++
+LINKFLAGS =	-O3
 LIB =           -lstdc++
 ARCHIVE =	ar
 ARFLAGS =	-rc
@@ -29,9 +29,9 @@ LMP_INC =	-DLAMMPS_GZIP
 # PATH = path for MPI library
 # LIB = name of MPI library
 
-MPI_INC =       -DMPICH_IGNORE_CXX_SEEK 
+MPI_INC =       
 MPI_PATH = 
-MPI_LIB =	-lmpich -lpthread
+MPI_LIB =	-lmpi
 
 # FFT library, can be -DFFT_NONE if not using PPPM from KSPACE package
 # INC = -DFFT_FFTW, -DFFT_INTEL, -DFFT_NONE, etc, FFT compiler settings

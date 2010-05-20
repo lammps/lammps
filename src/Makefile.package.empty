@@ -1,6 +1,9 @@
 # Settings for libraries used by specific LAMMPS packages
 # this file is auto-edited when those packages are included/excluded
 
-PKGINC =   
-PKGPATH =  
-PKGLIB =   
+PKG_INC =   
+PKG_PATH =  
+PKG_LIB =   
+
+PKG_SYSPATH = 
+PKG_SYSLIB =  

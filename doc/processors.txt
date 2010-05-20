@@ -16,31 +16,38 @@ Px,Py,Pz = # of processors in each dimension of a 3d grid :ul
 
 [Examples:]
 
-processors 2 4 4 :pre
+processors 2 4 4
+processors * * 5
+processors * 1 10 :pre
 
 [Description:]
 
 Specify how processors are mapped as a 3d logical grid to the global
-simulation box.
+simulation box, namely Px by Py by Pz.
 
-When this command has not been specified, LAMMPS will choose Px, Py,
-Pz based on the dimensions of the global simulation box so as to
-minimize the surface/volume ratio of each processor's sub-domain.
+Any of the Px, Py, Pz parameters can be specified with an asterisk
+"*", which means LAMMPS will choose the number of processors in that
+dimension.  It will do this based on the size and shape of the global
+simulation box so as to minimize the surface-to-volume ratio of each
+processor's sub-domain.
 
 Since LAMMPS does not load-balance by changing the grid of 3d
-processors on-the-fly, this command should be used to override the
-LAMMPS default if it is known to be sub-optimal for a particular
-problem.  For example, a problem where the atom's extent will change
-dramatically over the course of the simulation.
+processors on-the-fly, this command can be used to override the LAMMPS
+default if it is known to be sub-optimal for a particular problem.
+For example, a problem where the atom's extent will change
+dramatically in a particular dimension over the course of the
+simulation.
 
 The product of Px, Py, Pz must equal P, the total # of processors
-LAMMPS is running on.  If multiple partitions are being used then P is
-the number of processors in this partition; see "this
+LAMMPS is running on.  For a "2d simulation"_dimension.html, Pz must
+equal 1.  If multiple partitions are being used then P is the number
+of processors in this partition; see "this
 section"_Section_start.html#2_6 for an explanation of the -partition
 command-line switch.
 
-If P is large and prime, a grid such as 1 x P x 1 will be required,
-which may incur extra communication costs.
+Note that if you run on a large, prime number of processors P, then a
+grid such as 1 x P x 1 will be required, which may incur extra
+communication costs.
 
 [Restrictions:]
 
@@ -53,4 +60,4 @@ processor grid from what is specified in the restart file.
 
 [Default:]
 
-LAMMPS chooses Px, Py, Pz
+Px Py Pz = * * *

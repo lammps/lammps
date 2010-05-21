@@ -31,6 +31,12 @@ void Neighbor::half_nsq_no_newton(NeighList *list)
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr;
 
+  // loop over each atom, storing neighbors
+
+  int **special = atom->special;
+  int **nspecial = atom->nspecial;
+  int *tag = atom->tag;
+
   double **x = atom->x;
   int *type = atom->type;
   int *mask = atom->mask;
@@ -81,7 +87,7 @@ void Neighbor::half_nsq_no_newton(NeighList *list)
       rsq = delx*delx + dely*dely + delz*delz;
 
       if (rsq <= cutneighsq[itype][jtype]) {
-	if (molecular) which = find_special(i,j);
+	if (molecular) which = find_special(special[i],nspecial[i],tag[j]);
 	else which = 0;
 	if (which == 0) neighptr[n++] = j;
 	else if (which > 0) neighptr[n++] = which*nall + j;
@@ -111,8 +117,13 @@ void Neighbor::half_nsq_newton(NeighList *list)
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr;
 
-  double **x = atom->x;
+  // loop over each atom, storing neighbors
+
+  int **special = atom->special;
+  int **nspecial = atom->nspecial;
   int *tag = atom->tag;
+
+  double **x = atom->x;
   int *type = atom->type;
   int *mask = atom->mask;
   int *molecule = atom->molecule;
@@ -180,7 +191,7 @@ void Neighbor::half_nsq_newton(NeighList *list)
       rsq = delx*delx + dely*dely + delz*delz;
 
       if (rsq <= cutneighsq[itype][jtype]) {
-	if (molecular) which = find_special(i,j);
+	if (molecular) which = find_special(special[i],nspecial[i],tag[j]);
 	else which = 0;
 	if (which == 0) neighptr[n++] = j;
 	else if (which > 0) neighptr[n++] = which*nall + j;

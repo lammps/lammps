@@ -70,7 +70,7 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   }
 #endif
 
-  user_procgrid[0] = user_procgrid[1] = user_procgrid[2] = -1;
+  user_procgrid[0] = user_procgrid[1] = user_procgrid[2] = 0;
   grid2proc = NULL;
 
   bordergroup = 0;

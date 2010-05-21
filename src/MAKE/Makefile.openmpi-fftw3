@@ -1,4 +1,4 @@
-# openmpi = Fedora 12, mpic++, OpenMPI-1.4.1, FFTW3
+# openmpi-fftw3 = Fedora 12, mpic++, OpenMPI-1.4.1, FFTW3
 
 SHELL = /bin/sh
 
@@ -41,7 +41,7 @@ MPI_LIB =
 
 FFT_INC =       -DFFT_FFTW3
 FFT_PATH = 
-FFT_LIB =	-lfftw3 -lfftw3f
+FFT_LIB =	-lfftw3 
 
 # additional system libraries needed by LAMMPS package libraries
 # these settings are IGNORED if the corresponding LAMMPS package

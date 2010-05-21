@@ -570,6 +570,10 @@ fix/deform are defined .
 
 <DD>The frequency of writing dump dcd snapshots cannot be changed. 
 
+<DT><I>Cannot change dump_modify every for dump xtc</I> 
+
+<DD>The frequency of writing dump xtc snapshots cannot be changed. 
+
 <DT><I>Cannot change timestep with fix pour</I> 
 
 <DD>This fix pre-computes some values based on the timestep, so it cannot
@@ -1828,9 +1832,9 @@ dump output.
 
 <DD>Cannot use unwrap option with non-orthogonal simulation box. 
 
-<DT><I>Dump dcd must use group all</I> 
+<DT><I>Dump xtc cannot dump unwrapped coords with triclinic box</I> 
 
-<DD>Self-explanatory. 
+<DD>Cannot use unwrap option with non-orthogonal simulation box. 
 
 <DT><I>Dump dcd of non-matching # of atoms</I> 
 

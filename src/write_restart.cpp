@@ -96,13 +96,15 @@ void WriteRestart::command(int narg, char **arg)
 
   // move atoms to new processors before writing file
   // enforce PBC before in case atoms are outside box
+  // call borders() to rebuild atom map since exchange() destroys map
 
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
   domain->pbc();
   domain->reset_box();
   comm->setup();
   comm->exchange();
-  if (domain->triclinic) domain->lamda2x(atom->nlocal);
+  comm->borders();
+  if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
 
   write(file);
   delete [] file;

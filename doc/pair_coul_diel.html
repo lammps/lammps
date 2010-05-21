@@ -9,29 +9,48 @@
 
 <HR>
 
-<H3>pair_style gauss command 
+<H3>pair_style coul/diel command 
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>pair_style gauss/cut cutoff 
+<PRE>pair_style coul/diel cutoff 
 </PRE>
 <P>cutoff = global cutoff (distance units)
 </P>
 <P><B>Examples:</B>
 </P>
-<PRE>pair_style gauss/cut 3.5
-pair_coeff 1 4 0.2805 1.45 0.112 
+<PRE>pair_style coul/diel 3.5
+pair_coeff 1 4 78. 1.375 0.112 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Style <I>gauss/cut</I> computes a Gaussian interaction potential between pairs of particles:
+<P>Style <I>coul/diel</I> computes a Coulomb correction for implict solvent
+ion interactions in which the dielectric perimittivity is distance dependent.
+The dielectric permittivity epsilon_D(r) connects to limiting regimes: 
+One limit is defined by a small dielectric permittivity (close to vacuum)
+at or close to contact seperation between the ions. At larger separations
+the dielectric permittivity reaches a bulk value used in the regular Coulomb
+interaction coul/long or coul/cut.
+The transition is modeled by a hyperbolic function which is incorporated
+in the Coulomb correction term for small ion separations as follows
 </P>
-<CENTER><IMG SRC = "Eqs/pair_gauss.jpg">
+<CENTER><IMG SRC = "Eqs/pair_coul_diel.jpg">
 </CENTER>
-<P>where H determines together with the standard deviation sigma_h the peak hight of the Gaussian function, and r_mh the peak position.
-Examples of the use of the Gaussian potentials include implicit solvent simulations of salt ions <A HREF = "#Lenart">(Lenart)</A> and of surfactants <A HREF = "#Jusufi">(Jusufi)</A>.
-In these instances the Gaussian potential mimics the hydration barrier between a pair of particles. The hydration barrier is located at r_mh
- and has a width of sigma_h. The prefactor determines the hight of the potential barrier.
+<P>where r_me is the inflection point of epsilon_D(r) and sigma_e is a slope
+defining length scale. C is the same Coulomb conversion factor as in the
+pair_styles coul/cut, coul/long, and coul/debye. In this way the Coulomb
+interaction between ions is corrected at small distances r. The lower 
+limit of epsilon_D(r->0)=5.2 due to dielectric saturation <A HREF = "#Stiles">(Stiles)</A> 
+while the Coulomb interaction reaches its bulk limit by setting 
+epsilon_D(r->\infty)=epsilon, the bulk value of the solvent which is 78 
+for water at 298K.  
+</P>
+<P>Examples of the use of this type of Coulomb interaction include implicit 
+solvent simulations of salt ions 
+<A HREF = "#Lenart">(Lenart)</A> and of ionic surfactants <A HREF = "#Jusufi">(Jusufi)</A>.
+Note that this potential is only reasonable for implicit solvent simulations
+and in combiantion with coul/cut or coul/long. It is also usually combined
+with gauss/cut, see <A HREF = "#Lenart">(Lenart)</A> or <A HREF = "#Jusufi">(Jusufi)</A>.  
 </P>
 <P>The following coefficients must be defined for each pair of atom
 types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the example
@@ -39,9 +58,9 @@ above, or in the data file or restart files read by the
 <A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
 commands:
 </P>
-<UL><LI>H (energy * distance units)
-<LI>r_mh (distance units)
-<LI>sigma_h (distance units) 
+<UL><LI>epsilon (no units)
+<LI>r_me (distance units)
+<LI>sigma_e (distance units) 
 </UL>
 <P>The global cutoff (r_c) specified in the pair_style command is used.
 </P>
@@ -75,12 +94,17 @@ LAMMPS</A> section for more info.
 <P><B>Related commands:</B>
 </P>
 <P><A HREF = "pair_coeff.html">pair_coeff</A>
-<A HREF = "pair_coul_diel.html">pair_style coul/diel</A>
+<A HREF = "pair_gauss.html">pair_style gauss/cut</A>
 </P>
 <P><B>Default:</B> none
 </P>
 <HR>
 
+<A NAME = "Stiles"></A>
+
+<P><B>(Stiles)</B> Stiles , Hubbard, and Kayser, J Chem Phys, 77,
+6189 (1982).
+</P>
 <A NAME = "Lenart"></A>
 
 <P><B>(Lenart)</B> Lenart , Jusufi, and Panagiotopoulos, J Chem Phys, 126,

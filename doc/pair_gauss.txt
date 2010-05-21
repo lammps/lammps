@@ -73,6 +73,7 @@ LAMMPS"_Section_start.html#2_3 section for more info.
 [Related commands:]
 
 "pair_coeff"_pair_coeff.html
+"pair_style coul/diel"_pair_coul_diel.html
 
 [Default:] none
 

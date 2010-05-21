@@ -66,9 +66,9 @@ class Min : protected Pointers {
 
   double ndoftotal;           // total dof for entire problem
 
-  int n3;                     // local atomic dof
-  double *x;                  // variables for atomic dof, as 1d vector
-  double *f;                  // force vector for atomic dof, as 1d vector
+  int nvec;                   // local atomic dof = length of xvec
+  double *xvec;               // variables for atomic dof, as 1d vector
+  double *fvec;               // force vector for atomic dof, as 1d vector
 
   int nextra_global;          // # of extra global dof due to fixes
   double *fextra;             // force vector for extra global dof

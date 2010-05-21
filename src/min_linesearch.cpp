@@ -133,9 +133,9 @@ void MinLineSearch::reset_vectors()
 {
   // atomic dof
 
-  n3 = 3 * atom->nlocal;
-  if (n3) x = atom->x[0];
-  if (n3) f = atom->f[0];
+  nvec = 3 * atom->nlocal;
+  if (nvec) xvec = atom->x[0];
+  if (nvec) fvec = atom->f[0];
   x0 = fix_minimize->request_vector(0);
   g = fix_minimize->request_vector(1);
   h = fix_minimize->request_vector(2);
@@ -188,7 +188,7 @@ int MinLineSearch::linemin_backtrack(double eoriginal, double &alpha,
   // if search direction is not downhill, exit with error
 
   fdothme = 0.0;
-  for (i = 0; i < n3; i++) fdothme += f[i]*h[i];
+  for (i = 0; i < nvec; i++) fdothme += fvec[i]*h[i];
   if (nextra_atom)
     for (m = 0; m < nextra_atom; m++) {
       fatom = fextra_atom[m];
@@ -211,7 +211,7 @@ int MinLineSearch::linemin_backtrack(double eoriginal, double &alpha,
   // if all search dir components are already 0.0, exit with error
 
   hme = 0.0;
-  for (i = 0; i < n3; i++) hme = MAX(hme,fabs(h[i]));
+  for (i = 0; i < nvec; i++) hme = MAX(hme,fabs(h[i]));
   MPI_Allreduce(&hme,&hmaxall,1,MPI_DOUBLE,MPI_MAX,world);
   alpha = MIN(ALPHA_MAX,dmax/hmaxall);
   if (nextra_atom)
@@ -235,7 +235,7 @@ int MinLineSearch::linemin_backtrack(double eoriginal, double &alpha,
   // store box and values of all dof at start of linesearch
 
   fix_minimize->store_box();
-  for (i = 0; i < n3; i++) x0[i] = x[i];
+  for (i = 0; i < nvec; i++) x0[i] = xvec[i];
   if (nextra_atom)
     for (m = 0; m < nextra_atom; m++) {
       xatom = xextra_atom[m];
@@ -338,7 +338,7 @@ int MinLineSearch::linemin_quadratic(double eoriginal, double &alpha,
   // if search direction is not downhill, exit with error
 
   fdothme = 0.0;
-  for (i = 0; i < n3; i++) fdothme += f[i]*h[i];
+  for (i = 0; i < nvec; i++) fdothme += fvec[i]*h[i];
   if (nextra_atom)
     for (m = 0; m < nextra_atom; m++) {
       fatom = fextra_atom[m];
@@ -361,7 +361,7 @@ int MinLineSearch::linemin_quadratic(double eoriginal, double &alpha,
   // if all search dir components are already 0.0, exit with error
 
   hme = 0.0;
-  for (i = 0; i < n3; i++) hme = MAX(hme,fabs(h[i]));
+  for (i = 0; i < nvec; i++) hme = MAX(hme,fabs(h[i]));
   MPI_Allreduce(&hme,&hmaxall,1,MPI_DOUBLE,MPI_MAX,world);
   alphamax = MIN(ALPHA_MAX,dmax/hmaxall);
   if (nextra_atom)
@@ -386,7 +386,7 @@ int MinLineSearch::linemin_quadratic(double eoriginal, double &alpha,
   // store box and values of all dof at start of linesearch
 
   fix_minimize->store_box();
-  for (i = 0; i < n3; i++) x0[i] = x[i];
+  for (i = 0; i < nvec; i++) x0[i] = xvec[i];
   if (nextra_atom)
     for (m = 0; m < nextra_atom; m++) {
       xatom = xextra_atom[m];
@@ -419,9 +419,9 @@ int MinLineSearch::linemin_quadratic(double eoriginal, double &alpha,
     // compute new fh, alpha, delfh
 
     dot[0] = dot[1] = 0.0;
-    for (i = 0; i < n3; i++) {
-      dot[0] += f[i]*f[i];
-      dot[1] += f[i]*h[i];
+    for (i = 0; i < nvec; i++) {
+      dot[0] += fvec[i]*fvec[i];
+      dot[1] += fvec[i]*h[i];
     }
     if (nextra_atom)
       for (m = 0; m < nextra_atom; m++) {
@@ -516,7 +516,7 @@ double MinLineSearch::alpha_step(double alpha, int resetflag, int &nfunc)
   // reset to starting point
 
   if (nextra_global) modify->min_step(0.0,hextra);
-  for (i = 0; i < n3; i++) x[i] = x0[i];
+  for (i = 0; i < nvec; i++) xvec[i] = x0[i];
   if (nextra_atom)
       for (m = 0; m < nextra_atom; m++) {
 	xatom = xextra_atom[m];
@@ -529,7 +529,7 @@ double MinLineSearch::alpha_step(double alpha, int resetflag, int &nfunc)
 
   if (alpha > 0.0) {
     if (nextra_global) modify->min_step(alpha,hextra);
-    for (i = 0; i < n3; i++) x[i] += alpha*h[i];
+    for (i = 0; i < nvec; i++) xvec[i] += alpha*h[i];
     if (nextra_atom)
       for (m = 0; m < nextra_atom; m++) {
 	xatom = xextra_atom[m];

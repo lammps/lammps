@@ -56,7 +56,7 @@ int MinCG::iterate(int niter_max)
 
   // initialize working vectors
 
-  for (i = 0; i < n3; i++) h[i] = g[i] = f[i];
+  for (i = 0; i < nvec; i++) h[i] = g[i] = fvec[i];
   if (nextra_atom)
     for (m = 0; m < nextra_atom; m++) {
       fatom = fextra_atom[m];
@@ -94,9 +94,9 @@ int MinCG::iterate(int niter_max)
     // force tolerance criterion
 
     dot[0] = dot[1] = 0.0;
-    for (i = 0; i < n3; i++) {
-      dot[0] += f[i]*f[i];
-      dot[1] += f[i]*g[i];
+    for (i = 0; i < nvec; i++) {
+      dot[0] += fvec[i]*fvec[i];
+      dot[1] += fvec[i]*g[i];
     }
     if (nextra_atom)
       for (m = 0; m < nextra_atom; m++) {
@@ -126,8 +126,8 @@ int MinCG::iterate(int niter_max)
     if ((niter+1) % nlimit == 0) beta = 0.0;
     gg = dotall[0];
 
-    for (i = 0; i < n3; i++) {
-      g[i] = f[i];
+    for (i = 0; i < nvec; i++) {
+      g[i] = fvec[i];
       h[i] = g[i] + beta*h[i];
     }
     if (nextra_atom)
@@ -150,7 +150,7 @@ int MinCG::iterate(int niter_max)
     // reinitialize CG if new search direction h is not downhill
 
     dot[0] = 0.0;
-    for (i = 0; i < n3; i++) dot[0] += g[i]*h[i];
+    for (i = 0; i < nvec; i++) dot[0] += g[i]*h[i];
     if (nextra_atom)
       for (m = 0; m < nextra_atom; m++) {
 	gatom = gextra_atom[m];
@@ -164,7 +164,7 @@ int MinCG::iterate(int niter_max)
 	dotall[0] += gextra[i]*hextra[i];
 
     if (dotall[0] <= 0.0) {
-      for (i = 0; i < n3; i++) h[i] = g[i];
+      for (i = 0; i < nvec; i++) h[i] = g[i];
       if (nextra_atom)
 	for (m = 0; m < nextra_atom; m++) {
 	  gatom = gextra_atom[m];

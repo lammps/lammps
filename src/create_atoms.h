@@ -30,12 +30,13 @@ class CreateAtoms : protected Pointers {
   void command(int, char **);
 
  private:
-  int itype,style,nregion,nbasis;
+  int itype,style,nregion,nbasis,nrandom,seed;
   int *basistype;
   double xone[3];
 
   void add_single();
-  void add_many();
+  void add_random();
+  void add_lattice();
 };
 
 }

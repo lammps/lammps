@@ -21,6 +21,7 @@
 #include "domain.h"
 #include "lattice.h"
 #include "region.h"
+#include "random_park.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -29,7 +30,10 @@ using namespace LAMMPS_NS;
 #define BIG      1.0e30
 #define EPSILON  1.0e-6
 
-enum{BOX,REGION,SINGLE};
+enum{BOX,REGION,SINGLE,RANDOM};
+
+#define MIN(a,b) ((a) < (b) ? (a) : (b))
+#define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 /* ---------------------------------------------------------------------- */
 
@@ -66,6 +70,17 @@ void CreateAtoms::command(int narg, char **arg)
     xone[1] = atof(arg[3]);
     xone[2] = atof(arg[4]);
     iarg = 5;
+  } else if (strcmp(arg[1],"random") == 0) {
+    style = RANDOM;
+    if (narg < 5) error->all("Illegal create_atoms command");
+    nrandom = atoi(arg[2]);
+    seed = atoi(arg[3]);
+    if (strcmp(arg[4],"NULL") == 0) nregion = -1;
+    else {
+      nregion = domain->find_region(arg[4]);
+      if (nregion == -1) error->all("Create_atoms region ID does not exist");
+    }
+    iarg = 5;
   } else error->all("Illegal create_atoms command");
 
   // process optional keywords
@@ -99,6 +114,13 @@ void CreateAtoms::command(int narg, char **arg)
     } else error->all("Illegal create_atoms command");
   }
 
+  // error checks
+
+  if (style == RANDOM) {
+    if (nrandom < 0) error->all("Illegal create_atoms command");
+    if (seed <= 0) error->all("Illegal create_atoms command");
+  }
+
   // demand lattice be defined
   // else setup scaling for single atom
   // could use domain->lattice->lattice2box() to do conversion of
@@ -122,7 +144,8 @@ void CreateAtoms::command(int narg, char **arg)
   int nlocal_previous = atom->nlocal;
 
   if (style == SINGLE) add_single();
-  else add_many();
+  else if (style == RANDOM) add_random();
+  else add_lattice();
 
   // clean up
 
@@ -172,16 +195,16 @@ void CreateAtoms::command(int narg, char **arg)
 
 void CreateAtoms::add_single()
 {
-  double sublo[3],subhi[3];
+  double *sublo,*subhi;
+
+  // sub-domain bounding box, in lamda units if triclinic
 
   if (domain->triclinic == 0) {
-    sublo[0] = domain->sublo[0]; subhi[0] = domain->subhi[0];
-    sublo[1] = domain->sublo[1]; subhi[1] = domain->subhi[1];
-    sublo[2] = domain->sublo[2]; subhi[2] = domain->subhi[2];
+    sublo = domain->sublo;
+    subhi = domain->subhi;
   } else {
-    sublo[0] = domain->sublo_lamda[0]; subhi[0] = domain->subhi_lamda[0];
-    sublo[1] = domain->sublo_lamda[1]; subhi[1] = domain->subhi_lamda[1];
-    sublo[2] = domain->sublo_lamda[2]; subhi[2] = domain->subhi_lamda[2];
+    sublo = domain->sublo_lamda;
+    subhi = domain->subhi_lamda;
   }
 
   // if triclinic, convert to lamda coords (0-1)
@@ -200,11 +223,103 @@ void CreateAtoms::add_single()
     atom->avec->create_atom(itype,xone);
 }
 
+
+/* ----------------------------------------------------------------------
+   add Nrandom atoms at random locations
+------------------------------------------------------------------------- */
+
+void CreateAtoms::add_random()
+{
+  double xlo,ylo,zlo,xhi,yhi,zhi,zmid;
+  double lamda[3],*coord;
+  double *sublo,*subhi,*boxlo,*boxhi;
+
+  // random number generator, same for all procs
+
+  RanPark *random = new RanPark(lmp,seed);
+
+  // bounding box for atom creation
+  // in real units, even if triclinic
+  // only limit bbox by region if its bboxflag is set (interior region)
+
+  if (domain->triclinic == 0) {
+    xlo = domain->boxlo[0]; xhi = domain->boxhi[0];
+    ylo = domain->boxlo[1]; yhi = domain->boxhi[1];
+    zlo = domain->boxlo[2]; zhi = domain->boxhi[2];
+    zmid = zlo + 0.5*(zhi-zlo);
+  } else {
+    xlo = domain->boxlo_bound[0]; xhi = domain->boxhi_bound[0];
+    ylo = domain->boxlo_bound[1]; yhi = domain->boxhi_bound[1];
+    zlo = domain->boxlo_bound[2]; zhi = domain->boxhi_bound[2];
+    zmid = zlo + 0.5*(zhi-zlo);
+  }
+
+  if (nregion >= 0 && domain->regions[nregion]->bboxflag) {
+    xlo = MAX(xlo,domain->regions[nregion]->extent_xlo);
+    xhi = MIN(xhi,domain->regions[nregion]->extent_xhi);
+    ylo = MAX(ylo,domain->regions[nregion]->extent_ylo);
+    yhi = MIN(yhi,domain->regions[nregion]->extent_yhi);
+    zlo = MAX(zlo,domain->regions[nregion]->extent_zlo);
+    zhi = MIN(zhi,domain->regions[nregion]->extent_zhi);
+  }
+
+  // sub-domain bounding box, in lamda units if triclinic
+
+  if (domain->triclinic == 0) {
+    sublo = domain->sublo;
+    subhi = domain->subhi;
+  } else {
+    sublo = domain->sublo_lamda;
+    subhi = domain->subhi_lamda;
+    boxlo = domain->boxlo_lamda;
+    boxhi = domain->boxhi_lamda;
+  }
+
+  // generate random positions for each new atom within bounding box
+  // iterate until atom is within region and triclinic simulation box
+  // if final atom position is in my subbox, create it
+
+  int valid;
+  for (int i = 0; i < nrandom; i++) {
+    while (1) {
+      xone[0] = xlo + random->uniform() * (xhi-xlo);
+      xone[1] = ylo + random->uniform() * (yhi-ylo);
+      xone[2] = zlo + random->uniform() * (zhi-zlo);
+      if (domain->dimension == 2) xone[2] = zmid;
+
+      valid = 1;
+      if (nregion >= 0 && 
+	  domain->regions[nregion]->match(xone[0],xone[1],xone[2]) == 0)
+	valid = 0;
+      if (domain->triclinic) {
+	domain->x2lamda(xone,lamda);
+	coord = lamda;
+	if (coord[0] >= boxlo[0] && coord[0] < boxhi[0] &&
+	    coord[1] >= boxlo[1] && coord[1] < boxhi[1] &&
+	    coord[2] >= boxlo[2] && coord[2] < boxhi[2]) valid = 0;
+      } else coord = xone;
+
+      if (valid) break;
+    }
+
+    // if triclinic, coord is now in lamda units
+
+    if (coord[0] >= sublo[0] && coord[0] < subhi[0] &&
+	coord[1] >= sublo[1] && coord[1] < subhi[1] &&
+	coord[2] >= sublo[2] && coord[2] < subhi[2])
+      atom->avec->create_atom(itype,xone);
+  }
+  
+  // clean-up
+
+  delete random;
+}
+
 /* ----------------------------------------------------------------------
    add many atoms by looping over lattice
 ------------------------------------------------------------------------- */
 
-void CreateAtoms::add_many()
+void CreateAtoms::add_lattice()
 {
   // convert 8 corners of my subdomain from box coords to lattice coords
   // for orthogonal, use corner pts of my subbox

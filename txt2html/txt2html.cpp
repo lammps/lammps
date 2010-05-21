@@ -16,6 +16,10 @@
 #include <string>
 #include <vector>
 #include <iostream>
+
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 using namespace std;
 
 #define MAXLINE 1024

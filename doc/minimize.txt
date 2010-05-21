@@ -107,6 +107,12 @@ During a minimization, the outer iteration count is treated as a
 timestep.  Output is triggered by this timestep, e.g. thermodynamic
 output or dump and restart files.
 
+Using the "thermo_style custom"_thermo_style.html command with the
+{fmax} or {fnorm} keywords can be useful for monitoring the progress
+of the minimization.  Note that these outputs will be calculated only
+from forces on the atoms, and will not include any extra degrees of
+freedom, such as from the "fix box/relax"_fix_box_relax.html command.
+
 Following minimization, a statistical summary is printed that lists
 which convergence criterion caused the minimizer to stop, as well as
 information about the energy, force, final line search, and and
@@ -129,7 +135,8 @@ before and after minimization.  This is what the {ftol} parameter
 checks.
 
 The max-component force values are the absolute value of the largest
-component (x,y,z) in the global force vector.
+component (x,y,z) in the global force vector, i.e. the infinity-norm
+of the force vector.
 
 The alpha parameter for the line-search, when multiplied by the max
 force component (on the last iteration), gives the max distance any

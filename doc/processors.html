@@ -19,31 +19,38 @@
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>processors 2 4 4 
+<PRE>processors 2 4 4
+processors * * 5
+processors * 1 10 
 </PRE>
 <P><B>Description:</B>
 </P>
 <P>Specify how processors are mapped as a 3d logical grid to the global
-simulation box.
+simulation box, namely Px by Py by Pz.
 </P>
-<P>When this command has not been specified, LAMMPS will choose Px, Py,
-Pz based on the dimensions of the global simulation box so as to
-minimize the surface/volume ratio of each processor's sub-domain.
+<P>Any of the Px, Py, Pz parameters can be specified with an asterisk
+"*", which means LAMMPS will choose the number of processors in that
+dimension.  It will do this based on the size and shape of the global
+simulation box so as to minimize the surface-to-volume ratio of each
+processor's sub-domain.
 </P>
 <P>Since LAMMPS does not load-balance by changing the grid of 3d
-processors on-the-fly, this command should be used to override the
-LAMMPS default if it is known to be sub-optimal for a particular
-problem.  For example, a problem where the atom's extent will change
-dramatically over the course of the simulation.
+processors on-the-fly, this command can be used to override the LAMMPS
+default if it is known to be sub-optimal for a particular problem.
+For example, a problem where the atom's extent will change
+dramatically in a particular dimension over the course of the
+simulation.
 </P>
 <P>The product of Px, Py, Pz must equal P, the total # of processors
-LAMMPS is running on.  If multiple partitions are being used then P is
-the number of processors in this partition; see <A HREF = "Section_start.html#2_6">this
+LAMMPS is running on.  For a <A HREF = "dimension.html">2d simulation</A>, Pz must
+equal 1.  If multiple partitions are being used then P is the number
+of processors in this partition; see <A HREF = "Section_start.html#2_6">this
 section</A> for an explanation of the -partition
 command-line switch.
 </P>
-<P>If P is large and prime, a grid such as 1 x P x 1 will be required,
-which may incur extra communication costs.
+<P>Note that if you run on a large, prime number of processors P, then a
+grid such as 1 x P x 1 will be required, which may incur extra
+communication costs.
 </P>
 <P><B>Restrictions:</B>
 </P>
@@ -56,6 +63,6 @@ processor grid from what is specified in the restart file.
 </P>
 <P><B>Default:</B>
 </P>
-<P>LAMMPS chooses Px, Py, Pz
+<P>Px Py Pz = * * *
 </P>
 </HTML>

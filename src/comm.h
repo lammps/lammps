@@ -105,7 +105,7 @@ class Comm : protected Pointers {
     MPI_Status *status;        // MPI statuses for WaitAll
   };
 
-  void procs2box(int, int, int); // map procs to 3d box
+  void procs2box();                 // map procs to 3d box
   void cross(double, double, double,
 	     double, double, double,
 	     double &, double &, double &);    // cross product

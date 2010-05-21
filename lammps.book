@@ -215,6 +215,7 @@ doc/pair_cmm.html
 doc/pair_coeff.html
 doc/pair_colloid.html
 doc/pair_coul.html
+doc/pair_coul_diel.html
 doc/pair_dipole.html
 doc/pair_dpd.html
 doc/pair_dsmc.html

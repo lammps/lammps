@@ -219,6 +219,7 @@ doc/pair_dipole.html
 doc/pair_dpd.html
 doc/pair_dsmc.html
 doc/pair_eam.html
+doc/pair_gauss.html
 doc/pair_gayberne.html
 doc/pair_gran.html
 doc/pair_gromacs.html

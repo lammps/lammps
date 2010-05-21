@@ -1,0 +1,87 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_style gauss command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_style gauss/cut cutoff 
+</PRE>
+<P>cutoff = global cutoff (distance units)
+</P>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_style gauss/cut 3.5
+pair_coeff 1 4 0.2805 1.45 0.112 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Style <I>gauss/cut</I> computes a Gaussian interaction potential between pairs of particles:
+</P>
+<CENTER><IMG SRC = "Eqs/pair_gauss.jpg">
+</CENTER>
+<P>where H determines together with the standard deviation sigma_h the peak hight of the Gaussian function, and r_mh the peak position.
+Examples of the use of the Gaussian potentials include implicit solvent simulations of salt ions <A HREF = "#Lenart">(Lenart)</A> and of surfactants <A HREF = "#Jusufi">(Jusufi)</A>.
+In these instances the Gaussian potential mimics the hydration barrier between a pair of particles. The hydration barrier is located at r_mh
+ and has a width of sigma_h. The prefactor determines the hight of the potential barrier.
+</P>
+<P>The following coefficients must be defined for each pair of atom
+types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the example
+above, or in the data file or restart files read by the
+<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
+commands:
+</P>
+<UL><LI>H (energy * distance units)
+<LI>r_mh (distance units)
+<LI>sigma_h (distance units) 
+</UL>
+<P>The global cutoff (r_c) specified in the pair_style command is used.
+</P>
+<HR>
+
+<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
+</P>
+<P>This pair style does not support parameter mixing. Coefficients must be given explicitly for each type of particle pairs. 
+</P>
+<P>This pair style supports the <A HREF = "pair_modify.html">pair_modify</A> shift
+option for the energy of the Gauss-potential portion of the pair
+interaction.
+</P>
+<P>The <A HREF = "pair_modify.html">pair_modify</A> table option is not relevant
+for this pair style.
+</P>
+<P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A>
+tail option for adding long-range tail corrections to energy and
+pressure.
+</P>
+<P>This pair style can only be used via the <I>pair</I> keyword of the
+<A HREF = "run_style.html">run_style respa</A> command.  It does not support the
+<I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "Lenart"></A>
+
+<P><B>(Lenart)</B> Lenart , Jusufi, and Panagiotopoulos, J Chem Phys, 126,
+044509 (2007).
+</P>
+<A NAME = "Jusufi"></A>
+
+<P><B>(Jusufi)</B> Jusufi, Hynninen, and Panagiotopoulos, J Phys Chem B, 112,
+13783 (2008).
+</P>
+</HTML>

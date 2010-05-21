@@ -1,0 +1,81 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+pair_style gauss command :h3
+
+[Syntax:]
+
+pair_style gauss/cut cutoff :pre
+
+cutoff = global cutoff (distance units)
+
+[Examples:]
+
+pair_style gauss/cut 3.5
+pair_coeff 1 4 0.2805 1.45 0.112 :pre
+
+
+[Description:]
+
+Style {gauss/cut} computes a Gaussian interaction potential between pairs of particles:
+
+:c,image(Eqs/pair_gauss.jpg)
+
+where H determines together with the standard deviation sigma_h the peak hight of the Gaussian function, and r_mh the peak position.
+Examples of the use of the Gaussian potentials include implicit solvent simulations of salt ions "(Lenart)"_#Lenart and of surfactants "(Jusufi)"_#Jusufi.
+In these instances the Gaussian potential mimics the hydration barrier between a pair of particles. The hydration barrier is located at r_mh
+ and has a width of sigma_h. The prefactor determines the hight of the potential barrier.
+
+The following coefficients must be defined for each pair of atom
+types via the "pair_coeff"_pair_coeff.html command as in the example
+above, or in the data file or restart files read by the
+"read_data"_read_data.html or "read_restart"_read_restart.html
+commands:
+
+H (energy * distance units)
+r_mh (distance units)
+sigma_h (distance units) :ul
+
+The global cutoff (r_c) specified in the pair_style command is used.
+
+:line
+
+[Mixing, shift, table, tail correction, restart, rRESPA info]:
+
+This pair style does not support parameter mixing. Coefficients must be given explicitly for each type of particle pairs. 
+
+This pair style supports the "pair_modify"_pair_modify.html shift
+option for the energy of the Gauss-potential portion of the pair
+interaction.
+
+The "pair_modify"_pair_modify.html table option is not relevant
+for this pair style.
+
+This pair style does not support the "pair_modify"_pair_modify.html
+tail option for adding long-range tail corrections to energy and
+pressure.
+
+This pair style can only be used via the {pair} keyword of the
+"run_style respa"_run_style.html command.  It does not support the
+{inner}, {middle}, {outer} keywords.
+
+[Restrictions:]
+
+[Related commands:]
+
+[Default:] none
+
+:line
+
+:link(Lenart)
+[(Lenart)] Lenart , Jusufi, and Panagiotopoulos, J Chem Phys, 126,
+044509 (2007).
+
+:link(Jusufi)
+[(Jusufi)] Jusufi, Hynninen, and Panagiotopoulos, J Phys Chem B, 112,
+13783 (2008).

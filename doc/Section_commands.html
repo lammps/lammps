@@ -64,9 +64,10 @@ This means command A must precede command B in the input script if it
 is to have the desired effect.  For example, the
 <A HREF = "read_data.html">read_data</A> command initializes the system by setting
 up the simulation box and assigning atoms to processors.  If default
-values are not desired, the <A HREF = "processors.html">processors</A> and
-<A HREF = "boundary.html">boundary</A> commands need to be used before read_data to
-tell LAMMPS how to map processors to the simulation box.
+values are not desired, the <A HREF = "processors.html">processors</A>, 
+<A HREF = "nthreads.html">nthreads</A>, and <A HREF = "boundary.html">boundary</A> commands need
+to be used before read_data to tell LAMMPS how to map processors to 
+the simulation box.
 </P>
 <P>Many input script errors are detected by LAMMPS and an ERROR or
 WARNING message is printed.  <A HREF = "Section_errors.html">This section</A> gives
@@ -149,8 +150,9 @@ read-in from a file.
 </P>
 <P>The relevant commands are <A HREF = "units.html">units</A>,
 <A HREF = "dimension.html">dimension</A>, <A HREF = "newton.html">newton</A>,
-<A HREF = "processors.html">processors</A>, <A HREF = "boundary.html">boundary</A>,
-<A HREF = "atom_style.html">atom_style</A>, <A HREF = "atom_modify.html">atom_modify</A>.
+<A HREF = "nthreads.html">nthreads</A>, <A HREF = "processors.html">processors</A>,
+<A HREF = "boundary.html">boundary</A>, <A HREF = "atom_style.html">atom_style</A>,
+<A HREF = "atom_modify.html">atom_modify</A>.
 </P>
 <P>If force-field parameters appear in the files that will be read, these
 commands tell LAMMPS what kinds of force fields are being used:
@@ -225,7 +227,8 @@ in the command's documentation.
 </P>
 <P><A HREF = "atom_modify.html">atom_modify</A>, <A HREF = "atom_style.html">atom_style</A>,
 <A HREF = "boundary.html">boundary</A>, <A HREF = "dimension.html">dimension</A>,
-<A HREF = "newton.html">newton</A>, <A HREF = "processors.html">processors</A>, <A HREF = "units.html">units</A>
+<A HREF = "newton.html">newton</A>, <A HREF = "nthreads.html">nthreads</A>, 
+<A HREF = "processors.html">processors</A>, <A HREF = "units.html">units</A>
 </P>
 <P>Atom definition:
 </P>
@@ -307,12 +310,13 @@ in the command's documentation.
 <TR ALIGN="center"><TD ><A HREF = "dump_modify.html">dump_modify</A></TD><TD ><A HREF = "echo.html">echo</A></TD><TD ><A HREF = "fix.html">fix</A></TD><TD ><A HREF = "fix_modify.html">fix_modify</A></TD><TD ><A HREF = "group.html">group</A></TD><TD ><A HREF = "if.html">if</A></TD></TR>
 <TR ALIGN="center"><TD ><A HREF = "improper_coeff.html">improper_coeff</A></TD><TD ><A HREF = "improper_style.html">improper_style</A></TD><TD ><A HREF = "include.html">include</A></TD><TD ><A HREF = "jump.html">jump</A></TD><TD ><A HREF = "kspace_modify.html">kspace_modify</A></TD><TD ><A HREF = "kspace_style.html">kspace_style</A></TD></TR>
 <TR ALIGN="center"><TD ><A HREF = "label.html">label</A></TD><TD ><A HREF = "lattice.html">lattice</A></TD><TD ><A HREF = "log.html">log</A></TD><TD ><A HREF = "mass.html">mass</A></TD><TD ><A HREF = "minimize.html">minimize</A></TD><TD ><A HREF = "min_modify.html">min_modify</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "min_style.html">min_style</A></TD><TD ><A HREF = "neigh_modify.html">neigh_modify</A></TD><TD ><A HREF = "neighbor.html">neighbor</A></TD><TD ><A HREF = "newton.html">newton</A></TD><TD ><A HREF = "next.html">next</A></TD><TD ><A HREF = "pair_coeff.html">pair_coeff</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_modify.html">pair_modify</A></TD><TD ><A HREF = "pair_style.html">pair_style</A></TD><TD ><A HREF = "pair_write.html">pair_write</A></TD><TD ><A HREF = "prd.html">prd</A></TD><TD ><A HREF = "print.html">print</A></TD><TD ><A HREF = "processors.html">processors</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "read_data.html">read_data</A></TD><TD ><A HREF = "read_restart.html">read_restart</A></TD><TD ><A HREF = "region.html">region</A></TD><TD ><A HREF = "replicate.html">replicate</A></TD><TD ><A HREF = "reset_timestep.html">reset_timestep</A></TD><TD ><A HREF = "restart.html">restart</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "run.html">run</A></TD><TD ><A HREF = "run_style.html">run_style</A></TD><TD ><A HREF = "set.html">set</A></TD><TD ><A HREF = "shape.html">shape</A></TD><TD ><A HREF = "shell.html">shell</A></TD><TD ><A HREF = "special_bonds.html">special_bonds</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "temper.html">temper</A></TD><TD ><A HREF = "thermo.html">thermo</A></TD><TD ><A HREF = "thermo_modify.html">thermo_modify</A></TD><TD ><A HREF = "thermo_style.html">thermo_style</A></TD><TD ><A HREF = "timestep.html">timestep</A></TD><TD ><A HREF = "uncompute.html">uncompute</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "undump.html">undump</A></TD><TD ><A HREF = "unfix.html">unfix</A></TD><TD ><A HREF = "units.html">units</A></TD><TD ><A HREF = "variable.html">variable</A></TD><TD ><A HREF = "velocity.html">velocity</A></TD><TD ><A HREF = "write_restart.html">write_restart</A> 
+<TR ALIGN="center"><TD ><A HREF = "min_style.html">min_style</A></TD><TD ><A HREF = "neigh_modify.html">neigh_modify</A></TD><TD ><A HREF = "neighbor.html">neighbor</A></TD><TD ><A HREF = "newton.html">newton</A></TD><TD ><A HREF = "next.html">next</A></TD><TD ><A HREF = "nthreads.html">nthreads</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_coeff.html">pair_coeff</A></TD><TD ><A HREF = "pair_modify.html">pair_modify</A></TD><TD ><A HREF = "pair_style.html">pair_style</A></TD><TD ><A HREF = "pair_write.html">pair_write</A></TD><TD ><A HREF = "prd.html">prd</A></TD><TD ><A HREF = "print.html">print</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "processors.html">processors</A></TD><TD ><A HREF = "read_data.html">read_data</A></TD><TD ><A HREF = "read_restart.html">read_restart</A></TD><TD ><A HREF = "region.html">region</A></TD><TD ><A HREF = "replicate.html">replicate</A></TD><TD ><A HREF = "reset_timestep.html">reset_timestep</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "restart.html">restart</A></TD><TD ><A HREF = "run.html">run</A></TD><TD ><A HREF = "run_style.html">run_style</A></TD><TD ><A HREF = "set.html">set</A></TD><TD ><A HREF = "shape.html">shape</A></TD><TD ><A HREF = "shell.html">shell</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "special_bonds.html">special_bonds</A></TD><TD ><A HREF = "temper.html">temper</A></TD><TD ><A HREF = "thermo.html">thermo</A></TD><TD ><A HREF = "thermo_modify.html">thermo_modify</A></TD><TD ><A HREF = "thermo_style.html">thermo_style</A></TD><TD ><A HREF = "timestep.html">timestep</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "uncompute.html">uncompute</A></TD><TD ><A HREF = "undump.html">undump</A></TD><TD ><A HREF = "unfix.html">unfix</A></TD><TD ><A HREF = "units.html">units</A></TD><TD ><A HREF = "variable.html">variable</A></TD><TD ><A HREF = "velocity.html">velocity</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "write_restart.html">write_restart</A> 
 </TD></TR></TABLE></DIV>
 
 <HR>
@@ -378,16 +382,17 @@ potentials.  Click on the style itself for a full description:
 <TR ALIGN="center"><TD ><A HREF = "pair_colloid.html">colloid</A></TD><TD ><A HREF = "pair_coul.html">coul/cut</A></TD><TD ><A HREF = "pair_coul.html">coul/debye</A></TD><TD ><A HREF = "pair_coul.html">coul/long</A></TD></TR>
 <TR ALIGN="center"><TD ><A HREF = "pair_dipole.html">dipole/cut</A></TD><TD ><A HREF = "pair_dpd.html">dpd</A></TD><TD ><A HREF = "pair_dpd.html">dpd/tstat</A></TD><TD ><A HREF = "pair_dsmc.html">dsmc</A></TD></TR>
 <TR ALIGN="center"><TD ><A HREF = "pair_eam.html">eam</A></TD><TD ><A HREF = "pair_eam.html">eam/opt</A></TD><TD ><A HREF = "pair_eam.html">eam/alloy</A></TD><TD ><A HREF = "pair_eam.html">eam/alloy/opt</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_eam.html">eam/fs</A></TD><TD ><A HREF = "pair_eam.html">eam/fs/opt</A></TD><TD ><A HREF = "pair_gayberne.html">gayberne</A></TD><TD ><A HREF = "pair_gayberne.html">gayberne/gpu</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_gran.html">gran/hertz/history</A></TD><TD ><A HREF = "pair_gran.html">gran/hooke</A></TD><TD ><A HREF = "pair_gran.html">gran/hooke/history</A></TD><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/charmm</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/charmm/implicit</A></TD><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/long</A></TD><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/long/opt</A></TD><TD ><A HREF = "pair_class2.html">lj/class2</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_class2.html">lj/class2/coul/cut</A></TD><TD ><A HREF = "pair_class2.html">lj/class2/coul/long</A></TD><TD ><A HREF = "pair_lj.html">lj/cut</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/gpu</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_lj.html">lj/cut/opt</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/coul/cut</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/coul/debye</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/coul/long</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_lj.html">lj/cut/coul/long/tip4p</A></TD><TD ><A HREF = "pair_lj_expand.html">lj/expand</A></TD><TD ><A HREF = "pair_gromacs.html">lj/gromacs</A></TD><TD ><A HREF = "pair_gromacs.html">lj/gromacs/coul/gromacs</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_lj_smooth.html">lj/smooth</A></TD><TD ><A HREF = "pair_lj96_cut.html">lj96/cut</A></TD><TD ><A HREF = "pair_lubricate.html">lubricate</A></TD><TD ><A HREF = "pair_meam.html">meam</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_morse.html">morse</A></TD><TD ><A HREF = "pair_morse.html">morse/opt</A></TD><TD ><A HREF = "pair_peri_pmb.html">peri/pmb</A></TD><TD ><A HREF = "pair_reax.html">reax</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_resquared.html">resquared</A></TD><TD ><A HREF = "pair_soft.html">soft</A></TD><TD ><A HREF = "pair_sw.html">sw</A></TD><TD ><A HREF = "pair_table.html">table</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_tersoff.html">tersoff</A></TD><TD ><A HREF = "pair_tersoff_zbl.html">tersoff/zbl</A></TD><TD ><A HREF = "pair_yukawa.html">yukawa</A></TD><TD ><A HREF = "pair_yukawa_colloid.html">yukawa/colloid</A> 
+<TR ALIGN="center"><TD ><A HREF = "pair_eam.html">eam/fs</A></TD><TD ><A HREF = "pair_eam.html">eam/fs/opt</A></TD><TD ><A HREF = "pair_gauss.html">gauss</A></TD><TD ><A HREF = "pair_gayberne.html">gayberne</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_gayberne.html">gayberne/gpu</A></TD><TD ><A HREF = "pair_gran.html">gran/hertz/history</A></TD><TD ><A HREF = "pair_gran.html">gran/hooke</A></TD><TD ><A HREF = "pair_gran.html">gran/hooke/history</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/charmm</A></TD><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/charmm/implicit</A></TD><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/long</A></TD><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/long/opt</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_class2.html">lj/class2</A></TD><TD ><A HREF = "pair_class2.html">lj/class2/coul/cut</A></TD><TD ><A HREF = "pair_class2.html">lj/class2/coul/long</A></TD><TD ><A HREF = "pair_lj.html">lj/cut</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_lj.html">lj/cut/gpu</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/opt</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/coul/cut</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/coul/debye</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_lj.html">lj/cut/coul/long</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/coul/long/tip4p</A></TD><TD ><A HREF = "pair_lj_expand.html">lj/expand</A></TD><TD ><A HREF = "pair_gromacs.html">lj/gromacs</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_gromacs.html">lj/gromacs/coul/gromacs</A></TD><TD ><A HREF = "pair_lj_smooth.html">lj/smooth</A></TD><TD ><A HREF = "pair_lj96_cut.html">lj96/cut</A></TD><TD ><A HREF = "pair_lubricate.html">lubricate</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_meam.html">meam</A></TD><TD ><A HREF = "pair_morse.html">morse</A></TD><TD ><A HREF = "pair_morse.html">morse/opt</A></TD><TD ><A HREF = "pair_peri_pmb.html">peri/pmb</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_reax.html">reax</A></TD><TD ><A HREF = "pair_resquared.html">resquared</A></TD><TD ><A HREF = "pair_soft.html">soft</A></TD><TD ><A HREF = "pair_sw.html">sw</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_table.html">table</A></TD><TD ><A HREF = "pair_tersoff.html">tersoff</A></TD><TD ><A HREF = "pair_tersoff_zbl.html">tersoff/zbl</A></TD><TD ><A HREF = "pair_yukawa.html">yukawa</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_yukawa_colloid.html">yukawa/colloid</A> 
 </TD></TR></TABLE></DIV>
 
 <P>These are pair styles contributed by users, which can be used if

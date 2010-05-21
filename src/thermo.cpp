@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "mpi.h"
+#include "math.h"
 #include "stdlib.h"
 #include "string.h"
 #include "thermo.h"
@@ -46,6 +47,7 @@ using namespace LAMMPS_NS;
 // evdwl, ecoul, epair, ebond, eangle, edihed, eimp, emol, elong, etail
 // vol, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi, xy, xz, yz, xlat, ylat, zlat
 // pxx, pyy, pzz, pxy, pxz, pyz
+// fmax, fnorm
 
 // customize a new thermo style by adding a DEFINE to this list
 
@@ -713,6 +715,11 @@ void Thermo::parse_fields(char *str)
       addfield("Pyz",&Thermo::compute_pyz,FLOAT);
       index_press_vector = add_compute(id_press,VECTOR);
 
+    } else if (strcmp(word,"fmax") == 0) {
+      addfield("Fmax",&Thermo::compute_fmax,FLOAT);
+    } else if (strcmp(word,"fnorm") == 0) {
+      addfield("Fnorm",&Thermo::compute_fnorm,FLOAT);
+
     // compute value = c_ID, fix value = f_ID, variable value = v_ID
     // count trailing [] and store int arguments
     // copy = at most 8 chars of ID to pass to addfield
@@ -1234,7 +1241,10 @@ int Thermo::evaluate_keyword(char *word, double *answer)
     }
     compute_pyz();
 
-  } else return 1;
+  } else if (strcmp(word,"fmax") == 0) compute_fmax();
+  else if (strcmp(word,"fnorm") == 0) compute_fnorm();
+
+  else return 1;
 
   *answer = dvalue;
   return 0;
@@ -1730,3 +1740,37 @@ void Thermo::compute_pyz()
 {
   dvalue = pressure->vector[5];
 }
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_fmax()
+{
+  double **f = atom->f;
+  int nlocal = atom->nlocal;
+
+  double max = 0.0;
+  for (int i = 0; i < nlocal; i++) {
+    max = MAX(max,fabs(f[i][0]));
+    max = MAX(max,fabs(f[i][1]));
+    max = MAX(max,fabs(f[i][2]));
+  }
+  double maxall;
+  MPI_Allreduce(&max,&maxall,1,MPI_DOUBLE,MPI_MAX,world);
+  dvalue = maxall;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_fnorm()
+{
+  double **f = atom->f;
+  int nlocal = atom->nlocal;
+
+  double dot = 0.0;
+  for (int i = 0; i < nlocal; i++)
+    dot += f[i][0]*f[i][0] + f[i][1]*f[i][1] + f[i][2]*f[i][2];
+  double dotall;
+  MPI_Allreduce(&dot,&dotall,1,MPI_DOUBLE,MPI_SUM,world);
+  dvalue = sqrt(dotall);
+}
+

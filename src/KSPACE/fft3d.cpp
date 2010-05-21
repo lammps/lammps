@@ -779,13 +779,13 @@ struct fft_plan_3d *fft_3d_create_plan(
     FFTW_API(plan_many_dft)(1,&nfast,plan->total1/nfast,
 			    NULL,NULL,1,nfast,
 			    NULL,NULL,1,nfast,
-			    FFTW_FORWARD,FFTW_ESTIMATE);
+			    FFTW_FORWARD,FFTW_ESTIMATE|FFTW_UNALIGNED);
 
   plan->plan_fast_backward = 
     FFTW_API(plan_many_dft)(1,&nfast,plan->total1/nfast,
 			    NULL,NULL,1,nfast,
 			    NULL,NULL,1,nfast,
-			    FFTW_BACKWARD,FFTW_ESTIMATE);
+			    FFTW_BACKWARD,FFTW_ESTIMATE|FFTW_UNALIGNED);
 
   if (nmid == nfast) {
     plan->plan_mid_forward = plan->plan_fast_forward;
@@ -796,13 +796,13 @@ struct fft_plan_3d *fft_3d_create_plan(
       FFTW_API(plan_many_dft)(1,&nmid,plan->total2/nmid,
 			      NULL,NULL,1,nmid,
 			      NULL,NULL,1,nmid,
-			      FFTW_FORWARD,FFTW_ESTIMATE);
+			      FFTW_FORWARD,FFTW_ESTIMATE|FFTW_UNALIGNED);
 
     plan->plan_mid_backward = 
       FFTW_API(plan_many_dft)(1,&nmid,plan->total2/nmid,
 			      NULL,NULL,1,nmid,
 			      NULL,NULL,1,nmid,
-			      FFTW_BACKWARD,FFTW_ESTIMATE);
+			      FFTW_BACKWARD,FFTW_ESTIMATE|FFTW_UNALIGNED);
   }
 
   if (nslow == nfast) {
@@ -818,13 +818,13 @@ struct fft_plan_3d *fft_3d_create_plan(
       FFTW_API(plan_many_dft)(1,&nslow,plan->total3/nslow,
 			      NULL,NULL,1,nslow,
 			      NULL,NULL,1,nslow,
-			      FFTW_FORWARD,FFTW_ESTIMATE);
+			      FFTW_FORWARD,FFTW_ESTIMATE|FFTW_UNALIGNED);
 
     plan->plan_slow_backward = 
       FFTW_API(plan_many_dft)(1,&nslow,plan->total3/nslow,
 			      NULL,NULL,1,nslow,
 			      NULL,NULL,1,nslow,
-			      FFTW_BACKWARD,FFTW_ESTIMATE);
+			      FFTW_BACKWARD,FFTW_ESTIMATE|FFTW_UNALIGNED);
   }
 #endif
   if (scaled == 0)

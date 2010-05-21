@@ -392,7 +392,7 @@ void process_commands(int flag, string &s, string &pre, string &post)
       colvalign.clear();
 
       tabledelim = ",";
-      string tw = " WIDTH=\"0%\" ";
+      string tw = "";// = " WIDTH=\"0%\" ";
       dwidth = "0";
 
       for (int i = 0; i < narg; i++) {     // loop through each tb() arg

@@ -95,14 +95,7 @@ void PairLJCutOMP::eval()
 #pragma omp parallel default(shared)
 #endif
   {
-#if defined(_OPENMP)
-    const int tid = omp_get_thread_num();
-#else
-    const int tid = 0;
-#endif
-    const int nthreads = comm->nthreads;
-
-    int i,j,ii,jj,inum,jnum,itype,jtype;
+    int i,j,ii,jj,inum,jnum,itype,jtype,tid;
     double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
     double rsq,r2inv,r6inv,forcelj,factor_lj;
     int *ilist,*jlist,*numneigh,**firstneigh;
@@ -111,10 +104,10 @@ void PairLJCutOMP::eval()
 
     const int nlocal = atom->nlocal;
     const int nall = nlocal + atom->nghost;
+    const int nthreads = comm->nthreads;
 
     double **x = atom->x;
-    // each thread operates on its own copy of the forces array
-    double **f = atom->f + nall*tid;
+    double **f = atom->f;
     int *type = atom->type;
     double *special_lj = force->special_lj;
 
@@ -124,13 +117,9 @@ void PairLJCutOMP::eval()
     firstneigh = list->firstneigh;
   
     // loop over neighbors of my atoms
-    // each thread works on a fixed chunk of atoms.
-    // XXX: no load balancing. 
-    // need to check how to estimate equal amounts of work. 
-    // add per thread profiling to see how large a difference.
-    const int iidelta = (nthreads > 1) ? 1 + inum/nthreads : inum;
-    const int iifrom = tid*iidelta;
-    const int iito   = ((iifrom + iidelta) > inum) ? inum : (iifrom + iidelta);
+
+    int iifrom, iito;
+    f = loop_setup_thr(f, iifrom, iito, tid, inum, nall, nthreads);
     for (ii = iifrom; ii < iito; ++ii) {
       i = ilist[ii];
       xtmp = x[i][0];
@@ -200,27 +189,22 @@ void PairLJCutOMP::compute_inner()
 template <int NEWTON_PAIR>
 void PairLJCutOMP::eval_inner() 
 {
+
 #if defined(_OPENMP)
 #pragma omp parallel default(shared)
 #endif
   {
-#if defined(_OPENMP)
-    const int tid = omp_get_thread_num();
-#else
-    const int tid = 0;
-#endif
-    const int nthreads = comm->nthreads;
-
-    int i,j,ii,jj,inum,jnum,itype,jtype;
+    int i,j,ii,jj,inum,jnum,itype,jtype,tid;
     double xtmp,ytmp,ztmp,delx,dely,delz,fpair;
     double rsq,r2inv,r6inv,forcelj,factor_lj,rsw;
     int *ilist,*jlist,*numneigh,**firstneigh;
 
     int nlocal = atom->nlocal;
     int nall = nlocal + atom->nghost;
+    int nthreads = comm->nthreads;
 
     double **x = atom->x;
-    double **f = atom->f + nall*tid;
+    double **f = atom->f;
     int *type = atom->type;
     double *special_lj = force->special_lj;
   
@@ -237,11 +221,9 @@ void PairLJCutOMP::eval_inner()
     double cut_out_off_sq = cut_out_off*cut_out_off;
   
     // loop over neighbors of my atoms
-    // each thread works on a fixed chunk of atoms.
-    // XXX: no load balancing! see compute() method
-    const int iidelta = (nthreads > 1) ? 1 + inum/nthreads : inum;
-    const int iifrom = tid*iidelta;
-    const int iito   = ((iifrom + iidelta) > inum) ? inum : (iifrom + iidelta);
+
+    int iifrom, iito;
+    f = loop_setup_thr(f, iifrom, iito, tid, inum, nall, nthreads);
     for (ii = iifrom; ii < iito; ++ii) {
 
       i = ilist[ii];
@@ -310,20 +292,16 @@ void PairLJCutOMP::eval_middle()
 #pragma omp parallel default(shared)
 #endif
   {
-#if defined(_OPENMP)
-    const int tid = omp_get_thread_num();
-#else
-    const int tid = 0;
-#endif
-    const int nthreads = comm->nthreads;
 
-    int i,j,ii,jj,inum,jnum,itype,jtype;
+    int i,j,ii,jj,inum,jnum,itype,jtype, tid;
     double xtmp,ytmp,ztmp,delx,dely,delz,fpair;
     double rsq,r2inv,r6inv,forcelj,factor_lj,rsw;
     int *ilist,*jlist,*numneigh,**firstneigh;
 
     int nlocal = atom->nlocal;
     int nall = nlocal + atom->nghost;
+    int nthreads = comm->nthreads;
+
     double **x = atom->x;
     double **f = atom->f + nall*tid;
     int *type = atom->type;
@@ -347,12 +325,9 @@ void PairLJCutOMP::eval_middle()
     double cut_out_off_sq = cut_out_off*cut_out_off;
 
     // loop over neighbors of my atoms
-    // each thread works on a fixed chunk of atoms.
-    // XXX: no load balancing! see compute() method
-    const int iidelta = (nthreads > 1) ? 1 + inum/nthreads : inum;
-    const int iifrom = tid*iidelta;
-    const int iito   = ((iifrom + iidelta) > inum) ? inum : (iifrom + iidelta);
 
+    int iifrom, iito;
+    f = loop_setup_thr(f, iifrom, iito, tid, inum, nall, nthreads);
     for (ii = iifrom; ii < iito; ++ii) {
       i = ilist[ii];
       xtmp = x[i][0];
@@ -448,14 +423,8 @@ void PairLJCutOMP::eval_outer()
 #pragma omp parallel default(shared)
 #endif
   {
-#if defined(_OPENMP)
-    const int tid = omp_get_thread_num();
-#else
-    const int tid = 0;
-#endif
-    const int nthreads = comm->nthreads;
 
-    int i,j,ii,jj,inum,jnum,itype,jtype;
+    int i,j,ii,jj,inum,jnum,itype,jtype,tid;
     double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
     double rsq,r2inv,r6inv,forcelj,factor_lj,rsw;
     int *ilist,*jlist,*numneigh,**firstneigh;
@@ -467,6 +436,8 @@ void PairLJCutOMP::eval_outer()
     int *type = atom->type;
     int nlocal = atom->nlocal;
     int nall = nlocal + atom->nghost;
+    int nthreads = comm->nthreads;
+
     double *special_lj = force->special_lj;
 
     inum = listouter->inum;
@@ -482,12 +453,9 @@ void PairLJCutOMP::eval_outer()
     double cut_in_on_sq = cut_in_on*cut_in_on;
 
     // loop over neighbors of my atoms
-    // each thread works on a fixed chunk of atoms.
-    // XXX: no load balancing! see compute() method
-    const int iidelta = (nthreads > 1) ? 1 + inum/nthreads : inum;
-    const int iifrom = tid*iidelta;
-    const int iito   = ((iifrom + iidelta) > inum) ? inum : (iifrom + iidelta);
 
+    int iifrom, iito;
+    f = loop_setup_thr(f, iifrom, iito, tid, inum, nall, nthreads);
     for (ii = iifrom; ii < iito; ++ii) {
       i = ilist[ii];
       xtmp = x[i][0];

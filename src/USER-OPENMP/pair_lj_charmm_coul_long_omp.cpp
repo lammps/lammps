@@ -115,158 +115,146 @@ void PairLJCharmmCoulLongOMP::eval()
 #pragma omp parallel default(shared)
 #endif
   {
-#if defined(_OPENMP)
-    const int tid = omp_get_thread_num();
-#else
-    const int tid = 0;
-#endif
+
+    int i,j,ii,jj,inum,jnum,itype,jtype,itable,tid;
+    double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
+    double fraction,table;
+    double r,r2inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
+    double grij,expm2,prefactor,t,erfc;
+    double philj,switch1,switch2;
+    int *ilist,*jlist,*numneigh,**firstneigh;
+    double rsq;
+
+    evdwl = ecoul = 0.0;
+
+    const int nlocal = atom->nlocal;
+    const int nall = nlocal + atom->nghost;
     const int nthreads = comm->nthreads;
 
+    double **x = atom->x;
+    double **f = atom->f;
+    double *q = atom->q;
+    int *type = atom->type;
+    double *special_coul = force->special_coul;
+    double *special_lj = force->special_lj;
+    double qqrd2e = force->qqrd2e;
 
-  int i,j,ii,jj,inum,jnum,itype,jtype,itable;
-  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
-  double fraction,table;
-  double r,r2inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
-  double grij,expm2,prefactor,t,erfc;
-  double philj,switch1,switch2;
-  int *ilist,*jlist,*numneigh,**firstneigh;
-  double rsq;
-
-  evdwl = ecoul = 0.0;
-
-  const int nlocal = atom->nlocal;
-  const int nall = nlocal + atom->nghost;
-
-  // each thread operates on its own copy of the forces array
-  double **f = atom->f + nall*tid;
-
-  double **x = atom->x;
-  double *q = atom->q;
-  int *type = atom->type;
-  double *special_coul = force->special_coul;
-  double *special_lj = force->special_lj;
-  double qqrd2e = force->qqrd2e;
-
-  inum = list->inum;
-  ilist = list->ilist;
-  numneigh = list->numneigh;
-  firstneigh = list->firstneigh;
+    inum = list->inum;
+    ilist = list->ilist;
+    numneigh = list->numneigh;
+    firstneigh = list->firstneigh;
   
-  // loop over neighbors of my atoms
-    // each thread works on a fixed chunk of atoms.
-    // XXX: no load balancing. 
-    // need to check how to estimate equal amounts of work. 
-    // add per thread profiling to see how large a difference.
-    const int iidelta = (nthreads > 1) ? 1 + inum/nthreads : inum;
-    const int iifrom = tid*iidelta;
-    const int iito   = ((iifrom + iidelta) > inum) ? inum : (iifrom + iidelta);
+    // loop over neighbors of my atoms
+
+    int iifrom, iito;
+    f = loop_setup_thr(f, iifrom, iito, tid, inum, nall, nthreads);
     for (ii = iifrom; ii < iito; ++ii) {
  
-    i = ilist[ii];
-    qtmp = q[i];
-    xtmp = x[i][0];
-    ytmp = x[i][1];
-    ztmp = x[i][2];
-    itype = type[i];
-    jlist = firstneigh[i];
-    jnum = numneigh[i];
+      i = ilist[ii];
+      qtmp = q[i];
+      xtmp = x[i][0];
+      ytmp = x[i][1];
+      ztmp = x[i][2];
+      itype = type[i];
+      jlist = firstneigh[i];
+      jnum = numneigh[i];
 
-    for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
+      for (jj = 0; jj < jnum; jj++) {
+	j = jlist[jj];
 
-      if (j < nall) factor_coul = factor_lj = 1.0;
-      else {
-	factor_coul = special_coul[j/nall];
-	factor_lj = special_lj[j/nall];
-	j %= nall;
-      }
-
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;
-
-      if (rsq < cut_bothsq) {
-	r2inv = 1.0/rsq;
-
-	if (rsq < cut_coulsq) {
-	  if (!ncoultablebits || rsq <= tabinnersq) {
-	    r = sqrt(rsq);
-	    grij = g_ewald * r;
-	    expm2 = exp(-grij*grij);
-	    t = 1.0 / (1.0 + EWALD_P*grij);
-	    erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
-	    prefactor = qqrd2e * qtmp*q[j]/r;
-	    forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
-	    if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
-	  } else {
-	    union_int_float_t rsq_lookup;
-	    rsq_lookup.f = rsq;
-	    itable = rsq_lookup.i & ncoulmask;
-	    itable >>= ncoulshiftbits;
-	    fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
-	    table = ftable[itable] + fraction*dftable[itable];
-	    forcecoul = qtmp*q[j] * table;
-	    if (factor_coul < 1.0) {
-	      table = ctable[itable] + fraction*dctable[itable];
-	      prefactor = qtmp*q[j] * table;
-	      forcecoul -= (1.0-factor_coul)*prefactor;
-	    }
-	  }
-	} else forcecoul = 0.0;
-
-	if (rsq < cut_ljsq) {
-	  r6inv = r2inv*r2inv*r2inv;
-	  jtype = type[j];
-	  forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-	  if (rsq > cut_lj_innersq) {
-	    switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
-	      (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
-	    switch2 = 12.0*rsq * (cut_ljsq-rsq) * 
-	      (rsq-cut_lj_innersq) / denom_lj;
-	    philj = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]);
-	    forcelj = forcelj*switch1 + philj*switch2;
-	  }
-	} else forcelj = 0.0;
-
-	fpair = (forcecoul + factor_lj*forcelj) * r2inv;
-
-	f[i][0] += delx*fpair;
-	f[i][1] += dely*fpair;
-	f[i][2] += delz*fpair;
-	if (NEWTON_PAIR || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
+	if (j < nall) factor_coul = factor_lj = 1.0;
+	else {
+	  factor_coul = special_coul[j/nall];
+	  factor_lj = special_lj[j/nall];
+	  j %= nall;
 	}
 
-	if (EFLAG) {
+	delx = xtmp - x[j][0];
+	dely = ytmp - x[j][1];
+	delz = ztmp - x[j][2];
+	rsq = delx*delx + dely*dely + delz*delz;
+
+	if (rsq < cut_bothsq) {
+	  r2inv = 1.0/rsq;
+
 	  if (rsq < cut_coulsq) {
-	    if (!ncoultablebits || rsq <= tabinnersq)
-	      ecoul = prefactor*erfc;
-	    else {
-	      table = etable[itable] + fraction*detable[itable];
-	      ecoul = qtmp*q[j] * table;
+	    if (!ncoultablebits || rsq <= tabinnersq) {
+	      r = sqrt(rsq);
+	      grij = g_ewald * r;
+	      expm2 = exp(-grij*grij);
+	      t = 1.0 / (1.0 + EWALD_P*grij);
+	      erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+	      prefactor = qqrd2e * qtmp*q[j]/r;
+	      forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+	      if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
+	    } else {
+	      union_int_float_t rsq_lookup;
+	      rsq_lookup.f = rsq;
+	      itable = rsq_lookup.i & ncoulmask;
+	      itable >>= ncoulshiftbits;
+	      fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+	      table = ftable[itable] + fraction*dftable[itable];
+	      forcecoul = qtmp*q[j] * table;
+	      if (factor_coul < 1.0) {
+		table = ctable[itable] + fraction*dctable[itable];
+		prefactor = qtmp*q[j] * table;
+		forcecoul -= (1.0-factor_coul)*prefactor;
+	      }
 	    }
-	    if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
-	  } else ecoul = 0.0;
+	  } else forcecoul = 0.0;
 
 	  if (rsq < cut_ljsq) {
-	    evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
+	    r6inv = r2inv*r2inv*r2inv;
+	    jtype = type[j];
+	    forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
 	    if (rsq > cut_lj_innersq) {
 	      switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
 		(cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
-	      evdwl *= switch1;
+	      switch2 = 12.0*rsq * (cut_ljsq-rsq) * 
+		(rsq-cut_lj_innersq) / denom_lj;
+	      philj = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]);
+	      forcelj = forcelj*switch1 + philj*switch2;
 	    }
-	    evdwl *= factor_lj;
-	  } else evdwl = 0.0;
-	}
+	  } else forcelj = 0.0;
 
-	if (EVFLAG) ev_tally_thr(i,j,nlocal,NEWTON_PAIR,
-                             evdwl,ecoul,fpair,delx,dely,delz,tid);
+	  fpair = (forcecoul + factor_lj*forcelj) * r2inv;
+
+	  f[i][0] += delx*fpair;
+	  f[i][1] += dely*fpair;
+	  f[i][2] += delz*fpair;
+	  if (NEWTON_PAIR || j < nlocal) {
+	    f[j][0] -= delx*fpair;
+	    f[j][1] -= dely*fpair;
+	    f[j][2] -= delz*fpair;
+	  }
+
+	  if (EFLAG) {
+	    if (rsq < cut_coulsq) {
+	      if (!ncoultablebits || rsq <= tabinnersq)
+		ecoul = prefactor*erfc;
+	      else {
+		table = etable[itable] + fraction*detable[itable];
+		ecoul = qtmp*q[j] * table;
+	      }
+	      if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
+	    } else ecoul = 0.0;
+
+	    if (rsq < cut_ljsq) {
+	      evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
+	      if (rsq > cut_lj_innersq) {
+		switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
+		  (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
+		evdwl *= switch1;
+	      }
+	      evdwl *= factor_lj;
+	    } else evdwl = 0.0;
+	  }
+
+	  if (EVFLAG) ev_tally_thr(i,j,nlocal,NEWTON_PAIR,
+				   evdwl,ecoul,fpair,delx,dely,delz,tid);
+	}
       }
     }
-  }
 
     // reduce per thread forces into global force array.
     force_reduce_thr(atom->f, nall, nthreads, tid);
@@ -290,14 +278,7 @@ void PairLJCharmmCoulLongOMP::eval_inner()
 #pragma omp parallel default(shared)
 #endif
   {
-#if defined(_OPENMP)
-    const int tid = omp_get_thread_num();
-#else
-    const int tid = 0;
-#endif
-    const int nthreads = comm->nthreads;
-
-  int i,j,ii,jj,inum,jnum,itype,jtype;
+    int i,j,ii,jj,inum,jnum,itype,jtype,tid;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,fpair;
   double rsq,r2inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
   double rsw;
@@ -305,9 +286,10 @@ void PairLJCharmmCoulLongOMP::eval_inner()
 
   const int nlocal = atom->nlocal;
   const int nall = nlocal + atom->nghost;
+  const int nthreads = comm->nthreads;
 
   double **x = atom->x;
-  double **f = atom->f + nall*tid;
+  double **f = atom->f;
   double *q = atom->q;
   int *type = atom->type;
   double *special_coul = force->special_coul;
@@ -327,12 +309,9 @@ void PairLJCharmmCoulLongOMP::eval_inner()
   double cut_out_off_sq = cut_out_off*cut_out_off;
 
   // loop over neighbors of my atoms
-    // each thread works on a fixed chunk of atoms.
-    // XXX: no load balancing! see compute() method
-    const int iidelta = (nthreads > 1) ? 1 + inum/nthreads : inum;
-    const int iifrom = tid*iidelta;
-    const int iito   = ((iifrom + iidelta) > inum) ? inum : (iifrom + iidelta);
-    for (ii = iifrom; ii < iito; ++ii) {
+  int iifrom, iito;
+  f = loop_setup_thr(f, iifrom, iito, tid, inum, nall, nthreads);
+  for (ii = iifrom; ii < iito; ++ii) {
     i = ilist[ii];
     qtmp = q[i];
     xtmp = x[i][0];
@@ -405,120 +384,111 @@ void PairLJCharmmCoulLongOMP::eval_middle()
 #pragma omp parallel default(shared)
 #endif
   {
-#if defined(_OPENMP)
-    const int tid = omp_get_thread_num();
-#else
-    const int tid = 0;
-#endif
+
+    int i,j,ii,jj,inum,jnum,itype,jtype,tid;
+    double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,fpair;
+    double rsq,r2inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
+    double philj,switch1,switch2;
+    double rsw;
+    int *ilist,*jlist,*numneigh,**firstneigh;
+
+    const int nlocal = atom->nlocal;
+    const int nall = nlocal + atom->nghost;
     const int nthreads = comm->nthreads;
 
-  int i,j,ii,jj,inum,jnum,itype,jtype;
-  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,fpair;
-  double rsq,r2inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
-  double philj,switch1,switch2;
-  double rsw;
-  int *ilist,*jlist,*numneigh,**firstneigh;
+    double **x = atom->x;
+    double **f = atom->f;
+    double *q = atom->q;
+    int *type = atom->type;
+    double *special_coul = force->special_coul;
+    double *special_lj = force->special_lj;
+    double qqrd2e = force->qqrd2e;
 
-  const int nlocal = atom->nlocal;
-  const int nall = nlocal + atom->nghost;
+    inum = listmiddle->inum;
+    ilist = listmiddle->ilist;
+    numneigh = listmiddle->numneigh;
+    firstneigh = listmiddle->firstneigh;
 
-  double **x = atom->x;
-  double **f = atom->f + nall*tid;
-  double *q = atom->q;
-  int *type = atom->type;
-  double *special_coul = force->special_coul;
-  double *special_lj = force->special_lj;
-  double qqrd2e = force->qqrd2e;
+    double cut_in_off = cut_respa[0];
+    double cut_in_on = cut_respa[1];
+    double cut_out_on = cut_respa[2];
+    double cut_out_off = cut_respa[3];
 
-  inum = listmiddle->inum;
-  ilist = listmiddle->ilist;
-  numneigh = listmiddle->numneigh;
-  firstneigh = listmiddle->firstneigh;
+    double cut_in_diff = cut_in_on - cut_in_off;
+    double cut_out_diff = cut_out_off - cut_out_on;
+    double cut_in_off_sq = cut_in_off*cut_in_off;
+    double cut_in_on_sq = cut_in_on*cut_in_on;
+    double cut_out_on_sq = cut_out_on*cut_out_on;
+    double cut_out_off_sq = cut_out_off*cut_out_off;
 
-  double cut_in_off = cut_respa[0];
-  double cut_in_on = cut_respa[1];
-  double cut_out_on = cut_respa[2];
-  double cut_out_off = cut_respa[3];
-
-  double cut_in_diff = cut_in_on - cut_in_off;
-  double cut_out_diff = cut_out_off - cut_out_on;
-  double cut_in_off_sq = cut_in_off*cut_in_off;
-  double cut_in_on_sq = cut_in_on*cut_in_on;
-  double cut_out_on_sq = cut_out_on*cut_out_on;
-  double cut_out_off_sq = cut_out_off*cut_out_off;
-
-  // loop over neighbors of my atoms
-  // each thread works on a fixed chunk of atoms.
-  // XXX: no load balancing! see compute() method
-    const int iidelta = (nthreads > 1) ? 1 + inum/nthreads : inum;
-    const int iifrom = tid*iidelta;
-    const int iito   = ((iifrom + iidelta) > inum) ? inum : (iifrom + iidelta);
- 
+    // loop over neighbors of my atoms
+    int iifrom, iito;
+    f = loop_setup_thr(f, iifrom, iito, tid, inum, nall, nthreads);
     for (ii = iifrom; ii < iito; ++ii) {
  
-    i = ilist[ii];
-    qtmp = q[i];
-    xtmp = x[i][0];
-    ytmp = x[i][1];
-    ztmp = x[i][2];
-    itype = type[i];
+      i = ilist[ii];
+      qtmp = q[i];
+      xtmp = x[i][0];
+      ytmp = x[i][1];
+      ztmp = x[i][2];
+      itype = type[i];
 
-    jlist = firstneigh[i];
-    jnum = numneigh[i];
+      jlist = firstneigh[i];
+      jnum = numneigh[i];
 
-    for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
+      for (jj = 0; jj < jnum; jj++) {
+	j = jlist[jj];
 
-      if (j < nall) factor_coul = factor_lj = 1.0;
-      else {
-	factor_coul = special_coul[j/nall];
-	factor_lj = special_lj[j/nall];
-	j %= nall;
-      }
+	if (j < nall) factor_coul = factor_lj = 1.0;
+	else {
+	  factor_coul = special_coul[j/nall];
+	  factor_lj = special_lj[j/nall];
+	  j %= nall;
+	}
       
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;
+	delx = xtmp - x[j][0];
+	dely = ytmp - x[j][1];
+	delz = ztmp - x[j][2];
+	rsq = delx*delx + dely*dely + delz*delz;
 
-      if (rsq < cut_out_off_sq && rsq > cut_in_off_sq) {
-	r2inv = 1.0/rsq;
-        forcecoul = qqrd2e * qtmp*q[j]*sqrt(r2inv);
-        if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*forcecoul;
+	if (rsq < cut_out_off_sq && rsq > cut_in_off_sq) {
+	  r2inv = 1.0/rsq;
+	  forcecoul = qqrd2e * qtmp*q[j]*sqrt(r2inv);
+	  if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*forcecoul;
 
-	r6inv = r2inv*r2inv*r2inv;
-	jtype = type[j];
-	forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-	if (rsq > cut_lj_innersq) {
-	  switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
-	    (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
-	  switch2 = 12.0*rsq * (cut_ljsq-rsq) * 
-	    (rsq-cut_lj_innersq) / denom_lj;
-	  philj = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]);
-	  forcelj = forcelj*switch1 + philj*switch2;
-	}
+	  r6inv = r2inv*r2inv*r2inv;
+	  jtype = type[j];
+	  forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
+	  if (rsq > cut_lj_innersq) {
+	    switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
+	      (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
+	    switch2 = 12.0*rsq * (cut_ljsq-rsq) * 
+	      (rsq-cut_lj_innersq) / denom_lj;
+	    philj = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]);
+	    forcelj = forcelj*switch1 + philj*switch2;
+	  }
 
-	fpair = (forcecoul + factor_lj*forcelj) * r2inv;
-        if (rsq < cut_in_on_sq) {
-	  rsw = (sqrt(rsq) - cut_in_off)/cut_in_diff; 
-	  fpair *= rsw*rsw*(3.0 - 2.0*rsw);
-	}
-        if (rsq > cut_out_on_sq) {
-	  rsw = (sqrt(rsq) - cut_out_on)/cut_out_diff; 
-	  fpair *= 1.0 + rsw*rsw*(2.0*rsw - 3.0);
-	}
+	  fpair = (forcecoul + factor_lj*forcelj) * r2inv;
+	  if (rsq < cut_in_on_sq) {
+	    rsw = (sqrt(rsq) - cut_in_off)/cut_in_diff; 
+	    fpair *= rsw*rsw*(3.0 - 2.0*rsw);
+	  }
+	  if (rsq > cut_out_on_sq) {
+	    rsw = (sqrt(rsq) - cut_out_on)/cut_out_diff; 
+	    fpair *= 1.0 + rsw*rsw*(2.0*rsw - 3.0);
+	  }
 
-	f[i][0] += delx*fpair;
-	f[i][1] += dely*fpair;
-	f[i][2] += delz*fpair;
-	if (NEWTON_PAIR || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
+	  f[i][0] += delx*fpair;
+	  f[i][1] += dely*fpair;
+	  f[i][2] += delz*fpair;
+	  if (NEWTON_PAIR || j < nlocal) {
+	    f[j][0] -= delx*fpair;
+	    f[j][1] -= dely*fpair;
+	    f[j][2] -= delz*fpair;
+	  }
 	}
       }
     }
-  }
     
     // reduce per thread forces into global force array.
     force_reduce_thr(atom->f, nall, nthreads, tid);
@@ -565,196 +535,116 @@ void PairLJCharmmCoulLongOMP::eval_outer()
 #pragma omp parallel default(shared)
 #endif
   {
-#if defined(_OPENMP)
-    const int tid = omp_get_thread_num();
-#else
-    const int tid = 0;
-#endif
+
+    int i,j,ii,jj,inum,jnum,itype,jtype,itable,tid;
+    double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
+    double fraction,table;
+    double r,r2inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
+    double grij,expm2,prefactor,t,erfc;
+    double philj,switch1,switch2;
+    double rsw;
+    int *ilist,*jlist,*numneigh,**firstneigh;
+    double rsq;
+
+    evdwl = ecoul = 0.0;
+
+    const int nlocal = atom->nlocal;
+    const int nall = nlocal + atom->nghost;
     const int nthreads = comm->nthreads;
 
-  int i,j,ii,jj,inum,jnum,itype,jtype,itable;
-  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
-  double fraction,table;
-  double r,r2inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
-  double grij,expm2,prefactor,t,erfc;
-  double philj,switch1,switch2;
-  double rsw;
-  int *ilist,*jlist,*numneigh,**firstneigh;
-  double rsq;
-
-  evdwl = ecoul = 0.0;
-
-  const int nlocal = atom->nlocal;
-  const int nall = nlocal + atom->nghost;
-
-  double **x = atom->x;
-  double **f = atom->f + nall*tid;
-  double *q = atom->q;
-  int *type = atom->type;
-  double *special_coul = force->special_coul;
-  double *special_lj = force->special_lj;
-  double qqrd2e = force->qqrd2e;
+    double **x = atom->x;
+    double **f = atom->f;
+    double *q = atom->q;
+    int *type = atom->type;
+    double *special_coul = force->special_coul;
+    double *special_lj = force->special_lj;
+    double qqrd2e = force->qqrd2e;
   
-  inum = listouter->inum;
-  ilist = listouter->ilist;
-  numneigh = listouter->numneigh;
-  firstneigh = listouter->firstneigh;
+    inum = listouter->inum;
+    ilist = listouter->ilist;
+    numneigh = listouter->numneigh;
+    firstneigh = listouter->firstneigh;
 
-  double cut_in_off = cut_respa[2];
-  double cut_in_on = cut_respa[3];
+    double cut_in_off = cut_respa[2];
+    double cut_in_on = cut_respa[3];
 
-  double cut_in_diff = cut_in_on - cut_in_off;
-  double cut_in_off_sq = cut_in_off*cut_in_off;
-  double cut_in_on_sq = cut_in_on*cut_in_on;
+    double cut_in_diff = cut_in_on - cut_in_off;
+    double cut_in_off_sq = cut_in_off*cut_in_off;
+    double cut_in_on_sq = cut_in_on*cut_in_on;
 
-  // loop over neighbors of my atoms
-    // each thread works on a fixed chunk of atoms.
-    // XXX: no load balancing! see compute() method
-    const int iidelta = (nthreads > 1) ? 1 + inum/nthreads : inum;
-    const int iifrom = tid*iidelta;
-    const int iito   = ((iifrom + iidelta) > inum) ? inum : (iifrom + iidelta);
- 
+    // loop over neighbors of my atoms
+
+    int iifrom, iito;
+    f = loop_setup_thr(f, iifrom, iito, tid, inum, nall, nthreads);
     for (ii = iifrom; ii < iito; ++ii) {
  
-    i = ilist[ii];
-    qtmp = q[i];
-    xtmp = x[i][0];
-    ytmp = x[i][1];
-    ztmp = x[i][2];
-    itype = type[i];
-    jlist = firstneigh[i];
-    jnum = numneigh[i];
+      i = ilist[ii];
+      qtmp = q[i];
+      xtmp = x[i][0];
+      ytmp = x[i][1];
+      ztmp = x[i][2];
+      itype = type[i];
+      jlist = firstneigh[i];
+      jnum = numneigh[i];
 
-    for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
+      for (jj = 0; jj < jnum; jj++) {
+	j = jlist[jj];
       
-      if (j < nall) factor_coul = factor_lj = 1.0;
-      else {
-	factor_coul = special_coul[j/nall];
-	factor_lj = special_lj[j/nall];
-	j %= nall;
-      }
-      
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;
-      jtype = type[j];
-      
-      if (rsq < cut_bothsq) {
-	r2inv = 1.0/rsq;
-	
-	if (rsq < cut_coulsq) {
-	  if (!ncoultablebits || rsq <= tabinnersq) {
-	    r = sqrt(rsq);
-	    grij = g_ewald * r;
-	    expm2 = exp(-grij*grij);
-	    t = 1.0 / (1.0 + EWALD_P*grij);
-	    erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
-	    prefactor = qqrd2e * qtmp*q[j]/r;
-	    forcecoul = prefactor * (erfc + EWALD_F*grij*expm2 - 1.0);
-	    if (rsq > cut_in_off_sq) {
-	      if (rsq < cut_in_on_sq) {
-		rsw = (r - cut_in_off)/cut_in_diff; 
-		forcecoul += prefactor*rsw*rsw*(3.0 - 2.0*rsw);
-		if (factor_coul < 1.0)
-		  forcecoul -= 
-		    (1.0-factor_coul)*prefactor*rsw*rsw*(3.0 - 2.0*rsw);
-	      } else {
-		forcecoul += prefactor;
-		if (factor_coul < 1.0)
-		  forcecoul -= (1.0-factor_coul)*prefactor;
-	      }
-	    }
-	  } else {
-	    union_int_float_t rsq_lookup;
-	    rsq_lookup.f = rsq;
-	    itable = rsq_lookup.i & ncoulmask;
-	    itable >>= ncoulshiftbits;
-	    fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
-	    table = ftable[itable] + fraction*dftable[itable];
-	    forcecoul = qtmp*q[j] * table;
-	    if (factor_coul < 1.0) {
-	      table = ctable[itable] + fraction*dctable[itable];
-	      prefactor = qtmp*q[j] * table;
-	      forcecoul -= (1.0-factor_coul)*prefactor;
-	    }
-	  }
-	} else forcecoul = 0.0;
-	
-	if (rsq < cut_ljsq && rsq > cut_in_off_sq) {
-	  r6inv = r2inv*r2inv*r2inv;
-	  forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-	  if (rsq > cut_lj_innersq) {
-	    switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
-	      (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
-	    switch2 = 12.0*rsq * (cut_ljsq-rsq) * 
-	      (rsq-cut_lj_innersq) / denom_lj;
-	    philj = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]);
-	    forcelj = forcelj*switch1 + philj*switch2;
-	  }
-	  if (rsq < cut_in_on_sq) {
-	    rsw = (sqrt(rsq) - cut_in_off)/cut_in_diff; 
-	    forcelj *= rsw*rsw*(3.0 - 2.0*rsw);
-	  }
-	} else forcelj = 0.0;
-
-	fpair = (forcecoul + forcelj) * r2inv;
-	
-	f[i][0] += delx*fpair;
-	f[i][1] += dely*fpair;
-	f[i][2] += delz*fpair;
-	if (NEWTON_PAIR || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
+	if (j < nall) factor_coul = factor_lj = 1.0;
+	else {
+	  factor_coul = special_coul[j/nall];
+	  factor_lj = special_lj[j/nall];
+	  j %= nall;
 	}
+      
+	delx = xtmp - x[j][0];
+	dely = ytmp - x[j][1];
+	delz = ztmp - x[j][2];
+	rsq = delx*delx + dely*dely + delz*delz;
+	jtype = type[j];
+      
+	if (rsq < cut_bothsq) {
+	  r2inv = 1.0/rsq;
 	
-	if (EFLAG) {
 	  if (rsq < cut_coulsq) {
 	    if (!ncoultablebits || rsq <= tabinnersq) {
-	      ecoul = prefactor*erfc;
-	      if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
-	    } else {
-	      table = etable[itable] + fraction*detable[itable];
-	      ecoul = qtmp*q[j] * table;
-	      if (factor_coul < 1.0) {
-		table = ptable[itable] + fraction*dptable[itable];
-		prefactor = qtmp*q[j] * table;
-		ecoul -= (1.0-factor_coul)*prefactor;
+	      r = sqrt(rsq);
+	      grij = g_ewald * r;
+	      expm2 = exp(-grij*grij);
+	      t = 1.0 / (1.0 + EWALD_P*grij);
+	      erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+	      prefactor = qqrd2e * qtmp*q[j]/r;
+	      forcecoul = prefactor * (erfc + EWALD_F*grij*expm2 - 1.0);
+	      if (rsq > cut_in_off_sq) {
+		if (rsq < cut_in_on_sq) {
+		  rsw = (r - cut_in_off)/cut_in_diff; 
+		  forcecoul += prefactor*rsw*rsw*(3.0 - 2.0*rsw);
+		  if (factor_coul < 1.0)
+		    forcecoul -= 
+		      (1.0-factor_coul)*prefactor*rsw*rsw*(3.0 - 2.0*rsw);
+		} else {
+		  forcecoul += prefactor;
+		  if (factor_coul < 1.0)
+		    forcecoul -= (1.0-factor_coul)*prefactor;
+		}
 	      }
-	    }
-	  } else ecoul = 0.0;
-
-	  if (rsq < cut_ljsq) {
-	    r6inv = r2inv*r2inv*r2inv;
-	    evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
-	    if (rsq > cut_lj_innersq) {
-	      switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
-		(cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
-	      evdwl *= switch1;
-	    }
-	    evdwl *= factor_lj;
-	  } else evdwl = 0.0;
-	}
-	
-	if (VFLAG) {
-	  if (rsq < cut_coulsq) {
-	    if (!ncoultablebits || rsq <= tabinnersq) {
-	      forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
-	      if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
 	    } else {
-	      table = vtable[itable] + fraction*dvtable[itable];
+	      union_int_float_t rsq_lookup;
+	      rsq_lookup.f = rsq;
+	      itable = rsq_lookup.i & ncoulmask;
+	      itable >>= ncoulshiftbits;
+	      fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+	      table = ftable[itable] + fraction*dftable[itable];
 	      forcecoul = qtmp*q[j] * table;
 	      if (factor_coul < 1.0) {
-		table = ptable[itable] + fraction*dptable[itable];
+		table = ctable[itable] + fraction*dctable[itable];
 		prefactor = qtmp*q[j] * table;
 		forcecoul -= (1.0-factor_coul)*prefactor;
 	      }
 	    }
 	  } else forcecoul = 0.0;
-
-	  if (rsq <= cut_in_off_sq) {
+	
+	  if (rsq < cut_ljsq && rsq > cut_in_off_sq) {
 	    r6inv = r2inv*r2inv*r2inv;
 	    forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
 	    if (rsq > cut_lj_innersq) {
@@ -765,26 +655,98 @@ void PairLJCharmmCoulLongOMP::eval_outer()
 	      philj = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]);
 	      forcelj = forcelj*switch1 + philj*switch2;
 	    }
-	  } else if (rsq <= cut_in_on_sq) {
-	    forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-	    if (rsq > cut_lj_innersq) {
-	      switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
-		(cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
-	      switch2 = 12.0*rsq * (cut_ljsq-rsq) * 
-		(rsq-cut_lj_innersq) / denom_lj;
-	      philj = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]);
-	      forcelj = forcelj*switch1 + philj*switch2;
+	    if (rsq < cut_in_on_sq) {
+	      rsw = (sqrt(rsq) - cut_in_off)/cut_in_diff; 
+	      forcelj *= rsw*rsw*(3.0 - 2.0*rsw);
 	    }
-	  }
-	  
-	  fpair = (forcecoul + factor_lj*forcelj) * r2inv;
-	}
+	  } else forcelj = 0.0;
 
-	if (EVFLAG) ev_tally_thr(i,j,nlocal,NEWTON_PAIR,
-			     evdwl,ecoul,fpair,delx,dely,delz,tid);
+	  fpair = (forcecoul + forcelj) * r2inv;
+	
+	  f[i][0] += delx*fpair;
+	  f[i][1] += dely*fpair;
+	  f[i][2] += delz*fpair;
+	  if (NEWTON_PAIR || j < nlocal) {
+	    f[j][0] -= delx*fpair;
+	    f[j][1] -= dely*fpair;
+	    f[j][2] -= delz*fpair;
+	  }
+	
+	  if (EFLAG) {
+	    if (rsq < cut_coulsq) {
+	      if (!ncoultablebits || rsq <= tabinnersq) {
+		ecoul = prefactor*erfc;
+		if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
+	      } else {
+		table = etable[itable] + fraction*detable[itable];
+		ecoul = qtmp*q[j] * table;
+		if (factor_coul < 1.0) {
+		  table = ptable[itable] + fraction*dptable[itable];
+		  prefactor = qtmp*q[j] * table;
+		  ecoul -= (1.0-factor_coul)*prefactor;
+		}
+	      }
+	    } else ecoul = 0.0;
+
+	    if (rsq < cut_ljsq) {
+	      r6inv = r2inv*r2inv*r2inv;
+	      evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
+	      if (rsq > cut_lj_innersq) {
+		switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
+		  (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
+		evdwl *= switch1;
+	      }
+	      evdwl *= factor_lj;
+	    } else evdwl = 0.0;
+	  }
+	
+	  if (VFLAG) {
+	    if (rsq < cut_coulsq) {
+	      if (!ncoultablebits || rsq <= tabinnersq) {
+		forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+		if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
+	      } else {
+		table = vtable[itable] + fraction*dvtable[itable];
+		forcecoul = qtmp*q[j] * table;
+		if (factor_coul < 1.0) {
+		  table = ptable[itable] + fraction*dptable[itable];
+		  prefactor = qtmp*q[j] * table;
+		  forcecoul -= (1.0-factor_coul)*prefactor;
+		}
+	      }
+	    } else forcecoul = 0.0;
+
+	    if (rsq <= cut_in_off_sq) {
+	      r6inv = r2inv*r2inv*r2inv;
+	      forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
+	      if (rsq > cut_lj_innersq) {
+		switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
+		  (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
+		switch2 = 12.0*rsq * (cut_ljsq-rsq) * 
+		  (rsq-cut_lj_innersq) / denom_lj;
+		philj = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]);
+		forcelj = forcelj*switch1 + philj*switch2;
+	      }
+	    } else if (rsq <= cut_in_on_sq) {
+	      forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
+	      if (rsq > cut_lj_innersq) {
+		switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
+		  (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
+		switch2 = 12.0*rsq * (cut_ljsq-rsq) * 
+		  (rsq-cut_lj_innersq) / denom_lj;
+		philj = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]);
+		forcelj = forcelj*switch1 + philj*switch2;
+	      }
+	    }
+	  
+	    fpair = (forcecoul + factor_lj*forcelj) * r2inv;
+	  }
+
+	  if (EVFLAG) ev_tally_thr(i,j,nlocal,NEWTON_PAIR,
+				   evdwl,ecoul,fpair,delx,dely,delz,tid);
+	}
       }
     }
-  }
     // reduce per thread forces into global force array.
     force_reduce_thr(atom->f, nall, nthreads, tid);
   }

@@ -303,7 +303,7 @@ void PairLJCutOMP::eval_middle()
     int nthreads = comm->nthreads;
 
     double **x = atom->x;
-    double **f = atom->f + nall*tid;
+    double **f = atom->f;
     int *type = atom->type;
     double *special_lj = force->special_lj;
 

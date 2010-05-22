@@ -165,12 +165,12 @@ void MinHFTN::setup_style()
 
 void MinHFTN::reset_vectors()
 {
-  n3 = 3 * atom->nlocal;
+  nvec = 3 * atom->nlocal;
   
   //---- ATOMIC DEGREES OF FREEDOM.
-  if (n3 > 0) {
-    x = atom->x[0];
-    f = atom->f[0];
+  if (nvec > 0) {
+    xvec = atom->x[0];
+    fvec = atom->f[0];
   }
   for (int  i = 0; i < NUM_HFTN_ATOM_BASED_VECTORS; i++)
     _daAVectors[i] = fix_minimize->request_vector (i);
@@ -251,8 +251,8 @@ int MinHFTN::execute_hftn_(const bool      bPrintProgress,
   
   //---- SAVE ATOM POSITIONS BEFORE AN ITERATION.
   fix_minimize->store_box();
-  for (int  i = 0; i < n3; i++)
-    _daAVectors[VEC_XK][i] = atom->x[0][i];
+  for (int  i = 0; i < nvec; i++)
+    _daAVectors[VEC_XK][i] = xvec[i];
   if (nextra_atom) {
     for (int  m = 0; m < nextra_atom; m++) {
       double *  xatom  = xextra_atom[m];
@@ -268,7 +268,7 @@ int MinHFTN::execute_hftn_(const bool      bPrintProgress,
   double  dXInf = calc_xinf_using_mpi_();
   
   //---- FIND THE NUMBER OF UNKNOWNS.
-  int  nLocalNumUnknowns = n3 + nextra_atom;
+  int  nLocalNumUnknowns = nvec + nextra_atom;
   MPI_Allreduce (&nLocalNumUnknowns, &_nNumUnknowns,
 		 1, MPI_INT, MPI_SUM, world);
   
@@ -316,8 +316,8 @@ int MinHFTN::execute_hftn_(const bool      bPrintProgress,
       //---- THERE WAS AN ERROR.  RESTORE TO LAST ACCEPTED STEP.
       if (nextra_global)
 	modify->min_step (0.0, _daExtraGlobal[VEC_CG_P]);
-      for (int  i = 0; i < n3; i++)
-	atom->x[0][i] = _daAVectors[VEC_XK][i];
+      for (int i = 0; i < nvec; i++)
+	xvec[i] = _daAVectors[VEC_XK][i];
       if (nextra_atom) {
 	for (int  m = 0; m < nextra_atom; m++) {
 	  double *  xatom  = xextra_atom[m];
@@ -358,8 +358,8 @@ int MinHFTN::execute_hftn_(const bool      bPrintProgress,
     
     //---- MOVE TO THE NEW POINT AND EVALUATE ENERGY AND FORCES.
     //---- THIS IS THE PLACE WHERE energy_force IS ALLOWED TO RESET.
-    for (int  i = 0; i < n3; i++)
-      atom->x[0][i] = _daAVectors[VEC_XK][i] + _daAVectors[VEC_CG_P][i];
+    for (int i = 0; i < nvec; i++)
+      xvec[i] = _daAVectors[VEC_XK][i] + _daAVectors[VEC_CG_P][i];
     if (nextra_atom) {
       for (int  m = 0; m < nextra_atom; m++) {
 	double *  xatom  = xextra_atom[m];
@@ -429,8 +429,8 @@ int MinHFTN::execute_hftn_(const bool      bPrintProgress,
       
       fix_minimize->store_box();
       modify->min_clearstore();
-      for (int  i = 0; i < n3; i++)
-	_daAVectors[VEC_XK][i] = atom->x[0][i];
+      for (int  i = 0; i < nvec; i++)
+	_daAVectors[VEC_XK][i] = xvec[i];
       if (nextra_atom) {
 	for (int  m = 0; m < nextra_atom; m++) {
 	  double *  xatom  = xextra_atom[m];
@@ -478,8 +478,8 @@ int MinHFTN::execute_hftn_(const bool      bPrintProgress,
       //---- RESTORE THE LAST X_K POSITION.
       if (nextra_global)
 	modify->min_step (0.0, _daExtraGlobal[VEC_CG_P]);
-      for (int  i = 0; i < n3; i++)
-	atom->x[0][i] = _daAVectors[VEC_XK][i];
+      for (int  i = 0; i < nvec; i++)
+	xvec[i] = _daAVectors[VEC_XK][i];
       if (nextra_atom) {
 	for (int  m = 0; m < nextra_atom; m++) {
 	  double *  xatom  = xextra_atom[m];
@@ -605,7 +605,7 @@ bool MinHFTN::compute_inner_cg_step_(const double    dTrustRadius,
     for (int  i = 0; i < nextra_global; i++)
       _daExtraGlobal[VEC_CG_P][i] = 0.0;
   }
-  for (int  i = 0; i < n3; i++)
+  for (int  i = 0; i < nvec; i++)
     _daAVectors[VEC_CG_P][i] = 0.0;
   if (nextra_atom) {
     for (int  m = 0; m < nextra_atom; m++) {
@@ -647,9 +647,9 @@ bool MinHFTN::compute_inner_cg_step_(const double    dTrustRadius,
       _daExtraGlobal[VEC_CG_D][i] = fextra[i];
     }
   }
-  for (int  i = 0; i < n3; i++) {
-    _daAVectors[VEC_CG_R][i] = atom->f[0][i];
-    _daAVectors[VEC_CG_D][i] = atom->f[0][i];
+  for (int  i = 0; i < nvec; i++) {
+    _daAVectors[VEC_CG_R][i] = fvec[i];
+    _daAVectors[VEC_CG_D][i] = fvec[i];
   }
   if (nextra_atom) {
     for (int  m = 0; m < nextra_atom; m++) {
@@ -709,8 +709,8 @@ bool MinHFTN::compute_inner_cg_step_(const double    dTrustRadius,
       //---- MOVE TO X_K AND COMPUTE ENERGY AND FORCES.
       if (nextra_global)
 	modify->min_step (0.0, _daExtraGlobal[VEC_CG_P]);
-      for (int  i = 0; i < n3; i++)
-	atom->x[0][i] = _daAVectors[VEC_XK][i];
+      for (int  i = 0; i < nvec; i++)
+	xvec[i] = _daAVectors[VEC_XK][i];
       if (nextra_atom) {
 	for (int  m = 0; m < nextra_atom; m++) {
 	  double *  xatom  = xextra_atom[m];
@@ -736,7 +736,7 @@ bool MinHFTN::compute_inner_cg_step_(const double    dTrustRadius,
 	  pGlobal[i] += tau * dGlobal[i];
 	}
       }
-      for (int  i = 0; i < n3; i++)
+      for (int  i = 0; i < nvec; i++)
 	_daAVectors[VEC_CG_P][i] += tau * _daAVectors[VEC_CG_D][i];
       if (nextra_atom) {
 	for (int  m = 0; m < nextra_atom; m++) {
@@ -770,7 +770,7 @@ bool MinHFTN::compute_inner_cg_step_(const double    dTrustRadius,
 	pGlobal[i] += dAlpha * dGlobal[i];
       }
     }
-    for (int  i = 0; i < n3; i++) {
+    for (int  i = 0; i < nvec; i++) {
       _daAVectors[VEC_DIF1][i] = _daAVectors[VEC_CG_P][i];
       _daAVectors[VEC_CG_P][i] += dAlpha * _daAVectors[VEC_CG_D][i];
     }
@@ -818,7 +818,7 @@ bool MinHFTN::compute_inner_cg_step_(const double    dTrustRadius,
       for (int  i = 0; i < nextra_global; i++)
 	rGlobal[i] -= dAlpha * hdGlobal[i];
     }
-    for (int  i = 0; i < n3; i++)
+    for (int  i = 0; i < nvec; i++)
       _daAVectors[VEC_CG_R][i] -= dAlpha * _daAVectors[VEC_CG_HD][i];
     if (nextra_atom) {
       for (int  m = 0; m < nextra_atom; m++) {
@@ -847,7 +847,7 @@ bool MinHFTN::compute_inner_cg_step_(const double    dTrustRadius,
       for (int  i = 0; i < nextra_global; i++)
 	dGlobal[i] = rGlobal[i] + dBeta * dGlobal[i];
     }
-    for (int  i = 0; i < n3; i++)
+    for (int  i = 0; i < nvec; i++)
       _daAVectors[VEC_CG_D][i] = _daAVectors[VEC_CG_R][i]
 	+ dBeta * _daAVectors[VEC_CG_D][i];
     if (nextra_atom) {
@@ -877,8 +877,8 @@ bool MinHFTN::compute_inner_cg_step_(const double    dTrustRadius,
 double MinHFTN::calc_xinf_using_mpi_(void) const
 {
   double dXInfLocal = 0.0;
-  for (int  i = 0; i < n3; i++)
-    dXInfLocal = MAX (dXInfLocal, fabs (atom->x[0][i]));
+  for (int  i = 0; i < nvec; i++)
+    dXInfLocal = MAX(dXInfLocal,fabs(xvec[i]));
   
   double  dXInf;
   MPI_Allreduce (&dXInfLocal, &dXInf, 1, MPI_DOUBLE, MPI_MAX, world);
@@ -909,7 +909,7 @@ double MinHFTN::calc_dot_prod_using_mpi_(const int  nIx1,
 					  const int  nIx2) const
 {
   double dDotLocal = 0.0;
-  for (int  i = 0; i < n3; i++)
+  for (int  i = 0; i < nvec; i++)
     dDotLocal += _daAVectors[nIx1][i] * _daAVectors[nIx2][i];
   if (nextra_atom) {
     for (int  m = 0; m < nextra_atom; m++) {
@@ -945,13 +945,13 @@ double MinHFTN::calc_grad_dot_v_using_mpi_(const int  nIx) const
   //---- REMEMBER THAT FORCES = -GRADIENT.
   
   double dGradDotVLocal = 0.0;
-  for (int  i = 0; i < n3; i++)
-    dGradDotVLocal += - _daAVectors[nIx][i] * atom->f[0][i];
+  for (int i = 0; i < nvec; i++)
+    dGradDotVLocal += - _daAVectors[nIx][i] * fvec[i];
   if (nextra_atom) {
-    for (int  m = 0; m < nextra_atom; m++) {
+    for (int m = 0; m < nextra_atom; m++) {
       double *  iAtom = _daExtraAtom[nIx][m];
       int  n = extra_nlen[m];
-      for (int  i = 0; i < n; i++)
+      for (int i = 0; i < n; i++)
 	dGradDotVLocal += - iAtom[i] * fextra_atom[m][i];
     }
   }
@@ -978,7 +978,7 @@ void MinHFTN::calc_dhd_dd_using_mpi_(double &  dDHD,
 {
   double dDHDLocal = 0.0;
   double dDDLocal  = 0.0;
-  for (int  i = 0; i < n3; i++) {
+  for (int  i = 0; i < nvec; i++) {
     dDHDLocal += _daAVectors[VEC_CG_D][i] * _daAVectors[VEC_CG_HD][i];
     dDDLocal  += _daAVectors[VEC_CG_D][i] * _daAVectors[VEC_CG_D][i];
   }
@@ -1023,7 +1023,7 @@ void MinHFTN::calc_ppnew_pdold_using_mpi_(double &  dPnewDotPnew,
 {
   double dPnewDotPnewLocal = 0.0;
   double dPoldDotDLocal    = 0.0;
-  for (int  i = 0; i < n3; i++) {
+  for (int  i = 0; i < nvec; i++) {
     dPnewDotPnewLocal
       += _daAVectors[VEC_CG_P][i] * _daAVectors[VEC_CG_P][i];
     dPoldDotDLocal
@@ -1073,7 +1073,7 @@ void MinHFTN::calc_plengths_using_mpi_(double &  dStepLength2,
 {
   double dPPLocal   = 0.0;
   double dPInfLocal = 0.0;
-  for (int  i = 0; i < n3; i++) {
+  for (int  i = 0; i < nvec; i++) {
     dPPLocal += _daAVectors[VEC_CG_P][i] * _daAVectors[VEC_CG_P][i];
     dPInfLocal = MAX (dPInfLocal, fabs (_daAVectors[VEC_CG_P][i]));
   }
@@ -1147,7 +1147,7 @@ bool MinHFTN::step_exceeds_DMAX_(void) const
   double  dAlpha = dmax * sqrt (_nNumUnknowns);
   
   double  dPInfLocal = 0.0;
-  for (int  i = 0; i < n3; i++)
+  for (int  i = 0; i < nvec; i++)
     dPInfLocal = MAX (dPInfLocal, fabs (_daAVectors[VEC_CG_P][i]));
   double  dPInf;
   MPI_Allreduce (&dPInfLocal, &dPInf, 1, MPI_DOUBLE, MPI_MAX, world);
@@ -1198,7 +1198,7 @@ void MinHFTN::adjust_step_to_tau_(const double tau)
     for (int  i = 0; i < nextra_global; i++)
       pGlobal[i] = d1Global[i] + (tau * dGlobal[i]);
   }
-  for (int  i = 0; i < n3; i++) {
+  for (int  i = 0; i < nvec; i++) {
     _daAVectors[VEC_CG_P][i] = _daAVectors[VEC_DIF1][i]
       + (tau * _daAVectors[VEC_CG_D][i]);
   }
@@ -1313,7 +1313,7 @@ void MinHFTN::evaluate_dir_der_(const bool      bUseForwardDiffs,
 {
   //---- COMPUTE THE MAGNITUDE OF THE DIRECTION VECTOR:  |p|_2.
   double dDirNorm2SqrdLocal = 0.0;
-  for (int  i = 0; i < n3; i++)
+  for (int  i = 0; i < nvec; i++)
     dDirNorm2SqrdLocal
       += _daAVectors[nIxDir][i] * _daAVectors[nIxDir][i];
   if (nextra_atom) {
@@ -1337,7 +1337,7 @@ void MinHFTN::evaluate_dir_der_(const bool      bUseForwardDiffs,
   
   //---- IF THE STEP IS TOO SMALL, RETURN ZERO FOR THE DERIVATIVE.
   if (dDirNorm2 == 0.0) {
-    for (int  i = 0; i < n3; i++)
+    for (int  i = 0; i < nvec; i++)
       _daAVectors[nIxResult][i] = 0.0;
     if (nextra_atom) {
       for (int  m = 0; m < nextra_atom; m++) {
@@ -1370,8 +1370,8 @@ void MinHFTN::evaluate_dir_der_(const bool      bUseForwardDiffs,
     
     //---- SAVE A COPY OF x.
     fix_minimize->store_box();
-    for (int  i = 0; i < n3; i++)
-      _daAVectors[VEC_DIF1][i] = atom->x[0][i];
+    for (int  i = 0; i < nvec; i++)
+      _daAVectors[VEC_DIF1][i] = xvec[i];
     if (nextra_atom) {
       for (int  m = 0; m < nextra_atom; m++) {
 	double *  xatom  = xextra_atom[m];
@@ -1389,8 +1389,8 @@ void MinHFTN::evaluate_dir_der_(const bool      bUseForwardDiffs,
     //---- EVALUATE FORCES AT x + eps*p.
     if (nextra_global)
       modify->min_step (dEps, _daExtraGlobal[nIxDir]);
-    for (int  i = 0; i < n3; i++)
-      atom->x[0][i] += dEps * _daAVectors[nIxDir][i];
+    for (int  i = 0; i < nvec; i++)
+      xvec[i] += dEps * _daAVectors[nIxDir][i];
     if (nextra_atom) {
       for (int  m = 0; m < nextra_atom; m++) {
 	double *  xatom = xextra_atom[m];
@@ -1408,8 +1408,8 @@ void MinHFTN::evaluate_dir_der_(const bool      bUseForwardDiffs,
       for (int  i = 0; i < nextra_global; i++)
 	_daExtraGlobal[VEC_DIF2][i] = fextra[i];
     }
-    for (int  i = 0; i < n3; i++)
-      _daAVectors[VEC_DIF2][i] = atom->f[0][i];
+    for (int  i = 0; i < nvec; i++)
+      _daAVectors[VEC_DIF2][i] = fvec[i];
     if (nextra_atom) {
       for (int  m = 0; m < nextra_atom; m++) {
 	double *  d2Atom = _daExtraAtom[VEC_DIF2][m];
@@ -1424,8 +1424,8 @@ void MinHFTN::evaluate_dir_der_(const bool      bUseForwardDiffs,
       modify->min_step (0.0, _daExtraGlobal[VEC_DIF1]);
       modify->min_popstore();
     }
-    for (int  i = 0; i < n3; i++)
-      atom->x[0][i] = _daAVectors[VEC_DIF1][i];
+    for (int  i = 0; i < nvec; i++)
+      xvec[i] = _daAVectors[VEC_DIF1][i];
     if (nextra_atom) {
       for (int  m = 0; m < nextra_atom; m++) {
 	double *  xatom  = xextra_atom[m];
@@ -1440,9 +1440,8 @@ void MinHFTN::evaluate_dir_der_(const bool      bUseForwardDiffs,
     
     //---- COMPUTE THE DIFFERENCE VECTOR:  [grad(x + eps*p) - grad(x)] / eps.
     //---- REMEMBER THAT FORCES = -GRADIENT.
-    for (int  i = 0; i < n3; i++)
-      _daAVectors[nIxResult][i]
-	= (atom->f[0][i] - _daAVectors[VEC_DIF2][i]) / dEps;
+    for (int  i = 0; i < nvec; i++)
+      _daAVectors[nIxResult][i] = (fvec[i] - _daAVectors[VEC_DIF2][i]) / dEps;
     if (nextra_atom) {
       for (int  m = 0; m < nextra_atom; m++) {
 	double *  iAtom  = _daExtraAtom[nIxResult][m];
@@ -1465,8 +1464,8 @@ void MinHFTN::evaluate_dir_der_(const bool      bUseForwardDiffs,
     
     //---- SAVE A COPY OF x.
     fix_minimize->store_box();
-    for (int  i = 0; i < n3; i++)
-      _daAVectors[VEC_DIF1][i] = atom->x[0][i];
+    for (int  i = 0; i < nvec; i++)
+      _daAVectors[VEC_DIF1][i] = xvec[i];
     if (nextra_atom) {
       for (int  m = 0; m < nextra_atom; m++) {
 	double *  xatom  = xextra_atom[m];
@@ -1484,8 +1483,8 @@ void MinHFTN::evaluate_dir_der_(const bool      bUseForwardDiffs,
     //---- EVALUATE FORCES AT x + eps*p.
     if (nextra_global)
       modify->min_step (dEps, _daExtraGlobal[nIxDir]);
-    for (int  i = 0; i < n3; i++)
-      atom->x[0][i] += dEps * _daAVectors[nIxDir][i];
+    for (int  i = 0; i < nvec; i++)
+      xvec[i] += dEps * _daAVectors[nIxDir][i];
     if (nextra_atom) {
       for (int  m = 0; m < nextra_atom; m++) {
 	double *  xatom = xextra_atom[m];
@@ -1503,8 +1502,8 @@ void MinHFTN::evaluate_dir_der_(const bool      bUseForwardDiffs,
       for (int  i = 0; i < nextra_global; i++)
 	_daExtraGlobal[VEC_DIF2][i] = fextra[i];
     }
-    for (int  i = 0; i < n3; i++)
-      _daAVectors[VEC_DIF2][i] = atom->f[0][i];
+    for (int  i = 0; i < nvec; i++)
+      _daAVectors[VEC_DIF2][i] = fvec[i];
     if (nextra_atom) {
       for (int  m = 0; m < nextra_atom; m++) {
 	double *  d2Atom = _daExtraAtom[VEC_DIF2][m];
@@ -1517,8 +1516,8 @@ void MinHFTN::evaluate_dir_der_(const bool      bUseForwardDiffs,
     //---- EVALUATE FORCES AT x - eps*p.
     if (nextra_global)
       modify->min_step (-dEps, _daExtraGlobal[nIxDir]);
-    for (int  i = 0; i < n3; i++)
-      atom->x[0][i] = _daAVectors[VEC_DIF1][i]
+    for (int  i = 0; i < nvec; i++)
+      xvec[i] = _daAVectors[VEC_DIF1][i]
 	- dEps * _daAVectors[nIxDir][i];
     if (nextra_atom) {
       for (int  m = 0; m < nextra_atom; m++) {
@@ -1542,9 +1541,9 @@ void MinHFTN::evaluate_dir_der_(const bool      bUseForwardDiffs,
       for (int  i = 0; i < nextra_global; i++)
 	iGlobal[i] = (fextra[i] - d2Global[i]) / (2.0 + dEps);
     }
-    for (int  i = 0; i < n3; i++)
-      _daAVectors[nIxResult][i]
-	= (atom->f[0][i] - _daAVectors[VEC_DIF2][i]) / (2.0 * dEps);
+    for (int  i = 0; i < nvec; i++)
+      _daAVectors[nIxResult][i] = 
+	(fvec[i] - _daAVectors[VEC_DIF2][i]) / (2.0 * dEps);
     if (nextra_atom) {
       for (int  m = 0; m < nextra_atom; m++) {
 	double *  iAtom  = _daExtraAtom[nIxResult][m];
@@ -1561,8 +1560,8 @@ void MinHFTN::evaluate_dir_der_(const bool      bUseForwardDiffs,
 	modify->min_step (0.0, _daExtraGlobal[VEC_DIF1]);
 	modify->min_popstore();
       }
-      for (int  i = 0; i < n3; i++)
-	atom->x[0][i] = _daAVectors[VEC_DIF1][i];
+      for (int  i = 0; i < nvec; i++)
+	xvec[i] = _daAVectors[VEC_DIF1][i];
       if (nextra_atom) {
 	for (int  m = 0; m < nextra_atom; m++) {
 	  double *  xatom  = xextra_atom[m];

@@ -45,7 +45,7 @@ int MinSD::iterate(int niter_max)
 
   // initialize working vectors
 
-  for (i = 0; i < n3; i++) h[i] = f[i];
+  for (i = 0; i < nvec; i++) h[i] = fvec[i];
   if (nextra_atom)
     for (m = 0; m < nextra_atom; m++) {
       fatom = fextra_atom[m];
@@ -85,7 +85,7 @@ int MinSD::iterate(int niter_max)
 
     // set new search direction h to f = -Grad(x)
 
-    for (i = 0; i < n3; i++) h[i] = f[i];
+    for (i = 0; i < nvec; i++) h[i] = fvec[i];
     if (nextra_atom)
       for (m = 0; m < nextra_atom; m++) {
 	fatom = fextra_atom[m];

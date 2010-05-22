@@ -32,6 +32,12 @@ void Neighbor::respa_nsq_no_newton(NeighList *list)
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr,*neighptr_inner,*neighptr_middle;
 
+  // loop over each atom, storing neighbors
+
+  int **special = atom->special;
+  int **nspecial = atom->nspecial;
+  int *tag = atom->tag;
+
   double **x = atom->x;
   int *type = atom->type;
   int *mask = atom->mask;
@@ -122,9 +128,7 @@ void Neighbor::respa_nsq_no_newton(NeighList *list)
       rsq = delx*delx + dely*dely + delz*delz;
 
       if (rsq <= cutneighsq[itype][jtype]) {
-	if (molecular) which = find_special(atom->special[i],
-					    atom->nspecial[i],
-					    atom->tag[j]);
+	if (molecular) which = find_special(special[i],nspecial[i],tag[j]);
 	else which = 0;
 	if (which == 0) neighptr[n++] = j;
 	else if (which > 0) neighptr[n++] = which*nall + j;
@@ -186,8 +190,13 @@ void Neighbor::respa_nsq_newton(NeighList *list)
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr,*neighptr_inner,*neighptr_middle;
 
-  double **x = atom->x;
+  // loop over each atom, storing neighbors
+
+  int **special = atom->special;
+  int **nspecial = atom->nspecial;
   int *tag = atom->tag;
+
+  double **x = atom->x;
   int *type = atom->type;
   int *mask = atom->mask;
   int *molecule = atom->molecule;
@@ -294,9 +303,7 @@ void Neighbor::respa_nsq_newton(NeighList *list)
       rsq = delx*delx + dely*dely + delz*delz;
 
       if (rsq <= cutneighsq[itype][jtype]) {
-	if (molecular) which = find_special(atom->special[i],
-					    atom->nspecial[i],
-					    atom->tag[j]);
+	if (molecular) which = find_special(special[i],nspecial[i],tag[j]);
 	else which = 0;
 	if (which == 0) neighptr[n++] = j;
 	else if (which > 0) neighptr[n++] = which*nall + j;
@@ -364,6 +371,10 @@ void Neighbor::respa_bin_no_newton(NeighList *list)
   bin_atoms();
 
   // loop over each atom, storing neighbors
+
+  int **special = atom->special;
+  int **nspecial = atom->nspecial;
+  int *tag = atom->tag;
 
   double **x = atom->x;
   int *type = atom->type;
@@ -460,9 +471,7 @@ void Neighbor::respa_bin_no_newton(NeighList *list)
 	rsq = delx*delx + dely*dely + delz*delz;
 
 	if (rsq <= cutneighsq[itype][jtype]) {
-	  if (molecular) which = find_special(atom->special[i],
-					      atom->nspecial[i],
-					      atom->tag[j]);
+	  if (molecular) which = find_special(special[i],nspecial[i],tag[j]);
 	  else which = 0;
 	  if (which == 0) neighptr[n++] = j;
 	  else if (which > 0) neighptr[n++] = which*nall + j;
@@ -530,6 +539,10 @@ void Neighbor::respa_bin_newton(NeighList *list)
   bin_atoms();
 
   // loop over each atom, storing neighbors
+
+  int **special = atom->special;
+  int **nspecial = atom->nspecial;
+  int *tag = atom->tag;
 
   double **x = atom->x;
   int *type = atom->type;
@@ -629,9 +642,7 @@ void Neighbor::respa_bin_newton(NeighList *list)
       rsq = delx*delx + dely*dely + delz*delz;
 
       if (rsq <= cutneighsq[itype][jtype]) {
-	if (molecular) which = find_special(atom->special[i],
-					    atom->nspecial[i],
-					    atom->tag[j]);
+	if (molecular) which = find_special(special[i],nspecial[i],tag[j]);
 	else which = 0;
 	if (which == 0) neighptr[n++] = j;
 	else if (which > 0) neighptr[n++] = which*nall + j;
@@ -663,9 +674,7 @@ void Neighbor::respa_bin_newton(NeighList *list)
 	rsq = delx*delx + dely*dely + delz*delz;
 
 	if (rsq <= cutneighsq[itype][jtype]) {
-	  if (molecular) which = find_special(atom->special[i],
-					      atom->nspecial[i],
-					      atom->tag[j]);
+	  if (molecular) which = find_special(special[i],nspecial[i],tag[j]);
 	  else which = 0;
 	  if (which == 0) neighptr[n++] = j;
 	  else if (which > 0) neighptr[n++] = which*nall + j;
@@ -733,6 +742,10 @@ void Neighbor::respa_bin_newton_tri(NeighList *list)
   bin_atoms();
 
   // loop over each atom, storing neighbors
+
+  int **special = atom->special;
+  int **nspecial = atom->nspecial;
+  int *tag = atom->tag;
 
   double **x = atom->x;
   int *type = atom->type;
@@ -837,9 +850,7 @@ void Neighbor::respa_bin_newton_tri(NeighList *list)
 	rsq = delx*delx + dely*dely + delz*delz;
 
 	if (rsq <= cutneighsq[itype][jtype]) {
-	  if (molecular) which = find_special(atom->special[i],
-					      atom->nspecial[i],
-					      atom->tag[j]);
+	  if (molecular) which = find_special(special[i],nspecial[i],tag[j]);
 	  else which = 0;
 	  if (which == 0) neighptr[n++] = j;
 	  else if (which > 0) neighptr[n++] = which*nall + j;

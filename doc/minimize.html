@@ -110,6 +110,12 @@ which case some other criterion will terminate the minimization.
 timestep.  Output is triggered by this timestep, e.g. thermodynamic
 output or dump and restart files.
 </P>
+<P>Using the <A HREF = "thermo_style.html">thermo_style custom</A> command with the
+<I>fmax</I> or <I>fnorm</I> keywords can be useful for monitoring the progress
+of the minimization.  Note that these outputs will be calculated only
+from forces on the atoms, and will not include any extra degrees of
+freedom, such as from the <A HREF = "fix_box_relax.html">fix box/relax</A> command.
+</P>
 <P>Following minimization, a statistical summary is printed that lists
 which convergence criterion caused the minimizer to stop, as well as
 information about the energy, force, final line search, and and
@@ -132,7 +138,8 @@ before and after minimization.  This is what the <I>ftol</I> parameter
 checks.
 </P>
 <P>The max-component force values are the absolute value of the largest
-component (x,y,z) in the global force vector.
+component (x,y,z) in the global force vector, i.e. the infinity-norm
+of the force vector.
 </P>
 <P>The alpha parameter for the line-search, when multiplied by the max
 force component (on the last iteration), gives the max distance any

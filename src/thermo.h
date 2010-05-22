@@ -163,6 +163,9 @@ class Thermo : protected Pointers {
   void compute_pxy();
   void compute_pyz();
   void compute_pxz();
+
+  void compute_fmax();
+  void compute_fnorm();
 };
 
 }

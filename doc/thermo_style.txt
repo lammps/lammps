@@ -24,6 +24,7 @@ args = list of arguments for a particular style :l
                           vol, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi,
 			  xy, xz, yz, xlat, ylat, zlat,
 			  pxx, pyy, pzz, pxy, pxz, pyz,
+			  fmax, fnorm,
 			  c_ID, c_ID\[I\], c_ID\[I\]\[J\],
                           f_ID, f_ID\[I\], f_ID\[I\]\[J\],
                           v_name
@@ -57,6 +58,8 @@ args = list of arguments for a particular style :l
       xy,xz,yz = box tilt for triclinic (non-orthogonal) simulation boxes
       xlat,ylat,zlat = lattice spacings as calculated by "lattice"_lattice.html command
       pxx,pyy,pzz,pxy,pxz,pyz = 6 components of pressure tensor
+      fmax = max component of force on any atom in any dimension
+      fnorm = length of force vector for all atoms
       c_ID = global scalar value calculated by a compute with ID
       c_ID\[I\] = Ith component of global vector calculated by a compute with ID
       c_ID\[I\]\[J\] = I,J component of global array calculated by a compute with ID
@@ -121,7 +124,7 @@ use the thermo_modify command after it.
 :line
 
 Several of the thermodynamic quantities require a temperature to be
-computed: "temp", "press", "ke", "etotal", "enthalpy", "pxx etc".  By
+computed: "temp", "press", "ke", "etotal", "enthalpy", "pxx", etc.  By
 default this is done by using a {temperature} compute which is created
 when LAMMPS starts up, as if this command had been issued:
 
@@ -214,6 +217,14 @@ will continually output the time and timestep rate for the last 100
 steps.  The {tpcpu} keyword does not attempt to track any changes in
 timestep size, e.g. due to using the "fix dt/reset"_fix_dt_reset.html
 command.
+
+The {fmax} and {fnorm} keywords are useful for monitoring the progress
+of an "energy minimization"_minimize.html.  The {fmax} keyword
+calculates the maximum force in any dimension on any atom in the
+system, or the infinity-norm of the force vector for the system.  The
+{fnorm} keyword calculates the 2-norm or length of the force vector.
+
+:line
 
 The {c_ID} and {c_ID\[I\]} and {c_ID\[I\]\[J\]} keywords allow global
 values calculated by a compute to be output.  As discussed on the

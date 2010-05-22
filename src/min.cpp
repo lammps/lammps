@@ -640,7 +640,7 @@ double Min::fnorm_sqr()
   double *fatom;
 
   double local_norm2_sqr = 0.0;
-  for (i = 0; i < n3; i++) local_norm2_sqr += f[i]*f[i];
+  for (i = 0; i < nvec; i++) local_norm2_sqr += fvec[i]*fvec[i];
   if (nextra_atom) {
     for (int m = 0; m < nextra_atom; m++) {
       fatom = fextra_atom[m];
@@ -670,8 +670,8 @@ double Min::fnorm_inf()
   double *fatom;
 
   double local_norm_inf = 0.0;
-  for (i = 0; i < n3; i++)
-    local_norm_inf = MAX(fabs(f[i]),local_norm_inf);
+  for (i = 0; i < nvec; i++)
+    local_norm_inf = MAX(fabs(fvec[i]),local_norm_inf);
   if (nextra_atom) {
     for (int m = 0; m < nextra_atom; m++) {
       fatom = fextra_atom[m];

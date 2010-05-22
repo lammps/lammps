@@ -1,3 +1,4 @@
+Makefile.package
 angle_cg_cmm.cpp
 angle_cg_cmm.h
 angle_charmm.cpp
@@ -96,6 +97,7 @@ improper_harmonic.cpp
 improper_harmonic.h
 improper_hybrid.cpp
 improper_hybrid.h
+kissfft.h
 lmp_*
 pair_airebo.cpp
 pair_airebo.h
@@ -145,6 +147,8 @@ pair_lj_charmm_coul_charmm_implicit.cpp
 pair_lj_charmm_coul_charmm_implicit.h
 pair_lj_charmm_coul_long.cpp
 pair_lj_charmm_coul_long.h
+pair_lj_charmm_coul_long_omp.cpp
+pair_lj_charmm_coul_long_omp.h
 pair_lj_charmm_coul_long_opt.cpp
 pair_lj_charmm_coul_long_opt.h
 pair_lj_cut_coul_long.cpp
@@ -173,6 +177,8 @@ pppm.cpp
 pppm.h
 pppm_cg.cpp
 pppm_cg.h
+pppm_omp.cpp
+pppm_omp.h
 pppm_tip4p.cpp
 pppm_tip4p.h
 remap.cpp

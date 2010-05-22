@@ -1,0 +1,63 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>nthreads command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>nthreads n 
+</PRE>
+<UL><LI>n = # of threads to be used per MPI task 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>nthreads 1
+nthreads 6
+nthreads * 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Specify how many threads are to be used per MPI task in a hybrid MPI/multi-threading environment.processors are mapped as a 3d logical grid to the global
+simulation box.
+</P>
+<P>When this command has not been specified, LAMMPS will choose n according
+to the defaults of the threading environment, e.g. in OpenMP according to
+the OMP_NUM_THREADS environment variable or using all available processors
+if that is not set.
+</P>
+<P>For a package like LAMMPS, threading is typically not as efficient as 
+a distributed data parallelization via domain decomposition using MPI
+message passing. Thus this keyword is mostly of use when MPI parallelization
+is becoming inefficient, e.g. when using a "slow" network (like GigE with
+TCP/IP) or when reaching the limit of scaling.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This command cannot be used after the simulation box is defined by a
+<A HREF = "read_data.html">read_data</A> or <A HREF = "create_box.html">create_box</A> command.
+</P>
+<P>This command only has an effect and is only of use if LAMMPS was 
+built with the "user-openmp" package included.  See the <A HREF = "Section_start.html#2_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "processors.html">processors</A>
+</P>
+<P><B>Default:</B>
+</P>
+<PRE>nthreads * 
+</PRE>
+<P>or in case multi-threading support is not compiled in:
+</P>
+<PRE>nthreads 1 
+</PRE>
+</HTML>

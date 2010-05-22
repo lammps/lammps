@@ -97,7 +97,13 @@ typedef fftwf_complex FFT_DATA;
 #define FFT_KISSFFT
 #endif
 #define kiss_fft_scalar float
-#include "kissfft.h"
+typedef struct {
+    kiss_fft_scalar re;
+    kiss_fft_scalar im;
+} FFT_DATA;
+
+struct kiss_fft_state;
+typedef struct kiss_fft_state* kiss_fft_cfg;
 #endif
 
 // ------------------------------------------------------------------------- 
@@ -175,7 +181,13 @@ typedef fftw_complex FFT_DATA;
 #define FFT_KISSFFT
 #endif
 #define kiss_fft_scalar double
-#include "kissfft.h"
+typedef struct {
+    kiss_fft_scalar re;
+    kiss_fft_scalar im;
+} FFT_DATA;
+
+struct kiss_fft_state;
+typedef struct kiss_fft_state* kiss_fft_cfg;
 #endif
 
 #else

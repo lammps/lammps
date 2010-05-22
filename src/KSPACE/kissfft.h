@@ -61,11 +61,6 @@
   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-typedef struct {
-    kiss_fft_scalar re;
-    kiss_fft_scalar im;
-} FFT_DATA;
-
 #define KISS_FFT_MALLOC malloc
 #define MAXFACTORS 32
 /* e.g. an fft of length 128 has 4 factors 
@@ -76,7 +71,6 @@ struct kiss_fft_state {
     int factors[2*MAXFACTORS];
     FFT_DATA twiddles[1];
 };
-typedef struct kiss_fft_state* kiss_fft_cfg;
 
 static kiss_fft_cfg kiss_fft_alloc(int,int,void *,size_t *); 
 static void kiss_fft(kiss_fft_cfg,const FFT_DATA *,FFT_DATA *);

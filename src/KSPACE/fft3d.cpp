@@ -23,6 +23,11 @@
 #include "fft3d.h"
 #include "remap.h"
 
+#ifdef FFT_KISSFFT
+/* kissfft implementation */
+#include "kissfft.h"
+#endif
+
 #define MIN(A,B) ((A) < (B)) ? (A) : (B)
 #define MAX(A,B) ((A) > (B)) ? (A) : (B)
 

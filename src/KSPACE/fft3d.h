@@ -169,7 +169,6 @@ extern "C" {
 typedef FFTW_COMPLEX FFT_DATA;
 
 #elif defined(FFT_FFTW3)
-#define FFTW3_SAFE_AND_SLOW
 #include "fftw3.h"
 typedef fftw_complex FFT_DATA;
 #define FFTW_API(function)  fftw_ ## function
@@ -243,14 +242,7 @@ struct fft_plan_3d {
   fftw_plan plan_mid_backward;
   fftw_plan plan_slow_forward;
   fftw_plan plan_slow_backward;
-#elif defined(FFT_FFTW3)
-  FFTW_API(plan) plan_fast_forward;
-  FFTW_API(plan) plan_fast_backward;
-  FFTW_API(plan) plan_mid_forward;
-  FFTW_API(plan) plan_mid_backward;
-  FFTW_API(plan) plan_slow_forward;
-  FFTW_API(plan) plan_slow_backward;
-#else
+#elif defined(FFT_KISSFFT)
   kiss_fft_cfg cfg_fast_forward;
   kiss_fft_cfg cfg_fast_backward;
   kiss_fft_cfg cfg_mid_forward;

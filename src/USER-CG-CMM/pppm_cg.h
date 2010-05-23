@@ -13,7 +13,7 @@
 
 #ifdef KSPACE_CLASS
 
-KSpaceStyle(pppm/cg,PPPM)
+KSpaceStyle(pppm/cg,PPPMCG)
 
 #else
 

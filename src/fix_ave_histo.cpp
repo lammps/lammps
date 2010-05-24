@@ -107,37 +107,44 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
 
   iarg = 9;
   while (iarg < narg) {
-    ids[nvalues] = NULL;
-
     if (strcmp(arg[iarg],"x") == 0) {
       which[nvalues] = X;
       argindex[nvalues++] = 0;
+      ids[nvalues] = NULL;
     } else if (strcmp(arg[iarg],"y") == 0) {
       which[nvalues] = X;
       argindex[nvalues++] = 1;
+      ids[nvalues] = NULL;
     } else if (strcmp(arg[iarg],"z") == 0) {
       which[nvalues] = X;
       argindex[nvalues++] = 2;
+      ids[nvalues] = NULL;
 
     } else if (strcmp(arg[iarg],"vx") == 0) {
       which[nvalues] = V;
       argindex[nvalues++] = 0;
+      ids[nvalues] = NULL;
     } else if (strcmp(arg[iarg],"vy") == 0) {
       which[nvalues] = V;
       argindex[nvalues++] = 1;
+      ids[nvalues] = NULL;
     } else if (strcmp(arg[iarg],"vz") == 0) {
       which[nvalues] = V;
       argindex[nvalues++] = 2;
+      ids[nvalues] = NULL;
 
     } else if (strcmp(arg[iarg],"fx") == 0) {
       which[nvalues] = F;
       argindex[nvalues++] = 0;
+      ids[nvalues] = NULL;
     } else if (strcmp(arg[iarg],"fy") == 0) {
       which[nvalues] = F;
       argindex[nvalues++] = 1;
+      ids[nvalues] = NULL;
     } else if (strcmp(arg[iarg],"fz") == 0) {
       which[nvalues] = F;
       argindex[nvalues++] = 2;
+      ids[nvalues] = NULL;
 
     } else if ((strncmp(arg[iarg],"c_",2) == 0) || 
 	(strncmp(arg[iarg],"f_",2) == 0) || 
@@ -605,7 +612,7 @@ void FixAveHisto::end_of_step()
 	    compute->compute_array();
 	    compute->invoked_flag |= INVOKED_ARRAY;
 	  }
-	  bin_vector(compute->size_array_rows,compute->array[j-1],
+	  bin_vector(compute->size_array_rows,&compute->array[0][j-1],
 		     compute->size_array_cols);
 	}
 
@@ -628,7 +635,7 @@ void FixAveHisto::end_of_step()
 	if (j == 0)
 	  bin_vector(compute->size_local_rows,compute->vector_local,1);
 	else
-	  bin_vector(compute->size_local_rows,compute->array_local[j],
+	  bin_vector(compute->size_local_rows,&compute->array_local[0][j],
 		     compute->size_local_cols);
       }
 
@@ -658,7 +665,7 @@ void FixAveHisto::end_of_step()
       } else if (kind == LOCAL) {
 	if (j == 0) bin_vector(fix->size_local_rows,fix->vector_local,1);
 	else 
-	  bin_vector(fix->size_local_rows,fix->array_local[j-1],
+	  bin_vector(fix->size_local_rows,&fix->array_local[0][j-1],
 		     fix->size_local_cols);
       }
 

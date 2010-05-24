@@ -2,14 +2,13 @@
 
 if (test $1 = 1) then
 
-  cp angle_cg_cmm.h ..
-  cp angle_cg_cmm.cpp ..
+  if (test -e ../angle_harmonic.cpp) then
+    cp angle_cg_cmm.h ..
+    cp angle_cg_cmm.cpp ..
+  fi
 
   cp cg_cmm_parms.h ..
   cp cg_cmm_parms.cpp ..
-
-  cp pppm_cg.h ..
-  cp pppm_cg.cpp ..
 
   cp pair_cmm_common.h ..
   cp pair_cmm_common.cpp ..
@@ -17,19 +16,21 @@ if (test $1 = 1) then
   cp pair_cg_cmm.h ..
   cp pair_cg_cmm_coul_cut.cpp ..
   cp pair_cg_cmm_coul_cut.h ..
-  cp pair_cg_cmm_coul_long.cpp ..
-  cp pair_cg_cmm_coul_long.h ..
+
+  if (test -e ../pppm.cpp) then
+    cp pppm_cg.h ..
+    cp pppm_cg.cpp ..
+    cp pair_cg_cmm_coul_long.cpp ..
+    cp pair_cg_cmm_coul_long.h ..
+  fi
 
 elif (test $1 = 0) then
 
-  rm ../angle_cg_cmm.h
-  rm ../angle_cg_cmm.cpp
+  rm -f ../angle_cg_cmm.h
+  rm -f ../angle_cg_cmm.cpp
 
   rm ../cg_cmm_parms.h
   rm ../cg_cmm_parms.cpp
-
-  rm ../pppm_cg.h
-  rm ../pppm_cg.cpp
 
   rm ../pair_cmm_common.h
   rm ../pair_cmm_common.cpp
@@ -37,7 +38,10 @@ elif (test $1 = 0) then
   rm ../pair_cg_cmm.h
   rm ../pair_cg_cmm_coul_cut.cpp
   rm ../pair_cg_cmm_coul_cut.h
-  rm ../pair_cg_cmm_coul_long.cpp
-  rm ../pair_cg_cmm_coul_long.h
+
+  rm -f ../pppm_cg.h
+  rm -f ../pppm_cg.cpp
+  rm -f ../pair_cg_cmm_coul_long.cpp
+  rm -f ../pair_cg_cmm_coul_long.h
 
 fi

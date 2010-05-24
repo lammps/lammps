@@ -71,11 +71,14 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   options(narg,arg);
 
   // parse values until one isn't recognized
+  // if mode = VECTOR and value is a global array:
+  //   expand it as if columns listed one by one
+  //   adjust nvalues accordingly via maxvalues
 
-  which = new int[nvalues];
-  argindex = new int[nvalues];
-  ids = new char*[nvalues];
-  value2index = new int[nvalues];
+  which = argindex = value2index = offcol = NULL;
+  ids = NULL;
+  int maxvalues = nvalues;
+  allocate_values(maxvalues);
   nvalues = 0;
 
   iarg = 6;
@@ -102,12 +105,60 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
       n = strlen(suffix) + 1;
       ids[nvalues] = new char[n];
       strcpy(ids[nvalues],suffix);
-      nvalues++;
       delete [] suffix;
 
-    } else break;
+      if (mode == VECTOR && which[nvalues] == COMPUTE && 
+	  argindex[nvalues] == 0) {
+	int icompute = modify->find_compute(ids[nvalues]);
+	if (icompute < 0)
+	  error->all("Compute ID for fix ave/time does not exist");
+	if (modify->compute[icompute]->array_flag) {
+	  int ncols = modify->compute[icompute]->size_array_cols;
+	  maxvalues += ncols-1;
+	  allocate_values(maxvalues);
+	  argindex[nvalues] = 1;
+	  for (int icol = 1; icol < ncols; icol++) {
+	    which[nvalues+icol] = which[nvalues];
+	    argindex[nvalues+icol] = icol+1;
+	    n = strlen(ids[nvalues]) + 1;
+	    ids[nvalues+icol] = new char[n];
+	    strcpy(ids[nvalues+icol],ids[nvalues]);
+	  }
+	  nvalues += ncols;
+	}
 
-    iarg++;
+      } else if (mode == VECTOR && which[nvalues] == FIX && 
+		 argindex[nvalues] == 0) {
+	int ifix = modify->find_fix(ids[nvalues]);
+	if (ifix < 0)
+	  error->all("Fix ID for fix ave/time does not exist");
+	if (modify->fix[ifix]->array_flag) {
+	  int ncols = modify->fix[ifix]->size_array_cols;
+	  maxvalues += ncols-1;
+	  allocate_values(maxvalues);
+	  argindex[nvalues] = 1;
+	  for (int icol = 1; icol < ncols; icol++) {
+	    which[nvalues+icol] = which[nvalues];
+	    argindex[nvalues+icol] = icol+1;
+	    n = strlen(ids[nvalues]) + 1;
+	    ids[nvalues+icol] = new char[n];
+	    strcpy(ids[nvalues+icol],ids[nvalues]);
+	  }
+	  nvalues += ncols;
+	}
+
+      } else nvalues++;
+      iarg++;
+    } else break;
+  }
+
+  // set off columns now that nvalues is finalized
+
+  for (int i = 0; i < nvalues; i++) offcol[i] = 0;
+  for (int i = 0; i < noff; i++) {
+    if (offlist[i] < 1 || offlist[i] > nvalues)
+      error->all("Invalid fix ave/time off column");
+    offcol[offlist[i]-1] = 1;
   }
 
   // setup and error check
@@ -203,6 +254,8 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   } else column = NULL;
 
   // print file comment lines
+  // for mode = VECTOR, cannot use arg to print
+  // since array args may have been expanded to multiple vectors
 
   if (fp && me == 0) {
     if (title1) fprintf(fp,"%s\n",title1);
@@ -216,7 +269,12 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
     if (title3 && mode == VECTOR) fprintf(fp,"%s\n",title3);
     else if (mode == VECTOR) {
       fprintf(fp,"# Row");
-      for (int i = 0; i < nvalues; i++) fprintf(fp," %s",arg[6+i]);
+      for (int i = 0; i < nvalues; i++) {
+	if (which[i] == COMPUTE) fprintf(fp," c_%s",ids[i]);
+	else if (which[i] == FIX) fprintf(fp," f_%s",ids[i]);
+	else if (which[i] == VARIABLE) fprintf(fp," v_%s",ids[i]);
+	if (argindex[i]) fprintf(fp,"[%d]",argindex[i]);
+      }
       fprintf(fp,"\n");
     }
   }
@@ -376,13 +434,13 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
 
 FixAveTime::~FixAveTime()
 {
-  delete [] offcol;
-
-  delete [] which;
-  delete [] argindex;
+  memory->sfree(which);
+  memory->sfree(argindex);
+  memory->sfree(value2index);
+  memory->sfree(offcol);
   for (int i = 0; i < nvalues; i++) delete [] ids[i];
-  delete [] ids;
-  delete [] value2index;
+  memory->sfree(ids);
+
   delete [] extlist;
 
   if (fp && me == 0) fclose(fp);
@@ -763,8 +821,8 @@ void FixAveTime::options(int narg, char **arg)
   ave = ONE;
   startstep = 0;
   mode = SCALAR;
-  offcol = new int[nvalues];
-  for (int i = 0; i < nvalues; i++) offcol[i] = 0;
+  noff = 0;
+  offlist = NULL;
   title1 = NULL;
   title2 = NULL;
   title3 = NULL;
@@ -809,10 +867,9 @@ void FixAveTime::options(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"off") == 0) {
       if (iarg+2 > narg) error->all("Illegal fix ave/time command");
-      int ncolumn = atoi(arg[iarg+1]);
-      if (ncolumn <= 0 || ncolumn > nvalues)
-	error->all("Invalid fix ave/time off column");
-      offcol[ncolumn-1] = 1;
+      offlist = (int *) 
+	memory->srealloc(offlist,(noff+1)*sizeof(int),"ave/time:offlist");
+      offlist[noff++] = atoi(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"title1") == 0) {
       if (iarg+2 > narg) error->all("Illegal fix ave/spatial command");
@@ -837,4 +894,19 @@ void FixAveTime::options(int narg, char **arg)
       iarg += 2;
     } else error->all("Illegal fix ave/time command");
   }
+}
+
+/* ----------------------------------------------------------------------
+   reallocate vectors for each input value, of length N
+------------------------------------------------------------------------- */
+
+void FixAveTime::allocate_values(int n)
+{
+  which = (int *) memory->srealloc(which,n*sizeof(int),"ave/time:which");
+  argindex = (int *) memory->srealloc(argindex,n*sizeof(int),
+				      "ave/time:argindex");
+  value2index = (int *) memory->srealloc(value2index,n*sizeof(int),
+					 "ave/time:value2index");
+  offcol = (int *) memory->srealloc(offcol,n*sizeof(int),"ave/time:offcol");
+  ids = (char **) memory->srealloc(ids,n*sizeof(char *),"ave/time:ids");
 }

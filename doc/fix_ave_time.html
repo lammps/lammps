@@ -100,14 +100,24 @@ individual fixes for info on which ones produce such values.
 be used with this fix.  Variables of style <I>atom</I> cannot be used,
 since they produce per-atom values.
 </P>
-<P>The listed values must either be all scalars or all vectors, depending
-on the setting of the <I>mode</I> option.  In both cases, the averaging is
-performed independently on each input value.  I.e. each input scalar
-or the elements of each input vector is averaged independently.
+<P>The listed values must either be all scalars or all vectors (or
+arrays), depending on the setting of the <I>mode</I> option.  In both
+cases, the averaging is performed independently on each input value.
+I.e. each input scalar is averaged independently and each element of
+each input vector (or array) is averaged independently.
 </P>
-<P>If <I>mode</I> = vector, then all the input vectors must be the same
-length.
+<P>If <I>mode</I> = vector, then the listed values may either be vectors or
+arrays and all must be the same "length", which is the length of the
+vector or number of rows in the array.  If a global array is listed,
+then it is the same as if the individual columns of the array had been
+listed one by one.  E.g. these 2 fix ave/time commands are equivalent,
+since the <A HREF = "compute.rdf.html">compute rdf</A> command creates (in this
+case) a global array with 3 columns, each of length 50.
 </P>
+<PRE>compute myRDF all rdf 50 1 2
+fix 1 all ave/time 100 1 100 c_myRDF file tmp1.rdf mode vector
+fix 2 all ave/time 100 1 100 c_myRDF[1] c_myRDF[2] c_myRDF[3] file tmp2.rdf mode vector 
+</PRE>
 <HR>
 
 <P>The <I>Nevery</I>, <I>Nrepeat</I>, and <I>Nfreq</I> arguments specify on what
@@ -134,8 +144,11 @@ no bracketed term is appended, the global scalar calculated by the
 compute is used.  If a bracketed term is appended, the Ith element of
 the global vector calculated by the compute is used.  If <I>mode</I> =
 vector, then if no bracketed term is appended, the global vector
-calculated by the compute is used.  If a bracketed term is appended,
-the Ith column of the global array calculated by the compute is used.
+calculated by the compute is used.  Or if the compute calculates a
+global array, all of the columns of the global array are used as if
+they had been specified as individual vectors (see description above).
+If a bracketed term is appended, the Ith column of the global array
+calculated by the compute is used.
 </P>
 <P>Note that there is a <A HREF = "compute_reduce.html">compute reduce</A> command
 which can sum per-atom quantities into a global scalar or vector which
@@ -153,8 +166,11 @@ no bracketed term is appended, the global scalar calculated by the fix
 is used.  If a bracketed term is appended, the Ith element of the
 global vector calculated by the fix is used.  If <I>mode</I> = vector, then
 if no bracketed term is appended, the global vector calculated by the
-fix is used.  If a bracketed term is appended, the Ith column of the
-global array calculated by the fix is used.
+fix is used.  Or if the fix calculates a global array, all of the
+columns of the global array are used as if they had been specified as
+individual vectors (see description above).  If a bracketed term is
+appended, the Ith column of the global array calculated by the fix is
+used.
 </P>
 <P>Note that some fixes only produce their values on certain timesteps,
 which must be compatible with <I>Nevery</I>, else an error will result.

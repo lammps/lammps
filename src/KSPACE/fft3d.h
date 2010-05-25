@@ -249,8 +249,6 @@ struct fft_plan_3d {
   FFTW_API(plan) plan_mid_backward;
   FFTW_API(plan) plan_slow_forward;
   FFTW_API(plan) plan_slow_backward;
-  FFT_DATA *in_copy;
-  FFT_DATA *out_copy;
 #elif defined(FFT_KISSFFT)
   kiss_fft_cfg cfg_fast_forward;
   kiss_fft_cfg cfg_fast_backward;

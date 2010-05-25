@@ -95,46 +95,56 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   options(narg,arg);
 
   // parse values until one isn't recognized
+  // if mode = VECTOR and value is a global array:
+  //   expand it as if columns listed one by one
+  //   adjust nvalues accordingly via maxvalues
 
-  which = new int[narg-9];
-  argindex = new int[narg-9];
-  ids = new char*[narg-9];
-  value2index = new int[narg-9];
+  which = argindex = value2index = NULL;
+  ids = NULL;
+  int maxvalues = nvalues;
+  allocate_values(maxvalues);
   nvalues = 0;
 
   iarg = 9;
   while (iarg < narg) {
-    ids[nvalues] = NULL;
-
     if (strcmp(arg[iarg],"x") == 0) {
       which[nvalues] = X;
       argindex[nvalues++] = 0;
+      ids[nvalues] = NULL;
     } else if (strcmp(arg[iarg],"y") == 0) {
       which[nvalues] = X;
       argindex[nvalues++] = 1;
+      ids[nvalues] = NULL;
     } else if (strcmp(arg[iarg],"z") == 0) {
       which[nvalues] = X;
       argindex[nvalues++] = 2;
+      ids[nvalues] = NULL;
 
     } else if (strcmp(arg[iarg],"vx") == 0) {
       which[nvalues] = V;
       argindex[nvalues++] = 0;
+      ids[nvalues] = NULL;
     } else if (strcmp(arg[iarg],"vy") == 0) {
       which[nvalues] = V;
       argindex[nvalues++] = 1;
+      ids[nvalues] = NULL;
     } else if (strcmp(arg[iarg],"vz") == 0) {
       which[nvalues] = V;
       argindex[nvalues++] = 2;
+      ids[nvalues] = NULL;
 
     } else if (strcmp(arg[iarg],"fx") == 0) {
       which[nvalues] = F;
       argindex[nvalues++] = 0;
+      ids[nvalues] = NULL;
     } else if (strcmp(arg[iarg],"fy") == 0) {
       which[nvalues] = F;
       argindex[nvalues++] = 1;
+      ids[nvalues] = NULL;
     } else if (strcmp(arg[iarg],"fz") == 0) {
       which[nvalues] = F;
       argindex[nvalues++] = 2;
+      ids[nvalues] = NULL;
 
     } else if ((strncmp(arg[iarg],"c_",2) == 0) || 
 	(strncmp(arg[iarg],"f_",2) == 0) || 
@@ -158,12 +168,52 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
       n = strlen(suffix) + 1;
       ids[nvalues] = new char[n];
       strcpy(ids[nvalues],suffix);
-      nvalues++;
       delete [] suffix;
 
-    } else break;
+      if (mode == VECTOR && which[nvalues] == COMPUTE && 
+	  argindex[nvalues] == 0) {
+	int icompute = modify->find_compute(ids[nvalues]);
+	if (icompute < 0)
+	  error->all("Compute ID for fix ave/histo does not exist");
+	if (modify->compute[icompute]->array_flag) {
+	  int ncols = modify->compute[icompute]->size_array_cols;
+	  maxvalues += ncols-1;
+	  allocate_values(maxvalues);
+	  argindex[nvalues] = 1;
+	  for (int icol = 1; icol < ncols; icol++) {
+	    which[nvalues+icol] = which[nvalues];
+	    argindex[nvalues+icol] = icol+1;
+	    n = strlen(ids[nvalues]) + 1;
+	    ids[nvalues+icol] = new char[n];
+	    strcpy(ids[nvalues+icol],ids[nvalues]);
+	  }
+	  nvalues += ncols-1;
+	}
 
-    iarg++;
+      } else if (mode == VECTOR && which[nvalues] == FIX && 
+		 argindex[nvalues] == 0) {
+	int ifix = modify->find_fix(ids[nvalues]);
+	if (ifix < 0)
+	  error->all("Fix ID for fix ave/histo does not exist");
+	if (modify->fix[ifix]->array_flag) {
+	  int ncols = modify->fix[ifix]->size_array_cols;
+	  maxvalues += ncols-1;
+	  allocate_values(maxvalues);
+	  argindex[nvalues] = 1;
+	  for (int icol = 1; icol < ncols; icol++) {
+	    which[nvalues+icol] = which[nvalues];
+	    argindex[nvalues+icol] = icol+1;
+	    n = strlen(ids[nvalues]) + 1;
+	    ids[nvalues+icol] = new char[n];
+	    strcpy(ids[nvalues+icol],ids[nvalues]);
+	  }
+	  nvalues += ncols-1;
+	}
+      }
+
+      nvalues++;
+      iarg++;
+    } else break;
   }
 
   // setup and error check
@@ -430,11 +480,11 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
 
 FixAveHisto::~FixAveHisto()
 {
-  delete [] which;
-  delete [] argindex;
+  memory->sfree(which);
+  memory->sfree(argindex);
+  memory->sfree(value2index);
   for (int i = 0; i < nvalues; i++) delete [] ids[i];
-  delete [] ids;
-  delete [] value2index;
+  memory->sfree(ids);
 
   if (fp && me == 0) fclose(fp);
 
@@ -562,7 +612,7 @@ void FixAveHisto::end_of_step()
 	    compute->compute_array();
 	    compute->invoked_flag |= INVOKED_ARRAY;
 	  }
-	  bin_vector(compute->size_array_rows,compute->array[j-1],
+	  bin_vector(compute->size_array_rows,&compute->array[0][j-1],
 		     compute->size_array_cols);
 	}
 
@@ -585,7 +635,7 @@ void FixAveHisto::end_of_step()
 	if (j == 0)
 	  bin_vector(compute->size_local_rows,compute->vector_local,1);
 	else
-	  bin_vector(compute->size_local_rows,compute->array_local[j],
+	  bin_vector(compute->size_local_rows,&compute->array_local[0][j],
 		     compute->size_local_cols);
       }
 
@@ -615,7 +665,7 @@ void FixAveHisto::end_of_step()
       } else if (kind == LOCAL) {
 	if (j == 0) bin_vector(fix->size_local_rows,fix->vector_local,1);
 	else 
-	  bin_vector(fix->size_local_rows,fix->array_local[j-1],
+	  bin_vector(fix->size_local_rows,&fix->array_local[0][j-1],
 		     fix->size_local_cols);
       }
 
@@ -900,4 +950,18 @@ void FixAveHisto::options(int narg, char **arg)
       iarg += 2;
     } else error->all("Illegal fix ave/histo command");
   }
+}
+
+/* ----------------------------------------------------------------------
+   reallocate vectors for each input value, of length N
+------------------------------------------------------------------------- */
+
+void FixAveHisto::allocate_values(int n)
+{
+  which = (int *) memory->srealloc(which,n*sizeof(int),"ave/time:which");
+  argindex = (int *) memory->srealloc(argindex,n*sizeof(int),
+				      "ave/time:argindex");
+  value2index = (int *) memory->srealloc(value2index,n*sizeof(int),
+					 "ave/time:value2index");
+  ids = (char **) memory->srealloc(ids,n*sizeof(char *),"ave/time:ids");
 }

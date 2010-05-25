@@ -82,13 +82,23 @@ component) or can be the result of a "compute"_compute.html or
 "fix"_fix.html or the evaluation of an equal-style or atom-style
 "variable"_variable.html.  The set of input values can be either all
 global, all per-atom, or all local quantities.  Inputs of different
-kinds (e.g. global and per-atom) cannot be mixed.  The input values
-must also be either all scalar or all vector values, depending on the
-setting of the {mode} keyword.
+kinds (e.g. global and per-atom) cannot be mixed.  Atom attributes are
+per-atom vector values.  See the doc page for individual "compute" and
+"fix" commands to see what kinds of quantities they generate.
 
-Atom attributes are per-atom vector values.  See the doc page for
-individual "compute" and "fix" commands to see what kinds of
-quantities they generate.
+The input values must either be all scalars or all vectors (or
+arrays), depending on the setting of the {mode} keyword.
+
+If {mode} = vector, then the input values may either be vectors or
+arrays.  If a global array is listed, then it is the same as if the
+individual columns of the array had been listed one by one.
+E.g. these 2 fix ave/histo commands are equivalent, since the "compute
+com/molecule"_compute_com_molecule.html command creates a global array
+with 3 columns:
+
+compute myCOM all com/molecule
+fix 1 all ave/histo 100 1 100 c_myCOM file tmp1.com mode vector
+fix 2 all ave/histo 100 1 100 c_myCOM\[1\] c_myCOM\[2\] c_myCOM\[3\] file tmp2.com mode vector :pre
 
 The output of this command is a single histogram for all input values
 combined together, not one histogram per input value.  See below for
@@ -126,9 +136,11 @@ no bracketed term is appended, the global scalar calculated by the
 compute is used.  If a bracketed term is appended, the Ith element of
 the global vector calculated by the compute is used.  If {mode} =
 vector, then if no bracketed term is appended, the global or per-atom
-or local vector calculated by the compute is used.  If a bracketed
-term is appended, the Ith column of the global or per-atom or local
-array calculated by the compute is used.
+or local vector calculated by the compute is used.  Or if the compute
+calculates an array, all of the columns of the array are used as if
+they had been specified as individual vectors (see description above).
+If a bracketed term is appended, the Ith column of the global or
+per-atom or local array calculated by the compute is used.
 
 Note that there is a "compute reduce"_compute_reduce.html command
 which can sum per-atom quantities into a global scalar or vector which
@@ -146,9 +158,11 @@ no bracketed term is appended, the global scalar calculated by the fix
 is used.  If a bracketed term is appended, the Ith element of the
 global vector calculated by the fix is used.  If {mode} = vector, then
 if no bracketed term is appended, the global or per-atom or local
-vector calculated by the fix is used.  If a bracketed term is
-appended, the Ith column of the global or per-atom or local array
-calculated by the fix is used.
+vector calculated by the fix is used.  Or if the fix calculates an
+array, all of the columns of the array are used as if they had been
+specified as individual vectors (see description above).  If a
+bracketed term is appended, the Ith column of the global or per-atom
+or local array calculated by the fix is used.
 
 Note that some fixes only produce their values on certain timesteps,
 which must be compatible with {Nevery}, else an error will result.

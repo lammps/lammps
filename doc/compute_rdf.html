@@ -99,6 +99,13 @@ shell in 3d (or the area of the bin's thin ring in 2d).
 <P>A coordination number coord(r) is also calculated, which is the sum of
 g(r) values for all bins up to and including the current bin.
 </P>
+<P>The simplest way to output the results of the compute rdf calculation
+to a file is to use the <A HREF = "fix_ave_time.html">fix ave/time</A> command, for
+example:
+</P>
+<PRE>compute myRDF all rdf 50
+fix 1 all ave/time 100 1 100 c_myRDF file tmp.rdf mode vector 
+</PRE>
 <P><B>Output info:</B>
 </P>
 <P>This compute calculates a global array with the number of rows =
@@ -127,7 +134,7 @@ distances, you'll need to post-process a dump file.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "fix_ave_histo.html">fix ave/histo</A>
+<P><A HREF = "fix_ave_time.html">fix ave/time</A>
 </P>
 <P><B>Default:</B> none
 </P>

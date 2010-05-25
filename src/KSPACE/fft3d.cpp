@@ -131,10 +131,12 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
   else
     fftw(plan->plan_fast_backward,total/length,data,1,length,NULL,0,0);
 #elif defined(FFT_FFTW3)
-  theplan = FFTW_API(plan_many_dft)(1,&length,total/length,data,NULL,1,length,
-				    data,NULL,1,length,flag,FFTW_ESTIMATE);
-  FFTW_API(execute)(theplan);
-  FFTW_API(destroy_plan)(theplan);
+  if (flag == -1)
+    theplan=plan->plan_fast_forward;
+  else
+    theplan=plan->plan_fast_backward;
+  FFTW_API(execute_dft)(theplan,data,plan->out_copy);
+  memcpy(data,plan->out_copy,total*sizeof(FFT_DATA));
 #else
   if (flag == -1)
     for (offset = 0; offset < total; offset += length)
@@ -186,10 +188,12 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
   else
     fftw(plan->plan_mid_backward,total/length,data,1,length,NULL,0,0);
 #elif defined(FFT_FFTW3)
-  theplan = FFTW_API(plan_many_dft)(1,&length,total/length,data,NULL,1,length,
-				    data,NULL,1,length,flag,FFTW_ESTIMATE);
-  FFTW_API(execute)(theplan);
-  FFTW_API(destroy_plan)(theplan);
+  if (flag == -1)
+    theplan=plan->plan_mid_forward;
+  else
+    theplan=plan->plan_mid_backward;
+  FFTW_API(execute_dft)(theplan,data,plan->out_copy);
+  memcpy(data,plan->out_copy,total*sizeof(FFT_DATA));
 #else
   if (flag == -1)
     for (offset = 0; offset < total; offset += length)
@@ -240,10 +244,12 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
   else
     fftw(plan->plan_slow_backward,total/length,data,1,length,NULL,0,0);
 #elif defined(FFT_FFTW3)
-  theplan = FFTW_API(plan_many_dft)(1,&length,total/length,data,NULL,1,length,
-				    data,NULL,1,length,flag,FFTW_ESTIMATE);
-  FFTW_API(execute)(theplan);
-  FFTW_API(destroy_plan)(theplan);
+  if (flag == -1)
+    theplan=plan->plan_slow_forward;
+  else
+    theplan=plan->plan_slow_backward;
+  FFTW_API(execute_dft)(theplan,data,plan->out_copy);
+  memcpy(data,plan->out_copy,total*sizeof(FFT_DATA));
 #else
   if (flag == -1)
     for (offset = 0; offset < total; offset += length)
@@ -357,7 +363,7 @@ struct fft_plan_3d *fft_3d_create_plan(
   // allocate memory for plan data struct 
 
 #ifdef FFT_FFTW3
-  plan = (struct fft_plan_3d *) fftw_malloc(sizeof(struct fft_plan_3d));
+  plan = (struct fft_plan_3d *) FFTW_API(malloc)(sizeof(struct fft_plan_3d));
 #else
   plan = (struct fft_plan_3d *) malloc(sizeof(struct fft_plan_3d));
 #endif
@@ -549,7 +555,7 @@ struct fft_plan_3d *fft_3d_create_plan(
 
   if (copy_size) {
 #ifdef FFT_FFTW3
-    plan->copy = (FFT_DATA *) fftw_malloc(copy_size*sizeof(FFT_DATA));
+    plan->copy = (FFT_DATA *) FFTW_API(malloc)(copy_size*sizeof(FFT_DATA));
 #else
     plan->copy = (FFT_DATA *) malloc(copy_size*sizeof(FFT_DATA));
 #endif
@@ -559,7 +565,7 @@ struct fft_plan_3d *fft_3d_create_plan(
 
   if (scratch_size) {
 #ifdef FFT_FFTW3
-    plan->scratch = (FFT_DATA *) fftw_malloc(scratch_size*sizeof(FFT_DATA));
+    plan->scratch = (FFT_DATA *) FFTW_API(malloc)(scratch_size*sizeof(FFT_DATA));
 #else
     plan->scratch = (FFT_DATA *) malloc(scratch_size*sizeof(FFT_DATA));
 #endif
@@ -756,6 +762,42 @@ struct fft_plan_3d *fft_3d_create_plan(
   }
 
 #elif defined(FFT_FFTW3)
+  // allocate scratch buffer for out-of-place fft.
+  int maxtotal = MAX(MAX(plan->total1,plan->total2),plan->total3);
+  plan->in_copy = (FFT_DATA *) FFTW_API(malloc)(maxtotal*sizeof(FFT_DATA));
+  plan->out_copy = (FFT_DATA *) FFTW_API(malloc)(maxtotal*sizeof(FFT_DATA));
+
+  plan->plan_fast_forward = 
+    FFTW_API(plan_many_dft)(1, &nfast,plan->total1/plan->length1,
+			    plan->in_copy,&nfast,1,plan->length1,
+			    plan->out_copy,&nfast,1,plan->length1,
+			    FFTW_FORWARD,FFTW_PATIENT);
+  plan->plan_fast_backward = 
+    FFTW_API(plan_many_dft)(1, &nfast,plan->total1/plan->length1,
+			    plan->in_copy,&nfast,1,plan->length1,
+			    plan->out_copy,&nfast,1,plan->length1,
+			    FFTW_BACKWARD,FFTW_PATIENT);
+  plan->plan_mid_forward = 
+    FFTW_API(plan_many_dft)(1, &nmid,plan->total2/plan->length2,
+			    plan->in_copy,&nmid,1,plan->length2,
+			    plan->out_copy,&nmid,1,plan->length2,
+			    FFTW_FORWARD,FFTW_PATIENT);
+  plan->plan_mid_backward = 
+    FFTW_API(plan_many_dft)(1, &nmid,plan->total2/plan->length2,
+			    plan->in_copy,&nmid,1,plan->length2,
+			    plan->out_copy,&nmid,1,plan->length2,
+			    FFTW_BACKWARD,FFTW_PATIENT);
+  plan->plan_slow_forward = 
+    FFTW_API(plan_many_dft)(1, &nslow,plan->total3/plan->length3,
+			    plan->in_copy,&nslow,1,plan->length3,
+			    plan->out_copy,&nslow,1,plan->length3,
+			    FFTW_FORWARD,FFTW_PATIENT);
+  plan->plan_slow_backward = 
+    FFTW_API(plan_many_dft)(1, &nslow,plan->total3/plan->length3,
+			    plan->in_copy,&nslow,1,plan->length3,
+			    plan->out_copy,&nslow,1,plan->length3,
+			    FFTW_BACKWARD,FFTW_PATIENT);
+
   if (scaled == 0)
     plan->scaled = 0;
   else {
@@ -815,8 +857,13 @@ void fft_3d_destroy_plan(struct fft_plan_3d *plan)
   if (plan->mid2_plan) remap_3d_destroy_plan(plan->mid2_plan);
   if (plan->post_plan) remap_3d_destroy_plan(plan->post_plan);
 
+#if defined(FFT_FFTW3)
+  if (plan->copy) FFTW_API(free)(plan->copy);
+  if (plan->scratch) FFTW_API(free)(plan->scratch);
+#else
   if (plan->copy) free(plan->copy);
   if (plan->scratch) free(plan->scratch);
+#endif
 
 #if defined(FFT_SGI)
   free(plan->coeff1);
@@ -853,7 +900,14 @@ void fft_3d_destroy_plan(struct fft_plan_3d *plan)
   fftw_destroy_plan(plan->plan_fast_forward);
   fftw_destroy_plan(plan->plan_fast_backward);
 #elif defined(FFT_FFTW3)
-// nothing to do
+  FFTW_API(destroy_plan)(plan->plan_slow_forward);
+  FFTW_API(destroy_plan)(plan->plan_slow_backward);
+  FFTW_API(destroy_plan)(plan->plan_mid_forward);
+  FFTW_API(destroy_plan)(plan->plan_mid_backward);
+  FFTW_API(destroy_plan)(plan->plan_fast_forward);
+  FFTW_API(destroy_plan)(plan->plan_fast_backward);
+  FFTW_API(free)(plan->in_copy);
+  FFTW_API(free)(plan->out_copy);
 #else
   if (plan->cfg_slow_forward != plan->cfg_fast_forward &&
       plan->cfg_slow_forward != plan->cfg_mid_forward) {
@@ -868,7 +922,11 @@ void fft_3d_destroy_plan(struct fft_plan_3d *plan)
   free(plan->cfg_fast_backward);
 #endif
 
+#if defined(FFT_FFTW3)
+  FFTW_API(free)(plan);
+#else
   free(plan);
+#endif
 }
 
 /* ----------------------------------------------------------------------
@@ -1050,24 +1108,25 @@ void fft_1d_only(FFT_DATA *data, int nsize, int flag, struct fft_plan_3d *plan)
     fftw(plan->plan_slow_backward,total3/length3,data,1,0,NULL,0,0);
   }
 #elif defined(FFT_FFTW3)
-  FFTW_API(plan) theplan = FFTW_API(plan_many_dft)(1,&length1,total1/length1,
-						   data,NULL,1,length1,
-						   data,NULL,1,length1,flag,
-						   FFTW_ESTIMATE);
-  FFTW_API(execute)(theplan);
-  FFTW_API(destroy_plan)(theplan);
-  theplan = FFTW_API(plan_many_dft)(1,&length2,total2/length2,
-				    data,NULL,1,length2,
-				    data,NULL,1,length2,flag,
-				    FFTW_ESTIMATE);
-  FFTW_API(execute)(theplan);
-  FFTW_API(destroy_plan)(theplan);
-  theplan = FFTW_API(plan_many_dft)(1,&length3,total3/length3,
-				    data,NULL,1,length3,
-				    data,NULL,1,length3,flag,
-				    FFTW_ESTIMATE);
-  FFTW_API(execute)(theplan);
-  FFTW_API(destroy_plan)(theplan);
+  FFTW_API(plan) theplan;
+  if (flag == -1)
+    theplan=plan->plan_fast_forward;
+  else
+    theplan=plan->plan_fast_backward;
+  FFTW_API(execute_dft)(theplan,data,plan->out_copy);
+  memcpy(data,plan->out_copy,total*sizeof(FFT_DATA));
+  if (flag == -1)
+    theplan=plan->plan_mid_forward;
+  else
+    theplan=plan->plan_mid_backward;
+  FFTW_API(execute_dft)(theplan,data,plan->out_copy);
+  memcpy(data,plan->out_copy,total*sizeof(FFT_DATA));
+  if (flag == -1)
+    theplan=plan->plan_slow_forward;
+  else
+    theplan=plan->plan_slow_backward;
+  FFTW_API(execute_dft)(theplan,data,plan->out_copy);
+  memcpy(data,plan->out_copy,total*sizeof(FFT_DATA));
 #else
   if (flag == -1) {
     for (offset = 0; offset < total1; offset += length1)

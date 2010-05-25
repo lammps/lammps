@@ -94,12 +94,12 @@ should give identical answers.  Depending on system size and the GPU
 processor you have on your system, it may be 4x faster (for the
 pairwise portion of the run time).  See more details below.
 
-Style {lj/cut/omp} is an version of style {lj/cut} that supports
-multi-threading using OpenMP directives. In most cases the message passing
-parallelization of LAMMPS is more efficient, but on clusters with a
-slow network or with a large number of processor cores per node, the 
+Style {lj/cut/omp} is a version of style {lj/cut} that supports
+multi-threading using OpenMP directives. In most cases the normal message
+passing parallelization of LAMMPS is more efficient, but on clusters with
+a slow network or with a large number of processor cores per node, the 
 time spend on communication may dominate due to high latencies or low
-bandwidth and this pair style can be faster than {lj/cut} or {lj/cut/opt}.
+bandwidth and this pair style may be faster than {lj/cut} or {lj/cut/opt}.
 
 Style {lj/cut/opt} is an optimized version of style {lj/cut} that
 should give identical answers.  Depending on system size and the

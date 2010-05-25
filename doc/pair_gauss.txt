@@ -10,13 +10,15 @@ pair_style gauss command :h3
 
 [Syntax:]
 
-pair_style gauss/cut cutoff :pre
+pair_style gauss/cut cutoff
+pair_style gauss/cut/omp cutoff :pre
 
 cutoff = global cutoff (distance units)
 
 [Examples:]
 
 pair_style gauss/cut 3.5
+pair_style gauss/cut/omp 3.5
 pair_coeff 1 4 0.2805 1.45 0.112 :pre
 
 
@@ -42,6 +44,14 @@ r_mh (distance units)
 sigma_h (distance units) :ul
 
 The global cutoff (r_c) specified in the pair_style command is used.
+
+Style {gauss/cut/omp} is a version of style {gauss/cut} that supports
+multi-threading using OpenMP directives. In most cases the normal message
+passing parallelization of LAMMPS is more efficient, but on clusters with
+a slow network or with a large number of processor cores per node, the 
+time spend on communication may dominate due to high latencies or low
+bandwidth and this pair style may be faster than {gauss/cut}.
+
 
 :line
 

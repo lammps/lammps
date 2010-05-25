@@ -1,4 +1,4 @@
-LAMMPS (27 May 2010-ICMS)
+LAMMPS (29 May 2010-ICMS)
 # Ionic surfactant system: S12S
 
 units           lj
@@ -115,38 +115,38 @@ TotEng   =         9.9401 KinEng   =         1.4996 Temp     =         1.0000
 PotEng   =         8.4405 E_bond   =         0.0036 E_angle  =         0.1237 
 E_dihed  =         0.3185 E_impro  =         0.0000 E_vdwl   =         8.0100 
 E_coul   =        -0.0116 E_long   =        -0.0036 Press    =         0.4086 
----------------- Step      500 ----- CPU =      0.4081 (sec) ----------------
+---------------- Step      500 ----- CPU =      0.4093 (sec) ----------------
 TotEng   =         2.7881 KinEng   =         1.5273 Temp     =         1.0184 
 PotEng   =         1.2608 E_bond   =         0.4529 E_angle  =         0.3844 
 E_dihed  =         0.4277 E_impro  =         0.0000 E_vdwl   =        -0.0022 
 E_coul   =         0.0016 E_long   =        -0.0035 Press    =        -0.0027 
----------------- Step     1000 ----- CPU =      0.7943 (sec) ----------------
+---------------- Step     1000 ----- CPU =      0.7942 (sec) ----------------
 TotEng   =         2.7685 KinEng   =         1.4797 Temp     =         0.9867 
 PotEng   =         1.2888 E_bond   =         0.4669 E_angle  =         0.3879 
 E_dihed  =         0.4388 E_impro  =         0.0000 E_vdwl   =        -0.0020 
 E_coul   =         0.0011 E_long   =        -0.0038 Press    =        -0.0003 
----------------- Step     1500 ----- CPU =      1.1773 (sec) ----------------
+---------------- Step     1500 ----- CPU =      1.1749 (sec) ----------------
 TotEng   =         2.8092 KinEng   =         1.5019 Temp     =         1.0015 
 PotEng   =         1.3073 E_bond   =         0.4716 E_angle  =         0.3748 
 E_dihed  =         0.4673 E_impro  =         0.0000 E_vdwl   =        -0.0034 
 E_coul   =         0.0010 E_long   =        -0.0039 Press    =        -0.0056 
----------------- Step     2000 ----- CPU =      1.5597 (sec) ----------------
+---------------- Step     2000 ----- CPU =      1.5555 (sec) ----------------
 TotEng   =         2.8481 KinEng   =         1.5096 Temp     =         1.0066 
 PotEng   =         1.3386 E_bond   =         0.4741 E_angle  =         0.3764 
 E_dihed  =         0.4952 E_impro  =         0.0000 E_vdwl   =        -0.0037 
 E_coul   =         0.0005 E_long   =        -0.0040 Press    =         0.0018 
-Loop time of 1.55979 on 8 procs for 2000 steps with 4200 atoms
+Loop time of 1.55554 on 8 procs for 2000 steps with 4200 atoms
 
-Pair  time (%) = 0.184359 (11.8195)
-Bond  time (%) = 0.474714 (30.4345)
-Kspce time (%) = 0.434243 (27.8399)
-Neigh time (%) = 0.0440986 (2.82721)
-Comm  time (%) = 0.309093 (19.8164)
-Outpt time (%) = 0.000238895 (0.0153159)
-Other time (%) = 0.113042 (7.24726)
+Pair  time (%) = 0.18455 (11.864)
+Bond  time (%) = 0.474303 (30.4913)
+Kspce time (%) = 0.429585 (27.6165)
+Neigh time (%) = 0.044606 (2.86756)
+Comm  time (%) = 0.310722 (19.9752)
+Outpt time (%) = 0.00022766 (0.0146354)
+Other time (%) = 0.111544 (7.17079)
 
-FFT time (% of Kspce) = 0.148058 (34.0956)
-FFT Gflps 3d (1d only) = 3.48019 20.7409
+FFT time (% of Kspce) = 0.13485 (31.3906)
+FFT Gflps 3d (1d only) = 3.82108 25.4259
 
 Nlocal:    525 ave 625 max 427 min
 Histogram: 1 1 0 2 0 1 0 2 0 1

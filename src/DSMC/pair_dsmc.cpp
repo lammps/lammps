@@ -147,12 +147,12 @@ void PairDSMC::compute(int eflag, int vflag)
         // # of collisions to perform for itype-jtype pairs
 
         double &Vs_max = V_sigma_max[itype][jtype];
-        double num_of_collisions_double = 0.5 * number_of_A * number_of_B * 
+        double num_of_collisions_double = number_of_A * number_of_B * 
 	  weighting * Vs_max * update->dt / vol;
 
         if ((itype == jtype) and number_of_B) 
 	  num_of_collisions_double *= 
-	    double(number_of_B - 1) / double(number_of_B);
+	    0.5 * double(number_of_B - 1) / double(number_of_B);
 
         int num_of_collisions = 
 	  convert_double_to_equivalent_int(num_of_collisions_double);

@@ -20,6 +20,8 @@ if (test $1 = 1) then
   if (test -e ../pppm.cpp) then
     cp pppm_cg.h ..
     cp pppm_cg.cpp ..
+    cp ewald_cg.h ..
+    cp ewald_cg.cpp ..
     cp pair_cg_cmm_coul_long.cpp ..
     cp pair_cg_cmm_coul_long.h ..
   fi
@@ -39,6 +41,8 @@ elif (test $1 = 0) then
   rm ../pair_cg_cmm_coul_cut.cpp
   rm ../pair_cg_cmm_coul_cut.h
 
+  rm -f ../ewald_cg.h
+  rm -f ../ewald_cg.cpp
   rm -f ../pppm_cg.h
   rm -f ../pppm_cg.cpp
   rm -f ../pair_cg_cmm_coul_long.cpp

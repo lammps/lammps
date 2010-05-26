@@ -63,6 +63,8 @@ dump_xtc.cpp
 dump_xtc.h
 ewald.cpp
 ewald.h
+ewald_cg.cpp 
+ewald_cg.h 
 fft3d.cpp
 fft3d.h
 fft3d_wrap.cpp
@@ -171,6 +173,8 @@ pair_resquared.cpp
 pair_resquared.h
 pair_sw.cpp
 pair_sw.h
+pair_table_omp.cpp 
+pair_table_omp.h
 pair_tersoff.cpp
 pair_tersoff.h
 pair_tersoff_zbl.cpp

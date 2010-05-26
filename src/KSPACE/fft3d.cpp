@@ -691,25 +691,25 @@ struct fft_plan_3d *fft_3d_create_plan(
     plan->scaled = 0;
 
 #elif defined(FFT_MKL)
-  DftiCreateDescriptor( &(plan->handle_fast), FFT_MKL_PREC, DFTI_COMPLEX, 1, nfast);
-  DftiSetValue(plan->handle_fast, DFTI_NUMBER_OF_TRANSFORMS, plan->total1/nfast);
+  DftiCreateDescriptor( &(plan->handle_fast), FFT_MKL_PREC, DFTI_COMPLEX, 1, (MKL_LONG)nfast);
+  DftiSetValue(plan->handle_fast, DFTI_NUMBER_OF_TRANSFORMS, (MKL_LONG)plan->total1/nfast);
   DftiSetValue(plan->handle_fast, DFTI_PLACEMENT,DFTI_INPLACE);
-  DftiSetValue(plan->handle_fast, DFTI_INPUT_DISTANCE, nfast);
-  DftiSetValue(plan->handle_fast, DFTI_OUTPUT_DISTANCE, nfast);
+  DftiSetValue(plan->handle_fast, DFTI_INPUT_DISTANCE, (MKL_LONG)nfast);
+  DftiSetValue(plan->handle_fast, DFTI_OUTPUT_DISTANCE, (MKL_LONG)nfast);
   DftiCommitDescriptor(plan->handle_fast);
 
-  DftiCreateDescriptor( &(plan->handle_mid), FFT_MKL_PREC, DFTI_COMPLEX, 1, nmid);
-  DftiSetValue(plan->handle_mid, DFTI_NUMBER_OF_TRANSFORMS, plan->total2/nmid);
+  DftiCreateDescriptor( &(plan->handle_mid), FFT_MKL_PREC, DFTI_COMPLEX, 1, (MKL_LONG)nmid);
+  DftiSetValue(plan->handle_mid, DFTI_NUMBER_OF_TRANSFORMS, (MKL_LONG)plan->total2/nmid);
   DftiSetValue(plan->handle_mid, DFTI_PLACEMENT,DFTI_INPLACE);
-  DftiSetValue(plan->handle_mid, DFTI_INPUT_DISTANCE, nmid);
-  DftiSetValue(plan->handle_mid, DFTI_OUTPUT_DISTANCE, nmid);
+  DftiSetValue(plan->handle_mid, DFTI_INPUT_DISTANCE, (MKL_LONG)nmid);
+  DftiSetValue(plan->handle_mid, DFTI_OUTPUT_DISTANCE, (MKL_LONG)nmid);
   DftiCommitDescriptor(plan->handle_mid);
 
-  DftiCreateDescriptor( &(plan->handle_slow), FFT_MKL_PREC, DFTI_COMPLEX, 1, nslow);
-  DftiSetValue(plan->handle_slow, DFTI_NUMBER_OF_TRANSFORMS, plan->total3/nslow);
+  DftiCreateDescriptor( &(plan->handle_slow), FFT_MKL_PREC, DFTI_COMPLEX, 1, (MKL_LONG)nslow);
+  DftiSetValue(plan->handle_slow, DFTI_NUMBER_OF_TRANSFORMS, (MKL_LONG)plan->total3/nslow);
   DftiSetValue(plan->handle_slow, DFTI_PLACEMENT,DFTI_INPLACE);
-  DftiSetValue(plan->handle_slow, DFTI_INPUT_DISTANCE, nslow);
-  DftiSetValue(plan->handle_slow, DFTI_OUTPUT_DISTANCE, nslow);
+  DftiSetValue(plan->handle_slow, DFTI_INPUT_DISTANCE, (MKL_LONG)nslow);
+  DftiSetValue(plan->handle_slow, DFTI_OUTPUT_DISTANCE, (MKL_LONG)nslow);
   DftiCommitDescriptor(plan->handle_slow);
 
   if (scaled == 0)
@@ -1083,6 +1083,12 @@ void fft_1d_only(FFT_DATA *data, int nsize, int flag, struct fft_plan_3d *plan)
   int total3 = plan->total3;
   int length3 = plan->length3;
 
+// fftw3 and Dfti in MKL encode the number of transforms
+// into the plan, so we cannot operate on a smaller data set.
+#if defined(FFT_MKL) || defined(FFT_FFTW3)
+  if ((total1 > nsize) || (total2 > nsize) || (total3 > nsize))
+    return;
+#endif
   if (total1 > nsize) total1 = (nsize/length1) * length1;
   if (total2 > nsize) total2 = (nsize/length2) * length2;
   if (total3 > nsize) total3 = (nsize/length3) * length3;

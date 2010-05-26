@@ -35,8 +35,11 @@ Memory::Memory(LAMMPS *lmp) : Pointers(lmp) {}
 void *Memory::smalloc(int n, const char *name)
 {
   if (n == 0) return NULL;
-#ifdef FFT_FFTW3
+#if defined(FFT_FFTW3)
   void *ptr = fftw_malloc(n);
+#elif defined(MALLOC_MEMALIGN)
+  void *ptr;
+  posix_memalign(&ptr, MALLOC_MEMALIGN, n);
 #else
   void *ptr = malloc(n);
 #endif

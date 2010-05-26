@@ -114,6 +114,11 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
 #elif defined(FFT_INTEL)
   for (offset = 0; offset < total; offset += length)
     FFT_1D(&data[offset],&length,&flag,plan->coeff1);
+#elif defined(FFT_MKL)
+  if (flag == -1)
+    DftiComputeForward(plan->handle_fast,data);
+  else
+    DftiComputeBackward(plan->handle_fast,data);
 #elif defined(FFT_DEC)
   if (flag == -1)
     for (offset = 0; offset < total; offset += length)
@@ -170,6 +175,11 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
 #elif defined(FFT_INTEL)
   for (offset = 0; offset < total; offset += length)
     FFT_1D(&data[offset],&length,&flag,plan->coeff2);
+#elif defined(FFT_MKL)
+  if (flag == -1)
+    DftiComputeForward(plan->handle_mid,data);
+  else
+    DftiComputeBackward(plan->handle_mid,data);
 #elif defined(FFT_DEC)
   if (flag == -1)
     for (offset = 0; offset < total; offset += length)
@@ -225,6 +235,11 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
 #elif defined(FFT_INTEL)
   for (offset = 0; offset < total; offset += length)
     FFT_1D(&data[offset],&length,&flag,plan->coeff3);
+#elif defined(FFT_MKL)
+  if (flag == -1)
+    DftiComputeForward(plan->handle_slow,data);
+  else
+    DftiComputeBackward(plan->handle_slow,data);
 #elif defined(FFT_DEC)
   if (flag == -1)
     for (offset = 0; offset < total; offset += length)
@@ -271,9 +286,12 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
     num = plan->normnum;
     out_ptr = (double *)out;
     for (i = 0; i < num; i++) {
-#ifdef FFT_FFTW3
+#if defined(FFT_FFTW3)
       *(out_ptr++) *= norm;
       *(out_ptr++) *= norm;
+#elif defined(FFT_MKL)
+      out[i] *= norm;
+      out[i] *= norm;
 #else
       out[i].re *= norm;
       out[i].im *= norm;
@@ -672,6 +690,37 @@ struct fft_plan_3d *fft_3d_create_plan(
   else
     plan->scaled = 0;
 
+#elif defined(FFT_MKL)
+  DftiCreateDescriptor( &(plan->handle_fast), FFT_MKL_PREC, DFTI_COMPLEX, 1, nfast);
+  DftiSetValue(plan->handle_fast, DFTI_NUMBER_OF_TRANSFORMS, plan->total1/nfast);
+  DftiSetValue(plan->handle_fast, DFTI_PLACEMENT,DFTI_INPLACE);
+  DftiSetValue(plan->handle_fast, DFTI_INPUT_DISTANCE, nfast);
+  DftiSetValue(plan->handle_fast, DFTI_OUTPUT_DISTANCE, nfast);
+  DftiCommitDescriptor(plan->handle_fast);
+
+  DftiCreateDescriptor( &(plan->handle_mid), FFT_MKL_PREC, DFTI_COMPLEX, 1, nmid);
+  DftiSetValue(plan->handle_mid, DFTI_NUMBER_OF_TRANSFORMS, plan->total2/nmid);
+  DftiSetValue(plan->handle_mid, DFTI_PLACEMENT,DFTI_INPLACE);
+  DftiSetValue(plan->handle_mid, DFTI_INPUT_DISTANCE, nmid);
+  DftiSetValue(plan->handle_mid, DFTI_OUTPUT_DISTANCE, nmid);
+  DftiCommitDescriptor(plan->handle_mid);
+
+  DftiCreateDescriptor( &(plan->handle_slow), FFT_MKL_PREC, DFTI_COMPLEX, 1, nslow);
+  DftiSetValue(plan->handle_slow, DFTI_NUMBER_OF_TRANSFORMS, plan->total3/nslow);
+  DftiSetValue(plan->handle_slow, DFTI_PLACEMENT,DFTI_INPLACE);
+  DftiSetValue(plan->handle_slow, DFTI_INPUT_DISTANCE, nslow);
+  DftiSetValue(plan->handle_slow, DFTI_OUTPUT_DISTANCE, nslow);
+  DftiCommitDescriptor(plan->handle_slow);
+
+  if (scaled == 0)
+    plan->scaled = 0;
+  else {
+    plan->scaled = 1;
+    plan->norm = 1.0/(nfast*nmid*nslow);
+    plan->normnum = (out_ihi-out_ilo+1) * (out_jhi-out_jlo+1) *
+      (out_khi-out_klo+1);
+  }
+
 #elif defined(FFT_DEC)
 
   if (scaled == 0) {
@@ -872,6 +921,10 @@ void fft_3d_destroy_plan(struct fft_plan_3d *plan)
   free(plan->coeff1);
   free(plan->coeff2);
   free(plan->coeff3);
+#elif defined(FFT_MKL)
+  DftiFreeDescriptor(&(plan->handle_fast));
+  DftiFreeDescriptor(&(plan->handle_mid));
+  DftiFreeDescriptor(&(plan->handle_slow));
 #elif defined(FFT_T3E)
   free(plan->coeff1);
   free(plan->coeff2);
@@ -1061,6 +1114,16 @@ void fft_1d_only(FFT_DATA *data, int nsize, int flag, struct fft_plan_3d *plan)
     FFT_1D(&data[offset],&length2,&flag,plan->coeff2);
   for (offset = 0; offset < total3; offset += length3)
     FFT_1D(&data[offset],&length3,&flag,plan->coeff3);
+#elif defined(FFT_MKL)
+  if (flag == -1) {
+    DftiComputeForward(plan->handle_fast,data);
+    DftiComputeForward(plan->handle_mid,data);
+    DftiComputeForward(plan->handle_slow,data);
+  } else {
+    DftiComputeBackward(plan->handle_fast,data);
+    DftiComputeBackward(plan->handle_mid,data);
+    DftiComputeBackward(plan->handle_slow,data);
+  }
 #elif defined(FFT_DEC)
   if (flag == -1) {
     for (offset = 0; offset < total1; offset += length1)
@@ -1141,9 +1204,11 @@ void fft_1d_only(FFT_DATA *data, int nsize, int flag, struct fft_plan_3d *plan)
     num = MIN(plan->normnum,nsize);
     data_ptr = (double *)data;
     for (i = 0; i < num; i++) {
-#ifdef FFT_FFTW3
+#if defined(FFT_FFTW3)
       *(data_ptr++) *= norm;
       *(data_ptr++) *= norm;
+#elif defined(FFT_MKL)
+      data[i] *= norm;
 #else
       data[i].re *= norm;
       data[i].im *= norm;

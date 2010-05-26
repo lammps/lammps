@@ -61,6 +61,11 @@ extern "C" {
   void cfft1d_(FFT_DATA *, int *, int *, FFT_DATA *);
 }
 
+#elif defined(FFT_MKL)
+#include "mkl_dfti.h"
+typedef float _Complex FFT_DATA;
+#define FFT_MKL_PREC DFTI_SINGLE
+
 #elif defined(FFT_DEC)
 typedef struct {
   float re;
@@ -143,6 +148,11 @@ typedef struct {
 extern "C" {
   void zfft1d_(FFT_DATA *, int *, int *, FFT_DATA *);
 }
+
+#elif defined(FFT_MKL)
+#include "mkl_dfti.h"
+typedef double _Complex FFT_DATA;
+#define FFT_MKL_PREC DFTI_DOUBLE
 
 #elif defined(FFT_DEC)
 typedef struct {
@@ -228,6 +238,10 @@ struct fft_plan_3d {
   FFT_DATA *coeff1;
   FFT_DATA *coeff2;
   FFT_DATA *coeff3;
+#elif defined(FFT_MKL)
+  DFTI_DESCRIPTOR *handle_fast;
+  DFTI_DESCRIPTOR *handle_mid;
+  DFTI_DESCRIPTOR *handle_slow;
 #elif defined(FFT_T3E)
   double *coeff1;
   double *coeff2;

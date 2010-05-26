@@ -44,6 +44,9 @@ class PairTableOMP : public PairOMP {
   virtual void *extract(char *);
 
  protected:
+  template <int TABSTYLE, int EVFLAG, int EFLAG, int NEWTON_PAIR> void eval();
+
+ protected:
   int tabstyle,n,nm1;
   struct Table {
     int ninput,rflag,fpflag,match,ntablebits;

@@ -69,120 +69,200 @@ PairTableOMP::~PairTableOMP()
 
 void PairTableOMP::compute(int eflag, int vflag)
 {
-  int i,j,ii,jj,inum,jnum,itype,jtype,itable;
-  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double rsq,factor_lj,fraction,value,a,b;
-  int *ilist,*jlist,*numneigh,**firstneigh;
-  Table *tb;
-  
-  union_int_float_t rsq_lookup;
+  if (eflag || vflag) {
+    ev_setup(eflag,vflag);
+    ev_setup_thr(eflag,vflag);
+  } else evflag = vflag_fdotr = 0;
 
-  evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  switch (tabstyle) {
 
-  double **x = atom->x;
-  double **f = atom->f;
-  int *type = atom->type;
-  int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
-  double *special_lj = force->special_lj;
-  int newton_pair = force->newton_pair;
-
-  inum = list->inum;
-  ilist = list->ilist;
-  numneigh = list->numneigh;
-  firstneigh = list->firstneigh;
-  
-  // loop over neighbors of my atoms
-
-  for (ii = 0; ii < inum; ii++) {
-    i = ilist[ii];
-    xtmp = x[i][0];
-    ytmp = x[i][1];
-    ztmp = x[i][2];
-    itype = type[i];
-    jlist = firstneigh[i];
-    jnum = numneigh[i];
-
-    for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-
-      if (j < nall) factor_lj = 1.0;
-      else {
-	factor_lj = special_lj[j/nall];
-	j %= nall;
+  case LOOKUP:
+    if (evflag) {
+      if (eflag) {
+	if (force->newton_pair) return eval<LOOKUP,1,1,1>();
+	else return eval<LOOKUP,1,1,0>();
+      } else {
+	if (force->newton_pair) return eval<LOOKUP,1,0,1>();
+	else return eval<LOOKUP,1,0,0>();
       }
-      
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;
-      jtype = type[j];
-      
-      if (rsq < cutsq[itype][jtype]) {
-	tb = &tables[tabindex[itype][jtype]];
-	if (rsq < tb->innersq)
-	  error->one("Pair distance < table inner cutoff");
- 
-	if (tabstyle == LOOKUP) {
-	  itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
-	  if (itable >= nm1)
-	    error->one("Pair distance > table outer cutoff");
-	  fpair = factor_lj * tb->f[itable];
-	} else if (tabstyle == LINEAR) {
-	  itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
-	  if (itable >= nm1)
-	    error->one("Pair distance > table outer cutoff");
-	  fraction = (rsq - tb->rsq[itable]) * tb->invdelta;
-	  value = tb->f[itable] + fraction*tb->df[itable];
-	  fpair = factor_lj * value;
-	} else if (tabstyle == SPLINE) {
-	  itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
-	  if (itable >= nm1)
-	    error->one("Pair distance > table outer cutoff");
-	  b = (rsq - tb->rsq[itable]) * tb->invdelta;
-	  a = 1.0 - b;
-	  value = a * tb->f[itable] + b * tb->f[itable+1] + 
-	    ((a*a*a-a)*tb->f2[itable] + (b*b*b-b)*tb->f2[itable+1]) * 
-            tb->deltasq6;
-	  fpair = factor_lj * value;
-	} else {
-	  rsq_lookup.f = rsq;
-	  itable = rsq_lookup.i & tb->nmask;
-	  itable >>= tb->nshiftbits;
-	  fraction = (rsq_lookup.f - tb->rsq[itable]) * tb->drsq[itable];
-	  value = tb->f[itable] + fraction*tb->df[itable];
-	  fpair = factor_lj * value;
-	}
+    } else {
+      if (force->newton_pair) return eval<LOOKUP,0,0,1>();
+      else return eval<LOOKUP,0,0,0>();
+    }
+    break;
 
-	f[i][0] += delx*fpair;
-	f[i][1] += dely*fpair;
-	f[i][2] += delz*fpair;
-	if (newton_pair || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
-	}
-
-	if (eflag) {
-	  if (tabstyle == LOOKUP)
-	    evdwl = tb->e[itable];
-	  else if (tabstyle == LINEAR || tabstyle == BITMAP)
-	    evdwl = tb->e[itable] + fraction*tb->de[itable];
-	  else
-	    evdwl = a * tb->e[itable] + b * tb->e[itable+1] + 
-	      ((a*a*a-a)*tb->e2[itable] + (b*b*b-b)*tb->e2[itable+1]) * 
-	      tb->deltasq6;
-	  evdwl *= factor_lj;
-	}
-
-	if (evflag) ev_tally(i,j,nlocal,newton_pair,
-			     evdwl,0.0,fpair,delx,dely,delz);
+  case LINEAR:
+    if (evflag) {
+      if (eflag) {
+	if (force->newton_pair) return eval<LINEAR,1,1,1>();
+	else return eval<LINEAR,1,1,0>();
+      } else {
+	if (force->newton_pair) return eval<LINEAR,1,0,1>();
+	else return eval<LINEAR,1,0,0>();
       }
+    } else {
+      if (force->newton_pair) return eval<LINEAR,0,0,1>();
+      else return eval<LINEAR,0,0,0>();
+    }
+    break;
+
+  case SPLINE:
+    if (evflag) {
+      if (eflag) {
+	if (force->newton_pair) return eval<SPLINE,1,1,1>();
+	else return eval<SPLINE,1,1,0>();
+      } else {
+	if (force->newton_pair) return eval<SPLINE,1,0,1>();
+	else return eval<SPLINE,1,0,0>();
+      }
+    } else {
+      if (force->newton_pair) return eval<SPLINE,0,0,1>();
+      else return eval<SPLINE,0,0,0>();
+    }
+    break;
+    
+  case BITMAP: // fallthrough
+  default:
+    if (evflag) {
+      if (eflag) {
+	if (force->newton_pair) return eval<BITMAP,1,1,1>();
+	else return eval<BITMAP,1,1,0>();
+      } else {
+	if (force->newton_pair) return eval<BITMAP,1,0,1>();
+	else return eval<BITMAP,1,0,0>();
+      }
+    } else {
+      if (force->newton_pair) return eval<BITMAP,0,0,1>();
+      else return eval<BITMAP,0,0,0>();
     }
   }
+}
 
+template <int TABSTYLE, int EVFLAG, int EFLAG, int NEWTON_PAIR>
+void PairTableOMP::eval()
+{
+
+#if defined(_OPENMP)
+#pragma omp parallel default(shared)
+#endif
+  {
+    int i,j,ii,jj,inum,jnum,itype,jtype,itable,tid;
+    double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
+    double rsq,factor_lj,fraction,value,a,b;
+    int *ilist,*jlist,*numneigh,**firstneigh;
+    Table *tb;
+  
+    union_int_float_t rsq_lookup;
+
+    int nlocal = atom->nlocal;
+    int nall = nlocal + atom->nghost;
+    int nthreads = comm->nthreads;
+
+    double **x = atom->x;
+    double **f = atom->f;
+    int *type = atom->type;
+    double *special_lj = force->special_lj;
+
+    inum = list->inum;
+    ilist = list->ilist;
+    numneigh = list->numneigh;
+    firstneigh = list->firstneigh;
+  
+    // loop over neighbors of my atoms
+
+    int iifrom, iito;
+    f = loop_setup_thr(f, iifrom, iito, tid, inum, nall, nthreads);
+    for (ii = iifrom; ii < iito; ++ii) {
+
+      i = ilist[ii];
+      xtmp = x[i][0];
+      ytmp = x[i][1];
+      ztmp = x[i][2];
+      itype = type[i];
+      jlist = firstneigh[i];
+      jnum = numneigh[i];
+
+      for (jj = 0; jj < jnum; jj++) {
+	j = jlist[jj];
+
+	if (j < nall) factor_lj = 1.0;
+	else {
+	  factor_lj = special_lj[j/nall];
+	  j %= nall;
+	}
+      
+	delx = xtmp - x[j][0];
+	dely = ytmp - x[j][1];
+	delz = ztmp - x[j][2];
+	rsq = delx*delx + dely*dely + delz*delz;
+	jtype = type[j];
+      
+	if (rsq < cutsq[itype][jtype]) {
+	  tb = &tables[tabindex[itype][jtype]];
+	  if (rsq < tb->innersq)
+	    error->one("Pair distance < table inner cutoff");
+ 
+	  if (TABSTYLE == LOOKUP) {
+	    itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
+	    if (itable >= nm1)
+	      error->one("Pair distance > table outer cutoff");
+	    fpair = factor_lj * tb->f[itable];
+	  } else if (TABSTYLE == LINEAR) {
+	    itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
+	    if (itable >= nm1)
+	      error->one("Pair distance > table outer cutoff");
+	    fraction = (rsq - tb->rsq[itable]) * tb->invdelta;
+	    value = tb->f[itable] + fraction*tb->df[itable];
+	    fpair = factor_lj * value;
+	  } else if (TABSTYLE == SPLINE) {
+	    itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
+	    if (itable >= nm1)
+	      error->one("Pair distance > table outer cutoff");
+	    b = (rsq - tb->rsq[itable]) * tb->invdelta;
+	    a = 1.0 - b;
+	    value = a * tb->f[itable] + b * tb->f[itable+1] + 
+	      ((a*a*a-a)*tb->f2[itable] + (b*b*b-b)*tb->f2[itable+1]) * 
+	      tb->deltasq6;
+	    fpair = factor_lj * value;
+	  } else {
+	    rsq_lookup.f = rsq;
+	    itable = rsq_lookup.i & tb->nmask;
+	    itable >>= tb->nshiftbits;
+	    fraction = (rsq_lookup.f - tb->rsq[itable]) * tb->drsq[itable];
+	    value = tb->f[itable] + fraction*tb->df[itable];
+	    fpair = factor_lj * value;
+	  }
+
+	  f[i][0] += delx*fpair;
+	  f[i][1] += dely*fpair;
+	  f[i][2] += delz*fpair;
+	  if (NEWTON_PAIR || j < nlocal) {
+	    f[j][0] -= delx*fpair;
+	    f[j][1] -= dely*fpair;
+	    f[j][2] -= delz*fpair;
+	  }
+
+	  if (EFLAG) {
+	    if (TABSTYLE == LOOKUP)
+	      evdwl = tb->e[itable];
+	    else if (TABSTYLE == LINEAR || TABSTYLE == BITMAP)
+	      evdwl = tb->e[itable] + fraction*tb->de[itable];
+	    else
+	      evdwl = a * tb->e[itable] + b * tb->e[itable+1] + 
+		((a*a*a-a)*tb->e2[itable] + (b*b*b-b)*tb->e2[itable+1]) * 
+		tb->deltasq6;
+	    evdwl *= factor_lj;
+	  }
+
+	  if (EVFLAG) ev_tally_thr(i,j,nlocal,NEWTON_PAIR,
+				   evdwl,0.0,fpair,delx,dely,delz,tid);
+	}
+      }
+    }
+    // reduce per thread forces into global force array.
+    force_reduce_thr(atom->f, nall, nthreads, tid);
+  }
+  ev_reduce_thr();
   if (vflag_fdotr) virial_compute();
 }
 

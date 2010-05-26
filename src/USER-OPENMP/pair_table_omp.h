@@ -28,18 +28,22 @@ class PairTableOMP : public PairOMP {
  public:
   PairTableOMP(class LAMMPS *);
   ~PairTableOMP();
-  void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  double init_one(int, int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
-  double single(int, int, int, int, double, double, double, double &);
-  void *extract(char *);
 
- private:
+  virtual void compute(int, int);
+  virtual double single(int, int, int, int, double, double, double, double &);
+
+  virtual void settings(int, char **);
+  virtual void coeff(int, char **);
+
+  virtual double init_one(int, int);
+
+  virtual void write_restart(FILE *);
+  virtual void read_restart(FILE *);
+  virtual void write_restart_settings(FILE *);
+  virtual void read_restart_settings(FILE *);
+  virtual void *extract(char *);
+
+ protected:
   int tabstyle,n,nm1;
   struct Table {
     int ninput,rflag,fpflag,match,ntablebits;

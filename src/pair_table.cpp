@@ -290,8 +290,7 @@ void PairTable::coeff(int narg, char **arg)
   tb->match = 0;
   if (tabstyle == LINEAR && tb->ninput == n && 
       tb->rflag == RSQ && tb->rhi == tb->cut) tb->match = 1;
-  if (tabstyle == SPLINE && tb->ninput == n && 
-      tb->rflag == RSQ && tb->rhi == tb->cut) tb->match = 1;
+  // for tabstyle == SPLINE we always need to build spline tables.
   if (tabstyle == BITMAP && tb->ninput == 1 << n && 
       tb->rflag == BMP && tb->rhi == tb->cut) tb->match = 1;
 

@@ -6,11 +6,11 @@ SHELL = /bin/sh
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-CC =		g++4
-CCFLAGS =	-O -Wall -W -O2 -funroll-loops -fstrict-aliasing
+CC =		g++
+CCFLAGS =	-O0 -g -Wall -W -fstrict-aliasing
 DEPFLAGS =	-M
-LINK =		g++4
-LINKFLAGS =	-O
+LINK =		g++
+LINKFLAGS =	-O0 -g
 LIB =           
 ARCHIVE =	ar
 ARFLAGS =	-rcsv

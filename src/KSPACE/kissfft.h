@@ -17,6 +17,7 @@
 #define LMP_FFT_KISSFFT
 
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 
 #if defined(_OPENMP)

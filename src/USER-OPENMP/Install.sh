@@ -29,6 +29,16 @@ if (test $1 = 1) then
   cp pair_lj_charmm_coul_charmm_omp.h ..
   cp pair_lj_charmm_coul_charmm_implicit_omp.cpp ..
   cp pair_lj_charmm_coul_charmm_implicit_omp.h ..
+  cp pair_buck_coul_cut_omp.cpp ..
+  cp pair_buck_coul_cut_omp.h ..
+  cp pair_buck_coul_long_omp.cpp ..
+  cp pair_buck_coul_long_omp.h ..
+  cp pair_coul_debye_omp.cpp ..
+  cp pair_coul_debye_omp.h ..
+  cp pair_coul_diel_omp.cpp ..
+  cp pair_coul_diel_omp.h ..
+  cp pair_coul_long_omp.cpp ..
+  cp pair_coul_long_omp.h ..
 
   cp pair_omp.cpp ..
   cp pair_lj_cut_omp.cpp ..
@@ -74,7 +84,17 @@ elif (test $1 = 0) then
   rm ../pair_lj_charmm_coul_charmm_omp.cpp 
   rm ../pair_lj_charmm_coul_charmm_omp.h 
   rm ../pair_lj_charmm_coul_charmm_implicit_omp.cpp 
-  rm ../pair_lj_charmm_coul_charmm_implicit_omp.h 
+  rm ../pair_lj_charmm_coul_charmm_implicit_omp.h
+  rm ../pair_buck_coul_cut_omp.cpp
+  rm ../pair_buck_coul_cut_omp.h
+  rm ../pair_buck_coul_long_omp.cpp
+  rm ../pair_buck_coul_long_omp.h
+  rm ../pair_coul_debye_omp.cpp
+  rm ../pair_coul_debye_omp.h
+  rm ../pair_coul_diel_omp.cpp
+  rm ../pair_coul_diel_omp.h
+  rm ../pair_coul_long_omp.cpp 
+  rm ../pair_coul_long_omp.h
 
   rm ../pair_omp.h
   rm ../pair_lj_cut_omp.h

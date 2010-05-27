@@ -370,11 +370,9 @@ void PairTableOMP::coeff(int narg, char **arg)
   tb->match = 0;
   if (tabstyle == LINEAR && tb->ninput == n && 
       tb->rflag == RSQ && tb->rhi == tb->cut) tb->match = 1;
-  if (tabstyle == SPLINE && tb->ninput == n && 
-      tb->rflag == RSQ && tb->rhi == tb->cut) tb->match = 1;
   if (tabstyle == BITMAP && tb->ninput == 1 << n && 
       tb->rflag == BMP && tb->rhi == tb->cut) tb->match = 1;
-
+  // for tabstyle == SPLINE we always need to build spline tables.
   if (tb->rflag == BMP && tb->match == 0)
     error->all("Bitmapped table in file does not match requested table");
 
@@ -921,7 +919,7 @@ void PairTableOMP::spline(double *x, double *y, int n,
 
 double PairTableOMP::splint(double *xa, double *ya, double *y2a, int n, double x)
 {
-  int klo,khi,k;
+  unsigned int klo,khi,k;
   double h,b,a,y;
 
   klo = 0;
@@ -931,6 +929,7 @@ double PairTableOMP::splint(double *xa, double *ya, double *y2a, int n, double x
     if (xa[k] > x) khi = k;
     else klo = k;
   }
+  
   h = xa[khi]-xa[klo];
   a = (xa[khi]-x) / h;
   b = (x-xa[klo]) / h;

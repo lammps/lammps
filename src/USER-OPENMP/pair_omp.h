@@ -44,7 +44,6 @@ class PairOMP : public Pair {
   virtual double memory_usage();
 
  protected:
-
   // set loop range for, thread id, and force array offset for threaded runs.
   double **loop_setup_thr(double **f, int &ifrom, int &ito, int &tid,
 			  const int inum, const int nall, const int nthreads)
@@ -78,6 +77,8 @@ class PairOMP : public Pair {
   void ev_reduce_thr();
   void ev_tally_thr(int, int, int, int, double, double, double,
 		    double, double, double, int);
+  void ev_tally3_thr(int, int, int, double, double,
+		     double *, double *, double *, double *, int);
 
   // reduce per thread forces into the first part of the force
   // array that is used for the non-threaded parts and reset

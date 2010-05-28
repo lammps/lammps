@@ -193,6 +193,12 @@ pair_lj_cut_omp.cpp
 pair_lj_cut_omp.h
 pair_lj_cut_opt.cpp
 pair_lj_cut_opt.h
+pair_lj_expand_omp.cpp
+pair_lj_expand_omp.h
+pair_lj_gromacs_omp.cpp
+pair_lj_gromacs_omp.h
+pair_lj_gromacs_coul_gromacs_omp.cpp
+pair_lj_gromacs_coul_gromacs_omp.h
 pair_lj_smooth_omp.cpp
 pair_lj_smooth_omp.h
 pair_lj96_cut_omp.cpp

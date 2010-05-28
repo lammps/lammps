@@ -65,8 +65,8 @@ class PairSWOMP : public PairOMP {
   template <int EVFLAG, int EFLAG, int NEWTON_PAIR> void eval();
 /* ---------------------------------------------------------------------- */
 
-  void twobody(Param *param, const double rsq, double &fforce,
-	       const int eflag, double &eng)
+  template <int EFLAG>
+  void twobody(const Param *param, const double rsq, double &fforce, double &eng)
   {
     double r,rinvsq,rp,rq,rainv,rainvsq,expsrainv;
 
@@ -79,15 +79,15 @@ class PairSWOMP : public PairOMP {
     expsrainv = exp(param->sigma * rainv);
     fforce = (param->c1*rp - param->c2*rq +
 	      (param->c3*rp -param->c4*rq) * rainvsq) * expsrainv * rinvsq;
-    if (eflag) eng = (param->c5*rp - param->c6*rq) * expsrainv;
+    if (EFLAG) eng = (param->c5*rp - param->c6*rq) * expsrainv;
 };
 
 /* ---------------------------------------------------------------------- */
-
-  void threebody(Param *paramij, Param *paramik, Param *paramijk,
+  template <int EFLAG>
+  void threebody(const Param *paramij, const Param *paramik, const Param *paramijk, 
 		 const double rsq1, const double rsq2,
-		 double *delr1, double *delr2,
-		 double *fj, double *fk, const int eflag, double &eng)
+		 double *delr1, double *delr2, 
+		 double *fj, double *fk, double &eng)
     {
       double r1,rinvsq1,rainv1,gsrainv1,gsrainvsq1,expgsrainv1;
       double r2,rinvsq2,rainv2,gsrainv2,gsrainvsq2,expgsrainv2;
@@ -136,7 +136,7 @@ class PairSWOMP : public PairOMP {
       fk[1] = delr2[1]*(frad2+csfac2)-delr1[1]*facang12;
       fk[2] = delr2[2]*(frad2+csfac2)-delr1[2]*facang12;
 
-      if (eflag) eng = facrad;
+      if (EFLAG) eng = facrad;
     };
 };
 

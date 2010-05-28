@@ -165,7 +165,10 @@ void PairSWOMP::eval()
 	ijparam = elem2param[itype][jtype][jtype];
 	if (rsq > params[ijparam].cutsq) continue;
 
-	twobody(&params[ijparam],rsq,fpair,EFLAG,evdwl);
+	if (EFLAG)
+	  twobody<1>(&params[ijparam],rsq,fpair,evdwl);
+	else
+	  twobody<0>(&params[ijparam],rsq,fpair,evdwl);
 
 	f[i][0] += delx*fpair;
 	f[i][1] += dely*fpair;
@@ -174,8 +177,8 @@ void PairSWOMP::eval()
 	f[j][1] -= dely*fpair;
 	f[j][2] -= delz*fpair;
 
-	if (EVFLAG) ev_tally(i,j,nlocal,NEWTON_PAIR,
-			     evdwl,0.0,fpair,delx,dely,delz);
+	if (EVFLAG) ev_tally_thr(i,j,nlocal,NEWTON_PAIR,
+				 evdwl,0.0,fpair,delx,dely,delz,tid);
       }
 
       jnumm1 = jnum - 1;
@@ -204,8 +207,12 @@ void PairSWOMP::eval()
 	  rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
 	  if (rsq2 > params[ikparam].cutsq) continue;
 
-	  threebody(&params[ijparam],&params[ikparam],&params[ijkparam],
-		    rsq1,rsq2,delr1,delr2,fj,fk,EFLAG,evdwl);
+	  if (EFLAG)
+	    threebody<1>(&params[ijparam],&params[ikparam],&params[ijkparam],
+			 rsq1,rsq2,delr1,delr2,fj,fk,evdwl);
+	  else
+	    threebody<0>(&params[ijparam],&params[ikparam],&params[ijkparam],
+			 rsq1,rsq2,delr1,delr2,fj,fk,evdwl);
 
 	  f[i][0] -= fj[0] + fk[0];
 	  f[i][1] -= fj[1] + fk[1];

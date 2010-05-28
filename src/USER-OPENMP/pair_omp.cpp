@@ -240,6 +240,91 @@ void PairOMP::ev_tally3_thr(int i, int j, int k, double evdwl, double ecoul,
 }
 
 /* ----------------------------------------------------------------------
+   tally virial into per-atom accumulators
+   called by AIREBO potential, newton_pair is always on
+   fpair is magnitude of force on atom I
+------------------------------------------------------------------------- */
+
+void PairOMP::v_tally2_thr(int i, int j, double fpair, double *drij, int tid)
+{
+  double v[6];
+
+  v[0] = 0.5 * drij[0]*drij[0]*fpair;
+  v[1] = 0.5 * drij[1]*drij[1]*fpair;
+  v[2] = 0.5 * drij[2]*drij[2]*fpair;
+  v[3] = 0.5 * drij[0]*drij[1]*fpair;
+  v[4] = 0.5 * drij[0]*drij[2]*fpair;
+  v[5] = 0.5 * drij[1]*drij[2]*fpair;
+
+  vatom_thr[tid][i][0] += v[0]; vatom_thr[tid][i][1] += v[1];
+  vatom_thr[tid][i][2] += v[2]; vatom_thr[tid][i][3] += v[3];
+  vatom_thr[tid][i][4] += v[4]; vatom_thr[tid][i][5] += v[5];
+  vatom_thr[tid][j][0] += v[0]; vatom_thr[tid][j][1] += v[1];
+  vatom_thr[tid][j][2] += v[2]; vatom_thr[tid][j][3] += v[3];
+  vatom_thr[tid][j][4] += v[4]; vatom_thr[tid][j][5] += v[5];
+}
+
+/* ----------------------------------------------------------------------
+   tally virial into per-atom accumulators
+   called by AIREBO and Tersoff potential, newton_pair is always on
+------------------------------------------------------------------------- */
+
+void PairOMP::v_tally3_thr(int i, int j, int k, double *fi, double *fj,
+                           double *drik, double *drjk, int tid)
+{
+  double v[6];
+
+  v[0] = THIRD * (drik[0]*fi[0] + drjk[0]*fj[0]);
+  v[1] = THIRD * (drik[1]*fi[1] + drjk[1]*fj[1]);
+  v[2] = THIRD * (drik[2]*fi[2] + drjk[2]*fj[2]);
+  v[3] = THIRD * (drik[0]*fi[1] + drjk[0]*fj[1]);
+  v[4] = THIRD * (drik[0]*fi[2] + drjk[0]*fj[2]);
+  v[5] = THIRD * (drik[1]*fi[2] + drjk[1]*fj[2]);
+
+  vatom_thr[tid][i][0] += v[0]; vatom_thr[tid][i][1] += v[1];
+  vatom_thr[tid][i][2] += v[2]; vatom_thr[tid][i][3] += v[3];
+  vatom_thr[tid][i][4] += v[4]; vatom_thr[tid][i][5] += v[5];
+  vatom_thr[tid][j][0] += v[0]; vatom_thr[tid][j][1] += v[1];
+  vatom_thr[tid][j][2] += v[2]; vatom_thr[tid][j][3] += v[3];
+  vatom_thr[tid][j][4] += v[4]; vatom_thr[tid][j][5] += v[5];
+  vatom_thr[tid][k][0] += v[0]; vatom_thr[tid][k][1] += v[1];
+  vatom_thr[tid][k][2] += v[2]; vatom_thr[tid][k][3] += v[3];
+  vatom_thr[tid][k][4] += v[4]; vatom_thr[tid][k][5] += v[5];
+}
+
+/* ----------------------------------------------------------------------
+   tally virial into per-atom accumulators
+   called by AIREBO potential, newton_pair is always on
+------------------------------------------------------------------------- */
+
+void PairOMP::v_tally4_thr(int i, int j, int k, int m,
+                           double *fi, double *fj, double *fk,
+                           double *drim, double *drjm, double *drkm, int tid)
+{
+  double v[6];
+
+  v[0] = 0.25 * (drim[0]*fi[0] + drjm[0]*fj[0] + drkm[0]*fk[0]);
+  v[1] = 0.25 * (drim[1]*fi[1] + drjm[1]*fj[1] + drkm[1]*fk[1]);
+  v[2] = 0.25 * (drim[2]*fi[2] + drjm[2]*fj[2] + drkm[2]*fk[2]);
+  v[3] = 0.25 * (drim[0]*fi[1] + drjm[0]*fj[1] + drkm[0]*fk[1]);
+  v[4] = 0.25 * (drim[0]*fi[2] + drjm[0]*fj[2] + drkm[0]*fk[2]);
+  v[5] = 0.25 * (drim[1]*fi[2] + drjm[1]*fj[2] + drkm[1]*fk[2]);
+
+  vatom_thr[tid][i][0] += v[0]; vatom_thr[tid][i][1] += v[1];
+  vatom_thr[tid][i][2] += v[2]; vatom_thr[tid][i][3] += v[3];
+  vatom_thr[tid][i][4] += v[4]; vatom_thr[tid][i][5] += v[5];
+  vatom_thr[tid][j][0] += v[0]; vatom_thr[tid][j][1] += v[1];
+  vatom_thr[tid][j][2] += v[2]; vatom_thr[tid][j][3] += v[3];
+  vatom_thr[tid][j][4] += v[4]; vatom_thr[tid][j][5] += v[5];
+  vatom_thr[tid][k][0] += v[0]; vatom_thr[tid][k][1] += v[1];
+  vatom_thr[tid][k][2] += v[2]; vatom_thr[tid][k][3] += v[3];
+  vatom_thr[tid][k][4] += v[4]; vatom_thr[tid][k][5] += v[5];
+  vatom_thr[tid][m][0] += v[0]; vatom_thr[tid][m][1] += v[1];
+  vatom_thr[tid][m][2] += v[2]; vatom_thr[tid][m][3] += v[3];
+  vatom_thr[tid][m][4] += v[4]; vatom_thr[tid][m][5] += v[5];
+}
+
+/* ----------------------------------------------------------------------
    reduce the per thread accumulated E/V data into the canonical accumulators.
 ------------------------------------------------------------------------- */
 void PairOMP::ev_reduce_thr()

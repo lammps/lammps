@@ -1590,7 +1590,8 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
    customize by adding a group function with optional region arg:
      count(group),mass(group),charge(group),
      xcm(group,dim),vcm(group,dim),fcm(group,dim),
-     bound(group,xmin),gyration(group),ke(group),angmom(group)
+     bound(group,xmin),gyration(group),ke(group),angmom(group),
+     inertia(group,dim),omega(group,dim)
 ------------------------------------------------------------------------- */
 
 int Variable::group_function(char *word, char *contents, Tree **tree,
@@ -1748,6 +1749,48 @@ int Variable::group_function(char *word, char *contents, Tree **tree,
     if (strcmp(arg2,"x") == 0) value = lmom[0];
     else if (strcmp(arg2,"y") == 0) value = lmom[1];
     else if (strcmp(arg2,"z") == 0) value = lmom[2];
+    else error->all("Invalid group function in variable formula");
+
+  } else if (strcmp(word,"inertia") == 0) {
+    atom->check_mass();
+    double xcm[3],inertia[3][3];
+    if (narg == 2) {
+      double masstotal = group->mass(igroup);
+      group->xcm(igroup,masstotal,xcm);
+      group->inertia(igroup,xcm,inertia);
+    } else if (narg == 3) {
+      int iregion = region_function(arg3);
+      double masstotal = group->mass(igroup,iregion);
+      group->xcm(igroup,masstotal,xcm,iregion);
+      group->inertia(igroup,xcm,inertia,iregion);
+    } else error->all("Invalid group function in variable formula");
+    if (strcmp(arg2,"xx") == 0) value = inertia[0][0];
+    else if (strcmp(arg2,"yy") == 0) value = inertia[1][1];
+    else if (strcmp(arg2,"xy") == 0) value = inertia[0][1];
+    else if (strcmp(arg2,"yz") == 0) value = inertia[1][2];
+    else if (strcmp(arg2,"xz") == 0) value = inertia[0][2];
+    else error->all("Invalid group function in variable formula");
+
+  } else if (strcmp(word,"omega") == 0) {
+    atom->check_mass();
+    double xcm[3],angmom[3],inertia[3][3],omega[3];
+    if (narg == 2) {
+      double masstotal = group->mass(igroup);
+      group->xcm(igroup,masstotal,xcm);
+      group->angmom(igroup,xcm,angmom);
+      group->inertia(igroup,xcm,inertia);
+      group->omega(angmom,inertia,omega);
+    } else if (narg == 3) {
+      int iregion = region_function(arg3);
+      double masstotal = group->mass(igroup,iregion);
+      group->xcm(igroup,masstotal,xcm,iregion);
+      group->angmom(igroup,xcm,angmom,iregion);
+      group->inertia(igroup,xcm,inertia,iregion);
+      group->omega(angmom,inertia,omega);
+    } else error->all("Invalid group function in variable formula");
+    if (strcmp(arg2,"x") == 0) value = omega[0];
+    else if (strcmp(arg2,"y") == 0) value = omega[1];
+    else if (strcmp(arg2,"x") == 0) value = omega[2];
     else error->all("Invalid group function in variable formula");
 
   } else return 0;

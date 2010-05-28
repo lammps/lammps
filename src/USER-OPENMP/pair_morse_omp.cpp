@@ -93,7 +93,6 @@ void PairMorseOMP::eval()
       double **f = atom->f;
       int *type = atom->type;
       double *special_lj = force->special_lj;
-      int newton_pair = force->newton_pair;
 
       inum = list->inum;
       ilist = list->ilist;
@@ -148,7 +147,7 @@ void PairMorseOMP::eval()
 	  evdwl *= factor_lj;
 	}
 
-	if (EVFLAG) ev_tally(i,j,nlocal,newton_pair,evdwl,0.0,fpair,delx,dely,delz);
+	if (EVFLAG) ev_tally(i,j,nlocal,NEWTON_PAIR,evdwl,0.0,fpair,delx,dely,delz);
       }
     }
       // reduce per thread forces into global force array.

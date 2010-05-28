@@ -104,7 +104,6 @@ void PairGaussCutOMP::eval()
     double **f = atom->f;
     int *type = atom->type;
     double *special_lj = force->special_lj;
-    int newton_pair = force->newton_pair;
 
     inum = list->inum;
     ilist = list->ilist;

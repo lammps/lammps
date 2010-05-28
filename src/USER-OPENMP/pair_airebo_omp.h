@@ -97,10 +97,10 @@ class PairAIREBOOMP : public PairOMP {
   void TORSION(int, int);
 
   template <int VFLAG_ATOM>
-  double bondorder(int, int, double *, double, double, double **);
+  double bondorder(int, int, double *, double, double, double **, int);
   template <int VFLAG_ATOM>
   double bondorderLJ(int, int, double *, double, double,
-		     double *, double, double **);
+		     double *, double, double **, int);
 
   // ----------------------------------------------------------------------
   // S'(t) and S(t) cutoff functions

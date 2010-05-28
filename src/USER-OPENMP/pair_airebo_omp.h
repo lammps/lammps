@@ -22,6 +22,12 @@ PairStyle(airebo/omp,PairAIREBOOMP)
 
 #include "pair_omp.h"
 
+#include <math.h>
+
+#ifndef M_PI
+#define M_PI 3.141592653589793238462643383279502884197169399375105820974944
+#endif
+
 namespace LAMMPS_NS {
 
 class PairAIREBOOMP : public PairOMP {
@@ -85,28 +91,107 @@ class PairAIREBOOMP : public PairOMP {
   double Tf[5][5][10],Tdfdx[5][5][10],Tdfdy[5][5][10],Tdfdz[5][5][10];
 
   void REBO_neigh();
-  template <int EVFLAG, int EFLAG, int NEWTON_PAIR> void FREBO();
-  void FLJ(int, int);
+
+  template <int EVFLAG, int EFLAG, int VFLAG_ATOM, int NEWTON_PAIR> void FREBO();
+  template <int EVFLAG, int EFLAG, int VFLAG_ATOM, int NEWTON_PAIR> void FLJ();
   void TORSION(int, int);
 
-  double bondorder(int, int, double *, double, double, double **, int);
+  template <int VFLAG_ATOM>
+  double bondorder(int, int, double *, double, double, double **);
+  template <int VFLAG_ATOM>
   double bondorderLJ(int, int, double *, double, double,
-		     double *, double, double **, int);
+		     double *, double, double **);
 
-  double Sp(double, double, double, double &);
-  double Sp2(double, double, double, double &);
+  // ----------------------------------------------------------------------
+  // S'(t) and S(t) cutoff functions
+  // ----------------------------------------------------------------------
+
+  /* ----------------------------------------------------------------------
+     cutoff function Sprime
+     return cutoff and dX = derivative
+  ------------------------------------------------------------------------- */
+
+  double Sp(double Xij, double Xmin, double Xmax, double &dX) const
+    {
+      double cutoff;
+      
+      double t = (Xij-Xmin) / (Xmax-Xmin);
+      if (t <= 0.0) {
+	cutoff = 1.0;
+	dX = 0.0;
+      } 
+      else if (t >= 1.0) {
+	cutoff = 0.0;
+	dX = 0.0;
+      } 
+      else {
+	cutoff = 0.5 * (1.0+cos(M_PI*t));
+	dX = (-0.5*M_PI*sin(M_PI*t)) / (Xmax-Xmin);
+      }
+      return cutoff;
+    };
+
+/* ----------------------------------------------------------------------
+   LJ cutoff function Sp2
+   return cutoff and dX = derivative
+------------------------------------------------------------------------- */
+
+  double Sp2(double Xij, double Xmin, double Xmax, double &dX) const
+    {
+      double cutoff;
+
+      double t = (Xij-Xmin) / (Xmax-Xmin);
+      if (t <= 0.0) {
+	cutoff = 1.0;
+	dX = 0.0;
+      }
+      if (t >= 1.0) {
+	cutoff = 0.0;
+	dX = 0.0;
+      } 
+      if (t>0.0 && t<1.0) {
+	cutoff = (1.0-(t*t*(3.0-2.0*t)));
+	dX = 6.0*(t*t-t) / (Xmax-Xmin);
+      }
+      return cutoff;
+    };
+
+/* ----------------------------------------------------------------------
+   fifth order spline evaluation
+------------------------------------------------------------------------- */
+
+  double Sp5th(double x, double coeffs[6], double *df) const
+    {
+      double f;
+      int i;
+      i = 0;
+      f = 0.0;
+      *df = 0.0;
+
+      for (i = 0; i<6; i++) {
+	f += coeffs[i]*pow(x,((double) i));
+	if (i > 0) *df += coeffs[i]*((double) i)*pow(x,((double) i-1.0));
+      }
+
+      return f;
+    }
+
 
   double gSpline(double, double, int, double *, double *);
   double PijSpline(double, double, int, int, double *);
   double piRCSpline(double, double, double, int, int, double *);
   double TijSpline(double, double, double, double *);
 
-  double kronecker(int, int);
+/* ----------------------------------------------------------------------
+   Kronecker delta function
+------------------------------------------------------------------------- */
+
+  double kronecker(const int a, const int b) const
+    { return (a == b) ? 1.0 : 0.0; };
 
   void add_pages(int);
   void read_file(char *);
 
-  double Sp5th(double, double *, double *);
   double Spbicubic(double, double, double *, double *);
   double Sptricubic(double, double, double, double *, double *);
   void spline_init();

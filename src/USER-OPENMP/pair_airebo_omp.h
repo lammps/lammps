@@ -35,7 +35,7 @@ class PairAIREBOOMP : public PairOMP {
   double init_one(int, int);
   double memory_usage();
 
- private:
+ protected:
   int me;
   int ljflag,torflag;              // 0/1 if LJ,torsion terms included
   int maxlocal;                    // size of numneigh, firstneigh arrays
@@ -85,7 +85,7 @@ class PairAIREBOOMP : public PairOMP {
   double Tf[5][5][10],Tdfdx[5][5][10],Tdfdy[5][5][10],Tdfdz[5][5][10];
 
   void REBO_neigh();
-  void FREBO(int, int);
+  template <int EVFLAG, int EFLAG, int NEWTON_PAIR> void FREBO();
   void FLJ(int, int);
   void TORSION(int, int);
 

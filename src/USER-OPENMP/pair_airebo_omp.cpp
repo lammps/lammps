@@ -89,11 +89,22 @@ PairAIREBOOMP::~PairAIREBOOMP()
 
 void PairAIREBOOMP::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  if (eflag || vflag) {
+    ev_setup(eflag,vflag);
+    ev_setup_thr(eflag,vflag);
+  } else evflag = vflag_fdotr = 0;
 
   REBO_neigh();
-  FREBO(eflag,vflag);
+
+  // NOTE: newton_pair is always "on" for sw.
+  if (evflag) {
+    if (eflag)
+      FREBO<1,1,1>();
+    else 
+      FREBO<1,0,1>();
+  } else 
+      FREBO<0,0,1>();
+  
   if (ljflag) FLJ(eflag,vflag);
   if (torflag) TORSION(eflag,vflag);
   
@@ -463,8 +474,8 @@ void PairAIREBOOMP::REBO_neigh()
 /* ----------------------------------------------------------------------
    REBO forces and energy
 ------------------------------------------------------------------------- */
-
-void PairAIREBOOMP::FREBO(int eflag, int vflag)
+template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
+void PairAIREBOOMP::FREBO()
 {
   int i,j,k,m,ii,inum,itype,jtype;
   double delx,dely,delz,evdwl,fpair;
@@ -480,7 +491,6 @@ void PairAIREBOOMP::FREBO(int eflag, int vflag)
   int *type = atom->type;
   int *tag = atom->tag;
   int nlocal = atom->nlocal;
-  int newton_pair = force->newton_pair;
 
   inum = list->inum;
   ilist = list->ilist;
@@ -535,8 +545,8 @@ void PairAIREBOOMP::FREBO(int eflag, int vflag)
       f[j][1] -= dely*fpair;
       f[j][2] -= delz*fpair;
 
-      if (eflag) evdwl = VR + bij*VA;
-      if (evflag) ev_tally(i,j,nlocal,newton_pair,
+      if (EFLAG) evdwl = VR + bij*VA;
+      if (EVFLAG) ev_tally(i,j,nlocal,NEWTON_PAIR,
 			   evdwl,0.0,fpair,delx,dely,delz);
     }
   }

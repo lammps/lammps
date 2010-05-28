@@ -183,6 +183,8 @@ pair_lj_cut_coul_debye_omp.cpp
 pair_lj_cut_coul_debye_omp.h
 pair_lj_cut_coul_long.cpp
 pair_lj_cut_coul_long.h
+pair_lj_cut_coul_long_omp.cpp
+pair_lj_cut_coul_long_omp.h
 pair_lj_cut_coul_long_tip4p.cpp
 pair_lj_cut_coul_long_tip4p.h
 pair_lj_cut_gpu.cpp

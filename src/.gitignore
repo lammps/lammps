@@ -103,6 +103,8 @@ kissfft.h
 lmp_*
 pair_airebo.cpp
 pair_airebo.h
+pair_airebo_omp.cpp
+pair_airebo_omp.h
 pair_born_coul_long.cpp
 pair_born_coul_long.h
 pair_born_coul_long_omp.cpp
@@ -205,6 +207,8 @@ pair_soft_omp.cpp
 pair_soft_omp.h
 pair_sw.cpp
 pair_sw.h
+pair_sw_omp.cpp
+pair_sw_omp.h
 pair_table_omp.cpp
 pair_table_omp.h
 pair_tersoff.cpp

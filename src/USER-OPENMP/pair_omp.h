@@ -79,6 +79,8 @@ class PairOMP : public Pair {
 		    double, double, double, int);
   void ev_tally3_thr(int, int, int, double, double,
 		     double *, double *, double *, double *, int);
+  void ev_tally4_thr(int, int, int, int, double,
+		     double *, double *, double *, double *, double *, double *, int);
   void v_tally2_thr(int, int, double, double *, int);
   void v_tally3_thr(int, int, int, double *, double *, double *, double *, int);
   void v_tally4_thr(int, int, int, int, double *, double *, double *,

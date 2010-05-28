@@ -1,0 +1,116 @@
+LAMMPS (29 May 2010-ICMS)
+# Parallel replica dynamics model for a single vacancy in bulk Si
+# events occur when a neighboring atom diffuses to the vacant site
+# run this on multiple partitions as
+#   mpirun -np 4 lmp_g++ -partition 4x1 -in in.prd
+
+units           metal
+
+atom_style      atomic
+atom_modify     map array
+boundary        p p p
+atom_modify	sort 0 0.0
+
+# temperature
+
+variable t equal 1800.0
+
+# coordination number cutoff
+
+variable r equal 2.835
+
+# minimization parameters
+
+variable etol equal 1.0e-5
+variable ftol equal 1.0e-5
+variable maxiter equal 100
+variable maxeval equal 100
+variable dmax equal 1.0e-1
+
+# diamond unit cell
+
+variable a equal 5.431
+lattice         custom $a                               a1 1.0 0.0 0.0                          a2 0.0 1.0 0.0                          a3 0.0 0.0 1.0                          basis 0.0 0.0 0.0                       basis 0.0 0.5 0.5                       basis 0.5 0.0 0.5                       basis 0.5 0.5 0.0                       basis 0.25 0.25 0.25                    basis 0.25 0.75 0.75                    basis 0.75 0.25 0.75                    basis 0.75 0.75 0.25
+lattice         custom 5.431                               a1 1.0 0.0 0.0                          a2 0.0 1.0 0.0                          a3 0.0 0.0 1.0                          basis 0.0 0.0 0.0                       basis 0.0 0.5 0.5                       basis 0.5 0.0 0.5                       basis 0.5 0.5 0.0                       basis 0.25 0.25 0.25                    basis 0.25 0.75 0.75                    basis 0.75 0.25 0.75                    basis 0.75 0.75 0.25
+Lattice spacing in x,y,z = 5.431 5.431 5.431
+
+region          myreg block     0 4                                 0 4                                 0 4
+create_box      1 myreg
+Created orthogonal box = (0 0 0) to (21.724 21.724 21.724)
+  2 by 2 by 2 processor grid
+  using 2 OpenMP thread(s) per MPI task
+create_atoms    1 region myreg
+Created 512 atoms
+
+mass            1       28.06
+
+group Si type 1
+512 atoms in group Si
+
+velocity all create $t 5287287 mom yes rot yes dist gaussian
+velocity all create 1800 5287287 mom yes rot yes dist gaussian
+
+# make a vacancy
+
+group del id 300
+1 atoms in group del
+delete_atoms group del
+Deleted 1 atoms, new total = 511
+
+replicate 2 2 2
+  orthogonal box = (0 0 0) to (43.448 43.448 43.448)
+  2 by 2 by 2 processor grid
+  using 2 OpenMP thread(s) per MPI task
+  4088 atoms
+
+pair_style      sw/omp
+pair_coeff * * Si.sw Si
+
+thermo          100
+
+fix             1 all nvt temp $t $t 0.1 tchain 1
+fix             1 all nvt temp 1800 $t 0.1 tchain 1
+fix             1 all nvt temp 1800 1800 0.1 tchain 1
+
+timestep        1.0e-3
+neighbor        1.0 bin
+neigh_modify    every 1 delay 10 check yes
+
+# equilibrate
+
+run             1000
+Memory usage per processor = 1.40656 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0    1799.4396   -17693.328            0   -16742.709     12351.85 
+     100    1266.9031   -17157.645            0   -16488.358    14030.412 
+     200    1737.6406   -16459.599            0   -15541.627    18555.046 
+     300    2918.3805   -15779.611            0    -14237.87    26921.499 
+     400     2542.842   -15682.696            0   -14339.348    14781.071 
+     500    1779.4032   -16377.415            0   -15437.381    11997.774 
+     600    1258.0206   -16911.301            0   -16246.706    5010.3506 
+     700    1092.5732   -17075.553            0   -16498.361    4528.4728 
+     800    1283.7147   -16950.291            0   -16272.122    6372.2261 
+     900    1937.0934   -16514.187            0   -15490.847     10228.75 
+    1000    2694.9787   -15998.022            0   -14574.302    20523.513 
+Loop time of 2.78486 on 8 procs / 2 threads for 1000 steps with 4088 atoms
+
+Pair  time (%) = 2.398 (86.1083)
+Neigh time (%) = 0.0607844 (2.18267)
+Comm  time (%) = 0.282506 (10.1443)
+Outpt time (%) = 0.000408947 (0.0146846)
+Other time (%) = 0.0431669 (1.55005)
+
+Nlocal:    511 ave 511 max 511 min
+Histogram: 8 0 0 0 0 0 0 0 0 0
+Nghost:    1008 ave 1008 max 1008 min
+Histogram: 8 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 8 0 0 0 0 0 0 0 0 0
+FullNghs: 12842 ave 12842 max 12842 min
+Histogram: 8 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 102736
+Ave neighs/atom = 25.1311
+Neighbor list builds = 51
+Dangerous builds = 0
+

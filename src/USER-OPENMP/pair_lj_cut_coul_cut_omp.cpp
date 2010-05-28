@@ -105,7 +105,6 @@ void PairLJCutCoulCutOMP::eval()
       int *type = atom->type;
       double *special_coul = force->special_coul;
       double *special_lj = force->special_lj;
-      int newton_pair = force->newton_pair;
       double qqrd2e = force->qqrd2e;
       
       inum = list->inum;
@@ -160,7 +159,7 @@ void PairLJCutCoulCutOMP::eval()
             f[i][0] += delx*fpair;
             f[i][1] += dely*fpair;
             f[i][2] += delz*fpair;
-            if (newton_pair || j < nlocal) {
+            if (NEWTON_PAIR || j < nlocal) {
               f[j][0] -= delx*fpair;
               f[j][1] -= dely*fpair;
               f[j][2] -= delz*fpair;
@@ -177,7 +176,7 @@ void PairLJCutCoulCutOMP::eval()
               } else evdwl = 0.0;
             }
 
-            if (EVFLAG) ev_tally(i,j,nlocal,newton_pair,
+            if (EVFLAG) ev_tally(i,j,nlocal,NEWTON_PAIR,
                                  evdwl,ecoul,fpair,delx,dely,delz);
           }
         }

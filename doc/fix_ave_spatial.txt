@@ -16,7 +16,7 @@ ID, group-ID are documented in "fix"_fix.html command :ulb,l
 ave/spatial = style name of this fix command :l
 Nevery = use input values every this many timesteps :l
 Nrepeat = # of times to use input values for calculating averages :l
-Nfreq = calculate averages every this many timesteps
+Nfreq = calculate averages every this many timesteps :l
 dim = {x} or {y} or {z} :l
 origin = {lower} or {center} or {upper} or coordinate value (distance units) :l
 delta = thickness of spatial layers in dim (distance units) :l

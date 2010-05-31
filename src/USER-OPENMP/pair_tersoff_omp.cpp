@@ -646,18 +646,6 @@ void PairTersoffOMP::attractive(Param *param, double prefactor,
 
 /* ---------------------------------------------------------------------- */
 
-double PairTersoffOMP::ters_fc(double r, Param *param)
-{
-  double ters_R = param->bigr;
-  double ters_D = param->bigd;
-  
-  if (r < ters_R-ters_D) return 1.0;
-  if (r > ters_R+ters_D) return 0.0;
-  return 0.5*(1.0 - sin(PI2*(r - ters_R)/ters_D));
-}
-
-/* ---------------------------------------------------------------------- */
-
 double PairTersoffOMP::ters_fc_d(double r, Param *param)
 {
   double ters_R = param->bigr;
@@ -715,27 +703,6 @@ double PairTersoffOMP::ters_bij_d(double zeta, Param *param)
 			  
   double tmp_n = pow(tmp,param->powern);
   return -0.5 * pow(1.0+tmp_n, -1.0-(1.0/(2.0*param->powern)))*tmp_n / zeta;
-}
-
-/* ---------------------------------------------------------------------- */
-
-double PairTersoffOMP::ters_gijk(double costheta, Param *param)
-{
-  double ters_c = param->c;
-  double ters_d = param->d;
-
-  return param->gamma*(1.0 + pow(ters_c/ters_d,2.0) -
-    pow(ters_c,2.0) / (pow(ters_d,2.0) + pow(param->h - costheta,2.0)));
-};
-
-/* ---------------------------------------------------------------------- */
-
-double PairTersoffOMP::ters_gijk_d(double costheta, Param *param)
-{
-  double numerator = -2.0 * pow(param->c,2) * (param->h - costheta);
-  double denominator = pow(pow(param->d,2.0) + 
-			   pow(param->h - costheta,2.0),2.0);
-  return param->gamma*numerator/denominator;
 }
 
 /* ---------------------------------------------------------------------- */

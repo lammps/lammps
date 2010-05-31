@@ -225,8 +225,12 @@ pair_table_omp.cpp
 pair_table_omp.h
 pair_tersoff.cpp
 pair_tersoff.h
+pair_tersoff_omp.cpp
+pair_tersoff_omp.h
 pair_tersoff_zbl.cpp
 pair_tersoff_zbl.h
+pair_tersoff_zbl_omp.cpp
+pair_tersoff_zbl_omp.h
 pair_yukawa_omp.cpp
 pair_yukawa_omp.h
 pppm.cpp

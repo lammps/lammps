@@ -52,6 +52,10 @@ if (test $1 = 1) then
     cp pair_airebo_omp.cpp ..
     cp pair_sw_omp.h ..
     cp pair_sw_omp.cpp ..
+    cp pair_tersoff_omp.h ..
+    cp pair_tersoff_omp.cpp ..
+    cp pair_tersoff_zbl_omp.h ..
+    cp pair_tersoff_zbl_omp.cpp ..
   fi
 
   if (test -e ../pair_gauss.cpp) then
@@ -123,6 +127,10 @@ elif (test $1 = 0) then
   rm -f ../pair_airebo_omp.cpp
   rm -f ../pair_sw_omp.h
   rm -f ../pair_sw_omp.cpp
+  rm -f ../pair_tersoff_omp.h
+  rm -f ../pair_tersoff_omp.cpp
+  rm -f ../pair_tersoff_zbl_omp.h
+  rm -f ../pair_tersoff_zbl_omp.cpp
 
   rm -f ../pair_coul_diel_omp.h
   rm -f ../pair_coul_diel_omp.cpp

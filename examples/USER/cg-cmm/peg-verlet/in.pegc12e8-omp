@@ -10,7 +10,7 @@ processors * * 1
 
 # read topology and force field
 read_data	data.pegc12e8
-include		parm.pegc12e8
+include		parm.pegc12e8-omp
 
 neighbor	3.0 bin
 neigh_modify	delay 5

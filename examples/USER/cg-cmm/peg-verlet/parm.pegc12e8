@@ -3,7 +3,7 @@
 pair_style	cg/cmm 15.0
 bond_style	harmonic
 angle_style	harmonic
-special_bonds	0.0 0.0 1.0
+special_bonds	lj/coul 0.0 0.0 1.0
 
 mass		1 	31.035
 mass		2 	44.054

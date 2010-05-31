@@ -208,8 +208,8 @@ void PairCGCMMOMP::eval()  {
 	    f[j][1] -= dely*fpair;
 	    f[j][2] -= delz*fpair;
 	  }
-	  if (EVFLAG) ev_tally(i,j,nlocal,NEWTON_PAIR,
-			       evdwl,0.0,fpair,delx,dely,delz);
+	  if (EVFLAG) ev_tally_thr(i,j,nlocal,NEWTON_PAIR,
+			       evdwl,0.0,fpair,delx,dely,delz,tid);
 	}
       }
     }

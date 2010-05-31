@@ -121,6 +121,8 @@ pair_buck_coul_long_omp.cpp
 pair_buck_coul_long_omp.h
 pair_cg_cmm.cpp
 pair_cg_cmm.h
+pair_cg_cmm_omp.cpp
+pair_cg_cmm_omp.h
 pair_cg_cmm_coul_cut.cpp
 pair_cg_cmm_coul_cut.h
 pair_cg_cmm_coul_long.cpp

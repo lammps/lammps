@@ -79,6 +79,8 @@ fix_freeze.cpp
 fix_freeze.h
 fix_imd.cpp
 fix_imd.h
+fix_nh_asphere.cpp
+fix_nh_asphere.h
 fix_nph_asphere.cpp
 fix_nph_asphere.h
 fix_npt_asphere.cpp

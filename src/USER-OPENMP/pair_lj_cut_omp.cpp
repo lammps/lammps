@@ -107,7 +107,6 @@ void PairLJCutOMP::eval()
     const int nthreads = comm->nthreads;
 
     double **x = atom->x;
-    double **f = atom->f;
     int *type = atom->type;
     double *special_lj = force->special_lj;
 
@@ -119,7 +118,7 @@ void PairLJCutOMP::eval()
     // loop over neighbors of my atoms
 
     int iifrom, iito;
-    f = loop_setup_thr(f, iifrom, iito, tid, inum, nall, nthreads);
+    double **f = loop_setup_thr(atom->f,iifrom,iito,tid,inum,nall,nthreads);
     for (ii = iifrom; ii < iito; ++ii) {
       i = ilist[ii];
       xtmp = x[i][0];

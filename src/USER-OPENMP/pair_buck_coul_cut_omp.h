@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class PairBuckCoulCutOMP : public PairOMP {
  public:
   PairBuckCoulCutOMP(class LAMMPS *);
-  ~PairBuckCoulCutOMP();
+  virtual ~PairBuckCoulCutOMP();
   virtual void compute(int, int);
   virtual void settings(int, char **);
   virtual void coeff(int, char **);

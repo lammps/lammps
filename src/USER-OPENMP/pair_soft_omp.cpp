@@ -32,6 +32,7 @@ using namespace LAMMPS_NS;
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
+#define EPSILON 1.0e-10
 /* ---------------------------------------------------------------------- */
 
 PairSoftOMP::PairSoftOMP(LAMMPS *lmp) : PairOMP(lmp)
@@ -58,10 +59,27 @@ PairSoftOMP::~PairSoftOMP()
 
 void PairSoftOMP::compute(int eflag, int vflag)
 {
+  int i,j;
+
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
     ev_setup_thr(eflag,vflag);
   } else evflag = vflag_fdotr = 0;
+
+  // set current prefactor
+  // for minimization, set to prestop
+  // for dynamics, ramp from prestart to prestop
+  // for 0-step dynamics, set to prestart
+
+  double delta = update->ntimestep - update->beginstep;
+  if (update->whichflag == 2) delta = 1.0;
+  else if (update->nsteps) delta /= update->endstep - update->beginstep;
+  else delta = 0.0;
+  int ntypes = atom->ntypes;
+  for (i = 1; i <= ntypes; i++)
+    for (j = 1; j <= ntypes; j++)
+      prefactor[i][j] = prestart[i][j] +
+	delta * (prestop[i][j] - prestart[i][j]);
 
   if (evflag) {
     if (eflag) {
@@ -97,7 +115,6 @@ void PairSoftOMP::eval()
     const int nthreads = comm->nthreads;
 
     double **x = atom->x;
-    double **f = atom->f;
     int *type = atom->type;
     double *special_lj = force->special_lj;
 
@@ -109,7 +126,7 @@ void PairSoftOMP::eval()
     // loop over neighbors of my atoms
 
     int iifrom, iito;
-    f = loop_setup_thr(f, iifrom, iito, tid, inum, nall, nthreads);
+    double **f = loop_setup_thr(atom->f,iifrom,iito,tid,inum,nall,nthreads);
     for (ii = iifrom; ii < iito; ++ii) {
       i = ilist[ii];
       xtmp = x[i][0];
@@ -137,9 +154,9 @@ void PairSoftOMP::eval()
 	if (rsq < cutsq[itype][jtype]) {
 	  r = sqrt(rsq);
           arg = PI*r/cut[itype][jtype];
-	  if (r > 0.0) fpair = factor_lj * prefactor[itype][jtype] *
-              sin(arg) * PI/cut[itype][jtype]/r;
-	  else fpair = 0.0;
+	  if (r < EPSILON) continue;
+	  fpair = factor_lj * prefactor[itype][jtype] *
+	    sin(arg) * PI/cut[itype][jtype]/r;
 
 	  f[i][0] += delx*fpair;
 	  f[i][1] += dely*fpair;
@@ -161,7 +178,7 @@ void PairSoftOMP::eval()
     }
 
     // reduce per thread forces into global force array.
-    force_reduce_thr(atom->f, nall, nthreads, tid);
+    force_reduce_thr(atom->f,nall,nthreads,tid);
   }
   ev_reduce_thr();
   if (vflag_fdotr) virial_compute();

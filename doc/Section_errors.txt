@@ -32,10 +32,11 @@ energy or temperature) should still be the same.
 
 If the "velocity"_velocity.html command is used to set initial atom
 velocities, a particular atom can be assigned a different velocity
-when the problem on different machines.  Obviously, this means the
-phase space trajectories of the two simulations will rapidly diverge.
-See the discussion of the {loop} option in the
-"velocity"_velocity.html command for details.
+when the problem is run on a different number of processors or on
+different machines.  If this happens, the phase space trajectories of
+the two simulations will rapidly diverge.  See the discussion of the
+{loop} option in the "velocity"_velocity.html command for details and
+options that avoid this issue.
 
 Similarly, the "create_atoms"_create_atoms.html command generates a
 lattice of atoms.  For the same physical system, the ordering and
@@ -53,11 +54,11 @@ LAMMPS errors are detected at setup time; others like a bond
 stretching too far may not occur until the middle of a run.
 
 LAMMPS tries to flag errors and print informative error messages so
-you can fix the problem.  Of course LAMMPS cannot figure out your
-physics mistakes, like choosing too big a timestep, specifying invalid
-force field coefficients, or putting 2 atoms on top of each other!  If
-you find errors that LAMMPS doesn't catch that you think it should
-flag, please send an email to the
+you can fix the problem.  Of course, LAMMPS cannot figure out your
+physics or numerical mistakes, like choosing too big a timestep,
+specifying erroneous force field coefficients, or putting 2 atoms on
+top of each other!  If you run into errors that LAMMPS doesn't catch
+that you think it should flag, please send an email to the
 "developers"_http://lammps.sandia.gov/authors.html.
 
 If you get an error message about an invalid command in your input
@@ -90,7 +91,12 @@ parallel), since LAMMPS doesn't trap on those errors.
 Illegal arithmetic can cause LAMMPS to run slow or crash.  This is
 typically due to invalid physics and numerics that your simulation is
 computing.  If you see wild thermodynamic values or NaN values in your
-LAMMPS output, something is wrong with your simulation.
+LAMMPS output, something is wrong with your simulation.  If you
+suspect this is happening, it is a good idea to print out
+thermodynamic info frequently (e.g. every timestep) via the
+"thermo"_thermo.html so you can monitor what is happening.
+Visualizing the atom movement is also a good idea to insure your model
+is behaving as you expect.
 
 In parallel, one way LAMMPS can hang is due to how different MPI
 implementations handle buffering of messages.  If the code hangs

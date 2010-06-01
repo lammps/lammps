@@ -10,26 +10,41 @@ fix wall/reflect command :h3
 
 [Syntax:]
 
-fix ID group-ID wall/reflect keyword ... :pre
+fix ID group-ID wall/reflect face arg ... keyword value ... :pre
 
-ID, group-ID are documented in "fix"_fix.html command
-wall/reflect = style name of this fix command
-one or more keyword/value pairs may be appended
-keyword = {xlo} or {xhi} or {ylo} or {yhi} or {zlo} or {zhi} :ul
+ID, group-ID are documented in "fix"_fix.html command :ulb,l
+wall/reflect = style name of this fix command :l
+one or more face/arg pairs may be appended :l
+face = {xlo} or {xhi} or {ylo} or {yhi} or {zlo} or {zhi} :l
+  {xlo},{ylo},{zlo} arg = EDGE or constant or variable
+    EDGE = current lo edge of simulation box
+    constant = number like 0.0 or -30.0 (distance units)
+    variable = "equal-style variable"_variable.html like v_x or v_wiggle
+  {xhi},{yhi},{zhi} arg = EDGE or constant or variable
+    EDGE = current hi edge of simulation box
+    constant = number like 50.0 or 100.3 (distance units)
+    variable = "equal-style variable"_variable.html like v_x or v_wiggle :pre
+zero or more keyword/avlue pairs may be appended :l
+keyword = {units} :l
+  {units} value = {lattice} or {box}
+    {lattice} = the geometry is defined in lattice units
+    {box} = the geometry is defined in simulation box units :pre
+:ule
 
 [Examples:]
 
-fix xwalls all wall/reflect xlo xhi
-fix walls all wall/reflect xlo ylo zlo xhi yhi zhi :pre
+fix xwalls all wall/reflect xlo EDGE xhi EDGE
+fix walls all wall/reflect xlo 0.0 ylo 10.0 units box
+fix top all wall/reflect zhi v_pressdown :pre
 
 [Description:]
 
 Bound the simulation with one or more walls which reflect particles
-when they attempt to move thru them. 
+in the specified group when they attempt to move thru them. 
 
-Reflection means that if an atom moves outside the box on a timestep
+Reflection means that if an atom moves outside the wall on a timestep
 by a distance delta (e.g. due to "fix nve"_fix_nve.html), then it is
-put back inside the box by the same delta and the sign of the
+put back inside the face by the same delta, and the sign of the
 corresponding component of its velocity is flipped.
 
 When used in conjunction with "fix nve"_fix_nve.html and "run_style
@@ -39,6 +54,40 @@ equivalent to the primitive splitting algorithm (PSA) described by
 the corresponding timestep asymmetrically, energy conservation is only
 satisfied to O(dt), rather than to O(dt^2) as it would be for
 velocity-Verlet integration without reflective walls.
+
+Up to 6 walls or faces can be specified in a single command: {xlo},
+{xhi}, {ylo}, {yhi}, {zlo}, {zhi}.  A {lo} face reflects particles
+that move to a coordinate less than the face position, back in the
+{hi} direction.  A {hi} face reflects particles that move to a
+coordinate higher than the face position, back in the {lo} direction.
+
+The position of each face can be specified in one of 3 ways: as the
+EDGE of the simulation box, as a constant value, or as a variable.  If
+EDGE is used, then the corresponding boundary of the current
+simulation box is used.  If a numeric constant is specified then the
+wall is placed at that position in the appropriate dimension (x, y, or
+z).  In both the EDGE and constant cases, the wall will never move.
+If the face position is specified with a variable name v_ID, then ID
+should be the name of an "equal-style variable"_variable.html.  In
+this case the variable is evaluated each timestep and the result
+becomes the current position of the reflecting wall.  Equal-style
+variables can specify formulas with various mathematical functions,
+and include "thermo_style"_thermo_style.html command keywords for the
+simulation box parameters and timestep and elapsed time.  Thus it is
+easy to specify a time-dependent wall position.
+
+The {units} keyword determines the meaning of the distance units used
+to define a face position, but only when a numeric constant is used.
+It is not relevant when EDGE or a variable is used to specify a face
+position.
+
+A {box} value selects standard distance units as defined by the
+"units"_units.html command, e.g. Angstroms for units = real or metal.
+A {lattice} value means the distance units are in lattice spacings.
+The "lattice"_lattice.html command must have been previously used to
+define the lattice spacings.
+
+:line
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 

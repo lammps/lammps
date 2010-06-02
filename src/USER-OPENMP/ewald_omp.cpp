@@ -257,12 +257,15 @@ void EwaldOMP::compute(int eflag, int vflag)
   double *q = atom->q;
   int nlocal = atom->nlocal;
 
+#if defined(_OPENMP)
+#pragma omp for private(i,j,k) schedule(static)
+#endif
   for (j = 0; j < num_charged; j++) {
     int kx,ky,kz;
     double cypz,sypz,exprl,expim,partial;
     double ek0, ek1, ek2;
 
-    int i = is_charged[j];
+    i = is_charged[j];
     ek0=ek1=ek2=0.0;
 
     for (k = 0; k < kcount; k++) {

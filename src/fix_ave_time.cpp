@@ -124,7 +124,7 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
 	    ids[nvalues+icol] = new char[n];
 	    strcpy(ids[nvalues+icol],ids[nvalues]);
 	  }
-	  nvalues += ncols;
+	  nvalues += ncols-1;
 	}
 
       } else if (mode == VECTOR && which[nvalues] == FIX && 
@@ -144,10 +144,11 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
 	    ids[nvalues+icol] = new char[n];
 	    strcpy(ids[nvalues+icol],ids[nvalues]);
 	  }
-	  nvalues += ncols;
+	  nvalues += ncols-1;
 	}
+      }
 
-      } else nvalues++;
+      nvalues++;
       iarg++;
     } else break;
   }

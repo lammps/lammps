@@ -32,7 +32,7 @@ using namespace LAMMPS_NS;
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
-#define EPSILON 1.0e-10
+#define EPSILON 1.0e-20
 /* ---------------------------------------------------------------------- */
 
 PairSoftOMP::PairSoftOMP(LAMMPS *lmp) : PairOMP(lmp)
@@ -151,10 +151,9 @@ void PairSoftOMP::eval()
 	rsq = delx*delx + dely*dely + delz*delz;
 	jtype = type[j];
 
-	if (rsq < cutsq[itype][jtype]) {
+	if ((rsq < cutsq[itype][jtype]) && (rsq > EPSILON)) {
 	  r = sqrt(rsq);
           arg = PI*r/cut[itype][jtype];
-	  if (r < EPSILON) continue;
 	  fpair = factor_lj * prefactor[itype][jtype] *
 	    sin(arg) * PI/cut[itype][jtype]/r;
 
@@ -371,6 +370,10 @@ double PairSoftOMP::single(int i, int j, int itype, int jtype, double rsq,
 {
   double r,arg,philj;
 
+  if (rsq < EPSILON) {
+    fforce = 0.0;
+    return 0.0;
+  }
   r = sqrt(rsq);
   arg = PI*r/cut[itype][jtype];
   fforce = factor_lj * prefactor[itype][jtype] *

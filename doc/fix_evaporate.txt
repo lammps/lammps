@@ -47,9 +47,9 @@ molecule ID, but does not check for this at the time of deletion.
 If the setting for the {molecule} keyword is {yes}, then when an atom
 is chosen for deletion, the entire molecule it is part of is deleted.
 The count of deleted atoms is incremented by the number of atoms in
-the molecule.  If the molecule ID of the chosen atom is 0, then it is
-assumed to not be part of a molecule, and just the single atom is
-deleted.
+the molecule, which may make it exceed {M}.  If the molecule ID of the
+chosen atom is 0, then it is assumed to not be part of a molecule, and
+just the single atom is deleted.
 
 As an example, if you wish to delete 10 water molecules every {N}
 steps, you should set {M} to 30.  If only the water's oxygen atoms

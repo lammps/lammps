@@ -70,8 +70,8 @@ EwaldOMP::~EwaldOMP()
 {
   deallocate();
   memory->destroy_2d_double_array(ek);
-  memory->destroy_3d_double_array(cs,-kmax_created);
-  memory->destroy_3d_double_array(sn,-kmax_created);
+  memory->destroy_3d_double_array(cs,0,0,-kmax_created);
+  memory->destroy_3d_double_array(sn,0,0,-kmax_created);
   memory->sfree(is_charged);
 }
 
@@ -195,12 +195,14 @@ void EwaldOMP::setup()
     allocate();
 
     memory->destroy_2d_double_array(ek);
-    memory->destroy_3d_double_array(cs,-kmax_created);
-    memory->destroy_3d_double_array(sn,-kmax_created);
+    memory->destroy_3d_double_array(cs,0,0,-kmax_created);
+    memory->destroy_3d_double_array(sn,0,0,-kmax_created);
+    memory->sfree(is_charged);
     nmax = atom->nmax;
     ek = memory->create_2d_double_array(nmax,3,"ewald:ek");
-    cs = memory->create_3d_double_array(-kmax,kmax,3,nmax,"ewald:cs");
-    sn = memory->create_3d_double_array(-kmax,kmax,3,nmax,"ewald:sn");
+    cs = memory->create_3d_double_array(0,nmax-1,0,2,-kmax,kmax,"ewald:cs");
+    sn = memory->create_3d_double_array(0,nmax-1,0,2,-kmax,kmax,"ewald:sn");
+    is_charged = static_cast<int *>(memory->smalloc(nmax*sizeof(int),"ewald:is_charged"));
     is_charged = static_cast<int *>(memory->smalloc(nmax*sizeof(int),"ewald:is_charged"));
     kmax_created = kmax;
   }
@@ -225,13 +227,13 @@ void EwaldOMP::compute(int eflag, int vflag)
 
   if (atom->nlocal > nmax) {
     memory->destroy_2d_double_array(ek);
-    memory->destroy_3d_double_array(cs,-kmax_created);
-    memory->destroy_3d_double_array(sn,-kmax_created);
+    memory->destroy_3d_double_array(cs,0,0,-kmax_created);
+    memory->destroy_3d_double_array(sn,0,0,-kmax_created);
     memory->sfree(is_charged);
     nmax = atom->nmax;
     ek = memory->create_2d_double_array(nmax,3,"ewald:ek");
-    cs = memory->create_3d_double_array(-kmax,kmax,3,nmax,"ewald:cs");
-    sn = memory->create_3d_double_array(-kmax,kmax,3,nmax,"ewald:sn");
+    cs = memory->create_3d_double_array(0,nmax-1,0,2,-kmax,kmax,"ewald:cs");
+    sn = memory->create_3d_double_array(0,nmax-1,0,2,-kmax,kmax,"ewald:sn");
     is_charged = static_cast<int *>(memory->smalloc(nmax*sizeof(int),"ewald:is_charged"));
     kmax_created = kmax;
   }
@@ -272,10 +274,10 @@ void EwaldOMP::compute(int eflag, int vflag)
       ky = kyvecs[k];
       kz = kzvecs[k];
 
-      cypz = cs[ky][1][i]*cs[kz][2][i] - sn[ky][1][i]*sn[kz][2][i];
-      sypz = sn[ky][1][i]*cs[kz][2][i] + cs[ky][1][i]*sn[kz][2][i];
-      exprl = cs[kx][0][i]*cypz - sn[kx][0][i]*sypz;
-      expim = sn[kx][0][i]*cypz + cs[kx][0][i]*sypz;
+      cypz = cs[i][1][ky]*cs[i][2][kz] - sn[i][1][ky]*sn[i][2][kz];
+      sypz = sn[i][1][ky]*cs[i][2][kz] + cs[i][1][ky]*sn[i][2][kz];
+      exprl = cs[i][0][kx]*cypz - sn[i][0][kx]*sypz;
+      expim = sn[i][0][kx]*cypz + cs[i][0][kx]*sypz;
       partial = expim*sfacrl_all[k] - exprl*sfacim_all[k];
 
       ek0 += partial*eg[k][0];
@@ -339,14 +341,14 @@ void EwaldOMP::eik_dot_r()
       sstr1 = 0.0;
       for (j = 0; j < num_charged; j++) {
         i = is_charged[j];
-	cs[0][ic][i] = 1.0;
-	sn[0][ic][i] = 0.0;
-	cs[1][ic][i] = cos(unitk[ic]*x[i][ic]);
-	sn[1][ic][i] = sin(unitk[ic]*x[i][ic]);
-	cs[-1][ic][i] = cs[1][ic][i];
-	sn[-1][ic][i] = -sn[1][ic][i];
-	cstr1 += q[i]*cs[1][ic][i];
-	sstr1 += q[i]*sn[1][ic][i];
+	cs[i][ic][0] = 1.0;
+	sn[i][ic][0] = 0.0;
+	cs[i][ic][1] = cos(unitk[ic]*x[i][ic]);
+	sn[i][ic][1] = sin(unitk[ic]*x[i][ic]);
+	cs[i][ic][-1] = cs[i][ic][1];
+	sn[i][ic][-1] = -sn[i][ic][1];
+	cstr1 += q[i]*cs[i][ic][1];
+	sstr1 += q[i]*sn[i][ic][1];
       }
       sfacrl[n] = cstr1;
       sfacim[n++] = sstr1;
@@ -361,14 +363,14 @@ void EwaldOMP::eik_dot_r()
 	sstr1 = 0.0;
         for (j = 0; j < num_charged; j++) {
           i = is_charged[j];
-	  cs[m][ic][i] = cs[m-1][ic][i]*cs[1][ic][i] - 
-	    sn[m-1][ic][i]*sn[1][ic][i];
-	  sn[m][ic][i] = sn[m-1][ic][i]*cs[1][ic][i] + 
-	    cs[m-1][ic][i]*sn[1][ic][i];
-	  cs[-m][ic][i] = cs[m][ic][i];
-	  sn[-m][ic][i] = -sn[m][ic][i];
-	  cstr1 += q[i]*cs[m][ic][i];
-	  sstr1 += q[i]*sn[m][ic][i];
+	  cs[i][ic][m] = cs[i][ic][m-1]*cs[i][ic][1] - 
+	    sn[i][ic][m-1]*sn[i][ic][1];
+	  sn[i][ic][m] = sn[i][ic][m-1]*cs[i][ic][1] + 
+	    cs[i][ic][m-1]*sn[i][ic][1];
+	  cs[i][ic][-m] = cs[i][ic][m];
+	  sn[i][ic][-m] = -sn[i][ic][m];
+	  cstr1 += q[i]*cs[i][ic][m];
+	  sstr1 += q[i]*sn[i][ic][m];
 	}
 	sfacrl[n] = cstr1;
 	sfacim[n++] = sstr1;
@@ -388,10 +390,10 @@ void EwaldOMP::eik_dot_r()
 	sstr2 = 0.0;
         for (j = 0; j < num_charged; j++) {
           i = is_charged[j];
-	  cstr1 += q[i]*(cs[k][0][i]*cs[l][1][i] - sn[k][0][i]*sn[l][1][i]);
-	  sstr1 += q[i]*(sn[k][0][i]*cs[l][1][i] + cs[k][0][i]*sn[l][1][i]);
-	  cstr2 += q[i]*(cs[k][0][i]*cs[l][1][i] + sn[k][0][i]*sn[l][1][i]);
-	  sstr2 += q[i]*(sn[k][0][i]*cs[l][1][i] - cs[k][0][i]*sn[l][1][i]);
+	  cstr1 += q[i]*(cs[i][0][k]*cs[i][1][l] - sn[i][0][k]*sn[i][1][l]);
+	  sstr1 += q[i]*(sn[i][0][k]*cs[i][1][l] + cs[i][0][k]*sn[i][1][l]);
+	  cstr2 += q[i]*(cs[i][0][k]*cs[i][1][l] + sn[i][0][k]*sn[i][1][l]);
+	  sstr2 += q[i]*(sn[i][0][k]*cs[i][1][l] - cs[i][0][k]*sn[i][1][l]);
 	}
 	sfacrl[n] = cstr1;
 	sfacim[n++] = sstr1;
@@ -413,10 +415,10 @@ void EwaldOMP::eik_dot_r()
 	sstr2 = 0.0;
         for (j = 0; j < num_charged; j++) {
           i = is_charged[j];
-	  cstr1 += q[i]*(cs[l][1][i]*cs[m][2][i] - sn[l][1][i]*sn[m][2][i]);
-	  sstr1 += q[i]*(sn[l][1][i]*cs[m][2][i] + cs[l][1][i]*sn[m][2][i]);
-	  cstr2 += q[i]*(cs[l][1][i]*cs[m][2][i] + sn[l][1][i]*sn[m][2][i]);
-	  sstr2 += q[i]*(sn[l][1][i]*cs[m][2][i] - cs[l][1][i]*sn[m][2][i]);
+	  cstr1 += q[i]*(cs[i][1][l]*cs[i][2][m] - sn[i][1][l]*sn[i][2][m]);
+	  sstr1 += q[i]*(sn[i][1][l]*cs[i][2][m] + cs[i][1][l]*sn[i][2][m]);
+	  cstr2 += q[i]*(cs[i][1][l]*cs[i][2][m] + sn[i][1][l]*sn[i][2][m]);
+	  sstr2 += q[i]*(sn[i][1][l]*cs[i][2][m] - cs[i][1][l]*sn[i][2][m]);
 	}
 	sfacrl[n] = cstr1;
 	sfacim[n++] = sstr1;
@@ -438,10 +440,10 @@ void EwaldOMP::eik_dot_r()
 	sstr2 = 0.0;
         for (j = 0; j < num_charged; j++) {
           i = is_charged[j];
-	  cstr1 += q[i]*(cs[k][0][i]*cs[m][2][i] - sn[k][0][i]*sn[m][2][i]);
-	  sstr1 += q[i]*(sn[k][0][i]*cs[m][2][i] + cs[k][0][i]*sn[m][2][i]);
-	  cstr2 += q[i]*(cs[k][0][i]*cs[m][2][i] + sn[k][0][i]*sn[m][2][i]);
-	  sstr2 += q[i]*(sn[k][0][i]*cs[m][2][i] - cs[k][0][i]*sn[m][2][i]);
+	  cstr1 += q[i]*(cs[i][0][k]*cs[i][2][m] - sn[i][0][k]*sn[i][2][m]);
+	  sstr1 += q[i]*(sn[i][0][k]*cs[i][2][m] + cs[i][0][k]*sn[i][2][m]);
+	  cstr2 += q[i]*(cs[i][0][k]*cs[i][2][m] + sn[i][0][k]*sn[i][2][m]);
+	  sstr2 += q[i]*(sn[i][0][k]*cs[i][2][m] - cs[i][0][k]*sn[i][2][m]);
 	}
 	sfacrl[n] = cstr1;
 	sfacim[n++] = sstr1;
@@ -469,25 +471,25 @@ void EwaldOMP::eik_dot_r()
 	  sstr4 = 0.0;
           for (j = 0; j < num_charged; j++) {
             i = is_charged[j];
-	    clpm = cs[l][1][i]*cs[m][2][i] - sn[l][1][i]*sn[m][2][i];
-	    slpm = sn[l][1][i]*cs[m][2][i] + cs[l][1][i]*sn[m][2][i];
-	    cstr1 += q[i]*(cs[k][0][i]*clpm - sn[k][0][i]*slpm);
-	    sstr1 += q[i]*(sn[k][0][i]*clpm + cs[k][0][i]*slpm);
+	    clpm = cs[i][1][l]*cs[i][2][m] - sn[i][1][l]*sn[i][2][m];
+	    slpm = sn[i][1][l]*cs[i][2][m] + cs[i][1][l]*sn[i][2][m];
+	    cstr1 += q[i]*(cs[i][0][k]*clpm - sn[i][0][k]*slpm);
+	    sstr1 += q[i]*(sn[i][0][k]*clpm + cs[i][0][k]*slpm);
 	    
-	    clpm = cs[l][1][i]*cs[m][2][i] + sn[l][1][i]*sn[m][2][i];
-	    slpm = -sn[l][1][i]*cs[m][2][i] + cs[l][1][i]*sn[m][2][i];
-	    cstr2 += q[i]*(cs[k][0][i]*clpm - sn[k][0][i]*slpm);
-	    sstr2 += q[i]*(sn[k][0][i]*clpm + cs[k][0][i]*slpm);
+	    clpm = cs[i][1][l]*cs[i][2][m] + sn[i][1][l]*sn[i][2][m];
+	    slpm = -sn[i][1][l]*cs[i][2][m] + cs[i][1][l]*sn[i][2][m];
+	    cstr2 += q[i]*(cs[i][0][k]*clpm - sn[i][0][k]*slpm);
+	    sstr2 += q[i]*(sn[i][0][k]*clpm + cs[i][0][k]*slpm);
 	    
-	    clpm = cs[l][1][i]*cs[m][2][i] + sn[l][1][i]*sn[m][2][i];
-	    slpm = sn[l][1][i]*cs[m][2][i] - cs[l][1][i]*sn[m][2][i];
-	    cstr3 += q[i]*(cs[k][0][i]*clpm - sn[k][0][i]*slpm);
-	    sstr3 += q[i]*(sn[k][0][i]*clpm + cs[k][0][i]*slpm);
+	    clpm = cs[i][1][l]*cs[i][2][m] + sn[i][1][l]*sn[i][2][m];
+	    slpm = sn[i][1][l]*cs[i][2][m] - cs[i][1][l]*sn[i][2][m];
+	    cstr3 += q[i]*(cs[i][0][k]*clpm - sn[i][0][k]*slpm);
+	    sstr3 += q[i]*(sn[i][0][k]*clpm + cs[i][0][k]*slpm);
 	    
-	    clpm = cs[l][1][i]*cs[m][2][i] - sn[l][1][i]*sn[m][2][i];
-	    slpm = -sn[l][1][i]*cs[m][2][i] - cs[l][1][i]*sn[m][2][i];
-	    cstr4 += q[i]*(cs[k][0][i]*clpm - sn[k][0][i]*slpm);
-	    sstr4 += q[i]*(sn[k][0][i]*clpm + cs[k][0][i]*slpm);
+	    clpm = cs[i][1][l]*cs[i][2][m] - sn[i][1][l]*sn[i][2][m];
+	    slpm = -sn[i][1][l]*cs[i][2][m] - cs[i][1][l]*sn[i][2][m];
+	    cstr4 += q[i]*(cs[i][0][k]*clpm - sn[i][0][k]*slpm);
+	    sstr4 += q[i]*(sn[i][0][k]*clpm + cs[i][0][k]*slpm);
 	  }
 	  sfacrl[n] = cstr1;
 	  sfacim[n++] = sstr1;

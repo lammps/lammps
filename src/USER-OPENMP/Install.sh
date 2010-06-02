@@ -15,6 +15,8 @@ if (test $1 = 1) then
   cp pair_coul_debye_omp.cpp ..
   cp pair_dpd_omp.h ..
   cp pair_dpd_omp.cpp ..
+  cp pair_dpd_tstat_omp.h ..
+  cp pair_dpd_tstat_omp.cpp ..
   cp pair_lj_charmm_coul_charmm_implicit_omp.h ..
   cp pair_lj_charmm_coul_charmm_implicit_omp.cpp ..
   cp pair_lj_charmm_coul_charmm_omp.h ..
@@ -93,6 +95,10 @@ elif (test $1 = 0) then
   rm ../pair_coul_cut_omp.cpp
   rm ../pair_coul_debye_omp.h
   rm ../pair_coul_debye_omp.cpp
+  rm ../pair_dpd_omp.h
+  rm ../pair_dpd_omp.cpp
+  rm ../pair_dpd_tstat_omp.h
+  rm ../pair_dpd_tstat_omp.cpp
   rm ../pair_lj_charmm_coul_charmm_implicit_omp.h
   rm ../pair_lj_charmm_coul_charmm_implicit_omp.cpp
   rm ../pair_lj_charmm_coul_charmm_omp.h

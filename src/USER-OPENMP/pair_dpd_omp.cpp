@@ -56,12 +56,14 @@ PairDPDOMP::~PairDPDOMP()
     memory->destroy_2d_double_array(a0);
     memory->destroy_2d_double_array(gamma);
     memory->destroy_2d_double_array(sigma);
+    allocated = 0;
   }
 
   if (random) {
     for (int i=0; i < comm->nthreads; ++i)
       delete random[i];
     delete[] random;
+    random=NULL;
   }
   
 }

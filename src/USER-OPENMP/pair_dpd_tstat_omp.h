@@ -13,42 +13,30 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(dpd/omp,PairDPDOMP)
+PairStyle(dpd/tstat/omp,PairDPDTstatOMP)
 
 #else
 
-#ifndef LMP_PAIR_DPD_OMP_H
-#define LMP_PAIR_DPD_OMP_H
+#ifndef LMP_PAIR_DPD_TSTAT_OMP_H
+#define LMP_PAIR_DPD_TSTAT_OMP_H
 
-#include "pair_omp.h"
+#include "pair_dpd_omp.h"
 
 namespace LAMMPS_NS {
 
-class PairDPDOMP : public PairOMP {
+class PairDPDTstatOMP : public PairDPDOMP {
  public:
-  PairDPDOMP(class LAMMPS *);
-  virtual ~PairDPDOMP();
+  PairDPDTstatOMP(class LAMMPS *);
+  ~PairDPDTstatOMP(){};
   virtual void compute(int, int);
   virtual void settings(int, char **);
   virtual void coeff(int, char **);
-  virtual void init_style();
-  virtual double init_one(int, int);
-  virtual void write_restart(FILE *);
-  virtual void read_restart(FILE *);
   virtual void write_restart_settings(FILE *);
   virtual void read_restart_settings(FILE *);
-  double single(int, int, int, int, double, double, double, double &);
 
  protected:
-  double cut_global,temperature;
-  int seed;
-  double **cut;
-  double **a0,**gamma;
-  double **sigma;
-  class RanMars **random;
-
-  template <int, int, int> void eval();
-  void allocate();
+  double t_start,t_stop;
+  template <int, int, int> void eval_tstat();
 };
 
 }

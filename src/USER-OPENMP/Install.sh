@@ -13,6 +13,8 @@ if (test $1 = 1) then
   cp pair_coul_cut_omp.cpp ..
   cp pair_coul_debye_omp.h ..
   cp pair_coul_debye_omp.cpp ..
+  cp pair_dpd_omp.h ..
+  cp pair_dpd_omp.cpp ..
   cp pair_lj_charmm_coul_charmm_implicit_omp.h ..
   cp pair_lj_charmm_coul_charmm_implicit_omp.cpp ..
   cp pair_lj_charmm_coul_charmm_omp.h ..

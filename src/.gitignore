@@ -141,6 +141,8 @@ pair_coul_long.cpp
 pair_coul_long.h
 pair_coul_long_omp.cpp
 pair_coul_long_omp.h
+pair_dpd_omp.cpp
+pair_dpd_omp.h
 pair_eam.cpp
 pair_eam.h
 pair_eam_alloy.cpp

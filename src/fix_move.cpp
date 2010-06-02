@@ -40,6 +40,7 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 4) error->all("Illegal fix move command");
 
+  restart_global = 1;
   restart_peratom = 1;
   peratom_flag = 1;
   size_peratom_cols = 3;
@@ -793,6 +794,35 @@ double FixMove::memory_usage()
   if (displaceflag) bytes += atom->nmax*3 * sizeof(double);
   if (velocityflag) bytes += atom->nmax*3 * sizeof(double);
   return bytes;
+}
+
+/* ----------------------------------------------------------------------
+   pack entire state of Fix into one write 
+------------------------------------------------------------------------- */
+
+void FixMove::write_restart(FILE *fp)
+{
+  int n = 0;
+  double list[1];
+  list[n++] = time_origin;
+
+  if (comm->me == 0) {
+    int size = n * sizeof(double);
+    fwrite(&size,sizeof(int),1,fp);
+    fwrite(list,sizeof(double),n,fp);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   use state info from restart file to restart the Fix 
+------------------------------------------------------------------------- */
+
+void FixMove::restart(char *buf)
+{
+  int n = 0;
+  double *list = (double *) buf;
+
+  time_origin = static_cast<int> (list[n++]);
 }
 
 /* ----------------------------------------------------------------------

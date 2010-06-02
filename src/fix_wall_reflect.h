@@ -27,12 +27,16 @@ namespace LAMMPS_NS {
 class FixWallReflect : public Fix {
  public:
   FixWallReflect(class LAMMPS *, int, char **);
+  ~FixWallReflect();
   int setmask();
   void init();
   void post_integrate();
 
  private:
   int xloflag,xhiflag,yloflag,yhiflag,zloflag,zhiflag;
+  char *xlostr,*xhistr,*ylostr,*yhistr,*zlostr,*zhistr;
+  int xlovar,xhivar,ylovar,yhivar,zlovar,zhivar;
+  double xlo,xhi,ylo,yhi,zlo,zhi;
 };
 
 }

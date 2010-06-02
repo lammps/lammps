@@ -1,0 +1,61 @@
+
+units		lj
+neighbor	3.0 bin
+neigh_modify	every 1 delay 0 check yes page 100000
+atom_style	angle
+bond_style 	harmonic	
+angle_style cosine/delta	
+communicate single vel yes
+
+pair_style	soft 1.12246
+special_bonds lj/coul 1.0 1.0 1.0
+
+read_data    data.dpd
+bond_coeff	1 1107.51 0.5573
+bond_coeff	2 566.84  0.6469
+bond_coeff	3 160.93  0.5998
+
+pair_coeff	* * 1.0 60.0 1.12246
+
+# start with all velocities = 0
+velocity	all zero linear
+
+timestep	0.02
+
+# integration ensemble
+fix		1 all nve
+# "thermostat"
+fix		2 all temp/rescale 1 0.0 1.0 0.01 1.0
+
+# output thermodynamic data
+thermo_style	custom step temp etotal evdwl ebond
+thermo 	        10
+
+run		100
+
+reset_timestep  0
+
+
+#----------------------------------------------------------------------------#
+
+#set DPD pair coefficients
+pair_style dpd 1.0 3.0 34387
+pair_coeff 1 1 78.0 4.5 1.0 
+pair_coeff 1 2 79.3 4.5 1.0 
+pair_coeff 1 3 100.0 4.5 1.0
+pair_coeff 2 2 78.0 4.5 1.0
+pair_coeff 2 3 86.7 4.5 1.0
+pair_coeff 3 3 78.0 4.5 1.0
+
+unfix           1
+unfix           2
+fix		3 all nve
+
+group		poly type 2 3
+
+thermo          10
+run             100
+
+
+
+

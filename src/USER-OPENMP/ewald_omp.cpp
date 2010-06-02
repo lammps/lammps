@@ -255,7 +255,6 @@ void EwaldOMP::compute(int eflag, int vflag)
 
   double **f = atom->f;
   double *q = atom->q;
-  int nlocal = atom->nlocal;
 
 #if defined(_OPENMP)
 #pragma omp for private(i,j,k) schedule(static)
@@ -328,7 +327,6 @@ void EwaldOMP::eik_dot_r()
 
   double **x = atom->x;
   double *q = atom->q;
-  int nlocal = atom->nlocal;
 
   n = 0;
 

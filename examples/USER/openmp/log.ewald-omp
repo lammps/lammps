@@ -1,3 +1,4 @@
+LAMMPS (1 Jun 2010-ICMS)
 # Ionic surfactant system: S12S
 
 units           lj
@@ -5,18 +6,29 @@ dimension       3
 atom_style      full
 
 read_data       data.gauss-diel
+  1 = max bonds/atom
+  1 = max angles/atom
+  1 = max dihedrals/atom
+  orthogonal box = (-35 -35 -35) to (35 35 35)
+  2 by 2 by 2 processor grid
+  using 1 OpenMP thread(s) per MPI task
+  4200 atoms
+  3600 bonds
+  3300 angles
+  3000 dihedrals
+  2 = max # of 1-2 neighbors
+  2 = max # of 1-3 neighbors
+  4 = max # of 1-4 neighbors
+  6 = max # of special neighbors
 
-pair_style      hybrid/overlay          &
-                lj/cut/omp 3.5          &
-                coul/long/omp 25.0      &
-                gauss/cut/omp 3.4       &
-                coul/diel/omp 2.5
+pair_style      hybrid/overlay                          lj/cut/omp 3.5                          coul/long/omp 35.0                      gauss/cut/omp 3.4                       coul/diel/omp 2.5
 pair_modify    shift yes
 
 dielectric      0.4255
-kspace_style    pppm/cg 0.0001
-#kspace_style     ewald/omp 0.0001
-kspace_modify   mesh 12 12 12 order 3
+#kspace_style    pppm/cg 0.0001
+#kspace_style     ewald/cg 0.0001
+kspace_style     ewald/omp 0.0001
+#kspace_modify   mesh 12 12 12 order 3
 
 bond_style      harmonic
 angle_style     harmonic
@@ -80,7 +92,9 @@ timestep        0.002
 reset_timestep  0
 
 group           cions type 4
+300 atoms in group cions
 group           sds subtract all cions
+3900 atoms in group sds
 
 velocity        all create 1. 87287 dist gaussian
 
@@ -96,3 +110,54 @@ thermo_style    multi
 thermo          500
 
 run             2000
+Ewald initialization ...
+  G vector = 0.0780443
+  vectors: actual 1d max = 309 5 665
+Memory usage per processor = 13.8649 Mbytes
+---------------- Step        0 ----- CPU =      0.0000 (sec) ----------------
+TotEng   =         9.9524 KinEng   =         1.4996 Temp     =         1.0000 
+PotEng   =         8.4527 E_bond   =         0.0036 E_angle  =         0.1237 
+E_dihed  =         0.3185 E_impro  =         0.0000 E_vdwl   =         8.0100 
+E_coul   =         0.0010 E_long   =        -0.0040 Press    =         0.4087 
+---------------- Step      500 ----- CPU =      1.0841 (sec) ----------------
+TotEng   =         2.7443 KinEng   =         1.4995 Temp     =         0.9999 
+PotEng   =         1.2448 E_bond   =         0.4572 E_angle  =         0.3849 
+E_dihed  =         0.4061 E_impro  =         0.0000 E_vdwl   =        -0.0014 
+E_coul   =         0.0020 E_long   =        -0.0040 Press    =         0.0019 
+---------------- Step     1000 ----- CPU =      2.0729 (sec) ----------------
+TotEng   =         2.8015 KinEng   =         1.5250 Temp     =         1.0169 
+PotEng   =         1.2765 E_bond   =         0.4711 E_angle  =         0.3810 
+E_dihed  =         0.4288 E_impro  =         0.0000 E_vdwl   =        -0.0029 
+E_coul   =         0.0024 E_long   =        -0.0039 Press    =         0.0029 
+---------------- Step     1500 ----- CPU =      3.0907 (sec) ----------------
+TotEng   =         2.8258 KinEng   =         1.5163 Temp     =         1.0111 
+PotEng   =         1.3096 E_bond   =         0.4557 E_angle  =         0.3876 
+E_dihed  =         0.4712 E_impro  =         0.0000 E_vdwl   =        -0.0031 
+E_coul   =         0.0020 E_long   =        -0.0038 Press    =         0.0038 
+---------------- Step     2000 ----- CPU =      4.0986 (sec) ----------------
+TotEng   =         2.8352 KinEng   =         1.5008 Temp     =         1.0008 
+PotEng   =         1.3344 E_bond   =         0.4684 E_angle  =         0.3847 
+E_dihed  =         0.4884 E_impro  =         0.0000 E_vdwl   =        -0.0052 
+E_coul   =         0.0022 E_long   =        -0.0040 Press    =        -0.0025 
+Loop time of 4.09867 on 8 procs / 1 threads for 2000 steps with 4200 atoms
+
+Pair  time (%) = 1.65981 (40.4962)
+Bond  time (%) = 0.540178 (13.1794)
+Kspce time (%) = 1.33718 (32.6248)
+Neigh time (%) = 0.179956 (4.39059)
+Comm  time (%) = 0.280787 (6.85068)
+Outpt time (%) = 0.000210851 (0.00514439)
+Other time (%) = 0.100548 (2.45318)
+
+Nlocal:    525 ave 626 max 432 min
+Histogram: 1 1 0 2 0 1 1 1 0 1
+Nghost:    2539 ave 2635 max 2367 min
+Histogram: 1 0 0 1 0 0 1 1 3 1
+Neighs:    14491.6 ave 18364 max 11979 min
+Histogram: 3 0 2 0 0 0 1 0 0 2
+
+Total # of neighbors = 115933
+Ave neighs/atom = 27.6031
+Ave special neighs/atom = 4.71429
+Neighbor list builds = 13
+Dangerous builds = 2

@@ -8,15 +8,16 @@ read_data       data.gauss-diel
 
 pair_style      hybrid/overlay          &
                 lj/cut/omp 3.5          &
-                coul/long/omp 25.0      &
+                coul/long/omp 35.0      &
                 gauss/cut/omp 3.4       &
                 coul/diel/omp 2.5
 pair_modify    shift yes
 
 dielectric      0.4255
-kspace_style    pppm/cg 0.0001
-#kspace_style     ewald/omp 0.0001
-kspace_modify   mesh 12 12 12 order 3
+#kspace_style    pppm/cg 0.0001
+#kspace_style     ewald/cg 0.0001
+kspace_style     ewald/omp 0.0001
+#kspace_modify   mesh 12 12 12 order 3
 
 bond_style      harmonic
 angle_style     harmonic

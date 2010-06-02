@@ -205,8 +205,8 @@ void PairBornCoulLongOMP::eval()
 	  } else evdwl = 0.0;
 	}
 
-	if (EVFLAG) ev_tally(i,j,nlocal,NEWTON_PAIR,
-			     evdwl,ecoul,fpair,delx,dely,delz);
+	if (EVFLAG) ev_tally_thr(i,j,nlocal,NEWTON_PAIR,
+			     evdwl,ecoul,fpair,delx,dely,delz,tid);
       }
     }
   }

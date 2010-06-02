@@ -65,6 +65,8 @@ ewald.cpp
 ewald.h
 ewald_cg.cpp
 ewald_cg.h
+ewald_omp.cpp
+ewald_omp.h
 fft3d.cpp
 fft3d.h
 fft3d_wrap.cpp

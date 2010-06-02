@@ -8,13 +8,14 @@ read_data       data.gauss-diel
 
 pair_style      hybrid/overlay          &
                 lj/cut/omp 3.5          &
-                coul/long 18.0          &
+                coul/long/omp 25.0      &
                 gauss/cut/omp 3.4       &
-                coul/diel 2.5
+                coul/diel/omp 2.5
 pair_modify    shift yes
 
 dielectric      0.4255
 kspace_style    pppm/cg 0.0001
+#kspace_style     ewald/omp 0.0001
 kspace_modify   mesh 12 12 12 order 3
 
 bond_style      harmonic
@@ -22,21 +23,21 @@ angle_style     harmonic
 dihedral_style  opls
 
 pair_coeff  1     1     lj/cut/omp       0.5 1.775 3.268        # HG   HG  
-pair_coeff  1     1     coul/long                               # HG   HG  
+pair_coeff  1     1     coul/long/omp                           # HG   HG  
 pair_coeff  1     1     gauss/cut/omp    0.1 2.549 0.1525           
 pair_coeff  1     2     lj/cut/omp       0.31623 1.5329 1.7206  # HG   CM  
 pair_coeff  1     3     lj/cut/omp       0.31623 1.5329 1.7206  # HG   CT  
 pair_coeff  1     4     lj/cut/omp       0.05 1.75 4.375        # HG   CI  
-pair_coeff  1     4     coul/long                               # HG   CI  
+pair_coeff  1     4     coul/long/omp                           # HG   CI  
 pair_coeff  1     4     gauss/cut/omp    0.2805 1.45 0.112 
-pair_coeff  1     4     coul/diel        78. 1.375 0.112 
+pair_coeff  1     4     coul/diel/omp    78. 1.375 0.112 
 pair_coeff  2     2     lj/cut/omp       0.2000 1.2910 3.2275   # CM   CM  
 pair_coeff  2     3     lj/cut/omp       0.2000 1.2910 3.2275   # CM   CT  
 pair_coeff  2     4     lj/cut/omp       0.4472 1.1455 1.28585  # CM   CI  
 pair_coeff  3     3     lj/cut/omp       1.95 1.291 3.2275      # CT   CT  
 pair_coeff  3     4     lj/cut/omp       0.4472 1.1455 1.28585  # CT   CI  
 pair_coeff  4     4     lj/cut/omp       1.0 10. 1.12246        # CI   CI 
-pair_coeff  4     4     coul/long                               # CI   CI 
+pair_coeff  4     4     coul/long/omp                           # CI   CI 
 
 bond_coeff  1      12650.0000   0.7500 # HG CM FROM TOP
 bond_coeff  2      12650.0000   0.5000 # CM CM FROM TOP
@@ -84,6 +85,7 @@ group           sds subtract all cions
 velocity        all create 1. 87287 dist gaussian
 
 neighbor        1.5 multi
+communicate     multi
 neigh_modify    exclude molecule sds
 neigh_modify    every 5 delay 0 check yes
 

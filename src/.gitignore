@@ -187,6 +187,12 @@ pair_lj_charmm_coul_long_omp.cpp
 pair_lj_charmm_coul_long_omp.h
 pair_lj_charmm_coul_long_opt.cpp
 pair_lj_charmm_coul_long_opt.h
+pair_lj_class2_coul_cut.cpp
+pair_lj_class2_coul_cut.h
+pair_lj_class2_coul_long.cpp
+pair_lj_class2_coul_long.h
+pair_lj_class2.cpp
+pair_lj_class2.h
 pair_lj_cut_coul_cut_omp.cpp
 pair_lj_cut_coul_cut_omp.h
 pair_lj_cut_coul_debye_omp.cpp

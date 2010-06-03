@@ -35,8 +35,8 @@ DihedralOMP::DihedralOMP(LAMMPS *lmp) : Dihedral(lmp)
 					   "pair:eng_dihed_thr");
   virial_thr = memory->create_2d_double_array(nthreads,6,"pair:virial_thr");
   maxeatom_thr = maxvatom_thr = 0;
-  eatom = NULL;
-  vatom = NULL;
+  eatom_thr = NULL;
+  vatom_thr = NULL;
 }
 
 /* ---------------------------------------------------------------------- */

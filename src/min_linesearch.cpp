@@ -162,7 +162,7 @@ void MinLineSearch::reset_vectors()
    output args:  return 0 if successful move, non-zero alpha
                  return non-zero if failed
                  alpha = distance moved along h for x at min eng config
-		 nfunc = updated counter of eng/force function evals
+		 update neval counter of eng/force function evaluations
    output extra: if fail, energy_force() of original x
 	         if succeed, energy_force() at x + alpha*h
                  atom->x = coords at new configuration
@@ -176,8 +176,7 @@ void MinLineSearch::reset_vectors()
    start at maxdist, backtrack until energy decrease is sufficient
 ------------------------------------------------------------------------- */
 
-int MinLineSearch::linemin_backtrack(double eoriginal, double &alpha, 
-				     int &nfunc)
+int MinLineSearch::linemin_backtrack(double eoriginal, double &alpha)
 {
   int i,m,n;
   double fdothall,fdothme,hme,hmax,hmaxall;
@@ -248,16 +247,16 @@ int MinLineSearch::linemin_backtrack(double eoriginal, double &alpha,
   // Important diagnostic: test the gradient against energy
   // double etmp;
   // double alphatmp = alphamax*1.0e-4;
-  // etmp = alpha_step(alphatmp,1,nfunc);
+  // etmp = alpha_step(alphatmp,1);
   // printf("alpha = %g dele = %g dele_force = %g err = %g\n",
   //   	    alphatmp,etmp-eoriginal,-alphatmp*fdothall,
   //        etmp-eoriginal+alphatmp*fdothall);
-  // alpha_step(0.0,1,nfunc);
+  // alpha_step(0.0,1);
 
   // backtrack with alpha until energy decrease is sufficient
 
   while (1) {
-    ecurrent = alpha_step(alpha,1,nfunc);
+    ecurrent = alpha_step(alpha,1);
 
     // if energy change is better than ideal, exit with success
 
@@ -279,7 +278,7 @@ int MinLineSearch::linemin_backtrack(double eoriginal, double &alpha,
     // reset to starting point, exit with error
 
     if (alpha <= 0.0 || de_ideal >= -IDEAL_TOL) {
-      ecurrent = alpha_step(0.0,0,nfunc);
+      ecurrent = alpha_step(0.0,0);
       return ZEROALPHA;
     }
   }
@@ -323,8 +322,7 @@ int MinLineSearch::linemin_backtrack(double eoriginal, double &alpha,
     //
 ------------------------------------------------------------------------- */
 
-int MinLineSearch::linemin_quadratic(double eoriginal, double &alpha, 
-				     int &nfunc)
+int MinLineSearch::linemin_quadratic(double eoriginal, double &alpha)
 {
   int i,m,n;
   double fdothall,fdothme,hme,hmax,hmaxall;
@@ -407,14 +405,14 @@ int MinLineSearch::linemin_quadratic(double eoriginal, double &alpha,
   // Important diagnostic: test the gradient against energy
   // double etmp;
   // double alphatmp = alphamax*1.0e-4;
-  // etmp = alpha_step(alphatmp,1,nfunc);
+  // etmp = alpha_step(alphatmp,1);
   // printf("alpha = %g dele = %g dele_force = %g err = %g\n",
   //   	    alphatmp,etmp-eoriginal,-alphatmp*fdothall,
   //        etmp-eoriginal+alphatmp*fdothall);
-  // alpha_step(0.0,1,nfunc);
+  // alpha_step(0.0,1);
 
   while (1) {
-    ecurrent = alpha_step(alpha,1,nfunc);
+    ecurrent = alpha_step(alpha,1);
 
     // compute new fh, alpha, delfh
 
@@ -452,7 +450,7 @@ int MinLineSearch::linemin_quadratic(double eoriginal, double &alpha,
     // if fh or delfh is epsilon, reset to starting point, exit with error
 
     if (fabs(fh) < EPS_QUAD || fabs(delfh) < EPS_QUAD) {
-      ecurrent = alpha_step(0.0,0,nfunc);
+      ecurrent = alpha_step(0.0,0);
       return ZEROQUAD;
     }
 
@@ -463,7 +461,7 @@ int MinLineSearch::linemin_quadratic(double eoriginal, double &alpha,
     alpha0 = alpha - (alpha-alphaprev)*fh/delfh;
 
     if (relerr <= QUADRATIC_TOL && alpha0 > 0.0 && alpha0 < alphamax) {
-      ecurrent = alpha_step(alpha0,1,nfunc);
+      ecurrent = alpha_step(alpha0,1);
       if (ecurrent < eoriginal) {
 	if (nextra_global) {
 	  int itmp = modify->min_reset_ref();
@@ -500,7 +498,7 @@ int MinLineSearch::linemin_quadratic(double eoriginal, double &alpha,
     // reset to starting point, exit with error
 
     if (alpha <= 0.0 || de_ideal >= -IDEAL_TOL) {
-      ecurrent = alpha_step(0.0,0,nfunc);
+      ecurrent = alpha_step(0.0,0);
       return ZEROALPHA;
     }
   }
@@ -508,7 +506,7 @@ int MinLineSearch::linemin_quadratic(double eoriginal, double &alpha,
 
 /* ---------------------------------------------------------------------- */
 
-double MinLineSearch::alpha_step(double alpha, int resetflag, int &nfunc)
+double MinLineSearch::alpha_step(double alpha, int resetflag)
 {
   int i,n,m;
   double *xatom,*x0atom,*hatom;
@@ -541,6 +539,6 @@ double MinLineSearch::alpha_step(double alpha, int resetflag, int &nfunc)
 
   // compute and return new energy
 
-  nfunc++;
+  neval++;
   return energy_force(resetflag);
 }

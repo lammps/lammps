@@ -67,10 +67,10 @@ satisfied to O(dt), rather than to O(dt^2) as it would be for
 velocity-Verlet integration without reflective walls.
 </P>
 <P>Up to 6 walls or faces can be specified in a single command: <I>xlo</I>,
-<I>xhi</I>, <I>ylo</I>, <I>yhi</I>, <I>zlo</I>, <I>zhi</I>.  A <I>lo</I> face only reflects
-particles that move to a coordinate less than the face position.  A
-<I>hi</I> face only reflects particles that move to a coordinate higher
-than the face position.
+<I>xhi</I>, <I>ylo</I>, <I>yhi</I>, <I>zlo</I>, <I>zhi</I>.  A <I>lo</I> face reflects particles
+that move to a coordinate less than the face position, back in the
+<I>hi</I> direction.  A <I>hi</I> face reflects particles that move to a
+coordinate higher than the face position, back in the <I>lo</I> direction.
 </P>
 <P>The position of each face can be specified in one of 3 ways: as the
 EDGE of the simulation box, as a constant value, or as a variable.  If
@@ -79,14 +79,13 @@ simulation box is used.  If a numeric constant is specified then the
 wall is placed at that position in the appropriate dimension (x, y, or
 z).  In both the EDGE and constant cases, the wall will never move.
 If the face position is specified with a variable name v_ID, then ID
-should be the name of an <A HREF = "variable.html">equal-style variable</A> that has
-been previously defined.  In this case the variable is evaluated each
-timestep and the result is the current position of the reflecting
-wall.  Equal-style variables can specify formulas with various
-mathematical functions, and include <A HREF = "thermo_style.html">thermo_style</A>
-command keywords for the simulation box parameters and timestep and
-elapsed time.  Thus it is easy to specify a time-dependent wall
-position.
+should be the name of an <A HREF = "variable.html">equal-style variable</A>.  In
+this case the variable is evaluated each timestep and the result
+becomes the current position of the reflecting wall.  Equal-style
+variables can specify formulas with various mathematical functions,
+and include <A HREF = "thermo_style.html">thermo_style</A> command keywords for the
+simulation box parameters and timestep and elapsed time.  Thus it is
+easy to specify a time-dependent wall position.
 </P>
 <P>The <I>units</I> keyword determines the meaning of the distance units used
 to define a face position, but only when a numeric constant is used.

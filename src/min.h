@@ -24,6 +24,7 @@ class Min : protected Pointers {
   double fnorm2_init,fnorminf_init,fnorm2_final,fnorminf_final;
   double alpha_final;
   int niter,neval;
+  int stop_condition;
   char *stopstr;
 
   Min(class LAMMPS *);
@@ -31,7 +32,7 @@ class Min : protected Pointers {
   void init();
   void setup();
   void setup_minimal(int);
-  void run(int);
+  void run(int,int);
   void cleanup();
   void request(class Pair *, int, double);
   double memory_usage() {return 0.0;}
@@ -95,6 +96,7 @@ class Min : protected Pointers {
 
   double fnorm_sqr();
   double fnorm_inf();
+  char *stopstrings(int);
 };
 
 }

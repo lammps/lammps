@@ -50,10 +50,17 @@ thermo_modify command after it.
 </P>
 <P>The <I>lost</I> keyword determines whether LAMMPS checks for lost atoms
 each time it computes thermodynamics and what it does if atoms are
-lost.  If the value is <I>ignore</I>, LAMMPS does not check for lost atoms.
-If the value is <I>error</I> or <I>warn</I>, LAMMPS checks and either issues an
-error or warning.  The code will exit with an error and continue with
-a warning.  This can be a useful debugging option.
+lost.  An atom can be "lost" if it moves across a non-periodic
+simulation box <A HREF = "boundary.html">boundary</A> or if it moves more than a box
+length outside the simulation domain (or more than a processor
+sub-domain length) before reneighboring occurs.  The latter case is
+typically due to bad dynamics, e.g. too large a timestep or huge
+forces and velocities.  If the value is <I>ignore</I>, LAMMPS does not
+check for lost atoms.  If the value is <I>error</I> or <I>warn</I>, LAMMPS
+checks and either issues an error or warning.  The code will exit with
+an error and continue with a warning.  A warning will only be issued
+once, the first time an atom is lost.  This can be a useful debugging
+option.
 </P>
 <P>The <I>norm</I> keyword determines whether various thermodynamic output
 values are normalized by the number of atoms or not, depending on

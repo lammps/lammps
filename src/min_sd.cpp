@@ -37,7 +37,7 @@ MinSD::MinSD(LAMMPS *lmp) : MinLineSearch(lmp) {}
    minimization via steepest descent
 ------------------------------------------------------------------------- */
 
-int MinSD::iterate(int niter_max)
+int MinSD::iterate(int maxiter)
 {
   int i,m,n,fail,ntimestep;
   double fdotf;
@@ -56,16 +56,15 @@ int MinSD::iterate(int niter_max)
   if (nextra_global)
     for (i = 0; i < nextra_global; i++) hextra[i] = fextra[i];
 
-  neval = 0;
-  for (niter = 0; niter < niter_max; niter++) {
-
+  for (int iter = 0; iter < maxiter; iter++) {
     ntimestep = ++update->ntimestep;
+    niter++;
 
     // line minimization along h from current position x
     // h = downhill gradient direction
 
     eprevious = ecurrent;
-    fail = (this->*linemin)(ecurrent,alpha_final,neval);
+    fail = (this->*linemin)(ecurrent,alpha_final);
     if (fail) return fail;
 
     // function evaluation criterion

@@ -63,8 +63,12 @@ dihedral_hybrid.cpp
 dihedral_hybrid.h
 dihedral_multi_harmonic.cpp
 dihedral_multi_harmonic.h
+dihedral_multi_harmonic_omp.cpp
+dihedral_multi_harmonic_omp.h
 dihedral_opls.cpp
 dihedral_opls.h
+dihedral_opls_omp.cpp
+dihedral_opls_omp.h
 dump_xtc.cpp
 dump_xtc.h
 ewald.cpp

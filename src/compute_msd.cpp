@@ -49,22 +49,26 @@ ComputeMSD::ComputeMSD(LAMMPS *lmp, int narg, char **arg) :
     } else error->all("Illegal compute msd command");
   }
 
-  // create a new fix store/coord style with or without com keyword
-  // id = compute-ID + store_coord, fix group = compute group
+  // create a new fix store style with or without com keyword
+  // id = compute-ID + store, fix group = compute group
 
-  int n = strlen(id) + strlen("_store_coord") + 1;
+  int n = strlen(id) + strlen("_store") + 1;
   id_fix = new char[n];
   strcpy(id_fix,id);
-  strcat(id_fix,"_store_coord");
+  strcat(id_fix,"_store");
 
-  char **newarg = new char*[5];
+  char **newarg = new char*[9];
   newarg[0] = id_fix;
   newarg[1] = group->names[igroup];
-  newarg[2] = (char *) "store/coord";
-  newarg[3] = (char *) "com";
-  newarg[4] = (char *) "yes";
-  if (comflag) modify->add_fix(5,newarg);
-  else modify->add_fix(3,newarg);
+  newarg[2] = (char *) "store";
+  newarg[3] = (char *) "0";
+  newarg[4] = (char *) "xu";
+  newarg[5] = (char *) "yu";
+  newarg[6] = (char *) "zu";
+  newarg[7] = (char *) "com";
+  newarg[8] = (char *) "yes";
+  if (comflag) modify->add_fix(9,newarg);
+  else modify->add_fix(7,newarg);
   delete [] newarg;
 
   vector = new double[4];

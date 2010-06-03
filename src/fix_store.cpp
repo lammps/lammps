@@ -11,241 +11,458 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "stdlib.h"
 #include "string.h"
-#include "compute_property_atom.h"
+#include "fix_store.h"
 #include "atom.h"
-#include "update.h"
 #include "domain.h"
+#include "update.h"
+#include "group.h"
+#include "modify.h"
+#include "compute.h"
+#include "fix.h"
+#include "input.h"
+#include "variable.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
 
+enum{KEYWORD,COMPUTE,FIX,VARIABLE};
+
+#define INVOKED_PERATOM 8
+
 /* ---------------------------------------------------------------------- */
 
-ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+FixStore::FixStore(LAMMPS *lmp, int narg, char **arg) :
+  Fix(lmp, narg, arg)
 {
-  if (narg < 4) error->all("Illegal compute property/atom command");
+  if (narg < 5) error->all("Illegal fix store command");
 
-  peratom_flag = 1;
-  nvalues = narg - 3;
-  if (nvalues == 1) size_peratom_cols = 0;
-  else size_peratom_cols = nvalues;
+  restart_peratom = 1;
+  peratom_freq = 1;
 
-  // parse input values
+  nevery = atoi(arg[3]);
+  if (nevery < 0) error->all("Illegal fix store command");
+
+  // parse values until one isn't recognized
   // customize a new keyword by adding to if statement
 
-  pack_choice = new FnPtrPack[nvalues];
+  pack_choice = new FnPtrPack[narg-4];
+  which = new int[narg-4];
+  argindex = new int[narg-4];
+  ids = new char*[narg-4];
+  value2index = new int[narg-4];
+  nvalues = 0;
+  cfv_any = 0;
 
-  int i;
-  for (int iarg = 3; iarg < narg; iarg++) {
-    i = iarg-3;
+  int iarg = 4;
+  while (iarg < narg) {
+    which[nvalues] = KEYWORD;
+    ids[nvalues] = NULL;
 
     if (strcmp(arg[iarg],"id") == 0) {
-      pack_choice[i] = &ComputePropertyAtom::pack_id;
+      pack_choice[nvalues++] = &FixStore::pack_id;
     } else if (strcmp(arg[iarg],"mol") == 0) {
       if (!atom->molecule_flag)
-	error->all("Compute property/atom for "
-		   "atom property that isn't allocated");
-      pack_choice[i] = &ComputePropertyAtom::pack_molecule;
+	error->all("Fix store for atom property that isn't allocated");
+      pack_choice[nvalues++] = &FixStore::pack_molecule;
     } else if (strcmp(arg[iarg],"type") == 0) {
-      pack_choice[i] = &ComputePropertyAtom::pack_type;
+      pack_choice[nvalues++] = &FixStore::pack_type;
     } else if (strcmp(arg[iarg],"mass") == 0) {
-      pack_choice[i] = &ComputePropertyAtom::pack_mass;
+      pack_choice[nvalues++] = &FixStore::pack_mass;
 
     } else if (strcmp(arg[iarg],"x") == 0) {
-      pack_choice[i] = &ComputePropertyAtom::pack_x;
+      pack_choice[nvalues++] = &FixStore::pack_x;
     } else if (strcmp(arg[iarg],"y") == 0) {
-      pack_choice[i] = &ComputePropertyAtom::pack_y;
+      pack_choice[nvalues++] = &FixStore::pack_y;
     } else if (strcmp(arg[iarg],"z") == 0) {
-      pack_choice[i] = &ComputePropertyAtom::pack_z;
+      pack_choice[nvalues++] = &FixStore::pack_z;
     } else if (strcmp(arg[iarg],"xs") == 0) {
       if (domain->triclinic) 
-	pack_choice[i] = &ComputePropertyAtom::pack_xs_triclinic;
-      else pack_choice[i] = &ComputePropertyAtom::pack_xs;
+	pack_choice[nvalues++] = &FixStore::pack_xs_triclinic;
+      else pack_choice[nvalues++] = &FixStore::pack_xs;
     } else if (strcmp(arg[iarg],"ys") == 0) {
       if (domain->triclinic) 
-	pack_choice[i] = &ComputePropertyAtom::pack_ys_triclinic;
-      else pack_choice[i] = &ComputePropertyAtom::pack_ys;
+	pack_choice[nvalues++] = &FixStore::pack_ys_triclinic;
+      else pack_choice[nvalues++] = &FixStore::pack_ys;
     } else if (strcmp(arg[iarg],"zs") == 0) {
       if (domain->triclinic) 
-	pack_choice[i] = &ComputePropertyAtom::pack_zs_triclinic;
-      else pack_choice[i] = &ComputePropertyAtom::pack_zs;
+	pack_choice[nvalues++] = &FixStore::pack_zs_triclinic;
+      else pack_choice[nvalues++] = &FixStore::pack_zs;
     } else if (strcmp(arg[iarg],"xu") == 0) {
       if (domain->triclinic) 
-	pack_choice[i] = &ComputePropertyAtom::pack_xu_triclinic;
-      else pack_choice[i] = &ComputePropertyAtom::pack_xu;
+	pack_choice[nvalues++] = &FixStore::pack_xu_triclinic;
+      else pack_choice[nvalues++] = &FixStore::pack_xu;
     } else if (strcmp(arg[iarg],"yu") == 0) {
       if (domain->triclinic) 
-	pack_choice[i] = &ComputePropertyAtom::pack_yu_triclinic;
-      else pack_choice[i] = &ComputePropertyAtom::pack_yu;
+	pack_choice[nvalues++] = &FixStore::pack_yu_triclinic;
+      else pack_choice[nvalues++] = &FixStore::pack_yu;
     } else if (strcmp(arg[iarg],"zu") == 0) {
       if (domain->triclinic) 
-	pack_choice[i] = &ComputePropertyAtom::pack_zu_triclinic;
-      else pack_choice[i] = &ComputePropertyAtom::pack_zu;
+	pack_choice[nvalues++] = &FixStore::pack_zu_triclinic;
+      else pack_choice[nvalues++] = &FixStore::pack_zu;
     } else if (strcmp(arg[iarg],"ix") == 0) {
-      pack_choice[i] = &ComputePropertyAtom::pack_ix;
+      pack_choice[nvalues++] = &FixStore::pack_ix;
     } else if (strcmp(arg[iarg],"iy") == 0) {
-      pack_choice[i] = &ComputePropertyAtom::pack_iy;
+      pack_choice[nvalues++] = &FixStore::pack_iy;
     } else if (strcmp(arg[iarg],"iz") == 0) {
-      pack_choice[i] = &ComputePropertyAtom::pack_iz;
+      pack_choice[nvalues++] = &FixStore::pack_iz;
 
     } else if (strcmp(arg[iarg],"vx") == 0) {
-      pack_choice[i] = &ComputePropertyAtom::pack_vx;
+      pack_choice[nvalues++] = &FixStore::pack_vx;
     } else if (strcmp(arg[iarg],"vy") == 0) {
-      pack_choice[i] = &ComputePropertyAtom::pack_vy;
+      pack_choice[nvalues++] = &FixStore::pack_vy;
     } else if (strcmp(arg[iarg],"vz") == 0) {
-      pack_choice[i] = &ComputePropertyAtom::pack_vz;
+      pack_choice[nvalues++] = &FixStore::pack_vz;
     } else if (strcmp(arg[iarg],"fx") == 0) {
-      pack_choice[i] = &ComputePropertyAtom::pack_fx;
+      pack_choice[nvalues++] = &FixStore::pack_fx;
     } else if (strcmp(arg[iarg],"fy") == 0) {
-      pack_choice[i] = &ComputePropertyAtom::pack_fy;
+      pack_choice[nvalues++] = &FixStore::pack_fy;
     } else if (strcmp(arg[iarg],"fz") == 0) {
-      pack_choice[i] = &ComputePropertyAtom::pack_fz;
+      pack_choice[nvalues++] = &FixStore::pack_fz;
 
     } else if (strcmp(arg[iarg],"q") == 0) {
       if (!atom->q_flag)
-	error->all("Compute property/atom for "
-		   "atom property that isn't allocated");
-      pack_choice[i] = &ComputePropertyAtom::pack_q;
+	error->all("Fix store for atom property that isn't allocated");
+      pack_choice[nvalues++] = &FixStore::pack_q;
     } else if (strcmp(arg[iarg],"mux") == 0) {
       if (!atom->mu_flag)
-	error->all("Compute property/atom for "
-		   "atom property that isn't allocated");
-      pack_choice[i] = &ComputePropertyAtom::pack_mux;
+	error->all("Fix store for atom property that isn't allocated");
+      pack_choice[nvalues++] = &FixStore::pack_mux;
     } else if (strcmp(arg[iarg],"muy") == 0) {
       if (!atom->mu_flag)
-	error->all("Compute property/atom for "
-		   "atom property that isn't allocated");
-      pack_choice[i] = &ComputePropertyAtom::pack_muy;
+	error->all("Fix store for atom property that isn't allocated");
+      pack_choice[nvalues++] = &FixStore::pack_muy;
     } else if (strcmp(arg[iarg],"muz") == 0) {
       if (!atom->mu_flag)
-	error->all("Compute property/atom for "
-		   "atom property that isn't allocated");
-      pack_choice[i] = &ComputePropertyAtom::pack_muz;
+	error->all("Fix store for atom property that isn't allocated");
+      pack_choice[nvalues++] = &FixStore::pack_muz;
 
     } else if (strcmp(arg[iarg],"radius") == 0) {
       if (!atom->radius_flag)
-	error->all("Compute property/atom for "
-		   "atom property that isn't allocated");
-      pack_choice[i] = &ComputePropertyAtom::pack_radius;
+	error->all("Fix store for atom property that isn't allocated");
+      pack_choice[nvalues++] = &FixStore::pack_radius;
     } else if (strcmp(arg[iarg],"omegax") == 0) {
       if (!atom->omega_flag)
-	error->all("Compute property/atom for "
-		   "atom property that isn't allocated");
-      pack_choice[i] = &ComputePropertyAtom::pack_omegax;
+	error->all("Fix store for atom property that isn't allocated");
+      pack_choice[nvalues++] = &FixStore::pack_omegax;
     } else if (strcmp(arg[iarg],"omegay") == 0) {
       if (!atom->omega_flag)
-	error->all("Compute property/atom for "
-		   "atom property that isn't allocated");
-      pack_choice[i] = &ComputePropertyAtom::pack_omegay;
+	error->all("Fix store for atom property that isn't allocated");
+      pack_choice[nvalues++] = &FixStore::pack_omegay;
     } else if (strcmp(arg[iarg],"omegaz") == 0) {
       if (!atom->omega_flag)
-	error->all("Compute property/atom for "
-		   "atom property that isn't allocated");
-      pack_choice[i] = &ComputePropertyAtom::pack_omegaz;
+	error->all("Fix store for atom property that isn't allocated");
+      pack_choice[nvalues++] = &FixStore::pack_omegaz;
     } else if (strcmp(arg[iarg],"angmomx") == 0) {
       if (!atom->angmom_flag)
-	error->all("Compute property/atom for "
-		   "atom property that isn't allocated");
-      pack_choice[i] = &ComputePropertyAtom::pack_angmomx;
+	error->all("Fix store for atom property that isn't allocated");
+      pack_choice[nvalues++] = &FixStore::pack_angmomx;
     } else if (strcmp(arg[iarg],"angmomy") == 0) {
       if (!atom->angmom_flag)
-	error->all("Compute property/atom for "
-		   "atom property that isn't allocated");
-      pack_choice[i] = &ComputePropertyAtom::pack_angmomy;
+	error->all("Fix store for atom property that isn't allocated");
+      pack_choice[nvalues++] = &FixStore::pack_angmomy;
     } else if (strcmp(arg[iarg],"angmomz") == 0) {
       if (!atom->angmom_flag)
-	error->all("Compute property/atom for "
-		   "atom property that isn't allocated");
-      pack_choice[i] = &ComputePropertyAtom::pack_angmomz;
+	error->all("Fix store for atom property that isn't allocated");
+      pack_choice[nvalues++] = &FixStore::pack_angmomz;
 
     } else if (strcmp(arg[iarg],"quatw") == 0) {
       if (!atom->quat_flag)
-	error->all("Compute property/atom for "
-		   "atom property that isn't allocated");
-      pack_choice[i] = &ComputePropertyAtom::pack_quatw;
+	error->all("Fix store for atom property that isn't allocated");
+      pack_choice[nvalues++] = &FixStore::pack_quatw;
     } else if (strcmp(arg[iarg],"quati") == 0) {
       if (!atom->quat_flag)
-	error->all("Compute property/atom for "
-		   "atom property that isn't allocated");
-      pack_choice[i] = &ComputePropertyAtom::pack_quati;
+	error->all("Fix store for atom property that isn't allocated");
+      pack_choice[nvalues++] = &FixStore::pack_quati;
     } else if (strcmp(arg[iarg],"quatj") == 0) {
       if (!atom->quat_flag)
-	error->all("Compute property/atom for "
-		   "atom property that isn't allocated");
-      pack_choice[i] = &ComputePropertyAtom::pack_quatj;
+	error->all("Fix store for atom property that isn't allocated");
+      pack_choice[nvalues++] = &FixStore::pack_quatj;
     } else if (strcmp(arg[iarg],"quatk") == 0) {
       if (!atom->quat_flag)
-	error->all("Compute property/atom for "
-		   "atom property that isn't allocated");
-      pack_choice[i] = &ComputePropertyAtom::pack_quatk;
+	error->all("Fix store for atom property that isn't allocated");
+      pack_choice[nvalues++] = &FixStore::pack_quatk;
     } else if (strcmp(arg[iarg],"tqx") == 0) {
       if (!atom->torque_flag)
-	error->all("Compute property/atom for "
-		   "atom property that isn't allocated");
-      pack_choice[i] = &ComputePropertyAtom::pack_tqx;
+	error->all("Fix store for atom property that isn't allocated");
+      pack_choice[nvalues++] = &FixStore::pack_tqx;
     } else if (strcmp(arg[iarg],"tqy") == 0) {
       if (!atom->torque_flag)
-	error->all("Compute property/atom for "
-		   "atom property that isn't allocated");
-      pack_choice[i] = &ComputePropertyAtom::pack_tqy;
+	error->all("Fix store for atom property that isn't allocated");
+      pack_choice[nvalues++] = &FixStore::pack_tqy;
     } else if (strcmp(arg[iarg],"tqz") == 0) {
       if (!atom->torque_flag)
-	error->all("Compute property/atom for "
-		   "atom property that isn't allocated");
-      pack_choice[i] = &ComputePropertyAtom::pack_tqz;
+	error->all("Fix store for atom property that isn't allocated");
+      pack_choice[nvalues++] = &FixStore::pack_tqz;
 
-    } else error->all("Invalid keyword in compute property/atom command");
+    } else if (strncmp(arg[iarg],"c_",2) == 0 || 
+	       strncmp(arg[iarg],"f_",2) == 0 || 
+	       strncmp(arg[iarg],"v_",2) == 0) {
+      cfv_any = 1;
+      if (arg[iarg][0] == 'c') which[nvalues] = COMPUTE;
+      else if (arg[iarg][0] == 'f') which[nvalues] = FIX;
+      else if (arg[iarg][0] == 'v') which[nvalues] = VARIABLE;
+
+      int n = strlen(arg[iarg]);
+      char *suffix = new char[n];
+      strcpy(suffix,&arg[iarg][2]);
+
+      char *ptr = strchr(suffix,'[');
+      if (ptr) {
+	if (suffix[strlen(suffix)-1] != ']')
+	  error->all("Illegal fix store command");
+	argindex[nvalues] = atoi(ptr+1);
+	*ptr = '\0';
+      } else argindex[nvalues] = 0;
+
+      n = strlen(suffix) + 1;
+      ids[nvalues] = new char[n];
+      strcpy(ids[nvalues],suffix);
+      nvalues++;
+      delete [] suffix;
+
+    } else break;
+
+    iarg++;
   }
 
-  nmax = 0;
-  vector = NULL;
-  array = NULL;
-}
+  // optional args
 
-/* ---------------------------------------------------------------------- */
+  int comflag = 0;
 
-ComputePropertyAtom::~ComputePropertyAtom()
-{
-  delete [] pack_choice;
-  memory->sfree(vector);
-  memory->destroy_2d_double_array(array);
-}
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"com") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix store command");
+      if (strcmp(arg[iarg+1],"no") == 0) comflag = 0;
+      else if (strcmp(arg[iarg+1],"yes") == 0) comflag = 1;
+      else error->all("Illegal fix store command");
+      iarg += 2;
+    } else error->all("Illegal fix store command");
+  }
 
-/* ---------------------------------------------------------------------- */
+  // error check
 
-void ComputePropertyAtom::compute_peratom()
-{
-  invoked_peratom = update->ntimestep;
+  for (int i = 0; i < nvalues; i++) {
+    if (which[i] == COMPUTE) {
+      int icompute = modify->find_compute(ids[i]);
+      if (icompute < 0)
+	error->all("Compute ID for fix store does not exist");
+      if (modify->compute[icompute]->peratom_flag == 0)
+	error->all("Fix store compute does not calculate per-atom values");
+      if (argindex[i] == 0 && 
+	  modify->compute[icompute]->size_peratom_cols != 0)
+	error->all("Fix store compute does not "
+		   "calculate a per-atom vector");
+      if (argindex[i] && modify->compute[icompute]->size_peratom_cols == 0)
+	error->all("Fix store compute does not "
+		   "calculate a per-atom array");
+      if (argindex[i] && 
+	  argindex[i] > modify->compute[icompute]->size_peratom_cols)
+	error->all("Fix store compute array is accessed out-of-range");
 
-  // grow vector or array if necessary
+    } else if (which[i] == FIX) {
+      int ifix = modify->find_fix(ids[i]);
+      if (ifix < 0)
+	error->all("Fix ID for fix store does not exist");
+      if (modify->fix[ifix]->peratom_flag == 0)
+	error->all("Fix store fix does not calculate per-atom values");
+      if (argindex[i] == 0 && modify->fix[ifix]->size_peratom_cols != 0)
+	error->all("Fix store fix does not calculate a per-atom vector");
+      if (argindex[i] && modify->fix[ifix]->size_peratom_cols == 0)
+	error->all("Fix store fix does not calculate a per-atom array");
+      if (argindex[i] && argindex[i] > modify->fix[ifix]->size_peratom_cols)
+	error->all("Fix store fix array is accessed out-of-range");
+      if (nevery % modify->fix[ifix]->peratom_freq)
+	error->all("Fix for fix store not computed at compatible time");
 
-  if (atom->nlocal > nmax) {
-    nmax = atom->nmax;
-    if (nvalues == 1) {
-      memory->sfree(vector);
-      vector = (double *) memory->smalloc(nmax*sizeof(double),
-					  "property/atom:vector");
-      vector_atom = vector;
-    } else {
-      memory->destroy_2d_double_array(array);
-      array = memory->create_2d_double_array(nmax,nvalues,
-					     "property/atom:array");
-      array_atom = array;
+    } else if (which[i] == VARIABLE) {
+      int ivariable = input->variable->find(ids[i]);
+      if (ivariable < 0)
+	error->all("Variable name for fix store does not exist");
+      if (input->variable->atomstyle(ivariable) == 0)
+	error->all("Fix store variable is not atom-style variable");
     }
   }
 
+  // this fix produces either a per-atom vector or array
+
+  peratom_flag = 1;
+  if (nvalues == 1) size_peratom_cols = 0;
+  else size_peratom_cols = nvalues;
+
+  // perform initial allocation of atom-based array
+  // register with Atom class
+
+  values = NULL;
+  grow_arrays(atom->nmax);
+  atom->add_callback(0);
+  atom->add_callback(1);
+
+  // zero the array since dump may access it on timestep 0
+  // zero the array since a variable may access it before first run
+
+  int nlocal = atom->nlocal;
+  for (int i = 0; i < nlocal; i++)
+    for (int m = 0; m < nvalues; m++)
+      values[i][m] = 0.0;
+
+  // store current values for keywords but not for compute, fix, variable
+
+  kflag = 1;
+  cfv_flag = 0;
+  end_of_step();
+  firstflag = 1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+FixStore::~FixStore()
+{
+  // unregister callbacks to this fix from Atom class
+ 
+  atom->delete_callback(id,0);
+  atom->delete_callback(id,1);
+
+  delete [] which;
+  delete [] argindex;
+  for (int m = 0; m < nvalues; m++) delete [] ids[m];
+  delete [] ids;
+  delete [] value2index;
+  delete [] pack_choice;
+
+  memory->destroy_2d_double_array(values);
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixStore::setmask()
+{
+  int mask = 0;
+  if (nevery) mask |= END_OF_STEP;
+  return mask;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixStore::init()
+{
+  // set indices and check validity of all computes,fixes,variables
+
+  for (int m = 0; m < nvalues; m++) {
+    if (which[m] == COMPUTE) {
+      int icompute = modify->find_compute(ids[m]);
+      if (icompute < 0)
+	error->all("Compute ID for fix ave/atom does not exist");
+      value2index[m] = icompute;
+      
+    } else if (which[m] == FIX) {
+      int ifix = modify->find_fix(ids[m]);
+      if (ifix < 0) 
+	error->all("Fix ID for fix ave/atom does not exist");
+      value2index[m] = ifix;
+
+    } else if (which[m] == VARIABLE) {
+      int ivariable = input->variable->find(ids[m]);
+      if (ivariable < 0) 
+	error->all("Variable name for fix ave/atom does not exist");
+      value2index[m] = ivariable;
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixStore::setup(int vflag)
+{
+  // if first invocation, store current values for compute, fix, variable
+
+  if (firstflag) {
+    kflag = 0;
+    cfv_flag = 1;
+    end_of_step();
+    firstflag = 0;
+    kflag = cfv_flag = 1;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixStore::end_of_step()
+{
+  int i,j,n;
+
+  // compute com if comflag set
+
+  if (comflag) {
+    double masstotal = group->mass(igroup);
+    group->xcm(igroup,masstotal,cm);
+  }
+
+  // if any compute/fix/variable and nevery, wrap with clear/add
+
+  if (cfv_any && nevery) modify->clearstep_compute();
+
   // fill vector or array with per-atom values
 
-  if (nvalues == 1) {
-    buf = vector;
-    (this->*pack_choice[0])(0);
-  } else {
-    buf = &array[0][0];
-    for (int n = 0; n < nvalues; n++)
-      (this->*pack_choice[n])(n);
+  buf = &values[0][0];
+  for (int m = 0; m < nvalues; m++) {
+    if (which[m] == KEYWORD && kflag) (this->*pack_choice[m])(m);
+
+    else if (cfv_flag) {
+      n = value2index[m];
+      j = argindex[m];
+
+      int *mask = atom->mask;
+      int nlocal = atom->nlocal;
+
+      // invoke compute if not previously invoked
+
+      if (which[m] == COMPUTE) {
+	Compute *compute = modify->compute[n];
+	if (!(compute->invoked_flag & INVOKED_PERATOM)) {
+	  compute->compute_peratom();
+	  compute->invoked_flag |= INVOKED_PERATOM;
+	}
+
+	if (j == 0) {
+	  double *compute_vector = compute->vector_atom;
+	  for (i = 0; i < nlocal; i++)
+	    if (mask[i] & groupbit) values[i][m] += compute_vector[i];
+	} else {
+	  int jm1 = j - 1;
+	  double **compute_array = compute->array_atom;
+	  for (i = 0; i < nlocal; i++)
+	    if (mask[i] & groupbit) values[i][m] += compute_array[i][jm1];
+	}
+	
+      // access fix fields, guaranteed to be ready
+	
+      } else if (which[m] == FIX) {
+	if (j == 0) {
+	  double *fix_vector = modify->fix[n]->vector_atom;
+	  for (i = 0; i < nlocal; i++)
+	    if (mask[i] & groupbit) values[i][m] += fix_vector[i];
+	} else {
+	  int jm1 = j - 1;
+	  double **fix_array = modify->fix[n]->array_atom;
+	  for (i = 0; i < nlocal; i++)
+	    if (mask[i] & groupbit) values[i][m] += fix_array[i][jm1];
+	}
+
+      // evaluate atom-style variable
+      
+      } else if (which[m] == VARIABLE)
+	input->variable->compute_atom(n,igroup,&values[0][m],nvalues,1);
+    }
+  }
+
+  // if any compute/fix/variable and nevery, wrap with clear/add
+
+  if (cfv_any && nevery) {
+    int nextstep = (update->ntimestep/nevery)*nevery + nevery;
+    modify->addstep_compute(nextstep);
   }
 }
 
@@ -253,21 +470,107 @@ void ComputePropertyAtom::compute_peratom()
    memory usage of local atom-based array
 ------------------------------------------------------------------------- */
 
-double ComputePropertyAtom::memory_usage()
+double FixStore::memory_usage()
 {
-  double bytes = nmax*nvalues * sizeof(double);
+  double bytes = atom->nmax*nvalues * sizeof(double);
   return bytes;
 }
 
 /* ----------------------------------------------------------------------
-   one method for every keyword compute property/atom can output
+   allocate atom-based array
+------------------------------------------------------------------------- */
+
+void FixStore::grow_arrays(int nmax)
+{
+  values = memory->grow_2d_double_array(values,nmax,3,"fix_store:values");
+  if (nvalues == 0) vector_atom = &values[0][0];
+  else array_atom = values;
+}
+
+/* ----------------------------------------------------------------------
+   copy values within local atom-based array
+------------------------------------------------------------------------- */
+
+void FixStore::copy_arrays(int i, int j)
+{
+  for (int m = 0; m < nvalues; m++) values[j][m] = values[i][m];
+}
+
+/* ----------------------------------------------------------------------
+   pack values in local atom-based array for exchange with another proc
+------------------------------------------------------------------------- */
+
+int FixStore::pack_exchange(int i, double *buf)
+{
+  for (int m = 0; m < nvalues; m++) buf[m] = values[i][m];
+  return nvalues;
+}
+
+/* ----------------------------------------------------------------------
+   unpack values in local atom-based array from exchange with another proc
+------------------------------------------------------------------------- */
+
+int FixStore::unpack_exchange(int nlocal, double *buf)
+{
+  for (int m = 0; m < nvalues; m++) values[nlocal][m] = buf[m];
+  return nvalues;
+}
+
+/* ----------------------------------------------------------------------
+   pack values in local atom-based arrays for restart file
+------------------------------------------------------------------------- */
+
+int FixStore::pack_restart(int i, double *buf)
+{
+  buf[0] = nvalues+1;
+  for (int m = 0; m < nvalues; m++) buf[m+1] = values[i][m];
+  return nvalues+1;
+}
+
+/* ----------------------------------------------------------------------
+   unpack values from atom->extra array to restart the fix
+------------------------------------------------------------------------- */
+
+void FixStore::unpack_restart(int nlocal, int nth)
+{
+  double **extra = atom->extra;
+
+  // skip to Nth set of extra values
+
+  int m = 0;
+  for (int i = 0; i < nth; i++) m += static_cast<int> (extra[nlocal][m]);
+  m++;
+
+  for (int i = 0; i < nvalues; i++) values[nlocal][i] = extra[nlocal][m++];
+}
+
+/* ----------------------------------------------------------------------
+   maxsize of any atom's restart data
+------------------------------------------------------------------------- */
+
+int FixStore::maxsize_restart()
+{
+  return nvalues+1;
+}
+
+/* ----------------------------------------------------------------------
+   size of atom nlocal's restart data
+------------------------------------------------------------------------- */
+
+int FixStore::size_restart(int nlocal)
+{
+  return nvalues+1;
+}
+
+/* ----------------------------------------------------------------------
+   one method for every keyword fix store can archive
    the atom property is packed into buf starting at n with stride nvalues
    customize a new keyword by adding a method
 ------------------------------------------------------------------------- */
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_id(int n)
+void FixStore::pack_id(int n)
 {
   int *tag = atom->tag;
   int *mask = atom->mask;
@@ -282,7 +585,7 @@ void ComputePropertyAtom::pack_id(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_molecule(int n)
+void FixStore::pack_molecule(int n)
 {
   int *molecule = atom->molecule;
   int *mask = atom->mask;
@@ -297,7 +600,7 @@ void ComputePropertyAtom::pack_molecule(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_type(int n)
+void FixStore::pack_type(int n)
 {
   int *type = atom->type;
   int *mask = atom->mask;
@@ -312,7 +615,7 @@ void ComputePropertyAtom::pack_type(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_mass(int n)
+void FixStore::pack_mass(int n)
 {
   int *type = atom->type;
   double *mass = atom->mass;
@@ -337,7 +640,7 @@ void ComputePropertyAtom::pack_mass(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_x(int n)
+void FixStore::pack_x(int n)
 {
   double **x = atom->x;
   int *mask = atom->mask;
@@ -352,7 +655,7 @@ void ComputePropertyAtom::pack_x(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_y(int n)
+void FixStore::pack_y(int n)
 {
   double **x = atom->x;
   int *mask = atom->mask;
@@ -367,7 +670,7 @@ void ComputePropertyAtom::pack_y(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_z(int n)
+void FixStore::pack_z(int n)
 {
   double **x = atom->x;
   int *mask = atom->mask;
@@ -382,7 +685,7 @@ void ComputePropertyAtom::pack_z(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_xs(int n)
+void FixStore::pack_xs(int n)
 {
   double **x = atom->x;
   int *mask = atom->mask;
@@ -400,7 +703,7 @@ void ComputePropertyAtom::pack_xs(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_ys(int n)
+void FixStore::pack_ys(int n)
 {
   double **x = atom->x;
   int *mask = atom->mask;
@@ -418,7 +721,7 @@ void ComputePropertyAtom::pack_ys(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_zs(int n)
+void FixStore::pack_zs(int n)
 {
   double **x = atom->x;
   int *mask = atom->mask;
@@ -436,7 +739,7 @@ void ComputePropertyAtom::pack_zs(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_xs_triclinic(int n)
+void FixStore::pack_xs_triclinic(int n)
 {
   double **x = atom->x;
   int *mask = atom->mask;
@@ -456,7 +759,7 @@ void ComputePropertyAtom::pack_xs_triclinic(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_ys_triclinic(int n)
+void FixStore::pack_ys_triclinic(int n)
 {
   double **x = atom->x;
   int *mask = atom->mask;
@@ -475,7 +778,7 @@ void ComputePropertyAtom::pack_ys_triclinic(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_zs_triclinic(int n)
+void FixStore::pack_zs_triclinic(int n)
 {
   double **x = atom->x;
   int *mask = atom->mask;
@@ -494,7 +797,7 @@ void ComputePropertyAtom::pack_zs_triclinic(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_xu(int n)
+void FixStore::pack_xu(int n)
 {
   double **x = atom->x;
   int *image = atom->image;
@@ -504,16 +807,17 @@ void ComputePropertyAtom::pack_xu(int n)
   double xprd = domain->xprd;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) 
+    if (mask[i] & groupbit) {
       buf[n] = x[i][0] + ((image[i] & 1023) - 512) * xprd;
-    else buf[n] = 0.0;
+      if (comflag) buf[n] -= cm[0];
+    } else buf[n] = 0.0;
     n += nvalues;
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_yu(int n)
+void FixStore::pack_yu(int n)
 {
   double **x = atom->x;
   int *image = atom->image;
@@ -523,16 +827,17 @@ void ComputePropertyAtom::pack_yu(int n)
   double yprd = domain->yprd;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit)
+    if (mask[i] & groupbit) {
       buf[n] = x[i][1] + ((image[i] >> 10 & 1023) - 512) * yprd;
-    else buf[n] = 0.0;
+      if (comflag) buf[n] -= cm[1];
+    } else buf[n] = 0.0;
     n += nvalues;
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_zu(int n)
+void FixStore::pack_zu(int n)
 {
   double **x = atom->x;
   int *image = atom->image;
@@ -542,16 +847,17 @@ void ComputePropertyAtom::pack_zu(int n)
   double zprd = domain->zprd;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit)
+    if (mask[i] & groupbit) {
       buf[n] = x[i][2] + ((image[i] >> 20) - 512) * zprd;
-    else buf[n] = 0.0;
+      if (comflag) buf[n] -= cm[2];
+    } else buf[n] = 0.0;
     n += nvalues;
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_xu_triclinic(int n)
+void FixStore::pack_xu_triclinic(int n)
 {
   double **x = atom->x;
   int *image = atom->image;
@@ -567,6 +873,7 @@ void ComputePropertyAtom::pack_xu_triclinic(int n)
       ybox = (image[i] >> 10 & 1023) - 512;
       zbox = (image[i] >> 20) - 512;
       buf[n] = x[i][0] + h[0]*xbox + h[5]*ybox + h[4]*zbox;
+      if (comflag) buf[n] -= cm[0];
     } else buf[n] = 0.0;
     n += nvalues;
   }
@@ -574,7 +881,7 @@ void ComputePropertyAtom::pack_xu_triclinic(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_yu_triclinic(int n)
+void FixStore::pack_yu_triclinic(int n)
 {
   double **x = atom->x;
   int *image = atom->image;
@@ -589,6 +896,7 @@ void ComputePropertyAtom::pack_yu_triclinic(int n)
       ybox = (image[i] >> 10 & 1023) - 512;
       zbox = (image[i] >> 20) - 512;
       buf[n] = x[i][1] + h[1]*ybox + h[3]*zbox;
+      if (comflag) buf[n] -= cm[1];
     } else buf[n] = 0.0;
     n += nvalues;
   }
@@ -596,7 +904,7 @@ void ComputePropertyAtom::pack_yu_triclinic(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_zu_triclinic(int n)
+void FixStore::pack_zu_triclinic(int n)
 {
   double **x = atom->x;
   int *image = atom->image;
@@ -610,6 +918,7 @@ void ComputePropertyAtom::pack_zu_triclinic(int n)
     if (mask[i] & groupbit) {
       zbox = (image[i] >> 20) - 512;
       buf[n] = x[i][2] + h[2]*zbox;
+      if (comflag) buf[n] -= cm[2];
     } else buf[n] = 0.0;
     n += nvalues;
   }
@@ -617,7 +926,7 @@ void ComputePropertyAtom::pack_zu_triclinic(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_ix(int n)
+void FixStore::pack_ix(int n)
 {
   int *image = atom->image;
   int *mask = atom->mask;
@@ -632,7 +941,7 @@ void ComputePropertyAtom::pack_ix(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_iy(int n)
+void FixStore::pack_iy(int n)
 {
   int *image = atom->image;
   int *mask = atom->mask;
@@ -647,7 +956,7 @@ void ComputePropertyAtom::pack_iy(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_iz(int n)
+void FixStore::pack_iz(int n)
 {
   int *image = atom->image;
   int *mask = atom->mask;
@@ -662,7 +971,7 @@ void ComputePropertyAtom::pack_iz(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_vx(int n)
+void FixStore::pack_vx(int n)
 {
   double **v = atom->v;
   int *mask = atom->mask;
@@ -677,7 +986,7 @@ void ComputePropertyAtom::pack_vx(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_vy(int n)
+void FixStore::pack_vy(int n)
 {
   double **v = atom->v;
   int *mask = atom->mask;
@@ -692,7 +1001,7 @@ void ComputePropertyAtom::pack_vy(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_vz(int n)
+void FixStore::pack_vz(int n)
 {
   double **v = atom->v;
   int *mask = atom->mask;
@@ -707,7 +1016,7 @@ void ComputePropertyAtom::pack_vz(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_fx(int n)
+void FixStore::pack_fx(int n)
 {
   double **f = atom->f;
   int *mask = atom->mask;
@@ -722,7 +1031,7 @@ void ComputePropertyAtom::pack_fx(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_fy(int n)
+void FixStore::pack_fy(int n)
 {
   double **f = atom->f;
   int *mask = atom->mask;
@@ -737,7 +1046,7 @@ void ComputePropertyAtom::pack_fy(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_fz(int n)
+void FixStore::pack_fz(int n)
 {
   double **f = atom->f;
   int *mask = atom->mask;
@@ -752,7 +1061,7 @@ void ComputePropertyAtom::pack_fz(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_q(int n)
+void FixStore::pack_q(int n)
 {
   double *q = atom->q;
   int *mask = atom->mask;
@@ -767,7 +1076,7 @@ void ComputePropertyAtom::pack_q(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_mux(int n)
+void FixStore::pack_mux(int n)
 {
   double **mu = atom->mu;
   int *mask = atom->mask;
@@ -782,7 +1091,7 @@ void ComputePropertyAtom::pack_mux(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_muy(int n)
+void FixStore::pack_muy(int n)
 {
   double **mu = atom->mu;
   int *mask = atom->mask;
@@ -797,7 +1106,7 @@ void ComputePropertyAtom::pack_muy(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_muz(int n)
+void FixStore::pack_muz(int n)
 {
   double **mu = atom->mu;
   int *mask = atom->mask;
@@ -812,7 +1121,7 @@ void ComputePropertyAtom::pack_muz(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_radius(int n)
+void FixStore::pack_radius(int n)
 {
   double *radius = atom->radius;
   int *mask = atom->mask;
@@ -827,7 +1136,7 @@ void ComputePropertyAtom::pack_radius(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_omegax(int n)
+void FixStore::pack_omegax(int n)
 {
   double **omega = atom->omega;
   int *mask = atom->mask;
@@ -842,7 +1151,7 @@ void ComputePropertyAtom::pack_omegax(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_omegay(int n)
+void FixStore::pack_omegay(int n)
 {
   double **omega = atom->omega;
   int *mask = atom->mask;
@@ -857,7 +1166,7 @@ void ComputePropertyAtom::pack_omegay(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_omegaz(int n)
+void FixStore::pack_omegaz(int n)
 {
   double **omega = atom->omega;
   int *mask = atom->mask;
@@ -872,7 +1181,7 @@ void ComputePropertyAtom::pack_omegaz(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_angmomx(int n)
+void FixStore::pack_angmomx(int n)
 {
   double **angmom = atom->angmom;
   int *mask = atom->mask;
@@ -887,7 +1196,7 @@ void ComputePropertyAtom::pack_angmomx(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_angmomy(int n)
+void FixStore::pack_angmomy(int n)
 {
   double **angmom = atom->angmom;
   int *mask = atom->mask;
@@ -902,7 +1211,7 @@ void ComputePropertyAtom::pack_angmomy(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_angmomz(int n)
+void FixStore::pack_angmomz(int n)
 {
   double **angmom = atom->angmom;
   int *mask = atom->mask;
@@ -917,7 +1226,7 @@ void ComputePropertyAtom::pack_angmomz(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_quatw(int n)
+void FixStore::pack_quatw(int n)
 {
   double **quat = atom->quat;
   int *mask = atom->mask;
@@ -932,7 +1241,7 @@ void ComputePropertyAtom::pack_quatw(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_quati(int n)
+void FixStore::pack_quati(int n)
 {
   double **quat = atom->quat;
   int *mask = atom->mask;
@@ -947,7 +1256,7 @@ void ComputePropertyAtom::pack_quati(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_quatj(int n)
+void FixStore::pack_quatj(int n)
 {
   double **quat = atom->quat;
   int *mask = atom->mask;
@@ -962,7 +1271,7 @@ void ComputePropertyAtom::pack_quatj(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_quatk(int n)
+void FixStore::pack_quatk(int n)
 {
   double **quat = atom->quat;
   int *mask = atom->mask;
@@ -977,7 +1286,7 @@ void ComputePropertyAtom::pack_quatk(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_tqx(int n)
+void FixStore::pack_tqx(int n)
 {
   double **torque = atom->torque;
   int *mask = atom->mask;
@@ -992,7 +1301,7 @@ void ComputePropertyAtom::pack_tqx(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_tqy(int n)
+void FixStore::pack_tqy(int n)
 {
   double **torque = atom->torque;
   int *mask = atom->mask;
@@ -1007,7 +1316,7 @@ void ComputePropertyAtom::pack_tqy(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_tqz(int n)
+void FixStore::pack_tqz(int n)
 {
   double **torque = atom->torque;
   int *mask = atom->mask;

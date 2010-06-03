@@ -35,19 +35,23 @@ ComputeDisplaceAtom::ComputeDisplaceAtom(LAMMPS *lmp, int narg, char **arg) :
   peratom_flag = 1;
   size_peratom_cols = 4;
 
-  // create a new fix store/coord style
-  // id = compute-ID + store_coord, fix group = compute group
+  // create a new fix store  style
+  // id = compute-ID + store, fix group = compute group
 
-  int n = strlen(id) + strlen("_store_coord") + 1;
+  int n = strlen(id) + strlen("_store") + 1;
   id_fix = new char[n];
   strcpy(id_fix,id);
-  strcat(id_fix,"_store_coord");
+  strcat(id_fix,"_store");
 
-  char **newarg = new char*[3];
+  char **newarg = new char*[7];
   newarg[0] = id_fix;
   newarg[1] = group->names[igroup];
-  newarg[2] = (char *) "store/coord";
-  modify->add_fix(3,newarg);
+  newarg[2] = (char *) "store";
+  newarg[3] = (char *) "0";
+  newarg[4] = (char *) "xu";
+  newarg[5] = (char *) "yu";
+  newarg[6] = (char *) "zu";
+  modify->add_fix(7,newarg);
   delete [] newarg;
 
   nmax = 0;

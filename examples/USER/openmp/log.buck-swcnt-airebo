@@ -1,0 +1,88 @@
+LAMMPS (29 May 2010-ICMS)
+# stick a buckyball into a nanotube
+units           metal
+dimension       3
+boundary        f f f
+atom_style      atomic
+newton          on
+
+processors * * 1
+
+# read topology 
+read_data       data.bucky-swcnt
+  orthogonal box = (-40.0004 -21.768 -6) to (39.9996 38.232 6)
+  4 by 2 by 1 processor grid
+  using 1 OpenMP thread(s) per MPI task
+  940 atoms
+
+pair_style airebo 3.0
+
+pair_coeff  *  *   CH.airebo C C
+
+neighbor        5.0 bin
+neigh_modify    delay 0 every 1 check yes
+
+timestep        0.001
+
+# we only move some atoms.
+group mobile type 1
+875 atoms in group mobile
+
+# have balls bounce off the walls
+fix     walls       mobile wall/reflect xlo ylo zlo xhi yhi zhi
+
+velocity mobile create 303.0 46659 mom yes rot yes dist gaussian
+
+# take some potential energy out of the system
+#minimize 1.0e-4 1.0e-6 100 1000
+
+reset_timestep 0
+
+fix     integrate   mobile nve/limit 0.1
+fix     thermostat  mobile langevin 300.0 300.0 1.0 234624
+
+# IMD setup.
+#fix  comm       all imd 6789 unwrap on trate 10
+
+# temperature is based on mobile atoms only
+compute mobtemp mobile temp
+thermo_style    custom step pe ke evdwl emol c_mobtemp tpcpu spcpu
+thermo          100
+thermo_modify   norm yes
+thermo_modify   temp mobtemp
+
+run             1000
+Memory usage per processor = 2.05541 Mbytes
+Step PotEng KinEng E_vdwl E_mol mobtemp T/CPU S/CPU 
+       0   -7.1482877  0.036415883   -7.1482877            0          303            0            0 
+     100   -7.1330168  0.024155166   -7.1330168            0    200.98415   0.12759919    127.59903 
+     200   -7.1333619  0.026787004   -7.1333619            0    222.88248   0.12896638    128.96638 
+     300   -7.1316041  0.027313791   -7.1316041            0    227.26563   0.12814054    128.14054 
+     400    -7.129273  0.027190334    -7.129273            0     226.2384   0.12837021    128.37021 
+     500   -7.1289188   0.02865783   -7.1289188            0    238.44877   0.12771719    127.71719 
+     600   -7.1279045  0.028772664   -7.1279045            0    239.40425   0.12745688    127.45688 
+     700    -7.127282  0.029504002    -7.127282            0    245.48938   0.12828721    128.28736 
+     800   -7.1290619  0.032053623   -7.1290619            0    266.70362   0.12754743    127.54727 
+     900   -7.1259574  0.029743775   -7.1259574            0    247.48442   0.12764431    127.64447 
+    1000   -7.1244747  0.029328024   -7.1244747            0    244.02515   0.12809378    128.09362 
+Loop time of 7.81369 on 8 procs / 1 threads for 1000 steps with 940 atoms
+
+Pair  time (%) = 3.31097 (42.374)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 4.44269 (56.8578)
+Outpt time (%) = 0.000678062 (0.00867788)
+Other time (%) = 0.0593432 (0.759478)
+
+Nlocal:    117.5 ave 250 max 14 min
+Histogram: 2 0 0 4 0 0 0 0 0 2
+Nghost:    441.5 ave 620 max 292 min
+Histogram: 2 0 2 0 0 2 0 0 0 2
+Neighs:    0 ave 0 max 0 min
+Histogram: 8 0 0 0 0 0 0 0 0 0
+FullNghs: 31888.5 ave 84684 max 1744 min
+Histogram: 2 0 4 0 0 0 0 0 0 2
+
+Total # of neighbors = 255108
+Ave neighs/atom = 271.391
+Neighbor list builds = 0
+Dangerous builds = 0

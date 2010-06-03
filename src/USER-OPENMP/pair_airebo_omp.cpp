@@ -39,7 +39,6 @@ using namespace LAMMPS_NS;
 
 #define MAXLINE 1024
 #define TOL 1.0e-9
-#define PI 3.14159265
 #define PGDELTA 1
 
 /* ---------------------------------------------------------------------- */
@@ -86,17 +85,43 @@ PairAIREBOOMP::~PairAIREBOOMP()
 }
 
 /* ---------------------------------------------------------------------- */
-
 void PairAIREBOOMP::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  if (eflag || vflag) {
+    ev_setup(eflag,vflag);
+    ev_setup_thr(eflag,vflag);
+  } else evflag = vflag_fdotr = 0;
 
   REBO_neigh();
-  FREBO(eflag,vflag);
-  if (ljflag) FLJ(eflag,vflag);
-  if (torflag) TORSION(eflag,vflag);
+
+  // NOTE: newton_pair is always "on" for sw.
+
+  if (evflag) {
+    if (eflag) {
+      if (vflag_atom) {
+	FREBO<1,1,1,1>();
+	if (ljflag) FLJ<1,1,1,1>();
+      } else {
+	FREBO<1,1,0,1>();
+	if (ljflag) FLJ<1,1,0,1>();
+      }
+    } else {
+      if (vflag_atom) {
+	FREBO<1,0,1,1>();
+	if (ljflag) FLJ<1,0,1,1>();
+      } else {
+	FREBO<1,0,0,1>();
+	if (ljflag) FLJ<1,0,0,1>();
+      }
+    }
+  } else {
+    FREBO<0,0,0,1>();
+    if (ljflag) FLJ<0,0,0,1>();
+  }
   
+  if (torflag) TORSION(eflag,vflag);
+
+  ev_reduce_thr();
   if (vflag_fdotr) virial_compute();
 }
 
@@ -463,82 +488,97 @@ void PairAIREBOOMP::REBO_neigh()
 /* ----------------------------------------------------------------------
    REBO forces and energy
 ------------------------------------------------------------------------- */
-
-void PairAIREBOOMP::FREBO(int eflag, int vflag)
+template <int EVFLAG, int EFLAG, int VFLAG_ATOM, int NEWTON_PAIR>
+void PairAIREBOOMP::FREBO()
 {
-  int i,j,k,m,ii,inum,itype,jtype;
-  double delx,dely,delz,evdwl,fpair;
-  double rsq,rij,wij;
-  double Qij,Aij,alphaij,VR,pre,dVRdi,VA,term,bij,dVAdi,dVA;
-  double dwij,del[3];
-  int *ilist,*REBO_neighs;
 
-  evdwl = 0.0;
+#if defined(_OPENMP)
+#pragma omp parallel default(shared)
+#endif
+  {
+    int i,j,k,m,ii,inum,itype,jtype,tid;
+    double delx,dely,delz,evdwl,fpair;
+    double rsq,rij,wij;
+    double Qij,Aij,alphaij,VR,pre,dVRdi,VA,term,bij,dVAdi,dVA;
+    double dwij,del[3];
+    int *ilist,*REBO_neighs;
 
-  double **x = atom->x;
-  double **f = atom->f;
-  int *type = atom->type;
-  int *tag = atom->tag;
-  int nlocal = atom->nlocal;
-  int newton_pair = force->newton_pair;
+    evdwl = 0.0;
 
-  inum = list->inum;
-  ilist = list->ilist;
+    const int *type = atom->type;
+    const int *tag = atom->tag;
+    const int nlocal = atom->nlocal;
+    const int nall = nlocal + atom->nghost;
+    const int nthreads = comm->nthreads;
 
-  // two-body interactions from REBO neighbor list, skip half of them
+    double **x = atom->x;
+    double **f = atom->f;
 
-  for (ii = 0; ii < inum; ii++) {
-    i = ilist[ii];
-    itype = map[type[i]];
-    REBO_neighs = REBO_firstneigh[i];
+    inum = list->inum;
+    ilist = list->ilist;
 
-    for (k = 0; k < REBO_numneigh[i]; k++) {
-      j = REBO_neighs[k];
-      if (tag[i] > tag[j]) continue;
-      jtype = map[type[j]];
+    // two-body interactions from REBO neighbor list, skip half of them
 
-      delx = x[i][0] - x[j][0];
-      dely = x[i][1] - x[j][1];
-      delz = x[i][2] - x[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;
-      rij = sqrt(rsq);
-      wij = Sp(rij,rcmin[itype][jtype],rcmax[itype][jtype],dwij);
-      if (wij <= TOL) continue;
+    int iifrom, iito;
+    f = loop_setup_thr(f, iifrom, iito, tid, inum, nall, nthreads);
+    for (ii = iifrom; ii < iito; ++ii) {
+      i = ilist[ii];
+      itype = map[type[i]];
+      REBO_neighs = REBO_firstneigh[i];
+
+      for (k = 0; k < REBO_numneigh[i]; k++) {
+	j = REBO_neighs[k];
+	if (tag[i] > tag[j]) continue;
+	jtype = map[type[j]];
+
+	delx = x[i][0] - x[j][0];
+	dely = x[i][1] - x[j][1];
+	delz = x[i][2] - x[j][2];
+	rsq = delx*delx + dely*dely + delz*delz;
+	rij = sqrt(rsq);
+	wij = Sp(rij,rcmin[itype][jtype],rcmax[itype][jtype],dwij);
+	if (wij <= TOL) continue;
       
-      Qij = Q[itype][jtype];
-      Aij = A[itype][jtype];
-      alphaij = alpha[itype][jtype];
+	Qij = Q[itype][jtype];
+	Aij = A[itype][jtype];
+	alphaij = alpha[itype][jtype];
 
-      VR = wij*(1.0+(Qij/rij)) * Aij*exp(-alphaij*rij);
-      pre = wij*Aij * exp(-alphaij*rij);
-      dVRdi = pre * ((-alphaij)-(Qij/rsq)-(Qij*alphaij/rij));
-      dVRdi += VR/wij * dwij;
+	VR = wij*(1.0+(Qij/rij)) * Aij*exp(-alphaij*rij);
+	pre = wij*Aij * exp(-alphaij*rij);
+	dVRdi = pre * ((-alphaij)-(Qij/rsq)-(Qij*alphaij/rij));
+	dVRdi += VR/wij * dwij;
 
-      VA = dVA = 0.0;
-      for (m = 0; m < 3; m++) {
-	term = -wij * BIJc[itype][jtype][m] * exp(-Beta[itype][jtype][m]*rij);
-	VA += term;
-	dVA += -Beta[itype][jtype][m] * term;
+	VA = dVA = 0.0;
+	for (m = 0; m < 3; m++) {
+	  term = -wij * BIJc[itype][jtype][m] * exp(-Beta[itype][jtype][m]*rij);
+	  VA += term;
+	  dVA += -Beta[itype][jtype][m] * term;
+	}
+	dVA += VA/wij * dwij;
+	del[0] = delx;
+	del[1] = dely;
+	del[2] = delz;
+	if (VFLAG_ATOM)
+	  bij = bondorder<1>(i,j,del,rij,VA,f,tid);
+	else
+	  bij = bondorder<0>(i,j,del,rij,VA,f,tid);
+	dVAdi = bij*dVA;
+
+	fpair = -(dVRdi+dVAdi) / rij;
+	f[i][0] += delx*fpair;
+	f[i][1] += dely*fpair;
+	f[i][2] += delz*fpair;
+	f[j][0] -= delx*fpair;
+	f[j][1] -= dely*fpair;
+	f[j][2] -= delz*fpair;
+
+	if (EFLAG) evdwl = VR + bij*VA;
+	if (EVFLAG) ev_tally_thr(i,j,nlocal,NEWTON_PAIR,
+				 evdwl,0.0,fpair,delx,dely,delz,tid);
       }
-      dVA += VA/wij * dwij;
-      del[0] = delx;
-      del[1] = dely;
-      del[2] = delz;
-      bij = bondorder(i,j,del,rij,VA,f,vflag_atom);
-      dVAdi = bij*dVA;
-
-      fpair = -(dVRdi+dVAdi) / rij;
-      f[i][0] += delx*fpair;
-      f[i][1] += dely*fpair;
-      f[i][2] += delz*fpair;
-      f[j][0] -= delx*fpair;
-      f[j][1] -= dely*fpair;
-      f[j][2] -= delz*fpair;
-
-      if (eflag) evdwl = VR + bij*VA;
-      if (evflag) ev_tally(i,j,nlocal,newton_pair,
-			   evdwl,0.0,fpair,delx,dely,delz);
     }
+    // reduce per thread forces into global force array.
+    force_reduce_thr(atom->f, nall, nthreads, tid);
   }
 }
 
@@ -546,191 +586,201 @@ void PairAIREBOOMP::FREBO(int eflag, int vflag)
    compute LJ forces and energy
    find 3- and 4-step paths between atoms I,J via REBO neighbor lists
 ------------------------------------------------------------------------- */
-
-void PairAIREBOOMP::FLJ(int eflag, int vflag)
+template <int EVFLAG, int EFLAG, int VFLAG_ATOM, int NEWTON_PAIR>
+void PairAIREBOOMP::FLJ()
 {
-  int i,j,k,m,ii,jj,kk,mm,inum,jnum,itype,jtype,ktype,mtype;
-  int atomi,atomj,atomk,atomm;
-  int testpath,npath,done;
-  double evdwl,fpair;
-  double rsq,best,wik,wkm,cij,rij,dwij,dwik,dwkj,dwkm,dwmj;
-  double delij[3],rijsq,delik[3],rik,deljk[3];
-  double rkj,wkj,dC,VLJ,dVLJ,VA,Str,dStr,Stb;
-  double delkm[3],rkm,deljm[3],rmj,wmj,r2inv,r6inv,scale,delscale[3];
-  int *ilist,*jlist,*numneigh,**firstneigh;
-  int *REBO_neighs_i,*REBO_neighs_k;
-  double delikS[3],deljkS[3],delkmS[3],deljmS[3],delimS[3];
-  double rikS,rkjS,rkmS,rmjS,wikS,dwikS;
-  double wkjS,dwkjS,wkmS,dwkmS,wmjS,dwmjS;
-  double fpair1,fpair2,fpair3;
-  double fi[3],fj[3],fk[3],fm[3];
+ 
+#if defined(_OPENMP)
+#pragma omp parallel default(shared)
+#endif
+  {
+    int i,j,k,m,ii,jj,kk,mm,inum,jnum,itype,jtype,ktype,mtype,tid;
+    int atomi,atomj,atomk,atomm;
+    int testpath,npath,done;
+    double evdwl,fpair;
+    double rsq,best,wik,wkm,cij,rij,dwij,dwik,dwkj,dwkm,dwmj;
+    double delij[3],rijsq,delik[3],rik,deljk[3];
+    double rkj,wkj,dC,VLJ,dVLJ,VA,Str,dStr,Stb;
+    double delkm[3],rkm,deljm[3],rmj,wmj,r2inv,r6inv,scale,delscale[3];
+    int *ilist,*jlist,*numneigh,**firstneigh;
+    int *REBO_neighs_i,*REBO_neighs_k;
+    double delikS[3],deljkS[3],delkmS[3],deljmS[3],delimS[3];
+    double rikS,rkjS,rkmS,rmjS,wikS,dwikS;
+    double wkjS,dwkjS,wkmS,dwkmS,wmjS,dwmjS;
+    double fpair1,fpair2,fpair3;
+    double fi[3],fj[3],fk[3],fm[3];
 
-  // I-J interaction from full neighbor list
-  // skip 1/2 of interactions since only consider each pair once
+    // I-J interaction from full neighbor list
+    // skip 1/2 of interactions since only consider each pair once
 
-  evdwl = 0.0;
+    evdwl = 0.0;
 
-  double **x = atom->x;
-  double **f = atom->f;
-  int *tag = atom->tag;
-  int *type = atom->type;
-  int nlocal = atom->nlocal;
-  int newton_pair = force->newton_pair;
+    const int *tag = atom->tag;
+    const int *type = atom->type;
+    const int nlocal = atom->nlocal;
+    const int nall = nlocal + atom->nghost;
+    const int nthreads = comm->nthreads;
 
-  inum = list->inum;
-  ilist = list->ilist;
-  numneigh = list->numneigh;
-  firstneigh = list->firstneigh;
+    double **x = atom->x;
+    double **f = atom->f;
 
-  // loop over neighbors of my atoms
+    inum = list->inum;
+    ilist = list->ilist;
+    numneigh = list->numneigh;
+    firstneigh = list->firstneigh;
 
-  for (ii = 0; ii < inum; ii++) {
-    i = ilist[ii];
-    itype = map[type[i]];
-    atomi = i;
-    jlist = firstneigh[i];
-    jnum = numneigh[i];
+    // loop over neighbors of my atoms
 
-    for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-      atomj = j;
-      if (tag[i] > tag[j]) continue;
-      jtype = map[type[j]];
+    int iifrom, iito;
+    f = loop_setup_thr(f, iifrom, iito, tid, inum, nall, nthreads);
+    for (ii = iifrom; ii < iito; ++ii) {
+      i = ilist[ii];
+      itype = map[type[i]];
+      atomi = i;
+      jlist = firstneigh[i];
+      jnum = numneigh[i];
 
-      delij[0] = x[i][0] - x[j][0];
-      delij[1] = x[i][1] - x[j][1];
-      delij[2] = x[i][2] - x[j][2];
-      rijsq = delij[0]*delij[0] + delij[1]*delij[1] + delij[2]*delij[2];
+      for (jj = 0; jj < jnum; jj++) {
+	j = jlist[jj];
+	atomj = j;
+	if (tag[i] > tag[j]) continue;
+	jtype = map[type[j]];
 
-      // if outside of LJ cutoff, skip
-      // if outside of 4-path cutoff, best = 0.0, no need to test paths
-      // if outside of 2-path cutoff but inside 4-path cutoff,
-      //   best = 0.0, test 3-,4-paths
-      // if inside 2-path cutoff, best = wij, only test 3-,4-paths if best < 1
+	delij[0] = x[i][0] - x[j][0];
+	delij[1] = x[i][1] - x[j][1];
+	delij[2] = x[i][2] - x[j][2];
+	rijsq = delij[0]*delij[0] + delij[1]*delij[1] + delij[2]*delij[2];
+
+	// if outside of LJ cutoff, skip
+	// if outside of 4-path cutoff, best = 0.0, no need to test paths
+	// if outside of 2-path cutoff but inside 4-path cutoff,
+	//   best = 0.0, test 3-,4-paths
+	// if inside 2-path cutoff, best = wij, only test 3-,4-paths if best < 1
 	
-      if (rijsq >= cutljsq[itype][jtype]) continue;
-      rij = sqrt(rijsq);
-      if (rij >= cut3rebo) {
-	best = 0.0;
-	testpath = 0;
-      } else if (rij >= rcmax[itype][jtype]) {
-	best = 0.0;
-	testpath = 1;
-      } else {
-	best = Sp(rij,rcmin[itype][jtype],rcmax[itype][jtype],dwij);
-	npath = 2;
-	if (best < 1.0) testpath = 1;
-	else testpath = 0;
-      }
+	if (rijsq >= cutljsq[itype][jtype]) continue;
+	rij = sqrt(rijsq);
+	if (rij >= cut3rebo) {
+	  best = 0.0;
+	  testpath = 0;
+	} else if (rij >= rcmax[itype][jtype]) {
+	  best = 0.0;
+	  testpath = 1;
+	} else {
+	  best = Sp(rij,rcmin[itype][jtype],rcmax[itype][jtype],dwij);
+	  npath = 2;
+	  if (best < 1.0) testpath = 1;
+	  else testpath = 0;
+	}
 
-      done = 0;
-      if (testpath) {
+	done = 0;
+	if (testpath) {
 
-	// test all 3-body paths = I-K-J
-	// I-K interactions come from atom I's REBO neighbors
-	// if wik > current best, compute wkj
-	// if best = 1.0, done
+	  // test all 3-body paths = I-K-J
+	  // I-K interactions come from atom I's REBO neighbors
+	  // if wik > current best, compute wkj
+	  // if best = 1.0, done
 
-	REBO_neighs_i = REBO_firstneigh[i];
-	for (kk = 0; kk < REBO_numneigh[i] && done==0; kk++) {
-	  k = REBO_neighs_i[kk];
-	  if (k == j) continue;
-	  ktype = map[type[k]];
+	  REBO_neighs_i = REBO_firstneigh[i];
+	  for (kk = 0; kk < REBO_numneigh[i] && done==0; kk++) {
+	    k = REBO_neighs_i[kk];
+	    if (k == j) continue;
+	    ktype = map[type[k]];
 
-	  delik[0] = x[i][0] - x[k][0];
-	  delik[1] = x[i][1] - x[k][1];
-	  delik[2] = x[i][2] - x[k][2];
-	  rsq = delik[0]*delik[0] + delik[1]*delik[1] + delik[2]*delik[2];
-	  if (rsq < rcmaxsq[itype][ktype]) {
-	    rik = sqrt(rsq);
-	    wik = Sp(rik,rcmin[itype][ktype],rcmax[itype][ktype],dwik);
-	  } else wik = 0.0;
+	    delik[0] = x[i][0] - x[k][0];
+	    delik[1] = x[i][1] - x[k][1];
+	    delik[2] = x[i][2] - x[k][2];
+	    rsq = delik[0]*delik[0] + delik[1]*delik[1] + delik[2]*delik[2];
+	    if (rsq < rcmaxsq[itype][ktype]) {
+	      rik = sqrt(rsq);
+	      wik = Sp(rik,rcmin[itype][ktype],rcmax[itype][ktype],dwik);
+	    } else wik = 0.0;
 
-	  if (wik > best) {
-	    deljk[0] = x[j][0] - x[k][0];
-	    deljk[1] = x[j][1] - x[k][1];
-	    deljk[2] = x[j][2] - x[k][2];
-	    rsq = deljk[0]*deljk[0] + deljk[1]*deljk[1] + deljk[2]*deljk[2];
-	    if (rsq < rcmaxsq[ktype][jtype]) {
-	      rkj = sqrt(rsq);
-	      wkj = Sp(rkj,rcmin[ktype][jtype],rcmax[ktype][jtype],dwkj);
-	      if (wik*wkj > best) {
-		best = wik*wkj;
-		npath = 3;
- 		atomk = k;
-            	delikS[0] = delik[0];
-            	delikS[1] = delik[1];
-            	delikS[2] = delik[2];
-	    	rikS = rik;
-	    	wikS = wik;
-	    	dwikS = dwik;
-            	deljkS[0] = deljk[0];
-            	deljkS[1] = deljk[1];
-            	deljkS[2] = deljk[2];
-	    	rkjS = rkj;
-	    	wkjS = wkj;
-	    	dwkjS = dwkj;
-		if (best == 1.0) {
-		  done = 1; 
-		  break;
+	    if (wik > best) {
+	      deljk[0] = x[j][0] - x[k][0];
+	      deljk[1] = x[j][1] - x[k][1];
+	      deljk[2] = x[j][2] - x[k][2];
+	      rsq = deljk[0]*deljk[0] + deljk[1]*deljk[1] + deljk[2]*deljk[2];
+	      if (rsq < rcmaxsq[ktype][jtype]) {
+		rkj = sqrt(rsq);
+		wkj = Sp(rkj,rcmin[ktype][jtype],rcmax[ktype][jtype],dwkj);
+		if (wik*wkj > best) {
+		  best = wik*wkj;
+		  npath = 3;
+		  atomk = k;
+		  delikS[0] = delik[0];
+		  delikS[1] = delik[1];
+		  delikS[2] = delik[2];
+		  rikS = rik;
+		  wikS = wik;
+		  dwikS = dwik;
+		  deljkS[0] = deljk[0];
+		  deljkS[1] = deljk[1];
+		  deljkS[2] = deljk[2];
+		  rkjS = rkj;
+		  wkjS = wkj;
+		  dwkjS = dwkj;
+		  if (best == 1.0) {
+		    done = 1; 
+		    break;
+		  }
 		}
 	      }
-	    }
 
-	    // test all 4-body paths = I-K-M-J
-	    // K-M interactions come from atom K's REBO neighbors
-	    // if wik*wkm > current best, compute wmj
-	    // if best = 1.0, done
+	      // test all 4-body paths = I-K-M-J
+	      // K-M interactions come from atom K's REBO neighbors
+	      // if wik*wkm > current best, compute wmj
+	      // if best = 1.0, done
 
-	    REBO_neighs_k = REBO_firstneigh[k];
-	    for (mm = 0; mm < REBO_numneigh[k] && done==0; mm++) {
-	      m = REBO_neighs_k[mm];
-	      if (m == i || m == j) continue;
-	      mtype = map[type[m]];
-	      delkm[0] = x[k][0] - x[m][0];
-	      delkm[1] = x[k][1] - x[m][1];
-	      delkm[2] = x[k][2] - x[m][2];
-	      rsq = delkm[0]*delkm[0] + delkm[1]*delkm[1] + delkm[2]*delkm[2];
-	      if (rsq < rcmaxsq[ktype][mtype]) {
-		rkm = sqrt(rsq);
-		wkm = Sp(rkm,rcmin[ktype][mtype],rcmax[ktype][mtype],dwkm);
-	      } else wkm = 0.0;
+	      REBO_neighs_k = REBO_firstneigh[k];
+	      for (mm = 0; mm < REBO_numneigh[k] && done==0; mm++) {
+		m = REBO_neighs_k[mm];
+		if (m == i || m == j) continue;
+		mtype = map[type[m]];
+		delkm[0] = x[k][0] - x[m][0];
+		delkm[1] = x[k][1] - x[m][1];
+		delkm[2] = x[k][2] - x[m][2];
+		rsq = delkm[0]*delkm[0] + delkm[1]*delkm[1] + delkm[2]*delkm[2];
+		if (rsq < rcmaxsq[ktype][mtype]) {
+		  rkm = sqrt(rsq);
+		  wkm = Sp(rkm,rcmin[ktype][mtype],rcmax[ktype][mtype],dwkm);
+		} else wkm = 0.0;
 
-	      if (wik*wkm > best) {
-		deljm[0] = x[j][0] - x[m][0];
-		deljm[1] = x[j][1] - x[m][1];
-		deljm[2] = x[j][2] - x[m][2];
-		rsq = deljm[0]*deljm[0] + deljm[1]*deljm[1] +
-		  deljm[2]*deljm[2];
-		if (rsq < rcmaxsq[mtype][jtype]) {
-		  rmj = sqrt(rsq);
-		  wmj = Sp(rmj,rcmin[mtype][jtype],rcmax[mtype][jtype],dwmj);
-		  if (wik*wkm*wmj > best) {
-		    best = wik*wkm*wmj;
-		    npath = 4;
-		    atomk = k;
-		    delikS[0] = delik[0];
-	            delikS[1] = delik[1];
-        	    delikS[2] = delik[2];
-		    rikS = rik;
-		    wikS = wik;
-		    dwikS = dwik;
-		    atomm = m;
-	            delkmS[0] = delkm[0];
-        	    delkmS[1] = delkm[1];
-            	    delkmS[2] = delkm[2];
-		    rkmS = rkm;
-		    wkmS = wkm;
-		    dwkmS = dwkm;
-	            deljmS[0] = deljm[0];
-        	    deljmS[1] = deljm[1];
-           	    deljmS[2] = deljm[2];
-		    rmjS = rmj;
-		    wmjS = wmj;
-		    dwmjS = dwmj;
-		    if (best == 1.0) {
-		      done = 1;
-		      break;
+		if (wik*wkm > best) {
+		  deljm[0] = x[j][0] - x[m][0];
+		  deljm[1] = x[j][1] - x[m][1];
+		  deljm[2] = x[j][2] - x[m][2];
+		  rsq = deljm[0]*deljm[0] + deljm[1]*deljm[1] +
+		    deljm[2]*deljm[2];
+		  if (rsq < rcmaxsq[mtype][jtype]) {
+		    rmj = sqrt(rsq);
+		    wmj = Sp(rmj,rcmin[mtype][jtype],rcmax[mtype][jtype],dwmj);
+		    if (wik*wkm*wmj > best) {
+		      best = wik*wkm*wmj;
+		      npath = 4;
+		      atomk = k;
+		      delikS[0] = delik[0];
+		      delikS[1] = delik[1];
+		      delikS[2] = delik[2];
+		      rikS = rik;
+		      wikS = wik;
+		      dwikS = dwik;
+		      atomm = m;
+		      delkmS[0] = delkm[0];
+		      delkmS[1] = delkm[1];
+		      delkmS[2] = delkm[2];
+		      rkmS = rkm;
+		      wkmS = wkm;
+		      dwkmS = dwkm;
+		      deljmS[0] = deljm[0];
+		      deljmS[1] = deljm[1];
+		      deljmS[2] = deljm[2];
+		      rmjS = rmj;
+		      wmjS = wmj;
+		      dwmjS = dwmj;
+		      if (best == 1.0) {
+			done = 1;
+			break;
+		      }
 		    }
 		  }
 		}
@@ -738,121 +788,127 @@ void PairAIREBOOMP::FLJ(int eflag, int vflag)
 	    }
 	  }
 	}
-      }
 		
-      cij = 1.0 - best;
-      if (cij == 0.0) continue;
+	cij = 1.0 - best;
+	if (cij == 0.0) continue;
 
-      // compute LJ forces and energy
+	// compute LJ forces and energy
   
-      r2inv = 1.0/rijsq;
-      r6inv = r2inv*r2inv*r2inv;
-      VLJ = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
-      dVLJ = -r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]) / rij;
+	r2inv = 1.0/rijsq;
+	r6inv = r2inv*r2inv*r2inv;
+	VLJ = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
+	dVLJ = -r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]) / rij;
       
-      Str = Sp2(rij,rcLJmin[itype][jtype],rcLJmax[itype][jtype],dStr);
-      VA = Str*cij*VLJ;
-      if (Str > 0.0) {
-	scale = rcmin[itype][jtype] / rij;
-	delscale[0] = scale * delij[0];
-	delscale[1] = scale * delij[1];
-	delscale[2] = scale * delij[2];
-	Stb = bondorderLJ(i,j,delscale,rcmin[itype][jtype],VA,
-			  delij,rij,f,vflag_atom);
-      } else Stb = 0.0;
+	Str = Sp2(rij,rcLJmin[itype][jtype],rcLJmax[itype][jtype],dStr);
+	VA = Str*cij*VLJ;
+	if (Str > 0.0) {
+	  scale = rcmin[itype][jtype] / rij;
+	  delscale[0] = scale * delij[0];
+	  delscale[1] = scale * delij[1];
+	  delscale[2] = scale * delij[2];
+	  if (VFLAG_ATOM)
+	    Stb = bondorderLJ<1>(i,j,delscale,rcmin[itype][jtype],
+				 VA,delij,rij,f,tid);
+	  else
+	    Stb = bondorderLJ<0>(i,j,delscale,rcmin[itype][jtype],
+				 VA,delij,rij,f,tid);
+	} else Stb = 0.0;
 
-      fpair = -(dStr * (Stb*cij*VLJ - cij*VLJ) +
-		dVLJ * (Str*Stb*cij + cij - Str*cij)) / rij;
+	fpair = -(dStr * (Stb*cij*VLJ - cij*VLJ) +
+		  dVLJ * (Str*Stb*cij + cij - Str*cij)) / rij;
       
-      f[i][0] += delij[0]*fpair;
-      f[i][1] += delij[1]*fpair;
-      f[i][2] += delij[2]*fpair;
-      f[j][0] -= delij[0]*fpair;
-      f[j][1] -= delij[1]*fpair;
-      f[j][2] -= delij[2]*fpair;
+	f[i][0] += delij[0]*fpair;
+	f[i][1] += delij[1]*fpair;
+	f[i][2] += delij[2]*fpair;
+	f[j][0] -= delij[0]*fpair;
+	f[j][1] -= delij[1]*fpair;
+	f[j][2] -= delij[2]*fpair;
       
-      if (eflag) evdwl = VA*Stb + (1.0-Str)*cij*VLJ;
-      if (evflag) ev_tally(i,j,nlocal,newton_pair,
-			   evdwl,0.0,fpair,delij[0],delij[1],delij[2]);
+	if (EFLAG) evdwl = VA*Stb + (1.0-Str)*cij*VLJ;
+	if (EVFLAG) ev_tally_thr(i,j,nlocal,NEWTON_PAIR,
+				 evdwl,0.0,fpair,delij[0],delij[1],delij[2],tid);
 
-      if (cij < 1.0) {
-	dC = Str*Stb*VLJ + (1.0-Str)*VLJ;
-	if (npath == 2) {
-	  fpair = dC*dwij / rij;
-	  f[atomi][0] += delij[0]*fpair;
-	  f[atomi][1] += delij[1]*fpair;
-	  f[atomi][2] += delij[2]*fpair;
-	  f[atomj][0] -= delij[0]*fpair;
-	  f[atomj][1] -= delij[1]*fpair;
-	  f[atomj][2] -= delij[2]*fpair;
+	if (cij < 1.0) {
+	  dC = Str*Stb*VLJ + (1.0-Str)*VLJ;
+	  if (npath == 2) {
+	    fpair = dC*dwij / rij;
+	    f[atomi][0] += delij[0]*fpair;
+	    f[atomi][1] += delij[1]*fpair;
+	    f[atomi][2] += delij[2]*fpair;
+	    f[atomj][0] -= delij[0]*fpair;
+	    f[atomj][1] -= delij[1]*fpair;
+	    f[atomj][2] -= delij[2]*fpair;
 
-	  if (vflag_atom) v_tally2(atomi,atomj,fpair,delij);
+	    if (VFLAG_ATOM) v_tally2_thr(atomi,atomj,fpair,delij,tid);
 
-	} else if (npath == 3) {
-	  fpair1 = dC*dwikS*wkjS / rikS;
-	  fi[0] = delikS[0]*fpair1;
-	  fi[1] = delikS[1]*fpair1;
-	  fi[2] = delikS[2]*fpair1;
-	  fpair2 = dC*wikS*dwkjS / rkjS;
-	  fj[0] = deljkS[0]*fpair2;
-	  fj[1] = deljkS[1]*fpair2;
-	  fj[2] = deljkS[2]*fpair2;
+	  } else if (npath == 3) {
+	    fpair1 = dC*dwikS*wkjS / rikS;
+	    fi[0] = delikS[0]*fpair1;
+	    fi[1] = delikS[1]*fpair1;
+	    fi[2] = delikS[2]*fpair1;
+	    fpair2 = dC*wikS*dwkjS / rkjS;
+	    fj[0] = deljkS[0]*fpair2;
+	    fj[1] = deljkS[1]*fpair2;
+	    fj[2] = deljkS[2]*fpair2;
 
-	  f[atomi][0] += fi[0];
-	  f[atomi][1] += fi[1];
-	  f[atomi][2] += fi[2];
-	  f[atomj][0] += fj[0];
-	  f[atomj][1] += fj[1];
-	  f[atomj][2] += fj[2];
-	  f[atomk][0] -= fi[0] + fj[0];
-	  f[atomk][1] -= fi[1] + fj[1];
-	  f[atomk][2] -= fi[2] + fj[2];
+	    f[atomi][0] += fi[0];
+	    f[atomi][1] += fi[1];
+	    f[atomi][2] += fi[2];
+	    f[atomj][0] += fj[0];
+	    f[atomj][1] += fj[1];
+	    f[atomj][2] += fj[2];
+	    f[atomk][0] -= fi[0] + fj[0];
+	    f[atomk][1] -= fi[1] + fj[1];
+	    f[atomk][2] -= fi[2] + fj[2];
 
-	  if (vflag_atom) 
-	    v_tally3(atomi,atomj,atomk,fi,fj,delikS,deljkS);
+	    if (VFLAG_ATOM) 
+	      v_tally3_thr(atomi,atomj,atomk,fi,fj,delikS,deljkS,tid);
 
-	} else {
-	  fpair1 = dC*dwikS*wkmS*wmjS / rikS;
-	  fi[0] = delikS[0]*fpair1;
-	  fi[1] = delikS[1]*fpair1;
-	  fi[2] = delikS[2]*fpair1;
+	  } else {
+	    fpair1 = dC*dwikS*wkmS*wmjS / rikS;
+	    fi[0] = delikS[0]*fpair1;
+	    fi[1] = delikS[1]*fpair1;
+	    fi[2] = delikS[2]*fpair1;
 
-	  fpair2 = dC*wikS*dwkmS*wmjS / rkmS;
-	  fk[0] = delkmS[0]*fpair2 - fi[0];
-	  fk[1] = delkmS[1]*fpair2 - fi[1];
-	  fk[2] = delkmS[2]*fpair2 - fi[2];
+	    fpair2 = dC*wikS*dwkmS*wmjS / rkmS;
+	    fk[0] = delkmS[0]*fpair2 - fi[0];
+	    fk[1] = delkmS[1]*fpair2 - fi[1];
+	    fk[2] = delkmS[2]*fpair2 - fi[2];
 
-	  fpair3 = dC*wikS*wkmS*dwmjS / rmjS;
-	  fj[0] = deljmS[0]*fpair3;
-	  fj[1] = deljmS[1]*fpair3;
-	  fj[2] = deljmS[2]*fpair3;
+	    fpair3 = dC*wikS*wkmS*dwmjS / rmjS;
+	    fj[0] = deljmS[0]*fpair3;
+	    fj[1] = deljmS[1]*fpair3;
+	    fj[2] = deljmS[2]*fpair3;
 
-	  fm[0] = -delkmS[0]*fpair2 - fj[0];
-	  fm[1] = -delkmS[1]*fpair2 - fj[1];
-	  fm[2] = -delkmS[2]*fpair2 - fj[2];
+	    fm[0] = -delkmS[0]*fpair2 - fj[0];
+	    fm[1] = -delkmS[1]*fpair2 - fj[1];
+	    fm[2] = -delkmS[2]*fpair2 - fj[2];
 
-	  f[atomi][0] += fi[0];
-	  f[atomi][1] += fi[1];
-	  f[atomi][2] += fi[2];
-	  f[atomj][0] += fj[0];
-	  f[atomj][1] += fj[1];
-	  f[atomj][2] += fj[2];
-	  f[atomk][0] += fk[0];
-	  f[atomk][1] += fk[1];
-	  f[atomk][2] += fk[2];
-	  f[atomm][0] += fm[0];
-	  f[atomm][1] += fm[1];
-	  f[atomm][2] += fm[2];
+	    f[atomi][0] += fi[0];
+	    f[atomi][1] += fi[1];
+	    f[atomi][2] += fi[2];
+	    f[atomj][0] += fj[0];
+	    f[atomj][1] += fj[1];
+	    f[atomj][2] += fj[2];
+	    f[atomk][0] += fk[0];
+	    f[atomk][1] += fk[1];
+	    f[atomk][2] += fk[2];
+	    f[atomm][0] += fm[0];
+	    f[atomm][1] += fm[1];
+	    f[atomm][2] += fm[2];
 
-	  if (vflag_atom) {
-	    delimS[0] = delikS[0] + delkmS[0];
-	    delimS[1] = delikS[1] + delkmS[1];
-	    delimS[2] = delikS[2] + delkmS[2];
-	    v_tally4(atomi,atomj,atomk,atomm,fi,fj,fk,delimS,deljmS,delkmS);
+	    if (VFLAG_ATOM) {
+	      delimS[0] = delikS[0] + delkmS[0];
+	      delimS[1] = delikS[1] + delkmS[1];
+	      delimS[2] = delikS[2] + delkmS[2];
+	      v_tally4_thr(atomi,atomj,atomk,atomm,fi,fj,fk,delimS,deljmS,delkmS,tid);
+	    }
 	  }
-	}
-      } 
+	} 
+      }
     }
+    // reduce per thread forces into global force array.
+    force_reduce_thr(atom->f, nall, nthreads, tid);
   }
 }
 
@@ -862,404 +918,366 @@ void PairAIREBOOMP::FLJ(int eflag, int vflag)
 
 void PairAIREBOOMP::TORSION(int eflag, int vflag)
 {
-  int i,j,k,l,ii,inum;
-  double evdwl,fpair;
-  double cos321;
-  double w21,dw21,cos234,w34,dw34;
-  double cross321[3],cross321mag,cross234[3],cross234mag;
-  double w23,dw23,cw2,ekijl,Ec;
-  double cw,cwnum,cwnom;
-  double rij,rij2,rik,rjl,tspjik,dtsjik,tspijl,dtsijl,costmp,fcpc;
-  double sin321,sin234,rjk2,rik2,ril2,rjl2;
-  double rjk,ril;
-  double Vtors;
-  double dndij[3],tmpvec[3],dndik[3],dndjl[3];
-  double dcidij,dcidik,dcidjk,dcjdji,dcjdjl,dcjdil;
-  double dsidij,dsidik,dsidjk,dsjdji,dsjdjl,dsjdil;
-  double dxidij,dxidik,dxidjk,dxjdji,dxjdjl,dxjdil;
-  double ddndij,ddndik,ddndjk,ddndjl,ddndil,dcwddn,dcwdn,dvpdcw,Ftmp[3];
-  double del32[3],rsq,r32,del23[3],del21[3],r21;
-  double deljk[3],del34[3],delil[3],delkl[3],r23,r34;
-  double fi[3],fj[3],fk[3],fl[3];
-  int itype,jtype,ktype,ltype,kk,ll,jj;
-  int *ilist,*REBO_neighs_i,*REBO_neighs_j;
 
-  double **x = atom->x;
-  double **f = atom->f;
-  int *type = atom->type;
-  int *tag = atom->tag;
+#if defined(_OPENMP)
+#pragma omp parallel default(shared)
+#endif
+  {
+    int i,j,k,l,ii,inum,tid;
+    double evdwl,fpair;
+    double cos321;
+    double w21,dw21,cos234,w34,dw34;
+    double cross321[3],cross321mag,cross234[3],cross234mag;
+    double w23,dw23,cw2,ekijl,Ec;
+    double cw,cwnum,cwnom;
+    double rij,rij2,rik,rjl,tspjik,dtsjik,tspijl,dtsijl,costmp,fcpc;
+    double sin321,sin234,rjk2,rik2,ril2,rjl2;
+    double rjk,ril;
+    double Vtors;
+    double dndij[3],tmpvec[3],dndik[3],dndjl[3];
+    double dcidij,dcidik,dcidjk,dcjdji,dcjdjl,dcjdil;
+    double dsidij,dsidik,dsidjk,dsjdji,dsjdjl,dsjdil;
+    double dxidij,dxidik,dxidjk,dxjdji,dxjdjl,dxjdil;
+    double ddndij,ddndik,ddndjk,ddndjl,ddndil,dcwddn,dcwdn,dvpdcw,Ftmp[3];
+    double del32[3],rsq,r32,del23[3],del21[3],r21;
+    double deljk[3],del34[3],delil[3],delkl[3],r23,r34;
+    double fi[3],fj[3],fk[3],fl[3];
+    int itype,jtype,ktype,ltype,kk,ll,jj;
+    int *ilist,*REBO_neighs_i,*REBO_neighs_j;
 
-  inum = list->inum;
-  ilist = list->ilist;
+    const int nlocal = atom->nlocal;
+    const int nall = nlocal + atom->nghost;
+    const int nthreads = comm->nthreads;
 
-  for (ii = 0; ii < inum; ii++) {
-    i = ilist[ii];
-    itype = map[type[i]];
-    if (itype != 0) continue;
-    REBO_neighs_i = REBO_firstneigh[i];
+    const int *type = atom->type;
+    const int *tag = atom->tag;
 
-    for (jj = 0; jj < REBO_numneigh[i]; jj++) {
-      j = REBO_neighs_i[jj];
-      if (tag[i] > tag[j]) continue;
-      jtype = map[type[j]];
-      if (jtype != 0) continue;
-      del32[0] = x[j][0]-x[i][0];
-      del32[1] = x[j][1]-x[i][1];
-      del32[2] = x[j][2]-x[i][2];
-      rsq = del32[0]*del32[0] + del32[1]*del32[1] + del32[2]*del32[2];
-      r32 = sqrt(rsq);
-      del23[0] = -del32[0];
-      del23[1] = -del32[1];
-      del23[2] = -del32[2];
-      r23 = r32;
-      w23 = Sp(r23,rcmin[itype][jtype],rcmax[itype][jtype],dw23);
+    double **x = atom->x;
+    double **f = atom->f;
 
-      for (kk = 0; kk < REBO_numneigh[i]; kk++) {
-	k = REBO_neighs_i[kk];
-	ktype = map[type[k]];
-	if (k == j) continue;
-	del21[0] = x[i][0]-x[k][0];
-	del21[1] = x[i][1]-x[k][1];
-	del21[2] = x[i][2]-x[k][2];
-	rsq = del21[0]*del21[0] + del21[1]*del21[1] + del21[2]*del21[2];
-	r21 = sqrt(rsq);
-	cos321 = - ((del21[0]*del32[0]) + (del21[1]*del32[1]) +
-		    (del21[2]*del32[2])) / (r21*r32);
-	cos321 = MIN(cos321,1.0);
-	cos321 = MAX(cos321,-1.0);
-	sin321 = sqrt(1.0 - cos321*cos321);
-	if (sin321 < TOL) continue;
+    inum = list->inum;
+    ilist = list->ilist;
+
+    int iifrom, iito;
+    f = loop_setup_thr(f, iifrom, iito, tid, inum, nall, nthreads);
+    for (ii = iifrom; ii < iito; ++ii) {
+
+      i = ilist[ii];
+      itype = map[type[i]];
+      if (itype != 0) continue;
+      REBO_neighs_i = REBO_firstneigh[i];
+
+      for (jj = 0; jj < REBO_numneigh[i]; jj++) {
+	j = REBO_neighs_i[jj];
+	if (tag[i] > tag[j]) continue;
+	jtype = map[type[j]];
+	if (jtype != 0) continue;
+	del32[0] = x[j][0]-x[i][0];
+	del32[1] = x[j][1]-x[i][1];
+	del32[2] = x[j][2]-x[i][2];
+	rsq = del32[0]*del32[0] + del32[1]*del32[1] + del32[2]*del32[2];
+	r32 = sqrt(rsq);
+	del23[0] = -del32[0];
+	del23[1] = -del32[1];
+	del23[2] = -del32[2];
+	r23 = r32;
+	w23 = Sp(r23,rcmin[itype][jtype],rcmax[itype][jtype],dw23);
+
+	for (kk = 0; kk < REBO_numneigh[i]; kk++) {
+	  k = REBO_neighs_i[kk];
+	  ktype = map[type[k]];
+	  if (k == j) continue;
+	  del21[0] = x[i][0]-x[k][0];
+	  del21[1] = x[i][1]-x[k][1];
+	  del21[2] = x[i][2]-x[k][2];
+	  rsq = del21[0]*del21[0] + del21[1]*del21[1] + del21[2]*del21[2];
+	  r21 = sqrt(rsq);
+	  cos321 = - ((del21[0]*del32[0]) + (del21[1]*del32[1]) +
+		      (del21[2]*del32[2])) / (r21*r32);
+	  cos321 = MIN(cos321,1.0);
+	  cos321 = MAX(cos321,-1.0);
+	  sin321 = sqrt(1.0 - cos321*cos321);
+	  if (sin321 < TOL) continue;
 	
-	deljk[0] = del21[0]-del23[0];
-	deljk[1] = del21[1]-del23[1];
-	deljk[2] = del21[2]-del23[2];
-	rjk2 = deljk[0]*deljk[0] + deljk[1]*deljk[1] + deljk[2]*deljk[2];
-	rjk=sqrt(rjk2);
-	rik2 = r21*r21;
-	w21 = Sp(r21,rcmin[itype][ktype],rcmax[itype][ktype],dw21);
+	  deljk[0] = del21[0]-del23[0];
+	  deljk[1] = del21[1]-del23[1];
+	  deljk[2] = del21[2]-del23[2];
+	  rjk2 = deljk[0]*deljk[0] + deljk[1]*deljk[1] + deljk[2]*deljk[2];
+	  rjk=sqrt(rjk2);
+	  rik2 = r21*r21;
+	  w21 = Sp(r21,rcmin[itype][ktype],rcmax[itype][ktype],dw21);
 
-	rij = r32;
-	rik = r21;
-	rij2 = r32*r32;
-	rik2 = r21*r21;
-	costmp = 0.5*(rij2+rik2-rjk2)/rij/rik;
-	tspjik = Sp2(costmp,thmin,thmax,dtsjik);
-	dtsjik = -dtsjik;
+	  rij = r32;
+	  rik = r21;
+	  rij2 = r32*r32;
+	  rik2 = r21*r21;
+	  costmp = 0.5*(rij2+rik2-rjk2)/rij/rik;
+	  tspjik = Sp2(costmp,thmin,thmax,dtsjik);
+	  dtsjik = -dtsjik;
 
-	REBO_neighs_j = REBO_firstneigh[j];
-	for (ll = 0; ll < REBO_numneigh[j]; ll++) {
-	  l = REBO_neighs_j[ll];
-	  ltype = map[type[l]];
-	  if (l == i || l == k) continue;
-	  del34[0] = x[j][0]-x[l][0];
-	  del34[1] = x[j][1]-x[l][1];
-	  del34[2] = x[j][2]-x[l][2];
-	  rsq = del34[0]*del34[0] + del34[1]*del34[1] + del34[2]*del34[2];
-	  r34 = sqrt(rsq);
-	  cos234 = (del32[0]*del34[0] + del32[1]*del34[1] +
-		    del32[2]*del34[2]) / (r32*r34);
-	  cos234 = MIN(cos234,1.0);
-	  cos234 = MAX(cos234,-1.0);
-	  sin234 = sqrt(1.0 - cos234*cos234);
-	  if (sin234 < TOL) continue;
-	  w34 = Sp(r34,rcmin[jtype][ltype],rcmax[jtype][ltype],dw34);
-	  delil[0] = del23[0] + del34[0];
-	  delil[1] = del23[1] + del34[1];
-	  delil[2] = del23[2] + del34[2];
-	  ril2 = delil[0]*delil[0] + delil[1]*delil[1] + delil[2]*delil[2];
-	  ril=sqrt(ril2);
-	  rjl2 = r34*r34;
+	  REBO_neighs_j = REBO_firstneigh[j];
+	  for (ll = 0; ll < REBO_numneigh[j]; ll++) {
+	    l = REBO_neighs_j[ll];
+	    ltype = map[type[l]];
+	    if (l == i || l == k) continue;
+	    del34[0] = x[j][0]-x[l][0];
+	    del34[1] = x[j][1]-x[l][1];
+	    del34[2] = x[j][2]-x[l][2];
+	    rsq = del34[0]*del34[0] + del34[1]*del34[1] + del34[2]*del34[2];
+	    r34 = sqrt(rsq);
+	    cos234 = (del32[0]*del34[0] + del32[1]*del34[1] +
+		      del32[2]*del34[2]) / (r32*r34);
+	    cos234 = MIN(cos234,1.0);
+	    cos234 = MAX(cos234,-1.0);
+	    sin234 = sqrt(1.0 - cos234*cos234);
+	    if (sin234 < TOL) continue;
+	    w34 = Sp(r34,rcmin[jtype][ltype],rcmax[jtype][ltype],dw34);
+	    delil[0] = del23[0] + del34[0];
+	    delil[1] = del23[1] + del34[1];
+	    delil[2] = del23[2] + del34[2];
+	    ril2 = delil[0]*delil[0] + delil[1]*delil[1] + delil[2]*delil[2];
+	    ril=sqrt(ril2);
+	    rjl2 = r34*r34;
 
-	  rjl = r34;
-	  rjl2 = r34*r34;
-	  costmp = 0.5*(rij2+rjl2-ril2)/rij/rjl;
-	  tspijl = Sp2(costmp,thmin,thmax,dtsijl);
-	  dtsijl = -dtsijl; //need minus sign 
-	  cross321[0] = (del32[1]*del21[2])-(del32[2]*del21[1]);
-	  cross321[1] = (del32[2]*del21[0])-(del32[0]*del21[2]);
-	  cross321[2] = (del32[0]*del21[1])-(del32[1]*del21[0]);
-	  cross321mag = sqrt(cross321[0]*cross321[0]+
-			     cross321[1]*cross321[1]+
-			     cross321[2]*cross321[2]);
-	  cross234[0] = (del23[1]*del34[2])-(del23[2]*del34[1]);
-	  cross234[1] = (del23[2]*del34[0])-(del23[0]*del34[2]);
-	  cross234[2] = (del23[0]*del34[1])-(del23[1]*del34[0]);
-	  cross234mag = sqrt(cross234[0]*cross234[0]+
-			     cross234[1]*cross234[1]+
-			     cross234[2]*cross234[2]);
-	  cwnum = (cross321[0]*cross234[0]) +
-	    (cross321[1]*cross234[1])+(cross321[2]*cross234[2]);
-	  cwnom = r21*r34*r32*r32*sin321*sin234;
-	  cw = cwnum/cwnom;
+	    rjl = r34;
+	    rjl2 = r34*r34;
+	    costmp = 0.5*(rij2+rjl2-ril2)/rij/rjl;
+	    tspijl = Sp2(costmp,thmin,thmax,dtsijl);
+	    dtsijl = -dtsijl; //need minus sign 
+	    cross321[0] = (del32[1]*del21[2])-(del32[2]*del21[1]);
+	    cross321[1] = (del32[2]*del21[0])-(del32[0]*del21[2]);
+	    cross321[2] = (del32[0]*del21[1])-(del32[1]*del21[0]);
+	    cross321mag = sqrt(cross321[0]*cross321[0]+
+			       cross321[1]*cross321[1]+
+			       cross321[2]*cross321[2]);
+	    cross234[0] = (del23[1]*del34[2])-(del23[2]*del34[1]);
+	    cross234[1] = (del23[2]*del34[0])-(del23[0]*del34[2]);
+	    cross234[2] = (del23[0]*del34[1])-(del23[1]*del34[0]);
+	    cross234mag = sqrt(cross234[0]*cross234[0]+
+			       cross234[1]*cross234[1]+
+			       cross234[2]*cross234[2]);
+	    cwnum = (cross321[0]*cross234[0]) +
+	      (cross321[1]*cross234[1])+(cross321[2]*cross234[2]);
+	    cwnom = r21*r34*r32*r32*sin321*sin234;
+	    cw = cwnum/cwnom;
 	  
-	  cw2 = (.5*(1.0-cw));
-	  ekijl = epsilonT[ktype][ltype];
-	  Ec = 256.0*ekijl/405.0;
-	  Vtors = (Ec*(pow(cw2,5.0)))-(ekijl/10.0);
+	    cw2 = (.5*(1.0-cw));
+	    ekijl = epsilonT[ktype][ltype];
+	    Ec = 256.0*ekijl/405.0;
+	    Vtors = (Ec*(pow(cw2,5.0)))-(ekijl/10.0);
 
-	  if (eflag) evdwl = Vtors*w21*w23*w34*(1.0-tspjik)*(1.0-tspijl);
+	    if (eflag) evdwl = Vtors*w21*w23*w34*(1.0-tspjik)*(1.0-tspijl);
 	  
-	  dndij[0] = (cross234[1]*del21[2])-(cross234[2]*del21[1]);
-	  dndij[1] = (cross234[2]*del21[0])-(cross234[0]*del21[2]);
-	  dndij[2] = (cross234[0]*del21[1])-(cross234[1]*del21[0]); 
+	    dndij[0] = (cross234[1]*del21[2])-(cross234[2]*del21[1]);
+	    dndij[1] = (cross234[2]*del21[0])-(cross234[0]*del21[2]);
+	    dndij[2] = (cross234[0]*del21[1])-(cross234[1]*del21[0]); 
 	  
-	  tmpvec[0] = (del34[1]*cross321[2])-(del34[2]*cross321[1]);
-	  tmpvec[1] = (del34[2]*cross321[0])-(del34[0]*cross321[2]);
-	  tmpvec[2] = (del34[0]*cross321[1])-(del34[1]*cross321[0]); 
+	    tmpvec[0] = (del34[1]*cross321[2])-(del34[2]*cross321[1]);
+	    tmpvec[1] = (del34[2]*cross321[0])-(del34[0]*cross321[2]);
+	    tmpvec[2] = (del34[0]*cross321[1])-(del34[1]*cross321[0]); 
 	  
-	  dndij[0] = dndij[0]+tmpvec[0];
-	  dndij[1] = dndij[1]+tmpvec[1];
-	  dndij[2] = dndij[2]+tmpvec[2];
+	    dndij[0] = dndij[0]+tmpvec[0];
+	    dndij[1] = dndij[1]+tmpvec[1];
+	    dndij[2] = dndij[2]+tmpvec[2];
 	  
-	  dndik[0] = (del23[1]*cross234[2])-(del23[2]*cross234[1]);
-	  dndik[1] = (del23[2]*cross234[0])-(del23[0]*cross234[2]);
-	  dndik[2] = (del23[0]*cross234[1])-(del23[1]*cross234[0]);
+	    dndik[0] = (del23[1]*cross234[2])-(del23[2]*cross234[1]);
+	    dndik[1] = (del23[2]*cross234[0])-(del23[0]*cross234[2]);
+	    dndik[2] = (del23[0]*cross234[1])-(del23[1]*cross234[0]);
 	  
-	  dndjl[0] = (cross321[1]*del23[2])-(cross321[2]*del23[1]);
-	  dndjl[1] = (cross321[2]*del23[0])-(cross321[0]*del23[2]);
-	  dndjl[2] = (cross321[0]*del23[1])-(cross321[1]*del23[0]); 
+	    dndjl[0] = (cross321[1]*del23[2])-(cross321[2]*del23[1]);
+	    dndjl[1] = (cross321[2]*del23[0])-(cross321[0]*del23[2]);
+	    dndjl[2] = (cross321[0]*del23[1])-(cross321[1]*del23[0]); 
 	  
-	  dcidij = ((r23*r23)-(r21*r21)+(rjk*rjk))/(2.0*r23*r23*r21);
-	  dcidik = ((r21*r21)-(r23*r23)+(rjk*rjk))/(2.0*r23*r21*r21);
-	  dcidjk = (-rjk)/(r23*r21);
-	  dcjdji = ((r23*r23)-(r34*r34)+(ril*ril))/(2.0*r23*r23*r34);
-	  dcjdjl = ((r34*r34)-(r23*r23)+(ril*ril))/(2.0*r23*r34*r34);
-	  dcjdil = (-ril)/(r23*r34);
+	    dcidij = ((r23*r23)-(r21*r21)+(rjk*rjk))/(2.0*r23*r23*r21);
+	    dcidik = ((r21*r21)-(r23*r23)+(rjk*rjk))/(2.0*r23*r21*r21);
+	    dcidjk = (-rjk)/(r23*r21);
+	    dcjdji = ((r23*r23)-(r34*r34)+(ril*ril))/(2.0*r23*r23*r34);
+	    dcjdjl = ((r34*r34)-(r23*r23)+(ril*ril))/(2.0*r23*r34*r34);
+	    dcjdil = (-ril)/(r23*r34);
 	  
-	  dsidij = (-cos321/sin321)*dcidij;
-	  dsidik = (-cos321/sin321)*dcidik;
-	  dsidjk = (-cos321/sin321)*dcidjk;
+	    dsidij = (-cos321/sin321)*dcidij;
+	    dsidik = (-cos321/sin321)*dcidik;
+	    dsidjk = (-cos321/sin321)*dcidjk;
 	  
-	  dsjdji = (-cos234/sin234)*dcjdji;
-	  dsjdjl = (-cos234/sin234)*dcjdjl;
-	  dsjdil = (-cos234/sin234)*dcjdil;
+	    dsjdji = (-cos234/sin234)*dcjdji;
+	    dsjdjl = (-cos234/sin234)*dcjdjl;
+	    dsjdil = (-cos234/sin234)*dcjdil;
 	  
-	  dxidij = (r21*sin321)+(r23*r21*dsidij);
-	  dxidik = (r23*sin321)+(r23*r21*dsidik);
-	  dxidjk = (r23*r21*dsidjk);
+	    dxidij = (r21*sin321)+(r23*r21*dsidij);
+	    dxidik = (r23*sin321)+(r23*r21*dsidik);
+	    dxidjk = (r23*r21*dsidjk);
 	  
-	  dxjdji = (r34*sin234)+(r23*r34*dsjdji);
-	  dxjdjl = (r23*sin234)+(r23*r34*dsjdjl);
-	  dxjdil = (r23*r34*dsjdil);
+	    dxjdji = (r34*sin234)+(r23*r34*dsjdji);
+	    dxjdjl = (r23*sin234)+(r23*r34*dsjdjl);
+	    dxjdil = (r23*r34*dsjdil);
 	  
-	  ddndij = (dxidij*cross234mag)+(cross321mag*dxjdji);
-	  ddndik = dxidik*cross234mag;
-	  ddndjk = dxidjk*cross234mag;
-	  ddndjl = cross321mag*dxjdjl;
-	  ddndil = cross321mag*dxjdil;
-	  dcwddn = -cwnum/(cwnom*cwnom);
-	  dcwdn = 1.0/cwnom;
-	  dvpdcw = (-1.0)*Ec*(-.5)*5.0*pow(cw2,4.0) * 
-	    w23*w21*w34*(1.0-tspjik)*(1.0-tspijl);
+	    ddndij = (dxidij*cross234mag)+(cross321mag*dxjdji);
+	    ddndik = dxidik*cross234mag;
+	    ddndjk = dxidjk*cross234mag;
+	    ddndjl = cross321mag*dxjdjl;
+	    ddndil = cross321mag*dxjdil;
+	    dcwddn = -cwnum/(cwnom*cwnom);
+	    dcwdn = 1.0/cwnom;
+	    dvpdcw = (-1.0)*Ec*(-.5)*5.0*pow(cw2,4.0) * 
+	      w23*w21*w34*(1.0-tspjik)*(1.0-tspijl);
 
-	  Ftmp[0] = dvpdcw*((dcwdn*dndij[0])+(dcwddn*ddndij*del23[0]/r23));
-	  Ftmp[1] = dvpdcw*((dcwdn*dndij[1])+(dcwddn*ddndij*del23[1]/r23));
-	  Ftmp[2] = dvpdcw*((dcwdn*dndij[2])+(dcwddn*ddndij*del23[2]/r23));
-	  fi[0] = Ftmp[0];
-	  fi[1] = Ftmp[1];
-	  fi[2] = Ftmp[2];
-	  fj[0] = -Ftmp[0];
-	  fj[1] = -Ftmp[1];
-	  fj[2] = -Ftmp[2];
+	    Ftmp[0] = dvpdcw*((dcwdn*dndij[0])+(dcwddn*ddndij*del23[0]/r23));
+	    Ftmp[1] = dvpdcw*((dcwdn*dndij[1])+(dcwddn*ddndij*del23[1]/r23));
+	    Ftmp[2] = dvpdcw*((dcwdn*dndij[2])+(dcwddn*ddndij*del23[2]/r23));
+	    fi[0] = Ftmp[0];
+	    fi[1] = Ftmp[1];
+	    fi[2] = Ftmp[2];
+	    fj[0] = -Ftmp[0];
+	    fj[1] = -Ftmp[1];
+	    fj[2] = -Ftmp[2];
 	  
-	  Ftmp[0] = dvpdcw*((dcwdn*dndik[0])+(dcwddn*ddndik*del21[0]/r21));
-	  Ftmp[1] = dvpdcw*((dcwdn*dndik[1])+(dcwddn*ddndik*del21[1]/r21));
-	  Ftmp[2] = dvpdcw*((dcwdn*dndik[2])+(dcwddn*ddndik*del21[2]/r21));
-	  fi[0] += Ftmp[0];
-	  fi[1] += Ftmp[1];
-	  fi[2] += Ftmp[2];
-	  fk[0] = -Ftmp[0];
-	  fk[1] = -Ftmp[1];
-	  fk[2] = -Ftmp[2];
+	    Ftmp[0] = dvpdcw*((dcwdn*dndik[0])+(dcwddn*ddndik*del21[0]/r21));
+	    Ftmp[1] = dvpdcw*((dcwdn*dndik[1])+(dcwddn*ddndik*del21[1]/r21));
+	    Ftmp[2] = dvpdcw*((dcwdn*dndik[2])+(dcwddn*ddndik*del21[2]/r21));
+	    fi[0] += Ftmp[0];
+	    fi[1] += Ftmp[1];
+	    fi[2] += Ftmp[2];
+	    fk[0] = -Ftmp[0];
+	    fk[1] = -Ftmp[1];
+	    fk[2] = -Ftmp[2];
 	  
-	  Ftmp[0] = (dvpdcw*dcwddn*ddndjk*deljk[0])/rjk;
-	  Ftmp[1] = (dvpdcw*dcwddn*ddndjk*deljk[1])/rjk;
-	  Ftmp[2] = (dvpdcw*dcwddn*ddndjk*deljk[2])/rjk;
-	  fj[0] += Ftmp[0];
-	  fj[1] += Ftmp[1];
-	  fj[2] += Ftmp[2];
-	  fk[0] -= Ftmp[0];
-	  fk[1] -= Ftmp[1];
-	  fk[2] -= Ftmp[2];
+	    Ftmp[0] = (dvpdcw*dcwddn*ddndjk*deljk[0])/rjk;
+	    Ftmp[1] = (dvpdcw*dcwddn*ddndjk*deljk[1])/rjk;
+	    Ftmp[2] = (dvpdcw*dcwddn*ddndjk*deljk[2])/rjk;
+	    fj[0] += Ftmp[0];
+	    fj[1] += Ftmp[1];
+	    fj[2] += Ftmp[2];
+	    fk[0] -= Ftmp[0];
+	    fk[1] -= Ftmp[1];
+	    fk[2] -= Ftmp[2];
 	  
-	  Ftmp[0] = dvpdcw*((dcwdn*dndjl[0])+(dcwddn*ddndjl*del34[0]/r34));
-	  Ftmp[1] = dvpdcw*((dcwdn*dndjl[1])+(dcwddn*ddndjl*del34[1]/r34));
-	  Ftmp[2] = dvpdcw*((dcwdn*dndjl[2])+(dcwddn*ddndjl*del34[2]/r34));
-	  fj[0] += Ftmp[0];
-	  fj[1] += Ftmp[1];
-	  fj[2] += Ftmp[2];
-	  fl[0] = -Ftmp[0];
-	  fl[1] = -Ftmp[1];
-	  fl[2] = -Ftmp[2];
+	    Ftmp[0] = dvpdcw*((dcwdn*dndjl[0])+(dcwddn*ddndjl*del34[0]/r34));
+	    Ftmp[1] = dvpdcw*((dcwdn*dndjl[1])+(dcwddn*ddndjl*del34[1]/r34));
+	    Ftmp[2] = dvpdcw*((dcwdn*dndjl[2])+(dcwddn*ddndjl*del34[2]/r34));
+	    fj[0] += Ftmp[0];
+	    fj[1] += Ftmp[1];
+	    fj[2] += Ftmp[2];
+	    fl[0] = -Ftmp[0];
+	    fl[1] = -Ftmp[1];
+	    fl[2] = -Ftmp[2];
 	  
-	  Ftmp[0] = (dvpdcw*dcwddn*ddndil*delil[0])/ril;
-	  Ftmp[1] = (dvpdcw*dcwddn*ddndil*delil[1])/ril;
-	  Ftmp[2] = (dvpdcw*dcwddn*ddndil*delil[2])/ril;
-	  fi[0] += Ftmp[0];
-	  fi[1] += Ftmp[1];
-	  fi[2] += Ftmp[2];
-	  fl[0] -= Ftmp[0];
-	  fl[1] -= Ftmp[1];
-	  fl[2] -= Ftmp[2];
+	    Ftmp[0] = (dvpdcw*dcwddn*ddndil*delil[0])/ril;
+	    Ftmp[1] = (dvpdcw*dcwddn*ddndil*delil[1])/ril;
+	    Ftmp[2] = (dvpdcw*dcwddn*ddndil*delil[2])/ril;
+	    fi[0] += Ftmp[0];
+	    fi[1] += Ftmp[1];
+	    fi[2] += Ftmp[2];
+	    fl[0] -= Ftmp[0];
+	    fl[1] -= Ftmp[1];
+	    fl[2] -= Ftmp[2];
 	  
-	  // coordination forces
+	    // coordination forces
 	  
-	  fpair = Vtors*dw21*w23*w34*(1.0-tspjik)*(1.0-tspijl) / r21;
-	  fi[0] -= del21[0]*fpair;
-	  fi[1] -= del21[1]*fpair;
-	  fi[2] -= del21[2]*fpair;
-	  fk[0] += del21[0]*fpair;
-	  fk[1] += del21[1]*fpair;
-	  fk[2] += del21[2]*fpair;
+	    fpair = Vtors*dw21*w23*w34*(1.0-tspjik)*(1.0-tspijl) / r21;
+	    fi[0] -= del21[0]*fpair;
+	    fi[1] -= del21[1]*fpair;
+	    fi[2] -= del21[2]*fpair;
+	    fk[0] += del21[0]*fpair;
+	    fk[1] += del21[1]*fpair;
+	    fk[2] += del21[2]*fpair;
 	  
-	  fpair = Vtors*w21*dw23*w34*(1.0-tspjik)*(1.0-tspijl) / r23;
-	  fi[0] -= del23[0]*fpair;
-	  fi[1] -= del23[1]*fpair;
-	  fi[2] -= del23[2]*fpair;
-	  fj[0] += del23[0]*fpair;
-	  fj[1] += del23[1]*fpair;
-	  fj[2] += del23[2]*fpair;
+	    fpair = Vtors*w21*dw23*w34*(1.0-tspjik)*(1.0-tspijl) / r23;
+	    fi[0] -= del23[0]*fpair;
+	    fi[1] -= del23[1]*fpair;
+	    fi[2] -= del23[2]*fpair;
+	    fj[0] += del23[0]*fpair;
+	    fj[1] += del23[1]*fpair;
+	    fj[2] += del23[2]*fpair;
 	  
-	  fpair = Vtors*w21*w23*dw34*(1.0-tspjik)*(1.0-tspijl) / r34;
-	  fj[0] -= del34[0]*fpair;
-	  fj[1] -= del34[1]*fpair;
-	  fj[2] -= del34[2]*fpair;
-	  fl[0] += del34[0]*fpair;
-	  fl[1] += del34[1]*fpair;
-	  fl[2] += del34[2]*fpair;
+	    fpair = Vtors*w21*w23*dw34*(1.0-tspjik)*(1.0-tspijl) / r34;
+	    fj[0] -= del34[0]*fpair;
+	    fj[1] -= del34[1]*fpair;
+	    fj[2] -= del34[2]*fpair;
+	    fl[0] += del34[0]*fpair;
+	    fl[1] += del34[1]*fpair;
+	    fl[2] += del34[2]*fpair;
 
-	  // additional cut off function forces
+	    // additional cut off function forces
 
-	  fcpc = -Vtors*w21*w23*w34*dtsjik*(1.0-tspijl);
-	  fpair = fcpc*dcidij/rij;
-	  fi[0] += fpair*del23[0];
-	  fi[1] += fpair*del23[1];
-	  fi[2] += fpair*del23[2];
-	  fj[0] -= fpair*del23[0];
-	  fj[1] -= fpair*del23[1];
-	  fj[2] -= fpair*del23[2];
+	    fcpc = -Vtors*w21*w23*w34*dtsjik*(1.0-tspijl);
+	    fpair = fcpc*dcidij/rij;
+	    fi[0] += fpair*del23[0];
+	    fi[1] += fpair*del23[1];
+	    fi[2] += fpair*del23[2];
+	    fj[0] -= fpair*del23[0];
+	    fj[1] -= fpair*del23[1];
+	    fj[2] -= fpair*del23[2];
 
-	  fpair = fcpc*dcidik/rik;
-	  fi[0] += fpair*del21[0];
-	  fi[1] += fpair*del21[1];
-	  fi[2] += fpair*del21[2];
-	  fk[0] -= fpair*del21[0];
-	  fk[1] -= fpair*del21[1];
-	  fk[2] -= fpair*del21[2];
+	    fpair = fcpc*dcidik/rik;
+	    fi[0] += fpair*del21[0];
+	    fi[1] += fpair*del21[1];
+	    fi[2] += fpair*del21[2];
+	    fk[0] -= fpair*del21[0];
+	    fk[1] -= fpair*del21[1];
+	    fk[2] -= fpair*del21[2];
 
-	  fpair = fcpc*dcidjk/rjk;
-	  fj[0] += fpair*deljk[0];
-	  fj[1] += fpair*deljk[1];
-	  fj[2] += fpair*deljk[2];
-	  fk[0] -= fpair*deljk[0];
-	  fk[1] -= fpair*deljk[1];
-	  fk[2] -= fpair*deljk[2];
+	    fpair = fcpc*dcidjk/rjk;
+	    fj[0] += fpair*deljk[0];
+	    fj[1] += fpair*deljk[1];
+	    fj[2] += fpair*deljk[2];
+	    fk[0] -= fpair*deljk[0];
+	    fk[1] -= fpair*deljk[1];
+	    fk[2] -= fpair*deljk[2];
 	  
-	  fcpc = -Vtors*w21*w23*w34*(1.0-tspjik)*dtsijl;
-	  fpair = fcpc*dcjdji/rij;
-	  fi[0] += fpair*del23[0];
-	  fi[1] += fpair*del23[1];
-	  fi[2] += fpair*del23[2];
-	  fj[0] -= fpair*del23[0];
-	  fj[1] -= fpair*del23[1];
-	  fj[2] -= fpair*del23[2];
+	    fcpc = -Vtors*w21*w23*w34*(1.0-tspjik)*dtsijl;
+	    fpair = fcpc*dcjdji/rij;
+	    fi[0] += fpair*del23[0];
+	    fi[1] += fpair*del23[1];
+	    fi[2] += fpair*del23[2];
+	    fj[0] -= fpair*del23[0];
+	    fj[1] -= fpair*del23[1];
+	    fj[2] -= fpair*del23[2];
 
-	  fpair = fcpc*dcjdjl/rjl;
-	  fj[0] += fpair*del34[0];
-	  fj[1] += fpair*del34[1];
-	  fj[2] += fpair*del34[2];
-	  fl[0] -= fpair*del34[0];
-	  fl[1] -= fpair*del34[1];
-	  fl[2] -= fpair*del34[2];
+	    fpair = fcpc*dcjdjl/rjl;
+	    fj[0] += fpair*del34[0];
+	    fj[1] += fpair*del34[1];
+	    fj[2] += fpair*del34[2];
+	    fl[0] -= fpair*del34[0];
+	    fl[1] -= fpair*del34[1];
+	    fl[2] -= fpair*del34[2];
 
-	  fpair = fcpc*dcjdil/ril;
-	  fi[0] += fpair*delil[0];
-	  fi[1] += fpair*delil[1];
-	  fi[2] += fpair*delil[2];
-	  fl[0] -= fpair*delil[0];
-	  fl[1] -= fpair*delil[1];
-	  fl[2] -= fpair*delil[2];
+	    fpair = fcpc*dcjdil/ril;
+	    fi[0] += fpair*delil[0];
+	    fi[1] += fpair*delil[1];
+	    fi[2] += fpair*delil[2];
+	    fl[0] -= fpair*delil[0];
+	    fl[1] -= fpair*delil[1];
+	    fl[2] -= fpair*delil[2];
 
-	  // sum per-atom forces into atom force array
+	    // sum per-atom forces into atom force array
 
-	  f[i][0] += fi[0]; f[i][1] += fi[1]; f[i][2] += fi[2];
-	  f[j][0] += fj[0]; f[j][1] += fj[1]; f[j][2] += fj[2];
-	  f[k][0] += fk[0]; f[k][1] += fk[1]; f[k][2] += fk[2];
-	  f[l][0] += fl[0]; f[l][1] += fl[1]; f[l][2] += fl[2];
+	    f[i][0] += fi[0]; f[i][1] += fi[1]; f[i][2] += fi[2];
+	    f[j][0] += fj[0]; f[j][1] += fj[1]; f[j][2] += fj[2];
+	    f[k][0] += fk[0]; f[k][1] += fk[1]; f[k][2] += fk[2];
+	    f[l][0] += fl[0]; f[l][1] += fl[1]; f[l][2] += fl[2];
 
-	  if (evflag) {
-	    delkl[0] = delil[0] - del21[0];
-	    delkl[1] = delil[1] - del21[1];
-	    delkl[2] = delil[2] - del21[2];
-	    ev_tally4(i,j,k,l,evdwl,fi,fj,fk,delil,del34,delkl);
+	    if (evflag) {
+	      delkl[0] = delil[0] - del21[0];
+	      delkl[1] = delil[1] - del21[1];
+	      delkl[2] = delil[2] - del21[2];
+	      ev_tally4_thr(i,j,k,l,evdwl,fi,fj,fk,delil,del34,delkl,tid);
+	    }
 	  }
 	}
       }
     }
+    // reduce per thread forces into global force array.
+    force_reduce_thr(atom->f, nall, nthreads, tid);
   }
-}
-
-// ----------------------------------------------------------------------
-// S'(t) and S(t) cutoff functions
-// ----------------------------------------------------------------------
-
-/* ----------------------------------------------------------------------
-   cutoff function Sprime
-   return cutoff and dX = derivative
-------------------------------------------------------------------------- */
-
-double PairAIREBOOMP::Sp(double Xij, double Xmin, double Xmax, double &dX)
-{
-  double cutoff;
-
-  double t = (Xij-Xmin) / (Xmax-Xmin);
-  if (t <= 0.0) {
-    cutoff = 1.0;
-    dX = 0.0;
-  } 
-  else if (t >= 1.0) {
-    cutoff = 0.0;
-    dX = 0.0;
-  } 
-  else {
-    cutoff = 0.5 * (1.0+cos(PI*t));
-    dX = (-0.5*PI*sin(PI*t)) / (Xmax-Xmin);
-  }
-  return cutoff;
-}
-
-/* ----------------------------------------------------------------------
-   LJ cutoff function Sp2
-   return cutoff and dX = derivative
-------------------------------------------------------------------------- */
-
-double PairAIREBOOMP::Sp2(double Xij, double Xmin, double Xmax, double &dX)
-{
-  double cutoff;
-
-  double t = (Xij-Xmin) / (Xmax-Xmin);
-  if (t <= 0.0) {
-    cutoff = 1.0;
-    dX = 0.0;
-  } 
-  if (t >= 1.0) {
-    cutoff = 0.0;
-    dX = 0.0;
-  } 
-  if (t>0.0 && t<1.0) {
-    cutoff = (1.0-(t*t*(3.0-2.0*t)));
-    dX = 6.0*(t*t-t) / (Xmax-Xmin);
-  }
-  return cutoff;
 }
 
 /* ----------------------------------------------------------------------
    Bij function
 ------------------------------------------------------------------------- */
-
+template <int VFLAG_ATOM>
 double PairAIREBOOMP::bondorder(int i, int j, double rij[3],
-			     double rijmag, double VA,
-			     double **f, int vflag_atom)
+				double rijmag, double VA,
+				double **f, int tid)
 {
   int atomi,atomj,k,n,l,atomk,atoml,atomn,atom1,atom2,atom3,atom4;
   int itype,jtype,ktype,ltype,ntype;
@@ -1443,10 +1461,10 @@ double PairAIREBOOMP::bondorder(int i, int j, double rij[3],
       f[atomj][0] += fj[0]; f[atomj][1] += fj[1]; f[atomj][2] += fj[2];
       f[atomk][0] += fk[0]; f[atomk][1] += fk[1]; f[atomk][2] += fk[2];
 
-      if (vflag_atom) {
+      if (VFLAG_ATOM) {
 	rji[0] = -rij[0]; rji[1] = -rij[1]; rji[2] = -rij[2];
 	rki[0] = -rik[0]; rki[1] = -rik[1]; rki[2] = -rik[2];
-	v_tally3(atomi,atomj,atomk,fj,fk,rji,rki);
+	v_tally3_thr(atomi,atomj,atomk,fj,fk,rji,rki,tid);
       }
     }
   }
@@ -1585,9 +1603,9 @@ double PairAIREBOOMP::bondorder(int i, int j, double rij[3],
       f[atomj][0] += fj[0]; f[atomj][1] += fj[1]; f[atomj][2] += fj[2];
       f[atoml][0] += fl[0]; f[atoml][1] += fl[1]; f[atoml][2] += fl[2];
 
-      if (vflag_atom) {
+      if (VFLAG_ATOM) {
 	rlj[0] = -rjl[0]; rlj[1] = -rjl[1]; rlj[2] = -rjl[2];
-	v_tally3(atomi,atomj,atoml,fi,fl,rij,rlj);
+	v_tally3_thr(atomi,atomj,atoml,fi,fl,rij,rlj,tid);
       }
     }
   }	
@@ -1621,7 +1639,7 @@ double PairAIREBOOMP::bondorder(int i, int j, double rij[3],
       f[atomk][1] += tmp2*rik[1]; 
       f[atomk][2] += tmp2*rik[2]; 
 
-      if (vflag_atom) v_tally2(atomi,atomk,-tmp2,rik);
+      if (VFLAG_ATOM) v_tally2_thr(atomi,atomk,-tmp2,rik,tid);
 
       tmp2 = VA*dN3[2]*(2.0*NconjtmpI*dwik*SpN)/rikmag;
       f[atomi][0] -= tmp2*rik[0]; 
@@ -1631,7 +1649,7 @@ double PairAIREBOOMP::bondorder(int i, int j, double rij[3],
       f[atomk][1] += tmp2*rik[1]; 
       f[atomk][2] += tmp2*rik[2];
 
-      if (vflag_atom) v_tally2(atomi,atomk,-tmp2,rik);
+      if (VFLAG_ATOM) v_tally2_thr(atomi,atomk,-tmp2,rik,tid);
 
       if (fabs(dNki) > TOL) {
 	REBO_neighs_k = REBO_firstneigh[atomk];
@@ -1653,7 +1671,7 @@ double PairAIREBOOMP::bondorder(int i, int j, double rij[3],
 	    f[atomn][1] += tmp2*rkn[1]; 
 	    f[atomn][2] += tmp2*rkn[2];
 
-	    if (vflag_atom) v_tally2(atomk,atomn,-tmp2,rkn);
+	    if (VFLAG_ATOM) v_tally2_thr(atomk,atomn,-tmp2,rkn,tid);
 	  }
 	}
       } 
@@ -1684,7 +1702,7 @@ double PairAIREBOOMP::bondorder(int i, int j, double rij[3],
       f[atoml][1] += tmp2*rjl[1]; 
       f[atoml][2] += tmp2*rjl[2];
 
-      if (vflag_atom) v_tally2(atomj,atoml,-tmp2,rjl);
+      if (VFLAG_ATOM) v_tally2_thr(atomj,atoml,-tmp2,rjl,tid);
 
       tmp2 = VA*dN3[2]*(2.0*NconjtmpJ*dwjl*SpN)/rjlmag;
       f[atomj][0] -= tmp2*rjl[0]; 
@@ -1694,7 +1712,7 @@ double PairAIREBOOMP::bondorder(int i, int j, double rij[3],
       f[atoml][1] += tmp2*rjl[1]; 
       f[atoml][2] += tmp2*rjl[2];
 
-      if (vflag_atom) v_tally2(atomj,atoml,-tmp2,rjl);
+      if (VFLAG_ATOM) v_tally2_thr(atomj,atoml,-tmp2,rjl,tid);
 
       if (fabs(dNlj) > TOL) {
 	REBO_neighs_l = REBO_firstneigh[atoml];
@@ -1716,7 +1734,7 @@ double PairAIREBOOMP::bondorder(int i, int j, double rij[3],
 	    f[atomn][1] += tmp2*rln[1]; 
 	    f[atomn][2] += tmp2*rln[2];
 	    
-	    if (vflag_atom) v_tally2(atoml,atomn,-tmp2,rln);
+	    if (VFLAG_ATOM) v_tally2_thr(atoml,atomn,-tmp2,rln,tid);
 	  }
 	}
       } 
@@ -1930,10 +1948,10 @@ double PairAIREBOOMP::bondorder(int i, int j, double rij[3],
 		f[atom4][0] += f4[0]; f[atom4][1] += f4[1];
 		f[atom4][2] += f4[2];
 		
-		if (vflag_atom) {
+		if (VFLAG_ATOM) {
 		  r13[0] = -rjk[0]; r13[1] = -rjk[1]; r13[2] = -rjk[2];
 		  r43[0] = -r34[0]; r43[1] = -r34[1]; r43[2] = -r34[2];
-		  v_tally4(atom1,atom2,atom3,atom4,f1,f2,f4,r13,r23,r43);
+		  v_tally4_thr(atom1,atom2,atom3,atom4,f1,f2,f4,r13,r23,r43,tid);
 		}
 	      }
 	    }
@@ -1966,7 +1984,7 @@ double PairAIREBOOMP::bondorder(int i, int j, double rij[3],
 	f[atomk][1] += tmp2*rik[1]; 
 	f[atomk][2] += tmp2*rik[2]; 
 
-	if (vflag_atom) v_tally2(atomi,atomk,-tmp2,rik);
+	if (VFLAG_ATOM) v_tally2_thr(atomi,atomk,-tmp2,rik,tid);
 
 	tmp2 = VA*dN3[2]*(2.0*NconjtmpI*dwik*SpN)*Etmp/rikmag;
 	f[atomi][0] -= tmp2*rik[0]; 
@@ -1976,7 +1994,7 @@ double PairAIREBOOMP::bondorder(int i, int j, double rij[3],
 	f[atomk][1] += tmp2*rik[1]; 
 	f[atomk][2] += tmp2*rik[2]; 
 
-	if (vflag_atom) v_tally2(atomi,atomk,-tmp2,rik);
+	if (VFLAG_ATOM) v_tally2_thr(atomi,atomk,-tmp2,rik,tid);
 
 	if (fabs(dNki) > TOL) {
 	  REBO_neighs_k = REBO_firstneigh[atomk];
@@ -1998,7 +2016,7 @@ double PairAIREBOOMP::bondorder(int i, int j, double rij[3],
 	      f[atomn][1] += tmp2*rkn[1]; 
 	      f[atomn][2] += tmp2*rkn[2]; 
 
-	      if (vflag_atom) v_tally2(atomk,atomn,-tmp2,rkn);
+	      if (VFLAG_ATOM) v_tally2_thr(atomk,atomn,-tmp2,rkn,tid);
 	    }
 	  }
 	}
@@ -2029,7 +2047,7 @@ double PairAIREBOOMP::bondorder(int i, int j, double rij[3],
 	f[atoml][1] += tmp2*rjl[1]; 
 	f[atoml][2] += tmp2*rjl[2]; 
 
-	if (vflag_atom) v_tally2(atomj,atoml,-tmp2,rjl);
+	if (VFLAG_ATOM) v_tally2_thr(atomj,atoml,-tmp2,rjl,tid);
 
 	tmp2 = VA*dN3[2]*(2.0*NconjtmpJ*dwjl*SpN)*Etmp/rjlmag;
 	f[atomj][0] -= tmp2*rjl[0]; 
@@ -2039,7 +2057,7 @@ double PairAIREBOOMP::bondorder(int i, int j, double rij[3],
 	f[atoml][1] += tmp2*rjl[1]; 
 	f[atoml][2] += tmp2*rjl[2]; 
 
-	if (vflag_atom) v_tally2(atomj,atoml,-tmp2,rjl);
+	if (VFLAG_ATOM) v_tally2_thr(atomj,atoml,-tmp2,rjl,tid);
 
 	if (fabs(dNlj) > TOL) {
 	  REBO_neighs_l = REBO_firstneigh[atoml];
@@ -2061,7 +2079,7 @@ double PairAIREBOOMP::bondorder(int i, int j, double rij[3],
 	      f[atomn][1] += tmp2*rln[1];
 	      f[atomn][2] += tmp2*rln[2];
 
-	      if (vflag_atom) v_tally2(atoml,atomn,-tmp2,rln);
+	      if (VFLAG_ATOM) v_tally2_thr(atoml,atomn,-tmp2,rln,tid);
 	    }
 	  }
 	}
@@ -2076,10 +2094,10 @@ double PairAIREBOOMP::bondorder(int i, int j, double rij[3],
 /* ----------------------------------------------------------------------
    Bij* function
 ------------------------------------------------------------------------- */
-
+template <int VFLAG_ATOM>
 double PairAIREBOOMP::bondorderLJ(int i, int j, double rij[3], double rijmag,
 			       double VA, double rij0[3], double rij0mag,
-			       double **f, int vflag_atom)
+				  double **f, int tid)
 {
   int k,n,l,atomk,atoml,atomn,atom1,atom2,atom3,atom4;
   int atomi,atomj,itype,jtype,ktype,ltype,ntype;
@@ -2414,10 +2432,10 @@ double PairAIREBOOMP::bondorderLJ(int i, int j, double rij[3], double rijmag,
 	f[atomj][0] += fj[0]; f[atomj][1] += fj[1]; f[atomj][2] += fj[2];
 	f[atomk][0] += fk[0]; f[atomk][1] += fk[1]; f[atomk][2] += fk[2];
 	
-	if (vflag_atom) {
+	if (VFLAG_ATOM) {
 	  rji[0] = -rij[0]; rji[1] = -rij[1]; rji[2] = -rij[2];
 	  rki[0] = -rik[0]; rki[1] = -rik[1]; rki[2] = -rik[2];
-	  v_tally3(atomi,atomj,atomk,fj,fk,rji,rki);
+	  v_tally3_thr(atomi,atomj,atomk,fj,fk,rji,rki,tid);
 	}
       }
     }
@@ -2522,9 +2540,9 @@ double PairAIREBOOMP::bondorderLJ(int i, int j, double rij[3], double rijmag,
 	f[atomj][0] += fj[0]; f[atomj][1] += fj[1]; f[atomj][2] += fj[2];
 	f[atoml][0] += fl[0]; f[atoml][1] += fl[1]; f[atoml][2] += fl[2];
 	
-	if (vflag_atom) {
+	if (VFLAG_ATOM) {
 	  rlj[0] = -rjl[0]; rlj[1] = -rjl[1]; rlj[2] = -rjl[2];
-	  v_tally3(atomi,atomj,atoml,fi,fl,rij,rlj);
+	  v_tally3_thr(atomi,atomj,atoml,fi,fl,rij,rlj,tid);
 	}
       }
     }	
@@ -2557,7 +2575,7 @@ double PairAIREBOOMP::bondorderLJ(int i, int j, double rij[3], double rijmag,
 	f[atomk][1] += tmp2*rik[1]; 
 	f[atomk][2] += tmp2*rik[2]; 
 
-	if (vflag_atom) v_tally2(atomi,atomk,-tmp2,rik);
+	if (VFLAG_ATOM) v_tally2_thr(atomi,atomk,-tmp2,rik,tid);
 
 	tmp2 = VA*dN3[2]*(2.0*NconjtmpI*dwik*SpN)/rikmag;
 	f[atomi][0] -= tmp2*rik[0]; 
@@ -2567,7 +2585,7 @@ double PairAIREBOOMP::bondorderLJ(int i, int j, double rij[3], double rijmag,
 	f[atomk][1] += tmp2*rik[1]; 
 	f[atomk][2] += tmp2*rik[2];
 
-	if (vflag_atom) v_tally2(atomi,atomk,-tmp2,rik);
+	if (VFLAG_ATOM) v_tally2_thr(atomi,atomk,-tmp2,rik,tid);
 
 	if (fabs(dNki) > TOL) {
 	  REBO_neighs_k = REBO_firstneigh[atomk];
@@ -2589,7 +2607,7 @@ double PairAIREBOOMP::bondorderLJ(int i, int j, double rij[3], double rijmag,
 	      f[atomn][1] += tmp2*rkn[1]; 
 	      f[atomn][2] += tmp2*rkn[2];
 
-	      if (vflag_atom) v_tally2(atomk,atomn,-tmp2,rkn);
+	      if (VFLAG_ATOM) v_tally2_thr(atomk,atomn,-tmp2,rkn,tid);
 	    }
 	  }
 	}
@@ -2620,7 +2638,7 @@ double PairAIREBOOMP::bondorderLJ(int i, int j, double rij[3], double rijmag,
 	f[atoml][1] += tmp2*rjl[1]; 
 	f[atoml][2] += tmp2*rjl[2];
 
-	if (vflag_atom) v_tally2(atomj,atoml,-tmp2,rjl);
+	if (VFLAG_ATOM) v_tally2_thr(atomj,atoml,-tmp2,rjl,tid);
 
 	tmp2 = VA*dN3[2]*(2.0*NconjtmpJ*dwjl*SpN)/rjlmag;
 	f[atomj][0] -= tmp2*rjl[0]; 
@@ -2630,7 +2648,7 @@ double PairAIREBOOMP::bondorderLJ(int i, int j, double rij[3], double rijmag,
 	f[atoml][1] += tmp2*rjl[1]; 
 	f[atoml][2] += tmp2*rjl[2];
 
-	if (vflag_atom) v_tally2(atomj,atoml,-tmp2,rjl);
+	if (VFLAG_ATOM) v_tally2_thr(atomj,atoml,-tmp2,rjl,tid);
 
 	if (fabs(dNlj) > TOL) {
 	  REBO_neighs_l = REBO_firstneigh[atoml];
@@ -2652,7 +2670,7 @@ double PairAIREBOOMP::bondorderLJ(int i, int j, double rij[3], double rijmag,
 	      f[atomn][1] += tmp2*rln[1]; 
 	      f[atomn][2] += tmp2*rln[2];
 
-	      if (vflag_atom) v_tally2(atoml,atomn,-tmp2,rln);
+	      if (VFLAG_ATOM) v_tally2_thr(atoml,atomn,-tmp2,rln,tid);
 	    }
 	  }
 	}
@@ -2865,10 +2883,11 @@ double PairAIREBOOMP::bondorderLJ(int i, int j, double rij[3], double rijmag,
 		  f[atom4][0] += f4[0]; f[atom4][1] += f4[1];
 		  f[atom4][2] += f4[2];
 		  
-		  if (vflag_atom) {
+		  if (VFLAG_ATOM) {
 		    r13[0] = -rjk[0]; r13[1] = -rjk[1]; r13[2] = -rjk[2];
 		    r43[0] = -r34[0]; r43[1] = -r34[1]; r43[2] = -r34[2];
-		    v_tally4(atom1,atom2,atom3,atom4,f1,f2,f4,r13,r23,r43);
+		    v_tally4_thr(atom1,atom2,atom3,atom4,
+				 f1,f2,f4,r13,r23,r43,tid);
 		  }
 		}
 	      }
@@ -2899,7 +2918,7 @@ double PairAIREBOOMP::bondorderLJ(int i, int j, double rij[3], double rijmag,
 	  f[atomk][1] += tmp2*rik[1]; 
 	  f[atomk][2] += tmp2*rik[2]; 
 
-	  if (vflag_atom) v_tally2(atomi,atomk,-tmp2,rik);
+	  if (VFLAG_ATOM) v_tally2_thr(atomi,atomk,-tmp2,rik,tid);
 
 	  tmp2 = VA*dN3[2]*(2.0*NconjtmpI*dwik*SpN)*Etmp/rikmag;
 	  f[atomi][0] -= tmp2*rik[0]; 
@@ -2909,7 +2928,7 @@ double PairAIREBOOMP::bondorderLJ(int i, int j, double rij[3], double rijmag,
 	  f[atomk][1] += tmp2*rik[1]; 
 	  f[atomk][2] += tmp2*rik[2]; 
 
-	  if (vflag_atom) v_tally2(atomi,atomk,-tmp2,rik);
+	  if (VFLAG_ATOM) v_tally2(atomi,atomk,-tmp2,rik);
 
 	  if (fabs(dNki)  >TOL) {
 	    REBO_neighs_k = REBO_firstneigh[atomk];
@@ -2931,7 +2950,7 @@ double PairAIREBOOMP::bondorderLJ(int i, int j, double rij[3], double rijmag,
 		f[atomn][1] += tmp2*rkn[1]; 
 		f[atomn][2] += tmp2*rkn[2]; 
 
-		if (vflag_atom) v_tally2(atomk,atomn,-tmp2,rkn);
+		if (VFLAG_ATOM) v_tally2_thr(atomk,atomn,-tmp2,rkn,tid);
 	      }
 	    }
 	  }
@@ -2962,7 +2981,7 @@ double PairAIREBOOMP::bondorderLJ(int i, int j, double rij[3], double rijmag,
 	  f[atoml][1] += tmp2*rjl[1]; 
 	  f[atoml][2] += tmp2*rjl[2]; 
 
-	  if (vflag_atom) v_tally2(atomj,atoml,-tmp2,rjl);
+	  if (VFLAG_ATOM) v_tally2_thr(atomj,atoml,-tmp2,rjl,tid);
 
 	  tmp2 = VA*dN3[2]*(2.0*NconjtmpJ*dwjl*SpN)*Etmp/rjlmag;
 	  f[atomj][0] -= tmp2*rjl[0]; 
@@ -2972,7 +2991,7 @@ double PairAIREBOOMP::bondorderLJ(int i, int j, double rij[3], double rijmag,
 	  f[atoml][1] += tmp2*rjl[1]; 
 	  f[atoml][2] += tmp2*rjl[2]; 
 
-	  if (vflag_atom) v_tally2(atomj,atoml,-tmp2,rjl);
+	  if (VFLAG_ATOM) v_tally2_thr(atomj,atoml,-tmp2,rjl,tid);
 
 	  if (fabs(dNlj) > TOL) {
 	    REBO_neighs_l = REBO_firstneigh[atoml];
@@ -2994,7 +3013,7 @@ double PairAIREBOOMP::bondorderLJ(int i, int j, double rij[3], double rijmag,
 		f[atomn][1] += tmp2*rln[1];
 		f[atomn][2] += tmp2*rln[2];
 
-		if (vflag_atom) v_tally2(atoml,atomn,-tmp2,rln);
+		if (VFLAG_ATOM) v_tally2_thr(atoml,atomn,-tmp2,rln,tid);
 	      }
 	    }
 	  }
@@ -3330,18 +3349,6 @@ double PairAIREBOOMP::TijSpline(double Nij, double Nji,
   }
 
   return Tijf;
-}
-
-/* ----------------------------------------------------------------------
-   Kronecker delta function
-------------------------------------------------------------------------- */
-
-double PairAIREBOOMP::kronecker(int a, int b)
-{
-  double kd;
-  if (a == b) kd = 1.0;
-  else kd = 0.0;
-  return kd;
 }
 
 /* ----------------------------------------------------------------------
@@ -3942,26 +3949,6 @@ void PairAIREBOOMP::read_file(char *filename)
 // ----------------------------------------------------------------------
 // generic Spline functions
 // ----------------------------------------------------------------------
-
-/* ----------------------------------------------------------------------
-   fifth order spline evaluation
-------------------------------------------------------------------------- */
-
-double PairAIREBOOMP::Sp5th(double x, double coeffs[6], double *df)
-{
-  double f;
-  int i;
-  i = 0;
-  f = 0.0;
-  *df = 0.0;
-
-  for (i = 0; i<6; i++) {
-    f += coeffs[i]*pow(x,((double) i));
-    if (i > 0) *df += coeffs[i]*((double) i)*pow(x,((double) i-1.0));
-  }
-
-  return f;
-}
 
 /* ----------------------------------------------------------------------
    bicubic spline evaluation

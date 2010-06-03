@@ -8,6 +8,7 @@ if (test $1 = 1) then
   cp atom_vec_ellipsoid.cpp ..
   cp compute_erotate_asphere.cpp ..
   cp compute_temp_asphere.cpp ..
+  cp fix_nh_asphere.cpp ..
   cp fix_nph_asphere.cpp ..
   cp fix_npt_asphere.cpp ..
   cp fix_nve_asphere.cpp ..
@@ -18,6 +19,7 @@ if (test $1 = 1) then
   cp atom_vec_ellipsoid.h ..
   cp compute_erotate_asphere.h ..
   cp compute_temp_asphere.h ..
+  cp fix_nh_asphere.h ..
   cp fix_nph_asphere.h ..
   cp fix_npt_asphere.h ..
   cp fix_nve_asphere.h ..
@@ -30,6 +32,7 @@ elif (test $1 = 0) then
   rm ../atom_vec_ellipsoid.cpp
   rm ../compute_erotate_asphere.cpp
   rm ../compute_temp_asphere.cpp
+  rm ../fix_nh_asphere.cpp
   rm ../fix_nph_asphere.cpp
   rm ../fix_npt_asphere.cpp
   rm ../fix_nve_asphere.cpp
@@ -40,6 +43,7 @@ elif (test $1 = 0) then
   rm ../atom_vec_ellipsoid.h
   rm ../compute_erotate_asphere.h
   rm ../compute_temp_asphere.h
+  rm ../fix_nh_asphere.h
   rm ../fix_nph_asphere.h
   rm ../fix_npt_asphere.h
   rm ../fix_nve_asphere.h

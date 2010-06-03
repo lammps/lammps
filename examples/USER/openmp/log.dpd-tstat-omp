@@ -1,0 +1,127 @@
+LAMMPS (1 Jun 2010-ICMS)
+
+units		lj
+neighbor	2.5 bin
+neigh_modify	every 1 delay 0 check yes page 2000000
+atom_style	atomic
+
+pair_style	soft/omp 1.12246
+special_bonds lj/coul 1.0 1.0 1.0
+
+read_data       data.dpd
+  orthogonal box = (-7.5 -7.5 -11.8519) to (7.5 7.5 11.8519)
+  2 by 2 by 2 processor grid
+  using 1 OpenMP thread(s) per MPI task
+  16000 atoms
+
+pair_coeff	* * 1.0 60.0 1.12246
+
+# start with all velocities = 0
+velocity	all zero linear
+
+timestep	0.02
+communicate single vel yes
+
+# integration ensemble
+fix		1 all nve
+# thermostat
+fix		2 all temp/rescale 1 0.0 1.0 0.01 1.0
+
+# output thermodynamic data
+thermo_style 	custom step temp etotal evdwl
+thermo 	        100 	
+
+run		1000
+Memory usage per processor = 10.1076 Mbytes
+Step Temp TotEng E_vdwl 
+       0            0    3.4747959    3.4747959 
+     100          0.1    14.434393    14.284402 
+     200   0.20099004    25.850678    25.549212 
+     300   0.29414627    37.568915    37.127723 
+     400   0.39347054    49.378554    48.788386 
+     500   0.49801191    61.226781     60.47981 
+     600    0.5969388    73.060729    72.165377 
+     700   0.70626093    84.897439    83.838114 
+     800     0.797497     96.76289    95.566719 
+     900   0.90141032    108.61403      107.262 
+    1000   0.99725236    120.53733    119.04154 
+Loop time of 6.86317 on 8 procs / 1 threads for 1000 steps with 16000 atoms
+
+Pair  time (%) = 5.40641 (78.7743)
+Neigh time (%) = 0.136692 (1.99168)
+Comm  time (%) = 1.13783 (16.5788)
+Outpt time (%) = 0.000375301 (0.00546833)
+Other time (%) = 0.181858 (2.64976)
+
+Nlocal:    2000 ave 2017 max 1978 min
+Histogram: 1 0 0 0 2 2 1 1 0 1
+Nghost:    10448 ave 10478 max 10408 min
+Histogram: 1 0 0 1 1 0 2 1 1 1
+Neighs:    603345 ave 614700 max 592354 min
+Histogram: 1 0 3 1 0 0 0 0 1 2
+
+Total # of neighbors = 4826761
+Ave neighs/atom = 301.673
+Neighbor list builds = 7
+Dangerous builds = 0
+reset_timestep  0
+
+#----------------------------------------------------------------------------#
+
+#set DPD pair coefficients
+pair_style hybrid/overlay soft/omp 1.12246 dpd/tstat/omp 1.0 1.5 3.0 34387
+pair_coeff * * soft/omp 60.0 60.0 1.12246
+pair_coeff 2 2 dpd/tstat/omp 0.1 1.0 
+
+unfix           1
+unfix           2
+fix		3 all nve
+
+thermo          100
+run             2000
+Memory usage per processor = 18.381 Mbytes
+Step Temp TotEng E_vdwl 
+       0   0.99725236    120.53733    119.04154 
+     100    1.1417672    121.02281    119.31027 
+     200    1.3028905     121.5793    119.62508 
+     300    1.4786006     122.2072    119.98944 
+     400    1.6709894    122.91969    120.41336 
+     500    1.9238555    123.75012    120.86452 
+     600    2.1766262    124.70672    121.44199 
+     700     2.485829    125.78642    122.05791 
+     800    2.7998899    126.97462    122.77505 
+     900     3.177037    128.38214    123.61688 
+    1000    3.5994093    129.92426    124.52548 
+    1100    4.0710885    131.73215     125.6259 
+    1200    4.5270194    133.75395    126.96385 
+    1300    4.8956443    135.75895    128.41595 
+    1400    5.3274285    137.90556    129.91491 
+    1500    5.6081088    140.16305    131.75141 
+    1600    5.9110681    142.44119    133.57514 
+    1700    6.1746186    144.73323    135.47188 
+    1800    6.4465099    146.87931    137.21015 
+    1900    6.7299382    149.05488    138.96061 
+    2000    7.1696442     151.1951     140.4413 
+Loop time of 19.4163 on 8 procs / 1 threads for 2000 steps with 16000 atoms
+
+Pair  time (%) = 12.9205 (66.5447)
+Neigh time (%) = 3.29524 (16.9715)
+Comm  time (%) = 2.89149 (14.8921)
+Outpt time (%) = 0.000926316 (0.00477082)
+Other time (%) = 0.308129 (1.58696)
+
+Nlocal:    2000 ave 2030 max 1985 min
+Histogram: 2 2 2 0 0 0 0 1 0 1
+Nghost:    10471.6 ave 10489 max 10441 min
+Histogram: 1 0 0 1 1 0 1 0 3 1
+Neighs:    597644 ave 614179 max 586236 min
+Histogram: 3 0 0 1 0 1 2 0 0 1
+
+Total # of neighbors = 4781154
+Ave neighs/atom = 298.822
+Neighbor list builds = 144
+Dangerous builds = 0
+
+
+
+

@@ -20,6 +20,7 @@ FixStyle(move,FixMove)
 #ifndef LMP_FIX_MOVE_H
 #define LMP_FIX_MOVE_H
 
+#include "stdio.h"
 #include "fix.h"
 
 namespace LAMMPS_NS {
@@ -36,6 +37,8 @@ class FixMove : public Fix {
   void final_integrate_respa(int, int);
 
   double memory_usage();
+  void write_restart(FILE *);
+  void restart(char *);
   void grow_arrays(int);
   void copy_arrays(int, int);
   int pack_exchange(int, double *);

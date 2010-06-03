@@ -94,7 +94,6 @@ void PairCoulDielOMP::eval()
     const int nthreads = comm->nthreads;
 
     double **x = atom->x;
-    double **f = atom->f;
     double *q = atom->q;
     int *type = atom->type;
     double *special_coul = force->special_coul;
@@ -109,7 +108,7 @@ void PairCoulDielOMP::eval()
     // loop over neighbors of my atoms
 
     int iifrom, iito;
-    f = loop_setup_thr(f, iifrom, iito, tid, inum, nall, nthreads);
+    double **f = loop_setup_thr(atom->f,iifrom,iito,tid,inum,nall,nthreads);
     for (ii = iifrom; ii < iito; ++ii) {
 
       i = ilist[ii];
@@ -136,39 +135,35 @@ void PairCoulDielOMP::eval()
 	rsq = delx*delx + dely*dely + delz*delz;
 
 	if (rsq < cutsq[itype][jtype]) {
-	r = sqrt(rsq);
-	rarg = (r-rme[itype][jtype])/sigmae[itype][jtype];
-	th=tanh(rarg);
-	epsr=a_eps+b_eps*th;
-	depsdr=b_eps * (1.0 - th*th) / sigmae[itype][jtype];
+	  r = sqrt(rsq);
+	  rarg = (r-rme[itype][jtype])/sigmae[itype][jtype];
+	  th=tanh(rarg);
+	  epsr=a_eps+b_eps*th;
+	  depsdr=b_eps * (1.0 - th*th) / sigmae[itype][jtype];
 
-	forcecoul = qqrd2e*qtmp*q[j]*((eps_s*(epsr+r*depsdr)/epsr/epsr) -1.)/rsq;
-	fpair = factor_coul*forcecoul/r;
+	  forcecoul = qqrd2e*qtmp*q[j]*((eps_s*(epsr+r*depsdr)/epsr/epsr) -1.)/rsq;
+	  fpair = factor_coul*forcecoul/r;
 
-	f[i][0] += delx*fpair;
-	f[i][1] += dely*fpair;
-	f[i][2] += delz*fpair;
-	if (NEWTON_PAIR || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
-	}
+	  f[i][0] += delx*fpair;
+	  f[i][1] += dely*fpair;
+	  f[i][2] += delz*fpair;
+	  if (NEWTON_PAIR || j < nlocal) {
+	    f[j][0] -= delx*fpair;
+	    f[j][1] -= dely*fpair;
+	    f[j][2] -= delz*fpair;
+	  }
 
 	  if (EFLAG) {
-              ecoul = (qqrd2e*qtmp*q[j]*((eps_s/epsr) -1.)/r) - offset[itype][jtype];
-              ecoul *= factor_coul;
-          }
-
-
+	    ecoul = (qqrd2e*qtmp*q[j]*((eps_s/epsr) -1.)/r) - offset[itype][jtype];
+	    ecoul *= factor_coul;
+	  }
 	  if (EVFLAG) ev_tally_thr(i,j,nlocal,NEWTON_PAIR,0.0,
-			     ecoul,fpair,delx,dely,delz, tid);
-
+				 ecoul,fpair,delx,dely,delz,tid);
 	}
       }
     }
-
     // reduce per thread forces into global force array.
-    force_reduce_thr(atom->f, nall, nthreads, tid);
+    force_reduce_thr(atom->f,nall,nthreads,tid);
   }
   ev_reduce_thr();
   if (vflag_fdotr) virial_compute();

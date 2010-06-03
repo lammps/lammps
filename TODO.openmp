@@ -2,58 +2,25 @@ tasks that need to be done in the LAMMPS-openmp
 threading project.
 
 Axel:
-- rewrite and port the CGCMM pair style to threading
+- rewrite and port the remaining CGCMM pair style to threading
 - port dpd pair style to threading 
   (needs parallel random number generators)
 - think about adding threading to pppm and ewald.
 - fourier transforms
-- provide thread safe versions of ev_tally3(), ev_tally4(),
-  and ev_tally_xyz()
-pair_cg_cmm_coul_cut.cpp
+- provide thread safe versions of and ev_tally_xyz()
 pair_cg_cmm_coul_long.cpp
-pair_cg_cmm.cpp
-pair_cmm_common.cpp
 pair_dpd.cpp
 pair_dpd_tstat.cpp
-pair_table.cpp
 
 Peter, Ryan
 - check compilation on local and remote machines
 - run tests and benchmarks and collect performance data
-- port "simple" pair styles to threading scheme:
-pair_born_coul_long.cpp
-pair_buck_coul_cut.cpp
-pair_buck_coul_long.cpp
-pair_buck.cpp
-pair_coul_cut.cpp
-pair_coul_debye.cpp
-pair_coul_diel.cpp
-pair_coul_long.cpp
-pair_gauss_cut.cpp
-pair_lj_charmm_coul_charmm.cpp
-pair_lj_charmm_coul_charmm_implicit.cpp
-pair_lj_charmm_coul_long.cpp
-pair_lj_charmm_coul_long_opt.cpp
-pair_lj_cut_coul_cut.cpp
-pair_lj_cut_coul_debye.cpp
-pair_lj_cut_coul_long.cpp
-pair_lj_cut_coul_long_tip4p.cpp
-pair_lj_cut.cpp
-pair_lj_cut_opt.cpp
-pair_lj96_cut.cpp
-pair_lj_expand.cpp
-pair_lj_gromacs_coul_gromacs.cpp
-pair_lj_gromacs.cpp
-pair_lj_smooth.cpp
-pair_morse.cpp
-pair_soft.cpp
-pair_yukawa.cpp
 
-- these need special help:
-pair_airebo.cpp
-pair_sw.cpp
-pair_tersoff.cpp
-pair_tersoff_zbl.cpp
+Axel, Peter, Ryan:
+potential further candidates:
+- bonded potentials, particularly dihedrals, integrators, fixes/computes.
+
+- these need special coding. postponed for now
 pair_eam_alloy.cpp
 pair_eam_alloy_opt.cpp
 pair_eam.cpp
@@ -61,14 +28,9 @@ pair_eam_fs.cpp
 pair_eam_fs_opt.cpp
 pair_eam_opt.cpp
 pair_resquared.cpp
-
-- these need even more
 pair_gayberne.cpp
 pair_gran_hertz_history.cpp
 pair_gran_hooke.cpp
 pair_gran_hooke_history.cpp
 
-Axel, Peter, Ryan:
-potential further candidates:
-- bonded potentials, particularly dihedrals.
 - integrators/fixes/computes

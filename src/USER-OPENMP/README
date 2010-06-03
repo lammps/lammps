@@ -1,7 +1,8 @@
 The files in this directory are a user-contributed package for LAMMPS.
 
-The person who created these files is Axel Kohlmeyer (axel.kohlmeyer@temple.edu).
-Contact him directly if you have questions or for example scripts that use it.
+The person who created these files is Axel Kohlmeyer (axel.kohlmeyer@temple.edu)
+with the help of Ryan Houlihan and Peter Shannon. Contact Axel directly if you 
+have questions or for example scripts that use it.
 
 This package implements a number of pair styles that support multi-level
 parallelism using OpenMP in combination with message passing via MPI in LAMMPS.
@@ -15,4 +16,14 @@ can provide an extra speedup. For example:
 - The input is using a functionality that has unfavorable scaling yet needs to 
   be run across a large number of processors for acceptable throughput, e.g. the 
   PPPM kspace style.
+
+In many cases a speedup of 2x or better over the best MPI-only effort has
+been observed. The benefit is usually the largest when the parallel efficiency
+of the MPI parallelization is dropping, i.e. there are only a few thousand
+atoms or less per MPI task.
+
+Also, most of the pair styles contain little optimizations that make the
+/omp variants faster than the corresponding regular pair styles, even when
+LAMMPS was compiled without OpenMP support, or only one thread per MPI
+task is used.
 

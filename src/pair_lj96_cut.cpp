@@ -456,7 +456,7 @@ void PairLJ96Cut::settings(int narg, char **arg)
 {
   if (narg != 1) error->all("Illegal pair_style command");
 
-  cut_global = atof(arg[0]);
+  cut_global = force->numeric(arg[0]);
 
   // reset cutoffs that have been explicitly set
 

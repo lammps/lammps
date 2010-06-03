@@ -30,7 +30,7 @@ class PairBuckCoulCutOMP : public PairOMP {
   virtual ~PairBuckCoulCutOMP();
   virtual void compute(int, int);
   virtual void settings(int, char **);
-  void coeff(int, char **);
+  virtual void coeff(int, char **);
   virtual void init_style();
   virtual double init_one(int, int);
   virtual void write_restart(FILE *);

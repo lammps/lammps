@@ -86,7 +86,6 @@ void FixNVESphere::init()
     double *radius = atom->radius;
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
-    if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
@@ -99,7 +98,6 @@ void FixNVESphere::init()
     int *type = atom->type;
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
-    if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {

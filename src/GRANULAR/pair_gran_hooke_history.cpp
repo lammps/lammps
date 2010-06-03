@@ -60,6 +60,11 @@ PairGranHookeHistory::~PairGranHookeHistory()
   if (allocated) {
     memory->destroy_2d_int_array(setflag);
     memory->destroy_2d_double_array(cutsq);
+
+    delete [] onerad_dynamic;
+    delete [] onerad_frozen;
+    delete [] maxrad_dynamic;
+    delete [] maxrad_frozen;
   }
 }
 
@@ -280,6 +285,11 @@ void PairGranHookeHistory::allocate()
       setflag[i][j] = 0;
 
   cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+
+  onerad_dynamic = new double[n+1];
+  onerad_frozen = new double[n+1];
+  maxrad_dynamic = new double[n+1];
+  maxrad_frozen = new double[n+1];
 }
 
 /* ----------------------------------------------------------------------
@@ -379,45 +389,46 @@ void PairGranHookeHistory::init_style()
     fix_history->pair = this;
   }
 
-  // check for freeze Fix and set freeze_group_bit
+  // check for Fix freeze and set freeze_group_bit
 
   for (i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"freeze") == 0) break;
   if (i < modify->nfix) freeze_group_bit = modify->fix[i]->groupbit;
   else freeze_group_bit = 0;
 
-  // set cutoff by largest particles
-  // maxrad_dynamic = radius of largest dynamic particle, including inserted
-  // maxrad_frozen = radius of largest dynamic particle
-  // include frozen-dynamic interactions
-  // do not include frozen-frozen interactions
-  // include future inserted particles as dynamic
-  // cutforce was already set in pair::init(), but this sets it correctly
+  // check for Fix pour and set pour_type and pour_maxdiam
+
+  int pour_type = 0;
+  double pour_maxrad = 0.0;
+  for (i = 0; i < modify->nfix; i++)
+    if (strcmp(modify->fix[i]->style,"pour") == 0) break;
+  if (i < modify->nfix) {
+    pour_type = ((FixPour *) modify->fix[i])->ntype;
+    pour_maxrad = ((FixPour *) modify->fix[i])->radius_hi;
+  }
+
+  // set maxrad_dynamic and maxrad_frozen for each type
+  // include future Fix pour particles as dynamic
+
+  for (i = 1; i <= atom->ntypes; i++)
+    onerad_dynamic[i] = onerad_frozen[i] = 0.0;
+  if (pour_type) onerad_dynamic[pour_type] = pour_maxrad;
 
   double *radius = atom->radius;
   int *mask = atom->mask;
+  int *type = atom->type;
   int nlocal = atom->nlocal;
 
-  double maxrad_dynamic = 0.0;
-  for (i = 0; i < nlocal; i++)
-    if (!(mask[i] & freeze_group_bit))
-      maxrad_dynamic = MAX(maxrad_dynamic,radius[i]);
-  double mine = maxrad_dynamic;
-  MPI_Allreduce(&mine,&maxrad_dynamic,1,MPI_DOUBLE,MPI_MAX,world);
-
-  for (i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"pour") == 0)
-      maxrad_dynamic =
-	MAX(maxrad_dynamic,((FixPour *) modify->fix[i])->radius_hi);
-
-  double maxrad_frozen = 0.0;
   for (i = 0; i < nlocal; i++)
     if (mask[i] & freeze_group_bit)
-      maxrad_frozen = MAX(maxrad_frozen,radius[i]);
-  mine = maxrad_frozen;
-  MPI_Allreduce(&mine,&maxrad_frozen,1,MPI_DOUBLE,MPI_MAX,world);
-
-  cutforce = maxrad_dynamic + MAX(maxrad_dynamic,maxrad_frozen);
+      onerad_frozen[type[i]] = MAX(onerad_frozen[type[i]],radius[i]);
+    else
+      onerad_dynamic[type[i]] = MAX(onerad_dynamic[type[i]],radius[i]);
+  
+  MPI_Allreduce(&onerad_dynamic[1],&maxrad_dynamic[1],atom->ntypes,
+		MPI_DOUBLE,MPI_MAX,world);
+  MPI_Allreduce(&onerad_frozen[1],&maxrad_frozen[1],atom->ntypes,
+		MPI_DOUBLE,MPI_MAX,world);
 }
 
 /* ----------------------------------------------------------------------
@@ -439,23 +450,13 @@ double PairGranHookeHistory::init_one(int i, int j)
 {
   if (!allocated) allocate();
 
-  // return max diameter of any particle
-  // not used in granular neighbor calculation since particles have radius
-  // but will insure cutoff is big enough for any other neighbor lists built
-  // if no particles, return 1.0
+  // cutoff = sum of max I,J radii for
+  // dynamic/dynamic & dynamic/frozen interactions, but not frozen/frozen
 
-  double *radius = atom->radius;
-  int nlocal = atom->nlocal;
-
-  double maxrad = 0.0;
-  for (int m = 0; m < nlocal; m++) maxrad = MAX(maxrad,radius[m]);
-  double mine = 2.0*maxrad;
-
-  double maxdiam;
-  MPI_Allreduce(&mine,&maxdiam,1,MPI_DOUBLE,MPI_MAX,world);
-  if (maxdiam == 0.0) maxdiam = 1.0;
-
-  return maxdiam;
+  double cutoff = maxrad_dynamic[i]+maxrad_dynamic[j];
+  cutoff = MAX(cutoff,maxrad_frozen[i]+maxrad_dynamic[j]);
+  cutoff = MAX(cutoff,maxrad_dynamic[i]+maxrad_frozen[j]);
+  return cutoff;
 }
 
 /* ----------------------------------------------------------------------

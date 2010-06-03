@@ -154,9 +154,10 @@ void Pair::init()
   // set cutsq for each I,J, used to neighbor
   // cutforce = max of all I,J cutoffs
 
-  double cut;
   cutforce = 0.0;
   etail = ptail = 0.0;
+  double cut;
+
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
       cut = init_one(i,j);

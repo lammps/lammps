@@ -48,6 +48,9 @@ class PairGranHookeHistory : public Pair {
   int history;
   class FixShearHistory *fix_history;
 
+  double *onerad_dynamic,*onerad_frozen;
+  double *maxrad_dynamic,*maxrad_frozen;
+
   void allocate();
 };
 

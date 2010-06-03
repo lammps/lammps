@@ -1,0 +1,97 @@
+LAMMPS (2 Jun 2010-ICMS)
+# Rhodopsin model
+
+units           real  
+neigh_modify    delay 5 every 1   
+
+atom_style      full  
+bond_style      harmonic 
+angle_style     charmm 
+dihedral_style  harmonic/omp 
+improper_style  harmonic 
+pair_style      lj/charmm/coul/long/omp 8.0 10.0 
+pair_modify     mix arithmetic 
+kspace_style    pppm 1e-4 
+
+read_data       data.rhodo-harmonic-omp
+  4 = max bonds/atom
+  8 = max angles/atom
+  18 = max dihedrals/atom
+  2 = max impropers/atom
+  orthogonal box = (-27.5 -38.5 -36.3646) to (27.5 38.5 36.3615)
+  1 by 1 by 1 processor grid
+  32000 atoms
+  32000 velocities
+  27723 bonds
+  40467 angles
+  56829 dihedrals
+  1034 impropers
+  4 = max # of 1-2 neighbors
+  12 = max # of 1-3 neighbors
+  24 = max # of 1-4 neighbors
+  26 = max # of special neighbors
+
+fix             1 all shake 0.0001 5 0 m 1.0 a 232
+  1617 = # of size 2 clusters
+  3633 = # of size 3 clusters
+  747 = # of size 4 clusters
+  4233 = # of frozen angles
+fix             2 all npt temp 300.0 300.0 100.0 		z 0.0 0.0 1000.0 mtk no pchain 0 tchain 1
+
+special_bonds   charmm
+ 
+thermo          50
+thermo_style    multi 
+timestep        2.0
+
+run		100
+PPPM initialization ...
+  G vector = 0.248831
+  grid = 25 32 32
+  stencil order = 5
+  RMS precision = 7.57143e-05
+  brick FFT buffer size/proc = 41070 25600 12321
+Memory usage per processor = 125.07 Mbytes
+---------------- Step        0 ----- CPU =      0.0000 (sec) ----------------
+TotEng   =     31449.4026 KinEng   =     21444.8313 Temp     =       299.0397 
+PotEng   =     10004.5713 E_bond   =      2537.9940 E_angle  =     10921.3742 
+E_dihed  =     67796.3512 E_impro  =       213.5116 E_vdwl   =     -4571.7213 
+E_coul   =    203506.5616 E_long   =   -270399.5000 Press    =     -4795.2346 
+Volume   =    307995.0335 
+---------------- Step       50 ----- CPU =     44.9843 (sec) ----------------
+TotEng   =     75744.8715 KinEng   =     34069.3761 Temp     =       475.0839 
+PotEng   =     41675.4955 E_bond   =      4546.8009 E_angle  =     20202.5537 
+E_dihed  =     91591.5377 E_impro  =       887.6420 E_vdwl   =     -1757.3317 
+E_coul   =    196576.9626 E_long   =   -270372.6698 Press    =      1458.2505 
+Volume   =    307088.8221 
+---------------- Step      100 ----- CPU =     91.5694 (sec) ----------------
+TotEng   =     59733.2251 KinEng   =     16462.4986 Temp     =       229.5630 
+PotEng   =     43270.7265 E_bond   =      2338.4635 E_angle  =     12404.1616 
+E_dihed  =    108065.2154 E_impro  =       576.3723 E_vdwl   =     -2870.8123 
+E_coul   =    193121.8889 E_long   =   -270364.5629 Press    =     -1571.3328 
+Volume   =    307080.9432 
+Loop time of 91.5695 on 1 procs for 100 steps with 32000 atoms
+
+Pair  time (%) = 62.568 (68.3285)
+Bond  time (%) = 2.61879 (2.8599)
+Kspce time (%) = 5.84823 (6.38666)
+Neigh time (%) = 16.2591 (17.756)
+Comm  time (%) = 0.252926 (0.276212)
+Outpt time (%) = 0.000680208 (0.000742833)
+Other time (%) = 4.02174 (4.39201)
+
+FFT time (% of Kspce) = 0.771461 (13.1913)
+FFT Gflps 3d (1d only) = 0.673654 1.53321
+
+Nlocal:    32000 ave 32000 max 32000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    48018 ave 48018 max 48018 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    1.20684e+07 ave 1.20684e+07 max 1.20684e+07 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 12068382
+Ave neighs/atom = 377.137
+Ave special neighs/atom = 7.43187
+Neighbor list builds = 19
+Dangerous builds = 18

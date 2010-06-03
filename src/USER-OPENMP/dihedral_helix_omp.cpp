@@ -114,9 +114,9 @@ void DihedralHelixOMP::eval()
 
     // loop over neighbors of my atoms
 
-    int nnfrom, nnto;
-    f = loop_setup_thr(f, nnfrom, nnto, tid, ndihedrallist, nall, nthreads);
-    for (n = nnfrom; n < nnto; ++n) {
+    int nfrom, nto;
+    f = loop_setup_thr(f, nfrom, nto, tid, ndihedrallist, nall, nthreads);
+    for (n = nfrom; n < nto; ++n) {
 	i1 = dihedrallist[n][0];
         i2 = dihedrallist[n][1];
         i3 = dihedrallist[n][2];

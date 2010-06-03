@@ -32,7 +32,7 @@ DihedralOMP::DihedralOMP(LAMMPS *lmp) : Dihedral(lmp)
 {
   const int nthreads = comm->nthreads;
   energy_thr = (double *)memory->smalloc(nthreads*sizeof(double),
-					   "pair:eng_vdwl_thr");
+					   "pair:eng_dihed_thr");
   virial_thr = memory->create_2d_double_array(nthreads,6,"pair:virial_thr");
   maxeatom_thr = maxvatom_thr = 0;
   eatom = NULL;
@@ -72,7 +72,7 @@ void DihedralOMP::ev_setup_thr(int eflag, int vflag)
   // zero accumulators
 
 for (t = 0; t < nthreads; ++t) {
-    if (eflag_global) energy = 0.0;
+    if (eflag_global) energy_thr[t] = 0.0;
     if (vflag_global) for (i = 0; i < 6; i++) virial_thr[t][i] = 0.0;
     if (eflag_atom) {
       n = atom->nlocal;

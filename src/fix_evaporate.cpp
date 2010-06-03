@@ -185,19 +185,20 @@ void FixEvaporate::pre_exchange()
   MPI_Allreduce(&ncount,&nall,1,MPI_INT,MPI_SUM,world);
   MPI_Scan(&ncount,&nbefore,1,MPI_INT,MPI_SUM,world);
   nbefore -= ncount;
-  
-  // nwhack = total number of atoms to delete
+
+  // ndel = total # of atom deletions, in or out of region
   // mark[] = 1 if deleted
 
-  int nwhack = MIN(nflux,nall);
+  int ndel = 0;
   for (i = 0; i < nlocal; i++) mark[i] = 0;
 
   // atomic deletions
   // choose atoms randomly across all procs and mark them for deletion
   // shrink eligible list as my atoms get marked
+  // keep ndel,ncount,nall,nbefore current after each atom deletion
 
   if (molflag == 0) {
-    for (i = 0; i < nwhack; i++) {
+    while (nall && ndel < nflux) {
       iwhichglobal = static_cast<int> (nall*random->uniform());
       if (iwhichglobal < nbefore) nbefore--;
       else if (iwhichglobal < nbefore + ncount) {
@@ -206,7 +207,8 @@ void FixEvaporate::pre_exchange()
 	list[iwhichlocal] = list[ncount-1];
 	ncount--;
       }
-    nall--;
+      ndel++;
+      nall--;
     }
 
   // molecule deletions
@@ -214,13 +216,13 @@ void FixEvaporate::pre_exchange()
   // bcast mol ID and delete all atoms in that molecule on any proc
   // update deletion count by total # of atoms in molecule
   // shrink list of eligible candidates as any of my atoms get marked
+  // keep ndel,ncount,nall,nbefore current after each molecule deletion
 
   } else {
     int me,proc,iatom,imolecule,ndelone,ndelall;
     int *molecule = atom->molecule;
 
-    int ndel = 0;
-    while (ndel < nwhack) {
+    while (nall && ndel < nflux) {
 
       // pick an iatom,imolecule on proc me to delete
 
@@ -233,7 +235,7 @@ void FixEvaporate::pre_exchange()
       } else me = -1;
 
       // bcast mol ID to delete all atoms from
-      // only delete original iatom if mol ID = 0
+      // delete single iatom if mol ID = 0
 
       MPI_Allreduce(&me,&proc,1,MPI_INT,MPI_MAX,world);
       MPI_Bcast(&imolecule,1,MPI_INT,proc,world);
@@ -258,13 +260,10 @@ void FixEvaporate::pre_exchange()
 	} else i++;
       }
 
-      // ndel = total # of atoms deleted in this molecule
+      // update ndel,ncount,nall,nbefore
 
       MPI_Allreduce(&ndelone,&ndelall,1,MPI_INT,MPI_SUM,world);
       ndel += ndelall;
-
-      // update ncount,nall,nbefore after each molecule deletion
-
       MPI_Allreduce(&ncount,&nall,1,MPI_INT,MPI_SUM,world);
       MPI_Scan(&ncount,&nbefore,1,MPI_INT,MPI_SUM,world);
       nbefore -= ncount;
@@ -287,8 +286,8 @@ void FixEvaporate::pre_exchange()
   // if global map exists, reset it now instead of waiting for comm
   // since deleting atoms messes up ghosts
 
-  atom->natoms -= nwhack;
-  if (nwhack && atom->map_style) {
+  atom->natoms -= ndel;
+  if (ndel && atom->map_style) {
     atom->nghost = 0;
     atom->map_init();
     atom->map_set();
@@ -296,7 +295,7 @@ void FixEvaporate::pre_exchange()
 
   // statistics
   
-  ndeleted += nwhack;
+  ndeleted += ndel;
   next_reneighbor = update->ntimestep + nevery;
 }
 

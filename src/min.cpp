@@ -158,6 +158,8 @@ void Min::init()
   neighbor->delay = 0;
   neighbor->dist_check = 1;
 
+  niter = neval = 0;
+
   // style-specific initialization
 
   init_style();
@@ -216,6 +218,10 @@ void Min::setup()
   neighbor->build();
   neighbor->ncalls = 0;
 
+  // atoms may have migrated in comm->exchange()
+
+  reset_vectors();
+
   // compute all forces
 
   ev_set(update->ntimestep);
@@ -240,9 +246,15 @@ void Min::setup()
   modify->setup(vflag);
   output->setup(1);
 
-  // atoms may have migrated in comm->exchange()
+  // stats for Finish to print
 
-  reset_vectors();
+  ecurrent = pe_compute->compute_scalar();
+  if (nextra_global) ecurrent += modify->min_energy(fextra);
+  if (output->thermo->normflag) ecurrent /= atom->natoms;
+	
+  einitial = ecurrent;
+  fnorm2_init = sqrt(fnorm_sqr());
+  fnorminf_init = fnorm_inf();
 }
 
 /* ----------------------------------------------------------------------
@@ -270,6 +282,10 @@ void Min::setup_minimal(int flag)
     neighbor->ncalls = 0;
   }
 
+  // atoms may have migrated in comm->exchange()
+
+  reset_vectors();
+
   // compute all forces
 
   ev_set(update->ntimestep);
@@ -293,30 +309,6 @@ void Min::setup_minimal(int flag)
 
   modify->setup(vflag);
 
-  // atoms may have migrated in comm->exchange()
-
-  reset_vectors();
-}
-
-/* ----------------------------------------------------------------------
-   perform minimization, calling iterate() for nsteps
-------------------------------------------------------------------------- */
-
-void Min::run(int nsteps)
-{
-  // possible stop conditions
-
-  char *stopstrings[] = {"max iterations",
-                         "max force evaluations",
-                         "energy tolerance",
-                         "force tolerance",
-                         "search direction is not downhill",
-                         "linesearch alpha is zero",
-                         "forces are zero",
-                         "quadratic factors are zero",
-                         "trust region too small",
-                         "HFTN minimizer error"};
-
   // stats for Finish to print
 
   ecurrent = pe_compute->compute_scalar();
@@ -326,22 +318,49 @@ void Min::run(int nsteps)
   einitial = ecurrent;
   fnorm2_init = sqrt(fnorm_sqr());
   fnorminf_init = fnorm_inf();
+}
 
+/* ----------------------------------------------------------------------
+   perform minimization, calling iterate() for N steps
+   complete = 1 if caller wants to force N iterations (in every replica)
+   minimize command and PRD call with complete = 0
+   NEB calls with complete = 1
+------------------------------------------------------------------------- */
+
+void Min::run(int n, int complete)
+{
   // minimizer iterations
 
-  int stop_condition = iterate(nsteps);
-  stopstr = stopstrings[stop_condition];
+  int iter_start = niter;
+  stop_condition = iterate(n);
+  stopstr = stopstrings(stop_condition);
 
-  // account for early exit from iterate loop due to convergence
-  // set niter/nsteps for Finish stats to print
+  // if early exit from iterate loop and complete flag set
+  // perform remaining dummy iterations
+
+  if (stop_condition && complete) {
+    int ntimestep;
+    while (niter - iter_start < n) {
+      ntimestep = ++update->ntimestep;
+      niter++;
+      ecurrent = energy_force(0);
+      if (output->next == ntimestep) {
+	timer->stamp();
+	output->write(ntimestep);
+	timer->stamp(TIME_OUTPUT);
+      }
+    }
+  }
+
+  // if early exit from iterate loop and complete flag not set
+  // set update->nsteps to niter for Finish stats to print
   // set output->next values to this timestep
-  // call engergy_force() to insure vflag is set when forces computed
+  // call energy_force() to insure vflag is set when forces computed
   // output->write does final output for thermo, dump, restart files
   // add ntimestep to all computes that store invocation times
-  //   since are hardwireing call to thermo/dumps and computes may not be ready
+  //   since are hardwiring call to thermo/dumps and computes may not be ready
 
-  if (niter < nsteps) {
-    niter++;
+  if (stop_condition && !complete) {
     update->nsteps = niter;
 
     if (update->restrict_output == 0) {
@@ -356,18 +375,18 @@ void Min::run(int nsteps)
     ecurrent = energy_force(0);
     output->write(update->ntimestep);
   }
-
-  // stats for Finish to print
-	
-  efinal = ecurrent;
-  fnorm2_final = sqrt(fnorm_sqr());
-  fnorminf_final = fnorm_inf();
 }
 
 /* ---------------------------------------------------------------------- */
 
 void Min::cleanup()
 {
+  // stats for Finish to print
+	
+  efinal = ecurrent;
+  fnorm2_final = sqrt(fnorm_sqr());
+  fnorminf_final = fnorm_inf();
+
   // reset reneighboring criteria
 
   neighbor->every = neigh_every;
@@ -689,4 +708,23 @@ double Min::fnorm_inf()
       norm_inf = MAX(fabs(fextra[i]),norm_inf);
 
   return norm_inf;
+}
+
+/* ----------------------------------------------------------------------
+   possible stop conditions
+------------------------------------------------------------------------- */
+
+char *Min::stopstrings(int n)
+{
+  char *strings[] = {"max iterations",
+		     "max force evaluations",
+		     "energy tolerance",
+		     "force tolerance",
+		     "search direction is not downhill",
+		     "linesearch alpha is zero",
+		     "forces are zero",
+		     "quadratic factors are zero",
+		     "trust region too small",
+		     "HFTN minimizer error"};
+  return strings[n];
 }

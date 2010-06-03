@@ -892,7 +892,7 @@ void FixBoxRelax::compute_press_target()
   if (pflagsum) p_hydro /= pflagsum;
 
   for (int i = 0; i < 3; i++) {
-    if (p_flag[i] && fabs(p_hydro - p_target[i] > 1.0e-6)) deviatoric_flag = 1;
+    if (p_flag[i] && fabs(p_hydro - p_target[i]) > 1.0e-6) deviatoric_flag = 1;
   }
 
   if (pstyle == TRICLINIC) {

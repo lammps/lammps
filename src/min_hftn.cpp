@@ -241,8 +241,6 @@ int MinHFTN::execute_hftn_(const bool      bPrintProgress,
   //---- DEFINE OUTPUTS PRINTED BY "Finish".
   eprevious = dInitialEnergy;
   alpha_final = 0.0;
-  neval = 0;
-  niter = 0;
   dFinalEnergy = dInitialEnergy;
   dFinalForce2 = dInitialForce2;
   

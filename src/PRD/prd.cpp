@@ -509,7 +509,7 @@ void PRD::quench()
   int ncalls = neighbor->ncalls;
 
   timer->barrier_start(TIME_LOOP);
-  update->minimize->run(maxiter);
+  update->minimize->run(maxiter,0);
   timer->barrier_stop(TIME_LOOP);
   time_quench += timer->array[TIME_LOOP];
 

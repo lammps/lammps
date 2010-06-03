@@ -42,12 +42,12 @@ class MinLineSearch : public Min {
   double **gextra_atom;
   double **hextra_atom;
 
-  typedef int (MinLineSearch::*FnPtr)(double, double &, int &);
+  typedef int (MinLineSearch::*FnPtr)(double, double &);
   FnPtr linemin;
-  int linemin_backtrack(double, double &, int &);
-  int linemin_quadratic(double, double &, int &);
+  int linemin_backtrack(double, double &);
+  int linemin_quadratic(double, double &);
 
-  double alpha_step(double, int, int &);
+  double alpha_step(double, int);
 };
 
 }

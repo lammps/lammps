@@ -63,6 +63,7 @@ int FixViscous::setmask()
   int mask = 0;
   mask |= POST_FORCE;
   mask |= POST_FORCE_RESPA;
+  mask |= MIN_POST_FORCE;
   return mask;
 }
 
@@ -85,6 +86,13 @@ void FixViscous::setup(int vflag)
     post_force_respa(vflag,nlevels_respa-1,0);
     ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixViscous::min_setup(int vflag)
+{
+  post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -118,3 +126,11 @@ void FixViscous::post_force_respa(int vflag, int ilevel, int iloop)
 {
   if (ilevel == nlevels_respa-1) post_force(vflag);
 }
+
+/* ---------------------------------------------------------------------- */
+
+void FixViscous::min_post_force(int vflag)
+{
+  post_force(vflag);
+}
+

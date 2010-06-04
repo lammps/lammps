@@ -49,18 +49,18 @@ ComputeMSD::ComputeMSD(LAMMPS *lmp, int narg, char **arg) :
     } else error->all("Illegal compute msd command");
   }
 
-  // create a new fix store style with or without com keyword
-  // id = compute-ID + store, fix group = compute group
+  // create a new fix store/state style with or without com keyword
+  // id = compute-ID + store_state, fix group = compute group
 
-  int n = strlen(id) + strlen("_store") + 1;
+  int n = strlen(id) + strlen("_store_state") + 1;
   id_fix = new char[n];
   strcpy(id_fix,id);
-  strcat(id_fix,"_store");
+  strcat(id_fix,"_store_state");
 
   char **newarg = new char*[9];
   newarg[0] = id_fix;
   newarg[1] = group->names[igroup];
-  newarg[2] = (char *) "store";
+  newarg[2] = (char *) "store/state";
   newarg[3] = (char *) "0";
   newarg[4] = (char *) "xu";
   newarg[5] = (char *) "yu";

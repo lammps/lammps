@@ -13,7 +13,7 @@
 
 #include "stdlib.h"
 #include "string.h"
-#include "fix_store.h"
+#include "fix_store_state.h"
 #include "atom.h"
 #include "domain.h"
 #include "update.h"
@@ -34,16 +34,16 @@ enum{KEYWORD,COMPUTE,FIX,VARIABLE};
 
 /* ---------------------------------------------------------------------- */
 
-FixStore::FixStore(LAMMPS *lmp, int narg, char **arg) :
+FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 5) error->all("Illegal fix store command");
+  if (narg < 5) error->all("Illegal fix store/state command");
 
   restart_peratom = 1;
   peratom_freq = 1;
 
   nevery = atoi(arg[3]);
-  if (nevery < 0) error->all("Illegal fix store command");
+  if (nevery < 0) error->all("Illegal fix store/state command");
 
   // parse values until one isn't recognized
   // customize a new keyword by adding to if statement
@@ -62,140 +62,140 @@ FixStore::FixStore(LAMMPS *lmp, int narg, char **arg) :
     ids[nvalues] = NULL;
 
     if (strcmp(arg[iarg],"id") == 0) {
-      pack_choice[nvalues++] = &FixStore::pack_id;
+      pack_choice[nvalues++] = &FixStoreState::pack_id;
     } else if (strcmp(arg[iarg],"mol") == 0) {
       if (!atom->molecule_flag)
-	error->all("Fix store for atom property that isn't allocated");
-      pack_choice[nvalues++] = &FixStore::pack_molecule;
+	error->all("Fix store/state for atom property that isn't allocated");
+      pack_choice[nvalues++] = &FixStoreState::pack_molecule;
     } else if (strcmp(arg[iarg],"type") == 0) {
-      pack_choice[nvalues++] = &FixStore::pack_type;
+      pack_choice[nvalues++] = &FixStoreState::pack_type;
     } else if (strcmp(arg[iarg],"mass") == 0) {
-      pack_choice[nvalues++] = &FixStore::pack_mass;
+      pack_choice[nvalues++] = &FixStoreState::pack_mass;
 
     } else if (strcmp(arg[iarg],"x") == 0) {
-      pack_choice[nvalues++] = &FixStore::pack_x;
+      pack_choice[nvalues++] = &FixStoreState::pack_x;
     } else if (strcmp(arg[iarg],"y") == 0) {
-      pack_choice[nvalues++] = &FixStore::pack_y;
+      pack_choice[nvalues++] = &FixStoreState::pack_y;
     } else if (strcmp(arg[iarg],"z") == 0) {
-      pack_choice[nvalues++] = &FixStore::pack_z;
+      pack_choice[nvalues++] = &FixStoreState::pack_z;
     } else if (strcmp(arg[iarg],"xs") == 0) {
       if (domain->triclinic) 
-	pack_choice[nvalues++] = &FixStore::pack_xs_triclinic;
-      else pack_choice[nvalues++] = &FixStore::pack_xs;
+	pack_choice[nvalues++] = &FixStoreState::pack_xs_triclinic;
+      else pack_choice[nvalues++] = &FixStoreState::pack_xs;
     } else if (strcmp(arg[iarg],"ys") == 0) {
       if (domain->triclinic) 
-	pack_choice[nvalues++] = &FixStore::pack_ys_triclinic;
-      else pack_choice[nvalues++] = &FixStore::pack_ys;
+	pack_choice[nvalues++] = &FixStoreState::pack_ys_triclinic;
+      else pack_choice[nvalues++] = &FixStoreState::pack_ys;
     } else if (strcmp(arg[iarg],"zs") == 0) {
       if (domain->triclinic) 
-	pack_choice[nvalues++] = &FixStore::pack_zs_triclinic;
-      else pack_choice[nvalues++] = &FixStore::pack_zs;
+	pack_choice[nvalues++] = &FixStoreState::pack_zs_triclinic;
+      else pack_choice[nvalues++] = &FixStoreState::pack_zs;
     } else if (strcmp(arg[iarg],"xu") == 0) {
       if (domain->triclinic) 
-	pack_choice[nvalues++] = &FixStore::pack_xu_triclinic;
-      else pack_choice[nvalues++] = &FixStore::pack_xu;
+	pack_choice[nvalues++] = &FixStoreState::pack_xu_triclinic;
+      else pack_choice[nvalues++] = &FixStoreState::pack_xu;
     } else if (strcmp(arg[iarg],"yu") == 0) {
       if (domain->triclinic) 
-	pack_choice[nvalues++] = &FixStore::pack_yu_triclinic;
-      else pack_choice[nvalues++] = &FixStore::pack_yu;
+	pack_choice[nvalues++] = &FixStoreState::pack_yu_triclinic;
+      else pack_choice[nvalues++] = &FixStoreState::pack_yu;
     } else if (strcmp(arg[iarg],"zu") == 0) {
       if (domain->triclinic) 
-	pack_choice[nvalues++] = &FixStore::pack_zu_triclinic;
-      else pack_choice[nvalues++] = &FixStore::pack_zu;
+	pack_choice[nvalues++] = &FixStoreState::pack_zu_triclinic;
+      else pack_choice[nvalues++] = &FixStoreState::pack_zu;
     } else if (strcmp(arg[iarg],"ix") == 0) {
-      pack_choice[nvalues++] = &FixStore::pack_ix;
+      pack_choice[nvalues++] = &FixStoreState::pack_ix;
     } else if (strcmp(arg[iarg],"iy") == 0) {
-      pack_choice[nvalues++] = &FixStore::pack_iy;
+      pack_choice[nvalues++] = &FixStoreState::pack_iy;
     } else if (strcmp(arg[iarg],"iz") == 0) {
-      pack_choice[nvalues++] = &FixStore::pack_iz;
+      pack_choice[nvalues++] = &FixStoreState::pack_iz;
 
     } else if (strcmp(arg[iarg],"vx") == 0) {
-      pack_choice[nvalues++] = &FixStore::pack_vx;
+      pack_choice[nvalues++] = &FixStoreState::pack_vx;
     } else if (strcmp(arg[iarg],"vy") == 0) {
-      pack_choice[nvalues++] = &FixStore::pack_vy;
+      pack_choice[nvalues++] = &FixStoreState::pack_vy;
     } else if (strcmp(arg[iarg],"vz") == 0) {
-      pack_choice[nvalues++] = &FixStore::pack_vz;
+      pack_choice[nvalues++] = &FixStoreState::pack_vz;
     } else if (strcmp(arg[iarg],"fx") == 0) {
-      pack_choice[nvalues++] = &FixStore::pack_fx;
+      pack_choice[nvalues++] = &FixStoreState::pack_fx;
     } else if (strcmp(arg[iarg],"fy") == 0) {
-      pack_choice[nvalues++] = &FixStore::pack_fy;
+      pack_choice[nvalues++] = &FixStoreState::pack_fy;
     } else if (strcmp(arg[iarg],"fz") == 0) {
-      pack_choice[nvalues++] = &FixStore::pack_fz;
+      pack_choice[nvalues++] = &FixStoreState::pack_fz;
 
     } else if (strcmp(arg[iarg],"q") == 0) {
       if (!atom->q_flag)
-	error->all("Fix store for atom property that isn't allocated");
-      pack_choice[nvalues++] = &FixStore::pack_q;
+	error->all("Fix store/state for atom property that isn't allocated");
+      pack_choice[nvalues++] = &FixStoreState::pack_q;
     } else if (strcmp(arg[iarg],"mux") == 0) {
       if (!atom->mu_flag)
-	error->all("Fix store for atom property that isn't allocated");
-      pack_choice[nvalues++] = &FixStore::pack_mux;
+	error->all("Fix store/state for atom property that isn't allocated");
+      pack_choice[nvalues++] = &FixStoreState::pack_mux;
     } else if (strcmp(arg[iarg],"muy") == 0) {
       if (!atom->mu_flag)
-	error->all("Fix store for atom property that isn't allocated");
-      pack_choice[nvalues++] = &FixStore::pack_muy;
+	error->all("Fix store/state for atom property that isn't allocated");
+      pack_choice[nvalues++] = &FixStoreState::pack_muy;
     } else if (strcmp(arg[iarg],"muz") == 0) {
       if (!atom->mu_flag)
-	error->all("Fix store for atom property that isn't allocated");
-      pack_choice[nvalues++] = &FixStore::pack_muz;
+	error->all("Fix store/state for atom property that isn't allocated");
+      pack_choice[nvalues++] = &FixStoreState::pack_muz;
 
     } else if (strcmp(arg[iarg],"radius") == 0) {
       if (!atom->radius_flag)
-	error->all("Fix store for atom property that isn't allocated");
-      pack_choice[nvalues++] = &FixStore::pack_radius;
+	error->all("Fix store/state for atom property that isn't allocated");
+      pack_choice[nvalues++] = &FixStoreState::pack_radius;
     } else if (strcmp(arg[iarg],"omegax") == 0) {
       if (!atom->omega_flag)
-	error->all("Fix store for atom property that isn't allocated");
-      pack_choice[nvalues++] = &FixStore::pack_omegax;
+	error->all("Fix store/state for atom property that isn't allocated");
+      pack_choice[nvalues++] = &FixStoreState::pack_omegax;
     } else if (strcmp(arg[iarg],"omegay") == 0) {
       if (!atom->omega_flag)
-	error->all("Fix store for atom property that isn't allocated");
-      pack_choice[nvalues++] = &FixStore::pack_omegay;
+	error->all("Fix store/state for atom property that isn't allocated");
+      pack_choice[nvalues++] = &FixStoreState::pack_omegay;
     } else if (strcmp(arg[iarg],"omegaz") == 0) {
       if (!atom->omega_flag)
-	error->all("Fix store for atom property that isn't allocated");
-      pack_choice[nvalues++] = &FixStore::pack_omegaz;
+	error->all("Fix store/state for atom property that isn't allocated");
+      pack_choice[nvalues++] = &FixStoreState::pack_omegaz;
     } else if (strcmp(arg[iarg],"angmomx") == 0) {
       if (!atom->angmom_flag)
-	error->all("Fix store for atom property that isn't allocated");
-      pack_choice[nvalues++] = &FixStore::pack_angmomx;
+	error->all("Fix store/state for atom property that isn't allocated");
+      pack_choice[nvalues++] = &FixStoreState::pack_angmomx;
     } else if (strcmp(arg[iarg],"angmomy") == 0) {
       if (!atom->angmom_flag)
-	error->all("Fix store for atom property that isn't allocated");
-      pack_choice[nvalues++] = &FixStore::pack_angmomy;
+	error->all("Fix store/state for atom property that isn't allocated");
+      pack_choice[nvalues++] = &FixStoreState::pack_angmomy;
     } else if (strcmp(arg[iarg],"angmomz") == 0) {
       if (!atom->angmom_flag)
-	error->all("Fix store for atom property that isn't allocated");
-      pack_choice[nvalues++] = &FixStore::pack_angmomz;
+	error->all("Fix store/state for atom property that isn't allocated");
+      pack_choice[nvalues++] = &FixStoreState::pack_angmomz;
 
     } else if (strcmp(arg[iarg],"quatw") == 0) {
       if (!atom->quat_flag)
-	error->all("Fix store for atom property that isn't allocated");
-      pack_choice[nvalues++] = &FixStore::pack_quatw;
+	error->all("Fix store/state for atom property that isn't allocated");
+      pack_choice[nvalues++] = &FixStoreState::pack_quatw;
     } else if (strcmp(arg[iarg],"quati") == 0) {
       if (!atom->quat_flag)
-	error->all("Fix store for atom property that isn't allocated");
-      pack_choice[nvalues++] = &FixStore::pack_quati;
+	error->all("Fix store/state for atom property that isn't allocated");
+      pack_choice[nvalues++] = &FixStoreState::pack_quati;
     } else if (strcmp(arg[iarg],"quatj") == 0) {
       if (!atom->quat_flag)
-	error->all("Fix store for atom property that isn't allocated");
-      pack_choice[nvalues++] = &FixStore::pack_quatj;
+	error->all("Fix store/state for atom property that isn't allocated");
+      pack_choice[nvalues++] = &FixStoreState::pack_quatj;
     } else if (strcmp(arg[iarg],"quatk") == 0) {
       if (!atom->quat_flag)
-	error->all("Fix store for atom property that isn't allocated");
-      pack_choice[nvalues++] = &FixStore::pack_quatk;
+	error->all("Fix store/state for atom property that isn't allocated");
+      pack_choice[nvalues++] = &FixStoreState::pack_quatk;
     } else if (strcmp(arg[iarg],"tqx") == 0) {
       if (!atom->torque_flag)
-	error->all("Fix store for atom property that isn't allocated");
-      pack_choice[nvalues++] = &FixStore::pack_tqx;
+	error->all("Fix store/state for atom property that isn't allocated");
+      pack_choice[nvalues++] = &FixStoreState::pack_tqx;
     } else if (strcmp(arg[iarg],"tqy") == 0) {
       if (!atom->torque_flag)
-	error->all("Fix store for atom property that isn't allocated");
-      pack_choice[nvalues++] = &FixStore::pack_tqy;
+	error->all("Fix store/state for atom property that isn't allocated");
+      pack_choice[nvalues++] = &FixStoreState::pack_tqy;
     } else if (strcmp(arg[iarg],"tqz") == 0) {
       if (!atom->torque_flag)
-	error->all("Fix store for atom property that isn't allocated");
-      pack_choice[nvalues++] = &FixStore::pack_tqz;
+	error->all("Fix store/state for atom property that isn't allocated");
+      pack_choice[nvalues++] = &FixStoreState::pack_tqz;
 
     } else if (strncmp(arg[iarg],"c_",2) == 0 || 
 	       strncmp(arg[iarg],"f_",2) == 0 || 
@@ -212,7 +212,7 @@ FixStore::FixStore(LAMMPS *lmp, int narg, char **arg) :
       char *ptr = strchr(suffix,'[');
       if (ptr) {
 	if (suffix[strlen(suffix)-1] != ']')
-	  error->all("Illegal fix store command");
+	  error->all("Illegal fix store/state command");
 	argindex[nvalues] = atoi(ptr+1);
 	*ptr = '\0';
       } else argindex[nvalues] = 0;
@@ -234,12 +234,12 @@ FixStore::FixStore(LAMMPS *lmp, int narg, char **arg) :
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"com") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix store command");
+      if (iarg+2 > narg) error->all("Illegal fix store/state command");
       if (strcmp(arg[iarg+1],"no") == 0) comflag = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) comflag = 1;
-      else error->all("Illegal fix store command");
+      else error->all("Illegal fix store/state command");
       iarg += 2;
-    } else error->all("Illegal fix store command");
+    } else error->all("Illegal fix store/state command");
   }
 
   // error check
@@ -248,41 +248,42 @@ FixStore::FixStore(LAMMPS *lmp, int narg, char **arg) :
     if (which[i] == COMPUTE) {
       int icompute = modify->find_compute(ids[i]);
       if (icompute < 0)
-	error->all("Compute ID for fix store does not exist");
+	error->all("Compute ID for fix store/state does not exist");
       if (modify->compute[icompute]->peratom_flag == 0)
-	error->all("Fix store compute does not calculate per-atom values");
+	error->all("Fix store/state compute "
+		   "does not calculate per-atom values");
       if (argindex[i] == 0 && 
 	  modify->compute[icompute]->size_peratom_cols != 0)
-	error->all("Fix store compute does not "
+	error->all("Fix store/state compute does not "
 		   "calculate a per-atom vector");
       if (argindex[i] && modify->compute[icompute]->size_peratom_cols == 0)
-	error->all("Fix store compute does not "
+	error->all("Fix store/state compute does not "
 		   "calculate a per-atom array");
       if (argindex[i] && 
 	  argindex[i] > modify->compute[icompute]->size_peratom_cols)
-	error->all("Fix store compute array is accessed out-of-range");
+	error->all("Fix store/state compute array is accessed out-of-range");
 
     } else if (which[i] == FIX) {
       int ifix = modify->find_fix(ids[i]);
       if (ifix < 0)
-	error->all("Fix ID for fix store does not exist");
+	error->all("Fix ID for fix store/state does not exist");
       if (modify->fix[ifix]->peratom_flag == 0)
-	error->all("Fix store fix does not calculate per-atom values");
+	error->all("Fix store/state fix does not calculate per-atom values");
       if (argindex[i] == 0 && modify->fix[ifix]->size_peratom_cols != 0)
-	error->all("Fix store fix does not calculate a per-atom vector");
+	error->all("Fix store/state fix does not calculate a per-atom vector");
       if (argindex[i] && modify->fix[ifix]->size_peratom_cols == 0)
-	error->all("Fix store fix does not calculate a per-atom array");
+	error->all("Fix store/state fix does not calculate a per-atom array");
       if (argindex[i] && argindex[i] > modify->fix[ifix]->size_peratom_cols)
-	error->all("Fix store fix array is accessed out-of-range");
+	error->all("Fix store/state fix array is accessed out-of-range");
       if (nevery % modify->fix[ifix]->peratom_freq)
-	error->all("Fix for fix store not computed at compatible time");
+	error->all("Fix for fix store/state not computed at compatible time");
 
     } else if (which[i] == VARIABLE) {
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
-	error->all("Variable name for fix store does not exist");
+	error->all("Variable name for fix store/state does not exist");
       if (input->variable->atomstyle(ivariable) == 0)
-	error->all("Fix store variable is not atom-style variable");
+	error->all("Fix store/state variable is not atom-style variable");
     }
   }
 
@@ -318,7 +319,7 @@ FixStore::FixStore(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-FixStore::~FixStore()
+FixStoreState::~FixStoreState()
 {
   // unregister callbacks to this fix from Atom class
  
@@ -337,7 +338,7 @@ FixStore::~FixStore()
 
 /* ---------------------------------------------------------------------- */
 
-int FixStore::setmask()
+int FixStoreState::setmask()
 {
   int mask = 0;
   if (nevery) mask |= END_OF_STEP;
@@ -346,7 +347,7 @@ int FixStore::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::init()
+void FixStoreState::init()
 {
   // set indices and check validity of all computes,fixes,variables
 
@@ -374,7 +375,7 @@ void FixStore::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::setup(int vflag)
+void FixStoreState::setup(int vflag)
 {
   // if first invocation, store current values for compute, fix, variable
 
@@ -389,7 +390,7 @@ void FixStore::setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::end_of_step()
+void FixStoreState::end_of_step()
 {
   int i,j,n;
 
@@ -470,7 +471,7 @@ void FixStore::end_of_step()
    memory usage of local atom-based array
 ------------------------------------------------------------------------- */
 
-double FixStore::memory_usage()
+double FixStoreState::memory_usage()
 {
   double bytes = atom->nmax*nvalues * sizeof(double);
   return bytes;
@@ -480,7 +481,7 @@ double FixStore::memory_usage()
    allocate atom-based array
 ------------------------------------------------------------------------- */
 
-void FixStore::grow_arrays(int nmax)
+void FixStoreState::grow_arrays(int nmax)
 {
   values = memory->grow_2d_double_array(values,nmax,3,"fix_store:values");
   if (nvalues == 0) vector_atom = &values[0][0];
@@ -491,7 +492,7 @@ void FixStore::grow_arrays(int nmax)
    copy values within local atom-based array
 ------------------------------------------------------------------------- */
 
-void FixStore::copy_arrays(int i, int j)
+void FixStoreState::copy_arrays(int i, int j)
 {
   for (int m = 0; m < nvalues; m++) values[j][m] = values[i][m];
 }
@@ -500,7 +501,7 @@ void FixStore::copy_arrays(int i, int j)
    pack values in local atom-based array for exchange with another proc
 ------------------------------------------------------------------------- */
 
-int FixStore::pack_exchange(int i, double *buf)
+int FixStoreState::pack_exchange(int i, double *buf)
 {
   for (int m = 0; m < nvalues; m++) buf[m] = values[i][m];
   return nvalues;
@@ -510,7 +511,7 @@ int FixStore::pack_exchange(int i, double *buf)
    unpack values in local atom-based array from exchange with another proc
 ------------------------------------------------------------------------- */
 
-int FixStore::unpack_exchange(int nlocal, double *buf)
+int FixStoreState::unpack_exchange(int nlocal, double *buf)
 {
   for (int m = 0; m < nvalues; m++) values[nlocal][m] = buf[m];
   return nvalues;
@@ -520,7 +521,7 @@ int FixStore::unpack_exchange(int nlocal, double *buf)
    pack values in local atom-based arrays for restart file
 ------------------------------------------------------------------------- */
 
-int FixStore::pack_restart(int i, double *buf)
+int FixStoreState::pack_restart(int i, double *buf)
 {
   buf[0] = nvalues+1;
   for (int m = 0; m < nvalues; m++) buf[m+1] = values[i][m];
@@ -531,7 +532,7 @@ int FixStore::pack_restart(int i, double *buf)
    unpack values from atom->extra array to restart the fix
 ------------------------------------------------------------------------- */
 
-void FixStore::unpack_restart(int nlocal, int nth)
+void FixStoreState::unpack_restart(int nlocal, int nth)
 {
   double **extra = atom->extra;
 
@@ -548,7 +549,7 @@ void FixStore::unpack_restart(int nlocal, int nth)
    maxsize of any atom's restart data
 ------------------------------------------------------------------------- */
 
-int FixStore::maxsize_restart()
+int FixStoreState::maxsize_restart()
 {
   return nvalues+1;
 }
@@ -557,20 +558,20 @@ int FixStore::maxsize_restart()
    size of atom nlocal's restart data
 ------------------------------------------------------------------------- */
 
-int FixStore::size_restart(int nlocal)
+int FixStoreState::size_restart(int nlocal)
 {
   return nvalues+1;
 }
 
 /* ----------------------------------------------------------------------
-   one method for every keyword fix store can archive
+   one method for every keyword fix store/state can archive
    the atom property is packed into buf starting at n with stride nvalues
    customize a new keyword by adding a method
 ------------------------------------------------------------------------- */
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::pack_id(int n)
+void FixStoreState::pack_id(int n)
 {
   int *tag = atom->tag;
   int *mask = atom->mask;
@@ -585,7 +586,7 @@ void FixStore::pack_id(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::pack_molecule(int n)
+void FixStoreState::pack_molecule(int n)
 {
   int *molecule = atom->molecule;
   int *mask = atom->mask;
@@ -600,7 +601,7 @@ void FixStore::pack_molecule(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::pack_type(int n)
+void FixStoreState::pack_type(int n)
 {
   int *type = atom->type;
   int *mask = atom->mask;
@@ -615,7 +616,7 @@ void FixStore::pack_type(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::pack_mass(int n)
+void FixStoreState::pack_mass(int n)
 {
   int *type = atom->type;
   double *mass = atom->mass;
@@ -640,7 +641,7 @@ void FixStore::pack_mass(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::pack_x(int n)
+void FixStoreState::pack_x(int n)
 {
   double **x = atom->x;
   int *mask = atom->mask;
@@ -655,7 +656,7 @@ void FixStore::pack_x(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::pack_y(int n)
+void FixStoreState::pack_y(int n)
 {
   double **x = atom->x;
   int *mask = atom->mask;
@@ -670,7 +671,7 @@ void FixStore::pack_y(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::pack_z(int n)
+void FixStoreState::pack_z(int n)
 {
   double **x = atom->x;
   int *mask = atom->mask;
@@ -685,7 +686,7 @@ void FixStore::pack_z(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::pack_xs(int n)
+void FixStoreState::pack_xs(int n)
 {
   double **x = atom->x;
   int *mask = atom->mask;
@@ -703,7 +704,7 @@ void FixStore::pack_xs(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::pack_ys(int n)
+void FixStoreState::pack_ys(int n)
 {
   double **x = atom->x;
   int *mask = atom->mask;
@@ -721,7 +722,7 @@ void FixStore::pack_ys(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::pack_zs(int n)
+void FixStoreState::pack_zs(int n)
 {
   double **x = atom->x;
   int *mask = atom->mask;
@@ -739,7 +740,7 @@ void FixStore::pack_zs(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::pack_xs_triclinic(int n)
+void FixStoreState::pack_xs_triclinic(int n)
 {
   double **x = atom->x;
   int *mask = atom->mask;
@@ -759,7 +760,7 @@ void FixStore::pack_xs_triclinic(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::pack_ys_triclinic(int n)
+void FixStoreState::pack_ys_triclinic(int n)
 {
   double **x = atom->x;
   int *mask = atom->mask;
@@ -778,7 +779,7 @@ void FixStore::pack_ys_triclinic(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::pack_zs_triclinic(int n)
+void FixStoreState::pack_zs_triclinic(int n)
 {
   double **x = atom->x;
   int *mask = atom->mask;
@@ -797,7 +798,7 @@ void FixStore::pack_zs_triclinic(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::pack_xu(int n)
+void FixStoreState::pack_xu(int n)
 {
   double **x = atom->x;
   int *image = atom->image;
@@ -817,7 +818,7 @@ void FixStore::pack_xu(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::pack_yu(int n)
+void FixStoreState::pack_yu(int n)
 {
   double **x = atom->x;
   int *image = atom->image;
@@ -837,7 +838,7 @@ void FixStore::pack_yu(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::pack_zu(int n)
+void FixStoreState::pack_zu(int n)
 {
   double **x = atom->x;
   int *image = atom->image;
@@ -857,7 +858,7 @@ void FixStore::pack_zu(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::pack_xu_triclinic(int n)
+void FixStoreState::pack_xu_triclinic(int n)
 {
   double **x = atom->x;
   int *image = atom->image;
@@ -881,7 +882,7 @@ void FixStore::pack_xu_triclinic(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::pack_yu_triclinic(int n)
+void FixStoreState::pack_yu_triclinic(int n)
 {
   double **x = atom->x;
   int *image = atom->image;
@@ -904,7 +905,7 @@ void FixStore::pack_yu_triclinic(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::pack_zu_triclinic(int n)
+void FixStoreState::pack_zu_triclinic(int n)
 {
   double **x = atom->x;
   int *image = atom->image;
@@ -926,7 +927,7 @@ void FixStore::pack_zu_triclinic(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::pack_ix(int n)
+void FixStoreState::pack_ix(int n)
 {
   int *image = atom->image;
   int *mask = atom->mask;
@@ -941,7 +942,7 @@ void FixStore::pack_ix(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::pack_iy(int n)
+void FixStoreState::pack_iy(int n)
 {
   int *image = atom->image;
   int *mask = atom->mask;
@@ -956,7 +957,7 @@ void FixStore::pack_iy(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::pack_iz(int n)
+void FixStoreState::pack_iz(int n)
 {
   int *image = atom->image;
   int *mask = atom->mask;
@@ -971,7 +972,7 @@ void FixStore::pack_iz(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::pack_vx(int n)
+void FixStoreState::pack_vx(int n)
 {
   double **v = atom->v;
   int *mask = atom->mask;
@@ -986,7 +987,7 @@ void FixStore::pack_vx(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::pack_vy(int n)
+void FixStoreState::pack_vy(int n)
 {
   double **v = atom->v;
   int *mask = atom->mask;
@@ -1001,7 +1002,7 @@ void FixStore::pack_vy(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::pack_vz(int n)
+void FixStoreState::pack_vz(int n)
 {
   double **v = atom->v;
   int *mask = atom->mask;
@@ -1016,7 +1017,7 @@ void FixStore::pack_vz(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::pack_fx(int n)
+void FixStoreState::pack_fx(int n)
 {
   double **f = atom->f;
   int *mask = atom->mask;
@@ -1031,7 +1032,7 @@ void FixStore::pack_fx(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::pack_fy(int n)
+void FixStoreState::pack_fy(int n)
 {
   double **f = atom->f;
   int *mask = atom->mask;
@@ -1046,7 +1047,7 @@ void FixStore::pack_fy(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::pack_fz(int n)
+void FixStoreState::pack_fz(int n)
 {
   double **f = atom->f;
   int *mask = atom->mask;
@@ -1061,7 +1062,7 @@ void FixStore::pack_fz(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::pack_q(int n)
+void FixStoreState::pack_q(int n)
 {
   double *q = atom->q;
   int *mask = atom->mask;
@@ -1076,7 +1077,7 @@ void FixStore::pack_q(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::pack_mux(int n)
+void FixStoreState::pack_mux(int n)
 {
   double **mu = atom->mu;
   int *mask = atom->mask;
@@ -1091,7 +1092,7 @@ void FixStore::pack_mux(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::pack_muy(int n)
+void FixStoreState::pack_muy(int n)
 {
   double **mu = atom->mu;
   int *mask = atom->mask;
@@ -1106,7 +1107,7 @@ void FixStore::pack_muy(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::pack_muz(int n)
+void FixStoreState::pack_muz(int n)
 {
   double **mu = atom->mu;
   int *mask = atom->mask;
@@ -1121,7 +1122,7 @@ void FixStore::pack_muz(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::pack_radius(int n)
+void FixStoreState::pack_radius(int n)
 {
   double *radius = atom->radius;
   int *mask = atom->mask;
@@ -1136,7 +1137,7 @@ void FixStore::pack_radius(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::pack_omegax(int n)
+void FixStoreState::pack_omegax(int n)
 {
   double **omega = atom->omega;
   int *mask = atom->mask;
@@ -1151,7 +1152,7 @@ void FixStore::pack_omegax(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::pack_omegay(int n)
+void FixStoreState::pack_omegay(int n)
 {
   double **omega = atom->omega;
   int *mask = atom->mask;
@@ -1166,7 +1167,7 @@ void FixStore::pack_omegay(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::pack_omegaz(int n)
+void FixStoreState::pack_omegaz(int n)
 {
   double **omega = atom->omega;
   int *mask = atom->mask;
@@ -1181,7 +1182,7 @@ void FixStore::pack_omegaz(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::pack_angmomx(int n)
+void FixStoreState::pack_angmomx(int n)
 {
   double **angmom = atom->angmom;
   int *mask = atom->mask;
@@ -1196,7 +1197,7 @@ void FixStore::pack_angmomx(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::pack_angmomy(int n)
+void FixStoreState::pack_angmomy(int n)
 {
   double **angmom = atom->angmom;
   int *mask = atom->mask;
@@ -1211,7 +1212,7 @@ void FixStore::pack_angmomy(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::pack_angmomz(int n)
+void FixStoreState::pack_angmomz(int n)
 {
   double **angmom = atom->angmom;
   int *mask = atom->mask;
@@ -1226,7 +1227,7 @@ void FixStore::pack_angmomz(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::pack_quatw(int n)
+void FixStoreState::pack_quatw(int n)
 {
   double **quat = atom->quat;
   int *mask = atom->mask;
@@ -1241,7 +1242,7 @@ void FixStore::pack_quatw(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::pack_quati(int n)
+void FixStoreState::pack_quati(int n)
 {
   double **quat = atom->quat;
   int *mask = atom->mask;
@@ -1256,7 +1257,7 @@ void FixStore::pack_quati(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::pack_quatj(int n)
+void FixStoreState::pack_quatj(int n)
 {
   double **quat = atom->quat;
   int *mask = atom->mask;
@@ -1271,7 +1272,7 @@ void FixStore::pack_quatj(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::pack_quatk(int n)
+void FixStoreState::pack_quatk(int n)
 {
   double **quat = atom->quat;
   int *mask = atom->mask;
@@ -1286,7 +1287,7 @@ void FixStore::pack_quatk(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::pack_tqx(int n)
+void FixStoreState::pack_tqx(int n)
 {
   double **torque = atom->torque;
   int *mask = atom->mask;
@@ -1301,7 +1302,7 @@ void FixStore::pack_tqx(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::pack_tqy(int n)
+void FixStoreState::pack_tqy(int n)
 {
   double **torque = atom->torque;
   int *mask = atom->mask;
@@ -1316,7 +1317,7 @@ void FixStore::pack_tqy(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStore::pack_tqz(int n)
+void FixStoreState::pack_tqz(int n)
 {
   double **torque = atom->torque;
   int *mask = atom->mask;

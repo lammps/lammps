@@ -13,21 +13,21 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(store,FixStore)
+FixStyle(store/state,FixStoreState)
 
 #else
 
-#ifndef LMP_FIX_STORE_H
-#define LMP_FIX_STORE_H
+#ifndef LMP_FIX_STORE_STATE_H
+#define LMP_FIX_STORE_STATE_H
 
 #include "fix.h"
 
 namespace LAMMPS_NS {
 
-class FixStore : public Fix {
+class FixStoreState : public Fix {
  public:
-  FixStore(class LAMMPS *, int, char **);
-  ~FixStore();
+  FixStoreState(class LAMMPS *, int, char **);
+  ~FixStoreState();
   int setmask();
   void init();
   void setup(int);
@@ -56,7 +56,7 @@ class FixStore : public Fix {
   int kflag,cfv_flag,firstflag;
   int cfv_any;             // 1 if any compute/fix/variable specified
 
-  typedef void (FixStore::*FnPtrPack)(int);
+  typedef void (FixStoreState::*FnPtrPack)(int);
   FnPtrPack *pack_choice;              // ptrs to pack functions
 
   void pack_id(int);

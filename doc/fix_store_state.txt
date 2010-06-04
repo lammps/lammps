@@ -6,14 +6,14 @@
 
 :line
 
-fix store command :h3
+fix store/state command :h3
 
 [Syntax:]
 
-fix ID group-ID store N input1 input2 ... keyword value ... :pre
+fix ID group-ID store/state N input1 input2 ... keyword value ... :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
-store= style name of this fix command :l
+store/state = style name of this fix command :l
 N = store atom attributes every N steps, N = 0 for initial store only :l
 input = one or more atom attributes :l
   possible attributes = id, mol, type, mass,
@@ -55,9 +55,9 @@ keyword = {com} :l
 
 [Examples:]
 
-fix 1 all store 0 x y z
-fix 1 all store 0 xu yu zu com yes
-fix 2 all store 1000 vx vy vz :pre
+fix 1 all store/state 0 x y z
+fix 1 all store/state 0 xu yu zu com yes
+fix 2 all store/state 1000 vx vy vz :pre
 
 [Description:]
 

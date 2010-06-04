@@ -9,15 +9,15 @@
 
 <HR>
 
-<H3>fix store command 
+<H3>fix store/state command 
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>fix ID group-ID store N input1 input2 ... keyword value ... 
+<PRE>fix ID group-ID store/state N input1 input2 ... keyword value ... 
 </PRE>
 <UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
 
-<LI>store= style name of this fix command 
+<LI>store/state = style name of this fix command 
 
 <LI>N = store atom attributes every N steps, N = 0 for initial store only 
 
@@ -65,9 +65,9 @@
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>fix 1 all store 0 x y z
-fix 1 all store 0 xu yu zu com yes
-fix 2 all store 1000 vx vy vz 
+<PRE>fix 1 all store/state 0 x y z
+fix 1 all store/state 0 xu yu zu com yes
+fix 2 all store/state 1000 vx vy vz 
 </PRE>
 <P><B>Description:</B>
 </P>

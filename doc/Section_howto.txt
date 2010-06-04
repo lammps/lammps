@@ -1144,6 +1144,14 @@ quantities calculated by a "compute"_compute.html, by a
 time-averaged per-atom output of this fix can be used as input to
 other output commands.
 
+The "fix store"_fix_ave_atom.html command can archive one or more
+per-atom attributes at a particular time, so that the old values can
+be used in a future calculation or output.  The list of atom
+attributes is the same as for the "dump custom"_dump.html command,
+including per-atom quantities calculated by a "compute"_compute.html,
+by a "fix"_fix.html, or by an atom-style "variable"_variable.html.
+The output of this fix can be used as input to other output commands.
+
 Computes that generate values to output :h5,link(compute)
 
 Every "compute"_compute.html in LAMMPS produces either global or
@@ -1205,6 +1213,7 @@ Command: Input: Output:
 "fix ave/time"_fix_ave_time.html: global scalars/vectors: global scalar/vector/array, file:
 "fix ave/spatial"_fix_ave_spatial.html: per-atom vectors: global array, file:
 "fix ave/histo"_fix_ave_histo.html: global/per-atom/local scalars and vectors: global array, file:
+"fix store"_fix_store.html: per-atom vectors: per-atom vector/array:
 :tb(s=:)
 
 :line

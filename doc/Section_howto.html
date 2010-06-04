@@ -1153,6 +1153,14 @@ quantities calculated by a <A HREF = "compute.html">compute</A>, by a
 time-averaged per-atom output of this fix can be used as input to
 other output commands.
 </P>
+<P>The <A HREF = "fix_ave_atom.html">fix store</A> command can archive one or more
+per-atom attributes at a particular time, so that the old values can
+be used in a future calculation or output.  The list of atom
+attributes is the same as for the <A HREF = "dump.html">dump custom</A> command,
+including per-atom quantities calculated by a <A HREF = "compute.html">compute</A>,
+by a <A HREF = "fix.html">fix</A>, or by an atom-style <A HREF = "variable.html">variable</A>.
+The output of this fix can be used as input to other output commands.
+</P>
 <H5><A NAME = "compute"></A>Computes that generate values to output 
 </H5>
 <P>Every <A HREF = "compute.html">compute</A> in LAMMPS produces either global or
@@ -1215,6 +1223,7 @@ vector input could be a column of an array.
 <TR><TD ><A HREF = "fix_ave_time.html">fix ave/time</A></TD><TD > global scalars/vectors</TD><TD > global scalar/vector/array, file</TD><TD ></TD></TR>
 <TR><TD ><A HREF = "fix_ave_spatial.html">fix ave/spatial</A></TD><TD > per-atom vectors</TD><TD > global array, file</TD><TD ></TD></TR>
 <TR><TD ><A HREF = "fix_ave_histo.html">fix ave/histo</A></TD><TD > global/per-atom/local scalars and vectors</TD><TD > global array, file</TD><TD ></TD></TR>
+<TR><TD ><A HREF = "fix_store.html">fix store</A></TD><TD > per-atom vectors</TD><TD > per-atom vector/array</TD><TD ></TD></TR>
 <TR><TD >
 </TD></TR></TABLE></DIV>
 

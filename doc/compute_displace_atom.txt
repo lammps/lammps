@@ -32,19 +32,20 @@ dz*dz).
 
 The displacement of an atom is from its original position at the time
 the compute command was issued.  To store the original coordinates,
-the compute creates its own fix of style "store", as if this command
-had been issued:
+the compute creates its own fix of style "store/state", as if this
+command had been issued:
 
-fix compute-ID_store group-ID store xu yu zu :pre
+fix compute-ID_store_state group-ID store/state xu yu zu :pre
 
-See the "fix store"_fix_store.html command for details.  Note that the
-ID of the new fix is the compute-ID + underscore + "store", and the
-group for the new fix is the same as the compute group.
+See the "fix store/state"_fix_store_state.html command for details.
+Note that the ID of the new fix is the compute-ID + underscore +
+"store/state", and the group for the new fix is the same as the
+compute group.
 
 The value of the displacement will be 0.0 for atoms not in the
 specified compute group.
 
-IMPORTANT NOTE: Fix store stores the initial coordinates in
+IMPORTANT NOTE: Fix store/state stores the initial coordinates in
 "unwrapped" form, by using the image flags associated with each atom.
 See the "dump custom"_dump.html command for a discussion of
 "unwrapped" coordinates.  See the Atoms section of the
@@ -82,6 +83,6 @@ The per-atom array values will be in distance "units"_units.html.
 [Related commands:]
 
 "compute msd"_compute_msd.html, "dump custom"_dump.html, "fix
-store"_fix_store.html
+store/state"_fix_store_state.html
 
 [Default:] none

@@ -67,6 +67,6 @@ minimization"_minimize.html.
 
 [Related commands:]
 
-"fix store"_fix_store.html
+"fix store_state"_fix_store_state.html
 
 [Default:] none

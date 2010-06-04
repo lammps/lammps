@@ -23,7 +23,7 @@ timestep        0.001
 group mobile type 1
 
 # have balls bounce off the walls
-fix     walls       mobile wall/reflect xlo ylo zlo xhi yhi zhi
+fix     walls       mobile wall/reflect xlo EDGE ylo EDGE zlo EDGE xhi EDGE yhi EDGE zhi EDGE
 
 velocity mobile create 303.0 46659 mom yes rot yes dist gaussian
 

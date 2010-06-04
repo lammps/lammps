@@ -21,12 +21,12 @@ fix 1 all store/force :pre
 
 [Description:]
 
-Store the forces on atoms in the group at the point in time during
-timestepping when the fix is invoked, as described below.  This is
-useful for storing forces before constraints or other boundary
-conditions are computed which modify the forces, so that the original
-forces can be "written to a dump file"_dump.html or accessed by other
-"output commands"_Section_howto.html#4_15 that use per-atom quantities.
+Store the forces on atoms in the group at the point during each
+timestep when the fix is invoked, as described below.  This is useful
+for storing forces before constraints or other boundary conditions are
+computed which modify the forces, so that unmodified forces can be
+"written to a dump file"_dump.html or accessed by other "output
+commands"_Section_howto.html#4_15 that use per-atom quantities.
 
 This fix is invoked at the point in the velocity-Verlet timestepping
 immediately after "pair"_pair_style.html, "bond"_bond_style.html,
@@ -67,6 +67,6 @@ minimization"_minimize.html.
 
 [Related commands:]
 
-"fix store/coord"_fix_store_coord.html
+"fix store"_fix_store.html
 
 [Default:] none

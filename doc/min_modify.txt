@@ -32,24 +32,28 @@ various settings may affect the convergence rate and overall number of
 force evaluations required by a minimization, so users can experiment
 with these parameters to tune their minimizations.
 
-The {cg} and {sd} minimization styles have an outer iteration and an
-inner iteration which is steps along a one-dimensional line search in
-a particular search direction.  The {dmax} parameter is how far any
-atom can move in a single line search in any dimension (x, y, or z).
+The {dmax} parameter is a bound on how far any atom can move in a
+single dimension (x, y, or z) in a single iteration of the minimizer.
 Thus a value of 0.1 in real "units"_units.html means no atom will move
-further than 0.1 Angstroms in a single outer iteration.  This prevents
-highly overlapped atoms from being moved long distances (e.g. through
-another atom) due to large forces.
+further than 0.1 Angstroms in a single iteration.  This prevents
+highly overlapped atoms from being moved long distances (e.g. passing
+through another atom) due to large forces.  Note that for the {cg} and
+{sd} style miminizers (see the "min_style"_min_style.html command),
+{dmax} is a bound on the outer iteration or step along a search
+direction, not a bound on the inner iteration of steps within a single
+line search.
 
 The choice of line search algorithm for the {cg} and {sd} minimization
-styles can be selected via the {line} keyword.  The default
-backtracking search is robust and should always find a local energy
-minimum.  However, it will "converge" when it can no longer reduce the
-energy of the system.  Individual atom forces may still be larger than
-desired at this point, because the energy change is measured as the
-difference of two large values (energy before and energy after) and
-that difference may be smaller than machine epsilon even if atoms
-could move in the gradient direction to reduce forces further.
+styles can be selected via the {line} keyword.  Other minimizer styles
+do not perform line searches, so they ignore this setting.  The
+default {backtrack} search is robust and should always find a local
+energy minimum.  However, it will "converge" when it can no longer
+reduce the energy of the system.  Individual atom forces may still be
+larger than desired at this point, because the energy change is
+measured as the difference of two large values (energy before and
+energy after) and that difference may be smaller than machine epsilon
+even if atoms could move in the gradient direction to reduce forces
+further.
 
 By contast, the {quadratic} line search algorithm is often able to
 reduce forces closer to 0.0.  It may also be more efficient than the

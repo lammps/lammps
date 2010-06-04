@@ -82,7 +82,12 @@ are relevant to this fix.  No global or per-atom quantities are stored
 by this fix for access by various "output
 commands"_Section_howto.html#4_15.  No parameter of this fix can be
 used with the {start/stop} keywords of the "run"_run.html command.
-This fix is not invoked during "energy minimization"_minimize.html.
+
+The forces due to this fix are imposed during an energy minimization,
+invoked by the "minimize"_minimize.html command.  This fix should only
+be used with damped dynamics minimizers that allow for
+non-conservative forces.  See the "min_style"_min_style.html command
+for details.
 
 [Restrictions:] none
 

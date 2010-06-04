@@ -24,28 +24,31 @@ minimize 0.0 1.0e-8 1000 100000 :pre
 
 [Description:]
 
-Perform an energy minimization of the system, by iteratively adjusting
-atom coordinates.  Iterations are terminated when one of the stopping
-criteria is satisfied.  At that point the configuration will hopefully
-be in local potential energy minimum.  More precisely, the
-configuration should approximate a critical point for the objective
-function (see below), which may or may not be a local minimum.
+Perform an energy minimization or force zeroing of the system, by
+iteratively adjusting atom coordinates.  Iterations are terminated
+when one of the stopping criteria is satisfied.  At that point the
+configuration will hopefully be in local potential energy minimum.
+More precisely, the configuration should approximate a critical point
+for the objective function (see below), which may or may not be a
+local minimum.
 
 The minimization algorithm used is set by the
 "min_style"_min_style.html command.  Other options are set by the
 "min_modify"_min_modify.html command.  Minimize commands can be
 interspersed with "run"_run.html commands to alternate between
 relaxation and dynamics.  The minimizers bound the distance atoms move
-in one iteration, so that you can relax systems with highly overlapped
-atoms (large energies and forces) by pushing the atoms off of each
-other.
+in one iteration (via the "min_modify dmax"_min_modify.html setting),
+so that you can relax systems with highly overlapped atoms (large
+energies and forces) by pushing the atoms off of each other.
 
 Alternate means of relaxing a system are to run dynamics with a small
 or "limited timestep"_fix_nve_limit.html.  Or dynamics can be run
 using "fix viscous"_fix_viscous.html to impose a damping force that
 slowly drains all kinetic energy from the system.  The "pair_style
-soft"_pair_soft.html potential can be used to un-overlap atoms while
-running dynamics.
+soft"_pair_soft.html potential can be used to un-overlap atoms
+gradually while running dynamics.
+
+
 
 A minimization involves an outer iteration loop which sets the search
 direction along which atom coordinates are changed.  An inner

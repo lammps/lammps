@@ -35,20 +35,19 @@ dz*dz).
 </P>
 <P>The displacement of an atom is from its original position at the time
 the compute command was issued.  To store the original coordinates,
-the compute creates its own fix of style "store/coord", as if this
-command had been issued:
+the compute creates its own fix of style "store", as if this command
+had been issued:
 </P>
-<PRE>fix compute-ID_store_coord group-ID store/coord 
+<PRE>fix compute-ID_store group-ID store xu yu zu 
 </PRE>
-<P>See the <A HREF = "fix_store_coord.html">fix store/coord</A> command for details.
-Note that the ID of the new fix is the compute-ID + underscore +
-"store_coord", and the group for the new fix is the same as the
-compute group.
+<P>See the <A HREF = "fix_store.html">fix store</A> command for details.  Note that the
+ID of the new fix is the compute-ID + underscore + "store", and the
+group for the new fix is the same as the compute group.
 </P>
 <P>The value of the displacement will be 0.0 for atoms not in the
 specified compute group.
 </P>
-<P>IMPORTANT NOTE: Fix store/coord stores the initial coordinates in
+<P>IMPORTANT NOTE: Fix store stores the initial coordinates in
 "unwrapped" form, by using the image flags associated with each atom.
 See the <A HREF = "dump.html">dump custom</A> command for a discussion of
 "unwrapped" coordinates.  See the Atoms section of the
@@ -85,8 +84,8 @@ overview of LAMMPS output options.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "compute_msd.html">compute msd</A>, <A HREF = "dump.html">dump custom</A>, <A HREF = "fix_store_coord.html">fix
-store/coord</A>
+<P><A HREF = "compute_msd.html">compute msd</A>, <A HREF = "dump.html">dump custom</A>, <A HREF = "fix_store.html">fix
+store</A>
 </P>
 <P><B>Default:</B> none
 </P>

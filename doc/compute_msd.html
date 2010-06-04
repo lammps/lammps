@@ -49,22 +49,21 @@ proportional to the diffusion coefficient of the diffusing atoms.
 </P>
 <P>The displacement of an atom is from its original position at the time
 the compute command was issued.  To store the original coordinates,
-the compute creates its own fix of style "store/coord", as if this
-command had been issued:
+the compute creates its own fix of style "store", as if this command
+had been issued:
 </P>
-<PRE>fix compute-ID_store_coord group-ID store/coord 
+<PRE>fix compute-ID_store group-ID store xu yu zu 
 </PRE>
-<P>See the <A HREF = "fix_store_coord.html">fix store/coord</A> command for
-details.  Note that the ID of the new fix is the compute-ID +
-underscore + "store_coord", and the group for the new fix is
-the same as the compute group.
+<P>See the <A HREF = "fix_store.html">fix store</A> command for details.  Note that the
+ID of the new fix is the compute-ID + underscore + "store", and the
+group for the new fix is the same as the compute group.
 </P>
-<P>If the <I>com</I> option is set to <I>yes</I> then the effect of any drift
-in the center-of-mass of the group of atoms is subtracted out before
-the displacment of each atom is calcluated.  The <I>com</I> option
-is also passed to the created fix store/coord.
+<P>If the <I>com</I> option is set to <I>yes</I> then the effect of any drift in
+the center-of-mass of the group of atoms is subtracted out before the
+displacment of each atom is calcluated.  The <I>com</I> option is also
+passed to the created fix store.
 </P>
-<P>IMPORTANT NOTE: Fix store/coord stores the initial coordinates in
+<P>IMPORTANT NOTE: Fix store stores the initial coordinates in
 "unwrapped" form, by using the image flags associated with each atom.
 See the <A HREF = "dump.html">dump custom</A> command for a discussion of
 "unwrapped" coordinates.  See the Atoms section of the
@@ -102,8 +101,8 @@ distance^2 <A HREF = "units.html">units</A>.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "compute_displace_atom.html">compute displace_atom</A>, <A HREF = "fix_store_coord.html">fix
-store/coord</A>, <A HREF = "compute_msd_molecule.html">compute
+<P><A HREF = "compute_displace_atom.html">compute displace_atom</A>, <A HREF = "fix_store.html">fix
+store</A>, <A HREF = "compute_msd_molecule.html">compute
 msd/molecule</A>
 </P>
 <P><B>Default:</B>

@@ -24,12 +24,12 @@
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Store the forces on atoms in the group at the point in time during
-timestepping when the fix is invoked, as described below.  This is
-useful for storing forces before constraints or other boundary
-conditions are computed which modify the forces, so that the original
-forces can be <A HREF = "dump.html">written to a dump file</A> or accessed by other
-<A HREF = "Section_howto.html#4_15">output commands</A> that use per-atom quantities.
+<P>Store the forces on atoms in the group at the point during each
+timestep when the fix is invoked, as described below.  This is useful
+for storing forces before constraints or other boundary conditions are
+computed which modify the forces, so that unmodified forces can be
+<A HREF = "dump.html">written to a dump file</A> or accessed by other <A HREF = "Section_howto.html#4_15">output
+commands</A> that use per-atom quantities.
 </P>
 <P>This fix is invoked at the point in the velocity-Verlet timestepping
 immediately after <A HREF = "pair_style.html">pair</A>, <A HREF = "bond_style.html">bond</A>,
@@ -70,7 +70,7 @@ minimization</A>.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "fix_store_coord.html">fix store/coord</A>
+<P><A HREF = "fix_store.html">fix store</A>
 </P>
 <P><B>Default:</B> none
 </P>

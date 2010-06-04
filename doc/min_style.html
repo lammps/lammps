@@ -15,25 +15,49 @@
 </P>
 <PRE>min_style style 
 </PRE>
-<UL><LI>style = <I>cg</I> or <I>hftn</I> or <I>sd</I> 
+<UL><LI>style = <I>cg</I> or <I>hftn</I> or <I>sd</I> or <I>downhill</I> or <I>quickmin</I> or <I>fire</I> 
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>min_style cg
-min_style hftn 
+min_style hftn
+min_style fire 
 </PRE>
 <P><B>Description:</B>
 </P>
 <P>Choose a minimization algorithm to use when a <A HREF = "minimize.html">minimize</A>
 command is performed.
 </P>
-<P>Style <I>cg</I> is the Polak-Ribiere version of the conjugate gradient (CG)
-algorithm.  At each iteration the force gradient is combined with the
-previous iteration information to compute a new search direction
-perpendicular (conjugate) to the previous search direction.  The PR
-variant affects how the direction is chosen and how the CG method is
-restarted when it ceases to make progress.  The PR variant is thought
-to be the most effective CG choice.
+<P>The <I>cg</I>, <I>htfn</I>. and <I>sd</I> styles are traditional minimizers, which
+relax the potential energy of the system to a local minimum.  As a
+by-product they also relax the force on each atom towards 0.0.  To
+work effectively these minimizers require the negative gradient of the
+energy of the system (the objective function) be equivalent to the
+force on the atoms.  None of these styles use the
+<A HREF = "timestep.html">timestep</A> setting.
+</P>
+<P>The <I>downhill</I>, <I>quickmin</I>, and <I>fire</I> styles are damped-dynamics
+minimizers which are less mathematically rigorous, but tend to work
+well in practice.  They perform calculations only using the forces on
+atoms which they relax towards 0.0.  As a by-product they also
+typically relax the energy towards a local minimum.  However, because
+they ignore the energy of the system, they can work with
+non-conservative interactions, e.g. dynamics that includes damping
+terms, or with a coupled system, like for nudged elastic band (NEB)
+calculations, where inter-replica forces are not an analytic
+derivative of an energy objective function.  Since they are performing
+a damped form of dynamics, all of these minimizers update atom
+positions based on the <A HREF = "timestep.html">timestep</A> setting.
+</P>
+<P>Style <I>cg</I> is the Polak-Ribiere (PR) version of the conjugate gradient
+(CG) algorithm.  At each iteration, the force gradient is combined
+with the previous iteration information to compute a new search
+direction perpendicular (conjugate) to the previous search direction.
+A linesearch is performed along the search direction to determine the
+distance to move atoms.  The PR variant affects how the direction is
+chosen and how the CG method is restarted when it ceases to make
+progress.  The PR variant is thought to be the most effective CG
+choice.
 </P>
 <P>Style <I>hftn</I> is a Hessian-free truncated Newton algorithm.  At each
 iteration a quadratic model of the energy potential is solved by a
@@ -42,16 +66,50 @@ of the energy is not formed directly, but approximated in each
 conjugate search direction by a finite difference directional
 derivative.  When close to an energy minimum, the algorithm behaves
 like a Newton method and exhibits a quadratic convergence rate to high
-accuracy.  In most cases the behavior of <I>hftn</I> is similar to <I>cg</I>,
+accuracy.  In many cases the behavior of <I>hftn</I> is similar to <I>cg</I>,
 but it offers another minimizer alternative if <I>cg</I> seems to perform
-poorly.  This style is not affected by the
-<A HREF = "min_modify.html">min_modify</A> command.
+poorly. 
 </P>
 <P>Style <I>sd</I> is a steepest descent algorithm.  At each iteration, the
 search direction is set to the downhill direction corresponding to the
-force vector (negative gradient of energy).  Typically, steepest
-descent will not converge as quickly as CG, but may be more robust in
-some situations.
+force vector (negative gradient of energy).  A linesearch is performed
+along the search direction to determine the distance to move atoms.
+Typically, steepest descent will not converge as quickly as CG, but
+may be more robust in some situations.
+</P>
+<P>Style <I>downhill</I> is a simple damped-dynamics minimizer which is
+conceptually similar to steepest descent.  At each iteration, forces
+are computed and the each atom's position is updated by an Euler
+step:
+</P>
+<PRE>Xnew = X + dt*dt * F/m 
+</PRE>
+<P>where X is the old position, dt is the timestep, m is the atom mass,
+and F is the force on the atom.  This is effectively an Euler time
+integration step with the velocity set to 0.0.  The timestep used is
+set by the <A HREF = "timestep.html">timestep</A> command, except that if any forces
+are too large, the timestep is limited so that no atoms displaces more
+than <I>dmax</I>, as set by the <A HREF = "min_modify.html">min_modify</A> command.
+</P>
+<P>Style <I>quickmin</I> is a damped-dynamics minimizer based on the Quickmin
+algorithm of <A HREF = "#Jonsson">(Jonsson)</A> as described in
+<A HREF = "#Sheppard">(Sheppard)</A>.  It performs an Euler update of the position
+and velocity each iteration as follows:
+</P>
+<PRE>Xnew = X + dt V
+Vnew = V + dt F/m 
+</PRE>
+<P>where V is the velocity of each atom, which is intially set to 0.0 by
+the minimizer.  Quickmin also projects the velocity onto the force
+direction (steepest descent) and zeroes the velocity whenever it
+becomes anti-parallel to the force (moving uphill).
+</P>
+<P>Style <I>fire</I> is a damped-dynamics minimizer based on the FIRE
+algorithm <A HREF = "#Bitzek">(Bitzek)</A>.  It is an enhancement to the Quickmin
+algorithm which adds an effective intertia term to the equations of
+motion and adapts the timestep and degree of projection of the
+velocity onto the force direction, in an attempt to converge more
+quickly.
 </P>
 <P><B>Restrictions:</B> none
 </P>
@@ -63,4 +121,20 @@ some situations.
 </P>
 <PRE>min_style cg 
 </PRE>
+<HR>
+
+<A NAME = "Bitzek"></A>
+
+<P><B>(Bitzek)</B> Bitzek, Koskinen, Gahler, Moseler, Gumbsch,
+Phys Rev Lett, 97, 170201 (2006).
+</P>
+<A NAME = "Sheppard"></A>
+
+<P><B>(Sheppard)</B> Sheppard, Terrell, Henkelman, J Chem Phys, 128, 134106 (2008).
+</P>
+<A NAME = "Jonsson"></A>
+
+<P><B>(Jonsson)</B> Jonsson, Mills, Jacobson, Classical and Quantum
+Dynamics in Condensed Phase Simulations, J Chem Phys, 128, 134106 (2008).
+</P>
 </HTML>

@@ -27,28 +27,29 @@ minimize 0.0 1.0e-8 1000 100000
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Perform an energy minimization of the system, by iteratively adjusting
-atom coordinates.  Iterations are terminated when one of the stopping
-criteria is satisfied.  At that point the configuration will hopefully
-be in local potential energy minimum.  More precisely, the
-configuration should approximate a critical point for the objective
-function (see below), which may or may not be a local minimum.
+<P>Perform an energy minimization or force zeroing of the system, by
+iteratively adjusting atom coordinates.  Iterations are terminated
+when one of the stopping criteria is satisfied.  At that point the
+configuration will hopefully be in local potential energy minimum.
+More precisely, the configuration should approximate a critical point
+for the objective function (see below), which may or may not be a
+local minimum.
 </P>
 <P>The minimization algorithm used is set by the
 <A HREF = "min_style.html">min_style</A> command.  Other options are set by the
 <A HREF = "min_modify.html">min_modify</A> command.  Minimize commands can be
 interspersed with <A HREF = "run.html">run</A> commands to alternate between
 relaxation and dynamics.  The minimizers bound the distance atoms move
-in one iteration, so that you can relax systems with highly overlapped
-atoms (large energies and forces) by pushing the atoms off of each
-other.
+in one iteration (via the <A HREF = "min_modify.html">min_modify dmax</A> setting),
+so that you can relax systems with highly overlapped atoms (large
+energies and forces) by pushing the atoms off of each other.
 </P>
 <P>Alternate means of relaxing a system are to run dynamics with a small
 or <A HREF = "fix_nve_limit.html">limited timestep</A>.  Or dynamics can be run
 using <A HREF = "fix_viscous.html">fix viscous</A> to impose a damping force that
 slowly drains all kinetic energy from the system.  The <A HREF = "pair_soft.html">pair_style
-soft</A> potential can be used to un-overlap atoms while
-running dynamics.
+soft</A> potential can be used to un-overlap atoms
+gradually while running dynamics.
 </P>
 <P>A minimization involves an outer iteration loop which sets the search
 direction along which atom coordinates are changed.  An inner

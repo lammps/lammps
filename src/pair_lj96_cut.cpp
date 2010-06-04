@@ -622,7 +622,7 @@ double PairLJ96Cut::init_one(int i, int j)
     etail_ij = 8.0*PI*all[0]*all[1]*epsilon[i][j] * 
       sig6 * (sig3 - 2.0*rc3) / (6.0*rc6); 
     ptail_ij = 8.0*PI*all[0]*all[1]*epsilon[i][j] * 
-      sig6 * (3.0*sig3 - 2.0*rc3) / (6.0*rc6); 
+      sig6 * (3.0*sig3 - 4.0*rc3) / (6.0*rc6); 
   } 
 
   return cut[i][j];

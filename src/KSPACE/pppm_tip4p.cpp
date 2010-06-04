@@ -24,7 +24,7 @@
 
 using namespace LAMMPS_NS;
 
-#define OFFSET 4096
+#define OFFSET 16384
 
 /* ---------------------------------------------------------------------- */
 

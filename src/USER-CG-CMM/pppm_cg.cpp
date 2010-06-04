@@ -37,7 +37,7 @@
 using namespace LAMMPS_NS;
 
 #define MAXORDER 7
-#define OFFSET 4096
+#define OFFSET 16384
 #define SMALL 0.00001
 #define SMALLQ 0.01
 #define LARGE 10000.0

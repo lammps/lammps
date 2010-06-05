@@ -21,6 +21,8 @@ atom_vec_angle.cpp
 atom_vec_angle.h
 atom_vec_bond.cpp
 atom_vec_bond.h
+atom_vec_dipole.cpp
+atom_vec_dipole.h
 atom_vec_ellipsoid.cpp
 atom_vec_ellipsoid.h
 atom_vec_full.cpp
@@ -165,6 +167,10 @@ pair_coul_long.cpp
 pair_coul_long.h
 pair_coul_long_omp.cpp
 pair_coul_long_omp.h
+pair_dipole_cut.cpp
+pair_dipole_cut.h
+pair_dipole_cut_omp.cpp
+pair_dipole_cut_omp.h
 pair_dpd_omp.cpp
 pair_dpd_omp.h
 pair_dpd_tstat_omp.cpp

@@ -201,6 +201,8 @@ pair_gayberne.cpp
 pair_gayberne.h
 pair_gayberne_gpu.cpp
 pair_gayberne_gpu.h
+pair_gayberne_omp.cpp
+pair_gayberne_omp.h
 pair_gran_hertz_history.cpp
 pair_gran_hertz_history.h
 pair_gran_hooke.cpp
@@ -261,6 +263,8 @@ pair_omp.cpp
 pair_omp.h
 pair_resquared.cpp
 pair_resquared.h
+pair_resquared_omp.cpp
+pair_resquared_omp.h
 pair_soft_omp.cpp
 pair_soft_omp.h
 pair_sw.cpp

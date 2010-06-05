@@ -1,0 +1,36 @@
+# Point dipoles in a 2d box
+
+units		lj
+atom_style	dipole
+dimension	2
+
+lattice		sq2 0.7
+region		box block 0 20 0 20 -0.5 0.5
+create_box	1 box
+create_atoms	1 box
+
+replicate 2 2 1 
+
+mass		1 1.0
+shape		1 1 1 1
+dipole		1 0.75
+set		group all dipole/random 98934
+
+velocity	all create 0.0 87287 mom no
+
+pair_style	dipole/cut/omp 2.5
+pair_coeff	* * 1.0 1.0
+
+neighbor	0.3 bin
+neigh_modify	delay 0
+
+fix		1 all nve/sphere update dipole
+fix		2 all enforce2d
+
+timestep	0.005
+
+compute		erot all erotate/sphere
+thermo_style	custom step temp epair c_erot etotal press
+thermo		500
+
+run		10000

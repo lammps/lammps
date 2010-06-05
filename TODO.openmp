@@ -3,14 +3,17 @@ threading project.
 
 Axel:
 - rewrite and port the remaining CGCMM pair style to threading
-- port dpd pair style to threading 
-  (needs parallel random number generators)
-- think about adding threading to pppm and ewald.
-- fourier transforms
-- provide thread safe versions of and ev_tally_xyz()
+- think about adding threading to pppm
+- ... more threading to ewald?
+- fourier transforms (may need extra flag to restrict fft-threads)
 pair_cg_cmm_coul_long.cpp
-pair_dpd.cpp
-pair_dpd_tstat.cpp
+- update documenteation
+pair_eam_alloy.cpp
+pair_eam_alloy_opt.cpp
+pair_eam.cpp
+pair_eam_fs.cpp
+pair_eam_fs_opt.cpp
+pair_eam_opt.cpp
 
 Peter, Ryan
 - check compilation on local and remote machines
@@ -20,13 +23,7 @@ Axel, Peter, Ryan:
 potential further candidates:
 - bonded potentials, particularly dihedrals, integrators, fixes/computes.
 
-- these need special coding. postponed for now
-pair_eam_alloy.cpp
-pair_eam_alloy_opt.cpp
-pair_eam.cpp
-pair_eam_fs.cpp
-pair_eam_fs_opt.cpp
-pair_eam_opt.cpp
+- need more special coding. postponed for now
 pair_resquared.cpp
 pair_gayberne.cpp
 pair_gran_hertz_history.cpp

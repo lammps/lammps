@@ -106,7 +106,7 @@ void PairLJCutOMP::eval()
     const int nall = nlocal + atom->nghost;
     const int nthreads = comm->nthreads;
 
-    xyz_t *xx = (xyz_t *)atom->x[0];
+    const xyz_t *xx = (xyz_t *)atom->x[0];
     int *type = atom->type;
     double *special_lj = force->special_lj;
     double fxtmp,fytmp,fztmp;
@@ -208,7 +208,7 @@ void PairLJCutOMP::eval_inner()
     int nall = nlocal + atom->nghost;
     int nthreads = comm->nthreads;
 
-    xyz_t *xx = (xyz_t *)atom->x[0];
+    const xyz_t *xx = (xyz_t *)atom->x[0];
     int *type = atom->type;
     double *special_lj = force->special_lj;
     double fxtmp,fytmp,fztmp;
@@ -312,7 +312,7 @@ void PairLJCutOMP::eval_middle()
     int nall = nlocal + atom->nghost;
     int nthreads = comm->nthreads;
 
-    xyz_t *xx = (xyz_t *)atom->x[0];
+    const xyz_t *xx = (xyz_t *)atom->x[0];
     int *type = atom->type;
     double *special_lj = force->special_lj;
     double fxtmp,fytmp,fztmp;
@@ -446,7 +446,7 @@ void PairLJCutOMP::eval_outer()
 
     evdwl = 0.0;
 
-    xyz_t *xx = (xyz_t *)atom->x[0];
+    const xyz_t *xx = (xyz_t *)atom->x[0];
     int *type = atom->type;
     int nlocal = atom->nlocal;
     int nall = nlocal + atom->nghost;

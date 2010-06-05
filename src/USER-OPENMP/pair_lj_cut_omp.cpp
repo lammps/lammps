@@ -106,7 +106,7 @@ void PairLJCutOMP::eval()
     const int nall = nlocal + atom->nghost;
     const int nthreads = comm->nthreads;
 
-    xyz_t* xx = (xyz_t*)atom->x[0];
+    xyz_t *xx = (xyz_t *)atom->x[0];
     int *type = atom->type;
     double *special_lj = force->special_lj;
     double fxtmp,fytmp,fztmp;
@@ -208,11 +208,11 @@ void PairLJCutOMP::eval_inner()
     int nall = nlocal + atom->nghost;
     int nthreads = comm->nthreads;
 
-    double **x = atom->x;
-    double **f = atom->f;
+    xyz_t *xx = (xyz_t *)atom->x[0];
     int *type = atom->type;
     double *special_lj = force->special_lj;
-  
+    double fxtmp,fytmp,fztmp;
+ 
     inum = listinner->inum;
     ilist = listinner->ilist;
     numneigh = listinner->numneigh;
@@ -228,16 +228,18 @@ void PairLJCutOMP::eval_inner()
     // loop over neighbors of my atoms
 
     int iifrom, iito;
-    f = loop_setup_thr(f, iifrom, iito, tid, inum, nall, nthreads);
+    double **f = loop_setup_thr(f, iifrom, iito, tid, inum, nall, nthreads);
+    xyz_t* ff = (xyz_t*)f[0];
     for (ii = iifrom; ii < iito; ++ii) {
 
       i = ilist[ii];
-      xtmp = x[i][0];
-      ytmp = x[i][1];
-      ztmp = x[i][2];
+      xtmp = xx[i].x;
+      ytmp = xx[i].y;
+      ztmp = xx[i].z;
       itype = type[i];
       jlist = firstneigh[i];
       jnum = numneigh[i];
+      fxtmp=fytmp=fztmp=0.0;
 
       for (jj = 0; jj < jnum; jj++) {
 	j = jlist[jj];
@@ -248,9 +250,9 @@ void PairLJCutOMP::eval_inner()
 	  j %= nall;
 	}
 
-	delx = xtmp - x[j][0];
-	dely = ytmp - x[j][1];
-	delz = ztmp - x[j][2];
+	delx = xtmp - xx[j].x;
+	dely = ytmp - xx[j].y;
+	delz = ztmp - xx[j].z;
 	rsq = delx*delx + dely*dely + delz*delz;
 
 	if (rsq < cut_out_off_sq) {
@@ -264,16 +266,19 @@ void PairLJCutOMP::eval_inner()
 	    fpair *= 1.0 - rsw*rsw*(3.0 - 2.0*rsw);
 	  }
 
-	  f[i][0] += delx*fpair;
-	  f[i][1] += dely*fpair;
-	  f[i][2] += delz*fpair;
+	  fxtmp += delx*fpair;
+	  fytmp += dely*fpair;
+	  fztmp += delz*fpair;
 	  if (NEWTON_PAIR || j < nlocal) {
-	    f[j][0] -= delx*fpair;
-	    f[j][1] -= dely*fpair;
-	    f[j][2] -= delz*fpair;
+	    ff[j].x -= delx*fpair;
+	    ff[j].y -= dely*fpair;
+	    ff[j].z -= delz*fpair;
 	  }
 	}
       }
+      ff[i].x += fxtmp; 
+      ff[i].y += fytmp; 
+      ff[i].z += fztmp;
     }
 
     // reduce per thread forces into global force array.
@@ -307,10 +312,10 @@ void PairLJCutOMP::eval_middle()
     int nall = nlocal + atom->nghost;
     int nthreads = comm->nthreads;
 
-    double **x = atom->x;
-    double **f = atom->f;
+    xyz_t *xx = (xyz_t *)atom->x[0];
     int *type = atom->type;
     double *special_lj = force->special_lj;
+    double fxtmp,fytmp,fztmp;
 
     inum = listmiddle->inum;
     ilist = listmiddle->ilist;
@@ -332,15 +337,17 @@ void PairLJCutOMP::eval_middle()
     // loop over neighbors of my atoms
 
     int iifrom, iito;
-    f = loop_setup_thr(f, iifrom, iito, tid, inum, nall, nthreads);
+    double **f = loop_setup_thr(f, iifrom, iito, tid, inum, nall, nthreads);
+    xyz_t* ff = (xyz_t*)f[0];
     for (ii = iifrom; ii < iito; ++ii) {
       i = ilist[ii];
-      xtmp = x[i][0];
-      ytmp = x[i][1];
-      ztmp = x[i][2];
+      xtmp = xx[i].x;
+      ytmp = xx[i].y;
+      ztmp = xx[i].z;
       itype = type[i];
       jlist = firstneigh[i];
       jnum = numneigh[i];
+      fxtmp=fytmp=fztmp=0.0;
 
       for (jj = 0; jj < jnum; jj++) {
 	j = jlist[jj];
@@ -351,9 +358,9 @@ void PairLJCutOMP::eval_middle()
 	  j %= nall;
 	}
 
-	delx = xtmp - x[j][0];
-	dely = ytmp - x[j][1];
-	delz = ztmp - x[j][2];
+	delx = xtmp - xx[j].x;
+	dely = ytmp - xx[j].y;
+	delz = ztmp - xx[j].z;
 	rsq = delx*delx + dely*dely + delz*delz;
 
 	if (rsq < cut_out_off_sq && rsq > cut_in_off_sq) {
@@ -371,16 +378,19 @@ void PairLJCutOMP::eval_middle()
 	    fpair *= 1.0 + rsw*rsw*(2.0*rsw - 3.0);
 	  }
 
-	  f[i][0] += delx*fpair;
-	  f[i][1] += dely*fpair;
-	  f[i][2] += delz*fpair;
+	  fxtmp += delx*fpair;
+	  fytmp += dely*fpair;
+	  fztmp += delz*fpair;
 	  if (NEWTON_PAIR || j < nlocal) {
-	    f[j][0] -= delx*fpair;
-	    f[j][1] -= dely*fpair;
-	    f[j][2] -= delz*fpair;
+	    ff[j].x -= delx*fpair;
+	    ff[j].y -= dely*fpair;
+	    ff[j].z -= delz*fpair;
 	  }
 	}
       }
+      ff[i].x += delx*fpair;
+      ff[i].y += dely*fpair;
+      ff[i].z += delz*fpair;
     }
     
     // reduce per thread forces into global force array.
@@ -436,14 +446,14 @@ void PairLJCutOMP::eval_outer()
 
     evdwl = 0.0;
 
-    double **x = atom->x;
-    double **f = atom->f;
+    xyz_t *xx = (xyz_t *)atom->x[0];
     int *type = atom->type;
     int nlocal = atom->nlocal;
     int nall = nlocal + atom->nghost;
     int nthreads = comm->nthreads;
 
     double *special_lj = force->special_lj;
+    double fxtmp,fytmp,fztmp;
 
     inum = listouter->inum;
     ilist = listouter->ilist;
@@ -460,15 +470,17 @@ void PairLJCutOMP::eval_outer()
     // loop over neighbors of my atoms
 
     int iifrom, iito;
-    f = loop_setup_thr(f, iifrom, iito, tid, inum, nall, nthreads);
+    double **f = loop_setup_thr(f, iifrom, iito, tid, inum, nall, nthreads);
+    xyz_t* ff = (xyz_t*)f[0];
     for (ii = iifrom; ii < iito; ++ii) {
       i = ilist[ii];
-      xtmp = x[i][0];
-      ytmp = x[i][1];
-      ztmp = x[i][2];
+      xtmp = xx[i].x;
+      ytmp = xx[i].y;
+      ztmp = xx[i].z;
       itype = type[i];
       jlist = firstneigh[i];
       jnum = numneigh[i];
+      fxtmp=fytmp=fztmp=0.0;
 
       for (jj = 0; jj < jnum; jj++) {
 	j = jlist[jj];
@@ -479,9 +491,9 @@ void PairLJCutOMP::eval_outer()
 	  j %= nall;
 	}
 
-	delx = xtmp - x[j][0];
-	dely = ytmp - x[j][1];
-	delz = ztmp - x[j][2];
+	delx = xtmp - xx[j].x;
+	dely = ytmp - xx[j].y;
+	delz = ztmp - xx[j].z;
 	rsq = delx*delx + dely*dely + delz*delz;
 	jtype = type[j];
 
@@ -496,13 +508,13 @@ void PairLJCutOMP::eval_outer()
 	      fpair *= rsw*rsw*(3.0 - 2.0*rsw);
 	    }
 
-	    f[i][0] += delx*fpair;
-	    f[i][1] += dely*fpair;
-	    f[i][2] += delz*fpair;
+	    fxtmp += delx*fpair;
+	    fytmp += dely*fpair;
+	    fztmp += delz*fpair;
 	    if (NEWTON_PAIR || j < nlocal) {
-	      f[j][0] -= delx*fpair;
-	      f[j][1] -= dely*fpair;
-	      f[j][2] -= delz*fpair;
+	      ff[j].x -= delx*fpair;
+	      ff[j].y -= dely*fpair;
+	      ff[j].z -= delz*fpair;
 	    }
 	  }
 
@@ -528,6 +540,9 @@ void PairLJCutOMP::eval_outer()
 				   evdwl,0.0,fpair,delx,dely,delz,0);
 	}
       }
+      ff[i].x += fxtmp;
+      ff[i].y += fytmp;
+      ff[i].z += fztmp;
     }
     // reduce per thread forces into global force array.
     force_reduce_thr(atom->f, nall, nthreads, tid);

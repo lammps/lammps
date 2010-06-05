@@ -125,7 +125,7 @@ void PairCoulLongOMP::eval()
     // loop over neighbors of my atoms
 
     int iifrom, iito;
-    double **f = loop_setup_thr(f, iifrom, iito, tid, inum, nall, nthreads);
+    double **f = loop_setup_thr(atom->f, iifrom, iito, tid, inum, nall, nthreads);
     xyz_t* ff = (xyz_t*)f[0];
     for (ii = iifrom; ii < iito; ++ii) {
 

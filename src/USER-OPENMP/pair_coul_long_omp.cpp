@@ -116,6 +116,7 @@ void PairCoulLongOMP::eval()
     double *special_coul = force->special_coul;
     double *special_lj = force->special_lj;
     double qqrd2e = force->qqrd2e;
+    double fxtmp,fytmp,fztmp;
 
     inum = list->inum;
     ilist = list->ilist;
@@ -136,6 +137,8 @@ void PairCoulLongOMP::eval()
       jlist = firstneigh[i];
       jnum = numneigh[i];
 
+      fxtmp=fytmp=fztmp=0.0;
+
       for (jj = 0; jj < jnum; jj++) {
 	j = jlist[jj];
 
@@ -153,55 +156,57 @@ void PairCoulLongOMP::eval()
 	if (rsq < cut_coulsq) {
           r2inv = 1.0/rsq;
           if (!ncoultablebits || rsq <= tabinnersq) {
-              r = sqrt(rsq);
-              grij = g_ewald * r;
-              expm2 = exp(-grij*grij);
-              t = 1.0 / (1.0 + EWALD_P*grij);
-              erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
-              prefactor = qqrd2e * qtmp*q[j]/r;
-              forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
-              if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
-	} else {
-              union_int_float_t rsq_lookup;
-              rsq_lookup.f = rsq;
-              itable = rsq_lookup.i & ncoulmask;
-              itable >>= ncoulshiftbits;
-              fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
-              table = ftable[itable] + fraction*dftable[itable];
-              forcecoul = qtmp*q[j] * table;
-              if (factor_coul < 1.0) {
-                table = ctable[itable] + fraction*dctable[itable];
-                prefactor = qtmp*q[j] * table;
-                forcecoul -= (1.0-factor_coul)*prefactor;
-              }
-	}
+	    r = sqrt(rsq);
+	    grij = g_ewald * r;
+	    expm2 = exp(-grij*grij);
+	    t = 1.0 / (1.0 + EWALD_P*grij);
+	    erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+	    prefactor = qqrd2e * qtmp*q[j]/r;
+	    forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+	    if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
+	  } else {
+	    union_int_float_t rsq_lookup;
+	    rsq_lookup.f = rsq;
+	    itable = rsq_lookup.i & ncoulmask;
+	    itable >>= ncoulshiftbits;
+	    fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+	    table = ftable[itable] + fraction*dftable[itable];
+	    forcecoul = qtmp*q[j] * table;
+	    if (factor_coul < 1.0) {
+	      table = ctable[itable] + fraction*dctable[itable];
+	      prefactor = qtmp*q[j] * table;
+	      forcecoul -= (1.0-factor_coul)*prefactor;
+	    }
+	  }
 
-	fpair = forcecoul * r2inv;
+	  fpair = forcecoul * r2inv;
 
-	f[i][0] += delx*fpair;
-	f[i][1] += dely*fpair;
-	f[i][2] += delz*fpair;
-	if (NEWTON_PAIR || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
-	}
+	  fxtmp += delx*fpair;
+	  fytmp += dely*fpair;
+	  fztmp += delz*fpair;
+	  if (NEWTON_PAIR || j < nlocal) {
+	    f[j][0] -= delx*fpair;
+	    f[j][1] -= dely*fpair;
+	    f[j][2] -= delz*fpair;
+	  }
 	  if (EFLAG) {
-	      if (!ncoultablebits || rsq <= tabinnersq)
-                ecoul = prefactor*erfc;
-              else {
-                table = etable[itable] + fraction*detable[itable];
-                ecoul = qtmp*q[j] * table;
-              }
+	    if (!ncoultablebits || rsq <= tabinnersq)
+	      ecoul = prefactor*erfc;
+	    else {
+	      table = etable[itable] + fraction*detable[itable];
+	      ecoul = qtmp*q[j] * table;
+	    }
             if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
 	  }
 
 	  if (EVFLAG) ev_tally_thr(i,j,nlocal,NEWTON_PAIR,
-			     0.0,ecoul,fpair,delx,dely,delz, tid);
+				   0.0,ecoul,fpair,delx,dely,delz, tid);
 	}
       }
+      f[i][0] += fxtmp;
+      f[i][1] += fytmp;
+      f[i][2] += fztmp;
     }
-
     // reduce per thread forces into global force array.
     force_reduce_thr(atom->f, nall, nthreads, tid);
   }

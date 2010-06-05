@@ -194,8 +194,8 @@ void PairEAMOMP::eval()
       for (i = 0; i < nall; i++) rho_thr[i] = 0.0;
     } else for (i = 0; i < nlocal; i++) rho_thr[i] = 0.0;
 
-  // rho = density at each atom
-  // loop over neighbors of my atoms
+    // rho = density at each atom
+    // loop over neighbors of my atoms
     for (ii = iifrom; ii < iito; ++ii) {
 
       i = ilist[ii];
@@ -248,6 +248,10 @@ void PairEAMOMP::eval()
     // fp = derivative of embedding energy at each atom
     // phi = embedding energy at each atom
 
+#if defined(_OPENMP)
+    // wait until master thread has completed MPI communication
+#pragma omp barrier
+#endif
     for (ii = iifrom; ii < iito; ++ii) {
       i = ilist[ii];
       p = rho[i]*rdrho + 1.0;
@@ -264,9 +268,9 @@ void PairEAMOMP::eval()
       }
     }
 
-  // communicate derivative of embedding function
+    // communicate derivative of embedding function
 #if defined(_OPENMP)
-      // only the master thread may do MPI communication
+    // only the master thread may do MPI communication
 #pragma omp barrier
     { ; }
 #pragma omp master
@@ -276,6 +280,10 @@ void PairEAMOMP::eval()
     // compute forces on each atom
     // loop over neighbors of my atoms
 
+#if defined(_OPENMP)
+    // wait for master thread to complete MPI communication.
+#pragma omp barrier
+#endif
     for (ii = iifrom; ii < iito; ++ii) {
       i = ilist[ii];
       xtmp = x[i][0];

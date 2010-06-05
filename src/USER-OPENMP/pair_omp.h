@@ -101,7 +101,7 @@ class PairOMP : public Pair {
 #pragma omp barrier
       {
 	double **f;
-	const int idelta = (nthreads > 1) ? 1 + nall/nthreads : nall;
+	const int idelta = 1 + nall/nthreads;
 	const int ifrom = tid*idelta;
 	const int ito   = ((ifrom + idelta) > nall) ? nall : (ifrom + idelta);
 	for (int n = 1; n < nthreads; ++n) {
@@ -137,7 +137,7 @@ class PairOMP : public Pair {
 #pragma omp barrier
       {
 	double *rho_thr;
-	const int idelta = (nthreads > 1) ? 1 + nrange/nthreads : nrange;
+	const int idelta = 1 + nrange/nthreads;
 	const int ifrom = tid*idelta;
 	const int ito   = ((ifrom + idelta) > nrange) ? nrange : (ifrom + idelta);
 	for (int n = 1; n < nthreads; ++n) {

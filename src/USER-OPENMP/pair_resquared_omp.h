@@ -71,6 +71,8 @@ class PairRESquaredOMP : public PairOMP {
     
   void allocate();
 
+  template <int EVFLAG, int EFLAG, int NEWTON_PAIR> void eval();
+
   void precompute_i(const int i,RE2Vars &ws);
   double det_prime(const double m[3][3], const double m2[3][3]);
   double resquared_analytic(const int i, const int j,

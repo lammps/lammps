@@ -62,7 +62,7 @@ void PairDipoleCutOMP::compute(int eflag, int vflag)
 {
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
-//    ev_setup_thr(eflag,vflag);
+    ev_setup_thr(eflag,vflag);
   } else evflag = vflag_fdotr = 0;
 
   if (evflag) {

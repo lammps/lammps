@@ -53,6 +53,8 @@ class PairGayBerneOMP : public PairOMP {
   double **offset;
   int *setwell;
 
+  template <int EVFLAG, int EFLAG, int NEWTON_PAIR> void eval();
+
   void allocate();
   double gayberne_analytic(const int i, const int j, double a1[3][3],
                            double a2[3][3], double b1[3][3], double b2[3][3],

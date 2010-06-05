@@ -64,6 +64,8 @@ if (test $1 = 1) then
   if (test -e ../pair_airebo.cpp) then
     cp pair_airebo_omp.h ..
     cp pair_airebo_omp.cpp ..
+    cp pair_eam_omp.h ..
+    cp pair_eam_omp.cpp ..
     cp pair_sw_omp.h ..
     cp pair_sw_omp.cpp ..
     cp pair_tersoff_omp.h ..
@@ -152,6 +154,8 @@ elif (test $1 = 0) then
 
   rm -f ../pair_airebo_omp.h
   rm -f ../pair_airebo_omp.cpp
+  rm -f ../pair_eam_omp.h
+  rm -f ../pair_eam_omp.cpp
   rm -f ../pair_sw_omp.h
   rm -f ../pair_sw_omp.cpp
   rm -f ../pair_tersoff_omp.h

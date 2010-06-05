@@ -122,6 +122,36 @@ class PairOMP : public Pair {
       return;
 #endif
     };
+
+  // reduce per thread density into the first part of the rho
+  // array that is used for the non-threaded parts. for use with EAM.
+  // this is in the header to be inlined.
+  // we need to post a barrier to wait until all threads are done.
+  // the reduction can be threaded as well.
+  void rho_reduce_thr(double *rho, const int nmax, const int nrange, 
+		      const int nthreads, const int tid)
+    {
+#if defined(_OPENMP)
+      // NOOP in non-threaded execution.
+      if (nthreads == 1) return;
+#pragma omp barrier
+      {
+	double *rho_thr;
+	const int idelta = (nthreads > 1) ? 1 + nrange/nthreads : nrange;
+	const int ifrom = tid*idelta;
+	const int ito   = ((ifrom + idelta) > nrange) ? nrange : (ifrom + idelta);
+	for (int n = 1; n < nthreads; ++n) {
+	  const int toffs = n*nmax;
+	  rho_thr = rho + toffs;
+	  for (int m = ifrom; m < ito; ++m)
+	    rho[m] += rho_thr[m];
+	}
+      }
+#else
+      // NOOP in non-threaded execution.
+      return;
+#endif
+    };
 };
 
 }

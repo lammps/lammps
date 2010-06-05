@@ -194,6 +194,99 @@ void PairOMP::ev_tally_thr(int i, int j, int nlocal, int newton_pair,
     }
   }
 }
+/* ----------------------------------------------------------------------
+   tally eng_vdwl and virial into global and per-atom accumulators
+   for virial, have delx,dely,delz and fx,fy,fz
+------------------------------------------------------------------------- */
+
+void PairOMP::ev_tally_xyz_thr(int i, int j, int nlocal, int newton_pair,
+			    double evdwl, double ecoul,
+			    double fx, double fy, double fz,
+			    double delx, double dely, double delz, int tid)
+{
+  double evdwlhalf,ecoulhalf,epairhalf,v[6];
+  
+  if (eflag_either) {
+    if (eflag_global) {
+      if (newton_pair) {
+	eng_vdwl_thr[tid] += evdwl;
+	eng_coul_thr[tid] += ecoul;
+      } else {
+	evdwlhalf = 0.5*evdwl;
+	ecoulhalf = 0.5*ecoul;
+	if (i < nlocal) {
+	  eng_vdwl_thr[tid] += evdwlhalf;
+	  eng_coul_thr[tid] += ecoulhalf;
+	}
+	if (j < nlocal) {
+	  eng_vdwl_thr[tid] += evdwlhalf;
+	  eng_coul_thr[tid] += ecoulhalf;
+	}
+      }
+    }
+    if (eflag_atom) {
+      epairhalf = 0.5 * (evdwl + ecoul);
+      if (newton_pair || i < nlocal) eatom_thr[tid][i] += epairhalf;
+      if (newton_pair || j < nlocal) eatom_thr[tid][j] += epairhalf;
+    }
+  }
+
+  if (vflag_either) {
+    v[0] = delx*fx;
+    v[1] = dely*fy;
+    v[2] = delz*fz;
+    v[3] = delx*fy;
+    v[4] = delx*fz;
+    v[5] = dely*fz;
+
+    if (vflag_global) {
+      if (newton_pair) {
+	virial_thr[tid][0] += v[0];
+	virial_thr[tid][1] += v[1];
+	virial_thr[tid][2] += v[2];
+	virial_thr[tid][3] += v[3];
+	virial_thr[tid][4] += v[4];
+	virial_thr[tid][5] += v[5];
+      } else {
+	if (i < nlocal) {
+	  virial_thr[tid][0] += 0.5*v[0];
+	  virial_thr[tid][1] += 0.5*v[1];
+	  virial_thr[tid][2] += 0.5*v[2];
+	  virial_thr[tid][3] += 0.5*v[3];
+	  virial_thr[tid][4] += 0.5*v[4];
+	  virial_thr[tid][5] += 0.5*v[5];
+	}
+	if (j < nlocal) {
+	  virial_thr[tid][0] += 0.5*v[0];
+	  virial_thr[tid][1] += 0.5*v[1];
+	  virial_thr[tid][2] += 0.5*v[2];
+	  virial_thr[tid][3] += 0.5*v[3];
+	  virial_thr[tid][4] += 0.5*v[4];
+	  virial_thr[tid][5] += 0.5*v[5];
+	}
+      }
+    }
+
+    if (vflag_atom) {
+      if (newton_pair || i < nlocal) {
+	vatom_thr[tid][i][0] += 0.5*v[0];
+	vatom_thr[tid][i][1] += 0.5*v[1];
+	vatom_thr[tid][i][2] += 0.5*v[2];
+	vatom_thr[tid][i][3] += 0.5*v[3];
+	vatom_thr[tid][i][4] += 0.5*v[4];
+	vatom_thr[tid][i][5] += 0.5*v[5];
+      }
+      if (newton_pair || j < nlocal) {
+	vatom_thr[tid][j][0] += 0.5*v[0];
+	vatom_thr[tid][j][1] += 0.5*v[1];
+	vatom_thr[tid][j][2] += 0.5*v[2];
+	vatom_thr[tid][j][3] += 0.5*v[3];
+	vatom_thr[tid][j][4] += 0.5*v[4];
+	vatom_thr[tid][j][5] += 0.5*v[5];
+      }
+    }
+  }
+}
 
 /* ----------------------------------------------------------------------
    tally eng_vdwl and virial into global and per-atom accumulators

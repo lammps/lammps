@@ -61,6 +61,11 @@ if (test $1 = 1) then
     cp pair_cg_cmm_omp.cpp ..
   fi
 
+  if (test -e pair_dipole_cut_omp.cpp); then
+    cp pair_dipole_cut_omp.h ..
+    cp pair_dipole_cut_omp.cpp ..
+  fi
+
   if (test -e ../pair_airebo.cpp) then
     cp pair_airebo_omp.h ..
     cp pair_airebo_omp.cpp ..
@@ -155,6 +160,9 @@ elif (test $1 = 0) then
 
   rm -f ../pair_cg_cmm_omp.h
   rm -f ../pair_cg_cmm_omp.cpp
+
+  rm -f pair_dipole_cut_omp.h
+  rm -f pair_dipole_cut_omp.cpp
 
   rm -f ../pair_airebo_omp.h
   rm -f ../pair_airebo_omp.cpp

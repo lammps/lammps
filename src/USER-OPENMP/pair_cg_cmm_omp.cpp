@@ -125,7 +125,8 @@ void PairCGCMMOMP::eval()  {
     const int * const ilist = list->ilist;
     const int * const numneigh = list->numneigh;
     int * const * const firstneigh = list->firstneigh;
-  
+    double fxtmp,fytmp,fztmp;
+
     // loop over neighbors of my atoms
 
     int ii, jj, iifrom, iito, tid;
@@ -141,6 +142,8 @@ void PairCGCMMOMP::eval()  {
       const int itype = type[i];
       const int * const jlist = firstneigh[i];
       const int jnum = numneigh[i];
+
+      fxtmp=fytmp=fztmp=0.0;
 
       for (jj = 0; jj < jnum; jj++) {
 	int j2 = jlist[jj];
@@ -200,9 +203,9 @@ void PairCGCMMOMP::eval()  {
 	  }
 	  fpair *= r2inv;
 
-	  f[i][0] += delx*fpair;
-	  f[i][1] += dely*fpair;
-	  f[i][2] += delz*fpair;
+	  fxtmp += delx*fpair;
+	  fytmp += dely*fpair;
+	  fztmp += delz*fpair;
 	  if (NEWTON_PAIR || j < nlocal) {
 	    f[j][0] -= delx*fpair;
 	    f[j][1] -= dely*fpair;
@@ -212,6 +215,9 @@ void PairCGCMMOMP::eval()  {
 			       evdwl,0.0,fpair,delx,dely,delz,tid);
 	}
       }
+      f[i][0] += fxtmp;
+      f[i][1] += fytmp;
+      f[i][2] += fztmp;
     }
     // reduce per thread forces into global force array.
     force_reduce_thr(atom->f, nall, nthreads, tid);

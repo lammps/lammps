@@ -109,8 +109,7 @@ void PairCoulLongOMP::eval()
     const int nall = nlocal + atom->nghost;
     const int nthreads = comm->nthreads;
 
-    double **x = atom->x;
-    double **f = atom->f;
+    const xyz_t *xx = (xyz_t *)atom->x[0];
     double *q = atom->q;
     int *type = atom->type;
     double *special_coul = force->special_coul;
@@ -126,14 +125,15 @@ void PairCoulLongOMP::eval()
     // loop over neighbors of my atoms
 
     int iifrom, iito;
-    f = loop_setup_thr(f, iifrom, iito, tid, inum, nall, nthreads);
+    double **f = loop_setup_thr(f, iifrom, iito, tid, inum, nall, nthreads);
+    xyz_t* ff = (xyz_t*)f[0];
     for (ii = iifrom; ii < iito; ++ii) {
 
       i = ilist[ii];
       qtmp = q[i];
-      xtmp = x[i][0];
-      ytmp = x[i][1];
-      ztmp = x[i][2];
+      xtmp = xx[i].x;
+      ytmp = xx[i].y;
+      ztmp = xx[i].z;
       jlist = firstneigh[i];
       jnum = numneigh[i];
 
@@ -148,9 +148,9 @@ void PairCoulLongOMP::eval()
 	  j %= nall;
 	}
 
-	delx = xtmp - x[j][0];
-	dely = ytmp - x[j][1];
-	delz = ztmp - x[j][2];
+	delx = xtmp - xx[j].x;
+	dely = ytmp - xx[j].y;
+	delz = ztmp - xx[j].z;
 	rsq = delx*delx + dely*dely + delz*delz;
 
 	if (rsq < cut_coulsq) {
@@ -185,9 +185,9 @@ void PairCoulLongOMP::eval()
 	  fytmp += dely*fpair;
 	  fztmp += delz*fpair;
 	  if (NEWTON_PAIR || j < nlocal) {
-	    f[j][0] -= delx*fpair;
-	    f[j][1] -= dely*fpair;
-	    f[j][2] -= delz*fpair;
+	    ff[j].x -= delx*fpair;
+	    ff[j].y -= dely*fpair;
+	    ff[j].z -= delz*fpair;
 	  }
 	  if (EFLAG) {
 	    if (!ncoultablebits || rsq <= tabinnersq)
@@ -203,9 +203,9 @@ void PairCoulLongOMP::eval()
 				   0.0,ecoul,fpair,delx,dely,delz, tid);
 	}
       }
-      f[i][0] += fxtmp;
-      f[i][1] += fytmp;
-      f[i][2] += fztmp;
+      ff[i].x += fxtmp;
+      ff[i].y += fytmp;
+      ff[i].z += fztmp;
     }
     // reduce per thread forces into global force array.
     force_reduce_thr(atom->f, nall, nthreads, tid);

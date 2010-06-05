@@ -1,0 +1,154 @@
+LAMMPS (5 Jun 2010-ICMS)
+# GayBerne ellipsoids in LJ background fluid
+
+units	     lj
+atom_style   ellipsoid
+dimension    2
+
+lattice	     sq 0.02
+Lattice spacing in x,y,z = 7.07107 7.07107 7.07107
+region	     box block 0 20 0 20 -0.5 0.5
+create_box   2 box
+Created orthogonal box = (0 0 -3.53553) to (141.421 141.421 3.53553)
+  2 by 2 by 1 processor grid
+  using 2 OpenMP thread(s) per MPI task
+create_atoms 1 box
+Created 400 atoms
+
+replicate 3 3 1
+  orthogonal box = (0 0 -3.53553) to (424.264 424.264 3.53553)
+  2 by 2 by 1 processor grid
+  using 2 OpenMP thread(s) per MPI task
+  3600 atoms
+
+set	     group all type/fraction 2 0.1 95392
+  382 settings made for type/fraction
+set	     group all quat/random 18238
+  3600 settings made for quat/random
+
+mass	     1 1.0
+mass	     2 1.5
+shape	     1 1 1 1
+shape	     2 3 1 1
+
+compute	     rot all temp/asphere
+group	     spheroid type 1
+3218 atoms in group spheroid
+variable     dof equal count(spheroid)+2
+compute_modify rot extra ${dof}
+compute_modify rot extra 3220
+
+velocity     all create 2.4 87287 loop geom
+
+pair_style   gayberne/omp 1.0 3.0 1.0 4.0
+pair_coeff   1 1 3.0 1.0 1 1 1 1 1 1 2.5
+pair_coeff   1 2 3.0 1.0 1 1 1 0 0 0
+pair_coeff   2 2 1.0 1.0 1 1 0.2 0 0 0
+
+neighbor     0.8 bin
+
+thermo_style custom step c_rot epair etotal press vol
+thermo	     100
+
+timestep     0.002
+
+fix	     1 all npt/asphere temp 2.0 2.0 0.1 iso 0.0 1.0 1.0 	       mtk no pchain 0 tchain 1
+fix	     2 all enforce2d
+
+compute_modify 1_temp extra ${dof}
+compute_modify 1_temp extra 3220
+
+# equilibrate to shrink box around dilute system
+
+run	     2000
+Memory usage per processor = 0.646084 Mbytes
+Step rot E_pair TotEng Press Volume 
+       0    2.2790501            0    2.3993333  0.047986667       180000 
+     100    1.7385816            0      1.83034  0.035611105    185032.85 
+     200     2.282733            0    2.4032106  0.046625191    185555.45 
+     300    1.8530281            0    1.9508268  0.042280727     166103.5 
+     400    2.1732473 -0.00039663481    2.2875495  0.066836437    123148.21 
+     500    1.9768227 -0.032523061    2.0387898  0.098113886    76256.729 
+     600    2.1295025  -0.20970907    1.9711811   0.26995376    41865.236 
+     700    2.0538209  -0.71396939    1.3711589   0.58459861    22568.342 
+     800    1.9960346   -1.6438808   0.37999866    1.3595401    12919.483 
+     900    2.0615393   -2.9928048  -0.90393609    2.9751647    8488.1474 
+    1000    1.5260175   -4.3514083   -2.7937553    2.2262084    6889.8439 
+    1100    1.9669016   -4.7207436   -2.7002325    2.4253829    6517.7113 
+    1200    1.9844463   -4.4715412   -2.4359932   0.68793504    6953.1224 
+    1300    1.9926594   -4.0559518   -2.0101616   0.67339163    7621.2282 
+    1400    2.0892935   -3.7235706   -1.5789518   0.54011064    8381.9253 
+    1500    1.9477693   -3.4961143   -1.4922301    0.3669007    9155.7605 
+    1600    2.0991247   -3.3712141   -1.2168762   0.68465091    9724.9864 
+    1700    1.9285388   -3.3323179   -1.3568356   0.47737448    10180.027 
+    1800    2.0531208   -3.2756545   -1.1725408   0.88219585    10337.444 
+    1900    1.9581701   -3.3531003   -1.3442822   0.65801447    10354.677 
+    2000    2.0448928   -3.4462555   -1.3500274   0.84823357    10094.487 
+Loop time of 2.14434 on 4 procs / 2 threads for 2000 steps with 3600 atoms
+
+Pair  time (%) = 1.19013 (55.5009)
+Neigh time (%) = 0.0395239 (1.84317)
+Comm  time (%) = 0.248689 (11.5974)
+Outpt time (%) = 0.000895441 (0.0417583)
+Other time (%) = 0.665105 (31.0167)
+
+Nlocal:    900 ave 916 max 888 min
+Histogram: 2 0 0 0 0 0 1 0 0 1
+Nghost:    364.5 ave 392 max 329 min
+Histogram: 1 0 0 1 0 0 0 0 0 2
+Neighs:    6851.25 ave 7026 max 6596 min
+Histogram: 1 0 0 0 1 0 0 0 0 2
+
+Total # of neighbors = 27405
+Ave neighs/atom = 7.6125
+Neighbor list builds = 155
+Dangerous builds = 91
+
+# run dynamics on dense system
+
+unfix	     1
+fix	     1 all nve/asphere
+
+run	     2000
+Memory usage per processor = 2.29713 Mbytes
+Step rot E_pair TotEng Press Volume 
+    2000    2.0448928   -3.4467193   -1.3504912   0.84576603    10094.487 
+    2100    2.0269949   -3.4285418   -1.3822491   0.58217252    10094.487 
+    2200    2.0209023   -3.4219829   -1.4016426   0.72366805    10094.487 
+    2300    2.0290537   -3.4306413   -1.3899401   0.62654389    10094.487 
+    2400    2.0152334   -3.4171724   -1.3914066   0.73314716    10094.487 
+    2500    2.0118114   -3.4129003   -1.4027285   0.62689477    10094.487 
+    2600    2.0248859   -3.4265752   -1.3895508   0.58922087    10094.487 
+    2700     2.029828   -3.4324996   -1.4080332   0.71521598    10094.487 
+    2800    2.0110575   -3.4130179   -1.3965713   0.65787521    10094.487 
+    2900    1.9914532   -3.3927964   -1.3968001   0.66640154    10094.487 
+    3000    2.0128412   -3.4138772   -1.3959446   0.67947124    10094.487 
+    3100    2.0061521   -3.4062053   -1.4009724   0.45478297    10094.487 
+    3200    1.9904607   -3.3901444   -1.3962319   0.65899335    10094.487 
+    3300    1.9938033   -3.3936534   -1.3995527   0.56503802    10094.487 
+    3400    2.0082738   -3.4095729   -1.4008529   0.71165832    10094.487 
+    3500    1.9908568   -3.3913902   -1.3928551   0.61048382    10094.487 
+    3600    2.0005367   -3.4014022   -1.3926899    0.6428418    10094.487 
+    3700    1.9921455    -3.393381    -1.391821   0.73565343    10094.487 
+    3800    2.0091321   -3.4097256   -1.4050665   0.56540391    10094.487 
+    3900     1.988273    -3.387924   -1.4005785   0.60607058    10094.487 
+    4000     1.985544   -3.3831624   -1.3924124   0.63365444    10094.487 
+Loop time of 1.99651 on 4 procs / 2 threads for 2000 steps with 3600 atoms
+
+Pair  time (%) = 1.4547 (72.8619)
+Neigh time (%) = 0.0191329 (0.958317)
+Comm  time (%) = 0.219553 (10.9968)
+Outpt time (%) = 0.000929117 (0.046537)
+Other time (%) = 0.302201 (15.1364)
+
+Nlocal:    900 ave 917 max 853 min
+Histogram: 1 0 0 0 0 0 0 0 0 3
+Nghost:    370 ave 409 max 347 min
+Histogram: 2 0 0 0 1 0 0 0 0 1
+Neighs:    6859 ave 7122 max 6267 min
+Histogram: 1 0 0 0 0 0 0 1 0 2
+
+Total # of neighbors = 27436
+Ave neighs/atom = 7.62111
+Neighbor list builds = 56
+Dangerous builds = 0

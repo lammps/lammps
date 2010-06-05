@@ -1281,8 +1281,10 @@ void pair(FILE *fp, Data &data, char *style, int flag)
   if (strcmp(style,"none") == 0) {
 
   } else if (strcmp(style,"airebo") == 0) {
+  } else if (strcmp(style,"airebo/omp") == 0) {
 
-  } else if (strcmp(style,"born/coul/long") == 0) {
+  } else if ((strcmp(style,"born/coul/long") == 0) ||
+	     (strcmp(style,"born/coul/long/omp") == 0)) {
     double cut_lj_global = read_double(fp);
     double cut_coul = read_double(fp);
     int offset_flag = read_int(fp);
@@ -1323,28 +1325,36 @@ void pair(FILE *fp, Data &data, char *style, int flag)
       }
 
   } else if ((strcmp(style,"buck") == 0)  ||
-	   (strcmp(style,"buck/coul/cut") == 0) ||
-	   (strcmp(style,"buck/coul/long") == 0) ||
-	   (strcmp(style,"buck/coul") == 0)) {
+	     (strcmp(style,"buck/coul/cut") == 0) ||
+	     (strcmp(style,"buck/coul/long") == 0) ||
+	     (strcmp(style,"buck/coul") == 0) ||
+	     (strcmp(style,"buck/omp") == 0)  ||
+	     (strcmp(style,"buck/coul/cut/omp") == 0) ||
+	     (strcmp(style,"buck/coul/long/omp") == 0) ||
+	     (strcmp(style,"buck/coul/omp") == 0)) {
 
-    if (strcmp(style,"buck") == 0) {
+    if ((strcmp(style,"buck") == 0) ||
+	(strcmp(style,"buck/omp") == 0)) {
       m = 0;
       double cut_lj_global = read_double(fp);
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
-    } else if (strcmp(style,"buck/coul/cut") == 0) {
+    } else if ((strcmp(style,"buck/coul/cut") == 0) ||
+	       (strcmp(style,"buck/coul/cut/omp") == 0)) {
       m = 1;
       double cut_lj_global = read_double(fp);
       double cut_lj_coul = read_double(fp);
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
-    } else if (strcmp(style,"buck/coul/long") == 0) {
+    } else if ((strcmp(style,"buck/coul/long") == 0) ||
+	       (strcmp(style,"buck/coul/long/omp") == 0)) {
       m = 0;
       double cut_lj_global = read_double(fp);
       double cut_lj_coul = read_double(fp);
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
-    } else if (strcmp(style,"buck/coul") == 0) {
+    } else if ((strcmp(style,"buck/coul") == 0) ||
+	       (strcmp(style,"buck/coul/omp") == 0)) {
       m = 0;
       double cut_buck_global = read_double(fp);
       double cut_coul = read_double(fp);
@@ -1420,21 +1430,55 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 	}
       }
     
+  } else if ((strcmp(style,"coul/diel") == 0) ||
+	       (strcmp(style,"coul/diel/omp") == 0)) {
+    m = 1;
+    double cut_coul = read_double(fp);
+    int offset_flag = read_int(fp);
+    int mix_flag = read_int(fp);
+    if (!flag) return;
+
+    for (i = 1; i <= data.ntypes; i++)
+      for (j = i; j <= data.ntypes; j++) {
+	itmp = read_int(fp);
+	if (i == j && itmp == 0) {
+	  printf("ERROR: Pair coeff %d,%d is not in restart file\n",i,j);
+	  exit(1);
+	}
+	if (itmp) {
+	  if (i == j) {
+	    double diel_rme = read_double(fp);
+	    double diel_sigmae = read_double(fp);
+	    double cut_coul = read_double(fp);
+	  } else {
+	    double diel_rme = read_double(fp);
+	    double diel_sigmae = read_double(fp);
+	    double cut_coul = read_double(fp);
+	  }
+	}
+      }
+
   } else if ((strcmp(style,"coul/cut") == 0) ||
 	     (strcmp(style,"coul/debye") == 0) ||
-	     (strcmp(style,"coul/long") == 0)) {
+	     (strcmp(style,"coul/long") == 0) ||
+	     (strcmp(style,"coul/cut/omp") == 0) ||
+	     (strcmp(style,"coul/debye/omp") == 0) ||
+	     (strcmp(style,"coul/long/omp") == 0)) {
 
-    if (strcmp(style,"coul/cut") == 0) {
+    if ((strcmp(style,"coul/cut") == 0) ||
+	(strcmp(style,"coul/cut/omp") == 0)) {
       double cut_coul = read_double(fp);
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
-    } else if (strcmp(style,"coul/debye") == 0) {
+    } else if ((strcmp(style,"coul/debye") == 0) ||
+	       (strcmp(style,"coul/debye/omp") == 0)) {
       m = 1;
       double cut_coul = read_double(fp);
       double kappa = read_double(fp);
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
-    } else if (strcmp(style,"coul/long") == 0) {
+    } else if ((strcmp(style,"coul/long") == 0) ||
+	       (strcmp(style,"coul/long/omp") == 0)) {
       double cut_coul = read_double(fp);
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
@@ -1492,7 +1536,8 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 	}
       }
 
-  } else if (strcmp(style,"dpd") == 0) {
+  } else if ((strcmp(style,"dpd") == 0) ||
+	     (strcmp(style,"dpd/omp") == 0)) {
 
     double temperature = read_double(fp);
     double cut_global = read_double(fp);
@@ -1530,7 +1575,11 @@ void pair(FILE *fp, Data &data, char *style, int flag)
   } else if (strcmp(style,"eam/alloy/opt") == 0) {
   } else if (strcmp(style,"eam/fs") == 0) {
   } else if (strcmp(style,"eam/fs/opt") == 0) {
-  } else if (strcmp(style,"gauss/cut") == 0) {
+  } else if (strcmp(style,"eam/omp") == 0) {
+  } else if (strcmp(style,"eam/alloy/omp") == 0) {
+  } else if (strcmp(style,"eam/fs/omp") == 0) {
+  } else if ((strcmp(style,"gauss/cut") == 0) ||
+             (strcmp(style,"gauss/cut/omp") == 0)) {
 
     double cut_lj_global = read_double(fp);
     int offset_flag = read_int(fp);
@@ -1625,16 +1674,21 @@ void pair(FILE *fp, Data &data, char *style, int flag)
   } else if ((strcmp(style,"lj/charmm/coul/charmm") == 0) ||
 	   (strcmp(style,"lj/charmm/coul/charmm/implicit") == 0) ||
 	   (strcmp(style,"lj/charmm/coul/long") == 0) ||
-	   (strcmp(style,"lj/charmm/coul/long/opt") == 0)) {
+	   (strcmp(style,"lj/charmm/coul/long/opt") == 0) ||
+	   (strcmp(style,"lj/charmm/coul/charmm/omp") == 0) ||
+	   (strcmp(style,"lj/charmm/coul/charmm/implicit/omp") == 0) ||
+	   (strcmp(style,"lj/charmm/coul/long/omp") == 0)) {
 
-    if (strcmp(style,"lj/charmm/coul/charmm") == 0) {
+    if ((strcmp(style,"lj/charmm/coul/charmm") == 0) ||
+	(strcmp(style,"lj/charmm/coul/charmm/omp") == 0)) {
       double cut_lj_inner = read_double(fp);
       double cut_lj = read_double(fp);
       double cut_coul_inner = read_double(fp);
       double cut_coul = read_double(fp);
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
-    } else if (strcmp(style,"lj/charmm/coul/charmm/implicit") == 0) {
+    } else if ((strcmp(style,"lj/charmm/coul/charmm/implicit") == 0) ||
+	       (strcmp(style,"lj/charmm/coul/charmm/implicit/omp") == 0)) {
       double cut_lj_inner = read_double(fp);
       double cut_lj = read_double(fp);
       double cut_coul_inner = read_double(fp);
@@ -1642,6 +1696,7 @@ void pair(FILE *fp, Data &data, char *style, int flag)
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
     } else if ((strcmp(style,"lj/charmm/coul/long") == 0) ||
+	       (strcmp(style,"lj/charmm/coul/long/omp") == 0) ||
 	       (strcmp(style,"lj/charmm/coul/long/opt") == 0)) {
       double cut_lj_inner = read_double(fp);
       double cut_lj = read_double(fp);
@@ -1680,21 +1735,27 @@ void pair(FILE *fp, Data &data, char *style, int flag)
       }
 
   } else if ((strcmp(style,"lj/class2") == 0) ||
-	   (strcmp(style,"lj/class2/coul/cut") == 0) ||
-	   (strcmp(style,"lj/class2/coul/long") == 0)) {
+	     (strcmp(style,"lj/class2/coul/cut") == 0) ||
+	     (strcmp(style,"lj/class2/coul/long") == 0) ||
+	     (strcmp(style,"lj/class2/omp") == 0) ||
+	     (strcmp(style,"lj/class2/coul/cut/omp") == 0) ||
+	     (strcmp(style,"lj/class2/coul/long/omp") == 0)) {
 
-    if (strcmp(style,"lj/class2") == 0) {
+    if ((strcmp(style,"lj/class2") == 0) ||
+	(strcmp(style,"lj/class2/omp") == 0)) {
       m = 0;
       double cut_lj_global = read_double(fp);
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
-    } else if (strcmp(style,"lj/class2/coul/cut") == 0) {
+    } else if ((strcmp(style,"lj/class2/coul/cut") == 0) ||
+	       (strcmp(style,"lj/class2/coul/cut/omp") == 0)) {
       m = 1;
       double cut_lj_global = read_double(fp);
       double cut_lj_coul = read_double(fp);
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
-    } else if (strcmp(style,"lj/class2/coul/long") == 0) {
+    } else if ((strcmp(style,"lj/class2/coul/long") == 0) ||
+	       (strcmp(style,"lj/class2/coul/long/omp") == 0)) {
       m = 0;
       double cut_lj_global = read_double(fp);
       double cut_lj_coul = read_double(fp);
@@ -1735,33 +1796,44 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 	   (strcmp(style,"lj/cut/coul/debye") == 0) ||
 	   (strcmp(style,"lj/cut/coul/long") == 0) ||
 	   (strcmp(style,"lj/cut/coul/long/tip4p") == 0) ||
-	   (strcmp(style,"lj/coul") == 0)) {
+	   (strcmp(style,"lj/coul") == 0) ||
+	   (strcmp(style,"lj/cut/omp") == 0) ||
+	   (strcmp(style,"lj/cut/coul/cut/omp") == 0) ||
+	   (strcmp(style,"lj/cut/coul/debye/omp") == 0) ||
+	   (strcmp(style,"lj/cut/coul/long/omp") == 0) ||
+	   (strcmp(style,"lj/cut/coul/long/tip4p/omp") == 0)) {
 
-    if ((strcmp(style,"lj/cut") == 0) || (strcmp(style,"lj/cut/opt") == 0)) {
+    if ((strcmp(style,"lj/cut") == 0) || 
+	(strcmp(style,"lj/cut/omp") == 0) ||
+	(strcmp(style,"lj/cut/opt") == 0)) {
       m = 0;
       double cut_lj_global = read_double(fp);
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
-    } else if (strcmp(style,"lj/cut/coul/cut") == 0) {
+    } else if ((strcmp(style,"lj/cut/coul/cut") == 0) ||
+	       (strcmp(style,"lj/cut/coul/cut/omp") == 0)) {
       m = 1;
       double cut_lj_global = read_double(fp);
       double cut_lj_coul = read_double(fp);
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
-    } else if (strcmp(style,"lj/cut/coul/debye") == 0) {
+    } else if ((strcmp(style,"lj/cut/coul/debye") == 0) ||
+	       (strcmp(style,"lj/cut/coul/debye/omp") == 0)) {
       m = 1;
       double cut_lj_global = read_double(fp);
       double cut_lj_coul = read_double(fp);
       double kappa = read_double(fp);
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
-    } else if (strcmp(style,"lj/cut/coul/long") == 0) {
+    } else if ((strcmp(style,"lj/cut/coul/long") == 0) ||
+	       (strcmp(style,"lj/cut/coul/long/omp") == 0)) {
       m = 0;
       double cut_lj_global = read_double(fp);
       double cut_lj_coul = read_double(fp);
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
-    } else if (strcmp(style,"lj/cut/coul/long/tip4p") == 0) {
+    } else if ((strcmp(style,"lj/cut/coul/long/tip4p") == 0) ||
+	       (strcmp(style,"lj/cut/coul/long/tip4p/omp") == 0)) {
       m = 0;
       int typeO = read_int(fp);
       int typeH = read_int(fp);
@@ -1772,7 +1844,8 @@ void pair(FILE *fp, Data &data, char *style, int flag)
       double cut_lj_coul = read_double(fp);
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
-    } else if (strcmp(style,"lj/coul") == 0) {
+    } else if ((strcmp(style,"lj/coul") == 0) ||
+	       (strcmp(style,"lj/coul/omp") == 0)) {
       m = 0;
       double cut_lj_global = read_double(fp);
       double cut_coul = read_double(fp);
@@ -1808,7 +1881,8 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 	}
       }
 
-  } else if (strcmp(style,"lj/expand") == 0) {
+  } else if ((strcmp(style,"lj/expand") == 0) ||
+	     (strcmp(style,"lj/expand/omp") == 0)) {
 
     double cut_global = read_double(fp);
     int offset_flag = read_int(fp);
@@ -1843,15 +1917,19 @@ void pair(FILE *fp, Data &data, char *style, int flag)
       }
 
   } else if ((strcmp(style,"lj/gromacs") == 0) ||
-	     (strcmp(style,"lj/gromacs/coul/gromacs") == 0)) {
+	     (strcmp(style,"lj/gromacs/coul/gromacs") == 0) ||
+	     (strcmp(style,"lj/gromacs/omp") == 0) ||
+	     (strcmp(style,"lj/gromacs/coul/gromacs/omp") == 0)) {
 
-    if (strcmp(style,"lj/gromacs") == 0) {
+    if ((strcmp(style,"lj/gromacs") == 0) ||
+	(strcmp(style,"lj/gromacs/omp") == 0)) {
       m = 1;
       double cut_inner_global = read_double(fp);
       double cut_global = read_double(fp);
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
-    } else if (strcmp(style,"lj/gromacs/coul/gromacs") == 0) {
+    } else if ((strcmp(style,"lj/gromacs/coul/gromacs") == 0) ||
+	       (strcmp(style,"lj/gromacs/coul/gromacs") == 0)) {
       m = 0;
       double cut_lj_inner_global = read_double(fp);
       double cut_lj = read_double(fp);
@@ -1892,7 +1970,8 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 	}
       }
 
-  } else if (strcmp(style,"lj/smooth") == 0) {
+  } else if ((strcmp(style,"lj/smooth") == 0) ||
+	     (strcmp(style,"lj/smooth/omp") == 0)) {
 
     double cut_inner_global = read_double(fp);
     double cut_global = read_double(fp);
@@ -1929,6 +2008,7 @@ void pair(FILE *fp, Data &data, char *style, int flag)
   } else if (strcmp(style,"meam") == 0) {
 
   } else if ((strcmp(style,"morse") == 0) ||
+	     (strcmp(style,"morse/omp") == 0) ||
 	     (strcmp(style,"morse/opt") == 0)) {
 
     double cut_global = read_double(fp);
@@ -1965,7 +2045,8 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 
   } else if (strcmp(style,"reax") == 0) {
 
-  } else if (strcmp(style,"soft") == 0) {
+  } else if ((strcmp(style,"soft") == 0) ||
+	     (strcmp(style,"soft/omp") == 0)) {
 
     double cut_global = read_double(fp);
     int mix_flag = read_int(fp);
@@ -1996,16 +2077,21 @@ void pair(FILE *fp, Data &data, char *style, int flag)
       }
 
   } else if (strcmp(style,"sw") == 0) {
+  } else if (strcmp(style,"sw/omp") == 0) {
 
-  } else if (strcmp(style,"table") == 0) {
+  } else if ((strcmp(style,"table") == 0) ||
+	     (strcmp(style,"table/omp") == 0)) {
 
     int tabstyle = read_int(fp);
     int n = read_int(fp);
 
   } else if (strcmp(style,"tersoff") == 0) {
   } else if (strcmp(style,"tersoff/zbl") == 0) {
+  } else if (strcmp(style,"tersoff/omp") == 0) {
+  } else if (strcmp(style,"tersoff/zbl/omp") == 0) {
 
-  } else if (strcmp(style,"yukawa") == 0) {
+  } else if ((strcmp(style,"yukawa") == 0) ||
+	     (strcmp(style,"yukawa/omp") == 0)) {
 
     double kappa = read_double(fp);
     double cut_global = read_double(fp);
@@ -2035,8 +2121,10 @@ void pair(FILE *fp, Data &data, char *style, int flag)
       }
 
   } else if ((strcmp(style,"cg/cmm") == 0) ||
+             (strcmp(style,"cg/cmm/omp") == 0) ||
              (strcmp(style,"cg/cmm/coul/cut") == 0) ||
-             (strcmp(style,"cg/cmm/coul/long") == 0) ) {
+             (strcmp(style,"cg/cmm/coul/long") == 0) ||
+             (strcmp(style,"cg/cmm/coul/long/omp") == 0) ) {
     m = 0;
     data.cut_lj_global = read_double(fp);
     data.cut_coul_global = read_double(fp);
@@ -2053,7 +2141,8 @@ void pair(FILE *fp, Data &data, char *style, int flag)
     data.pair_cg_sigma = new double*[numtyp];
     data.pair_cut_lj = new double*[numtyp];
     if  ((strcmp(style,"cg/cmm/coul/cut") == 0) ||
-             (strcmp(style,"cg/cmm/coul/long") == 0) ) {
+	 (strcmp(style,"cg/cmm/coul/long") == 0) ||
+	 (strcmp(style,"cg/cmm/coul/long/omp") == 0)) {
       data.pair_cut_coul = new double*[numtyp];
       m=1;
     } else {
@@ -2068,7 +2157,8 @@ void pair(FILE *fp, Data &data, char *style, int flag)
       data.pair_cg_sigma[i] = new double[numtyp];
       data.pair_cut_lj[i] = new double[numtyp];
       if ((strcmp(style,"cg/cmm/coul/cut") == 0) ||
-          (strcmp(style,"cg/cmm/coul/long") == 0) ) {
+          (strcmp(style,"cg/cmm/coul/long") == 0) ||
+          (strcmp(style,"cg/cmm/coul/long/omp") == 0)) {
         data.pair_cut_coul[i] = new double[numtyp];
       }
 
@@ -2326,7 +2416,8 @@ void dihedral(FILE *fp, Data &data)
     fread(&data.dihedral_charmm_weight[1],sizeof(double),
 	  data.ndihedraltypes,fp);
 
-  } else if (strcmp(data.dihedral_style,"class2") == 0) {
+  } else if ((strcmp(data.dihedral_style,"class2") == 0) ||
+	     (strcmp(data.dihedral_style,"class2/omp") == 0)) {
 
     data.dihedral_class2_k1 = new double[data.ndihedraltypes+1];
     data.dihedral_class2_k2 = new double[data.ndihedraltypes+1];
@@ -2434,7 +2525,8 @@ void dihedral(FILE *fp, Data &data)
     fread(&data.dihedral_class2_bb13_r30[1],sizeof(double),
 	  data.ndihedraltypes,fp);
 
-  } else if (strcmp(data.dihedral_style,"harmonic") == 0) {
+  } else if ((strcmp(data.dihedral_style,"harmonic") == 0) ||
+	     (strcmp(data.dihedral_style,"harmonic/omp") == 0)) {
 
     data.dihedral_harmonic_k = new double[data.ndihedraltypes+1];
     data.dihedral_harmonic_multiplicity = new int[data.ndihedraltypes+1];
@@ -2444,7 +2536,8 @@ void dihedral(FILE *fp, Data &data)
 	  data.ndihedraltypes,fp);
     fread(&data.dihedral_harmonic_sign[1],sizeof(int),data.ndihedraltypes,fp);
 
-  } else if (strcmp(data.dihedral_style,"helix") == 0) {
+  } else if ((strcmp(data.dihedral_style,"helix") == 0) ||
+	     (strcmp(data.dihedral_style,"helix/omp") == 0)) {
 
     data.dihedral_helix_aphi = new double[data.ndihedraltypes+1];
     data.dihedral_helix_bphi = new double[data.ndihedraltypes+1];
@@ -2453,7 +2546,8 @@ void dihedral(FILE *fp, Data &data)
     fread(&data.dihedral_helix_bphi[1],sizeof(double),data.ndihedraltypes,fp);
     fread(&data.dihedral_helix_cphi[1],sizeof(double),data.ndihedraltypes,fp);
 
-  } else if (strcmp(data.dihedral_style,"multi/harmonic") == 0) {
+  } else if ((strcmp(data.dihedral_style,"multi/harmonic") == 0) ||
+	     (strcmp(data.dihedral_style,"multi/harmonic/omp") == 0)) {
 
     data.dihedral_multi_a1 = new double[data.ndihedraltypes+1];
     data.dihedral_multi_a2 = new double[data.ndihedraltypes+1];
@@ -2466,7 +2560,8 @@ void dihedral(FILE *fp, Data &data)
     fread(&data.dihedral_multi_a4[1],sizeof(double),data.ndihedraltypes,fp);
     fread(&data.dihedral_multi_a5[1],sizeof(double),data.ndihedraltypes,fp);
 
-  } else if (strcmp(data.dihedral_style,"opls") == 0) {
+  } else if ((strcmp(data.dihedral_style,"opls") == 0) ||
+	     (strcmp(data.dihedral_style,"opls/omp") == 0)) {
 
     data.dihedral_opls_k1 = new double[data.ndihedraltypes+1];
     data.dihedral_opls_k2 = new double[data.ndihedraltypes+1];
@@ -2693,20 +2788,36 @@ void Data::write(FILE *fp, FILE *fp2)
 	(strcmp(pair_style,"table") != 0) &&
 	(strcmp(pair_style,"tersoff") != 0) &&
 	(strcmp(pair_style,"tersoff/zbl") != 0) &&
+	(strcmp(pair_style,"airebo/omp") != 0) &&
+	(strcmp(pair_style,"coul/cut/omp") != 0) &&
+	(strcmp(pair_style,"coul/debye/omp") != 0) &&
+	(strcmp(pair_style,"coul/long/omp") != 0) &&
+	(strcmp(pair_style,"eam/omp") != 0) &&
+	(strcmp(pair_style,"eam/alloy/omp") != 0) &&
+	(strcmp(pair_style,"eam/fs/omp") != 0) &&
+	(strcmp(pair_style,"sw/omp") != 0) &&
+	(strcmp(pair_style,"table/omp") != 0) &&
+	(strcmp(pair_style,"tersoff/omp") != 0) &&
+	(strcmp(pair_style,"tersoff/zbl/omp") != 0) &&
 	(strcmp(pair_style,"hybrid") != 0) &&
 	(strcmp(pair_style,"hybrid/overlay") != 0))
       fprintf(fp,"\nPair Coeffs\n\n");
     
-    if (strcmp(pair_style,"born/coul/long") == 0) {
+    if ((strcmp(pair_style,"born/coul/long") == 0) ||
+	(strcmp(pair_style,"born/coul/long/omp") == 0)) {
       for (int i = 1; i <= ntypes; i++)
 	fprintf(fp,"%d %g %g %g %g %g\n",i,
 		pair_born_A[i],pair_born_rho[i],pair_born_sigma[i],
 		pair_born_C[i],pair_born_D[i]);
 
     } else if ((strcmp(pair_style,"buck") == 0) || 
+	(strcmp(pair_style,"buck/omp") == 0) ||
 	(strcmp(pair_style,"buck/coul/cut") == 0) ||
+	(strcmp(pair_style,"buck/coul/cut/omp") == 0) ||
 	(strcmp(pair_style,"buck/coul/long") == 0) ||
-	(strcmp(pair_style,"buck/long") == 0)) {
+	(strcmp(pair_style,"buck/coul/long/omp") == 0) ||
+	(strcmp(pair_style,"buck/long") == 0) ||
+	(strcmp(pair_style,"buck/long/omp") == 0)) {
       for (int i = 1; i <= ntypes; i++)
 	fprintf(fp,"%d %g %g %g\n",i,
 		pair_buck_A[i],pair_buck_rho[i],pair_buck_C[i]);
@@ -2722,7 +2833,8 @@ void Data::write(FILE *fp, FILE *fp2)
 	fprintf(fp,"%d %g %g\n",i,
 		pair_dipole_epsilon[i],pair_dipole_sigma[i]);
       
-    } else if (strcmp(pair_style,"dpd") == 0) {
+    } else if ((strcmp(pair_style,"dpd") == 0) ||
+	       (strcmp(pair_style,"dpd/omp") == 0)) {
       for (int i = 1; i <= ntypes; i++)
 	fprintf(fp,"%d %g %g\n",i,
 		pair_dpd_a0[i],pair_dpd_gamma[i]);
@@ -2737,7 +2849,10 @@ void Data::write(FILE *fp, FILE *fp2)
     } else if ((strcmp(pair_style,"lj/charmm/coul/charmm") == 0) ||
 	       (strcmp(pair_style,"lj/charmm/coul/charmm/implicit") == 0) ||
 	       (strcmp(pair_style,"lj/charmm/coul/long") == 0) ||
-	       (strcmp(pair_style,"lj/charmm/coul/long") == 0)) {
+	       (strcmp(pair_style,"lj/charmm/coul/long/opt") == 0) ||
+	       (strcmp(pair_style,"lj/charmm/coul/charmm/omp") == 0) ||
+	       (strcmp(pair_style,"lj/charmm/coul/charmm/implicit/omp") == 0) ||
+	       (strcmp(pair_style,"lj/charmm/coul/long/omp") == 0)) {
       for (int i = 1; i <= ntypes; i++)
 	fprintf(fp,"%d %g %g %g %g\n",i,
 		pair_charmm_epsilon[i],pair_charmm_sigma[i],
@@ -2745,7 +2860,10 @@ void Data::write(FILE *fp, FILE *fp2)
       
     } else if ((strcmp(pair_style,"lj/class2") == 0) || 
 	       (strcmp(pair_style,"lj/class2/coul/cut") == 0) ||
-	       (strcmp(pair_style,"lj/class2/coul/long") == 0)) {
+	       (strcmp(pair_style,"lj/class2/coul/long") == 0) ||
+	       (strcmp(pair_style,"lj/class2/omp") == 0) || 
+	       (strcmp(pair_style,"lj/class2/coul/cut/omp") == 0) ||
+	       (strcmp(pair_style,"lj/class2/coul/long/omp") == 0)) {
       for (int i = 1; i <= ntypes; i++)
 	fprintf(fp,"%d %g %g\n",i,
 		pair_class2_epsilon[i],pair_class2_sigma[i]);
@@ -2755,48 +2873,59 @@ void Data::write(FILE *fp, FILE *fp2)
 	       (strcmp(pair_style,"lj/cut/coul/cut") == 0) ||
 	       (strcmp(pair_style,"lj/cut/coul/debye") == 0) ||
 	       (strcmp(pair_style,"lj/cut/coul/long") == 0) ||
-	       (strcmp(pair_style,"lj/cut/coul/long/tip4p") == 0) |
-	       (strcmp(pair_style,"lj/coul") == 0)) {
+	       (strcmp(pair_style,"lj/cut/coul/long/tip4p") == 0) ||
+	       (strcmp(pair_style,"lj/coul") == 0) ||
+	       (strcmp(pair_style,"lj/cut/omp") == 0) || 
+	       (strcmp(pair_style,"lj/cut/coul/cut/omp") == 0) ||
+	       (strcmp(pair_style,"lj/cut/coul/debye/omp") == 0) ||
+	       (strcmp(pair_style,"lj/cut/coul/long/omp") == 0) ||
+	       (strcmp(pair_style,"lj/cut/coul/long/tip4p/omp") == 0) ||
+	       (strcmp(pair_style,"lj/coul/omp") == 0)) {
       for (int i = 1; i <= ntypes; i++)
 	fprintf(fp,"%d %g %g\n",i,
 		pair_lj_epsilon[i],pair_lj_sigma[i]);
 
-    } else if (strcmp(pair_style,"lj/expand") == 0) {
+    } else if ((strcmp(pair_style,"lj/expand") == 0) ||
+	       (strcmp(pair_style,"lj/expand/omp") == 0)) {
       for (int i = 1; i <= ntypes; i++)
 	fprintf(fp,"%d %g %g %g\n",i,
 		pair_ljexpand_epsilon[i],pair_ljexpand_sigma[i],
 		pair_ljexpand_shift[i]);
 
     } else if ((strcmp(pair_style,"lj/gromacs") == 0) ||
-	       (strcmp(pair_style,"lj/gromacs/coul/gromacs") == 0)) {
+	       (strcmp(pair_style,"lj/gromacs/coul/gromacs") == 0) ||
+	       (strcmp(pair_style,"lj/gromacs/omp") == 0) ||
+	       (strcmp(pair_style,"lj/gromacs/coul/gromacs/omp") == 0)) {
       for (int i = 1; i <= ntypes; i++)
 	fprintf(fp,"%d %g %g\n",i,
 		pair_ljgromacs_epsilon[i],pair_ljgromacs_sigma[i]);
 
-    } else if (strcmp(pair_style,"lj/smooth") == 0) {
-      for (int i = 1; i <= ntypes; i++)
+    } else if ((strcmp(pair_style,"lj/smooth") == 0) ||
+	       (strcmp(pair_style,"lj/smooth/omp") == 0)) {
+		 for (int i = 1; i <= ntypes; i++)
 	fprintf(fp,"%d %g %g\n",i,
 		pair_ljsmooth_epsilon[i],pair_ljsmooth_sigma[i]);
       
     } else if ((strcmp(pair_style,"morse") == 0) ||
+	       (strcmp(pair_style,"morse/omp") == 0) ||
 	       (strcmp(pair_style,"morse/opt") == 0)) {
       for (int i = 1; i <= ntypes; i++)
 	fprintf(fp,"%d %g %g %g\n",i,
 		pair_morse_d0[i],pair_morse_alpha[i],pair_morse_r0[i]);
       
-    } else if (strcmp(pair_style,"soft") == 0) {
+    } else if ((strcmp(pair_style,"soft") == 0) ||
+	       (strcmp(pair_style,"soft/omp") == 0)) {
       for (int i = 1; i <= ntypes; i++)
 	fprintf(fp,"%d %g %g\n",i,
 		pair_soft_start[i],pair_soft_stop[i]);
       
-    } else if (strcmp(pair_style,"yukawa") == 0) {
+    } else if ((strcmp(pair_style,"yukawa") == 0) ||
+	       (strcmp(pair_style,"yukawa/omp") == 0)) {
       for (int i = 1; i <= ntypes; i++)
 	fprintf(fp,"%d %g\n",i,
 		pair_yukawa_A[i]);
 
-    } else if ((strcmp(pair_style,"cg/cmm") == 0) || 
-               (strcmp(pair_style,"cg/cmm/coul/cut") == 0) ||
-               (strcmp(pair_style,"cg/cmm/coul/long") == 0)) {
+    } else {
       printf("ERROR: Cannot write pair_style %s to data file\n",
 	     pair_style);
       exit(1);
@@ -2809,7 +2938,9 @@ void Data::write(FILE *fp, FILE *fp2)
   if (pair_style && fp2) {
     if ((strcmp(pair_style,"cg/cmm") == 0) || 
 	(strcmp(pair_style,"cg/cmm/coul/cut") == 0) ||
-	(strcmp(pair_style,"cg/cmm/coul/long") == 0)) {
+	(strcmp(pair_style,"cg/cmm/coul/long") == 0) ||
+	(strcmp(pair_style,"cg/cmm/omp") == 0) || 
+	(strcmp(pair_style,"cg/cmm/coul/long/omp") == 0)) {
       for (int i = 1; i <= ntypes; i++) {
 	for (int j = i; j <= ntypes; j++) {
 	  fprintf(fp2,"pair_coeff %d %d %s %g %g\n",i,j,
@@ -2994,7 +3125,8 @@ void Data::write(FILE *fp, FILE *fp2)
 		dihedral_charmm_k[i],dihedral_charmm_multiplicity[i],
 		dihedral_charmm_sign[i],dihedral_charmm_weight[i]);
 
-    } else if (strcmp(dihedral_style,"class2") == 0) {
+    } else if ((strcmp(dihedral_style,"class2") == 0) ||
+	       (strcmp(dihedral_style,"class2/omp") == 0)) {
       for (int i = 1; i <= ndihedraltypes; i++)
 	fprintf(fp,"%d %g %g %g %g %g %g\n",i,
 		dihedral_class2_k1[i],
@@ -3043,25 +3175,29 @@ void Data::write(FILE *fp, FILE *fp2)
 		dihedral_class2_bb13_k[i],
 		dihedral_class2_bb13_r10[i],dihedral_class2_bb13_r30[i]);
 
-    } else if (strcmp(dihedral_style,"harmonic") == 0) {
+    } else if ((strcmp(dihedral_style,"harmonic") == 0) ||
+	       (strcmp(dihedral_style,"harmonic/omp") == 0)) {
       for (int i = 1; i <= ndihedraltypes; i++)
 	fprintf(fp,"%d %g %d %d\n",i,
 		dihedral_harmonic_k[i],dihedral_harmonic_multiplicity[i],
 		dihedral_harmonic_sign[i]);
 
-    } else if (strcmp(dihedral_style,"helix") == 0) {
+    } else if ((strcmp(dihedral_style,"helix") == 0) ||
+	       (strcmp(dihedral_style,"helix/omp") == 0)) {
       for (int i = 1; i <= ndihedraltypes; i++) 
 	fprintf(fp,"%d %g %g %g\n",i,dihedral_helix_aphi[i],
 		dihedral_helix_bphi[i],dihedral_helix_cphi[i]);
 
-    } else if (strcmp(dihedral_style,"multi/harmonic") == 0) {
+    } else if ((strcmp(dihedral_style,"multi/harmonic") == 0) ||
+	       (strcmp(dihedral_style,"multi/harmonic/omp") == 0)) {
       for (int i = 1; i <= ndihedraltypes; i++)
 	fprintf(fp,"%d %g %g %g %g %g\n",i,
 		dihedral_multi_a1[i],dihedral_multi_a2[i],
 		dihedral_multi_a3[i],dihedral_multi_a4[i],
 		dihedral_multi_a5[i]);
 
-    } else if (strcmp(dihedral_style,"opls") == 0) {
+    } else if ((strcmp(dihedral_style,"opls") == 0) ||
+	       (strcmp(dihedral_style,"opls/omp") == 0)) {
       for (int i = 1; i <= ndihedraltypes; i++)        // restore factor of 2
 	fprintf(fp,"%d %g %g %g %g\n",i,
 		2.0*dihedral_opls_k1[i],2.0*dihedral_opls_k2[i],

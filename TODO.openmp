@@ -3,17 +3,11 @@ threading project.
 
 Axel:
 - rewrite and port the remaining CGCMM pair style to threading
+pair_cg_cmm_coul_long.cpp
 - think about adding threading to pppm
 - ... more threading to ewald?
 - fourier transforms (may need extra flag to restrict fft-threads)
-pair_cg_cmm_coul_long.cpp
-- update documenteation
-pair_eam_alloy.cpp
-pair_eam_alloy_opt.cpp
-pair_eam.cpp
-pair_eam_fs.cpp
-pair_eam_fs_opt.cpp
-pair_eam_opt.cpp
+- update documentation
 
 Peter, Ryan
 - check compilation on local and remote machines
@@ -21,7 +15,7 @@ Peter, Ryan
 
 Axel, Peter, Ryan:
 potential further candidates:
-- bonded potentials, particularly dihedrals, integrators, fixes/computes.
+- integrators, fixes/computes.
 
 - need more special coding. postponed for now
 pair_resquared.cpp

@@ -64,6 +64,8 @@ if (test $1 = 1) then
   if (test -e pair_colloid.cpp); then
     cp pair_colloid_omp.h ..
     cp pair_colloid_omp.cpp ..
+    cp pair_lubricate_omp.h ..
+    cp pair_lubricate_omp.cpp ..
     cp pair_yukawa_colloid_omp.h ..
     cp pair_yukawa_colloid_omp.cpp ..
   fi
@@ -177,6 +179,8 @@ elif (test $1 = 0) then
 
   rm -f ../pair_colloid_omp.h
   rm -f ../pair_colloid_omp.cpp
+  rm -f ../pair_lubricate_omp.h
+  rm -f ../pair_lubricate_omp.cpp
   rm -f ../pair_yukawa_colloid_omp.h
   rm -f ../pair_yukawa_colloid_omp.cpp
 

@@ -65,7 +65,6 @@ PairDPDOMP::~PairDPDOMP()
     delete[] random;
     random=NULL;
   }
-  
 }
 
 /* ---------------------------------------------------------------------- */
@@ -420,7 +419,6 @@ void PairDPDOMP::read_restart_settings(FILE *fp)
   random = new RanMars*[nthreads];
   for (tid=0; tid < nthreads; ++tid) 
     random[tid] = new RanMars(lmp,seed + nthreads*comm->me + tid);
-
 }
 
 /* ---------------------------------------------------------------------- */

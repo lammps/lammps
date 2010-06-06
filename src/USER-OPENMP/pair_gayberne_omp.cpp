@@ -97,7 +97,7 @@ void PairGayBerneOMP::compute(int eflag, int vflag)
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR> 
 void PairGayBerneOMP::eval()
 {
-  
+
 #if defined(_OPENMP)
 #pragma omp parallel default(shared)
 #endif

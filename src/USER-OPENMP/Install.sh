@@ -61,9 +61,21 @@ if (test $1 = 1) then
     cp pair_cg_cmm_omp.cpp ..
   fi
 
-  if (test -e pair_dipole_cut_omp.cpp); then
+  if (test -e pair_colloid.cpp); then
+    cp pair_colloid_omp.h ..
+    cp pair_colloid_omp.cpp ..
+  fi
+
+  if (test -e pair_dipole_cut.cpp); then
     cp pair_dipole_cut_omp.h ..
     cp pair_dipole_cut_omp.cpp ..
+  fi
+
+  if (test -e pair_gayberne.cpp); then
+    cp pair_gayberne_omp.h ..
+    cp pair_gayberne_omp.cpp ..
+    cp pair_resquared_omp.h ..
+    cp pair_resquared_omp.cpp ..
   fi
 
   if (test -e ../pair_airebo.cpp) then
@@ -161,8 +173,16 @@ elif (test $1 = 0) then
   rm -f ../pair_cg_cmm_omp.h
   rm -f ../pair_cg_cmm_omp.cpp
 
-  rm -f pair_dipole_cut_omp.h
-  rm -f pair_dipole_cut_omp.cpp
+  rm -f ../pair_colloid_omp.h
+  rm -f ../pair_colloid_omp.cpp
+
+  rm -f ../pair_dipole_cut_omp.h
+  rm -f ../pair_dipole_cut_omp.cpp
+
+  rm -f ../pair_gayberne_omp.h
+  rm -f ../pair_gayberne_omp.cpp
+  rm -f ../pair_resquared_omp.h
+  rm -f ../pair_resquared_omp.cpp
 
   rm -f ../pair_airebo_omp.h
   rm -f ../pair_airebo_omp.cpp

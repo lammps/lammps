@@ -21,6 +21,8 @@ atom_vec_angle.cpp
 atom_vec_angle.h
 atom_vec_bond.cpp
 atom_vec_bond.h
+atom_vec_colloid.cpp
+atom_vec_colloid.h
 atom_vec_dipole.cpp
 atom_vec_dipole.h
 atom_vec_ellipsoid.cpp
@@ -117,6 +119,8 @@ fix_pour.cpp
 fix_pour.h
 fix_smd.cpp
 fix_smd.h
+fix_wall_colloid.cpp
+fix_wall_colloid.h
 fix_wall_gran.cpp
 fix_wall_gran.h
 improper_class2.cpp
@@ -155,6 +159,10 @@ pair_cg_cmm_coul_long.cpp
 pair_cg_cmm_coul_long.h
 pair_cmm_common.cpp
 pair_cmm_common.h
+pair_colloid.cpp
+pair_colloid.h
+pair_colloid_omp.cpp
+pair_colloid_omp.h
 pair_coul_cut_omp.cpp
 pair_coul_cut_omp.h
 pair_coul_debye_omp.cpp
@@ -255,6 +263,10 @@ pair_lj_smooth_omp.cpp
 pair_lj_smooth_omp.h
 pair_lj96_cut_omp.cpp
 pair_lj96_cut_omp.h
+pair_lubricate.cpp
+pair_lubricate.h
+pair_lubricate_omp.cpp
+pair_lubricate_omp.h
 pair_morse_omp.cpp
 pair_morse_omp.h
 pair_morse_opt.cpp
@@ -283,6 +295,10 @@ pair_tersoff_zbl_omp.cpp
 pair_tersoff_zbl_omp.h
 pair_yukawa_omp.cpp
 pair_yukawa_omp.h
+pair_yukawa_colloid.cpp
+pair_yukawa_colloid.h
+pair_yukawa_colloid_omp.cpp
+pair_yukawa_colloid_omp.h
 pppm.cpp
 pppm.h
 pppm_cg.cpp

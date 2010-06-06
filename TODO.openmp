@@ -4,9 +4,6 @@ threading project.
 Axel:
 - rewrite and port the remaining "complicated" pair style to threading
 pair_cg_cmm_coul_long.cpp
-pair_colloid.cpp
-pair_lubricate.cpp
-pair_yukawa_colloid.cpp
 pair_gran_hertz_history.cpp
 pair_gran_hooke.cpp
 pair_gran_hooke_history.cpp

@@ -23,7 +23,7 @@ SIZE =		size
 
 # LAMMPS ifdef options, see doc/Section_start.html
 
-LMP_INC =	-DLAMMPS_GZIP
+LMP_INC =	-DLAMMPS_GZIP -DMALLOC_MEMALIGN=16
 
 # MPI library, can be src/STUBS dummy lib
 # INC = path for mpi.h, MPI compiler settings

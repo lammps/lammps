@@ -111,6 +111,8 @@ if (test $1 = 1) then
     cp fix_pour_omp.cpp ..
     cp fix_shear_history_omp.h ..
     cp fix_shear_history_omp.cpp ..
+    cp fix_wall_gran_omp.h ..
+    cp fix_wall_gran_omp.cpp ..
     cp pair_gran_hertz_history_omp.h ..
     cp pair_gran_hertz_history_omp.cpp ..
     cp pair_gran_hooke_omp.h ..
@@ -229,6 +231,8 @@ elif (test $1 = 0) then
   rm -f ../fix_pour_omp.cpp
   rm -f ../fix_shear_history_omp.h
   rm -f ../fix_shear_history_omp.cpp
+  rm -f ../fix_wall_gran_omp.h
+  rm -f ../fix_wall_gran_omp.cpp
   rm -f ../pair_gran_hertz_history_omp.h
   rm -f ../pair_gran_hertz_history_omp.cpp
   rm -f ../pair_gran_hooke_omp.h

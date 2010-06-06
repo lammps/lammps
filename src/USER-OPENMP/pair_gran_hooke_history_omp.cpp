@@ -404,9 +404,9 @@ void PairGranHookeHistoryOMP::init_style()
 
   if (history && fix_history == NULL) {
     char **fixarg = new char*[3];
-    fixarg[0] = (char *) "SHEAR_HISTORY/OMP";
+    fixarg[0] = (char *) "SHEAR_HISTORY";
     fixarg[1] = (char *) "all";
-    fixarg[2] = (char *) "SHEAR_HISTORY/OMP";
+    fixarg[2] = (char *) "SHEAR_HISTORY";
     modify->add_fix(3,fixarg);
     delete [] fixarg;
     fix_history = (FixShearHistoryOMP *) modify->fix[modify->nfix-1];

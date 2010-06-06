@@ -2928,7 +2928,7 @@ double PairAIREBOOMP::bondorderLJ(int i, int j, double rij[3], double rijmag,
 	  f[atomk][1] += tmp2*rik[1]; 
 	  f[atomk][2] += tmp2*rik[2]; 
 
-	  if (VFLAG_ATOM) v_tally2(atomi,atomk,-tmp2,rik);
+	  if (VFLAG_ATOM) v_tally2_thr(atomi,atomk,-tmp2,rik,tid);
 
 	  if (fabs(dNki)  >TOL) {
 	    REBO_neighs_k = REBO_firstneigh[atomk];

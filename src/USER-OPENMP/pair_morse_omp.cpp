@@ -77,47 +77,46 @@ void PairMorseOMP::eval()
 #if defined(_OPENMP)
 #pragma omp parallel default(shared)
 #endif
-    {
-      int i,j,ii,jj,inum,jnum,itype,jtype,tid;
-      double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-      double rsq,r,dr,dexp,factor_lj;
-      int *ilist,*jlist,*numneigh,**firstneigh;
+  {
+    int i,j,ii,jj,inum,jnum,itype,jtype,tid;
+    double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
+    double rsq,r,dr,dexp,factor_lj;
+    int *ilist,*jlist,*numneigh,**firstneigh;
 
-      evdwl = 0.0;
+    evdwl = 0.0;
 
-      const int nlocal = atom->nlocal;
-      const int nall = nlocal + atom->nghost;
-      const int nthreads = comm->nthreads;
+    const int nlocal = atom->nlocal;
+    const int nall = nlocal + atom->nghost;
+    const int nthreads = comm->nthreads;
 
-      double **x = atom->x;
-      double **f = atom->f;
-      int *type = atom->type;
-      double *special_lj = force->special_lj;
+    double **x = atom->x;
+    int *type = atom->type;
+    double *special_lj = force->special_lj;
 
-      inum = list->inum;
-      ilist = list->ilist;
-      numneigh = list->numneigh;
-      firstneigh = list->firstneigh;
+    inum = list->inum;
+    ilist = list->ilist;
+    numneigh = list->numneigh;
+    firstneigh = list->firstneigh;
 
-      // loop over neighbors of my atoms
+    // loop over neighbors of my atoms
 
-      int iifrom, iito;
-      f = loop_setup_thr(f, iifrom, iito, tid, inum, nall, nthreads);
-      for (ii = iifrom; ii < iito; ++ii) {
-        i = ilist[ii];
-        xtmp = x[i][0];
-        ytmp = x[i][1];
-        ztmp = x[i][2];
-        itype = type[i];
-        jlist = firstneigh[i];
-        jnum = numneigh[i];
+    int iifrom, iito;
+    double **f = loop_setup_thr(atom->f,iifrom,iito,tid,inum,nall,nthreads);
+    for (ii = iifrom; ii < iito; ++ii) {
+      i = ilist[ii];
+      xtmp = x[i][0];
+      ytmp = x[i][1];
+      ztmp = x[i][2];
+      itype = type[i];
+      jlist = firstneigh[i];
+      jnum = numneigh[i];
 
       for (jj = 0; jj < jnum; jj++) {
         j = jlist[jj];
         if (j < nall) factor_lj = 1.0;
         else {
-            factor_lj = special_lj[j/nall];
-            j %= nall;
+	  factor_lj = special_lj[j/nall];
+	  j %= nall;
         }
       }
 
@@ -147,11 +146,12 @@ void PairMorseOMP::eval()
 	  evdwl *= factor_lj;
 	}
 
-	if (EVFLAG) ev_tally(i,j,nlocal,NEWTON_PAIR,evdwl,0.0,fpair,delx,dely,delz);
+	if (EVFLAG) ev_tally_thr(i,j,nlocal,NEWTON_PAIR,evdwl,0.0,
+				 fpair,delx,dely,delz,tid);
       }
     }
-      // reduce per thread forces into global force array.
-      force_reduce_thr(atom->f, nall, nthreads, tid);
+    // reduce per thread forces into global force array.
+    force_reduce_thr(atom->f, nall, nthreads, tid);
   }
   ev_reduce_thr();
   if (vflag_fdotr) virial_compute();

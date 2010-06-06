@@ -100,7 +100,6 @@ void PairLJCutCoulCutOMP::eval()
       const int nthreads = comm->nthreads;
       
       double **x = atom->x;
-      double **f = atom->f;
       double *q = atom->q;
       int *type = atom->type;
       double *special_coul = force->special_coul;
@@ -115,7 +114,7 @@ void PairLJCutCoulCutOMP::eval()
       // loop over neighbors of my atoms
 
       int iifrom, iito;
-      f = loop_setup_thr(f, iifrom, iito, tid, inum, nall, nthreads);
+      double **f = loop_setup_thr(atom->f,iifrom,iito,tid,inum,nall,nthreads);
       for (ii = iifrom; ii < iito; ++ii) {
           i = ilist[ii];
           qtmp = q[i];
@@ -176,8 +175,8 @@ void PairLJCutCoulCutOMP::eval()
               } else evdwl = 0.0;
             }
 
-            if (EVFLAG) ev_tally(i,j,nlocal,NEWTON_PAIR,
-                                 evdwl,ecoul,fpair,delx,dely,delz);
+            if (EVFLAG) ev_tally_thr(i,j,nlocal,NEWTON_PAIR,
+				     evdwl,ecoul,fpair,delx,dely,delz,tid);
           }
         }
       }     

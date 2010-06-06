@@ -283,8 +283,8 @@ void PairDipoleCutOMP::eval()
 	    } else evdwl = 0.0;
 	  }
 
-	  if (EVFLAG) ev_tally_xyz(i,j,nlocal,NEWTON_PAIR,
-				   evdwl,ecoul,fx,fy,fz,delx,dely,delz);
+	  if (EVFLAG) ev_tally_xyz_thr(i,j,nlocal,NEWTON_PAIR,evdwl,ecoul,
+				       fx,fy,fz,delx,dely,delz,tid);
 	}
       }
     }

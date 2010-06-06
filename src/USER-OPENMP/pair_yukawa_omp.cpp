@@ -87,7 +87,6 @@ void PairYukawaOMP::eval()
     const int nthreads = comm->nthreads;
 
     double **x = atom->x;
-    double **f = atom->f;
     int *type = atom->type;
     double *special_coul = force->special_lj;
 
@@ -99,7 +98,7 @@ void PairYukawaOMP::eval()
     // loop over neighbors of my atoms
 
     int iifrom, iito;
-    f = loop_setup_thr(f, iifrom, iito, tid, inum, nall, nthreads);
+    double **f = loop_setup_thr(atom->f,iifrom,iito,tid,inum,nall,nthreads);
     for (ii = iifrom; ii < iito; ++ii) {
       i = ilist[ii];
       xtmp = x[i][0];
@@ -145,12 +144,11 @@ void PairYukawaOMP::eval()
 	    ecoul *= factor_coul;
 	  }
 
-	  if (EVFLAG) ev_tally(i,j,nlocal,NEWTON_PAIR,
-			     0.0,ecoul,fpair,delx,dely,delz);
+	  if (EVFLAG) ev_tally_thr(i,j,nlocal,NEWTON_PAIR,
+				   0.0,ecoul,fpair,delx,dely,delz,tid);
 	}
       }
     }
-
     // reduce per thread forces into global force array.
     force_reduce_thr(atom->f, nall, nthreads, tid);
   }

@@ -162,8 +162,8 @@ void PairDPDTstatOMP::eval_tstat()
 	    f[j][2] -= delz*fpair;
 	  }
 
-	  if (EVFLAG) ev_tally(i,j,nlocal,NEWTON_PAIR,
-			       0.0,0.0,fpair,delx,dely,delz);
+	  if (EVFLAG) ev_tally_thr(i,j,nlocal,NEWTON_PAIR,
+				   0.0,0.0,fpair,delx,dely,delz,tid);
 	}
       }
     }

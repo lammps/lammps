@@ -88,7 +88,6 @@ void PairCoulCutOMP::eval()
     const int nthreads = comm->nthreads;
 
     double **x = atom->x;
-    double **f = atom->f;
     double *q = atom->q;
     int *type = atom->type;
     double *special_lj = force->special_lj;
@@ -101,7 +100,7 @@ void PairCoulCutOMP::eval()
     // loop over neighbors of my atoms
 
     int iifrom, iito;
-    f = loop_setup_thr(f, iifrom, iito, tid, inum, nall, nthreads);
+    double **f = loop_setup_thr(atom->f,iifrom,iito,tid,inum,nall,nthreads);
     for (ii = iifrom; ii < iito; ++ii) {
       i = ilist[ii];
       xtmp = x[i][0];
@@ -145,8 +144,8 @@ void PairCoulCutOMP::eval()
 	    ecoul = factor_coul * qqrd2e * qtmp*q[j]*rinv;
 	  }
 
-	  if (EVFLAG) ev_tally(i,j,nlocal,NEWTON_PAIR,
-				   ecoul,0.0,fpair,delx,dely,delz);
+	  if (EVFLAG) ev_tally_thr(i,j,nlocal,NEWTON_PAIR,
+				   ecoul,0.0,fpair,delx,dely,delz,tid);
 	}
       }
     }

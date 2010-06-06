@@ -64,6 +64,8 @@ if (test $1 = 1) then
   if (test -e pair_colloid.cpp); then
     cp pair_colloid_omp.h ..
     cp pair_colloid_omp.cpp ..
+    cp pair_yukawa_colloid_omp.h ..
+    cp pair_yukawa_colloid_omp.cpp ..
   fi
 
   if (test -e pair_dipole_cut.cpp); then
@@ -175,6 +177,8 @@ elif (test $1 = 0) then
 
   rm -f ../pair_colloid_omp.h
   rm -f ../pair_colloid_omp.cpp
+  rm -f ../pair_yukawa_colloid_omp.h
+  rm -f ../pair_yukawa_colloid_omp.cpp
 
   rm -f ../pair_dipole_cut_omp.h
   rm -f ../pair_dipole_cut_omp.cpp

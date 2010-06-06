@@ -89,6 +89,10 @@ ewald_cg.cpp
 ewald_cg.h
 ewald_omp.cpp
 ewald_omp.h
+fix_pour_omp.cpp
+fix_pour_omp.h
+fix_shear_history_omp.cpp
+fix_shear_history_omp.h
 fft3d.cpp
 fft3d.h
 fft3d_wrap.cpp
@@ -213,10 +217,16 @@ pair_gayberne_omp.cpp
 pair_gayberne_omp.h
 pair_gran_hertz_history.cpp
 pair_gran_hertz_history.h
+pair_gran_hertz_history_omp.cpp
+pair_gran_hertz_history_omp.h
 pair_gran_hooke.cpp
 pair_gran_hooke.h
+pair_gran_hooke_omp.cpp
+pair_gran_hooke_omp.h
 pair_gran_hooke_history.cpp
 pair_gran_hooke_history.h
+pair_gran_hooke_history_omp.cpp
+pair_gran_hooke_history_omp.h
 pair_lj_charmm_coul_charmm.cpp
 pair_lj_charmm_coul_charmm.h
 pair_lj_charmm_coul_charmm_omp.cpp

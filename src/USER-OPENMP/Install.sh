@@ -106,6 +106,19 @@ if (test $1 = 1) then
     cp pair_gauss_cut_omp.cpp ..
   fi
 
+  if (test -e ../pair_gran_hooke_history.cpp) then
+    cp fix_pour_omp.h ..
+    cp fix_pour_omp.cpp ..
+    cp fix_shear_history_omp.h ..
+    cp fix_shear_history_omp.cpp ..
+    cp pair_gran_hertz_history_omp.h ..
+    cp pair_gran_hertz_history_omp.cpp ..
+    cp pair_gran_hooke_omp.h ..
+    cp pair_gran_hooke_omp.cpp ..
+    cp pair_gran_hooke_history_omp.h ..
+    cp pair_gran_hooke_history_omp.cpp ..
+  fi
+
   if (test -e ../pair_lj_charmm_coul_long.cpp) then
     cp pair_born_coul_long_omp.h ..
     cp pair_born_coul_long_omp.cpp ..
@@ -211,6 +224,17 @@ elif (test $1 = 0) then
   rm -f ../pair_coul_diel_omp.cpp
   rm -f ../pair_gauss_cut_omp.h
   rm -f ../pair_gauss_cut_omp.cpp
+
+  rm -f ../fix_pour_omp.h
+  rm -f ../fix_pour_omp.cpp
+  rm -f ../fix_shear_history_omp.h
+  rm -f ../fix_shear_history_omp.cpp
+  rm -f ../pair_gran_hertz_history_omp.h
+  rm -f ../pair_gran_hertz_history_omp.cpp
+  rm -f ../pair_gran_hooke_omp.h
+  rm -f ../pair_gran_hooke_omp.cpp
+  rm -f ../pair_gran_hooke_history_omp.h
+  rm -f ../pair_gran_hooke_history_omp.cpp
 
   rm -f ../pair_born_coul_long_omp.h
   rm -f ../pair_born_coul_long_omp.cpp

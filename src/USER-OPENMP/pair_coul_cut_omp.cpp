@@ -144,8 +144,8 @@ void PairCoulCutOMP::eval()
 	    ecoul = factor_coul * qqrd2e * qtmp*q[j]*rinv;
 	  }
 
-	  if (EVFLAG) ev_tally_thr(i,j,nlocal,NEWTON_PAIR,
-				   ecoul,0.0,fpair,delx,dely,delz,tid);
+	  if (EVFLAG) ev_tally_thr(i,j,nlocal,NEWTON_PAIR,0.0,ecoul,
+				   fpair,delx,dely,delz,tid);
 	}
       }
     }

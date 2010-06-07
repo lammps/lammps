@@ -13,7 +13,7 @@
 
 #ifdef DIHEDRAL_CLASS
 
-DihedralStyle(class2/omp,DihedralClass2)
+DihedralStyle(class2/omp,DihedralClass2OMP)
 
 #else
 

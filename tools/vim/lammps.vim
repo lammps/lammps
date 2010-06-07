@@ -7,13 +7,15 @@ syn clear
 
 syn keyword lammpsOutput      log write_restart dump undump thermo thermo_modify thermo_style print 
 syn keyword lammpsRead        include read read_restart read_data
-syn keyword lammpsLattice     boundary units atom_style lattice region create_box create_atoms 
-syn keyword lammpsLattice     delete_atoms change_box dimension
-syn keyword lammpsParticle    pair_coeff pair_style mass angle_coeff angle_style atom_modify
-syn keyword lammpsParticle    atom_style bond_coeff bond_style delete_bonds
-syn keyword lammpsSetup       min_style fix_modify run_style timestep neighbor fix unfix
+syn keyword lammpsLattice     boundary units atom_style lattice region create_box create_atoms dielectric
+syn keyword lammpsLattice     delete_atoms change_box dimension newton replicate
+syn keyword lammpsParticle    pair_coeff pair_style pair_modify mass angle_coeff angle_style atom_modify
+syn keyword lammpsParticle    atom_style bond_coeff bond_style delete_bonds kspace_style kspace_modify
+syn keyword lammpsParticle    dihedral_style dihedral_coeff improper_style improper_coeff
+syn keyword lammpsSetup       min_style fix_modify run_style timestep neighbor fix unfix communicate
+syn keyword lammpsSetup       neigh_modify reset_timestep velocity
 syn keyword lammpsRun         minimize run  
-syn keyword lammpsDefine      variable
+syn keyword lammpsDefine      variable group
 
 syn keyword lammpsRepeat      jump next loop
 

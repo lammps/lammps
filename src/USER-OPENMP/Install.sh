@@ -141,6 +141,10 @@ if (test $1 = 1) then
 	cp pair_lj_class2_omp.h ..
 	cp pair_lj_class2_coul_cut_omp.cpp ..
 	cp pair_lj_class2_coul_cut_omp.h ..
+	cp pair_lj_class2_coul_long_omp.cpp ..
+	cp pair_lj_class2_coul_long_omp.h ..
+    cp dihedral_class2_omp.cpp ..
+    cp dihedral_class2_omp.h ..
   fi
 
 elif (test $1 = 0) then
@@ -264,5 +268,8 @@ elif (test $1 = 0) then
   rm -f ../pair_lj_class2_omp.h
   rm -f ../pair_lj_class2_coul_cut_omp.cpp
   rm -f ../pair_lj_class2_coul_cut_omp.h
-  
+  rm -f ../pair_lj_class2_coul_long_omp.cpp 
+  rm -f ../pair_lj_class2_coul_long_omp.h
+  rm -f ../dihedral_class2_omp.h
+  rm -f ../dihedral_class2_omp.cpp
 fi

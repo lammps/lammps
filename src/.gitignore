@@ -89,6 +89,8 @@ ewald_cg.cpp
 ewald_cg.h
 ewald_omp.cpp
 ewald_omp.h
+ewald_n.cpp
+ewald_n.h
 fft3d.cpp
 fft3d.h
 fft3d_wrap.cpp
@@ -139,6 +141,8 @@ improper_hybrid.cpp
 improper_hybrid.h
 kissfft.h
 lmp_*
+math_complex.h
+math_vector.h
 pair_airebo.cpp
 pair_airebo.h
 pair_airebo_omp.cpp
@@ -155,6 +159,8 @@ pair_buck_coul_long.cpp
 pair_buck_coul_long.h
 pair_buck_coul_long_omp.cpp
 pair_buck_coul_long_omp.h
+pair_buck_coul.cpp
+pair_buck_coul.h
 pair_cg_cmm.cpp
 pair_cg_cmm.h
 pair_cg_cmm_omp.cpp
@@ -249,6 +255,8 @@ pair_lj_class2_coul_long.cpp
 pair_lj_class2_coul_long.h
 pair_lj_class2.cpp
 pair_lj_class2.h
+pair_lj_coul.cpp
+pair_lj_coul.h
 pair_lj_cut_coul_cut_omp.cpp
 pair_lj_cut_coul_cut_omp.h
 pair_lj_cut_coul_debye_omp.cpp

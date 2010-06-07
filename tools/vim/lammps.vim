@@ -1,7 +1,8 @@
 " Vim syntax file
 " Language:	         Lammps Simulation Script File
-" Maintainer:	      Gerolf Ziegenhain <gerolf@ziegenhain.com>
-" Latest Revision:   2007-11-19
+" Maintainer:        Gerolf Ziegenhain <gerolf@ziegenhain.com>
+" Updates:           Axel Kohlmeyer <akohlmey@gmail.com>
+" Latest Revision:   2010-06-06
 
 syn clear
 

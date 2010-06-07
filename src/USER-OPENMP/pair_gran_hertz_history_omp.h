@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -11,35 +11,27 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef REGION_CLASS
+#ifdef PAIR_CLASS
 
-RegionStyle(cylinder,RegCylinder)
+PairStyle(gran/hertz/history/omp,PairGranHertzHistoryOMP)
 
 #else
 
-#ifndef LMP_REGION_CYLINDER_H
-#define LMP_REGION_CYLINDER_H
+#ifndef LMP_PAIR_GRAN_HERTZ_HISTORY_OMP_H
+#define LMP_PAIR_GRAN_HERTZ_HISTORY_OMP_H
 
-#include "region.h"
+#include "pair_gran_hooke_history_omp.h"
 
 namespace LAMMPS_NS {
 
-class RegCylinder : public Region {
-  friend class FixPour;
-  friend class FixPourOMP;
-
+class PairGranHertzHistoryOMP : public PairGranHookeHistoryOMP {
  public:
-  RegCylinder(class LAMMPS *, int, char **);
-  ~RegCylinder();
-  int inside(double, double, double);
-  int surface_interior(double *, double);
-  int surface_exterior(double *, double);
+  PairGranHertzHistoryOMP(class LAMMPS *);
+  void compute(int, int);
+  void settings(int, char **);
+ protected:
+  template <int> void eval();
 
- private:
-  char axis;
-  double c1,c2;
-  double radius;
-  double lo,hi;
 };
 
 }

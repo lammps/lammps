@@ -26,6 +26,7 @@ namespace LAMMPS_NS {
 
 class FixGravity : public Fix {
   friend class FixPour;
+  friend class FixPourOMP;
 
  public:
   FixGravity(class LAMMPS *, int, char **);

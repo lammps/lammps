@@ -12,8 +12,8 @@ SHELL = /bin/sh
 # specify flags and libraries needed for your compiler
 
 CC =		CC --target=linux
-CCFLAGS =	-O3 -march=native -fomit-frame-pointer -finline-functions \
-		-Wall -Wno-unused -funroll-all-loops
+CCFLAGS =	-O3 -march=native -mpc64 -fno-exceptions -fno-rtti -ffast-math \
+		-fstrict-aliasing -fomit-frame-pointer -finline-functions -Wall -Wno-unused
 DEPFLAGS =	-M
 LINK =		CC
 LINKFLAGS =	 -O
@@ -28,14 +28,14 @@ SIZE =		size
 
 # LAMMPS ifdef options, see doc/Section_start.html
 
-LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_XDR
+LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_XDR -DMALLOC_MEMALIGN=64
 
 # MPI library, can be src/STUBS dummy lib
 # INC = path for mpi.h, MPI compiler settings
 # PATH = path for MPI library
 # LIB = name of MPI library
 
-MPI_INC =       -DMPICH_IGNORE_CXX_SEEK 
+MPI_INC = -DMPICH_IGNORE_CXX_SEEK  -DMPICH_SKIP_MPICXX
 MPI_PATH = 
 MPI_LIB =	#-lmpich -lpthread
 

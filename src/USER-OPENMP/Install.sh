@@ -260,9 +260,9 @@ elif (test $1 = 0) then
   rm -f ../ewald_omp.h
   rm -f ../ewald_omp.cpp
 
-  rm ../pair_lj_class2_omp.cpp 
-  rm ../pair_lj_class2_omp.h 
-  rm ../pair_lj_class2_coul_cut_omp.cpp 
-  rm ../pair_lj_class2_coul_cut_omp.h 
+  rm -f ../pair_lj_class2_omp.cpp
+  rm -f ../pair_lj_class2_omp.h
+  rm -f ../pair_lj_class2_coul_cut_omp.cpp
+  rm -f ../pair_lj_class2_coul_cut_omp.h
   
 fi

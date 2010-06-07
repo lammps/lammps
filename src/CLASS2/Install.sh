@@ -9,6 +9,7 @@ if (test $1 = 1) then
 
   cp pair_lj_class2.cpp ..
   cp pair_lj_class2_coul_cut.cpp ..
+  cp pair_lj_class2_coul_cut_omp.cpp ..
   cp pair_lj_class2_coul_long.cpp ..
 
   cp bond_class2.h ..
@@ -29,6 +30,7 @@ elif (test $1 = 0) then
 
   rm ../pair_lj_class2.cpp
   rm ../pair_lj_class2_coul_cut.cpp
+  rm ../pair_lj_class2_coul_cut_omp.cpp
   rm ../pair_lj_class2_coul_long.cpp
 
   rm ../bond_class2.h

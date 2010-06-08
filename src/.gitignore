@@ -63,6 +63,8 @@ dihedral_charmm.cpp
 dihedral_charmm.h
 dihedral_class2.cpp
 dihedral_class2.h
+dihedral_class2_omp.cpp
+dihedral_class2_omp.h
 dihedral_harmonic.cpp
 dihedral_harmonic.h
 dihedral_harmonic_omp.cpp
@@ -161,6 +163,8 @@ pair_buck_coul_long_omp.cpp
 pair_buck_coul_long_omp.h
 pair_buck_coul.cpp
 pair_buck_coul.h
+pair_buck_coul_omp.cpp
+pair_buck_coul_omp.h
 pair_cg_cmm.cpp
 pair_cg_cmm.h
 pair_cg_cmm_omp.cpp
@@ -259,8 +263,12 @@ pair_lj_class2_coul_cut_omp.cpp
 pair_lj_class2_coul_cut_omp.h
 pair_lj_class2_coul_long.cpp
 pair_lj_class2_coul_long.h
+pair_lj_class2_coul_long_omp.cpp
+pair_lj_class2_coul_long_omp.h
 pair_lj_coul.cpp
 pair_lj_coul.h
+pair_lj_coul_omp.cpp
+pair_lj_coul_omp.h
 pair_lj_cut_coul_cut_omp.cpp
 pair_lj_cut_coul_cut_omp.h
 pair_lj_cut_coul_debye_omp.cpp

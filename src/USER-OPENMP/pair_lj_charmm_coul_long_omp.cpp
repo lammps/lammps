@@ -132,12 +132,12 @@ void PairLJCharmmCoulLongOMP::eval()
     const int nthreads = comm->nthreads;
 
     double **x = atom->x;
-    double **f = atom->f;
     double *q = atom->q;
     int *type = atom->type;
     double *special_coul = force->special_coul;
     double *special_lj = force->special_lj;
     double qqrd2e = force->qqrd2e;
+    double fxtmp,fytmp,fztmp;
 
     inum = list->inum;
     ilist = list->ilist;
@@ -147,9 +147,10 @@ void PairLJCharmmCoulLongOMP::eval()
     // loop over neighbors of my atoms
 
     int iifrom, iito;
-    f = loop_setup_thr(f, iifrom, iito, tid, inum, nall, nthreads);
+    double **f = loop_setup_thr(f,iifrom,iito,tid,inum,nall,nthreads);
     for (ii = iifrom; ii < iito; ++ii) {
- 
+      fxtmp=fytmp=fztmp=0.0;
+
       i = ilist[ii];
       qtmp = q[i];
       xtmp = x[i][0];
@@ -219,9 +220,9 @@ void PairLJCharmmCoulLongOMP::eval()
 
 	  fpair = (forcecoul + factor_lj*forcelj) * r2inv;
 
-	  f[i][0] += delx*fpair;
-	  f[i][1] += dely*fpair;
-	  f[i][2] += delz*fpair;
+	  fxtmp += delx*fpair;
+	  fytmp += dely*fpair;
+	  fztmp += delz*fpair;
 	  if (NEWTON_PAIR || j < nlocal) {
 	    f[j][0] -= delx*fpair;
 	    f[j][1] -= dely*fpair;
@@ -254,6 +255,9 @@ void PairLJCharmmCoulLongOMP::eval()
 				   evdwl,ecoul,fpair,delx,dely,delz,tid);
 	}
       }
+      f[i][0] += fxtmp;
+      f[i][1] += fytmp;
+      f[i][2] += fztmp;
     }
 
     // reduce per thread forces into global force array.

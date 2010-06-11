@@ -117,7 +117,6 @@ int ComputeImproperLocal::compute_impropers(int flag)
   int **improper_atom2 = atom->improper_atom2;
   int **improper_atom3 = atom->improper_atom3;
   int **improper_atom4 = atom->improper_atom4;
-  int **improper_type = atom->improper_type;
   int *tag = atom->tag;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;

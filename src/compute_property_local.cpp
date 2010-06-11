@@ -266,7 +266,7 @@ int ComputePropertyLocal::count_pairs(int flag)
 {
   int i,j,m,n,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz;
-  double rsq,eng,fpair,factor_coul,factor_lj;
+  double rsq,factor_coul,factor_lj;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   double **x = atom->x;
@@ -291,7 +291,6 @@ int ComputePropertyLocal::count_pairs(int flag)
   // loop over neighbors of my atoms
   // skip if I or J are not in group
 
-  Pair *pair = force->pair;
   double **cutsq = force->pair->cutsq;
 
   m = n = 0;
@@ -438,7 +437,6 @@ int ComputePropertyLocal::count_dihedrals(int flag)
   int **dihedral_atom2 = atom->dihedral_atom2;
   int **dihedral_atom3 = atom->dihedral_atom3;
   int **dihedral_atom4 = atom->dihedral_atom4;
-  int **dihedral_type = atom->dihedral_type;
   int *tag = atom->tag;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -482,7 +480,6 @@ int ComputePropertyLocal::count_impropers(int flag)
   int **improper_atom2 = atom->improper_atom2;
   int **improper_atom3 = atom->improper_atom3;
   int **improper_atom4 = atom->improper_atom4;
-  int **improper_type = atom->improper_type;
   int *tag = atom->tag;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;

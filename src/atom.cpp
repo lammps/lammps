@@ -1336,7 +1336,7 @@ void Atom::first_reorder()
 
 void Atom::sort()
 {
-  int i,m,n,ix,iy,iz,ibin,empty,ndone;
+  int i,m,n,ix,iy,iz,ibin,empty;
 
   // re-setup sort bins if needed
 

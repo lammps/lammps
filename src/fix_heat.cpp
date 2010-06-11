@@ -89,7 +89,7 @@ void FixHeat::end_of_step()
   Region *region = NULL;
   if (iregion >= 0) region = domain->regions[iregion];
   
-  if (region < 0) {
+  if (iregion < 0) {
     heat = heat_input*nevery*update->dt*force->ftm2v;
     ke = group->ke(igroup)*force->ftm2v;
     group->vcm(igroup,masstotal,vcm);

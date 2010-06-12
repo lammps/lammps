@@ -59,7 +59,7 @@ PRD::PRD(LAMMPS *lmp) : Pointers(lmp) {}
 
 void PRD::command(int narg, char **arg)
 {
-  int i,flag,allflag,ireplica;
+  int flag,ireplica;
 
   // error checks
 

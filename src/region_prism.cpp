@@ -304,7 +304,7 @@ int RegPrism::surface_interior(double *x, double cutoff)
 int RegPrism::surface_exterior(double *x, double cutoff)
 {
   int i;
-  double dot,delta;
+  double dot;
   double *corner;
   double xp,yp,zp;
 

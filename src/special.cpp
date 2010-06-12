@@ -705,7 +705,6 @@ void Special::dihedral_trim()
   MPI_Request request;
   MPI_Status status;
 
-  int *tag = atom->tag;
   int *num_dihedral = atom->num_dihedral;
   int **dihedral_atom1 = atom->dihedral_atom1;
   int **dihedral_atom4 = atom->dihedral_atom4;

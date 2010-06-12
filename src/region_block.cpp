@@ -197,7 +197,6 @@ int RegBlock::surface_interior(double *x, double cutoff)
 int RegBlock::surface_exterior(double *x, double cutoff)
 {
   double xp,yp,zp;
-  double delta;
 
   // x is far enough from block that there is no contact
   // x is interior to block

@@ -133,6 +133,7 @@ void PairCoulDielOMP::eval()
 	dely = ytmp - x[j][1];
 	delz = ztmp - x[j][2];
 	rsq = delx*delx + dely*dely + delz*delz;
+	jtype = type[j];
 
 	if (rsq < cutsq[itype][jtype]) {
 	  r = sqrt(rsq);
@@ -158,7 +159,7 @@ void PairCoulDielOMP::eval()
 	    ecoul *= factor_coul;
 	  }
 	  if (EVFLAG) ev_tally_thr(i,j,nlocal,NEWTON_PAIR,0.0,
-				 ecoul,fpair,delx,dely,delz,tid);
+				   ecoul,fpair,delx,dely,delz,tid);
 	}
       }
     }

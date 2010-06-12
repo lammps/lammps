@@ -110,7 +110,6 @@ void PairLJSmoothOMP::eval()
     const int nthreads = comm->nthreads;
 
     double **x = atom->x;
-    double **f = atom->f;
     int *type = atom->type;
     double *special_lj = force->special_lj;
 
@@ -122,7 +121,7 @@ void PairLJSmoothOMP::eval()
     // loop over neighbors of my atoms
 
     int iifrom, iito;
-    f = loop_setup_thr(f, iifrom, iito, tid, inum, nall, nthreads);
+    double **f = loop_setup_thr(atom->f,iifrom,iito,tid,inum,nall,nthreads);
     for (ii = iifrom; ii < iito; ++ii) {
       i = ilist[ii];
       xtmp = x[i][0];
@@ -150,14 +149,14 @@ void PairLJSmoothOMP::eval()
 	if (rsq < cutsq[itype][jtype]) {
 	  r2inv = 1.0/rsq;
           if (rsq < cut_inner_sq[itype][jtype]) {
-	  r6inv = r2inv*r2inv*r2inv;
-	  forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
+	    r6inv = r2inv*r2inv*r2inv;
+	    forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
           } else{
             r = sqrt(rsq);
             t = r - cut_inner[itype][jtype];
             tsq = t*t;
             fskin = ljsw1[itype][jtype] + ljsw2[itype][jtype]*t +
-            ljsw3[itype][jtype]*tsq + ljsw4[itype][jtype]*tsq*t;
+	      ljsw3[itype][jtype]*tsq + ljsw4[itype][jtype]*tsq*t;
             forcelj = fskin*r;
           }
 	  fpair = factor_lj*forcelj*r2inv;
@@ -173,17 +172,17 @@ void PairLJSmoothOMP::eval()
 
 	  if (EFLAG) {
 	    if (rsq < cut_inner_sq[itype][jtype])
-                evdwl = r6inv * (lj3[itype][jtype]*r6inv -
-			     lj4[itype][jtype]) - offset[itype][jtype];
+	      evdwl = r6inv * (lj3[itype][jtype]*r6inv -
+			       lj4[itype][jtype]) - offset[itype][jtype];
             else
               evdwl = ljsw0[itype][jtype] - ljsw1[itype][jtype]*t -
-	      ljsw2[itype][jtype]*tsq/2.0 - ljsw3[itype][jtype]*tsq*t/3.0 -
-	      ljsw4[itype][jtype]*tsq*tsq/4.0 - offset[itype][jtype];
+		ljsw2[itype][jtype]*tsq/2.0 - ljsw3[itype][jtype]*tsq*t/3.0 -
+		ljsw4[itype][jtype]*tsq*tsq/4.0 - offset[itype][jtype];
 	    evdwl *= factor_lj;
 	  }
 
-	  if (EVFLAG) ev_tally_thr(i,j,nlocal,NEWTON_PAIR,
-				   evdwl,0.0,fpair,delx,dely,delz,tid);
+	  if (EVFLAG) ev_tally_thr(i,j,nlocal,NEWTON_PAIR,evdwl,0.0,
+				   fpair,delx,dely,delz,tid);
 	}
       }
     }

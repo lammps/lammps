@@ -101,8 +101,6 @@ void PairLJExpandOMP::eval()
     const int nthreads = comm->nthreads;
 
     double **x = atom->x;
-    double **f = atom->f;
-    double *q = atom->q;
     int *type = atom->type;
     double *special_lj = force->special_lj;
 
@@ -114,7 +112,7 @@ void PairLJExpandOMP::eval()
     // loop over neighbors of my atoms
 
     int iifrom, iito;
-    f = loop_setup_thr(f, iifrom, iito, tid, inum, nall, nthreads);
+    double **f = loop_setup_thr(atom->f,iifrom,iito,tid,inum,nall,nthreads);
     for (ii = iifrom; ii < iito; ++ii) {
 
       i = ilist[ii];
@@ -140,32 +138,32 @@ void PairLJExpandOMP::eval()
 	rsq = delx*delx + dely*dely + delz*delz;
         jtype = type[j];
 
-      if (rsq < cutsq[itype][jtype]) {
-	r = sqrt(rsq);
-	rshift = r - shift[itype][jtype];
-	rshiftsq = rshift*rshift;
-	r2inv = 1.0/rshiftsq;
-	r6inv = r2inv*r2inv*r2inv;
-	forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-	fpair = factor_lj*forcelj/rshift/r;
+	if (rsq < cutsq[itype][jtype]) {
+	  r = sqrt(rsq);
+	  rshift = r - shift[itype][jtype];
+	  rshiftsq = rshift*rshift;
+	  r2inv = 1.0/rshiftsq;
+	  r6inv = r2inv*r2inv*r2inv;
+	  forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
+	  fpair = factor_lj*forcelj/rshift/r;
 
-	f[i][0] += delx*fpair;
-	f[i][1] += dely*fpair;
-	f[i][2] += delz*fpair;
-	if (NEWTON_PAIR || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
-        }
+	  f[i][0] += delx*fpair;
+	  f[i][1] += dely*fpair;
+	  f[i][2] += delz*fpair;
+	  if (NEWTON_PAIR || j < nlocal) {
+	    f[j][0] -= delx*fpair;
+	    f[j][1] -= dely*fpair;
+	    f[j][2] -= delz*fpair;
+	  }
 
 	  if (EFLAG) {
 	    evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
-	    offset[itype][jtype];
-	  evdwl *= factor_lj;
+	      offset[itype][jtype];
+	    evdwl *= factor_lj;
 	  }
 
 	  if (EVFLAG) ev_tally_thr(i,j,nlocal,NEWTON_PAIR,
-			     evdwl,0.0,fpair,delx,dely,delz,tid);
+				   evdwl,0.0,fpair,delx,dely,delz,tid);
 	}
       }
     }

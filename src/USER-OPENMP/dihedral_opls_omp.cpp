@@ -106,200 +106,199 @@ void DihedralOPLSOMP::eval()
     const int nthreads = comm->nthreads;
 
     double **x = atom->x;
-    double **f = atom->f;
     int **dihedrallist = neighbor->dihedrallist;
     int ndihedrallist = neighbor->ndihedrallist;
 
     // loop over neighbors of my atoms
 
     int nfrom, nto;
-    f = loop_setup_thr(f, nfrom, nto, tid, ndihedrallist, nall, nthreads);
+    double **f = loop_setup_thr(atom->f,nfrom,nto,tid,ndihedrallist,nall,nthreads);
     for (n = nfrom; n < nto; ++n) {
 
-        i1 = dihedrallist[n][0];
-        i2 = dihedrallist[n][1];
-        i3 = dihedrallist[n][2];
-        i4 = dihedrallist[n][3];
-        type = dihedrallist[n][4];
+      i1 = dihedrallist[n][0];
+      i2 = dihedrallist[n][1];
+      i3 = dihedrallist[n][2];
+      i4 = dihedrallist[n][3];
+      type = dihedrallist[n][4];
 
-        // 1st bond
+      // 1st bond
 
-        vb1x = x[i1][0] - x[i2][0];
-        vb1y = x[i1][1] - x[i2][1];
-        vb1z = x[i1][2] - x[i2][2];
-        domain->minimum_image(vb1x,vb1y,vb1z);
+      vb1x = x[i1][0] - x[i2][0];
+      vb1y = x[i1][1] - x[i2][1];
+      vb1z = x[i1][2] - x[i2][2];
+      domain->minimum_image(vb1x,vb1y,vb1z);
 
-        // 2nd bond
+      // 2nd bond
 
-        vb2x = x[i3][0] - x[i2][0];
-        vb2y = x[i3][1] - x[i2][1];
-        vb2z = x[i3][2] - x[i2][2];
-        domain->minimum_image(vb2x,vb2y,vb2z);
+      vb2x = x[i3][0] - x[i2][0];
+      vb2y = x[i3][1] - x[i2][1];
+      vb2z = x[i3][2] - x[i2][2];
+      domain->minimum_image(vb2x,vb2y,vb2z);
 
-        vb2xm = -vb2x;
-        vb2ym = -vb2y;
-        vb2zm = -vb2z;
-        domain->minimum_image(vb2xm,vb2ym,vb2zm);
+      vb2xm = -vb2x;
+      vb2ym = -vb2y;
+      vb2zm = -vb2z;
+      domain->minimum_image(vb2xm,vb2ym,vb2zm);
 
-        // 3rd bond
+      // 3rd bond
 
-        vb3x = x[i4][0] - x[i3][0];
-        vb3y = x[i4][1] - x[i3][1];
-        vb3z = x[i4][2] - x[i3][2];
-        domain->minimum_image(vb3x,vb3y,vb3z);
+      vb3x = x[i4][0] - x[i3][0];
+      vb3y = x[i4][1] - x[i3][1];
+      vb3z = x[i4][2] - x[i3][2];
+      domain->minimum_image(vb3x,vb3y,vb3z);
 
-        // c0 calculation
+      // c0 calculation
 
-        sb1 = 1.0 / (vb1x*vb1x + vb1y*vb1y + vb1z*vb1z);
-        sb2 = 1.0 / (vb2x*vb2x + vb2y*vb2y + vb2z*vb2z);
-        sb3 = 1.0 / (vb3x*vb3x + vb3y*vb3y + vb3z*vb3z);
+      sb1 = 1.0 / (vb1x*vb1x + vb1y*vb1y + vb1z*vb1z);
+      sb2 = 1.0 / (vb2x*vb2x + vb2y*vb2y + vb2z*vb2z);
+      sb3 = 1.0 / (vb3x*vb3x + vb3y*vb3y + vb3z*vb3z);
 
-        rb1 = sqrt(sb1);
-        rb3 = sqrt(sb3);
+      rb1 = sqrt(sb1);
+      rb3 = sqrt(sb3);
 
-        c0 = (vb1x*vb3x + vb1y*vb3y + vb1z*vb3z) * rb1*rb3;
+      c0 = (vb1x*vb3x + vb1y*vb3y + vb1z*vb3z) * rb1*rb3;
 
-        // 1st and 2nd angle
+      // 1st and 2nd angle
 
-        b1mag2 = vb1x*vb1x + vb1y*vb1y + vb1z*vb1z;
-        b1mag = sqrt(b1mag2);
-        b2mag2 = vb2x*vb2x + vb2y*vb2y + vb2z*vb2z;
-        b2mag = sqrt(b2mag2);
-        b3mag2 = vb3x*vb3x + vb3y*vb3y + vb3z*vb3z;
-        b3mag = sqrt(b3mag2);
+      b1mag2 = vb1x*vb1x + vb1y*vb1y + vb1z*vb1z;
+      b1mag = sqrt(b1mag2);
+      b2mag2 = vb2x*vb2x + vb2y*vb2y + vb2z*vb2z;
+      b2mag = sqrt(b2mag2);
+      b3mag2 = vb3x*vb3x + vb3y*vb3y + vb3z*vb3z;
+      b3mag = sqrt(b3mag2);
 
-        ctmp = vb1x*vb2x + vb1y*vb2y + vb1z*vb2z;
-        r12c1 = 1.0 / (b1mag*b2mag);
-        c1mag = ctmp * r12c1;
+      ctmp = vb1x*vb2x + vb1y*vb2y + vb1z*vb2z;
+      r12c1 = 1.0 / (b1mag*b2mag);
+      c1mag = ctmp * r12c1;
 
-        ctmp = vb2xm*vb3x + vb2ym*vb3y + vb2zm*vb3z;
-        r12c2 = 1.0 / (b2mag*b3mag);
-        c2mag = ctmp * r12c2;
+      ctmp = vb2xm*vb3x + vb2ym*vb3y + vb2zm*vb3z;
+      r12c2 = 1.0 / (b2mag*b3mag);
+      c2mag = ctmp * r12c2;
 
-        // cos and sin of 2 angles and final c
+      // cos and sin of 2 angles and final c
 
-        sin2 = MAX(1.0 - c1mag*c1mag,0.0);
-        sc1 = sqrt(sin2);
-        if (sc1 < SMALL) sc1 = SMALL;
-        sc1 = 1.0/sc1;
+      sin2 = MAX(1.0 - c1mag*c1mag,0.0);
+      sc1 = sqrt(sin2);
+      if (sc1 < SMALL) sc1 = SMALL;
+      sc1 = 1.0/sc1;
 
-        sin2 = MAX(1.0 - c2mag*c2mag,0.0);
-        sc2 = sqrt(sin2);
-        if (sc2 < SMALL) sc2 = SMALL;
-        sc2 = 1.0/sc2;
+      sin2 = MAX(1.0 - c2mag*c2mag,0.0);
+      sc2 = sqrt(sin2);
+      if (sc2 < SMALL) sc2 = SMALL;
+      sc2 = 1.0/sc2;
 
-        s1 = sc1 * sc1;
-        s2 = sc2 * sc2;
-        s12 = sc1 * sc2;
-        c = (c0 + c1mag*c2mag) * s12;
+      s1 = sc1 * sc1;
+      s2 = sc2 * sc2;
+      s12 = sc1 * sc2;
+      c = (c0 + c1mag*c2mag) * s12;
 
-        cx = vb1y*vb2z - vb1z*vb2y;
-        cy = vb1z*vb2x - vb1x*vb2z;
-        cz = vb1x*vb2y - vb1y*vb2x;
-        cmag = sqrt(cx*cx + cy*cy + cz*cz);
-        dx = (cx*vb3x + cy*vb3y + cz*vb3z)/cmag/b3mag;
+      cx = vb1y*vb2z - vb1z*vb2y;
+      cy = vb1z*vb2x - vb1x*vb2z;
+      cz = vb1x*vb2y - vb1y*vb2x;
+      cmag = sqrt(cx*cx + cy*cy + cz*cz);
+      dx = (cx*vb3x + cy*vb3y + cz*vb3z)/cmag/b3mag;
 
-        // error check
+      // error check
 
-        if (c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE)) {
-          if (screen) {
-            char str[128];
-            sprintf(str,"Dihedral problem: %d %d %d %d %d %d",
-                    comm->me,update->ntimestep,
-                    atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
-            error->warning(str);
-            fprintf(screen,"  1st atom: %d %g %g %g\n",
-                    comm->me,x[i1][0],x[i1][1],x[i1][2]);
-            fprintf(screen,"  2nd atom: %d %g %g %g\n",
-                    comm->me,x[i2][0],x[i2][1],x[i2][2]);
-            fprintf(screen,"  3rd atom: %d %g %g %g\n",
-                    comm->me,x[i3][0],x[i3][1],x[i3][2]);
-            fprintf(screen,"  4th atom: %d %g %g %g\n",
-                    comm->me,x[i4][0],x[i4][1],x[i4][2]);
-          }
-        }
+      if (c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE)) {
+	if (screen) {
+	  char str[128];
+	  sprintf(str,"Dihedral problem: %d/%d %d %d %d %d %d",
+		  comm->me,tid,update->ntimestep,
+		  atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
+	  error->warning(str);
+	  fprintf(screen,"  1st atom: %d/%d %g %g %g\n",
+		  comm->me,tid,x[i1][0],x[i1][1],x[i1][2]);
+	  fprintf(screen,"  2nd atom: %d/%d %g %g %g\n",
+		  comm->me,tid,x[i2][0],x[i2][1],x[i2][2]);
+	  fprintf(screen,"  3rd atom: %d/%d %g %g %g\n",
+		  comm->me,tid,x[i3][0],x[i3][1],x[i3][2]);
+	  fprintf(screen,"  4th atom: %d/%d %g %g %g\n",
+		  comm->me,tid,x[i4][0],x[i4][1],x[i4][2]);
+	}
+      }
 
-        if (c > 1.0) c = 1.0;
-        if (c < -1.0) c = -1.0;
+      if (c > 1.0) c = 1.0;
+      if (c < -1.0) c = -1.0;
 
-        // force & energy
-        // p = sum (i=1,4) k_i * (1 + (-1)**(i+1)*cos(i*phi) )
-        // pd = dp/dc
+      // force & energy
+      // p = sum (i=1,4) k_i * (1 + (-1)**(i+1)*cos(i*phi) )
+      // pd = dp/dc
 
-        phi = acos(c);
-        if (dx < 0.0) phi *= -1.0;
-        si = sin(phi);
-        if (fabs(si) < SMALLER) si = SMALLER;
-        siinv = 1.0/si;
+      phi = acos(c);
+      if (dx < 0.0) phi *= -1.0;
+      si = sin(phi);
+      if (fabs(si) < SMALLER) si = SMALLER;
+      siinv = 1.0/si;
 
-        p = k1[type]*(1.0 + c) + k2[type]*(1.0 - cos(2.0*phi)) +
-          k3[type]*(1.0 + cos(3.0*phi)) + k4[type]*(1.0 - cos(4.0*phi)) ;
-        pd = k1[type] - 2.0*k2[type]*sin(2.0*phi)*siinv +
-          3.0*k3[type]*sin(3.0*phi)*siinv - 4.0*k4[type]*sin(4.0*phi)*siinv;
+      p = k1[type]*(1.0 + c) + k2[type]*(1.0 - cos(2.0*phi)) +
+	k3[type]*(1.0 + cos(3.0*phi)) + k4[type]*(1.0 - cos(4.0*phi)) ;
+      pd = k1[type] - 2.0*k2[type]*sin(2.0*phi)*siinv +
+	3.0*k3[type]*sin(3.0*phi)*siinv - 4.0*k4[type]*sin(4.0*phi)*siinv;
 
-	  if (EFLAG) edihedral = p;
+      if (EFLAG) edihedral = p;
 
-          a = pd;
-          c = c * a;
-          s12 = s12 * a;
-          a11 = c*sb1*s1;
-          a22 = -sb2 * (2.0*c0*s12 - c*(s1+s2));
-          a33 = c*sb3*s2;
-          a12 = -r12c1 * (c1mag*c*s1 + c2mag*s12);
-          a13 = -rb1*rb3*s12;
-          a23 = r12c2 * (c2mag*c*s2 + c1mag*s12);
+      a = pd;
+      c = c * a;
+      s12 = s12 * a;
+      a11 = c*sb1*s1;
+      a22 = -sb2 * (2.0*c0*s12 - c*(s1+s2));
+      a33 = c*sb3*s2;
+      a12 = -r12c1 * (c1mag*c*s1 + c2mag*s12);
+      a13 = -rb1*rb3*s12;
+      a23 = r12c2 * (c2mag*c*s2 + c1mag*s12);
 
-          sx2  = a12*vb1x + a22*vb2x + a23*vb3x;
-          sy2  = a12*vb1y + a22*vb2y + a23*vb3y;
-          sz2  = a12*vb1z + a22*vb2z + a23*vb3z;
+      sx2  = a12*vb1x + a22*vb2x + a23*vb3x;
+      sy2  = a12*vb1y + a22*vb2y + a23*vb3y;
+      sz2  = a12*vb1z + a22*vb2z + a23*vb3z;
 
-          f1[0] = a11*vb1x + a12*vb2x + a13*vb3x;
-          f1[1] = a11*vb1y + a12*vb2y + a13*vb3y;
-          f1[2] = a11*vb1z + a12*vb2z + a13*vb3z;
+      f1[0] = a11*vb1x + a12*vb2x + a13*vb3x;
+      f1[1] = a11*vb1y + a12*vb2y + a13*vb3y;
+      f1[2] = a11*vb1z + a12*vb2z + a13*vb3z;
 
-          f2[0] = -sx2 - f1[0];
-          f2[1] = -sy2 - f1[1];
-          f2[2] = -sz2 - f1[2];
+      f2[0] = -sx2 - f1[0];
+      f2[1] = -sy2 - f1[1];
+      f2[2] = -sz2 - f1[2];
 
-          f4[0] = a13*vb1x + a23*vb2x + a33*vb3x;
-          f4[1] = a13*vb1y + a23*vb2y + a33*vb3y;
-          f4[2] = a13*vb1z + a23*vb2z + a33*vb3z;
+      f4[0] = a13*vb1x + a23*vb2x + a33*vb3x;
+      f4[1] = a13*vb1y + a23*vb2y + a33*vb3y;
+      f4[2] = a13*vb1z + a23*vb2z + a33*vb3z;
 
-          f3[0] = sx2 - f4[0];
-          f3[1] = sy2 - f4[1];
-          f3[2] = sz2 - f4[2];
+      f3[0] = sx2 - f4[0];
+      f3[1] = sy2 - f4[1];
+      f3[2] = sz2 - f4[2];
 
-          // apply force to each of 4 atoms
+      // apply force to each of 4 atoms
 
-          if (NEWTON_BOND || i1 < nlocal) {
-            f[i1][0] += f1[0];
-            f[i1][1] += f1[1];
-            f[i1][2] += f1[2];
-          }
+      if (NEWTON_BOND || i1 < nlocal) {
+	f[i1][0] += f1[0];
+	f[i1][1] += f1[1];
+	f[i1][2] += f1[2];
+      }
 
-          if (NEWTON_BOND || i2 < nlocal) {
-            f[i2][0] += f2[0];
-            f[i2][1] += f2[1];
-            f[i2][2] += f2[2];
-          }
+      if (NEWTON_BOND || i2 < nlocal) {
+	f[i2][0] += f2[0];
+	f[i2][1] += f2[1];
+	f[i2][2] += f2[2];
+      }
 
-          if (NEWTON_BOND || i3 < nlocal) {
-            f[i3][0] += f3[0];
-            f[i3][1] += f3[1];
-            f[i3][2] += f3[2];
-          }
+      if (NEWTON_BOND || i3 < nlocal) {
+	f[i3][0] += f3[0];
+	f[i3][1] += f3[1];
+	f[i3][2] += f3[2];
+      }
 
-          if (NEWTON_BOND || i4 < nlocal) {
-            f[i4][0] += f4[0];
-            f[i4][1] += f4[1];
-            f[i4][2] += f4[2];
-          }
-        if (EVFLAG) ev_tally_thr(i1,i2,i3,i4,nlocal,NEWTON_BOND,edihedral,f1,f3,f4,
-	       vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,tid);
+      if (NEWTON_BOND || i4 < nlocal) {
+	f[i4][0] += f4[0];
+	f[i4][1] += f4[1];
+	f[i4][2] += f4[2];
+      }
+      if (EVFLAG) ev_tally_thr(i1,i2,i3,i4,nlocal,NEWTON_BOND,edihedral,f1,f3,f4,
+			       vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,tid);
     }
     // reduce per thread forces into global force array.
     force_reduce_thr(atom->f, nall, nthreads, tid);
-   }
+  }
   ev_reduce_thr();
 }
 

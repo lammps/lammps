@@ -130,6 +130,8 @@ void PairYukawaOMP::eval()
 	  screening = exp(-kappa*r);
 	  forceyukawa = a[itype][jtype] * screening * (kappa + rinv);
 
+	  fpair = factor_coul*forceyukawa * r2inv;
+
 	  f[i][0] += delx*fpair;
 	  f[i][1] += dely*fpair;
 	  f[i][2] += delz*fpair;

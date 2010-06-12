@@ -147,7 +147,7 @@ void PairLJCharmmCoulLongOMP::eval()
     // loop over neighbors of my atoms
 
     int iifrom, iito;
-    double **f = loop_setup_thr(f,iifrom,iito,tid,inum,nall,nthreads);
+    double **f = loop_setup_thr(atom->f,iifrom,iito,tid,inum,nall,nthreads);
     for (ii = iifrom; ii < iito; ++ii) {
       fxtmp=fytmp=fztmp=0.0;
 

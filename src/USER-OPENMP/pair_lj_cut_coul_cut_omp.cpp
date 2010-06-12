@@ -94,6 +94,7 @@ void PairLJCutCoulCutOMP::eval()
       double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
       double rsq,r2inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
       int *ilist,*jlist,*numneigh,**firstneigh;
+      evdwl=ecoul=0.0;
       
       const int nlocal = atom->nlocal;
       const int nall = nlocal + atom->nghost;

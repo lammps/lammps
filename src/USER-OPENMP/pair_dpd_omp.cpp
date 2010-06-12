@@ -103,6 +103,7 @@ void PairDPDOMP::eval()
     double vxtmp,vytmp,vztmp,delvx,delvy,delvz;
     double rsq,r,rinv,dot,wd,randnum,factor_dpd;
     int *ilist,*jlist,*numneigh,**firstneigh;
+    evdwl=0.0;
 
     double **x = atom->x;
     double **v = atom->v;

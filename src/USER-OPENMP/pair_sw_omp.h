@@ -80,7 +80,7 @@ class PairSWOMP : public PairOMP {
     fforce = (param->c1*rp - param->c2*rq +
 	      (param->c3*rp -param->c4*rq) * rainvsq) * expsrainv * rinvsq;
     if (EFLAG) eng = (param->c5*rp - param->c6*rq) * expsrainv;
-};
+  }
 
 /* ---------------------------------------------------------------------- */
   template <int EFLAG>
@@ -137,7 +137,7 @@ class PairSWOMP : public PairOMP {
       fk[2] = delr2[2]*(frad2+csfac2)-delr1[2]*facang12;
 
       if (EFLAG) eng = facrad;
-    };
+    }
 };
 
 }

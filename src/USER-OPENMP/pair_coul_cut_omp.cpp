@@ -103,6 +103,7 @@ void PairCoulCutOMP::eval()
     double **f = loop_setup_thr(atom->f,iifrom,iito,tid,inum,nall,nthreads);
     for (ii = iifrom; ii < iito; ++ii) {
       i = ilist[ii];
+      qtmp = q[i];
       xtmp = x[i][0];
       ytmp = x[i][1];
       ztmp = x[i][2];

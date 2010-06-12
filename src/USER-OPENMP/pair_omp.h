@@ -26,10 +26,6 @@
 
 namespace LAMMPS_NS {
 
-typedef struct {
-  double x,y,z;
-} xyz_t;
-
 class PairOMP : public Pair {
 
  protected:

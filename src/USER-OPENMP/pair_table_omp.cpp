@@ -151,6 +151,7 @@ void PairTableOMP::eval()
     double rsq,factor_lj,fraction,value,a,b;
     int *ilist,*jlist,*numneigh,**firstneigh;
     Table *tb;
+    evdwl=0.0;
   
     union_int_float_t rsq_lookup;
 

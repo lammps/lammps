@@ -109,11 +109,9 @@ void PairCoulLongOMP::eval()
     const int nall = nlocal + atom->nghost;
     const int nthreads = comm->nthreads;
 
-    const xyz_t *xx = (xyz_t *)atom->x[0];
+    double **x = atom->x;
     double *q = atom->q;
-    int *type = atom->type;
     double *special_coul = force->special_coul;
-    double *special_lj = force->special_lj;
     double qqrd2e = force->qqrd2e;
     double fxtmp,fytmp,fztmp;
 
@@ -125,15 +123,14 @@ void PairCoulLongOMP::eval()
     // loop over neighbors of my atoms
 
     int iifrom, iito;
-    double **f = loop_setup_thr(atom->f, iifrom, iito, tid, inum, nall, nthreads);
-    xyz_t* ff = (xyz_t*)f[0];
+    double **f = loop_setup_thr(atom->f,iifrom,iito,tid,inum,nall,nthreads);
     for (ii = iifrom; ii < iito; ++ii) {
 
       i = ilist[ii];
       qtmp = q[i];
-      xtmp = xx[i].x;
-      ytmp = xx[i].y;
-      ztmp = xx[i].z;
+      xtmp = x[i][0];
+      ytmp = x[i][1];
+      ztmp = x[i][2];
       jlist = firstneigh[i];
       jnum = numneigh[i];
 
@@ -148,9 +145,9 @@ void PairCoulLongOMP::eval()
 	  j %= nall;
 	}
 
-	delx = xtmp - xx[j].x;
-	dely = ytmp - xx[j].y;
-	delz = ztmp - xx[j].z;
+	delx = xtmp - x[j][0];
+	dely = ytmp - x[j][1];
+	delz = ztmp - x[j][2];
 	rsq = delx*delx + dely*dely + delz*delz;
 
 	if (rsq < cut_coulsq) {
@@ -185,9 +182,9 @@ void PairCoulLongOMP::eval()
 	  fytmp += dely*fpair;
 	  fztmp += delz*fpair;
 	  if (NEWTON_PAIR || j < nlocal) {
-	    ff[j].x -= delx*fpair;
-	    ff[j].y -= dely*fpair;
-	    ff[j].z -= delz*fpair;
+	    f[j][0] -= delx*fpair;
+	    f[j][1] -= dely*fpair;
+	    f[j][2] -= delz*fpair;
 	  }
 	  if (EFLAG) {
 	    if (!ncoultablebits || rsq <= tabinnersq)
@@ -203,9 +200,9 @@ void PairCoulLongOMP::eval()
 				   0.0,ecoul,fpair,delx,dely,delz, tid);
 	}
       }
-      ff[i].x += fxtmp;
-      ff[i].y += fytmp;
-      ff[i].z += fztmp;
+      f[i][0] += fxtmp;
+      f[i][1] += fytmp;
+      f[i][2] += fztmp;
     }
     // reduce per thread forces into global force array.
     force_reduce_thr(atom->f, nall, nthreads, tid);
@@ -272,8 +269,6 @@ void PairCoulLongOMP::coeff(int narg, char **arg)
 
 void PairCoulLongOMP::init_style()
 {
-  int i,j;
-
   if (!atom->q_flag)
     error->all("Pair style lj/cut/coul/long requires atom attribute q");
 

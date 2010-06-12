@@ -130,15 +130,15 @@ void PairCGCMMOMP::eval()  {
     // loop over neighbors of my atoms
 
     int ii, jj, iifrom, iito, tid;
-    const xyz_t * const xx = (xyz_t *)atom->x[0];
-    double * const * const f = loop_setup_thr(atom->f, iifrom, iito, tid, inum, nall, nthreads);
-    xyz_t * const ff = (xyz_t *)f[0];
+    const double * const * const x = atom->x;
+    double * const * const f = loop_setup_thr(atom->f, iifrom, iito, 
+					      tid, inum, nall, nthreads);
     for (ii = iifrom; ii < iito; ++ii) {
 
       const int i = ilist[ii];
-      const double xtmp = xx[i].x;
-      const double ytmp = xx[i].y;
-      const double ztmp = xx[i].z;
+      const double xtmp = x[i][0];
+      const double ytmp = x[i][1];
+      const double ztmp = x[i][2];
 
       const int itype = type[i];
       const int * const jlist = firstneigh[i];
@@ -156,9 +156,9 @@ void PairCGCMMOMP::eval()  {
 	}
 	const int j = j2;
 
-	const double delx = xtmp - xx[j].x;
-	const double dely = ytmp - xx[j].y;
-	const double delz = ztmp - xx[j].z;
+	const double delx = xtmp - x[j][0];
+	const double dely = ytmp - x[j][1];
+	const double delz = ztmp - x[j][2];
 	const double rsq = delx*delx + dely*dely + delz*delz;
 	const int jtype = type[j];
 
@@ -208,17 +208,17 @@ void PairCGCMMOMP::eval()  {
 	  fytmp += dely*fpair;
 	  fztmp += delz*fpair;
 	  if (NEWTON_PAIR || j < nlocal) {
-	    ff[j].x -= delx*fpair;
-	    ff[j].y -= dely*fpair;
-	    ff[j].z -= delz*fpair;
+	    f[j][0] -= delx*fpair;
+	    f[j][1] -= dely*fpair;
+	    f[j][2] -= delz*fpair;
 	  }
 	  if (EVFLAG) ev_tally_thr(i,j,nlocal,NEWTON_PAIR,
 			       evdwl,0.0,fpair,delx,dely,delz,tid);
 	}
       }
-      ff[i].x += fxtmp;
-      ff[i].y += fytmp;
-      ff[i].z += fztmp;
+      f[i][0] += fxtmp;
+      f[i][1] += fytmp;
+      f[i][2] += fztmp;
     }
     // reduce per thread forces into global force array.
     force_reduce_thr(atom->f, nall, nthreads, tid);

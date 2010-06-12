@@ -481,10 +481,6 @@ void ReadRestart::header()
 	}
       }
 
-      int flag = 0;
-      if ((xperiodic != domain->xperiodic || yperiodic != domain->yperiodic ||
-	   zperiodic != domain->zperiodic)) flag = 1;
-
       domain->boundary[0][0] = boundary[0][0];
       domain->boundary[0][1] = boundary[0][1];
       domain->boundary[1][0] = boundary[1][0];

@@ -47,7 +47,7 @@ class PairTableOMP : public PairOMP {
   template <int TABSTYLE, int EVFLAG, int EFLAG, int NEWTON_PAIR> void eval();
 
  protected:
-  int tabstyle,n,nm1;
+  int tabstyle,tablength;
   struct Table {
     int ninput,rflag,fpflag,match,ntablebits;
     int nshiftbits,nmask;

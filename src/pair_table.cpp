@@ -291,10 +291,9 @@ void PairTable::coeff(int narg, char **arg)
   tb->match = 0;
   if (tabstyle == LINEAR && tb->ninput == tablength && 
       tb->rflag == RSQ && tb->rhi == tb->cut) tb->match = 1;
-  // for tabstyle == SPLINE we always need to build spline tables.
   if (tabstyle == BITMAP && tb->ninput == 1 << tablength && 
       tb->rflag == BMP && tb->rhi == tb->cut) tb->match = 1;
-
+  // for tabstyle == SPLINE we always need to build spline tables.
   if (tb->rflag == BMP && tb->match == 0)
     error->all("Bitmapped table in file does not match requested table");
 

@@ -828,10 +828,9 @@ void EwaldOMP::slabcorr(int eflag)
   
   double *q = atom->q;
   double **x = atom->x;
-  int nlocal = atom->nlocal;
 
-  double dipole = 0.0;
   int i,j;
+  double dipole = 0.0;
   for (j = 0; j < num_charged; j++) {
     i = is_charged[j];
     dipole += q[i]*x[i][2];
@@ -853,7 +852,10 @@ void EwaldOMP::slabcorr(int eflag)
   double ffact = -4.0*PI*dipole_all/volume; 
   double **f = atom->f;
 
-  for (int i = 0; i < nlocal; i++) f[i][2] += qqrd2e*q[i]*ffact;
+  for (j = 0; j < num_charged; j++) {
+    i = is_charged[j];
+    f[i][2] += qqrd2e*q[i]*ffact;
+  }
 }
 
 /* ----------------------------------------------------------------------

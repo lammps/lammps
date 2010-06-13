@@ -109,8 +109,6 @@ void DihedralHelixOMP::eval()
     double **f = atom->f;
     int **dihedrallist = neighbor->dihedrallist;
     int ndihedrallist = neighbor->ndihedrallist;
-    int newton_bond = force->newton_bond;
-    double qqrd2e = force->qqrd2e;
 
     // loop over neighbors of my atoms
 

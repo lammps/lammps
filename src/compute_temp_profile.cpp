@@ -171,7 +171,6 @@ double ComputeTempProfile::compute_scalar()
 
   bin_average();
 
-  double **x = atom->x;
   double **v = atom->v;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
@@ -215,7 +214,6 @@ void ComputeTempProfile::compute_vector()
 
   bin_average();
 
-  double **x = atom->x;
   double **v = atom->v;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
@@ -277,7 +275,6 @@ void ComputeTempProfile::remove_bias(int i, double *v)
 
 void ComputeTempProfile::remove_bias_all()
 {
-  double **x = atom->x;
   double **v = atom->v;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -367,7 +364,6 @@ void ComputeTempProfile::bin_average()
 
   // sum each particle's velocity to appropriate bin
 
-  double **x = atom->x;
   double **v = atom->v;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;

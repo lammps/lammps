@@ -112,7 +112,6 @@ void PairLJClass2CoulLongOMP::eval()
   const int nthreads = comm->nthreads;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
-  int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
 
   inum = list->inum;

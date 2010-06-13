@@ -81,7 +81,6 @@ void PairCoulDebyeOMP::eval()
     double *q = atom->q;
     int *type = atom->type;
     double *special_coul = force->special_coul;
-    double *special_lj = force->special_lj;
     double qqrd2e = force->qqrd2e;
 
     inum = list->inum;

@@ -38,7 +38,7 @@ class AngleTable : public Angle {
   double single(int, int, int, int);
 
  private:
-  int tabstyle,n,nm1;
+  int tabstyle,tablength;
   double *theta0;
 
   struct Table {

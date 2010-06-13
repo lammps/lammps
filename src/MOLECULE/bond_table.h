@@ -38,7 +38,7 @@ class BondTable : public Bond {
   double single(int, double, int, int);
 
  private:
-  int tabstyle,n,nm1;
+  int tabstyle,tablength;
   double *r0;
 
   struct Table {

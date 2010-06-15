@@ -167,8 +167,10 @@ FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   }
 
   // read options from end of input line
+  // no x remap effectively moves atoms within box, so set restart_pbc
 
   options(narg-iarg,&arg[iarg]);
+  if (remapflag != X_REMAP) restart_pbc = 1;
 
   // setup dimflags used by other classes to check for volume-change conflicts
 

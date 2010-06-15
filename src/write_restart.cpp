@@ -228,7 +228,7 @@ void WriteRestart::write(char *file)
 	x[2] = MAX(x[2],lo[2]);
       }
 
-      if (triclinic) domain->x2lamda(x,x);
+      if (triclinic) domain->lamda2x(x,x);
       m += static_cast<int> (buf[m]);
     }
   }

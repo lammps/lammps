@@ -1773,4 +1773,3 @@ void Thermo::compute_fnorm()
   MPI_Allreduce(&dot,&dotall,1,MPI_DOUBLE,MPI_SUM,world);
   dvalue = sqrt(dotall);
 }
-

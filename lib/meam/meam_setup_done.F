@@ -171,13 +171,12 @@ c
       integer j,a,b,nv2
       real*8 astar,frac,phizbl
       integer n,nmax,Z1,Z2
-      real*8 arat,scrn,scrn2
-      real*8 phitmp
+      real*8 arat,rarat,scrn,scrn2
+      real*8 phiaa,phibb,phitmp
 
       real*8, external :: phi_meam
       real*8, external :: zbl
       real*8, external :: compute_phi
- 
 
 c allocate memory for array that defines the potential
       allocate(phir(nr,(neltypes*(neltypes+1))/2))
@@ -217,13 +216,49 @@ c              endif
               call get_Zij2(Z2,arat,scrn,lattce_meam(a,b),
      $             Cmin_meam(a,a,b),Cmax_meam(a,a,b))
 
+c     The B1 case with NN2 has a trick to it; we need to compute the
+c     contributions from second nearest neighbors, like a-a pairs, but
+c     need to include NN2 contributions to those pairs as well.
               if (lattce_meam(a,b).eq.'b1') then
+                rarat = r*arat
+
+c               phi_aa
+                phiaa = phi_meam(rarat,a,a)
+                call get_Zij(Z1,lattce_meam(a,a))
+                call get_Zij2(Z2,arat,scrn,lattce_meam(a,a),
+     $               Cmin_meam(a,a,a),Cmax_meam(a,a,a))
+                nmax = 10
+                if (scrn.gt.0.0) then
+                  do n = 1,nmax
+                    phiaa = phiaa +
+     $                   (-Z2*scrn/Z1)**n * phi_meam(rarat*arat**n,a,a)
+                  enddo
+                endif
+      
+c               phibb
+                phibb = phi_meam(rarat,b,b)
+                call get_Zij(Z1,lattce_meam(b,b))
+                call get_Zij2(Z2,arat,scrn,lattce_meam(b,b),
+     $               Cmin_meam(b,b,b),Cmax_meam(b,b,b))
+                nmax = 10
+                if (scrn.gt.0.0) then
+                  do n = 1,nmax
+                    phibb = phibb +
+     $                   (-Z2*scrn/Z1)**n * phi_meam(rarat*arat**n,b,b)
+                  enddo
+                endif
+
+c               Now add contributions to the B1 potential
+                call get_Zij(Z1,lattce_meam(a,b))
+                call get_Zij2(Z2,arat,scrn,lattce_meam(a,b),
+     $               Cmin_meam(a,a,b),Cmax_meam(a,a,b))
                 phir(j,nv2) = phir(j,nv2) -
-     $               Z2*scrn/(2*Z1) * phi_meam(r*arat,a,a)
+     $               Z2*scrn/(2*Z1) * phiaa
                 call get_Zij2(Z2,arat,scrn2,lattce_meam(a,b),
      $               Cmin_meam(b,b,a),Cmax_meam(b,b,a))
                 phir(j,nv2) = phir(j,nv2) -
-     $               Z2*scrn2/(2*Z1) * phi_meam(r*arat,b,b)
+     $               Z2*scrn2/(2*Z1) * phibb
+
               else
                 nmax = 10
                 do n = 1,nmax
@@ -295,6 +330,12 @@ c   Nref(i,j) = # of i's neighbors of type j
 
       call get_densref(r,a,b,rho01,rho11,rho21,rho31,
      $     rho02,rho12,rho22,rho32)
+
+c if densities are too small, numerical problems may result; just return zero
+      if (rho01.le.1e-14.and.rho02.le.1e-14) then
+        phi_m = 0.0
+        return
+      endif
 
 c calculate average weighting factors for the reference structure
       if (lattce_meam(a,b).eq.'c11') then

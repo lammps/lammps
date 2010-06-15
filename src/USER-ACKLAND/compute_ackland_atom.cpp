@@ -113,7 +113,7 @@ void ComputeAcklandAtom::compute_peratom()
     vector_atom = structure;
   }
 
-  // invoke half neighbor list (will copy or build if necessary)
+  // invoke full neighbor list (will copy or build if necessary)
 
   neighbor->build_one(list->index);
 

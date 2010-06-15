@@ -230,7 +230,7 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
 
   // optional args
 
-  int comflag = 0;
+  comflag = 0;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"com") == 0) {

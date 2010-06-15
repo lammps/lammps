@@ -80,7 +80,8 @@ by the actual dimension in z.  The recommended value is 3.0.  A larger
 value is inefficient; a smaller value introduces unwanted slab-slab
 interactions.  The use of fixed boundaries in z means that the user
 must prevent particle migration beyond the initial z-bounds, typically
-by providing a wall-style fix.
+by providing a wall-style fix.  The methodology behind the {slab}
+option is explained in the paper by "(Yeh)"_#Yeh.
 
 [Restrictions:] none
 
@@ -92,3 +93,8 @@ by providing a wall-style fix.
 
 The option defaults are mesh = 0 0 0, order = 5, gewald = 0.0, and
 slab = 1.0.
+
+:line
+
+:link(Yeh)
+[(Yeh)] Yeh and Berkowitz, J Chem Phys, 111, 3155 (1999).

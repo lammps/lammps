@@ -223,7 +223,7 @@ barostat variables.
 
 The {mtk} keyword controls whether or not the correction terms due to
 Martyna, Tuckerman, and Klein are included in the equations of motion
-"(Martyna1994)"_#Martyna1994.  Specifying {no} reproduces the original
+"(Martyna)"_#Martyna.  Specifying {no} reproduces the original
 Hoover barostat, whose volume probability distribution function
 differs from the true NPT and NPH ensembles by a factor of 1/V.  Hence
 using {yes} is more correct, but in many cases the difference is

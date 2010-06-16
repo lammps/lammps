@@ -407,6 +407,7 @@ of each style or click on the style itself for a full description:
 "lineforce"_fix_lineforce.html,
 "momentum"_fix_momentum.html,
 "move"_fix_move.html,
+"msst"_fix_msst.html,
 "nph"_fix_nh.html,
 "nph/asphere"_fix_nph_asphere.html,
 "nph/sphere"_fix_nph_sphere.html,

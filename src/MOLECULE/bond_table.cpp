@@ -33,6 +33,9 @@ enum{LINEAR,SPLINE};
 
 #define MAXLINE 1024
 
+#define MIN(A,B) ((A) < (B)) ? (A) : (B)
+#define MAX(A,B) ((A) > (B)) ? (A) : (B)
+
 /* ---------------------------------------------------------------------- */
 
 BondTable::BondTable(LAMMPS *lmp) : Bond(lmp) 
@@ -180,6 +183,10 @@ void BondTable::coeff(int narg, char **arg)
   // error check on table parameters
 
   if (tb->ninput <= 1) error->one("Invalid bond table length");
+
+  tb->lo = tb->rfile[0];
+  tb->hi = tb->rfile[tb->ninput-1];
+  if (tb->lo >= tb->hi) error->all("Bond table values are not increasing");
 
   // spline read-in and compute r,e,f vectors within table
 
@@ -368,7 +375,7 @@ void BondTable::compute_table(Table *tb)
 {
   // delta = table spacing for N-1 bins
 
-  tb->delta = (tb->rfile[tb->ninput-1] - tb->rfile[0])/ nm1;
+  tb->delta = (tb->hi - tb->lo)/ nm1;
   tb->invdelta = 1.0/tb->delta;
   tb->deltasq6 = tb->delta*tb->delta / 6.0;
   
@@ -387,7 +394,7 @@ void BondTable::compute_table(Table *tb)
 
   double a;
   for (int i = 0; i < n; i++) {
-    a = i*tb->delta;
+    a = tb->lo + i*tb->delta;
     tb->r[i] = a;
     tb->e[i] = splint(tb->rfile,tb->efile,tb->e2file,tb->ninput,a);
     tb->f[i] = splint(tb->rfile,tb->ffile,tb->f2file,tb->ninput,a);
@@ -531,6 +538,7 @@ double BondTable::splint(double *xa, double *ya, double *y2a, int n, double x)
 
 /* ----------------------------------------------------------------------
    calculate potential u and force f at distance x
+   insure x is between bond min/max
 ------------------------------------------------------------------------- */
 
 void BondTable::uf_lookup(int type, double x, double &u, double &f)
@@ -539,14 +547,16 @@ void BondTable::uf_lookup(int type, double x, double &u, double &f)
   double fraction,value,a,b;
 
   Table *tb = &tables[tabindex[type]];
-  
+  x = MAX(x,tb->lo);
+  x = MIN(x,tb->hi);
+
   if (tabstyle == LINEAR) {
-    itable = static_cast<int> ( x * tb->invdelta);
+    itable = static_cast<int> ((x - tb->lo) * tb->invdelta);
     fraction = (x - tb->r[itable]) * tb->invdelta;
     u = tb->e[itable] + fraction*tb->de[itable];
     f = tb->f[itable] + fraction*tb->df[itable];
   } else if (tabstyle == SPLINE) {
-    itable = static_cast<int> ( x * tb->invdelta);
+    itable = static_cast<int> ((x - tb->lo) * tb->invdelta);
     fraction = (x - tb->r[itable]) * tb->invdelta;
     
     b = (x - tb->r[itable]) * tb->invdelta;
@@ -562,6 +572,7 @@ void BondTable::uf_lookup(int type, double x, double &u, double &f)
 
 /* ----------------------------------------------------------------------
    calculate potential u at distance x
+   insure x is between bond min/max
 ------------------------------------------------------------------------- */
 
 void BondTable::u_lookup(int type, double x, double &u)
@@ -570,13 +581,15 @@ void BondTable::u_lookup(int type, double x, double &u)
   double fraction,value,a,b;
 
   Table *tb = &tables[tabindex[type]];
+  x = MAX(x,tb->lo);
+  x = MIN(x,tb->hi);
   
   if (tabstyle == LINEAR) {
-    itable = static_cast<int> ( x * tb->invdelta);
+    itable = static_cast<int> ((x - tb->lo) * tb->invdelta);
     fraction = (x - tb->r[itable]) * tb->invdelta;
     u = tb->e[itable] + fraction*tb->de[itable];
   } else if (tabstyle == SPLINE) {
-    itable = static_cast<int> ( x * tb->invdelta);
+    itable = static_cast<int> ((x - tb->lo) * tb->invdelta);
     fraction = (x - tb->r[itable]) * tb->invdelta;
     
     b = (x - tb->r[itable]) * tb->invdelta;

@@ -44,6 +44,7 @@ class BondTable : public Bond {
   struct Table {
     int ninput,fpflag;
     double fplo,fphi,r0;
+    double lo,hi;
     double *rfile,*efile,*ffile;
     double *e2file,*f2file;
     double delta,invdelta,deltasq6;

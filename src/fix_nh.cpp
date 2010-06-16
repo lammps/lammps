@@ -318,7 +318,7 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       (p_flag[5] && p_period[5] <= 0.0))
     error->all("Fix nvt/npt/nph damping parameters must be > 0.0");
 
-  // set pstat_flag and box change variables
+  // set pstat_flag and box change and restart_pbc variables
 
   pstat_flag = 0;
   for (int i = 0; i < 6; i++)
@@ -329,6 +329,7 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
     if (p_flag[0] || p_flag[1] || p_flag[2]) box_change_size = 1;
     if (p_flag[3] || p_flag[4] || p_flag[5]) box_change_shape = 1;
     no_change_box = 1;
+    if (allremap == 0) restart_pbc = 1;
   }
 
   // pstyle = TRICLINIC if any off-diagonal term is controlled -> 6 dof

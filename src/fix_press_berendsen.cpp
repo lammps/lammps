@@ -143,6 +143,8 @@ FixPressBerendsen::FixPressBerendsen(LAMMPS *lmp, int narg, char **arg) :
     } else error->all("Illegal fix press/berendsen command");
   }
 
+  if (allremap == 0) restart_pbc = 1;
+
   // error checks
 
   if (dimension == 2 && p_flag[2])

@@ -232,10 +232,10 @@ void AngleTable::coeff(int which, int narg, char **arg)
   // error check on table parameters
 
   if (tb->ninput <= 1) error->one("Invalid angle table length");
+
   double alo,ahi;
   alo = tb->afile[0];
   ahi = tb->afile[tb->ninput-1];
-
   if (fabs(alo-0.0) > TINY || fabs(ahi-180.0) > TINY)
     error->all("Angle table must range from 0 to 180 degrees");
     

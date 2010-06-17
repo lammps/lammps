@@ -22,8 +22,11 @@ fix             1 all nve
 
 # spherical indenter to shatter target
 
-fix             2 all indent 1e17 sphere 0.0000 0.00155 0.0000 0.0015 &
-		vel 0.0 -100.0 0.0 units box
+variable        y0 equal 0.00155
+variable        vy equal -100
+variable        y equal "v_y0 + step*dt*v_vy"
+
+fix             2 all indent 1e17 sphere 0.0000 v_y 0.0000 0.0015 units box
 
 compute         1 all damage/atom
 timestep        1.0e-7

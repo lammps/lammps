@@ -180,6 +180,7 @@ list of fix styles available in LAMMPS:
 "lineforce"_fix_lineforce.html - constrain atoms to move in a line
 "momentum"_fix_momentum.html - zero the linear and/or angular momentum of a group of atoms
 "move"_fix_move.html - move atoms in a prescribed fashion
+"msst"_fix_msst.html - multi-scale shock technique (MSST) integration
 "nph"_fix_nh.html - constant NPH time integration via Nose/Hoover
 "nph/asphere"_fix_nph_asphere.html - NPH for aspherical particles
 "nph/sphere"_fix_nph_sphere.html - NPH for spherical particles

@@ -22,7 +22,8 @@
 </P>
 <PRE>pair_style reax
 pair_style reax 10.0 1.0e-5
-pair_coeff * * ffield.reax 3 1 2 2 
+pair_coeff * * ffield.reax 3 1 2 2
+pair_coeff * * ffield.reax 3 NULL NULL 3 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -86,15 +87,19 @@ another ReaxFF potential file, then name it "ffield.reax" and put it
 in the directory you run from.
 </P>
 <P>In the ReaxFF potential file, near the top, is a section that contains
-element names, each with a couple dozen numeric parameters.  The default
-ffield.reax provided with LAMMPS lists 5 elements: C, H, O, N, S.  
-Think of these as numbered 1 to 6.  Each of the N indices you specify for the N atom types of
-LAMMPS atoms must be an integer from 1 to 6.  Atoms with LAMMPS type 1
-will be mapped to whatever element you specify as the first index
-value, etc.
+element names, each with a couple dozen numeric parameters.  The
+default ffield.reax provided with LAMMPS lists 5 elements: C, H, O, N,
+S.  Think of these as numbered 1 to 5.  When using this file each of
+the N indices you specify for the N atom types of LAMMPS atoms must be
+an integer from 1 to 5.  Atoms with LAMMPS type 1 will be mapped to
+whatever element you specify as the first index value, etc.  If a
+mapping value is specified as NULL, the mapping is not performed.
+This can be used when a ReaxFF potential is used as part of the
+<I>hybrid</I> pair style.  The NULL values are placeholders for atom types
+that will be used with other potentials.
 </P>
-<P>In the pair_coeff example above, the LAMMPS simulation has 4 atoms
-types and they are set as follows:
+<P>In the pair_coeff example above with 3 1 2 2, the LAMMPS simulation
+has 4 atoms types and they are set as follows:
 </P>
 <PRE>type 1 = O
 type 2 = C

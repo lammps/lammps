@@ -32,7 +32,7 @@ class FixIndent : public Fix {
   void init();
   void setup(int);
   void min_setup(int);
-  virtual void post_force(int);
+  void post_force(int);
   void post_force_respa(int, int, int);
   void min_post_force(int);
   double compute_scalar();

@@ -361,6 +361,7 @@ peri : Peridynamics model and potential
 poems : coupled rigid body motion
 prd : parallel replica dynamics
 reax : ReaxFF potential
+shock : methods for MD simulations of shock loading
 xtc : dump atom snapshots in XTC format :tb(s=:)
 
 There are also user-contributed packages which may be as simple as a

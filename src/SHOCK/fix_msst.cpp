@@ -247,20 +247,6 @@ FixMSST::FixMSST(LAMMPS *lmp, int narg, char **arg) :
   delete [] newarg;
   peflag = 1;
 
-  // add a compute for the sum of the squared velocities.
-
-  n = strlen(id) + 6;
-  id_vsum = new char[n];
-  strcpy(id_vsum,id);
-  strcat(id_vsum,"_vsum");
-  newarg = new char*[3];
-  newarg[0] = id_vsum;
-  newarg[1] = "all";
-  newarg[2] = "vsum";
-  modify->add_compute(3,newarg);
-  delete [] newarg;
-  vsflag = 1;
-
   // initialize the time derivative of the volume.
   omega[0] = omega[1] = omega[2] = 0.0;
   
@@ -286,12 +272,10 @@ FixMSST::~FixMSST()
   if (tflag) modify->delete_compute(id_temp);
   if (pflag) modify->delete_compute(id_press);
   if (peflag) modify->delete_compute(id_pe);
-  if (vsflag) modify->delete_compute(id_vsum);
 
   delete [] id_temp;
   delete [] id_press;
   delete [] id_pe;
-  delete [] id_vsum;
 
   for ( int j = 0; j < atoms_allocated; j++ ) {
     delete [] old_velocity[j];
@@ -331,10 +315,6 @@ void FixMSST::init()
   icompute = modify->find_compute(id_pe);
   if (icompute < 0) error->all("PE ID for fix msst does not exist");
   pe = modify->compute[icompute];
-
-  icompute = modify->find_compute(id_vsum);
-  if ( icompute < 0 ) error->all("Vsum ID for fix msst does not exist");
-  vsum = modify->compute[icompute];
 
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
@@ -383,7 +363,7 @@ void FixMSST::setup(int vflag)
   temperature->compute_vector();
   pressure->compute_vector();
   couple();
-  velocity_sum = vsum->compute_scalar();
+  velocity_sum = compute_vsum();
 
   if ( v0_set == 0 ) {
     v0 = compute_vol();
@@ -531,7 +511,7 @@ void FixMSST::initial_integrate(int vflag)
   // propagate velocity sum 1/2 step by 
   // temporarily propagating the velocities.
 
-  velocity_sum = vsum->compute_scalar();
+  velocity_sum = compute_vsum();
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       for ( k = 0; k < 3; k++ ) {
@@ -552,7 +532,7 @@ void FixMSST::initial_integrate(int vflag)
       }
     }
   }
-  velocity_sum = vsum->compute_scalar();
+  velocity_sum = compute_vsum();
 
   // reset the velocities.
 
@@ -665,7 +645,7 @@ void FixMSST::final_integrate()
 
   pressure->compute_vector();
   couple();
-  velocity_sum = vsum->compute_scalar();
+  velocity_sum = compute_vsum();
   vol = compute_vol();
 
   // propagate the time derivative of the volume 1/2 step at fixed V, r, rdot.
@@ -1023,5 +1003,25 @@ void FixMSST::check_alloc(int n)
     }
     atoms_allocated = n;
   }
+}
+
+double FixMSST::compute_vsum()
+{
+  double vsum;
+
+  double **v = atom->v;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  double t = 0.0;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) {
+      t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) ;
+    }
+  }
+
+  MPI_Allreduce(&t,&vsum,1,MPI_DOUBLE,MPI_SUM,world);
+  return vsum;
 }
 

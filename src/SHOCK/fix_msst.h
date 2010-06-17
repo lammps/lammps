@@ -66,11 +66,10 @@ class FixMSST : public Fix {
   int *rfix;                       // indices of rigid fixes
 
   char *id_temp,*id_press;         // Strings with identifiers of
-  char *id_vsum, *id_pe;           // created computes.
+  char *id_pe;                     // created computes.
 
   class Compute *temperature;      // Computes created to evaluate 
   class Compute *pressure;         // thermodynamic quantities.
-  class Compute *vsum; 
   class Compute *pe;
   int tflag,pflag,vsflag,peflag;   // Flags to keep track of computes that
                                    // were created.
@@ -100,6 +99,7 @@ class FixMSST : public Fix {
   double compute_rayleigh();
   double compute_lagrangian_speed();
   double compute_lagrangian_position();
+  double compute_vsum();
 };
 
 }

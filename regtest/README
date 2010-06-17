@@ -1,0 +1,16 @@
+LAMMPS regression testing package.
+Author: Peter Shannon, pietro.shannon@gmail.com
+
+KEYWORDS are read from the config file in the root directory.  
+
+KEYWORDS:
+	default 	= file tested against
+	test		= single file tested 
+	test_folder	= directory to be tested*
+	hooks		= hook for searching 
+	run_data	= parameters in run output
+	run_coef	= deviation coeffictients for run_data
+
+	*Directories take precedence over single files if both keywords
+	appear in the config file.  All files in a given directory must 
+	be prefixed with "log.".

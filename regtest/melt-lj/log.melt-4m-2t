@@ -1,0 +1,60 @@
+LAMMPS (5 Jun 2010-ICMS)
+# 3d Lennard-Jones melt
+
+units		lj
+atom_style	atomic
+
+lattice		fcc 0.8442
+Lattice spacing in x,y,z = 1.6796 1.6796 1.6796
+region		box block 0 20 0 20 0 20
+create_box	1 box
+Created orthogonal box = (0 0 0) to (33.5919 33.5919 33.5919)
+  1 by 2 by 2 processor grid
+  using 2 OpenMP thread(s) per MPI task
+create_atoms	1 box
+Created 32000 atoms
+mass		1 1.0
+
+velocity	all create 3.0 87287
+
+pair_style	lj/cut/omp 2.5
+pair_coeff	1 1 1.0 1.0 2.5
+
+neighbor	0.3 bin
+neigh_modify	every 20 delay 0 check no
+
+fix		1 all nve
+
+dump		id all atom 50 dump.melt
+
+thermo		50
+#run_test
+run		250
+Memory usage per processor = 4.07687 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0            3   -6.7733681            0   -2.2735087   -3.7027964 
+      50    1.6751946   -4.7939075            0   -2.2811941    5.6449815 
+     100    1.6492389   -4.7543515            0   -2.2805704     5.824344 
+     150    1.6468401   -4.7503387            0   -2.2801557    5.8578697 
+     200    1.6409583   -4.7414961            0   -2.2801355    5.8887906 
+     250    1.6426531   -4.7443235            0   -2.2804209    5.8747168 
+Loop time of 2.90922 on 4 procs / 2 threads for 250 steps with 32000 atoms
+
+Pair  time (%) = 1.37323 (47.2025)
+Neigh time (%) = 0.281199 (9.66578)
+Comm  time (%) = 0.625391 (21.4969)
+Outpt time (%) = 0.560158 (19.2546)
+Other time (%) = 0.0692462 (2.38023)
+
+Nlocal:    8000 ave 8011 max 7980 min
+Histogram: 1 0 0 0 0 0 0 1 1 1
+Nghost:    8615.25 ave 8628 max 8604 min
+Histogram: 1 0 1 0 0 0 1 0 0 1
+Neighs:    303099 ave 306704 max 300447 min
+Histogram: 1 0 1 0 1 0 0 0 0 1
+
+Total # of neighbors = 1212395
+Ave neighs/atom = 37.8873
+Neighbor list builds = 12
+Dangerous builds = 0
+#run_test

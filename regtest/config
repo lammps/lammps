@@ -1,0 +1,12 @@
+#INPUT 
+default = log.melt-d
+test = melt-lj/log.melt-1m-2t
+#test_folder = melt-lj
+
+#HANDLES
+hooks = run_test 
+
+#DATA
+run_data = Step Temp E_pair E_mol TotEng Press
+run_coef = 0.1 0.1 0.1 0.1 0.1 0.1 
+

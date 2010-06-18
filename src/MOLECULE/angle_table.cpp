@@ -189,8 +189,8 @@ void AngleTable::settings(int narg, char **arg)
   else if (strcmp(arg[0],"spline") == 0) tabstyle = SPLINE;
   else error->all("Unknown table style in angle style table");
 
-  n = atoi(arg[1]);
-  nm1 = n - 1;
+  tablength = force->inumeric(arg[1]);
+  if (tablength < 2) error->all("Illegal number of angle table entries");
 
   // delete old tables, since cannot just change settings
 
@@ -282,7 +282,7 @@ double AngleTable::equilibrium_angle(int i)
 void AngleTable::write_restart(FILE *fp)
 {
   fwrite(&tabstyle,sizeof(int),1,fp);
-  fwrite(&n,sizeof(int),1,fp);
+  fwrite(&tablength,sizeof(int),1,fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -293,11 +293,10 @@ void AngleTable::read_restart(FILE *fp)
 {
   if (comm->me == 0) {
     fread(&tabstyle,sizeof(int),1,fp);
-    fread(&n,sizeof(int),1,fp);
+    fread(&tablength,sizeof(int),1,fp);
   }
   MPI_Bcast(&tabstyle,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&n,1,MPI_INT,0,world);
-  nm1 = n - 1;
+  MPI_Bcast(&tablength,1,MPI_INT,0,world);
 
   allocate();
 }
@@ -451,7 +450,8 @@ void AngleTable::compute_table(Table *tb)
 {
   // delta = table spacing in angle for N-1 bins
 
-  tb->delta = PI/ nm1;
+  int tlm1 = tablength-1;
+  tb->delta = PI/ tlm1;
   tb->invdelta = 1.0/tb->delta;
   tb->deltasq6 = tb->delta*tb->delta / 6.0;
   
@@ -460,31 +460,31 @@ void AngleTable::compute_table(Table *tb)
   // de,df values = delta values of e,f
   // ang,e,f are N in length so de,df arrays can compute difference
 
-  tb->ang = (double *) memory->smalloc(n*sizeof(double),"angle:ang");
-  tb->e = (double *) memory->smalloc(n*sizeof(double),"angle:e");
-  tb->de = (double *) memory->smalloc(nm1*sizeof(double),"angle:de");
-  tb->f = (double *) memory->smalloc(n*sizeof(double),"angle:f");
-  tb->df = (double *) memory->smalloc(nm1*sizeof(double),"angle:df");
-  tb->e2 = (double *) memory->smalloc(n*sizeof(double),"angle:e2");
-  tb->f2 = (double *) memory->smalloc(n*sizeof(double),"angle:f2");
+  tb->ang = (double *) memory->smalloc(tablength*sizeof(double),"angle:ang");
+  tb->e = (double *) memory->smalloc(tablength*sizeof(double),"angle:e");
+  tb->de = (double *) memory->smalloc(tlm1*sizeof(double),"angle:de");
+  tb->f = (double *) memory->smalloc(tablength*sizeof(double),"angle:f");
+  tb->df = (double *) memory->smalloc(tlm1*sizeof(double),"angle:df");
+  tb->e2 = (double *) memory->smalloc(tablength*sizeof(double),"angle:e2");
+  tb->f2 = (double *) memory->smalloc(tablength*sizeof(double),"angle:f2");
 
   double a;
-  for (int i = 0; i < n; i++) {
+  for (int i = 0; i < tablength; i++) {
     a = i*tb->delta;
     tb->ang[i] = a;
 	  tb->e[i] = splint(tb->afile,tb->efile,tb->e2file,tb->ninput,a);
 	  tb->f[i] = splint(tb->afile,tb->ffile,tb->f2file,tb->ninput,a);
   }
         
-  for (int i = 0; i < nm1; i++) {
+  for (int i = 0; i < tlm1; i++) {
     tb->de[i] = tb->e[i+1] - tb->e[i];
     tb->df[i] = tb->f[i+1] - tb->f[i];
   }
      
   double ep0 = - tb->f[0];
-  double epn = - tb->f[nm1];
-  spline(tb->ang,tb->e,n,ep0,epn,tb->e2);  
-  spline(tb->ang,tb->f,n,tb->fplo,tb->fphi,tb->f2);
+  double epn = - tb->f[tlm1];
+  spline(tb->ang,tb->e,tablength,ep0,epn,tb->e2);  
+  spline(tb->ang,tb->f,tablength,tb->fplo,tb->fphi,tb->f2);
 }
 
 /* ----------------------------------------------------------------------

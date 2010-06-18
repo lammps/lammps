@@ -40,7 +40,7 @@ class PairTable : public Pair {
   void *extract(char *);
 
  private:
-  int tabstyle,n,nm1;
+  int tabstyle,tablength;
   struct Table {
     int ninput,rflag,fpflag,match,ntablebits;
     int nshiftbits,nmask;

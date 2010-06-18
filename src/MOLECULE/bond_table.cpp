@@ -141,8 +141,8 @@ void BondTable::settings(int narg, char **arg)
   else if (strcmp(arg[0],"spline") == 0) tabstyle = SPLINE;
   else error->all("Unknown table style in bond style table");
 
-  n = atoi(arg[1]);
-  nm1 = n - 1;
+  tablength = force->inumeric(arg[1]);
+  if (tablength < 2) error->all("Illegal number of bond table entries");
 
   // delete old tables, since cannot just change settings
 
@@ -224,7 +224,7 @@ double BondTable::equilibrium_distance(int i)
 void BondTable::write_restart(FILE *fp)
 {
   fwrite(&tabstyle,sizeof(int),1,fp);
-  fwrite(&n,sizeof(int),1,fp);
+  fwrite(&tablength,sizeof(int),1,fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -235,11 +235,10 @@ void BondTable::read_restart(FILE *fp)
 {
   if (comm->me == 0) {
     fread(&tabstyle,sizeof(int),1,fp);
-    fread(&n,sizeof(int),1,fp);
+    fread(&tablength,sizeof(int),1,fp);
   }
   MPI_Bcast(&tabstyle,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&n,1,MPI_INT,0,world);
-  nm1 = n - 1;
+  MPI_Bcast(&tablength,1,MPI_INT,0,world);
 
   allocate();
 }
@@ -374,8 +373,9 @@ void BondTable::spline_table(Table *tb)
 void BondTable::compute_table(Table *tb)
 {
   // delta = table spacing for N-1 bins
+  int tlm1 = tablength-1;
 
-  tb->delta = (tb->hi - tb->lo)/ nm1;
+  tb->delta = (tb->hi - tb->lo)/ tlm1;
   tb->invdelta = 1.0/tb->delta;
   tb->deltasq6 = tb->delta*tb->delta / 6.0;
   
@@ -384,31 +384,31 @@ void BondTable::compute_table(Table *tb)
   // de,df values = delta values of e,f
   // r,e,f are N in length so de,df arrays can compute difference
 
-  tb->r = (double *) memory->smalloc(n*sizeof(double),"bond:r");
-  tb->e = (double *) memory->smalloc(n*sizeof(double),"bond:e");
-  tb->de = (double *) memory->smalloc(nm1*sizeof(double),"bond:de");
-  tb->f = (double *) memory->smalloc(n*sizeof(double),"bond:f");
-  tb->df = (double *) memory->smalloc(nm1*sizeof(double),"bond:df");
-  tb->e2 = (double *) memory->smalloc(n*sizeof(double),"bond:e2");
-  tb->f2 = (double *) memory->smalloc(n*sizeof(double),"bond:f2");
+  tb->r = (double *) memory->smalloc(tablength*sizeof(double),"bond:r");
+  tb->e = (double *) memory->smalloc(tablength*sizeof(double),"bond:e");
+  tb->de = (double *) memory->smalloc(tlm1*sizeof(double),"bond:de");
+  tb->f = (double *) memory->smalloc(tablength*sizeof(double),"bond:f");
+  tb->df = (double *) memory->smalloc(tlm1*sizeof(double),"bond:df");
+  tb->e2 = (double *) memory->smalloc(tablength*sizeof(double),"bond:e2");
+  tb->f2 = (double *) memory->smalloc(tablength*sizeof(double),"bond:f2");
 
   double a;
-  for (int i = 0; i < n; i++) {
+  for (int i = 0; i < tablength; i++) {
     a = tb->lo + i*tb->delta;
     tb->r[i] = a;
     tb->e[i] = splint(tb->rfile,tb->efile,tb->e2file,tb->ninput,a);
     tb->f[i] = splint(tb->rfile,tb->ffile,tb->f2file,tb->ninput,a);
   }
         
-  for (int i = 0; i < nm1; i++) {
+  for (int i = 0; i < tlm1; i++) {
     tb->de[i] = tb->e[i+1] - tb->e[i];
     tb->df[i] = tb->f[i+1] - tb->f[i];
   }
      
   double ep0 = - tb->f[0];
-  double epn = - tb->f[nm1];
-  spline(tb->r,tb->e,n,ep0,epn,tb->e2);  
-  spline(tb->r,tb->f,n,tb->fplo,tb->fphi,tb->f2);
+  double epn = - tb->f[tlm1];
+  spline(tb->r,tb->e,tablength,ep0,epn,tb->e2);  
+  spline(tb->r,tb->f,tablength,tb->fplo,tb->fphi,tb->f2);
 }
 
 /* ----------------------------------------------------------------------

@@ -76,6 +76,7 @@ void PairTable::compute(int eflag, int vflag)
   Table *tb;
   
   union_int_float_t rsq_lookup;
+  int tlm1 = tablength - 1;
 
   evdwl = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
@@ -127,19 +128,19 @@ void PairTable::compute(int eflag, int vflag)
  
 	if (tabstyle == LOOKUP) {
 	  itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
-	  if (itable >= nm1)
+	  if (itable >= tlm1)
 	    error->one("Pair distance > table outer cutoff");
 	  fpair = factor_lj * tb->f[itable];
 	} else if (tabstyle == LINEAR) {
 	  itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
-	  if (itable >= nm1)
+	  if (itable >= tlm1)
 	    error->one("Pair distance > table outer cutoff");
 	  fraction = (rsq - tb->rsq[itable]) * tb->invdelta;
 	  value = tb->f[itable] + fraction*tb->df[itable];
 	  fpair = factor_lj * value;
 	} else if (tabstyle == SPLINE) {
 	  itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
-	  if (itable >= nm1)
+	  if (itable >= tlm1)
 	    error->one("Pair distance > table outer cutoff");
 	  b = (rsq - tb->rsq[itable]) * tb->invdelta;
 	  a = 1.0 - b;
@@ -220,8 +221,8 @@ void PairTable::settings(int narg, char **arg)
   else if (strcmp(arg[0],"bitmap") == 0) tabstyle = BITMAP;
   else error->all("Unknown table style in pair_style command");
 
-  n = force->inumeric(arg[1]);
-  nm1 = n - 1;
+  tablength = force->inumeric(arg[1]);
+  if (tablength < 2) error->all("Illegal number of pair table entries");
 
   // delete old tables, since cannot just change settings
 
@@ -286,15 +287,13 @@ void PairTable::coeff(int narg, char **arg)
   // match = 1 if don't need to spline read-in tables
   // this is only the case if r values needed by final tables
   //   exactly match r values read from file
+  // for tabstyle SPLINE, always need to build spline tables
 
   tb->match = 0;
-  if (tabstyle == LINEAR && tb->ninput == n && 
+  if (tabstyle == LINEAR && tb->ninput == tablength && 
       tb->rflag == RSQ && tb->rhi == tb->cut) tb->match = 1;
-  if (tabstyle == SPLINE && tb->ninput == n && 
-      tb->rflag == RSQ && tb->rhi == tb->cut) tb->match = 1;
-  if (tabstyle == BITMAP && tb->ninput == 1 << n && 
+  if (tabstyle == BITMAP && tb->ninput == 1 << tablength && 
       tb->rflag == BMP && tb->rhi == tb->cut) tb->match = 1;
-
   if (tb->rflag == BMP && tb->match == 0)
     error->all("Bitmapped table in file does not match requested table");
 
@@ -537,6 +536,8 @@ void PairTable::param_extract(Table *tb, char *line)
 
 void PairTable::compute_table(Table *tb)
 {
+  int tlm1 = tablength-1;
+
   // inner = inner table bound
   // cut = outer table bound
   // delta = table spacing in rsq for N-1 bins
@@ -545,7 +546,7 @@ void PairTable::compute_table(Table *tb)
   if (tb->rflag) inner = tb->rlo;
   else inner = tb->rfile[0];
   tb->innersq = inner*inner;
-  tb->delta = (tb->cut*tb->cut - tb->innersq) / nm1;
+  tb->delta = (tb->cut*tb->cut - tb->innersq) / tlm1;
   tb->invdelta = 1.0/tb->delta;
 
   // direct lookup tables
@@ -556,11 +557,11 @@ void PairTable::compute_table(Table *tb)
   // e,f are never a match to read-in values, always computed via spline interp
 
   if (tabstyle == LOOKUP) {
-    tb->e = (double *) memory->smalloc(nm1*sizeof(double),"pair:e");
-    tb->f = (double *) memory->smalloc(nm1*sizeof(double),"pair:f");
+    tb->e = (double *) memory->smalloc(tlm1*sizeof(double),"pair:e");
+    tb->f = (double *) memory->smalloc(tlm1*sizeof(double),"pair:f");
 
     double r,rsq;
-    for (int i = 0; i < nm1; i++) {
+    for (int i = 0; i < tlm1; i++) {
       rsq = tb->innersq + (i+0.5)*tb->delta;
       r = sqrt(rsq);
       tb->e[i] = splint(tb->rfile,tb->efile,tb->e2file,tb->ninput,r);
@@ -577,14 +578,14 @@ void PairTable::compute_table(Table *tb)
   // e,f can match read-in values, else compute via spline interp
 
   if (tabstyle == LINEAR) {
-    tb->rsq = (double *) memory->smalloc(n*sizeof(double),"pair:rsq");
-    tb->e = (double *) memory->smalloc(n*sizeof(double),"pair:e");
-    tb->f = (double *) memory->smalloc(n*sizeof(double),"pair:f");
-    tb->de = (double *) memory->smalloc(nm1*sizeof(double),"pair:de");
-    tb->df = (double *) memory->smalloc(nm1*sizeof(double),"pair:df");
+    tb->rsq = (double *) memory->smalloc(tablength*sizeof(double),"pair:rsq");
+    tb->e = (double *) memory->smalloc(tablength*sizeof(double),"pair:e");
+    tb->f = (double *) memory->smalloc(tablength*sizeof(double),"pair:f");
+    tb->de = (double *) memory->smalloc(tlm1*sizeof(double),"pair:de");
+    tb->df = (double *) memory->smalloc(tlm1*sizeof(double),"pair:df");
 
     double r,rsq;
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i < tablength; i++) {
       rsq = tb->innersq + i*tb->delta;
       r = sqrt(rsq);
       tb->rsq[i] = rsq;
@@ -597,7 +598,7 @@ void PairTable::compute_table(Table *tb)
       }
     }
     
-    for (int i = 0; i < nm1; i++) {
+    for (int i = 0; i < tlm1; i++) {
       tb->de[i] = tb->e[i+1] - tb->e[i];
       tb->df[i] = tb->f[i+1] - tb->f[i];
     }
@@ -612,16 +613,16 @@ void PairTable::compute_table(Table *tb)
   // e,f can match read-in values, else compute via spline interp
 
   if (tabstyle == SPLINE) {
-    tb->rsq = (double *) memory->smalloc(n*sizeof(double),"pair:rsq");
-    tb->e = (double *) memory->smalloc(n*sizeof(double),"pair:e");
-    tb->f = (double *) memory->smalloc(n*sizeof(double),"pair:f");
-    tb->e2 = (double *) memory->smalloc(n*sizeof(double),"pair:e2");
-    tb->f2 = (double *) memory->smalloc(n*sizeof(double),"pair:f2");
+    tb->rsq = (double *) memory->smalloc(tablength*sizeof(double),"pair:rsq");
+    tb->e = (double *) memory->smalloc(tablength*sizeof(double),"pair:e");
+    tb->f = (double *) memory->smalloc(tablength*sizeof(double),"pair:f");
+    tb->e2 = (double *) memory->smalloc(tablength*sizeof(double),"pair:e2");
+    tb->f2 = (double *) memory->smalloc(tablength*sizeof(double),"pair:f2");
 
     tb->deltasq6 = tb->delta*tb->delta / 6.0;
 
     double r,rsq;
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i < tablength; i++) {
       rsq = tb->innersq + i*tb->delta;
       r = sqrt(rsq);
       tb->rsq[i] = rsq;
@@ -637,8 +638,8 @@ void PairTable::compute_table(Table *tb)
     // ep0,epn = dE/dr at inner and at cut
 
     double ep0 = - tb->f[0];
-    double epn = - tb->f[nm1];
-    spline(tb->rsq,tb->e,n,ep0,epn,tb->e2);
+    double epn = - tb->f[tlm1];
+    spline(tb->rsq,tb->e,tablength,ep0,epn,tb->e2);
 
     // fp0,fpn = dh/dg at inner and at cut
     // h(r) = f(r)/r and g(r) = r^2
@@ -657,17 +658,17 @@ void PairTable::compute_table(Table *tb)
     }
 
     if (tb->fpflag && tb->cut == tb->rfile[tb->ninput-1]) fpn =
-      (tb->fphi/tb->cut - tb->f[nm1]/(tb->cut*tb->cut)) / (2.0 * tb->cut);
+      (tb->fphi/tb->cut - tb->f[tlm1]/(tb->cut*tb->cut)) / (2.0 * tb->cut);
     else {
       double rsq2 = tb->cut * tb->cut;
       double rsq1 = rsq2 - secant_factor*tb->delta;
-      fpn = (tb->f[nm1] / sqrt(rsq2) - 
+      fpn = (tb->f[tlm1] / sqrt(rsq2) - 
 	     splint(tb->rfile,tb->ffile,tb->f2file,tb->ninput,sqrt(rsq1)) /
 	     sqrt(rsq1)) / (secant_factor*tb->delta);
     }
 
-    for (int i = 0; i < n; i++) tb->f[i] /= sqrt(tb->rsq[i]);
-    spline(tb->rsq,tb->f,n,fp0,fpn,tb->f2);
+    for (int i = 0; i < tablength; i++) tb->f[i] /= sqrt(tb->rsq[i]);
+    spline(tb->rsq,tb->f,tablength,fp0,fpn,tb->f2);
   }
 
   // bitmapped linear tables
@@ -683,8 +684,8 @@ void PairTable::compute_table(Table *tb)
     // linear lookup tables of length ntable = 2^n
     // stored value = value at lower edge of bin
 	
-    init_bitmap(inner,tb->cut,n,masklo,maskhi,tb->nmask,tb->nshiftbits);
-    int ntable = 1 << n;
+    init_bitmap(inner,tb->cut,tablength,masklo,maskhi,tb->nmask,tb->nshiftbits);
+    int ntable = 1 << tablength;
     int ntablem1 = ntable - 1;
 
     tb->rsq = (double *) memory->smalloc(ntable*sizeof(double),"pair:rsq");
@@ -885,7 +886,7 @@ void PairTable::read_restart(FILE *fp)
 void PairTable::write_restart_settings(FILE *fp)
 {
   fwrite(&tabstyle,sizeof(int),1,fp);
-  fwrite(&n,sizeof(int),1,fp);
+  fwrite(&tablength,sizeof(int),1,fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -896,11 +897,10 @@ void PairTable::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
     fread(&tabstyle,sizeof(int),1,fp);
-    fread(&n,sizeof(int),1,fp);
+    fread(&tablength,sizeof(int),1,fp);
   }
   MPI_Bcast(&tabstyle,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&n,1,MPI_INT,0,world);
-  nm1 = n - 1;
+  MPI_Bcast(&tablength,1,MPI_INT,0,world);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -911,23 +911,24 @@ double PairTable::single(int i, int j, int itype, int jtype, double rsq,
 {
   int itable;
   double fraction,value,a,b,phi;
+  int tlm1 = tablength - 1;
 
   Table *tb = &tables[tabindex[itype][jtype]];
   if (rsq < tb->innersq) error->one("Pair distance < table inner cutoff");
 
   if (tabstyle == LOOKUP) {
     itable = static_cast<int> ((rsq-tb->innersq) * tb->invdelta);
-    if (itable >= nm1) error->one("Pair distance > table outer cutoff");
+    if (itable >= tlm1) error->one("Pair distance > table outer cutoff");
     fforce = factor_lj * tb->f[itable];
   } else if (tabstyle == LINEAR) {
     itable = static_cast<int> ((rsq-tb->innersq) * tb->invdelta);
-    if (itable >= nm1) error->one("Pair distance > table outer cutoff");
+    if (itable >= tlm1) error->one("Pair distance > table outer cutoff");
     fraction = (rsq - tb->rsq[itable]) * tb->invdelta;
     value = tb->f[itable] + fraction*tb->df[itable];
     fforce = factor_lj * value;
   } else if (tabstyle == SPLINE) {
     itable = static_cast<int> ((rsq-tb->innersq) * tb->invdelta);
-    if (itable >= nm1) error->one("Pair distance > table outer cutoff");
+    if (itable >= tlm1) error->one("Pair distance > table outer cutoff");
     b = (rsq - tb->rsq[itable]) * tb->invdelta;
     a = 1.0 - b;
     value = a * tb->f[itable] + b * tb->f[itable+1] + 

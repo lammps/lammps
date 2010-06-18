@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "math.h"
 #include "string.h"
 #include "stdlib.h"
 #include "fix_adapt.h"
@@ -148,14 +149,17 @@ void FixAdapt::init()
 	error->all("Fix adapt pair style does not exist");
       pairindex[m] = 
 	pairptr[m]->pre_adapt(param[m],ilo[m],ihi[m],jlo[m],jhi[m]);
-      if (pairindex[m] < 0)
-	error->all("Fix adapt pair style is not compatible");
+      if (pairindex[m] == -1)
+	error->all("Fix adapt pair parameter is not recognized");
+      if (pairindex[m] == -2)
+	error->all("Fix adapt pair types are not valid");
+
     } else if (which[m] == ATOM) {
       if (strcmp(param[m],"diameter") == 0) {
 	awhich[m] = DIAMETER;
 	if (!atom->radius_flag)
 	  error->all("Fix adapt requires atom attribute radius");
-      } else error->all("Invalid fix adapt atom attribute");
+      } else error->all("Fix adapt atom attribute is not recognized");
     }
 
     ivar[m] = input->variable->find(var[m]);
@@ -182,14 +186,26 @@ void FixAdapt::pre_force(int vflag)
       pairptr[m]->adapt(pairindex[m],ilo[m],ihi[m],jlo[m],jhi[m],value);
 
     else if (which[m] == ATOM) {
-      double *radius = atom->radius;
-      int *mask = atom->mask;
-      int nlocal = atom->nlocal;
+
+      // set radius from diameter
+      // set rmass if both rmass and density are defined
 
       if (awhich[m] == DIAMETER) {
+	int mflag = 0;
+	if (atom->rmass_flag && atom->density_flag) mflag = 1;
+	double PI = 4.0*atan(1.0);
+
+	double *radius = atom->radius;
+	double *rmass = atom->rmass;
+	double *density = atom->density;
+	int *mask = atom->mask;
+	int nlocal = atom->nlocal;
+
 	for (int i = 0; i < nlocal; i++)
-	  if (mask[i] & groupbit)
+	  if (mask[i] & groupbit) {
 	    radius[i] = 0.5*value;
+	    rmass[i] = 4.0*PI/3.0 * radius[i]*radius[i]*radius[i] * density[i];
+	  }
       }
     }
   }

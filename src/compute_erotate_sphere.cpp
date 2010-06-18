@@ -102,12 +102,14 @@ double ComputeERotateSphere::compute_scalar()
 		      omega[i][2]*omega[i][2]) * radius[i]*radius[i]*rmass[i];
     } else {
       for (i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit)
+	if (mask[i] & groupbit) {
+	  itype = type[i];
 	  erotate += (omega[i][0]*omega[i][0] + omega[i][1]*omega[i][1] + 
 		      omega[i][2]*omega[i][2]) * 
 	    radius[i]*radius[i]*mass[itype];
+	}
     }
-
+    
   } else {
     if (rmass) {
       for (i = 0; i < nlocal; i++) 

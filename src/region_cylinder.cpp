@@ -231,11 +231,11 @@ int RegCylinder::surface_interior(double *x, double cutoff)
     del2 = x[2] - c2;
     r = sqrt(del1*del1 + del2*del2);
 
-    // x is exterior to cylinder
+    // y is exterior to cylinder
     
     if (r > radius || x[1] < lo || x[1] > hi) return 0;
 
-    // x is interior to cylinder or on its surface
+    // y is interior to cylinder or on its surface
 
     delta = radius - r;
     if (delta < cutoff && r > 0.0) {
@@ -265,11 +265,11 @@ int RegCylinder::surface_interior(double *x, double cutoff)
     del2 = x[1] - c2;
     r = sqrt(del1*del1 + del2*del2);
 
-    // x is exterior to cylinder
+    // z is exterior to cylinder
     
     if (r > radius || x[2] < lo || x[2] > hi) return 0;
 
-    // x is interior to cylinder or on its surface
+    // z is interior to cylinder or on its surface
 
     delta = radius - r;
     if (delta < cutoff && r > 0.0) {
@@ -306,7 +306,7 @@ int RegCylinder::surface_interior(double *x, double cutoff)
 
 int RegCylinder::surface_exterior(double *x, double cutoff)
 {
-  double del1,del2,r,delta;
+  double del1,del2,r;
   double xp,yp,zp;
 
   if (axis == 'x') {
@@ -345,13 +345,13 @@ int RegCylinder::surface_exterior(double *x, double cutoff)
     del2 = x[2] - c2;
     r = sqrt(del1*del1 + del2*del2);
 
-    // x is far enough from cylinder that there is no contact
-    // x is interior to cylinder
+    // y is far enough from cylinder that there is no contact
+    // y is interior to cylinder
 
     if (r >= radius+cutoff || x[1] <= lo-cutoff || x[1] >= hi+cutoff) return 0;
     if (r < radius && x[1] > lo && x[1] < hi) return 0;
 
-    // x is exterior to cylinder or on its surface
+    // y is exterior to cylinder or on its surface
     // xp,yp,zp = point on surface of cylinder that x is closest to
     //            could be edge of cylinder
     // do not add contact point if r >= cutoff
@@ -376,13 +376,13 @@ int RegCylinder::surface_exterior(double *x, double cutoff)
     del2 = x[1] - c2;
     r = sqrt(del1*del1 + del2*del2);
 
-    // x is far enough from cylinder that there is no contact
-    // x is interior to cylinder
+    // z is far enough from cylinder that there is no contact
+    // z is interior to cylinder
 
     if (r >= radius+cutoff || x[2] <= lo-cutoff || x[2] >= hi+cutoff) return 0;
     if (r < radius && x[2] > lo && x[2] < hi) return 0;
 
-    // x is exterior to cylinder or on its surface
+    // z is exterior to cylinder or on its surface
     // xp,yp,zp = point on surface of cylinder that x is closest to
     //            could be edge of cylinder
     // do not add contact point if r >= cutoff

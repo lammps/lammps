@@ -262,18 +262,18 @@ int RegCone::surface_interior(double *x, double cutoff)
     }
 
   } else if (axis == 'y') {
-    delx = x[0] - c1;
-    delz = x[2] - c2;
-    r = sqrt(delx*delx + delz*delz);
+    del1 = x[0] - c1;
+    del2 = x[2] - c2;
+    r = sqrt(del1*del1 + del2*del2);
     currentradius = radiuslo + (x[1]-lo)*(radiushi-radiuslo)/(hi-lo);
 
-    // x is exterior to cone
+    // y is exterior to cone
     
     if (r > currentradius || x[1] < lo || x[1] > hi) return 0;
 
-    // x is interior to cone or on its surface
-    // surflo = pt on outer circle of bottom end plane, same dir as x vs axis
-    // surfhi = pt on outer circle of top end plane, same dir as x vs axis
+    // y is interior to cone or on its surface
+    // surflo = pt on outer circle of bottom end plane, same dir as y vs axis
+    // surfhi = pt on outer circle of top end plane, same dir as y vs axis
 
     if (r > 0.0) {
       surflo[0] = c1 + del1*radiuslo/r;
@@ -312,18 +312,18 @@ int RegCone::surface_interior(double *x, double cutoff)
     }
 
   } else {
-    delx = x[0] - c1;
-    dely = x[1] - c2;
-    r = sqrt(delx*delx + dely*dely);
+    del1 = x[0] - c1;
+    del2 = x[1] - c2;
+    r = sqrt(del1*del1 + del2*del2);
     currentradius = radiuslo + (x[2]-lo)*(radiushi-radiuslo)/(hi-lo);
 
     // x is exterior to cone
     
     if (r > currentradius || x[2] < lo || x[2] > hi) return 0;
 
-    // x is interior to cone or on its surface
-    // surflo = pt on outer circle of bottom end plane, same dir as x vs axis
-    // surfhi = pt on outer circle of top end plane, same dir as x vs axis
+    // z is interior to cone or on its surface
+    // surflo = pt on outer circle of bottom end plane, same dir as z vs axis
+    // surfhi = pt on outer circle of top end plane, same dir as z vs axis
 
     if (r > 0.0) {
       surflo[0] = c1 + del1*radiuslo/r;
@@ -427,17 +427,17 @@ int RegCone::surface_exterior(double *x, double cutoff)
     r = sqrt(del1*del1 + del2*del2);
     currentradius = radiuslo + (x[1]-lo)*(radiushi-radiuslo)/(hi-lo);
 
-    // x is far enough from cone that there is no contact
-    // x is interior to cone
+    // y is far enough from cone that there is no contact
+    // y is interior to cone
 
     if (r >= maxradius+cutoff || 
 	x[1] <= lo-cutoff || x[1] >= hi+cutoff) return 0;
     if (r < currentradius && x[1] > lo && x[1] < hi) return 0;
 
-    // x is exterior to cone or on its surface
-    // corner1234 = 4 corner pts of half trapezoid = cone surf in plane of x
+    // y is exterior to cone or on its surface
+    // corner1234 = 4 corner pts of half trapezoid = cone surf in plane of y
     // project x to 3 line segments in half trapezoid (4th is axis of cone)
-    // nearest = point on surface of cone that x is closest to
+    // nearest = point on surface of cone that y is closest to
     //           could be edge of cone
     // do not add contact point if r >= cutoff
 
@@ -472,17 +472,17 @@ int RegCone::surface_exterior(double *x, double cutoff)
     r = sqrt(del1*del1 + del2*del2);
     currentradius = radiuslo + (x[2]-lo)*(radiushi-radiuslo)/(hi-lo);
 
-    // x is far enough from cone that there is no contact
-    // x is interior to cone
+    // z is far enough from cone that there is no contact
+    // z is interior to cone
 
     if (r >= maxradius+cutoff || 
 	x[2] <= lo-cutoff || x[2] >= hi+cutoff) return 0;
     if (r < currentradius && x[2] > lo && x[2] < hi) return 0;
 
-    // x is exterior to cone or on its surface
-    // corner1234 = 4 corner pts of half trapezoid = cone surf in plane of x
+    // z is exterior to cone or on its surface
+    // corner1234 = 4 corner pts of half trapezoid = cone surf in plane of z
     // project x to 3 line segments in half trapezoid (4th is axis of cone)
-    // nearest = point on surface of cone that x is closest to
+    // nearest = point on surface of cone that z is closest to
     //           could be edge of cone
     // do not add contact point if r >= cutoff
 

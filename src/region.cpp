@@ -181,8 +181,6 @@ int Region::dynamic_check()
 
 int Region::match(double x, double y, double z)
 {
-  double a[3],b[3],c[3],d[3];
-
   if (dynamic) {
     double delta = (update->ntimestep - time_origin) * dt;
     if (dynamic == VELOCITY) {

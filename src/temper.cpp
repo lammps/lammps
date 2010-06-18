@@ -176,7 +176,7 @@ void Temper::command(int narg, char **arg)
   // setup tempering runs
 
   int i,which,partner,swap,partner_set_temp,partner_world;
-  double pe,pe_partner,ke,boltz_factor,new_temp;
+  double pe,pe_partner,boltz_factor,new_temp;
   MPI_Status status;
 
   if (me_universe == 0 && universe->uscreen) 

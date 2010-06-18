@@ -72,7 +72,7 @@ pair_coeff 1*2 3 lj/cut 0.8 1.3 :pre
 
 Note that the pair_coeff command for {eam/alloy} includes a mapping
 specification of elements to all atom types, even those not assigned
-to the {eam/alloy} potential.  The NULL keyword is used by such
+to the {eam/alloy} potential.  The NULL keyword is used by many such
 potentials (eam/alloy, Tersoff, AIREBO, etc), to denote an atom type
 that will be assigned to a different sub-style.
 
@@ -82,10 +82,23 @@ if you specify the same atom type pair in a second pair_coeff command,
 the previous assignment will be overwritten.
 
 For the {hybrid/overlay} style, each atom type pair I,J can be
-assigned to one or more sub-styles.  Thus if you specify the same atom
-type pair in a second pair_coeff command, a second sub-style is added
-to the list of potentials that will be calculated for two interactings
-atoms of those types.
+assigned to one or more sub-styles.  If you specify the same atom type
+pair in a second pair_coeff command with a new sub-style, then the
+second sub-style is added to the list of potentials that will be
+calculated for two interacting atoms of those types.  If you specify
+the same atom type pair in a second pair_coeff command with a
+sub-style that has already been defined for that pair of atoms, then
+the new pair coefficients simply override the previous ones, as in the
+normal usage of the pair_coeff command.  E.g. these two sets of
+commands are the same:
+
+pair_style lj/cut 2.5
+pair_coeff * * 1.0 1.0
+pair_coeff 2 2 1.5 0.8 :pre
+
+pair_style hybrid/overlay lj/cut 2.5
+pair_coeff * * lj/cut 1.0 1.0
+pair_coeff 2 2 lj/cut 1.5 0.8 :pre
 
 Coefficients must be defined for each pair of atoms types via the
 "pair_coeff"_pair_coeff.html command as described above, or in the
@@ -117,6 +130,41 @@ Note that you may need to use an "atom_style"_atom_style.html hybrid
 command in your input script, if atoms in the simulation will need
 attributes from several atom styles, due to using multiple pair
 potentials.
+
+:line
+
+IMPORTANT: Several of the potentials defined via the pair_style
+command in LAMMPS are really many-body potentials, such as Tersoff,
+AIREBO, MEAM, ReaxFF, etc.  The way to think about using these
+potentials in a hybrid setting is as follows.
+
+A subset of atom types is assigned to the many-body potential with a
+single "pair_coeff"_pair_coeff.html command, using "* *" to include
+all types and the NULL keywords described above to exclude specific
+types not assigned to that potential.  If types 1,3,4 were assigned in
+that way (but not type 2), this means that all many-body interactions
+between all atoms of types 1,3,4 will be computed by that potential.
+Pair_style hybrid allows interactions between type pairs 2-2, 1-2,
+2-3, 2-4 to be specified for computation by other pair styles.  You
+could even add a second interaction for 1-1 to be computed by another
+pair style, assuming pair_style hybrid/overlay is used.
+
+But you cannot exclude the many-body interactions for some subset of
+the type pairs within the full set of 1,3,4 interactions, e.g. exclude
+1-1 or 1-3 interactions.  That is not conceptually well-defined for
+many-body interactions, since the potential will typically calculate
+energies and foces for small groups of atoms, e.g. 3 or 4 atoms.
+Additionally it is non-physical to think of excluding an interaction
+between a particular pair of atoms when the potential computes 3-body
+or 4-body interactions.
+
+One exception to this rule is that you can still use the "neigh_modify
+exclude"_neigh_modify.html command to exclude certain type pairs from
+the neighbor list that will be passed to each sub-style.  This would
+alter the calculations made by a many-body potential, since it builds
+its list of 3-body, 4-body, etc interactions from the pair list, but
+you would need to think carefully as to whether it produces a
+physically meaningful result for your model.
 
 :line
 

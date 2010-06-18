@@ -450,7 +450,6 @@ void FixMSST::setup(int vflag)
   // trigger virial computation on next timestep
 
   pressure->addstep(update->ntimestep+1);
-
 }
 
 /* ----------------------------------------------------------------------
@@ -679,8 +678,6 @@ void FixMSST::final_integrate()
   // trigger virial computation on next timestep
 
   pressure->addstep(update->ntimestep+1);
-
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -760,8 +757,6 @@ void FixMSST::remap(int flag)
     v[i][direction] = v[i][direction] * 
       dilation[direction];
   }
-
-
 }
 
 /* ----------------------------------------------------------------------
@@ -998,9 +993,8 @@ void FixMSST::check_alloc(int n)
     delete [] old_velocity;
 
     old_velocity = new double* [n];
-    for ( int j = 0; j < n; j++ ) {
+    for ( int j = 0; j < n; j++ )
       old_velocity[j] = new double [3];
-    }
     atoms_allocated = n;
   }
 }

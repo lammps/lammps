@@ -166,7 +166,6 @@ double ComputeTempAsphere::compute_scalar()
   double **quat = atom->quat;
   double **angmom = atom->angmom;
   double *mass = atom->mass;
-  double **shape = atom->shape;
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;

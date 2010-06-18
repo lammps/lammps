@@ -64,10 +64,10 @@ AngleTable::~AngleTable()
 
 void AngleTable::compute(int eflag, int vflag)
 {
-  int i1,i2,i3,n,type,factor;
+  int i1,i2,i3,n,type;
   double eangle,f1[3],f3[3];
   double delx1,dely1,delz1,delx2,dely2,delz2;
-  double rsq1,rsq2,r1,r2,c,s,a,a11,a12,a22,vx1,vx2,vy1,vy2,vz1,vz2;
+  double rsq1,rsq2,r1,r2,c,s,a,a11,a12,a22;
   double theta,u,mdu; //mdu: minus du, -du/dx=f
 
   eangle = 0.0;
@@ -620,7 +620,7 @@ double AngleTable::splint(double *xa, double *ya, double *y2a, int n, double x)
 void AngleTable::uf_lookup(int type, double x, double &u, double &f)
 {
   int itable;
-  double fraction,value,a,b;
+  double fraction,a,b;
 
   Table *tb = &tables[tabindex[type]];
   
@@ -651,7 +651,7 @@ void AngleTable::uf_lookup(int type, double x, double &u, double &f)
 void AngleTable::u_lookup(int type, double x, double &u)
 {
   int itable;
-  double fraction,value,a,b;
+  double fraction,a,b;
 
   Table *tb = &tables[tabindex[type]];
   

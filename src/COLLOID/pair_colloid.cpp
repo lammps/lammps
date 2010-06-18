@@ -471,6 +471,7 @@ double PairColloid::single(int i, int j, int itype, int jtype, double rsq,
     c2 = a2[itype][jtype];
     K[1] = c2*c2;
     K[2] = rsq;
+    K[0] = K[1] - rsq;
     K[4] = rsq*rsq;
     K[3] = K[1] - K[2];
     K[3] *= K[3]*K[3];

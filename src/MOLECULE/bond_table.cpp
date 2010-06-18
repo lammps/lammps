@@ -544,7 +544,7 @@ double BondTable::splint(double *xa, double *ya, double *y2a, int n, double x)
 void BondTable::uf_lookup(int type, double x, double &u, double &f)
 {
   int itable;
-  double fraction,value,a,b;
+  double fraction,a,b;
 
   Table *tb = &tables[tabindex[type]];
   x = MAX(x,tb->lo);
@@ -578,7 +578,7 @@ void BondTable::uf_lookup(int type, double x, double &u, double &f)
 void BondTable::u_lookup(int type, double x, double &u)
 {
   int itable;
-  double fraction,value,a,b;
+  double fraction,a,b;
 
   Table *tb = &tables[tabindex[type]];
   x = MAX(x,tb->lo);

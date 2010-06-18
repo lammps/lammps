@@ -48,7 +48,7 @@ FixHeat::FixHeat(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   iregion = -1;
 
-  int iarg = 6;
+  int iarg = 5;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"region") == 0) {
       if (iarg+2 > narg) error->all("Illegal fix heat command");

@@ -26,7 +26,7 @@
 
 using namespace LAMMPS_NS;
 
-enum{NONE,PAIR,BOND,ANGLE,DIHEDRAL,IMPROPER};
+enum{NONE,NEIGH,PAIR,BOND,ANGLE,DIHEDRAL,IMPROPER};
 
 #define DELTA 10000
 
@@ -50,7 +50,18 @@ ComputePropertyLocal::ComputePropertyLocal(LAMMPS *lmp, int narg, char **arg) :
   for (int iarg = 3; iarg < narg; iarg++) {
     i = iarg-3;
 
-    if (strcmp(arg[iarg],"patom1") == 0) {
+    if (strcmp(arg[iarg],"natom1") == 0) {
+      pack_choice[i] = &ComputePropertyLocal::pack_patom1;
+      if (kindflag != NONE && kindflag != NEIGH) 
+	error->all("Compute property/local cannot use these inputs together");
+      kindflag = NEIGH;
+    } else if (strcmp(arg[iarg],"natom2") == 0) {
+      pack_choice[i] = &ComputePropertyLocal::pack_patom2;
+      if (kindflag != NONE && kindflag != NEIGH) 
+	error->all("Compute property/local cannot use these inputs together");
+      kindflag = NEIGH;
+
+    } else if (strcmp(arg[iarg],"patom1") == 0) {
       pack_choice[i] = &ComputePropertyLocal::pack_patom1;
       if (kindflag != NONE && kindflag != PAIR) 
 	error->all("Compute property/local cannot use these inputs together");
@@ -184,16 +195,16 @@ ComputePropertyLocal::~ComputePropertyLocal()
 
 void ComputePropertyLocal::init()
 {
-  if (kindflag == PAIR) {
+  if (kindflag == NEIGH || kindflag == PAIR) {
     if (force->pair == NULL) 
       error->all("No pair style is defined for compute property/local");
     if (force->pair->single_enable == 0)
       error->all("Pair style does not support compute property/local");
   }
 
-  // for PAIR< need an occasional half neighbor list
+  // for NEIGH/PAIR need an occasional half neighbor list
 
-  if (kindflag == PAIR) {
+  if (kindflag == NEIGH || kindflag == PAIR) {
     int irequest = neighbor->request((void *) this);
     neighbor->requests[irequest]->pair = 0;
     neighbor->requests[irequest]->compute = 1;
@@ -201,9 +212,10 @@ void ComputePropertyLocal::init()
   }
 
   // do initial memory allocation so that memory_usage() is correct
-  // cannot be done yet for PAIR, since neigh list does not exist
+  // cannot be done yet for NEIGH/PAIR, since neigh list does not exist
 
-  if (kindflag == PAIR) ncount = 0;
+  if (kindflag == NEIGH) ncount = 0;
+  else if (kindflag == PAIR) ncount = 0;
   else if (kindflag == BOND) ncount = count_bonds(0);
   else if (kindflag == ANGLE) ncount = count_angles(0);
   else if (kindflag == DIHEDRAL) ncount = count_dihedrals(0);
@@ -228,7 +240,8 @@ void ComputePropertyLocal::compute_local()
 
   // count local entries and generate list of indices
 
-  if (kindflag == PAIR) ncount = count_pairs(0);
+  if (kindflag == NEIGH) ncount = count_pairs(0,0);
+  else if (kindflag == PAIR) ncount = count_pairs(0,1);
   else if (kindflag == BOND) ncount = count_bonds(0);
   else if (kindflag == ANGLE) ncount = count_angles(0);
   else if (kindflag == DIHEDRAL) ncount = count_dihedrals(0);
@@ -237,7 +250,8 @@ void ComputePropertyLocal::compute_local()
   if (ncount > nmax) reallocate(ncount);
   size_local_rows = ncount;
 
-  if (kindflag == PAIR) ncount = count_pairs(1);
+  if (kindflag == NEIGH) ncount = count_pairs(1,0);
+  else if (kindflag == PAIR) ncount = count_pairs(1,1);
   else if (kindflag == BOND) ncount = count_bonds(1);
   else if (kindflag == ANGLE) ncount = count_angles(1);
   else if (kindflag == DIHEDRAL) ncount = count_dihedrals(1);
@@ -259,10 +273,11 @@ void ComputePropertyLocal::compute_local()
    count pairs and compute pair info on this proc
    only count pair once if newton_pair is off
    both atom I,J must be in group
-   if flag is set, compute requested info about pair
+   if allflag is set, compute requested info about pair
+   if forceflag = 1, pair must be within force cutoff, else neighbor cutoff
 ------------------------------------------------------------------------- */
 
-int ComputePropertyLocal::count_pairs(int flag)
+int ComputePropertyLocal::count_pairs(int allflag, int forceflag)
 {
   int i,j,m,n,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz;
@@ -281,7 +296,7 @@ int ComputePropertyLocal::count_pairs(int flag)
 
   // invoke half neighbor list (will copy or build if necessary)
 
-  if (flag == 0) neighbor->build_one(list->index);
+  if (allflag == 0) neighbor->build_one(list->index);
 
   inum = list->inum;
   ilist = list->ilist;
@@ -324,9 +339,9 @@ int ComputePropertyLocal::count_pairs(int flag)
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
-      if (rsq >= cutsq[itype][jtype]) continue;
+      if (forceflag && rsq >= cutsq[itype][jtype]) continue;
 
-      if (flag) {
+      if (allflag) {
 	indices[m][0] = tag[i];
 	indices[m][1] = tag[j];
       }

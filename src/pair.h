@@ -97,6 +97,8 @@ class Pair : protected Pointers {
   virtual void swap_eam(double *, double **) {}
   virtual void reset_dt() {}
   virtual void min_pointers(double **, double **) {}
+  virtual int pre_adapt(char *, int, int, int, int) {return -1;}
+  virtual void adapt(int, int, int, int, int, double) {}
 
  protected:
   int allocated;                       // 0/1 = whether arrays are allocated

@@ -38,12 +38,13 @@ class PairSoft : public Pair {
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
+  int pre_adapt(char *, int, int, int, int);
+  void adapt(int, int, int, int, int, double);
   double single(int, int, int, int, double, double, double, double &);
 
  private:
   double PI;
   double cut_global;
-  double **prestart,**prestop;
   double **prefactor;
   double **cut;
 

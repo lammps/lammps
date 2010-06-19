@@ -375,7 +375,7 @@ void BondTable::compute_table(Table *tb)
   // delta = table spacing for N-1 bins
   int tlm1 = tablength-1;
 
-  tb->delta = (tb->hi - tb->lo)/ nm1;
+  tb->delta = (tb->hi - tb->lo)/ tlm1;
   tb->invdelta = 1.0/tb->delta;
   tb->deltasq6 = tb->delta*tb->delta / 6.0;
   

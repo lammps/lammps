@@ -352,7 +352,7 @@ int RegCylinder::surface_exterior(double *x, double cutoff)
     if (r < radius && x[1] > lo && x[1] < hi) return 0;
 
     // y is exterior to cylinder or on its surface
-    // xp,yp,zp = point on surface of cylinder that y is closest to
+    // xp,yp,zp = point on surface of cylinder that x is closest to
     //            could be edge of cylinder
     // do not add contact point if r >= cutoff
 
@@ -383,7 +383,7 @@ int RegCylinder::surface_exterior(double *x, double cutoff)
     if (r < radius && x[2] > lo && x[2] < hi) return 0;
 
     // z is exterior to cylinder or on its surface
-    // xp,yp,zp = point on surface of cylinder that z is closest to
+    // xp,yp,zp = point on surface of cylinder that x is closest to
     //            could be edge of cylinder
     // do not add contact point if r >= cutoff
 

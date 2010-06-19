@@ -74,7 +74,7 @@ FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg) error->all("Illegal fix wall/reflect command");
       if (strcmp(arg[iarg+1],"EDGE") == 0) {
 	yloflag = EDGE;
-	ylo = domain->boxlo[0];
+	ylo = domain->boxlo[1];
       } else if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
 	yloflag = VARIABLE;
 	int n = strlen(&arg[iarg+1][2]) + 1;
@@ -89,7 +89,7 @@ FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg) error->all("Illegal fix wall/reflect command");
       if (strcmp(arg[iarg+1],"EDGE") == 0) {
 	yhiflag = EDGE;
-	yhi = domain->boxhi[0];
+	yhi = domain->boxhi[1];
       } else if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
 	yhiflag = VARIABLE;
 	int n = strlen(&arg[iarg+1][2]) + 1;
@@ -104,7 +104,7 @@ FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg) error->all("Illegal fix wall/reflect command");
       if (strcmp(arg[iarg+1],"EDGE") == 0) {
 	zloflag = EDGE;
-	zlo = domain->boxlo[0];
+	zlo = domain->boxlo[2];
       } else if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
 	zloflag = VARIABLE;
 	int n = strlen(&arg[iarg+1][2]) + 1;
@@ -119,7 +119,7 @@ FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg) error->all("Illegal fix wall/reflect command");
       if (strcmp(arg[iarg+1],"EDGE") == 0) {
 	zhiflag = EDGE;
-	zhi = domain->boxhi[0];
+	zhi = domain->boxhi[2];
       } else if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
 	zhiflag = VARIABLE;
 	int n = strlen(&arg[iarg+1][2]) + 1;

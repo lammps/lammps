@@ -109,6 +109,7 @@ double ComputeERotateSphere::compute_scalar()
 	    radius[i]*radius[i]*mass[itype];
 	}
     }
+    
   } else {
     if (rmass) {
       for (i = 0; i < nlocal; i++) 

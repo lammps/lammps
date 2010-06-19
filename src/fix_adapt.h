@@ -11,27 +11,37 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef PAIR_CLASS
+#ifdef FIX_CLASS
 
-PairStyle(hybrid/overlay,PairHybridOverlay)
+FixStyle(adapt,FixAdapt)
 
 #else
 
-#ifndef LMP_PAIR_HYBRID_OVERLAY_H
-#define LMP_PAIR_HYBRID_OVERLAY_H
+#ifndef LMP_FIX_ADAPT_H
+#define LMP_FIX_ADAPT_H
 
-#include "pair_hybrid.h"
+#include "fix.h"
 
 namespace LAMMPS_NS {
 
-class PairHybridOverlay : public PairHybrid {
+class FixAdapt : public Fix {
  public:
-  PairHybridOverlay(class LAMMPS *);
-  ~PairHybridOverlay() {}
-  void coeff(int, char **);
+  FixAdapt(class LAMMPS *, int, char **);
+  ~FixAdapt();
+  int setmask();
+  void init();
+  void pre_force(int);
 
  private:
-  void modify_requests();
+  int nadapt;
+  int *which;
+  char **pair,**param,**var;
+  int *ilo,*ihi,*jlo,*jhi;
+
+  int *ivar;
+  class Pair **pairptr;
+  int *pairindex;
+  int *awhich;
 };
 
 }

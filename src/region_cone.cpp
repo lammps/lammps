@@ -436,7 +436,7 @@ int RegCone::surface_exterior(double *x, double cutoff)
 
     // y is exterior to cone or on its surface
     // corner1234 = 4 corner pts of half trapezoid = cone surf in plane of y
-    // project y to 3 line segments in half trapezoid (4th is axis of cone)
+    // project x to 3 line segments in half trapezoid (4th is axis of cone)
     // nearest = point on surface of cone that y is closest to
     //           could be edge of cone
     // do not add contact point if r >= cutoff
@@ -481,7 +481,7 @@ int RegCone::surface_exterior(double *x, double cutoff)
 
     // z is exterior to cone or on its surface
     // corner1234 = 4 corner pts of half trapezoid = cone surf in plane of z
-    // project z to 3 line segments in half trapezoid (4th is axis of cone)
+    // project x to 3 line segments in half trapezoid (4th is axis of cone)
     // nearest = point on surface of cone that z is closest to
     //           could be edge of cone
     // do not add contact point if r >= cutoff

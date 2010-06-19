@@ -488,8 +488,8 @@ double ComputeReduce::compute_one(int m, int flag)
   // only include atoms in group for atom properties and per-atom quantities
 
   index = -1;
-  int v_idx = value2index[m];
-  int a_idx = argindex[m];
+  int vidx = value2index[m];
+  int aidx = argindex[m];
 
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -504,28 +504,28 @@ double ComputeReduce::compute_one(int m, int flag)
     double **x = atom->x;
     if (flag < 0) {
       for (i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit) combine(one,x[i][a_idx],i);
-    } else one = x[flag][a_idx];
+	if (mask[i] & groupbit) combine(one,x[i][aidx],i);
+    } else one = x[flag][aidx];
   } else if (which[m] == V) {
     double **v = atom->v;
     if (flag < 0) {
       for (i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit) combine(one,v[i][a_idx],i);
-    } else one = v[flag][a_idx];
+	if (mask[i] & groupbit) combine(one,v[i][aidx],i);
+    } else one = v[flag][aidx];
   } else if (which[m] == F) {
     double **f = atom->f;
     if (flag < 0) {
       for (i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit) combine(one,f[i][a_idx],i);
-    } else one = f[flag][a_idx];
+	if (mask[i] & groupbit) combine(one,f[i][aidx],i);
+    } else one = f[flag][aidx];
     
   // invoke compute if not previously invoked
 
   } else if (which[m] == COMPUTE) {
-    Compute *compute = modify->compute[v_idx];
+    Compute *compute = modify->compute[vidx];
     
     if (flavor[m] == GLOBAL) {
-      if (a_idx == 0) {
+      if (aidx == 0) {
 	if (!(compute->invoked_flag & INVOKED_VECTOR)) {
 	  compute->compute_vector();
 	  compute->invoked_flag |= INVOKED_VECTOR;
@@ -541,13 +541,13 @@ double ComputeReduce::compute_one(int m, int flag)
 	  compute->compute_array();
 	  compute->invoked_flag |= INVOKED_ARRAY;
 	}
-	double **comp_arr = compute->array;
+	double **carray = compute->array;
 	int n = compute->size_array_rows;
-	int a_idx_1 = a_idx - 1;
+	int aidx_1 = aidx - 1;
 	if (flag < 0)
 	  for (i = 0; i < n; i++)
-	    combine(one,comp_arr[i][a_idx_1],i);
-	else one = comp_arr[flag][a_idx_1];
+	    combine(one,carray[i][aidx_1],i);
+	else one = carray[flag][aidx_1];
       }
 
     } else if (flavor[m] == PERATOM) {
@@ -556,7 +556,7 @@ double ComputeReduce::compute_one(int m, int flag)
 	compute->invoked_flag |= INVOKED_PERATOM;
       }
 
-      if (a_idx == 0) {
+      if (aidx == 0) {
 	double *comp_vec = compute->vector_atom;
 	int n = nlocal;
 	if (flag < 0) {
@@ -564,13 +564,13 @@ double ComputeReduce::compute_one(int m, int flag)
 	    if (mask[i] & groupbit) combine(one,comp_vec[i],i);
 	} else one = comp_vec[flag];
       } else {
-	double **comp_arr = compute->array_atom;
+	double **carray_atom = compute->array_atom;
 	int n = nlocal;
-	int a_idxm1 = a_idx - 1;
+	int aidxm1 = aidx - 1;
 	if (flag < 0) {
 	  for (i = 0; i < n; i++)
-	    if (mask[i] & groupbit) combine(one,comp_arr[i][a_idxm1],i);
-	} else one = comp_arr[flag][a_idxm1];
+	    if (mask[i] & groupbit) combine(one,carray_atom[i][aidxm1],i);
+	} else one = carray_atom[flag][aidxm1];
       }
 
     } else if (flavor[m] == LOCAL) {
@@ -579,7 +579,7 @@ double ComputeReduce::compute_one(int m, int flag)
 	compute->invoked_flag |= INVOKED_LOCAL;
       }
 
-      if (a_idx == 0) {
+      if (aidx == 0) {
 	double *comp_vec = compute->vector_local;
 	int n = compute->size_local_rows;
 	if (flag < 0)
@@ -587,40 +587,40 @@ double ComputeReduce::compute_one(int m, int flag)
 	    combine(one,comp_vec[i],i);
 	else one = comp_vec[flag];
       } else {
-	double **comp_arr = compute->array_local;
+	double **carray_local = compute->array_local;
 	int n = compute->size_local_rows;
-	int a_idxm1 = a_idx - 1;
+	int aidxm1 = aidx - 1;
 	if (flag < 0)
 	  for (i = 0; i < n; i++)
-	    combine(one,comp_arr[i][a_idxm1],i);
-	else one = comp_arr[flag][a_idxm1];
+	    combine(one,carray_local[i][aidxm1],i);
+	else one = carray_local[flag][aidxm1];
       }
     }
 
   // access fix fields, check if fix frequency is a match
 
   } else if (which[m] == FIX) {
-    if (update->ntimestep % modify->fix[v_idx]->peratom_freq)
+    if (update->ntimestep % modify->fix[vidx]->peratom_freq)
       error->all("Fix used in compute reduce not computed at compatible time");
-    Fix *fix = modify->fix[v_idx];
+    Fix *fix = modify->fix[vidx];
 
     if (flavor[m] == GLOBAL) {
-      if (a_idx == 0) {
+      if (aidx == 0) {
 	int n = fix->size_vector;
 	if (flag < 0)
 	  for (i = 0; i < n; i++)
 	    combine(one,fix->compute_vector(i),i);
 	else one = fix->compute_vector(flag);
       } else {
-	int a_idxm1 = a_idx - 1;
+	int aidxm1 = aidx - 1;
 	if (flag < 0)
 	  for (i = 0; i < nlocal; i++)
-	    combine(one,fix->compute_array(i,a_idxm1),i);
-	else one = fix->compute_array(flag,a_idxm1);
+	    combine(one,fix->compute_array(i,aidxm1),i);
+	else one = fix->compute_array(flag,aidxm1);
       }
 
     } else if (flavor[m] == PERATOM) {
-      if (a_idx == 0) {
+      if (aidx == 0) {
 	double *fix_vector = fix->vector_atom;
 	int n = nlocal;
 	if (flag < 0) {
@@ -629,15 +629,15 @@ double ComputeReduce::compute_one(int m, int flag)
 	} else one = fix_vector[flag];
       } else {
 	double **fix_array = fix->array_atom;
-	int a_idxm1 = a_idx - 1;
+	int aidxm1 = aidx - 1;
 	if (flag < 0) {
 	  for (i = 0; i < nlocal; i++)
-	    if (mask[i] & groupbit) combine(one,fix_array[i][a_idxm1],i);
-	} else one = fix_array[flag][a_idxm1];
+	    if (mask[i] & groupbit) combine(one,fix_array[i][aidxm1],i);
+	} else one = fix_array[flag][aidxm1];
       }
 
     } else if (flavor[m] == LOCAL) {
-      if (a_idx == 0) {
+      if (aidx == 0) {
 	double *fix_vector = fix->vector_local;
 	int n = fix->size_local_rows;
 	if (flag < 0)
@@ -647,11 +647,11 @@ double ComputeReduce::compute_one(int m, int flag)
       } else {
 	double **fix_array = fix->array_local;
 	int n = fix->size_local_rows;
-	int a_idxm1 = a_idx - 1;
+	int aidxm1 = aidx - 1;
 	if (flag < 0)
 	  for (i = 0; i < n; i++)
-	    combine(one,fix_array[i][a_idxm1],i);
-	else one = fix_array[flag][a_idxm1];
+	    combine(one,fix_array[i][aidxm1],i);
+	else one = fix_array[flag][aidxm1];
       }
     }
     
@@ -665,7 +665,7 @@ double ComputeReduce::compute_one(int m, int flag)
 	memory->smalloc(maxatom*sizeof(double),"reduce:varatom");
     }
 
-    input->variable->compute_atom(v_idx,igroup,varatom,1,0);
+    input->variable->compute_atom(vidx,igroup,varatom,1,0);
     if (flag < 0) {
       for (i = 0; i < nlocal; i++)
 	if (mask[i] & groupbit) combine(one,varatom[i],i);
@@ -679,15 +679,15 @@ double ComputeReduce::compute_one(int m, int flag)
 
 double ComputeReduce::count(int m)
 {
-  int v_idx = value2index[m];
-  int a_idx = argindex[m];
+  int vidx = value2index[m];
+  int aidx = argindex[m];
 
   if (which[m] == X || which[m] == V || which[m] == F)
     return group->count(igroup);
   else if (which[m] == COMPUTE) {
-    Compute *compute = modify->compute[v_idx];
+    Compute *compute = modify->compute[vidx];
     if (flavor[m] == GLOBAL) {
-      if (a_idx == 0) return(1.0*compute->size_vector);
+      if (aidx == 0) return(1.0*compute->size_vector);
       else return(1.0*compute->size_array_rows);
     } else if (flavor[m] == PERATOM) {
       return group->count(igroup);
@@ -698,9 +698,9 @@ double ComputeReduce::count(int m)
       return ncountall;
     }
   } else if (which[m] == FIX) {
-    Fix *fix = modify->fix[v_idx];
+    Fix *fix = modify->fix[vidx];
     if (flavor[m] == GLOBAL) {
-      if (a_idx == 0) return(1.0*fix->size_vector);
+      if (aidx == 0) return(1.0*fix->size_vector);
       else return(1.0*fix->size_array_rows);
     } else if (flavor[m] == PERATOM) {
       return group->count(igroup);

@@ -40,6 +40,10 @@ their relative velocities in the presence of a background solvent with
 viscosity mu.  Note that this is dynamic viscosity which has units of
 mass/distance/time, not kinematic viscosity.
 
+The viscosity mu can be varied in a time-dependent manner over the
+course of a simluation.  See the "fix adapt"_fix_adapt.html command
+for details.
+
 Rc is the outer cutoff specified in the pair_style command, the
 translational velocities of the 2 particles are v1 and v2, the angular
 velocities are w1 and w2, and n is the unit vector in the direction

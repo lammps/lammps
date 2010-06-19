@@ -109,9 +109,8 @@ int ComputeDihedralLocal::compute_dihedrals(int flag)
 {
   int i,m,n,atom1,atom2,atom3,atom4;
   double vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,vb2xm,vb2ym,vb2zm;
-  double sb1,sb2,sb3,rb1,rb3,c0,b1mag2,b1mag,b2mag2;
-  double b2mag,b3mag2,b3mag,ctmp,r12c1,c1mag,r12c2;
-  double c2mag,sin2,sc1,sc2,s1,s2,s12,c;
+  double ax,ay,az,bx,by,bz,rasq,rbsq,rgsq,rg,rginv,ra2inv,rb2inv,rabinv;
+  double s,c;
   double *pbuf;
 
   double **x = atom->x;
@@ -148,71 +147,53 @@ int ComputeDihedralLocal::compute_dihedrals(int flag)
 
       if (flag) {
 
-	// phi calculation from dihedral style OPLS
+	// phi calculation from dihedral style harmonic
 
 	if (pflag >= 0) {
 	  vb1x = x[atom1][0] - x[atom2][0];
 	  vb1y = x[atom1][1] - x[atom2][1];
 	  vb1z = x[atom1][2] - x[atom2][2];
 	  domain->minimum_image(vb1x,vb1y,vb1z);
-
+	  
 	  vb2x = x[atom3][0] - x[atom2][0];
 	  vb2y = x[atom3][1] - x[atom2][1];
 	  vb2z = x[atom3][2] - x[atom2][2];
 	  domain->minimum_image(vb2x,vb2y,vb2z);
-
+	  
 	  vb2xm = -vb2x;
 	  vb2ym = -vb2y;
 	  vb2zm = -vb2z;
 	  domain->minimum_image(vb2xm,vb2ym,vb2zm);
-
+	  
 	  vb3x = x[atom4][0] - x[atom3][0];
 	  vb3y = x[atom4][1] - x[atom3][1];
 	  vb3z = x[atom4][2] - x[atom3][2];
 	  domain->minimum_image(vb3x,vb3y,vb3z);
-
-	  sb1 = 1.0 / (vb1x*vb1x + vb1y*vb1y + vb1z*vb1z);
-	  sb2 = 1.0 / (vb2x*vb2x + vb2y*vb2y + vb2z*vb2z);
-	  sb3 = 1.0 / (vb3x*vb3x + vb3y*vb3y + vb3z*vb3z);
-
-	  rb1 = sqrt(sb1);
-	  rb3 = sqrt(sb3);
-
-	  c0 = (vb1x*vb3x + vb1y*vb3y + vb1z*vb3z) * rb1*rb3;
-
-	  b1mag2 = vb1x*vb1x + vb1y*vb1y + vb1z*vb1z;
-	  b1mag = sqrt(b1mag2);
-	  b2mag2 = vb2x*vb2x + vb2y*vb2y + vb2z*vb2z;
-	  b2mag = sqrt(b2mag2);
-	  b3mag2 = vb3x*vb3x + vb3y*vb3y + vb3z*vb3z;
-	  b3mag = sqrt(b3mag2);
 	  
-	  ctmp = vb1x*vb2x + vb1y*vb2y + vb1z*vb2z;
-	  r12c1 = 1.0 / (b1mag*b2mag);
-	  c1mag = ctmp * r12c1;
+	  ax = vb1y*vb2zm - vb1z*vb2ym;
+	  ay = vb1z*vb2xm - vb1x*vb2zm;
+	  az = vb1x*vb2ym - vb1y*vb2xm;
+	  bx = vb3y*vb2zm - vb3z*vb2ym;
+	  by = vb3z*vb2xm - vb3x*vb2zm;
+	  bz = vb3x*vb2ym - vb3y*vb2xm;
 	  
-	  ctmp = vb2xm*vb3x + vb2ym*vb3y + vb2zm*vb3z;
-	  r12c2 = 1.0 / (b2mag*b3mag);
-	  c2mag = ctmp * r12c2;
+	  rasq = ax*ax + ay*ay + az*az;
+	  rbsq = bx*bx + by*by + bz*bz;
+	  rgsq = vb2xm*vb2xm + vb2ym*vb2ym + vb2zm*vb2zm;
+	  rg = sqrt(rgsq);
+	  
+	  rginv = ra2inv = rb2inv = 0.0;
+	  if (rg > 0) rginv = 1.0/rg;
+	  if (rasq > 0) ra2inv = 1.0/rasq;
+	  if (rbsq > 0) rb2inv = 1.0/rbsq;
+	  rabinv = sqrt(ra2inv*rb2inv);
 
-	  sin2 = MAX(1.0 - c1mag*c1mag,0.0);
-	  sc1 = sqrt(sin2);
-	  if (sc1 < SMALL) sc1 = SMALL;
-	  sc1 = 1.0/sc1;
-
-	  sin2 = MAX(1.0 - c2mag*c2mag,0.0);
-	  sc2 = sqrt(sin2);
-	  if (sc2 < SMALL) sc2 = SMALL;
-	  sc2 = 1.0/sc2;
-
-	  s1 = sc1 * sc1;
-	  s2 = sc2 * sc2;
-	  s12 = sc1 * sc2;
-	  c = (c0 + c1mag*c2mag) * s12;
+	  c = (ax*bx + ay*by + az*bz)*rabinv;
+	  s = rg*rabinv*(ax*vb3x + ay*vb3y + az*vb3z);
 
 	  if (c > 1.0) c = 1.0;
 	  if (c < -1.0) c = -1.0;
-	  pbuf[n] = 180.0*acos(c)/PI;
+	  pbuf[n] = 180.0*atan2(s,c)/PI;
 	}
 	n += nvalues;
       }

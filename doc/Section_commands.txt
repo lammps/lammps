@@ -382,6 +382,7 @@ Fix styles :h4
 See the "fix"_fix.html command for one-line descriptions
 of each style or click on the style itself for a full description:
 
+"adapt"_fix_adapt.html,
 "addforce"_fix_addforce.html,
 "aveforce"_fix_aveforce.html,
 "ave/atom"_fix_ave_atom.html,

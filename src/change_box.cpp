@@ -21,7 +21,7 @@
 
 using namespace LAMMPS_NS;
 
-enum{NONE,ORTHO,TRICLINIC};
+enum{ORTHO,TRICLINIC};
 
 /* ---------------------------------------------------------------------- */
 
@@ -35,7 +35,7 @@ void ChangeBox::command(int narg, char **arg)
     error->all("Change_box command before simulation box is defined");
   if (narg != 1) error->all("Illegal change_box command");
 
-  int style=NONE;
+  int style;
   if (strcmp(arg[0],"ortho") == 0) style = ORTHO;
   else if (strcmp(arg[0],"triclinic") == 0) style = TRICLINIC;
   else error->all("Illegal change_box command");

@@ -40,6 +40,8 @@ FixAveForce::FixAveForce(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extvector = 1;
 
+  xstr = ystr = zstr = NULL;
+
   if (strstr(arg[3],"v_") == arg[3]) {
     int n = strlen(&arg[3][2]) + 1;
     xstr = new char[n];

@@ -155,6 +155,7 @@ Each fix style has its own documentation page which describes its
 arguments and what it does, as listed below.  Here is an alphabetic
 list of fix styles available in LAMMPS:
 
+"adapt"_fix_adapt.html - change a simulation parameter over time
 "addforce"_fix_addforce.html - add a force to each atom
 "aveforce"_fix_aveforce.html - add an averaged force to each atom
 "ave/atom"_fix_ave_atom.html - compute per-atom time-averaged quantities

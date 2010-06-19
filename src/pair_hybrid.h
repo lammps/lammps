@@ -32,7 +32,7 @@ class PairHybrid : public Pair {
   char **keywords;              // style name of each Pair style
 
   PairHybrid(class LAMMPS *);
-  ~PairHybrid();
+  virtual ~PairHybrid();
   void compute(int, int);
   void settings(int, char **);
   virtual void coeff(int, char **);

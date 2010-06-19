@@ -287,13 +287,13 @@ void PairTable::coeff(int narg, char **arg)
   // match = 1 if don't need to spline read-in tables
   // this is only the case if r values needed by final tables
   //   exactly match r values read from file
+  // for tabstyle SPLINE, always need to build spline tables
 
   tb->match = 0;
   if (tabstyle == LINEAR && tb->ninput == tablength && 
       tb->rflag == RSQ && tb->rhi == tb->cut) tb->match = 1;
   if (tabstyle == BITMAP && tb->ninput == 1 << tablength && 
       tb->rflag == BMP && tb->rhi == tb->cut) tb->match = 1;
-  // for tabstyle == SPLINE we always need to build spline tables.
   if (tb->rflag == BMP && tb->match == 0)
     error->all("Bitmapped table in file does not match requested table");
 

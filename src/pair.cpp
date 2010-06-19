@@ -23,7 +23,6 @@
 #include "stdlib.h"
 #include "string.h"
 #include "pair.h"
-#include "pair_soft.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -894,13 +893,6 @@ void Pair::write_file(int narg, char **arg)
   // insures all pair coeffs are set and force constants
 
   force->init();
-
-  // if pair style = soft, set prefactor to final value
-
-  Pair *spair = force->pair_match("soft",1);
-  if (spair)
-    ((PairSoft *) spair)->prefactor[itype][jtype] =
-      ((PairSoft *) spair)->prestop[itype][jtype];
 
   // if pair style = any of EAM, swap in dummy fp vector
 

@@ -46,7 +46,7 @@ class ComputePropertyLocal : public Compute {
   int ncount;
   int **indices;
 
-  int count_pairs(int);
+  int count_pairs(int, int);
   int count_bonds(int);
   int count_angles(int);
   int count_dihedrals(int);

@@ -113,6 +113,8 @@ void PairDPDOMP::eval()
     int nthreads = comm->nthreads;
     double *special_lj = force->special_lj;
     double dtinvsqrt = 1.0/sqrt(update->dt);
+    double fxtmp,fytmp,fztmp;
+
     inum = list->inum;
     ilist = list->ilist;
     numneigh = list->numneigh;
@@ -121,7 +123,7 @@ void PairDPDOMP::eval()
     // loop over neighbors of my atoms
     int iifrom, iito;
     double **f = loop_setup_thr(atom->f,iifrom,iito,tid,inum,nall,nthreads);
-    RanMars *rng = random[tid];
+    RanMars &rng = *random[tid];
     for (ii = iifrom; ii < iito; ++ii) {
 
       i = ilist[ii];
@@ -134,6 +136,7 @@ void PairDPDOMP::eval()
       itype = type[i];
       jlist = firstneigh[i];
       jnum = numneigh[i];
+      fxtmp=fytmp=fztmp=0.0;
 
       for (jj = 0; jj < jnum; jj++) {
 	j = jlist[jj];
@@ -158,7 +161,7 @@ void PairDPDOMP::eval()
 	  delvz = vztmp - v[j][2];
 	  dot = delx*delvx + dely*delvy + delz*delvz;
 	  wd = 1.0 - r/cut[itype][jtype];
-	  randnum = rng->gaussian();
+	  randnum = rng.gaussian();
 
 	  // conservative force = a0 * wd
 	  // drag force = -gamma * wd^2 * (delx dot delv) / r
@@ -169,9 +172,9 @@ void PairDPDOMP::eval()
 	  fpair += sigma[itype][jtype]*wd*randnum*dtinvsqrt;
 	  fpair *= factor_dpd*rinv;	
 
-	  f[i][0] += delx*fpair;
-	  f[i][1] += dely*fpair;
-	  f[i][2] += delz*fpair;
+	  fxtmp += delx*fpair;
+	  fytmp += dely*fpair;
+	  fztmp += delz*fpair;
 	  if (NEWTON_PAIR || j < nlocal) {
 	    f[j][0] -= delx*fpair;
 	    f[j][1] -= dely*fpair;
@@ -190,6 +193,9 @@ void PairDPDOMP::eval()
 				   fpair,delx,dely,delz,tid);
 	}
       }
+      f[i][0] += fxtmp;
+      f[i][1] += fytmp;
+      f[i][2] += fztmp;
     }
 
     // reduce per thread forces into global force array.

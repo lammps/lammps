@@ -35,7 +35,6 @@ PairDPDTstatOMP::PairDPDTstatOMP(LAMMPS *lmp) : PairDPDOMP(lmp)
   single_enable = 0;
 }
 
-    
 /* ---------------------------------------------------------------------- */
 
 void PairDPDTstatOMP::compute(int eflag, int vflag)
@@ -82,7 +81,6 @@ void PairDPDTstatOMP::eval_tstat()
 #pragma omp parallel default(shared)
 #endif
   {
-
     int i,j,ii,jj,inum,jnum,itype,jtype,tid;
     double xtmp,ytmp,ztmp,delx,dely,delz,fpair;
     double vxtmp,vytmp,vztmp,delvx,delvy,delvz;
@@ -98,6 +96,7 @@ void PairDPDTstatOMP::eval_tstat()
     int *type = atom->type;
     double *special_lj = force->special_lj;
     double dtinvsqrt = 1.0/sqrt(update->dt);
+    double fxtmp,fytmp,fztmp;
 
     inum = list->inum;
     ilist = list->ilist;
@@ -107,7 +106,7 @@ void PairDPDTstatOMP::eval_tstat()
     // loop over neighbors of my atoms
     int iifrom, iito;
     double **f = loop_setup_thr(atom->f,iifrom,iito,tid,inum,nall,nthreads);
-    RanMars *rng = random[tid];
+    RanMars &rng = *random[tid];
     for (ii = iifrom; ii < iito; ++ii) {
 
       i = ilist[ii];
@@ -120,6 +119,7 @@ void PairDPDTstatOMP::eval_tstat()
       itype = type[i];
       jlist = firstneigh[i];
       jnum = numneigh[i];
+      fxtmp=fytmp=fztmp=0.0;
 
       for (jj = 0; jj < jnum; jj++) {
 	j = jlist[jj];
@@ -144,7 +144,7 @@ void PairDPDTstatOMP::eval_tstat()
 	  delvz = vztmp - v[j][2];
 	  dot = delx*delvx + dely*delvy + delz*delvz;
 	  wd = 1.0 - r/cut[itype][jtype];
-	  randnum = rng->gaussian();
+	  randnum = rng.gaussian();
 
 	  // drag force = -gamma * wd^2 * (delx dot delv) / r
 	  // random force = sigma * wd * rnd * dtinvsqrt;
@@ -153,9 +153,9 @@ void PairDPDTstatOMP::eval_tstat()
 	  fpair += sigma[itype][jtype]*wd*randnum*dtinvsqrt;
 	  fpair *= factor_dpd*rinv;	
 
-	  f[i][0] += delx*fpair;
-	  f[i][1] += dely*fpair;
-	  f[i][2] += delz*fpair;
+	  fxtmp += delx*fpair;
+	  fytmp += dely*fpair;
+	  fztmp += delz*fpair;
 	  if (NEWTON_PAIR || j < nlocal) {
 	    f[j][0] -= delx*fpair;
 	    f[j][1] -= dely*fpair;
@@ -166,6 +166,9 @@ void PairDPDTstatOMP::eval_tstat()
 				   0.0,0.0,fpair,delx,dely,delz,tid);
 	}
       }
+      f[i][0] += fxtmp;
+      f[i][1] += fytmp;
+      f[i][2] += fztmp;
     }
 
     // reduce per thread forces into global force array.

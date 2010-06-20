@@ -1,4 +1,4 @@
-LAMMPS (1 Jun 2010-ICMS)
+LAMMPS (24 Jun 2010-ICMS)
 
 units		lj
 neighbor	2.5 bin
@@ -11,10 +11,10 @@ special_bonds lj/coul 1.0 1.0 1.0
 read_data       data.dpd
   orthogonal box = (-7.5 -7.5 -11.8519) to (7.5 7.5 11.8519)
   2 by 2 by 2 processor grid
-  using 1 OpenMP thread(s) per MPI task
   16000 atoms
 
-pair_coeff	* * 1.0 60.0 1.12246
+variable        prefactor equal 1.0+elapsed*(60.0-1.0)/1000
+pair_coeff	* * 0.0 1.12246
 
 # start with all velocities = 0
 velocity	all zero linear
@@ -26,100 +26,105 @@ communicate single vel yes
 fix		1 all nve
 # thermostat
 fix		2 all temp/rescale 1 0.0 1.0 0.01 1.0
+# grow soft interaction potential
+fix             3 all adapt 1 pair soft a * * prefactor
 
 # output thermodynamic data
-thermo_style 	custom step temp etotal evdwl ebond
+thermo_style 	custom step temp etotal evdwl v_prefactor
 thermo 	        100 	
 
 run		1000
 Memory usage per processor = 10.1067 Mbytes
-Step Temp TotEng E_vdwl E_bond 
-       0            0    3.4747959    3.4747959            0 
-     100          0.1    14.434393    14.284402            0 
-     200   0.20099004    25.850678    25.549212            0 
-     300   0.29414627    37.568915    37.127723            0 
-     400   0.39347054    49.378554    48.788386            0 
-     500   0.49800797    61.226756     60.47979            0 
-     600   0.59655743    73.060353    72.165572            0 
-     700   0.69233947    84.890083    83.851639            0 
-     800   0.79382613    96.777241    95.586576            0 
-     900   0.89563674     108.6763    107.33293            0 
-    1000   0.99873603    120.57321     119.0752            0 
-Loop time of 7.13833 on 8 procs / 1 threads for 1000 steps with 16000 atoms
+Step Temp TotEng E_vdwl prefacto 
+       0            0    3.4747959    3.4747959            1 
+     100          0.1    14.434393    14.284402          6.9 
+     200   0.20099004    25.850678    25.549212         12.8 
+     300   0.29414627    37.568915    37.127723         18.7 
+     400   0.39347054    49.378555    48.788386         24.6 
+     500   0.49817655    61.226728    60.479509         30.5 
+     600   0.59636531    73.058183    72.163691         36.4 
+     700   0.69528684    84.874103    83.831238         42.3 
+     800          0.8    96.757939    95.558014         48.2 
+     900   0.89864796    108.62712    107.27923         54.1 
+    1000    1.0052633    120.56812    119.06032           60 
+Loop time of 7.47185 on 8 procs for 1000 steps with 16000 atoms
 
-Pair  time (%) = 5.69758 (79.8167)
-Neigh time (%) = 0.0969799 (1.35858)
-Comm  time (%) = 1.16756 (16.3561)
-Outpt time (%) = 0.000392944 (0.0055047)
-Other time (%) = 0.17582 (2.46304)
+Pair  time (%) = 6.04027 (80.8403)
+Neigh time (%) = 0.114697 (1.53506)
+Comm  time (%) = 1.13079 (15.134)
+Outpt time (%) = 0.000477612 (0.00639215)
+Other time (%) = 0.185621 (2.48427)
 
-Nlocal:    2000 ave 2014 max 1989 min
-Histogram: 2 2 0 0 0 1 0 1 1 1
-Nghost:    10443.1 ave 10491 max 10397 min
-Histogram: 1 1 0 1 0 3 0 1 0 1
-Neighs:    603190 ave 616824 max 594487 min
-Histogram: 3 1 0 1 0 0 1 0 1 1
+Nlocal:    2000 ave 2026 max 1974 min
+Histogram: 1 1 0 0 2 0 2 1 0 1
+Nghost:    10461.9 ave 10491 max 10414 min
+Histogram: 1 0 0 1 1 0 1 1 1 2
+Neighs:    603328 ave 616706 max 588087 min
+Histogram: 1 0 1 1 1 0 1 2 0 1
 
-Total # of neighbors = 4825517
-Ave neighs/atom = 301.595
-Neighbor list builds = 5
+Total # of neighbors = 4826627
+Ave neighs/atom = 301.664
+Neighbor list builds = 6
 Dangerous builds = 0
+unfix           1
+unfix           2
+unfix           3
 reset_timestep  0
 
 #----------------------------------------------------------------------------#
 
 #set DPD pair coefficients
 pair_style hybrid/overlay soft 1.12246 dpd/tstat 1.0 1.5 3.0 34387
-pair_coeff * * soft 60.0 60.0 1.12246
+pair_coeff * * soft 1.12246
 pair_coeff 2 2 dpd/tstat 0.1 1.0 
+variable 	prefactor equal 60.0
 
-unfix           1
-unfix           2
 fix		3 all nve
 
+thermo_style 	custom step temp etotal evdwl v_prefactor
 thermo          100
 run             2000
 Memory usage per processor = 18.38 Mbytes
-Step Temp TotEng E_vdwl E_bond 
-       0   0.99873603    120.57321     119.0752            0 
-     100    1.1358054    121.03811    119.33451            0 
-     200    1.3107634    121.58239    119.61637            0 
-     300    1.4682645     122.2296    120.02734            0 
-     400    1.6844445    122.95683    120.43032            0 
-     500    1.9129495    123.81128    120.94204            0 
-     600    2.1848602    124.75903    121.48194            0 
-     700    2.4766145      125.827    122.11231            0 
-     800    2.7964991    127.06365    122.86916            0 
-     900    3.1956477    128.44615    123.65298            0 
-    1000    3.6072279    130.00848    124.59798            0 
-    1100     3.997759    131.73898    125.74272            0 
-    1200    4.4633987    133.66436    126.96968            0 
-    1300    4.8994654    135.71217    128.36343            0 
-    1400     5.288878    137.92412     129.9913            0 
-    1500    5.6601581    140.25609    131.76638            0 
-    1600    5.9056701    142.58128    133.72333            0 
-    1700    6.1877645    144.85501    135.57394            0 
-    1800    6.5293897    147.01516    137.22169            0 
-    1900    6.8678367    149.16939    138.86828            0 
-    2000    7.1472383    151.26772    140.54753            0 
-Loop time of 19.6967 on 8 procs / 1 threads for 2000 steps with 16000 atoms
+Step Temp TotEng E_vdwl prefacto 
+       0    1.0052633    3.7351415    2.2273408           60 
+     100   0.58129224    3.8148713    2.9429874           60 
+     200   0.61872776    3.8853513    2.9573177           60 
+     300    0.6576211    3.9555117    2.9691418           60 
+     400   0.69793919    4.0285812    2.9817378           60 
+     500   0.73868958    4.1065361     2.998571           60 
+     600   0.78013678     4.185719    3.0155869           60 
+     700    0.8312912     4.267004    3.0201451           60 
+     800   0.87617838    4.3475691    3.0333837           60 
+     900   0.92101367    4.4330237    3.0515896           60 
+    1000   0.97603238    4.5206536    3.0566965           60 
+    1100    1.0246061    4.6114393    3.0746262           60 
+    1200    1.0849997    4.7099305    3.0825327           60 
+    1300    1.1452773    4.8143571    3.0965485           60 
+    1400    1.1970696    4.9142919    3.1187998           60 
+    1500    1.2629948    5.0146537    3.1202798           60 
+    1600    1.3266251    5.1211458    3.1313325           60 
+    1700    1.3927579    5.2351889    3.1461827           60 
+    1800    1.4600919    5.3476292    3.1576283           60 
+    1900    1.5356511    5.4683039    3.1649712           60 
+    2000    1.6059336    5.5924774    3.1837276           60 
+Loop time of 23.227 on 8 procs for 2000 steps with 16000 atoms
 
-Pair  time (%) = 13.5884 (68.988)
-Neigh time (%) = 3.31539 (16.8322)
-Comm  time (%) = 2.49786 (12.6816)
-Outpt time (%) = 0.000938892 (0.00476675)
-Other time (%) = 0.294165 (1.49347)
+Pair  time (%) = 16.0653 (69.1666)
+Neigh time (%) = 3.81237 (16.4135)
+Comm  time (%) = 3.05774 (13.1646)
+Outpt time (%) = 0.00117755 (0.00506974)
+Other time (%) = 0.290401 (1.25027)
 
-Nlocal:    2000 ave 2024 max 1985 min
-Histogram: 2 1 1 0 1 1 1 0 0 1
-Nghost:    10472.8 ave 10506 max 10441 min
-Histogram: 1 0 1 1 1 2 1 0 0 1
-Neighs:    597572 ave 605838 max 587158 min
-Histogram: 2 1 0 0 0 1 1 0 0 3
+Nlocal:    2000 ave 2030 max 1980 min
+Histogram: 3 0 0 1 0 2 1 0 0 1
+Nghost:    10440.4 ave 10474 max 10399 min
+Histogram: 2 0 1 0 0 0 1 1 2 1
+Neighs:    596544 ave 612246 max 584927 min
+Histogram: 2 0 1 1 1 1 0 1 0 1
 
-Total # of neighbors = 4780573
-Ave neighs/atom = 298.786
-Neighbor list builds = 146
+Total # of neighbors = 4772349
+Ave neighs/atom = 298.272
+Neighbor list builds = 147
 Dangerous builds = 0
 
 

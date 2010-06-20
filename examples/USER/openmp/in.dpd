@@ -9,7 +9,8 @@ special_bonds lj/coul 1.0 1.0 1.0
 
 read_data       data.dpd
 
-pair_coeff	* * 1.0 60.0 1.12246
+variable        prefactor equal 1.0+elapsed*(60.0-1.0)/1000
+pair_coeff	* * 0.0 1.12246
 
 # start with all velocities = 0
 velocity	all zero linear
@@ -21,12 +22,18 @@ communicate single vel yes
 fix		1 all nve
 # thermostat
 fix		2 all temp/rescale 1 0.0 1.0 0.01 1.0
+# grow soft interaction potential
+fix             3 all adapt 1 pair soft a * * prefactor
 
 # output thermodynamic data
-thermo_style 	custom step temp etotal evdwl ebond
+thermo_style 	custom step temp etotal evdwl v_prefactor
 thermo 	        100 	
 
 run		1000
+unfix           1
+unfix           2
+unfix           3
+variable	prefactor equal 60.0
 reset_timestep  0
 
 #----------------------------------------------------------------------------#
@@ -37,10 +44,9 @@ pair_coeff 1 1 78.0 4.5 1.0
 pair_coeff 1 2 50.0 4.5 1.0 
 pair_coeff 2 2 78.0 4.5 1.0
 
-unfix           1
-unfix           2
 fix		3 all nve
 
+thermo_style 	custom step temp etotal evdwl
 thermo          100
 run             2000
 

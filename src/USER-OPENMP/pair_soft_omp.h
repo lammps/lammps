@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -38,6 +38,9 @@ class PairSoftOMP : public PairOMP {
   virtual void read_restart(FILE *);
   virtual void write_restart_settings(FILE *);
   virtual void read_restart_settings(FILE *);
+  virtual int pre_adapt(char *, int, int, int, int);
+  virtual void adapt(int, int, int, int, int, double);
+
   virtual double single(int, int, int, int, double, double, double, double &);
 
   virtual double memory_usage();
@@ -52,7 +55,6 @@ class PairSoftOMP : public PairOMP {
  protected:
   double PI;
   double cut_global;
-  double **prestart,**prestop;
   double **prefactor;
   double **cut;
 

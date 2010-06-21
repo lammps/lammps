@@ -192,7 +192,7 @@ int ComputePairLocal::compute_pairs(int flag)
 	if (eflag >= 0 || fflag >= 0) {
 	  eng = pair->single(i,j,itype,jtype,rsq,factor_coul,factor_lj,fpair);
 	  if (eflag >= 0) ebuf[n] = eng;
-	  if (fflag >= 0) fbuf[n] = fpair;
+	  if (fflag >= 0) fbuf[n] = sqrt(rsq)*fpair;
 	}
 	n += nvalues;
       }

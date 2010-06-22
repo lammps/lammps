@@ -468,6 +468,18 @@ void PairOMP::v_tally4_thr(int i, int j, int k, int m,
 void PairOMP::ev_reduce_thr()
 {
   const int nthreads=comm->nthreads;
+  const int ntotal = (force->newton) ? 
+    (atom->nlocal + atom->nghost) : atom->nlocal;
+
+  // XXX: for debugging. remove if no longer needed.
+  if (vflag_atom && ntotal > maxvatom) {
+    fprintf(stderr, "%d: ntotal > maxvatom: %d > %d",
+	    comm->me, ntotal, maxvatom);
+  }
+  if (eflag_atom && ntotal > maxeatom) {
+    fprintf(stderr, "%d: ntotal > maxeatom: %d > %d",
+	    comm->me, ntotal, maxeatom);
+  }
 
   for (int n = 0; n < nthreads; ++n) {
     eng_vdwl += eng_vdwl_thr[n];
@@ -480,7 +492,7 @@ void PairOMP::ev_reduce_thr()
       virial[4] += virial_thr[n][4];
       virial[5] += virial_thr[n][5];
       if (vflag_atom) {
-	for (int i = 0; i < atom->nmax; ++i) {
+	for (int i = 0; i < ntotal; ++i) {
 	  vatom[i][0] += vatom_thr[n][i][0];
 	  vatom[i][1] += vatom_thr[n][i][1];
 	  vatom[i][2] += vatom_thr[n][i][2];
@@ -491,7 +503,7 @@ void PairOMP::ev_reduce_thr()
       }
     }
     if (eflag_atom) {
-      for (int i = 0; i < atom->nmax; ++i) {
+      for (int i = 0; i < ntotal; ++i) {
 	eatom[i] += eatom_thr[n][i];
       }
     }

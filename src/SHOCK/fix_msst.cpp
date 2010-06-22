@@ -423,8 +423,7 @@ void FixMSST::setup(int vflag)
     double fac1 =  tscale*total_mass/qmass*ke_temp/force->mvv2e;
 
     omega[direction]=-1*sqrt(fac1);
-    double fac2 = omega[direction]*
-      domain->h[direction]/v0;
+    double fac2 = omega[direction]/v0;
 
     if ( comm->me == 0 && tscale != 1.0) {
       if ( screen ) {

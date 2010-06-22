@@ -587,7 +587,7 @@ void Comm::exchange()
 
     while (i < nlocal) {
       if (x[i][dim] < lo || x[i][dim] >= hi) {
-	if (nsend > maxsend) grow_send(nsend,1);
+	if (nsend >= maxsend) grow_send(nsend,1);
 	nsend += avec->pack_exchange(i,&buf_send[nsend]);
 	avec->copy(nlocal-1,i);
 	nlocal--;
@@ -613,7 +613,7 @@ void Comm::exchange()
 		     &nrecv2,1,MPI_INT,procneigh[dim][0],0,world,&status);
 	nrecv += nrecv2;
       }
-      if (nrecv > maxrecv) grow_recv(nrecv);
+      if (nrecv >= maxrecv) grow_recv(nrecv);
       
       MPI_Irecv(buf_recv,nrecv1,MPI_DOUBLE,procneigh[dim][1],0,
 		world,&request);
@@ -758,7 +758,7 @@ void Comm::borders()
 
       // pack up list of border atoms
 
-      if (nsend*size_border > maxsend)
+      if (nsend*size_border >= maxsend)
 	grow_send(nsend*size_border,0);
       if (ghost_velocity)
 	n = avec->pack_border_vel(nsend,sendlist[iswap],buf_send,
@@ -774,7 +774,7 @@ void Comm::borders()
       if (sendproc[iswap] != me) {
 	MPI_Sendrecv(&nsend,1,MPI_INT,sendproc[iswap],0,
 		     &nrecv,1,MPI_INT,recvproc[iswap],0,world,&status);
-	if (nrecv*size_border > maxrecv) 
+	if (nrecv*size_border >= maxrecv) 
 	  grow_recv(nrecv*size_border);
 	MPI_Irecv(buf_recv,nrecv*size_border,MPI_DOUBLE,
 		  recvproc[iswap],0,world,&request);
@@ -811,9 +811,9 @@ void Comm::borders()
   // insure send/recv buffers are long enough for all forward & reverse comm
 
   int max = MAX(maxforward*smax,maxreverse*rmax);
-  if (max > maxsend) grow_send(max,0);
+  if (max >= maxsend) grow_send(max,0);
   max = MAX(maxforward*rmax,maxreverse*smax);
-  if (max > maxrecv) grow_recv(max);
+  if (max >= maxrecv) grow_recv(max);
 
   // reset global->local map
 
@@ -1081,7 +1081,7 @@ void Comm::irregular()
 	x[i][2] < sublo[2] || x[i][2] >= subhi[2]) {
       proclist[nsendatom] = irregular_lookup(x[i]);
       if (proclist[nsendatom] != me) {
-	if (nsend > maxsend) grow_send(nsend,1);
+	if (nsend >= maxsend) grow_send(nsend,1);
 	sizes[nsendatom] = avec->pack_exchange(i,&buf_send[nsend]);
 	nsend += sizes[nsendatom];
 	nsendatom++;
@@ -1097,7 +1097,7 @@ void Comm::irregular()
 
   int nrecv;
   Plan *plan = irregular_create(nsendatom,sizes,proclist,&nrecv);
-  if (nrecv > maxrecv) grow_recv(nrecv);
+  if (nrecv >= maxrecv) grow_recv(nrecv);
   irregular_perform(plan,buf_send,sizes,buf_recv);
   irregular_destroy(plan);
 

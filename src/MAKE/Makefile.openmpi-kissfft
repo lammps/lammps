@@ -1,5 +1,5 @@
-# openmpi = Fedora 12, mpic++, OpenMPI-1.4.1, FFTW3
-
+# openmpi-kissfft = Fedora 12, gcc-4.4.3, OpenMPI-1.4.1, internal FFT
+# to select openmpi (over mpich) do: module load openmpi-x86_64
 SHELL = /bin/sh
 
 # ---------------------------------------------------------------------
@@ -7,11 +7,11 @@ SHELL = /bin/sh
 # specify flags and libraries needed for your compiler
 
 CC =		mpic++
-CCFLAGS =	-O2 -g \
-		-funroll-loops -fstrict-aliasing -Wall -W -Wno-uninitialized
+CCFLAGS =	-O3 -march=native -mpc64  -fno-exceptions -fno-rtti  -ffast-math \
+	 -funroll-loops -fstrict-aliasing -Wall -W -Wno-uninitialized
 DEPFLAGS =	-M
 LINK =		mpic++
-LINKFLAGS =	-O -g
+LINKFLAGS =	-O 
 LIB =           -Wl,-rpath,/usr/lib64/openmpi/lib -lstdc++
 ARCHIVE =	ar
 ARFLAGS =	-rcsv
@@ -23,7 +23,7 @@ SIZE =		size
 
 # LAMMPS ifdef options, see doc/Section_start.html
 
-LMP_INC =	-DLAMMPS_GZIP -DMALLOC_MEMALIGN=16
+LMP_INC =	-DLAMMPS_GZIP -DMALLOC_MEMALIGN=64
 
 # MPI library, can be src/STUBS dummy lib
 # INC = path for mpi.h, MPI compiler settings

@@ -16,6 +16,8 @@
 #include "stdlib.h"
 #include "fix_adapt.h"
 #include "atom.h"
+#include "update.h"
+#include "modify.h"
 #include "force.h"
 #include "pair.h"
 #include "input.h"

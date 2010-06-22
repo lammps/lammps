@@ -178,7 +178,7 @@ void PairLJ96CutOMP::eval()
     // reduce per thread forces into global force array.
     force_reduce_thr(atom->f, nall, nthreads, tid);
   }
-  ev_reduce_thr();
+  if (EVFLAG) ev_reduce_thr();
   if (vflag_fdotr) virial_compute();
 }
 
@@ -538,7 +538,7 @@ void PairLJ96CutOMP::eval_outer()
     force_reduce_thr(atom->f, nall, nthreads, tid);
   }
   // reduce per thread accumulators
-  ev_reduce_thr();
+  if (EVFLAG) ev_reduce_thr();
   if (vflag_fdotr) virial_compute();
 }
 

@@ -79,18 +79,16 @@ void PairOMP::ev_setup_thr(int eflag, int vflag)
   // zero per thread accumulators
   // use force->newton instead of newton_pair
   //   b/c some bonds/dihedrals call pair::ev_tally with pairwise info
+  const int ntotal = (force->newton) ? 
+    (atom->nlocal + atom->nghost) : atom->nlocal;
   for (t = 0; t < nthreads; ++t) {
     if (eflag_global) eng_vdwl_thr[t] = eng_coul_thr[t] = 0.0;
-    if (vflag_global) for (i = 0; i < 6; i++) virial_thr[t][i] = 0.0;
+    if (vflag_global) for (i = 0; i < 6; ++i) virial_thr[t][i] = 0.0;
     if (eflag_atom) {
-      n = atom->nlocal;
-      if (force->newton) n += atom->nghost;
-      for (i = 0; i < n; i++) eatom_thr[t][i] = 0.0;
+      for (i = 0; i < ntotal; ++i) eatom_thr[t][i] = 0.0;
     }
     if (vflag_atom) {
-      n = atom->nlocal;
-      if (force->newton) n += atom->nghost;
-      for (i = 0; i < n; i++) {
+      for (i = 0; i < ntotal; ++i) {
 	vatom_thr[t][i][0] = 0.0;
 	vatom_thr[t][i][1] = 0.0;
 	vatom_thr[t][i][2] = 0.0;
@@ -470,16 +468,6 @@ void PairOMP::ev_reduce_thr()
   const int nthreads=comm->nthreads;
   const int ntotal = (force->newton) ? 
     (atom->nlocal + atom->nghost) : atom->nlocal;
-
-  // XXX: for debugging. remove if no longer needed.
-  if (vflag_atom && ntotal > maxvatom) {
-    fprintf(stderr, "%d: ntotal > maxvatom: %d > %d",
-	    comm->me, ntotal, maxvatom);
-  }
-  if (eflag_atom && ntotal > maxeatom) {
-    fprintf(stderr, "%d: ntotal > maxeatom: %d > %d",
-	    comm->me, ntotal, maxeatom);
-  }
 
   for (int n = 0; n < nthreads; ++n) {
     eng_vdwl += eng_vdwl_thr[n];

@@ -121,7 +121,7 @@ void PairAIREBOOMP::compute(int eflag, int vflag)
   
   if (torflag) TORSION(eflag,vflag);
 
-  ev_reduce_thr();
+  if (EVFLAG) ev_reduce_thr();
   if (vflag_fdotr) virial_compute();
 }
 

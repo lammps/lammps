@@ -179,6 +179,12 @@ void FixAdapt::init()
 
 void FixAdapt::pre_force(int vflag)
 {
+  if (update->ntimestep % nevery) return;
+
+  // variable evaluation may invoke computes so wrap with clear/add
+
+  modify->clearstep_compute();
+
   for (int m = 0; m < nadapt; m++) {
     double value = input->variable->compute_equal(ivar[m]);
 
@@ -209,4 +215,6 @@ void FixAdapt::pre_force(int vflag)
       }
     }
   }
+
+  modify->addstep_compute(update->ntimestep + nevery);
 }

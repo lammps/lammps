@@ -70,19 +70,17 @@ void DihedralOMP::ev_setup_thr(int eflag, int vflag)
   }
 
   // zero accumulators
+  const int ntotal = (force->newton) ? 
+    (atom->nlocal + atom->nghost) : atom->nlocal;
 
-for (t = 0; t < nthreads; ++t) {
+  for (t = 0; t < nthreads; ++t) {
     if (eflag_global) energy_thr[t] = 0.0;
     if (vflag_global) for (i = 0; i < 6; i++) virial_thr[t][i] = 0.0;
     if (eflag_atom) {
-      n = atom->nlocal;
-      if (force->newton) n += atom->nghost;
-      for (i = 0; i < n; i++) eatom_thr[t][i] = 0.0;
+      for (i = 0; i < ntotal; i++) eatom_thr[t][i] = 0.0;
     }
     if (vflag_atom) {
-      n = atom->nlocal;
-      if (force->newton_bond) n += atom->nghost;
-      for (i = 0; i < n; i++) {
+      for (i = 0; i < ntotal; i++) {
 	vatom_thr[t][i][0] = 0.0;
 	vatom_thr[t][i][1] = 0.0;
 	vatom_thr[t][i][2] = 0.0;
@@ -225,6 +223,8 @@ void DihedralOMP::ev_tally_thr(int i1, int i2, int i3, int i4,
 void DihedralOMP::ev_reduce_thr()
 {
   const int nthreads=comm->nthreads;
+  const int ntotal = (force->newton) ? 
+    (atom->nlocal + atom->nghost) : atom->nlocal;
 
   for (int n = 0; n < nthreads; ++n) {
     energy += energy_thr[n];
@@ -236,7 +236,7 @@ void DihedralOMP::ev_reduce_thr()
       virial[4] += virial_thr[n][4];
       virial[5] += virial_thr[n][5];
       if (vflag_atom) {
-	for (int i = 0; i < atom->nmax; ++i) {
+	for (int i = 0; i < ntotal; ++i) {
 	  vatom[i][0] += vatom_thr[n][i][0];
 	  vatom[i][1] += vatom_thr[n][i][1];
 	  vatom[i][2] += vatom_thr[n][i][2];
@@ -247,7 +247,7 @@ void DihedralOMP::ev_reduce_thr()
       }
     }
     if (eflag_atom) {
-      for (int i = 0; i < atom->nmax; ++i) {
+      for (int i = 0; i < ntotal; ++i) {
 	eatom[i] += eatom_thr[n][i];
       }
     }

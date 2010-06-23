@@ -79,18 +79,16 @@ void PairOMP::ev_setup_thr(int eflag, int vflag)
   // zero per thread accumulators
   // use force->newton instead of newton_pair
   //   b/c some bonds/dihedrals call pair::ev_tally with pairwise info
+  const int ntotal = (force->newton) ? 
+    (atom->nlocal + atom->nghost) : atom->nlocal;
   for (t = 0; t < nthreads; ++t) {
     if (eflag_global) eng_vdwl_thr[t] = eng_coul_thr[t] = 0.0;
-    if (vflag_global) for (i = 0; i < 6; i++) virial_thr[t][i] = 0.0;
+    if (vflag_global) for (i = 0; i < 6; ++i) virial_thr[t][i] = 0.0;
     if (eflag_atom) {
-      n = atom->nlocal;
-      if (force->newton) n += atom->nghost;
-      for (i = 0; i < n; i++) eatom_thr[t][i] = 0.0;
+      for (i = 0; i < ntotal; ++i) eatom_thr[t][i] = 0.0;
     }
     if (vflag_atom) {
-      n = atom->nlocal;
-      if (force->newton) n += atom->nghost;
-      for (i = 0; i < n; i++) {
+      for (i = 0; i < ntotal; ++i) {
 	vatom_thr[t][i][0] = 0.0;
 	vatom_thr[t][i][1] = 0.0;
 	vatom_thr[t][i][2] = 0.0;
@@ -468,6 +466,8 @@ void PairOMP::v_tally4_thr(int i, int j, int k, int m,
 void PairOMP::ev_reduce_thr()
 {
   const int nthreads=comm->nthreads;
+  const int ntotal = (force->newton) ? 
+    (atom->nlocal + atom->nghost) : atom->nlocal;
 
   for (int n = 0; n < nthreads; ++n) {
     eng_vdwl += eng_vdwl_thr[n];
@@ -480,7 +480,7 @@ void PairOMP::ev_reduce_thr()
       virial[4] += virial_thr[n][4];
       virial[5] += virial_thr[n][5];
       if (vflag_atom) {
-	for (int i = 0; i < atom->nmax; ++i) {
+	for (int i = 0; i < ntotal; ++i) {
 	  vatom[i][0] += vatom_thr[n][i][0];
 	  vatom[i][1] += vatom_thr[n][i][1];
 	  vatom[i][2] += vatom_thr[n][i][2];
@@ -491,7 +491,7 @@ void PairOMP::ev_reduce_thr()
       }
     }
     if (eflag_atom) {
-      for (int i = 0; i < atom->nmax; ++i) {
+      for (int i = 0; i < ntotal; ++i) {
 	eatom[i] += eatom_thr[n][i];
       }
     }

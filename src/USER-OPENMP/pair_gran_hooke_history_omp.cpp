@@ -291,7 +291,7 @@ void PairGranHookeHistoryOMP::eval()
     force_reduce_thr(atom->f, nall, nthreads, tid);
     force_reduce_thr(atom->torque, nall, nthreads, tid);
   }
-  ev_reduce_thr();
+  if (EVFLAG) ev_reduce_thr();
 }
 
 /* ----------------------------------------------------------------------

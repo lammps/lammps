@@ -220,7 +220,7 @@ void PairLJCharmmCoulCharmmOMP::eval()
     // reduce per thread forces and torques into global force/torque arrays.
     force_reduce_thr(atom->f, nall, nthreads, tid);
   }
-  ev_reduce_thr();
+  if (EVFLAG) ev_reduce_thr();
   if (vflag_fdotr) virial_compute();
 }
 

@@ -87,7 +87,11 @@ extern "C" {
 }
 
 #elif defined(FFT_FFTW2)
+#if defined(FFTW_SIZE)
+#include "sfftw.h"
+#else
 #include "fftw.h"
+#endif
 typedef FFTW_COMPLEX FFT_DATA;
 
 #elif defined(FFT_FFTW3)
@@ -175,7 +179,11 @@ extern "C" {
 }
 
 #elif defined(FFT_FFTW2)
+#if defined(FFTW_SIZE)
+#include "dfftw.h"
+#else
 #include "fftw.h"
+#endif
 typedef FFTW_COMPLEX FFT_DATA;
 
 #elif defined(FFT_FFTW3)

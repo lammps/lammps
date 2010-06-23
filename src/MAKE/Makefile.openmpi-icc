@@ -1,19 +1,17 @@
-# openmpi-mkl = Fedora 12, gcc-4.4.3, OpenMPI-1.4.1, FFT from Intel MKL.
-# to select openmpi (over mpich) do: module load openmpi-x86_64
-
+# openmpi-icc = Fedora 12, Intel C++ 11.0, OpenMPI-1.4.1, MKL 11.0, x86_64
 SHELL = /bin/sh
 
 # ---------------------------------------------------------------------
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-CC =		mpic++
-CCFLAGS =	-O3 -march=native -mpc64  -fno-exceptions -fno-rtti  -ffast-math \
-	 -funroll-loops -fstrict-aliasing -Wall -W -Wno-uninitialized
+CC =		env OMPI_CC=icc OMPI_CXX=icpc mpic++
+CCFLAGS =	-O2 -msse3 -xHOST -no-prec-div -fno-exceptions -fno-rtti -pc64 -falign-functions=16 \
+		-funroll-loops #-fstrict-aliasing -Wall 
 DEPFLAGS =	-M
-LINK =		mpic++
-LINKFLAGS =	-O 
-LIB =           -Wl,-rpath,/usr/lib64/openmpi/lib -lstdc++
+LINK =		env OMPI_CC=icc OMPI_CXX=icpc mpic++
+LINKFLAGS =	-O -static-intel
+LIB =           -Wl,-rpath,/usr/lib64/openmpi/lib #-lstdc++
 ARCHIVE =	ar
 ARFLAGS =	-rcsv
 SIZE =		size

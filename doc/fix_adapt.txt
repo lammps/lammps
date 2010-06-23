@@ -1,0 +1,141 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+fix adapt command :h3
+
+[Syntax:]
+
+fix ID group-ID adapt N keyword values ... :pre
+ID, group-ID are documented in "fix"_fix.html command :ulb,l
+adapt = style name of this fix command :l
+N = adapt simulation settings every this many timesteps :l
+one or more keyword/value pairs may be appended :l
+keyword = {pair} or {atom} :l
+  {pair} args = pstyle param I J variable
+    pstyle = pair style name, e.g. lj/cut
+    pparam = parameter to adapt over time
+    I,J = type pair(s) to set parameter for
+    pvariable = name of variable that calculates value of parameter
+  {atom} args = param variable
+    aparam = parameter to adapt over time
+    avariable = name of variable that calculates value of parameter :pre
+:ule
+
+[Examples:]
+
+fix 1 all adapt 1 pair soft a 1 1 prefactor
+fix 1 all adapt 1 pair soft a 2* 3 prefactor
+fix 1 all adapt 1 pair soft a * * prefactor soft a 3 3 prefactor2
+fix 1 all adapt 10 atom diameter size :pre
+
+[Description:]
+
+Change or adapt one or more specific simulation settings over time as
+a simulation runs.  Pair potential and atom attribute parameters which
+can be varied by this fix are discussed below.  Many other fixes can
+also be used to time-vary simulation parameters, e.g. the "fix deform"
+command will change the simulation box size/shape and the "fix move"
+command will change atom positions and velocities in prescribed
+manners.
+
+The {pair} keyword enables various parameters of potentials defined by
+the "pair_style"_pair_style.html command to be changed, if the pair
+style supports it.  The {pstyle} argument is the name of the pair
+style.  If "pair_style hybrid or hybrid/overlay"_pair_hybrid.html is
+used, {pstyle} should be a sub-style name.  For example, {pstyle}
+could be specified as "soft" or "lubricate".  The {pparam} argument is
+the name of the parameter to change.  This is the current list of pair
+styles and parameters that can be varied by this fix.  See the doc
+pages for individual pair styles for the meaning of these parameters.
+
+"soft"_pair_soft.html, a, global,
+"lubricate"_pair_lubricate.html, mu, type pairs :tb(c=3)
+
+Some parameters are global settings for the pair style, e.g. the
+viscosity setting "mu" for "pair_style lubricate"_pair_lubricate.html.
+Other parameters apply to pairs of atom types within the pair style,
+e.g. the prefactor "a" for "pair_style soft"_pair_soft.html.  If a
+type pair parameter is specified, the {I} and {J} settings should be
+specified to indicate which pair(s) to apply it to.
+
+Similar to the "pair_coeff command"_pair_coeff.html, I and J can be
+specified in one of two ways.  Explicit numeric values can be used for
+each, as in the 1st example above.  I <= J is required.  LAMMPS sets
+the coefficients for the symmetric J,I interaction to the same values.
+
+A wild-card asterisk can be used in place of or in conjunction with
+the I,J arguments to set the coefficients for multiple pairs of atom
+types.  This takes the form "*" or "*n" or "n*" or "m*n".  If N = the
+number of atom types, then an asterisk with no numeric values means
+all types from 1 to N.  A leading asterisk means all types from 1 to n
+(inclusive).  A trailing asterisk means all types from n to N
+(inclusive).  A middle asterisk means all types from m to n
+(inclusive).  Note that only type pairs with I <= J are considered; if
+asterisks imply type pairs where J < I, they are ignored.
+
+If a global parameter is specified, the {I} and {J} settings still
+need to be specified, but are ignored.
+
+The {pvariable} argument is the name of an equal-style
+"variable"_variable.html which will be evaluated each time this fix is
+invoked to set the parameter to a new value.  Equal-style variables
+can specify formulas with various mathematical functions, and include
+"thermo_style"_thermo_style.html command keywords for the simulation
+box parameters and timestep and elapsed time.  Thus it is easy to
+specify parameters that change as a function of time or span
+consecutive runs in a continuous fashion.  For the latter, see the
+{start} and {stop} keywords of the "run"_run.html command and the
+{elaplong} keyword of "thermo_style custom"_thermo_style.html for
+details.
+
+For example, these commands would change the prefactor coefficient of
+the "pair_style soft"_pair_soft.html potential from 10.0 to 30.0 in a
+linear fashion over the course of a 1000-step simulation:
+
+variable min equal 10.0
+variable max equal 30.0
+variable prefactor equal min+(max-min)*elapsed/1000
+fix 1 all adapt 1 pair soft a * * prefactor :pre
+
+The {atom} keyword enables various atom properties to be changed.  The
+{aparam} argument is the name of the parameter to change.  This is the
+current list of atom parameters that can be varied by this fix:
+
+diameter = diameter of particle :ul
+
+The {avariable} argument is the name of an equal-style
+"variable"_variable.html which will be evaluated each time this fix is
+invoked to set the parameter to a new value.  See the discussion above
+describing the formulas associated with equal-style variables.  The
+new value is assigned to the corresponding attribute for all atoms in
+the fix group.
+
+For example, these commands would shrink the diameter of all granular
+particles in the "center" group from 1.0 to 0.1 in a linear fashion
+over the course of a 1000-step simulation:
+
+variable start equal 1.0
+variable stop equal 0.1
+variable size equal start+(stop-start)*elapsed/1000
+fix 1 center adapt 10 atom diameter size :pre
+
+[Restart, fix_modify, output, run start/stop, minimize info:]
+
+No information about this fix is written to "binary restart
+files"_restart.html.  None of the "fix_modify"_fix_modify.html options
+are relevant to this fix.  No global or per-atom quantities are stored
+by this fix for access by various "output
+commands"_Section_howto.html#4_15.  No parameter of this fix can be
+used with the {start/stop} keywords of the "run"_run.html command.
+This fix is not invoked during "energy minimization"_minimize.html.
+
+[Restrictions:] none
+
+[Related commands:] none
+
+[Default:] none

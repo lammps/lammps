@@ -1,5 +1,5 @@
-# openmpi-fftw3 = Fedora 12, mpic++, OpenMPI-1.4.1, FFTW3
-
+# openmpi-fftw3 = Fedora 12, gcc-4.4.3, OpenMPI-1.4.1, FFTW-3.2.2
+# to select openmpi (over mpich) do: module load openmpi-x86_64
 SHELL = /bin/sh
 
 # ---------------------------------------------------------------------
@@ -23,7 +23,7 @@ SIZE =		size
 
 # LAMMPS ifdef options, see doc/Section_start.html
 
-LMP_INC =	-DLAMMPS_GZIP -DMALLOC_MEMALIGN=16
+LMP_INC =	-DLAMMPS_GZIP -DMALLOC_MEMALIGN=64
 
 # MPI library, can be src/STUBS dummy lib
 # INC = path for mpi.h, MPI compiler settings

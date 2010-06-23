@@ -22,8 +22,8 @@ kspace_style 	pppm 1.0e-4
 
 neighbor	0.3 bin
 neigh_modify	every 20 delay 0 check no 
-set		atom 1 charge 1.0 
-set 		atom 2 charge -1.0
+set		group cation charge 1.0 
+set 		group anion charge -1.0
 
 fix		1 all nve
 

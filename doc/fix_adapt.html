@@ -1,0 +1,155 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix adapt command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID adapt N keyword values ... 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>adapt = style name of this fix command 
+
+<LI>N = adapt simulation settings every this many timesteps 
+
+<LI>one or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>pair</I> or <I>atom</I> 
+
+<PRE>  <I>pair</I> args = pstyle param I J variable
+    pstyle = pair style name, e.g. lj/cut
+    pparam = parameter to adapt over time
+    I,J = type pair(s) to set parameter for
+    pvariable = name of variable that calculates value of parameter
+  <I>atom</I> args = param variable
+    aparam = parameter to adapt over time
+    avariable = name of variable that calculates value of parameter 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 1 all adapt 1 pair soft a 1 1 prefactor
+fix 1 all adapt 1 pair soft a 2* 3 prefactor
+fix 1 all adapt 1 pair soft a * * prefactor soft a 3 3 prefactor2
+fix 1 all adapt 10 atom diameter size 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Change or adapt one or more specific simulation settings over time as
+a simulation runs.  Pair potential and atom attribute parameters which
+can be varied by this fix are discussed below.  Many other fixes can
+also be used to time-vary simulation parameters, e.g. the "fix deform"
+command will change the simulation box size/shape and the "fix move"
+command will change atom positions and velocities in prescribed
+manners.
+</P>
+<P>The <I>pair</I> keyword enables various parameters of potentials defined by
+the <A HREF = "pair_style.html">pair_style</A> command to be changed, if the pair
+style supports it.  The <I>pstyle</I> argument is the name of the pair
+style.  If <A HREF = "pair_hybrid.html">pair_style hybrid or hybrid/overlay</A> is
+used, <I>pstyle</I> should be a sub-style name.  For example, <I>pstyle</I>
+could be specified as "soft" or "lubricate".  The <I>pparam</I> argument is
+the name of the parameter to change.  This is the current list of pair
+styles and parameters that can be varied by this fix.  See the doc
+pages for individual pair styles for the meaning of these parameters.
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD ><A HREF = "pair_soft.html">soft</A></TD><TD > a</TD><TD > global</TD></TR>
+<TR><TD ><A HREF = "pair_lubricate.html">lubricate</A></TD><TD > mu</TD><TD > type pairs 
+</TD></TR></TABLE></DIV>
+
+<P>Some parameters are global settings for the pair style, e.g. the
+viscosity setting "mu" for <A HREF = "pair_lubricate.html">pair_style lubricate</A>.
+Other parameters apply to pairs of atom types within the pair style,
+e.g. the prefactor "a" for <A HREF = "pair_soft.html">pair_style soft</A>.  If a
+type pair parameter is specified, the <I>I</I> and <I>J</I> settings should be
+specified to indicate which pair(s) to apply it to.
+</P>
+<P>Similar to the <A HREF = "pair_coeff.html">pair_coeff command</A>, I and J can be
+specified in one of two ways.  Explicit numeric values can be used for
+each, as in the 1st example above.  I <= J is required.  LAMMPS sets
+the coefficients for the symmetric J,I interaction to the same values.
+</P>
+<P>A wild-card asterisk can be used in place of or in conjunction with
+the I,J arguments to set the coefficients for multiple pairs of atom
+types.  This takes the form "*" or "*n" or "n*" or "m*n".  If N = the
+number of atom types, then an asterisk with no numeric values means
+all types from 1 to N.  A leading asterisk means all types from 1 to n
+(inclusive).  A trailing asterisk means all types from n to N
+(inclusive).  A middle asterisk means all types from m to n
+(inclusive).  Note that only type pairs with I <= J are considered; if
+asterisks imply type pairs where J < I, they are ignored.
+</P>
+<P>If a global parameter is specified, the <I>I</I> and <I>J</I> settings still
+need to be specified, but are ignored.
+</P>
+<P>The <I>pvariable</I> argument is the name of an equal-style
+<A HREF = "variable.html">variable</A> which will be evaluated each time this fix is
+invoked to set the parameter to a new value.  Equal-style variables
+can specify formulas with various mathematical functions, and include
+<A HREF = "thermo_style.html">thermo_style</A> command keywords for the simulation
+box parameters and timestep and elapsed time.  Thus it is easy to
+specify parameters that change as a function of time or span
+consecutive runs in a continuous fashion.  For the latter, see the
+<I>start</I> and <I>stop</I> keywords of the <A HREF = "run.html">run</A> command and the
+<I>elaplong</I> keyword of <A HREF = "thermo_style.html">thermo_style custom</A> for
+details.
+</P>
+<P>For example, these commands would change the prefactor coefficient of
+the <A HREF = "pair_soft.html">pair_style soft</A> potential from 10.0 to 30.0 in a
+linear fashion over the course of a 1000-step simulation:
+</P>
+<PRE>variable min equal 10.0
+variable max equal 30.0
+variable prefactor equal min+(max-min)*elapsed/1000
+fix 1 all adapt 1 pair soft a * * prefactor 
+</PRE>
+<P>The <I>atom</I> keyword enables various atom properties to be changed.  The
+<I>aparam</I> argument is the name of the parameter to change.  This is the
+current list of atom parameters that can be varied by this fix:
+</P>
+<UL><LI>diameter = diameter of particle 
+</UL>
+<P>The <I>avariable</I> argument is the name of an equal-style
+<A HREF = "variable.html">variable</A> which will be evaluated each time this fix is
+invoked to set the parameter to a new value.  See the discussion above
+describing the formulas associated with equal-style variables.  The
+new value is assigned to the corresponding attribute for all atoms in
+the fix group.
+</P>
+<P>For example, these commands would shrink the diameter of all granular
+particles in the "center" group from 1.0 to 0.1 in a linear fashion
+over the course of a 1000-step simulation:
+</P>
+<PRE>variable start equal 1.0
+variable stop equal 0.1
+variable size equal start+(stop-start)*elapsed/1000
+fix 1 center adapt 10 atom diameter size 
+</PRE>
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
+are relevant to this fix.  No global or per-atom quantities are stored
+by this fix for access by various <A HREF = "Section_howto.html#4_15">output
+commands</A>.  No parameter of this fix can be
+used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A> command.
+This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B> none
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

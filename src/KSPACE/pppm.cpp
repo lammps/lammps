@@ -1520,7 +1520,18 @@ void PPPM::make_rho()
     dy = ny+shiftone - (x[i][1]-boxlo[1])*delyinv;
     dz = nz+shiftone - (x[i][2]-boxlo[2])*delzinv;
 
-    compute_rho1d(dx,dy,dz);
+    if (order==2) 
+      compute_rho1d<2>(dx,dy,dz);
+    else if (order==3) 
+      compute_rho1d<3>(dx,dy,dz);
+    else if (order==4) 
+      compute_rho1d<4>(dx,dy,dz);
+    else if (order==5) 
+      compute_rho1d<5>(dx,dy,dz);
+    else if (order==6) 
+      compute_rho1d<6>(dx,dy,dz);
+    else if (order==7) 
+      compute_rho1d<7>(dx,dy,dz);
 
     z0 = delvolinv * q[i];
     for (n = nlower; n <= nupper; n++) {
@@ -1688,7 +1699,18 @@ void PPPM::fieldforce()
     dy = ny+shiftone - (x[i][1]-boxlo[1])*delyinv;
     dz = nz+shiftone - (x[i][2]-boxlo[2])*delzinv;
 
-    compute_rho1d(dx,dy,dz);
+    if (order==2) 
+      compute_rho1d<2>(dx,dy,dz);
+    else if (order==3) 
+      compute_rho1d<3>(dx,dy,dz);
+    else if (order==4) 
+      compute_rho1d<4>(dx,dy,dz);
+    else if (order==5) 
+      compute_rho1d<5>(dx,dy,dz);
+    else if (order==6) 
+      compute_rho1d<6>(dx,dy,dz);
+    else if (order==7) 
+      compute_rho1d<7>(dx,dy,dz);
 
     ek[0] = ek[1] = ek[2] = 0.0;
     for (n = nlower; n <= nupper; n++) {
@@ -1750,27 +1772,6 @@ void PPPM::procs2grid2d(int nprocs, int nx, int ny, int *px, int *py)
       }
     }
     ipx++;
-  }
-}
-
-/* ----------------------------------------------------------------------
-   charge assignment into rho1d
-   dx,dy,dz = distance of particle from "lower left" grid point 
-------------------------------------------------------------------------- */
-
-void PPPM::compute_rho1d(double dx, double dy, double dz)
-{
-  int k,l;
-
-  for (k = (1-order)/2; k <= order/2; k++) {
-    rho1d[0][k] = 0.0;
-    rho1d[1][k] = 0.0;
-    rho1d[2][k] = 0.0;
-    for (l = order-1; l >= 0; l--) {
-      rho1d[0][k] = rho_coeff[l][k] + rho1d[0][k]*dx;
-      rho1d[1][k] = rho_coeff[l][k] + rho1d[1][k]*dy;
-      rho1d[2][k] = rho_coeff[l][k] + rho1d[2][k]*dz;
-    }
   }
 }
 

@@ -103,12 +103,31 @@ class PPPM : public KSpace {
   void poisson(int, int);
   virtual void fieldforce();
   void procs2grid2d(int,int,int,int *, int*);
-  void compute_rho1d(double, double, double);
   void compute_rho_coeff();
   void slabcorr(int);
-};
+  /* -------------------------------------------------------------------------
+     charge assignment into rho1d
+     dx,dy,dz = distance of particle from "lower left" grid point 
+  ------------------------------------------------------------------------- */
+  template <const int ORDER>
+  void compute_rho1d(double dx, double dy, double dz) {
+    int k,l;
 
+    for (k = (1-ORDER)/2; k <= ORDER/2; k++) {
+      rho1d[0][k] = 0.0;
+      rho1d[1][k] = 0.0;
+      rho1d[2][k] = 0.0;
+      for (l = ORDER-1; l >= 0; l--) {
+	rho1d[0][k] = rho_coeff[l][k] + rho1d[0][k]*dx;
+	rho1d[1][k] = rho_coeff[l][k] + rho1d[1][k]*dy;
+	rho1d[2][k] = rho_coeff[l][k] + rho1d[2][k]*dz;
+      }
+    }
+  };
+};
+  
 }
+
 
 #endif
 #endif

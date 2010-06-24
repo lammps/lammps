@@ -118,7 +118,18 @@ void PPPMTIP4P::make_rho()
     dy = ny+shiftone - (xi[1]-boxlo[1])*delyinv;
     dz = nz+shiftone - (xi[2]-boxlo[2])*delzinv;
 
-    compute_rho1d(dx,dy,dz);
+    if (order==2) 
+      compute_rho1d<2>(dx,dy,dz);
+    else if (order==3) 
+      compute_rho1d<3>(dx,dy,dz);
+    else if (order==4) 
+      compute_rho1d<4>(dx,dy,dz);
+    else if (order==5) 
+      compute_rho1d<5>(dx,dy,dz);
+    else if (order==6) 
+      compute_rho1d<6>(dx,dy,dz);
+    else if (order==7) 
+      compute_rho1d<7>(dx,dy,dz);
 
     z0 = delvolinv * q[i];
     for (n = nlower; n <= nupper; n++) {
@@ -175,7 +186,18 @@ void PPPMTIP4P::fieldforce()
     dy = ny+shiftone - (xi[1]-boxlo[1])*delyinv;
     dz = nz+shiftone - (xi[2]-boxlo[2])*delzinv;
 
-    compute_rho1d(dx,dy,dz);
+    if (order==2) 
+      compute_rho1d<2>(dx,dy,dz);
+    else if (order==3) 
+      compute_rho1d<3>(dx,dy,dz);
+    else if (order==4) 
+      compute_rho1d<4>(dx,dy,dz);
+    else if (order==5) 
+      compute_rho1d<5>(dx,dy,dz);
+    else if (order==6) 
+      compute_rho1d<6>(dx,dy,dz);
+    else if (order==7) 
+      compute_rho1d<7>(dx,dy,dz);
 
     ek[0] = ek[1] = ek[2] = 0.0;
     for (n = nlower; n <= nupper; n++) {

@@ -1,4 +1,4 @@
-# openmpi = Fedora 12, gcc-4.4.3, OpenMPI-1.4.1, FFTW-2.1.5
+# openmpi-single = Fedora 12, gcc-4.4.3, OpenMPI-1.4.1, FFTW-2.1.5 (single precision)
 # to select openmpi (over mpich) do: module load openmpi-x86_64
 SHELL = /bin/sh
 

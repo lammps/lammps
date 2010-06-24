@@ -20,6 +20,11 @@
 
 #ifdef FFT_FFTW3
 #include "fftw3.h"
+#ifdef FFT_SINGLE
+#define FFTW_API(function)  fftwf_ ## function
+#else
+#define FFTW_API(function)  fftw_ ## function
+#endif
 #endif
 
 using namespace LAMMPS_NS;
@@ -35,11 +40,11 @@ Memory::Memory(LAMMPS *lmp) : Pointers(lmp) {}
 void *Memory::smalloc(int n, const char *name)
 {
   if (n == 0) return NULL;
-#if defined(FFT_FFTW3)
-  void *ptr = fftw_malloc(n);
-#elif defined(MALLOC_MEMALIGN)
+#if defined(MALLOC_MEMALIGN)
   void *ptr;
   posix_memalign(&ptr, MALLOC_MEMALIGN, n);
+#elif defined(FFT_FFTW3)
+  void *ptr = FFTW_API(malloc)(n);
 #else
   void *ptr = malloc(n);
 #endif
@@ -58,8 +63,8 @@ void *Memory::smalloc(int n, const char *name)
 void Memory::sfree(void *ptr)
 {
   if (ptr == NULL) return;
-#ifdef FFT_FFTW3
-  fftw_free(ptr);
+#if defined(FFT_FFTW3) && !defined(MALLOC_MEMALIGN)
+  FFTW_API(free)(ptr);
 #else
   free(ptr);
 #endif

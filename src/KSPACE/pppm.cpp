@@ -734,19 +734,19 @@ void PPPM::allocate()
 				   nxlo_out,nxhi_out,"pppm:vdz_brick");
 
   density_fft = 
-    (double *) memory->smalloc(nfft_both*sizeof(double),"pppm:density_fft");
+    (FFT_SCALAR *) memory->smalloc(nfft_both*sizeof(FFT_SCALAR),"pppm:density_fft");
   greensfn = 
     (double *) memory->smalloc(nfft_both*sizeof(double),"pppm:greensfn");
-  work1 = (double *) memory->smalloc(2*nfft_both*sizeof(double),"pppm:work1");
-  work2 = (double *) memory->smalloc(2*nfft_both*sizeof(double),"pppm:work2");
+  work1 = (FFT_SCALAR *) memory->smalloc(2*nfft_both*sizeof(FFT_SCALAR),"pppm:work1");
+  work2 = (FFT_SCALAR *) memory->smalloc(2*nfft_both*sizeof(FFT_SCALAR),"pppm:work2");
   vg = memory->create_2d_double_array(nfft_both,6,"pppm:vg");
 
   fkx = memory->create_1d_double_array(nxlo_fft,nxhi_fft,"pppm:fkx");
   fky = memory->create_1d_double_array(nylo_fft,nyhi_fft,"pppm:fky");
   fkz = memory->create_1d_double_array(nzlo_fft,nzhi_fft,"pppm:fkz");
 
-  buf1 = (double *) memory->smalloc(nbuf*sizeof(double),"pppm:buf1");
-  buf2 = (double *) memory->smalloc(nbuf*sizeof(double),"pppm:buf2");
+  buf1 = (FFT_SCALAR *) memory->smalloc(nbuf*sizeof(FFT_SCALAR),"pppm:buf1");
+  buf2 = (FFT_SCALAR *) memory->smalloc(nbuf*sizeof(FFT_SCALAR),"pppm:buf2");
 
   // summation coeffs
 
@@ -775,7 +775,7 @@ void PPPM::allocate()
   remap = new Remap(lmp,world,
 		    nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
 		    nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
-		    1,0,0,2);
+		    1,0,0,FFT_PRECISION);
 }
 
 /* ----------------------------------------------------------------------
@@ -1109,8 +1109,8 @@ void PPPM::brick2fft()
   if (comm->procneigh[0][1] == me)
     for (i = 0; i < n; i++) buf2[i] = buf1[i];
   else {
-    MPI_Irecv(buf2,nbuf,MPI_DOUBLE,comm->procneigh[0][0],0,world,&request);
-    MPI_Send(buf1,n,MPI_DOUBLE,comm->procneigh[0][1],0,world);
+    MPI_Irecv(buf2,nbuf,MPI_FFT_SCALAR,comm->procneigh[0][0],0,world,&request);
+    MPI_Send(buf1,n,MPI_FFT_SCALAR,comm->procneigh[0][1],0,world);
     MPI_Wait(&request,&status);
   }
 
@@ -1133,8 +1133,8 @@ void PPPM::brick2fft()
   if (comm->procneigh[0][0] == me)
     for (i = 0; i < n; i++) buf2[i] = buf1[i];
   else {
-    MPI_Irecv(buf2,nbuf,MPI_DOUBLE,comm->procneigh[0][1],0,world,&request);
-    MPI_Send(buf1,n,MPI_DOUBLE,comm->procneigh[0][0],0,world);
+    MPI_Irecv(buf2,nbuf,MPI_FFT_SCALAR,comm->procneigh[0][1],0,world,&request);
+    MPI_Send(buf1,n,MPI_FFT_SCALAR,comm->procneigh[0][0],0,world);
     MPI_Wait(&request,&status);
   }
 
@@ -1157,8 +1157,8 @@ void PPPM::brick2fft()
   if (comm->procneigh[1][1] == me)
     for (i = 0; i < n; i++) buf2[i] = buf1[i];
   else {
-    MPI_Irecv(buf2,nbuf,MPI_DOUBLE,comm->procneigh[1][0],0,world,&request);
-    MPI_Send(buf1,n,MPI_DOUBLE,comm->procneigh[1][1],0,world);
+    MPI_Irecv(buf2,nbuf,MPI_FFT_SCALAR,comm->procneigh[1][0],0,world,&request);
+    MPI_Send(buf1,n,MPI_FFT_SCALAR,comm->procneigh[1][1],0,world);
     MPI_Wait(&request,&status);
   }
 
@@ -1181,8 +1181,8 @@ void PPPM::brick2fft()
   if (comm->procneigh[1][0] == me)
     for (i = 0; i < n; i++) buf2[i] = buf1[i];
   else {
-    MPI_Irecv(buf2,nbuf,MPI_DOUBLE,comm->procneigh[1][1],0,world,&request);
-    MPI_Send(buf1,n,MPI_DOUBLE,comm->procneigh[1][0],0,world);
+    MPI_Irecv(buf2,nbuf,MPI_FFT_SCALAR,comm->procneigh[1][1],0,world,&request);
+    MPI_Send(buf1,n,MPI_FFT_SCALAR,comm->procneigh[1][0],0,world);
     MPI_Wait(&request,&status);
   }
 
@@ -1205,8 +1205,8 @@ void PPPM::brick2fft()
   if (comm->procneigh[2][1] == me)
     for (i = 0; i < n; i++) buf2[i] = buf1[i];
   else {
-    MPI_Irecv(buf2,nbuf,MPI_DOUBLE,comm->procneigh[2][0],0,world,&request);
-    MPI_Send(buf1,n,MPI_DOUBLE,comm->procneigh[2][1],0,world);
+    MPI_Irecv(buf2,nbuf,MPI_FFT_SCALAR,comm->procneigh[2][0],0,world,&request);
+    MPI_Send(buf1,n,MPI_FFT_SCALAR,comm->procneigh[2][1],0,world);
     MPI_Wait(&request,&status);
   }
 
@@ -1229,8 +1229,8 @@ void PPPM::brick2fft()
   if (comm->procneigh[2][0] == me)
     for (i = 0; i < n; i++) buf2[i] = buf1[i];
   else {
-    MPI_Irecv(buf2,nbuf,MPI_DOUBLE,comm->procneigh[2][1],0,world,&request);
-    MPI_Send(buf1,n,MPI_DOUBLE,comm->procneigh[2][0],0,world);
+    MPI_Irecv(buf2,nbuf,MPI_FFT_SCALAR,comm->procneigh[2][1],0,world,&request);
+    MPI_Send(buf1,n,MPI_FFT_SCALAR,comm->procneigh[2][0],0,world);
     MPI_Wait(&request,&status);
   }
 
@@ -1280,8 +1280,8 @@ void PPPM::fillbrick()
   if (comm->procneigh[2][1] == me)
     for (i = 0; i < n; i++) buf2[i] = buf1[i];
   else {
-    MPI_Irecv(buf2,nbuf,MPI_DOUBLE,comm->procneigh[2][0],0,world,&request);
-    MPI_Send(buf1,n,MPI_DOUBLE,comm->procneigh[2][1],0,world);
+    MPI_Irecv(buf2,nbuf,MPI_FFT_SCALAR,comm->procneigh[2][0],0,world,&request);
+    MPI_Send(buf1,n,MPI_FFT_SCALAR,comm->procneigh[2][1],0,world);
     MPI_Wait(&request,&status);
   }
 
@@ -1310,8 +1310,8 @@ void PPPM::fillbrick()
   if (comm->procneigh[2][0] == me)
     for (i = 0; i < n; i++) buf2[i] = buf1[i];
   else {
-    MPI_Irecv(buf2,nbuf,MPI_DOUBLE,comm->procneigh[2][1],0,world,&request);
-    MPI_Send(buf1,n,MPI_DOUBLE,comm->procneigh[2][0],0,world);
+    MPI_Irecv(buf2,nbuf,MPI_FFT_SCALAR,comm->procneigh[2][1],0,world,&request);
+    MPI_Send(buf1,n,MPI_FFT_SCALAR,comm->procneigh[2][0],0,world);
     MPI_Wait(&request,&status);
   }
 
@@ -1340,8 +1340,8 @@ void PPPM::fillbrick()
   if (comm->procneigh[1][1] == me)
     for (i = 0; i < n; i++) buf2[i] = buf1[i];
   else {
-    MPI_Irecv(buf2,nbuf,MPI_DOUBLE,comm->procneigh[1][0],0,world,&request);
-    MPI_Send(buf1,n,MPI_DOUBLE,comm->procneigh[1][1],0,world);
+    MPI_Irecv(buf2,nbuf,MPI_FFT_SCALAR,comm->procneigh[1][0],0,world,&request);
+    MPI_Send(buf1,n,MPI_FFT_SCALAR,comm->procneigh[1][1],0,world);
     MPI_Wait(&request,&status);
   }
 
@@ -1370,8 +1370,8 @@ void PPPM::fillbrick()
   if (comm->procneigh[1][0] == me)
     for (i = 0; i < n; i++) buf2[i] = buf1[i];
   else {
-    MPI_Irecv(buf2,nbuf,MPI_DOUBLE,comm->procneigh[1][1],0,world,&request);
-    MPI_Send(buf1,n,MPI_DOUBLE,comm->procneigh[1][0],0,world);
+    MPI_Irecv(buf2,nbuf,MPI_FFT_SCALAR,comm->procneigh[1][1],0,world,&request);
+    MPI_Send(buf1,n,MPI_FFT_SCALAR,comm->procneigh[1][0],0,world);
     MPI_Wait(&request,&status);
   }
 
@@ -1400,8 +1400,8 @@ void PPPM::fillbrick()
   if (comm->procneigh[0][1] == me)
     for (i = 0; i < n; i++) buf2[i] = buf1[i];
   else {
-    MPI_Irecv(buf2,nbuf,MPI_DOUBLE,comm->procneigh[0][0],0,world,&request);
-    MPI_Send(buf1,n,MPI_DOUBLE,comm->procneigh[0][1],0,world);
+    MPI_Irecv(buf2,nbuf,MPI_FFT_SCALAR,comm->procneigh[0][0],0,world,&request);
+    MPI_Send(buf1,n,MPI_FFT_SCALAR,comm->procneigh[0][1],0,world);
     MPI_Wait(&request,&status);
   }
 
@@ -1430,8 +1430,8 @@ void PPPM::fillbrick()
   if (comm->procneigh[0][0] == me)
     for (i = 0; i < n; i++) buf2[i] = buf1[i];
   else {
-    MPI_Irecv(buf2,nbuf,MPI_DOUBLE,comm->procneigh[0][1],0,world,&request);
-    MPI_Send(buf1,n,MPI_DOUBLE,comm->procneigh[0][0],0,world);
+    MPI_Irecv(buf2,nbuf,MPI_FFT_SCALAR,comm->procneigh[0][1],0,world,&request);
+    MPI_Send(buf1,n,MPI_FFT_SCALAR,comm->procneigh[0][0],0,world);
     MPI_Wait(&request,&status);
   }
 

@@ -16,7 +16,14 @@
 // FFT_PRECISION = 1 is single-precision complex (4-byte real, 4-byte imag) 
 // FFT_PRECISION = 2 is double-precision complex (8-byte real, 8-byte imag) 
 
+#ifdef FFT_SINGLE
+#define FFT_PRECISION 1
+typedef float FFT_SCALAR;
+#else
 #define FFT_PRECISION 2
+typedef double FFT_SCALAR;
+#endif
+
 
 // set default fftw library. switch to fftw3 when convenient.
 #ifdef FFT_FFTW

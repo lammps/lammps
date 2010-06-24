@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -19,6 +19,15 @@ KSpaceStyle(pppm,PPPM)
 
 #ifndef LMP_PPPM_H
 #define LMP_PPPM_H
+
+#include <mpi.h>
+#ifdef FFT_SINGLE
+typedef float FFT_SCALAR;
+#define  MPI_FFT_SCALAR MPI_FLOAT
+#else
+typedef double FFT_SCALAR;
+#define  MPI_FFT_SCALAR MPI_DOUBLE
+#endif
 
 #include "kspace.h"
 
@@ -59,9 +68,9 @@ class PPPM : public KSpace {
   double *greensfn;
   double **vg;
   double *fkx,*fky,*fkz;
-  double *density_fft;
-  double *work1,*work2;
-  double *buf1,*buf2;
+  FFT_SCALAR *density_fft;
+  FFT_SCALAR *work1,*work2;
+  FFT_SCALAR *buf1,*buf2;
 
   double *gf_b;
   double **rho1d,**rho_coeff;

@@ -13,7 +13,9 @@
 
 /* ----------------------------------------------------------------------
    Contributing authors: Jim Shepherd (GA Tech) added SGI SCSL support
-                         Axel Kohlmeyer (Temple U) added FFTW3, KISSFFT support
+                         Axel Kohlmeyer (Temple U) added FFTW3, 
+			 KISSFFT, Dfti/MKL support
+			 Phil Blood (PSC) single precision FFT.
 ------------------------------------------------------------------------- */
 
 #include "mpi.h"
@@ -64,7 +66,7 @@
 void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
 {
   int i,total,length,offset,num;
-  double norm, *out_ptr;
+  FFT_SCALAR norm, *out_ptr;
   FFT_DATA *data,*copy;
 
   // system specific constants 
@@ -92,7 +94,7 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
   if (plan->pre_plan) {
     if (plan->pre_target == 0) copy = out;
     else copy = plan->copy;
-    remap_3d((double *) in, (double *) copy, (double *) plan->scratch,
+    remap_3d((FFT_SCALAR *) in, (FFT_SCALAR *) copy, (FFT_SCALAR *) plan->scratch,
 	     plan->pre_plan);
     data = copy;
   }
@@ -156,7 +158,7 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
 
   if (plan->mid1_target == 0) copy = out;
   else copy = plan->copy;
-  remap_3d((double *) data, (double *) copy, (double *) plan->scratch,
+  remap_3d((FFT_SCALAR *) data, (FFT_SCALAR *) copy, (FFT_SCALAR *) plan->scratch,
 	   plan->mid1_plan);
   data = copy;
 
@@ -216,7 +218,7 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
 
   if (plan->mid2_target == 0) copy = out;
   else copy = plan->copy;
-  remap_3d((double *) data, (double *) copy, (double *) plan->scratch,
+  remap_3d((FFT_SCALAR *) data, (FFT_SCALAR *) copy, (FFT_SCALAR *) plan->scratch,
 	   plan->mid2_plan);
   data = copy;
 
@@ -275,7 +277,7 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
   // destination is always out 
 
   if (plan->post_plan)
-    remap_3d((double *) data, (double *) out, (double *) plan->scratch,
+    remap_3d((FFT_SCALAR *) data, (FFT_SCALAR *) out, (FFT_SCALAR *) plan->scratch,
 	     plan->post_plan);
 
   // scaling if required 
@@ -284,7 +286,7 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
   if (flag == 1 && plan->scaled) {
     norm = plan->norm;
     num = plan->normnum;
-    out_ptr = (double *)out;
+    out_ptr = (FFT_SCALAR *)out;
     for (i = 0; i < num; i++) {
 #if defined(FFT_FFTW3)
       *(out_ptr++) *= norm;
@@ -1052,7 +1054,7 @@ void bifactor(int n, int *factor1, int *factor2)
 void fft_1d_only(FFT_DATA *data, int nsize, int flag, struct fft_plan_3d *plan)
 {
   int i,total,length,offset,num;
-  double norm, *data_ptr;
+  FFT_SCALAR norm, *data_ptr;
 
   // system specific constants 
 
@@ -1208,7 +1210,7 @@ void fft_1d_only(FFT_DATA *data, int nsize, int flag, struct fft_plan_3d *plan)
   if (flag == 1 && plan->scaled) {
     norm = plan->norm;
     num = MIN(plan->normnum,nsize);
-    data_ptr = (double *)data;
+    data_ptr = (FFT_SCALAR *)data;
     for (i = 0; i < num; i++) {
 #if defined(FFT_FFTW3)
       *(data_ptr++) *= norm;

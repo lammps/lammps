@@ -42,7 +42,7 @@ Remap::~Remap()
 
 /* ---------------------------------------------------------------------- */
 
-void Remap::perform(double *in, double *out, double *buf)
+void Remap::perform(FFT_SCALAR *in, FFT_SCALAR *out, FFT_SCALAR *buf)
 {
   remap_3d(in,out,buf,plan);
 }

@@ -74,9 +74,8 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   double p_period[6];
   for (int i = 0; i < 6; i++) {
-    p_start[i] = p_stop[i] = p_period[i] = 0.0;
+    p_start[i] = p_stop[i] = p_period[i] = p_target[i] = 0.0;
     p_flag[i] = 0;
-    p_period[i] = 0.0;
   }
 
   // process keywords

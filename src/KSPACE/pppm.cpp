@@ -42,6 +42,14 @@ using namespace LAMMPS_NS;
 #define LARGE 10000.0
 #define EPS_HOC 1.0e-7
 
+#ifdef FFT_SINGLE
+#define ZEROF 0.0f
+#define ONEF  1.0f
+#else
+#define ZEROF 0.0
+#define ONEF  1.0
+#endif
+
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
@@ -720,6 +728,20 @@ void PPPM::compute(int eflag, int vflag)
 
 void PPPM::allocate()
 {
+#ifdef FFT_SINGLE
+  density_brick = 
+    memory->create_3d_float_array(nzlo_out,nzhi_out,nylo_out,nyhi_out,
+				   nxlo_out,nxhi_out,"pppm:density_brick");
+  vdx_brick =
+    memory->create_3d_float_array(nzlo_out,nzhi_out,nylo_out,nyhi_out,
+				   nxlo_out,nxhi_out,"pppm:vdx_brick");
+  vdy_brick = 
+    memory->create_3d_float_array(nzlo_out,nzhi_out,nylo_out,nyhi_out,
+				   nxlo_out,nxhi_out,"pppm:vdy_brick");
+  vdz_brick = 
+    memory->create_3d_float_array(nzlo_out,nzhi_out,nylo_out,nyhi_out,
+				   nxlo_out,nxhi_out,"pppm:vdz_brick");
+#else
   density_brick = 
     memory->create_3d_double_array(nzlo_out,nzhi_out,nylo_out,nyhi_out,
 				   nxlo_out,nxhi_out,"pppm:density_brick");
@@ -732,6 +754,7 @@ void PPPM::allocate()
   vdz_brick = 
     memory->create_3d_double_array(nzlo_out,nzhi_out,nylo_out,nyhi_out,
 				   nxlo_out,nxhi_out,"pppm:vdz_brick");
+#endif
 
   density_fft = 
     (FFT_SCALAR *) memory->smalloc(nfft_both*sizeof(FFT_SCALAR),"pppm:density_fft");
@@ -751,9 +774,15 @@ void PPPM::allocate()
   // summation coeffs
 
   gf_b = new double[order];
+#ifdef FFT_SINGLE
+  rho1d = memory->create_2d_float_array(3,-order/2,order/2,"pppm:rho1d");
+  rho_coeff = memory->create_2d_float_array(order,(1-order)/2,order/2,
+					     "pppm:rho_coeff");
+#else
   rho1d = memory->create_2d_double_array(3,-order/2,order/2,"pppm:rho1d");
   rho_coeff = memory->create_2d_double_array(order,(1-order)/2,order/2,
 					     "pppm:rho_coeff");
+#endif
 
   // create 2 FFTs and a Remap
   // 1st FFT keeps data in FFT decompostion
@@ -784,10 +813,17 @@ void PPPM::allocate()
 
 void PPPM::deallocate()
 {
+#ifdef FFT_SINGLE
+  memory->destroy_3d_float_array(density_brick,nzlo_out,nylo_out,nxlo_out);
+  memory->destroy_3d_float_array(vdx_brick,nzlo_out,nylo_out,nxlo_out);
+  memory->destroy_3d_float_array(vdy_brick,nzlo_out,nylo_out,nxlo_out);
+  memory->destroy_3d_float_array(vdz_brick,nzlo_out,nylo_out,nxlo_out);
+#else
   memory->destroy_3d_double_array(density_brick,nzlo_out,nylo_out,nxlo_out);
   memory->destroy_3d_double_array(vdx_brick,nzlo_out,nylo_out,nxlo_out);
   memory->destroy_3d_double_array(vdy_brick,nzlo_out,nylo_out,nxlo_out);
   memory->destroy_3d_double_array(vdz_brick,nzlo_out,nylo_out,nxlo_out);
+#endif
 
   memory->sfree(density_fft);
   memory->sfree(greensfn);
@@ -803,8 +839,13 @@ void PPPM::deallocate()
   memory->sfree(buf2);
 
   delete [] gf_b;
+#ifdef FFT_SINGLE
+  memory->destroy_2d_float_array(rho1d,-order/2);
+  memory->destroy_2d_float_array(rho_coeff,(1-order)/2);
+#else
   memory->destroy_2d_double_array(rho1d,-order/2);
   memory->destroy_2d_double_array(rho_coeff,(1-order)/2);
+#endif
 
   delete fft1;
   delete fft2;
@@ -1495,12 +1536,12 @@ void PPPM::particle_map()
 void PPPM::make_rho()
 {
   int i,l,m,n,nx,ny,nz,mx,my,mz;
-  double dx,dy,dz,x0,y0,z0;
+  FFT_SCALAR dx,dy,dz,x0,y0,z0;
 
   // clear 3d density array
 
-  double *vec = &density_brick[nzlo_out][nylo_out][nxlo_out];
-  for (i = 0; i < ngrid; i++) vec[i] = 0.0;
+  FFT_SCALAR *vec = &density_brick[nzlo_out][nylo_out][nxlo_out];
+  for (i = 0; i < ngrid; i++) vec[i] = ZEROF;
 
   // loop over my charges, add their contribution to nearby grid points
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
@@ -1520,18 +1561,7 @@ void PPPM::make_rho()
     dy = ny+shiftone - (x[i][1]-boxlo[1])*delyinv;
     dz = nz+shiftone - (x[i][2]-boxlo[2])*delzinv;
 
-    if (order==2) 
-      compute_rho1d<2>(dx,dy,dz);
-    else if (order==3) 
-      compute_rho1d<3>(dx,dy,dz);
-    else if (order==4) 
-      compute_rho1d<4>(dx,dy,dz);
-    else if (order==5) 
-      compute_rho1d<5>(dx,dy,dz);
-    else if (order==6) 
-      compute_rho1d<6>(dx,dy,dz);
-    else if (order==7) 
-      compute_rho1d<7>(dx,dy,dz);
+    compute_rho1d(dx,dy,dz);
 
     z0 = delvolinv * q[i];
     for (n = nlower; n <= nupper; n++) {
@@ -1563,7 +1593,7 @@ void PPPM::poisson(int eflag, int vflag)
   n = 0;
   for (i = 0; i < nfft; i++) {
     work1[n++] = density_fft[i];
-    work1[n++] = 0.0;
+    work1[n++] = ZEROF;
   }
  
   fft1->compute(work1,work1,1);
@@ -1676,8 +1706,8 @@ void PPPM::poisson(int eflag, int vflag)
 void PPPM::fieldforce()
 {
   int i,l,m,n,nx,ny,nz,mx,my,mz;
-  double dx,dy,dz,x0,y0,z0;
-  double ek[3];
+  FFT_SCALAR dx,dy,dz,x0,y0,z0;
+  FFT_SCALAR ekx,eky,ekz;
 
   // loop over my charges, interpolate electric field from nearby grid points
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
@@ -1688,6 +1718,8 @@ void PPPM::fieldforce()
   double *q = atom->q;
   double **x = atom->x;
   double **f = atom->f;
+  double qfactor;
+  
   int nlocal = atom->nlocal;
 
   for (i = 0; i < nlocal; i++) {
@@ -1699,20 +1731,9 @@ void PPPM::fieldforce()
     dy = ny+shiftone - (x[i][1]-boxlo[1])*delyinv;
     dz = nz+shiftone - (x[i][2]-boxlo[2])*delzinv;
 
-    if (order==2) 
-      compute_rho1d<2>(dx,dy,dz);
-    else if (order==3) 
-      compute_rho1d<3>(dx,dy,dz);
-    else if (order==4) 
-      compute_rho1d<4>(dx,dy,dz);
-    else if (order==5) 
-      compute_rho1d<5>(dx,dy,dz);
-    else if (order==6) 
-      compute_rho1d<6>(dx,dy,dz);
-    else if (order==7) 
-      compute_rho1d<7>(dx,dy,dz);
+    compute_rho1d(dx,dy,dz);
 
-    ek[0] = ek[1] = ek[2] = 0.0;
+    ekx = eky = ekz = ZEROF;
     for (n = nlower; n <= nupper; n++) {
       mz = n+nz;
       z0 = rho1d[2][n];
@@ -1722,18 +1743,18 @@ void PPPM::fieldforce()
 	for (l = nlower; l <= nupper; l++) {
 	  mx = l+nx;
 	  x0 = y0*rho1d[0][l];
-	  ek[0] -= x0*vdx_brick[mz][my][mx];;
-	  ek[1] -= x0*vdy_brick[mz][my][mx];;
-	  ek[2] -= x0*vdz_brick[mz][my][mx];;
+	  ekx -= x0*vdx_brick[mz][my][mx];
+	  eky -= x0*vdy_brick[mz][my][mx];
+	  ekz -= x0*vdz_brick[mz][my][mx];
 	}
       }
     }
 
     // convert E-field to force
-
-    f[i][0] += qqrd2e*q[i]*ek[0];
-    f[i][1] += qqrd2e*q[i]*ek[1];
-    f[i][2] += qqrd2e*q[i]*ek[2];
+    qfactor = qqrd2e*q[i];
+    f[i][0] += qfactor*ekx;
+    f[i][1] += qfactor*eky;
+    f[i][2] += qfactor*ekz;
   }
 }
 
@@ -1776,6 +1797,28 @@ void PPPM::procs2grid2d(int nprocs, int nx, int ny, int *px, int *py)
 }
 
 /* ----------------------------------------------------------------------
+   charge assignment into rho1d
+   dx,dy,dz = distance of particle from "lower left" grid point 
+------------------------------------------------------------------------- */
+void PPPM::compute_rho1d(const FFT_SCALAR &dx, const FFT_SCALAR &dy, 
+			 const FFT_SCALAR &dz) 
+{
+  int k,l;
+
+  for (k = (1-order)/2; k <= order/2; k++) {
+    rho1d[0][k] = ZEROF;
+    rho1d[1][k] = ZEROF;
+    rho1d[2][k] = ZEROF;
+
+    for (l = order-1; l >= 0; l--) {
+      rho1d[0][k] = rho_coeff[l][k] + rho1d[0][k]*dx;
+      rho1d[1][k] = rho_coeff[l][k] + rho1d[1][k]*dy;
+      rho1d[2][k] = rho_coeff[l][k] + rho1d[2][k]*dz;
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
    generate coeffients for the weight function of order n
 
               (n-1)
@@ -1797,10 +1840,28 @@ void PPPM::procs2grid2d(int nprocs, int nx, int ny, int *px, int *py)
 void PPPM::compute_rho_coeff()
 {
   int j,k,l,m;
-  double s;
+  FFT_SCALAR s;
 
+#ifdef FFT_SINGLE
+  float **a = memory->create_2d_float_array(order,-order,order,"pppm:a");
+  for (k = -order; k <= order; k++) 
+    for (l = 0; l < order; l++)
+      a[l][k] = 0.0f;
+        
+  a[0][0] = 1.0f;
+  for (j = 1; j < order; j++) {
+    for (k = -j; k <= j; k += 2) {
+      s = 0.0f;
+      for (l = 0; l < j; l++) {
+	a[l+1][k] = (a[l][k+1]-a[l][k-1]) / (l+1);
+	s += powf(0.5f,(float) l+1) * 
+	  (a[l][k-1] + powf(-1.0f,(float) l) * a[l][k+1]) / (l+1);
+      }
+      a[0][k] = s;
+    }
+  }
+#else
   double **a = memory->create_2d_double_array(order,-order,order,"pppm:a");
-
   for (k = -order; k <= order; k++) 
     for (l = 0; l < order; l++)
       a[l][k] = 0.0;
@@ -1817,6 +1878,7 @@ void PPPM::compute_rho_coeff()
       a[0][k] = s;
     }
   }
+#endif
 
   m = (1-order)/2;
   for (k = -(order-1); k < order; k += 2) {
@@ -1825,7 +1887,11 @@ void PPPM::compute_rho_coeff()
     m++;
   }
 
+#ifdef FFT_SINGLE
+  memory->destroy_2d_float_array(a,-order);
+#else
   memory->destroy_2d_double_array(a,-order);
+#endif
 }
 
 /* ----------------------------------------------------------------------
@@ -1873,7 +1939,7 @@ void PPPM::timing(int n, double &time3d, double &time1d)
 {
   double time1,time2;
 
-  for (int i = 0; i < 2*nfft_both; i++) work1[i] = 0.0;
+  for (int i = 0; i < 2*nfft_both; i++) work1[i] = ZEROF;
 
   MPI_Barrier(world);
   time1 = MPI_Wtime();
@@ -1913,9 +1979,10 @@ double PPPM::memory_usage()
   double bytes = nmax*3 * sizeof(double);
   int nbrick = (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) * 
     (nzhi_out-nzlo_out+1);
-  bytes += 4 * nbrick * sizeof(double);
+  bytes += 4 * nbrick * sizeof(FFT_SCALAR);
   bytes += 6 * nfft_both * sizeof(double);
-  bytes += nfft_both*6 * sizeof(double);
-  bytes += 2 * nbuf * sizeof(double);
+  bytes += nfft_both * sizeof(double);
+  bytes += nfft_both*5 * sizeof(FFT_SCALAR);
+  bytes += 2 * nbuf * sizeof(FFT_SCALAR);
   return bytes;
 }

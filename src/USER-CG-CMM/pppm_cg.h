@@ -64,8 +64,8 @@ class PPPMCG : public KSpace {
   int ngrid,nfft,nbuf,nfft_both;
   int num_charged;
 
-  double ***density_brick;
-  double ***vdx_brick,***vdy_brick,***vdz_brick;
+  FFT_SCALAR ***density_brick;
+  FFT_SCALAR ***vdx_brick,***vdy_brick,***vdz_brick;
   double *greensfn;
   double **vg;
   double *fkx,*fky,*fkz;
@@ -74,7 +74,7 @@ class PPPMCG : public KSpace {
   FFT_SCALAR *buf1,*buf2;
 
   double *gf_b;
-  double **rho1d,**rho_coeff;
+  FFT_SCALAR **rho1d,**rho_coeff;
 
   class FFT3d *fft1,*fft2;
   class Remap *remap;
@@ -105,11 +105,10 @@ class PPPMCG : public KSpace {
   void poisson(int, int);
   virtual void fieldforce();
   void procs2grid2d(int,int,int,int *, int*);
-  void compute_rho1d(double, double, double);
+  void compute_rho1d(const FFT_SCALAR &, const FFT_SCALAR &, const FFT_SCALAR &);
   void compute_rho_coeff();
   void slabcorr(int);
 };
-
 }
 
 #endif

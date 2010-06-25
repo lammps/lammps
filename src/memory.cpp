@@ -254,6 +254,86 @@ void Memory::destroy_2d_double_array(double **array, int offset)
 }
 
 /* ----------------------------------------------------------------------
+   create a 2d float array 
+------------------------------------------------------------------------- */
+
+float **Memory::create_2d_float_array(int n1, int n2, const char *name)
+
+{
+  float *data = (float *) smalloc(n1*n2*sizeof(float),name);
+  float **array = (float **) smalloc(n1*sizeof(float *),name);
+
+  int n = 0;
+  for (int i = 0; i < n1; i++) {
+    array[i] = &data[n];
+    n += n2;
+  }
+
+  return array;
+}
+
+/* ----------------------------------------------------------------------
+   free a 2d float array 
+------------------------------------------------------------------------- */
+
+void Memory::destroy_2d_float_array(float **array)
+
+{
+  if (array == NULL) return;
+  sfree(array[0]);
+  sfree(array);
+}
+
+/* ----------------------------------------------------------------------
+   grow or shrink 1st dim of a 2d float array
+   last dim must stay the same
+   if either dim is 0, return NULL 
+------------------------------------------------------------------------- */
+
+float **Memory::grow_2d_float_array(float **array,
+				      int n1, int n2, const char *name)
+
+{
+  if (array == NULL) return create_2d_float_array(n1,n2,name);
+
+  float *data = (float *) srealloc(array[0],n1*n2*sizeof(float),name);
+  array = (float **) srealloc(array,n1*sizeof(float *),name);
+
+  int n = 0;
+  for (int i = 0; i < n1; i++) {
+    array[i] = &data[n];
+    n += n2;
+  }
+
+  return array;
+}
+
+/* ----------------------------------------------------------------------
+   create a 2d float array with 2nd index from n2lo to n2hi inclusive 
+------------------------------------------------------------------------- */
+
+float **Memory::create_2d_float_array(int n1, int n2lo, int n2hi,
+					const char *name)
+{
+  int n2 = n2hi - n2lo + 1;
+  float **array = create_2d_float_array(n1,n2,name);
+
+  for (int i = 0; i < n1; i++) array[i] -= n2lo;
+  return array;
+}
+
+/* ----------------------------------------------------------------------
+   free a 2d float array with 2nd index offset 
+------------------------------------------------------------------------- */
+
+void Memory::destroy_2d_float_array(float **array, int offset)
+{
+  if (array == NULL) return;
+  sfree(&array[0][offset]);
+  sfree(array);
+}
+
+/* ----------------------------------------------------------------------
    create a 3d double array 
 ------------------------------------------------------------------------- */
 
@@ -380,6 +460,132 @@ void Memory::destroy_3d_double_array(double ***array, int n1_offset,
   sfree(array + n1_offset);
 }
 
+/* ----------------------------------------------------------------------
+   create a 3d float array 
+------------------------------------------------------------------------- */
+
+float ***Memory::create_3d_float_array(int n1, int n2, int n3,
+					 const char *name)
+{
+  int i,j;
+
+  float *data = (float *) smalloc(n1*n2*n3*sizeof(float),name);
+  float **plane = (float **) smalloc(n1*n2*sizeof(float *),name);
+  float ***array = (float ***) smalloc(n1*sizeof(float **),name);
+
+  int n = 0;
+  for (i = 0; i < n1; i++) {
+    array[i] = &plane[i*n2];
+    for (j = 0; j < n2; j++) {
+      plane[i*n2+j] = &data[n];
+      n += n3;
+    }
+  }
+
+  return array;
+}
+
+/* ----------------------------------------------------------------------
+   free a 3d float array 
+------------------------------------------------------------------------- */
+
+void Memory::destroy_3d_float_array(float ***array)
+{
+  if (array == NULL) return;
+  sfree(array[0][0]);
+  sfree(array[0]);
+  sfree(array);
+}
+
+/* ----------------------------------------------------------------------
+   grow or shrink 1st dim of a 3d float array
+   last 2 dims must stay the same
+   if any dim is 0, return NULL 
+------------------------------------------------------------------------- */
+
+float ***Memory::grow_3d_float_array(float ***array,
+				       int n1, int n2, int n3,
+				       const char *name)
+{
+  int i,j;
+
+  if (n1 == 0 || n2 == 0 || n3 == 0) {
+    destroy_3d_float_array(array);
+    return NULL;
+  }
+
+  if (array == NULL) return create_3d_float_array(n1,n2,n3,name);
+
+  float *data = (float *) srealloc(array[0][0],n1*n2*n3*sizeof(float),name);
+  float **plane = (float **) srealloc(array[0],n1*n2*sizeof(float *),name);
+  array = (float ***) srealloc(array,n1*sizeof(float **),name);
+
+  int n = 0;
+  for (i = 0; i < n1; i++) {
+    array[i] = &plane[i*n2];
+    for (j = 0; j < n2; j++) {
+      plane[i*n2+j] = &data[n];
+      n += n3;
+    }
+  }
+
+  return array;
+}
+
+/* ----------------------------------------------------------------------
+   create a 3d float array with 1st index from n1lo to n1hi inclusive 
+------------------------------------------------------------------------- */
+
+float ***Memory::create_3d_float_array(int n1lo, int n1hi, 
+					 int n2, int n3, const char *name)
+{
+  int n1 = n1hi - n1lo + 1;
+  float ***array = create_3d_float_array(n1,n2,n3,name);
+  return array-n1lo;
+}
+
+/* ----------------------------------------------------------------------
+   free a 3d float array with 1st index offset 
+------------------------------------------------------------------------- */
+
+void Memory::destroy_3d_float_array(float ***array, int offset)
+{
+  if (array) destroy_3d_float_array(array + offset);
+}
+
+/* ----------------------------------------------------------------------
+   create a 3d float array with
+   1st index from n1lo to n1hi inclusive,
+   2nd index from n2lo to n2hi inclusive,
+   3rd index from n3lo to n3hi inclusive 
+------------------------------------------------------------------------- */
+
+float ***Memory::create_3d_float_array(int n1lo, int n1hi,
+					 int n2lo, int n2hi,
+					 int n3lo, int n3hi, const char *name)
+{
+  int n1 = n1hi - n1lo + 1;
+  int n2 = n2hi - n2lo + 1;
+  int n3 = n3hi - n3lo + 1;
+  float ***array = create_3d_float_array(n1,n2,n3,name);
+
+  for (int i = 0; i < n1*n2; i++) array[0][i] -= n3lo;
+  for (int i = 0; i < n1; i++) array[i] -= n2lo;
+  return array-n1lo;
+}
+
+/* ----------------------------------------------------------------------
+   free a 3d float array with all 3 indices offset 
+------------------------------------------------------------------------- */
+
+void Memory::destroy_3d_float_array(float ***array, int n1_offset,
+				     int n2_offset, int n3_offset)
+{
+  if (array == NULL) return;
+  sfree(&array[n1_offset][n2_offset][n3_offset]);
+  sfree(&array[n1_offset][n2_offset]);
+  sfree(array + n1_offset);
+}
 
 /* ----------------------------------------------------------------------
    create a 3d int array 

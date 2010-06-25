@@ -40,6 +40,13 @@ class Memory : protected Pointers {
   double **create_2d_double_array(int, int, int, const char *);
   void destroy_2d_double_array(double **, int);
 
+  float **create_2d_float_array(int, int, const char *);
+  void destroy_2d_float_array(float **);
+  float **grow_2d_float_array(float **, int, int, const char *);
+
+  float **create_2d_float_array(int, int, int, const char *);
+  void destroy_2d_float_array(float **, int);
+
   double ***create_3d_double_array(int, int, int, const char *);
   void destroy_3d_double_array(double ***);
   double ***grow_3d_double_array(double ***, int, int, int, const char *);
@@ -49,6 +56,16 @@ class Memory : protected Pointers {
 
   double ***create_3d_double_array(int, int, int, int, int, int, const char *);
   void destroy_3d_double_array(double ***, int, int, int);
+
+  float ***create_3d_float_array(int, int, int, const char *);
+  void destroy_3d_float_array(float ***);
+  float ***grow_3d_float_array(float ***, int, int, int, const char *);
+
+  float ***create_3d_float_array(int, int, int, int, const char *);
+  void destroy_3d_float_array(float ***, int);
+
+  float ***create_3d_float_array(int, int, int, int, int, int, const char *);
+  void destroy_3d_float_array(float ***, int, int, int);
 
   int ***create_3d_int_array(int, int, int, const char *);
   void destroy_3d_int_array(int ***);

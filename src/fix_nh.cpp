@@ -567,8 +567,6 @@ void FixNH::setup(int vflag)
 {
   // initialize some quantities that were not available earlier
 
-  if (mtk_flag) mtk_factor = 1.0 + 1.0/atom->natoms;
-  else mtk_factor = 1.0;
   tdof = temperature->dof;
 
   // t_target is used by compute_scalar(), even for NPH
@@ -639,9 +637,6 @@ void FixNH::setup(int vflag)
 	   boltz*t_target) / etap_mass[ich];
     }
 
-    // compute appropriately coupled elements of mvv_current
-
-    if (mtk_flag) couple_ke();
   }
 }
 
@@ -681,7 +676,6 @@ void FixNH::initial_integrate(int vflag)
     }
     couple();
     pressure->addstep(update->ntimestep+1);
-    if (mtk_flag) couple_ke();
   }
 
   if (pstat_flag) {
@@ -726,7 +720,6 @@ void FixNH::final_integrate()
     else pressure->compute_vector();
     couple();
     pressure->addstep(update->ntimestep+1);
-    if (mtk_flag) couple_ke();
   }
 
   if (pstat_flag) nh_omega_dot();
@@ -750,7 +743,7 @@ void FixNH::initial_integrate_respa(int vflag, int ilevel, int iloop)
   dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
   dthalf = 0.5 * step_respa[ilevel];
 
-  // outermost level - update eta_dot and omega_dot, apply to v, remap box
+  // outermost level - update eta_dot and omega_dot, apply to v
   // all other levels - NVE update of v
   // x,v updates only performed for atoms in group
 
@@ -786,7 +779,6 @@ void FixNH::initial_integrate_respa(int vflag, int ilevel, int iloop)
       }
       couple();
       pressure->addstep(update->ntimestep+1);
-      if (mtk_flag) couple_ke();
     }
     
     if (pstat_flag) {
@@ -869,37 +861,6 @@ void FixNH::couple()
   }
 }
 
-/* ---------------------------------------------------------------------- */
-
-void FixNH::couple_ke()
-{
-  double *tensor = temperature->vector;
-
-  if (pstyle == ISO)
-    mvv_current[0] = mvv_current[1] = mvv_current[2] = 
-      tdof * boltz * t_current/dimension;
-  else if (pcouple == XYZ) {
-    double ave = 1.0/3.0 * (tensor[0] + tensor[1] + tensor[2]);
-    mvv_current[0] = mvv_current[1] = mvv_current[2] = ave;
-  } else if (pcouple == XY) {
-    double ave = 0.5 * (tensor[0] + tensor[1]);
-    mvv_current[0] = mvv_current[1] = ave;
-    mvv_current[2] = tensor[2];
-  } else if (pcouple == YZ) {
-    double ave = 0.5 * (tensor[1] + tensor[2]);
-    mvv_current[1] = mvv_current[2] = ave;
-    mvv_current[0] = tensor[0];
-  } else if (pcouple == XZ) {
-    double ave = 0.5 * (tensor[0] + tensor[2]);
-    mvv_current[0] = mvv_current[2] = ave;
-    mvv_current[1] = tensor[1];
-  } else {
-    mvv_current[0] = tensor[0];
-    mvv_current[1] = tensor[1];
-    mvv_current[2] = tensor[2];
-  }
-}
-
 /* ----------------------------------------------------------------------
    change box size
    remap all atoms or fix group atoms depending on allremap flag
@@ -914,6 +875,7 @@ void FixNH::remap()
   double **x = atom->x;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+  double *h = domain->h;
 
   // omega is not used, except for book-keeping
 
@@ -934,15 +896,41 @@ void FixNH::remap()
 
   // reset global and local box to new size/shape
 
+  // This operation corresponds to applying the
+  // translate and scale operations 
+  // corresponding to the solution of the following ODE:
+  //
+  // h_dot = omega_dot * h
+  //
+  // where h_dot, omega_dot and h are all upper-triangular
+  // 3x3 tensors. In Voigt notation, the elements of the 
+  // RHS product tensor are:
+  // h_dot = [0*0, 1*1, 2*2, 1*3+3*2, 0*4+5*3+4*2, 0*5+5*1]
+  // 
+  // Ordering of operations preserves time symmetry.
+
+  double dto2 = dto/2.0;
+  double dto4 = dto/4.0;
+  double dto8 = dto/8.0;
+
   if (pstyle == TRICLINIC) {
-    domain->yz += domain->zprd*dilation[3]; 
-    domain->xz += domain->zprd*dilation[4]; 
-    domain->xy += domain->yprd*dilation[5]; 
-    
-    if (domain->yz < -0.5*domain->yprd || domain->yz > 0.5*domain->yprd ||
-	domain->xz < -0.5*domain->xprd || domain->xz > 0.5*domain->xprd ||
-	domain->xy < -0.5*domain->xprd || domain->xy > 0.5*domain->xprd)
-      error->all("fix npt/nph has tilted box beyond 45 degrees");
+
+    h[4] *= exp(dto8*omega_dot[0]);
+    h[4] += dto4*(omega_dot[5]*h[3]+omega_dot[4]*h[2]); 
+    h[4] *= exp(dto8*omega_dot[0]);
+
+    h[3] *= exp(dto4*omega_dot[1]);
+    h[3] += dto2*(omega_dot[3]*h[2]); 
+    h[3] *= exp(dto4*omega_dot[1]);
+
+    h[5] *= exp(dto4*omega_dot[0]);
+    h[5] += dto2*(omega_dot[5]*h[1]); 
+    h[5] *= exp(dto4*omega_dot[0]);
+
+    h[4] *= exp(dto8*omega_dot[0]);
+    h[4] += dto4*(omega_dot[5]*h[3]+omega_dot[4]*h[2]); 
+    h[4] *= exp(dto8*omega_dot[0]);
+
   }
 
   for (i = 0; i < 3; i++) {
@@ -950,9 +938,37 @@ void FixNH::remap()
       oldlo = domain->boxlo[i];
       oldhi = domain->boxhi[i];
       ctr = 0.5 * (oldlo + oldhi);
-      domain->boxlo[i] = (oldlo-ctr)*dilation[i] + ctr;
-      domain->boxhi[i] = (oldhi-ctr)*dilation[i] + ctr;
+      domain->boxlo[i] = (oldlo-ctr)*exp(dto*omega_dot[i]) + ctr;
+      domain->boxhi[i] = (oldhi-ctr)*exp(dto*omega_dot[i]) + ctr;
     }
+  }
+
+  if (pstyle == TRICLINIC) {
+
+    h[4] *= exp(dto8*omega_dot[0]);
+    h[4] += dto4*(omega_dot[5]*h[3]+omega_dot[4]*h[2]); 
+    h[4] *= exp(dto8*omega_dot[0]);
+
+    h[3] *= exp(dto4*omega_dot[1]);
+    h[3] += dto2*(omega_dot[3]*h[2]); 
+    h[3] *= exp(dto4*omega_dot[1]);
+
+    h[5] *= exp(dto4*omega_dot[0]);
+    h[5] += dto2*(omega_dot[5]*h[1]); 
+    h[5] *= exp(dto4*omega_dot[0]);
+
+    h[4] *= exp(dto8*omega_dot[0]);
+    h[4] += dto4*(omega_dot[5]*h[3]+omega_dot[4]*h[2]); 
+    h[4] *= exp(dto8*omega_dot[0]);
+
+    domain->yz = h[3];
+    domain->xz = h[4];
+    domain->xy = h[5];
+
+    if (domain->yz < -0.5*domain->yprd || domain->yz > 0.5*domain->yprd ||
+	domain->xz < -0.5*domain->xprd || domain->xz > 0.5*domain->xprd ||
+	domain->xy < -0.5*domain->xprd || domain->xy > 0.5*domain->xprd)
+      error->all("fix npt/nph has tilted box beyond 45 degrees");
   }
 
   domain->set_global_box();
@@ -1566,10 +1582,15 @@ void FixNH::nhc_press_integrate()
 
 void FixNH::nh_v_press()
 {
+  double factor[3];
   double **v = atom->v;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
+
+  factor[0] = exp(-dt4*(omega_dot[0]+mtk_term2));
+  factor[1] = exp(-dt4*(omega_dot[1]+mtk_term2));
+  factor[2] = exp(-dt4*(omega_dot[2]+mtk_term2));
 
   if (which == NOBIAS) {
     for (int i = 0; i < nlocal; i++) {
@@ -1578,9 +1599,12 @@ void FixNH::nh_v_press()
 	v[i][1] *= factor[1];
 	v[i][2] *= factor[2];
 	if (pstyle == TRICLINIC) {
-	  v[i][0] += v[i][1]*factor[5] + v[i][2]*factor[4];
-	  v[i][1] += v[i][2]*factor[3];
+	  v[i][0] += -dthalf*(v[i][1]*omega_dot[5] + v[i][2]*omega_dot[4]);
+	  v[i][1] += -dthalf*v[i][2]*omega_dot[3];
 	}
+	v[i][0] *= factor[0];
+	v[i][1] *= factor[1];
+	v[i][2] *= factor[2];
       }
     }
   } else if (which == BIAS) {
@@ -1591,9 +1615,12 @@ void FixNH::nh_v_press()
 	v[i][1] *= factor[1];
 	v[i][2] *= factor[2];
 	if (pstyle == TRICLINIC) {
-	  v[i][0] += v[i][1]*factor[5] + v[i][2]*factor[4];
-	  v[i][1] += v[i][2]*factor[3];
+	  v[i][0] += -dthalf*(v[i][1]*omega_dot[5] + v[i][2]*omega_dot[4]);
+	  v[i][1] += -dthalf*v[i][2]*omega_dot[3];
 	}
+	v[i][0] *= factor[0];
+	v[i][1] *= factor[1];
+	v[i][2] *= factor[2];
 	temperature->restore_bias(i,v[i]);
       }
     }
@@ -1844,38 +1871,50 @@ void FixNH::compute_press_target()
 }
 
 /* ----------------------------------------------------------------------
-   update omega_dot, omega, dilation
+   update omega_dot, omega
 -----------------------------------------------------------------------*/
 
 void FixNH::nh_omega_dot()
 {
-  double mtk_term;
   double f_omega,volume;
+
   if (dimension == 3) volume = domain->xprd*domain->yprd*domain->zprd;
   else volume = domain->xprd*domain->yprd;
 
   if (deviatoric_flag) compute_deviatoric();
 
-  for (int i = 0; i < 3; i++) {    
-
+  mtk_term1 = 0.0;
+  if (mtk_flag)
+    if (pstyle == ISO) { 
+      mtk_term1 = tdof * boltz * t_current;
+      mtk_term1 /= pdim * atom->natoms;
+    } else {
+      double *mvv_current = temperature->vector;
+      for (int i = 0; i < 3; i++)
+	if (p_flag[i])
+	  mtk_term1 += mvv_current[i];
+      mtk_term1 /= pdim * atom->natoms;
+    }
+  
+  for (int i = 0; i < 3; i++)
     if (p_flag[i]) {
-      if (mtk_flag) mtk_term = mvv_current[i]/(atom->natoms*volume) * nktv2p;
-      else mtk_term = 0.0;
-      f_omega = (p_current[i]-p_hydro+mtk_term)*volume /
-	(omega_mass[i] * nktv2p);
+      f_omega = (p_current[i]-p_hydro)*volume /
+	(omega_mass[i] * nktv2p) + mtk_term1 / omega_mass[i];
       if (deviatoric_flag) f_omega -= fdev[i]/(omega_mass[i] * nktv2p);
       omega_dot[i] += f_omega*dthalf;
       omega_dot[i] *= pdrag_factor;
     }
 
-    factor[i] = exp(-dthalf*omega_dot[i]*mtk_factor);
-    dilation[i] = exp(dto*omega_dot[i]);
-
+  mtk_term2 = 0.0;
+  if (mtk_flag) {
+    for (int i = 0; i < 3; i++)
+      if (p_flag[i])
+	mtk_term2 += omega_dot[i];
+    mtk_term2 /= pdim * atom->natoms;
   }
-  
+
   if (pstyle == TRICLINIC) {
     for (int i = 3; i < 6; i++) {
-
       if (p_flag[i]) {
 	f_omega = p_current[i]*volume/(omega_mass[i] * nktv2p);
 	if (deviatoric_flag) 
@@ -1883,10 +1922,6 @@ void FixNH::nh_omega_dot()
 	omega_dot[i] += f_omega*dthalf;
 	omega_dot[i] *= pdrag_factor;
       }
-      
-      factor[i] = -dthalf*omega_dot[i];
-      dilation[i] = dto*omega_dot[i];
-
     } 
   }
 }

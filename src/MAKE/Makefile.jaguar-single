@@ -1,7 +1,7 @@
-# jaguarpf-omp = ORNL Jaguar Cray XT5, gcc-4.4.x, hybrid OpenMP and native MPI, FFTW-2 double precision
+# jaguar-single = ORNL Jaguar, NICS Kraken Cray XT5, gcc-4.4.x, native MPI, FFTW-2 single precision
 # this requires the following commands to be executed:
-# module swap PrgEnv-pgi PrgEnv-gnu
-# module load fftw/2.1.5
+#  module swap PrgEnv-pgi PrgEnv-gnu
+#  module load fftw/2.1.5
 #
 
 SHELL = /bin/sh
@@ -11,12 +11,12 @@ SHELL = /bin/sh
 # specify flags and libraries needed for your compiler
 
 CC =		CC --target=linux
-CCFLAGS =	-O3 -fopenmp -march=native -mpc64 -fno-exceptions -fno-rtti -ffast-math \
-		-fstrict-aliasing -fomit-frame-pointer -finline-functions -Wall -Wno-unused 
+CCFLAGS =	-O3 -march=native -mpc64 -fno-exceptions -fno-rtti -ffast-math \
+		-fstrict-aliasing -fomit-frame-pointer -finline-functions -Wall -Wno-unused
 DEPFLAGS =	-M
 LINK =		CC
-LINKFLAGS =	-O -fopenmp
-LIB =           
+LINKFLAGS =	 -O
+LIB =       
 ARCHIVE =	ar
 ARFLAGS =	-rc
 SIZE =		size
@@ -34,7 +34,7 @@ LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_XDR -DMALLOC_MEMALIGN=64
 # PATH = path for MPI library
 # LIB = name of MPI library
 
-MPI_INC =  -DMPICH_IGNORE_CXX_SEEK -DMPICH_SKIP_MPICXX
+MPI_INC = -DMPICH_IGNORE_CXX_SEEK  -DMPICH_SKIP_MPICXX
 MPI_PATH = 
 MPI_LIB =	#-lmpich -lpthread
 
@@ -43,9 +43,9 @@ MPI_LIB =	#-lmpich -lpthread
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC =       -DFFT_FFTW  -DFFTW_SIZE -I$(FFTW_INC)
+FFT_INC =       -DFFT_FFTW  -DFFTW_SIZE -I$(FFTW_INC) -DFFT_SINGLE
 FFT_PATH =	-L$(FFTW_DIR)
-FFT_LIB =	-ldfftw
+FFT_LIB =	-lsfftw
 
 # additional system libraries needed by LAMMPS package libraries
 # these settings are IGNORED if the corresponding LAMMPS package

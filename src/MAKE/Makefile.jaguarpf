@@ -1,8 +1,7 @@
-# jaguarpf = ORNL Jaguar Cray XT5, gcc-4.4.x, native MPI, FFTW
+# jaguarpf = ORNL Jaguar, NICS Kraken, Cray XT5, gcc-4.4.x, native MPI, FFTW-2 double precision
 # this requires the following commands to be executed:
 #  module swap PrgEnv-pgi PrgEnv-gnu
 #  module load fftw/2.1.5
-#  cd src ; ln -s $FFTW_INC/dfftw.h fftw.h
 #
 
 SHELL = /bin/sh

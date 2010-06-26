@@ -55,10 +55,9 @@ class FixNH : public Fix {
   double p_freq[6],p_target[6];
   double omega[6],omega_dot[6];
   double omega_mass[6];
-  double p_current[6],dilation[6];
+  double p_current[6];
   double drag,tdrag_factor;        // drag factor on particle thermostat
   double pdrag_factor;             // drag factor on barostat
-  double factor[6];                // velocity scaling due to barostat
   int kspace_flag;                 // 1 if KSpace invoked, 0 if not
   int nrigid;                      // number of rigid fixes
   int *rfix;                       // indices of rigid fixes
@@ -83,8 +82,6 @@ class FixNH : public Fix {
                                    
   int mtk_flag;                    // 0 if using Hoover barostat
   int pdim;                        // number of barostatted dims
-  double mvv_current[3];           // diagonal of KE tensor
-  double mtk_factor;               // MTK factor
   double p_freq_max;               // maximum barostat frequency
 
   double p_hydro;                  // hydrostatic target pressure
@@ -96,9 +93,9 @@ class FixNH : public Fix {
   int deviatoric_flag;             // 0 if target stress tensor is hydrostatic
   double h0_inv[6];                // h_inv of reference (zero strain) box
   int nreset_h0;                   // interval for resetting h0
+  double mtk_term1,mtk_term2;      // Martyna-Tobias-Klein corrections
 
   void couple();
-  void couple_ke();
   void remap();
   void nhc_temp_integrate();
   void nhc_press_integrate();

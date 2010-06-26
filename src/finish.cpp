@@ -90,12 +90,12 @@ void Finish::end(int flag)
 #if defined(_OPENMP)
       if (screen) 
 	fprintf(screen,
-		"Loop time of %g on %d procs / %d threads for %d steps with %.15g atoms\n",
-		time_loop,nprocs,comm->nthreads,update->nsteps,natoms);
+		"Loop time of %g on %d procs (%d MPI x %d OpenMP) for %d steps with %.15g atoms\n",
+		time_loop,nprocs*comm->nthreads,nprocs,comm->nthreads,update->nsteps,natoms);
       if (logfile)
 	fprintf(logfile,
-		"Loop time of %g on %d procs / %d threads for %d steps with %.15g atoms\n",
-		time_loop,nprocs,comm->nthreads,update->nsteps,natoms);
+		"Loop time of %g on %d procs (%d MPI x %d OpenMP) for %d steps with %.15g atoms\n",
+		time_loop,nprocs*comm->nthreads,nprocs,comm->nthreads,update->nsteps,natoms);
 #else
       if (screen) 
 	fprintf(screen,

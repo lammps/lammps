@@ -1018,17 +1018,24 @@ void PPPMCG::set_grid()
   // print info
 
   if (me == 0) {
+#ifdef FFT_SINGLE
+    const char fft_prec[] = "single";
+#else
+    const char fft_prec[] = "double";
+#endif
     if (screen) {
       fprintf(screen,"  G vector = %g\n",g_ewald);
       fprintf(screen,"  grid = %d %d %d\n",nx_pppm,ny_pppm,nz_pppm);
       fprintf(screen,"  stencil order = %d\n",order);
       fprintf(screen,"  RMS precision = %g\n",MAX(lpr,spr));
+      fprintf(screen,"  using %s precision FFTs\n",fft_prec);
     }
     if (logfile) {
       fprintf(logfile,"  G vector = %g\n",g_ewald);
       fprintf(logfile,"  grid = %d %d %d\n",nx_pppm,ny_pppm,nz_pppm);
       fprintf(logfile,"  stencil order = %d\n",order);
       fprintf(logfile,"  RMS precision = %g\n",MAX(lpr,spr));
+      fprintf(logfile,"  using %s precision FFTs\n",fft_prec);
     }
   }
 }

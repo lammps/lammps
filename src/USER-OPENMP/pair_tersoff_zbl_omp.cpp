@@ -205,8 +205,8 @@ void PairTersoffZBLOMP::read_file(char *file)
 
 /* ---------------------------------------------------------------------- */
 
-void PairTersoffZBLOMP::repulsive(Param *param, double rsq, double &fforce,
-			       int eflag, double &eng)
+void PairTersoffZBLOMP::repulsive(const Param &param, const double &rsq, 
+				  double &fforce, int eflag, double &eng)
 {
   double r,tmp_fc,tmp_fc_d,tmp_exp;
 
@@ -215,16 +215,16 @@ void PairTersoffZBLOMP::repulsive(Param *param, double rsq, double &fforce,
   r = sqrt(rsq);
   tmp_fc = ters_fc(r,param);
   tmp_fc_d = ters_fc_d(r,param);
-  tmp_exp = exp(-param->lam1 * r);
-  double fforce_ters = param->biga * tmp_exp * (tmp_fc_d - tmp_fc*param->lam1);
-  double eng_ters = tmp_fc * param->biga * tmp_exp;
+  tmp_exp = exp(-param.lam1 * r);
+  double fforce_ters = param.biga * tmp_exp * (tmp_fc_d - tmp_fc*param.lam1);
+  double eng_ters = tmp_fc * param.biga * tmp_exp;
 	
   // ZBL repulsive portion
 
   double esq = pow(global_e,2.0);
   double a_ij = (0.8854*global_a_0) / 
-    (pow(param->Z_i,0.23) + pow(param->Z_j,0.23));
-  double premult = (param->Z_i * param->Z_j * esq)/(4.0*PI*global_epsilon_0);
+    (pow(param.Z_i,0.23) + pow(param.Z_j,0.23));
+  double premult = (param.Z_i * param.Z_j * esq)/(4.0*PI*global_epsilon_0);
   double r_ov_a = r/a_ij;
   double phi = 0.1818*exp(-3.2*r_ov_a) + 0.5099*exp(-0.9423*r_ov_a) + 
     0.2802*exp(-0.4029*r_ov_a) + 0.02817*exp(-0.2016*r_ov_a);
@@ -247,39 +247,20 @@ void PairTersoffZBLOMP::repulsive(Param *param, double rsq, double &fforce,
 
 /* ---------------------------------------------------------------------- */
 
-double PairTersoffZBLOMP::ters_fa(double r, Param *param)
+double PairTersoffZBLOMP::ters_fa(const double &r, const Param &param) const
 {
-  if (r > param->bigr + param->bigd) return 0.0;
-  return -param->bigb * exp(-param->lam2 * r) * ters_fc(r,param) * 
+  if (r > param.bigr + param.bigd) return 0.0;
+  return -param.bigb * exp(-param.lam2 * r) * ters_fc(r,param) * 
     F_fermi(r,param);
 }   
 
 /* ---------------------------------------------------------------------- */
 
-double PairTersoffZBLOMP::ters_fa_d(double r, Param *param)
+double PairTersoffZBLOMP::ters_fa_d(const double &r, const Param &param) const
 {
-  if (r > param->bigr + param->bigd) return 0.0;
-  return param->bigb * exp(-param->lam2 * r) *
-    (param->lam2 * ters_fc(r,param) * F_fermi(r,param) - 
+  if (r > param.bigr + param.bigd) return 0.0;
+  return param.bigb * exp(-param.lam2 * r) *
+    (param.lam2 * ters_fc(r,param) * F_fermi(r,param) - 
      ters_fc_d(r,param) * F_fermi(r,param) - ters_fc(r,param) * 
      F_fermi_d(r,param));
-}
-
-/* ----------------------------------------------------------------------
-   Fermi-like smoothing function
-------------------------------------------------------------------------- */
-
-double PairTersoffZBLOMP::F_fermi(double r, Param *param)
-{
-  return 1.0 / (1.0 + exp(-param->ZBLexpscale*(r-param->ZBLcut)));
-}
-
-/* ----------------------------------------------------------------------
-   Fermi-like smoothing function derivative with respect to r
-------------------------------------------------------------------------- */
-
-double PairTersoffZBLOMP::F_fermi_d(double r, Param *param)
-{
-  return param->ZBLexpscale*exp(-param->ZBLexpscale*(r-param->ZBLcut)) / 
-    pow(1.0 + exp(-param->ZBLexpscale*(r-param->ZBLcut)),2.0);
 }

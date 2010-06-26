@@ -35,13 +35,29 @@ class PairTersoffZBLOMP : public PairTersoffOMP {
   double global_e;		// proton charge (negative of electron charge)
 
   void read_file(char *);
-  void repulsive(Param *, double, double &, int, double &);
+  void repulsive(const Param &, const double &, double &, int, double &);
 
-  double ters_fa(double, Param *);
-  double ters_fa_d(double, Param *);
+  double ters_fa(const double &, const Param &) const;
+  double ters_fa_d(const double &, const Param &) const;
 	
-  double F_fermi(double, Param *);
-  double F_fermi_d(double, Param *);
+/* ----------------------------------------------------------------------
+   Fermi-like smoothing function
+------------------------------------------------------------------------- */
+
+  double F_fermi(const double &r, const Param &param) const {
+    return 1.0 / (1.0 + exp(-param.ZBLexpscale*(r-param.ZBLcut)));
+  };
+
+/* ----------------------------------------------------------------------
+   Fermi-like smoothing function derivative with respect to r
+------------------------------------------------------------------------- */
+
+  double F_fermi_d(const double &r, const Param &param) const {
+    double tmp = 1.0 + exp(-param.ZBLexpscale*(r-param.ZBLcut));
+
+    return param.ZBLexpscale*exp(-param.ZBLexpscale*(r-param.ZBLcut)) 
+      / (tmp*tmp);
+  };
 };
 
 }

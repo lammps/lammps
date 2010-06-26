@@ -137,7 +137,7 @@ void PairTersoffOMP::compute(int eflag, int vflag)
 	} else if (itag < jtag) {
 	  if ((itag+jtag) % 2 == 1) continue;
 	} else {
-	  if (x[j][2] < x[i][2]) continue;
+	  if (x[j][2] < ztmp) continue;
 	  if (x[j][2] == ztmp && x[j][1] < ytmp) continue;
 	  if (x[j][2] == ztmp && x[j][1] == ytmp && x[j][0] < xtmp) continue;
 	}
@@ -152,7 +152,7 @@ void PairTersoffOMP::compute(int eflag, int vflag)
 	iparam_ij = elem2param[itype][jtype][jtype];
 	if (rsq > params[iparam_ij].cutsq) continue;
 
-	repulsive(&params[iparam_ij],rsq,fpair,eflag,evdwl);
+	repulsive(params[iparam_ij],rsq,fpair,eflag,evdwl);
 
 	f[i][0] += delx*fpair;
 	f[i][1] += dely*fpair;
@@ -197,12 +197,12 @@ void PairTersoffOMP::compute(int eflag, int vflag)
 	  rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
 	  if (rsq2 > params[iparam_ijk].cutsq) continue;
 
-	  zeta_ij += zeta(&params[iparam_ijk],rsq1,rsq2,delr1,delr2);
+	  zeta_ij += zeta(params[iparam_ijk],rsq1,rsq2,delr1,delr2);
 	}
 
 	// pairwise force due to zeta
 
-	force_zeta(&params[iparam_ij],rsq1,zeta_ij,fpair,prefactor,eflag,evdwl);
+	force_zeta(params[iparam_ij],rsq1,zeta_ij,fpair,prefactor,eflag,evdwl);
 
 	f[i][0] += delr1[0]*fpair;
 	f[i][1] += delr1[1]*fpair;
@@ -229,7 +229,7 @@ void PairTersoffOMP::compute(int eflag, int vflag)
 	  rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
 	  if (rsq2 > params[iparam_ijk].cutsq) continue;
 
-	  attractive(&params[iparam_ijk],prefactor,
+	  attractive(params[iparam_ijk],prefactor,
 		     rsq1,rsq2,delr1,delr2,fi,fj,fk);
 
 	  f[i][0] += fi[0];
@@ -567,23 +567,23 @@ void PairTersoffOMP::setup()
 
 /* ---------------------------------------------------------------------- */
 
-void PairTersoffOMP::repulsive(Param *param, double rsq, double &fforce,
-			    int eflag, double &eng)
+void PairTersoffOMP::repulsive(const Param &param, const double &rsq,
+			       double &fforce, int eflag, double &eng)
 {
   double r,tmp_fc,tmp_fc_d,tmp_exp;
 
   r = sqrt(rsq);
   tmp_fc = ters_fc(r,param);
   tmp_fc_d = ters_fc_d(r,param);
-  tmp_exp = exp(-param->lam1 * r);
-  fforce = -param->biga * tmp_exp * (tmp_fc_d - tmp_fc*param->lam1) / r;
-  if (eflag) eng = tmp_fc * param->biga * tmp_exp;
+  tmp_exp = exp(-param.lam1 * r);
+  fforce = -param.biga * tmp_exp * (tmp_fc_d - tmp_fc*param.lam1) / r;
+  if (eflag) eng = tmp_fc * param.biga * tmp_exp;
 }
 
 /* ---------------------------------------------------------------------- */
 
-double PairTersoffOMP::zeta(Param *param, double rsqij, double rsqik,
-			 double *delrij, double *delrik)
+double PairTersoffOMP::zeta(const Param &param, double rsqij, double rsqik,
+			    double *delrij, double *delrik)
 {
   double rij,rik,costheta,arg,ex_delr;
 
@@ -592,8 +592,8 @@ double PairTersoffOMP::zeta(Param *param, double rsqij, double rsqik,
   costheta = (delrij[0]*delrik[0] + delrij[1]*delrik[1] + 
 	      delrij[2]*delrik[2]) / (rij*rik);
 
-  if (param->powermint == 3) arg = pow(param->lam3 * (rij-rik),3.0);
-  else arg = param->lam3 * (rij-rik);
+  if (param.powermint == 3) arg = pow(param.lam3 * (rij-rik),3.0);
+  else arg = param.lam3 * (rij-rik);
 
   if (arg > 69.0776) ex_delr = 1.e30;
   else if (arg < -69.0776) ex_delr = 0.0;
@@ -604,7 +604,7 @@ double PairTersoffOMP::zeta(Param *param, double rsqij, double rsqik,
 
 /* ---------------------------------------------------------------------- */
 
-void PairTersoffOMP::force_zeta(Param *param, double rsq, double zeta_ij,
+void PairTersoffOMP::force_zeta(const Param &param, double rsq, double zeta_ij,
 			     double &fforce, double &prefactor,
 			     int eflag, double &eng)
 {
@@ -625,10 +625,10 @@ void PairTersoffOMP::force_zeta(Param *param, double rsq, double zeta_ij,
    use param_ijk cutoff for rik test
 ------------------------------------------------------------------------- */
 
-void PairTersoffOMP::attractive(Param *param, double prefactor,
-			     double rsqij, double rsqik,
-			     double *delrij, double *delrik,
-			     double *fi, double *fj, double *fk)
+void PairTersoffOMP::attractive(const Param &param, const double &prefactor,
+				const double &rsqij, const double &rsqik,
+				double *delrij, double *delrik,
+				double *fi, double *fj, double *fk)
 {
   double rij_hat[3],rik_hat[3];
   double rij,rijinv,rik,rikinv;
@@ -646,10 +646,10 @@ void PairTersoffOMP::attractive(Param *param, double prefactor,
 
 /* ---------------------------------------------------------------------- */
 
-double PairTersoffOMP::ters_fc_d(double r, Param *param)
+double PairTersoffOMP::ters_fc_d(const double &r, const Param &param) const
 {
-  double ters_R = param->bigr;
-  double ters_D = param->bigd;
+  double ters_R = param.bigr;
+  double ters_D = param.bigd;
   
   if (r < ters_R-ters_D) return 0.0;
   if (r > ters_R+ters_D) return 0.0;
@@ -658,76 +658,76 @@ double PairTersoffOMP::ters_fc_d(double r, Param *param)
 
 /* ---------------------------------------------------------------------- */
 
-double PairTersoffOMP::ters_fa(double r, Param *param)
+double PairTersoffOMP::ters_fa(const double &r, const Param &param) const
 {
-  if (r > param->bigr + param->bigd) return 0.0;
-  return -param->bigb * exp(-param->lam2 * r) * ters_fc(r,param);
+  if (r > param.bigr + param.bigd) return 0.0;
+  return -param.bigb * exp(-param.lam2 * r) * ters_fc(r,param);
 }   
 
 /* ---------------------------------------------------------------------- */
 
-double PairTersoffOMP::ters_fa_d(double r, Param *param)
+double PairTersoffOMP::ters_fa_d(const double &r, const Param &param) const
 {
-  if (r > param->bigr + param->bigd) return 0.0;
-  return param->bigb * exp(-param->lam2 * r) *
-    (param->lam2 * ters_fc(r,param) - ters_fc_d(r,param));
+  if (r > param.bigr + param.bigd) return 0.0;
+  return param.bigb * exp(-param.lam2 * r) *
+    (param.lam2 * ters_fc(r,param) - ters_fc_d(r,param));
 }
 
 /* ---------------------------------------------------------------------- */
 
-double PairTersoffOMP::ters_bij(double zeta, Param *param)
+double PairTersoffOMP::ters_bij(const double &zeta, const Param &param) const
 {
-  double tmp = param->beta * zeta;
-  if (tmp > param->c1) return 1.0/sqrt(tmp);
-  if (tmp > param->c2)
-    return (1.0 - pow(tmp,-param->powern) / (2.0*param->powern))/sqrt(tmp);
-  if (tmp < param->c4) return 1.0;
-  if (tmp < param->c3)
-    return 1.0 - pow(tmp,param->powern)/(2.0*param->powern);
-  return pow(1.0 + pow(tmp,param->powern), -1.0/(2.0*param->powern));
+  double tmp = param.beta * zeta;
+  if (tmp > param.c1) return 1.0/sqrt(tmp);
+  if (tmp > param.c2)
+    return (1.0 - pow(tmp,-param.powern) / (2.0*param.powern))/sqrt(tmp);
+  if (tmp < param.c4) return 1.0;
+  if (tmp < param.c3)
+    return 1.0 - pow(tmp,param.powern)/(2.0*param.powern);
+  return pow(1.0 + pow(tmp,param.powern), -1.0/(2.0*param.powern));
 }
 
 /* ---------------------------------------------------------------------- */
 
-double PairTersoffOMP::ters_bij_d(double zeta, Param *param)
+double PairTersoffOMP::ters_bij_d(const double &zeta, const Param &param) const
 {
-  double tmp = param->beta * zeta;
-  if (tmp > param->c1) return param->beta * -0.5*pow(tmp,-1.5);
-  if (tmp > param->c2)
-    return param->beta * (-0.5*pow(tmp,-1.5) * 
-			  (1.0 - 0.5*(1.0 +  1.0/(2.0*param->powern)) * 
-			   pow(tmp,-param->powern)));
-  if (tmp < param->c4) return 0.0;
-  if (tmp < param->c3)
-    return -0.5*param->beta * pow(tmp,param->powern-1.0);
+  double tmp = param.beta * zeta;
+  if (tmp > param.c1) return param.beta * -0.5*pow(tmp,-1.5);
+  if (tmp > param.c2)
+    return param.beta * (-0.5*pow(tmp,-1.5) * 
+			  (1.0 - 0.5*(1.0 +  1.0/(2.0*param.powern)) * 
+			   pow(tmp,-param.powern)));
+  if (tmp < param.c4) return 0.0;
+  if (tmp < param.c3)
+    return -0.5*param.beta * pow(tmp,param.powern-1.0);
 			  
-  double tmp_n = pow(tmp,param->powern);
-  return -0.5 * pow(1.0+tmp_n, -1.0-(1.0/(2.0*param->powern)))*tmp_n / zeta;
+  double tmp_n = pow(tmp,param.powern);
+  return -0.5 * pow(1.0+tmp_n, -1.0-(1.0/(2.0*param.powern)))*tmp_n / zeta;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void PairTersoffOMP::ters_zetaterm_d(double prefactor,
-				  double *rij_hat, double rij,
-				  double *rik_hat, double rik,
-				  double *dri, double *drj, double *drk,
-				  Param *param)
+				     double *rij_hat, double rij,
+				     double *rik_hat, double rik,
+				     double *dri, double *drj, double *drk,
+				     const Param &param)
 {
   double gijk,gijk_d,ex_delr,ex_delr_d,fc,dfc,cos_theta,tmp;
   double dcosdri[3],dcosdrj[3],dcosdrk[3];
 
   fc = ters_fc(rik,param);
   dfc = ters_fc_d(rik,param);
-  if (param->powermint == 3) tmp = pow(param->lam3 * (rij-rik),3.0);
-  else tmp = param->lam3 * (rij-rik);
+  if (param.powermint == 3) tmp = pow(param.lam3 * (rij-rik),3.0);
+  else tmp = param.lam3 * (rij-rik);
 
   if (tmp > 69.0776) ex_delr = 1.e30;
   else if (tmp < -69.0776) ex_delr = 0.0;
   else ex_delr = exp(tmp);
 
-  if (param->powermint == 3)
-    ex_delr_d = 3.0*pow(param->lam3,3.0) * pow(rij-rik,2.0)*ex_delr;
-  else ex_delr_d = param->lam3 * ex_delr;
+  if (param.powermint == 3)
+    ex_delr_d = 3.0*pow(param.lam3,3.0) * pow(rij-rik,2.0)*ex_delr;
+  else ex_delr_d = param.lam3 * ex_delr;
 
   cos_theta = vec3_dot(rij_hat,rik_hat);
   gijk = ters_gijk(cos_theta,param);
@@ -767,8 +767,8 @@ void PairTersoffOMP::ters_zetaterm_d(double prefactor,
 /* ---------------------------------------------------------------------- */
 
 void PairTersoffOMP::costheta_d(double *rij_hat, double rij,
-			     double *rik_hat, double rik,
-			     double *dri, double *drj, double *drk)
+				double *rik_hat, double rik,
+				double *dri, double *drj, double *drk)
 {
   // first element is devative wrt Ri, second wrt Rj, third wrt Rk
 

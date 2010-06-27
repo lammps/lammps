@@ -57,6 +57,16 @@ extern "C" {
                       FFT_PREC *, FFT_PREC *, int *);
 }
 
+#elif defined(FFT_ACML)
+typedef struct {
+  float re;
+  float im;
+} FFT_DATA;
+#define FFT_1D cfft1m_
+extern "C" {
+  void cfft1m_(int *, int *, int *, FFT_DATA *, FFT_DATA *, int *);
+}
+
 #elif defined(FFT_INTEL)
 typedef struct {
   float re;
@@ -147,6 +157,16 @@ typedef double FFT_PREC;
 extern "C" {
   int zzfft(int, int, FFT_PREC, FFT_DATA *, FFT_DATA *,
                       FFT_PREC *, FFT_PREC *, int *);
+}
+
+#elif defined(FFT_ACML)
+typedef struct {
+  double re;
+  double im;
+} FFT_DATA;
+#define FFT_1D zfft1m_
+extern "C" {
+  void zfft1m_(int *, int *, int *, FFT_DATA *, FFT_DATA *, int *);
 }
 
 #elif defined(FFT_INTEL)
@@ -249,6 +269,10 @@ struct fft_plan_3d {
   FFT_PREC *work1;
   FFT_PREC *work2;
   FFT_PREC *work3;
+#elif defined(FFT_ACML)
+  FFT_DATA *coeff1;
+  FFT_DATA *coeff2;
+  FFT_DATA *coeff3;
 #elif defined(FFT_INTEL)
   FFT_DATA *coeff1;
   FFT_DATA *coeff2;

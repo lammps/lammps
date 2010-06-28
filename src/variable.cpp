@@ -132,9 +132,11 @@ void Variable::set(int narg, char **arg)
     if (narg == 3) {
       nfirst = 1;
       nlast = atoi(arg[2]);
+      if (nlast <= 0) error->all("Illegal variable command");
     } else {
       nfirst = atoi(arg[2]);
       nlast = atoi(arg[3]);
+      if (nfirst > nlast || nlast <= 0) error->all("Illegal variable command");
     }
     num[nvar] = nlast;
     index[nvar] = nfirst-1;

@@ -298,14 +298,19 @@ void PairEAMAlloy::file2array()
   // set of z2r arrays only fill lower triangular Nelement matrix
   // value = n = sum over rows of lower-triangular matrix until reach irow,icol
   // swap indices when irow < icol to stay lower triangular
-  // OK if map = -1 (non-EAM atom in pair hybrid) b/c type2z2r not used
+  // if map = -1 (non-EAM atom in pair hybrid):
+  //   type2z2r is not used by non-opt
+  //   but set type2z2r to 0 since accessed by opt
 
   int irow,icol;
   for (i = 1; i <= ntypes; i++) {
     for (j = 1; j <= ntypes; j++) {
       irow = map[i];
       icol = map[j];
-      if (irow == -1 || icol == -1) continue;
+      if (irow == -1 || icol == -1) {
+	type2z2r[i][j] = 0;
+	continue;
+      }
       if (irow < icol) {
 	irow = map[j];
 	icol = map[i];

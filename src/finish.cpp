@@ -414,8 +414,9 @@ void Finish::end(int flag)
       int inum = neighbor->lists[m]->inum;
       int *ilist = neighbor->lists[m]->ilist;
       int *numneigh = neighbor->lists[m]->numneigh;
-      for (int ii = 0; ii < inum; ii++)
-	nneigh += numneigh[ilist[ii]];
+      if (numneigh)
+	for (i = 0; i < inum; i++)
+	  nneigh += numneigh[ilist[i]];
     }
     
     tmp = nneigh;
@@ -443,9 +444,13 @@ void Finish::end(int flag)
     
     if (m < neighbor->old_nrequest) {
       nneigh = 0;
-      for (i = 0; i < atom->nlocal; i++)
-	nneigh += neighbor->lists[m]->numneigh[i];
-      
+      int inum = neighbor->lists[m]->inum;
+      int *ilist = neighbor->lists[m]->ilist;
+      int *numneigh = neighbor->lists[m]->numneigh;
+      if (numneigh)
+	for (i = 0; i < inum; i++)
+	  nneigh += numneigh[ilist[i]];
+
       tmp = nneigh;
       stats(1,&tmp,&ave,&max,&min,10,histo);
       if (me == 0) {

@@ -153,22 +153,41 @@ Pair_style hybrid allows interactions between type pairs 2-2, 1-2,
 could even add a second interaction for 1-1 to be computed by another
 pair style, assuming pair_style hybrid/overlay is used.
 </P>
-<P>But you cannot exclude the many-body interactions for some subset of
-the type pairs within the full set of 1,3,4 interactions, e.g. exclude
-1-1 or 1-3 interactions.  That is not conceptually well-defined for
-many-body interactions, since the potential will typically calculate
-energies and foces for small groups of atoms, e.g. 3 or 4 atoms.
-Additionally it is non-physical to think of excluding an interaction
-between a particular pair of atoms when the potential computes 3-body
-or 4-body interactions.
+<P>But you should not, as a general rule, attempt to exclude the
+many-body interactions for some subset of the type pairs within the
+set of 1,3,4 interactions, e.g. exclude 1-1 or 1-3 interactions.  That
+is not conceptually well-defined for many-body interactions, since the
+potential will typically calculate energies and foces for small groups
+of atoms, e.g. 3 or 4 atoms, using the neighbor lists of the atoms to
+find the additional atoms in the group.  It is typically non-physical
+to think of excluding an interaction between a particular pair of
+atoms when the potential computes 3-body or 4-body interactions.
 </P>
-<P>One exception to this rule is that you can still use the <A HREF = "neigh_modify.html">neigh_modify
-exclude</A> command to exclude certain type pairs from
-the neighbor list that will be passed to each sub-style.  This would
-alter the calculations made by a many-body potential, since it builds
-its list of 3-body, 4-body, etc interactions from the pair list, but
-you would need to think carefully as to whether it produces a
-physically meaningful result for your model.
+<P>However, you can still use the pair_coeff none setting or the
+<A HREF = "neigh_modify.html">neigh_modify exclude</A> command to exclude certain
+type pairs from the neighbor list that will be passed to a manybody
+sub-style.  This will alter the calculations made by a many-body
+potential, since it builds its list of 3-body, 4-body, etc
+interactions from the pair list.  You will need to think carefully as
+to whether it produces a physically meaningful result for your model.
+</P>
+<P>For example, imagine you have two atom types in your model, type 1 for
+atoms in one surface, and type 2 for atoms in the other, and you wish
+to use a Tersoff potential to compute interactions within each
+surface, but not between surfaces.  Then either of these two command
+sequences would implement that model:
+</P>
+<PRE>pair_style hybrid tersoff
+pair_coeff * * tersoff SiC.tersoff C C
+pair_coeff 1 2 none 
+</PRE>
+<PRE>pair_style tersoff
+pair_coeff * * SiC.tersoff C C
+neigh_modify exclude type 1 2 
+</PRE>
+<P>Either way, only neighbor lists with 1-1 or 2-2 interactions would be
+passed to the Tersoff potential, which means it would compute no
+3-body interactions containing both type 1 and 2 atoms.
 </P>
 <HR>
 

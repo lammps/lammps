@@ -79,7 +79,8 @@ Variable::~Variable()
 {
   for (int i = 0; i < nvar; i++) {
     delete [] names[i];
-    for (int j = 0; j < num[i]; j++) delete [] data[i][j];
+    if (style[i] == LOOP || style[i] == ULOOP) delete [] data[i][0];
+    else for (int j = 0; j < num[i]; j++) delete [] data[i][j];
     delete [] data[i];
   }
   memory->sfree(names);
@@ -119,18 +120,27 @@ void Variable::set(int narg, char **arg)
     copy(num[nvar],&arg[2],data[nvar]);
 
   // LOOP
-  // num = N, index = 1st value, data = list of NULLS since never used
+  // 1 arg: num = N, index = 1st value, data = single string
+  // 2 args: num = N2, index = N1, data = single string
 
   } else if (strcmp(arg[1],"loop") == 0) {
-    if (narg != 3) error->all("Illegal variable command");
+    if (narg < 3 || narg > 4) error->all("Illegal variable command");
     if (find(arg[0]) >= 0) return;
     if (nvar == maxvar) extend();
     style[nvar] = LOOP;
-    num[nvar] = atoi(arg[2]);
-    index[nvar] = 0;
-    data[nvar] = new char*[num[nvar]];
-    for (int i = 0; i < num[nvar]; i++) data[nvar][i] = NULL;
-    
+    int nfirst,nlast;
+    if (narg == 3) {
+      nfirst = 1;
+      nlast = atoi(arg[2]);
+    } else {
+      nfirst = atoi(arg[2]);
+      nlast = atoi(arg[3]);
+    }
+    num[nvar] = nlast;
+    index[nvar] = nfirst-1;
+    data[nvar] = new char*[1];
+    data[nvar][0] = NULL;
+
   // WORLD
   // num = listed args, index = partition this proc is in, data = copied args
   // error check that num = # of worlds in universe
@@ -149,7 +159,7 @@ void Variable::set(int narg, char **arg)
 
   // UNIVERSE and ULOOP
   // for UNIVERSE: num = listed args, data = copied args
-  // for ULOOP: num = N, data = list of NULLS since never used
+  // for ULOOP: num = N, data = single string
   // index = partition this proc is in
   // universe proc 0 creates lock file
   // error check that all other universe/uloop variables are same length
@@ -169,8 +179,8 @@ void Variable::set(int narg, char **arg)
       if (nvar == maxvar) extend();
       style[nvar] = ULOOP;
       num[nvar] = atoi(arg[2]);
-      data[nvar] = new char*[num[nvar]];
-      for (int i = 0; i < num[nvar]; i++) data[nvar][i] = NULL;
+      data[nvar] = new char*[1];
+      data[nvar][0] = NULL;
     }
 
     if (num[nvar] < universe->nworlds)
@@ -258,8 +268,8 @@ void Variable::set(int narg, char **arg)
 
   for (int i = 0; i < n-1; i++)
     if (!isalnum(names[nvar][i]) && names[nvar][i] != '_')
-      error->all("Variable name must be alphanumeric or underscore characters");
-
+      error->all("Variable name must be alphanumeric or "
+		 "underscore characters");
   nvar++;
 }
 
@@ -368,7 +378,10 @@ int Variable::next(int narg, char **arg)
 
 /* ----------------------------------------------------------------------
    return ptr to the data text associated with a variable
-   if EQUAL var, evaluates variable and puts result in str
+   if INDEX or WORLD or UNIVERSE or STRING var, return ptr to stored string
+   if LOOP or ULOOP var, write int to data[0] and return ptr to string
+   if EQUAL var, evaluate variable and put result in str
+   if ATOM var, return NULL
    return NULL if no variable or index is bad, caller must respond
 ------------------------------------------------------------------------- */
 
@@ -386,7 +399,7 @@ char *Variable::retrieve(char *name)
     char *value = new char[16];
     sprintf(value,"%d",index[ivar]+1);
     int n = strlen(value) + 1;
-    if (data[ivar][0]) delete [] data[ivar][0];
+    delete [] data[ivar][0];
     data[ivar][0] = new char[n];
     strcpy(data[ivar][0],value);
     delete [] value;
@@ -489,7 +502,8 @@ int Variable::atomstyle(int ivar)
 void Variable::remove(int n)
 {
   delete [] names[n];
-  for (int i = 0; i < num[n]; i++) delete [] data[n][i];
+  if (style[n] == LOOP || style[n] == ULOOP) delete [] data[n][0];
+  else for (int i = 0; i < num[n]; i++) delete [] data[n][i];
   delete [] data[n];
 
   for (int i = n+1; i < nvar; i++) {
@@ -519,13 +533,12 @@ void Variable::extend()
 }
 
 /* ----------------------------------------------------------------------
-   copy narg strings from **from to **to 
+   copy narg strings from **from to **to, and allocate space for them
 ------------------------------------------------------------------------- */
   
 void Variable::copy(int narg, char **from, char **to)
 {
   int n;
-
   for (int i = 0; i < narg; i++) {
     n = strlen(from[i]) + 1;
     to[i] = new char[n];

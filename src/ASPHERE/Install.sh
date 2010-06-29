@@ -27,6 +27,10 @@ if (test $1 = 1) then
   cp pair_gayberne.h ..
   cp pair_resquared.h ..
 
+  if (test -e ../pair_lj_cut_gpu.h) then
+    cd ../GPU; /bin/sh Install.sh 1
+  fi
+
 elif (test $1 = 0) then
 
   rm ../atom_vec_ellipsoid.cpp
@@ -52,7 +56,7 @@ elif (test $1 = 0) then
   rm ../pair_resquared.h
 
   if (test -e ../pair_gayberne_gpu.h) then
-    cd ../GPU; sh Install.sh 0; sh Install.sh 1
+    cd ../GPU; /bin/sh Install.sh 0; /bin/sh Install.sh 1
   fi
 
 fi

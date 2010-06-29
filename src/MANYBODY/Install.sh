@@ -21,6 +21,10 @@ if (test $1 = 1) then
   cp pair_tersoff.h ..
   cp pair_tersoff_zbl.h ..
 
+  if (test -e ../pair_lj_cut_opt.h) then
+    cd ../OPT; sh Install.sh 1
+  fi
+
 elif (test $1 = 0) then
 
   rm ../pair_airebo.cpp

@@ -32,6 +32,7 @@ NeighList::NeighList(LAMMPS *lmp, int size) : Pointers(lmp)
   maxlocal = 0;
   pgsize = size;
 
+  inum = 0;
   ilist = NULL;
   numneigh = NULL;
   firstneigh = NULL;

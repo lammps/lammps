@@ -53,8 +53,8 @@ FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
 
   if (strstr(arg[4],"v_") == arg[4]) {
     int n = strlen(&arg[4][2]) + 1;
-    xstr = new char[n];
-    strcpy(xstr,&arg[4][2]);
+    ystr = new char[n];
+    strcpy(ystr,&arg[4][2]);
   } else {
     ey = efactor * atof(arg[4]);
     ystyle = CONSTANT;
@@ -62,8 +62,8 @@ FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
 
   if (strstr(arg[5],"v_") == arg[5]) {
     int n = strlen(&arg[5][2]) + 1;
-    xstr = new char[n];
-    strcpy(xstr,&arg[5][2]);
+    zstr = new char[n];
+    strcpy(zstr,&arg[5][2]);
   } else {
     ez = efactor * atof(arg[5]);
     zstyle = CONSTANT;

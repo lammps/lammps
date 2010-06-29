@@ -1,5 +1,5 @@
 # Package.sh = package management, called from Makefile
-# Syntax: sh Package.sh DIR status/update/overwrite
+# Syntax: sh Package.sh DIR status/update/overwrite/regenerate
 
 # style used to translate dir name to package name
 
@@ -41,17 +41,20 @@ if (test $2 = "status") then
 
 elif (test $2 = "update") then
   echo "Updating src files from $1 package files"
-
   if (test $installed = 1) then
-    for file in *.cpp *.h; do
-      if (test ! -e ../$file) then
-        echo "  creating src/$file"
-        cp $file ..
-      elif (test "`diff --brief $file ../$file`" != "") then
-        echo "  updating src/$file"
-        cp $file ..
-      fi
-    done
+    if (test ! -e Package.sh) then
+      for file in *.cpp *.h; do
+        if (test ! -e ../$file) then
+          echo "  creating src/$file"
+          cp $file ..
+        elif (test "`diff --brief $file ../$file`" != "") then
+          echo "  updating src/$file"
+          cp $file ..
+        fi
+      done
+    else
+      /bin/sh Package.sh
+    fi
   else
     echo "  $1 package is not installed, no action"
   fi
@@ -63,7 +66,6 @@ elif (test $2 = "update") then
 
 elif (test $2 = "overwrite") then
   echo "Overwriting $1 package files with src files"
-
   if (test $installed = 1) then
     for file in *.cpp *.h; do
       if (test ! -e ../$file) then
@@ -85,5 +87,4 @@ elif (test $2 = "regenerate") then
   if (test $installed = 1) then
     /bin/sh Install.sh 1
   fi
-
 fi

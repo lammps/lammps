@@ -16,7 +16,8 @@ name = name of variable to define :ulb,l
 style = {delete} or {index} or {loop} or {world} or {universe} or {uloop} or {string} or {equal} or {atom} :l
   {delete} = no args
   {index} args = one or more strings
-  {loop} args = N = integer size of loop
+  {loop} args = N = integer size of loop, loop from 1 to N inclusive
+  {loop} args = N1 N2 = loop from N1 to N2 inclusive
   {world} args = one string for each partition of processors
   {universe} args = one or more strings
   {uloop} args = N = integer size of loop
@@ -167,12 +168,15 @@ using the command-line switch -var; see "this
 section"_Section_start.html#2_6 for details.
 
 The {loop} style is identical to the {index} style except that the
-strings are the integers from 1 to N.  This allows generation of a
-long list of runs (e.g. 1000) without having to list N strings in the
-input script.  Initially, the string "1" is assigned to the variable.
-Each time a "next"_next.html command is used with the variable name,
-the next string ("2", "3", etc) is assigned.  All processors assign
-the same string to the variable.
+strings are the integers from 1 to N inclusive, if only one argument N
+is specified.  This allows generation of a long list of runs
+(e.g. 1000) without having to list N strings in the input script.
+Initially, the string "1" is assigned to the variable.  Each time a
+"next"_next.html command is used with the variable name, the next
+string ("2", "3", etc) is assigned.  All processors assign the same
+string to the variable.  The {loop} style can also be specified with
+two arguments N1 and N2.  In this case the loop runs from N1 to N2
+inclusive, and the string N1 is initially assigned to the variable.
 
 For the {world} style, one or more strings are specified.  There must
 be one string for each processor partition or "world".  See "this

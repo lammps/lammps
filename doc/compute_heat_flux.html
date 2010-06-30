@@ -170,7 +170,7 @@ thermo	        10
 </PRE>
 <PRE># ------------- Equilibration and thermalisation ---------------- 
 </PRE>
-<PRE>fix 		NPT all npt 70 70 10 xyz 0.0 0.0 100.0 drag 0.2
+<PRE>fix 		NPT all npt temp 70 70 10 iso 0.0 0.0 100.0 drag 0.2
 run 		8000
 unfix           NPT 
 </PRE>

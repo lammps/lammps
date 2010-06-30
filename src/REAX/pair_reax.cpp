@@ -251,6 +251,9 @@ void PairREAX::write_reax_positions()
   FORTRAN(rsmall, RSMALL).na = nlocal+nghost;
   FORTRAN(rsmall, RSMALL).na_local = nlocal;
 
+  if (nlocal+nghost > ReaxParams::nat)
+    error->one("reax_defs.h::NATDEF too small");
+
   jx = 0;
   jy = ReaxParams::nat;
   jz = 2*ReaxParams::nat;

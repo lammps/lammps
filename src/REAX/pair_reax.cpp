@@ -251,6 +251,9 @@ void PairREAX::write_reax_positions()
   FORTRAN(rsmall, RSMALL).na = nlocal+nghost;
   FORTRAN(rsmall, RSMALL).na_local = nlocal;
 
+  if (nlocal+nghost > ReaxParams::nat)
+    error->one("reax_defs.h::NATDEF too small");
+
   jx = 0;
   jy = ReaxParams::nat;
   jz = 2*ReaxParams::nat;
@@ -332,7 +335,8 @@ void PairREAX::write_reax_vlist()
 	  iii = j+1;
 	  jjj = i+1;
 	}
-	if (nvpair >= nvpairmax) break;
+	if (nvpair >= nvpairmax) 
+	  error->one("reax_defs.h::NNEIGHMAXDEF too small");
 	
 	FORTRAN(cbkpairs, CBKPAIRS).nvl1[nvpair] = iii;
 	FORTRAN(cbkpairs, CBKPAIRS).nvl2[nvpair] = jjj;
@@ -390,7 +394,8 @@ void PairREAX::write_reax_vlist()
 	iii = i+1;
 	jjj = j+1;
 	      
-	if (nvpair >= nvpairmax) break;
+	if (nvpair >= nvpairmax) 
+	  error->one("reax_defs.h::NNEIGHMAXDEF too small");
 	
 	FORTRAN(cbkpairs, CBKPAIRS).nvl1[nvpair] = iii;
 	FORTRAN(cbkpairs, CBKPAIRS).nvl2[nvpair] = jjj;

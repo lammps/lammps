@@ -94,7 +94,7 @@ void PairAIREBOOMP::compute(int eflag, int vflag)
 
   REBO_neigh();
 
-  // NOTE: newton_pair is always "on" for sw.
+  // NOTE: newton_pair is always "on" for AIREBO.
 
   if (evflag) {
     if (eflag) {

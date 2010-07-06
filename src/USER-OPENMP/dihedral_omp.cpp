@@ -73,7 +73,7 @@ void DihedralOMP::ev_setup_thr(int eflag, int vflag)
   }
 
   // zero accumulators
-  const int ntotal = (force->newton) ? 
+  const int ntotal = (force->newton_bond) ? 
     (atom->nlocal + atom->nghost) : atom->nlocal;
 
   for (t = 0; t < nthreads; ++t) {
@@ -226,7 +226,7 @@ void DihedralOMP::ev_tally_thr(int i1, int i2, int i3, int i4,
 void DihedralOMP::ev_reduce_thr()
 {
   const int nthreads=comm->nthreads;
-  const int ntotal = (force->newton) ? 
+  const int ntotal = (force->newton_bond) ? 
     (atom->nlocal + atom->nghost) : atom->nlocal;
 
   for (int n = 0; n < nthreads; ++n) {

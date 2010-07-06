@@ -60,7 +60,7 @@ void DihedralOMP::ev_setup_thr(int eflag, int vflag)
 
   if (eflag_atom && atom->nmax > maxeatom_thr) {
     maxeatom_thr = atom->nmax;
-    memory->sfree(eatom);
+    memory->sfree(eatom_thr);
     memory->destroy_2d_double_array(eatom_thr);
     eatom_thr = memory->create_2d_double_array(nthreads,maxeatom_thr,
 					       "dihedral:eatom_thr");

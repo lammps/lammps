@@ -61,12 +61,15 @@ void DihedralOMP::ev_setup_thr(int eflag, int vflag)
   if (eflag_atom && atom->nmax > maxeatom_thr) {
     maxeatom_thr = atom->nmax;
     memory->sfree(eatom);
-    eatom = (double *) memory->smalloc(maxeatom_thr*sizeof(double),"bond:eatom");
+    memory->destroy_2d_double_array(eatom_thr);
+    eatom_thr = memory->create_2d_double_array(nthreads,maxeatom_thr,
+					       "dihedral:eatom_thr");
   }
   if (vflag_atom && atom->nmax > maxvatom_thr) {
     maxvatom_thr = atom->nmax;
-    memory->destroy_2d_double_array(vatom);
-    vatom = memory->create_2d_double_array(maxvatom_thr,6,"bond:vatom");
+    memory->destroy_3d_double_array(vatom_thr);
+    vatom_thr = memory->create_3d_double_array(nthreads,maxvatom_thr,6,
+					       "dihedral:vatom_thr");
   }
 
   // zero accumulators

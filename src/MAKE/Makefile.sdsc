@@ -34,7 +34,7 @@ LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_XDR
 # PATH = path for MPI library
 # LIB = name of MPI library
 
-MPI_INC =       -DMPICH_IGNORE_CXX_SEEK 
+MPI_INC =       -DMPICH_SKIP_MPICXX 
 MPI_PATH = 
 MPI_LIB =	-lmpich.rts -lmsglayer.rts -lrts.rts -ldevices.rts 
 

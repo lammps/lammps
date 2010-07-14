@@ -31,8 +31,8 @@ LMP_INC =	-DLAMMPS_GZIP
 # LIB = name of MPI library
 
 MPI_INC =       -I../STUBS
-MPI_PATH =	-L../STUBS
-MPI_LIB =	-lmpi
+MPI_PATH =
+MPI_LIB =	../STUBS/libmpi.a
 
 # FFT library, can be -DFFT_NONE if not using PPPM from kspace package
 # INC = -DFFT_FFTW, -DFFT_INTEL, -DFFT_NONE, etc, FFT compiler settings

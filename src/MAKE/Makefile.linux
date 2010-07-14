@@ -29,7 +29,7 @@ LMP_INC =	-DLAMMPS_GZIP
 # PATH = path for MPI library
 # LIB = name of MPI library
 
-MPI_INC =       -DMPICH_IGNORE_CXX_SEEK 
+MPI_INC =       -DMPICH_SKIP_MPICXX 
 MPI_PATH = 
 MPI_LIB =	-lmpich -lpthread
 

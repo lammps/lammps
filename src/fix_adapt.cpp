@@ -169,12 +169,13 @@ void FixAdapt::init()
     if (!input->variable->equalstyle(ivar[m]))
       error->all("Variable for fix adapt is not equal style");
   }
+}
 
-  // set params to values for initial force calculation
-  // needs to happen here in init() instead of setup()
-  // because modify->setup() is called after pre-Verlet forces are computed
+/* ---------------------------------------------------------------------- */
 
-  pre_force(0);
+void FixAdapt::setup_pre_force(int vflag)
+{
+  pre_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */

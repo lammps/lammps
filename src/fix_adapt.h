@@ -30,6 +30,7 @@ class FixAdapt : public Fix {
   ~FixAdapt();
   int setmask();
   void init();
+  void setup_pre_force(int);
   void pre_force(int);
 
  private:

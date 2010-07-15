@@ -249,6 +249,16 @@ void Modify::setup(int vflag)
 }
 
 /* ----------------------------------------------------------------------
+   setup pre_force call, only for relevant fixes
+------------------------------------------------------------------------- */
+
+void Modify::setup_pre_force(int vflag)
+{
+  for (int i = 0; i < n_pre_force; i++)
+    fix[list_pre_force[i]]->setup_pre_force(vflag);
+}
+
+/* ----------------------------------------------------------------------
    1st half of integrate call, only for relevant fixes
 ------------------------------------------------------------------------- */
 

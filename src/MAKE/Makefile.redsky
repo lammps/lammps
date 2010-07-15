@@ -23,6 +23,14 @@ SHELL = /bin/sh
 # these same modules need to be loaded to submit a LAMMPS job,
 #   either interactively or via a batch script
 
+# IMPORTANT NOTE:
+# to run efficiently on RedSky, use the "numa_wrapper" mpiexec option,
+#   to insure proceses and their memory are locked to specific cores
+# e.g. in your batch script:
+#   nodes=$SLURM_JOB_NUM_NODES
+#   cores=8
+#   mpiexec --npernode $cores numa_wrapper --ppn $cores lmp_redsky < in > out
+
 # ---------------------------------------------------------------------
 # compiler/linker settings
 # specify flags and libraries needed for your compiler

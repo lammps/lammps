@@ -67,6 +67,7 @@ Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
   n_initial_integrate_respa = n_post_integrate_respa = 0;
   n_pre_force_respa = n_post_force_respa = n_final_integrate_respa = 0;
   n_min_pre_exchange = n_min_post_force = n_min_energy = 0;
+  n_timeflag = 0;
 
   fix = NULL;
   fmask = NULL;

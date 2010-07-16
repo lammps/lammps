@@ -131,9 +131,9 @@ minimization</A>.
 </P>
 <P><B>Restrictions:</B>
 </P>
-<P>If the masses of all exchange partners are the same, then swaps
-conserve both momentum and kinetic energy.  Thus you should not need
-to thermostat the system.  If you do use a thermostat, you may want to
+<P>Swaps conserve both momentum and kinetic energy, even if the masses of
+the swapped atoms are not equal.  Thus you should not need to
+thermostat the system.  If you do use a thermostat, you may want to
 apply it only to the non-swapped dimensions (other than <I>vdim</I>).
 </P>
 <P>LAMMPS does not check, but you should not use this fix to swap

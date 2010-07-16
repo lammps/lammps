@@ -623,27 +623,57 @@ cp lmp_linux ../examples/lj
 cd ../examples/lj
 mpirun -np 4 lmp_linux < in.lj.nve :pre
 
-On a Windows machine, when you have downloaded the Windows executable
-lmp_windows.exe, you do something different. 
+:line
 
-First, you'll need to download and install 
+On a Windows machine, you can skip making LAMMPS and simply download
+an executable. But note that not all packages are available.
+The following packages are available: asphere, class2, colloid, dipole,
+dsmc, granular, kspace, manybody, molecule, peri, poems, prd, shock,
+user-ackland, user-cd-eam, user-cg-cmm, user-ewaldn, user-smd. But these 
+packages are not available: gpu, meam, opt, reax, xtc, user-atc, user-imd.
+
+To run the LAMMPS executable on a Windows machine, first decide whether 
+you want to download the non-MPI (serial) or the MPI (parallel) version 
+of the executable. Download and save the version you have chosen.
+
+For the non-MPI version, follow these steps:
+
+Get a command prompt by going to Start->Run... , 
+then typing "cmd". :ulb,l
+
+Move to the directory where you have saved lmp_win_no-mpi.exe
+(e.g. by typing: cd "Documents"). :l
+
+At the command prompt, type "lmp_win_no-mpi -in in.lj", replacing in.lj
+with the name of your LAMMPS input script. :l,ule
+
+For the MPI version, which allows you to run LAMMPS under Windows on 
+multiple processors, follow these steps:
+
+Download and install 
 "MPICH2"_http://www.mcs.anl.gov/research/projects/mpich2/downloads/index.php?s=downloads
 for Windows. :ulb,l
 
-Then, get a command prompt by going to Start->Run... , then typing "cmd"
-and OK.  :l
+You'll need to use the mpiexec.exe and smpd.exe files from the MPICH2 package. Put them in 
+same directory (or path) as the LAMMPS Windows executable. :l
 
-Move to the directory where you have saved lmp_windows.exe
-(e.g. by typing: cd "My Documents"). :l
+Get a command prompt by going to Start->Run... , 
+then typing "cmd". :l
 
-At the command prompt, type "lmp_windows < in.lj", replacing in.lj
-with the name of your LAMMPS input script. :l,ule
+Move to the directory where you have saved lmp_win_mpi.exe
+(e.g. by typing: cd "Documents"). :l
 
-To run the Windows executable on multiple processors, you'll need to use 
-the mpiexec.exe and smpd.exe files from the MPICH2 package. Put them in 
-same directory (or path) as the LAMMPS Windows executable, then type 
-something like this: 
-"mpiexec -np 4 -localonly lmp_windows < in.lj".
+Then type something like this: "mpiexec -np 4 -localonly lmp_win_mpi -in in.lj", 
+replacing in.lj with the name of your LAMMPS input script. :l
+Note that you may need to provide smpd with a passphrase --- it doesn't matter what you 
+type. :l
+In this mode, output may not immediately show up on the screen, so 
+if your input script takes a long time to execute, you may need to be 
+patient before the output shows up. :l
+Alternatively, you can still use this executable to run on a single processor by
+typing something like: "lmp_win_mpi -in in.lj". :l,ule
+
+:line
 
 The screen output from LAMMPS is described in the next section.  As it
 runs, LAMMPS also writes a log.lammps file with the same information.

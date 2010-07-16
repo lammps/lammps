@@ -102,6 +102,7 @@ void Verlet::setup()
 
   ev_set(update->ntimestep);
   force_clear();
+  modify->setup_pre_force(vflag);
 
   if (force->pair) force->pair->compute(eflag,vflag);
 
@@ -152,6 +153,7 @@ void Verlet::setup_minimal(int flag)
 
   ev_set(update->ntimestep);
   force_clear();
+  modify->setup_pre_force(vflag);
 
   if (force->pair) force->pair->compute(eflag,vflag);
 

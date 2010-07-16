@@ -112,11 +112,10 @@ minimization"_minimize.html.
 
 [Restrictions:]
 
-LAMMPS does not check, but the masses of all exchanged atom pairs
-should be the same to use this fix in a way that conserves both
-momentum and kinetic energy.  Thus you should not need to thermostat
-the system.  If you do use a thermostat, you may want to apply it only
-to the non-swapped dimensions (other than {vdim}).
+Swaps conserve both momentum and kinetic energy, even if the masses of
+the swapped atoms are not equal.  Thus you should not need to
+thermostat the system.  If you do use a thermostat, you may want to
+apply it only to the non-swapped dimensions (other than {vdim}).
 
 LAMMPS does not check, but you should not use this fix to swap the
 kinetic energy of atoms that are in constrained molecules, e.g. via

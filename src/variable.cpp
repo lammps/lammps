@@ -1781,6 +1781,7 @@ int Variable::group_function(char *word, char *contents, Tree **tree,
     } else error->all("Invalid group function in variable formula");
     if (strcmp(arg2,"xx") == 0) value = inertia[0][0];
     else if (strcmp(arg2,"yy") == 0) value = inertia[1][1];
+    else if (strcmp(arg2,"zz") == 0) value = inertia[2][2];
     else if (strcmp(arg2,"xy") == 0) value = inertia[0][1];
     else if (strcmp(arg2,"yz") == 0) value = inertia[1][2];
     else if (strcmp(arg2,"xz") == 0) value = inertia[0][2];

@@ -11,6 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Craig Tenney (UND) added support
+                        for swapping atoms of different masses
+------------------------------------------------------------------------- */
+
 #include "math.h"
 #include "mpi.h"
 #include "string.h"
@@ -225,7 +230,8 @@ void FixThermalConductivity::end_of_step()
   // exchange kinetic energy between the 2 particles
   // if I own both particles just swap, else point2point comm of velocities
 
-  double sbuf[3],rbuf[3];
+  double sbuf[4],rbuf[4],vcm[3];
+  double eswap = 0.0;
 
   mine[0].proc = mine[1].proc = me;
   int ilo = 0;
@@ -239,45 +245,80 @@ void FixThermalConductivity::end_of_step()
     
     MPI_Allreduce(mine,all,2,MPI_DOUBLE_INT,MPI_MINLOC,world);
     if (all[0].value == BIG || all[1].value == BIG) continue;
-    all[0].value = -all[0].value;
-    e_exchange += force->mvv2e * (all[0].value - all[1].value);
 
     if (me == all[0].proc && me == all[1].proc) {
       i = index_lo[ilo++];
       j = index_hi[ihi++];
+      sbuf[0] = v[j][0];
+      sbuf[1] = v[j][1];
+      sbuf[2] = v[j][2];
+      if (rmass) sbuf[3] = rmass[j];
+      else sbuf[3] = mass[type[j]];
       rbuf[0] = v[i][0];
       rbuf[1] = v[i][1];
       rbuf[2] = v[i][2];
-      v[i][0] = v[j][0];
-      v[i][1] = v[j][1];
-      v[i][2] = v[j][2];
-      v[j][0] = rbuf[0];
-      v[j][1] = rbuf[1];
-      v[j][2] = rbuf[2];
+      if (rmass) rbuf[3] = rmass[i];
+      else rbuf[3] = mass[type[i]];
+      vcm[0] = (sbuf[3]*sbuf[0] + rbuf[3]*rbuf[0]) / (sbuf[3] + rbuf[3]);
+      vcm[1] = (sbuf[3]*sbuf[1] + rbuf[3]*rbuf[1]) / (sbuf[3] + rbuf[3]);
+      vcm[2] = (sbuf[3]*sbuf[2] + rbuf[3]*rbuf[2]) / (sbuf[3] + rbuf[3]);
+      v[j][0] = 2.0 * vcm[0] - sbuf[0];
+      v[j][1] = 2.0 * vcm[1] - sbuf[1];
+      v[j][2] = 2.0 * vcm[2] - sbuf[2];
+      eswap += sbuf[3] * (vcm[0] * (vcm[0] - sbuf[0]) +
+                          vcm[1] * (vcm[1] - sbuf[1]) +
+                          vcm[2] * (vcm[2] - sbuf[2]));
+      v[i][0] = 2.0 * vcm[0] - rbuf[0];
+      v[i][1] = 2.0 * vcm[1] - rbuf[1];
+      v[i][2] = 2.0 * vcm[2] - rbuf[2];
+      eswap -= rbuf[3] * (vcm[0] * (vcm[0] - rbuf[0]) +
+                          vcm[1] * (vcm[1] - rbuf[1]) +
+                          vcm[2] * (vcm[2] - rbuf[2]));
       
     } else if (me == all[0].proc) {
-      i = index_lo[ilo++];
-      sbuf[0] = v[i][0];
-      sbuf[1] = v[i][1];
-      sbuf[2] = v[i][2];
-      MPI_Sendrecv(sbuf,3,MPI_DOUBLE,all[1].proc,0,
-		   rbuf,3,MPI_DOUBLE,all[1].proc,0,world,&status);
-      v[i][0] = rbuf[0];
-      v[i][1] = rbuf[1];
-      v[i][2] = rbuf[2];
+      j = index_lo[ilo++];
+      sbuf[0] = v[j][0];
+      sbuf[1] = v[j][1];
+      sbuf[2] = v[j][2];
+      if (rmass) sbuf[3] = rmass[j];
+      else sbuf[3] = mass[type[j]];
+      MPI_Sendrecv(sbuf,4,MPI_DOUBLE,all[1].proc,0,
+		   rbuf,4,MPI_DOUBLE,all[1].proc,0,world,&status);
+      vcm[0] = (sbuf[3]*sbuf[0] + rbuf[3]*rbuf[0]) / (sbuf[3] + rbuf[3]);
+      vcm[1] = (sbuf[3]*sbuf[1] + rbuf[3]*rbuf[1]) / (sbuf[3] + rbuf[3]);
+      vcm[2] = (sbuf[3]*sbuf[2] + rbuf[3]*rbuf[2]) / (sbuf[3] + rbuf[3]);
+      v[j][0] = 2.0 * vcm[0] - sbuf[0];
+      v[j][1] = 2.0 * vcm[1] - sbuf[1];
+      v[j][2] = 2.0 * vcm[2] - sbuf[2];
+      eswap -= sbuf[3] * (vcm[0] * (vcm[0] - sbuf[0]) +
+                          vcm[1] * (vcm[1] - sbuf[1]) +
+                          vcm[2] * (vcm[2] - sbuf[2]));
 
     } else if (me == all[1].proc) {
       j = index_hi[ihi++];
       sbuf[0] = v[j][0];
       sbuf[1] = v[j][1];
       sbuf[2] = v[j][2];
-      MPI_Sendrecv(sbuf,3,MPI_DOUBLE,all[0].proc,0,
-		   rbuf,3,MPI_DOUBLE,all[0].proc,0,world,&status);
-      v[j][0] = rbuf[0];
-      v[j][1] = rbuf[1];
-      v[j][2] = rbuf[2];
+      if (rmass) sbuf[3] = rmass[j];
+      else sbuf[3] = mass[type[j]];
+      MPI_Sendrecv(sbuf,4,MPI_DOUBLE,all[0].proc,0,
+		   rbuf,4,MPI_DOUBLE,all[0].proc,0,world,&status);
+      vcm[0] = (sbuf[3]*sbuf[0] + rbuf[3]*rbuf[0]) / (sbuf[3] + rbuf[3]);
+      vcm[1] = (sbuf[3]*sbuf[1] + rbuf[3]*rbuf[1]) / (sbuf[3] + rbuf[3]);
+      vcm[2] = (sbuf[3]*sbuf[2] + rbuf[3]*rbuf[2]) / (sbuf[3] + rbuf[3]);
+      v[j][0] = 2.0 * vcm[0] - sbuf[0];
+      v[j][1] = 2.0 * vcm[1] - sbuf[1];
+      v[j][2] = 2.0 * vcm[2] - sbuf[2];
+      eswap += sbuf[3] * (vcm[0] * (vcm[0] - sbuf[0]) +
+                          vcm[1] * (vcm[1] - sbuf[1]) +
+                          vcm[2] * (vcm[2] - sbuf[2]));
     }
   }
+  // tally energy exchange from all swaps
+
+  double eswap_all;
+  MPI_Allreduce(&eswap,&eswap_all,1,MPI_DOUBLE,MPI_SUM,world);
+  e_exchange += force->mvv2e * eswap_all;
 }
 
 /* ---------------------------------------------------------------------- */

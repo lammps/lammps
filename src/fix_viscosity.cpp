@@ -11,6 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Craig Tenney (UND) added support
+                        for swapping atoms of different masses
+------------------------------------------------------------------------- */
+
 #include "math.h"
 #include "mpi.h"
 #include "string.h"
@@ -234,7 +239,7 @@ void FixViscosity::end_of_step()
   double *rmass = atom->rmass;
 
   int ipos,ineg;
-  double sbuf[2],rbuf[2];
+  double sbuf[2],rbuf[2],vcm;
 
   double pswap = 0.0;
   mine[0].proc = mine[1].proc = me;
@@ -260,9 +265,10 @@ void FixViscosity::end_of_step()
       sbuf[0] = v[ineg][vdim];
       if (rmass) sbuf[1] = rmass[ineg];
       else sbuf[1] = mass[type[ineg]];
-      v[ineg][vdim] = rbuf[0] * rbuf[1]/sbuf[1];
-      v[ipos][vdim] = sbuf[0] * sbuf[1]/rbuf[1];
-      pswap += rbuf[0]*rbuf[1] - sbuf[0]*sbuf[1];
+      vcm = (sbuf[1]*sbuf[0] + rbuf[1]*rbuf[0]) / (sbuf[1] + rbuf[1]);
+      v[ineg][vdim] = 2.0 * vcm - sbuf[0];
+      v[ipos][vdim] = 2.0 * vcm - rbuf[0];
+      pswap += rbuf[1] * (vcm - rbuf[0]) - sbuf[1] * (vcm - sbuf[0]);
       
     } else if (me == all[0].proc) {
       ipos = pos_index[ipositive++];
@@ -271,8 +277,9 @@ void FixViscosity::end_of_step()
       else sbuf[1] = mass[type[ipos]];
       MPI_Sendrecv(sbuf,2,MPI_DOUBLE,all[1].proc,0,
 		   rbuf,2,MPI_DOUBLE,all[1].proc,0,world,&status);
-      v[ipos][vdim] = rbuf[0] * rbuf[1]/sbuf[1];
-      pswap += sbuf[0]*sbuf[1];
+      vcm = (sbuf[1]*sbuf[0] + rbuf[1]*rbuf[0]) / (sbuf[1] + rbuf[1]);
+      v[ipos][vdim] = 2.0 * vcm - sbuf[0];
+      pswap += sbuf[1] * (vcm - sbuf[0]);
 
     } else if (me == all[1].proc) {
       ineg = neg_index[inegative++];
@@ -281,8 +288,9 @@ void FixViscosity::end_of_step()
       else sbuf[1] = mass[type[ineg]];
       MPI_Sendrecv(sbuf,2,MPI_DOUBLE,all[0].proc,0,
 		   rbuf,2,MPI_DOUBLE,all[0].proc,0,world,&status);
-      v[ineg][vdim] = rbuf[0] * rbuf[1]/sbuf[1];
-      pswap -= sbuf[0]*sbuf[1];
+      vcm = (sbuf[1]*sbuf[0] + rbuf[1]*rbuf[0]) / (sbuf[1] + rbuf[1]);
+      v[ineg][vdim] = 2.0 * vcm - sbuf[0];
+      pswap -= sbuf[1] * (vcm - sbuf[0]);
     }
   }
 

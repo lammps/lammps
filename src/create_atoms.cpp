@@ -361,15 +361,17 @@ void CreateAtoms::add_lattice()
   // in lattice space, subbox is a tilted box
   // but bbox of subbox is aligned with lattice axes
   // so ilo:khi unit cells should completely tile bounding box
-  // decrement lo values if min < 0, since static_cast(-1.5) = -1
+  // decrement lo, increment hi to avoid round-off issues in lattice->bbox(),
+  //   which can lead to missing atoms in rare cases
+  // extra decrement of lo if min < 0, since static_cast(-1.5) = -1
 
   int ilo,ihi,jlo,jhi,klo,khi;
-  ilo = static_cast<int> (xmin);
-  jlo = static_cast<int> (ymin);
-  klo = static_cast<int> (zmin);
-  ihi = static_cast<int> (xmax);
-  jhi = static_cast<int> (ymax);
-  khi = static_cast<int> (zmax);
+  ilo = static_cast<int> (xmin) - 1;
+  jlo = static_cast<int> (ymin) - 1;
+  klo = static_cast<int> (zmin) - 1;
+  ihi = static_cast<int> (xmax) + 1;
+  jhi = static_cast<int> (ymax) + 1;
+  khi = static_cast<int> (zmax) + 1;
 
   if (xmin < 0.0) ilo--;
   if (ymin < 0.0) jlo--;
@@ -449,7 +451,7 @@ void CreateAtoms::add_lattice()
 	    if (!domain->regions[nregion]->match(x[0],x[1],x[2])) continue;
 
 	  // test if atom is in my subbox
-	  
+
 	  if (triclinic) {
 	    domain->x2lamda(x,lamda);
 	    coord = lamda;

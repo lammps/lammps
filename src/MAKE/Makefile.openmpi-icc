@@ -6,8 +6,10 @@ SHELL = /bin/sh
 # specify flags and libraries needed for your compiler
 
 CC =		env OMPI_CC=icc OMPI_CXX=icpc mpic++
-CCFLAGS =	-O2 -msse3 -xHOST -no-prec-div -fno-exceptions -fno-rtti -pc64 -falign-functions=16 \
-		-funroll-loops #-fstrict-aliasing -Wall 
+CCFLAGS =	-O2 -xHOST -no-prec-div -no-prec-sqrt -fast-transcendentals	\
+			-fno-exceptions -fno-rtti -pc64 -falign-functions=16 		\
+			-funroll-loops -fstrict-aliasing
+
 DEPFLAGS =	-M
 LINK =		env OMPI_CC=icc OMPI_CXX=icpc mpic++
 LINKFLAGS =	-O -static-intel

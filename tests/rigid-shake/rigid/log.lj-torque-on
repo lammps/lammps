@@ -1,0 +1,97 @@
+LAMMPS (17 Jul 2010-ICMS)
+#Input file for CO2
+boundary p p p
+restart 1000 restart
+#Simulation Units andSimulation Tye
+#units		metal
+units		lj
+atom_style	full
+#Reads configuration from file
+read_data	initial.conf
+  1 = max bonds/atom
+  1 = max angles/atom
+  orthogonal box = (-25 -25 -25) to (25 25 25)
+  1 by 1 by 1 processor grid
+  1401 atoms
+  934 bonds
+  467 angles
+  2 = max # of 1-2 neighbors
+  1 = max # of 1-3 neighbors
+  1 = max # of 1-4 neighbors
+  2 = max # of special neighbors
+#Mass relative mass of atoms
+# Mass of carbon in CO2
+mass            1 12.0107
+# Mass of oxygen in CO2
+mass            2 15.9994
+#Define potential type
+pair_style     lj/charmm/coul/long 16.0 18.0 18.0
+kspace_style    pppm 5.0e-5
+#kspace_modify   mesh 50 50 50 order 5
+pair_coeff      1 1 0.0023266827 2.800
+pair_coeff      1 2 0.0039798693 2.925
+pair_coeff      2 2 0.0068077011 3.050
+velocity        all create 300.0 234324324 dist gaussian mom yes rot yes
+thermo_style   multi
+#Applies or "fixes" NVT MD
+fix             1 all rigid molecule torque * on on on
+467 rigid bodies with 1401 atoms
+#fix             1 all rigid/nve molecule 
+#fix             1 all rigid/nvt molecule temp 300.0 300.0 0.001
+dump            1 all dcd 50 co2.dcd
+Preparing index map for sorted dump of 1401 atoms
+dump_modify     1 unwrap yes
+#Dumps output files and thermodynamic properties
+thermo          500
+#Timestep is 1 fs (0.001 ps)
+timestep 0.001
+#Number of time steps (reduced)
+run     1000
+PPPM initialization ...
+  G vector = 0.137869
+  grid = 12 12 12
+  stencil order = 5
+  RMS precision = 2.58637e-05
+  using double precision FFTs
+  brick FFT buffer size/proc = 4913 1728 2601
+Memory usage per processor = 4.29493 Mbytes
+---------------- Step        0 ----- CPU =      0.0000 (sec) ----------------
+TotEng   =       246.0672 KinEng   =       246.0780 Temp     =       295.6734 
+PotEng   =        -0.0108 E_bond   =         0.0000 E_angle  =         0.0000 
+E_dihed  =         0.0000 E_impro  =         0.0000 E_vdwl   =        -0.0106 
+E_coul   =         0.0188 E_long   =        -0.0191 Press    =        -1.7942 
+---------------- Step      500 ----- CPU =      4.4470 (sec) ----------------
+TotEng   =       246.0670 KinEng   =       243.6590 Temp     =       292.7670 
+PotEng   =         2.4080 E_bond   =         0.0000 E_angle  =         0.0000 
+E_dihed  =         0.0000 E_impro  =         0.0000 E_vdwl   =         2.4080 
+E_coul   =         0.0190 E_long   =        -0.0191 Press    =         1.2188 
+---------------- Step     1000 ----- CPU =      9.0104 (sec) ----------------
+TotEng   =       246.0671 KinEng   =       244.4835 Temp     =       293.7577 
+PotEng   =         1.5836 E_bond   =         0.0000 E_angle  =         0.0000 
+E_dihed  =         0.0000 E_impro  =         0.0000 E_vdwl   =         1.5836 
+E_coul   =         0.0191 E_long   =        -0.0191 Press    =         1.1466 
+Loop time of 9.01039 on 1 procs for 1000 steps with 1401 atoms
+
+Pair  time (%) = 6.1071 (67.7784)
+Bond  time (%) = 8.15392e-05 (0.000904946)
+Kspce time (%) = 1.81949 (20.1932)
+Neigh time (%) = 0.74706 (8.29109)
+Comm  time (%) = 0.0507021 (0.562707)
+Outpt time (%) = 0.0505278 (0.560773)
+Other time (%) = 0.235432 (2.61289)
+
+FFT time (% of Kspce) = 0.209618 (11.5207)
+FFT Gflps 3d (1d only) = 1.22907 2.63947
+
+Nlocal:    1401 ave 1401 max 1401 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    5535 ave 5535 max 5535 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    208802 ave 208802 max 208802 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 208802
+Ave neighs/atom = 149.038
+Ave special neighs/atom = 2
+Neighbor list builds = 95
+Dangerous builds = 39

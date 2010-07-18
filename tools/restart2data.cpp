@@ -2770,34 +2770,37 @@ void Data::write(FILE *fp, FILE *fp2)
   if (pair_style && fp2 == NULL) {
     if ((strcmp(pair_style,"none") != 0) && 
 	(strcmp(pair_style,"airebo") != 0) &&
+	(strcmp(pair_style,"airebo/omp") != 0) &&
 	(strcmp(pair_style,"coul/cut") != 0) &&
+	(strcmp(pair_style,"coul/cut/omp") != 0) &&
 	(strcmp(pair_style,"coul/debye") != 0) &&
+	(strcmp(pair_style,"coul/debye/omp") != 0) &&
 	(strcmp(pair_style,"coul/long") != 0) &&
+	(strcmp(pair_style,"coul/long/omp") != 0) &&
 	(strcmp(pair_style,"eam") != 0) &&
 	(strcmp(pair_style,"eam/opt") != 0) &&
+	(strcmp(pair_style,"eam/omp") != 0) &&
 	(strcmp(pair_style,"eam/alloy") != 0) &&
 	(strcmp(pair_style,"eam/alloy/opt") != 0) &&
+	(strcmp(pair_style,"eam/alloy/omp") != 0) &&
 	(strcmp(pair_style,"eam/fs") != 0) &&
 	(strcmp(pair_style,"eam/fs/opt") != 0) &&
+	(strcmp(pair_style,"eam/fs/omp") != 0) &&
 	(strcmp(pair_style,"gran/history") != 0) &&
+	(strcmp(pair_style,"gran/history/omp") != 0) &&
 	(strcmp(pair_style,"gran/no_history") != 0) &&
+	(strcmp(pair_style,"gran/no_history/omp") != 0) &&
 	(strcmp(pair_style,"gran/hertzian") != 0) &&
+	(strcmp(pair_style,"gran/hertzian/omp") != 0) &&
 	(strcmp(pair_style,"meam") != 0) &&
 	(strcmp(pair_style,"reax") != 0) &&
 	(strcmp(pair_style,"sw") != 0) &&
-	(strcmp(pair_style,"table") != 0) &&
-	(strcmp(pair_style,"tersoff") != 0) &&
-	(strcmp(pair_style,"tersoff/zbl") != 0) &&
-	(strcmp(pair_style,"airebo/omp") != 0) &&
-	(strcmp(pair_style,"coul/cut/omp") != 0) &&
-	(strcmp(pair_style,"coul/debye/omp") != 0) &&
-	(strcmp(pair_style,"coul/long/omp") != 0) &&
-	(strcmp(pair_style,"eam/omp") != 0) &&
-	(strcmp(pair_style,"eam/alloy/omp") != 0) &&
-	(strcmp(pair_style,"eam/fs/omp") != 0) &&
 	(strcmp(pair_style,"sw/omp") != 0) &&
+	(strcmp(pair_style,"table") != 0) &&
 	(strcmp(pair_style,"table/omp") != 0) &&
+	(strcmp(pair_style,"tersoff") != 0) &&
 	(strcmp(pair_style,"tersoff/omp") != 0) &&
+	(strcmp(pair_style,"tersoff/zbl") != 0) &&
 	(strcmp(pair_style,"tersoff/zbl/omp") != 0) &&
 	(strcmp(pair_style,"hybrid") != 0) &&
 	(strcmp(pair_style,"hybrid/overlay") != 0))
@@ -2926,9 +2929,8 @@ void Data::write(FILE *fp, FILE *fp2)
 		pair_yukawa_A[i]);
 
     } else {
-      printf("ERROR: Cannot write pair_style %s to data file\n",
-	     pair_style);
-      exit(1);
+      printf("Warning: Cannot write pair_style %s parameters to data file. "
+		"Continuing without.\n", pair_style);
     }
   }
 

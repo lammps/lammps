@@ -8,10 +8,10 @@ SHELL = /bin/sh
 
 CC =		mpic++
 CCFLAGS =	-O3 -fopenmp -march=native -mpc64  -fno-exceptions -fno-rtti  -ffast-math \
-	 -funroll-loops -fstrict-aliasing -Wall -W -Wno-uninitialized
+	 -funroll-loops -fstrict-aliasing -Wall -W -Wno-uninitialized -ggdb -gdwarf-2
 DEPFLAGS =	-M
 LINK =		mpic++
-LINKFLAGS =	-O -fopenmp -g
+LINKFLAGS =	-O -fopenmp -ggdb -gdwarf-2
 LIB =           -Wl,-rpath,/usr/lib64/openmpi/lib 
 ARCHIVE =	ar
 ARFLAGS =	-rcsv

@@ -27,10 +27,10 @@ namespace LAMMPS_NS {
 class FixRigidNVE : public FixRigid {
  public:
   FixRigidNVE(class LAMMPS *, int, char **);
-  ~FixRigidNVE();
-  void setup(int);
-  void initial_integrate(int);
-  void final_integrate();
+  virtual ~FixRigidNVE();
+  virtual void setup(int);
+  virtual void initial_integrate(int);
+  virtual void final_integrate();
 
  private:
   double **conjqm;          // conjugate quaternion momentum

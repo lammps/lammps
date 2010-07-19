@@ -209,10 +209,10 @@ void FixRigidNVT::initial_integrate(int vflag)
 		torque[ibody],tbody);
     quatvec(quat[ibody],tbody,fquat);
     
-    conjqm[ibody][0] += dtv * fquat[0];
-    conjqm[ibody][1] += dtv * fquat[1];
-    conjqm[ibody][2] += dtv * fquat[2];
-    conjqm[ibody][3] += dtv * fquat[3];
+    conjqm[ibody][0] += 2.0*dtf * fquat[0];
+    conjqm[ibody][1] += 2.0*dtf * fquat[1];
+    conjqm[ibody][2] += 2.0*dtf * fquat[2];
+    conjqm[ibody][3] += 2.0*dtf * fquat[3];
     conjqm[ibody][0] *= scale_r;
     conjqm[ibody][1] *= scale_r;
     conjqm[ibody][2] *= scale_r;
@@ -379,10 +379,10 @@ void FixRigidNVT::final_integrate()
 		torque[ibody],tbody);
     quatvec(quat[ibody],tbody,fquat);
     
-    conjqm[ibody][0] = scale_r * conjqm[ibody][0] + dtv * fquat[0];
-    conjqm[ibody][1] = scale_r * conjqm[ibody][1] + dtv * fquat[1];
-    conjqm[ibody][2] = scale_r * conjqm[ibody][2] + dtv * fquat[2];
-    conjqm[ibody][3] = scale_r * conjqm[ibody][3] + dtv * fquat[3];
+    conjqm[ibody][0] = scale_r * conjqm[ibody][0] + 2.0*dtf * fquat[0];
+    conjqm[ibody][1] = scale_r * conjqm[ibody][1] + 2.0*dtf * fquat[1];
+    conjqm[ibody][2] = scale_r * conjqm[ibody][2] + 2.0*dtf * fquat[2];
+    conjqm[ibody][3] = scale_r * conjqm[ibody][3] + 2.0*dtf * fquat[3];
     
     invquatvec(quat[ibody],conjqm[ibody],mbody);
     matvec_cols(ex_space[ibody],ey_space[ibody],ez_space[ibody],

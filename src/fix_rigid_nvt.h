@@ -27,14 +27,14 @@ namespace LAMMPS_NS {
 class FixRigidNVT : public FixRigid {
  public:
   FixRigidNVT(class LAMMPS *, int, char **);
-  ~FixRigidNVT();
-  void init();
-  void setup(int);
-  void initial_integrate(int);
-  void final_integrate();
-  void write_restart(FILE *);
-  void restart(char *);
-  void reset_target(double);
+  virtual ~FixRigidNVT();
+  virtual void init();
+  virtual void setup(int);
+  virtual void initial_integrate(int);
+  virtual void final_integrate();
+  virtual void write_restart(FILE *);
+  virtual void restart(char *);
+  virtual void reset_target(double);
   
  private:
   double **conjqm;                      // conjugate quaternion momentum

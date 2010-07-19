@@ -101,10 +101,10 @@ void FixRigidNVE::initial_integrate(int vflag)
 		torque[ibody],tbody);
     quatvec(quat[ibody],tbody,fquat);
     
-    conjqm[ibody][0] += dtv * fquat[0];
-    conjqm[ibody][1] += dtv * fquat[1];
-    conjqm[ibody][2] += dtv * fquat[2];
-    conjqm[ibody][3] += dtv * fquat[3];
+    conjqm[ibody][0] += 2.0*dtf * fquat[0];
+    conjqm[ibody][1] += 2.0*dtf * fquat[1];
+    conjqm[ibody][2] += 2.0*dtf * fquat[2];
+    conjqm[ibody][3] += 2.0*dtf * fquat[3];
   
     // step 1.4 to 1.13 - use no_squish rotate to update p and q
   

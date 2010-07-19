@@ -15,7 +15,7 @@ thermo_style   multi
 thermo         100
 thermo_modify  norm no
 
-fix             1 all rigid/nvt molecule temp 300.0 300.0 0.1 torque * off off off
+fix             1 all rigid/nvt molecule temp 300.0 300.0 0.1 torque * on on on
 #dump            1 all dcd 50 co2.dcd
 #dump_modify     1 unwrap yes
 timestep 0.001

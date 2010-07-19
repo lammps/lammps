@@ -7,7 +7,8 @@ read_data	initial.conf
   1 = max bonds/atom
   1 = max angles/atom
   orthogonal box = (-25 -25 -25) to (25 25 25)
-  2 by 2 by 2 processor grid
+  1 by 2 by 2 processor grid
+  using 2 OpenMP thread(s) per MPI task
   1401 atoms
   934 bonds
   467 angles
@@ -27,7 +28,7 @@ thermo_style   multi
 thermo         100
 thermo_modify  norm no
 
-fix             1 all rigid/nvt molecule temp 300.0 300.0 0.1 torque * off off off
+fix             1 all rigid/nvt molecule temp 300.0 300.0 1.0 torque * off off off
 467 rigid bodies with 1401 atoms
 #dump            1 all dcd 50 co2.dcd
 #dump_modify     1 unwrap yes
@@ -39,11 +40,85 @@ PPPM initialization ...
   stencil order = 5
   RMS precision = 2.58637e-05
   using double precision FFTs
-  brick FFT buffer size/proc = 1331 288 1089
-Memory usage per processor = 3.14621 Mbytes
+  brick FFT buffer size/proc = 2057 432 1683
+Memory usage per processor = 3.30748 Mbytes
 ---------------- Step        0 ----- CPU =      0.0000 (sec) ----------------
 TotEng   =        10.5082 KinEng   =        29.7087 Temp     =       295.6734 
 PotEng   =       -19.2006 E_bond   =         0.0000 E_angle  =         0.0000 
 E_dihed  =         0.0000 E_impro  =         0.0000 E_vdwl   =       -14.8333 
 E_coul   =       379.9710 E_long   =      -384.3382 Press    =      -382.5257 
-ERROR: Out of range atoms - cannot compute PPPM
+---------------- Step      100 ----- CPU =      0.3121 (sec) ----------------
+TotEng   =       -14.0212 KinEng   =         5.1491 Temp     =        51.2464 
+PotEng   =       -19.1703 E_bond   =         0.0000 E_angle  =         0.0000 
+E_dihed  =         0.0000 E_impro  =         0.0000 E_vdwl   =       -15.0722 
+E_coul   =       380.2420 E_long   =      -384.3401 Press    =         0.8751 
+---------------- Step      200 ----- CPU =      0.6242 (sec) ----------------
+TotEng   =       -17.4637 KinEng   =         2.7224 Temp     =        27.0946 
+PotEng   =       -20.1861 E_bond   =         0.0000 E_angle  =         0.0000 
+E_dihed  =         0.0000 E_impro  =         0.0000 E_vdwl   =       -16.1192 
+E_coul   =       380.2738 E_long   =      -384.3407 Press    =      -146.8270 
+---------------- Step      300 ----- CPU =      0.9322 (sec) ----------------
+TotEng   =       -19.0981 KinEng   =         1.8865 Temp     =        18.7755 
+PotEng   =       -20.9846 E_bond   =         0.0000 E_angle  =         0.0000 
+E_dihed  =         0.0000 E_impro  =         0.0000 E_vdwl   =       -16.5756 
+E_coul   =       379.9314 E_long   =      -384.3404 Press    =      -207.5869 
+---------------- Step      400 ----- CPU =      1.2431 (sec) ----------------
+TotEng   =       -20.2291 KinEng   =         1.6218 Temp     =        16.1405 
+PotEng   =       -21.8509 E_bond   =         0.0000 E_angle  =         0.0000 
+E_dihed  =         0.0000 E_impro  =         0.0000 E_vdwl   =       -16.8738 
+E_coul   =       379.3622 E_long   =      -384.3393 Press    =      -217.8761 
+---------------- Step      500 ----- CPU =      1.5583 (sec) ----------------
+TotEng   =       -21.2855 KinEng   =         1.4989 Temp     =        14.9176 
+PotEng   =       -22.7844 E_bond   =         0.0000 E_angle  =         0.0000 
+E_dihed  =         0.0000 E_impro  =         0.0000 E_vdwl   =       -17.1563 
+E_coul   =       378.7096 E_long   =      -384.3377 Press    =      -207.3240 
+---------------- Step      600 ----- CPU =      1.8712 (sec) ----------------
+TotEng   =       -22.2520 KinEng   =         1.3874 Temp     =        13.8084 
+PotEng   =       -23.6394 E_bond   =         0.0000 E_angle  =         0.0000 
+E_dihed  =         0.0000 E_impro  =         0.0000 E_vdwl   =       -17.3736 
+E_coul   =       378.0700 E_long   =      -384.3358 Press    =      -181.5490 
+---------------- Step      700 ----- CPU =      2.1842 (sec) ----------------
+TotEng   =       -23.1608 KinEng   =         1.3427 Temp     =        13.3631 
+PotEng   =       -24.5035 E_bond   =         0.0000 E_angle  =         0.0000 
+E_dihed  =         0.0000 E_impro  =         0.0000 E_vdwl   =       -17.7212 
+E_coul   =       377.5516 E_long   =      -384.3339 Press    =      -171.7020 
+---------------- Step      800 ----- CPU =      2.5009 (sec) ----------------
+TotEng   =       -24.0587 KinEng   =         1.2946 Temp     =        12.8846 
+PotEng   =       -25.3533 E_bond   =         0.0000 E_angle  =         0.0000 
+E_dihed  =         0.0000 E_impro  =         0.0000 E_vdwl   =       -18.1268 
+E_coul   =       377.1056 E_long   =      -384.3322 Press    =      -157.4381 
+---------------- Step      900 ----- CPU =      2.8160 (sec) ----------------
+TotEng   =       -24.8904 KinEng   =         1.2070 Temp     =        12.0130 
+PotEng   =       -26.0975 E_bond   =         0.0000 E_angle  =         0.0000 
+E_dihed  =         0.0000 E_impro  =         0.0000 E_vdwl   =       -18.3804 
+E_coul   =       376.6135 E_long   =      -384.3306 Press    =      -159.2852 
+---------------- Step     1000 ----- CPU =      3.1304 (sec) ----------------
+TotEng   =       -25.6597 KinEng   =         1.1491 Temp     =        11.4364 
+PotEng   =       -26.8088 E_bond   =         0.0000 E_angle  =         0.0000 
+E_dihed  =         0.0000 E_impro  =         0.0000 E_vdwl   =       -18.6200 
+E_coul   =       376.1402 E_long   =      -384.3290 Press    =      -162.8188 
+Loop time of 3.13041 on 8 procs (4 MPI x 2 OpenMP) for 1000 steps with 1401 atoms
+
+Pair  time (%) = 1.8607 (59.4396)
+Bond  time (%) = 9.56059e-05 (0.0030541)
+Kspce time (%) = 0.84844 (27.1031)
+Neigh time (%) = 0.00629264 (0.201016)
+Comm  time (%) = 0.115005 (3.67379)
+Outpt time (%) = 0.000346482 (0.0110682)
+Other time (%) = 0.299529 (9.56836)
+
+FFT time (% of Kspce) = 0.058949 (6.94793)
+FFT Gflps 3d (1d only) = 4.37048 11.0265
+
+Nlocal:    350.25 ave 412 max 299 min
+Histogram: 2 0 0 0 0 0 0 1 0 1
+Nghost:    3625.75 ave 3822 max 3401 min
+Histogram: 1 0 0 1 0 0 0 1 0 1
+Neighs:    67751.5 ave 85479 max 53739 min
+Histogram: 1 1 0 0 0 1 0 0 0 1
+
+Total # of neighbors = 271006
+Ave neighs/atom = 193.438
+Ave special neighs/atom = 2
+Neighbor list builds = 3
+Dangerous builds = 0

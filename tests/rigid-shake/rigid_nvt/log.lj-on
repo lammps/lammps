@@ -7,7 +7,8 @@ read_data	initial.conf
   1 = max bonds/atom
   1 = max angles/atom
   orthogonal box = (-25 -25 -25) to (25 25 25)
-  2 by 2 by 2 processor grid
+  1 by 2 by 2 processor grid
+  using 2 OpenMP thread(s) per MPI task
   1401 atoms
   934 bonds
   467 angles
@@ -39,82 +40,82 @@ PPPM initialization ...
   stencil order = 5
   RMS precision = 2.58637e-05
   using double precision FFTs
-  brick FFT buffer size/proc = 1331 288 1089
-Memory usage per processor = 3.10893 Mbytes
+  brick FFT buffer size/proc = 2057 432 1683
+Memory usage per processor = 3.25941 Mbytes
 ---------------- Step        0 ----- CPU =      0.0000 (sec) ----------------
 TotEng   =    344740.0986 KinEng   =    344755.2352 Temp     =       295.6734 
 PotEng   =       -15.1366 E_bond   =         0.0000 E_angle  =         0.0000 
 E_dihed  =         0.0000 E_impro  =         0.0000 E_vdwl   =       -14.8333 
 E_coul   =        26.3875 E_long   =       -26.6908 Press    =        -1.7942 
----------------- Step      100 ----- CPU =      0.2009 (sec) ----------------
+---------------- Step      100 ----- CPU =      0.3215 (sec) ----------------
 TotEng   =    350250.8186 KinEng   =    350203.6315 Temp     =       300.3462 
 PotEng   =        47.1872 E_bond   =         0.0000 E_angle  =         0.0000 
 E_dihed  =         0.0000 E_impro  =         0.0000 E_vdwl   =        47.4367 
 E_coul   =        26.4415 E_long   =       -26.6910 Press    =         1.0762 
----------------- Step      200 ----- CPU =      0.4038 (sec) ----------------
+---------------- Step      200 ----- CPU =      0.6437 (sec) ----------------
 TotEng   =    370339.7865 KinEng   =    368845.0941 Temp     =       316.3337 
 PotEng   =      1494.6924 E_bond   =         0.0000 E_angle  =         0.0000 
 E_dihed  =         0.0000 E_impro  =         0.0000 E_vdwl   =      1494.8553 
 E_coul   =        26.5281 E_long   =       -26.6910 Press    =         1.2287 
----------------- Step      300 ----- CPU =      0.6095 (sec) ----------------
-TotEng   =    405090.2177 KinEng   =    399794.5077 Temp     =       342.8769 
-PotEng   =      5295.7099 E_bond   =         0.0000 E_angle  =         0.0000 
-E_dihed  =         0.0000 E_impro  =         0.0000 E_vdwl   =      5295.8195 
+---------------- Step      300 ----- CPU =      0.9710 (sec) ----------------
+TotEng   =    405090.2178 KinEng   =    399794.5078 Temp     =       342.8769 
+PotEng   =      5295.7100 E_bond   =         0.0000 E_angle  =         0.0000 
+E_dihed  =         0.0000 E_impro  =         0.0000 E_vdwl   =      5295.8196 
 E_coul   =        26.5814 E_long   =       -26.6910 Press    =         1.6286 
----------------- Step      400 ----- CPU =      0.8137 (sec) ----------------
-TotEng   =    387090.8078 KinEng   =    379796.6725 Temp     =       325.7261 
-PotEng   =      7294.1354 E_bond   =         0.0000 E_angle  =         0.0000 
-E_dihed  =         0.0000 E_impro  =         0.0000 E_vdwl   =      7294.2199 
+---------------- Step      400 ----- CPU =      1.2997 (sec) ----------------
+TotEng   =    387090.8099 KinEng   =    379796.6766 Temp     =       325.7261 
+PotEng   =      7294.1333 E_bond   =         0.0000 E_angle  =         0.0000 
+E_dihed  =         0.0000 E_impro  =         0.0000 E_vdwl   =      7294.2179 
 E_coul   =        26.6066 E_long   =       -26.6912 Press    =         1.6615 
----------------- Step      500 ----- CPU =      1.0215 (sec) ----------------
-TotEng   =    369033.2349 KinEng   =    363414.1332 Temp     =       311.6759 
-PotEng   =      5619.1017 E_bond   =         0.0000 E_angle  =         0.0000 
-E_dihed  =         0.0000 E_impro  =         0.0000 E_vdwl   =      5619.1696 
+---------------- Step      500 ----- CPU =      1.6318 (sec) ----------------
+TotEng   =    369033.2351 KinEng   =    363414.1331 Temp     =       311.6759 
+PotEng   =      5619.1019 E_bond   =         0.0000 E_angle  =         0.0000 
+E_dihed  =         0.0000 E_impro  =         0.0000 E_vdwl   =      5619.1698 
 E_coul   =        26.6235 E_long   =       -26.6914 Press    =         1.4431 
----------------- Step      600 ----- CPU =      1.2324 (sec) ----------------
-TotEng   =    363603.7498 KinEng   =    358627.8482 Temp     =       307.5711 
-PotEng   =      4975.9016 E_bond   =         0.0000 E_angle  =         0.0000 
-E_dihed  =         0.0000 E_impro  =         0.0000 E_vdwl   =      4975.8514 
+---------------- Step      600 ----- CPU =      1.9638 (sec) ----------------
+TotEng   =    363603.7502 KinEng   =    358627.8489 Temp     =       307.5711 
+PotEng   =      4975.9013 E_bond   =         0.0000 E_angle  =         0.0000 
+E_dihed  =         0.0000 E_impro  =         0.0000 E_vdwl   =      4975.8511 
 E_coul   =        26.7424 E_long   =       -26.6921 Press    =         1.4088 
----------------- Step      700 ----- CPU =      1.4480 (sec) ----------------
-TotEng   =    362330.4466 KinEng   =    356622.0024 Temp     =       305.8508 
-PotEng   =      5708.4441 E_bond   =         0.0000 E_angle  =         0.0000 
-E_dihed  =         0.0000 E_impro  =         0.0000 E_vdwl   =      5708.5279 
+---------------- Step      700 ----- CPU =      2.2966 (sec) ----------------
+TotEng   =    362330.4709 KinEng   =    356622.0528 Temp     =       305.8508 
+PotEng   =      5708.4180 E_bond   =         0.0000 E_angle  =         0.0000 
+E_dihed  =         0.0000 E_impro  =         0.0000 E_vdwl   =      5708.5018 
 E_coul   =        26.6086 E_long   =       -26.6924 Press    =         1.5230 
----------------- Step      800 ----- CPU =      1.6660 (sec) ----------------
-TotEng   =    353798.6605 KinEng   =    350980.1744 Temp     =       301.0122 
-PotEng   =      2818.4860 E_bond   =         0.0000 E_angle  =         0.0000 
-E_dihed  =         0.0000 E_impro  =         0.0000 E_vdwl   =      2818.6099 
+---------------- Step      800 ----- CPU =      2.6250 (sec) ----------------
+TotEng   =    353798.6597 KinEng   =    350980.1736 Temp     =       301.0122 
+PotEng   =      2818.4861 E_bond   =         0.0000 E_angle  =         0.0000 
+E_dihed  =         0.0000 E_impro  =         0.0000 E_vdwl   =      2818.6100 
 E_coul   =        26.5680 E_long   =       -26.6918 Press    =         1.3123 
----------------- Step      900 ----- CPU =      1.8807 (sec) ----------------
-TotEng   =    362596.7552 KinEng   =    358421.1663 Temp     =       307.3938 
-PotEng   =      4175.5889 E_bond   =         0.0000 E_angle  =         0.0000 
-E_dihed  =         0.0000 E_impro  =         0.0000 E_vdwl   =      4175.6536 
+---------------- Step      900 ----- CPU =      2.9499 (sec) ----------------
+TotEng   =    362596.7572 KinEng   =    358421.1691 Temp     =       307.3938 
+PotEng   =      4175.5881 E_bond   =         0.0000 E_angle  =         0.0000 
+E_dihed  =         0.0000 E_impro  =         0.0000 E_vdwl   =      4175.6529 
 E_coul   =        26.6268 E_long   =       -26.6916 Press    =         1.3437 
----------------- Step     1000 ----- CPU =      2.0960 (sec) ----------------
-TotEng   =    362670.2585 KinEng   =    359987.4619 Temp     =       308.7371 
-PotEng   =      2682.7966 E_bond   =         0.0000 E_angle  =         0.0000 
-E_dihed  =         0.0000 E_impro  =         0.0000 E_vdwl   =      2682.7168 
+---------------- Step     1000 ----- CPU =      3.2752 (sec) ----------------
+TotEng   =    362670.2643 KinEng   =    359987.4669 Temp     =       308.7371 
+PotEng   =      2682.7973 E_bond   =         0.0000 E_angle  =         0.0000 
+E_dihed  =         0.0000 E_impro  =         0.0000 E_vdwl   =      2682.7175 
 E_coul   =        26.7715 E_long   =       -26.6917 Press    =         1.2473 
-Loop time of 2.09602 on 8 procs for 1000 steps with 1401 atoms
+Loop time of 3.27524 on 8 procs (4 MPI x 2 OpenMP) for 1000 steps with 1401 atoms
 
-Pair  time (%) = 0.813398 (38.8068)
-Bond  time (%) = 8.1569e-05 (0.00389162)
-Kspce time (%) = 0.744881 (35.5379)
-Neigh time (%) = 0.1006 (4.79958)
-Comm  time (%) = 0.149926 (7.1529)
-Outpt time (%) = 0.00049749 (0.023735)
-Other time (%) = 0.286633 (13.6751)
+Pair  time (%) = 1.71777 (52.4472)
+Bond  time (%) = 9.65595e-05 (0.00294817)
+Kspce time (%) = 0.934045 (28.5184)
+Neigh time (%) = 0.191834 (5.85708)
+Comm  time (%) = 0.135714 (4.14364)
+Outpt time (%) = 0.00036931 (0.0112758)
+Other time (%) = 0.295412 (9.01955)
 
-FFT time (% of Kspce) = 0.0616729 (8.27957)
-FFT Gflps 3d (1d only) = 4.17744 33.7688
+FFT time (% of Kspce) = 0.069809 (7.47383)
+FFT Gflps 3d (1d only) = 3.69057 12.1008
 
-Nlocal:    175.125 ave 228 max 151 min
-Histogram: 1 3 2 0 0 1 0 0 0 1
-Nghost:    2412 ave 2533 max 2302 min
-Histogram: 2 0 1 0 2 0 0 1 1 1
-Neighs:    26095.9 ave 38580 max 19871 min
-Histogram: 1 1 3 1 1 0 0 0 0 1
+Nlocal:    350.25 ave 399 max 316 min
+Histogram: 2 0 0 0 0 1 0 0 0 1
+Nghost:    3142 ave 3276 max 2978 min
+Histogram: 1 0 0 0 0 1 1 0 0 1
+Neighs:    52191.8 ave 65965 max 43346 min
+Histogram: 1 0 1 1 0 0 0 0 0 1
 
 Total # of neighbors = 208767
 Ave neighs/atom = 149.013

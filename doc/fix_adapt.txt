@@ -68,8 +68,8 @@ type pair parameter is specified, the {I} and {J} settings should be
 specified to indicate which pair(s) to apply it to.  Note that in all
 cases, the "pair_style"_pair_style.html and
 "pair_coeff"_pair_coeff.html commands must be used in the usual manner
-to specify these parameters; the fix adapt command simply overrides
-the parameters.
+to specify these parameters initially; the fix adapt command simply
+overrides the parameters.
 
 Similar to the "pair_coeff command"_pair_coeff.html, I and J can be
 specified in one of two ways.  Explicit numeric values can be used for

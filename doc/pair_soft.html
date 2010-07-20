@@ -49,10 +49,12 @@ commands, or by mixing as described below:
 <P>The last coefficient is optional.  If not specified, the global soft
 cutoff is used.
 </P>
-<P>The <A HREF = "fix_adapt.html">fix adapt</A> command can be used to vary A over the
-course of a simulation.  For example these commands will vary the
-prefactor A for all pairwise interactions from 0.0 at the beginning to
-30.0 at the end of a 10,000 step run:
+<P>The <A HREF = "fix_adapt.html">fix adapt</A> command can be used to vary A for one
+or more pair types over the course of a simulation, in which case the
+pair_coeff setting for A must still be specified, but will be
+overridden.  For example these commands will vary the prefactor A for
+all pairwise interactions from 0.0 at the beginning to 30.0 at the end
+of a 10,000 step run:
 </P>
 <PRE>variable prefactor equal 30.0*elapsed/10000
 fix 1 all adapt 1 pair soft a * * prefactor 

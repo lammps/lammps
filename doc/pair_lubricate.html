@@ -31,6 +31,11 @@
 pair_coeff 1 1 1.8 2.0
 pair_coeff * * 
 </PRE>
+<PRE>pair_style lubricate 1.0 1 1 1 0 2.3 2.4 1.3 5878598
+pair_coeff * *
+variable vmu equal 1.0+elapsed/10000
+fix 1 all adapt 1 pair lubricate mu * * vmu 
+</PRE>
 <P><B>Description:</B>
 </P>
 <P>Style <I>lubricate</I> computes pairwise interactions between mono-disperse
@@ -44,8 +49,9 @@ viscosity mu.  Note that this is dynamic viscosity which has units of
 mass/distance/time, not kinematic viscosity.
 </P>
 <P>The viscosity mu can be varied in a time-dependent manner over the
-course of a simluation.  See the <A HREF = "fix_adapt.html">fix adapt</A> command
-for details.
+course of a simluation, in which case in which case the pair_style
+setting for mu will be overridden.  See the <A HREF = "fix_adapt.html">fix adapt</A>
+command for details.
 </P>
 <P>Rc is the outer cutoff specified in the pair_style command, the
 translational velocities of the 2 particles are v1 and v2, the angular

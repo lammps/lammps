@@ -53,6 +53,10 @@ command will change the simulation box size/shape and the "fix move"
 command will change atom positions and velocities in prescribed
 manners.
 </P>
+<P>IMPORTANT NOTE: Any settings changed by fix adapt are not reset to
+their original values at the end of a simulation.  They remain changed
+to the final values they were set to at the end of the run.
+</P>
 <P>The <I>pair</I> keyword enables various parameters of potentials defined by
 the <A HREF = "pair_style.html">pair_style</A> command to be changed, if the pair
 style supports it.  The <I>pstyle</I> argument is the name of the pair
@@ -73,7 +77,11 @@ viscosity setting "mu" for <A HREF = "pair_lubricate.html">pair_style lubricate<
 Other parameters apply to pairs of atom types within the pair style,
 e.g. the prefactor "a" for <A HREF = "pair_soft.html">pair_style soft</A>.  If a
 type pair parameter is specified, the <I>I</I> and <I>J</I> settings should be
-specified to indicate which pair(s) to apply it to.
+specified to indicate which pair(s) to apply it to.  Note that in all
+cases, the <A HREF = "pair_style.html">pair_style</A> and
+<A HREF = "pair_coeff.html">pair_coeff</A> commands must be used in the usual manner
+to specify these parameters; the fix adapt command simply overrides
+the parameters.
 </P>
 <P>Similar to the <A HREF = "pair_coeff.html">pair_coeff command</A>, I and J can be
 specified in one of two ways.  Explicit numeric values can be used for

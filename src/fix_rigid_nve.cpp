@@ -75,6 +75,7 @@ void FixRigidNVE::setup(int vflag)
 void FixRigidNVE::initial_integrate(int vflag)
 {
   double dtfm,mbody[3],tbody[3],fquat[4];
+  double dtf2 = dtf * 2.0;
   
   for (int ibody = 0; ibody < nbody; ibody++) {
     
@@ -101,10 +102,10 @@ void FixRigidNVE::initial_integrate(int vflag)
 		torque[ibody],tbody);
     quatvec(quat[ibody],tbody,fquat);
     
-    conjqm[ibody][0] += dtv * fquat[0];
-    conjqm[ibody][1] += dtv * fquat[1];
-    conjqm[ibody][2] += dtv * fquat[2];
-    conjqm[ibody][3] += dtv * fquat[3];
+    conjqm[ibody][0] += dtf2 * fquat[0];
+    conjqm[ibody][1] += dtf2 * fquat[1];
+    conjqm[ibody][2] += dtf2 * fquat[2];
+    conjqm[ibody][3] += dtf2 * fquat[3];
   
     // step 1.4 to 1.13 - use no_squish rotate to update p and q
   
@@ -222,6 +223,7 @@ void FixRigidNVE::final_integrate()
   MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);
   
   double mbody[3],tbody[3],fquat[4];
+  double dtf2 = dtf * 2.0;
   
   for (ibody = 0; ibody < nbody; ibody++) {
     fcm[ibody][0] = all[ibody][0];
@@ -249,10 +251,10 @@ void FixRigidNVE::final_integrate()
 		torque[ibody],tbody);
     quatvec(quat[ibody],tbody,fquat);
     
-    conjqm[ibody][0] += dtv * fquat[0];
-    conjqm[ibody][1] += dtv * fquat[1];
-    conjqm[ibody][2] += dtv * fquat[2];
-    conjqm[ibody][3] += dtv * fquat[3];
+    conjqm[ibody][0] += dtf2 * fquat[0];
+    conjqm[ibody][1] += dtf2 * fquat[1];
+    conjqm[ibody][2] += dtf2 * fquat[2];
+    conjqm[ibody][3] += dtf2 * fquat[3];
     
     invquatvec(quat[ibody],conjqm[ibody],mbody);
     matvec_cols(ex_space[ibody],ey_space[ibody],ez_space[ibody],

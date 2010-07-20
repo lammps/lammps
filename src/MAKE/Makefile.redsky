@@ -3,7 +3,7 @@
 SHELL = /bin/sh
 .IGNORE:
 
-# this Makefile builds LAMMPS for RedSky
+# this Makefile builds LAMMPS for RedSky with OpenMPI
 # to invoke this Makefile, you need these modules loaded:
 #   mpi/openmpi-1.4.1_oobpr_intel-11.1-f064-c064
 #   misc/env-openmpi-1.4-oobpr

@@ -164,6 +164,7 @@ void FixRigidNVT::initial_integrate(int vflag)
 {
   double tmp,akin_t,akin_r,scale_t,scale_r;
   double dtfm,mbody[3],tbody[3],fquat[4];
+  double dtf2 = dtf * 2.0;
   
   double delta = update->ntimestep - update->beginstep;
   delta /= update->endstep - update->beginstep;
@@ -209,10 +210,10 @@ void FixRigidNVT::initial_integrate(int vflag)
 		torque[ibody],tbody);
     quatvec(quat[ibody],tbody,fquat);
     
-    conjqm[ibody][0] += dtv * fquat[0];
-    conjqm[ibody][1] += dtv * fquat[1];
-    conjqm[ibody][2] += dtv * fquat[2];
-    conjqm[ibody][3] += dtv * fquat[3];
+    conjqm[ibody][0] += dtf2 * fquat[0];
+    conjqm[ibody][1] += dtf2 * fquat[1];
+    conjqm[ibody][2] += dtf2 * fquat[2];
+    conjqm[ibody][3] += dtf2 * fquat[3];
     conjqm[ibody][0] *= scale_r;
     conjqm[ibody][1] *= scale_r;
     conjqm[ibody][2] *= scale_r;
@@ -349,6 +350,7 @@ void FixRigidNVT::final_integrate()
   MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);
   
   double mbody[3],tbody[3],fquat[4];
+  double dtf2 = dtf * 2.0;
   
   for (ibody = 0; ibody < nbody; ibody++) {
     fcm[ibody][0] = all[ibody][0];
@@ -379,10 +381,10 @@ void FixRigidNVT::final_integrate()
 		torque[ibody],tbody);
     quatvec(quat[ibody],tbody,fquat);
     
-    conjqm[ibody][0] = scale_r * conjqm[ibody][0] + dtv * fquat[0];
-    conjqm[ibody][1] = scale_r * conjqm[ibody][1] + dtv * fquat[1];
-    conjqm[ibody][2] = scale_r * conjqm[ibody][2] + dtv * fquat[2];
-    conjqm[ibody][3] = scale_r * conjqm[ibody][3] + dtv * fquat[3];
+    conjqm[ibody][0] = scale_r * conjqm[ibody][0] + dtf2 * fquat[0];
+    conjqm[ibody][1] = scale_r * conjqm[ibody][1] + dtf2 * fquat[1];
+    conjqm[ibody][2] = scale_r * conjqm[ibody][2] + dtf2 * fquat[2];
+    conjqm[ibody][3] = scale_r * conjqm[ibody][3] + dtf2 * fquat[3];
     
     invquatvec(quat[ibody],conjqm[ibody],mbody);
     matvec_cols(ex_space[ibody],ey_space[ibody],ez_space[ibody],
@@ -412,6 +414,9 @@ void FixRigidNVT::update_nhcp(double akin_t, double akin_r)
   kt = boltz * t_target;
   gfkt_t = nf_t * kt;
   gfkt_r = nf_r * kt;
+  
+  akin_t *= force->mvv2e;
+  akin_r *= force->mvv2e;
   
   // update thermostat masses
   

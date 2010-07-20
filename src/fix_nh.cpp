@@ -968,7 +968,8 @@ void FixNH::remap()
     if (domain->yz < -0.5*domain->yprd || domain->yz > 0.5*domain->yprd ||
 	domain->xz < -0.5*domain->xprd || domain->xz > 0.5*domain->xprd ||
 	domain->xy < -0.5*domain->xprd || domain->xy > 0.5*domain->xprd)
-      error->all("fix npt/nph has tilted box beyond 45 degrees");
+      error->all("Fix npt/nph has tilted box too far - "
+		 "box flips are not yet implemented");
   }
 
   domain->set_global_box();

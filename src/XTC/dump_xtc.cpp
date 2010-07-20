@@ -53,6 +53,8 @@ DumpXTC::DumpXTC(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
 {
   if (narg != 5) error->all("Illegal dump xtc command");
   if (igroup != group->find("all")) error->all("Dump xtc must use group all");
+  if (domain->triclinic) 
+    error->all("Dump xtc does not yet support triclinic simulation boxes");
   if (binary || compressed || multifile || multiproc)
     error->all("Invalid dump xtc filename");
 

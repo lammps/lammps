@@ -55,6 +55,8 @@ DumpDCD::DumpDCD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
 {
   if (narg != 5) error->all("Illegal dump dcd command");
   if (igroup != group->find("all")) error->all("Dump dcd must use group all");
+  if (domain->triclinic) 
+    error->all("Dump dcd does not yet support triclinic simulation boxes");
   if (binary || compressed || multifile || multiproc)
     error->all("Invalid dump dcd filename");
 

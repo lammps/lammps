@@ -55,8 +55,6 @@ DumpDCD::DumpDCD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
 {
   if (narg != 5) error->all("Illegal dump dcd command");
   if (igroup != group->find("all")) error->all("Dump dcd must use group all");
-  if (domain->triclinic) 
-    error->all("Dump dcd does not yet support triclinic simulation boxes");
   if (binary || compressed || multifile || multiproc)
     error->all("Invalid dump dcd filename");
 
@@ -92,9 +90,6 @@ DumpDCD::~DumpDCD()
 
 void DumpDCD::init()
 {
-  if (unwrap_flag == 1 && domain->triclinic)
-    error->all("Dump dcd cannot dump unwrapped coords with triclinic box");
-  
   // check that dump frequency has not changed
 
   if (nevery_save == 0) {
@@ -161,24 +156,31 @@ void DumpDCD::write_header(int n)
   }
 
   // dim[] = size and angle cosines of orthogonal or triclinic box
+  // dim[0] = a = length of unit cell vector along x-axis
   // dim[1] = alpha = cosine of angle between b and c
+  // dim[2] = b = length of unit cell vector in xy-plane
   // dim[3] = beta = cosine of angle between a and c
   // dim[4] = gamma = cosine of angle between a and b
+  // dim[5] = c = length of final unit cell vector
   // 48 = 6 doubles
 
   double dim[6];
-  dim[0] = domain->xprd;
-  dim[2] = domain->yprd;
-  dim[5] = domain->zprd;
-  if (domain->triclinic == 0) dim[1] = dim[3] = dim[4] = 0.0;
-  else {
+  if (domain->triclinic) {
     double *h = domain->h;
     double alen = h[0];
     double blen = sqrt(h[5]*h[5] + h[1]*h[1]);
     double clen = sqrt(h[4]*h[4] + h[3]*h[3] + h[2]*h[2]);
+    dim[0] = alen;
+    dim[2] = blen;
+    dim[5] = clen;
     dim[1] = (h[5]*h[4] + h[1]*h[3]) / blen/clen;
     dim[3] = (h[0]*h[4]) / alen/clen;
     dim[4] = (h[0]*h[5]) / alen/blen;
+  } else {
+    dim[0] = domain->xprd;
+    dim[2] = domain->yprd;
+    dim[5] = domain->zprd;
+    dim[1] = dim[3] = dim[4] = 0.0;
   }
   
   if (me == 0) {
@@ -213,14 +215,27 @@ int DumpDCD::pack()
     double xprd = domain->xprd;
     double yprd = domain->yprd;
     double zprd = domain->zprd;
+    double xy = domain->xy;
+    double xz = domain->xz;
+    double yz = domain->yz;
 
     for (int i = 0; i < nlocal; i++) {
-      buf[m++] = tag[i];
-      buf[m++] = x[i][0] + ((image[i] & 1023) - 512) * xprd;
-      buf[m++] = x[i][1] + ((image[i] >> 10 & 1023) - 512) * yprd;
-      buf[m++] = x[i][2] + ((image[i] >> 20) - 512) * zprd;
-    }
+      int ix = (image[i] & 1023) - 512;
+      int iy = (image[i] >> 10 & 1023) - 512;
+      int iz = (image[i] >> 20) - 512;
 
+      if (domain->triclinic) {
+	buf[m++] = tag[i];
+	buf[m++] = x[i][0] + ix * xprd + iy * xy + iz * xz;
+	buf[m++] = x[i][1] + iy * yprd + iz * yz;
+	buf[m++] = x[i][2] + iz * zprd;
+      } else {
+	buf[m++] = tag[i];
+	buf[m++] = x[i][0] + ix * xprd;
+	buf[m++] = x[i][1] + iy * yprd;
+	buf[m++] = x[i][2] + iz * zprd;
+      }
+    }
   } else {
     for (int i = 0; i < nlocal; i++) {
       buf[m++] = tag[i];

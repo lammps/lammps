@@ -53,8 +53,6 @@ DumpXTC::DumpXTC(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
 {
   if (narg != 5) error->all("Illegal dump xtc command");
   if (igroup != group->find("all")) error->all("Dump xtc must use group all");
-  if (domain->triclinic) 
-    error->all("Dump xtc does not yet support triclinic simulation boxes");
   if (binary || compressed || multifile || multiproc)
     error->all("Invalid dump xtc filename");
 
@@ -175,15 +173,28 @@ void DumpXTC::write_header(int n)
   xdr_float(&xd,&time_value);
 
   // cell basis vectors
+  if (domain->triclinic) {
+    float zero = 0.0;
+    float xdim = sfactor * (domain->boxhi[0] - domain->boxlo[0]);
+    float ydim = sfactor * (domain->boxhi[1] - domain->boxlo[1]);
+    float zdim = sfactor * (domain->boxhi[2] - domain->boxlo[2]);
+    float xy = sfactor * domain->xy;
+    float xz = sfactor * domain->xz;
+    float yz = sfactor * domain->yz;
 
-  float zero = 0.0;
-  float xdim = sfactor * (domain->boxhi[0] - domain->boxlo[0]);
-  float ydim = sfactor * (domain->boxhi[1] - domain->boxlo[1]);
-  float zdim = sfactor * (domain->boxhi[2] - domain->boxlo[2]);
+    xdr_float(&xd,&xdim); xdr_float(&xd,&zero); xdr_float(&xd,&zero);
+    xdr_float(&xd,&xy  ); xdr_float(&xd,&ydim); xdr_float(&xd,&zero);
+    xdr_float(&xd,&xz  ); xdr_float(&xd,&yz  ); xdr_float(&xd,&zdim);
+  } else {
+    float zero = 0.0;
+    float xdim = sfactor * (domain->boxhi[0] - domain->boxlo[0]);
+    float ydim = sfactor * (domain->boxhi[1] - domain->boxlo[1]);
+    float zdim = sfactor * (domain->boxhi[2] - domain->boxlo[2]);
 
-  xdr_float(&xd,&xdim); xdr_float(&xd,&zero); xdr_float(&xd,&zero);
-  xdr_float(&xd,&zero); xdr_float(&xd,&ydim); xdr_float(&xd,&zero);
-  xdr_float(&xd,&zero); xdr_float(&xd,&zero); xdr_float(&xd,&zdim);
+    xdr_float(&xd,&xdim); xdr_float(&xd,&zero); xdr_float(&xd,&zero);
+    xdr_float(&xd,&zero); xdr_float(&xd,&ydim); xdr_float(&xd,&zero);
+    xdr_float(&xd,&zero); xdr_float(&xd,&zero); xdr_float(&xd,&zdim);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -209,14 +220,27 @@ int DumpXTC::pack()
     double xprd = domain->xprd;
     double yprd = domain->yprd;
     double zprd = domain->zprd;
+    double xy = domain->xy;
+    double xz = domain->xz;
+    double yz = domain->yz;
 
     for (int i = 0; i < nlocal; i++) {
-      buf[m++] = tag[i];
-      buf[m++] = sfactor*(x[i][0] + ((image[i] & 1023) - 512) * xprd);
-      buf[m++] = sfactor*(x[i][1] + ((image[i] >> 10 & 1023) - 512) * yprd);
-      buf[m++] = sfactor*(x[i][2] + ((image[i] >> 20) - 512) * zprd);
-    }
+      int ix = (image[i] & 1023) - 512;
+      int iy = (image[i] >> 10 & 1023) - 512;
+      int iz = (image[i] >> 20) - 512;
 
+      if (domain->triclinic) {
+	buf[m++] = tag[i];
+	buf[m++] = sfactor * (x[i][0] + ix * xprd + iy * xy + iz * xz);
+	buf[m++] = sfactor * (x[i][1] + iy * yprd + iz * yz);
+	buf[m++] = sfactor * (x[i][2] + iz * zprd);
+      } else {
+	buf[m++] = tag[i];
+	buf[m++] = sfactor * (x[i][0] + ix * xprd);
+	buf[m++] = sfactor * (x[i][1] + iy * yprd);
+	buf[m++] = sfactor * (x[i][2] + iz * zprd);
+      }
+    }
   } else {
     for (int i = 0; i < nlocal; i++) {
       buf[m++] = tag[i];

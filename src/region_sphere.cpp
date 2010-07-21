@@ -63,7 +63,7 @@ RegSphere::~RegSphere()
    inside = 0 if x,y,z is outside and not on surface
 ------------------------------------------------------------------------- */
 
-int RegSphere::	inside(double x, double y, double z)
+int RegSphere::inside(double x, double y, double z)
 {
   double delx = x - xc;
   double dely = y - yc;

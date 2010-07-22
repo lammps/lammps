@@ -386,7 +386,7 @@ void PairOMP::ev_tally_list_thr(int n, int *list, double ecoul, double *v, int t
   int i,j;
 
   if (eflag_either) {
-    if (eflag_global) eng_coul_thr[i] += ecoul;
+    if (eflag_global) eng_coul_thr[tid] += ecoul;
     if (eflag_atom) {
       double epairatom = ecoul/n;
       for (i = 0; i < n; i++) eatom_thr[tid][list[i]] += epairatom;

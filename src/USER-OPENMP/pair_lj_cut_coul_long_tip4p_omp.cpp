@@ -131,7 +131,7 @@ void PairLJCutCoulLongTIP4POMP::eval_tip4p()
     // loop over neighbors of my atoms
 
     int iifrom, iito;
-    double **f = loop_setup_thr(f, iifrom, iito, tid, inum, nall, nthreads);
+    double **f = loop_setup_thr(atom->f, iifrom, iito, tid, inum, nall, nthreads);
     for (ii = iifrom; ii < iito; ++ii) {
 
       i = ilist[ii];

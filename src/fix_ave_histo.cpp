@@ -106,45 +106,63 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   nvalues = 0;
 
   iarg = 9;
-  while (iarg < narg) {
+  while (nvalues < maxvalues) {
     if (strcmp(arg[iarg],"x") == 0) {
       which[nvalues] = X;
-      argindex[nvalues++] = 0;
+      argindex[nvalues] = 0;
       ids[nvalues] = NULL;
+      nvalues++;
+      iarg++;
     } else if (strcmp(arg[iarg],"y") == 0) {
       which[nvalues] = X;
-      argindex[nvalues++] = 1;
+      argindex[nvalues] = 1;
       ids[nvalues] = NULL;
+      nvalues++;
+      iarg++;
     } else if (strcmp(arg[iarg],"z") == 0) {
       which[nvalues] = X;
-      argindex[nvalues++] = 2;
+      argindex[nvalues] = 2;
       ids[nvalues] = NULL;
+      nvalues++;
+      iarg++;
 
     } else if (strcmp(arg[iarg],"vx") == 0) {
       which[nvalues] = V;
-      argindex[nvalues++] = 0;
+      argindex[nvalues] = 0;
       ids[nvalues] = NULL;
+      nvalues++;
+      iarg++;
     } else if (strcmp(arg[iarg],"vy") == 0) {
       which[nvalues] = V;
-      argindex[nvalues++] = 1;
+      argindex[nvalues] = 1;
       ids[nvalues] = NULL;
+      nvalues++;
+      iarg++;
     } else if (strcmp(arg[iarg],"vz") == 0) {
       which[nvalues] = V;
-      argindex[nvalues++] = 2;
+      argindex[nvalues] = 2;
       ids[nvalues] = NULL;
+      nvalues++;
+      iarg++;
 
     } else if (strcmp(arg[iarg],"fx") == 0) {
       which[nvalues] = F;
-      argindex[nvalues++] = 0;
+      argindex[nvalues] = 0;
       ids[nvalues] = NULL;
+      nvalues++;
+      iarg++;
     } else if (strcmp(arg[iarg],"fy") == 0) {
       which[nvalues] = F;
-      argindex[nvalues++] = 1;
+      argindex[nvalues] = 1;
       ids[nvalues] = NULL;
+      nvalues++;
+      iarg++;
     } else if (strcmp(arg[iarg],"fz") == 0) {
       which[nvalues] = F;
-      argindex[nvalues++] = 2;
+      argindex[nvalues] = 2;
       ids[nvalues] = NULL;
+      nvalues++;
+      iarg++;
 
     } else if ((strncmp(arg[iarg],"c_",2) == 0) || 
 	(strncmp(arg[iarg],"f_",2) == 0) || 
@@ -212,8 +230,8 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
       }
 
       nvalues++;
+      iarg++;
     } else break;
-    iarg++;
   }
 
   // setup and error check
@@ -483,7 +501,7 @@ FixAveHisto::~FixAveHisto()
   memory->sfree(which);
   memory->sfree(argindex);
   memory->sfree(value2index);
-  for (int i = 1; i < nvalues; i++) delete [] ids[i];
+  for (int i = 0; i < nvalues; i++) delete [] ids[i];
   memory->sfree(ids);
 
   if (fp && me == 0) fclose(fp);

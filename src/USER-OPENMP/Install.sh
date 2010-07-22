@@ -132,6 +132,8 @@ if (test $1 = 1) then
     cp pair_lj_charmm_coul_long_omp.cpp ..
     cp pair_lj_cut_coul_long_omp.h ..
     cp pair_lj_cut_coul_long_omp.cpp ..
+    cp pair_lj_cut_coul_long_tip4p_omp.h ..
+    cp pair_lj_cut_coul_long_tip4p_omp.cpp ..
     cp ewald_omp.h ..
     cp ewald_omp.cpp ..
   fi
@@ -261,6 +263,8 @@ elif (test $1 = 0) then
   rm -f ../pair_lj_charmm_coul_long_omp.cpp
   rm -f ../pair_lj_cut_coul_long_omp.h
   rm -f ../pair_lj_cut_coul_long_omp.cpp
+  rm -f ../pair_lj_cut_coul_long_tip4p_omp.h
+  rm -f ../pair_lj_cut_coul_long_tip4p_omp.cpp
   rm -f ../ewald_omp.h
   rm -f ../ewald_omp.cpp
 

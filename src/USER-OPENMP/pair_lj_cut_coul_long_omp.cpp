@@ -127,6 +127,7 @@ void PairLJCutCoulLongOMP::eval()
     double *special_coul = force->special_coul;
     double *special_lj = force->special_lj;
     double qqrd2e = force->qqrd2e;
+    double fxtmp,fytmp,fztmp;
 
     inum = list->inum;
     ilist = list->ilist;
@@ -147,6 +148,7 @@ void PairLJCutCoulLongOMP::eval()
       itype = type[i];
       jlist = firstneigh[i];
       jnum = numneigh[i];
+      fxtmp=fytmp=fztmp=0.0;
 
       for (jj = 0; jj < jnum; jj++) {
 	j = jlist[jj];
@@ -202,9 +204,9 @@ void PairLJCutCoulLongOMP::eval()
 
 	  fpair = (forcecoul + factor_lj*forcelj) * r2inv;
 
-	  f[i][0] += delx*fpair;
-	  f[i][1] += dely*fpair;
-	  f[i][2] += delz*fpair;
+	  fxtmp += delx*fpair;
+	  fytmp += dely*fpair;
+	  fztmp += delz*fpair;
 	  if (NEWTON_PAIR || j < nlocal) {
 	    f[j][0] -= delx*fpair;
 	    f[j][1] -= dely*fpair;
@@ -232,6 +234,9 @@ void PairLJCutCoulLongOMP::eval()
 				   evdwl,ecoul,fpair,delx,dely,delz,tid);
 	}
       }
+      f[i][0] += fxtmp;
+      f[i][1] += fytmp;
+      f[i][2] += fztmp;
     }
 
     // reduce per thread forces into global force array.

@@ -121,6 +121,7 @@ void PairLJCutCoulLongTIP4POMP::eval_tip4p()
     double *special_coul = force->special_coul;
     double *special_lj = force->special_lj;
     double qqrd2e = force->qqrd2e;
+    double fxtmp,fytmp,fztmp;
 
     inum = list->inum;
     ilist = list->ilist;
@@ -145,6 +146,7 @@ void PairLJCutCoulLongTIP4POMP::eval_tip4p()
       } else x1 = x[i];
       jlist = firstneigh[i];
       jnum = numneigh[i];
+      fxtmp=fytmp=fztmp=0.0;
 
       for (jj = 0; jj < jnum; jj++) {
 	j = jlist[jj];
@@ -171,9 +173,9 @@ void PairLJCutCoulLongTIP4POMP::eval_tip4p()
 	    forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
 	    forcelj *= factor_lj * r2inv;
 
-	    f[i][0] += delx*forcelj;
-	    f[i][1] += dely*forcelj;
-	    f[i][2] += delz*forcelj;
+	    fxtmp += delx*forcelj;
+	    fytmp += dely*forcelj;
+	    fztmp += delz*forcelj;
 	    f[j][0] -= delx*forcelj;
 	    f[j][1] -= dely*forcelj;
 	    f[j][2] -= delz*forcelj;
@@ -245,9 +247,9 @@ void PairLJCutCoulLongTIP4POMP::eval_tip4p()
 	    n = 0;
 	    
 	    if (itype != typeO) {
-	      f[i][0] += delx * cforce;
-	      f[i][1] += dely * cforce;
-	      f[i][2] += delz * cforce;
+	      fxtmp += delx * cforce;
+	      fytmp += dely * cforce;
+	      fztmp += delz * cforce;
 
 	      if (VFLAG) {
 		v[0] = delx * delx * cforce;
@@ -268,9 +270,9 @@ void PairLJCutCoulLongTIP4POMP::eval_tip4p()
 	      fH[1] = alpha * (dely*cforce);
 	      fH[2] = alpha * (delz*cforce);
 
-	      f[i][0] += fO[0];
-	      f[i][1] += fO[1];
-	      f[i][2] += fO[2];
+	      fxtmp += fO[0];
+	      fytmp += fO[1];
+	      fztmp += fO[2];
 
 	      f[iH1][0] += fH[0];
 	      f[iH1][1] += fH[1];
@@ -382,6 +384,9 @@ void PairLJCutCoulLongTIP4POMP::eval_tip4p()
 	  }
 	}
       }
+      f[i][0] += fxtmp;
+      f[i][1] += fytmp;
+      f[i][2] += fztmp;
     }
     // reduce per thread forces into global force array.
     force_reduce_thr(atom->f, nall, nthreads, tid);

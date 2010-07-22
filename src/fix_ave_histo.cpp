@@ -212,8 +212,8 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
       }
 
       nvalues++;
-      iarg++;
     } else break;
+    iarg++;
   }
 
   // setup and error check
@@ -483,7 +483,7 @@ FixAveHisto::~FixAveHisto()
   memory->sfree(which);
   memory->sfree(argindex);
   memory->sfree(value2index);
-  for (int i = 0; i < nvalues; i++) delete [] ids[i];
+  for (int i = 1; i < nvalues; i++) delete [] ids[i];
   memory->sfree(ids);
 
   if (fp && me == 0) fclose(fp);

@@ -52,7 +52,7 @@ negotiate an appropriate license for such distribution."
 #include <stdlib.h>
 #include <string.h>
 
-#if defined(_MSC_VER) 
+#if defined(_MSC_VER) || defined(__MINGW32_VERSION)
 #include <winsock2.h>
 #else
 #include <arpa/inet.h>
@@ -814,7 +814,7 @@ double FixIMD::memory_usage(void)
  ***************************************************************************/
 
 int imdsock_init(void) {
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) || defined(__MINGW32_VERSION)
   int rc = 0;
   static int initialized=0;
 
@@ -867,16 +867,20 @@ void *imdsock_accept(void * v) {
   imdsocket *new_s = NULL, *s = (imdsocket *) v;
 #if defined(ARCH_AIX5) || defined(ARCH_AIX5_64) || defined(ARCH_AIX6_64)
   unsigned int len;
+#define _SOCKLEN_TYPE unsigned int
 #elif defined(SOCKLEN_T)
   SOCKLEN_T len;
+#define _SOCKLEN_TYPE SOCKLEN_T
 #elif defined(_POSIX_SOURCE)
   socklen_t len;
+#define _SOCKLEN_TYPE socklen_t
 #else
+#define _SOCKLEN_TYPE int
   int len;
 #endif
 
   len = sizeof(s->addr);
-  rc = accept(s->sd, (struct sockaddr *) &s->addr, ( socklen_t * ) &len);
+  rc = accept(s->sd, (struct sockaddr *) &s->addr, ( _SOCKLEN_TYPE * ) &len);
   if (rc >= 0) {
     new_s = (imdsocket *) malloc(sizeof(imdsocket));
     if (new_s != NULL) {
@@ -889,7 +893,7 @@ void *imdsock_accept(void * v) {
 
 int  imdsock_write(void * v, const void *buf, int len) {
   imdsocket *s = (imdsocket *) v;
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) || defined(__MINGW32_VERSION)
   return send(s->sd, (const char*) buf, len, 0);  /* windows lacks the write() call */
 #else
   return write(s->sd, buf, len);
@@ -898,7 +902,7 @@ int  imdsock_write(void * v, const void *buf, int len) {
 
 int  imdsock_read(void * v, void *buf, int len) {
   imdsocket *s = (imdsocket *) v;
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) || defined(__MINGW32_VERSION)
   return recv(s->sd, (char*) buf, len, 0); /* windows lacks the read() call */
 #else
   return read(s->sd, buf, len);
@@ -911,7 +915,7 @@ void imdsock_shutdown(void *v) {
   if (s == NULL)
     return;
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) || defined(__MINGW32_VERSION)
   shutdown(s->sd, SD_SEND);
 #else
   shutdown(s->sd, 1);  /* complete sends and send FIN */
@@ -923,7 +927,7 @@ void imdsock_destroy(void * v) {
   if (s == NULL)
     return;
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) || defined(__MINGW32_VERSION)
   closesocket(s->sd);
 #else
   close(s->sd);

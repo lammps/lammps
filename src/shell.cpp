@@ -39,7 +39,7 @@ void Shell::command(int narg, char **arg)
 
   } else if (strcmp(arg[0],"mkdir") == 0) {
     if (narg < 2) error->all("Illegal shell command");
-#ifndef WINDOWS
+#if !defined(WINDOWS) && !defined(__MINGW32_VERSION) 
     if (me == 0)
       for (int i = 1; i < narg; i++)
 	mkdir(arg[i], S_IRWXU | S_IRGRP | S_IXGRP);

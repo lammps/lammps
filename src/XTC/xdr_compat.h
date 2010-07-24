@@ -60,6 +60,11 @@ extern "C" {
 
 typedef int bool_t;
 
+#if defined(__MINGW32_VERSION)
+typedef char * caddr_t;
+typedef unsigned int u_int;
+#endif
+
 /* 
  * Aninteger type that is 32 bits wide. Check if int,
  * long or short is 32 bits and die if none of them is :-)

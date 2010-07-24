@@ -41,14 +41,11 @@ enum{SPHERE_SPHERE,SPHERE_ELLIPSE,ELLIPSE_SPHERE,ELLIPSE_ELLIPSE};
 /* ---------------------------------------------------------------------- */
 
 PairRESquaredOMP::PairRESquaredOMP(LAMMPS *lmp) : PairOMP(lmp), 
-					    b_alpha(45.0/56.0),
-                                            cr60(pow(60.0,1.0/3.0))
+				  cr60(pow(60.0,1.0/3.0)),b_alpha(45.0/56.0),
+  				  solv_f_a(3.0/(16.0*atan(1.0)*-36.0)),
+				  solv_f_r(3.0/(16.0*atan(1.0)*2025.0))
 {
   single_enable = 0;
-  cr60 = pow(60.0,1.0/3.0);
-  b_alpha = 45.0/56.0;
-  solv_f_a = 3.0/(16.0*atan(1.0)*-36.0);
-  solv_f_r = 3.0/(16.0*atan(1.0)*2025.0);
 }
 
 /* ----------------------------------------------------------------------

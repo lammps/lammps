@@ -84,10 +84,10 @@ class PairRESquaredOMP : public PairOMP {
                       const double *r, const double rsq, double *fforce, 
                       double *ttor, bool calc_torque);
 
-  double cr60;         // 60^1/3
-  double b_alpha;      // 45/56
-  double solv_f_a;     // 3.0/(4.0*PI*-36)
-  double solv_f_r;     // 3.0/(4.0*PI*2025)
+  const double cr60;         // 60^1/3
+  const double b_alpha;      // 45/56
+  const double solv_f_a;     // 3.0/(4.0*PI*-36)
+  const double solv_f_r;     // 3.0/(4.0*PI*2025)
 };
 
 }

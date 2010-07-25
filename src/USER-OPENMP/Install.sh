@@ -5,7 +5,7 @@ if (test $1 = 1) then
   cp dihedral_omp.h ..
   cp dihedral_omp.cpp ..
   
-  if (test -e dihedral_harmonic.cpp); then
+  if (test -e ../dihedral_harmonic.cpp); then
     cp dihedral_harmonic_omp.h ..
     cp dihedral_harmonic_omp.cpp ..
     cp dihedral_helix_omp.h ..
@@ -61,7 +61,7 @@ if (test $1 = 1) then
     cp pair_cg_cmm_omp.cpp ..
   fi
 
-  if (test -e pair_colloid.cpp); then
+  if (test -e ../pair_colloid.cpp); then
     cp pair_colloid_omp.h ..
     cp pair_colloid_omp.cpp ..
     cp pair_lubricate_omp.h ..
@@ -70,12 +70,12 @@ if (test $1 = 1) then
     cp pair_yukawa_colloid_omp.cpp ..
   fi
 
-  if (test -e pair_dipole_cut.cpp); then
+  if (test -e ../pair_dipole_cut.cpp); then
     cp pair_dipole_cut_omp.h ..
     cp pair_dipole_cut_omp.cpp ..
   fi
 
-  if (test -e pair_gayberne.cpp); then
+  if (test -e ../pair_gayberne.cpp); then
     cp pair_gayberne_omp.h ..
     cp pair_gayberne_omp.cpp ..
     cp pair_resquared_omp.h ..

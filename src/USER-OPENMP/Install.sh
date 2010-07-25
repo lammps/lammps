@@ -10,6 +10,10 @@ if (test $1 = 1) then
     cp dihedral_harmonic_omp.cpp ..
     cp dihedral_helix_omp.h ..
     cp dihedral_helix_omp.cpp ..
+    cp dihedral_multi_harmonic_omp.h ..
+    cp dihedral_multi_harmonic_omp.cpp ..
+    cp dihedral_opls_omp.h ..
+    cp dihedral_opls_omp.cpp ..
   fi
 
   cp pair_omp.h ..
@@ -138,7 +142,7 @@ if (test $1 = 1) then
     cp ewald_omp.cpp ..
   fi
 
-  if (test -e ..pair_lj_class2.cpp) then
+  if (test -e ../pair_lj_class2.cpp) then
     cp pair_lj_class2_omp.cpp ..
 	cp pair_lj_class2_omp.h ..
 	cp pair_lj_class2_coul_cut_omp.cpp ..
@@ -157,6 +161,8 @@ elif (test $1 = 0) then
   rm -f ../dihedral_harmonic_omp.cpp
   rm -f ../dihedral_helix_omp.h
   rm -f ../dihedral_helix_omp.cpp
+  rm -f ../dihedral_opls_omp.h
+  rm -f ../dihedral_opls_omp.cpp
 
   rm ../pair_omp.h
   rm ../pair_omp.cpp
@@ -268,12 +274,12 @@ elif (test $1 = 0) then
   rm -f ../ewald_omp.h
   rm -f ../ewald_omp.cpp
 
-  rm -f ../pair_lj_class2_omp.cpp
   rm -f ../pair_lj_class2_omp.h
-  rm -f ../pair_lj_class2_coul_cut_omp.cpp
+  rm -f ../pair_lj_class2_omp.cpp
   rm -f ../pair_lj_class2_coul_cut_omp.h
-  rm -f ../pair_lj_class2_coul_long_omp.cpp 
+  rm -f ../pair_lj_class2_coul_cut_omp.cpp
   rm -f ../pair_lj_class2_coul_long_omp.h
+  rm -f ../pair_lj_class2_coul_long_omp.cpp 
   rm -f ../dihedral_class2_omp.h
   rm -f ../dihedral_class2_omp.cpp
 fi

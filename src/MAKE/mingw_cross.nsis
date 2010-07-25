@@ -13,7 +13,7 @@
 # installer containing your program.
 
 Name "LAMMPS-ICMS"
-OutFile "lammps-icms-win.exe"
+OutFile "../lammps-icms-win.exe"
 InstallDir "c:\LAMMPS-ICMS"
 InstallDirRegKey HKLM SOFTWARE\LAMMPS-ICMS "Install_Dir"
 
@@ -64,9 +64,7 @@ Section "Uninstall"
   Delete /rebootok "$INSTDIR\lmp_mingw_cross.exe"
   RMDir "$INSTDIR"
 
-  Delete /rebootok "$INSTDIR\pthreadgc2.dll"
   Delete /rebootok "$INSTDIR\mingwm10.dll"
-  Delete /rebootok "$INSTDIR\libgomp-1.dll"
   Delete /rebootok "$INSTDIR\libgcc_s_sjlj-1.dll"
   RMDir "$INSTDIR"
 SectionEnd

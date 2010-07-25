@@ -71,8 +71,9 @@ EXTRA_LIB = $(PKG_LIB) $(MPI_LIB) $(FFT_LIB) $(PKG_SYSLIB)
 
 # Link target
 
-$(EXE):	$(EXE).exe
+$(EXE):	$(EXE).exe ../MAKE/mingw_cross.nsis
 	makensis ../MAKE/mingw_cross.nsis
+	(cd ..; zip -0 lammps-icms-win.zip lammps-icms-win.exe)
 	touch $(EXE)
 
 $(EXE).exe: $(OBJ) mpi.o

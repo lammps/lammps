@@ -1,4 +1,6 @@
 Makefile.package
+lammps-icms-win.exe
+lammps-icms-win.zip
 angle_cg_cmm.cpp
 angle_cg_cmm.h
 angle_charmm.cpp
@@ -371,4 +373,3 @@ style_pair.h
 style_region.h
 xdr_compat.cpp
 xdr_compat.h
-

@@ -33,6 +33,8 @@ atom_vec_granular.cpp
 atom_vec_granular.h
 atom_vec_molecular.cpp
 atom_vec_molecular.h
+atom_vec_peri.cpp
+atom_vec_peri.h
 bond_class2.cpp
 bond_class2.h
 bond_fene.cpp
@@ -51,6 +53,8 @@ bond_table.cpp
 bond_table.h
 cg_cmm_parms.cpp
 cg_cmm_parms.h
+compute_damage_atom.cpp
+compute_damage_atom.h
 compute_erotate_asphere.cpp
 compute_erotate_asphere.h
 compute_event_displace.cpp
@@ -119,6 +123,8 @@ fix_nve_asphere.cpp
 fix_nve_asphere.h
 fix_nvt_asphere.cpp
 fix_nvt_asphere.h
+fix_peri_neigh.cpp
+fix_peri_neigh.h
 fix_pour.cpp
 fix_pour.h
 fix_pour_omp.cpp
@@ -279,6 +285,8 @@ pair_lj_cut_coul_long_omp.cpp
 pair_lj_cut_coul_long_omp.h
 pair_lj_cut_coul_long_tip4p.cpp
 pair_lj_cut_coul_long_tip4p.h
+pair_lj_cut_coul_long_tip4p_omp.cpp
+pair_lj_cut_coul_long_tip4p_omp.h
 pair_lj_cut_gpu.cpp
 pair_lj_cut_gpu.h
 pair_lj_cut_omp.cpp
@@ -305,6 +313,8 @@ pair_morse_opt.cpp
 pair_morse_opt.h
 pair_omp.cpp
 pair_omp.h
+pair_peri_pmb.cpp
+pair_peri_pmb.h
 pair_resquared.cpp
 pair_resquared.h
 pair_resquared_omp.cpp

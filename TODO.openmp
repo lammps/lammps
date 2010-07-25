@@ -4,29 +4,8 @@ threading project.
 Axel:
 - rewrite and port the remaining "complicated" pair style to threading
 pair_cg_cmm_coul_long.cpp
-pair_gran_hertz_history.cpp
-pair_gran_hooke.cpp
-pair_gran_hooke_history.cpp
 - think about adding threading to pppm
-- ... more threading to ewald?
 - fourier transforms (may need extra flag to restrict fft-threads)
-- single prec fourier transforms(!!!).
 - update documentation
-
-Peter, Ryan
-- missing pair styles:
-  + in package CLASS2
-    pair_lj_class2_coul_cut.cpp
-    pair_lj_class2_coul_long.cpp
-    pair_lj_class2.cpp
-  + in package USER-EWALDN
-    pair_buck_coul.cpp
-    pair_lj_coul.cpp
-- check compilation on local and remote machines
-- run tests and benchmarks and collect performance data
-
-Axel, Peter, Ryan:
-potential further candidates:
-- fixes/computes.
 
 

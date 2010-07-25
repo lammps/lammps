@@ -7,15 +7,15 @@ SHELL = /bin/sh
 # specify flags and libraries needed for your compiler
 
 CC =		i686-pc-mingw32-g++
-CCFLAGS =	-O3 -march=i686 -mtune=generic -mfpmath=387 -mpc64 \
+CCFLAGS =	-O3 -march=i686 -mtune=generic -mfpmath=387 -mpc64  \
 	 -fno-exceptions -fno-rtti -ffast-math -funroll-loops -fstrict-aliasing -Wall -W -Wno-uninitialized 
 DEPFLAGS =	-M
 LINK =		i686-pc-mingw32-g++
-LINKFLAGS =	-O -Bstatic
+LINKFLAGS =	-O 
 LIB =         -lwsock32  # -lwsock32 is needed for USER-IMD which uses tcp/ip sockets.
 ARCHIVE =	ar
 ARFLAGS =	-rcsv
-SIZE =		size
+SIZE =		i686-pc-mingw32-size
 
 # ---------------------------------------------------------------------
 # LAMMPS-specific settings
@@ -39,7 +39,7 @@ MPI_LIB = mpi.o
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC =   -DFFT_NONE -DFFT_SINGLE
+FFT_INC =   -DFFT_NONE #-DFFT_SINGLE
 FFT_PATH = 
 FFT_LIB =	#-lfftw
 
@@ -72,12 +72,10 @@ EXTRA_LIB = $(PKG_LIB) $(MPI_LIB) $(FFT_LIB) $(PKG_SYSLIB)
 # Link target
 
 $(EXE):	$(EXE).exe
-	env PATH=/usr/i686-pc-mingw32/sys-root/mingw/bin/:$(PATH) \
-		nsiswrapper --name "LAMMPS-ICMS" --outfile lammps-icms-win.exe \
-		--run --verbose $(EXE).exe
+	makensis ../MAKE/mingw_cross.nsis
 	touch $(EXE)
 
-$(EXE).exe:	$(OBJ) mpi.o
+$(EXE).exe: $(OBJ) mpi.o
 	$(LINK) $(LINKFLAGS) $(EXTRA_PATH) $(OBJ) $(EXTRA_LIB) $(LIB) -o $(EXE).exe
 	$(SIZE) $(EXE).exe
 

@@ -39,9 +39,7 @@ Section "LAMMPS-ICMS"
 
   SetOutPath "$INSTDIR"
   File "/usr/i686-pc-mingw32/sys-root/mingw/bin/libgcc_s_sjlj-1.dll"
-  File "/usr/i686-pc-mingw32/sys-root/mingw/bin/libgomp-1.dll"
   File "/usr/i686-pc-mingw32/sys-root/mingw/bin/mingwm10.dll"
-  File "/usr/i686-pc-mingw32/sys-root/mingw/bin/pthreadGC2.dll"
 
   SetOutPath "$INSTDIR"
   File "../lmp_mingw_cross.exe"

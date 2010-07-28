@@ -779,14 +779,27 @@ void FixIMD::post_force(int vflag)
       double xprd = domain->xprd;
       double yprd = domain->yprd;
       double zprd = domain->zprd;
+      double xy = domain->xy;
+      double xz = domain->xz;
+      double yz = domain->yz;
 
       for (i=0; i<nlocal; ++i) {
         if (mask[i] & groupbit) {
           const int j = 3*inthash_lookup((inthash_t *)idmap, tag[i]);
           if (j != HASH_FAIL) {
-            recvcoord[j]   = x[i][0] + ((image[i] & 1023) - 512) * xprd;
-            recvcoord[j+1] = x[i][1] + ((image[i] >> 10 & 1023) - 512) * yprd;
-            recvcoord[j+2] = x[i][2] + ((image[i] >> 20) - 512) * zprd;
+            int ix = (image[i] & 1023) - 512;
+            int iy = (image[i] >> 10 & 1023) - 512;
+            int iz = (image[i] >> 20) - 512;
+
+            if (domain->triclinic) {
+              recvcoord[j]   = x[i][0] + ix * xprd + iy * xy + iz * xz;
+              recvcoord[j+1] = x[i][1] + iy * yprd + iz * yz;
+              recvcoord[j+2] = x[i][2] + iz * zprd;
+            } else {
+              recvcoord[j]   = x[i][0] + ix * xprd;
+              recvcoord[j+1] = x[i][1] + iy * yprd;
+              recvcoord[j+2] = x[i][2] + iz * zprd;
+            }
           }
         }
       }
@@ -845,13 +858,27 @@ void FixIMD::post_force(int vflag)
       double xprd = domain->xprd;
       double yprd = domain->yprd;
       double zprd = domain->zprd;
+      double xy = domain->xy;
+      double xz = domain->xz;
+      double yz = domain->yz;
 
       for (i=0; i<nlocal; ++i) {
         if (mask[i] & groupbit) {
-          buf[nme].tag = tag[i];
-          buf[nme].x   = x[i][0] + ((image[i] & 1023) - 512) * xprd;
-          buf[nme].y   = x[i][1] + ((image[i] >> 10 & 1023) - 512) * yprd;
-          buf[nme].z   = x[i][2] + ((image[i] >> 20) - 512) * zprd;
+          int ix = (image[i] & 1023) - 512;
+          int iy = (image[i] >> 10 & 1023) - 512;
+          int iz = (image[i] >> 20) - 512;
+
+          if (domain->triclinic) {
+            buf[nme].tag = tag[i];
+            buf[nme].x   = x[i][0] + ix * xprd + iy * xy + iz * xz;
+            buf[nme].y   = x[i][1] + iy * yprd + iz * yz;
+            buf[nme].z   = x[i][2] + iz * zprd;
+          } else {
+            buf[nme].tag = tag[i];
+            buf[nme].x   = x[i][0] + ix * xprd;
+            buf[nme].y   = x[i][1] + iy * yprd;
+            buf[nme].z   = x[i][2] + iz * zprd;
+          }
           ++nme;
         }
       }

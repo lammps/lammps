@@ -253,6 +253,8 @@ FixIMD::FixIMD(LAMMPS *lmp, int narg, char **arg) :
   imd_forces = 0;
   force_buf = NULL;
   maxbuf = 0;
+  msgdata = NULL;
+  msglen = 0;
   comm_buf = NULL;
   idmap = NULL;
   rev_idmap = NULL;
@@ -276,6 +278,31 @@ FixIMD::FixIMD(LAMMPS *lmp, int narg, char **arg) :
     
   /* storage required to communicate a single coordinate or force. */
   size_one = sizeof(struct commdata);
+
+#if defined(LAMMPS_ASYNC_IMD)
+  /* set up for i/o worker thread on MPI rank 0.*/
+  if (me == 0) {
+    if (screen)
+      fputs("Using asynchronous IMD I/O.\n",screen);
+    if (logfile)
+      fputs("Using asynchronous IMD I/O.\n",logfile);
+
+    /* set up mutex and condition variable for i/o thread */
+    /* hold mutex before creating i/o thread to keep it waiting. */
+    pthread_mutex_init(&read_mutex, NULL);
+    pthread_mutex_init(&write_mutex, NULL);
+    pthread_cond_init(&write_cond, NULL);
+
+    pthread_mutex_lock(&write_mutex);
+    buf_has_data=0;
+    pthread_mutex_unlock(&write_mutex);
+
+    /* set up and launch i/o thread */
+    pthread_attr_init(&iot_attr);
+    pthread_attr_setdetachstate(&iot_attr, PTHREAD_CREATE_JOINABLE);
+    pthread_create(&iothread, &iot_attr, &fix_imd_ioworker, this);
+  }
+#endif
 }
 
 /*********************************
@@ -283,6 +310,21 @@ FixIMD::FixIMD(LAMMPS *lmp, int narg, char **arg) :
  *********************************/
 FixIMD::~FixIMD()
 {
+
+#if defined(LAMMPS_ASYNC_IMD)
+  if (me == 0) {
+    pthread_mutex_lock(&write_mutex);
+    buf_has_data=-1;
+    pthread_cond_signal(&write_cond);
+    pthread_mutex_unlock(&write_mutex);
+    pthread_join(iothread, NULL);
+
+    /* cleanup */
+    pthread_attr_destroy(&iot_attr);
+    pthread_mutex_destroy(&write_mutex);
+    pthread_cond_destroy(&write_cond);
+  }
+#endif
 
   inthash_t *hashtable = (inthash_t *)idmap;
   memory->sfree(comm_buf);
@@ -475,6 +517,44 @@ void FixIMD::setup(int)
   
   return;
 }
+
+/* worker thread for asynchronous i/o */
+#if defined(LAMMPS_ASYNC_IMD)
+/* c bindings wrapper */
+void *fix_imd_ioworker(void *t)
+{
+  FixIMD *imd=(FixIMD *)t;
+  imd->ioworker();
+  return NULL;
+}
+
+/* the real i/o worker thread */
+void FixIMD::ioworker()
+{
+  while (1) {
+    pthread_mutex_lock(&write_mutex);
+    if (buf_has_data < 0) {
+      /* master told us to go away */
+      fprintf(screen,"Asynchronous I/O thread is exiting.\n");
+      buf_has_data=0;
+      pthread_mutex_unlock(&write_mutex);
+      pthread_exit(NULL);
+    } else if (buf_has_data > 0) {
+      /* send coordinate data, if client is able to accept */
+      if (clientsock && imdsock_selwrite(clientsock,0)) {
+        imd_writen(clientsock, msgdata, msglen);
+      }
+      delete[] msgdata;
+      buf_has_data=0;
+      pthread_mutex_unlock(&write_mutex);
+    } else {
+      /* nothing to write out yet. wait on condition. */
+      pthread_cond_wait(&write_cond, &write_mutex);
+      pthread_mutex_unlock(&write_mutex);
+    }
+  }
+}
+#endif
 
 /* ---------------------------------------------------------------------- */
 /* Main IMD protocol handler:
@@ -688,8 +768,8 @@ void FixIMD::post_force(int vflag)
   if (me == 0) {
     /* collect data into new array. we bypass the IMD API to save
      * us one extra copy of the data. */
-    int   msglen = 3*sizeof(float)*num_coords+IMDHEADERSIZE;
-    char *msgdata = new char[msglen];
+    msglen = 3*sizeof(float)*num_coords+IMDHEADERSIZE;
+    msgdata = new char[msglen];
     imd_fill_header((IMDheader *)msgdata, IMD_FCOORDS, num_coords);
     /* array pointer, to the offset where we receive the coordinates. */
     float *recvcoord = (float *) (msgdata+IMDHEADERSIZE);
@@ -742,13 +822,22 @@ void FixIMD::post_force(int vflag)
     }
 
     /* done collecting frame data now communicate with IMD client. */
-    
+
+#if defined(LAMMPS_ASYNC_IMD)
+    /* wake up i/o worker thread and release lock on i/o buffer
+     * we can go back to our MD and let the i/o thread do the rest */
+    buf_has_data=1;
+    pthread_cond_signal(&write_cond);
+    pthread_mutex_unlock(&write_mutex);
+#else
+
     /* send coordinate data, if client is able to accept */
     if (clientsock && imdsock_selwrite(clientsock,0)) {
       imd_writen(clientsock, msgdata, msglen);
     }
     delete[] msgdata;
-    
+#endif
+
   } else {
     /* copy coordinate data into communication buffer */
     nme = 0;

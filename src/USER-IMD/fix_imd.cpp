@@ -518,7 +518,7 @@ void FixIMD::setup(int)
   return;
 }
 
-/* worker thread for asynchronous i/o */
+/* worker threads for asynchronous i/o */
 #if defined(LAMMPS_ASYNC_IMD)
 /* c bindings wrapper */
 void *fix_imd_ioworker(void *t)
@@ -540,6 +540,7 @@ void FixIMD::ioworker()
       pthread_mutex_unlock(&write_mutex);
       pthread_exit(NULL);
     } else if (buf_has_data > 0) {
+      /* XXX: add code to denoise the coordinates here. */
       /* send coordinate data, if client is able to accept */
       if (clientsock && imdsock_selwrite(clientsock,0)) {
         imd_writen(clientsock, msgdata, msglen);

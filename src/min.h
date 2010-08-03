@@ -50,9 +50,10 @@ class Min : protected Pointers {
   double dmax;                // max dist to move any atom in one step
   int linestyle;              // 0 = backtrack, 1 = quadratic
 
-  int nelist_atom;                  // # of PE,virial computes to check
+  int nelist_global,nelist_atom;    // # of PE,virial computes to check
   int nvlist_global,nvlist_atom;
-  class Compute **elist_atom;       // list of PE,virial Computes
+  class Compute **elist_global;     // lists of PE,virial Computes
+  class Compute **elist_atom;
   class Compute **vlist_global;
   class Compute **vlist_atom;
 

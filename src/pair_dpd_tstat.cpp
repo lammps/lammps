@@ -118,7 +118,7 @@ void PairDPDTstat::compute(int eflag, int vflag)
 	// drag force = -gamma * wd^2 * (delx dot delv) / r
 	// random force = sigma * wd * rnd * dtinvsqrt;
 
-	fpair = gamma[itype][jtype]*wd*wd*dot*rinv;
+	fpair = -gamma[itype][jtype]*wd*wd*dot*rinv;
 	fpair += sigma[itype][jtype]*wd*randnum*dtinvsqrt;
 	fpair *= factor_dpd*rinv;	
 

@@ -10,7 +10,7 @@ delete_atoms command :h3
 
 [Syntax:]
 
-delete_atoms style args :pre
+delete_atoms style args keyword value ... :pre
 
 style = {group} or {region} or {overlap} or {porosity} :ulb,l
   {group} args = group-ID
@@ -23,12 +23,15 @@ style = {group} or {region} or {overlap} or {porosity} :ulb,l
     region-ID = region within which to perform deletions
     fraction = delete this fraction of atoms
     seed = random number seed (positive integer) :pre
+zero or more keyword/value pairs may be appended :l
+keyword = {compress} :l
+  {compress} value = {no} or {yes} :pre
 :ule
 
 [Examples:]
 
 delete_atoms group edge
-delete_atoms region sphere
+delete_atoms region sphere compress no
 delete_atoms overlap 0.3 all all
 delete_atoms overlap 0.5 solvent colloid
 delete_atoms porosity cube 0.1 :pre
@@ -67,10 +70,12 @@ randomly.  There is no guarantee that the exact fraction of atoms will
 be deleted, or that the same atoms will be deleted when running on
 different numbers of processors.
 
-After atoms are deleted, if the system is not molecular (no bonds),
-then atom IDs are re-assigned so that they run from 1 to the number of
-atoms in the system.  This is not done for molecular systems, since it
-would foul up the bond connectivity that has already been assigned.
+If the {compress} keyword is set to {yes}, then after atoms are
+deleted, then atom IDs are re-assigned so that they run from 1 to the
+number of atoms in the system.  This is not done for molecular systems
+(see the "atom_style"_atom_style.html command), regardless of the
+{compress} setting, since it would foul up the bond connectivity that
+has already been assigned.
 
 [Restrictions:]
 
@@ -93,4 +98,6 @@ deleting one atom in a bonded pair anyway.
 
 "create_atoms"_create_atoms.html
 
-[Default:] none
+[Default:]
+
+The option defaults are compress = yes.

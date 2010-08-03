@@ -31,11 +31,13 @@ class DeleteAtoms : protected Pointers {
 
  private:
   int *dlist;
+  int compress_flag;
 
   void delete_group(int, char **);
   void delete_region(int, char **);
   void delete_overlap(int, char **);
   void delete_porosity(int, char **);
+  void options(int, char **);
 };
 
 }

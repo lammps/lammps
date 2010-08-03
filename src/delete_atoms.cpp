@@ -44,11 +44,10 @@ void DeleteAtoms::command(int narg, char **arg)
   if (domain->box_exist == 0) 
     error->all("Delete_atoms command before simulation box is defined");
   if (narg < 1) error->all("Illegal delete_atoms command");
-
-  // store state before delete
-
   if (atom->tag_enable == 0)
     error->all("Cannot use delete_atoms unless atoms have IDs");
+
+  // store state before delete
 
   int natoms_previous = static_cast<int> (atom->natoms);
 
@@ -78,10 +77,11 @@ void DeleteAtoms::command(int narg, char **arg)
   atom->nlocal = nlocal;
   memory->sfree(dlist);
 
-  // if non-molecular system, reset atom tags to be contiguous
+  // if non-molecular system and compress flag set,
+  // reset atom tags to be contiguous
   // set all atom IDs to 0, call tag_extend()
 
-  if (atom->molecular == 0) {
+  if (atom->molecular == 0 && compress_flag) {
     int *tag = atom->tag;
     for (i = 0; i < nlocal; i++) tag[i] = 0;
     atom->tag_extend();
@@ -118,10 +118,11 @@ void DeleteAtoms::command(int narg, char **arg)
 
 void DeleteAtoms::delete_group(int narg, char **arg)
 {
-  if (narg != 2) error->all("Illegal delete_atoms command");
+  if (narg < 2) error->all("Illegal delete_atoms command");
 
   int igroup = group->find(arg[1]);
   if (igroup == -1) error->all("Could not find delete_atoms group ID");
+  options(narg-2,&arg[2]);
 
   // allocate and initialize deletion list
   
@@ -142,10 +143,11 @@ void DeleteAtoms::delete_group(int narg, char **arg)
 
 void DeleteAtoms::delete_region(int narg, char **arg)
 {
-  if (narg != 2) error->all("Illegal delete_atoms command");
+  if (narg < 2) error->all("Illegal delete_atoms command");
   
   int iregion = domain->find_region(arg[1]);
   if (iregion == -1) error->all("Could not find delete_atoms region ID");
+  options(narg-2,&arg[2]);
 
   // allocate and initialize deletion list
   
@@ -179,6 +181,7 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
   int igroup2 = group->find(arg[3]);
   if (igroup1 < 0 || igroup2 < 0)
     error->all("Could not find delete_atoms group ID");
+  options(narg-4,&arg[4]);
 
   int group1bit = group->bitmask[igroup1];
   int group2bit = group->bitmask[igroup2];
@@ -313,13 +316,14 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
 
 void DeleteAtoms::delete_porosity(int narg, char **arg)
 {
-  if (narg != 4) error->all("Illegal delete_atoms command");
+  if (narg < 4) error->all("Illegal delete_atoms command");
 
   int iregion = domain->find_region(arg[1]);
   if (iregion == -1) error->all("Could not find delete_atoms region ID");
 
   double porosity_fraction = atof(arg[2]);
   int seed = atoi(arg[3]);
+  options(narg-4,&arg[4]);
 
   RanMars *random = new RanMars(lmp,seed + comm->me);
 
@@ -336,4 +340,22 @@ void DeleteAtoms::delete_porosity(int narg, char **arg)
       if (random->uniform() <= porosity_fraction) dlist[i] = 1;
 }
 
+/* ----------------------------------------------------------------------
+   process command options
+------------------------------------------------------------------------- */
 
+void DeleteAtoms::options(int narg, char **arg)
+{
+  compress_flag = 1;
+
+  int iarg = 0;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"compress") == 0) {
+      if (iarg+2 > narg) error->all("Illegal delete_bonds command");
+      if (strcmp(arg[iarg+1],"yes") == 0) compress_flag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) compress_flag = 0;
+      else error->all("Illegal delete_bonds command");
+      iarg += 2;
+    } else error->all("Illegal delete_bonds command");
+  }
+}

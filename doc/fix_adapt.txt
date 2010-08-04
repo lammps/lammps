@@ -127,7 +127,7 @@ over the course of a 1000-step simulation:
 
 variable start equal 1.0
 variable stop equal 0.1
-variable size equal start+(stop-start)*elapsed/1000
+variable size equal ramp(1.0,0.1)
 fix 1 center adapt 10 atom diameter size :pre
 
 [Restart, fix_modify, output, run start/stop, minimize info:]

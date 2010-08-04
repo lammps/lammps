@@ -344,8 +344,11 @@ Ramp(x,y) uses the current timestep to generate a scalar value:
 
 value = x + (y-x) * (timestep - startstep) / (stopstep - startstep) :pre
 
-which is a value that ramps linear over the timesteps of a run between
-x and y.  The run began on startstep and will end on stopstep.
+which is a value that ramps linear between x and y over the course of
+a run.  The run begins on startstep and ends on stopstep.  Startstep
+and stopstep can span multiple runs, using the {start} and {stop}
+keywords of the "run"_run.html command.  See the "run"_run.html
+command for details of how to do this.
 
 Group functions are specified as keywords followed by one or two
 parenthesized arguments.  The first argument is the group-ID.  The

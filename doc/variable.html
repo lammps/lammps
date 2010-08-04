@@ -345,8 +345,11 @@ to its argument.
 </P>
 <PRE>value = x + (y-x) * (timestep - startstep) / (stopstep - startstep) 
 </PRE>
-<P>which is a value that ramps linear over the timesteps of a run between
-x and y.  The run began on startstep and will end on stopstep.
+<P>which is a value that ramps linear between x and y over the course of
+a run.  The run begins on startstep and ends on stopstep.  Startstep
+and stopstep can span multiple runs, using the <I>start</I> and <I>stop</I>
+keywords of the <A HREF = "run.html">run</A> command.  See the <A HREF = "run.html">run</A>
+command for details of how to do this.
 </P>
 <P>Group functions are specified as keywords followed by one or two
 parenthesized arguments.  The first argument is the group-ID.  The

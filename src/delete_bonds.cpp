@@ -27,13 +27,7 @@
 
 using namespace LAMMPS_NS;
 
-#define MULTI    1
-#define ATOM     2
-#define BOND     3
-#define ANGLE    4
-#define DIHEDRAL 5
-#define IMPROPER 6
-#define STATS    7
+enum{MULTI,ATOM,BOND,ANGLE,DIHEDRAL,IMPROPER,STATS};
 
 /* ---------------------------------------------------------------------- */
 

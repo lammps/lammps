@@ -106,7 +106,7 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   nvalues = 0;
 
   iarg = 9;
-  while (nvalues < maxvalues) {
+  while (iarg < narg) {
     if (strcmp(arg[iarg],"x") == 0) {
       which[nvalues] = X;
       argindex[nvalues] = 0;

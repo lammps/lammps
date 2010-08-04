@@ -56,7 +56,7 @@ Min::Min(LAMMPS *lmp) : Pointers(lmp)
   dmax = 0.1;
   linestyle = 0;
 
-  elist_atom = NULL;
+  elist_global = elist_atom = NULL;
   vlist_global = vlist_atom = NULL;
 
   nextra_global = 0;
@@ -73,6 +73,7 @@ Min::Min(LAMMPS *lmp) : Pointers(lmp)
 
 Min::~Min()
 {
+  delete [] elist_global;
   delete [] elist_atom;
   delete [] vlist_global;
   delete [] vlist_atom;
@@ -574,27 +575,32 @@ void Min::modify_params(int narg, char **arg)
 
 void Min::ev_setup()
 {
+  delete [] elist_global;
   delete [] elist_atom;
   delete [] vlist_global;
   delete [] vlist_atom;
-  elist_atom = NULL;
+  elist_global = elist_atom = NULL;
   vlist_global = vlist_atom = NULL;
 
-  nelist_atom = 0;
+  nelist_global = nelist_atom = 0;
   nvlist_global = nvlist_atom = 0;
   for (int i = 0; i < modify->ncompute; i++) {
+    if (modify->compute[i]->peflag) nelist_global++;
     if (modify->compute[i]->peatomflag) nelist_atom++;
     if (modify->compute[i]->pressflag) nvlist_global++;
     if (modify->compute[i]->pressatomflag) nvlist_atom++;
   }
 
+  if (nelist_global) elist_global = new Compute*[nelist_global];
   if (nelist_atom) elist_atom = new Compute*[nelist_atom];
   if (nvlist_global) vlist_global = new Compute*[nvlist_global];
   if (nvlist_atom) vlist_atom = new Compute*[nvlist_atom];
 
-  nelist_atom = 0;
+  nelist_global = nelist_atom = 0;
   nvlist_global = nvlist_atom = 0;
   for (int i = 0; i < modify->ncompute; i++) {
+    if (modify->compute[i]->peflag)
+      elist_global[nelist_global++] = modify->compute[i];
     if (modify->compute[i]->peatomflag)
       elist_atom[nelist_atom++] = modify->compute[i];
     if (modify->compute[i]->pressflag)
@@ -606,7 +612,8 @@ void Min::ev_setup()
 
 /* ----------------------------------------------------------------------
    set eflag,vflag for current iteration
-   based on computes that need info on this ntimestep
+   invoke matchstep() on all timestep-dependent computes to clear their arrays
+   eflag/vflag based on computes that need info on this ntimestep
    always set eflag_global = 1, since need energy every iteration
    eflag = 0 = no energy computation
    eflag = 1 = global energy only
@@ -621,28 +628,33 @@ void Min::ev_setup()
 
 void Min::ev_set(int ntimestep)
 {
-  int i;
+  int i,flag;
 
   int eflag_global = 1;
+  for (i = 0; i < nelist_global; i++)
+    elist_global[i]->matchstep(ntimestep);
 
+  flag = 0;
   int eflag_atom = 0;
   for (i = 0; i < nelist_atom; i++)
-    if (elist_atom[i]->matchstep(ntimestep)) break;
-  if (i < nelist_atom) eflag_atom = 2;
+    if (elist_atom[i]->matchstep(ntimestep)) flag = 1;
+  if (flag) eflag_atom = 2;
 
   if (eflag_global) update->eflag_global = update->ntimestep;
   if (eflag_atom) update->eflag_atom = update->ntimestep;
   eflag = eflag_global + eflag_atom;
 
+  flag = 0;
   int vflag_global = 0;
   for (i = 0; i < nvlist_global; i++)
-    if (vlist_global[i]->matchstep(ntimestep)) break;
-  if (i < nvlist_global) vflag_global = virial_style;
+    if (vlist_global[i]->matchstep(ntimestep)) flag = 1;
+  if (flag) vflag_global = virial_style;
 
+  flag = 0;
   int vflag_atom = 0;
   for (i = 0; i < nvlist_atom; i++)
-    if (vlist_atom[i]->matchstep(ntimestep)) break;
-  if (i < nvlist_atom) vflag_atom = 4;
+    if (vlist_atom[i]->matchstep(ntimestep)) flag = 1;
+  if (flag) vflag_atom = 4;
 
   if (vflag_global) update->vflag_global = update->ntimestep;
   if (vflag_atom) update->vflag_atom = update->ntimestep;

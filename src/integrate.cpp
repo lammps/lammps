@@ -80,7 +80,8 @@ void Integrate::ev_setup()
 
 /* ----------------------------------------------------------------------
    set eflag,vflag for current iteration
-   based on computes that need info on this ntimestep
+   invoke matchstep() on all timestep-dependent computes to clear their arrays
+   eflag/vflag based on computes that need info on this ntimestep
    eflag = 0 = no energy computation
    eflag = 1 = global energy only
    eflag = 2 = per-atom energy only
@@ -94,31 +95,35 @@ void Integrate::ev_setup()
 
 void Integrate::ev_set(int ntimestep)
 {
-  int i;
+  int i,flag;
 
+  flag = 0;
   int eflag_global = 0;
   for (i = 0; i < nelist_global; i++)
-    if (elist_global[i]->matchstep(ntimestep)) break;
-  if (i < nelist_global) eflag_global = 1;
+    if (elist_global[i]->matchstep(ntimestep)) flag = 1;
+  if (flag) eflag_global = 1;
 
+  flag = 0;
   int eflag_atom = 0;
   for (i = 0; i < nelist_atom; i++)
-    if (elist_atom[i]->matchstep(ntimestep)) break;
-  if (i < nelist_atom) eflag_atom = 2;
+    if (elist_atom[i]->matchstep(ntimestep)) flag = 1;
+  if (flag) eflag_atom = 2;
 
   if (eflag_global) update->eflag_global = ntimestep;
   if (eflag_atom) update->eflag_atom = ntimestep;
   eflag = eflag_global + eflag_atom;
 
+  flag = 0;
   int vflag_global = 0;
   for (i = 0; i < nvlist_global; i++)
-    if (vlist_global[i]->matchstep(ntimestep)) break;
-  if (i < nvlist_global) vflag_global = virial_style;
+    if (vlist_global[i]->matchstep(ntimestep)) flag = 1;
+  if (flag) vflag_global = virial_style;
 
+  flag = 0;
   int vflag_atom = 0;
   for (i = 0; i < nvlist_atom; i++)
-    if (vlist_atom[i]->matchstep(ntimestep)) break;
-  if (i < nvlist_atom) vflag_atom = 4;
+    if (vlist_atom[i]->matchstep(ntimestep)) flag = 1;
+  if (flag) vflag_atom = 4;
 
   if (vflag_global) update->vflag_global = ntimestep;
   if (vflag_atom) update->vflag_atom = ntimestep;

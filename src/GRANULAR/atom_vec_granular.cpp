@@ -84,7 +84,7 @@ void AtomVecGranular::grow(int n)
   omega = atom->omega = 
     memory->grow_2d_double_array(atom->omega,nmax,3,"atom:omega");
   torque = atom->torque =
-    memory->grow_2d_double_array(atom->torque,nmax,3,"atom:torque");
+    memory->grow_2d_double_array(atom->torque,nmax*comm->nthreads,3,"atom:torque");
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++) 

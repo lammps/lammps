@@ -387,6 +387,7 @@ void Special::build()
 
   if (force->special_lj[3] == 1.0 && force->special_coul[3] == 1.0) {
     combine();
+    if (force->special_angle) angle_trim();
     return;
   }
 
@@ -546,6 +547,7 @@ void Special::build()
   delete [] bufcopy;
 
   combine();
+  if (force->special_angle) angle_trim();
   if (force->special_dihedral) dihedral_trim();
 }
 
@@ -692,6 +694,171 @@ void Special::combine()
 
   atom->nghost = 0;
   atom->map_set();
+}
+
+/* ----------------------------------------------------------------------
+   trim list of 1-3 neighbors by checking defined angles
+   delete a 1-3 neigh if they are not end atoms of a defined angle
+------------------------------------------------------------------------- */
+
+void Special::angle_trim()
+{
+  int i,j,m,n,iglobal,jglobal,ilocal,jlocal;
+  MPI_Request request;
+  MPI_Status status;
+  
+  int *num_angle = atom->num_angle;
+  int **angle_atom1 = atom->angle_atom1;
+  int **angle_atom3 = atom->angle_atom3;
+  int **nspecial = atom->nspecial;
+  int **special = atom->special;
+  int nlocal = atom->nlocal;
+
+  // stats on old 1-3 neighbor counts
+
+  double onethreecount = 0.0;
+  for (i = 0; i < nlocal; i++)
+    onethreecount += nspecial[i][1] - nspecial[i][0];
+  
+  double allcount;
+  MPI_Allreduce(&onethreecount,&allcount,1,MPI_DOUBLE,MPI_SUM,world);
+  
+  if (me == 0) {
+    if (screen)
+      fprintf(screen,
+	      "  %g = # of 1-3 neighbors before angle trim\n",allcount);
+    if (logfile)
+      fprintf(logfile,
+	      "  %g = # of 1-3 neighbors before angle trim\n",allcount);
+  }
+  
+  // if angles are defined, flag each 1-3 neigh if it appears in an angle
+
+  if (num_angle && atom->nangles) {
+
+    // dflag = flag for 1-3 neighs of all owned atoms
+
+    int maxcount = 0;
+    for (i = 0; i < nlocal; i++)
+      maxcount = MAX(maxcount,nspecial[i][1]-nspecial[i][0]);
+    int **dflag =
+      memory->create_2d_int_array(nlocal,maxcount,"special::dflag");
+    
+    for (i = 0; i < nlocal; i++) {
+      n = nspecial[i][1] - nspecial[i][0];
+      for (j = 0; j < n; j++) dflag[i][j] = 0;
+    }
+
+    // nbufmax = largest buffer needed to hold info from any proc
+    // info for each atom = list of 1,3 atoms in each angle stored by atom
+    
+    int nbuf = 0;
+    for (i = 0; i < nlocal; i++) nbuf += 2*num_angle[i];
+    
+    int nbufmax;
+    MPI_Allreduce(&nbuf,&nbufmax,1,MPI_INT,MPI_MAX,world);
+    
+    int *buf = new int[nbufmax];
+    int *bufcopy = new int[nbufmax];
+    
+    // fill buffer with list of 1,3 atoms in each angle
+
+    int size = 0;
+    for (i = 0; i < nlocal; i++)
+      for (j = 0; j < num_angle[i]; j++) {
+	buf[size++] = angle_atom1[i][j];
+	buf[size++] = angle_atom3[i][j];
+      }
+
+    // cycle buffer around ring of procs back to self
+    // when receive buffer, scan list of 1,3 atoms looking for atoms I own
+    // when find one, scan its 1-3 neigh list and mark I,J as in an angle
+
+    int next = me + 1;
+    int prev = me -1; 
+    if (next == nprocs) next = 0;
+    if (prev < 0) prev = nprocs - 1;
+
+    int messtag = 7;
+    for (int loop = 0; loop < nprocs; loop++) {
+      i = 0;
+      while (i < size) {
+	iglobal = buf[i];
+	jglobal = buf[i+1];
+	ilocal = atom->map(iglobal);
+	jlocal = atom->map(jglobal);
+	if (ilocal >= 0 && ilocal < nlocal)
+	  for (m = nspecial[ilocal][0]; m < nspecial[ilocal][1]; m++)
+	    if (jglobal == special[ilocal][m]) {
+	      dflag[ilocal][m-nspecial[ilocal][0]] = 1;
+	      break;
+	    }
+	if (jlocal >= 0 && jlocal < nlocal)
+	  for (m = nspecial[jlocal][0]; m < nspecial[jlocal][1]; m++)
+	    if (iglobal == special[jlocal][m]) {
+	      dflag[jlocal][m-nspecial[jlocal][0]] = 1;
+	      break;
+	    }
+	i += 2;
+      }
+      if (me != next) {
+	MPI_Irecv(bufcopy,nbufmax,MPI_INT,prev,messtag,world,&request);
+	MPI_Send(buf,size,MPI_INT,next,messtag,world);
+	MPI_Wait(&request,&status);
+	MPI_Get_count(&status,MPI_INT,&size);
+	for (j = 0; j < size; j++) buf[j] = bufcopy[j];
+      }
+    }
+   
+    // delete 1-3 neighbors if they are not flagged in dflag
+    // preserve 1-4 neighbors
+    
+    int offset;
+    for (i = 0; i < nlocal; i++) {
+      offset = m = nspecial[i][0];
+      for (j = nspecial[i][0]; j < nspecial[i][1]; j++)
+	if (dflag[i][j-offset]) special[i][m++] = special[i][j];
+      offset = m;
+      for (j = nspecial[i][1]; j < nspecial[i][2]; j++)
+	special[i][m++] = special[i][j];
+      nspecial[i][1] = offset;
+      nspecial[i][2] = m;
+    }
+    
+    // clean up
+
+    memory->destroy_2d_int_array(dflag);
+    delete [] buf;
+    delete [] bufcopy;
+
+  // if no angles are defined, delete all 1-3 neighs, preserving 1-4 neighs
+
+  } else {
+    for (i = 0; i < nlocal; i++) {
+      m = nspecial[i][0];
+      for (j = nspecial[i][1]; j < nspecial[i][2]; j++)
+	special[i][m++] = special[i][j];
+      nspecial[i][1] = nspecial[i][0];
+      nspecial[i][2] = m;
+    }
+  }
+
+  // stats on new 1-3 neighbor counts
+
+  onethreecount = 0.0;
+  for (i = 0; i < nlocal; i++)
+    onethreecount += nspecial[i][1] - nspecial[i][0];
+  
+  MPI_Allreduce(&onethreecount,&allcount,1,MPI_DOUBLE,MPI_SUM,world);
+
+  if (me == 0) {
+    if (screen)
+      fprintf(screen,
+	      "  %g = # of 1-3 neighbors after angle trim\n",allcount);
+    if (logfile)
+      fprintf(logfile,
+	      "  %g = # of 1-3 neighbors after angle trim\n",allcount);
+  }  
 }
 
 /* ----------------------------------------------------------------------

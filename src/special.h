@@ -30,6 +30,7 @@ class Special : protected Pointers {
   int dihedral_flag;
 
   void combine();
+  void angle_trim();
   void dihedral_trim();
 };
 

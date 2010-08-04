@@ -1140,6 +1140,7 @@ void Input::special_bonds()
   double lj3 = force->special_lj[3];
   double coul2 = force->special_coul[2];
   double coul3 = force->special_coul[3];
+  int angle = force->special_angle;
   int dihedral = force->special_dihedral;
   int extra = force->special_extra;
 
@@ -1150,7 +1151,9 @@ void Input::special_bonds()
   if (domain->box_exist && atom->molecular) {
     if (lj2 != force->special_lj[2] || lj3 != force->special_lj[3] ||
 	coul2 != force->special_coul[2] || coul3 != force->special_coul[3] ||
-	dihedral != force->special_dihedral || extra != force->special_extra) {
+	angle != force->special_angle || 
+	dihedral != force->special_dihedral || 
+	extra != force->special_extra) {
       Special special(lmp);
       special.build();
     }

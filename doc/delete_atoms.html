@@ -13,7 +13,7 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>delete_atoms style args 
+<PRE>delete_atoms style args keyword value ... 
 </PRE>
 <UL><LI>style = <I>group</I> or <I>region</I> or <I>overlap</I> or <I>porosity</I> 
 
@@ -28,12 +28,18 @@
     fraction = delete this fraction of atoms
     seed = random number seed (positive integer) 
 </PRE>
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>compress</I> 
+
+<PRE>  <I>compress</I> value = <I>no</I> or <I>yes</I> 
+</PRE>
 
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>delete_atoms group edge
-delete_atoms region sphere
+delete_atoms region sphere compress no
 delete_atoms overlap 0.3 all all
 delete_atoms overlap 0.5 solvent colloid
 delete_atoms porosity cube 0.1 
@@ -72,10 +78,12 @@ randomly.  There is no guarantee that the exact fraction of atoms will
 be deleted, or that the same atoms will be deleted when running on
 different numbers of processors.
 </P>
-<P>After atoms are deleted, if the system is not molecular (no bonds),
-then atom IDs are re-assigned so that they run from 1 to the number of
-atoms in the system.  This is not done for molecular systems, since it
-would foul up the bond connectivity that has already been assigned.
+<P>If the <I>compress</I> keyword is set to <I>yes</I>, then after atoms are
+deleted, then atom IDs are re-assigned so that they run from 1 to the
+number of atoms in the system.  This is not done for molecular systems
+(see the <A HREF = "atom_style.html">atom_style</A> command), regardless of the
+<I>compress</I> setting, since it would foul up the bond connectivity that
+has already been assigned.
 </P>
 <P><B>Restrictions:</B>
 </P>
@@ -98,6 +106,8 @@ deleting one atom in a bonded pair anyway.
 </P>
 <P><A HREF = "create_atoms.html">create_atoms</A>
 </P>
-<P><B>Default:</B> none
+<P><B>Default:</B>
+</P>
+<P>The option defaults are compress = yes.
 </P>
 </HTML>

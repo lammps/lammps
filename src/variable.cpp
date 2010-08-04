@@ -42,7 +42,7 @@ enum{ARG,OP};
 enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,UNARY,
        EQ,NE,LT,LE,GT,GE,AND,OR,
        SQRT,EXP,LN,LOG,SIN,COS,TAN,ASIN,ACOS,ATAN,
-       CEIL,FLOOR,ROUND,VALUE,ATOMARRAY,TYPEARRAY,INTARRAY};
+       CEIL,FLOOR,ROUND,RAMP,VALUE,ATOMARRAY,TYPEARRAY,INTARRAY};
 
 #define INVOKED_SCALAR 1
 #define INVOKED_VECTOR 2
@@ -1309,7 +1309,7 @@ double Variable::evaluate(char *str, Tree **tree)
    process an evaulation tree
    customize by adding a math function:
      sqrt(),exp(),ln(),log(),sin(),cos(),tan(),asin(),acos(),atan()
-     ceil(),floor(),round()
+     ceil(),floor(),round(),ramp()
 ---------------------------------------------------------------------- */
 
 double Variable::eval_tree(Tree *tree, int i)
@@ -1420,6 +1420,16 @@ double Variable::eval_tree(Tree *tree, int i)
   if (tree->type == ROUND)
     return MYROUND(eval_tree(tree->left,i));
 
+  if (tree->type == RAMP) {
+    if (update->whichflag == 0)
+      error->all("Cannot use ramp in variable formula between runs");
+    double arg1 = eval_tree(tree->left,i);
+    double arg2 = eval_tree(tree->right,i);
+    double delta = update->ntimestep - update->beginstep;
+    delta /= update->endstep - update->beginstep;
+    return arg1 + delta*(arg2-arg1);
+  }
+
   return 0.0;
 }
 
@@ -1496,11 +1506,11 @@ int Variable::int_between_brackets(char *&ptr)
    process a math function in formula
    push result onto tree or arg stack
    word = math function
-   contents = str bewteen parentheses
+   contents = str between parentheses with one,two,three args
    return 0 if not a match, 1 if successfully processed
    customize by adding a math function in 2 places:
      sqrt(),exp(),ln(),log(),sin(),cos(),tan(),asin(),acos(),atan()
-     ceil(),floor(),round()
+     ceil(),floor(),round(),ramp()
 ------------------------------------------------------------------------- */
 
 int Variable::math_function(char *word, char *contents, Tree **tree,
@@ -1514,105 +1524,10 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
       strcmp(word,"sin") && strcmp(word,"cos") &&
       strcmp(word,"tan") && strcmp(word,"asin") &&
       strcmp(word,"acos") && strcmp(word,"atan") &&
-      strcmp(word,"ceil") && strcmp(word,"floor") && strcmp(word,"round"))
+      strcmp(word,"ceil") && strcmp(word,"floor") && 
+      strcmp(word,"round") && strcmp(word,"ramp"))
     return 0;
-    
-  Tree *newtree;
-  double value;
 
-  if (tree) {
-    newtree = new Tree();
-    Tree *argtree;
-    double tmp = evaluate(contents,&argtree);
-    newtree->left = argtree;
-    newtree->right = NULL;
-    treestack[ntreestack++] = newtree;
-  } else value = evaluate(contents,NULL);
-    
-  if (strcmp(word,"sqrt") == 0) {
-    if (tree) newtree->type = SQRT;
-    else {
-      if (value < 0.0) error->all("Sqrt of negative in variable formula");
-      argstack[nargstack++] = sqrt(value);
-    }
-
-  } else if (strcmp(word,"exp") == 0) {
-    if (tree) newtree->type = EXP;
-    else argstack[nargstack++] = exp(value);
-  } else if (strcmp(word,"ln") == 0) {
-    if (tree) newtree->type = LN;
-    else {
-      if (value <= 0.0) error->all("Log of zero/negative in variable formula");
-      argstack[nargstack++] = log(value);
-    }
-  } else if (strcmp(word,"log") == 0) {
-    if (tree) newtree->type = LOG;
-    else {
-      if (value <= 0.0) error->all("Log of zero/negative in variable formula");
-      argstack[nargstack++] = log10(value);
-    }
-
-  } else if (strcmp(word,"sin") == 0) {
-    if (tree) newtree->type = SIN;
-    else argstack[nargstack++] = sin(value);
-  } else if (strcmp(word,"cos") == 0) {
-    if (tree) newtree->type = COS;
-    else argstack[nargstack++] = cos(value);
-  } else if (strcmp(word,"tan") == 0) {
-    if (tree) newtree->type = TAN;
-    else argstack[nargstack++] = tan(value);
-
-  } else if (strcmp(word,"asin") == 0) {
-    if (tree) newtree->type = ASIN;
-    else {
-      if (value < -1.0 || value > 1.0) 
-	error->all("Arcsin of invalid value in variable formula");
-      argstack[nargstack++] = asin(value);
-    }
-  } else if (strcmp(word,"acos") == 0) {
-    if (tree) newtree->type = ACOS;
-    else {
-      if (value < -1.0 || value > 1.0) 
-	error->all("Arccos of invalid value in variable formula");
-      argstack[nargstack++] = acos(value);
-    }
-  } else if (strcmp(word,"atan") == 0) {
-    if (tree) newtree->type = ATAN;
-    else argstack[nargstack++] = atan(value);
-
-  } else if (strcmp(word,"ceil") == 0) {
-    if (tree) newtree->type = CEIL;
-    else argstack[nargstack++] = ceil(value);
-
-  } else if (strcmp(word,"floor") == 0) {
-    if (tree) newtree->type = FLOOR;
-    else argstack[nargstack++] = floor(value);
-
-  } else if (strcmp(word,"round") == 0) {
-    if (tree) newtree->type = ROUND;
-    else argstack[nargstack++] = MYROUND(value);
-  }
-
-  return 1;
-}
-
-/* ----------------------------------------------------------------------
-   process a group function in formula with optional region arg
-   push result onto tree or arg stack
-   word = group function
-   contents = str bewteen parentheses with one,two,three args
-   return 0 if not a match, 1 if successfully processed
-   customize by adding a group function with optional region arg:
-     count(group),mass(group),charge(group),
-     xcm(group,dim),vcm(group,dim),fcm(group,dim),
-     bound(group,xmin),gyration(group),ke(group),angmom(group),
-     inertia(group,dim),omega(group,dim)
-------------------------------------------------------------------------- */
-
-int Variable::group_function(char *word, char *contents, Tree **tree,
-			     Tree **treestack, int &ntreestack,
-			     double *argstack, int &nargstack)
-{
   // parse contents for arg1,arg2,arg3 separated by commas
   // ptr1,ptr2 = location of 1st and 2nd comma, NULL if none
 
@@ -1643,21 +1558,184 @@ int Variable::group_function(char *word, char *contents, Tree **tree,
     narg = 3;
   } else arg3 = NULL;
 
+  // evaluate args
+    
+  Tree *newtree;
+  double tmp,value1,value2;
+
+  if (tree) {
+    newtree = new Tree();
+    Tree *argtree;
+    if (narg == 1) {
+      tmp = evaluate(arg1,&argtree);
+      newtree->left = argtree;
+      newtree->right = NULL;
+    } else if (narg == 2) {
+      tmp = evaluate(arg1,&argtree);
+      newtree->left = argtree;
+      tmp = evaluate(arg2,&argtree);
+      newtree->right = argtree;
+    }
+    treestack[ntreestack++] = newtree;
+  } else {
+    if (narg == 1)
+      value1 = evaluate(arg1,NULL);
+    else if (narg == 2) {
+      value1 = evaluate(arg1,NULL);
+      value2 = evaluate(arg2,NULL);
+    }
+  }
+    
+  if (strcmp(word,"sqrt") == 0) {
+    if (tree) newtree->type = SQRT;
+    else {
+      if (value1 < 0.0) 
+	error->all("Sqrt of negative value in variable formula");
+      argstack[nargstack++] = sqrt(value1);
+    }
+
+  } else if (strcmp(word,"exp") == 0) {
+    if (tree) newtree->type = EXP;
+    else argstack[nargstack++] = exp(value1);
+  } else if (strcmp(word,"ln") == 0) {
+    if (tree) newtree->type = LN;
+    else {
+      if (value1 <= 0.0) 
+	error->all("Log of zero/negative value in variable formula");
+      argstack[nargstack++] = log(value1);
+    }
+  } else if (strcmp(word,"log") == 0) {
+    if (tree) newtree->type = LOG;
+    else {
+      if (value1 <= 0.0) 
+	error->all("Log of zero/negative value in variable formula");
+      argstack[nargstack++] = log10(value1);
+    }
+
+  } else if (strcmp(word,"sin") == 0) {
+    if (tree) newtree->type = SIN;
+    else argstack[nargstack++] = sin(value1);
+  } else if (strcmp(word,"cos") == 0) {
+    if (tree) newtree->type = COS;
+    else argstack[nargstack++] = cos(value1);
+  } else if (strcmp(word,"tan") == 0) {
+    if (tree) newtree->type = TAN;
+    else argstack[nargstack++] = tan(value1);
+
+  } else if (strcmp(word,"asin") == 0) {
+    if (tree) newtree->type = ASIN;
+    else {
+      if (value1 < -1.0 || value1 > 1.0) 
+	error->all("Arcsin of invalid value in variable formula");
+      argstack[nargstack++] = asin(value1);
+    }
+  } else if (strcmp(word,"acos") == 0) {
+    if (tree) newtree->type = ACOS;
+    else {
+      if (value1 < -1.0 || value1 > 1.0) 
+	error->all("Arccos of invalid value in variable formula");
+      argstack[nargstack++] = acos(value1);
+    }
+  } else if (strcmp(word,"atan") == 0) {
+    if (tree) newtree->type = ATAN;
+    else argstack[nargstack++] = atan(value1);
+
+  } else if (strcmp(word,"ceil") == 0) {
+    if (tree) newtree->type = CEIL;
+    else argstack[nargstack++] = ceil(value1);
+
+  } else if (strcmp(word,"floor") == 0) {
+    if (tree) newtree->type = FLOOR;
+    else argstack[nargstack++] = floor(value1);
+
+  } else if (strcmp(word,"round") == 0) {
+    if (tree) newtree->type = ROUND;
+    else argstack[nargstack++] = MYROUND(value1);
+
+  } else if (strcmp(word,"ramp") == 0) {
+    if (update->whichflag == 0)
+      error->all("Cannot use ramp in variable formula between runs");
+    if (tree) newtree->type = RAMP;
+    else {
+      double delta = update->ntimestep - update->beginstep;
+      delta /= update->endstep - update->beginstep;
+      argstack[nargstack++] = value1 + delta*(value2-value1);
+    }
+  }
+
+  delete [] arg1;
+  delete [] arg2;
+  delete [] arg3;
+
+  return 1;
+}
+
+/* ----------------------------------------------------------------------
+   process a group function in formula with optional region arg
+   push result onto tree or arg stack
+   word = group function
+   contents = str between parentheses with one,two,three args
+   return 0 if not a match, 1 if successfully processed
+   customize by adding a group function in 2 places with optional region arg:
+     count(group),mass(group),charge(group),
+     xcm(group,dim),vcm(group,dim),fcm(group,dim),
+     bound(group,xmin),gyration(group),ke(group),angmom(group),
+     inertia(group,dim),omega(group,dim)
+------------------------------------------------------------------------- */
+
+int Variable::group_function(char *word, char *contents, Tree **tree,
+			     Tree **treestack, int &ntreestack,
+			     double *argstack, int &nargstack)
+{
+  // word not a match to any group function
+
+  if (strcmp(word,"count") && strcmp(word,"mass") && 
+      strcmp(word,"charge") && strcmp(word,"xcm") &&
+      strcmp(word,"vcm") && strcmp(word,"fcm") &&
+      strcmp(word,"bound") && strcmp(word,"gyration") &&
+      strcmp(word,"ke") && strcmp(word,"angmom") &&
+      strcmp(word,"inertia") && strcmp(word,"omega"))
+    return 0;
+
+  // parse contents for arg1,arg2,arg3 separated by commas
+  // ptr1,ptr2 = location of 1st and 2nd comma, NULL if none
+
+  char *arg1,*arg2,*arg3;
+  char *ptr1,*ptr2;
+
+  ptr1 = strchr(contents,',');
+  if (ptr1) {
+    *ptr1 = '\0';
+    ptr2 = strchr(ptr1+1,',');
+    if (ptr2) *ptr2 = '\0';
+  } else ptr2 = NULL;
+
+  int n = strlen(contents) + 1;
+  arg1 = new char[n];
+  strcpy(arg1,contents);
+  int narg = 1;
+  if (ptr1) {
+    n = strlen(ptr1+1) + 1;
+    arg2 = new char[n];
+    strcpy(arg2,ptr1+1);
+    narg = 2;
+  } else arg2 = NULL;
+  if (ptr2) {
+    n = strlen(ptr2+1) + 1;
+    arg3 = new char[n];
+    strcpy(arg3,ptr2+1);
+    narg = 3;
+  } else arg3 = NULL;
+
+  // group to operate on
+
   int igroup = group->find(arg1);
   if (igroup == -1)
     error->all("Group ID in variable formula does not exist");
 
-  Tree *newtree;
-  double value;
-  
-  if (tree) {
-    newtree = new Tree();
-    newtree->type = VALUE;
-    newtree->left = newtree->right = NULL;
-    treestack[ntreestack++] = newtree;
-  }
-
   // match word to group function
+
+  double value;
 
   if (strcmp(word,"count") == 0) {
     if (narg == 1) value = group->count(igroup);
@@ -1808,14 +1886,21 @@ int Variable::group_function(char *word, char *contents, Tree **tree,
     else if (strcmp(arg2,"y") == 0) value = omega[1];
     else if (strcmp(arg2,"z") == 0) value = omega[2];
     else error->all("Invalid group function in variable formula");
-
-  } else return 0;
+  }
     
   delete [] arg1;
   delete [] arg2;
-    
-  if (tree) newtree->value= value;
-  else argstack[nargstack++] = value;
+  delete [] arg3;
+
+  // save value in tree or on argstack
+
+  if (tree) {
+    Tree *newtree = new Tree();
+    newtree->type = VALUE;
+    newtree->value = value;
+    newtree->left = newtree->right = NULL;
+    treestack[ntreestack++] = newtree;
+  } else argstack[nargstack++] = value;
 
   return 1;
 }

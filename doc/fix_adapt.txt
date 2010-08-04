@@ -103,11 +103,9 @@ details.
 
 For example, these commands would change the prefactor coefficient of
 the "pair_style soft"_pair_soft.html potential from 10.0 to 30.0 in a
-linear fashion over the course of a 1000-step simulation:
+linear fashion over the course of a simulation:
 
-variable min equal 10.0
-variable max equal 30.0
-variable prefactor equal min+(max-min)*elapsed/1000
+variable prefactor equal ramp(10,30)
 fix 1 all adapt 1 pair soft a * * prefactor :pre
 
 The {atom} keyword enables various atom properties to be changed.  The

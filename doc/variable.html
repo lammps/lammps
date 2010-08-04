@@ -34,7 +34,7 @@
                      x==y, x!=y, x<y, x<=y, x>y, x>=y, x&&y, x||y
     math functions = sqrt(x), exp(x), ln(x), log(x),
                      sin(x), cos(x), tan(x), asin(x), acos(x), atan(x),
-                     ceil(x), floor(x), round(x)
+                     ceil(x), floor(x), round(x), ramp(x,y)
     group functions = count(group), mass(group), charge(group),
 		      xcm(group,dim), vcm(group,dim), fcm(group,dim),
 		      bound(group,xmin), gyration(group), ke(group),
@@ -257,7 +257,7 @@ references to other variables.
 <TR><TD >Number</TD><TD > 0.2, 100, 1.0e20, -15.4, etc</TD></TR>
 <TR><TD >Thermo keywords</TD><TD > vol, pe, ebond, etc</TD></TR>
 <TR><TD >Math operators</TD><TD > (), -x, x+y, x-y, x*y, x/y, x^y, x==y, x!=y, x<y, x<=y, x>y, x>=y, x&&y, x||y</TD></TR>
-<TR><TD >Math functions</TD><TD > sqrt(x), exp(x), ln(x), log(x), sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), ceil(x), floor(x), round(x)</TD></TR>
+<TR><TD >Math functions</TD><TD > sqrt(x), exp(x), ln(x), log(x), sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), ceil(x), floor(x), round(x), ramp(x,y)</TD></TR>
 <TR><TD >Group functions</TD><TD > count(ID), mass(ID), charge(ID), xcm(ID,dim),                  vcm(ID,dim), fcm(ID,dim), bound(ID,dir), 		 gyration(ID), ke(ID), angmom(ID,dim), 		 inertia(ID,dimdim), omega(ID,dim)</TD></TR>
 <TR><TD >Region functions</TD><TD > count(ID,IDR), mass(ID,IDR), charge(ID,IDR), 		  xcm(ID,dim,IDR), vcm(ID,dim,IDR), fcm(ID,dim,IDR), 		  bound(ID,dir,IDR), gyration(ID,IDR), ke(ID,IDR), 		  angmom(ID,dim,IDR), inertia(ID,dimdim,IDR), omega(ID,dim,IDR)</TD></TR>
 <TR><TD >Atom values</TD><TD > mass[i], type[i], x[i], y[i], z[i],              vx[i], vy[i], vz[i], fx[i], fy[i], fz[i]</TD></TR>
@@ -267,16 +267,18 @@ references to other variables.
 <TR><TD >Other variables</TD><TD > v_name, v_name[i] 
 </TD></TR></TABLE></DIV>
 
-<P>Most of the formula elements generate scalar values.  The exceptions
-are those that represent a per-atom vector of values.  These are the
-atom vectors, compute references that represent a per-atom vector, fix
-references that represent a per-atom vector, and variables that are
-atom-style variables.
+<P>Most of the formula elements produce a scalar value.  A few produce a
+per-atom vector of values.  These are the atom vectors, compute
+references that represent a per-atom vector, fix references that
+represent a per-atom vector, and variables that are atom-style
+variables.  Math functions that operate on scalar values produce a
+scalar value; math function that operate on per-atom vectors produce a
+per-atom vector.
 </P>
 <P>A formula for equal-style variables cannot use any formula element
-that generates a per-atom vector.  A formula for an atom-style
-variable can use formula elements that produce either scalar values or
-per-atom vectors.
+that produces a per-atom vector.  A formula for an atom-style variable
+can use formula elements that produce either a scalar value or a
+per-atom vector.
 </P>
 <P>The thermo keywords allowed in a formula are those defined by the
 <A HREF = "thermo_style.html">thermo_style custom</A> command.  Thermo keywords that
@@ -293,10 +295,15 @@ values accessed by the thermo keyword must be current.  See the
 discussion below about "Variable Accuracy".
 </P>
 <P>Math operators are written in the usual way, where the "x" and "y" in
-the examples above can be another section of the formula.  Operators
-are evaluated left to right and have the usual C-style precedence:
-unary minus before exponentiation ("^"); exponentiation before
-multiplication and division; multiplication and division before
+the examples can themselves be arbitrarily complex formulas, as in the
+examples above.  In this syntax, "x" and "y" can be scalar values or
+per-atom vectors.  For example, "ke/natoms" is the division of two
+scalars, where "y+z" is the sum of two per-atom vectors of y- and
+z-coordinates.
+</P>
+<P>Operators are evaluated left to right and have the usual C-style
+precedence: unary minus before exponentiation ("^"); exponentiation
+before multiplication and division; multiplication and division before
 addition and subtraction; addition and subtraction before the 4
 relational operators "<", "<=", ">", and ">="; those 4 relational
 operators before the remaining two relational operators "==" and "!=";
@@ -319,19 +326,34 @@ whose properties satisy one or more criteria could be calculated by
 taking the returned per-atom vector of ones and zeroes and passing it
 to the <A HREF = "compute_reduce.html">compute reduce</A> command.
 </P>
-<P>Math functions can be specified as keywords followed by a
-parenthesized argument, e.g. sqrt(v_ke).  Note that ln() is the
-natural log; log() is the base 10 log.  The ceil(), floor(), and
+<P>Math functions are specified as keywords followed by one or more
+parenthesized arguments "x", "y", etc, each of which can themselves be
+arbitrarily complex formulas.  In this syntax, the arguments can
+represent scalar values or per-atom vectors.  For example,
+"sqrt(natoms)" is the sqrt() of a scalar, where "sqrt(y*z)" is a
+per-atom vector with each element being the sqrt() of the product of
+two atom coordinates.
+</P>
+<P>Most of the math functions perform obvious operations.  The ln() is
+the natural log; log() is the base 10 log.  The ceil(), floor(), and
 round() operations are those in the C math library.  Ceil() is the
 smallest integer not less than its argument.  Floor() if the largest
 integer not greater than its argument.  Round() is the nearest integer
 to its argument.
 </P>
-<P>Group functions take one or two arguments in a specific format.  The
-first argument is the group-ID.  The <I>dim</I> argument, if it exists, is
-<I>x</I> or <I>y</I> or <I>z</I>.  The <I>dir</I> argument, if it exists, is <I>xmin</I>,
-<I>xmax</I>, <I>ymin</I>, <I>ymax</I>, <I>zmin</I>, or <I>zmax</I>.  The <I>dimdim</I> argument, if it
-exists, is <I>xx</I> or <I>yy</I> or <I>zz</I> or <I>xy</I> or <I>yz</I> or <I>xz</I>.
+<P>Ramp(x,y) uses the current timestep to generate a scalar value:
+</P>
+<PRE>value = x + (y-x) * (timestep - startstep) / (stopstep - startstep) 
+</PRE>
+<P>which is a value that ramps linear over the timesteps of a run between
+x and y.  The run began on startstep and will end on stopstep.
+</P>
+<P>Group functions are specified as keywords followed by one or two
+parenthesized arguments.  The first argument is the group-ID.  The
+<I>dim</I> argument, if it exists, is <I>x</I> or <I>y</I> or <I>z</I>.  The <I>dir</I>
+argument, if it exists, is <I>xmin</I>, <I>xmax</I>, <I>ymin</I>, <I>ymax</I>, <I>zmin</I>, or
+<I>zmax</I>.  The <I>dimdim</I> argument, if it exists, is <I>xx</I> or <I>yy</I> or <I>zz</I>
+or <I>xy</I> or <I>yz</I> or <I>xz</I>.
 </P>
 <P>The group function count() is the number of atoms in the group.  The
 group functions mass() and charge() are the total mass and charge of
@@ -347,11 +369,11 @@ one of 6 components of the inertia tensor of the group of atoms around
 its center of mass.  Omega() returns components of the angular
 velocity of the group of atoms around its center of mass.
 </P>
-<P>Region functions are exactly the same as group functions except they
-take an extra argument which is the region ID.  The function is
-computed for all atoms that are in both the group and the region.  If
-the group is "all", then the only criteria for atom inclusion is that
-it be in the region.
+<P>Region functions are specified exactly the same way as group functions
+except they take an extra argument which is the region ID.  The
+function is computed for all atoms that are in both the group and the
+region.  If the group is "all", then the only criteria for atom
+inclusion is that it be in the region.
 </P>
 <P>Atom values take a single integer argument I from 1 to N, where I is
 the an atom-ID, e.g. x[243], which means use the x coordinate of the

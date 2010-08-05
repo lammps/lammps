@@ -31,8 +31,10 @@ class Output : protected Pointers {
   int max_dump;                // max size of Dump list
   int next_dump_any;           // next timestep for any Dump
   int *next_dump;              // next timestep to do each Dump
-  int *dump_every;             // output of each Dump every this many steps
+  int *every_dump;             // output of each Dump every this many steps
   int *last_dump;              // last timestep each a snapshot was output
+  char **var_dump;             // variable name for dump frequency
+  int *ivar_dump;              // variable index for dump frequency
   class Dump **dump;           // list of defined Dumps
 
   int next_restart;            // next timestep to write a restart file

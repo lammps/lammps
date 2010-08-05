@@ -245,12 +245,21 @@ void Dump::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"every") == 0) {
       if (iarg+2 > narg) error->all("Illegal dump_modify command");
-      int n = atoi(arg[iarg+1]);
-      if (n <= 0) error->all("Illegal dump_modify command");
       int idump;
       for (idump = 0; idump < output->ndump; idump++)
 	if (strcmp(id,output->dump[idump]->id) == 0) break;
-      output->dump_every[idump] = n;
+      int n;
+      if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
+	delete [] output->var_dump[idump];
+	n = strlen(&arg[iarg+1][2]) + 1;
+	output->var_dump[idump] = new char[n];
+	strcpy(output->var_dump[idump],&arg[iarg+1][2]);
+	n = 0;
+      } else {
+	n = atoi(arg[iarg+1]);
+	if (n <= 0) error->all("Illegal dump_modify command");
+      }
+      output->every_dump[idump] = n;
       iarg += 2;
     } else if (strcmp(arg[iarg],"first") == 0) {
       if (iarg+2 > narg) error->all("Illegal dump_modify command");

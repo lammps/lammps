@@ -34,7 +34,8 @@
                      x==y, x!=y, x<y, x<=y, x>y, x>=y, x&&y, x||y
     math functions = sqrt(x), exp(x), ln(x), log(x),
                      sin(x), cos(x), tan(x), asin(x), acos(x), atan(x),
-                     ceil(x), floor(x), round(x), ramp(x,y)
+                     ceil(x), floor(x), round(x), ramp(x,y), stagger(x,y),
+		     logfreq(x,y,z)
     group functions = count(group), mass(group), charge(group),
 		      xcm(group,dim), vcm(group,dim), fcm(group,dim),
 		      bound(group,xmin), gyration(group), ke(group),
@@ -257,7 +258,7 @@ references to other variables.
 <TR><TD >Number</TD><TD > 0.2, 100, 1.0e20, -15.4, etc</TD></TR>
 <TR><TD >Thermo keywords</TD><TD > vol, pe, ebond, etc</TD></TR>
 <TR><TD >Math operators</TD><TD > (), -x, x+y, x-y, x*y, x/y, x^y, x==y, x!=y, x<y, x<=y, x>y, x>=y, x&&y, x||y</TD></TR>
-<TR><TD >Math functions</TD><TD > sqrt(x), exp(x), ln(x), log(x), sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), ceil(x), floor(x), round(x), ramp(x,y)</TD></TR>
+<TR><TD >Math functions</TD><TD > sqrt(x), exp(x), ln(x), log(x), sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), ceil(x), floor(x), round(x), ramp(x,y), stagger(x,y), logfreq(x,y,z)</TD></TR>
 <TR><TD >Group functions</TD><TD > count(ID), mass(ID), charge(ID), xcm(ID,dim),                  vcm(ID,dim), fcm(ID,dim), bound(ID,dir), 		 gyration(ID), ke(ID), angmom(ID,dim), 		 inertia(ID,dimdim), omega(ID,dim)</TD></TR>
 <TR><TD >Region functions</TD><TD > count(ID,IDR), mass(ID,IDR), charge(ID,IDR), 		  xcm(ID,dim,IDR), vcm(ID,dim,IDR), fcm(ID,dim,IDR), 		  bound(ID,dir,IDR), gyration(ID,IDR), ke(ID,IDR), 		  angmom(ID,dim,IDR), inertia(ID,dimdim,IDR), omega(ID,dim,IDR)</TD></TR>
 <TR><TD >Atom values</TD><TD > mass[i], type[i], x[i], y[i], z[i],              vx[i], vy[i], vz[i], fx[i], fy[i], fz[i]</TD></TR>
@@ -343,7 +344,7 @@ to its argument.
 </P>
 <P>Ramp(x,y) uses the current timestep to generate a scalar value:
 </P>
-<PRE>value = x + (y-x) * (timestep - startstep) / (stopstep - startstep) 
+<PRE>value = x + (y-x) * (timestep-startstep) / (stopstep-startstep) 
 </PRE>
 <P>which is a value that ramps linear between x and y over the course of
 a run.  The run begins on startstep and ends on stopstep.  Startstep
@@ -351,6 +352,25 @@ and stopstep can span multiple runs, using the <I>start</I> and <I>stop</I>
 keywords of the <A HREF = "run.html">run</A> command.  See the <A HREF = "run.html">run</A>
 command for details of how to do this.
 </P>
+<P>Stagger(x,y) requires x,y > 0 and x > y and uses the current timestep
+to generate a new timestep, in a staggered fashion, as the sequence
+x,x+y,2x,2x+y,3x,3x+y,etc.  For any current timestep, the next
+timestep in the sequence is returned.  Thus if stagger(1000,100) is
+used in a variable by the <A HREF = "dump_modify.html">dump_modify frequency</A>
+command, it will generate the sequence of output timesteps:
+</P>
+<PRE>100,1000,1100,2000,2100,3000,etc 
+</PRE>
+<P>Logfreq(x,y,z) requires x,y,z > 0 and y < z and uses the current
+timestep to generate a new timestep, in a logarithmic fashion, as the
+sequence x,2x,3x,...y*x,z*x,2*z*x,3*z*x,...y*z*x,z*z*x,2*z*x*x,etc.
+For any current timestep, the next timestep in the sequence is
+returned.  Thus if logfreq(100,4,10) is used in a variable by the
+<A HREF = "dump_modify.html">dump_modify frequency</A> command, it will generate the
+sequence of output timesteps:
+</P>
+<PRE>100,200,300,400,1000,2000,3000,4000,10000,20000,etc 
+</PRE>
 <P>Group functions are specified as keywords followed by one or two
 parenthesized arguments.  The first argument is the group-ID.  The
 <I>dim</I> argument, if it exists, is <I>x</I> or <I>y</I> or <I>z</I>.  The <I>dir</I>

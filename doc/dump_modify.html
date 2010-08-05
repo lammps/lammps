@@ -26,6 +26,7 @@
     E1,...,EN = element name, e.g. C or Fe or Ga
   <I>every</I> arg = N
     N = dump every this many timesteps
+    N can be a variable (see below)
   <I>first</I> arg = <I>yes</I> or <I>no</I>
   <I>format</I> arg = C-style format string for one line of output
   <I>flush</I> arg = <I>yes</I> or <I>no</I>
@@ -50,7 +51,9 @@
 <PRE>dump_modify 1 format "%d %d %20.15g %g %g" scale yes
 dump_modify myDump image yes scale no flush yes
 dump_modify 1 region mySphere thresh x < 0.0 thresh epair >= 3.2
-dump_modify xtcdump precision 10000 
+dump_modify xtcdump precision 10000
+dump_modify 1 every 1000
+dump_modify 1 every v_myVar 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -77,9 +80,30 @@ in the simulation.  The same element name can be given to multiple
 atom types.
 </P>
 <P>The <I>every</I> keyword changes the dump frequency originally specified by
-the <A HREF = "dump.html">dump</A> command to a new value which must be > 0.  The
-dump frequency cannot be changed for the dump <I>dcd</I> style.
+the <A HREF = "dump.html">dump</A> command to a new value.  The every keyword can be
+specified in one of two ways.  It can be a numeric value in which case
+it must be > 0.  Or it can be an <A HREF = "variable.html">equal-style variable</A>,
+which should be specified as v_name, where "name" is the variable
+name.  In this case, the variable is evaluated at the beginning of a
+run to determine the next timestep at which a dump snapshot will be
+written out.  On that timestep, the variable will be evaluated again
+to determine the next timestep, etc.  Thus the variable should return
+timestep values.  See the stagger() and logfreq() math functions for
+<A HREF = "variable.html">equal-style variables</A>, as examples of useful functions
+to use in this context.  Other similar math functions could easily be
+added as options for <A HREF = "variable.html">equal-style variables</A>.  When
+using the variable option with the <I>every</I> keyword, you also need to
+use the <I>first</I> option if you want an initial snapshot written to the
+dump file.  The <I>every</I> keyword cannot be used with the dump <I>dcd</I>
+style.
 </P>
+<P>For example, the following commands will
+write snapshots at timesteps 0,10,20,30,100,200,300,1000,2000,etc:
+</P>
+<PRE>variable	s equal logfreq(10,3,10)
+dump		1 all atom 100 tmp.dump
+dump_modify	1 every v_s first yes 
+</PRE>
 <P>The <I>first</I> keyword determines whether a dump snapshot is written on
 the very first timestep after the dump command is invoked.  This will
 always occur if the current timestep is a multiple of N, the frequency

@@ -722,14 +722,14 @@ void AtomVecHybrid::data_atom(double *coord, int imagetmp, char **values)
   v[nlocal][1] = 0.0;
   v[nlocal][2] = 0.0;
   if (atom->omega_flag) {
-    omega[nlocal][0];
-    omega[nlocal][1];
-    omega[nlocal][2];
+    omega[nlocal][0] = 0.0;
+    omega[nlocal][1] = 0.0;
+    omega[nlocal][2] = 0.0;
   }
   if (atom->angmom_flag) {
-    angmom[nlocal][0];
-    angmom[nlocal][1];
-    angmom[nlocal][2];
+    angmom[nlocal][0] = 0.0;
+    angmom[nlocal][1] = 0.0;
+    angmom[nlocal][2] = 0.0;
   }
 
   // each sub-style parses sub-style specific values

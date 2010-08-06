@@ -103,20 +103,17 @@ void DumpXTC::init()
 
   if (flush_flag) error->all("Cannot set dump_modify flush for dump xtc");
 
-  // check that dump frequency has not changed
+  // check that dump frequency has not changed and is not a variable
 
-  if (nevery_save == 0) {
-    int idump;
-    for (idump = 0; idump < output->ndump; idump++)
-      if (strcmp(id,output->dump[idump]->id) == 0) break;
-    nevery_save = output->dump_every[idump];
-  } else {
-    int idump;
-    for (idump = 0; idump < output->ndump; idump++)
-      if (strcmp(id,output->dump[idump]->id) == 0) break;
-    if (nevery_save != output->dump_every[idump])
-      error->all("Cannot change dump_modify every for dump xtc");
-  }
+  int idump;
+  for (idump = 0; idump < output->ndump; idump++)
+    if (strcmp(id,output->dump[idump]->id) == 0) break;
+  if (output->every_dump[idump] == 0)
+    error->all("Cannot use variable every setting for dump xtc");
+
+  if (nevery_save == 0) nevery_save = output->every_dump[idump];
+  else if (nevery_save != output->every_dump[idump])
+    error->all("Cannot change dump_modify every for dump xtc");
 }
 
 /* ---------------------------------------------------------------------- */

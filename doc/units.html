@@ -56,6 +56,7 @@ results from a unitless LJ simulation into physical quantities.
 <LI>charge = reduced LJ charge, where q* = q / (4 pi perm0 sigma epsilon)^1/2
 <LI>dipole = reduced LJ dipole, moment where *mu = mu / (4 pi perm0 sigma^3 epsilon)^1/2
 <LI>electric field = force/charge, where E* = E (4 pi perm0 sigma epsilon)^1/2 sigma / epsilon 
+<LI>density = mass/volume, where rho* = rho sigma^dim 
 </UL>
 <P>For style <I>real</I>, these are the units:
 </P>
@@ -72,6 +73,7 @@ results from a unitless LJ simulation into physical quantities.
 <LI>charge = multiple of electron charge (+1.0 is a proton)
 <LI>dipole = charge*Angstroms
 <LI>electric field = volts/Angstrom 
+<LI>density = gram/cm^dim 
 </UL>
 <P>For style <I>metal</I>, these are the units:
 </P>
@@ -87,7 +89,8 @@ results from a unitless LJ simulation into physical quantities.
 <LI>dynamic viscosity = Poise
 <LI>charge = multiple of electron charge (+1.0 is a proton)
 <LI>dipole = charge*Angstroms
-<LI>electric field = volts/Angstrom 
+<LI>electric field = volts/Angstrom
+<LI>density = gram/cm^dim 
 </UL>
 <P>For style <I>si</I>, these are the units:
 </P>
@@ -104,6 +107,7 @@ results from a unitless LJ simulation into physical quantities.
 <LI>charge = Coulombs
 <LI>dipole = Coulombs*meters
 <LI>electric field = volts/meter 
+<LI>density = kilograms/meter^dim 
 </UL>
 <P>For style <I>cgs</I>, these are the units:
 </P>
@@ -120,6 +124,7 @@ results from a unitless LJ simulation into physical quantities.
 <LI>charge = statcoulombs or esu
 <LI>dipole = statcoul-cm = 10^18 debye
 <LI>electric field = statvolt/cm or dyne/esu 
+<LI>density = grams/cm^dim 
 </UL>
 <P>The units command also sets the timestep size and neighbor skin
 distance to default values for each style.  For style <I>lj</I> these are

@@ -322,7 +322,7 @@ arguments are non-zero, else return a 0.0.  The logical OR operator
 will return 1.0 of either of its arguments is non-zero, else return a
 0.0.  These relational and logical operators can be used as a masking
 or selection operation in a formula.  For example, the number of atoms
-whose properties satisy one or more criteria could be calculated by
+whose properties satifsy one or more criteria could be calculated by
 taking the returned per-atom vector of ones and zeroes and passing it
 to the "compute reduce"_compute_reduce.html command.
 

@@ -18,6 +18,8 @@
 #include "style_dump.h"
 #include "atom.h"
 #include "neighbor.h"
+#include "input.h"
+#include "variable.h"
 #include "comm.h"
 #include "update.h"
 #include "group.h"
@@ -76,9 +78,11 @@ Output::Output(LAMMPS *lmp) : Pointers(lmp)
 
   ndump = 0;
   max_dump = 0;
+  every_dump = NULL;
   next_dump = NULL;
   last_dump = NULL;
-  dump_every = NULL;
+  var_dump = NULL;
+  ivar_dump = NULL;
   dump = NULL;
 
   restart = NULL;
@@ -95,9 +99,12 @@ Output::~Output()
 {
   if (thermo) delete thermo;
 
+  memory->sfree(every_dump);
   memory->sfree(next_dump);
   memory->sfree(last_dump);
-  memory->sfree(dump_every);
+  for (int i = 0; i < ndump; i++) delete [] var_dump[i];
+  memory->sfree(var_dump);
+  memory->sfree(ivar_dump);
   for (int i = 0; i < ndump; i++) delete dump[i];
   memory->sfree(dump);
 
@@ -112,6 +119,14 @@ void Output::init()
 {
   thermo->init();
   for (int i = 0; i < ndump; i++) dump[i]->init();
+  for (int i = 0; i < ndump; i++)
+    if (every_dump[i] == 0) {
+      ivar_dump[i] = input->variable->find(var_dump[i]);
+      if (ivar_dump[i] < 0)
+	error->all("Variable name for dump every does not exist");
+      if (!input->variable->equalstyle(ivar_dump[i]))
+	error->all("Variable for dump every is invalid style");
+    }
 }
 
 /* ----------------------------------------------------------------------
@@ -139,15 +154,23 @@ void Output::setup(int flag)
     for (int idump = 0; idump < ndump; idump++) {
       if (dump[idump]->clearstep) modify->clearstep_compute();
       writeflag = 0;
-      if (ntimestep % dump_every[idump] == 0 && last_dump[idump] != ntimestep)
-	writeflag = 1;
+      if (every_dump[idump] && ntimestep % every_dump[idump] == 0 && 
+	  last_dump[idump] != ntimestep) writeflag = 1;
       if (last_dump[idump] < 0 && dump[idump]->first_flag == 1) writeflag = 1;
       if (writeflag) {
 	dump[idump]->write();
 	last_dump[idump] = ntimestep;
       }
-      next_dump[idump] = 
-	(ntimestep/dump_every[idump])*dump_every[idump] + dump_every[idump];
+      if (every_dump[idump])
+	next_dump[idump] = 
+	  (ntimestep/every_dump[idump])*every_dump[idump] + every_dump[idump];
+      else {
+	int nextdump = static_cast<int> 
+	  (input->variable->compute_equal(ivar_dump[idump]));
+	if (nextdump <= ntimestep)
+	  error->all("Dump every variable returned a bad timestep");
+	next_dump[idump] = nextdump;
+      }
       if (dump[idump]->clearstep) {
 	if (writeflag) modify->addstep_compute(next_dump[idump]);
 	else modify->addstep_compute_all(next_dump[idump]);
@@ -211,7 +234,14 @@ void Output::write(int ntimestep)
         if (dump[idump]->clearstep) modify->clearstep_compute();
 	dump[idump]->write();
 	last_dump[idump] = ntimestep;
-	next_dump[idump] += dump_every[idump];
+	if (every_dump[idump]) next_dump[idump] += every_dump[idump];
+	else {
+	  int nextdump = static_cast<int> 
+	    (input->variable->compute_equal(ivar_dump[idump]));
+	  if (nextdump <= ntimestep)
+	    error->all("Dump every variable returned a bad timestep");
+	  next_dump[idump] = nextdump;
+	}
         if (dump[idump]->clearstep) modify->addstep_compute(next_dump[idump]);
       }
       if (idump) next_dump_any = MYMIN(next_dump_any,next_dump[idump]);
@@ -319,12 +349,16 @@ void Output::add_dump(int narg, char **arg)
     max_dump += DELTA;
     dump = (Dump **)
       memory->srealloc(dump,max_dump*sizeof(Dump *),"output:dump");
-    dump_every = (int *)
-      memory->srealloc(dump_every,max_dump*sizeof(int *),"output:dump_every");
+    every_dump = (int *)
+      memory->srealloc(every_dump,max_dump*sizeof(int),"output:every_dump");
     next_dump = (int *)
-      memory->srealloc(next_dump,max_dump*sizeof(int *),"output:next_dump");
+      memory->srealloc(next_dump,max_dump*sizeof(int),"output:next_dump");
     last_dump = (int *)
-      memory->srealloc(last_dump,max_dump*sizeof(int *),"output:last_dump");
+      memory->srealloc(last_dump,max_dump*sizeof(int),"output:last_dump");
+    var_dump = (char **)
+      memory->srealloc(var_dump,max_dump*sizeof(char *),"output:var_dump");
+    ivar_dump = (int *)
+      memory->srealloc(ivar_dump,max_dump*sizeof(int),"output:ivar_dump");
   }
 
   // create the Dump
@@ -339,9 +373,10 @@ void Output::add_dump(int narg, char **arg)
 
   else error->all("Invalid dump style");
 
-  dump_every[ndump] = atoi(arg[3]);
-  if (dump_every[ndump] <= 0) error->all("Illegal dump command");
+  every_dump[ndump] = atoi(arg[3]);
+  if (every_dump[ndump] <= 0) error->all("Illegal dump command");
   last_dump[ndump] = -1;
+  var_dump[ndump] = NULL;
   ndump++;
 }
 
@@ -377,14 +412,17 @@ void Output::delete_dump(char *id)
   if (idump == ndump) error->all("Could not find undump ID");
 
   delete dump[idump];
+  delete [] var_dump[idump];
 
   // move other dumps down in list one slot
 
   for (int i = idump+1; i < ndump; i++) {
     dump[i-1] = dump[i];
-    dump_every[i-1] = dump_every[i];
+    every_dump[i-1] = every_dump[i];
     next_dump[i-1] = next_dump[i];
     last_dump[i-1] = last_dump[i];
+    var_dump[i-1] = var_dump[i];
+    ivar_dump[i-1] = ivar_dump[i];
   }
   ndump--;
 }

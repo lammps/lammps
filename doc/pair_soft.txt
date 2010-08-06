@@ -22,7 +22,7 @@ pair_coeff 1 1 10.0 3.0 :pre
 
 pair_style soft 2.5
 pair_coeff * * 0.0
-variable prefactor equal 30.0*elapsed/10000
+variable prefactor equal ramp(0,30)
 fix 1 all adapt 1 pair soft a * * prefactor :pre
 
 [Description:]
@@ -56,9 +56,9 @@ or more pair types over the course of a simulation, in which case
 pair_coeff settings for A must still be specified, but will be
 overridden.  For example these commands will vary the prefactor A for
 all pairwise interactions from 0.0 at the beginning to 30.0 at the end
-of a 10,000 step run:
+of a run:
 
-variable prefactor equal 30.0*elapsed/10000
+variable prefactor equal ramp(0,30)
 fix 1 all adapt 1 pair soft a * * prefactor :pre
 
 Note that a formula defined by an "equal-style variable"_variable.html

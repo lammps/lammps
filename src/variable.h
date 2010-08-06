@@ -50,7 +50,7 @@ class Variable : protected Pointers {
     int *iarray;
     int nstride;
     int type;
-    Tree *left,*right;
+    Tree *left,*middle,*right;
   };
 
   void remove(int);

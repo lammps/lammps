@@ -104,17 +104,18 @@ than the Coulombic coefficients.
 </P>
 <P>The <I>angle</I> keyword allows the 1-3 weighting factor to be ignored for
 individual atom pairs if they are not listed as the first and last
-atoms in any angle defined in the simulation.  For example, imagine
-the 1-3 weighting factor is set to 0.5 and you have a linear molecule
-with 4 atoms and bonds as follows: 1-2-3-4.  If your data file defines
-1-2-3 as an angle, but does not define 2-3-4 as an angle, then the
-pairwise interaction between atoms 1 and 3 will always be weighted by
-0.5, but different force fields use different rules for weighting the
-pairwise interaction between atoms 2 and 4.  If the <I>angle</I> keyword is
-specified as <I>yes</I>, then the pairwise interaction between atoms 2 and
-4 will be unaffected (full weighting of 1.0).  If the <I>angle</I> keyword
-is specified as <I>no</I> which is the default, then the 2,4 interaction
-will also be weighted by 0.5.
+atoms in any angle defined in the simulation or as 1,3 or 2,4 atoms in
+any dihedral defined in the simulation.  For example, imagine the 1-3
+weighting factor is set to 0.5 and you have a linear molecule with 4
+atoms and bonds as follows: 1-2-3-4.  If your data file defines 1-2-3
+as an angle, but does not define 2-3-4 as an angle or 1-2-3-4 as a
+dihedral, then the pairwise interaction between atoms 1 and 3 will
+always be weighted by 0.5, but different force fields use different
+rules for weighting the pairwise interaction between atoms 2 and 4.
+If the <I>angle</I> keyword is specified as <I>yes</I>, then the pairwise
+interaction between atoms 2 and 4 will be unaffected (full weighting
+of 1.0).  If the <I>angle</I> keyword is specified as <I>no</I> which is the
+default, then the 2,4 interaction will also be weighted by 0.5.
 </P>
 <P>The <I>dihedral</I> keyword allows the 1-4 weighting factor to be ignored
 for individual atom pairs if they are not listed as the first and last

@@ -708,8 +708,13 @@ void Special::angle_trim()
   MPI_Status status;
   
   int *num_angle = atom->num_angle;
+  int *num_dihedral = atom->num_dihedral;
   int **angle_atom1 = atom->angle_atom1;
   int **angle_atom3 = atom->angle_atom3;
+  int **dihedral_atom1 = atom->dihedral_atom1;
+  int **dihedral_atom2 = atom->dihedral_atom2;
+  int **dihedral_atom3 = atom->dihedral_atom3;
+  int **dihedral_atom4 = atom->dihedral_atom4;
   int **nspecial = atom->nspecial;
   int **special = atom->special;
   int nlocal = atom->nlocal;
@@ -732,9 +737,10 @@ void Special::angle_trim()
 	      "  %g = # of 1-3 neighbors before angle trim\n",allcount);
   }
   
-  // if angles are defined, flag each 1-3 neigh if it appears in an angle
+  // if angles or dihedrals are defined,
+  // flag each 1-3 neigh if it appears in an angle or dihedral
 
-  if (num_angle && atom->nangles) {
+  if ((num_angle && atom->nangles) || (num_dihedral && atom->ndihedrals)) {
 
     // dflag = flag for 1-3 neighs of all owned atoms
 
@@ -751,9 +757,10 @@ void Special::angle_trim()
 
     // nbufmax = largest buffer needed to hold info from any proc
     // info for each atom = list of 1,3 atoms in each angle stored by atom
+    //   and list of 1,3 and 2,4 atoms in each dihedral stored by atom
     
     int nbuf = 0;
-    for (i = 0; i < nlocal; i++) nbuf += 2*num_angle[i];
+    for (i = 0; i < nlocal; i++) nbuf += 2*num_angle[i] + 2*2*num_dihedral[i];
     
     int nbufmax;
     MPI_Allreduce(&nbuf,&nbufmax,1,MPI_INT,MPI_MAX,world);
@@ -762,12 +769,20 @@ void Special::angle_trim()
     int *bufcopy = new int[nbufmax];
     
     // fill buffer with list of 1,3 atoms in each angle
+    // and with list of 1,3 and 2,4 atoms in each dihedral
 
     int size = 0;
     for (i = 0; i < nlocal; i++)
       for (j = 0; j < num_angle[i]; j++) {
 	buf[size++] = angle_atom1[i][j];
 	buf[size++] = angle_atom3[i][j];
+      }
+    for (i = 0; i < nlocal; i++)
+      for (j = 0; j < num_dihedral[i]; j++) {
+	buf[size++] = dihedral_atom1[i][j];
+	buf[size++] = dihedral_atom3[i][j];
+	buf[size++] = dihedral_atom2[i][j];
+	buf[size++] = dihedral_atom4[i][j];
       }
 
     // cycle buffer around ring of procs back to self
@@ -831,7 +846,8 @@ void Special::angle_trim()
     delete [] buf;
     delete [] bufcopy;
 
-  // if no angles are defined, delete all 1-3 neighs, preserving 1-4 neighs
+  // if no angles or dihedrals are defined,
+  // delete all 1-3 neighs, preserving 1-4 neighs
 
   } else {
     for (i = 0; i < nlocal; i++) {

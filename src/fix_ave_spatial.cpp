@@ -20,6 +20,7 @@
 #include "fix_ave_spatial.h"
 #include "atom.h"
 #include "update.h"
+#include "force.h"
 #include "domain.h"
 #include "lattice.h"
 #include "modify.h"
@@ -746,9 +747,10 @@ void FixAveSpatial::end_of_step()
   // time average across samples
   // if normflag = ALL, final is total value / total count
   // if normflag = SAMPLE, final is sum of ave / repeat
-  // exception is ALL density: normalized by repeat, not total count
+  // exception is densities: normalized by repeat, not total count
 
   double repeat = nrepeat;
+  double mv2d = force->mv2d;
 
   if (normflag == ALL) {
     MPI_Allreduce(count_many,count_sum,nlayers,MPI_DOUBLE,MPI_SUM,world);
@@ -757,8 +759,8 @@ void FixAveSpatial::end_of_step()
     for (m = 0; m < nlayers; m++) {
       if (count_sum[m] > 0.0)
 	for (j = 0; j < nvalues; j++)
-	  if (which[j] == DENSITY_NUMBER || which[j] == DENSITY_MASS)
-	    values_sum[m][j] /= repeat;
+	  if (which[j] == DENSITY_NUMBER) values_sum[m][j] /= repeat;
+	  else if (which[j] == DENSITY_MASS) values_sum[m][j] *= mv2d/repeat;
 	  else values_sum[m][j] /= count_sum[m];
       count_sum[m] /= repeat;
     }

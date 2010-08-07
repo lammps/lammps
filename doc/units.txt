@@ -52,7 +52,8 @@ pressure = reduced LJ pressure, where P* = P sigma^3 / epsilon
 dynamic viscosity = reduced LJ viscosity, where eta* = eta sigma^3 / epsilon / tau
 charge = reduced LJ charge, where q* = q / (4 pi perm0 sigma epsilon)^1/2
 dipole = reduced LJ dipole, moment where *mu = mu / (4 pi perm0 sigma^3 epsilon)^1/2
-electric field = force/charge, where E* = E (4 pi perm0 sigma epsilon)^1/2 sigma / epsilon :ul
+electric field = force/charge, where E* = E (4 pi perm0 sigma epsilon)^1/2 sigma / epsilon 
+density = mass/volume, where rho* = rho sigma^dim :ul
 
 For style {real}, these are the units:
 
@@ -68,7 +69,8 @@ pressure = atmospheres
 dynamic viscosity = Poise
 charge = multiple of electron charge (+1.0 is a proton)
 dipole = charge*Angstroms
-electric field = volts/Angstrom :ul
+electric field = volts/Angstrom 
+density = gram/cm^dim :ul
 
 For style {metal}, these are the units:
 
@@ -84,7 +86,8 @@ pressure = bars
 dynamic viscosity = Poise
 charge = multiple of electron charge (+1.0 is a proton)
 dipole = charge*Angstroms
-electric field = volts/Angstrom :ul
+electric field = volts/Angstrom
+density = gram/cm^dim :ul
 
 For style {si}, these are the units:
 
@@ -100,7 +103,8 @@ pressure = Pascals
 dynamic viscosity = Pascal*second
 charge = Coulombs
 dipole = Coulombs*meters
-electric field = volts/meter :ul
+electric field = volts/meter 
+density = kilograms/meter^dim :ul
 
 For style {cgs}, these are the units:
 
@@ -116,7 +120,8 @@ pressure = dyne/cm^2 or barye = 1.0e-6 bars
 dynamic viscosity = Poise
 charge = statcoulombs or esu
 dipole = statcoul-cm = 10^18 debye
-electric field = statvolt/cm or dyne/esu :ul
+electric field = statvolt/cm or dyne/esu 
+density = grams/cm^dim :ul
 
 The units command also sets the timestep size and neighbor skin
 distance to default values for each style.  For style {lj} these are

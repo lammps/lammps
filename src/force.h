@@ -23,6 +23,7 @@ class Force : protected Pointers {
   double boltz;                      // Boltzmann constant (eng/degree-K)
   double mvv2e;                      // conversion of mv^2 to energy
   double ftm2v;                      // conversion of ft/m to velocity
+  double mv2d;                       // conversion of mass/volume to density
   double nktv2p;                     // conversion of NkT/V to pressure
   double qqr2e;                      // conversion of q^2/r to energy
   double qe2f;                       // conversion of qE to force

@@ -104,6 +104,7 @@ void Update::set_units(const char *style)
     force->boltz = 1.0;
     force->mvv2e = 1.0;
     force->ftm2v = 1.0;
+    force->mv2d = 1.0;
     force->nktv2p = 1.0;
     force->qqr2e = 1.0;
     force->qe2f = 1.0;
@@ -116,6 +117,7 @@ void Update::set_units(const char *style)
     force->boltz = 0.0019872067;
     force->mvv2e = 48.88821291 * 48.88821291;
     force->ftm2v = 1.0 / 48.88821291 / 48.88821291;
+    force->mv2d = 1.0 / 0.602214179;
     force->nktv2p = 68568.415;
     force->qqr2e = 332.06371;
     force->qe2f = 23.060549; 
@@ -127,7 +129,8 @@ void Update::set_units(const char *style)
   } else if (strcmp(style,"metal") == 0) {
     force->boltz = 8.617343e-5;
     force->mvv2e = 1.0364269e-4;
-    force->ftm2v = 1 / 1.0364269e-4;
+    force->ftm2v = 1.0 / 1.0364269e-4;
+    force->mv2d = 1.0 / 0.602214179;
     force->nktv2p = 1.6021765e6;
     force->qqr2e = 14.399645;
     force->qe2f = 1.0;
@@ -140,6 +143,7 @@ void Update::set_units(const char *style)
     force->boltz = 1.3806504e-23;
     force->mvv2e = 1.0;
     force->ftm2v = 1.0;
+    force->mv2d = 1.0;
     force->nktv2p = 1.0;
     force->qqr2e = 8.9876e9;
     force->qe2f = 1.0;
@@ -152,6 +156,7 @@ void Update::set_units(const char *style)
     force->boltz = 1.3806504e-16;
     force->mvv2e = 1.0;
     force->ftm2v = 1.0;
+    force->mv2d = 1.0;
     force->nktv2p = 1.0;
     force->qqr2e = 1.0;
     force->qe2f = 1.0;

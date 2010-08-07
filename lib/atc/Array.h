@@ -3,8 +3,9 @@
 
 //#include<stdlib.h>
 //#include<stdio.h>
-#include<iostream>
-#include<string>
+#include <iostream>
+#include <string>
+#include <cstdio>
 
 template<typename T>
 class Array {

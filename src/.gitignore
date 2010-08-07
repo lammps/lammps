@@ -1,4 +1,5 @@
 Makefile.package
+
 lammps-icms-win.exe
 lammps-icms-win.zip
 angle_cg_cmm.cpp
@@ -55,6 +56,8 @@ bond_table.cpp
 bond_table.h
 cg_cmm_parms.cpp
 cg_cmm_parms.h
+compute_ackland_atom.cpp
+compute_ackland_atom.h
 compute_damage_atom.cpp
 compute_damage_atom.h
 compute_erotate_asphere.cpp
@@ -103,6 +106,8 @@ fft3d.cpp
 fft3d.h
 fft3d_wrap.cpp
 fft3d_wrap.h
+fix_atc.cpp
+fix_atc.h
 fix_bond_break.cpp
 fix_bond_break.h
 fix_bond_create.cpp
@@ -115,6 +120,8 @@ fix_freeze.cpp
 fix_freeze.h
 fix_imd.cpp
 fix_imd.h
+fix_msst.cpp
+fix_msst.h
 fix_nh_asphere.cpp
 fix_nh_asphere.h
 fix_nph_asphere.cpp
@@ -127,10 +134,14 @@ fix_nvt_asphere.cpp
 fix_nvt_asphere.h
 fix_peri_neigh.cpp
 fix_peri_neigh.h
+fix_poems.cpp
+fix_poems.h
 fix_pour.cpp
 fix_pour.h
 fix_pour_omp.cpp
 fix_pour_omp.h
+fix_reax_bonds.cpp
+fix_reax_bonds.h
 fix_shear_history_omp.cpp
 fix_shear_history_omp.h
 fix_smd.cpp
@@ -173,6 +184,8 @@ pair_buck_coul.cpp
 pair_buck_coul.h
 pair_buck_coul_omp.cpp
 pair_buck_coul_omp.h
+pair_cdeam.cpp
+pair_cdeam.h
 pair_cg_cmm.cpp
 pair_cg_cmm.h
 pair_cg_cmm_omp.cpp
@@ -207,6 +220,8 @@ pair_dpd_omp.cpp
 pair_dpd_omp.h
 pair_dpd_tstat_omp.cpp
 pair_dpd_tstat_omp.h
+pair_dsmc.cpp
+pair_dsmc.h
 pair_eam.cpp
 pair_eam.h
 pair_eam_omp.cpp
@@ -309,6 +324,8 @@ pair_lubricate.cpp
 pair_lubricate.h
 pair_lubricate_omp.cpp
 pair_lubricate_omp.h
+pair_meam.cpp
+pair_meam.h
 pair_morse_omp.cpp
 pair_morse_omp.h
 pair_morse_opt.cpp
@@ -317,6 +334,9 @@ pair_omp.cpp
 pair_omp.h
 pair_peri_pmb.cpp
 pair_peri_pmb.h
+pair_reax.cpp
+pair_reax.h
+pair_reax_fortran.h
 pair_resquared.cpp
 pair_resquared.h
 pair_resquared_omp.cpp

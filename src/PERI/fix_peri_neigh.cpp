@@ -17,17 +17,20 @@
 
 #include "math.h"
 #include "fix_peri_neigh.h"
+#include "pair_peri_pmb.h"
+#include "pair_peri_lps.h"
 #include "atom.h"
+#include "domain.h"
 #include "force.h"
-#include "pair.h"
+#include "comm.h"
+#include "update.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
+#include "pair.h"
+#include "lattice.h"
 #include "memory.h"
 #include "error.h"
-
-#include "comm.h"
-#include "update.h"
 
 using namespace LAMMPS_NS;
 
@@ -39,6 +42,7 @@ using namespace LAMMPS_NS;
 FixPeriNeigh::FixPeriNeigh(LAMMPS *lmp,int narg, char **arg) : 
   Fix(lmp, narg, arg)
 {
+  restart_global = 1;
   restart_peratom = 1;
   first = 1;
 
@@ -51,6 +55,7 @@ FixPeriNeigh::FixPeriNeigh(LAMMPS *lmp,int narg, char **arg) :
   partner = NULL;
   r0 = NULL;
   vinter = NULL;
+  wvolume = NULL;
 
   grow_arrays(atom->nmax);
   atom->add_callback(0);
@@ -60,6 +65,10 @@ FixPeriNeigh::FixPeriNeigh(LAMMPS *lmp,int narg, char **arg) :
 
   int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++) npartner[i] = 0;
+
+  // set comm sizes needed by this fix
+
+  comm_forward = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -78,6 +87,7 @@ FixPeriNeigh::~FixPeriNeigh()
   memory->destroy_2d_int_array(partner);
   memory->destroy_2d_double_array(r0);
   memory->sfree(vinter);
+  memory->sfree(wvolume);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -92,6 +102,8 @@ int FixPeriNeigh::setmask()
 
 void FixPeriNeigh::init()
 {
+  if (!first) return;
+
   // need a full neighbor list once
 
   int irequest = neighbor->request((void *) this);
@@ -127,7 +139,7 @@ void FixPeriNeigh::setup(int vflag)
   int *tag = atom->tag;
   int nlocal = atom->nlocal;
 
-  // only build list of bonds on very first run
+ // only build list of bonds on very first run
 
   if (!first) return;
   first = 0;
@@ -190,6 +202,7 @@ void FixPeriNeigh::setup(int vflag)
   for (i = 0; i < nlocal; i++) {
     npartner[i] = 0;
     vinter[i] = 0.0;
+    wvolume[i] = 0.0;
   }
 
   for (ii = 0; ii < inum; ii++) {
@@ -203,7 +216,7 @@ void FixPeriNeigh::setup(int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
- 
+
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
@@ -211,13 +224,73 @@ void FixPeriNeigh::setup(int vflag)
       jtype = type[j];
 
       if (rsq <= cutsq[itype][jtype]) {
-	partner[i][npartner[i]] = tag[j];
-	r0[i][npartner[i]] = sqrt(rsq);
-	npartner[i]++;
+        partner[i][npartner[i]] = tag[j];
+        r0[i][npartner[i]] = sqrt(rsq);
+        npartner[i]++;
         vinter[i] += vfrac[j];
       }
     }
   }
+
+  // compute wvolume for each atom
+
+  double **x0 = atom->x0;
+  double half_lc = 0.5*(domain->lattice->xlattice);
+  double vfrac_scale;
+  PairPeriLPS *pairlps = dynamic_cast<PairPeriLPS*>(anypair);
+  PairPeriPMB *pairpmb = dynamic_cast<PairPeriPMB*>(anypair);
+  for (i = 0; i < nlocal; i++) {
+    double xtmp0 = x0[i][0];
+    double ytmp0 = x0[i][1];
+    double ztmp0 = x0[i][2];
+    jnum = npartner[i];
+    itype = type[i];
+
+    // loop over partners of particle i
+
+    for (jj = 0; jj < jnum; jj++) {
+
+      // if bond already broken, skip this partner
+
+      if (partner[i][jj] == 0) continue;
+
+      // lookup local index of partner particle
+
+      j = atom->map(partner[i][jj]);
+
+      // skip if particle is "lost"
+
+      if (j < 0) continue;
+
+      double delx0 = xtmp0 - x0[j][0];
+      double dely0 = ytmp0 - x0[j][1];
+      double delz0 = ztmp0 - x0[j][2];
+      double rsq0 = delx0*delx0 + dely0*dely0 + delz0*delz0;
+
+      jtype = type[j];
+      double delta = sqrt(cutsq[itype][jtype]);
+
+      // scale vfrac[j] if particle j near the horizon
+
+      if ((fabs(r0[i][jj] - delta)) <= half_lc)
+        vfrac_scale = (-1.0/(2*half_lc))*(r0[i][jj]) +
+          (1.0 + ((delta - half_lc)/(2*half_lc) ) );
+      else vfrac_scale = 1.0;
+
+      if (pairpmb != NULL) // define influence function to be 1.0
+        wvolume[i] += 1.0 * rsq0 * vfrac[j] * vfrac_scale;
+      else if (pairlps != NULL) // call the PairPeriLPS influence function
+        wvolume[i] += pairlps->influence_function(delx0,dely0,delz0) * 
+	  rsq0 * vfrac[j] * vfrac_scale;
+      else
+        error->all("Unknown peridynamic pair style in FixPeriNeigh.");
+
+    }
+  }
+
+  // communicate wvolume to ghosts
+
+  comm->forward_comm_fix(this);
 
   // bond statistics
 
@@ -251,6 +324,7 @@ double FixPeriNeigh::memory_usage()
   bytes += nmax*maxpartner * sizeof(int);
   bytes += nmax*maxpartner * sizeof(double);
   bytes += nmax * sizeof(double);
+  bytes += nmax * sizeof(double);
   return bytes;
 }
 
@@ -267,6 +341,8 @@ void FixPeriNeigh::grow_arrays(int nmax)
   r0 = memory->grow_2d_double_array(r0,nmax,maxpartner,"peri_neigh:r0");
   vinter = (double *) memory->srealloc(vinter,nmax*sizeof(double),
 				       "peri_neigh:vinter");
+  wvolume = (double *) memory->srealloc(wvolume,nmax*sizeof(double),
+                                       "peri_neigh:wvolume");
 }
 
 /* ----------------------------------------------------------------------
@@ -281,6 +357,7 @@ void FixPeriNeigh::copy_arrays(int i, int j)
     r0[j][m] = r0[i][m];
   }
   vinter[j] = vinter[i];
+  wvolume[j] = wvolume[i];
 }
 
 /* ----------------------------------------------------------------------
@@ -301,6 +378,7 @@ int FixPeriNeigh::pack_exchange(int i, double *buf)
 
   buf[0] = m/2;
   buf[m++] = vinter[i];
+  buf[m++] = wvolume[i];
   return m;
 }
 
@@ -317,7 +395,71 @@ int FixPeriNeigh::unpack_exchange(int nlocal, double *buf)
     r0[nlocal][n] = buf[m++];
   }
   vinter[nlocal] = buf[m++];
+  wvolume[nlocal] = buf[m++];
   return m;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixPeriNeigh::pack_comm(int n, int *list, double *buf,
+                             int pbc_flag, int *pbc)
+{
+  int i,j,m;
+
+  m = 0;
+  for (i = 0; i < n; i++) {
+    j = list[i];
+    buf[m++] = wvolume[j];
+  }
+  return 1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPeriNeigh::unpack_comm(int n, int first, double *buf)
+{
+  int i,m,last;
+
+  m = 0;
+  last = first + n;
+  for (i = first; i < last; i++) {
+    wvolume[i] = buf[m++];
+  }
+}
+
+/* ----------------------------------------------------------------------
+   pack entire state of Fix into one write
+------------------------------------------------------------------------- */
+
+void FixPeriNeigh::write_restart(FILE *fp)
+{
+  int n = 0;
+  double list[2];
+  list[n++] = first;
+  list[n++] = maxpartner;
+
+  if (comm->me == 0) {
+    int size = n * sizeof(double);
+    fwrite(&size,sizeof(int),1,fp);
+    fwrite(list,sizeof(double),n,fp);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   use state info from restart file to restart the Fix
+------------------------------------------------------------------------- */
+
+void FixPeriNeigh::restart(char *buf)
+{
+  int n = 0;
+  double *list = (double *) buf;
+
+  first = static_cast<int> (list[n++]);
+  maxpartner = static_cast<int> (list[n++]);
+
+  // grow 2D arrays now, cannot change size of 2nd array index later
+
+  grow_arrays(atom->nmax);
 }
 
 /* ----------------------------------------------------------------------
@@ -327,13 +469,14 @@ int FixPeriNeigh::unpack_exchange(int nlocal, double *buf)
 int FixPeriNeigh::pack_restart(int i, double *buf)
 {
   int m = 0;
-  buf[m++] = 2*npartner[i] + 2;
+  buf[m++] = 2*npartner[i] + 4;
   buf[m++] = npartner[i];
   for (int n = 0; n < npartner[i]; n++) {
     buf[m++] = partner[i][n];
     buf[m++] = r0[i][n];
   }
   buf[m++] = vinter[i];
+  buf[m++] = wvolume[i];
   return m;
 }
 
@@ -357,6 +500,7 @@ void FixPeriNeigh::unpack_restart(int nlocal, int nth)
     r0[nlocal][n] = extra[nlocal][m++];
   }
   vinter[nlocal] = extra[nlocal][m++];
+  wvolume[nlocal] = extra[nlocal][m++];
 }
 
 /* ----------------------------------------------------------------------
@@ -365,7 +509,7 @@ void FixPeriNeigh::unpack_restart(int nlocal, int nth)
 
 int FixPeriNeigh::maxsize_restart()
 {
-  return 2*maxpartner + 3;
+  return 2*maxpartner + 4;
 }
 
 /* ----------------------------------------------------------------------
@@ -374,5 +518,5 @@ int FixPeriNeigh::maxsize_restart()
 
 int FixPeriNeigh::size_restart(int nlocal)
 {
-  return 2*npartner[nlocal] + 3;
+  return 2*npartner[nlocal] + 4;
 }

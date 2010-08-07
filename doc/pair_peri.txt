@@ -1,0 +1,120 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+pair_style peri/pmb command :h3
+pair_style peri/lps command :h3
+
+[Syntax:]
+
+pair_style style :pre 
+
+style = {peri/pmb} or {peri/lps} :ul
+
+[Examples:]
+
+pair_style peri/pmb
+pair_coeff * * 1.6863e22 0.0015001 0.0005 0.25 :pre
+
+pair_style peri/lps
+pair_coeff * * 14.9e9 14.9e9 0.0015001 0.0005 0.25 :pre
+
+[Description:]
+
+The peridynamic pair styles implement material models that can be used
+at the mescscopic and macroscopic scales.
+
+Style {peri/pmb} implements the Peridynamic bond-based prototype
+microelastic brittle (PMB) model.
+
+Style {peri/lps} implements the Peridynamic state-based linear
+peridynamic solid (LPS) model.
+
+The canonical papers on Peridynamics are "(Silling 2000)"_#Silling2000
+and "(Silling 2007)"_#Silling2007.  The implementation of Peridynamics
+in LAMMPS is described in "(Parks)"_#Parks.  Also see the "PDLAMMPS
+user guide"_http://www.sandia.gov/~mlparks/papers/PDLAMMPS.pdf for
+more details about the implementation of peridynamics in LAMMPS.
+
+The following coefficients must be defined for each pair of atom types
+via the "pair_coeff"_pair_coeff.html command as in the examples above,
+or in the data file or restart files read by the
+"read_data"_read_data.html or "read_restart"_read_restart.html
+commands, or by mixing as described below.
+
+For the {peri/pmb} style:
+
+c (energy/distance/volume^2 units)
+horizon (distance units)
+s00 (unitless)
+alpha (unitless) :ul
+
+C is the effectively a spring constant for Peridynamic bonds, the
+horizon is a cutoff distance for truncating interactions, and s00 and
+alpha are used as a bond breaking criteria.  The units of c are such
+that c/distance = stiffness/volume^2, where stiffness is
+energy/distance^2 and volume is distance^3.  See the users guide for
+more details.
+
+For the {peri/lps} style:
+
+K (force/area units)
+G (force/area units)
+horizon (distance units)
+s00 (unitless)
+alpha (unitless) :ul
+
+K is the bulk modulus and G is the shear modulus.  The horizon is a
+cutoff distance for truncating interactions, and s00 and alpha are
+used as a bond breaking criteria. See the users guide for more
+details.
+
+:line
+
+[Mixing, shift, table, tail correction, restart, rRESPA info]:
+
+These pair styles do not support mixing.  Thus, coefficients for all
+I,J pairs must be specified explicitly.
+
+These pair styles do not support the "pair_modify"_pair_modify.html
+shift option.
+
+The "pair_modify"_pair_modify.html table and tail options are not
+relevant for these pair styles.
+
+These pair styles write their information to "binary restart
+files"_restart.html, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.
+
+These pair styles can only be used via the {pair} keyword of the
+"run_style respa"_run_style.html command.  They do not support the
+{inner}, {middle}, {outer} keywords.
+
+:line
+
+[Restrictions:]
+
+The {peri/pmb} and {peri/lps} styles are part of the "peri"
+package. They are only enabled if LAMMPS was built with that package.
+See the "Making LAMMPS"_Section_start.html#2_3 section for more info.
+
+[Related commands:]
+
+"pair_coeff"_pair_coeff.html
+
+[Default:] none
+
+:line
+
+:link(Parks)
+[(Parks)] Parks, Lehoucq, Plimpton, Silling, Comp Phys Comm, 179(11), 777-783 (2008).
+
+:link(Silling2000)
+[(Silling 2000)] Silling, J Mech Phys Solids, 48, 175-209 (2000).
+
+:link(Silling2007)
+[(Silling 2007)] Silling, Epton, Weckner, Xu, Askari, J Elasticity, 88, 151-184 (2007).

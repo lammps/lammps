@@ -233,7 +233,7 @@ coupled rigid body integration via the "POEMS"_fix_poems.html library
 "parallel tempering"_temper.html
 "parallel replica dynamics"_prd.html
 "Direct Simulation Monte Carlo"_pair_dsmc.html for low-density fluids
-"Peridynamics mesoscale modeling"_pair_peri_pmb.html
+"Peridynamics mesoscale modeling"_pair_peri.html
 "targeted"_fix_tmd.html and "steered"_fix_smd.html molecular dynamics
 "two-temperature electron model"_fix_ttm.html :ul
 

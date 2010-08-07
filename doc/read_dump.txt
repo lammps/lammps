@@ -1,0 +1,106 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+read_dump command :h3
+
+[Syntax:]
+
+read_dump filename N col1 col2 ... keyword value ... :pre
+
+filename = name of dump file to read snapshot from :ulb,l
+N = timestamp to read in :l
+col1, col2, ... = {x} or {y} or {z} or {xs} or {ys} or {zs} or {xu} or {yu} or {zu} or {ix} or {iy} or {iz} or {vx} or {vy} or {vz} :l
+zero or more keyword/value pairs may be appended :l
+keyword = {procs} or {box} :l
+  {procs} value = P
+    P = number of processors that wrote out dump file
+  {box} value = {reset} or {ignore} :pre
+:ule
+
+[Examples:]
+
+read_dump dump.run 1000 x y z
+read_dump dump.poly.% 50000 xs ys zs vx vy vz procs 100 :pre
+
+[Description:]
+
+Read a snapshot at timestamp N from the specified dump file and use
+the specified per-atom column information from the snapshot to
+overwrite current per-atom values.  The dump file must be in the
+native LAMMPS format, as produced by an {atom} or {custom} style
+"dump"_dump.html command.
+
+The specified filename can contain the "%" wild-card character.  This
+means that individual dump files were written by each of the P
+processors the original simulation was running on, where "%" is
+replaced by the processor ID from 0 to P-1.  If the current simulation
+is not running on the same number of processors, then the {procs}
+keyword must be used to specify what P was in the original simulation,
+so that the current simulation knows which files to read.  If the "%"
+wild-card character is not used, or the current simulation is running
+on the same number of processors, then the {procs} keyword should not
+be used.
+
+{N} is the timestamp of the snapshot that will be read from the dump
+file.  The file will be scanned until the snapshot with that timestamp
+is found.  The timestep of the current simulation will not be reset to
+{N}.  Use the "reset_timestep"_reset_timestep.html command if this is
+desired.
+
+The dump file snapshot defines a simulation box size via its ITEM: BOX
+BOUNDS field.  If the setting for the optional {box} keyword is
+{ignore} then the box size settings are ignored.  If the setting for
+the {box} keyword is {reset} then the current simulation box size is
+reset to the values in the dump snapshot.  Note that due to the finite
+precision at which numeric values are written into a dump file, box
+sizes values which are identical to the current box size may be read
+in as slightly different values.  Hence you should not reset the box
+size if you expect it to be the same.
+
+The dump file snapshot defines the number of atom in the snapshot via
+its ITEM: NUMBER OF ATOMS field.  If this number does not match the
+number of atoms in the current simulation, then a WARNING is printed.
+
+The dump file snapshot defines a list of per-atom quantities via its
+ITEM: ATOMS field.  Any of the quantities listed above may be
+specified, in which case that per-atom quantity is read from the dump
+file and overwrites the corresponding current quantity.  See the
+"dump"_dump.html command for an explanation of these quantities.
+
+Atom IDs must also appear in the dump file.  They are used to map
+read-in atoms to current atoms one by one.  Note that if some current
+atoms do not appear in the dump file, their values are not
+overwritten.  Likewise if atom IDs appear in the dump file which do
+not exist in the current simulation, their read-in values are ignored.
+
+The various flavors of atom coordinates that can appear in the dump
+file ({x} or {xs} or {xu}) are all converted into internal LAMMPS
+coordinates (equivalent to {x}).  Each atom is also remapped to the
+current simulation box, if it is outside periodic boundaries.  Note
+that the current simulation box size may have been reset to the dump
+snapshot box size before this takes place.
+
+IMPORTANT NOTE: Image flags from the dump file ({ix}, {iy}, {iz})
+should only be read-in if the corresponding coordinates are of the {x}
+or {xs} form.  In this case, the remap of each atom to the (new)
+periodic box should update its read-in image flags correctly.  If the
+read-in coordinates are of the {xu} form, then no corresponding image
+flags should be read-in.  This is because the image flags are
+initialized to 0 when {xu} style coordinates are read.  The remap of
+atoms to the (new) periodic box should update the re-initialized image
+flags correctly.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"read_data"_read_data.html, "read_restart"_read_restart.html
+
+[Default:]
+
+The option defaults are box = ignore.

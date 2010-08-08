@@ -355,7 +355,7 @@ Stagger(x,y) requires x,y > 0 and x > y and uses the current timestep
 to generate a new timestep, in a staggered fashion, as the sequence
 x,x+y,2x,2x+y,3x,3x+y,etc.  For any current timestep, the next
 timestep in the sequence is returned.  Thus if stagger(1000,100) is
-used in a variable by the "dump_modify frequency"_dump_modify.html
+used in a variable by the "dump_modify every"_dump_modify.html
 command, it will generate the sequence of output timesteps:
 
 100,1000,1100,2000,2100,3000,etc :pre
@@ -365,7 +365,7 @@ timestep to generate a new timestep, in a logarithmic fashion, as the
 sequence x,2x,3x,...y*x,z*x,2*z*x,3*z*x,...y*z*x,z*z*x,2*z*x*x,etc.
 For any current timestep, the next timestep in the sequence is
 returned.  Thus if logfreq(100,4,10) is used in a variable by the
-"dump_modify frequency"_dump_modify.html command, it will generate the
+"dump_modify every"_dump_modify.html command, it will generate the
 sequence of output timesteps:
 
 100,200,300,400,1000,2000,3000,4000,10000,20000,etc :pre

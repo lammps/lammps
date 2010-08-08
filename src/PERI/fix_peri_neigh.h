@@ -26,6 +26,7 @@ namespace LAMMPS_NS {
 
 class FixPeriNeigh : public Fix {
   friend class PairPeriPMB;
+  friend class PairPeriLPS;
   friend class ComputeDamageAtom;
 
  public:
@@ -41,10 +42,15 @@ class FixPeriNeigh : public Fix {
   void copy_arrays(int, int);
   int pack_exchange(int, double *);
   int unpack_exchange(int, double *);
+  void write_restart(FILE *);
+  void restart(char *);
   int pack_restart(int, double *);
   void unpack_restart(int, int);
   int size_restart(int);
   int maxsize_restart();
+  int pack_comm(int, int *, double *, int, int *);
+  void unpack_comm(int, int, double *);
+
 
  private:
   int first;                 // flag for first time initialization
@@ -53,6 +59,7 @@ class FixPeriNeigh : public Fix {
   int **partner;             // neighs for each atom, stored as global IDs
   double **r0;               // initial distance to partners
   double *vinter;            // sum of vfrac for bonded neighbors
+  double *wvolume;           // weighted volume of particle
 
   class NeighList *list;
 };

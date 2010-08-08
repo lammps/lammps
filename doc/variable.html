@@ -356,7 +356,7 @@ command for details of how to do this.
 to generate a new timestep, in a staggered fashion, as the sequence
 x,x+y,2x,2x+y,3x,3x+y,etc.  For any current timestep, the next
 timestep in the sequence is returned.  Thus if stagger(1000,100) is
-used in a variable by the <A HREF = "dump_modify.html">dump_modify frequency</A>
+used in a variable by the <A HREF = "dump_modify.html">dump_modify every</A>
 command, it will generate the sequence of output timesteps:
 </P>
 <PRE>100,1000,1100,2000,2100,3000,etc 
@@ -366,7 +366,7 @@ timestep to generate a new timestep, in a logarithmic fashion, as the
 sequence x,2x,3x,...y*x,z*x,2*z*x,3*z*x,...y*z*x,z*z*x,2*z*x*x,etc.
 For any current timestep, the next timestep in the sequence is
 returned.  Thus if logfreq(100,4,10) is used in a variable by the
-<A HREF = "dump_modify.html">dump_modify frequency</A> command, it will generate the
+<A HREF = "dump_modify.html">dump_modify every</A> command, it will generate the
 sequence of output timesteps:
 </P>
 <PRE>100,200,300,400,1000,2000,3000,4000,10000,20000,etc 

@@ -202,6 +202,17 @@ void Replicate::command(int narg, char **arg)
     }
   }
 
+  if (atom->shape) {
+    for (int itype = 1; itype <= atom->ntypes; itype++) {
+      atom->shape_setflag[itype] = old->shape_setflag[itype];
+      if (atom->shape_setflag[itype]) {
+	atom->shape[itype][0] = old->shape[itype][0];
+	atom->shape[itype][1] = old->shape[itype][1];
+	atom->shape[itype][2] = old->shape[itype][2];
+      }
+    }
+  }
+
   if (atom->dipole) {
     for (int itype = 1; itype <= atom->ntypes; itype++) {
       atom->dipole_setflag[itype] = old->dipole_setflag[itype];

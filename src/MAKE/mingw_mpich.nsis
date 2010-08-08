@@ -1,0 +1,74 @@
+#!Nsis Installer Command Script
+#
+# This is an NSIS Installer Command Script generated automatically
+# by the Fedora nsiswrapper program.  For more information see:
+#
+#   http://fedoraproject.org/wiki/MinGW
+#
+# To build an installer from the script you would normally do:
+#
+#   makensis this_script
+#
+# which will generate the output file 'lammps-icms-win.exe' which is a Windows
+# installer containing your program.
+
+Name "LAMMPS-ICMS"
+OutFile "../lammps-icms-mpich-win.exe"
+InstallDir "c:\LAMMPS-ICMS"
+InstallDirRegKey HKLM SOFTWARE\LAMMPS-ICMS "Install_Dir"
+
+ShowInstDetails hide
+ShowUninstDetails hide
+
+# Uncomment this to enable BZip2 compression, which results in
+# slightly smaller files but uses more memory at install time.
+#SetCompressor bzip2
+
+XPStyle on
+
+Page components
+Page directory
+Page instfiles
+
+ComponentText "Select which optional components you want to install."
+
+DirText "Please select the installation folder."
+
+Section "LAMMPS-ICMS"
+  SectionIn RO
+
+  SetOutPath "$INSTDIR"
+  File "/usr/i686-pc-mingw32/sys-root/mingw/bin/libgcc_s_sjlj-1.dll"
+  File "/usr/i686-pc-mingw32/sys-root/mingw/bin/mingwm10.dll"
+
+  SetOutPath "$INSTDIR"
+  File "../lmp_mingw_mpich.exe"
+SectionEnd
+
+Section "Start Menu Shortcuts"
+  CreateDirectory "$SMPROGRAMS\LAMMPS-ICMS"
+  CreateShortCut "$SMPROGRAMS\LAMMPS-ICMS\Uninstall LAMMPS-ICMS.lnk" "$INSTDIR\Uninstall LAMMPS-ICMS.exe" "" "$INSTDIR\Uninstall LAMMPS-ICMS.exe" 0
+  CreateShortCut "$SMPROGRAMS\LAMMPS-ICMS\lmp_mingw_mpich.exe.lnk" "$INSTDIR\lmp_mingw_mpich.exe" "" "$INSTDIR\lmp_mingw_mpich.exe" 0
+SectionEnd
+
+Section "Desktop Icons"
+  CreateShortCut "$DESKTOP\lmp_mingw_mpich.exe.lnk" "$INSTDIR\lmp_mingw_mpich.exe" "" "$INSTDIR\lmp_mingw_mpich.exe" 0
+SectionEnd
+
+Section "Uninstall"
+  Delete /rebootok "$DESKTOP\lmp_mingw_mpich.exe.lnk"
+  Delete /rebootok "$SMPROGRAMS\LAMMPS-ICMS\lmp_mingw_mpich.exe.lnk"
+  Delete /rebootok "$SMPROGRAMS\LAMMPS-ICMS\Uninstall LAMMPS-ICMS.lnk"
+  RMDir "$SMPROGRAMS\LAMMPS-ICMS"
+
+  Delete /rebootok "$INSTDIR\lmp_mingw_mpich.exe"
+  RMDir "$INSTDIR"
+
+  Delete /rebootok "$INSTDIR\mingwm10.dll"
+  Delete /rebootok "$INSTDIR\libgcc_s_sjlj-1.dll"
+  RMDir "$INSTDIR"
+SectionEnd
+
+Section -post
+  WriteUninstaller "$INSTDIR\Uninstall LAMMPS-ICMS.exe"
+SectionEnd

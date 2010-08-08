@@ -7,7 +7,7 @@ SHELL = /bin/sh
 # specify flags and libraries needed for your compiler
 
 CC =		i686-pc-mingw32-g++
-CCFLAGS =	-O3 -march=i686 -mtune=generic -mfpmath=387 -mpc64  \
+CCFLAGS =	-O3 -march=i686 -mtune=generic -mfpmath=387 -mpc64 \
 	 -ffast-math -funroll-loops -fstrict-aliasing -Wall -W -Wno-uninitialized 
 DEPFLAGS =	-M
 LINK =		i686-pc-mingw32-g++

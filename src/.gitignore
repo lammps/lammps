@@ -1,7 +1,8 @@
 Makefile.package
-
 lammps-icms-win.exe
 lammps-icms-win.zip
+lammps-icms-mpich-win.exe
+lammps-icms-mpich-win.zip
 angle_cg_cmm.cpp
 angle_cg_cmm.h
 angle_charmm.cpp

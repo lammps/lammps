@@ -421,6 +421,9 @@ r0 of OH bond = 0.9572 <BR>
 <P>K of HOH angle = 55<BR>
 theta of HOH angle = 104.52 <BR>
 </P>
+<P>Wikipedia also has a nice article on <A HREF = "http://en.wikipedia.org/wiki/Water_model">water
+models</A>.
+</P>
 <HR>
 
 <A NAME = "4_8"></A><H4>4.8 TIP4P water model 
@@ -477,6 +480,9 @@ theta of HOH angle = 104.52 <BR>
 LJ sigma of O-O = 3.16435<BR>
 LJ epsilon, sigma of OH, HH = 0.0 <BR>
 </P>
+<P>Wikipedia also has a nice article on <A HREF = "http://en.wikipedia.org/wiki/Water_model">water
+models</A>.
+</P>
 <HR>
 
 <A NAME = "4_9"></A><H4>4.9 SPC water model 
@@ -489,8 +495,7 @@ the two O-H bonds and the H-O-H angle rigid.  A bond style of
 used.
 </P>
 <P>These are the additional parameters (in real units) to set for O and H
-atoms and the water molecule to run a rigid SPC model with long-range
-Coulombics (Ewald or PPPM in LAMMPS).
+atoms and the water molecule to run a rigid SPC model.
 </P>
 <P>O mass = 15.9994<BR>
 H mass = 1.008 <BR>
@@ -505,12 +510,23 @@ LJ epsilon, sigma of OH, HH = 0.0 <BR>
 <P>r0 of OH bond = 1.0<BR>
 theta of HOH angle = 109.47 <BR>
 </P>
-<P>To use an SPC model with a long-range Coulombic solver (Ewald or
-PPPM in LAMMPS), the only parameters that change are the partial
-charge assignments:
+<P>Note that as originally proposed, the SPC model was run with a 9
+Angstrom cutoff for both LJ and Coulommbic terms.  It can also be used
+with long-range Coulombics (Ewald or PPPM in LAMMPS), without changing
+any of the parameters above, though it becomes a different model in
+that mode of usage.
+</P>
+<P>The SPC/E (extended) water model is the same, except
+the partial charge assignemnts change:
 </P>
 <P>O charge = -0.8476<BR>
 H charge = 0.4238 <BR>
+</P>
+<P>See the <A HREF = "#Berendsen">(Berendsen)</A> reference for more details on both
+the SPC and SPC/E models.
+</P>
+<P>Wikipedia also has a nice article on <A HREF = "http://en.wikipedia.org/wiki/Water_model">water
+models</A>.
 </P>
 <HR>
 
@@ -1492,6 +1508,11 @@ converge and requires careful post-processing <A HREF = "#Shinoda">(Shinoda)</A>
 
 <HR>
 
+<A NAME = "Berendsen"></A>
+
+<P><B>(Berendsen)</B> Berendsen, Grigera, Straatsma, J Phys Chem, 91,
+6269-6271 (1987).
+</P>
 <A NAME = "Cornell"></A>
 
 <P><B>(Cornell)</B> Cornell, Cieplak, Bayly, Gould, Merz, Ferguson,

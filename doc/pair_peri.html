@@ -1,0 +1,129 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_style peri/pmb command 
+</H3>
+<H3>pair_style peri/lps command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_style style 
+</PRE>
+<UL><LI>style = <I>peri/pmb</I> or <I>peri/lps</I> 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_style peri/pmb
+pair_coeff * * 1.6863e22 0.0015001 0.0005 0.25 
+</PRE>
+<PRE>pair_style peri/lps
+pair_coeff * * 14.9e9 14.9e9 0.0015001 0.0005 0.25 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>The peridynamic pair styles implement material models that can be used
+at the mescscopic and macroscopic scales.
+</P>
+<P>Style <I>peri/pmb</I> implements the Peridynamic bond-based prototype
+microelastic brittle (PMB) model.
+</P>
+<P>Style <I>peri/lps</I> implements the Peridynamic state-based linear
+peridynamic solid (LPS) model.
+</P>
+<P>The canonical papers on Peridynamics are <A HREF = "#Silling2000">(Silling 2000)</A>
+and <A HREF = "#Silling2007">(Silling 2007)</A>.  The implementation of Peridynamics
+in LAMMPS is described in <A HREF = "#Parks">(Parks)</A>.  Also see the <A HREF = "http://www.sandia.gov/~mlparks/papers/PDLAMMPS.pdf">PDLAMMPS
+user guide</A> for
+more details about the implementation of peridynamics in LAMMPS.
+</P>
+<P>The following coefficients must be defined for each pair of atom types
+via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples above,
+or in the data file or restart files read by the
+<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
+commands, or by mixing as described below.
+</P>
+<P>For the <I>peri/pmb</I> style:
+</P>
+<UL><LI>c (energy/distance/volume^2 units)
+<LI>horizon (distance units)
+<LI>s00 (unitless)
+<LI>alpha (unitless) 
+</UL>
+<P>C is the effectively a spring constant for Peridynamic bonds, the
+horizon is a cutoff distance for truncating interactions, and s00 and
+alpha are used as a bond breaking criteria.  The units of c are such
+that c/distance = stiffness/volume^2, where stiffness is
+energy/distance^2 and volume is distance^3.  See the users guide for
+more details.
+</P>
+<P>For the <I>peri/lps</I> style:
+</P>
+<UL><LI>K (force/area units)
+<LI>G (force/area units)
+<LI>horizon (distance units)
+<LI>s00 (unitless)
+<LI>alpha (unitless) 
+</UL>
+<P>K is the bulk modulus and G is the shear modulus.  The horizon is a
+cutoff distance for truncating interactions, and s00 and alpha are
+used as a bond breaking criteria. See the users guide for more
+details.
+</P>
+<HR>
+
+<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
+</P>
+<P>These pair styles do not support mixing.  Thus, coefficients for all
+I,J pairs must be specified explicitly.
+</P>
+<P>These pair styles do not support the <A HREF = "pair_modify.html">pair_modify</A>
+shift option.
+</P>
+<P>The <A HREF = "pair_modify.html">pair_modify</A> table and tail options are not
+relevant for these pair styles.
+</P>
+<P>These pair styles write their information to <A HREF = "restart.html">binary restart
+files</A>, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.
+</P>
+<P>These pair styles can only be used via the <I>pair</I> keyword of the
+<A HREF = "run_style.html">run_style respa</A> command.  They do not support the
+<I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>The <I>peri/pmb</I> and <I>peri/lps</I> styles are part of the "peri"
+package. They are only enabled if LAMMPS was built with that package.
+See the <A HREF = "Section_start.html#2_3">Making LAMMPS</A> section for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "Parks"></A>
+
+<P><B>(Parks)</B> Parks, Lehoucq, Plimpton, Silling, Comp Phys Comm, 179(11), 777-783 (2008).
+</P>
+<A NAME = "Silling2000"></A>
+
+<P><B>(Silling 2000)</B> Silling, J Mech Phys Solids, 48, 175-209 (2000).
+</P>
+<A NAME = "Silling2007"></A>
+
+<P><B>(Silling 2007)</B> Silling, Epton, Weckner, Xu, Askari, J Elasticity, 88, 151-184 (2007).
+</P>
+</HTML>

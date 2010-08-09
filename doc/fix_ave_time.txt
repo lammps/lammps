@@ -16,7 +16,7 @@ ID, group-ID are documented in "fix"_fix.html command :ulb,l
 ave/time = style name of this fix command :l
 Nevery = use input values every this many timesteps :l
 Nrepeat = # of times to use input values for calculating averages :l
-Nfreq = calculate averages every this many timesteps
+Nfreq = calculate averages every this many timesteps :l
 one or more input values can be listed :l
 value = c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_name :l
   c_ID = global scalar or vector calculated by a compute with ID
@@ -29,7 +29,7 @@ zero or more keyword/arg pairs may be appended :l
 keyword = {mode} or {file} or {ave} or {start} or {off} or {title1} or {title2} or {title3} :l
   {mode} arg = {scalar} or {vector}
     scalar = all input values are global scalars
-    vector = all input values are global vectors
+    vector = all input values are global vectors or global arrays
   {file} arg = filename
     filename = name of file to output time averages to
   {ave} args = {one} or {running} or {window M}
@@ -181,7 +181,9 @@ Additional optional keywords also affect the operation of this fix.
 If the {mode} keyword is set to {scalar}, then all input values must
 be global scalars, or elements of global vectors.  If the {mode}
 keyword is set to {vector}, then all input values must be global
-vectors, or columns of global arrays.
+vectors, or columns of global arrays.  They can also be global arrays,
+which are converted into a series of global vectors (one per column),
+as explained above.
 
 The {ave} keyword determines how the values produced every {Nfreq}
 steps are averaged with values produced on previous steps that were

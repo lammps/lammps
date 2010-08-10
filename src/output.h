@@ -25,6 +25,8 @@ class Output : protected Pointers {
   int next_thermo;             // next timestep for thermo output
   int thermo_every;            // thermo output every this many steps
   int last_thermo;             // last timestep thermo was output
+  char *var_thermo;            // variable name for thermo frequency
+  int ivar_thermo;             // variable index for thermo frequency
   class Thermo *thermo;        // Thermodynamic computations
 
   int ndump;                   // # of Dumps defined

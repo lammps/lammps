@@ -524,6 +524,59 @@ void Pair::ev_tally_xyz(int i, int j, int nlocal, int newton_pair,
 
 /* ----------------------------------------------------------------------
    tally eng_vdwl and virial into global and per-atom accumulators
+   for virial, have delx,dely,delz and fx,fy,fz
+   called when using full neighbor lists
+------------------------------------------------------------------------- */
+
+void Pair::ev_tally_xyz_full(int i, double evdwl, double ecoul,
+			     double fx, double fy, double fz,
+			     double delx, double dely, double delz)
+{
+  double evdwlhalf,ecoulhalf,epairhalf,v[6];
+  
+  if (eflag_either) {
+    if (eflag_global) {
+      evdwlhalf = 0.5*evdwl;
+      ecoulhalf = 0.5*ecoul;
+      eng_vdwl += evdwlhalf;
+      eng_coul += ecoulhalf;
+    }
+    if (eflag_atom) {
+      epairhalf = 0.5 * (evdwl + ecoul);
+      eatom[i] += epairhalf;
+    }
+  }
+
+  if (vflag_either) {
+    v[0] = delx*fx;
+    v[1] = dely*fy;
+    v[2] = delz*fz;
+    v[3] = delx*fy;
+    v[4] = delx*fz;
+    v[5] = dely*fz;
+  }
+
+  if (vflag_global) {
+    virial[0] += 0.5*v[0];
+    virial[1] += 0.5*v[1];
+    virial[2] += 0.5*v[2];
+    virial[3] += 0.5*v[3];
+    virial[4] += 0.5*v[4];
+    virial[5] += 0.5*v[5];
+  }
+
+  if (vflag_atom) {
+    vatom[i][0] += 0.5*v[0];
+    vatom[i][1] += 0.5*v[1];
+    vatom[i][2] += 0.5*v[2];
+    vatom[i][3] += 0.5*v[3];
+    vatom[i][4] += 0.5*v[4];
+    vatom[i][5] += 0.5*v[5];
+  }
+}
+
+/* ----------------------------------------------------------------------
+   tally eng_vdwl and virial into global and per-atom accumulators
    called by SW potential, newton_pair is always on
    virial = riFi + rjFj + rkFk = (rj-ri) Fj + (rk-ri) Fk = drji*fj + drki*fk
  ------------------------------------------------------------------------- */

@@ -23,8 +23,9 @@
 
 <LI>Nrepeat = # of times to use input values for calculating averages 
 
-<LI>Nfreq = calculate averages every this many timesteps
-one or more input values can be listed 
+<LI>Nfreq = calculate averages every this many timesteps 
+
+<LI>one or more input values can be listed 
 
 <LI>value = c_ID, c_ID[N], f_ID, f_ID[N], v_name 
 
@@ -40,7 +41,7 @@ one or more input values can be listed
 
 <PRE>  <I>mode</I> arg = <I>scalar</I> or <I>vector</I>
     scalar = all input values are global scalars
-    vector = all input values are global vectors
+    vector = all input values are global vectors or global arrays
   <I>file</I> arg = filename
     filename = name of file to output time averages to
   <I>ave</I> args = <I>one</I> or <I>running</I> or <I>window M</I>
@@ -193,7 +194,9 @@ time average.
 <P>If the <I>mode</I> keyword is set to <I>scalar</I>, then all input values must
 be global scalars, or elements of global vectors.  If the <I>mode</I>
 keyword is set to <I>vector</I>, then all input values must be global
-vectors, or columns of global arrays.
+vectors, or columns of global arrays.  They can also be global arrays,
+which are converted into a series of global vectors (one per column),
+as explained above.
 </P>
 <P>The <I>ave</I> keyword determines how the values produced every <I>Nfreq</I>
 steps are averaged with values produced on previous steps that were

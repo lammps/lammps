@@ -376,7 +376,18 @@ void Thermo::modify_params(int narg, char **arg)
 
   int iarg = 0;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"temp") == 0) {
+    if (strcmp(arg[iarg],"every") == 0) {
+      if (iarg+2 > narg) error->all("Illegal thermo_modify command");
+      if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
+	delete [] output->var_thermo;
+	int n = strlen(&arg[iarg+1][2]) + 1;
+	output->var_thermo = new char[n];
+	strcpy(output->var_thermo,&arg[iarg+1][2]);
+	n = 0;
+      } else error->all("Illegal thermo_modify command");
+      output->thermo_every = 0;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"temp") == 0) {
       if (iarg+2 > narg) error->all("Illegal thermo_modify command");
       if (index_temp < 0) error->all("Thermo style does not use temp");
       delete [] id_compute[index_temp];

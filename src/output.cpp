@@ -75,7 +75,8 @@ Output::Output(LAMMPS *lmp) : Pointers(lmp)
   delete [] newarg;
     
   thermo_every = 0;
-
+  var_thermo = NULL;
+  
   ndump = 0;
   max_dump = 0;
   every_dump = NULL;
@@ -98,6 +99,7 @@ Output::Output(LAMMPS *lmp) : Pointers(lmp)
 Output::~Output()
 {
   if (thermo) delete thermo;
+  delete [] var_thermo;
 
   memory->sfree(every_dump);
   memory->sfree(next_dump);
@@ -118,6 +120,15 @@ Output::~Output()
 void Output::init()
 {
   thermo->init();
+  if (thermo_every) delete [] var_thermo;
+  else if (var_thermo) {
+    ivar_thermo = input->variable->find(var_thermo);
+    if (ivar_thermo < 0)
+      error->all("Variable name for thermo every does not exist");
+    if (!input->variable->equalstyle(ivar_thermo))
+      error->all("Variable for thermo every is invalid style");
+  }
+
   for (int i = 0; i < ndump; i++) dump[i]->init();
   for (int i = 0; i < ndump; i++)
     if (every_dump[i] == 0) {
@@ -207,6 +218,11 @@ void Output::setup(int flag)
   if (thermo_every) {
     next_thermo = (ntimestep/thermo_every)*thermo_every + thermo_every;
     next_thermo = MYMIN(next_thermo,update->laststep);
+  } else if (var_thermo) {
+    next_thermo = static_cast<int> 
+      (input->variable->compute_equal(ivar_thermo));
+    if (next_thermo <= ntimestep)
+      error->all("Thermo every variable returned a bad timestep");
   } else next_thermo = update->laststep;
 
   modify->addstep_compute(next_thermo);
@@ -279,7 +295,13 @@ void Output::write(int ntimestep)
     modify->clearstep_compute();
     thermo->compute(1);
     last_thermo = ntimestep;
-    next_thermo += thermo_every;
+    if (thermo_every) next_thermo += thermo_every;
+    else {
+      next_thermo = static_cast<int> 
+	(input->variable->compute_equal(ivar_thermo));
+      if (next_thermo <= ntimestep)
+	error->all("Thermo every variable returned a bad timestep");
+    }
     next_thermo = MYMIN(next_thermo,update->laststep);
     modify->addstep_compute(next_thermo);
   }

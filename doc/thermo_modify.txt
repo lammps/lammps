@@ -24,7 +24,7 @@ keyword = {lost} or {norm} or {flush} or {line} or {format} or {temp} or {press}
   {temp} value = compute ID that calculates a temperature
   {press} value = compute ID that calculates a pressure
   {every} value = v_name
-    v_name = an equal-style variable name
+    v_name = an equal-style variable name :pre
 :ule
 
 [Examples:]

@@ -29,8 +29,8 @@
 
 <PRE>  <I>region</I> value = region-ID
     region-ID = ID of region atoms must be in to have added force
-  <I>energy</I> value = variable-ID
-    variable-ID = ID of variable that calculates the potential energy of each atom in the added force field 
+  <I>energy</I> value = v_name
+    v_name = variable with name that calculates the potential energy of each atom in the added force field 
 </PRE>
 
 </UL>
@@ -38,7 +38,7 @@
 </P>
 <PRE>fix kick flow addforce 1.0 0.0 0.0
 fix kick flow addforce 1.0 0.0 v_oscillate
-fix ff boundary addforce 0.0 0.0 v_push energy espace 
+fix ff boundary addforce 0.0 0.0 v_push energy v_espace 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -50,9 +50,9 @@ a channel.
 <P>Any of the 3 quantities defining the force components can be specified
 as an equal-style or atom-style <A HREF = "variable.html">variable</A>, namely <I>fx</I>,
 <I>fy</I>, <I>fz</I>.  If the value is a variable, it should be specified as
-v_ID, where ID is the variable ID.  In this case, the variable will be
-evaluated each timestep, and its value used to determine the force
-component.
+v_name, where name is the variable name.  In this case, the variable
+will be evaluated each timestep, and its value used to determine the
+force component.
 </P>
 <P>Equal-style variables can specify formulas with various mathematical
 functions, and include <A HREF = "thermo_style.html">thermo_style</A> command
@@ -91,11 +91,11 @@ the energy to 0.0, which is typically fine for dynamics.
 </P>
 <P>The <I>energy</I> keyword is required if the added force is defined with
 one or more variables, and you are performing energy minimization via
-the "minimize" command.  The keyword specifies the ID of an atom-style
-<A HREF = "variable.html">variable</A> which is used to compute the energy of each
-atom as function of its position.  Unlike variables used for <I>fx</I>,
-<I>fy</I>, <I>fz</I>, the energy variable is specified by ID only, without a
-"v_" prefix.
+the "minimize" command.  The keyword specifies the name of an
+atom-style <A HREF = "variable.html">variable</A> which is used to compute the
+energy of each atom as function of its position.  Like variables used
+for <I>fx</I>, <I>fy</I>, <I>fz</I>, the energy variable is specified as v_name,
+where name is the variable name.
 </P>
 <P>Note that when the <I>energy</I> keyword is used during an energy
 minimization, you must insure that the formula defined for the

@@ -67,14 +67,14 @@ EDGE is used, then the corresponding boundary of the current
 simulation box is used.  If a numeric constant is specified then the
 wall is placed at that position in the appropriate dimension (x, y, or
 z).  In both the EDGE and constant cases, the wall will never move.
-If the face position is specified with a variable name v_ID, then ID
-should be the name of an "equal-style variable"_variable.html.  In
-this case the variable is evaluated each timestep and the result
-becomes the current position of the reflecting wall.  Equal-style
-variables can specify formulas with various mathematical functions,
-and include "thermo_style"_thermo_style.html command keywords for the
-simulation box parameters and timestep and elapsed time.  Thus it is
-easy to specify a time-dependent wall position.
+If the face position is a variable, it should be specified as v_name,
+where name is an "equal-style variable"_variable.html name.  In this
+case the variable is evaluated each timestep and the result becomes
+the current position of the reflecting wall.  Equal-style variables
+can specify formulas with various mathematical functions, and include
+"thermo_style"_thermo_style.html command keywords for the simulation
+box parameters and timestep and elapsed time.  Thus it is easy to
+specify a time-dependent wall position.
 
 The {units} keyword determines the meaning of the distance units used
 to define a face position, but only when a numeric constant is used.

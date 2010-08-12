@@ -30,8 +30,8 @@ external electric field being applied to the system.
 Any of the 3 quantities defining the E-field components can be
 specified as an equal-style or atom-style "variable"_variable.html,
 namely {ex}, {ey}, {ez}.  If the value is a variable, it should be
-specified as v_ID, where ID is the variable ID.  In this case, the
-variable will be evaluated each timestep, and its value used to
+specified as v_name, where name is the variable name.  In this case,
+the variable will be evaluated each timestep, and its value used to
 determine the E-field component.
 
 Equal-style variables can specify formulas with various mathematical

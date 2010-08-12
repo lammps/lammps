@@ -20,15 +20,15 @@ zero or more keyword/value pairs may be appended to args :l
 keyword = {region}  :l
   {region} value = region-ID
     region-ID = ID of region atoms must be in to have added force
-  {energy} value = variable-ID
-    variable-ID = ID of variable that calculates the potential energy of each atom in the added force field :pre
+  {energy} value = v_name
+    v_name = variable with name that calculates the potential energy of each atom in the added force field :pre
 :ule
 
 [Examples:]
 
 fix kick flow addforce 1.0 0.0 0.0
 fix kick flow addforce 1.0 0.0 v_oscillate
-fix ff boundary addforce 0.0 0.0 v_push energy espace :pre
+fix ff boundary addforce 0.0 0.0 v_push energy v_espace :pre
 
 [Description:]
 
@@ -40,9 +40,9 @@ a channel.
 Any of the 3 quantities defining the force components can be specified
 as an equal-style or atom-style "variable"_variable.html, namely {fx},
 {fy}, {fz}.  If the value is a variable, it should be specified as
-v_ID, where ID is the variable ID.  In this case, the variable will be
-evaluated each timestep, and its value used to determine the force
-component.
+v_name, where name is the variable name.  In this case, the variable
+will be evaluated each timestep, and its value used to determine the
+force component.
 
 Equal-style variables can specify formulas with various mathematical
 functions, and include "thermo_style"_thermo_style.html command
@@ -81,11 +81,11 @@ the energy to 0.0, which is typically fine for dynamics.
 
 The {energy} keyword is required if the added force is defined with
 one or more variables, and you are performing energy minimization via
-the "minimize" command.  The keyword specifies the ID of an atom-style
-"variable"_variable.html which is used to compute the energy of each
-atom as function of its position.  Unlike variables used for {fx},
-{fy}, {fz}, the energy variable is specified by ID only, without a
-"v_" prefix.
+the "minimize" command.  The keyword specifies the name of an
+atom-style "variable"_variable.html which is used to compute the
+energy of each atom as function of its position.  Like variables used
+for {fx}, {fy}, {fz}, the energy variable is specified as v_name,
+where name is the variable name.
 
 Note that when the {energy} keyword is used during an energy
 minimization, you must insure that the formula defined for the

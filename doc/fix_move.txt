@@ -117,8 +117,8 @@ rotation.
 The {variable} style allows the position and velocity components of
 each atom to be set by formulas specified via the
 "variable"_variable.html command.  Each of the 6 variables is
-specified as an argument to the fix as v_name, where {name} is the
-name of the variable that appears elsewhere in the input script.
+specified as an argument to the fix as v_name, where name is the
+variable name that is defined elsewhere in the input script.
 
 Each variable must be of either the {equal} or {atom} style.
 {Equal}-style variables compute a single numeric quantity, that can be

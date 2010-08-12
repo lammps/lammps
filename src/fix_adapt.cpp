@@ -86,9 +86,11 @@ FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       strcpy(param[nadapt],arg[iarg+2]);
       force->bounds(arg[iarg+3],atom->ntypes,ilo[nadapt],ihi[nadapt]);
       force->bounds(arg[iarg+4],atom->ntypes,jlo[nadapt],jhi[nadapt]);
-      n = strlen(arg[iarg+5]) + 1;
-      var[nadapt] = new char[n];
-      strcpy(var[nadapt],arg[iarg+5]);
+      if (strstr(arg[iarg+5],"v_") == arg[iarg+1]) {
+	n = strlen(&arg[iarg+1][2]) + 1;
+	var[nadapt] = new char[n];
+	strcpy(var[nadapt],&arg[iarg+5][2]);
+      } else error->all("Illegal fix adapt command");
       nadapt++;
       iarg += 6;
     } else if (strcmp(arg[iarg],"atom") == 0) {
@@ -97,9 +99,11 @@ FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       int n = strlen(arg[iarg+1]) + 1;
       param[nadapt] = new char[n];
       strcpy(param[nadapt],arg[iarg+1]);
-      n = strlen(arg[iarg+2]) + 1;
-      var[nadapt] = new char[n];
-      strcpy(var[nadapt],arg[iarg+2]);
+      if (strstr(arg[iarg+2],"v_") == arg[iarg+1]) {
+	n = strlen(&arg[iarg+1][2]) + 1;
+	var[nadapt] = new char[n];
+	strcpy(var[nadapt],&arg[iarg+2][2]);
+      } else error->all("Illegal fix adapt command");
       nadapt++;
       iarg += 3;
     } else error->all("Illegal fix adapt command");

@@ -18,6 +18,7 @@
 #include "atom.h"
 #include "atom_vec.h"
 #include "comm.h"
+#include "modify.h"
 #include "domain.h"
 #include "lattice.h"
 #include "region.h"
@@ -45,6 +46,9 @@ void CreateAtoms::command(int narg, char **arg)
 {
   if (domain->box_exist == 0) 
     error->all("Create_atoms command before simulation box is defined");
+  if (modify->nfix_restart_peratom) 
+    error->all("Cannot create_atoms after "
+	       "reading restart file with per-atom info");
 
   // parse arguments
 

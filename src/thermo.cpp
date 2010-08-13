@@ -383,7 +383,6 @@ void Thermo::modify_params(int narg, char **arg)
 	int n = strlen(&arg[iarg+1][2]) + 1;
 	output->var_thermo = new char[n];
 	strcpy(output->var_thermo,&arg[iarg+1][2]);
-	n = 0;
       } else error->all("Illegal thermo_modify command");
       output->thermo_every = 0;
       iarg += 2;

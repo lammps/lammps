@@ -415,12 +415,13 @@ the ID of a compute defined elsewhere in the input script.  As
 discussed in the doc page for the <A HREF = "compute.html">compute</A> command,
 computes can produce global, per-atom, or local values.  Only global
 and per-atom values can be used in a variable.  Computes can also
-produce a scalar, vector, or array.  An equal-style variable can use
-scalar values, which means a scalar itself, or an element of a vector
-or array.  Atom-style variables can use either scalar or vector
-values.  A vector value can be a vector itself, or a column of an
-array.  See the doc pages for individual computes to see what kind of
-values they produce.
+produce a scalar, vector, or array.  An equal-style variable can only
+use scalar values, which means a global scalar, or an element of a
+global or per-atom vector or array.  Atom-style variables can use the
+same scalar values.  They can also use per-atom vector values.  A
+vector value can be a per-atom vector itself, or a column of an
+per-atom array.  See the doc pages for individual computes to see what
+kind of values they produce.
 </P>
 <P>Examples of different kinds of compute references are as follows.
 There is no ambiguity as to what a reference means, since computes
@@ -443,15 +444,17 @@ elsewhere in the input script.  As discussed in the doc page for the
 <A HREF = "fix.html">fix</A> command, fixes can produce global, per-atom, or local
 values.  Only global and per-atom values can be used in a variable.
 Fixes can also produce a scalar, vector, or array.  An equal-style
-variable can use scalar values, which means a scalar itself, or an
-element of a vector or array.  Atom-style variables can use either
-scalar or vector values.  A vector value can be a vector itself, or a
-column of an array.  See the doc pages for individual fixes to see
-what kind of values they produce.
+variable can only use scalar values, which means a global scalar, or
+an element of a global or per-atom vector or array.  Atom-style
+variables can use the same scalar values.  They can also use per-atom
+vector values.  A vector value can be a per-atom vector itself, or a
+column of an per-atom array.  See the doc pages for individual fixes
+to see what kind of values they produce.
 </P>
 <P>The different kinds of fix references are exactly the same as the
 compute references listed in the above table, where "c_" is replaced
-by "f_".
+by "f_".  Again, there is no ambiguity as to what a reference means,
+since fixes only produce global or per-atom quantities, never both.
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >
 <TR><TD >f_ID</TD><TD > global scalar, or per-atom vector</TD></TR>
@@ -474,14 +477,15 @@ which will cause those variables to be evaluated.  The name in the
 reference should be replaced by the name of a variable defined
 elsewhere in the input script.  As discussed on this doc page,
 atom-style variables generate a per-atom vector of values; all other
-variable styles generate a single scalar value.  An equal-style
-variable can use scalar values produce by another variable, but not
-per-atom vectors.  Atom-style variables can use either scalar or
-per-atom vector values.
+variable styles generate a global scalar value.  An equal-style
+variable can reference a global scalar value produced by another
+variable, but not a per-atom vector produced by an atom-style
+variable.  Atom-style variables can reference either global scalar or
+per-atom vector values produced by kind of variable.
 </P>
 <P>Examples of different kinds of variable references are as follows.
 There is no ambiguity as to what a reference means, since variables
-only produce scalar or per-atom vectors, never both.
+produce only a global scalar or a per-atom vectors, never both.
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >
 <TR><TD >v_name</TD><TD > scalar, or per-atom vector</TD></TR>

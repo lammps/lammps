@@ -273,9 +273,9 @@ when output, depending on the "thermo_modify norm"_thermo_modify.html
 option being used.
 
 The {v_name} keyword allow the current value of a variable to be
-output.  The name in the keyword should be replaced by the actual name
-of the variable that has been defined elsewhere in the input script.
-Only equal-style variables can be referenced.  See the
+output.  The name in the keyword should be replaced by the variable
+name that has been defined elsewhere in the input script.  Only
+equal-style variables can be referenced.  See the
 "variable"_variable.html command for details.  Variables of style
 {equal} can reference per-atom properties or thermodynamic keywords,
 or they can invoke other computes, fixes, or variables when evaluated,

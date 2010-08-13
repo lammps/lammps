@@ -16,22 +16,22 @@ adapt = style name of this fix command :l
 N = adapt simulation settings every this many timesteps :l
 one or more keyword/value pairs may be appended :l
 keyword = {pair} or {atom} :l
-  {pair} args = pstyle param I J variable
+  {pair} args = pstyle pparam I J v_name
     pstyle = pair style name, e.g. lj/cut
     pparam = parameter to adapt over time
     I,J = type pair(s) to set parameter for
-    pvariable = name of variable that calculates value of parameter
-  {atom} args = param variable
+    v_name = variable with name that calculates value of pparam
+  {atom} args = aparam v_name
     aparam = parameter to adapt over time
-    avariable = name of variable that calculates value of parameter :pre
+    v_name = variable with name that calculates value of aparam :pre
 :ule
 
 [Examples:]
 
-fix 1 all adapt 1 pair soft a 1 1 prefactor
-fix 1 all adapt 1 pair soft a 2* 3 prefactor
-fix 1 all adapt 1 pair soft a * * prefactor soft a 3 3 prefactor2
-fix 1 all adapt 10 atom diameter size :pre
+fix 1 all adapt 1 pair soft a 1 1 v_prefactor
+fix 1 all adapt 1 pair soft a 2* 3 v_prefactor
+fix 1 all adapt 1 pair soft a * * v_prefactor soft a 3 3 v_prefactor2
+fix 1 all adapt 10 atom diameter v_size :pre
 
 [Description:]
 
@@ -89,13 +89,14 @@ asterisks imply type pairs where J < I, they are ignored.
 If a global parameter is specified, the {I} and {J} settings still
 need to be specified, but are ignored.
 
-The {pvariable} argument is the name of an equal-style
-"variable"_variable.html which will be evaluated each time this fix is
-invoked to set the parameter to a new value.  Equal-style variables
-can specify formulas with various mathematical functions, and include
-"thermo_style"_thermo_style.html command keywords for the simulation
-box parameters and timestep and elapsed time.  Thus it is easy to
-specify parameters that change as a function of time or span
+The {v_name} argument for keyword {pair} is the name of an
+"equal-style variable"_variable.html which will be evaluated each time
+this fix is invoked to set the parameter to a new value.  It should be
+specified as v_name, where name is the variable name.  Equal-style
+variables can specify formulas with various mathematical functions,
+and include "thermo_style"_thermo_style.html command keywords for the
+simulation box parameters and timestep and elapsed time.  Thus it is
+easy to specify parameters that change as a function of time or span
 consecutive runs in a continuous fashion.  For the latter, see the
 {start} and {stop} keywords of the "run"_run.html command and the
 {elaplong} keyword of "thermo_style custom"_thermo_style.html for
@@ -106,7 +107,7 @@ the "pair_style soft"_pair_soft.html potential from 10.0 to 30.0 in a
 linear fashion over the course of a simulation:
 
 variable prefactor equal ramp(10,30)
-fix 1 all adapt 1 pair soft a * * prefactor :pre
+fix 1 all adapt 1 pair soft a * * v_prefactor :pre
 
 The {atom} keyword enables various atom properties to be changed.  The
 {aparam} argument is the name of the parameter to change.  This is the
@@ -114,21 +115,20 @@ current list of atom parameters that can be varied by this fix:
 
 diameter = diameter of particle :ul
 
-The {avariable} argument is the name of an equal-style
-"variable"_variable.html which will be evaluated each time this fix is
-invoked to set the parameter to a new value.  See the discussion above
-describing the formulas associated with equal-style variables.  The
-new value is assigned to the corresponding attribute for all atoms in
-the fix group.
+The {v_name} argument of the {atom} keyword is the name of an
+"equal-style variable"_variable.html which will be evaluated each time
+this fix is invoked to set the parameter to a new value.  It should be
+specified as v_name, where name is the variable name.  See the
+discussion above describing the formulas associated with equal-style
+variables.  The new value is assigned to the corresponding attribute
+for all atoms in the fix group.
 
 For example, these commands would shrink the diameter of all granular
 particles in the "center" group from 1.0 to 0.1 in a linear fashion
 over the course of a 1000-step simulation:
 
-variable start equal 1.0
-variable stop equal 0.1
 variable size equal ramp(1.0,0.1)
-fix 1 center adapt 10 atom diameter size :pre
+fix 1 center adapt 10 atom diameter v_size :pre
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 

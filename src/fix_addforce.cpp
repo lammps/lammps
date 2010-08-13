@@ -83,9 +83,11 @@ FixAddForce::FixAddForce(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"energy") == 0) {
       if (iarg+2 > narg) error->all("Illegal fix addforce command");
-      int n = strlen(arg[iarg+1]) + 1;
-      estr = new char[n];
-      strcpy(estr,arg[iarg+1]);
+      if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
+	int n = strlen(&arg[iarg+1][2]) + 1;
+	estr = new char[n];
+	strcpy(estr,&arg[iarg+1][2]);
+      } else error->all("Illegal fix addforce command");
       iarg += 2;
     } else error->all("Illegal fix addforce command");
   }

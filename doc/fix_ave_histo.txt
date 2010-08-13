@@ -69,8 +69,8 @@ commands"_Section_howto.html#4_15, and can also be written to a file.
 The group specified with this command is ignored for global and local
 input values.  For per-atom input values, only atoms in the group
 contribute to the histogram.  Note that regardless of the specified
-group, calculations may be performed by computes and fixes which store
-their own "group" definition.
+group, specified values may represent calculations performed by
+computes and fixes which store their own "group" definition.
 
 A histogram is simply a count of the number of values that fall within
 a histogram bin.  {Nbins} are defined, with even spacing between {lo}

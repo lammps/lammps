@@ -25,23 +25,23 @@
 
 <LI>keyword = <I>pair</I> or <I>atom</I> 
 
-<PRE>  <I>pair</I> args = pstyle param I J variable
+<PRE>  <I>pair</I> args = pstyle pparam I J v_name
     pstyle = pair style name, e.g. lj/cut
     pparam = parameter to adapt over time
     I,J = type pair(s) to set parameter for
-    pvariable = name of variable that calculates value of parameter
-  <I>atom</I> args = param variable
+    v_name = variable with name that calculates value of pparam
+  <I>atom</I> args = aparam v_name
     aparam = parameter to adapt over time
-    avariable = name of variable that calculates value of parameter 
+    v_name = variable with name that calculates value of aparam 
 </PRE>
 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>fix 1 all adapt 1 pair soft a 1 1 prefactor
-fix 1 all adapt 1 pair soft a 2* 3 prefactor
-fix 1 all adapt 1 pair soft a * * prefactor soft a 3 3 prefactor2
-fix 1 all adapt 10 atom diameter size 
+<PRE>fix 1 all adapt 1 pair soft a 1 1 v_prefactor
+fix 1 all adapt 1 pair soft a 2* 3 v_prefactor
+fix 1 all adapt 1 pair soft a * * v_prefactor soft a 3 3 v_prefactor2
+fix 1 all adapt 10 atom diameter v_size 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -101,13 +101,14 @@ asterisks imply type pairs where J < I, they are ignored.
 <P>If a global parameter is specified, the <I>I</I> and <I>J</I> settings still
 need to be specified, but are ignored.
 </P>
-<P>The <I>pvariable</I> argument is the name of an equal-style
-<A HREF = "variable.html">variable</A> which will be evaluated each time this fix is
-invoked to set the parameter to a new value.  Equal-style variables
-can specify formulas with various mathematical functions, and include
-<A HREF = "thermo_style.html">thermo_style</A> command keywords for the simulation
-box parameters and timestep and elapsed time.  Thus it is easy to
-specify parameters that change as a function of time or span
+<P>The <I>v_name</I> argument for keyword <I>pair</I> is the name of an
+<A HREF = "variable.html">equal-style variable</A> which will be evaluated each time
+this fix is invoked to set the parameter to a new value.  It should be
+specified as v_name, where name is the variable name.  Equal-style
+variables can specify formulas with various mathematical functions,
+and include <A HREF = "thermo_style.html">thermo_style</A> command keywords for the
+simulation box parameters and timestep and elapsed time.  Thus it is
+easy to specify parameters that change as a function of time or span
 consecutive runs in a continuous fashion.  For the latter, see the
 <I>start</I> and <I>stop</I> keywords of the <A HREF = "run.html">run</A> command and the
 <I>elaplong</I> keyword of <A HREF = "thermo_style.html">thermo_style custom</A> for
@@ -118,7 +119,7 @@ the <A HREF = "pair_soft.html">pair_style soft</A> potential from 10.0 to 30.0 i
 linear fashion over the course of a simulation:
 </P>
 <PRE>variable prefactor equal ramp(10,30)
-fix 1 all adapt 1 pair soft a * * prefactor 
+fix 1 all adapt 1 pair soft a * * v_prefactor 
 </PRE>
 <P>The <I>atom</I> keyword enables various atom properties to be changed.  The
 <I>aparam</I> argument is the name of the parameter to change.  This is the
@@ -126,21 +127,20 @@ current list of atom parameters that can be varied by this fix:
 </P>
 <UL><LI>diameter = diameter of particle 
 </UL>
-<P>The <I>avariable</I> argument is the name of an equal-style
-<A HREF = "variable.html">variable</A> which will be evaluated each time this fix is
-invoked to set the parameter to a new value.  See the discussion above
-describing the formulas associated with equal-style variables.  The
-new value is assigned to the corresponding attribute for all atoms in
-the fix group.
+<P>The <I>v_name</I> argument of the <I>atom</I> keyword is the name of an
+<A HREF = "variable.html">equal-style variable</A> which will be evaluated each time
+this fix is invoked to set the parameter to a new value.  It should be
+specified as v_name, where name is the variable name.  See the
+discussion above describing the formulas associated with equal-style
+variables.  The new value is assigned to the corresponding attribute
+for all atoms in the fix group.
 </P>
 <P>For example, these commands would shrink the diameter of all granular
 particles in the "center" group from 1.0 to 0.1 in a linear fashion
 over the course of a 1000-step simulation:
 </P>
-<PRE>variable start equal 1.0
-variable stop equal 0.1
-variable size equal ramp(1.0,0.1)
-fix 1 center adapt 10 atom diameter size 
+<PRE>variable size equal ramp(1.0,0.1)
+fix 1 center adapt 10 atom diameter v_size 
 </PRE>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>

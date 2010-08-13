@@ -28,9 +28,10 @@ class Modify : protected Pointers {
   int n_initial_integrate_respa,n_post_integrate_respa;
   int n_pre_force_respa,n_post_force_respa,n_final_integrate_respa;
   int n_min_pre_exchange,n_min_post_force,n_min_energy;
-  int nfix_restart_peratom;
 
   int restart_pbc_any;       // 1 if any fix sets restart_pbc
+  int nfix_restart_global;   // stored fix global info from restart file
+  int nfix_restart_peratom;   // stored fix peratom info from restart file
 
   class Fix **fix;           // list of fixes
   int *fmask;                // bit mask for when each fix is applied
@@ -96,6 +97,7 @@ class Modify : protected Pointers {
   double memory_usage();
 
  private:
+
   // lists of fixes to apply at different stages of timestep
 
   int *list_initial_integrate,*list_post_integrate;
@@ -112,13 +114,12 @@ class Modify : protected Pointers {
   int n_timeflag;            // list of computes that store time invocation
   int *list_timeflag;
 
-  int nfix_restart_global;
-  char **id_restart_global;
-  char **style_restart_global;
+  char **id_restart_global;           // stored fix global info
+  char **style_restart_global;        // from read-in restart file
   char **state_restart_global;
 
-  char **id_restart_peratom;
-  char **style_restart_peratom;
+  char **id_restart_peratom;          // stored fix peratom info
+  char **style_restart_peratom;       // from read-in restart file
   int *index_restart_peratom;
 
   int index_permanent;        // fix/compute index returned to library call

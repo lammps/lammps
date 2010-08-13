@@ -93,9 +93,9 @@ be specified as an equal-style "variable"_variable.html, namely {x},
 {y}, {z}, or {R}.  Similarly, for a cylindrical indenter, any of {c1},
 {c2}, or {R}, can be a variable.  For a planar indenter, {pos} can be
 a variable.  If the value is a variable, it should be specified as
-v_ID, where ID is the variable ID.  In this case, the variable will be
-evaluated each timestep, and its value used to define the indenter
-geometry.
+v_name, where name is the variable name.  In this case, the variable
+will be evaluated each timestep, and its value used to define the
+indenter geometry.
 
 Note that equal-style variables can specify formulas with various
 mathematical functions, and include "thermo_style"_thermo_style.html

@@ -34,7 +34,7 @@ keyword = {mode} or {file} or {ave} or {start} or {off} or {title1} or {title2} 
     filename = name of file to output time averages to
   {ave} args = {one} or {running} or {window M}
     one = output a new average value every Nfreq steps
-    running = output cumulative average of all previous Nfreq steps
+    running = output cummulative average of all previous Nfreq steps
     window M = output average of M most recent Nfreq steps
   {start} args = Nstart
     Nstart = start averaging on this timestep
@@ -66,8 +66,8 @@ used as a convenient way to simply output one or more global values to
 a file.
 
 The group specified with this command is ignored.  However, note that
-calculations may be performed by computes and fixes which store their
-own "group" definitions.
+specified values may represent calculations performed by computes and
+fixes which store their own "group" definitions.
 
 Each input value can be the result of a "compute"_compute.html or
 "fix"_fix.html or the evaluation of an equal-style
@@ -196,7 +196,7 @@ output as-is without further averaging.
 
 If the {ave} setting is {running}, then the values produced on
 timesteps that are multiples of {Nfreq} are summed and averaged in a
-cumulative sense before being output.  Each output value is thus the
+cummulative sense before being output.  Each output value is thus the
 average of the value produced on that timestep with all preceding
 values.  This running average begins when the fix is defined; it can
 only be restarted by deleting the fix via the "unfix"_unfix.html

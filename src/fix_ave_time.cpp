@@ -552,7 +552,7 @@ void FixAveTime::invoke_scalar(int ntimestep)
 	scalar = compute->vector[argindex[i]-1];
       }
       
-      // access fix fields, guaranteed to be ready
+    // access fix fields, guaranteed to be ready
       
     } else if (which[i] == FIX) {
       if (argindex[i] == 0) 
@@ -560,7 +560,7 @@ void FixAveTime::invoke_scalar(int ntimestep)
       else
 	scalar = modify->fix[m]->compute_vector(argindex[i]-1);
       
-      // evaluate equal-style variable
+    // evaluate equal-style variable
       
     } else if (which[i] == VARIABLE)
       scalar = input->variable->compute_equal(m);

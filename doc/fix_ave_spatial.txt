@@ -34,12 +34,12 @@ zero or more keyword/arg pairs may be appended :l
 keyword = {norm} or {units} or {file} or {ave} or {title1} or {title2} or {title3} :l
   {units} arg = {box} or {lattice} or {reduced}
   {norm} arg = {all} or {sample}
-  {file} arg = filename
-    filename = file to write results to
   {ave} args = {one} or {running} or {window M}
     one = output new average value every Nfreq steps
     running = output cumulative average of all previous Nfreq steps
     window M = output average of M most recent Nfreq steps
+  {file} arg = filename
+    filename = file to write results to
   {title1} arg = string
     string = text to print as 1st line of output file
   {title2} arg = string
@@ -306,7 +306,7 @@ simulation box size doesn't change or if the {units} keyword is set to
 
 "compute"_compute.html, "fix ave/atom"_fix_ave_atom.html, "fix
 ave/histo"_fix_ave_histo.html, "fix ave/time"_fix_ave_time.html,
-"variable"_variable.html,
+"variable"_variable.html, "fix ave/correlate"_fix_ave_correlate.html,
 
 [Default:]
 

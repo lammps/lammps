@@ -29,8 +29,7 @@ style = {delete} or {index} or {loop} or {world} or {universe} or {uloop} or {st
                      x==y, x!=y, x<y, x<=y, x>y, x>=y, x&&y, x||y
     math functions = sqrt(x), exp(x), ln(x), log(x),
                      sin(x), cos(x), tan(x), asin(x), acos(x), atan(x),
-                     ceil(x), floor(x), round(x), ramp(x,y), stagger(x,y),
-		     logfreq(x,y,z)
+                     ceil(x), floor(x), round(x)
     group functions = count(group), mass(group), charge(group),
 		      xcm(group,dim), vcm(group,dim), fcm(group,dim),
 		      bound(group,xmin), gyration(group), ke(group),
@@ -39,6 +38,7 @@ style = {delete} or {index} or {loop} or {world} or {universe} or {uloop} or {st
 		      xcm(group,dim,region), vcm(group,dim,region), fcm(group,dim,region),
 		      bound(group,xmin,region), gyration(group,region), ke(group,reigon),
 		      angmom(group,dim,region), inertia(group,dimdim,region),omega(group,dim,region)
+    special functions = ramp(x,y), stagger(x,y), logfreq(x,y,z), sum(x), min(x), max(x), ave(x), trap(x)
     atom value = mass\[i\], type\[i\], x\[i\], y\[i\], z\[i\], vx\[i\], vy\[i\], vz\[i\], fx\[i\], fy\[i\], fz\[i\]
     atom vector = mass, type, x, y, z, vx, vy, vz, fx, fy, fz
     compute references = c_ID, c_ID\[i\], c_ID\[i\]\[j\]
@@ -251,7 +251,7 @@ references to other variables.
 Number: 0.2, 100, 1.0e20, -15.4, etc
 Thermo keywords: vol, pe, ebond, etc
 Math operators: (), -x, x+y, x-y, x*y, x/y, x^y, x==y, x!=y, x<y, x<=y, x>y, x>=y, x&&y, x||y
-Math functions: sqrt(x), exp(x), ln(x), log(x), sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), ceil(x), floor(x), round(x), ramp(x,y), stagger(x,y), logfreq(x,y,z)
+Math functions: sqrt(x), exp(x), ln(x), log(x), sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), ceil(x), floor(x), round(x)
 Group functions: count(ID), mass(ID), charge(ID), xcm(ID,dim), \
                  vcm(ID,dim), fcm(ID,dim), bound(ID,dir), \
 		 gyration(ID), ke(ID), angmom(ID,dim), \
@@ -260,6 +260,8 @@ Region functions: count(ID,IDR), mass(ID,IDR), charge(ID,IDR), \
 		  xcm(ID,dim,IDR), vcm(ID,dim,IDR), fcm(ID,dim,IDR), \
 		  bound(ID,dir,IDR), gyration(ID,IDR), ke(ID,IDR), \
 		  angmom(ID,dim,IDR), inertia(ID,dimdim,IDR), omega(ID,dim,IDR)
+Special functions: ramp(x,y), stagger(x,y), logfreq(x,y,z), \
+		   sum(x), min(x), max(x), ave(x), trap(x)
 Atom values: mass\[i\], type\[i\], x\[i\], y\[i\], z\[i\], \
              vx\[i\], vy\[i\], vz\[i\], fx\[i\], fy\[i\], fz\[i\]
 Atom vectors: mass, type, x, y, z, vx, vy, vz, fx, fy, fz
@@ -267,13 +269,15 @@ Compute references: c_ID, c_ID\[i\], c_ID\[i\]\[j\]
 Fix references: f_ID, f_ID\[i\], f_ID\[i\]\[j\]
 Other variables: v_name, v_name\[i\] :tb(s=:)
 
+:line
+
 Most of the formula elements produce a scalar value.  A few produce a
 per-atom vector of values.  These are the atom vectors, compute
 references that represent a per-atom vector, fix references that
 represent a per-atom vector, and variables that are atom-style
 variables.  Math functions that operate on scalar values produce a
-scalar value; math function that operate on per-atom vectors produce a
-per-atom vector.
+scalar value; math function that operate on per-atom vectors do so
+element-by-element and produce a per-atom vector.
 
 A formula for equal-style variables cannot use any formula element
 that produces a per-atom vector.  A formula for an atom-style variable
@@ -294,12 +298,14 @@ evaluated directly in an input script (not during a run), then the
 values accessed by the thermo keyword must be current.  See the
 discussion below about "Variable Accuracy".
 
+:line
+
 Math operators are written in the usual way, where the "x" and "y" in
 the examples can themselves be arbitrarily complex formulas, as in the
 examples above.  In this syntax, "x" and "y" can be scalar values or
 per-atom vectors.  For example, "ke/natoms" is the division of two
-scalars, where "y+z" is the sum of two per-atom vectors of y- and
-z-coordinates.
+scalars, where "y+z" is the element-by-element sum of two per-atom
+vectors of y- and z-coordinates.
 
 Operators are evaluated left to right and have the usual C-style
 precedence: unary minus before exponentiation ("^"); exponentiation
@@ -329,10 +335,11 @@ to the "compute reduce"_compute_reduce.html command.
 Math functions are specified as keywords followed by one or more
 parenthesized arguments "x", "y", etc, each of which can themselves be
 arbitrarily complex formulas.  In this syntax, the arguments can
-represent scalar values or per-atom vectors.  For example,
-"sqrt(natoms)" is the sqrt() of a scalar, where "sqrt(y*z)" is a
-per-atom vector with each element being the sqrt() of the product of
-two atom coordinates.
+represent scalar values or per-atom vectors.  In the latter case, the
+math operation is performed on each element of the vector.  For
+example, "sqrt(natoms)" is the sqrt() of a scalar, where "sqrt(y*z)"
+yields a per-atom vector with each element being the sqrt() of the
+product of one atom's y and z coordinates.
 
 Most of the math functions perform obvious operations.  The ln() is
 the natural log; log() is the base 10 log.  The ceil(), floor(), and
@@ -341,34 +348,7 @@ smallest integer not less than its argument.  Floor() if the largest
 integer not greater than its argument.  Round() is the nearest integer
 to its argument.
 
-Ramp(x,y) uses the current timestep to generate a scalar value:
-
-value = x + (y-x) * (timestep-startstep) / (stopstep-startstep) :pre
-
-which is a value that ramps linear between x and y over the course of
-a run.  The run begins on startstep and ends on stopstep.  Startstep
-and stopstep can span multiple runs, using the {start} and {stop}
-keywords of the "run"_run.html command.  See the "run"_run.html
-command for details of how to do this.
-
-Stagger(x,y) requires x,y > 0 and x > y and uses the current timestep
-to generate a new timestep, in a staggered fashion, as the sequence
-x,x+y,2x,2x+y,3x,3x+y,etc.  For any current timestep, the next
-timestep in the sequence is returned.  Thus if stagger(1000,100) is
-used in a variable by the "dump_modify every"_dump_modify.html
-command, it will generate the sequence of output timesteps:
-
-100,1000,1100,2000,2100,3000,etc :pre
-
-Logfreq(x,y,z) requires x,y,z > 0 and y < z and uses the current
-timestep to generate a new timestep, in a logarithmic fashion, as the
-sequence x,2x,3x,...y*x,z*x,2*z*x,3*z*x,...y*z*x,z*z*x,2*z*x*x,etc.
-For any current timestep, the next timestep in the sequence is
-returned.  Thus if logfreq(100,4,10) is used in a variable by the
-"dump_modify every"_dump_modify.html command, it will generate the
-sequence of output timesteps:
-
-100,200,300,400,1000,2000,3000,4000,10000,20000,etc :pre
+:line
 
 Group functions are specified as keywords followed by one or two
 parenthesized arguments.  The first argument is the group-ID.  The
@@ -397,6 +377,77 @@ function is computed for all atoms that are in both the group and the
 region.  If the group is "all", then the only criteria for atom
 inclusion is that it be in the region.
 
+:line
+
+Special functions take specific kinds of arguments, meaning their
+arguments cannot be formulas themselves.  For example ramp(10.0,100.0)
+is valid, but ramp(2*5,sqrt(10000)) is not.
+
+Ramp(x,y) takes two integer or floating point values and uses the
+current timestep to generate a scalar value:
+
+value = x + (y-x) * (timestep-startstep) / (stopstep-startstep) :pre
+
+which is a value that ramps linearly between x and y over the course of
+a run.  The run begins on startstep and ends on stopstep.  Startstep
+and stopstep can span multiple runs, using the {start} and {stop}
+keywords of the "run"_run.html command.  See the "run"_run.html
+command for details of how to do this.
+
+Stagger(x,y) takes two integer values and uses the current timestep to
+generate a new timestep.  X,y > 0 and x > y is required.  The
+generated timesteps increase in a staggered fashion, as the sequence
+x,x+y,2x,2x+y,3x,3x+y,etc.  For any current timestep, the next
+timestep in the sequence is returned.  Thus if stagger(1000,100) is
+used in a variable by the "dump_modify every"_dump_modify.html
+command, it will generate the sequence of output timesteps:
+
+100,1000,1100,2000,2100,3000,etc :pre
+
+Logfreq(x,y,z) takes 3 integer values and uses the current timestep to
+generate a new timestep.  X,y,z > 0 and y < z is required.  The
+generated timesteps increase in a logarithmic fashion, as the sequence
+x,2x,3x,...y*x,z*x,2*z*x,3*z*x,...y*z*x,z*z*x,2*z*x*x,etc.  For any
+current timestep, the next timestep in the sequence is returned.  Thus
+if logfreq(100,4,10) is used in a variable by the "dump_modify
+every"_dump_modify.html command, it will generate the sequence of
+output timesteps:
+
+100,200,300,400,1000,2000,3000,4000,10000,20000,etc :pre
+
+The sum(x), min(x), max(x), ave(x), and trap(x) functions each take 1
+argument which is of the form "c_ID" or "c_ID\[N\]" or "f_ID" or
+"f_ID\[N\]".  The first two are computes and the second two are fixes;
+the ID in the reference should be replaced by the ID of a compute or
+fix defined elsewhere in the input script.  The compute or fix must
+produce either a global vector or array.  If it produces a global
+vector, then the notation without "\[N\]" should be used.  If it
+produces a global array, then the notation with "\[N\]" should be
+used, when N is an integer, to specify which column of the global
+array is being referenced.
+
+All of these functions operate on the global vector of inputs and
+reduce it to a single scalar value.  This is analagous to the
+operation of the "compute reduce"_compute_reduce.html command, which
+invokes the same functions on per-atom and local vectors.
+
+The sum() function calculates the sum of all the vector elements.  The
+min() and max() functions find the minimum and maximum element
+respectively.  The ave() function is the same as sum() except that it
+divides the result by the length of the vector.  The trap() function
+is the same as sum() except the first and last elements are multiplied
+by a weighting factor of 1/2 when performing the sum.  This
+effectively implements an integratiion via the trapezoidal rule on the
+global vector of data.  I.e. consider a set of points, equally spaced
+by 1 in their x coordinate: (1,V1), (2,V2), ..., (N,VN), where the Vi
+are the values in the global vector of length N.  The integral from 1
+to N of these points is trap().  When appropriately normalized by the
+timestep size, this function is useful for calculating integrals of
+time-series data, like that generated by the "fix
+ave/correlate"_fix_ave_correlate.html command.
+
+:line
+
 Atom values take a single integer argument I from 1 to N, where I is
 the an atom-ID, e.g. x\[243\], which means use the x coordinate of the
 atom with ID = 243.
@@ -407,6 +458,8 @@ evaluating the variable.  Note that other atom attributes can be used
 as inputs to a variable by using the "compute
 property/atom"_compute_property_atom.html command and then specifying
 a quantity from that compute.
+
+:line
 
 Compute references access quantities calculated by a
 "compute"_compute.html.  The ID in the reference should be replaced by
@@ -434,6 +487,8 @@ If a variable containing a compute is evaluated
 directly in an input script (not during a run), then the values
 accessed by the compute must be current.  See the discussion below
 about "Variable Accuracy".
+
+:line
 
 Fix references access quantities calculated by a "fix"_compute.html.
 The ID in the reference should be replaced by the ID of a fix defined
@@ -466,6 +521,8 @@ If a variable attempts to access the fix on non-allowed timesteps, an
 error is generated.  For example, the "fix ave/time"_fix_ave_time.html
 command may only generate averaged quantities every 100 steps.  See
 the doc pages for individual fix commands for details.
+
+:line
 
 Variable references access quantities calulated by other variables,
 which will cause those variables to be evaluated.  The name in the

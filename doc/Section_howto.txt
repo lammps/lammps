@@ -1084,9 +1084,11 @@ command.
 
 Fixes that write output files :h5,link(fixoutput)
 
-Three fixes take various quantities as input and can write output
+Sevarl fixes take various quantities as input and can write output
 files: "fix ave/time"_fix_ave_time.html, "fix
-ave/spatial"_fix_ave_spatial.html, and "fix print"_fix_print.html.
+ave/spatial"_fix_ave_spatial.html, "fix ave/histo"_fix_ave_histo.html,
+"fix ave/correlate"_fix_ave_correlate.html, and "fix
+print"_fix_print.html.
 
 The "fix ave/time"_fix_ave_time.html command enables direct output to
 a file and/or time-averaging of global scalars or vectors.  The user
@@ -1117,6 +1119,11 @@ to a file of histogrammed quantities, which can be global or per-atom
 or local quantities.  The histogram output of this fix can also be
 used as input to other output commands.
 
+The "fix ave/correlate"_fix_ave_histo.html command enables direct
+output to a file of time-correlated quantities, which can be global
+scalars.  The correlation matrix output of this fix can also be used
+as input to other output commands.
+
 The "fix print"_fix_print.html command can generate a line of output
 written to the screen and log file or to a separate file, periodically
 during a running simulation.  The line can contain one or more
@@ -1132,10 +1139,10 @@ from normal thermodynamic or dump file output.
 Computes that process output quantities :h5,link(computeoutput)
 
 The "compute reduce"_compute_reduce.html and "compute
-reduce/region"_compute_reduce.html commands take one or more vector
-quantities as inputs and "reduce" them (sum, min, max, ave) to scalar
-quantities.  These are produced as output values which can be used as
-input to other output commands.
+reduce/region"_compute_reduce.html commands take one or more per-atom
+or local vector quantities as inputs and "reduce" them (sum, min, max,
+ave) to scalar quantities.  These are produced as output values which
+can be used as input to other output commands.
 
 The "compute property/atom"_compute_property_atom.html command takes a
 list of one or more pre-defined atom attributes (id, x, fx, etc) and
@@ -1160,9 +1167,9 @@ quantities calculated by a "compute"_compute.html, by a
 time-averaged per-atom output of this fix can be used as input to
 other output commands.
 
-The "fix store"_fix_ave_atom.html command can archive one or more
-per-atom attributes at a particular time, so that the old values can
-be used in a future calculation or output.  The list of atom
+The "fix store/state"_fix_store_state.html command can archive one or
+more per-atom attributes at a particular time, so that the old values
+can be used in a future calculation or output.  The list of atom
 attributes is the same as for the "dump custom"_dump.html command,
 including per-atom quantities calculated by a "compute"_compute.html,
 by a "fix"_fix.html, or by an atom-style "variable"_variable.html.
@@ -1222,14 +1229,15 @@ Command: Input: Output:
 "computes"_compute.html: N/A: global/per-atom/local scalar/vector/array:
 "fixes"_fix.html: N/A: global/per-atom/local scalar/vector/array:
 "variables"_variable.html: global scalars, per-atom vectors: global scalar, per-atom vector:
-"compute reduce"_compute_reduce.html: global/per-atom/local vectors: global scalar/vector:
+"compute reduce"_compute_reduce.html: per-atom/local vectors: global scalar/vector:
 "compute property/atom"_compute_property_atom.html: per-atom vectors: per-atom vector/array:
 "compute property/local"_compute_property_local.html: local vectors: local vector/array:
 "fix ave/atom"_fix_ave_atom.html: per-atom vectors: per-atom vector/array:
 "fix ave/time"_fix_ave_time.html: global scalars/vectors: global scalar/vector/array, file:
 "fix ave/spatial"_fix_ave_spatial.html: per-atom vectors: global array, file:
 "fix ave/histo"_fix_ave_histo.html: global/per-atom/local scalars and vectors: global array, file:
-"fix store"_fix_store.html: per-atom vectors: per-atom vector/array:
+"fix ave/correlate"_fix_ave_correlate.html: global scalars: global array, file:
+"fix store/state"_fix_store_state.html: per-atom vectors: per-atom vector/array:
 :tb(s=:)
 
 :line

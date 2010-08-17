@@ -42,8 +42,6 @@
 <PRE>  <I>mode</I> arg = <I>scalar</I> or <I>vector</I>
     scalar = all input values are global scalars
     vector = all input values are global vectors or global arrays
-  <I>file</I> arg = filename
-    filename = name of file to output time averages to
   <I>ave</I> args = <I>one</I> or <I>running</I> or <I>window M</I>
     one = output a new average value every Nfreq steps
     running = output cummulative average of all previous Nfreq steps
@@ -52,6 +50,8 @@
     Nstart = start averaging on this timestep
   <I>off</I> arg = M = do not average this value
     M = value # from 1 to Nvalues
+  <I>file</I> arg = filename
+    filename = name of file to output time averages to
   <I>title1</I> arg = string
     string = text to print as 1st line of output file
   <I>title2</I> arg = string
@@ -82,7 +82,7 @@ a file.
 specified values may represent calculations performed by computes and
 fixes which store their own "group" definitions.
 </P>
-<P>Each input value can be the result of a <A HREF = "compute.html">compute</A> or
+<P>Each listed value can be the result of a <A HREF = "compute.html">compute</A> or
 <A HREF = "fix.html">fix</A> or the evaluation of an equal-style
 <A HREF = "variable.html">variable</A>.  In each case, the compute, fix, or variable
 must produce a global quantity, not a per-atom or local quantity.  If
@@ -298,13 +298,13 @@ of rows = length of the input vectors and # of columns = number of
 inputs.
 </P>
 <P>If the fix prouduces a scalar or vector, then the scalar and each
-element of the vector may be either "intensive" or "extensive".  If
-the fix produces an array, then all elements in the array will be
-either "intensive" or "extensive".  If a compute or fix provides the
-value being time averaged, then the compute or fix determines whether
-the value is intensive or extensive; see the doc page for that compute
-or fix for further info.  Values produced by a variable are whatever
-the variable calculates.
+element of the vector can be either "intensive" or "extensive".  If
+the fix produces an array, then all elements in the array must be the
+same, either "intensive" or "extensive".  If a compute or fix provides
+the value being time averaged, then the compute or fix determines
+whether the value is intensive or extensive; see the doc page for that
+compute or fix for further info.  Values produced by a variable are
+treated as intensive.
 </P>
 <P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
 the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy
@@ -316,7 +316,7 @@ minimization</A>.
 </P>
 <P><A HREF = "compute.html">compute</A>, <A HREF = "fix_ave_atom.html">fix ave/atom</A>, <A HREF = "fix_ave_spatial.html">fix
 ave/spatial</A>, <A HREF = "fix_ave_histo.html">fix ave/histo</A>,
-<A HREF = "variable.html">variable</A>
+<A HREF = "variable.html">variable</A>, <A HREF = "fix_ave_correlate.html">fix ave/correlate</A>,
 </P>
 <P><B>Default:</B> none
 </P>

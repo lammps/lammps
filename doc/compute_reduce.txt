@@ -22,10 +22,10 @@ mode = {sum} or {min} or {max} or {ave} :l
 one or more inputs can be listed :l
 input = x, y, z, vx, vy, vz, fx, fy, fz, c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_name :l
   x,y,z,vx,vy,vz,fx,fy,fz = atom attribute (position, velocity, force component)
-  c_ID = vector calculated by a compute with ID
-  c_ID\[I\] = Ith column of array calculated by a compute with ID
-  f_ID = vector calculated by a fix with ID
-  f_ID\[I\] = Ith column of array calculated by a fix with ID
+  c_ID = per-atom or local vector calculated by a compute with ID
+  c_ID\[I\] = Ith column of per-atom or local array calculated by a compute with ID
+  f_ID = per-atom or local vector calculated by a fix with ID
+  f_ID\[I\] = Ith column of per-atom or local array calculated by a fix with ID
   v_name = per-atom vector calculated by an atom-style variable with name :pre
 
 zero or more keyword/args pairs may be appended :l
@@ -45,11 +45,14 @@ compute 3 fluid reduce max c_index[1] c_index[2] c_dist replace 1 3 replace 2 3 
 [Description:]
 
 Define a calculation that "reduces" one or more vector inputs into
-scalar values, one per listed input.  The inputs can be global,
-per-atom, or local quantities.  Atom attributes are per-atom
-quantities, "computes"_compute.html and "fixes"_fix.html may generate
-any of the three kinds of quantities, and "atom-style
-variables"_variable.html generate per-atom quantities.
+scalar values, one per listed input.  The inputs can be per-atom or
+local quantities; they cannot be global quantities.  Atom attributes
+are per-atom quantities, "computes"_compute.html and "fixes"_fix.html
+may generate any of the three kinds of quantities, and "atom-style
+variables"_variable.html generate per-atom quantities.  See the
+"variable"_variable command and its special functions which can
+perform the same operations as the compute reduce command on global
+vectors.
 
 The reduction operation is specified by the {mode} setting.  The {sum}
 option adds the values in the vector into a global total.  The {min}
@@ -79,8 +82,8 @@ property/atom"_compute_property_atom.html command and then specifying
 an input value from that compute.
 
 If a value begins with "c_", a compute ID must follow which has been
-previously defined in the input script.  Computes can generate global,
-per-atom, or local quantities.  See the individual
+previously defined in the input script.  Computes can generate
+per-atom or local quantities.  See the individual
 "compute"_compute.html doc page for details.  If no bracketed integer
 is appended, the vector calculated by the compute is used.  If a
 bracketed interger is appended, the Ith column of the array calculated
@@ -88,10 +91,10 @@ by the compute is used.  Users can also write code for their own
 compute styles and "add them to LAMMPS"_Section_modify.html.
 
 If a value begins with "f_", a fix ID must follow which has been
-previously defined in the input script.  Fixes can generate global,
-per-atom, or local quantities.  See the individual "fix"_fix.html doc
-page for details.  Note that some fixes only produce their values on
-certain timesteps, which must be compatible with when compute reduce
+previously defined in the input script.  Fixes can generate per-atom
+or local quantities.  See the individual "fix"_fix.html doc page for
+details.  Note that some fixes only produce their values on certain
+timesteps, which must be compatible with when compute reduce
 references the values, else an error results.  If no bracketed integer
 is appended, the vector calculated by the fix is used.  If a bracketed
 integer is appended, the Ith column of the array calculated by the fix
@@ -138,7 +141,7 @@ IDs and the bond stretch will be printed with thermodynamic output.
 
 If a single input is specified this compute produces a global scalar
 value.  If multiple inputs are specified, this compute produces a
-vector of global values, the length of which is equal to the number of
+global vector of values, the length of which is equal to the number of
 inputs specified.
 
 As discussed below, for {sum} mode, the value(s) produced by this
@@ -149,18 +152,20 @@ command with "thermo_modify norm yes"_thermo_modify.html set as an
 option.  Or it can be accessed by a "variable"_variable.html that
 divides by the appropriate atom count.
 
+:line
+
 [Output info:]
 
-This compute calculates a global scalar or global vector of length N
-where N is the number of inputs, and which can be accessed by indices
-1-N.  These values can be used by any command that uses global scalar
-or vector values from a compute as input.  See "this
-section"_Section_howto.html#4_15 for an overview of LAMMPS output
-options.
+This compute calculates a global scalar if a single input value is
+specified or a global vector of length N where N is the number of
+inputs, and which can be accessed by indices 1 to N.  These values can
+be used by any command that uses global scalar or vector values from a
+compute as input.  See "this section"_Section_howto.html#4_15 for an
+overview of LAMMPS output options.
 
-For {sum} mode, the scalar and vector values calculated by this
-compute are "extensive".  For {min} or {max} or {ave} modes, the
-value(s) are "intensive".
+All the scalar or vector values calculated by this compute are
+"intensive", except when the {sum} mode is used on per-atom or local
+vectors, in which case the calculated values are "extensive".
 
 The scalar or vector values will be in whatever "units"_units.html the
 quantities being reduced are in.

@@ -12,8 +12,9 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Benoit Leblanc, (Materials Design)
-                         Reese Jones (Sandia)
+   Contributing authors:
+     Benoit Leblanc, Dave Rigby, Paul Saxe (Materials Design)
+     Reese Jones (Sandia)
 ------------------------------------------------------------------------- */
 
 #include "stdlib.h"

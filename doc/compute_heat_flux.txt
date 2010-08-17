@@ -77,6 +77,12 @@ first term in the equation for J above.
 
 :line
 
+IMPORTANT NOTE: This section needs to be re-written to reflect the new
+"fix ave/correlate"_fix_ave_correlate.html command, and
+time-integration function trap() available in
+"variables"_variable.html.  This simplifies the procedure for
+extracting a thermal conductivity via the Green-Kubo formula.
+
 The heat flux can be output every so many timesteps (e.g. via the
 "thermo_style custom"_thermo_style.html command).  Then as a
 post-processing operation, an autocorrelation can be performed, its

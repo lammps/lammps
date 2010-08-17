@@ -106,11 +106,11 @@ output timestep.  The initial time could be the beginning of the
 simulation or the last output time; see the {ave} keyword for options.
 For the set of samples, the correlation value Cij is calculated as:
 
-Cij(delta) = <Vi(t)*Vj(t+delta)> :pre
+Cij(delta) = |Vi(t)*Vj(t+delta)| :pre
 
 which is the correlation value between input values Vi and Vj,
 separated by time delta.  Note that the second value Vj in the pair is
-always the one sampled at the later time.  The <> brackets represent
+always the one sampled at the later time.  The vertical bars represent
 an average over every pair of samples in the set that are separated by
 time delta.  The maximum delta used is of size ({Nrepeat}-1)*{Nevery}.
 Thus the correlation between a pair of input values yields {Nrepeat}

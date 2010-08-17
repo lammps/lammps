@@ -83,7 +83,7 @@ namespace MathExtra {
 
   inline void multiply_shape_shape(const double *one, const double *two,
                                    double *ans);
-};
+}
 
 /* ----------------------------------------------------------------------
    normalize a vector

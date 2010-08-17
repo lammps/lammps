@@ -238,10 +238,10 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   // kind = inputs are all global, or all per-atom, or all local
   // for fix inputs, check that fix frequency is acceptable
 
-  if (nevery <= 0) error->all("Illegal fix ave/histo command");
-  if (nfreq < nevery || nfreq % nevery || (nrepeat-1)*nevery >= nfreq)
+  if (nevery <= 0 || nrepeat <= 0 || nfreq <= 0)
     error->all("Illegal fix ave/histo command");
-
+  if (nfreq % nevery || (nrepeat-1)*nevery >= nfreq)
+    error->all("Illegal fix ave/histo command");
   if (lo >= hi) error->all("Illegal fix ave/histo command");
   if (nbins <= 0) error->all("Illegal fix ave/histo command");
 

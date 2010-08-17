@@ -63,10 +63,15 @@ class Variable : protected Pointers {
   int math_function(char *, char *, Tree **, Tree **, int &, double *, int &);
   int group_function(char *, char *, Tree **, Tree **, int &, double *, int &);
   int region_function(char *);
+  int special_function(char *, char *, Tree **, Tree **, 
+		       int &, double *, int &);
   void peratom2global(int, char *, double *, int, int,
 		      Tree **, Tree **, int &, double *, int &);
   int is_atom_vector(char *);
   void atom_vector(char *, Tree **, Tree **, int &);
+  double numeric(char *);
+  int inumeric(char *);
+  void print_tree(Tree *, int);
 };
 
 }

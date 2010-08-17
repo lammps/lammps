@@ -26,7 +26,7 @@ pair_coeff 1 1 10.0 3.0
 <PRE>pair_style soft 2.5
 pair_coeff * * 0.0
 variable prefactor equal ramp(0,30)
-fix 1 all adapt 1 pair soft a * * prefactor 
+fix 1 all adapt 1 pair soft a * * v_prefactor 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -62,7 +62,7 @@ all pairwise interactions from 0.0 at the beginning to 30.0 at the end
 of a run:
 </P>
 <PRE>variable prefactor equal ramp(0,30)
-fix 1 all adapt 1 pair soft a * * prefactor 
+fix 1 all adapt 1 pair soft a * * v_prefactor 
 </PRE>
 <P>Note that a formula defined by an <A HREF = "variable.html">equal-style variable</A>
 can use the current timestep, elapsed time in the current run, elapsed

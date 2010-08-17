@@ -296,12 +296,12 @@ void Output::write(int ntimestep)
     thermo->compute(1);
     last_thermo = ntimestep;
     if (thermo_every) next_thermo += thermo_every;
-    else {
+    else if (var_thermo) {
       next_thermo = static_cast<int> 
 	(input->variable->compute_equal(ivar_thermo));
       if (next_thermo <= ntimestep)
 	error->all("Thermo every variable returned a bad timestep");
-    }
+    } else next_thermo = update->laststep;
     next_thermo = MYMIN(next_thermo,update->laststep);
     modify->addstep_compute(next_thermo);
   }

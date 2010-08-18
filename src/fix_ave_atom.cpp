@@ -118,9 +118,9 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
   // setup and error check
   // for fix inputs, check that fix frequency is acceptable
 
-  if (nevery <= 0) error->all("Illegal fix ave/atom command");
-  if (peratom_freq < nevery || peratom_freq % nevery ||
-      (nrepeat-1)*nevery >= peratom_freq)
+  if (nevery <= 0 || nrepeat <= 0 || peratom_freq <= 0)
+    error->all("Illegal fix ave/atom command");
+  if (peratom_freq % nevery || (nrepeat-1)*nevery >= peratom_freq)
     error->all("Illegal fix ave/atom command");
 
   for (int i = 0; i < nvalues; i++) {

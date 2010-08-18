@@ -165,8 +165,9 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   // setup and error check
   // for fix inputs, check that fix frequency is acceptable
 
-  if (nevery <= 0) error->all("Illegal fix ave/time command");
-  if (nfreq < nevery || nfreq % nevery || (nrepeat-1)*nevery >= nfreq)
+  if (nevery <= 0 || nrepeat <= 0 || nfreq <= 0)
+    error->all("Illegal fix ave/time command");
+  if (nfreq % nevery || (nrepeat-1)*nevery >= nfreq)
     error->all("Illegal fix ave/time command");
 
   for (int i = 0; i < nvalues; i++) {
@@ -284,7 +285,7 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   delete [] title2;
   delete [] title3;
 
-  // allocate and initialize memory for averaging
+  // allocate memory for averaging
 
   vector = vector_total = NULL;
   vector_list = NULL;

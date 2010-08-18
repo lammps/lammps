@@ -31,7 +31,7 @@ using namespace LAMMPS_NS;
 
 enum{SUM,MINN,MAXX,AVE};
 enum{X,V,F,COMPUTE,FIX,VARIABLE};
-enum{GLOBAL,PERATOM,LOCAL};
+enum{PERATOM,LOCAL};
 
 #define INVOKED_VECTOR 2
 #define INVOKED_ARRAY 4
@@ -181,20 +181,7 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
       int icompute = modify->find_compute(ids[i]);
       if (icompute < 0)
 	error->all("Compute ID for compute reduce does not exist");
-      if (modify->compute[icompute]->vector_flag || 
-	  modify->compute[icompute]->array_flag) {
-	flavor[i] = GLOBAL;
-	if (argindex[i] == 0 && 
-	    modify->compute[icompute]->vector_flag == 0)
-	  error->all("Compute reduce compute does not "
-		     "calculate a global vector");
-	if (argindex[i] && modify->compute[icompute]->array_flag == 0)
-	  error->all("Compute reduce compute does not "
-		     "calculate a global array");
-	if (argindex[i] && 
-	    argindex[i] > modify->compute[icompute]->size_array_cols)
-	  error->all("Compute reduce compute array is accessed out-of-range");
-      } else if (modify->compute[icompute]->peratom_flag) {
+      if (modify->compute[icompute]->peratom_flag) {
 	flavor[i] = PERATOM;
 	if (argindex[i] == 0 && 
 	    modify->compute[icompute]->size_peratom_cols != 0)
@@ -218,26 +205,13 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
 	if (argindex[i] && 
 	    argindex[i] > modify->compute[icompute]->size_local_cols)
 	  error->all("Compute reduce compute array is accessed out-of-range");
-      }
+      } else error->all("Compute reduce compute calculates global values");
 
     } else if (which[i] == FIX) {
       int ifix = modify->find_fix(ids[i]);
       if (ifix < 0)
 	error->all("Fix ID for compute reduce does not exist");
-      if (modify->fix[ifix]->vector_flag || 
-	  modify->fix[ifix]->array_flag) {
-	flavor[i] = GLOBAL;
-	if (argindex[i] == 0 && 
-	    modify->fix[ifix]->vector_flag == 0)
-	  error->all("Compute reduce fix does not "
-		     "calculate a global vector");
-	if (argindex[i] && modify->fix[ifix]->array_flag == 0)
-	  error->all("Compute reduce fix does not "
-		     "calculate a global array");
-	if (argindex[i] && 
-	    argindex[i] > modify->fix[ifix]->size_array_cols)
-	  error->all("Compute reduce fix array is accessed out-of-range");
-      } else if (modify->fix[ifix]->peratom_flag) {
+      if (modify->fix[ifix]->peratom_flag) {
 	flavor[i] = PERATOM;
 	if (argindex[i] == 0 && 
 	    modify->fix[ifix]->size_peratom_cols != 0)
@@ -261,7 +235,7 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
 	if (argindex[i] && 
 	    argindex[i] > modify->fix[ifix]->size_local_cols)
 	  error->all("Compute reduce fix array is accessed out-of-range");
-      }
+      } else error->all("Compute reduce fix calculates global values");
 
     } else if (which[i] == VARIABLE) {
       int ivariable = input->variable->find(ids[i]);
@@ -354,25 +328,13 @@ double ComputeReduce::compute_scalar()
   double one = compute_one(0,-1);
 
   if (mode == SUM) {
-    if (flavor[0] == GLOBAL)
-      scalar = one;
-    else
-      MPI_Allreduce(&one,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
+    MPI_Allreduce(&one,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
   } else if (mode == MINN) {
-    if (flavor[0] == GLOBAL)
-      scalar = one;
-    else
-      MPI_Allreduce(&one,&scalar,1,MPI_DOUBLE,MPI_MIN,world);
+    MPI_Allreduce(&one,&scalar,1,MPI_DOUBLE,MPI_MIN,world);
   } else if (mode == MAXX) {
-    if (flavor[0] == GLOBAL)
-      scalar = one;
-    else
-      MPI_Allreduce(&one,&scalar,1,MPI_DOUBLE,MPI_MAX,world);
+    MPI_Allreduce(&one,&scalar,1,MPI_DOUBLE,MPI_MAX,world);
   } else if (mode == AVE) {
-    if (flavor[0] == GLOBAL)
-      scalar = one;
-    else
-      MPI_Allreduce(&one,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
+    MPI_Allreduce(&one,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
     scalar /= count(0);
   }
 
@@ -392,34 +354,22 @@ void ComputeReduce::compute_vector()
     }
 
   if (mode == SUM) {
-    for (int m = 0; m < nvalues; m++) {
-      if (flavor[m] == GLOBAL)
-	vector[m] = onevec[m];
-      else
-	MPI_Allreduce(&onevec[m],&vector[m],1,MPI_DOUBLE,MPI_SUM,world);
-    }
+    for (int m = 0; m < nvalues; m++)
+      MPI_Allreduce(&onevec[m],&vector[m],1,MPI_DOUBLE,MPI_SUM,world);
 
   } else if (mode == MINN) {
     if (!replace) {
-      for (int m = 0; m < nvalues; m++) {
-	if (flavor[m] == GLOBAL)
-	  vector[m] = onevec[m];
-	else
-	  MPI_Allreduce(&onevec[m],&vector[m],1,MPI_DOUBLE,MPI_MIN,world);
-      }
+      for (int m = 0; m < nvalues; m++)
+	MPI_Allreduce(&onevec[m],&vector[m],1,MPI_DOUBLE,MPI_MIN,world);
+
     } else {
       for (int m = 0; m < nvalues; m++)
 	if (replace[m] < 0) {
-	  if (flavor[m] == GLOBAL) {
-	    vector[m] = onevec[m];
-	    owner[m] = me;
-	  } else {
-	    pairme.value = onevec[m];
-	    pairme.proc = me;
-	    MPI_Allreduce(&pairme,&pairall,1,MPI_DOUBLE_INT,MPI_MINLOC,world);
-	    vector[m] = pairall.value;
-	    owner[m] = pairall.proc;
-	  }
+	  pairme.value = onevec[m];
+	  pairme.proc = me;
+	  MPI_Allreduce(&pairme,&pairall,1,MPI_DOUBLE_INT,MPI_MINLOC,world);
+	  vector[m] = pairall.value;
+	  owner[m] = pairall.proc;
 	}
       for (int m = 0; m < nvalues; m++)
 	if (replace[m] >= 0) {
@@ -431,25 +381,17 @@ void ComputeReduce::compute_vector()
 
   } else if (mode == MAXX) {
     if (!replace) {
-      for (int m = 0; m < nvalues; m++) {
-	if (flavor[m] == GLOBAL)
-	  vector[m] = onevec[m];
-	else
-	  MPI_Allreduce(&onevec[m],&vector[m],1,MPI_DOUBLE,MPI_MAX,world);
-      }
+      for (int m = 0; m < nvalues; m++)
+	MPI_Allreduce(&onevec[m],&vector[m],1,MPI_DOUBLE,MPI_MAX,world);
+
     } else {
       for (int m = 0; m < nvalues; m++)
 	if (replace[m] < 0) {
-	  if (flavor[m] == GLOBAL) {
-	    vector[m] = onevec[m];
-	    owner[m] = me;
-	  } else {
-	    pairme.value = onevec[m];
-	    pairme.proc = me;
-	    MPI_Allreduce(&pairme,&pairall,1,MPI_DOUBLE_INT,MPI_MAXLOC,world);
-	    vector[m] = pairall.value;
-	    owner[m] = pairall.proc;
-	  }
+	  pairme.value = onevec[m];
+	  pairme.proc = me;
+	  MPI_Allreduce(&pairme,&pairall,1,MPI_DOUBLE_INT,MPI_MAXLOC,world);
+	  vector[m] = pairall.value;
+	  owner[m] = pairall.proc;
 	}
       for (int m = 0; m < nvalues; m++)
 	if (replace[m] >= 0) {
@@ -461,10 +403,7 @@ void ComputeReduce::compute_vector()
 
   } else if (mode == AVE) {
     for (int m = 0; m < nvalues; m++) {
-      if (flavor[m] == GLOBAL)
-	vector[m] = onevec[m];
-      else
-	MPI_Allreduce(&onevec[m],&vector[m],1,MPI_DOUBLE,MPI_SUM,world);
+      MPI_Allreduce(&onevec[m],&vector[m],1,MPI_DOUBLE,MPI_SUM,world);
       vector[m] /= count(m);
     }
   }
@@ -524,33 +463,7 @@ double ComputeReduce::compute_one(int m, int flag)
   } else if (which[m] == COMPUTE) {
     Compute *compute = modify->compute[vidx];
     
-    if (flavor[m] == GLOBAL) {
-      if (aidx == 0) {
-	if (!(compute->invoked_flag & INVOKED_VECTOR)) {
-	  compute->compute_vector();
-	  compute->invoked_flag |= INVOKED_VECTOR;
-	}
-	double *comp_vec = compute->vector;
-	int n = compute->size_vector;
-	if (flag < 0) 
-	  for (i = 0; i < n; i++)
-	    combine(one,comp_vec[i],i);
-	else one = comp_vec[flag];
-      } else {
-	if (!(compute->invoked_flag & INVOKED_ARRAY)) {
-	  compute->compute_array();
-	  compute->invoked_flag |= INVOKED_ARRAY;
-	}
-	double **carray = compute->array;
-	int n = compute->size_array_rows;
-	int aidx_1 = aidx - 1;
-	if (flag < 0)
-	  for (i = 0; i < n; i++)
-	    combine(one,carray[i][aidx_1],i);
-	else one = carray[flag][aidx_1];
-      }
-
-    } else if (flavor[m] == PERATOM) {
+    if (flavor[m] == PERATOM) {
       if (!(compute->invoked_flag & INVOKED_PERATOM)) {
 	compute->compute_peratom();
 	compute->invoked_flag |= INVOKED_PERATOM;
@@ -604,22 +517,7 @@ double ComputeReduce::compute_one(int m, int flag)
       error->all("Fix used in compute reduce not computed at compatible time");
     Fix *fix = modify->fix[vidx];
 
-    if (flavor[m] == GLOBAL) {
-      if (aidx == 0) {
-	int n = fix->size_vector;
-	if (flag < 0)
-	  for (i = 0; i < n; i++)
-	    combine(one,fix->compute_vector(i),i);
-	else one = fix->compute_vector(flag);
-      } else {
-	int aidxm1 = aidx - 1;
-	if (flag < 0)
-	  for (i = 0; i < nlocal; i++)
-	    combine(one,fix->compute_array(i,aidxm1),i);
-	else one = fix->compute_array(flag,aidxm1);
-      }
-
-    } else if (flavor[m] == PERATOM) {
+    if (flavor[m] == PERATOM) {
       if (aidx == 0) {
 	double *fix_vector = fix->vector_atom;
 	int n = nlocal;
@@ -686,10 +584,7 @@ double ComputeReduce::count(int m)
     return group->count(igroup);
   else if (which[m] == COMPUTE) {
     Compute *compute = modify->compute[vidx];
-    if (flavor[m] == GLOBAL) {
-      if (aidx == 0) return(1.0*compute->size_vector);
-      else return(1.0*compute->size_array_rows);
-    } else if (flavor[m] == PERATOM) {
+    if (flavor[m] == PERATOM) {
       return group->count(igroup);
     } else if (flavor[m] == LOCAL) {
       double ncount = compute->size_local_rows;
@@ -699,10 +594,7 @@ double ComputeReduce::count(int m)
     }
   } else if (which[m] == FIX) {
     Fix *fix = modify->fix[vidx];
-    if (flavor[m] == GLOBAL) {
-      if (aidx == 0) return(1.0*fix->size_vector);
-      else return(1.0*fix->size_array_rows);
-    } else if (flavor[m] == PERATOM) {
+    if (flavor[m] == PERATOM) {
       return group->count(igroup);
     } else if (flavor[m] == LOCAL) {
       double ncount = fix->size_local_rows;

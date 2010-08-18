@@ -1093,9 +1093,11 @@ command.
 </P>
 <H5><A NAME = "fixoutput"></A>Fixes that write output files 
 </H5>
-<P>Three fixes take various quantities as input and can write output
+<P>Sevarl fixes take various quantities as input and can write output
 files: <A HREF = "fix_ave_time.html">fix ave/time</A>, <A HREF = "fix_ave_spatial.html">fix
-ave/spatial</A>, and <A HREF = "fix_print.html">fix print</A>.
+ave/spatial</A>, <A HREF = "fix_ave_histo.html">fix ave/histo</A>,
+<A HREF = "fix_ave_correlate.html">fix ave/correlate</A>, and <A HREF = "fix_print.html">fix
+print</A>.
 </P>
 <P>The <A HREF = "fix_ave_time.html">fix ave/time</A> command enables direct output to
 a file and/or time-averaging of global scalars or vectors.  The user
@@ -1126,6 +1128,11 @@ to a file of histogrammed quantities, which can be global or per-atom
 or local quantities.  The histogram output of this fix can also be
 used as input to other output commands.
 </P>
+<P>The <A HREF = "fix_ave_histo.html">fix ave/correlate</A> command enables direct
+output to a file of time-correlated quantities, which can be global
+scalars.  The correlation matrix output of this fix can also be used
+as input to other output commands.
+</P>
 <P>The <A HREF = "fix_print.html">fix print</A> command can generate a line of output
 written to the screen and log file or to a separate file, periodically
 during a running simulation.  The line can contain one or more
@@ -1141,10 +1148,10 @@ from normal thermodynamic or dump file output.
 <H5><A NAME = "computeoutput"></A>Computes that process output quantities 
 </H5>
 <P>The <A HREF = "compute_reduce.html">compute reduce</A> and <A HREF = "compute_reduce.html">compute
-reduce/region</A> commands take one or more vector
-quantities as inputs and "reduce" them (sum, min, max, ave) to scalar
-quantities.  These are produced as output values which can be used as
-input to other output commands.
+reduce/region</A> commands take one or more per-atom
+or local vector quantities as inputs and "reduce" them (sum, min, max,
+ave) to scalar quantities.  These are produced as output values which
+can be used as input to other output commands.
 </P>
 <P>The <A HREF = "compute_property_atom.html">compute property/atom</A> command takes a
 list of one or more pre-defined atom attributes (id, x, fx, etc) and
@@ -1169,9 +1176,9 @@ quantities calculated by a <A HREF = "compute.html">compute</A>, by a
 time-averaged per-atom output of this fix can be used as input to
 other output commands.
 </P>
-<P>The <A HREF = "fix_ave_atom.html">fix store</A> command can archive one or more
-per-atom attributes at a particular time, so that the old values can
-be used in a future calculation or output.  The list of atom
+<P>The <A HREF = "fix_store_state.html">fix store/state</A> command can archive one or
+more per-atom attributes at a particular time, so that the old values
+can be used in a future calculation or output.  The list of atom
 attributes is the same as for the <A HREF = "dump.html">dump custom</A> command,
 including per-atom quantities calculated by a <A HREF = "compute.html">compute</A>,
 by a <A HREF = "fix.html">fix</A>, or by an atom-style <A HREF = "variable.html">variable</A>.
@@ -1232,14 +1239,15 @@ vector input could be a column of an array.
 <TR><TD ><A HREF = "compute.html">computes</A></TD><TD > N/A</TD><TD > global/per-atom/local scalar/vector/array</TD><TD ></TD></TR>
 <TR><TD ><A HREF = "fix.html">fixes</A></TD><TD > N/A</TD><TD > global/per-atom/local scalar/vector/array</TD><TD ></TD></TR>
 <TR><TD ><A HREF = "variable.html">variables</A></TD><TD > global scalars, per-atom vectors</TD><TD > global scalar, per-atom vector</TD><TD ></TD></TR>
-<TR><TD ><A HREF = "compute_reduce.html">compute reduce</A></TD><TD > global/per-atom/local vectors</TD><TD > global scalar/vector</TD><TD ></TD></TR>
+<TR><TD ><A HREF = "compute_reduce.html">compute reduce</A></TD><TD > per-atom/local vectors</TD><TD > global scalar/vector</TD><TD ></TD></TR>
 <TR><TD ><A HREF = "compute_property_atom.html">compute property/atom</A></TD><TD > per-atom vectors</TD><TD > per-atom vector/array</TD><TD ></TD></TR>
 <TR><TD ><A HREF = "compute_property_local.html">compute property/local</A></TD><TD > local vectors</TD><TD > local vector/array</TD><TD ></TD></TR>
 <TR><TD ><A HREF = "fix_ave_atom.html">fix ave/atom</A></TD><TD > per-atom vectors</TD><TD > per-atom vector/array</TD><TD ></TD></TR>
 <TR><TD ><A HREF = "fix_ave_time.html">fix ave/time</A></TD><TD > global scalars/vectors</TD><TD > global scalar/vector/array, file</TD><TD ></TD></TR>
 <TR><TD ><A HREF = "fix_ave_spatial.html">fix ave/spatial</A></TD><TD > per-atom vectors</TD><TD > global array, file</TD><TD ></TD></TR>
 <TR><TD ><A HREF = "fix_ave_histo.html">fix ave/histo</A></TD><TD > global/per-atom/local scalars and vectors</TD><TD > global array, file</TD><TD ></TD></TR>
-<TR><TD ><A HREF = "fix_store.html">fix store</A></TD><TD > per-atom vectors</TD><TD > per-atom vector/array</TD><TD ></TD></TR>
+<TR><TD ><A HREF = "fix_ave_correlate.html">fix ave/correlate</A></TD><TD > global scalars</TD><TD > global array, file</TD><TD ></TD></TR>
+<TR><TD ><A HREF = "fix_store_state.html">fix store/state</A></TD><TD > per-atom vectors</TD><TD > per-atom vector/array</TD><TD ></TD></TR>
 <TR><TD >
 </TD></TR></TABLE></DIV>
 

@@ -912,6 +912,7 @@ void Domain::delete_region(int narg, char **arg)
   int iregion = find_region(arg[0]);
   if (iregion == -1) error->all("Delete region ID does not exist");
 
+  delete regions[iregion];
   regions[iregion] = regions[nregion-1];
   nregion--;
 }

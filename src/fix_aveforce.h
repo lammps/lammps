@@ -41,6 +41,7 @@ class FixAveForce : public Fix {
   double xvalue,yvalue,zvalue;
   int varflag;
   char *xstr,*ystr,*zstr;
+  char *idregion;
   int xvar,yvar,zvar,xstyle,ystyle,zstyle;
   int iregion;
   double foriginal_all[4];

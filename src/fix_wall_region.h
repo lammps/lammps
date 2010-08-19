@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class FixWallRegion : public Fix {
  public:
   FixWallRegion(class LAMMPS *, int, char **);
-  ~FixWallRegion() {}
+  ~FixWallRegion();
   int setmask();
   void init();
   void setup(int);
@@ -45,6 +45,7 @@ class FixWallRegion : public Fix {
   double ewall[4],ewall_all[4];
   int nlevels_respa;
   double dt;
+  char *idregion;
 
   double coeff1,coeff2,coeff3,coeff4,offset;
   double eng,fwall;

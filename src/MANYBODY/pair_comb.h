@@ -25,8 +25,6 @@ PairStyle(comb,PairComb)
 namespace LAMMPS_NS {
 
 class PairComb : public Pair {
-  friend class FixQEQ;
-
  public:
   PairComb(class LAMMPS *);
   virtual ~PairComb();
@@ -36,6 +34,8 @@ class PairComb : public Pair {
   void init_style();
   double init_one(int, int);
   double memory_usage();
+
+  double yasu_char(double *, int &);
 
  private:
   struct Param {
@@ -120,8 +120,6 @@ class PairComb : public Pair {
 	double, double &);
   void qfo_field(Param *, double,double ,double ,double &, double &);
   void qsolve(double *);
-//  double yasu_char(double *);
-  double yasu_char(double *, int &);
   void Over_cor(Param *, double, int, double &, double &);
   int pack_reverse_comm(int, int, double *);
   void unpack_reverse_comm(int, int *, double *);

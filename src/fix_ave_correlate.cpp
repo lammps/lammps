@@ -169,7 +169,9 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
 
   if (nevery <= 0 || nrepeat <= 0 || nfreq <= 0)
     error->all("Illegal fix ave/correlate command");
-  if (nfreq % nevery || (nrepeat-1)*nevery > nfreq)
+  if (nfreq % nevery)
+    error->all("Illegal fix ave/correlate command");
+  if (ave == ONE && nfreq < (nrepeat-1)*nevery)
     error->all("Illegal fix ave/correlate command");
 
   for (int i = 0; i < nvalues; i++) {

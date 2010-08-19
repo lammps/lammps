@@ -221,6 +221,13 @@ void DumpCustom::init()
     variable[i] = ivariable;
   }
 
+  // set index and check validity of region
+
+  if (iregion >= 0) {
+    iregion = domain->find_region(idregion);
+    if (iregion == -1) error->all("Region ID for dump custom does not exist");
+  }
+
   // open single file, one time only
 
   if (multifile == 0) openfile();

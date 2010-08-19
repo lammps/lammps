@@ -101,6 +101,7 @@ class Domain : protected Pointers {
   void minimum_image(double *);
   void set_lattice(int, char **);
   void add_region(int, char **);
+  void delete_region(int, char **);
   int find_region(char *);
   void set_boundary(int, char **);
   void print_box(const char *);

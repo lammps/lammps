@@ -41,6 +41,7 @@ class ComputeTempRegion : public Compute {
 
  private:
   int iregion;
+  char *idregion;
 };
 
 }

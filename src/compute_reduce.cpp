@@ -50,11 +50,16 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
   int iarg;
   if (strcmp(style,"reduce") == 0) {
     if (narg < 5) error->all("Illegal compute reduce command");
+    idregion = NULL;
     iarg = 3;
   } else if (strcmp(style,"reduce/region") == 0) {
     if (narg < 6) error->all("Illegal compute reduce/region command");
     iregion = domain->find_region(arg[3]);
-    if (iregion == -1) error->all("Compute reduce region ID does not exist");
+    if (iregion == -1)
+      error->all("Region ID for compute reduce/region does not exist");
+    int n = strlen(arg[3]) + 1;
+    idregion = new char[n];
+    strcpy(idregion,arg[3]);
     iarg = 4;
   }
 
@@ -281,6 +286,7 @@ ComputeReduce::~ComputeReduce()
   delete [] ids;
   delete [] value2index;
   delete [] replace;
+  delete [] idregion;
 
   delete [] vector;
   delete [] onevec;
@@ -317,6 +323,12 @@ void ComputeReduce::init()
 
     } else value2index[m] = -1;
   }
+
+  // set index and check validity of region
+
+  iregion = domain->find_region(idregion);
+  if (iregion == -1)
+    error->all("Region ID for compute reduce/region does not exist");
 }
 
 /* ---------------------------------------------------------------------- */

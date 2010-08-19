@@ -863,12 +863,17 @@ void Domain::set_lattice(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   create a new region 
+   create a new region
 ------------------------------------------------------------------------- */
 
 void Domain::add_region(int narg, char **arg)
 {
   if (narg < 2) error->all("Illegal region command");
+
+  if (strcmp(arg[1],"delete") == 0) {
+    delete_region(narg,arg);
+    return;
+  }
 
   if (find_region(arg[0]) >= 0) error->all("Reuse of region ID");
 
@@ -894,6 +899,21 @@ void Domain::add_region(int narg, char **arg)
   else error->all("Invalid region style");
 
   nregion++;
+}
+
+/* ----------------------------------------------------------------------
+   delete a region
+------------------------------------------------------------------------- */
+
+void Domain::delete_region(int narg, char **arg)
+{
+  if (narg != 2) error->all("Illegal region command");
+
+  int iregion = find_region(arg[0]);
+  if (iregion == -1) error->all("Delete region ID does not exist");
+
+  regions[iregion] = regions[nregion-1];
+  nregion--;
 }
 
 /* ----------------------------------------------------------------------

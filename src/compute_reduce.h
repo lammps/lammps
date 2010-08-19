@@ -41,6 +41,7 @@ class ComputeReduce : public Compute {
   double *onevec;
   int *replace,*indices,*owner;
   int index;
+  char *idregion;
 
   int maxatom;
   double *varatom;

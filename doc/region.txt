@@ -13,7 +13,8 @@ region command :h3
 region ID style args keyword value ... :pre
 
 ID = user-assigned name for the region :ulb,l
-style = {block} or {cone} or {cylinder} or {plane} or {prism} or {sphere} or {union} or {intersect} :l
+style = {delete} or {block} or {cone} or {cylinder} or {plane} or {prism} or {sphere} or {union} or {intersect} :l
+  {delete} = no args
   {block} args = xlo xhi ylo yhi zlo zhi
     xlo,xhi,ylo,yhi,zlo,zhi = bounds of block in all dimensions (distance units)
   {cone} args = dim c1 c2 radlo radhi lo hi
@@ -89,6 +90,11 @@ This may be useful, for example, when thermostatting a region, via the
 compute temp/region command, or when the fix wall/region command uses
 a region surface as a bounding wall on particle motion, i.e. a
 rotating container.
+
+The {delete} style removes the named region.  Since there is little
+overhead to defining extra regions, there is normally no need to do
+this, unless you are defining and discarding large numbers of regions
+in your input script.
 
 The lo/hi values for {block} or {cone} or {cylinder} or {prism} styles
 can be specified as EDGE or INF.  EDGE means they extend all the way

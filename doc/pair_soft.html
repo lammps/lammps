@@ -54,6 +54,15 @@ commands, or by mixing as described below:
 <P>The last coefficient is optional.  If not specified, the global soft
 cutoff is used.
 </P>
+<P>IMPORTANT NOTE: The syntax for <A HREF = "pair_coeff.html">pair_coeff</A> with a
+single A coeff is different in the current version of LAMMPS than in
+older versions which took two values, Astart and Astop, to ramp
+between them.  This functionality is now available in a more general
+form through the <A HREF = "fix_adapt.html">fix adapt</A> command, as explained
+below.  Note that if you use an old input script and specify Astart
+and Astop without a cutoff, then LAMMPS will interpret that as A and a
+cutoff, which is probabably not what you want.
+</P>
 <P>The <A HREF = "fix_adapt.html">fix adapt</A> command can be used to vary A for one
 or more pair types over the course of a simulation, in which case
 pair_coeff settings for A must still be specified, but will be

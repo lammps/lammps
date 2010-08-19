@@ -28,15 +28,10 @@ keyword = {temp} or {press} or {tparam} or {pparam} or {force} or {torque} :l
   {temp} values = Tstart Tstop Tperiod
     Tstart,Tstop = desired temperature at start/stop of run (temperature units)
     Tdamp = temperature damping parameter (time units)
-  {press} values = Pstart Pstop Pperiod
-    Pstart,Pstop = desired temperature at start/stop of run (pressure units)
-    Pdamp = pressure damping parameter (time units)
   {tparam} values = Tchain Titer Torder
     Tchain = length of Nose/Hoover thermostat chain
     Titer = number of thermostat iterations performed
     Torder = 3 or 5 = Yoshida-Suzuki integration parameters
-  {pparam} values = Pchain
-    Pchain = length of Nose/Hoover barostat chain
   {force} values = M xflag yflag zflag
     M = which rigid body from 1-Nbody (see asterisk form below)
     xflag,yflag,zflag = off/on if component of center-of-mass force is active

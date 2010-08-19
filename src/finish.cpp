@@ -30,6 +30,9 @@
 
 using namespace LAMMPS_NS;
 
+#define MIN(A,B) ((A) < (B)) ? (A) : (B)
+#define MAX(A,B) ((A) > (B)) ? (A) : (B)
+
 /* ---------------------------------------------------------------------- */
 
 Finish::Finish(LAMMPS *lmp) : Pointers(lmp) {}
@@ -38,7 +41,7 @@ Finish::Finish(LAMMPS *lmp) : Pointers(lmp) {}
 
 void Finish::end(int flag)
 {
-  int i,m,nneigh;
+  int i,m,nneigh,nneighfull;
   int histo[10];
   int loopflag,minflag,prdflag,timeflag,fftflag,histoflag,neighflag;
   double time,tmp,ave,max,min,natoms;
@@ -407,16 +410,16 @@ void Finish::end(int flag)
 	   neighbor->old_requests[m]->gran ||
 	   neighbor->old_requests[m]->respaouter ||
 	   neighbor->old_requests[m]->half_from_full) &&
-	  neighbor->old_requests[m]->skip == 0) break;
+	  neighbor->old_requests[m]->skip == 0 &&
+	  neighbor->lists[m]->numneigh) break;
     
     nneigh = 0;
     if (m < neighbor->old_nrequest) {
       int inum = neighbor->lists[m]->inum;
       int *ilist = neighbor->lists[m]->ilist;
       int *numneigh = neighbor->lists[m]->numneigh;
-      if (numneigh)
-	for (i = 0; i < inum; i++)
-	  nneigh += numneigh[ilist[i]];
+      for (i = 0; i < inum; i++)
+	nneigh += numneigh[ilist[i]];
     }
     
     tmp = nneigh;
@@ -440,18 +443,18 @@ void Finish::end(int flag)
     
     for (m = 0; m < neighbor->old_nrequest; m++)
       if (neighbor->old_requests[m]->full &&
-	  neighbor->old_requests[m]->skip == 0) break;
+	  neighbor->old_requests[m]->skip == 0 &&
+	  neighbor->lists[m]->numneigh) break;
     
+    nneighfull = 0;
     if (m < neighbor->old_nrequest) {
-      nneigh = 0;
       int inum = neighbor->lists[m]->inum;
       int *ilist = neighbor->lists[m]->ilist;
       int *numneigh = neighbor->lists[m]->numneigh;
-      if (numneigh)
-	for (i = 0; i < inum; i++)
-	  nneigh += numneigh[ilist[i]];
+      for (i = 0; i < inum; i++)
+	nneighfull += numneigh[ilist[i]];
 
-      tmp = nneigh;
+      tmp = nneighfull;
       stats(1,&tmp,&ave,&max,&min,10,histo);
       if (me == 0) {
 	if (screen) {
@@ -476,7 +479,7 @@ void Finish::end(int flag)
       if (logfile) fprintf(logfile,"\n");
     }
     
-    tmp = nneigh;
+    tmp = MAX(nneigh,nneighfull);
     double nall;
     MPI_Allreduce(&tmp,&nall,1,MPI_DOUBLE,MPI_SUM,world);
     

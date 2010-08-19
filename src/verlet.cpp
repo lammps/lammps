@@ -81,6 +81,8 @@ void Verlet::setup()
 {
   if (comm->me == 0 && screen) fprintf(screen,"Setting up run ...\n");
 
+  update->setupflag = 1;
+
   // setup domain, communication and neighboring
   // acquire ghosts
   // build neighbor lists
@@ -122,6 +124,7 @@ void Verlet::setup()
 
   modify->setup(vflag);
   output->setup(1);
+  update->setupflag = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -132,6 +135,8 @@ void Verlet::setup()
 
 void Verlet::setup_minimal(int flag)
 {
+  update->setupflag = 1;
+
   // setup domain, communication and neighboring
   // acquire ghosts
   // build neighbor lists
@@ -172,6 +177,7 @@ void Verlet::setup_minimal(int flag)
   if (force->newton) comm->reverse_comm();
 
   modify->setup(vflag);
+  update->setupflag = 0;
 }
 
 /* ----------------------------------------------------------------------

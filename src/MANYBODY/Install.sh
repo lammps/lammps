@@ -5,7 +5,9 @@
 
 if (test $1 = 1) then
 
+  cp fix_qeq.cpp ..
   cp pair_airebo.cpp ..
+  cp pair_comb.cpp ..
   cp pair_eam.cpp ..
   cp pair_eam_alloy.cpp ..
   cp pair_eam_fs.cpp ..
@@ -13,7 +15,9 @@ if (test $1 = 1) then
   cp pair_tersoff.cpp ..
   cp pair_tersoff_zbl.cpp ..
 
+  cp fix_qeq.h ..
   cp pair_airebo.h ..
+  cp pair_comb.h ..
   cp pair_eam.h ..
   cp pair_eam_alloy.h ..
   cp pair_eam_fs.h ..
@@ -27,7 +31,9 @@ if (test $1 = 1) then
 
 elif (test $1 = 0) then
 
+  rm ../fix_qeq.cpp
   rm ../pair_airebo.cpp
+  rm ../pair_comb.cpp
   rm ../pair_eam.cpp
   rm ../pair_eam_alloy.cpp
   rm ../pair_eam_fs.cpp
@@ -35,7 +41,9 @@ elif (test $1 = 0) then
   rm ../pair_tersoff.cpp
   rm ../pair_tersoff_zbl.cpp
 
+  rm ../pair_qeq.h
   rm ../pair_airebo.h
+  rm ../pair_comb.h
   rm ../pair_eam.h
   rm ../pair_eam_alloy.h
   rm ../pair_eam_fs.h

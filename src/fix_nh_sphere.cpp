@@ -26,8 +26,6 @@ using namespace LAMMPS_NS;
 
 #define INERTIA 0.4          // moment of inertia for sphere
 
-enum{NOBIAS,BIAS};
-
 /* ---------------------------------------------------------------------- */
 
 FixNHSphere::FixNHSphere(LAMMPS *lmp, int narg, char **arg) :
@@ -82,7 +80,7 @@ void FixNHSphere::init()
 }
 
 /* ----------------------------------------------------------------------
-   perform half-step update of velocities 
+   perform half-step update of rotational velocities
 -----------------------------------------------------------------------*/
 
 void FixNHSphere::nve_v()
@@ -160,12 +158,12 @@ void FixNHSphere::nve_v()
 }
 
 /* ----------------------------------------------------------------------
-   perform half-step scaling of velocities
+   perform half-step scaling of rotatonal velocities
 -----------------------------------------------------------------------*/
 
 void FixNHSphere::nh_v_temp()
 {
-  // standard nh_v_temp velocity update
+  // standard nh_v_temp scaling
 
   FixNH::nh_v_temp();
 
@@ -174,15 +172,11 @@ void FixNHSphere::nh_v_temp()
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
-  // set timestep here since dt may have changed or come via rRESPA
-
-  double factor_rotate = exp(-dthalf*eta_dot[0]);
-
   for (int i = 0; i < nlocal; i++) {    
     if (mask[i] & groupbit) {
-      omega[i][0] *= factor_rotate;
-      omega[i][1] *= factor_rotate;
-      omega[i][2] *= factor_rotate;
+      omega[i][0] *= factor_eta;
+      omega[i][1] *= factor_eta;
+      omega[i][2] *= factor_eta;
     }
   }
 }

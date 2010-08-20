@@ -45,6 +45,7 @@ own sub-directories with their own Makefiles.
 "chain"_#chain
 "data2xmovie"_#data
 "eam generate"_#eam
+"eff_#eff
 "lmp2arc"_#arc
 "lmp2cfg"_#cfg
 "lmp2traj"_#traj
@@ -145,6 +146,17 @@ produce are in the potentials directory.
 
 The source files and potentials were provided by Gerolf Ziegenhain
 (gerolf at ziegenhain.com).
+
+:line
+
+eff tool :h4,link(eff)
+
+The tools/eff directory contains various scripts for generating
+structures and post-processing output for simulations using the
+electron force field (EFF).
+
+These tools were provided by Andres Jaramillo-Botero at CalTech
+(ajaramil at wag.caltech.edu).
 
 :line
 

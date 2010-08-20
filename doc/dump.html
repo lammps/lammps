@@ -49,6 +49,7 @@
                           radius, omegax, omegay, omegaz,
                           angmomx, angmomy, angmomz,
 			  quatw, quati, quatj, quatk, tqx, tqy, tqz,
+			  spin, eradius, evel, eforce,
 			  c_ID, c_ID[N], f_ID, f_ID[N], v_name 
 </PRE>
 <PRE>      id = atom ID
@@ -68,6 +69,10 @@
       angmomx,angmomy,angmomz = angular momentum of extended particle
       quatw,quati,quatj,quatk = quaternion components for aspherical particles
       tqx,tqy,tqz = torque on extended particles
+      spin = electron spin
+      eradius = electron radius
+      evel = electron radial velocity
+      eforce = electron radial force
       c_ID = per-atom vector calculated by a compute with ID
       c_ID[N] = Nth column of per-atom array calculated by a compute with ID
       f_ID = per-atom vector calculated by a fix with ID
@@ -84,7 +89,8 @@ dump 4a all custom 100 dump.myforce.* id type x y vx fx
 dump 4b flow custom 100 dump.%.myforce id type c_myF[3] v_ke
 dump 2 inner cfg 10 dump.snap.*.cfg id type xs ys zs vx vy vz
 dump snap all cfg 100 dump.config.*.cfg id type xs ys zs id type c_Stress<B>2</B>
-dump 1 all xtc 1000 file.xtc 
+dump 1 all xtc 1000 file.xtc
+dump e_data all custom 100 dump.eff id type x y z spin eradius fx fy fz eforce 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -373,6 +379,12 @@ particle.
 <P>The <I>tqx</I>, <I>tqy</I>, <I>tqz</I> attributes are for extended spherical or
 aspherical particles that can sustain a rotational torque due
 to interactions with other particles.
+</P>
+<P>The <I>spin</I>, <I>eradius</I>, <I>evel</I>, and <I>eforce</I> attributes are for
+particles that represent nuclei and electrons modeled with the
+electronic force field (EFF).  See <A HREF = "atom_style.html">atom_style
+electron</A> and <A HREF = "pair_eff.html">pair_style eff</A> for more
+details.
 </P>
 <P>The <I>c_ID</I> and <I>c_ID[N]</I> attributes allow per-atom vectors or arrays
 calculated by a <A HREF = "compute.html">compute</A> to be output.  The ID in the

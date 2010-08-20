@@ -280,6 +280,7 @@ of analysis.
 <TR><TD >charge</TD><TD > atom-ID atom-type q x y z</TD></TR>
 <TR><TD >colloid</TD><TD > atom-ID atom-type x y z</TD></TR>
 <TR><TD >dipole</TD><TD > atom-ID atom-type q x y z mux muy muz</TD></TR>
+<TR><TD >electron</TD><TD > atom-ID atom-type spin eradius x y z</TD></TR>
 <TR><TD >ellipsoid</TD><TD > atom-ID atom-type x y z quatw quati quatj quatk</TD></TR>
 <TR><TD >full</TD><TD > atom-ID molecule-ID atom-type q x y z</TD></TR>
 <TR><TD >granular</TD><TD > atom-ID atom-type diameter density x y z</TD></TR>
@@ -299,7 +300,9 @@ of analysis.
 <LI>volume = volume of atom (distance^3 units)
 <LI>x,y,z = coordinates of atom
 <LI>mux,muy,muz = direction of dipole moment of atom
-<LI>quatw,quati,quatj,quatk = quaternion components for orientation of atom 
+<LI>quatw,quati,quatj,quatk = quaternion components for orientation of atom
+<LI>spin = electron spin (+1/-1)
+<LI>eradius = electron radius 
 </UL>
 <P>The units for these quantities depend on the unit style; see the
 <A HREF = "units.html">units</A> command for details.
@@ -692,6 +695,7 @@ style dipole or ellipsoid.
 <DIV ALIGN=center><TABLE  BORDER=1 >
 <TR><TD >all styles except those listed</TD><TD > atom-ID vx vy vz</TD></TR>
 <TR><TD >dipole</TD><TD > atom-ID vx vy vz wx wy wz</TD></TR>
+<TR><TD >electron</TD><TD > atom-ID vx vy vz evel</TD></TR>
 <TR><TD >ellipsoid</TD><TD > atom-ID vx vy vz lx ly lz</TD></TR>
 <TR><TD >granular</TD><TD > atom-ID vx vy vz wx wy wz 
 </TD></TR></TABLE></DIV>
@@ -700,16 +704,17 @@ style dipole or ellipsoid.
 </P>
 <UL><LI>vx,vy,vz = translational velocity of atom
 <LI>lx,ly,lz = angular momentum of aspherical atom
-<LI>wx,wy,wz = angular velocity of granular atom 
+<LI>wx,wy,wz = angular velocity of granular atom
+<LI>evel = electron radial velocity 
 </UL>
 <P>The velocity lines can appear in any order.  This section can only be
 used after an <I>Atoms</I> section.  This is because the <I>Atoms</I> section
 must have assigned a unique atom ID to each atom so that velocities
 can be assigned to them.
 </P>
-<P>Vx,vy,vz are in <A HREF = "units.html">units</A> of velocity.  Lx, ly, lz are in
-units of angular momentum (distance-velocity-mass).  Wx,Wy,Wz are in
-units of angular velocity (radians/time).
+<P>Vx, vy, vz, and evel are in <A HREF = "units.html">units</A> of velocity.  Lx, ly,
+lz are in units of angular momentum (distance-velocity-mass).  Wx, Wy,
+Wz are in units of angular velocity (radians/time).
 </P>
 <P>Translational velocities can also be set by the
 <A HREF = "velocity.html">velocity</A> command in the input script.

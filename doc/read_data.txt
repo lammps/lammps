@@ -260,6 +260,7 @@ bond: atom-ID molecule-ID atom-type x y z
 charge: atom-ID atom-type q x y z
 colloid: atom-ID atom-type x y z
 dipole: atom-ID atom-type q x y z mux muy muz
+electron: atom-ID atom-type spin eradius x y z
 ellipsoid: atom-ID atom-type x y z quatw quati quatj quatk
 full: atom-ID molecule-ID atom-type q x y z
 granular: atom-ID atom-type diameter density x y z
@@ -278,7 +279,9 @@ density = density of atom (mass/distance^3 units)
 volume = volume of atom (distance^3 units)
 x,y,z = coordinates of atom
 mux,muy,muz = direction of dipole moment of atom
-quatw,quati,quatj,quatk = quaternion components for orientation of atom :ul
+quatw,quati,quatj,quatk = quaternion components for orientation of atom
+spin = electron spin (+1/-1)
+eradius = electron radius :ul
 
 The units for these quantities depend on the unit style; see the
 "units"_units.html command for details.
@@ -605,6 +608,7 @@ line syntax: depends on atom style :ul
 
 all styles except those listed: atom-ID vx vy vz
 dipole: atom-ID vx vy vz wx wy wz
+electron: atom-ID vx vy vz evel
 ellipsoid: atom-ID vx vy vz lx ly lz
 granular: atom-ID vx vy vz wx wy wz :tb(s=:)
 
@@ -612,16 +616,17 @@ where the keywords have these meanings:
 
 vx,vy,vz = translational velocity of atom
 lx,ly,lz = angular momentum of aspherical atom
-wx,wy,wz = angular velocity of granular atom :ul
+wx,wy,wz = angular velocity of granular atom
+evel = electron radial velocity :ul
 
 The velocity lines can appear in any order.  This section can only be
 used after an {Atoms} section.  This is because the {Atoms} section
 must have assigned a unique atom ID to each atom so that velocities
 can be assigned to them.
 
-Vx,vy,vz are in "units"_units.html of velocity.  Lx, ly, lz are in
-units of angular momentum (distance-velocity-mass).  Wx,Wy,Wz are in
-units of angular velocity (radians/time).
+Vx, vy, vz, and evel are in "units"_units.html of velocity.  Lx, ly,
+lz are in units of angular momentum (distance-velocity-mass).  Wx, Wy,
+Wz are in units of angular velocity (radians/time).
 
 Translational velocities can also be set by the
 "velocity"_velocity.html command in the input script.

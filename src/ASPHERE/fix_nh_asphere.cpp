@@ -177,14 +177,40 @@ void FixNHAsphere::calculate_inertia()
 
 void FixNHAsphere::nve_v()
 {
-  // standard nhc_nve_v velocity update
+  // standard nve_v velocity update
 
   FixNH::nve_v();
+
+  double **angmom = atom->angmom;
+  double **torque = atom->torque;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+  if (igroup == atom->firstgroup) nlocal = atom->nfirst;
+
+  // update angular momentum by 1/2 step for all particles
+
+  for (int i = 0; i < nlocal; i++) {    
+    if (mask[i] & groupbit) {
+      angmom[i][0] += dtf*torque[i][0];
+      angmom[i][1] += dtf*torque[i][1];
+      angmom[i][2] += dtf*torque[i][2];
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   perform full-step update of orientation
+-----------------------------------------------------------------------*/
+
+void FixNHAsphere::nve_x()
+{
+  // standard nve_x position update
+
+  FixNH::nve_x();
 
   int *type = atom->type;
   double **quat = atom->quat;
   double **angmom = atom->angmom;
-  double **torque = atom->torque;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
@@ -193,18 +219,12 @@ void FixNHAsphere::nve_v()
 
   dtq = 0.5 * dtv;
 
-  // update angular momentum by 1/2 step for all particles
   // update quaternion a full step via Richardson iteration
   // returns new normalized quaternion
 
   for (int i = 0; i < nlocal; i++) {    
-    if (mask[i] & groupbit) {
-      angmom[i][0] += dtf*torque[i][0];
-      angmom[i][1] += dtf*torque[i][1];
-      angmom[i][2] += dtf*torque[i][2];
-		
+    if (mask[i] & groupbit)
       richardson(quat[i],angmom[i],inertia[type[i]]);
-    }
   }
 }
 

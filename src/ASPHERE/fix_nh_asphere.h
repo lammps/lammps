@@ -32,6 +32,7 @@ class FixNHAsphere : public FixNH {
   void omega_from_mq(double *, double *, double *, double *);
   void calculate_inertia();
   void nve_v();
+  void nve_x();
   void nh_v_temp();
 };
 

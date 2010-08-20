@@ -1,0 +1,20 @@
+variable	sname index ch4
+log		${sname}.spe.log
+
+units 		electron
+newton		on
+boundary        f f f
+
+atom_style	hybrid charge electron
+
+read_data  	data.${sname}
+
+pair_style      eff/cut 10000.0
+pair_coeff	* *
+
+communicate	single vel yes	
+
+thermo		1
+thermo_style	multi
+
+run 		0

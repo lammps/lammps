@@ -1,0 +1,2 @@
+Shows the formation of lithium dendrites during the minimization of a volume expanded lithium cell with particle positions remaped to fit the cell.
+This depicts the process of electrode replating in lithium batteries, which leads to failure (short-circuit).

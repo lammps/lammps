@@ -57,7 +57,8 @@ class Min : protected Pointers {
   class Compute **vlist_global;
   class Compute **vlist_atom;
 
-  int pairflag,torqueflag;
+  int pairflag;
+  int torqueflag,eforceflag;
   int triclinic;              // 0 if domain is orthog, 1 if triclinic
 
   int narray;                       // # of arrays stored by fix_minimize

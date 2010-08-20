@@ -27,10 +27,10 @@ namespace LAMMPS_NS {
 class ComputeTempRegion : public Compute {
  public:
   ComputeTempRegion(class LAMMPS *, int, char **);
-  ~ComputeTempRegion();
+  virtual ~ComputeTempRegion();
   void init();
-  double compute_scalar();
-  void compute_vector();
+  virtual double compute_scalar();
+  virtual void compute_vector();
 
   int dof_remove(int);
   void remove_bias(int, double *);
@@ -39,7 +39,7 @@ class ComputeTempRegion : public Compute {
   void restore_bias_all();
   double memory_usage();
 
- private:
+ protected:
   int iregion;
   char *idregion;
 };

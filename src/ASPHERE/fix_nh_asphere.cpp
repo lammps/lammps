@@ -28,8 +28,6 @@
 
 using namespace LAMMPS_NS;
 
-enum{NOBIAS,BIAS};
-
 /* ---------------------------------------------------------------------- */
 
 FixNHAsphere::FixNHAsphere(LAMMPS *lmp, int narg, char **arg) :
@@ -172,7 +170,7 @@ void FixNHAsphere::calculate_inertia()
 }
 
 /* ----------------------------------------------------------------------
-   perform half-step update of velocities 
+   perform half-step update of angular momentum
 -----------------------------------------------------------------------*/
 
 void FixNHAsphere::nve_v()
@@ -208,9 +206,9 @@ void FixNHAsphere::nve_x()
 
   FixNH::nve_x();
 
-  int *type = atom->type;
   double **quat = atom->quat;
   double **angmom = atom->angmom;
+  int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
@@ -229,12 +227,12 @@ void FixNHAsphere::nve_x()
 }
 
 /* ----------------------------------------------------------------------
-   perform half-step temperature scaling of velocities
+   perform half-step temperature scaling of angular momentum
 -----------------------------------------------------------------------*/
 
 void FixNHAsphere::nh_v_temp()
 {
-  // standard nhc_nh_v velocity update
+  // standard nh_v_temp scaling
 
   FixNH::nh_v_temp();
 
@@ -243,15 +241,11 @@ void FixNHAsphere::nh_v_temp()
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
-  // set timestep here since dt may have changed or come via rRESPA
-
-  double factor_rotate = exp(-dthalf*eta_dot[0]);
-
   for (int i = 0; i < nlocal; i++) {    
     if (mask[i] & groupbit) {
-      angmom[i][0] *= factor_rotate;
-      angmom[i][1] *= factor_rotate;
-      angmom[i][2] *= factor_rotate;
+      angmom[i][0] *= factor_eta;
+      angmom[i][1] *= factor_eta;
+      angmom[i][2] *= factor_eta;
     }
   }
 }

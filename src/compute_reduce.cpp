@@ -326,9 +326,11 @@ void ComputeReduce::init()
 
   // set index and check validity of region
 
-  iregion = domain->find_region(idregion);
-  if (iregion == -1)
-    error->all("Region ID for compute reduce/region does not exist");
+  if (idregion) {
+    iregion = domain->find_region(idregion);
+    if (iregion == -1)
+      error->all("Region ID for compute reduce/region does not exist");
+  }
 }
 
 /* ---------------------------------------------------------------------- */

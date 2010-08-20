@@ -1,0 +1,32 @@
+# HfO2 polymorphs: Monoclinic HfO2 NVT @ 300K
+
+units		metal
+atom_style	charge
+dimension       3
+boundary        p p p
+
+read_data  	data.m-HfO2
+#read_data  	data.t-HfO2
+#read_data  	data.c-HfO2
+mass		1 178.0
+mass		2 16.0
+
+pair_style	comb
+pair_coeff	* * ffield.comb Hf O
+
+neighbor	0.5 bin
+neigh_modify	every 10 delay 10 check yes 
+
+timestep        0.00020
+
+fix		1 all nvt temp 300.0 300.0 0.1
+fix  		2 all qeq/comb 1 0.003
+
+dump		1 all cfg 100 *.cfg id type xs ys zs q f_2 vx vy vz fx fy fz
+dump_modify	1 append yes element Hf O
+
+thermo_style	custom step temp etotal pe evdwl ecoul press vol lx ly lz xz
+thermo_modify	norm yes
+velocity	all create 300.1 2398378
+thermo	  	1
+run  		10

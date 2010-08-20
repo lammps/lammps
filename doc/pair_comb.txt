@@ -173,8 +173,9 @@ shift, table, and tail options.
 
 This pair style does not write its information to "binary restart
 files"_restart.html, since it is stored in potential files.  Thus, you
-need to re-specify the pair_style, pair_coeff and fix_qeq commands in
-an input script that reads a restart file.
+need to re-specify the pair_style, pair_coeff, and "fix
+qeq/comb"_fix_qeq_comb.html commands in an input script that reads a
+restart file.
 
 This pair style can only be used via the {pair} keyword of the
 "run_style respa"_run_style.html command.  It does not support the
@@ -201,7 +202,7 @@ doesn't use "metal" units.
 [Related commands:]
 
 "pair_style"_pair_style.html, "pair_coeff"_pair_coeff.html, 
-"fix_qeq"_fix_qeq.html
+"fix_qeq/comb"_fix_qeq_comb.html
 
 [Default:] none
 

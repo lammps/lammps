@@ -1,0 +1,70 @@
+LAMMPS (20 Aug 2010)
+# HfO2 polymorphs: Monoclinic HfO2 NVT @ 300K
+
+units		metal
+atom_style	charge
+dimension       3
+boundary        p p p
+
+read_data  	data.m-HfO2
+  triclinic box = (0 0 0) to (30.7704 25.957 26.4845) with tilt (0 -4.46691 0)
+  2 by 1 by 2 processor grid
+  1800 atoms
+#read_data  	data.t-HfO2
+#read_data  	data.c-HfO2
+mass		1 178.0
+mass		2 16.0
+
+pair_style	comb
+pair_coeff	* * ffield.comb Hf O
+
+neighbor	0.5 bin
+neigh_modify	every 10 delay 10 check yes 
+
+timestep        0.00020
+
+fix		1 all nvt temp 300.0 300.0 0.1
+fix  		2 all qeq/comb 1 0.003
+
+dump		1 all cfg 100 *.cfg id type xs ys zs q f_2 vx vy vz fx fy fz
+dump_modify	1 append yes element Hf O
+
+thermo_style	custom step temp etotal pe evdwl ecoul press vol lx ly lz xz
+thermo_modify	norm yes
+velocity	all create 300.1 2398378
+thermo	  	1
+run  		10
+Memory usage per processor = 3.40015 Mbytes
+Step Temp TotEng PotEng E_vdwl E_coul Press Volume Lx Ly Lz Xz 
+       0        300.1   -10.137558   -10.176327      2.41206   -12.588387    -416223.6    21153.363      30.7704       25.957      26.4845     -4.46691 
+       1    300.08824    -10.14208   -10.180848    2.5381551   -12.719003   -404888.72    21153.363      30.7704       25.957      26.4845     -4.46691 
+       2     300.2422   -10.142108   -10.180896    2.5385179   -12.719413   -404575.01    21153.363      30.7704       25.957      26.4845     -4.46691 
+       3    300.56846    -10.14215    -10.18098    2.5390086   -12.719988   -404021.29    21153.363      30.7704       25.957      26.4845     -4.46691 
+       4    301.06641   -10.142179   -10.181073     2.539236   -12.720309   -403262.75    21153.363      30.7704       25.957      26.4845     -4.46691 
+       5    301.73344   -10.142206   -10.181186    2.5392647   -12.720451   -402298.69    21153.363      30.7704       25.957      26.4845     -4.46691 
+       6    302.56634   -10.142224   -10.181312     2.539154   -12.720466   -401123.13    21153.363      30.7704       25.957      26.4845     -4.46691 
+       7     303.5611   -10.142241   -10.181457    2.5389412   -12.720398    -399730.1    21153.363      30.7704       25.957      26.4845     -4.46691 
+       8    304.71301   -10.142258   -10.181623    2.5386467    -12.72027   -398117.54    21153.363      30.7704       25.957      26.4845     -4.46691 
+       9    306.01661   -10.142271   -10.181804    2.5382886   -12.720093   -396282.69    21153.363      30.7704       25.957      26.4845     -4.46691 
+      10    307.46565   -10.142283   -10.182004    2.5378762   -12.719881   -394219.71    21153.363      30.7704       25.957      26.4845     -4.46691 
+Loop time of 3.81594 on 4 procs for 10 steps with 1800 atoms
+
+Pair  time (%) = 1.58554 (41.5506)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.0347861 (0.9116)
+Outpt time (%) = 0.00457448 (0.119878)
+Other time (%) = 2.19103 (57.418)
+
+Nlocal:    450 ave 450 max 450 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    6470 ave 6470 max 6470 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs: 311250 ave 311250 max 311250 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 1245000
+Ave neighs/atom = 691.667
+Neighbor list builds = 0
+Dangerous builds = 0

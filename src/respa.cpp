@@ -312,6 +312,8 @@ void Respa::setup()
 {
   if (comm->me == 0 && screen) fprintf(screen,"Setting up run ...\n");
 
+  update->setupflag = 1;
+
   // setup domain, communication and neighboring
   // acquire ghosts
   // build neighbor lists
@@ -362,6 +364,7 @@ void Respa::setup()
   modify->setup(vflag);
   sum_flevel_f();
   output->setup(1);
+  update->setupflag = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -372,6 +375,8 @@ void Respa::setup()
 
 void Respa::setup_minimal(int flag)
 {
+  update->setupflag = 1;
+
   // setup domain, communication and neighboring
   // acquire ghosts
   // build neighbor lists
@@ -421,6 +426,7 @@ void Respa::setup_minimal(int flag)
   
   modify->setup(vflag);
   sum_flevel_f();
+  update->setupflag = 0;
 }
 
 /* ----------------------------------------------------------------------

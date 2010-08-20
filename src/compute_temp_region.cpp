@@ -33,7 +33,11 @@ ComputeTempRegion::ComputeTempRegion(LAMMPS *lmp, int narg, char **arg) :
   if (narg != 4) error->all("Illegal compute temp/region command");
 
   iregion = domain->find_region(arg[3]);
-  if (iregion == -1) error->all("Temperature region ID does not exist");
+  if (iregion == -1) 
+    error->all("Region ID for compute temp/region does not exist");
+  int n = strlen(arg[3]) + 1;
+  idregion = new char[n];
+  strcpy(idregion,arg[3]);
 
   scalar_flag = vector_flag = 1;
   size_vector = 6;
@@ -51,6 +55,7 @@ ComputeTempRegion::ComputeTempRegion(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeTempRegion::~ComputeTempRegion()
 {
+  delete [] idregion;
   memory->destroy_2d_double_array(vbiasall);
   delete [] vector;
 }
@@ -59,6 +64,12 @@ ComputeTempRegion::~ComputeTempRegion()
 
 void ComputeTempRegion::init()
 {
+  // set index and check validity of region
+
+  iregion = domain->find_region(idregion);
+  if (iregion == -1)
+    error->all("Region ID for temp reduce/region does not exist");
+
   dof = 0.0;
 }
 

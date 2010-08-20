@@ -38,6 +38,7 @@ class FixEvaporate : public Fix {
   int nevery,nflux,iregion;
   int molflag;
   int ndeleted;
+  char *idregion;
 
   int nmax;
   int *list,*mark;

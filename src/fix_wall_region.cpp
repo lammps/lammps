@@ -46,7 +46,11 @@ FixWallRegion::FixWallRegion(LAMMPS *lmp, int narg, char **arg) :
   // parse args
 
   iregion = domain->find_region(arg[3]);
-  if (iregion == -1) error->all("Fix wall/region region ID does not exist");
+  if (iregion == -1)
+    error->all("Region ID for fix wall/region does not exist");
+  int n = strlen(arg[3]) + 1;
+  idregion = new char[n];
+  strcpy(idregion,arg[3]);
 
   if (strcmp(arg[4],"lj93") == 0) style = LJ93;
   else if (strcmp(arg[4],"lj126") == 0) style = LJ126;
@@ -66,6 +70,13 @@ FixWallRegion::FixWallRegion(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
+FixWallRegion::~FixWallRegion()
+{
+  delete [] idregion;
+}
+
+/* ---------------------------------------------------------------------- */
+
 int FixWallRegion::setmask()
 {
   int mask = 0;
@@ -80,6 +91,12 @@ int FixWallRegion::setmask()
 
 void FixWallRegion::init()
 {
+  // set index and check validity of region
+
+  iregion = domain->find_region(idregion);
+  if (iregion == -1)
+    error->all("Region ID for fix wall/region does not exist");
+
   // error checks for style COLLOID
   // insure all particle shapes are spherical
   // can be polydisperse

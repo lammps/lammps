@@ -17,9 +17,10 @@
 </PRE>
 <UL><LI>ID = user-assigned name for the region 
 
-<LI>style = <I>block</I> or <I>cone</I> or <I>cylinder</I> or <I>plane</I> or <I>prism</I> or <I>sphere</I> or <I>union</I> or <I>intersect</I> 
+<LI>style = <I>delete</I> or <I>block</I> or <I>cone</I> or <I>cylinder</I> or <I>plane</I> or <I>prism</I> or <I>sphere</I> or <I>union</I> or <I>intersect</I> 
 
-<PRE>  <I>block</I> args = xlo xhi ylo yhi zlo zhi
+<PRE>  <I>delete</I> = no args
+  <I>block</I> args = xlo xhi ylo yhi zlo zhi
     xlo,xhi,ylo,yhi,zlo,zhi = bounds of block in all dimensions (distance units)
   <I>cone</I> args = dim c1 c2 radlo radhi lo hi
     dim = <I>x</I> or <I>y</I> or <I>z</I> = axis of cone
@@ -98,6 +99,11 @@ This may be useful, for example, when thermostatting a region, via the
 compute temp/region command, or when the fix wall/region command uses
 a region surface as a bounding wall on particle motion, i.e. a
 rotating container.
+</P>
+<P>The <I>delete</I> style removes the named region.  Since there is little
+overhead to defining extra regions, there is normally no need to do
+this, unless you are defining and discarding large numbers of regions
+in your input script.
 </P>
 <P>The lo/hi values for <I>block</I> or <I>cone</I> or <I>cylinder</I> or <I>prism</I> styles
 can be specified as EDGE or INF.  EDGE means they extend all the way

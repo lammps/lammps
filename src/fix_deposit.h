@@ -30,6 +30,7 @@ class FixDeposit : public Fix {
   FixDeposit(class LAMMPS *, int, char **);
   ~FixDeposit();
   int setmask();
+  void init();
   void pre_exchange();
   void write_restart(FILE *);
   void restart(char *);
@@ -37,6 +38,7 @@ class FixDeposit : public Fix {
  private:
   int ninsert,ntype,nfreq,seed;
   int iregion,globalflag,localflag,maxattempt,rateflag,scaleflag;
+  char *idregion;
   double lo,hi,deltasq,nearsq,rate;
   double vxlo,vxhi,vylo,vyhi,vzlo,vzhi;
   double xlo,xhi,ylo,yhi,zlo,zhi;

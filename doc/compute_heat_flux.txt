@@ -77,47 +77,17 @@ first term in the equation for J above.
 
 :line
 
-IMPORTANT NOTE: This section needs to be re-written to reflect the new
-"fix ave/correlate"_fix_ave_correlate.html command, and
-time-integration function trap() available in
-"variables"_variable.html.  This simplifies the procedure for
-extracting a thermal conductivity via the Green-Kubo formula.
-
 The heat flux can be output every so many timesteps (e.g. via the
 "thermo_style custom"_thermo_style.html command).  Then as a
 post-processing operation, an autocorrelation can be performed, its
 integral estimated, and the Green-Kubo formula above evaluated.
 
-Here is an example of this procedure.  First a LAMMPS input script for
-solid Ar is appended below.  A Python script
-"correlate.py"_Scripts/correlate.py is also given, which calculates
-the autocorrelation of the flux output in the logfile flux.log,
-produced by the LAMMPS run.  It is invoked as
+The "fix ave/correlate"_fix_ave_correlate.html command can calclate
+the autocorrelation.  The trap() function in the
+"variable"_variable.html command can calculate the integral.
 
-correlate.py flux.log -c 3 -s 200 :pre
-
-The resulting data lists the autocorrelation in column 1 and the
-integral of the autocorrelation in column 2.  After running the
-correlate.py script, the value of the integral is ~9e-11.  This has to
-be multiplied by V/(kB T^2) times the sample interval and the
-appropriate unit conversion factors.  For real "units"_units.html in
-LAMMPS,
-
-kappa (KCal/(mol fmsec Ang K)) = V/(k_B*(T^2)) x "thermo" output frequency x timestep x Integral value :pre
-
-where
-
-V = 10213.257 Angs^3
-k_B = 1.98721e-3 KCal/(mol K)
-T = ~70K :pre
-
-Therefore, lamda = 3.7736e-6 (KCal/(mol fs A K)).
-
-Converting to W/mK gives:
-
-3.7736e-6 * (4182 / (1e-15 * 1e-10 * N_Avogradro)) = 
-3.7736e-6 * 69443.837 = 
-~0.26 W/mK :pre
+An an example LAMMPS input script for solid Ar is appended below.  
+The result should be: average conductivity ~0.29 in W/mK.
 
 :line
 
@@ -147,7 +117,9 @@ energy/area/time "units"_units.html
 
 [Related commands:]
 
-"fix thermal/conductivity"_fix_thermal_conductivity.html
+"fix thermal/conductivity"_fix_thermal_conductivity.html,
+"fix ave/correlate"_fix_ave_correlate.html,
+"variable"_variable.html
 
 [Default:] none
 
@@ -155,41 +127,54 @@ energy/area/time "units"_units.html
 
 Sample LAMMPS input script :h4
 
-atom_style      atomic
-units 		real
-dimension	3
-boundary	p p p
-lattice 	fcc  5.376  orient x 1 0 0 orient y 0 1 0 orient z 0 0 1
-region  	box block 0 4 0 4 0 4
-create_box 	1 box
-create_atoms 	1 box
-mass 		1 39.948
-pair_style	lj/cut 13.0
-pair_coeff	* * 0.2381 3.405
-group 		every region box
-velocity 	all create 70 102486 mom yes rot yes dist gaussian
-timestep 	4.0
-thermo	        10 :pre
+atom_style  atomic
+units       real
+variable    kB equal 1.3806504e-23 # [J/K] Boltzmann
+variable    kCal2J equal 4186.0/6.02214e23
+variable    T equal 70
+variable    V equal vol
+variable    dt equal 4.0
+variable    p equal 200 # correlation length
+variable    s equal 10  # sample interval
+variable    d equal $p*$s # dump interval :pre
 
-# ------------- Equilibration and thermalisation ---------------- :pre
+# ---------------------------------------------------------
 
-fix 		NPT all npt temp 70 70 10 iso 0.0 0.0 100.0 drag 0.2
-run 		8000
-unfix           NPT :pre 
+dimension    3
+boundary     p p p
+lattice      fcc  5.376  orient x 1 0 0 orient y 0 1 0 orient z 0 0 1
+region       box block 0 4 0 4 0 4
+create_box   1 box
+create_atoms 1 box
+mass	     1 39.948
+pair_style   lj/cut 13.0
+pair_coeff   * * 0.2381 3.405
+timestep     ${dt}
+thermo	     $d :pre
 
-# --------------- Equilibration in nve ----------------- :pre
+# ------------- equilibration and thermalization ----------------
 
-fix 		NVE all nve
-run 		8000 :pre
+velocity  all create $T 102486 mom yes rot yes dist gaussian
+fix       NVT all nvt temp $T $T 10 drag 0.2
+run       8000 :pre
 
-# -------------- Flux calculation in nve --------------- :pre
+# -------------- flux calculation ---------------
 
 reset_timestep  0
-compute	        myKE all ke/atom
-compute	        myPE all pe/atom
-compute	        myStress all stress/atom virial
-compute 	flux all heat/flux myKE myPE myStress
-log     	flux.log
-variable        J equal c_flux\[1\]/vol
-thermo_style 	custom step temp v_J 
-run 	        100000 :pre
+compute   myKE all ke/atom
+compute   myPE all pe/atom
+compute   myStress all stress/atom virial
+compute   flux all heat/flux myKE myPE myStress
+variable  Jx equal c_flux[1]/vol
+variable  Jy equal c_flux[2]/vol
+variable  Jz equal c_flux[3]/vol
+fix       JJ all ave/correlate $s $p $d &
+          c_flux[1] c_flux[2] c_flux[3] type auto file J0Jt.dat ave running
+variable  scale equal ${kCal2J}*${kCal2J}/${kB}/$T/$T/$V*$s*${dt}*1.0e25
+variable  k11 equal trap(f_JJ[3])*${scale}
+variable  k22 equal trap(f_JJ[4])*${scale}
+variable  k33 equal trap(f_JJ[5])*${scale}
+thermo_style custom step temp v_Jx v_Jy v_Jz v_k11 v_k22 v_k33
+run       100000
+variable  k equal (v_k11+v_k22+v_k33)/3.0
+print     "average conductivity: $k [W/mK]" :pre

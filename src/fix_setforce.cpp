@@ -76,13 +76,18 @@ FixSetForce::FixSetForce(LAMMPS *lmp, int narg, char **arg) :
   // optional args
 
   iregion = -1;
+  idregion = NULL;
 
   int iarg = 6;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"region") == 0) {
       if (iarg+2 > narg) error->all("Illegal fix setforce command");
       iregion = domain->find_region(arg[iarg+1]);
-      if (iregion == -1) error->all("Fix setforce region ID does not exist");
+      if (iregion == -1)
+	error->all("Region ID for fix setforce does not exist");
+      int n = strlen(arg[iarg+1]) + 1;
+      idregion = new char[n];
+      strcpy(idregion,arg[iarg+1]);
       iarg += 2;
     } else error->all("Illegal fix setforce command");
   }
@@ -101,6 +106,7 @@ FixSetForce::~FixSetForce()
   delete [] xstr;
   delete [] ystr;
   delete [] zstr;
+  delete [] idregion;
   memory->destroy_2d_double_array(sforce);
 }
 
@@ -141,6 +147,13 @@ void FixSetForce::init()
     if (input->variable->equalstyle(zvar)) zstyle = EQUAL;
     else if (input->variable->atomstyle(zvar)) zstyle = ATOM;
     else error->all("Variable for fix setforce is invalid style");
+  }
+
+  // set index and check validity of region
+
+  if (iregion >= 0) {
+    iregion = domain->find_region(idregion);
+    if (iregion == -1) error->all("Region ID for fix setforce does not exist");
   }
 
   if (xstyle == ATOM || ystyle == ATOM || zstyle == ATOM) 

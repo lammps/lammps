@@ -131,15 +131,16 @@ correlation datums:
 </P>
 <PRE>Cij(0), Cij(Nevery), Cij(2*Nevery), ..., Cij((Nrepeat-1)*Nevery) 
 </PRE>
-<P><I>Nfreq</I> must be a multiple of <I>Nevery</I>; <I>Nevery</I> and <I>Nrepeat</I> must be
-non-zero.  Also, <I>Nfreq</I> >= (<I>Nrepeat</I>-1)*<I>Nevery</I> is required.
-</P>
 <P>For example, if Nevery=5, Nrepeat=6, and Nfreq=100, then values on
 timesteps 0,5,10,15,...,100 will be used to compute the final averages
 on timestep 100.  Six averages will be computed: Cij(0), Cij(5),
 Cij(10), Cij(15), Cij(20), and Cij(25).  Cij(10) on timestep 100 will
 be the average of 19 samples, namely Vi(0)*Vj(10), Vi(5)*Vj(15),
 Vi(10)*V j20), Vi(15)*Vj(25), ..., Vi(85)*Vj(95), Vi(90)*Vj(100).
+</P>
+<P><I>Nfreq</I> must be a multiple of <I>Nevery</I>; <I>Nevery</I> and <I>Nrepeat</I> must be
+non-zero.  Also, if the <I>ave</I> keyword is set to <I>one</I> which is the
+default, then <I>Nfreq</I> >= (<I>Nrepeat</I>-1)*<I>Nevery</I> is required.
 </P>
 <HR>
 

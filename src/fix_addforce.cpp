@@ -72,6 +72,7 @@ FixAddForce::FixAddForce(LAMMPS *lmp, int narg, char **arg) :
   // optional args
 
   iregion = -1;
+  idregion = NULL;
   estr = NULL;
 
   int iarg = 6;
@@ -79,7 +80,11 @@ FixAddForce::FixAddForce(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg],"region") == 0) {
       if (iarg+2 > narg) error->all("Illegal fix addforce command");
       iregion = domain->find_region(arg[iarg+1]);
-      if (iregion == -1) error->all("Fix addforce region ID does not exist");
+      if (iregion == -1)
+	error->all("Region ID for fix addforce does not exist");
+      int n = strlen(arg[iarg+1]) + 1;
+      idregion = new char[n];
+      strcpy(idregion,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"energy") == 0) {
       if (iarg+2 > narg) error->all("Illegal fix addforce command");
@@ -107,6 +112,7 @@ FixAddForce::~FixAddForce()
   delete [] ystr;
   delete [] zstr;
   delete [] estr;
+  delete [] idregion;
   memory->destroy_2d_double_array(sforce);
 }
 
@@ -155,6 +161,13 @@ void FixAddForce::init()
     if (input->variable->atomstyle(evar)) estyle = ATOM;
     else error->all("Variable for fix setforce is invalid style");
   } else estyle = NONE;
+
+  // set index and check validity of region
+
+  if (iregion >= 0) {
+    iregion = domain->find_region(idregion);
+    if (iregion == -1) error->all("Region ID for fix addforce does not exist");
+  }
 
   if (xstyle == ATOM || ystyle == ATOM || zstyle == ATOM) 
     varflag = ATOM;

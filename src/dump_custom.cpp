@@ -60,6 +60,7 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
   vtype = new int[nfield];
 
   iregion = -1;
+  idregion = NULL;
   nthresh = 0;
   thresh_array = NULL;
   thresh_op = NULL;
@@ -127,6 +128,7 @@ DumpCustom::~DumpCustom()
   memory->sfree(field2index);
   memory->sfree(argindex);
 
+  delete [] idregion;
   memory->sfree(thresh_array);
   memory->sfree(thresh_op);
   memory->sfree(thresh_value);
@@ -217,6 +219,13 @@ void DumpCustom::init()
     ivariable = input->variable->find(id_variable[i]);
     if (ivariable < 0) error->all("Could not find dump custom variable name");
     variable[i] = ivariable;
+  }
+
+  // set index and check validity of region
+
+  if (iregion >= 0) {
+    iregion = domain->find_region(idregion);
+    if (iregion == -1) error->all("Region ID for dump custom does not exist");
   }
 
   // open single file, one time only
@@ -1143,6 +1152,9 @@ int DumpCustom::modify_param(int narg, char **arg)
     else {
       iregion = domain->find_region(arg[1]);
       if (iregion == -1) error->all("Dump_modify region ID does not exist");
+      int n = strlen(arg[1]) + 1;
+      idregion = new char[n];
+      strcpy(idregion,arg[1]);
     }
     return 2;
     

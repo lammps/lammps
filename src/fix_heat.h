@@ -27,6 +27,7 @@ namespace LAMMPS_NS {
 class FixHeat : public Fix {
  public:
   FixHeat(class LAMMPS *, int, char **);
+  ~FixHeat();
   int setmask();
   void init();
   void end_of_step();
@@ -37,6 +38,7 @@ class FixHeat : public Fix {
   double heat_input;
   double masstotal;
   double scale;
+  char *idregion;
 };
 
 }

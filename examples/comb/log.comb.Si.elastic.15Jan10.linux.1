@@ -1,0 +1,270 @@
+LAMMPS (20 Aug 2010)
+# Pure Si crystal, qeq off, calculates stress-strain, no out.*.cfg
+
+units		metal
+atom_style	charge
+dimension       3
+boundary        p p p
+
+lattice  	diamond 5.431
+Lattice spacing in x,y,z = 5.431 5.431 5.431
+region		box block 0 4 0 4 0 4
+create_box	1 box
+Created orthogonal box = (0 0 0) to (21.724 21.724 21.724)
+  1 by 1 by 1 processor grid
+create_atoms	1 box
+Created 512 atoms
+mass		1 29.0
+change_box  	triclinic
+
+velocity	all create 1.0 277387
+
+pair_style	comb
+pair_coeff	* * ffield.comb Si
+
+neighbor	0.5 bin
+neigh_modify	every 20 delay 0 check no
+
+fix		1 all box/relax aniso 0.0 vmax 0.001
+timestep        0.00020
+
+thermo_style	custom step temp etotal pe evdwl ecoul 		#lx ly lz vol pxx pyy pzz
+thermo_modify	norm yes
+thermo		1
+minimize	1.0e-14  1.0e-20  1000  10000
+Memory usage per processor = 3.48277 Mbytes
+Step Temp TotEng PotEng E_vdwl E_coul 
+       0            1   -4.6295947   -4.6297237   -4.6297237            0 
+       1            1   -4.6295963   -4.6297253   -4.6297253            0 
+       2            1   -4.6295965   -4.6297255   -4.6297255            0 
+       3            1   -4.6295965   -4.6297255   -4.6297255            0 
+Loop time of 0.763644 on 1 procs for 3 steps with 512 atoms
+
+Minimization stats:
+  Stopping criterion = linesearch alpha is zero
+  Energy initial, next-to-last, final = 
+        -4.62972371535     -4.62972550036     -4.62972550036
+  Force two-norm initial, final = 5.86582 0.235602
+  Force max component initial, final = 3.38663 0.136025
+  Final line search alpha, max atom move = 0.000114869 1.5625e-05
+  Iterations, force evaluations = 3 16
+
+Pair  time (%) = 0.759505 (99.458)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.000995398 (0.130348)
+Outpt time (%) = 3.48091e-05 (0.00455829)
+Other time (%) = 0.00310874 (0.407093)
+
+Nlocal:    512 ave 512 max 512 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    4861 ave 4861 max 4861 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs: 212992 ave 212992 max 212992 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 212992
+Ave neighs/atom = 416
+Neighbor list builds = 0
+Dangerous builds = 0
+min_modify	dmax 0.2 line quadratic
+
+unfix		1
+run		1
+Memory usage per processor = 2.56725 Mbytes
+Step Temp TotEng PotEng E_vdwl E_coul 
+       3            1   -4.6295965   -4.6297255   -4.6297255            0 
+       4            1   -4.6295965   -4.6297255   -4.6297255            0 
+Loop time of 0.044728 on 1 procs for 1 steps with 512 atoms
+
+Pair  time (%) = 0.0446391 (99.8012)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 5.79357e-05 (0.129529)
+Outpt time (%) = 1.50204e-05 (0.0335816)
+Other time (%) = 1.5974e-05 (0.0357137)
+
+Nlocal:    512 ave 512 max 512 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    4861 ave 4861 max 4861 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs: 212992 ave 212992 max 212992 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 212992
+Ave neighs/atom = 416
+Neighbor list builds = 0
+Dangerous builds = 0
+
+### copy lines after this to any input script for elastic calculations ###
+## 		Elastic constants calculations: strain box, measure box stress
+##		strain x, measure s_x, s_y, s_z, s_yz:
+##                calculates C11, C12, C13 and C14
+
+fix  		2 all deform 1 x scale 1.0001 remap x 
+compute   	perfx all stress/atom pair
+compute   	fx all reduce sum 		c_perfx[1] c_perfx[2] c_perfx[3] 		c_perfx[4] c_perfx[5] c_perfx[6]
+thermo_style	custom step lx ly lz xy xz yz 		c_fx[1] c_fx[2] c_fx[3] c_fx[4] c_fx[5] c_fx[6]
+run		10
+Memory usage per processor = 3.02501 Mbytes
+Step Lx Ly Lz Xy Xz Yz fx[1] fx[2] fx[3] fx[4] fx[5] fx[6] 
+       4    21.728073    21.728073    21.728073            0            0            0     217976.4     217976.4     217976.4 1.9450404e-06 2.4752556e-06 -1.6071587e-06 
+       5    21.728291    21.728073    21.728073            0            0            0     217976.4     217976.4     217976.4 1.8110987e-06 2.6015226e-06 -1.1358357e-06 
+       6    21.728508    21.728073    21.728073            0            0            0     364177.1    295296.39    295296.39 -4.4966424e-06 1.848553e-07 -2.2958737e-06 
+       7    21.728725    21.728073    21.728073            0            0            0    510377.09    372612.85    372612.85 2.4287963e-06 2.6615821e-06 -1.9832618e-06 
+       8    21.728942    21.728073    21.728073            0            0            0    656576.36    449925.76    449925.76 2.4447348e-06 2.4469323e-06 -8.4990897e-07 
+       9     21.72916    21.728073    21.728073            0            0            0    802774.92    527235.13    527235.13 4.0363922e-06 -5.9982754e-06 -2.3201799e-06 
+      10    21.729377    21.728073    21.728073            0            0            0    948972.76    604540.97    604540.97 2.8253812e-06 2.5964234e-06 -8.931554e-07 
+      11    21.729594    21.728073    21.728073            0            0            0    1095169.9    681843.26    681843.26 2.3933505e-06 2.283704e-06 -3.9266049e-07 
+      12    21.729811    21.728073    21.728073            0            0            0    1241366.3    759142.02    759142.02 2.2037259e-06 2.6987214e-06 3.737462e-07 
+      13    21.730029    21.728073    21.728073            0            0            0      1387562    836437.23    836437.23 2.6802555e-06 2.9969439e-06 1.7521287e-07 
+      14    21.730246    21.728073    21.728073            0            0            0      1533757    913728.91    913728.91 4.4634386e-06 -4.2738918e-06 3.2367003e-07 
+Loop time of 0.482373 on 1 procs for 10 steps with 512 atoms
+
+Pair  time (%) = 0.478604 (99.2187)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.000607967 (0.126037)
+Outpt time (%) = 0.00288773 (0.59865)
+Other time (%) = 0.000273228 (0.0566424)
+
+Nlocal:    512 ave 512 max 512 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    4861 ave 4861 max 4861 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs: 212992 ave 212992 max 212992 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 212992
+Ave neighs/atom = 416
+Neighbor list builds = 0
+Dangerous builds = 0
+
+##		strain z, measure s_z: calculates C33
+
+fix  		2 all deform 1 z scale 1.0001 remap x 
+compute   	perfz all stress/atom pair
+compute   	fz all reduce sum 		c_perfz[1] c_perfz[2] c_perfz[3] 		c_perfz[4] c_perfz[5] c_perfz[6]
+thermo_style	custom  step lx ly lz xy xz yz 		c_fz[1] c_fz[2] c_fz[3] c_fz[4] c_fz[5] c_fz[6]
+run		10
+Memory usage per processor = 3.48277 Mbytes
+Step Lx Ly Lz Xy Xz Yz fz[1] fz[2] fz[3] fz[4] fz[5] fz[6] 
+      14    21.730246    21.728073    21.728073            0            0            0    1679951.2    991017.05    991017.05 1.3848713e-06 1.8198295e-06 -3.1488289e-06 
+      15    21.730246    21.728073    21.728291            0            0            0    1679951.2    991017.05    991017.05 1.4477769e-06 2.1276907e-06 -2.7563351e-06 
+      16    21.730246    21.728073    21.728508            0            0            0    1757243.6    1068312.4    1137190.1 2.1162843e-06 -3.0681281e-06 -1.8698946e-06 
+      17    21.730246    21.728073    21.728725            0            0            0    1834532.4    1145604.2    1283362.4 1.5226892e-06 3.1081802e-06 -2.6821714e-06 
+      18    21.730246    21.728073    21.728942            0            0            0    1911817.6    1222892.5      1429534 -7.5700513e-07 1.7188656e-06 4.1051196e-06 
+      19    21.730246    21.728073     21.72916            0            0            0    1989099.3    1300177.3    1575704.9 -1.4391091e-06 2.0797417e-06 3.9123487e-06 
+      20    21.730246    21.728073    21.729377            0            0            0    2066377.5    1377458.5    1721875.1 -1.5213551e-06 1.9181068e-06 -2.1773741e-06 
+      21    21.730246    21.728073    21.729594            0            0            0    2143652.1    1454736.2    1868044.5 -1.4238005e-06 1.7984361e-06 -2.0333083e-06 
+      22    21.730246    21.728073    21.729811            0            0            0    2220923.2    1532010.3    2014213.3 4.4088785e-06 2.5805071e-06 -2.1480169e-06 
+      23    21.730246    21.728073    21.730029            0            0            0    2298190.7    1609280.9    2160381.3 -9.3407459e-07 2.1740278e-06 -1.3082692e-06 
+      24    21.730246    21.728073    21.730246            0            0            0    2375454.8    1686547.9    2306548.6 -1.7972725e-06 2.108669e-06 -1.6910019e-06 
+Loop time of 0.481719 on 1 procs for 10 steps with 512 atoms
+
+Pair  time (%) = 0.478137 (99.2564)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.000609636 (0.126554)
+Outpt time (%) = 0.00270128 (0.560759)
+Other time (%) = 0.00027132 (0.0563234)
+
+Nlocal:    512 ave 512 max 512 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    4861 ave 4861 max 4861 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs: 212992 ave 212992 max 212992 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 212992
+Ave neighs/atom = 416
+Neighbor list builds = 0
+Dangerous builds = 0
+
+##		strain yz, measure s_yz: calculates C44
+
+fix  		2 all deform 1 yz erate 0.0001 remap x 
+compute   	perfyz all stress/atom pair
+compute   	fyz all reduce sum 		c_perfyz[1] c_perfyz[2] c_perfyz[3] 		c_perfyz[4] c_perfyz[5] c_perfyz[6]
+thermo_style	custom  step lx ly lz xy xz yz 		c_fyz[1] c_fyz[2] c_fyz[3] c_fyz[4] c_fyz[5] c_fyz[6]
+run		10
+Memory usage per processor = 3.94054 Mbytes
+Step Lx Ly Lz Xy Xz Yz fyz[1] fyz[2] fyz[3] fyz[4] fyz[5] fyz[6] 
+      24    21.730246    21.728073    21.730246            0            0            0    2452715.2    1763811.4    2452715.2 -1.7548117e-06 3.6087566e-06 -3.6198628e-06 
+      25    21.730246    21.728073    21.730246            0            0 4.3460492e-07    2452715.2    1763811.4    2452715.2 -1.7167978e-06 3.4304272e-06 -2.9804569e-06 
+      26    21.730246    21.728073    21.730246            0            0 8.6920984e-07    2452715.2    1763811.4    2452715.2 -1.8729445e-06 4.5840765e-06    243.65136 
+      27    21.730246    21.728073    21.730246            0            0 1.3038148e-06    2452715.2    1763811.4    2452715.2 -1.2316967e-06 2.6286266e-06    487.30276 
+      28    21.730246    21.728073    21.730246            0            0 1.7384197e-06    2452715.2    1763811.4    2452715.2 -1.3251453e-06 2.7225014e-06    730.95419 
+      29    21.730246    21.728073    21.730246            0            0 2.1730246e-06    2452715.2    1763811.4    2452715.2 -8.5464495e-07 -6.3592996e-07    974.60551 
+      30    21.730246    21.728073    21.730246            0            0 2.6076295e-06    2452715.2    1763811.4    2452715.2 -1.7272259e-06 2.0497545e-06    1218.2569 
+      31    21.730246    21.728073    21.730246            0            0 3.0422344e-06    2452715.2    1763811.4    2452715.2 -4.6626464e-07 2.1955509e-06    1461.9083 
+      32    21.730246    21.728073    21.730246            0            0 3.4768394e-06    2452715.2    1763811.4    2452715.2 -1.1296433e-06 2.2397275e-06    1705.5598 
+      33    21.730246    21.728073    21.730246            0            0 3.9114443e-06    2452715.2    1763811.4    2452715.2 -1.388603e-06 1.2425658e-06    1949.2111 
+      34    21.730246    21.728073    21.730246            0            0 4.3460492e-06    2452715.2    1763811.4    2452715.2 -1.1793341e-06 1.7092936e-06    2192.8625 
+Loop time of 0.4816 on 1 procs for 10 steps with 512 atoms
+
+Pair  time (%) = 0.477913 (99.2343)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.000584126 (0.121289)
+Outpt time (%) = 0.00282931 (0.587482)
+Other time (%) = 0.000273943 (0.0568818)
+
+Nlocal:    512 ave 512 max 512 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    4861 ave 4861 max 4861 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs: 212992 ave 212992 max 212992 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 212992
+Ave neighs/atom = 416
+Neighbor list builds = 0
+Dangerous builds = 0
+
+##		strain xy, measure s_xy: calculates C66
+
+fix  		2 all deform 1 xy erate 0.0001 remap x 
+compute   	perfxy all stress/atom pair
+compute   	fxy all reduce sum 		c_perfxy[1] c_perfxy[2] c_perfxy[3] 		c_perfxy[4] c_perfxy[5] c_perfxy[6]
+thermo_style	custom  step lx ly lz xy xz yz 		c_fxy[1] c_fxy[2] c_fxy[3] c_fxy[4] c_fxy[5] c_fxy[6]
+run		10
+Memory usage per processor = 4.3983 Mbytes
+Step Lx Ly Lz Xy Xz Yz fxy[1] fxy[2] fxy[3] fxy[4] fxy[5] fxy[6] 
+      34    21.730246    21.728073    21.730246            0            0 4.3460492e-06    2452715.2    1763811.4    2452715.2 -1.7294679e-06 4.8293026e-06    2436.5139 
+      35    21.730246    21.728073    21.730246 4.3456146e-07            0 4.3460492e-06    2452715.2    1763811.4    2452715.2 -1.4630595e-06 4.5052213e-06    2436.5139 
+      36    21.730246    21.728073    21.730246 8.6912293e-07            0 4.3460492e-06    2452715.2    1763811.4    2452715.2    243.63758 -0.00012576585    2436.5139 
+      37    21.730246    21.728073    21.730246 1.3036844e-06            0 4.3460492e-06    2452715.2    1763811.4    2452715.2    487.27522 -0.00025542614    2436.5139 
+      38    21.730246    21.728073    21.730246 1.7382459e-06            0 4.3460492e-06    2452715.2    1763811.4    2452715.2    730.91286 -0.00038565598    2436.5139 
+      39    21.730246    21.728073    21.730246 2.1728073e-06            0 4.3460492e-06    2452715.2    1763811.4    2452715.2    974.55045 -0.00051669611    2436.5138 
+      40    21.730246    21.728073    21.730246 2.6073688e-06            0 4.3460492e-06    2452715.2    1763811.4    2452715.2     1218.188 -0.00064706412    2436.5139 
+      41    21.730246    21.728073    21.730246 3.0419303e-06            0 4.3460492e-06    2452715.2    1763811.4    2452715.2    1461.8257 -0.0007779958    2436.5139 
+      42    21.730246    21.728073    21.730246 3.4764917e-06            0 4.3460492e-06    2452715.2    1763811.4    2452715.2    1705.4633 -0.00090716273    2436.5138 
+      43    21.730246    21.728073    21.730246 3.9110532e-06            0 4.3460492e-06    2452715.2    1763811.4    2452715.2    1949.1009 -0.001038008    2436.5138 
+      44    21.730246    21.728073    21.730246 4.3456146e-06            0 4.3460492e-06    2452715.2    1763811.4    2452715.2    2192.7385 -0.0011663311    2436.5138 
+Loop time of 0.482365 on 1 procs for 10 steps with 512 atoms
+
+Pair  time (%) = 0.478748 (99.2501)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.00061512 (0.127522)
+Outpt time (%) = 0.00275278 (0.570684)
+Other time (%) = 0.000249386 (0.0517006)
+
+Nlocal:    512 ave 512 max 512 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    4861 ave 4861 max 4861 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs: 212992 ave 212992 max 212992 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 212992
+Ave neighs/atom = 416
+Neighbor list builds = 0
+Dangerous builds = 0

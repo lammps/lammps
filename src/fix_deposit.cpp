@@ -53,6 +53,7 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
   // set defaults
 
   iregion = -1;
+  idregion = NULL;
   globalflag = localflag = 0;
   lo = hi = deltasq = 0.0;
   nearsq = 0.0;
@@ -142,6 +143,7 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
 FixDeposit::~FixDeposit()
 {
   delete random;
+  delete [] idregion;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -151,6 +153,16 @@ int FixDeposit::setmask()
   int mask = 0;
   mask |= PRE_EXCHANGE;
   return mask;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixDeposit::init()
+{
+  // set index and check validity of region
+
+  iregion = domain->find_region(idregion);
+  if (iregion == -1) error->all("Region ID for fix deposit does not exist");
 }
 
 /* ----------------------------------------------------------------------
@@ -350,7 +362,11 @@ void FixDeposit::options(int narg, char **arg)
     if (strcmp(arg[iarg],"region") == 0) {
       if (iarg+2 > narg) error->all("Illegal fix deposit command");
       iregion = domain->find_region(arg[iarg+1]);
-      if (iregion == -1) error->all("Fix deposit region ID does not exist");
+      if (iregion == -1)
+	error->all("Region ID for fix deposit does not exist");
+      int n = strlen(arg[iarg+1]) + 1;
+      idregion = new char[n];
+      strcpy(idregion,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"global") == 0) {
       if (iarg+3 > narg) error->all("Illegal fix deposit command");

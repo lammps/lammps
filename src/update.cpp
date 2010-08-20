@@ -42,6 +42,7 @@ Update::Update(LAMMPS *lmp) : Pointers(lmp)
   whichflag = 0;
   firststep = laststep = 0;
   beginstep = endstep = 0;
+  setupflag = 0;
 
   restrict_output = 0;
 

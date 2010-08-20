@@ -46,10 +46,13 @@ FixEvaporate::FixEvaporate(LAMMPS *lmp, int narg, char **arg) :
   nevery = atoi(arg[3]);
   nflux = atoi(arg[4]);
   iregion = domain->find_region(arg[5]);
+  int n = strlen(arg[5]) + 1;
+  idregion = new char[n];
+  strcpy(idregion,arg[5]);
   int seed = atoi(arg[6]);
 
   if (nevery <= 0 || nflux <= 0) error->all("Illegal fix evaporate command");
-  if (iregion == -1) error->all("Fix evaporate region ID does not exist");
+  if (iregion == -1) error->all("Region ID for fix evaporate does not exist");
   if (seed <= 0) error->all("Illegal fix evaporate command");
 
   // random number generator, same for all procs
@@ -86,6 +89,7 @@ FixEvaporate::FixEvaporate(LAMMPS *lmp, int narg, char **arg) :
 
 FixEvaporate::~FixEvaporate()
 {
+  delete [] idregion;
   delete random;
   memory->sfree(list);
   memory->sfree(mark);
@@ -104,6 +108,12 @@ int FixEvaporate::setmask()
 
 void FixEvaporate::init()
 {
+  // set index and check validity of region
+
+  iregion = domain->find_region(idregion);
+  if (iregion == -1)
+    error->all("Region ID for fix evaporate does not exist");
+
   // check that no deletable atoms are in atom->firstgroup
   // deleting such an atom would not leave firstgroup atoms first
 

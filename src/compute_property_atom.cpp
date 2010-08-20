@@ -197,6 +197,27 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
 		   "atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_tqz;
 
+    } else if (strcmp(arg[iarg],"spin") == 0) {
+      if (!atom->spin_flag)
+	error->all("Compute property/atom for "
+		   "atom property that isn't allocated");
+      pack_choice[i] = &ComputePropertyAtom::pack_spin;
+    } else if (strcmp(arg[iarg],"eradius") == 0) {
+      if (!atom->eradius_flag)
+	error->all("Compute property/atom for "
+		   "atom property that isn't allocated");
+      pack_choice[i] = &ComputePropertyAtom::pack_eradius;
+    } else if (strcmp(arg[iarg],"evel") == 0) {
+      if (!atom->evel_flag)
+	error->all("Compute property/atom for "
+		   "atom property that isn't allocated");
+      pack_choice[i] = &ComputePropertyAtom::pack_evel;
+    } else if (strcmp(arg[iarg],"eforce") == 0) {
+      if (!atom->eforce_flag)
+	error->all("Compute property/atom for "
+		   "atom property that isn't allocated");
+      pack_choice[i] = &ComputePropertyAtom::pack_eforce;
+
     } else error->all("Invalid keyword in compute property/atom command");
   }
 
@@ -1015,6 +1036,66 @@ void ComputePropertyAtom::pack_tqz(int n)
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) buf[n] = torque[i][2];
+    else buf[n] = 0.0;
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyAtom::pack_spin(int n)
+{
+  int *spin = atom->spin;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) buf[n] = spin[i];
+    else buf[n] = 0.0;
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyAtom::pack_eradius(int n)
+{
+  double *eradius = atom->eradius;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) buf[n] = eradius[i];
+    else buf[n] = 0.0;
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyAtom::pack_evel(int n)
+{
+  double *evel = atom->evel;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) buf[n] = evel[i];
+    else buf[n] = 0.0;
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyAtom::pack_eforce(int n)
+{
+  double *eforce = atom->eforce;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) buf[n] = eforce[i];
     else buf[n] = 0.0;
     n += nvalues;
   }

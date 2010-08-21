@@ -90,6 +90,10 @@ class ComputePropertyAtom : public Compute {
   void pack_tqx(int);
   void pack_tqy(int);
   void pack_tqz(int);
+  void pack_spin(int);
+  void pack_eradius(int);
+  void pack_evel(int);
+  void pack_eforce(int);
 };
 
 }

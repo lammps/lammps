@@ -166,6 +166,19 @@ void Update::set_units(const char *style)
     dt = 1.0e-8;
     neighbor->skin = 0.1;
 
+  } else if (strcmp(style,"electron") == 0) {
+    force->boltz = 3.16679e-6;
+    force->mvv2e = 1.0;
+    force->ftm2v = 1 / 1.0327499;	
+    force->mv2d = 1.0;
+    force->nktv2p = 2.9421e13;
+    force->qqr2e = 1.0;
+    force->qe2f = 1.0;
+    force->vxmu2f = 0.6241509647;
+    force->xxt2kmu = 1.0e-4;
+    dt = 0.001;
+    neighbor->skin = 2.0;
+
   } else error->all("Illegal units command");
 
   delete [] unit_style;

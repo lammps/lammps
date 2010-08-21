@@ -1,0 +1,20 @@
+variable        sname index Be-solid
+log             ${sname}.spe.log
+
+units           electron
+newton          on
+boundary        p p p
+
+atom_style      hybrid charge electron
+
+read_data       data.${sname}
+
+pair_style      eff/cut 31.6125 limit yes 
+pair_coeff      * *
+
+neigh_modify	one 10000 page 100000
+
+dump            1 all custom 1 ${sname}.spe.lammpstrj id type x y z spin radius
+
+run 0
+

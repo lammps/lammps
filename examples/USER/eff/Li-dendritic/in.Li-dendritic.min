@@ -1,0 +1,26 @@
+variable        sname index Li-dendritic
+log		${sname}.min.log
+
+units 		electron
+newton		on
+boundary        p p p
+
+atom_style	hybrid charge electron
+
+read_data  	data.${sname}
+
+pair_style      eff/cut 50.112
+pair_coeff	* * 
+
+communicate	single vel yes
+
+thermo          10
+thermo_style    custom step etotal press
+
+dump            1 all custom 10 ${sname}.min.lammpstrj id type x y z q spin radius
+dump            2 all xyz 10 ${sname}.min.xyz
+
+min_style       cg
+min_modify      line quadratic dmax 2.0
+minimize        0.0 1.0e-5 10000 100000
+

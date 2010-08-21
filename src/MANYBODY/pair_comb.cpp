@@ -14,7 +14,7 @@
 /* ----------------------------------------------------------------------
    Contributing author: Tzu-Ray Shan (U Florida, rayshan@ufl.edu)
    LAMMPS implementation of the Charge-optimized many-body (COMB) potential 
-   based on HELL MD program (Prof Simon R. Phillpot, UF, sphil@mse.ufl.edu)
+   based on the HELL MD program (Prof Simon Phillpot, UF, sphil@mse.ufl.edu)
    and Aidan Thompson's Tersoff code in LAMMPS
 ------------------------------------------------------------------------- */
 

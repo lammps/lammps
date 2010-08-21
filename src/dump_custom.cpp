@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "math.h"
 #include "stdlib.h"
 #include "string.h"
 #include "dump_custom.h"
@@ -37,7 +38,7 @@ enum{ID,MOL,TYPE,MASS,
        X,Y,Z,XS,YS,ZS,XSTRI,YSTRI,ZSTRI,XU,YU,ZU,XUTRI,YUTRI,ZUTRI,IX,IY,IZ,
        VX,VY,VZ,FX,FY,FZ,
        Q,MUX,MUY,MUZ,RADIUS,OMEGAX,OMEGAY,OMEGAZ,ANGMOMX,ANGMOMY,ANGMOMZ,
-       QUATW,QUATI,QUATJ,QUATK,TQX,TQY,TQZ,
+       QUATW,QUATI,QUATJ,QUATK,TQX,TQY,TQZ,SPIN,ERADIUS,EVEL,EFORCE,
        COMPUTE,FIX,VARIABLE};
 enum{LT,LE,GT,GE,EQ,NEQ};
 enum{INT,DOUBLE};
@@ -586,6 +587,7 @@ int DumpCustom::count()
       } else if (thresh_array[ithresh] == FZ) {
 	ptr = &atom->f[0][2];
 	nstride = 3;
+
       } else if (thresh_array[ithresh] == Q) {
 	if (!atom->q_flag)
 	  error->all("Threshhold for an atom property that isn't allocated");
@@ -606,6 +608,7 @@ int DumpCustom::count()
 	  error->all("Threshhold for an atom property that isn't allocated");
 	ptr = &atom->mu[0][2];
 	nstride = 3;
+
       } else if (thresh_array[ithresh] == RADIUS) {
 	if (!atom->radius_flag)
 	  error->all("Threshhold for an atom property that isn't allocated");
@@ -641,6 +644,7 @@ int DumpCustom::count()
 	  error->all("Threshhold for an atom property that isn't allocated");
 	ptr = &atom->angmom[0][2];
 	nstride = 3;
+
       } else if (thresh_array[ithresh] == QUATW) {
 	if (!atom->quat_flag)
 	  error->all("Threshhold for an atom property that isn't allocated");
@@ -676,6 +680,29 @@ int DumpCustom::count()
 	  error->all("Threshhold for an atom property that isn't allocated");
 	ptr = &atom->torque[0][2];
 	nstride = 3;
+
+      } else if (thresh_array[ithresh] == SPIN) {
+	if (!atom->spin_flag)
+	  error->all("Threshhold for an atom property that isn't allocated");
+        int *spin = atom->spin;
+        for (i = 0; i < nlocal; i++) dchoose[i] = spin[i];
+        ptr = dchoose;
+        nstride = 1;
+      } else if (thresh_array[ithresh] == ERADIUS) {
+	if (!atom->eradius_flag)
+	  error->all("Threshhold for an atom property that isn't allocated");
+        ptr = atom->eradius;
+        nstride = 1;
+      } else if (thresh_array[ithresh] == EVEL) {
+	if (!atom->evel_flag)
+	  error->all("Threshhold for an atom property that isn't allocated");
+        ptr = atom->evel;
+        nstride = 1;
+      } else if (thresh_array[ithresh] == EFORCE) {
+	if (!atom->eforce_flag)
+	  error->all("Threshhold for an atom property that isn't allocated");
+        ptr = atom->eforce;
+        nstride = 1;				
 
       } else if (thresh_array[ithresh] == COMPUTE) {
 	i = nfield + ithresh;
@@ -971,6 +998,27 @@ void DumpCustom::parse_fields(int narg, char **arg)
       pack_choice[i] = &DumpCustom::pack_tqz;
       vtype[i] = DOUBLE;
 
+    } else if (strcmp(arg[iarg],"spin") == 0) {
+      if (!atom->spin_flag)
+        error->all("Dumping an atom quantity that isn't allocated");
+      pack_choice[i] = &DumpCustom::pack_spin;
+      vtype[i] = INT;
+    } else if (strcmp(arg[iarg],"eradius") == 0) {
+      if (!atom->eradius_flag)
+        error->all("Dumping an atom quantity that isn't allocated");
+      pack_choice[i] = &DumpCustom::pack_eradius;
+      vtype[i] = DOUBLE;
+    } else if (strcmp(arg[iarg],"evel") == 0) {
+      if (!atom->evel_flag)
+        error->all("Dumping an atom quantity that isn't allocated");
+      pack_choice[i] = &DumpCustom::pack_evel;
+      vtype[i] = DOUBLE;
+    } else if (strcmp(arg[iarg],"eforce") == 0) {
+      if (!atom->evel_flag)
+        error->all("Dumping an atom quantity that isn't allocated");
+      pack_choice[i] = &DumpCustom::pack_eforce;
+      vtype[i] = DOUBLE;
+
     // compute value = c_ID
     // if no trailing [], then arg is set to 0, else arg is int between []
 
@@ -1234,10 +1282,12 @@ int DumpCustom::modify_param(int narg, char **arg)
     else if (strcmp(arg[1],"fx") == 0) thresh_array[nthresh] = FX;
     else if (strcmp(arg[1],"fy") == 0) thresh_array[nthresh] = FY;
     else if (strcmp(arg[1],"fz") == 0) thresh_array[nthresh] = FZ;
+
     else if (strcmp(arg[1],"q") == 0) thresh_array[nthresh] = Q;
     else if (strcmp(arg[1],"mux") == 0) thresh_array[nthresh] = MUX;
     else if (strcmp(arg[1],"muy") == 0) thresh_array[nthresh] = MUY;
     else if (strcmp(arg[1],"muz") == 0) thresh_array[nthresh] = MUZ;
+
     else if (strcmp(arg[1],"radius") == 0) thresh_array[nthresh] = RADIUS;
     else if (strcmp(arg[1],"omegax") == 0) thresh_array[nthresh] = OMEGAX;
     else if (strcmp(arg[1],"omegay") == 0) thresh_array[nthresh] = OMEGAY;
@@ -1245,6 +1295,7 @@ int DumpCustom::modify_param(int narg, char **arg)
     else if (strcmp(arg[1],"angmomx") == 0) thresh_array[nthresh] = ANGMOMX;
     else if (strcmp(arg[1],"angmomy") == 0) thresh_array[nthresh] = ANGMOMY;
     else if (strcmp(arg[1],"angmomz") == 0) thresh_array[nthresh] = ANGMOMZ;
+
     else if (strcmp(arg[1],"quatw") == 0) thresh_array[nthresh] = QUATW;
     else if (strcmp(arg[1],"quati") == 0) thresh_array[nthresh] = QUATI;
     else if (strcmp(arg[1],"quatj") == 0) thresh_array[nthresh] = QUATJ;
@@ -1252,7 +1303,12 @@ int DumpCustom::modify_param(int narg, char **arg)
     else if (strcmp(arg[1],"tqx") == 0) thresh_array[nthresh] = TQX;
     else if (strcmp(arg[1],"tqy") == 0) thresh_array[nthresh] = TQY;
     else if (strcmp(arg[1],"tqz") == 0) thresh_array[nthresh] = TQZ;
-    
+
+    else if (strcmp(arg[1],"spin") == 0) thresh_array[nthresh] = SPIN;
+    else if (strcmp(arg[1],"eradius") == 0) thresh_array[nthresh] = ERADIUS;
+    else if (strcmp(arg[1],"evel") == 0) thresh_array[nthresh] = EVEL;
+    else if (strcmp(arg[1],"eforce") == 0) thresh_array[nthresh] = EFORCE;
+
     // compute value = c_ID
     // if no trailing [], then arg is set to 0, else arg is between []
     // must grow field2index and argindex arrays, since access is beyond nfield
@@ -2174,4 +2230,87 @@ void DumpCustom::pack_tqz(int n)
       buf[n] = torque[i][2];
       n += size_one;
     }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_spin(int n)
+{
+  int *spin = atom->spin;
+  int nlocal = atom->nlocal;
+  
+  for (int i = 0; i < nlocal; i++)
+    if (choose[i]) {
+      buf[n] = spin[i];
+      n += size_one;
+    }
+}
+
+/* ----------------------------------------------------------------------
+   different interpretation of electron radius
+   depending on dynamics vs minimization
+------------------------------------------------------------------------- */
+
+void DumpCustom::pack_eradius(int n)
+{
+  double *eradius = atom->eradius;
+  int *spin = atom->spin;
+  int nlocal = atom->nlocal;
+
+  if (update->whichflag == 1) {
+    for (int i = 0; i < nlocal; i++)
+      if (choose[i]) {
+	buf[n] = eradius[i];
+	n += size_one;
+      }
+  } else {
+    for (int i = 0; i < nlocal; i++)
+      if (choose[i]) {
+        if (spin[i]) buf[n] = exp(eradius[i]);
+	else buf[n] = 0.0;
+	n += size_one;
+      }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_evel(int n)
+{
+  double *evel = atom->evel;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++)
+    if (choose[i]) {
+      buf[n] = evel[i];
+      n += size_one;
+    }
+}
+
+/* ----------------------------------------------------------------------
+   different interpretation of electron radial force
+   depending on dynamics vs minimization
+------------------------------------------------------------------------- */
+
+void DumpCustom::pack_eforce(int n)
+{
+  double *eradius = atom->eradius;
+  double *eforce = atom->eforce;
+  int *spin = atom->spin;
+  int nlocal = atom->nlocal;
+  
+  if (update->whichflag == 1) {
+    for (int i = 0; i < nlocal; i++)
+      if (choose[i]) {
+	buf[n] = eforce[i];
+	n += size_one;
+      }
+  } else {
+    for (int i = 0; i < nlocal; i++)
+      if (choose[i]) {
+        if (spin[i]) buf[n] = eforce[i]/exp(eradius[i]);
+        else buf[n] = 0.0;
+	n += size_one;
+      }
+  }
 }

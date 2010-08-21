@@ -135,10 +135,12 @@ void Min::init()
   ev_setup();
 
   // set flags for what arrays to clear in force_clear()
-  // clear torques if array exists
+  // need to clear torques,eforce if arrays exists
 
   torqueflag = 0;
-  if (atom->torque) torqueflag = 1;
+  if (atom->torque_flag) torqueflag = 1;
+  eforceflag = 0;
+  if (atom->eforce_flag) eforceflag = 1;
 
   // orthogonal vs triclinic simulation box
 
@@ -496,6 +498,8 @@ double Min::energy_force(int resetflag)
 
 void Min::force_clear()
 {
+  int i;
+
   // clear global force array
   // nall includes ghosts only if either newton flag is set
 
@@ -504,7 +508,7 @@ void Min::force_clear()
   else nall = atom->nlocal;
 
   double **f = atom->f;
-  for (int i = 0; i < nall; i++) {
+  for (i = 0; i < nall; i++) {
     f[i][0] = 0.0;
     f[i][1] = 0.0;
     f[i][2] = 0.0;
@@ -512,11 +516,17 @@ void Min::force_clear()
 
   if (torqueflag) {
     double **torque = atom->torque;
-    for (int i = 0; i < nall; i++) {
+    for (i = 0; i < nall; i++) {
       torque[i][0] = 0.0;
       torque[i][1] = 0.0;
       torque[i][2] = 0.0;
     }
+  }
+
+  if (eforceflag) {
+    double *eforce = atom->eforce;
+    for (i = 0; i < nall; i++)
+      eforce[i] = 0.0;
   }
 }
 

@@ -110,7 +110,7 @@ int FixQEQComb::setmask()
 void FixQEQComb::init()
 {
   if (!atom->q_flag)
-    error->all("Atoms must have charge to use fix qeq/comb");
+    error->all("Fix qeq/comb requires atom attribute q");
 
   comb = (PairComb *) force->pair_match("comb",1);
   if (comb == NULL) error->all("Must use pair_style comb with fix qeq/comb");

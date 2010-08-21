@@ -30,7 +30,6 @@
 using namespace LAMMPS_NS;
 
 enum{NO_REMAP,X_REMAP,V_REMAP};                   // same as fix_deform.cpp
-enum{NOBIAS,BIAS};
 
 /* ---------------------------------------------------------------------- */
 

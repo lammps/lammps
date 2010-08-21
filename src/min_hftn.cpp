@@ -180,7 +180,7 @@ void MinHFTN::reset_vectors()
     int  n = NUM_HFTN_ATOM_BASED_VECTORS;
     for (int m = 0; m < nextra_atom; m++) {
       extra_nlen[m] = extra_peratom[m] * atom->nlocal;
-      requestor[m]->min_pointers (&xextra_atom[m], &fextra_atom[m]);
+      requestor[m]->min_pointers(&xextra_atom[m], &fextra_atom[m]);
       for (int  i = 0; i < NUM_HFTN_ATOM_BASED_VECTORS; i++)
 	_daExtraAtom[i][m] = fix_minimize->request_vector (n++);
     }

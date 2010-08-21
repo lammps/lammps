@@ -12,7 +12,7 @@ units command :h3
 
 units style :pre
 
-style = {lj} or {real} or {metal} or {si} or {cgs} :ul
+style = {lj} or {real} or {metal} or {si} or {cgs} or {electron} :ul
 
 [Examples:]
 
@@ -123,13 +123,29 @@ dipole = statcoul-cm = 10^18 debye
 electric field = statvolt/cm or dyne/esu 
 density = grams/cm^dim :ul
 
+For style {electron}, these are the units:
+
+mass = atomic mass units
+distance = Bohr
+time = femtoseconds
+energy = Kcal/mole
+velocity = Bohr/atomic time units [1.03275e-15 seconds]
+force = Hartrees*Bohr
+temperature = degrees K
+pressure = Pascals
+charge = multiple of electron charge (+1.0 is a proton)
+dipole moment = Debye
+electric field = volts/cm :ul
+
 The units command also sets the timestep size and neighbor skin
-distance to default values for each style.  For style {lj} these are
-dt = 0.005 tau and skin = 0.3 sigma.  For style {real} these are dt =
-1.0 fmsec and skin = 2.0 Angstroms.  For style {metal} these are dt =
-0.001 psec and skin = 2.0 Angstroms.  For style {si} these are dt =
-1.0e-8 sec and skin = 0.001 meters.  For style {cgs} these are dt =
-1.0e-8 sec and skin = 0.1 cm.
+distance to default values for each style:
+
+For style {lj} these are dt = 0.005 tau and skin = 0.3 sigma.
+For style {real} these are dt = 1.0 fmsec and skin = 2.0 Angstroms.
+For style {metal} these are dt = 0.001 psec and skin = 2.0 Angstroms.
+For style {si} these are dt = 1.0e-8 sec and skin = 0.001 meters.
+For style {cgs} these are dt = 1.0e-8 sec and skin = 0.1 cm.
+For style {electron} these are dt = 0.001 fmsec and skin = 2.0 Bohr. :ul
 
 [Restrictions:]
 

@@ -27,16 +27,16 @@ namespace LAMMPS_NS {
 class ComputeTemp : public Compute {
  public:
   ComputeTemp(class LAMMPS *, int, char **);
-  ~ComputeTemp();
+  virtual ~ComputeTemp();
   void init();
   double compute_scalar();
   void compute_vector();
 
- private:
+ protected:
   int fix_dof;
   double tfactor;
 
-  void dof_compute();
+  virtual void dof_compute();
 };
 
 }

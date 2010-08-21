@@ -18,6 +18,7 @@ ch2lmp		       convert CHARMM files to LAMMPS input
 chain		       create a data file of bead-spring chains
 data2xmovie	       convert a data file to a snapshot that xmovie can viz
 eam_generate	       generate EAM potential files
+eff		       scripts for working with the EFF (electron force field)
 lmp2arc		       convert LAMMPS output to Accelrys Insight format
 lmp2cfg		       convert LAMMPS output to CFG files for AtomEye viz
 lmp2traj	       convert LAMMPS output to contour, density profiles

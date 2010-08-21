@@ -21,7 +21,8 @@ input = one or more atom attributes :l
                         q, mux, muy, muz,
                         radius, omegax, omegay, omegaz,
                         angmomx, angmomy, angmomz,
-		        quatw, quati, quatj, quatk, tqx, tqy, tqz :pre
+		        quatw, quati, quatj, quatk, tqx, tqy, tqz,
+			spin, eradius, evel, eforce :pre
 
       id = atom ID
       mol = molecule ID
@@ -39,7 +40,11 @@ input = one or more atom attributes :l
       omegax,omegay,omegaz = angular velocity of extended particle
       angmomx,angmomy,angmomz = angular momentum of extended particle
       quatw,quati,quatj,quatk = quaternion components for aspherical particles
-      tqx,tqy,tqz = torque on extended particles :pre
+      tqx,tqy,tqz = torque on extended particles
+      spin = electron spin
+      eradius = electron radius
+      evel = electron radial velocity
+      eforce = electron radial force :pre
 :ule
 
 [Examples:]

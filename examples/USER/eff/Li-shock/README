@@ -1,0 +1,2 @@
+This example is just for illustration purposes, and should not be used to determine the proper dynamics of this system because the cell size is too small (you will not get the correct energies).  Note, the impact velocities are introduced in the data file, but the user may choose to override these with the velocity command in LAMMPS.
+

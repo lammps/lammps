@@ -35,7 +35,8 @@ class Verlet : public Integrate {
 
  private:
   int triclinic;                    // 0 if domain is orthog, 1 if triclinic
-  int torqueflag;                   // zero out array every step
+  int torqueflag;                   // zero out arrays every step
+  int eforceflag;
 
   void force_clear();
 };

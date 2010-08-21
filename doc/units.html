@@ -15,7 +15,7 @@
 </P>
 <PRE>units style 
 </PRE>
-<UL><LI>style = <I>lj</I> or <I>real</I> or <I>metal</I> or <I>si</I> or <I>cgs</I> 
+<UL><LI>style = <I>lj</I> or <I>real</I> or <I>metal</I> or <I>si</I> or <I>cgs</I> or <I>electron</I> 
 </UL>
 <P><B>Examples:</B>
 </P>
@@ -126,14 +126,30 @@ results from a unitless LJ simulation into physical quantities.
 <LI>electric field = statvolt/cm or dyne/esu 
 <LI>density = grams/cm^dim 
 </UL>
-<P>The units command also sets the timestep size and neighbor skin
-distance to default values for each style.  For style <I>lj</I> these are
-dt = 0.005 tau and skin = 0.3 sigma.  For style <I>real</I> these are dt =
-1.0 fmsec and skin = 2.0 Angstroms.  For style <I>metal</I> these are dt =
-0.001 psec and skin = 2.0 Angstroms.  For style <I>si</I> these are dt =
-1.0e-8 sec and skin = 0.001 meters.  For style <I>cgs</I> these are dt =
-1.0e-8 sec and skin = 0.1 cm.
+<P>For style <I>electron</I>, these are the units:
 </P>
+<UL><LI>mass = atomic mass units
+<LI>distance = Bohr
+<LI>time = femtoseconds
+<LI>energy = Kcal/mole
+<LI>velocity = Bohr/atomic time units <B>1.03275e-15 seconds</B>
+<LI>force = Hartrees*Bohr
+<LI>temperature = degrees K
+<LI>pressure = Pascals
+<LI>charge = multiple of electron charge (+1.0 is a proton)
+<LI>dipole moment = Debye
+<LI>electric field = volts/cm 
+</UL>
+<P>The units command also sets the timestep size and neighbor skin
+distance to default values for each style:
+</P>
+<UL><LI>For style <I>lj</I> these are dt = 0.005 tau and skin = 0.3 sigma.
+<LI>For style <I>real</I> these are dt = 1.0 fmsec and skin = 2.0 Angstroms.
+<LI>For style <I>metal</I> these are dt = 0.001 psec and skin = 2.0 Angstroms.
+<LI>For style <I>si</I> these are dt = 1.0e-8 sec and skin = 0.001 meters.
+<LI>For style <I>cgs</I> these are dt = 1.0e-8 sec and skin = 0.1 cm.
+<LI>For style <I>electron</I> these are dt = 0.001 fmsec and skin = 2.0 Bohr. 
+</UL>
 <P><B>Restrictions:</B>
 </P>
 <P>This command cannot be used after the simulation box is defined by a

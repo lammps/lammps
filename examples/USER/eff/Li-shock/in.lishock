@@ -1,0 +1,32 @@
+variable	sname index lishock
+
+units 		electron
+newton	        on	
+boundary	s p p
+
+atom_style	hybrid charge electron
+
+read_data  	data.${sname}
+#read_restart	${sname}.nve.restart1
+
+pair_style      eff/cut 12.528 
+pair_coeff	* * 
+
+communicate	single vel yes
+
+timestep        0.005
+
+fix             1 all nve/eff
+
+thermo          1000
+thermo_style    custom step etotal temp press
+
+restart         1000 ${sname}.nve.restart1 ${sname}.nve.restart2
+compute         peatom all pe/atom 
+compute         keatom all ke/atom/eff
+dump            1 all custom 1000 ${sname}.nve.lammpstrj id type x y z spin radius vx vy vz vr c_keatom c_peatom
+
+run             1500000
+
+unfix           1
+undump          1

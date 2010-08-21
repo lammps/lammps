@@ -681,20 +681,6 @@ void FixMSST::final_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixMSST::initial_integrate_respa(int vflag, int ilevel, int flag)
-{
-  error->all("MSST does not work with RESPA\n");
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixMSST::final_integrate_respa(int ilevel)
-{
-  error->all("MSST does not work with RESPA\n");
-}
-
-/* ---------------------------------------------------------------------- */
-
 void FixMSST::couple()
 {
   double *tensor = pressure->vector;

@@ -37,8 +37,6 @@ class FixMSST : public Fix {
   void setup(int);
   void initial_integrate(int);
   void final_integrate();
-  void initial_integrate_respa(int,int,int);
-  void final_integrate_respa(int);
   double compute_scalar();
   double compute_vector(int);
   void write_restart(FILE *);

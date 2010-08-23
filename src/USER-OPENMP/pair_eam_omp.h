@@ -20,6 +20,7 @@ PairStyle(eam/omp,PairEAMOMP)
 #ifndef LMP_PAIR_EAM_OMP_H
 #define LMP_PAIR_EAM_OMP_H
 
+#include "stdio.h"
 #include "pair_omp.h"
 
 namespace LAMMPS_NS {

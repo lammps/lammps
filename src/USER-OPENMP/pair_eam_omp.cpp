@@ -493,12 +493,12 @@ void PairEAMOMP::read_file(char *filename)
   Funcfl *file = &funcfl[nfuncfl-1];
 
   int me = comm->me;
-  FILE *fp;
+  FILE *fptr;
   char line[MAXLINE];
 
   if (me == 0) {
-    fp = fopen(filename,"r");
-    if (fp == NULL) {
+    fptr = fopen(filename,"r");
+    if (fptr == NULL) {
       char str[128];
       sprintf(str,"Cannot open EAM potential file %s",filename);
       error->one(str);
@@ -507,10 +507,10 @@ void PairEAMOMP::read_file(char *filename)
 
   int tmp;
   if (me == 0) {
-    fgets(line,MAXLINE,fp);
-    fgets(line,MAXLINE,fp);
+    fgets(line,MAXLINE,fptr);
+    fgets(line,MAXLINE,fptr);
     sscanf(line,"%d %lg",&tmp,&file->mass);
-    fgets(line,MAXLINE,fp);
+    fgets(line,MAXLINE,fptr);
     sscanf(line,"%d %lg %d %lg %lg",
 	   &file->nrho,&file->drho,&file->nr,&file->dr,&file->cut);
   }
@@ -529,16 +529,16 @@ void PairEAMOMP::read_file(char *filename)
   file->zr = (double *) memory->smalloc((file->nr+1)*sizeof(double),
 					"pair:zr");
 
-  if (me == 0) grab(fp,file->nrho,&file->frho[1]);
+  if (me == 0) grab(fptr,file->nrho,&file->frho[1]);
   MPI_Bcast(&file->frho[1],file->nrho,MPI_DOUBLE,0,world);
 
-  if (me == 0) grab(fp,file->nr,&file->zr[1]);
+  if (me == 0) grab(fptr,file->nr,&file->zr[1]);
   MPI_Bcast(&file->zr[1],file->nr,MPI_DOUBLE,0,world);
 
-  if (me == 0) grab(fp,file->nr,&file->rhor[1]);
+  if (me == 0) grab(fptr,file->nr,&file->rhor[1]);
   MPI_Bcast(&file->rhor[1],file->nr,MPI_DOUBLE,0,world);
 
-  if (me == 0) fclose(fp);
+  if (me == 0) fclose(fptr);
 }
 
 /* ----------------------------------------------------------------------
@@ -817,14 +817,14 @@ void PairEAMOMP::interpolate(int n, double delta, double *f, double **spline)
    only called by proc 0
 ------------------------------------------------------------------------- */
 
-void PairEAMOMP::grab(FILE *fp, int n, double *list)
+void PairEAMOMP::grab(FILE *fptr, int n, double *list)
 {
   char *ptr;
   char line[MAXLINE];
 
   int i = 0;
   while (i < n) {
-    fgets(line,MAXLINE,fp);
+    fgets(line,MAXLINE,fptr);
     ptr = strtok(line," \t\n\r\f");
     list[i++] = atof(ptr);
     while (ptr = strtok(NULL," \t\n\r\f")) list[i++] = atof(ptr);

@@ -117,12 +117,12 @@ void PairEAMFS::read_file(char *filename)
   // open potential file
 
   int me = comm->me;
-  FILE *fp;
+  FILE *fptr;
   char line[MAXLINE];
 
   if (me == 0) {
-    fp = fopen(filename,"r");
-    if (fp == NULL) {
+    fptr = fopen(filename,"r");
+    if (fptr == NULL) {
       char str[128];
       sprintf(str,"Cannot open EAM potential file %s",filename);
       error->one(str);
@@ -134,10 +134,10 @@ void PairEAMFS::read_file(char *filename)
 
   int n;
   if (me == 0) {
-    fgets(line,MAXLINE,fp);
-    fgets(line,MAXLINE,fp);
-    fgets(line,MAXLINE,fp);
-    fgets(line,MAXLINE,fp);
+    fgets(line,MAXLINE,fptr);
+    fgets(line,MAXLINE,fptr);
+    fgets(line,MAXLINE,fptr);
+    fgets(line,MAXLINE,fptr);
     n = strlen(line) + 1;
   }
   MPI_Bcast(&n,1,MPI_INT,0,world);
@@ -162,7 +162,7 @@ void PairEAMFS::read_file(char *filename)
   delete [] words;
 
   if (me == 0) {
-    fgets(line,MAXLINE,fp);
+    fgets(line,MAXLINE,fptr);
     sscanf(line,"%d %lg %d %lg %lg",
 	   &file->nrho,&file->drho,&file->nr,&file->dr,&file->cut);
   }
@@ -183,29 +183,29 @@ void PairEAMFS::read_file(char *filename)
   int i,j,tmp;
   for (i = 0; i < file->nelements; i++) {
     if (me == 0) {
-      fgets(line,MAXLINE,fp);
+      fgets(line,MAXLINE,fptr);
       sscanf(line,"%d %lg",&tmp,&file->mass[i]);
     }
     MPI_Bcast(&file->mass[i],1,MPI_DOUBLE,0,world);
 
-    if (me == 0) grab(fp,file->nrho,&file->frho[i][1]);
+    if (me == 0) grab(fptr,file->nrho,&file->frho[i][1]);
     MPI_Bcast(&file->frho[i][1],file->nrho,MPI_DOUBLE,0,world);
 
     for (j = 0; j < file->nelements; j++) {
-      if (me == 0) grab(fp,file->nr,&file->rhor[i][j][1]);
+      if (me == 0) grab(fptr,file->nr,&file->rhor[i][j][1]);
       MPI_Bcast(&file->rhor[i][j][1],file->nr,MPI_DOUBLE,0,world);
     }
   }
 
   for (i = 0; i < file->nelements; i++)
     for (j = 0; j <= i; j++) {
-      if (me == 0) grab(fp,file->nr,&file->z2r[i][j][1]);
+      if (me == 0) grab(fptr,file->nr,&file->z2r[i][j][1]);
       MPI_Bcast(&file->z2r[i][j][1],file->nr,MPI_DOUBLE,0,world);
     }
 
   // close the potential file
 
-  if (me == 0) fclose(fp);
+  if (me == 0) fclose(fptr);
 }
 
 /* ----------------------------------------------------------------------

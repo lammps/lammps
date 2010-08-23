@@ -73,6 +73,7 @@ class FixNH : public Fix {
   double *eta_dotdot;
   double *eta_mass;
   int mtchain;                     // length of chain
+  int mtchain_default_flag;        // 1 = mtchain is default   
                                    
   double *etap;                    // chain thermostat for barostat
   double *etap_dot;

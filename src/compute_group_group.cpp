@@ -66,8 +66,12 @@ ComputeGroupGroup::~ComputeGroupGroup()
 void ComputeGroupGroup::init()
 {
   if (force->pair == NULL)
-    error->all("Pair style does not support compute group/group");
-  if (force->pair->single_enable == 0)
+    error->all("No pair style defined for compute group/group");
+
+  // if non-hybrid, then error if single_enable = 0
+  // if hybrid, let hybrid determine if sub-style sets single_enable = 0
+
+  if (force->pair_match("hybrid",0) == NULL && force->pair->single_enable == 0)
     error->all("Pair style does not support compute group/group");
 
   pair = force->pair;

@@ -115,6 +115,8 @@ fix_bond_create.cpp
 fix_bond_create.h
 fix_bond_swap.cpp
 fix_bond_swap.h
+fix_qeq_comb.cpp
+fix_qeq_comb.h
 fix_event.cpp
 fix_event.h
 fix_freeze.cpp
@@ -197,6 +199,8 @@ pair_cg_cmm_coul_long.cpp
 pair_cg_cmm_coul_long.h
 pair_cmm_common.cpp
 pair_cmm_common.h
+pair_comb.cpp
+pair_comb.h
 pair_colloid.cpp
 pair_colloid.h
 pair_colloid_omp.cpp
@@ -333,6 +337,8 @@ pair_morse_opt.cpp
 pair_morse_opt.h
 pair_omp.cpp
 pair_omp.h
+pair_peri_lps.cpp
+pair_peri_lps.h
 pair_peri_pmb.cpp
 pair_peri_pmb.h
 pair_reax.cpp

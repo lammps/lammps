@@ -123,7 +123,10 @@ This fix can ramp its target temperature over multiple runs, using the
 
 This fix is not invoked during "energy minimization"_minimize.html.
 
-[Restrictions:] none
+[Restrictions:] 
+
+This fix works best without Nose-Hoover chain thermostats i.e. using tchain = 1.
+Setting tchain to larger values can result in poor equilibration.
 
 [Related commands:]
 
@@ -132,7 +135,7 @@ temp/rescale"_fix_temp_rescale.html, "fix langevin"_fix_langevin.html,
 "fix_modify"_fix_modify.html, "compute
 temp/deform"_compute_temp_deform.html
 
-[Default:] none
+[Default:] Same as "fix nvt"_fix_nh.html, except tchain = 1.
 
 :line
 

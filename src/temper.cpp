@@ -185,8 +185,18 @@ void Temper::command(int narg, char **arg)
   update->integrate->setup();
 
   if (me_universe == 0) {
-    if (universe->uscreen) fprintf(universe->uscreen,"Step T1 T2 ...\n");
-    if (universe->ulogfile) fprintf(universe->ulogfile,"Step T1 T2 ...\n");
+    if (universe->uscreen) {
+      fprintf(universe->uscreen,"Step");
+      for (int i = 0; i < nworlds; i++)
+	fprintf(universe->uscreen," T%d",i);
+      fprintf(universe->uscreen,"\n");
+    }
+    if (universe->ulogfile) {
+      fprintf(universe->ulogfile,"Step");
+      for (int i = 0; i < nworlds; i++)
+	fprintf(universe->ulogfile," T%d",i);
+      fprintf(universe->ulogfile,"\n");
+    }
     print_status();
   }
 

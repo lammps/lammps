@@ -69,6 +69,10 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   deviatoric_flag = 0;
   nreset_h0 = 0;
 
+  // Used by FixNVTSllod to preserve non-default value  
+
+  mtchain_default_flag = 1;
+
   tstat_flag = 0;
   double t_period = 0.0;
 
@@ -220,6 +224,8 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
     } else if (strcmp(arg[iarg],"tchain") == 0) {
       if (iarg+2 > narg) error->all("Illegal fix nvt/npt/nph command");
       mtchain = atoi(arg[iarg+1]);
+      // Used by FixNVTSllod to preserve non-default value  
+      mtchain_default_flag = 0;
       if (mtchain < 1) error->all("Illegal fix nvt/npt/nph command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"pchain") == 0) {

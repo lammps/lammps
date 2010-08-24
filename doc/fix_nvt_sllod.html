@@ -126,7 +126,10 @@ quantities as does the <A HREF = "fix_nh.html">fix nvt</A> command.
 </P>
 <P>This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
 </P>
-<P><B>Restrictions:</B> none
+<P><B>Restrictions:</B> 
+</P>
+<P>This fix works best without Nose-Hoover chain thermostats i.e. using tchain = 1.
+Setting tchain to larger values can result in poor equilibration.
 </P>
 <P><B>Related commands:</B>
 </P>
@@ -135,7 +138,7 @@ temp/rescale</A>, <A HREF = "fix_langevin.html">fix langevin</A>,
 <A HREF = "fix_modify.html">fix_modify</A>, <A HREF = "compute_temp_deform.html">compute
 temp/deform</A>
 </P>
-<P><B>Default:</B> none
+<P><B>Default:</B> Same as <A HREF = "fix_nh.html">fix nvt</A>, except tchain = 1.
 </P>
 <HR>
 

@@ -29,7 +29,12 @@ void lammps_close(void *);
 void lammps_file(void *, char *);
 char *lammps_command(void *, char *);
 
-void *lammps_extract(void *, int, char *, char *);
+void *lammps_extract_global(void *, char *);
+void *lammps_extract_atom(void *, char *);
+void *lammps_extract_compute(void *, char *, int, int);
+void *lammps_extract_fix(void *, int, int, int, int);
+void *lammps_extract_variable(void *, char *, char *);
+
 int lammps_get_natoms(void *);
 void lammps_get_coords(void *, double *);
 void lammps_put_coords(void *, double *);
@@ -37,4 +42,3 @@ void lammps_put_coords(void *, double *);
 #ifdef __cplusplus
 }
 #endif
-

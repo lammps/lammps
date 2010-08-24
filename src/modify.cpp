@@ -1063,42 +1063,6 @@ void Modify::list_init_compute()
 }
 
 /* ----------------------------------------------------------------------
-   return a pointer to a named internal variable owned by fix ID
-   if don't recognize ID, return NULL
-------------------------------------------------------------------------- */
-
-void *Modify::extract_fix(char *id, char *name)
-{
-  int ifix = find_fix(id);
-  if (ifix < 0) return NULL;
-
-  if (strcmp(name,"index") == 0) {
-    index_permanent = ifix;
-    return (void *) &index_permanent;
-  }
-
-  return fix[ifix]->extract(name);
-}
-
-/* ----------------------------------------------------------------------
-   return a pointer to a named internal variable owned by compute ID
-   if don't recognize ID, return NULL
-------------------------------------------------------------------------- */
-
-void *Modify::extract_compute(char *id, char *name)
-{
-  int icompute = find_compute(id);
-  if (icompute < 0) return NULL;
-
-  if (strcmp(name,"index") == 0) {
-    index_permanent = icompute;
-    return (void *) &index_permanent;
-  }
-
-  return compute[icompute]->extract(name);
-}
-
-/* ----------------------------------------------------------------------
    return # of bytes of allocated memory from all fixes
 ------------------------------------------------------------------------- */
 

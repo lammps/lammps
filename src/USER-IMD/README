@@ -9,6 +9,12 @@ LAMMPS input script.  IMD stands for interactive molecular dynamics,
 and allows realtime visualization and manipulation of MD simulations
 through the IMD protocol, initially implemented in VMD and NAMD.
 
+When LAMMPS is compiled with the preprocessor flag -DLAMMPS_ASYNC_IMD
+then fix imd will use posix threads to spawn two threads in order to 
+offload data reading and writing from the main execution and lower
+the inferred latencies for slow communication links. This feature is
+to be considered experimental, and has only been tested under linux.
+
 There are example scripts for using this package with LAMMPS in
 examples/USER/imd. Additional examples and a driver for use with the 
 Novint Falcon game controller as haptic device can be found at:

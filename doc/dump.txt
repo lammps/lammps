@@ -40,7 +40,7 @@ args = list of arguments for a particular style :l
                           radius, omegax, omegay, omegaz,
                           angmomx, angmomy, angmomz,
 			  quatw, quati, quatj, quatk, tqx, tqy, tqz,
-			  spin, eradius, evel, eforce,
+			  spin, eradius, ervel, erforce,
 			  c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_name :pre
 
       id = atom ID
@@ -62,8 +62,8 @@ args = list of arguments for a particular style :l
       tqx,tqy,tqz = torque on extended particles
       spin = electron spin
       eradius = electron radius
-      evel = electron radial velocity
-      eforce = electron radial force
+      ervel = electron radial velocity
+      erforce = electron radial force
       c_ID = per-atom vector calculated by a compute with ID
       c_ID\[N\] = Nth column of per-atom array calculated by a compute with ID
       f_ID = per-atom vector calculated by a fix with ID
@@ -370,7 +370,7 @@ The {tqx}, {tqy}, {tqz} attributes are for extended spherical or
 aspherical particles that can sustain a rotational torque due
 to interactions with other particles.
 
-The {spin}, {eradius}, {evel}, and {eforce} attributes are for
+The {spin}, {eradius}, {ervel}, and {erforce} attributes are for
 particles that represent nuclei and electrons modeled with the
 electronic force field (EFF).  See "atom_style
 electron"_atom_style.html and "pair_style eff"_pair_eff.html for more

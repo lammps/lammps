@@ -146,7 +146,7 @@ void MinLineSearch::reset_vectors()
     int n = 3;
     for (int m = 0; m < nextra_atom; m++) {
       extra_nlen[m] = extra_peratom[m] * atom->nlocal;
-      requestor[m]->min_pointers(&xextra_atom[m],&fextra_atom[m]);
+      requestor[m]->min_xf_pointers(m,&xextra_atom[m],&fextra_atom[m]);
       x0extra_atom[m] = fix_minimize->request_vector(n++);
       gextra_atom[m] = fix_minimize->request_vector(n++);
       hextra_atom[m] = fix_minimize->request_vector(n++);
@@ -215,9 +215,9 @@ int MinLineSearch::linemin_backtrack(double eoriginal, double &alpha)
   alpha = MIN(ALPHA_MAX,dmax/hmaxall);
   if (nextra_atom)
     for (m = 0; m < nextra_atom; m++) {
-      hme = 0.0;
-      fatom = fextra_atom[m];
+      hatom = hextra_atom[m];
       n = extra_nlen[m];
+      hme = 0.0;
       for (i = 0; i < n; i++) hme = MAX(hme,fabs(hatom[i]));
       MPI_Allreduce(&hme,&hmax,1,MPI_DOUBLE,MPI_MAX,world);
       alpha = MIN(alpha,extra_max[m]/hmax);
@@ -364,9 +364,9 @@ int MinLineSearch::linemin_quadratic(double eoriginal, double &alpha)
   alphamax = MIN(ALPHA_MAX,dmax/hmaxall);
   if (nextra_atom)
     for (m = 0; m < nextra_atom; m++) {
-      hme = 0.0;
-      fatom = fextra_atom[m];
+      hatom = hextra_atom[m];
       n = extra_nlen[m];
+      hme = 0.0;
       for (i = 0; i < n; i++) hme = MAX(hme,fabs(hatom[i]));
       MPI_Allreduce(&hme,&hmax,1,MPI_DOUBLE,MPI_MAX,world);
       alphamax = MIN(alphamax,extra_max[m]/hmax);
@@ -402,7 +402,7 @@ int MinLineSearch::linemin_quadratic(double eoriginal, double &alpha)
   engprev = eoriginal;
   alphaprev = 0.0;
 
-  // Important diagnostic: test the gradient against energy
+  // important diagnostic: test the gradient against energy
   // double etmp;
   // double alphatmp = alphamax*1.0e-4;
   // etmp = alpha_step(alphatmp,1);
@@ -423,7 +423,7 @@ int MinLineSearch::linemin_quadratic(double eoriginal, double &alpha)
     }
     if (nextra_atom)
       for (m = 0; m < nextra_atom; m++) {
-	xatom = xextra_atom[m];
+	fatom = fextra_atom[m];
 	hatom = hextra_atom[m];
 	n = extra_nlen[m];
 	for (i = 0; i < n; i++) {
@@ -521,6 +521,7 @@ double MinLineSearch::alpha_step(double alpha, int resetflag)
 	x0atom = x0extra_atom[m];
 	n = extra_nlen[m];
 	for (i = 0; i < n; i++) xatom[i] = x0atom[i];
+	requestor[m]->min_x_set(m);
       }
   
   // step forward along h
@@ -534,6 +535,7 @@ double MinLineSearch::alpha_step(double alpha, int resetflag)
 	hatom = hextra_atom[m];
 	n = extra_nlen[m];
 	for (i = 0; i < n; i++) xatom[i] += alpha*hatom[i];
+	requestor[m]->min_x_set(m);
       }
   }
 

@@ -207,16 +207,16 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
 	error->all("Compute property/atom for "
 		   "atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_eradius;
-    } else if (strcmp(arg[iarg],"evel") == 0) {
-      if (!atom->evel_flag)
+    } else if (strcmp(arg[iarg],"ervel") == 0) {
+      if (!atom->ervel_flag)
 	error->all("Compute property/atom for "
 		   "atom property that isn't allocated");
-      pack_choice[i] = &ComputePropertyAtom::pack_evel;
-    } else if (strcmp(arg[iarg],"eforce") == 0) {
-      if (!atom->eforce_flag)
+      pack_choice[i] = &ComputePropertyAtom::pack_ervel;
+    } else if (strcmp(arg[iarg],"erforce") == 0) {
+      if (!atom->erforce_flag)
 	error->all("Compute property/atom for "
 		   "atom property that isn't allocated");
-      pack_choice[i] = &ComputePropertyAtom::pack_eforce;
+      pack_choice[i] = &ComputePropertyAtom::pack_erforce;
 
     } else error->all("Invalid keyword in compute property/atom command");
   }
@@ -1073,14 +1073,14 @@ void ComputePropertyAtom::pack_eradius(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_evel(int n)
+void ComputePropertyAtom::pack_ervel(int n)
 {
-  double *evel = atom->evel;
+  double *ervel = atom->ervel;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = evel[i];
+    if (mask[i] & groupbit) buf[n] = ervel[i];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -1088,14 +1088,14 @@ void ComputePropertyAtom::pack_evel(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_eforce(int n)
+void ComputePropertyAtom::pack_erforce(int n)
 {
-  double *eforce = atom->eforce;
+  double *erforce = atom->erforce;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = eforce[i];
+    if (mask[i] & groupbit) buf[n] = erforce[i];
     else buf[n] = 0.0;
     n += nvalues;
   }

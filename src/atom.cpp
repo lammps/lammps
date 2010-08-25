@@ -74,7 +74,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   x0 = NULL;
 
   spin = NULL;
-  eradius = evel = eforce = NULL;
+  eradius = ervel = erforce = NULL;
 
   maxspecial = 1;
   nspecial = NULL;
@@ -101,7 +101,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   q_flag = mu_flag = 0;
   quat_flag = omega_flag = angmom_flag = torque_flag = 0;
   radius_flag = density_flag = rmass_flag = vfrac_flag = 0;
-  spin_flag = eradius_flag = evel_flag = eforce_flag = 0;
+  spin_flag = eradius_flag = ervel_flag = erforce_flag = 0;
 
   // ntype-length arrays
 
@@ -182,8 +182,8 @@ Atom::~Atom()
 
   memory->sfree(spin);
   memory->sfree(eradius);
-  memory->sfree(evel);
-  memory->sfree(eforce);
+  memory->sfree(ervel);
+  memory->sfree(erforce);
 
   memory->sfree(molecule);
 

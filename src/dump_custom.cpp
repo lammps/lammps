@@ -38,7 +38,7 @@ enum{ID,MOL,TYPE,MASS,
        X,Y,Z,XS,YS,ZS,XSTRI,YSTRI,ZSTRI,XU,YU,ZU,XUTRI,YUTRI,ZUTRI,IX,IY,IZ,
        VX,VY,VZ,FX,FY,FZ,
        Q,MUX,MUY,MUZ,RADIUS,OMEGAX,OMEGAY,OMEGAZ,ANGMOMX,ANGMOMY,ANGMOMZ,
-       QUATW,QUATI,QUATJ,QUATK,TQX,TQY,TQZ,SPIN,ERADIUS,EVEL,EFORCE,
+       QUATW,QUATI,QUATJ,QUATK,TQX,TQY,TQZ,SPIN,ERADIUS,ERVEL,ERFORCE,
        COMPUTE,FIX,VARIABLE};
 enum{LT,LE,GT,GE,EQ,NEQ};
 enum{INT,DOUBLE};
@@ -693,15 +693,15 @@ int DumpCustom::count()
 	  error->all("Threshhold for an atom property that isn't allocated");
         ptr = atom->eradius;
         nstride = 1;
-      } else if (thresh_array[ithresh] == EVEL) {
-	if (!atom->evel_flag)
+      } else if (thresh_array[ithresh] == ERVEL) {
+	if (!atom->ervel_flag)
 	  error->all("Threshhold for an atom property that isn't allocated");
-        ptr = atom->evel;
+        ptr = atom->ervel;
         nstride = 1;
-      } else if (thresh_array[ithresh] == EFORCE) {
-	if (!atom->eforce_flag)
+      } else if (thresh_array[ithresh] == ERFORCE) {
+	if (!atom->erforce_flag)
 	  error->all("Threshhold for an atom property that isn't allocated");
-        ptr = atom->eforce;
+        ptr = atom->erforce;
         nstride = 1;				
 
       } else if (thresh_array[ithresh] == COMPUTE) {
@@ -1008,15 +1008,15 @@ void DumpCustom::parse_fields(int narg, char **arg)
         error->all("Dumping an atom quantity that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_eradius;
       vtype[i] = DOUBLE;
-    } else if (strcmp(arg[iarg],"evel") == 0) {
-      if (!atom->evel_flag)
+    } else if (strcmp(arg[iarg],"ervel") == 0) {
+      if (!atom->ervel_flag)
         error->all("Dumping an atom quantity that isn't allocated");
-      pack_choice[i] = &DumpCustom::pack_evel;
+      pack_choice[i] = &DumpCustom::pack_ervel;
       vtype[i] = DOUBLE;
-    } else if (strcmp(arg[iarg],"eforce") == 0) {
-      if (!atom->evel_flag)
+    } else if (strcmp(arg[iarg],"erforce") == 0) {
+      if (!atom->erforce_flag)
         error->all("Dumping an atom quantity that isn't allocated");
-      pack_choice[i] = &DumpCustom::pack_eforce;
+      pack_choice[i] = &DumpCustom::pack_erforce;
       vtype[i] = DOUBLE;
 
     // compute value = c_ID
@@ -1306,8 +1306,8 @@ int DumpCustom::modify_param(int narg, char **arg)
 
     else if (strcmp(arg[1],"spin") == 0) thresh_array[nthresh] = SPIN;
     else if (strcmp(arg[1],"eradius") == 0) thresh_array[nthresh] = ERADIUS;
-    else if (strcmp(arg[1],"evel") == 0) thresh_array[nthresh] = EVEL;
-    else if (strcmp(arg[1],"eforce") == 0) thresh_array[nthresh] = EFORCE;
+    else if (strcmp(arg[1],"ervel") == 0) thresh_array[nthresh] = ERVEL;
+    else if (strcmp(arg[1],"erforce") == 0) thresh_array[nthresh] = ERFORCE;
 
     // compute value = c_ID
     // if no trailing [], then arg is set to 0, else arg is between []
@@ -2246,71 +2246,44 @@ void DumpCustom::pack_spin(int n)
     }
 }
 
-/* ----------------------------------------------------------------------
-   different interpretation of electron radius
-   depending on dynamics vs minimization
-------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
 void DumpCustom::pack_eradius(int n)
 {
   double *eradius = atom->eradius;
-  int *spin = atom->spin;
-  int nlocal = atom->nlocal;
-
-  if (update->whichflag == 1) {
-    for (int i = 0; i < nlocal; i++)
-      if (choose[i]) {
-	buf[n] = eradius[i];
-	n += size_one;
-      }
-  } else {
-    for (int i = 0; i < nlocal; i++)
-      if (choose[i]) {
-        if (spin[i]) buf[n] = exp(eradius[i]);
-	else buf[n] = 0.0;
-	n += size_one;
-      }
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void DumpCustom::pack_evel(int n)
-{
-  double *evel = atom->evel;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
     if (choose[i]) {
-      buf[n] = evel[i];
+      buf[n] = eradius[i];
       n += size_one;
     }
 }
 
-/* ----------------------------------------------------------------------
-   different interpretation of electron radial force
-   depending on dynamics vs minimization
-------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
-void DumpCustom::pack_eforce(int n)
+void DumpCustom::pack_ervel(int n)
 {
-  double *eradius = atom->eradius;
-  double *eforce = atom->eforce;
-  int *spin = atom->spin;
+  double *ervel = atom->ervel;
   int nlocal = atom->nlocal;
-  
-  if (update->whichflag == 1) {
-    for (int i = 0; i < nlocal; i++)
-      if (choose[i]) {
-	buf[n] = eforce[i];
-	n += size_one;
-      }
-  } else {
-    for (int i = 0; i < nlocal; i++)
-      if (choose[i]) {
-        if (spin[i]) buf[n] = eforce[i]/exp(eradius[i]);
-        else buf[n] = 0.0;
-	n += size_one;
-      }
-  }
+
+  for (int i = 0; i < nlocal; i++)
+    if (choose[i]) {
+      buf[n] = ervel[i];
+      n += size_one;
+    }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_erforce(int n)
+{
+  double *erforce = atom->erforce;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++)
+    if (choose[i]) {
+      buf[n] = erforce[i];
+      n += size_one;
+    }
 }

@@ -63,12 +63,12 @@ void Verlet::init()
   ev_setup();
 
   // set flags for what arrays to clear in force_clear()
-  // need to clear torques,eforce if arrays exists
+  // need to clear torques,erforce if arrays exists
 
   torqueflag = 0;
   if (atom->torque_flag) torqueflag = 1;
-  eforceflag = 0;
-  if (atom->eforce_flag) eforceflag = 1;
+  erforceflag = 0;
+  if (atom->erforce_flag) erforceflag = 1;
 
   // orthogonal vs triclinic simulation box
 
@@ -319,10 +319,10 @@ void Verlet::force_clear()
       }
     }
 
-    if (eforceflag) {
-      double *eforce = atom->eforce;
+    if (erforceflag) {
+      double *erforce = atom->erforce;
       for (i = 0; i < nall; i++)
-	eforce[i] = 0.0;
+	erforce[i] = 0.0;
     }
 
   // neighbor includegroup flag is set
@@ -348,10 +348,10 @@ void Verlet::force_clear()
       }
     }
 
-    if (eforceflag) {
-      double *eforce = atom->eforce;
+    if (erforceflag) {
+      double *erforce = atom->erforce;
       for (i = 0; i < nall; i++)
-	eforce[i] = 0.0;
+	erforce[i] = 0.0;
     }
 
     if (force->newton) {
@@ -372,10 +372,10 @@ void Verlet::force_clear()
 	}
       }
 
-      if (eforceflag) {
-	double *eforce = atom->eforce;
+      if (erforceflag) {
+	double *erforce = atom->erforce;
 	for (i = atom->nlocal; i < nall; i++)
-	  eforce[i] = 0.0;
+	  erforce[i] = 0.0;
       }
     }
   }

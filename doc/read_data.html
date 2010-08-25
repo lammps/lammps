@@ -280,7 +280,7 @@ of analysis.
 <TR><TD >charge</TD><TD > atom-ID atom-type q x y z</TD></TR>
 <TR><TD >colloid</TD><TD > atom-ID atom-type x y z</TD></TR>
 <TR><TD >dipole</TD><TD > atom-ID atom-type q x y z mux muy muz</TD></TR>
-<TR><TD >electron</TD><TD > atom-ID atom-type spin eradius x y z</TD></TR>
+<TR><TD >electron</TD><TD > atom-ID atom-type q spin eradius x y z</TD></TR>
 <TR><TD >ellipsoid</TD><TD > atom-ID atom-type x y z quatw quati quatj quatk</TD></TR>
 <TR><TD >full</TD><TD > atom-ID molecule-ID atom-type q x y z</TD></TR>
 <TR><TD >granular</TD><TD > atom-ID atom-type diameter density x y z</TD></TR>
@@ -301,7 +301,7 @@ of analysis.
 <LI>x,y,z = coordinates of atom
 <LI>mux,muy,muz = direction of dipole moment of atom
 <LI>quatw,quati,quatj,quatk = quaternion components for orientation of atom
-<LI>spin = electron spin (+1/-1)
+<LI>spin = electron spin (+1/-1), 0 for nuclei
 <LI>eradius = electron radius 
 </UL>
 <P>The units for these quantities depend on the unit style; see the

@@ -260,7 +260,7 @@ bond: atom-ID molecule-ID atom-type x y z
 charge: atom-ID atom-type q x y z
 colloid: atom-ID atom-type x y z
 dipole: atom-ID atom-type q x y z mux muy muz
-electron: atom-ID atom-type spin eradius x y z
+electron: atom-ID atom-type q spin eradius x y z
 ellipsoid: atom-ID atom-type x y z quatw quati quatj quatk
 full: atom-ID molecule-ID atom-type q x y z
 granular: atom-ID atom-type diameter density x y z
@@ -280,7 +280,7 @@ volume = volume of atom (distance^3 units)
 x,y,z = coordinates of atom
 mux,muy,muz = direction of dipole moment of atom
 quatw,quati,quatj,quatk = quaternion components for orientation of atom
-spin = electron spin (+1/-1)
+spin = electron spin (+1/-1), 0 for nuclei
 eradius = electron radius :ul
 
 The units for these quantities depend on the unit style; see the

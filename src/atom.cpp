@@ -1584,13 +1584,11 @@ void Atom::update_callback(int ifix)
 /* ----------------------------------------------------------------------
    return a pointer to a named internal variable
    if don't recognize name, return NULL
+   customize by adding names
 ------------------------------------------------------------------------- */
 
 void *Atom::extract(char *name)
 {
-  if (strcmp(name,"natoms") == 0) return (void *) &natoms;
-  if (strcmp(name,"nlocal") == 0) return (void *) &nlocal;
-
   if (strcmp(name,"id") == 0) return (void *) tag;
   if (strcmp(name,"type") == 0) return (void *) type;
   if (strcmp(name,"x") == 0) return (void *) x;

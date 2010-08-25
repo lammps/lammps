@@ -91,9 +91,6 @@ class Modify : protected Pointers {
   int read_restart(FILE *);
   void restart_deallocate();
 
-  void *extract_fix(char *, char *);
-  void *extract_compute(char *, char *);
-
   double memory_usage();
 
  private:

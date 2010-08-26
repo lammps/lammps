@@ -114,7 +114,7 @@ class Data {
   double *pair_ljgromacs_epsilon,*pair_ljgromacs_sigma;
   double *pair_ljsmooth_epsilon,*pair_ljsmooth_sigma;
   double *pair_morse_d0,*pair_morse_alpha,*pair_morse_r0;
-  double *pair_soft_start,*pair_soft_stop;
+  double *pair_soft_A;
   double *pair_yukawa_A;
 
   double *bond_class2_r0,*bond_class2_k2,*bond_class2_k3,*bond_class2_k4;
@@ -1578,6 +1578,33 @@ void pair(FILE *fp, Data &data, char *style, int flag)
   } else if (strcmp(style,"eam/omp") == 0) {
   } else if (strcmp(style,"eam/alloy/omp") == 0) {
   } else if (strcmp(style,"eam/fs/omp") == 0) {
+
+  } else if (strcmp(style,"eff/cut") == 0) {
+
+    double cut_coul = read_double(fp);
+    int limit_size_flag = read_int(fp);
+    int flexible_pressure_flag = read_int(fp);
+    int offset_flag = read_int(fp);
+    int mix_flag = read_int(fp);
+
+    if (!flag) return;
+
+    for (i = 1; i <= data.ntypes; i++)
+      for (j = i; j <= data.ntypes; j++) {
+	itmp = read_int(fp);
+	if (i == j && itmp == 0) {
+	  printf("ERROR: Pair coeff %d,%d is not in restart file\n",i,j);
+	  exit(1);
+	}
+	if (itmp) {
+	  if (i == j) {
+	    double cut = read_double(fp);
+	  } else {
+	    double cut = read_double(fp);
+	  }
+	}
+      }
+
   } else if ((strcmp(style,"gauss/cut") == 0) ||
              (strcmp(style,"gauss/cut/omp") == 0)) {
 
@@ -1599,19 +1626,19 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 	  exit(1);
 	}
 	if (itmp) {
-	if (i == j) {
-	  data.pair_gauss_hgauss[i] = read_double(fp);
-	  data.pair_gauss_rmh[i] = read_double(fp);
-	  data.pair_gauss_sigmah[i] = read_double(fp);
-	  double cut_lj = read_double(fp);
-	} else {
-	  double dipole_hgauss = read_double(fp);
-	  double dipole_rmh = read_double(fp);
-	  double dipole_sigmah = read_double(fp);
-	  double cut_lj = read_double(fp);
+	  if (i == j) {
+	    data.pair_gauss_hgauss[i] = read_double(fp);
+	    data.pair_gauss_rmh[i] = read_double(fp);
+	    data.pair_gauss_sigmah[i] = read_double(fp);
+	    double cut_lj = read_double(fp);
+	  } else {
+	    double dipole_hgauss = read_double(fp);
+	    double dipole_rmh = read_double(fp);
+	    double dipole_sigmah = read_double(fp);
+	    double cut_lj = read_double(fp);
+	  }
 	}
       }
-    }
   } else if (strcmp(style,"gayberne") == 0) {
 
     double gamma = read_double(fp);
@@ -2053,8 +2080,7 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 
     if (!flag) return;
 
-    data.pair_soft_start = new double[data.ntypes+1];
-    data.pair_soft_stop = new double[data.ntypes+1];
+    data.pair_soft_A = new double[data.ntypes+1];
 
     for (i = 1; i <= data.ntypes; i++)
       for (j = i; j <= data.ntypes; j++) {
@@ -2065,12 +2091,10 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 	}
 	if (itmp) {
 	  if (i == j) {
-	    data.pair_soft_start[i] = read_double(fp);
-	    data.pair_soft_stop[i] = read_double(fp);
+	    data.pair_soft_A[i] = read_double(fp);
 	    double cut = read_double(fp);
 	  } else {
-	    double soft_start = read_double(fp);
-	    double soft_stop = read_double(fp);
+	    double soft_A = read_double(fp);
 	    double cut = read_double(fp);
 	  }
 	}
@@ -2786,6 +2810,7 @@ void Data::write(FILE *fp, FILE *fp2)
 	(strcmp(pair_style,"eam/fs") != 0) &&
 	(strcmp(pair_style,"eam/fs/opt") != 0) &&
 	(strcmp(pair_style,"eam/fs/omp") != 0) &&
+	(strcmp(pair_style,"eff/cut") != 0) &&
 	(strcmp(pair_style,"gran/history") != 0) &&
 	(strcmp(pair_style,"gran/history/omp") != 0) &&
 	(strcmp(pair_style,"gran/no_history") != 0) &&
@@ -2919,8 +2944,8 @@ void Data::write(FILE *fp, FILE *fp2)
     } else if ((strcmp(pair_style,"soft") == 0) ||
 	       (strcmp(pair_style,"soft/omp") == 0)) {
       for (int i = 1; i <= ntypes; i++)
-	fprintf(fp,"%d %g %g\n",i,
-		pair_soft_start[i],pair_soft_stop[i]);
+	fprintf(fp,"%d %g\n",i,
+		pair_soft_A[i]);
       
     } else if ((strcmp(pair_style,"yukawa") == 0) ||
 	       (strcmp(pair_style,"yukawa/omp") == 0)) {

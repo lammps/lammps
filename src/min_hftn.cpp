@@ -180,7 +180,7 @@ void MinHFTN::reset_vectors()
     int  n = NUM_HFTN_ATOM_BASED_VECTORS;
     for (int m = 0; m < nextra_atom; m++) {
       extra_nlen[m] = extra_peratom[m] * atom->nlocal;
-      requestor[m]->min_pointers(&xextra_atom[m], &fextra_atom[m]);
+      requestor[m]->min_xf_pointers(m,&xextra_atom[m],&fextra_atom[m]);
       for (int  i = 0; i < NUM_HFTN_ATOM_BASED_VECTORS; i++)
 	_daExtraAtom[i][m] = fix_minimize->request_vector (n++);
     }
@@ -323,6 +323,7 @@ int MinHFTN::execute_hftn_(const bool      bPrintProgress,
 	  int  n = extra_nlen[m];
 	  for (int  i = 0; i < n; i++)
 	    xatom[i] = xkAtom[i];
+	  requestor[m]->min_x_set(m);
 	}
       }
       dFinalEnergy = energy_force (0);
@@ -366,6 +367,7 @@ int MinHFTN::execute_hftn_(const bool      bPrintProgress,
 	int  n = extra_nlen[m];
 	for (int  i = 0; i < n; i++)
 	  xatom[i] = xkAtom[i] + pAtom[i];
+	requestor[m]->min_x_set(m);
       }
     }
     if (nextra_global)
@@ -485,6 +487,7 @@ int MinHFTN::execute_hftn_(const bool      bPrintProgress,
 	  int  n = extra_nlen[m];
 	  for (int  i = 0; i < n; i++)
 	    xatom[i] = xkAtom[i];
+	  requestor[m]->min_x_set(m);
 	}
       }
       bHaveEvaluatedAtX = false;
@@ -651,12 +654,13 @@ bool MinHFTN::compute_inner_cg_step_(const double    dTrustRadius,
   }
   if (nextra_atom) {
     for (int  m = 0; m < nextra_atom; m++) {
+      double *  fatom = fextra_atom[m];
       double *  rAtom = _daExtraAtom[VEC_CG_R][m];
       double *  dAtom = _daExtraAtom[VEC_CG_D][m];
       int  n = extra_nlen[m];
       for (int  i = 0; i < n; i++) {
-	rAtom[i] = fextra_atom[m][i];
-	dAtom[i] = fextra_atom[m][i];
+	rAtom[i] = fatom[i];
+	dAtom[i] = fatom[i];
       }
     }
   }
@@ -716,6 +720,7 @@ bool MinHFTN::compute_inner_cg_step_(const double    dTrustRadius,
 	  int  n = extra_nlen[m];
 	  for (int  i = 0; i < n; i++)
 	    xatom[i] = xkAtom[i];
+	  requestor[m]->min_x_set(m);
 	}
       }
       dEnergyAtX = energy_force (0);
@@ -947,10 +952,11 @@ double MinHFTN::calc_grad_dot_v_using_mpi_(const int  nIx) const
     dGradDotVLocal += - _daAVectors[nIx][i] * fvec[i];
   if (nextra_atom) {
     for (int m = 0; m < nextra_atom; m++) {
+      double *  fatom = fextra_atom[m];
       double *  iAtom = _daExtraAtom[nIx][m];
       int  n = extra_nlen[m];
       for (int i = 0; i < n; i++)
-	dGradDotVLocal += - iAtom[i] * fextra_atom[m][i];
+	dGradDotVLocal += - iAtom[i] * fatom[i];
     }
   }
   
@@ -1396,6 +1402,7 @@ void MinHFTN::evaluate_dir_der_(const bool      bUseForwardDiffs,
 	int  n = extra_nlen[m];
 	for (int  i = 0; i < n; i++)
 	  xatom[i] += dEps * iAtom[i];
+	requestor[m]->min_x_set(m);
       }
     }
     energy_force (0);
@@ -1410,10 +1417,11 @@ void MinHFTN::evaluate_dir_der_(const bool      bUseForwardDiffs,
       _daAVectors[VEC_DIF2][i] = fvec[i];
     if (nextra_atom) {
       for (int  m = 0; m < nextra_atom; m++) {
+	double *  fatom  = fextra_atom[m];
 	double *  d2Atom = _daExtraAtom[VEC_DIF2][m];
 	int  n = extra_nlen[m];
 	for (int  i = 0; i < n; i++)
-	  d2Atom[i] = fextra_atom[m][i];
+	  d2Atom[i] = fatom[i];
       }
     }
     
@@ -1431,6 +1439,7 @@ void MinHFTN::evaluate_dir_der_(const bool      bUseForwardDiffs,
 	int  n = extra_nlen[m];
 	for (int  i = 0; i < n; i++)
 	  xatom[i] += d1Atom[i];
+	requestor[m]->min_x_set(m);
       }
     }
     dNewEnergy = energy_force (0);
@@ -1490,6 +1499,7 @@ void MinHFTN::evaluate_dir_der_(const bool      bUseForwardDiffs,
 	int  n = extra_nlen[m];
 	for (int  i = 0; i < n; i++)
 	  xatom[i] += dEps * iAtom[i];
+	requestor[m]->min_x_set(m);
       }
     }
     energy_force (0);
@@ -1504,10 +1514,11 @@ void MinHFTN::evaluate_dir_der_(const bool      bUseForwardDiffs,
       _daAVectors[VEC_DIF2][i] = fvec[i];
     if (nextra_atom) {
       for (int  m = 0; m < nextra_atom; m++) {
+	double *  fatom  = fextra_atom[m];
 	double *  d2Atom = _daExtraAtom[VEC_DIF2][m];
 	int  n = extra_nlen[m];
 	for (int  i = 0; i < n; i++)
-	  d2Atom[i] = fextra_atom[m][i];
+	  d2Atom[i] = fatom[i];
       }
     }
     
@@ -1525,6 +1536,7 @@ void MinHFTN::evaluate_dir_der_(const bool      bUseForwardDiffs,
 	int  n = extra_nlen[m];
 	for (int  i = 0; i < n; i++)
 	  xatom[i] = d1Atom[i] - dEps * iAtom[i];
+	requestor[m]->min_x_set(m);
       }
     }
     energy_force (0);
@@ -1544,11 +1556,12 @@ void MinHFTN::evaluate_dir_der_(const bool      bUseForwardDiffs,
 	(fvec[i] - _daAVectors[VEC_DIF2][i]) / (2.0 * dEps);
     if (nextra_atom) {
       for (int  m = 0; m < nextra_atom; m++) {
+	double *  fatom  = fextra_atom[m];
 	double *  iAtom  = _daExtraAtom[nIxResult][m];
 	double *  d2Atom = _daExtraAtom[VEC_DIF2][m];
 	int  n = extra_nlen[m];
 	for (int  i = 0; i < n; i++)
-	  iAtom[i] = (fextra_atom[m][i] - d2Atom[i]) / (2.0 + dEps);
+	  iAtom[i] = (fatom[i] - d2Atom[i]) / (2.0 + dEps);
       }
     }
     
@@ -1567,6 +1580,7 @@ void MinHFTN::evaluate_dir_der_(const bool      bUseForwardDiffs,
 	  int  n = extra_nlen[m];
 	  for (int  i = 0; i < n; i++)
 	    xatom[i] = d1Atom[i];
+	  requestor[m]->min_x_set(m);
 	}
       }
       dNewEnergy = energy_force (0);

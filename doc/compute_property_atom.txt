@@ -22,7 +22,7 @@ input = one or more atom attributes :l
                         radius, omegax, omegay, omegaz,
                         angmomx, angmomy, angmomz,
 		        quatw, quati, quatj, quatk, tqx, tqy, tqz,
-			spin, eradius, evel, eforce :pre
+			spin, eradius, ervel, erforce :pre
 
       id = atom ID
       mol = molecule ID
@@ -43,8 +43,8 @@ input = one or more atom attributes :l
       tqx,tqy,tqz = torque on extended particles
       spin = electron spin
       eradius = electron radius
-      evel = electron radial velocity
-      eforce = electron radial force :pre
+      ervel = electron radial velocity
+      erforce = electron radial force :pre
 :ule
 
 [Examples:]

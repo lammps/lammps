@@ -135,12 +135,12 @@ void Min::init()
   ev_setup();
 
   // set flags for what arrays to clear in force_clear()
-  // need to clear torques,eforce if arrays exists
+  // need to clear torques,erforce if arrays exists
 
   torqueflag = 0;
   if (atom->torque_flag) torqueflag = 1;
-  eforceflag = 0;
-  if (atom->eforce_flag) eforceflag = 1;
+  erforceflag = 0;
+  if (atom->erforce_flag) erforceflag = 1;
 
   // orthogonal vs triclinic simulation box
 
@@ -246,6 +246,12 @@ void Min::setup()
 
   if (force->newton) comm->reverse_comm();
 
+  // update per-atom minimization variables stored by pair styles
+
+  if (nextra_atom)
+    for (int m = 0; m < nextra_atom; m++)
+      requestor[m]->min_xf_get(m);
+
   modify->setup(vflag);
   output->setup(1);
 
@@ -309,6 +315,12 @@ void Min::setup_minimal(int flag)
   }
 
   if (force->newton) comm->reverse_comm();
+
+  // update per-atom minimization variables stored by pair styles
+
+  if (nextra_atom)
+    for (int m = 0; m < nextra_atom; m++)
+      requestor[m]->min_xf_get(m);
 
   modify->setup(vflag);
 
@@ -468,6 +480,12 @@ double Min::energy_force(int resetflag)
     timer->stamp(TIME_COMM);
   }
 
+  // update per-atom minimization variables stored by pair styles
+
+  if (nextra_atom)
+    for (int m = 0; m < nextra_atom; m++)
+      requestor[m]->min_xf_get(m);
+
   // fixes that affect minimization
 
   if (modify->n_min_post_force) modify->min_post_force(vflag);
@@ -523,19 +541,21 @@ void Min::force_clear()
     }
   }
 
-  if (eforceflag) {
-    double *eforce = atom->eforce;
+  if (erforceflag) {
+    double *erforce = atom->erforce;
     for (i = 0; i < nall; i++)
-      eforce[i] = 0.0;
+      erforce[i] = 0.0;
   }
 }
 
 /* ----------------------------------------------------------------------
-   clear force on own & ghost atoms
-   setup and clear other arrays as needed
+   pair style makes request to add a per-atom variables to minimization
+   requestor stores callback to pair class to invoke during min
+     to get current variable and forces on it and to update the variable
+   return flag that pair can use if it registers multiple variables
 ------------------------------------------------------------------------- */
 
-void Min::request(Pair *pair, int peratom, double maxvalue)
+int Min::request(Pair *pair, int peratom, double maxvalue)
 {
   int n = nextra_atom + 1;
   xextra_atom = (double **) memory->srealloc(xextra_atom,n*sizeof(double *),
@@ -555,6 +575,7 @@ void Min::request(Pair *pair, int peratom, double maxvalue)
   extra_peratom[nextra_atom] = peratom;
   extra_max[nextra_atom] = maxvalue;
   nextra_atom++;
+  return nextra_atom-1;
 }
 
 /* ---------------------------------------------------------------------- */

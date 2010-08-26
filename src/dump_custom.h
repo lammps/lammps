@@ -150,8 +150,8 @@ class DumpCustom : public Dump {
   void pack_tqz(int);
   void pack_spin(int);
   void pack_eradius(int);
-  void pack_evel(int);
-  void pack_eforce(int);
+  void pack_ervel(int);
+  void pack_erforce(int);
 
   void pack_compute(int);
   void pack_fix(int);

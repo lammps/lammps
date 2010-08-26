@@ -34,7 +34,7 @@ class Min : protected Pointers {
   void setup_minimal(int);
   void run(int,int);
   void cleanup();
-  void request(class Pair *, int, double);
+  int request(class Pair *, int, double);
   double memory_usage() {return 0.0;}
   void modify_params(int, char **);
 
@@ -58,7 +58,7 @@ class Min : protected Pointers {
   class Compute **vlist_atom;
 
   int pairflag;
-  int torqueflag,eforceflag;
+  int torqueflag,erforceflag;
   int triclinic;              // 0 if domain is orthog, 1 if triclinic
 
   int narray;                       // # of arrays stored by fix_minimize
@@ -77,13 +77,13 @@ class Min : protected Pointers {
   double *fextra;             // force vector for extra global dof
                               // xextra is stored by fix
 
-  int nextra_atom;            // # of sets of extra per-atom dof
-  double **xextra_atom;       // variables for extra per-atom dof sets
-  double **fextra_atom;       // force vectors for extra per-atom dof sets
-  int *extra_peratom;         // # of per-atom values in each set
-  int *extra_nlen;            // total local length of each set, e.g 3*nlocal
-  double *extra_max;          // max allowed change in one iter for each set
-  class Pair **requestor;     // Pair that requested each set
+  int nextra_atom;            // # of extra per-atom variables
+  double **xextra_atom;       // ptr to the variable
+  double **fextra_atom;       // ptr to the force on the variable
+  int *extra_peratom;         // # of values in variable, e.g. 3 in x
+  int *extra_nlen;            // total local length of variable, e.g 3*nlocal
+  double *extra_max;          // max allowed change per iter for atom's var
+  class Pair **requestor;     // Pair that stores/manipulates the variable
 
   int neigh_every,neigh_delay,neigh_dist_check;  // neighboring params
 

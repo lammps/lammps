@@ -54,7 +54,7 @@ class Respa : public Integrate {
  private:
   int triclinic;                    // 0 if domain is orthog, 1 if triclinic
   int torqueflag;                   // zero out arrays every step
-  int eforceflag;
+  int erforceflag;
 
   int *newton;                      // newton flag at each level
   class FixRespa *fix_respa;        // Fix to store the force level array

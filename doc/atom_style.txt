@@ -56,7 +56,7 @@ quantities.
 {charge} | charge | atomic system with charges |
 {colloid} | angular velocity | extended spherical particles |
 {dipole} | charge and dipole moment | atomic system with dipoles |
-{electron} | spin and eradius | electronic force field |
+{electron} | charge and spin and eradius | electronic force field |
 {ellipsoid} | quaternion for particle orientation, angular momentum | extended aspherical particles |
 {full} | molecular + charge | bio-molecules |
 {granular} | diameter, density, angular velocity | granular models |
@@ -73,9 +73,9 @@ aspherical for {ellipsoid} particles.  For {granular} systems, the
 particles are spherical and each has a per-particle specified
 diameter.  For {peri} systems, the particles are spherical and each
 has a per-particle specified volume.  For {electron} systems, the
-particles are three dimensional Gaussians with a specified position
-and bandwidth or uncertainty in position, which is described as the
-eradius = electron size.
+particles representing electrons are three dimensional Gaussians with
+a specified position and bandwidth or uncertainty in position, which
+is represented by the eradius = electron size.
 
 All of the styles assign mass to particles on a per-type basis, using
 the "mass"_mass.html command, except the {granular} and {peri} styles

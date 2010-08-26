@@ -71,7 +71,11 @@ class Pair : protected Pointers {
   virtual void compute_outer(int, int) {}
 
   virtual double single(int, int, int, int,
-			double, double, double, double &) {return 0.0;}
+			double, double
+
+
+
+, double, double &) {return 0.0;}
 
   virtual void settings(int, char **) = 0;
   virtual void coeff(int, char **) = 0;
@@ -96,7 +100,9 @@ class Pair : protected Pointers {
   virtual void *extract(char *) {return NULL;}
   virtual void swap_eam(double *, double **) {}
   virtual void reset_dt() {}
-  virtual void min_pointers(double **, double **) {}
+  virtual void min_xf_pointers(int, double **, double **) {}
+  virtual void min_xf_get(int) {}
+  virtual void min_x_set(int) {}
   virtual int pre_adapt(char *, int, int, int, int) {return -1;}
   virtual void adapt(int, int, int, int, int, double) {}
 

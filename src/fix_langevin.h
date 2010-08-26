@@ -27,20 +27,20 @@ namespace LAMMPS_NS {
 class FixLangevin : public Fix {
  public:
   FixLangevin(class LAMMPS *, int, char **);
-  ~FixLangevin();
+  virtual ~FixLangevin();
   int setmask();
   void init();
   void setup(int);
   void post_force(int);
   void post_force_respa(int, int, int);
-  void end_of_step();
+  virtual void end_of_step();
   void reset_target(double);
   void reset_dt();
   int modify_param(int, char **);
-  double compute_scalar();
+  virtual double compute_scalar();
   double memory_usage();
 
- private:
+ protected:
   int which,tally;
   double t_start,t_stop,t_period;
   double *gfactor1,*gfactor2,*ratio;
@@ -55,8 +55,8 @@ class FixLangevin : public Fix {
   int nlevels_respa;
   class RanMars *random;
 
-  void post_force_no_tally();
-  void post_force_tally();
+  virtual void post_force_no_tally();
+  virtual void post_force_tally();
 };
 
 }

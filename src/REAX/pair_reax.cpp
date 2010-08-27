@@ -181,7 +181,8 @@ void PairREAX::compute(int eflag, int vflag)
   // extract global and per-atom energy from ReaxFF Fortran
   // compute_charge already contributed to eatom
 
-  if (eflag_global) {
+  if (eflag && eflag_global) {
+    //    output_itemized_energy(energy_charge_equilibration);
     evdwl += FORTRAN(cbkenergies, CBKENERGIES).eb;
     evdwl += FORTRAN(cbkenergies, CBKENERGIES).ea;
     evdwl += FORTRAN(cbkenergies, CBKENERGIES).elp;
@@ -202,7 +203,7 @@ void PairREAX::compute(int eflag, int vflag)
     eng_coul += ecoul;
   }
 
-  if (eflag_atom) {
+  if (eflag && eflag_atom) {
     int ntotal = atom->nlocal + atom->nghost;
     for (i = 0; i < ntotal; i++)
       eatom[i] += FORTRAN(cbkd,CBKD).estrain[i];
@@ -210,7 +211,7 @@ void PairREAX::compute(int eflag, int vflag)
 
   // extract global and per-atom virial from ReaxFF Fortran
 
-  if (vflag_global) {
+  if (vflag && vflag_global) {
     virial[0] = -FORTRAN(cbkvirial, CBKVIRIAL).virial[0];
     virial[1] = -FORTRAN(cbkvirial, CBKVIRIAL).virial[1];
     virial[2] = -FORTRAN(cbkvirial, CBKVIRIAL).virial[2];
@@ -219,7 +220,7 @@ void PairREAX::compute(int eflag, int vflag)
     virial[5] = -FORTRAN(cbkvirial, CBKVIRIAL).virial[5];
   }
 
-  if (vflag_atom) {
+  if (vflag && vflag_atom) {
     int ntotal = atom->nlocal + atom->nghost;
     j = 0;
     for (i = 0; i < ntotal; i++) {
@@ -1064,33 +1065,37 @@ void PairREAX::output_itemized_energy(double energy_charge_equilibration)
   MPI_Allreduce(etmp,etmp2,14,MPI_DOUBLE,MPI_SUM,world);
   
   if (comm->me == 0) {
-    fprintf(screen,"eb = %g \n",etmp2[0]);
-    fprintf(screen,"ea = %g \n",etmp2[1]);
-    fprintf(screen,"elp = %g \n",etmp2[2]);
-    fprintf(screen,"emol = %g \n",etmp2[3]);
-    fprintf(screen,"ecoa = %g \n",etmp2[4]);
-    fprintf(screen,"epen = %g \n",etmp2[5]);
-    fprintf(screen,"ecoa = %g \n",etmp2[6]);
-    fprintf(screen,"ehb = %g \n",etmp2[7]);
-    fprintf(screen,"et = %g \n",etmp2[8]);
-    fprintf(screen,"eco = %g \n",etmp2[9]);
-    fprintf(screen,"ew = %g \n",etmp2[10]);
-    fprintf(screen,"ep = %g \n",etmp2[11]);
-    fprintf(screen,"efi = %g \n",etmp2[12]);
-    fprintf(screen,"eqeq = %g \n",etmp2[13]);
-    fprintf(logfile,"eb = %g \n",etmp2[0]);
-    fprintf(logfile,"ea = %g \n",etmp2[1]);
-    fprintf(logfile,"elp = %g \n",etmp2[2]);
-    fprintf(logfile,"emol = %g \n",etmp2[3]);
-    fprintf(logfile,"ecoa = %g \n",etmp2[4]);
-    fprintf(logfile,"epen = %g \n",etmp2[5]);
-    fprintf(logfile,"ecoa = %g \n",etmp2[6]);
-    fprintf(logfile,"ehb = %g \n",etmp2[7]);
-    fprintf(logfile,"et = %g \n",etmp2[8]);
-    fprintf(logfile,"eco = %g \n",etmp2[9]);
-    fprintf(logfile,"ew = %g \n",etmp2[10]);
-    fprintf(logfile,"ep = %g \n",etmp2[11]);
-    fprintf(logfile,"efi = %g \n",etmp2[12]);
-    fprintf(logfile,"eqeq = %g \n",etmp2[13]);
+    if (screen) {
+      fprintf(screen,"eb = %g \n",etmp2[0]);
+      fprintf(screen,"ea = %g \n",etmp2[1]);
+      fprintf(screen,"elp = %g \n",etmp2[2]);
+      fprintf(screen,"emol = %g \n",etmp2[3]);
+      fprintf(screen,"ecoa = %g \n",etmp2[4]);
+      fprintf(screen,"epen = %g \n",etmp2[5]);
+      fprintf(screen,"ecoa = %g \n",etmp2[6]);
+      fprintf(screen,"ehb = %g \n",etmp2[7]);
+      fprintf(screen,"et = %g \n",etmp2[8]);
+      fprintf(screen,"eco = %g \n",etmp2[9]);
+      fprintf(screen,"ew = %g \n",etmp2[10]);
+      fprintf(screen,"ep = %g \n",etmp2[11]);
+      fprintf(screen,"efi = %g \n",etmp2[12]);
+      fprintf(screen,"eqeq = %g \n",etmp2[13]);
+    }
+    if (logfile) {
+      fprintf(logfile,"eb = %g \n",etmp2[0]);
+      fprintf(logfile,"ea = %g \n",etmp2[1]);
+      fprintf(logfile,"elp = %g \n",etmp2[2]);
+      fprintf(logfile,"emol = %g \n",etmp2[3]);
+      fprintf(logfile,"ecoa = %g \n",etmp2[4]);
+      fprintf(logfile,"epen = %g \n",etmp2[5]);
+      fprintf(logfile,"ecoa = %g \n",etmp2[6]);
+      fprintf(logfile,"ehb = %g \n",etmp2[7]);
+      fprintf(logfile,"et = %g \n",etmp2[8]);
+      fprintf(logfile,"eco = %g \n",etmp2[9]);
+      fprintf(logfile,"ew = %g \n",etmp2[10]);
+      fprintf(logfile,"ep = %g \n",etmp2[11]);
+      fprintf(logfile,"efi = %g \n",etmp2[12]);
+      fprintf(logfile,"eqeq = %g \n",etmp2[13]);
+    }
   }
 }

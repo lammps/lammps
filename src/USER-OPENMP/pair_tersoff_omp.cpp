@@ -80,7 +80,7 @@ void PairTersoffOMP::compute(int eflag, int vflag)
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
     ev_setup_thr(eflag,vflag);
-  } else evflag = vflag_fdotr = 0;
+  } else evflag = vflag_fdotr = vflag_atom = 0;
 
 #if defined(_OPENMP)
 #pragma omp parallel default(shared)

@@ -11,11 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-/* umbrella = simple example of how an umbrella program
+/* c_driver = simple example of how an umbrella program
               can invoke LAMMPS as a library on some subset of procs
-   Syntax: umbrella P in.lammps
+   Syntax: c_driver P in.lammps
            P = # of procs to run LAMMPS on
-               must be <= # of procs the umbrella code itself runs on
+               must be <= # of procs the driver code itself runs on
            in.lammps = LAMMPS input script
    See README for compilation instructions */
 
@@ -28,13 +28,13 @@
 int main(int narg, char **arg)
 {
   /* setup MPI and various communicators
-     umbrella is all procs in MPI_COMM_WORLD
+     driver runs on all procs in MPI_COMM_WORLD
      comm_lammps only has 1st P procs (could be all or any subset) */
 
   MPI_Init(&narg,&arg);
 
   if (narg != 3) {
-    printf("Syntax: umbrella P in.lammps\n");
+    printf("Syntax: c_driver P in.lammps\n");
     exit(1);
   }
 
@@ -67,7 +67,7 @@ int main(int narg, char **arg)
   }
 
   /* run the input script thru LAMMPS one line at a time until end-of-file
-     umbrella proc 0 reads a line, Bcasts it to all procs
+     driver proc 0 reads a line, Bcasts it to all procs
      (could just send it to proc 0 of comm_lammps and let it Bcast)
      all LAMMPS procs call lammps_command() on the line */
 

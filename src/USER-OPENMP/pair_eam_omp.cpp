@@ -127,7 +127,7 @@ void PairEAMOMP::compute(int eflag, int vflag)
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
     ev_setup_thr(eflag,vflag);
-  } else evflag = vflag_fdotr = 0;
+  } else evflag = vflag_fdotr = eflag_global = eflag_atom = 0;
 
   // grow energy and fp arrays if necessary
   // need to be atom->nmax in length

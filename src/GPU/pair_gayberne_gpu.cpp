@@ -183,7 +183,7 @@ PairGayBerneGPU::~PairGayBerneGPU()
 void PairGayBerneGPU::compute(int eflag, int vflag)
 {
   if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  else evflag = vflag_fdotr = eflag_atom = vflag_atom = 0;
   if (vflag_atom) 
     error->all("Per-atom virial not available with GPU Gay-Berne");
 

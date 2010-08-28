@@ -118,7 +118,8 @@ void PairREAX::compute(int eflag, int vflag)
 
   evdwl = ecoul = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  else evflag = vflag_fdotr = eflag_global = vflag_global = 
+	 eflag_atom = vflag_atom = 0;
 
   if (vflag_global) FORTRAN(cbkvirial, CBKVIRIAL).Lvirial = 1;
   else FORTRAN(cbkvirial, CBKVIRIAL).Lvirial = 0;
@@ -181,8 +182,7 @@ void PairREAX::compute(int eflag, int vflag)
   // extract global and per-atom energy from ReaxFF Fortran
   // compute_charge already contributed to eatom
 
-  if (eflag && eflag_global) {
-    //    output_itemized_energy(energy_charge_equilibration);
+  if (eflag_global) {
     evdwl += FORTRAN(cbkenergies, CBKENERGIES).eb;
     evdwl += FORTRAN(cbkenergies, CBKENERGIES).ea;
     evdwl += FORTRAN(cbkenergies, CBKENERGIES).elp;
@@ -203,7 +203,7 @@ void PairREAX::compute(int eflag, int vflag)
     eng_coul += ecoul;
   }
 
-  if (eflag && eflag_atom) {
+  if (eflag_atom) {
     int ntotal = atom->nlocal + atom->nghost;
     for (i = 0; i < ntotal; i++)
       eatom[i] += FORTRAN(cbkd,CBKD).estrain[i];
@@ -211,7 +211,7 @@ void PairREAX::compute(int eflag, int vflag)
 
   // extract global and per-atom virial from ReaxFF Fortran
 
-  if (vflag && vflag_global) {
+  if (vflag_global) {
     virial[0] = -FORTRAN(cbkvirial, CBKVIRIAL).virial[0];
     virial[1] = -FORTRAN(cbkvirial, CBKVIRIAL).virial[1];
     virial[2] = -FORTRAN(cbkvirial, CBKVIRIAL).virial[2];
@@ -220,7 +220,7 @@ void PairREAX::compute(int eflag, int vflag)
     virial[5] = -FORTRAN(cbkvirial, CBKVIRIAL).virial[5];
   }
 
-  if (vflag && vflag_atom) {
+  if (vflag_atom) {
     int ntotal = atom->nlocal + atom->nghost;
     j = 0;
     for (i = 0; i < ntotal; i++) {

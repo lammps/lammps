@@ -86,7 +86,7 @@ void PairCDEAM::compute(int eflag, int vflag)
 
 	evdwl = 0.0;
 	if (eflag || vflag) ev_setup(eflag,vflag);
-	else evflag = vflag_fdotr = 0;
+	else evflag = vflag_fdotr = eflag_global = eflag_atom = 0;
 
 	// Grow per-atom arrays if necessary
 	if(atom->nmax > nmax) {
@@ -185,8 +185,8 @@ void PairCDEAM::compute(int eflag, int vflag)
 		fp[i] = FPrimeOfRho(index, type[i]);
 		if(eflag) {
 			phi = FofRho(index, type[i]);
-			if(eflag_global) eng_vdwl += phi;
-			if(eflag_atom) eatom[i] += phi;
+			if (eflag_global) eng_vdwl += phi;
+			if (eflag_atom) eatom[i] += phi;
 		}
 	}
 

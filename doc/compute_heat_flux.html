@@ -132,7 +132,7 @@ energy/area/time <A HREF = "units.html">units</A>
 </H4>
 <PRE>atom_style  atomic
 units       real
-variable    kB equal 1.3806504e-23 # <B>J/K</B> Boltzmann
+variable    kB equal 1.3806504e-23 # [J/K] Boltzmann
 variable    kCal2J equal 4186.0/6.02214e23
 variable    T equal 70
 variable    V equal vol
@@ -168,18 +168,18 @@ compute   myKE all ke/atom
 compute   myPE all pe/atom
 compute   myStress all stress/atom virial
 compute   flux all heat/flux myKE myPE myStress
-variable  Jx equal c_flux<B>1</B>/vol
-variable  Jy equal c_flux<B>2</B>/vol
-variable  Jz equal c_flux<B>3</B>/vol
+variable  Jx equal c_flux[1]/vol
+variable  Jy equal c_flux[2]/vol
+variable  Jz equal c_flux[3]/vol
 fix       JJ all ave/correlate $s $p $d &
-          c_flux<B>1</B> c_flux<B>2</B> c_flux<B>3</B> type auto file J0Jt.dat ave running
+          c_flux[1] c_flux[2] c_flux[3] type auto file J0Jt.dat ave running
 variable  scale equal $<I>kCal2J</I>*$<I>kCal2J</I>/$<I>kB</I>/$T/$T/$V*$s*$<I>dt</I>*1.0e25
-variable  k11 equal trap(f_JJ<B>3</B>)*$<I>scale</I>
-variable  k22 equal trap(f_JJ<B>4</B>)*$<I>scale</I>
-variable  k33 equal trap(f_JJ<B>5</B>)*$<I>scale</I>
+variable  k11 equal trap(f_JJ[3])*$<I>scale</I>
+variable  k22 equal trap(f_JJ[4])*$<I>scale</I>
+variable  k33 equal trap(f_JJ[5])*$<I>scale</I>
 thermo_style custom step temp v_Jx v_Jy v_Jz v_k11 v_k22 v_k33
 run       100000
 variable  k equal (v_k11+v_k22+v_k33)/3.0
-print     "average conductivity: $k <B>W/mK</B>" 
+print     "average conductivity: $k [W/mK]" 
 </PRE>
 </HTML>

@@ -90,7 +90,7 @@ PairAIREBO::~PairAIREBO()
 void PairAIREBO::compute(int eflag, int vflag)
 {
   if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  else evflag = vflag_fdotr = vflag_atom = 0;
 
   REBO_neigh();
   FREBO(eflag,vflag);

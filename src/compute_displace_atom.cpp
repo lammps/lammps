@@ -35,7 +35,7 @@ ComputeDisplaceAtom::ComputeDisplaceAtom(LAMMPS *lmp, int narg, char **arg) :
   peratom_flag = 1;
   size_peratom_cols = 4;
 
-  // create a new fix store/state  style
+  // create a new fix store/state style
   // id = compute-ID + store_state, fix group = compute group
 
   int n = strlen(id) + strlen("_store_state") + 1;

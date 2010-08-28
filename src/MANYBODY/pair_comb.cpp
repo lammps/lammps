@@ -126,7 +126,7 @@ void PairComb::compute(int eflag, int vflag)
 
   evdwl = ecoul = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  else evflag = vflag_fdotr = vflag_atom = 0;
 
   // grow coordination array if necessary
 

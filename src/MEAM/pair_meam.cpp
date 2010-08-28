@@ -123,7 +123,8 @@ void PairMEAM::compute(int eflag, int vflag)
 
   evdwl = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  else evflag = vflag_fdotr = eflag_global = vflag_global =
+	 eflag_atom = vflag_atom = 0;
 
   int newton_pair = force->newton_pair;
 

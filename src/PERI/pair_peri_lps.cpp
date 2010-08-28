@@ -94,7 +94,7 @@ void PairPeriLPS::compute(int eflag, int vflag)
 
   evdwl = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  else evflag = vflag_fdotr = eflag_global = eflag_atom = 0;
 
   double **f = atom->f;
   double **x = atom->x;
@@ -174,10 +174,12 @@ void PairPeriLPS::compute(int eflag, int vflag)
       if (r < d_ij) {
         dr = r - d_ij;
 
-        // kshort based upon short-range force constant of the bond-based theory used in PMB model
-        double kshort = ( 15.0 * 18.0 * bulkmodulus[itype][itype] ) /                                  
-                 ( 3.141592653589793 * cutsq[itype][jtype] * cutsq[itype][jtype] );             
-        rk = ( kshort * vfrac[j]) * (dr / sqrt(cutsq[itype][jtype]));				
+        // kshort based upon short-range force constant
+	// of the bond-based theory used in PMB model
+
+        double kshort = (15.0 * 18.0 * bulkmodulus[itype][itype]) /
+	  (3.141592653589793 * cutsq[itype][jtype] * cutsq[itype][jtype]);
+        rk = (kshort * vfrac[j]) * (dr / sqrt(cutsq[itype][jtype]));
 
         if (r > 0.0) fpair = -(rk/r);
         else fpair = 0.0;
@@ -204,8 +206,8 @@ void PairPeriLPS::compute(int eflag, int vflag)
     memory->sfree(s0_new);				
     memory->sfree(theta);				
     nmax = atom->nmax;
-    s0_new = (double *) memory->smalloc(nmax*sizeof(double),"pair:s0_new");		
-    theta = (double *) memory->smalloc(nmax*sizeof(double),"pair:theta");		
+    s0_new = (double *) memory->smalloc(nmax*sizeof(double),"pair:s0_new");
+    theta = (double *) memory->smalloc(nmax*sizeof(double),"pair:theta");
   }
 
   // Compute the dilatation on each particle				
@@ -221,8 +223,10 @@ void PairPeriLPS::compute(int eflag, int vflag)
   for (i = 0; i < nlocal; i++) {   
     itype = type[i];
     if (eflag) {
-      if (eflag_global) eng_vdwl +=  0.5 * bulkmodulus[itype][itype] * (theta[i] * theta[i]);  
-      if (eflag_atom) eatom[i] += 0.5 * bulkmodulus[itype][itype] * (theta[i] * theta[i]);     
+      if (eflag_global)
+	eng_vdwl += 0.5 * bulkmodulus[itype][itype] * (theta[i] * theta[i]);
+      if (eflag_atom)
+	eatom[i] += 0.5 * bulkmodulus[itype][itype] * (theta[i] * theta[i]);
     }
   }
 

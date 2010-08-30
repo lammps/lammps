@@ -1,4 +1,3 @@
-processors  	2 2 2
 units		metal
 atom_style	charge
 dimension       3
@@ -18,7 +17,6 @@ compute   	charge2 type2 property/atom q
 compute   	q2 type2 reduce ave c_charge2
 
 pair_style	comb
-#pair_coeff	* * ../../potentials/ffield.comb Hf O
 pair_coeff	* * ffield.comb Hf O
 
 neighbor	0.5 bin
@@ -34,7 +32,7 @@ thermo_modify	norm yes
 fix		1 all nvt temp 300.0 300.0 0.1
 thermo      	1
 run    		1
-fix  		2 all qeq 1 0.003 file fq.out
+fix  		2 all qeq/comb 1 0.003 file fq.out
 run    		5
 
 unfix    	1

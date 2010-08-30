@@ -149,7 +149,7 @@ create_atoms 1 box
 mass	     1 39.948
 pair_style   lj/cut 13.0
 pair_coeff   * * 0.2381 3.405
-timestep     ${dt}
+timestep     $\{dt\}
 thermo	     $d :pre
 
 # ------------- equilibration and thermalization ----------------
@@ -170,10 +170,10 @@ variable  Jy equal c_flux\[2\]/vol
 variable  Jz equal c_flux\[3\]/vol
 fix       JJ all ave/correlate $s $p $d &
           c_flux\[1\] c_flux\[2\] c_flux\[3\] type auto file J0Jt.dat ave running
-variable  scale equal ${kCal2J}*${kCal2J}/${kB}/$T/$T/$V*$s*${dt}*1.0e25
-variable  k11 equal trap(f_JJ\[3\])*${scale}
-variable  k22 equal trap(f_JJ\[4\])*${scale}
-variable  k33 equal trap(f_JJ\[5\])*${scale}
+variable  scale equal $\{kCal2J\}*$\{kCal2J\}/$\{kB\}/$T/$T/$V*$s*$\{dt\}*1.0e25
+variable  k11 equal trap(f_JJ\[3\])*$\{scale\}
+variable  k22 equal trap(f_JJ\[4\])*$\{scale\}
+variable  k33 equal trap(f_JJ\[5\])*$\{scale\}
 thermo_style custom step temp v_Jx v_Jy v_Jz v_k11 v_k22 v_k33
 run       100000
 variable  k equal (v_k11+v_k22+v_k33)/3.0

@@ -83,8 +83,8 @@ reax_SYSLIB =      -lifcore -lsvml -lompstub -limf
 user-atc_SYSLIB =  ${BLASLIB}
 
 gpu_SYSPATH =      -L/usr/local/cuda/lib64
-meam_SYSPATH =     -L/opt/intel/fce/10.0.023/lib
-reax_SYSPATH =     -L/opt/intel/fce/10.0.023/lib
+meam_SYSPATH =	   -L/projects/global/x86_64/compilers/intel/intel-11.1-cprof-064/lib/intel64
+reax_SYSPATH =	   -L/projects/global/x86_64/compilers/intel/intel-11.1-cprof-064/lib/intel64
 user-atc_SYSPATH = 
 
 # ---------------------------------------------------------------------

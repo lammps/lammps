@@ -25,7 +25,7 @@ Many-Body) potential as described in "(COMB_1)"_#COMB_1 and
 "(COMB_2)"_#COMB_2.  The energy E of a system of atoms 
 is given by
 
-:c,image(Eqs/pair_comb_1.jpg)
+:c,image(Eqs/pair_comb1.jpg)
 
 where {E<sub>T</sub>} is the total potential energy of the system,
 {E<sup>S</sup><sub>i</sub>} is the self-energy term of atom {i},
@@ -41,7 +41,7 @@ components: two-body short-range repulsion,
 interaction, {U<sup>I</sup><sub>ij</sub>}, and van der Waals energy,
 {U<sup>V</sup><sub>ij</sub>}, which are defined as:
 
-:c,image(Eqs/pair_comb_2.jpg)
+:c,image(Eqs/pair_comb2.jpg)
 
 The short-range repulsion and attraction are based on the
 "Tersoff"_#Tersoff potential (see the "pair_style

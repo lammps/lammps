@@ -15,7 +15,7 @@ change_box  	triclinic
 velocity	all create 1.0 277387
 
 pair_style	comb
-pair_coeff	* * ffield.comb Si
+pair_coeff	* * ../../potentials/ffield.comb Si
 
 neighbor	0.5 bin
 neigh_modify	every 20 delay 0 check no

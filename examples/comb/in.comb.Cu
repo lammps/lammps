@@ -12,7 +12,7 @@ create_atoms	1 box
 mass		1 63.54
 
 pair_style	comb
-pair_coeff	* * ffield.comb Cu
+pair_coeff	* * ../../potentials/ffield.comb Cu
 
 neighbor	0.5 bin
 neigh_modify	every 1 delay 1 check yes 

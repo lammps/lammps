@@ -6,10 +6,9 @@ All examples contains:
 
 1. input script: in.comb.*
 2. log file: log.lammps.*
-3. output cfg file: out.*.cfg (use with AtomEye)
-4. some examples include a structure file data.*
+3. structure file: data.* (for some examples)
 
-Note: thse is also a F90 program, elastic.f90, which can be used to
+Note: there is also a F90 program, elastic.f90, which can be used to
 generate elastic constants.
 
 Examples:

@@ -173,6 +173,7 @@ c
       integer n,nmax,Z1,Z2
       real*8 arat,rarat,scrn,scrn2
       real*8 phiaa,phibb,phitmp
+      real*8 C,s111,s112,s221,S11,S22
 
       real*8, external :: phi_meam
       real*8, external :: zbl
@@ -216,10 +217,12 @@ c              endif
               call get_Zij2(Z2,arat,scrn,lattce_meam(a,b),
      $             Cmin_meam(a,a,b),Cmax_meam(a,a,b))
 
-c     The B1 case with NN2 has a trick to it; we need to compute the
-c     contributions from second nearest neighbors, like a-a pairs, but
-c     need to include NN2 contributions to those pairs as well.
-              if (lattce_meam(a,b).eq.'b1') then
+c     The B1 and L12 cases with NN2 have a trick to them; we need to
+c     compute the contributions from second nearest neighbors, like a-a
+c     pairs, but need to include NN2 contributions to those pairs as
+c     well.
+              if (lattce_meam(a,b).eq.'b1'.or.
+     $             lattce_meam(a,b).eq.'l12') then
                 rarat = r*arat
 
 c               phi_aa
@@ -235,7 +238,7 @@ c               phi_aa
                   enddo
                 endif
       
-c               phibb
+c               phi_bb
                 phibb = phi_meam(rarat,b,b)
                 call get_Zij(Z1,lattce_meam(b,b))
                 call get_Zij2(Z2,arat,scrn,lattce_meam(b,b),
@@ -247,18 +250,36 @@ c               phibb
      $                   (-Z2*scrn/Z1)**n * phi_meam(rarat*arat**n,b,b)
                   enddo
                 endif
+                
+                if (lattce_meam(a,b).eq.'b1') then
+c     Add contributions to the B1 potential
+                  call get_Zij(Z1,lattce_meam(a,b))
+                  call get_Zij2(Z2,arat,scrn,lattce_meam(a,b),
+     $                 Cmin_meam(a,a,b),Cmax_meam(a,a,b))
+                  phir(j,nv2) = phir(j,nv2) -
+     $                 Z2*scrn/(2*Z1) * phiaa
+                  call get_Zij2(Z2,arat,scrn2,lattce_meam(a,b),
+     $                 Cmin_meam(b,b,a),Cmax_meam(b,b,a))
+                  phir(j,nv2) = phir(j,nv2) -
+     $                 Z2*scrn2/(2*Z1) * phibb
 
-c               Now add contributions to the B1 potential
-                call get_Zij(Z1,lattce_meam(a,b))
-                call get_Zij2(Z2,arat,scrn,lattce_meam(a,b),
-     $               Cmin_meam(a,a,b),Cmax_meam(a,a,b))
-                phir(j,nv2) = phir(j,nv2) -
-     $               Z2*scrn/(2*Z1) * phiaa
-                call get_Zij2(Z2,arat,scrn2,lattce_meam(a,b),
-     $               Cmin_meam(b,b,a),Cmax_meam(b,b,a))
-                phir(j,nv2) = phir(j,nv2) -
-     $               Z2*scrn2/(2*Z1) * phibb
+                else if (lattce_meam(a,b).eq.'l12') then
+c     The L12 case has one last trick; we have to be careful to compute
+c     the correct screening between 2nd-neighbor pairs.  1-1
+c     second-neighbor pairs are screened by 2 type 1 atoms and two type
+c     2 atoms.  2-2 second-neighbor pairs are screened by 4 type 1
+c     atoms.
+                  C = 1.d0
+                  call get_sijk(C,a,a,a,s111)
+                  call get_sijk(C,a,a,b,s112)
+                  call get_sijk(C,b,b,a,s221)
+                  S11 = s111 * s111 * s112 * s112
+                  S22 = s221**4
+                  phir(j,nv2) = phir(j,nv2) - 
+     $                 0.75*S11*phiaa - 0.25*S22*phibb
 
+                endif
+                
               else
                 nmax = 10
                 do n = 1,nmax
@@ -316,7 +337,9 @@ c
       real*8 rho02,rho12,rho22,rho32
       real*8 scalfac,phiaa,phibb
       real*8 Eu
+      real*8 arat,scrn,scrn2
       integer Z12, errorflag
+      integer n,nmax,Z1nn,Z2nn
       character*3 latta,lattb
 
       real*8, external :: erose
@@ -449,9 +472,19 @@ c calculate the pair energy
           phibb = phi_meam(r,b,b)
           phi_m = (3*Eu - F1 - 2*F2 - 5*phibb)/Z12
         endif
-c     phi_m = 0.d0
       else if (lattce_meam(a,b).eq.'l12') then
         phiaa = phi_meam(r,a,a)
+c       account for second neighbor a-a potential here...
+        call get_Zij(Z1nn,lattce_meam(a,a))
+        call get_Zij2(Z2nn,arat,scrn,lattce_meam(a,a),
+     $       Cmin_meam(a,a,a),Cmax_meam(a,a,a))
+        nmax = 10
+        if (scrn.gt.0.0) then
+          do n = 1,nmax
+            phiaa = phiaa +
+     $           (-Z2nn*scrn/Z1nn)**n * phi_meam(r*arat**n,a,a)
+          enddo
+        endif
         phi_m = Eu/3. - F1/4. - F2/12. - phiaa
       else      
 c     
@@ -601,6 +634,10 @@ c          call error('can not do 2NN MEAM for dia')
         Zij2 = 12
         a = sqrt(2.d0)
         numscr = 2
+      else if (latt.eq.'l12') then
+        Zij2 = 6
+        a = sqrt(2.d0)
+        numscr = 4
       else
 c        call error('Lattice not defined in get_Zij2.')
       endif
@@ -615,6 +652,19 @@ c There are numscr first neighbors screening the second neighbors
       return
       end
 
+      
+c------------------------------------------------------------------------------c      
+      subroutine get_sijk(C,i,j,k,sijk)
+      use meam_data
+      implicit none
+      real*8 C,sijk
+      integer i,j,k
+      real*8 x
+      x = (C-Cmin_meam(i,j,k))/(Cmax_meam(i,j,k)-Cmin_meam(i,j,k))
+      call fcut(x,sijk)
+      return
+      end
+
 c------------------------------------------------------------------------------c      
 c Calculate density functions, assuming reference configuration
       subroutine get_densref(r,a,b,rho01,rho11,rho21,rho31,
@@ -624,12 +674,13 @@ c Calculate density functions, assuming reference configuration
       real*8 r,rho01,rho11,rho21,rho31,rho02,rho12,rho22,rho32
       real*8 a1,a2
       real*8 rhoa01,rhoa11,rhoa21,rhoa31,rhoa02,rhoa12,rhoa22,rhoa32
-      real*8 C,Cmin,Cmax,fc,s(3)
+      real*8 s(3)
       character*3 lat
       integer a,b
       integer Zij1nn,Zij2nn
       real*8 rhoa01nn,rhoa02nn
       real*8 arat,scrn,denom
+      real*8 C,s111,s112,s221,S11,S22
 
       a1  = r/re_meam(a,a) - 1.d0
       a2  = r/re_meam(b,b) - 1.d0
@@ -709,12 +760,6 @@ c        call error('Lattice not defined in get_densref.')
       endif
 
       if (nn2_meam(a,b).eq.1) then
-c Assume that second neighbor is of same type, first neighbor
-c may be of different type
-
-c        if (lat.ne.'bcc') then
-c          call error('Second-neighbor not defined for this lattice')
-c        endif
 
         call get_Zij2(Zij2nn,arat,scrn,lat,
      $       Cmin_meam(a,a,b),Cmax_meam(a,a,b))
@@ -725,12 +770,30 @@ c        endif
         rhoa01nn = rho0_meam(a)*exp(-beta0_meam(a)*a1)
         rhoa02nn = rho0_meam(b)*exp(-beta0_meam(b)*a2)
 
-        rho01 = rho01 + Zij2nn*scrn*rhoa01nn
+        if (lat.eq.'l12') then
+c     As usual, L12 thinks it's special; we need to be careful computing
+c     the screening functions
+          C = 1.d0
+          call get_sijk(C,a,a,a,s111)
+          call get_sijk(C,a,a,b,s112)
+          call get_sijk(C,b,b,a,s221)
+          S11 = s111 * s111 * s112 * s112
+          S22 = s221**4
+          rho01 = rho01 + 6*S11*rhoa01nn
+          rho02 = rho02 + 6*S22*rhoa02nn
+
+        else
+c     For other cases, assume that second neighbor is of same type,
+c     first neighbor may be of different type
+
+          rho01 = rho01 + Zij2nn*scrn*rhoa01nn
 
 c     Assume Zij2nn and arat don't depend on order, but scrn might
-        call get_Zij2(Zij2nn,arat,scrn,lat,
-     $       Cmin_meam(b,b,a),Cmax_meam(b,b,a))
-        rho02 = rho02 + Zij2nn*scrn*rhoa02nn
+          call get_Zij2(Zij2nn,arat,scrn,lat,
+     $         Cmin_meam(b,b,a),Cmax_meam(b,b,a))
+          rho02 = rho02 + Zij2nn*scrn*rhoa02nn
+
+        endif
 
       endif
 

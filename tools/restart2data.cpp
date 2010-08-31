@@ -2183,6 +2183,11 @@ void bond(FILE *fp, Data &data)
     fread(&data.bond_quartic_rc[1],sizeof(double),data.nbondtypes,fp);
     fread(&data.bond_quartic_u0[1],sizeof(double),data.nbondtypes,fp);
 
+  } else if (strcmp(data.bond_style,"table") == 0) {
+
+    int tabstyle = read_int(fp);
+    int n = read_int(fp);
+
   } else if (strcmp(data.bond_style,"hybrid") == 0) {
 
     int nstyles = read_int(fp);
@@ -2203,6 +2208,22 @@ void bond(FILE *fp, Data &data)
 void angle(FILE *fp, Data &data)
 {
   if (strcmp(data.angle_style,"none") == 0) {
+
+  } else if (strcmp(data.angle_style,"cg/cmm") == 0) {
+
+    data.angle_harmonic_k = new double[data.nangletypes+1];
+    data.angle_harmonic_theta0 = new double[data.nangletypes+1];
+    data.angle_cg_cmm_epsilon = new double[data.nangletypes+1];
+    data.angle_cg_cmm_sigma = new double[data.nangletypes+1];
+    double *angle_cg_cmm_rcut = new double[data.nangletypes+1];
+    data.angle_cg_cmm_type = new int[data.nangletypes+1];
+    
+    fread(&data.angle_harmonic_k[1],sizeof(double),data.nangletypes,fp);
+    fread(&data.angle_harmonic_theta0[1],sizeof(double),data.nangletypes,fp);
+    fread(&data.angle_cg_cmm_epsilon[1],sizeof(double),data.nangletypes,fp);
+    fread(&data.angle_cg_cmm_sigma[1],sizeof(double),data.nangletypes,fp);
+    fread(angle_cg_cmm_rcut,sizeof(double),data.nangletypes,fp);
+    fread(&data.angle_cg_cmm_type[1],sizeof(int),data.nangletypes,fp);
 
   } else if (strcmp(data.angle_style,"charmm") == 0) {
 
@@ -2266,21 +2287,10 @@ void angle(FILE *fp, Data &data)
     fread(&data.angle_harmonic_k[1],sizeof(double),data.nangletypes,fp);
     fread(&data.angle_harmonic_theta0[1],sizeof(double),data.nangletypes,fp);
 
-  } else if (strcmp(data.angle_style,"cg/cmm") == 0) {
+  } else if (strcmp(data.angle_style,"table") == 0) {
 
-    data.angle_harmonic_k = new double[data.nangletypes+1];
-    data.angle_harmonic_theta0 = new double[data.nangletypes+1];
-    data.angle_cg_cmm_epsilon = new double[data.nangletypes+1];
-    data.angle_cg_cmm_sigma = new double[data.nangletypes+1];
-    double *angle_cg_cmm_rcut = new double[data.nangletypes+1];
-    data.angle_cg_cmm_type = new int[data.nangletypes+1];
-    
-    fread(&data.angle_harmonic_k[1],sizeof(double),data.nangletypes,fp);
-    fread(&data.angle_harmonic_theta0[1],sizeof(double),data.nangletypes,fp);
-    fread(&data.angle_cg_cmm_epsilon[1],sizeof(double),data.nangletypes,fp);
-    fread(&data.angle_cg_cmm_sigma[1],sizeof(double),data.nangletypes,fp);
-    fread(angle_cg_cmm_rcut,sizeof(double),data.nangletypes,fp);
-    fread(&data.angle_cg_cmm_type[1],sizeof(int),data.nangletypes,fp);
+    int tabstyle = read_int(fp);
+    int n = read_int(fp);
 
   } else if (strcmp(data.angle_style,"hybrid") == 0) {
 
@@ -2466,6 +2476,11 @@ void dihedral(FILE *fp, Data &data)
     fread(&data.dihedral_opls_k2[1],sizeof(double),data.ndihedraltypes,fp);
     fread(&data.dihedral_opls_k3[1],sizeof(double),data.ndihedraltypes,fp);
     fread(&data.dihedral_opls_k4[1],sizeof(double),data.ndihedraltypes,fp);
+
+  } else if (strcmp(data.dihedral_style,"table") == 0) {
+
+    int tabstyle = read_int(fp);
+    int n = read_int(fp);
 
   } else if (strcmp(data.dihedral_style,"hybrid") == 0) {
 
@@ -2746,7 +2761,7 @@ void Data::write(FILE *fp, FILE *fp2)
 	       (strcmp(pair_style,"lj/cut/coul/cut") == 0) ||
 	       (strcmp(pair_style,"lj/cut/coul/debye") == 0) ||
 	       (strcmp(pair_style,"lj/cut/coul/long") == 0) ||
-	       (strcmp(pair_style,"lj/cut/coul/long/tip4p") == 0) |
+	       (strcmp(pair_style,"lj/cut/coul/long/tip4p") == 0) ||
 	       (strcmp(pair_style,"lj/coul") == 0)) {
       for (int i = 1; i <= ntypes; i++)
 	fprintf(fp,"%d %g %g\n",i,
@@ -2820,6 +2835,7 @@ void Data::write(FILE *fp, FILE *fp2)
 
   if (bond_style && fp2 == NULL) {
     if ((strcmp(bond_style,"none") != 0) && 
+	(strcmp(bond_style,"table") != 0) &&
 	(strcmp(bond_style,"hybrid") != 0))
       fprintf(fp,"\nBond Coeffs\n\n");
 
@@ -2888,6 +2904,7 @@ void Data::write(FILE *fp, FILE *fp2)
     double PI = 3.1415926;           // convert back to degrees
 
     if ((strcmp(angle_style,"none") != 0) && 
+	(strcmp(angle_style,"table") != 0) &&
 	(strcmp(angle_style,"hybrid") != 0))
       fprintf(fp,"\nAngle Coeffs\n\n");
     
@@ -2976,6 +2993,7 @@ void Data::write(FILE *fp, FILE *fp2)
     double PI = 3.1415926;           // convert back to degrees
 
     if ((strcmp(dihedral_style,"none") != 0) && 
+	(strcmp(dihedral_style,"table") != 0) &&
 	(strcmp(dihedral_style,"hybrid") != 0))
       fprintf(fp,"\nDihedral Coeffs\n\n");
 

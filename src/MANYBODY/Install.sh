@@ -44,7 +44,7 @@ elif (test $1 = 0) then
   rm ../pair_tersoff.cpp
   rm ../pair_tersoff_zbl.cpp
 
-  rm ../pair_qeq_comb.h
+  rm ../fix_qeq_comb.h
   rm ../pair_airebo.h
   rm ../pair_comb.h
   rm ../pair_eam.h

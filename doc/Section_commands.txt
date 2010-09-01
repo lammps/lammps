@@ -471,7 +471,7 @@ These are fix styles contributed by users, which can be used if
 "nvt/eff"_fix_nh_eff.html,
 "nvt/sllod/eff"_fix_nvt_sllod_eff.html,
 "smd"_fix_smd.html,
-"temp/rescale"_fix_temp_rescale_eff.html :tb(c=6,ea=c)
+"temp/rescale/eff"_fix_temp_rescale_eff.html :tb(c=6,ea=c)
 
 :line
 

@@ -105,6 +105,7 @@ the pair_style command, and coefficients specified by the associated
 "pair_style eam/alloy/opt"_pair_eam.html - optimized version of alloy EAM
 "pair_style eam/fs"_pair_eam.html - Finnis-Sinclair EAM
 "pair_style eam/fs/opt"_pair_eam.html - optimized version of Finnis-Sinclair EAM
+"pair_style eim"_pair_eim.html - embedded ion method (EIM)
 "pair_style gayberne"_pair_gayberne.html - Gay-Berne ellipsoidal potential
 "pair_style gayberne/gpu"_pair_gayberne.html - GPU-enabled Gay-Berne ellipsoidal potential
 "pair_style gran/hertz/history"_pair_gran.html - granular potential with Hertzian interactions

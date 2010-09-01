@@ -551,6 +551,7 @@ potentials.  Click on the style itself for a full description:
 "eam/alloy/opt"_pair_eam.html,
 "eam/fs"_pair_eam.html,
 "eam/fs/opt"_pair_eam.html,
+"eim"_pair_eim.html,
 "gayberne"_pair_gayberne.html,
 "gayberne/gpu"_pair_gayberne.html,
 "gran/hertz/history"_pair_gran.html,

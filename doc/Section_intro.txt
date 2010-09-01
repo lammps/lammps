@@ -134,7 +134,7 @@ commands)
     Yukawa, soft, class 2 (COMPASS), tabulated
   charged pairwise potentials: Coulombic, point-dipole
   manybody potentials: EAM, Finnis/Sinclair EAM, modified EAM (MEAM), \
-    Stillinger-Weber, Tersoff, AI-REBO, ReaxFF, COMB
+    embedded ion method (EIM), Stillinger-Weber, Tersoff, AI-REBO, ReaxFF, COMB
   coarse-grained potentials: DPD, GayBerne, REsquared, colloidal, DLVO
   mesoscopic potentials: granular, Peridynamics
   bond potentials: harmonic, FENE, Morse, nonlinear, class 2, \

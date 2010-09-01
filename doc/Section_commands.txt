@@ -464,7 +464,14 @@ These are fix styles contributed by users, which can be used if
 
 "atc"_fix_atc.html,
 "imd"_fix_imd.html,
-"smd"_fix_smd.html :tb(c=4,ea=c)
+"langevin/eff"_fix_langevin_eff.html,
+"nph/eff"_fix_nh_eff.html,
+"npt/eff"_fix_nh_eff.html,
+"nve/eff"_fix_nve_eff.html,
+"nvt/eff"_fix_nh_eff.html,
+"nvt/sllod/eff"_fix_nvt_sllod_eff.html,
+"smd"_fix_smd.html,
+"temp/rescale"_fix_temp_rescale_eff.html :tb(c=6,ea=c)
 
 :line
 
@@ -519,7 +526,12 @@ each style or click on the style itself for a full description:
 These are compute styles contributed by users, which can be used if
 "LAMMPS is built with the appropriate package"_Section_start.html#2_3.
 
-"ackland/atom"_compute_ackland_atom.html :tb(c=6,ea=c)
+"ackland/atom"_compute_ackland_atom.html,
+"ke/eff"_compute_ke_eff.html,
+"ke/atom/eff"_compute_ke_atom_eff.html,
+"temp/eff"_compute_temp_eff.html,
+"temp/deform/eff"_compute_temp_deform_eff.html,
+"temp/region/eff"_compute_temp_region_eff.html :tb(c=6,ea=c)
 
 :line
 
@@ -600,6 +612,7 @@ These are pair styles contributed by users, which can be used if
 "cg/cmm/coul/cut"_pair_cmm.html,
 "cg/cmm/coul/long"_pair_cmm.html,
 "eam/cd"_pair_eam.html,
+"eff/cut"_pair_eff.html,
 "lj/coul"_pair_lj_coul.html :tb(c=4,ea=c)
 
 :line

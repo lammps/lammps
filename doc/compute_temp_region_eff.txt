@@ -29,8 +29,8 @@ compute of this style can be used by commands that compute a
 temperature, e.g. "thermo_modify"_thermo_modify.html.
 
 The operation of this compute is exactly like that described by the
-"compute temp/region"_compute_temp_region.html command, where the
-formula for the temperature itself includes the radial electron
+"compute temp/region"_compute_temp_region.html command, except that
+the formula for the temperature itself includes the radial electron
 velocity contributions, as discussed by the "compute
 temp/eff"_compute_temp_eff.html command.
 

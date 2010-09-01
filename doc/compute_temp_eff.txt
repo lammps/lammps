@@ -23,9 +23,9 @@ compute myTemp mobile temp/eff :pre
 [Description:]
 
 Define a computation that calculates the temperature of a group of
-nuclei and electrons using the electron force field.  A compute of
-this style can be used by commands that compute a temperature,
-e.g. "thermo_modify"_thermo_modify.html, "fix
+nuclei and electrons in the "electron force field"_pair_eff.html
+model.  A compute of this style can be used by commands that compute a
+temperature, e.g. "thermo_modify"_thermo_modify.html, "fix
 npt/eff"_fix_npt_eff.html, etc.
 
 The temperature is calculated by the formula KE = dim/2 N k T, where

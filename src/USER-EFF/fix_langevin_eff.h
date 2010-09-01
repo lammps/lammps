@@ -13,36 +13,29 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(temp/rescale,FixTempRescale)
+FixStyle(langevin/eff,FixLangevinEff)
 
 #else
 
-#ifndef LMP_FIX_TEMP_RESCALE_H
-#define LMP_FIX_TEMP_RESCALE_H
+#ifndef LMP_FIX_LANGEVIN_EFF_H
+#define LMP_FIX_LANGEVIN_EFF_H
 
-#include "fix.h"
+#include "fix_langevin.h"
 
 namespace LAMMPS_NS {
 
-class FixTempRescale : public Fix {
+class FixLangevinEff : public FixLangevin {
  public:
-  FixTempRescale(class LAMMPS *, int, char **);
-  virtual ~FixTempRescale();
-  int setmask();
-  void init();
-  virtual void end_of_step();
-  int modify_param(int, char **);
-  void reset_target(double);
+  FixLangevinEff(class LAMMPS *, int, char **);
+  ~FixLangevinEff();
+  void end_of_step();
   double compute_scalar();
 
- protected:
-  int which;
-  double t_start,t_stop,t_window;
-  double fraction,energy,efactor;
+ private:
+  double *erforcelangevin;
 
-  char *id_temp;
-  class Compute *temperature;
-  int tflag;
+  void post_force_no_tally();
+  void post_force_tally();
 };
 
 }

@@ -13,36 +13,21 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(temp/rescale,FixTempRescale)
+FixStyle(nvt/eff,FixNVTEff)
 
 #else
 
-#ifndef LMP_FIX_TEMP_RESCALE_H
-#define LMP_FIX_TEMP_RESCALE_H
+#ifndef LMP_FIX_NVT_EFF_H
+#define LMP_FIX_NVT_EFF_H
 
-#include "fix.h"
+#include "fix_nh_eff.h"
 
 namespace LAMMPS_NS {
 
-class FixTempRescale : public Fix {
+class FixNVTEff : public FixNHEff {
  public:
-  FixTempRescale(class LAMMPS *, int, char **);
-  virtual ~FixTempRescale();
-  int setmask();
-  void init();
-  virtual void end_of_step();
-  int modify_param(int, char **);
-  void reset_target(double);
-  double compute_scalar();
-
- protected:
-  int which;
-  double t_start,t_stop,t_window;
-  double fraction,energy,efactor;
-
-  char *id_temp;
-  class Compute *temperature;
-  int tflag;
+  FixNVTEff(class LAMMPS *, int, char **);
+  virtual ~FixNVTEff() {}
 };
 
 }

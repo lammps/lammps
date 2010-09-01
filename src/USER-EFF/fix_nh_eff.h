@@ -11,41 +11,24 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef FIX_CLASS
+#ifndef LMP_FIX_NH_EFF_H
+#define LMP_FIX_NH_EFF_H
 
-FixStyle(temp/rescale,FixTempRescale)
-
-#else
-
-#ifndef LMP_FIX_TEMP_RESCALE_H
-#define LMP_FIX_TEMP_RESCALE_H
-
-#include "fix.h"
+#include "fix_nh.h"
 
 namespace LAMMPS_NS {
 
-class FixTempRescale : public Fix {
+class FixNHEff : public FixNH {
  public:
-  FixTempRescale(class LAMMPS *, int, char **);
-  virtual ~FixTempRescale();
-  int setmask();
-  void init();
-  virtual void end_of_step();
-  int modify_param(int, char **);
-  void reset_target(double);
-  double compute_scalar();
+  FixNHEff(class LAMMPS *, int, char **);
+  virtual ~FixNHEff() {}
 
  protected:
-  int which;
-  double t_start,t_stop,t_window;
-  double fraction,energy,efactor;
-
-  char *id_temp;
-  class Compute *temperature;
-  int tflag;
+  void nve_v();
+  void nve_x();
+  virtual void nh_v_temp();
 };
 
 }
 
-#endif
 #endif

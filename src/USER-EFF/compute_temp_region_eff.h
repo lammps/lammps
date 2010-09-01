@@ -11,38 +11,25 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef FIX_CLASS
+#ifdef COMPUTE_CLASS
 
-FixStyle(temp/rescale,FixTempRescale)
+ComputeStyle(temp/region/eff,ComputeTempRegionEff)
 
 #else
 
-#ifndef LMP_FIX_TEMP_RESCALE_H
-#define LMP_FIX_TEMP_RESCALE_H
+#ifndef LMP_COMPUTE_TEMP_REGION_EFF_H
+#define LMP_COMPUTE_TEMP_REGION_EFF_H
 
-#include "fix.h"
+#include "compute_temp_region.h"
 
 namespace LAMMPS_NS {
 
-class FixTempRescale : public Fix {
+class ComputeTempRegionEff : public ComputeTempRegion {
  public:
-  FixTempRescale(class LAMMPS *, int, char **);
-  virtual ~FixTempRescale();
-  int setmask();
-  void init();
-  virtual void end_of_step();
-  int modify_param(int, char **);
-  void reset_target(double);
+  ComputeTempRegionEff(class LAMMPS *, int, char **);
+  ~ComputeTempRegionEff() {}
   double compute_scalar();
-
- protected:
-  int which;
-  double t_start,t_stop,t_window;
-  double fraction,energy,efactor;
-
-  char *id_temp;
-  class Compute *temperature;
-  int tflag;
+  void compute_vector();
 };
 
 }

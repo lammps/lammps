@@ -177,6 +177,376 @@ static void  imdsock_destroy(void *);
  * The implementation follows at the end of the file.          *
  ***************************************************************/
 
+#include <vector>
+namespace SG_SMOOTH {
+//!
+// Sliding window signal processing (and linear algebra toolkit).
+//
+// supported operations:
+// <ul>
+// <li> Savitzky-Golay smoothing.
+// <li> required linear algebra support 
+//      for SG smoothing using STL based
+//      vector/matrix classes
+// </ul>
+//
+// \brief Linear Algebra "Toolkit".
+//
+
+// system headers
+#include <stddef.h>             // for size_t
+#include <math.h>               // for powf,fabsf
+
+//! default convergence
+static const float TINY_FLOAT = 1.0e-30;
+
+//! convenient array of floats
+typedef std::vector<float> float_vect;
+//! convenient array of ints;
+typedef std::vector<int>    int_vect;
+
+// savitzky golay smoothing.
+static float_vect sg_smooth(const float_vect &v, const int w, const int deg);
+
+/*! matrix class.
+ *
+ * This is a matrix class derived from a vector of float_vects.  Note that
+ * the matrix elements indexed [row][column] with indices starting at 0 (c
+ * style). Also note that because of its design looping through rows should
+ * be faster than looping through columns.
+ *
+ * \brief two dimensional floating point array
+ */
+class float_mat : public std::vector<float_vect> {
+private:
+    //! disable the default constructor
+    explicit float_mat() {};
+    //! disable assignment operator until it is implemented.
+    float_mat &operator =(const float_mat &) { return *this; };
+public:
+    //! constructor with sizes
+    float_mat(const size_t rows, const size_t cols, const float def=0.0);
+    //! copy constructor for matrix
+    float_mat(const float_mat &m);
+    //! copy constructor for vector
+    float_mat(const float_vect &v);
+
+    //! use default destructor
+    // ~float_mat() {};
+
+    //! get size
+    size_t nr_rows(void) const { return size(); };
+    //! get size
+    size_t nr_cols(void) const { return front().size(); };
+};
+
+
+
+// constructor with sizes
+float_mat::float_mat(const size_t rows,const size_t cols,const float defval)
+        : std::vector<float_vect>(rows)
+{
+    int i;
+    for (i = 0; i < rows; ++i) {
+        (*this)[i].resize(cols, defval);
+    }
+}
+
+// copy constructor for matrix
+float_mat::float_mat(const float_mat &m) : std::vector<float_vect>(m.size())
+{
+    float_mat::iterator inew = begin();
+    float_mat::const_iterator iold = m.begin();
+    for (/* empty */; iold < m.end(); ++inew, ++iold) {
+        const size_t oldsz = iold->size();
+        inew->resize(oldsz);
+        const float_vect oldvec(*iold);
+        *inew = oldvec;
+    }
+}
+
+// copy constructor for vector
+float_mat::float_mat(const float_vect &v)
+        : std::vector<float_vect>(1)
+{
+    const size_t oldsz = v.size();
+    front().resize(oldsz);
+    front() = v;
+}
+
+//////////////////////
+// Helper functions //
+//////////////////////
+
+//! permute() orders the rows of A to match the integers in the index array.
+void permute(float_mat &A, int_vect &idx)
+{
+    int_vect i(idx.size());
+    int j,k;
+
+    for (j = 0; j < A.nr_rows(); ++j) {
+        i[j] = j;
+    }
+
+    // loop over permuted indices
+    for (j = 0; j < A.nr_rows(); ++j) {
+        if (i[j] != idx[j]) {
+
+            // search only the remaining indices
+            for (k = j+1; k < A.nr_rows(); ++k) { 
+                if (i[k] ==idx[j]) {
+                    std::swap(A[j],A[k]); // swap the rows and
+                    i[k] = i[j];     // the elements of
+                    i[j] = idx[j];   // the ordered index.
+                    break; // next j
+                }
+            }
+        }
+    }
+}
+
+/*! \brief Implicit partial pivoting.
+ *
+ * The function looks for pivot element only in rows below the current
+ * element, A[idx[row]][column], then swaps that row with the current one in
+ * the index map. The algorithm is for implicit pivoting (i.e., the pivot is
+ * chosen as if the max coefficient in each row is set to 1) based on the
+ * scaling information in the vector scale. The map of swapped indices is
+ * recorded in swp. The return value is +1 or -1 depending on whether the
+ * number of row swaps was even or odd respectively. */
+static int partial_pivot(float_mat &A, const size_t row, const size_t col,
+                         float_vect &scale, int_vect &idx, float tol)
+{
+    if (tol <= 0.0)
+        tol = TINY_FLOAT;
+
+    int swapNum = 1;
+
+    // default pivot is the current position, [row,col]
+    int pivot = row;
+    float piv_elem = fabs(A[idx[row]][col]) * scale[idx[row]];
+
+    // loop over possible pivots below current
+    int j;
+    for (j = row + 1; j < A.nr_rows(); ++j) {
+
+        const float tmp = fabs(A[idx[j]][col]) * scale[idx[j]];  
+
+        // if this elem is larger, then it becomes the pivot 
+        if (tmp > piv_elem) {
+            pivot = j;
+            piv_elem = tmp;
+        }
+    }
+
+    if(pivot > row) {           // bring the pivot to the diagonal
+        j = idx[row];           // reorder swap array
+        idx[row] = idx[pivot];
+        idx[pivot] = j;
+        swapNum = -swapNum;     // keeping track of odd or even swap
+    }
+    return swapNum;
+}
+
+/*! \brief Perform backward substitution.
+ *
+ * Solves the system of equations A*b=a, ASSUMING that A is upper
+ * triangular. If diag==1, then the diagonal elements are additionally
+ * assumed to be 1.  Note that the lower triangular elements are never
+ * checked, so this function is valid to use after a LU-decomposition in
+ * place.  A is not modified, and the solution, b, is returned in a. */
+static void lu_backsubst(float_mat &A, float_mat &a, bool diag=false) 
+{
+    int r,c,k;
+
+    for (r = (A.nr_rows() - 1); r >= 0; --r) {
+        for (c = (A.nr_cols() - 1); c > r; --c) {
+            for (k = 0; k < A.nr_cols(); ++k) {
+                a[r][k] -= A[r][c] * a[c][k];
+            }
+        }
+        if(!diag) {
+            for (k = 0; k < A.nr_cols(); ++k) {
+                a[r][k] /= A[r][r];
+            }
+        }
+    }
+}
+
+/*! \brief Perform forward substitution.
+ *
+ * Solves the system of equations A*b=a, ASSUMING that A is lower
+ * triangular. If diag==1, then the diagonal elements are additionally
+ * assumed to be 1.  Note that the upper triangular elements are never
+ * checked, so this function is valid to use after a LU-decomposition in
+ * place.  A is not modified, and the solution, b, is returned in a. */
+static void lu_forwsubst(float_mat &A, float_mat &a, bool diag=true) 
+{
+    int r,k,c;
+    for (r = 0;r < A.nr_rows(); ++r) {
+        for(c = 0; c < r; ++c) {
+            for (k = 0; k < A.nr_cols(); ++k) {
+                a[r][k] -= A[r][c] * a[c][k];
+            }
+        }
+        if(!diag) {
+            for (k = 0; k < A.nr_cols(); ++k) {
+                a[r][k] /= A[r][r];
+            }
+        }
+    }
+}
+
+/*! \brief Performs LU factorization in place.
+ *
+ * This is Crout's algorithm (cf., Num. Rec. in C, Section 2.3).  The map of
+ * swapped indeces is recorded in idx. The return value is +1 or -1
+ * depending on whether the number of row swaps was even or odd
+ * respectively.  idx must be preinitialized to a valid set of indices
+ * (e.g., {1,2, ... ,A.nr_rows()}). */
+static int lu_factorize(float_mat &A, int_vect &idx, float tol=TINY_FLOAT)
+{
+    if ( tol <= 0.0)
+        tol = TINY_FLOAT;
+
+    float_vect scale(A.nr_rows());  // implicit pivot scaling
+    int i,j;
+    for (i = 0; i < A.nr_rows(); ++i) {
+        float maxval = 0.0;
+        for (j = 0; j < A.nr_cols(); ++j) {
+            if (fabs(A[i][j]) > maxval)
+                maxval = fabsf(A[i][j]);
+        }
+        if (maxval == 0.0) {
+          // sgs_error("lu_factorize(): zero pivot found.\n");
+            return 0;
+        }
+        scale[i] = 1.0 / maxval;
+    }
+
+    int swapNum = 1;
+    int c,r;
+    for (c = 0; c < A.nr_cols() ; ++c) {            // loop over columns
+        swapNum *= partial_pivot(A, c, c, scale, idx, tol); // bring pivot to diagonal
+        for(r = 0; r < A.nr_rows(); ++r) {      //  loop over rows
+            int lim = (r < c) ? r : c;
+            for (j = 0; j < lim; ++j) {
+                A[idx[r]][c] -= A[idx[r]][j] * A[idx[j]][c];
+            }
+            if (r > c)
+                A[idx[r]][c] /= A[idx[c]][c];
+        }
+    }
+    permute(A,idx);
+    return swapNum;
+}
+
+/*! \brief Solve a system of linear equations.
+ * Solves the inhomogeneous matrix problem with lu-decomposition. Note that
+ * inversion may be accomplished by setting a to the identity_matrix. */
+static float_mat lin_solve(const float_mat &A, const float_mat &a,
+                           float tol=TINY_FLOAT)
+{
+    float_mat B(A);
+    float_mat b(a);
+    int_vect idx(B.nr_rows());
+    int j;
+
+    for (j = 0; j < B.nr_rows(); ++j) {
+        idx[j] = j;  // init row swap label array
+    }
+    lu_factorize(B,idx,tol); // get the lu-decomp.
+    permute(b,idx);          // sort the inhomogeneity to match the lu-decomp
+    lu_forwsubst(B,b);       // solve the forward problem
+    lu_backsubst(B,b);       // solve the backward problem
+    return b;
+}
+
+///////////////////////
+// related functions //
+///////////////////////
+
+//! Returns the inverse of a matrix using LU-decomposition. 
+static float_mat invert(const float_mat &A)
+{
+    const int n = A.size();
+    float_mat E(n, n, 0.0);
+    float_mat B(A);
+    int i;
+
+    for (i = 0; i < n; ++i) {
+        E[i][i] = 1.0;
+    }
+
+    return lin_solve(B, E);
+}
+
+//! returns the transposed matrix.
+static float_mat transpose(const float_mat &a)
+{
+    float_mat res(a.nr_cols(), a.nr_rows());
+    int i,j;
+
+    for (i = 0; i < a.nr_rows(); ++i) {
+        for (j = 0; j < a.nr_cols(); ++j) {
+            res[j][i] = a[i][j];
+        }
+    }
+    return res;
+}
+
+//! matrix multiplication.
+float_mat operator *(const float_mat &a, const float_mat &b)
+{
+    float_mat res(a.nr_rows(), b.nr_cols());
+    if (a.nr_cols() != b.nr_rows()) {
+      // sgs_error("incompatible matrices in multiplication\n");
+        return res;
+    }
+
+    int i,j,k;
+
+    for (i = 0; i < a.nr_rows(); ++i) {
+        for (j = 0; j < b.nr_cols(); ++j) {
+            float sum(0.0);
+            for (k = 0; k < a.nr_cols(); ++k) {
+                sum += a[i][k] * b[k][j];
+            }
+            res[i][j] = sum;
+        }
+    }
+    return res;
+}
+
+
+//! calculate savitzky golay coefficients.
+static float_vect sg_coeff(const float_vect &b, const size_t deg)
+{
+    const size_t rows(b.size());
+    const size_t cols(deg + 1);
+    float_mat A(rows, cols);
+    float_vect res(rows);
+
+    // generate input matrix for least squares fit
+    int i,j;
+    for (i = 0; i < rows; ++i) {
+        for (j = 0; j < cols; ++j) {
+            A[i][j] = powf(float(i), float(j));
+        }
+    }
+
+    float_mat c(invert(transpose(A) * A) * (transpose(A) * transpose(b)));
+
+    for (i = 0; i < b.size(); ++i) {
+        res[i] = c[0][0];
+        for (j = 1; j <= deg; ++j) {
+            res[i] += c[j][0] * powf(float(i), float(j));
+        }
+    }
+    return res;
+}
+}
+
 using namespace LAMMPS_NS;
 
 /* struct for packed data communication of coordinates and forces. */
@@ -202,6 +572,8 @@ FixIMD::FixIMD(LAMMPS *lmp, int narg, char **arg) :
   /* default values for optional flags */
   unwrap_flag = 0;
   nowait_flag = 0;
+  filter_width = 0;
+  filter_order = 0;
   connect_msg = 1;
   imd_fscale = 1.0;
   imd_trate = 1;
@@ -225,6 +597,19 @@ FixIMD::FixIMD(LAMMPS *lmp, int narg, char **arg) :
       imd_fscale = atof(arg[argsdone+1]);
     } else if (0 == strcmp(arg[argsdone], "trate")) {
       imd_trate = atoi(arg[argsdone+1]);
+    } else if (0 == strcmp(arg[argsdone], "filter")) {
+      filter_width = atoi(arg[argsdone+1]);
+      if (argsdone+2 < narg) {
+        filter_order = atoi(arg[argsdone+2]);
+      } else {
+        filter_order = 0;
+      }
+      if ( (filter_order < 0)
+           || (filter_width < 2)
+           || (filter_width <= filter_order) )
+        error->all("Illegal filter parameters for fix imd.");
+
+      ++argsdone;
     } else {
       error->all("Unknown fix imd parameter.");
     }
@@ -258,7 +643,10 @@ FixIMD::FixIMD(LAMMPS *lmp, int narg, char **arg) :
   comm_buf = NULL;
   idmap = NULL;
   rev_idmap = NULL;
-  
+  filter_buf = NULL;
+  filter_c_idx = 0;
+  filter_coeff = NULL;
+
   if (me == 0) {
     /* set up incoming socket on MPI rank 0. */
     imdsock_init();
@@ -270,6 +658,32 @@ FixIMD::FixIMD(LAMMPS *lmp, int narg, char **arg) :
       imd_terminate = 1;
     } else {
       imdsock_listen(localsock);
+    }
+
+    /* set up filter coefficients and coordinate buffer
+       for coordinate denoising. */
+    if (filter_width) {
+      int i;
+      filter_coeff = (float *)memory->smalloc(filter_width*sizeof(float),
+                                              "imd:filter_coeff");
+      if (filter_order == 0) {
+        float scalef = 1.0/static_cast<float>(filter_width);
+        for (i=0; i < filter_width; ++i)
+          filter_coeff[i] = scalef;
+      } else {
+        SG_SMOOTH::float_vect templ(filter_width, 0.0);
+        templ[filter_width/2]=1.0;
+        SG_SMOOTH::float_vect coeff(SG_SMOOTH::sg_coeff(templ,filter_order));
+        for (i=0; i < filter_width; ++i)
+          filter_coeff[i] = coeff[i];
+      }
+      filter_buf = memory->create_2d_float_array(filter_width,3*num_coords,"imd:filter_buf");
+      if (screen)
+        fprintf(screen,"Using fix imd with SG coordinate denoising: order=%d width=%d.\n",
+                filter_order, filter_width);
+      if (logfile)
+        fprintf(logfile,"Using fix imd with SG coordinate denoising: order=%d width=%d.\n",
+                filter_order, filter_width);
     }
   }
   MPI_Bcast(&imd_terminate, 1, MPI_INT, 0, world);
@@ -283,9 +697,9 @@ FixIMD::FixIMD(LAMMPS *lmp, int narg, char **arg) :
   /* set up for i/o worker thread on MPI rank 0.*/
   if (me == 0) {
     if (screen)
-      fputs("Using asynchronous IMD I/O.\n",screen);
+      fputs("Using fix imd with asynchronous I/O.\n",screen);
     if (logfile)
-      fputs("Using asynchronous IMD I/O.\n",logfile);
+      fputs("Using fix imd with asynchronous I/O.\n",logfile);
 
     /* set up mutex and condition variable for i/o thread */
     /* hold mutex before creating i/o thread to keep it waiting. */
@@ -325,6 +739,13 @@ FixIMD::~FixIMD()
     pthread_cond_destroy(&write_cond);
   }
 #endif
+
+  if (me == 0) {
+    if (filter_width) {
+      memory->sfree(filter_coeff);
+      memory->destroy_2d_float_array(filter_buf);
+    }
+  }
 
   inthash_t *hashtable = (inthash_t *)idmap;
   memory->sfree(comm_buf);
@@ -518,6 +939,32 @@ void FixIMD::setup(int)
   return;
 }
 
+/* store and denoise coordinates */
+
+void FixIMD::filter_coordinates(float *coords)
+{
+  int i,j,idx;
+
+  idx = filter_c_idx % filter_width;
+  memcpy(filter_buf[idx], coords, 3*num_coords*sizeof(float));
+
+  // no denoising unless we have a full buffer
+  ++filter_c_idx;
+  if (filter_c_idx <= filter_width) return;
+
+  for (i=0; i < 3*num_coords; ++i)
+    coords[i] = 0.0f;
+
+  for (i=0; i < filter_width; ++i) {
+    int fidx = (idx+filter_width-i) % filter_width;
+    float scalef = filter_coeff[i];
+    float *fcoord = filter_buf[fidx];
+
+    for (j=0; j < 3*num_coords; ++j)
+      coords[j] += scalef*fcoord[j];
+  }
+};
+
 /* worker threads for asynchronous i/o */
 #if defined(LAMMPS_ASYNC_IMD)
 /* c bindings wrapper */
@@ -540,7 +987,12 @@ void FixIMD::ioworker()
       pthread_mutex_unlock(&write_mutex);
       pthread_exit(NULL);
     } else if (buf_has_data > 0) {
-      /* XXX: add code to denoise the coordinates here. */
+      if (filter_width) {
+        /* denoise the coordinates before sending */
+        float *recvcoord = (float *) (msgdata+IMDHEADERSIZE);
+        filter_coordinates(recvcoord);
+      }
+      
       /* send coordinate data, if client is able to accept */
       if (clientsock && imdsock_selwrite(clientsock,0)) {
         imd_writen(clientsock, msgdata, msglen);
@@ -565,6 +1017,7 @@ void FixIMD::post_force(int vflag)
   /* check for reconnect */
   if (imd_inactive) {
     reconnect();
+    filter_c_idx = 0; // reset coordinate denoising buffer
     MPI_Bcast(&imd_inactive, 1, MPI_INT, 0, world);
     MPI_Bcast(&imd_terminate, 1, MPI_INT, 0, world);
     if (imd_terminate)
@@ -844,6 +1297,8 @@ void FixIMD::post_force(int vflag)
     pthread_cond_signal(&write_cond);
     pthread_mutex_unlock(&write_mutex);
 #else
+    if (filter_width)
+      filter_coordinates(recvcoord);
 
     /* send coordinate data, if client is able to accept */
     if (clientsock && imdsock_selwrite(clientsock,0)) {

@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -96,6 +96,12 @@ class FixIMD : public Fix {
   int    nowait_flag;           // true if LAMMPS should not wait with the execution for VMD.
   int    connect_msg;           // flag to indicate whether a "listen for connection message" is needed.
 
+  int    filter_width;          // window width for savitzky-golay filter, 0 means no filtering
+  int    filter_order;          // polynomial order for savitzky-golay filter
+  int    filter_c_idx;          // current frame index into the coordinate buffer
+  float *filter_coeff;          // savitzky-golay filter coefficients
+  float **filter_buf;           // coordinate filter buffer
+
   int    me;                    // my MPI rank in this "world".
   int    nlevels_respa;         // flag to determine respa levels.
 
@@ -115,6 +121,7 @@ public:
 
 protected:
   int reconnect();
+  void filter_coordinates(float *);
 };
 
 }

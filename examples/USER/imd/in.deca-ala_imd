@@ -28,6 +28,6 @@ fix             ensemble all npt temp 300.0 300.0 100.0 aniso 1.0 1.0 1000.0 dra
 # IMD setup.
 fix  comm       peptide imd 5678 unwrap on trate 5
 
-run 5000
+run 50000000
 
 

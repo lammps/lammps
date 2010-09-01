@@ -25,16 +25,17 @@
 <P><B>Description:</B>
 </P>
 <P>Define a computation that calculates the temperature of a group of
-nuclei and electrons using the electron force field, after subtracting
-out a streaming velocity induced by the simulation box changing size
-and/or shape, for example in a non-equilibrium MD (NEMD) simulation.
-The size/shape change is induced by use of the <A HREF = "fix_deform_eff.html">fix
-deform/eff</A> command.  A compute of this style is
-created by the <A HREF = "fix_nvt_sllod_eff.html">fix nvt/sllod/eff</A> command to
-compute the thermal temperature of atoms for thermostatting purposes.
-A compute of this style can also be used by any command that computes
-a temperature, e.g. <A HREF = "thermo_modify.html">thermo_modify</A>, <A HREF = "fix_nh.html">fix
-npt/eff</A>, etc.
+nuclei and electrons in the <A HREF = "pair_eff.html">electron force field</A>
+model, after subtracting out a streaming velocity induced by the
+simulation box changing size and/or shape, for example in a
+non-equilibrium MD (NEMD) simulation.  The size/shape change is
+induced by use of the <A HREF = "fix_deform_eff.html">fix deform/eff</A> command.  A
+compute of this style is created by the <A HREF = "fix_nvt_sllod_eff.html">fix
+nvt/sllod/eff</A> command to compute the thermal
+temperature of atoms for thermostatting purposes.  A compute of this
+style can also be used by any command that computes a temperature,
+e.g. <A HREF = "thermo_modify.html">thermo_modify</A>, <A HREF = "fix_nh.html">fix npt/eff</A>,
+etc.
 </P>
 <P>The calculation performed by this compute is exactly like that
 described by the <A HREF = "compute_temp_deform.html">compute temp/deform</A>

@@ -60,7 +60,10 @@ interactions (<A HREF = "pair_style.html">pair_style</A>).
 <P>The Ff and Fr terms are added by this fix on a per-particle basis.
 </P>
 <P>Ff is a frictional drag or viscous damping term proportional to the
-particle's velocity (including the electronic radial degrees of freedom).  The proportionality constant for each atom is computed as m/damp, where m is the mass of the particle and damp is the damping factor specified by the user.
+particle's velocity (including the electronic radial degrees of
+freedom).  The proportionality constant for each atom is computed as
+m/damp, where m is the mass of the particle and damp is the damping
+factor specified by the user.
 </P>
 <P>Fr is a force due to solvent atoms at a temperature T randomly bumping
 into the particle.  As derived from the fluctuation/dissipation
@@ -73,15 +76,18 @@ the direction and magnitude of this force as described in
 a Gaussian random number) for speed.
 </P>
 <P>Note that the thermostat effect of this fix is applied to the
-translational and electronic radial degrees of freedom for the particles in a system.  The translational degrees of freedom can also have a bias
-velocity removed from them before thermostatting takes place; see the
-description below.
+translational and electronic radial degrees of freedom for the
+particles in a system.  The translational degrees of freedom can also
+have a bias velocity removed from them before thermostatting takes
+place; see the description below.
 </P>
 <P>IMPORTANT NOTE: Unlike the <A HREF = "fix_nh_eff.html">fix nvt/eff</A> command which
 performs Nose/Hoover thermostatting AND time integration, this fix
 does NOT perform time integration.  It only modifies forces to effect
 thermostatting.  Thus you must use a separate time integration fix,
-like <A HREF = "fix_nve_eff.html">fix nve/eff</A> to actually update the velocities (including electronic radial velocities) and positions of atoms (nuclei and electrons) using the modified forces.  Likewise, this fix
+like <A HREF = "fix_nve_eff.html">fix nve/eff</A> to actually update the velocities
+(including electronic radial velocities) and positions of atoms
+(nuclei and electrons) using the modified forces.  Likewise, this fix
 should not normally be used on atoms that also have their temperature
 controlled by another fix - e.g. by <A HREF = "fix_nh.html">fix nvt/eff</A> command.
 </P>
@@ -106,13 +112,14 @@ the remaining thermal degrees of freedom, and the bias is added back
 in.
 </P>
 <P>The <I>damp</I> parameter is specified in time units and determines how
-rapidly the temperature is relaxed.  For example, a value of 0.1
-means to relax the temperature in a timespan of 100 timesteps (for the default 0.001 timesteps and fmsec unit used in eFF - see the <A HREF = "units.html">units</A> command).
-The damp factor can be thought of as inversely related to the
-viscosity of the solvent.  I.e. a small relaxation time implies a
-hi-viscosity solvent and vice versa.  See the discussion about gamma
-and viscosity in the documentation for the <A HREF = "fix_viscous.html">fix
-viscous</A> command for more details.
+rapidly the temperature is relaxed.  For example, a value of 0.1 means
+to relax the temperature in a timespan of 100 timesteps (for the
+default 0.001 timesteps and fmsec unit used in eFF - see the
+<A HREF = "units.html">units</A> command).  The damp factor can be thought of as
+inversely related to the viscosity of the solvent.  I.e. a small
+relaxation time implies a hi-viscosity solvent and vice versa.  See
+the discussion about gamma and viscosity in the documentation for the
+<A HREF = "fix_viscous.html">fix viscous</A> command for more details.
 </P>
 <P>The random # <I>seed</I> must be a positive integer.  A Marsaglia random
 number generator is used.  Each processor uses the input seed to
@@ -182,7 +189,7 @@ LAMMPS</A> section for more info.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "fix_nh.html">fix nvt/eff</A>
+<P><A HREF = "fix_langevin.html">fix langevin</A>
 </P>
 <P><B>Default:</B>
 </P>

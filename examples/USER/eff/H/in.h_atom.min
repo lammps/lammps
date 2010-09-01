@@ -1,0 +1,30 @@
+variable	sname index h_atom
+log		${sname}.min.log
+
+units 		electron
+newton		on
+boundary	f f f
+
+atom_style	electron
+
+read_data  	data.${sname}
+
+pair_style      eff/cut 10.0 0 0
+pair_coeff 	* *
+
+communicate	single vel yes
+
+compute         effTemp all temp/eff
+
+thermo          1
+thermo_style    multi
+thermo_modify   temp effTemp
+
+dump            1 all xyz 1 ${sname}.min.xyz
+dump		2 all custom 1 ${sname}.min.lammpstrj id type x y z eradius
+dump		3 all custom 1 ${sname}.min.forces id type fx fy fz erforce
+
+min_style       cg
+min_modify	line quadratic dmax 2.0
+minimize        1.0e-4 1.0e-4 1000 100000
+

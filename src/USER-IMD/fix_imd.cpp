@@ -992,7 +992,7 @@ void FixIMD::ioworker()
         float *recvcoord = (float *) (msgdata+IMDHEADERSIZE);
         filter_coordinates(recvcoord);
       }
-      
+
       /* send coordinate data, if client is able to accept */
       if (clientsock && imdsock_selwrite(clientsock,0)) {
         imd_writen(clientsock, msgdata, msglen);

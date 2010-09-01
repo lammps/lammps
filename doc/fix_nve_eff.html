@@ -25,9 +25,13 @@
 <P><B>Description:</B>
 </P>
 <P>Perform constant NVE integration to update position and velocity for
-atoms in the group each timestep, including the translational and radial electron motions.  V is volume; E is energy.  This
-creates a system trajectory consistent with the microcanonical
-ensemble.
+nuclei and electrons in the group for the <A HREF = "pair_eff.html">electron force
+field</A> model.  V is volume; E is energy.  This creates a
+system trajectory consistent with the microcanonical ensemble.
+</P>
+<P>The operation of this fix is exactly like that described by the <A HREF = "fix_nve.html">fix
+nve</A> command, except that the radius and radial velocity
+of electrons are also updated.
 </P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
@@ -47,7 +51,8 @@ LAMMPS</A> section for more info.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "fix_nh.html">fix nvt/eff</A>, <A HREF = "fix_nh.html">fix npt/eff</A>
+<P><A HREF = "fix_nve.html">fix nve</A>, <A HREF = "fix_nh_eff.html">fix nvt/eff</A>, <A HREF = "fix_nh_eff.html">fix
+npt/eff</A>
 </P>
 <P><B>Default:</B> none
 </P>

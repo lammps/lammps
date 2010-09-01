@@ -45,10 +45,10 @@ fix 1 all langevin/eff 1.0 1.1 10.0 48279 scale 3 1.5
 <P><B>Description:</B>
 </P>
 <P>Apply a Langevin thermostat as described in <A HREF = "#Schneider">(Schneider)</A>
-to a group of atoms which models an interaction with a background
-implicit solvent.  Used with <A HREF = "fix_nve_eff.html">fix nve/eff</A>, this command
-performs Brownian dynamics (BD), since the total force on each atom
-will have the form:
+to a group of nuclei and electrons in the <A HREF = "pair_eff.html">electron force
+field</A> model.  Used with <A HREF = "fix_nve_eff.html">fix nve/eff</A>,
+this command performs Brownian dynamics (BD), since the total force on
+each atom will have the form:
 </P>
 <PRE>F = Fc + Ff + Fr
 Ff = - (m / damp) v
@@ -59,94 +59,10 @@ interactions (<A HREF = "pair_style.html">pair_style</A>).
 </P>
 <P>The Ff and Fr terms are added by this fix on a per-particle basis.
 </P>
-<P>Ff is a frictional drag or viscous damping term proportional to the
-particle's velocity (including the electronic radial degrees of
-freedom).  The proportionality constant for each atom is computed as
-m/damp, where m is the mass of the particle and damp is the damping
-factor specified by the user.
-</P>
-<P>Fr is a force due to solvent atoms at a temperature T randomly bumping
-into the particle.  As derived from the fluctuation/dissipation
-theorem, its magnitude as shown above is proportional to sqrt(Kb T m /
-dt damp), where Kb is the Boltzmann constant, T is the desired
-temperature, m is the mass of the particle, dt is the timestep size,
-and damp is the damping factor.  Random numbers are used to randomize
-the direction and magnitude of this force as described in
-<A HREF = "#Dunweg">(Dunweg)</A>, where a uniform random number is used (instead of
-a Gaussian random number) for speed.
-</P>
-<P>Note that the thermostat effect of this fix is applied to the
-translational and electronic radial degrees of freedom for the
-particles in a system.  The translational degrees of freedom can also
-have a bias velocity removed from them before thermostatting takes
-place; see the description below.
-</P>
-<P>IMPORTANT NOTE: Unlike the <A HREF = "fix_nh_eff.html">fix nvt/eff</A> command which
-performs Nose/Hoover thermostatting AND time integration, this fix
-does NOT perform time integration.  It only modifies forces to effect
-thermostatting.  Thus you must use a separate time integration fix,
-like <A HREF = "fix_nve_eff.html">fix nve/eff</A> to actually update the velocities
-(including electronic radial velocities) and positions of atoms
-(nuclei and electrons) using the modified forces.  Likewise, this fix
-should not normally be used on atoms that also have their temperature
-controlled by another fix - e.g. by <A HREF = "fix_nh.html">fix nvt/eff</A> command.
-</P>
-<P>See <A HREF = "Section_howto.html#4_16">this howto section</A> of the manual for a
-discussion of different ways to compute temperature and perform
-thermostatting.
-</P>
-<P>The desired temperature at each timestep is a ramped value during the
-run from <I>Tstart</I> to <I>Tstop</I>.
-</P>
-<P>Like other fixes that perform thermostatting, this fix can be used
-with <A HREF = "compute.html">compute commands</A> that remove a "bias" from the
-atom velocities.  E.g. removing the center-of-mass velocity from a
-group of atoms or removing the x-component of velocity from the
-calculation.  This is not done by default, but only if the
-<A HREF = "fix_modify.html">fix_modify</A> command is used to assign a temperature
-compute to this fix that includes such a bias term.  See the doc pages
-for individual <A HREF = "compute.html">compute commands</A> to determine which ones
-include a bias.  In this case, the thermostat works in the following
-manner: bias is removed from each atom, thermostatting is performed on
-the remaining thermal degrees of freedom, and the bias is added back
-in.
-</P>
-<P>The <I>damp</I> parameter is specified in time units and determines how
-rapidly the temperature is relaxed.  For example, a value of 0.1 means
-to relax the temperature in a timespan of 100 timesteps (for the
-default 0.001 timesteps and fmsec unit used in eFF - see the
-<A HREF = "units.html">units</A> command).  The damp factor can be thought of as
-inversely related to the viscosity of the solvent.  I.e. a small
-relaxation time implies a hi-viscosity solvent and vice versa.  See
-the discussion about gamma and viscosity in the documentation for the
-<A HREF = "fix_viscous.html">fix viscous</A> command for more details.
-</P>
-<P>The random # <I>seed</I> must be a positive integer.  A Marsaglia random
-number generator is used.  Each processor uses the input seed to
-generate its own unique seed and its own stream of random numbers.
-Thus the dynamics of the system will not be identical on two runs on
-different numbers of processors.
-</P>
-<P>The keyword <I>scale</I> allows the damp factor to be scaled up or down by
-the specified factor for atoms of that type.  This can be useful when
-different atom types have different sizes or masses.  It can be used
-multiple times to adjust damp for several atom types.  Note that
-specifying a ratio of 2 increases the relaxation time which is
-equivalent to the solvent's viscosity acting on particles with 1/2 the
-diameter.  This is the opposite effect of scale factors used by the
-<A HREF = "fix_viscous.html">fix viscous</A> command, since the damp factor in fix
-<I>langevin</I> is inversely related to the gamma factor in fix <I>viscous</I>.
-Also note that the damping factor in fix <I>langevin</I> includes the
-particle mass in Ff, unlike fix <I>viscous</I>.  Thus the mass and size of
-different atom types should be accounted for in the choice of ratio
-values.
-</P>
-<P>The keyword <I>tally</I> enables the calculation of the cummulative energy
-added/subtracted to the atoms as they are thermostatted.  Effectively
-it is the energy exchanged between the infinite thermal reservoir and
-the particles.  As described below, this energy can then be printed
-out or added to the potential energy of the system to monitor energy
-conservation.
+<P>The operation of this fix is exactly like that described by the <A HREF = "fix_langevin.html">fix
+langevin</A> command, except that the thermostatting
+is also applied to the radial electron velocity for electron
+particles.
 </P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>

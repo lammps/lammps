@@ -28,69 +28,14 @@
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Reset the temperature of a group of atoms by explicitly rescaling
+<P>Reset the temperature of a group of nuclei and electrons in the
+<A HREF = "pair_eff.html">electron force field</A> model by explicitly rescaling
 their velocities.
 </P>
-<P>The rescaling is applied to the translational degrees of freedom
-for all particles, and the electronic radial degrees of freedom.  The translational degrees of freedom can also have a bias velocity removed from them before thermostatting takes place; see the description below.
-</P>
-<P>Rescaling is performed every N timesteps.  The target temperature is a
-ramped value between the <I>Tstart</I> and <I>Tstop</I> temperatures at the
-beginning and end of the run.
-</P>
-<P>Rescaling is only performed if the difference between the current and
-desired temperatures is greater than the <I>window</I> value.  The amount
-of rescaling that is applied is a <I>fraction</I> (from 0.0 to 1.0) of the
-difference between the actual and desired temperature.  E.g. if
-<I>fraction</I> = 1.0, the temperature is reset to exactly the desired
-value.
-</P>
-<P>IMPORTANT NOTE: Unlike the <A HREF = "fix_nh.html">fix nvt/eff</A> command which
-performs Nose/Hoover thermostatting AND time integration, this fix
-does NOT perform time integration.  It only modifies velocities to
-effect thermostatting.  Thus you must use a separate time integration
-fix, like <A HREF = "fix_nve_eff.html">fix nve/eff</A> to actually update the positions of atoms using the modified velocities.  Likewise, this fix should not
-normally be used on atoms that also have their temperature controlled
-by another fix - e.g. by <A HREF = "fix_nh.html">fix nvt/eff</A> or <A HREF = "fix_langevin_eff.html">fix
-langevin/eff</A> commands.
-</P>
-<P>See <A HREF = "Section_howto.html#4_16">this howto section</A> of the manual for a
-discussion of different ways to compute temperature and perform
-thermostatting.
-</P>
-<P>This fix computes a temperature each timestep.  To do this, the fix
-creates its own compute of style "temp", as if one of this command had
-been issued:
-</P>
-<PRE>compute fix-ID_temp group-ID temp/eff 
-</PRE>
-<P>See the <A HREF = "compute_temp_eff.html">compute temp/eff</A> for details.  Note that the ID of the new compute is the fix-ID + underscore + "temp", and the
-group for the new compute is the same as the fix group.
-</P>
-<P>Note that this is NOT the compute used by thermodynamic output (see
-the <A HREF = "thermo_style.html">thermo_style</A> command) with ID = <I>thermo_temp</I>.
-This means you can change the attributes of this fix's temperature
-(e.g. its degrees-of-freedom) via the
-<A HREF = "compute_modify.html">compute_modify</A> command or print this temperature
-during thermodynamic output via the <A HREF = "thermo_style.html">thermo_style
-custom</A> command using the appropriate compute-ID.
-It also means that changing attributes of <I>thermo_temp</I> will have no
-effect on this fix.
-</P>
-<P>Like other fixes that perform thermostatting, this fix can be used
-with <A HREF = "compute.html">compute commands</A> that calculate a temperature
-after removing a "bias" from the atom velocities.  E.g. removing the
-center-of-mass velocity from a group of atoms or only calculating
-temperature on the x-component of velocity or only calculating
-temperature for atoms in a geometric region.  This is not done by
-default, but only if the <A HREF = "fix_modify.html">fix_modify</A> command is used
-to assign a temperature compute to this fix that includes such a bias
-term.  See the doc pages for individual <A HREF = "compute.html">compute
-commands</A> to determine which ones include a bias.  In
-this case, the thermostat works in the following manner: the current
-temperature is calculated taking the bias into account, bias is
-removed from each atom, thermostatting is performed on the remaining
-thermal degrees of freedom, and the bias is added back in.
+<P>The operation of this fix is exactly like that described by the <A HREF = "fix_temp_rescale.html">fix
+temp/rescale</A> command, except that the rescaling
+is also applied to the radial electron velocity for electron
+particles.
 </P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
@@ -127,8 +72,9 @@ LAMMPS</A> section for more info.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "fix_langevin.html">fix langevin/eff</A>, <A HREF = "fix_nh.html">fix nvt/eff</A>,
-<A HREF = "fix_modify.html">fix_modify</A>
+<P><A HREF = "fix_langevin_eff.html">fix langevin/eff</A>, <A HREF = "fix_nh_eff.html">fix
+nvt/eff</A>, <A HREF = "fix_modify.html">fix_modify</A>,
+<A HREF = "fix_temp_rescale.html">fix_temp_rescale</A>,
 </P>
 <P><B>Default:</B> none
 </P>

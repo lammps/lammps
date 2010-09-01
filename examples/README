@@ -30,6 +30,7 @@ colloid:  big colloid particles in a small particle solvent, 2d system
 comb:	  models using the COMB potential
 crack:	  crack propagation in a 2d solid
 dipole:   point dipolar particles, 2d system
+eim:      NaCl using the EIM potential
 elastic:  zero temperature elastic constant tensor of silicon
 ellipse:  ellipsoidal particles in spherical solvent, 2d system
 flow:	  Couette and Poiseuille flow in a 2d channel

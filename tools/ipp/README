@@ -1,0 +1,29 @@
+Ipp is a Perl script for facilitating the creation of a complicated
+file (say, a lammps input file or tools/createatoms input file) using
+a template file.
+
+ipp was created and is maintained by Reese Jones (Sandia), rjones at
+sandia.gov.
+
+Example 1:
+
+If one has a template for a long lammps input file called
+"template_lammps.input" where a few parameters need to be changed. One
+can define these parameters in a short file called
+"fill_parameters_lammps.input" and execute "ipp -p
+fill_parameters_lammps.input template_lammps.input >
+lammps.input". The file "lammps.input" file will be the final lammps
+input file.
+
+Example 2:
+
+If one has a template for a long createAtoms input file called
+"template_createAtoms.input" that creates double elpasolite
+crystals. One wants to change the lattice constants and tilting angle
+of the octahedrons. One can define these parameters in a short file
+called "fill_parameters_createAtoms.input" and execute "ipp -p
+fill_parameters_createAtoms.input template_createAtoms.input >
+createAtoms.input". The "createAtoms.input" file will be the final
+createAtoms input file. If one has an excetable for createAtoms called
+"create", one can simply execute "create<createAtoms.input" to create
+the crystal that LAMMPS can read.

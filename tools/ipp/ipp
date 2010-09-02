@@ -1,0 +1,290 @@
+#!/usr/bin/perl
+# ipp: a preprocessor script
+# author : Reese Jones rjones@sandia.gov (based on dprepro [Sandia])
+# to do :
+# priority (overide file defaults e.g. a=1 pfile a=2 -> a=2)
+#     also order precedence: a=10 -p p.file b=12
+# nested if/else/endif blocks
+
+# Regular expressions for numeric fields
+$e  = "-?(?:\\d+\\.?\\d*|\\.\\d+)[eEdD](?:\\+|-)?\\d+"; # exponential notation
+$f  = "-?\\d+\\.\\d*|-?\\.\\d+";                        # floating point
+$i  = "-?\\d+";                                         # integer
+$ui = "\\d+";                                           # unsigned integer
+$n  = "$e|$f|$i";                                       # numeric field
+
+# Read command line arguments
+while (scalar(@ARGV)) {
+  $arg = shift(@ARGV);
+  if    ($arg =~ /-p/) { $parameter_file = shift(@ARGV);
+    parse_parameter_file($parameter_file);
+  }
+  elsif ($arg =~ /-o/) { $new_file = shift(@ARGV); }
+  elsif ($arg =~ /=/)  { ($tag,$value) = split(/=/,$arg);
+    $values_p1{$tag}  = $value;
+  }
+  else                 { $template_file = $arg; }
+}
+
+# Check for correct command line arguments
+if( ! defined($template_file) ) {
+  print STDERR "Usage: ipp <-p parameters_file> <name=value> template_file <-o new_file>\n";
+  print STDERR "  note: \"value\" must be numeric (not a character string)\n";
+  print STDERR "  parameter file format :  name = value\n";
+  print STDERR "                    or  :  value name\n";
+  print STDERR "  template  file example:  modulus is {10.0*name +3.2}\n";
+  exit(-1);
+}
+
+
+# output
+$output_fh = \*STDOUT;
+if( defined($new_file) ) {
+  open(NEW,">$new_file");
+  $output_fh = \*NEW;
+}
+output($template_file,$output_fh);
+if( defined($new_file) ) { close(NEW); }
+
+# debug : print key--> value
+#foreach $key (sort keys %values_p1) {
+#  print "# $key ---> ",$values_p1{$key},"\n";
+#}
+
+
+###########################################################################
+# parse parameter file
+###########################################################################
+# Read parameters file, extract tags and corresponding values in either aprepro
+# "{ tag = value }" format or standard "value tag" format, and store the
+# tag/value pairs in %values_p1.  
+#  NOTE : compound expressions are not  currently allowed.
+
+sub parse_parameter_file {
+my $pfile = shift(@_);
+# (1) parse numerical values
+open (PARAMETERS, "<$pfile") || die "Can't open parameters file: $pfile: $!";
+while (<PARAMETERS>) { # read each line of file, one at a time
+  # extract tag/value fields allowing multiple matches per line in either format
+  foreach $field (m/(?:$n)\s+\w+|\s*\w+\s*=\s*(?:$n)\s*/go) {
+    # extract tag/value pair from each field NOTE () are memory
+    if ( ( ($value, $tag) = ($field =~ m/^($n)\s+(\w+)$/o) ) ||       # Standard
+         ( ($tag, $value) = ($field =~ m/^\s*(\w+)\s*=\s*($n)\s*$/o))){# Apr
+      $value =~ s/[dD]/e/o;      # convert any F77 dbl prec exponents
+      $values_p1{$tag} = $value; # store in hash
+    }
+  }
+}
+close (PARAMETERS);
+
+# (2) parse string values in dbl quotes
+open (PARAMETERS, "<$pfile") || die "Can't open parameters file: $pfile: $!";
+while (<PARAMETERS>) { # read each line of file, one at a time
+  # extract tag/value fields allowing multiple matches per line in either format
+  #if ( m/=/ && m/\"/ ){
+  if ( ($tag, $value) = ($_ =~ m/^\s*(\w+)\s*=\s*\"(.*)\"\s*$/o)){
+    $values_p1{$tag} = $value; # store in hash
+  }
+}
+close (PARAMETERS);
+}
+
+#################################################################
+# Process template simulation file and create new simulation file
+#################################################################
+# Read each line of template_file, find the {} fields, process any
+# assignments or expressions, and substitute the corresponding values.
+# Print each line with substitution to new_file.  The parameters
+# file assignments (%values_p1 = precedence 1) take precedence over any
+# duplicate template file assignments (%values_p2 = precedence 2) in
+# order to allow the flexibility to define defaults in the template
+# file which can then be overridden by a particular parameters file.
+
+sub output{
+my $tfile = shift (@_);
+# Open the template simulation file for input.
+open (TEMPLATE, "<$tfile") || die "Can't open template file $tfile: $!";
+# Open the new simulation file for output.
+#$print_to_file = 0;
+#if (defined($new_file)) {
+#open (NEW, ">$new_file") || die "Can't create instance file $new_file: $!";
+#$print_to_file = 1;
+#}
+$print_to_file = 1;
+$fh = shift (@_);
+
+$print = 1; # print line flag
+while (<TEMPLATE>) {
+
+  # Extract each {} match from this line
+  foreach $field (m/\{\s*(.+?)\s*\}/go) { # ".+?" provides a minimal match
+
+    # Case 1: test for simple tag match "{tag}"
+    if ($field =~ m/^\w+$/o) {
+      if ( defined ( $value = $values_p1{$field} ) ||
+           defined ( $value = $values_p2{$field} ) ) { # or exists $values{$tag}
+        s/\{\s*$field\s*\}/$value/;
+      }
+    }
+
+    # Case 2: test for assignment "{tag = field}"
+    elsif ( ($tag, $assign) = ($field =~ m/^(\w+)\s*=\s*(.+?)$/o) ) {
+
+      # Case 2a: assignment of numerical value
+      # ($n = exponential notation $e, floating point $f, or integer $i)
+      if ($assign =~ m/^($n)$/o) {
+        $assign =~ s/[dD]/e/o;               # convert F77 dbl prec exponents
+        $values_p2{$tag} = $assign;          # store in priority 2 hash
+        s/\{\s*$tag\s*=\s*.+?\s*\}/$assign/; # replace assignment with value
+      }
+
+      # Case 2b: assignment of expression.  Evaluate $assign by replacing any
+      # known tags with their values and then eval the remaining expression.
+      else {
+        foreach $exptag ($assign =~ m/\b(\w*[a-zA-Z_]+\w*)\b/go) {
+          if ( defined ( $value = $values_p1{$exptag} ) ||
+               defined ( $value = $values_p2{$exptag} ) ) {
+            $assign =~ s/$exptag/$value/;
+          }
+        }
+        $value = eval $assign;
+        if ($@) { die "Eval error: $@"; }
+        $values_p2{$tag} = $value;          # store in priority 2 hash
+        s/\{\s*$tag\s*=\s*.+?\s*\}/$value/; # replace assignment with value
+      }
+    }
+
+    # Case 3: assume general expression in all remaining $field matches.
+    # Evaluate $field by replacing any known tags with their values and
+    # then eval the remaining expression.
+    else {
+      foreach $tag ($field =~ m/\b(\w*[a-zA-Z_]+\w*)\b/go) {
+        if ( defined ( $value = $values_p1{$tag} ) ||
+             defined ( $value = $values_p2{$tag} ) ) {
+          $field =~ s/$tag/$value/;
+        }
+      }
+      s/\{\s*.+?\s*\}/eval $field/e;
+      if ($@) { die "Eval error: $@"; }
+    }
+  }
+
+  # if/else blocks
+  if ($_ =~ /#if/) {
+    $line = $_; chomp($line); $line =~ s/^\s+//; $line =~ s/\s+$//;
+    @items = split(/\s+/,$line);
+    if (eval($items[1])) {;}
+    else { $print = 0;}
+  }
+  elsif ($_ =~ /#else/) {
+    if ($print) {$print = 0;} else {$print = 1;}
+  }
+  elsif ($_ =~ /#endif/) {
+    $print = 1;
+  }
+  else { 
+    # output the processed line 
+    if ($print) { print $fh $_; }
+  }
+
+}
+close (TEMPLATE);
+if ($print_to_file ) { close (NEW); }
+}
+
+###########################################################################
+# math operators
+###########################################################################
+
+# Intrinsic numeric operators include +,-,*,/,**,%,<<,>>,sqrt(),abs(),
+# sin(),cos(),atan2(),exp(),log(),int(),hex(),oct(),rand(),srand().
+
+# Augment these with others (adapted/extended from bprepro by Bob Walton).
+# NOTE: convert from degs to rads by pi/180 = (pi/4)/45 = atan2(1,1)/45
+#       convert from rads to degs by 180/pi = 45/atan2(1,1)
+
+# additional logarithmic functions
+
+sub log10 { log($_[0])/log(10) }
+
+# additional trigonometric functions with radian input
+
+sub tan { sin($_[0])/cos($_[0]) }
+
+sub cot { cos($_[0])/sin($_[0]) }
+
+sub csc { 1/sin($_[0]) }
+
+sub sec { 1/cos($_[0]) }
+
+# trigonometric functions with degree input
+
+sub sind { sin($_[0]*atan2(1,1)/45) }
+
+sub cosd { cos($_[0]*atan2(1,1)/45) }
+
+sub tand { tan($_[0]*atan2(1,1)/45) }
+
+sub cotd { cot($_[0]*atan2(1,1)/45) }
+
+sub cscd { 1/sin($_[0]*atan2(1,1)/45) }
+
+sub secd { 1/cos($_[0]*atan2(1,1)/45) }
+
+# inverse trigonometric functions returning radians
+
+sub asin {
+  if (abs($_[0]) > 1) { die "input out of range in asin()\n"; }
+  atan2($_[0],sqrt(1-$_[0]**2));
+}
+
+sub acos {
+  if (abs($_[0]) > 1) { die "input out of range in acos()\n"; }
+  atan2(sqrt(1-$_[0]**2),$_[0]);
+}
+
+sub atan { atan2($_[0],1) }
+
+# inverse trigonometric functions returning degrees
+
+sub asind { asin($_[0])*45/atan2(1,1) }
+
+sub acosd { acos($_[0])*45/atan2(1,1) }
+
+sub atand { atan2($_[0],1)*45/atan2(1,1) }
+
+sub atan2d { atan2($_[0],$_[1])*45/atan2(1,1) }
+
+# hyperbolic functions
+
+sub sinh { (exp($_[0]) - exp(-$_[0]))/2 }
+
+sub cosh { (exp($_[0]) + exp(-$_[0]))/2 }
+
+sub tanh { sinh($_[0])/cosh($_[0]) }
+
+sub coth {
+  if ($_[0] == 0) { die "input out of range in coth()\n"; }
+  cosh($_[0])/sinh($_[0]);
+}
+
+sub csch {
+  if ($_[0] == 0) { die "input out of range in csch()\n"; }
+  1/sinh($_[0]);
+}
+
+sub sech { 1/cosh($_[0]) }
+
+# inverse hyperbolic functions
+
+sub asinh { log($_[0] + sqrt($_[0]**2 + 1)) }
+
+sub acosh {
+  if ($_[0] < 1) { die "input out of range in acosh()\n"; }
+  log($_[0] + sqrt($_[0]**2 - 1));
+}
+
+sub atanh {
+  if (abs($_[0]) >= 1) { die "input out of range in atanh()\n"; }
+  log((1+$_[0])/(1-$_[0]))/2;
+}

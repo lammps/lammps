@@ -11,5 +11,8 @@ The tool is authored by Xiaowang Zhou (Sandia) who can be contacted at
 xzhou at sandia.gov for questions.
 
 Sample build of program:
-
 gfortran createAtoms.f which produces a.out
+
+This tool can be used in conjunction with the ipp tool for creating
+its input commands.  See tools/ipp/README.txt for an example.
+

@@ -1,0 +1,213 @@
+&maincard
+ ntypes=4
+ perub={n1*a-0.5},{n2*a-0.5},{n3*a/cos(3.14159265/180.0*theta)-0.5}
+ perlb=-0.5,-0.5,-0.5
+ ilatseed=0
+ amass={amass1},{amass2},{amass3},{amass4},{amass5}
+ ielement={ielement1},{ielement2},{ielement3},{ielement4},{ielement5}
+&end
+
+&latcard
+ lattype='sc'
+ alat={a},{a},{a/cos(3.14159265/180.0*theta)}
+ xrot=1.0 0.0 0.0
+ yrot=0.0 1.0 0.0
+ zrot=0.0,0.0,1.0
+ xbound=-0.5,{n1*a-0.5}
+ ybound=-0.5,{n2*a-0.5}
+ zbound=-0.5,{n3*a/cos(3.14159265/180.0*theta)-0.5}
+ periodicity=1.0,1.0,1.0
+ strain=0.0,0.0,0.0
+ delx=0.0,0.0,0.0
+&end
+&subcard
+ rcell=0.250000,0.250000,0.250000
+ ccell=1.0,0.0,0.0,0.0,0.0
+&end
+&subcard
+ rcell=0.000000,0.000000,0.000000
+ ccell=0.0,1.0,0.0,0.0,0.0
+&end
+&subcard
+ rcell=0.250000,{0.5*tan(3.14159265/180.0*theta)},0.000000
+ ccell=0.0,0.0,0.0,1.0,0.0
+&end
+&subcard
+ rcell={1.0-0.5*tan(3.14159265/180.0*theta)},0.250000,0.000000 
+ ccell=0.0,0.0,0.0,1.0,0.0
+&end
+&subcard
+ rcell=0.000000,0.000000,0.250000
+ ccell=0.0,0.0,0.0,1.0,0.0
+&end
+&subcard
+ rcell=0.750000,0.250000,0.250000
+ ccell=1.0,0.0,0.0,0.0,0.0
+&end
+&subcard
+ rcell=0.500000,0.000000,0.000000
+ ccell=0.0,0.0,1.0,0.0,0.0
+&end
+&subcard
+ rcell=0.750000,{1.0-0.5*tan(3.14159265/180.0*theta)},0.000000
+ ccell=0.0,0.0,0.0,1.0,0.0
+&end
+&subcard
+ rcell={0.5+0.5*tan(3.14159265/180.0*theta)},0.250000,0.000000
+ ccell=0.0,0.0,0.0,1.0,0.0
+&end
+&subcard
+ rcell=0.500000,0.000000,0.250000
+ ccell=0.0,0.0,0.0,1.0,0.0
+&end
+&subcard
+ rcell=0.750000,0.750000,0.250000
+ ccell=1.0,0.0,0.0,0.0,0.0
+&end
+&subcard
+ rcell=0.500000,0.500000,0.000000
+ ccell=0.0,1.0,0.0,0.0,0.0
+&end
+&subcard
+ rcell=0.750000,{0.5+0.5*tan(3.14159265/180.0*theta)},0.000000
+ ccell=0.0,0.0,0.0,1.0,0.0
+&end
+&subcard
+ rcell={0.5-0.5*tan(3.14159265/180.0*theta)},0.750000,0.000000
+ ccell=0.0,0.0,0.0,1.0,0.0
+&end
+
+&subcard
+ rcell=0.500000,0.500000,0.250000
+ ccell=0.0,0.0,0.0,1.0,0.0
+&end
+&subcard
+ rcell=0.250000,0.750000,0.250000
+ ccell=1.0,0.0,0.0,0.0,0.0
+&end
+&subcard
+ rcell=0.000000,0.500000,0.000000
+ ccell=0.0,0.0,1.0,0.0,0.0
+&end
+&subcard
+ rcell=0.250000,{0.5-0.5*tan(3.14159265/180.0*theta)},0.000000
+ ccell=0.0,0.0,0.0,1.0,0.0
+&end
+&subcard
+ rcell={0.5*tan(3.14159265/180.0*theta)},0.750000,0.000000
+ ccell=0.0,0.0,0.0,1.0,0.0
+&end
+&subcard
+ rcell=0.000000,0.500000,0.250000
+ ccell=0.0,0.0,0.0,1.0,0.0
+&end
+&subcard
+ rcell=0.250000,0.250000,0.750000
+ ccell=1.0,0.0,0.0,0.0,0.0
+&end
+&subcard
+ rcell=0.000000,0.000000,0.500000
+ ccell=0.0,0.0,1.0,0.0,0.0
+&end
+&subcard
+ rcell=0.250000,{0.5*tan(3.14159265/180.0*theta)},0.500000
+ ccell=0.0,0.0,0.0,1.0,0.0
+&end
+&subcard
+ rcell={1.0-0.5*tan(3.14159265/180.0*theta)},0.250000,0.500000
+ ccell=0.0,0.0,0.0,1.0,0.0
+&end
+&subcard
+ rcell=0.000000,0.000000,0.750000
+ ccell=0.0,0.0,0.0,1.0,0.0
+&end
+&subcard
+ rcell=0.750000,0.250000,0.750000
+ ccell=1.0,0.0,0.0,0.0,0.0
+&end
+&subcard
+ rcell=0.500000,0.000000,0.500000
+ ccell=0.0,1.0,0.0,0.0,0.0
+&end
+&subcard
+ rcell=0.750000,{1.0-0.5*tan(3.14159265/180.0*theta)},0.500000
+ ccell=0.0,0.0,0.0,1.0,0.0
+&end
+&subcard
+ rcell={0.5+0.5*tan(3.14159265/180.0*theta)},0.250000,0.500000
+ ccell=0.0,0.0,0.0,1.0,0.0
+&end
+&subcard
+ rcell=0.500000,0.000000,0.750000
+ ccell=0.0,0.0,0.0,1.0,0.0
+&end
+&subcard
+ rcell=0.750000,0.750000,0.750000
+ ccell=1.0,0.0,0.0,0.0,0.0
+&end
+&subcard
+ rcell=0.500000,0.500000,0.500000
+ ccell=0.0,0.0,1.0,0.0,0.0
+&end
+&subcard
+ rcell=0.750000,{0.5+0.5*tan(3.14159265/180.0*theta)},0.500000
+ ccell=0.0,0.0,0.0,1.0,0.0
+&end
+&subcard
+ rcell={0.5-0.5*tan(3.14159265/180.0*theta)},0.750000,0.500000
+ ccell=0.0,0.0,0.0,1.0,0.0
+&end
+&subcard
+ rcell=0.500000,0.500000,0.750000
+ ccell=0.0,0.0,0.0,1.0,0.0
+&end
+&subcard
+ rcell=0.250000,0.750000,0.750000
+ ccell=1.0,0.0,0.0,0.0,0.0
+&end
+&subcard
+ rcell=0.000000,0.500000,0.500000
+ ccell=0.0,1.0,0.0,0.0,0.0
+&end
+&subcard
+ rcell=0.250000,{0.5-0.5*tan(3.14159265/180.0*theta)},0.500000
+ ccell=0.0,0.0,0.0,1.0,0.0
+&end
+&subcard
+ rcell={0.5*tan(3.14159265/180.0*theta)},0.750000,0.500000
+ ccell=0.0,0.0,0.0,1.0,0.0
+&end
+&subcard
+ rcell=0.000000,0.500000,0.750000
+ ccell=0.0,0.0,0.0,1.0,0.0
+&end
+&subcard
+&end
+
+&defcard
+&end
+
+&latcard
+&end
+
+&hitcard
+&end
+
+&disturbcard
+ dismax=0.0
+ strain=0.0,0.0,0.0
+&end
+
+&shiftcard
+ mode=0
+&end
+
+&velcard
+&end
+
+&filecard
+ dynamo="none"
+ paradyn="none"
+ lammps="r0.lmp"
+ xyz="none"
+&end

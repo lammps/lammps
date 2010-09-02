@@ -1,0 +1,22 @@
+EAM database tool
+Xiaowang Zhou (Sandia), xzhou at sandia.gov
+
+based on this paper:
+
+X. W. Zhou, R. A. Johnson, and H. N. G. Wadley, Phys. Rev. B, 69,
+144113 (2004).
+
+This tool can be used to create an DYNAMO-formatted EAM
+setfl file for alloy systems, using any combination 
+of the elements discussed in the paper and listed in
+the EAM_code file, namely:
+
+Cu, Ag, Au, Ni, Pd, Pt, Al, Pb, Fe, Mo, Ta, W, Mg, Co, Ti, Zr
+
+Steps:
+
+1) compile create.f -> a.out  (e.g. gfortran create.f)
+2) edit the input file EAM.input to list 2 or more desired elements to include
+3) a.out < EAM.input will create an EAM *.set file
+4) in DYNAMO or LAMMPS lingo, this is a setfl file
+   that can be used with the LAMMPS pair_style eam/alloy command

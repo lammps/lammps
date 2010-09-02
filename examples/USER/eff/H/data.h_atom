@@ -13,7 +13,7 @@ Masses
 2 1.000000	# electron mass
 
 Atoms
-#id|type|x|y|z|q|spin|r
-1 1 0.0 0.0 0.0 1.0 0 0.0
-2 2 0.0 0.0 0.0 0.0 1 1.0
+#id|type|q|spin|r|x|y|z|
+1 1 1.0 0 0.0 0.0 0.0 0.0
+2 2 0.0 1 1.0 0.0 0.0 0.0
 

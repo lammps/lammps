@@ -5,19 +5,22 @@ units 		electron
 newton		on
 boundary	p p p
 
-atom_style	hybrid charge electron
+atom_style	electron
 
 read_data  	data.${sname}
 
-pair_style      eff/cut 30.627847 limit yes
+pair_style      eff/cut 30.627847 0 0
 pair_coeff	* * 
 
 neigh_modify    one 10000 page 100000
 
 communicate	single vel yes
 
+compute		effTemp all temp/eff
+
 thermo          1000
 thermo_style    custom step pe temp press
+thermo_modify	temp effTemp
 
 # structure minimization
 min_style	cg
@@ -35,7 +38,7 @@ compute		peatom all pe/atom
 compute		keatom all ke/atom/eff
 
 dump		2 all xyz 1000 ${sname}.nve.xyz
-dump		3 all custom 1000 ${sname}.nve.lammpstrj id type x y z spin radius c_peatom c_keatom
+dump		3 all custom 1000 ${sname}.nve.lammpstrj id type x y z spin eradius c_peatom c_keatom
 
 run		100000
 

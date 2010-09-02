@@ -27,15 +27,15 @@ namespace LAMMPS_NS {
 class FixTempRescale : public Fix {
  public:
   FixTempRescale(class LAMMPS *, int, char **);
-  ~FixTempRescale();
+  virtual ~FixTempRescale();
   int setmask();
   void init();
-  void end_of_step();
+  virtual void end_of_step();
   int modify_param(int, char **);
   void reset_target(double);
   double compute_scalar();
 
- private:
+ protected:
   int which;
   double t_start,t_stop,t_window;
   double fraction,energy,efactor;

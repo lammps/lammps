@@ -1,0 +1,197 @@
+&maincard
+ ntypes=6
+ perub=789.9,110.004,18.64
+ perlb=-0.5,-0.5,-0.5
+ ilatseed=21
+ amass=69.72,14.00674,69.72,14.00674,69.72,14.00674,69.72,14.00674
+ ielement=31,7,31,7,31,7,31,7
+ iseed=212121
+&end
+  
+&latcard
+ lattype='sc'
+ alat=5.2,5.5252,3.19
+ xrot=1.0 0.0 0.0
+ yrot=0.0 1.0 0.0
+ zrot=0.0,0.0,1.0
+ periodicity=1.0,1.0,1.0
+ strain=0.0,0.0,0.0
+ delx=0.0,0.0,0.0
+&end
+&subcard
+ rcell=0.0,0.0,0.0
+ ccell=1.0,0.0,0.0,0.0,0.0,0.0
+&end
+&subcard
+ rcell=0.0,0.5,0.5
+ ccell=1.0,0.0,0.0,0.0,0.0,0.0
+&end
+&subcard
+ rcell=0.5,0.33333333,0.0
+ ccell=1.0,0.0,0.0,0.0,0.0,0.0
+&end
+&subcard
+ rcell=0.5,0.83333333,0.5
+ ccell=1.0,0.0,0.0,0.0,0.0,0.0
+&end
+&subcard
+ rcell=0.375,0.0,0.0
+ ccell=0.0,1.0,0.0,0.0,0.0,0.0
+&end
+&subcard
+ rcell=0.375,0.5,0.5
+ ccell=0.0,1.0,0.0,0.0,0.0,0.0
+&end
+&subcard
+ rcell=0.875,0.33333333,0.0
+ ccell=0.0,1.0,0.0,0.0,0.0,0.0
+&end
+&subcard
+ rcell=0.875,0.83333333,0.5
+ ccell=0.0,1.0,0.0,0.0,0.0,0.0
+&end
+&subcard
+&end
+  
+&defcard
+ plane=0.0,2.0,0.0
+ cent=0.0,53.41,9.57
+ dist=2.762621
+ oldtype=1
+ newtype=3
+&end
+  
+&defcard
+ plane=0.0,-2.0,0.0
+ cent=0.0,53.41,9.57
+ dist=2.762621
+ oldtype=1
+ newtype=3
+&end
+  
+&defcard
+ plane=0.0,1.0,-1.0
+ cent=0.0,53.41,9.57
+ dist=2.762621
+ oldtype=1
+ newtype=3
+&end
+  
+&defcard
+ plane=0.0,-1.0,1.0
+ cent=0.0,53.41,9.57
+ dist=2.762621
+ oldtype=1
+ newtype=3
+&end
+  
+&defcard
+ plane=0.0,-1.0,-1.0
+ cent=0.0,53.41,9.57
+ dist=2.762621
+ oldtype=1
+ newtype=3
+&end
+  
+&defcard
+ plane=0.0,1.0,1.0
+ cent=0.0,53.41,9.57
+ dist=2.762621
+ oldtype=1
+ newtype=3
+&end
+  
+&defcard
+ plane=0.0,2.0,0.0
+ cent=0.0,53.41,9.57
+ dist=2.762621
+ oldtype=2
+ newtype=4
+&end
+  
+&defcard
+ plane=0.0,-2.0,0.0
+ cent=0.0,53.41,9.57
+ dist=2.762621
+ oldtype=2
+ newtype=4
+&end
+  
+&defcard
+ plane=0.0,1.0,-1.0
+ cent=0.0,53.41,9.57
+ dist=2.762621
+ oldtype=2
+ newtype=4
+&end
+  
+&defcard
+ plane=0.0,-1.0,1.0
+ cent=0.0,53.41,9.57
+ dist=2.762621
+ oldtype=2
+ newtype=4
+&end
+  
+&defcard
+ plane=0.0,-1.0,-1.0
+ cent=0.0,53.41,9.57
+ dist=2.762621
+ oldtype=2
+ newtype=4
+&end
+  
+&defcard
+ plane=0.0,1.0,1.0
+ cent=0.0,53.41,9.57
+ dist=2.762621
+ oldtype=2
+ newtype=4
+&end
+  
+&defcard
+ oldtype=4
+ newtype=2
+ prob=1.0
+&end
+  
+&defcard
+ oldtype=3
+ newtype=1
+ prob=1.0
+&end
+  
+&defcard
+&end
+  
+&latcard
+&end
+  
+&hitcard
+&end
+  
+&disturbcard
+ dismax=0.0
+ strain=0.0,0.0,0.0
+&end
+  
+&shiftcard
+ mode=2
+&end
+  
+&velcard
+ Tmid=300
+ Tbnd=300
+ naxis=1
+ nmesh=40
+ equal=2.0
+ ensureTave=1.0
+ steeper=0.0
+&end
+  
+&filecard
+ dynamo="none"
+ paradyn="none"
+ lammps="rout"
+ xyz="none"
+&end

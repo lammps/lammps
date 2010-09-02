@@ -24,7 +24,7 @@ variable	prefactor equal 1.0+elapsed*(20.0-1.0)/1000
 
 fix		1 all nve
 fix		2 all temp/rescale 100 0.45 0.45 0.02 1.0
-fix		3 all adapt 1 pair soft a * * prefactor
+fix		3 all adapt 1 pair soft a * * v_prefactor
 fix		4 all enforce2d
 
 thermo		50

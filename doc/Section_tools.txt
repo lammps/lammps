@@ -43,6 +43,7 @@ own sub-directories with their own Makefiles.
 "binary2txt"_#binary
 "ch2lmp"_#charmm
 "chain"_#chain
+"createatoms"_#create
 "data2xmovie"_#data
 "eam database"_#eamdb
 "eam generate"_#eamgn
@@ -122,6 +123,19 @@ chain < def.chain > data.file :pre
 See the def.chain or def.chain.ab files in the tools directory for
 examples of definition files.  This tool was used to create the
 system for the "chain benchmark"_Section_perf.html.
+
+:line
+
+createatoms tool :h4,link(create)
+
+The tools/createatoms directory contains a Fortran program called
+createAtoms.f which can generate a variety of interesting crystal
+structures and geometries and output the resulting list of atom
+coordinates in LAMMPS or other formats.
+
+See the included Manual.pdf for details.
+
+The tool is authored by Xiaowang Zhou (Sandia), xzhou at sandia.gov.
 
 :line
 

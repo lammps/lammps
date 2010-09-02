@@ -52,6 +52,7 @@ own sub-directories with their own Makefiles.
 <LI><A HREF = "#eamdb">eam database</A>
 <LI><A HREF = "#eamgn">eam generate</A>
 <LI>"eff_#eff
+<LI>"ipp_#ipp
 <LI><A HREF = "#arc">lmp2arc</A>
 <LI><A HREF = "#cfg">lmp2cfg</A>
 <LI><A HREF = "#traj">lmp2traj</A>
@@ -189,10 +190,24 @@ produce are in the potentials directory, and can be used with the
 </H4>
 <P>The tools/eff directory contains various scripts for generating
 structures and post-processing output for simulations using the
-electron force field (EFF).
+electron force field (eFF).
 </P>
 <P>These tools were provided by Andres Jaramillo-Botero at CalTech
 (ajaramil at wag.caltech.edu).
+</P>
+<HR>
+
+<H4><A NAME = "ipp"></A>ipp tool 
+</H4>
+<P>The tools/ipp directory contains a Perl script ipp which can be used
+to facilitate the creation of a complicated file (say, a lammps input
+script or tools/createatoms input file) using a template file.
+</P>
+<P>ipp was created and is maintained by Reese Jones (Sandia), rjones at
+sandia.gov.
+</P>
+<P>See two examples in the tools/ipp directory.  One of them is for the
+tools/createatoms tool's input file.
 </P>
 <HR>
 

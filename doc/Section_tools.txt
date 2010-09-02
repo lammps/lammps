@@ -48,6 +48,7 @@ own sub-directories with their own Makefiles.
 "eam database"_#eamdb
 "eam generate"_#eamgn
 "eff_#eff
+"ipp_#ipp
 "lmp2arc"_#arc
 "lmp2cfg"_#cfg
 "lmp2traj"_#traj
@@ -185,10 +186,24 @@ eff tool :h4,link(eff)
 
 The tools/eff directory contains various scripts for generating
 structures and post-processing output for simulations using the
-electron force field (EFF).
+electron force field (eFF).
 
 These tools were provided by Andres Jaramillo-Botero at CalTech
 (ajaramil at wag.caltech.edu).
+
+:line
+
+ipp tool :h4,link(ipp)
+
+The tools/ipp directory contains a Perl script ipp which can be used
+to facilitate the creation of a complicated file (say, a lammps input
+script or tools/createatoms input file) using a template file.
+
+ipp was created and is maintained by Reese Jones (Sandia), rjones at
+sandia.gov.
+
+See two examples in the tools/ipp directory.  One of them is for the
+tools/createatoms tool's input file.
 
 :line
 

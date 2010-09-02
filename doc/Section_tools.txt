@@ -44,7 +44,8 @@ own sub-directories with their own Makefiles.
 "ch2lmp"_#charmm
 "chain"_#chain
 "data2xmovie"_#data
-"eam generate"_#eam
+"eam database"_#eamdb
+"eam generate"_#eamgn
 "eff_#eff
 "lmp2arc"_#arc
 "lmp2cfg"_#cfg
@@ -137,12 +138,29 @@ See the top of the data2xmovie.c file for a discussion of the options.
 
 :line
 
-eam generate tool :h4,link(eam)
+eam database tool :h4,link(eamdb)
+
+The tools/eam_database directory contains a Fortran program that will
+generate EAM alloy setfl potential files for any combination of 16
+elements: Cu, Ag, Au, Ni, Pd, Pt, Al, Pb, Fe, Mo, Ta, W, Mg, Co, Ti,
+Zr.  The files can then be used with the "pair_style
+eam/alloy"_pair_eam.html command.
+
+The tool is authored by Xiaowang Zhou (Sandia), xzhou at sandia.gov,
+and is based on his paper:
+
+X. W. Zhou, R. A. Johnson, and H. N. G. Wadley, Phys. Rev. B, 69,
+144113 (2004).
+
+:line
+
+eam generate tool :h4,link(eamgn)
 
 The tools/eam_generate directory contains several one-file C programs
 that convert an analytic formula into a tabulated "embedded atom
 method (EAM)"_pair_eam.html setfl potential file.  The potentials they
-produce are in the potentials directory.
+produce are in the potentials directory, and can be used with the
+"pair_style eam/alloy"_pair_eam.html command.
 
 The source files and potentials were provided by Gerolf Ziegenhain
 (gerolf at ziegenhain.com).

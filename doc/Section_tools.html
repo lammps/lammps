@@ -48,7 +48,8 @@ own sub-directories with their own Makefiles.
 <LI><A HREF = "#charmm">ch2lmp</A>
 <LI><A HREF = "#chain">chain</A>
 <LI><A HREF = "#data">data2xmovie</A>
-<LI><A HREF = "#eam">eam generate</A>
+<LI><A HREF = "#eamdb">eam database</A>
+<LI><A HREF = "#eamgn">eam generate</A>
 <LI>"eff_#eff
 <LI><A HREF = "#arc">lmp2arc</A>
 <LI><A HREF = "#cfg">lmp2cfg</A>
@@ -141,12 +142,29 @@ running the tool is
 </P>
 <HR>
 
-<H4><A NAME = "eam"></A>eam generate tool 
+<H4><A NAME = "eamdb"></A>eam database tool 
+</H4>
+<P>The tools/eam_database directory contains a Fortran program that will
+generate EAM alloy setfl potential files for any combination of 16
+elements: Cu, Ag, Au, Ni, Pd, Pt, Al, Pb, Fe, Mo, Ta, W, Mg, Co, Ti,
+Zr.  The files can then be used with the <A HREF = "pair_eam.html">pair_style
+eam/alloy</A> command.
+</P>
+<P>The tool is authored by Xiaowang Zhou (Sandia), xzhou at sandia.gov,
+and is based on his paper:
+</P>
+<P>X. W. Zhou, R. A. Johnson, and H. N. G. Wadley, Phys. Rev. B, 69,
+144113 (2004).
+</P>
+<HR>
+
+<H4><A NAME = "eamgn"></A>eam generate tool 
 </H4>
 <P>The tools/eam_generate directory contains several one-file C programs
 that convert an analytic formula into a tabulated <A HREF = "pair_eam.html">embedded atom
 method (EAM)</A> setfl potential file.  The potentials they
-produce are in the potentials directory.
+produce are in the potentials directory, and can be used with the
+<A HREF = "pair_eam.html">pair_style eam/alloy</A> command.
 </P>
 <P>The source files and potentials were provided by Gerolf Ziegenhain
 (gerolf at ziegenhain.com).

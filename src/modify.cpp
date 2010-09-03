@@ -47,8 +47,9 @@ using namespace LAMMPS_NS;
 #define POST_FORCE_RESPA         4096
 #define FINAL_INTEGRATE_RESPA    8192
 #define MIN_PRE_EXCHANGE        16384
-#define MIN_POST_FORCE          32768
-#define MIN_ENERGY              65536
+#define MIN_PRE_FORCE           32768
+#define MIN_POST_FORCE          65536
+#define MIN_ENERGY             131072
 
 #define MIN(A,B) ((A) < (B)) ? (A) : (B)
 #define MAX(A,B) ((A) > (B)) ? (A) : (B)
@@ -66,7 +67,7 @@ Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
   n_final_integrate = n_end_of_step = n_thermo_energy = 0;
   n_initial_integrate_respa = n_post_integrate_respa = 0;
   n_pre_force_respa = n_post_force_respa = n_final_integrate_respa = 0;
-  n_min_pre_exchange = n_min_post_force = n_min_energy = 0;
+  n_min_pre_exchange = n_min_pre_force = n_min_post_force = n_min_energy = 0;
 
   fix = NULL;
   fmask = NULL;
@@ -78,7 +79,8 @@ Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
   list_initial_integrate_respa = list_post_integrate_respa = NULL;
   list_pre_force_respa = list_post_force_respa = NULL;
   list_final_integrate_respa = NULL;
-  list_min_pre_exchange = list_min_post_force = list_min_energy = NULL;
+  list_min_pre_exchange = list_min_pre_force = 
+    list_min_post_force = list_min_energy = NULL;
 
   end_of_step_every = NULL;
 
@@ -125,6 +127,7 @@ Modify::~Modify()
   delete [] list_post_force_respa;
   delete [] list_final_integrate_respa;
   delete [] list_min_pre_exchange;
+  delete [] list_min_pre_force;
   delete [] list_min_post_force;
   delete [] list_min_energy;
 
@@ -170,6 +173,7 @@ void Modify::init()
 	    n_final_integrate_respa,list_final_integrate_respa);
 
   list_init(MIN_PRE_EXCHANGE,n_min_pre_exchange,list_min_pre_exchange);
+  list_init(MIN_PRE_FORCE,n_min_pre_force,list_min_pre_force);
   list_init(MIN_POST_FORCE,n_min_post_force,list_min_post_force);
   list_init(MIN_ENERGY,n_min_energy,list_min_energy);
 
@@ -254,8 +258,12 @@ void Modify::setup(int vflag)
 
 void Modify::setup_pre_force(int vflag)
 {
-  for (int i = 0; i < n_pre_force; i++)
-    fix[list_pre_force[i]]->setup_pre_force(vflag);
+  if (update->whichflag == 1)
+    for (int i = 0; i < n_pre_force; i++)
+      fix[list_min_pre_force[i]]->setup_pre_force(vflag);
+  else if (update->whichflag == 2)
+    for (int i = 0; i < n_pre_force; i++)
+      fix[list_min_pre_force[i]]->min_setup_pre_force(vflag);
 }
 
 /* ----------------------------------------------------------------------
@@ -355,6 +363,16 @@ double Modify::thermo_energy()
 }
 
 /* ----------------------------------------------------------------------
+   setup rRESPA pre_force call, only for relevant fixes
+------------------------------------------------------------------------- */
+
+void Modify::setup_pre_force_respa(int vflag, int ilevel)
+{
+  for (int i = 0; i < n_pre_force; i++)
+    fix[list_pre_force[i]]->setup_pre_force_respa(vflag,ilevel);
+}
+
+/* ----------------------------------------------------------------------
    1st half of rRESPA integrate call, only for relevant fixes
 ------------------------------------------------------------------------- */
 
@@ -413,6 +431,16 @@ void Modify::min_pre_exchange()
 {
   for (int i = 0; i < n_min_pre_exchange; i++)
     fix[list_min_pre_exchange[i]]->min_pre_exchange();
+}
+
+/* ----------------------------------------------------------------------
+   minimizer pre-force call, only for relevant fixes
+------------------------------------------------------------------------- */
+
+void Modify::min_pre_force(int vflag)
+{
+  for (int i = 0; i < n_min_pre_force; i++)
+    fix[list_min_pre_force[i]]->min_pre_force(vflag);
 }
 
 /* ----------------------------------------------------------------------

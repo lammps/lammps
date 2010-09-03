@@ -345,6 +345,7 @@ void Respa::setup()
 
   for (int ilevel = 0; ilevel < nlevels; ilevel++) {
     force_clear(newton[ilevel]);
+    modify->setup_pre_force_respa(vflag,ilevel);
     if (level_bond == ilevel && force->bond)
       force->bond->compute(eflag,vflag);
     if (level_angle == ilevel && force->angle) 
@@ -408,6 +409,7 @@ void Respa::setup_minimal(int flag)
 
   for (int ilevel = 0; ilevel < nlevels; ilevel++) {
     force_clear(newton[ilevel]);
+    modify->setup_pre_force_respa(vflag,ilevel);
     if (level_bond == ilevel && force->bond)
       force->bond->compute(eflag,vflag);
     if (level_angle == ilevel && force->angle) 

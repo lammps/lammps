@@ -229,7 +229,8 @@ void Min::setup()
 
   ev_set(update->ntimestep);
   force_clear();
-  
+  modify->setup_pre_force(vflag);
+
   if (force->pair) force->pair->compute(eflag,vflag);
 
   if (atom->molecular) {
@@ -299,7 +300,8 @@ void Min::setup_minimal(int flag)
 
   ev_set(update->ntimestep);
   force_clear();
-  
+  modify->setup_pre_force(vflag);
+
   if (force->pair) force->pair->compute(eflag,vflag);
 
   if (atom->molecular) {
@@ -454,6 +456,7 @@ double Min::energy_force(int resetflag)
 
   ev_set(update->ntimestep);
   force_clear();
+  if (modify->n_min_pre_force) modify->min_pre_force(vflag);
 
   timer->stamp();
 

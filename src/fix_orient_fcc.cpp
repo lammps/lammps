@@ -180,7 +180,7 @@ void FixOrientFCC::init()
   if (strcmp(update->integrate_style,"respa") == 0)
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
-  // need a full neighbor list, built when ever re-neighboring occurs
+  // need a full neighbor list, built whenever re-neighboring occurs
 
   int irequest = neighbor->request((void *) this);
   neighbor->requests[irequest]->pair = 0;

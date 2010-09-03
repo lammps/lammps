@@ -43,9 +43,12 @@ own sub-directories with their own Makefiles.
 "binary2txt"_#binary
 "ch2lmp"_#charmm
 "chain"_#chain
+"createatoms"_#create
 "data2xmovie"_#data
-"eam generate"_#eam
+"eam database"_#eamdb
+"eam generate"_#eamgn
 "eff_#eff
+"ipp_#ipp
 "lmp2arc"_#arc
 "lmp2cfg"_#cfg
 "lmp2traj"_#traj
@@ -124,6 +127,19 @@ system for the "chain benchmark"_Section_perf.html.
 
 :line
 
+createatoms tool :h4,link(create)
+
+The tools/createatoms directory contains a Fortran program called
+createAtoms.f which can generate a variety of interesting crystal
+structures and geometries and output the resulting list of atom
+coordinates in LAMMPS or other formats.
+
+See the included Manual.pdf for details.
+
+The tool is authored by Xiaowang Zhou (Sandia), xzhou at sandia.gov.
+
+:line
+
 data2xmovie tool :h4,link(data)
 
 The file data2xmovie.c converts a LAMMPS data file into a snapshot
@@ -137,12 +153,29 @@ See the top of the data2xmovie.c file for a discussion of the options.
 
 :line
 
-eam generate tool :h4,link(eam)
+eam database tool :h4,link(eamdb)
+
+The tools/eam_database directory contains a Fortran program that will
+generate EAM alloy setfl potential files for any combination of 16
+elements: Cu, Ag, Au, Ni, Pd, Pt, Al, Pb, Fe, Mo, Ta, W, Mg, Co, Ti,
+Zr.  The files can then be used with the "pair_style
+eam/alloy"_pair_eam.html command.
+
+The tool is authored by Xiaowang Zhou (Sandia), xzhou at sandia.gov,
+and is based on his paper:
+
+X. W. Zhou, R. A. Johnson, and H. N. G. Wadley, Phys. Rev. B, 69,
+144113 (2004).
+
+:line
+
+eam generate tool :h4,link(eamgn)
 
 The tools/eam_generate directory contains several one-file C programs
 that convert an analytic formula into a tabulated "embedded atom
 method (EAM)"_pair_eam.html setfl potential file.  The potentials they
-produce are in the potentials directory.
+produce are in the potentials directory, and can be used with the
+"pair_style eam/alloy"_pair_eam.html command.
 
 The source files and potentials were provided by Gerolf Ziegenhain
 (gerolf at ziegenhain.com).
@@ -153,10 +186,24 @@ eff tool :h4,link(eff)
 
 The tools/eff directory contains various scripts for generating
 structures and post-processing output for simulations using the
-electron force field (EFF).
+electron force field (eFF).
 
 These tools were provided by Andres Jaramillo-Botero at CalTech
 (ajaramil at wag.caltech.edu).
+
+:line
+
+ipp tool :h4,link(ipp)
+
+The tools/ipp directory contains a Perl script ipp which can be used
+to facilitate the creation of a complicated file (say, a lammps input
+script or tools/createatoms input file) using a template file.
+
+ipp was created and is maintained by Reese Jones (Sandia), rjones at
+sandia.gov.
+
+See two examples in the tools/ipp directory.  One of them is for the
+tools/createatoms tool's input file.
 
 :line
 

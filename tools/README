@@ -16,9 +16,12 @@ amber2lmp	       python scripts for using AMBER to setup LAMMPS input
 binary2txt	       convert a LAMMPS dump file from binary to ASCII text
 ch2lmp		       convert CHARMM files to LAMMPS input
 chain		       create a data file of bead-spring chains
+createatoms	       generate lattices of atoms within a geometry
 data2xmovie	       convert a data file to a snapshot that xmovie can viz
-eam_generate	       generate EAM potential files
-eff		       scripts for working with the EFF (electron force field)
+eam_database	       one tool to generate EAM alloy potential files
+eam_generate	       2nd tool to generate EAM alloy potential files
+eff		       scripts for working with the eFF (electron force field)
+ipp		       input pre-processor Perl tool for creating input scripts
 lmp2arc		       convert LAMMPS output to Accelrys Insight format
 lmp2cfg		       convert LAMMPS output to CFG files for AtomEye viz
 lmp2traj	       convert LAMMPS output to contour, density profiles

@@ -98,16 +98,22 @@ on timesteps when neighbor lists are rebuilt, the coordinates of an
 atom written to a dump file may be slightly outside the simulation
 box.
 
-When LAMMPS is running in parallel, the atom information written to
-dump files (typically one line per atom) may be written in an
-indeterminate order.  This is because data for a single snapshot is
-collected from multiple processors.  This is always the case for the
-{atom}, {local}, and {custom} styles.  It is also the case for the
-{xyz} style if the dump group is not {all}.  It is not the case for
-the {dcd} and {xtc} styles which always write atoms in sorted order.
-So does the {xyz} style if the dump group is {all}.  The {cfg} style
-supports the {sort} option of the "dump_modify"_dump_modify.html
-command which allows sorting to be turned on or off.
+When LAMMPS is running on a single processor, if the "atom_modify
+sort"_atom_modify.html option is on, which it is by default, then
+atoms are re-ordered periodically during a simulation, due to spatial
+sorting, and hence the atom information written to dump files
+(typically one line per atom) will be in an indeterminate order for
+each snapshot.
+
+When LAMMPS is running in parallel, this is also true, both due to
+sorting and because data for a single snapshot is collected from
+multiple processors.  This is the case for the {atom}, {local}, and
+{custom} styles.  It is also the case for the {xyz} style if the dump
+group is not {all}.  It is not the case for the {dcd} and {xtc} styles
+which always write atoms in sorted order.  So does the {xyz} style if
+the dump group is {all}.  The {cfg} style supports the {sort} option
+of the "dump_modify"_dump_modify.html command which allows sorting to
+be turned on or off.
 
 :line
 

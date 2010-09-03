@@ -281,7 +281,7 @@ class Amber:
                     l.Dihedral_Coeffs[i][1] = 1
                 else:
                     l.Dihedral_Coeffs[i][1] = -1
-                l.Dihedral_Coeffs[i][2] = self.PN[i]
+                l.Dihedral_Coeffs[i][2] = int(self.PN[i])
 
             l.Atoms = []
             for i in range(self.NATOM):

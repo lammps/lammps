@@ -6,25 +6,29 @@ files. The mapping from parameter files to publication is as follows:
 ffield.reax is the same as ffield.reax.mattson
 
 ffield.reax.mattsson: general-purpose hydrocarbon parameterization
-T. R. Mattsson, J. M. D. Lane, K. R. Cochrane, M. P. Desjarlais, 
-A. P. Thompson, F. Pierce, and G. S. Grest, "First-Principles and 
-Classical Molecular Dynamics Simulation of Shocked Polymers ," 
+
+T. R. Mattsson, J. M. D. Lane, K. R. Cochrane, M. P. Desjarlais,
+A. P. Thompson, F. Pierce, and G. S. Grest, "First-Principles and
+Classical Molecular Dynamics Simulation of Shocked Polymers ,"
 Phys. Rev. B, 81 054103 (2010).
 
 ffield.reax.budzien: PETN
-J. Budzien, A. P. Thompson, and S. V. Zybin, "Reactive Molecular Dynamics 
-Simulations of Shock Through a Single Crystal of Pentaerythritol 
-Tetranitrate," J. Phys. Chem., 113 13142 (2009).
 
-ffield.reax.rdx: nitramines (RDX/HMX/TATB/PETN) 
-RDX: (I) Zhang, L., van Duin, A.C.T., Zybin, S. and Goddard, W.A. (2009) 
-Thermal Decomposition of Hydrazines from Reactive Dynamics Using the ReaxFF 
-Reactive Force Field, Journal of Physical Chemistry A 113, 10770-10778.
-(II) Zhang, L., van Duin, A.C.T., Kober, E., Zybin, S. and Goddard, W.A. 
-(2009) accepted for publication in J.Phys.Chem.A (HMX/TATB carbon 
-cluster formation) 
+J. Budzien, A. P. Thompson, and S. V. Zybin, "Reactive Molecular
+Dynamics Simulations of Shock Through a Single Crystal of
+Pentaerythritol Tetranitrate," J. Phys. Chem., 113 13142 (2009).
 
-ffield.reax.cho: c/h/o combustion force field November 2006
-CHO: ReaxFF Reactive Force Field for Molecular Dynamics Simulations of Hydrocarbon 
-Oxidation" Kimberly Chenoweth, Adri C. T. van Duin, and William A. Goddard, III
-1040 J. Phys. Chem. A 2008, 112, 1040-1053.
+ffield.reax.rdx: nitramines (RDX/HMX/TATB/PETN) RDX
+
+(I) Zhang, L., van Duin, A.C.T., Zybin, S. and Goddard, W.A. (2009)
+Thermal Decomposition of Hydrazines from Reactive Dynamics Using the
+ReaxFF Reactive Force Field, Journal of Physical Chemistry A 113,
+10770-10778.  (II) Zhang, L., van Duin, A.C.T., Kober, E., Zybin,
+S. and Goddard, W.A.  (2009) accepted for publication in J.Phys.Chem.A
+(HMX/TATB carbon cluster formation)
+
+ffield.reax.cho: c/h/o combustion force field November 2006 CHO
+
+ReaxFF Reactive Force Field for Molecular Dynamics Simulations of
+Hydrocarbon Oxidation" Kimberly Chenoweth, Adri C. T. van Duin, and
+William A. Goddard, III 1040 J. Phys. Chem. A 2008, 112, 1040-1053.

@@ -193,10 +193,11 @@ void PairHybrid::settings(int narg, char **arg)
   allocated = 0;
 
   // count sub-styles by skipping numeric args
-  // one exception is 1st arg of style "table", which is non-numeric word
-  // one exception is 1st two args of style "lj/coul", which are non-numeric
-  // one exception is 1st two args of style "buck/coul", which are non-numeric
-  // one exception is 1st arg of any "gpu" style, which is non-numeric
+  // exception is 1st arg of style "table", which is non-numeric word
+  // exception is 1st two args of style "lj/coul", which are non-numeric
+  // exception is 1st two args of style "buck/coul", which are non-numeric
+  // exception is 1st arg of any "gpu" style, which is non-numeric
+  // exception is 1st arg of reax/c style, which is non-numeric
   // need a better way to skip these exceptions
 
   nstyles = 0;
@@ -206,6 +207,7 @@ void PairHybrid::settings(int narg, char **arg)
     if (strcmp(arg[i],"lj/coul") == 0) i += 2;
     if (strcmp(arg[i],"buck/coul") == 0) i += 2;
     if (strstr(arg[i],"gpu")) i++;
+    if (strcmp(arg[i],"reax/c") == 0) i++;
     i++;
     while (i < narg && !isalpha(arg[i][0])) i++;
     nstyles++;
@@ -218,10 +220,11 @@ void PairHybrid::settings(int narg, char **arg)
 
   // allocate each sub-style and call its settings() with subset of args
   // define subset of args for a sub-style by skipping numeric args
-  // one exception is 1st arg of style "table", which is non-numeric
-  // one exception is 1st two args of style "lj/coul", which are non-numeric
-  // one exception is 1st two args of style "buck/coul", which are non-numeric
-  // one exception is 1st arg of any "gpu" style, which is non-numeric
+  // exception is 1st arg of style "table", which is non-numeric
+  // exception is 1st two args of style "lj/coul", which are non-numeric
+  // exception is 1st two args of style "buck/coul", which are non-numeric
+  // exception is 1st arg of any "gpu" style, which is non-numeric
+  // exception is 1st arg of reax/c style, which is non-numeric
   // need a better way to skip these exceptions
 
   nstyles = 0;
@@ -242,6 +245,7 @@ void PairHybrid::settings(int narg, char **arg)
     if (strcmp(arg[i],"lj/coul") == 0) i += 2;
     if (strcmp(arg[i],"buck/coul") == 0) i += 2;
     if (strstr(arg[i],"gpu")) i++;
+    if (strcmp(arg[i],"reax/c") == 0) i++;
     i++;
     while (i < narg && !isalpha(arg[i][0])) i++;
     styles[nstyles]->settings(i-istyle-1,&arg[istyle+1]);

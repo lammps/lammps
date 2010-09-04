@@ -75,11 +75,10 @@ FixPeriNeigh::FixPeriNeigh(LAMMPS *lmp,int narg, char **arg) :
 
 FixPeriNeigh::~FixPeriNeigh()
 {
-  // if atom class still exists:
   // unregister this fix so atom class doesn't invoke it any more
 
-  if (atom) atom->delete_callback(id,0);
-  if (atom) atom->delete_callback(id,1);
+  atom->delete_callback(id,0);
+  atom->delete_callback(id,1);
 
   // delete locally stored arrays
 
@@ -422,9 +421,8 @@ void FixPeriNeigh::unpack_comm(int n, int first, double *buf)
 
   m = 0;
   last = first + n;
-  for (i = first; i < last; i++) {
+  for (i = first; i < last; i++)
     wvolume[i] = buf[m++];
-  }
 }
 
 /* ----------------------------------------------------------------------

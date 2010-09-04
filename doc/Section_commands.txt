@@ -470,6 +470,7 @@ These are fix styles contributed by users, which can be used if
 "nve/eff"_fix_nve_eff.html,
 "nvt/eff"_fix_nh_eff.html,
 "nvt/sllod/eff"_fix_nvt_sllod_eff.html,
+"qeq/reax"_fix_qeq_reax.html,
 "smd"_fix_smd.html,
 "temp/rescale/eff"_fix_temp_rescale_eff.html :tb(c=6,ea=c)
 
@@ -613,7 +614,8 @@ These are pair styles contributed by users, which can be used if
 "cg/cmm/coul/long"_pair_cmm.html,
 "eam/cd"_pair_eam.html,
 "eff/cut"_pair_eff.html,
-"lj/coul"_pair_lj_coul.html :tb(c=4,ea=c)
+"lj/coul"_pair_lj_coul.html,
+"reax/c"_pair_reax_c.html :tb(c=4,ea=c)
 
 :line
 

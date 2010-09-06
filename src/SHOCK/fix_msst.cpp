@@ -340,8 +340,8 @@ void FixMSST::setup(int vflag)
     v0 = compute_vol();
     v0_set = 1;
     if (comm->me == 0) {
-      if ( screen ) fprintf(screen,"Fix msst v0 = %12.5e\n", v0);
-      if ( logfile ) fprintf(logfile,"Fix msst v0 = %12.5e\n", v0);
+      if ( screen ) fprintf(screen,"Fix MSST v0 = %12.5e\n", v0);
+      if ( logfile ) fprintf(logfile,"Fix MSST v0 = %12.5e\n", v0);
     }
   } 
 
@@ -350,8 +350,8 @@ void FixMSST::setup(int vflag)
     p0_set = 1;
 
     if ( comm->me == 0 ) {
-      if ( screen ) fprintf(screen,"Fix msst p0 = %12.5e\n", p0);
-      if ( logfile ) fprintf(logfile,"Fix msst p0 = %12.5e\n", p0);
+      if ( screen ) fprintf(screen,"Fix MSST p0 = %12.5e\n", p0);
+      if ( logfile ) fprintf(logfile,"Fix MSST p0 = %12.5e\n", p0);
     }
   }
 
@@ -360,8 +360,8 @@ void FixMSST::setup(int vflag)
     e0_set = 1;
 
     if ( comm->me == 0 ) {
-      if ( screen ) fprintf(screen,"Fix msst e0 = to be %12.5e\n",e0);
-      if ( logfile ) fprintf(logfile,"Fix msst e0 = to be %12.5e\n",e0);
+      if ( screen ) fprintf(screen,"Fix MSST e0 = to be %12.5e\n",e0);
+      if ( logfile ) fprintf(logfile,"Fix MSST e0 = to be %12.5e\n",e0);
     }
 
   }
@@ -386,11 +386,11 @@ void FixMSST::setup(int vflag)
 
     if ( comm->me == 0 && tscale != 1.0) {
       if ( screen )
-	fprintf(screen,"Fix msst initial strain rate of %12.5e established "
+	fprintf(screen,"Fix MSST initial strain rate of %12.5e established "
 		"by reducing temperature by factor of %12.5e\n",
 		fac2,tscale);
       if ( logfile )
-	fprintf(logfile,"Fix msst initial strain rate of %12.5e established "
+	fprintf(logfile,"Fix MSST initial strain rate of %12.5e established "
 		"by reducing temperature by factor of %12.5e\n",
 		fac2,tscale);
     }

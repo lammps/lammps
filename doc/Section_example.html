@@ -36,7 +36,6 @@ Site</A>.
 <TR><TD >crack</TD><TD >	  crack propagation in a 2d solid</TD></TR>
 <TR><TD >dipole</TD><TD >   point dipolar particles, 2d system</TD></TR>
 <TR><TD >eim</TD><TD >      NaCl using the EIM potential</TD></TR>
-<TR><TD >elastic</TD><TD >  zero temperature elastic constant tensor of silicon</TD></TR>
 <TR><TD >ellipse</TD><TD >  ellipsoidal particles in spherical solvent, 2d system</TD></TR>
 <TR><TD >flow</TD><TD >	  Couette and Poiseuille flow in a 2d channel</TD></TR>
 <TR><TD >friction</TD><TD > frictional contact of spherical asperities between 2d surfaces</TD></TR>
@@ -68,13 +67,19 @@ lmp_linux < in.indent              # run the problem
 </P>
 <PRE>../../tools/xmovie/xmovie -scale dump.indent 
 </PRE>
+<HR>
+
 <P>There is also a COUPLE directory which has examples of how to link to
 LAMMPS as a library and drive it from a wrapper program.  See the
 README file for more info.
 </P>
+<P>There is also an ELASTIC directory with an example script for
+computing elastic constants, using a zero temperature Si example.  See
+the in.elastic file for more info.
+</P>
 <P>There is also a USER directory which contains subdirectories of
 user-provided examples for user packages.  See the README files in
-those directories for more info.  See the doc/Section_start.html for
-more info about user packages.
+those directories for more info.  See the doc/Section_start.html file
+for more info about user packages.
 </P>
 </HTML>

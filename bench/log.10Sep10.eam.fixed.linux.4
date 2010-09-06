@@ -1,4 +1,4 @@
-LAMMPS (15 Jan 2010)
+LAMMPS (10 Sep 2010)
 # bulk Cu lattice
 
 variable	x index 1
@@ -23,7 +23,7 @@ region		box block 0 20 0 20 0 ${zz}
 region		box block 0 20 0 20 0 20
 create_box	1 box
 Created orthogonal box = (0 0 0) to (72.3 72.3 72.3)
-  1 by 1 by 1 processor grid
+  1 by 2 by 2 processor grid
 create_atoms	1 box
 Created 32000 atoms
 
@@ -41,25 +41,25 @@ timestep	0.005
 thermo		50
 
 run		100
-Memory usage per processor = 13.3815 Mbytes
+Memory usage per processor = 4.30641 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0         1600      -113280            0   -106662.09    18703.573 
       50    781.69049   -109873.35            0   -106640.13    52273.088 
      100      801.832    -109957.3            0   -106640.77    51322.821 
-Loop time of 11.3292 on 1 procs for 100 steps with 32000 atoms
+Loop time of 2.83686 on 4 procs for 100 steps with 32000 atoms
 
-Pair  time (%) = 10.1802 (89.8578)
-Neigh time (%) = 0.86976 (7.67717)
-Comm  time (%) = 0.0717678 (0.633477)
-Outpt time (%) = 0.00044179 (0.00389957)
-Other time (%) = 0.207053 (1.82761)
+Pair  time (%) = 2.47209 (87.1416)
+Neigh time (%) = 0.216486 (7.63117)
+Comm  time (%) = 0.102601 (3.61672)
+Outpt time (%) = 0.000239313 (0.00843582)
+Other time (%) = 0.0454471 (1.60202)
 
-Nlocal:    32000 ave 32000 max 32000 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    19909 ave 19909 max 19909 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    1.20778e+06 ave 1.20778e+06 max 1.20778e+06 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:    8000 ave 8008 max 7993 min
+Histogram: 2 0 0 0 0 0 0 0 1 1
+Nghost:    9130.25 ave 9138 max 9122 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    301946 ave 302392 max 301360 min
+Histogram: 1 0 0 0 1 0 0 0 1 1
 
 Total # of neighbors = 1207784
 Ave neighs/atom = 37.7433

@@ -1,4 +1,4 @@
-LAMMPS (15 Jan 2010)
+LAMMPS (10 Sep 2010)
 # FENE beadspring benchmark
 
 units		lj
@@ -8,7 +8,7 @@ special_bonds   fene
 read_data	data.chain
   1 = max bonds/atom
   orthogonal box = (-16.796 -16.796 -16.796) to (16.796 16.796 16.796)
-  1 by 1 by 1 processor grid
+  1 by 2 by 2 processor grid
   32000 atoms
   32000 velocities
   31680 bonds
@@ -32,28 +32,28 @@ thermo          100
 timestep	0.012
 
 run		100
-Memory usage per processor = 8.37288 Mbytes
+Memory usage per processor = 3.56846 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0   0.97029772   0.44484087    20.494523    22.394765    4.6721833 
-     100    0.9729966    0.4361122    20.507698     22.40326    4.6548819 
-Loop time of 1.90831 on 1 procs for 100 steps with 32000 atoms
+     100   0.97145835   0.43803883    20.502691    22.397872     4.626988 
+Loop time of 0.437537 on 4 procs for 100 steps with 32000 atoms
 
-Pair  time (%) = 0.441165 (23.118)
-Bond  time (%) = 0.289828 (15.1876)
-Neigh time (%) = 0.70849 (37.1265)
-Comm  time (%) = 0.057091 (2.9917)
-Outpt time (%) = 0.000185966 (0.00974507)
-Other time (%) = 0.411554 (21.5664)
+Pair  time (%) = 0.0835259 (19.09)
+Bond  time (%) = 0.0587637 (13.4306)
+Neigh time (%) = 0.158699 (36.2711)
+Comm  time (%) = 0.0484382 (11.0707)
+Outpt time (%) = 0.000112474 (0.0257062)
+Other time (%) = 0.0879969 (20.1119)
 
-Nlocal:    32000 ave 32000 max 32000 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    9493 ave 9493 max 9493 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    155873 ave 155873 max 155873 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:    8000 ave 8030 max 7974 min
+Histogram: 1 0 0 1 0 1 0 0 0 1
+Nghost:    4177 ave 4191 max 4160 min
+Histogram: 1 0 0 0 1 0 0 1 0 1
+Neighs:    38995.8 ave 39169 max 38852 min
+Histogram: 1 0 0 1 1 0 0 0 0 1
 
-Total # of neighbors = 155873
-Ave neighs/atom = 4.87103
+Total # of neighbors = 155983
+Ave neighs/atom = 4.87447
 Ave special neighs/atom = 1.98
 Neighbor list builds = 25
 Dangerous builds = 0

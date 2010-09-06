@@ -1,4 +1,4 @@
-LAMMPS (15 Jan 2010)
+LAMMPS (10 Sep 2010)
 # Rhodopsin model
 
 units           real  
@@ -36,7 +36,7 @@ fix             1 all shake 0.0001 5 0 m 1.0 a 232
   3633 = # of size 3 clusters
   747 = # of size 4 clusters
   4233 = # of frozen angles
-fix             2 all npt 300.0 300.0 100.0 		aniso NULL NULL NULL NULL 0.0 0.0 1000.0
+fix             2 all npt temp 300.0 300.0 100.0 		z 0.0 0.0 1000.0 mtk no pchain 0 tchain 1
 
 special_bonds   charmm
  
@@ -58,39 +58,39 @@ PotEng   =    -46801.0368 E_bond   =      2537.9940 E_angle  =     10921.3742
 E_dihed  =      5211.7865 E_impro  =       213.5116 E_vdwl   =     -2307.8634 
 E_coul   =    207021.6603 E_long   =   -270399.5000 Press    =      -142.6030 
 Volume   =    307995.0335 
----------------- Step       50 ----- CPU =      8.4471 (sec) ----------------
-TotEng   =    -25330.0567 KinEng   =     21501.0002 Temp     =       299.8229 
-PotEng   =    -46831.0569 E_bond   =      2471.7010 E_angle  =     10836.4976 
-E_dihed  =      5239.6302 E_impro  =       227.1217 E_vdwl   =     -1993.2862 
-E_coul   =    206793.4381 E_long   =   -270406.1593 Press    =       237.6631 
-Volume   =    308031.6773 
----------------- Step      100 ----- CPU =     17.2158 (sec) ----------------
-TotEng   =    -25290.7397 KinEng   =     21592.0095 Temp     =       301.0920 
-PotEng   =    -46882.7492 E_bond   =      2567.9819 E_angle  =     10781.9426 
-E_dihed  =      5198.7430 E_impro  =       216.7831 E_vdwl   =     -1902.4966 
-E_coul   =    206655.0358 E_long   =   -270400.7390 Press    =         6.9488 
-Volume   =    308134.2294 
-Loop time of 17.2163 on 4 procs for 100 steps with 32000 atoms
+---------------- Step       50 ----- CPU =      8.2303 (sec) ----------------
+TotEng   =    -25330.0783 KinEng   =     21501.0023 Temp     =       299.8230 
+PotEng   =    -46831.0806 E_bond   =      2471.7004 E_angle  =     10836.4977 
+E_dihed  =      5239.6299 E_impro  =       227.1218 E_vdwl   =     -1993.2753 
+E_coul   =    206793.4044 E_long   =   -270406.1594 Press    =       237.6744 
+Volume   =    308031.5641 
+---------------- Step      100 ----- CPU =     16.7709 (sec) ----------------
+TotEng   =    -25290.7642 KinEng   =     21592.0080 Temp     =       301.0920 
+PotEng   =    -46882.7722 E_bond   =      2567.9806 E_angle  =     10781.9408 
+E_dihed  =      5198.7431 E_impro  =       216.7832 E_vdwl   =     -1902.4804 
+E_coul   =    206654.9995 E_long   =   -270400.7389 Press    =         6.9875 
+Volume   =    308133.9900 
+Loop time of 16.771 on 4 procs for 100 steps with 32000 atoms
 
-Pair  time (%) = 11.2337 (65.2502)
-Bond  time (%) = 0.689357 (4.0041)
-Kspce time (%) = 2.22834 (12.9432)
-Neigh time (%) = 1.72487 (10.0188)
-Comm  time (%) = 0.439415 (2.55233)
-Outpt time (%) = 0.00139344 (0.00809373)
-Other time (%) = 0.899235 (5.22318)
+Pair  time (%) = 11.2592 (67.1347)
+Bond  time (%) = 0.685832 (4.08939)
+Kspce time (%) = 2.03664 (12.1438)
+Neigh time (%) = 1.60447 (9.56693)
+Comm  time (%) = 0.334371 (1.99374)
+Outpt time (%) = 0.00025332 (0.00151046)
+Other time (%) = 0.850284 (5.06997)
 
-FFT time (% of Kspce) = 0.290461 (13.0348)
-FFT Gflps 3d (1d only) = 1.78922 6.55107
+FFT time (% of Kspce) = 0.194679 (9.55886)
+FFT Gflps 3d (1d only) = 2.6695 6.75898
 
 Nlocal:    8000 ave 8143 max 7933 min
 Histogram: 1 2 0 0 0 0 0 0 0 1
 Nghost:    22733.5 ave 22769 max 22693 min
 Histogram: 1 0 0 0 0 2 0 0 0 1
-Neighs:    3.00702e+06 ave 3.0975e+06 max 2.96493e+06 min
+Neighs:    3.00703e+06 ave 3.0975e+06 max 2.96493e+06 min
 Histogram: 1 2 0 0 0 0 0 0 0 1
 
-Total # of neighbors = 12028098
+Total # of neighbors = 12028107
 Ave neighs/atom = 375.878
 Ave special neighs/atom = 7.43187
 Neighbor list builds = 11

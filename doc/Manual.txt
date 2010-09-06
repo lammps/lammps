@@ -19,7 +19,11 @@
 
 LAMMPS Documentation :c,h3
 
-(10 Sept 2010 version of LAMMPS) :c
+Version info:
+
+HTML pages on WWW site are always current to most recent patch on "this page"_bug
+HTML pages in doc directory are for LAMMPS version you have
+PDF file on WWW site and in doc directory is updated about once per month :ul
 
 LAMMPS stands for Large-scale Atomic/Molecular Massively Parallel
 Simulator.
@@ -36,6 +40,7 @@ sjplimp,pscrozi,athomps at sandia.gov.  The "LAMMPS WWW Site"_lws at
 http://lammps.sandia.gov has more information about the code and its
 uses.
 
+:link(bug,http://lammps.sandia.gov/bug.html)
 :link(sjp,http://www.sandia.gov/~sjplimp)
 
 :line

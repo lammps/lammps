@@ -5,7 +5,7 @@ Created by Tzu-Ray Shan (UF, rayshan@ufl.edu), Apr 2010
 All examples contains:
 
 1. input script: in.comb.*
-2. log file: log.lammps.*  (the HfO2 example does not include a log file)
+2. log file: log.lammps.*
 3. structure file: data.* (for some examples)
 
 Note: there is also a F90 program, elastic.f90, which can be used to

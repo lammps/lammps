@@ -219,7 +219,7 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
 
   if (pcouple == XYZ && dimension == 3 &&
       (p_target[0] != p_target[1] || p_target[0] != p_target[2]))
-    error->all("Invalid fix nvt/npt/nph pressure settings");
+    error->all("Invalid fix box/relax pressure settings");
   if (pcouple == XYZ && dimension == 2 && p_target[0] != p_target[1])
     error->all("Invalid fix box/relax pressure settings");
   if (pcouple == XY && p_target[0] != p_target[1])
@@ -611,7 +611,7 @@ void FixBoxRelax::remap()
       domain->boxlo[i] = currentBoxLo0 + (currentBoxLo0-ctr)*ds[i]/s0[i];
       domain->boxhi[i] = currentBoxHi0 + (currentBoxHi0-ctr)*ds[i]/s0[i];
       if (domain->boxlo[i] >= domain->boxhi[i])
-	error->all("fix box/relax generated negative dimension");
+	error->all("Fix box/relax generated negative box length");
     }
 
   if (pstyle == TRICLINIC) {

@@ -116,7 +116,7 @@ void FixIndent::init()
     xvar = input->variable->find(xstr);
     if (xvar < 0) error->all("Variable name for fix indent does not exist");
     if (!input->variable->equalstyle(xvar))
-      error->all("Variable for fix indent is not equal style");
+      error->all("Variable for fix indent is invalid style");
   }
   if (ystr) {
     yvar = input->variable->find(ystr);

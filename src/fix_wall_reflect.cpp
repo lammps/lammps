@@ -210,42 +210,42 @@ void FixWallReflect::init()
     if (xlovar < 0)
       error->all("Variable name for fix wall/relect does not exist");
     if (!input->variable->equalstyle(xlovar))
-      error->all("Variable for fix wall/reflect is not equal style");
+      error->all("Variable for fix wall/reflect is invalid style");
   }
   if (xhistr) {
     xhivar = input->variable->find(xhistr);
     if (xhivar < 0)
       error->all("Variable name for fix wall/relect does not exist");
     if (!input->variable->equalstyle(xhivar))
-      error->all("Variable for fix wall/reflect is not equal style");
+      error->all("Variable for fix wall/reflect is invalid style");
   }
   if (ylostr) {
     ylovar = input->variable->find(ylostr);
     if (ylovar < 0)
       error->all("Variable name for fix wall/relect does not exist");
     if (!input->variable->equalstyle(ylovar))
-      error->all("Variable for fix wall/reflect is not equal style");
+      error->all("Variable for fix wall/reflect is invalid style");
   }
   if (yhistr) {
     yhivar = input->variable->find(yhistr);
     if (yhivar < 0)
       error->all("Variable name for fix wall/relect does not exist");
     if (!input->variable->equalstyle(yhivar))
-      error->all("Variable for fix wall/reflect is not equal style");
+      error->all("Variable for fix wall/reflect is invalid style");
   }
   if (zlostr) {
     zlovar = input->variable->find(zlostr);
     if (zlovar < 0)
       error->all("Variable name for fix wall/relect does not exist");
     if (!input->variable->equalstyle(zlovar))
-      error->all("Variable for fix wall/reflect is not equal style");
+      error->all("Variable for fix wall/reflect is invalid style");
   }
   if (zhistr) {
     zhivar = input->variable->find(zhistr);
     if (zhivar < 0)
       error->all("Variable name for fix wall/relect does not exist");
     if (!input->variable->equalstyle(zhivar))
-      error->all("Variable for fix wall/reflect is not equal style");
+      error->all("Variable for fix wall/reflect is invalid style");
   }
 
   int nrigid = 0;

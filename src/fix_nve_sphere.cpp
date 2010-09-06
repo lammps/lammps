@@ -56,7 +56,7 @@ FixNVESphere::FixNVESphere(LAMMPS *lmp, int narg, char **arg) :
   if (!atom->omega_flag || !atom->torque_flag)
     error->all("Fix nve/sphere requires atom attributes omega, torque");
   if (!atom->radius_flag && !atom->avec->shape_type)
-    error->all("Fix nve/sphere requires atom attribute radius or shape");
+    error->all("Fix nve/sphere requires atom attribute diameter or shape");
   if (extra == DIPOLE && !atom->mu_flag)
     error->all("Fix nve/sphere requires atom attribute mu");
 }

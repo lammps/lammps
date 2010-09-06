@@ -96,7 +96,7 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       t_stop = atof(arg[iarg+2]);
       t_period = atof(arg[iarg+3]);
       if (t_start < 0.0 || t_stop <= 0.0)
-	error->all("Target T for fix nvt/npt/nph cannot be 0.0");
+	error->all("Target temperature for fix nvt/npt/nph cannot be 0.0");
       iarg += 4;
 
     } else if (strcmp(arg[iarg],"iso") == 0) {

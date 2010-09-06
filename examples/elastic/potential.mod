@@ -1,10 +1,9 @@
 # NOTE: This script can be modified for different pair styles 
 # See in.elastic for more info.
-#
 
 # Choose potential
 pair_style	sw
-pair_coeff * * si.sw Si
+pair_coeff * * Si.sw Si
 
 # Setup neighbor style
 neighbor 1.0 nsq

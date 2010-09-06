@@ -22,14 +22,14 @@ xmovie tool described in the "Additional Tools" section of the LAMMPS
 documentation.  Animations of many of these examples can be viewed on
 the Movies section of the LAMMPS WWW Site.
 
-These are the sample problems in the various sub-directories:
+These are the sample problems and their output in the various
+sub-directories:
 
 colloid:  big colloid particles in a small particle solvent, 2d system
 comb:	  models using the COMB potential
 crack:	  crack propagation in a 2d solid
 dipole:   point dipolar particles, 2d system
 eim:      NaCl using the EIM potential
-elastic:  zero temperature elastic constant tensor of silicon
 ellipse:  ellipsoidal particles in spherical solvent, 2d system
 flow:	  Couette and Poiseuille flow in a 2d channel
 friction: frictional contact of spherical asperities between 2d surfaces
@@ -49,15 +49,6 @@ reax:     RDX and TATB models using the ReaxFF
 rigid:    rigid bodies modeled as independent or coupled
 shear:    sideways shear applied to 2d solid, with and without a void
 
-There is also a COUPLE directory which has examples of how to link to
-LAMMPS as a library and drive it from a wrapper program.  See the
-README file for more info.
-
-There is also a USER directory which contains subdirectories of
-user-provided examples for user packages.  See the README files in
-those directories for more info.  See the doc/Section_start.html for
-more info about user packages.
-
 Here is how you might run and visualize one of the sample problems:
 
 cd indent
@@ -68,3 +59,19 @@ Running the simulation produces the files dump.indent and log.lammps.
 You can visualize the dump file as follows:
 
 ../../tools/xmovie/xmovie -scale dump.indent
+
+------------------------------------------
+
+There is also a COUPLE directory which has examples of how to link to
+LAMMPS as a library and drive it from a wrapper program.  See the
+README file for more info.
+
+There is also an ELASTIC directory with an example script for
+computing elastic constants, using a zero temperature Si example.  See
+the in.elastic file for more info.
+
+There is also a USER directory which contains subdirectories of
+user-provided examples for user packages.  See the README files in
+those directories for more info.  See the doc/Section_start.html file
+for more info about user packages.
+

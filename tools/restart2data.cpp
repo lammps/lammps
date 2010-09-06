@@ -420,7 +420,7 @@ int main (int argc, char **argv)
 
 void header(FILE *fp, Data &data)
 {
-  char *version = "15 Jan 2010";
+  char *version = "10 Sept 2010";
 
   data.triclinic = 0;
 

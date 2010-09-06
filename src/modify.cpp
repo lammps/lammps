@@ -260,7 +260,7 @@ void Modify::setup_pre_force(int vflag)
 {
   if (update->whichflag == 1)
     for (int i = 0; i < n_pre_force; i++)
-      fix[list_min_pre_force[i]]->setup_pre_force(vflag);
+      fix[list_pre_force[i]]->setup_pre_force(vflag);
   else if (update->whichflag == 2)
     for (int i = 0; i < n_pre_force; i++)
       fix[list_min_pre_force[i]]->min_setup_pre_force(vflag);

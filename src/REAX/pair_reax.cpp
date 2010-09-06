@@ -398,7 +398,8 @@ void PairREAX::write_reax_vlist()
 	jjj = j+1;
 	      
 	if (nvpair >= nvpairmax) 
-	  error->one("reax_defs.h::NNEIGHMAXDEF too small");
+	  error->one("Pair reax NNEIGHMAXDEF setting too small, "
+		     "edit lib/reax/reax_defs.h");
 	
 	FORTRAN(cbkpairs, CBKPAIRS).nvl1[nvpair] = iii;
 	FORTRAN(cbkpairs, CBKPAIRS).nvl2[nvpair] = jjj;

@@ -172,7 +172,7 @@ Ensembles, constraints, and boundary conditions :h4
 
   2d or 3d systems
   orthogonal or non-orthogonal (triclinic symmetry) simulation domains
-  constant NVE, NVT, NPT, NPH integrators
+  constant NVE, NVT, NPT, NPH, Parinello/Rahman integrators
   thermostatting options for groups and geometric regions of atoms
   pressure control via Nose/Hoover or Berendsen barostatting in 1 to 3 dimensions
   simulation box deformation (tensile and shear)
@@ -481,6 +481,19 @@ the list.
 
 :link(sjp,http://www.sandia.gov/~sjplimp)
 
+ipp Perl script tool : Reese Jones (Sandia)
+eam_database and createatoms tools : Xiaowang Zhou (Sandia)
+electron force field (eFF) : Andres Jaramillo-Botero and Julius Su (Caltech)
+embedded ion method (EIM) potential : Xiaowang Zhou (Sandia)
+COMB potential with charge equilibration : Tzu-Ray Shan (U Florida)
+fix ave/correlate :  Benoit Leblanc, Dave Rigby, Paul Saxe (Materials Design) and Reese Jones (Sandia)
+pair_style peri/lps : Mike Parks (Sandia)
+fix msst : Lawrence Fried (LLNL), Evan Reed (LLNL, Stanford)
+thermo_style custom tpcpu & spcpu keywords : Axel Kohlmeyer (Temple U) 
+fix rigid/nve, fix rigid/nvt : Tony Sheh and Trung Dac Nguyen (U Michigan)
+public SVN & Git repositories for LAMMPS : Axel Kohlmeyer (Temple U) and Bill Goldman (Sandia)
+fix nvt, fix nph, fix npt, Parinello/Rahman dynamics, fix box/relax : Aidan Thompson (Sandia)
+compute heat/flux : German Samolyuk (ORNL) and Mario Pinto (Computational Research Lab, Pune, India)
 pair yukawa/colloid : Randy Schunk (Sandia)
 fix wall/colloid : Jeremy Lechman (Sandia)
 pair_style dsmc for Direct Simulation Monte Carlo (DSMC) modeling : Paul Crozier (Sandia)

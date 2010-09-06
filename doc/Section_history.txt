@@ -38,7 +38,6 @@ Temperature accelerated dynamics
 Triangulated particles
 Stochastic rotation dynamics
 Stokesian dynamics via fast lubrication dynamics
-NPT with changing box shape (Parinello-Rahman)
 Long-range point-dipole solver
 Per-atom energy and stress for long-range Coulombics
 Long-range Coulombics via Ewald and PPPM for triclinic boxes

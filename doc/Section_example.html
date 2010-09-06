@@ -32,8 +32,10 @@ Site</A>.
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >
 <TR><TD >colloid</TD><TD >  big colloid particles in a small particle solvent, 2d system</TD></TR>
+<TR><TD >comb</TD><TD >	  models using the COMB potential</TD></TR>
 <TR><TD >crack</TD><TD >	  crack propagation in a 2d solid</TD></TR>
 <TR><TD >dipole</TD><TD >   point dipolar particles, 2d system</TD></TR>
+<TR><TD >eim</TD><TD >      NaCl using the EIM potential</TD></TR>
 <TR><TD >elastic</TD><TD >  zero temperature elastic constant tensor of silicon</TD></TR>
 <TR><TD >ellipse</TD><TD >  ellipsoidal particles in spherical solvent, 2d system</TD></TR>
 <TR><TD >flow</TD><TD >	  Couette and Poiseuille flow in a 2d channel</TD></TR>
@@ -43,13 +45,14 @@ Site</A>.
 <TR><TD >melt</TD><TD >	  rapid melt of 3d LJ system</TD></TR>
 <TR><TD >micelle</TD><TD >  self-assembly of small lipid-like molecules into 2d bilayers</TD></TR>
 <TR><TD >min</TD><TD >	  energy minimization of 2d LJ melt</TD></TR>
+<TR><TD >msst</TD><TD >	  MSST shock dynamics</TD></TR>
 <TR><TD >nemd</TD><TD >	  non-equilibrium MD of 2d sheared system</TD></TR>
 <TR><TD >obstacle</TD><TD > flow around two voids in a 2d channel</TD></TR>
 <TR><TD >peptide</TD><TD >  dynamics of a small solvated peptide chain (5-mer)</TD></TR>
-<TR><TD >peri</TD><TD >     Peridynamics example of cylinder hit by projectile</TD></TR>
+<TR><TD >peri</TD><TD >	  Peridynamic model of cylinder impacted by indenter</TD></TR>
 <TR><TD >pour</TD><TD >     pouring of granular particles into a 3d box, then chute flow</TD></TR>
-<TR><TD >prd</TD><TD >	  parallel replica dynamics of a vacancy diffusion in bulk Si</TD></TR>
-<TR><TD >reax</TD><TD >     simple example for ReaxFF force field</TD></TR>
+<TR><TD >prd</TD><TD >      parallel replica dynamics of a vacancy diffusion in bulk Si</TD></TR>
+<TR><TD >reax</TD><TD >     RDX and TATB models using the ReaxFF</TD></TR>
 <TR><TD >rigid</TD><TD >    rigid bodies modeled as independent or coupled</TD></TR>
 <TR><TD >shear</TD><TD >    sideways shear applied to 2d solid, with and without a void 
 </TD></TR></TABLE></DIV>
@@ -65,17 +68,13 @@ lmp_linux < in.indent              # run the problem
 </P>
 <PRE>../../tools/xmovie/xmovie -scale dump.indent 
 </PRE>
-<P>There is also a directory "couple" in the examples sub-directory,
-which contains a stand-alone code umbrella.cpp that links LAMMPS as a
-library.  The README describes how to build the code.  The code itself
-runs LAMMPS on a subset of processors, sets up a LAMMPS problem
-by invoking LAMMPS input script commands one at a time, does
-a run, grabs atom coordinates, changes one atom position, puts
-them back into LAMMPS, and does another run.
+<P>There is also a COUPLE directory which has examples of how to link to
+LAMMPS as a library and drive it from a wrapper program.  See the
+README file for more info.
 </P>
-<P>This illustrates how an umbrella code could include new models and
-physics while using LAMMPS to perform MD, or how the umbrella code
-could call both LAMMPS and some other code to perform a coupled
-calculation.
+<P>There is also a USER directory which contains subdirectories of
+user-provided examples for user packages.  See the README files in
+those directories for more info.  See the doc/Section_start.html for
+more info about user packages.
 </P>
 </HTML>

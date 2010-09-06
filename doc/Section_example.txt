@@ -28,8 +28,10 @@ Site"_lws.
 These are the sample problems in the examples sub-directories:
 
 colloid:  big colloid particles in a small particle solvent, 2d system
+comb:	  models using the COMB potential
 crack:	  crack propagation in a 2d solid
 dipole:   point dipolar particles, 2d system
+eim:      NaCl using the EIM potential
 elastic:  zero temperature elastic constant tensor of silicon
 ellipse:  ellipsoidal particles in spherical solvent, 2d system
 flow:	  Couette and Poiseuille flow in a 2d channel
@@ -39,13 +41,14 @@ meam:	  MEAM test for SiC and shear (same as shear examples)
 melt:	  rapid melt of 3d LJ system
 micelle:  self-assembly of small lipid-like molecules into 2d bilayers
 min:	  energy minimization of 2d LJ melt
+msst:	  MSST shock dynamics
 nemd:	  non-equilibrium MD of 2d sheared system
 obstacle: flow around two voids in a 2d channel
 peptide:  dynamics of a small solvated peptide chain (5-mer)
-peri:     Peridynamics example of cylinder hit by projectile
+peri:	  Peridynamic model of cylinder impacted by indenter
 pour:     pouring of granular particles into a 3d box, then chute flow
-prd:	  parallel replica dynamics of a vacancy diffusion in bulk Si
-reax:     simple example for ReaxFF force field
+prd:      parallel replica dynamics of a vacancy diffusion in bulk Si
+reax:     RDX and TATB models using the ReaxFF
 rigid:    rigid bodies modeled as independent or coupled
 shear:    sideways shear applied to 2d solid, with and without a void :tb(s=:)
 
@@ -60,15 +63,11 @@ Running the simulation produces the files {dump.indent} and
 
 ../../tools/xmovie/xmovie -scale dump.indent :pre
 
-There is also a directory "couple" in the examples sub-directory,
-which contains a stand-alone code umbrella.cpp that links LAMMPS as a
-library.  The README describes how to build the code.  The code itself
-runs LAMMPS on a subset of processors, sets up a LAMMPS problem
-by invoking LAMMPS input script commands one at a time, does
-a run, grabs atom coordinates, changes one atom position, puts
-them back into LAMMPS, and does another run.
+There is also a COUPLE directory which has examples of how to link to
+LAMMPS as a library and drive it from a wrapper program.  See the
+README file for more info.
 
-This illustrates how an umbrella code could include new models and
-physics while using LAMMPS to perform MD, or how the umbrella code
-could call both LAMMPS and some other code to perform a coupled
-calculation.
+There is also a USER directory which contains subdirectories of
+user-provided examples for user packages.  See the README files in
+those directories for more info.  See the doc/Section_start.html for
+more info about user packages.

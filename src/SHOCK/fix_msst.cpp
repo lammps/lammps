@@ -13,11 +13,8 @@
 
 /* ----------------------------------------------------------------------
    Contributing authors: Laurence Fried (LLNL), Evan Reed (LLNL, Stanford)
-------------------------------------------------------------------------- */
-
-/* ----------------------------------------------------------------------
-   Implementation of the Multi-Scale Shock Method.
-   See Reed, Fried, Joannopoulos, Phys. Rev. Lett., 90, 235503(2003).
+   implementation of the Multi-Scale Shock Method
+   See Reed, Fried, Joannopoulos, Phys Rev Lett, 90, 235503 (2003)
 ------------------------------------------------------------------------- */
 
 #include "string.h"
@@ -107,94 +104,64 @@ FixMSST::FixMSST(LAMMPS *lmp, int narg, char **arg) :
       iarg++;
     } else if ( strcmp(arg[iarg],"tscale") == 0 ) {
       tscale = atof(arg[iarg+1]);
-      if ( tscale < 0.0 || tscale > 1.0 ) {
-	error->all("Error: fix msst: tscale must satisfy 0 <= tscale < 1 \n");
-      }
+      if (tscale < 0.0 || tscale > 1.0)
+	error->all("Fix msst tscale must satisfy 0 <= tscale < 1");
       iarg++;
-    } else {
-      error->all("Illegal fix msst command");
-    }
+    } else error->all("Illegal fix msst command");
   }
 
-  if ( comm->me == 0 ) {
-    if ( screen ) {
-      fprintf(screen,"\nMSST parameters\n");
-      if ( direction == 0 ) {
-	fprintf(screen,"Shock in x direction\n");
-      } else if ( direction == 1 ) {
-	fprintf(screen,"Shock in y direction\n");
-      } else if ( direction == 2 ) {
-	fprintf(screen,"Shock in z direction\n");
-      }
-      fprintf(screen,"The cell mass-like parameter qmass "
+  if (comm->me == 0) {
+    if (screen) {
+      fprintf(screen,"MSST parameters:\n");
+      if (direction == 0) fprintf(screen,"  Shock in x direction\n");
+      else if (direction == 1) fprintf(screen,"  Shock in y direction\n");
+      else if (direction == 2) fprintf(screen,"  Shock in z direction\n");
+      fprintf(screen,"  Cell mass-like parameter qmass "
 	      "(units of mass^2/length^4) = %12.5e\n", qmass);
-      fprintf(screen,"The shock velocity = %12.5e\n", velocity);
-      fprintf(screen,"The artificial viscosity "
+      fprintf(screen,"  Shock velocity = %12.5e\n", velocity);
+      fprintf(screen,"  Artificial viscosity "
 	      "(units of mass/length/time) = %12.5e\n", mu);
       
-      if ( p0_set ) {
-	fprintf(screen,"Initial pressure specified to be %12.5e\n", p0);
-      } else {
-	fprintf(screen,"Initial pressure calculated on first step\n");
-      }
+      if (p0_set)
+	fprintf(screen,"  Initial pressure specified to be %12.5e\n", p0);
+      else fprintf(screen,"  Initial pressure calculated on first step\n");
       
-      if ( v0_set ) {
-	fprintf(screen,"Initial volume specified to be %12.5e\n", v0);
-      } else {
-	fprintf(screen,"Initial volume calculated on first step\n");
-      }
+      if (v0_set)
+	fprintf(screen,"  Initial volume specified to be %12.5e\n", v0);
+      else fprintf(screen,"  Initial volume calculated on first step\n");
       
-      if ( e0_set ) {
-	fprintf(screen,"Initial energy specified to be %12.5e\n", e0);
-      } else {
-	fprintf(screen,"Initial energy calculated on first step\n");
-      }
-      
-      fprintf(screen,"\nEnd of MSST parameters\n");
+      if (e0_set) 
+	fprintf(screen,"  Initial energy specified to be %12.5e\n", e0);
+      else fprintf(screen,"  Initial energy calculated on first step\n");
     }
-    if ( logfile ) {
-      fprintf(logfile,"\nMSST parameters\n");
-      if ( direction == 0 ) {
-	fprintf(logfile,"Shock in x direction\n");
-      } else if ( direction == 1 ) {
-	fprintf(logfile,"Shock in y direction\n");
-      } else if ( direction == 2 ) {
-	fprintf(logfile,"Shock in z direction\n");
-      }
-      fprintf(logfile,"The cell mass-like parameter qmass "
+    if (logfile) {
+      fprintf(logfile,"MSST parameters:\n");
+      if (direction == 0) fprintf(logfile,"  Shock in x direction\n");
+      else if (direction == 1) fprintf(logfile,"  Shock in y direction\n");
+      else if (direction == 2) fprintf(logfile,"  Shock in z direction\n");
+      fprintf(logfile,"  Cell mass-like parameter qmass "
 	      "(units of mass^2/length^4) = %12.5e\n", qmass);
-      fprintf(logfile,"The shock velocity = %12.5e\n", velocity);
-      fprintf(logfile,"The artificial viscosity "
+      fprintf(logfile,"  Shock velocity = %12.5e\n", velocity);
+      fprintf(logfile,"  Artificial viscosity "
 	      "(units of mass/length/time) = %12.5e\n", mu);
       
-      if ( p0_set ) {
-	fprintf(logfile,"Initial pressure specified to be %12.5e\n", p0);
-      } else {
-	fprintf(logfile,"Initial pressure calculated on first step\n");
-      }
+      if (p0_set) 
+	fprintf(logfile,"  Initial pressure specified to be %12.5e\n", p0);
+      else fprintf(logfile,"  Initial pressure calculated on first step\n");
       
-      if ( v0_set ) {
-	fprintf(logfile,"Initial volume specified to be %12.5e\n", v0);
-      } else {
-	fprintf(logfile,"Initial volume calculated on first step\n");
-      }
+      if (v0_set) 
+	fprintf(logfile,"  Initial volume specified to be %12.5e\n", v0);
+      else fprintf(logfile,"  Initial volume calculated on first step\n");
       
-      if ( e0_set ) {
-	fprintf(logfile,"Initial energy specified to be %12.5e\n", e0);
-      } else {
-	fprintf(logfile,"Initial energy calculated on first step\n");
-      }
-      
-      fprintf(logfile,"\nEnd of MSST parameters\n");
+      if (e0_set) 
+	fprintf(logfile,"  Initial energy specified to be %12.5e\n", e0);
+      else fprintf(logfile,"  Initial energy calculated on first step\n");
     }
   }
 
   // check for periodicity in controlled dimensions
 
-  if ( domain->xperiodic == 0 || domain->yperiodic == 0 
-       || domain->zperiodic == 0 ) {
-    error->all("MSST requires a fully periodic cell");
-  }
+  if (domain->nonperiodic) error->all("Fix msst requires a periodic box");
 
   // create a new compute temp style
   // id = fix-ID + temp
@@ -302,19 +269,23 @@ void FixMSST::init()
   if (atom->mass == NULL)
     error->all("Cannot use fix msst without per-type mass defined");
 
-  // set temperature and pressure ptrs
+  // set compute ptrs
 
-  int icompute = modify->find_compute(id_temp);
-  if (icompute < 0) error->all("Temp ID for fix msst does not exist");
-  temperature = modify->compute[icompute];
+  int itemp = modify->find_compute(id_temp);
+  int ipress = modify->find_compute(id_press);
+  int ipe = modify->find_compute(id_pe);
+  if (itemp < 0 || ipress < 0|| ipe < 0)
+    error->all("Could not find fix msst compute ID");
+  if (modify->compute[itemp]->tempflag == 0)
+    error->all("Fix msst compute ID does not compute temperature");
+  if (modify->compute[ipress]->pressflag == 0)
+    error->all("Fix msst compute ID does not compute pressure");
+  if (modify->compute[ipe]->peflag == 0)
+    error->all("Fix msst compute ID does not compute potential energy");
 
-  icompute = modify->find_compute(id_press);
-  if (icompute < 0) error->all("Press ID for fix msst does not exist");
-  pressure = modify->compute[icompute];
-
-  icompute = modify->find_compute(id_pe);
-  if (icompute < 0) error->all("PE ID for fix msst does not exist");
-  pe = modify->compute[icompute];
+  temperature = modify->compute[itemp];
+  pressure = modify->compute[ipress];
+  pe = modify->compute[ipe];
 
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
@@ -368,13 +339,9 @@ void FixMSST::setup(int vflag)
   if ( v0_set == 0 ) {
     v0 = compute_vol();
     v0_set = 1;
-    if ( comm->me == 0 ) {
-      if ( screen ) {
-	fprintf(screen,"v0 calculated to be %12.5e\n", v0);
-      }
-      if ( logfile ) {
-	fprintf(logfile,"v0 calculated to be %12.5e\n", v0);
-      }
+    if (comm->me == 0) {
+      if ( screen ) fprintf(screen,"Fix msst v0 = %12.5e\n", v0);
+      if ( logfile ) fprintf(logfile,"Fix msst v0 = %12.5e\n", v0);
     }
   } 
 
@@ -383,12 +350,8 @@ void FixMSST::setup(int vflag)
     p0_set = 1;
 
     if ( comm->me == 0 ) {
-      if ( screen ) {
-	fprintf(screen,"p0 calculated to be %12.5e\n", p0);
-      }
-      if ( logfile ) {
-	fprintf(logfile,"p0 calculated to be %12.5e\n", p0);
-      }
+      if ( screen ) fprintf(screen,"Fix msst p0 = %12.5e\n", p0);
+      if ( logfile ) fprintf(logfile,"Fix msst p0 = %12.5e\n", p0);
     }
   }
 
@@ -397,12 +360,8 @@ void FixMSST::setup(int vflag)
     e0_set = 1;
 
     if ( comm->me == 0 ) {
-      if ( screen ) {
-	fprintf(screen,"e0 calculated to be %12.5e\n",e0);
-      }
-      if ( logfile ) {
-	fprintf(logfile,"e0 calculated to be %12.5e\n",e0);
-      }
+      if ( screen ) fprintf(screen,"Fix msst e0 = to be %12.5e\n",e0);
+      if ( logfile ) fprintf(logfile,"Fix msst e0 = to be %12.5e\n",e0);
     }
 
   }
@@ -426,16 +385,14 @@ void FixMSST::setup(int vflag)
     double fac2 = omega[direction]/v0;
 
     if ( comm->me == 0 && tscale != 1.0) {
-      if ( screen ) {
-	fprintf(screen,"initial strain rate of %12.5e established "
+      if ( screen )
+	fprintf(screen,"Fix msst initial strain rate of %12.5e established "
 		"by reducing temperature by factor of %12.5e\n",
 		fac2,tscale);
-      }
-      if ( logfile ) {
-	fprintf(logfile,"initial strain rate of %12.5e established "
+      if ( logfile )
+	fprintf(logfile,"Fix msst initial strain rate of %12.5e established "
 		"by reducing temperature by factor of %12.5e\n",
 		fac2,tscale);
-      }
     }
     for (int i = 0; i < atom->nlocal; i++) {
       if (mask[i] & groupbit) {
@@ -796,11 +753,11 @@ int FixMSST::modify_param(int narg, char **arg)
     strcpy(id_temp,arg[1]);
 
     int icompute = modify->find_compute(id_temp);
-    if (icompute < 0) error->all("Could not find fix_modify temp ID");
+    if (icompute < 0) error->all("Could not find fix_modify temperature ID");
     temperature = modify->compute[icompute];
 
     if (temperature->tempflag == 0)
-      error->all("Fix_modify temp ID does not compute temperature");
+      error->all("Fix_modify temperature ID does not compute temperature");
     if (temperature->igroup != 0 && comm->me == 0)
       error->warning("Temperature for MSST is not for group all");
 
@@ -818,11 +775,11 @@ int FixMSST::modify_param(int narg, char **arg)
     strcpy(id_press,arg[1]);
 
     int icompute = modify->find_compute(id_press);
-    if (icompute < 0) error->all("Could not find fix_modify press ID");
+    if (icompute < 0) error->all("Could not find fix_modify pressure ID");
     pressure = modify->compute[icompute];
 
     if (pressure->pressflag == 0)
-      error->all("Fix_modify press ID does not compute pressure");
+      error->all("Fix_modify pressure ID does not compute pressure");
     return 2;
   }
   return 0;

@@ -1,0 +1,138 @@
+LAMMPS (10 Sep 2010)
+units		metal
+atom_style	charge
+dimension       3
+boundary        p p p
+
+read_data  	data.m-HfO2
+  triclinic box = (0 0 0) to (25.642 25.957 26.4845) with tilt (0 -4.46691 0)
+  1 by 1 by 1 processor grid
+  1500 atoms
+#read_data  	data.t-HfO2
+#read_data  	data.c-HfO2
+
+mass		1 178.0
+group    	type1 type 1
+500 atoms in group type1
+compute   	charge1 type1 property/atom q
+compute   	q1 type1 reduce ave c_charge1
+mass		2 16.00
+group    	type2 type 2
+1000 atoms in group type2
+compute   	charge2 type2 property/atom q
+compute   	q2 type2 reduce ave c_charge2
+
+pair_style	comb
+pair_coeff	* * ffield.comb Hf O
+
+neighbor	0.5 bin
+neigh_modify	every 10 delay 10 check yes 
+
+timestep        0.00020
+
+#dump		1 all cfg 10 *.cfg id type xs ys zs q vx vy vz fx fy fz
+#dump_modify	1 element Hf O
+thermo_style	custom step temp etotal pe evdwl ecoul press vol lx ly lz xz c_q1 c_q2
+thermo_modify	norm yes
+
+fix		1 all nvt temp 300.0 300.0 0.1
+thermo      	1
+run    		1
+Memory usage per processor = 6.89154 Mbytes
+Step Temp TotEng PotEng E_vdwl E_coul Press Volume Lx Ly Lz Xz q1 q2 
+       0            0   -9.8329611   -9.8329611    4.8227648   -14.655726    -137492.1    17627.802       25.642       25.957      26.4845     -4.46691          3.6         -1.8 
+       1   0.10158794   -9.8329614   -9.8329745    4.8227552    -14.65573   -137441.67    17627.802       25.642       25.957      26.4845     -4.46691          3.6         -1.8 
+Loop time of 0.546675 on 1 procs for 1 steps with 1500 atoms
+
+Pair  time (%) = 0.546282 (99.9281)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.00017786 (0.0325349)
+Outpt time (%) = 9.60827e-05 (0.0175758)
+Other time (%) = 0.000118971 (0.0217626)
+
+Nlocal:    1500 ave 1500 max 1500 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    10100 ave 10100 max 10100 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs: 1.0375e+06 ave 1.0375e+06 max 1.0375e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 1037500
+Ave neighs/atom = 691.667
+Neighbor list builds = 0
+Dangerous builds = 0
+fix  		2 all qeq/comb 1 0.003 file fq.out
+run    		5
+Memory usage per processor = 7.7117 Mbytes
+Step Temp TotEng PotEng E_vdwl E_coul Press Volume Lx Ly Lz Xz q1 q2 
+       1   0.10158794   -9.8329614   -9.8329745    4.8227552    -14.65573   -137441.67    17627.802       25.642       25.957      26.4845     -4.46691    3.2601354   -1.6300677 
+       2   0.46103391   -9.9338761   -9.9339356    2.1340615   -12.067997   -399232.34    17627.802       25.642       25.957      26.4845     -4.46691    3.2601354   -1.6300677 
+       3    1.2357276   -9.9338798   -9.9340394    2.1339831   -12.068023    -398831.5    17627.802       25.642       25.957      26.4845     -4.46691    3.2601354   -1.6300677 
+       4    2.4216327   -9.9338857   -9.9341985    2.1338653   -12.068064   -398238.96    17627.802       25.642       25.957      26.4845     -4.46691    3.2601311   -1.6300656 
+       5    4.0158933   -9.9338815   -9.9344003    2.1336856   -12.068086   -397454.93    17627.802       25.642       25.957      26.4845     -4.46691    3.2601265   -1.6300633 
+       6    6.0146939   -9.9338794   -9.9346563    2.1334629   -12.068119   -396477.31    17627.802       25.642       25.957      26.4845     -4.46691    3.2601265   -1.6300633 
+Loop time of 4.5025 on 1 procs for 5 steps with 1500 atoms
+
+Pair  time (%) = 2.71886 (60.3855)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.000733852 (0.0162988)
+Outpt time (%) = 0.000444412 (0.00987034)
+Other time (%) = 1.78246 (39.5883)
+
+Nlocal:    1500 ave 1500 max 1500 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    10100 ave 10100 max 10100 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs: 1.0375e+06 ave 1.0375e+06 max 1.0375e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 1037500
+Ave neighs/atom = 691.667
+Neighbor list builds = 0
+Dangerous builds = 0
+
+unfix    	1
+fix		1 all box/relax aniso 0.0 vmax 0.0002
+minimize	1.0e-12  1.0e-18  1000  10000
+Memory usage per processor = 9.18798 Mbytes
+Step Temp TotEng PotEng E_vdwl E_coul Press Volume Lx Ly Lz Xz q1 q2 
+       6    6.0146939   -10.070461   -10.071238     1.978649   -12.049887    -453007.2    17627.802       25.642       25.957      26.4845     -4.46691    3.2601265   -1.6300633 
+       7    6.0146939   -10.091347   -10.092124    1.9597502   -12.051874   -263170.24    17627.802       25.642       25.957      26.4845     -4.46691    3.2601265   -1.6300633 
+       8    6.0146939    -10.09497   -10.095747    1.9575878   -12.053335   -167913.12    17627.802       25.642       25.957      26.4845     -4.46691    3.2601265   -1.6300633 
+       9    6.0146939   -10.098056   -10.098833    1.9582861   -12.057119      -188050    17627.802       25.642       25.957      26.4845     -4.46691    3.2601265   -1.6300633 
+      10    6.0146939   -10.098434   -10.099211    1.9582299   -12.057441   -178301.71    17627.802       25.642       25.957      26.4845     -4.46691    3.2601265   -1.6300633 
+      11    6.0146939   -10.098434   -10.099211    1.9582299   -12.057441   -178301.71    17627.802       25.642       25.957      26.4845     -4.46691    3.2601265   -1.6300633 
+Loop time of 22.3239 on 1 procs for 5 steps with 1500 atoms
+
+Minimization stats:
+  Stopping criterion = linesearch alpha is zero
+  Energy initial, next-to-last, final = 
+        -10.0712383846     -10.0992114169     -10.0992114169
+  Force two-norm initial, final = 163.811 26.5741
+  Force max component initial, final = 8.31614 2.13371
+  Final line search alpha, max atom move = 2.23478e-08 4.76837e-08
+  Iterations, force evaluations = 5 40
+
+Pair  time (%) = 22.314 (99.956)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.00569868 (0.0255273)
+Outpt time (%) = 0.000417233 (0.001869)
+Other time (%) = 0.0037148 (0.0166405)
+
+Nlocal:    1500 ave 1500 max 1500 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    10100 ave 10100 max 10100 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs: 1.0375e+06 ave 1.0375e+06 max 1.0375e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 1037500
+Ave neighs/atom = 691.667
+Neighbor list builds = 0
+Dangerous builds = 0

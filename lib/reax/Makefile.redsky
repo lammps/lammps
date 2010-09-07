@@ -22,10 +22,11 @@
 # The reax_SYSPATH and reax_SYSLIB variables contain compiler options
 # giving the paths of needed FORTRAN libraries, and their names, respectively
 #
-# For Makefile.gfortran, try
+# For Makefile.redsky, try
 #
-# reax_SYSPATH = -L/usr/lib
-# reax_SYSLIB = -lgfortran 
+# reax_SYSPATH = -L/projects/global/x86_64/compilers/intel/intel-11.1-cprof-06
+4/lib/intel64
+# reax_SYSLIB = -lifcore -lsvml -lompstub -limf
 
 SHELL = /bin/sh
 
@@ -42,8 +43,8 @@ OBJ =   $(SRC:.F=.o)
 
 # ------ SETTINGS ------
 
-F90 =           gfortran
-F90FLAGS =      -O -fno-second-underscore
+F90 =           mpif90
+F90FLAGS =      -O 
 ARCHIVE =	ar
 ARCHFLAG =	-rc
 USRLIB =

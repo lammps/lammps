@@ -691,7 +691,7 @@ void PairComb::read_file(char *file)
 
     params[nparams].powermint = int(params[nparams].powerm);
 
-    // parameter set sanity checks
+    // parameter sanity checks
 
     if (params[nparams].lam11 < 0.0 || params[nparams].lam12 < 0.0 || 
         params[nparams].c < 0.0 || params[nparams].d < 0.0 || 
@@ -723,7 +723,7 @@ void PairComb::read_file(char *file)
         params[nparams].lam12 < params[nparams].lam22 || 
 	params[nparams].biga1< params[nparams].bigb1 ||
 	params[nparams].biga2< params[nparams].bigb2)
-      error->all("Improper COMB pair parameters");
+      error->all("Illegal COMB parameter");
 
     nparams++;
   }

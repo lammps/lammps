@@ -24,8 +24,8 @@ neigh_modify	every 10 delay 10 check yes
 
 timestep        0.00020
 
-dump		1 all cfg 10 *.cfg id type xs ys zs q vx vy vz fx fy fz
-dump_modify	1 element Hf O
+#dump		1 all cfg 10 *.cfg id type xs ys zs q vx vy vz fx fy fz
+#dump_modify	1 element Hf O
 thermo_style	custom step temp etotal pe evdwl ecoul press vol lx ly lz xz c_q1 c_q2
 thermo_modify	norm yes
 

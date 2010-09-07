@@ -1,0 +1,54 @@
+LAMMPS (10 Sep 2010)
+# NaCl test problem for embedded atom method (EIM) potential
+
+units		metal
+atom_style      atomic
+
+boundary	p p p
+
+lattice         diamond 5.0
+Lattice spacing in x,y,z = 5 5 5
+read_data       data.eim
+  orthogonal box = (-0.5 -0.5 -0.5) to (35.54 35.54 35.54)
+  1 by 1 by 1 processor grid
+  2000 atoms
+  2000 velocities
+
+pair_style      eim
+pair_coeff      * * Na Cl ffield.eim Na Cl 
+
+neighbor	0.3 bin
+neigh_modify	delay 0
+
+timestep        0.001
+thermo_style    custom step pe pxx pyy pzz temp
+thermo          50
+
+velocity        all create 1400.0 43454 dist gaussian mom yes
+fix             int all npt temp 1400.0 300.0 0.1 aniso 0.0 0.0 0.1
+
+run             100
+Memory usage per processor = 1.8784 Mbytes
+Step PotEng Pxx Pyy Pzz Temp 
+       0   -5660.4738   -118151.29   -117613.39   -118064.41         1400 
+      50   -5774.4337    865.73356    874.29837    679.99459    888.89401 
+     100   -5752.6028    652.10345    601.94922    670.57848    780.52664 
+Loop time of 1.88611 on 1 procs for 100 steps with 2000 atoms
+
+Pair  time (%) = 1.73904 (92.2022)
+Neigh time (%) = 0.114829 (6.08815)
+Comm  time (%) = 0.00759864 (0.402873)
+Outpt time (%) = 0.000149012 (0.00790047)
+Other time (%) = 0.024498 (1.29886)
+
+Nlocal:    2000 ave 2000 max 2000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    4143 ave 4143 max 4143 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    99953 ave 99953 max 99953 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 99953
+Ave neighs/atom = 49.9765
+Neighbor list builds = 19
+Dangerous builds = 0

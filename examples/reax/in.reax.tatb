@@ -19,8 +19,8 @@ thermo_style	custom step temp evdwl ecoul pe ke etotal press
 
 timestep	0.0625
 
-dump		1 all custom 100 dump.reax.tatb id type q x y z
-
+dump		1 all atom 25 dump.reax.tatb
+dump_modify	1 scale no
 fix 		2 all reax/bonds 25 bonds.reax.tatb
 
 run		25

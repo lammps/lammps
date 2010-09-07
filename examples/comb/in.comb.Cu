@@ -17,7 +17,7 @@ pair_coeff	* * ffield.comb Cu
 neighbor	0.5 bin
 neigh_modify	every 1 delay 1 check yes 
 
-dump		1 all custom 10 tmp.dump id type xs ys zs q vx vy vz fx fy fz
+#dump		1 all custom 10 tmp.dump id type xs ys zs q vx vy vz fx fy fz
 #dump_modify	1 append yes element Cu
 
 fix		1 all nve

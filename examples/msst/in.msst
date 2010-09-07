@@ -1,4 +1,4 @@
-# lj test of msst shock dynamics.
+# LJ test of msst shock dynamics
 
 # Energy in eV, time in ps, distance in angstroms.
 units		metal
@@ -26,12 +26,12 @@ pair_coeff	1 1 0.01032 3.405
 
 timestep 2e-3
 
-# Equilibrate the system.
-fix 2 all nve
+# Equilibrate the system
+fix	      2 all nve
 thermo		10
 
-run 1000
-unfix 2
+run		100
+unfix		 2
 
 # MSST fix
 fix		msst all msst z 28.0 q 200 mu 3e2 tscale 0.01 
@@ -44,7 +44,7 @@ variable dray equal f_msst[2]
 variable lgr_vel equal f_msst[3]
 variable lgr_pos equal f_msst[4]
 
-thermo_style custom step temp ke pe lx ly lz pxx pyy pzz etotal v_dhug v_dray v_lgr_vel v_lgr_pos f_msst
+thermo_style custom step temp ke pe lx ly lz pxx pyy pzz etotal &
+	     v_dhug v_dray v_lgr_vel v_lgr_pos f_msst
 
-run	        6000
-
+run	        100

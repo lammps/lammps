@@ -36,7 +36,7 @@ FixNHSphere::FixNHSphere(LAMMPS *lmp, int narg, char **arg) :
 	       "atom attributes omega, torque");
   if (!atom->radius_flag && !atom->avec->shape_type)
     error->all("Fix nvt/nph/npt sphere requires "
-	       "atom attribute radius or shape");
+	       "atom attribute diameter or shape");
 }
 
 /* ---------------------------------------------------------------------- */

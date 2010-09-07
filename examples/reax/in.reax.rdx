@@ -19,6 +19,6 @@ thermo_modify	format float %15.14g
 
 timestep	1.0
 
-dump		1 all custom 10 dump.reax.rdx id type q xs ys zs
+dump		1 all atom 10 dump.reax.rdx
 
 run		100

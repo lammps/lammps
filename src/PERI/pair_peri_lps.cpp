@@ -59,7 +59,8 @@ PairPeriLPS::PairPeriLPS(LAMMPS *lmp) : Pair(lmp)
 
   // set comm size needed by this Pair
   // comm_reverse not needed
-  comm_forward = 1;  // For passing dilatation (theta)
+
+  comm_forward = 1;  // for passing dilatation (theta)
 }
 
 /* ---------------------------------------------------------------------- */
@@ -287,10 +288,14 @@ void PairPeriLPS::compute(int eflag, int vflag)
 	  (1.0 + ((delta - half_lc)/(2*half_lc) ) );
       else vfrac_scale = 1.0;
 
-      omega_plus  = influence_function(-1.0*delx0,-1.0*dely0,-1.0*delz0);				
-      omega_minus = influence_function(delx0,dely0,delz0);		
-      rk = ( (3.0 * bulkmodulus[itype][itype]) - (5.0 * shearmodulus[itype][itype]) ) * vfrac[j] * vfrac_scale * ( (omega_plus * theta[i] / wvolume[i]) + ( omega_minus * theta[j] / wvolume[j] ) ) * r0[i][jj] ; 
-      rk +=  15.0 * ( shearmodulus[itype][itype] * vfrac[j] * vfrac_scale )  *  ( (omega_plus / wvolume[i]) + (omega_minus / wvolume[j]) ) * dr; 
+      omega_plus  = influence_function(-1.0*delx0,-1.0*dely0,-1.0*delz0);
+      omega_minus = influence_function(delx0,dely0,delz0);
+      rk = ( (3.0 * bulkmodulus[itype][itype]) - 
+	     (5.0 * shearmodulus[itype][itype]) ) * vfrac[j] * vfrac_scale * 
+	( (omega_plus * theta[i] / wvolume[i]) + 
+	  ( omega_minus * theta[j] / wvolume[j] ) ) * r0[i][jj]; 
+      rk +=  15.0 * ( shearmodulus[itype][itype] * vfrac[j] * vfrac_scale ) *
+	( (omega_plus / wvolume[i]) + (omega_minus / wvolume[j]) ) * dr; 
 
       if (r > 0.0) fbond = -(rk/r);
       else fbond = 0.0;
@@ -302,7 +307,9 @@ void PairPeriLPS::compute(int eflag, int vflag)
       // since I-J is double counted, set newton off & use 1/2 factor and I,I 
 
       double deviatoric_extension = dr - (theta[i]* r0[i][jj] / 3.0);
-      if (eflag) evdwl = 0.5 * 15 * (shearmodulus[itype][itype]/wvolume[i]) * omega_plus * ( deviatoric_extension * deviatoric_extension ) * vfrac[j] * vfrac_scale;   
+      if (eflag) evdwl = 0.5 * 15 * (shearmodulus[itype][itype]/wvolume[i]) * 
+		   omega_plus*(deviatoric_extension * deviatoric_extension) *
+		   vfrac[j] * vfrac_scale;
       if (evflag) ev_tally(i,i,nlocal,0,
 			   0.5*evdwl,0.0,0.5*fbond,delx,dely,delz);
 
@@ -346,8 +353,8 @@ void PairPeriLPS::allocate()
       setflag[i][j] = 0;
 
   cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
-  bulkmodulus = memory->create_2d_double_array(n+1,n+1,"pair:bulkmodulus");		
-  shearmodulus = memory->create_2d_double_array(n+1,n+1,"pair:shearmodulus");		
+  bulkmodulus = memory->create_2d_double_array(n+1,n+1,"pair:bulkmodulus");
+  shearmodulus = memory->create_2d_double_array(n+1,n+1,"pair:shearmodulus");
   s00 = memory->create_2d_double_array(n+1,n+1,"pair:s00");		
   alpha = memory->create_2d_double_array(n+1,n+1,"pair:alpha");		
   cut = memory->create_2d_double_array(n+1,n+1,"pair:cut");
@@ -514,8 +521,8 @@ void PairPeriLPS::read_restart(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double PairPeriLPS::single(int i, int j, int itype, int jtype, double rsq,  		
-			   double factor_coul, double factor_lj,
+double PairPeriLPS::single(int i, int j, int itype, int jtype,
+			   double rsq, double factor_coul, double factor_lj,
 			   double &fforce)
 {
   double delx0,dely0,delz0,rsq0;
@@ -547,10 +554,10 @@ double PairPeriLPS::single(int i, int j, int itype, int jtype, double rsq,
 
   if (r < d_ij) {
     dr = r - d_ij;
-    // kshort resembles the short-range force constant of the bond-based theory in 3-D !
-    kshort = (15.0 * 18.0 * bulkmodulus[itype][itype]) / 				 	
-             ( 3.141592653589793 * cutsq[itype][jtype] * cutsq[itype][jtype] ); 	 
-    rk = ( kshort * vfrac[j]) * (dr / sqrt(cutsq[itype][jtype]));		 	 
+    // kshort resembles short-range force constant of bond-based theory in 3d
+    kshort = (15.0 * 18.0 * bulkmodulus[itype][itype]) /
+             ( 3.141592653589793 * cutsq[itype][jtype] * cutsq[itype][jtype]);
+    rk = ( kshort * vfrac[j]) * (dr / sqrt(cutsq[itype][jtype]));
     if (r > 0.0) fforce += -(rk/r);
     energy += 0.5*rk*dr;	
   }
@@ -587,13 +594,19 @@ double PairPeriLPS::single(int i, int j, int itype, int jtype, double rsq,
 	  (1.0 + ((sqrt(cutsq[itype][jtype]) - half_lc)/(2*half_lc)));
       else vfrac_scale = 1.0;
 
-      omega_plus  = influence_function(-1.0*delx0,-1.0*dely0,-1.0*delz0);			
+      omega_plus  = influence_function(-1.0*delx0,-1.0*dely0,-1.0*delz0);
       omega_minus = influence_function(delx0,dely0,delz0);	
-      rk = (3.0* bulkmodulus[itype][itype] -5.0 *  shearmodulus[itype][itype] )* vfrac[j] * vfrac_scale  * ( (omega_plus * theta[i] / wvolume[i]) + ( omega_minus * theta[j] / wvolume[j] ) ) * r0[i][jj] ;
-      rk +=  15.0 * ( shearmodulus[itype][itype] * vfrac[j] * vfrac_scale )  *   ( (omega_plus / wvolume[i]) + (omega_minus / wvolume[j]) ) * dr; 
+      rk = (3.0* bulkmodulus[itype][itype] -5.0 * shearmodulus[itype][itype]) *
+	vfrac[j] * vfrac_scale  * ( (omega_plus * theta[i] / wvolume[i]) + 
+				    (omega_minus * theta[j] / wvolume[j])) * 
+	r0[i][jj];
+      rk +=  15.0 * ( shearmodulus[itype][itype] * vfrac[j] * vfrac_scale ) * 
+	( (omega_plus / wvolume[i]) + (omega_minus / wvolume[j]) ) * dr; 
 
       if (r > 0.0) fforce += -(rk/r);
-        energy += 0.5 * 15 * (shearmodulus[itype][itype]/wvolume[i]) * omega_plus * (  dr - theta[i]* r0[i][jj] / 3.0 ) * (  dr - theta[i]* r0[i][jj] / 3.0 ) * vfrac[j] * vfrac_scale; 
+        energy += 0.5 * 15 * (shearmodulus[itype][itype]/wvolume[i]) * 
+	  omega_plus * (  dr - theta[i]* r0[i][jj] / 3.0 ) * 
+	  (  dr - theta[i]* r0[i][jj] / 3.0 ) * vfrac[j] * vfrac_scale;
 
      }
   }
@@ -612,7 +625,7 @@ double PairPeriLPS::memory_usage()
 }
 
 /* ----------------------------------------------------------------------
-   Influence function definition
+   influence function definition
 ------------------------------------------------------------------------- */
 
 double PairPeriLPS::influence_function(double xi_x, double xi_y, double xi_z)
@@ -620,10 +633,9 @@ double PairPeriLPS::influence_function(double xi_x, double xi_y, double xi_z)
   double r = sqrt(xi_x*xi_x + xi_y*xi_y + xi_z*xi_z);
   double omega;
 
-  if (fabs(r) < 2.2204e-016) error->one("pair_peri_lps - influence_function: Divide by 0");
-
+  if (fabs(r) < 2.2204e-016)
+    error->one("Divide by 0 in influence function of pair peri/lps");
   omega = 1.0/r;
-
   return omega;
 }
 
@@ -655,7 +667,7 @@ void PairPeriLPS::compute_dilatation()
   int nonperiodic = domain->nonperiodic;
 
   // compute the dilatation theta
-  // loop over my particles
+
   for (i = 0; i < nlocal; i++) {
     xtmp = x[i][0];
     ytmp = x[i][1];
@@ -667,7 +679,6 @@ void PairPeriLPS::compute_dilatation()
     theta[i] = 0.0;
     itype = type[i];
 
-    // loop over partners of particle i
     for (jj = 0; jj < jnum; jj++) {
 
       // if bond already broken, skip this partner
@@ -704,23 +715,25 @@ void PairPeriLPS::compute_dilatation()
           (1.0 + ((delta - half_lc)/(2*half_lc) ) );
       else vfrac_scale = 1.0;
 
-      theta[i] += influence_function(delx0, dely0, delz0) * r0[i][jj] * dr * vfrac[j] * vfrac_scale;
+      theta[i] += influence_function(delx0, dely0, delz0) * r0[i][jj] * dr *
+	vfrac[j] * vfrac_scale;
 
-    } // end loop over all neighbors jj
+    }
 
-    // If wvolume[i] is zero, then particle i has no bonds. Therefore, the dilatation is set to 0. 
+    // if wvolume[i] is zero, then particle i has no bonds
+    // therefore, the dilatation is set to 
+
     if (wvolume[i] != 0.0) theta[i] = (3.0/wvolume[i]) * theta[i];
     else theta[i] = 0;
-
-  } // end loop over all particles i
-
+  }
 }
 
 /* ----------------------------------------------------------------------
    communication routines
    ---------------------------------------------------------------------- */
  
-int PairPeriLPS::pack_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+int PairPeriLPS::pack_comm(int n, int *list, double *buf,
+			   int pbc_flag, int *pbc)
 {
 
   int i,j,m;

@@ -164,14 +164,14 @@ void FixAdapt::init()
       if (strcmp(param[m],"diameter") == 0) {
 	awhich[m] = DIAMETER;
 	if (!atom->radius_flag)
-	  error->all("Fix adapt requires atom attribute radius");
+	  error->all("Fix adapt requires atom attribute diameter");
       } else error->all("Fix adapt atom attribute is not recognized");
     }
 
     ivar[m] = input->variable->find(var[m]);
     if (ivar[m] < 0) error->all("Variable name for fix adapt does not exist");
     if (!input->variable->equalstyle(ivar[m]))
-      error->all("Variable for fix adapt is not equal style");
+      error->all("Variable for fix adapt is invalid style");
   }
 }
 

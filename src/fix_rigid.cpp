@@ -1332,7 +1332,7 @@ void FixRigid::no_squish_rotate(int k, double *p, double *q,
     kq[1] =  q[2];  kp[1] =  p[2];
     kq[2] = -q[1];  kp[2] = -p[1];
     kq[3] =  q[0];  kp[3] =  p[0];
-  } else error->all("Invalid no-squish rotate pivot value");
+  }
     
   // obtain phi, cosines and sines
   

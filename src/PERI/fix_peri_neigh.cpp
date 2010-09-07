@@ -281,8 +281,6 @@ void FixPeriNeigh::setup(int vflag)
       else if (pairlps != NULL) // call the PairPeriLPS influence function
         wvolume[i] += pairlps->influence_function(delx0,dely0,delz0) * 
 	  rsq0 * vfrac[j] * vfrac_scale;
-      else
-        error->all("Unknown peridynamic pair style in FixPeriNeigh.");
 
     }
   }

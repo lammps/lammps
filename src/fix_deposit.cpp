@@ -324,7 +324,7 @@ void FixDeposit::pre_exchange()
 
   if (comm->me == 0)
     if (success == 0)
-      error->warning("Particle deposition was unsuccessful");
+      error->warning("Particle deposition was unsuccessful",0);
 
   // set tag # of new particle beyond all previous atoms
   // reset global natoms

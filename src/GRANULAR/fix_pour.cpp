@@ -416,7 +416,7 @@ void FixPour::pre_exchange()
 
   ninserted += nnear-nprevious;
   if (nnear - nprevious < nnew && me == 0)
-    error->warning("Less insertions than requested");
+    error->warning("Less insertions than requested",0);
 
   // check if new atom is in my sub-box or above it if I'm highest proc
   // if so, add to my list via create_atom()

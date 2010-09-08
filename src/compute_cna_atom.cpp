@@ -191,7 +191,7 @@ void ComputeCNAAtom::compute_peratom()
   if (nerrorall && comm->me == 0) {
     char str[128];
     sprintf(str,"Too many neighbors in CNA for %d atoms",nerrorall);
-    error->warning(str);
+    error->warning(str,0);
   }
 
   // compute CNA for each atom in group

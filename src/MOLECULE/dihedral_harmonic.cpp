@@ -140,7 +140,7 @@ void DihedralHarmonic::compute(int eflag, int vflag)
 	sprintf(str,"Dihedral problem: %d %d %d %d %d %d",
 		me,update->ntimestep,
 		atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
-	error->warning(str);
+	error->warning(str,0);
 	fprintf(screen,"  1st atom: %d %g %g %g\n",
 		me,x[i1][0],x[i1][1],x[i1][2]);
 	fprintf(screen,"  2nd atom: %d %g %g %g\n",

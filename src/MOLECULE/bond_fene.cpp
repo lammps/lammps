@@ -88,7 +88,7 @@ void BondFENE::compute(int eflag, int vflag)
       char str[128];
       sprintf(str,"FENE bond too long: %d %d %d %g",
               update->ntimestep,atom->tag[i1],atom->tag[i2],sqrt(rsq));
-      error->warning(str);
+      error->warning(str,0);
       if (rlogarg <= -3.0) error->one("Bad FENE bond");
       rlogarg = 0.1;
     }
@@ -244,7 +244,7 @@ double BondFENE::single(int type, double rsq, int i, int j)
   if (rlogarg < 0.1) {
     char str[128];
     sprintf(str,"FENE bond too long: %d %g",update->ntimestep,sqrt(rsq));
-    error->warning(str);
+    error->warning(str,0);
     if (rlogarg <= -3.0) error->one("Bad FENE bond");
     rlogarg = 0.1;
   }

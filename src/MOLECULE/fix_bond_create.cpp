@@ -183,12 +183,14 @@ void FixBondCreate::init()
   
   // require special bonds = 0,1,1
 
-  int flag = 0;
   if (force->special_lj[1] != 0.0 || force->special_lj[2] != 1.0 ||
-      force->special_lj[3] != 1.0) flag = 1;
-  if (force->special_coul[1] != 0.0 || force->special_coul[2] != 1.0 ||
-      force->special_coul[3] != 1.0) flag = 1;
-  if (flag) error->all("Fix bond/create requires special_bonds = 0,1,1");
+      force->special_lj[3] != 1.0)
+    error->all("Fix bond/create requires special_bonds lj = 0,1,1");
+
+  if (atom->q_flag)
+    if (force->special_coul[1] != 0.0 || force->special_coul[2] != 1.0 ||
+	force->special_coul[3] != 1.0)
+      error->all("Fix bond/create requires special_bonds coul = 0,1,1");
 
   // warn if angles, dihedrals, impropers are being used
 

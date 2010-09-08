@@ -71,12 +71,15 @@ value that is valid, but not what you wanted.  E.g. trying to read the
 string "abc" as an integer value and assigning the associated variable
 a value of 0.
 
-Generally, LAMMPS will print a message to the screen and exit
-gracefully when it encounters a fatal error.  Sometimes it will print
-a WARNING and continue on; you can decide if the WARNING is important
-or not.  If LAMMPS crashes or hangs without spitting out an error
-message first then it could be a bug (see "this section"_#9_2) or one
-of the following cases:
+Generally, LAMMPS will print a message to the screen and logfile and
+exit gracefully when it encounters a fatal error.  Sometimes it will
+print a WARNING to the screen and logfile and continue on; you can
+decide if the WARNING is important or not.  A WARNING message that is
+generated in the middle of a run is only printed to the screen, not to
+the logfile, to avoid cluttering up thermodynamic output.  If LAMMPS
+crashes or hangs without spitting out an error message first then it
+could be a bug (see "this section"_#9_2) or one of the following
+cases:
 
 LAMMPS runs in the available memory a processor allows to be
 allocated.  Most reasonable MD runs are compute limited, not memory

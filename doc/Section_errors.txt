@@ -3141,7 +3141,7 @@ This is a hard (very large) limit defined in the input.cpp file. :dd
 
 {Insertion region extends outside simulation box} :dt
 
-Region specified with fix insert command extends outside the global
+Region specified with fix pour command extends outside the global
 simulation box. :dd
 
 {Insufficient Jacobi rotations for POEMS body} :dt
@@ -4026,7 +4026,7 @@ Self-explanatory. :dd
 
 {Must use a z-axis cylinder with fix pour} :dt
 
-The axis of the cylinder region used with the fix insert command must
+The axis of the cylinder region used with the fix pour command must
 be oriented along the z dimension. :dd
 
 {Must use an angle style with TIP4P potential} :dt
@@ -5680,7 +5680,7 @@ grids padded with empty space do not overlap. :dd
 
 {Less insertions than requested} :dt
 
-Less atom insertions occurred on this timestep due to the fix insert
+Less atom insertions occurred on this timestep due to the fix pour
 command than were scheduled.  This is probably because there were too
 many overlaps detected. :dd
 

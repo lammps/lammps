@@ -106,7 +106,8 @@ void Error::one(const char *str)
    only write to screen if non-NULL on this proc since could be file 
 ------------------------------------------------------------------------- */
 
-void Error::warning(const char *str)
+void Error::warning(const char *str, int logflag)
 {
   if (screen) fprintf(screen,"WARNING: %s\n",str);
+  if (logflag && logfile) fprintf(logfile,"WARNING: %s\n",str);
 }

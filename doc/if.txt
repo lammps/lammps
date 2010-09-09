@@ -54,7 +54,7 @@ can be spread across many lines, though it is still a single
 command:
 
 if $a < $b then &
-  "print Minimum value = $a"
+  "print Minimum value = $a" &
   "run 1000" &
 else &      
   "print Minimum value = $b" &

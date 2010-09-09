@@ -1781,14 +1781,14 @@ double PairComb::qfo_self(Param *param, double qi, double selfpot)
    char str[128];
    sprintf(str,"Pair COMB charge %.10f with force %.10f hit min barrier",
 	   qi,self_d);
-   error->warning(str);
+   error->warning(str,0);
    self_d += 4.0 * cmin * pow((qi-qmin),3);
  }
  if (qi > qmax) {
    char str[128];
    sprintf(str,"Pair COMB charge %.10f with force %.10f hit max barrier",
 	   qi,self_d);
-   error->warning(str);
+   error->warning(str,0);
    self_d += 4.0 * cmax * pow((qi-qmax),3);
  }
  */

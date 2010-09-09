@@ -359,7 +359,7 @@ double Thermo::lost_check()
 
   char str[128];
   sprintf(str,"Lost atoms: original %.15g current %.15g",atom->natoms,ntotal);
-  if (me == 0) error->warning(str);
+  if (me == 0) error->warning(str,0);
   lostbefore = 1;
   return ntotal;
 }

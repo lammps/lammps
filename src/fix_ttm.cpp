@@ -431,7 +431,7 @@ void FixTTM::end_of_step()
     num_inner_timesteps = static_cast<int>(update->dt/inner_dt) + 1;
     inner_dt = update->dt/double(num_inner_timesteps);
     if (num_inner_timesteps > 1000000) 
-      error->warning("Too many inner timesteps in fix ttm");
+      error->warning("Too many inner timesteps in fix ttm",0);
   }
 
   for (int ith_inner_timestep = 0; ith_inner_timestep < num_inner_timesteps; 

@@ -71,12 +71,15 @@ value that is valid, but not what you wanted.  E.g. trying to read the
 string "abc" as an integer value and assigning the associated variable
 a value of 0.
 
-Generally, LAMMPS will print a message to the screen and exit
-gracefully when it encounters a fatal error.  Sometimes it will print
-a WARNING and continue on; you can decide if the WARNING is important
-or not.  If LAMMPS crashes or hangs without spitting out an error
-message first then it could be a bug (see "this section"_#9_2) or one
-of the following cases:
+Generally, LAMMPS will print a message to the screen and logfile and
+exit gracefully when it encounters a fatal error.  Sometimes it will
+print a WARNING to the screen and logfile and continue on; you can
+decide if the WARNING is important or not.  A WARNING message that is
+generated in the middle of a run is only printed to the screen, not to
+the logfile, to avoid cluttering up thermodynamic output.  If LAMMPS
+crashes or hangs without spitting out an error message first then it
+could be a bug (see "this section"_#9_2) or one of the following
+cases:
 
 LAMMPS runs in the available memory a processor allows to be
 allocated.  Most reasonable MD runs are compute limited, not memory
@@ -3141,7 +3144,7 @@ This is a hard (very large) limit defined in the input.cpp file. :dd
 
 {Insertion region extends outside simulation box} :dt
 
-Region specified with fix insert command extends outside the global
+Region specified with fix pour command extends outside the global
 simulation box. :dd
 
 {Insufficient Jacobi rotations for POEMS body} :dt
@@ -4026,7 +4029,7 @@ Self-explanatory. :dd
 
 {Must use a z-axis cylinder with fix pour} :dt
 
-The axis of the cylinder region used with the fix insert command must
+The axis of the cylinder region used with the fix pour command must
 be oriented along the z dimension. :dd
 
 {Must use an angle style with TIP4P potential} :dt
@@ -5680,7 +5683,7 @@ grids padded with empty space do not overlap. :dd
 
 {Less insertions than requested} :dt
 
-Less atom insertions occurred on this timestep due to the fix insert
+Less atom insertions occurred on this timestep due to the fix pour
 command than were scheduled.  This is probably because there were too
 many overlaps detected. :dd
 

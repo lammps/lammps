@@ -1345,7 +1345,7 @@ void FixShake::shake2(int m)
 
   double determ = b*b - 4.0*a*c;
   if (determ < 0.0) {
-    error->warning("Shake determinant < 0.0");
+    error->warning("Shake determinant < 0.0",0);
     determ = 0.0;
   }
 

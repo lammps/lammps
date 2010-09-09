@@ -158,9 +158,9 @@ void PairDSMC::compute(int eflag, int vflag)
 	  convert_double_to_equivalent_int(num_of_collisions_double);
 
         if (num_of_collisions > number_of_A) 
-	  error->warning("Pair dsmc: num_of_collisions > number_of_A");
+	  error->warning("Pair dsmc: num_of_collisions > number_of_A",0);
         if (num_of_collisions > number_of_B) 
-	  error->warning("Pair dsmc: num_of_collisions > number_of_B");
+	  error->warning("Pair dsmc: num_of_collisions > number_of_B",0);
 
         // perform collisions on pairs of particles in icell
 

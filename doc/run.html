@@ -156,6 +156,16 @@ print Coord = $q
 particular atom between runs.  Note that the variable "$q" will
 be evaluated afresh each time the print command is executed.
 </P>
+<P>Note that by using the line continuation character "&", the run every
+command can be spread across many lines, though it is still a single
+command:
+</P>
+<PRE>run 100000 every 1000 &
+  "print Minimum value = $a" &
+  "print Maximum value = $b" &
+  "print Temp = $c" &
+  "print Press = $d" 
+</PRE>
 <P>If the <I>pre</I> and <I>post</I> options are set to "no" when used with the
 <I>every</I> keyword, then the 1st run will do the full setup and the last
 run will print the full timing summary, but these operations will be

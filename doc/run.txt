@@ -149,6 +149,16 @@ which does 3 runs of 2000 steps and prints the x-coordinate of a
 particular atom between runs.  Note that the variable "$q" will
 be evaluated afresh each time the print command is executed.
 
+Note that by using the line continuation character "&", the run every
+command can be spread across many lines, though it is still a single
+command:
+
+run 100000 every 1000 &
+  "print Minimum value = $a" &
+  "print Maximum value = $b" &
+  "print Temp = $c" &
+  "print Press = $d" :pre
+
 If the {pre} and {post} options are set to "no" when used with the
 {every} keyword, then the 1st run will do the full setup and the last
 run will print the full timing summary, but these operations will be

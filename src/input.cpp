@@ -233,8 +233,8 @@ char *Input::one(const char *single)
   // echo the command unless scanning for label
   
   if (me == 0 && label_active == 0) {
-    if (echo_screen && screen) fprintf(screen,"%s",line); 
-    if (echo_log && logfile) fprintf(logfile,"%s",line);
+    if (echo_screen && screen) fprintf(screen,"%s\n",line); 
+    if (echo_log && logfile) fprintf(logfile,"%s\n",line);
   }
 
   // parse the line

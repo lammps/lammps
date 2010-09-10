@@ -33,10 +33,12 @@ class FixTempBerendsen : public Fix {
   void end_of_step();
   int modify_param(int, char **);
   void reset_target(double);
+  double compute_scalar();
 
  private:
   int which;
-  double t_start,t_stop,t_target,t_period;
+  double t_start,t_stop,t_period;
+  double energy;
 
   char *id_temp;
   class Compute *temperature;

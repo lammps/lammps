@@ -127,8 +127,9 @@ void FixTempRescale::end_of_step()
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
 
+    energy += (t_current-t_target) * efactor;
+
     if (which == NOBIAS) {
-      energy += (t_current-t_target) * efactor;
       for (int i = 0; i < nlocal; i++) {
 	if (mask[i] & groupbit) {
 	  v[i][0] *= factor;
@@ -137,7 +138,6 @@ void FixTempRescale::end_of_step()
 	}
       }
     } else {
-      energy += (t_current-t_target) * efactor;
       for (int i = 0; i < nlocal; i++) {
 	if (mask[i] & groupbit) {
 	  temperature->remove_bias(i,v[i]);

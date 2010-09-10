@@ -38,6 +38,9 @@ FixTempBerendsen::FixTempBerendsen(LAMMPS *lmp, int narg, char **arg) :
   // Berendsen thermostat should be applied every step
 
   nevery = 1;
+  scalar_flag = 1;
+  global_freq = nevery;
+  extscalar = 1;
 
   t_start = atof(arg[3]);
   t_stop = atof(arg[4]);
@@ -62,6 +65,8 @@ FixTempBerendsen::FixTempBerendsen(LAMMPS *lmp, int narg, char **arg) :
   modify->add_compute(3,newarg);
   delete [] newarg;
   tflag = 1;
+
+  energy = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -80,6 +85,7 @@ int FixTempBerendsen::setmask()
 {
   int mask = 0;
   mask |= END_OF_STEP;
+  mask |= THERMO_ENERGY;
   return mask;
 }
 
@@ -106,7 +112,7 @@ void FixTempBerendsen::end_of_step()
 
   double delta = update->ntimestep - update->beginstep;
   delta /= update->endstep - update->beginstep;
-  t_target = t_start + delta * (t_stop-t_start);
+  double t_target = t_start + delta * (t_stop-t_start);
 
   // rescale velocities by lamda
   // for BIAS:
@@ -114,6 +120,8 @@ void FixTempBerendsen::end_of_step()
   //   OK to not test returned v = 0, since lamda is multiplied by v
 
   double lamda = sqrt(1.0 + update->dt/t_period*(t_target/t_current - 1.0));
+  double efactor = 0.5 * force->boltz * temperature->dof;
+  energy += t_current * (1.0-lamda*lamda) * efactor;
 
   double **v = atom->v;
   int *mask = atom->mask;
@@ -173,4 +181,11 @@ int FixTempBerendsen::modify_param(int narg, char **arg)
 void FixTempBerendsen::reset_target(double t_new)
 {
   t_start = t_stop = t_new;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double FixTempBerendsen::compute_scalar()
+{
+  return energy;
 }

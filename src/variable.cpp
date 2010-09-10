@@ -44,7 +44,7 @@ enum{INDEX,LOOP,WORLD,UNIVERSE,ULOOP,STRING,EQUAL,ATOM};
 enum{ARG,OP};
 enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,UNARY,
        EQ,NE,LT,LE,GT,GE,AND,OR,
-       SQRT,EXP,LN,LOG,SIN,COS,TAN,ASIN,ACOS,ATAN,
+       SQRT,EXP,LN,LOG,SIN,COS,TAN,ASIN,ACOS,ATAN,ATAN2,
        CEIL,FLOOR,ROUND,
        VALUE,ATOMARRAY,TYPEARRAY,INTARRAY};
 enum{SUM,XMIN,XMAX,AVE,TRAP};
@@ -563,7 +563,7 @@ void Variable::copy(int narg, char **from, char **to)
      math operation = (),-x,x+y,x-y,x*y,x/y,x^y,
                       x==y,x!=y,x<y,x<=y,x>y,x>=y,
                       sqrt(x),exp(x),ln(x),log(x),
-		      sin(x),cos(x),tan(x),asin(x),acos(x),atan(x)
+		      sin(x),cos(x),tan(x),asin(x),atan2(y,x),...
      group function = count(group), mass(group), xcm(group,x), ...
      atom value = x[i], y[i], vx[i], ...
      atom vector = x, y, vx, ...
@@ -1319,8 +1319,8 @@ double Variable::evaluate(char *str, Tree **tree)
 /* ----------------------------------------------------------------------
    process an evaulation tree
    customize by adding a math function:
-     sqrt(),exp(),ln(),log(),sin(),cos(),tan(),asin(),acos(),atan()
-     ceil(),floor(),round()
+     sqrt(),exp(),ln(),log(),sin(),cos(),tan(),asin(),acos(),atan(),
+     atan2(y,x),ceil(),floor(),round()
 ---------------------------------------------------------------------- */
 
 double Variable::eval_tree(Tree *tree, int i)
@@ -1425,6 +1425,8 @@ double Variable::eval_tree(Tree *tree, int i)
   }
   if (tree->type == ATAN)
     return atan(eval_tree(tree->left,i));
+  if (tree->type == ATAN2)
+    return atan2(eval_tree(tree->left,i),eval_tree(tree->right,i));
 
   if (tree->type == CEIL)
     return ceil(eval_tree(tree->left,i));
@@ -1513,8 +1515,8 @@ int Variable::int_between_brackets(char *&ptr)
    contents = str between parentheses with one,two,three args
    return 0 if not a match, 1 if successfully processed
    customize by adding a math function in 2 places:
-     sqrt(),exp(),ln(),log(),sin(),cos(),tan(),asin(),acos(),atan()
-     ceil(),floor(),round()
+     sqrt(),exp(),ln(),log(),sin(),cos(),tan(),asin(),acos(),atan(),
+     atan2(y,x),ceil(),floor(),round()
 ------------------------------------------------------------------------- */
 
 int Variable::math_function(char *word, char *contents, Tree **tree,
@@ -1527,9 +1529,9 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
       strcmp(word,"ln") && strcmp(word,"log") &&
       strcmp(word,"sin") && strcmp(word,"cos") &&
       strcmp(word,"tan") && strcmp(word,"asin") &&
-      strcmp(word,"acos") && strcmp(word,"atan") &&
-      strcmp(word,"ceil") && strcmp(word,"floor") && 
-      strcmp(word,"round"))
+      strcmp(word,"acos") && strcmp(word,"atan") && 
+      strcmp(word,"atan2") && strcmp(word,"ceil") && 
+      strcmp(word,"floor") && strcmp(word,"round"))
     return 0;
 
   // parse contents for arg1,arg2,arg3 separated by commas
@@ -1665,6 +1667,10 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
     if (narg != 1) error->all("Invalid math function in variable formula");
     if (tree) newtree->type = ATAN;
     else argstack[nargstack++] = atan(value1);
+  } else if (strcmp(word,"atan2") == 0) {
+    if (narg != 2) error->all("Invalid math function in variable formula");
+    if (tree) newtree->type = ATAN2;
+    else argstack[nargstack++] = atan2(value1,value2);
 
   } else if (strcmp(word,"ceil") == 0) {
     if (narg != 1) error->all("Invalid math function in variable formula");

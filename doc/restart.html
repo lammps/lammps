@@ -54,7 +54,8 @@ replaced by "base" is also written, which contains global information.
 For example, the files written on step 1000 for filename restart.%
 would be restart.base.1000, restart.0.1000, restart.1.1000, ...,
 restart.P-1.1000.  This creates smaller files and can be a fast mode
-of output on parallel machines that support parallel I/O for output.
+of output and subsequent input on parallel machines that support
+parallel I/O.
 </P>
 <P>Restart files are written on timesteps that are a multiple of N but
 not on the first timestep of a run or minimization.  A restart file is

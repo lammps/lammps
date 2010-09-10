@@ -71,10 +71,12 @@ created the set.  Read_restart then reads the additional files.  For
 example, if the restart file was specified as save.% when it was
 written, then read_restart reads the files save.base, save.0, save.1,
 ... save.P-1, where P is the number of processors that created the
-restart file.  Note that only a single processor reads all the files,
-so the input does not use parallel I/O.  The number of processors
-which created the set can be different the number of processors in the
-current LAMMPS simulation.
+restart file.  The processors in the current LAMMPS simulation share
+the work of reading these files; each reads a roughly equal subset of
+the files.  The number of processors which created the set can be
+different the number of processors in the current LAMMPS simulation.
+This can be a fast mode of input on parallel machines that support
+parallel I/O.
 </P>
 <HR>
 

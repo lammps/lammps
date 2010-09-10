@@ -466,6 +466,11 @@ double PairGranHookeHistory::init_one(int i, int j)
 void PairGranHookeHistory::write_restart(FILE *fp)
 {
   write_restart_settings(fp);
+
+  int i,j;
+  for (i = 1; i <= atom->ntypes; i++)
+    for (j = i; j <= atom->ntypes; j++)
+      fwrite(&setflag[i][j],sizeof(int),1,fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -476,6 +481,14 @@ void PairGranHookeHistory::read_restart(FILE *fp)
 {
   read_restart_settings(fp);
   allocate();
+
+  int i,j;
+  int me = comm->me;
+  for (i = 1; i <= atom->ntypes; i++)
+    for (j = i; j <= atom->ntypes; j++) {
+      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
+    }
 }
 
 /* ----------------------------------------------------------------------

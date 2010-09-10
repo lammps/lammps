@@ -11,38 +11,36 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef COMMAND_CLASS
+#ifdef FIX_CLASS
 
-CommandStyle(read_restart,ReadRestart)
+FixStyle(READ_RESTART,FixReadRestart)
 
 #else
 
-#ifndef LMP_READ_RESTART_H
-#define LMP_READ_RESTART_H
+#ifndef LMP_FIX_READ_RESTART_H
+#define LMP_FIX_READ_RESTART_H
 
-#include "stdio.h"
-#include "pointers.h"
+#include "fix.h"
 
 namespace LAMMPS_NS {
 
-class ReadRestart : protected Pointers {
+class FixReadRestart : public Fix {
  public:
-  ReadRestart(class LAMMPS *);
-  void command(int, char **);
+  int *count;
+  double **extra;
+
+  FixReadRestart(class LAMMPS *, int, char **);
+  ~FixReadRestart();
+  int setmask();
+
+  double memory_usage();
+  void grow_arrays(int);
+  void copy_arrays(int, int);
+  int pack_exchange(int, double *);
+  int unpack_exchange(int, double *);
 
  private:
-  int me,nprocs,nprocs_file;
-  FILE *fp;
-  int nfix_restart_global,nfix_restart_peratom;
-
-  void file_search(char *, char *);
-  void header();
-  void type_arrays();
-  void force_fields();
-
-  int read_int();
-  double read_double();
-  char *read_char();
+  int nextra;          // max number of extra values for any atom
 };
 
 }

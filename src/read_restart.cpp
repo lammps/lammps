@@ -23,6 +23,8 @@
 #include "comm.h"
 #include "update.h"
 #include "modify.h"
+#include "fix.h"
+#include "fix_read_restart.h"
 #include "group.h"
 #include "force.h"
 #include "pair.h"
@@ -70,6 +72,7 @@ void ReadRestart::command(int narg, char **arg)
     error->all("Cannot read_restart after simulation box is defined");
 
   MPI_Comm_rank(world,&me);
+  MPI_Comm_size(world,&nprocs);
 
   // if filename contains "*", search dir for latest restart file
 
@@ -112,8 +115,8 @@ void ReadRestart::command(int narg, char **arg)
   // problem setup using info from header
 
   int n;
-  if (comm->nprocs == 1) n = static_cast<int> (atom->natoms);
-  else n = static_cast<int> (LB_FACTOR * atom->natoms / comm->nprocs);
+  if (nprocs == 1) n = static_cast<int> (atom->natoms);
+  else n = static_cast<int> (LB_FACTOR * atom->natoms / nprocs);
 
   atom->allocate_type_arrays();
   atom->avec->grow(n);
@@ -136,85 +139,161 @@ void ReadRestart::command(int narg, char **arg)
   atom->nextra_store = nextra;
   atom->extra = memory->create_2d_double_array(n,nextra,"atom:extra");
 
-  // if single file:
-  //   proc 0 reads atoms from file, one chunk per proc (nprocs_file)
-  // else if one file per proc:
-  //   proc 0 reads chunks from series of files (nprocs_file)
-  // proc 0 bcasts each chunk to other procs
+  // single file:
+  // nprocs_file = # of chunks in file
+  // proc 0 reads chunks one at a time and bcasts it to other procs
   // each proc unpacks the atoms, saving ones in it's sub-domain
-  // check for atom in sub-domain is different for orthogonal vs triclinic box
+  // check for atom in sub-domain differs for orthogonal vs triclinic box
+  // close restart file when done
 
   AtomVec *avec = atom->avec;
-  int triclinic = domain->triclinic;
 
   int maxbuf = 0;
   double *buf = NULL;
-
-  double *x,lamda[3];
-  double *coord,*sublo,*subhi;
-  if (triclinic == 0) {
-    sublo = domain->sublo;
-    subhi = domain->subhi;
-  } else {
-    sublo = domain->sublo_lamda;
-    subhi = domain->subhi_lamda;
-  }
-
   int m;
-  char *perproc = new char[strlen(file) + 16];
-  char *ptr = strchr(file,'%');
 
-  for (int iproc = 0; iproc < nprocs_file; iproc++) {
-    if (me == 0) {
-      if (multiproc) {
-	fclose(fp);
-	*ptr = '\0';
-	sprintf(perproc,"%s%d%s",file,iproc,ptr+1);
-	*ptr = '%';
-	fp = fopen(perproc,"rb");
-	if (fp == NULL) {
-	  char str[128];
-	  sprintf(str,"Cannot open restart file %s",perproc);
-	  error->one(str);
-	}
+  if (multiproc == 0) {
+    int triclinic = domain->triclinic;
+    double *x,lamda[3];
+    double *coord,*sublo,*subhi;
+    if (triclinic == 0) {
+      sublo = domain->sublo;
+      subhi = domain->subhi;
+    } else {
+      sublo = domain->sublo_lamda;
+      subhi = domain->subhi_lamda;
+    }
+
+    for (int iproc = 0; iproc < nprocs_file; iproc++) {
+      if (me == 0) fread(&n,sizeof(int),1,fp);
+      MPI_Bcast(&n,1,MPI_INT,0,world);
+      if (n > maxbuf) {
+	maxbuf = n;
+	memory->sfree(buf);
+	buf = (double *) memory->smalloc(maxbuf*sizeof(double),
+					 "read_restart:buf");
       }
+
+      if (n > 0) {
+	if (me == 0) fread(buf,sizeof(double),n,fp);
+	MPI_Bcast(buf,n,MPI_DOUBLE,0,world);
+      }
+
+      m = 0;
+      while (m < n) {
+	x = &buf[m+1];
+	if (triclinic) {
+	  domain->x2lamda(x,lamda);
+	  coord = lamda;
+	} else coord = x;
+	
+	if (coord[0] >= sublo[0] && coord[0] < subhi[0] &&
+	    coord[1] >= sublo[1] && coord[1] < subhi[1] &&
+	    coord[2] >= sublo[2] && coord[2] < subhi[2]) {
+	  m += avec->unpack_restart(&buf[m]);
+	}
+	else m += static_cast<int> (buf[m]);
+      }
+    }
+
+    if (me == 0) fclose(fp);
+
+  // one file per proc:
+  // nprocs_file = # of files
+  // each proc reads 1/P fraction of files, keeping all atoms in the files
+  // perform irregular comm to migrate atoms to correct procs
+  // close restart file when done
+
+  } else {
+    if (me == 0) fclose(fp);
+    char *perproc = new char[strlen(file) + 16];
+    char *ptr = strchr(file,'%');
+
+    for (int iproc = me; iproc < nprocs_file; iproc += nprocs) {
+      *ptr = '\0';
+      sprintf(perproc,"%s%d%s",file,iproc,ptr+1);
+      *ptr = '%';
+      fp = fopen(perproc,"rb");
+      if (fp == NULL) {
+	char str[128];
+	sprintf(str,"Cannot open restart file %s",perproc);
+	error->one(str);
+      }
+
       fread(&n,sizeof(int),1,fp);
+      if (n > maxbuf) {
+	maxbuf = n;
+	memory->sfree(buf);
+	buf = (double *) memory->smalloc(maxbuf*sizeof(double),
+					 "read_restart:buf");
+      }
+      if (n > 0) fread(buf,sizeof(double),n,fp);
+
+      m = 0;
+      while (m < n) m += avec->unpack_restart(&buf[m]);
+      fclose(fp);
     }
 
-    MPI_Bcast(&n,1,MPI_INT,0,world);
-    if (n > maxbuf) {
-      maxbuf = n;
-      delete [] buf;
-      buf = new double[maxbuf];
+    delete [] perproc;
+
+    // save modify->nfix_restart values, so Modify::init() won't whack them
+    // create a temporary fix to hold extra atom info
+    // necessary b/c Atom::init() will destroy atom->extra
+
+    if (nextra) {
+      modify->nfix_restart_save = 1;
+      char cextra[8],fixextra[8];
+      sprintf(cextra,"%d",nextra);
+      sprintf(fixextra,"%d",modify->nfix_restart_peratom);
+      char **newarg = new char*[5];
+      newarg[0] = (char *) "_read_restart";
+      newarg[1] = (char *) "all";
+      newarg[2] = (char *) "READ_RESTART";
+      newarg[3] = cextra;
+      newarg[4] = fixextra;
+      modify->add_fix(5,newarg);
+      delete [] newarg;
     }
 
-    if (n > 0) {
-      if (me == 0) fread(buf,sizeof(double),n,fp);
-      MPI_Bcast(buf,n,MPI_DOUBLE,0,world);
-    }
+    // init entire system before comm->irregular
+    // comm::init needs neighbor::init needs pair::init needs kspace::init, etc
+    // move atoms to new processors via irregular()
+    // in case read by totally different proc than wrote restart file
 
-    m = 0;
-    while (m < n) {
-      x = &buf[m+1];
-      if (triclinic) {
-	domain->x2lamda(x,lamda);
-	coord = lamda;
-      } else coord = x;
+    if (me == 0 && screen)
+      fprintf(screen,"  system init for parallel read_restart ...\n");
+    lmp->init();
+    if (domain->triclinic) domain->x2lamda(atom->nlocal);
+    domain->reset_box();
+    comm->setup();
+    comm->irregular();
+    if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
-      if (coord[0] >= sublo[0] && coord[0] < subhi[0] &&
-	  coord[1] >= sublo[1] && coord[1] < subhi[1] &&
-	  coord[2] >= sublo[2] && coord[2] < subhi[2])
-	m += avec->unpack_restart(&buf[m]);
-      else m += static_cast<int> (buf[m]);
+    // unsave modify->nfix_restart values and atom->extra
+    // destroy temporary fix
+
+    if (nextra) {
+      modify->nfix_restart_save = 0;
+      atom->nextra_store = nextra;
+      atom->extra = memory->create_2d_double_array(atom->nmax,nextra,
+						   "atom:extra");
+      int ifix = modify->find_fix("_read_restart");
+      FixReadRestart *fix = (FixReadRestart *) modify->fix[ifix];
+      int *count = fix->count;
+      double **extra = fix->extra;
+      double **atom_extra = atom->extra;
+      int nlocal = atom->nlocal;
+      for (int i = 0; i < nlocal; i++)
+	for (int j = 0; j < count[i]; j++)
+	  atom_extra[i][j] = extra[i][j];
+      modify->delete_fix("_read_restart");
     }
   }
 
-  // close restart file and clean-up memory
-  
-  if (me == 0) fclose(fp);
-  delete [] buf;
+  // clean-up memory
+
   delete [] file;
-  delete [] perproc;
+  memory->sfree(buf);
 
   // check that all atoms were assigned to procs
 
@@ -422,9 +501,9 @@ void ReadRestart::header()
 	   pz != comm->user_procgrid[2]) && me == 0)
 	error->warning("Restart file used different 3d processor grid");
 
-      // don't set newton_pair, leave input script value unchanged
-      // set newton_bond from restart file
-      // warn if different and input script settings are not default
+    // don't set newton_pair, leave input script value unchanged
+    // set newton_bond from restart file
+    // warn if different and input script settings are not default
 
     } else if (flag == NEWTON_PAIR) {
       int newton_pair_file = read_int();

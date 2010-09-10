@@ -28,13 +28,16 @@ class AtomVecGranular : public AtomVec {
  public:
   AtomVecGranular(class LAMMPS *, int, char **);
   ~AtomVecGranular() {}
+  void init();
   void grow(int);
   void grow_reset();
   void copy(int, int);
   int pack_comm(int, int *, double *, int, int *);
   int pack_comm_vel(int, int *, double *, int, int *);
+  int pack_comm_one(int, double *);
   void unpack_comm(int, int, double *);
   void unpack_comm_vel(int, int, double *);
+  int unpack_comm_one(int, double *);
   int pack_reverse(int, int, double *);
   int pack_reverse_one(int, double *);
   void unpack_reverse(int, int *, double *);
@@ -63,6 +66,7 @@ class AtomVecGranular : public AtomVec {
   double **x,**v,**f;
   double *radius,*density,*rmass;
   double **omega,**torque;
+  int radvary;
 };
 
 }

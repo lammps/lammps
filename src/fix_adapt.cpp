@@ -71,6 +71,7 @@ FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   // parse keywords
 
+  diamflag = 0;
   nadapt = 0;
 
   iarg = 4;
@@ -99,6 +100,7 @@ FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       int n = strlen(arg[iarg+1]) + 1;
       param[nadapt] = new char[n];
       strcpy(param[nadapt],arg[iarg+1]);
+      if (strcmp(param[nadapt],"diameter") == 0) diamflag = 1;
       if (strstr(arg[iarg+2],"v_") == arg[iarg+2]) {
 	n = strlen(&arg[iarg+2][2]) + 1;
 	var[nadapt] = new char[n];
@@ -201,7 +203,7 @@ void FixAdapt::pre_force(int vflag)
     else if (which[m] == ATOM) {
 
       // set radius from diameter
-      // set rmass if both rmass and density are defined
+      // also set rmass if both rmass and density are defined
 
       if (awhich[m] == DIAMETER) {
 	int mflag = 0;
@@ -217,7 +219,8 @@ void FixAdapt::pre_force(int vflag)
 	for (int i = 0; i < nlocal; i++)
 	  if (mask[i] & groupbit) {
 	    radius[i] = 0.5*value;
-	    rmass[i] = 4.0*PI/3.0 * radius[i]*radius[i]*radius[i] * density[i];
+	    if (mflag) rmass[i] = 4.0*PI/3.0 * 
+			 radius[i]*radius[i]*radius[i] * density[i];
 	  }
       }
     }

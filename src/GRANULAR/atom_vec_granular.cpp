@@ -13,12 +13,14 @@
 
 #include "math.h"
 #include "stdlib.h"
+#include "string.h"
 #include "atom_vec_granular.h"
 #include "atom.h"
 #include "domain.h"
 #include "modify.h"
 #include "force.h"
 #include "fix.h"
+#include "fix_adapt.h"
 #include "memory.h"
 #include "error.h"
 
@@ -46,7 +48,25 @@ AtomVecGranular::AtomVecGranular(LAMMPS *lmp, int narg, char **arg) :
   atom->radius_flag = atom->density_flag = atom->rmass_flag = 1;
   atom->omega_flag = atom->torque_flag = 1;
 
+  radvary = 0;
+
   PI = 4.0*atan(1.0);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AtomVecGranular::init()
+{
+  // set radvary if particle diameters are time-varying due to fix adapt
+
+  for (int i = 0; i < modify->nfix; i++)
+    if (strcmp(modify->fix[i]->style,"adapt") == 0) {
+      FixAdapt *fix = (FixAdapt *) modify->fix[i];
+      if (fix->diamflag) {
+	radvary = 1;
+	size_forward = 5;
+      }
+    }
 }
 
 /* ----------------------------------------------------------------------
@@ -138,31 +158,65 @@ int AtomVecGranular::pack_comm(int n, int *list, double *buf,
   int i,j,m;
   double dx,dy,dz;
 
-  m = 0;
-  if (pbc_flag == 0) {
-    for (i = 0; i < n; i++) {
-      j = list[i];
-      buf[m++] = x[j][0];
-      buf[m++] = x[j][1];
-      buf[m++] = x[j][2];
-    }
-  } else {
-    if (domain->triclinic == 0) {
-      dx = pbc[0]*domain->xprd;
-      dy = pbc[1]*domain->yprd;
-      dz = pbc[2]*domain->zprd;
+  if (radvary == 0) {
+    m = 0;
+    if (pbc_flag == 0) {
+      for (i = 0; i < n; i++) {
+	j = list[i];
+	buf[m++] = x[j][0];
+	buf[m++] = x[j][1];
+	buf[m++] = x[j][2];
+      }
     } else {
-      dx = pbc[0]*domain->xprd + pbc[5]*domain->xy + pbc[4]*domain->xz;
-      dy = pbc[1]*domain->yprd + pbc[3]*domain->yz;
-      dz = pbc[2]*domain->zprd;
+      if (domain->triclinic == 0) {
+	dx = pbc[0]*domain->xprd;
+	dy = pbc[1]*domain->yprd;
+	dz = pbc[2]*domain->zprd;
+      } else {
+	dx = pbc[0]*domain->xprd + pbc[5]*domain->xy + pbc[4]*domain->xz;
+	dy = pbc[1]*domain->yprd + pbc[3]*domain->yz;
+	dz = pbc[2]*domain->zprd;
+      }
+      for (i = 0; i < n; i++) {
+	j = list[i];
+	buf[m++] = x[j][0] + dx;
+	buf[m++] = x[j][1] + dy;
+	buf[m++] = x[j][2] + dz;
+      }
     }
-    for (i = 0; i < n; i++) {
-      j = list[i];
-      buf[m++] = x[j][0] + dx;
-      buf[m++] = x[j][1] + dy;
-      buf[m++] = x[j][2] + dz;
+
+  } else {
+    m = 0;
+    if (pbc_flag == 0) {
+      for (i = 0; i < n; i++) {
+	j = list[i];
+	buf[m++] = x[j][0];
+	buf[m++] = x[j][1];
+	buf[m++] = x[j][2];
+	buf[m++] = radius[i];
+	buf[m++] = rmass[i];
+      }
+    } else {
+      if (domain->triclinic == 0) {
+	dx = pbc[0]*domain->xprd;
+	dy = pbc[1]*domain->yprd;
+	dz = pbc[2]*domain->zprd;
+      } else {
+	dx = pbc[0]*domain->xprd + pbc[5]*domain->xy + pbc[4]*domain->xz;
+	dy = pbc[1]*domain->yprd + pbc[3]*domain->yz;
+	dz = pbc[2]*domain->zprd;
+      }
+      for (i = 0; i < n; i++) {
+	j = list[i];
+	buf[m++] = x[j][0] + dx;
+	buf[m++] = x[j][1] + dy;
+	buf[m++] = x[j][2] + dz;
+	buf[m++] = radius[i];
+	buf[m++] = rmass[i];
+      }
     }
   }
+
   return m;
 }
 
@@ -174,44 +228,101 @@ int AtomVecGranular::pack_comm_vel(int n, int *list, double *buf,
   int i,j,m;
   double dx,dy,dz;
 
-  m = 0;
-  if (pbc_flag == 0) {
-    for (i = 0; i < n; i++) {
-      j = list[i];
-      buf[m++] = x[j][0];
-      buf[m++] = x[j][1];
-      buf[m++] = x[j][2];
-      buf[m++] = v[j][0];
-      buf[m++] = v[j][1];
-      buf[m++] = v[j][2];
-      buf[m++] = omega[j][0];
-      buf[m++] = omega[j][1];
-      buf[m++] = omega[j][2];
-    }
-  } else {
-    if (domain->triclinic == 0) {
-      dx = pbc[0]*domain->xprd;
-      dy = pbc[1]*domain->yprd;
-      dz = pbc[2]*domain->zprd;
+  if (radvary == 0) {
+    m = 0;
+    if (pbc_flag == 0) {
+      for (i = 0; i < n; i++) {
+	j = list[i];
+	buf[m++] = x[j][0];
+	buf[m++] = x[j][1];
+	buf[m++] = x[j][2];
+	buf[m++] = v[j][0];
+	buf[m++] = v[j][1];
+	buf[m++] = v[j][2];
+	buf[m++] = omega[j][0];
+	buf[m++] = omega[j][1];
+	buf[m++] = omega[j][2];
+      }
     } else {
-      dx = pbc[0]*domain->xprd + pbc[5]*domain->xy + pbc[4]*domain->xz;
-      dy = pbc[1]*domain->yprd + pbc[3]*domain->yz;
-      dz = pbc[2]*domain->zprd;
+      if (domain->triclinic == 0) {
+	dx = pbc[0]*domain->xprd;
+	dy = pbc[1]*domain->yprd;
+	dz = pbc[2]*domain->zprd;
+      } else {
+	dx = pbc[0]*domain->xprd + pbc[5]*domain->xy + pbc[4]*domain->xz;
+	dy = pbc[1]*domain->yprd + pbc[3]*domain->yz;
+	dz = pbc[2]*domain->zprd;
+      }
+      for (i = 0; i < n; i++) {
+	j = list[i];
+	buf[m++] = x[j][0] + dx;
+	buf[m++] = x[j][1] + dy;
+	buf[m++] = x[j][2] + dz;
+	buf[m++] = v[j][0];
+	buf[m++] = v[j][1];
+	buf[m++] = v[j][2];
+	buf[m++] = omega[j][0];
+	buf[m++] = omega[j][1];
+	buf[m++] = omega[j][2];
+      }
     }
-    for (i = 0; i < n; i++) {
-      j = list[i];
-      buf[m++] = x[j][0] + dx;
-      buf[m++] = x[j][1] + dy;
-      buf[m++] = x[j][2] + dz;
-      buf[m++] = v[j][0];
-      buf[m++] = v[j][1];
-      buf[m++] = v[j][2];
-      buf[m++] = omega[j][0];
-      buf[m++] = omega[j][1];
-      buf[m++] = omega[j][2];
+
+  } else {
+    m = 0;
+    if (pbc_flag == 0) {
+      for (i = 0; i < n; i++) {
+	j = list[i];
+	buf[m++] = x[j][0];
+	buf[m++] = x[j][1];
+	buf[m++] = x[j][2];
+	buf[m++] = radius[i];
+	buf[m++] = rmass[i];
+	buf[m++] = v[j][0];
+	buf[m++] = v[j][1];
+	buf[m++] = v[j][2];
+	buf[m++] = omega[j][0];
+	buf[m++] = omega[j][1];
+	buf[m++] = omega[j][2];
+      }
+    } else {
+      if (domain->triclinic == 0) {
+	dx = pbc[0]*domain->xprd;
+	dy = pbc[1]*domain->yprd;
+	dz = pbc[2]*domain->zprd;
+      } else {
+	dx = pbc[0]*domain->xprd + pbc[5]*domain->xy + pbc[4]*domain->xz;
+	dy = pbc[1]*domain->yprd + pbc[3]*domain->yz;
+	dz = pbc[2]*domain->zprd;
+      }
+      for (i = 0; i < n; i++) {
+	j = list[i];
+	buf[m++] = x[j][0] + dx;
+	buf[m++] = x[j][1] + dy;
+	buf[m++] = x[j][2] + dz;
+	buf[m++] = radius[i];
+	buf[m++] = rmass[i];
+	buf[m++] = v[j][0];
+	buf[m++] = v[j][1];
+	buf[m++] = v[j][2];
+	buf[m++] = omega[j][0];
+	buf[m++] = omega[j][1];
+	buf[m++] = omega[j][2];
+      }
     }
   }
+
   return m;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int AtomVecGranular::pack_comm_one(int i, double *buf)
+{
+  if (radvary == 0) return 0;
+
+  buf[0] = radius[i];
+  buf[1] = rmass[i];
+  return 2;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -220,12 +331,24 @@ void AtomVecGranular::unpack_comm(int n, int first, double *buf)
 {
   int i,m,last;
 
-  m = 0;
-  last = first + n;
-  for (i = first; i < last; i++) {
-    x[i][0] = buf[m++];
-    x[i][1] = buf[m++];
-    x[i][2] = buf[m++];
+  if (radvary == 0) {
+    m = 0;
+    last = first + n;
+    for (i = first; i < last; i++) {
+      x[i][0] = buf[m++];
+      x[i][1] = buf[m++];
+      x[i][2] = buf[m++];
+    }
+  } else {
+    m = 0;
+    last = first + n;
+    for (i = first; i < last; i++) {
+      x[i][0] = buf[m++];
+      x[i][1] = buf[m++];
+      x[i][2] = buf[m++];
+      radius[i] = buf[m++];
+      rmass[i] = buf[m++];
+    }
   }
 }
 
@@ -235,19 +358,48 @@ void AtomVecGranular::unpack_comm_vel(int n, int first, double *buf)
 {
   int i,m,last;
 
-  m = 0;
-  last = first + n;
-  for (i = first; i < last; i++) {
-    x[i][0] = buf[m++];
-    x[i][1] = buf[m++];
-    x[i][2] = buf[m++];
-    v[i][0] = buf[m++];
-    v[i][1] = buf[m++];
-    v[i][2] = buf[m++];
-    omega[i][0] = buf[m++];
-    omega[i][1] = buf[m++];
-    omega[i][2] = buf[m++];
+  if (radvary == 0) {
+    m = 0;
+    last = first + n;
+    for (i = first; i < last; i++) {
+      x[i][0] = buf[m++];
+      x[i][1] = buf[m++];
+      x[i][2] = buf[m++];
+      v[i][0] = buf[m++];
+      v[i][1] = buf[m++];
+      v[i][2] = buf[m++];
+      omega[i][0] = buf[m++];
+      omega[i][1] = buf[m++];
+      omega[i][2] = buf[m++];
+    }
+  } else {
+    m = 0;
+    last = first + n;
+    for (i = first; i < last; i++) {
+      x[i][0] = buf[m++];
+      x[i][1] = buf[m++];
+      x[i][2] = buf[m++];
+      radius[i] = buf[m++];
+      rmass[i] = buf[m++];
+      v[i][0] = buf[m++];
+      v[i][1] = buf[m++];
+      v[i][2] = buf[m++];
+      omega[i][0] = buf[m++];
+      omega[i][1] = buf[m++];
+      omega[i][2] = buf[m++];
+    }
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+int AtomVecGranular::unpack_comm_one(int i, double *buf)
+{
+  if (radvary == 0) return 0;
+
+  radius[i] = buf[0];
+  rmass[i] = buf[1];
+  return 2;
 }
 
 /* ---------------------------------------------------------------------- */

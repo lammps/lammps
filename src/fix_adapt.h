@@ -26,6 +26,8 @@ namespace LAMMPS_NS {
 
 class FixAdapt : public Fix {
  public:
+  int diamflag;
+
   FixAdapt(class LAMMPS *, int, char **);
   ~FixAdapt();
   int setmask();

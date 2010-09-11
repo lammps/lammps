@@ -31,9 +31,9 @@ class ReadRestart : protected Pointers {
   void command(int, char **);
 
  private:
-  int me;
+  int me,nprocs,nprocs_file;
   FILE *fp;
-  int nprocs_file;
+  int nfix_restart_global,nfix_restart_peratom;
 
   void file_search(char *, char *);
   void header();

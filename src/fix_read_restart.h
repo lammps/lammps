@@ -13,38 +13,34 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(adapt,FixAdapt)
+FixStyle(READ_RESTART,FixReadRestart)
 
 #else
 
-#ifndef LMP_FIX_ADAPT_H
-#define LMP_FIX_ADAPT_H
+#ifndef LMP_FIX_READ_RESTART_H
+#define LMP_FIX_READ_RESTART_H
 
 #include "fix.h"
 
 namespace LAMMPS_NS {
 
-class FixAdapt : public Fix {
+class FixReadRestart : public Fix {
  public:
-  int diamflag;
+  int *count;
+  double **extra;
 
-  FixAdapt(class LAMMPS *, int, char **);
-  ~FixAdapt();
+  FixReadRestart(class LAMMPS *, int, char **);
+  ~FixReadRestart();
   int setmask();
-  void init();
-  void setup_pre_force(int);
-  void pre_force(int);
+
+  double memory_usage();
+  void grow_arrays(int);
+  void copy_arrays(int, int);
+  int pack_exchange(int, double *);
+  int unpack_exchange(int, double *);
 
  private:
-  int nadapt;
-  int *which;
-  char **pair,**param,**var;
-  int *ilo,*ihi,*jlo,*jhi;
-
-  int *ivar;
-  class Pair **pairptr;
-  int *pairindex;
-  int *awhich;
+  int nextra;          // max number of extra values for any atom
 };
 
 }

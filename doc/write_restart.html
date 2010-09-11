@@ -42,7 +42,8 @@ additional file with the "%" replaced by "base" is also written, which
 contains global information.  For example, the files written for
 filename restart.% would be restart.base, restart.0, restart.1, ...
 restart.P-1.  This creates smaller files and can be a fast mode of
-output on parallel machines that support parallel I/O for output.
+output and subsequent input on parallel machines that support parallel
+I/O.
 </P>
 <P>Restart files can be read by a <A HREF = "read_restart.html">read_restart</A>
 command to restart a simulation from a particular state.  Because the
@@ -58,7 +59,7 @@ files were created.
 <P>This command requires inter-processor communication to migrate atoms
 before the restart file is written.  This means that your system must
 be ready to perform a simulation before using this command (force
-fields setup, atom masses set, etc).
+fields setup, atom masses initialized, etc).
 </P>
 <P><B>Related commands:</B>
 </P>

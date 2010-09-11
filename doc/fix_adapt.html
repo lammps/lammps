@@ -135,6 +135,12 @@ discussion above describing the formulas associated with equal-style
 variables.  The new value is assigned to the corresponding attribute
 for all atoms in the fix group.
 </P>
+<P>If the atom parameter is <I>diameter</I> and per-atom density and per-atom
+mass are defined for particles (e.g. <A HREF = "atom_style.html">atom_style
+granular</A>), then the mass of each particle is also
+changed when the diameter changes (density is assumed to stay
+constant).
+</P>
 <P>For example, these commands would shrink the diameter of all granular
 particles in the "center" group from 1.0 to 0.1 in a linear fashion
 over the course of a 1000-step simulation:

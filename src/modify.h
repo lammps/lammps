@@ -31,7 +31,8 @@ class Modify : protected Pointers {
 
   int restart_pbc_any;       // 1 if any fix sets restart_pbc
   int nfix_restart_global;   // stored fix global info from restart file
-  int nfix_restart_peratom;   // stored fix peratom info from restart file
+  int nfix_restart_peratom;  // stored fix peratom info from restart file
+  int nfix_restart_save;     // 1 if init() should not whack restart info
 
   class Fix **fix;           // list of fixes
   int *fmask;                // bit mask for when each fix is applied

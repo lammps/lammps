@@ -194,7 +194,7 @@ the new bond.
 [Related commands:]
 
 "fix bond/break"_fix_bond_break.html, "fix
-bond/swap"_fix_bond_swap.html, "dump bond"_dump.html,
+bond/swap"_fix_bond_swap.html, "dump local"_dump.html,
 "special_bonds"_special_bonds.html
 
 [Default:]

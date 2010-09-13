@@ -62,8 +62,8 @@ pairwise interaction must always be computed by the
 not.  This means that "special_bonds"_special_bonds.html must be set
 to 1,1,1, as indicated as a restriction below.
 
-Note that when bonds are dumped to a file via "dump bond"_dump.html,
-bonds with type 0 are not included.  The
+Note that when bonds are dumped to a file via the "dump
+local"_dump.html command, bonds with type 0 are not included.  The
 "delete_bonds"_delete_bonds.html command can also be used to query the
 status of broken bonds or permanently delete them, e.g.:
 

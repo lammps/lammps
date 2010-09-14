@@ -138,7 +138,7 @@ other bond partners is unaffected by the existence of the bond.
 [Related commands:]
 
 "fix bond/create"_fix_bond_create.html, "fix
-bond/swap"_fix_bond_swap.html, "dump bond"_dump.html,
+bond/swap"_fix_bond_swap.html, "dump local"_dump.html,
 "special_bonds"_special_bonds.html
 
 [Default:]

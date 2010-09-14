@@ -17,9 +17,11 @@
 #include "string.h"
 #include "displace_box.h"
 #include "atom.h"
+#include "modify.h"
 #include "domain.h"
 #include "lattice.h"
 #include "comm.h"
+#include "irregular.h"
 #include "group.h"
 #include "error.h"
 
@@ -42,13 +44,9 @@ void DisplaceBox::command(int narg, char **arg)
   if (domain->box_exist == 0) 
     error->all("Displace_box command before simulation box is defined");
   if (narg < 2) error->all("Illegal displace_box command");
-
-  // init entire system since comm->irregular is done
-  // comm::init needs neighbor::init needs pair::init needs kspace::init, etc
-
-  if (comm->me == 0 && screen)
-    fprintf(screen,"System init for displace_box ...\n");
-  lmp->init();
+  if (modify->nfix_restart_peratom) 
+    error->all("Cannot displace_box after "
+	       "reading restart file with per-atom info");
 
   if (comm->me == 0 && screen) fprintf(screen,"Displacing box ...\n");
 
@@ -356,10 +354,9 @@ void DisplaceBox::command(int narg, char **arg)
   }
 
   // move atoms back inside simulation box and to new processors
-  // use remap() instead of pbc() in case box
-  //   moved a long distance relative to atoms
-  // use irregular() instead of exchange() in case box
-  //   moved a long distance relative to atoms
+  // use remap() instead of pbc()
+  //   in case box moved a long distance relative to atoms
+  // use irregular() in case box moved a long distance relative to atoms
 
   double **x = atom->x;
   int *image = atom->image;
@@ -368,8 +365,9 @@ void DisplaceBox::command(int narg, char **arg)
 
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
   domain->reset_box();
-  comm->setup();
-  comm->irregular();
+  Irregular *irregular = new Irregular(lmp);
+  irregular->migrate_atoms();
+  delete irregular;
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
   // clean up

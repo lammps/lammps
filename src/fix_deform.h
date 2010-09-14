@@ -42,6 +42,7 @@ class FixDeform : public Fix {
   int kspace_flag;                 // 1 if KSpace invoked, 0 if not
   int nrigid;                      // number of rigid fixes
   int *rfix;                       // indices of rigid fixes
+  class Irregular *irregular;      // for migrating atoms after box flips
 
   double TWOPI;
 

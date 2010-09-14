@@ -91,7 +91,6 @@ Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
   nfix_restart_peratom = 0;
   id_restart_peratom = style_restart_peratom = NULL;
   index_restart_peratom = NULL;
-  nfix_restart_save = 0;
 
   ncompute = maxcompute = 0;
   compute = NULL;
@@ -147,9 +146,8 @@ void Modify::init()
   int i,j;
 
   // delete storage of restart info since it is not valid after 1st run
-  // read_restart sets nfix_restart_save so will persist to actual 1st run
 
-  if (!nfix_restart_save) restart_deallocate();
+  restart_deallocate();
 
   // create lists of fixes to call at each stage of run
 

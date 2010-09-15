@@ -98,22 +98,20 @@ on timesteps when neighbor lists are rebuilt, the coordinates of an
 atom written to a dump file may be slightly outside the simulation
 box.
 
-When LAMMPS is running on a single processor, if the "atom_modify
-sort"_atom_modify.html option is on, which it is by default, then
-atoms are re-ordered periodically during a simulation, due to spatial
-sorting, and hence the atom information written to dump files
+IMPORTANT NOTE: Unless the "dump_modify sort"_dump_modify.html option
+is invoked, the lines of atom information written to dump files
 (typically one line per atom) will be in an indeterminate order for
-each snapshot.
+each snapshot.  This is even true when running on a single processor,
+if the "atom_modify sort"_atom_modify.html option is on, which it is
+by default.  In this case atoms are re-ordered periodically during a
+simulation, due to spatial sorting.  It is also true when running in
+parallel, because data for a single snapshot is collected from
+multiple processors.
 
-When LAMMPS is running in parallel, this is also true, both due to
-sorting and because data for a single snapshot is collected from
-multiple processors.  This is the case for the {atom}, {local}, and
-{custom} styles.  It is also the case for the {xyz} style if the dump
-group is not {all}.  It is not the case for the {dcd} and {xtc} styles
-which always write atoms in sorted order.  So does the {xyz} style if
-the dump group is {all}.  The {cfg} style supports the {sort} option
-of the "dump_modify"_dump_modify.html command which allows sorting to
-be turned on or off.
+For the {atom}, {custom}, {cfg}, and {local} styles, sorting is off by
+default.  For the {dcd}, {xtc}, and {xyz} styles, sorting by atom ID
+is on by default.  See the "dump_modify"_dump_modify.html doc page for
+details.
 
 :line
 
@@ -189,14 +187,14 @@ atoms appropriately.
 The {dcd} style writes DCD files, a standard atomic trajectory format
 used by the CHARMM, NAMD, and XPlor molecular dynamics packages.  DCD
 files are binary and thus may not be portable to different machines.
-The dump group must be {all} for the {dcd} style.  The {unwrap} option
-of the "dump_modify"_dump_modify.html command allows DCD coordinates
-to be written "unwrapped" by the image flags for each atom.  Unwrapped
-means that if the atom has passed thru a periodic boundary one or more
-times, the value is printed for what the coordinate would be if it had
-not been wrapped back into the periodic box.  Note that these
-coordinates may thus be far outside the box size stored with the
-snapshot.
+The number of atoms per snapshot cannot change with the {dcd} style.
+The {unwrap} option of the "dump_modify"_dump_modify.html command
+allows DCD coordinates to be written "unwrapped" by the image flags
+for each atom.  Unwrapped means that if the atom has passed thru a
+periodic boundary one or more times, the value is printed for what the
+coordinate would be if it had not been wrapped back into the periodic
+box.  Note that these coordinates may thus be far outside the box size
+stored with the snapshot.
 
 The {xtc} style writes XTC files, a compressed trajectory format used
 by the GROMACS molecular dynamics package, and described
@@ -206,14 +204,13 @@ The precision used in XTC files can be adjusted via the
 means that coordinates are stored to 1/1000 nanometer accuracy.  XTC
 files are portable binary files written in the NFS XDR data format, so
 that any machine which supports XDR should be able to read them.  The
-dump group must be {all} for the {xtc} style.  The {unwrap} option of
-the "dump_modify"_dump_modify.html command allows XTC coordinates to
-be written "unwrapped" by the image flags for each atom.  Unwrapped
-means that if the atom has passed thru a periodic boundary one or more
-times, the value is printed for what the coordinate would be if it had
-not been wrapped back into the periodic box.  Note that these
-coordinates may thus be far outside the box size stored with the
-snapshot.
+{unwrap} option of the "dump_modify"_dump_modify.html command allows
+XTC coordinates to be written "unwrapped" by the image flags for each
+atom.  Unwrapped means that if the atom has passed thru a periodic
+boundary one or more times, the value is printed for what the
+coordinate would be if it had not been wrapped back into the periodic
+box.  Note that these coordinates may thus be far outside the box size
+stored with the snapshot.
 
 The {xyz} style writes XYZ files, which is a simple text-based
 coordinate format that many codes can read.

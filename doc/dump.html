@@ -108,22 +108,20 @@ on timesteps when neighbor lists are rebuilt, the coordinates of an
 atom written to a dump file may be slightly outside the simulation
 box.
 </P>
-<P>When LAMMPS is running on a single processor, if the <A HREF = "atom_modify.html">atom_modify
-sort</A> option is on, which it is by default, then
-atoms are re-ordered periodically during a simulation, due to spatial
-sorting, and hence the atom information written to dump files
+<P>IMPORTANT NOTE: Unless the <A HREF = "dump_modify.html">dump_modify sort</A> option
+is invoked, the lines of atom information written to dump files
 (typically one line per atom) will be in an indeterminate order for
-each snapshot.
+each snapshot.  This is even true when running on a single processor,
+if the <A HREF = "atom_modify.html">atom_modify sort</A> option is on, which it is
+by default.  In this case atoms are re-ordered periodically during a
+simulation, due to spatial sorting.  It is also true when running in
+parallel, because data for a single snapshot is collected from
+multiple processors.
 </P>
-<P>When LAMMPS is running in parallel, this is also true, both due to
-sorting and because data for a single snapshot is collected from
-multiple processors.  This is the case for the <I>atom</I>, <I>local</I>, and
-<I>custom</I> styles.  It is also the case for the <I>xyz</I> style if the dump
-group is not <I>all</I>.  It is not the case for the <I>dcd</I> and <I>xtc</I> styles
-which always write atoms in sorted order.  So does the <I>xyz</I> style if
-the dump group is <I>all</I>.  The <I>cfg</I> style supports the <I>sort</I> option
-of the <A HREF = "dump_modify.html">dump_modify</A> command which allows sorting to
-be turned on or off.
+<P>For the <I>atom</I>, <I>custom</I>, <I>cfg</I>, and <I>local</I> styles, sorting is off by
+default.  For the <I>dcd</I>, <I>xtc</I>, and <I>xyz</I> styles, sorting by atom ID
+is on by default.  See the <A HREF = "dump_modify.html">dump_modify</A> doc page for
+details.
 </P>
 <HR>
 
@@ -199,14 +197,14 @@ atoms appropriately.
 <P>The <I>dcd</I> style writes DCD files, a standard atomic trajectory format
 used by the CHARMM, NAMD, and XPlor molecular dynamics packages.  DCD
 files are binary and thus may not be portable to different machines.
-The dump group must be <I>all</I> for the <I>dcd</I> style.  The <I>unwrap</I> option
-of the <A HREF = "dump_modify.html">dump_modify</A> command allows DCD coordinates
-to be written "unwrapped" by the image flags for each atom.  Unwrapped
-means that if the atom has passed thru a periodic boundary one or more
-times, the value is printed for what the coordinate would be if it had
-not been wrapped back into the periodic box.  Note that these
-coordinates may thus be far outside the box size stored with the
-snapshot.
+The number of atoms per snapshot cannot change with the <I>dcd</I> style.
+The <I>unwrap</I> option of the <A HREF = "dump_modify.html">dump_modify</A> command
+allows DCD coordinates to be written "unwrapped" by the image flags
+for each atom.  Unwrapped means that if the atom has passed thru a
+periodic boundary one or more times, the value is printed for what the
+coordinate would be if it had not been wrapped back into the periodic
+box.  Note that these coordinates may thus be far outside the box size
+stored with the snapshot.
 </P>
 <P>The <I>xtc</I> style writes XTC files, a compressed trajectory format used
 by the GROMACS molecular dynamics package, and described
@@ -216,14 +214,13 @@ The precision used in XTC files can be adjusted via the
 means that coordinates are stored to 1/1000 nanometer accuracy.  XTC
 files are portable binary files written in the NFS XDR data format, so
 that any machine which supports XDR should be able to read them.  The
-dump group must be <I>all</I> for the <I>xtc</I> style.  The <I>unwrap</I> option of
-the <A HREF = "dump_modify.html">dump_modify</A> command allows XTC coordinates to
-be written "unwrapped" by the image flags for each atom.  Unwrapped
-means that if the atom has passed thru a periodic boundary one or more
-times, the value is printed for what the coordinate would be if it had
-not been wrapped back into the periodic box.  Note that these
-coordinates may thus be far outside the box size stored with the
-snapshot.
+<I>unwrap</I> option of the <A HREF = "dump_modify.html">dump_modify</A> command allows
+XTC coordinates to be written "unwrapped" by the image flags for each
+atom.  Unwrapped means that if the atom has passed thru a periodic
+boundary one or more times, the value is printed for what the
+coordinate would be if it had not been wrapped back into the periodic
+box.  Note that these coordinates may thus be far outside the box size
+stored with the snapshot.
 </P>
 <P>The <I>xyz</I> style writes XYZ files, which is a simple text-based
 coordinate format that many codes can read.

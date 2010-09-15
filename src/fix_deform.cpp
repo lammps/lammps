@@ -22,6 +22,7 @@
 #include "atom.h"
 #include "update.h"
 #include "comm.h"
+#include "irregular.h"
 #include "domain.h"
 #include "lattice.h"
 #include "force.h"
@@ -301,6 +302,9 @@ FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   rfix = NULL;
   flip = 0;
   
+  if (force_reneighbor) irregular = new Irregular(lmp);
+  else irregular = NULL;
+
   TWOPI = 8.0*atan(1.0);
 }
 
@@ -310,6 +314,8 @@ FixDeform::~FixDeform()
 {
   delete [] set;
   delete [] rfix;
+
+  delete irregular;
 
   // reset domain's h_rate = 0.0, since this fix may have made it non-zero
 
@@ -326,7 +332,7 @@ FixDeform::~FixDeform()
 int FixDeform::setmask()
 {
   int mask = 0;
-  mask |= PRE_EXCHANGE;
+  if (force_reneighbor) mask |= PRE_EXCHANGE;
   mask |= END_OF_STEP;
   return mask;
 }
@@ -570,7 +576,7 @@ void FixDeform::pre_exchange()
   for (int i = 0; i < nlocal; i++) domain->remap(x[i],image[i]);
 
   domain->x2lamda(atom->nlocal);
-  comm->irregular();
+  irregular->migrate_atoms();
   domain->lamda2x(atom->nlocal);
 
   flip = 0;

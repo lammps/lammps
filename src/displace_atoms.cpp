@@ -16,9 +16,11 @@
 #include "string.h"
 #include "displace_atoms.h"
 #include "atom.h"
+#include "modify.h"
 #include "domain.h"
 #include "lattice.h"
 #include "comm.h"
+#include "irregular.h"
 #include "group.h"
 #include "random_park.h"
 #include "error.h"
@@ -43,13 +45,9 @@ void DisplaceAtoms::command(int narg, char **arg)
   if (domain->box_exist == 0) 
     error->all("Displace_atoms command before simulation box is defined");
   if (narg < 2) error->all("Illegal displace_atoms command");
-
-  // init entire system since comm->irregular is done
-  // comm::init needs neighbor::init needs pair::init needs kspace::init, etc
-
-  if (comm->me == 0 && screen)
-    fprintf(screen,"System init for displace_atoms ...\n");
-  lmp->init();
+  if (modify->nfix_restart_peratom) 
+    error->all("Cannot displace_atoms after "
+	       "reading restart file with per-atom info");
 
   if (comm->me == 0 && screen) fprintf(screen,"Displacing atoms ...\n");
 
@@ -168,7 +166,6 @@ void DisplaceAtoms::command(int narg, char **arg)
 
   // move atoms randomly
   // makes atom result independent of what proc owns it via random->reset()
-
     
   if (style == RANDOM) {
     RanPark *random = new RanPark(lmp,1);
@@ -197,7 +194,7 @@ void DisplaceAtoms::command(int narg, char **arg)
 
   // move atoms back inside simulation box and to new processors
   // use remap() instead of pbc() in case atoms moved a long distance
-  // use irregular() instead of exchange() in case atoms moved a long distance
+  // use irregular() in case atoms moved a long distance
 
   double **x = atom->x;
   int *image = atom->image;
@@ -206,8 +203,9 @@ void DisplaceAtoms::command(int narg, char **arg)
 
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
   domain->reset_box();
-  comm->setup();
-  comm->irregular();
+  Irregular *irregular = new Irregular(lmp);
+  irregular->migrate_atoms();
+  delete irregular;
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
   // check if any atoms were lost

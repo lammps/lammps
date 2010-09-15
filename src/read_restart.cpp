@@ -21,6 +21,7 @@
 #include "atom_vec.h"
 #include "domain.h"
 #include "comm.h"
+#include "irregular.h"
 #include "update.h"
 #include "modify.h"
 #include "fix.h"
@@ -236,12 +237,10 @@ void ReadRestart::command(int narg, char **arg)
 
     delete [] perproc;
 
-    // save modify->nfix_restart values, so Modify::init() won't whack them
-    // create a temporary fix to hold extra atom info
-    // necessary b/c Atom::init() will destroy atom->extra
+    // create a temporary fix to hold and migrate extra atom info
+    // necessary b/c irregular will migrate atoms
 
     if (nextra) {
-      modify->nfix_restart_save = 1;
       char cextra[8],fixextra[8];
       sprintf(cextra,"%d",nextra);
       sprintf(fixextra,"%d",modify->nfix_restart_peratom);
@@ -255,28 +254,22 @@ void ReadRestart::command(int narg, char **arg)
       delete [] newarg;
     }
 
-    // init entire system before comm->irregular
-    // comm::init needs neighbor::init needs pair::init needs kspace::init, etc
     // move atoms to new processors via irregular()
-    // in case read by totally different proc than wrote restart file
+    // in case read by different proc than wrote restart file
 
-    if (me == 0 && screen)
-      fprintf(screen,"  system init for parallel read_restart ...\n");
-    lmp->init();
     if (domain->triclinic) domain->x2lamda(atom->nlocal);
-    domain->reset_box();
-    comm->setup();
-    comm->irregular();
+    Irregular *irregular = new Irregular(lmp);
+    irregular->migrate_atoms();
+    delete irregular;
     if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
-    // unsave modify->nfix_restart values and atom->extra
+    // put extra atom info held by fix back into atom->extra
     // destroy temporary fix
 
     if (nextra) {
-      modify->nfix_restart_save = 0;
-      atom->nextra_store = nextra;
+      memory->destroy_2d_double_array(atom->extra);
       atom->extra = memory->create_2d_double_array(atom->nmax,nextra,
-						   "atom:extra");
+      						   "atom:extra");
       int ifix = modify->find_fix("_read_restart");
       FixReadRestart *fix = (FixReadRestart *) modify->fix[ifix];
       int *count = fix->count;

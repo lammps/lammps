@@ -32,7 +32,9 @@ class DumpDCD : public Dump {
   ~DumpDCD();
 
  private:
-  int natoms,ntotal,headerflag,nevery_save,nframes;
+  int natoms,ntotal;
+  int headerflag,nevery_save,nframes;
+
   float *coords,*xf,*yf,*zf;
   int unwrap_flag;            // 1 if atom coords are unwrapped, 0 if no
 

@@ -28,7 +28,6 @@ class DumpLocal : public Dump {
  public:
   DumpLocal(LAMMPS *, int, char **);
   ~DumpLocal();
-  void init();
 
  private:
   int nevery;                // dump frequency to check Fix against
@@ -54,10 +53,11 @@ class DumpLocal : public Dump {
   char **id_fix;             // their IDs
   class Fix **fix;           // list of ptrs to the Fix objects
 
+  void init_style();
   int modify_param(int, char **);
   void write_header(int);
   int count();
-  int pack();
+  void pack(int *);
   void write_data(int, double *);
 
   void parse_fields(int, char **);

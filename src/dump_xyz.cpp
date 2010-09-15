@@ -28,39 +28,18 @@ DumpXYZ::DumpXYZ(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
   if (binary || multiproc) error->all("Invalid dump xyz filename");
 
   size_one = 5;
+  sort_flag = 1;
+  sortcol = 0;
 
   char *str = (char *) "%d %g %g %g";
   int n = strlen(str) + 1;
   format_default = new char[n];
   strcpy(format_default,str);
-
-  // allocate global array for atom coords if group is all
-
-  if (igroup == 0) {
-    natoms = static_cast<int> (atom->natoms);
-    if (natoms <= 0) error->all("Invalid natoms for dump xyz");
-    if (atom->tag_consecutive() == 0)
-      error->all("Atom IDs must be consecutive for dump xyz");
-    types = (int *) memory->smalloc(natoms*sizeof(int),"dump:types");
-    coords = (float *) memory->smalloc(3*natoms*sizeof(float),"dump:coords");
-  }
-
-  ntotal = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
-DumpXYZ::~DumpXYZ()
-{
-  if (igroup == 0) {
-    memory->sfree(types);
-    memory->sfree(coords);
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void DumpXYZ::init()
+void DumpXYZ::init_style()
 {
   delete [] format;
   char *str;
@@ -77,41 +56,10 @@ void DumpXYZ::init()
   if (multifile == 0) openfile();
 }
 
-/* ----------------------------------------------------------------------
-   return # of bytes of allocated memory in buf and global coords array
-------------------------------------------------------------------------- */
-
-double DumpXYZ::memory_usage()
-{
-  double bytes = maxbuf * sizeof(double);
-  if (igroup == 0) {
-    bytes += natoms * sizeof(int);
-    bytes += 3*natoms * sizeof(float);
-  }
-  return bytes;
-}
-
 /* ---------------------------------------------------------------------- */
 
 void DumpXYZ::write_header(int n)
 {
-  // check bounds of atom IDs if group is all
-  // all procs realloc types & coords if necessary
-
-  if (igroup == 0) {
-    if (atom->tag_consecutive() == 0)
-      error->all("Atom IDs must be consecutive for dump xyz all");
-    if (n != natoms) {
-      memory->sfree(types);
-      memory->sfree(coords);
-      natoms = n;
-      types = (int *) memory->smalloc(natoms*sizeof(int),"dump:types");
-      coords = (float *) memory->smalloc(3*natoms*sizeof(float),"dump:coords");
-    }
-  }
-
-  // only proc 0 writes header
-
   if (me == 0) {
     fprintf(fp,"%d\n",n);
     fprintf(fp,"Atoms\n");
@@ -135,15 +83,17 @@ int DumpXYZ::count()
 
 /* ---------------------------------------------------------------------- */
 
-int DumpXYZ::pack()
+void DumpXYZ::pack(int *ids)
 {
+  int m,n;
+
   int *tag = atom->tag;
   int *type = atom->type;
   int *mask = atom->mask;
   double **x = atom->x;
   int nlocal = atom->nlocal;
 
-  int m = 0;
+  m = n = 0;
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       buf[m++] = tag[i];
@@ -151,57 +101,18 @@ int DumpXYZ::pack()
       buf[m++] = x[i][0];
       buf[m++] = x[i][1];
       buf[m++] = x[i][2];
+      if (ids) ids[n++] = tag[i];
     }
-
-  return m;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void DumpXYZ::write_data(int n, double *mybuf)
 {
-  // for group = all, spread buf atom coords into global arrays
-  // if last chunk of atoms in this snapshot, write global arrays to file
-
-  if (igroup == 0) {
-    int j,tag;
-
-    int m = 0;
-    for (int i = 0; i < n; i++) {
-      tag = static_cast<int> (mybuf[m]) - 1;
-      types[tag] = static_cast<int> (mybuf[m+1]);
-      j = 3*tag;
-      coords[j++] = mybuf[m+2];
-      coords[j++] = mybuf[m+3];
-      coords[j] = mybuf[m+4];
-      m += size_one;
-    }
-
-    ntotal += n;
-    if (ntotal == natoms) {
-      write_frame();
-      ntotal = 0;
-    }
-
-  // for group != all, write unsorted type,x,y,z to file
-
-  } else {
-    int m = 0;
-    for (int i = 0; i < n; i++) {
-      fprintf(fp,format,
-	      static_cast<int> (mybuf[m+1]),mybuf[m+2],mybuf[m+3],mybuf[m+4]);
-      m += size_one;
-    }
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void DumpXYZ::write_frame()
-{
   int m = 0;
-  for (int i = 0; i < natoms; i++) {
-    fprintf(fp,format,types[i],coords[m],coords[m+1],coords[m+2]);
-    m += 3;
+  for (int i = 0; i < n; i++) {
+    fprintf(fp,format,
+	    static_cast<int> (mybuf[m+1]),mybuf[m+2],mybuf[m+3],mybuf[m+4]);
+    m += size_one;
   }
 }

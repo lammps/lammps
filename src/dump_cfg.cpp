@@ -49,9 +49,6 @@ DumpCFG::DumpCFG(LAMMPS *lmp, int narg, char **arg) :
 
   // arrays for data rearrangement
 
-  recvcounts = new int[nprocs];
-  displs = new int[nprocs];
-  tags = NULL;
   rbuf = NULL;
   nchosen = nlines = 0;
 
@@ -103,10 +100,6 @@ DumpCFG::~DumpCFG()
     delete [] typenames;
   }
 
-  delete [] recvcounts;
-  delete [] displs;
-
-  if (tags) memory->sfree(tags);
   if (rbuf) memory->destroy_2d_double_array(rbuf);
 
   if (auxname) {
@@ -117,7 +110,7 @@ DumpCFG::~DumpCFG()
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCFG::init()
+void DumpCFG::init_style()
 {
   if (multifile == 0)
     error->all("Dump in CFG format requires one snapshot per file");
@@ -222,10 +215,6 @@ void DumpCFG::write_header(int n)
     if (rbuf) memory->destroy_2d_double_array(rbuf);
     rbuf = memory->create_2d_double_array(nchosen,size_one,"dump:rbuf");
   }
-
-  // create a sorted list of atom IDs on writing proc(s) if necessary
-
-  if (sort_flag) create_sorted_tags();
 }
 
 /* ----------------------------------------------------------------------
@@ -239,145 +228,38 @@ void DumpCFG::write_data(int n, double *mybuf)
   int tag_i,index;
   double *mass = atom->mass;
 
-  // if sort flag is off, transfer data in buf to rbuf directly
+  // transfer data from buf to rbuf
   // if write by proc 0, transfer chunk by chunk
 
-  if (sort_flag == 0) {
-    for (i = 0, m = 0; i < n; i++) {
-      for (j = 0; j < size_one; j++)
-	rbuf[nlines][j] = mybuf[m++];
-      nlines++;
-    }
+  for (i = 0, m = 0; i < n; i++) {
+    for (j = 0; j < size_one; j++)
+      rbuf[nlines][j] = mybuf[m++];
+    nlines++;
+  }
 
-    //  write data lines in rbuf to file after transfer is done
-
-    if (nlines == nchosen) {
-      for (itype = 1; itype <= ntypes; itype++) {
-	for (i = 0; i < nchosen; i++)
-	  if (rbuf[i][1] == itype) break;
-	if (i < nchosen) {
-	  fprintf(fp,"%g\n",mass[itype]);
-	  fprintf(fp,"%s\n",typenames[itype]);
-	  for (; i < nchosen; i++) {
-	    if (rbuf[i][1] == itype) {
-	      for (j = 2; j < size_one; j++) {
-		if (vtype[j] == INT)
-		  fprintf(fp,vformat[j],static_cast<int> (rbuf[i][j]));
-		else fprintf(fp,vformat[j],rbuf[i][j]);
-	      }
-	      fprintf(fp,"\n");
+  //  write data lines in rbuf to file after transfer is done
+  
+  if (nlines == nchosen) {
+    for (itype = 1; itype <= ntypes; itype++) {
+      for (i = 0; i < nchosen; i++)
+	if (rbuf[i][1] == itype) break;
+      if (i < nchosen) {
+	fprintf(fp,"%g\n",mass[itype]);
+	fprintf(fp,"%s\n",typenames[itype]);
+	for (; i < nchosen; i++) {
+	  if (rbuf[i][1] == itype) {
+	    for (j = 2; j < size_one; j++) {
+	      if (vtype[j] == INT)
+		fprintf(fp,vformat[j],static_cast<int> (rbuf[i][j]));
+	      else fprintf(fp,vformat[j],rbuf[i][j]);
 	    }
+	    fprintf(fp,"\n");
 	  }
 	}
       }
-      nlines = 0;
     }
-
-  // if sort flag is on, transfer data lines in buf to rbuf &
-  //   rearrange them in a sorted order
-  // if write by proc 0, transfer chunk by chunk
-
-  } else {
-
-    // sort data lines:
-    // find the index of the atom ID of each data line within the
-    //   sorted atom IDs array
-    // transfer the data line to rbuf with its location according
-    //   to this index
-
-    for (i = 0, m = 0; i < n; i++) {
-      tag_i = static_cast<int>(mybuf[m]);
-      for (j = 0; j < nchosen; j++) {
-	if (tag_i == tags[j]) {
-	  index = j;
-	  break;
-	}
-      }
-      for (j = 0; j < size_one; j++)
-	rbuf[index][j] = mybuf[m++];
-    }
-
-    //  write data lines in rbuf to file after transfer is done
-
-    nlines += n;
-    if (nlines == nchosen) {
-      for (itype = 1; itype <= ntypes; itype++) {
-	for (i = 0; i < nchosen; i++)
-	  if (rbuf[i][1] == itype) break;
-	if (i < nchosen) {
-	  fprintf(fp,"%g\n",mass[itype]);
-	  fprintf(fp,"%s\n",typenames[itype]);
-	  for (; i < nchosen; i++) {
-	    if (rbuf[i][1] == itype) {
-	      for (j = 2; j < size_one; j++) {
-		if (vtype[j] == INT)
-		  fprintf(fp,vformat[j],static_cast<int>(rbuf[i][j]));
-		else fprintf(fp,vformat[j],rbuf[i][j]);
-	      }
-	      fprintf(fp,"\n");
-	    }
-	  }
-	}
-      }
-      nlines = 0;
-    }
+    nlines = 0;
   }
-}
-
-/* ----------------------------------------------------------------------
-   create a sorted list of atom IDs on writing proc(s)
-------------------------------------------------------------------------- */
-
-void DumpCFG::create_sorted_tags()
-{
-  int index;
-  int *mytags;
-  int *tag = atom->tag;
-  int nlocal = atom->nlocal;
-
-  index = 0;
-
-  // if write by multiproc, each proc has its own atom IDs collected
-
-  if (multiproc) {
-    if (tags) memory->sfree(tags);
-    tags = (int *) memory->smalloc(nchosen*sizeof(int),"dump:tags");
-    for (int i = 0; i < nlocal; i++)
-      if (choose[i]) tags[index++] = tag[i];
-
-  // if write by proc 0, gather atom IDs of all the chosen atoms on proc 0
-
-  } else {
-    mytags = (int *) memory->smalloc(nmine*sizeof(int),"dump:mytags");
-    for (int i = 0; i < nlocal; i++)
-      if (choose[i]) mytags[index++] = tag[i];
-    MPI_Gather(&nmine,1,MPI_INT,recvcounts,1,MPI_INT,0,world);
-    if (me == 0) {
-      if (tags) memory->sfree(tags);
-      tags = (int *) memory->smalloc(nchosen*sizeof(int),"dump:tags");
-      displs[0] = 0;
-      for (int iproc = 1; iproc < nprocs; iproc++)
-	displs[iproc] = displs[iproc-1] + recvcounts[iproc-1];
-    }
-    MPI_Gatherv(mytags,nmine,MPI_INT,tags,recvcounts,displs,MPI_INT,0,world);
-    memory->sfree(mytags);
-  }
-
-  if (multiproc || me == 0) qsort(tags,nchosen,sizeof(int),tag_compare);
-}
-
-/* ----------------------------------------------------------------------
-   compare function for qsort
-------------------------------------------------------------------------- */
-
-int DumpCFG::tag_compare(const void *itag, const void *jtag)
-{
-  int tag_i = *((int *) itag);
-  int tag_j = *((int *) jtag);
-
-  if (tag_i < tag_j) return -1;
-  else if (tag_i > tag_j) return 1;
-  return 0;
 }
 
 /* ---------------------------------------------------------------------- */

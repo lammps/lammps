@@ -24,6 +24,22 @@ class Dump : protected Pointers {
   char *id;                  // user-defined name of Dump
   char *style;               // style of Dump
   int igroup,groupbit;       // group that Dump is performed on
+
+  int first_flag;            // 0 if no initial dump, 1 if yes initial dump
+  int clearstep;             // 1 if dump invokes computes, 0 if not
+
+  // static variable across all Dump objects
+
+  static Dump *dumpptr;         // holds a ptr to Dump currently being used
+
+  Dump(class LAMMPS *, int, char **);
+  virtual ~Dump();
+  void init();
+  void write();
+  void modify_params(int, char **);
+  virtual double memory_usage();
+
+ protected:
   int me,nprocs;             // proc info
 
   char *filename;            // user-specified file
@@ -33,41 +49,46 @@ class Dump : protected Pointers {
   int multiproc;             // 0 = proc 0 writes for all, 1 = one file/proc
 
   int header_flag;           // 0 = item, 2 = xyz
-  int first_flag;            // 0 if no initial dump, 1 if yes initial dump
   int flush_flag;            // 0 if no flush, 1 if flush every dump
-  int sort_flag;             // 1 if write in sorted order, 0 if not
+  int sort_flag;             // 1 if sorted output
   int append_flag;           // 1 if open file in append mode, 0 if not
   int singlefile_opened;     // 1 = one big file, already opened, else 0
-  int clearstep;             // 1 if dump invokes computes, 0 if not
+  int sortcol;               // 0 to sort on ID, 1-N on columns
+  int sortcolm1;             // sortcol - 1
 
   char *format_default;      // default format string
   char *format_user;         // format string set by user
   char *format;              // format string for the file write
-  double *buf;               // memory for atom quantities
-  int maxbuf;                // size of buf
   FILE *fp;                  // file to write dump to
   int size_one;              // # of quantities for one atom
+  int nme;                   // # of atoms in this dump from me
 
-  Dump(class LAMMPS *, int, char **);
-  virtual ~Dump();
-  virtual void init() {}
-  void write();
-  void modify_params(int, char **);
-  virtual double memory_usage();
-
- protected:
   double boxxlo,boxxhi;      // local copies of domain values
   double boxylo,boxyhi;      // lo/hi are bounding box for triclinic
   double boxzlo,boxzhi;
   double boxxy,boxxz,boxyz;
 
+  int maxbuf;                // size of buf and ids
+  int maxsort;               // size of bufsort, idsort, index
+  int maxproc;               // size of proclist
+  double *buf;               // memory for atom quantities
+  int *ids;                  // list of atom IDs, if sorting on IDs
+  double *bufsort;
+  int *idsort,*index,*proclist;
+
+  class Irregular *irregular;
+
+  virtual void init_style() = 0;
   virtual void openfile();
   virtual int modify_param(int, char **) {return 0;}
-
   virtual void write_header(int) = 0;
   virtual int count() = 0;
-  virtual int pack() = 0;
+  virtual void pack(int *) = 0;
   virtual void write_data(int, double *) = 0;
+
+  void sort();
+  static int idcompare(const void *, const void *);
+  static int bufcompare(const void *, const void *);
 };
 
 }

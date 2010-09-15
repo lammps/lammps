@@ -28,8 +28,6 @@ class DumpCustom : public Dump {
  public:
   DumpCustom(class LAMMPS *, int, char **);
   virtual ~DumpCustom();
-  virtual void init();
-  double memory_usage();
 
  protected:
   int nevery;                // dump frequency to check Fix against
@@ -71,10 +69,12 @@ class DumpCustom : public Dump {
 
   // private methods
 
+  virtual void init_style();
   virtual void write_header(int);
   int count();
-  int pack();
+  void pack(int *);
   virtual void write_data(int, double *);
+  double memory_usage();
 
   void parse_fields(int, char **);
   int add_compute(char *);

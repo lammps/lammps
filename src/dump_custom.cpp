@@ -159,7 +159,7 @@ DumpCustom::~DumpCustom()
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCustom::init()
+void DumpCustom::init_style()
 {
   delete [] format;
   char *str;
@@ -779,10 +779,16 @@ int DumpCustom::count()
 
 /* ---------------------------------------------------------------------- */
 
-int DumpCustom::pack()
+void DumpCustom::pack(int *ids)
 {
   for (int n = 0; n < size_one; n++) (this->*pack_choice[n])(n);
-  return nmine*size_one;
+  if (ids) {
+    int *tag = atom->tag;
+    int nlocal = atom->nlocal;
+    int n = 0;
+    for (int i = 0; i < nlocal; i++)
+      if (choose[i]) ids[n++] = tag[i];
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1437,7 +1443,7 @@ int DumpCustom::modify_param(int narg, char **arg)
     nthresh++;
     return 4;
 
-  // pass along params to child class
+  // pass along unknown params to child class
 
   } else {
     int n = modify_param2(narg,arg);
@@ -1453,7 +1459,7 @@ int DumpCustom::modify_param(int narg, char **arg)
 
 double DumpCustom::memory_usage()
 {
-  double bytes = maxbuf * sizeof(double);
+  double bytes = Dump::memory_usage();
   bytes += maxlocal * sizeof(int);
   bytes += maxlocal * sizeof(double);
   bytes += maxlocal * nvariable * sizeof(double);

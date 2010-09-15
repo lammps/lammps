@@ -35,23 +35,24 @@ class DumpXTC : public Dump {
  public:
   DumpXTC(class LAMMPS *, int, char**);
   ~DumpXTC();
-  void init();
-  double memory_usage();
 	
  private:
   int natoms,ntotal;
+  int nevery_save;
   int unwrap_flag;            // 1 if atom coords are unwrapped, 0 if no
   float precision;            // user-adjustable precision setting
   float *coords;
   double sfactor;
   XDR xd;
 
+  void init_style();
   int modify_param(int, char **);
   void openfile();
   void write_header(int);
   int count();
-  int pack();
+  void pack(int *);
   void write_data(int, double *);
+  double memory_usage();
 
   void write_frame();
 };

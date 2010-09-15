@@ -30,21 +30,21 @@ class DumpDCD : public Dump {
  public:
   DumpDCD(LAMMPS *, int, char**);
   ~DumpDCD();
-  void init();
-  double memory_usage();
 
  private:
   int natoms,ntotal,headerflag,nevery_save,nframes;
   float *coords,*xf,*yf,*zf;
   int unwrap_flag;            // 1 if atom coords are unwrapped, 0 if no
 
+  void init_style();
   void openfile();
   void write_header(int);
   int count();
-  int pack();
+  void pack(int *);
   void write_data(int, double *);
-
   int modify_param(int, char **);
+  double memory_usage();
+
   void write_frame();
   void write_dcd_header(const char *);
 };

@@ -15,10 +15,11 @@
    Contributing authors: Naveen Michaud-Agrawal (Johns Hopkins U)
                          open-source XDR routines from
 			   Frans van Hoesel (http://md.chem.rug.nl/hoesel)
-			   are also included in this file
-                         Axel Kohlmeyer (UPenn)
+			   are included in this file
+                         Axel Kohlmeyer (Temple U)
                            port to platforms without XDR support
                            added support for unwrapped trajectories
+			   support for groups
 ------------------------------------------------------------------------- */
 
 #include "math.h"
@@ -31,6 +32,7 @@
 #include "atom.h"
 #include "update.h"
 #include "group.h"
+#include "output.h"
 #include "error.h"
 #include "memory.h"
 
@@ -52,11 +54,12 @@ int xdr3dfcoord(XDR *, float *, int *, float *);
 DumpXTC::DumpXTC(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
 {
   if (narg != 5) error->all("Illegal dump xtc command");
-  if (igroup != group->find("all")) error->all("Dump xtc must use group all");
   if (binary || compressed || multifile || multiproc)
     error->all("Invalid dump xtc filename");
 
-  size_one = 4;
+  size_one = 3;
+  sort_flag = 1;
+  sortcol = 0;
   format_default = NULL;
   flush_flag = 0;
   unwrap_flag = 0;
@@ -64,10 +67,10 @@ DumpXTC::DumpXTC(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
 
   // allocate global array for atom coords
 
-  natoms = static_cast<int> (atom->natoms);
+  if (igroup == 0) natoms = static_cast<int> (atom->natoms);
+  else natoms = static_cast<int> (group->count(igroup));
   if (natoms <= 0) error->all("Invalid natoms for dump xtc");
-  if (atom->tag_consecutive() == 0)
-    error->all("Atom IDs must be consecutive for dump xtc");
+
   coords = (float *) memory->smalloc(3*natoms*sizeof(float),"dump:coords");
 
   // sfactor = conversion of coords to XTC units
@@ -77,6 +80,7 @@ DumpXTC::DumpXTC(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
   if (strcmp(update->unit_style,"lj") == 0) sfactor = 1.0;
 
   openfile();
+  nevery_save = 0;
   ntotal = 0;
 }
 
@@ -94,45 +98,26 @@ DumpXTC::~DumpXTC()
 
 /* ---------------------------------------------------------------------- */
 
-void DumpXTC::init()
+void DumpXTC::init_style()
 {
+  if (sort_flag == 0 || sortcol != 0)
+    error->all("Dump xtc requires sorting by atom ID");
+
   // check that flush_flag is not set since dump::write() will use it
 
   if (flush_flag) error->all("Cannot set dump_modify flush for dump xtc");
-}
 
-/* ---------------------------------------------------------------------- */
+  // check that dump frequency has not changed and is not a variable
 
-int DumpXTC::modify_param(int narg, char **arg)
-{
-  if (strcmp(arg[0],"unwrap") == 0) {
-    if (narg < 2) error->all("Illegal dump_modify command");
-    if (strcmp(arg[1],"yes") == 0) unwrap_flag = 1;
-    else if (strcmp(arg[1],"no") == 0) unwrap_flag = 0;
-    else error->all("Illegal dump_modify command");
-    return 2;
-  } else if (strcmp(arg[0],"precision") == 0) {
-    if (narg < 2) error->all("Illegal dump_modify command");
-    precision = atof(arg[1]);
-    if ((fabs(precision-10.0) > EPS) && (fabs(precision-100.0) > EPS) && 
-	(fabs(precision-1000.0) > EPS) && (fabs(precision-10000.0) > EPS) && 
-	(fabs(precision-100000.0) > EPS) && 
-	(fabs(precision-1000000.0) > EPS)) 
-      error->all("Illegal dump_modify command");
-    return 2;
-  }
-  return 0;
-}
+  int idump;
+  for (idump = 0; idump < output->ndump; idump++)
+    if (strcmp(id,output->dump[idump]->id) == 0) break;
+  if (output->every_dump[idump] == 0)
+    error->all("Cannot use variable every setting for dump dcd");
 
-/* ----------------------------------------------------------------------
-   return # of bytes of allocated memory in buf and global coords array
-------------------------------------------------------------------------- */
-
-double DumpXTC::memory_usage()
-{
-  double bytes = maxbuf * sizeof(double);
-  bytes += 3*natoms * sizeof(float);
-  return bytes;
+  if (nevery_save == 0) nevery_save = output->every_dump[idump];
+  else if (nevery_save != output->every_dump[idump])
+    error->all("Cannot change dump_modify every for dump dcd");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -151,13 +136,11 @@ void DumpXTC::openfile()
 
 void DumpXTC::write_header(int n)
 {
-  // all procs realloc types & coords if necessary
+  // all procs realloc coords if total count grew
 
   if (n != natoms) {
-    memory->sfree(coords);
-    if (atom->tag_consecutive() == 0)
-      error->all("Atom IDs must be consecutive for dump xtc");
     natoms = n;
+    memory->sfree(coords);
     coords = (float *) memory->smalloc(3*natoms*sizeof(float),"dump:coords");
   }
 
@@ -201,21 +184,32 @@ void DumpXTC::write_header(int n)
 
 int DumpXTC::count()
 {
-  return atom->nlocal;
+  if (igroup == 0) return atom->nlocal;
+
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  int m = 0;
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit) m++;
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
 
-int DumpXTC::pack()
+void DumpXTC::pack(int *ids)
 {
+  int m,n;
+
   int *tag = atom->tag;
   double **x = atom->x;
   int *image = atom->image;
+  int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
   // assume group all, so no need to perform mask check
 
-  int m = 0;
+  m = n = 0;
   if (unwrap_flag == 1) {
     double xprd = domain->xprd;
     double yprd = domain->yprd;
@@ -224,59 +218,95 @@ int DumpXTC::pack()
     double xz = domain->xz;
     double yz = domain->yz;
 
-    for (int i = 0; i < nlocal; i++) {
-      int ix = (image[i] & 1023) - 512;
-      int iy = (image[i] >> 10 & 1023) - 512;
-      int iz = (image[i] >> 20) - 512;
-
-      if (domain->triclinic) {
-	buf[m++] = tag[i];
-	buf[m++] = sfactor * (x[i][0] + ix * xprd + iy * xy + iz * xz);
-	buf[m++] = sfactor * (x[i][1] + iy * yprd + iz * yz);
-	buf[m++] = sfactor * (x[i][2] + iz * zprd);
-      } else {
-	buf[m++] = tag[i];
-	buf[m++] = sfactor * (x[i][0] + ix * xprd);
-	buf[m++] = sfactor * (x[i][1] + iy * yprd);
-	buf[m++] = sfactor * (x[i][2] + iz * zprd);
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+	int ix = (image[i] & 1023) - 512;
+	int iy = (image[i] >> 10 & 1023) - 512;
+	int iz = (image[i] >> 20) - 512;
+	
+	if (domain->triclinic) {
+	  buf[m++] = tag[i];
+	  buf[m++] = sfactor * (x[i][0] + ix * xprd + iy * xy + iz * xz);
+	  buf[m++] = sfactor * (x[i][1] + iy * yprd + iz * yz);
+	  buf[m++] = sfactor * (x[i][2] + iz * zprd);
+	} else {
+	  buf[m++] = tag[i];
+	  buf[m++] = sfactor * (x[i][0] + ix * xprd);
+	  buf[m++] = sfactor * (x[i][1] + iy * yprd);
+	  buf[m++] = sfactor * (x[i][2] + iz * zprd);
+	}
+	ids[n++] = tag[i];
       }
-    }
-  } else {
-    for (int i = 0; i < nlocal; i++) {
-      buf[m++] = tag[i];
-      buf[m++] = sfactor*x[i][0];
-      buf[m++] = sfactor*x[i][1];
-      buf[m++] = sfactor*x[i][2];
-    }
-  }
 
-  return m;
+  } else {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+	buf[m++] = tag[i];
+	buf[m++] = sfactor*x[i][0];
+	buf[m++] = sfactor*x[i][1];
+	buf[m++] = sfactor*x[i][2];
+	ids[n++] = tag[i];
+      }
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
 void DumpXTC::write_data(int n, double *mybuf)
 {
-  float *xyz;
-  int j,tag;
+  int j;
+
+  // copy buf atom coords into global array
 
   int m = 0;
+  int k = 3*ntotal;
   for (int i = 0; i < n; i++) {
-    tag = static_cast<int> (mybuf[m]) - 1;
-    j = 3*tag;
-    coords[j++] = mybuf[m+1];
-    coords[j++] = mybuf[m+2];
-    coords[j] = mybuf[m+3];
-    m += size_one;
+    coords[k++] = mybuf[m++];
+    coords[k++] = mybuf[m++];
+    coords[k++] = mybuf[m++];
+    ntotal++;
   }
 
   // if last chunk of atoms in this snapshot, write global arrays to file
 
-  ntotal += n;
   if (ntotal == natoms) {
     write_frame();
     ntotal = 0;
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+int DumpXTC::modify_param(int narg, char **arg)
+{
+  if (strcmp(arg[0],"unwrap") == 0) {
+    if (narg < 2) error->all("Illegal dump_modify command");
+    if (strcmp(arg[1],"yes") == 0) unwrap_flag = 1;
+    else if (strcmp(arg[1],"no") == 0) unwrap_flag = 0;
+    else error->all("Illegal dump_modify command");
+    return 2;
+  } else if (strcmp(arg[0],"precision") == 0) {
+    if (narg < 2) error->all("Illegal dump_modify command");
+    precision = atof(arg[1]);
+    if ((fabs(precision-10.0) > EPS) && (fabs(precision-100.0) > EPS) && 
+	(fabs(precision-1000.0) > EPS) && (fabs(precision-10000.0) > EPS) && 
+	(fabs(precision-100000.0) > EPS) && 
+	(fabs(precision-1000000.0) > EPS)) 
+      error->all("Illegal dump_modify command");
+    return 2;
+  }
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
+   return # of bytes of allocated memory in buf and global coords array
+------------------------------------------------------------------------- */
+
+double DumpXTC::memory_usage()
+{
+  double bytes = Dump::memory_usage();
+  bytes += 3*natoms * sizeof(float);
+  return bytes;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -27,7 +27,6 @@ namespace LAMMPS_NS {
 class DumpAtom : public Dump {
  public:
   DumpAtom(LAMMPS *, int, char**);
-  void init();
 
  private:
   int scale_flag;            // 1 if atom coords are scaled, 0 if no
@@ -35,10 +34,11 @@ class DumpAtom : public Dump {
 
   char *columns;             // column labels
 
+  void init_style();
   int modify_param(int, char **);
   void write_header(int);
   int count();
-  int pack();
+  void pack(int *);
   void write_data(int, double *);
 
   typedef void (DumpAtom::*FnPtrHeader)(int);
@@ -48,14 +48,14 @@ class DumpAtom : public Dump {
   void header_item(int);
   void header_item_triclinic(int);
 
-  typedef int (DumpAtom::*FnPtrPack)();
+  typedef void (DumpAtom::*FnPtrPack)(int *);
   FnPtrPack pack_choice;               // ptr to pack functions
-  int pack_scale_image();
-  int pack_scale_noimage();
-  int pack_noscale_image();
-  int pack_noscale_noimage();
-  int pack_scale_image_triclinic();
-  int pack_scale_noimage_triclinic();
+  void pack_scale_image(int *);
+  void pack_scale_noimage(int *);
+  void pack_noscale_image(int *);
+  void pack_noscale_noimage(int *);
+  void pack_scale_image_triclinic(int *);
+  void pack_scale_noimage_triclinic(int *);
 
   typedef void (DumpAtom::*FnPtrData)(int, double *);
   FnPtrData write_choice;              // ptr to write data functions

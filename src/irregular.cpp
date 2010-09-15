@@ -42,7 +42,11 @@ Irregular::Irregular(LAMMPS *lmp) : Pointers(lmp)
   procgrid = comm->procgrid;
   grid2proc = comm->grid2proc;
 
-  // initialize comm buffers
+  aplan = NULL;
+  dplan = NULL;
+
+  // initialize buffers for atom comm, not used for datum comm
+  // these can persist for multiple irregular operations
 
   maxsend = BUFMIN;
   buf_send = (double *) 
@@ -56,6 +60,9 @@ Irregular::Irregular(LAMMPS *lmp) : Pointers(lmp)
 
 Irregular::~Irregular()
 {
+  if (aplan) destroy_atom();
+  if (dplan) destroy_data();
+
   memory->sfree(buf_send);
   memory->sfree(buf_recv);
 }
@@ -64,7 +71,7 @@ Irregular::~Irregular()
    communicate atoms to new owning procs via irregular communication
    can be used in place of comm->exchange()
    unlike exchange(), allows atoms to have moved arbitrarily long distances
-   first setup irregular comm pattern, then invoke it
+   sets up irregular plan, invokes it, destroys it
    atoms must be remapped to be inside simulation box before this is called
    for triclinic: atoms must be in lamda coords (0-1) before this is called
 ------------------------------------------------------------------------- */
@@ -127,11 +134,10 @@ void Irregular::migrate_atoms()
   // create irregular communication plan, perform comm, destroy plan
   // returned nrecv = size of buffer needed for incoming atoms
 
-  int nrecv;
-  PlanAtom *plan = create_atom(nsendatom,sizes,proclist,&nrecv);
+  int nrecv = create_atom(nsendatom,sizes,proclist);
   if (nrecv > maxrecv) grow_recv(nrecv);
-  exchange_atom(plan,buf_send,sizes,buf_recv);
-  destroy_atom(plan);
+  exchange_atom(buf_send,sizes,buf_recv);
+  destroy_atom();
 
   delete [] sizes;
   delete [] proclist;
@@ -147,22 +153,22 @@ void Irregular::migrate_atoms()
 }
 
 /* ----------------------------------------------------------------------
-   create an irregular communication plan for atoms
+   create a communication plan for atoms
    n = # of atoms to send
    sizes = # of doubles for each atom
-   proclist = proc to send each atom to (none to me)
-   return nrecvsize = total # of doubles I will recv
+   proclist = proc to send each atom to (not including self)
+   return total # of doubles I will recv (not including self)
 ------------------------------------------------------------------------- */
 
-Irregular::PlanAtom *Irregular::create_atom(int n, int *sizes, 
-					    int *proclist, int *nrecvsize)
+int Irregular::create_atom(int n, int *sizes, int *proclist)
 {
   int i;
 
   // allocate plan and work vectors
 
-  PlanAtom *plan = (struct PlanAtom *)
-    memory->smalloc(sizeof(PlanAtom),"irregular:plan");
+  if (aplan) destroy_atom();
+  aplan = (struct PlanAtom *)
+    memory->smalloc(sizeof(PlanAtom),"irregular:aplan");
   int *list = new int[nprocs];
   int *count = new int[nprocs];
 
@@ -221,7 +227,7 @@ Irregular::PlanAtom *Irregular::create_atom(int n, int *sizes,
     }
   }
 
-  // num_send = # of datums I send to each proc
+  // num_send = # of atoms I send to each proc
 
   for (i = 0; i < nsend; i++) num_send[i] = 0;
   for (i = 0; i < n; i++) {
@@ -229,11 +235,11 @@ Irregular::PlanAtom *Irregular::create_atom(int n, int *sizes,
     num_send[isend]++;
   }
 
-  // count = offsets into n-length index_send for each proc I send to
-  // index_send = list of which datums to send to each proc
-  //   1st N1 values are datum indices for 1st proc,
-  //   next N2 values are datum indices for 2nd proc, etc
-  // offset_send = where each datum starts in send buffer
+  // count = offsets into index_send for each proc I send to
+  // index_send = list of which atoms to send to each proc
+  //   1st N1 values are atom indices for 1st proc,
+  //   next N2 values are atom indices for 2nd proc, etc
+  // offset_send = where each atom starts in send buffer
 
   count[0] = 0;
   for (i = 1; i < nsend; i++) count[i] = count[i-1] + num_send[i-1];
@@ -246,7 +252,7 @@ Irregular::PlanAtom *Irregular::create_atom(int n, int *sizes,
   }
 
   // tell receivers how much data I send
-  // sendmax = largest # of datums I send in a single message
+  // sendmax = largest # of doubles I send in a single message
 
   int sendmax = 0;
   for (i = 0; i < nsend; i++) {
@@ -259,15 +265,15 @@ Irregular::PlanAtom *Irregular::create_atom(int n, int *sizes,
   // length_recv = total size of message each proc sends me
   // nrecvsize = total size of data I recv
 
-  *nrecvsize = 0;
+  int nrecvsize = 0;
   for (i = 0; i < nrecv; i++) {
     MPI_Recv(&length_recv[i],1,MPI_INT,MPI_ANY_SOURCE,0,world,status);
     proc_recv[i] = status->MPI_SOURCE;
-    *nrecvsize += length_recv[i];
+    nrecvsize += length_recv[i];
   }
 
   // barrier to insure all MPI_ANY_SOURCE messages are received
-  // else another proc could proceed to irregular_perform() and send to me
+  // else another proc could proceed to exchange_atom() and send to me
 
   MPI_Barrier(world);
 
@@ -276,41 +282,115 @@ Irregular::PlanAtom *Irregular::create_atom(int n, int *sizes,
   delete [] count;
   delete [] list;
     
-  // initialize plan and return it
+  // initialize plan
 
-  plan->nsend = nsend;
-  plan->nrecv = nrecv;
-  plan->sendmax = sendmax;
+  aplan->nsend = nsend;
+  aplan->nrecv = nrecv;
+  aplan->sendmax = sendmax;
 
-  plan->proc_send = proc_send;
-  plan->length_send = length_send;
-  plan->num_send = num_send;
-  plan->index_send = index_send;
-  plan->offset_send = offset_send;
-  plan->proc_recv = proc_recv;
-  plan->length_recv = length_recv;
-  plan->request = request;
-  plan->status = status;
+  aplan->proc_send = proc_send;
+  aplan->length_send = length_send;
+  aplan->num_send = num_send;
+  aplan->index_send = index_send;
+  aplan->offset_send = offset_send;
+  aplan->proc_recv = proc_recv;
+  aplan->length_recv = length_recv;
 
-  return plan;
+  aplan->request = request;
+  aplan->status = status;
+
+  return nrecvsize;
 }
 
 /* ----------------------------------------------------------------------
-   create an irregular communication plan for datums
-   n = # of datums to send
-   proclist = proc to send each datum to (none to me)
-   return nrecvsize = total # of datums I will recv
+   communicate atoms via PlanAtom
+   sendbuf = list of atoms to send
+   sizes = # of doubles for each atom
+   recvbuf = received atoms
 ------------------------------------------------------------------------- */
 
-Irregular::PlanData *Irregular::create_data(int n, int *proclist,
-					    int *nrecvsize)
+void Irregular::exchange_atom(double *sendbuf, int *sizes, double *recvbuf)
 {
-  int i;
+  int i,m,n,offset,num_send;
+
+  // post all receives
+
+  offset = 0;
+  for (int irecv = 0; irecv < aplan->nrecv; irecv++) {
+    MPI_Irecv(&recvbuf[offset],aplan->length_recv[irecv],MPI_DOUBLE,
+	      aplan->proc_recv[irecv],0,world,&aplan->request[irecv]);
+    offset += aplan->length_recv[irecv];
+  }
+
+  // allocate buf for largest send
+
+  double *buf = (double *) memory->smalloc(aplan->sendmax*sizeof(double),
+					   "irregular:buf");
+
+  // send each message
+  // pack buf with list of atoms
+  // m = index of atom in sendbuf
+
+  int *index_send = aplan->index_send;
+  int nsend = aplan->nsend;
+  n = 0;
+
+  for (int isend = 0; isend < nsend; isend++) {
+    offset = 0;
+    num_send = aplan->num_send[isend];
+    for (i = 0; i < num_send; i++) {
+      m = index_send[n++];
+      memcpy(&buf[offset],&sendbuf[aplan->offset_send[m]],
+	     sizes[m]*sizeof(double));
+      offset += sizes[m];
+    }
+    MPI_Send(buf,aplan->length_send[isend],MPI_DOUBLE,
+	     aplan->proc_send[isend],0,world);
+  }       
+
+  // free temporary send buffer
+
+  memory->sfree(buf);
+
+  // wait on all incoming messages
+
+  if (aplan->nrecv) MPI_Waitall(aplan->nrecv,aplan->request,aplan->status);
+}
+
+/* ----------------------------------------------------------------------
+   destroy communication plan for atoms
+------------------------------------------------------------------------- */
+
+void Irregular::destroy_atom()
+{
+  delete [] aplan->proc_send;
+  delete [] aplan->length_send;
+  delete [] aplan->num_send;
+  delete [] aplan->index_send;
+  delete [] aplan->offset_send;
+  delete [] aplan->proc_recv;
+  delete [] aplan->length_recv;
+  delete [] aplan->request;
+  delete [] aplan->status;
+  memory->sfree(aplan);
+  aplan = NULL;
+}
+
+/* ----------------------------------------------------------------------
+   create a communication plan for datums
+   n = # of datums to send
+   proclist = proc to send each datum to (including self)
+   return total # of datums I will recv (including self)
+------------------------------------------------------------------------- */
+
+int Irregular::create_data(int n, int *proclist)
+{
+  int i,m;
 
   // allocate plan and work vectors
 
-  PlanData *plan = (struct PlanData *) 
-    memory->smalloc(sizeof(PlanData),"irregular:plan");
+  dplan = (struct PlanData *) 
+    memory->smalloc(sizeof(PlanData),"irregular:dplan");
   int *list = new int[nprocs];
   int *count = new int[nprocs];
 
@@ -324,6 +404,7 @@ Irregular::PlanData *Irregular::create_data(int n, int *proclist,
 
   int nrecv;
   MPI_Reduce_scatter(list,&nrecv,count,MPI_INT,MPI_SUM,world);
+  if (list[me]) nrecv--;
 
   // allocate receive arrays
 
@@ -340,42 +421,56 @@ Irregular::PlanData *Irregular::create_data(int n, int *proclist,
   int nsend = 0;
   for (i = 0; i < nprocs; i++)
     if (list[i]) nsend++;
+  if (list[me]) nsend--;
 
-  // allocate send arrays
+  // allocate send and self arrays
 
   int *proc_send = new int[nsend];
   int *num_send = new int[nsend];
-  int *index_send = new int[n];
+  int *index_send = new int[n-list[me]];
+  int *index_self = new int[list[me]];
 
   // proc_send = procs I send to
   // num_send = # of datums I send to each proc
+  // num_self = # of datums I copy to self
   // to balance pattern of send messages:
   //   each proc begins with iproc > me, continues until iproc = me
+  // reset list to store which send message each proc corresponds to
+
+  int num_self;
 
   int iproc = me;
   int isend = 0;
   for (i = 0; i < nprocs; i++) {
     iproc++;
     if (iproc == nprocs) iproc = 0;
-    if (list[iproc] > 0) {
+    if (iproc == me) num_self = list[iproc];
+    else if (list[iproc] > 0) {
       proc_send[isend] = iproc;
       num_send[isend] = list[iproc];
+      list[iproc] = isend;
       isend++;
     }
   }
+  list[me] = 0;
 
-  // count = offsets into n-length index_send for each proc I send to
+  // count = offsets into index_send for each proc I send to
+  // m = ptr into index_self
   // index_send = list of which datums to send to each proc
   //   1st N1 values are datum indices for 1st proc,
   //   next N2 values are datum indices for 2nd proc, etc
-  // offset_send = where each datum starts in send buffer
 
   count[0] = 0;
   for (i = 1; i < nsend; i++) count[i] = count[i-1] + num_send[i-1];
 
+  m = 0;
   for (i = 0; i < n; i++) {
-    isend = list[proclist[i]];
-    index_send[count[isend]++] = i;
+    iproc = proclist[i];
+    if (iproc == me) index_self[m++] = i;
+    else {
+      isend = list[iproc];
+      index_send[count[isend]++] = i;
+    }
   }
 
   // tell receivers how much data I send
@@ -392,15 +487,16 @@ Irregular::PlanData *Irregular::create_data(int n, int *proclist,
   // num_recv = total size of message each proc sends me
   // nrecvsize = total size of data I recv
 
-  *nrecvsize = 0;
+  int nrecvsize = 0;
   for (i = 0; i < nrecv; i++) {
     MPI_Recv(&num_recv[i],1,MPI_INT,MPI_ANY_SOURCE,0,world,status);
     proc_recv[i] = status->MPI_SOURCE;
-    *nrecvsize += num_recv[i];
+    nrecvsize += num_recv[i];
   }
+  nrecvsize += num_self;
 
   // barrier to insure all MPI_ANY_SOURCE messages are received
-  // else another proc could proceed to irregular_perform() and send to me
+  // else another proc could proceed to exchange_data() and send to me
 
   MPI_Barrier(world);
 
@@ -411,166 +507,105 @@ Irregular::PlanData *Irregular::create_data(int n, int *proclist,
     
   // initialize plan and return it
 
-  plan->nsend = nsend;
-  plan->nrecv = nrecv;
-  plan->sendmax = sendmax;
+  dplan->nsend = nsend;
+  dplan->nrecv = nrecv;
+  dplan->sendmax = sendmax;
 
-  plan->proc_send = proc_send;
-  plan->num_send = num_send;
-  plan->index_send = index_send;
-  plan->proc_recv = proc_recv;
-  plan->num_recv = num_recv;
-  plan->request = request;
-  plan->status = status;
+  dplan->proc_send = proc_send;
+  dplan->num_send = num_send;
+  dplan->index_send = index_send;
+  dplan->proc_recv = proc_recv;
+  dplan->num_recv = num_recv;
+  dplan->num_self = num_self;
+  dplan->index_self = index_self;
 
-  return plan;
+  dplan->request = request;
+  dplan->status = status;
+
+  return nrecvsize;
 }
 
 /* ----------------------------------------------------------------------
-   perform irregular communication of atoms
-   plan = previouly computed PlanAtom via create_atom()
-   sendbuf = list of atoms to send
-   sizes = # of doubles for each atom
-   recvbuf = received atoms
-------------------------------------------------------------------------- */
-
-void Irregular::exchange_atom(PlanAtom *plan, double *sendbuf, int *sizes,
-			      double *recvbuf)
-{
-  int i,m,n,offset;
-
-  // post all receives
-
-  offset = 0;
-  for (int irecv = 0; irecv < plan->nrecv; irecv++) {
-    MPI_Irecv(&recvbuf[offset],plan->length_recv[irecv],MPI_DOUBLE,
-	      plan->proc_recv[irecv],0,world,&plan->request[irecv]);
-    offset += plan->length_recv[irecv];
-  }
-
-  // allocate buf for largest send
-
-  double *buf = (double *) memory->smalloc(plan->sendmax*sizeof(double),
-					   "irregular:buf");
-
-  // send each message
-  // pack buf with list of datums (datum = one atom)
-  // m = index of datum in sendbuf
-
-  n = 0;
-  for (int isend = 0; isend < plan->nsend; isend++) {
-    offset = 0;
-    for (i = 0; i < plan->num_send[isend]; i++) {
-      m = plan->index_send[n++];
-      memcpy(&buf[offset],&sendbuf[plan->offset_send[m]],
-	     sizes[m]*sizeof(double));
-      offset += sizes[m];
-    }
-    MPI_Send(buf,plan->length_send[isend],MPI_DOUBLE,
-	     plan->proc_send[isend],0,world);
-  }       
-
-  // free temporary send buffer
-
-  memory->sfree(buf);
-
-  // wait on all incoming messages
-
-  if (plan->nrecv) MPI_Waitall(plan->nrecv,plan->request,plan->status);
-}
-
-/* ----------------------------------------------------------------------
-   perform irregular communication of datums
-   plan = previouly computed PlanData via create_data()
+   communicate datums via PlanData
    sendbuf = list of datums to send
    nbytes = size of each datum
-   recvbuf = received datums
+   recvbuf = received datums (including copied from me)
 ------------------------------------------------------------------------- */
 
-void Irregular::exchange_data(PlanData *plan, char *sendbuf, int nbytes,
-			      char *recvbuf)
+void Irregular::exchange_data(char *sendbuf, int nbytes, char *recvbuf)
 {
-  int i,m,n,offset;
+  int i,m,n,offset,num_send;
 
-  // post all receives
+  // post all receives, starting after self copies
 
-  offset = 0;
-  for (int irecv = 0; irecv < plan->nrecv; irecv++) {
-    MPI_Irecv(&recvbuf[offset],nbytes*plan->num_recv[irecv],MPI_CHAR,
-	      plan->proc_recv[irecv],0,world,&plan->request[irecv]);
-    offset += nbytes*plan->num_recv[irecv];
+  offset = dplan->num_self*nbytes;
+  for (int irecv = 0; irecv < dplan->nrecv; irecv++) {
+    MPI_Irecv(&recvbuf[offset],dplan->num_recv[irecv]*nbytes,MPI_CHAR,
+	      dplan->proc_recv[irecv],0,world,&dplan->request[irecv]);
+    offset += dplan->num_recv[irecv]*nbytes;
   }
 
   // allocate buf for largest send
 
-  char *buf = (char *) memory->smalloc(plan->sendmax*nbytes,"irregular:buf");
+  char *buf = (char *) memory->smalloc(dplan->sendmax*nbytes,"irregular:buf");
 
   // send each message
-  // pack buf with list of datums (datum = one atom)
+  // pack buf with list of datums
   // m = index of datum in sendbuf
 
+  int *index_send = dplan->index_send;
+  int nsend = dplan->nsend;
   n = 0;
-  for (int isend = 0; isend < plan->nsend; isend++) {
-    for (i = 0; i < plan->num_send[isend]; i++) {
-      m = plan->index_send[n++];
+
+  for (int isend = 0; isend < nsend; isend++) {
+    num_send = dplan->num_send[isend];
+    for (i = 0; i < num_send; i++) {
+      m = index_send[n++];
       memcpy(&buf[i*nbytes],&sendbuf[m*nbytes],nbytes);
     }
-    MPI_Send(buf,nbytes*plan->num_send[isend],MPI_CHAR,
-	     plan->proc_send[isend],0,world);
+    MPI_Send(buf,dplan->num_send[isend]*nbytes,MPI_CHAR,
+	     dplan->proc_send[isend],0,world);
   }       
 
   // free temporary send buffer
 
   memory->sfree(buf);
 
-  // copy datums owned by self
+  // copy datums to self, put at beginning of recvbuf
 
-  for (i = 0; i < plan->num_self; i++) {
-    m = plan->index_self[i++];
+  int *index_self = dplan->index_self;
+  int num_self = dplan->num_self;
+
+  for (i = 0; i < num_self; i++) {
+    m = index_self[i];
     memcpy(&recvbuf[i*nbytes],&sendbuf[m*nbytes],nbytes);
   }
 
   // wait on all incoming messages
 
-  if (plan->nrecv) MPI_Waitall(plan->nrecv,plan->request,plan->status);
+  if (dplan->nrecv) MPI_Waitall(dplan->nrecv,dplan->request,dplan->status);
 }
 
 /* ----------------------------------------------------------------------
-   destroy an irregular communication plan for atoms
+   destroy communication plan for datums
 ------------------------------------------------------------------------- */
 
-void Irregular::destroy_atom(PlanAtom *plan)
+void Irregular::destroy_data()
 {
-  delete [] plan->proc_send;
-  delete [] plan->length_send;
-  delete [] plan->num_send;
-  delete [] plan->index_send;
-  delete [] plan->offset_send;
-  delete [] plan->proc_recv;
-  delete [] plan->length_recv;
-  delete [] plan->request;
-  delete [] plan->status;
-  memory->sfree(plan);
+  delete [] dplan->proc_send;
+  delete [] dplan->num_send;
+  delete [] dplan->index_send;
+  delete [] dplan->proc_recv;
+  delete [] dplan->num_recv;
+  delete [] dplan->index_self;
+  delete [] dplan->request;
+  delete [] dplan->status;
+  memory->sfree(dplan);
+  dplan = NULL;
 }
 
 /* ----------------------------------------------------------------------
-   destroy an irregular communication plan for datums
-------------------------------------------------------------------------- */
-
-void Irregular::destroy_data(PlanData *plan)
-{
-  delete [] plan->proc_send;
-  delete [] plan->num_send;
-  delete [] plan->index_send;
-  delete [] plan->proc_recv;
-  delete [] plan->num_recv;
-  delete [] plan->request;
-  delete [] plan->status;
-  memory->sfree(plan);
-}
-
-/* ----------------------------------------------------------------------
-   determine which proc owns atom with x coord
+   determine which proc owns atom with coord x[3]
    x will be in box (orthogonal) or lamda coords (triclinic)
 ------------------------------------------------------------------------- */
 
@@ -634,3 +669,13 @@ void Irregular::grow_recv(int n)
 					"comm:buf_recv");
 }
 
+/* ----------------------------------------------------------------------
+   return # of bytes of allocated memory
+------------------------------------------------------------------------- */
+
+double Irregular::memory_usage()
+{
+  double bytes = maxsend * sizeof(double);
+  bytes += maxrecv * sizeof(double);
+  return bytes;
+}

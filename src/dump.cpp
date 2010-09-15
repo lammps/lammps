@@ -68,7 +68,7 @@ Dump::Dump(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   sort_flag = 0;
   append_flag = 0;
 
-  maxbuf = maxsort = maxproc = 0;
+  maxbuf = maxids = maxsort = maxproc = 0;
   buf = bufsort = NULL;
   ids = idsort = index = proclist = NULL;
   irregular = NULL;
@@ -156,7 +156,7 @@ void Dump::init()
     memory->sfree(proclist);
     delete irregular;
 
-    maxsort = maxproc = 0;
+    maxids = maxsort = maxproc = 0;
     bufsort = NULL;
     ids = idsort = index = proclist = NULL;
     irregular = NULL;
@@ -229,10 +229,11 @@ void Dump::write()
     memory->sfree(buf);
     buf = (double *) 
       memory->smalloc(maxbuf*size_one*sizeof(double),"dump:buf");
-    if (sort_flag && sortcol == 0) {
-      memory->sfree(ids);
-      ids = (int *) memory->smalloc(maxbuf*sizeof(int),"dump:ids");
-    }
+  }
+  if (sort_flag && sortcol == 0 && nmax > maxids) {
+    maxids = nmax;
+    memory->sfree(ids);
+    ids = (int *) memory->smalloc(maxids*sizeof(int),"dump:ids");
   }
 
   if (sort_flag && sortcol == 0) pack(ids);
@@ -454,7 +455,7 @@ void Dump::sort()
   if (sortcol == 0) qsort(index,nme,sizeof(int),idcompare);
   else qsort(index,nme,sizeof(int),bufcompare);
 
-  // copy data from bufsort to buf using index
+  // reset buf size and maxbuf to largest of any post-sort nme values
 
   int nmax;
   if (multiproc) nmax = nme;
@@ -465,11 +466,9 @@ void Dump::sort()
     memory->sfree(buf);
     buf = (double *) 
       memory->smalloc(maxbuf*size_one*sizeof(double),"dump:buf");
-    if (sortcol == 0) {
-      memory->sfree(ids);
-      ids = (int *) memory->smalloc(maxbuf*sizeof(int),"dump:ids");
-    }
   }
+
+  // copy data from bufsort to buf using index
     
   int nbytes = size_one*sizeof(double);
   for (i = 0; i < nme; i++)
@@ -595,12 +594,12 @@ void Dump::modify_params(int narg, char **arg)
 
 double Dump::memory_usage()
 {
-  double bytes = maxbuf*size_one * sizeof(double);
+  double bytes = maxbuf*size_one * sizeof(double);      // buf
   if (sort_flag) {
-    if (sortcol == 0) bytes += maxbuf * sizeof(int);    // ids
+    if (sortcol == 0) bytes += maxids * sizeof(int);    // ids
     bytes += maxsort*size_one * sizeof(double);         // bufsort
-    bytes += maxsort * sizeof(int);                     // index
     if (sortcol == 0) bytes += maxsort * sizeof(int);   // idsort
+    bytes += maxsort * sizeof(int);                     // index
     bytes += maxproc * sizeof(int);                     // proclist
     if (irregular) bytes += irregular->memory_usage();
   }

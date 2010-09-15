@@ -68,10 +68,12 @@ class Dump : protected Pointers {
   double boxzlo,boxzhi;
   double boxxy,boxxz,boxyz;
 
-  int maxbuf;                // size of buf and ids
+  int maxbuf;                // size of buf
+  double *buf;               // memory for atom quantities
+
+  int maxids;                // size of ids
   int maxsort;               // size of bufsort, idsort, index
   int maxproc;               // size of proclist
-  double *buf;               // memory for atom quantities
   int *ids;                  // list of atom IDs, if sorting on IDs
   double *bufsort;
   int *idsort,*index,*proclist;

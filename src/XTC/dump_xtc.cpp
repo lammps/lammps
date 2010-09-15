@@ -225,12 +225,10 @@ void DumpXTC::pack(int *ids)
 	int iz = (image[i] >> 20) - 512;
 	
 	if (domain->triclinic) {
-	  buf[m++] = tag[i];
 	  buf[m++] = sfactor * (x[i][0] + ix * xprd + iy * xy + iz * xz);
 	  buf[m++] = sfactor * (x[i][1] + iy * yprd + iz * yz);
 	  buf[m++] = sfactor * (x[i][2] + iz * zprd);
 	} else {
-	  buf[m++] = tag[i];
 	  buf[m++] = sfactor * (x[i][0] + ix * xprd);
 	  buf[m++] = sfactor * (x[i][1] + iy * yprd);
 	  buf[m++] = sfactor * (x[i][2] + iz * zprd);
@@ -241,7 +239,6 @@ void DumpXTC::pack(int *ids)
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	buf[m++] = tag[i];
 	buf[m++] = sfactor*x[i][0];
 	buf[m++] = sfactor*x[i][1];
 	buf[m++] = sfactor*x[i][2];

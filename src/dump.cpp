@@ -70,7 +70,7 @@ Dump::Dump(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   maxbuf = maxsort = maxproc = 0;
   buf = bufsort = NULL;
-  idsort = index = proclist = NULL;
+  ids = idsort = index = proclist = NULL;
   irregular = NULL;
 
   // parse filename for special syntax
@@ -123,6 +123,7 @@ Dump::~Dump()
 
   memory->sfree(buf);
   memory->sfree(bufsort);
+  memory->sfree(ids);
   memory->sfree(idsort);
   memory->sfree(index);
   memory->sfree(proclist);
@@ -148,16 +149,16 @@ void Dump::init()
   init_style();
 
   if (!sort_flag) {
-    memory->sfree(buf);
     memory->sfree(bufsort);
+    memory->sfree(ids);
     memory->sfree(idsort);
     memory->sfree(index);
     memory->sfree(proclist);
     delete irregular;
 
-    maxbuf = maxsort = maxproc = 0;
-    buf = bufsort = NULL;
-    idsort = index = proclist = NULL;
+    maxsort = maxproc = 0;
+    bufsort = NULL;
+    ids = idsort = index = proclist = NULL;
     irregular = NULL;
   }
 
@@ -252,7 +253,7 @@ void Dump::write()
     if (me == 0) {
       for (int iproc = 0; iproc < nprocs; iproc++) {
 	if (iproc) {
-	  MPI_Irecv(buf,maxbuf,MPI_DOUBLE,iproc,0,world,&request);
+	  MPI_Irecv(buf,maxbuf*size_one,MPI_DOUBLE,iproc,0,world,&request);
 	  MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
 	  MPI_Wait(&request,&status);
 	  MPI_Get_count(&status,MPI_DOUBLE,&nlines);
@@ -455,11 +456,19 @@ void Dump::sort()
 
   // copy data from bufsort to buf using index
 
-  if (nme > maxbuf) {
-    maxbuf = nme;
+  int nmax;
+  if (multiproc) nmax = nme;
+  else MPI_Allreduce(&nme,&nmax,1,MPI_INT,MPI_MAX,world);
+
+  if (nmax > maxbuf) {
+    maxbuf = nmax;
     memory->sfree(buf);
     buf = (double *) 
       memory->smalloc(maxbuf*size_one*sizeof(double),"dump:buf");
+    if (sortcol == 0) {
+      memory->sfree(ids);
+      ids = (int *) memory->smalloc(maxbuf*sizeof(int),"dump:ids");
+    }
   }
     
   int nbytes = size_one*sizeof(double);
@@ -468,9 +477,9 @@ void Dump::sort()
 }
 
 /* ----------------------------------------------------------------------
-   compare two atom IDs in sort data structure
-   called via qsort_r in sort() method
-   is a static method so access sort data structure via ptr
+   compare two atom IDs
+   called via qsort() in sort() method
+   is a static method so access data via dumpptr
 ------------------------------------------------------------------------- */
 
 int Dump::idcompare(const void *pi, const void *pj)
@@ -486,9 +495,9 @@ int Dump::idcompare(const void *pi, const void *pj)
 }
 
 /* ----------------------------------------------------------------------
-   compare two buffer quantities in sort data structure with size_one stride
-   called via qsort_r in sort() method
-   is a static method so access sort data structure via ptr
+   compare two buffer values with size_one stride
+   called via qsort() in sort() method
+   is a static method so access data via dumpptr
 ------------------------------------------------------------------------- */
 
 int Dump::bufcompare(const void *pi, const void *pj)

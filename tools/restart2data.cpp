@@ -1529,6 +1529,7 @@ void pair(FILE *fp, Data &data, char *style, int flag)
   } else if (strcmp(style,"eam/alloy/opt") == 0) {
   } else if (strcmp(style,"eam/fs") == 0) {
   } else if (strcmp(style,"eam/fs/opt") == 0) {
+  } else if (strcmp(style,"eim") == 0) {
 
   } else if (strcmp(style,"eff/cut") == 0) {
 
@@ -2689,6 +2690,7 @@ void Data::write(FILE *fp, FILE *fp2)
 	(strcmp(pair_style,"eam/alloy/opt") != 0) &&
 	(strcmp(pair_style,"eam/fs") != 0) &&
 	(strcmp(pair_style,"eam/fs/opt") != 0) &&
+	(strcmp(pair_style,"eim") != 0) &&
 	(strcmp(pair_style,"eff/cut") != 0) &&
 	(strcmp(pair_style,"gran/history") != 0) &&
 	(strcmp(pair_style,"gran/no_history") != 0) &&

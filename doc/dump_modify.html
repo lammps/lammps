@@ -36,10 +36,11 @@
   <I>precision</I> arg = power-of-10 value from 10 to 1000000
   <I>region</I> arg = region-ID or "none"
   <I>scale</I> arg = <I>yes</I> or <I>no</I>
-  <I>sort</I> arg = <I>off</I> or 0 or N
+  <I>sort</I> arg = <I>off</I> or <I>id</I> or N or -N
      off = no sorting of per-atom lines within a snapshot
-     0 = sort per-atom lines by atom ID
-     N = sort per-atom lines by the Nth column
+     id = sort per-atom lines by atom ID
+     N = sort per-atom lines in ascending order by the Nth column
+     -N = sort per-atom lines in descending order by the Nth column
   <I>thresh</I> args = attribute operation value
     attribute = same attributes (x,fy,etotal,sxx,etc) used by dump custom style
     operation = "<" or "<=" or ">" or ">=" or "==" or "!="
@@ -177,16 +178,17 @@ snapshot are sorted or not.  A sort value of <I>off</I> means they will
 typically be written in indeterminate order, either in serial or
 parallel.  This is the case even in serial if the <A HREF = "atom_modify.html">atom_modify
 sort</A> option is turned on, which it is by default, to
-improve performance.  A sort value of 0 means sort the output by atom
-ID.  A sort value of N means sort the output by the value in the Nth
-column of per-atom info.  The dump <I>local</I> style cannot be sorted by
-atom ID, since there are typically multiple lines of output per atom.
-Some dump styles, such as <I>dcd</I> and <I>xtc</I>, require sorting by atom
-ID to format the output file correctly.
+improve performance.  A sort value of <I>id</I> means sort the output by
+atom ID.  A sort value of N or -N means sort the output by the value
+in the Nth column of per-atom info in either ascending or descending
+order.  The dump <I>local</I> style cannot be sorted by atom ID, since
+there are typically multiple lines of output per atom.  Some dump
+styles, such as <I>dcd</I> and <I>xtc</I>, require sorting by atom ID to format
+the output file correctly.
 </P>
 <P>IMPORTANT NOTE: Unless it is required by the dump style, sorting dump
 file output requires extra overhead in terms of CPU and communication
-cost, as well as memory.
+cost, as well as memory, versus unsorted output.
 </P>
 <P>The <I>thresh</I> keyword only applies to the dump <I>custom</I> and <I>cfg</I>
 styles.  Multiple thresholds can be specified.  Specifying "none"
@@ -229,7 +231,7 @@ box size stored with the snapshot.
 <LI>region = none
 <LI>scale = yes
 <LI>sort = off for dump styles <I>atom</I>, <I>custom</I>, <I>cfg</I>, and <I>local</I>
-<LI>sort = 0 for dump styles <I>dcd</I>, <I>xtc</I>, and <I>xyz</I> meaning sort by atom ID
+<LI>sort = id for dump styles <I>dcd</I>, <I>xtc</I>, and <I>xyz</I>
 <LI>thresh = none
 <LI>unwrap = no 
 </UL>

@@ -45,7 +45,7 @@ in.spparks = SPPARKS input script
 
 The log files are for this run:
 
-% lmpspk 5 10.0 5 in.spparks
+% lmpspk 20 10.0 1 in.spparks
 
 This application is an example of a coupling where the driver code
 (lmpspk) alternates back and forth between the 2 applications (LAMMPS

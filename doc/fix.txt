@@ -173,6 +173,7 @@ list of fix styles available in LAMMPS:
 "efield"_fix_efield.html - impose electric field on system
 "enforce2d"_fix_enforce2d.html - zero out z-dimension velocity and force
 "evaporate"_fix_evaporate.html - remove atoms from simulation periodically
+"external"_fix_external.html - callback to an external driver program
 "freeze"_fix_freeze.html - freeze atoms in a granular simulation
 "gravity"_fix_gravity.html - add gravity to atoms in a granular simulation
 "heat"_fix_heat.html - add/subtract momentum-conserving heat

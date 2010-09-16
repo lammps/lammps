@@ -55,6 +55,7 @@ class Dump : protected Pointers {
   int singlefile_opened;     // 1 = one big file, already opened, else 0
   int sortcol;               // 0 to sort on ID, 1-N on columns
   int sortcolm1;             // sortcol - 1
+  int sortorder;             // ASCEND or DESCEND
 
   char *format_default;      // default format string
   char *format_user;         // format string set by user
@@ -68,6 +69,12 @@ class Dump : protected Pointers {
   double boxzlo,boxzhi;
   double boxxy,boxxz,boxyz;
 
+  int ntotal;                // # of per-atom lines in snapshot
+  int reorderflag;           // 1 if OK to reorder instead of sort
+  int ntotal_reorder;        // # of atoms that must be in snapshot
+  int nme_reorder;           // # of atoms I must own in snapshot
+  int idlo;                  // lowest ID I own when reordering
+
   int maxbuf;                // size of buf
   double *buf;               // memory for atom quantities
 
@@ -77,6 +84,7 @@ class Dump : protected Pointers {
   int *ids;                  // list of atom IDs, if sorting on IDs
   double *bufsort;
   int *idsort,*index,*proclist;
+
 
   class Irregular *irregular;
 
@@ -91,6 +99,7 @@ class Dump : protected Pointers {
   void sort();
   static int idcompare(const void *, const void *);
   static int bufcompare(const void *, const void *);
+  static int bufcompare_reverse(const void *, const void *);
 };
 
 }

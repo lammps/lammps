@@ -1,0 +1,199 @@
+This directory has examples of how to use LAMMPS as a library, either
+by itself or in tandem with another code or library.
+
+This directory is meant to illustrate what is possible when coupling
+codes or calling LAMMPS as a library.  All of the examples provided
+are just for demonstration purposes.  The physics they calculate is
+too simple for modeling a realistic problem.
+
+See these sections of the LAMMPS manaul for details:
+
+2.4 Building LAMMPS as a library (doc/Section_start.html#2_4)
+4.10 Coupling LAMMPS to other codes (doc/Section_howto.html#4_10)
+
+In all of the examples included here, LAMMPS must first be built as a
+library.  Basically, you type something like
+
+make makelib
+make -f Makefile.lib g++
+
+in the LAMMPS src directory to create liblmp_g++.a
+
+The library interface to LAMMPS is in src/library.cpp.  Routines can
+be easily added to this file so an external program can perform the
+LAMMPS tasks desired.
+
+--------------------------------
+
+These are the sub-directories included in this directory:
+
+lammps_quest	    MD with quantum forces, coupling to Quest DFT code
+lammps_spparks	    grain-growth Monte Carlo with strain via MD,
+		    coupling to SPPARKS kinetic MC code
+library		    collection of useful inter-code communication routines
+simple		    simple example of driver code calling LAMMPS as library
+
+--------------------------------
+
+The "simple" directory has its own README on how to proceed.  The
+driver code is provided both in C++ and in C.  It simply runs a LAMMPS
+simulation, extracts atom coordinates, changes a coordinate, passes
+the coordinates back to LAMMPS, and runs some more.
+
+--------------------------------
+
+The "library" directory has a small collection of routines, useful for
+exchanging data between 2 codes being run together as a coupled
+application.  It is used by the LAMMPS <-> Quest and LAMMPS <->
+SPPARKS applications in the other 2 directories.
+
+The library dir has a Makefile (which you may need to edit for your
+box).  If you type
+
+g++ -f Makefile.g++
+
+you should create libcouple.a, which the other coupled applications
+link to.
+
+Note that the library uses MPI, so the Makefile you use needs to
+include a path to the MPI include file, if it is not someplace
+the compiler will find it.
+
+--------------------------------
+
+The "lammps_quest" directory has an application that runs classical MD
+via LAMMPS, but uses quantum forces calculated by the Quest DFT
+(density functional) code in place of the usual classical MD forces
+calculated by a pair style in LAMMPS.
+
+lmpqst.cpp	    main program
+		    it links LAMMPS as a library
+		    it invokes Quest as an executable
+in.lammps	    LAMMPS input script, without the run command
+si_111.in	    Quest input script for an 8-atom Si unit cell
+lmppath.h	    contains path to LAMMPS home directory
+qstexe.h	    contains full pathname to Quest executable
+
+After editing the Makefile, lmppath.h, and qstexe.h to make them
+suitable for your box, type:
+
+g++ -f Makefile.g++
+
+and you should get the lmpqst executable.
+
+NOTE: To run this coupled application, you must of course, have Quest
+built on your system.  It's WWW site is http://dft.sandia.gov/Quest.
+It is not an open-source code, buy you can contact its authors to
+obtain a copy.
+
+You can run lmpqst in serial or parallel as:
+
+% lmpqst Niter in.lammps in.quest
+% mpirun -np 4 lmpqst Niter in.lammps in.quest
+
+where
+
+Niter = # of MD iterations
+in.lammps = LAMMPS input script
+in.quest = Quest input script
+
+The log files are for this run:
+
+% lmpqst 10 in.lammps si_111.in
+
+This application is an example of a coupling where the driver code
+(lmpqst) runs one code (LAMMPS) as an outer code and facilitates it
+calling the other code (Quest) as an inner code.  Specifically, the
+driver (lmpqst) invokes one code (LAMMPS) to perform its timestep
+loop, and grabs information from the other code (Quest) during its
+timestep.  This is done in LAMMPS using the fix external command,
+which makes a "callback" to the driver application (lmpqst), which in
+turn invokes Quest with new atom coordinates, lets Quest compute
+forces, and returns those forces to the LAMMPS fix external.
+
+The driver code launches LAMMPS in parallel.  But Quest is only run on
+a single processor.  It would be possible to change this by using a
+parallel build of Quest.
+
+Since Quest does not currently have a library interface, the driver
+code interfaces with Quest via input and output files.
+
+Note that essentially 100% of the run time for this coupled
+application is spent in Quest, as the quantum calculation of forces
+dominates the calculation.
+
+You can look at the log files in the directory to see sample LAMMPS
+output for this simulation.  Dump files produced by LAMMPS are stored
+as dump.md.
+
+--------------------------------
+
+The "lammps_spparks" directory has an application that models grain
+growth in the presence of strain.  The grain growth is simulated by a
+Potts model in a kinetic Monte Carlo code SPPARKS.  Clusters of like
+spins on a lattice represent grains.  The Hamiltonian for the energy
+due of a collection of spins includes a strain term and is described
+on this page in the SPPARKS documentation:
+http://www.sandia.gov/~sjplimp/spparks/doc/app_potts_strain.html.  The
+strain is computed by LAMMPS as a particle displacement where pairs of
+atoms across a grain boundary are of different types and thus push off
+from each other due to a Lennard-Jones sigma between particles of
+different types that is larger than the sigma between particles of the
+same type (interior to grains).
+
+lmpspk.cpp	    main program
+		    it links LAMMPS and SPPARKS as libraries
+in.spparks	    SPPARKS input script, without the run command
+lmppath.h	    contains path to LAMMPS home directory
+spkpath.h	    contains path to SPPARKS home directory
+
+After editing the Makefile, lmppath.h, and spkpath.h to make them
+suitable for your box, type:
+
+g++ -f Makefile.g++
+
+and you should get the lmpspk executable.
+
+NOTE: To build and run this coupled application, you must of course,
+have SPPARKS built on your system.  It's WWW site is
+http://www.sandia.gov/~sjplimp/spparks.html.  It is an open-source
+code, written by two of the LAMMPS authors.
+
+You can run lmpspk in serial or parallel as:
+
+% lmpspk Niter Ndelta Sfactor in.spparks
+% mpirun -np 4 lmpspk Niter Ndelta Sfactor in.spparks
+
+where
+
+Niter = # of outer iterations
+Ndelta = time to run MC in each iteration
+Sfactor = multiplier on strain effect
+in.spparks = SPPARKS input script
+
+The log files are for this run:
+
+% lmpspk 5 10.0 5 in.spparks
+
+This application is an example of a coupling where the driver code
+(lmpspk) alternates back and forth between the 2 applications (LAMMPS
+and SPPARKS).  Each outer timestep in the driver code, the following
+tasks are performed.  One code (SPPARKS) is invoked for a few Monte
+Carlo steps.  Some of its output (spin state) is passed to the other
+code (LAMMPS) as input (atom type).  The the other code (LAMMPS) is
+invoked for a few timesteps.  Some of its output (atom coords) is
+massaged to become an input (per-atom strain) for the original code
+(SPPARKS).
+
+The driver code launches both SPPARKS and LAMMPS in parallel and they
+both decompose their spatial domains in the same manner.  The datums
+in SPPARKS (lattice sites) are the same as the datums in LAMMPS
+(coarse-grained particles).  If this were not the case, more
+sophisticated inter-code communication could be performed.
+
+You can look at the log files in the directory to see sample LAMMPS
+and SPPARKS output for this simulation.  Dump files produced by the
+run are stored as dump.mc and dump.md.  The image*.png files show
+snapshots from both the LAMMPS and SPPARKS output.  Note that the
+in.lammps and data.lammps files are not inputs; they are generated by
+the lmpspk driver.

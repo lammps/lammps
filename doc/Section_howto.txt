@@ -578,6 +578,23 @@ Again, the "run"_run.html command has options that allow it to be
 invoked with minimal overhead (no setup or clean-up) if you wish to do
 multiple short runs, driven by another program.
 
+Examples of driver codes that call LAMMPS as a library are included in
+the "couple" directory of the LAMMPS distribution; see couple/README
+for more details:
+
+simple: simple driver programs in C++ and C which invoke LAMMPS as a
+library :ulb,l
+
+lammps_quest: coupling of LAMMPS and "Quest"_quest, to run classical
+MD with quantum forces calculated by a density functional code :l
+
+lammps_spparks: coupling of LAMMPS and "SPPARKS"_spparks, to couple
+a kinetic Monte Carlo model for grain growth using MD to calculate
+strain induced across grain boundaries :l,ule
+
+:link(quest,http://dft.sandia.gov/Quest)
+:link(spparks,http://www.sandia.gov/~sjplimp/spparks.html)
+
 "This section"_Section_start.html#2_4 of the documentation describes
 how to build LAMMPS as a library.  Once this is done, you can
 interface with LAMMPS either via C++, C, or Fortran (or any other

@@ -38,6 +38,7 @@ sub-directories:
 README: text file
 LICENSE: the GNU General Public License (GPL)
 bench: benchmark problems
+couple: code coupling examples, using LAMMPS as a library
 doc: documentation
 examples: simple test problems
 potentials: embedded atom method (EAM) potential files

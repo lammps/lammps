@@ -49,19 +49,21 @@ interaction, <I>U<sup>I</sup><sub>ij</sub></I>, and van der Waals energy,
 <P>The short-range repulsion and attraction are based on the
 <A HREF = "#Tersoff">Tersoff</A> potential (see the <A HREF = "pair_tersoff.html">pair_style
 tersoff</A> command); thus for a zero-charge pure
-element system with no van der Waals interaction, COMB potential
-reduces to Tersoff potential.
+element system with no van der Waals interaction, the COMB potential
+reduces to Tersoff potential, typically truncated at a short cutoff,
+e.g. 3 to 4 Angstroms.  The long-range Coulombic term uses the Wolf
+summation method described in <A HREF = "#Wolf">Wolf</A>, spherically truncated at a
+longer cutoff, e.g. 12 Angstroms.
 </P>
 <P>The COMB potential is a variable charge potential.  The equilibrium
 charge on each atom is calculated by the electronegativity
-equalization (QEq) method.  See <A HREF = "#Rick_and_Stuart">Rick_and_Stuart</A> for
-furthur details).  This is implemented by the <A HREF = "fix_qeq_comb.html">fix
-qeq/comb</A> command, which should normally be
-specified in the input script when running a model with the COMB
-potential.  The <A HREF = "fix_qeq_comb.html">fix qeq/comb</A> command has options
-that determine how often charge equilibration is performed, its
-convergence criterion, and which atoms are included in the
-calculation.
+equalization (QEq) method.  See <A HREF = "#Rick">Rick</A> for further details.
+This is implemented by the <A HREF = "fix_qeq_comb.html">fix qeq/comb</A> command,
+which should normally be specified in the input script when running a
+model with the COMB potential.  The <A HREF = "fix_qeq_comb.html">fix qeq/comb</A>
+command has options that determine how often charge equilibration is
+performed, its convergence criterion, and which atoms are included in
+the calculation.
 </P>
 <P>Only a single pair_coeff command is used with the <I>comb</I> style which
 specifies the COMB potential file with parameters for all needed
@@ -224,9 +226,14 @@ Phillpot, Phys Rev B, 81, 125328 (2010).
 
 <P><B>(Tersoff)</B> J. Tersoff, Phys Rev B, 37, 6991 (1988).
 </P>
-<A NAME = "Rick_and_Stuart"></A>
+<A NAME = "Rick"></A>
 
-<P><B>(Rick_and_Stuart)</B> S. W. Rick, S. J. Stuart, B. J. Berne, J Chem Phys
-101, 16141 (1994).
+<P><B>(Rick)</B> S. W. Rick, S. J. Stuart, B. J. Berne, J Chem Phys 101, 16141
+(1994).
+</P>
+<A NAME = "Wolf"></A>
+
+<P><B>(Wolf)</B> D. Wolf, P. Keblinski, S. R. Phillpot, J. Eggebrecht, J Chem
+Phys, 110, 8254 (1999).
 </P>
 </HTML>

@@ -220,7 +220,7 @@ void PairAIREBO::init_style()
 
   pgsize = neighbor->pgsize;
   oneatom = neighbor->oneatom;
-  if (maxlocal == 0) add_pages(0);
+  if (maxpage == 0) add_pages(0);
 }
 
 /* ----------------------------------------------------------------------

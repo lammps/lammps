@@ -186,7 +186,7 @@ c$$$*     end if
 ********************************************************************** 
 ********************************************************************** 
 
-      subroutine srtbon1(lprune,lhb,hbcut_in)
+      subroutine srtbon1(lprune,lhb,hbcut_in,lhbnew_in)
 
 ********************************************************************** 
 #include "cbka.blk"
@@ -230,8 +230,9 @@ c$$$      call timer(65)
 c$$$      close (65)
 c$$$      end if
 
-c Transfer hbcut from C++ calling function
+c Transfer hbcut and lhbnew from C++ calling function
       hbcut = hbcut_in
+      lhbnew = lhbnew_in
 
       do i1=1,na
       abo(i1)=0.0d0
@@ -1528,6 +1529,7 @@ c
       ihb(nhb,8)=k3
 *     write (64,*)nhb,ihb(nhb,1),j3,j1,j2,nbohb,k1,k2,k3,bo(nbohb),
 *    $dishb
+
       end if
 
    10 continue

@@ -44,7 +44,7 @@ class PairREAX : public Pair {
  private:
   double cutmax;
   double rcutvsq,rcutbsq; 
-  int iprune,ihb;
+  int iprune,ihb,ihbnew;
   double hbcut,swb;
   double swa;
   double swc0, swc1, swc2, swc3, swc4, swc5, swc6, swc7;

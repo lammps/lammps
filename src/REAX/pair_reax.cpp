@@ -53,6 +53,7 @@ PairREAX::PairREAX(LAMMPS *lmp) : Pair(lmp)
   
   cutmax = 0.0;
   hbcut = 6.0;
+  ihbnew = 1;
   iprune = 4;
   ihb = 1;
   chpot = 0;
@@ -118,8 +119,7 @@ void PairREAX::compute(int eflag, int vflag)
 
   evdwl = ecoul = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = eflag_global = vflag_global = 
-	 eflag_atom = vflag_atom = 0;
+  else evflag = vflag_fdotr = 0;
 
   if (vflag_global) FORTRAN(cbkvirial, CBKVIRIAL).Lvirial = 1;
   else FORTRAN(cbkvirial, CBKVIRIAL).Lvirial = 0;
@@ -160,7 +160,7 @@ void PairREAX::compute(int eflag, int vflag)
 
   // determine whether this bond is owned by the processor or not
 
-  FORTRAN(srtbon1, SRTBON1)(&iprune, &ihb, &hbcut);
+  FORTRAN(srtbon1, SRTBON1)(&iprune, &ihb, &hbcut, &ihbnew);
 
   // communicate with other processors for the atomic bond order calculations
 
@@ -182,7 +182,8 @@ void PairREAX::compute(int eflag, int vflag)
   // extract global and per-atom energy from ReaxFF Fortran
   // compute_charge already contributed to eatom
 
-  if (eflag_global) {
+  if (eflag && eflag_global) {
+    //    output_itemized_energy(energy_charge_equilibration);
     evdwl += FORTRAN(cbkenergies, CBKENERGIES).eb;
     evdwl += FORTRAN(cbkenergies, CBKENERGIES).ea;
     evdwl += FORTRAN(cbkenergies, CBKENERGIES).elp;
@@ -203,7 +204,7 @@ void PairREAX::compute(int eflag, int vflag)
     eng_coul += ecoul;
   }
 
-  if (eflag_atom) {
+  if (eflag && eflag_atom) {
     int ntotal = atom->nlocal + atom->nghost;
     for (i = 0; i < ntotal; i++)
       eatom[i] += FORTRAN(cbkd,CBKD).estrain[i];
@@ -211,7 +212,7 @@ void PairREAX::compute(int eflag, int vflag)
 
   // extract global and per-atom virial from ReaxFF Fortran
 
-  if (vflag_global) {
+  if (vflag && vflag_global) {
     virial[0] = -FORTRAN(cbkvirial, CBKVIRIAL).virial[0];
     virial[1] = -FORTRAN(cbkvirial, CBKVIRIAL).virial[1];
     virial[2] = -FORTRAN(cbkvirial, CBKVIRIAL).virial[2];
@@ -220,7 +221,7 @@ void PairREAX::compute(int eflag, int vflag)
     virial[5] = -FORTRAN(cbkvirial, CBKVIRIAL).virial[5];
   }
 
-  if (vflag_atom) {
+  if (vflag && vflag_atom) {
     int ntotal = atom->nlocal + atom->nghost;
     j = 0;
     for (i = 0; i < ntotal; i++) {
@@ -253,8 +254,7 @@ void PairREAX::write_reax_positions()
   FORTRAN(rsmall, RSMALL).na_local = nlocal;
 
   if (nlocal+nghost > ReaxParams::nat)
-    error->one("Pair reax NATDEF setting too small, "
-	       "edit lib/reax/reax_defs.h");
+    error->one("reax_defs.h::NATDEF too small");
 
   jx = 0;
   jy = ReaxParams::nat;
@@ -337,10 +337,9 @@ void PairREAX::write_reax_vlist()
 	  iii = j+1;
 	  jjj = i+1;
 	}
-	if (nvpair >= nvpairmax)
-	  error->one("Pair reax NNEIGHMAXDEF setting too small, "
-		     "edit lib/reax/reax_defs.h");
-
+	if (nvpair >= nvpairmax) 
+	  error->one("reax_defs.h::NNEIGHMAXDEF too small");
+	
 	FORTRAN(cbkpairs, CBKPAIRS).nvl1[nvpair] = iii;
 	FORTRAN(cbkpairs, CBKPAIRS).nvl2[nvpair] = jjj;
 	FORTRAN(cbknvlbo, CBKNVLBO).nvlbo[nvpair] = 0;
@@ -398,8 +397,7 @@ void PairREAX::write_reax_vlist()
 	jjj = j+1;
 	      
 	if (nvpair >= nvpairmax) 
-	  error->one("Pair reax NNEIGHMAXDEF setting too small, "
-		     "edit lib/reax/reax_defs.h");
+	  error->one("reax_defs.h::NNEIGHMAXDEF too small");
 	
 	FORTRAN(cbkpairs, CBKPAIRS).nvl1[nvpair] = iii;
 	FORTRAN(cbkpairs, CBKPAIRS).nvl2[nvpair] = jjj;
@@ -464,13 +462,14 @@ void PairREAX::allocate()
 
 void PairREAX::settings(int narg, char **arg)
 {
-  if (narg != 0 && narg !=2) error->all("Illegal pair_style command");
+  if (narg != 0 && narg !=3) error->all("Illegal pair_style command");
   
-  if (narg == 2) {
+  if (narg == 3) {
     hbcut = force->numeric(arg[0]);
-    precision = force->numeric(arg[1]);
+    ihbnew = force->numeric(arg[1]);
+    precision = force->numeric(arg[2]);
 
-    if (hbcut <= 0.0 || precision <= 0.0)
+    if (hbcut <= 0.0 || (ihbnew != 0 && ihbnew != 1) || precision <= 0.0)
       error->all("Illegal pair_style command");
   }
 }
@@ -580,6 +579,7 @@ void PairREAX::init_style()
   }
 
   taper_setup();
+
 }
 
 /* ----------------------------------------------------------------------
@@ -1073,7 +1073,7 @@ void PairREAX::output_itemized_energy(double energy_charge_equilibration)
       fprintf(screen,"ea = %g \n",etmp2[1]);
       fprintf(screen,"elp = %g \n",etmp2[2]);
       fprintf(screen,"emol = %g \n",etmp2[3]);
-      fprintf(screen,"ecoa = %g \n",etmp2[4]);
+      fprintf(screen,"ev = %g \n",etmp2[4]);
       fprintf(screen,"epen = %g \n",etmp2[5]);
       fprintf(screen,"ecoa = %g \n",etmp2[6]);
       fprintf(screen,"ehb = %g \n",etmp2[7]);
@@ -1089,7 +1089,7 @@ void PairREAX::output_itemized_energy(double energy_charge_equilibration)
       fprintf(logfile,"ea = %g \n",etmp2[1]);
       fprintf(logfile,"elp = %g \n",etmp2[2]);
       fprintf(logfile,"emol = %g \n",etmp2[3]);
-      fprintf(logfile,"ecoa = %g \n",etmp2[4]);
+      fprintf(logfile,"ev = %g \n",etmp2[4]);
       fprintf(logfile,"epen = %g \n",etmp2[5]);
       fprintf(logfile,"ecoa = %g \n",etmp2[6]);
       fprintf(logfile,"ehb = %g \n",etmp2[7]);

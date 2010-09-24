@@ -13,9 +13,10 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>pair_style reax hbcut precision 
+<PRE>pair_style reax hbcut hbnewflag precision 
 </PRE>
 <UL><LI>hbcut = hydrogen-bond cutoff (distance units)
+<LI>hbnewflag = use old or new hbond function style (0 or 1)
 <LI>precision = precision for charge equilibration 
 </UL>
 <P><B>Examples:</B>
@@ -54,16 +55,18 @@ documented in potentials/README.reax.  The default ffield.reax
 contains parameterizations for the following elements: C, H, O, N, S.
 </P>
 <P>The format of these files is identical to that used originally by van
-Duin.  We have tested the accuracy of <I>pair_style reax/c</I> potential
+Duin.  We have tested the accuracy of <I>pair_style reax</I> potential
 against the original ReaxFF code for the systems mentioned above.  You
 can use other ffield files for specific chemical systems that may be
 available elsewhere (but note that their accuracy may not have been
 tested).
 </P>
-<P>The <I>hbcut</I> and <I>precision</I> settings are optional arguments.  If
+<P>The <I>hbcut</I>, <I>hbnewflag</I>, and <I>precision</I> settings are optional arguments.  
+If
 neither is provided, default settings are used: <I>hbcut</I> = 10 (which is
-Angstroms in real units) and <I>precision</I> = 1.0e-6 (one part in 10^6).
-If you wish to override either of these defaults, then both settings
+Angstroms in real units), <I>hbnewflag</I> = 1 (use new hbond function style, 
+and <I>precision</I> = 1.0e-6 (one part in 10^6).
+If you wish to override any of these defaults, then all settings
 must be specified.
 </P>
 <P>Use of this pair style requires that a charge be defined for every

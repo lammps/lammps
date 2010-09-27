@@ -623,14 +623,17 @@ void Input::jump()
   }
 
   if (me == 0) {
-    if (infile != stdin) fclose(infile);
-    infile = fopen(arg[0],"r");
-    if (infile == NULL) {
-      char str[128];
-      sprintf(str,"Cannot open input script %s",arg[0]);
-      error->one(str);
+    if (strcmp(arg[0],"SELF") == 0) rewind(infile);
+    else {
+      if (infile != stdin) fclose(infile);
+      infile = fopen(arg[0],"r");
+      if (infile == NULL) {
+	char str[128];
+	sprintf(str,"Cannot open input script %s",arg[0]);
+	error->one(str);
+      }
+      infiles[nfile-1] = infile;
     }
-    infiles[nfile-1] = infile;
   }
 
   if (narg == 2) {

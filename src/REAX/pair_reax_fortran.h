@@ -181,7 +181,7 @@ extern "C" void FORTRAN(taper,TAPER)(double*,double*);
 extern "C" void FORTRAN(readgeo,READGEO)();
 extern "C" void FORTRAN(srtatom,SRTATOM)();
 extern "C" void FORTRAN(vlist,VLIST) ();
-extern "C" void FORTRAN(srtbon1,SRTBON1)(int*,int*,double*);
+extern "C" void FORTRAN(srtbon1,SRTBON1)(int*,int*,double*,int*);
 extern "C" void FORTRAN(molec,MOLEC)();
 extern "C" void FORTRAN(encalc,ENCALC)();
 extern "C" void FORTRAN(getswb,GETSWB)(double*);

@@ -18,7 +18,8 @@ label = optional label within file to jump to :ul
 [Examples:]
 
 jump newfile
-jump in.run2 runloop :pre
+jump in.run2 runloop
+jump SELF runloop :pre
 
 [Description:]
 
@@ -28,15 +29,34 @@ Unlike the "include"_include.html command, the original file is not
 returned to, although by using multiple jump commands it is possible
 to chain from file to file or back to the original file.
 
-Optionally, if a 2nd argument is used, it is treated as a label and
-the new file is scanned (without executing commands) until the label
-is found, and commands are executed from that point forward.  This can
-be used to loop over a portion of the input script, as in this
-example.  These commands perform 10 runs, each of 10000 steps, and
-create 10 dump files named file.1, file.2, etc.  The "next"_next.html
-command is used to exit the loop after 10 iterations.  When the "a"
-variable has been incremented for the tenth time, it will cause the
-next jump command to be skipped.
+If the word "SELF" is used for the filename, then the current input
+script is re-opened and read again.
+
+IMPORTANT NOTE: The SELF option is not guaranteed to work when the
+current input script is being read through stdin (standard input),
+e.g.
+
+lmp_g++ < in.script :pre
+
+since the SELF option invokes the C-library rewind() call, which may
+not be supported for stdin on some systems.  This can be worked around
+by using the "-in command-line argument"_Section_start.html#2_6 or the
+"-var command-line argument"_Section_start.html#2_6 to pass the script
+name as a variable to the input script In the latter case, the "fname"
+"variable"_variable.html could be used in place of SELF.  E.g.
+
+lmp_g++ -in in.script :pre
+lmp_g++ -var fname n.script < in.script :pre
+
+The 2nd argument to the jump command is optional.  If specified, it is
+treated as a label and the new file is scanned (without executing
+commands) until the label is found, and commands are executed from
+that point forward.  This can be used to loop over a portion of the
+input script, as in this example.  These commands perform 10 runs,
+each of 10000 steps, and create 10 dump files named file.1, file.2,
+etc.  The "next"_next.html command is used to exit the loop after 10
+iterations.  When the "a" variable has been incremented for the tenth
+time, it will cause the next jump command to be skipped.
 
 variable a loop 10
 label loop

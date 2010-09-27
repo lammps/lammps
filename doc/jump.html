@@ -21,7 +21,8 @@
 <P><B>Examples:</B>
 </P>
 <PRE>jump newfile
-jump in.run2 runloop 
+jump in.run2 runloop
+jump SELF runloop 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -31,15 +32,35 @@ Unlike the <A HREF = "include.html">include</A> command, the original file is no
 returned to, although by using multiple jump commands it is possible
 to chain from file to file or back to the original file.
 </P>
-<P>Optionally, if a 2nd argument is used, it is treated as a label and
-the new file is scanned (without executing commands) until the label
-is found, and commands are executed from that point forward.  This can
-be used to loop over a portion of the input script, as in this
-example.  These commands perform 10 runs, each of 10000 steps, and
-create 10 dump files named file.1, file.2, etc.  The <A HREF = "next.html">next</A>
-command is used to exit the loop after 10 iterations.  When the "a"
-variable has been incremented for the tenth time, it will cause the
-next jump command to be skipped.
+<P>If the word "SELF" is used for the filename, then the current input
+script is re-opened and read again.
+</P>
+<P>IMPORTANT NOTE: The SELF option is not guaranteed to work when the
+current input script is being read through stdin (standard input),
+e.g.
+</P>
+<PRE>lmp_g++ < in.script 
+</PRE>
+<P>since the SELF option invokes the C-library rewind() call, which may
+not be supported for stdin on some systems.  This can be worked around
+by using the <A HREF = "Section_start.html#2_6">-in command-line argument</A> or the
+<A HREF = "Section_start.html#2_6">-var command-line argument</A> to pass the script
+name as a variable to the input script In the latter case, the "fname"
+<A HREF = "variable.html">variable</A> could be used in place of SELF.  E.g.
+</P>
+<PRE>lmp_g++ -in in.script 
+</PRE>
+<PRE>lmp_g++ -var fname n.script < in.script 
+</PRE>
+<P>The 2nd argument to the jump command is optional.  If specified, it is
+treated as a label and the new file is scanned (without executing
+commands) until the label is found, and commands are executed from
+that point forward.  This can be used to loop over a portion of the
+input script, as in this example.  These commands perform 10 runs,
+each of 10000 steps, and create 10 dump files named file.1, file.2,
+etc.  The <A HREF = "next.html">next</A> command is used to exit the loop after 10
+iterations.  When the "a" variable has been incremented for the tenth
+time, it will cause the next jump command to be skipped.
 </P>
 <PRE>variable a loop 10
 label loop

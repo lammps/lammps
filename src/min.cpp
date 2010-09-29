@@ -54,6 +54,7 @@ using namespace LAMMPS_NS;
 Min::Min(LAMMPS *lmp) : Pointers(lmp)
 {
   dmax = 0.1;
+  searchflag = 0;
   linestyle = 0;
 
   elist_global = elist_atom = NULL;

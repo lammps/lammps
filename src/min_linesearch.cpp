@@ -60,6 +60,7 @@ enum{MAXITER,MAXEVAL,ETOL,FTOL,DOWNHILL,ZEROALPHA,ZEROFORCE,ZEROQUAD};
 
 MinLineSearch::MinLineSearch(LAMMPS *lmp) : Min(lmp)
 {
+  searchflag = 1;
   gextra = hextra = NULL;
   x0extra_atom = gextra_atom = hextra_atom = NULL;
 }

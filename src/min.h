@@ -26,6 +26,7 @@ class Min : protected Pointers {
   int niter,neval;
   int stop_condition;
   char *stopstr;
+  int searchflag;     // 0 if damped dynamics, 1 if sub-cycles on local search
 
   Min(class LAMMPS *);
   virtual ~Min();

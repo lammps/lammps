@@ -166,6 +166,7 @@ void NEB::command(int narg, char **arg)
   finish.end(1);
 
   // switch fix NEB to climbing mode
+  // top = replica that becomes hill climber
 
   double vmax = all[0][0];
   int top = 0;

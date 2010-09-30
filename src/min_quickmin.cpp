@@ -11,8 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "mpi.h"
 #include "math.h"
 #include "min_quickmin.h"
+#include "universe.h"
 #include "atom.h"
 #include "force.h"
 #include "update.h"
@@ -21,6 +23,10 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
+
+// EPS_ENERGY = minimum normalization for energy tolerance
+
+#define EPS_ENERGY 1.0e-8
 
 // same as in other min classes
 
@@ -65,11 +71,13 @@ void MinQuickMin::reset_vectors()
   if (nvec) fvec = atom->f[0];
 }
 
+/* ----------------------------------------------------------------------
+   minimization via QuickMin damped dynamics
 /* ---------------------------------------------------------------------- */
 
 int MinQuickMin::iterate(int maxiter)
 {
-  int ntimestep;
+  int ntimestep,flag,flagall;
   double vmax,vdotf,vdotfall,fdotf,fdotfall,scale;
   double dtvone,dtv,dtfm;
 
@@ -141,10 +149,39 @@ int MinQuickMin::iterate(int maxiter)
     ecurrent = energy_force(0);
     neval++;
 
-    // force tolerance criterion
+    // energy tolerance criterion
+    // sync across replicas if running multi-replica minimization
 
-    //fdotf = fnorm_sqr();
-    //if (fdotf < update->ftol*update->ftol) return FTOL;
+    if (update->etol > 0.0) {
+      if (update->multireplica == 0) {
+	if (fabs(ecurrent-eprevious) < 
+	    update->etol * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS_ENERGY))
+	  return ETOL;
+      } else {
+	printf("EEE %g %g\n",ecurrent,eprevious);
+	if (fabs(ecurrent-eprevious) < 
+	    update->etol * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS_ENERGY))
+	  flag = 0;
+	else flag = 1;
+	MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,universe->uworld);
+	if (flagall == 0) return ETOL;
+      }
+    }
+
+    // force tolerance criterion
+    // sync across replicas if running multi-replica minimization
+
+    if (update->ftol > 0.0) {
+      fdotf = fnorm_sqr();
+      if (update->multireplica == 0) {
+	if (fdotf < update->ftol*update->ftol) return FTOL;
+      } else {
+	if (fdotf < update->ftol*update->ftol) flag = 0;
+	else flag = 1;
+	MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,universe->uworld);
+	if (flagall == 0) return FTOL;
+      }
+    }
 
     // output for thermo, dump, restart files
 

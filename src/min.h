@@ -33,7 +33,7 @@ class Min : protected Pointers {
   void init();
   void setup();
   void setup_minimal(int);
-  void run(int,int);
+  void run(int);
   void cleanup();
   int request(class Pair *, int, double);
   double memory_usage() {return 0.0;}

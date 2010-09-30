@@ -43,6 +43,7 @@ Update::Update(LAMMPS *lmp) : Pointers(lmp)
   firststep = laststep = 0;
   beginstep = endstep = 0;
   setupflag = 0;
+  multireplica = 0;
 
   restrict_output = 0;
 

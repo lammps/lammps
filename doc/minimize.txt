@@ -63,6 +63,12 @@ damped dynamics using an Euler integration step.  Thus they require a
 "timestep"_timestep.html be defined, typically the same value used for
 "running dynamics"_run.html with the system.
 
+IMPORTANT NOTE: {Etol} should be set to 0.0 when using the {quickmin}
+or {fire} "minimization styles"_min_style.html.  This is because they
+periodically reset velocities to 0.0 and take a zero-length step which
+will appear as a 0.0 energy change, stopping the minimizer if {etol}
+is finite.
+
 The objective function being minimized is the total potential energy
 of the system as a function of the N atom coordinates:
 

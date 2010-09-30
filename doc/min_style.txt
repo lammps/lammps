@@ -51,15 +51,18 @@ some situations.
 Style {quickmin} is a damped dynamics method described in
 "(Sheppard)"_#Sheppard, where the damping parameter is related to the
 projection of the velocity vector along the current force vector for
-each atom.
+each atom.  The velocity of each atom is initialized to 0.0 by this
+style, at the beginning of a minimization.
 
 Style {fire} is a damped dynamics method described in
 "(Bitzek)"_#Bitzek, which is similar to {quickmin} but adds a variable
 timestep and alters the projection operation to maintain components of
-the velocity non-parallel to the current force vector.
+the velocity non-parallel to the current force vector.  The velocity
+of each atom is initialized to 0.0 by this style, at the beginning of
+a minimization.
 
 Either the {quickmin} and {fire} styles are useful in the context of
-nudged elastic band (NEB} calculations via the "neb"_neb.html command.
+nudged elastic band (NEB) calculations via the "neb"_neb.html command.
 
 IMPORTANT NOTE: The {quickmin} and {fire} styles do not yet support
 the use of the "fix box/relax"_fix_box_relax.html command or
@@ -84,6 +87,6 @@ min_style cg :pre
 Jonsson, Mills, Jacobsen.
 
 :link(Bitzek)
-[{Bitzek}] Bitzek, Koskinen, Gahler, Moseler, Gumbsch, Phys Rev Lett,
+[(Bitzek)] Bitzek, Koskinen, Gahler, Moseler, Gumbsch, Phys Rev Lett,
 97, 170201 (2006).
 

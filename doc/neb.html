@@ -30,8 +30,8 @@ neb 1.0e-6 0.001 1000 500 50 coords.final
 <P><B>Description:</B>
 </P>
 <P>Perform a nudged elastic band (NEB) calculation using multiple
-replicas of a system.  Three or more replicas must be used, two of
-which are the end points of the transition path.
+replicas of a system.  Two or more replicas must be used, two of which
+are the end points of the transition path.
 </P>
 <P>NEB is a method for finding both the atomic configurations and height
 of the energy barrier associated with a transition state, e.g. for an
@@ -72,14 +72,13 @@ procedure, but they will not be part of the barrier finding procedure.
 <P>The "starting configuration" for NEB should be a state with the NEB
 atoms (and all other atoms) having coordinates on one side of the
 energy barrier.  These coordinates will be assigned to the first
-replica #1.  The coordinates should be close to a local energy minimum
-and the velocities should be zeroed.  A perfect energy minimum is not
-required (nor are zero velocities), since NEB runs via damped dynamics
-which will tend to drive the configuration of replica #1 to a true
-energy minimum, but you will typically get better convergence if the
-initial state is already at a minimum.  For example, for a system with
-a free surface, the surface should be fully relaxed before attempting
-a NEB calculation.
+replica #1.  The coordinates should be close to a local energy
+minimum.  A perfect energy minimum is not required, since NEB runs via
+damped dynamics which will tend to drive the configuration of replica
+#1 to a true energy minimum, but you will typically get better
+convergence if the initial state is already at a minimum.  For
+example, for a system with a free surface, the surface should be fully
+relaxed before attempting a NEB calculation.
 </P>
 <P>The final configuration is specified in the input <I>filename</I>, which is
 formatted as described below.  Only coordinates for NEB atoms or a
@@ -166,11 +165,6 @@ atoms to 0.0.  This is not required, and may not even be desired in
 some cases, but if those atoms move too far (e.g. because the initial
 state of your system was not well-minimized), it can cause problems
 for the NEB procedure.
-</P>
-<P>Similarly, you should initialize the velocity of all NEB atoms (and
-non-NEB atoms if they are free to move) in your system to 0.0 before
-invoking the neb command.  This gives the minimizer a consistent zero
-velocity to start its damped dynamics with.
 </P>
 <P>The damped dynamics <A HREF = "min_style.html">minimizers</A>, such as <I>quickmin</I>
 and <I>fire</I>), adjust the position and velocity of the atoms via an

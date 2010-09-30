@@ -55,15 +55,18 @@ some situations.
 <P>Style <I>quickmin</I> is a damped dynamics method described in
 <A HREF = "#Sheppard">(Sheppard)</A>, where the damping parameter is related to the
 projection of the velocity vector along the current force vector for
-each atom.
+each atom.  The velocity of each atom is initialized to 0.0 by this
+style, at the beginning of a minimization.
 </P>
 <P>Style <I>fire</I> is a damped dynamics method described in
 <A HREF = "#Bitzek">(Bitzek)</A>, which is similar to <I>quickmin</I> but adds a variable
 timestep and alters the projection operation to maintain components of
-the velocity non-parallel to the current force vector.
+the velocity non-parallel to the current force vector.  The velocity
+of each atom is initialized to 0.0 by this style, at the beginning of
+a minimization.
 </P>
 <P>Either the <I>quickmin</I> and <I>fire</I> styles are useful in the context of
-nudged elastic band (NEB</I> calculations via the <A HREF = "neb.html">neb</A> command.
+nudged elastic band (NEB) calculations via the <A HREF = "neb.html">neb</A> command.
 </P>
 <P>IMPORTANT NOTE: The <I>quickmin</I> and <I>fire</I> styles do not yet support
 the use of the <A HREF = "fix_box_relax.html">fix box/relax</A> command or
@@ -90,7 +93,7 @@ Jonsson, Mills, Jacobsen.
 </P>
 <A NAME = "Bitzek"></A>
 
-<P><B><I>Bitzek</I></B> Bitzek, Koskinen, Gahler, Moseler, Gumbsch, Phys Rev Lett,
+<P><B>(Bitzek)</B> Bitzek, Koskinen, Gahler, Moseler, Gumbsch, Phys Rev Lett,
 97, 170201 (2006).
 </P>
 </HTML>

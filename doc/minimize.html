@@ -66,6 +66,12 @@ damped dynamics using an Euler integration step.  Thus they require a
 <A HREF = "timestep.html">timestep</A> be defined, typically the same value used for
 <A HREF = "run.html">running dynamics</A> with the system.
 </P>
+<P>IMPORTANT NOTE: <I>Etol</I> should be set to 0.0 when using the <I>quickmin</I>
+or <I>fire</I> <A HREF = "min_style.html">minimization styles</A>.  This is because they
+periodically reset velocities to 0.0 and take a zero-length step which
+will appear as a 0.0 energy change, stopping the minimizer if <I>etol</I>
+is finite.
+</P>
 <P>The objective function being minimized is the total potential energy
 of the system as a function of the N atom coordinates:
 </P>

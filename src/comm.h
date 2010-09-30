@@ -31,6 +31,7 @@ class Comm : protected Pointers {
   int maxforward_pair;
   int maxreverse_pair;
   double cutghost[3];               // cutoffs used for acquiring ghost atoms
+  double cutghostuser;              // user-specified ghost cutoff
   int ***grid2proc;                 // which proc owns i,j,k loc in 3d grid
 
   Comm(class LAMMPS *);
@@ -71,7 +72,6 @@ class Comm : protected Pointers {
   double *slablo,*slabhi;           // bounds of slab to send at each swap
   double **multilo,**multihi;       // bounds of slabs for multi-type swap
   double **cutghostmulti;           // cutghost on a per-type basis
-  double cutghostuser;              // user-specified ghost cutoff
   int *pbc_flag;                    // general flag for sending atoms thru PBC
   int **pbc;                        // dimension flags for PBC adjustments
   int comm_x_only,comm_f_only;      // 1 if only exchange x,f in for/rev comm

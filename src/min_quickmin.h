@@ -13,7 +13,7 @@
 
 #ifdef MINIMIZE_CLASS
 
-MinimizeStyle(quickmin,MinQuickmin)
+MinimizeStyle(quickmin,MinQuickMin)
 
 #else
 
@@ -24,10 +24,10 @@ MinimizeStyle(quickmin,MinQuickmin)
 
 namespace LAMMPS_NS {
 
-class MinQuickmin : public Min {
+class MinQuickMin : public Min {
  public:
-  MinQuickmin(class LAMMPS *);
-  ~MinQuickmin() {}
+  MinQuickMin(class LAMMPS *);
+  ~MinQuickMin() {}
   void init_style();
   void setup_style();
   void reset_vectors();

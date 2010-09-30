@@ -222,6 +222,13 @@ void Min::setup()
   neighbor->build();
   neighbor->ncalls = 0;
 
+  // remove these restriction eventually
+
+  if (nextra_global && searchflag == 0)
+    error->all("Cannot use a damped dynamics min style with fix box/relax");
+  if (nextra_atom && searchflag == 0)
+    error->all("Cannot use a damped dynamics min style with per-atom DOF");
+
   // atoms may have migrated in comm->exchange()
 
   reset_vectors();

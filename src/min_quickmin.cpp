@@ -31,18 +31,18 @@ enum{MAXITER,MAXEVAL,ETOL,FTOL,DOWNHILL,ZEROALPHA,ZEROFORCE,ZEROQUAD};
 
 /* ---------------------------------------------------------------------- */
 
-MinQuickmin::MinQuickmin(LAMMPS *lmp) : Min(lmp) {}
+MinQuickMin::MinQuickMin(LAMMPS *lmp) : Min(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
-void MinQuickmin::init_style()
+void MinQuickMin::init_style()
 {
   dt = update->dt;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void MinQuickmin::setup_style()
+void MinQuickMin::setup_style()
 {
   double **v = atom->v;
   int nlocal = atom->nlocal;
@@ -56,7 +56,7 @@ void MinQuickmin::setup_style()
    called after atoms have migrated
 ------------------------------------------------------------------------- */
 
-void MinQuickmin::reset_vectors()
+void MinQuickMin::reset_vectors()
 {
   // atomic dof
 
@@ -67,7 +67,7 @@ void MinQuickmin::reset_vectors()
 
 /* ---------------------------------------------------------------------- */
 
-int MinQuickmin::iterate(int maxiter)
+int MinQuickMin::iterate(int maxiter)
 {
   int ntimestep;
   double vmax,vdotf,vdotfall,fdotf,fdotfall,scale;

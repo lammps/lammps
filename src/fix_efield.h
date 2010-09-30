@@ -41,7 +41,7 @@ class FixEfield : public Fix {
   char *xstr,*ystr,*zstr;
   int xvar,yvar,zvar,xstyle,ystyle,zstyle;
   int nlevels_respa;
-  double efactor;
+  double qe2f;
 
   int maxatom;
   double **efield;

@@ -9,15 +9,16 @@
 # for M replicas, final snapshots are renumbered in final file from 1 to M
 
 import sys,os
+path = os.environ["LAMMPS_PYTHON_TOOLS"]
+sys.path.append(path)
 from dump import dump
-if not globals().has_key("argv"): argv = sys.argv
 
-if len(argv) < 5:
+if len(sys.argv) < 5:
   print "Syntax: neb2.py dfinal dfile1 dfile2 ..."
   sys.exit()
 
-dfinal = argv[1]
-files = argv[2:]
+dfinal = sys.argv[1]
+files = sys.argv[2:]
 
 if os.path.exists(dfinal): os.remove(dfinal)
 

@@ -12,16 +12,18 @@
 #   only atoms of itype in dfile2,...,dfileN are added to dfinal
 
 import sys,os
+path = os.environ["LAMMPS_PYTHON_TOOLS"]
+sys.path.append(path)
 from dump import dump
-if not globals().has_key("argv"): argv = sys.argv
+from dump import dump
 
-if len(argv) < 5:
+if len(sys.argv) < 5:
   print "Syntax: neb1.py dfinal itype dfile1 dfile2 ..."
   sys.exit()
 
-dfinal = argv[1]
-itype = int(argv[2])
-files = argv[3:]
+dfinal = sys.argv[1]
+itype = int(sys.argv[2])
+files = sys.argv[3:]
 
 tstr = "$type == %d" % itype
 

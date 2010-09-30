@@ -15,7 +15,6 @@ import sys,os
 path = os.environ["LAMMPS_PYTHON_TOOLS"]
 sys.path.append(path)
 from dump import dump
-from dump import dump
 
 if len(sys.argv) < 5:
   print "Syntax: neb1.py dfinal itype dfile1 dfile2 ..."

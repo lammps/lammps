@@ -90,9 +90,9 @@ void NEB::command(int narg, char **arg)
 
   // error checks
 
-  if (nreplica == 1) error->all("Cannot use NEB without multiple replicas");
+  if (nreplica == 1) error->all("Cannot use NEB with a single replica");
   if (nreplica != universe->nprocs)
-    error->all("Can only use NEB with 1-processor replicas");
+    error->all("Cannot use NEB with multi-processor replicas");
   if (atom->sortfreq > 0)
     error->all("Cannot use NEB with atom_modify sort enabled");
   if (atom->map_style == 0) 
@@ -112,6 +112,7 @@ void NEB::command(int narg, char **arg)
   update->whichflag = 2;
   update->etol = 0.0;
   update->ftol = ftol;
+  update->multireplica = 1;
 
   lmp->init();
 
@@ -142,24 +143,19 @@ void NEB::command(int narg, char **arg)
   }
   print_status();
   
-  // perform regular NEB for n1steps or until all replicas converged
+  // perform regular NEB for n1steps or until replicas converge
   // retrieve PE values from fix NEB and print every nevery iterations
-  // break induced by MPI_Allreduce() and MPI_Bcast()
-  //   only if all replicas have stop_condition > 0
+  // break induced if converged
+  // damped dynamic min styles insure all replicas converge together
 
   int flag,flagall;
 
   timer->barrier_start(TIME_LOOP);
   
   while (update->minimize->niter < n1steps) {
-    update->minimize->run(nevery,1);
+    update->minimize->run(nevery);
     print_status();
-    if (me == 0) {
-      flag = update->minimize->stop_condition;
-      MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_MIN,roots);
-    }
-    MPI_Bcast(&flagall,1,MPI_INT,0,world);
-    if (flagall) break;
+    if (update->minimize->stop_condition) break;
   }
 	
   timer->barrier_stop(TIME_LOOP);
@@ -202,22 +198,17 @@ void NEB::command(int narg, char **arg)
   }
   print_status();
   
-  // perform climbing NEB for n2steps or until all replicas converged
+  // perform climbing NEB for n2steps or until replicas converge
   // retrieve PE values from fix NEB and print every nevery iterations
-  // break induced by MPI_Allreduce() and MPI_Bcast()
-  //   only if all replicas have stop_condition > 0
+  // break induced if converged
+  // damped dynamic min styles insure all replicas converge together
   
   timer->barrier_start(TIME_LOOP);
   
   while (update->minimize->niter < n2steps) {
-    update->minimize->run(nevery,1);
+    update->minimize->run(nevery);
     print_status();
-    if (me == 0) {
-      flag = update->minimize->stop_condition;
-      MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_MIN,roots);
-    }
-    MPI_Bcast(&flagall,1,MPI_INT,0,world);
-    if (flagall) break;
+    if (update->minimize->stop_condition) break;
   }
 	
   timer->barrier_stop(TIME_LOOP);
@@ -227,6 +218,7 @@ void NEB::command(int narg, char **arg)
   finish.end(1);
 
   update->whichflag = 0;
+  update->multireplica = 0;
   update->firststep = update->laststep = 0;
   update->beginstep = update->endstep = 0;
 }

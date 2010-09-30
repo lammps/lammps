@@ -30,27 +30,27 @@ temper 40000 100 $t tempfix 0 32285 $w
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Run a parallel tempering (replica exchange) simulation of multiple
-ensembles (replicas) of a system on multiple partitions of processors.
+<P>Run a parallel tempering or replica exchange simulation using multiple
+replicas (ensembles) of a system.  Two or more replicas must be used.
 </P>
-<P>The processor partitions are defined using the -partition command-line
-switch (see <A HREF = "Section_start.html#2_6">this section</A>).  Each partition
-(replica) can be assigned one or more processors.  Note that if you
-have MPI installed, you can run a multi-partition simulation on more
-partitions than you have physical processors, e.g you can run a
-10-replica simulation on one or two processors.  You will simply
-not get the performance speed-up you would typically see with one or
+<P>Each replica runs on a partition of one or more processors.  Processor
+partitions are defined at run-time using the -partition command-line
+switch; see <A HREF = "Section_start.html#2_6">this section</A> of the manual.  Note
+that if you have MPI installed, you can run a multi-replica simulation
+with more replicas (partitions) than you have physical processors, e.g
+you can run a 10-replica simulation on one or two processors.  You
+will simply not get the performance speed-up you would see with one or
 more physical processors per replica.  See <A HREF = "Section_howto.html#4_5">this
 section</A> of the manual for further discussion.
 </P>
-<P>Each ensemble's temperature is controlled at a different value by a
-fix with ID <I>fix-ID</I> that controls temperature.  Possible fix styles
-are <A HREF = "fix_nh.html">nvt</A>, <A HREF = "fix_nh.html">temp/berendsen</A>,
+<P>Each replica's temperature is controlled at a different value by a fix
+with <I>fix-ID</I> that controls temperature.  Possible fix styles are
+<A HREF = "fix_nh.html">nvt</A>, <A HREF = "fix_nh.html">temp/berendsen</A>,
 <A HREF = "fix_langevin.html">langevin</A> and <A HREF = "fix_temp_rescale.html">temp/rescale</A>.
 The desired temperature is specified by <I>temp</I>, which is typically a
 variable previously set in the input script, so that each partition is
 assigned a different temperature.  See the <A HREF = "variable.html">variable</A>
-command for more details. For example:
+command for more details.  For example:
 </P>
 <PRE>variable t world 300.0 310.0 320.0 330.0
 fix myfix all nvt $t $t 100.0
@@ -59,10 +59,10 @@ temper 100000 100 $t myfix 3847 58382
 <P>would define 4 temperatures, and assign one of them to the thermostat
 used by each replica, and to the temper command.
 </P>
-<P>As the tempering simulation runs for <I>N</I> timesteps, a swap between
-adjacent ensembles will be attempted every <I>M</I> timesteps.  If <I>seed1</I>
-is 0, then the swap attempts will alternate between odd and even
-pairings.  If <I>seed1</I> is non-zero then it is used as a seed in a
+<P>As the tempering simulation runs for <I>N</I> timesteps, a temperature swap
+between adjacent ensembles will be attempted every <I>M</I> timesteps.  If
+<I>seed1</I> is 0, then the swap attempts will alternate between odd and
+even pairings.  If <I>seed1</I> is non-zero then it is used as a seed in a
 random number generator to randomly choose an odd or even pairing each
 time.  Each attempted swap of temperatures is either accepted or
 rejected based on a Boltzmann-weighted Metropolis criterion which uses

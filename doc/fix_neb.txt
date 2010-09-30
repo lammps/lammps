@@ -10,11 +10,11 @@ fix neb command :h3
 
 [Syntax:]
 
-fix ID group-ID neb kspring :pre
+fix ID group-ID neb Kspring :pre
   
 ID, group-ID are documented in "fix"_fix.html command
 neb = style name of this fix command
-kspring = inter-replica spring constant :ul
+Kspring = inter-replica spring constant (force/distance units) :ul
 
 [Examples:]
 
@@ -22,17 +22,20 @@ fix 1 active neb 10.0 :pre
 
 [Description:]
 
-Add inter-replica forces to atoms in the group for a multi-partition
+Add inter-replica forces to atoms in the group for a multi-replica
 simulation run via the "neb"_neb.html command to perform a nudged
 elastic band (NEB) calculation for transition state finding.  Hi-level
 explanations of NEB are given with the "neb"_neb.html command and in
-"this section"_Section_howto.html#neb of the doc pages.  The fix neb
-command is used to define how inter-replica forces are computed.
+"this section"_Section_howto.html#4_5 of the manual.  The fix neb
+command must be used with the "neb" command to define how
+inter-replica forces are computed.
 
-Atoms in the two end-point replicas do not experience inter-replica
-forces, but those in intermediate replicas do.  The 3N-length vector
-of interatomic forces Fi = -Grad(V) acting on the atoms of each
-intermediate replica I is altered to become:
+Only the N atoms in the fix group experience inter-replica forces.
+Atoms in the two end-point replicas do not experience these forces,
+but those in intermediate replicas do.  During the initial stage of
+NEB, the 3N-length vector of interatomic forces Fi = -Grad(V) acting
+on the atoms of each intermediate replica I is altered, as described
+in the "(Henkelman1)"_#Henkelman1 paper, to become:
 
 Fi = -Grad(V) + (Grad(V) dot That) That + Kspring (|Ri+i - Ri| - |Ri - Ri-1|) That :pre
 
@@ -40,13 +43,13 @@ Ri are the atomic coordinates of replica I; Ri-1 and Ri+1 are the
 coordinates of its neighbor replicas.  That (t with a hat over it) is
 the unit "tangent" vector for replica I which is a function of Ri,
 Ri-1, Ri+1, and the potential energy of the 3 replicas; it points
-roughly in the direction of (Ri+i - Ri-1).  The first two terms in the
-above equation are the component of the interatomic forces
-perpendicular to the tangent vector.  The last term is a spring force
-between replica I and its neighbors, parallel to the tangent vector
-direction with the specified spring constant.
+roughly in the direction of (Ri+i - Ri-1); see the
+"(Henkelman1)"_#Henkelman1 paper for details.
 
-NOTE: That is defined in what papers?
+The first two terms in the above equation are the component of the
+interatomic forces perpendicular to the tangent vector.  The last term
+is a spring force between replica I and its neighbors, parallel to the
+tangent vector direction with the specified spring constant {Kspring}.
 
 The effect of the first two terms is to push the atoms of each replica
 toward the minimum energy path (MEP) of conformational states that
@@ -59,19 +62,16 @@ The effect of the last term is to push each replica away from its two
 neighbors in a direction along the MEP, so that the final set of
 states are equidistant from each other.
 
-A NEB calculation is performed in two stages, as described by the neb
-command.  In the second stage, the forces on atoms in the replica
-nearest the top of the energy barrier are altered so that it climbs to
-the top of the barrier and finds the saddle point.  The forces on
-atoms in this replica become:
+During the second stage of NEB, the forces on the N atoms in the
+replica nearest the top of the energy barrier are altered so that it
+climbs to the top of the barrier and finds the saddle point.  The
+forces on atoms in this replica are described in the
+"(Henkelman2)"_#Henkelman2 paper, and become:
 
-Fi = -Grad(V) + 2 (Grad(V) dot that) that :pre
+Fi = -Grad(V) + 2 (Grad(V) dot That) That :pre
 
 The inter-replica forces for the other replicas are unchanged from the
-first equation. 
-
-NOTE: discuss how to do NEB on a subset of atoms - group ID of fix neb
-command.
+first equation.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
@@ -81,7 +81,10 @@ are relevant to this fix.  No global or per-atom quantities are stored
 by this fix for access by various "output
 commands"_Section_howto.html#4_15.  No parameter of this fix can be
 used with the {start/stop} keywords of the "run"_run.html command.
-This fix is not invoked during "energy minimization"_minimize.html.
+
+The forces due to this fix are imposed during an energy minimization,
+as invoked by the "minimize"_minimize.html command via the
+"neb"_neb.html command.
 
 [Restrictions:]
 
@@ -95,8 +98,9 @@ more info on packages.
 
 [Default:] none
 
-:link(HJ1)
-[(Henkelman1)] Henkelman and Jonsson, J Phys Chem, 113, 9978-9985 (2000).
+:link(Henkelman)
+[(Henkelman1)] Henkelman and Jonsson, J Chem Phys, 113, 9978-9985 (2000).
 
-:link(HJ2)
-[(Henkelman2)] Henkelman and Jonsson, J Phys Chem, 113, 99019904 (2000).
+:link(Henkelman)
+[(Henkelman2)] Henkelman, Uberuaga, Jonsson, J Chem Phys, 113,
+9901-9904 (2000).

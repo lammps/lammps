@@ -47,15 +47,21 @@ slowly drains all kinetic energy from the system.  The "pair_style
 soft"_pair_soft.html potential can be used to un-overlap atoms while
 running dynamics.
 
-A minimization involves an outer iteration loop which sets the search
-direction along which atom coordinates are changed.  An inner
-iteration is then performed using a line search algorithm.  The line
-search typically evaluates forces and energies several times to set
-new coordinates.  Currently, a backtracking algorithm is used which
-may not be optimal in terms of the number of force evaulations
-performed, but appears to be more robust than previous line searches
-we've tried.  The backtracking method is described in Nocedal and
-Wright's Numerical Optimization (Procedure 3.1 on p 41).
+The "minimization styles"_min_style.html {cg}, {sd}, and {hftn}
+involves an outer iteration loop which sets the search direction along
+which atom coordinates are changed.  An inner iteration is then
+performed using a line search algorithm.  The line search typically
+evaluates forces and energies several times to set new coordinates.
+Currently, a backtracking algorithm is used which may not be optimal
+in terms of the number of force evaulations performed, but appears to
+be more robust than previous line searches we've tried.  The
+backtracking method is described in Nocedal and Wright's Numerical
+Optimization (Procedure 3.1 on p 41).
+
+The "minimization styles"_min_style.html {quickmin} and {fire} perform
+damped dynamics using an Euler integration step.  Thus they require a
+"timestep"_timestep.html be defined, typically the same value used for
+"running dynamics"_run.html with the system.
 
 The objective function being minimized is the total potential energy
 of the system as a function of the N atom coordinates:
@@ -82,7 +88,7 @@ The minimization procedure stops if any of several criteria are met:
 the change in energy between outer iterations is less than {etol}
 the 2-norm (length) of the global force vector is less than the {ftol}
 the line search fails because the step distance backtracks to 0.0
-the number of outer iterations exceeds {maxiter}
+the number of outer iterations or timesteps exceeds {maxiter}
 the number of total force evaluations exceeds {maxeval} :ul
 
 For the first criterion, the specified energy tolerance {etol} is

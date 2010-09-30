@@ -260,10 +260,10 @@ langevin"_fix_langevin.html, "fix viscous"_fix_viscous.html
 :line
 
 :link(Henkelman1)
-[(Henkelman1)] Henkelman and Jonsson, J Phys Chem, 113, 9978-9985 (2000).
+[(Henkelman1)] Henkelman and Jonsson, J Chem Phys, 113, 9978-9985 (2000).
 
 :link(Henkelman2)
-[(Henkelman2)] Henkelman, Uberuaga, Jonsson, J Phys Chem, 113,
+[(Henkelman2)] Henkelman, Uberuaga, Jonsson, J Chem Phys, 113,
 9901-9904 (2000).
 
 :link(Nakano)

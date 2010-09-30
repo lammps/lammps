@@ -56,9 +56,12 @@ d.aselect.test("$id > 100 and $type == 2",N)  select matching atoms in one step
     Python comparison syntax: == != < > <= >= and or
     $name must end with a space
 
-d.write("file")	   	  	   write selected steps/atoms to dump file
-d.scatter("tmp")		   write selected steps/atoms to mutiple files
+d.write("file")	   	           write selected steps/atoms to dump file
+d.write("file",head,app)	   write selected steps/atoms to dump file
+d.scatter("tmp")		   write selected steps/atoms to multiple files
 
+  write() can be specified with 2 additional flags
+    headd = 0/1 for no/yes snapshot header, app = 0/1 for write vs append
   scatter() files are given timestep suffix: e.g. tmp.0, tmp.100, etc
 
 d.scale() 	    	  	   scale x,y,z to 0-1 for all timesteps
@@ -81,6 +84,7 @@ d.sort(1000)			   sort atoms in timestep N
 
 m1,m2 = d.minmax("type")               find min/max values for a column
 d.set("$ke = $vx * $vx + $vy * $vy")   set a column to a computed value
+d.setv("type",vector)                  set a column to a vector of values
 d.spread("ke",N,"color")	       2nd col = N ints spread over 1st col
 d.clone(1000,"color")	       	       clone timestep N values to other steps
 
@@ -90,6 +94,10 @@ d.clone(1000,"color")	       	       clone timestep N values to other steps
     left-hand side column is unset or unchanged for non-selected atoms
     equation is in Python syntax
     use $ for column names, $name must end with a space
+  setv() operates on selected timesteps and atoms
+    if column label does not exist, column is created
+    values in vector are assigned sequentially to atoms, so may want to sort()
+    length of vector must match # of selected atoms
   spread() operates on selected timesteps and atoms
     min and max are found for 1st specified column across all selected atoms
     atom's value is linear mapping (1-N) between min and max
@@ -133,6 +141,7 @@ d.extra(data)				   extract bond/tri/line list from data
 
 # History
 #   8/05, Steve Plimpton (SNL): original version
+#   12/09, David Hart (SNL): allow use of NumPy or Numeric
 
 # ToDo list
 #   try to optimize this line in read_snap: words += f.readline().split()
@@ -173,7 +182,13 @@ d.extra(data)				   extract bond/tri/line list from data
 import sys, commands, re, glob, types
 from os import popen
 from math import *             # any function could be used by set()
-import Numeric
+
+try:
+    import numpy as np
+    oldnumeric = False
+except:
+    import Numeric as np
+    oldnumeric = True
 
 try: from DEFAULTS import PIZZA_GUNZIP
 except: PIZZA_GUNZIP = "gunzip"
@@ -329,7 +344,7 @@ class dump:
       item = f.readline()
       snap.natoms = int(f.readline())
 
-      snap.aselect = Numeric.zeros(snap.natoms)
+      snap.aselect = np.zeros(snap.natoms)
 
       item = f.readline()
       words = f.readline().split()
@@ -358,7 +373,8 @@ class dump:
         for i in xrange(1,snap.natoms):
           words += f.readline().split()
         floats = map(float,words)
-        atoms = Numeric.zeros((snap.natoms,ncol),Numeric.Float)
+        if oldnumeric: atoms = np.zeros((snap.natoms,ncol),np.Float)
+        else: atoms = np.zeros((snap.natoms,ncol),np.float)
         start = 0
         stop = ncol
         for i in xrange(snap.natoms):
@@ -585,30 +601,32 @@ class dump:
   def sort_one(self,snap,id):
     atoms = snap.atoms
     ids = atoms[:,id]
-    ordering = Numeric.argsort(ids)
+    ordering = np.argsort(ids)
     for i in xrange(len(atoms[0])):
-      atoms[:,i] = Numeric.take(atoms[:,i],ordering)
+      atoms[:,i] = np.take(atoms[:,i],ordering)
 
   # --------------------------------------------------------------------
   # write a single dump file from current selection
 
-  def write(self,file):
+  def write(self,file,header=1,append=0):
     if len(self.snaps): namestr = self.names2str()
-    f = open(file,"w")
+    if not append: f = open(file,"w")
+    else: f = open(file,"a")
     for snap in self.snaps:
       if not snap.tselect: continue
       print snap.time,
       sys.stdout.flush()
 
-      print >>f,"ITEM: TIMESTEP"
-      print >>f,snap.time
-      print >>f,"ITEM: NUMBER OF ATOMS"
-      print >>f,snap.nselect
-      print >>f,"ITEM: BOX BOUNDS"
-      print >>f,snap.xlo,snap.xhi
-      print >>f,snap.ylo,snap.yhi
-      print >>f,snap.zlo,snap.zhi
-      print >>f,"ITEM: ATOMS",namestr
+      if header:
+        print >>f,"ITEM: TIMESTEP"
+        print >>f,snap.time
+        print >>f,"ITEM: NUMBER OF ATOMS"
+        print >>f,snap.nselect
+        print >>f,"ITEM: BOX BOUNDS"
+        print >>f,snap.xlo,snap.xhi
+        print >>f,snap.ylo,snap.yhi
+        print >>f,snap.zlo,snap.zhi
+        print >>f,"ITEM: ATOMS",namestr
       
       atoms = snap.atoms
       nvalues = len(atoms[0])
@@ -677,7 +695,7 @@ class dump:
     return (min,max)
 
   # --------------------------------------------------------------------
-  # set a column value via an equation
+  # set a column value via an equation for all selected snapshots
 
   def set(self,eq):
     print "Setting ..."
@@ -699,6 +717,26 @@ class dump:
       if not snap.tselect: continue
       for i in xrange(snap.natoms):
         if snap.aselect[i]: exec ceq
+          
+  # --------------------------------------------------------------------
+  # set a column value via an input vec for all selected snapshots/atoms
+
+  def setv(self,colname,vec):
+    print "Setting ..."
+    if not self.names.has_key(colname):
+      self.newcolumn(colname)
+    icol = self.names[colname]
+
+    for snap in self.snaps:
+      if not snap.tselect: continue
+      if snap.nselect != len(vec):
+        raise StandardError,"vec length does not match # of selected atoms"
+      atoms = snap.atoms
+      m = 0
+      for i in xrange(snap.natoms):
+        if snap.aselect[i]:
+          atoms[i][icol] = vec[m]
+          m += 1
           
   # --------------------------------------------------------------------
   # clone value in col across selected timesteps for atoms with same ID
@@ -816,7 +854,8 @@ class dump:
     self.map(ncol+1,str)
     for snap in self.snaps:
       atoms = snap.atoms
-      newatoms = Numeric.zeros((snap.natoms,ncol+1),Numeric.Float)
+      if oldnumeric: newatoms = np.zeros((snap.natoms,ncol+1),np.Float)
+      else: newatoms = np.zeros((snap.natoms,ncol+1),np.float)
       newatoms[:,0:ncol] = snap.atoms
       snap.atoms = newatoms
 
@@ -870,7 +909,7 @@ class dump:
     z = self.names["z"]
 
     # create atom list needed by viz from id,type,x,y,z
-    # need Numeric mode here
+    # need Numeric/Numpy mode here
     
     atoms = []
     for i in xrange(snap.natoms):
@@ -883,7 +922,7 @@ class dump:
     # lookup bond atom IDs in alist and grab their coords
     # try is used since some atoms may be unselected
     #   any bond with unselected atom is not returned to viz caller
-    # need Numeric mode here
+    # need Numeric/Numpy mode here
 
     bonds = []
     if self.bondflag:
@@ -975,7 +1014,8 @@ class dump:
 
         # convert values to int and absolute value since can be negative types
         
-        bondlist = Numeric.zeros((nbonds,4),Numeric.Int)
+        if oldnumeric: bondlist = np.zeros((nbonds,4),np.Int)
+        else: bondlist = np.zeros((nbonds,4),np.int)
         ints = [abs(int(value)) for value in words]
         start = 0
         stop = 4

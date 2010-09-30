@@ -360,8 +360,8 @@ molecule : force fields for molecular systems
 opt : optimized versions of a few pair potentials
 peri : Peridynamics model and potential
 poems : coupled rigid body motion
-prd : parallel replica dynamics
 reax : ReaxFF potential
+replica : multi-replica methods
 shock : methods for MD simulations of shock loading
 xtc : dump atom snapshots in XTC format :tb(s=:)
 
@@ -629,7 +629,7 @@ mpirun -np 4 lmp_linux < in.lj.nve :pre
 On a Windows machine, you can skip making LAMMPS and simply download
 an executable. But note that not all packages are available.
 The following packages are available: asphere, class2, colloid, dipole,
-dsmc, granular, kspace, manybody, molecule, peri, poems, prd, shock,
+dsmc, granular, kspace, manybody, molecule, peri, poems, replica, shock,
 user-ackland, user-cd-eam, user-cg-cmm, user-ewaldn, user-smd. But these 
 packages are not available: gpu, meam, opt, reax, xtc, user-atc, user-imd.
 
@@ -738,6 +738,11 @@ form N mean a single partition with N processors.  The sum of
 processors in all partitions must equal P.  Thus the command
 "-partition 8x2 4 5" has 10 partitions and runs on a total of 25
 processors.
+
+Note that with MPI installed on a machine (e.g. your desktop), you can
+run on more (virtual) processors than you have physical processors.
+This can be useful for running "multi-replica
+simulations"_Section_howto.html#4_5, on one or a few processors.
 
 The input script specifies what simulation is run on which partition;
 see the "variable"_variable.html and "next"_next.html commands.  This

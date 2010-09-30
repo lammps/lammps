@@ -1,0 +1,102 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+fix neb command :h3
+
+[Syntax:]
+
+fix ID group-ID neb kspring :pre
+  
+ID, group-ID are documented in "fix"_fix.html command
+neb = style name of this fix command
+kspring = inter-replica spring constant :ul
+
+[Examples:]
+
+fix 1 active neb 10.0 :pre
+
+[Description:]
+
+Add inter-replica forces to atoms in the group for a multi-partition
+simulation run via the "neb"_neb.html command to perform a nudged
+elastic band (NEB) calculation for transition state finding.  Hi-level
+explanations of NEB are given with the "neb"_neb.html command and in
+"this section"_Section_howto.html#neb of the doc pages.  The fix neb
+command is used to define how inter-replica forces are computed.
+
+Atoms in the two end-point replicas do not experience inter-replica
+forces, but those in intermediate replicas do.  The 3N-length vector
+of interatomic forces Fi = -Grad(V) acting on the atoms of each
+intermediate replica I is altered to become:
+
+Fi = -Grad(V) + (Grad(V) dot That) That + Kspring (|Ri+i - Ri| - |Ri - Ri-1|) That :pre
+
+Ri are the atomic coordinates of replica I; Ri-1 and Ri+1 are the
+coordinates of its neighbor replicas.  That (t with a hat over it) is
+the unit "tangent" vector for replica I which is a function of Ri,
+Ri-1, Ri+1, and the potential energy of the 3 replicas; it points
+roughly in the direction of (Ri+i - Ri-1).  The first two terms in the
+above equation are the component of the interatomic forces
+perpendicular to the tangent vector.  The last term is a spring force
+between replica I and its neighbors, parallel to the tangent vector
+direction with the specified spring constant.
+
+NOTE: That is defined in what papers?
+
+The effect of the first two terms is to push the atoms of each replica
+toward the minimum energy path (MEP) of conformational states that
+transition over the energy barrier.  The MEP for an energy barrier is
+defined as a sequence of 3N-dimensional states which cross the barrier
+at its saddle point, each of which has a potential energy gradient
+parallel to the MEP itself.
+
+The effect of the last term is to push each replica away from its two
+neighbors in a direction along the MEP, so that the final set of
+states are equidistant from each other.
+
+A NEB calculation is performed in two stages, as described by the neb
+command.  In the second stage, the forces on atoms in the replica
+nearest the top of the energy barrier are altered so that it climbs to
+the top of the barrier and finds the saddle point.  The forces on
+atoms in this replica become:
+
+Fi = -Grad(V) + 2 (Grad(V) dot that) that :pre
+
+The inter-replica forces for the other replicas are unchanged from the
+first equation. 
+
+NOTE: discuss how to do NEB on a subset of atoms - group ID of fix neb
+command.
+
+[Restart, fix_modify, output, run start/stop, minimize info:]
+
+No information about this fix is written to "binary restart
+files"_restart.html.  None of the "fix_modify"_fix_modify.html options
+are relevant to this fix.  No global or per-atom quantities are stored
+by this fix for access by various "output
+commands"_Section_howto.html#4_15.  No parameter of this fix can be
+used with the {start/stop} keywords of the "run"_run.html command.
+This fix is not invoked during "energy minimization"_minimize.html.
+
+[Restrictions:]
+
+This command can only be used if LAMMPS was built with the "replica"
+package.  See the "Making LAMMPS"_Section_start.html#2_3 section for
+more info on packages.
+
+[Related commands:]
+
+"neb"_neb.html
+
+[Default:] none
+
+:link(HJ1)
+[(Henkelman1)] Henkelman and Jonsson, J Phys Chem, 113, 9978-9985 (2000).
+
+:link(HJ2)
+[(Henkelman2)] Henkelman and Jonsson, J Phys Chem, 113, 99019904 (2000).

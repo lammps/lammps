@@ -18,7 +18,7 @@ certain kinds of LAMMPS simulations.
 4.2 <A HREF = "#4_2">2d simulations</A><BR>
 4.3 <A HREF = "#4_3">CHARMM and AMBER force fields</A><BR>
 4.4 <A HREF = "#4_4">Running multiple simulations from one input script</A><BR>
-4.5 <A HREF = "#4_5">Parallel tempering</A><BR>
+4.5 <A HREF = "#4_5">Multi-replica simulations</A><BR>
 4.6 <A HREF = "#4_6">Granular models</A><BR>
 4.7 <A HREF = "#4_7">TIP3P water model</A><BR>
 4.8 <A HREF = "#4_8">TIP4P water model</A><BR>
@@ -292,33 +292,46 @@ the 4th simulation, and so forth, until all 8 were completed.
 </P>
 <HR>
 
-<A NAME = "4_5"></A><H4>4.5 Parallel tempering 
+<A NAME = "4_5"></A><H4>4.5 Multi-replica simulations 
 </H4>
-<P>The <A HREF = "temper.html">temper</A> command can be used to perform a parallel
-tempering or replica-exchange simulation where multiple copies of a
-simulation are run at different temperatures on different sets of
-processors, and Monte Carlo temperature swaps are performed between
-pairs of copies.
+<P>Several commands in LAMMPS run mutli-replica simulations, meaning
+that multiple instances (replicas) of your simulation are run
+simultaneously, with small amounts of data exchanged between replicas
+periodically.
 </P>
-<P>Use the -procs and -in <A HREF = "Section_start.html#2_6">command-line switches</A>
-to launch LAMMPS on multiple partitions.
+<P>These are the relevant commands:
 </P>
-<P>In your input script, define a set of temperatures, one for each
-processor partition, using the <A HREF = "variable.html">variable</A> command:
+<UL><LI><A HREF = "neb.html">neb</A> for nudged elastic band calculations
+<LI><A HREF = "prd.html">prd</A> for parallel replica dynamics
+<LI><A HREF = "temper.html">temper</A> for parallel tempering 
+</UL>
+<P>NEB is a method for finding transition states and barrier energies.
+PRD is a method for performing accelerated dynamics to find and
+perform infrequent events.  Parallel tempering or replica exchange
+runs different replicas at a series of temperature to facilitate
+rare-event sampling.
 </P>
-<PRE>variable t world 300.0 310.0 320.0 330.0 
+<P>In all these cases, you must run with one or more processors per
+replica.  The processors assigned to each replica are determined at
+run-time by using the <A HREF = "Section_start.html#2_6">-partition command-line
+switch</A> to launch LAMMPS on multiple
+partitions, which in this context are the same as replicas.  E.g.
+these commands:
+</P>
+<PRE>mpirun -np 16 lmp_linux -partition 8x2 -in in.temper
+mpirun -np 8 lmp_linux -partition 8x1 -in in.neb 
 </PRE>
-<P>Define a fix of style <A HREF = "fix_nh.html">nvt</A> or <A HREF = "fix_langevin.html">langevin</A>
-to control the temperature of each simulation:
+<P>would each run 8 replicas, on either 16 or 8 processors.  Note the use
+of the <A HREF = "Section_start.html#2_6">-in command-line switch</A> to specify the
+input script which is required when running in multi-replica mode.
 </P>
-<PRE>fix myfix all nvt $t $t 100.0 
-</PRE>
-<P>Use the <A HREF = "temper.html">temper</A> command in place of a <A HREF = "run.html">run</A>
-command to perform a simulation where tempering exchanges will take
-place:
+<P>Also note that with MPI installed on a machine (e.g. your desktop),
+you can run on more (virtual) processors than you have physical
+processors.  Thus the above commands could be run on a
+single-processor (or few-processor) desktop so that you can run
+a multi-replica simulation on more replicas than you have
+physical processors.
 </P>
-<PRE>temper 100000 100 $t myfix 3847 58382 
-</PRE>
 <HR>
 
 <A NAME = "4_6"></A><H4>4.6 Granular models 

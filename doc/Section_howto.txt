@@ -15,7 +15,7 @@ certain kinds of LAMMPS simulations.
 4.2 "2d simulations"_#4_2
 4.3 "CHARMM and AMBER force fields"_#4_3
 4.4 "Running multiple simulations from one input script"_#4_4
-4.5 "Parallel tempering"_#4_5
+4.5 "Multi-replica simulations"_#4_5
 4.6 "Granular models"_#4_6
 4.7 "TIP3P water model"_#4_7
 4.8 "TIP4P water model"_#4_8
@@ -288,32 +288,45 @@ the 4th simulation, and so forth, until all 8 were completed.
 
 :line
 
-4.5 Parallel tempering :link(4_5),h4
+4.5 Multi-replica simulations :link(4_5),h4
 
-The "temper"_temper.html command can be used to perform a parallel
-tempering or replica-exchange simulation where multiple copies of a
-simulation are run at different temperatures on different sets of
-processors, and Monte Carlo temperature swaps are performed between
-pairs of copies.
+Several commands in LAMMPS run mutli-replica simulations, meaning
+that multiple instances (replicas) of your simulation are run
+simultaneously, with small amounts of data exchanged between replicas
+periodically.
 
-Use the -procs and -in "command-line switches"_Section_start.html#2_6
-to launch LAMMPS on multiple partitions.
+These are the relevant commands:
 
-In your input script, define a set of temperatures, one for each
-processor partition, using the "variable"_variable.html command:
+"neb"_neb.html for nudged elastic band calculations
+"prd"_prd.html for parallel replica dynamics
+"temper"_temper.html for parallel tempering :ul
 
-variable t world 300.0 310.0 320.0 330.0 :pre
+NEB is a method for finding transition states and barrier energies.
+PRD is a method for performing accelerated dynamics to find and
+perform infrequent events.  Parallel tempering or replica exchange
+runs different replicas at a series of temperature to facilitate
+rare-event sampling.
 
-Define a fix of style "nvt"_fix_nh.html or "langevin"_fix_langevin.html
-to control the temperature of each simulation:
+In all these cases, you must run with one or more processors per
+replica.  The processors assigned to each replica are determined at
+run-time by using the "-partition command-line
+switch"_Section_start.html#2_6 to launch LAMMPS on multiple
+partitions, which in this context are the same as replicas.  E.g.
+these commands:
 
-fix myfix all nvt $t $t 100.0 :pre
+mpirun -np 16 lmp_linux -partition 8x2 -in in.temper
+mpirun -np 8 lmp_linux -partition 8x1 -in in.neb :pre
 
-Use the "temper"_temper.html command in place of a "run"_run.html
-command to perform a simulation where tempering exchanges will take
-place:
+would each run 8 replicas, on either 16 or 8 processors.  Note the use
+of the "-in command-line switch"_Section_start.html#2_6 to specify the
+input script which is required when running in multi-replica mode.
 
-temper 100000 100 $t myfix 3847 58382 :pre
+Also note that with MPI installed on a machine (e.g. your desktop),
+you can run on more (virtual) processors than you have physical
+processors.  Thus the above commands could be run on a
+single-processor (or few-processor) desktop so that you can run
+a multi-replica simulation on more replicas than you have
+physical processors.
 
 :line
 

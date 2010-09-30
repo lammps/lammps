@@ -366,8 +366,8 @@ package".
 <TR><TD >opt </TD><TD > optimized versions of a few pair potentials</TD></TR>
 <TR><TD >peri </TD><TD > Peridynamics model and potential</TD></TR>
 <TR><TD >poems </TD><TD > coupled rigid body motion</TD></TR>
-<TR><TD >prd </TD><TD > parallel replica dynamics</TD></TR>
 <TR><TD >reax </TD><TD > ReaxFF potential</TD></TR>
+<TR><TD >replica </TD><TD > multi-replica methods</TD></TR>
 <TR><TD >shock </TD><TD > methods for MD simulations of shock loading</TD></TR>
 <TR><TD >xtc </TD><TD > dump atom snapshots in XTC format 
 </TD></TR></TABLE></DIV>
@@ -636,7 +636,7 @@ mpirun -np 4 lmp_linux < in.lj.nve
 <P>On a Windows machine, you can skip making LAMMPS and simply download
 an executable. But note that not all packages are available.
 The following packages are available: asphere, class2, colloid, dipole,
-dsmc, granular, kspace, manybody, molecule, peri, poems, prd, shock,
+dsmc, granular, kspace, manybody, molecule, peri, poems, replica, shock,
 user-ackland, user-cd-eam, user-cg-cmm, user-ewaldn, user-smd. But these 
 packages are not available: gpu, meam, opt, reax, xtc, user-atc, user-imd.
 </P>
@@ -748,6 +748,11 @@ form N mean a single partition with N processors.  The sum of
 processors in all partitions must equal P.  Thus the command
 "-partition 8x2 4 5" has 10 partitions and runs on a total of 25
 processors.
+</P>
+<P>Note that with MPI installed on a machine (e.g. your desktop), you can
+run on more (virtual) processors than you have physical processors.
+This can be useful for running <A HREF = "Section_howto.html#4_5">multi-replica
+simulations</A>, on one or a few processors.
 </P>
 <P>The input script specifies what simulation is run on which partition;
 see the <A HREF = "variable.html">variable</A> and <A HREF = "next.html">next</A> commands.  This

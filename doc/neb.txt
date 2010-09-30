@@ -1,0 +1,270 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+neb command :h3
+
+[Syntax:]
+
+neb etol ftol N1 N2 Nevery filename :pre
+
+etol = stopping tolerance for energy (unitless)
+ftol = stopping tolerance for force (force units)
+N1 = max # of iterations (timesteps) to run initial NEB 
+N2 = max # of iterations (timesteps) to run barrier-climbing NEB
+Nevery = print replica energies and reaction coordinates every this many timesteps
+filename = file specifying final atom coordinates on other side of barrier :ul
+
+[Examples:]
+
+neb 0.0 0.0 1000 500 50 coords.final
+neb 1.0e-6 0.001 1000 500 50 coords.final :pre
+
+[Description:]
+
+Perform a nudged elastic band (NEB) calculation using multiple
+replicas of a system.  Three or more replicas must be used, two of
+which are the end points of the transition path.
+
+NEB is a method for finding both the atomic configurations and height
+of the energy barrier associated with a transition state, e.g. for an
+atom to perform a diffusive hop from one energy basin to another in a
+coordinated fashion with its neighbors.  The implementation in LAMMPS
+follows the discussion in these 3 papers: "(Henkelman1)"_#Henkelman1,
+"(Henkelman2)"_#Henkelman2, and "(Nakano)"_#Nakano.
+
+Each replica runs on a partition of one or more processors.  Processor
+partitions are defined at run-time using the -partition command-line
+switch; see "this section"_Section_start.html#2_6 of the manual.  Note
+that if you have MPI installed, you can run a multi-replica simulation
+with more replicas (partitions) than you have physical processors, e.g
+you can run a 10-replica simulation on one or two processors.  You
+will simply not get the performance speed-up you would see with one or
+more physical processors per replica.  See "this
+section"_Section_howto.html#4_5 of the manual for further discussion.
+
+NOTE: The current NEB implementation in LAMMPS restricts you to having
+exactly one processor per replica.
+
+When a NEB calculation is performed, it is assumed that each replica
+is running the same model, though LAMMPS does not check for this.
+I.e. the simulation domain, the number of atoms, the interaction
+potentials, and the starting configuration when the neb command is
+issued should be the same for every replica.
+
+In a NEB calculation each atom in a replica is connected to the same
+atom in adjacent replicas by springs, which induce inter-replica
+forces.  These forces are imposed by the "fix neb"_fix_neb.html
+command, which must be used in conjunction with the neb command.  The
+group used to define the fix neb command specifies which atoms the
+inter-replica springs are applied to.  These are the NEB atoms.
+Additional atoms can be present in your system, e.g. to provide a
+background force field or simply to hold fixed during the NEB
+procedure, but they will not be part of the barrier finding procedure.
+
+The "starting configuration" for NEB should be a state with the NEB
+atoms (and all other atoms) having coordinates on one side of the
+energy barrier.  These coordinates will be assigned to the first
+replica #1.  The coordinates should be close to a local energy minimum
+and the velocities should be zeroed.  A perfect energy minimum is not
+required (nor are zero velocities), since NEB runs via damped dynamics
+which will tend to drive the configuration of replica #1 to a true
+energy minimum, but you will typically get better convergence if the
+initial state is already at a minimum.  For example, for a system with
+a free surface, the surface should be fully relaxed before attempting
+a NEB calculation.
+
+The final configuration is specified in the input {filename}, which is
+formatted as described below.  Only coordinates for NEB atoms or a
+subset of them should be listed in the file; they represent the state
+of the system on the other side of the barrier, at or near an energy
+minimum.  These coordinates will be assigned to the last replica #M.
+The final coordinates of atoms not listed in {filename} are set equal
+to their initial coordinates.  Again, a perfect energy minimum is not
+required for the final configuration, since the atoms in replica #M
+will tend to move during the NEB procedure to the nearest energy
+minimum.  Also note that a final coordinate does not need to be
+specified for a NEB atom if you expect it to only displace slightly
+during the NEB procedure.  For example, only the final coordinate of
+the single atom diffusing into a vacancy need be specified if the
+surrounding atoms will only relax slightly in the final configuration.
+
+The initial coordinates of all atoms (not just NEB atoms) in the
+intermediate replicas #2,#3,...,#M-1 are set to values linearly
+interpolated between the corresponding atoms in replicas #1 and #M.
+
+A NEB calculation has two stages, each of which is a minimization
+procedure, performed via damped dynamics.  To enable this, you must
+first define an appropriate "min_style"_min_style.html, such as
+{quickmin} or {fire}.  The {cg}, {sd}, and {hftn} styles cannot be
+used, since they perform iterative line searches in their inner loop,
+which cannot be easily synchronized across multiple replicas.
+
+The minimizer tolerances for energy and force are set by {etol} and
+{ftol}, the same as for the "minimize"_minimize.html command.  The
+maximum number of iterations in each stage is set by {N1} and {N2}.
+These are effectively timestep counts since each iteration of damped
+dynamics is like a single timestep in a dynamics "run"_run.html.
+During both stages, the potential energy of each replica and its
+normalized distance along the reaction path (reaction coordinate RD)
+will be printed to the screen and log file every {Nevery} timesteps.
+The RD is 0 and 1 for the first and last replica.  For intermediate
+replicas, it is the cummulative distance (normalized by the total
+cummulative distance) between adjacent replicas, where "distance" is
+defined as the length of the 3N-vector of differences in atomic
+coordinates, where N is the number of NEB atoms involved in the
+transition.  These outputs allow you to monitor NEB's progress in
+finding a good energy barrier.  {N1} and {N2} must both be multiples
+of {Nevery}.
+
+In the first stage of NEB, the set of replicas should converge toward
+the minimum energy path (MEP) of conformational states that transition
+over the barrier.  The MEP for a barrier is defined as a sequence of
+3N-dimensional states that cross the barrier at its saddle point, each
+of which has a potential energy gradient parallel to the MEP itself.
+The replica states will also be roughly equally spaced along the MEP
+due to the inter-replica spring force added by the "fix
+neb"_fix_neb.html command.
+
+In the second stage of NEB, the replica nearest the top of the barrier
+is selected and the inter-replica forces on it are converted to a
+force that drives its atom coordinates to the top or saddle point of
+the barrier, via the hill-climbing calculation described in
+"(Henkelman2)"_#Hinkelman2.  As before, the other replicas rearrange
+themselves along the MEP so as to be roughly equally spaced.
+
+When both stages are complete, if the NEB calculation was successful,
+one of the replicas should be an atomic configuration at the top or
+saddle point of the barrier, the potential energies for the set of
+replicas should represent the energy profile of the barrier along the
+MEP, and the configurations of the replicas should be a seqeunce of
+configurations along the MEP.
+
+:line
+
+A few other settings in your input script are required or advised to
+perform a NEB calculation.
+
+The "atom_modify sort 0 0.0" command should be used to turn off atom
+sorting.
+
+NOTE: This sorting restriction will be removed in a future version of
+NEB in LAMMPS.
+
+The minimizers in LAMMPS operate on all atoms in your system, even
+non-NEB atoms, as defined above.  To prevent non-NEB atoms from moving
+during the minimization, you should use the "fix
+setforce"_fix_setforce.html command to set the force on each of those
+atoms to 0.0.  This is not required, and may not even be desired in
+some cases, but if those atoms move too far (e.g. because the initial
+state of your system was not well-minimized), it can cause problems
+for the NEB procedure.
+
+Similarly, you should initialize the velocity of all NEB atoms (and
+non-NEB atoms if they are free to move) in your system to 0.0 before
+invoking the neb command.  This gives the minimizer a consistent zero
+velocity to start its damped dynamics with.
+
+The damped dynamics "minimizers"_min_style.html, such as {quickmin}
+and {fire}), adjust the position and velocity of the atoms via an
+Euler integration step.  Thus you must define an appropriate
+"timestep"_timestep.html to use with NEB.  Using the same timestep
+that would be used for a dynamics "run"_run.html of your system is
+advised.
+
+:line
+
+The specified {filename} contains atom coordinates for the final
+configuration.  Only atoms with coordinates different than the initial
+configuration need to be specified, i.e. those geometrically near the
+barrier.
+
+The file can be ASCII text or a gzipped text file (detected by a .gz
+suffix).  The file should contain one line per atom, formatted
+with the atom ID, followed by the final x,y,z coordinates:
+
+125     24.97311   1.69005     23.46956
+126     1.94691    2.79640     1.92799
+127     0.15906    3.46099     0.79121
+... :pre
+
+The lines can be listed in any order.
+
+:line
+
+Four kinds of output can be generated during a NEB calculation: energy
+barrier statistics, thermodynamic output by each replica, dump files,
+and restart files.
+
+When running with multiple partitions (each of which is a replica in
+this case), the print-out to the screen and master log.lammps file is
+limited to the potential energy of each replica, printed once every
+{Nevery} timesteps.
+
+When running on multiple partitions, LAMMPS produces additional log
+files for each partition, e.g. log.lammps.0, log.lammps.1, etc.  For a
+NEB calculation, these contain the thermodynamic output for each
+replica.
+
+If "dump"_dump.html commands in the input script define a filename
+that includes a {universe} or {uloop} style "variable"_variable.html,
+then one dump file (per dump command) will be created for each
+replica.  At the end of the NEB calculation, the final snapshot in
+each file will contain the sequence of snapshots that transition the
+system over the energy barrier.  Earlier snapshots will show the
+convergence of the replicas to the MEP.
+
+Likewise, "restart"_restart.html filenames can be specified with a
+{universe} or {uloop} style "variable"_variable.html, to generate
+restart files for each replica.  These may be useful if the NEB
+calculation fails to converge properly to the MEP, and you wish to
+restart the calculation from an intermediate point with altered
+parameters.
+
+There are 2 Python scripts provided in the tools/python directory,
+neb1.py and neb2.py, which are useful in analyzing output from a NEB
+calculation.  Assume a NEB simulation with M replicas, and the NEB
+atoms labelled with a specific atom type.
+
+The neb1.py script extracts atom coords for the NEB atoms from all M
+dump files and creates a single dump file where each snapshot contains
+the NEB atoms from all the replicas and one copy of non-NEB atoms from
+the first replica (presumed to be identical in other replicas).  This
+can be visualized to see how the NEB atoms relax as the NEB
+calculation proceeds.
+
+The neb2.py script extracts the final snapshot from each of the M dump
+files to create a single dump file with M snapshots.  This can be
+visualized to watch the system make its transition over the energy
+barrier.
+
+:line
+
+[Restrictions:]
+
+This command can only be used if LAMMPS was built with the "replica"
+package.  See the "Making LAMMPS"_Section_start.html#2_3 section for
+more info on packages.
+
+[Related commands:]
+
+"prd"_prd.html, "temper"_temper.html, "fix
+langevin"_fix_langevin.html, "fix viscous"_fix_viscous.html
+
+[Default:] none
+
+:line
+
+:link(Henkelman1)
+[(Henkelman1)] Henkelman and Jonsson, J Phys Chem, 113, 9978-9985 (2000).
+
+:link(Henkelman2)
+[(Henkelman2)] Henkelman, Uberuaga, Jonsson, J Phys Chem, 113,
+9901-9904 (2000).
+
+:link(Nakano)
+[(Nakano)] Nakano, Comp Phys Comm, 178, 280-289 (2008).

@@ -210,6 +210,12 @@ Output :h4
   time averaging of system-wide quantities
   atom snapshots in native, XYZ, XTC, DCD, CFG formats :ul
 
+Multi-replica models :h4
+
+"nudged elastic band"_neb.html
+"parallel replica dynamics"_prd.html
+"parallel tempering"_temper.html
+
 Pre- and post-processing :h4
 
 Various pre- and post-processing serial tools are packaged
@@ -229,11 +235,10 @@ Specialized features :h4
 These are LAMMPS capabilities which you may not think of as typical
 molecular dynamics options:
 
+"stochastic rotation dynamics (SRD)"_fix_srd.html
 "real-time visualization and interactive MD"_fix_imd.html
 "atom-to-continuum coupling"_fix_atc.html with finite elements
 coupled rigid body integration via the "POEMS"_fix_poems.html library
-"parallel tempering"_temper.html
-"parallel replica dynamics"_prd.html
 "Direct Simulation Monte Carlo"_pair_dsmc.html for low-density fluids
 "Peridynamics mesoscale modeling"_pair_peri.html
 "targeted"_fix_tmd.html and "steered"_fix_smd.html molecular dynamics

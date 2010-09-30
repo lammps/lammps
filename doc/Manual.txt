@@ -99,7 +99,7 @@ listed above.
   4.2 "2d simulations"_4_2 :b
   4.3 "CHARMM and AMBER force fields"_4_3 :b
   4.4 "Running multiple simulations from one input script"_4_4 :b
-  4.5 "Parallel tempering"_4_5 :b
+  4.5 "Multi-replica simulations"_4_5 :b
   4.6 "Granular models"_4_6 :b
   4.7 "TIP3P water model"_4_7 :b
   4.8 "TIP4P water model"_4_8 :b

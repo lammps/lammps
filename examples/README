@@ -39,6 +39,7 @@ melt:	  rapid melt of 3d LJ system
 micelle:  self-assembly of small lipid-like molecules into 2d bilayers
 min:	  energy minimization of 2d LJ melt
 msst:	  MSST shock dynamics
+neb:	  nudged elastic band (NEB) calculation for barrier finding
 nemd:	  non-equilibrium MD of 2d sheared system
 obstacle: flow around two voids in a 2d channel
 peptide:  dynamics of a small solvated peptide chain (5-mer)

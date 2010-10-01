@@ -324,28 +324,13 @@ You are not setup correctly to use a GPU from your CPU. :dd
 
 Self-explanatory. :dd
 
-{Atom IDs must be consecutive for dump dcd} :dt
-
-Self-explanatory. :dd
-
-{Atom IDs must be consecutive for dump xtc} :dt
-
-Self-explanatory. :dd
-
-{Atom IDs must be consecutive for dump xyz all} :dt
-
-This is a requirement since XYZ files do not list the atom IDs.
-When using group all, the output is sorted by ID so that
-the atoms will be in a consistent order for different snapshots.
-This sorting requires the IDs be consecutive. :dd
-
-{Atom IDs must be consecutive for dump xyz} :dt
-
-Self-explanatory. :dd
-
 {Atom IDs must be consecutive for velocity create loop all} :dt
 
 Self-explanatory. :dd
+
+{Atom count changed in fix neb} :dt
+
+This is not allowed in a NEB calculation. :dd
 
 {Atom count is inconsistent, cannot write restart file} :dt
 
@@ -444,6 +429,10 @@ The specified compute must compute temperature. :dd
 
 The specified compute must operate on the same group as the parent
 compute. :dd
+
+{Big particle in fix srd cannot be point particle} :dt
+
+Big particles must be extended spheriods or ellipsoids. :dd
 
 {Bitmapped lookup tables require int/float be same size} :dt
 
@@ -579,6 +568,10 @@ See the region prism command for details. :dd
 Only triclinic boxes can be used with off-diagonal pressure components.
 See the region prism command for details. :dd
 
+{Can only use NEB with 1-processor replicas} :dt
+
+This is current restriction for NEB as implemented in LAMMPS. :dd
+
 {Cannot (yet) use PPPM with triclinic box} :dt
 
 This feature is not yet supported. :dd
@@ -599,6 +592,11 @@ Self-explanatory. :dd
 {Cannot change dump_modify every for dump dcd} :dt
 
 The frequency of writing dump dcd snapshots cannot be changed. :dd
+
+{Cannot change timestep once fix srd is setup} :dt
+
+This is because various SRD properties depend on the timestep
+size. :dd
 
 {Cannot change timestep with fix pour} :dt
 
@@ -651,7 +649,23 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
+{Cannot displace_atoms after reading restart file with per-atom info} :dt
+
+This is because the restart file info cannot be migrated with the
+atoms.  You can get around this by performing a 0-timestep run which
+will assign the restart file info to actual atoms. :dd
+
+{Cannot displace_box after reading restart file with per-atom info} :dt
+
+This is because the restart file info cannot be migrated with the
+atoms.  You can get around this by performing a 0-timestep run which
+will assign the restart file info to actual atoms. :dd
+
 {Cannot displace_box on a non-periodic boundary} :dt
+
+Self-explanatory. :dd
+
+{Cannot dump sort on atom IDs with no atom IDs defined} :dt
 
 Self-explanatory. :dd
 
@@ -926,6 +940,18 @@ The kspace style ewald cannot be used in 2d simulations.  You can use
 
 This feature is not yet supported. :dd
 
+{Cannot use NEB unless atom map exists} :dt
+
+Use the atom_modify command to create an atom map. :dd
+
+{Cannot use NEB with a single replica} :dt
+
+Self-explanatory. :dd
+
+{Cannot use NEB with atom_modify sort enabled} :dt
+
+This is current restriction for NEB implemented in LAMMPS. :dd
+
 {Cannot use PPPM with 2d simulation} :dt
 
 The kspace style pppm cannot be used in 2d simulations.  You can use
@@ -947,6 +973,16 @@ which is enabled by default, via the atom_modify command. :dd
 {Cannot use PRD with multi-processor replicas unless atom map exists} :dt
 
 Use the atom_modify command to create an atom map. :dd
+
+{Cannot use a damped dynamics min style with fix box/relax} :dt
+
+This is a current restriction in LAMMPS.  Use another minimizer
+style. :dd
+
+{Cannot use a damped dynamics min style with per-atom DOF} :dt
+
+This is a current restriction in LAMMPS.  Use another minimizer
+style. :dd
 
 {Cannot use delete_atoms unless atoms have IDs} :dt
 
@@ -1594,6 +1630,10 @@ A group ID used in the fix recenter command does not exist. :dd
 
 A group ID used in the fix rigid command does not exist. :dd
 
+{Could not find fix srd group ID} :dt
+
+Self-explanatory. :dd
+
 {Could not find fix_modify ID} :dt
 
 A fix ID used in the fix_modify command does not exist. :dd
@@ -1937,13 +1977,13 @@ Self-explanatory. :dd
 Only atom-style variables generate per-atom quantities, needed for
 dump output. :dd
 
-{Dump dcd must use group all} :dt
-
-Self-explanatory. :dd
-
 {Dump dcd of non-matching # of atoms} :dt
 
 Every snapshot written by dump dcd must contain the same # of atoms. :dd
+
+{Dump dcd requires sorting by atom ID} :dt
+
+Use the dump_modify sort command to enable this. :dd
 
 {Dump every variable returned a bad timestep} :dt
 
@@ -1961,6 +2001,10 @@ needs them. :dd
 {Dump local attributes contain no compute or fix} :dt
 
 Self-explanatory. :dd
+
+{Dump local cannot sort by atom ID} :dt
+
+This is because dump local does not really dump per-atom info. :dd
 
 {Dump local compute does not calculate local array} :dt
 
@@ -2038,13 +2082,13 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
-{Dump xtc must use group all} :dt
+{Dump sort column is invalid} :dt
 
 Self-explanatory. :dd
 
-{Dump xtc must use group all} :dt
+{Dump xtc requires sorting by atom ID} :dt
 
-Self-explanatory. :dd
+Use the dump_modify sort command to enable this. :dd
 
 {Dump_modify region ID does not exist} :dt
 
@@ -2101,6 +2145,10 @@ smaller simulation or on more processors. :dd
 Your LAMMPS simulation has run out of memory.  You need to run a
 smaller simulation or on more processors. :dd
 
+{Fewer SRD bins than processors in some dimension} :dt
+
+This is not allowed.  Make your SRD bin size smaller. :dd
+
 {Final box dimension due to fix deform is < 0.0} :dt
 
 Self-explanatory. :dd
@@ -2136,6 +2184,46 @@ Self-explanatory :dd
 {Fix ID must be alphanumeric or underscore characters} :dt
 
 Self-explanatory. :dd
+
+{Fix SRD cannot have both atom attributes angmom and omega} :dt
+
+Use either spheroid solute particles or fully generalized
+aspherical solute particles. :dd
+
+{Fix SRD no-slip requires atom attribute torque} :dt
+
+This is because the SRD collisions will impart torque to the solute
+particles. :dd
+
+{Fix SRD requires atom attribute angmom or omega} :dt
+
+This is because the SRD collisions with cause the solute particles to
+rotate. :dd
+
+{Fix SRD requires atom attribute radius or shape} :dt
+
+This is because the solute particles must be finite-size particles,
+not point particles. :dd
+
+{Fix SRD: bad bin assignment for SRD advection} :dt
+
+Something has gone wrong in your SRD model; try using more
+conservative settings. :dd
+
+{Fix SRD: bad search bin assignment} :dt
+
+Something has gone wrong in your SRD model; try using more
+conservative settings. :dd
+
+{Fix SRD: bad stencil bin for big particle} :dt
+
+Something has gone wrong in your SRD model; try using more
+conservative settings. :dd
+
+{Fix SRD: too many big particles in bin} :dt
+
+Reset the ATOMPERBIN parameter at the top of fix_srd.cpp
+to a larger value, and re-compile the code. :dd
 
 {Fix adapt atom attribute is not recognized} :dt
 
@@ -2422,9 +2510,13 @@ This is a restriction of the current fix bond/break implementation. :dd
 This is not allowed because bond creation is done using the
 pairwise neighbor list. :dd
 
-{Fix bond/create requires special_bonds = 0,1,1} :dt
+{Fix bond/create requires special_bonds coul = 0,1,1} :dt
 
-This is a restriction of the current fix bond/break implementation. :dd
+Self-explanatory. :dd
+
+{Fix bond/create requires special_bonds lj = 0,1,1} :dt
+
+Self-explanatory. :dd
 
 {Fix bond/swap cannot use dihedral or improper styles} :dt
 
@@ -2720,6 +2812,26 @@ Cannot use fix shake while doing an energy minimization since
 it turns off bonds that should contribute to the energy. :dd
 
 {Fix spring couple group ID does not exist} :dt
+
+Self-explanatory. :dd
+
+{Fix srd lamda must be >= 0.6 of SRD grid size} :dt
+
+This is a requirement for accuracy reasons. :dd
+
+{Fix srd requires SRD particles all have same mass} :dt
+
+Self-explanatory. :dd
+
+{Fix srd requires ghost atoms store velocity} :dt
+
+Use the communicate vel yes command to enable this. :dd
+
+{Fix srd requires newton pair on} :dt
+
+Self-explanatory. :dd
+
+{Fix srd simulation box must be periodic} :dt
 
 Self-explanatory. :dd
 
@@ -3084,6 +3196,10 @@ Incorrect number of words per line in the potential file. :dd
 {Incorrect format in MEAM potential file} :dt
 
 Incorrect number of words per line in the potential file. :dd
+
+{Incorrect format in NEB coordinate file} :dt
+
+Self-explanatory. :dd
 
 {Incorrect format in Stillinger-Weber potential file} :dt
 
@@ -3593,10 +3709,6 @@ Natoms must be constant for the duration of the simulation. :dd
 
 Natoms is initially 0 which is not valid for the dump xtc style. :dd
 
-{Invalid natoms for dump xyz} :dt
-
-Natoms is initially 0 which is not valid for the dump xyz style. :dd
-
 {Invalid option in lattice command for non-custom style} :dt
 
 Certain lattice keywords are not supported unless the
@@ -4061,6 +4173,18 @@ Self-explanatory. :dd
 Must define an energy vartiable when applyting a dynamic
 force during minimization. :dd
 
+{NEB command before simulation box is defined} :dt
+
+Self-explanatory. :dd
+
+{NEB requires damped dynamics minimizer} :dt
+
+Use a different minimization style. :dd
+
+{NEB requires use of fix neb} :dt
+
+Self-explanatory. :dd
+
 {Needed topology not in data file} :dt
 
 The header of the data file indicated that bonds or angles or
@@ -4375,14 +4499,6 @@ Use the lattice command for this purpose. :dd
 Even for atomic systems, an atom map is required to find Peridynamic
 bonds.  Use the atom_modify command to define one. :dd
 
-{Pair reax NATDEF setting too small, edit lib/reax/reax_defs.h} :dt
-
-Edit the Fortran header file in the library, and re-compile LAMMPS. :dd
-
-{Pair reax NNEIGHMAXDEF setting too small, edit lib/reax/reax_defs.h} :dt
-
-Edit the Fortran header file in the library, and re-compile LAMMPS. :dd
-
 {Pair resquared cannot be used with atom attribute diameter} :dt
 
 This attribute overrides the shape settings, so cannot be used. :dd
@@ -4655,6 +4771,10 @@ You are using a thermo keyword that requires potentials to have
 tallied the virial, but they didn't on this timestep.  See the
 variable doc page for ideas on how to make this work. :dd
 
+{Potential energy ID for fix neb does not exist} :dt
+
+Self-explanatory. :dd
+
 {Potential file has duplicate entry} :dt
 
 The potential file for a SW or Tersoff potential has more than
@@ -4754,6 +4874,16 @@ rigid command. :dd
 {R0 < 0 for fix spring command} :dt
 
 Equilibrium spring length is invalid. :dd
+
+{Reax_defs.h setting for NATDEF is too small} :dt
+
+Edit the setting in the ReaxFF library and re-compile the
+library and re-build LAMMPS. :dd
+
+{Reax_defs.h setting for NNEIGHMAXDEF is too small} :dt
+
+Edit the setting in the ReaxFF library and re-compile the
+library and re-build LAMMPS. :dd
 
 {Region ID for compute reduce/region does not exist} :dt
 
@@ -4895,6 +5025,19 @@ Self-explanatory. :dd
 
 The run_style command cannot be used before a read_data,
 read_restart, or create_box command. :dd
+
+{SRD bin size for fix srd differs from user request} :dt
+
+Fix SRD had to adjust the bin size to fit the simulation box. :dd
+
+{SRD bins for fix srd are not cubic enough} :dt
+
+The bin shape is not within tolerance of cubic. :dd
+
+{SRD particle %d started inside big particle %d on step %d bounce %d} :dt
+
+This may not be a problem, but indicates one or more SRD particles are
+being left inside solute particles. :dd
 
 {Set command before simulation box is defined} :dt
 
@@ -5213,6 +5356,10 @@ machine's floating point representation. :dd
 This is likely due to an immense simulation box that has blown up
 to a large size. :dd
 
+{Too many atoms to dump sort} :dt
+
+Cannot sort when running with more than 2^31 atoms. :dd
+
 {Too many exponent bits for lookup table} :dt
 
 Table size specified via pair_modify command does not work with your
@@ -5399,6 +5546,11 @@ provided by "remap v" as a fix deform option. :dd
 {Using fix nvt/sllod with no fix deform defined} :dt
 
 Self-explanatory. :dd
+
+{Using fix srd with inconsistent fix deform remap option} :dt
+
+When shearing the box in an SRD simulation, the remap v option for fix
+deform needs to be used. :dd
 
 {Variable evaluation before simulation box is defined} :dt
 
@@ -5647,6 +5799,26 @@ Atoms store this quantity, but fix move does not (yet) update it. :dd
 Other fixes may change the position of the center-of-mass, so 
 fix recenter should come last. :dd
 
+{Fix srd SRD moves may trigger frequent reneighboring} :dt
+
+This is because the SRD particles may move long distances. :dd
+
+{Fix srd grid size > 1/4 of big particle diameter} :dt
+
+This may cause accuracy problems. :dd
+
+{Fix srd particle moved outside valid domain} :dt
+
+This may indicate a problem with your simulation parameters. :dd
+
+{Fix srd particles may move > big particle diameter} :dt
+
+This may cause accuracy problems. :dd
+
+{Fix srd viscosity < 0.0 due to low SRD density} :dt
+
+This may cause accuracy problems. :dd
+
 {Fix thermal/conductivity comes before fix ave/spatial} :dt
 
 The order of these 2 fixes in your input script is such that fix
@@ -5849,6 +6021,23 @@ This may cause problems when reading the restart file. :dd
 {Running PRD with only one replica} :dt
 
 This is allowed, but you will get no parallel speed-up. :dd
+
+{SRD bin shifting turned on due to small lamda} :dt
+
+This is done to try to preserve accuracy. :dd
+
+{SRD bin size for fix srd differs from user request} :dt
+
+Check if the new bin size is acceptable. :dd
+
+{SRD bins for fix srd are not cubic enough} :dt
+
+Check if the bin shape is acceptable. :dd
+
+{SRD particle %d started inside big particle %d on step %d bounce %d} :dt
+
+This may not be a problem, but indicates one or more SRD particles are
+being left inside solute particles. :dd
 
 {Shake determinant < 0.0} :dt
 

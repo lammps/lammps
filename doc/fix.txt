@@ -222,6 +222,7 @@ list of fix styles available in LAMMPS:
 "spring/rg"_fix_spring_rg.html - spring on radius of gyration of \
      group of atoms
 "spring/self"_fix_spring_self.html - spring from each atom to its origin
+"srd"_fix_srd.html - stochastic rotation dynamics (SRD)
 "store/force"_fix_store_force.html - store force on each atom
 "store/state"_fix_store_state.html - store attributes for each atom
 "temp/berendsen"_fix_temp_berendsen.html - temperature control by \

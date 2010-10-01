@@ -363,6 +363,7 @@ poems : coupled rigid body motion
 reax : ReaxFF potential
 replica : multi-replica methods
 shock : methods for MD simulations of shock loading
+srd : stochastic rotation dynamics (SRD)
 xtc : dump atom snapshots in XTC format :tb(s=:)
 
 There are also user-contributed packages which may be as simple as a

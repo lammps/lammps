@@ -445,6 +445,7 @@ of each style or click on the style itself for a full description:
 "spring"_fix_spring.html,
 "spring/rg"_fix_spring_rg.html,
 "spring/self"_fix_spring_self.html,
+"srd"_fix_srd.html,
 "store/force"_fix_store_force.html,
 "store/state"_fix_store_state.html,
 "temp/berendsen"_fix_temp_berendsen.html,

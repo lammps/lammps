@@ -18,6 +18,7 @@
 #include "stdio.h"
 #include "fix_shake.h"
 #include "atom.h"
+#include "atom_vec.h"
 #include "update.h"
 #include "respa.h"
 #include "modify.h"
@@ -622,6 +623,8 @@ void FixShake::find_clusters()
   int **special = atom->special;
   int nlocal = atom->nlocal;
 
+  int angles_allow = atom->avec->angles_allow;
+
   // setup ring of procs
 
   int next = me + 1;
@@ -1005,7 +1008,7 @@ void FixShake::find_clusters()
 	}
     }
 
-    if (nshake[i] == 2) {
+    if (nshake[i] == 2 && angles_allow) {
       n = anglefind(i,shake_atom[i][1],shake_atom[i][2]);
       if (n < 0) continue;
       if (angle_type[i][n] < 0) continue;

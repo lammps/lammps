@@ -37,6 +37,7 @@ Region::Region(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   strcpy(style,arg[1]);
 
   time_origin = update->ntimestep;
+  dt = update->dt;
 }
 
 /* ---------------------------------------------------------------------- */

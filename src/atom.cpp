@@ -254,6 +254,15 @@ void Atom::create_avec(const char *style, int narg, char **arg)
   delete [] atom_style;
   if (avec) delete avec;
 
+  // unset atom array existence flags that may have been set by old avec
+  // customize by adding new flag
+
+  molecule_flag = 0;
+  q_flag = mu_flag = 0;
+  quat_flag = omega_flag = angmom_flag = torque_flag = 0;
+  radius_flag = density_flag = rmass_flag = vfrac_flag = 0;
+  spin_flag = eradius_flag = ervel_flag = erforce_flag = 0;
+
   avec = new_avec(style,narg,arg);
   int n = strlen(style) + 1;
   atom_style = new char[n];

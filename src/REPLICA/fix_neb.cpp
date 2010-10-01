@@ -46,10 +46,6 @@ FixNEB::FixNEB(LAMMPS *lmp, int narg, char **arg) :
 
   nreplica = universe->nworlds;
   ireplica = universe->iworld;
-  if (nreplica == 1)
-    error->all("Cannot use fix neb without multiple replicas");
-  if (nreplica != universe->nprocs)
-    error->all("Can only use NEB with 1-processor replicas");
 
   if (ireplica > 0) procprev = universe->root_proc[ireplica-1];
   else procprev = -1;

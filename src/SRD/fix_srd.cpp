@@ -171,7 +171,7 @@ FixSRD::FixSRD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   if (nevery <= 0) error->all("Illegal fix srd command");
   if (bigexist && biggroup < 0) error->all("Could not find fix srd group ID");
   if (gridsrd <= 0.0) error->all("Illegal fix srd command");
-  if (temperature_srd <= 0.0) error->all("Invalid fix srd command");
+  if (temperature_srd <= 0.0) error->all("Illegal fix srd command");
   if (seed <= 0) error->all("Illegal fix srd command");
   if (radfactor <= 0.0) error->all("Illegal fix srd command");
   if (maxbounceallow < 0) error->all("Illegal fix srd command");

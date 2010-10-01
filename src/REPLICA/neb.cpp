@@ -92,7 +92,7 @@ void NEB::command(int narg, char **arg)
 
   if (nreplica == 1) error->all("Cannot use NEB with a single replica");
   if (nreplica != universe->nprocs)
-    error->all("Cannot use NEB with multi-processor replicas");
+    error->all("Can only use NEB with 1-processor replicas");
   if (atom->sortfreq > 0)
     error->all("Cannot use NEB with atom_modify sort enabled");
   if (atom->map_style == 0) 
@@ -233,7 +233,7 @@ void NEB::command(int narg, char **arg)
 void NEB::readfile(char *file)
 {
   if (me_universe == 0) {
-    if (screen) fprintf(screen,"Reading NEB target file %s ...\n",file);
+    if (screen) fprintf(screen,"Reading NEB coordinate file %s ...\n",file);
     open(file);
   }
 
@@ -276,7 +276,7 @@ void NEB::readfile(char *file)
 
       if (firstline) {
 	if (atom->count_words(bufptr) == 4) firstline = 0;
-	else error->all("Incorrect format in NEB target file");
+	else error->all("Incorrect format in NEB coordinate file");
       }
 
       sscanf(bufptr,"%d %lg %lg %lg",&tag,&xx,&yy,&zz);

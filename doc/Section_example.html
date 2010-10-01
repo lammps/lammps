@@ -45,6 +45,7 @@ Site</A>.
 <TR><TD >micelle</TD><TD >  self-assembly of small lipid-like molecules into 2d bilayers</TD></TR>
 <TR><TD >min</TD><TD >	  energy minimization of 2d LJ melt</TD></TR>
 <TR><TD >msst</TD><TD >	  MSST shock dynamics</TD></TR>
+<TR><TD >neb</TD><TD >	  nudged elastic band (NEB) calculation for barrier finding</TD></TR>
 <TR><TD >nemd</TD><TD >	  non-equilibrium MD of 2d sheared system</TD></TR>
 <TR><TD >obstacle</TD><TD > flow around two voids in a 2d channel</TD></TR>
 <TR><TD >peptide</TD><TD >  dynamics of a small solvated peptide chain (5-mer)</TD></TR>
@@ -53,7 +54,8 @@ Site</A>.
 <TR><TD >prd</TD><TD >      parallel replica dynamics of a vacancy diffusion in bulk Si</TD></TR>
 <TR><TD >reax</TD><TD >     RDX and TATB models using the ReaxFF</TD></TR>
 <TR><TD >rigid</TD><TD >    rigid bodies modeled as independent or coupled</TD></TR>
-<TR><TD >shear</TD><TD >    sideways shear applied to 2d solid, with and without a void 
+<TR><TD >shear</TD><TD >    sideways shear applied to 2d solid, with and without a void</TD></TR>
+<TR><TD >srd</TD><TD >      stochastic rotation dynamics (SRD) particles as solvent 
 </TD></TR></TABLE></DIV>
 
 <P>Here is how you might run and visualize one of the sample problems:
@@ -69,10 +71,6 @@ lmp_linux < in.indent              # run the problem
 </PRE>
 <HR>
 
-<P>There is also a COUPLE directory which has examples of how to link to
-LAMMPS as a library and drive it from a wrapper program.  See the
-README file for more info.
-</P>
 <P>There is also an ELASTIC directory with an example script for
 computing elastic constants, using a zero temperature Si example.  See
 the in.elastic file for more info.

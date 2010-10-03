@@ -137,6 +137,8 @@ fix_langevin_eff.cpp
 fix_langevin_eff.h
 fix_msst.cpp
 fix_msst.h
+fix_neb.cpp
+fix_neb.h
 fix_nh_asphere.cpp
 fix_nh_asphere.h
 fix_nph_asphere.cpp
@@ -195,6 +197,8 @@ kissfft.h
 lmp_*
 math_complex.h
 math_vector.h
+neb.cpp
+neb.h
 pair_airebo.cpp
 pair_airebo.h
 pair_airebo_omp.cpp
@@ -431,5 +435,7 @@ style_kspace.h
 style_minimize.h
 style_pair.h
 style_region.h
+temper.cpp
+temper.h
 xdr_compat.cpp
 xdr_compat.h

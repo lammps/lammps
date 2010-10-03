@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -59,13 +59,12 @@ AtomVecGranular::AtomVecGranular(LAMMPS *lmp, int narg, char **arg) :
 void AtomVecGranular::init()
 {
   // set radvary if particle diameters are time-varying due to fix adapt
-
   for (int i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"adapt") == 0) {
       FixAdapt *fix = (FixAdapt *) modify->fix[i];
       if (fix->diamflag) {
-	radvary = 1;
-	size_forward = 5;
+        radvary = 1;
+        size_forward = 5;
       }
     }
 }
@@ -73,7 +72,7 @@ void AtomVecGranular::init()
 /* ----------------------------------------------------------------------
    grow atom arrays
    n = 0 grows arrays by DELTA
-   n > 0 allocates arrays to size n 
+   n > 0 allocates arrays to size n
 ------------------------------------------------------------------------- */
 
 void AtomVecGranular::grow(int n)
@@ -82,13 +81,13 @@ void AtomVecGranular::grow(int n)
   else nmax = n;
   atom->nmax = nmax;
 
-  tag = atom->tag = (int *) 
+  tag = atom->tag = (int *)
     memory->srealloc(atom->tag,nmax*sizeof(int),"atom:tag");
   type = atom->type = (int *)
     memory->srealloc(atom->type,nmax*sizeof(int),"atom:type");
-  mask = atom->mask = (int *) 
+  mask = atom->mask = (int *)
     memory->srealloc(atom->mask,nmax*sizeof(int),"atom:mask");
-  image = atom->image = (int *) 
+  image = atom->image = (int *)
     memory->srealloc(atom->image,nmax*sizeof(int),"atom:image");
   x = atom->x = memory->grow_2d_double_array(atom->x,nmax,3,"atom:x");
   v = atom->v = memory->grow_2d_double_array(atom->v,nmax,3,"atom:v");
@@ -101,13 +100,13 @@ void AtomVecGranular::grow(int n)
   rmass = atom->rmass = (double *)
     memory->srealloc(atom->rmass,nmax*sizeof(double),"atom:rmass");
 
-  omega = atom->omega = 
+  omega = atom->omega =
     memory->grow_2d_double_array(atom->omega,nmax,3,"atom:omega");
   torque = atom->torque =
     memory->grow_2d_double_array(atom->torque,nmax*comm->nthreads,3,"atom:torque");
 
   if (atom->nextra_grow)
-    for (int iextra = 0; iextra < atom->nextra_grow; iextra++) 
+    for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
       modify->fix[atom->extra_grow[iextra]]->grow_arrays(nmax);
 }
 
@@ -147,7 +146,7 @@ void AtomVecGranular::copy(int i, int j)
   omega[j][2] = omega[i][2];
 
   if (atom->nextra_grow)
-    for (int iextra = 0; iextra < atom->nextra_grow; iextra++) 
+    for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
       modify->fix[atom->extra_grow[iextra]]->copy_arrays(i,j);
 }
 
@@ -194,8 +193,8 @@ int AtomVecGranular::pack_comm(int n, int *list, double *buf,
 	buf[m++] = x[j][0];
 	buf[m++] = x[j][1];
 	buf[m++] = x[j][2];
-	buf[m++] = radius[i];
-	buf[m++] = rmass[i];
+	buf[m++] = radius[j];
+	buf[m++] = rmass[j];
       }
     } else {
       if (domain->triclinic == 0) {
@@ -212,8 +211,8 @@ int AtomVecGranular::pack_comm(int n, int *list, double *buf,
 	buf[m++] = x[j][0] + dx;
 	buf[m++] = x[j][1] + dy;
 	buf[m++] = x[j][2] + dz;
-	buf[m++] = radius[i];
-	buf[m++] = rmass[i];
+	buf[m++] = radius[j];
+	buf[m++] = rmass[j];
       }
     }
   }
@@ -276,8 +275,8 @@ int AtomVecGranular::pack_comm_vel(int n, int *list, double *buf,
 	buf[m++] = x[j][0];
 	buf[m++] = x[j][1];
 	buf[m++] = x[j][2];
-	buf[m++] = radius[i];
-	buf[m++] = rmass[i];
+	buf[m++] = radius[j];
+	buf[m++] = rmass[j];
 	buf[m++] = v[j][0];
 	buf[m++] = v[j][1];
 	buf[m++] = v[j][2];
@@ -300,8 +299,8 @@ int AtomVecGranular::pack_comm_vel(int n, int *list, double *buf,
 	buf[m++] = x[j][0] + dx;
 	buf[m++] = x[j][1] + dy;
 	buf[m++] = x[j][2] + dz;
-	buf[m++] = radius[i];
-	buf[m++] = rmass[i];
+	buf[m++] = radius[j];
+	buf[m++] = rmass[j];
 	buf[m++] = v[j][0];
 	buf[m++] = v[j][1];
 	buf[m++] = v[j][2];

@@ -96,6 +96,9 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
   id_temp = NULL;
   temperature = NULL;
 
+  // flangevin is unallocated until first call to setup()
+  // compute_scalar checks for this and returns 0.0 if flangevin is NULL
+
   flangevin = NULL;
   nmax = 0;
   energy = 0.0;
@@ -460,7 +463,7 @@ int FixLangevin::modify_param(int narg, char **arg)
 
 double FixLangevin::compute_scalar()
 {
-  if (!tally) return 0.0;
+  if (!tally || flangevin == NULL) return 0.0;
 
   // capture the very first energy transfer to thermal reservoir
 

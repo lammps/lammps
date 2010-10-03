@@ -2473,7 +2473,11 @@ c$$$      end if
       sin2=sinhu*sinhu
       exphu1=exp(-vhb1(ityhb)*boa)
       exphu2=exp(-vhb2(ityhb)*(rhu1+rhu2-2.0))
-      ehbh=(1.0-exphu1)*dehb(ityhb)*exphu2*sin2*sin2*sin2*sin2
+      if (lhbnew .eq. 0) then
+         ehbh=(1.0-exphu1)*dehb(ityhb)*exphu2*sin2*sin2*sin2*sin2
+      else
+         ehbh=(1.0-exphu1)*dehb(ityhb)*exphu2*sin2*sin2
+      endif
       ehb=ehb+ehbh
       estrain(j(2))=estrain(j(2))+ehbh !2nd atom energy
 
@@ -2482,12 +2486,20 @@ c$$$      end if
 *     Calculate first derivatives                                    *
 *                                                                    *
 ********************************************************************** 
-      dehbdbo=vhb1(ityhb)*exphu1*dehb(ityhb)*exphu2*sin2*sin2*
-     $sin2*sin2
-      dehbdv=(1.0-exphu1)*dehb(ityhb)*exphu2*
-     $4.0*sin2*sin2*sin2*sinhu*cos(hhb(i1)/2.0)
-      dehbdrda=(1.0-exphu1)*dehb(ityhb)*sin2*sin2*sin2*sin2*
-     $vhb2(ityhb)*(rhb(ityhb)/(rda*rda)-1.0/rhb(ityhb))*exphu2
+      if (lhbnew .eq. 0) then
+         dehbdbo=vhb1(ityhb)*exphu1*dehb(ityhb)*exphu2*sin2*sin2*
+     $        sin2*sin2
+         dehbdv=(1.0-exphu1)*dehb(ityhb)*exphu2*
+     $        4.0*sin2*sin2*sin2*sinhu*cos(hhb(i1)/2.0)
+         dehbdrda=(1.0-exphu1)*dehb(ityhb)*sin2*sin2*sin2*sin2*
+     $        vhb2(ityhb)*(rhb(ityhb)/(rda*rda)-1.0/rhb(ityhb))*exphu2
+      else
+         dehbdbo=vhb1(ityhb)*exphu1*dehb(ityhb)*exphu2*sin2*sin2
+         dehbdv=(1.0-exphu1)*dehb(ityhb)*exphu2*
+     $        2.0*sin2*sinhu*cos(hhb(i1)/2.0)
+         dehbdrda=(1.0-exphu1)*dehb(ityhb)*sin2*sin2*
+     $        vhb2(ityhb)*(rhb(ityhb)/(rda*rda)-1.0/rhb(ityhb))*exphu2
+      endif
 
       if (Lvirial.eq.1) then
          do k1=1,3

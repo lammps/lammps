@@ -173,6 +173,7 @@ list of fix styles available in LAMMPS:
 "efield"_fix_efield.html - impose electric field on system
 "enforce2d"_fix_enforce2d.html - zero out z-dimension velocity and force
 "evaporate"_fix_evaporate.html - remove atoms from simulation periodically
+"external"_fix_external.html - callback to an external driver program
 "freeze"_fix_freeze.html - freeze atoms in a granular simulation
 "gravity"_fix_gravity.html - add gravity to atoms in a granular simulation
 "heat"_fix_heat.html - add/subtract momentum-conserving heat
@@ -182,6 +183,7 @@ list of fix styles available in LAMMPS:
 "momentum"_fix_momentum.html - zero the linear and/or angular momentum of a group of atoms
 "move"_fix_move.html - move atoms in a prescribed fashion
 "msst"_fix_msst.html - multi-scale shock technique (MSST) integration
+"neb"_fix_neb.html - nudged elastic band (NEB) spring forces
 "nph"_fix_nh.html - constant NPH time integration via Nose/Hoover
 "nph/asphere"_fix_nph_asphere.html - NPH for aspherical particles
 "nph/sphere"_fix_nph_sphere.html - NPH for spherical particles
@@ -220,6 +222,7 @@ list of fix styles available in LAMMPS:
 "spring/rg"_fix_spring_rg.html - spring on radius of gyration of \
      group of atoms
 "spring/self"_fix_spring_self.html - spring from each atom to its origin
+"srd"_fix_srd.html - stochastic rotation dynamics (SRD)
 "store/force"_fix_store_force.html - store force on each atom
 "store/state"_fix_store_state.html - store attributes for each atom
 "temp/berendsen"_fix_temp_berendsen.html - temperature control by \

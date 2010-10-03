@@ -39,6 +39,7 @@ melt:	  rapid melt of 3d LJ system
 micelle:  self-assembly of small lipid-like molecules into 2d bilayers
 min:	  energy minimization of 2d LJ melt
 msst:	  MSST shock dynamics
+neb:	  nudged elastic band (NEB) calculation for barrier finding
 nemd:	  non-equilibrium MD of 2d sheared system
 obstacle: flow around two voids in a 2d channel
 peptide:  dynamics of a small solvated peptide chain (5-mer)
@@ -48,6 +49,7 @@ prd:      parallel replica dynamics of a vacancy diffusion in bulk Si
 reax:     RDX and TATB models using the ReaxFF
 rigid:    rigid bodies modeled as independent or coupled
 shear:    sideways shear applied to 2d solid, with and without a void
+srd:      stochastic rotation dynamics (SRD) particles as solvent
 
 Here is how you might run and visualize one of the sample problems:
 
@@ -61,10 +63,6 @@ You can visualize the dump file as follows:
 ../../tools/xmovie/xmovie -scale dump.indent
 
 ------------------------------------------
-
-There is also a COUPLE directory which has examples of how to link to
-LAMMPS as a library and drive it from a wrapper program.  See the
-README file for more info.
 
 There is also an ELASTIC directory with an example script for
 computing elastic constants, using a zero temperature Si example.  See

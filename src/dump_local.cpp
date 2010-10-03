@@ -120,8 +120,11 @@ DumpLocal::~DumpLocal()
 
 /* ---------------------------------------------------------------------- */
 
-void DumpLocal::init()
+void DumpLocal::init_style()
 {
+  if (sort_flag && sortcol == 0)
+    error->all("Dump local cannot sort by atom ID");
+
   delete [] format;
   char *str;
   if (format_user) str = format_user;
@@ -237,10 +240,9 @@ int DumpLocal::count()
 
 /* ---------------------------------------------------------------------- */
 
-int DumpLocal::pack()
+void DumpLocal::pack(int *dummy)
 {
   for (int n = 0; n < size_one; n++) (this->*pack_choice[n])(n);
-  return nmine*size_one;
 }
 
 /* ---------------------------------------------------------------------- */

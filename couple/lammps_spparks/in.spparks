@@ -1,0 +1,23 @@
+# SPPARKS input for coupling MD/MC
+
+seed		 56789
+
+app_style	 potts/strain 100
+
+dimension	 2
+lattice		 sq/8n 1.0
+region		 box block 0 50 0 50 -0.5 0.5
+create_box	 box
+create_sites	 box
+set		 site range 1 100
+set		 d1 value 0.0
+
+sector		 yes
+solve_style      tree
+
+diag_style       energy
+
+temperature	 1.0
+
+stats            10.0
+dump             1 10.0 dump.mc

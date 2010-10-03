@@ -128,8 +128,8 @@ For style {electron}, these are the units:
 mass = atomic mass units
 distance = Bohr
 time = femtoseconds
-energy = Kcal/mole
-velocity = Bohr/atomic time units [1.03275e-15 seconds]
+energy = Hartrees
+velocity = Bohr/atomic time units \[1.03275e-15 seconds\]
 force = Hartrees*Bohr
 temperature = degrees K
 pressure = Pascals

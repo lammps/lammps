@@ -1,48 +1,40 @@
-This directory has a C and C++ code that shows how LAMMPS can be
-linked to a driver application as a library.  The purpose is to
+This directory has a simple C and C++ code that shows how LAMMPS can
+be linked to a driver application as a library.  The purpose is to
 illustrate how another code could perform computations while using
 LAMMPS to perform MD, or how an umbrella code or script could call
 both LAMMPS and some other code to perform a coupled calculation.
 
-c_driver.c     is the C driver
-c++_driver.c   is the C++ driver
+simple.cpp   is the C++ driver
+simple.c     is the C driver
 
 The 2 codes do the same thing, so you can compare them to see how to
 drive LAMMPS in this manner.  The C driver is similar in spirit to
 what one could use from a Fortran program or scripting language.
 
-LAMMPS must first be built as a library.  See the "Making LAMMPS"
-section of Section_start.html in the documentation for info on how to
-do this.  Basically, you type something like
-
-make makelib
-make -f Makefile.lib g++
-
-in the LAMMPS src directory to create liblmp_g++.a
-
 You can then build either driver code with a compile line something
 like this, which includes paths to the LAMMPS library interface, MPI,
-and FFTW.
+and FFTW (assuming you built LAMMPS as a library with its PPPM
+solver).
 
 This builds the C++ driver with the LAMMPS library using a C++ compiler:
 
-g++ -I/home/sjplimp/lammps/src -c c++_driver.cpp
-g++ -L/home/sjplimp/lammps/src c++_driver.o \
-    -llmp_g++ -lfftw -lmpich -lpthread -o c++_driver
+g++ -I/home/sjplimp/lammps/src -c simple.cpp
+g++ -L/home/sjplimp/lammps/src simple.o \
+    -llmp_g++ -lfftw -lmpich -lpthread -o simpleCC
 
 This builds the C driver with the LAMMPS library using a C compiler:
 
-gcc -I/home/sjplimp/lammps/src -c c_driver.cpp
-gcc -L/home/sjplimp/lammps/src c_driver.o \
-    -llmp_g++ -lfftw -lmpich -lpthread -lstdc++ -o c_driver
+gcc -I/home/sjplimp/lammps/src -c simple.c
+gcc -L/home/sjplimp/lammps/src simple.o \
+    -llmp_g++ -lfftw -lmpich -lpthread -lstdc++ -o simpleC
 
-You then run c++_driver or c_driver on a parallel machine on some
-number of processors Q with 2 arguments:
+You then run simpleCC or simpleC on a parallel machine on some number
+of processors Q with 2 arguments:
 
-mpirun -np Q c_driver P in.lj
+mpirun -np Q simpleCC P in.lj
 
-P is the number of procs you want LAMMPS to run on (must be <= Q).
-In.lj is a LAMMPS input script.
+P is the number of procs you want LAMMPS to run on (must be <= Q) and
+in.lj is a LAMMPS input script.
 
 The driver will launch LAMMPS on P procs, read the input script a line
 at a time, and pass each command line to LAMMPS.  The final line of

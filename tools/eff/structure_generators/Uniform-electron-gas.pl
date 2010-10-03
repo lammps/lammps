@@ -60,8 +60,8 @@ $j = 0;
 # Print out the electrons
 for ($i = 0; $i < $numnuc; $i += 2)
 {
-  printf("%i %i %i %f %f %f %.10f\n", $j+=1, 1, 1, $r_elec, $xnuc[$i], $ynuc[$i], $znuc[$i]);
-  printf("%i %i %i %f %f %f %.10f\n", $j+=1, 1, -1, $r_elec, $xnuc[$i+1], $ynuc[$i+1], $znuc[$i+1]);
+  printf("%i %i %f %i %f %f %f %f\n", $j+=1, 0.0, 1, 1, $r_elec, $xnuc[$i], $ynuc[$i], $znuc[$i]);
+  printf("%i %i %f %i %f %f %f %f\n", $j+=1, 0.0, 1, -1, $r_elec, $xnuc[$i+1], $ynuc[$i+1], $znuc[$i+1]);
 }
 
 printf("\n");

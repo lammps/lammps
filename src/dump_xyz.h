@@ -27,20 +27,14 @@ namespace LAMMPS_NS {
 class DumpXYZ : public Dump {
  public:
   DumpXYZ(class LAMMPS *, int, char**);
-  ~DumpXYZ();
-  void init();
-  double memory_usage();
+  ~DumpXYZ() {}
 	
  private:
-  int natoms,ntotal;
-  int *types;
-  float *coords;
-
+  void init_style();
   void write_header(int);
   int count();
-  int pack();
+  void pack(int *);
   void write_data(int, double *);
-  void write_frame();
 };
 
 }

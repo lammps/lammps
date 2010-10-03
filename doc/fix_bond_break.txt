@@ -82,7 +82,7 @@ a timestep.  Thus you should be cautious about invoking this fix too
 frequently.
 
 You can dump out snapshots of the current bond topology via the "dump
-bond"_dump.html command.
+local"_dump.html command.
 
 IMPORTANT NOTE: Breaking a bond typically alters the energy of a
 system.  You should be careful not to choose bond breaking criteria

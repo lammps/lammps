@@ -15,11 +15,11 @@
    Contributing authors: Naveen Michaud-Agrawal (Johns Hopkins U)
                          open-source XDR routines from
 			   Frans van Hoesel (http://md.chem.rug.nl/hoesel)
-			   are also included in this file
+			   are included in this file
                          Axel Kohlmeyer (Temple U)
                            port to platforms without XDR support
                            added support for unwrapped trajectories
-			   added support for group dumps
+			   support for groups
 ------------------------------------------------------------------------- */
 
 #include "math.h"
@@ -29,10 +29,10 @@
 #include "limits.h"
 #include "dump_xtc.h"
 #include "domain.h"
-#include "output.h"
 #include "atom.h"
 #include "update.h"
 #include "group.h"
+#include "output.h"
 #include "error.h"
 #include "memory.h"
 
@@ -57,7 +57,9 @@ DumpXTC::DumpXTC(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
   if (binary || compressed || multifile || multiproc)
     error->all("Invalid dump xtc filename");
 
-  size_one = 4;
+  size_one = 3;
+  sort_flag = 1;
+  sortcol = 0;
   format_default = NULL;
   flush_flag = 0;
   unwrap_flag = 0;
@@ -65,11 +67,10 @@ DumpXTC::DumpXTC(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
 
   // allocate global array for atom coords
 
-  if (igroup == group->find("all"))
-    natoms = static_cast<int> (atom->natoms);
-  else
-    natoms = static_cast<int> (group->count(igroup));
+  if (igroup == 0) natoms = static_cast<int> (atom->natoms);
+  else natoms = static_cast<int> (group->count(igroup));
   if (natoms <= 0) error->all("Invalid natoms for dump xtc");
+
   coords = (float *) memory->smalloc(3*natoms*sizeof(float),"dump:coords");
 
   // sfactor = conversion of coords to XTC units
@@ -97,8 +98,11 @@ DumpXTC::~DumpXTC()
 
 /* ---------------------------------------------------------------------- */
 
-void DumpXTC::init()
+void DumpXTC::init_style()
 {
+  if (sort_flag == 0 || sortcol != 0)
+    error->all("Dump xtc requires sorting by atom ID");
+
   // check that flush_flag is not set since dump::write() will use it
 
   if (flush_flag) error->all("Cannot set dump_modify flush for dump xtc");
@@ -114,6 +118,156 @@ void DumpXTC::init()
   if (nevery_save == 0) nevery_save = output->every_dump[idump];
   else if (nevery_save != output->every_dump[idump])
     error->all("Cannot change dump_modify every for dump xtc");
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpXTC::openfile()
+{
+  // XTC maintains it's own XDR file ptr
+  // set fp to NULL so parent dump class will not use it
+
+  fp = NULL;
+  if (me == 0)
+    if (xdropen(&xd,filename,"w") == 0) error->one("Cannot open dump file");
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpXTC::write_header(int n)
+{
+  // all procs realloc coords if total count grew
+
+  if (n != natoms) {
+    natoms = n;
+    memory->sfree(coords);
+    coords = (float *) memory->smalloc(3*natoms*sizeof(float),"dump:coords");
+  }
+
+  // only proc 0 writes header
+
+  if (me != 0) return;
+
+  int tmp = XTC_MAGIC;
+  xdr_int(&xd,&tmp);
+  xdr_int(&xd,&n);
+  xdr_int(&xd,&update->ntimestep);
+  float time_value = update->ntimestep * update->dt;
+  xdr_float(&xd,&time_value);
+
+  // cell basis vectors
+  if (domain->triclinic) {
+    float zero = 0.0;
+    float xdim = sfactor * (domain->boxhi[0] - domain->boxlo[0]);
+    float ydim = sfactor * (domain->boxhi[1] - domain->boxlo[1]);
+    float zdim = sfactor * (domain->boxhi[2] - domain->boxlo[2]);
+    float xy = sfactor * domain->xy;
+    float xz = sfactor * domain->xz;
+    float yz = sfactor * domain->yz;
+
+    xdr_float(&xd,&xdim); xdr_float(&xd,&zero); xdr_float(&xd,&zero);
+    xdr_float(&xd,&xy  ); xdr_float(&xd,&ydim); xdr_float(&xd,&zero);
+    xdr_float(&xd,&xz  ); xdr_float(&xd,&yz  ); xdr_float(&xd,&zdim);
+  } else {
+    float zero = 0.0;
+    float xdim = sfactor * (domain->boxhi[0] - domain->boxlo[0]);
+    float ydim = sfactor * (domain->boxhi[1] - domain->boxlo[1]);
+    float zdim = sfactor * (domain->boxhi[2] - domain->boxlo[2]);
+
+    xdr_float(&xd,&xdim); xdr_float(&xd,&zero); xdr_float(&xd,&zero);
+    xdr_float(&xd,&zero); xdr_float(&xd,&ydim); xdr_float(&xd,&zero);
+    xdr_float(&xd,&zero); xdr_float(&xd,&zero); xdr_float(&xd,&zdim);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+int DumpXTC::count()
+{
+  if (igroup == 0) return atom->nlocal;
+
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  int m = 0;
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit) m++;
+  return m;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpXTC::pack(int *ids)
+{
+  int m,n;
+
+  int *tag = atom->tag;
+  double **x = atom->x;
+  int *image = atom->image;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  m = n = 0;
+  if (unwrap_flag == 1) {
+    double xprd = domain->xprd;
+    double yprd = domain->yprd;
+    double zprd = domain->zprd;
+    double xy = domain->xy;
+    double xz = domain->xz;
+    double yz = domain->yz;
+
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+	int ix = (image[i] & 1023) - 512;
+	int iy = (image[i] >> 10 & 1023) - 512;
+	int iz = (image[i] >> 20) - 512;
+	
+	if (domain->triclinic) {
+	  buf[m++] = sfactor * (x[i][0] + ix * xprd + iy * xy + iz * xz);
+	  buf[m++] = sfactor * (x[i][1] + iy * yprd + iz * yz);
+	  buf[m++] = sfactor * (x[i][2] + iz * zprd);
+	} else {
+	  buf[m++] = sfactor * (x[i][0] + ix * xprd);
+	  buf[m++] = sfactor * (x[i][1] + iy * yprd);
+	  buf[m++] = sfactor * (x[i][2] + iz * zprd);
+	}
+	ids[n++] = tag[i];
+      }
+
+  } else {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+	buf[m++] = sfactor*x[i][0];
+	buf[m++] = sfactor*x[i][1];
+	buf[m++] = sfactor*x[i][2];
+	ids[n++] = tag[i];
+      }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpXTC::write_data(int n, double *mybuf)
+{
+  int j;
+
+  // copy buf atom coords into global array
+
+  int m = 0;
+  int k = 3*ntotal;
+  for (int i = 0; i < n; i++) {
+    coords[k++] = mybuf[m++];
+    coords[k++] = mybuf[m++];
+    coords[k++] = mybuf[m++];
+    ntotal++;
+  }
+
+  // if last chunk of atoms in this snapshot, write global arrays to file
+
+  if (ntotal == natoms) {
+    write_frame();
+    ntotal = 0;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -145,168 +299,9 @@ int DumpXTC::modify_param(int narg, char **arg)
 
 double DumpXTC::memory_usage()
 {
-  double bytes = maxbuf * sizeof(double);
+  double bytes = Dump::memory_usage();
   bytes += 3*natoms * sizeof(float);
-  bytes += natoms * size_one_id;
-
   return bytes;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void DumpXTC::openfile()
-{
-  // XTC maintains it's own XDR file ptr
-  // set fp to NULL so parent dump class will not use it
-
-  fp = NULL;
-  if (me == 0)
-    if (xdropen(&xd,filename,"w") == 0) error->one("Cannot open dump file");
-
-  build_idmap(natoms);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void DumpXTC::write_header(int n)
-{
-  // all procs realloc types & coords if necessary
-
-  if (n != natoms) {
-    memory->sfree(coords);
-    natoms = n;
-    coords = (float *) memory->smalloc(3*natoms*sizeof(float),"dump:coords");
-  }
-
-  // only proc 0 writes header
-
-  if (me != 0) return;
-
-  int tmp = XTC_MAGIC;
-  xdr_int(&xd,&tmp);
-  xdr_int(&xd,&n);
-  xdr_int(&xd,&update->ntimestep);
-  float time_value = update->ntimestep * update->dt;
-  xdr_float(&xd,&time_value);
-
-  // cell basis vectors
-
-  if (domain->triclinic) {
-    float zero = 0.0;
-    float xdim = sfactor * (domain->boxhi[0] - domain->boxlo[0]);
-    float ydim = sfactor * (domain->boxhi[1] - domain->boxlo[1]);
-    float zdim = sfactor * (domain->boxhi[2] - domain->boxlo[2]);
-    float xy = sfactor * domain->xy;
-    float xz = sfactor * domain->xz;
-    float yz = sfactor * domain->yz;
-
-    xdr_float(&xd,&xdim); xdr_float(&xd,&zero); xdr_float(&xd,&zero);
-    xdr_float(&xd,&xy  ); xdr_float(&xd,&ydim); xdr_float(&xd,&zero);
-    xdr_float(&xd,&xz  ); xdr_float(&xd,&yz  ); xdr_float(&xd,&zdim);
-  } else {
-    float zero = 0.0;
-    float xdim = sfactor * (domain->boxhi[0] - domain->boxlo[0]);
-    float ydim = sfactor * (domain->boxhi[1] - domain->boxlo[1]);
-    float zdim = sfactor * (domain->boxhi[2] - domain->boxlo[2]);
-
-    xdr_float(&xd,&xdim); xdr_float(&xd,&zero); xdr_float(&xd,&zero);
-    xdr_float(&xd,&zero); xdr_float(&xd,&ydim); xdr_float(&xd,&zero);
-    xdr_float(&xd,&zero); xdr_float(&xd,&zero); xdr_float(&xd,&zdim);
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-int DumpXTC::count()
-{
-  if (igroup == group->find("all"))
-    return atom->nlocal;
-
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-
-  int m = 0;
-  for (int i=0; i<nlocal; ++i)
-    if (mask[i] & groupbit) ++m;
-
-  return m;
-}
-
-/* ---------------------------------------------------------------------- */
-
-int DumpXTC::pack()
-{
-  int *tag = atom->tag;
-  double **x = atom->x;
-  int *image = atom->image;
-  int nlocal = atom->nlocal;
-  int *mask = atom->mask;
-
-  int m = 0;
-  if (unwrap_flag == 1) {
-    double xprd = domain->xprd;
-    double yprd = domain->yprd;
-    double zprd = domain->zprd;
-    double xy = domain->xy;
-    double xz = domain->xz;
-    double yz = domain->yz;
-
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-	int ix = (image[i] & 1023) - 512;
-	int iy = (image[i] >> 10 & 1023) - 512;
-	int iz = (image[i] >> 20) - 512;
-
-	if (domain->triclinic) {
-	  buf[m++] = tag[i];
-	  buf[m++] = sfactor * (x[i][0] + ix * xprd + iy * xy + iz * xz);
-	  buf[m++] = sfactor * (x[i][1] + iy * yprd + iz * yz);
-	  buf[m++] = sfactor * (x[i][2] + iz * zprd);
-	} else {
-	  buf[m++] = tag[i];
-	  buf[m++] = sfactor * (x[i][0] + ix * xprd);
-	  buf[m++] = sfactor * (x[i][1] + iy * yprd);
-	  buf[m++] = sfactor * (x[i][2] + iz * zprd);
-	}
-      }
-    }
-  } else {
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-	buf[m++] = tag[i];
-	buf[m++] = sfactor*x[i][0];
-	buf[m++] = sfactor*x[i][1];
-	buf[m++] = sfactor*x[i][2];
-      }
-    }
-  }
-
-  return m;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void DumpXTC::write_data(int n, double *mybuf)
-{
-  int i,j,tag;
-
-  int m = 0;
-  for (i = 0; i < n; i++) {
-    tag = lookup_id(static_cast<int> (mybuf[m]));
-    j = 3*tag;
-    coords[j]   = mybuf[m+1];
-    coords[j+1] = mybuf[m+2];
-    coords[j+2] = mybuf[m+3];
-    m += size_one;
-  }
-
-  // if last chunk of atoms in this snapshot, write global arrays to file
-
-  ntotal += n;
-  if (ntotal == natoms) {
-    write_frame();
-    ntotal = 0;
-  }
 }
 
 /* ---------------------------------------------------------------------- */

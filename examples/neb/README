@@ -1,0 +1,15 @@
+Run these examples as:
+
+mpirun -np 4 lmp_linux -partition 4x1 -in in.neb.hop1
+mpirun -np 4 lmp_linux -partition 4x1 -in in.neb.hop2
+
+Create dump files to do visualization from as:
+(see lammps/tools/README for more info on these Python scripts)
+
+python ~/lammps/tools/python/neb1.py dump.hop1.a 3 tmp.dump.*
+python ~/lammps/tools/python/neb2.py dump.hop1.b tmp.dump.*
+
+dump.hop1.a = series of snapshots for all replicas together
+	      time = progression of NEB calculation
+dump.hop1.b = series of snapshots for final state of all replicas
+	      time = replica #

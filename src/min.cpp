@@ -54,6 +54,7 @@ using namespace LAMMPS_NS;
 Min::Min(LAMMPS *lmp) : Pointers(lmp)
 {
   dmax = 0.1;
+  searchflag = 0;
   linestyle = 0;
 
   elist_global = elist_atom = NULL;
@@ -221,6 +222,13 @@ void Min::setup()
   neighbor->build();
   neighbor->ncalls = 0;
 
+  // remove these restriction eventually
+
+  if (nextra_global && searchflag == 0)
+    error->all("Cannot use a damped dynamics min style with fix box/relax");
+  if (nextra_atom && searchflag == 0)
+    error->all("Cannot use a damped dynamics min style with per-atom DOF");
+
   // atoms may have migrated in comm->exchange()
 
   reset_vectors();
@@ -339,12 +347,9 @@ void Min::setup_minimal(int flag)
 
 /* ----------------------------------------------------------------------
    perform minimization, calling iterate() for N steps
-   complete = 1 if caller wants to force N iterations (in every replica)
-   minimize command and PRD call with complete = 0
-   NEB calls with complete = 1
 ------------------------------------------------------------------------- */
 
-void Min::run(int n, int complete)
+void Min::run(int n)
 {
   // minimizer iterations
 
@@ -352,24 +357,7 @@ void Min::run(int n, int complete)
   stop_condition = iterate(n);
   stopstr = stopstrings(stop_condition);
 
-  // if early exit from iterate loop and complete flag set
-  // perform remaining dummy iterations
-
-  if (stop_condition && complete) {
-    int ntimestep;
-    while (niter - iter_start < n) {
-      ntimestep = ++update->ntimestep;
-      niter++;
-      ecurrent = energy_force(0);
-      if (output->next == ntimestep) {
-	timer->stamp();
-	output->write(ntimestep);
-	timer->stamp(TIME_OUTPUT);
-      }
-    }
-  }
-
-  // if early exit from iterate loop and complete flag not set
+  // if early exit from iterate loop:
   // set update->nsteps to niter for Finish stats to print
   // set output->next values to this timestep
   // call energy_force() to insure vflag is set when forces computed
@@ -377,7 +365,7 @@ void Min::run(int n, int complete)
   // add ntimestep to all computes that store invocation times
   //   since are hardwiring call to thermo/dumps and computes may not be ready
 
-  if (stop_condition && !complete) {
+  if (stop_condition) {
     update->nsteps = niter;
 
     if (update->restrict_output == 0) {

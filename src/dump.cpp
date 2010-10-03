@@ -17,7 +17,7 @@
 #include "stdio.h"
 #include "dump.h"
 #include "atom.h"
-#include "comm.h"
+#include "irregular.h"
 #include "update.h"
 #include "domain.h"
 #include "group.h"
@@ -25,9 +25,21 @@
 #include "memory.h"
 #include "error.h"
 
-#include "inthash.h"
-
 using namespace LAMMPS_NS;
+
+// allocate space for static class variable
+
+Dump *Dump::dumpptr;
+
+#define MAXATOMS 0x7FFFFFFF
+#define BIG 1.0e20
+#define IBIG 2147483647
+#define EPSILON 1.0e-6
+
+#define MIN(A,B) ((A) < (B)) ? (A) : (B)
+#define MAX(A,B) ((A) > (B)) ? (A) : (B)
+
+enum{ASCEND,DESCEND};
 
 /* ---------------------------------------------------------------------- */
 
@@ -59,12 +71,10 @@ Dump::Dump(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   sort_flag = 0;
   append_flag = 0;
 
-  size_one = 0;
-  maxbuf = 0;
-  buf = NULL;
-
-  idmap = NULL;
-  size_one_id = sizeof(inthash_node_t);
+  maxbuf = maxids = maxsort = maxproc = 0;
+  buf = bufsort = NULL;
+  ids = idsort = index = proclist = NULL;
+  irregular = NULL;
 
   // parse filename for special syntax
   // if contains '%', write one file per proc and replace % with proc-ID
@@ -115,9 +125,12 @@ Dump::~Dump()
   delete [] format_user;
 
   memory->sfree(buf);
-
-  // delete hashtable, if it exists
-  release_idmap();
+  memory->sfree(bufsort);
+  memory->sfree(ids);
+  memory->sfree(idsort);
+  memory->sfree(index);
+  memory->sfree(proclist);
+  delete irregular;
 
   // XTC style sets fp to NULL since it closes file in its destructor
 
@@ -132,116 +145,79 @@ Dump::~Dump()
   }
 }
 
-/* ----------------------------------------------------------------------
-   build hash table for sorted output
-------------------------------------------------------------------------- */
-void Dump::build_idmap(int natoms)
+/* ---------------------------------------------------------------------- */
+
+void Dump::init()
 {
-  /* nme:    number of atoms in group on this MPI task
-   * nmax:   max number of atoms in group across all MPI tasks
-   * nlocal: all local atoms */
-  int nmax,nme,nlocal;
-  int *mask  = atom->mask;
-  int *tag  = atom->tag;
-  nlocal = atom->nlocal;
+  init_style();
 
-  int i,j;
+  if (!sort_flag) {
+    memory->sfree(bufsort);
+    memory->sfree(ids);
+    memory->sfree(idsort);
+    memory->sfree(index);
+    memory->sfree(proclist);
+    delete irregular;
 
-  nme=0;
-  for (i=0; i < nlocal; ++i)
-    if (mask[i] & groupbit) ++nme;
-
-  MPI_Allreduce(&nme,&nmax,1,MPI_INT,MPI_MAX,world);
-  int *comm_buf = new int[nmax];
-  int comm_size = nmax*sizeof(int);
-
-  MPI_Status status;
-  MPI_Request request;
-  int tmp, ndata;
-
-  if (me == 0) {
-    if (screen)
-      fprintf(screen,"Preparing index map for sorted dump of %d atoms\n",natoms);
-    if (logfile)
-      fprintf(logfile,"Preparing index map for sorted dump of %d atoms\n",natoms);
-
-    /* initialize and build hashtable. */
-    inthash_t *hashtable=new inthash_t;
-    inthash_init(hashtable, natoms);
-    idmap = (void *)hashtable;
-    int *taglist = new int[natoms];
-    int numtag=0; /* counter to map atoms to a 0-based consecutive index */
-    
-    for (i=0; i < nlocal; ++i) {
-      if (mask[i] & groupbit) {
-        taglist[numtag] = tag[i];
-        ++numtag;
-      }
-    }
-
-    /* loop over procs to receive remote data */
-    for (i=1; i < comm->nprocs; ++i) {
-      MPI_Irecv(comm_buf, comm_size, MPI_BYTE, i, 0, world, &request);
-      MPI_Send(&tmp, 0, MPI_INT, i, 0, world);
-      MPI_Wait(&request, &status);
-      MPI_Get_count(&status, MPI_BYTE, &ndata);
-      ndata /= sizeof(int);
-
-      for (j=0; j < ndata; ++j) {
-        taglist[numtag] = comm_buf[j];
-        ++numtag;
-      }
-    }
-
-    /* sort list of tags by value to have consistently the
-     * same list when running in parallel and build hash table. */
-    id_sort(taglist, 0, natoms-1);
-    for (i=0; i < natoms; ++i) {
-      inthash_insert(hashtable, taglist[i], i);
-    }
-    delete[] taglist;
-
-  } else {
-    nme=0;
-    for (i=0; i < nlocal; ++i) {
-      if (mask[i] & groupbit) {
-        comm_buf[nme] = tag[i];
-        ++nme;
-      }
-    }
-    /* blocking receive to wait until it is our turn to send data. */
-    MPI_Recv(&tmp, 0, MPI_INT, 0, 0, world, &status);
-    MPI_Rsend(comm_buf, nme*sizeof(int), MPI_BYTE, 0, 0, world);
+    maxids = maxsort = maxproc = 0;
+    bufsort = NULL;
+    ids = idsort = index = proclist = NULL;
+    irregular = NULL;
   }
-  // cleanup.
-  delete[] comm_buf;
-}
 
-/* ----------------------------------------------------------------------
-   delete hashtable 
-------------------------------------------------------------------------- */
+  if (sort_flag) {
+    if (sortcol == 0 && atom->tag_enable == 0)
+      error->all("Cannot dump sort on atom IDs with no atom IDs defined");
+    if (sortcol && sortcol > size_one)
+      error->all("Dump sort column is invalid");
+    if (nprocs > 1 && irregular == NULL)
+      irregular = new Irregular(lmp);
 
-void Dump::release_idmap(void)
-{
-  if (idmap) {
-    inthash_t *hashtable = (inthash_t *)idmap;
-    inthash_destroy(hashtable);
-    delete hashtable;
-    hashtable = NULL;
-  }
-}
+    double size = group->count(igroup);
+    if (size > MAXATOMS) error->all("Too many atoms to dump sort");
 
-/* ----------------------------------------------------------------------
-   lookup id in hashtable.
-------------------------------------------------------------------------- */
+    // set reorderflag = 1 if can simply reorder local atoms rather than sort
+    // criteria: sorting by ID, atom IDs are consecutive from 1 to Natoms
+    //           min/max IDs of group match size of group
+    // compute ntotal_reorder, nme_reorder, idlo/idhi to test against later
 
-int Dump::lookup_id(int tag)
-{
-  if (idmap) {
-    inthash_t *hashtable = (inthash_t *)idmap;
-    return inthash_lookup(hashtable, tag);
-  } else {
-    return tag;
+    reorderflag = 0;
+    if (sortcol == 0 && atom->tag_consecutive()) {
+      int *tag = atom->tag;
+      int *mask = atom->mask;
+      int nlocal = atom->nlocal;
+
+      int min = IBIG;
+      int max = 0;
+      for (int i = 0; i < nlocal; i++)
+	if (mask[i] & groupbit) {
+	  min = MIN(min,tag[i]);
+	  max = MAX(max,tag[i]);
+	}
+      int minall,maxall;
+      MPI_Allreduce(&min,&minall,1,MPI_INT,MPI_MIN,world);
+      MPI_Allreduce(&max,&maxall,1,MPI_INT,MPI_MAX,world);
+      int isize = static_cast<int> (size);
+
+      if (maxall-minall+1 == isize) {
+	reorderflag = 1;
+	double range = maxall-minall + EPSILON;
+	idlo = static_cast<int> (range*me/nprocs + minall);
+	int idhi = static_cast<int> (range*(me+1)/nprocs + minall);
+
+	int lom1 = static_cast<int> ((idlo-1-minall)/range * nprocs);
+	int lo = static_cast<int> ((idlo-minall)/range * nprocs);
+	int him1 = static_cast<int> ((idhi-1-minall)/range * nprocs);
+	int hi = static_cast<int> ((idhi-minall)/range * nprocs);
+	if (me && me == lom1) idlo--;
+	else if (me && me != lo) idlo++;
+	if (me+1 == him1) idhi--;
+	else if (me+1 != hi) idhi++;
+
+	nme_reorder = idhi-idlo;
+	ntotal_reorder = isize;
+      }
+    }
   }
 }
 
@@ -275,12 +251,13 @@ void Dump::write()
   }
 
   // nme = # of dump lines this proc will contribute to dump
+
+  nme = count();
+
   // ntotal = total # of dump lines
   // nmax = max # of dump lines on any proc
 
-  int nme = count();
-
-  int ntotal,nmax;
+  int nmax;
   if (multiproc) nmax = nme;
   else {
     MPI_Allreduce(&nme,&ntotal,1,MPI_INT,MPI_SUM,world);
@@ -292,25 +269,33 @@ void Dump::write()
   if (multiproc) write_header(nme);
   else write_header(ntotal);
 
-  // grow communication buffer if necessary
+  // this insures proc 0 can receive everyone's info
+  // pack my data into buf
+  // if sorting on IDs also request ID list from pack()
+  // sort buf as needed
 
-  if (nmax*size_one > maxbuf) {
-    maxbuf = nmax*size_one;
+  if (nmax > maxbuf) {
+    maxbuf = nmax;
     memory->sfree(buf);
-    buf = (double *) memory->smalloc(maxbuf*sizeof(double),"dump:buf");
+    buf = (double *) 
+      memory->smalloc(maxbuf*size_one*sizeof(double),"dump:buf");
+  }
+  if (sort_flag && sortcol == 0 && nmax > maxids) {
+    maxids = nmax;
+    memory->sfree(ids);
+    ids = (int *) memory->smalloc(maxids*sizeof(int),"dump:ids");
   }
 
-  // pack my data into buf
-  // me_size = # of quantities in buf
-
-  int me_size = pack();
+  if (sort_flag && sortcol == 0) pack(ids);
+  else pack(NULL);
+  if (sort_flag) sort();
 
   // multiproc = 1 = each proc writes own data to own file 
   // multiproc = 0 = all procs write to one file thru proc 0
   //   proc 0 pings each proc, receives it's data, writes to file
   //   all other procs wait for ping, send their data to proc 0
 
-  if (multiproc) write_data(me_size/size_one,buf);
+  if (multiproc) write_data(nme,buf);
   else {
     int tmp,nlines;
     MPI_Status status;
@@ -319,12 +304,12 @@ void Dump::write()
     if (me == 0) {
       for (int iproc = 0; iproc < nprocs; iproc++) {
 	if (iproc) {
-	  MPI_Irecv(buf,maxbuf,MPI_DOUBLE,iproc,0,world,&request);
+	  MPI_Irecv(buf,maxbuf*size_one,MPI_DOUBLE,iproc,0,world,&request);
 	  MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
 	  MPI_Wait(&request,&status);
 	  MPI_Get_count(&status,MPI_DOUBLE,&nlines);
 	  nlines /= size_one;
-	} else nlines = me_size/size_one;
+	} else nlines = nme;
 
 	write_data(nlines,buf);
       }
@@ -332,7 +317,7 @@ void Dump::write()
       
     } else {
       MPI_Recv(&tmp,0,MPI_INT,0,0,world,&status);
-      MPI_Rsend(buf,me_size,MPI_DOUBLE,0,0,world);
+      MPI_Rsend(buf,nme*size_one,MPI_DOUBLE,0,0,world);
     }
   }
 
@@ -347,6 +332,276 @@ void Dump::write()
       else if (me == 0) fclose(fp);
     }
   }
+}
+
+/* ----------------------------------------------------------------------
+   generic opening of a dump file
+   ASCII or binary or gzipped
+   some derived classes override this function
+------------------------------------------------------------------------- */
+
+void Dump::openfile()
+{
+  // single file, already opened, so just return
+
+  if (singlefile_opened) return;
+  if (multifile == 0) singlefile_opened = 1;
+
+  // if one file per timestep, replace '*' with current timestep
+
+  char *filecurrent;
+  if (multifile == 0) filecurrent = filename;
+  else {
+    filecurrent = new char[strlen(filename) + 16];
+    char *ptr = strchr(filename,'*');
+    *ptr = '\0';
+    sprintf(filecurrent,"%s%d%s",filename,update->ntimestep,ptr+1);
+    *ptr = '*';
+  }
+
+  // open one file on proc 0 or file on every proc
+
+  if (me == 0 || multiproc) {
+    if (compressed) {
+#ifdef LAMMPS_GZIP
+      char gzip[128];
+      sprintf(gzip,"gzip -6 > %s",filecurrent);
+      fp = popen(gzip,"w");
+#else
+      error->one("Cannot open gzipped file");
+#endif
+    } else if (binary) {
+      fp = fopen(filecurrent,"wb");
+    } else if (append_flag) {
+      fp = fopen(filecurrent,"a");
+    } else {
+      fp = fopen(filecurrent,"w");
+    }
+
+    if (fp == NULL) error->one("Cannot open dump file");
+  } else fp = NULL;
+
+  // delete string with timestep replaced
+
+  if (multifile) delete [] filecurrent;
+}
+
+/* ----------------------------------------------------------------------
+   parallel sort of buf across all procs
+   changes nme, reorders datums in buf, grows buf if necessary
+------------------------------------------------------------------------- */
+
+void Dump::sort()
+{
+  int i,iproc;
+  double value;
+
+  // if single proc, swap ptrs to buf,ids <-> bufsort,idsort
+
+  if (nprocs == 1) {
+    if (nme > maxsort) {
+      maxsort = nme;
+      memory->sfree(bufsort);
+      bufsort = (double *)
+	memory->smalloc(maxsort*size_one*sizeof(double),"dump:bufsort");
+      memory->sfree(index);
+      index = (int *) memory->smalloc(maxsort*sizeof(int),"dump:index");
+      if (sortcol == 0) {
+	memory->sfree(idsort);
+	idsort = (int *) memory->smalloc(maxsort*sizeof(int),"dump:idsort");
+      }
+    }
+
+    double *dptr = buf;
+    buf = bufsort;
+    bufsort = dptr;
+
+    if (sortcol == 0) {
+      int *iptr = ids;
+      ids = idsort;
+      idsort = iptr;
+    }
+
+  // if multiple procs, exchange datums between procs via irregular
+    
+  } else {
+
+    // grow proclist if necessary
+
+    if (nme > maxproc) {
+      maxproc = nme;
+      memory->sfree(proclist);
+      proclist = (int *) memory->smalloc(maxproc*sizeof(int),"dump:proclist");
+    }
+    
+    // proclist[i] = which proc Ith datum will be sent to
+
+    if (sortcol == 0) {
+      int min = IBIG;
+      int max = 0;
+      for (i = 0; i < nme; i++) {
+	min = MIN(min,ids[i]);
+	max = MAX(max,ids[i]);
+      }
+      int minall,maxall;
+      MPI_Allreduce(&min,&minall,1,MPI_INT,MPI_MIN,world);
+      MPI_Allreduce(&max,&maxall,1,MPI_INT,MPI_MAX,world);
+      double range = maxall-minall + EPSILON;
+      for (i = 0; i < nme; i++) {
+	iproc = static_cast<int> ((ids[i]-minall)/range * nprocs);
+	proclist[i] = iproc;
+      }
+
+    } else {
+      double min = BIG;
+      double max = -BIG;
+      for (i = 0; i < nme; i++) {
+	value = buf[i*size_one + sortcolm1];
+	min = MIN(min,value);
+	max = MAX(max,value);
+      }
+      double minall,maxall;
+      MPI_Allreduce(&min,&minall,1,MPI_DOUBLE,MPI_MIN,world);
+      MPI_Allreduce(&max,&maxall,1,MPI_DOUBLE,MPI_MAX,world);
+      double range = maxall-minall + EPSILON*(maxall-minall);
+      if (range == 0.0) range = EPSILON;
+      for (i = 0; i < nme; i++) {
+	value = buf[i*size_one + sortcolm1];
+	iproc = static_cast<int> ((value-minall)/range * nprocs);
+	proclist[i] = iproc;
+      }
+    }
+
+    // create comm plan, grow recv bufs if necessary,
+    // exchange datums, destroy plan
+    // if sorting on atom IDs, exchange IDs also
+
+    nme = irregular->create_data(nme,proclist);
+
+    if (nme > maxsort) {
+      maxsort = nme;
+      memory->sfree(bufsort);
+      bufsort = (double *) 
+	memory->smalloc(maxsort*size_one*sizeof(double),"dump:bufsort");
+      memory->sfree(index);
+      index = (int *) memory->smalloc(maxsort*sizeof(int),"dump:index");
+      if (sortcol == 0) {
+	memory->sfree(idsort);
+	idsort = (int *) memory->smalloc(maxsort*sizeof(int),"dump:idsort");
+      }
+    }
+    
+    irregular->exchange_data((char *) buf,size_one*sizeof(double),
+			     (char *) bufsort);
+    if (sortcol == 0) 
+      irregular->exchange_data((char *) ids,sizeof(int),(char *) idsort);
+    irregular->destroy_data();
+  }
+
+  // if reorder flag is set & total/per-proc counts match pre-computed values,
+  // then create index directly from idsort
+  // else quicksort of index using IDs or buf column as comparator
+
+  if (reorderflag) {
+    if (ntotal != ntotal_reorder) reorderflag = 0;
+    int flag = 0;
+    if (nme != nme_reorder) flag = 1;
+    int flagall;
+    MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
+    if (flagall) reorderflag = 0;
+
+    if (reorderflag)
+      for (i = 0; i < nme; i++)
+	index[idsort[i]-idlo] = i;
+  }
+
+  if (!reorderflag) {
+    dumpptr = this;
+    for (i = 0; i < nme; i++) index[i] = i;
+    if (sortcol == 0) qsort(index,nme,sizeof(int),idcompare);
+    else if (sortorder == ASCEND) qsort(index,nme,sizeof(int),bufcompare);
+    else qsort(index,nme,sizeof(int),bufcompare_reverse);
+  }
+
+  // reset buf size and maxbuf to largest of any post-sort nme values
+  // this insures proc 0 can receive everyone's info
+
+  int nmax;
+  if (multiproc) nmax = nme;
+  else MPI_Allreduce(&nme,&nmax,1,MPI_INT,MPI_MAX,world);
+
+  if (nmax > maxbuf) {
+    maxbuf = nmax;
+    memory->sfree(buf);
+    buf = (double *) 
+      memory->smalloc(maxbuf*size_one*sizeof(double),"dump:buf");
+  }
+
+  // copy data from bufsort to buf using index
+    
+  int nbytes = size_one*sizeof(double);
+  for (i = 0; i < nme; i++)
+    memcpy(&buf[i*size_one],&bufsort[index[i]*size_one],nbytes);
+}
+
+/* ----------------------------------------------------------------------
+   compare two atom IDs
+   called via qsort() in sort() method
+   is a static method so access data via dumpptr
+------------------------------------------------------------------------- */
+
+int Dump::idcompare(const void *pi, const void *pj)
+{
+  int *idsort = dumpptr->idsort;
+
+  int i = *((int *) pi);
+  int j = *((int *) pj);
+
+  if (idsort[i] < idsort[j]) return -1;
+  if (idsort[i] > idsort[j]) return 1;
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
+   compare two buffer values with size_one stride
+   called via qsort() in sort() method
+   is a static method so access data via dumpptr
+   sort in ASCENDing order
+------------------------------------------------------------------------- */
+
+int Dump::bufcompare(const void *pi, const void *pj)
+{
+  double *bufsort = dumpptr->bufsort;
+  int size_one = dumpptr->size_one;
+  int sortcolm1 = dumpptr->sortcolm1;
+
+  int i = *((int *) pi)*size_one + sortcolm1;
+  int j = *((int *) pj)*size_one + sortcolm1;
+
+  if (bufsort[i] < bufsort[j]) return -1;
+  if (bufsort[i] > bufsort[j]) return 1;
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
+   compare two buffer values with size_one stride
+   called via qsort() in sort() method
+   is a static method so access data via dumpptr
+   sort in DESCENDing order
+------------------------------------------------------------------------- */
+
+int Dump::bufcompare_reverse(const void *pi, const void *pj)
+{
+  double *bufsort = dumpptr->bufsort;
+  int size_one = dumpptr->size_one;
+  int sortcolm1 = dumpptr->sortcolm1;
+
+  int i = *((int *) pi)*size_one + sortcolm1;
+  int j = *((int *) pj)*size_one + sortcolm1;
+
+  if (bufsort[i] > bufsort[j]) return -1;
+  if (bufsort[i] < bufsort[j]) return 1;
+  return 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -408,9 +663,22 @@ void Dump::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"sort") == 0) {
       if (iarg+2 > narg) error->all("Illegal dump_modify command");
-      if (strcmp(arg[iarg+1],"yes") == 0) sort_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) sort_flag = 0;
-      else error->all("Illegal dump_modify command");
+      if (strcmp(arg[iarg+1],"off") == 0) sort_flag = 0;
+      else if (strcmp(arg[iarg+1],"id") == 0) {
+	sort_flag = 1;
+	sortcol = 0;
+	sortorder = ASCEND;
+      } else {
+	sort_flag = 1;
+	sortcol = atoi(arg[iarg+1]);
+	sortorder = ASCEND;
+	if (sortcol == 0) error->all("Illegal dump_modify command");
+	if (sortcol < 0) {
+	  sortorder = DESCEND;
+	  sortcol = -sortcol;
+	}
+	sortcolm1 = sortcol - 1;
+      }
       iarg += 2;
     } else {
       int n = modify_param(narg-iarg,&arg[iarg]);
@@ -421,63 +689,19 @@ void Dump::modify_params(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   return # of bytes of allocated memory in buf
+   return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
 double Dump::memory_usage()
 {
-  double bytes = maxbuf * sizeof(double);
-  return bytes;
-}
-
-/* ----------------------------------------------------------------------
-   generic opening of a dump file
-   ASCII or binary or gzipped
-   some derived classes override this function
-------------------------------------------------------------------------- */
-
-void Dump::openfile()
-{
-  // single file, already opened, so just return
-
-  if (singlefile_opened) return;
-  if (multifile == 0) singlefile_opened = 1;
-
-  // if one file per timestep, replace '*' with current timestep
-
-  char *filecurrent;
-  if (multifile == 0) filecurrent = filename;
-  else {
-    filecurrent = new char[strlen(filename) + 16];
-    char *ptr = strchr(filename,'*');
-    *ptr = '\0';
-    sprintf(filecurrent,"%s%d%s",filename,update->ntimestep,ptr+1);
-    *ptr = '*';
+  double bytes = maxbuf*size_one * sizeof(double);      // buf
+  if (sort_flag) {
+    if (sortcol == 0) bytes += maxids * sizeof(int);    // ids
+    bytes += maxsort*size_one * sizeof(double);         // bufsort
+    if (sortcol == 0) bytes += maxsort * sizeof(int);   // idsort
+    bytes += maxsort * sizeof(int);                     // index
+    bytes += maxproc * sizeof(int);                     // proclist
+    if (irregular) bytes += irregular->memory_usage();
   }
-
-  // open one file on proc 0 or file on every proc
-
-  if (me == 0 || multiproc) {
-    if (compressed) {
-#ifdef LAMMPS_GZIP
-      char gzip[128];
-      sprintf(gzip,"gzip -6 > %s",filecurrent);
-      fp = popen(gzip,"w");
-#else
-      error->one("Cannot open gzipped file");
-#endif
-    } else if (binary) {
-      fp = fopen(filecurrent,"wb");
-    } else if (append_flag) {
-      fp = fopen(filecurrent,"a");
-    } else {
-      fp = fopen(filecurrent,"w");
-    }
-
-    if (fp == NULL) error->one("Cannot open dump file");
-  } else fp = NULL;
-
-  // delete string with timestep replaced
-
-  if (multifile) delete [] filecurrent;
+  return bytes;
 }

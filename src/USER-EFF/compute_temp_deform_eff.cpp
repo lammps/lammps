@@ -62,9 +62,7 @@ void ComputeTempDeformEff::dof_compute()
   int nelectrons;
   MPI_Allreduce(&one,&nelectrons,1,MPI_INT,MPI_SUM,world);
 
-  // the -3 recovers an extra_dof taken out because it's used by eradius
-
-  dof -= domain->dimension * nelectrons - 3;
+  dof -= domain->dimension * nelectrons;
   
   if (dof > 0) tfactor = force->mvv2e / (dof * force->boltz);
   else tfactor = 0.0;

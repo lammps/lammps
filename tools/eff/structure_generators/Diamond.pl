@@ -60,13 +60,13 @@ printf("Atoms\n\n");
 # Print out the nuclei and the core electrons
 for ($i = 0; $i < $numnuc; $i++)
 {
-  printf("%i %i %f %f %f %f 0 0.0\n", $j+=1, 1, $xnuc[$i], $ynuc[$i], $znuc[$i], 6.0);
+  printf("%i %i %f %i %f %f %f %f\n", $j+=1, 1, 6.0, 0.0, 0.0, $xnuc[$i], $ynuc[$i], $znuc[$i]);
 }
 
 for ($i = 0; $i < $numnuc; $i++)
 {
-  printf("%i %i %f %f %f 0.0 %i %.10f\n", $j+=1, 2, $xnuc[$i], $ynuc[$i], $znuc[$i], 1, $re_core);
-  printf("%i %i %f %f %f 0.0 %i %.10f\n", $j+=1, 2, $xnuc[$i], $ynuc[$i], $znuc[$i], -1, $re_core);
+  printf("%i %i %f %i %f %f %f %f\n", $j+=1, 2, 0.0, 1, $re_core,$xnuc[$i], $ynuc[$i], $znuc[$i]);
+  printf("%i %i %f %i %f %f %f %f\n", $j+=1, 2, 0.0,-1, $re_core,$xnuc[$i], $ynuc[$i], $znuc[$i]);
 }
 
 # Print out sigma electrons
@@ -111,8 +111,8 @@ for ($i = 0; $i < $numnuc; $i++)
       if ($bond_y < 0)   {$bond_y += $LLy};
       if ($bond_z < 0)   {$bond_z += $LLz};
 
-      printf("%i %i %f %f %f 0.0 %i %.10f\n", $k+=1, 2, $bond_x, $bond_y, $bond_z, 1, $re_sigma);
-      printf("%i %i %f %f %f 0.0 %i %.10f\n", $k+=1, 2, $bond_x, $bond_y, $bond_z, -1, $re_sigma);
+      printf("%i %i %f %i %f %f %f %f\n", $k+=1, 2, 0.0, 1, $re_sigma,$bond_x, $bond_y, $bond_z);
+      printf("%i %i %f %i %f %f %f %f\n", $k+=1, 2, 0.0,-1, $re_sigma,$bond_x, $bond_y, $bond_z);
     }
   }
 }

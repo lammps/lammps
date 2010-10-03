@@ -55,13 +55,13 @@ $j=0;
 # Print out the nuclei and the core electrons
 for ($i = 0; $i < $numnuc; $i++)
 {
-  printf("%i %i %f %f %f %f %i %f\n", $j+=1, 1, $xnuc[$i], $ynuc[$i], $znuc[$i], 1.0, 0, 0.0);
+  printf("%i %i %f %i %f %f %f %f\n", $j+=1, 1, 1.0, 0, 0.0, $xnuc[$i], $ynuc[$i], $znuc[$i]);
 }
 
 $spin = 1;
 for ($i = 0; $i < $numnuc; $i++)
 {
   if ($spin == 1) {$spin = -1;} else {$spin = 1;}
-  printf("%i %i %f %f %f %f %i %f\n", $j+=1, 2, $xnuc[$i], $ynuc[$i], $znuc[$i], 0.0, $spin, $re);
+  printf("%i %i %f %i %f %f %f %f\n", $j+=1, 2,  0.0, $spin, $re, $xnuc[$i], $ynuc[$i], $znuc[$i]);
 }
 

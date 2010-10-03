@@ -34,7 +34,7 @@ DumpAtom::DumpAtom(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpAtom::init()
+void DumpAtom::init_style()
 {
   if (image_flag == 0) size_one = 5;
   else size_one = 8;
@@ -146,9 +146,9 @@ int DumpAtom::count()
 
 /* ---------------------------------------------------------------------- */
 
-int DumpAtom::pack()
+void DumpAtom::pack(int *ids)
 {
-  return (this->*pack_choice)();
+  (this->*pack_choice)(ids);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -233,8 +233,10 @@ void DumpAtom::header_item_triclinic(int ndump)
 
 /* ---------------------------------------------------------------------- */
 
-int DumpAtom::pack_scale_image()
+void DumpAtom::pack_scale_image(int *ids)
 {
+  int m,n;
+
   int *tag = atom->tag;
   int *type = atom->type;
   int *image = atom->image;
@@ -246,7 +248,7 @@ int DumpAtom::pack_scale_image()
   double invyprd = 1.0/domain->yprd;
   double invzprd = 1.0/domain->zprd;
 
-  int m = 0;
+  m = n = 00;
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       buf[m++] = tag[i];
@@ -257,15 +259,16 @@ int DumpAtom::pack_scale_image()
       buf[m++] = (image[i] & 1023) - 512;
       buf[m++] = (image[i] >> 10 & 1023) - 512;
       buf[m++] = (image[i] >> 20) - 512;
+      if (ids) ids[n++] = tag[i];
     }
-
-  return m;
 }
 
 /* ---------------------------------------------------------------------- */
 
-int DumpAtom::pack_scale_noimage()
+void DumpAtom::pack_scale_noimage(int *ids)
 {
+  int m,n;
+
   int *tag = atom->tag;
   int *type = atom->type;
   int *mask = atom->mask;
@@ -276,7 +279,7 @@ int DumpAtom::pack_scale_noimage()
   double invyprd = 1.0/domain->yprd;
   double invzprd = 1.0/domain->zprd;
   
-  int m = 0;
+  m = n = 0;
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       buf[m++] = tag[i];
@@ -284,15 +287,16 @@ int DumpAtom::pack_scale_noimage()
       buf[m++] = (x[i][0] - boxxlo) * invxprd;
       buf[m++] = (x[i][1] - boxylo) * invyprd;
       buf[m++] = (x[i][2] - boxzlo) * invzprd;
+      if (ids) ids[n++] = tag[i];
     }
-
-  return m;
 }
 
 /* ---------------------------------------------------------------------- */
 
-int DumpAtom::pack_scale_image_triclinic()
+void DumpAtom::pack_scale_image_triclinic(int *ids)
 {
+  int m,n;
+
   int *tag = atom->tag;
   int *type = atom->type;
   int *image = atom->image;
@@ -302,7 +306,7 @@ int DumpAtom::pack_scale_image_triclinic()
 
   double lamda[3];
 
-  int m = 0;
+  m = n = 0;
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       buf[m++] = tag[i];
@@ -314,15 +318,16 @@ int DumpAtom::pack_scale_image_triclinic()
       buf[m++] = (image[i] & 1023) - 512;
       buf[m++] = (image[i] >> 10 & 1023) - 512;
       buf[m++] = (image[i] >> 20) - 512;
+      if (ids) ids[n++] = tag[i];
     }
-
-  return m;
 }
 
 /* ---------------------------------------------------------------------- */
 
-int DumpAtom::pack_scale_noimage_triclinic()
+void DumpAtom::pack_scale_noimage_triclinic(int *ids)
 {
+  int m,n;
+
   int *tag = atom->tag;
   int *type = atom->type;
   int *mask = atom->mask;
@@ -331,7 +336,7 @@ int DumpAtom::pack_scale_noimage_triclinic()
 
   double lamda[3];
   
-  int m = 0;
+  m = n = 0;
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       buf[m++] = tag[i];
@@ -340,15 +345,16 @@ int DumpAtom::pack_scale_noimage_triclinic()
       buf[m++] = lamda[0];
       buf[m++] = lamda[1];
       buf[m++] = lamda[2];
+      if (ids) ids[n++] = tag[i];
     }
-
-  return m;
 }
 
 /* ---------------------------------------------------------------------- */
 
-int DumpAtom::pack_noscale_image()
+void DumpAtom::pack_noscale_image(int *ids)
 {
+  int m,n;
+
   int *tag = atom->tag;
   int *type = atom->type;
   int *image = atom->image;
@@ -356,7 +362,7 @@ int DumpAtom::pack_noscale_image()
   double **x = atom->x;
   int nlocal = atom->nlocal;
 
-  int m = 0;
+  m = n = 0;
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       buf[m++] = tag[i];
@@ -367,22 +373,23 @@ int DumpAtom::pack_noscale_image()
       buf[m++] = (image[i] & 1023) - 512;
       buf[m++] = (image[i] >> 10 & 1023) - 512;
       buf[m++] = (image[i] >> 20) - 512;
+      if (ids) ids[n++] = tag[i];
     }
-
-  return m;
 }
 
 /* ---------------------------------------------------------------------- */
 
-int DumpAtom::pack_noscale_noimage()
+void DumpAtom::pack_noscale_noimage(int *ids)
 {
+  int m,n;
+
   int *tag = atom->tag;
   int *type = atom->type;
   int *mask = atom->mask;
   double **x = atom->x;
   int nlocal = atom->nlocal;
 
-  int m = 0;
+  m = n = 0;
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       buf[m++] = tag[i];
@@ -390,9 +397,8 @@ int DumpAtom::pack_noscale_noimage()
       buf[m++] = x[i][0];
       buf[m++] = x[i][1];
       buf[m++] = x[i][2];
+      if (ids) ids[n++] = tag[i];
     }
-
-  return m;
 }
 
 /* ---------------------------------------------------------------------- */

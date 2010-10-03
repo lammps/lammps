@@ -26,13 +26,14 @@ class Min : protected Pointers {
   int niter,neval;
   int stop_condition;
   char *stopstr;
+  int searchflag;     // 0 if damped dynamics, 1 if sub-cycles on local search
 
   Min(class LAMMPS *);
   virtual ~Min();
   void init();
   void setup();
   void setup_minimal(int);
-  void run(int,int);
+  void run(int);
   void cleanup();
   int request(class Pair *, int, double);
   double memory_usage() {return 0.0;}

@@ -13,7 +13,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing author: Naveen Michaud-Agrawal (Johns Hopkins U)
-   Support for groups and non-consecutive ids: Axel Kohlmeyer (Temple U)
+                        Axel Kohlmeyer (Temple U), support for groups
 ------------------------------------------------------------------------- */
 
 #include "math.h"
@@ -58,17 +58,17 @@ DumpDCD::DumpDCD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
   if (binary || compressed || multifile || multiproc)
     error->all("Invalid dump dcd filename");
 
-  // initialize
-  size_one = 4;
+  size_one = 3;
+  sort_flag = 1;
+  sortcol = 0;
+
   unwrap_flag = 0;
   format_default = NULL;
     
   // allocate global array for atom coords
 
-  if (igroup == group->find("all"))
-    natoms = static_cast<int> (atom->natoms);
-  else
-    natoms = static_cast<int> (group->count(igroup));
+  if (igroup == 0) natoms = static_cast<int> (atom->natoms);
+  else natoms = static_cast<int> (group->count(igroup));
   if (natoms <= 0) error->all("Invalid natoms for dump dcd");
 
   coords = (float *) memory->smalloc(3*natoms*sizeof(float),"dump:coords");
@@ -91,8 +91,11 @@ DumpDCD::~DumpDCD()
 
 /* ---------------------------------------------------------------------- */
 
-void DumpDCD::init()
+void DumpDCD::init_style()
 {
+  if (sort_flag == 0 || sortcol != 0)
+    error->all("Dump dcd requires sorting by atom ID");
+
   // check that dump frequency has not changed and is not a variable
 
   int idump;
@@ -108,41 +111,12 @@ void DumpDCD::init()
 
 /* ---------------------------------------------------------------------- */
 
-int DumpDCD::modify_param(int narg, char **arg)
-{
-  if (strcmp(arg[0],"unwrap") == 0) {
-    if (narg < 2) error->all("Illegal dump_modify command");
-    if (strcmp(arg[1],"yes") == 0) unwrap_flag = 1;
-    else if (strcmp(arg[1],"no") == 0) unwrap_flag = 0;
-    else error->all("Illegal dump_modify command");
-    return 2;
-  }
-  return 0;
-}
-
-/* ----------------------------------------------------------------------
-   return # of bytes of allocated memory in buf and global coords array
-------------------------------------------------------------------------- */
-
-double DumpDCD::memory_usage()
-{
-  double bytes = maxbuf * sizeof(double);
-  bytes += 3*natoms * sizeof(float);
-  bytes += natoms * size_one_id;
-
-  return bytes;
-}
-
-/* ---------------------------------------------------------------------- */
-
 void DumpDCD::openfile()
 {
   if (me == 0) {
     fp = fopen(filename,"wb");
     if (fp == NULL) error->one("Cannot open dump file");
   }
-  // build hash table for sorted output
-  build_idmap(natoms);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -200,30 +174,30 @@ void DumpDCD::write_header(int n)
 
 int DumpDCD::count()
 {
-  if (igroup == group->find("all"))
-    return atom->nlocal;
+  if (igroup == 0) return atom->nlocal;
 
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
   int m = 0;
-  for (int i=0; i<nlocal; ++i)
-    if (mask[i] & groupbit) ++m;
-
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit) m++;
   return m;
 }
 
 /* ---------------------------------------------------------------------- */
 
-int DumpDCD::pack()
+void DumpDCD::pack(int *ids)
 {
+  int m,n;
+
   int *tag = atom->tag;
   double **x = atom->x;
   int *image = atom->image;
-  int nlocal = atom->nlocal;
   int *mask = atom->mask;
+  int nlocal = atom->nlocal;
 
-  int m = 0;
+  m = n = 0;
   if (unwrap_flag) {
     double xprd = domain->xprd;
     double yprd = domain->yprd;
@@ -239,55 +213,74 @@ int DumpDCD::pack()
 	int iz = (image[i] >> 20) - 512;
 
 	if (domain->triclinic) {
-	  buf[m++] = tag[i];
 	  buf[m++] = x[i][0] + ix * xprd + iy * xy + iz * xz;
 	  buf[m++] = x[i][1] + iy * yprd + iz * yz;
 	  buf[m++] = x[i][2] + iz * zprd;
 	} else {
-	  buf[m++] = tag[i];
 	  buf[m++] = x[i][0] + ix * xprd;
 	  buf[m++] = x[i][1] + iy * yprd;
 	  buf[m++] = x[i][2] + iz * zprd;
 	}
+	ids[n++] = tag[i];
       }
     }
+
   } else {
-    for (int i = 0; i < nlocal; i++) {
+    for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	buf[m++] = tag[i];
 	buf[m++] = x[i][0];
 	buf[m++] = x[i][1];
 	buf[m++] = x[i][2];
+	ids[n++] = tag[i];
       }
-    }
   }
-
-  return m;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void DumpDCD::write_data(int n, double *mybuf)
 {
-  // spread buf atom coords into global arrays
+  // copy buf atom coords into 3 global arrays
 
-  int i,tag;
   int m = 0;
-  for (i = 0; i < n; i++) {
-    tag = lookup_id(static_cast<int> (mybuf[m]));
-    xf[tag] = mybuf[m+1];
-    yf[tag] = mybuf[m+2];
-    zf[tag] = mybuf[m+3];
-    m += size_one;
+  for (int i = 0; i < n; i++) {
+    xf[ntotal] = mybuf[m++];
+    yf[ntotal] = mybuf[m++];
+    zf[ntotal] = mybuf[m++];
+    ntotal++;
   }
 
   // if last chunk of atoms in this snapshot, write global arrays to file
 
-  ntotal += n;
   if (ntotal == natoms) {
     write_frame();
     ntotal = 0;
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+int DumpDCD::modify_param(int narg, char **arg)
+{
+  if (strcmp(arg[0],"unwrap") == 0) {
+    if (narg < 2) error->all("Illegal dump_modify command");
+    if (strcmp(arg[1],"yes") == 0) unwrap_flag = 1;
+    else if (strcmp(arg[1],"no") == 0) unwrap_flag = 0;
+    else error->all("Illegal dump_modify command");
+    return 2;
+  }
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
+   return # of bytes of allocated memory in buf and global coords array
+------------------------------------------------------------------------- */
+
+double DumpDCD::memory_usage()
+{
+  double bytes = Dump::memory_usage();
+  bytes += 3*natoms * sizeof(float);
+  return bytes;
 }
 
 /* ---------------------------------------------------------------------- */

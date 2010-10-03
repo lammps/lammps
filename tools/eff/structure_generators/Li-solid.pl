@@ -60,33 +60,33 @@ $j = 0;
 # Print out the nuclei
 for ($i = 0; $i < $numnuc; $i += 8)
 {
- printf("%i %i %f %f %f %f %i %f\n", $j+=1,1,$xnuc[$i], $ynuc[$i], $znuc[$i], 3.0, 0, 0.0);
- printf("%i %i %f %f %f %f %i %f\n", $j+=1,1,$xnuc[$i+1], $ynuc[$i+1], $znuc[$i+1], 3.0, 0, 0.0);
- printf("%i %i %f %f %f %f %i %f\n", $j+=1,1,$xnuc[$i+2], $ynuc[$i+2], $znuc[$i+2], 3.0,0,0.0);
- printf("%i %i %f %f %f %f %i %f\n", $j+=1,1,$xnuc[$i+3], $ynuc[$i+3], $znuc[$i+3], 3.0,0,0.0);
+ printf("%i %i %f %i %f %f %f %f\n", $j+=1,1,3.0, 0, 0.0,$xnuc[$i], $ynuc[$i], $znuc[$i]);
+ printf("%i %i %f %i %f %f %f %f\n", $j+=1,1,3.0, 0, 0.0,$xnuc[$i+1], $ynuc[$i+1], $znuc[$i+1]);
+ printf("%i %i %f %i %f %f %f %f\n", $j+=1,1,3.0, 0, 0.0,$xnuc[$i+2], $ynuc[$i+2], $znuc[$i+2]);
+ printf("%i %i %f %i %f %f %f %f\n", $j+=1,1,3.0, 0, 0.0,$xnuc[$i+3], $ynuc[$i+3], $znuc[$i+3]);
 }
 
 # Print out the core electrons
 for ($i = 0; $i < $numnuc; $i += 8)
 {
- printf("%i %i %f %f %f %f %i %.10f\n", $j+=1, 2, $xnuc[$i  ], $ynuc[$i  ], $znuc[$i  ], 0.0, 1, $r_elec);
- printf("%i %i %f %f %f %f %i %.10f\n", $j+=1, 2, $xnuc[$i  ], $ynuc[$i  ], $znuc[$i  ], 0.0, -1, $r_elec);
- printf("%i %i %f %f %f %f %i %.10f\n", $j+=1, 2, $xnuc[$i+1], $ynuc[$i+1], $znuc[$i+1], 0.0, 1, $r_elec);
- printf("%i %i %f %f %f %f %i %.10f\n", $j+=1, 2, $xnuc[$i+1], $ynuc[$i+1], $znuc[$i+1], 0.0, -1, $r_elec);
- printf("%i %i %f %f %f %f %i %.10f\n", $j+=1, 2, $xnuc[$i+2], $ynuc[$i+2], $znuc[$i+2], 0.0, 1, $r_elec);
- printf("%i %i %f %f %f %f %i %.10f\n", $j+=1, 2, $xnuc[$i+2], $ynuc[$i+2], $znuc[$i+2], 0.0, -1, $r_elec);
- printf("%i %i %f %f %f %f %i %.10f\n", $j+=1, 2, $xnuc[$i+3], $ynuc[$i+3], $znuc[$i+3], 0.0, 1, $r_elec);
- printf("%i %i %f %f %f %f %i %.10f\n", $j+=1, 2, $xnuc[$i+3], $ynuc[$i+3], $znuc[$i+3], 0.0, -1, $r_elec);
+ printf("%i %i %f %i %f %f %f %f\n", $j+=1, 2, 0.0, 1, $r_elec,$xnuc[$i  ], $ynuc[$i  ], $znuc[$i  ]);
+ printf("%i %i %f %i %f %f %f %f\n", $j+=1, 2, 0.0, -1, $r_elec,$xnuc[$i  ], $ynuc[$i  ], $znuc[$i  ]);
+ printf("%i %i %f %i %f %f %f %f\n", $j+=1, 2, 0.0, 1, $r_elec,$xnuc[$i+1], $ynuc[$i+1], $znuc[$i+1]);
+ printf("%i %i %f %i %f %f %f %f\n", $j+=1, 2, 0.0, -1, $r_elec,$xnuc[$i+1], $ynuc[$i+1], $znuc[$i+1]);
+ printf("%i %i %f %i %f %f %f %f\n", $j+=1, 2, 0.0, 1, $r_elec,$xnuc[$i+2], $ynuc[$i+2], $znuc[$i+2]);
+ printf("%i %i %f %i %f %f %f %f\n", $j+=1, 2, 0.0, -1, $r_elec,$xnuc[$i+2], $ynuc[$i+2], $znuc[$i+2]);
+ printf("%i %i %f %i %f %f %f %f\n", $j+=1, 2, 0.0, 1, $r_elec,$xnuc[$i+3], $ynuc[$i+3], $znuc[$i+3]);
+ printf("%i %i %f %i %f %f %f %f\n", $j+=1, 2, 0.0, -1, $r_elec,$xnuc[$i+3], $ynuc[$i+3], $znuc[$i+3]);
 }
 
 # Print out the valence electrons
 for ($i = 0; $i < $numnuc; $i += 8)
 {
  if (rand() < .5) {$spin = 1;} else {$spin = -1;}  
- printf("%i %i %f %f %f %f %i %.10f\n", $j+=1, 2, $xnuc[$i+4], $ynuc[$i+4], $znuc[$i+4], 0.0, $spin, $r_elec2);
- printf("%i %i %f %f %f %f %i %.10f\n", $j+=1, 2, $xnuc[$i+5], $ynuc[$i+5], $znuc[$i+5], 0.0, -$spin, $r_elec2);
+ printf("%i %i %f %i %f %f %f %f\n", $j+=1, 2, 0.0, $spin, $r_elec2,$xnuc[$i+4], $ynuc[$i+4], $znuc[$i+4]);
+ printf("%i %i %f %i %f %f %f %f\n", $j+=1, 2, 0.0, -$spin, $r_elec2,$xnuc[$i+5], $ynuc[$i+5], $znuc[$i+5]);
  if (rand() < .5) {$spin = 1;} else {$spin = -1;}  
- printf("%i %i %f %f %f %f %i %.10f\n", $j+=1, 2, $xnuc[$i+6], $ynuc[$i+6], $znuc[$i+6], 0.0, $spin, $r_elec2);
- printf("%i %i %f %f %f %f %i %.10f\n", $j+=1, 2, $xnuc[$i+7], $ynuc[$i+7], $znuc[$i+7], 0.0, -$spin, $r_elec2);
+ printf("%i %i %f %i %f %f %f %f\n", $j+=1, 2, 0.0, $spin, $r_elec2,$xnuc[$i+6], $ynuc[$i+6], $znuc[$i+6]);
+ printf("%i %i %f %i %f %f %f %f\n", $j+=1, 2, 0.0, -$spin, $r_elec2,$xnuc[$i+7], $ynuc[$i+7], $znuc[$i+7]);
 }
 

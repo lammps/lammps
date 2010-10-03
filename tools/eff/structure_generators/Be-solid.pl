@@ -57,15 +57,15 @@ $j=0;
 # Print out the nuclei
 for ($i = 0; $i < $numnuc; $i++)
 {
-  printf("%i %i %f %f %f %f %i %f\n", $j+=1, 1, $xnuc[$i], $ynuc[$i], $znuc[$i], 4.0, 0, 0.0);
+  printf("%i %i %f %i %f %f %f %f\n", $j+=1, 1, 4.0, 0, 0.0, $xnuc[$i], $ynuc[$i], $znuc[$i]);
 }
 
 # Print out the core electrons
 $r_core = 0.5;
 for ($i = 0; $i < $numnuc; $i++)
 {
-  printf("%i %i %f %f %f %f %i %.10f\n", $j+=1, 2, $xnuc[$i], $ynuc[$i], $znuc[$i], 0.0, 1, $r_core);
-  printf("%i %i %f %f %f %f %i %.10f\n", $j+=1, 2, $xnuc[$i], $ynuc[$i], $znuc[$i], 0.0, -1, $r_core);
+  printf("%i %i %f %i %f %f %f %f\n", $j+=1, 2,  0.0, 1, $r_core,$xnuc[$i], $ynuc[$i], $znuc[$i]);
+  printf("%i %i %f %i %f %f %f %f\n", $j+=1, 2, 0.0, -1, $r_core,$xnuc[$i], $ynuc[$i], $znuc[$i]);
 }
 
 # Print out the valence electrons
@@ -75,38 +75,38 @@ for ($i = 0; $i < $numnuc; $i += 4)
   $x = &BoundX($xnuc[$i] + $Lx / 2.0);
   $y = &BoundY($ynuc[$i] + $Lx / (2.0 * sqrt(3)));
   $z = $znuc[$i];
-  printf("%i %i %f %f %f %f %i %.10f\n", $j+=1, 2, $x, $y, $z, 0.0, 1, $r_valence);
+  printf("%i %i %f %i %f %f %f %f\n", $j+=1, 2, 0.0, 1, $r_valence,$x, $y, $z);
   $x = &BoundX($xnuc[$i] + $Lx / 2.0);
   $y = &BoundY($ynuc[$i] + $Lx / (2.0 * sqrt(3)));
   $z = $znuc[$i];
-  printf("%i %i %f %f %f %f %i %.10f\n", $j+=1, 2, $x, $y, $z, 0.0, -1, $r_valence);
+  printf("%i %i %f %i %f %f %f %f\n", $j+=1, 2, 0.0, -1, $r_valence,$x, $y, $z);
 
   $x = &BoundX($xnuc[$i+1] + $Lx / 2.0);
   $y = &BoundY($ynuc[$i+1] + $Lx / (2.0 * sqrt(3)));
   $z = $znuc[$i+1];
-  printf("%i %i %f %f %f %f %i %.10f\n", $j+=1, 2, $x, $y, $z, 0.0, 1, $r_valence);
+  printf("%i %i %f %i %f %f %f %f\n", $j+=1, 2, 0.0, 1, $r_valence, $x, $y, $z);
   $x = &BoundX($xnuc[$i+1] + $Lx / 2.0);
   $y = &BoundY($ynuc[$i+1] + $Lx / (2.0 * sqrt(3)));
   $z = $znuc[$i+1];
-  printf("%i %i %f %f %f %f %i %.10f\n", $j+=1, 2, $x, $y, $z, 0.0, -1, $r_valence);
+  printf("%i %i %f %i %f %f %f %f\n", $j+=1, 2, 0.0, -1, $r_valence,$x, $y, $z);
 
   $x = &BoundX($xnuc[$i+2] - $Lx / 2.0);
   $y = &BoundY($ynuc[$i+2] - $Lx / (2.0 * sqrt(3)));
   $z = $znuc[$i+2];
-  printf("%i %i %f %f %f %f %i %.10f\n", $j+=1, 2, $x, $y, $z, 0.0, 1, $r_valence);
+  printf("%i %i %f %i %f %f %f %f\n", $j+=1, 2, 0.0, 1, $r_valence,$x, $y, $z);
   $x = &BoundX($xnuc[$i+2] - $Lx / 2.0);
   $y = &BoundY($ynuc[$i+2] - $Lx / (2.0 * sqrt(3)));
   $z = $znuc[$i+2];
-  printf("%i %i %f %f %f %f %i %.10f\n", $j+=1, 2, $x, $y, $z, 0.0, -1, $r_valence);
+  printf("%i %i %f %f %f %f %f %f\n", $j+=1, 2, 0.0, -1, $r_valence,$x, $y, $z);
 
   $x = &BoundX($xnuc[$i+3] - $Lx / 2.0);
   $y = &BoundY($ynuc[$i+3] - $Lx / (2.0 * sqrt(3)));
   $z = $znuc[$i+3];
-  printf("%i %i %f %f %f %f %i %.10f\n", $j+=1, 2, $x, $y, $z, 0.0, 1, $r_valence);
+  printf("%i %i %f %i %f %f %f %f\n", $j+=1, 2, 0.0, 1, $r_valence, $x, $y, $z);
   $x = &BoundX($xnuc[$i+3] - $Lx / 2.0);
   $y = &BoundY($ynuc[$i+3] - $Lx / (2.0 * sqrt(3)));
   $z = $znuc[$i+3];
-  printf("%i %i %f %f %f %f %i %.10f\n", $j+=1, 2, $x, $y, $z, 0.0, -1, $r_valence);
+  printf("%i %i %f %i %f %f %f %f\n", $j+=1, 2, 0.0, -1, $r_valence,$x, $y, $z);
 }
 
 sub BoundX {

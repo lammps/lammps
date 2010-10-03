@@ -39,7 +39,7 @@ FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 6) error->all("Illegal fix efield command");
 
-  efactor = force->qe2f;
+  qe2f = force->qe2f;
   xstr = ystr = zstr = NULL;
 
   if (strstr(arg[3],"v_") == arg[3]) {
@@ -47,7 +47,7 @@ FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
     xstr = new char[n];
     strcpy(xstr,&arg[3][2]);
   } else {
-    ex = efactor * atof(arg[3]);
+    ex = qe2f * atof(arg[3]);
     xstyle = CONSTANT;
   }
 
@@ -56,7 +56,7 @@ FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
     ystr = new char[n];
     strcpy(ystr,&arg[4][2]);
   } else {
-    ey = efactor * atof(arg[4]);
+    ey = qe2f * atof(arg[4]);
     ystyle = CONSTANT;
   }
 
@@ -65,7 +65,7 @@ FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
     zstr = new char[n];
     strcpy(zstr,&arg[5][2]);
   } else {
-    ez = efactor * atof(arg[5]);
+    ez = qe2f * atof(arg[5]);
     zstyle = CONSTANT;
   }
 
@@ -177,23 +177,23 @@ void FixEfield::post_force(int vflag)
       }
 
   } else {
-    if (xstyle == EQUAL) ex = efactor * input->variable->compute_equal(xvar);
+    if (xstyle == EQUAL) ex = qe2f * input->variable->compute_equal(xvar);
     else if (xstyle == ATOM)
       input->variable->compute_atom(xvar,igroup,&efield[0][0],3,0);
-    if (ystyle == EQUAL) ey = efactor * input->variable->compute_equal(yvar);
+    if (ystyle == EQUAL) ey = qe2f * input->variable->compute_equal(yvar);
     else if (ystyle == ATOM)
       input->variable->compute_atom(yvar,igroup,&efield[0][1],3,0);
-    if (zstyle == EQUAL) ez = efactor * input->variable->compute_equal(zvar);
+    if (zstyle == EQUAL) ez = qe2f * input->variable->compute_equal(zvar);
     else if (zstyle == ATOM)
       input->variable->compute_atom(zvar,igroup,&efield[0][2],3,0);
 
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	if (xstyle == ATOM) f[i][0] += q[i]*efield[i][0];
+	if (xstyle == ATOM) f[i][0] += qe2f * q[i]*efield[i][0];
 	else f[i][0] += q[i]*ex;
-	if (ystyle == ATOM) f[i][1] += q[i]*efield[i][1];
+	if (ystyle == ATOM) f[i][1] += qe2f * q[i]*efield[i][1];
 	else f[i][1] += q[i]*ey;
-	if (zstyle == ATOM) f[i][2] += q[i]*efield[i][2];
+	if (zstyle == ATOM) f[i][2] += qe2f * q[i]*efield[i][2];
 	else f[i][2] += q[i]*ez;
       }
   }

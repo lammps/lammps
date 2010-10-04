@@ -10,9 +10,8 @@ neb command :h3
 
 [Syntax:]
 
-neb etol ftol N1 N2 Nevery filename :pre
+neb ftol N1 N2 Nevery filename :pre
 
-etol = stopping tolerance for energy (unitless)
 ftol = stopping tolerance for force (force units)
 N1 = max # of iterations (timesteps) to run initial NEB 
 N2 = max # of iterations (timesteps) to run barrier-climbing NEB
@@ -103,19 +102,24 @@ first define an appropriate "min_style"_min_style.html, such as
 used, since they perform iterative line searches in their inner loop,
 which cannot be easily synchronized across multiple replicas.
 
-The minimizer tolerances for energy and force are set by {etol} and
-{ftol}, the same as for the "minimize"_minimize.html command.  The
-maximum number of iterations in each stage is set by {N1} and {N2}.
-These are effectively timestep counts since each iteration of damped
-dynamics is like a single timestep in a dynamics "run"_run.html.
-During both stages, the potential energy of each replica and its
-normalized distance along the reaction path (reaction coordinate RD)
-will be printed to the screen and log file every {Nevery} timesteps.
-The RD is 0 and 1 for the first and last replica.  For intermediate
-replicas, it is the cummulative distance (normalized by the total
-cummulative distance) between adjacent replicas, where "distance" is
-defined as the length of the 3N-vector of differences in atomic
-coordinates, where N is the number of NEB atoms involved in the
+The minimizer tolerances for force is set by {ftol}, the same as for
+the "minimize"_minimize.html command.  In this case a non-zero {ftol}
+means that the {ftol} criterion must be met by every replica in order
+for the NEB calculation to converge.  The forces being compared to
+{ftol} include the inter-replica forces between an atom and its images
+in adjacent replicas.
+
+The maximum number of iterations in each stage is set by {N1} and
+{N2}.  These are effectively timestep counts since each iteration of
+damped dynamics is like a single timestep in a dynamics
+"run"_run.html.  During both stages, the potential energy of each
+replica and its normalized distance along the reaction path (reaction
+coordinate RD) will be printed to the screen and log file every
+{Nevery} timesteps.  The RD is 0 and 1 for the first and last replica.
+For intermediate replicas, it is the cummulative distance (normalized
+by the total cummulative distance) between adjacent replicas, where
+"distance" is defined as the length of the 3N-vector of differences in
+atomic coordinates, where N is the number of NEB atoms involved in the
 transition.  These outputs allow you to monitor NEB's progress in
 finding a good energy barrier.  {N1} and {N2} must both be multiples
 of {Nevery}.

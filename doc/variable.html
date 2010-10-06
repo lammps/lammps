@@ -358,12 +358,14 @@ the natural log; log() is the base 10 log.
 </P>
 <P>The random() function generates a uniform random number between lo and
 hi.  The normal() function generates a Gaussian variate centered on mu
-with variance sigma.  In both cases the seed is used the first time
+with variance sigma^2.  In both cases the seed is used the first time
 the internal random number generator is invoked, to initialize it.
-For equal-style variables, every processor uses the same seed.  For
-atom-style variables, a new unique seed is created for each processor,
+For equal-style variables, every processor uses the same seed so that
+they each generate the same sequence of random numbers.  For
+atom-style variables, a unique seed is created for each processor,
 based on the specified seed.  This effectively generates a different
-random number for each atom being looped over.
+random number for each atom being looped over in the atom-style
+variable.
 </P>
 <P>The ceil(), floor(), and round() functions are those in the C math
 library.  Ceil() is the smallest integer not less than its argument.

@@ -40,8 +40,11 @@ class Variable : protected Pointers {
   char **names;            // name of each variable
   int *style;              // style of each variable
   int *num;                // # of values for each variable
-  int *index;              // next available value for each variable
+  int *which;              // next available value for each variable
+  int *pad;                // 1 = pad loop/uloop variables with 0s, 0 = no pad
   char ***data;            // str value of each variable's values
+
+
   int precedence[15];      // precedence level of math operators
 
   struct Tree {            // parse tree for atom-style variables

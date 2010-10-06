@@ -66,7 +66,8 @@ Variable::Variable(LAMMPS *lmp) : Pointers(lmp)
   names = NULL;
   style = NULL;
   num = NULL;
-  index = NULL;
+  which = NULL;
+  pad = NULL;
   data = NULL;
 
   precedence[DONE] = 0;
@@ -93,7 +94,8 @@ Variable::~Variable()
   memory->sfree(names);
   memory->sfree(style);
   memory->sfree(num);
-  memory->sfree(index);
+  memory->sfree(which);
+  memory->sfree(pad);
   memory->sfree(data);
 }
 
@@ -114,7 +116,7 @@ void Variable::set(int narg, char **arg)
     return;
 
   // INDEX
-  // num = listed args, index = 1st value, data = copied args
+  // num = listed args, which = 1st value, data = copied args
 
   } else if (strcmp(arg[1],"index") == 0) {
     if (narg < 3) error->all("Illegal variable command");
@@ -122,36 +124,46 @@ void Variable::set(int narg, char **arg)
     if (nvar == maxvar) extend();
     style[nvar] = INDEX;
     num[nvar] = narg - 2;
-    index[nvar] = 0;
+    which[nvar] = 0;
     data[nvar] = new char*[num[nvar]];
     copy(num[nvar],&arg[2],data[nvar]);
 
   // LOOP
-  // 1 arg: num = N, index = 1st value, data = single string
-  // 2 args: num = N2, index = N1, data = single string
+  // 1 arg + pad: num = N, which = 1st value, data = single string
+  // 2 args + pad: num = N2, which = N1, data = single string
 
   } else if (strcmp(arg[1],"loop") == 0) {
-    if (narg < 3 || narg > 4) error->all("Illegal variable command");
     if (find(arg[0]) >= 0) return;
     if (nvar == maxvar) extend();
     style[nvar] = LOOP;
     int nfirst,nlast;
-    if (narg == 3) {
+    if (narg == 3 || (narg == 4 && strcmp(arg[3],"pad") == 0)) {
       nfirst = 1;
       nlast = atoi(arg[2]);
       if (nlast <= 0) error->all("Illegal variable command");
-    } else {
+      if (narg == 4 && strcmp(arg[3],"pad") == 0) {
+	char digits[12];
+	sprintf(digits,"%d",nlast);
+	pad[nvar] = strlen(digits);
+      } else pad[nvar] = 0;
+    } else if (narg == 4 || (narg == 5 && strcmp(arg[4],"pad") == 0)) {
       nfirst = atoi(arg[2]);
       nlast = atoi(arg[3]);
       if (nfirst > nlast || nlast <= 0) error->all("Illegal variable command");
-    }
+      if (narg == 5 && strcmp(arg[4],"pad") == 0) {
+	char digits[12];
+	sprintf(digits,"%d",nlast);
+	pad[nvar] = strlen(digits);
+      } else pad[nvar] = 0;
+    } else error->all("Illegal variable command");
     num[nvar] = nlast;
-    index[nvar] = nfirst-1;
+    which[nvar] = nfirst-1;
+    pad[nvar] = 0;
     data[nvar] = new char*[1];
     data[nvar][0] = NULL;
 
   // WORLD
-  // num = listed args, index = partition this proc is in, data = copied args
+  // num = listed args, which = partition this proc is in, data = copied args
   // error check that num = # of worlds in universe
 
   } else if (strcmp(arg[1],"world") == 0) {
@@ -162,14 +174,14 @@ void Variable::set(int narg, char **arg)
     num[nvar] = narg - 2;
     if (num[nvar] != universe->nworlds)
       error->all("World variable count doesn't match # of partitions");
-    index[nvar] = universe->iworld;
+    which[nvar] = universe->iworld;
     data[nvar] = new char*[num[nvar]];
     copy(num[nvar],&arg[2],data[nvar]);
 
   // UNIVERSE and ULOOP
   // for UNIVERSE: num = listed args, data = copied args
   // for ULOOP: num = N, data = single string
-  // index = partition this proc is in
+  // which = partition this proc is in
   // universe proc 0 creates lock file
   // error check that all other universe/uloop variables are same length
 
@@ -182,19 +194,25 @@ void Variable::set(int narg, char **arg)
       num[nvar] = narg - 2;
       data[nvar] = new char*[num[nvar]];
       copy(num[nvar],&arg[2],data[nvar]);
-    } else {
-      if (narg != 3) error->all("Illegal variable command");
+    } else if (strcmp(arg[1],"uloop") == 0) {
+      if (narg < 3 || narg > 4 || (narg == 4 && strcmp(arg[3],"pad") != 0))
+	error->all("Illegal variable command");
       if (find(arg[0]) >= 0) return;
       if (nvar == maxvar) extend();
       style[nvar] = ULOOP;
       num[nvar] = atoi(arg[2]);
       data[nvar] = new char*[1];
       data[nvar][0] = NULL;
+      if (narg == 4) {
+	char digits[12];
+	sprintf(digits,"%d",num[nvar]);
+	pad[nvar] = strlen(digits);
+      } else pad[nvar] = 0;
     }
 
     if (num[nvar] < universe->nworlds)
       error->all("Universe/uloop variable count < # of partitions");
-    index[nvar] = universe->iworld;
+    which[nvar] = universe->iworld;
 
     if (universe->me == 0) {
       FILE *fp = fopen("tmp.lammps.variable","w");
@@ -209,7 +227,7 @@ void Variable::set(int narg, char **arg)
 
   // STRING
   // remove pre-existing var if also style STRING (allows it to be reset)
-  // num = 1, index = 1st value
+  // num = 1, which = 1st value
   // data = 1 value, string to eval
 
   } else if (strcmp(arg[1],"string") == 0) {
@@ -222,13 +240,13 @@ void Variable::set(int narg, char **arg)
     if (nvar == maxvar) extend();
     style[nvar] = STRING;
     num[nvar] = 1;
-    index[nvar] = 0;
+    which[nvar] = 0;
     data[nvar] = new char*[num[nvar]];
     copy(1,&arg[2],data[nvar]);
     
   // EQUAL
   // remove pre-existing var if also style EQUAL (allows it to be reset)
-  // num = 2, index = 1st value
+  // num = 2, which = 1st value
   // data = 2 values, 1st is string to eval, 2nd is filled on retrieval
 
   } else if (strcmp(arg[1],"equal") == 0) {
@@ -241,14 +259,14 @@ void Variable::set(int narg, char **arg)
     if (nvar == maxvar) extend();
     style[nvar] = EQUAL;
     num[nvar] = 2;
-    index[nvar] = 0;
+    which[nvar] = 0;
     data[nvar] = new char*[num[nvar]];
     copy(1,&arg[2],data[nvar]);
     data[nvar][1] = NULL;
     
   // ATOM
   // remove pre-existing var if also style ATOM (allows it to be reset)
-  // num = 1, index = 1st value
+  // num = 1, which = 1st value
   // data = 1 value, string to eval
 
   } else if (strcmp(arg[1],"atom") == 0) {
@@ -261,7 +279,7 @@ void Variable::set(int narg, char **arg)
     if (nvar == maxvar) extend();
     style[nvar] = ATOM;
     num[nvar] = 1;
-    index[nvar] = 0;
+    which[nvar] = 0;
     data[nvar] = new char*[num[nvar]];
     copy(1,&arg[2],data[nvar]);
     
@@ -335,8 +353,8 @@ int Variable::next(int narg, char **arg)
   if (istyle == INDEX || istyle == LOOP) {
     for (int iarg = 0; iarg < narg; iarg++) {
       ivar = find(arg[iarg]);
-      index[ivar]++;
-      if (index[ivar] >= num[ivar]) {
+      which[ivar]++;
+      if (which[ivar] >= num[ivar]) {
 	flag = 1;
 	remove(ivar);
       }
@@ -374,8 +392,8 @@ int Variable::next(int narg, char **arg)
 
     for (int iarg = 0; iarg < narg; iarg++) {
       ivar = find(arg[iarg]);
-      index[ivar] = nextindex;
-      if (index[ivar] >= num[ivar]) {
+      which[ivar] = nextindex;
+      if (which[ivar] >= num[ivar]) {
 	flag = 1;
 	remove(ivar);
       }
@@ -391,27 +409,31 @@ int Variable::next(int narg, char **arg)
    if LOOP or ULOOP var, write int to data[0] and return ptr to string
    if EQUAL var, evaluate variable and put result in str
    if ATOM var, return NULL
-   return NULL if no variable or index is bad, caller must respond
+   return NULL if no variable or which is bad, caller must respond
 ------------------------------------------------------------------------- */
 
 char *Variable::retrieve(char *name)
 {
   int ivar = find(name);
   if (ivar == -1) return NULL;
-  if (index[ivar] >= num[ivar]) return NULL;
+  if (which[ivar] >= num[ivar]) return NULL;
 
   char *str;
   if (style[ivar] == INDEX || style[ivar] == WORLD || 
       style[ivar] == UNIVERSE || style[ivar] == STRING) {
-    str = data[ivar][index[ivar]];
+    str = data[ivar][which[ivar]];
   } else if (style[ivar] == LOOP || style[ivar] == ULOOP) {
-    char *value = new char[16];
-    sprintf(value,"%d",index[ivar]+1);
-    int n = strlen(value) + 1;
+    char result[16];
+    if (pad[ivar] == 0) sprintf(result,"%d",which[ivar]+1);
+    else {
+      char padstr[16];
+      sprintf(padstr,"%%0%dd",pad[ivar]);
+      sprintf(result,padstr,which[ivar]+1);
+    }
+    int n = strlen(result) + 1;
     delete [] data[ivar][0];
     data[ivar][0] = new char[n];
-    strcpy(data[ivar][0],value);
-    delete [] value;
+    strcpy(data[ivar][0],result);
     str = data[ivar][0];
   } else if (style[ivar] == EQUAL) {
     char result[32];
@@ -519,7 +541,7 @@ void Variable::remove(int n)
     names[i-1] = names[i];
     style[i-1] = style[i];
     num[i-1] = num[i];
-    index[i-1] = index[i];
+    which[i-1] = which[i];
     data[i-1] = data[i];
   }
   nvar--;
@@ -536,7 +558,8 @@ void Variable::extend()
     memory->srealloc(names,maxvar*sizeof(char *),"var:names");
   style = (int *) memory->srealloc(style,maxvar*sizeof(int),"var:style");
   num = (int *) memory->srealloc(num,maxvar*sizeof(int),"var:num");
-  index = (int *) memory->srealloc(index,maxvar*sizeof(int),"var:index");
+  which = (int *) memory->srealloc(which,maxvar*sizeof(int),"var:which");
+  pad = (int *) memory->srealloc(pad,maxvar*sizeof(int),"var:pad");
   data = (char ***) 
     memory->srealloc(data,maxvar*sizeof(char **),"var:data");
 }

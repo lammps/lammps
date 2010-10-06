@@ -113,11 +113,11 @@ void DumpXTC::init_style()
   for (idump = 0; idump < output->ndump; idump++)
     if (strcmp(id,output->dump[idump]->id) == 0) break;
   if (output->every_dump[idump] == 0)
-    error->all("Cannot use variable every setting for dump dcd");
+    error->all("Cannot use variable every setting for dump xtc");
 
   if (nevery_save == 0) nevery_save = output->every_dump[idump];
   else if (nevery_save != output->every_dump[idump])
-    error->all("Cannot change dump_modify every for dump dcd");
+    error->all("Cannot change dump_modify every for dump xtc");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -206,8 +206,6 @@ void DumpXTC::pack(int *ids)
   int *image = atom->image;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-
-  // assume group all, so no need to perform mask check
 
   m = n = 0;
   if (unwrap_flag == 1) {

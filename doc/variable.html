@@ -21,11 +21,23 @@
 
 <PRE>  <I>delete</I> = no args
   <I>index</I> args = one or more strings
-  <I>loop</I> args = N = integer size of loop, loop from 1 to N inclusive
-  <I>loop</I> args = N1 N2 = loop from N1 to N2 inclusive
+  <I>loop</I> args = N
+    N = integer size of loop, loop from 1 to N inclusive
+  <I>loop</I> args = N pad
+    N = integer size of loop, loop from 1 to N inclusive
+    pad = all values will be same length, e.g. 001, 002, ..., 100
+  <I>loop</I> args = N1 N2
+    N1,N2 = loop from N1 to N2 inclusive
+  <I>loop</I> args = N1 N2 pad
+    N1,N2 = loop from N1 to N2 inclusive
+    pad = all values will be same length, e.g. 050, 051, ..., 100
   <I>world</I> args = one string for each partition of processors
   <I>universe</I> args = one or more strings
-  <I>uloop</I> args = N = integer size of loop
+  <I>uloop</I> args = N
+    N = integer size of loop
+  <I>uloop</I> args = N pad
+    N = integer size of loop
+    pad = all values will be same length, e.g. 001, 002, ..., 100
   <I>string</I> arg = one string
   <I>equal</I> or <I>atom</I> args = one formula containing numbers, thermo keywords, math operations, group functions, atom values and vectors, compute/fix/variable references
     numbers = 0.0, 100, -5.4, 2.8e-4, etc
@@ -65,7 +77,7 @@ variable b atom x*y/vol
 variable foo myfile
 variable temp world 300.0 310.0 320.0 ${Tfinal}
 variable x universe 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
-variable x uloop 15
+variable x uloop 15 pad
 variable x delete 
 </PRE>
 <P><B>Description:</B>

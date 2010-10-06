@@ -16,11 +16,23 @@ name = name of variable to define :ulb,l
 style = {delete} or {index} or {loop} or {world} or {universe} or {uloop} or {string} or {equal} or {atom} :l
   {delete} = no args
   {index} args = one or more strings
-  {loop} args = N = integer size of loop, loop from 1 to N inclusive
-  {loop} args = N1 N2 = loop from N1 to N2 inclusive
+  {loop} args = N
+    N = integer size of loop, loop from 1 to N inclusive
+  {loop} args = N pad
+    N = integer size of loop, loop from 1 to N inclusive
+    pad = all values will be same length, e.g. 001, 002, ..., 100
+  {loop} args = N1 N2
+    N1,N2 = loop from N1 to N2 inclusive
+  {loop} args = N1 N2 pad
+    N1,N2 = loop from N1 to N2 inclusive
+    pad = all values will be same length, e.g. 050, 051, ..., 100
   {world} args = one string for each partition of processors
   {universe} args = one or more strings
-  {uloop} args = N = integer size of loop
+  {uloop} args = N
+    N = integer size of loop
+  {uloop} args = N pad
+    N = integer size of loop
+    pad = all values will be same length, e.g. 001, 002, ..., 100
   {string} arg = one string
   {equal} or {atom} args = one formula containing numbers, thermo keywords, math operations, group functions, atom values and vectors, compute/fix/variable references
     numbers = 0.0, 100, -5.4, 2.8e-4, etc
@@ -59,7 +71,7 @@ variable b atom x*y/vol
 variable foo myfile
 variable temp world 300.0 310.0 320.0 $\{Tfinal\}
 variable x universe 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
-variable x uloop 15
+variable x uloop 15 pad
 variable x delete :pre
 
 [Description:]

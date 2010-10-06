@@ -12,6 +12,8 @@ dumpsort.py	sort the snapshots of atoms in a LAMMPS dump file by atom ID
 dump2cfg.py	convert a native LAMMPS dump file to CFG format
 dump2xyz.py	convert a native LAMMPS dump file to XYZ format
 dump2pdb.py	convert a native LAMMPS dump file to PDB format
+neb_combine.py	combine multiple NEB dump files into one time series
+neb_final.py	combine multiple NEB final states into one sequence of states
 
 See the top of each script file for syntax, or just run it with no
 arguments to get a syntax message.

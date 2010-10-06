@@ -154,12 +154,17 @@ c     Now compute derivatives
               xik = rik2/rij2
               xjk = rjk2/rij2
               a =  1 - (xik-xjk)*(xik-xjk)
-              if (a.eq.0.d0) goto 10
+c     if a < 0, then ellipse equation doesn't describe this case and
+c     atom k can't possibly screen i-j
+              if (a.le.0.d0) goto 10
               cikj = (2.d0*(xik+xjk) + a - 2.d0)/a
               Cmax = Cmax_meam(elti,eltj,eltk)
               Cmin = Cmin_meam(elti,eltj,eltk)
               if (cikj.ge.Cmax) then
                 goto 10
+c     Note that cikj may be slightly negative (within numerical
+c     tolerance) if atoms are colinear, so don't reject that case here
+c     (other negative cikj cases were handled by the test on "a" above)
 c     Note that we never have 0<cikj<Cmin here, else sij=0 (rejected above)
               else
                 delc = Cmax - Cmin
@@ -364,12 +369,17 @@ c     if rjksq > ebound*rijsq, atom k is definitely outside the ellipse
         xik = riksq/rijsq
         xjk = rjksq/rijsq
         a = 1 - (xik-xjk)*(xik-xjk)
-        if (a.eq.0.d0) goto 10
+c     if a < 0, then ellipse equation doesn't describe this case and
+c     atom k can't possibly screen i-j
+        if (a.le.0.d0) goto 10
         cikj = (2.d0*(xik+xjk) + a - 2.d0)/a
         Cmax = Cmax_meam(elti,eltj,eltk)
         Cmin = Cmin_meam(elti,eltj,eltk)
         if (cikj.ge.Cmax) then
           goto 10
+c     note that cikj may be slightly negative (within numerical
+c     tolerance) if atoms are colinear, so don't reject that case here
+c     (other negative cikj cases were handled by the test on "a" above)
         else if (cikj.le.Cmin) then
           sij = 0.d0
           goto 20

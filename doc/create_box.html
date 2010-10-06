@@ -59,6 +59,20 @@ non-zero, then both the x and y dimensions must be periodic.
 Similarly, x and z must be periodic if xz is non-zero and y and z must
 be periodic if yz is non-zero.
 </P>
+<P>IMPORTANT NOTE: If the system is non-periodic (in a dimension), then
+you should not make the lo/hi box dimensions (as defined in your
+<A HREF = "region.html">region</A> command) radically smaller/larger than the extent
+of the atoms you eventually plan to create, e.g. via the
+<A HREF = "create_atoms.html">create_atoms</A> command.  For example, if your atoms
+extend from 0 to 50, you should not specify the box bounds as -10000
+and 10000. This is because LAMMPS uses the specified box size to
+layout the 3d grid of processors.  A huge (mostly empty) box will be
+sub-optimal for performance when using "fixed" boundary conditions
+(see the <A HREF = "boundary.html">boundary</A> command).  When using "shrink-wrap"
+boundary conditions (see the <A HREF = "boundary.html">boundary</A> command), a huge
+(mostly empty) box may cause a parallel simulation to lose atoms the
+first time that LAMMPS shrink-wraps the box around the atoms.
+</P>
 <P><B>Restrictions:</B>
 </P>
 <P>An <A HREF = "atom_style.html">atom_style</A> and <A HREF = "region.html">region</A> must have

@@ -141,8 +141,11 @@ lo/hi values radically smaller/larger than the extent of the atoms.
 For example, if your atoms extend from 0 to 50, you should not specify
 the box bounds as -10000 and 10000.  This is because LAMMPS uses the
 specified box size to layout the 3d grid of processors.  A huge
-(mostly empty) box will be sub-optimal for performance and may cause a
-parallel simulation to lose atoms the first time that LAMMPS
+(mostly empty) box will be sub-optimal for performance when using
+"fixed" boundary conditions (see the "boundary"_boundary.html
+command).  When using "shrink-wrap" boundary conditions (see the
+"boundary"_boundary.html command), a huge (mostly empty) box may cause
+a parallel simulation to lose atoms the first time that LAMMPS
 shrink-wraps the box around the atoms.
 
 The "extra bond per atom" setting should be used if new bonds will be

@@ -137,9 +137,11 @@ void NEB::command(int narg, char **arg)
   
   if (me_universe == 0) {
     if (universe->uscreen)
-      fprintf(universe->uscreen,"Step RD1 PE1 RD2 PE2 ... RDN PEN\n");
+      fprintf(universe->uscreen,"Step MaxReplicaForce MaxAtomForce "
+	      "RD1 PE1 RD2 PE2 ... RDN PEN\n");
     if (universe->ulogfile)
-      fprintf(universe->ulogfile,"Step RD1 PE1 RD2 PE2 ... RDN PEN\n");
+      fprintf(universe->ulogfile,"Step MaxReplicaForce MaxAtomForce "
+	      "RD1 PE1 RD2 PE2 ... RDN PEN\n");
   }
   print_status();
   
@@ -180,7 +182,14 @@ void NEB::command(int narg, char **arg)
   // must reinitialize minimizer so it re-creates its fix MINIMIZE
 
   if (me_universe == 0 && universe->uscreen)
-    fprintf(universe->uscreen,"Setting up climbing NEB ...\n");
+    fprintf(universe->uscreen,"Setting up climbing ...\n");
+
+  if (me_universe == 0) {
+    if (universe->uscreen)
+      fprintf(universe->ulogfile,"Climbing replica = %d\n",top+1);
+    if (universe->ulogfile)
+      fprintf(universe->ulogfile,"Climbing replica = %d\n",top+1);
+  }
   
   update->beginstep = update->firststep = update->ntimestep;
   update->endstep = update->laststep = update->firststep + n2steps;
@@ -193,9 +202,11 @@ void NEB::command(int narg, char **arg)
 
   if (me_universe == 0) {
     if (universe->uscreen)
-      fprintf(universe->uscreen,"Step RD1 PE1 RD2 PE2 ... RDN PEN\n");
+      fprintf(universe->uscreen,"Step MaxReplicaForce MaxAtomForce "
+	      "RD1 PE1 RD2 PE2 ... RDN PEN\n");
     if (universe->ulogfile)
-      fprintf(universe->ulogfile,"Step RD1 PE1 RD2 PE2 ... RDN PEN\n");
+      fprintf(universe->ulogfile,"Step MaxReplicaForce MaxAtomForce "
+	      "RD1 PE1 RD2 PE2 ... RDN PEN\n");
   }
   print_status();
   
@@ -350,6 +361,13 @@ void NEB::open(char *file)
 
 void NEB::print_status()
 {
+  double fnorm2 = sqrt(update->minimize->fnorm_sqr());
+  double fmaxreplica;
+  MPI_Allreduce(&fnorm2,&fmaxreplica,1,MPI_DOUBLE,MPI_MAX,roots);
+  double fnorminf = update->minimize->fnorm_inf();
+  double fmaxatom;
+  MPI_Allreduce(&fnorminf,&fmaxatom,1,MPI_DOUBLE,MPI_MAX,roots);
+
   double one[3];
   one[0] = fneb->veng;
   one[1] = fneb->plen;
@@ -366,13 +384,15 @@ void NEB::print_status()
   
   if (me_universe == 0) {
     if (universe->uscreen) {
-      fprintf(universe->uscreen,"%d ",update->ntimestep);
+      fprintf(universe->uscreen,"%d %g %g ",update->ntimestep,
+	      fmaxreplica,fmaxatom);
       for (int i = 0; i < nreplica; i++) 
 	fprintf(universe->uscreen,"%g %g ",rdist[i],all[i][0]);
       fprintf(universe->uscreen,"\n");
     }
     if (universe->ulogfile) {
-      fprintf(universe->ulogfile,"%d ",update->ntimestep);
+      fprintf(universe->ulogfile,"%d %g %g ",update->ntimestep,
+	      fmaxreplica,fmaxatom);
       for (int i = 0; i < nreplica; i++)
 	fprintf(universe->ulogfile,"%g %g ",rdist[i],all[i][0]);
       fprintf(universe->ulogfile,"\n");

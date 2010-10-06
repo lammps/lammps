@@ -38,6 +38,8 @@ class Min : protected Pointers {
   int request(class Pair *, int, double);
   double memory_usage() {return 0.0;}
   void modify_params(int, char **);
+  double fnorm_sqr();
+  double fnorm_inf();
 
   virtual void init_style() {}
   virtual void setup_style() = 0;
@@ -97,8 +99,6 @@ class Min : protected Pointers {
   void ev_setup();
   void ev_set(int);
 
-  double fnorm_sqr();
-  double fnorm_inf();
   char *stopstrings(int);
 };
 

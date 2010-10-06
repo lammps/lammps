@@ -186,7 +186,7 @@ void NEB::command(int narg, char **arg)
 
   if (me_universe == 0) {
     if (universe->uscreen)
-      fprintf(universe->ulogfile,"Climbing replica = %d\n",top+1);
+      fprintf(universe->uscreen,"Climbing replica = %d\n",top+1);
     if (universe->ulogfile)
       fprintf(universe->ulogfile,"Climbing replica = %d\n",top+1);
   }

@@ -27,6 +27,7 @@
 #include "fix.h"
 #include "output.h"
 #include "thermo.h"
+#include "random_mars.h"
 #include "memory.h"
 #include "error.h"
 
@@ -45,7 +46,7 @@ enum{ARG,OP};
 enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,UNARY,
        EQ,NE,LT,LE,GT,GE,AND,OR,
        SQRT,EXP,LN,LOG,SIN,COS,TAN,ASIN,ACOS,ATAN,ATAN2,
-       CEIL,FLOOR,ROUND,
+       RANDOM,NORMAL,CEIL,FLOOR,ROUND,
        VALUE,ATOMARRAY,TYPEARRAY,INTARRAY};
 enum{SUM,XMIN,XMAX,AVE,TRAP};
 
@@ -69,6 +70,9 @@ Variable::Variable(LAMMPS *lmp) : Pointers(lmp)
   which = NULL;
   pad = NULL;
   data = NULL;
+
+  randomequal = NULL;
+  randomatom = NULL;
 
   precedence[DONE] = 0;
   precedence[OR] = 1;
@@ -97,6 +101,9 @@ Variable::~Variable()
   memory->sfree(which);
   memory->sfree(pad);
   memory->sfree(data);
+
+  delete randomequal;
+  delete randomatom;
 }
 
 /* ----------------------------------------------------------------------
@@ -1343,7 +1350,7 @@ double Variable::evaluate(char *str, Tree **tree)
    process an evaulation tree
    customize by adding a math function:
      sqrt(),exp(),ln(),log(),sin(),cos(),tan(),asin(),acos(),atan(),
-     atan2(y,x),ceil(),floor(),round()
+     atan2(y,x),random(x,y,z),normal(x,y,z),ceil(),floor(),round()
 ---------------------------------------------------------------------- */
 
 double Variable::eval_tree(Tree *tree, int i)
@@ -1451,6 +1458,25 @@ double Variable::eval_tree(Tree *tree, int i)
   if (tree->type == ATAN2)
     return atan2(eval_tree(tree->left,i),eval_tree(tree->right,i));
 
+  if (tree->type == RANDOM) {
+    double lower = eval_tree(tree->left,i);
+    double upper = eval_tree(tree->middle,i);
+    if (randomatom == NULL) {
+      int seed = static_cast<int> (eval_tree(tree->right,i));
+      randomatom = new RanMars(lmp,seed+me);
+    }
+    return randomatom->uniform()*(upper-lower)+lower;
+  }
+  if (tree->type == NORMAL) {
+    double mu = eval_tree(tree->left,i);
+    double sigma = eval_tree(tree->middle,i);
+    if (randomatom == NULL) {
+      int seed = static_cast<int> (eval_tree(tree->right,i));
+      randomatom = new RanMars(lmp,seed+me);
+    }
+    return randomatom->gaussian()*sigma + mu;
+  }
+
   if (tree->type == CEIL)
     return ceil(eval_tree(tree->left,i));
   if (tree->type == FLOOR)
@@ -1539,7 +1565,7 @@ int Variable::int_between_brackets(char *&ptr)
    return 0 if not a match, 1 if successfully processed
    customize by adding a math function in 2 places:
      sqrt(),exp(),ln(),log(),sin(),cos(),tan(),asin(),acos(),atan(),
-     atan2(y,x),ceil(),floor(),round()
+     atan2(y,x),random(x,y,z),normal(x,y,z),ceil(),floor(),round()
 ------------------------------------------------------------------------- */
 
 int Variable::math_function(char *word, char *contents, Tree **tree,
@@ -1553,7 +1579,8 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
       strcmp(word,"sin") && strcmp(word,"cos") &&
       strcmp(word,"tan") && strcmp(word,"asin") &&
       strcmp(word,"acos") && strcmp(word,"atan") && 
-      strcmp(word,"atan2") && strcmp(word,"ceil") && 
+      strcmp(word,"atan2") && strcmp(word,"random") && 
+      strcmp(word,"normal") && strcmp(word,"ceil") && 
       strcmp(word,"floor") && strcmp(word,"round"))
     return 0;
 
@@ -1694,6 +1721,27 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
     if (narg != 2) error->all("Invalid math function in variable formula");
     if (tree) newtree->type = ATAN2;
     else argstack[nargstack++] = atan2(value1,value2);
+
+  } else if (strcmp(word,"random") == 0) {
+    if (narg != 3) error->all("Invalid math function in variable formula");
+    if (tree) newtree->type = RANDOM;
+    else {
+      if (randomequal == NULL) {
+	int seed = static_cast<int> (value3);
+	randomequal = new RanMars(lmp,seed);
+      }
+      argstack[nargstack++] = randomequal->uniform()*(value2-value1) + value1;
+    }
+  } else if (strcmp(word,"normal") == 0) {
+    if (narg != 3) error->all("Invalid math function in variable formula");
+    if (tree) newtree->type = NORMAL;
+    else {
+      if (randomequal == NULL) {
+	int seed = static_cast<int> (value3);
+	randomequal = new RanMars(lmp,seed);
+      }
+      argstack[nargstack++] = randomequal->gaussian()*value2 + value1;
+    }
 
   } else if (strcmp(word,"ceil") == 0) {
     if (narg != 1) error->all("Invalid math function in variable formula");

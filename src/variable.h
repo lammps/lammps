@@ -44,6 +44,8 @@ class Variable : protected Pointers {
   int *pad;                // 1 = pad loop/uloop variables with 0s, 0 = no pad
   char ***data;            // str value of each variable's values
 
+  class RanMars *randomequal;   // random number generator for equal-style vars
+  class RanMars *randomatom;    // random number generator for atom-style vars
 
   int precedence[15];      // precedence level of math operators
 

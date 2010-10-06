@@ -28,7 +28,7 @@ pair_coeff	* * 1.0 1.0 2.5
 
 # initial minimization to relax surface
 
-minimize	1.0e-6 0.001 1000 10000
+minimize	1.0e-6 1.0e-4 1000 10000
 reset_timestep	0
 
 # define groups
@@ -43,18 +43,19 @@ timestep	0.005
 # group of NEB atoms - either block or single atom ID 421
 
 region		surround block 10 18 17 21 0 0 units box
-group		one region surround
-#group		one id 421
-set		group one type 3
+group		nebatoms region surround
+#group		nebatoms id 421
+set		group nebatoms type 3
+group		nonneb subtract all nebatoms
 
 fix		1 lower setforce 0.0 0.0 0.0
-fix		2 one neb 1.0
+fix		2 nebatoms neb 1.0
 fix		3 all enforce2d
 
-thermo		10
+thermo		100
 
-dump		1 all atom 10 tmp.dump.$u
-dump_modify	1 scale no
+dump		1 nebatoms atom 10 dump.neb.$u
+dump		2 nonneb atom 10 dump.nonneb.$u
 
 # run NEB for 2000 steps or to force tolerance
 

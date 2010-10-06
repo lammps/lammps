@@ -200,21 +200,22 @@ files are binary and thus may not be portable to different machines.
 The number of atoms per snapshot cannot change with the <I>dcd</I> style.
 The <I>unwrap</I> option of the <A HREF = "dump_modify.html">dump_modify</A> command
 allows DCD coordinates to be written "unwrapped" by the image flags
-for each atom.  Unwrapped means that if the atom has passed thru a
-periodic boundary one or more times, the value is printed for what the
-coordinate would be if it had not been wrapped back into the periodic
-box.  Note that these coordinates may thus be far outside the box size
-stored with the snapshot.
+for each atom.  Unwrapped means that if the atom has passed through
+a periodic boundary one or more times, the value is printed for what
+the coordinate would be if it had not been wrapped back into the
+periodic box.  Note that these coordinates may thus be far outside
+the box size stored with the snapshot.
 </P>
 <P>The <I>xtc</I> style writes XTC files, a compressed trajectory format used
 by the GROMACS molecular dynamics package, and described
-<A HREF = "http://www.gromacs.org/documentation/reference_3.3/online/xtc.html">here</A>.
+<A HREF = "http://manual.gromacs.org/current/online/xtc.html">here</A>.
 The precision used in XTC files can be adjusted via the
 <A HREF = "dump_modify.html">dump_modify</A> command.  The default value of 1000
 means that coordinates are stored to 1/1000 nanometer accuracy.  XTC
-files are portable binary files written in the NFS XDR data format, so
-that any machine which supports XDR should be able to read them.  The
-<I>unwrap</I> option of the <A HREF = "dump_modify.html">dump_modify</A> command allows
+files are portable binary files written in the NFS XDR data format, 
+so that any machine which supports XDR should be able to read them. 
+The number of atoms per snapshot cannot change with the <I>xtc</I> style.
+The <I>unwrap</I> option of the <A HREF = "dump_modify.html">dump_modify</A> command allows
 XTC coordinates to be written "unwrapped" by the image flags for each
 atom.  Unwrapped means that if the atom has passed thru a periodic
 boundary one or more times, the value is printed for what the
@@ -449,18 +450,18 @@ section of the documentation.
 <P>The <I>xtc</I> style is part of the "xtc" package.  It is only enabled if
 LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_3">Making
 LAMMPS</A> section for more info.  This is because
-some machines may not support the lo-level XDR data format that XTC
+some machines may not support the low-level XDR data format that XTC
 files are written with, which will result in a compile-time error when
-a lo-level include file is not found.  Putting this style in a package
+a low-level include file is not found.  Putting this style in a package
 makes it easy to exclude from a LAMMPS build for those machines.
 However, the XTC package also includes two compatibility header files
 and associated functions, which should be a suitable substitute on
 machines that do not have the appropriate native header files.  This
 option can be invoked at build time by adding -DLAMMPS_XDR to the
-CCFLAGS variable in the appropriate lo-level Makefile,
+CCFLAGS variable in the appropriate low-level Makefile,
 e.g. src/MAKE/Makefile.foo.  This compatibility mode has been tested
-successfully on Cray XT3 and IBM BlueGene/L machines and should also
-work on the Cray XT4, IBM BG/P, and Windows XP machines.
+successfully on Cray XT3/XT4/XT5 and IBM BlueGene/L machines and 
+should also work on IBM BG/P, and Windows XP/Vista/7 machines.
 </P>
 <P><B>Related commands:</B>
 </P>

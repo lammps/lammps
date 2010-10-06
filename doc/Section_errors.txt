@@ -593,6 +593,10 @@ Self-explanatory. :dd
 
 The frequency of writing dump dcd snapshots cannot be changed. :dd
 
+{Cannot change dump_modify every for dump xtc} :dt
+
+The frequency of writing dump xtc snapshots cannot be changed. :dd
+
 {Cannot change timestep once fix srd is setup} :dt
 
 This is because various SRD properties depend on the timestep

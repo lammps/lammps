@@ -16,7 +16,7 @@ OBJ = 		$(SRC:.c=.o)
 # System-specific settings
 
 CC =		cc
-CCFLAGS =	-O 
+CCFLAGS =	-O -fPIC
 ARCHIVE =	ar
 ARCHFLAG =	rs
 

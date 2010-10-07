@@ -189,7 +189,7 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
       if (argindex[i] == 0 && modify->compute[icompute]->vector_flag == 0)
 	error->all("Fix ave/time compute does not calculate a vector");
       if (argindex[i] && modify->compute[icompute]->array_flag == 0)
-	error->all("Fix ave/time compute does not calculate a array");
+	error->all("Fix ave/time compute does not calculate an array");
       if (argindex[i] && 
 	  argindex[i] > modify->compute[icompute]->size_array_cols)
 	error->all("Fix ave/time compute array is accessed out-of-range");
@@ -211,10 +211,10 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
       int ifix = modify->find_fix(ids[i]);
       if (ifix < 0)
 	error->all("Fix ID for fix ave/time does not exist");
-      if (argindex[i] == 0 && modify->fix[ifix]->scalar_flag == 0)
+      if (argindex[i] == 0 && modify->fix[ifix]->vector_flag == 0)
 	error->all("Fix ave/time fix does not calculate a vector");
-      if (argindex[i] && modify->fix[ifix]->vector_flag == 0)
-	error->all("Fix ave/time fix does not calculate a array");
+      if (argindex[i] && modify->fix[ifix]->array_flag == 0)
+	error->all("Fix ave/time fix does not calculate an array");
       if (argindex[i] && argindex[i] > modify->fix[ifix]->size_array_cols)
 	error->all("Fix ave/time fix array is accessed out-of-range");
       if (nevery % modify->fix[ifix]->global_freq)
@@ -689,9 +689,11 @@ void FixAveTime::invoke_vector(int ntimestep)
       if (argindex[j] == 0)
 	for (i = 0; i < nrows; i++)
 	  column[i] = fix->compute_vector(i);
-      else
+      else {
+	int icol = argindex[j]-1;
 	for (i = 0; i < nrows; i++)
-	  column[i] = fix->compute_array(i,argindex[j]);
+	  column[i] = fix->compute_array(i,icol);
+      }
     }
     
     // add columns of values to array or just set directly if offcol is set

@@ -192,7 +192,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   omega = memory->create_2d_double_array(nbody,3,"rigid:omega");
   torque = memory->create_2d_double_array(nbody,3,"rigid:torque");
   quat = memory->create_2d_double_array(nbody,4,"rigid:quat");
-  image = (int *) memory->smalloc(nbody*sizeof(int),"rigid:image");
+  imagebody = (int *) memory->smalloc(nbody*sizeof(int),"rigid:imagebody");
   fflag = memory->create_2d_double_array(nbody,3,"rigid:fflag");
   tflag = memory->create_2d_double_array(nbody,3,"rigid:tflag");
 
@@ -204,7 +204,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 
   array_flag = 1;
   size_array_rows = nbody;
-  size_array_cols = 12;
+  size_array_cols = 15;
   global_freq = 1;
   extarray = 0;
 
@@ -349,7 +349,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   // set here, so image value will persist from run to run
 
   for (ibody = 0; ibody < nbody; ibody++)
-    image[ibody] = (512 << 20) | (512 << 10) | 512;
+    imagebody[ibody] = (512 << 20) | (512 << 10) | 512;
 
   // bitmasks for properties of extended particles
 
@@ -404,7 +404,7 @@ FixRigid::~FixRigid()
   memory->destroy_2d_double_array(omega);
   memory->destroy_2d_double_array(torque);
   memory->destroy_2d_double_array(quat);
-  memory->sfree(image);
+  memory->sfree(imagebody);
   memory->destroy_2d_double_array(fflag);
   memory->destroy_2d_double_array(tflag);
 
@@ -1383,7 +1383,8 @@ void FixRigid::final_integrate_respa(int ilevel, int iloop)
      due to 1st definition of rigid body or due to box flip
    if don't do this, then atoms of a body which drifts far away
      from a triclinic box will be remapped back into box
-     with huge displacements when the box tilt changes via set_x() 
+     with huge displacements when the box tilt changes via set_x()
+   adjust image flag of body and image flags of all atoms in body
 ------------------------------------------------------------------------- */
 
 void FixRigid::pre_neighbor()
@@ -1391,19 +1392,19 @@ void FixRigid::pre_neighbor()
   int original,oldimage,newimage;
 
   for (int ibody = 0; ibody < nbody; ibody++) {
-    original = image[ibody];
-    domain->remap(xcm[ibody],image[ibody]);
+    original = imagebody[ibody];
+    domain->remap(xcm[ibody],imagebody[ibody]);
     
-    if (original == image[ibody]) remapflag[ibody][3] = 0;
+    if (original == imagebody[ibody]) remapflag[ibody][3] = 0;
     else {
       oldimage = original & 1023;
-      newimage = image[ibody] & 1023;
+      newimage = imagebody[ibody] & 1023;
       remapflag[ibody][0] = newimage - oldimage;
       oldimage = (original >> 10) & 1023;
-      newimage = (image[ibody] >> 10) & 1023;
+      newimage = (imagebody[ibody] >> 10) & 1023;
       remapflag[ibody][1] = newimage - oldimage;
       oldimage = original >> 20;
-      newimage = image[ibody] >> 20;
+      newimage = imagebody[ibody] >> 20;
       remapflag[ibody][2] = newimage - oldimage;
       remapflag[ibody][3] = 1;
     }
@@ -1411,7 +1412,7 @@ void FixRigid::pre_neighbor()
 
   // adjust image flags of any atom in a rigid body whose xcm was remapped
 
-  int *atomimage = atom->image;
+  int *image = atom->image;
   int nlocal = atom->nlocal;
 
   int ibody,idim,otherdims;
@@ -1422,25 +1423,25 @@ void FixRigid::pre_neighbor()
     ibody = body[i];
 
     if (remapflag[ibody][0]) {
-      idim = atomimage[i] & 1023;
-      otherdims = atomimage[i] ^ idim;
+      idim = image[i] & 1023;
+      otherdims = image[i] ^ idim;
       idim -= remapflag[ibody][0];
       idim &= 1023;
-      atomimage[i] = otherdims | idim;
+      image[i] = otherdims | idim;
     }
     if (remapflag[ibody][1]) {
-      idim = (atomimage[i] >> 10) & 1023;
-      otherdims = atomimage[i] ^ (idim << 10);
+      idim = (image[i] >> 10) & 1023;
+      otherdims = image[i] ^ (idim << 10);
       idim -= remapflag[ibody][1];
       idim &= 1023;
-      atomimage[i] = otherdims | (idim << 10);
+      image[i] = otherdims | (idim << 10);
     }
     if (remapflag[ibody][2]) {
-      idim = atomimage[i] >> 20;
-      otherdims = atomimage[i] ^ (idim << 20);
+      idim = image[i] >> 20;
+      otherdims = image[i] ^ (idim << 20);
       idim -= remapflag[ibody][2];
       idim &= 1023;
-      atomimage[i] = otherdims | (idim << 20);
+      image[i] = otherdims | (idim << 20);
     }
   }
 }
@@ -2264,14 +2265,17 @@ void FixRigid::reset_dt()
 
 /* ----------------------------------------------------------------------
    return attributes of a rigid body
-   12 values per body
-   xcm = 1,2,3; vcm = 4,5,6; fcm = 7,8,9; torque = 10,11,12
+   15 values per body
+   xcm = 0,1,2; vcm = 3,4,5; fcm = 6,7,8; torque = 9,10,11; image = 12,13,14
 ------------------------------------------------------------------------- */
 
 double FixRigid::compute_array(int i, int j)
 {
-  if (j <= 3) return xcm[i][j];
-  if (j <= 6) return vcm[i][j-3];
-  if (j <= 9) return fcm[i][j-6];
-  return torque[i][j-9];
+  if (j < 3) return xcm[i][j];
+  if (j < 6) return vcm[i][j-3];
+  if (j < 9) return fcm[i][j-6];
+  if (j < 12) return torque[i][j-9];
+  if (j == 12) return (imagebody[i] & 1023) - 512;
+  if (j == 13) (imagebody[i] >> 10 & 1023) - 512;
+  return (imagebody[i] >> 20) - 512;
 }

@@ -653,7 +653,7 @@ void FixAveHisto::end_of_step()
 	if (j == 0)
 	  bin_vector(compute->size_local_rows,compute->vector_local,1);
 	else
-	  bin_vector(compute->size_local_rows,&compute->array_local[0][j],
+	  bin_vector(compute->size_local_rows,&compute->array_local[0][j-1],
 		     compute->size_local_cols);
       }
 

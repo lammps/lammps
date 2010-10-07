@@ -231,18 +231,22 @@ The rigid body contribution to the pressure of the system (virial) is
 also accounted for by this fix.
 
 IMPORTANT NOTE: The periodic image flags of atoms in rigid bodies are
-modified when the center-of-mass of the rigid body moves across a
-periodic boundary.  They are not incremented/decremented as they would
-be for non-rigid atoms.  This change does not affect dynamics, but
-means that any diagnostic computation based on the atomic image flag
-values must be adjusted accordingly.  For example, the "compute
-msd"_compute_msd.html will not compute the expected mean-squared
-displacement for such atoms, and the image flag values written to a
-"dump file"_dump.html will be different than they would be if the
-atoms were not in a rigid body.  It also means that if you have bonds
+altered so that the rigid body can be reconstructed correctly when it
+straddles periodic boundaries.  The atom image flags are not
+incremented/decremented as they would be for non-rigid atoms.  This
+means you cannot interpret them as you normally would.  For example,
+the image flag values written to a "dump file"_dump.html will be
+different than they would be if the atoms were not in a rigid body.
+Likewise the "compute msd"_compute_msd.html will not compute the
+expected mean-squared displacement for such atoms if the body moves
+across periodic boundaries.  It also means that if you have bonds
 between a pair of rigid bodies and the bond straddles a periodic
 boundary, you cannot use the "replicate"_replicate.html command to
-increase the system size.
+increase the system size.  Note that this fix does define image flags
+for each rigid body, which are incremented when the rigid body crosses
+a periodic boundary in the usual way.  These image flags have the same
+meaning as atom images (see the "dump" command) and can be accessed
+and output as described below.
 
 :line
 
@@ -262,13 +266,15 @@ fixes.
 These fixes compute a global array of values which can be accessed by
 various "output commands"_Section_howto.html#4_15.  The number of rows
 in the array is equal to the number of rigid bodies.  The number of
-columns is 12.  Thus for each rigid body, 12 values are stored: the
+columns is 15.  Thus for each rigid body, 12 values are stored: the
 xyz coords of the center of mass (COM), the xyz components of the COM
-velocity, the xyz components of the force acting on the COM, and the
-xyz components of the torque acting on the COM.  The force and torque
-values in the array are not affected by the {force} and {torque}
-keywords in the fix rigid command; they reflect values before any
-changes are made by those keywords.
+velocity, the xyz components of the force acting on the COM, the xyz
+components of the torque acting on the COM, and the xyz image flags of
+the COM, which have the same meaning as image flags for atom positions
+(see the "dump" command).  The force and torque values in the array
+are not affected by the {force} and {torque} keywords in the fix rigid
+command; they reflect values before any changes are made by those
+keywords.
 
 The ordering of the rigid bodies (by row in the array) is as follows.
 For the {single} keyword there is just one rigid body.  For the

@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Sai Jayaraman (University of Notre Dame)
+   Contributing author: Sai Jayaraman (U Notre Dame)
 ------------------------------------------------------------------------- */
 
 #include "math.h"
@@ -104,7 +104,6 @@ void PairGauss::compute(int eflag, int vflag)
 	r = sqrt(rsq);
 	forcelj = - 2.0*a[itype][jtype]*b[itype][jtype] * rsq * 
 	  exp(-b[itype][jtype]*rsq); 
-	if (r < 0.00001) forcelj = 0.0;
 	fpair = forcelj*r2inv;
 		  
 	f[i][0] += delx*fpair;
@@ -116,11 +115,9 @@ void PairGauss::compute(int eflag, int vflag)
 	  f[j][2] -= delz*fpair;
 	}	
 
-	if (eflag) {
+	if (eflag)
 	  evdwl = -(a[itype][jtype]*exp(-b[itype][jtype]*rsq) -
 		    offset[itype][jtype]);
-	  evdwl *= MAX(EPSILON,latscale);
-	}
 
 	if (evflag) ev_tally(i,j,nlocal,newton_pair,
 			     evdwl,0.0,fpair,delx,dely,delz); 
@@ -312,7 +309,6 @@ double PairGauss::single(int i, int j, int itype, int jtype, double rsq,
   
   r2inv = 1.0/rsq;
   philj = -(a[itype][jtype]*exp(-b[itype][jtype]*rsq) - offset[itype][jtype]);
-  philj *= MAX(eps,latscale);
   
   forcelj = -2.0*a[itype][jtype]*b[itype][jtype]*rsq*exp(-b[itype][jtype]*rsq);
   fforce = forcelj*r2inv;

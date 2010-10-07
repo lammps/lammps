@@ -64,7 +64,7 @@ void PairBorn::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double rsq,r2inv,r6inv,force_tf,factor_lj;
+  double rsq,r2inv,r6inv,forceborn,factor_lj;
   double r,rexp;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
@@ -247,9 +247,9 @@ double PairBorn::init_one(int i, int j)
   born3[i][j] = 8.0*d[i][j]; 
      
   if (offset_flag) {
-    double rexp = exp((sigma[i][j]-cut_lj[i][j])*rhoinv[i][j]);
-    offset[i][j] = a[i][j]*rexp - c[i][j]/pow(cut_lj[i][j],6.0) +
-      d[i][j]/pow(cut_lj[i][j],8.0);
+    double rexp = exp((sigma[i][j]-cut[i][j])*rhoinv[i][j]);
+    offset[i][j] = a[i][j]*rexp - c[i][j]/pow(cut[i][j],6.0) +
+      d[i][j]/pow(cut[i][j],8.0);
   } else offset[i][j] = 0.0;
 
   a[j][i] = a[i][j];
@@ -281,15 +281,16 @@ double PairBorn::init_one(int i, int j)
      double rho1 = rho[i][j];
      double rho2 = rho1*rho1;
      double rho3 = rho2*rho1;
-     double rc = sigma[i][j] - cut[i][j];
+     double rc = cut[i][j];
      double rc2 = rc*rc;
      double rc3 = rc2*rc;
      double rc5 = rc3*rc2;
      etail_ij = 2.0*PI*all[0]*all[1] * 
-       (a[i][j]*exp(-rc/rho1)*rho1* (rc2 + 2.0*rho1*rc + 2.0*rho2) - 
+       (a[i][j]*exp((sigma[i][j]-rc)/rho1)*rho1* 
+	(rc2 + 2.0*rho1*rc + 2.0*rho2) - 
 	c[i][j]/(3.0*rc3) + d[i][j]/(5.0*rc5));
      ptail_ij = (-1/3.0)*2.0*PI*all[0]*all[1] * 
-       (-a[i][j]*exp(-rc/rho1) * 
+       (-a[i][j]*exp((sigma[i][j]-rc)/rho1) * 
 	(rc3 + 3.0*rho1*rc2 + 6.0*rho2*rc + 6.0*rho3) + 
 	2.0*c[i][j]/rc3 - 8.0*d[i][j]/(5.0*rc5)); 
    } 
@@ -396,7 +397,7 @@ double PairBorn::single(int i, int j, int itype, int jtype,
   rexp = exp((sigma[itype][jtype]-r)*rhoinv[itype][jtype]);
   forceborn = born1[itype][jtype]*r*rexp - born2[itype][jtype]*r6inv +
     born3[itype][jtype]*r2inv*r6inv;
-  fforce = factor_lj*force_born*r2inv;
+  fforce = factor_lj*forceborn*r2inv;
   
   phiborn = a[itype][jtype]*rexp - c[itype][jtype]*r6inv +
     d[itype][jtype]*r2inv*r6inv - offset[itype][jtype];

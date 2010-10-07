@@ -42,7 +42,6 @@ class PairBorn : public Pair {
   double cut_global;
   double **cut;
   double **a,**rho,**sigma,**c, **d;
-  double **rhoinv,**tf1,**tf2,**tf3,**offset;
   double **rhoinv,**born1,**born2,**born3,**offset;
  
   void allocate();

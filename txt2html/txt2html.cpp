@@ -26,13 +26,13 @@ using namespace std;
 
 // function prototypes
 
-int next_paragraph(FILE *fp, string &paragraph);
-int index_of_first_char_of_last_word(string &paragraph);
-void process_commands(int flag, string &s, string &pre, string &post);
-void substitute(string &s);
-string td_tag(int currentc);
-int find_n(string &s, int nend, int &n1);
-void file_open(int npair, string &infile, FILE **in, FILE **out);
+static int next_paragraph(FILE *fp, string &paragraph);
+static int index_of_first_char_of_last_word(string &paragraph);
+static void process_commands(int flag, string &s, string &pre, string &post);
+static void substitute(string &s);
+static string td_tag(int currentc);
+static long find_n(string &s, int nend, int &n1);
+static void file_open(int npair, string &infile, FILE **in, FILE **out);
 
 // global variables for links, tables, lists, all command
 
@@ -112,7 +112,7 @@ int main(int narg, char **arg)
     // read file one paragraph at a time
     // process commands, looking only for link definitions
 
-    while (style = next_paragraph(in,raw)) {
+    while ((style = next_paragraph(in,raw))) {
 
       if (style == 2) {
 	int n = index_of_first_char_of_last_word(raw);
@@ -139,10 +139,10 @@ int main(int narg, char **arg)
     // substitute text for each paragraph
     // write HTML to output file
 
-    while (style = next_paragraph(in,raw)) {
+    while ((style = next_paragraph(in,raw))) {
 
       n = raw.find("\\\n");
-      while (n != string::npos) {
+      while (n < string::npos) {
 	raw.erase(n,2);
 	n = raw.find("\\\n");
       }
@@ -779,8 +779,6 @@ string td_tag(int currentc) {
   string DT; 
   // dw is the width for tables.  It is also the <dt> tag beginning
   string dw;
-  int counter;
-
   
   // set up alignment for particular columns
 
@@ -842,13 +840,13 @@ string td_tag(int currentc) {
 // decide which is first
 // set n = to that position
 
-int find_n(string &s, int nend, int &nsep)
+long find_n(string &s, int nend, int &nsep)
   // nsep is position of the next separator. changes in here.
 {
-  int n;
+  long n;
   nsep = s.find(tabledelim,nend);
-  int n2 = s.find('\n',nend);
-  int m = s.length() - 1;
+  long n2 = s.find('\n',nend);
+  long m = s.length() - 1;
   if (nsep >= 0 && n2 >= 0) {
     if (nsep <= n2) n = nsep;
     else n = n2;

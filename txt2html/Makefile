@@ -1,7 +1,7 @@
 #
 #
 
-CXXFLAGS=-O
+CXXFLAGS=-O2 -Wall -W
 
 txt2html: txt2html.cpp
 	$(CXX) -o $@ $(CXXFLAGS) $^

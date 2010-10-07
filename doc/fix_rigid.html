@@ -244,20 +244,21 @@ also accounted for by this fix.
 <P>IMPORTANT NOTE: The periodic image flags of atoms in rigid bodies are
 altered so that the rigid body can be reconstructed correctly when it
 straddles periodic boundaries.  The atom image flags are not
-incremented/decremented as they would be for non-rigid atoms.  This
-means you cannot interpret them as you normally would.  For example,
-the image flag values written to a <A HREF = "dump.html">dump file</A> will be
-different than they would be if the atoms were not in a rigid body.
-Likewise the <A HREF = "compute_msd.html">compute msd</A> will not compute the
-expected mean-squared displacement for such atoms if the body moves
-across periodic boundaries.  It also means that if you have bonds
-between a pair of rigid bodies and the bond straddles a periodic
-boundary, you cannot use the <A HREF = "replicate.html">replicate</A> command to
-increase the system size.  Note that this fix does define image flags
-for each rigid body, which are incremented when the rigid body crosses
-a periodic boundary in the usual way.  These image flags have the same
-meaning as atom images (see the "dump" command) and can be accessed
-and output as described below.
+incremented/decremented as they would be for non-rigid atoms as the
+rigid body crosses periodic boundaries.  This means you cannot
+interpret them as you normally would.  For example, the image flag
+values written to a <A HREF = "dump.html">dump file</A> will be different than they
+would be if the atoms were not in a rigid body.  Likewise the <A HREF = "compute_msd.html">compute
+msd</A> will not compute the expected mean-squared
+displacement for such atoms if the body moves across periodic
+boundaries.  It also means that if you have bonds between a pair of
+rigid bodies and the bond straddles a periodic boundary, you cannot
+use the <A HREF = "replicate.html">replicate</A> command to increase the system
+size.  Note that this fix does define image flags for each rigid body,
+which are incremented when the rigid body crosses a periodic boundary
+in the usual way.  These image flags have the same meaning as atom
+images (see the "dump" command) and can be accessed and output as
+described below.
 </P>
 <HR>
 

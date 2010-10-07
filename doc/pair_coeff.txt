@@ -85,6 +85,7 @@ the pair_style command, and coefficients specified by the associated
 "pair_style hybrid/overlay"_pair_hybrid.html - multiple styles of superposed pairwise interactions :ul
 
 "pair_style airebo"_pair_airebo.html - AI-REBO potential
+"pair_style born"_pair_born.html - Born-Mayer-Huggins potential
 "pair_style born/coul/long"_pair_born.html - Born-Mayer-Huggins with long-range Coulomb
 "pair_style buck"_pair_buck.html - Buckingham potential
 "pair_style buck/coul/cut"_pair_buck.html - Buckingham with cutoff Coulomb
@@ -104,6 +105,7 @@ the pair_style command, and coefficients specified by the associated
 "pair_style eam/fs"_pair_eam.html - Finnis-Sinclair EAM
 "pair_style eam/fs/opt"_pair_eam.html - optimized version of Finnis-Sinclair EAM
 "pair_style eim"_pair_eim.html - embedded ion method (EIM)
+"pair_style gauss"_pair_gauss.html - Gaussian potential
 "pair_style gayberne"_pair_gayberne.html - Gay-Berne ellipsoidal potential
 "pair_style gayberne/gpu"_pair_gayberne.html - GPU-enabled Gay-Berne ellipsoidal potential
 "pair_style gran/hertz/history"_pair_gran.html - granular potential with Hertzian interactions

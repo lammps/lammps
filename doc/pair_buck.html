@@ -55,12 +55,25 @@ Lennard-Jones 12/6) given by
 </P>
 <CENTER><IMG SRC = "Eqs/pair_buck.jpg">
 </CENTER>
-<P>Rc is the cutoff.
+<P>where rho is an ionic-pair dependent length parameter, and Rc is the
+cutoff.
 </P>
 <P>The <I>buck/coul/cut</I> and <I>buck/coul/long</I> styles add a Coulombic term
-as described for the <A HREF = "pair_lj.html">lj/cut</A> pair styles.
+as described for the <A HREF = "pair_lj.html">lj/cut</A> pair styles.  For
+<I>buck/coul/long</I>, an additional damping factor is applied to the
+Coulombic term so it can be used in conjunction with the
+<A HREF = "kspace_style.html">kspace_style</A> command and its <I>ewald</I> or <I>pppm</I>
+option.  The Coulombic cutoff specified for this style means that
+pairwise interactions within this distance are computed directly;
+interactions outside that distance are computed in reciprocal space.
 </P>
-<P>Note that this potential is related to the <A HREF = "pair_born.html">Born-Mayer-Huggins
+<P>If one cutoff is specified for the <I>born/coul/cut</I> and
+<I>born/coulk/long</I> styles, it is used for both the A,C and Coulombic
+terms.  If two cutoffs are specified, the first is used as the cutoff
+for the A,C terms, and the second is the cutoff for the Coulombic
+term.
+</P>
+<P>Note that these potentials are related to the <A HREF = "pair_born.html">Born-Mayer-Huggins
 potential</A>.
 </P>
 <P>The following coefficients must be defined for each pair of atoms
@@ -93,28 +106,26 @@ pair_style command.
 
 <P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
 </P>
-<P>None of the Buckingham pair styles support mixing.  Thus, coefficients
-for all I,J pairs must be specified explicitly.
+<P>These pair styles do not support mixing.  Thus, coefficients for all
+I,J pairs must be specified explicitly.
 </P>
-<P>All of the Buckingham pair styles support the
-<A HREF = "pair_modify.html">pair_modify</A> shift option for the energy of the
-exp() and 1/r^6 portion of the pair interaction.
+<P>These styles support the <A HREF = "pair_modify.html">pair_modify</A> shift option
+for the energy of the exp() and 1/r^6 portion of the pair interaction.
 </P>
 <P>The <I>buck/coul/long</I> pair style does not support the
 <A HREF = "pair_modify.html">pair_modify</A> table option since a tabulation
 capability has not yet been added to this potential.
 </P>
-<P>None of the Buckingham pair styles support the
-<A HREF = "pair_modify.html">pair_modify</A> tail option for adding long-range tail
-corrections to energy and pressure.
+<P>These styles do not support the <A HREF = "pair_modify.html">pair_modify</A> tail
+option for adding long-range tail corrections to energy and pressure.
 </P>
-<P>All of the Buckingham pair styles write their information to <A HREF = "restart.html">binary
-restart files</A>, so pair_style and pair_coeff commands do
-not need to be specified in an input script that reads a restart file.
+<P>These styles write their information to <A HREF = "restart.html">binary restart
+files</A>, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.
 </P>
-<P>All of the Buckingham pair styles can only be used via the <I>pair</I>
-keyword of the <A HREF = "run_style.html">run_style respa</A> command.  They do not
-support the <I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
+<P>These styles can only be used via the <I>pair</I> keyword of the <A HREF = "run_style.html">run_style
+respa</A> command.  They do not support the <I>inner</I>,
+<I>middle</I>, <I>outer</I> keywords.
 </P>
 <P><B>Restrictions:</B>
 </P>

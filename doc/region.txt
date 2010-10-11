@@ -76,11 +76,13 @@ region 2 sphere 0.0 0.0 0.0 5 side out wiggle 1 1 0 10 :pre
 
 This command defines a geometric region of space.  Various other
 commands use regions.  For example, the region can be filled with
-atoms via the "create_atoms"_create_atoms.html command.  Or the atoms
-in the region can be identified as a group via the "group"_group.html
-command, or deleted via the "delete_atoms"_delete_atoms.html command.
-Or the surface of the region can be used as a boundary wall via the
-"fix wall/region"_fix_wall_region.html command.
+atoms via the "create_atoms"_create_atoms.html command.  Or a bounding
+box around the region, can be used to define the simulation box via
+the "create_box"_create_box.html command.  Or the atoms in the region
+can be identified as a group via the "group"_group.html command, or
+deleted via the "delete_atoms"_delete_atoms.html command.  Or the
+surface of the region can be used as a boundary wall via the "fix
+wall/region"_fix_wall_region.html command.
 
 Normally, regions in LAMMPS are "static", meaning their geometric
 extent does not change with time.  If the {vel} or {wiggle} or
@@ -152,6 +154,13 @@ box is translated in the x and y directions by {xz} and {yz}.  This
 results in a parallelepiped whose "origin" is at (xlo,ylo,zlo) with 3
 edge vectors starting from its origin given by a = (xhi-xlo,0,0); b =
 (xy,yhi-ylo,0); c = (xz,yz,zhi-zlo).
+
+Crystal structures are often defined using three lattice constants
+{a}, {b}, and {c}, and three angles {alpha}, {beta} and {gamma}. The
+relationships between these quantities and a prism with (lx,ly,lz) =
+(xhi-xlo,yhi-ylo,zhi-zlo) and tilt factors (xy,xz,yz) are as follows:
+
+:c,image(Eqs/box.jpg) 
 
 A prism region used with the "create_box"_create_box.html command must
 have tilt factors (xy,xz,yz) that do not skew the box more than half

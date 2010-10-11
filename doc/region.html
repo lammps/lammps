@@ -85,11 +85,13 @@ region 2 sphere 0.0 0.0 0.0 5 side out wiggle 1 1 0 10
 </P>
 <P>This command defines a geometric region of space.  Various other
 commands use regions.  For example, the region can be filled with
-atoms via the <A HREF = "create_atoms.html">create_atoms</A> command.  Or the atoms
-in the region can be identified as a group via the <A HREF = "group.html">group</A>
-command, or deleted via the <A HREF = "delete_atoms.html">delete_atoms</A> command.
-Or the surface of the region can be used as a boundary wall via the
-<A HREF = "fix_wall_region.html">fix wall/region</A> command.
+atoms via the <A HREF = "create_atoms.html">create_atoms</A> command.  Or a bounding
+box around the region, can be used to define the simulation box via
+the <A HREF = "create_box.html">create_box</A> command.  Or the atoms in the region
+can be identified as a group via the <A HREF = "group.html">group</A> command, or
+deleted via the <A HREF = "delete_atoms.html">delete_atoms</A> command.  Or the
+surface of the region can be used as a boundary wall via the <A HREF = "fix_wall_region.html">fix
+wall/region</A> command.
 </P>
 <P>Normally, regions in LAMMPS are "static", meaning their geometric
 extent does not change with time.  If the <I>vel</I> or <I>wiggle</I> or
@@ -162,6 +164,13 @@ results in a parallelepiped whose "origin" is at (xlo,ylo,zlo) with 3
 edge vectors starting from its origin given by a = (xhi-xlo,0,0); b =
 (xy,yhi-ylo,0); c = (xz,yz,zhi-zlo).
 </P>
+<P>Crystal structures are often defined using three lattice constants
+<I>a</I>, <I>b</I>, and <I>c</I>, and three angles <I>alpha</I>, <I>beta</I> and <I>gamma</I>. The
+relationships between these quantities and a prism with (lx,ly,lz) =
+(xhi-xlo,yhi-ylo,zhi-zlo) and tilt factors (xy,xz,yz) are as follows:
+</P>
+<CENTER><IMG SRC = "Eqs/box.jpg">
+</CENTER>
 <P>A prism region used with the <A HREF = "create_box.html">create_box</A> command must
 have tilt factors (xy,xz,yz) that do not skew the box more than half
 the distance of the parallel box length.  For example, if xlo = 2 and

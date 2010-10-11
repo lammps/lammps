@@ -127,17 +127,50 @@ LAMMPS "post-processing tools"_Section_tools.html, including
 this format.  
 
 For post-processing purposes the {atom} and {custom} text files are
-self-describing in the following sense.  The simulation box bounds are
-included in each snapshot and if the box is triclinic
-(non-orthogonal), then the tilt factors are also printed; see the
-"region prism"_region.html command for a description of tilt factors.
-For triclinic boxes the box bounds themselves (first 2 quantities on
-each line) are a true "bounding box" around the simulation domain,
-which means they include the effect of any tilt.  The "ITEM: ATOMS"
-line in each snapshot also lists the meaning of each column of the
-per-atom lines that follow.  For example, this would be "id type xs ys
-zs" for the default {atom} style, and it will be the atom attributes
-you specify in the dump command for the {custom} style.
+self-describing in the following sense.
+
+The simulation box bounds are included in each snapshot.  For
+orthogonal boxes this is formatted as:
+
+ITEM: BOX BOUNDS
+xlo xhi
+ylo yhi
+zlo zhi :pre
+
+where xlo,xhi are the bounds of the simulation box in the x-dimension,
+and similarly for y and z.
+
+For triclinic boxes (non-orthogonal), the tilt factors are also
+included, as a 3rd value on each line:
+
+ITEM: BOX BOUNDS xy xz yz
+xlo_bound xhi_bound xy
+ylo_bound yhi_bound xz
+zlo_bound zhi_bound yz :pre
+
+See the "region prism"_region.html or "read_data"_read_data.html
+commands for a description of tilt factors in LAMMPS, and their
+relationship to other nomenclatures for triclinic geometries,
+e.g. using 3 lattice constants {a}, {b}, and {c}, and 3 angles
+{alpha}, {beta} and {gamma}.
+
+IMPORTANT NOTE: As noted above, for triclinic simulation boxes, the 6
+box bounds (xlo,xhi,ylo,yhi,zlo,zhi) are actually written to the dump
+file as a "bounding box" around the simulation domain, which means
+they include the effect of any tilt, which is convenient for many
+visualization programs.  The bounding box is calculated as follows:
+
+xlo_bound = MIN(xlo,xlo+xy,xlo+xz,xlo+xy+xz)
+xhi_bound = MAX(xhi,xhi+xy,xhi+xz,xhi+xy+xz)
+ylo_bound = MIN(ylo,ylo+yz)
+yhi_bound = MAX(yhi,yhi+yz)
+zlo_bound = zlo
+zhi_bound = zhi :pre
+
+The "ITEM: ATOMS" line in each snapshot lists column descriptors for
+the per-atom lines that follow.  For example, the descriptors would be
+"id type xs ys zs" for the default {atom} style, and would be the atom
+attributes you specify in the dump command for the {custom} style.
 
 For style {atom}, atom coordinates are written to the file, along with
 the atom ID and atom type.  By default, atom coords are written in a

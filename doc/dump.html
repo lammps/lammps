@@ -137,17 +137,50 @@ LAMMPS <A HREF = "Section_tools.html">post-processing tools</A>, including
 this format.  
 </P>
 <P>For post-processing purposes the <I>atom</I> and <I>custom</I> text files are
-self-describing in the following sense.  The simulation box bounds are
-included in each snapshot and if the box is triclinic
-(non-orthogonal), then the tilt factors are also printed; see the
-<A HREF = "region.html">region prism</A> command for a description of tilt factors.
-For triclinic boxes the box bounds themselves (first 2 quantities on
-each line) are a true "bounding box" around the simulation domain,
-which means they include the effect of any tilt.  The "ITEM: ATOMS"
-line in each snapshot also lists the meaning of each column of the
-per-atom lines that follow.  For example, this would be "id type xs ys
-zs" for the default <I>atom</I> style, and it will be the atom attributes
-you specify in the dump command for the <I>custom</I> style.
+self-describing in the following sense.
+</P>
+<P>The simulation box bounds are included in each snapshot.  For
+orthogonal boxes this is formatted as:
+</P>
+<PRE>ITEM: BOX BOUNDS
+xlo xhi
+ylo yhi
+zlo zhi 
+</PRE>
+<P>where xlo,xhi are the bounds of the simulation box in the x-dimension,
+and similarly for y and z.
+</P>
+<P>For triclinic boxes (non-orthogonal), the tilt factors are also
+included, as a 3rd value on each line:
+</P>
+<PRE>ITEM: BOX BOUNDS xy xz yz
+xlo_bound xhi_bound xy
+ylo_bound yhi_bound xz
+zlo_bound zhi_bound yz 
+</PRE>
+<P>See the <A HREF = "region.html">region prism</A> or <A HREF = "read_data.html">read_data</A>
+commands for a description of tilt factors in LAMMPS, and their
+relationship to other nomenclatures for triclinic geometries,
+e.g. using 3 lattice constants <I>a</I>, <I>b</I>, and <I>c</I>, and 3 angles
+<I>alpha</I>, <I>beta</I> and <I>gamma</I>.
+</P>
+<P>IMPORTANT NOTE: As noted above, for triclinic simulation boxes, the 6
+box bounds (xlo,xhi,ylo,yhi,zlo,zhi) are actually written to the dump
+file as a "bounding box" around the simulation domain, which means
+they include the effect of any tilt, which is convenient for many
+visualization programs.  The bounding box is calculated as follows:
+</P>
+<PRE>xlo_bound = MIN(xlo,xlo+xy,xlo+xz,xlo+xy+xz)
+xhi_bound = MAX(xhi,xhi+xy,xhi+xz,xhi+xy+xz)
+ylo_bound = MIN(ylo,ylo+yz)
+yhi_bound = MAX(yhi,yhi+yz)
+zlo_bound = zlo
+zhi_bound = zhi 
+</PRE>
+<P>The "ITEM: ATOMS" line in each snapshot lists column descriptors for
+the per-atom lines that follow.  For example, the descriptors would be
+"id type xs ys zs" for the default <I>atom</I> style, and would be the atom
+attributes you specify in the dump command for the <I>custom</I> style.
 </P>
 <P>For style <I>atom</I>, atom coordinates are written to the file, along with
 the atom ID and atom type.  By default, atom coords are written in a

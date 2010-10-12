@@ -43,7 +43,7 @@ style = {delete} or {index} or {loop} or {world} or {universe} or {uloop} or {st
     math functions = sqrt(x), exp(x), ln(x), log(x),
                      sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x),
                      random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x)
-                     ramp(x,y), stagger(x,y), logfreq(x,y,z), vlinear(x,y), swiggle(x,y,z), cwiggle(x,y,z)
+                     ramp(x,y), stagger(x,y), logfreq(x,y,z), vdisplace(x,y), swiggle(x,y,z), cwiggle(x,y,z)
     group functions = count(group), mass(group), charge(group),
 		      xcm(group,dim), vcm(group,dim), fcm(group,dim),
 		      bound(group,xmin), gyration(group), ke(group),
@@ -266,7 +266,7 @@ Number: 0.2, 100, 1.0e20, -15.4, etc
 Constant: PI
 Thermo keywords: vol, pe, ebond, etc
 Math operators: (), -x, x+y, x-y, x*y, x/y, x^y, x==y, x!=y, x<y, x<=y, x>y, x>=y, x&&y, x||y
-Math functions: sqrt(x), exp(x), ln(x), log(x), sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x), random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x), ramp(x,y), stagger(x,y), logfreq(x,y,z), vlinear(x,y), swiggle(x,y,z), cwiggle(x,y,z)
+Math functions: sqrt(x), exp(x), ln(x), log(x), sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x), random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x), ramp(x,y), stagger(x,y), logfreq(x,y,z), vdisplace(x,y), swiggle(x,y,z), cwiggle(x,y,z)
 Group functions: count(ID), mass(ID), charge(ID), xcm(ID,dim), \
                  vcm(ID,dim), fcm(ID,dim), bound(ID,dir), \
 		 gyration(ID), ke(ID), angmom(ID,dim), \
@@ -421,7 +421,7 @@ output timesteps:
 
 100,200,300,400,1000,2000,3000,4000,10000,20000,etc :pre
 
-The vlinear(x,y) function takes 2 arguments: x = coord0 and y =
+The vdisplace(x,y) function takes 2 arguments: x = coord0 and y =
 velocity, and uses the elapsed time to change the coordinate value by
 a linear displacement due to the applied velocity over the course of a
 run, according to this formula:

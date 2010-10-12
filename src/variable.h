@@ -63,6 +63,7 @@ class Variable : protected Pointers {
   void extend();
   void copy(int, char **, char **);
   double evaluate(char *, Tree **);
+  double collapse_tree(Tree *);
   double eval_tree(Tree *, int);
   void free_tree(Tree *);
   int find_matching_paren(char *, int, char *&);

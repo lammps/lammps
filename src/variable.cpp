@@ -486,6 +486,7 @@ void Variable::compute_atom(int ivar, int igroup,
 {
   Tree *tree;
   double tmp = evaluate(data[ivar][0],&tree);
+  tmp = collapse_tree(tree);
 
   int groupbit = group->bitmask[igroup];
   int *mask = atom->mask;
@@ -596,8 +597,9 @@ void Variable::copy(int narg, char **from, char **to)
 
 /* ----------------------------------------------------------------------
    recursive evaluation of a string str
-   string is a equal-style or atom-style formula containing one or more items:
+   str is an equal-style or atom-style formula containing one or more items:
      number = 0.0, -5.45, 2.8e-4, ...
+     constant = PI
      thermo keyword = ke, vol, atoms, ...
      math operation = (),-x,x+y,x-y,x*y,x/y,x^y,
                       x==y,x!=y,x<y,x<=y,x>y,x>=y,
@@ -610,8 +612,11 @@ void Variable::copy(int narg, char **from, char **to)
      compute = c_ID, c_ID[i], c_ID[i][j]
      fix = f_ID, f_ID[i], f_ID[i][j]
      variable = v_name, v_name[i]
-   if tree ptr passed in, return ptr to parse tree created for formula
-   if no tree ptr passed in, return value of string as double
+   equal-style variables passes in tree = NULL:
+     evaluate the formula, return result as a double
+   atom-style variable passes in tree = non-NULL:
+     parse the formula but do not evaluate it
+     create a parse tree and return it
 ------------------------------------------------------------------------- */
 
 double Variable::evaluate(char *str, Tree **tree)
@@ -1372,7 +1377,398 @@ double Variable::evaluate(char *str, Tree **tree)
 }
 
 /* ----------------------------------------------------------------------
-   process an evaulation tree
+   collapse an atom-style variable parse tree
+   tree was created by one-time parsing of formula string via evaulate()
+   only keep tree nodes that depend on ATOMARRAY, TYPEARRAY, INTARRAY
+   remainder is converted to single VALUE
+   this enables optimal eval_tree loop over atoms
+   customize by adding a math function:
+     sqrt(),exp(),ln(),log(),sin(),cos(),tan(),asin(),acos(),atan(),
+     atan2(y,x),random(x,y,z),normal(x,y,z),ceil(),floor(),round(),
+     ramp(x,y),stagger(x,y),logfreq(x,y,z),
+     vdisplace(x,y),swiggle(x,y,z),cwiggle(x,y,z)
+---------------------------------------------------------------------- */
+
+double Variable::collapse_tree(Tree *tree)
+{
+  double arg1,arg2,arg3;
+
+  if (tree->type == VALUE) return tree->value;
+  if (tree->type == ATOMARRAY) return 0.0;
+  if (tree->type == TYPEARRAY) return 0.0;
+  if (tree->type == INTARRAY) return 0.0;
+
+  if (tree->type == ADD) {
+    arg1 = collapse_tree(tree->left);
+    arg2 = collapse_tree(tree->right);
+    if (tree->left->type != VALUE || tree->right->type != VALUE) return 0.0;
+    tree->type = VALUE;
+    tree->value = arg1 + arg2;
+    return tree->value;
+  }
+
+  if (tree->type == SUBTRACT) {
+    arg1 = collapse_tree(tree->left);
+    arg2 = collapse_tree(tree->right);
+    if (tree->left->type != VALUE || tree->right->type != VALUE) return 0.0;
+    tree->type = VALUE;
+    tree->value = arg1 - arg2;
+    return tree->value;
+  }
+
+  if (tree->type == MULTIPLY) {
+    arg1 = collapse_tree(tree->left);
+    arg2 = collapse_tree(tree->right);
+    if (tree->left->type != VALUE || tree->right->type != VALUE) return 0.0;
+    tree->type = VALUE;
+    tree->value = arg1 * arg2;
+    return tree->value;
+  }
+
+  if (tree->type == DIVIDE) {
+    arg1 = collapse_tree(tree->left);
+    arg2 = collapse_tree(tree->right);
+    if (tree->left->type != VALUE || tree->right->type != VALUE) return 0.0;
+    tree->type = VALUE;
+    if (arg2 == 0.0) error->one("Divide by 0 in variable formula");
+    tree->value = arg1 / arg2;
+    return tree->value;
+  }
+
+  if (tree->type == CARAT) {
+    arg1 = collapse_tree(tree->left);
+    arg2 = collapse_tree(tree->right);
+    if (tree->left->type != VALUE || tree->right->type != VALUE) return 0.0;
+    tree->type = VALUE;
+    if (arg2 == 0.0) error->one("Power by 0 in variable formula");
+    tree->value = pow(arg1,arg2);
+    return tree->value;
+  }
+
+  if (tree->type == UNARY) {
+    arg1 = collapse_tree(tree->left);
+    if (tree->left->type != VALUE) return 0.0;
+    tree->type = VALUE;
+    tree->value = -arg1;
+    return tree->value;
+  }
+
+  if (tree->type == EQ) {
+    arg1 = collapse_tree(tree->left);
+    arg2 = collapse_tree(tree->right);
+    if (tree->left->type != VALUE || tree->right->type != VALUE) return 0.0;
+    tree->type = VALUE;
+    if (arg1 == arg2) tree->value = 1.0;
+    else tree->value = 0.0;
+    return tree->value;
+  }
+
+  if (tree->type == NE) {
+    arg1 = collapse_tree(tree->left);
+    arg2 = collapse_tree(tree->right);
+    if (tree->left->type != VALUE || tree->right->type != VALUE) return 0.0;
+    tree->type = VALUE;
+    if (arg1 != arg2) tree->value = 1.0;
+    else tree->value = 0.0;
+    return tree->value;
+  }
+
+  if (tree->type == LT) {
+    arg1 = collapse_tree(tree->left);
+    arg2 = collapse_tree(tree->right);
+    if (tree->left->type != VALUE || tree->right->type != VALUE) return 0.0;
+    tree->type = VALUE;
+    if (arg1 < arg2) tree->value = 1.0;
+    else tree->value = 0.0;
+    return tree->value;
+  }
+
+  if (tree->type == LE) {
+    arg1 = collapse_tree(tree->left);
+    arg2 = collapse_tree(tree->right);
+    if (tree->left->type != VALUE || tree->right->type != VALUE) return 0.0;
+    tree->type = VALUE;
+    if (arg1 <= arg2) tree->value = 1.0;
+    else tree->value = 0.0;
+    return tree->value;
+  }
+
+  if (tree->type == GT) {
+    arg1 = collapse_tree(tree->left);
+    arg2 = collapse_tree(tree->right);
+    if (tree->left->type != VALUE || tree->right->type != VALUE) return 0.0;
+    tree->type = VALUE;
+    if (arg1 > arg2) tree->value = 1.0;
+    else tree->value = 0.0;
+    return tree->value;
+  }
+
+  if (tree->type == GE) {
+    arg1 = collapse_tree(tree->left);
+    arg2 = collapse_tree(tree->right);
+    if (tree->left->type != VALUE || tree->right->type != VALUE) return 0.0;
+    tree->type = VALUE;
+    if (arg1 >= arg2) tree->value = 1.0;
+    else tree->value = 0.0;
+    return tree->value;
+  }
+
+  if (tree->type == AND) {
+    arg1 = collapse_tree(tree->left);
+    arg2 = collapse_tree(tree->right);
+    if (tree->left->type != VALUE || tree->right->type != VALUE) return 0.0;
+    tree->type = VALUE;
+    if (arg1 != 0.0 && arg2 != 0.0) tree->value = 1.0;
+    else tree->value = 0.0;
+    return tree->value;
+  }
+
+  if (tree->type == OR) {
+    arg1 = collapse_tree(tree->left);
+    arg2 = collapse_tree(tree->right);
+    if (tree->left->type != VALUE || tree->right->type != VALUE) return 0.0;
+    tree->type = VALUE;
+    if (arg1 != 0.0 || arg2 != 0.0) tree->value = 1.0;
+    else tree->value = 0.0;
+    return tree->value;
+  }
+
+  if (tree->type == SQRT) {
+    arg1 = collapse_tree(tree->left);
+    if (tree->left->type != VALUE) return 0.0;
+    tree->type = VALUE;
+    if (arg1 < 0.0) error->one("Sqrt of negative value in variable formula");
+    tree->value = sqrt(arg1);
+    return tree->value;
+  }
+
+  if (tree->type == EXP) {
+    arg1 = collapse_tree(tree->left);
+    if (tree->left->type != VALUE) return 0.0;
+    tree->type = VALUE;
+    tree->value = exp(arg1);
+    return tree->value;
+  }
+
+  if (tree->type == LN) {
+    arg1 = collapse_tree(tree->left);
+    if (tree->left->type != VALUE) return 0.0;
+    tree->type = VALUE;
+    if (arg1 <= 0.0) 
+      error->one("Log of zero/negative value in variable formula");
+    tree->value = log(arg1);
+    return tree->value;
+  }
+
+  if (tree->type == LOG) {
+    arg1 = collapse_tree(tree->left);
+    if (tree->left->type != VALUE) return 0.0;
+    tree->type = VALUE;
+    if (arg1 <= 0.0) 
+      error->one("Log of zero/negative value in variable formula");
+    tree->value = log10(arg1);
+    return tree->value;
+  }
+
+  if (tree->type == SIN) {
+    arg1 = collapse_tree(tree->left);
+    tree->type = VALUE;
+    if (tree->left->type != VALUE) return 0.0;
+    tree->value = sin(arg1);
+    return tree->value;
+  }
+
+  if (tree->type == COS) {
+    arg1 = collapse_tree(tree->left);
+    if (tree->left->type != VALUE) return 0.0;
+    tree->type = VALUE;
+    tree->value = cos(arg1);
+    return tree->value;
+  }
+
+  if (tree->type == TAN) {
+    arg1 = collapse_tree(tree->left);
+    if (tree->left->type != VALUE) return 0.0;
+    tree->type = VALUE;
+    tree->value = tan(arg1);
+    return tree->value;
+  }
+
+  if (tree->type == ASIN) {
+    arg1 = collapse_tree(tree->left);
+    if (tree->left->type != VALUE) return 0.0;
+    tree->type = VALUE;
+    if (arg1 < -1.0 || arg1 > 1.0)
+      error->one("Arcsin of invalid value in variable formula");
+    tree->value = asin(arg1);
+    return tree->value;
+  }
+
+  if (tree->type == ACOS) {
+    arg1 = collapse_tree(tree->left);
+    if (tree->left->type != VALUE) return 0.0;
+    tree->type = VALUE;
+    if (arg1 < -1.0 || arg1 > 1.0)
+      error->one("Arccos of invalid value in variable formula");
+    tree->value = acos(arg1);
+    return tree->value;
+  }
+
+  if (tree->type == ATAN) {
+    arg1 = collapse_tree(tree->left);
+    if (tree->left->type != VALUE) return 0.0;
+    tree->type = VALUE;
+    tree->value = atan(arg1);
+    return tree->value;
+  }
+
+  if (tree->type == ATAN2) {
+    arg1 = collapse_tree(tree->left);
+    arg2 = collapse_tree(tree->right);
+    if (tree->left->type != VALUE || tree->right->type != VALUE) return 0.0;
+    tree->type = VALUE;
+    tree->value = atan2(arg1,arg2);
+    return tree->value;
+  }
+
+  // random() or normal() never become a single collapsed value
+
+  if (tree->type == RANDOM) {
+    double lower = collapse_tree(tree->left);
+    double upper = collapse_tree(tree->middle);
+    if (randomatom == NULL) {
+      int seed = static_cast<int> (collapse_tree(tree->right));
+      if (seed <= 0) error->one("Invalid math function in variable formula");
+      randomatom = new RanMars(lmp,seed+me);
+    }
+    return 0.0;
+  }
+
+  if (tree->type == NORMAL) {
+    double mu = collapse_tree(tree->left);
+    double sigma = collapse_tree(tree->middle);
+    if (sigma < 0.0) error->one("Invalid math function in variable formula");
+    if (randomatom == NULL) {
+      int seed = static_cast<int> (collapse_tree(tree->right));
+      if (seed <= 0) error->one("Invalid math function in variable formula");
+      randomatom = new RanMars(lmp,seed+me);
+    }
+    return 0.0;
+  }
+
+  if (tree->type == CEIL) {
+    arg1 = collapse_tree(tree->left);
+    if (tree->left->type != VALUE) return 0.0;
+    tree->type = VALUE;
+    tree->value = ceil(arg1);
+    return tree->value;
+  }
+
+  if (tree->type == FLOOR) {
+    arg1 = collapse_tree(tree->left);
+    if (tree->left->type != VALUE) return 0.0;
+    tree->type = VALUE;
+    tree->value = floor(arg1);
+    return tree->value;
+  }
+
+  if (tree->type == ROUND) {
+    arg1 = collapse_tree(tree->left);
+    if (tree->left->type != VALUE) return 0.0;
+    tree->type = VALUE;
+    tree->value = MYROUND(arg1);
+    return tree->value;
+  }
+
+  if (tree->type == RAMP) {
+    arg1 = collapse_tree(tree->left);
+    arg2 = collapse_tree(tree->right);
+    if (tree->left->type != VALUE || tree->right->type != VALUE) return 0.0;
+    tree->type = VALUE;
+    double delta = update->ntimestep - update->beginstep;
+    delta /= update->endstep - update->beginstep;
+    tree->value = arg1 + delta*(arg2-arg1);
+    return tree->value;
+  }
+
+  if (tree->type == STAGGER) {
+    int ivalue1 = static_cast<int> (collapse_tree(tree->left));
+    int ivalue2 = static_cast<int> (collapse_tree(tree->right));
+    if (tree->left->type != VALUE || tree->right->type != VALUE) return 0.0;
+    tree->type = VALUE;
+    if (ivalue1 <= 0 || ivalue2 <= 0 || ivalue1 <= ivalue2)
+      error->one("Invalid math function in variable formula");
+    int lower = update->ntimestep/ivalue1 * ivalue1;
+    int delta = update->ntimestep - lower;
+    if (delta < ivalue2) tree->value = lower+ivalue2;
+    else tree->value = lower+ivalue1;
+    return tree->value;
+  }
+
+  if (tree->type == LOGFREQ) {
+    int ivalue1 = static_cast<int> (collapse_tree(tree->left));
+    int ivalue2 = static_cast<int> (collapse_tree(tree->middle));
+    int ivalue3 = static_cast<int> (collapse_tree(tree->right));
+    if (tree->left->type != VALUE || tree->middle->type != VALUE ||
+	tree->right->type != VALUE) return 0.0;
+    tree->type = VALUE;
+    if (ivalue1 <= 0 || ivalue2 <= 0 || ivalue3 <= 0 || ivalue2 >= ivalue3)
+      error->one("Invalid math function in variable formula");
+    if (update->ntimestep < ivalue1) tree->value = ivalue1;
+    else {
+      int lower = ivalue1;
+      while (update->ntimestep >= ivalue3*lower) lower *= ivalue3;
+      int multiple = update->ntimestep/lower;
+      if (multiple < ivalue2) tree->value = (multiple+1)*lower;
+      else tree->value = lower*ivalue3;
+    }
+    return tree->value;
+  }
+
+  if (tree->type == VDISPLACE) {
+    double arg1 = collapse_tree(tree->left);
+    double arg2 = collapse_tree(tree->right);
+    if (tree->left->type != VALUE || tree->right->type != VALUE) return 0.0;
+    tree->type = VALUE;
+    double delta = update->ntimestep - update->beginstep;
+    tree->value = arg1 + arg2*delta*update->dt;
+    return tree->value;
+  }
+
+  if (tree->type == SWIGGLE) {
+    double arg1 = collapse_tree(tree->left);
+    double arg2 = collapse_tree(tree->middle);
+    double arg3 = collapse_tree(tree->right);
+    if (tree->left->type != VALUE || tree->middle->type != VALUE ||
+	tree->right->type != VALUE) return 0.0;
+    tree->type = VALUE;
+    if (arg3 == 0.0) error->one("Invalid math function in variable formula");
+    double delta = update->ntimestep - update->beginstep;
+    double omega = 2.0*PI/arg3;
+    tree->value = arg1 + arg2*sin(omega*delta*update->dt);
+    return tree->value;
+  }
+
+  if (tree->type == CWIGGLE) {
+    double arg1 = collapse_tree(tree->left);
+    double arg2 = collapse_tree(tree->middle);
+    double arg3 = collapse_tree(tree->right);
+    if (tree->left->type != VALUE || tree->middle->type != VALUE ||
+	tree->right->type != VALUE) return 0.0;
+    tree->type = VALUE;
+    if (arg3 == 0.0) error->one("Invalid math function in variable formula");
+    double delta = update->ntimestep - update->beginstep;
+    double omega = 2.0*PI/arg3;
+    tree->value = arg1 + arg2*(1.0-cos(omega*delta*update->dt));
+    return tree->value;
+  }
+
+  return 0.0;
+}
+
+/* ----------------------------------------------------------------------
+   evaluate an atom-style variable parse tree for atom I
+   tree was created by one-time parsing of formula string via evaulate()
    customize by adding a math function:
      sqrt(),exp(),ln(),log(),sin(),cos(),tan(),asin(),acos(),atan(),
      atan2(y,x),random(x,y,z),normal(x,y,z),ceil(),floor(),round(),
@@ -1382,6 +1778,8 @@ double Variable::evaluate(char *str, Tree **tree)
 
 double Variable::eval_tree(Tree *tree, int i)
 {
+  double arg,arg1,arg2,arg3;
+
   if (tree->type == VALUE) return tree->value;
   if (tree->type == ATOMARRAY) return tree->array[i*tree->nstride];
   if (tree->type == TYPEARRAY) return tree->array[atom->type[i]];
@@ -1442,23 +1840,23 @@ double Variable::eval_tree(Tree *tree, int i)
   }
 
   if (tree->type == SQRT) {
-    double arg = eval_tree(tree->left,i);
-    if (arg < 0.0) error->one("Sqrt of negative value in variable formula");
-    return sqrt(arg);
+    arg1 = eval_tree(tree->left,i);
+    if (arg1 < 0.0) error->one("Sqrt of negative value in variable formula");
+    return sqrt(arg1);
   }
   if (tree->type == EXP)
     return exp(eval_tree(tree->left,i));
   if (tree->type == LN) {
-    double arg = eval_tree(tree->left,i);
-    if (arg <= 0.0) 
+    arg1 = eval_tree(tree->left,i);
+    if (arg1 <= 0.0) 
       error->one("Log of zero/negative value in variable formula");
-    return log(arg);
+    return log(arg1);
   }
   if (tree->type == LOG) {
-    double arg = eval_tree(tree->left,i);
-    if (arg <= 0.0) 
+    arg1 = eval_tree(tree->left,i);
+    if (arg1 <= 0.0) 
       error->one("Log of zero/negative value in variable formula");
-    return log10(arg);
+    return log10(arg1);
   }
 
   if (tree->type == SIN)
@@ -1469,16 +1867,16 @@ double Variable::eval_tree(Tree *tree, int i)
     return tan(eval_tree(tree->left,i));
 
   if (tree->type == ASIN) {
-    double arg = eval_tree(tree->left,i);
-    if (arg < -1.0 || arg > 1.0)
+    arg1 = eval_tree(tree->left,i);
+    if (arg1 < -1.0 || arg1 > 1.0)
       error->one("Arcsin of invalid value in variable formula");
-    return asin(arg);
+    return asin(arg1);
   }
   if (tree->type == ACOS) {
-    double arg = eval_tree(tree->left,i);
-    if (arg < -1.0 || arg > 1.0)
+    arg1 = eval_tree(tree->left,i);
+    if (arg1 < -1.0 || arg1 > 1.0)
       error->one("Arccos of invalid value in variable formula");
-    return acos(arg);
+    return acos(arg1);
   }
   if (tree->type == ATAN)
     return atan(eval_tree(tree->left,i));
@@ -1515,11 +1913,11 @@ double Variable::eval_tree(Tree *tree, int i)
     return MYROUND(eval_tree(tree->left,i));
 
   if (tree->type == RAMP) {
-    double arg1 = eval_tree(tree->left,i);
-    double arg2 = eval_tree(tree->right,i);
+    arg1 = eval_tree(tree->left,i);
+    arg2 = eval_tree(tree->right,i);
     double delta = update->ntimestep - update->beginstep;
     delta /= update->endstep - update->beginstep;
-    double arg = arg1 + delta*(arg2-arg1);
+    arg = arg1 + delta*(arg2-arg1);
     return arg;
   }
 
@@ -1530,7 +1928,6 @@ double Variable::eval_tree(Tree *tree, int i)
       error->one("Invalid math function in variable formula");
     int lower = update->ntimestep/ivalue1 * ivalue1;
     int delta = update->ntimestep - lower;
-    double arg;
     if (delta < ivalue2) arg = lower+ivalue2;
     else arg = lower+ivalue1;
     return arg;
@@ -1542,7 +1939,6 @@ double Variable::eval_tree(Tree *tree, int i)
     int ivalue3 = static_cast<int> (eval_tree(tree->right,i));
     if (ivalue1 <= 0 || ivalue2 <= 0 || ivalue3 <= 0 || ivalue2 >= ivalue3)
       error->one("Invalid math function in variable formula");
-    double arg;
     if (update->ntimestep < ivalue1) arg = ivalue1;
     else {
       int lower = ivalue1;
@@ -1555,32 +1951,32 @@ double Variable::eval_tree(Tree *tree, int i)
   }
 
   if (tree->type == VDISPLACE) {
-    double arg1 = eval_tree(tree->left,i);
-    double arg2 = eval_tree(tree->right,i);
+    arg1 = eval_tree(tree->left,i);
+    arg2 = eval_tree(tree->right,i);
     double delta = update->ntimestep - update->beginstep;
-    double arg = arg1 + arg2*delta*update->dt;
+    arg = arg1 + arg2*delta*update->dt;
     return arg;
   }
 
   if (tree->type == SWIGGLE) {
-    double arg1 = eval_tree(tree->left,i);
-    double arg2 = eval_tree(tree->middle,i);
-    double arg3 = eval_tree(tree->right,i);
+    arg1 = eval_tree(tree->left,i);
+    arg2 = eval_tree(tree->middle,i);
+    arg3 = eval_tree(tree->right,i);
     if (arg3 == 0.0) error->one("Invalid math function in variable formula");
     double delta = update->ntimestep - update->beginstep;
     double omega = 2.0*PI/arg3;
-    double arg = arg1 + arg2*sin(omega*delta*update->dt);
+    arg = arg1 + arg2*sin(omega*delta*update->dt);
     return arg;
   }
 
   if (tree->type == CWIGGLE) {
-    double arg1 = eval_tree(tree->left,i);
-    double arg2 = eval_tree(tree->middle,i);
-    double arg3 = eval_tree(tree->right,i);
+    arg1 = eval_tree(tree->left,i);
+    arg2 = eval_tree(tree->middle,i);
+    arg3 = eval_tree(tree->right,i);
     if (arg3 == 0.0) error->one("Invalid math function in variable formula");
     double delta = update->ntimestep - update->beginstep;
     double omega = 2.0*PI/arg3;
-    double arg = arg1 + arg2*(1.0-cos(omega*delta*update->dt));
+    arg = arg1 + arg2*(1.0-cos(omega*delta*update->dt));
     return arg;
   }
 

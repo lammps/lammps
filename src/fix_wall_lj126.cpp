@@ -38,11 +38,13 @@ void FixWallLJ126::precompute(int m)
 }
 
 /* ----------------------------------------------------------------------
-   interaction of all particles in group with all 6 walls (if defined)
+   interaction of all particles in group with a wall
+   m = index of wall coeffs
+   which = xlo,xhi,ylo,yhi,zlo,zhi
    error if any particle is on or behind wall
 ------------------------------------------------------------------------- */
 
-void FixWallLJ126::wall_particle(int m, double coord)
+void FixWallLJ126::wall_particle(int m, int which, double coord)
 {
   double delta,rinv,r2inv,r6inv,fwall;
 
@@ -51,8 +53,8 @@ void FixWallLJ126::wall_particle(int m, double coord)
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  int dim = m/2;
-  int side = m % 2;
+  int dim = which / 2;
+  int side = which % 2;
   if (side == 0) side = -1;
 
   int onflag = 0;

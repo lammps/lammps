@@ -43,6 +43,7 @@ class Variable : protected Pointers {
   int *which;              // next available value for each variable
   int *pad;                // 1 = pad loop/uloop variables with 0s, 0 = no pad
   char ***data;            // str value of each variable's values
+  double PI;
 
   class RanMars *randomequal;   // random number generator for equal-style vars
   class RanMars *randomatom;    // random number generator for atom-style vars
@@ -74,6 +75,8 @@ class Variable : protected Pointers {
 		      Tree **, Tree **, int &, double *, int &);
   int is_atom_vector(char *);
   void atom_vector(char *, Tree **, Tree **, int &);
+  int is_constant(char *);
+  double constant(char *);
   double numeric(char *);
   int inumeric(char *);
   void print_tree(Tree *, int);

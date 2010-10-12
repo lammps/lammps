@@ -16,16 +16,18 @@
 #include "string.h"
 #include "fix_wall.h"
 #include "atom.h"
+#include "input.h"
+#include "variable.h"
 #include "domain.h"
 #include "lattice.h"
 #include "update.h"
-#include "output.h"
 #include "respa.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
 
 enum{XLO,XHI,YLO,YHI,ZLO,ZHI};
+enum{NONE,EDGE,CONSTANT,VARIABLE};
 
 /* ---------------------------------------------------------------------- */
 
@@ -34,17 +36,13 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
 {
   scalar_flag = 1;
   vector_flag = 1;
-  size_vector = 6;
   global_freq = 1;
   extscalar = 1;
   extvector = 1;
-  time_depend = 1;
 
   // parse args
 
-  for (int m = 0; m < 6; m++) wallflag[m] = 0;
-  velflag = 0;
-  wigflag = 0;
+  nwall = 0;
   int scaleflag = 1;
 
   int iarg = 3;
@@ -53,39 +51,42 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
 	(strcmp(arg[iarg],"ylo") == 0) || (strcmp(arg[iarg],"yhi") == 0) ||
 	(strcmp(arg[iarg],"zlo") == 0) || (strcmp(arg[iarg],"zhi") == 0)) {
       if (iarg+5 > narg) error->all("Illegal fix wall command");
-      int m;
-      if (strcmp(arg[iarg],"xlo") == 0) m = XLO;
-      else if (strcmp(arg[iarg],"xhi") == 0) m = XHI;
-      else if (strcmp(arg[iarg],"ylo") == 0) m = YLO;
-      else if (strcmp(arg[iarg],"yhi") == 0) m = YHI;
-      else if (strcmp(arg[iarg],"zlo") == 0) m = ZLO;
-      else if (strcmp(arg[iarg],"zhi") == 0) m = ZHI;
-      wallflag[m] = 1;
-      coord0[m] = atof(arg[iarg+1]);
-      epsilon[m] = atof(arg[iarg+2]);
-      sigma[m] = atof(arg[iarg+3]);
-      cutoff[m] = atof(arg[iarg+4]);
+
+      int newwall;
+      if (strcmp(arg[iarg],"xlo") == 0) newwall = XLO;
+      else if (strcmp(arg[iarg],"xhi") == 0) newwall = XHI;
+      else if (strcmp(arg[iarg],"ylo") == 0) newwall = YLO;
+      else if (strcmp(arg[iarg],"yhi") == 0) newwall = YHI;
+      else if (strcmp(arg[iarg],"zlo") == 0) newwall = ZLO;
+      else if (strcmp(arg[iarg],"zhi") == 0) newwall = ZHI;
+
+      for (int m = 0; m < nwall; m++)
+	if (newwall == wallwhich[m])
+	  error->all("Wall defined twice in fix wall command");
+
+      wallwhich[nwall] = newwall;
+      if (strcmp(arg[iarg+1],"EDGE") == 0) {
+	wallstyle[nwall] = EDGE;
+	int dim = wallwhich[nwall] / 2;
+	int side = wallwhich[nwall] % 2;
+	if (side == 0) coord0[nwall] = domain->boxlo[dim];
+	else coord0[nwall] = domain->boxhi[dim];
+      } else if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
+	wallstyle[nwall] = VARIABLE;
+	int n = strlen(&arg[iarg+1][2]) + 1;
+	varstr[nwall] = new char[n];
+	strcpy(varstr[nwall],&arg[iarg+1][2]);
+      } else {
+	wallstyle[nwall] = CONSTANT;
+	coord0[nwall] = atof(arg[iarg+1]);
+      }
+
+      epsilon[nwall] = atof(arg[iarg+2]);
+      sigma[nwall] = atof(arg[iarg+3]);
+      cutoff[nwall] = atof(arg[iarg+4]);
+      nwall++;
       iarg += 5;
-    } else if (strcmp(arg[iarg],"vel") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix wall command");
-      velflag = 1;
-      double vtmp = atof(arg[iarg+1]);
-      for (int m = 0; m < 6; m++) vel[m] = vtmp;
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"wiggle/sin") == 0) {
-      if (iarg+3 > narg) error->all("Illegal fix wall command");
-      wigflag = 1;
-      double atmp = atof(arg[iarg+1]);
-      period = atof(arg[iarg+2]);
-      for (int m = 0; m < 6; m++) amplitude[m] = atmp;
-      iarg += 3;
-    } else if (strcmp(arg[iarg],"wiggle/cos") == 0) {
-      if (iarg+3 > narg) error->all("Illegal fix wall command");
-      wigflag = 2;
-      double atmp = atof(arg[iarg+1]);
-      period = atof(arg[iarg+2]);
-      for (int m = 0; m < 6; m++) amplitude[m] = atmp;
-      iarg += 3;
+
     } else if (strcmp(arg[iarg],"units") == 0) {
       if (iarg+2 > narg) error->all("Illegal fix wall command");
       if (strcmp(arg[iarg+1],"box") == 0) scaleflag = 0;
@@ -95,66 +96,70 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
     } else error->all("Illegal fix wall command");
   }
 
+  size_vector = nwall;
+
   // error check
 
-  int flag = 0;
-  for (int m = 0; m < 6; m++) if (wallflag[m]) flag = 1;
-  if (!flag) error->all("Illegal fix wall command");
-
-  for (int m = 0; m < 6; m++)
-    if (wallflag[m] && cutoff[m] <= 0.0)
+  if (nwall == 0) error->all("Illegal fix wall command");
+  for (int m = 0; m < nwall; m++)
+    if (cutoff[m] <= 0.0)
       error->all("Fix wall cutoff <= 0.0");
 
-  if (velflag && wigflag) 
-    error->all("Cannot set both vel and wiggle in fix wall command");
-
-  if ((wallflag[XLO] || wallflag[XHI]) && domain->xperiodic)
-    error->all("Cannot use fix wall in periodic dimension");
-  if ((wallflag[YLO] || wallflag[YHI]) && domain->yperiodic)
-    error->all("Cannot use fix wall in periodic dimension");
-  if ((wallflag[ZLO] || wallflag[ZHI]) && domain->zperiodic)
-    error->all("Cannot use fix wall in periodic dimension");
-
-  if ((wallflag[ZLO] || wallflag[ZHI]) && domain->dimension == 2)
-    error->all("Cannot use fix wall zlo/zhi for a 2d simulation");
-
-  // setup scaling
-
-  if (scaleflag && domain->lattice == NULL)
-    error->all("Use of fix wall with undefined lattice");
-
-  double xscale,yscale,zscale;
-  if (scaleflag) {
-    xscale = domain->lattice->xlattice;
-    yscale = domain->lattice->ylattice;
-    zscale = domain->lattice->zlattice;
-  }
-  else xscale = yscale = zscale = 1.0;
-
-  // apply scaling factors to coord0, vel, amplitude
-
-  double scale;
-  for (int m = 0; m < 6; m++) {
-    if (wallflag[m] == 0) continue;
-    if (m < 2) scale = xscale;
-    else if (m < 4) scale = yscale;
-    else scale = zscale;
-    coord0[m] *= scale;
-    if (velflag) vel[m] *= scale;
-    if (wigflag) amplitude[m] *= scale;
+  for (int m = 0; m < nwall; m++) {
+    if ((wallwhich[m] == XLO || wallwhich[m] == XHI) && domain->xperiodic)
+      error->all("Cannot use fix wall in periodic dimension");
+    if ((wallwhich[m] == YLO || wallwhich[m] == YHI) && domain->yperiodic)
+      error->all("Cannot use fix wall in periodic dimension");
+    if ((wallwhich[m] == ZLO || wallwhich[m] == ZHI) && domain->zperiodic)
+      error->all("Cannot use fix wall in periodic dimension");
   }
 
-  // setup oscillations
+  for (int m = 0; m < nwall; m++)
+    if ((wallwhich[m] == ZLO || wallwhich[m] == ZHI) && domain->dimension == 2)
+      error->all("Cannot use fix wall zlo/zhi for a 2d simulation");
+  
+  // scale coord for CONSTANT walls
 
-  if (wigflag) {
-    double PI = 4.0 * atan(1.0);
-    omega = 2.0*PI / period;
+  int flag = 0;
+  for (int m = 0; m < nwall; m++)
+    if (wallstyle[m] == CONSTANT) flag = 1;
+
+  if (flag) {
+    if (scaleflag && domain->lattice == NULL)
+      error->all("Use of fix wall with undefined lattice");
+
+    double xscale,yscale,zscale;
+    if (scaleflag) {
+      xscale = domain->lattice->xlattice;
+      yscale = domain->lattice->ylattice;
+      zscale = domain->lattice->zlattice;
+    }
+    else xscale = yscale = zscale = 1.0;
+
+    double scale;
+    for (int m = 0; m < nwall; m++) {
+      if (wallwhich[m] < YLO) scale = xscale;
+      else if (wallwhich[m] < ZLO) scale = yscale;
+      else scale = zscale;
+      if (wallstyle[m] == CONSTANT) coord0[m] *= scale;
+    }
   }
+
+  // set time_depend if any wall positions are variable
+
+  for (int m = 0; m < nwall; m++)
+    if (wallstyle[m] == VARIABLE) time_depend = 1;
 
   eflag = 0;
-  for (int m = 0; m < 7; m++) ewall[m] = 0.0;
+  for (int m = 0; m <= nwall; m++) ewall[m] = 0.0;
+}
 
-  time_origin = update->ntimestep;
+/* ---------------------------------------------------------------------- */
+
+FixWall::~FixWall()
+{
+  for (int m = 0; m < nwall; m++)
+    if (wallstyle[m] == VARIABLE) delete [] varstr[m];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -175,10 +180,18 @@ void FixWall::init()
 {
   dt = update->dt;
 
+  for (int m = 0; m < nwall; m++) {
+    if (wallstyle[m] != VARIABLE) continue;
+    varindex[m] = input->variable->find(varstr[m]);
+    if (varindex[m] < 0)
+      error->all("Variable name for fix wall does not exist");
+    if (!input->variable->equalstyle(varindex[m]))
+      error->all("Variable for fix wall is invalid style");
+  }
+
   // setup coefficients
 
-  for (int m = 0; m < 6; m++)
-    if (wallflag[m]) precompute(m);
+  for (int m = 0; m < nwall; m++) precompute(m);
 
   if (strcmp(update->integrate_style,"respa") == 0)
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
@@ -209,29 +222,18 @@ void FixWall::min_setup(int vflag)
 void FixWall::post_force(int vflag)
 {
   eflag = 0;
-  for (int m = 0; m < 7; m++) ewall[m] = 0.0;
+  for (int m = 0; m <= nwall; m++) ewall[m] = 0.0;
 
-  // coord0 = initial position of wall
   // coord = current position of wall
+  // evaluate variable if necessary
 
-  double delta = (update->ntimestep - time_origin) * dt;
   double coord;
+  for (int m = 0; m < nwall; m++) {
+    if (wallstyle[m] == VARIABLE)
+      coord = input->variable->compute_equal(varindex[m]);
+    else coord = coord0[m];
 
-  for (int m = 0; m < 6; m++) {
-    if (wallflag[m] == 0) continue;
-
-    if (velflag) {
-      if (m % 2 == 0) coord = coord0[m] + delta*vel[m];
-      else coord = coord0[m] - delta*vel[m];
-    } else if (wigflag == 1) {
-      if (m % 2 == 0) coord = coord0[m] + amplitude[m]*sin(omega*delta);
-      else coord = coord0[m] - amplitude[m]*sin(omega*delta);
-    } else if (wigflag == 2) {
-      if (m % 2 == 0) coord = coord0[m] + amplitude[m]*(1.0-cos(omega*delta));
-      else coord = coord0[m] - amplitude[m]*(1.0-cos(omega*delta));
-    } else coord = coord0[m];
-
-    wall_particle(m,coord);
+    wall_particle(m,wallwhich[m],coord);
   }
 }
 
@@ -258,7 +260,7 @@ double FixWall::compute_scalar()
   // only sum across procs one time
 
   if (eflag == 0) {
-    MPI_Allreduce(ewall,ewall_all,7,MPI_DOUBLE,MPI_SUM,world);
+    MPI_Allreduce(ewall,ewall_all,nwall+1,MPI_DOUBLE,MPI_SUM,world);
     eflag = 1;
   }
   return ewall_all[0];
@@ -273,7 +275,7 @@ double FixWall::compute_vector(int n)
   // only sum across procs one time
 
   if (eflag == 0) {
-    MPI_Allreduce(ewall,ewall_all,7,MPI_DOUBLE,MPI_SUM,world);
+    MPI_Allreduce(ewall,ewall_all,nwall+1,MPI_DOUBLE,MPI_SUM,world);
     eflag = 1;
   }
   return ewall_all[n+1];

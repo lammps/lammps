@@ -21,7 +21,7 @@ namespace LAMMPS_NS {
 class FixWall : public Fix {
  public:
   FixWall(class LAMMPS *, int, char **);
-  virtual ~FixWall() {}
+  virtual ~FixWall();
   int setmask();
   virtual void init();
   void setup(int);
@@ -33,14 +33,14 @@ class FixWall : public Fix {
   double compute_vector(int);
 
   virtual void precompute(int) = 0;
-  virtual void wall_particle(int, double) = 0;
+  virtual void wall_particle(int, int, double) = 0;
 
  protected:
-  int wallflag[6];
+  int nwall;
+  int wallwhich[6],wallstyle[6];
   double coord0[6],epsilon[6],sigma[6],cutoff[6];
-  int velflag,wigflag;
-  double vel[6],amplitude[6];
-  double period,omega;
+  char *varstr[6];
+  int varindex[6];
   int eflag;
   double ewall[7],ewall_all[7];
   int nlevels_respa;

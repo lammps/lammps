@@ -43,11 +43,18 @@ using namespace LAMMPS_NS;
 
 enum{INDEX,LOOP,WORLD,UNIVERSE,ULOOP,STRING,EQUAL,ATOM};
 enum{ARG,OP};
+
+// customize by adding a math function
+
 enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,UNARY,
        EQ,NE,LT,LE,GT,GE,AND,OR,
        SQRT,EXP,LN,LOG,SIN,COS,TAN,ASIN,ACOS,ATAN,ATAN2,
-       RANDOM,NORMAL,CEIL,FLOOR,ROUND,
+       RANDOM,NORMAL,CEIL,FLOOR,ROUND,RAMP,STAGGER,LOGFREQ,
+       VLINEAR,SWIGGLE,CWIGGLE,
        VALUE,ATOMARRAY,TYPEARRAY,INTARRAY};
+
+// customize by adding a special function
+
 enum{SUM,XMIN,XMAX,AVE,TRAP};
 
 #define INVOKED_SCALAR 1
@@ -83,6 +90,8 @@ Variable::Variable(LAMMPS *lmp) : Pointers(lmp)
   precedence[MULTIPLY] = precedence[DIVIDE] = 6;
   precedence[CARAT] = 7;
   precedence[UNARY] = 8;
+
+  PI = 4.0*atan(1.0);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -595,6 +604,7 @@ void Variable::copy(int narg, char **from, char **to)
                       sqrt(x),exp(x),ln(x),log(x),
 		      sin(x),cos(x),tan(x),asin(x),atan2(y,x),...
      group function = count(group), mass(group), xcm(group,x), ...
+     special function = sum(x),min(x), ...
      atom value = x[i], y[i], vx[i], ...
      atom vector = x, y, vx, ...
      compute = c_ID, c_ID[i], c_ID[i][j]
@@ -686,10 +696,10 @@ double Variable::evaluate(char *str, Tree **tree)
 
     // ----------------
     // letter: c_ID, c_ID[], c_ID[][], f_ID, f_ID[], f_ID[][],
-    //         v_name, v_name[], exp(), xcm(,), x, x[], vol
+    //         v_name, v_name[], exp(), xcm(,), x, x[], PI, vol
     // ----------------
 
-    } else if (islower(onechar)) {
+    } else if (isalpha(onechar)) {
       if (expect == OP) error->all("Invalid syntax in variable formula");
       expect = OP;
 
@@ -1134,7 +1144,8 @@ double Variable::evaluate(char *str, Tree **tree)
 	delete [] id;
 
       // ----------------
-      // math/group/special function or atom value/vector or thermo keyword
+      // math/group/special function or atom value/vector or
+      // constant or thermo keyword
       // ----------------
 
       } else {
@@ -1182,6 +1193,20 @@ double Variable::evaluate(char *str, Tree **tree)
 	    error->all("Variable evaluation before simulation box is defined");
 
 	  atom_vector(word,tree,treestack,ntreestack);
+
+	// ----------------
+	// constant
+	// ----------------
+
+	} else if (is_constant(word)) {
+	  value1 = constant(word);
+	  if (tree) {
+	    Tree *newtree = new Tree();
+	    newtree->type = VALUE;
+	    newtree->value = value1;
+	    newtree->left = newtree->middle = newtree->right = NULL;
+	    treestack[ntreestack++] = newtree;
+	  } else argstack[nargstack++] = value1;
 
 	// ----------------
 	// thermo keyword
@@ -1350,7 +1375,9 @@ double Variable::evaluate(char *str, Tree **tree)
    process an evaulation tree
    customize by adding a math function:
      sqrt(),exp(),ln(),log(),sin(),cos(),tan(),asin(),acos(),atan(),
-     atan2(y,x),random(x,y,z),normal(x,y,z),ceil(),floor(),round()
+     atan2(y,x),random(x,y,z),normal(x,y,z),ceil(),floor(),round(),
+     ramp(x,y),stagger(x,y),logfreq(x,y,z),
+     vlinear(x,y),swiggle(x,y,z),cwiggle(x,y,z)
 ---------------------------------------------------------------------- */
 
 double Variable::eval_tree(Tree *tree, int i)
@@ -1368,12 +1395,12 @@ double Variable::eval_tree(Tree *tree, int i)
     return eval_tree(tree->left,i) * eval_tree(tree->right,i);
   if (tree->type == DIVIDE) {
     double denom = eval_tree(tree->right,i);
-    if (denom == 0.0) error->all("Divide by 0 in variable formula");
+    if (denom == 0.0) error->one("Divide by 0 in variable formula");
     return eval_tree(tree->left,i) / denom;
   }
   if (tree->type == CARAT) {
     double exponent = eval_tree(tree->right,i);
-    if (exponent == 0.0) error->all("Power by 0 in variable formula");
+    if (exponent == 0.0) error->one("Power by 0 in variable formula");
     return pow(eval_tree(tree->left,i),exponent);
   }
   if (tree->type == UNARY)
@@ -1416,7 +1443,7 @@ double Variable::eval_tree(Tree *tree, int i)
 
   if (tree->type == SQRT) {
     double arg = eval_tree(tree->left,i);
-    if (arg < 0.0) error->all("Sqrt of negative value in variable formula");
+    if (arg < 0.0) error->one("Sqrt of negative value in variable formula");
     return sqrt(arg);
   }
   if (tree->type == EXP)
@@ -1424,13 +1451,13 @@ double Variable::eval_tree(Tree *tree, int i)
   if (tree->type == LN) {
     double arg = eval_tree(tree->left,i);
     if (arg <= 0.0) 
-      error->all("Log of zero/negative value in variable formula");
+      error->one("Log of zero/negative value in variable formula");
     return log(arg);
   }
   if (tree->type == LOG) {
     double arg = eval_tree(tree->left,i);
     if (arg <= 0.0) 
-      error->all("Log of zero/negative value in variable formula");
+      error->one("Log of zero/negative value in variable formula");
     return log10(arg);
   }
 
@@ -1444,13 +1471,13 @@ double Variable::eval_tree(Tree *tree, int i)
   if (tree->type == ASIN) {
     double arg = eval_tree(tree->left,i);
     if (arg < -1.0 || arg > 1.0)
-      error->all("Arcsin of invalid value in variable formula");
+      error->one("Arcsin of invalid value in variable formula");
     return asin(arg);
   }
   if (tree->type == ACOS) {
     double arg = eval_tree(tree->left,i);
     if (arg < -1.0 || arg > 1.0)
-      error->all("Arccos of invalid value in variable formula");
+      error->one("Arccos of invalid value in variable formula");
     return acos(arg);
   }
   if (tree->type == ATAN)
@@ -1463,6 +1490,7 @@ double Variable::eval_tree(Tree *tree, int i)
     double upper = eval_tree(tree->middle,i);
     if (randomatom == NULL) {
       int seed = static_cast<int> (eval_tree(tree->right,i));
+      if (seed <= 0) error->one("Invalid math function in variable formula");
       randomatom = new RanMars(lmp,seed+me);
     }
     return randomatom->uniform()*(upper-lower)+lower;
@@ -1470,11 +1498,13 @@ double Variable::eval_tree(Tree *tree, int i)
   if (tree->type == NORMAL) {
     double mu = eval_tree(tree->left,i);
     double sigma = eval_tree(tree->middle,i);
+    if (sigma < 0.0) error->one("Invalid math function in variable formula");
     if (randomatom == NULL) {
       int seed = static_cast<int> (eval_tree(tree->right,i));
+      if (seed <= 0) error->one("Invalid math function in variable formula");
       randomatom = new RanMars(lmp,seed+me);
     }
-    return randomatom->gaussian()*sigma + mu;
+    return mu + sigma*randomatom->gaussian();
   }
 
   if (tree->type == CEIL)
@@ -1483,6 +1513,76 @@ double Variable::eval_tree(Tree *tree, int i)
     return floor(eval_tree(tree->left,i));
   if (tree->type == ROUND)
     return MYROUND(eval_tree(tree->left,i));
+
+  if (tree->type == RAMP) {
+    double arg1 = eval_tree(tree->left,i);
+    double arg2 = eval_tree(tree->right,i);
+    double delta = update->ntimestep - update->beginstep;
+    delta /= update->endstep - update->beginstep;
+    double arg = arg1 + delta*(arg2-arg1);
+    return arg;
+  }
+
+  if (tree->type == STAGGER) {
+    int ivalue1 = static_cast<int> (eval_tree(tree->left,i));
+    int ivalue2 = static_cast<int> (eval_tree(tree->right,i));
+    if (ivalue1 <= 0 || ivalue2 <= 0 || ivalue1 <= ivalue2)
+      error->one("Invalid math function in variable formula");
+    int lower = update->ntimestep/ivalue1 * ivalue1;
+    int delta = update->ntimestep - lower;
+    double arg;
+    if (delta < ivalue2) arg = lower+ivalue2;
+    else arg = lower+ivalue1;
+    return arg;
+  }
+
+  if (tree->type == LOGFREQ) {
+    int ivalue1 = static_cast<int> (eval_tree(tree->left,i));
+    int ivalue2 = static_cast<int> (eval_tree(tree->middle,i));
+    int ivalue3 = static_cast<int> (eval_tree(tree->right,i));
+    if (ivalue1 <= 0 || ivalue2 <= 0 || ivalue3 <= 0 || ivalue2 >= ivalue3)
+      error->one("Invalid math function in variable formula");
+    double arg;
+    if (update->ntimestep < ivalue1) arg = ivalue1;
+    else {
+      int lower = ivalue1;
+      while (update->ntimestep >= ivalue3*lower) lower *= ivalue3;
+      int multiple = update->ntimestep/lower;
+      if (multiple < ivalue2) arg = (multiple+1)*lower;
+      else arg = lower*ivalue3;
+    }
+    return arg;
+  }
+
+  if (tree->type == VLINEAR) {
+    double arg1 = eval_tree(tree->left,i);
+    double arg2 = eval_tree(tree->right,i);
+    double delta = update->ntimestep - update->beginstep;
+    double arg = arg1 + arg2*delta*update->dt;
+    return arg;
+  }
+
+  if (tree->type == SWIGGLE) {
+    double arg1 = eval_tree(tree->left,i);
+    double arg2 = eval_tree(tree->middle,i);
+    double arg3 = eval_tree(tree->right,i);
+    if (arg3 == 0.0) error->one("Invalid math function in variable formula");
+    double delta = update->ntimestep - update->beginstep;
+    double omega = 2.0*PI/arg3;
+    double arg = arg1 + arg2*sin(omega*delta*update->dt);
+    return arg;
+  }
+
+  if (tree->type == CWIGGLE) {
+    double arg1 = eval_tree(tree->left,i);
+    double arg2 = eval_tree(tree->middle,i);
+    double arg3 = eval_tree(tree->right,i);
+    if (arg3 == 0.0) error->one("Invalid math function in variable formula");
+    double delta = update->ntimestep - update->beginstep;
+    double omega = 2.0*PI/arg3;
+    double arg = arg1 + arg2*(1.0-cos(omega*delta*update->dt));
+    return arg;
+  }
 
   return 0.0;
 }
@@ -1563,9 +1663,11 @@ int Variable::int_between_brackets(char *&ptr)
    word = math function
    contents = str between parentheses with one,two,three args
    return 0 if not a match, 1 if successfully processed
-   customize by adding a math function in 2 places:
+   customize by adding a math function:
      sqrt(),exp(),ln(),log(),sin(),cos(),tan(),asin(),acos(),atan(),
-     atan2(y,x),random(x,y,z),normal(x,y,z),ceil(),floor(),round()
+     atan2(y,x),random(x,y,z),normal(x,y,z),ceil(),floor(),round(),
+     ramp(x,y),stagger(x,y),logfreq(x,y,z),
+     vlinear(x,y),swiggle(x,y,z),cwiggle(x,y,z)
 ------------------------------------------------------------------------- */
 
 int Variable::math_function(char *word, char *contents, Tree **tree,
@@ -1581,7 +1683,10 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
       strcmp(word,"acos") && strcmp(word,"atan") && 
       strcmp(word,"atan2") && strcmp(word,"random") && 
       strcmp(word,"normal") && strcmp(word,"ceil") && 
-      strcmp(word,"floor") && strcmp(word,"round"))
+      strcmp(word,"floor") && strcmp(word,"round") &&
+      strcmp(word,"ramp") && strcmp(word,"stagger") &&
+      strcmp(word,"logfreq") && strcmp(word,"vlinear") &&
+      strcmp(word,"swiggle") && strcmp(word,"cwiggle"))
     return 0;
 
   // parse contents for arg1,arg2,arg3 separated by commas
@@ -1728,6 +1833,7 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
     else {
       if (randomequal == NULL) {
 	int seed = static_cast<int> (value3);
+	if (seed <= 0) error->all("Invalid math function in variable formula");
 	randomequal = new RanMars(lmp,seed);
       }
       argstack[nargstack++] = randomequal->uniform()*(value2-value1) + value1;
@@ -1736,11 +1842,14 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
     if (narg != 3) error->all("Invalid math function in variable formula");
     if (tree) newtree->type = NORMAL;
     else {
+      if (value2 < 0.0) 
+	error->all("Invalid math function in variable formula");
       if (randomequal == NULL) {
 	int seed = static_cast<int> (value3);
+	if (seed <= 0) error->all("Invalid math function in variable formula");
 	randomequal = new RanMars(lmp,seed);
       }
-      argstack[nargstack++] = randomequal->gaussian()*value2 + value1;
+      argstack[nargstack++] = value1 + value2*randomequal->gaussian();
     }
 
   } else if (strcmp(word,"ceil") == 0) {
@@ -1757,6 +1866,94 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
     if (narg != 1) error->all("Invalid math function in variable formula");
     if (tree) newtree->type = ROUND;
     else argstack[nargstack++] = MYROUND(value1);
+
+  } else if (strcmp(word,"ramp") == 0) {
+    if (narg != 2) error->all("Invalid math function in variable formula");
+    if (update->whichflag == 0)
+      error->all("Cannot use ramp in variable formula between runs");
+    if (tree) newtree->type = RAMP;
+    else {
+      double delta = update->ntimestep - update->beginstep;
+      delta /= update->endstep - update->beginstep;
+      double value = value1 + delta*(value2-value1);
+      argstack[nargstack++] = value;
+    }
+
+  } else if (strcmp(word,"stagger") == 0) {
+    if (narg != 2) error->all("Invalid math function in variable formula");
+    if (tree) newtree->type = STAGGER;
+    else {
+      int ivalue1 = static_cast<int> (value1);
+      int ivalue2 = static_cast<int> (value2);
+      if (ivalue1 <= 0 || ivalue2 <= 0 || ivalue1 <= ivalue2)
+	error->all("Invalid math function in variable formula");
+      int lower = update->ntimestep/ivalue1 * ivalue1;
+      int delta = update->ntimestep - lower;
+      double value;
+      if (delta < ivalue2) value = lower+ivalue2;
+      else value = lower+ivalue1;
+      argstack[nargstack++] = value;
+    }
+
+  } else if (strcmp(word,"logfreq") == 0) {
+    if (narg != 3) error->all("Invalid math function in variable formula");
+    if (tree) newtree->type = LOGFREQ;
+    else {
+      int ivalue1 = static_cast<int> (value1);
+      int ivalue2 = static_cast<int> (value2);
+      int ivalue3 = static_cast<int> (value3);
+      if (ivalue1 <= 0 || ivalue2 <= 0 || ivalue3 <= 0 || ivalue2 >= ivalue3)
+	error->all("Invalid math function in variable formula");
+      double value;
+      if (update->ntimestep < ivalue1) value = ivalue1;
+      else {
+	int lower = ivalue1;
+	while (update->ntimestep >= ivalue3*lower) lower *= ivalue3;
+	int multiple = update->ntimestep/lower;
+	if (multiple < ivalue2) value = (multiple+1)*lower;
+	else value = lower*ivalue3;
+      }
+      argstack[nargstack++] = value;
+    }
+
+  } else if (strcmp(word,"vlinear") == 0) {
+    if (narg != 2) error->all("Invalid math function in variable formula");
+    if (update->whichflag == 0)
+      error->all("Cannot use vlinear in variable formula between runs");
+    if (tree) newtree->type = VLINEAR;
+    else {
+      double delta = update->ntimestep - update->beginstep;
+      double value = value1 + value2*delta*update->dt;
+      argstack[nargstack++] = value;
+    }
+
+  } else if (strcmp(word,"swiggle") == 0) {
+    if (narg != 3) error->all("Invalid math function in variable formula");
+    if (update->whichflag == 0)
+      error->all("Cannot use swiggle in variable formula between runs");
+    if (tree) newtree->type = CWIGGLE;
+    else {
+      if (value3 == 0.0)
+	error->all("Invalid math function in variable formula");
+      double delta = update->ntimestep - update->beginstep;
+      double omega = 2.0*PI/value3;
+      double value = value1 + value2*sin(omega*delta*update->dt);
+      argstack[nargstack++] = value;
+    }
+
+  } else if (strcmp(word,"cwiggle") == 0) {
+    if (narg != 3) error->all("Invalid math function in variable formula");
+    if (update->whichflag == 0)
+      error->all("Cannot use cwiggle in variable formula between runs");
+    if (tree) newtree->type = CWIGGLE;
+    else {
+      if (value3 == 0.0)
+	error->all("Invalid math function in variable formula");
+      double delta = update->ntimestep - update->beginstep;
+      double omega = 2.0*PI/value3;
+      double value = value1 + value2*(1.0-cos(omega*delta*update->dt));
+      argstack[nargstack++] = value;
+    }
   }
 
   delete [] arg1;
@@ -1772,7 +1969,7 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
    word = group function
    contents = str between parentheses with one,two,three args
    return 0 if not a match, 1 if successfully processed
-   customize by adding a group function in 2 places with optional region arg:
+   customize by adding a group function with optional region arg:
      count(group),mass(group),charge(group),
      xcm(group,dim),vcm(group,dim),fcm(group,dim),
      bound(group,xmin),gyration(group),ke(group),angmom(group),
@@ -2017,9 +2214,8 @@ int Variable::region_function(char *id)
    word = special function
    contents = str between parentheses with one,two,three args
    return 0 if not a match, 1 if successfully processed
-   customize by adding a special function in 2 places
-     ramp(x,y),stagger(x,y),logfreq(x,y,z),sum(x),min(x),max(x),
-     ave(x),trap(x)
+   customize by adding a special function:
+     sum(x),min(x),max(x),ave(x),trap(x)
 ------------------------------------------------------------------------- */
 
 int Variable::special_function(char *word, char *contents, Tree **tree,
@@ -2028,9 +2224,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
 {
   // word not a match to any special function
 
-  if (strcmp(word,"ramp") && strcmp(word,"stagger") && 
-      strcmp(word,"logfreq") && strcmp(word,"sum") &&
-      strcmp(word,"min") && strcmp(word,"max") &&
+  if (strcmp(word,"sum") && strcmp(word,"min") && strcmp(word,"max") &&
       strcmp(word,"ave") && strcmp(word,"trap"))
     return 0;
 
@@ -2066,163 +2260,122 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
 
   // match word to special function
 
-  double value;
+  int method;
+  if (strcmp(word,"sum") == 0) method = SUM;
+  else if (strcmp(word,"min") == 0) method = XMIN;
+  else if (strcmp(word,"max") == 0) method = XMAX;
+  else if (strcmp(word,"ave") == 0) method = AVE;
+  else if (strcmp(word,"trap") == 0) method = TRAP;
 
-  if (strcmp(word,"ramp") == 0) {
-    if (narg != 2) error->all("Invalid special function in variable formula");
-    if (update->whichflag == 0)
-      error->all("Cannot use ramp in variable formula between runs");
-    double value1 = numeric(arg1);
-    double value2 = numeric(arg2);
-    double delta = update->ntimestep - update->beginstep;
-    delta /= update->endstep - update->beginstep;
-    value = value1 + delta*(value2-value1);
+  if (narg != 1) error->all("Invalid special function in variable formula");
+  
+  Compute *compute = NULL;
+  Fix *fix = NULL;
+  int index,nvec,nstride;
 
-  } else if (strcmp(word,"stagger") == 0) {
-    if (narg != 2) error->all("Invalid special function in variable formula");
-    int ivalue1 = inumeric(arg1);
-    int ivalue2 = inumeric(arg2);
-    if (ivalue1 <= 0 || ivalue2 <= 0 || ivalue1 <= ivalue2)
-      error->all("Invalid special function in variable formula");
-    int lower = update->ntimestep/ivalue1 * ivalue1;
-    int delta = update->ntimestep - lower;
-    if (delta < ivalue2) value = lower+ivalue2;
-    else value = lower+ivalue1;
+  if (strstr(arg1,"c_") == arg1) {
+    ptr1 = strchr(arg1,'[');
+    if (ptr1) {
+      ptr2 = ptr1;
+      index = int_between_brackets(ptr2);
+      *ptr1 = '\0';
+    } else index = 0;
 
-  } else if (strcmp(word,"logfreq") == 0) {
-    if (narg != 3) error->all("Invalid special function in variable formula");
-    int ivalue1 = inumeric(arg1);
-    int ivalue2 = inumeric(arg2);
-    int ivalue3 = inumeric(arg3);
-    if (ivalue1 <= 0 || ivalue2 <= 0 || ivalue3 <= 0 || ivalue2 >= ivalue3)
-      error->all("Invalid special function in variable formula");
-    if (update->ntimestep < ivalue1) value = ivalue1;
-    else {
-      int lower = ivalue1;
-      while (update->ntimestep >= ivalue3*lower) lower *= ivalue3;
-      int multiple = update->ntimestep/lower;
-      if (multiple < ivalue2) value = (multiple+1)*lower;
-      else value = lower*ivalue3;
-    }
-
-  } else {
-    if (narg != 1) error->all("Invalid special function in variable formula");
-
-    int method;
-    if (strcmp(word,"sum") == 0) method = SUM;
-    else if (strcmp(word,"min") == 0) method = XMIN;
-    else if (strcmp(word,"max") == 0) method = XMAX;
-    else if (strcmp(word,"ave") == 0) method = AVE;
-    else if (strcmp(word,"trap") == 0) method = TRAP;
-
-    Compute *compute = NULL;
-    Fix *fix = NULL;
-    int index,nvec,nstride;
-
-    if (strstr(arg1,"c_") == arg1) {
-      ptr1 = strchr(arg1,'[');
-      if (ptr1) {
-	ptr2 = ptr1;
-	index = int_between_brackets(ptr2);
-	*ptr1 = '\0';
-      } else index = 0;
-
-      int icompute = modify->find_compute(&arg1[2]);
-      if (icompute < 0) error->all("Invalid compute ID in variable formula");
-      compute = modify->compute[icompute];
-      if (index == 0 && compute->vector_flag) {
-	if (update->whichflag == 0) {
-	  if (compute->invoked_vector != update->ntimestep)
-	    error->all("Compute used in variable between runs is not current");
-	} else if (!(compute->invoked_flag & INVOKED_VECTOR)) {
-	  compute->compute_vector();
-	  compute->invoked_flag |= INVOKED_VECTOR;
-	}
-	nvec = compute->size_vector;
-	nstride = 1;
-      } else if (index && compute->array_flag) {
-	if (index > compute->size_array_cols)
-	  error->all("Variable formula compute array "
-		     "is accessed out-of-range");
-	if (update->whichflag == 0) {
-	  if (compute->invoked_array != update->ntimestep)
-	    error->all("Compute used in variable between runs is not current");
-	} else if (!(compute->invoked_flag & INVOKED_ARRAY)) {
-	  compute->compute_array();
-	  compute->invoked_flag |= INVOKED_ARRAY;
-	}
-	nvec = compute->size_array_rows;
-	nstride = compute->size_array_cols;
-      } else error->all("Mismatched compute in variable formula");
-
-    } else if (strstr(arg1,"f_") == arg1) {
-      ptr1 = strchr(arg1,'[');
-      if (ptr1) {
-	ptr2 = ptr1;
-	index = int_between_brackets(ptr2);
-	*ptr1 = '\0';
-      } else index = 0;
-
-      int ifix = modify->find_fix(&arg1[2]);
-      if (ifix < 0) error->all("Invalid fix ID in variable formula");
-      fix = modify->fix[ifix];
-      if (index == 0 && fix->vector_flag) {
-	if (update->whichflag > 0 && update->ntimestep % fix->global_freq)
-	  error->all("Fix in variable not computed at compatible time");
-	nvec = fix->size_vector;
-	nstride = 1;
-      } else if (index && fix->array_flag) {
-	if (index > fix->size_array_cols)
-	  error->all("Variable formula fix array is accessed out-of-range");
-	if (update->whichflag > 0 && update->ntimestep % fix->global_freq)
-	  error->all("Fix in variable not computed at compatible time");
-	nvec = fix->size_array_rows;
-	nstride = fix->size_array_cols;
-      } else error->all("Mismatched fix in variable formula");
-
-    } else error->all("Invalid special function in variable formula");
+    int icompute = modify->find_compute(&arg1[2]);
+    if (icompute < 0) error->all("Invalid compute ID in variable formula");
+    compute = modify->compute[icompute];
+    if (index == 0 && compute->vector_flag) {
+      if (update->whichflag == 0) {
+	if (compute->invoked_vector != update->ntimestep)
+	  error->all("Compute used in variable between runs is not current");
+      } else if (!(compute->invoked_flag & INVOKED_VECTOR)) {
+	compute->compute_vector();
+	compute->invoked_flag |= INVOKED_VECTOR;
+      }
+      nvec = compute->size_vector;
+      nstride = 1;
+    } else if (index && compute->array_flag) {
+      if (index > compute->size_array_cols)
+	error->all("Variable formula compute array "
+		   "is accessed out-of-range");
+      if (update->whichflag == 0) {
+	if (compute->invoked_array != update->ntimestep)
+	  error->all("Compute used in variable between runs is not current");
+      } else if (!(compute->invoked_flag & INVOKED_ARRAY)) {
+	compute->compute_array();
+	compute->invoked_flag |= INVOKED_ARRAY;
+      }
+      nvec = compute->size_array_rows;
+      nstride = compute->size_array_cols;
+    } else error->all("Mismatched compute in variable formula");
     
-    value = 0.0;
-    if (method == XMIN) value = BIG;
-    if (method == XMAX) value = -BIG;
-
-    if (compute) {
-      double *vec;
-      if (index) vec = &compute->array[0][index];
-      else vec = compute->vector; 
-
-      int j = 0;
-      for (int i = 0; i < nvec; i++) {
-	if (method == SUM) value += vec[j];
-	else if (method == XMIN) value = MIN(value,vec[j]);
-	else if (method == XMAX) value = MAX(value,vec[j]);
-	else if (method == AVE) value += vec[j];
-	else if (method == TRAP) {
-	  if (i > 0 && i < nvec-1) value += vec[j];
-	  else value += 0.5*vec[j];
-	}
-	j += nstride;
+  } else if (strstr(arg1,"f_") == arg1) {
+    ptr1 = strchr(arg1,'[');
+    if (ptr1) {
+      ptr2 = ptr1;
+      index = int_between_brackets(ptr2);
+      *ptr1 = '\0';
+    } else index = 0;
+    
+    int ifix = modify->find_fix(&arg1[2]);
+    if (ifix < 0) error->all("Invalid fix ID in variable formula");
+    fix = modify->fix[ifix];
+    if (index == 0 && fix->vector_flag) {
+      if (update->whichflag > 0 && update->ntimestep % fix->global_freq)
+	error->all("Fix in variable not computed at compatible time");
+      nvec = fix->size_vector;
+      nstride = 1;
+    } else if (index && fix->array_flag) {
+      if (index > fix->size_array_cols)
+	error->all("Variable formula fix array is accessed out-of-range");
+      if (update->whichflag > 0 && update->ntimestep % fix->global_freq)
+	error->all("Fix in variable not computed at compatible time");
+      nvec = fix->size_array_rows;
+      nstride = fix->size_array_cols;
+    } else error->all("Mismatched fix in variable formula");
+    
+  } else error->all("Invalid special function in variable formula");
+  
+  double value = 0.0;
+  if (method == XMIN) value = BIG;
+  if (method == XMAX) value = -BIG;
+  
+  if (compute) {
+    double *vec;
+    if (index) vec = &compute->array[0][index];
+    else vec = compute->vector; 
+    
+    int j = 0;
+    for (int i = 0; i < nvec; i++) {
+      if (method == SUM) value += vec[j];
+      else if (method == XMIN) value = MIN(value,vec[j]);
+      else if (method == XMAX) value = MAX(value,vec[j]);
+      else if (method == AVE) value += vec[j];
+      else if (method == TRAP) {
+	if (i > 0 && i < nvec-1) value += vec[j];
+	else value += 0.5*vec[j];
       }
+      j += nstride;
     }
-
-    if (fix) {
-      double one;
-      for (int i = 0; i < nvec; i++) {
-	if (index) one = fix->compute_array(i,index-1);
-	else one = fix->compute_vector(i);
-	if (method == SUM) value += one;
-	else if (method == XMIN) value = MIN(value,one);
-	else if (method == XMAX) value = MAX(value,one);
-	else if (method == AVE) value += one;
-	else if (method == TRAP) {
-	  if (i > 1 && i < nvec) value += one;
-	  else value += 0.5*one;
-	}
-      }
-    }
-
-    if (method == AVE) value /= nvec;
   }
+  
+  if (fix) {
+    double one;
+    for (int i = 0; i < nvec; i++) {
+      if (index) one = fix->compute_array(i,index-1);
+      else one = fix->compute_vector(i);
+      if (method == SUM) value += one;
+      else if (method == XMIN) value = MIN(value,one);
+      else if (method == XMAX) value = MAX(value,one);
+      else if (method == AVE) value += one;
+      else if (method == TRAP) {
+	if (i > 1 && i < nvec) value += one;
+	else value += 0.5*one;
+      }
+    }
+  }
+  
+  if (method == AVE) value /= nvec;
     
   delete [] arg1;
   delete [] arg2;
@@ -2247,7 +2400,8 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
    flag = 1 -> vector is a per-atom compute or fix quantity with nstride
    id = positive global ID of atom, converted to local index
    push result onto tree or arg stack
-   customize by adding an atom vector: mass,type,x,y,z,vx,vy,vz,fx,fy,fz
+   customize by adding an atom vector:
+     mass,type,x,y,z,vx,vy,vz,fx,fy,fz
 ------------------------------------------------------------------------- */
 
 void Variable::peratom2global(int flag, char *word,
@@ -2300,7 +2454,8 @@ void Variable::peratom2global(int flag, char *word,
 /* ----------------------------------------------------------------------
    check if word matches an atom vector
    return 1 if yes, else 0
-   customize by adding an atom vector: mass,type,x,y,z,vx,vy,vz,fx,fy,fz
+   customize by adding an atom vector:
+     mass,type,x,y,z,vx,vy,vz,fx,fy,fz
 ------------------------------------------------------------------------- */
 
 int Variable::is_atom_vector(char *word)
@@ -2323,7 +2478,8 @@ int Variable::is_atom_vector(char *word)
    process an atom vector in formula
    push result onto tree
    word = atom vector
-   customize by adding an atom vector: mass,type,x,y,z,vx,vy,vz,fx,fy,fz
+   customize by adding an atom vector:
+     mass,type,x,y,z,vx,vy,vz,fx,fy,fz
 ------------------------------------------------------------------------- */
 
 void Variable::atom_vector(char *word, Tree **tree,
@@ -2360,6 +2516,29 @@ void Variable::atom_vector(char *word, Tree **tree,
   else if (strcmp(word,"fx") == 0) newtree->array = &atom->f[0][0];
   else if (strcmp(word,"fy") == 0) newtree->array = &atom->f[0][1];
   else if (strcmp(word,"fz") == 0) newtree->array = &atom->f[0][2];
+}
+
+/* ----------------------------------------------------------------------
+   check if word matches a constant
+   return 1 if yes, else 0
+   customize by adding a constant: PI
+------------------------------------------------------------------------- */
+
+int Variable::is_constant(char *word)
+{
+  if (strcmp(word,"PI") == 0) return 1;
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
+   process a constant in formula
+   customize by adding a constant: PI
+------------------------------------------------------------------------- */
+
+double Variable::constant(char *word)
+{
+  if (strcmp(word,"PI") == 0) return PI;
+  return 0.0;
 }
 
 /* ----------------------------------------------------------------------

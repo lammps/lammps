@@ -33,10 +33,11 @@ class FixWallReflect : public Fix {
   void post_integrate();
 
  private:
-  int xloflag,xhiflag,yloflag,yhiflag,zloflag,zhiflag;
-  char *xlostr,*xhistr,*ylostr,*yhistr,*zlostr,*zhistr;
-  int xlovar,xhivar,ylovar,yhivar,zlovar,zhivar;
-  double xlo,xhi,ylo,yhi,zlo,zhi;
+  int nwall;
+  int wallwhich[6],wallstyle[6];
+  double coord0[6];
+  char *varstr[6];
+  int varindex[6];
 };
 
 }

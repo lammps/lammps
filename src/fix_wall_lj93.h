@@ -28,7 +28,7 @@ class FixWallLJ93 : public FixWall {
  public:
   FixWallLJ93(class LAMMPS *, int, char **);
   void precompute(int);
-  void wall_particle(int, double);
+  void wall_particle(int, int, double);
 
  private:
   double coeff1[6],coeff2[6],coeff3[6],coeff4[6],offset[6];

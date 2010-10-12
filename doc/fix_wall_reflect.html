@@ -32,13 +32,13 @@
     constant = number like 50.0 or 100.3 (distance units)
     variable = <A HREF = "variable.html">equal-style variable</A> like v_x or v_wiggle 
 </PRE>
-<LI>zero or more keyword/avlue pairs may be appended 
+<LI>zero or more keyword/value pairs may be appended 
 
 <LI>keyword = <I>units</I> 
 
 <PRE>  <I>units</I> value = <I>lattice</I> or <I>box</I>
-    <I>lattice</I> = the geometry is defined in lattice units
-    <I>box</I> = the geometry is defined in simulation box units 
+    <I>lattice</I> = the wall position is defined in lattice units
+    <I>box</I> = the wall position is defined in simulation box units 
 </PRE>
 
 </UL>
@@ -68,17 +68,17 @@ velocity-Verlet integration without reflective walls.
 </P>
 <P>Up to 6 walls or faces can be specified in a single command: <I>xlo</I>,
 <I>xhi</I>, <I>ylo</I>, <I>yhi</I>, <I>zlo</I>, <I>zhi</I>.  A <I>lo</I> face reflects particles
-that move to a coordinate less than the face position, back in the
+that move to a coordinate less than the wall position, back in the
 <I>hi</I> direction.  A <I>hi</I> face reflects particles that move to a
-coordinate higher than the face position, back in the <I>lo</I> direction.
+coordinate higher than the wall position, back in the <I>lo</I> direction.
 </P>
-<P>The position of each face can be specified in one of 3 ways: as the
+<P>The position of each wall can be specified in one of 3 ways: as the
 EDGE of the simulation box, as a constant value, or as a variable.  If
 EDGE is used, then the corresponding boundary of the current
 simulation box is used.  If a numeric constant is specified then the
 wall is placed at that position in the appropriate dimension (x, y, or
 z).  In both the EDGE and constant cases, the wall will never move.
-If the face position is a variable, it should be specified as v_name,
+If the wall position is a variable, it should be specified as v_name,
 where name is an <A HREF = "variable.html">equal-style variable</A> name.  In this
 case the variable is evaluated each timestep and the result becomes
 the current position of the reflecting wall.  Equal-style variables
@@ -88,7 +88,7 @@ box parameters and timestep and elapsed time.  Thus it is easy to
 specify a time-dependent wall position.
 </P>
 <P>The <I>units</I> keyword determines the meaning of the distance units used
-to define a face position, but only when a numeric constant is used.
+to define a wall position, but only when a numeric constant is used.
 It is not relevant when EDGE or a variable is used to specify a face
 position.
 </P>
@@ -98,6 +98,42 @@ A <I>lattice</I> value means the distance units are in lattice spacings.
 The <A HREF = "lattice.html">lattice</A> command must have been previously used to
 define the lattice spacings.
 </P>
+<HR>
+
+<P>Here are examples of variable definitions that move the wall position
+in a time-dependent fashion using equal-style
+<A HREF = "variable.html">variables</A>.
+</P>
+<PRE>variable ramp equal ramp(0,10)
+fix 1 all wall xlo v_ramp 1.0 1.0 2.5 
+</PRE>
+<PRE>variable linear equal vlinear(0,20)
+fix 1 all wall xlo v_linear 1.0 1.0 2.5 
+</PRE>
+<PRE>variable wiggle equal swiggle(0.0,5.0,3.0)
+fix 1 all wall xlo v_wiggle 1.0 1.0 2.5 
+</PRE>
+<PRE>variable wiggle equal cwiggle(0.0,5.0,3.0)
+fix 1 all wall xlo v_wiggle 1.0 1.0 2.5 
+</PRE>
+<P>The ramp(lo,hi) function adjusts the wall position linearly from lo to
+hi over the course of a run.  The linear(c0,velocity) function does
+something similar using the equation position = c0 + velocity*delta,
+where delta is the elapsed time.
+</P>
+<P>The swiggle(c0,A,period) function causes the wall position to
+oscillate sinusoidally according to this equation, where omega = 2 PI
+/ period:
+</P>
+<PRE>position = c0 + A sin(omega*delta) 
+</PRE>
+<P>The cwiggle(c0,A,period) function causes the wall position to
+oscillate sinusoidally according to this equation, which will have an
+initial wall velocity of 0.0, and thus may impose a gentler
+perturbation on the particles:
+</P>
+<PRE>position = c0 + A (1 - cos(omega*delta)) 
+</PRE>
 <HR>
 
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>

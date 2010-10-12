@@ -41,12 +41,14 @@
   <I>string</I> arg = one string
   <I>equal</I> or <I>atom</I> args = one formula containing numbers, thermo keywords, math operations, group functions, atom values and vectors, compute/fix/variable references
     numbers = 0.0, 100, -5.4, 2.8e-4, etc
+    constants = PI
     thermo keywords = vol, ke, press, etc from <A HREF = "thermo_style.html">thermo_style</A>
     math operators = (), -x, x+y, x-y, x*y, x/y, x^y, 
                      x==y, x!=y, x<y, x<=y, x>y, x>=y, x&&y, x||y
     math functions = sqrt(x), exp(x), ln(x), log(x),
                      sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x),
-                     random(lo,hi,seed), normal(mu,sigma,seed), ceil(x), floor(x), round(x)
+                     random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x)
+                     ramp(x,y), stagger(x,y), logfreq(x,y,z), vlinear(x,y), swiggle(x,y,z), cwiggle(x,y,z)
     group functions = count(group), mass(group), charge(group),
 		      xcm(group,dim), vcm(group,dim), fcm(group,dim),
 		      bound(group,xmin), gyration(group), ke(group),
@@ -55,7 +57,7 @@
 		      xcm(group,dim,region), vcm(group,dim,region), fcm(group,dim,region),
 		      bound(group,xmin,region), gyration(group,region), ke(group,reigon),
 		      angmom(group,dim,region), inertia(group,dimdim,region),omega(group,dim,region)
-    special functions = ramp(x,y), stagger(x,y), logfreq(x,y,z), sum(x), min(x), max(x), ave(x), trap(x)
+    special functions = sum(x), min(x), max(x), ave(x), trap(x)
     atom value = mass[i], type[i], x[i], y[i], z[i], vx[i], vy[i], vz[i], fx[i], fy[i], fz[i]
     atom vector = mass, type, x, y, z, vx, vy, vz, fx, fy, fz
     compute references = c_ID, c_ID[i], c_ID[i][j]
@@ -268,12 +270,13 @@ references to other variables.
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >
 <TR><TD >Number</TD><TD > 0.2, 100, 1.0e20, -15.4, etc</TD></TR>
+<TR><TD >Constant</TD><TD > PI</TD></TR>
 <TR><TD >Thermo keywords</TD><TD > vol, pe, ebond, etc</TD></TR>
 <TR><TD >Math operators</TD><TD > (), -x, x+y, x-y, x*y, x/y, x^y, x==y, x!=y, x<y, x<=y, x>y, x>=y, x&&y, x||y</TD></TR>
-<TR><TD >Math functions</TD><TD > sqrt(x), exp(x), ln(x), log(x), sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x), random(lo,hi,seed), normal(mu,sigma,seed), ceil(x), floor(x), round(x)</TD></TR>
+<TR><TD >Math functions</TD><TD > sqrt(x), exp(x), ln(x), log(x), sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x), random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x), ramp(x,y), stagger(x,y), logfreq(x,y,z), vlinear(x,y), swiggle(x,y,z), cwiggle(x,y,z)</TD></TR>
 <TR><TD >Group functions</TD><TD > count(ID), mass(ID), charge(ID), xcm(ID,dim),                  vcm(ID,dim), fcm(ID,dim), bound(ID,dir), 		 gyration(ID), ke(ID), angmom(ID,dim), 		 inertia(ID,dimdim), omega(ID,dim)</TD></TR>
 <TR><TD >Region functions</TD><TD > count(ID,IDR), mass(ID,IDR), charge(ID,IDR), 		  xcm(ID,dim,IDR), vcm(ID,dim,IDR), fcm(ID,dim,IDR), 		  bound(ID,dir,IDR), gyration(ID,IDR), ke(ID,IDR), 		  angmom(ID,dim,IDR), inertia(ID,dimdim,IDR), omega(ID,dim,IDR)</TD></TR>
-<TR><TD >Special functions</TD><TD > ramp(x,y), stagger(x,y), logfreq(x,y,z), 		   sum(x), min(x), max(x), ave(x), trap(x)</TD></TR>
+<TR><TD >Special functions</TD><TD > sum(x), min(x), max(x), ave(x), trap(x)</TD></TR>
 <TR><TD >Atom values</TD><TD > mass[i], type[i], x[i], y[i], z[i],              vx[i], vy[i], vz[i], fx[i], fy[i], fz[i]</TD></TR>
 <TR><TD >Atom vectors</TD><TD > mass, type, x, y, z, vx, vy, vz, fx, fy, fz</TD></TR>
 <TR><TD >Compute references</TD><TD > c_ID, c_ID[i], c_ID[i][j]</TD></TR>
@@ -312,6 +315,8 @@ discussion below about "Variable Accuracy".
 </P>
 <HR>
 
+<H4>Math Operators 
+</H4>
 <P>Math operators are written in the usual way, where the "x" and "y" in
 the examples can themselves be arbitrarily complex formulas, as in the
 examples above.  In this syntax, "x" and "y" can be scalar values or
@@ -344,8 +349,12 @@ whose properties satifsy one or more criteria could be calculated by
 taking the returned per-atom vector of ones and zeroes and passing it
 to the <A HREF = "compute_reduce.html">compute reduce</A> command.
 </P>
+<HR>
+
+<H4>Math Functions 
+</H4>
 <P>Math functions are specified as keywords followed by one or more
-parenthesized arguments "x", "y", etc, each of which can themselves be
+parenthesized arguments "x", "y", "z", each of which can themselves be
 arbitrarily complex formulas.  In this syntax, the arguments can
 represent scalar values or per-atom vectors.  In the latter case, the
 math operation is performed on each element of the vector.  For
@@ -356,31 +365,95 @@ product of one atom's y and z coordinates.
 <P>Most of the math functions perform obvious operations.  The ln() is
 the natural log; log() is the base 10 log. 
 </P>
-<P>The random() function generates a uniform random number between lo and
-hi.  The normal() function generates a Gaussian variate centered on mu
-with variance sigma^2.  In both cases the seed is used the first time
-the internal random number generator is invoked, to initialize it.
-For equal-style variables, every processor uses the same seed so that
-they each generate the same sequence of random numbers.  For
-atom-style variables, a unique seed is created for each processor,
-based on the specified seed.  This effectively generates a different
-random number for each atom being looped over in the atom-style
-variable.
+<P>The random(x,y,z) function takes 3 arguments: x = lo, y = hi, and z =
+seed.  It generates a uniform random number between lo and hi.  The
+normal(x,y,z) function also takes 3 arguments: x = mu, y = sigma, and
+z = seed.  It generates a Gaussian variate centered on mu with
+variance sigma^2.  In both cases the seed is used the first time the
+internal random number generator is invoked, to initialize it.  For
+equal-style variables, every processor uses the same seed so that they
+each generate the same sequence of random numbers.  For atom-style
+variables, a unique seed is created for each processor, based on the
+specified seed.  This effectively generates a different random number
+for each atom being looped over in the atom-style variable.
+</P>
+<P>IMPORTANT NOTE: Internally, there is just one random number generator
+for all equal-style variables and one for all atom-style variables.
+If you define multiple variables (of each style) which use the
+random() or normal() math functions, then the internal random number
+generators will only be initialized once, which means only one of the
+specified seeds will determine the sequence of generated random
+numbers.
 </P>
 <P>The ceil(), floor(), and round() functions are those in the C math
 library.  Ceil() is the smallest integer not less than its argument.
 Floor() if the largest integer not greater than its argument.  Round()
 is the nearest integer to its argument.
 </P>
-<P>IMPORTANT NOTE: Internally, there is just one random number generator
-for equal-style variables and one for atom-style variables.  If you
-define multiple variables (of each style) which use the random() or
-normal() math functions, then the internal random number generators
-will only be initialized once, which means only one of the specified
-seeds will determine the sequence of generated random numbers.
+<P>The ramp(x,y) function uses the current timestep to generate a value
+linearly intepolated between the specified x,y values over the course
+of a run, according to this formula:
+</P>
+<PRE>value = x + (y-x) * (timestep-startstep) / (stopstep-startstep) 
+</PRE>
+<P>The run begins on startstep and ends on stopstep.  Startstep and
+stopstep can span multiple runs, using the <I>start</I> and <I>stop</I> keywords
+of the <A HREF = "run.html">run</A> command.  See the <A HREF = "run.html">run</A> command for
+details of how to do this.
+</P>
+<P>The stagger(x,y) function uses the current timestep to generate a new
+timestep.  X,y > 0 and x > y is required.  The generated timesteps
+increase in a staggered fashion, as the sequence
+x,x+y,2x,2x+y,3x,3x+y,etc.  For any current timestep, the next
+timestep in the sequence is returned.  Thus if stagger(1000,100) is
+used in a variable by the <A HREF = "dump_modify.html">dump_modify every</A>
+command, it will generate the sequence of output timesteps:
+</P>
+<PRE>100,1000,1100,2000,2100,3000,etc 
+</PRE>
+<P>The logfreq(x,y,z) function uses the current timestep to generate a
+new timestep.  X,y,z > 0 and y < z is required.  The generated
+timesteps increase in a logarithmic fashion, as the sequence
+x,2x,3x,...y*x,z*x,2*z*x,3*z*x,...y*z*x,z*z*x,2*z*x*x,etc.  For any
+current timestep, the next timestep in the sequence is returned.  Thus
+if logfreq(100,4,10) is used in a variable by the <A HREF = "dump_modify.html">dump_modify
+every</A> command, it will generate the sequence of
+output timesteps:
+</P>
+<PRE>100,200,300,400,1000,2000,3000,4000,10000,20000,etc 
+</PRE>
+<P>The vlinear(x,y) function takes 2 arguments: x = coord0 and y =
+velocity, and uses the elapsed time to change the coordinate value by
+a linear displacement due to the applied velocity over the course of a
+run, according to this formula:
+</P>
+<PRE>value = coord0 + velocity*(timestep-startstep)*dt 
+</PRE>
+<P>where dt = the timestep size.
+</P>
+<P>The run begins on startstep.  Startstep can span multiple runs, using
+the <I>start</I> keyword of the <A HREF = "run.html">run</A> command.  See the
+<A HREF = "run.html">run</A> command for details of how to do this.
+</P>
+<P>The swiggle(x,y,z) and cwiggle(x,y,z) functions each take 3 arguments:
+x = coord0, y = amplitude, z = period.  They use the elapsed time to
+oscillate the coordinate value by a sin() or cos() function over the
+course of a run, according to one of these formulas, where
+omega = 2 PI / period:
+</P>
+<PRE>value = coord0 + Amplitude * sin(omega*(timestep-startstep)*dt)
+value = coord0 + Amplitude * (1 - cos(omega*(timestep-startstep)*dt)) 
+</PRE>
+<P>where dt = the timestep size.
+</P>
+<P>The run begins on startstep.  Startstep can span multiple runs, using
+the <I>start</I> keyword of the <A HREF = "run.html">run</A> command.  See the
+<A HREF = "run.html">run</A> command for details of how to do this.
 </P>
 <HR>
 
+<H4>Group and Region Functions 
+</H4>
 <P>Group functions are specified as keywords followed by one or two
 parenthesized arguments.  The first argument is the group-ID.  The
 <I>dim</I> argument, if it exists, is <I>x</I> or <I>y</I> or <I>z</I>.  The <I>dir</I>
@@ -410,42 +483,11 @@ inclusion is that it be in the region.
 </P>
 <HR>
 
+<H4>Special Functions 
+</H4>
 <P>Special functions take specific kinds of arguments, meaning their
-arguments cannot be formulas themselves.  For example ramp(10.0,100.0)
-is valid, but ramp(2*5,sqrt(10000)) is not.
+arguments cannot be formulas themselves.
 </P>
-<P>Ramp(x,y) takes two integer or floating point values and uses the
-current timestep to generate a scalar value:
-</P>
-<PRE>value = x + (y-x) * (timestep-startstep) / (stopstep-startstep) 
-</PRE>
-<P>which is a value that ramps linearly between x and y over the course of
-a run.  The run begins on startstep and ends on stopstep.  Startstep
-and stopstep can span multiple runs, using the <I>start</I> and <I>stop</I>
-keywords of the <A HREF = "run.html">run</A> command.  See the <A HREF = "run.html">run</A>
-command for details of how to do this.
-</P>
-<P>Stagger(x,y) takes two integer values and uses the current timestep to
-generate a new timestep.  X,y > 0 and x > y is required.  The
-generated timesteps increase in a staggered fashion, as the sequence
-x,x+y,2x,2x+y,3x,3x+y,etc.  For any current timestep, the next
-timestep in the sequence is returned.  Thus if stagger(1000,100) is
-used in a variable by the <A HREF = "dump_modify.html">dump_modify every</A>
-command, it will generate the sequence of output timesteps:
-</P>
-<PRE>100,1000,1100,2000,2100,3000,etc 
-</PRE>
-<P>Logfreq(x,y,z) takes 3 integer values and uses the current timestep to
-generate a new timestep.  X,y,z > 0 and y < z is required.  The
-generated timesteps increase in a logarithmic fashion, as the sequence
-x,2x,3x,...y*x,z*x,2*z*x,3*z*x,...y*z*x,z*z*x,2*z*x*x,etc.  For any
-current timestep, the next timestep in the sequence is returned.  Thus
-if logfreq(100,4,10) is used in a variable by the <A HREF = "dump_modify.html">dump_modify
-every</A> command, it will generate the sequence of
-output timesteps:
-</P>
-<PRE>100,200,300,400,1000,2000,3000,4000,10000,20000,etc 
-</PRE>
 <P>The sum(x), min(x), max(x), ave(x), and trap(x) functions each take 1
 argument which is of the form "c_ID" or "c_ID[N]" or "f_ID" or
 "f_ID[N]".  The first two are computes and the second two are fixes;
@@ -479,6 +521,8 @@ ave/correlate</A> command.
 </P>
 <HR>
 
+<H4>Atom Values and Vectors 
+</H4>
 <P>Atom values take a single integer argument I from 1 to N, where I is
 the an atom-ID, e.g. x[243], which means use the x coordinate of the
 atom with ID = 243.
@@ -492,6 +536,8 @@ a quantity from that compute.
 </P>
 <HR>
 
+<H4>Compute References 
+</H4>
 <P>Compute references access quantities calculated by a
 <A HREF = "compute.html">compute</A>.  The ID in the reference should be replaced by
 the ID of a compute defined elsewhere in the input script.  As
@@ -523,6 +569,8 @@ about "Variable Accuracy".
 </P>
 <HR>
 
+<H4>Fix References 
+</H4>
 <P>Fix references access quantities calculated by a <A HREF = "compute.html">fix</A>.
 The ID in the reference should be replaced by the ID of a fix defined
 elsewhere in the input script.  As discussed in the doc page for the
@@ -559,6 +607,8 @@ the doc pages for individual fix commands for details.
 </P>
 <HR>
 
+<H4>Variable References 
+</H4>
 <P>Variable references access quantities calulated by other variables,
 which will cause those variables to be evaluated.  The name in the
 reference should be replaced by the name of a variable defined

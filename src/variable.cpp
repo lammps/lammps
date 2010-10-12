@@ -50,7 +50,7 @@ enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,UNARY,
        EQ,NE,LT,LE,GT,GE,AND,OR,
        SQRT,EXP,LN,LOG,SIN,COS,TAN,ASIN,ACOS,ATAN,ATAN2,
        RANDOM,NORMAL,CEIL,FLOOR,ROUND,RAMP,STAGGER,LOGFREQ,
-       VLINEAR,SWIGGLE,CWIGGLE,
+       VDISPLACE,SWIGGLE,CWIGGLE,
        VALUE,ATOMARRAY,TYPEARRAY,INTARRAY};
 
 // customize by adding a special function
@@ -1377,7 +1377,7 @@ double Variable::evaluate(char *str, Tree **tree)
      sqrt(),exp(),ln(),log(),sin(),cos(),tan(),asin(),acos(),atan(),
      atan2(y,x),random(x,y,z),normal(x,y,z),ceil(),floor(),round(),
      ramp(x,y),stagger(x,y),logfreq(x,y,z),
-     vlinear(x,y),swiggle(x,y,z),cwiggle(x,y,z)
+     vdisplace(x,y),swiggle(x,y,z),cwiggle(x,y,z)
 ---------------------------------------------------------------------- */
 
 double Variable::eval_tree(Tree *tree, int i)
@@ -1554,7 +1554,7 @@ double Variable::eval_tree(Tree *tree, int i)
     return arg;
   }
 
-  if (tree->type == VLINEAR) {
+  if (tree->type == VDISPLACE) {
     double arg1 = eval_tree(tree->left,i);
     double arg2 = eval_tree(tree->right,i);
     double delta = update->ntimestep - update->beginstep;
@@ -1667,7 +1667,7 @@ int Variable::int_between_brackets(char *&ptr)
      sqrt(),exp(),ln(),log(),sin(),cos(),tan(),asin(),acos(),atan(),
      atan2(y,x),random(x,y,z),normal(x,y,z),ceil(),floor(),round(),
      ramp(x,y),stagger(x,y),logfreq(x,y,z),
-     vlinear(x,y),swiggle(x,y,z),cwiggle(x,y,z)
+     vdisplace(x,y),swiggle(x,y,z),cwiggle(x,y,z)
 ------------------------------------------------------------------------- */
 
 int Variable::math_function(char *word, char *contents, Tree **tree,
@@ -1685,7 +1685,7 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
       strcmp(word,"normal") && strcmp(word,"ceil") && 
       strcmp(word,"floor") && strcmp(word,"round") &&
       strcmp(word,"ramp") && strcmp(word,"stagger") &&
-      strcmp(word,"logfreq") && strcmp(word,"vlinear") &&
+      strcmp(word,"logfreq") && strcmp(word,"vdisplace") &&
       strcmp(word,"swiggle") && strcmp(word,"cwiggle"))
     return 0;
 
@@ -1916,11 +1916,11 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
       argstack[nargstack++] = value;
     }
 
-  } else if (strcmp(word,"vlinear") == 0) {
+  } else if (strcmp(word,"vdisplace") == 0) {
     if (narg != 2) error->all("Invalid math function in variable formula");
     if (update->whichflag == 0)
-      error->all("Cannot use vlinear in variable formula between runs");
-    if (tree) newtree->type = VLINEAR;
+      error->all("Cannot use vdisplace in variable formula between runs");
+    if (tree) newtree->type = VDISPLACE;
     else {
       double delta = update->ntimestep - update->beginstep;
       double value = value1 + value2*delta*update->dt;

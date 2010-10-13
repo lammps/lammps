@@ -129,19 +129,19 @@ this format.
 For post-processing purposes the {atom} and {custom} text files are
 self-describing in the following sense.
 
-The simulation box bounds are included in each snapshot.  For
-orthogonal boxes this is formatted as:
+The dimensions of the simulation box are included in each snapshot.
+For orthogonal simulation boxes this is formatted as:
 
 ITEM: BOX BOUNDS
 xlo xhi
 ylo yhi
 zlo zhi :pre
 
-where xlo,xhi are the bounds of the simulation box in the x-dimension,
-and similarly for y and z.
+where xlo,xhi are the maximum extents of the simulation box in the
+x-dimension, and similarly for y and z.
 
-For triclinic boxes (non-orthogonal), the tilt factors are also
-included, as a 3rd value on each line:
+For triclinic simulation boxes (non-orthogonal), the tilt factors are
+also included, as a 3rd value on each line:
 
 ITEM: BOX BOUNDS xy xz yz
 xlo_bound xhi_bound xy
@@ -154,11 +154,15 @@ relationship to other nomenclatures for triclinic geometries,
 e.g. using 3 lattice constants {a}, {b}, and {c}, and 3 angles
 {alpha}, {beta} and {gamma}.
 
-IMPORTANT NOTE: As noted above, for triclinic simulation boxes, the 6
-box bounds (xlo,xhi,ylo,yhi,zlo,zhi) are actually written to the dump
-file as a "bounding box" around the simulation domain, which means
-they include the effect of any tilt, which is convenient for many
-visualization programs.  The bounding box is calculated as follows:
+IMPORTANT NOTE: As the notation above indicates, for triclinic
+simulation boxes, the 6 box bounds written to the dump file
+(xlo_bound,xhi_bound,ylo_bound,yhi_bound,zlo_bound,zhi_bound) are NOT
+equivalent to the 6 extents (xlo,xhi,ylo,yhi,zlo,zhi) in the
+orthogoonal case.  Instead they are the extent in each dimension of
+the smallest orthogonal "bounding box" that encapsulates the entire
+tricilinc simulation box, including the effects of any tilt.  This
+bounding box is convenient for many visualization programs and is
+calculated as follows:
 
 xlo_bound = MIN(xlo,xlo+xy,xlo+xz,xlo+xy+xz)
 xhi_bound = MAX(xhi,xhi+xy,xhi+xz,xhi+xy+xz)

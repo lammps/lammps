@@ -139,19 +139,19 @@ this format.
 <P>For post-processing purposes the <I>atom</I> and <I>custom</I> text files are
 self-describing in the following sense.
 </P>
-<P>The simulation box bounds are included in each snapshot.  For
-orthogonal boxes this is formatted as:
+<P>The dimensions of the simulation box are included in each snapshot.
+For orthogonal simulation boxes this is formatted as:
 </P>
 <PRE>ITEM: BOX BOUNDS
 xlo xhi
 ylo yhi
 zlo zhi 
 </PRE>
-<P>where xlo,xhi are the bounds of the simulation box in the x-dimension,
-and similarly for y and z.
+<P>where xlo,xhi are the maximum extents of the simulation box in the
+x-dimension, and similarly for y and z.
 </P>
-<P>For triclinic boxes (non-orthogonal), the tilt factors are also
-included, as a 3rd value on each line:
+<P>For triclinic simulation boxes (non-orthogonal), the tilt factors are
+also included, as a 3rd value on each line:
 </P>
 <PRE>ITEM: BOX BOUNDS xy xz yz
 xlo_bound xhi_bound xy
@@ -164,11 +164,15 @@ relationship to other nomenclatures for triclinic geometries,
 e.g. using 3 lattice constants <I>a</I>, <I>b</I>, and <I>c</I>, and 3 angles
 <I>alpha</I>, <I>beta</I> and <I>gamma</I>.
 </P>
-<P>IMPORTANT NOTE: As noted above, for triclinic simulation boxes, the 6
-box bounds (xlo,xhi,ylo,yhi,zlo,zhi) are actually written to the dump
-file as a "bounding box" around the simulation domain, which means
-they include the effect of any tilt, which is convenient for many
-visualization programs.  The bounding box is calculated as follows:
+<P>IMPORTANT NOTE: As the notation above indicates, for triclinic
+simulation boxes, the 6 box bounds written to the dump file
+(xlo_bound,xhi_bound,ylo_bound,yhi_bound,zlo_bound,zhi_bound) are NOT
+equivalent to the 6 extents (xlo,xhi,ylo,yhi,zlo,zhi) in the
+orthogoonal case.  Instead they are the extent in each dimension of
+the smallest orthogonal "bounding box" that encapsulates the entire
+tricilinc simulation box, including the effects of any tilt.  This
+bounding box is convenient for many visualization programs and is
+calculated as follows:
 </P>
 <PRE>xlo_bound = MIN(xlo,xlo+xy,xlo+xz,xlo+xy+xz)
 xhi_bound = MAX(xhi,xhi+xy,xhi+xz,xhi+xy+xz)

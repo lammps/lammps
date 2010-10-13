@@ -54,9 +54,9 @@ class Variable : protected Pointers {
     double value;
     double *array;
     int *iarray;
-    int ivalue1,ivalue2;
-    int nstride;
     int type;
+    int nstride;
+    int ivalue1,ivalue2;
     Tree *left,*middle,*right;
   };
 

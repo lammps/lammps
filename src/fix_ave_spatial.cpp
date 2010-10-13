@@ -570,7 +570,6 @@ void FixAveSpatial::end_of_step()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-
   if (nlocal > maxatomlayer) {
     maxatomlayer = atom->nmax;
     memory->sfree(layer);

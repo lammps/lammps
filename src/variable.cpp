@@ -22,6 +22,7 @@
 #include "update.h"
 #include "group.h"
 #include "domain.h"
+#include "region.h"
 #include "modify.h"
 #include "compute.h"
 #include "fix.h"
@@ -44,13 +45,13 @@ using namespace LAMMPS_NS;
 enum{INDEX,LOOP,WORLD,UNIVERSE,ULOOP,STRING,EQUAL,ATOM};
 enum{ARG,OP};
 
-// customize by adding a math function
+// customize by adding a function
 
 enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,UNARY,
        EQ,NE,LT,LE,GT,GE,AND,OR,
        SQRT,EXP,LN,LOG,SIN,COS,TAN,ASIN,ACOS,ATAN,ATAN2,
        RANDOM,NORMAL,CEIL,FLOOR,ROUND,RAMP,STAGGER,LOGFREQ,
-       VDISPLACE,SWIGGLE,CWIGGLE,
+       VDISPLACE,SWIGGLE,CWIGGLE,GMASK,RMASK,GRMASK,
        VALUE,ATOMARRAY,TYPEARRAY,INTARRAY};
 
 // customize by adding a special function
@@ -1377,16 +1378,17 @@ double Variable::evaluate(char *str, Tree **tree)
 }
 
 /* ----------------------------------------------------------------------
-   collapse an atom-style variable parse tree
+   one-time collapse of an atom-style variable parse tree
    tree was created by one-time parsing of formula string via evaulate()
    only keep tree nodes that depend on ATOMARRAY, TYPEARRAY, INTARRAY
    remainder is converted to single VALUE
    this enables optimal eval_tree loop over atoms
-   customize by adding a math function:
+   customize by adding a function:
      sqrt(),exp(),ln(),log(),sin(),cos(),tan(),asin(),acos(),atan(),
      atan2(y,x),random(x,y,z),normal(x,y,z),ceil(),floor(),round(),
      ramp(x,y),stagger(x,y),logfreq(x,y,z),
-     vdisplace(x,y),swiggle(x,y,z),cwiggle(x,y,z)
+     vdisplace(x,y),swiggle(x,y,z),cwiggle(x,y,z),
+     gmask(x),rmask(x),grmask(x,y)
 ---------------------------------------------------------------------- */
 
 double Variable::collapse_tree(Tree *tree)
@@ -1631,7 +1633,7 @@ double Variable::collapse_tree(Tree *tree)
     return tree->value;
   }
 
-  // random() or normal() never become a single collapsed value
+  // random() or normal() do not become a single collapsed value
 
   if (tree->type == RANDOM) {
     double lower = collapse_tree(tree->left);
@@ -1763,17 +1765,24 @@ double Variable::collapse_tree(Tree *tree)
     return tree->value;
   }
 
+  // mask functions do not become a single collapsed value
+
+  if (tree->type == GMASK) return 0.0;
+  if (tree->type == RMASK) return 0.0;
+  if (tree->type == GRMASK) return 0.0;
+
   return 0.0;
 }
 
 /* ----------------------------------------------------------------------
    evaluate an atom-style variable parse tree for atom I
    tree was created by one-time parsing of formula string via evaulate()
-   customize by adding a math function:
+   customize by adding a function:
      sqrt(),exp(),ln(),log(),sin(),cos(),tan(),asin(),acos(),atan(),
      atan2(y,x),random(x,y,z),normal(x,y,z),ceil(),floor(),round(),
      ramp(x,y),stagger(x,y),logfreq(x,y,z),
-     vdisplace(x,y),swiggle(x,y,z),cwiggle(x,y,z)
+     vdisplace(x,y),swiggle(x,y,z),cwiggle(x,y,z),
+     gmask(x),rmask(x),grmask(x,y)
 ---------------------------------------------------------------------- */
 
 double Variable::eval_tree(Tree *tree, int i)
@@ -1801,8 +1810,7 @@ double Variable::eval_tree(Tree *tree, int i)
     if (exponent == 0.0) error->one("Power by 0 in variable formula");
     return pow(eval_tree(tree->left,i),exponent);
   }
-  if (tree->type == UNARY)
-    return -eval_tree(tree->left,i);
+  if (tree->type == UNARY) return -eval_tree(tree->left,i);
 
   if (tree->type == EQ) {
     if (eval_tree(tree->left,i) == eval_tree(tree->right,i)) return 1.0;
@@ -1978,6 +1986,26 @@ double Variable::eval_tree(Tree *tree, int i)
     double omega = 2.0*PI/arg3;
     arg = arg1 + arg2*(1.0-cos(omega*delta*update->dt));
     return arg;
+  }
+
+  if (tree->type == GMASK) {
+    if (atom->mask[i] & tree->ivalue1) return 1.0;
+    else return 0.0;
+  }
+
+  if (tree->type == RMASK) {
+    if (domain->regions[tree->ivalue1]->inside(atom->x[i][0],
+					       atom->x[i][1],
+					       atom->x[i][2])) return 1.0;
+    else return 0.0;
+  }
+
+  if (tree->type == GRMASK) {
+    if ((atom->mask[i] & tree->ivalue1) &&
+	(domain->regions[tree->ivalue2]->inside(atom->x[i][0],
+						atom->x[i][1],
+						atom->x[i][2]))) return 1.0;
+    else return 0.0;
   }
 
   return 0.0;
@@ -2600,7 +2628,7 @@ int Variable::region_function(char *id)
 {
   int iregion = domain->find_region(id);
   if (iregion == -1)
-    error->all("Invalid region in group function in variable formula");
+    error->all("Region ID in variable formula does not exist");
   return iregion;
 }
 
@@ -2611,7 +2639,7 @@ int Variable::region_function(char *id)
    contents = str between parentheses with one,two,three args
    return 0 if not a match, 1 if successfully processed
    customize by adding a special function:
-     sum(x),min(x),max(x),ave(x),trap(x)
+     sum(x),min(x),max(x),ave(x),trap(x),gmask(x),rmask(x),grmask(x,y)
 ------------------------------------------------------------------------- */
 
 int Variable::special_function(char *word, char *contents, Tree **tree,
@@ -2621,7 +2649,8 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
   // word not a match to any special function
 
   if (strcmp(word,"sum") && strcmp(word,"min") && strcmp(word,"max") &&
-      strcmp(word,"ave") && strcmp(word,"trap"))
+      strcmp(word,"ave") && strcmp(word,"trap") && strcmp(word,"gmask") &&
+      strcmp(word,"rmask") && strcmp(word,"grmask"))
     return 0;
 
   // parse contents for arg1,arg2,arg3 separated by commas
@@ -2654,138 +2683,190 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
     narg = 3;
   } else arg3 = NULL;
 
-  // match word to special function
+  // special functions that operate on global vectors
 
-  int method;
-  if (strcmp(word,"sum") == 0) method = SUM;
-  else if (strcmp(word,"min") == 0) method = XMIN;
-  else if (strcmp(word,"max") == 0) method = XMAX;
-  else if (strcmp(word,"ave") == 0) method = AVE;
-  else if (strcmp(word,"trap") == 0) method = TRAP;
+  if (strcmp(word,"sum") == 0 || strcmp(word,"min") == 0 ||
+      strcmp(word,"max") == 0 || strcmp(word,"ave") == 0 ||
+      strcmp(word,"trap") == 0) {
 
-  if (narg != 1) error->all("Invalid special function in variable formula");
+    int method;
+    if (strcmp(word,"sum") == 0) method = SUM;
+    else if (strcmp(word,"min") == 0) method = XMIN;
+    else if (strcmp(word,"max") == 0) method = XMAX;
+    else if (strcmp(word,"ave") == 0) method = AVE;
+    else if (strcmp(word,"trap") == 0) method = TRAP;
+    
+    if (narg != 1) error->all("Invalid special function in variable formula");
   
-  Compute *compute = NULL;
-  Fix *fix = NULL;
-  int index,nvec,nstride;
+    Compute *compute = NULL;
+    Fix *fix = NULL;
+    int index,nvec,nstride;
 
-  if (strstr(arg1,"c_") == arg1) {
-    ptr1 = strchr(arg1,'[');
-    if (ptr1) {
-      ptr2 = ptr1;
-      index = int_between_brackets(ptr2);
-      *ptr1 = '\0';
-    } else index = 0;
+    if (strstr(arg1,"c_") == arg1) {
+      ptr1 = strchr(arg1,'[');
+      if (ptr1) {
+	ptr2 = ptr1;
+	index = int_between_brackets(ptr2);
+	*ptr1 = '\0';
+      } else index = 0;
 
-    int icompute = modify->find_compute(&arg1[2]);
-    if (icompute < 0) error->all("Invalid compute ID in variable formula");
-    compute = modify->compute[icompute];
-    if (index == 0 && compute->vector_flag) {
-      if (update->whichflag == 0) {
-	if (compute->invoked_vector != update->ntimestep)
-	  error->all("Compute used in variable between runs is not current");
-      } else if (!(compute->invoked_flag & INVOKED_VECTOR)) {
-	compute->compute_vector();
-	compute->invoked_flag |= INVOKED_VECTOR;
-      }
-      nvec = compute->size_vector;
-      nstride = 1;
-    } else if (index && compute->array_flag) {
-      if (index > compute->size_array_cols)
-	error->all("Variable formula compute array "
-		   "is accessed out-of-range");
-      if (update->whichflag == 0) {
-	if (compute->invoked_array != update->ntimestep)
-	  error->all("Compute used in variable between runs is not current");
-      } else if (!(compute->invoked_flag & INVOKED_ARRAY)) {
-	compute->compute_array();
-	compute->invoked_flag |= INVOKED_ARRAY;
-      }
-      nvec = compute->size_array_rows;
-      nstride = compute->size_array_cols;
-    } else error->all("Mismatched compute in variable formula");
+      int icompute = modify->find_compute(&arg1[2]);
+      if (icompute < 0) error->all("Invalid compute ID in variable formula");
+      compute = modify->compute[icompute];
+      if (index == 0 && compute->vector_flag) {
+	if (update->whichflag == 0) {
+	  if (compute->invoked_vector != update->ntimestep)
+	    error->all("Compute used in variable between runs is not current");
+	} else if (!(compute->invoked_flag & INVOKED_VECTOR)) {
+	  compute->compute_vector();
+	  compute->invoked_flag |= INVOKED_VECTOR;
+	}
+	nvec = compute->size_vector;
+	nstride = 1;
+      } else if (index && compute->array_flag) {
+	if (index > compute->size_array_cols)
+	  error->all("Variable formula compute array "
+		     "is accessed out-of-range");
+	if (update->whichflag == 0) {
+	  if (compute->invoked_array != update->ntimestep)
+	    error->all("Compute used in variable between runs is not current");
+	} else if (!(compute->invoked_flag & INVOKED_ARRAY)) {
+	  compute->compute_array();
+	  compute->invoked_flag |= INVOKED_ARRAY;
+	}
+	nvec = compute->size_array_rows;
+	nstride = compute->size_array_cols;
+      } else error->all("Mismatched compute in variable formula");
+      
+    } else if (strstr(arg1,"f_") == arg1) {
+      ptr1 = strchr(arg1,'[');
+      if (ptr1) {
+	ptr2 = ptr1;
+	index = int_between_brackets(ptr2);
+	*ptr1 = '\0';
+      } else index = 0;
+      
+      int ifix = modify->find_fix(&arg1[2]);
+      if (ifix < 0) error->all("Invalid fix ID in variable formula");
+      fix = modify->fix[ifix];
+      if (index == 0 && fix->vector_flag) {
+	if (update->whichflag > 0 && update->ntimestep % fix->global_freq)
+	  error->all("Fix in variable not computed at compatible time");
+	nvec = fix->size_vector;
+	nstride = 1;
+      } else if (index && fix->array_flag) {
+	if (index > fix->size_array_cols)
+	  error->all("Variable formula fix array is accessed out-of-range");
+	if (update->whichflag > 0 && update->ntimestep % fix->global_freq)
+	  error->all("Fix in variable not computed at compatible time");
+	nvec = fix->size_array_rows;
+	nstride = fix->size_array_cols;
+      } else error->all("Mismatched fix in variable formula");
+      
+    } else error->all("Invalid special function in variable formula");
     
-  } else if (strstr(arg1,"f_") == arg1) {
-    ptr1 = strchr(arg1,'[');
-    if (ptr1) {
-      ptr2 = ptr1;
-      index = int_between_brackets(ptr2);
-      *ptr1 = '\0';
-    } else index = 0;
+    double value = 0.0;
+    if (method == XMIN) value = BIG;
+    if (method == XMAX) value = -BIG;
     
-    int ifix = modify->find_fix(&arg1[2]);
-    if (ifix < 0) error->all("Invalid fix ID in variable formula");
-    fix = modify->fix[ifix];
-    if (index == 0 && fix->vector_flag) {
-      if (update->whichflag > 0 && update->ntimestep % fix->global_freq)
-	error->all("Fix in variable not computed at compatible time");
-      nvec = fix->size_vector;
-      nstride = 1;
-    } else if (index && fix->array_flag) {
-      if (index > fix->size_array_cols)
-	error->all("Variable formula fix array is accessed out-of-range");
-      if (update->whichflag > 0 && update->ntimestep % fix->global_freq)
-	error->all("Fix in variable not computed at compatible time");
-      nvec = fix->size_array_rows;
-      nstride = fix->size_array_cols;
-    } else error->all("Mismatched fix in variable formula");
-    
-  } else error->all("Invalid special function in variable formula");
-  
-  double value = 0.0;
-  if (method == XMIN) value = BIG;
-  if (method == XMAX) value = -BIG;
-  
-  if (compute) {
-    double *vec;
-    if (index) vec = &compute->array[0][index];
-    else vec = compute->vector; 
-    
-    int j = 0;
-    for (int i = 0; i < nvec; i++) {
-      if (method == SUM) value += vec[j];
-      else if (method == XMIN) value = MIN(value,vec[j]);
-      else if (method == XMAX) value = MAX(value,vec[j]);
-      else if (method == AVE) value += vec[j];
-      else if (method == TRAP) {
-	if (i > 0 && i < nvec-1) value += vec[j];
-	else value += 0.5*vec[j];
-      }
-      j += nstride;
-    }
-  }
-  
-  if (fix) {
-    double one;
-    for (int i = 0; i < nvec; i++) {
-      if (index) one = fix->compute_array(i,index-1);
-      else one = fix->compute_vector(i);
-      if (method == SUM) value += one;
-      else if (method == XMIN) value = MIN(value,one);
-      else if (method == XMAX) value = MAX(value,one);
-      else if (method == AVE) value += one;
-      else if (method == TRAP) {
-	if (i > 1 && i < nvec) value += one;
-	else value += 0.5*one;
+    if (compute) {
+      double *vec;
+      if (index) vec = &compute->array[0][index];
+      else vec = compute->vector; 
+      
+      int j = 0;
+      for (int i = 0; i < nvec; i++) {
+	if (method == SUM) value += vec[j];
+	else if (method == XMIN) value = MIN(value,vec[j]);
+	else if (method == XMAX) value = MAX(value,vec[j]);
+	else if (method == AVE) value += vec[j];
+	else if (method == TRAP) {
+	  if (i > 0 && i < nvec-1) value += vec[j];
+	  else value += 0.5*vec[j];
+	}
+	j += nstride;
       }
     }
-  }
-  
-  if (method == AVE) value /= nvec;
     
-  delete [] arg1;
-  delete [] arg2;
-  delete [] arg3;
+    if (fix) {
+      double one;
+      for (int i = 0; i < nvec; i++) {
+	if (index) one = fix->compute_array(i,index-1);
+	else one = fix->compute_vector(i);
+	if (method == SUM) value += one;
+	else if (method == XMIN) value = MIN(value,one);
+	else if (method == XMAX) value = MAX(value,one);
+	else if (method == AVE) value += one;
+	else if (method == TRAP) {
+	  if (i > 1 && i < nvec) value += one;
+	  else value += 0.5*one;
+	}
+      }
+    }
+    
+    if (method == AVE) value /= nvec;
+    
+    delete [] arg1;
+    delete [] arg2;
+    delete [] arg3;
+    
+    // save value in tree or on argstack
+    
+    if (tree) {
+      Tree *newtree = new Tree();
+      newtree->type = VALUE;
+      newtree->value = value;
+      newtree->left = newtree->middle = newtree->right = NULL;
+      treestack[ntreestack++] = newtree;
+    } else argstack[nargstack++] = value;
 
-  // save value in tree or on argstack
+  // mask special functions
 
-  if (tree) {
+  } else if (strcmp(word,"gmask") == 0) {
+    if (tree == NULL)
+      error->all("Gmask function in equal-style variable formula");
+    if (narg != 1) error->all("Invalid special function in variable formula");
+
+    int igroup = group->find(arg1);
+    if (igroup == -1)
+      error->all("Group ID in variable formula does not exist");
+    
     Tree *newtree = new Tree();
-    newtree->type = VALUE;
-    newtree->value = value;
+    newtree->type = GMASK;
+    newtree->ivalue1 = group->bitmask[igroup];
     newtree->left = newtree->middle = newtree->right = NULL;
     treestack[ntreestack++] = newtree;
-  } else argstack[nargstack++] = value;
+
+  } else if (strcmp(word,"rmask") == 0) {
+    if (tree == NULL)
+      error->all("Rmask function in equal-style variable formula");
+    if (narg != 1) error->all("Invalid special function in variable formula");
+
+    int iregion = region_function(arg1);
+    
+    Tree *newtree = new Tree();
+    newtree->type = RMASK;
+    newtree->ivalue1 = iregion;
+    newtree->left = newtree->middle = newtree->right = NULL;
+    treestack[ntreestack++] = newtree;
+
+  } else if (strcmp(word,"grmask") == 0) {
+    if (tree == NULL)
+      error->all("Grmask function in equal-style variable formula");
+    if (narg != 2) error->all("Invalid special function in variable formula");
+
+    int igroup = group->find(arg1);
+    if (igroup == -1)
+      error->all("Group ID in variable formula does not exist");
+    int iregion = region_function(arg2);
+    
+    Tree *newtree = new Tree();
+    newtree->type = RMASK;
+    newtree->ivalue1 = group->bitmask[igroup];
+    newtree->ivalue2 = iregion;
+    newtree->left = newtree->middle = newtree->right = NULL;
+    treestack[ntreestack++] = newtree;
+  }
 
   return 1;
 }

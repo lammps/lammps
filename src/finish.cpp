@@ -412,7 +412,7 @@ void Finish::end(int flag)
 	   neighbor->old_requests[m]->half_from_full) &&
 	  neighbor->old_requests[m]->skip == 0 &&
 	  neighbor->lists[m]->numneigh) break;
-    
+
     nneigh = 0;
     if (m < neighbor->old_nrequest) {
       int inum = neighbor->lists[m]->inum;
@@ -440,19 +440,21 @@ void Finish::end(int flag)
     }
     
     // find a non-skip neighbor list containing full pairwise interactions
-    
+
     for (m = 0; m < neighbor->old_nrequest; m++)
       if (neighbor->old_requests[m]->full &&
-	  neighbor->old_requests[m]->skip == 0 &&
-	  neighbor->lists[m]->numneigh) break;
-    
+	  neighbor->old_requests[m]->skip == 0 
+	  ) break;
+	  
     nneighfull = 0;
     if (m < neighbor->old_nrequest) {
-      int inum = neighbor->lists[m]->inum;
-      int *ilist = neighbor->lists[m]->ilist;
-      int *numneigh = neighbor->lists[m]->numneigh;
-      for (i = 0; i < inum; i++)
-	nneighfull += numneigh[ilist[i]];
+      if (neighbor->lists[m]->numneigh > 0) {
+	int inum = neighbor->lists[m]->inum;
+	int *ilist = neighbor->lists[m]->ilist;
+	int *numneigh = neighbor->lists[m]->numneigh;
+	for (i = 0; i < inum; i++)
+	  nneighfull += numneigh[ilist[i]];
+      }
 
       tmp = nneighfull;
       stats(1,&tmp,&ave,&max,&min,10,histo);
@@ -480,8 +482,8 @@ void Finish::end(int flag)
     }
     
     tmp = MAX(nneigh,nneighfull);
-    double nall;
-    MPI_Allreduce(&tmp,&nall,1,MPI_DOUBLE,MPI_SUM,world);
+    double nall = 0;
+    //    MPI_Allreduce(&tmp,&nall,1,MPI_DOUBLE,MPI_SUM,world);
     
     int nspec;
     double nspec_all;

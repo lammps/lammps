@@ -142,6 +142,7 @@ void Variable::set(int narg, char **arg)
     style[nvar] = INDEX;
     num[nvar] = narg - 2;
     which[nvar] = 0;
+    pad[nvar] = 0;
     data[nvar] = new char*[num[nvar]];
     copy(num[nvar],&arg[2],data[nvar]);
 
@@ -175,7 +176,6 @@ void Variable::set(int narg, char **arg)
     } else error->all("Illegal variable command");
     num[nvar] = nlast;
     which[nvar] = nfirst-1;
-    pad[nvar] = 0;
     data[nvar] = new char*[1];
     data[nvar][0] = NULL;
 
@@ -192,6 +192,7 @@ void Variable::set(int narg, char **arg)
     if (num[nvar] != universe->nworlds)
       error->all("World variable count doesn't match # of partitions");
     which[nvar] = universe->iworld;
+    pad[nvar] = 0;
     data[nvar] = new char*[num[nvar]];
     copy(num[nvar],&arg[2],data[nvar]);
 
@@ -258,6 +259,7 @@ void Variable::set(int narg, char **arg)
     style[nvar] = STRING;
     num[nvar] = 1;
     which[nvar] = 0;
+    pad[nvar] = 0;
     data[nvar] = new char*[num[nvar]];
     copy(1,&arg[2],data[nvar]);
     
@@ -277,6 +279,7 @@ void Variable::set(int narg, char **arg)
     style[nvar] = EQUAL;
     num[nvar] = 2;
     which[nvar] = 0;
+    pad[nvar] = 0;
     data[nvar] = new char*[num[nvar]];
     copy(1,&arg[2],data[nvar]);
     data[nvar][1] = NULL;
@@ -297,6 +300,7 @@ void Variable::set(int narg, char **arg)
     style[nvar] = ATOM;
     num[nvar] = 1;
     which[nvar] = 0;
+    pad[nvar] = 0;
     data[nvar] = new char*[num[nvar]];
     copy(1,&arg[2],data[nvar]);
     
@@ -560,6 +564,7 @@ void Variable::remove(int n)
     style[i-1] = style[i];
     num[i-1] = num[i];
     which[i-1] = which[i];
+    pad[i-1] = pad[i];
     data[i-1] = data[i];
   }
   nvar--;

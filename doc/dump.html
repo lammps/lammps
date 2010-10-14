@@ -140,7 +140,7 @@ this format.
 self-describing in the following sense.
 </P>
 <P>The dimensions of the simulation box are included in each snapshot.
-For orthogonal simulation boxes this is formatted as:
+For an orthogonal simulation box this information is is formatted as:
 </P>
 <PRE>ITEM: BOX BOUNDS
 xlo xhi
@@ -150,37 +150,24 @@ zlo zhi
 <P>where xlo,xhi are the maximum extents of the simulation box in the
 x-dimension, and similarly for y and z.
 </P>
-<P>For triclinic simulation boxes (non-orthogonal), the tilt factors are
-also included, as a 3rd value on each line:
+<P>For triclinic simulation boxes (non-orthogonal), an orthogonal
+bounding box which encloses the triclinic simulation box is output,
+along with the 3 tilt factors (xy, xz, yz) of the triclinic box,
+formatted as follows:
 </P>
 <PRE>ITEM: BOX BOUNDS xy xz yz
 xlo_bound xhi_bound xy
 ylo_bound yhi_bound xz
 zlo_bound zhi_bound yz 
 </PRE>
-<P>See the <A HREF = "region.html">region prism</A> or <A HREF = "read_data.html">read_data</A>
-commands for a description of tilt factors in LAMMPS, and their
-relationship to other nomenclatures for triclinic geometries,
-e.g. using 3 lattice constants <I>a</I>, <I>b</I>, and <I>c</I>, and 3 angles
-<I>alpha</I>, <I>beta</I> and <I>gamma</I>.
+<P>This bounding box is convenient for many visualization programs.
 </P>
-<P>IMPORTANT NOTE: As the notation above indicates, for triclinic
-simulation boxes, the 6 box bounds written to the dump file
-(xlo_bound,xhi_bound,ylo_bound,yhi_bound,zlo_bound,zhi_bound) are NOT
-equivalent to the 6 extents (xlo,xhi,ylo,yhi,zlo,zhi) in the
-orthogoonal case.  Instead they are the extent in each dimension of
-the smallest orthogonal "bounding box" that encapsulates the entire
-tricilinc simulation box, including the effects of any tilt.  This
-bounding box is convenient for many visualization programs and is
-calculated as follows:
+<P>See <A HREF = "Section_howto.html#4_12">this section</A> of the doc pages for a
+geometric description of triclinic boxes, as defined by LAMMPS, simple
+formulas for how the 6 bounding box extents (xlo_bound,xhi_bound,etc)
+are calculated from the triclinic parameters, and how to transform
+those parameters into other commonly used triclinic representations.
 </P>
-<PRE>xlo_bound = MIN(xlo,xlo+xy,xlo+xz,xlo+xy+xz)
-xhi_bound = MAX(xhi,xhi+xy,xhi+xz,xhi+xy+xz)
-ylo_bound = MIN(ylo,ylo+yz)
-yhi_bound = MAX(yhi,yhi+yz)
-zlo_bound = zlo
-zhi_bound = zhi 
-</PRE>
 <P>The "ITEM: ATOMS" line in each snapshot lists column descriptors for
 the per-atom lines that follow.  For example, the descriptors would be
 "id type xs ys zs" for the default <I>atom</I> style, and would be the atom

@@ -32,32 +32,43 @@ geometric domain.
 simulation.
 </P>
 <P>If the region is not of style <I>prism</I>, then LAMMPS encloses the region
-(block, sphere, etc) with an axis-aligned (orthogonal) box which
-becomes the simulation domain.
+(block, sphere, etc) with an axis-aligned orthogonal bounding box
+which becomes the simulation domain.
 </P>
 <P>If the region is of style <I>prism</I>, LAMMPS creates a non-orthogonal
 simulation domain shaped as a parallelepiped with triclinic symmetry.
-See the <A HREF = "region.html">region prism</A> command for a description of how
-the shape of the parallelepiped is defined.  The parallelepiped has
-its "origin" at (xlo,ylo,zlo) and 3 edge vectors starting from its
-origin given by a = (xhi-xlo,0,0); b = (xy,yhi-ylo,0); c =
-(xz,yz,zhi-zlo).
+As defined by the <A HREF = "region.html">region prism</A> command, the
+parallelepiped has its "origin" at (xlo,ylo,zlo) and is defined by 3
+edge vectors starting from the origin given by A = (xhi-xlo,0,0); B =
+(xy,yhi-ylo,0); C = (xz,yz,zhi-zlo).  <I>Xy,xz,yz</I> can be 0.0 or
+positive or negative values and are called "tilt factors" because they
+are the amount of displacement applied to faces of an originally
+orthogonal box to transform it into the parallelipiped.
 </P>
-<P>A prism region used with the create_box command must have tilt factors
-(xy,xz,yz) that do not skew the box more than half the distance of the
-parallel box length.  For example, if xlo = 2 and xhi = 12, then the x
-box length is 10 and the xy tilt factor must be between -5 and 5.
-Similarly, both xz and yz must be between -(xhi-xlo)/2 and
-+(yhi-ylo)/2.  Note that this is not a limitation, since if the
-maximum tilt factor is 5 (as in this example), then configurations
-with tilt = ..., -15, -5, 5, 15, 25, ... are all equivalent.
+<P>A <I>prism</I> region used with the create_box command must have tilt
+factors (xy,xz,yz) that do not skew the box more than half the
+distance of the parallel box length.  For example, if xlo = 2 and xhi
+= 12, then the x box length is 10 and the xy tilt factor must be
+between -5 and 5.  Similarly, both xz and yz must be between
+-(xhi-xlo)/2 and +(yhi-ylo)/2.  Note that this is not a limitation,
+since if the maximum tilt factor is 5 (as in this example), then
+configurations with tilt = ..., -15, -5, 5, 15, 25, ... are all
+geometrically equivalent.
+</P>
+<P>See <A HREF = "Section_howto.html#4_12">this section</A> of the doc pages for a
+geometric description of triclinic boxes, as defined by LAMMPS, and
+how to transform these parameters into other commonly used triclinic
+representations.
 </P>
 <P>When a prism region is used, the simulation domain must be periodic in
 any dimensions with a non-zero tilt factor, as defined by the
 <A HREF = "boundary.html">boundary</A> command.  I.e. if the xy tilt factor is
 non-zero, then both the x and y dimensions must be periodic.
 Similarly, x and z must be periodic if xz is non-zero and y and z must
-be periodic if yz is non-zero.
+be periodic if yz is non-zero.  Also note that if your simulation will
+tilt the box, e.g. via the <A HREF = "fix_deform.html">fix deform</A> command, the
+simulation box must be defined as triclinic, even if the tilt factors
+are initially 0.0.
 </P>
 <P>IMPORTANT NOTE: If the system is non-periodic (in a dimension), then
 you should not make the lo/hi box dimensions (as defined in your

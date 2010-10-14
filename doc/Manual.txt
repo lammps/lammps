@@ -106,7 +106,7 @@ listed above.
   4.9 "SPC water model"_4_9 :b
   4.10 "Coupling LAMMPS to other codes"_4_10 :b
   4.11 "Visualizing LAMMPS snapshots"_4_11 :b
-  4.12 "Non-orthogonal simulation boxes"_4_12 :b
+  4.12 "Triclinic (non-orthogonal) simulation boxes"_4_12 :b
   4.13 "NEMD simulations"_4_13 :b
   4.14 "Extended spherical and aspherical particles"_4_14 :b
   4.15 "Output from LAMMPS (thermo, dumps, computes, fixes, variables)"_4_15 :b

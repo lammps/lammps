@@ -107,8 +107,8 @@ example), then configurations with tilt = ..., -15, -5, 5, 15, 25,
 
 See "this section"_Section_howto.html#4_12 of the doc pages for a
 geometric description of triclinic boxes, as defined by LAMMPS, and
-how to transform these parameters into other commonly used triclinic
-representations.
+how to transform these parameters to and from other commonly used
+triclinic representations.
 
 When a triclinic system is used, the simulation domain must be
 periodic in any dimensions with a non-zero tilt factor, as defined by

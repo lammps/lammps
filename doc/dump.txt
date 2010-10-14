@@ -156,7 +156,8 @@ See "this section"_Section_howto.html#4_12 of the doc pages for a
 geometric description of triclinic boxes, as defined by LAMMPS, simple
 formulas for how the 6 bounding box extents (xlo_bound,xhi_bound,etc)
 are calculated from the triclinic parameters, and how to transform
-those parameters into other commonly used triclinic representations.
+those parameters to and from other commonly used triclinic
+representations.
 
 The "ITEM: ATOMS" line in each snapshot lists column descriptors for
 the per-atom lines that follow.  For example, the descriptors would be

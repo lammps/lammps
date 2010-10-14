@@ -163,8 +163,8 @@ geometrically equivalent.
 
 See "this section"_Section_howto.html#4_12 of the doc pages for a
 geometric description of triclinic boxes, as defined by LAMMPS, and
-how to transform these parameters into other commonly used triclinic
-representations.
+how to transform these parameters to and from other commonly used
+triclinic representations.
 
 The {union} style creates a region consisting of the volume of all the
 listed regions combined.  The {intersect} style creates a region

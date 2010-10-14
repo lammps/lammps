@@ -68,7 +68,7 @@ void ComputeTempRegion::init()
 
   iregion = domain->find_region(idregion);
   if (iregion == -1)
-    error->all("Region ID for compute temp reduce/region does not exist");
+    error->all("Region ID for compute temp/region does not exist");
 
   dof = 0.0;
 }

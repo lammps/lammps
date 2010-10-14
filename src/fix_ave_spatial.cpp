@@ -22,6 +22,7 @@
 #include "update.h"
 #include "force.h"
 #include "domain.h"
+#include "region.h"
 #include "lattice.h"
 #include "modify.h"
 #include "compute.h"
@@ -155,6 +156,8 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
 
   normflag = ALL;
   scaleflag = LATTICE;
+  regionflag = 0;
+  idregion = NULL;
   fp = NULL;
   ave = ONE;
   char *title1 = NULL;
@@ -174,6 +177,16 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = LATTICE;
       else if (strcmp(arg[iarg+1],"reduced") == 0) scaleflag = REDUCED;
       else error->all("Illegal fix ave/spatial command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"region") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix ave/spatial command");
+      iregion = domain->find_region(arg[iarg+1]);
+      if (iregion == -1) 
+	error->all("Region ID for fix ave/spatial does not exist");
+      int n = strlen(arg[iarg+1]) + 1;
+      idregion = new char[n];
+      strcpy(idregion,arg[iarg+1]);
+      regionflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"file") == 0) {
       if (iarg+2 > narg) error->all("Illegal fix ave/spatial command");
@@ -369,6 +382,7 @@ FixAveSpatial::~FixAveSpatial()
   for (int i = 0; i < nvalues; i++) delete [] ids[i];
   delete [] ids;
   delete [] value2index;
+  delete [] idregion;
 
   if (fp && me == 0) fclose(fp);
 
@@ -401,6 +415,14 @@ int FixAveSpatial::setmask()
 
 void FixAveSpatial::init()
 {
+  // set index and check validity of region
+
+  if (regionflag) {
+    iregion = domain->find_region(idregion);
+    if (iregion == -1)
+      error->all("Region ID for fix ave/spatial does not exist");
+  }
+
   // # of layers cannot vary for ave = RUNNING or WINDOW
 
   if (ave == RUNNING || ave == WINDOW) {
@@ -452,6 +474,10 @@ void FixAveSpatial::end_of_step()
 {
   int i,j,m,n,ilayer;
   double lo,hi;
+  double lamda[3];
+
+  Region *region;
+  if (regionflag) region = domain->regions[iregion];
 
   // skip if not step which requires doing something
 
@@ -593,23 +619,41 @@ void FixAveSpatial::end_of_step()
     }
   }
 
-  if (scaleflag == REDUCED) domain->x2lamda(nlocal);
-  
-  for (i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
-      xremap = x[i][dim];
-      if (periodicity) {
-	if (xremap < boxlo[dim]) xremap += prd[dim];
-	if (xremap >= boxhi[dim]) xremap -= prd[dim];
+  if (regionflag == 0) {
+    if (scaleflag == REDUCED) domain->x2lamda(nlocal);
+    for (i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+	xremap = x[i][dim];
+	if (periodicity) {
+	  if (xremap < boxlo[dim]) xremap += prd[dim];
+	  if (xremap >= boxhi[dim]) xremap -= prd[dim];
+	}
+	ilayer = static_cast<int> ((xremap - offset) * invdelta);
+	if (ilayer < 0) ilayer = 0;
+	if (ilayer >= nlayers) ilayer = nlayers-1;
+	layer[i] = ilayer;
+	count_one[ilayer] += 1.0;
       }
-      ilayer = static_cast<int> ((xremap - offset) * invdelta);
-      if (ilayer < 0) ilayer = 0;
-      if (ilayer >= nlayers) ilayer = nlayers-1;
-      layer[i] = ilayer;
-      count_one[ilayer] += 1.0;
-    }
+    if (scaleflag == REDUCED) domain->lamda2x(nlocal);
 
-  if (scaleflag == REDUCED) domain->lamda2x(nlocal);
+  } else {
+    for (i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
+	if (scaleflag == REDUCED) {
+	  domain->x2lamda(x[i],lamda);
+	  xremap = lamda[dim];
+	} else xremap = x[i][dim];
+	if (periodicity) {
+	  if (xremap < boxlo[dim]) xremap += prd[dim];
+	  if (xremap >= boxhi[dim]) xremap -= prd[dim];
+	}
+	ilayer = static_cast<int> ((xremap - offset) * invdelta);
+	if (ilayer < 0) ilayer = 0;
+	if (ilayer >= nlayers) ilayer = nlayers-1;
+	layer[i] = ilayer;
+	count_one[ilayer] += 1.0;
+      }
+  }
 
   // perform the computation for one sample
   // accumulate results of attributes,computes,fixes,variables to local copy
@@ -629,18 +673,30 @@ void FixAveSpatial::end_of_step()
       if (which[m] == X) attribute = x;
       else if (which[m] == V) attribute = atom->v;
       else attribute = atom->f;
-
-      for (i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit)
-	  values_one[layer[i]][m] += attribute[i][j];
+      
+      if (regionflag == 0) {
+	for (i = 0; i < nlocal; i++)
+	  if (mask[i] & groupbit)
+	    values_one[layer[i]][m] += attribute[i][j];
+      } else {
+	for (i = 0; i < nlocal; i++)
+	  if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
+	    values_one[layer[i]][m] += attribute[i][j];
+      }
 
     // DENSITY_NUMBER adds 1 to values
 
     } else if (which[m] == DENSITY_NUMBER) {
 
-      for (i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit)
-	  values_one[layer[i]][m] += 1.0;
+      if (regionflag == 0) {
+	for (i = 0; i < nlocal; i++)
+	  if (mask[i] & groupbit)
+	    values_one[layer[i]][m] += 1.0;
+      } else {
+	for (i = 0; i < nlocal; i++)
+	  if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
+	    values_one[layer[i]][m] += 1.0;
+      }
 
     // DENSITY_MASS adds mass to values
 
@@ -649,10 +705,19 @@ void FixAveSpatial::end_of_step()
       double *mass = atom->mass;
       double *rmass = atom->rmass;
 
-      for (i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit)
-	  if (rmass) values_one[layer[i]][m] += rmass[i];
-	  else values_one[layer[i]][m] += mass[type[i]];
+      if (regionflag == 0) {
+	for (i = 0; i < nlocal; i++)
+	  if (mask[i] & groupbit) {
+	    if (rmass) values_one[layer[i]][m] += rmass[i];
+	    else values_one[layer[i]][m] += mass[type[i]];
+	  }
+      } else {
+	for (i = 0; i < nlocal; i++)
+	  if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
+	    if (rmass) values_one[layer[i]][m] += rmass[i];
+	    else values_one[layer[i]][m] += mass[type[i]];
+	  }
+      }
 
     // COMPUTE adds its scalar or vector component to values
     // invoke compute if not previously invoked
@@ -667,11 +732,20 @@ void FixAveSpatial::end_of_step()
       double **array = compute->array_atom;
       int jm1 = j - 1;
 
-      for (i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit)
-	  if (j == 0) values_one[layer[i]][m] += vector[i];
-	  else values_one[layer[i]][m] += array[i][jm1];
-      
+      if (regionflag == 0) {
+	for (i = 0; i < nlocal; i++)
+	  if (mask[i] & groupbit) {
+	    if (j == 0) values_one[layer[i]][m] += vector[i];
+	    else values_one[layer[i]][m] += array[i][jm1];
+	  }
+      } else {
+	for (i = 0; i < nlocal; i++)
+	  if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
+	    if (j == 0) values_one[layer[i]][m] += vector[i];
+	    else values_one[layer[i]][m] += array[i][jm1];
+	  }
+      }
+
     // FIX adds its scalar or vector component to values
     // access fix fields, guaranteed to be ready
 
@@ -680,11 +754,19 @@ void FixAveSpatial::end_of_step()
       double **array = modify->fix[n]->array_atom;
       int jm1 = j - 1;
 
-      for (i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit) {
-	  if (j == 0) values_one[layer[i]][m] += vector[i];
-	  else values_one[layer[i]][m] += array[i][jm1];
-	}
+      if (regionflag == 0) {
+	for (i = 0; i < nlocal; i++)
+	  if (mask[i] & groupbit) {
+	    if (j == 0) values_one[layer[i]][m] += vector[i];
+	    else values_one[layer[i]][m] += array[i][jm1];
+	  }
+      } else {
+	for (i = 0; i < nlocal; i++)
+	  if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
+	    if (j == 0) values_one[layer[i]][m] += vector[i];
+	    else values_one[layer[i]][m] += array[i][jm1];
+	  }
+      }
 
     // VARIABLE adds its per-atom quantities to values
     // evaluate atom-style variable
@@ -699,9 +781,15 @@ void FixAveSpatial::end_of_step()
 
       input->variable->compute_atom(n,igroup,varatom,1,0);
 
-      for (i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit)
-	  values_one[layer[i]][m] += varatom[i];
+      if (regionflag == 0) {
+	for (i = 0; i < nlocal; i++)
+	  if (mask[i] & groupbit)
+	    values_one[layer[i]][m] += varatom[i];
+      } else {
+	for (i = 0; i < nlocal; i++)
+	  if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
+	    values_one[layer[i]][m] += varatom[i];
+      }
     }
   }
 

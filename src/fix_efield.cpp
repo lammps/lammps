@@ -21,6 +21,7 @@
 #include "fix_efield.h"
 #include "atom.h"
 #include "update.h"
+#include "modify.h"
 #include "force.h"
 #include "respa.h"
 #include "input.h"
@@ -176,7 +177,12 @@ void FixEfield::post_force(int vflag)
 	f[i][2] += q[i]*ez;
       }
 
+  // variable efield, wrap with clear/add
+
   } else {
+
+    modify->clearstep_compute();
+
     if (xstyle == EQUAL) ex = qe2f * input->variable->compute_equal(xvar);
     else if (xstyle == ATOM)
       input->variable->compute_atom(xvar,igroup,&efield[0][0],3,0);
@@ -186,6 +192,8 @@ void FixEfield::post_force(int vflag)
     if (zstyle == EQUAL) ez = qe2f * input->variable->compute_equal(zvar);
     else if (zstyle == ATOM)
       input->variable->compute_atom(zvar,igroup,&efield[0][2],3,0);
+
+    modify->addstep_compute(update->ntimestep + 1);
 
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {

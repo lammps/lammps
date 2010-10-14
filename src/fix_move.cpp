@@ -18,6 +18,7 @@
 #include "atom.h"
 #include "group.h"
 #include "update.h"
+#include "modify.h"
 #include "force.h"
 #include "domain.h"
 #include "lattice.h"
@@ -569,7 +570,9 @@ void FixMove::initial_integrate(int vflag)
       }
     }
 
-    // pre-compute variable values
+    // pre-compute variable values, wrap with clear/add
+
+    modify->clearstep_compute();
 
     if (xvarstr) {
       if (xvarstyle == EQUAL) dx = input->variable->compute_equal(xvar);
@@ -595,6 +598,8 @@ void FixMove::initial_integrate(int vflag)
       if (vzvarstyle == EQUAL) vz = input->variable->compute_equal(vzvar);
       else input->variable->compute_atom(vzvar,igroup,&velocity[0][2],3,0);
     }
+
+    modify->addstep_compute(update->ntimestep + 1);
 
     // update x,v
 

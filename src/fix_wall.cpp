@@ -21,6 +21,7 @@
 #include "domain.h"
 #include "lattice.h"
 #include "update.h"
+#include "modify.h"
 #include "respa.h"
 #include "error.h"
 
@@ -145,10 +146,11 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
     }
   }
 
-  // set time_depend if any wall positions are variable
+  // set time_depend and varflag if any wall positions are variable
 
+  varflag = 0;
   for (int m = 0; m < nwall; m++)
-    if (wallstyle[m] == VARIABLE) time_depend = 1;
+    if (wallstyle[m] == VARIABLE) time_depend = varflag = 1;
 
   eflag = 0;
   for (int m = 0; m <= nwall; m++) ewall[m] = 0.0;
@@ -225,7 +227,9 @@ void FixWall::post_force(int vflag)
   for (int m = 0; m <= nwall; m++) ewall[m] = 0.0;
 
   // coord = current position of wall
-  // evaluate variable if necessary
+  // evaluate variable if necessary, wrap with clear/add
+
+  if (varflag) modify->clearstep_compute();
 
   double coord;
   for (int m = 0; m < nwall; m++) {
@@ -235,6 +239,8 @@ void FixWall::post_force(int vflag)
 
     wall_particle(m,wallwhich[m],coord);
   }
+
+  if (varflag) modify->addstep_compute(update->ntimestep + 1);
 }
 
 /* ---------------------------------------------------------------------- */

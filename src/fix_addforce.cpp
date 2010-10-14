@@ -16,6 +16,7 @@
 #include "fix_addforce.h"
 #include "atom.h"
 #include "update.h"
+#include "modify.h"
 #include "domain.h"
 #include "region.h"
 #include "respa.h"
@@ -248,10 +249,14 @@ void FixAddForce::post_force(int vflag)
 	f[i][2] += zvalue;
       }
 
-  // variable force
+  // variable force, wrap with clear/add
   // potential energy = evar if defined, else 0.0
+  // wrap with clear/add
 
   } else {
+
+    modify->clearstep_compute();
+
     if (xstyle == EQUAL) xvalue = input->variable->compute_equal(xvar);
     else if (xstyle == ATOM)
       input->variable->compute_atom(xvar,igroup,&sforce[0][0],4,0);
@@ -263,6 +268,8 @@ void FixAddForce::post_force(int vflag)
       input->variable->compute_atom(zvar,igroup,&sforce[0][2],4,0);
     if (estyle == ATOM)
       input->variable->compute_atom(evar,igroup,&sforce[0][3],4,0);
+
+    modify->addstep_compute(update->ntimestep + 1);
 
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {

@@ -16,6 +16,7 @@
 #include "fix_wall_reflect.h"
 #include "atom.h"
 #include "comm.h"
+#include "update.h"
 #include "modify.h"
 #include "domain.h"
 #include "lattice.h"
@@ -132,10 +133,11 @@ FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
     }
   }
 
-  // set time_depend if any wall positions are variable
+  // set time_depend and varflag if any wall positions are variable
 
+  varflag = 0;
   for (int m = 0; m < nwall; m++)
-    if (wallstyle[m] == VARIABLE) time_depend = 1;
+    if (wallstyle[m] == VARIABLE) time_depend = varflag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -185,10 +187,15 @@ void FixWallReflect::post_integrate()
   int i,dim,side;
   double coord;
 
+  // coord = current position of wall
+  // evaluate variable if necessary, wrap with clear/add
+
   double **x = atom->x;
   double **v = atom->v;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+
+  if (varflag) modify->clearstep_compute();
 
   for (int m = 0; m < nwall; m++) {
     if (wallstyle[m] == VARIABLE)
@@ -213,4 +220,6 @@ void FixWallReflect::post_integrate()
 	}
       }
   }
+
+  if (varflag) modify->addstep_compute(update->ntimestep + 1);
 }

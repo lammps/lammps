@@ -41,11 +41,10 @@ class FixWall : public Fix {
   double coord0[6],epsilon[6],sigma[6],cutoff[6];
   char *varstr[6];
   int varindex[6];
-  int eflag;
+  int eflag,varflag;
   double ewall[7],ewall_all[7];
   int nlevels_respa;
   double dt;
-  int time_origin;
 };
 
 }

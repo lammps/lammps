@@ -34,6 +34,8 @@ zero or more keyword/arg pairs may be appended :l
 keyword = {norm} or {units} or {file} or {ave} or {title1} or {title2} or {title3} :l
   {units} arg = {box} or {lattice} or {reduced}
   {norm} arg = {all} or {sample}
+  {region} arg = region-ID
+    region-ID = ID of region atoms must be in to contribute to spatial averaging
   {ave} args = {one} or {running} or {window M}
     one = output new average value every Nfreq steps
     running = output cumulative average of all previous Nfreq steps
@@ -64,7 +66,9 @@ other "output commands"_Section_howto.html#4_15 such as "thermo_style
 custom"_thermo_style.html, and can also be written to a file.
 
 The group specified with the command means only atoms within the group
-contribute to layer averages.
+contribute to layer averages.  If the {region} keyword is used, the
+atom must be in both the group and the specified geometric
+"region"_region.html in order to contribute to layer averages.
 
 Each listed value can be an atom attribute (position, velocity, force
 component), a mass or number density, or the result of a

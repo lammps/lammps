@@ -49,6 +49,8 @@
 
 <PRE>  <I>units</I> arg = <I>box</I> or <I>lattice</I> or <I>reduced</I>
   <I>norm</I> arg = <I>all</I> or <I>sample</I>
+  <I>region</I> arg = region-ID
+    region-ID = ID of region atoms must be in to contribute to spatial averaging
   <I>ave</I> args = <I>one</I> or <I>running</I> or <I>window M</I>
     one = output new average value every Nfreq steps
     running = output cumulative average of all previous Nfreq steps
@@ -80,7 +82,9 @@ other <A HREF = "Section_howto.html#4_15">output commands</A> such as <A HREF = 
 custom</A>, and can also be written to a file.
 </P>
 <P>The group specified with the command means only atoms within the group
-contribute to layer averages.
+contribute to layer averages.  If the <I>region</I> keyword is used, the
+atom must be in both the group and the specified geometric
+<A HREF = "region.html">region</A> in order to contribute to layer averages.
 </P>
 <P>Each listed value can be an atom attribute (position, velocity, force
 component), a mass or number density, or the result of a

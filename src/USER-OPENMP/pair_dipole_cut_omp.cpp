@@ -155,12 +155,12 @@ void PairDipoleCutOMP::eval()
 	  // atom can have both a charge and dipole
 	  // i,j = charge-charge, dipole-dipole, dipole-charge, or charge-dipole
 	
+	  forcecoulx = forcecouly = forcecoulz = 0.0;
+	  tixcoul = tiycoul = tizcoul = 0.0;
+	  tjxcoul = tjycoul = tjzcoul = 0.0;
+
 	  if (rsq < cut_coulsq[itype][jtype]) {
 	  
-	    forcecoulx = forcecouly = forcecoulz = 0.0;
-	    tixcoul = tiycoul = tizcoul = 0.0;
-	    tjxcoul = tjycoul = tjzcoul = 0.0;
-
 	    if (qtmp != 0.0 && q[j] != 0.0) {
 	      r3inv = r2inv*rinv;
 	      pre1 = qtmp*q[j]*r3inv;

@@ -16,6 +16,7 @@
 #include "fix_setforce.h"
 #include "atom.h"
 #include "update.h"
+#include "modify.h"
 #include "domain.h"
 #include "region.h"
 #include "respa.h"
@@ -222,7 +223,12 @@ void FixSetForce::post_force(int vflag)
 	if (zstyle) f[i][2] = zvalue;
       }
 
+  // variable force, wrap with clear/add
+
   } else {
+
+    modify->clearstep_compute();
+
     if (xstyle == EQUAL) xvalue = input->variable->compute_equal(xvar);
     else if (xstyle == ATOM)
       input->variable->compute_atom(xvar,igroup,&sforce[0][0],3,0);
@@ -232,6 +238,8 @@ void FixSetForce::post_force(int vflag)
     if (zstyle == EQUAL) zvalue = input->variable->compute_equal(zvar);
     else if (zstyle == ATOM)
       input->variable->compute_atom(zvar,igroup,&sforce[0][2],3,0);
+
+    modify->addstep_compute(update->ntimestep + 1);
 
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {

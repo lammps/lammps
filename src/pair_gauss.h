@@ -11,36 +11,41 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef FIX_CLASS
+#ifdef PAIR_CLASS
 
-FixStyle(wall/reflect,FixWallReflect)
+PairStyle(gauss,PairGauss)
 
 #else
 
-#ifndef LMP_FIX_WALL_REFLECT_H
-#define LMP_FIX_WALL_REFLECT_H
+#ifndef PAIR_GAUSS_H
+#define PAIR_GAUSS_H
 
-#include "fix.h"
+#include "pair.h"
 
 namespace LAMMPS_NS {
 
-class FixWallReflect : public Fix {
- public:
-  FixWallReflect(class LAMMPS *, int, char **);
-  ~FixWallReflect();
-  int setmask();
-  void init();
-  void post_integrate();
+  class PairGauss : public Pair {
+  public:
+    PairGauss(class LAMMPS *);
+    ~PairGauss();
+    void compute(int,int);
+    void settings(int, char **);
+    void coeff(int, char **);
+    double init_one(int, int);  
+    void write_restart(FILE *);
+    void read_restart(FILE *);
+    void write_restart_settings(FILE *);
+    void read_restart_settings(FILE *);
+    double single(int, int, int, int, double, double, double, double &);
+ 
+  private: 
+    double cut_global;
+    double **cut;
+    double **a,**b;
+    double **offset;
 
- private:
-  int nwall;
-  int wallwhich[6],wallstyle[6];
-  double coord0[6];
-  char *varstr[6];
-  int varindex[6];
-  int varflag;
-};
-
+    void allocate();
+  };
 }
 
 #endif

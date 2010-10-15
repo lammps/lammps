@@ -25,6 +25,7 @@
 #include "domain.h"
 #include "lattice.h"
 #include "update.h"
+#include "modify.h"
 #include "output.h"
 #include "respa.h"
 #include "error.h"
@@ -80,6 +81,9 @@ FixIndent::FixIndent(LAMMPS *lmp, int narg, char **arg) :
     else if (cdim == 1 && !pstr) pvalue *= yscale;
     else if (cdim == 2 && !pstr) pvalue *= zscale;
   } else error->all("Illegal fix indent command");
+
+  varflag = 0;
+  if (xstr || ystr || zstr || rstr || pstr) varflag = 1;
 
   indenter_flag = 0;
   indenter[0] = indenter[1] = indenter[2] = indenter[3] = 0.0;
@@ -172,6 +176,9 @@ void FixIndent::min_setup(int vflag)
 void FixIndent::post_force(int vflag)
 {
   // indenter values, 0 = energy, 1-3 = force components
+  // wrap variable evaluations with clear/add
+  
+  if (varflag) modify->clearstep_compute();
 
   indenter_flag = 0;
   indenter[0] = indenter[1] = indenter[2] = indenter[3] = 0.0;
@@ -237,7 +244,7 @@ void FixIndent::post_force(int vflag)
     // ctr = current indenter axis
     // remap into periodic box
     // 3rd coord is just near box for remap(), since isn't used
-	      
+	   
     double ctr[3];
     if (cdim == 0) {
       ctr[0] = domain->boxlo[0];
@@ -335,6 +342,8 @@ void FixIndent::post_force(int vflag)
 	indenter[cdim+1] -= fatom;
       }
   }
+
+  if (varflag) modify->addstep_compute(update->ntimestep + 1);
 }
 
 /* ---------------------------------------------------------------------- */

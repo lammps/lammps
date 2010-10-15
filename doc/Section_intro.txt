@@ -130,7 +130,7 @@ Force fields :h4
 "improper style"_improper_style.html, "kspace style"_kspace_style.html
 commands)
 
-  pairwise potentials: Lennard-Jones, Buckingham, Morse, \
+  pairwise potentials: Lennard-Jones, Buckingham, Morse, Born-Mayer-Huggins, \
     Yukawa, soft, class 2 (COMPASS), tabulated
   charged pairwise potentials: Coulombic, point-dipole
   manybody potentials: EAM, Finnis/Sinclair EAM, modified EAM (MEAM), \

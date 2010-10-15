@@ -39,9 +39,9 @@ class FixAveSpatial : public Fix {
  private:
   int me,nvalues;
   int nrepeat,nfreq,nvalid,irepeat;
-  int dim,originflag,normflag;
+  int dim,originflag,normflag,regionflag,iregion;
   double origin,delta;
-  char *tstring,*sstring;
+  char *tstring,*sstring,*idregion;
   int *which,*argindex,*value2index;
   char **ids;
   FILE *fp;

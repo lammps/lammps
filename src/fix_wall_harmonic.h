@@ -28,7 +28,7 @@ class FixWallHarmonic : public FixWall {
  public:
   FixWallHarmonic(class LAMMPS *, int, char **);
   void precompute(int) {}
-  void wall_particle(int, double);
+  void wall_particle(int, int, double);
 
  private:
   double offset[6];

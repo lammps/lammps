@@ -19,39 +19,40 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>fix ID group-ID style keyword values ... 
+<PRE>fix ID group-ID style face args ... keyword value ... 
 </PRE>
 <UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
 
 <LI>style = <I>wall/lj93</I> or <I>wall/lj126</I> or <I>wall/colloid</I> or <I>wall/harmonic</I> 
 
-<LI>one or more keyword/value pairs may be appended 
+<LI>one or more face/arg pairs may be appended 
 
-<LI>keyword = <I>xlo</I> or <I>xhi</I> or <I>ylo</I> or <I>yhi</I> or <I>zlo</I> or <I>zhi</I> or <I>vel</I> or <I>wiggle/sin</I> or <I>wiggle/cos</I> or <I>units</I> 
+<LI>face = <I>xlo</I> or <I>xhi</I> or <I>ylo</I> or <I>yhi</I> or <I>zlo</I> or <I>zhi</I> 
 
-<PRE>  <I>xlo</I>, <I>xhi</I>, <I>ylo</I>, <I>yhi</I>, <I>zlo</I>, <I>zhi</I> values = coord epsilon sigma cutoff
-    coord = position of wall (distance units)
+<PRE>  args = coord epsilon sigma cutoff
+    coord = position of wall = EDGE or constant or variable
+      EDGE = current lo or hi edge of simulation box
+      constant = number like 0.0 or -30.0 (distance units)
+      variable = <A HREF = "variable.html">equal-style variable</A> like v_x or v_wiggle
     epsilon = strength factor for wall-particle interaction (energy or energy/distance^2 units)
     sigma = size factor for wall-particle interaction (distance units)
-    cutoff = distance from wall at which wall-particle interaction is cut off (distance units)
-  <I>vel</I> value = v
-    v = velocity of wall in perpendicular direction (velocity units)
-  <I>wiggle/sin</I> values = amplitude period
-    amplitude = size of oscillation (distance units)
-    period = time of oscillation (time units)
-  <I>wiggle/cos</I> values = amplitude period
-    amplitude = size of oscillation (distance units)
-    period = time of oscillation (time units)
-  <I>units</I> value = <I>lattice</I> or <I>box</I>
-    lattice = the wall is defined in lattice units
-    box = the wall is defined in simulation box units 
+    cutoff = distance from wall at which wall-particle interaction is cut off (distance units) 
+</PRE>
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>units</I> 
+
+<PRE>  <I>units</I> value = <I>lattice</I> or <I>box</I>
+    <I>lattice</I> = the wall position is defined in lattice units
+    <I>box</I> = the wall position is defined in simulation box units 
 </PRE>
 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>fix wallhi all wall/lj93 xhi 10.0 1.0 1.0 2.5
-fix wallhi all wall/lj126 xhi 23.2 1.0 1.0 2.5 vel 1.0 units box
+<PRE>fix wallhi all wall/lj93 xlo -1.0 1.0 1.0 2.5 units box
+fix wallhi all wall/lj93 xhi EDGE 1.0 1.0 2.5
+fix wallhi all wall/lj126 v_wiggle 23.2 1.0 1.0 2.5
 fix zwalls all wall/colloid zlo 0.0 1.0 1.0 0.858 zhi 40.0 1.0 1.0 0.858 
 </PRE>
 <P><B>Description:</B>
@@ -84,6 +85,27 @@ position <I>coord</I>, and Rc is the <I>cutoff</I> distance at which the
 particle and wall no longer interact.  The energy of the wall
 potential is shifted so that the wall-particle interaction energy is
 0.0 at the cutoff distance.
+</P>
+<P>Up to 6 walls or faces can be specified in a single command: <I>xlo</I>,
+<I>xhi</I>, <I>ylo</I>, <I>yhi</I>, <I>zlo</I>, <I>zhi</I>.  A <I>lo</I> face interacts with
+particles near the lower side of the simulation box in that dimension.
+A <I>hi</I> face interacts with particles near the upper side of the
+simulation box in that dimension.
+</P>
+<P>The position of each wall can be specified in one of 3 ways: as the
+EDGE of the simulation box, as a constant value, or as a variable.  If
+EDGE is used, then the corresponding boundary of the current
+simulation box is used.  If a numeric constant is specified then the
+wall is placed at that position in the appropriate dimension (x, y, or
+z).  In both the EDGE and constant cases, the wall will never move.
+If the wall position is a variable, it should be specified as v_name,
+where name is an <A HREF = "variable.html">equal-style variable</A> name.  In this
+case the variable is evaluated each timestep and the result becomes
+the current position of the reflecting wall.  Equal-style variables
+can specify formulas with various mathematical functions, and include
+<A HREF = "thermo_style.html">thermo_style</A> command keywords for the simulation
+box parameters and timestep and elapsed time.  Thus it is easy to
+specify a time-dependent wall position.  See examples below.
 </P>
 <P>For the <I>wall/lj93</I> and <I>wall/lj126</I> styles, <I>epsilon</I> and <I>sigma</I> are
 the usual Lennard-Jones parameters, which determine the strength and
@@ -129,56 +151,55 @@ potential and does not blow up as r -> 0, but you must use a large
 enough <I>epsilon</I> that particles always reamin on the correct side of
 the wall (r > 0).
 </P>
-<P>If the <I>vel</I> keyword is specified, the position of all walls will move
-during the simulation in a perpendicular direction, based on their
-initial <I>coord</I> position, the specified velocity <I>vel</I>, and the time
-elapsed since the fix was specified.  A positive velocity means each
-wall moves inward, towards the center of the box.  I.e. an <I>xlo</I> wall
-will move in the +x direction and an <I>xhi</I> wall will move in the -x
-direction.  A negative velocity means each wall moves outward, away
-from the center of the box.  If you want different walls to move with
-different velocities, then you need to use multiple fix wall commands.
-</P>
-<P>If the <I>wiggle/sin</I> keyword is specified, the position of all walls
-will oscillate sinusoidally during the simulation in the perpendicular
-direction, according to the equation:
-</P>
-<PRE>position = coord + A sin(omega*delta) 
-</PRE>
-<P>If the <I>wiggle/cos</I> keyword is specified, the position of all walls
-will oscillate sinusoidally during the simulation in the perpendicular
-direction, according to the equation:
-</P>
-<PRE>position = coord + A (1 - cos(omega*delta)) 
-</PRE>
-<P>In both cases, <I>coord</I> is the specified initial position of the wall,
-<I>A</I> is the <I>amplitude</I>, <I>omega</I> is 2 PI / <I>period</I>, and <I>delta</I> is the
-time elapsed since the fix was specified.  A positive amplitude means
-each wall initially moves inward, towards the center of the box.
-I.e. an <I>xlo</I> wall will move initially in the +x direction and an
-<I>xhi</I> wall will move initially in the -x direction.  A negative
-velocity means each wall moves initially outward, away from the center
-of the box.  Note that the <I>wiggle/sin</I> option oscillates with
-amplitude <I>A</I> around the pos0 position and the velocity of the wall is
-a maximum at time 0.  By contrast, for the <I>wiggle/cos</I> option the
-wall moves up to <I>2A</I> away from pos0 in one direction and the velocity
-of the wall is 0 at time 0.  If you want different walls to oscillate
-with different amplitudes or periods, then you need to use multiple
-fix wall commands.
-</P>
 <P>The <I>units</I> keyword determines the meaning of the distance units used
-to define the position of the wall and its velocity and wiggle
-amplitude.  A <I>box</I> value selects standard distance units as defined
-by the <A HREF = "units.html">units</A> command, e.g. Angstroms for units = real or
-metal.  A <I>lattice</I> value means the distance units are in lattice
-spacings.  The <A HREF = "lattice.html">lattice</A> command must have been
-previously used to define the lattice spacing.  Note that with the
-<I>lattice</I> option, the wall's position is specified in lattice
-spacings, the wall's velocity is specified in lattice spacings per
-time, and the wall's oscillation amplitude is specified in lattice
-spacings.  Each of these 3 quantities may be dependent on the x,y,z
-dimension, since the lattice spacings can be different in x,y,z.
+to define a wall position, but only when a numeric constant is used.
+It is not relevant when EDGE or a variable is used to specify a face
+position.
 </P>
+<P>A <I>box</I> value selects standard distance units as defined by the
+<A HREF = "units.html">units</A> command, e.g. Angstroms for units = real or metal.
+A <I>lattice</I> value means the distance units are in lattice spacings.
+The <A HREF = "lattice.html">lattice</A> command must have been previously used to
+define the lattice spacings.
+</P>
+<HR>
+
+<P>Here are examples of variable definitions that move the wall position
+in a time-dependent fashion using equal-style
+<A HREF = "variable.html">variables</A>.
+</P>
+<PRE>variable ramp equal ramp(0,10)
+fix 1 all wall xlo v_ramp 1.0 1.0 2.5 
+</PRE>
+<PRE>variable linear equal vlinear(0,20)
+fix 1 all wall xlo v_linear 1.0 1.0 2.5 
+</PRE>
+<PRE>variable wiggle equal swiggle(0.0,5.0,3.0)
+fix 1 all wall xlo v_wiggle 1.0 1.0 2.5 
+</PRE>
+<PRE>variable wiggle equal cwiggle(0.0,5.0,3.0)
+fix 1 all wall xlo v_wiggle 1.0 1.0 2.5 
+</PRE>
+<P>The ramp(lo,hi) function adjusts the wall position linearly from lo to
+hi over the course of a run.  The linear(c0,velocity) function does
+something similar using the equation position = c0 + velocity*delta,
+where delta is the elapsed time.
+</P>
+<P>The swiggle(c0,A,period) function causes the wall position to
+oscillate sinusoidally according to this equation, where omega = 2 PI
+/ period:
+</P>
+<PRE>position = c0 + A sin(omega*delta) 
+</PRE>
+<P>The cwiggle(c0,A,period) function causes the wall position to
+oscillate sinusoidally according to this equation, which will have an
+initial wall velocity of 0.0, and thus may impose a gentler
+perturbation on the particles:
+</P>
+<PRE>position = c0 + A (1 - cos(omega*delta)) 
+</PRE>
+<HR>
+
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
 <P>No information about this fix is written to <A HREF = "restart.html">binary restart

@@ -93,11 +93,18 @@ a bias velocity removed before thermostatting takes place; see the
 description below.  The desired temperature at each timestep is a
 ramped value during the run from <I>Tstart</I> to <I>Tstop</I>.  The <I>Tdamp</I>
 parameter is specified in time units and determines how rapidly the
-temperature is relaxed.  For example, a value of 100.0 means to relax
-the temperature in a timespan of (roughly) 100 time units (tau or
+temperature is relaxed.  For example, a value of 10.0 means to relax
+the temperature in a timespan of (roughly) 10 time units (e.g. tau or
 fmsec or psec - see the <A HREF = "units.html">units</A> command).  The atoms in the
 fix group are the only ones whose velocities and positions are updated
 by the velocity/position update portion of the integration.
+</P>
+<P>IMPORTANT NOTE: A Nose-Hoover thermostat will not work well for
+arbitrary values of <I>Tdamp</I>.  If <I>Tdamp</I> is too small, the temperature
+can fluctuate wildly; if it is too large, the temperature will take a
+very long time to equilibrate.  A good choice for many models is a
+<I>Tdamp</I> of around 100 timesteps.  Note that this is NOT the same as
+100 time units for most <A HREF = "units.html">units</A> settings.
 </P>
 <HR>
 
@@ -137,9 +144,16 @@ simulation box must be triclinic, even if its initial tilt factors are
 </P>
 <P>For all barostat keywords, the <I>Pdamp</I> parameter operates like the
 <I>Tdamp</I> parameter, determining the time scale on which pressure is
-relaxed.  For example, a value of 1000.0 means to relax the pressure
-in a timespan of (roughly) 1000 time units (tau or fmsec or psec - see
+relaxed.  For example, a value of 10.0 means to relax the pressure in
+a timespan of (roughly) 10 time units (e.g. tau or fmsec or psec - see
 the <A HREF = "units.html">units</A> command).
+</P>
+<P>IMPORTANT NOTE: A Nose-Hoover barostat will not work well for
+arbitrary values of <I>Pdamp</I>.  If <I>Pdamp</I> is too small, the pressure
+and volume can fluctuate wildly; if it is too large, the pressure will
+take a very long time to equilibrate.  A good choice for many models
+is a <I>Pdamp</I> of around 1000 timesteps.  Note that this is NOT the same
+as 1000 time units for most <A HREF = "units.html">units</A> settings.
 </P>
 <P>Regardless of what atoms are in the fix group, a global pressure or
 stress tensor is computed for all atoms.  Similarly, when the size of

@@ -17,6 +17,7 @@
 #include "fix_aveforce.h"
 #include "atom.h"
 #include "update.h"
+#include "modify.h"
 #include "domain.h"
 #include "region.h"
 #include "respa.h"
@@ -206,6 +207,7 @@ void FixAveForce::post_force(int vflag)
 
   // average the force on participating atoms
   // add in requested amount, computed via variable evaluation if necessary
+  // wrap variable evaluation with clear/add
 
   MPI_Allreduce(foriginal,foriginal_all,4,MPI_DOUBLE,MPI_SUM,world);
 
@@ -213,9 +215,11 @@ void FixAveForce::post_force(int vflag)
   if (ncount == 0) return;
 
   if (varflag == EQUAL) {
+    modify->clearstep_compute();
     if (xstyle == EQUAL) xvalue = input->variable->compute_equal(xvar);
     if (ystyle == EQUAL) yvalue = input->variable->compute_equal(yvar);
     if (zstyle == EQUAL) zvalue = input->variable->compute_equal(zvar);
+    modify->addstep_compute(update->ntimestep + 1);
   }
 
   double fave[3];

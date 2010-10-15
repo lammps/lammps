@@ -24,11 +24,11 @@ face = {xlo} or {xhi} or {ylo} or {yhi} or {zlo} or {zhi} :l
     EDGE = current hi edge of simulation box
     constant = number like 50.0 or 100.3 (distance units)
     variable = "equal-style variable"_variable.html like v_x or v_wiggle :pre
-zero or more keyword/avlue pairs may be appended :l
+zero or more keyword/value pairs may be appended :l
 keyword = {units} :l
   {units} value = {lattice} or {box}
-    {lattice} = the geometry is defined in lattice units
-    {box} = the geometry is defined in simulation box units :pre
+    {lattice} = the wall position is defined in lattice units
+    {box} = the wall position is defined in simulation box units :pre
 :ule
 
 [Examples:]
@@ -57,17 +57,17 @@ velocity-Verlet integration without reflective walls.
 
 Up to 6 walls or faces can be specified in a single command: {xlo},
 {xhi}, {ylo}, {yhi}, {zlo}, {zhi}.  A {lo} face reflects particles
-that move to a coordinate less than the face position, back in the
+that move to a coordinate less than the wall position, back in the
 {hi} direction.  A {hi} face reflects particles that move to a
-coordinate higher than the face position, back in the {lo} direction.
+coordinate higher than the wall position, back in the {lo} direction.
 
-The position of each face can be specified in one of 3 ways: as the
+The position of each wall can be specified in one of 3 ways: as the
 EDGE of the simulation box, as a constant value, or as a variable.  If
 EDGE is used, then the corresponding boundary of the current
 simulation box is used.  If a numeric constant is specified then the
 wall is placed at that position in the appropriate dimension (x, y, or
 z).  In both the EDGE and constant cases, the wall will never move.
-If the face position is a variable, it should be specified as v_name,
+If the wall position is a variable, it should be specified as v_name,
 where name is an "equal-style variable"_variable.html name.  In this
 case the variable is evaluated each timestep and the result becomes
 the current position of the reflecting wall.  Equal-style variables
@@ -77,7 +77,7 @@ box parameters and timestep and elapsed time.  Thus it is easy to
 specify a time-dependent wall position.
 
 The {units} keyword determines the meaning of the distance units used
-to define a face position, but only when a numeric constant is used.
+to define a wall position, but only when a numeric constant is used.
 It is not relevant when EDGE or a variable is used to specify a face
 position.
 
@@ -86,6 +86,42 @@ A {box} value selects standard distance units as defined by the
 A {lattice} value means the distance units are in lattice spacings.
 The "lattice"_lattice.html command must have been previously used to
 define the lattice spacings.
+
+:line
+
+Here are examples of variable definitions that move the wall position
+in a time-dependent fashion using equal-style
+"variables"_variable.html.
+
+variable ramp equal ramp(0,10)
+fix 1 all wall xlo v_ramp 1.0 1.0 2.5 :pre
+
+variable linear equal vlinear(0,20)
+fix 1 all wall xlo v_linear 1.0 1.0 2.5 :pre
+
+variable wiggle equal swiggle(0.0,5.0,3.0)
+fix 1 all wall xlo v_wiggle 1.0 1.0 2.5 :pre
+
+variable wiggle equal cwiggle(0.0,5.0,3.0)
+fix 1 all wall xlo v_wiggle 1.0 1.0 2.5 :pre
+
+The ramp(lo,hi) function adjusts the wall position linearly from lo to
+hi over the course of a run.  The linear(c0,velocity) function does
+something similar using the equation position = c0 + velocity*delta,
+where delta is the elapsed time.
+
+The swiggle(c0,A,period) function causes the wall position to
+oscillate sinusoidally according to this equation, where omega = 2 PI
+/ period:
+
+position = c0 + A sin(omega*delta) :pre
+
+The cwiggle(c0,A,period) function causes the wall position to
+oscillate sinusoidally according to this equation, which will have an
+initial wall velocity of 0.0, and thus may impose a gentler
+perturbation on the particles:
+
+position = c0 + A (1 - cos(omega*delta)) :pre
 
 :line
 

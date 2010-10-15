@@ -16,7 +16,6 @@
 ------------------------------------------------------------------------- */
 
 #include "math.h"
-#include "values.h"
 #include "stdlib.h"
 #include "string.h"
 #include "pair_peri_lps.h"  			

@@ -46,7 +46,7 @@ class FixIndent : public Fix {
   double xvalue,yvalue,zvalue,rvalue,pvalue;
   int indenter_flag,planeside;
   double indenter[4],indenter_all[4];
-  int cdim;
+  int cdim,varflag;
   int nlevels_respa;
 
   void options(int, char **);

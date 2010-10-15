@@ -85,11 +85,13 @@ region 2 sphere 0.0 0.0 0.0 5 side out wiggle 1 1 0 10
 </P>
 <P>This command defines a geometric region of space.  Various other
 commands use regions.  For example, the region can be filled with
-atoms via the <A HREF = "create_atoms.html">create_atoms</A> command.  Or the atoms
-in the region can be identified as a group via the <A HREF = "group.html">group</A>
-command, or deleted via the <A HREF = "delete_atoms.html">delete_atoms</A> command.
-Or the surface of the region can be used as a boundary wall via the
-<A HREF = "fix_wall_region.html">fix wall/region</A> command.
+atoms via the <A HREF = "create_atoms.html">create_atoms</A> command.  Or a bounding
+box around the region, can be used to define the simulation box via
+the <A HREF = "create_box.html">create_box</A> command.  Or the atoms in the region
+can be identified as a group via the <A HREF = "group.html">group</A> command, or
+deleted via the <A HREF = "delete_atoms.html">delete_atoms</A> command.  Or the
+surface of the region can be used as a boundary wall via the <A HREF = "fix_wall_region.html">fix
+wall/region</A> command.
 </P>
 <P>Normally, regions in LAMMPS are "static", meaning their geometric
 extent does not change with time.  If the <I>vel</I> or <I>wiggle</I> or
@@ -149,28 +151,29 @@ half-space in the direction of the normal vector; see the discussion
 of the <I>side</I> option below.
 </P>
 <P>For style <I>prism</I>, a parallelepiped is defined (it's too hard to spell
-parallelepiped in an input script!).  Think of the parallelepiped as
-initially an axis-aligned orthogonal box with the same xyz lo/hi
-parameters as region style <I>block</I> would define.  Then, while holding
-the (xlo,ylo,zlo) corner point fixed, the box is "skewed" or "tilted"
-in 3 directions.  First, for the lower xy face of the box, the <I>xy</I>
-factor is how far the upper y edge is shifted in the x direction.  The
-lower xy face is now a parallelogram.  A plus or minus value for <I>xy</I>
-can be specified; 0.0 means no tilt.  Then, the upper xy face of the
-box is translated in the x and y directions by <I>xz</I> and <I>yz</I>.  This
-results in a parallelepiped whose "origin" is at (xlo,ylo,zlo) with 3
-edge vectors starting from its origin given by a = (xhi-xlo,0,0); b =
-(xy,yhi-ylo,0); c = (xz,yz,zhi-zlo).
+parallelepiped in an input script!).  The parallelepiped has its
+"origin" at (xlo,ylo,zlo) and is defined by 3 edge vectors starting
+from the origin given by A = (xhi-xlo,0,0); B = (xy,yhi-ylo,0); C =
+(xz,yz,zhi-zlo).  <I>Xy,xz,yz</I> can be 0.0 or positive or negative values
+and are called "tilt factors" because they are the amount of
+displacement applied to faces of an originally orthogonal box to
+transform it into the parallelepiped.
 </P>
-<P>A prism region used with the <A HREF = "create_box.html">create_box</A> command must
-have tilt factors (xy,xz,yz) that do not skew the box more than half
-the distance of the parallel box length.  For example, if xlo = 2 and
+<P>A prism region that will be used with the <A HREF = "create_box.html">create_box</A>
+command to define a triclinic simulation box must have tilt factors
+(xy,xz,yz) that do not skew the box more than half the distance of
+corresponding the parallel box length.  For example, if xlo = 2 and
 xhi = 12, then the x box length is 10 and the xy tilt factor must be
 between -5 and 5.  Similarly, both xz and yz must be between
 -(xhi-xlo)/2 and +(yhi-ylo)/2.  Note that this is not a limitation,
 since if the maximum tilt factor is 5 (as in this example), then
 configurations with tilt = ..., -15, -5, 5, 15, 25, ... are all
-equivalent.
+geometrically equivalent.
+</P>
+<P>See <A HREF = "Section_howto.html#4_12">this section</A> of the doc pages for a
+geometric description of triclinic boxes, as defined by LAMMPS, and
+how to transform these parameters to and from other commonly used
+triclinic representations.
 </P>
 <P>The <I>union</I> style creates a region consisting of the volume of all the
 listed regions combined.  The <I>intersect</I> style creates a region

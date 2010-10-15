@@ -19,6 +19,7 @@
 #include "atom_vec.h"
 #include "comm.h"
 #include "modify.h"
+#include "fix.h"
 #include "domain.h"
 #include "lattice.h"
 #include "region.h"
@@ -150,6 +151,16 @@ void CreateAtoms::command(int narg, char **arg)
   if (style == SINGLE) add_single();
   else if (style == RANDOM) add_random();
   else add_lattice();
+
+  // invoke set_arrays() for fixes that need initialization of new atoms
+
+  int nlocal = atom->nlocal;
+  for (int m = 0; m < modify->nfix; m++) {
+    Fix *fix = modify->fix[m];
+    if (fix->create_attribute)
+      for (int i = nlocal_previous; i < nlocal; i++)
+	fix->set_arrays(i);
+  }
 
   // clean up
 

@@ -84,11 +84,13 @@ void FixWallColloid::precompute(int m)
 }
 
 /* ----------------------------------------------------------------------
-   interaction of all particles in group with all 6 walls (if defined)
+   interaction of all particles in group with a wall
+   m = index of wall coeffs
+   which = xlo,xhi,ylo,yhi,zlo,zhi
    error if any finite-size particle is touching or penetrating wall
 ------------------------------------------------------------------------- */
 
-void FixWallColloid::wall_particle(int m, double coord)
+void FixWallColloid::wall_particle(int m, int which, double coord)
 {
   double delta,delta2,rinv,r2inv,r4inv,r8inv,fwall;
   double r2,rinv2,r2inv2,r4inv2,r6inv2;
@@ -102,8 +104,8 @@ void FixWallColloid::wall_particle(int m, double coord)
   int *type = atom->type;
   int nlocal = atom->nlocal;
 
-  int dim = m/2;
-  int side = m % 2;
+  int dim = which  / 2;
+  int side = which % 2;
   if (side == 0) side = -1;
 
   int onflag = 0;

@@ -12,19 +12,17 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Ahmed Ismail (SNL)
+   Contributing Author: Sai Jayaraman (Sandia)
 ------------------------------------------------------------------------- */
 
 #include "math.h"
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
-#include "pair_born_coul_long.h"
+#include "pair_born.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
-#include "kspace.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
@@ -34,28 +32,19 @@ using namespace LAMMPS_NS;
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
-#define EWALD_F   1.12837917
-#define EWALD_P   0.3275911
-#define A1        0.254829592
-#define A2       -0.284496736
-#define A3        1.421413741
-#define A4       -1.453152027
-#define A5        1.061405429
+/* ---------------------------------------------------------------------- */
+
+PairBorn::PairBorn(LAMMPS *lmp) : Pair(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
-PairBornCoulLong::PairBornCoulLong(LAMMPS *lmp) : Pair(lmp) {}
-
-/* ---------------------------------------------------------------------- */
-
-PairBornCoulLong::~PairBornCoulLong()
+PairBorn::~PairBorn()
 {
   if (allocated) {
     memory->destroy_2d_int_array(setflag);
     memory->destroy_2d_double_array(cutsq);
 
-    memory->destroy_2d_double_array(cut_lj);
-    memory->destroy_2d_double_array(cut_ljsq);
+    memory->destroy_2d_double_array(cut);
     memory->destroy_2d_double_array(a);
     memory->destroy_2d_double_array(rho);
     memory->destroy_2d_double_array(sigma);
@@ -71,29 +60,25 @@ PairBornCoulLong::~PairBornCoulLong()
 
 /* ---------------------------------------------------------------------- */
 
-void PairBornCoulLong::compute(int eflag, int vflag)
+void PairBorn::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
-  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
-  double rsq,r2inv,r6inv,forcecoul,forceborn,factor_coul,factor_lj;
-  double grij,expm2,prefactor,t,erfc;
+  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
+  double rsq,r2inv,r6inv,forceborn,factor_lj;
   double r,rexp;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
-  evdwl = ecoul = 0.0;
+  evdwl = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
 
   double **x = atom->x;
   double **f = atom->f;
-  double *q = atom->q;
   int *type = atom->type;
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
-  double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
-  double qqrd2e = force->qqrd2e;
 
   inum = list->inum;
   ilist = list->ilist;
@@ -104,7 +89,6 @@ void PairBornCoulLong::compute(int eflag, int vflag)
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    qtmp = q[i];
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
@@ -115,9 +99,8 @@ void PairBornCoulLong::compute(int eflag, int vflag)
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
 
-      if (j < nall) factor_coul = factor_lj = 1.0;
+      if (j < nall) factor_lj = 1.0;
       else {
-	factor_coul = special_coul[j/nall];
 	factor_lj = special_lj[j/nall];
 	j %= nall;
       }
@@ -130,27 +113,12 @@ void PairBornCoulLong::compute(int eflag, int vflag)
 
       if (rsq < cutsq[itype][jtype]) {
 	r2inv = 1.0/rsq;
-
-	if (rsq < cut_coulsq) {
-	  r = sqrt(rsq);
-	  grij = g_ewald * r;
-	  expm2 = exp(-grij*grij);
-	  t = 1.0 / (1.0 + EWALD_P*grij);
-	  erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
-	  prefactor = qqrd2e * qtmp*q[j]/r;
-	  forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
-	  if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
-	} else forcecoul = 0.0;
-
-	if (rsq < cut_ljsq[itype][jtype]) {
-	  r6inv = r2inv*r2inv*r2inv;
-          r = sqrt(rsq);
-	  rexp = exp((sigma[itype][jtype]-r)*rhoinv[itype][jtype]);
-	  forceborn = born1[itype][jtype]*r*rexp - born2[itype][jtype]*r6inv
-	    + born3[itype][jtype]*r2inv*r6inv;
-	} else forceborn = 0.0;
-
-	fpair = (forcecoul + factor_lj*forceborn) * r2inv;
+	r6inv = r2inv*r2inv*r2inv;
+	r = sqrt(rsq);
+	rexp = exp((sigma[itype][jtype]-r)*rhoinv[itype][jtype]);
+	forceborn = born1[itype][jtype]*r*rexp - born2[itype][jtype]*r6inv
+	  + born3[itype][jtype]*r2inv*r6inv;
+	fpair = factor_lj*forceborn*r2inv;
 
 	f[i][0] += delx*fpair;
 	f[i][1] += dely*fpair;
@@ -162,19 +130,13 @@ void PairBornCoulLong::compute(int eflag, int vflag)
 	}
 
 	if (eflag) {
-	  if (rsq < cut_coulsq) {
-	    ecoul = prefactor*erfc;
-	    if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
-	  } else ecoul = 0.0;
-	  if (rsq < cut_ljsq[itype][jtype]) {
-	    evdwl = a[itype][jtype]*rexp - c[itype][jtype]*r6inv 
-	      + d[itype][jtype]*r6inv*r2inv - offset[itype][jtype];
-	    evdwl *= factor_lj;
-	  } else evdwl = 0.0;
+	  evdwl = a[itype][jtype]*rexp - c[itype][jtype]*r6inv 
+	    + d[itype][jtype]*r6inv*r2inv - offset[itype][jtype];
+	  evdwl *= factor_lj;
 	}
 
 	if (evflag) ev_tally(i,j,nlocal,newton_pair,
-			     evdwl,ecoul,fpair,delx,dely,delz);
+			     evdwl,0.0,fpair,delx,dely,delz);
       }
     }
   }
@@ -186,7 +148,7 @@ void PairBornCoulLong::compute(int eflag, int vflag)
    allocate all arrays
 ------------------------------------------------------------------------- */
 
-void PairBornCoulLong::allocate()
+void PairBorn::allocate()
 {
   allocated = 1;
   int n = atom->ntypes;
@@ -198,8 +160,7 @@ void PairBornCoulLong::allocate()
 
   cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
 
-  cut_lj = memory->create_2d_double_array(n+1,n+1,"pair:cut_lj");
-  cut_ljsq = memory->create_2d_double_array(n+1,n+1,"pair:cut_ljsq");
+  cut = memory->create_2d_double_array(n+1,n+1,"pair:cut");
   a = memory->create_2d_double_array(n+1,n+1,"pair:a");
   rho = memory->create_2d_double_array(n+1,n+1,"pair:rho");
   sigma = memory->create_2d_double_array(n+1,n+1,"pair:sigma");
@@ -216,13 +177,11 @@ void PairBornCoulLong::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairBornCoulLong::settings(int narg, char **arg)
+void PairBorn::settings(int narg, char **arg)
 {
-  if (narg < 1 || narg > 2) error->all("Illegal pair_style command");
+  if (narg != 1) error->all("Illegal pair_style command");
 
-  cut_lj_global = force->numeric(arg[0]);
-  if (narg == 1) cut_coul = cut_lj_global;
-  else cut_coul = force->numeric(arg[1]);
+  cut_global = atof(arg[0]);
 
   // reset cutoffs that have been explicitly set
 
@@ -230,7 +189,7 @@ void PairBornCoulLong::settings(int narg, char **arg)
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
       for (j = i+1; j <= atom->ntypes; j++)
-	if (setflag[i][j]) cut_lj[i][j] = cut_lj_global;
+	if (setflag[i][j]) cut[i][j] = cut_global;
   }
 }
 
@@ -238,7 +197,7 @@ void PairBornCoulLong::settings(int narg, char **arg)
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-void PairBornCoulLong::coeff(int narg, char **arg)
+void PairBorn::coeff(int narg, char **arg)
 {
   if (narg < 7 || narg > 8) error->all("Incorrect args for pair coefficients");
   if (!allocated) allocate();
@@ -254,8 +213,8 @@ void PairBornCoulLong::coeff(int narg, char **arg)
   double c_one = force->numeric(arg[5]);
   double d_one = force->numeric(arg[6]);
 
-  double cut_lj_one = cut_lj_global;
-  if (narg == 8) cut_lj_one = force->numeric(arg[7]);
+  double cut_one = cut_global;
+  if (narg == 8) cut_one = force->numeric(arg[7]);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -265,7 +224,7 @@ void PairBornCoulLong::coeff(int narg, char **arg)
       sigma[i][j] = sigma_one;
       c[i][j] = c_one;
       d[i][j] = d_one;
-      cut_lj[i][j] = cut_lj_one;
+      cut[i][j] = cut_one;
       setflag[i][j] = 1;
       count++;
     }
@@ -278,25 +237,21 @@ void PairBornCoulLong::coeff(int narg, char **arg)
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairBornCoulLong::init_one(int i, int j)
+double PairBorn::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all("All pair coeffs are not set");
-
-  double cut = MAX(cut_lj[i][j],cut_coul);
-  cut_ljsq[i][j] = cut_lj[i][j] * cut_lj[i][j];
 
   rhoinv[i][j] = 1.0/rho[i][j];
   born1[i][j] = a[i][j]/rho[i][j];
   born2[i][j] = 6.0*c[i][j];
-  born3[i][j] = 8.0*d[i][j];
+  born3[i][j] = 8.0*d[i][j]; 
      
   if (offset_flag) {
-    double rexp = exp(-cut_lj[i][j]*rhoinv[i][j]);
-    offset[i][j] = a[i][j]*rexp - c[i][j]/pow(cut_lj[i][j],6.0) +
-      d[i][j]/pow(cut_lj[i][j],8.0);
+    double rexp = exp((sigma[i][j]-cut[i][j])*rhoinv[i][j]);
+    offset[i][j] = a[i][j]*rexp - c[i][j]/pow(cut[i][j],6.0) +
+      d[i][j]/pow(cut[i][j],8.0);
   } else offset[i][j] = 0.0;
 
-  cut_ljsq[j][i] = cut_ljsq[i][j];
   a[j][i] = a[i][j];
   c[j][i] = c[i][j];
   d[j][i] = d[i][j];
@@ -326,7 +281,7 @@ double PairBornCoulLong::init_one(int i, int j)
      double rho1 = rho[i][j];
      double rho2 = rho1*rho1;
      double rho3 = rho2*rho1;
-     double rc = cut_lj[i][j];
+     double rc = cut[i][j];
      double rc2 = rc*rc;
      double rc3 = rc2*rc;
      double rc5 = rc3*rc2;
@@ -340,34 +295,14 @@ double PairBornCoulLong::init_one(int i, int j)
 	2.0*c[i][j]/rc3 - 8.0*d[i][j]/(5.0*rc5)); 
    } 
 
-  return cut;
-}
-
-/* ----------------------------------------------------------------------
-   init specific to this pair style
-------------------------------------------------------------------------- */
-
-void PairBornCoulLong::init_style()
-{
-  if (!atom->q_flag)
-    error->all("Pair style born/coul/long requires atom attribute q");
-
-  cut_coulsq = cut_coul * cut_coul;
-
-  // insure use of KSpace long-range solver, set g_ewald
-
-  if (force->kspace == NULL)
-    error->all("Pair style is incompatible with KSpace style");
-  g_ewald = force->kspace->g_ewald;
-
-  int irequest = neighbor->request(this);
+   return cut[i][j];
 }
 
 /* ----------------------------------------------------------------------
   proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairBornCoulLong::write_restart(FILE *fp)
+void PairBorn::write_restart(FILE *fp)
 {
   write_restart_settings(fp);
 
@@ -380,8 +315,8 @@ void PairBornCoulLong::write_restart(FILE *fp)
 	fwrite(&rho[i][j],sizeof(double),1,fp);
 	fwrite(&sigma[i][j],sizeof(double),1,fp);
 	fwrite(&c[i][j],sizeof(double),1,fp);
-	fwrite(&d[i][j],sizeof(double),1,fp);
-	fwrite(&cut_lj[i][j],sizeof(double),1,fp);
+        fwrite(&d[i][j],sizeof(double),1,fp);
+	fwrite(&cut[i][j],sizeof(double),1,fp);
       }
     }
 }
@@ -390,7 +325,7 @@ void PairBornCoulLong::write_restart(FILE *fp)
   proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairBornCoulLong::read_restart(FILE *fp)
+void PairBorn::read_restart(FILE *fp)
 {
   read_restart_settings(fp);
 
@@ -408,15 +343,15 @@ void PairBornCoulLong::read_restart(FILE *fp)
 	  fread(&rho[i][j],sizeof(double),1,fp);
 	  fread(&sigma[i][j],sizeof(double),1,fp);
 	  fread(&c[i][j],sizeof(double),1,fp);
-	  fread(&d[i][j],sizeof(double),1,fp);
-	  fread(&cut_lj[i][j],sizeof(double),1,fp);
+          fread(&d[i][j],sizeof(double),1,fp);
+	  fread(&cut[i][j],sizeof(double),1,fp);
 	}
 	MPI_Bcast(&a[i][j],1,MPI_DOUBLE,0,world);
 	MPI_Bcast(&rho[i][j],1,MPI_DOUBLE,0,world);
 	MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
 	MPI_Bcast(&c[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&d[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&cut_lj[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&d[i][j],1,MPI_DOUBLE,0,world);
+	MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
       }
     }
 }
@@ -425,10 +360,9 @@ void PairBornCoulLong::read_restart(FILE *fp)
   proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairBornCoulLong::write_restart_settings(FILE *fp)
+void PairBorn::write_restart_settings(FILE *fp)
 {
-  fwrite(&cut_lj_global,sizeof(double),1,fp);
-  fwrite(&cut_coul,sizeof(double),1,fp);
+  fwrite(&cut_global,sizeof(double),1,fp);
   fwrite(&offset_flag,sizeof(int),1,fp);
   fwrite(&mix_flag,sizeof(int),1,fp);
 }
@@ -437,68 +371,35 @@ void PairBornCoulLong::write_restart_settings(FILE *fp)
   proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairBornCoulLong::read_restart_settings(FILE *fp)
+void PairBorn::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&cut_lj_global,sizeof(double),1,fp);
-    fread(&cut_coul,sizeof(double),1,fp);
+    fread(&cut_global,sizeof(double),1,fp);
     fread(&offset_flag,sizeof(int),1,fp);
     fread(&mix_flag,sizeof(int),1,fp);
   }
-  MPI_Bcast(&cut_lj_global,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&cut_coul,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
 }
 
 /* ---------------------------------------------------------------------- */
 
-double PairBornCoulLong::single(int i, int j, int itype, int jtype,
-				double rsq, 
-				double factor_coul, double factor_lj,
-				double &fforce)
+double PairBorn::single(int i, int j, int itype, int jtype,
+			double rsq, double factor_coul, double factor_lj,
+			double &fforce)
 {
-  double r2inv,r6inv,r,rexp,grij,expm2,t,erfc,prefactor;
-  double forcecoul,forceborn,phicoul,phiborn;
+  double r2inv,r6inv,r,rexp,forceborn,phiborn;
 
   r2inv = 1.0/rsq;
-  if (rsq < cut_coulsq) {
-    r = sqrt(rsq);
-    grij = g_ewald * r;
-    expm2 = exp(-grij*grij);
-    t = 1.0 / (1.0 + EWALD_P*grij);
-    erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
-    prefactor = force->qqrd2e * atom->q[i]*atom->q[j]/r;
-    forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
-    if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
-  } else forcecoul = 0.0;
-  if (rsq < cut_ljsq[itype][jtype]) {
-    r6inv = r2inv*r2inv*r2inv;
-    r = sqrt(rsq);
-    rexp = exp((sigma[itype][jtype]-r)*rhoinv[itype][jtype]);
-    forceborn = born1[itype][jtype]*r*rexp - born2[itype][jtype]*r6inv +
-      born3[itype][jtype]*r2inv*r6inv;
-  } else forceborn = 0.0;
-  fforce = (forcecoul + factor_lj*forceborn) * r2inv;
+  r6inv = r2inv*r2inv*r2inv;
+  r = sqrt(rsq);
+  rexp = exp((sigma[itype][jtype]-r)*rhoinv[itype][jtype]);
+  forceborn = born1[itype][jtype]*r*rexp - born2[itype][jtype]*r6inv +
+    born3[itype][jtype]*r2inv*r6inv;
+  fforce = factor_lj*forceborn*r2inv;
   
-  double eng = 0.0;
-  if (rsq < cut_coulsq) {
-    phicoul = prefactor*erfc;
-    if (factor_coul < 1.0) phicoul -= (1.0-factor_coul)*prefactor;
-    eng += phicoul;
-  }
-  if (rsq < cut_ljsq[itype][jtype]) {
-    phiborn = a[itype][jtype]*rexp - c[itype][jtype]*r6inv +
-      d[itype][jtype]*r2inv*r6inv - offset[itype][jtype];
-    eng += factor_lj*phiborn;
-  }
-  return eng;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void *PairBornCoulLong::extract(char *str)
-{
-  if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;
-  return NULL;
+  phiborn = a[itype][jtype]*rexp - c[itype][jtype]*r6inv +
+    d[itype][jtype]*r2inv*r6inv - offset[itype][jtype];
+  return factor_lj*phiborn;
 }

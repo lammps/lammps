@@ -62,8 +62,8 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
     zdir = atof(arg[7]);
   } else error->all("Illegal fix gravity command");
 
-  double PI = 2.0 * asin(1.0);
-  degree2rad = 2.0*PI / 360.0;
+  double PI = 4.0*atan(1.0);
+  degree2rad = PI/180.0;
 
   if (style == CHUTE || style == SPHERICAL || style == GRADIENT) {
     if (domain->dimension == 3) {

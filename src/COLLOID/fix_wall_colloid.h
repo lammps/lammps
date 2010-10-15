@@ -29,7 +29,7 @@ class FixWallColloid : public FixWall {
   FixWallColloid(class LAMMPS *, int, char **);
   void init();
   void precompute(int);
-  void wall_particle(int, double);
+  void wall_particle(int, int, double);
 
  private:
   double coeff1[6],coeff2[6],coeff3[6],coeff4[6],offset[6];

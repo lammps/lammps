@@ -615,7 +615,7 @@ void PairBuckCoul::compute_inner()
     i = *ineigh; fi = f0+3*i;
     qri = qqrd2e*q[i];
     memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
-    cut_bucksqi = cut_bucksq[typei];
+    cut_bucksqi = cut_bucksq[typei = type[i]];
     buck1i = buck1[typei]; buck2i = buck2[typei]; rhoinvi = rhoinv[typei];
     jneighn = (jneigh = listinner->firstneigh[i])+listinner->numneigh[i];
 
@@ -630,7 +630,7 @@ void PairBuckCoul::compute_inner()
 
       if ((rsq = vec_dot(d, d)) >= cut_out_off_sq) continue;
       r2inv = 1.0/rsq;
-      r = sqrt(r);
+      r = sqrt(rsq);
 
       if (order1 && (rsq < cut_coulsq))			// coulombic
 	force_coul = ni<0 ?
@@ -705,7 +705,7 @@ void PairBuckCoul::compute_middle()
     i = *ineigh; fi = f0+3*i;
     qri = qqrd2e*q[i];
     memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
-    cut_bucksqi = cut_bucksq[typei];
+    cut_bucksqi = cut_bucksq[typei = type[i]];
     buck1i = buck1[typei]; buck2i = buck2[typei]; rhoinvi = rhoinv[typei];
     jneighn = (jneigh = listmiddle->firstneigh[i])+listmiddle->numneigh[i];
 

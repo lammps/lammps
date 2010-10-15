@@ -41,12 +41,15 @@ class FixMove : public Fix {
   void restart(char *);
   void grow_arrays(int);
   void copy_arrays(int, int);
+  void set_arrays(int);
   int pack_exchange(int, double *);
   int unpack_exchange(int, double *);
   int pack_restart(int, double *);
   void unpack_restart(int, int);
   int maxsize_restart();
   int size_restart(int);
+
+  void reset_dt();
 
  private:
   char *xvarstr,*yvarstr,*zvarstr,*vxvarstr,*vyvarstr,*vzvarstr;

@@ -616,7 +616,7 @@ void PairLJCoul::compute_inner()
     i = *ineigh; fi = f0+3*i;
     qri = qqrd2e*q[i];
     memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
-    cut_ljsqi = cut_ljsq[typei];
+    cut_ljsqi = cut_ljsq[typei = type[i]];
     lj1i = lj1[typei]; lj2i = lj2[typei];
     jneighn = (jneigh = list->firstneigh[i])+list->numneigh[i];
 
@@ -704,7 +704,7 @@ void PairLJCoul::compute_middle()
     i = *ineigh; fi = f0+3*i;
     qri = qqrd2e*q[i];
     memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
-    cut_ljsqi = cut_ljsq[typei];
+    cut_ljsqi = cut_ljsq[typei = type[i]];
     lj1i = lj1[typei]; lj2i = lj2[typei];
     jneighn = (jneigh = list->firstneigh[i])+list->numneigh[i];
 

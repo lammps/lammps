@@ -214,11 +214,11 @@ void ComputeAtomMolecule::init()
 
 void ComputeAtomMolecule::compute_vector()
 {
-  int i,j,m,imol;
+  int i,j,n,imol;
 
   invoked_vector = update->ntimestep;
 
-  for (m = 0; m < nmolecules; m++) vone[m] = 0.0;
+  for (n = 0; n < nmolecules; n++) vone[n] = 0.0;
   compute_one(0);
 
   int *molecule = atom->molecule;
@@ -252,9 +252,9 @@ void ComputeAtomMolecule::compute_array()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  for (n = 0; n < nvalues; n++) {
-    for (m = 0; m < nmolecules; m++) aone[m][n] = 0.0;
-    compute_one(n);
+  for (m = 0; m < nvalues; m++) {
+    for (n = 0; n < nmolecules; n++) aone[n][m] = 0.0;
+    compute_one(m);
 
     j = 0;
     for (i = 0; i < nlocal; i++) {
@@ -262,7 +262,7 @@ void ComputeAtomMolecule::compute_array()
 	imol = molecule[i];
 	if (molmap) imol = molmap[imol-idlo];
 	else imol--;
-	aone[imol][n] += peratom[j];
+	aone[imol][m] += peratom[j];
       }
       j += nstride;
     }

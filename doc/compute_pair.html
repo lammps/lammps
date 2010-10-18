@@ -1,0 +1,69 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>compute pair command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID pair pstyle 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
+<LI>pair = style name of this compute command
+<LI>pstyle = style name of a pair style that calculates additional values 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute 1 all pair gauss
+compute 1 all pair reax 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a computation that extracts additional values calculated by a
+pair style, sums them across processors, and makes them accessible for
+output or further processing by other commands.  The group specified
+for this command is ignored.
+</P>
+<P>The specified <I>pstyle</I> must be a pair style that produces additional
+values.  If a <A HREF = "pair_hybrid.html">hybrid pair style</A> is used, then
+<I>pstyle</I> should be the name of a sub-style.
+</P>
+<P>All pair styles tally a potential energy, which is accessed by the
+<A HREF = "compute_pe.html">compute pe</A> and <A HREF = "compute_pe_atom.html">compute
+pe/atom</A> commands.  Some pair styles tally one or
+more additional values, such as a breakdown of the total pair
+potential energy into sub-categories.  See the doc page for
+<A HREF = "pair_style.html">individual pair styles</A> for info on these values.
+</P>
+<P>The compute pair command lets you access this data as a global vector
+of values and then use other <A HREF = "Section_howto.html#4_15">output options</A>
+that work with <A HREF = "compute.html">compute commands</A> to see or use the
+values.
+</P>
+<P><B>Output info:</B>
+</P>
+<P>This compute calculates a global vector of length >= 1, as determined
+by the pair style.  These values can be used by any command that uses
+global vector values from a compute as input.  See <A HREF = "Section_howto.html#4_15">this
+section</A> for an overview of LAMMPS output
+options.
+</P>
+<P>The vector values calculated by this compute are "extensive".  They
+are in whatever units the pair style produces.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "compute_pe.html">compute pe</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

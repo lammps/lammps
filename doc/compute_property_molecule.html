@@ -21,9 +21,9 @@
 
 <LI>input = one or more attributes 
 
-<PRE>  possible attributes = mol 
-</PRE>
-<PRE>    mol = molecule ID 
+<PRE>  possible attributes = mol count
+    mol = molecule ID
+    count = # of atoms in molecule 
 </PRE>
 
 </UL>
@@ -47,6 +47,8 @@ the ordering produced by other compute commands that generate
 per-molecule datums.  Thus this attribute can be used to produce
 molecule IDs as labels for those datums when they are output to a
 file, e.g. by the <A HREF = "fix_ave_time.html">fix ave/time</A> command.
+</P>
+<P>The <I>count</I> attribute is the number of atoms in the molecule.
 </P>
 <P><B>Output info:</B>
 </P>

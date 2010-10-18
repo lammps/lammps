@@ -15,8 +15,9 @@ compute ID group-ID property/molecule input1 input2 ... :pre
 ID, group-ID are documented in "compute"_compute.html command :ulb,l
 property/molecule = style name of this compute command :l
 input = one or more attributes :l
-  possible attributes = mol :pre
-    mol = molecule ID :pre
+  possible attributes = mol count
+    mol = molecule ID
+    count = # of atoms in molecule :pre
 :ule
 
 [Examples:]
@@ -39,6 +40,8 @@ the ordering produced by other compute commands that generate
 per-molecule datums.  Thus this attribute can be used to produce
 molecule IDs as labels for those datums when they are output to a
 file, e.g. by the "fix ave/time"_fix_ave_time.html command.
+
+The {count} attribute is the number of atoms in the molecule.
 
 [Output info:]
 

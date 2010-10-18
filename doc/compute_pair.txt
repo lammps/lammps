@@ -1,0 +1,64 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+compute pair command :h3
+
+[Syntax:]
+
+compute ID group-ID pair pstyle :pre
+
+ID, group-ID are documented in "compute"_compute.html command
+pair = style name of this compute command
+pstyle = style name of a pair style that calculates additional values :ul
+
+[Examples:]
+
+compute 1 all pair gauss
+compute 1 all pair reax :pre
+
+[Description:]
+
+Define a computation that extracts additional values calculated by a
+pair style, sums them across processors, and makes them accessible for
+output or further processing by other commands.  The group specified
+for this command is ignored.
+
+The specified {pstyle} must be a pair style that produces additional
+values.  If a "hybrid pair style"_pair_hybrid.html is used, then
+{pstyle} should be the name of a sub-style.
+
+All pair styles tally a potential energy, which is accessed by the
+"compute pe"_compute_pe.html and "compute
+pe/atom"_compute_pe_atom.html commands.  Some pair styles tally one or
+more additional values, such as a breakdown of the total pair
+potential energy into sub-categories.  See the doc page for
+"individual pair styles"_pair_style.html for info on these values.
+
+The compute pair command lets you access this data as a global vector
+of values and then use other "output options"_Section_howto.html#4_15
+that work with "compute commands"_compute.html to see or use the
+values.
+
+[Output info:]
+
+This compute calculates a global vector of length >= 1, as determined
+by the pair style.  These values can be used by any command that uses
+global vector values from a compute as input.  See "this
+section"_Section_howto.html#4_15 for an overview of LAMMPS output
+options.
+
+The vector values calculated by this compute are "extensive".  They
+are in whatever units the pair style produces.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"compute pe"_compute_pe.html
+
+[Default:] none

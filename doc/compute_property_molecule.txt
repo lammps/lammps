@@ -15,7 +15,7 @@ compute ID group-ID property/molecule input1 input2 ... :pre
 ID, group-ID are documented in "compute"_compute.html command :ulb,l
 property/molecule = style name of this compute command :l
 input = one or more attributes :l
-  possible attributes = mol count
+  possible attributes = mol cout
     mol = molecule ID
     count = # of atoms in molecule :pre
 :ule

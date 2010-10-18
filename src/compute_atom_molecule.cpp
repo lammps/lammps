@@ -164,9 +164,15 @@ ComputeAtomMolecule(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeAtomMolecule::~ComputeAtomMolecule()
 {
+  delete [] which;
+  delete [] argindex;
+  for (int m = 0; m < nvalues; m++) delete [] ids[m];
+  delete [] ids;
+  delete [] value2index;
+
   memory->sfree(vone);
   memory->sfree(vector);
-  memory->sfree(aone);
+  memory->destroy_2d_double_array(aone);
   memory->destroy_2d_double_array(array);
   memory->sfree(scratch);
 }
@@ -224,11 +230,13 @@ void ComputeAtomMolecule::compute_vector()
       imol = molecule[i];
       if (molmap) imol = molmap[imol-idlo];
       else imol--;
-      vone[imol] = scratch[j];
+      vone[imol] += peratom[j];
     }
     j += nstride;
   }
 
+  int me;
+  MPI_Comm_rank(world,&me);
   MPI_Allreduce(vone,vector,nmolecules,MPI_DOUBLE,MPI_SUM,world);
 }
 
@@ -245,7 +253,7 @@ void ComputeAtomMolecule::compute_array()
   int nlocal = atom->nlocal;
 
   for (n = 0; n < nvalues; n++) {
-    for (m = 0; m < nmolecules; m++) aone[n][m] = 0.0;
+    for (m = 0; m < nmolecules; m++) aone[m][n] = 0.0;
     compute_one(n);
 
     j = 0;
@@ -254,7 +262,7 @@ void ComputeAtomMolecule::compute_array()
 	imol = molecule[i];
 	if (molmap) imol = molmap[imol-idlo];
 	else imol--;
-	aone[n][imol] = scratch[j];
+	aone[imol][n] += peratom[j];
       }
       j += nstride;
     }
@@ -267,7 +275,7 @@ void ComputeAtomMolecule::compute_array()
 /* ----------------------------------------------------------------------
    calculate per-atom values for one input M
    invoke the appropriate compute,fix,variable
-   reallocate scratch vector if necessary
+   reallocate scratch if necessary for per-atom variable scratch space
 ------------------------------------------------------------------------- */
 
 void ComputeAtomMolecule::compute_one(int m)
@@ -286,10 +294,10 @@ void ComputeAtomMolecule::compute_one(int m)
     }
 
     if (aidx == 0) {
-      scratch = compute->vector_atom;
+      peratom = compute->vector_atom;
       nstride = 1;
     } else {
-      scratch = &compute->array_atom[0][aidx-1];
+      peratom = &compute->array_atom[0][aidx-1];
       nstride = compute->size_array_cols;
     }
 
@@ -302,10 +310,10 @@ void ComputeAtomMolecule::compute_one(int m)
     Fix *fix = modify->fix[vidx];
 
     if (aidx == 0) {
-      scratch = fix->vector_atom;
+      peratom = fix->vector_atom;
       nstride = 1;
     } else {
-      scratch = &fix->array_atom[0][aidx-1];
+      peratom = &fix->array_atom[0][aidx-1];
       nstride = fix->size_array_cols;
     }
     
@@ -317,9 +325,11 @@ void ComputeAtomMolecule::compute_one(int m)
       memory->sfree(scratch);
       scratch =	(double *) 
 	memory->smalloc(maxatom*sizeof(double),"atom/molecule:scratch");
+      peratom = scratch;
     }
 
-    input->variable->compute_atom(vidx,igroup,scratch,1,0);
+    input->variable->compute_atom(vidx,igroup,peratom,1,0);
+    nstride = 1;
   }
 }
 

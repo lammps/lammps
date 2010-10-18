@@ -44,6 +44,7 @@ class ComputeAtomMolecule : public Compute {
   double *vone;
   double **aone;
   double *scratch;
+  double *peratom;
 
   void compute_one(int);
 };

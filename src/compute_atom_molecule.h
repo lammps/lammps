@@ -13,21 +13,21 @@
 
 #ifdef COMPUTE_CLASS
 
-ComputeStyle(property/molecule,ComputePropertyMolecule)
+ComputeStyle(atom/molecule,ComputeAtomMolecule)
 
 #else
 
-#ifndef LMP_COMPUTE_PROPERTY_MOLECULE_H
-#define LMP_COMPUTE_PROPERTY_MOLECULE_H
+#ifndef LMP_COMPUTE_ATOM_MOLECULE_H
+#define LMP_COMPUTE_ATOM_MOLECULE_H
 
 #include "compute.h"
 
 namespace LAMMPS_NS {
 
-class ComputePropertyMolecule : public Compute {
+class ComputeAtomMolecule : public Compute {
  public:
-  ComputePropertyMolecule(class LAMMPS *, int, char **);
-  ~ComputePropertyMolecule();
+  ComputeAtomMolecule(class LAMMPS *, int, char **);
+  ~ComputeAtomMolecule();
   void init();
   void compute_vector();
   void compute_array();
@@ -37,13 +37,15 @@ class ComputePropertyMolecule : public Compute {
   int nvalues,nmolecules;
   int idlo,idhi;
 
-  double *buf;
+  int *which,*argindex,*flavor,*value2index;
+  char **ids;
 
-  typedef void (ComputePropertyMolecule::*FnPtrPack)(int);
-  FnPtrPack *pack_choice;              // ptrs to pack functions
+  int nstride,maxatom;
+  double *vone;
+  double **aone;
+  double *scratch;
 
-  void pack_mol(int);
-  void pack_count(int);
+  void compute_one(int);
 };
 
 }

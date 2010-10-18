@@ -43,6 +43,9 @@ class Pair : protected Pointers {
   double etail,ptail;            // energy/pressure tail corrections
   double etail_ij,ptail_ij;
 
+  int nextra;                    // # of extra quantities pair style calculates
+  double *pvector;               // vector of extra pair quantities
+
   class NeighList *list;         // standard neighbor list used by most pairs
   class NeighList *listhalf;     // half list used by some pairs
   class NeighList *listfull;     // full list used by some pairs

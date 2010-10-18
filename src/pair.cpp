@@ -55,6 +55,8 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   respa_enable = 0;
   one_coeff = 0;
   no_virial_compute = 0;
+  nextra = 0;
+  pvector = NULL;
 
   // pair_modify settings
 

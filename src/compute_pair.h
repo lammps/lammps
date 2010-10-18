@@ -28,11 +28,12 @@ class ComputePair : public Compute {
  public:
   ComputePair(class LAMMPS *, int, char **);
   ~ComputePair();
-  void init() {}
+  void init();
   void compute_vector();
 
  private:
   int npair;
+  char *pstyle;
   class Pair *pair;
   double *one;
 };

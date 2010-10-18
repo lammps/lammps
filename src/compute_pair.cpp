@@ -29,7 +29,11 @@ ComputePair::ComputePair(LAMMPS *lmp, int narg, char **arg) :
   if (narg != 4) error->all("Illegal compute pair command");
   if (igroup) error->all("Compute pair must use group all");
 
-  pair = force->pair_match(arg[3],1);
+  int n = strlen(arg[3]) + 1;
+  pstyle = new char[n];
+  strcpy(pstyle,arg[3]);
+
+  pair = force->pair_match(pstyle,1);
   if (!pair) error->all("Unrecognized pair style in compute pair command");
   npair = pair->nextra;
   if (!npair) 
@@ -51,8 +55,19 @@ ComputePair::ComputePair(LAMMPS *lmp, int narg, char **arg) :
 
 ComputePair::~ComputePair()
 {
+  delete [] pstyle;
   delete [] one;
   delete [] vector;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePair::init()
+{
+  // recheck for pair style in case it has been deleted
+
+  pair = force->pair_match(pstyle,1);
+  if (!pair) error->all("Unrecognized pair style in compute pair command");
 }
 
 /* ---------------------------------------------------------------------- */

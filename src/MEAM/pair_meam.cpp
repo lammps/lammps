@@ -64,8 +64,8 @@ PairMEAM::PairMEAM(LAMMPS *lmp) : Pair(lmp)
 
   // set comm size needed by this Pair
 
-  comm_forward = 35;
-  comm_reverse = 27;
+  comm_forward = 38;
+  comm_reverse = 30;
 }
 
 /* ----------------------------------------------------------------------

@@ -1,4 +1,4 @@
-# mac_mpi = Apple PowerBook G4 laptop, mpic++, gfortran, fink LAM/MPI, fink FFTW 2.1.5
+# mac_mpi = Apple PowerBook G4 laptop, ccache mpic++, gfortran, fink LAM/MPI, fink FFTW 2.1.5
 
 SHELL = /bin/sh
 
@@ -7,10 +7,10 @@ SHELL = /bin/sh
 # generally no need to edit this section
 # unless additional compiler/linker flags or libraries needed for your machine
 
-CC =		mpic++
+CC =		ccache ${MPI_GCC4_PATH}/mpic++
 CCFLAGS =	-O -MMD -MG
 DEPFLAGS =	-M
-LINK =		mpic++
+LINK =		ccache ${MPI_GCC4_PATH}/mpic++
 LINKFLAGS =	-O
 LIB =           
 ARCHIVE =	ar

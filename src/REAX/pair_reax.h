@@ -88,7 +88,6 @@ class PairREAX : public Pair {
 		       int[], double[], double[]);
   void charge_reax(const int &, const int &, double[],
 		   double[], int[], int[], double[]);
-  void output_itemized_energy(double);
 };
 
 }

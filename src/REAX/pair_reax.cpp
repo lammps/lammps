@@ -51,6 +51,9 @@ PairREAX::PairREAX(LAMMPS *lmp) : Pair(lmp)
   one_coeff = 1;
   no_virial_compute = 1;
   
+  nextra = 14;
+  pvector = new double[nextra];
+
   cutmax = 0.0;
   hbcut = 6.0;
   ihbnew = 1;
@@ -85,6 +88,8 @@ PairREAX::PairREAX(LAMMPS *lmp) : Pair(lmp)
 
 PairREAX::~PairREAX()
 {
+  delete [] pvector;
+
   if (allocated) {
     memory->destroy_2d_int_array(setflag);
     memory->destroy_2d_double_array(cutsq);
@@ -183,7 +188,6 @@ void PairREAX::compute(int eflag, int vflag)
   // compute_charge already contributed to eatom
 
   if (eflag && eflag_global) {
-    //    output_itemized_energy(energy_charge_equilibration);
     evdwl += FORTRAN(cbkenergies, CBKENERGIES).eb;
     evdwl += FORTRAN(cbkenergies, CBKENERGIES).ea;
     evdwl += FORTRAN(cbkenergies, CBKENERGIES).elp;
@@ -202,6 +206,25 @@ void PairREAX::compute(int eflag, int vflag)
     
     eng_vdwl += evdwl;
     eng_coul += ecoul;
+
+    // Store the different parts of the energy
+    // in a list for output by compute pair command
+
+    pvector[0] = FORTRAN(cbkenergies, CBKENERGIES).eb;   
+    pvector[1] = FORTRAN(cbkenergies, CBKENERGIES).ea;
+    pvector[2] = FORTRAN(cbkenergies, CBKENERGIES).elp;
+    pvector[3] = FORTRAN(cbkenergies, CBKENERGIES).emol;
+    pvector[4] = FORTRAN(cbkenergies, CBKENERGIES).ev;
+    pvector[5] = FORTRAN(cbkenergies, CBKENERGIES).epen;
+    pvector[6] = FORTRAN(cbkenergies, CBKENERGIES).ecoa;
+    pvector[7] = FORTRAN(cbkenergies, CBKENERGIES).ehb;
+    pvector[8] = FORTRAN(cbkenergies, CBKENERGIES).et;
+    pvector[9] = FORTRAN(cbkenergies, CBKENERGIES).eco;
+    pvector[10] = FORTRAN(cbkenergies, CBKENERGIES).ew;
+    pvector[11] = FORTRAN(cbkenergies, CBKENERGIES).ep;
+    pvector[12] = FORTRAN(cbkenergies, CBKENERGIES).efi;
+    pvector[13] = energy_charge_equilibration;    
+  
   }
 
   if (eflag && eflag_atom) {

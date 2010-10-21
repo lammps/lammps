@@ -1574,7 +1574,7 @@ constants. In three dimensions, this tensor has 3^4=81 elements. Using
 Voigt notation, the tensor can be written as a 6x6 matrix, where C_ij
 is now the derivative of s_i w.r.t. e_j. Because s_i is itself a
 derivative w.r.t. e_i, it follows that C_ij is also symmetric, with at
-most 6*5/2 = 21 distinct elements.
+most 7*6/2 = 21 distinct elements.
 
 At zero temperature, it is easy to estimate these derivatives by
 deforming the cell in one of the six directions using the command

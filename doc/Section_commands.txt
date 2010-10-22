@@ -528,7 +528,8 @@ each style or click on the style itself for a full description:
 "temp/profile"_compute_temp_profile.html,
 "temp/ramp"_compute_temp_ramp.html,
 "temp/region"_compute_temp_region.html,
-"temp/sphere"_compute_temp_sphere.html :tb(c=6,ea=c)
+"temp/sphere"_compute_temp_sphere.html,
+"ti"_compute_ti.html :tb(c=6,ea=c)
 
 These are compute styles contributed by users, which can be used if
 "LAMMPS is built with the appropriate package"_Section_start.html#2_3.

@@ -37,6 +37,11 @@ ComputePE::ComputePE(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 3) error->all("Illegal compute pe command");
   if (igroup) error->all("Compute pe must use group all");
 
+  scalar_flag = 1;
+  extscalar = 1;
+  peflag = 1;
+  timeflag = 1;
+
   if (narg == 3) {
     pairflag = 1;
     bondflag = angleflag = dihedralflag = improperflag = 1;
@@ -59,13 +64,6 @@ ComputePE::ComputePE(LAMMPS *lmp, int narg, char **arg) :
       iarg++;
     }
   }
-
-  // settings
-
-  scalar_flag = 1;
-  extscalar = 1;
-  peflag = 1;
-  timeflag = 1;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -11,41 +11,33 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef PAIR_CLASS
+#ifdef COMPUTE_CLASS
 
-PairStyle(born,PairBorn)
+ComputeStyle(ti,ComputeTI)
 
 #else
 
-#ifndef PAIR_BORN_H
-#define PAIR_BORN_H
+#ifndef COMPUTE_TI_H
+#define COMPUTE_TI_H
 
-#include "pair.h"
+#include "compute.h"
 
 namespace LAMMPS_NS {
-
-class PairBorn : public Pair {
- public:
-  PairBorn(class LAMMPS *);
-  ~PairBorn();
-  void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  double init_one(int, int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
-  double single(int, int, int, int, double, double, double, double &);
-  void *extract(char *, int &);
+  
+class ComputeTI : public Compute {
+ public: 
+  ComputeTI(class LAMMPS *, int, char **);
+  ~ComputeTI();
+  void init();
+  double compute_scalar();
 
  private:
-  double cut_global;
-  double **cut;
-  double **a,**rho,**sigma,**c, **d;
-  double **rhoinv,**born1,**born2,**born3,**offset;
- 
-  void allocate();
+  int nterms;
+  int *which;
+  int *ivar1,*ivar2;
+  char **var1,**var2;
+  class Pair **pptr;
+  char **pstyle;
 };
 
 }

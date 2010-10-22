@@ -60,6 +60,7 @@ class Pair : protected Pointers {
   // top-level Pair methods
 
   void init();
+  void reinit();
   double mix_energy(double, double, double, double);
   double mix_distance(double, double);
   void write_file(int, char **);

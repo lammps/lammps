@@ -176,6 +176,32 @@ void Pair::init()
 }
 
 /* ----------------------------------------------------------------------
+   reset all type-based params by invoking init_one() for each I,J
+   called by fix adapt after it changes one or more params
+------------------------------------------------------------------------- */
+
+void Pair::reinit()
+{
+  int i,j;
+  double tmp;
+
+  etail = ptail = 0.0;
+
+  for (i = 1; i <= atom->ntypes; i++)
+    for (j = i; j <= atom->ntypes; j++) {
+      tmp = init_one(i,j);
+      if (tail_flag) {
+	etail += etail_ij;
+	ptail += ptail_ij;
+	if (i != j) {
+	  etail += etail_ij;
+	  ptail += ptail_ij;
+	}
+      }
+    }
+}
+
+/* ----------------------------------------------------------------------
    init specific to a pair style
    specific pair style can override this function
      if needs its own error checks
@@ -211,7 +237,7 @@ double Pair::mix_energy(double eps1, double eps2, double sig1, double sig2)
     value = sqrt(eps1*eps2);
   else if (mix_flag == SIXTHPOWER)
     value = 2.0 * sqrt(eps1*eps2) *
-      pow(sig1,3.0) * pow(sig2,3.0) / (pow(sig1,6.0) * pow(sig2,6.0));
+      pow(sig1,3.0) * pow(sig2,3.0) / (pow(sig1,6.0) + pow(sig2,6.0));
   return value;
 }
 

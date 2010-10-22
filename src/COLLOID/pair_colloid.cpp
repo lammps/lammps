@@ -467,7 +467,6 @@ double PairColloid::single(int i, int j, int itype, int jtype, double rsq,
     break;
 
   case SMALL_LARGE:
-    r = sqrt(rsq);
     c2 = a2[itype][jtype];
     K[1] = c2*c2;
     K[2] = rsq;
@@ -477,7 +476,7 @@ double PairColloid::single(int i, int j, int itype, int jtype, double rsq,
     K[3] *= K[3]*K[3];
     K[6] = K[3]*K[3];
     fR = sigma3[itype][jtype]*a12[itype][jtype]*c2*K[1]/K[3];
-    fforce = 4.0/15.0*r*fR*factor_lj * 
+    fforce = 4.0/15.0*fR*factor_lj * 
       (2.0*(K[1]+K[2])*(K[1]*(5.0*K[1]+22.0*K[2])+5.0*K[4]) * 
        sigma6[itype][jtype]/K[6] - 5.0)/K[0];
     phi = 2.0/9.0*fR * 

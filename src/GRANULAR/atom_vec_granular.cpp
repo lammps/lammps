@@ -58,6 +58,7 @@ AtomVecGranular::AtomVecGranular(LAMMPS *lmp, int narg, char **arg) :
 void AtomVecGranular::init()
 {
   // set radvary if particle diameters are time-varying due to fix adapt
+
   for (int i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"adapt") == 0) {
       FixAdapt *fix = (FixAdapt *) modify->fix[i];

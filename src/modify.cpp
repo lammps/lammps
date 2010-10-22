@@ -50,6 +50,7 @@ using namespace LAMMPS_NS;
 #define MIN_PRE_FORCE           32768
 #define MIN_POST_FORCE          65536
 #define MIN_ENERGY             131072
+#define POST_RUN               262144
 
 #define MIN(A,B) ((A) < (B)) ? (A) : (B)
 #define MAX(A,B) ((A) > (B)) ? (A) : (B)
@@ -80,7 +81,7 @@ Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
   list_pre_force_respa = list_post_force_respa = NULL;
   list_final_integrate_respa = NULL;
   list_min_pre_exchange = list_min_pre_force = 
-    list_min_post_force = list_min_energy = NULL;
+  list_min_post_force = list_min_energy = NULL;
 
   end_of_step_every = NULL;
 
@@ -360,6 +361,15 @@ double Modify::thermo_energy()
   for (int i = 0; i < n_thermo_energy; i++)
     energy += fix[list_thermo_energy[i]]->compute_scalar();
   return energy;
+}
+
+/* ----------------------------------------------------------------------
+   post_run call
+------------------------------------------------------------------------- */
+
+void Modify::post_run()
+{
+  for (int i = 0; i < nfix; i++) fix[i]->post_run();
 }
 
 /* ----------------------------------------------------------------------

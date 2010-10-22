@@ -97,14 +97,12 @@ class Pair : protected Pointers {
 
   // specific child-class methods for certain Pair styles
   
-  virtual void *extract(char *) {return NULL;}
+  virtual void *extract(char *, int &) {return NULL;}
   virtual void swap_eam(double *, double **) {}
   virtual void reset_dt() {}
   virtual void min_xf_pointers(int, double **, double **) {}
   virtual void min_xf_get(int) {}
   virtual void min_x_set(int) {}
-  virtual int pre_adapt(char *, int, int, int, int) {return -1;}
-  virtual void adapt(int, int, int, int, int, double) {}
 
  protected:
   int allocated;                       // 0/1 = whether arrays are allocated

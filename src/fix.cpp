@@ -87,6 +87,7 @@ Fix::Fix(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   MIN_PRE_FORCE = 32768;
   MIN_POST_FORCE = 65536;
   MIN_ENERGY = 131072;
+  POST_RUN = 262144;
 }
 
 /* ---------------------------------------------------------------------- */

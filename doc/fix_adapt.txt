@@ -66,6 +66,10 @@ the end of a simulation.  Even if {reset} is specified as {yes}, a
 restart file written during a simulation will contain the modified
 settings.
 
+IMPORTANT NOTE: Currently, only the {pair} and {kspace} params
+are resettable.  {Atom} attributes are not.  This will be
+added at some point.
+
 If the {scale} keyword is set to {no}, then the value the parameter is
 set to will be whatever the variable generates.  If the {scale}
 keyword is set to {yes}, then the value of the altered parameter will

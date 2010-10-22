@@ -111,6 +111,10 @@ styles and their energy formulas for the meaning of these parameters:
 <TR><TD >c: type pairs:<A HREF = "pair_coul.html">coul/cut</A>: scale: type pairs:<A HREF = "pair_coul.html">coul/debye</A>: scale: type pairs:<A HREF = "pair_coul.html">coul/long</A>: scale: type pairs:<A HREF = "pair_lj.html">lj/cut</A>: epsilon: type pairs:<A HREF = "pair_lj.html">lj/cut/opt</A>: epsilon: type pairs:<A HREF = "pair_lubricate.html">lubricate</A>: mu: global:<A HREF = "pair_gauss.html">gauss</A>: a: type pairs:<A HREF = "pair_soft.html">soft</A>: a: type pairs 
 </TD></TR></TABLE></DIV>
 
+<P>IMPORTANT NOTE: It is easy to add new potentials and their parameters
+to this list.  All it typically takes is adding an extract() method to
+the pair_*.cpp file associated with the potential.
+</P>
 <P>Some parameters are global settings for the pair style, e.g. the
 viscosity setting "mu" for <A HREF = "pair_lubricate.html">pair_style lubricate</A>.
 Other parameters apply to atom type pairs within the pair style,

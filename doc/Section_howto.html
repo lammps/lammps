@@ -31,7 +31,8 @@ certain kinds of LAMMPS simulations.
 4.15 <A HREF = "#4_15">Output from LAMMPS (thermo, dumps, computes, fixes, variables)</A><BR>
 4.16 <A HREF = "#4_16">Thermostatting, barostatting and computing temperature</A><BR>
 4.17 <A HREF = "#4_17">Walls</A><BR>
-4.18 <A HREF = "#4_18">Elastic constants</A> <BR>
+4.18 <A HREF = "#4_18">Elastic constants</A><BR>
+4.19 <A HREF = "#4_19">Computing free energies from thermodyanmic integration</A> <BR>
 
 <P>The example input scripts included in the LAMMPS distribution and
 highlighted in <A HREF = "Section_example.html">this section</A> also show how to
@@ -1609,6 +1610,72 @@ converge and requires careful post-processing <A HREF = "#Shinoda">(Shinoda)</A>
 </P>
 <HR>
 
+<A NAME = "4_19"></A><H4>4.19 Computing free energies from thermodynamic integration 
+</H4>
+<P>Thermodynamic integration is a widely used method to compute free
+energies from atomistic simulations.  LAMMPS can be used to run
+thermodynamic integration calculations using the methods discussed in
+this section and the <A HREF = "fix_adapt.html">fix adapt</A> command.  Currently,
+it is capable of the transformations essential for computing melting
+points using the pseudo-supercritical path method developed by <A HREF = "#Eike_Maginn">Eike
+and Maginn</A>.
+</P>
+<P>See the examples/TI directory for more information and sample files
+that compute a melting point using the techniques described in this
+section.  That directory has its own README file.  See also the paper
+by <A HREF = "#Jayaraman">Jayaraman</A> for an example of using this implementation
+of thermodynamic integration in LAMMPS to compute melting points of
+alkali nitrate salts, using the steps outlined here.
+</P>
+<P>In this method, three intermediate "pseudo-supercritical" states are
+accessed in the transformation between the liquid and solid
+phases. These pseudo-states are a weak liquid, a dense weak liquid,
+and an ordered weak phase. The transformation between the liquid and
+solid states can also be driven uisng the <A HREF = "fix_adapt.html">fix adapt</A>
+command.
+</P>
+<P>For the transformation from the liquid to the weak phase, the
+intermolecular interactions need to be weakened.  Appropriate scale
+factors, computed by variables you define, and applied to pair styles
+by <A HREF = "fix_adapt.html">fix adapt</A>, can be used to do this, as in the
+example scripts.  The <A HREF = "compute_ti.html">compute ti</A> command can
+accumulate the value of dU/d<I>lambda</I>.  See <A HREF = "#Jayaraman_Maginn">Jayaraman and
+Maginn</A> for more information about calculating a
+free energy from dU/d<I>lambda</I>.
+</P>
+<P>IMPORTANT NOTE: The pair styles that fix adapt can scale on-the-fly
+are listed on the <A HREF = "fix_adapt">fix adapt</A> doc page.  interaction scaling
+is desired.  If a pair style is not on that list, it is generally
+quite easy to add an extract() method to the pair style, to enable fix
+adapt to rescale it.
+</P>
+<P>Step 2 is the transformation of the simulation box density from the
+liquid phase to that of the equilibrated crystal.  The parameters for
+box1 and box2 should be obtained from equilibrated NPT simulations of
+the liquid and crystal phases and used in a <A HREF = "fix_deform.html">fix
+deform</A> command to change the box size and/or shape.
+It also advisable to use <A HREF = "fix_adapt.html">fix adapt</A> on the pair styles
+to prevent overlaps which may occur during the box transformation.
+</P>
+<P>In step 3, the dense, weak system is transformed to an ordered state,
+which has the same ordering as in the equilibrated crystal.  Ordering
+is achieved by introducing an attractive potential between atoms and
+lattice sites.  These lattice sites can be calculated as the mean
+positions of the atoms in an equilibrium simulation of the
+crystal. The <A HREF = "pair_gauss.html">pair/gauss</A> command can be used to
+introduce an attractive Gaussian potential between the atoms and their
+corresponding lattice sites. The prefactor of the Gaussian pair
+potential can be scaled by <A HREF = "fix_adapt.html">fix adapt</A> to turn on the
+attractions.  Again, the quantity dU/d<I>lambda</I> can be tracked via the
+<A HREF = "compute_ti.html">compute ti</A> command.
+</P>
+<P>Step 4 is the transformation of the ordered state to the final
+crystal.  In this step, the intermolecular interactions are scaled
+back to full strength, while the Gaussian tethers are removed, all via
+<A HREF = "fix_adapt.html">fix adapt</A>.
+</P>
+<HR>
+
 <HR>
 
 <A NAME = "Berendsen"></A>
@@ -1643,5 +1710,20 @@ Phys, 79, 926 (1983).
 <A NAME = "Shinoda"></A>
 
 <P><B>(Shinoda)</B> Shinoda, Shiga, and Mikami, Phys Rev B, 69, 134103 (2004).
+</P>
+<A NAME = "Eike_Maginn"></A>
+
+<P><B>(Eike and Maginn)</B> Eike and Maginn, J Chem Phys, 124,
+164503 (2006). 
+</P>
+<A NAME = "Jayaraman_Maginn"></A>
+
+<P><B>(Jayaraman and Maginn)</B> Jayaraman and Maginn, Journal of Chemical Physics, 
+127, 214504 (2007).
+</P>
+<A NAME = "Jayaraman"></A>
+
+<P><B>(Jayaraman)</B> Jayaraman, Thompson, von Lilienfeld and Maginn, Industrial 
+and Engineering Chemistry Research, 49, 559-571 (2010).   
 </P>
 </HTML>

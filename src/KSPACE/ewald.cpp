@@ -18,6 +18,7 @@
 #include "mpi.h"
 #include "stdlib.h"
 #include "stdio.h"
+#include "string.h"
 #include "math.h"
 #include "ewald.h"
 #include "atom.h"
@@ -97,10 +98,12 @@ void Ewald::init()
   // extract short-range Coulombic cutoff from pair style
 
   qqrd2e = force->qqrd2e;
+  scale = 1.0;
 
   if (force->pair == NULL)
     error->all("KSpace style is incompatible with Pair style");
-  double *p_cutoff = (double *) force->pair->extract("cut_coul");
+  int itmp;
+  double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
   if (p_cutoff == NULL)
     error->all("KSpace style is incompatible with Pair style");
   double cutoff = *p_cutoff;
@@ -270,9 +273,9 @@ void Ewald::compute(int eflag, int vflag)
   // convert E-field to force
 
   for (i = 0; i < nlocal; i++) {
-    f[i][0] += qqrd2e*q[i]*ek[i][0];
-    f[i][1] += qqrd2e*q[i]*ek[i][1];
-    f[i][2] += qqrd2e*q[i]*ek[i][2];
+    f[i][0] += qqrd2e*scale * q[i]*ek[i][0];
+    f[i][1] += qqrd2e*scale * q[i]*ek[i][1];
+    f[i][2] += qqrd2e*scale * q[i]*ek[i][2];
   }
  
   // energy if requested
@@ -284,7 +287,7 @@ void Ewald::compute(int eflag, int vflag)
     PI = 4.0*atan(1.0);
     energy -= g_ewald*qsqsum/1.772453851 + 
       0.5*PI*qsum*qsum / (g_ewald*g_ewald*volume);
-    energy *= qqrd2e;
+    energy *= qqrd2e*scale;
   }
 
   // virial if requested
@@ -295,11 +298,10 @@ void Ewald::compute(int eflag, int vflag)
       uk = ug[k] * (sfacrl_all[k]*sfacrl_all[k] + sfacim_all[k]*sfacim_all[k]);
       for (n = 0; n < 6; n++) virial[n] += uk*vg[k][n];
     }
-    for (n = 0; n < 6; n++) virial[n] *= qqrd2e;
+    for (n = 0; n < 6; n++) virial[n] *= qqrd2e*scale;
   }
 
   if (slabflag) slabcorr(eflag);
-  
 }
 
 /* ---------------------------------------------------------------------- */
@@ -820,14 +822,14 @@ void Ewald::slabcorr(int eflag)
   
   double e_slabcorr = 2.0*PI*dipole_all*dipole_all/volume;
   
-  if (eflag) energy += qqrd2e*e_slabcorr;
+  if (eflag) energy += qqrd2e*scale * e_slabcorr;
 
   // add on force corrections
 
   double ffact = -4.0*PI*dipole_all/volume; 
   double **f = atom->f;
 
-  for (int i = 0; i < nlocal; i++) f[i][2] += qqrd2e*q[i]*ffact;
+  for (int i = 0; i < nlocal; i++) f[i][2] += qqrd2e*scale * q[i]*ffact;
 }
 
 /* ----------------------------------------------------------------------

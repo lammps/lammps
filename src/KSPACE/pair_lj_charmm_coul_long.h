@@ -43,7 +43,7 @@ class PairLJCharmmCoulLong : public Pair {
   void compute_inner();
   void compute_middle();
   void compute_outer(int, int);
-  void *extract(char *);
+  void *extract(char *, int &);
 
  protected:
   int implicit;

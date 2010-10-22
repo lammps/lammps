@@ -43,7 +43,7 @@ class PairLJCutCoulLong : public Pair {
   void compute_inner();
   void compute_middle();
   void compute_outer(int, int);
-  void *extract(char *);
+  void *extract(char *, int &);
 
  protected:
   double cut_lj_global;

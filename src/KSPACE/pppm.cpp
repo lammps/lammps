@@ -132,10 +132,12 @@ void PPPM::init()
   // extract short-range Coulombic cutoff from pair style
 
   qqrd2e = force->qqrd2e;
+  scale = 1.0;
 
   if (force->pair == NULL)
     error->all("KSpace style is incompatible with Pair style");
-  double *p_cutoff = (double *) force->pair->extract("cut_coul");
+  int itmp;
+  double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
   if (p_cutoff == NULL)
     error->all("KSpace style is incompatible with Pair style");
   cutoff = *p_cutoff;
@@ -147,11 +149,11 @@ void PPPM::init()
   if (strcmp(force->kspace_style,"pppm/tip4p") == 0) {
     if (force->pair == NULL)
       error->all("KSpace style is incompatible with Pair style");
-    double *p_qdist = (double *) force->pair->extract("qdist");
-    int *p_typeO = (int *) force->pair->extract("typeO");
-    int *p_typeH = (int *) force->pair->extract("typeH");
-    int *p_typeA = (int *) force->pair->extract("typeA");
-    int *p_typeB = (int *) force->pair->extract("typeB");
+    double *p_qdist = (double *) force->pair->extract("qdist",itmp);
+    int *p_typeO = (int *) force->pair->extract("typeO",itmp);
+    int *p_typeH = (int *) force->pair->extract("typeH",itmp);
+    int *p_typeA = (int *) force->pair->extract("typeA",itmp);
+    int *p_typeB = (int *) force->pair->extract("typeB",itmp);
     if (!p_qdist || !p_typeO || !p_typeH || !p_typeA || !p_typeB)
       error->all("KSpace style is incompatible with Pair style");
     qdist = *p_qdist;
@@ -694,7 +696,7 @@ void PPPM::compute(int eflag, int vflag)
     energy *= 0.5*volume;
     energy -= g_ewald*qsqsum/1.772453851 +
       0.5*PI*qsum*qsum / (g_ewald*g_ewald*volume);
-    energy *= qqrd2e;
+    energy *= qqrd2e*scale;
   }
 
   // sum virial across procs
@@ -702,7 +704,7 @@ void PPPM::compute(int eflag, int vflag)
   if (vflag) {
     double virial_all[6];
     MPI_Allreduce(virial,virial_all,6,MPI_DOUBLE,MPI_SUM,world);
-    for (i = 0; i < 6; i++) virial[i] = 0.5*qqrd2e*volume*virial_all[i];
+    for (i = 0; i < 6; i++) virial[i] = 0.5*qqrd2e*scale*volume*virial_all[i];
   }
 
   // 2d slab correction
@@ -1680,7 +1682,6 @@ void PPPM::fieldforce()
   int nlocal = atom->nlocal;
 
   for (i = 0; i < nlocal; i++) {
-
     nx = part2grid[i][0];
     ny = part2grid[i][1];
     nz = part2grid[i][2];
@@ -1709,9 +1710,9 @@ void PPPM::fieldforce()
 
     // convert E-field to force
 
-    f[i][0] += qqrd2e*q[i]*ek[0];
-    f[i][1] += qqrd2e*q[i]*ek[1];
-    f[i][2] += qqrd2e*q[i]*ek[2];
+    f[i][0] += qqrd2e*scale * q[i]*ek[0];
+    f[i][1] += qqrd2e*scale * q[i]*ek[1];
+    f[i][2] += qqrd2e*scale * q[i]*ek[2];
   }
 }
 
@@ -1854,14 +1855,14 @@ void PPPM::slabcorr(int eflag)
   
   double e_slabcorr = 2.0*PI*dipole_all*dipole_all/volume;
   
-  if (eflag) energy += qqrd2e*e_slabcorr;
+  if (eflag) energy += qqrd2e*scale * e_slabcorr;
 
   // add on force corrections
 
   double ffact = -4.0*PI*dipole_all/volume; 
   double **f = atom->f;
 
-  for (int i = 0; i < nlocal; i++) f[i][2] += qqrd2e*q[i]*ffact;
+  for (int i = 0; i < nlocal; i++) f[i][2] += qqrd2e*scale * q[i]*ffact;
 }
 
 /* ----------------------------------------------------------------------

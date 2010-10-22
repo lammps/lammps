@@ -962,7 +962,7 @@ double PairTable::single(int i, int j, int itype, int jtype, double rsq,
      no way to know which tables are active since pair::init() not yet called
 ------------------------------------------------------------------------- */
 
-void *PairTable::extract(char *str)
+void *PairTable::extract(char *str, int &dim)
 {
   if (strcmp(str,"cut_coul") != 0) return NULL;
   if (ntables == 0) error->all("All pair coeffs are not set");
@@ -971,5 +971,6 @@ void *PairTable::extract(char *str)
   for (int m = 1; m < ntables; m++)
     if (tables[m].cut != cut_coul)
       error->all("Pair table cutoffs must all be equal to use with KSpace");
+  dim = 0;
   return &tables[0].cut;
 }

@@ -42,6 +42,7 @@ PairCoulCut::~PairCoulCut()
     memory->destroy_2d_double_array(cutsq);
 
     memory->destroy_2d_double_array(cut);
+    memory->destroy_2d_double_array(scale);
   }
 }
 
@@ -103,7 +104,7 @@ void PairCoulCut::compute(int eflag, int vflag)
       if (rsq < cutsq[itype][jtype]) {
 	r2inv = 1.0/rsq;
 	rinv = sqrt(r2inv);
-	forcecoul = qqrd2e * qtmp*q[j]*rinv;
+	forcecoul = qqrd2e * scale[itype][jtype] * qtmp*q[j]*rinv;
 	fpair = factor_coul*forcecoul * r2inv;
 
 	f[i][0] += delx*fpair;
@@ -115,7 +116,8 @@ void PairCoulCut::compute(int eflag, int vflag)
 	  f[j][2] -= delz*fpair;
 	}
 
-	if (eflag) ecoul = factor_coul * qqrd2e * qtmp*q[j]*rinv;
+	if (eflag)
+	  ecoul = factor_coul * qqrd2e * scale[itype][jtype] * qtmp*q[j]*rinv;
 
 	if (evflag) ev_tally(i,j,nlocal,newton_pair,
 			     0.0,ecoul,fpair,delx,dely,delz);
@@ -143,6 +145,7 @@ void PairCoulCut::allocate()
   cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
 
   cut = memory->create_2d_double_array(n+1,n+1,"pair:cut");
+  scale = memory->create_2d_double_array(n+1,n+1,"pair:scale");
 }
 
 /* ----------------------------------------------------------------------
@@ -185,6 +188,7 @@ void PairCoulCut::coeff(int narg, char **arg)
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
       cut[i][j] = cut_one;
+      scale[i][j] = 1.0;
       setflag[i][j] = 1;
       count++;
     }
@@ -298,4 +302,13 @@ double PairCoulCut::single(int i, int j, int itype, int jtype,
 
   phicoul = force->qqrd2e * atom->q[i]*atom->q[j]*rinv;
   return factor_coul*phicoul;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void *PairCoulCut::extract(char *str, int &dim)
+{
+  dim = 2;
+  if (strcmp(str,"scale") == 0) return (void *) scale;
+  return NULL;
 }

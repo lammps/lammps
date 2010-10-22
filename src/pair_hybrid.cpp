@@ -640,14 +640,14 @@ double PairHybrid::memory_usage()
    for cut_coul, insure all non-NULL results are equal since required by Kspace
 ------------------------------------------------------------------------- */
 
-void *PairHybrid::extract(char *str)
+void *PairHybrid::extract(char *str, int &dim)
 {
   void *cutptr = NULL;
   void *ptr;
   double cutvalue;
 
   for (int m = 0; m < nstyles; m++) {
-    ptr = styles[m]->extract(str);
+    ptr = styles[m]->extract(str,dim);
     if (ptr && strcmp(str,"cut_coul") == 0) {
       double *p_newvalue = (double *) ptr;
       double newvalue = *p_newvalue;
@@ -667,4 +667,15 @@ void *PairHybrid::extract(char *str)
 void PairHybrid::reset_dt()
 {
   for (int m = 0; m < nstyles; m++) styles[m]->reset_dt();
+}
+
+/* ----------------------------------------------------------------------
+   check if itype,jtype maps to sub-style
+------------------------------------------------------------------------- */
+
+int PairHybrid::check_ijtype(int itype, int jtype, char *substyle)
+{
+  for (int m = 0; m < nmap[itype][jtype]; m++)
+    if (strcmp(keywords[map[itype][jtype][m]],substyle) == 0) return 1;
+  return 0;
 }

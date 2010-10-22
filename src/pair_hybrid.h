@@ -47,8 +47,10 @@ class PairHybrid : public Pair {
   void compute_inner();
   void compute_middle();
   void compute_outer(int, int);
-  void *extract(char *);
+  void *extract(char *, int &);
   void reset_dt();
+
+  int check_ijtype(int, int, char *);
 
  protected:
   int **nmap;                   // # of sub-styles itype,jtype points to

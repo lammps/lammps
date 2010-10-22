@@ -20,7 +20,7 @@ bond_coeff	1 50.0 0.75
 
 velocity	all create 0.45 2349852
 
-variable	prefactor equal 1.0+elapsed*(20.0-1.0)/1000
+variable	prefactor equal ramp(1.0,20.0)
 
 fix		1 all nve
 fix		2 all temp/rescale 100 0.45 0.45 0.02 1.0

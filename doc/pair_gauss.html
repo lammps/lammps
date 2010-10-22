@@ -71,13 +71,25 @@ to be specified in an input script that reads a restart file.
 <A HREF = "run_style.html">run_style respa</A> command.  It does not support the
 <I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
 </P>
+<P>This pair style tallies an "occupancy" count of how many Gaussian-well
+sites have an atom within the distance at which the force is a maximum
+= sqrt(0.5/b).  This quantity can be accessed via the <A HREF = "compute_pair.html">compute
+pair</A> command as a vector of values of length 1.
+</P>
+<P>To print this quantity to the log file (with a descriptive column
+heading) the following commands could be included in an input script:
+</P>
+<PRE>compute gauss all pair gauss
+variable occ equal c_gauss[1]
+thermo_style custom step temp epair v_occ 
+</PRE>
 <HR>
 
 <P><B>Restrictions:</B> none
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "pair_coeff.html">pair_coeff</A>, <A HREF = "fix_adapt.html">fix adapt</A>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>
 </P>
 <P><B>Default:</B> none
 </P>

@@ -68,12 +68,24 @@ This pair style can only be used via the {pair} keyword of the
 "run_style respa"_run_style.html command.  It does not support the
 {inner}, {middle}, {outer} keywords.
 
+This pair style tallies an "occupancy" count of how many Gaussian-well
+sites have an atom within the distance at which the force is a maximum
+= sqrt(0.5/b).  This quantity can be accessed via the "compute
+pair"_compute_pair.html command as a vector of values of length 1.
+
+To print this quantity to the log file (with a descriptive column
+heading) the following commands could be included in an input script:
+
+compute gauss all pair gauss
+variable occ equal c_gauss\[1\]
+thermo_style custom step temp epair v_occ :pre
+
 :line
 
 [Restrictions:] none
 
 [Related commands:]
 
-"pair_coeff"_pair_coeff.html, "fix adapt"_fix_adapt.html
+"pair_coeff"_pair_coeff.html
 
 [Default:] none

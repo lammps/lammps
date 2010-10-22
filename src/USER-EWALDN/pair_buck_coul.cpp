@@ -171,16 +171,17 @@ void PairBuckCoul::allocate()
    extract protected data from object
 ------------------------------------------------------------------------- */
 
-void *PairBuckCoul::extract(char *id)
+void *PairBuckCoul::extract(char *id, int &dim)
 {
   char *ids[] = {
-    "B", "sigma", "epsilon", "ewald_order", "ewald_cut", "ewald_mix",
-    "cut_coul", NULL};
+    "B", "ewald_order", "ewald_cut", "ewald_mix", "cut_coul", NULL};
   void *ptrs[] = {
-    buck_c, NULL, NULL, &ewald_order, &cut_coul, &mix_flag, &cut_coul, NULL};
+    buck_c, &ewald_order, &cut_coul, &mix_flag, &cut_coul, NULL};
   int i;
 
   for (i=0; ids[i]&&strcmp(ids[i], id); ++i);
+  if (i == 0) dim = 2;
+  else dim = 0;
   return ptrs[i];
 }
 
@@ -1168,4 +1169,3 @@ double PairBuckCoul::single(int i, int j, int itype, int jtype,
   fforce = (force_coul+force_buck)*r2inv;
   return eng;
 }
-

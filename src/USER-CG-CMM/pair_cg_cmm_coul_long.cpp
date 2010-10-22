@@ -446,10 +446,9 @@ double PairCGCMMCoulLong::single(int i, int j, int itype, int jtype, double rsq,
 
 /* ---------------------------------------------------------------------- */
 
-void *PairCGCMMCoulLong::extract(char *str)
+void *PairCGCMMCoulLong::extract(char *str, int &dim)
 {
+  dim = 0;
   if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul_global;
   return NULL;
 }
-
-/* ---------------------------------------------------------------------- */

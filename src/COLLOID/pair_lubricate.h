@@ -37,8 +37,7 @@ class PairLubricate : public Pair {
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
-  int pre_adapt(char *, int, int, int, int);
-  void adapt(int, int, int, int, int, double);
+  void *extract(char *, int &);
 
  protected:
   double cut_inner_global,cut_global;

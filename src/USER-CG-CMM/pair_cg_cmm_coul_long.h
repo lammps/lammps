@@ -43,7 +43,7 @@ namespace LAMMPS_NS {
     double memory_usage();
 
     double single(int, int, int, int, double, double, double, double &);
-    void *extract(char *str);
+    void *extract(char *str, int &);
 
     protected:
     void allocate();

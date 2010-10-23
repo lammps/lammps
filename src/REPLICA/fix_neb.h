@@ -28,6 +28,7 @@ class FixNEB : public Fix {
  public:
   double veng,plen,nlen;
   int rclimber;
+  double gradvnorm;
 
   FixNEB(class LAMMPS *, int, char **);
   ~FixNEB();

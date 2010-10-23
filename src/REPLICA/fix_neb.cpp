@@ -168,6 +168,17 @@ void FixNEB::min_post_force(int vflag)
 
   pe->addstep(update->ntimestep+1);
 
+  // Compute norm of GradV for log output
+
+  double **f = atom->f;
+  double fsq = 0.0;
+  for (int i = 0; i < nlocal; i++) {
+    fsq += f[i][0]*f[i][0]+f[i][1]*f[i][1]+f[i][2]*f[i][2];
+  }
+
+  MPI_Allreduce(&fsq,&gradvnorm,1,MPI_DOUBLE,MPI_MAX,world);
+  gradvnorm = sqrt(gradvnorm);
+
   // if this is first or last replica, no change to forces, just return
 
   if (ireplica == 0 || ireplica == nreplica-1) {
@@ -274,13 +285,12 @@ void FixNEB::min_post_force(int vflag)
   // see Henkelman & Jonsson 2000 paper, eqs 3,4,12
   // see Henkelman & Jonsson 2000a paper, eq 5
 
-  double **f = atom->f;
-
   double dot = 0.0;
-  for (int i = 0; i < nlocal; i++)
+  for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit)
       dot += f[i][0]*tangent[i][0] + f[i][1]*tangent[i][1] + 
 	f[i][2]*tangent[i][2];
+  }
 
   double prefactor;
   if (ireplica == rclimber) prefactor = -2.0*dot;

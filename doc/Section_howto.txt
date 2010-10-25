@@ -206,8 +206,8 @@ hybridization considerations, rather than individual force constants
 and geometric parameters that depend on the particular combinations of
 atoms involved in the bond, angle, or torsion terms. DREIDING has an
 "explicit hydrogen bond term"_pair_hbond_dreiding.html to describe
-interactions involving a hydrogen atom (H___A) on very electronegative
-atoms (N, O, F).
+interactions involving a hydrogen atom on very electronegative atoms
+(N, O, F).
 
 See "(Mayo)"_#Mayo for a description of the DREIDING force field
 

@@ -66,6 +66,7 @@ specified by the associated "angle_coeff"_angle_coeff.html command:
 "angle_style class2"_angle_class2.html - COMPASS (class 2) angle
 "angle_style cosine"_angle_cosine.html - cosine angle potential
 "angle_style cosine/delta"_angle_cosine_delta.html - difference of cosines angle potential
+"angle_style cosine/periodic"_angle_cosine_periodic.html - DREIDING angle
 "angle_style cosine/squared"_angle_cosine_squared.html - cosine squared angle potential
 "angle_style harmonic"_angle_harmonic.html - harmonic angle
 "angle_style table"_angle_table.html - tabulated by angle :ul

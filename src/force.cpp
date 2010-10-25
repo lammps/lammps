@@ -388,6 +388,15 @@ void Force::set_special(int narg, char **arg)
       special_coul[2] = 0.0;
       special_coul[3] = 0.0;
       iarg += 1;
+    } else if (strcmp(arg[iarg],"dreiding") == 0) {
+      if (iarg+1 > narg) error->all("Illegal special_bonds command");
+      special_lj[1] = 0.0;
+      special_lj[2] = 0.0;
+      special_lj[3] = 1.0;
+      special_coul[1] = 0.0;
+      special_coul[2] = 0.0;
+      special_coul[3] = 1.0;
+      iarg += 1;
     } else if (strcmp(arg[iarg],"fene") == 0) {
       if (iarg+1 > narg) error->all("Illegal special_bonds command");
       special_lj[1] = 0.0;

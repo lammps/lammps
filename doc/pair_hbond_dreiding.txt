@@ -1,0 +1,198 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+pair_style hbond/dreiding/lj command :h3
+pair_style hbond/dreiding/morse command :h3
+
+[Syntax:]
+
+pair_style style distance_cutoff angle_cutof N :pre
+
+style = {hbond/dreiding/lj} or {hbond/dreiding/morse} 
+n = cosine angle periodicity
+distance_cutoff = global cutoff for Donor-Acceptor interactions (distance units)
+angle_cutoff = global angle cutoff for Acceptor-Hydrogen-Donor
+interactions (degrees) :ul
+
+[Examples:]
+
+pair_style hbond/dreiding/lj 4 5.0 90
+pair_coeff * * 100.0 1.5 200.0
+pair_coeff * * 100.0 1.5 200.0 2 :pre
+
+pair_style hbond/dreiding/morse 2 4.6 75.0 
+pair_coeff * * 100.0 1.5 200.0
+pair_coeff * * 100.0 1.5 200.0 4 3.0 :pre
+
+[Description:]
+
+The {hbond/dreiding} styles compute the Acceptor-Hydrogen-Donor (AHD)
+3-body hydrogen bond interaction for the
+"DREIDING"_Section_howto.html#4_4 force field, given by:
+
+:c,image(Eqs/pair_hbond_dreiding.jpg)
+
+where Rc is the distance cutoff, theta_c is the angle cutoff, and n is
+the cosine periodicity.
+
+Here, {r} is the radial distance between the donor (D) and acceptor
+(A) atoms and {theta} is the bond angle between the acceptor, the
+hydrogen (H) and the donor atoms:
+
+:c,image(Eqs/dreiding_hbond.jpg)
+
+These 3-body interactions can be defined for pairs of acceptor and
+donor atoms, based on atom types.  For each donor/acceptor atom pair,
+the 3rd atom in the interaction is a hydrogen permanently bonded to
+the donor atom, e.g. in a bond list read in from a data file via the
+"read_data"_read_data.html command.  The atom types of possible
+hydrogen atoms for each donor/acceptor type pair are specified by the
+"pair_coeff"_pair_coeff.html command (see below).
+
+Style {hbond/dreiding/lj} is the original DREIDING potential of
+"(Mayo)"_#Mayo.  It uses a LJ 12/10 functional for the Donor-Acceptor
+interactions. To match the results in the original paper, use n = 4.
+
+Style {hbond/dreiding/morse} is an improved version using a Morse
+potential for the Donor-Acceptor interactions. "(Liu)"_#Liu showed
+that the Morse form gives improved results for Dendrimer simulations,
+when n = 2.
+
+See this "howto section"_Section_howto.html#4_4 of the manual for more
+information on the DREIDING forcefield.
+
+Because the Dreiding hydrogen bond potential is only one portion of
+an overall force field which typically includes other pairwise
+interactions, it is common to use it as a sub-style in a "pair_style
+hybrid or hybrid/overlay"_pair_hybrid.html command.
+
+The following coefficients must be defined for pairs of eligible
+donor/acceptor types via the "pair_coeff"_pair_coeff.html command as
+in the examples above.
+
+IMPORTANT NOTE: Unlike other pair styles and their associated
+"pair_coeff"_pair_coeff.html commands, you do not need to specify
+pair_coeff settings for all possible I,J type pairs.  Only I,J type
+pairs for atoms which act as joint donors/acceptors need to be
+specified; all other type pairs are assumed to be inactive.
+ 
+IMPORTANT NOTE: A "pair_coeff"_pair_coeff.html command can be
+speficied multiple times for the same donor/acceptor type pair.  This
+enables multiple hydrogen types to be assigned to the same
+donor/acceptor type pair.  For other pair_styles, if the pair_coeff
+command is re-used for the same I.J type pair, the settings for that
+type pair are overwritten.  For the hydrogen bond potentials this is
+not the case; the settings are cummulative.  This means the only way
+to turn off a previous setting, is to re-use the pair_style command
+and start over.
+
+For the {hbond/dreiding/lj} style the list of coefficients is as
+follows:
+
+K = hydrogen atom type = 1 to Ntypes
+donor flag = {i} or {j}
+epsilon (energy units)
+sigma (distance units)
+n = exponent in formula above
+distance cutoff (distance units)
+angle cutoff (degrees) :ul
+
+For the {hbond/dreiding/morse} style the list of coefficients is as
+follows:
+
+K = hydrogen atom type = 1 to Ntypes
+donor flag = {i} or {j}
+D0 (energy units)
+alpha (1/distance units)
+r0 (distance units)
+n = exponent in formula above
+distance cutoff (distance units)
+angle cutoff (degrees) :ul
+
+A single hydrogen atom type K can be specified, or a wild-card
+asterisk can be used in place of or in conjunction with the K
+arguments to select multiple types as hydrogens.  This takes the form
+"*" or "*n" or "n*" or "m*n".  See the "pair_coeff"_pair_coeff command
+doc page for details.
+
+If the donor flag is {i}, then the atom of type I in the pair_coeff
+command is treated as the donor, and J is the acceptor.  If the donor
+flag is {j}, then the atom of type J in the pair_coeff command is
+treated as the donor and I is the donor.  This option is required
+because the "pair_coeff"_pair_coeff.html command requires that I <= J.
+
+Epsilon and sigma are settings for the hydrogen bond potential based
+on a Lennard-Jones functional form.  Note that sigma is defined as the
+zero-crossing distance for the potential, not as the energy minimum at
+2^(1/6) sigma.
+
+D0 and alpha and r0 are settings for the hydrogen bond potential based
+on a Morse functional form.
+
+The last 3 coefficients for both styles are optional.  If not
+specified, the global n, distance cutoff, and angle cutoff specified
+in the pair_style command are used.  If you wish to only override the
+2nd or 3rd optional parameter, you must also specify the preceding
+optional parameters.
+
+:line
+
+[Mixing, shift, table, tail correction, restart, rRESPA info]:
+
+These pair styles do not support mixing. You must explicitly identify
+each donor/acceptor type pair.
+
+These styles do not support the "pair_modify"_pair_modify.html shift
+option for the energy of the interactions.
+
+The "pair_modify"_pair_modify.html table option is not relevant for
+these pair styles.
+
+These pair styles do not support the "pair_modify"_pair_modify.html
+tail option for adding long-range tail corrections to energy and
+pressure.
+
+These pair styles do not write their information to "binary restart
+files"_restart.html, so pair_style and pair_coeff commands need to be
+re-specified in an input script that reads a restart file.
+
+These pair styles can only be used via the {pair} keyword of the
+"run_style respa"_run_style.html command.  They do not support the
+{inner}, {middle}, {outer} keywords.
+
+These pair style tally a count of how many hydrogen bonding
+interactions they calculate each timestep.  This quantity can be
+accessed via the "compute pair"_compute_pair.html command as a vector
+of values of length 1.
+
+To print this quantity to the log file (with a descriptive column
+heading) the following commands could be included in an input script:
+
+compute hb all pair hbond/dreiding/lj
+variable hb equal c_hb\[1\]
+thermo_style custom step temp epair v_hb :pre
+
+:line
+
+[Restrictions:] none
+
+[Related commands:]
+
+"pair_coeff"_pair_coeff.html
+
+[Default:] none
+
+:line
+
+:link(Mayo)
+[(Mayo)] Mayo, Olfason, Goddard III, J Phys Chem, 94, 8897-8909
+(1990).
+
+:link(Liu)
+[(Liu)] Liu, Bryantsev, Diallo, Goddard III, J. Am. Chem. Soc 131 (8)
+2798 (2009)

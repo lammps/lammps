@@ -131,7 +131,7 @@ Force fields :h4
 commands)
 
   pairwise potentials: Lennard-Jones, Buckingham, Morse, Born-Mayer-Huggins, \
-    Yukawa, soft, class 2 (COMPASS), DREIDING hydrogen bond, tabulated
+    Yukawa, soft, class 2 (COMPASS), hydrogen bond, tabulated
   charged pairwise potentials: Coulombic, point-dipole
   manybody potentials: EAM, Finnis/Sinclair EAM, modified EAM (MEAM), \
     embedded ion method (EIM), Stillinger-Weber, Tersoff, AI-REBO, ReaxFF, COMB
@@ -140,17 +140,17 @@ commands)
   mesoscopic potentials: granular, Peridynamics
   bond potentials: harmonic, FENE, Morse, nonlinear, class 2, \
     quartic (breakable)
-  angle potentials: harmonic, CHARMM, cosine, cosine/squared, DREIDING, \
+  angle potentials: harmonic, CHARMM, cosine, cosine/squared, cosine/periodic, \
     class 2 (COMPASS)
   dihedral potentials: harmonic, CHARMM, multi-harmonic, helix, \
     class 2 (COMPASS), OPLS
-  improper potentials: harmonic, cvff, DREIDING, class 2 (COMPASS)
+  improper potentials: harmonic, cvff, umbrella, class 2 (COMPASS)
   polymer potentials: all-atom, united-atom, bead-spring, breakable
   water potentials: TIP3P, TIP4P, SPC
   implicit solvent potentials: hydrodynamic lubrication, Debye
   long-range Coulombics and dispersion: Ewald, \
     PPPM (similar to particle-mesh Ewald), Ewald/N for long-range Lennard-Jones
-  force-field compatibility with common CHARMM, AMBER, OPLS, GROMACS options
+  force-field compatibility with common CHARMM, AMBER, DREIDING, OPLS, GROMACS, COMPASS options
   handful of GPU-enabled pair styles :ul
   hybrid potentials: multiple pair, bond, angle, dihedral, improper \
     potentials can be used in one simulation

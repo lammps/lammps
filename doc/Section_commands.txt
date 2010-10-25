@@ -579,6 +579,8 @@ potentials.  Click on the style itself for a full description:
 "gran/hertz/history"_pair_gran.html,
 "gran/hooke"_pair_gran.html,
 "gran/hooke/history"_pair_gran.html,
+"hbond/dreiding/lj"_pair_hbond_dreiding.html,
+"hbond/dreiding/morse"_pair_hbond_dreiding.html,
 "lj/charmm/coul/charmm"_pair_charmm.html,
 "lj/charmm/coul/charmm/implicit"_pair_charmm.html,
 "lj/charmm/coul/long"_pair_charmm.html,
@@ -657,6 +659,7 @@ angle potentials.  Click on the style itself for a full description:
 "class2"_angle_class2.html,
 "cosine"_angle_cosine.html,
 "cosine/delta"_angle_cosine_delta.html,
+"cosine/periodic"_angle_cosine_periodic.html,
 "cosine/squared"_angle_cosine_squared.html,
 "harmonic"_angle_harmonic.html,
 "table"_angle_table.html :tb(c=4,ea=c,w=100)
@@ -695,7 +698,8 @@ description:
 "hybrid"_improper_hybrid.html,
 "class2"_improper_class2.html,
 "cvff"_improper_cvff.html,
-"harmonic"_improper_harmonic.html :tb(c=4,ea=c,w=100)
+"harmonic"_improper_harmonic.html,
+"umbrella"_improper_umbrella.html :tb(c=4,ea=c,w=100)
 
 :line
 

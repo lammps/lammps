@@ -17,10 +17,11 @@
 </PRE>
 <UL><LI>one or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>amber</I> or <I>charmm</I> or <I>fene</I> or <I>lj/coul</I> or <I>lj</I> or <I>coul</I> or <I>angle</I> or <I>dihedral</I> or <I>extra</I> 
+<LI>keyword = <I>amber</I> or <I>charmm</I> or <I>dreiding</I> or <I>fene</I> or <I>lj/coul</I> or <I>lj</I> or <I>coul</I> or <I>angle</I> or <I>dihedral</I> or <I>extra</I> 
 
 <PRE>  <I>amber</I> values = none
   <I>charmm</I> values = none
+  <I>dreiding</I> values = none
   <I>fene</I> values = none
   <I>lj/coul</I> values = w1,w2,w3
     w1,w2,w3 = weights (0.0 to 1.0) on pairwise Lennard-Jones and Coulombic interactions
@@ -80,7 +81,8 @@ details.
 <P>The <I>amber</I> keyword sets the 3 coefficients to 0.0, 0.0, 0.5 for LJ
 interactions and to 0.0, 0.0, 0.8333 for Coulombic interactions, which
 is the default for a commonly used version of the AMBER force field,
-where the last value is really 5/6.
+where the last value is really 5/6.  See <A HREF = "#Cornell">(Cornell)</A> for a
+description of the AMBER force field.
 </P>
 <P>The <I>charmm</I> keyword sets the 3 coefficients to 0.0, 0.0, 0.0 for both
 LJ and Coulombic interactions, which is the default for a commonly
@@ -89,11 +91,17 @@ used version of the CHARMM force field.  Note that in pair styles
 are defined explicitly, and these pairwise contributions are computed
 as part of the charmm dihedral style - see the
 <A HREF = "pair_coeff.html">pair_coeff</A> and <A HREF = "dihedral_style.html">dihedral_style</A>
-commands for more information.
+commands for more information.  See <A HREF = "#MacKerell">(MacKerell)</A> for a
+description of the CHARMM force field.
+</P>
+<P>The <I>dreiding</I> keyword sets the 3 coefficients to 0.0, 0.0, 1.0 for both
+LJ and Coulombic interactions, which is the default for the Dreiding
+force field, as discussed in <A HREF = "#Mayo">(Mayo)</A>.
 </P>
 <P>The <I>fene</I> keyword sets the 3 coefficients to 0.0, 1.0, 1.0 for both
 LJ and Coulombic interactions, which is consistent with a
-coarse-grained polymer model with <A HREF = "bond_fene.html">FENE bonds</A>.
+coarse-grained polymer model with <A HREF = "bond_fene.html">FENE bonds</A>.  See
+<A HREF = "#Kremer">(Kremer)</A> for a description of FENE bonds.
 </P>
 <P>The <I>lj/coul</I>, <I>lj</I>, and <I>coul</I> keywords allow the 3 coefficients to
 be set explicitly.  The <I>lj/coul</I> keyword sets both the LJ and
@@ -149,5 +157,26 @@ you do not do this, you may get an error when bonds are added.
 </P>
 <P>All 3 Lennard-Jones and 3 Coulobmic weighting coefficients = 0.0,
 angle = no, dihedral = no, and extra = 0.
+</P>
+<HR>
+
+<A NAME = "Cornell"></A>
+
+<P><B>(Cornell)</B> Cornell, Cieplak, Bayly, Gould, Merz, Ferguson,
+Spellmeyer, Fox, Caldwell, Kollman, JACS 117, 5179-5197 (1995).
+</P>
+<A NAME = "Kremer"></A>
+
+<P><B>(Kremer)</B> Kremer, Grest, J Chem Phys, 92, 5057 (1990).
+</P>
+<A NAME = "MacKerell"></A>
+
+<P><B>(MacKerell)</B> MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field,
+Fischer, Gao, Guo, Ha, et al, J Phys Chem, 102, 3586 (1998).
+</P>
+<A NAME = "Mayo"></A>
+
+<P><B>(Mayo)</B> Mayo, Olfason, Goddard III, J Phys Chem, 94, 8897-8909
+(1990).
 </P>
 </HTML>

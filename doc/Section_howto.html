@@ -16,7 +16,7 @@ certain kinds of LAMMPS simulations.
 </P>
 4.1 <A HREF = "#4_1">Restarting a simulation</A><BR>
 4.2 <A HREF = "#4_2">2d simulations</A><BR>
-4.3 <A HREF = "#4_3">CHARMM and AMBER force fields</A><BR>
+4.3 <A HREF = "#4_3">CHARMM, AMBER, and DREIDING force fields</A><BR>
 4.4 <A HREF = "#4_4">Running multiple simulations from one input script</A><BR>
 4.5 <A HREF = "#4_5">Multi-replica simulations</A><BR>
 4.6 <A HREF = "#4_6">Granular models</A><BR>
@@ -31,8 +31,7 @@ certain kinds of LAMMPS simulations.
 4.15 <A HREF = "#4_15">Output from LAMMPS (thermo, dumps, computes, fixes, variables)</A><BR>
 4.16 <A HREF = "#4_16">Thermostatting, barostatting and computing temperature</A><BR>
 4.17 <A HREF = "#4_17">Walls</A><BR>
-4.18 <A HREF = "#4_18">Elastic constants</A><BR>
-4.19 <A HREF = "#4_19">Computing free energies from thermodyanmic integration</A> <BR>
+4.18 <A HREF = "#4_18">Elastic constants</A> <BR>
 
 <P>The example input scripts included in the LAMMPS distribution and
 highlighted in <A HREF = "Section_example.html">this section</A> also show how to
@@ -167,19 +166,18 @@ the same as in 3d.
 </P>
 <HR>
 
-<A NAME = "4_3"></A><H4>4.3 CHARMM and AMBER force fields 
+<A NAME = "4_3"></A><H4>4.3 CHARMM, AMBER, and DREIDING force fields 
 </H4>
-<P>There are many different ways to compute forces in the <A HREF = "http://www.scripps.edu/brooks">CHARMM</A>
-and <A HREF = "http://amber.scripps.edu">AMBER</A> molecular dynamics codes, only some of which are
-available as options in LAMMPS.  A force field has 2 parts: the
-formulas that define it and the coefficients used for a particular
-system.  Here we only discuss formulas implemented in LAMMPS.  Setting
+<P>A force field has 2 parts: the formulas that define it and the
+coefficients used for a particular system.  Here we only discuss
+formulas implemented in LAMMPS that correspond to formulas commonly
+used in the CHARMM, AMBER, and DREIDING force fields.  Setting
 coefficients is done in the input data file via the
 <A HREF = "read_data.html">read_data</A> command or in the input script with
 commands like <A HREF = "pair_coeff.html">pair_coeff</A> or
-<A HREF = "bond_coeff.html">bond_coeff</A>.  See <A HREF = "Section_tools.html">this section</A> for
-additional tools that can use CHARMM or AMBER to assign force field
-coefficients and convert their output into LAMMPS input.
+<A HREF = "bond_coeff.html">bond_coeff</A>.  See <A HREF = "Section_tools.html">this section</A>
+for additional tools that can use CHARMM or AMBER to assign force
+field coefficients and convert their output into LAMMPS input.
 </P>
 <P>See <A HREF = "#MacKerell">(MacKerell)</A> for a description of the CHARMM force
 field.  See <A HREF = "#Cornell">(Cornell)</A> for a description of the AMBER force
@@ -193,15 +191,55 @@ field.
 with common options in CHARMM or AMBER.  See each command's
 documentation for the formula it computes.
 </P>
-<UL><LI><A HREF = "bond_style.html">bond_style</A> harmonic
-<LI><A HREF = "angle_style.html">angle_style</A> charmm
-<LI><A HREF = "dihedral_style.html">dihedral_style</A> charmm
-<LI><A HREF = "pair_style.html">pair_style</A> lj/charmm/coul/charmm
-<LI><A HREF = "pair_style.html">pair_style</A> lj/charmm/coul/charmm/implicit
-<LI><A HREF = "pair_style.html">pair_style</A> lj/charmm/coul/long 
+<UL><LI><A HREF = "bond_harmonic.html">bond_style</A> harmonic
+<LI><A HREF = "angle_charmm.html">angle_style</A> charmm
+<LI><A HREF = "dihedral_charmm.html">dihedral_style</A> charmm
+<LI><A HREF = "pair_charmm.html">pair_style</A> lj/charmm/coul/charmm
+<LI><A HREF = "pair_charmm.html">pair_style</A> lj/charmm/coul/charmm/implicit
+<LI><A HREF = "pair_charmm.html">pair_style</A> lj/charmm/coul/long 
 </UL>
 <UL><LI><A HREF = "special_bonds.html">special_bonds</A> charmm
 <LI><A HREF = "special_bonds.html">special_bonds</A> amber 
+</UL>
+<P>DREIDING is a generic force field developed by the <A HREF = "http://www.wag.caltech.edu">Goddard
+group</A> at Caltech and is useful for
+predicting structures and dynamics of organic, biological and
+main-group inorganic molecules. The philosophy in DREIDING is to use
+general force constants and geometry parameters based on simple
+hybridization considerations, rather than individual force constants
+and geometric parameters that depend on the particular combinations of
+atoms involved in the bond, angle, or torsion terms. DREIDING has an
+<A HREF = "pair_hbond_dreiding.html">explicit hydrogen bond term</A> to describe
+interactions involving a hydrogen atom (H___A) on very electronegative
+atoms (N, O, F).
+</P>
+<P>See <A HREF = "#Mayo">(Mayo)</A> for a description of the DREIDING force field
+</P>
+<P>These style choices compute force field formulas that are consistent
+with the DREIDING force field.  See each command's
+documentation for the formula it computes.
+</P>
+<UL><LI><A HREF = "bond_harmonic.html">bond_style</A> harmonic
+<LI><A HREF = "bond_morse.html">bond_style</A> morse 
+</UL>
+<UL><LI><A HREF = "angle_harmonic.html">angle_style</A> harmonic
+<LI><A HREF = "angle_cosine.html">angle_style</A> cosine
+<LI><A HREF = "angle_cosine_periodic.html">angle_style</A> cosine/periodic 
+</UL>
+<UL><LI><A HREF = "dihedral_charmm.html">dihedral_style</A> charmm
+<LI><A HREF = "improper_umbrella.html">improper_style</A> umbrella 
+</UL>
+<UL><LI><A HREF = "pair_buck.html">pair_style</A> buck
+<LI><A HREF = "pair_buck.html">pair_style</A> buck/coul/cut
+<LI><A HREF = "pair_buck.html">pair_style</A> buck/coul/long
+<LI><A HREF = "pair_lj.html">pair_style</A> lj/cut
+<LI><A HREF = "pair_lj.html">pair_style</A> lj/cut/coul/cut
+<LI><A HREF = "pair_lj.html">pair_style</A> lj/cut/coul/long 
+</UL>
+<UL><LI><A HREF = "pair_hbond_dreiding.html">pair_style</A> hbond/dreiding/lj
+<LI><A HREF = "pair_hbond_dreiding.html">pair_style</A> hbond/dreiding/morse 
+</UL>
+<UL><LI><A HREF = "special_bonds.html">special_bonds</A> dreiding 
 </UL>
 <HR>
 
@@ -1610,72 +1648,6 @@ converge and requires careful post-processing <A HREF = "#Shinoda">(Shinoda)</A>
 </P>
 <HR>
 
-<A NAME = "4_19"></A><H4>4.19 Computing free energies from thermodynamic integration 
-</H4>
-<P>Thermodynamic integration is a widely used method to compute free
-energies from atomistic simulations.  LAMMPS can be used to run
-thermodynamic integration calculations using the methods discussed in
-this section and the <A HREF = "fix_adapt.html">fix adapt</A> command.  Currently,
-it is capable of the transformations essential for computing melting
-points using the pseudo-supercritical path method developed by <A HREF = "#Eike_Maginn">Eike
-and Maginn</A>.
-</P>
-<P>See the examples/TI directory for more information and sample files
-that compute a melting point using the techniques described in this
-section.  That directory has its own README file.  See also the paper
-by <A HREF = "#Jayaraman">Jayaraman</A> for an example of using this implementation
-of thermodynamic integration in LAMMPS to compute melting points of
-alkali nitrate salts, using the steps outlined here.
-</P>
-<P>In this method, three intermediate "pseudo-supercritical" states are
-accessed in the transformation between the liquid and solid
-phases. These pseudo-states are a weak liquid, a dense weak liquid,
-and an ordered weak phase. The transformation between the liquid and
-solid states can also be driven uisng the <A HREF = "fix_adapt.html">fix adapt</A>
-command.
-</P>
-<P>For the transformation from the liquid to the weak phase, the
-intermolecular interactions need to be weakened.  Appropriate scale
-factors, computed by variables you define, and applied to pair styles
-by <A HREF = "fix_adapt.html">fix adapt</A>, can be used to do this, as in the
-example scripts.  The <A HREF = "compute_ti.html">compute ti</A> command can
-accumulate the value of dU/d<I>lambda</I>.  See <A HREF = "#Jayaraman_Maginn">Jayaraman and
-Maginn</A> for more information about calculating a
-free energy from dU/d<I>lambda</I>.
-</P>
-<P>IMPORTANT NOTE: The pair styles that fix adapt can scale on-the-fly
-are listed on the <A HREF = "fix_adapt">fix adapt</A> doc page.  interaction scaling
-is desired.  If a pair style is not on that list, it is generally
-quite easy to add an extract() method to the pair style, to enable fix
-adapt to rescale it.
-</P>
-<P>Step 2 is the transformation of the simulation box density from the
-liquid phase to that of the equilibrated crystal.  The parameters for
-box1 and box2 should be obtained from equilibrated NPT simulations of
-the liquid and crystal phases and used in a <A HREF = "fix_deform.html">fix
-deform</A> command to change the box size and/or shape.
-It also advisable to use <A HREF = "fix_adapt.html">fix adapt</A> on the pair styles
-to prevent overlaps which may occur during the box transformation.
-</P>
-<P>In step 3, the dense, weak system is transformed to an ordered state,
-which has the same ordering as in the equilibrated crystal.  Ordering
-is achieved by introducing an attractive potential between atoms and
-lattice sites.  These lattice sites can be calculated as the mean
-positions of the atoms in an equilibrium simulation of the
-crystal. The <A HREF = "pair_gauss.html">pair/gauss</A> command can be used to
-introduce an attractive Gaussian potential between the atoms and their
-corresponding lattice sites. The prefactor of the Gaussian pair
-potential can be scaled by <A HREF = "fix_adapt.html">fix adapt</A> to turn on the
-attractions.  Again, the quantity dU/d<I>lambda</I> can be tracked via the
-<A HREF = "compute_ti.html">compute ti</A> command.
-</P>
-<P>Step 4 is the transformation of the ordered state to the final
-crystal.  In this step, the intermolecular interactions are scaled
-back to full strength, while the Gaussian tethers are removed, all via
-<A HREF = "fix_adapt.html">fix adapt</A>.
-</P>
-<HR>
-
 <HR>
 
 <A NAME = "Berendsen"></A>
@@ -1698,6 +1670,11 @@ J Chem Phys, 120, 9665 (2004).
 <P><B>(MacKerell)</B> MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field,
 Fischer, Gao, Guo, Ha, et al, J Phys Chem, 102, 3586 (1998).
 </P>
+<A NAME = "Mayo"></A>
+
+<P><B>(Mayo)</B> Mayo, Olfason, Goddard III, J Phys Chem, 94, 8897-8909
+(1990).
+</P>
 <A NAME = "Jorgensen"></A>
 
 <P><B>(Jorgensen)</B> Jorgensen, Chandrasekhar, Madura, Impey, Klein, J Chem
@@ -1710,20 +1687,5 @@ Phys, 79, 926 (1983).
 <A NAME = "Shinoda"></A>
 
 <P><B>(Shinoda)</B> Shinoda, Shiga, and Mikami, Phys Rev B, 69, 134103 (2004).
-</P>
-<A NAME = "Eike_Maginn"></A>
-
-<P><B>(Eike and Maginn)</B> Eike and Maginn, J Chem Phys, 124,
-164503 (2006). 
-</P>
-<A NAME = "Jayaraman_Maginn"></A>
-
-<P><B>(Jayaraman and Maginn)</B> Jayaraman and Maginn, Journal of Chemical Physics, 
-127, 214504 (2007).
-</P>
-<A NAME = "Jayaraman"></A>
-
-<P><B>(Jayaraman)</B> Jayaraman, Thompson, von Lilienfeld and Maginn, Industrial 
-and Engineering Chemistry Research, 49, 559-571 (2010).   
 </P>
 </HTML>

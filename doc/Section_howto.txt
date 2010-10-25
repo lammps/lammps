@@ -13,7 +13,7 @@ certain kinds of LAMMPS simulations.
 
 4.1 "Restarting a simulation"_#4_1
 4.2 "2d simulations"_#4_2
-4.3 "CHARMM and AMBER force fields"_#4_3
+4.3 "CHARMM, AMBER, and DREIDING force fields"_#4_3
 4.4 "Running multiple simulations from one input script"_#4_4
 4.5 "Multi-replica simulations"_#4_5
 4.6 "Granular models"_#4_6
@@ -28,8 +28,7 @@ certain kinds of LAMMPS simulations.
 4.15 "Output from LAMMPS (thermo, dumps, computes, fixes, variables)"_#4_15
 4.16 "Thermostatting, barostatting and computing temperature"_#4_16
 4.17 "Walls"_#4_17
-4.18 "Elastic constants"_#4_18
-4.19 "Computing free energies from thermodyanmic integration"_#4_19 :all(b)
+4.18 "Elastic constants"_#4_18 :all(b)
 
 The example input scripts included in the LAMMPS distribution and
 highlighted in "this section"_Section_example.html also show how to
@@ -164,19 +163,18 @@ the same as in 3d.
 
 :line
 
-4.3 CHARMM and AMBER force fields :link(4_3),h4
+4.3 CHARMM, AMBER, and DREIDING force fields :link(4_3),h4
 
-There are many different ways to compute forces in the "CHARMM"_charmm
-and "AMBER"_amber molecular dynamics codes, only some of which are
-available as options in LAMMPS.  A force field has 2 parts: the
-formulas that define it and the coefficients used for a particular
-system.  Here we only discuss formulas implemented in LAMMPS.  Setting
+A force field has 2 parts: the formulas that define it and the
+coefficients used for a particular system.  Here we only discuss
+formulas implemented in LAMMPS that correspond to formulas commonly
+used in the CHARMM, AMBER, and DREIDING force fields.  Setting
 coefficients is done in the input data file via the
 "read_data"_read_data.html command or in the input script with
 commands like "pair_coeff"_pair_coeff.html or
-"bond_coeff"_bond_coeff.html.  See "this section"_Section_tools.html for
-additional tools that can use CHARMM or AMBER to assign force field
-coefficients and convert their output into LAMMPS input.
+"bond_coeff"_bond_coeff.html.  See "this section"_Section_tools.html
+for additional tools that can use CHARMM or AMBER to assign force
+field coefficients and convert their output into LAMMPS input.
 
 See "(MacKerell)"_#MacKerell for a description of the CHARMM force
 field.  See "(Cornell)"_#Cornell for a description of the AMBER force
@@ -189,15 +187,55 @@ These style choices compute force field formulas that are consistent
 with common options in CHARMM or AMBER.  See each command's
 documentation for the formula it computes.
 
-"bond_style"_bond_style.html harmonic
-"angle_style"_angle_style.html charmm
-"dihedral_style"_dihedral_style.html charmm
-"pair_style"_pair_style.html lj/charmm/coul/charmm
-"pair_style"_pair_style.html lj/charmm/coul/charmm/implicit
-"pair_style"_pair_style.html lj/charmm/coul/long :ul
+"bond_style"_bond_harmonic.html harmonic
+"angle_style"_angle_charmm.html charmm
+"dihedral_style"_dihedral_charmm.html charmm
+"pair_style"_pair_charmm.html lj/charmm/coul/charmm
+"pair_style"_pair_charmm.html lj/charmm/coul/charmm/implicit
+"pair_style"_pair_charmm.html lj/charmm/coul/long :ul
 
 "special_bonds"_special_bonds.html charmm
 "special_bonds"_special_bonds.html amber :ul
+
+DREIDING is a generic force field developed by the "Goddard
+group"_http://www.wag.caltech.edu at Caltech and is useful for
+predicting structures and dynamics of organic, biological and
+main-group inorganic molecules. The philosophy in DREIDING is to use
+general force constants and geometry parameters based on simple
+hybridization considerations, rather than individual force constants
+and geometric parameters that depend on the particular combinations of
+atoms involved in the bond, angle, or torsion terms. DREIDING has an
+"explicit hydrogen bond term"_pair_hbond_dreiding.html to describe
+interactions involving a hydrogen atom (H___A) on very electronegative
+atoms (N, O, F).
+
+See "(Mayo)"_#Mayo for a description of the DREIDING force field
+
+These style choices compute force field formulas that are consistent
+with the DREIDING force field.  See each command's
+documentation for the formula it computes.
+
+"bond_style"_bond_harmonic.html harmonic
+"bond_style"_bond_morse.html morse :ul
+
+"angle_style"_angle_harmonic.html harmonic
+"angle_style"_angle_cosine.html cosine
+"angle_style"_angle_cosine_periodic.html cosine/periodic :ul
+
+"dihedral_style"_dihedral_charmm.html charmm
+"improper_style"_improper_umbrella.html umbrella :ul
+
+"pair_style"_pair_buck.html buck
+"pair_style"_pair_buck.html buck/coul/cut
+"pair_style"_pair_buck.html buck/coul/long
+"pair_style"_pair_lj.html lj/cut
+"pair_style"_pair_lj.html lj/cut/coul/cut
+"pair_style"_pair_lj.html lj/cut/coul/long :ul
+
+"pair_style"_pair_hbond_dreiding.html hbond/dreiding/lj
+"pair_style"_pair_hbond_dreiding.html hbond/dreiding/morse :ul
+
+"special_bonds"_special_bonds.html dreiding :ul
 
 :line
 
@@ -1597,72 +1635,6 @@ that occur in an NPT simulation. This method can also be slow to
 converge and requires careful post-processing "(Shinoda)"_#Shinoda
 
 :line
-
-4.19 Computing free energies from thermodynamic integration :link(4_19),h4
-
-Thermodynamic integration is a widely used method to compute free
-energies from atomistic simulations.  LAMMPS can be used to run
-thermodynamic integration calculations using the methods discussed in
-this section and the "fix adapt"_fix_adapt.html command.  Currently,
-it is capable of the transformations essential for computing melting
-points using the pseudo-supercritical path method developed by "Eike
-and Maginn"_#Eike_Maginn.
-
-See the examples/TI directory for more information and sample files
-that compute a melting point using the techniques described in this
-section.  That directory has its own README file.  See also the paper
-by "Jayaraman"_#Jayaraman for an example of using this implementation
-of thermodynamic integration in LAMMPS to compute melting points of
-alkali nitrate salts, using the steps outlined here.
-
-In this method, three intermediate "pseudo-supercritical" states are
-accessed in the transformation between the liquid and solid
-phases. These pseudo-states are a weak liquid, a dense weak liquid,
-and an ordered weak phase. The transformation between the liquid and
-solid states can also be driven uisng the "fix adapt"_fix_adapt.html
-command.
-
-For the transformation from the liquid to the weak phase, the
-intermolecular interactions need to be weakened.  Appropriate scale
-factors, computed by variables you define, and applied to pair styles
-by "fix adapt"_fix_adapt.html, can be used to do this, as in the
-example scripts.  The "compute ti"_compute_ti.html command can
-accumulate the value of dU/d{lambda}.  See "Jayaraman and
-Maginn"_#Jayaraman_Maginn for more information about calculating a
-free energy from dU/d{lambda}.
- 
-IMPORTANT NOTE: The pair styles that fix adapt can scale on-the-fly
-are listed on the "fix adapt"_fix_adapt doc page.  interaction scaling
-is desired.  If a pair style is not on that list, it is generally
-quite easy to add an extract() method to the pair style, to enable fix
-adapt to rescale it.
-
-Step 2 is the transformation of the simulation box density from the
-liquid phase to that of the equilibrated crystal.  The parameters for
-box1 and box2 should be obtained from equilibrated NPT simulations of
-the liquid and crystal phases and used in a "fix
-deform"_fix_deform.html command to change the box size and/or shape.
-It also advisable to use "fix adapt"_fix_adapt.html on the pair styles
-to prevent overlaps which may occur during the box transformation.
-
-In step 3, the dense, weak system is transformed to an ordered state,
-which has the same ordering as in the equilibrated crystal.  Ordering
-is achieved by introducing an attractive potential between atoms and
-lattice sites.  These lattice sites can be calculated as the mean
-positions of the atoms in an equilibrium simulation of the
-crystal. The "pair/gauss"_pair_gauss.html command can be used to
-introduce an attractive Gaussian potential between the atoms and their
-corresponding lattice sites. The prefactor of the Gaussian pair
-potential can be scaled by "fix adapt"_fix_adapt.html to turn on the
-attractions.  Again, the quantity dU/d{lambda} can be tracked via the
-"compute ti"_compute_ti.html command.
-
-Step 4 is the transformation of the ordered state to the final
-crystal.  In this step, the intermolecular interactions are scaled
-back to full strength, while the Gaussian tethers are removed, all via
-"fix adapt"_fix_adapt.html.
-
-:line
 :line
 
 :link(Berendsen)
@@ -1681,6 +1653,10 @@ J Chem Phys, 120, 9665 (2004).
 [(MacKerell)] MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field,
 Fischer, Gao, Guo, Ha, et al, J Phys Chem, 102, 3586 (1998).
 
+:link(Mayo)
+[(Mayo)] Mayo, Olfason, Goddard III, J Phys Chem, 94, 8897-8909
+(1990).
+
 :link(Jorgensen)
 [(Jorgensen)] Jorgensen, Chandrasekhar, Madura, Impey, Klein, J Chem
 Phys, 79, 926 (1983).
@@ -1690,15 +1666,3 @@ Phys, 79, 926 (1983).
 
 :link(Shinoda)
 [(Shinoda)] Shinoda, Shiga, and Mikami, Phys Rev B, 69, 134103 (2004).
-
-:link(Eike_Maginn) 
-[(Eike and Maginn)] Eike and Maginn, J Chem Phys, 124,
-164503 (2006). 
-
-:link(Jayaraman_Maginn)
-[(Jayaraman and Maginn)] Jayaraman and Maginn, Journal of Chemical Physics, 
-127, 214504 (2007).
-
-:link(Jayaraman)
-[(Jayaraman)] Jayaraman, Thompson, von Lilienfeld and Maginn, Industrial 
-and Engineering Chemistry Research, 49, 559-571 (2010).   

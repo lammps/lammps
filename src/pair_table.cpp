@@ -355,7 +355,7 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
   while (1) {
     if (fgets(line,MAXLINE,fp) == NULL)
       error->one("Did not find keyword in table file");
-    if (strspn(line," \t\n") == strlen(line)) continue;    // blank line
+    if (strspn(line," \t\n\r") == strlen(line)) continue;  // blank line
     if (line[0] == '#') continue;                          // comment
     if (strstr(line,keyword) == line) break;               // matching keyword
     fgets(line,MAXLINE,fp);                         // no match, skip section

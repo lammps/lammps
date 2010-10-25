@@ -131,7 +131,7 @@ Force fields :h4
 commands)
 
   pairwise potentials: Lennard-Jones, Buckingham, Morse, Born-Mayer-Huggins, \
-    Yukawa, soft, class 2 (COMPASS), tabulated
+    Yukawa, soft, class 2 (COMPASS), DREIDING hydrogen bond, tabulated
   charged pairwise potentials: Coulombic, point-dipole
   manybody potentials: EAM, Finnis/Sinclair EAM, modified EAM (MEAM), \
     embedded ion method (EIM), Stillinger-Weber, Tersoff, AI-REBO, ReaxFF, COMB
@@ -140,11 +140,11 @@ commands)
   mesoscopic potentials: granular, Peridynamics
   bond potentials: harmonic, FENE, Morse, nonlinear, class 2, \
     quartic (breakable)
-  angle potentials: harmonic, CHARMM, cosine, cosine/squared, \
+  angle potentials: harmonic, CHARMM, cosine, cosine/squared, DREIDING, \
     class 2 (COMPASS)
   dihedral potentials: harmonic, CHARMM, multi-harmonic, helix, \
     class 2 (COMPASS), OPLS
-  improper potentials: harmonic, cvff, class 2 (COMPASS)
+  improper potentials: harmonic, cvff, DREIDING, class 2 (COMPASS)
   polymer potentials: all-atom, united-atom, bead-spring, breakable
   water potentials: TIP3P, TIP4P, SPC
   implicit solvent potentials: hydrodynamic lubrication, Debye

@@ -22,12 +22,12 @@ interactions (degrees) :ul
 [Examples:]
 
 pair_style hbond/dreiding/lj 4 5.0 90
-pair_coeff * * 100.0 1.5 200.0
-pair_coeff * * 100.0 1.5 200.0 2 :pre
+pair_coeff * * 3 i 100.0 3.1
+pair_coeff * * 2*5 i 100.0 3.1 2 200.0 :pre
 
 pair_style hbond/dreiding/morse 2 4.6 75.0 
-pair_coeff * * 100.0 1.5 200.0
-pair_coeff * * 100.0 1.5 200.0 4 3.0 :pre
+pair_coeff * * 3 j 100.0 1.0 2.0
+pair_coeff * * 2*5 j 100.0 1.0 2.0 4 :pre
 
 [Description:]
 

@@ -29,10 +29,11 @@ class ComputePair : public Compute {
   ComputePair(class LAMMPS *, int, char **);
   ~ComputePair();
   void init();
+  double compute_scalar();
   void compute_vector();
 
  private:
-  int npair;
+  int evalue,npair;
   char *pstyle;
   class Pair *pair;
   double *one;

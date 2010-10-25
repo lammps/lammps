@@ -21,34 +21,42 @@
 
 using namespace LAMMPS_NS;
 
+enum{EPAIR,EVDWL,ECOUL};
+
 /* ---------------------------------------------------------------------- */
 
 ComputePair::ComputePair(LAMMPS *lmp, int narg, char **arg) : 
   Compute(lmp, narg, arg)
 {
-  if (narg != 4) error->all("Illegal compute pair command");
+  if (narg < 4 || narg > 5) error->all("Illegal compute pair command");
   if (igroup) error->all("Compute pair must use group all");
+
+  scalar_flag = 1;
+  extscalar = 1;
+  peflag = 1;
+  timeflag = 1;
 
   int n = strlen(arg[3]) + 1;
   pstyle = new char[n];
   strcpy(pstyle,arg[3]);
 
+  if (narg == 5) {
+    if (strcmp(arg[4],"epair") == 0) evalue = EPAIR;
+    if (strcmp(arg[4],"evdwl") == 0) evalue = EVDWL;
+    if (strcmp(arg[4],"ecoul") == 0) evalue = ECOUL;
+  } else evalue = EPAIR;
+
   pair = force->pair_match(pstyle,1);
   if (!pair) error->all("Unrecognized pair style in compute pair command");
   npair = pair->nextra;
-  if (!npair) 
-    error->all("Pair style in compute pair command stores no values");
 
-  // settings
-
-  vector_flag = 1;
-  size_vector = npair;
-  extvector = 1;
-  peflag = 1;
-  timeflag = 1;
-
-  one = new double[npair];
-  vector = new double[npair];
+  if (npair) {
+    vector_flag = 1;
+    size_vector = npair;
+    extvector = 1;
+    one = new double[npair];
+    vector = new double[npair];
+  } else one = vector = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -68,6 +76,23 @@ void ComputePair::init()
 
   pair = force->pair_match(pstyle,1);
   if (!pair) error->all("Unrecognized pair style in compute pair command");
+}
+
+/* ---------------------------------------------------------------------- */
+
+double ComputePair::compute_scalar()
+{
+  invoked_scalar = update->ntimestep;
+  if (update->eflag_global != invoked_scalar)
+    error->all("Energy was not tallied on needed timestep");
+
+  double eng;
+  if (evalue == EPAIR) eng = pair->eng_vdwl + pair->eng_coul;
+  else if (evalue == EVDWL) eng = pair->eng_vdwl;
+  else if (evalue == ECOUL) eng = pair->eng_coul;
+
+  MPI_Allreduce(&eng,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
+  return scalar;
 }
 
 /* ---------------------------------------------------------------------- */

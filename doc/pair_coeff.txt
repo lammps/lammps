@@ -111,6 +111,8 @@ the pair_style command, and coefficients specified by the associated
 "pair_style gran/hertz/history"_pair_gran.html - granular potential with Hertzian interactions
 "pair_style gran/hooke"_pair_gran.html - granular potential with history effects
 "pair_style gran/hooke/history"_pair_gran.html - granular potential without history effects
+"pair_style hbond/dreiding/lj"_pair_hbond_dreiding.html - DREIDING hydrogen bonding LJ potential
+"pair_style hbond/dreiding/morse"_pair_hbond_dreiding.html - DREIDING hydrogen bonding Morse potential
 "pair_style lj/charmm/coul/charmm"_pair_charmm.html - CHARMM potential with cutoff Coulomb
 "pair_style lj/charmm/coul/charmm/implicit"_pair_charmm.html - CHARMM for implicit solvent
 "pair_style lj/charmm/coul/long"_pair_charmm.html - CHARMM with long-range Coulomb

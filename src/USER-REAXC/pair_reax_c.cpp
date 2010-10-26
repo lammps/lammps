@@ -82,6 +82,9 @@ PairReaxC::PairReaxC(LAMMPS *lmp) : Pair(lmp)
   system->my_atoms = NULL;
 
   fix_reax = NULL;
+
+  nextra = 14;
+  pvector = new double[nextra];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -381,6 +384,24 @@ void PairReaxC::compute(int eflag, int vflag)
 
     eng_vdwl += evdwl;
     eng_coul += ecoul;
+
+    // Store the different parts of the energy
+    // in a list for output by compute pair command
+
+    pvector[0] = data->my_en.e_bond;   
+    pvector[1] = data->my_en.e_ov + data->my_en.e_un;
+    pvector[2] = data->my_en.e_lp;
+    pvector[3] = 0.0;
+    pvector[4] = data->my_en.e_ang;
+    pvector[5] = data->my_en.e_pen;
+    pvector[6] = data->my_en.e_coa;
+    pvector[7] = data->my_en.e_hb;
+    pvector[8] = data->my_en.e_tor;
+    pvector[9] = data->my_en.e_con;
+    pvector[10] = data->my_en.e_vdW;
+    pvector[11] = data->my_en.e_ele;
+    pvector[12] = 0.0;
+    pvector[13] = data->my_en.e_pol;
   }
 
   if (vflag_fdotr) virial_compute();

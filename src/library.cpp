@@ -43,6 +43,12 @@ void lammps_open(int argc, char **argv, MPI_Comm communicator, void **ptr)
   *ptr = (void *) lmp;
 }
 
+void *lammps_open2(int argc, char **argv, MPI_Comm communicator)
+{
+  LAMMPS *lmp = new LAMMPS(argc,argv,communicator);
+  return (void *) lmp;
+}
+
 /* ----------------------------------------------------------------------
    destruct an instance of LAMMPS
 ------------------------------------------------------------------------- */

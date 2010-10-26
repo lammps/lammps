@@ -25,6 +25,7 @@ extern "C" {
 #endif
 
 void lammps_open(int, char **, MPI_Comm, void **);
+void *lammps_open2(int, char **, MPI_Comm);
 void lammps_close(void *);
 void lammps_file(void *, char *);
 char *lammps_command(void *, char *);

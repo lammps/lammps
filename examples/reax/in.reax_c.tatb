@@ -1,15 +1,16 @@
-# REAX potential for RDX system
-# this run is equivalent to GRASP testreax
+# REAX potential for TATB system
+# this run is equivalent to reax/in.reax.tatb,
+#    if hbnewflag = 1 in in.reax.tatb
 
 units		real
 
 atom_style	charge
-read_data	data.rdx
+read_data	data.tatb
 
-pair_style	reax 10.0 0 1.0e-6
-pair_coeff	* * ffield.reax 1 2 3 4
+pair_style      reax/c control.reax_c.tatb
+pair_coeff      * * ffield.reax 1 2 3 4
 
-compute reax all pair reax
+compute reax all pair reax/c
 
 variable eb  	 equal c_reax[1]
 variable ea  	 equal c_reax[2]
@@ -27,15 +28,17 @@ variable efi 	 equal c_reax[13]
 variable eqeq 	 equal c_reax[14]
 
 neighbor	2.5 bin
-neigh_modify	every 10 delay 0 check no
+neigh_modify	delay 0 every 5 check no
 
 fix		1 all nve
+fix             2 all qeq/reax 1 0.0 10.0 1.0e-6 reax/c
 
-thermo		10
+thermo		1
 thermo_style custom step temp epair etotal press v_eb v_ea v_elp v_emol v_ev v_epen v_ecoa v_ehb v_et v_eco v_ew v_ep v_efi v_eqeq
 
-timestep	1.0
+timestep	0.0625
 
-dump		1 all atom 10 dump.reax.rdx
+dump		1 all custom 100 dump.reax.tatb id type q x y z
 
-run		100
+run		25
+

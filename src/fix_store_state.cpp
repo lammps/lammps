@@ -483,7 +483,8 @@ double FixStoreState::memory_usage()
 
 void FixStoreState::grow_arrays(int nmax)
 {
-  values = memory->grow_2d_double_array(values,nmax,3,"fix_store:values");
+  values = memory->grow_2d_double_array(values,nmax,nvalues,
+					"fix_store:values");
   if (nvalues == 0) vector_atom = &values[0][0];
   else array_atom = values;
 }

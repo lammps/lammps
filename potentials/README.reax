@@ -1,7 +1,8 @@
 Different parameterization of the ReaxFF potential have been 
 used in different published works. A small number of these are provided 
 in the LAMMPS potentials directory, in the form of ffield.reax.[label] 
-files. The mapping from parameter files to publication is as follows:
+files. These can be used with the pair_styles reax and reax/c.
+The mapping from parameter files to publication is as follows:
 
 ffield.reax is the same as ffield.reax.mattson
 
@@ -18,17 +19,14 @@ J. Budzien, A. P. Thompson, and S. V. Zybin, "Reactive Molecular
 Dynamics Simulations of Shock Through a Single Crystal of
 Pentaerythritol Tetranitrate," J. Phys. Chem., 113 13142 (2009).
 
-ffield.reax.rdx: nitramines (RDX/HMX/TATB/PETN) RDX
+ffield.reax.rdx: nitramines (RDX/HMX/TATB/PETN) 
 
-(I) Zhang, L., van Duin, A.C.T., Zybin, S. and Goddard, W.A. (2009)
-Thermal Decomposition of Hydrazines from Reactive Dynamics Using the
-ReaxFF Reactive Force Field, Journal of Physical Chemistry A 113,
-10770-10778.  (II) Zhang, L., van Duin, A.C.T., Kober, E., Zybin,
-S. and Goddard, W.A.  (2009) accepted for publication in J.Phys.Chem.A
-(HMX/TATB carbon cluster formation)
+Zhang, L., van Duin, A.C.T., Zybin, S. and Goddard, W.A. (2009) 
+Carbon Cluster Formation during Thermal Decomposition of Octahydro-1,3,5,7-tetranitro-1,3,5,7-tetrazocine and 1,3,5-Triamino-2,4,6-trinitrobenzene High Explosives from ReaxFF Reactive Molecular Dynamics Simulations, 
+Journal of Physical Chemistry B 113, 10619-10640
 
 ffield.reax.cho: c/h/o combustion force field November 2006 CHO
 
-ReaxFF Reactive Force Field for Molecular Dynamics Simulations of
+"ReaxFF Reactive Force Field for Molecular Dynamics Simulations of
 Hydrocarbon Oxidation" Kimberly Chenoweth, Adri C. T. van Duin, and
 William A. Goddard, III 1040 J. Phys. Chem. A 2008, 112, 1040-1053.

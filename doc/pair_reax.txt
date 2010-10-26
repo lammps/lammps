@@ -31,7 +31,7 @@ represent the contributions of chemical bonding to the potential
 energy. There is more than one version of ReaxFF. The version
 implemented in LAMMPS uses the functional forms documented in the
 supplemental information of the following paper:
-"(Chenoweth)"_#Chenoweth.  The version integrated into LAMMPS matches
+"(Chenoweth)"_#Chenoweth_2008.  The version integrated into LAMMPS matches
 the most up-to-date version of ReaxFF as of summer 2010.
 
 The {reax} style differs from the "pair_style reax/c"_pair_reax_c.html
@@ -66,6 +66,10 @@ and {precision} = 1.0e-6 (one part in 10^6).
 If you wish to override any of these defaults, then all settings
 must be specified.
 
+Two examples using {pair_style reax} are provided in the examples/reax
+sub-directory, along with corresponding examples for 
+"pair_style reax/c"_pair_reax_c.html.
+
 Use of this pair style requires that a charge be defined for every
 atom since the {reax} pair style performs a charge equilibration (QEq)
 calculation.  See the "atom_style"_atom_style.html and
@@ -76,8 +80,38 @@ The thermo variable {evdwl} stores the sum of all the ReaxFF potential
 energy contributions, with the exception of the Coulombic and charge
 equilibration contributions which are stored in the thermo variable
 {ecoul}.  The output of these quantities is controlled by the
-"thermo"_thermo.html command.  See below for how to access
-a more detailed breakdown of ReaxFF energies.
+"thermo"_thermo.html command.  
+
+This pair style tallies a breakdown of the total ReaxFF potential
+energy into sub-categories, which can be accessed via the "compute
+pair"_compute_pair.html command as a vector of values of length 14.
+The 14 values correspond to the following sub-categories (the variable
+names in italics match those used in the ReaxFF FORTRAN library):
+
+{eb} = bond energy
+{ea} = atom energy
+{elp} = lone-pair energy
+{emol} = molecule energy (always 0.0)
+{ev} = valence angle energy
+{epen} = double-bond valence angle penalty
+{ecoa} = valence angle conjugation energy
+{ehb} = hydrogen bond energy
+{et} = torsion energy
+{eco} = conjugation energy 
+{ew} = van der Waals energy
+{ep} = Coulomb energy
+{efi} = electric field energy (always 0.0)
+{eqeq} = charge equilibration energy :ol
+
+To print these quantities to the log file (with descriptive column
+headings) the following commands could be included in an input script:
+
+compute reax all pair reax
+variable eb  	 equal c_reax\[1\]
+variable ea  	 equal c_reax\[2\] 
+...
+variable eqeq 	 equal c_reax\[14\]
+thermo_style custom step temp epair v_eb v_ea ... v_eqeq :pre
 
 Only a single pair_coeff command is used with the {reax} style which
 specifies a ReaxFF potential file with parameters for all needed
@@ -135,37 +169,6 @@ This pair style can only be used via the {pair} keyword of the
 "run_style respa"_run_style.html command.  It does not support the
 {inner}, {middle}, {outer} keywords.
 
-This pair style tallies a breakdown of the total ReaxFF potential
-energy into sub-categories, which can be accessed via the "compute
-pair"_compute_pair.html command as a vector of values of length 14.
-The 14 values correspond to the following sub-categories (the variable
-names in italics match those used in the ReaxFF FORTRAN library):
-
-{eb} = bond energy
-{ea} = atom energy
-{elp} = lone-pair energy
-{emol} = molecule energy (always 0.0)
-{ev} = valence angle energy
-{epen} = double-bond valence angle penalty
-{ecoa} = valence angle conjugation energy
-{ehb} = hydrogen bond energy
-{et} = torsion energy
-{eco} = conjugation energy 
-{ew} = van der Waals energy
-{ep} = Coulomb energy
-{efi} = electric field energy (always 0.0)
-{eqeq} = charge equilibration energy :ol
-
-To print these quantities to the log file (with descriptive column
-headings) the following commands could be included in an input script:
-
-compute reax all pair reax
-variable eb  	 equal c_reax\[1\]
-variable ea  	 equal c_reax\[2\] 
-...
-variable eqeq 	 equal c_reax\[14\]
-thermo_style custom step temp epair v_eb v_ea ... v_eqeq :pre
-
 [Restrictions:]
 
 The ReaxFF potential files provided with LAMMPS in the potentials
@@ -176,12 +179,13 @@ appropriate units if your simulation doesn't use "real" units.
 
 [Related commands:]
 
-"pair_coeff"_pair_coeff.html, "pair_style reax/c"_pair_reaxc.html
+"pair_coeff"_pair_coeff.html, "pair_style reax/c"_pair_reax_c.html,
+"fix_reax_bonds"_fix_reax_bonds.html
 
 [Default:] none
 
 :line
 
 :link(Chenoweth_2008) 
-[(Chenoweth)] Chenoweth, van Duin and Goddard, 
+[(Chenoweth_2008)] Chenoweth, van Duin and Goddard, 
 Journal of Physical Chemistry A, 112, 1040-1053 (2008).

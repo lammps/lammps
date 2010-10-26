@@ -21,8 +21,8 @@ params = reax/c or a filename :ul
 
 [Examples:]
 
-fix 1 all qeq 1 0.0 10.0 1.0e-6 reax/c
-fix 1 all qeq 1 0.0 10.0 1.0e-6 param.qeq :pre
+fix 1 all qeq/reax 1 0.0 10.0 1.0e-6 reax/c
+fix 1 all qeq/reax 1 0.0 10.0 1.0e-6 param.qeq :pre
 
 [Description:]
 

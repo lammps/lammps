@@ -40,16 +40,11 @@ Fortran library, linked to LAMMPS.  The <I>reax/c</I> style was initially
 implemented as stand-alone C code and is now integrated into LAMMPS as
 a package.
 </P>
-<P>The version integrated into LAMMPS matches the most up-to-date version
-of ReaxFF as of summer 2010.  The parameter files supplied in the
-potentials directory use parameters from the following publications:
+<P>LAMMPS provides several different versions of ffield.reax in its
+potentials dir, each called potentials/ffield.reax.label.  These are
+documented in potentials/README.reax.  The default ffield.reax
+contains parameterizations for the following elements: C, H, O, N, S.
 </P>
-<UL><LI>ffield.CHO: <A HREF = "#Chenoweth">(Chenoweth)</A>
-<LI>ffield.NiCH: <A HREF = "#Mueller">(Mueller)</A>
-<LI>ffield.RDX: <A HREF = "#Zhang">(Zhang)</A>
-<LI>ffield.NaH: <A HREF = "#Ojwang">(Ojwang)</A>
-<LI>ffield.CuOH: ??? 
-</UL>
 <P>The format of these files is identical to that used originally by van
 Duin.  We have tested the accuracy of <I>pair_style reax/c</I> potential
 against the original ReaxFF code for the systems mentioned above.  You
@@ -62,8 +57,11 @@ settings are used.  Or a control file can be specified which contains
 cutoff values for the ReaxFF potential in addition to some performance
 and output controls.  Each line in the control specifies the value for
 a control variable.  The format of the control file is described
-below.  See examples of such files in the examples/USER/reax
-sub-directories.
+below.  
+</P>
+<P>Two examples using <I>pair_style reax/c</I> are provided in the examples/reax
+sub-directory, along with corresponding examples for 
+<A HREF = "pair_reax.html">pair_style reax</A>.
 </P>
 <P>Use of this pair style requires that a charge be defined for every
 atom.  See the <A HREF = "atom_style.html">atom_style</A> and
@@ -75,7 +73,7 @@ equilibration (QEq) model for handling the electrostatic interactions.
 Therefore it is highly recommended that the <A HREF = "fix_qeq_reax.html">fix
 qeq/reax</A> command be used with pair style <I>reax/c</I>
 when simulating a ReaxFF model, to equilibrate charge each timestep.
-See the <A HREF = "fix_qeq.html">fix_qeq</A> command for details.
+See the <A HREF = "fix_qeq_reax.html">fix qeq/reax</A> command for details.
 </P>
 <P>However, performing charge equilibration is not a prerequisite for
 performing a ReaxFF simulation.  In this case, the static charges you
@@ -88,7 +86,38 @@ equilibration contributions which are stored in the thermo variable
 <I>ecoul</I>.  The output of these quantities is controlled by the
 <A HREF = "thermo.html">thermo</A> command.
 </P>
-<P>Only a single pair_coeff command is used with the <I>reax</I> style which
+<P>This pair style tallies a breakdown of the total ReaxFF potential
+energy into sub-categories, which can be accessed via the <A HREF = "compute_pair.html">compute
+pair</A> command as a vector of values of length 14.
+The 14 values correspond to the following sub-categories (the variable
+names in italics match those used in the original FORTRAN ReaxFF code):
+</P>
+<OL><LI><I>eb</I> = bond energy
+<LI><I>ea</I> = atom energy
+<LI><I>elp</I> = lone-pair energy
+<LI><I>emol</I> = molecule energy (always 0.0)
+<LI><I>ev</I> = valence angle energy
+<LI><I>epen</I> = double-bond valence angle penalty
+<LI><I>ecoa</I> = valence angle conjugation energy
+<LI><I>ehb</I> = hydrogen bond energy
+<LI><I>et</I> = torsion energy
+<LI><I>eco</I> = conjugation energy 
+<LI><I>ew</I> = van der Waals energy
+<LI><I>ep</I> = Coulomb energy
+<LI><I>efi</I> = electric field energy (always 0.0)
+<LI><I>eqeq</I> = charge equilibration energy 
+</OL>
+<P>To print these quantities to the log file (with descriptive column
+headings) the following commands could be included in an input script:
+</P>
+<PRE>compute reax all pair reax/c
+variable eb  	 equal c_reax[1]
+variable ea  	 equal c_reax[2] 
+...
+variable eqeq 	 equal c_reax[14]
+thermo_style custom step temp epair v_eb v_ea ... v_eqeq 
+</PRE>
+<P>Only a single pair_coeff command is used with the <I>reax/c</I> style which
 specifies a ReaxFF potential file with parameters for all needed
 elements.  These are mapped to LAMMPS atom types by specifying N
 additional arguments after the filename in the pair_coeff command,
@@ -220,33 +249,9 @@ appropriate units if your simulation doesn't use "real" units.
 </P>
 <HR>
 
-<A NAME = "Chenoweth"></A>
+<A NAME = "Chenoweth_2008"></A>
 
-<P><B>(Chenoweth)</B> Chenoweth, van Duin, and Goddard, 
+<P><B>(Chenoweth_2008)</B> Chenoweth, van Duin and Goddard, 
 Journal of Physical Chemistry A, 112, 1040-1053 (2008).
-</P>
-<A NAME = "Mueller"></A>
-
-<P><B>(Mueller)</B> Mueller, van Duin, and Goddard,
-submitted for publication in Journal of Physical Chemistry A.
-</P>
-<A NAME = "Zhang"></A>
-
-<P><B>(Zhang)</B> Zhang, van Duin, Zybin, and Goddard,
-Journal of Physical Chemistry A 113, 10770-10778  (2009).
-</P>
-<P>Zhang, van Duin, Kober, Zybin, and Goddard,
-"HMX/TATB carbon cluster formation",
-accepted for publication in Journal of Physical Chemistry A.
-</P>
-<P>Zhang, van Duin, Zybin, and Goddard, 
-"Sensitivity test for RDX, HMX using fast compression",
-submitted for publication to  Journal of Physical Chemistry A.
-</P>
-<A NAME = "Ojwang"></A>
-
-<P><B>(Ojwang)</B> Ojwang, van Santen, Kramer, van Duin, and Goddard, 
-"Modeling the sorption dynamics of NaH using a reactive force field",
-Journal of Chemical Physics 128, 164714 (2008).
 </P>
 </HTML>

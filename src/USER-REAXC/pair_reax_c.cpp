@@ -128,6 +128,9 @@ PairReaxC::~PairReaxC()
     delete [] eta;
     delete [] gamma;
   }
+
+  delete [] pvector;
+
   //fprintf( stderr, "6\n" );
 }
 

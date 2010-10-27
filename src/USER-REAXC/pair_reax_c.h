@@ -51,6 +51,8 @@ class PairReaxC : public Pair {
   
   double *chi,*eta,*gamma;
 
+  int qeqflag;
+
   void allocate();
   void write_reax_atoms();
   void get_distance(rvec, rvec, double *, rvec *);

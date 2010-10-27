@@ -154,7 +154,9 @@ void PairReaxC::allocate( )
 
 void PairReaxC::settings(int narg, char **arg)
 {
-  if (narg != 1) error->all("Illegal pair_style command");
+  if (narg != 1 && narg != 3) error->all("Illegal pair_style command");
+
+  // read name of control file or use default controls
 
   if (strcmp(arg[0],"NULL") == 0) {
     strcpy( control->sim_name, "simulate" );
@@ -175,6 +177,24 @@ void PairReaxC::settings(int narg, char **arg)
     out_control->bond_info = 0;
     out_control->angle_info = 0;
   } else Read_Control_File(arg[0], control, out_control);
+
+  // default values
+
+  qeqflag = 1;
+
+  // process optional keywords
+
+  int iarg = 1;
+
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"checkqeq") == 0) {
+      if (iarg+2 > narg) error->all("Illegal pair_style reax/c command");
+      if (strcmp(arg[iarg+1],"yes") == 0) qeqflag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) qeqflag = 0;
+      else error->all("Illegal pair_style reax/c command");
+      iarg += 2;
+    } else error->all("Illegal pair_style reax/c command");
+  }
 
   // LAMMPS is responsible for generating nbrs
 
@@ -231,8 +251,8 @@ void PairReaxC::init_style( )
   int iqeq;
   for (iqeq = 0; iqeq < modify->nfix; iqeq++)
     if (strcmp(modify->fix[iqeq]->style,"qeq/reax") == 0) break;
-  if (iqeq == modify->nfix && comm->me == 0) 
-    error->warning("Pair reax/c requires use of fix qeq/reax");
+  if (iqeq == modify->nfix && qeqflag == 1) 
+    error->all("Pair reax/c requires use of fix qeq/reax");
 
   system->n = atom->nlocal;
   system->N = atom->nlocal + atom->nghost;

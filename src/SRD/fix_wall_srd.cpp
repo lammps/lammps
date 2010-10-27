@@ -146,6 +146,15 @@ FixWallSRD::FixWallSRD(LAMMPS *lmp, int narg, char **arg) :
     }
   }
 
+  // set overlap if walls exist in multiple dimensions
+
+  int dimflag[3];
+  dimflag[0] = dimflag[1] = dimflag[2] = 0;
+  for (int m = 0; m < nwall; m++)
+    dimflag[wallwhich[m]/2] = 1;
+  if (dimflag[0] + dimflag[1] + dimflag[2] > 1) overlap = 1;
+  else overlap = 0;
+
   // set time_depend and varflag if any wall positions are variable
 
   varflag = 0;

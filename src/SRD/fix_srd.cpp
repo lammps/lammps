@@ -323,8 +323,10 @@ void FixSRD::init()
       xwallhold = wallfix->xwallhold;
       vwall = wallfix->vwall;
       fwall = wallfix->fwall;
+      walltrigger = 0.5 * neighbor->skin;
+      if (wallfix->overlap && overlap == 0 && me == 0)
+	error->warning("Fix SRD walls overlap but fix srd overlap not set");
     }
-    walltrigger = 0.5 * neighbor->skin;
   }
 
   // set change_flags if box size or shape changes

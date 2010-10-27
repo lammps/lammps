@@ -39,33 +39,39 @@ class FixAveSpatial : public Fix {
  private:
   int me,nvalues;
   int nrepeat,nfreq,nvalid,irepeat;
-  int dim,originflag,normflag,regionflag,iregion;
-  double origin,delta;
+  int ndim,normflag,regionflag,iregion;
   char *tstring,*sstring,*idregion;
   int *which,*argindex,*value2index;
   char **ids;
   FILE *fp;
+  class Region *region;
 
-  int nlayers,ave,nwindow;
-  int maxlayer,scaleflag;
+  int ave,nwindow,scaleflag;
+  int norm,iwindow,window_limit;
   double xscale,yscale,zscale;
-  double layer_volume;
-  double *coord;
-  double *count_one,*count_many,*count_sum;
-  double **values_one,**values_many,**values_sum;
-  double offset,invdelta; 
+  double bin_volume;
 
-  int maxatomvar;
+  int dim[3],originflag[3],nlayers[3];
+  double origin[3],delta[3];
+  double offset[3],invdelta[3]; 
+
+  int maxvar;
   double *varatom;
 
-  int maxatomlayer;
-  int *layer;
+  int maxatom;
+  int *bin;
 
-  int norm,iwindow,window_limit;
-  double *count_total;
-  double **count_list;
-  double **values_total;
-  double ***values_list;
+  int nbins,maxbin;
+  double **coord;
+  double *count_one,*count_many,*count_sum;
+  double **values_one,**values_many,**values_sum;
+  double *count_total,**count_list;
+  double **values_total,***values_list;
+
+  void setup_bins();
+  void atom2bin1d();
+  void atom2bin2d();
+  void atom2bin3d();
 };
 
 }

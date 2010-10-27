@@ -40,15 +40,17 @@ enum{BOX,LATTICE,REDUCED};
 enum{ONE,RUNNING,WINDOW};
 
 #define INVOKED_PERATOM 8
-
 #define BIG 1000000000
+
+#define MIN(A,B) ((A) < (B)) ? (A) : (B)
+#define MAX(A,B) ((A) > (B)) ? (A) : (B)
 
 /* ---------------------------------------------------------------------- */
 
 FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 10) error->all("Illegal fix ave/spatial command");
+  if (narg < 6) error->all("Illegal fix ave/spatial command");
 
   MPI_Comm_rank(world,&me);
 
@@ -60,18 +62,34 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
   no_change_box = 1;
   time_depend = 1;
 
-  if (strcmp(arg[6],"x") == 0) dim = 0;
-  else if (strcmp(arg[6],"y") == 0) dim = 1;
-  else if (strcmp(arg[6],"z") == 0) dim = 2;
-  else error->all("Illegal fix ave/spatial command");
+  ndim = 0;
+  int iarg = 6;
+  while (iarg < narg && ndim < 3) {
+    if (iarg+3 > narg) break;
+    if (strcmp(arg[iarg],"x") == 0) dim[ndim] = 0;
+    else if (strcmp(arg[iarg],"y") == 0) dim[ndim] = 1;
+    else if (strcmp(arg[iarg],"z") == 0) dim[ndim] = 2;
+    else break;
 
-  if (strcmp(arg[7],"lower") == 0) originflag = LOWER;
-  if (strcmp(arg[7],"center") == 0) originflag = CENTER;
-  if (strcmp(arg[7],"upper") == 0) originflag = UPPER;
-  else originflag = COORD;
-  if (originflag == COORD) origin = atof(arg[7]);
+    if (dim[ndim] == 2 && domain->dimension == 2)
+      error->all("Cannot use fix ave/spatial z for 2 dimensional model");
 
-  delta = atof(arg[8]);
+    if (strcmp(arg[iarg+1],"lower") == 0) originflag[ndim] = LOWER;
+    if (strcmp(arg[iarg+1],"center") == 0) originflag[ndim] = CENTER;
+    if (strcmp(arg[iarg+1],"upper") == 0) originflag[ndim] = UPPER;
+    else originflag[ndim] = COORD;
+    if (originflag[ndim] == COORD) origin[ndim] = atof(arg[iarg+1]);
+
+    delta[ndim] = atof(arg[iarg+2]);
+    ndim++;
+    iarg += 3;
+  }
+
+  if (!ndim) error->all("Illegal fix ave/spatial command");
+  if (ndim == 2 && dim[0] == dim[1])
+    error->all("Same dimension twice in fix ave/spatial");
+  if (ndim == 3 && (dim[0] == dim[1] || dim[1] == dim[2] || dim[0] == dim[2])) 
+    error->all("Same dimension twice in fix ave/spatial");
 
   // parse values until one isn't recognized
 
@@ -81,7 +99,6 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
   value2index = new int[narg-9];
   nvalues = 0;
 
-  int iarg = 9;
   while (iarg < narg) {
     ids[nvalues] = NULL;
 
@@ -242,7 +259,11 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
     error->all("Illegal fix ave/spatial command");
   if (nfreq % nevery || (nrepeat-1)*nevery >= nfreq)
     error->all("Illegal fix ave/spatial command");
-  if (delta <= 0.0) error->all("Illegal fix ave/spatial command");
+  if (delta[0] <= 0.0) error->all("Illegal fix ave/spatial command");
+  if (ndim >= 2 && delta[1] <= 0.0) 
+    error->all("Illegal fix ave/spatial command");
+  if (ndim == 3 && delta[2] <= 0.0) 
+    error->all("Illegal fix ave/spatial command");
 
   for (int i = 0; i < nvalues; i++) {
     if (which[i] == COMPUTE) {
@@ -250,7 +271,8 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
       if (icompute < 0)
 	error->all("Compute ID for fix ave/spatial does not exist");
       if (modify->compute[icompute]->peratom_flag == 0)
-	error->all("Fix ave/spatial compute does not calculate per-atom values");
+	error->all("Fix ave/spatial compute does not "
+		   "calculate per-atom values");
       if (argindex[i] == 0 && 
 	  modify->compute[icompute]->size_peratom_cols != 0)
 	error->all("Fix ave/spatial compute does not "
@@ -290,10 +312,12 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
     else fprintf(fp,"# Spatial-averaged data for fix %s and group %s\n",
 		 id,arg[1]);
     if (title2) fprintf(fp,"%s\n",title2);
-    else fprintf(fp,"# Timestep Number-of-layers\n");
+    else fprintf(fp,"# Timestep Number-of-bins\n");
     if (title3) fprintf(fp,"%s\n",title3);
     else {
-      fprintf(fp,"# Layer Coord Ncount");
+      if (ndim == 1) fprintf(fp,"# Bin Coord Ncount");
+      else if (ndim == 2) fprintf(fp,"# Bin Coord1 Coord2 Ncount");
+      else if (ndim == 3) fprintf(fp,"# Bin Coord1 Coord2 Coord3 Ncount");
       for (int i = 0; i < nvalues; i++) fprintf(fp," %s",arg[9+i]);
       fprintf(fp,"\n");
     }
@@ -307,7 +331,7 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
 
   array_flag = 1;
   size_local_rows = BIG;
-  size_local_cols = nvalues+2;
+  size_local_cols = 1 + ndim + nvalues;
   extarray = 0;
 
   // setup scaling
@@ -329,31 +353,33 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
   // apply scaling factors
 
   double scale;
-  if (dim == 0) scale = xscale;
-  if (dim == 1) scale = yscale;
-  if (dim == 2) scale = zscale;
-  delta *= scale;
-  if (originflag == COORD) origin *= scale;
-
-  invdelta = 1.0/delta;
+  for (int idim = 0; idim < ndim; idim++) {
+    if (dim[idim] == 0) scale = xscale;
+    else if (dim[idim] == 1) scale = yscale;
+    else if (dim[idim] == 2) scale = zscale;
+    delta[idim] *= scale;
+    if (originflag[idim] == COORD) origin[idim] *= scale;
+    invdelta[idim] = 1.0/delta[idim];
+  }
 
   // initializations
 
   irepeat = 0;
   iwindow = window_limit = 0;
   norm = 0;
-  nlayers = maxlayer = 0;
-  coord = NULL;
+
+  maxvar = 0;
+  varatom = NULL;
+
+  maxatom = 0;
+  bin = NULL;
+
+  nbins = maxbin = 0;
   count_one = count_many = count_sum = count_total = NULL;
+  coord = NULL;
   count_list = NULL;
   values_one = values_many = values_sum = values_total = NULL;
   values_list = NULL;
-
-  maxatomvar = 0;
-  varatom = NULL;
-
-  maxatomlayer = 0;
-  layer = NULL;
 
   // nvalid = next step on which end_of_step does something
   // can be this timestep if multiple of nfreq and nrepeat = 1
@@ -386,20 +412,20 @@ FixAveSpatial::~FixAveSpatial()
 
   if (fp && me == 0) fclose(fp);
 
-  memory->sfree(coord);
+  memory->sfree(varatom);
+  memory->sfree(bin);
+
   memory->sfree(count_one);
   memory->sfree(count_many);
   memory->sfree(count_sum);
   memory->sfree(count_total);
+  memory->destroy_2d_double_array(coord);
   memory->destroy_2d_double_array(count_list);
   memory->destroy_2d_double_array(values_one);
   memory->destroy_2d_double_array(values_many);
   memory->destroy_2d_double_array(values_sum);
   memory->destroy_2d_double_array(values_total);
   memory->destroy_3d_double_array(values_list);
-
-  memory->sfree(varatom);
-  memory->sfree(layer);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -415,15 +441,16 @@ int FixAveSpatial::setmask()
 
 void FixAveSpatial::init()
 {
-  // set index and check validity of region
+  // set and check validity of region
 
   if (regionflag) {
     iregion = domain->find_region(idregion);
     if (iregion == -1)
       error->all("Region ID for fix ave/spatial does not exist");
+    region = domain->regions[iregion];
   }
 
-  // # of layers cannot vary for ave = RUNNING or WINDOW
+  // # of bins cannot vary for ave = RUNNING or WINDOW
 
   if (ave == RUNNING || ave == WINDOW) {
     if (scaleflag != REDUCED && domain->box_change)
@@ -460,11 +487,13 @@ void FixAveSpatial::init()
 }
 
 /* ----------------------------------------------------------------------
-   only does something if nvalid = current timestep
+   setup initial bins
+   only does averaging if nvalid = current timestep
 ------------------------------------------------------------------------- */
 
 void FixAveSpatial::setup(int vflag)
 {
+  setup_bins();
   end_of_step();
 }
 
@@ -472,192 +501,51 @@ void FixAveSpatial::setup(int vflag)
 
 void FixAveSpatial::end_of_step()
 {
-  int i,j,m,n,ilayer;
-  double lo,hi;
-  double lamda[3];
-
-  Region *region;
-  if (regionflag) region = domain->regions[iregion];
+  int i,j,m,n;
 
   // skip if not step which requires doing something
 
   int ntimestep = update->ntimestep;
   if (ntimestep != nvalid) return;
 
-  // if computing the first sample, setup layers
-  // compute current origin = boundary for some layer
-  // lo = layer boundary immediately below boxlo
-  // hi = layer boundary immediately above boxhi
-  // allocate and initialize arrays based on new layer count
+  // zero out arrays that accumulate over many samples
+  // if box changes, first re-setup bins
 
   if (irepeat == 0) {
-    double *boxlo,*boxhi,*prd;
-    if (scaleflag == REDUCED) {
-      boxlo = domain->boxlo_lamda;
-      boxhi = domain->boxhi_lamda;
-      prd = domain->prd_lamda;
-    } else {
-      boxlo = domain->boxlo;
-      boxhi = domain->boxhi;
-      prd = domain->prd;
-    }
-
-    if (originflag == LOWER) origin = boxlo[dim];
-    else if (originflag == UPPER) origin = boxhi[dim];
-    else if (originflag == CENTER) origin = 0.5 * (boxlo[dim] + boxhi[dim]);
-
-    if (origin < boxlo[dim]) {
-      m = static_cast<int> ((boxlo[dim] - origin) * invdelta);
-      lo = origin + m*delta;
-    } else {
-      m = static_cast<int> ((origin - boxlo[dim]) * invdelta);
-      lo = origin - m*delta;
-      if (lo > boxlo[dim]) lo -= delta;
-    }
-    if (origin < boxhi[dim]) {
-      m = static_cast<int> ((boxhi[dim] - origin) * invdelta);
-      hi = origin + m*delta;
-      if (hi < boxhi[dim]) hi += delta;
-    } else {
-      m = static_cast<int> ((origin - boxhi[dim]) * invdelta);
-      hi = origin - m*delta;
-    }
-
-    offset = lo;
-    nlayers = static_cast<int> ((hi-lo) * invdelta + 0.5);
-    double volume = domain->xprd * domain->yprd * domain->zprd;
-    layer_volume = delta * volume/prd[dim];
-
-    if (nlayers > maxlayer) {
-      maxlayer = nlayers;
-      coord = (double *) memory->srealloc(coord,nlayers*sizeof(double),
-					  "ave/spatial:coord");
-      count_one = (double *) 
-	memory->srealloc(count_one,nlayers*sizeof(double),
-			 "ave/spatial:count_one");
-      count_many = (double *) 
-	memory->srealloc(count_many,nlayers*sizeof(double),
-			 "ave/spatial:count_many");
-      count_sum = (double *) 
-	memory->srealloc(count_sum,nlayers*sizeof(double),
-			 "ave/spatial:count_sum");
-      count_total = (double *) 
-	memory->srealloc(count_total,nlayers*sizeof(double),
-			 "ave/spatial:count_total");
-
-      values_one = memory->grow_2d_double_array(values_one,nlayers,nvalues,
-						"ave/spatial:values_one");
-      values_many = memory->grow_2d_double_array(values_many,nlayers,nvalues,
-						 "ave/spatial:values_many");
-      values_sum = memory->grow_2d_double_array(values_sum,nlayers,nvalues,
-						"ave/spatial:values_sum");
-      values_total = memory->grow_2d_double_array(values_total,nlayers,nvalues,
-						  "ave/spatial:values_total");
-
-      // initialize count and values total to zero since they accumulate
-
-      for (m = 0; m < nlayers; m++) {
-	for (i = 0; i < nvalues; i++) values_total[m][i] = 0.0;
-	count_total[m] = 0.0;
-      }
-
-      // only allocate count and values list for ave = WINDOW
-      // only happens once since nlayers never changes for these ave settings
-      
-      if (ave == WINDOW) {
-	count_list =
-	  memory->create_2d_double_array(nwindow,nlayers,
-					 "ave/spatial:count_list");
-	values_list =
-	  memory->create_3d_double_array(nwindow,nlayers,nvalues,
-					 "ave/spatial:values_list");
-      }
-    }
-
-    for (m = 0; m < nlayers; m++) {
-      coord[m] = offset + (m+0.5)*delta;
+    if (domain->box_change) setup_bins();
+    for (m = 0; m < nbins; m++) {
       count_many[m] = count_sum[m] = 0.0;
       for (i = 0; i < nvalues; i++) values_many[m][i] = 0.0;
     }
   }
-  
+
   // zero out arrays for one sample
 
-  for (m = 0; m < nlayers; m++) {
+  for (m = 0; m < nbins; m++) {
     count_one[m] = 0.0;
     for (i = 0; i < nvalues; i++) values_one[m][i] = 0.0;
   }
 
-  // assign each atom to a layer
-  // remap each atom's relevant coord back into box via PBC if necessary
-  // if scaleflag = REDUCED, box coords -> lamda coords
+  // assign each atom to a bin
 
   double **x = atom->x;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  if (nlocal > maxatomlayer) {
-    maxatomlayer = atom->nmax;
-    memory->sfree(layer);
-    layer = (int *) 
-      memory->smalloc(maxatomlayer*sizeof(int),"ave/spatial:layer");
+  if (nlocal > maxatom) {
+    maxatom = atom->nmax;
+    memory->sfree(bin);
+    bin = (int *) 
+      memory->smalloc(maxatom*sizeof(int),"ave/spatial:bin");
   }
 
-  double *boxlo,*boxhi,*prd;
-  double xremap;
-  int periodicity = domain->periodicity[dim];
-
-  if (periodicity) {
-    if (scaleflag == REDUCED) {
-      boxlo = domain->boxlo_lamda;
-      boxhi = domain->boxhi_lamda;
-      prd = domain->prd_lamda;
-    } else {
-      boxlo = domain->boxlo;
-      boxhi = domain->boxhi;
-      prd = domain->prd;
-    }
-  }
-
-  if (regionflag == 0) {
-    if (scaleflag == REDUCED) domain->x2lamda(nlocal);
-    for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
-	xremap = x[i][dim];
-	if (periodicity) {
-	  if (xremap < boxlo[dim]) xremap += prd[dim];
-	  if (xremap >= boxhi[dim]) xremap -= prd[dim];
-	}
-	ilayer = static_cast<int> ((xremap - offset) * invdelta);
-	if (ilayer < 0) ilayer = 0;
-	if (ilayer >= nlayers) ilayer = nlayers-1;
-	layer[i] = ilayer;
-	count_one[ilayer] += 1.0;
-      }
-    if (scaleflag == REDUCED) domain->lamda2x(nlocal);
-
-  } else {
-    for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
-	if (scaleflag == REDUCED) {
-	  domain->x2lamda(x[i],lamda);
-	  xremap = lamda[dim];
-	} else xremap = x[i][dim];
-	if (periodicity) {
-	  if (xremap < boxlo[dim]) xremap += prd[dim];
-	  if (xremap >= boxhi[dim]) xremap -= prd[dim];
-	}
-	ilayer = static_cast<int> ((xremap - offset) * invdelta);
-	if (ilayer < 0) ilayer = 0;
-	if (ilayer >= nlayers) ilayer = nlayers-1;
-	layer[i] = ilayer;
-	count_one[ilayer] += 1.0;
-      }
-  }
+  if (ndim == 1) atom2bin1d();
+  else if (ndim == 2) atom2bin2d();
+  else atom2bin3d();
 
   // perform the computation for one sample
   // accumulate results of attributes,computes,fixes,variables to local copy
-  // sum within each layer, only include atoms in fix group
+  // sum within each bin, only include atoms in fix group
   // compute/fix/variable may invoke computes so wrap with clear/add
 
   modify->clearstep_compute();
@@ -677,11 +565,11 @@ void FixAveSpatial::end_of_step()
       if (regionflag == 0) {
 	for (i = 0; i < nlocal; i++)
 	  if (mask[i] & groupbit)
-	    values_one[layer[i]][m] += attribute[i][j];
+	    values_one[bin[i]][m] += attribute[i][j];
       } else {
 	for (i = 0; i < nlocal; i++)
 	  if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
-	    values_one[layer[i]][m] += attribute[i][j];
+	    values_one[bin[i]][m] += attribute[i][j];
       }
 
     // DENSITY_NUMBER adds 1 to values
@@ -691,11 +579,11 @@ void FixAveSpatial::end_of_step()
       if (regionflag == 0) {
 	for (i = 0; i < nlocal; i++)
 	  if (mask[i] & groupbit)
-	    values_one[layer[i]][m] += 1.0;
+	    values_one[bin[i]][m] += 1.0;
       } else {
 	for (i = 0; i < nlocal; i++)
 	  if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
-	    values_one[layer[i]][m] += 1.0;
+	    values_one[bin[i]][m] += 1.0;
       }
 
     // DENSITY_MASS adds mass to values
@@ -708,14 +596,14 @@ void FixAveSpatial::end_of_step()
       if (regionflag == 0) {
 	for (i = 0; i < nlocal; i++)
 	  if (mask[i] & groupbit) {
-	    if (rmass) values_one[layer[i]][m] += rmass[i];
-	    else values_one[layer[i]][m] += mass[type[i]];
+	    if (rmass) values_one[bin[i]][m] += rmass[i];
+	    else values_one[bin[i]][m] += mass[type[i]];
 	  }
       } else {
 	for (i = 0; i < nlocal; i++)
 	  if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
-	    if (rmass) values_one[layer[i]][m] += rmass[i];
-	    else values_one[layer[i]][m] += mass[type[i]];
+	    if (rmass) values_one[bin[i]][m] += rmass[i];
+	    else values_one[bin[i]][m] += mass[type[i]];
 	  }
       }
 
@@ -735,14 +623,14 @@ void FixAveSpatial::end_of_step()
       if (regionflag == 0) {
 	for (i = 0; i < nlocal; i++)
 	  if (mask[i] & groupbit) {
-	    if (j == 0) values_one[layer[i]][m] += vector[i];
-	    else values_one[layer[i]][m] += array[i][jm1];
+	    if (j == 0) values_one[bin[i]][m] += vector[i];
+	    else values_one[bin[i]][m] += array[i][jm1];
 	  }
       } else {
 	for (i = 0; i < nlocal; i++)
 	  if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
-	    if (j == 0) values_one[layer[i]][m] += vector[i];
-	    else values_one[layer[i]][m] += array[i][jm1];
+	    if (j == 0) values_one[bin[i]][m] += vector[i];
+	    else values_one[bin[i]][m] += array[i][jm1];
 	  }
       }
 
@@ -757,14 +645,14 @@ void FixAveSpatial::end_of_step()
       if (regionflag == 0) {
 	for (i = 0; i < nlocal; i++)
 	  if (mask[i] & groupbit) {
-	    if (j == 0) values_one[layer[i]][m] += vector[i];
-	    else values_one[layer[i]][m] += array[i][jm1];
+	    if (j == 0) values_one[bin[i]][m] += vector[i];
+	    else values_one[bin[i]][m] += array[i][jm1];
 	  }
       } else {
 	for (i = 0; i < nlocal; i++)
 	  if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
-	    if (j == 0) values_one[layer[i]][m] += vector[i];
-	    else values_one[layer[i]][m] += array[i][jm1];
+	    if (j == 0) values_one[bin[i]][m] += vector[i];
+	    else values_one[bin[i]][m] += array[i][jm1];
 	  }
       }
 
@@ -772,11 +660,11 @@ void FixAveSpatial::end_of_step()
     // evaluate atom-style variable
 
     } else if (which[m] == VARIABLE) {
-      if (nlocal > maxatomvar) {
-	maxatomvar = atom->nmax;
+      if (nlocal > maxvar) {
+	maxvar = atom->nmax;
 	memory->sfree(varatom);
 	varatom = (double *) 
-	  memory->smalloc(maxatomvar*sizeof(double),"ave/spatial:varatom");
+	  memory->smalloc(maxvar*sizeof(double),"ave/spatial:varatom");
       }
 
       input->variable->compute_atom(n,igroup,varatom,1,0);
@@ -784,11 +672,11 @@ void FixAveSpatial::end_of_step()
       if (regionflag == 0) {
 	for (i = 0; i < nlocal; i++)
 	  if (mask[i] & groupbit)
-	    values_one[layer[i]][m] += varatom[i];
+	    values_one[bin[i]][m] += varatom[i];
       } else {
 	for (i = 0; i < nlocal; i++)
 	  if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
-	    values_one[layer[i]][m] += varatom[i];
+	    values_one[bin[i]][m] += varatom[i];
       }
     }
   }
@@ -799,14 +687,14 @@ void FixAveSpatial::end_of_step()
   // exception is SAMPLE density: no normalization by atom count
 
   if (normflag == ALL) {
-    for (m = 0; m < nlayers; m++) {
+    for (m = 0; m < nbins; m++) {
       count_many[m] += count_one[m];
       for (j = 0; j < nvalues; j++)
 	values_many[m][j] += values_one[m][j];
     }
   } else {
-    MPI_Allreduce(count_one,count_many,nlayers,MPI_DOUBLE,MPI_SUM,world);
-    for (m = 0; m < nlayers; m++) {
+    MPI_Allreduce(count_one,count_many,nbins,MPI_DOUBLE,MPI_SUM,world);
+    for (m = 0; m < nbins; m++) {
       if (count_many[m] > 0.0)
 	for (j = 0; j < nvalues; j++) {
 	  if (which[j] == DENSITY_NUMBER || which[j] == DENSITY_MASS)
@@ -840,10 +728,10 @@ void FixAveSpatial::end_of_step()
   double mv2d = force->mv2d;
 
   if (normflag == ALL) {
-    MPI_Allreduce(count_many,count_sum,nlayers,MPI_DOUBLE,MPI_SUM,world);
-    MPI_Allreduce(&values_many[0][0],&values_sum[0][0],nlayers*nvalues,
+    MPI_Allreduce(count_many,count_sum,nbins,MPI_DOUBLE,MPI_SUM,world);
+    MPI_Allreduce(&values_many[0][0],&values_sum[0][0],nbins*nvalues,
 		  MPI_DOUBLE,MPI_SUM,world);
-    for (m = 0; m < nlayers; m++) {
+    for (m = 0; m < nbins; m++) {
       if (count_sum[m] > 0.0)
 	for (j = 0; j < nvalues; j++)
 	  if (which[j] == DENSITY_NUMBER) values_sum[m][j] /= repeat;
@@ -852,28 +740,28 @@ void FixAveSpatial::end_of_step()
       count_sum[m] /= repeat;
     }
   } else {
-    MPI_Allreduce(&values_many[0][0],&values_sum[0][0],nlayers*nvalues,
+    MPI_Allreduce(&values_many[0][0],&values_sum[0][0],nbins*nvalues,
 		  MPI_DOUBLE,MPI_SUM,world);
-    for (m = 0; m < nlayers; m++) {
+    for (m = 0; m < nbins; m++) {
       for (j = 0; j < nvalues; j++)
 	values_sum[m][j] /= repeat;
       count_sum[m] /= repeat;
     }
   }
 
-  // density is additionally normalized by layer volume
+  // density is additionally normalized by bin volume
 
   for (j = 0; j < nvalues; j++)
     if (which[j] == DENSITY_NUMBER || which[j] == DENSITY_MASS)
-      for (m = 0; m < nlayers; m++)
-	values_sum[m][j] /= layer_volume;
+      for (m = 0; m < nbins; m++)
+	values_sum[m][j] /= bin_volume;
 
   // if ave = ONE, only single Nfreq timestep value is needed
   // if ave = RUNNING, combine with all previous Nfreq timestep values
   // if ave = WINDOW, comine with nwindow most recent Nfreq timestep values
 
   if (ave == ONE) {
-    for (m = 0; m < nlayers; m++) {
+    for (m = 0; m < nbins; m++) {
       for (i = 0; i < nvalues; i++) 
 	values_total[m][i] = values_sum[m][i];
       count_total[m] = count_sum[m];
@@ -881,7 +769,7 @@ void FixAveSpatial::end_of_step()
     norm = 1;
 
   } else if (ave == RUNNING) {
-    for (m = 0; m < nlayers; m++) {
+    for (m = 0; m < nbins; m++) {
       for (i = 0; i < nvalues; i++)
 	values_total[m][i] += values_sum[m][i];
       count_total[m] += count_sum[m];
@@ -889,7 +777,7 @@ void FixAveSpatial::end_of_step()
     norm++;
 
   } else if (ave == WINDOW) {
-    for (m = 0; m < nlayers; m++) {
+    for (m = 0; m < nbins; m++) {
       for (i = 0; i < nvalues; i++) {
 	values_total[m][i] += values_sum[m][i];
 	if (window_limit) values_total[m][i] -= values_list[iwindow][m][i];
@@ -912,38 +800,492 @@ void FixAveSpatial::end_of_step()
   // output result to file
   
   if (fp && me == 0) {
-    fprintf(fp,"%d %d\n",ntimestep,nlayers);
-    for (m = 0; m < nlayers; m++) {
-      fprintf(fp,"  %d %g %g",m+1,coord[m],count_total[m]/norm);
-      for (i = 0; i < nvalues; i++) fprintf(fp," %g",values_total[m][i]/norm);
-      fprintf(fp,"\n");
-    }
+    fprintf(fp,"%d %d\n",ntimestep,nbins);
+    if (ndim == 1)
+      for (m = 0; m < nbins; m++) {
+	fprintf(fp,"  %d %g %g",m+1,coord[m][0],
+		count_total[m]/norm);
+	for (i = 0; i < nvalues; i++) 
+	  fprintf(fp," %g",values_total[m][i]/norm);
+	fprintf(fp,"\n");
+      }
+    else if (ndim == 2)
+      for (m = 0; m < nbins; m++) {
+	fprintf(fp,"  %d %g %g %g",m+1,coord[m][0],coord[m][1],
+		count_total[m]/norm);
+	for (i = 0; i < nvalues; i++) 
+	  fprintf(fp," %g",values_total[m][i]/norm);
+	fprintf(fp,"\n");
+      }
+    else
+      for (m = 0; m < nbins; m++) {
+	fprintf(fp,"  %d %g %g %g %g",m+1,coord[m][0],coord[m][1],coord[m][2],
+		count_total[m]/norm);
+	for (i = 0; i < nvalues; i++) 
+	  fprintf(fp," %g",values_total[m][i]/norm);
+	fprintf(fp,"\n");
+      }
+
     fflush(fp);
   }
 }
 
 /* ----------------------------------------------------------------------
+   setup 1d, 2d, or 3d bins and their extent and coordinates
+   called at setup() and when averaging occurs if box size changes
+------------------------------------------------------------------------- */
+
+void FixAveSpatial::setup_bins()
+{
+  int i,j,k,m,n;
+  double lo,hi,coord1,coord2;
+
+  // lo = bin boundary immediately below boxlo
+  // hi = bin boundary immediately above boxhi
+  // allocate and initialize arrays based on new bin count
+
+  double *boxlo,*boxhi,*prd;
+  if (scaleflag == REDUCED) {
+    boxlo = domain->boxlo_lamda;
+    boxhi = domain->boxhi_lamda;
+    prd = domain->prd_lamda;
+  } else {
+    boxlo = domain->boxlo;
+    boxhi = domain->boxhi;
+    prd = domain->prd;
+  }
+
+  if (domain->dimension == 3)
+    bin_volume = domain->xprd * domain->yprd * domain->zprd;
+  else bin_volume = domain->xprd * domain->yprd;
+  nbins = 1;
+
+  for (m = 0; m < ndim; m++) {
+    if (originflag[m] == LOWER) origin[m] = boxlo[dim[m]];
+    else if (originflag[m] == UPPER) origin[m] = boxhi[dim[m]];
+    else if (originflag[m] == CENTER) 
+      origin[m] = 0.5 * (boxlo[dim[m]] + boxhi[dim[m]]);
+    
+    if (origin[m] < boxlo[dim[m]]) {
+      n = static_cast<int> ((boxlo[dim[m]] - origin[m]) * invdelta[m]);
+      lo = origin[m] + n*delta[m];
+    } else {
+      n = static_cast<int> ((origin[m] - boxlo[dim[m]]) * invdelta[m]);
+      lo = origin[m] - n*delta[m];
+      if (lo > boxlo[dim[m]]) lo -= delta[m];
+    }
+    if (origin[m] < boxhi[dim[m]]) {
+      n = static_cast<int> ((boxhi[dim[m]] - origin[m]) * invdelta[m]);
+      hi = origin[m] + n*delta[m];
+      if (hi < boxhi[dim[m]]) hi += delta[m];
+    } else {
+      n = static_cast<int> ((origin[m] - boxhi[dim[m]]) * invdelta[m]);
+      hi = origin[m] - n*delta[m];
+    }
+    
+    offset[m] = lo;
+    nlayers[m] = static_cast<int> ((hi-lo) * invdelta[m] + 0.5);
+    nbins *= nlayers[m];
+    bin_volume *= delta[m]/prd[dim[m]];
+  }
+
+  // reallocate bin arrays if needed
+
+  if (nbins > maxbin) {
+    maxbin = nbins;
+    count_one = (double *) 
+      memory->srealloc(count_one,nbins*sizeof(double),
+		       "ave/spatial:count_one");
+    count_many = (double *) 
+      memory->srealloc(count_many,nbins*sizeof(double),
+		       "ave/spatial:count_many");
+    count_sum = (double *) 
+      memory->srealloc(count_sum,nbins*sizeof(double),
+		       "ave/spatial:count_sum");
+    count_total = (double *) 
+      memory->srealloc(count_total,nbins*sizeof(double),
+		       "ave/spatial:count_total");
+    
+    coord = 
+      memory->grow_2d_double_array(coord,nbins,ndim,"ave/spatial:coord");
+    values_one = memory->grow_2d_double_array(values_one,nbins,nvalues,
+					      "ave/spatial:values_one");
+    values_many = memory->grow_2d_double_array(values_many,nbins,nvalues,
+					       "ave/spatial:values_many");
+    values_sum = memory->grow_2d_double_array(values_sum,nbins,nvalues,
+					      "ave/spatial:values_sum");
+    values_total = memory->grow_2d_double_array(values_total,nbins,nvalues,
+						"ave/spatial:values_total");
+    
+    // only allocate count and values list for ave = WINDOW
+    
+    if (ave == WINDOW) {
+      count_list =
+	memory->create_2d_double_array(nwindow,nbins,
+				       "ave/spatial:count_list");
+      values_list =
+	memory->create_3d_double_array(nwindow,nbins,nvalues,
+				       "ave/spatial:values_list");
+    }
+
+    // reinitialize regrown count/values total since they accumulate
+
+    for (m = 0; m < nbins; m++) {
+      for (i = 0; i < nvalues; i++) values_total[m][i] = 0.0;
+      count_total[m] = 0.0;
+    }
+  }
+
+  // set bin coordinates
+
+  if (ndim == 1) {
+    for (i = 0; i < nlayers[0]; i++)
+      coord[i][0] = offset[0] + (i+0.5)*delta[0];
+  } else if (ndim == 2) {
+    m = 0;
+    for (i = 0; i < nlayers[0]; i++) {
+      coord1 = offset[0] + (i+0.5)*delta[0];
+      for (j = 0; j < nlayers[1]; j++) {
+	coord[m][0] = coord1;
+	coord[m][1] = offset[1] + (j+0.5)*delta[1];
+	m++;
+      }
+    }
+  } else if (ndim == 3) {
+    m = 0;
+    for (i = 0; i < nlayers[0]; i++) {
+      coord1 = offset[0] + (i+0.5)*delta[0];
+      for (j = 0; j < nlayers[1]; j++) {
+	coord2 = offset[1] + (j+0.5)*delta[1];
+	for (k = 0; k < nlayers[2]; k++) {
+	  coord[m][0] = coord1;
+	  coord[m][1] = coord2;
+	  coord[m][2] = offset[2] + (k+0.5)*delta[2];
+	  m++;
+	}
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   assign each atom to a 1d bin
+------------------------------------------------------------------------- */
+
+void FixAveSpatial::atom2bin1d()
+{
+  int i,ibin;
+  double *boxlo,*boxhi,*prd;
+  double xremap;
+  double lamda[3];
+
+  double **x = atom->x;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  int idim = dim[0];
+  int nlayerm1 = nlayers[0] - 1;
+  int periodicity = domain->periodicity[idim];
+
+  if (periodicity) {
+    if (scaleflag == REDUCED) {
+      boxlo = domain->boxlo_lamda;
+      boxhi = domain->boxhi_lamda;
+      prd = domain->prd_lamda;
+    } else {
+      boxlo = domain->boxlo;
+      boxhi = domain->boxhi;
+      prd = domain->prd;
+    }
+  }
+
+  // remap each atom's relevant coord back into box via PBC if necessary
+  // if scaleflag = REDUCED, box coords -> lamda coords
+
+  if (regionflag == 0) {
+    if (scaleflag == REDUCED) domain->x2lamda(nlocal);
+    for (i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+	xremap = x[i][idim];
+	if (periodicity) {
+	  if (xremap < boxlo[idim]) xremap += prd[idim];
+	  if (xremap >= boxhi[idim]) xremap -= prd[idim];
+	}
+	ibin = static_cast<int> ((xremap - offset[0]) * invdelta[0]);
+	ibin = MAX(ibin,0);
+	ibin = MIN(ibin,nlayerm1);
+	bin[i] = ibin;
+	count_one[ibin] += 1.0;
+      }
+    if (scaleflag == REDUCED) domain->lamda2x(nlocal);
+
+  } else {
+    for (i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
+	if (scaleflag == REDUCED) {
+	  domain->x2lamda(x[i],lamda);
+	  xremap = lamda[idim];
+	} else xremap = x[i][idim];
+	if (periodicity) {
+	  if (xremap < boxlo[idim]) xremap += prd[idim];
+	  if (xremap >= boxhi[idim]) xremap -= prd[idim];
+	}
+	ibin = static_cast<int> ((xremap - offset[0]) * invdelta[0]);
+	ibin = MAX(ibin,0);
+	ibin = MIN(ibin,nlayerm1);
+	bin[i] = ibin;
+	count_one[ibin] += 1.0;
+      }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   assign each atom to a 2d bin
+------------------------------------------------------------------------- */
+
+void FixAveSpatial::atom2bin2d()
+{
+  int i,ibin,i1bin,i2bin;
+  double *boxlo,*boxhi,*prd;
+  double xremap,yremap;
+  double lamda[3];
+
+  double **x = atom->x;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  int idim = dim[0];
+  int jdim = dim[1];
+  int nlayer1m1 = nlayers[0] - 1;
+  int nlayer2m1 = nlayers[1] - 1;
+  int* periodicity = domain->periodicity;
+
+  if (periodicity[idim] || periodicity[jdim]) {
+    if (scaleflag == REDUCED) {
+      boxlo = domain->boxlo_lamda;
+      boxhi = domain->boxhi_lamda;
+      prd = domain->prd_lamda;
+    } else {
+      boxlo = domain->boxlo;
+      boxhi = domain->boxhi;
+      prd = domain->prd;
+    }
+  }
+
+  // remap each atom's relevant coord back into box via PBC if necessary
+  // if scaleflag = REDUCED, box coords -> lamda coords
+
+  if (regionflag == 0) {
+    if (scaleflag == REDUCED) domain->x2lamda(nlocal);
+    for (i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+	xremap = x[i][idim];
+	if (periodicity[idim]) {
+	  if (xremap < boxlo[idim]) xremap += prd[idim];
+	  if (xremap >= boxhi[idim]) xremap -= prd[idim];
+	}
+	i1bin = static_cast<int> ((xremap - offset[0]) * invdelta[0]);
+	i1bin = MAX(i1bin,0);
+	i1bin = MIN(i1bin,nlayer1m1);
+
+	yremap = x[i][jdim];
+	if (periodicity[jdim]) {
+	  if (yremap < boxlo[jdim]) yremap += prd[jdim];
+	  if (yremap >= boxhi[jdim]) yremap -= prd[jdim];
+	}
+	i2bin = static_cast<int> ((yremap - offset[1]) * invdelta[1]);
+	i2bin = MAX(i2bin,0);
+	i2bin = MIN(i2bin,nlayer2m1);
+
+	ibin = i1bin*nlayers[1] + i2bin;
+	bin[i] = ibin;
+	count_one[ibin] += 1.0;
+      }
+    if (scaleflag == REDUCED) domain->lamda2x(nlocal);
+
+  } else {
+    for (i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
+	if (scaleflag == REDUCED) {
+	  domain->x2lamda(x[i],lamda);
+	  xremap = lamda[idim];
+	  yremap = lamda[jdim];
+	} else {
+	  xremap = x[i][idim];
+	  yremap = x[i][jdim];
+	}
+
+	if (periodicity[idim]) {
+	  if (xremap < boxlo[idim]) xremap += prd[idim];
+	  if (xremap >= boxhi[idim]) xremap -= prd[idim];
+	}
+	i1bin = static_cast<int> ((xremap - offset[0]) * invdelta[0]);
+	i1bin = MAX(i1bin,0);
+	i1bin = MIN(i1bin,nlayer1m1-1);
+
+	if (periodicity[jdim]) {
+	  if (yremap < boxlo[jdim]) yremap += prd[jdim];
+	  if (yremap >= boxhi[jdim]) yremap -= prd[jdim];
+	}
+	i2bin = static_cast<int> ((yremap - offset[1]) * invdelta[1]);
+	i2bin = MAX(i2bin,0);
+	i2bin = MIN(i2bin,nlayer2m1-1);
+
+	ibin = i1bin*nlayers[1] + i2bin;
+	bin[i] = ibin;
+	count_one[ibin] += 1.0;
+      }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   assign each atom to a 3d bin
+------------------------------------------------------------------------- */
+
+void FixAveSpatial::atom2bin3d()
+{
+  int i,ibin,i1bin,i2bin,i3bin;
+  double *boxlo,*boxhi,*prd;
+  double xremap,yremap,zremap;
+  double lamda[3];
+
+  double **x = atom->x;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  int idim = dim[0];
+  int jdim = dim[1];
+  int kdim = dim[2];
+  int nlayer1m1 = nlayers[0] - 1;
+  int nlayer2m1 = nlayers[1] - 1;
+  int nlayer3m1 = nlayers[2] - 1;
+  int* periodicity = domain->periodicity;
+
+  if (periodicity[idim] || periodicity[jdim] || periodicity[kdim]) {
+    if (scaleflag == REDUCED) {
+      boxlo = domain->boxlo_lamda;
+      boxhi = domain->boxhi_lamda;
+      prd = domain->prd_lamda;
+    } else {
+      boxlo = domain->boxlo;
+      boxhi = domain->boxhi;
+      prd = domain->prd;
+    }
+  }
+
+  // remap each atom's relevant coord back into box via PBC if necessary
+  // if scaleflag = REDUCED, box coords -> lamda coords
+
+  if (regionflag == 0) {
+    if (scaleflag == REDUCED) domain->x2lamda(nlocal);
+    for (i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+	xremap = x[i][idim];
+	if (periodicity[idim]) {
+	  if (xremap < boxlo[idim]) xremap += prd[idim];
+	  if (xremap >= boxhi[idim]) xremap -= prd[idim];
+	}
+	i1bin = static_cast<int> ((xremap - offset[0]) * invdelta[0]);
+	i1bin = MAX(i1bin,0);
+	i1bin = MIN(i1bin,nlayer1m1);
+
+	yremap = x[i][jdim];
+	if (periodicity[jdim]) {
+	  if (yremap < boxlo[jdim]) yremap += prd[jdim];
+	  if (yremap >= boxhi[jdim]) yremap -= prd[jdim];
+	}
+	i2bin = static_cast<int> ((yremap - offset[1]) * invdelta[1]);
+	i2bin = MAX(i2bin,0);
+	i2bin = MIN(i2bin,nlayer2m1);
+
+	zremap = x[i][kdim];
+	if (periodicity[kdim]) {
+	  if (zremap < boxlo[kdim]) yremap += prd[kdim];
+	  if (zremap >= boxhi[kdim]) yremap -= prd[kdim];
+	}
+	i3bin = static_cast<int> ((zremap - offset[2]) * invdelta[2]);
+	i3bin = MAX(i3bin,0);
+	i3bin = MIN(i3bin,nlayer3m1);
+
+	ibin = i1bin*nlayers[1]*nlayers[2] + i2bin*nlayers[2] + i3bin;
+	bin[i] = ibin;
+	count_one[ibin] += 1.0;
+      }
+    if (scaleflag == REDUCED) domain->lamda2x(nlocal);
+
+  } else {
+    for (i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
+	if (scaleflag == REDUCED) {
+	  domain->x2lamda(x[i],lamda);
+	  xremap = lamda[idim];
+	  yremap = lamda[jdim];
+	  zremap = lamda[kdim];
+	} else {
+	  xremap = x[i][idim];
+	  yremap = x[i][jdim];
+	  zremap = x[i][kdim];
+	}
+
+	if (periodicity[idim]) {
+	  if (xremap < boxlo[idim]) xremap += prd[idim];
+	  if (xremap >= boxhi[idim]) xremap -= prd[idim];
+	}
+	i1bin = static_cast<int> ((xremap - offset[0]) * invdelta[0]);
+	i1bin = MAX(i1bin,0);
+	i1bin = MIN(i1bin,nlayer1m1);
+
+	if (periodicity[jdim]) {
+	  if (yremap < boxlo[jdim]) yremap += prd[jdim];
+	  if (yremap >= boxhi[jdim]) yremap -= prd[jdim];
+	}
+	i2bin = static_cast<int> ((yremap - offset[1]) * invdelta[1]);
+	i2bin = MAX(i2bin,0);
+	i2bin = MIN(i2bin,nlayer2m1);
+
+	if (periodicity[kdim]) {
+	  if (zremap < boxlo[kdim]) yremap += prd[kdim];
+	  if (zremap >= boxhi[kdim]) yremap -= prd[kdim];
+	}
+	i3bin = static_cast<int> ((zremap - offset[2]) * invdelta[2]);
+	i3bin = MAX(i3bin,0);
+	i3bin = MIN(i3bin,nlayer3m1);
+
+	ibin = i1bin*nlayers[1]*nlayers[2] + i2bin*nlayers[2] + i3bin;
+	bin[i] = ibin;
+	count_one[ibin] += 1.0;
+      }
+  }
+}
+
+/* ----------------------------------------------------------------------
    return I,J array value
-   if I exceeds current layers, return 0.0 instead of generating an error
-   1st column = bin coord, 2nd column = count, remaining columns = Nvalues
+   if I exceeds current bins, return 0.0 instead of generating an error
+   column 1,2,3 = bin coords, next column = count, remaining columns = Nvalues
 ------------------------------------------------------------------------- */
 
 double FixAveSpatial::compute_array(int i, int j)
 {
   if (values_total == NULL) return 0.0;
-  if (i >= nlayers) return 0.0;
-  if (j == 0) return coord[i];
-  if (j == 1) return count_total[i]/norm;
+  if (i >= nbins) return 0.0;
+  if (j < ndim) return coord[i][j];
+  j -= ndim+1;
+  if (j < 0) return count_total[i]/norm;
   return values_total[i][j]/norm;
 }
 
 /* ----------------------------------------------------------------------
-   memory usage of varatom and layer
+   memory usage of varatom and bins
 ------------------------------------------------------------------------- */
 
 double FixAveSpatial::memory_usage()
 {
-  double bytes = maxatomvar * sizeof(double);
-  bytes += maxatomlayer * sizeof(int);
+  double bytes = maxvar * sizeof(double);         // varatom
+  bytes += maxatom * sizeof(int);                 // bin
+  bytes += 4*nbins * sizeof(double);              // count one,many,sum,total
+  bytes += ndim*nbins * sizeof(double);           // coord
+  bytes += nvalues*nbins * sizeof(double);        // values one,many,sum,total
+  bytes += nwindow*nbins * sizeof(double);          // count_list
+  bytes += nwindow*nbins*nvalues * sizeof(double);  // values_list
   return bytes;
 }

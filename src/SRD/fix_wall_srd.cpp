@@ -187,7 +187,7 @@ void FixWallSRD::init()
 {
   int flag = 0;
   for (int m = 0; m < modify->nfix; m++)
-    if (strcmp(modify->fix[m]->style,"srd2") == 0) flag = 1;
+    if (strcmp(modify->fix[m]->style,"srd") == 0) flag = 1;
   if (!flag) error->all("Cannot use fix wall/srd without fix srd");
 
   for (int m = 0; m < nwall; m++) {

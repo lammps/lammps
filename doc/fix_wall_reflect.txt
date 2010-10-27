@@ -153,5 +153,7 @@ error.
 
 [Default:] none
 
+:line
+
 :link(Bond)
 [(Bond)] Bond and Leimkuhler, SIAM J Sci Comput, 30, p 134 (2007).

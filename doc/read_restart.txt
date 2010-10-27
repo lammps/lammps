@@ -35,7 +35,7 @@ things can prevent exact restarts due to round-off effects, in which
 case the trajectories in the 2 runs will slowly diverge.  These
 include running on a different number of processors or changing
 certain settings such as those set by the "newton"_newton.html or
-"processors"_processors.html commands.  LAMMPS will issue a WARNING in
+"processors"_processors.html commands.  LAMMPS will issue a warning in
 these cases.  Certain fixes will also not restart exactly, though they
 should provide statistically similar results.  These include "fix
 shake"_fix_shake.html and "fix langevin"_fix_langevin.html.  If a

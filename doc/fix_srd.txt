@@ -34,7 +34,7 @@ keyword = {lamda} or {collision} or {overlap} or {inside} or {exact} or {radius}
     style = {error} or {warn}
     tolerance = fractional difference allowed (0 <= tol <= 1)
   {shift} values = style seed
-    style = {old} or {no} or {yes} or {possible}
+    style = {no} or {yes} or {possible}
     seed = random # seed (positive integer)
   {stream} value = {yes} or {no} = whether or not streaming velocity is added for shear deformation :pre
 :ule
@@ -72,9 +72,9 @@ scripts using SRD particles in both settings.
 This fix does 2 things:
 
 (1) It advects the SRD particles, performing collisions between SRD
-and big particles every timestep, imparting force and torque to the
-big particles.  Collisions also change the position and velocity of
-SRD particles.
+and big particles or walls every timestep, imparting force and torque
+to the big particles.  Collisions also change the position and
+velocity of SRD particles.
 
 (2) It resets the velocity distribution of SRD particles via random
 rotations every N timesteps.
@@ -110,24 +110,29 @@ dt_SRD.  This means that roughly speaking, Dmax should not be larger
 than a big particle diameter, else SRDs may pass thru big particles
 without colliding.  A warning is generated if this is the case.
 
-SRD/big particle collisions are modeled as a lightweight SRD point
-particle hitting a heavy big particle of given diameter at a point on
-its surface and bouncing off with a new velocity.  The collision
-changes the momentum of the SRD particle.  It imparts a force and
-torque to the big particle.
+Collisions between SRD particles and big particles or walls are
+modeled as a lightweight SRD point particle hitting a heavy big
+particle of given diameter or a wall at a point on its surface and
+bouncing off with a new velocity.  The collision changes the momentum
+of the SRD particle.  It imparts a force and torque to the big
+particle.  It imparts a force to a wall.  Static or moving SRD walls
+are setup via the "fix wall/srd"_fix_wall_srd.html command.  For the
+remainder of this doc page, a collision of an SRD particle with a wall
+can be viewed as a collision with a big particle of infinite radius
+and mass.
 
-The {collision} keyword sets the style of SRD/big particle collisions.
-The {slip} style means that the tangential component of the SRD
-particle momentum is preserved.  Thus a force is imparted to the big
-particle, but no torque.  The normal component of the new SRD velocity
-is sampled from a Gaussian distribution at temperature {Tsrd}.
+The {collision} keyword sets the style of collisions.  The {slip}
+style means that the tangential component of the SRD particle momentum
+is preserved.  Thus a force is imparted to a big particle, but no
+torque.  The normal component of the new SRD velocity is sampled from
+a Gaussian distribution at temperature {Tsrd}.
 
 For the {noslip} style, both the normal and tangential components of
 the new SRD velocity are sampled from a Gaussian distribution at
 temperature {Tsrd}.  Additionally, a new tangential direction for the
 SRD velocity is chosen randomly.  This collision style imparts torque
-to the big particle.  Thus a time integrator "fix"_fix.html that
-rotates the big particles appropriately should be used.
+to a big particle.  Thus a time integrator "fix"_fix.html that rotates
+the big particles appropriately should be used.
 
 :line
 
@@ -178,11 +183,18 @@ the same as no limit.
 
 :line
 
-The {search} keyword can be used to choose a bin size for identifying
-SRD/big particle collisions.  The default is to use the {hgrid}
-parameter as the search bin size.  Choosing a smaller or large value
-may be more efficient, depending on the problem.  But, in a
-statistical sense, it should not change the simulation results.
+There are 2 kinds of bins created and maintained when running an SRD
+simulation.  The first are "SRD bins" which are used to bin SRD
+particles and reset their velocities, as discussed above.  The second
+are "search bins" which are used to identify SRD/big particle
+collisions.
+
+The {search} keyword can be used to choose a search bin size for
+identifying SRD/big particle collisions.  The default is to use the
+{hgrid} parameter for SRD bins as the search bin size.  Choosing a
+smaller or large value may be more efficient, depending on the
+problem.  But, in a statistical sense, it should not change the
+simulation results.
 
 The {cubic} keyword can be used to generate an error or warning when
 the bin size chosen by LAMMPS creates SRD bins that are non-cubic or
@@ -193,13 +205,8 @@ hence LAMMPS tries to protect you from this problem.
 
 LAMMPS attempts to set the SRD bin size to exactly {hgrid}.  However,
 there must be an integer number of bins in each dimension of the
-simulation box.  When the style of the {shift} keyword is set to
-{old}, there is an additional constraint that there must be an integer
-number of bins within each processor's sub-domain.  Thus the actual
-bin size will depend on the size and shape of the overall simulation
-box and, in the case of {shift} set to {old}, on the number of
-processors assigned to each dimension of the box (see the
-"processors"_processors.html command).  The actual bin size is printed
+simulation box.  Thus the actual bin size will depend on the size and
+shape of the overall simulation box.  The actual bin size is printed
 as part of the SRD output when a simulation begins.
 
 If the actual bin size in non-cubic by an amount exceeding the
@@ -213,6 +220,21 @@ error or warning is generated.  Similarly, if the ratio of any bin
 dimension with {hgrid} exceeds (1 +/- tolerance), then an error or
 warning is generated.
 
+IMPORTANT NOTE: The fix srd command can be used with simluations the
+size and/or shape of the simulation box changes.  This can be due to
+non-periodic boundary conditions or the use of fixes such as the "fix
+deform"_fix_deform.html or "fix wall/srd"_fix_wall_srd.html commands
+to impose a shear on an SRD fluid or an interaction with an external
+wall.  If the box size changes then the size of SRD bins must be
+recalculated every reneighboring.  This is not necessary if only the
+box shape changes.  This re-binning is always done so as to fit an
+integer number of bins in the current box dimension, whether it be a
+fixed, shrink-wrapped, or periodic boundary, as set by the
+"boundary"_boundary.html command.  If the box size or shape changes,
+then the size of the search bins must be recalculated avery
+reneighboring.  Note that changing the SRD bin size may alter the
+properties of the SRD fluid, such as its viscosity.
+
 The {shift} keyword determines whether the coordinates of SRD
 particles are randomly shifted when binned for purposes of rotating
 their velocities.  When no shifting is performed, SRD particles are
@@ -222,37 +244,36 @@ valid operation if SRD particles move sufficiently far between
 successive rotations.  This is determined by their mean-free path
 lamda.  If lamda is less than 0.6 of the SRD bin size, then shifting
 is required.  A shift means that all of the SRD particles are shifted
-by a vector whose coordinates are chosen randomly in the range [-1/2
-bin size, 1/2 bin size].  Note that all particles are shifted by the
+by a vector whose coordinates are chosen randomly in the range \[-1/2
+bin size, 1/2 bin size\].  Note that all particles are shifted by the
 same vector.  The specified random number seed is used to generate
 these vectors.  This operation sufficiently randomizes which SRD
 particles are in the same bin, even if lamda is small.
 
-If the {shift} style is set to {old}, then no shifting is performed.
-An error will be generated if lamda < 0.6 of the SRD bin size.  If the
-{shift} style is set to {no}, then no shifting is performed, but bin
-data will be communicated if bins overlap processor boundaries.  An
-error will be generated if lamda < 0.6 of the SRD bin size.  If the
-{shift} style is set to {possible}, then shifting is performed only if
-lamda < 0.6 of the SRD bin size.  A warning is generated to let you
-know this is occurring.  If the {shift} style is set to {yes} then
-shifting is performed regardless of the magnitude of lamda.
+If the {shift} style is set to {no}, then no shifting is performed,
+but bin data will be communicated if bins overlap processor
+boundaries.  An error will be generated if lamda < 0.6 of the SRD bin
+size.  If the {shift} style is set to {possible}, then shifting is
+performed only if lamda < 0.6 of the SRD bin size.  A warning is
+generated to let you know this is occurring.  If the {shift} style is
+set to {yes} then shifting is performed regardless of the magnitude of
+lamda.
 
-The shift seed is not used if the {shift} style is set to {old} or
-{no}, but must still be specified.
+The shift seed is not used if the {shift} style is set to {no}, but
+must still be specified.
 
 Note that shifting of SRD coordinates requires extra communication,
 hence it should not normally be enabled unless required.
 
-The {stream} keyword is used when SRD particles are used with the "fix
-deform"_fix_deform.html command to perform a simulation undergoing
-shear, e.g. to measure a viscosity.  If the {stream} style is set to
-{yes}, then the mean velocity of each bin of SRD particles is set to
-the streaming velocity of the deforming box, each time SRD velocities
-are reset, every N timesteps.  If the {stream} style is set to {no},
-then the mean velocity is unchanged, which may mean that it takes a
-long time for the SRD fluid to come to equilibrium with a velocity
-profile that matches the simulation box deformation.
+The {stream} keyword should be used when SRD particles are used with
+the "fix deform"_fix_deform.html command to perform a simulation
+undergoing shear, e.g. to measure a viscosity.  If the {stream} style
+is set to {yes}, then the mean velocity of each bin of SRD particles
+is set to the streaming velocity of the deforming box, each time SRD
+velocities are reset, every N timesteps.  If the {stream} style is set
+to {no}, then the mean velocity is unchanged, which may mean that it
+takes a long time for the SRD fluid to come to equilibrium with a
+velocity profile that matches the simulation box deformation.
 
 :line
 
@@ -321,8 +342,6 @@ minimization"_minimize.html.
 This command can only be used if LAMMPS was built with the "srd"
 package.  See the "Making LAMMPS"_Section_start.html#2_3 section for
 more info on packages.
-
-This fix can only be used with a fully periodic simulation box.
 
 [Related commands:] none
 

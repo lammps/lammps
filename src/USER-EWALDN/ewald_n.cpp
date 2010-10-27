@@ -93,13 +93,14 @@ void EwaldN::init()
   //dielectric = force->dielectric;
   mumurd2e = dielectric = 1.0;
   
+  int tmp;
   Pair *pair = force->pair;
-  int *ptr = pair ? (int *) pair->extract("ewald_order") : NULL;
-  double *cutoff = pair ? (double *) pair->extract("cut_coul") : NULL;
+  int *ptr = pair ? (int *) pair->extract("ewald_order",tmp) : NULL;
+  double *cutoff = pair ? (double *) pair->extract("cut_coul",tmp) : NULL;
   if (!(ptr||cutoff)) 
     error->all("KSpace style is incompatible with Pair style");
   int ewald_order = ptr ? *((int *) ptr) : 1<<1;
-  int ewald_mix = ptr ? *((int *) pair->extract("ewald_mix")) : GEOMETRIC;
+  int ewald_mix = ptr ? *((int *) pair->extract("ewald_mix",tmp)) : GEOMETRIC;
   memset(function, 0, EWALD_NFUNCS*sizeof(int));
   for (int i=0; i<=EWALD_NORDER; ++i)			// transcribe order
     if (ewald_order&(1<<i)) {				// from pair_style
@@ -294,18 +295,19 @@ void EwaldN::coefficients()				// set up pre-factors
 
 void EwaldN::init_coeffs()				// local pair coeffs
 {
+  int tmp;
   int n = atom->ntypes;
 
   if (function[1]) {					// geometric 1/r^6
-    double **b = (double **) force->pair->extract("B");
+    double **b = (double **) force->pair->extract("B",tmp);
     delete [] B;
     B = new double[n+1];
     bytes += (n+1)*sizeof(double);
     for (int i=0; i<=n; ++i) B[i] = sqrt(fabs(b[i][i]));
   }
   if (function[2]) {					// arithmetic 1/r^6
-    double **epsilon = (double **) force->pair->extract("epsilon");
-    double **sigma = (double **) force->pair->extract("sigma");
+    double **epsilon = (double **) force->pair->extract("epsilon",tmp);
+    double **sigma = (double **) force->pair->extract("sigma",tmp);
     if (!(epsilon&&sigma))
       error->all("epsilon or sigma reference not set by pair style in ewald/n");
     double eps_i, sigma_i, sigma_n, *bi = B = new double[7*n+7];

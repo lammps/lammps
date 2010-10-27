@@ -30,6 +30,7 @@
 #include "comm.h"
 #include "modify.h"
 #include "fix_deform.h"
+#include "fix_wall_srd.h"
 #include "random_mars.h"
 #include "random_park.h"
 #include "memory.h"
@@ -38,7 +39,7 @@
 using namespace LAMMPS_NS;
 
 enum{SLIP,NOSLIP};
-enum{SPHERE,ELLIPSOID};
+enum{SPHERE,ELLIPSOID,WALL};
 enum{SPHERE_SHAPE,SPHERE_RADIUS};
 enum{ANGULAR_OMEGA,ANGULAR_ANGMOM};
 enum{INSIDE_ERROR,INSIDE_WARN,INSIDE_IGNORE};
@@ -57,8 +58,8 @@ enum{NO_REMAP,X_REMAP,V_REMAP};                   // same as fix_deform.cpp
 #define MAX(A,B) ((A) > (B)) ? (A) : (B)
 
 //#define SRD_DEBUG 1
-//#define SRD_DEBUG_ATOMID 4426
-//#define SRD_DEBUG_TIMESTEP 1
+//#define SRD_DEBUG_ATOMID 58
+//#define SRD_DEBUG_TIMESTEP 449
 
 /* ---------------------------------------------------------------------- */
 
@@ -287,8 +288,6 @@ void FixSRD::init()
   // error checks
 
   if (force->newton_pair == 0) error->all("Fix srd requires newton pair on");
-  if (domain->nonperiodic != 0)
-    error->all("Fix srd simulation box must be periodic");
   if (bigexist && comm->ghost_velocity == 0)
     error->all("Fix srd requires ghost atoms store velocity");
 
@@ -309,23 +308,40 @@ void FixSRD::init()
 
   triclinic = domain->triclinic;
 
-  // set change_flags if size or shape changes due to other fixes
+  // wallexist = 1 if SRD wall(s) are defined
+
+  wallexist = 0;
+  for (int m = 0; m < modify->nfix; m++) {
+    if (strcmp(modify->fix[m]->style,"wall/srd") == 0) {
+      if (wallexist) error->all("Cannot use fix wall/srd more than once");
+      wallexist = 1;
+      wallfix = (FixWallSRD *) modify->fix[m];
+      nwall = wallfix->nwall;
+      wallvarflag = wallfix->varflag;
+      wallwhich = wallfix->wallwhich;
+      xwall = wallfix->xwall;
+      xwallhold = wallfix->xwallhold;
+      vwall = wallfix->vwall;
+      fwall = wallfix->fwall;
+    }
+    walltrigger = 0.5 * neighbor->skin;
+  }
+
+  // set change_flags if box size or shape changes
 
   change_size = change_shape = 0;
-
-  if (domain->box_change) {
-    for (int i = 0; i < modify->nfix; i++)
-      if (modify->fix[i]->box_change) {
-	if (modify->fix[i]->box_change_size) change_size = 1;
-	if (modify->fix[i]->box_change_shape) change_shape = 1;
-	if (strcmp(modify->fix[i]->style,"deform") == 0) {
-	  FixDeform *deform = (FixDeform *) modify->fix[i];
-	  if (deform->box_change_shape && deform->remapflag != V_REMAP)
-	    error->all("Using fix srd with inconsistent "
-		       "fix deform remap option");
-	}
+  if (domain->nonperiodic == 2) change_size = 1;
+  for (int i = 0; i < modify->nfix; i++)
+    if (modify->fix[i]->box_change) {
+      if (modify->fix[i]->box_change_size) change_size = 1;
+      if (modify->fix[i]->box_change_shape) change_shape = 1;
+      if (strcmp(modify->fix[i]->style,"deform") == 0) {
+	FixDeform *deform = (FixDeform *) modify->fix[i];
+	if (deform->box_change_shape && deform->remapflag != V_REMAP)
+	  error->all("Using fix srd with inconsistent "
+		     "fix deform remap option");
       }
-  }
+    }
 
   // parameterize based on current box volume
 
@@ -373,107 +389,25 @@ void FixSRD::init()
 
 void FixSRD::setup(int vflag)
 {
-  // triclinic scale factors
-  // convert a real distance (perpendicular to box face) to a lamda distance
-
-  double length0,length1,length2;
-  if (triclinic) {
-    double *h_inv = domain->h_inv;
-    length0 = sqrt(h_inv[0]*h_inv[0] + h_inv[5]*h_inv[5] + h_inv[4]*h_inv[4]);
-    length1 = sqrt(h_inv[1]*h_inv[1] + h_inv[3]*h_inv[3]);
-    length2 = h_inv[2];
-  }
-
-  // dist_bigghost = distance from sub-domain at which big ghost
-  //   can be due to moving away from sub-domain before next reneigh
-  // dist_srd = distance from sub-domain at which an SRD might overlap
-  //   a big ghost I don't know about due to big moving towards sub-domain
-  // dist_srd_reneigh = distance from sub-domain at which an SRD triggers
-  //   a reneigh, b/c next SRD move might overlap with unknown big ghost
-  // when no big particles:
-  //   set dist_bigghost and dist_srd to 0.0, since not used
-  //   set dist_srd_reneigh to limit SRD particles can move
-  //     without being lost in comm = subsize - (max dist moved in 1 timestep)
-  //   subsize = perp distance between sub-domain faces (orthog or triclinic)
-
-  double dist_srd,dist_srd_reneigh;
-
-  double cut = MAX(neighbor->cutneighmax,comm->cutghostuser);
-
-  if (bigexist) {
-    dist_bigghost = cut + 0.5*neighbor->skin;
-    dist_srd = cut - 0.5*neighbor->skin - 0.5*maxbigdiam;
-    dist_srd_reneigh = dist_srd - dt_big*vmax;
-  } else {
-    dist_bigghost = dist_srd = 0.0;
-    double subsize;
-    if (triclinic == 0) {
-      subsize = domain->prd[0]/comm->procgrid[0];
-      subsize = MIN(subsize,domain->prd[1]/comm->procgrid[1]);
-      if (dimension == 3) 
-	subsize = MIN(subsize,domain->prd[2]/comm->procgrid[2]);
-    } else {
-      subsize = 1.0/comm->procgrid[0]/length0;
-      subsize = MIN(subsize,1.0/comm->procgrid[1]/length1);
-      if (dimension == 3) 
-	subsize = MIN(subsize,1.0/comm->procgrid[2]/length2);
-    }
-    dist_srd_reneigh = subsize - dt_big*vmax;
-  }
+  setup_bounds();
 
   if (dist_srd_reneigh < nevery*dt_big*vmax && me == 0)
     error->warning("Fix srd SRD moves may trigger frequent reneighboring");
 
-  // lo/hi = bbox on this proc which SRD particles must stay inside
-  // lo/hi reneigh = bbox on this proc outside of which SRDs trigger a reneigh
-  // for triclinic, these bbox are in lamda units
-
-  if (triclinic == 0) {
-    srdlo[0] = domain->sublo[0] - dist_srd;
-    srdhi[0] = domain->subhi[0] + dist_srd;
-    srdlo[1] = domain->sublo[1] - dist_srd;
-    srdhi[1] = domain->subhi[1] + dist_srd;
-    srdlo[2] = domain->sublo[2] - dist_srd;
-    srdhi[2] = domain->subhi[2] + dist_srd;
-
-    srdlo_reneigh[0] = domain->sublo[0] - dist_srd_reneigh;
-    srdhi_reneigh[0] = domain->subhi[0] + dist_srd_reneigh;
-    srdlo_reneigh[1] = domain->sublo[1] - dist_srd_reneigh;
-    srdhi_reneigh[1] = domain->subhi[1] + dist_srd_reneigh;
-    srdlo_reneigh[2] = domain->sublo[2] - dist_srd_reneigh;
-    srdhi_reneigh[2] = domain->subhi[2] + dist_srd_reneigh;
-
-  } else {
-    srdlo[0] = domain->sublo_lamda[0] - dist_srd*length0;
-    srdhi[0] = domain->subhi_lamda[0] + dist_srd*length0;
-    srdlo[1] = domain->sublo_lamda[1] - dist_srd*length1;
-    srdhi[1] = domain->subhi_lamda[1] + dist_srd*length1;
-    srdlo[2] = domain->sublo_lamda[2] - dist_srd*length2;
-    srdhi[2] = domain->subhi_lamda[2] + dist_srd*length2;
-
-    srdlo_reneigh[0] = domain->sublo_lamda[0] - dist_srd_reneigh*length0;
-    srdhi_reneigh[0] = domain->subhi_lamda[0] + dist_srd_reneigh*length0;
-    srdlo_reneigh[1] = domain->sublo_lamda[1] - dist_srd_reneigh*length1;
-    srdhi_reneigh[1] = domain->subhi_lamda[1] + dist_srd_reneigh*length1;
-    srdlo_reneigh[2] = domain->sublo_lamda[2] - dist_srd_reneigh*length2;
-    srdhi_reneigh[2] = domain->subhi_lamda[2] + dist_srd_reneigh*length2;
-  }
-
   // setup search bins and search stencil based on these distances
 
-  if (bigexist) {
+  if (bigexist || wallexist) {
     setup_search_bins();
     setup_search_stencil();
   } else nbins2 = 0;
 
-  // perform first bining of SRD and big particles
+  // perform first bining of SRD and big particles and walls
   // set reneighflag to turn off SRD rotation
   // don't do SRD rotation in setup, only during timestepping
 
   reneighflag = BIG_MOVE;
   pre_neighbor();
 }
-
 /* ----------------------------------------------------------------------
    assign SRD particles to bins
    assign big particles to all bins they overlap
@@ -481,7 +415,7 @@ void FixSRD::setup(int vflag)
 
 void FixSRD::pre_neighbor()
 {
-  int i,j,ix,iy,iz,jx,jy,jz,ibin,jbin;
+  int i,j,m,ix,iy,iz,jx,jy,jz,ibin,jbin,lo,hi;
   double rsq,cutbinsq;
   double xlamda[3];
 
@@ -495,8 +429,68 @@ void FixSRD::pre_neighbor()
     binnext = (int *) memory->smalloc(nmax*sizeof(int),"fix/srd:binnext");
   }
 
-  // setup BIG info list with index ptrs to BIG particles in atom arrays
-  // grow BIG info list if necessary
+  // setup and grow BIG info list if necessary
+  // set index ptrs to BIG particles and to WALLS
+  // big_static() adds static properties to info list
+
+  if (bigexist || wallexist) {
+    if (bigexist) {
+      if (biggroup == atom->firstgroup) nbig = atom->nfirst + atom->nghost;
+      else {
+	int *mask = atom->mask;
+	int nlocal = atom->nlocal;
+	nbig = atom->nghost;
+	for (i = 0; i < nlocal; i++)
+	  if (mask[i] & biggroupbit) nbig++;
+      }
+    } else nbig = 0;
+
+    int ninfo = nbig;
+    if (wallexist) ninfo += nwall;
+
+    if (ninfo > maxbig) {
+      maxbig = ninfo;
+      memory->sfree(biglist);
+      biglist = (Big *) memory->smalloc(maxbig*sizeof(Big),"fix/srd:biglist");
+    }
+
+    if (bigexist) {
+      int *mask = atom->mask;
+      int nlocal = atom->nlocal;
+      if (biggroup == atom->firstgroup) nlocal = atom->nfirst;
+      nbig = 0;
+      for (i = 0; i < nlocal; i++)
+	if (mask[i] & biggroupbit) biglist[nbig++].index = i;
+      int nall = atom->nlocal + atom->nghost;
+      for (i = atom->nlocal; i < nall; i++)
+	if (mask[i] & biggroupbit) biglist[nbig++].index = i;
+      big_static();
+    }
+
+    if (wallexist) {
+      for (m = 0; m < nwall; m++) {
+	biglist[nbig+m].index = m;
+	biglist[nbig+m].type = WALL;
+      }
+      wallfix->wall_params(1);
+    }
+  }
+
+  // if simulation box size changes, reset velocity bins
+  // if big particles exist, reset search bins if box size or shape changes,
+  //   b/c finite-size particles will overlap different bins as the box tilts
+
+  if (change_size) setup_bounds();
+  if (change_size) setup_velocity_bins();
+  if ((change_size || change_shape) && (bigexist || wallexist)) {
+    setup_search_bins();
+    setup_search_stencil();
+  }
+
+  // map each owned & ghost big particle to search bins it overlaps
+  // zero out bin counters for big particles
+  // if firstgroup is defined, only loop over first and ghost particles
+  // for each big particle: loop over stencil to find overlap bins
 
   int *mask = atom->mask;
   double **x = atom->x;
@@ -505,52 +499,23 @@ void FixSRD::pre_neighbor()
   int nfirst = nlocal;
   if (bigexist && biggroup == atom->firstgroup) nfirst = atom->nfirst;
 
-  if (bigexist) {
-    nbig = atom->nfirst + atom->nghost;
-    if (nbig > maxbig) {
-      maxbig = nbig;
-      memory->sfree(biglist);
-      biglist = (Big *) memory->smalloc(maxbig*sizeof(Big),"fix/srd:biglist");
-    }
-
-    nbig = 0;
-    for (i = 0; i < atom->nfirst; i++)
-      if (mask[i] & biggroupbit) biglist[nbig++].index = i;
-    for (i = nlocal; i < nall; i++)
-      if (mask[i] & biggroupbit) biglist[nbig++].index = i;
-
-    big_static();
-  }
-
-  // if simulation box size changes, reset velocity bins
-  // if big particles exist, reset search bins if box size or shape changes
-
-  if (change_size) setup_velocity_bins();
-  if ((change_size || change_shape) && bigexist) {
-    setup_search_bins();
-    setup_search_stencil();
-  }
-
-  // compute search bin for each owned & ghost big particle
-  // zero out bin counters for big particles
-  // if firstgroup is defined, only loop over first and ghost particles
-  // for each big particle: loop over stencil to find bins that it overlaps
+  if (bigexist || wallexist)
+    for (i = 0; i < nbins2; i++)
+      nbinbig[i] = 0;
 
   if (bigexist) {
-    for (i = 0; i < nbins2; i++) nbinbig[i] = 0;
-
     i = nbig = 0;
     while (i < nall) {
-      ix = static_cast<int> ((x[i][0]-xblo2)*bininv2x);
-      iy = static_cast<int> ((x[i][1]-yblo2)*bininv2y);
-      iz = static_cast<int> ((x[i][2]-zblo2)*bininv2z);
-      ibin = iz*nbin2y*nbin2x + iy*nbin2x + ix;
-
-      if (ix < 0 || ix >= nbin2x || iy < 0 || iy >= nbin2y || 
-	  iz < 0 || iz >= nbin2z)
-	error->one("Fix SRD: bad search bin assignment");
-      
       if (mask[i] & biggroupbit) {
+	ix = static_cast<int> ((x[i][0]-xblo2)*bininv2x);
+	iy = static_cast<int> ((x[i][1]-yblo2)*bininv2y);
+	iz = static_cast<int> ((x[i][2]-zblo2)*bininv2z);
+	ibin = iz*nbin2y*nbin2x + iy*nbin2x + ix;
+
+	if (ix < 0 || ix >= nbin2x || iy < 0 || iy >= nbin2y || 
+	    iz < 0 || iz >= nbin2z)
+	  error->one("Fix SRD: bad search bin assignment");
+      
 	cutbinsq = biglist[nbig].cutbinsq;
 	for (j = 0; j < nstencil; j++) {
 	  jx = ix + stencil[j][0];
@@ -581,6 +546,88 @@ void FixSRD::pre_neighbor()
     }
   }
 
+  // map each wall to search bins it covers, up to non-periodic boundary
+  // if wall moves, add walltrigger to its position
+  // this insures it is added to all search bins it may move into
+  // may not overlap any of my search bins
+
+  if (wallexist) {
+    double delta = 0.0;
+    if (wallvarflag) delta = walltrigger;
+
+    for (m = 0; m < nwall; m++) {
+      int dim = wallwhich[m] / 2;
+      int side = wallwhich[m] % 2;
+
+      if (dim == 0) {
+	if (side == 0) {
+	  hi = static_cast<int> ((xwall[m]+delta-xblo2)*bininv2x);
+	  if (hi < 0) continue;
+	  if (hi >= nbin2x) error->all("Fix SRD: bad search bin assignment");
+	  lo = 0;
+	} else {
+	  lo = static_cast<int> ((xwall[m]-delta-xblo2)*bininv2x);
+	  if (lo >= nbin2x) continue;
+	  if (lo < 0) error->all("Fix SRD: bad search bin assignment");
+	  hi = nbin2x-1;
+	}
+
+	for (ix = lo; ix <= hi; ix++)
+	  for (iy = 0; iy < nbin2y; iy++)
+	    for (iz = 0; iz < nbin2z; iz++) {
+	      ibin = iz*nbin2y*nbin2x + iy*nbin2x + ix;
+	      if (nbinbig[ibin] == ATOMPERBIN)
+		error->all("Fix SRD: too many walls in bin");
+	      binbig[ibin][nbinbig[ibin]++] = nbig+m;
+	    }
+
+      } else if (dim == 1) {
+	if (side == 0) {
+	  hi = static_cast<int> ((xwall[m]+delta-yblo2)*bininv2y);
+	  if (hi < 0) continue;
+	  if (hi >= nbin2y) error->all("Fix SRD: bad search bin assignment");
+	  lo = 0;
+	} else {
+	  lo = static_cast<int> ((xwall[m]-delta-yblo2)*bininv2y);
+	  if (lo >= nbin2y) continue;
+	  if (lo < 0) error->all("Fix SRD: bad search bin assignment");
+	  hi = nbin2y-1;
+	}
+
+	for (iy = lo; iy <= hi; iy++)
+	  for (ix = 0; ix < nbin2x; ix++)
+	    for (iz = 0; iz < nbin2z; iz++) {
+	      ibin = iz*nbin2y*nbin2x + iy*nbin2x + ix;
+	      if (nbinbig[ibin] == ATOMPERBIN)
+		error->all("Fix SRD: too many walls in bin");
+	      binbig[ibin][nbinbig[ibin]++] = nbig+m;
+	    }
+
+      } else if (dim == 2) {
+	if (side == 0) {
+	  hi = static_cast<int> ((xwall[m]+delta-zblo2)*bininv2z);
+	  if (hi < 0) continue;
+	  if (hi >= nbin2z) error->all("Fix SRD: bad search bin assignment");
+	  lo = 0;
+	} else {
+	  lo = static_cast<int> ((xwall[m]-delta-zblo2)*bininv2z);
+	  if (lo >= nbin2z) continue;
+	  if (lo < 0) error->all("Fix SRD: bad search bin assignment");
+	  hi = nbin2z-1;
+	}
+
+	for (iz = lo; iz < hi; iz++)
+	  for (ix = 0; ix < nbin2x; ix++)
+	    for (iy = 0; iy < nbin2y; iy++) {
+	      ibin = iz*nbin2y*nbin2x + iy*nbin2x + ix;
+	      if (nbinbig[ibin] == ATOMPERBIN)
+		error->all("Fix SRD: too many walls in bin");
+	      binbig[ibin][nbinbig[ibin]++] = nbig+m;
+	    }
+      }
+    }
+  }
+
   // rotate SRD velocities on SRD timestep
   // done now since all SRDs are currently inside my sub-domain
 
@@ -599,7 +646,7 @@ void FixSRD::pre_neighbor()
 
 void FixSRD::post_force(int vflag)
 {
-  int ix,iy,iz;
+  int i,m,ix,iy,iz;
   double xlamda[3];
 
   // zero per-timestep stats
@@ -615,22 +662,22 @@ void FixSRD::post_force(int vflag)
   int nall = nlocal + atom->nghost;
   if (bigexist == 0) nall = 0;
 
-  for (int i = nlocal; i < nall; i++)
+  for (i = nlocal; i < nall; i++)
     f[i][0] = f[i][1] = f[i][2] = 0.0;
 
   if (collidestyle == NOSLIP)
-    for (int i = nlocal; i < nall; i++)
+    for (i = nlocal; i < nall; i++)
       torque[i][0] = torque[i][1] = torque[i][2] = 0.0;
 
   // advect SRD particles
-  // assign to search bins if big particles exist
+  // assign to search bins if big particles or walls exist
 
   int *mask = atom->mask;
   double **x = atom->x;
   double **v = atom->v;
 
-  if (bigexist) {
-    for (int i = 0; i < nlocal; i++)
+  if (bigexist || wallexist) {
+    for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
 	x[i][0] += dt_big*v[i][0];
 	x[i][1] += dt_big*v[i][1];
@@ -654,7 +701,7 @@ void FixSRD::post_force(int vflag)
       }
 
   } else {
-    for (int i = 0; i < nlocal; i++)
+    for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
 	x[i][0] += dt_big*v[i][0];
 	x[i][1] += dt_big*v[i][1];
@@ -662,10 +709,11 @@ void FixSRD::post_force(int vflag)
       }
   }
 
-  // detect collision of BIG particles with SRDs
+  // detect collision of SRDs with BIG particles or walls
 
-  if (bigexist) {
-    if (collidestyle == NOSLIP || any_ellipsoids) big_dynamic();
+  if (bigexist || wallexist) {
+    if (bigexist && (collidestyle == NOSLIP || any_ellipsoids)) big_dynamic();
+    if (wallexist) wallfix->wall_params(0);
     if (overlap) collisions_multi();
     else collisions_single();
   }
@@ -684,7 +732,7 @@ void FixSRD::post_force(int vflag)
   int flag = 0;
 
   if (triclinic) domain->x2lamda(nlocal);
-  for (int i = 0; i < nlocal; i++)
+  for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       if (x[i][0] < srdlo_reneigh[0] || x[i][0] > srdhi_reneigh[0] ||
 	  x[i][1] < srdlo_reneigh[1] || x[i][1] > srdhi_reneigh[1] ||
@@ -697,6 +745,15 @@ void FixSRD::post_force(int vflag)
   if (flagall) {
     next_reneighbor = update->ntimestep + 1;
     reneighflag = SRD_MOVE;
+  }
+
+  // if wall has moved too far, trigger reneigh on next step
+  // analagous to neighbor check for big particle moving 1/2 of skin distance
+
+  if (wallexist) {
+    for (m = 0; m < nwall; m++)
+      if (fabs(xwall[m]-xwallhold[m]) > walltrigger)
+	next_reneighbor = update->ntimestep + 1;
   }
 
   // if next timestep is SRD timestep, trigger reneigh
@@ -847,9 +904,6 @@ void FixSRD::reset_velocities()
 
     vnew = vold;
 
-    //printf("BIN %d %d %d: %g %g: %g %g\n",i,nbin1x,nbin1y,
-    //	   vold[0],vold[1],vnew[0],vnew[1]);
-
     irandom = static_cast<int> (6.0*vbin[i].random);
     sign = irandom % 2;
     if (dimension == 3) axis = irandom / 2;
@@ -919,8 +973,9 @@ void FixSRD::vbin_comm(int ishift)
   MPI_Status status;
   
   // send/recv bins in both directions in each dimension
-  // only send/recv if bins overlap proc domains on that boundary
   // don't send if nsend = 0
+  //   due to static bins aliging with proc boundary
+  //   due to dynamic bins across non-periodic global boundary
   // copy to self if sendproc = me
   // MPI send to another proc if sendproc != me
   // don't recv if nrecv = 0
@@ -1011,8 +1066,8 @@ void FixSRD::vbin_unpack(double *buf, BinAve *vbin, int n, int *list)
 }
 
 /* ----------------------------------------------------------------------
-   detect all collisions between SRD and big particles
-   assume SRD can be inside at most one big particle at a time
+   detect all collisions between SRD and BIG particles or WALLS
+   assume SRD can be inside at most one BIG particle or WALL at a time
    unoverlap SRDs for each collision
 ------------------------------------------------------------------------- */
 
@@ -1024,13 +1079,13 @@ void FixSRD::collisions_single()
   Big *big;
 
   // outer loop over SRD particles
-  // inner loop over big particles that overlap SRD particle bin
-  // if overlap between SRD and big particle:
+  // inner loop over BIG particles or WALLS that overlap SRD particle bin
+  // if overlap between SRD and BIG particle or wall:
   //   for exact, compute collision pt in time
-  //   for inexact, push SRD to surf of big particle
-  // update x,v of SRD and f,torque on big particle
+  //   for inexact, push SRD to surf of BIG particle or WALL
+  // update x,v of SRD and f,torque on BIG particle
   // re-bin SRD particle after collision
-  // iterate until the SRD particle has no overlaps with big particles
+  // iterate until the SRD particle has no overlaps with BIG particles or WALLS
 
   double **x = atom->x;
   double **v = atom->v;
@@ -1061,55 +1116,78 @@ void FixSRD::collisions_single()
 	type = big->type;
 
 	if (type == SPHERE) inside = inside_sphere(x[i],x[j],big);
-	else inside = inside_ellipsoid(x[i],x[j],big);
+	else if (type == ELLIPSOID) inside = inside_ellipsoid(x[i],x[j],big);
+	else inside = inside_wall(x[i],j);
 
 	if (inside) {
 	  if (exactflag) {
 	    if (type == SPHERE)
 	      t_remain = collision_sphere_exact(x[i],x[j],v[i],v[j],big,
 						xscoll,xbcoll,norm);
-	    else
+	    else if (type == ELLIPSOID)
 	      t_remain = collision_ellipsoid_exact(x[i],x[j],v[i],v[j],big,
 						   xscoll,xbcoll,norm);
+	    else 
+	      t_remain = collision_wall_exact(x[i],j,v[i],xscoll,xbcoll,norm);
+
 	  } else {
 	    t_remain = 0.5*dt;
 	    if (type == SPHERE)
 	      collision_sphere_inexact(x[i],x[j],big,xscoll,xbcoll,norm);
-	    else
+	    else if (type == ELLIPSOID)
 	      collision_ellipsoid_inexact(x[i],x[j],big,xscoll,xbcoll,norm);
+	    else
+	      collision_wall_inexact(x[i],j,xscoll,xbcoll,norm);
 	  }
 
 #ifdef SRD_DEBUG
 	  if (update->ntimestep == SRD_DEBUG_TIMESTEP &&
 	      atom->tag[i] == SRD_DEBUG_ATOMID)
-	    print_collision(i,j,ibounce,t_remain,dt,xscoll,xbcoll,norm);
+	    print_collision(i,j,ibounce,t_remain,dt,xscoll,xbcoll,norm,type);
 #endif
 
 	  if (t_remain > dt) {
 	    ninside++;
 	    if (insideflag == INSIDE_ERROR) {
 	      char str[128];
-	      sprintf(str,"SRD particle %d started "
-		      "inside big particle %d on step %d bounce %d\n",
-		      atom->tag[i],atom->tag[j],update->ntimestep,ibounce+1);
+	      if (type != WALL)
+		sprintf(str,"SRD particle %d started "
+			"inside big particle %d on step %d bounce %d\n",
+			atom->tag[i],atom->tag[j],update->ntimestep,ibounce+1);
+	      else
+		sprintf(str,"SRD particle %d started "
+			"inside wall %d on step %d bounce %d\n",
+			atom->tag[i],j,update->ntimestep,ibounce+1);
 	      error->one(str);
 	    }
 	    if (insideflag == INSIDE_WARN) {
 	      char str[128];
-	      sprintf(str,"SRD particle %d started "
-		      "inside big particle %d on step %d bounce %d\n",
-		      atom->tag[i],atom->tag[j],update->ntimestep,ibounce+1);
+	      if (type != WALL)
+		sprintf(str,"SRD particle %d started "
+			"inside big particle %d on step %d bounce %d\n",
+			atom->tag[i],atom->tag[j],update->ntimestep,ibounce+1);
+	      else
+		sprintf(str,"SRD particle %d started "
+			"inside wall %d on step %d bounce %d\n",
+			atom->tag[i],j,update->ntimestep,ibounce+1);
 	      error->warning(str);
 	    }
 	    break;
 	  }
 
-	  if (collidestyle == NOSLIP)
-	    noslip(v[i],v[j],x[j],big,xscoll,norm,vsnew);
-	  else if (type == SPHERE)
-	    slip_sphere(v[i],v[j],norm,vsnew);
-	  else if (type == ELLIPSOID)
-	    slip_ellipsoid(v[i],v[j],x[j],big,xscoll,norm,vsnew);
+	  if (collidestyle == SLIP) {
+	    if (type == SPHERE)
+	      slip_sphere(v[i],v[j],norm,vsnew);
+	    else if (type == ELLIPSOID)
+	      slip_ellipsoid(v[i],v[j],x[j],big,xscoll,norm,vsnew);
+	    else
+	      slip_wall(v[i],j,norm,vsnew);
+	  } else {
+	    if (type != WALL)
+	      noslip(v[i],v[j],x[j],big,xscoll,norm,vsnew);
+	    else
+	      noslip_wall(v[i],j,xscoll,norm,vsnew);
+	  }
 
 	  if (dimension == 2) vsnew[2] = 0.0;
 
@@ -1119,13 +1197,16 @@ void FixSRD::collisions_single()
 	    vsnew[2]*vsnew[2];
 	  if (vsq > vmaxsq) nrescale++;
 
-	  // update BIG particle and SRD
+	  // update BIG particle and WALL and SRD
 	  // BIG particle is not torqued if sphere and SLIP collision
 
 	  if (collidestyle == SLIP && type == SPHERE)
 	    force_torque(v[i],vsnew,xscoll,xbcoll,f[j],NULL);
-	  else
+	  else if (type != WALL)
 	    force_torque(v[i],vsnew,xscoll,xbcoll,f[j],torque[j]);
+	  else if (type == WALL)
+	    force_wall(v[i],vsnew,j);
+
 	  ibin = binsrd[i] = update_srd(i,t_remain,xscoll,vsnew,x[i],v[i]);
 
 	  if (ibounce == 0) ncollide++;
@@ -1153,19 +1234,20 @@ void FixSRD::collisions_single()
 
 void FixSRD::collisions_multi()
 {
-  int i,j,k,m,type,nbig,ibin,ibounce,inside,jfirst;
+  int i,j,k,m,type,nbig,ibin,ibounce,inside,jfirst,typefirst;
   double dt,t_remain,t_first;
   double norm[3],xscoll[3],xbcoll[3],vsnew[3];
   double normfirst[3],xscollfirst[3],xbcollfirst[3];
   Big *big;
 
   // outer loop over SRD particles
-  // inner loop over big particles that overlap SRD particle bin
-  // loop over all big particles to find which one SRD collided with first
-  // if overlap between SRD and big particle, compute collision pt in time
-  // update x,v of SRD and f,torque on big particle
+  // inner loop over BIG particles or WALLS that overlap SRD particle bin
+  // loop over all BIG and WALLS to find which one SRD collided with first
+  // if overlap between SRD and BIG particle or wall:
+  //   compute collision pt in time
+  // update x,v of SRD and f,torque on BIG particle
   // re-bin SRD particle after collision
-  // iterate until the SRD particle has no overlaps with big particles
+  // iterate until the SRD particle has no overlaps with BIG particles or WALLS
 
   double **x = atom->x;
   double **v = atom->v;
@@ -1195,20 +1277,23 @@ void FixSRD::collisions_multi()
 	type = big->type;
 
 	if (type == SPHERE) inside = inside_sphere(x[i],x[j],big);
-	else inside = inside_ellipsoid(x[i],x[j],big);
+	else if (type == ELLIPSOID) inside = inside_ellipsoid(x[i],x[j],big);
+	else inside = inside_wall(x[i],j);
 
 	if (inside) {
 	  if (type == SPHERE)
 	    t_remain = collision_sphere_exact(x[i],x[j],v[i],v[j],big,
 					      xscoll,xbcoll,norm);
-	  else
+	  else if (type == ELLIPSOID)
 	    t_remain = collision_ellipsoid_exact(x[i],x[j],v[i],v[j],big,
 						 xscoll,xbcoll,norm);
+	  else 
+	    t_remain = collision_wall_exact(x[i],j,v[i],xscoll,xbcoll,norm);
 
 #ifdef SRD_DEBUG
 	  if (update->ntimestep == SRD_DEBUG_TIMESTEP &&
 	      atom->tag[i] == SRD_DEBUG_ATOMID)
-	    print_collision(i,j,ibounce,t_remain,dt,xscoll,xbcoll,norm);
+	    print_collision(i,j,ibounce,t_remain,dt,xscoll,xbcoll,norm,type);
 #endif
 
 	  if (t_remain > dt || t_remain < 0.0) {
@@ -1234,6 +1319,7 @@ void FixSRD::collisions_multi()
 	  if (t_remain > t_first) {
 	    t_first = t_remain;
 	    jfirst = j;
+	    typefirst = type;
 	    xscollfirst[0] = xscoll[0];
 	    xscollfirst[1] = xscoll[1];
 	    xscollfirst[2] = xscoll[2];
@@ -1249,6 +1335,7 @@ void FixSRD::collisions_multi()
 
       if (t_first == 0.0) break;
       j = jfirst;
+      type = typefirst;
       xscoll[0] = xscollfirst[0];
       xscoll[1] = xscollfirst[1];
       xscoll[2] = xscollfirst[2];
@@ -1259,12 +1346,19 @@ void FixSRD::collisions_multi()
       norm[1] = normfirst[1];
       norm[2] = normfirst[2];
 
-      if (collidestyle == NOSLIP)
-	noslip(v[i],v[j],x[j],big,xscoll,norm,vsnew);
-      else if (type == SPHERE)
-	slip_sphere(v[i],v[j],norm,vsnew);
-      else if (type == ELLIPSOID)
-	slip_ellipsoid(v[i],v[j],x[j],big,xscoll,norm,vsnew);
+      if (collidestyle == SLIP) {
+	if (type == SPHERE)
+	  slip_sphere(v[i],v[j],norm,vsnew);
+	else if (type == ELLIPSOID)
+	  slip_ellipsoid(v[i],v[j],x[j],big,xscoll,norm,vsnew);
+	else
+	  slip_wall(v[i],j,norm,vsnew);
+      } else {
+	if (type != WALL)
+	  noslip(v[i],v[j],x[j],big,xscoll,norm,vsnew);
+	else
+	  noslip_wall(v[i],j,xscoll,norm,vsnew);
+      }
 
       if (dimension == 2) vsnew[2] = 0.0;
 
@@ -1273,14 +1367,17 @@ void FixSRD::collisions_multi()
       double vsq = vsnew[0]*vsnew[0] + vsnew[1]*vsnew[1] + vsnew[2]*vsnew[2];
       if (vsq > vmaxsq) nrescale++;
 
-      // update BIG particle and SRD
+      // update BIG particle and WALL and SRD
       // BIG particle is not torqued if sphere and SLIP collision
 
       if (collidestyle == SLIP && type == SPHERE)
 	force_torque(v[i],vsnew,xscoll,xbcoll,f[j],NULL);
-      else
+      else if (type != WALL)
 	force_torque(v[i],vsnew,xscoll,xbcoll,f[j],torque[j]);
-      ibin = binsrd[i] = update_srd(i,t_remain,xscoll,vsnew,x[i],v[i]);
+      else if (type == WALL)
+	force_wall(v[i],vsnew,j);
+
+      ibin = binsrd[i] = update_srd(i,t_first,xscoll,vsnew,x[i],v[i]);
 
       if (ibounce == 0) ncollide++;
       ibounce++;
@@ -1333,6 +1430,20 @@ int FixSRD::inside_ellipsoid(double *xs, double *xb, Big *big)
 
   if (x*x*big->aradsqinv + y*y*big->bradsqinv + z*z*big->cradsqinv <= 1.0)
     return 1;
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
+   check if SRD particle S is inside wall IWALL
+------------------------------------------------------------------------- */
+
+int FixSRD::inside_wall(double *xs, int iwall)
+{
+  int dim = wallwhich[iwall] / 2;
+  int side = wallwhich[iwall] % 2;
+
+  if (side == 0 && xs[dim] < xwall[iwall]) return 1;
+  if (side && xs[dim] > xwall[iwall]) return 1;
   return 0;
 }
 
@@ -1605,6 +1716,63 @@ void FixSRD::collision_ellipsoid_inexact(double *xs, double *xb,
 }
 
 /* ----------------------------------------------------------------------
+   collision of SRD particle S with wall IWALL
+   exact because compute time of collision
+   dt = time previous to now at which collision occurs
+   xscoll = collision pt = position of SRD at time of collision
+   norm = surface normal of collision pt at time of collision
+------------------------------------------------------------------------- */
+
+double FixSRD::collision_wall_exact(double *xs, int iwall, double *vs,
+				     double *xscoll, double *xbcoll,
+				     double *norm)
+{
+  int dim = wallwhich[iwall] / 2;
+
+  double dt = (xs[dim] - xwall[iwall]) / (vs[dim] - vwall[iwall]);
+  xscoll[0] = xs[0] - dt*vs[0];
+  xscoll[1] = xs[1] - dt*vs[1];
+  xscoll[2] = xs[2] - dt*vs[2];
+
+  xbcoll[0] = xbcoll[1] = xbcoll[2] = 0.0;
+  xbcoll[dim] = xwall[iwall] - dt*vwall[iwall];
+
+  int side = wallwhich[iwall] % 2;
+  norm[0] = norm[1] = norm[2] = 0.0;
+  if (side == 0) norm[dim] = 1.0;
+  else norm[dim] = -1.0;
+
+  return dt;
+}
+
+/* ----------------------------------------------------------------------
+   collision of SRD particle S with wall IWALL
+   inexact because just push SRD to surface of wall at end of step
+   time of collision = end of step
+   xscoll = collision pt = position of SRD at time of collision
+   norm = surface normal of collision pt at time of collision
+------------------------------------------------------------------------- */
+
+void FixSRD::collision_wall_inexact(double *xs, int iwall, double *xscoll, 
+				     double *xbcoll, double *norm)
+{
+  int dim = wallwhich[iwall] / 2;
+
+  xscoll[0] = xs[0];
+  xscoll[1] = xs[1];
+  xscoll[2] = xs[2];
+  xscoll[dim] = xwall[iwall];
+
+  xbcoll[0] = xbcoll[1] = xbcoll[2] = 0.0;
+  xbcoll[dim] = xwall[iwall];
+
+  int side = wallwhich[iwall] % 2;
+  norm[0] = norm[1] = norm[2] = 0.0;
+  if (side == 0) norm[dim] = 1.0;
+  else norm[dim] = -1.0;
+}
+
+/* ----------------------------------------------------------------------
    SLIP collision with sphere
    vs = velocity of SRD, vb = velocity of BIG
    norm = unit normal from surface of BIG at collision pt
@@ -1685,6 +1853,53 @@ void FixSRD::slip_ellipsoid(double *vs, double *vb, double *xb, Big *big,
 }
 
 /* ----------------------------------------------------------------------
+   SLIP collision with wall IWALL
+   vs = velocity of SRD
+   norm = unit normal from WALL at collision pt
+   v of WALL in direction of surf normal is added to v of SRD
+   return vsnew of SRD
+------------------------------------------------------------------------- */
+
+void FixSRD::slip_wall(double *vs, int iwall, double *norm, double *vsnew)
+{
+  double vs_dot_n,scale,r1,r2,vnmag,vtmag1,vtmag2;
+  double tangent1[3],tangent2[3];
+
+  vs_dot_n = vs[0]*norm[0] + vs[1]*norm[1] + vs[2]*norm[2];
+
+  tangent1[0] = vs[0] - vs_dot_n*norm[0];
+  tangent1[1] = vs[1] - vs_dot_n*norm[1];
+  tangent1[2] = vs[2] - vs_dot_n*norm[2];
+  scale = 1.0/sqrt(tangent1[0]*tangent1[0] + tangent1[1]*tangent1[1] +
+		   tangent1[2]*tangent1[2]);
+  tangent1[0] *= scale;
+  tangent1[1] *= scale;
+  tangent1[2] *= scale;
+
+  tangent2[0] = norm[1]*tangent1[2] - norm[2]*tangent1[1];
+  tangent2[1] = norm[2]*tangent1[0] - norm[0]*tangent1[2];
+  tangent2[2] = norm[0]*tangent1[1] - norm[1]*tangent1[0];
+
+  while (1) {
+    r1 = sigma * random->gaussian();
+    r2 = sigma * random->gaussian();
+    vnmag = sqrt(r1*r1 + r2*r2);
+    vtmag1 = sigma * random->gaussian();
+    vtmag2 = sigma * random->gaussian();
+    if (vnmag*vnmag + vtmag1*vtmag1 + vtmag2*vtmag2 <= vmaxsq) break;
+  }
+
+  vsnew[0] = vnmag*norm[0] + vtmag1*tangent1[0] + vtmag2*tangent2[0];
+  vsnew[1] = vnmag*norm[1] + vtmag1*tangent1[1] + vtmag2*tangent2[1];
+  vsnew[2] = vnmag*norm[2] + vtmag1*tangent1[2] + vtmag2*tangent2[2];
+
+  // add in velocity of collision pt = velocity of wall
+
+  int dim = wallwhich[iwall] / 2;
+  vsnew[dim] += vwall[iwall];
+}
+
+/* ----------------------------------------------------------------------
    NO-SLIP collision with sphere or ellipsoid
    vs = velocity of SRD, vb = velocity of BIG
    xb = position of BIG, omega = rotation of BIG
@@ -1738,9 +1953,58 @@ void FixSRD::noslip(double *vs, double *vb, double *xb, Big *big,
 }
 
 /* ----------------------------------------------------------------------
+   NO-SLIP collision with wall IWALL
+   vs = velocity of SRD
+   xsurf = collision pt on surf of WALL
+   norm = unit normal from WALL at collision pt
+   v of collision pt is added to v of SRD
+   return vsnew of SRD
+------------------------------------------------------------------------- */
+
+void FixSRD::noslip_wall(double *vs, int iwall,
+			 double *xsurf, double *norm, double *vsnew)
+{
+  double vs_dot_n,scale,r1,r2,vnmag,vtmag1,vtmag2;
+  double tangent1[3],tangent2[3];
+
+  vs_dot_n = vs[0]*norm[0] + vs[1]*norm[1] + vs[2]*norm[2];
+
+  tangent1[0] = vs[0] - vs_dot_n*norm[0];
+  tangent1[1] = vs[1] - vs_dot_n*norm[1];
+  tangent1[2] = vs[2] - vs_dot_n*norm[2];
+  scale = 1.0/sqrt(tangent1[0]*tangent1[0] + tangent1[1]*tangent1[1] +
+		   tangent1[2]*tangent1[2]);
+  tangent1[0] *= scale;
+  tangent1[1] *= scale;
+  tangent1[2] *= scale;
+
+  tangent2[0] = norm[1]*tangent1[2] - norm[2]*tangent1[1];
+  tangent2[1] = norm[2]*tangent1[0] - norm[0]*tangent1[2];
+  tangent2[2] = norm[0]*tangent1[1] - norm[1]*tangent1[0];
+
+  while (1) {
+    r1 = sigma * random->gaussian();
+    r2 = sigma * random->gaussian();
+    vnmag = sqrt(r1*r1 + r2*r2);
+    vtmag1 = sigma * random->gaussian();
+    vtmag2 = sigma * random->gaussian();
+    if (vnmag*vnmag + vtmag1*vtmag1 + vtmag2*vtmag2 <= vmaxsq) break;
+  }
+
+  vsnew[0] = vnmag*norm[0] + vtmag1*tangent1[0] + vtmag2*tangent2[0];
+  vsnew[1] = vnmag*norm[1] + vtmag1*tangent1[1] + vtmag2*tangent2[1];
+  vsnew[2] = vnmag*norm[2] + vtmag1*tangent1[2] + vtmag2*tangent2[2];
+
+  // add in velocity of collision pt = velocity of wall
+
+  int dim = wallwhich[iwall] / 2;
+  vsnew[dim] += vwall[iwall];
+}
+
+/* ----------------------------------------------------------------------
    impart force and torque to BIG particle
-   force on big particle = -dp/dt of SRD particle
-   torque on big particle = r cross (-dp/dt)
+   force on BIG particle = -dp/dt of SRD particle
+   torque on BIG particle = r cross (-dp/dt)
 ------------------------------------------------------------------------- */
 
 void FixSRD::force_torque(double *vsold, double *vsnew,
@@ -1768,6 +2032,26 @@ void FixSRD::force_torque(double *vsold, double *vsnew,
     tb[1] -= xs_xb[2]*dpdt[0] - xs_xb[0]*dpdt[2];
     tb[2] -= xs_xb[0]*dpdt[1] - xs_xb[1]*dpdt[0];
   }
+}
+
+/* ----------------------------------------------------------------------
+   impart force to WALL
+   force on WALL = -dp/dt of SRD particle
+------------------------------------------------------------------------- */
+
+void FixSRD::force_wall(double *vsold, double *vsnew, int iwall)
+
+{
+  double dpdt[3],xs_xb[3];
+
+  double factor = mass_srd / dt_big / force->ftm2v;
+  dpdt[0] = factor * (vsnew[0] - vsold[0]);
+  dpdt[1] = factor * (vsnew[1] - vsold[1]);
+  dpdt[2] = factor * (vsnew[2] - vsold[2]);
+
+  fwall[iwall][0] -= dpdt[0];
+  fwall[iwall][1] -= dpdt[1];
+  fwall[iwall][2] -= dpdt[2];
 }
 
 /* ----------------------------------------------------------------------
@@ -2114,8 +2398,7 @@ void FixSRD::parameterize()
     shiftflag = 1;
     if (me == 0) 
       error->warning("SRD bin shifting turned on due to small lamda");
-  } else if (shiftuser == SHIFT_YES)
-    shiftflag = 1;
+  } else if (shiftuser == SHIFT_YES) shiftflag = 1;
 
   // warnings
 
@@ -2125,6 +2408,8 @@ void FixSRD::parameterize()
     error->warning("Fix srd viscosity < 0.0 due to low SRD density");
   if (bigexist && dt_big*vmax > minbigdiam && me == 0)
     error->warning("Fix srd particles may move > big particle diameter");
+  if (wallexist && collidestyle == NOSLIP && shiftflag == 1)
+    error->warning("Fix srd no-slip wall collisions with bin shifting");
 }
 
 /* ----------------------------------------------------------------------
@@ -2167,6 +2452,7 @@ void FixSRD::big_static()
       else biglist[k].typeangular = ANGULAR_ANGMOM;
 
       rad = radfactor*shape[type[i]][0];
+      biglist[k].radius = rad;
       biglist[k].radsq = rad*rad;
       biglist[k].cutbinsq = (rad+skinhalf) * (rad+skinhalf);
     } else {
@@ -2233,6 +2519,111 @@ void FixSRD::big_dynamic()
       biglist[k].omega[1] = angmom[i][1] / inertia;
       biglist[k].omega[2] = angmom[i][2] / inertia;
     }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   set bounds for big and SRD particle movement
+   called at setup() and when box size changes (but not shape)
+------------------------------------------------------------------------- */
+
+void FixSRD::setup_bounds()
+{
+  // triclinic scale factors
+  // convert a real distance (perpendicular to box face) to a lamda distance
+
+  double length0,length1,length2;
+  if (triclinic) {
+    double *h_inv = domain->h_inv;
+    length0 = sqrt(h_inv[0]*h_inv[0] + h_inv[5]*h_inv[5] + h_inv[4]*h_inv[4]);
+    length1 = sqrt(h_inv[1]*h_inv[1] + h_inv[3]*h_inv[3]);
+    length2 = h_inv[2];
+  }
+
+  // collision object = CO = big particle or wall
+  // big particles can be owned or ghost or unknown, walls are all owned
+  // dist_ghost = distance from sub-domain (SD) that
+  //   owned/ghost CO may move to before reneigh,
+  //   used to bound search bins in setup_search_bins()
+  // dist_srd = distance from SD at which SRD could collide with unknown CO,
+  //   used to error check bounds of SRD movement after collisions via srdlo/hi
+  // dist_srd_reneigh = distance from SD at which an SRD should trigger
+  //   a reneigh, b/c next SRD move might overlap with unknown CO,
+  //   used for SRD triggering of reneighboring via srdlo/hi_reneigh
+  // onemove = max distance an SRD can move in one step
+  // if big_particles (and possibly walls):
+  //   dist_ghost = cut + 1/2 skin due to moving away before reneigh
+  //   dist_srd = cut - 1/2 skin - 1/2 diam due to ghost CO moving towards
+  //   dist_reneigh = dist_srd - onemove
+  // if walls and no big particles:
+  //   dist_ghost = 0.0, since not used
+  // if no big particles or walls:
+  //   dist_ghost and dist_srd = 0.0, since not used since no search bins
+  //   dist_srd_reneigh = subsize - onemove = 
+  //     max distance to move without being lost during comm->exchange()
+  //   subsize = perp distance between sub-domain faces (orthog or triclinic)
+
+  double cut = MAX(neighbor->cutneighmax,comm->cutghostuser);
+  double onemove = dt_big*vmax;
+
+  if (bigexist) {
+    dist_ghost = cut + 0.5*neighbor->skin;
+    dist_srd = cut - 0.5*neighbor->skin - 0.5*maxbigdiam;
+    dist_srd_reneigh = dist_srd - onemove;
+  } else if (wallexist) {
+    dist_ghost = 4*onemove;
+    dist_srd = 4*onemove;
+    dist_srd_reneigh = 4*onemove - onemove;
+  } else {
+    dist_ghost = dist_srd = 0.0;
+    double subsize;
+    if (triclinic == 0) {
+      subsize = domain->prd[0]/comm->procgrid[0];
+      subsize = MIN(subsize,domain->prd[1]/comm->procgrid[1]);
+      if (dimension == 3) 
+	subsize = MIN(subsize,domain->prd[2]/comm->procgrid[2]);
+    } else {
+      subsize = 1.0/comm->procgrid[0]/length0;
+      subsize = MIN(subsize,1.0/comm->procgrid[1]/length1);
+      if (dimension == 3) 
+	subsize = MIN(subsize,1.0/comm->procgrid[2]/length2);
+    }
+    dist_srd_reneigh = subsize - onemove;
+  }
+
+  // lo/hi = bbox on this proc which SRD particles must stay inside
+  // lo/hi reneigh = bbox on this proc outside of which SRDs trigger a reneigh
+  // for triclinic, these bbox are in lamda units
+
+  if (triclinic == 0) {
+    srdlo[0] = domain->sublo[0] - dist_srd;
+    srdhi[0] = domain->subhi[0] + dist_srd;
+    srdlo[1] = domain->sublo[1] - dist_srd;
+    srdhi[1] = domain->subhi[1] + dist_srd;
+    srdlo[2] = domain->sublo[2] - dist_srd;
+    srdhi[2] = domain->subhi[2] + dist_srd;
+
+    srdlo_reneigh[0] = domain->sublo[0] - dist_srd_reneigh;
+    srdhi_reneigh[0] = domain->subhi[0] + dist_srd_reneigh;
+    srdlo_reneigh[1] = domain->sublo[1] - dist_srd_reneigh;
+    srdhi_reneigh[1] = domain->subhi[1] + dist_srd_reneigh;
+    srdlo_reneigh[2] = domain->sublo[2] - dist_srd_reneigh;
+    srdhi_reneigh[2] = domain->subhi[2] + dist_srd_reneigh;
+
+  } else {
+    srdlo[0] = domain->sublo_lamda[0] - dist_srd*length0;
+    srdhi[0] = domain->subhi_lamda[0] + dist_srd*length0;
+    srdlo[1] = domain->sublo_lamda[1] - dist_srd*length1;
+    srdhi[1] = domain->subhi_lamda[1] + dist_srd*length1;
+    srdlo[2] = domain->sublo_lamda[2] - dist_srd*length2;
+    srdhi[2] = domain->subhi_lamda[2] + dist_srd*length2;
+
+    srdlo_reneigh[0] = domain->sublo_lamda[0] - dist_srd_reneigh*length0;
+    srdhi_reneigh[0] = domain->subhi_lamda[0] + dist_srd_reneigh*length0;
+    srdlo_reneigh[1] = domain->sublo_lamda[1] - dist_srd_reneigh*length1;
+    srdhi_reneigh[1] = domain->subhi_lamda[1] + dist_srd_reneigh*length1;
+    srdlo_reneigh[2] = domain->sublo_lamda[2] - dist_srd_reneigh*length2;
+    srdhi_reneigh[2] = domain->subhi_lamda[2] + dist_srd_reneigh*length2;
   }
 }
 
@@ -2344,15 +2735,16 @@ void FixSRD::setup_velocity_bins()
    setup velocity shift parameters
    set binlo[]/binhi[] and nbins,nbinx,nbiny,nbinz for this proc
    set bcomm[6] params based on bin overlaps with proc boundaries
+   no comm of bins across non-periodic global boundaries
    set vbin owner flags for bins I am owner of
    ishift = 0, dynamic = 0:
      set all settings since are static
      allocate and set bcomm params and vbins
-     carefully check for bins that align with proc boundaries
+     do not comm bins that align with proc boundaries
    ishift = 1, dynamic = 0:
      set max bounds on bin counts and message sizes
      allocate and set bcomm params and vbins based on max bounds
-     (settings will later change dynamically)
+     other settings will later change dynamically
    ishift = 1, dynamic = 1:
      set actual bin bounds and counts for specific shift
      set bcomm params and vbins (already allocated)
@@ -2456,6 +2848,8 @@ void FixSRD::setup_velocity_shift(int ishift, int dynamic)
   }
   
   // set nsend,nrecv and sendlist,recvlist for each swap in x,y,z
+  // set nsend,nrecv = 0 if static bins align with proc boundary
+  //   or to prevent dynamic bin swapping across non-periodic global boundary
   // allocate sendlist,recvlist only for dynamic = 0
   
   first = &shifts[ishift].bcomm[0];
@@ -2467,8 +2861,11 @@ void FixSRD::setup_velocity_shift(int ishift, int dynamic)
       first->nsend = second->nrecv = 0;
     if ((myloc[0]+1)*nbin1x % procgrid[0] == 0)
       second->nsend = first->nrecv = 0;
+  } else if (dynamic == 0 && domain->xperiodic == 0) {
+    if (myloc[0] == 0) first->nsend = second->nrecv = 0;
+    if (myloc[0] == procgrid[0]-1) second->nsend = first->nrecv = 0;
   }
-  
+
   if (reallocflag) {
     memory->sfree(first->sendlist);
     memory->sfree(first->recvlist);
@@ -2510,6 +2907,9 @@ void FixSRD::setup_velocity_shift(int ishift, int dynamic)
       first->nsend = second->nrecv = 0;
     if ((myloc[1]+1)*nbin1y % procgrid[1] == 0)
       second->nsend = first->nrecv = 0;
+  } else if (dynamic == 0 && domain->yperiodic == 0) {
+    if (myloc[1] == 0) first->nsend = second->nrecv = 0;
+    if (myloc[1] == procgrid[1]-1) second->nsend = first->nrecv = 0;
   }
   
   if (reallocflag) {
@@ -2554,6 +2954,9 @@ void FixSRD::setup_velocity_shift(int ishift, int dynamic)
 	first->nsend = second->nrecv = 0;
       if ((myloc[2]+1)*nbin1z % procgrid[2] == 0)
 	second->nsend = first->nrecv = 0;
+    } else if (dynamic == 0 && domain->zperiodic == 0) {
+      if (myloc[2] == 0) first->nsend = second->nrecv = 0;
+      if (myloc[2] == procgrid[2]-1) second->nsend = first->nrecv = 0;
     }
     
     if (reallocflag) {
@@ -2643,11 +3046,11 @@ void FixSRD::setup_velocity_shift(int ishift, int dynamic)
 
 void FixSRD::setup_search_bins()
 {
-  // subboxlo/hi = real space bbox which owned/ghost big particles can be in
-  // start with bounding box for my sub-domain
-  // add dist_bigghost = ghost cutoff + skin/2
+  // subboxlo/hi = real space bbox which 
+  //   owned/ghost big particles or walls can be in
+  // start with bounding box for my sub-domain, add dist_ghost
   // for triclinic, need to:
-  //   a) convert dist_bigghost to lamda space via length012
+  //   a) convert dist_ghost to lamda space via length012
   //   b) lo/hi = sub-domain big particle bbox in lamda space
   //   c) convert lo/hi to real space bounding box via domain->bbox()
   //   similar to neighbor::setup_bins() and comm::cutghost[] calculation
@@ -2655,12 +3058,12 @@ void FixSRD::setup_search_bins()
   double subboxlo[3],subboxhi[3];
 
   if (triclinic == 0) {
-    subboxlo[0] = domain->sublo[0] - dist_bigghost;
-    subboxlo[1] = domain->sublo[1] - dist_bigghost;
-    subboxlo[2] = domain->sublo[2] - dist_bigghost;
-    subboxhi[0] = domain->subhi[0] + dist_bigghost;
-    subboxhi[1] = domain->subhi[1] + dist_bigghost;
-    subboxhi[2] = domain->subhi[2] + dist_bigghost;
+    subboxlo[0] = domain->sublo[0] - dist_ghost;
+    subboxlo[1] = domain->sublo[1] - dist_ghost;
+    subboxlo[2] = domain->sublo[2] - dist_ghost;
+    subboxhi[0] = domain->subhi[0] + dist_ghost;
+    subboxhi[1] = domain->subhi[1] + dist_ghost;
+    subboxhi[2] = domain->subhi[2] + dist_ghost;
   } else {
     double *h_inv = domain->h_inv;
     double length0,length1,length2;
@@ -2668,12 +3071,12 @@ void FixSRD::setup_search_bins()
     length1 = sqrt(h_inv[1]*h_inv[1] + h_inv[3]*h_inv[3]);
     length2 = h_inv[2];
     double lo[3],hi[3];
-    lo[0] = domain->sublo_lamda[0] - dist_bigghost*length0;
-    lo[1] = domain->sublo_lamda[1] - dist_bigghost*length1;
-    lo[2] = domain->sublo_lamda[2] - dist_bigghost*length2;
-    hi[0] = domain->subhi_lamda[0] + dist_bigghost*length0;
-    hi[1] = domain->subhi_lamda[1] + dist_bigghost*length1;
-    hi[2] = domain->subhi_lamda[2] + dist_bigghost*length2;
+    lo[0] = domain->sublo_lamda[0] - dist_ghost*length0;
+    lo[1] = domain->sublo_lamda[1] - dist_ghost*length1;
+    lo[2] = domain->sublo_lamda[2] - dist_ghost*length2;
+    hi[0] = domain->subhi_lamda[0] + dist_ghost*length0;
+    hi[1] = domain->subhi_lamda[1] + dist_ghost*length1;
+    hi[2] = domain->subhi_lamda[2] + dist_ghost*length2;
     domain->bbox(lo,hi,subboxlo,subboxhi);
   }
 
@@ -3039,52 +3442,91 @@ double FixSRD::distance(int i, int j)
 /* ---------------------------------------------------------------------- */
 
 void FixSRD::print_collision(int i, int j, int ibounce,
-			     double t_remain, double dt,
-			     double *xscoll, double *xbcoll, double *norm)
+			      double t_remain, double dt,
+			      double *xscoll, double *xbcoll, double *norm,
+			      int type)
 {
   double xsstart[3],xbstart[3];
   double **x = atom->x;
   double **v = atom->v;
 
-  printf("COLLISION between SRD %d and BIG %d\n",atom->tag[i],atom->tag[j]);
-  printf("  bounce # = %d\n",ibounce+1);
-  printf("  local indices: %d %d\n",i,j);
-  printf("  timestep = %g\n",dt);
-  printf("  time remaining post-collision = %g\n",t_remain);
+  if (type != WALL) {
+    printf("COLLISION between SRD %d and BIG %d\n",atom->tag[i],atom->tag[j]);
+    printf("  bounce # = %d\n",ibounce+1);
+    printf("  local indices: %d %d\n",i,j);
+    printf("  timestep = %g\n",dt);
+    printf("  time remaining post-collision = %g\n",t_remain);
+    
+    xsstart[0] = x[i][0] - dt*v[i][0];
+    xsstart[1] = x[i][1] - dt*v[i][1];
+    xsstart[2] = x[i][2] - dt*v[i][2];
+    xbstart[0] = x[j][0] - dt*v[j][0];
+    xbstart[1] = x[j][1] - dt*v[j][1];
+    xbstart[2] = x[j][2] - dt*v[j][2];
 
-  xsstart[0] = x[i][0] - dt*v[i][0];
-  xsstart[1] = x[i][1] - dt*v[i][1];
-  xsstart[2] = x[i][2] - dt*v[i][2];
-  xbstart[0] = x[j][0] - dt*v[j][0];
-  xbstart[1] = x[j][1] - dt*v[j][1];
-  xbstart[2] = x[j][2] - dt*v[j][2];
+    printf("  SRD start position = %g %g %g\n",
+	   xsstart[0],xsstart[1],xsstart[2]);
+    printf("  BIG start position = %g %g %g\n",
+	   xbstart[0],xbstart[1],xbstart[2]);
+    printf("  SRD coll  position = %g %g %g\n",
+	   xscoll[0],xscoll[1],xscoll[2]);
+    printf("  BIG coll  position = %g %g %g\n",
+	   xbcoll[0],xbcoll[1],xbcoll[2]);
+    printf("  SRD end   position = %g %g %g\n",x[i][0],x[i][1],x[i][2]);
+    printf("  BIG end   position = %g %g %g\n",x[j][0],x[j][1],x[j][2]);
 
-  printf("  SRD start position = %g %g %g\n",
-	 xsstart[0],xsstart[1],xsstart[2]);
-  printf("  BIG start position = %g %g %g\n",
-	 xbstart[0],xbstart[1],xbstart[2]);
-  printf("  SRD coll  position = %g %g %g\n",
-	 xscoll[0],xscoll[1],xscoll[2]);
-  printf("  BIG coll  position = %g %g %g\n",
-	 xbcoll[0],xbcoll[1],xbcoll[2]);
-  printf("  SRD end   position = %g %g %g\n",x[i][0],x[i][1],x[i][2]);
-  printf("  BIG end   position = %g %g %g\n",x[j][0],x[j][1],x[j][2]);
+    printf("  SRD vel = %g %g %g\n",v[i][0],v[i][1],v[i][2]);
+    printf("  BIG vel = %g %g %g\n",v[j][0],v[j][1],v[j][2]);
+    printf("  surf norm = %g %g %g\n",norm[0],norm[1],norm[2]);
+    
+    double rstart = sqrt((xsstart[0]-xbstart[0])*(xsstart[0]-xbstart[0]) +
+			 (xsstart[1]-xbstart[1])*(xsstart[1]-xbstart[1]) +
+			 (xsstart[2]-xbstart[2])*(xsstart[2]-xbstart[2]));
+    double rcoll = sqrt((xscoll[0]-xbcoll[0])*(xscoll[0]-xbcoll[0]) +
+			(xscoll[1]-xbcoll[1])*(xscoll[1]-xbcoll[1]) +
+			(xscoll[2]-xbcoll[2])*(xscoll[2]-xbcoll[2]));
+    double rend = sqrt((x[i][0]-x[j][0])*(x[i][0]-x[j][0]) +
+		       (x[i][1]-x[j][1])*(x[i][1]-x[j][1]) +
+		       (x[i][2]-x[j][2])*(x[i][2]-x[j][2]));
+    
+    printf("  separation at start = %g\n",rstart);
+    printf("  separation at coll  = %g\n",rcoll);
+    printf("  separation at end   = %g\n",rend);
 
-  printf("  SRD vel = %g %g %g\n",v[i][0],v[i][1],v[i][2]);
-  printf("  BIG vel = %g %g %g\n",v[j][0],v[j][1],v[j][2]);
-  printf("  surf norm = %g %g %g\n",norm[0],norm[1],norm[2]);
+  } else {
+    int dim = wallwhich[j] / 2;
 
-  double rstart = sqrt((xsstart[0]-xbstart[0])*(xsstart[0]-xbstart[0]) +
-		       (xsstart[1]-xbstart[1])*(xsstart[1]-xbstart[1]) +
-		       (xsstart[2]-xbstart[2])*(xsstart[2]-xbstart[2]));
-  double rcoll = sqrt((xscoll[0]-xbcoll[0])*(xscoll[0]-xbcoll[0]) +
-		      (xscoll[1]-xbcoll[1])*(xscoll[1]-xbcoll[1]) +
-		      (xscoll[2]-xbcoll[2])*(xscoll[2]-xbcoll[2]));
-  double rend = sqrt((x[i][0]-x[j][0])*(x[i][0]-x[j][0]) +
-		     (x[i][1]-x[j][1])*(x[i][1]-x[j][1]) +
-		     (x[i][2]-x[j][2])*(x[i][2]-x[j][2]));
+    printf("COLLISION between SRD %d and WALL %d\n",atom->tag[i],j);
+    printf("  bounce # = %d\n",ibounce+1);
+    printf("  local indices: %d %d\n",i,j);
+    printf("  timestep = %g\n",dt);
+    printf("  time remaining post-collision = %g\n",t_remain);
+    
+    xsstart[0] = x[i][0] - dt*v[i][0];
+    xsstart[1] = x[i][1] - dt*v[i][1];
+    xsstart[2] = x[i][2] - dt*v[i][2];
+    xbstart[0] = xbstart[1] = xbstart[2] = 0.0;
+    xbstart[dim] = xwall[j] - dt*vwall[j];
 
-  printf("  separation at start = %g\n",rstart);
-  printf("  separation at coll  = %g\n",rcoll);
-  printf("  separation at end   = %g\n",rend);
+    printf("  SRD start position = %g %g %g\n",
+	   xsstart[0],xsstart[1],xsstart[2]);
+    printf("  WALL start position = %g\n",xbstart[dim]);
+    printf("  SRD coll  position = %g %g %g\n",
+	   xscoll[0],xscoll[1],xscoll[2]);
+    printf("  WALL coll position = %g\n",xbcoll[dim]);
+    printf("  SRD end   position = %g %g %g\n",x[i][0],x[i][1],x[i][2]);
+    printf("  WALL end  position = %g\n",xwall[j]);
+
+    printf("  SRD vel = %g %g %g\n",v[i][0],v[i][1],v[i][2]);
+    printf("  WALL vel = %g\n",vwall[j]);
+    printf("  surf norm = %g %g %g\n",norm[0],norm[1],norm[2]);
+    
+    double rstart = xsstart[dim]-xbstart[dim];
+    double rcoll = xscoll[dim]-xbcoll[dim];
+    double rend = x[dim][0]-xwall[j];
+    
+    printf("  separation at start = %g\n",rstart);
+    printf("  separation at coll  = %g\n",rcoll);
+    printf("  separation at end   = %g\n",rend);
+  }
 }

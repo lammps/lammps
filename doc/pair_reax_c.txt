@@ -10,14 +10,19 @@ pair_style reax/c command :h3
 
 [Syntax:]
 
-pair_style reax/c cfile :pre
+pair_style reax/c cfile keyword value :pre
 
 cfile = NULL or name of a control file :ul
+
+one keyword value pair may be appended
+keyword = {checkqeq} 
+  {checkqeq} value = {yes} or {no} = whether or not to require qeq/reax fix :pre
+:ule
 
 [Examples:]
 
 pair_style reax/c NULL
-pair_style reax/c controlfile
+pair_style reax/c controlfile checkqeq no
 pair_coeff * * ffield.reax 1 2 2 3 :pre 
 
 [Description:]
@@ -67,15 +72,16 @@ charges.
 
 The ReaxFF parameter files provided were created using a charge
 equilibration (QEq) model for handling the electrostatic interactions.
-Therefore it is highly recommended that the "fix
-qeq/reax"_fix_qeq_reax.html command be used with pair style {reax/c}
+Therefore, by default, LAMMPS requires that the "fix
+qeq/reax"_fix_qeq_reax.html command be used with {pair_style reax/c}
 when simulating a ReaxFF model, to equilibrate charge each timestep.
-See the "fix qeq/reax"_fix_qeq_reax.html command for details.
-
-However, performing charge equilibration is not a prerequisite for
-performing a ReaxFF simulation.  In this case, the static charges you
+Using the keyword {checkqeq} with the value {no} 
+turns off the check for {fix qeq/reax},
+allowing a simulation to be run without charge equilibration.
+In this case, the static charges you
 assign to each atom will be used for computing the electrostatic
 interactions in the system.
+See the "fix qeq/reax"_fix_qeq_reax.html command for details.
 
 The thermo variable {evdwl} stores the sum of all the ReaxFF potential
 energy contributions, with the exception of the Coulombic and charge
@@ -242,7 +248,7 @@ appropriate units if your simulation doesn't use "real" units.
 "pair_coeff"_pair_coeff.html, "fix_qeq_reax"_fix_qeq_reax.html,
 "pair_style reax"_pair_reax.html
 
-[Default:] none
+[Default:] The keyword default is checkqeq = yes.
 
 :line
 

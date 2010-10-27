@@ -13,14 +13,20 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>pair_style reax/c cfile 
+<PRE>pair_style reax/c cfile keyword value 
 </PRE>
 <UL><LI>cfile = NULL or name of a control file 
+</UL>
+<PRE>one keyword value pair may be appended
+keyword = <I>checkqeq</I> 
+  <I>checkqeq</I> value = <I>yes</I> or <I>no</I> = whether or not to require qeq/reax fix 
+</PRE>
+
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>pair_style reax/c NULL
-pair_style reax/c controlfile
+pair_style reax/c controlfile checkqeq no
 pair_coeff * * ffield.reax 1 2 2 3 
 </PRE>
 <P><B>Description:</B>
@@ -70,15 +76,16 @@ charges.
 </P>
 <P>The ReaxFF parameter files provided were created using a charge
 equilibration (QEq) model for handling the electrostatic interactions.
-Therefore it is highly recommended that the <A HREF = "fix_qeq_reax.html">fix
-qeq/reax</A> command be used with pair style <I>reax/c</I>
+Therefore, by default, LAMMPS requires that the <A HREF = "fix_qeq_reax.html">fix
+qeq/reax</A> command be used with <I>pair_style reax/c</I>
 when simulating a ReaxFF model, to equilibrate charge each timestep.
-See the <A HREF = "fix_qeq_reax.html">fix qeq/reax</A> command for details.
-</P>
-<P>However, performing charge equilibration is not a prerequisite for
-performing a ReaxFF simulation.  In this case, the static charges you
+Using the keyword <I>checkqeq</I> with the value <I>no</I> 
+turns off the check for <I>fix qeq/reax</I>,
+allowing a simulation to be run without charge equilibration.
+In this case, the static charges you
 assign to each atom will be used for computing the electrostatic
 interactions in the system.
+See the <A HREF = "fix_qeq_reax.html">fix qeq/reax</A> command for details.
 </P>
 <P>The thermo variable <I>evdwl</I> stores the sum of all the ReaxFF potential
 energy contributions, with the exception of the Coulombic and charge
@@ -245,7 +252,7 @@ appropriate units if your simulation doesn't use "real" units.
 <P><A HREF = "pair_coeff.html">pair_coeff</A>, <A HREF = "fix_qeq_reax.html">fix_qeq_reax</A>,
 <A HREF = "pair_reax.html">pair_style reax</A>
 </P>
-<P><B>Default:</B> none
+<P><B>Default:</B> The keyword default is checkqeq = yes.
 </P>
 <HR>
 

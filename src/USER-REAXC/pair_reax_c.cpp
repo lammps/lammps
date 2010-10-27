@@ -228,6 +228,12 @@ void PairReaxC::init_style( )
 {
   if (!atom->q_flag) error->all("Pair reax/c requires atom attribute q");
 
+  int iqeq;
+  for (iqeq = 0; iqeq < modify->nfix; iqeq++)
+    if (strcmp(modify->fix[iqeq]->style,"qeq/reax") == 0) break;
+  if (iqeq == modify->nfix && comm->me == 0) 
+    error->warning("Pair reax/c requires use of fix qeq/reax");
+
   system->n = atom->nlocal;
   system->N = atom->nlocal + atom->nghost;
   system->bigN = static_cast<int> (atom->natoms);
@@ -331,12 +337,6 @@ void PairReaxC::compute(int eflag, int vflag)
       num_hbonds[k] = system->my_atoms[k].num_hbonds;
     }
 
-    // locate the qeq/reax fix - for outputting log info
-    // if( comm->me == 0 ) {
-    //   int qeq_id = modify->find_fix( "qeq/reax" );
-    //   if (qeq_id < 0) fprintf(stderr, "WARNING: no qeq/reax fix applied\n");
-    //   else fix_qeq = (FixQEqReax *) modify->fix[qeq_id];
-    // }
   } else {
     // fill in reax datastructures
     write_reax_atoms();

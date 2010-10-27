@@ -185,6 +185,6 @@ Any dimension (xyz) that has an SRD wall must be non-periodic.
 
 [Related commands:]
 
-"fix wall/reflect"_fix_wall_reflect.html command
+"fix srd"_fix_srd.html
 
 [Default:] none

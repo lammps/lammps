@@ -343,7 +343,9 @@ This command can only be used if LAMMPS was built with the "srd"
 package.  See the "Making LAMMPS"_Section_start.html#2_3 section for
 more info on packages.
 
-[Related commands:] none
+[Related commands:]
+
+"fix wall/srd"_fix_wall_srd.html
 
 [Default:]
 

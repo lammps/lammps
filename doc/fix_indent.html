@@ -122,12 +122,11 @@ the right edge, even if the box size changes:
 </P>
 <PRE>variable x equal "xlo + 0.25*lx" 
 </PRE>
-<P>Similarly, these variable definitions will move the indenter at a
-constant velocity:
+<P>Similarly, either of these variable definitions will move the indenter
+from an initial position at 2.5 at a constant velocity of 5:
 </P>
-<PRE>variable x0 equal 2.5
-variable vx equal 5.0
-variable x equal "v_x0 + step*dt*v_vx" 
+<PRE>variable x equal "2.5 + 5*elaplong*dt"
+variable x equal vdisplace(2.5,5) 
 </PRE>
 <P>If a spherical indenter's radius is specified as v_r, then these
 variable definitions will grow the size of the indenter at a specfied

@@ -432,7 +432,9 @@ where dt = the timestep size.
 
 The run begins on startstep.  Startstep can span multiple runs, using
 the {start} keyword of the "run"_run.html command.  See the
-"run"_run.html command for details of how to do this.
+"run"_run.html command for details of how to do this.  Note that the
+"thermo_style"_thermo_style.html keyword elaplong =
+timestep-startstep.
 
 The swiggle(x,y,z) and cwiggle(x,y,z) functions each take 3 arguments:
 x = coord0, y = amplitude, z = period.  They use the elapsed time to
@@ -447,7 +449,9 @@ where dt = the timestep size.
 
 The run begins on startstep.  Startstep can span multiple runs, using
 the {start} keyword of the "run"_run.html command.  See the
-"run"_run.html command for details of how to do this.
+"run"_run.html command for details of how to do this.  Note that the
+"thermo_style"_thermo_style.html keyword elaplong =
+timestep-startstep.
 
 :line
 

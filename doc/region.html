@@ -13,7 +13,7 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>region ID style args keyword value ... 
+<PRE>region ID style args keyword arg ... 
 </PRE>
 <UL><LI>ID = user-assigned name for the region 
 
@@ -50,9 +50,9 @@
     N = # of regions to follow, must be 2 or greater
     reg-ID1,reg-ID2, ... = IDs of regions to intersect 
 </PRE>
-<LI>zero or more keyword/value pairs may be appended 
+<LI>zero or more keyword/arg pairs may be appended 
 
-<LI>keyword = <I>side</I> or <I>units</I> or <I>vel</I> or <I>wiggle</I> or <I>rotate</I> 
+<LI>keyword = <I>side</I> or <I>units</I> or <I>move</I> or <I>rotate</I> 
 
 <PRE>  <I>side</I> value = <I>in</I> or <I>out</I>
     <I>in</I> = the region is inside the specified geometry
@@ -60,15 +60,12 @@
   <I>units</I> value = <I>lattice</I> or <I>box</I>
     <I>lattice</I> = the geometry is defined in lattice units
     <I>box</I> = the geometry is defined in simulation box units
-  <I>vel</I> args = Vx Vy Vz
-    Vx,Vy,Vz = components of velocity vector (velocity units)
-  <I>wiggle</I> args = Ax Ay Az period
-    Ax,Ay,Az = components of amplitude vector (distance units)
-    period = period of oscillation (time units)
-  <I>rotate</I> args = Px Py Pz Rx Ry Rz period
-    Px,Py,Pz = origin point of axis of rotation (distance units)
-    Rx,Ry,Rz = axis of rotation vector
-    period = period of rotation (time units) 
+  <I>move</I> args = v_x v_y v_z
+    v_x,v_y,v_z = equal-style variables for x,y,z displacement of region over time
+ <I>rotate</I> args = v_theta Px Py Pz Rx Ry Rz
+    v_theta = equal-style variable for rotaton of region over time (in radians)
+    Px,Py,Pz = origin for axis of rotation (distance units)
+    Rx,Ry,Rz = axis of rotation vector 
 </PRE>
 
 </UL>
@@ -79,7 +76,7 @@ region 2 sphere 0.0 0.0 0.0 5 side out
 region void cylinder y 2 3 5 -5.0 EDGE units box
 region 1 prism 0 10 0 10 0 10 2 0 0
 region outside union 4 side1 side2 side3 side4
-region 2 sphere 0.0 0.0 0.0 5 side out wiggle 1 1 0 10 
+region 2 sphere 0.0 0.0 0.0 5 side out move v_left v_up NULL 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -94,13 +91,12 @@ surface of the region can be used as a boundary wall via the <A HREF = "fix_wall
 wall/region</A> command.
 </P>
 <P>Normally, regions in LAMMPS are "static", meaning their geometric
-extent does not change with time.  If the <I>vel</I> or <I>wiggle</I> or
-<I>rotate</I> keyword is used, as described below, the region becomes
-"dynamic", meaning it's location or orientation changes with time.
-This may be useful, for example, when thermostatting a region, via the
-compute temp/region command, or when the fix wall/region command uses
-a region surface as a bounding wall on particle motion, i.e. a
-rotating container.
+extent does not change with time.  If the <I>move</I> or <I>rotate</I> keyword
+is used, as described below, the region becomes "dynamic", meaning
+it's location or orientation changes with time.  This may be useful,
+for example, when thermostatting a region, via the compute temp/region
+command, or when the fix wall/region command uses a region surface as
+a bounding wall on particle motion, i.e. a rotating container.
 </P>
 <P>The <I>delete</I> style removes the named region.  Since there is little
 overhead to defining extra regions, there is normally no need to do
@@ -131,7 +127,7 @@ of the simulation box.
 regardless of whether the <A HREF = "dimension.html">dimension</A> of a simulation
 is 2d or 3d.  Thus when using regions in a 2d simulation, you should
 be careful to define the region so that its intersection with the 2d
-x-y plane of the simulation is the 2d geometric object you want.
+x-y plane of the simulation has the 2d geometric extent you want.
 </P>
 <P>For style <I>cone</I>, an axis-aligned cone is defined which is like a
 <I>cylinder</I> except that two different radii (one at each end) can be
@@ -232,43 +228,58 @@ applied to the sphere radius.
 </UL>
 <HR>
 
-<P>If the <I>vel</I> or <I>wiggle</I> or <I>rotate</I> keywords are used, the region
-is "dynamic", meaning its location or orientation changes with time.
-No more than one of these keywords can be used at a time.  These
-keywords cannot be used with a <I>union</I> or <I>intersect</I> style region.
-Instead, the keywords should be used to define the individual
-sub-regions of the <I>union</I> or <I>intersect</I> region.  Normally, each
-sub-region should be "dynamic" in the same manner (e.g. rotate around
-the same point), though this is not a requirement.
+<P>If the <I>move</I> or <I>rotate</I> keywords are used, the region is "dynamic",
+meaning its location or orientation changes with time.  These keywords
+cannot be used with a <I>union</I> or <I>intersect</I> style region.  Instead,
+the keywords should be used to make the individual sub-regions of the
+<I>union</I> or <I>intersect</I> region dynamic.  Normally, each sub-region
+should be "dynamic" in the same manner (e.g. rotate around the same
+point), though this is not a requirement.
 </P>
-<P>The <I>vel</I> style moves the region at a constant velocity, so that its
-position <I>X</I> = (x,y,z) as a function of time is given in vector
-notation as
+<P>The <I>move</I> keyword allows one or more <A HREF = "variable.html">equal-style
+variables</A> to be used to specify the x,y,z displacement
+of the region, typically as a function of time.  A variable is
+specified as v_name, where name is the variable name.  Any of the
+three variables can be specified as NULL, in which case no
+displacement is calculated in that dimension.
 </P>
-<PRE>X(t) = X0 + V * delta 
+<P>Note that equal-style variables can specify formulas with various
+mathematical functions, and include <A HREF = "thermo_style.html">thermo_style</A>
+command keywords for the simulation box parameters and timestep and
+elapsed time.  Thus it is easy to specify a region displacement that
+change as a function of time or spans consecutive runs in a continuous
+fashion.  For the latter, see the <I>start</I> and <I>stop</I> keywords of the
+<A HREF = "run.html">run</A> command and the <I>elaplong</I> keyword of <A HREF = "thermo_style.html">thermo_style
+custom</A> for details.
+</P>
+<P>For example, these commands would displace a region from its initial
+position, in the positive x direction, effectively at a constant
+velocity:
+</P>
+<PRE>variable dx equal ramp(0,10)
+region 2 sphere 10.0 10.0 0.0 5 move v_dx NULL NULL 
 </PRE>
-<P>where <I>X0</I> = (x0,y0,z0) is its position at the time the region is
-specified, <I>V</I> is the specified velocity vector with components
-(Vx,Vy,Vz), and <I>delta</I> is the time elapsed since the region was
-specified. 
+<P>Note that the initial displacemet is 0.0, though that is not required.
 </P>
-<P>The <I>wiggle</I> style moves the region in an oscillatory fashion, so that
-its position <I>X</I> = (x,y,z) as a function of time is given in vector
-notation as
+<P>Either of these varaibles would "wiggle" the region back and forth in
+the y direction:
 </P>
-<PRE>X(t) = X0 + A sin(omega*delta) 
+<PRE>variable dy equal swiggle(0,5,100)
+variable dysame equal 5*sin(2*PI*elaplong*dt/100)
+region 2 sphere 10.0 10.0 0.0 5 move NULL v_dy NULL 
 </PRE>
-<P>where <I>X0</I> = (x0,y0,z0) is its position at the time the region is
-specified, <I>A</I> is the specified amplitude vector with components
-(Ax,Ay,Az), <I>omega</I> is 2 PI / <I>period</I>, and <I>delta</I> is the time
-elapsed since the region was specified.
-</P>
-<P>The <I>rotate</I> style rotates the region around a rotation axis <I>R</I> =
-(Rx,Ry,Rz) that goes thru a point <I>P</I> = (Px,Py,Pz).  The <I>period</I> of
-the rotation is also specified.  The direction of rotation for the
-region around the rotation axis is consistent with the right-hand
+<P>The <I>rotate</I> keyword rotates the region around a rotation axis <I>R</I> =
+(Rx,Ry,Rz) that goes thru a point <I>P</I> = (Px,Py,Pz).  The rotation
+angle is calculated, presumably as a function of time, by a variable
+specified as v_theta, where theta is the variable name.  The variable
+should generate its result in radians.  The direction of rotation for
+the region around the rotation axis is consistent with the right-hand
 rule: if your right-hand thumb points along <I>R</I>, then your fingers
 wrap around the axis in the direction of rotation.
+</P>
+<P>The <I>move</I> and <I>rotate</I> keywords can be used together.  In this case,
+the displacement specified by the <I>move</I> keyword is applied to the <I>P</I>
+point of the <I>rotate</I> keyword.
 </P>
 <P><B>Restrictions:</B>
 </P>
@@ -283,7 +294,7 @@ parameters must be 0.0.
 </P>
 <P><B>Default:</B>
 </P>
-<P>The option defaults are side = in, units = lattice, and no
-velocity, wiggling, or rotation.
+<P>The option defaults are side = in, units = lattice, and no moving or
+rotation.
 </P>
 </HTML>

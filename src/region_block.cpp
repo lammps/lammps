@@ -133,7 +133,7 @@ int RegBlock::surface_interior(double *x, double cutoff)
 
   // x is exterior to block
 
-  if (x[0] < xlo || x[0] > xhi || x[1] < ylo || x[1] > zhi ||
+  if (x[0] < xlo || x[0] > xhi || x[1] < ylo || x[1] > yhi ||
       x[2] < ylo || x[2] > zhi) return 0;
 
   // x is interior to block or on its surface

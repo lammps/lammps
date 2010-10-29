@@ -50,18 +50,20 @@ class Region : protected Pointers {
   virtual int surface_exterior(double *, double) = 0;
 
  protected:
-  void options(int, char **);
   void add_contact(int, double *, double, double, double);
+  void options(int, char **);
 
  private:
-  int time_origin;
-  double dt,period,omega_rotate;
-  double vx,vy,vz;
-  double ax,ay,az;
-  double point[3],axis[3],runit[3];
-
   int dynamic;                      // 1 if region changes over time
+  int moveflag,rotateflag;
+  double point[3],axis[3],runit[3];
+  char *xstr,*ystr,*zstr,*tstr;
+  int xvar,yvar,zvar,tvar;
+  double dx,dy,dz,theta;
+  int laststep;
 
+  void forward_transform(double &, double &, double &);
+  void inverse_transform(double &, double &, double &);
   void rotate(double &, double &, double &, double);
 };
 

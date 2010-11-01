@@ -42,6 +42,14 @@ int MPI_Init(int *argc, char ***argv) {return 0;}
 
 /* ---------------------------------------------------------------------- */
 
+int MPI_Initialized(int *flag)
+{
+  *flag = 1;
+  return 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
 int MPI_Comm_rank(MPI_Comm comm, int *me)
 {
   *me = 0;

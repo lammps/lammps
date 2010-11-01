@@ -43,10 +43,27 @@ void lammps_open(int argc, char **argv, MPI_Comm communicator, void **ptr)
   *ptr = (void *) lmp;
 }
 
-void *lammps_open2(int argc, char **argv, MPI_Comm communicator)
+/* ----------------------------------------------------------------------
+   create an instance of LAMMPS and return pointer to it
+   caller doesn't know MPI communicator, so use MPI_COMM_WORLD
+   intialize MPI if needed
+------------------------------------------------------------------------- */
+
+void lammps_open_no_mpi(int argc, char **argv, void **ptr)
 {
+  int flag;
+  MPI_Initialized(&flag);
+
+  if (!flag) {
+    int argc = 0;
+    char **argv = NULL;
+    MPI_Init(&argc,&argv);
+  }
+
+  MPI_Comm communicator = MPI_COMM_WORLD;
+
   LAMMPS *lmp = new LAMMPS(argc,argv,communicator);
-  return (void *) lmp;
+  *ptr = (void *) lmp;
 }
 
 /* ----------------------------------------------------------------------
@@ -77,6 +94,15 @@ char *lammps_command(void *ptr, char *str)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
   return lmp->input->one(str);
+}
+
+/* ----------------------------------------------------------------------
+   clean-up function to free memory allocated by lib and returned to caller
+------------------------------------------------------------------------- */
+
+void lammps_free(void *ptr)
+{
+  free(ptr);
 }
 
 /* ----------------------------------------------------------------------
@@ -330,6 +356,11 @@ int lammps_get_natoms(void *ptr)
 void lammps_get_coords(void *ptr, double *coords)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
+
+  // error if tags are not defined or not consecutive
+
+  if (lmp->atom->tag_enable == 0 || lmp->atom->tag_consecutive() == 0) return;
+
   int natoms = static_cast<int> (lmp->atom->natoms);
   double *copy = new double[3*natoms];
   for (int i = 0; i < 3*natoms; i++) copy[i] = 0.0;
@@ -356,8 +387,12 @@ void lammps_get_coords(void *ptr, double *coords)
 void lammps_put_coords(void *ptr, double *coords)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
-  int natoms = static_cast<int> (lmp->atom->natoms);
 
+  // error if no map defined by LAMMPS
+
+  if (lmp->atom->map_style == 0) return;
+
+  int natoms = static_cast<int> (lmp->atom->natoms);
   double **x = lmp->atom->x;
 
   int m,offset;

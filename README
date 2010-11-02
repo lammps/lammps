@@ -31,6 +31,7 @@ doc			   documentation
 examples		   simple test problems
 lib			   libraries LAMMPS can be linked with
 potentials		   interatomic potential files
+python			   Python wrapper on LAMMPS as a library
 src			   source files
 tools			   pre- and post-processing tools
 

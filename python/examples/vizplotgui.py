@@ -9,6 +9,9 @@
 #          compute-ID = ID of compute that calculates temperature
 #                       (or any other scalar quantity)
 
+# IMPORTANT: this script cannot yet be run in parallel via Pypar,
+#            because I can't seem to do a MPI-style broadcast in Pypar
+
 import sys,time
 sys.path.append("./pizza")
 

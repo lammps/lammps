@@ -7,6 +7,9 @@
 #          in.lammps = LAMMPS input script
 #          Nfreq = query GUI every this many steps
 
+# IMPORTANT: this script cannot yet be run in parallel via Pypar,
+#            because I can't seem to do a MPI-style broadcast in Pypar
+
 import sys,time
 
 # methods called by GUI

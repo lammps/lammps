@@ -608,3 +608,9 @@ See the python/README file for instructions on how to run them and the
 source code for individual scripts for comments about what they do.
 
 :link(pizza,http://www.sandia.gov/~sjplimp/pizza.html)
+
+Here's a screenshot of the vizplotgui.py script in action.  Click to
+see a larger image:
+
+:c,image(JPG/screenshot1_small.jpg,JPG/screenshot1.jpg)
+

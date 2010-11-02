@@ -8,8 +8,8 @@
 
 4. How-to discussions :h3
 
-The following sections describe what commands can be used to perform
-certain kinds of LAMMPS simulations.
+The following sections describe how to use various options within
+LAMMPS.
 
 4.1 "Restarting a simulation"_#4_1
 4.2 "2d simulations"_#4_2
@@ -28,11 +28,12 @@ certain kinds of LAMMPS simulations.
 4.15 "Output from LAMMPS (thermo, dumps, computes, fixes, variables)"_#4_15
 4.16 "Thermostatting, barostatting and computing temperature"_#4_16
 4.17 "Walls"_#4_17
-4.18 "Elastic constants"_#4_18 :all(b)
+4.18 "Elastic constants"_#4_18
+4.19 "Library interface to LAMMPS"_#4_19 :all(b)
 
 The example input scripts included in the LAMMPS distribution and
 highlighted in "this section"_Section_example.html also show how to
-setup and run various kinds of problems.
+setup and run various kinds of simulations.
 
 :line
 
@@ -649,53 +650,31 @@ strain induced across grain boundaries :l,ule
 
 "This section"_Section_start.html#2_4 of the documentation describes
 how to build LAMMPS as a library.  Once this is done, you can
-interface with LAMMPS either via C++, C, or Fortran (or any other
-language that supports a vanilla C-like interface, e.g. a scripting
-language).  For example, from C++ you could create one (or more)
-"instances" of LAMMPS, pass it an input script to process, or execute
-individual commands, all by invoking the correct class methods in
-LAMMPS.  From C or Fortran you can make function calls to do the same
-things.  Library.cpp and library.h contain such a C interface with the
-functions:
+interface with LAMMPS either via C++, C, Fortran, or Python (or any
+other language that supports a vanilla C-like interface).  For
+example, from C++ you could create one (or more) "instances" of
+LAMMPS, pass it an input script to process, or execute individual
+commands, all by invoking the correct class methods in LAMMPS.  From C
+or Fortran you can make function calls to do the same things.  See
+"this section"_Section_python.html of the manual for a description of
+the Python wrapper provided with LAMMPS that operates through the
+LAMMPS library interface.
 
-void lammps_open(int, char **, MPI_Comm, void **);
-void lammps_close(void *);
-void lammps_file(void *, char *);
-char *lammps_command(void *, char *); :pre
+The files src/library.cpp and library.h contain the C-style interface
+to LAMMPS.  See "this section"_Section_howto.html#4_19 of the manual
+for a description of the interface and how to extend it for your
+needs.
 
-The functions contain C++ code you could write in a C++ application
-that was invoking LAMMPS directly.  Note that LAMMPS classes are
-defined within a LAMMPS namespace (LAMMPS_NS) if you use them
-from another C++ application.
-
-Two of the routines in library.cpp are of particular note.  The
-lammps_open() function initiates LAMMPS and takes an MPI communicator
-as an argument.  It returns a pointer to a LAMMPS "object".  As with
-C++, the lammps_open() function can be called multiple times, to
-create multiple instances of LAMMPS.
-
-LAMMPS will run on the set of processors in the communicator.  This
-means the calling code can run LAMMPS on all or a subset of
-processors.  For example, a wrapper script might decide to alternate
-between LAMMPS and another code, allowing them both to run on all the
-processors.  Or it might allocate half the processors to LAMMPS and
-half to the other code and run both codes simultaneously before
-syncing them up periodically.
-
-Library.cpp contains a lammps_command() function to which the caller
-passes a single LAMMPS command (a string).  Thus the calling code can
-read or generate a series of LAMMPS commands (e.g. an input script)
-one line at a time and pass it thru the library interface to setup a
-problem and then run it.
-
-A few other sample functions are included in library.cpp, but the key
-idea is that you can write any functions you wish to define an
-interface for how your code talks to LAMMPS and add them to
-library.cpp and library.h.  The routines you add can access any LAMMPS
-data.  The examples/couple directory has example C++ and C codes which
-show how a stand-alone code can link LAMMPS as a library, run LAMMPS
-on a subset of processors, grab data from LAMMPS, change it, and put
-it back into LAMMPS.
+Note that the lammps_open() function that creates an instance of
+LAMMPS takes an MPI communicator as an argument.  This means that
+instance of LAMMPS will run on the set of processors in the
+communicator.  Thus the calling code can run LAMMPS on all or a subset
+of processors.  For example, a wrapper script might decide to
+alternate between LAMMPS and another code, allowing them both to run
+on all the processors.  Or it might allocate half the processors to
+LAMMPS and half to the other code and run both codes simultaneously
+before syncing them up periodically.  Or it might instantiate multiple
+instances of LAMMPS to perform different calculations.
 
 :line 
 
@@ -1633,6 +1612,86 @@ fully equilibrate the deformed cell before sampling the stress
 tensor. Another approach is to sample the triclinic cell fluctuations
 that occur in an NPT simulation. This method can also be slow to
 converge and requires careful post-processing "(Shinoda)"_#Shinoda
+
+:line
+
+4.19 Library interface to LAMMPS :link(4_19),h4
+
+As described in "this section"_Section_start.html#2_4, LAMMPS can be
+built as a library, so that it can be called by another code, used in
+a "coupled manner"_Section_howto.html#4_10 with other codes, or driven
+through a "Python interface"_Section_python.html.
+
+All of these methodologies use a C-style interface to LAMMPS that is
+provided in the files src/library.cpp and src/library.h.  The
+functions therein have a C-style argument list, but contain C++ code
+you could write yourself in a C++ application that was invoking LAMMPS
+directly.  The C++ code in the functions illustrates how to invoke
+internal LAMMPS operations.  Note that LAMMPS classes are defined
+within a LAMMPS namespace (LAMMPS_NS) if you use them from another C++
+application.
+
+Library.cpp contains these 4 functions:
+
+void lammps_open(int, char **, MPI_Comm, void **);
+void lammps_close(void *);
+void lammps_file(void *, char *);
+char *lammps_command(void *, char *); :pre
+
+The lammps_open() function is used to initialize LAMMPS, passing in a
+list of strings as if they were "command-line arguments"_#2_6 when
+LAMMPS is run in stand-alone mode from the command line, and a MPI
+communicator for LAMMPS to run under.  It returns a ptr to the LAMMPS
+object that is created, and which is used in subsequent library calls.
+The lammps_open() function can be called multiple times, to create
+multiple instances of LAMMPS.
+
+LAMMPS will run on the set of processors in the communicator.  This
+means the calling code can run LAMMPS on all or a subset of
+processors.  For example, a wrapper script might decide to alternate
+between LAMMPS and another code, allowing them both to run on all the
+processors.  Or it might allocate half the processors to LAMMPS and
+half to the other code and run both codes simultaneously before
+syncing them up periodically.  Or it might instantiate multiple
+instances of LAMMPS to perform different calculations.
+
+The lammps_close() function is used to shut down an instance of LAMMPS
+and free all its memory.
+
+The lammps_file() and lammps_command() functions are used to pass a
+file or string to LAMMPS as if it were an input script or single
+command in an input script.  Thus the calling code can read or
+generate a series of LAMMPS commands one line at a time and pass it
+thru the library interface to setup a problem and then run it,
+interleaving the lammps_command() calls with other calls to extract
+information from LAMMPS, perform its own operations, or call another
+code's library.
+
+Other useful functions are also included in library.cpp.  For example:
+
+void *lammps_extract_global(void *, char *)
+void *lammps_extract_atom(void *, char *)
+void *lammps_extract_compute(void *, char *, int, int)
+void *lammps_extract_fix(void *, char *, int, int, int, int)
+void *lammps_extract_variable(void *, char *, char *)
+int lammps_get_natoms(void *)
+void lammps_get_coords(void *, double *)
+void lammps_put_coords(void *, double *) :pre
+
+These can extract various global or per-atom quantities from LAMMPS as
+well as values calculated by a compute, fix, or variable.  The "get"
+and "put" operations can retrieve and reset atom coordinates.
+See the library.cpp file and its associated header file library.h for
+details.
+
+The key idea of the library interface is that you can write any
+functions you wish to define how your code talks to LAMMPS and add
+them to src/library.cpp and src/library.h, as well as to the "Python
+interface"_doc/Section_python.html.  The routines you add can access
+or change any LAMMPS data you wish.  The couple and python directories
+have example C++ and C and Python codes which show how a driver code
+can link to LAMMPS as a library, run LAMMPS on a subset of processors,
+grab data from LAMMPS, change it, and put it back into LAMMPS.
 
 :line
 :line

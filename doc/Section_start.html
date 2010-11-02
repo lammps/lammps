@@ -577,36 +577,24 @@ another application can link to.
 <P>When used from a C++ program, the library allows one or more LAMMPS
 objects to be instantiated.  All of LAMMPS is wrapped in a LAMMPS_NS
 namespace; you can safely use any of its classes and methods from
-within your application code, as needed.  See the sample code
-examples/couple/c++_driver.cpp as an example.
+within your application code, as needed. 
 </P>
 <P>When used from a C or Fortran program or a scripting language, the
-library has a simple function-style interface, provided in library.cpp
-and library.h.  See the sample code examples/couple/c_driver.cpp as an
-example.
+library has a simple function-style interface, provided in
+src/library.cpp and src/library.h.
 </P>
-<P>You can add as many functions as you wish to library.cpp and
-library.h.  In a general sense, those functions can access LAMMPS data
-and return it to the caller or set LAMMPS data values as specified by
-the caller.  These 4 functions are currently included in library.cpp:
+<P>See the sample codes couple/simple/simple.cpp and simple.c as examples
+of C++ and C codes that invoke LAMMPS thru its library interface.
+There are other examples as well in the couple directory which are
+discussed in <A HREF = "Section_howto.html#4_10">this section</A> of the manual.
+See <A HREF = "Section_python.html">this section</A> of the manual for a description
+of the Python wrapper provided with LAMMPS that operates through the
+LAMMPS library interface.
 </P>
-<PRE>void lammps_open(int, char **, MPI_Comm, void **ptr);
-void lammps_close(void *ptr);
-int lammps_file(void *ptr, char *);
-int lammps_command(void *ptr, char *); 
-</PRE>
-<P>The lammps_open() function is used to initialize LAMMPS, passing in a
-list of strings as if they were <A HREF = "#2_6">command-line arguments</A> when
-LAMMPS is run from the command line and a MPI communicator for LAMMPS
-to run under.  It returns a ptr to the LAMMPS object that is created,
-and which should be used in subsequent library calls.  Note that
-lammps_open() can be called multiple times to create multiple LAMMPS
-objects.
-</P>
-<P>The lammps_close() function is used to shut down LAMMPS and free all
-its memory.  The lammps_file() and lammps_command() functions are used
-to pass a file or string to LAMMPS as if it were an input file or
-single command read from an input script.
+<P>The files src/library.cpp and library.h contain the C-style interface
+to LAMMPS.  See <A HREF = "Section_howto.html#4_19">this section</A> of the manual
+for a description of the interface and how to extend it for your
+needs.
 </P>
 <HR>
 

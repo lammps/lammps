@@ -6,18 +6,18 @@
 
 :line
 
-10. Future and history :h3
+11. Future and history :h3
 
 This section lists features we are planning to add to LAMMPS, features
 of previous versions of LAMMPS, and features of other parallel
 molecular dynamics codes I've distributed.
 
-10.1 "Coming attractions"_#10_1
-10.2 "Past versions"_#10_2 :all(b)
+11.1 "Coming attractions"_#11_1
+11.2 "Past versions"_#11_2 :all(b)
 
 :line
 
-10.1 Coming attractions :h4,link(10_1)
+11.1 Coming attractions :h4,link(11_1)
 
 The current version of LAMMPS incorporates nearly all the features
 from previous parallel MD codes developed at Sandia.  These include
@@ -46,7 +46,7 @@ Direct Simulation Monte Carlo - DSMC :ul
 
 :line
 
-10.2 Past versions :h4,link(10_2)
+11.2 Past versions :h4,link(11_2)
 
 LAMMPS development began in the mid 1990s under a cooperative research
 & development agreement (CRADA) between two DOE labs (Sandia and LLNL)

@@ -106,7 +106,8 @@ void EwaldOMP::init()
 
   if (force->pair == NULL)
     error->all("KSpace style is incompatible with Pair style");
-  double *p_cutoff = (double *) force->pair->extract("cut_coul");
+  int itmp;
+  double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
   if (p_cutoff == NULL)
     error->all("KSpace style is incompatible with Pair style");
   double cutoff = *p_cutoff;

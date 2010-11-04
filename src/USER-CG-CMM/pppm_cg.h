@@ -52,6 +52,7 @@ class PPPMCG : public KSpace {
   double qsum,qsqsum;
   double qqrd2e;
   double cutoff;
+  double smallq;
   double volume;
   double delxinv,delyinv,delzinv,delvolinv;
   double shift,shiftone;

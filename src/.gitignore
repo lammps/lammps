@@ -3,6 +3,7 @@ lammps-icms-win.exe
 lammps-icms-win.zip
 lammps-icms-mpich-win.exe
 lammps-icms-mpich-win.zip
+
 angle_cg_cmm.cpp
 angle_cg_cmm.h
 angle_charmm.cpp
@@ -13,6 +14,8 @@ angle_cosine.cpp
 angle_cosine.h
 angle_cosine_delta.cpp
 angle_cosine_delta.h
+angle_cosine_periodic.cpp
+angle_cosine_periodic.h
 angle_cosine_squared.cpp
 angle_cosine_squared.h
 angle_harmonic.cpp
@@ -193,6 +196,8 @@ improper_harmonic.cpp
 improper_harmonic.h
 improper_hybrid.cpp
 improper_hybrid.h
+improper_umbrella.cpp
+improper_umbrella.h
 kissfft.h
 lmp_*
 math_complex.h
@@ -304,6 +309,10 @@ pair_gran_hooke_history.cpp
 pair_gran_hooke_history.h
 pair_gran_hooke_history_omp.cpp
 pair_gran_hooke_history_omp.h
+pair_hbond_dreiding_lj.cpp
+pair_hbond_dreiding_lj.h
+pair_hbond_dreiding_morse.cpp
+pair_hbond_dreiding_morse.h
 pair_lj_charmm_coul_charmm.cpp
 pair_lj_charmm_coul_charmm.h
 pair_lj_charmm_coul_charmm_omp.cpp

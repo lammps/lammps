@@ -39,7 +39,6 @@ using namespace LAMMPS_NS;
 #define MAXORDER 7
 #define OFFSET 16384
 #define SMALL 0.00001
-#define SMALLQ 0.01
 #define LARGE 10000.0
 #define EPS_HOC 1.0e-7
 
@@ -58,7 +57,12 @@ using namespace LAMMPS_NS;
 
 PPPMCG::PPPMCG(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
 {
-  if (narg != 1) error->all("Illegal kspace_style pppm/cg command");
+  if ((narg < 1) || (narg > 2)) error->all("Illegal kspace_style pppm/cg command");
+
+  if (narg == 2)
+    smallq = atof(arg[1]);
+  else
+    smallq = SMALL;
 
   precision = atof(arg[0]);
   PI = 4.0*atan(1.0);
@@ -90,7 +94,7 @@ PPPMCG::PPPMCG(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
   part2grid = NULL;
   
   is_charged = NULL;
-  num_charged = 0;
+  num_charged = -1;
 }
 
 /* ----------------------------------------------------------------------
@@ -148,7 +152,8 @@ void PPPMCG::init()
 
   if (force->pair == NULL)
     error->all("KSpace style is incompatible with Pair style");
-  double *p_cutoff = (double *) force->pair->extract("cut_coul");
+  int itmp;
+  double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
   if (p_cutoff == NULL)
     error->all("KSpace style is incompatible with Pair style");
   cutoff = *p_cutoff;
@@ -160,11 +165,11 @@ void PPPMCG::init()
   if (strcmp(force->kspace_style,"pppm/tip4p") == 0) {
     if (force->pair == NULL)
       error->all("KSpace style is incompatible with Pair style");
-    double *p_qdist = (double *) force->pair->extract("qdist");
-    int *p_typeO = (int *) force->pair->extract("typeO");
-    int *p_typeH = (int *) force->pair->extract("typeH");
-    int *p_typeA = (int *) force->pair->extract("typeA");
-    int *p_typeB = (int *) force->pair->extract("typeB");
+    double *p_qdist = (double *) force->pair->extract("qdist",itmp);
+    int *p_typeO = (int *) force->pair->extract("typeO",itmp);
+    int *p_typeH = (int *) force->pair->extract("typeH",itmp);
+    int *p_typeA = (int *) force->pair->extract("typeA",itmp);
+    int *p_typeB = (int *) force->pair->extract("typeB",itmp);
     if (!p_qdist || !p_typeO || !p_typeH || !p_typeA || !p_typeB)
       error->all("KSpace style is incompatible with Pair style");
     qdist = *p_qdist;
@@ -665,13 +670,38 @@ void PPPMCG::compute(int eflag, int vflag)
     memory->destroy_2d_int_array(part2grid);
     memory->sfree(is_charged);
     nmax = atom->nmax;
-    part2grid = memory->create_2d_int_array(nmax,3,"pppm:part2grid");
-    is_charged = static_cast<int *>(memory->smalloc(nmax*sizeof(int),"pppm:is_charged"));
+    part2grid = memory->create_2d_int_array(nmax,3,"pppm/cg:part2grid");
+    is_charged = static_cast<int *>(memory->smalloc(nmax*sizeof(int),"pppm/cg:is_charged"));
+  }
+
+  if (num_charged < 0) {
+    double charged_all, charged_num, charged_nmax;
+
+    num_charged=0;
+    for (i=0; i < atom->nlocal; ++i)
+      if (fabs(atom->q[i]) > smallq)
+        ++num_charged;
+
+    charged_num = static_cast<double>(num_charged);
+    MPI_Reduce(&charged_num,&charged_all,1,MPI_DOUBLE,MPI_SUM,0,world);
+    charged_all = charged_all * 100.0 / atom->natoms;
+
+    charged_num = 100.0 * static_cast<double>(num_charged) / static_cast<double>(atom->nlocal);
+    MPI_Reduce(&charged_num,&charged_nmax,1,MPI_DOUBLE,MPI_MAX,0,world);
+
+    if (me == 0) {
+      if (screen) fprintf(screen,"Using pppm/cg optimization. Cutoff: %g. \n"
+            "Total charged: %.1f%%.  Max. charged / proc: %.1f%%.\n",
+            smallq, charged_all, charged_nmax);
+      if (logfile) fprintf(logfile,"Using pppm/cg optimization. Cutoff: %g. \n"
+            "Total charged: %.1f%%.  Max. charged / proc: %.1f%%.\n",
+            smallq, charged_all, charged_nmax);
+    }
   }
 
   num_charged=0;
   for (i=0; i < atom->nlocal; ++i)
-    if (fabs(atom->q[i]) > SMALLQ) {
+    if (fabs(atom->q[i]) > smallq) {
       is_charged[num_charged] = i;
       ++num_charged;
     }

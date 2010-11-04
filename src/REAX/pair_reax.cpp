@@ -51,6 +51,9 @@ PairREAX::PairREAX(LAMMPS *lmp) : Pair(lmp)
   one_coeff = 1;
   no_virial_compute = 1;
   
+  nextra = 14;
+  pvector = new double[nextra];
+
   cutmax = 0.0;
   hbcut = 6.0;
   ihbnew = 1;
@@ -85,6 +88,8 @@ PairREAX::PairREAX(LAMMPS *lmp) : Pair(lmp)
 
 PairREAX::~PairREAX()
 {
+  delete [] pvector;
+
   if (allocated) {
     memory->destroy_2d_int_array(setflag);
     memory->destroy_2d_double_array(cutsq);
@@ -119,7 +124,7 @@ void PairREAX::compute(int eflag, int vflag)
 
   evdwl = ecoul = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  else evflag = vflag_fdotr = eflag_global = vflag_global = 0;
 
   if (vflag_global) FORTRAN(cbkvirial, CBKVIRIAL).Lvirial = 1;
   else FORTRAN(cbkvirial, CBKVIRIAL).Lvirial = 0;
@@ -182,8 +187,7 @@ void PairREAX::compute(int eflag, int vflag)
   // extract global and per-atom energy from ReaxFF Fortran
   // compute_charge already contributed to eatom
 
-  if (eflag && eflag_global) {
-    //    output_itemized_energy(energy_charge_equilibration);
+  if (eflag_global) {
     evdwl += FORTRAN(cbkenergies, CBKENERGIES).eb;
     evdwl += FORTRAN(cbkenergies, CBKENERGIES).ea;
     evdwl += FORTRAN(cbkenergies, CBKENERGIES).elp;
@@ -202,9 +206,28 @@ void PairREAX::compute(int eflag, int vflag)
     
     eng_vdwl += evdwl;
     eng_coul += ecoul;
+
+    // Store the different parts of the energy
+    // in a list for output by compute pair command
+
+    pvector[0] = FORTRAN(cbkenergies, CBKENERGIES).eb;   
+    pvector[1] = FORTRAN(cbkenergies, CBKENERGIES).ea;
+    pvector[2] = FORTRAN(cbkenergies, CBKENERGIES).elp;
+    pvector[3] = FORTRAN(cbkenergies, CBKENERGIES).emol;
+    pvector[4] = FORTRAN(cbkenergies, CBKENERGIES).ev;
+    pvector[5] = FORTRAN(cbkenergies, CBKENERGIES).epen;
+    pvector[6] = FORTRAN(cbkenergies, CBKENERGIES).ecoa;
+    pvector[7] = FORTRAN(cbkenergies, CBKENERGIES).ehb;
+    pvector[8] = FORTRAN(cbkenergies, CBKENERGIES).et;
+    pvector[9] = FORTRAN(cbkenergies, CBKENERGIES).eco;
+    pvector[10] = FORTRAN(cbkenergies, CBKENERGIES).ew;
+    pvector[11] = FORTRAN(cbkenergies, CBKENERGIES).ep;
+    pvector[12] = FORTRAN(cbkenergies, CBKENERGIES).efi;
+    pvector[13] = energy_charge_equilibration;    
+  
   }
 
-  if (eflag && eflag_atom) {
+  if (eflag_atom) {
     int ntotal = atom->nlocal + atom->nghost;
     for (i = 0; i < ntotal; i++)
       eatom[i] += FORTRAN(cbkd,CBKD).estrain[i];
@@ -212,7 +235,7 @@ void PairREAX::compute(int eflag, int vflag)
 
   // extract global and per-atom virial from ReaxFF Fortran
 
-  if (vflag && vflag_global) {
+  if (vflag_global) {
     virial[0] = -FORTRAN(cbkvirial, CBKVIRIAL).virial[0];
     virial[1] = -FORTRAN(cbkvirial, CBKVIRIAL).virial[1];
     virial[2] = -FORTRAN(cbkvirial, CBKVIRIAL).virial[2];
@@ -221,7 +244,7 @@ void PairREAX::compute(int eflag, int vflag)
     virial[5] = -FORTRAN(cbkvirial, CBKVIRIAL).virial[5];
   }
 
-  if (vflag && vflag_atom) {
+  if (vflag_atom) {
     int ntotal = atom->nlocal + atom->nghost;
     j = 0;
     for (i = 0; i < ntotal; i++) {
@@ -1038,67 +1061,4 @@ double PairREAX::memory_usage()
   bytes += matmax * sizeof(int);
   bytes += matmax * sizeof(double);
   return bytes;
-}
-
-/* ----------------------------------------------------------------------
-   print out the itemized energies to the log file
-   this is not currently called, but should
-   be made available to the user in some way
-------------------------------------------------------------------------- */
-
-void PairREAX::output_itemized_energy(double energy_charge_equilibration)
-{
-  double etmp[14],etmp2[14];
-  
-  etmp[0] = FORTRAN(cbkenergies, CBKENERGIES).eb;
-  etmp[1] = FORTRAN(cbkenergies, CBKENERGIES).ea;
-  etmp[2] = FORTRAN(cbkenergies, CBKENERGIES).elp;
-  etmp[3] = FORTRAN(cbkenergies, CBKENERGIES).emol;
-  etmp[4] = FORTRAN(cbkenergies, CBKENERGIES).ev;
-  etmp[5] = FORTRAN(cbkenergies, CBKENERGIES).epen;
-  etmp[6] = FORTRAN(cbkenergies, CBKENERGIES).ecoa;
-  etmp[7] = FORTRAN(cbkenergies, CBKENERGIES).ehb;
-  etmp[8] = FORTRAN(cbkenergies, CBKENERGIES).et;
-  etmp[9] = FORTRAN(cbkenergies, CBKENERGIES).eco;
-  etmp[10] = FORTRAN(cbkenergies, CBKENERGIES).ew;
-  etmp[11] = FORTRAN(cbkenergies, CBKENERGIES).ep;
-  etmp[12] = FORTRAN(cbkenergies, CBKENERGIES).efi;
-  etmp[13] = energy_charge_equilibration;
-  
-  MPI_Allreduce(etmp,etmp2,14,MPI_DOUBLE,MPI_SUM,world);
-  
-  if (comm->me == 0) {
-    if (screen) {
-      fprintf(screen,"eb = %g \n",etmp2[0]);
-      fprintf(screen,"ea = %g \n",etmp2[1]);
-      fprintf(screen,"elp = %g \n",etmp2[2]);
-      fprintf(screen,"emol = %g \n",etmp2[3]);
-      fprintf(screen,"ev = %g \n",etmp2[4]);
-      fprintf(screen,"epen = %g \n",etmp2[5]);
-      fprintf(screen,"ecoa = %g \n",etmp2[6]);
-      fprintf(screen,"ehb = %g \n",etmp2[7]);
-      fprintf(screen,"et = %g \n",etmp2[8]);
-      fprintf(screen,"eco = %g \n",etmp2[9]);
-      fprintf(screen,"ew = %g \n",etmp2[10]);
-      fprintf(screen,"ep = %g \n",etmp2[11]);
-      fprintf(screen,"efi = %g \n",etmp2[12]);
-      fprintf(screen,"eqeq = %g \n",etmp2[13]);
-    }
-    if (logfile) {
-      fprintf(logfile,"eb = %g \n",etmp2[0]);
-      fprintf(logfile,"ea = %g \n",etmp2[1]);
-      fprintf(logfile,"elp = %g \n",etmp2[2]);
-      fprintf(logfile,"emol = %g \n",etmp2[3]);
-      fprintf(logfile,"ev = %g \n",etmp2[4]);
-      fprintf(logfile,"epen = %g \n",etmp2[5]);
-      fprintf(logfile,"ecoa = %g \n",etmp2[6]);
-      fprintf(logfile,"ehb = %g \n",etmp2[7]);
-      fprintf(logfile,"et = %g \n",etmp2[8]);
-      fprintf(logfile,"eco = %g \n",etmp2[9]);
-      fprintf(logfile,"ew = %g \n",etmp2[10]);
-      fprintf(logfile,"ep = %g \n",etmp2[11]);
-      fprintf(logfile,"efi = %g \n",etmp2[12]);
-      fprintf(logfile,"eqeq = %g \n",etmp2[13]);
-    }
-  }
 }

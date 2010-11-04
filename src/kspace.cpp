@@ -69,3 +69,11 @@ void KSpace::modify_params(int narg, char **arg)
     } else error->all("Illegal kspace_modify command");
   }
 }
+
+/* ---------------------------------------------------------------------- */
+
+void *KSpace::extract(char *str)
+{
+  if (strcmp(str,"scale") == 0) return (void *) &scale;
+  return NULL;
+}

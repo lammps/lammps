@@ -14,6 +14,7 @@
 #include "math.h"
 #include "stdio.h"
 #include "stdlib.h"
+#include "string.h"
 #include "pair_buck.h"
 #include "atom.h"
 #include "comm.h"
@@ -341,4 +342,14 @@ double PairBuck::single(int i, int j, int itype, int jtype,
   phibuck = a[itype][jtype]*rexp - c[itype][jtype]*r6inv -
     offset[itype][jtype];
   return factor_lj*phibuck;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void *PairBuck::extract(char *str, int &dim)
+{
+  dim = 2;
+  if (strcmp(str,"a") == 0) return (void *) a;
+  if (strcmp(str,"c") == 0) return (void *) c;
+  return NULL;
 }

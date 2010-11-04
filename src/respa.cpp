@@ -466,11 +466,12 @@ void Respa::run(int n)
 }
 
 /* ----------------------------------------------------------------------
-   delete fix at end of run, so its atom arrays won't persist
+   delete rRESPA fix at end of run, so its atom arrays won't persist
 ------------------------------------------------------------------------- */
 
 void Respa::cleanup()
 {
+  modify->post_run();
   modify->delete_fix("RESPA");
 }
 

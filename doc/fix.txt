@@ -242,7 +242,8 @@ list of fix styles available in LAMMPS:
 "wall/lj126"_fix_wall.html - Lennard-Jones 12-6 wall
 "wall/lj93"_fix_wall.html - Lennard-Jones 9-3 wall
 "wall/reflect"_fix_wall_reflect.html - reflecting wall(s)
-"wall/region"_fix_wall_region.html - use region surface as wall :ul
+"wall/region"_fix_wall_region.html - use region surface as wall
+"wall/srd"_fix_wall_srd.html - slip/no-slip wall for SRD particles :ul
 
 There are also additional fix styles submitted by users which are
 included in the LAMMPS distribution.  The list of these with links to

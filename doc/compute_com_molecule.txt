@@ -32,10 +32,11 @@ however this is not required.  LAMMPS will warn you if this is not the
 case.  Only atoms in the group contribute to the center-of-mass
 calculation for the molecule.
 
-Let Nmolecules be the number of molecules for which the center-of-mass
-is calculated.  If not all molecules have atoms in the group, then the
-molecule with the lowest ID is the first of the Nmolecules.  The next
-lowest ID is the second, etc, up to Nmolecules.
+The ordering of per-molecule quantities produced by this compute is
+consistent with the ordering produced by other compute commands that
+generate per-molecule datums.  Conceptually, them molecule IDs will be
+in ascending order for any molecule with one or more of its atoms in
+the specified group.
 
 IMPORTANT NOTE: The coordinates of an atom contribute to the
 molecule's center-of-mass in "unwrapped" form, by using the image

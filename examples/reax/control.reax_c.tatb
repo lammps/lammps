@@ -1,0 +1,21 @@
+simulation_name         reax.tatb  ! output files will carry this name + their specific extension
+
+tabulate_long_range     0 ! denotes the granularity of long range tabulation, 0 means no tabulation
+energy_update_freq      1 
+remove_CoM_vel          500 ! remove the trans. & rot. vel around the CoM every 'this many' steps
+
+nbrhood_cutoff          4.0  ! near neighbors cutoff for bond calculations in A
+hbond_cutoff            10.0  ! cutoff distance for hydrogen bond interactions
+bond_graph_cutoff       0.3  ! bond strength cutoff for bond graphs
+thb_cutoff              0.001 ! cutoff value for three body interactions
+q_err                   1e-6  ! average per atom error norm allowed in GMRES convergence
+
+geo_format              0    ! 0: xyz, 1: pdb, 2: bgf
+write_freq              0    ! write trajectory after so many steps
+traj_compress           0    ! 0: no compression  1: uses zlib to compress trajectory output
+traj_title              TATB ! (no white spaces)
+atom_info               0    ! 0: no atom info, 1: print basic atom info in the trajectory file
+atom_forces             0    ! 0: basic atom format, 1: print force on each atom in the trajectory file
+atom_velocities         0    ! 0: basic atom format, 1: print the velocity of each atom in the trajectory file
+bond_info               0    ! 0: do not print bonds, 1: print bonds in the trajectory file
+angle_info              0    ! 0: do not print angles, 1: print angles in the trajectory file 

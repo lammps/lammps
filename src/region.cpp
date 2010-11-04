@@ -18,11 +18,11 @@
 #include "update.h"
 #include "domain.h"
 #include "lattice.h"
+#include "input.h"
+#include "variable.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
-
-enum{NONE,VELOCITY,WIGGLE,ROTATE,VARIABLE};
 
 /* ---------------------------------------------------------------------- */
 
@@ -36,8 +36,9 @@ Region::Region(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   style = new char[n];
   strcpy(style,arg[1]);
 
-  time_origin = update->ntimestep;
-  dt = update->dt;
+  xstr = ystr = zstr = tstr = NULL;
+  dx = dy = dz = 0.0;
+  laststep = -1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -46,118 +47,40 @@ Region::~Region()
 {
   delete [] id;
   delete [] style;
+
+  delete [] xstr;
+  delete [] ystr;
+  delete [] zstr;
+  delete [] tstr;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void Region::init()
 {
-  dt = update->dt;
-}
-
-/* ----------------------------------------------------------------------
-   parse optional parameters at end of region input line
-------------------------------------------------------------------------- */
-
-void Region::options(int narg, char **arg)
-{
-  if (narg < 0) error->all("Illegal region command");
-
-  // option defaults
-
-  interior = 1;
-  scaleflag = 1;
-  dynamic = NONE;
-
-  int iarg = 0;
-  while (iarg < narg) {
-    if (strcmp(arg[iarg],"units") == 0) {
-      if (iarg+2 > narg) error->all("Illegal region command");
-      if (strcmp(arg[iarg+1],"box") == 0) scaleflag = 0;
-      else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = 1;
-      else error->all("Illegal region command");
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"side") == 0) {
-      if (iarg+2 > narg) error->all("Illegal region command");
-      if (strcmp(arg[iarg+1],"in") == 0) interior = 1;
-      else if (strcmp(arg[iarg+1],"out") == 0) interior = 0;
-      else error->all("Illegal region command");
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"vel") == 0) {
-      if (iarg+4 > narg) error->all("Illegal region command");
-      vx = atof(arg[iarg+1]);
-      vy = atof(arg[iarg+2]);
-      vz = atof(arg[iarg+3]);
-      dynamic = VELOCITY;
-      iarg += 4;
-    } else if (strcmp(arg[iarg],"wiggle") == 0) {
-      if (iarg+5 > narg) error->all("Illegal region command");
-      ax = atof(arg[iarg+1]);
-      ay = atof(arg[iarg+2]);
-      az = atof(arg[iarg+3]);
-      period = atof(arg[iarg+4]);
-      dynamic = WIGGLE;
-      iarg += 5;
-    } else if (strcmp(arg[iarg],"rotate") == 0) {
-      if (iarg+8 > narg) error->all("Illegal region command");
-      point[0] = atof(arg[iarg+1]);
-      point[1] = atof(arg[iarg+2]);
-      point[2] = atof(arg[iarg+3]);
-      axis[0] = atof(arg[iarg+4]);
-      axis[1] = atof(arg[iarg+5]);
-      axis[2] = atof(arg[iarg+6]);
-      period = atof(arg[iarg+7]);
-      dynamic = ROTATE;
-      iarg += 8;
-    } else error->all("Illegal region command");
+  if (xstr) {
+    xvar = input->variable->find(xstr);
+    if (xvar < 0) error->all("Variable name for region does not exist");
+    if (!input->variable->equalstyle(xvar))
+      error->all("Variable for region is invalid style");
   }
-
-  // error check
-  
-  if (dynamic && 
-      (strcmp(style,"union") == 0 || strcmp(style,"intersect") == 0))
-    error->all("Region union or intersect cannot be dynamic");
-
-  // setup scaling
-
-  if (scaleflag && domain->lattice == NULL)
-    error->all("Use of region with undefined lattice");
-
-  if (scaleflag) {
-    xscale = domain->lattice->xlattice;
-    yscale = domain->lattice->ylattice;
-    zscale = domain->lattice->zlattice;
+  if (ystr) {
+    yvar = input->variable->find(ystr);
+    if (yvar < 0) error->all("Variable name for region does not exist");
+    if (!input->variable->equalstyle(yvar))
+      error->all("Variable for region is not equal style");
   }
-  else xscale = yscale = zscale = 1.0;
-
-  if (dynamic == VELOCITY) {
-    vx *= xscale;
-    vy *= yscale;
-    vz *= zscale;
-  } else if (dynamic == WIGGLE) {
-    ax *= xscale;
-    ay *= yscale;
-    az *= zscale;
-  } else if (dynamic == ROTATE) {
-    point[0] *= xscale;
-    point[1] *= yscale;
-    point[2] *= zscale;
+  if (zstr) {
+    zvar = input->variable->find(zstr);
+    if (zvar < 0) error->all("Variable name for region does not exist");
+    if (!input->variable->equalstyle(zvar))
+      error->all("Variable for region is not equal style");
   }
-
-  if (dynamic == WIGGLE || dynamic == ROTATE) {
-    double PI = 4.0 * atan(1.0);
-    omega_rotate = 2.0*PI / period;
-  }
-
-  // runit = unit vector along rotation axis
-
-  if (dynamic == ROTATE) {
-    double len = sqrt(axis[0]*axis[0] + axis[1]*axis[1] + axis[2]*axis[2]);
-    if (len == 0.0) 
-      error->all("Region cannot have 0 length rotation vector");
-    runit[0] = axis[0]/len;
-    runit[1] = axis[1]/len;
-    runit[2] = axis[2]/len;
+  if (tstr) {
+    tvar = input->variable->find(tstr);
+    if (tvar < 0) error->all("Variable name for region does not exist");
+    if (!input->variable->equalstyle(tvar))
+      error->all("Variable for region is not equal style");
   }
 }
 
@@ -177,63 +100,36 @@ int Region::dynamic_check()
    XOR computes 0 if 2 args are the same, 1 if different
    note that inside() returns 1 for points on surface of region
    thus point on surface of exterior region will not match
-   if region is dynamic, apply inverse of region change to x
+   if region is dynamic, apply inverse transform to x,y,z
+     unmove first, then unrotate, so don't have to change rotation point
 ------------------------------------------------------------------------- */
 
 int Region::match(double x, double y, double z)
 {
-  if (dynamic) {
-    double delta = (update->ntimestep - time_origin) * dt;
-    if (dynamic == VELOCITY) {
-      x -= vx*delta;
-      y -= vy*delta;
-      z -= vz*delta;
-    } else if (dynamic == WIGGLE) {
-      double arg = omega_rotate * delta;
-      double sine = sin(arg);
-      x -= ax*sine;
-      y -= ay*sine;
-      z -= az*sine;
-    } else if (dynamic == ROTATE) {
-      double angle = -omega_rotate*delta;
-      rotate(x,y,z,angle);
-    }
-  }
-
+  if (dynamic) inverse_transform(x,y,z);
   return !(inside(x,y,z) ^ interior);
 }
 
 /* ----------------------------------------------------------------------
    generate list of contact points for interior or exterior regions
    if region is dynamic:
-     change x by inverse of region change
-     change contact point by region change
+     before: inverse transform x,y,z (unmove, then unrotate)
+     after: forward transform contact point xs,yx,zs (rotate, then move),
+            then reset contact delx,dely,delz based on new contact point
+	    no need to do this if no rotation since delxyz doesn't change
 ------------------------------------------------------------------------- */
 
 int Region::surface(double x, double y, double z, double cutoff)
 {
   int ncontact;
-  double xnear[3],xhold[3];
+  double xs,ys,zs;
+  double xnear[3],xorig[3];
 
   if (dynamic) {
-    double delta = (update->ntimestep - time_origin) * dt;
-    if (dynamic == VELOCITY) {
-      x -= vx*delta;
-      y -= vy*delta;
-      z -= vz*delta;
-    } else if (dynamic == WIGGLE) {
-      double arg = omega_rotate * delta;
-      double sine = sin(arg);
-      x -= ax*sine;
-      y -= ay*sine;
-      z -= az*sine;
-    } else if (dynamic == ROTATE) {
-      xhold[0] = x;
-      xhold[1] = y;
-      xhold[2] = z;
-      double angle = -omega_rotate*delta;
-      rotate(x,y,z,angle);
-    }
+    xorig[0] = x;
+    xorig[1] = y;
+    xorig[2] = z;
+    inverse_transform(x,y,z);
   }
 
   xnear[0] = x;
@@ -243,19 +139,15 @@ int Region::surface(double x, double y, double z, double cutoff)
   if (interior) ncontact = surface_interior(xnear,cutoff);
   else ncontact = surface_exterior(xnear,cutoff);
 
-  if (dynamic && ncontact) {
-    double delta = (update->ntimestep - time_origin) * dt;
-    if (dynamic == ROTATE) {
-      for (int i = 0; i < ncontact; i++) {
-	x -= contact[i].delx;
-	y -= contact[i].dely;
-	z -= contact[i].delz;
-	double angle = omega_rotate*delta;
-	rotate(x,y,z,angle);
-	contact[i].delx = xhold[0] - x;
-	contact[i].dely = xhold[1] - y;
-	contact[i].delz = xhold[2] - z;
-      }
+  if (rotateflag && ncontact) {
+    for (int i = 0; i < ncontact; i++) {
+      xs = xnear[0] - contact[i].delx;
+      ys = xnear[1] - contact[i].dely;
+      zs = xnear[2] - contact[i].delz;
+      forward_transform(xs,ys,zs);
+      contact[i].delx = xorig[0] - xs;
+      contact[i].dely = xorig[1] - ys;
+      contact[i].delz = xorig[2] - zs;
     }
   }
 
@@ -277,6 +169,60 @@ void Region::add_contact(int n, double *x, double xp, double yp, double zp)
   contact[n].delx = delx;
   contact[n].dely = dely;
   contact[n].delz = delz;
+}
+
+/* ----------------------------------------------------------------------
+   transform a point x,y,z in region space to moved space
+   rotate first (around original P), then displace
+------------------------------------------------------------------------- */
+
+void Region::forward_transform(double &x, double &y, double &z)
+{
+  if (rotateflag) {
+    if (update->ntimestep != laststep)
+      theta = input->variable->compute_equal(tvar);
+    rotate(x,y,z,theta);
+  }
+  
+  if (moveflag) {
+    if (update->ntimestep != laststep) {
+      if (xstr) dx = input->variable->compute_equal(xvar);
+      if (ystr) dy = input->variable->compute_equal(yvar);
+      if (zstr) dz = input->variable->compute_equal(zvar);
+    }
+    x += dx;
+    y += dy;
+    z += dz;
+  }
+
+  laststep = update->ntimestep;
+}
+
+/* ----------------------------------------------------------------------
+   transform a point x,y,z in moved space back to region space
+   undisplace first, then unrotate (around original P)
+------------------------------------------------------------------------- */
+
+void Region::inverse_transform(double &x, double &y, double &z)
+{
+  if (moveflag) {
+    if (update->ntimestep != laststep) {
+      if (xstr) dx = input->variable->compute_equal(xvar);
+      if (ystr) dy = input->variable->compute_equal(yvar);
+      if (zstr) dz = input->variable->compute_equal(zvar);
+    }
+    x -= dx;
+    y -= dy;
+    z -= dz;
+  }
+
+  if (rotateflag) {
+    if (update->ntimestep != laststep)
+      theta = input->variable->compute_equal(tvar);
+    rotate(x,y,z,-theta);
+  }
+  
+  laststep = update->ntimestep;
 }
 
 /* ----------------------------------------------------------------------
@@ -321,4 +267,116 @@ void Region::rotate(double &x, double &y, double &z, double angle)
   x = point[0] + c[0] + disp[0];
   y = point[1] + c[1] + disp[1];
   z = point[2] + c[2] + disp[2];
+}
+
+/* ----------------------------------------------------------------------
+   parse optional parameters at end of region input line
+------------------------------------------------------------------------- */
+
+void Region::options(int narg, char **arg)
+{
+  if (narg < 0) error->all("Illegal region command");
+
+  // option defaults
+
+  interior = 1;
+  scaleflag = 1;
+  moveflag = rotateflag = 0;
+
+  int iarg = 0;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"units") == 0) {
+      if (iarg+2 > narg) error->all("Illegal region command");
+      if (strcmp(arg[iarg+1],"box") == 0) scaleflag = 0;
+      else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = 1;
+      else error->all("Illegal region command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"side") == 0) {
+      if (iarg+2 > narg) error->all("Illegal region command");
+      if (strcmp(arg[iarg+1],"in") == 0) interior = 1;
+      else if (strcmp(arg[iarg+1],"out") == 0) interior = 0;
+      else error->all("Illegal region command");
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"move") == 0) {
+      if (iarg+4 > narg) error->all("Illegal region command");
+      if (strcmp(arg[iarg+1],"NULL") != 0) {
+	if (strstr(arg[iarg+1],"v_") != arg[iarg+1]) 
+	  error->all("Illegal region command");
+	int n = strlen(&arg[iarg+1][2]) + 1;
+	xstr = new char[n];
+	strcpy(xstr,&arg[iarg+1][2]);
+      }
+      if (strcmp(arg[iarg+2],"NULL") != 0) {
+	if (strstr(arg[iarg+2],"v_") != arg[iarg+2]) 
+	  error->all("Illegal region command");
+	int n = strlen(&arg[iarg+2][2]) + 1;
+	ystr = new char[n];
+	strcpy(ystr,&arg[iarg+2][2]);
+      }
+      if (strcmp(arg[iarg+3],"NULL") != 0) {
+	if (strstr(arg[iarg+3],"v_") != arg[iarg+3]) 
+	  error->all("Illegal region command");
+	int n = strlen(&arg[iarg+3][2]) + 1;
+	zstr = new char[n];
+	strcpy(zstr,&arg[iarg+3][2]);
+      }
+      moveflag = 1;
+      iarg += 4;
+
+    } else if (strcmp(arg[iarg],"rotate") == 0) {
+      if (iarg+8 > narg) error->all("Illegal region command");
+      if (strstr(arg[iarg+1],"v_") != arg[iarg+1]) 
+	error->all("Illegal region command");
+      int n = strlen(&arg[iarg+1][2]) + 1;
+      tstr = new char[n];
+      strcpy(tstr,&arg[iarg+1][2]);
+      point[0] = atof(arg[iarg+2]);
+      point[1] = atof(arg[iarg+3]);
+      point[2] = atof(arg[iarg+4]);
+      axis[0] = atof(arg[iarg+5]);
+      axis[1] = atof(arg[iarg+6]);
+      axis[2] = atof(arg[iarg+7]);
+      rotateflag = 1;
+      iarg += 8;
+    } else error->all("Illegal region command");
+  }
+
+  // error check
+  
+  if ((moveflag || rotateflag) && 
+      (strcmp(style,"union") == 0 || strcmp(style,"intersect") == 0))
+    error->all("Region union or intersect cannot be dynamic");
+
+  // setup scaling
+
+  if (scaleflag && domain->lattice == NULL)
+    error->all("Use of region with undefined lattice");
+
+  if (scaleflag) {
+    xscale = domain->lattice->xlattice;
+    yscale = domain->lattice->ylattice;
+    zscale = domain->lattice->zlattice;
+  }
+  else xscale = yscale = zscale = 1.0;
+
+  if (rotateflag) {
+    point[0] *= xscale;
+    point[1] *= yscale;
+    point[2] *= zscale;
+  }
+
+  // runit = unit vector along rotation axis
+
+  if (rotateflag) {
+    double len = sqrt(axis[0]*axis[0] + axis[1]*axis[1] + axis[2]*axis[2]);
+    if (len == 0.0) 
+      error->all("Region cannot have 0 length rotation vector");
+    runit[0] = axis[0]/len;
+    runit[1] = axis[1]/len;
+    runit[2] = axis[2]/len;
+  }
+
+  if (moveflag || rotateflag) dynamic = 1;
+  else dynamic = 0;
 }

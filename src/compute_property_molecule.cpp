@@ -32,7 +32,6 @@ ComputePropertyMolecule(LAMMPS *lmp, int narg, char **arg) :
     error->all("Compute property/molecule requires molecular atom style");
 
   nvalues = narg - 3;
-  if (nvalues == 1) size_array_cols = 0;
 
   pack_choice = new FnPtrPack[nvalues];
 
@@ -42,6 +41,8 @@ ComputePropertyMolecule(LAMMPS *lmp, int narg, char **arg) :
 
     if (strcmp(arg[iarg],"mol") == 0)
       pack_choice[i] = &ComputePropertyMolecule::pack_mol;
+    else if (strcmp(arg[iarg],"count") == 0)
+      pack_choice[i] = &ComputePropertyMolecule::pack_count;
     else error->all("Invalid keyword in compute property/molecule command");
   }
 
@@ -128,13 +129,45 @@ double ComputePropertyMolecule::memory_usage()
    customize a new keyword by adding a method
 ------------------------------------------------------------------------- */
 
-/* ---------------------------------------------------------------------- */
-
 void ComputePropertyMolecule::pack_mol(int n)
 {
-  for (int i = idlo; i <= idhi; i++)
-    if (molmap == NULL || molmap[i-idlo] >= 0) {
-      buf[n] = i;
+  for (int m = idlo; m <= idhi; m++)
+    if (molmap == NULL || molmap[m-idlo] >= 0) {
+      buf[n] = m;
       n += nvalues;
     }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyMolecule::pack_count(int n)
+{
+  int i,m,imol;
+
+  int *count_one = new int[nmolecules];
+  for (m = 0; m < nmolecules; m++) count_one[m] = 0;
+
+  int *molecule = atom->molecule;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit) {
+      imol = molecule[i];
+      if (molmap) imol = molmap[imol-idlo];
+      else imol--;
+      count_one[imol]++;
+    }
+
+  int *count_all = new int[nmolecules];
+  MPI_Allreduce(count_one,count_all,nmolecules,MPI_INT,MPI_SUM,world);
+
+  for (m = 0; m < nmolecules; m++)
+    if (molmap == NULL || molmap[m] >= 0) {
+      buf[n] = count_all[m];
+      n += nvalues;
+    }
+
+  delete [] count_one;
+  delete [] count_all;
 }

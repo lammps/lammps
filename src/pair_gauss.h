@@ -24,28 +24,30 @@ PairStyle(gauss,PairGauss)
 
 namespace LAMMPS_NS {
 
-  class PairGauss : public Pair {
-  public:
-    PairGauss(class LAMMPS *);
-    ~PairGauss();
-    void compute(int,int);
-    void settings(int, char **);
-    void coeff(int, char **);
-    double init_one(int, int);  
-    void write_restart(FILE *);
-    void read_restart(FILE *);
-    void write_restart_settings(FILE *);
-    void read_restart_settings(FILE *);
-    double single(int, int, int, int, double, double, double, double &);
+class PairGauss : public Pair {
+ public:
+  PairGauss(class LAMMPS *);
+  ~PairGauss();
+  void compute(int,int);
+  void settings(int, char **);
+  void coeff(int, char **);
+  double init_one(int, int);  
+  void write_restart(FILE *);
+  void read_restart(FILE *);
+  void write_restart_settings(FILE *);
+  void read_restart_settings(FILE *);
+  double single(int, int, int, int, double, double, double, double &);
+  void *extract(char *, int &);
  
-  private: 
-    double cut_global;
-    double **cut;
-    double **a,**b;
-    double **offset;
+ private: 
+  double cut_global;
+  double **cut;
+  double **a,**b;
+  double **offset;
+  
+  void allocate();
+};
 
-    void allocate();
-  };
 }
 
 #endif

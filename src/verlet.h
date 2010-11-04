@@ -32,6 +32,7 @@ class Verlet : public Integrate {
   void setup();
   void setup_minimal(int);
   void run(int);
+  void cleanup();
 
  private:
   int triclinic;                    // 0 if domain is orthog, 1 if triclinic

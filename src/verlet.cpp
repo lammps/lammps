@@ -286,6 +286,13 @@ void Verlet::run(int n)
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
+void Verlet::cleanup()
+{
+  modify->post_run();
+}
+
 /* ----------------------------------------------------------------------
    clear force on own & ghost atoms
    setup and clear other arrays as needed

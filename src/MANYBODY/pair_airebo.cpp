@@ -466,8 +466,8 @@ void PairAIREBO::REBO_neigh()
 
 void PairAIREBO::FREBO(int eflag, int vflag)
 {
-  int i,j,k,m,ii,inum,itype,jtype;
-  double delx,dely,delz,evdwl,fpair;
+  int i,j,k,m,ii,inum,itype,jtype,itag,jtag;
+  double delx,dely,delz,evdwl,fpair,xtmp,ytmp,ztmp;
   double rsq,rij,wij;
   double Qij,Aij,alphaij,VR,pre,dVRdi,VA,term,bij,dVAdi,dVA;
   double dwij,del[3];
@@ -489,12 +489,27 @@ void PairAIREBO::FREBO(int eflag, int vflag)
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
+    itag = tag[i];
     itype = map[type[i]];
+    xtmp = x[i][0];
+    ytmp = x[i][1];
+    ztmp = x[i][2];
     REBO_neighs = REBO_firstneigh[i];
 
     for (k = 0; k < REBO_numneigh[i]; k++) {
       j = REBO_neighs[k];
-      if (tag[i] > tag[j]) continue;
+      jtag = tag[j];
+
+      if (itag > jtag) {
+	if ((itag+jtag) % 2 == 0) continue;
+      } else if (itag < jtag) {
+	if ((itag+jtag) % 2 == 1) continue;
+      } else {
+	if (x[j][2] < ztmp) continue;
+	if (x[j][2] == ztmp && x[j][1] < ytmp) continue;
+	if (x[j][2] == ztmp && x[j][1] == ytmp && x[j][0] < xtmp) continue;
+      }
+
       jtype = map[type[j]];
 
       delx = x[i][0] - x[j][0];
@@ -549,10 +564,10 @@ void PairAIREBO::FREBO(int eflag, int vflag)
 
 void PairAIREBO::FLJ(int eflag, int vflag)
 {
-  int i,j,k,m,ii,jj,kk,mm,inum,jnum,itype,jtype,ktype,mtype;
+  int i,j,k,m,ii,jj,kk,mm,inum,jnum,itype,jtype,ktype,mtype,itag,jtag;
   int atomi,atomj,atomk,atomm;
   int testpath,npath,done;
-  double evdwl,fpair;
+  double evdwl,fpair,xtmp,ytmp,ztmp;
   double rsq,best,wik,wkm,cij,rij,dwij,dwik,dwkj,dwkm,dwmj;
   double delij[3],rijsq,delik[3],rik,deljk[3];
   double rkj,wkj,dC,VLJ,dVLJ,VA,Str,dStr,Stb;
@@ -586,20 +601,35 @@ void PairAIREBO::FLJ(int eflag, int vflag)
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
+    itag = tag[i];
     itype = map[type[i]];
     atomi = i;
+    xtmp = x[i][0];
+    ytmp = x[i][1];
+    ztmp = x[i][2];
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      atomj = j;
-      if (tag[i] > tag[j]) continue;
-      jtype = map[type[j]];
+      jtag = tag[j];
 
-      delij[0] = x[i][0] - x[j][0];
-      delij[1] = x[i][1] - x[j][1];
-      delij[2] = x[i][2] - x[j][2];
+      if (itag > jtag) {
+	if ((itag+jtag) % 2 == 0) continue;
+      } else if (itag < jtag) {
+	if ((itag+jtag) % 2 == 1) continue;
+      } else {
+	if (x[j][2] < ztmp) continue;
+	if (x[j][2] == ztmp && x[j][1] < ytmp) continue;
+	if (x[j][2] == ztmp && x[j][1] == ytmp && x[j][0] < xtmp) continue;
+      }
+
+      jtype = map[type[j]];
+      atomj = j;
+
+      delij[0] = xtmp - x[j][0];
+      delij[1] = ytmp - x[j][1];
+      delij[2] = ztmp - x[j][2];
       rijsq = delij[0]*delij[0] + delij[1]*delij[1] + delij[2]*delij[2];
 
       // if outside of LJ cutoff, skip
@@ -862,8 +892,8 @@ void PairAIREBO::FLJ(int eflag, int vflag)
 
 void PairAIREBO::TORSION(int eflag, int vflag)
 {
-  int i,j,k,l,ii,inum;
-  double evdwl,fpair;
+  int i,j,k,l,ii,inum,itag,jtag;
+  double evdwl,fpair,xtmp,ytmp,ztmp;
   double cos321;
   double w21,dw21,cos234,w34,dw34;
   double cross321[3],cross321mag,cross234[3],cross234mag;
@@ -894,15 +924,31 @@ void PairAIREBO::TORSION(int eflag, int vflag)
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
+    itag = tag[i];
     itype = map[type[i]];
     if (itype != 0) continue;
+    xtmp = x[i][0];
+    ytmp = x[i][1];
+    ztmp = x[i][2];
     REBO_neighs_i = REBO_firstneigh[i];
 
     for (jj = 0; jj < REBO_numneigh[i]; jj++) {
       j = REBO_neighs_i[jj];
-      if (tag[i] > tag[j]) continue;
+      jtag = tag[j];
+
+      if (itag > jtag) {
+	if ((itag+jtag) % 2 == 0) continue;
+      } else if (itag < jtag) {
+	if ((itag+jtag) % 2 == 1) continue;
+      } else {
+	if (x[j][2] < ztmp) continue;
+	if (x[j][2] == ztmp && x[j][1] < ytmp) continue;
+	if (x[j][2] == ztmp && x[j][1] == ytmp && x[j][0] < xtmp) continue;
+      }
+
       jtype = map[type[j]];
       if (jtype != 0) continue;
+
       del32[0] = x[j][0]-x[i][0];
       del32[1] = x[j][1]-x[i][1];
       del32[2] = x[j][2]-x[i][2];

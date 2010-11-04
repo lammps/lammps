@@ -403,3 +403,14 @@ double PairBorn::single(int i, int j, int itype, int jtype,
     d[itype][jtype]*r2inv*r6inv - offset[itype][jtype];
   return factor_lj*phiborn;
 }
+
+/* ---------------------------------------------------------------------- */
+
+void *PairBorn::extract(char *str, int &dim)
+{
+  dim = 2;
+  if (strcmp(str,"a") == 0) return (void *) a;
+  if (strcmp(str,"c") == 0) return (void *) c;
+  if (strcmp(str,"d") == 0) return (void *) d;
+  return NULL;
+}

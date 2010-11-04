@@ -47,10 +47,11 @@ will warn you if this is not the case.  Only atoms in the group
 contribute to the center-of-mass calculation for the molecule, which
 is used to caculate its initial and current position.
 </P>
-<P>Let Nmolecules be the number of molecules for which the MSD is
-calculated.  If not all molecules have atoms in the group, then the
-molecule with the lowest ID is the first of the Nmolecules.  The next
-lowest ID is the second, etc, up to Nmolecules.
+<P>The ordering of per-molecule quantities produced by this compute is
+consistent with the ordering produced by other compute commands that
+generate per-molecule datums.  Conceptually, them molecule IDs will be
+in ascending order for any molecule with one or more of its atoms in
+the specified group.
 </P>
 <P>IMPORTANT NOTE: The initial coordinates of each molecule are stored in
 "unwrapped" form, by using the image flags associated with each atom.

@@ -13,9 +13,10 @@ special_bonds command :h3
 special_bonds keyword values ... :pre
 
 one or more keyword/value pairs may be appended :ulb,l
-keyword = {amber} or {charmm} or {fene} or {lj/coul} or {lj} or {coul} or {angle} or {dihedral} or {extra} :l
+keyword = {amber} or {charmm} or {dreiding} or {fene} or {lj/coul} or {lj} or {coul} or {angle} or {dihedral} or {extra} :l
   {amber} values = none
   {charmm} values = none
+  {dreiding} values = none
   {fene} values = none
   {lj/coul} values = w1,w2,w3
     w1,w2,w3 = weights (0.0 to 1.0) on pairwise Lennard-Jones and Coulombic interactions
@@ -74,7 +75,8 @@ details.
 The {amber} keyword sets the 3 coefficients to 0.0, 0.0, 0.5 for LJ
 interactions and to 0.0, 0.0, 0.8333 for Coulombic interactions, which
 is the default for a commonly used version of the AMBER force field,
-where the last value is really 5/6.
+where the last value is really 5/6.  See "(Cornell)"_#Cornell for a
+description of the AMBER force field.
 
 The {charmm} keyword sets the 3 coefficients to 0.0, 0.0, 0.0 for both
 LJ and Coulombic interactions, which is the default for a commonly
@@ -83,11 +85,17 @@ used version of the CHARMM force field.  Note that in pair styles
 are defined explicitly, and these pairwise contributions are computed
 as part of the charmm dihedral style - see the
 "pair_coeff"_pair_coeff.html and "dihedral_style"_dihedral_style.html
-commands for more information.
+commands for more information.  See "(MacKerell)"_#MacKerell for a
+description of the CHARMM force field.
+
+The {dreiding} keyword sets the 3 coefficients to 0.0, 0.0, 1.0 for both
+LJ and Coulombic interactions, which is the default for the Dreiding
+force field, as discussed in "(Mayo)"_#Mayo.
 
 The {fene} keyword sets the 3 coefficients to 0.0, 1.0, 1.0 for both
 LJ and Coulombic interactions, which is consistent with a
-coarse-grained polymer model with "FENE bonds"_bond_fene.html.
+coarse-grained polymer model with "FENE bonds"_bond_fene.html.  See
+"(Kremer)"_#Kremer for a description of FENE bonds.
 
 The {lj/coul}, {lj}, and {coul} keywords allow the 3 coefficients to
 be set explicitly.  The {lj/coul} keyword sets both the LJ and
@@ -143,3 +151,21 @@ you do not do this, you may get an error when bonds are added.
 
 All 3 Lennard-Jones and 3 Coulobmic weighting coefficients = 0.0,
 angle = no, dihedral = no, and extra = 0.
+
+:line
+
+:link(Cornell)
+[(Cornell)] Cornell, Cieplak, Bayly, Gould, Merz, Ferguson,
+Spellmeyer, Fox, Caldwell, Kollman, JACS 117, 5179-5197 (1995).
+
+:link(Kremer)
+[(Kremer)] Kremer, Grest, J Chem Phys, 92, 5057 (1990).
+
+:link(MacKerell)
+[(MacKerell)] MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field,
+Fischer, Gao, Guo, Ha, et al, J Phys Chem, 102, 3586 (1998).
+
+:link(Mayo)
+[(Mayo)] Mayo, Olfason, Goddard III, J Phys Chem, 94, 8897-8909
+(1990).
+

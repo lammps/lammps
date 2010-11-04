@@ -107,7 +107,9 @@ General features :h4
   runs from an input script
   syntax for defining and using variables and formulas
   syntax for looping over runs and breaking out of loops
-  run one or multiple simulations simultaneously (in parallel) from one script :ul
+  run one or multiple simulations simultaneously (in parallel) from one script
+  build as library, invoke LAMMPS thru library interface or provided Python wrapper
+  couple with other codes: LAMMPS calls other code, other code calls LAMMPS, umbrella code calls both :ul
 
 Particle and model types :h4
 ("atom style"_atom_style.html command)
@@ -131,7 +133,7 @@ Force fields :h4
 commands)
 
   pairwise potentials: Lennard-Jones, Buckingham, Morse, Born-Mayer-Huggins, \
-    Yukawa, soft, class 2 (COMPASS), tabulated
+    Yukawa, soft, class 2 (COMPASS), hydrogen bond, tabulated
   charged pairwise potentials: Coulombic, point-dipole
   manybody potentials: EAM, Finnis/Sinclair EAM, modified EAM (MEAM), \
     embedded ion method (EIM), Stillinger-Weber, Tersoff, AI-REBO, ReaxFF, COMB
@@ -140,17 +142,17 @@ commands)
   mesoscopic potentials: granular, Peridynamics
   bond potentials: harmonic, FENE, Morse, nonlinear, class 2, \
     quartic (breakable)
-  angle potentials: harmonic, CHARMM, cosine, cosine/squared, \
+  angle potentials: harmonic, CHARMM, cosine, cosine/squared, cosine/periodic, \
     class 2 (COMPASS)
   dihedral potentials: harmonic, CHARMM, multi-harmonic, helix, \
     class 2 (COMPASS), OPLS
-  improper potentials: harmonic, cvff, class 2 (COMPASS)
+  improper potentials: harmonic, cvff, umbrella, class 2 (COMPASS)
   polymer potentials: all-atom, united-atom, bead-spring, breakable
   water potentials: TIP3P, TIP4P, SPC
   implicit solvent potentials: hydrodynamic lubrication, Debye
   long-range Coulombics and dispersion: Ewald, \
     PPPM (similar to particle-mesh Ewald), Ewald/N for long-range Lennard-Jones
-  force-field compatibility with common CHARMM, AMBER, OPLS, GROMACS options
+  force-field compatibility with common CHARMM, AMBER, DREIDING, OPLS, GROMACS, COMPASS options
   handful of GPU-enabled pair styles :ul
   hybrid potentials: multiple pair, bond, angle, dihedral, improper \
     potentials can be used in one simulation
@@ -403,7 +405,7 @@ Site"_lws, or have a suggestion for something to clarify or include,
 send an email to the
 "developers"_http://lammps.sandia.gov/authors.html. :l
 
-If you find a bug, "this section"_Section_errors.html#9_2 describes
+If you find a bug, "this section"_Section_errors.html#10_2 describes
 how to report it. :l
 
 If you publish a paper using LAMMPS results, send the citation (and

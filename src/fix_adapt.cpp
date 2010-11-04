@@ -20,22 +20,28 @@
 #include "modify.h"
 #include "force.h"
 #include "pair.h"
+#include "pair_hybrid.h"
+#include "kspace.h"
 #include "input.h"
 #include "variable.h"
+#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
 
-enum{PAIR,ATOM};
+enum{PAIR,KSPACE,ATOM};
 enum{DIAMETER};
+
+#define MIN(A,B) ((A) < (B)) ? (A) : (B)
+#define MAX(A,B) ((A) > (B)) ? (A) : (B)
 
 /* ---------------------------------------------------------------------- */
 
 FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 {
-  if (narg < 4) error->all("Illegal fix adapt command");
+  if (narg < 5) error->all("Illegal fix adapt command");
   nevery = atoi(arg[3]);
-  if (nevery <= 0) error->all("Illegal fix adapt command");
+  if (nevery < 0) error->all("Illegal fix adapt command");
 
   // count # of adaptations
 
@@ -47,92 +53,118 @@ FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       if (iarg+6 > narg) error->all("Illegal fix adapt command");
       nadapt++;
       iarg += 6;
+    } else if (strcmp(arg[iarg],"kspace") == 0) {
+      if (iarg+6 > narg) error->all("Illegal fix adapt command");
+      nadapt++;
+      iarg += 2;
     } else if (strcmp(arg[iarg],"atom") == 0) {
       if (iarg+3 > narg) error->all("Illegal fix adapt command");
       nadapt++;
       iarg += 3;
-    } else error->all("Illegal fix adapt command");
+    } else break;
   }
 
-  // allocate per-adapt vectors
-
-  which = new int[nadapt];
-  pair = new char*[nadapt];
-  param = new char*[nadapt];
-  ilo = new int[nadapt];
-  ihi = new int[nadapt];
-  jlo = new int[nadapt];
-  jhi = new int[nadapt];
-  var = new char*[nadapt];
-  ivar = new int[nadapt];
-  pairptr = new Pair*[nadapt];
-  pairindex = new int[nadapt];
-  awhich = new int[nadapt];
+  if (nadapt == 0) error->all("Illegal fix adapt command");
+  adapt = new Adapt[nadapt];
 
   // parse keywords
 
-  diamflag = 0;
   nadapt = 0;
+  diamflag = 0;
 
   iarg = 4;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"pair") == 0) {
       if (iarg+6 > narg) error->all("Illegal fix adapt command");
-      which[nadapt] = PAIR;
+      adapt[nadapt].which = PAIR;
       int n = strlen(arg[iarg+1]) + 1;
-      pair[nadapt] = new char[n];
-      strcpy(pair[nadapt],arg[iarg+1]);
+      adapt[nadapt].pstyle = new char[n];
+      strcpy(adapt[nadapt].pstyle,arg[iarg+1]);
       n = strlen(arg[iarg+2]) + 1;
-      param[nadapt] = new char[n];
-      strcpy(param[nadapt],arg[iarg+2]);
-      force->bounds(arg[iarg+3],atom->ntypes,ilo[nadapt],ihi[nadapt]);
-      force->bounds(arg[iarg+4],atom->ntypes,jlo[nadapt],jhi[nadapt]);
+      adapt[nadapt].pparam = new char[n];
+      strcpy(adapt[nadapt].pparam,arg[iarg+2]);
+      force->bounds(arg[iarg+3],atom->ntypes,
+		    adapt[nadapt].ilo,adapt[nadapt].ihi);
+      force->bounds(arg[iarg+4],atom->ntypes,
+		    adapt[nadapt].jlo,adapt[nadapt].jhi);
       if (strstr(arg[iarg+5],"v_") == arg[iarg+5]) {
 	n = strlen(&arg[iarg+5][2]) + 1;
-	var[nadapt] = new char[n];
-	strcpy(var[nadapt],&arg[iarg+5][2]);
+	adapt[nadapt].var = new char[n];
+	strcpy(adapt[nadapt].var,&arg[iarg+5][2]);
       } else error->all("Illegal fix adapt command");
       nadapt++;
       iarg += 6;
+    } else if (strcmp(arg[iarg],"kspace") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix adapt command");
+      adapt[nadapt].which = KSPACE;
+      if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
+	int n = strlen(&arg[iarg+1][2]) + 1;
+	adapt[nadapt].var = new char[n];
+	strcpy(adapt[nadapt].var,&arg[iarg+1][2]);
+      } else error->all("Illegal fix adapt command");
+      nadapt++;
+      iarg += 2;
     } else if (strcmp(arg[iarg],"atom") == 0) {
       if (iarg+3 > narg) error->all("Illegal fix adapt command");
-      which[nadapt] = ATOM;
-      int n = strlen(arg[iarg+1]) + 1;
-      param[nadapt] = new char[n];
-      strcpy(param[nadapt],arg[iarg+1]);
-      if (strcmp(param[nadapt],"diameter") == 0) diamflag = 1;
+      adapt[nadapt].which = ATOM;
+      if (strcmp(arg[iarg+1],"diameter") == 0) {
+	adapt[nadapt].aparam = DIAMETER;
+	diamflag = 1;
+      } else error->all("Illegal fix adapt command");
       if (strstr(arg[iarg+2],"v_") == arg[iarg+2]) {
-	n = strlen(&arg[iarg+2][2]) + 1;
-	var[nadapt] = new char[n];
-	strcpy(var[nadapt],&arg[iarg+2][2]);
+	int n = strlen(&arg[iarg+2][2]) + 1;
+	adapt[nadapt].var = new char[n];
+	strcpy(adapt[nadapt].var,&arg[iarg+2][2]);
       } else error->all("Illegal fix adapt command");
       nadapt++;
       iarg += 3;
+    } else break;
+  }
+
+  // optional keywords
+
+  resetflag = 0;
+  scaleflag = 0;
+
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"reset") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix adapt command");
+      if (strcmp(arg[iarg+1],"no") == 0) resetflag = 0;
+      else if (strcmp(arg[iarg+1],"yes") == 0) resetflag = 1;
+      else error->all("Illegal fix adapt command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"scale") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix adapt command");
+      if (strcmp(arg[iarg+1],"no") == 0) scaleflag = 0;
+      else if (strcmp(arg[iarg+1],"yes") == 0) scaleflag = 1;
+      else error->all("Illegal fix adapt command");
+      iarg += 2;
     } else error->all("Illegal fix adapt command");
   }
+
+  // allocate pair style arrays
+
+  int n = atom->ntypes;
+  for (int m = 0; m < nadapt; m++)
+    if (adapt[m].which == PAIR) {
+      adapt[m].array_orig = 
+	memory->create_2d_double_array(n+1,n+1,"adapt:array_orig");
+    }
 }
 
 /* ---------------------------------------------------------------------- */
 
 FixAdapt::~FixAdapt()
 {
-  for (int i = 0; i < nadapt; i++) {
-    if (which[i] == PAIR) delete [] pair[i];
-    delete [] param[i];
-    delete [] var[i];
+  for (int m = 0; m < nadapt; m++) {
+    delete [] adapt[m].var;
+    if (adapt[m].which == PAIR) {
+      delete [] adapt[m].pstyle;
+      delete [] adapt[m].pparam;
+      memory->destroy_2d_double_array(adapt[m].array_orig);
+    }
   }
-  delete [] which;
-  delete [] pair;
-  delete [] param;
-  delete [] ilo;
-  delete [] ihi;
-  delete [] jlo;
-  delete [] jhi;
-  delete [] var;
-  delete [] ivar;
-  delete [] pairptr;
-  delete [] pairindex;
-  delete [] awhich;
+  delete [] adapt;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -141,6 +173,7 @@ int FixAdapt::setmask()
 {
   int mask = 0;
   mask |= PRE_FORCE;
+  mask |= POST_RUN;
   return mask;
 }
 
@@ -148,32 +181,67 @@ int FixAdapt::setmask()
 
 void FixAdapt::init()
 {
-  // error checks
+  int i,j;
+
+  // setup and error checks
+
+  anypair = 0;
 
   for (int m = 0; m < nadapt; m++) {
-    if (which[m] == PAIR) {
-      pairptr[m] = force->pair_match(pair[m],1);
-      if (pairptr[m] == NULL) 
-	error->all("Fix adapt pair style does not exist");
-      pairindex[m] = 
-	pairptr[m]->pre_adapt(param[m],ilo[m],ihi[m],jlo[m],jhi[m]);
-      if (pairindex[m] == -1)
-	error->all("Fix adapt pair parameter is not recognized");
-      if (pairindex[m] == -2)
-	error->all("Fix adapt pair types are not valid");
+    Adapt *ad = &adapt[m];
 
-    } else if (which[m] == ATOM) {
-      if (strcmp(param[m],"diameter") == 0) {
-	awhich[m] = DIAMETER;
+    ad->ivar = input->variable->find(ad->var);
+    if (ad->ivar < 0)
+      error->all("Variable name for fix adapt does not exist");
+    if (!input->variable->equalstyle(ad->ivar))
+      error->all("Variable for fix adapt is invalid style");
+
+    if (ad->which == PAIR) {
+      anypair = 1;
+
+      Pair *pair = force->pair_match(ad->pstyle,1);
+      if (pair == NULL) error->all("Fix adapt pair style does not exist");
+      void *ptr = pair->extract(ad->pparam,ad->pdim);
+      if (ptr == NULL) error->all("Fix adapt pair style param not supported");
+
+      ad->pdim = 2;
+      if (ad->pdim == 0) ad->scalar = (double *) ptr;
+      if (ad->pdim == 2) ad->array = (double **) ptr;
+      
+      // if pair hybrid, test that ilo,ihi,jlo,jhi are valid for sub-style
+
+      if (ad->pdim == 2 && (strcmp(force->pair_style,"hybrid") == 0 ||
+			    strcmp(force->pair_style,"hybrid/overlay") == 0)) {
+	PairHybrid *pair = (PairHybrid *) force->pair;
+	for (i = ad->ilo; i <= ad->ihi; i++)
+	  for (j = MAX(ad->jlo,i); j <= ad->jhi; j++)
+	    if (!pair->check_ijtype(i,j,ad->pstyle))
+	      error->all("Fix adapt type pair range is not valid for "
+			 "pair hybrid sub-style");
+      }
+
+    } else if (ad->which == KSPACE) {
+      if (force->kspace == NULL) 
+	error->all("Fix adapt is incompatible with KSpace style");
+      kspace_scale = (double *) force->kspace->extract("scale");
+
+    } else if (ad->which == ATOM) {
+      if (ad->aparam == DIAMETER) {
 	if (!atom->radius_flag)
 	  error->all("Fix adapt requires atom attribute diameter");
-      } else error->all("Fix adapt atom attribute is not recognized");
+      }
     }
+  }
 
-    ivar[m] = input->variable->find(var[m]);
-    if (ivar[m] < 0) error->all("Variable name for fix adapt does not exist");
-    if (!input->variable->equalstyle(ivar[m]))
-      error->all("Variable for fix adapt is invalid style");
+  // make copy of original pair array values
+
+  for (int m = 0; m < nadapt; m++) {
+    Adapt *ad = &adapt[m];
+    if (ad->which == PAIR && ad->pdim == 2) {
+      for (i = ad->ilo; i <= ad->ihi; i++)
+	for (j = MAX(ad->jlo,i); j <= ad->jhi; j++)
+	  ad->array_orig[i][j] = ad->array[i][j];
+    }
   }
 }
 
@@ -181,31 +249,69 @@ void FixAdapt::init()
 
 void FixAdapt::setup_pre_force(int vflag)
 {
-  pre_force(vflag);
+  change_settings();
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixAdapt::pre_force(int vflag)
 {
+  if (nevery == 0) return;
   if (update->ntimestep % nevery) return;
+  change_settings();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixAdapt::post_run()
+{
+  if (resetflag) restore_settings();
+}
+
+/* ----------------------------------------------------------------------
+   change pair,kspace,atom parameters based on variable evaluation
+------------------------------------------------------------------------- */
+
+void FixAdapt::change_settings()
+{
+  int i,j;
 
   // variable evaluation may invoke computes so wrap with clear/add
 
   modify->clearstep_compute();
 
   for (int m = 0; m < nadapt; m++) {
-    double value = input->variable->compute_equal(ivar[m]);
+    Adapt *ad = &adapt[m];
+    double value = input->variable->compute_equal(ad->ivar);
+    
+    // set global scalar or type pair array values
 
-    if (which[m] == PAIR)
-      pairptr[m]->adapt(pairindex[m],ilo[m],ihi[m],jlo[m],jhi[m],value);
+    if (ad->which == PAIR) {
+      if (ad->pdim == 0) {
+	if (scaleflag) *ad->scalar = value * ad->scalar_orig;
+	else *ad->scalar = value;
+      } else if (ad->pdim == 2) {
+	if (scaleflag)
+	  for (i = ad->ilo; i <= ad->ihi; i++)
+	    for (j = MAX(ad->jlo,i); j <= ad->jhi; j++)
+	      ad->array[i][j] = value*ad->array_orig[i][j];
+	else
+	  for (i = ad->ilo; i <= ad->ihi; i++)
+	    for (j = MAX(ad->jlo,i); j <= ad->jhi; j++)
+	      ad->array[i][j] = value;
+      }
 
-    else if (which[m] == ATOM) {
+    // set kspace scale factor
+
+    } else if (ad->which == KSPACE) {
+      *kspace_scale = value;
+
+    } else if (ad->which == ATOM) {
 
       // set radius from diameter
       // also set rmass if both rmass and density are defined
 
-      if (awhich[m] == DIAMETER) {
+      if (ad->aparam == DIAMETER) {
 	int mflag = 0;
 	if (atom->rmass_flag && atom->density_flag) mflag = 1;
 	double PI = 4.0*atan(1.0);
@@ -216,7 +322,7 @@ void FixAdapt::pre_force(int vflag)
 	int *mask = atom->mask;
 	int nlocal = atom->nlocal;
 
-	for (int i = 0; i < nlocal; i++)
+	for (i = 0; i < nlocal; i++)
 	  if (mask[i] & groupbit) {
 	    radius[i] = 0.5*value;
 	    if (mflag) rmass[i] = 4.0*PI/3.0 * 
@@ -227,4 +333,37 @@ void FixAdapt::pre_force(int vflag)
   }
 
   modify->addstep_compute(update->ntimestep + nevery);
+
+  // re-initialize pair styles if any PAIR settings were changed
+  // this resets other coeffs that may depend on changed values,
+  // and also offset and tail corrections
+
+  if (anypair) force->pair->reinit();
+}
+
+/* ----------------------------------------------------------------------
+   restore pair,kspace.atom parameters to original values
+------------------------------------------------------------------------- */
+
+void FixAdapt::restore_settings()
+{
+  for (int m = 0; m < nadapt; m++) {
+    Adapt *ad = &adapt[m];
+    if (ad->which == PAIR) {
+      if (ad->pdim == 0) *ad->scalar = ad->scalar_orig;
+      else if (ad->pdim == 2) {
+	for (int i = ad->ilo; i <= ad->ihi; i++)
+	  for (int j = MAX(ad->jlo,i); j <= ad->jhi; j++)
+	    ad->array[i][j] = ad->array_orig[i][j];
+      }
+
+    } else if (ad->which == KSPACE) {
+      *kspace_scale = 1.0;
+
+    } else if (ad->which == ATOM) {
+
+    }
+  }
+
+  if (anypair) force->pair->reinit();
 }

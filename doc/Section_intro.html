@@ -110,7 +110,9 @@ LAMMPS.
 <LI>  runs from an input script
 <LI>  syntax for defining and using variables and formulas
 <LI>  syntax for looping over runs and breaking out of loops
-<LI>  run one or multiple simulations simultaneously (in parallel) from one script 
+<LI>  run one or multiple simulations simultaneously (in parallel) from one script
+<LI>  build as library, invoke LAMMPS thru library interface or provided Python wrapper
+<LI>  couple with other codes: LAMMPS calls other code, other code calls LAMMPS, umbrella code calls both 
 </UL>
 <H4>Particle and model types 
 </H4>
@@ -135,21 +137,21 @@ LAMMPS.
 <A HREF = "improper_style.html">improper style</A>, <A HREF = "kspace_style.html">kspace style</A>
 commands)
 </P>
-<UL><LI>  pairwise potentials: Lennard-Jones, Buckingham, Morse, Born-Mayer-Huggins,     Yukawa, soft, class 2 (COMPASS), tabulated
+<UL><LI>  pairwise potentials: Lennard-Jones, Buckingham, Morse, Born-Mayer-Huggins,     Yukawa, soft, class 2 (COMPASS), hydrogen bond, tabulated
 <LI>  charged pairwise potentials: Coulombic, point-dipole
 <LI>  manybody potentials: EAM, Finnis/Sinclair EAM, modified EAM (MEAM),     embedded ion method (EIM), Stillinger-Weber, Tersoff, AI-REBO, ReaxFF, COMB
 <LI>  electron force field (eFF)
 <LI>  coarse-grained potentials: DPD, GayBerne, REsquared, colloidal, DLVO
 <LI>  mesoscopic potentials: granular, Peridynamics
 <LI>  bond potentials: harmonic, FENE, Morse, nonlinear, class 2,     quartic (breakable)
-<LI>  angle potentials: harmonic, CHARMM, cosine, cosine/squared,     class 2 (COMPASS)
+<LI>  angle potentials: harmonic, CHARMM, cosine, cosine/squared, cosine/periodic,     class 2 (COMPASS)
 <LI>  dihedral potentials: harmonic, CHARMM, multi-harmonic, helix,     class 2 (COMPASS), OPLS
-<LI>  improper potentials: harmonic, cvff, class 2 (COMPASS)
+<LI>  improper potentials: harmonic, cvff, umbrella, class 2 (COMPASS)
 <LI>  polymer potentials: all-atom, united-atom, bead-spring, breakable
 <LI>  water potentials: TIP3P, TIP4P, SPC
 <LI>  implicit solvent potentials: hydrodynamic lubrication, Debye
 <LI>  long-range Coulombics and dispersion: Ewald,     PPPM (similar to particle-mesh Ewald), Ewald/N for long-range Lennard-Jones
-<LI>  force-field compatibility with common CHARMM, AMBER, OPLS, GROMACS options
+<LI>  force-field compatibility with common CHARMM, AMBER, DREIDING, OPLS, GROMACS, COMPASS options
 <LI>  handful of GPU-enabled pair styles 
 </UL>
 <P>  hybrid potentials: multiple pair, bond, angle, dihedral, improper     potentials can be used in one simulation
@@ -413,7 +415,7 @@ Site</A>, or have a suggestion for something to clarify or include,
 send an email to the
 <A HREF = "http://lammps.sandia.gov/authors.html">developers</A>. 
 
-<LI>If you find a bug, <A HREF = "Section_errors.html#9_2">this section</A> describes
+<LI>If you find a bug, <A HREF = "Section_errors.html#10_2">this section</A> describes
 how to report it. 
 
 <LI>If you publish a paper using LAMMPS results, send the citation (and

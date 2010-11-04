@@ -46,7 +46,7 @@ class FixSRD : public Fix {
   int cubicflag,shiftuser,shiftseed,shiftflag,streamflag;
   double gridsrd,gridsearch,lamda,radfactor,cubictol;
   int triclinic,change_size,change_shape;
-
+  
   double dt_big,dt_srd;
   double mass_big,mass_srd;
   double temperature_srd;
@@ -54,7 +54,14 @@ class FixSRD : public Fix {
   double srd_per_cell;
   double dmax,vmax,vmaxsq;
   double maxbigdiam,minbigdiam;
-  double dist_bigghost;
+  double dist_ghost,dist_srd,dist_srd_reneigh;   // explained in code
+
+  int wallexist,nwall,wallvarflag;
+  class FixWallSRD *wallfix;
+  int *wallwhich;
+  double *xwall,*xwallhold,*vwall;
+  double **fwall;
+  double walltrigger;
 
   // for orthogonal box, these are in box units
   // for triclinic box, these are in lamda units
@@ -79,11 +86,11 @@ class FixSRD : public Fix {
   double **flocal;       // local ptrs to atom force and torque
   double **tlocal;
 
-  // info to store for each owned and ghost big particle
+  // info to store for each owned and ghost big particle and wall
 
   struct Big {
-    int index;                 // local index or particle in atom arrays
-    int type;                  // SPHERE or ELLIPSOID
+    int index;                 // local index of particle/wall
+    int type;                  // SPHERE or ELLIPSOID or WALL
     int typesphere;            // SPHERE_SHAPE or SPHERE_RADIUS
     int typeangular;           // ANGULAR_OMEGA or ANGULAR_ANGMOM
     double radius,radsq;       // radius of sphere
@@ -95,15 +102,15 @@ class FixSRD : public Fix {
     double ex[3],ey[3],ez[3];  // current orientation vecs for ellipsoid
   };
 
-  Big *biglist;           // list of info for each owned & ghost big particle
+  Big *biglist;           // list of info for each owned & ghost big and wall
   int any_ellipsoids;     // 1 if any big particles are ellipsoids
   int torqueflag;         // 1 if any big particle is torqued
 
   // current size of particle-based arrays
 
-  int nbig;               // # of big particles, owned + ghost
-  int nmax;
-  int maxbig;             // max number of big particles, owned + ghost
+  int nbig;               // # of owned/ghost big particles and walls
+  int maxbig;             // max number of owned/ghost big particles and walls
+  int nmax;               // max number of SRD particles
 
   // bins for SRD velocity remap, shifting and communication
   // binsize and inv are in lamda units for triclinic
@@ -170,6 +177,8 @@ class FixSRD : public Fix {
 
   int inside_sphere(double *, double *, Big *);
   int inside_ellipsoid(double *, double *, Big *);
+  int inside_wall(double *, int);
+
   double collision_sphere_exact(double *, double *, double *, double *,
 				Big *, double *, double *, double *);
   void collision_sphere_inexact(double *, double *,
@@ -178,22 +187,34 @@ class FixSRD : public Fix {
 				   Big *, double *, double *, double *);
   void collision_ellipsoid_inexact(double *, double *,
 				   Big *, double *, double *, double *);
+  double collision_wall_exact(double *, int, double *,
+			      double *, double *, double *);
+  void collision_wall_inexact(double *, int, double *, double *, double *);
+
   void slip_sphere(double *, double *, double *, double *);
   void slip_ellipsoid(double *, double *, double *, Big *,
 		      double *, double *,  double *);
+  void slip_wall(double *, int, double *, double *);
+
   void noslip(double *, double *, double *, Big *,
 	      double *, double *,  double *);
+  void noslip_wall(double *, int, double *, double *, double *);
+
   void force_torque(double *, double *, double *,
 		    double *, double *,  double *);
+  void force_wall(double *, double *, int);
+
   int update_srd(int, double, double *, double *, double *, double *);
 
   void parameterize();
+  void setup_bounds();
   void setup_velocity_bins();
   void setup_velocity_shift(int, int);
   void setup_search_bins();
   void setup_search_stencil();
   void big_static();
   void big_dynamic();
+
   double point_bin_distance(double *, int, int, int);
   double bin_bin_distance(int, int, int);
   void exyz_from_q(double *, double *, double *, double *);
@@ -203,7 +224,7 @@ class FixSRD : public Fix {
 
   double distance(int, int);
   void print_collision(int, int, int, double, double,
-		       double *, double *, double *);
+		       double *, double *, double *, int);
 };
 
 }

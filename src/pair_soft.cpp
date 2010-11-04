@@ -289,38 +289,6 @@ void PairSoft::read_restart_settings(FILE *fp)
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
 }
 
-/* ----------------------------------------------------------------------
-   check if name is recognized, return integer index for that name
-   if name not recognized, return -1
-   if type pair setting, return -2 if no type pairs are set
-------------------------------------------------------------------------- */
-
-int PairSoft::pre_adapt(char *name, int ilo, int ihi, int jlo, int jhi)
-{
-  int count = 0;
-  for (int i = ilo; i <= ihi; i++)
-    for (int j = MAX(jlo,i); j <= jhi; j++)
-      count++;
-  if (count == 0) return -2;
-
-  if (strcmp(name,"a") == 0) return 0;
-  return -1;
-}
-
-/* ----------------------------------------------------------------------
-   adapt parameter indexed by which
-   change all pair variables affected by the reset parameter
-   if type pair setting, set I-J and J-I coeffs
-------------------------------------------------------------------------- */
-
-void PairSoft::adapt(int which, int ilo, int ihi, int jlo, int jhi,
-		     double value)
-{
-  for (int i = ilo; i <= ihi; i++)
-    for (int j = MAX(jlo,i); j <= jhi; j++)
-      prefactor[i][j] = prefactor[j][i] = value;
-}
-
 /* ---------------------------------------------------------------------- */
 
 double PairSoft::single(int i, int j, int itype, int jtype, double rsq,
@@ -336,4 +304,13 @@ double PairSoft::single(int i, int j, int itype, int jtype, double rsq,
   
   philj = prefactor[itype][jtype] * (1.0+cos(arg));
   return factor_lj*philj;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void *PairSoft::extract(char *str, int &dim)
+{
+  dim = 2;
+  if (strcmp(str,"a") == 0) return (void *) prefactor;
+  return NULL;
 }

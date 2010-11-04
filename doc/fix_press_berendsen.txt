@@ -198,9 +198,7 @@ This fix is not invoked during "energy minimization"_minimize.html.
 
 [Restrictions:]
 
-Any dimension being adjusted by this fix must be periodic.  A
-dimension whose target pressures are specified as NULL can be
-non-periodic or periodic.
+Any dimension being adjusted by this fix must be periodic.
 
 [Related commands:]
 

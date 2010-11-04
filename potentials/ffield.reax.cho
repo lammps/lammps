@@ -5,7 +5,7 @@ Reactive MD-force field: c/h/o combustion force field November 2006
    26.5405 !p(coa2)
     1.5105 !p(trip4)
     6.6630 !p(trip3)
-    0.0000 !kc2
+   70.0000 !kc2
     1.0588 !p(ovun6)
     4.6000 !p(trip2)
    12.1176 !p(ovun7)

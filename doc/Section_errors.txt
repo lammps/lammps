@@ -1,4 +1,4 @@
-"Previous Section"_Section_modify.html - "LAMMPS WWW Site"_lws -
+"Previous Section"_Section_python.html - "LAMMPS WWW Site"_lws -
 "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next
 Section"_Section_history.html :c
 
@@ -8,18 +8,18 @@ Section"_Section_history.html :c
 
 :line
 
-9. Errors :h3
+10. Errors :h3
 
 This section describes the various kinds of errors you can encounter
 when using LAMMPS.
 
-9.1 "Common problems"_#9_1
-9.2 "Reporting bugs"_#9_2
-9.3 "Error & warning messages"_#9_3 :all(b)
+10.1 "Common problems"_#10_1
+10.2 "Reporting bugs"_#10_2
+10.3 "Error & warning messages"_#10_3 :all(b)
 
 :line
 
-9.1 Common problems :link(9_1),h4
+10.1 Common problems :link(10_1),h4
 
 If two LAMMPS runs do not produce the same answer on different
 machines or different numbers of processors, this is typically not a
@@ -78,7 +78,7 @@ decide if the WARNING is important or not.  A WARNING message that is
 generated in the middle of a run is only printed to the screen, not to
 the logfile, to avoid cluttering up thermodynamic output.  If LAMMPS
 crashes or hangs without spitting out an error message first then it
-could be a bug (see "this section"_#9_2) or one of the following
+could be a bug (see "this section"_#10_2) or one of the following
 cases:
 
 LAMMPS runs in the available memory a processor allows to be
@@ -109,7 +109,7 @@ buffering or boost the sizes of messages that can be buffered.
 
 :line
 
-9.2 Reporting bugs :link(9_2),h4
+10.2 Reporting bugs :link(10_2),h4
 
 If you are confident that you have found a bug in LAMMPS, follow these
 steps.
@@ -139,7 +139,7 @@ As a last resort, you can send an email directly to the
 
 :line
 
-9.3 Error & warning messages :h4,link(9_3)
+10.3 Error & warning messages :h4,link(10_3)
 
 These are two alphabetic lists of the "ERROR"_#error and
 "WARNING"_#warn messages LAMMPS prints out and the reason why.  If the

@@ -112,18 +112,27 @@ listed above.
   4.15 "Output from LAMMPS (thermo, dumps, computes, fixes, variables)"_4_15 :b
   4.16 "Thermostatting, barostatting, and compute temperature"_4_16 :b
   4.17 "Walls"_4_17 :b
-  4.18 "Elastic constants"_4_18 :ule,b
+  4.18 "Elastic constants"_4_18 :b
+  4.19 "Library interface to LAMMPS"_4_19 :ule,b
 "Example problems"_Section_example.html :l
 "Performance & scalability"_Section_perf.html :l
 "Additional tools"_Section_tools.html :l
 "Modifying & Extending LAMMPS"_Section_modify.html :l
+"Python interface"_Section_python.html :l
+  9.1 "Extending Python with a serial version of LAMMPS"_9_1 :ulb,b
+  9.2 "Creating a shared MPI library"_9_2 :b
+  9.3 "Extending Python with a parallel version of LAMMPS"_9_3 :b
+  9.4 "Extending Python with MPI"_9_4 :b
+  9.5 "Testing the Python-LAMMPS interface"_9_5 :b
+  9.6 "Using LAMMPS from Python"_9_6 :b
+  9.7 "Example Python scripts that use LAMMPS"_9_7 :ule,b
 "Errors"_Section_errors.html :l
-  9.1 "Common problems"_9_1 :ulb,b
-  9.2 "Reporting bugs"_9_2 :b
-  9.3 "Error & warning messages"_9_3 :ule,b
+  10.1 "Common problems"_10_1 :ulb,b
+  10.2 "Reporting bugs"_10_2 :b
+  10.3 "Error & warning messages"_10_3 :ule,b
 "Future and history"_Section_history.html :l
-  10.1 "Coming attractions"_10_1 :ulb,b
-  10.2 "Past versions"_10_2 :ule,b
+  11.1 "Coming attractions"_11_1 :ulb,b
+  11.2 "Past versions"_11_2 :ule,b
 :ole
 
 :link(1_1,Section_intro.html#1_1)
@@ -166,12 +175,21 @@ listed above.
 :link(4_16,Section_howto.html#4_16)
 :link(4_17,Section_howto.html#4_17)
 :link(4_18,Section_howto.html#4_18)
+:link(4_19,Section_howto.html#4_19)
 
-:link(9_1,Section_errors.html#9_1)
-:link(9_2,Section_errors.html#9_2)
-:link(9_3,Section_errors.html#9_3)
+:link(9_1,Section_python.html#9_1)
+:link(9_2,Section_python.html#9_2)
+:link(9_3,Section_python.html#9_3)
+:link(9_4,Section_python.html#9_4)
+:link(9_5,Section_python.html#9_5)
+:link(9_6,Section_python.html#9_6)
+:link(9_7,Section_python.html#9_7)
 
-:link(10_1,Section_history.html#10_1)
-:link(10_2,Section_history.html#10_2)
+:link(10_1,Section_errors.html#10_1)
+:link(10_2,Section_errors.html#10_2)
+:link(10_3,Section_errors.html#10_3)
+
+:link(11_1,Section_history.html#11_1)
+:link(11_2,Section_history.html#11_2)
 
 </BODY>

@@ -37,12 +37,18 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairGauss::PairGauss(LAMMPS *lmp) :Pair(lmp) {}
+PairGauss::PairGauss(LAMMPS *lmp) :Pair(lmp)
+{
+  nextra = 1;
+  pvector = new double[1];
+}
 
 /* ---------------------------------------------------------------------- */
 
 PairGauss::~PairGauss()
 {
+  delete [] pvector;
+
   if (allocated) {
     memory->destroy_2d_int_array(setflag);
     memory->destroy_2d_double_array(cutsq);
@@ -66,7 +72,8 @@ void PairGauss::compute(int eflag, int vflag)
   evdwl = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
-  
+  int occ = 0;
+
   double **x = atom->x;
   double **f = atom->f;
   int *type = atom->type;
@@ -98,7 +105,12 @@ void PairGauss::compute(int eflag, int vflag)
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
-  
+      
+      // define a Gaussian well to be occupied if
+      // the site it interacts with is within the force maximum    
+    
+      if (eflag_global && rsq < 0.5/b[itype][jtype]) occ++;
+
       if (rsq < cutsq[itype][jtype]) {
 	r2inv = 1.0/rsq;
 	r = sqrt(rsq);
@@ -120,11 +132,12 @@ void PairGauss::compute(int eflag, int vflag)
 		    offset[itype][jtype]);
 
 	if (evflag) ev_tally(i,j,nlocal,newton_pair,
-			     evdwl,0.0,fpair,delx,dely,delz); 
+			     evdwl,0.0,fpair,delx,dely,delz);
       }
     }    
   }
-  
+
+  if (eflag_global) pvector[0] = occ;
   if (vflag_fdotr) virial_compute();
 }
 
@@ -313,4 +326,13 @@ double PairGauss::single(int i, int j, int itype, int jtype, double rsq,
   forcelj = -2.0*a[itype][jtype]*b[itype][jtype]*rsq*exp(-b[itype][jtype]*rsq);
   fforce = forcelj*r2inv;
   return philj;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void *PairGauss::extract(char *str, int &dim)
+{
+  dim = 2;
+  if (strcmp(str,"a") == 0) return (void *) a;
+  return NULL;
 }

@@ -465,7 +465,8 @@ of each style or click on the style itself for a full description:
 "wall/lj126"_fix_wall.html,
 "wall/lj93"_fix_wall.html,
 "wall/reflect"_fix_wall_reflect.html,
-"wall/region"_fix_wall_region.html :tb(c=8,ea=c)
+"wall/region"_fix_wall_region.html,
+"wall/srd"_fix_wall_srd.html :tb(c=8,ea=c)
 
 These are fix styles contributed by users, which can be used if
 "LAMMPS is built with the appropriate package"_Section_start.html#2_3.
@@ -490,6 +491,7 @@ See the "compute"_compute.html command for one-line descriptions of
 each style or click on the style itself for a full description:
 
 "angle/local"_compute_angle_local.html,
+"atom/molecule"_compute_atom_molecule.html,
 "bond/local"_compute_bond_local.html,
 "centro/atom"_compute_centro_atom.html,
 "cna/atom"_compute_cna_atom.html,
@@ -511,6 +513,7 @@ each style or click on the style itself for a full description:
 "ke/atom"_compute_ke_atom.html,
 "msd"_compute_msd.html,
 "msd/molecule"_compute_msd_molecule.html,
+"pair"_compute_pair.html,
 "pair/local"_compute_pair_local.html,
 "pe"_compute_pe.html,
 "pe/atom"_compute_pe_atom.html,
@@ -530,7 +533,8 @@ each style or click on the style itself for a full description:
 "temp/profile"_compute_temp_profile.html,
 "temp/ramp"_compute_temp_ramp.html,
 "temp/region"_compute_temp_region.html,
-"temp/sphere"_compute_temp_sphere.html :tb(c=6,ea=c)
+"temp/sphere"_compute_temp_sphere.html,
+"ti"_compute_ti.html :tb(c=6,ea=c)
 
 These are compute styles contributed by users, which can be used if
 "LAMMPS is built with the appropriate package"_Section_start.html#2_3.
@@ -580,6 +584,8 @@ potentials.  Click on the style itself for a full description:
 "gran/hertz/history"_pair_gran.html,
 "gran/hooke"_pair_gran.html,
 "gran/hooke/history"_pair_gran.html,
+"hbond/dreiding/lj"_pair_hbond_dreiding.html,
+"hbond/dreiding/morse"_pair_hbond_dreiding.html,
 "lj/charmm/coul/charmm"_pair_charmm.html,
 "lj/charmm/coul/charmm/implicit"_pair_charmm.html,
 "lj/charmm/coul/long"_pair_charmm.html,
@@ -660,6 +666,7 @@ angle potentials.  Click on the style itself for a full description:
 "class2"_angle_class2.html,
 "cosine"_angle_cosine.html,
 "cosine/delta"_angle_cosine_delta.html,
+"cosine/periodic"_angle_cosine_periodic.html,
 "cosine/squared"_angle_cosine_squared.html,
 "harmonic"_angle_harmonic.html,
 "table"_angle_table.html :tb(c=4,ea=c,w=100)
@@ -698,7 +705,8 @@ description:
 "hybrid"_improper_hybrid.html,
 "class2"_improper_class2.html,
 "cvff"_improper_cvff.html,
-"harmonic"_improper_harmonic.html :tb(c=4,ea=c,w=100)
+"harmonic"_improper_harmonic.html,
+"umbrella"_improper_umbrella.html :tb(c=4,ea=c,w=100)
 
 :line
 

@@ -55,6 +55,8 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   respa_enable = 0;
   one_coeff = 0;
   no_virial_compute = 0;
+  nextra = 0;
+  pvector = NULL;
 
   // pair_modify settings
 
@@ -174,6 +176,32 @@ void Pair::init()
 }
 
 /* ----------------------------------------------------------------------
+   reset all type-based params by invoking init_one() for each I,J
+   called by fix adapt after it changes one or more params
+------------------------------------------------------------------------- */
+
+void Pair::reinit()
+{
+  int i,j;
+  double tmp;
+
+  etail = ptail = 0.0;
+
+  for (i = 1; i <= atom->ntypes; i++)
+    for (j = i; j <= atom->ntypes; j++) {
+      tmp = init_one(i,j);
+      if (tail_flag) {
+	etail += etail_ij;
+	ptail += ptail_ij;
+	if (i != j) {
+	  etail += etail_ij;
+	  ptail += ptail_ij;
+	}
+      }
+    }
+}
+
+/* ----------------------------------------------------------------------
    init specific to a pair style
    specific pair style can override this function
      if needs its own error checks
@@ -209,7 +237,7 @@ double Pair::mix_energy(double eps1, double eps2, double sig1, double sig2)
     value = sqrt(eps1*eps2);
   else if (mix_flag == SIXTHPOWER)
     value = 2.0 * sqrt(eps1*eps2) *
-      pow(sig1,3.0) * pow(sig2,3.0) / (pow(sig1,6.0) * pow(sig2,6.0));
+      pow(sig1,3.0) * pow(sig2,3.0) / (pow(sig1,6.0) + pow(sig2,6.0));
   return value;
 }
 
@@ -398,6 +426,7 @@ void Pair::ev_tally(int i, int j, int nlocal, int newton_pair,
 void Pair::ev_tally_full(int i, double evdwl, double ecoul, double fpair, 
                          double delx, double dely, double delz)
 {
+  double v[6];
 
   if (eflag_either) {
     if (eflag_global) {
@@ -408,23 +437,30 @@ void Pair::ev_tally_full(int i, double evdwl, double ecoul, double fpair,
   }
 
   if (vflag_either) {
-    if (vflag_global) {
-      virial[0] += 0.5*delx*delx*fpair;
-      virial[1] += 0.5*dely*dely*fpair;
-      virial[2] += 0.5*delz*delz*fpair;
-      virial[3] += 0.5*delx*dely*fpair;
-      virial[4] += 0.5*delx*delz*fpair;
-      virial[5] += 0.5*dely*delz*fpair;
-    }
-  }
+    v[0] = 0.5*delx*delx*fpair;
+    v[1] = 0.5*dely*dely*fpair;
+    v[2] = 0.5*delz*delz*fpair;
+    v[3] = 0.5*delx*dely*fpair;
+    v[4] = 0.5*delx*delz*fpair;
+    v[5] = 0.5*dely*delz*fpair;
 
-  if (vflag_atom) {
-    vatom[i][0] += 0.5*delx*delx*fpair;
-    vatom[i][1] += 0.5*dely*dely*fpair;
-    vatom[i][2] += 0.5*delz*delz*fpair;
-    vatom[i][3] += 0.5*delx*dely*fpair;
-    vatom[i][4] += 0.5*delx*delz*fpair;
-    vatom[i][5] += 0.5*dely*delz*fpair;
+    if (vflag_global) {
+      virial[0] += v[0];
+      virial[1] += v[1];
+      virial[2] += v[2];
+      virial[3] += v[3];
+      virial[4] += v[4];
+      virial[5] += v[5];
+    }
+
+    if (vflag_atom) {
+      vatom[i][0] += v[0];
+      vatom[i][1] += v[1];
+      vatom[i][2] += v[2];
+      vatom[i][3] += v[3];
+      vatom[i][4] += v[4];
+      vatom[i][5] += v[5];
+    }
   }
 }
 
@@ -548,36 +584,36 @@ void Pair::ev_tally_xyz_full(int i, double evdwl, double ecoul,
   }
 
   if (vflag_either) {
-    v[0] = delx*fx;
-    v[1] = dely*fy;
-    v[2] = delz*fz;
-    v[3] = delx*fy;
-    v[4] = delx*fz;
-    v[5] = dely*fz;
-  }
+    v[0] = 0.5*delx*fx;
+    v[1] = 0.5*dely*fy;
+    v[2] = 0.5*delz*fz;
+    v[3] = 0.5*delx*fy;
+    v[4] = 0.5*delx*fz;
+    v[5] = 0.5*dely*fz;
 
-  if (vflag_global) {
-    virial[0] += 0.5*v[0];
-    virial[1] += 0.5*v[1];
-    virial[2] += 0.5*v[2];
-    virial[3] += 0.5*v[3];
-    virial[4] += 0.5*v[4];
-    virial[5] += 0.5*v[5];
-  }
-
-  if (vflag_atom) {
-    vatom[i][0] += 0.5*v[0];
-    vatom[i][1] += 0.5*v[1];
-    vatom[i][2] += 0.5*v[2];
-    vatom[i][3] += 0.5*v[3];
-    vatom[i][4] += 0.5*v[4];
-    vatom[i][5] += 0.5*v[5];
+    if (vflag_global) {
+      virial[0] += v[0];
+      virial[1] += v[1];
+      virial[2] += v[2];
+      virial[3] += v[3];
+      virial[4] += v[4];
+      virial[5] += v[5];
+    }
+    
+    if (vflag_atom) {
+      vatom[i][0] += v[0];
+      vatom[i][1] += v[1];
+      vatom[i][2] += v[2];
+      vatom[i][3] += v[3];
+      vatom[i][4] += v[4];
+      vatom[i][5] += v[5];
+    }
   }
 }
 
 /* ----------------------------------------------------------------------
    tally eng_vdwl and virial into global and per-atom accumulators
-   called by SW potential, newton_pair is always on
+   called by SW and hbond potentials, newton_pair is always on
    virial = riFi + rjFj + rkFk = (rj-ri) Fj + (rk-ri) Fk = drji*fj + drki*fk
  ------------------------------------------------------------------------- */
 
@@ -599,20 +635,36 @@ void Pair::ev_tally3(int i, int j, int k, double evdwl, double ecoul,
     }
   }
 
-  if (vflag_atom) {
-    v[0] = THIRD * (drji[0]*fj[0] + drki[0]*fk[0]);
-    v[1] = THIRD * (drji[1]*fj[1] + drki[1]*fk[1]);
-    v[2] = THIRD * (drji[2]*fj[2] + drki[2]*fk[2]);
-    v[3] = THIRD * (drji[0]*fj[1] + drki[0]*fk[1]);
-    v[4] = THIRD * (drji[0]*fj[2] + drki[0]*fk[2]);
-    v[5] = THIRD * (drji[1]*fj[2] + drki[1]*fk[2]);
+  if (vflag_either) {
+    v[0] = drji[0]*fj[0] + drki[0]*fk[0];
+    v[1] = drji[1]*fj[1] + drki[1]*fk[1];
+    v[2] = drji[2]*fj[2] + drki[2]*fk[2];
+    v[3] = drji[0]*fj[1] + drki[0]*fk[1];
+    v[4] = drji[0]*fj[2] + drki[0]*fk[2];
+    v[5] = drji[1]*fj[2] + drki[1]*fk[2];
+      
+    if (vflag_global) {
+      virial[0] += v[0];
+      virial[1] += v[1];
+      virial[2] += v[2];
+      virial[3] += v[3];
+      virial[4] += v[4];
+      virial[5] += v[5];
+    }
 
-    vatom[i][0] += v[0]; vatom[i][1] += v[1]; vatom[i][2] += v[2];
-    vatom[i][3] += v[3]; vatom[i][4] += v[4]; vatom[i][5] += v[5];
-    vatom[j][0] += v[0]; vatom[j][1] += v[1]; vatom[j][2] += v[2];
-    vatom[j][3] += v[3]; vatom[j][4] += v[4]; vatom[j][5] += v[5];
-    vatom[k][0] += v[0]; vatom[k][1] += v[1]; vatom[k][2] += v[2];
-    vatom[k][3] += v[3]; vatom[k][4] += v[4]; vatom[k][5] += v[5];
+    if (vflag_atom) {
+      vatom[i][0] += THIRD*v[0]; vatom[i][1] += THIRD*v[1];
+      vatom[i][2] += THIRD*v[2]; vatom[i][3] += THIRD*v[3]; 
+      vatom[i][4] += THIRD*v[4]; vatom[i][5] += THIRD*v[5];
+
+      vatom[j][0] += THIRD*v[0]; vatom[j][1] += THIRD*v[1];
+      vatom[j][2] += THIRD*v[2]; vatom[j][3] += THIRD*v[3];
+      vatom[j][4] += THIRD*v[4]; vatom[j][5] += THIRD*v[5];
+
+      vatom[k][0] += THIRD*v[0]; vatom[k][1] += THIRD*v[1];
+      vatom[k][2] += THIRD*v[2]; vatom[k][3] += THIRD*v[3];
+      vatom[k][4] += THIRD*v[4]; vatom[k][5] += THIRD*v[5];
+    }
   }
 }
 

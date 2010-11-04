@@ -59,6 +59,8 @@ PairCoulLong::~PairCoulLong()
   if (allocated) {
     memory->destroy_2d_int_array(setflag);
     memory->destroy_2d_double_array(cutsq);
+
+    memory->destroy_2d_double_array(scale);
   }
   if (ftable) free_tables();
 }
@@ -67,7 +69,7 @@ PairCoulLong::~PairCoulLong()
 
 void PairCoulLong::compute(int eflag, int vflag)
 {
-  int i,j,ii,jj,inum,jnum,itable;
+  int i,j,ii,jj,inum,jnum,itable,itype,jtype;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,ecoul,fpair;
   double fraction,table;
   double r,r2inv,forcecoul,factor_coul;
@@ -82,6 +84,7 @@ void PairCoulLong::compute(int eflag, int vflag)
   double **x = atom->x;
   double **f = atom->f;
   double *q = atom->q;
+  int *type = atom->type;
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
   double *special_coul = force->special_coul;
@@ -101,6 +104,7 @@ void PairCoulLong::compute(int eflag, int vflag)
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
+    itype = type[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
@@ -117,16 +121,17 @@ void PairCoulLong::compute(int eflag, int vflag)
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
-      if (rsq < cut_coulsq) {
-          r2inv = 1.0/rsq;
-          if (!ncoultablebits || rsq <= tabinnersq) {
-              r = sqrt(rsq);
+      jtype = type[j];
 
+      if (rsq < cut_coulsq) {
+	r2inv = 1.0/rsq;
+	if (!ncoultablebits || rsq <= tabinnersq) {
+	  r = sqrt(rsq);
 	  grij = g_ewald * r;
 	  expm2 = exp(-grij*grij);
 	  t = 1.0 / (1.0 + EWALD_P*grij);
 	  erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
-	  prefactor = qqrd2e * qtmp*q[j]/r;
+	  prefactor = qqrd2e * scale[itype][jtype] * qtmp*q[j]/r;
 	  forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
 	  if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
 	} else {
@@ -136,10 +141,10 @@ void PairCoulLong::compute(int eflag, int vflag)
 	  itable >>= ncoulshiftbits;
 	  fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
 	  table = ftable[itable] + fraction*dftable[itable];
-	  forcecoul = qtmp*q[j] * table;
+	  forcecoul = scale[itype][jtype] * qtmp*q[j] * table;
 	  if (factor_coul < 1.0) {
 	    table = ctable[itable] + fraction*dctable[itable];
-	    prefactor = qtmp*q[j] * table;
+	    prefactor = scale[itype][jtype] * qtmp*q[j] * table;
 	    forcecoul -= (1.0-factor_coul)*prefactor;
 	  }
 	}
@@ -160,7 +165,7 @@ void PairCoulLong::compute(int eflag, int vflag)
 	    ecoul = prefactor*erfc;
 	  else {
 	    table = etable[itable] + fraction*detable[itable];
-	    ecoul = qtmp*q[j] * table;
+	    ecoul = scale[itype][jtype] * qtmp*q[j] * table;
 	  }
 	  if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
 	}
@@ -189,6 +194,8 @@ void PairCoulLong::allocate()
       setflag[i][j] = 0;
 
   cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+
+  scale = memory->create_2d_double_array(n+1,n+1,"pair:scale");
 }
 
 /* ----------------------------------------------------------------------
@@ -218,6 +225,7 @@ void PairCoulLong::coeff(int narg, char **arg)
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
+      scale[i][j] = 1.0;
       setflag[i][j] = 1;
       count++;
     }
@@ -556,8 +564,15 @@ double PairCoulLong::single(int i, int j, int itype, int jtype,
 
 /* ---------------------------------------------------------------------- */
 
-void *PairCoulLong::extract(char *str)
+void *PairCoulLong::extract(char *str, int &dim)
 {
-  if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;
+  if (strcmp(str,"cut_coul") == 0) {
+    dim = 0;
+    return (void *) &cut_coul;
+  }
+  if (strcmp(str,"scale") == 0) {
+    dim = 2;
+    return (void *) scale;
+  }
   return NULL;
 }

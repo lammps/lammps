@@ -214,15 +214,3 @@ double PairLJCharmmCoulCharmmImplicit::single(int i, int j,
 
   return eng;
 }
-
-/* ---------------------------------------------------------------------- */
-
-void *PairLJCharmmCoulCharmmImplicit::extract(char *str)
-{
-  if (strcmp(str,"lj14_1") == 0) return (void *) lj14_1;
-  else if (strcmp(str,"lj14_2") == 0) return (void *) lj14_2;
-  else if (strcmp(str,"lj14_3") == 0) return (void *) lj14_3;
-  else if (strcmp(str,"lj14_4") == 0) return (void *) lj14_4;
-  else if (strcmp(str,"implicit") == 0) return (void *) &implicit;
-  return NULL;
-}

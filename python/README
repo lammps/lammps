@@ -1,0 +1,47 @@
+This directory contains Python code which wraps LAMMPS as a library
+and allows the library interface to be invoked from a Python, either
+from a script or interactively.
+
+Details on how to build and use this Python interface are given in
+doc/Section_python.html.
+
+Basically you have to extend the Python on your box to include the
+LAMMPS wrappers:
+
+python setup_serial.py build           # for serial LAMMPS and Python
+sudo python setup_serial.py install
+
+python setup.py build                  # for parallel LAMMPS and Python
+sudo python setuppy install
+
+but there are several issues to be aware of, as discussed in the doc
+pages.
+
+-------------------------------------------------------------------
+
+Once you have successfully built and tested the wrappers, you can run
+the Python scripts in the examples sub-directory:
+
+trivial.py      read/run a LAMMPS input script thru Python
+demo.py		invoke various LAMMPS library interface routines
+simple.py	mimic operation of couple/simple/simple.cpp in Python
+gui.py		GUI go/stop/temperature-slider to control LAMMPS
+plot.py		real-time temeperature plot with GnuPlot via Pizza.py
+viz.py		real-time viz from GL tool in Pizza.py
+vizplotgui.py   combination of viz.py and plot.py and gui.py
+
+Run them with the following input scripts and arguments:
+
+trivial.py in.trivial
+demo.py
+simple.py in.simple
+gui.py in.gui 100
+plot.py in.plot 10 1000 thermo_temp
+viz.py in.viz 100 5000
+vizplotgui.py in.viz 100 thermo_temp
+
+You can un-comment the Pypar calls if you want to run these in
+parallel.
+
+Each script has more documentation at the top of the file that
+explains how to use it.

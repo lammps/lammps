@@ -43,6 +43,9 @@ class Pair : protected Pointers {
   double etail,ptail;            // energy/pressure tail corrections
   double etail_ij,ptail_ij;
 
+  int nextra;                    // # of extra quantities pair style calculates
+  double *pvector;               // vector of extra pair quantities
+
   class NeighList *list;         // standard neighbor list used by most pairs
   class NeighList *listhalf;     // half list used by some pairs
   class NeighList *listfull;     // full list used by some pairs
@@ -57,6 +60,7 @@ class Pair : protected Pointers {
   // top-level Pair methods
 
   void init();
+  void reinit();
   double mix_energy(double, double, double, double);
   double mix_distance(double, double);
   void write_file(int, char **);
@@ -93,14 +97,12 @@ class Pair : protected Pointers {
 
   // specific child-class methods for certain Pair styles
   
-  virtual void *extract(char *) {return NULL;}
+  virtual void *extract(char *, int &) {return NULL;}
   virtual void swap_eam(double *, double **) {}
   virtual void reset_dt() {}
   virtual void min_xf_pointers(int, double **, double **) {}
   virtual void min_xf_get(int) {}
   virtual void min_x_set(int) {}
-  virtual int pre_adapt(char *, int, int, int, int) {return -1;}
-  virtual void adapt(int, int, int, int, int, double) {}
 
  protected:
   int allocated;                       // 0/1 = whether arrays are allocated

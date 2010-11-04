@@ -59,6 +59,7 @@ typedef struct __MPI_Status MPI_Status;
 /* Function prototypes for MPI stubs */
 
 int MPI_Init(int *argc, char ***argv);
+int MPI_Initialized(int *flag);
 int MPI_Comm_rank(MPI_Comm comm, int *me);
 int MPI_Comm_size(MPI_Comm comm, int *nprocs);
 int MPI_Abort(MPI_Comm comm, int errorcode);

@@ -433,7 +433,9 @@ run, according to this formula:
 </P>
 <P>The run begins on startstep.  Startstep can span multiple runs, using
 the <I>start</I> keyword of the <A HREF = "run.html">run</A> command.  See the
-<A HREF = "run.html">run</A> command for details of how to do this.
+<A HREF = "run.html">run</A> command for details of how to do this.  Note that the
+<A HREF = "thermo_style.html">thermo_style</A> keyword elaplong =
+timestep-startstep.
 </P>
 <P>The swiggle(x,y,z) and cwiggle(x,y,z) functions each take 3 arguments:
 x = coord0, y = amplitude, z = period.  They use the elapsed time to
@@ -448,7 +450,9 @@ value = coord0 + Amplitude * (1 - cos(omega*(timestep-startstep)*dt))
 </P>
 <P>The run begins on startstep.  Startstep can span multiple runs, using
 the <I>start</I> keyword of the <A HREF = "run.html">run</A> command.  See the
-<A HREF = "run.html">run</A> command for details of how to do this.
+<A HREF = "run.html">run</A> command for details of how to do this.  Note that the
+<A HREF = "thermo_style.html">thermo_style</A> keyword elaplong =
+timestep-startstep.
 </P>
 <HR>
 

@@ -379,13 +379,14 @@ void DihedralCharmm::init_style()
     if (weight[i] > 0.0) weightflag = 1;
 
   if (weightflag) {
+    int itmp;
     if (force->pair == NULL)
       error->all("Dihedral charmm is incompatible with Pair style");
-    lj14_1 = (double **) force->pair->extract("lj14_1");
-    lj14_2 = (double **) force->pair->extract("lj14_2");
-    lj14_3 = (double **) force->pair->extract("lj14_3");
-    lj14_4 = (double **) force->pair->extract("lj14_4");
-    int *ptr = (int *) force->pair->extract("implicit");
+    lj14_1 = (double **) force->pair->extract("lj14_1",itmp);
+    lj14_2 = (double **) force->pair->extract("lj14_2",itmp);
+    lj14_3 = (double **) force->pair->extract("lj14_3",itmp);
+    lj14_4 = (double **) force->pair->extract("lj14_4",itmp);
+    int *ptr = (int *) force->pair->extract("implicit",itmp);
     if (!lj14_1 || !lj14_2 || !lj14_3 || !lj14_4 || !ptr)
       error->all("Dihedral charmm is incompatible with Pair style");
     implicit = *ptr;

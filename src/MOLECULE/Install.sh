@@ -5,6 +5,7 @@ if (test $1 = 1) then
   cp angle_charmm.cpp ..
   cp angle_cosine.cpp ..
   cp angle_cosine_delta.cpp ..
+  cp angle_cosine_periodic.cpp ..
   cp angle_cosine_squared.cpp ..
   cp angle_harmonic.cpp ..
   cp angle_hybrid.cpp ..
@@ -32,12 +33,16 @@ if (test $1 = 1) then
   cp improper_cvff.cpp ..
   cp improper_harmonic.cpp ..
   cp improper_hybrid.cpp ..
+  cp improper_umbrella.cpp ..
+  cp pair_hbond_dreiding_lj.cpp ..
+  cp pair_hbond_dreiding_morse.cpp ..
   cp pair_lj_charmm_coul_charmm.cpp ..
   cp pair_lj_charmm_coul_charmm_implicit.cpp ..
 
   cp angle_charmm.h ..
   cp angle_cosine.h ..
   cp angle_cosine_delta.h ..
+  cp angle_cosine_periodic.h ..
   cp angle_cosine_squared.h ..
   cp angle_harmonic.h ..
   cp angle_hybrid.h ..
@@ -65,6 +70,9 @@ if (test $1 = 1) then
   cp improper_cvff.h ..
   cp improper_harmonic.h ..
   cp improper_hybrid.h ..
+  cp improper_umbrella.h ..
+  cp pair_hbond_dreiding_lj.h ..
+  cp pair_hbond_dreiding_morse.h ..
   cp pair_lj_charmm_coul_charmm.h ..
   cp pair_lj_charmm_coul_charmm_implicit.h ..
 
@@ -73,6 +81,7 @@ elif (test $1 = 0) then
   rm ../angle_charmm.cpp
   rm ../angle_cosine.cpp
   rm ../angle_cosine_delta.cpp
+  rm ../angle_cosine_periodic.cpp
   rm ../angle_cosine_squared.cpp
   rm ../angle_harmonic.cpp
   rm ../angle_hybrid.cpp
@@ -100,12 +109,16 @@ elif (test $1 = 0) then
   rm ../improper_cvff.cpp
   rm ../improper_harmonic.cpp
   rm ../improper_hybrid.cpp
+  rm ../improper_umbrella.cpp
+  rm ../pair_hbond_dreiding_lj.cpp
+  rm ../pair_hbond_dreiding_morse.cpp
   rm ../pair_lj_charmm_coul_charmm.cpp
   rm ../pair_lj_charmm_coul_charmm_implicit.cpp
 
   rm ../angle_charmm.h
   rm ../angle_cosine.h
   rm ../angle_cosine_delta.h
+  rm ../angle_cosine_periodic.h
   rm ../angle_cosine_squared.h
   rm ../angle_harmonic.h
   rm ../angle_hybrid.h
@@ -133,6 +146,9 @@ elif (test $1 = 0) then
   rm ../improper_cvff.h
   rm ../improper_harmonic.h
   rm ../improper_hybrid.h
+  rm ../improper_umbrella.h
+  rm ../pair_hbond_dreiding_lj.h
+  rm ../pair_hbond_dreiding_morse.h
   rm ../pair_lj_charmm_coul_charmm.h
   rm ../pair_lj_charmm_coul_charmm_implicit.h
 

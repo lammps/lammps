@@ -714,3 +714,12 @@ double PairLJCut::single(int i, int j, int itype, int jtype, double rsq,
     offset[itype][jtype];
   return factor_lj*philj;
 }
+
+/* ---------------------------------------------------------------------- */
+
+void *PairLJCut::extract(char *str, int &dim)
+{
+  dim = 2;
+  if (strcmp(str,"epsilon") == 0) return (void *) epsilon;
+  return NULL;
+}

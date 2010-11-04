@@ -163,6 +163,7 @@ and what it does.  Here is an alphabetic list of compute styles
 available in LAMMPS:
 
 "angle/local"_compute_bond_local.html - theta and energy of each angle
+"atom/molecule"_compute_atom_molecule.html - sum per-atom properties for each molecule
 "bond/local"_compute_bond_local.html - distance and energy of each bond
 "centro/atom"_compute_centro_atom.html - centro-symmetry parameter for each atom
 "cna/atom"_compute_cna_atom.html - common neighbor analysis (CNA) for each atom
@@ -184,6 +185,7 @@ available in LAMMPS:
 "ke/atom"_compute_ke_atom.html - kinetic energy for each atom
 "msd"_compute_msd.html - mean-squared displacement of group of atoms
 "msd/molecule"_compute_msd_molecule.html - mean-squared displacement for each molecule
+"pair"_compute_pair.html - values computed by a pair style
 "pair/local"_compute_pair_local.html - distance/energy/force of each pairwise interaction
 "pe"_compute_pe.html - potential energy
 "pe/atom"_compute_pe_atom.html - potential energy for each atom
@@ -203,7 +205,8 @@ available in LAMMPS:
 "temp/profile"_compute_temp_profile.html - temperature excluding a binned velocity profile
 "temp/ramp"_compute_temp_ramp.html - temperature excluding ramped velocity component
 "temp/region"_compute_temp_region.html - temperature of a region of atoms
-"temp/sphere"_compute_temp_sphere.html - temperature of spherical particles :ul
+"temp/sphere"_compute_temp_sphere.html - temperature of spherical particles
+"ti"_compute_ti.html - thermodyanmic integration free energy values :ul
 
 There are also additional compute styles submitted by users which are
 included in the LAMMPS distribution.  The list of these with links to

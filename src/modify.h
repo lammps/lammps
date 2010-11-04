@@ -54,6 +54,7 @@ class Modify : protected Pointers {
   void final_integrate();
   void end_of_step();
   double thermo_energy();
+  void post_run();
 
   void setup_pre_force_respa(int, int);
   void initial_integrate_respa(int, int, int);

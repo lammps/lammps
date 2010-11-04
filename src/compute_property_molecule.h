@@ -43,6 +43,7 @@ class ComputePropertyMolecule : public Compute {
   FnPtrPack *pack_choice;              // ptrs to pack functions
 
   void pack_mol(int);
+  void pack_count(int);
 };
 
 }

@@ -138,9 +138,11 @@ void NEB::command(int narg, char **arg)
   if (me_universe == 0) {
     if (universe->uscreen)
       fprintf(universe->uscreen,"Step MaxReplicaForce MaxAtomForce "
+	      "GradV0 GradV1 GradVc "
 	      "RD1 PE1 RD2 PE2 ... RDN PEN\n");
     if (universe->ulogfile)
       fprintf(universe->ulogfile,"Step MaxReplicaForce MaxAtomForce "
+	      "GradV0 GradV1 GradVc "
 	      "RD1 PE1 RD2 PE2 ... RDN PEN\n");
   }
   print_status();
@@ -203,9 +205,11 @@ void NEB::command(int narg, char **arg)
   if (me_universe == 0) {
     if (universe->uscreen)
       fprintf(universe->uscreen,"Step MaxReplicaForce MaxAtomForce "
+	      "GradV0 GradV1 GradVc "
 	      "RD1 PE1 RD2 PE2 ... RDN PEN\n");
     if (universe->ulogfile)
       fprintf(universe->ulogfile,"Step MaxReplicaForce MaxAtomForce "
+	      "GradV0 GradV1 GradVc "
 	      "RD1 PE1 RD2 PE2 ... RDN PEN\n");
   }
   print_status();
@@ -381,11 +385,43 @@ void NEB::print_status()
   double endpt = rdist[nreplica-1] = rdist[nreplica-2] + all[nreplica-2][2];
   for (int i = 1; i < nreplica; i++)
     rdist[i] /= endpt;
-  
+
+  // look up GradV for the initial, final, and climbing replicas
+  // These are identical to fnorm2, but better to be safe we
+  // take them straight from fix_neb
+
+  double gradvnorm0, gradvnorm1, gradvnormc;
+
+  int irep;
+  irep = 0;
+  if (me_universe == irep) gradvnorm0 = fneb->gradvnorm;
+  MPI_Bcast(&gradvnorm0,1,MPI_DOUBLE,irep,uworld);
+  irep = nreplica-1;
+  if (me_universe == irep) gradvnorm1 = fneb->gradvnorm;
+  MPI_Bcast(&gradvnorm1,1,MPI_DOUBLE,irep,uworld);
+  irep = fneb->rclimber;
+  if (irep > -1) {
+    if (me_universe == irep) gradvnormc = fneb->gradvnorm;
+    MPI_Bcast(&gradvnormc,1,MPI_DOUBLE,irep,uworld);
+  } else {
+    double vmax = all[0][0];
+    int top = 0;
+    for (int m = 1; m < nreplica; m++)
+      if (vmax < all[m][0]) {
+	vmax = all[m][0];
+	top = m;
+      }
+    irep = top;
+    if (me_universe == irep) gradvnormc = fneb->gradvnorm;
+    MPI_Bcast(&gradvnormc,1,MPI_DOUBLE,irep,uworld);
+  }
+
   if (me_universe == 0) {
     if (universe->uscreen) {
       fprintf(universe->uscreen,"%d %g %g ",update->ntimestep,
 	      fmaxreplica,fmaxatom);
+      fprintf(universe->uscreen,"%g %g %g ",
+	      gradvnorm0,gradvnorm1,gradvnormc);
       for (int i = 0; i < nreplica; i++) 
 	fprintf(universe->uscreen,"%g %g ",rdist[i],all[i][0]);
       fprintf(universe->uscreen,"\n");
@@ -393,6 +429,8 @@ void NEB::print_status()
     if (universe->ulogfile) {
       fprintf(universe->ulogfile,"%d %g %g ",update->ntimestep,
 	      fmaxreplica,fmaxatom);
+      fprintf(universe->ulogfile,"%g %g %g ",
+	      gradvnorm0,gradvnorm1,gradvnormc);
       for (int i = 0; i < nreplica; i++)
 	fprintf(universe->ulogfile,"%g %g ",rdist[i],all[i][0]);
       fprintf(universe->ulogfile,"\n");

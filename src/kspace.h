@@ -22,22 +22,26 @@ class KSpace : protected Pointers {
  public:
   double energy;
   double virial[6];
-
   double g_ewald;
-  double slab_volfactor;
-  int gridflag,gewaldflag;
   int nx_pppm,ny_pppm,nz_pppm;
-  int order;
-  int slabflag;
  
   KSpace(class LAMMPS *, int, char **);
   virtual ~KSpace() {}
   void modify_params(int, char **);
+  void *extract(char *);
+
   virtual void init() = 0;
   virtual void setup() = 0;
   virtual void compute(int, int) = 0;
   virtual void timing(int, double &, double &) {}
   virtual double memory_usage() {return 0.0;}
+
+ protected:
+  double slab_volfactor;
+  int gridflag,gewaldflag;
+  int order;
+  int slabflag;
+  double scale;
 };
 
 }

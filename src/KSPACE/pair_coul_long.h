@@ -38,12 +38,13 @@ class PairCoulLong : public Pair {
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
   double single(int, int, int, int, double, double, double, double &);
-  void *extract(char *);
+  void *extract(char *, int &);
 
  private:
   double cut_coul,cut_coulsq;
   double *cut_respa;
   double g_ewald;
+  double **scale;
 
   double tabinnersq;
   double *rtable,*drtable,*ftable,*dftable,*ctable,*dctable;

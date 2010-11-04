@@ -47,6 +47,8 @@ extern "C" {
 #define MPI_Datatype int
 #define MPI_Op int
 
+#define MPI_MAX_PROCESSOR_NAME 128
+
 /* MPI data structs */
 
 struct __MPI_Status {
@@ -120,5 +122,7 @@ int MPI_Gatherv(void *sendbuf, int sendcount, MPI_Datatype sendtype,
 #ifdef __cplusplus
 }
 #endif
+
+void MPI_Get_processor_name(char *name, int *resultlen);
 
 #endif

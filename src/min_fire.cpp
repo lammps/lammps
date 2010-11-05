@@ -176,7 +176,6 @@ int MinFire::iterate(int maxiter)
 	v[i][1] += dtfm * f[i][1];
 	v[i][2] += dtfm * f[i][2];
       }
-
     } else {
       for (int i = 0; i < nlocal; i++) {
 	dtfm = dtv / mass[type[i]];

@@ -309,9 +309,9 @@ void CreateAtoms::add_random()
       if (domain->triclinic) {
 	domain->x2lamda(xone,lamda);
 	coord = lamda;
-	if (coord[0] >= boxlo[0] && coord[0] < boxhi[0] &&
-	    coord[1] >= boxlo[1] && coord[1] < boxhi[1] &&
-	    coord[2] >= boxlo[2] && coord[2] < boxhi[2]) valid = 0;
+	if (coord[0] < boxlo[0] || coord[0] >= boxhi[0] ||
+	    coord[1] < boxlo[1] || coord[1] >= boxhi[1] ||
+	    coord[2] < boxlo[2] || coord[2] >= boxhi[2]) valid = 0;
       } else coord = xone;
 
       if (valid) break;

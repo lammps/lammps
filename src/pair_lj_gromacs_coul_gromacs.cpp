@@ -166,11 +166,11 @@ void PairLJGromacsCoulGromacs::compute(int eflag, int vflag)
 	    ecoul *= factor_coul;
 	  } else ecoul = 0.0;
 	  if (rsq < cut_ljsq) {
-	    evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) +
-	      ljsw5[itype][jtype];
+	    evdwl = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]);
             if (rsq > cut_lj_innersq) {
-              eswitch = tlj*tlj*tlj * (ljsw3[itype][jtype] + 
-				       ljsw4[itype][jtype]*tlj);
+              eswitch = tlj*tlj*tlj * 
+	      (ljsw3[itype][jtype] + ljsw4[itype][jtype]*tlj) +
+	      ljsw5[itype][jtype];
               evdwl += eswitch;
             }
 	    evdwl *= factor_lj;
@@ -316,12 +316,13 @@ double PairLJGromacsCoulGromacs::init_one(int i, int j)
   double b6 = (9.0*cut_lj -  7.0*cut_lj_inner)*r8inv*t3inv;
   double a12 = (13.0*cut_lj_inner - 16.0*cut_lj)*r6inv*r8inv*t2inv;
   double b12 = (15.0*cut_lj - 13.0*cut_lj_inner)*r6inv*r8inv*t3inv;
-  double c6 = r6inv - t3*(a6/3.0 + b6*t/4.0);
-  double c12 = r6inv*r6inv - t3*(a12/3.0 + b12*t/4.0);
+  double c6 = r6inv - t3*(6.0*a6/3.0 + 6.0*b6*t/4.0);
+  double c12 = r6inv*r6inv - t3*(12.0*a12/3.0 + 12.0*b12*t/4.0);
+
   ljsw1[i][j] = lj1[i][j]*a12 - lj2[i][j]*a6;
   ljsw2[i][j] = lj1[i][j]*b12 - lj2[i][j]*b6;
-  ljsw3[i][j] = -lj3[i][j]*a12/3.0 + lj4[i][j]*a6/3.0;
-  ljsw4[i][j] = -lj3[i][j]*b12/4.0 + lj4[i][j]*b6/4.0;
+  ljsw3[i][j] = -lj3[i][j]*12.0*a12/3.0 + lj4[i][j]*6.0*a6/3.0;
+  ljsw4[i][j] = -lj3[i][j]*12.0*b12/4.0 + lj4[i][j]*6.0*b6/4.0;
   ljsw5[i][j] = -lj3[i][j]*c12 + lj4[i][j]*c6;
 
   double r3inv = 1.0/pow(cut_coul,3.0);
@@ -477,11 +478,11 @@ double PairLJGromacsCoulGromacs::single(int i, int j, int itype, int jtype,
   }
 
   if (rsq < cut_ljsq) {
-    philj = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) +
-      ljsw5[itype][jtype];
+    philj = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]);
     if (rsq > cut_lj_innersq) {
-      phiswitch = tlj*tlj*tlj * (ljsw3[itype][jtype] + 
-				 ljsw4[itype][jtype]*tlj);
+      phiswitch = tlj*tlj*tlj * 
+	(ljsw3[itype][jtype] + ljsw4[itype][jtype]*tlj) +
+	ljsw5[itype][jtype];
       philj += phiswitch;
     }
     eng += factor_lj*philj;

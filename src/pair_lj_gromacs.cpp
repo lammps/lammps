@@ -138,10 +138,10 @@ void PairLJGromacs::compute(int eflag, int vflag)
 	}
 
 	if (eflag) {
-	  evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) + 
-	    ljsw5[itype][jtype];
+	  evdwl = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]); 
           if (rsq > cut_inner_sq[itype][jtype]) {
-            eswitch = t*t*t*(ljsw3[itype][jtype] + ljsw4[itype][jtype]*t);
+            eswitch = t*t*t*(ljsw3[itype][jtype] + ljsw4[itype][jtype]*t) + 
+	      ljsw5[itype][jtype];
             evdwl += eswitch;
           }
 	  evdwl *= factor_lj;
@@ -283,17 +283,18 @@ double PairLJGromacs::init_one(int i, int j)
   double t2inv = 1.0/(t*t);
   double t3inv = t2inv/t;
   double t3 = 1.0/t3inv;
-  double a6 = ( 7.0*cut_inner[i][j] - 10.0*cut[i][j])*r8inv*t2inv;
-  double b6 = ( 9.0*cut[i][j] -  7.0*cut_inner[i][j])*r8inv*t3inv;
+  double a6 = (7.0*cut_inner[i][j] - 10.0*cut[i][j])*r8inv*t2inv;
+  double b6 = (9.0*cut[i][j] -  7.0*cut_inner[i][j])*r8inv*t3inv;
   double a12 = (13.0*cut_inner[i][j] - 16.0*cut[i][j])*r6inv*r8inv*t2inv;
   double b12 = (15.0*cut[i][j] - 13.0*cut_inner[i][j])*r6inv*r8inv*t3inv;
-  double c6 = r6inv - t3*(a6/3.0 + b6*t/4.0);
-  double c12 = r6inv*r6inv - t3*(a12/3.0 + b12*t/4.0);
+  double c6 = r6inv - t3*(6.0*a6/3.0 + 6.0*b6*t/4.0);
+  double c12 = r6inv*r6inv - t3*(12.0*a12/3.0 + 12.0*b12*t/4.0);
+
   ljsw1[i][j] = lj1[i][j]*a12 - lj2[i][j]*a6;
   ljsw2[i][j] = lj1[i][j]*b12 - lj2[i][j]*b6;
-  ljsw3[i][j] =-lj3[i][j]*a12/3.0 + lj4[i][j]*a6/3.0;
-  ljsw4[i][j] =-lj3[i][j]*b12/4.0 + lj4[i][j]*b6/4.0;
-  ljsw5[i][j] =-lj3[i][j]*c12 + lj4[i][j]*c6;
+  ljsw3[i][j] = -lj3[i][j]*12.0*a12/3.0 + lj4[i][j]*6.0*a6/3.0;
+  ljsw4[i][j] = -lj3[i][j]*12.0*b12/4.0 + lj4[i][j]*6.0*b6/4.0;
+  ljsw5[i][j] = -lj3[i][j]*c12 + lj4[i][j]*c6;
 
   cut_inner[j][i] = cut_inner[i][j];
   cut_inner_sq[j][i] = cut_inner_sq[i][j];
@@ -413,10 +414,10 @@ double PairLJGromacs::single(int i, int j, int itype, int jtype,
   }
   fforce = factor_lj*forcelj*r2inv;
 
-  philj = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) + 
-    ljsw5[itype][jtype];
+  philj = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]);
   if (rsq > cut_inner_sq[itype][jtype]) {
-    phiswitch = t*t*t*(ljsw3[itype][jtype] + ljsw4[itype][jtype]*t);
+    phiswitch = t*t*t*(ljsw3[itype][jtype] + ljsw4[itype][jtype]*t) + 
+      ljsw5[itype][jtype];
     philj += phiswitch;
   }
 

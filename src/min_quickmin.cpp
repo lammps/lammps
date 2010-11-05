@@ -119,6 +119,7 @@ int MinQuickMin::iterate(int maxiter)
 
     // limit timestep so no particle moves further than dmax
 
+    double *rmass = atom->rmass;
     double *mass = atom->mass;
     int *type = atom->type;
 
@@ -135,14 +136,26 @@ int MinQuickMin::iterate(int maxiter)
 
     double **x = atom->x;
     
-    for (int i = 0; i < nlocal; i++) {
-      dtfm = dtv / mass[type[i]];
-      x[i][0] += dtv * v[i][0];
-      x[i][1] += dtv * v[i][1];
-      x[i][2] += dtv * v[i][2];
-      v[i][0] += dtfm * f[i][0];
-      v[i][1] += dtfm * f[i][1];
-      v[i][2] += dtfm * f[i][2];
+    if (rmass) {
+      for (int i = 0; i < nlocal; i++) {
+	dtfm = dtv / rmass[i];
+	x[i][0] += dtv * v[i][0];
+	x[i][1] += dtv * v[i][1];
+	x[i][2] += dtv * v[i][2];
+	v[i][0] += dtfm * f[i][0];
+	v[i][1] += dtfm * f[i][1];
+	v[i][2] += dtfm * f[i][2];
+      }
+    } else {
+      for (int i = 0; i < nlocal; i++) {
+	dtfm = dtv / mass[type[i]];
+	x[i][0] += dtv * v[i][0];
+	x[i][1] += dtv * v[i][1];
+	x[i][2] += dtv * v[i][2];
+	v[i][0] += dtfm * f[i][0];
+	v[i][1] += dtfm * f[i][1];
+	v[i][2] += dtfm * f[i][2];
+      }
     }
     
     eprevious = ecurrent;

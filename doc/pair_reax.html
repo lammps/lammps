@@ -13,16 +13,17 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>pair_style reax hbcut hbnewflag precision 
+<PRE>pair_style reax hbcut hbnewflag tripflag precision 
 </PRE>
 <UL><LI>hbcut = hydrogen-bond cutoff (distance units)
 <LI>hbnewflag = use old or new hbond function style (0 or 1)
+<LI>tripflag = apply stabilization to all triple bonds (0 or 1)
 <LI>precision = precision for charge equilibration 
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>pair_style reax
-pair_style reax 10.0 0 1.0e-5
+pair_style reax 10.0 0 1 1.0e-5
 pair_coeff * * ffield.reax 3 1 2 2
 pair_coeff * * ffield.reax 3 NULL NULL 3 
 </PRE>
@@ -61,10 +62,12 @@ can use other ffield files for specific chemical systems that may be
 available elsewhere (but note that their accuracy may not have been
 tested).
 </P>
-<P>The <I>hbcut</I>, <I>hbnewflag</I>, and <I>precision</I> settings are optional arguments.  
+<P>The <I>hbcut</I>, <I>hbnewflag</I>, <I>tripflag</I>, and <I>precision</I> 
+settings are optional arguments.  
 If
-neither is provided, default settings are used: <I>hbcut</I> = 10 (which is
-Angstroms in real units), <I>hbnewflag</I> = 1 (use new hbond function style, 
+neither is provided, default settings are used: <I>hbcut</I> = 6 (which is
+Angstroms in real units), <I>hbnewflag</I> = 1 (use new hbond function style), 
+<I>tripflag</I> = 1 (apply stabilization to all triple bonds), 
 and <I>precision</I> = 1.0e-6 (one part in 10^6).
 If you wish to override any of these defaults, then all settings
 must be specified.
@@ -185,7 +188,9 @@ appropriate units if your simulation doesn't use "real" units.
 <P><A HREF = "pair_coeff.html">pair_coeff</A>, <A HREF = "pair_reax_c.html">pair_style reax/c</A>,
 <A HREF = "fix_reax_bonds.html">fix_reax_bonds</A>
 </P>
-<P><B>Default:</B> none
+<P><B>Default:</B> 
+</P>
+<P>The keyword defaults are <I>hbcut</I> = 6,  <I>hbnewflag</I> = 1, <I>tripflag</I> = 1, <I>precision</I> = 1.0e-6
 </P>
 <HR>
 

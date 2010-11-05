@@ -7,9 +7,9 @@ atom_style	charge
 read_data	data.tatb
 
 # N.B. to match reax/c, set hbnewflag = 1
-#     reax args: hbcut hbnewflag precision
-#pair_style	reax 10.0 1 1.0e-6
-pair_style	reax 10.0 0 1.0e-6
+#     reax args: hbcut hbnewflag tripflag precision
+#pair_style	reax 10.0 1 1 1.0e-6
+pair_style	reax 10.0 0 1 1.0e-6
 pair_coeff	* * ffield.reax 1 2 3 4
 
 compute reax all pair reax

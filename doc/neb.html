@@ -239,22 +239,31 @@ restart the calculation from an intermediate point with altered
 parameters.
 </P>
 <P>There are 2 Python scripts provided in the tools/python directory,
-neb1.py and neb2.py, which are useful in analyzing output from a NEB
-calculation.  Assume a NEB simulation with M replicas, and the NEB
-atoms labelled with a specific atom type.
+neb_combine.py and neb_final.py, which are useful in analyzing output
+from a NEB calculation.  Assume a NEB simulation with M replicas, and
+the NEB atoms labelled with a specific atom type.
 </P>
-<P>The neb1.py script extracts atom coords for the NEB atoms from all M
-dump files and creates a single dump file where each snapshot contains
-the NEB atoms from all the replicas and one copy of non-NEB atoms from
-the first replica (presumed to be identical in other replicas).  This
-can be visualized to see how the NEB atoms relax as the NEB
-calculation proceeds.
+<P>The neb_combine.py script extracts atom coords for the NEB atoms from
+all M dump files and creates a single dump file where each snapshot
+contains the NEB atoms from all the replicas and one copy of non-NEB
+atoms from the first replica (presumed to be identical in other
+replicas).  This can be visualized/animated to see how the NEB atoms
+relax as the NEB calculation proceeds.
 </P>
-<P>The neb2.py script extracts the final snapshot from each of the M dump
-files to create a single dump file with M snapshots.  This can be
+<P>The neb_final.py script extracts the final snapshot from each of the M
+dump files to create a single dump file with M snapshots.  This can be
 visualized to watch the system make its transition over the energy
 barrier.
 </P>
+<P>To illustrate, here are images from the final snapshot produced by the
+neb_combine.py script run on the dump files produced by the two
+example input scripts in examples/neb.  Click on them to see a larger
+image.
+</P>
+<A HREF = "JPG/hop1.jpg"><IMG SRC = "JPG/hop1_small.jpg"></A>
+
+<A HREF = "JPG/hop2.jpg"><IMG SRC = "JPG/hop2_small.jpg"></A>
+
 <HR>
 
 <P><B>Restrictions:</B>

@@ -57,6 +57,7 @@ PairREAX::PairREAX(LAMMPS *lmp) : Pair(lmp)
   cutmax = 0.0;
   hbcut = 6.0;
   ihbnew = 1;
+  itripstaball = 1;
   iprune = 4;
   ihb = 1;
   chpot = 0;
@@ -165,7 +166,7 @@ void PairREAX::compute(int eflag, int vflag)
 
   // determine whether this bond is owned by the processor or not
 
-  FORTRAN(srtbon1, SRTBON1)(&iprune, &ihb, &hbcut, &ihbnew);
+  FORTRAN(srtbon1, SRTBON1)(&iprune, &ihb, &hbcut, &ihbnew, &itripstaball);
 
   // communicate with other processors for the atomic bond order calculations
 
@@ -485,14 +486,18 @@ void PairREAX::allocate()
 
 void PairREAX::settings(int narg, char **arg)
 {
-  if (narg != 0 && narg !=3) error->all("Illegal pair_style command");
+  if (narg != 0 && narg !=4) error->all("Illegal pair_style command");
   
-  if (narg == 3) {
+  if (narg == 4) {
     hbcut = force->numeric(arg[0]);
     ihbnew = force->numeric(arg[1]);
-    precision = force->numeric(arg[2]);
+    itripstaball = force->numeric(arg[2]);
+    precision = force->numeric(arg[3]);
 
-    if (hbcut <= 0.0 || (ihbnew != 0 && ihbnew != 1) || precision <= 0.0)
+    if (hbcut <= 0.0 || 
+	(ihbnew != 0 && ihbnew != 1) || 
+	(itripstaball != 0 && itripstaball != 1) || 
+	precision <= 0.0)
       error->all("Illegal pair_style command");
   }
 }

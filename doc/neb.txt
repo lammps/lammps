@@ -133,10 +133,10 @@ The replica states will also be roughly equally spaced along the MEP
 due to the inter-replica spring force added by the "fix
 neb"_fix_neb.html command.
 
-In the second stage of NEB, the replica nearest the top of the barrier
+In the second stage of NEB, the replica with the highest energy
 is selected and the inter-replica forces on it are converted to a
 force that drives its atom coordinates to the top or saddle point of
-the barrier, via the hill-climbing calculation described in
+the barrier, via the barrier-climbing calculation described in
 "(Henkelman2)"_#Hinkelman2.  As before, the other replicas rearrange
 themselves along the MEP so as to be roughly equally spaced.
 
@@ -202,14 +202,27 @@ When running with multiple partitions (each of which is a replica in
 this case), the print-out to the screen and master log.lammps file
 contains a line of output, printed once every {Nevery} timesteps.  It
 contains the timestep, the maximum force per replica, the maximum
-force per atom (in any replica), and the reaction coordinate and
-potential energy of each replica.  The "maximum force per replica" is
+force per atom (in any replica), potential gradients in the initial,
+ final, and climbing replicas, and
+the reaction coordinate and potential energy of each replica.  
+The "maximum force per replica" is
 the two-norm of the 3N-length force vector for the atoms in each
 replica, maximized across replicas, which is what the {ftol} setting
 is checking against.  In this case, N is all the atoms in each
 replica.  The "maximum force per atom" is the maximum force component
-of any atom in any replica.  The "reaction coordinate" (RC) for each
-replica is the length of the 3N-length vector of the distances between
+of any atom in any replica.  The potential gradients are the two-norm
+of the 3N-length force vector solely due to the interaction potential i.e.
+without adding in inter-replica forces. Note that inter-replica forces
+are zero in the initial and final replicas, and only affect
+the direction in the climbing replica. For this reason, the "maximum 
+force per replica" is often equal to the potential gradient in the
+climbing replica. In the first stage of NEB, there is no climbing
+replica, and so the potential gradient in the highest energy replica
+is reported, since this replica will become the climbing replica
+in the second stage of NEB.
+
+The "reaction coordinate" (RC) for each
+replica is the two-norm of the 3N-length vector of distances between
 its atoms and the preceding replica's atoms, added to the RC of the
 preceding replica.  The RC of the first replica = 0.0; the remaining
 RCs are normalized so that the RC of the last replica = 1.0.  In this
@@ -236,21 +249,29 @@ restart the calculation from an intermediate point with altered
 parameters.
 
 There are 2 Python scripts provided in the tools/python directory,
-neb1.py and neb2.py, which are useful in analyzing output from a NEB
-calculation.  Assume a NEB simulation with M replicas, and the NEB
-atoms labelled with a specific atom type.
+neb_combine.py and neb_final.py, which are useful in analyzing output
+from a NEB calculation.  Assume a NEB simulation with M replicas, and
+the NEB atoms labelled with a specific atom type.
 
-The neb1.py script extracts atom coords for the NEB atoms from all M
-dump files and creates a single dump file where each snapshot contains
-the NEB atoms from all the replicas and one copy of non-NEB atoms from
-the first replica (presumed to be identical in other replicas).  This
-can be visualized to see how the NEB atoms relax as the NEB
-calculation proceeds.
+The neb_combine.py script extracts atom coords for the NEB atoms from
+all M dump files and creates a single dump file where each snapshot
+contains the NEB atoms from all the replicas and one copy of non-NEB
+atoms from the first replica (presumed to be identical in other
+replicas).  This can be visualized/animated to see how the NEB atoms
+relax as the NEB calculation proceeds.
 
-The neb2.py script extracts the final snapshot from each of the M dump
-files to create a single dump file with M snapshots.  This can be
+The neb_final.py script extracts the final snapshot from each of the M
+dump files to create a single dump file with M snapshots.  This can be
 visualized to watch the system make its transition over the energy
 barrier.
+
+To illustrate, here are images from the final snapshot produced by the
+neb_combine.py script run on the dump files produced by the two
+example input scripts in examples/neb.  Click on them to see a larger
+image.
+
+:image(JPG/hop1_small.jpg,JPG/hop1.jpg)
+:image(JPG/hop2_small.jpg,JPG/hop2.jpg)
 
 :line
 

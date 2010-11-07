@@ -22,11 +22,11 @@ PACKUSER = user-ackland user-atc user-cd-eam user-cg-cmm user-eff \
 
 PACKALL = $(PACKAGE) $(PACKUSER)
 
-PACKAGEUC = $(shell perl -e 'printf("%s", uc("$(PACKAGE)"));')
-PACKUSERUC = $(shell perl -e 'printf("%s", uc("$(PACKUSER)"));')
+PACKAGEUC = $(shell echo $(PACKAGE) | tr a-z A-Z)
+PACKUSERUC = $(shell echo $(PACKUSER) | tr a-z A-Z)
 
-YESDIR = $(shell perl -e 'printf("%s", uc("$(@:yes-%=%)"));')
-NODIR  = $(shell perl -e 'printf("%s", uc("$(@:no-%=%)"));')
+YESDIR = $(shell echo $(@:yes-%=%) | tr a-z A-Z)
+NODIR  = $(shell echo $(@:no-%=%) | tr a-z A-Z)
 
 # List of all targets
 
@@ -63,7 +63,7 @@ help:
 .DEFAULT:
 	@test -f MAKE/Makefile.$@
 	@if [ ! -d Obj_$@ ]; then mkdir Obj_$@; fi
-	@/bin/sh Make.sh style
+	@$(SHELL) Make.sh style
 	@cp -p *.cpp *.h Obj_$@
 	@cp MAKE/Makefile.$@ Obj_$@/Makefile
 	@if [ ! -e Makefile.package ]; then make package-regenerate; fi
@@ -98,12 +98,12 @@ tar:
 # Update Makefile.lib and Makefile.list
 
 makelib:
-	@/bin/sh Make.sh style
-	@/bin/sh Make.sh Makefile.lib
+	@$(SHELL) Make.sh style
+	@$(SHELL) Make.sh Makefile.lib
 
 makelist:
-	@/bin/sh Make.sh style
-	@/bin/sh Make.sh Makefile.list
+	@$(SHELL) Make.sh style
+	@$(SHELL) Make.sh Makefile.list
 
 # Package management
 
@@ -149,7 +149,7 @@ yes-%:
 	  echo "Package $(@:yes-%=%) does not exist"; \
 	else \
 	  echo "Installing package $(@:yes-%=%)"; \
-	  cd $(YESDIR); /bin/sh Install.sh 1; \
+	  cd $(YESDIR); $(SHELL) Install.sh 1; \
 	fi;
 
 no-%:
@@ -157,7 +157,7 @@ no-%:
 	  echo "Package $(@:no-%=%) does not exist"; \
 	else \
 	  echo "Uninstalling package $(@:no-%=%), ignore errors"; \
-	  cd $(NODIR); /bin/sh Install.sh 0; cd ..; \
+	  cd $(NODIR); $(SHELL) Install.sh 0; cd ..; \
         fi;
 
 # status = list differences between src and package files
@@ -166,21 +166,21 @@ no-%:
 # regenerate = regenerate Makefile.package from Makefile.package.empty
 
 package-status:
-	@for p in $(PACKAGEUC); do /bin/sh Package.sh $$p status; done
+	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p status; done
 	@echo ''
-	@for p in $(PACKUSERUC); do /bin/sh Package.sh $$p status; done
+	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p status; done
 
 package-update:
-	@for p in $(PACKAGEUC); do /bin/sh Package.sh $$p update; done
+	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p update; done
 	@echo ''
-	@for p in $(PACKUSERUC); do /bin/sh Package.sh $$p update; done
+	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p update; done
 
 package-overwrite:
-	@for p in $(PACKAGEUC); do /bin/sh Package.sh $$p overwrite; done
+	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p overwrite; done
 	@echo ''
-	@for p in $(PACKUSERUC); do /bin/sh Package.sh $$p overwrite; done
+	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p overwrite; done
 
 package-regenerate:
 	@cp Makefile.package.empty Makefile.package
-	@for p in $(PACKAGEUC); do /bin/sh Package.sh $$p regenerate; done
-	@for p in $(PACKUSERUC); do /bin/sh Package.sh $$p regenerate; done
+	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p regenerate; done
+	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p regenerate; done

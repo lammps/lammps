@@ -1,10 +1,6 @@
 # Package.sh = package management, called from Makefile
 # Syntax: sh Package.sh DIR status/update/overwrite/regenerate
 
-# style used to translate dir name to package name
-
-style=`echo $1 | sed 'y/-ABCDEFGHIJKLMNOPQRSTUVWXYZ/_abcdefghijklmnopqrstuvwxyz/'`
-
 # package is already installed if any package *.cpp or *.h file is in src
 # else not installed
 
@@ -53,7 +49,7 @@ elif (test $2 = "update") then
         fi
       done
     else
-      /bin/sh Package.sh
+      ${SHELL-/bin/sh} Package.sh
     fi
   else
     echo "  $1 package is not installed, no action"

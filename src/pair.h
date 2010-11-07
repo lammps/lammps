@@ -21,6 +21,7 @@ namespace LAMMPS_NS {
 class Pair : protected Pointers {
   friend class BondQuartic;
   friend class DihedralCharmm;
+  friend class FixGPU;
 
  public:
   double eng_vdwl,eng_coul;      // accumulated energies

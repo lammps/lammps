@@ -13,21 +13,21 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(lj/cut/gpu,PairLJCutGPU)
+PairStyle(lj/cut/coul/long/gpu,PairLJCutCoulLongGPU)
 
 #else
 
-#ifndef LMP_PAIR_LJ_LIGHT_GPU_H
-#define LMP_PAIR_LJ_LIGHT_GPU_H
+#ifndef LMP_PAIR_LJ_CUT_COUL_LONG_GPU_H
+#define LMP_PAIR_LJ_CUT_COUL_LONG_GPU_H
 
-#include "pair_lj_cut.h"
+#include "pair_lj_cut_coul_long.h"
 
 namespace LAMMPS_NS {
 
-class PairLJCutGPU : public PairLJCut {
+class PairLJCutCoulLongGPU : public PairLJCutCoulLong {
  public:
-  PairLJCutGPU(LAMMPS *lmp);
-  ~PairLJCutGPU();
+  PairLJCutCoulLongGPU(LAMMPS *lmp);
+  ~PairLJCutCoulLongGPU();
   void cpu_compute(int, int, int);
   void cpu_compute(int *, int, int, int);
   void compute(int, int);

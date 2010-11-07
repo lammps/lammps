@@ -31,123 +31,47 @@
 #include "error.h"
 #include "neigh_request.h"
 #include "universe.h"
-
-#include <string>
-
-#ifdef GB_GPU_OMP
-#include "omp.h"
-#endif
+#include "domain.h"
+#include "update.h"
+#include "string.h"
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
-#ifndef WINDLL
-
 // External functions from cuda library for atom decomposition
 
-bool gb_gpu_init(int &ij_size, const int ntypes, const double gamma,
-                 const double upsilon, const double mu, double **shape,
-                 double **well, double **cutsq, double **sigma, 
-                 double **epsilon, double *host_lshape, int **form,
-                 double **host_lj1, double **host_lj2, double **host_lj3, 
-                 double **host_lj4, double **offset, double *special_lj, 
-                 const int nlocal, const int nall, const int max_nbors, 
-                 const int thread, const int gpu_id);
-void gb_gpu_clear(const int thread);
-int * gb_gpu_reset_nbors(const int nall, const int nlocal, const int inum, 
-                         int *ilist, const int *numj, const int *type,
-                         const int thread, bool &success);
-void gb_gpu_nbors(const int *ij, const int num_ij, const bool eflag, 
-                  const int thread);
-void gb_gpu_atom(double **host_x, double **host_quat, const int *host_type, 
-                 const bool rebuild, const int thread);
-void gb_gpu_gayberne(const bool eflag, const bool vflag, const bool rebuild, 
-                     const int thread);
-double gb_gpu_forces(double **f, double **tor, const int *ilist,
-                     const bool eflag, const bool vflag, const bool eflag_atom,
-                     const bool vflag_atom, double *eatom, double **vatom,
-                     double *virial, const int thread);
-void gb_gpu_name(const int gpu_id, const int max_nbors, char * name);
-void gb_gpu_time(const int thread);
-int gb_gpu_num_devices();
+bool gb_gpu_init(const int ntypes, const double gamma, const double upsilon,
+                 const double mu, double **shape, double **well, double **cutsq,
+                 double **sigma, double **epsilon, double *host_lshape,
+                 int **form, double **host_lj1, double **host_lj2,
+                 double **host_lj3, double **host_lj4, double **offset,
+                 double *special_lj, const int nlocal, const int nall,
+                 const int max_nbors, const double cell_size,
+                 int &gpu_mode, FILE *screen);
+void gb_gpu_clear();
+int * gb_gpu_compute_n(const int timestep, const int ago, const int inum,
+	 	       const int nall, double **host_x, int *host_type,
+                       double *boxlo, double *boxhi, const bool eflag,
+		       const bool vflag, const bool eatom, const bool vatom,
+                       int &host_start, const double cpu_time, bool &success,
+		       double **host_quat);
+int * gb_gpu_compute(const int timestep, const int ago, const int inum,
+	 	     const int nall, double **host_x, int *host_type,
+                     int *ilist, int *numj, int **firstneigh,
+		     const bool eflag, const bool vflag, const bool eatom,
+                     const bool vatom, int &host_start, const double cpu_time,
+                     bool &success, double **host_quat);
 double gb_gpu_bytes();
-
-#else
-#include <windows.h>
-
-typedef bool (*_gb_gpu_init)(int &ij_size, const int ntypes, const double gamma,
-                 const double upsilon, const double mu, double **shape,
-                 double **well, double **cutsq, double **sigma, 
-                 double **epsilon, double *host_lshape, int **form,
-                 double **host_lj1, double **host_lj2, double **host_lj3, 
-                 double **host_lj4, double **offset, double *special_lj, 
-                 const int nlocal, const int nall, const int max_nbors, 
-                 const int thread, const int gpu_id);
-typedef void (*_gb_gpu_clear)(const int thread);
-typedef int * (*_gb_gpu_reset_nbors)(const int nall, const int nlocal, 
-                 const int inum, int *ilist, const int *numj, const int *type,
-                 const int thread, bool &success);
-typedef void (*_gb_gpu_nbors)(const int *ij, const int num_ij, const bool eflag, 
-                 const int thread);
-typedef void (*_gb_gpu_atom)(double **host_x, double **host_quat, 
-                 const int *host_type, const bool rebuild, const int thread);
-typedef void (*_gb_gpu_gayberne)(const bool eflag, const bool vflag, 
-                 const bool rebuild, const int thread);
-typedef double (*_gb_gpu_forces)(double **f, double **tor, const int *ilist,
-                 const bool eflag, const bool vflag, const bool eflag_atom,
-                 const bool vflag_atom, double *eatom, double **vatom,
-                 double *virial, const int thread);
-typedef void (*_gb_gpu_name)(const int gpu_id, const int max_nbors, 
-                 char * name);
-typedef void (*_gb_gpu_time)(const int thread);
-typedef int (*_gb_gpu_num_devices)();
-typedef double (*_gb_gpu_bytes)();
-
-_gb_gpu_init gb_gpu_init;
-_gb_gpu_clear gb_gpu_clear;
-_gb_gpu_reset_nbors gb_gpu_reset_nbors;
-_gb_gpu_nbors gb_gpu_nbors;
-_gb_gpu_atom gb_gpu_atom;
-_gb_gpu_gayberne gb_gpu_gayberne;
-_gb_gpu_forces gb_gpu_forces;
-_gb_gpu_name gb_gpu_name;
-_gb_gpu_time gb_gpu_time;
-_gb_gpu_num_devices gb_gpu_num_devices;
-_gb_gpu_bytes gb_gpu_bytes;
-
-#endif
 
 using namespace LAMMPS_NS;
 
+enum{SPHERE_SPHERE,SPHERE_ELLIPSE,ELLIPSE_SPHERE,ELLIPSE_ELLIPSE};
+
 /* ---------------------------------------------------------------------- */
 
-PairGayBerneGPU::PairGayBerneGPU(LAMMPS *lmp) : PairGayBerne(lmp), my_thread(0),
-                                                omp_chunk(0), nthreads(1),
-                                                multi_gpu_mode(ONE_NODE),
-                                                multi_gpu_param(0),
-                                                output_time(false)
+PairGayBerneGPU::PairGayBerneGPU(LAMMPS *lmp) : PairGayBerne(lmp),
+                                                gpu_mode(GPU_PAIR)
 {
-  ij_new[0]=NULL;
-  
-#ifdef WINDLL
-  HINSTANCE hinstLib = LoadLibrary(TEXT("gpu.dll"));
-  if (hinstLib == NULL) {
-    printf("\nUnable to load gpu.dll\n");
-    exit(1);
-  }
-
-  gb_gpu_init=(_gb_gpu_init)GetProcAddress(hinstLib,"gb_gpu_init");
-  gb_gpu_clear=(_gb_gpu_clear)GetProcAddress(hinstLib,"gb_gpu_clear");
-  gb_gpu_reset_nbors=(_gb_gpu_reset_nbors)GetProcAddress(hinstLib,"gb_gpu_reset_nbors");
-  gb_gpu_nbors=(_gb_gpu_nbors)GetProcAddress(hinstLib,"gb_gpu_nbors");
-  gb_gpu_atom=(_gb_gpu_atom)GetProcAddress(hinstLib,"gb_gpu_atom");
-  gb_gpu_gayberne=(_gb_gpu_gayberne)GetProcAddress(hinstLib,"gb_gpu_gayberne");
-  gb_gpu_forces=(_gb_gpu_forces)GetProcAddress(hinstLib,"gb_gpu_forces");
-  gb_gpu_name=(_gb_gpu_name)GetProcAddress(hinstLib,"gb_gpu_name");
-  gb_gpu_time=(_gb_gpu_time)GetProcAddress(hinstLib,"gb_gpu_time");
-  gb_gpu_num_devices=(_gb_gpu_num_devices)GetProcAddress(hinstLib,"gb_gpu_num_devices");
-  gb_gpu_bytes=(_gb_gpu_bytes)GetProcAddress(hinstLib,"gb_gpu_bytes");
-#endif
 }
 
 /* ----------------------------------------------------------------------
@@ -156,26 +80,8 @@ PairGayBerneGPU::PairGayBerneGPU(LAMMPS *lmp) : PairGayBerne(lmp), my_thread(0),
 
 PairGayBerneGPU::~PairGayBerneGPU()
 {
-  if (output_time) {
-    printf("\n\n-------------------------------------");
-    printf("--------------------------------\n");
-    printf("      GPU Time Stamps (on proc 0): ");
-    printf("\n-------------------------------------");
-    printf("--------------------------------\n");
-    gb_gpu_time(my_thread);
-    printf("-------------------------------------");
-    printf("--------------------------------\n\n");
-  }
-  
-  #pragma omp parallel
-  {
-    #ifdef GB_GPU_OMP
-    int my_thread=omp_get_thread_num();
-    #endif
-    gb_gpu_clear(my_thread);
-    if (ij_new[my_thread]!=NULL)
-      delete [] ij_new[my_thread];
-  }
+  gb_gpu_clear();
+  cpu_time = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -183,141 +89,38 @@ PairGayBerneGPU::~PairGayBerneGPU()
 void PairGayBerneGPU::compute(int eflag, int vflag)
 {
   if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = eflag_atom = vflag_atom = 0;
-  if (vflag_atom) 
-    error->all("Per-atom virial not available with GPU Gay-Berne");
+  else evflag = vflag_fdotr = 0;
 
-  int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
-  int inum = list->inum;
-  
-  bool rebuild=false;
-  if (neighbor->ncalls > last_neighbor) {
-    last_neighbor=neighbor->ncalls;
-    rebuild=true;
+  int nall = atom->nlocal + atom->nghost;
+  int inum, host_start;
+
+  bool success = true;
+
+  if (gpu_mode == GPU_NEIGH) {
+    inum = atom->nlocal;
+    gpulist = gb_gpu_compute_n(update->ntimestep, neighbor->ago, inum, nall,
+			       atom->x, atom->type, domain->sublo, domain->subhi,
+			       eflag, vflag, eflag_atom, vflag_atom, host_start,
+                               cpu_time, success, atom->quat);
+  } else {
+    inum = list->inum;
+    olist = gb_gpu_compute(update->ntimestep, neighbor->ago, inum, nall, atom->x,
+			   atom->type, list->ilist, list->numneigh,
+			   list->firstneigh, eflag, vflag, eflag_atom,
+                           vflag_atom, host_start, cpu_time, success,
+                           atom->quat);
   }
-  
-  #pragma omp parallel
-  {
-    
-  bool success=true;
-  #ifdef GB_GPU_OMP
-  int my_thread=omp_get_thread_num();
-  if (rebuild) {
-    omp_chunk=static_cast<int>(ceil(static_cast<double>(inum)/nthreads));
-    if (my_thread==nthreads-1)
-      thread_inum[my_thread]=inum-(nthreads-1)*omp_chunk;
-    else
-      thread_inum[my_thread]=omp_chunk;
-    olist[my_thread]=gb_gpu_reset_nbors(nall, atom->nlocal, 
-                                        thread_inum[my_thread],  
-                                        list->ilist+omp_chunk*my_thread, 
-                                        list->numneigh, atom->type, my_thread,
-                                        success);
-  }
-  #else
-  if (rebuild)
-    olist[my_thread]=gb_gpu_reset_nbors(nall, atom->nlocal, inum, list->ilist, 
-                                        list->numneigh, atom->type, my_thread,
-                                        success);
-  #endif
   if (!success)
     error->one("Out of memory on GPGPU");
-  
-  // copy atom data to GPU
-  gb_gpu_atom(atom->x,atom->quat,atom->type,rebuild,my_thread);
 
-  int i,j,ii,jj,jnum;
-  double factor_lj;
-  int *jlist;
-
-  if (rebuild==true) {
-    int num_ij = 0;
-
-    // loop over neighbors of my atoms
-    int *ijp=ij_new[my_thread];
-    #ifdef GB_GPU_OMP
-    int mgo=my_thread*omp_chunk;
-    int mgot=mgo+thread_inum[my_thread];
-    #else
-    int mgo=0, mgot=inum;
-    #endif
-    for (ii = mgo; ii<mgot; ii++) {
-      i = olist[my_thread][ii];
-      jlist = list->firstneigh[i];
-      jnum = list->numneigh[i];
-      
-      for (jj = 0; jj < jnum; jj++) {
-        j = jlist[jj];
-
-        *ijp=j;
-        ijp++;
-        num_ij++;
-          
-        if (num_ij==ij_size) {
-          gb_gpu_nbors(ij_new[my_thread],num_ij,eflag,my_thread);
-          ijp=ij_new[my_thread];
-          num_ij=0;
-        }
-      }
-    }
-    if (num_ij>0)
-      gb_gpu_nbors(ij_new[my_thread],num_ij,eflag,my_thread);
+  if (host_start < inum) {
+    cpu_time = MPI_Wtime();
+    if (gpu_mode == GPU_NEIGH)
+      cpu_compute(gpulist,host_start,eflag,vflag);
+    else
+      cpu_compute(host_start,eflag,vflag);
+    cpu_time = MPI_Wtime() - cpu_time;
   }
-  
-  gb_gpu_gayberne(eflag,vflag,rebuild,my_thread);
-  double lvirial[6];
-  for (int i=0; i<6; i++) lvirial[i]=0.0;
-  double my_eng=gb_gpu_forces(atom->f,atom->torque,olist[my_thread],eflag,vflag,
-                              eflag_atom, vflag_atom, eatom, vatom, lvirial,
-                              my_thread);
-  #pragma omp critical
-  {
-    eng_vdwl+=my_eng;
-    virial[0]+=lvirial[0];
-    virial[1]+=lvirial[1];
-    virial[2]+=lvirial[2];
-    virial[3]+=lvirial[3];
-    virial[4]+=lvirial[4];
-    virial[5]+=lvirial[5];
-  }
-  
-  } //End parallel
-  
-  if (vflag_fdotr) virial_compute();
-}
-
-/* ----------------------------------------------------------------------
-   global settings
-------------------------------------------------------------------------- */
-
-void PairGayBerneGPU::settings(int narg, char **arg)
-{
-  // strip off GPU keyword/value and send remaining args to parent
-
-  if (narg < 2) error->all("Illegal pair_style command");
-  
-  // set multi_gpu_mode to one/node for multiple gpus on 1 node
-  // -- param is starting gpu id
-  // set multi_gpu_mode to one/gpu to select the same gpu id on every node
-  // -- param is id of gpu
-  // set multi_gpu_mode to multi/gpu to get ma
-  // -- param is number of gpus per node
-
-  if (strcmp(arg[0],"one/node") == 0)
-    multi_gpu_mode = ONE_NODE;
-  else if (strcmp(arg[0],"one/gpu") == 0)
-    multi_gpu_mode = ONE_GPU;
-  else if (strcmp(arg[0],"multi/gpu") == 0)
-    multi_gpu_mode = MULTI_GPU;
-  else error->all("Illegal pair_style command");
-
-  multi_gpu_param = atoi(arg[1]);
-
-  if (multi_gpu_mode == MULTI_GPU && multi_gpu_param < 1)
-    error->all("Illegal pair_style command");
-
-  PairGayBerne::settings(narg-2,&arg[2]);
 }
 
 /* ----------------------------------------------------------------------
@@ -326,8 +129,6 @@ void PairGayBerneGPU::settings(int narg, char **arg)
 
 void PairGayBerneGPU::init_style()
 {
-  if (comm->me == 0)
-    output_time=true;
   if (force->pair_match("gpu",0) == NULL)
     error->all("Cannot use pair hybrid with multiple GPU pair styles");
   if (!atom->quat_flag || !atom->torque_flag || !atom->avec->shape_type)
@@ -335,24 +136,7 @@ void PairGayBerneGPU::init_style()
   if (atom->radius_flag)
     error->all("Pair gayberne cannot be used with atom attribute diameter");
 
-  // set the GPU ID
-
-  int my_gpu=comm->me+multi_gpu_param;
-  int ngpus=universe->nprocs;
-  if (multi_gpu_mode==ONE_GPU) {
-    my_gpu=multi_gpu_param;
-    ngpus=1;
-  } else if (multi_gpu_mode==MULTI_GPU) {
-    ngpus=multi_gpu_param;
-    my_gpu=comm->me%ngpus;
-    if (ngpus>universe->nprocs)
-      ngpus=universe->nprocs;
-  }
-
-  int irequest = neighbor->request(this);
-
   // per-type shape precalculations
-
   for (int i = 1; i <= atom->ntypes; i++) {
     if (setwell[i]) {
       double *one = atom->shape[i];
@@ -364,72 +148,38 @@ void PairGayBerneGPU::init_style()
   }
 
   // Repeat cutsq calculation because done after call to init_style
+  double maxcut = -1.0;
   double cut;
-  for (int i = 1; i <= atom->ntypes; i++)
+  for (int i = 1; i <= atom->ntypes; i++) {
     for (int j = i; j <= atom->ntypes; j++) {
-      cut = init_one(i,j);
-      cutsq[i][j] = cutsq[j][i] = cut*cut;
+      if (setflag[i][j] != 0 || (setflag[i][i] != 0 && setflag[j][j] != 0)) {
+        cut = init_one(i,j);
+        cut *= cut;
+        if (cut > maxcut)
+          maxcut = cut;
+        cutsq[i][j] = cutsq[j][i] = cut;
+      } else
+        cutsq[i][j] = cutsq[j][i] = 0.0;
     }
+  }
 
-  // If compiled with OpenMP and only 1 proc, try to use multiple GPUs w/threads
-  #ifdef GB_GPU_OMP
-  if (multi_gpu_mode!=ONE_GPU)
-    nthreads=ngpus=gb_gpu_num_devices();
-  else
-    nthreads=ngpus=1;
-  if (nthreads>MAX_GPU_THREADS)
-    nthreads=MAX_GPU_THREADS;
-  omp_set_num_threads(nthreads);
-  #endif
-    
-  #pragma omp parallel firstprivate(my_gpu)
-  {
-    #ifdef GB_GPU_OMP
-    int my_thread = omp_get_thread_num();
-    if (multi_gpu_mode!=ONE_GPU)
-      my_gpu=my_thread;
-    if (multi_gpu_mode==ONE_NODE)
-      my_gpu+=multi_gpu_param;
-    #endif
-    
-    bool init_ok=gb_gpu_init(ij_size, atom->ntypes+1, gamma, upsilon, mu, 
+  double cell_size = sqrt(maxcut) + neighbor->skin;
+
+  bool init_ok = gb_gpu_init(atom->ntypes+1, gamma, upsilon, mu, 
                              shape, well, cutsq, sigma, epsilon, lshape, form,
                              lj1, lj2, lj3, lj4, offset, force->special_lj, 
                              atom->nlocal, atom->nlocal+atom->nghost, 300, 
-                             my_thread, my_gpu);
-    if (!init_ok)
-      error->one("At least 1 proc could not allocate a CUDA gpu or memory");
-    
-    if (ij_new[my_thread]!=NULL)
-      delete [] ij_new[my_thread];
-    ij_new[my_thread]=new int[ij_size];
-  }
-  
-  last_neighbor = -1;
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
+                             cell_size, gpu_mode, screen);
+  if (!init_ok)
+    error->one("Insufficient memory on accelerator (or no fix gpu).");
+
   if (force->newton_pair) 
-    error->all("Cannot use newton pair with GPU GayBerne pair style");
+    error->all("Cannot use newton pair with GPU Gay-Berne pair style");
 
-  if (comm->me == 0 && screen) {
-    printf("\n-------------------------------------");
-    printf("-------------------------------------\n");
-    printf("- Using GPGPU acceleration for Gay-Berne:\n");
-    printf("-------------------------------------");
-    printf("-------------------------------------\n");
-
-    for (int i=0; i<ngpus; i++) {
-      int gpui=my_gpu;
-      if (multi_gpu_mode==ONE_NODE)
-        gpui=i+multi_gpu_param;
-      else if (multi_gpu_mode==MULTI_GPU)
-        gpui=i;
-      char gpu_string[500];
-      gb_gpu_name(gpui,neighbor->oneatom,gpu_string);
-      printf("GPU %d: %s\n",gpui,gpu_string);         
-    }
-    printf("-------------------------------------");
-    printf("-------------------------------------\n\n");
+  if (gpu_mode != GPU_NEIGH) {
+    int irequest = neighbor->request(this);
+    neighbor->requests[irequest]->half = 0;
+    neighbor->requests[irequest]->full = 1;
   }
 }
 
@@ -437,6 +187,275 @@ void PairGayBerneGPU::init_style()
 
 double PairGayBerneGPU::memory_usage()
 {
-  double bytes=Pair::memory_usage()+nthreads*ij_size*sizeof(int);
-  return bytes+gb_gpu_bytes();
+  double bytes = Pair::memory_usage();
+  return bytes + gb_gpu_bytes();
 }
+
+/* ---------------------------------------------------------------------- */
+
+void PairGayBerneGPU::cpu_compute(int start, int eflag, int vflag)
+{
+  int i,j,ii,jj,inum,jnum,itype,jtype;
+  double evdwl,one_eng,rsq,r2inv,r6inv,forcelj,factor_lj;
+  double fforce[3],ttor[3],rtor[3],r12[3];
+  double a1[3][3],b1[3][3],g1[3][3],a2[3][3],b2[3][3],g2[3][3],temp[3][3];
+  int *ilist,*jlist,*numneigh,**firstneigh;
+
+  double **x = atom->x;
+  double **f = atom->f;
+  double **quat = atom->quat;
+  double **tor = atom->torque;
+  int *type = atom->type;
+  int nlocal = atom->nlocal;
+  int nall = nlocal + atom->nghost;
+  double *special_lj = force->special_lj;
+
+  inum = list->inum;
+  ilist = olist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
+  
+  // loop over neighbors of my atoms
+
+  for (ii = start; ii < inum; ii++) {
+    i = ilist[ii];
+    itype = type[i];
+
+    if (form[itype][itype] == ELLIPSE_ELLIPSE) {
+      MathExtra::quat_to_mat_trans(quat[i],a1);
+      MathExtra::diag_times3(well[itype],a1,temp);
+      MathExtra::transpose_times3(a1,temp,b1);
+      MathExtra::diag_times3(shape[itype],a1,temp);
+      MathExtra::transpose_times3(a1,temp,g1);
+    }
+
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
+
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
+
+      if (j < nall) factor_lj = 1.0;
+      else {
+        factor_lj = special_lj[j/nall];
+        j %= nall;
+      }
+
+      // r12 = center to center vector
+
+      r12[0] = x[j][0]-x[i][0];
+      r12[1] = x[j][1]-x[i][1];
+      r12[2] = x[j][2]-x[i][2];
+      rsq = MathExtra::dot3(r12,r12);
+      jtype = type[j];
+
+      // compute if less than cutoff
+
+      if (rsq < cutsq[itype][jtype]) {
+
+	switch (form[itype][jtype]) {
+	case SPHERE_SPHERE:
+	  r2inv = 1.0/rsq;
+	  r6inv = r2inv*r2inv*r2inv;
+	  forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
+	  forcelj *= -r2inv;
+	  if (eflag) one_eng = 
+	    r6inv*(r6inv*lj3[itype][jtype]-lj4[itype][jtype]) -
+	    offset[itype][jtype];
+	  fforce[0] = r12[0]*forcelj;
+	  fforce[1] = r12[1]*forcelj;
+	  fforce[2] = r12[2]*forcelj;
+	  ttor[0] = ttor[1] = ttor[2] = 0.0;
+	  rtor[0] = rtor[1] = rtor[2] = 0.0;
+	  break;
+
+        case SPHERE_ELLIPSE:
+	  MathExtra::quat_to_mat_trans(quat[j],a2);
+	  MathExtra::diag_times3(well[jtype],a2,temp);
+	  MathExtra::transpose_times3(a2,temp,b2);
+	  MathExtra::diag_times3(shape[jtype],a2,temp);
+	  MathExtra::transpose_times3(a2,temp,g2);
+	  one_eng = gayberne_lj(j,i,a2,b2,g2,r12,rsq,fforce,rtor);
+	  ttor[0] = ttor[1] = ttor[2] = 0.0;
+	  break;
+
+        case ELLIPSE_SPHERE:
+	  one_eng = gayberne_lj(i,j,a1,b1,g1,r12,rsq,fforce,ttor);
+	  rtor[0] = rtor[1] = rtor[2] = 0.0;
+	  break;
+
+	default:
+	  MathExtra::quat_to_mat_trans(quat[j],a2);
+	  MathExtra::diag_times3(well[jtype],a2,temp);
+	  MathExtra::transpose_times3(a2,temp,b2);
+	  MathExtra::diag_times3(shape[jtype],a2,temp);
+	  MathExtra::transpose_times3(a2,temp,g2);
+	  one_eng = gayberne_analytic(i,j,a1,a2,b1,b2,g1,g2,r12,rsq,
+				      fforce,ttor,rtor);
+	  break;
+	}
+
+        fforce[0] *= factor_lj;
+	fforce[1] *= factor_lj;
+	fforce[2] *= factor_lj;
+        ttor[0] *= factor_lj;
+	ttor[1] *= factor_lj;
+	ttor[2] *= factor_lj;
+
+        f[i][0] += fforce[0];
+	f[i][1] += fforce[1];
+	f[i][2] += fforce[2];
+        tor[i][0] += ttor[0];
+	tor[i][1] += ttor[1];
+	tor[i][2] += ttor[2];
+
+        if (eflag) evdwl = factor_lj*one_eng;
+
+	if (evflag) ev_tally_xyz_full(i,evdwl,0.0,fforce[0],fforce[1],fforce[2],
+				      -r12[0],-r12[1],-r12[2]);
+      }
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairGayBerneGPU::cpu_compute(int *nbors, int start, int eflag, int vflag)
+{
+  int i,j,itype,jtype;
+  double evdwl,one_eng,rsq,r2inv,r6inv,forcelj,factor_lj;
+  double fforce[3],ttor[3],rtor[3],r12[3];
+  double a1[3][3],b1[3][3],g1[3][3],a2[3][3],b2[3][3],g2[3][3],temp[3][3];
+
+  double **x = atom->x;
+  double **f = atom->f;
+  double **quat = atom->quat;
+  double **tor = atom->torque;
+  int *type = atom->type;
+  int nlocal = atom->nlocal;
+  int nall = nlocal + atom->nghost;
+  int stride = nlocal-start;
+  double *special_lj = force->special_lj;
+
+  // loop over neighbors of my atoms
+
+  for (i = start; i < nlocal; i++) {
+    itype = type[i];
+
+    if (form[itype][itype] == ELLIPSE_ELLIPSE) {
+      MathExtra::quat_to_mat_trans(quat[i],a1);
+      MathExtra::diag_times3(well[itype],a1,temp);
+      MathExtra::transpose_times3(a1,temp,b1);
+      MathExtra::diag_times3(shape[itype],a1,temp);
+      MathExtra::transpose_times3(a1,temp,g1);
+    }
+
+    int *nbor = nbors+i-start;
+    int jnum =* nbor;
+    nbor += stride;
+    int *nbor_end = nbor + stride * jnum;
+
+    for ( ; nbor < nbor_end; nbor += stride) {
+      j = *nbor;
+
+      if (j < nall) factor_lj = 1.0;
+      else {
+        factor_lj = special_lj[j/nall];
+        j %= nall;
+      }
+
+      // r12 = center to center vector
+
+      r12[0] = x[j][0]-x[i][0];
+      r12[1] = x[j][1]-x[i][1];
+      r12[2] = x[j][2]-x[i][2];
+      rsq = MathExtra::dot3(r12,r12);
+      jtype = type[j];
+
+      // compute if less than cutoff
+
+      if (rsq < cutsq[itype][jtype]) {
+
+	switch (form[itype][jtype]) {
+	case SPHERE_SPHERE:
+	  r2inv = 1.0/rsq;
+	  r6inv = r2inv*r2inv*r2inv;
+	  forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
+	  forcelj *= -r2inv;
+	  if (eflag) one_eng = 
+	    r6inv*(r6inv*lj3[itype][jtype]-lj4[itype][jtype]) -
+	    offset[itype][jtype];
+	  fforce[0] = r12[0]*forcelj;
+	  fforce[1] = r12[1]*forcelj;
+	  fforce[2] = r12[2]*forcelj;
+	  ttor[0] = ttor[1] = ttor[2] = 0.0;
+	  rtor[0] = rtor[1] = rtor[2] = 0.0;
+	  break;
+
+        case SPHERE_ELLIPSE:
+	  MathExtra::quat_to_mat_trans(quat[j],a2);
+	  MathExtra::diag_times3(well[jtype],a2,temp);
+	  MathExtra::transpose_times3(a2,temp,b2);
+	  MathExtra::diag_times3(shape[jtype],a2,temp);
+	  MathExtra::transpose_times3(a2,temp,g2);
+	  one_eng = gayberne_lj(j,i,a2,b2,g2,r12,rsq,fforce,rtor);
+	  ttor[0] = ttor[1] = ttor[2] = 0.0;
+	  break;
+
+        case ELLIPSE_SPHERE:
+	  one_eng = gayberne_lj(i,j,a1,b1,g1,r12,rsq,fforce,ttor);
+	  rtor[0] = rtor[1] = rtor[2] = 0.0;
+	  break;
+
+	default:
+	  MathExtra::quat_to_mat_trans(quat[j],a2);
+	  MathExtra::diag_times3(well[jtype],a2,temp);
+	  MathExtra::transpose_times3(a2,temp,b2);
+	  MathExtra::diag_times3(shape[jtype],a2,temp);
+	  MathExtra::transpose_times3(a2,temp,g2);
+	  one_eng = gayberne_analytic(i,j,a1,a2,b1,b2,g1,g2,r12,rsq,
+				      fforce,ttor,rtor);
+	  break;
+	}
+
+        fforce[0] *= factor_lj;
+	fforce[1] *= factor_lj;
+	fforce[2] *= factor_lj;
+        ttor[0] *= factor_lj;
+	ttor[1] *= factor_lj;
+	ttor[2] *= factor_lj;
+
+        f[i][0] += fforce[0];
+	f[i][1] += fforce[1];
+	f[i][2] += fforce[2];
+        tor[i][0] += ttor[0];
+	tor[i][1] += ttor[1];
+	tor[i][2] += ttor[2];
+
+        if (eflag) evdwl = factor_lj*one_eng;
+
+        if (j<start) { 
+  	  if (evflag) ev_tally_xyz_full(i,evdwl,0.0,fforce[0],fforce[1],
+				        fforce[2],-r12[0],-r12[1],-r12[2]);
+        } else {
+          if (j < nlocal) {
+            rtor[0] *= factor_lj;
+	    rtor[1] *= factor_lj;
+	    rtor[2] *= factor_lj;
+            f[j][0] -= fforce[0];
+	    f[j][1] -= fforce[1];
+	    f[j][2] -= fforce[2];
+            tor[j][0] += rtor[0];
+	    tor[j][1] += rtor[1];
+	    tor[j][2] += rtor[2];
+          }
+  	  if (evflag) ev_tally_xyz(i,j,nlocal,0,
+	  			   evdwl,0.0,fforce[0],fforce[1],fforce[2],
+				   -r12[0],-r12[1],-r12[2]);
+        }
+      }
+    }
+  }
+}
+
+

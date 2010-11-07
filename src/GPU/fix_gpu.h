@@ -11,38 +11,35 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef PAIR_CLASS
+#ifdef FIX_CLASS
 
-PairStyle(lj/cut/gpu,PairLJCutGPU)
+FixStyle(gpu,FixGPU)
 
 #else
 
-#ifndef LMP_PAIR_LJ_LIGHT_GPU_H
-#define LMP_PAIR_LJ_LIGHT_GPU_H
+#ifndef LMP_FIX_GPU_H
+#define LMP_FIX_GPU_H
 
-#include "pair_lj_cut.h"
+#include "fix.h"
 
 namespace LAMMPS_NS {
 
-class PairLJCutGPU : public PairLJCut {
+class FixGPU : public Fix {
  public:
-  PairLJCutGPU(LAMMPS *lmp);
-  ~PairLJCutGPU();
-  void cpu_compute(int, int, int);
-  void cpu_compute(int *, int, int, int);
-  void compute(int, int);
-  void init_style();
+  FixGPU(class LAMMPS *, int, char **);
+  ~FixGPU();
+  int setmask();
+  void init();
+  void setup(int);
+  void min_setup(int);
+  void post_force(int);
+  void min_post_force(int);
   double memory_usage();
 
- enum { GPU_PAIR, GPU_NEIGH };
-
  private:
-  int gpu_mode;
-  double cpu_time;
-  int *gpulist;
 };
 
 }
-#endif
-#endif
 
+#endif
+#endif

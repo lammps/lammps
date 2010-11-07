@@ -1,0 +1,98 @@
+# shampoo = Fedora 12 x86_64 Linux box, all native rpms, gfortran 4.4, g++ 4.4/3.4,
+#           OpenMPI-1.4.1, FFTW-2.1.5, BLAS/LAPACK-3.2.1
+
+SHELL = /bin/sh
+
+# ---------------------------------------------------------------------
+# compiler/linker settings
+# generally no need to edit this section
+# unless additional compiler/linker flags or libraries needed for your machine
+
+OMPI_HOME=/usr/lib64/openmpi
+CC =		$(OMPI_HOME)/bin/mpicxx
+CCFLAGS =	-O2 -fno-rtti -fno-exceptions -march=native -ffast-math -mpc64 -funroll-loops -fstrict-aliasing -Wall 
+DEPFLAGS =	-M
+LINK =		$(CC)
+LINKFLAGS =	-O2 -march=native 
+LIB =           
+ARCHIVE =	ar
+ARFLAGS =	-rc
+SIZE =		size
+
+# ---------------------------------------------------------------------
+# LAMMPS-specific settings
+# edit as needed for your machine
+
+# LAMMPS ifdef options, see doc/Section_start.html
+
+LMP_INC =	-DLAMMPS_GZIP
+
+# MPI library, can be src/STUBS dummy lib
+# INC = path for mpi.h, MPI compiler settings
+# PATH = path for MPI library
+# LIB = name of MPI library
+
+MPI_INC =       
+MPI_PATH =	
+MPI_LIB =	-Wl,-rpath,$(OMPI_HOME)/lib
+
+# FFT library, can be -DFFT_NONE if not using PPPM from kspace package
+# INC = -DFFT_FFTW, -DFFT_INTEL, -DFFT_NONE, etc, FFT compiler settings
+# PATH = path for FFT library
+# LIB = name of FFT library
+
+FFT_INC =       -DFFT_FFTW
+FFT_PATH = 
+FFT_LIB =       -lfftw
+
+# additional system libraries needed by LAMMPS package libraries
+# these settings are IGNORED if the corresponding LAMMPS package
+#   (e.g. gpu, meam) is NOT included in the LAMMPS build
+# SYSLIB = names of libraries
+# SYSPATH = paths of libraries
+
+#CUDA_HOME = $(HOME)/cuda-2.3
+CUDA_HOME = $(HOME)/cuda
+gpu_SYSLIB =      -lgpu -lcudart -lcuda
+meam_SYSLIB =      -lgfortran
+reax_SYSLIB =      -lgfortran
+user-atc_SYSLIB =  -lblas -llapack
+
+gpu_SYSPATH =      -L$(CUDA_HOME)/lib64 -L/usr/lib64/nvidia -Wl,-rpath,$(CUDA_HOME)/lib64:/usr/lib64/nvidia
+meam_SYSPATH =     
+reax_SYSPATH =     
+user-atc_SYSPATH = 	
+
+# ---------------------------------------------------------------------
+# build rules and dependencies
+# no need to edit this section
+
+include	Makefile.package
+
+EXTRA_INC = $(LMP_INC) $(PKG_INC) $(MPI_INC) $(FFT_INC)
+EXTRA_PATH = $(PKG_PATH) $(MPI_PATH) $(FFT_PATH) $(PKG_SYSPATH)
+EXTRA_LIB = $(PKG_LIB) $(MPI_LIB) $(FFT_LIB) $(PKG_SYSLIB)
+
+# Link target
+
+$(EXE):	$(OBJ)
+	$(LINK) $(LINKFLAGS) $(EXTRA_PATH) $(OBJ) $(EXTRA_LIB) $(LIB) -o $(EXE)
+	$(SIZE) $(EXE)
+
+# Library target
+
+lib:	$(OBJ)
+	$(ARCHIVE) $(ARFLAGS) $(EXE) $(OBJ)
+
+# Compilation rules
+
+%.o:%.cpp
+	$(CC) $(CCFLAGS) $(EXTRA_INC) -c $<
+
+%.d:%.cpp
+	$(CC) $(CCFLAGS) $(EXTRA_INC) $(DEPFLAGS) $< > $@
+
+# Individual dependencies
+
+DEPENDS = $(OBJ:.o=.d)
+include $(DEPENDS)

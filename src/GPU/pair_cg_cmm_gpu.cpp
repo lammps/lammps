@@ -18,7 +18,7 @@
 #include "math.h"
 #include "stdio.h"
 #include "stdlib.h"
-#include "pair_lj_cut_gpu.h"
+#include "pair_cg_cmm_gpu.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "comm.h"
@@ -39,31 +39,32 @@
 
 // External functions from cuda library for atom decomposition
 
-bool ljl_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
-                  double **host_lj2, double **host_lj3, double **host_lj4, 
-                  double **offset, double *special_lj, const int nlocal, 
-                  const int nall, const int max_nbors, const int maxspecial,
-                  const double cell_size, int &gpu_mode, FILE *screen);
-void ljl_gpu_clear();
-int * ljl_gpu_compute_n(const int timestep, const int ago, const int inum,
+bool cmm_gpu_init(const int ntypes, double **cutsq, int **cg_types, 
+                  double **host_lj1, double **host_lj2, double **host_lj3,
+                  double **host_lj4, double **offset, double *special_lj,
+                  const int nlocal, const int nall, const int max_nbors,
+                  const int maxspecial, const double cell_size, int &gpu_mode,
+                  FILE *screen);
+void cmm_gpu_clear();
+int * cmm_gpu_compute_n(const int timestep, const int ago, const int inum,
 	 	        const int nall, double **host_x, int *host_type, 
                         double *boxlo, double *boxhi, int *tag, int **nspecial,
                         int **special, const bool eflag, const bool vflag,
                         const bool eatom, const bool vatom, int &host_start,
                         const double cpu_time, bool &success);
-void ljl_gpu_compute(const int timestep, const int ago, const int inum,
+void cmm_gpu_compute(const int timestep, const int ago, const int inum,
 	 	     const int nall, double **host_x, int *host_type,
                      int *ilist, int *numj, int **firstneigh,
 		     const bool eflag, const bool vflag, const bool eatom,
                      const bool vatom, int &host_start, const double cpu_time,
                      bool &success);
-double ljl_gpu_bytes();
+double cmm_gpu_bytes();
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutGPU::PairLJCutGPU(LAMMPS *lmp) : PairLJCut(lmp), gpu_mode(GPU_PAIR)
+PairCGCMMGPU::PairCGCMMGPU(LAMMPS *lmp) : PairCGCMM(lmp), gpu_mode(GPU_PAIR)
 {
   respa_enable = 0;
   cpu_time = 0.0;
@@ -73,14 +74,14 @@ PairLJCutGPU::PairLJCutGPU(LAMMPS *lmp) : PairLJCut(lmp), gpu_mode(GPU_PAIR)
    free all arrays
 ------------------------------------------------------------------------- */
 
-PairLJCutGPU::~PairLJCutGPU()
+PairCGCMMGPU::~PairCGCMMGPU()
 {
-  ljl_gpu_clear();
+  cmm_gpu_clear();
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJCutGPU::compute(int eflag, int vflag)
+void PairCGCMMGPU::compute(int eflag, int vflag)
 {
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
@@ -92,14 +93,14 @@ void PairLJCutGPU::compute(int eflag, int vflag)
   
   if (gpu_mode == GPU_NEIGH) {
     inum = atom->nlocal;
-    gpulist = ljl_gpu_compute_n(update->ntimestep, neighbor->ago, inum, nall,
+    gpulist = cmm_gpu_compute_n(update->ntimestep, neighbor->ago, inum, nall,
 			        atom->x, atom->type, domain->sublo,
 				domain->subhi, atom->tag, atom->nspecial,
                                 atom->special, eflag, vflag, eflag_atom,
                                 vflag_atom, host_start, cpu_time, success);
   } else {
     inum = list->inum;
-    ljl_gpu_compute(update->ntimestep, neighbor->ago, inum, nall, atom->x,
+    cmm_gpu_compute(update->ntimestep, neighbor->ago, inum, nall, atom->x,
 		    atom->type, list->ilist, list->numneigh, list->firstneigh,
 		    eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time,
                     success);
@@ -121,7 +122,7 @@ void PairLJCutGPU::compute(int eflag, int vflag)
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
-void PairLJCutGPU::init_style()
+void PairCGCMMGPU::init_style()
 {
   cut_respa = NULL;
 
@@ -148,7 +149,7 @@ void PairLJCutGPU::init_style()
   int maxspecial=0;
   if (atom->molecular)
     maxspecial=atom->maxspecial;
-  bool init_ok = ljl_gpu_init(atom->ntypes+1, cutsq, lj1, lj2, lj3, lj4,
+  bool init_ok = cmm_gpu_init(atom->ntypes+1,cutsq,cg_type,lj1,lj2,lj3,lj4,
                               offset, force->special_lj, atom->nlocal,
                               atom->nlocal+atom->nghost, 300, maxspecial,
                               cell_size, gpu_mode, screen);
@@ -156,7 +157,7 @@ void PairLJCutGPU::init_style()
     error->one("Insufficient memory on accelerator (or no fix gpu).\n"); 
 
   if (force->newton_pair) 
-    error->all("Cannot use newton pair with GPU LJ pair style");
+    error->all("Cannot use newton pair with GPU CGCMM pair style");
 
   if (gpu_mode != GPU_NEIGH) {
     int irequest = neighbor->request(this);
@@ -167,15 +168,15 @@ void PairLJCutGPU::init_style()
 
 /* ---------------------------------------------------------------------- */
 
-double PairLJCutGPU::memory_usage()
+double PairCGCMMGPU::memory_usage()
 {
   double bytes = Pair::memory_usage();
-  return bytes + ljl_gpu_bytes();
+  return bytes + cmm_gpu_bytes();
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJCutGPU::cpu_compute(int start, int eflag, int vflag) {
+void PairCGCMMGPU::cpu_compute(int start, int eflag, int vflag) {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq,r2inv,r6inv,forcelj,factor_lj;
@@ -220,20 +221,42 @@ void PairLJCutGPU::cpu_compute(int start, int eflag, int vflag) {
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-	r2inv = 1.0/rsq;
-	r6inv = r2inv*r2inv*r2inv;
-	forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-	fpair = factor_lj*forcelj*r2inv;
+        const int cgt=cg_type[itype][jtype];
+        r2inv = 1.0/rsq;
+
+	fpair = factor_lj;
+	if (eflag) evdwl = factor_lj;
+	if (cgt == CG_LJ12_4) {
+	  const double r4inv = r2inv*r2inv;
+	  fpair *= r4inv*(lj1[itype][jtype]*r4inv*r4inv
+			  - lj2[itype][jtype]);
+	  if (eflag) {
+	    evdwl *= r4inv*(lj3[itype][jtype]*r4inv*r4inv
+			    - lj4[itype][jtype]) - offset[itype][jtype];
+	  }
+	} else if (cgt == CG_LJ9_6) {
+	  const double r3inv = r2inv*sqrt(r2inv);
+	  const double r6inv = r3inv*r3inv;
+	  fpair *= r6inv*(lj1[itype][jtype]*r3inv
+			  - lj2[itype][jtype]);
+	  if (eflag) {
+	    evdwl *= r6inv*(lj3[itype][jtype]*r3inv
+			    - lj4[itype][jtype]) - offset[itype][jtype];
+	  }
+	} else {
+	  const double r6inv = r2inv*r2inv*r2inv;
+	  fpair *= r6inv*(lj1[itype][jtype]*r6inv
+			  - lj2[itype][jtype]);
+	  if (eflag) {
+	    evdwl *= r6inv*(lj3[itype][jtype]*r6inv
+			    - lj4[itype][jtype]) - offset[itype][jtype];
+	  }
+	}
+        fpair *= r2inv;
 
 	f[i][0] += delx*fpair;
 	f[i][1] += dely*fpair;
 	f[i][2] += delz*fpair;
-
-	if (eflag) {
-	  evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
-	    offset[itype][jtype];
-	  evdwl *= factor_lj;
-	}
 
 	if (evflag) ev_tally_full(i,evdwl,0.0,fpair,delx,dely,delz);
       }
@@ -243,7 +266,7 @@ void PairLJCutGPU::cpu_compute(int start, int eflag, int vflag) {
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJCutGPU::cpu_compute(int *nbors, int start, int eflag, int vflag) {
+void PairCGCMMGPU::cpu_compute(int *nbors, int start, int eflag, int vflag) {
   int i,j,itype,jtype;
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
@@ -284,20 +307,42 @@ void PairLJCutGPU::cpu_compute(int *nbors, int start, int eflag, int vflag) {
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-	r2inv = 1.0/rsq;
-	r6inv = r2inv*r2inv*r2inv;
-	forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-	fpair = factor_lj*forcelj*r2inv;
+        const int cgt=cg_type[itype][jtype];
+        r2inv = 1.0/rsq;
+
+	fpair = factor_lj;
+	if (eflag) evdwl = factor_lj;
+	if (cgt == CG_LJ12_4) {
+	  const double r4inv = r2inv*r2inv;
+	  fpair *= r4inv*(lj1[itype][jtype]*r4inv*r4inv
+			  - lj2[itype][jtype]);
+	  if (eflag) {
+	    evdwl *= r4inv*(lj3[itype][jtype]*r4inv*r4inv
+			    - lj4[itype][jtype]) - offset[itype][jtype];
+	  }
+	} else if (cgt == CG_LJ9_6) {
+	  const double r3inv = r2inv*sqrt(r2inv);
+	  const double r6inv = r3inv*r3inv;
+	  fpair *= r6inv*(lj1[itype][jtype]*r3inv
+			  - lj2[itype][jtype]);
+	  if (eflag) {
+	    evdwl *= r6inv*(lj3[itype][jtype]*r3inv
+			    - lj4[itype][jtype]) - offset[itype][jtype];
+	  }
+	} else {
+	  const double r6inv = r2inv*r2inv*r2inv;
+	  fpair *= r6inv*(lj1[itype][jtype]*r6inv
+			  - lj2[itype][jtype]);
+	  if (eflag) {
+	    evdwl *= r6inv*(lj3[itype][jtype]*r6inv
+			    - lj4[itype][jtype]) - offset[itype][jtype];
+	  }
+	}
+        fpair *= r2inv;
 
 	f[i][0] += delx*fpair;
 	f[i][1] += dely*fpair;
 	f[i][2] += delz*fpair;
-
-	if (eflag) {
-	  evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
-	    offset[itype][jtype];
-	  evdwl *= factor_lj;
-	}
 
         if (j<start) {
   	  if (evflag) ev_tally_full(i,evdwl,0.0,fpair,delx,dely,delz);

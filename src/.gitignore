@@ -4,6 +4,9 @@ lammps-icms-win.zip
 lammps-icms-mpich-win.exe
 lammps-icms-mpich-win.zip
 
+
+
+
 angle_cg_cmm.cpp
 angle_cg_cmm.h
 angle_charmm.cpp
@@ -134,6 +137,8 @@ fix_event.cpp
 fix_event.h
 fix_freeze.cpp
 fix_freeze.h
+fix_gpu.cpp
+fix_gpu.h
 fix_imd.cpp
 fix_imd.h
 fix_langevin_eff.cpp
@@ -236,6 +241,14 @@ pair_cg_cmm_coul_long.cpp
 pair_cg_cmm_coul_long.h
 pair_cmm_common.cpp
 pair_cmm_common.h
+pair_cg_cmm_gpu.cpp
+pair_cg_cmm_gpu.h
+pair_cg_cmm_coul_long_gpu.cpp
+pair_cg_cmm_coul_long_gpu.h
+pair_cg_cmm_coul_msm.cpp
+pair_cg_cmm_coul_msm.h
+pair_cg_cmm_coul_msm_gpu.cpp
+pair_cg_cmm_coul_msm_gpu.h
 pair_comb.cpp
 pair_comb.h
 pair_colloid.cpp
@@ -369,8 +382,14 @@ pair_lj_gromacs_coul_gromacs_omp.cpp
 pair_lj_gromacs_coul_gromacs_omp.h
 pair_lj_smooth_omp.cpp
 pair_lj_smooth_omp.h
+pair_lj_cut_coul_cut_gpu.cpp
+pair_lj_cut_coul_cut_gpu.h
+pair_lj_cut_coul_long_gpu.cpp
+pair_lj_cut_coul_long_gpu.h
 pair_lj96_cut_omp.cpp
 pair_lj96_cut_omp.h
+pair_lj96_cut_gpu.cpp
+pair_lj96_cut_gpu.h
 pair_lubricate.cpp
 pair_lubricate.h
 pair_lubricate_omp.cpp

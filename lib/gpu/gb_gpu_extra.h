@@ -12,44 +12,60 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Mike Brown (SNL), wmbrown@sandia.gov
-                         Peng Wang (Nvidia), penwang@nvidia.com
-                         Paul Crozier (SNL), pscrozi@sandia.gov
+   Contributing authors: Mike Brown (ORNL), brownw@ornl.gov
 ------------------------------------------------------------------------- */
 
 #ifndef GB_GPU_EXTRA_H
 #define GB_GPU_EXTRA_H
 
-#include "math.h"
-#include "stdio.h"
-#include "string.h"
+#define MAX_SHARED_TYPES 8
+enum{SPHERE_SPHERE,SPHERE_ELLIPSE,ELLIPSE_SPHERE,ELLIPSE_ELLIPSE};
 
-/* ----------------------------------------------------------------------
-   Atomic update of global memory
-------------------------------------------------------------------------- */
-/*
-template <class numtyp> __device__ 
-inline void atomicAdd(numtyp *address, numtyp val);
+#ifdef _DOUBLE_DOUBLE
+#define numtyp double
+#define numtyp2 double2
+#define numtyp4 double4
+#define acctyp double
+#define acctyp4 double4
+#endif
 
-template <>
-__device__ inline void atomicAdd<float>(float *address, float val)
-{
-  int i_val = __float_as_int(val);
-  int tmp0 = 0;
-  int tmp1;
+#ifdef _SINGLE_DOUBLE
+#define numtyp float
+#define numtyp2 float2
+#define numtyp4 float4
+#define acctyp double
+#define acctyp4 double4
+#endif
 
-  while( (tmp1 = atomicCAS((int *)address, tmp0, i_val)) != tmp0) {
-    tmp0 = tmp1;
-    i_val = __float_as_int(val + __int_as_float(tmp1));
-  }
-}*/
+#ifndef numtyp
+#define numtyp float
+#define numtyp2 float2
+#define numtyp4 float4
+#define acctyp float
+#define acctyp4 float4
+#endif
+
+#ifdef NV_KERNEL
+
+#include "geryon/ucl_nv_kernel.h"
+
+#else
+
+#pragma OPENCL EXTENSION cl_khr_fp64: enable
+#define GLOBAL_ID_X get_global_id(0)
+#define THREAD_ID_X get_local_id(0)
+#define BLOCK_ID_X get_group_id(0)
+#define BLOCK_SIZE_X get_local_size(0)
+#define __syncthreads() barrier(CLK_LOCAL_MEM_FENCE)
+#define __inline inline
+
+#endif
 
 /* ----------------------------------------------------------------------
    dot product of 2 vectors
 ------------------------------------------------------------------------- */
 
-template <class numtyp>
-static __inline__ __device__ numtyp gpu_dot3(const numtyp *v1, const numtyp *v2)
+__inline numtyp gpu_dot3(const numtyp *v1, const numtyp *v2)
 {
   return v1[0]*v2[0]+v1[1]*v2[1]+v1[2]*v2[2];
 }
@@ -58,9 +74,7 @@ static __inline__ __device__ numtyp gpu_dot3(const numtyp *v1, const numtyp *v2)
    cross product of 2 vectors
 ------------------------------------------------------------------------- */
 
-template <class numtyp>
-static __inline__ __device__ void gpu_cross3(const numtyp *v1, 
-                                             const numtyp *v2, numtyp *ans)
+__inline void gpu_cross3(const numtyp *v1, const numtyp *v2, numtyp *ans)
 {
   ans[0] = v1[1]*v2[2]-v1[2]*v2[1];
   ans[1] = v1[2]*v2[0]-v1[0]*v2[2];
@@ -71,8 +85,7 @@ static __inline__ __device__ void gpu_cross3(const numtyp *v1,
    determinant of a matrix
 ------------------------------------------------------------------------- */
 
-template <class numtyp>
-static __inline__ __device__ numtyp gpu_det3(const numtyp m[9])
+__inline numtyp gpu_det3(const numtyp m[9])
 {
   numtyp ans = m[0]*m[4]*m[8] - m[0]*m[5]*m[7] - 
     m[3]*m[1]*m[8] + m[3]*m[2]*m[7] + 
@@ -84,47 +97,25 @@ static __inline__ __device__ numtyp gpu_det3(const numtyp m[9])
    diagonal matrix times a full matrix
 ------------------------------------------------------------------------- */
 
-template <class numtyp>
-static __inline__ __device__ void gpu_well_times3(const int i, const numtyp m[9],
-                                                  numtyp ans[9])
+__inline void gpu_times3(const numtyp4 shape, const numtyp m[9], 
+                         numtyp ans[9])
 {
-  ans[0] = _well_<numtyp>(i,0)*m[0];
-  ans[1] = _well_<numtyp>(i,0)*m[1];
-  ans[2] = _well_<numtyp>(i,0)*m[2];
-  ans[3] = _well_<numtyp>(i,1)*m[3];
-  ans[4] = _well_<numtyp>(i,1)*m[4];
-  ans[5] = _well_<numtyp>(i,1)*m[5];
-  ans[6] = _well_<numtyp>(i,2)*m[6];
-  ans[7] = _well_<numtyp>(i,2)*m[7];
-  ans[8] = _well_<numtyp>(i,2)*m[8];
-}
-
-/* ----------------------------------------------------------------------
-   diagonal matrix times a full matrix
-------------------------------------------------------------------------- */
-
-template <class numtyp>
-static __inline__ __device__ void gpu_shape_times3(const int i, const numtyp m[9],
-                                                   numtyp ans[9])
-{
-  ans[0] = _shape_<numtyp>(i,0)*m[0];
-  ans[1] = _shape_<numtyp>(i,0)*m[1];
-  ans[2] = _shape_<numtyp>(i,0)*m[2];
-  ans[3] = _shape_<numtyp>(i,1)*m[3];
-  ans[4] = _shape_<numtyp>(i,1)*m[4];
-  ans[5] = _shape_<numtyp>(i,1)*m[5];
-  ans[6] = _shape_<numtyp>(i,2)*m[6];
-  ans[7] = _shape_<numtyp>(i,2)*m[7];
-  ans[8] = _shape_<numtyp>(i,2)*m[8];
+  ans[0] = shape.x*m[0];
+  ans[1] = shape.x*m[1];
+  ans[2] = shape.x*m[2];
+  ans[3] = shape.y*m[3];
+  ans[4] = shape.y*m[4];
+  ans[5] = shape.y*m[5];
+  ans[6] = shape.z*m[6];
+  ans[7] = shape.z*m[7];
+  ans[8] = shape.z*m[8];
 }
 
 /* ----------------------------------------------------------------------
    add two matrices
 ------------------------------------------------------------------------- */
 
-template <class numtyp>
-static __inline__ __device__ void gpu_plus3(const numtyp m[9], 
-                                            const numtyp m2[9], numtyp ans[9])
+__inline void gpu_plus3(const numtyp m[9], const numtyp m2[9], numtyp ans[9])
 {
   ans[0] = m[0]+m2[0];
   ans[1] = m[1]+m2[1];
@@ -141,10 +132,8 @@ static __inline__ __device__ void gpu_plus3(const numtyp m[9],
    multiply the transpose of mat1 times mat2
 ------------------------------------------------------------------------- */
 
-template <class numtyp>
-static __inline__ __device__ void gpu_transpose_times3(const numtyp m[9], 
-                                                       const numtyp m2[9],
-                                                       numtyp ans[9])
+__inline void gpu_transpose_times3(const numtyp m[9], const numtyp m2[9],
+                                   numtyp ans[9])
 {
   ans[0] = m[0]*m2[0]+m[3]*m2[3]+m[6]*m2[6];
   ans[1] = m[0]*m2[1]+m[3]*m2[4]+m[6]*m2[7];
@@ -161,9 +150,7 @@ static __inline__ __device__ void gpu_transpose_times3(const numtyp m[9],
    row vector times matrix
 ------------------------------------------------------------------------- */
 
-template <class numtyp>
-static __inline__ __device__ void gpu_row_times3(const numtyp *v, 
-                                                 const numtyp m[9], numtyp *ans)
+__inline void gpu_row_times3(const numtyp *v, const numtyp m[9], numtyp *ans)
 {
   ans[0] = m[0]*v[0]+v[1]*m[3]+v[2]*m[6];
   ans[1] = v[0]*m[1]+m[4]*v[1]+v[2]*m[7];
@@ -176,10 +163,8 @@ static __inline__ __device__ void gpu_row_times3(const numtyp *v,
    error_flag set to 2 if bad matrix inversion attempted
 ------------------------------------------------------------------------- */
 
-template <class numtyp>
-static __inline__ __device__ void gpu_mldivide3(const numtyp m[9], 
-                                                const numtyp *v, numtyp *ans,
-                                                int *error_flag)
+__inline void gpu_mldivide3(const numtyp m[9], const numtyp *v, numtyp *ans,
+                            __global int *error_flag)
 {
   // create augmented matrix for pivoting
 
@@ -297,12 +282,10 @@ static __inline__ __device__ void gpu_mldivide3(const numtyp m[9],
    quat = [w i j k]
 ------------------------------------------------------------------------- */
 
-template <class numtyp>
-static __inline__ __device__ void gpu_quat_to_mat_trans(const vec4 *qif,
-                                                        const int qi, 
-                                                        numtyp mat[9])
+__inline void gpu_quat_to_mat_trans(__global const numtyp4 *qif, const int qi, 
+                                    numtyp mat[9])
 {
-  vec4 q=qif[qi];
+  numtyp4 q=qif[qi];
   
   numtyp w2 = q.x*q.x;
   numtyp i2 = q.y*q.y;

@@ -17,18 +17,17 @@
 #                          Paul Crozier (SNL), pscrozi@sandia.gov             
 # ------------------------------------------------------------------------- */
 
-#CUDA_HOME = $(HOME)/cuda-2.3
-CUDA_HOME = $(HOME)/cuda
-NVCC  = $(CUDA_HOME)/bin/nvcc #-ccbin /opt/gcc-34/bin
+CUDA_HOME = /usr/local/cuda
+NVCC = nvcc
 
 CUDA_ARCH = -arch=sm_13
 CUDA_PRECISION = -D_SINGLE_SINGLE
-CUDA_INCLUDE = -I$(CUDA_HOME)/include 
-CUDA_LIB = -L$(CUDA_HOME)/lib64 -Xlinker -rpath -Xlinker $(CUDA_HOME)/lib64 -lcudart
-CUDA_OPTS = -DUNIX -O3 -Xptxas -v --use_fast_math 
+CUDA_INCLUDE = -I$(CUDA_HOME)/include
+CUDA_LIB = -L$(CUDA_HOME)/lib64
+CUDA_OPTS = -DUNIX -O3 -Xptxas -v --use_fast_math
 
-CUDR_CPP = mpic++ -DMPI_GERYON -I$(CUDA_HOME)/include 
-CUDR_OPTS = -O2 -fno-rtti -fno-exceptions -mpc64 -march=native -ffast-math -funroll-loops -DMPI_GERYON
+CUDR_CPP = mpic++ -DMPI_GERYON -DMPICH_IGNORE_CXX_SEEK
+CUDR_OPTS = -O2 # -xHost -no-prec-div -ansi-alias
 
 BIN_DIR = ./
 OBJ_DIR = ./obj

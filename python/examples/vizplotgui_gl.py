@@ -78,12 +78,12 @@ ntimestep = 0
 xaxis = [ntimestep]
 yaxis = [value]
 
-# wrapper on GL window via Pizza.py gl tool
-# just proc 0 handles reading of dump file and viz
-
 breakflag = 0
 runflag = 0
 temptarget = 1.0
+
+# wrapper on GL window via Pizza.py gl tool
+# just proc 0 handles reading of dump file and viz
 
 if me == 0:
   from Tkinter import *

@@ -44,7 +44,7 @@ lmp.command("dump python all atom %d tmp.dump" % nfreq)
 lmp.command("run 0 pre yes post no")
 ntimestep = 0
 
-# wrapper on GL window via Pizza.py gl tool
+# wrapper on PyMol
 # just proc 0 handles reading of dump file and viz
 
 if me == 0:

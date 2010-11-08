@@ -881,8 +881,10 @@ c     are local or else flip a coin
 **********************************************************************
       if (boa.lt.1.00) goto 20
 * Stabilization for all triple bonds (not just for CO) in ReaxFF combustion FF
-*      if ((qa(j1).eq.'C '.and.qa(j2).eq.'O ').or.
-*     $(qa(j1).eq.'O '.and.qa(j2).eq.'C ')) then
+      if (ltripstaball.eq.1 .or.
+     $  (qa(j1).eq.'C '.and.qa(j2).eq.'O ').or.
+     $  (qa(j1).eq.'O '.and.qa(j2).eq.'C ')) then
+
       ba=(boa-2.50)*(boa-2.50)
       exphu=exp(-vpar(8)*ba)
       oboa=abo(j1)-boa
@@ -1055,7 +1057,7 @@ c     are local or else flip a coin
 
       end do
 
-*      endif
+      endif
 
    20 continue
 

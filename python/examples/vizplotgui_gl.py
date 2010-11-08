@@ -64,6 +64,7 @@ lmp = lammps()
 
 # run infile all at once
 # assumed to have no run command in it
+# dump a file in native LAMMPS dump format for Pizza.py dump tool
 
 lmp.file(infile)
 lmp.command("thermo %d" % nfreq)

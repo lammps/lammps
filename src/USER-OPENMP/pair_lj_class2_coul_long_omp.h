@@ -38,7 +38,7 @@ class PairLJClass2CoulLongOMP : public PairOMP {
   virtual void write_restart_settings(FILE *);
   virtual void read_restart_settings(FILE *);
   virtual double single(int, int, int, int, double, double, double, double &);
-  virtual void *extract(char *);
+  virtual void *extract(char *, int &);
 
   virtual double memory_usage();
 

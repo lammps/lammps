@@ -48,7 +48,7 @@ class PairLJCharmmCoulLongOMP : public PairOMP {
 
   virtual double single(int, int, int, int, double, double, double, double &);
 
-  void *extract(char *);
+  void *extract(char *, int &);
 
   virtual double memory_usage();
 

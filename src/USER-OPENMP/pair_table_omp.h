@@ -41,7 +41,7 @@ class PairTableOMP : public PairOMP {
   virtual void read_restart(FILE *);
   virtual void write_restart_settings(FILE *);
   virtual void read_restart_settings(FILE *);
-  virtual void *extract(char *);
+  virtual void *extract(char *, int &);
 
  protected:
   template <int TABSTYLE, int EVFLAG, int EFLAG, int NEWTON_PAIR> void eval();

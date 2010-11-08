@@ -29,7 +29,7 @@ class PairLJCharmmCoulCharmmImplicitOMP : public PairLJCharmmCoulCharmmOMP {
   PairLJCharmmCoulCharmmImplicitOMP(class LAMMPS *);
   virtual void compute(int, int);
   virtual double single(int, int, int, int, double, double, double, double &);
-  virtual void *extract(char *);
+  virtual void *extract(char *, int &);
 
 protected:
   template <int EVFLAG, int EFLAG, int NEWTON_PAIR> void eval();

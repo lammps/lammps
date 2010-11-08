@@ -538,8 +538,9 @@ void PairLJCutCoulLongTIP4POMP::find_M(int i, int &iH1, int &iH2, double *xM)
 
 /* ---------------------------------------------------------------------- */
 
-void *PairLJCutCoulLongTIP4POMP::extract(char *str)
+void *PairLJCutCoulLongTIP4POMP::extract(char *str, int &dim)
 {
+  dim = 0;
   if (strcmp(str,"qdist") == 0) return (void *) &qdist;
   else if (strcmp(str,"typeO") == 0) return (void *) &typeO;
   else if (strcmp(str,"typeH") == 0) return (void *) &typeH;

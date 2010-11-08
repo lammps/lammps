@@ -1325,8 +1325,9 @@ double PairLJCharmmCoulLongOMP::single(int i, int j, int itype, int jtype,
 
 /* ---------------------------------------------------------------------- */
 
-void *PairLJCharmmCoulLongOMP::extract(char *str)
+void *PairLJCharmmCoulLongOMP::extract(char *str, int &dim)
 {
+  dim = 0;
   if (strcmp(str,"lj14_1") == 0) return (void *) lj14_1;
   else if (strcmp(str,"lj14_2") == 0) return (void *) lj14_2;
   else if (strcmp(str,"lj14_3") == 0) return (void *) lj14_3;

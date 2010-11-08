@@ -498,8 +498,9 @@ double PairLJClass2CoulLongOMP::single(int i, int j, int itype, int jtype,
 
 /* ---------------------------------------------------------------------- */
 
-void *PairLJClass2CoulLongOMP::extract(char *str)
+void *PairLJClass2CoulLongOMP::extract(char *str, int &dim)
 {
+  dim = 0;
   if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;
   return NULL;
 }

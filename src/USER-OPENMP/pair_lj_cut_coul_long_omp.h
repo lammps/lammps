@@ -43,7 +43,7 @@ class PairLJCutCoulLongOMP : public PairOMP {
   virtual void compute_inner();
   virtual void compute_middle();
   virtual void compute_outer(int, int);
-  virtual void *extract(char *);
+  virtual void *extract(char *, int &);
 
   virtual double memory_usage();
 

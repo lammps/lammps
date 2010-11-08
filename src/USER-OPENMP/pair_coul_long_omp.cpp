@@ -591,9 +591,12 @@ double PairCoulLongOMP::single(int i, int j, int itype, int jtype,
 
 /* ---------------------------------------------------------------------- */
 
-void *PairCoulLongOMP::extract(char *str)
+void *PairCoulLongOMP::extract(char *str, int &dim)
 {
-  if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;
+  if (strcmp(str,"cut_coul") == 0) {
+    dim = 0;
+    return (void *) &cut_coul;
+  }
   return NULL;
 }
 

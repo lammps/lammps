@@ -1269,8 +1269,9 @@ double PairLJCutCoulLongOMP::single(int i, int j, int itype, int jtype,
 
 /* ---------------------------------------------------------------------- */
 
-void *PairLJCutCoulLongOMP::extract(char *str)
+void *PairLJCutCoulLongOMP::extract(char *str, int &dim)
 {
+  dim = 0;
   if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;
   return NULL;
 }

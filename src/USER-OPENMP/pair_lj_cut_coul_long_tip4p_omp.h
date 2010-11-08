@@ -32,7 +32,7 @@ class PairLJCutCoulLongTIP4POMP : public PairLJCutCoulLongOMP {
   void init_style();
   void write_restart_settings(FILE *fp);
   void read_restart_settings(FILE *fp);
-  void *extract(char *);
+  void *extract(char *, int &);
 
  protected:
   template <int EVFLAG, int EFLAG, int VFLAG> void eval_tip4p();

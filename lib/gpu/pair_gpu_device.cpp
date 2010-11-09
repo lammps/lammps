@@ -130,6 +130,12 @@ bool PairGPUDeviceT::init(const bool charge, const bool rot, const int nlocal,
 template <class numtyp, class acctyp>
 void PairGPUDeviceT::init_message(FILE *screen, const char *name,
                                   const int first_gpu, const int last_gpu) {
+  #ifdef USE_OPENCL
+  std::string fs="";
+  #else
+  std::string fs=toa(gpu->free_gigabytes())+"/";
+  #endif
+  
   if (_world_me == 0 && screen) {
     fprintf(screen,"\n-------------------------------------");
     fprintf(screen,"-------------------------------------\n");
@@ -139,7 +145,7 @@ void PairGPUDeviceT::init_message(FILE *screen, const char *name,
     fprintf(screen,"-------------------------------------\n");
 
     for (int i=first_gpu; i<=last_gpu; i++) {
-      std::string sname=gpu->name(i)+", "+toa(gpu->cores(i))+" cores, "+
+      std::string sname=gpu->name(i)+", "+toa(gpu->cores(i))+" cores, "+fs+
                         toa(gpu->gigabytes(i))+" GB, "+toa(gpu->clock_rate(i))+
                         " GHZ (";
       if (sizeof(PRECISION)==4) {

@@ -1,8 +1,11 @@
 #!/bin/sh
+
 # convert ptx assembly output into 
 # a c-style string constant written
 # in portable posix shell script.
 # requires: sed, rm, mv
+#
+# Author: Axel Kohlmeyer, Temple University
 
 num_args=$#
 

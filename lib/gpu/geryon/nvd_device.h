@@ -152,6 +152,21 @@ class UCL_Device {
   /// Get the bytes of global memory
   inline size_t bytes(const int i) { return _properties[i].totalGlobalMem; }
 
+  // Get the gigabytes of free memory in the current device
+  inline double free_gigabytes() { return free_gigabytes(_device); }
+  // Get the gigabytes of free memory
+  inline double free_gigabytes(const int i) 
+    { return static_cast<double>(free_bytes(i))/1073741824; }
+  
+  // Get the bytes of free memory in the current device
+  inline size_t free_bytes() { return free_bytes(_device); }
+  // Get the bytes of free memory
+  inline size_t free_bytes(const int i) { 
+    size_t dfree, dtotal;
+    CU_SAFE_CALL_NS(cuMemGetInfo(&dfree, &dtotal));
+    return dfree;
+  }
+
   /// Return the GPGPU compute capability for current device
   inline double arch() { return arch(_device); }
   /// Return the GPGPU compute capability

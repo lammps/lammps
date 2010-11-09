@@ -52,13 +52,13 @@ OCL_EXECS = $(BIN_DIR)/ocl_get_devices
 all: $(OCL_LIB) $(EXECS)
 
 $(OBJ_DIR)/pair_gpu_atom_cl.h: pair_gpu_atom_kernel.cu
-	/bin/csh ./geryon/file_to_cstr.sh pair_gpu_atom_kernel.cu $(OBJ_DIR)/pair_gpu_atom_cl.h
+	/bin/sh ./geryon/file_to_cstr.sh pair_gpu_atom_kernel.cu $(OBJ_DIR)/pair_gpu_atom_cl.h
 
 $(OBJ_DIR)/pair_gpu_atom.o: pair_gpu_atom.cpp pair_gpu_atom.h $(OCL_H) $(OBJ_DIR)/pair_gpu_atom_cl.h
 	$(OCL) -o $@ -c pair_gpu_atom.cpp -I$(OBJ_DIR)
 
 $(OBJ_DIR)/pair_gpu_nbor_cl.h: pair_gpu_nbor_kernel.cu
-	/bin/csh ./geryon/file_to_cstr.sh pair_gpu_nbor_kernel.cu $(OBJ_DIR)/pair_gpu_nbor_cl.h
+	/bin/sh ./geryon/file_to_cstr.sh pair_gpu_nbor_kernel.cu $(OBJ_DIR)/pair_gpu_nbor_cl.h
 
 $(OBJ_DIR)/pair_gpu_nbor.o: pair_gpu_nbor.cpp pair_gpu_nbor.h $(OCL_H) $(OBJ_DIR)/pair_gpu_nbor_cl.h
 	$(OCL) -o $@ -c pair_gpu_nbor.cpp -I$(OBJ_DIR)
@@ -73,12 +73,12 @@ $(OBJ_DIR)/charge_gpu_memory.o: $(OCL_H) charge_gpu_memory.h charge_gpu_memory.c
 	$(OCL) -o $@ -c charge_gpu_memory.cpp
 
 $(OBJ_DIR)/gb_gpu_nbor_cl.h: gb_gpu_kernel_nbor.cu
-	/bin/csh ./geryon/file_to_cstr.sh gb_gpu_kernel_nbor.cu $(OBJ_DIR)/gb_gpu_nbor_cl.h
+	/bin/sh ./geryon/file_to_cstr.sh gb_gpu_kernel_nbor.cu $(OBJ_DIR)/gb_gpu_nbor_cl.h
 
 $(OBJ_DIR)/gb_gpu_cl.h: gb_gpu_kernel.cu gb_gpu_kernel_lj.cu gb_gpu_extra.h
 	cat gb_gpu_extra.h gb_gpu_kernel.cu > $(OBJ_DIR)/gb_gpu_kernel.tar; \
 	cat gb_gpu_extra.h gb_gpu_kernel_lj.cu > $(OBJ_DIR)/gb_gpu_kernel_lj.tar; \
-	/bin/csh ./geryon/file_to_cstr.sh $(OBJ_DIR)/gb_gpu_kernel.tar $(OBJ_DIR)/gb_gpu_kernel_lj.tar $(OBJ_DIR)/gb_gpu_cl.h; \
+	/bin/sh ./geryon/file_to_cstr.sh $(OBJ_DIR)/gb_gpu_kernel.tar $(OBJ_DIR)/gb_gpu_kernel_lj.tar $(OBJ_DIR)/gb_gpu_cl.h; \
 	rm -f $(OBJ_DIR)/gb_gpu_kernel.tar $(OBJ_DIR)/gb_gpu_kernel_lj.tar
 
 $(OBJ_DIR)/gb_gpu_memory.o: $(ALL_H) gb_gpu_memory.h gb_gpu_memory.cpp $(OBJ_DIR)/gb_gpu_nbor_cl.h $(OBJ_DIR)/gb_gpu_cl.h
@@ -88,7 +88,7 @@ $(OBJ_DIR)/gb_gpu.o: $(ALL_H) gb_gpu_memory.h gb_gpu.cpp
 	$(OCL) -o $@ -c gb_gpu.cpp -I$(OBJ_DIR)
 
 $(OBJ_DIR)/lj_cut_gpu_cl.h: lj_cut_gpu_kernel.cu
-	/bin/csh ./geryon/file_to_cstr.sh lj_cut_gpu_kernel.cu $(OBJ_DIR)/lj_cut_gpu_cl.h;
+	/bin/sh ./geryon/file_to_cstr.sh lj_cut_gpu_kernel.cu $(OBJ_DIR)/lj_cut_gpu_cl.h;
 
 $(OBJ_DIR)/lj_cut_gpu_memory.o: $(ALL_H) lj_cut_gpu_memory.h lj_cut_gpu_memory.cpp  $(OBJ_DIR)/lj_cut_gpu_cl.h $(OBJ_DIR)/pair_gpu_nbor_cl.h $(OBJ_DIR)/lj_cut_gpu_cl.h $(OBJ_DIR)/atomic_gpu_memory.o
 	$(OCL) -o $@ -c lj_cut_gpu_memory.cpp -I$(OBJ_DIR)
@@ -97,7 +97,7 @@ $(OBJ_DIR)/lj_cut_gpu.o: $(ALL_H) lj_cut_gpu_memory.h lj_cut_gpu.cpp
 	$(OCL) -o $@ -c lj_cut_gpu.cpp -I$(OBJ_DIR)
 
 $(OBJ_DIR)/ljc_cut_gpu_cl.h: ljc_cut_gpu_kernel.cu
-	/bin/csh ./geryon/file_to_cstr.sh ljc_cut_gpu_kernel.cu $(OBJ_DIR)/ljc_cut_gpu_cl.h;
+	/bin/sh ./geryon/file_to_cstr.sh ljc_cut_gpu_kernel.cu $(OBJ_DIR)/ljc_cut_gpu_cl.h;
 
 $(OBJ_DIR)/ljc_cut_gpu_memory.o: $(ALL_H) ljc_cut_gpu_memory.h ljc_cut_gpu_memory.cpp  $(OBJ_DIR)/ljc_cut_gpu_cl.h $(OBJ_DIR)/pair_gpu_nbor_cl.h $(OBJ_DIR)/ljc_cut_gpu_cl.h $(OBJ_DIR)/charge_gpu_memory.o
 	$(OCL) -o $@ -c ljc_cut_gpu_memory.cpp -I$(OBJ_DIR)
@@ -106,7 +106,7 @@ $(OBJ_DIR)/ljc_cut_gpu.o: $(ALL_H) ljc_cut_gpu_memory.h ljc_cut_gpu.cpp
 	$(OCL) -o $@ -c ljc_cut_gpu.cpp -I$(OBJ_DIR)
 
 $(OBJ_DIR)/ljcl_cut_gpu_cl.h: ljcl_cut_gpu_kernel.cu
-	/bin/csh ./geryon/file_to_cstr.sh ljcl_cut_gpu_kernel.cu $(OBJ_DIR)/ljcl_cut_gpu_cl.h;
+	/bin/sh ./geryon/file_to_cstr.sh ljcl_cut_gpu_kernel.cu $(OBJ_DIR)/ljcl_cut_gpu_cl.h;
 
 $(OBJ_DIR)/ljcl_cut_gpu_memory.o: $(ALL_H) ljcl_cut_gpu_memory.h ljcl_cut_gpu_memory.cpp  $(OBJ_DIR)/ljcl_cut_gpu_cl.h $(OBJ_DIR)/pair_gpu_nbor_cl.h $(OBJ_DIR)/ljcl_cut_gpu_cl.h $(OBJ_DIR)/charge_gpu_memory.o
 	$(OCL) -o $@ -c ljcl_cut_gpu_memory.cpp -I$(OBJ_DIR)
@@ -115,7 +115,7 @@ $(OBJ_DIR)/ljcl_cut_gpu.o: $(ALL_H) ljcl_cut_gpu_memory.h ljcl_cut_gpu.cpp
 	$(OCL) -o $@ -c ljcl_cut_gpu.cpp -I$(OBJ_DIR)
 
 $(OBJ_DIR)/lj96_cut_gpu_cl.h: lj96_cut_gpu_kernel.cu
-	/bin/csh ./geryon/file_to_cstr.sh lj96_cut_gpu_kernel.cu $(OBJ_DIR)/lj96_cut_gpu_cl.h;
+	/bin/sh ./geryon/file_to_cstr.sh lj96_cut_gpu_kernel.cu $(OBJ_DIR)/lj96_cut_gpu_cl.h;
 
 $(OBJ_DIR)/lj96_cut_gpu_memory.o: $(ALL_H) lj96_cut_gpu_memory.h lj96_cut_gpu_memory.cpp  $(OBJ_DIR)/lj96_cut_gpu_cl.h $(OBJ_DIR)/pair_gpu_nbor_cl.h $(OBJ_DIR)/lj96_cut_gpu_cl.h $(OBJ_DIR)/atomic_gpu_memory.o
 	$(OCL) -o $@ -c lj96_cut_gpu_memory.cpp -I$(OBJ_DIR)
@@ -124,7 +124,7 @@ $(OBJ_DIR)/lj96_cut_gpu.o: $(ALL_H) lj96_cut_gpu_memory.h lj96_cut_gpu.cpp
 	$(OCL) -o $@ -c lj96_cut_gpu.cpp -I$(OBJ_DIR)
 
 $(OBJ_DIR)/cmm_cut_gpu_cl.h: cmm_cut_gpu_kernel.cu
-	/bin/csh ./geryon/file_to_cstr.sh cmm_cut_gpu_kernel.cu $(OBJ_DIR)/cmm_cut_gpu_cl.h;
+	/bin/sh ./geryon/file_to_cstr.sh cmm_cut_gpu_kernel.cu $(OBJ_DIR)/cmm_cut_gpu_cl.h;
 
 $(OBJ_DIR)/cmm_cut_gpu_memory.o: $(ALL_H) cmm_cut_gpu_memory.h cmm_cut_gpu_memory.cpp  $(OBJ_DIR)/cmm_cut_gpu_cl.h $(OBJ_DIR)/pair_gpu_nbor_cl.h $(OBJ_DIR)/cmm_cut_gpu_cl.h $(OBJ_DIR)/atomic_gpu_memory.o
 	$(OCL) -o $@ -c cmm_cut_gpu_memory.cpp -I$(OBJ_DIR)
@@ -133,7 +133,7 @@ $(OBJ_DIR)/cmm_cut_gpu.o: $(ALL_H) cmm_cut_gpu_memory.h cmm_cut_gpu.cpp
 	$(OCL) -o $@ -c cmm_cut_gpu.cpp -I$(OBJ_DIR)
 
 $(OBJ_DIR)/cmmc_long_gpu_cl.h: cmmc_long_gpu_kernel.cu
-	/bin/csh ./geryon/file_to_cstr.sh cmmc_long_gpu_kernel.cu $(OBJ_DIR)/cmmc_long_gpu_cl.h;
+	/bin/sh ./geryon/file_to_cstr.sh cmmc_long_gpu_kernel.cu $(OBJ_DIR)/cmmc_long_gpu_cl.h;
 
 $(OBJ_DIR)/cmmc_long_gpu_memory.o: $(ALL_H) cmmc_long_gpu_memory.h cmmc_long_gpu_memory.cpp  $(OBJ_DIR)/cmmc_long_gpu_cl.h $(OBJ_DIR)/pair_gpu_nbor_cl.h $(OBJ_DIR)/cmmc_long_gpu_cl.h $(OBJ_DIR)/atomic_gpu_memory.o
 	$(OCL) -o $@ -c cmmc_long_gpu_memory.cpp -I$(OBJ_DIR)
@@ -142,7 +142,7 @@ $(OBJ_DIR)/cmmc_long_gpu.o: $(ALL_H) cmmc_long_gpu_memory.h cmmc_long_gpu.cpp
 	$(OCL) -o $@ -c cmmc_long_gpu.cpp -I$(OBJ_DIR)
 
 $(OBJ_DIR)/cmmc_msm_gpu_cl.h: cmmc_msm_gpu_kernel.cu
-	/bin/csh ./geryon/file_to_cstr.sh cmmc_msm_gpu_kernel.cu $(OBJ_DIR)/cmmc_msm_gpu_cl.h;
+	/bin/sh ./geryon/file_to_cstr.sh cmmc_msm_gpu_kernel.cu $(OBJ_DIR)/cmmc_msm_gpu_cl.h;
 
 $(OBJ_DIR)/cmmc_msm_gpu_memory.o: $(ALL_H) cmmc_msm_gpu_memory.h cmmc_msm_gpu_memory.cpp  $(OBJ_DIR)/cmmc_msm_gpu_cl.h $(OBJ_DIR)/pair_gpu_nbor_cl.h $(OBJ_DIR)/cmmc_msm_gpu_cl.h $(OBJ_DIR)/atomic_gpu_memory.o
 	$(OCL) -o $@ -c cmmc_msm_gpu_memory.cpp -I$(OBJ_DIR)

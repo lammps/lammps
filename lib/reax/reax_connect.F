@@ -186,7 +186,7 @@ c$$$*     end if
 ********************************************************************** 
 ********************************************************************** 
 
-      subroutine srtbon1(lprune,lhb,hbcut_in,lhbnew_in)
+      subroutine srtbon1(lprune,lhb,hbcut_in,lhbnew_in,ltripstaball_in)
 
 ********************************************************************** 
 #include "cbka.blk"
@@ -214,6 +214,7 @@ c$$$*     end if
 #include "cbksrtbon1.blk"
 #include "cbkff.blk"
 #include "cbksrthb.blk"
+#include "cbkcovbon.blk"
       logical found
       integer nboncol(nboallmax)
       integer iball(nboallmax,3)
@@ -230,9 +231,10 @@ c$$$      call timer(65)
 c$$$      close (65)
 c$$$      end if
 
-c Transfer hbcut and lhbnew from C++ calling function
+c Transfer hbcut, lhbnew, and ltripstaball from C++ calling function
       hbcut = hbcut_in
       lhbnew = lhbnew_in
+      ltripstaball = ltripstaball_in
 
       do i1=1,na
       abo(i1)=0.0d0

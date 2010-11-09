@@ -1,9 +1,9 @@
 #!/usr/local/bin/python -i
 # preceeding line should have path for Python on your machine
 
-# viz.py
-# Purpose: viz running LAMMPS simulation via GL tool in Pizza.py
-# Syntax:  viz.py in.lammps Nfreq Nsteps
+# viz_pymol.py
+# Purpose: viz running LAMMPS simulation via PyMol
+# Syntax:  viz_pymol.py in.lammps Nfreq Nsteps
 #          in.lammps = LAMMPS input script
 #          Nfreq = dump and viz shapshot every this many steps
 #          Nsteps = run for this many steps
@@ -15,7 +15,7 @@ sys.path.append("./pizza")
 
 argv = sys.argv
 if len(argv) != 4:
-  print "Syntax: viz.py in.lammps Nfreq Nsteps"
+  print "Syntax: viz_pymol.py in.lammps Nfreq Nsteps"
   sys.exit()
 
 infile = sys.argv[1]
@@ -33,6 +33,7 @@ lmp = lammps()
 
 # run infile all at once
 # assumed to have no run command in it
+# dump a file in native LAMMPS dump format for Pizza.py dump tool
 
 lmp.file(infile)
 lmp.command("thermo %d" % nfreq)
@@ -43,28 +44,25 @@ lmp.command("dump python all atom %d tmp.dump" % nfreq)
 lmp.command("run 0 pre yes post no")
 ntimestep = 0
 
-# wrapper on GL window via Pizza.py gl tool
+# wrapper on PyMol
 # just proc 0 handles reading of dump file and viz
 
 if me == 0:
-  import Tkinter
-  tkroot = Tkinter.Tk()
-  tkroot.withdraw()
+  import pymol
+  pymol.finish_launching()
 
   from dump import dump
-  from gl import gl
+  from pdbfile import pdbfile
+  from pymol import cmd as pm
 
   d = dump("tmp.dump",0)
-  g = gl(d)
+  p = pdbfile(d)
   d.next()
   d.unscale()
-  g.zoom(1)
-  g.shift(0,0)
-  g.rotate(0,270)
-  g.q(10)
-  g.box(1)
-  g.show(ntimestep)
-
+  p.single(ntimestep)
+  pm.load("tmp.pdb")
+  pm.show("spheres","tmp")
+  
 # run nfreq steps at a time w/out pre/post, read dump snapshot, display it
 
 while ntimestep < nsteps:
@@ -73,8 +71,10 @@ while ntimestep < nsteps:
   if me == 0:
     d.next()
     d.unscale()
-    g.show(ntimestep)
-
+    p.single(ntimestep)
+    pm.load("tmp.pdb")
+    pm.forward()
+    
 lmp.command("run 0 pre no post yes")
 
 # uncomment if running in parallel via Pypar

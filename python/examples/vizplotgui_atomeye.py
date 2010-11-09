@@ -12,8 +12,12 @@
 # IMPORTANT: this script cannot yet be run in parallel via Pypar,
 #            because I can't seem to do a MPI-style broadcast in Pypar
 
-import sys,time
+import sys,os,time
 sys.path.append("./pizza")
+
+# first line if want AtomEye output to screen, 2nd line to file
+#ATOMEYE3 = "/home/sjplimp/tools/atomeye3/A3.i686-20060530"
+ATOMEYE3 = "/home/sjplimp/tools/atomeye3/A3.i686-20060530 > atomeye.out"
 
 # methods called by GUI
 
@@ -34,9 +38,8 @@ def quit():
 # read dump snapshot and viz it, update plot with compute value
 
 def update(ntimestep):
-  d.next()
-  d.unscale()
-  g.show(ntimestep)
+  a.write("load_config tmp.cfg.%d\n" % ntimestep)
+  a.flush()
   value = lmp.extract_compute(compute,0,0)
   xaxis.append(ntimestep)
   yaxis.append(value)
@@ -64,10 +67,11 @@ lmp = lammps()
 
 # run infile all at once
 # assumed to have no run command in it
+# dump a file in extended CFG format for AtomEye
 
 lmp.file(infile)
 lmp.command("thermo %d" % nfreq)
-lmp.command("dump python all atom %d tmp.dump" % nfreq)
+lmp.command("dump python all cfg %d tmp.cfg.* id type xs ys zs" % nfreq)
 
 # initial 0-step run to generate initial 1-point plot, dump file, and image
 
@@ -77,31 +81,17 @@ ntimestep = 0
 xaxis = [ntimestep]
 yaxis = [value]
 
-# wrapper on GL window via Pizza.py gl tool
-# just proc 0 handles reading of dump file and viz
-
 breakflag = 0
 runflag = 0
 temptarget = 1.0
 
+# wrapper on GL window via Pizza.py gl tool
+# just proc 0 handles reading of dump file and viz
+
 if me == 0:
-  from Tkinter import *
-  tkroot = Tk()
-  tkroot.withdraw()
-
-  from dump import dump
-  from gl import gl
-
-  d = dump("tmp.dump",0)
-  g = gl(d)
-  d.next()
-  d.unscale()
-  g.zoom(1)
-  g.shift(0,0)
-  g.rotate(0,270)
-  g.q(10)
-  g.box(1)
-  g.show(ntimestep)
+  a = os.popen(ATOMEYE3,'w')
+  a.write("load_config tmp.cfg.0\n")
+  a.flush()
 
 # display GUI with run/stop buttons and slider for temperature
 

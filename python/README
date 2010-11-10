@@ -22,26 +22,60 @@ pages.
 Once you have successfully built and tested the wrappers, you can run
 the Python scripts in the examples sub-directory:
 
-trivial.py      read/run a LAMMPS input script thru Python
-demo.py		invoke various LAMMPS library interface routines
-simple.py	mimic operation of couple/simple/simple.cpp in Python
-gui.py		GUI go/stop/temperature-slider to control LAMMPS
-plot.py		real-time temeperature plot with GnuPlot via Pizza.py
-viz.py		real-time viz from GL tool in Pizza.py
-vizplotgui.py   combination of viz.py and plot.py and gui.py
+trivial.py          read/run a LAMMPS input script thru Python
+demo.py	  	    invoke various LAMMPS library interface routines
+simple.py	    mimic operation of couple/simple/simple.cpp in Python
+gui.py		    GUI go/stop/temperature-slider to control LAMMPS
+plot.py		    real-time temeperature plot with GnuPlot via Pizza.py
+viz_tool.py	    real-time viz from GL tool in Pizza.py
+vizplotgui_tool.py  combination of viz.py and plot.py and gui.py
 
-Run them with the following input scripts and arguments:
+For the viz_tool.py and vizplotgui_tool.py commands, replace "tool"
+with "gl" or "atomeye" or "pymol", depending on what visualization
+package you have installed.  We hope to add a VMD option soon.
+
+Note that for GL, you need to be able to run the Pizza.py GL tool,
+which is included in the pizza sub-directory.  See the Pizza.py doc
+pages for more info:
+
+http://www.sandia.gov/~sjplimp/pizza.html
+
+Note that for AtomEye, you need version 3, and their is a line in the
+scripts that specifies the path and name of the executable.  See
+the AtomEye WWW pages for more details:
+
+http://mt.seas.upenn.edu/Archive/Graphics/A/
+http://mt.seas.upenn.edu/Archive/Graphics/A3/A3.html
+
+Note that for PyMol, you need to have built and installed the
+open-source version of PyMol in your Python, so that you can import it
+from a Python script.  See the AtomEye WWW pages for more details:
+
+http://www.pymol.org/
+http://sourceforge.net/scm/?type=svn&group_id=4546
+
+The latter link is to the open-source version.
+
+You can run a particular script in either of the following ways:
+
+% trivial.py in.trivial
+% python -i trivial.py in.trivial
+
+The former assumes that you have changed the first line of the script
+to point to the Python installed on your box.
+
+Run the Python scripts with the following LAMMPS input scripts and arguments:
 
 trivial.py in.trivial
 demo.py
 simple.py in.simple
 gui.py in.gui 100
 plot.py in.plot 10 1000 thermo_temp
-viz.py in.viz 100 5000
-vizplotgui.py in.viz 100 thermo_temp
+viz_tool.py in.viz 100 5000
+vizplotgui_tool.py in.viz 100 thermo_temp
 
 You can un-comment the Pypar calls if you want to run these in
 parallel.
 
-Each script has more documentation at the top of the file that
-explains how to use it.
+Each script has more documentation in the file that explains how to
+use it and what it is doing.

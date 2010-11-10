@@ -596,21 +596,61 @@ things that are possible when Python wraps LAMMPS.  If you create your
 own scripts, send them to us and we can include them in the LAMMPS
 distribution.
 
-trivial.py, read/run a LAMMPS input script via Python,
+trivial.py, read/run a LAMMPS input script thru Python,
 demo.py, invoke various LAMMPS library interface routines,
 simple.py, mimic operation of couple/simple/simple.cpp in Python,
 gui.py, GUI go/stop/temperature-slider to control LAMMPS,
-plot.py, real-time temeperature plot with GnuPlot via "Pizza.py"_pizza,
-viz.py, real-time viz from GL tool in "Pizza.py"_pizza,
-vizplotgui.py, combination of viz.py and plot.py and gui.py :tb(c=2)
+plot.py, real-time temeperature plot with GnuPlot via Pizza.py,
+viz_tool.py, real-time viz via some viz package,
+vizplotgui_tool.py, combination of viz.py and plot.py and gui.py :tb(c=2)
+
+:line
+
+For the viz_tool.py and vizplotgui_tool.py commands, replace "tool"
+with "gl" or "atomeye" or "pymol", depending on what visualization
+package you have installed.  We hope to add a VMD option soon.
+
+Note that for GL, you need to be able to run the Pizza.py GL tool,
+which is included in the pizza sub-directory.  See the "Pizza.py doc
+pages"_pizza for more info:
+
+:link(pizza,http://www.sandia.gov/~sjplimp/pizza.html)
+
+Note that for AtomEye, you need version 3, and their is a line in the
+scripts that specifies the path and name of the executable.  See the
+AtomEye WWW pages "here"_atomeye or "here"_atomeye3 for more details:
+
+http://mt.seas.upenn.edu/Archive/Graphics/A
+http://mt.seas.upenn.edu/Archive/Graphics/A3/A3.html :pre
+
+:link(atomeye,http://mt.seas.upenn.edu/Archive/Graphics/A)
+:link(atomeye3,http://mt.seas.upenn.edu/Archive/Graphics/A3/A3.html)
+
+The latter link is to AtomEye 3 which has the scriping
+capability needed by these Python scripts.
+
+Note that for PyMol, you need to have built and installed the
+open-source version of PyMol in your Python, so that you can import it
+from a Python script.  See the PyMol WWW pages "here"_pymol or
+"here"_pymolopen for more details:
+
+http://www.pymol.org
+http://sourceforge.net/scm/?type=svn&group_id=4546 :pre
+
+:link(pymol,http://www.pymol.org)
+:link(pymolopen,http://sourceforge.net/scm/?type=svn&group_id=4546)
+
+The latter link is to the open-source version.
+
+:line
 
 See the python/README file for instructions on how to run them and the
 source code for individual scripts for comments about what they do.
 
-:link(pizza,http://www.sandia.gov/~sjplimp/pizza.html)
+Here are screenshots of the vizplotgui_tool.py script in action for
+different visualization package options.  Click to see larger images:
 
-Here's a screenshot of the vizplotgui.py script in action.  Click to
-see a larger image:
-
-:c,image(JPG/screenshot1_small.jpg,JPG/screenshot1.jpg)
+:image(JPG/screenshot_gl_small.jpg,JPG/screenshot_gl.jpg)
+:image(JPG/screenshot_atomeye_small.jpg,JPG/screenshot_atomeye.jpg)
+:image(JPG/screenshot_pymol_small.jpg,JPG/screenshot_pymol.jpg)
 

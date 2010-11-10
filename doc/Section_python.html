@@ -603,23 +603,67 @@ own scripts, send them to us and we can include them in the LAMMPS
 distribution.
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >
-<TR><TD >trivial.py</TD><TD > read/run a LAMMPS input script via Python</TD></TR>
+<TR><TD >trivial.py</TD><TD > read/run a LAMMPS input script thru Python</TD></TR>
 <TR><TD >demo.py</TD><TD > invoke various LAMMPS library interface routines</TD></TR>
 <TR><TD >simple.py</TD><TD > mimic operation of couple/simple/simple.cpp in Python</TD></TR>
 <TR><TD >gui.py</TD><TD > GUI go/stop/temperature-slider to control LAMMPS</TD></TR>
-<TR><TD >plot.py</TD><TD > real-time temeperature plot with GnuPlot via <A HREF = "http://www.sandia.gov/~sjplimp/pizza.html">Pizza.py</A></TD></TR>
-<TR><TD >viz.py</TD><TD > real-time viz from GL tool in <A HREF = "http://www.sandia.gov/~sjplimp/pizza.html">Pizza.py</A></TD></TR>
-<TR><TD >vizplotgui.py</TD><TD > combination of viz.py and plot.py and gui.py 
+<TR><TD >plot.py</TD><TD > real-time temeperature plot with GnuPlot via Pizza.py</TD></TR>
+<TR><TD >viz_tool.py</TD><TD > real-time viz via some viz package</TD></TR>
+<TR><TD >vizplotgui_tool.py</TD><TD > combination of viz.py and plot.py and gui.py 
 </TD></TR></TABLE></DIV>
+
+<HR>
+
+<P>For the viz_tool.py and vizplotgui_tool.py commands, replace "tool"
+with "gl" or "atomeye" or "pymol", depending on what visualization
+package you have installed.  We hope to add a VMD option soon.
+</P>
+<P>Note that for GL, you need to be able to run the Pizza.py GL tool,
+which is included in the pizza sub-directory.  See the <A HREF = "http://www.sandia.gov/~sjplimp/pizza.html">Pizza.py doc
+pages</A> for more info:
+</P>
+
+
+<P>Note that for AtomEye, you need version 3, and their is a line in the
+scripts that specifies the path and name of the executable.  See the
+AtomEye WWW pages <A HREF = "http://mt.seas.upenn.edu/Archive/Graphics/A">here</A> or <A HREF = "http://mt.seas.upenn.edu/Archive/Graphics/A3/A3.html">here</A> for more details:
+</P>
+<PRE>http://mt.seas.upenn.edu/Archive/Graphics/A
+http://mt.seas.upenn.edu/Archive/Graphics/A3/A3.html 
+</PRE>
+
+
+
+
+<P>The latter link is to AtomEye 3 which has the scriping
+capability needed by these Python scripts.
+</P>
+<P>Note that for PyMol, you need to have built and installed the
+open-source version of PyMol in your Python, so that you can import it
+from a Python script.  See the PyMol WWW pages <A HREF = "http://www.pymol.org">here</A> or
+<A HREF = "http://sourceforge.net/scm/?type=svn&group_id=4546">here</A> for more details:
+</P>
+<PRE>http://www.pymol.org
+http://sourceforge.net/scm/?type=svn&group_id=4546 
+</PRE>
+
+
+
+
+<P>The latter link is to the open-source version.
+</P>
+<HR>
 
 <P>See the python/README file for instructions on how to run them and the
 source code for individual scripts for comments about what they do.
 </P>
-
-
-<P>Here's a screenshot of the vizplotgui.py script in action.  Click to
-see a larger image:
+<P>Here are screenshots of the vizplotgui_tool.py script in action for
+different visualization package options.  Click to see larger images:
 </P>
-<CENTER><A HREF = "JPG/screenshot1.jpg"><IMG SRC = "JPG/screenshot1_small.jpg"></A>
-</CENTER>
+<A HREF = "JPG/screenshot_gl.jpg"><IMG SRC = "JPG/screenshot_gl_small.jpg"></A>
+
+<A HREF = "JPG/screenshot_atomeye.jpg"><IMG SRC = "JPG/screenshot_atomeye_small.jpg"></A>
+
+<A HREF = "JPG/screenshot_pymol.jpg"><IMG SRC = "JPG/screenshot_pymol_small.jpg"></A>
+
 </HTML>

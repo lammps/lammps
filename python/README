@@ -27,7 +27,7 @@ demo.py	  	    invoke various LAMMPS library interface routines
 simple.py	    mimic operation of couple/simple/simple.cpp in Python
 gui.py		    GUI go/stop/temperature-slider to control LAMMPS
 plot.py		    real-time temeperature plot with GnuPlot via Pizza.py
-viz_tool.py	    real-time viz from GL tool in Pizza.py
+viz_tool.py	    real-time viz via some viz package
 vizplotgui_tool.py  combination of viz.py and plot.py and gui.py
 
 For the viz_tool.py and vizplotgui_tool.py commands, replace "tool"
@@ -44,17 +44,22 @@ Note that for AtomEye, you need version 3, and their is a line in the
 scripts that specifies the path and name of the executable.  See
 the AtomEye WWW pages for more details:
 
-http://mt.seas.upenn.edu/Archive/Graphics/A/
+http://mt.seas.upenn.edu/Archive/Graphics/A
 http://mt.seas.upenn.edu/Archive/Graphics/A3/A3.html
+
+The latter link is to AtomEye 3 which has the scriping
+capability needed by these Python scripts.
 
 Note that for PyMol, you need to have built and installed the
 open-source version of PyMol in your Python, so that you can import it
-from a Python script.  See the AtomEye WWW pages for more details:
+from a Python script.  See the PyMol WWW pages for more details:
 
-http://www.pymol.org/
+http://www.pymol.org
 http://sourceforge.net/scm/?type=svn&group_id=4546
 
 The latter link is to the open-source version.
+
+-------------------------------------------------------------------
 
 You can run a particular script in either of the following ways:
 
@@ -64,7 +69,8 @@ You can run a particular script in either of the following ways:
 The former assumes that you have changed the first line of the script
 to point to the Python installed on your box.
 
-Run the Python scripts with the following LAMMPS input scripts and arguments:
+Run the Python scripts with the following LAMMPS input scripts and
+arguments:
 
 trivial.py in.trivial
 demo.py

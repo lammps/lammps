@@ -162,9 +162,9 @@ class UCL_Device {
   inline size_t free_bytes() { return free_bytes(_device); }
   // Get the bytes of free memory
   inline size_t free_bytes(const int i) { 
-    size_t dfree, dtotal;
+    CUDA_INT_TYPE dfree, dtotal;
     CU_SAFE_CALL_NS(cuMemGetInfo(&dfree, &dtotal));
-    return dfree;
+    return static_cast<size_t>(dfree);
   }
 
   /// Return the GPGPU compute capability for current device

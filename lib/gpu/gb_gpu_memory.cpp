@@ -30,7 +30,7 @@ extern PairGPUDevice<PRECISION,ACC_PRECISION> pair_gpu_device;
 
 template <class numtyp, class acctyp>
 GB_GPU_MemoryT::GB_GPU_Memory() : _allocated(false), _compiled(false),
-                                  _max_bytes(0) {
+                                  _max_bytes(0.0) {
   device=&pair_gpu_device;
 }
 
@@ -229,8 +229,8 @@ void GB_GPU_MemoryT::clear() {
               sigma_epsilon.row_bytes()+cut_form.row_bytes()+
               shape.row_bytes()+well.row_bytes()+lshape.row_bytes()+
               gamma_upsilon_mu.row_bytes();
-  int mpi_max_bytes;
-  MPI_Reduce(&_max_bytes,&mpi_max_bytes,1,MPI_INT,MPI_MAX,0,MPI_COMM_WORLD);
+  double mpi_max_bytes;
+  MPI_Reduce(&_max_bytes,&mpi_max_bytes,1,MPI_DOUBLE,MPI_MAX,0,MPI_COMM_WORLD);
   double max_mb=mpi_max_bytes/(1024*1024);
 
   if (device->world_me()==0)
@@ -259,7 +259,7 @@ void GB_GPU_MemoryT::clear() {
       fprintf(screen,"-------------------------------------");
       fprintf(screen,"--------------------------------\n\n");
     }
-  _max_bytes=0;
+  _max_bytes=0.0;
 
   dev_error.clear();
   lj1.clear();

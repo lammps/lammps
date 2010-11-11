@@ -51,7 +51,7 @@ class GB_GPU_Memory {
   inline void resize_atom(const int inum, const int nall, bool &success) {
     atom->resize(inum, nall, success);
     if (multiple_forms) atom->dev_ans.zero();
-    int bytes=atom->gpu_bytes()+nbor->gpu_bytes();
+    double bytes=atom->gpu_bytes()+nbor->gpu_bytes();
     if (bytes>_max_bytes)
       _max_bytes=bytes;
   }
@@ -74,7 +74,7 @@ class GB_GPU_Memory {
       success=success && (host_olist.alloc(new_size,*ucl_device)==UCL_SUCCESS);
     }
     nbor->resize(nlocal,host_inum,max_nbors,success);
-    int bytes=atom->gpu_bytes()+nbor->gpu_bytes();
+    double bytes=atom->gpu_bytes()+nbor->gpu_bytes();
     if (bytes>_max_bytes)
       _max_bytes=bytes;
   }
@@ -185,7 +185,8 @@ class GB_GPU_Memory {
 
  private:
   bool _allocated, _compiled;
-  int _block_size, _max_bytes;
+  int _block_size;
+  double _max_bytes;
   
   void compile_kernels(UCL_Device &dev);
 };

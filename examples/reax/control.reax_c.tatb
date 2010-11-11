@@ -1,7 +1,7 @@
 simulation_name         reax.tatb  ! output files will carry this name + their specific extension
 
 tabulate_long_range     0 ! denotes the granularity of long range tabulation, 0 means no tabulation
-energy_update_freq      1 
+energy_update_freq      0
 remove_CoM_vel          500 ! remove the trans. & rot. vel around the CoM every 'this many' steps
 
 nbrhood_cutoff          4.0  ! near neighbors cutoff for bond calculations in A

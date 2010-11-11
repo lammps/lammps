@@ -167,7 +167,8 @@ class AtomicGPUMemory {
 
  protected:
   bool _compiled;
-  int _block_size, _max_bytes, _max_an_bytes;
+  int _block_size;
+  double _max_bytes, _max_an_bytes;
 
   void compile_kernels(UCL_Device &dev, const char *pair_string);
 

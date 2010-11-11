@@ -98,7 +98,7 @@ void PairGPUNbor::alloc(bool &success) {
   success=success && (host_acc.alloc((_max_atoms+_max_host)*2,*dev,
                                      UCL_WRITE_OPTIMIZED)==UCL_SUCCESS);
 
-  _c_bytes+=dev_nbor.row_bytes();
+  _c_bytes=dev_nbor.row_bytes();
   if (_alloc_packed) {
     dev_packed.clear();
     success=success && (dev_packed.alloc((_max_nbors+2)*_max_atoms,*dev,
@@ -133,8 +133,9 @@ void PairGPUNbor::alloc(bool &success) {
 }
   
 void PairGPUNbor::clear() {
-  _gpu_bytes=0;
-  _cell_bytes=0;
+  _gpu_bytes=0.0;
+  _cell_bytes=0.0;
+  _c_bytes=0.0;
   if (_allocated) {
     _allocated=false;
 

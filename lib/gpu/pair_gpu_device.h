@@ -61,7 +61,7 @@ class PairGPUDevice {
 
   /// Output a message with timing information
   void output_times(UCL_Timer &time_pair, const double avg_split, 
-                    const int max_bytes, FILE *screen);
+                    const double max_bytes, FILE *screen);
 
   /// Clear all memory on host and device associated with atom and nbor data
   void clear();

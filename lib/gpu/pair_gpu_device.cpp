@@ -166,7 +166,7 @@ void PairGPUDeviceT::init_message(FILE *screen, const char *name,
 
 template <class numtyp, class acctyp>
 void PairGPUDeviceT::output_times(UCL_Timer &time_pair, const double avg_split,
-                                  const int max_bytes, FILE *screen) {
+                                  const double max_bytes, FILE *screen) {
   double single[5], times[5];
 
   single[0]=atom.transfer_time();
@@ -177,10 +177,10 @@ void PairGPUDeviceT::output_times(UCL_Timer &time_pair, const double avg_split,
 
   MPI_Reduce(single,times,5,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 
-  int my_max_bytes=max_bytes;
-  int mpi_max_bytes;
-  MPI_Reduce(&my_max_bytes,&mpi_max_bytes,1,MPI_INT,MPI_MAX,0,MPI_COMM_WORLD);
-  double max_mb=mpi_max_bytes/(1024*1024);
+  double my_max_bytes=max_bytes;
+  double mpi_max_bytes;
+  MPI_Reduce(&my_max_bytes,&mpi_max_bytes,1,MPI_DOUBLE,MPI_MAX,0,MPI_COMM_WORLD);
+  double max_mb=mpi_max_bytes/(1024.0*1024.0);
 
   if (world_me()==0)
     if (screen && times[3]>0.0) {

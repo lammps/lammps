@@ -146,11 +146,12 @@ class PairGPUNbor {
                        bool &success, int &max_nbors);
 
   /// Return the number of bytes used on device
-  inline int gpu_bytes() {
+  inline double gpu_bytes() {
+    double res = _gpu_bytes + _c_bytes + _cell_bytes;
     if (_gpu_nbor==false)
-      return _gpu_bytes+_c_bytes+2*IJ_SIZE*sizeof(int)+_cell_bytes;
-    else
-      return _gpu_bytes+_c_bytes+_cell_bytes;
+      res += 2*IJ_SIZE*sizeof(int);
+
+    return res;
   }
   
   // ------------------------------- Data -------------------------------
@@ -198,7 +199,7 @@ class PairGPUNbor {
   bool _gpu_nbor, _gpu_host, _alloc_packed;
   double _cell_size;
 
-  int _gpu_bytes, _cell_bytes, _c_bytes;
+  double _gpu_bytes, _c_bytes, _cell_bytes;
   void alloc(bool &success);
 };
 

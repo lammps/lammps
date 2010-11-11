@@ -311,7 +311,7 @@ class PairGPUAtom {
   }
   
   /// Return number of bytes used on device
-  inline int gpu_bytes() { return _gpu_bytes; }
+  inline double gpu_bytes() { return _gpu_bytes; } 
 
   // -------------------------COPY FROM GPU -------------------------------
 
@@ -394,7 +394,7 @@ class PairGPUAtom {
   int *_ilist;
   double _time_cast;
   
-  int _gpu_bytes;
+  double _gpu_bytes;
 
   #ifndef USE_OPENCL
   CUDPPConfiguration sort_config;

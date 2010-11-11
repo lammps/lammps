@@ -114,10 +114,10 @@ $(OBJ_DIR)/pair_gpu_nbor.o: pair_gpu_nbor.cpp pair_gpu_nbor.h $(OBJ_DIR)/pair_gp
 $(OBJ_DIR)/pair_gpu_device.o: pair_gpu_device.cpp pair_gpu_device.h $(NVD_H)
 	$(CUDR) -o $@ -c pair_gpu_device.cpp
 
-$(OBJ_DIR)/atomic_gpu_memory.o: $(ALL_H) atomic_gpu_memory.h atomic_gpu_memory.cpp pair_gpu_nbor.h
+$(OBJ_DIR)/atomic_gpu_memory.o: $(ALL_H) atomic_gpu_memory.h atomic_gpu_memory.cpp
 	$(CUDR) -o $@ -c atomic_gpu_memory.cpp
 
-$(OBJ_DIR)/charge_gpu_memory.o: $(ALL_H) charge_gpu_memory.h charge_gpu_memory.cpp pair_gpu_nbor.h
+$(OBJ_DIR)/charge_gpu_memory.o: $(ALL_H) charge_gpu_memory.h charge_gpu_memory.cpp
 	$(CUDR) -o $@ -c charge_gpu_memory.cpp
 
 $(OBJ_DIR)/gb_gpu_kernel.ptx: gb_gpu_kernel.cu pair_gpu_precision.h gb_gpu_extra.h

@@ -25,9 +25,6 @@ CUDA_LINK = $(CUDA_LIB) -lcudart
 
 GPU_LIB = $(LIB_DIR)/libgpu.a
 
-# bourne shell
-BSH=/bin/sh
-
 # Headers for Geryon
 UCL_H  = $(wildcard ./geryon/ucl*.h)
 NVC_H  = $(wildcard ./geryon/nvc*.h) $(UCL_H)

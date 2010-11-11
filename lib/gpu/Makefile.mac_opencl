@@ -25,6 +25,7 @@ BIN_DIR = ./
 OBJ_DIR = ./ocl_obj
 LIB_DIR = ./
 AR = ar
+BSH = /bin/sh
 
 include Opencl.makefile
 

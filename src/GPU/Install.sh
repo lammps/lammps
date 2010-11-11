@@ -70,7 +70,9 @@ elif (test $1 = 0) then
   rm ../pair_lj_cut_gpu.h
   rm ../pair_lj96_cut_gpu.h
   rm ../pair_lj_cut_coul_cut_gpu.h
+  rm ../pair_lj_cut_coul_long_gpu.h
   rm ../pair_cg_cmm_gpu.h
+  rm ../pair_cg_cmm_coul_long_gpu.h
   rm ../pair_cg_cmm_coul_msm.h
   rm ../pair_cg_cmm_coul_msm_gpu.h
   rm ../fix_gpu.h

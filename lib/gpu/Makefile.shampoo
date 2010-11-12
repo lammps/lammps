@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------- */
 
 CUDA_HOME = /opt/cuda
-NVCC = nvcc # -ccbin /opt/gcc-34/bin
+NVCC = $(CUDA_HOME)/bin/nvcc # -ccbin /opt/gcc-34/bin
 
 CUDA_ARCH = -arch=sm_13
 CUDA_PRECISION = -D_SINGLE_SINGLE

@@ -117,7 +117,7 @@ int * ChargeGPUMemoryT::reset_nbors(const int nall, const int inum, int *ilist,
 
   nbor->get_host(inum,ilist,numj,firstneigh,block_size());
 
-  int bytes=atom->gpu_bytes()+nbor->gpu_bytes();
+  double bytes=atom->gpu_bytes()+nbor->gpu_bytes();
   if (bytes>_max_an_bytes)
     _max_an_bytes=bytes;
 
@@ -148,7 +148,7 @@ inline void ChargeGPUMemoryT::build_nbor_list(const int inum,
   nbor->build_nbor_list(inum, host_inum, nall, *atom, boxlo, boxhi, tag,
                         nspecial, special, success, mn);
 
-  int bytes=atom->gpu_bytes()+nbor->gpu_bytes();
+  double bytes=atom->gpu_bytes()+nbor->gpu_bytes();
   if (bytes>_max_an_bytes)
     _max_an_bytes=bytes;
 }

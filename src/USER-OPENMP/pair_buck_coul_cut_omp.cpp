@@ -468,3 +468,4 @@ double PairBuckCoulCutOMP::memory_usage()
 
   return bytes;
 }
+

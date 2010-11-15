@@ -331,7 +331,9 @@ void PairReaxC::compute(int eflag, int vflag)
   system->big_box.box_norms[2] = 0;
   if( comm->me == 0 ) t_start = MPI_Wtime();
 
-  if( update->ntimestep == 0 ) {
+  // XXX: shouldn't initialization go into settings() or something?
+  // AK: 2010/11/15
+  if( system->my_atoms == NULL ) {
     control->vlist_cut = neighbor->cutneighmax;
 
     // determine the local and total capacity

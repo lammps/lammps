@@ -30,7 +30,7 @@ class ImproperClass2 : public Improper {
   ImproperClass2(class LAMMPS *);
   ~ImproperClass2();
   void compute(int, int);
-  void coeff(int, int, char **);
+  void coeff(int, char **);
   void write_restart(FILE *);
   void read_restart(FILE *);
 

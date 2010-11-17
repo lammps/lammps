@@ -295,9 +295,8 @@ void AngleCGCMM::allocate()
    set coeffs for one or more types
 ------------------------------------------------------------------------- */
 
-void AngleCGCMM::coeff(int which, int narg, char **arg)
+void AngleCGCMM::coeff(int narg, char **arg)
 {
-  if (which > 0) return;
   if (narg != 6) error->all("Incorrect args for angle coefficients");
   if (!allocated) allocate();
 

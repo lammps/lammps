@@ -211,9 +211,8 @@ void AngleTable::settings(int narg, char **arg)
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-void AngleTable::coeff(int which, int narg, char **arg)
+void AngleTable::coeff(int narg, char **arg)
 {
-  if (which > 0) return;
   if (narg != 3) error->all("Illegal angle_coeff command");
   if (!allocated) allocate();
 

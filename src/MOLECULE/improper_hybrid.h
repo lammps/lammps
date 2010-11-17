@@ -31,7 +31,7 @@ class ImproperHybrid : public Improper {
   ~ImproperHybrid();
   void compute(int, int);
   void settings(int, char **);
-  void coeff(int, int, char **);
+  void coeff(int, char **);
   void write_restart(FILE *);
   void read_restart(FILE *);
   double memory_usage();

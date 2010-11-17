@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "math.h"
+#include "string.h"
 #include "stdlib.h"
 #include "dihedral_class2.h"
 #include "atom.h"
@@ -644,18 +645,17 @@ void DihedralClass2::allocate()
 
 /* ----------------------------------------------------------------------
    set coeffs for one or more types
-   which = 0 -> Dihedral coeffs
-   which = 1 -> MiddleBondTorsion coeffs
-   which = 2 -> EndBondTorsion coeffs
-   which = 3 -> AngleTorsion coeffs
-   which = 4 -> AngleAngleTorsion coeffs
-   which = 5 -> BondBond13Torsion coeffs
+   arg1 = "mbt" -> MiddleBondTorsion coeffs
+   arg1 = "ebt" -> EndBondTorsion coeffs
+   arg1 = "at" -> AngleTorsion coeffs
+   arg1 = "aat" -> AngleAngleTorsion coeffs
+   arg1 = "bb13" -> BondBond13Torsion coeffs
+   arg1 -> Dihedral coeffs
 ------------------------------------------------------------------------- */
 
-void DihedralClass2::coeff(int which, int narg, char **arg)
+void DihedralClass2::coeff(int narg, char **arg)
 {
-  if (which < 0 || which > 5)
-    error->all("Invalid coeffs for this dihedral style");
+  if (narg < 2) error->all("Invalid coeffs for this dihedral style");
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -663,7 +663,108 @@ void DihedralClass2::coeff(int which, int narg, char **arg)
 
   int count = 0;
 
-  if (which == 0) {
+  if (strcmp(arg[1],"mbt") == 0) {
+    if (narg != 6) error->all("Incorrect args for dihedral coefficients");
+
+    double f1_one = force->numeric(arg[2]);
+    double f2_one = force->numeric(arg[3]);
+    double f3_one = force->numeric(arg[4]);
+    double r0_one = force->numeric(arg[5]);
+    
+    for (int i = ilo; i <= ihi; i++) {
+      mbt_f1[i] = f1_one;
+      mbt_f2[i] = f2_one;
+      mbt_f3[i] = f3_one;
+      mbt_r0[i] = r0_one;
+      setflag_mbt[i] = 1;
+      count++;
+    }
+
+  } else if (strcmp(arg[1],"ebt") == 0) {
+    if (narg != 10) error->all("Incorrect args for dihedral coefficients");
+
+    double f1_1_one = force->numeric(arg[2]);
+    double f2_1_one = force->numeric(arg[3]);
+    double f3_1_one = force->numeric(arg[4]);
+    double f1_2_one = force->numeric(arg[5]);
+    double f2_2_one = force->numeric(arg[6]);
+    double f3_2_one = force->numeric(arg[7]);
+    double r0_1_one = force->numeric(arg[8]);
+    double r0_2_one = force->numeric(arg[9]);
+    
+    for (int i = ilo; i <= ihi; i++) {
+      ebt_f1_1[i] = f1_1_one;
+      ebt_f2_1[i] = f2_1_one;
+      ebt_f3_1[i] = f3_1_one;
+      ebt_f1_2[i] = f1_2_one;
+      ebt_f2_2[i] = f2_2_one;
+      ebt_f3_2[i] = f3_2_one;
+      ebt_r0_1[i] = r0_1_one;
+      ebt_r0_2[i] = r0_2_one;
+      setflag_ebt[i] = 1;
+      count++;
+    }
+
+  } else if (strcmp(arg[1],"at") == 0) {
+    if (narg != 10) error->all("Incorrect args for dihedral coefficients");
+
+    double f1_1_one = force->numeric(arg[2]);
+    double f2_1_one = force->numeric(arg[3]);
+    double f3_1_one = force->numeric(arg[4]);
+    double f1_2_one = force->numeric(arg[5]);
+    double f2_2_one = force->numeric(arg[6]);
+    double f3_2_one = force->numeric(arg[7]);
+    double theta0_1_one = force->numeric(arg[8]);
+    double theta0_2_one = force->numeric(arg[9]);
+
+    // convert theta0's from degrees to radians
+    
+    for (int i = ilo; i <= ihi; i++) {
+      at_f1_1[i] = f1_1_one;
+      at_f2_1[i] = f2_1_one;
+      at_f3_1[i] = f3_1_one;
+      at_f1_2[i] = f1_2_one;
+      at_f2_2[i] = f2_2_one;
+      at_f3_2[i] = f3_2_one;
+      at_theta0_1[i] = theta0_1_one/180.0 * PI;
+      at_theta0_2[i] = theta0_2_one/180.0 * PI;
+      setflag_at[i] = 1;
+      count++;
+    }
+
+  } else if (strcmp(arg[1],"aat") == 0) {
+    if (narg != 5) error->all("Incorrect args for dihedral coefficients");
+
+    double k_one = force->numeric(arg[2]);
+    double theta0_1_one = force->numeric(arg[3]);
+    double theta0_2_one = force->numeric(arg[4]);
+
+    // convert theta0's from degrees to radians
+    
+    for (int i = ilo; i <= ihi; i++) {
+      aat_k[i] = k_one;
+      aat_theta0_1[i] = theta0_1_one/180.0 * PI;
+      aat_theta0_2[i] = theta0_2_one/180.0 * PI;
+      setflag_aat[i] = 1;
+      count++;
+    }
+
+  } else if (strcmp(arg[1],"bb13") == 0) {
+    if (narg != 5) error->all("Incorrect args for dihedral coefficients");
+
+    double k_one = force->numeric(arg[2]);
+    double r10_one = force->numeric(arg[3]);
+    double r30_one = force->numeric(arg[4]);
+    
+    for (int i = ilo; i <= ihi; i++) {
+      bb13t_k[i] = k_one;
+      bb13t_r10[i] = r10_one;
+      bb13t_r30[i] = r30_one;
+      setflag_bb13t[i] = 1;
+      count++;
+    }
+
+  } else {
     if (narg != 7) error->all("Incorrect args for dihedral coefficients");
 
     double k1_one = force->numeric(arg[1]);
@@ -683,112 +784,6 @@ void DihedralClass2::coeff(int which, int narg, char **arg)
       k3[i] = k3_one;
       phi3[i] = phi3_one/180.0 * PI;
       setflag_d[i] = 1;
-      count++;
-    }
-  }
-
-  if (which == 1) {
-    if (narg != 5) error->all("Incorrect args for dihedral coefficients");
-
-    double f1_one = force->numeric(arg[1]);
-    double f2_one = force->numeric(arg[2]);
-    double f3_one = force->numeric(arg[3]);
-    double r0_one = force->numeric(arg[4]);
-    
-    for (int i = ilo; i <= ihi; i++) {
-      mbt_f1[i] = f1_one;
-      mbt_f2[i] = f2_one;
-      mbt_f3[i] = f3_one;
-      mbt_r0[i] = r0_one;
-      setflag_mbt[i] = 1;
-      count++;
-    }
-  }
-
-  if (which == 2) {
-    if (narg != 9) error->all("Incorrect args for dihedral coefficients");
-
-    double f1_1_one = force->numeric(arg[1]);
-    double f2_1_one = force->numeric(arg[2]);
-    double f3_1_one = force->numeric(arg[3]);
-    double f1_2_one = force->numeric(arg[4]);
-    double f2_2_one = force->numeric(arg[5]);
-    double f3_2_one = force->numeric(arg[6]);
-    double r0_1_one = force->numeric(arg[7]);
-    double r0_2_one = force->numeric(arg[8]);
-    
-    for (int i = ilo; i <= ihi; i++) {
-      ebt_f1_1[i] = f1_1_one;
-      ebt_f2_1[i] = f2_1_one;
-      ebt_f3_1[i] = f3_1_one;
-      ebt_f1_2[i] = f1_2_one;
-      ebt_f2_2[i] = f2_2_one;
-      ebt_f3_2[i] = f3_2_one;
-      ebt_r0_1[i] = r0_1_one;
-      ebt_r0_2[i] = r0_2_one;
-      setflag_ebt[i] = 1;
-      count++;
-    }
-  }
-
-  if (which == 3) {
-    if (narg != 9) error->all("Incorrect args for dihedral coefficients");
-
-    double f1_1_one = force->numeric(arg[1]);
-    double f2_1_one = force->numeric(arg[2]);
-    double f3_1_one = force->numeric(arg[3]);
-    double f1_2_one = force->numeric(arg[4]);
-    double f2_2_one = force->numeric(arg[5]);
-    double f3_2_one = force->numeric(arg[6]);
-    double theta0_1_one = force->numeric(arg[7]);
-    double theta0_2_one = force->numeric(arg[8]);
-
-    // convert theta0's from degrees to radians
-    
-    for (int i = ilo; i <= ihi; i++) {
-      at_f1_1[i] = f1_1_one;
-      at_f2_1[i] = f2_1_one;
-      at_f3_1[i] = f3_1_one;
-      at_f1_2[i] = f1_2_one;
-      at_f2_2[i] = f2_2_one;
-      at_f3_2[i] = f3_2_one;
-      at_theta0_1[i] = theta0_1_one/180.0 * PI;
-      at_theta0_2[i] = theta0_2_one/180.0 * PI;
-      setflag_at[i] = 1;
-      count++;
-    }
-  }
-
-  if (which == 4) {
-    if (narg != 4) error->all("Incorrect args for dihedral coefficients");
-
-    double k_one = force->numeric(arg[1]);
-    double theta0_1_one = force->numeric(arg[2]);
-    double theta0_2_one = force->numeric(arg[3]);
-
-    // convert theta0's from degrees to radians
-    
-    for (int i = ilo; i <= ihi; i++) {
-      aat_k[i] = k_one;
-      aat_theta0_1[i] = theta0_1_one/180.0 * PI;
-      aat_theta0_2[i] = theta0_2_one/180.0 * PI;
-      setflag_aat[i] = 1;
-      count++;
-    }
-  }
-
-  if (which == 5) {
-    if (narg != 4) error->all("Incorrect args for dihedral coefficients");
-
-    double k_one = force->numeric(arg[1]);
-    double r10_one = force->numeric(arg[2]);
-    double r30_one = force->numeric(arg[3]);
-    
-    for (int i = ilo; i <= ihi; i++) {
-      bb13t_k[i] = k_one;
-      bb13t_r10[i] = r10_one;
-      bb13t_r30[i] = r30_one;
-      setflag_bb13t[i] = 1;
       count++;
     }
   }

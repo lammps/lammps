@@ -36,7 +36,7 @@ using namespace LAMMPS_NS;
 #define MAXLINE 256
 #define LB_FACTOR 1.1
 #define CHUNK 1024
-#define DELTA 4
+#define DELTA 4            // must be 2 or larger
 
 #define NSECTIONS 22       // change when add to header::section_keywords
 
@@ -813,7 +813,7 @@ void ReadData::paircoeffs()
 
   for (i = 0; i < atom->ntypes; i++) {
     m = strlen(buf) + 1;
-    parse_coeffs(1,buf);
+    parse_coeffs(buf,NULL,1);
     force->pair->coeff(narg,arg);
     buf += m;
   }
@@ -844,7 +844,7 @@ void ReadData::bondcoeffs()
 
   for (i = 0; i < atom->nbondtypes; i++) {
     m = strlen(buf) + 1;
-    parse_coeffs(0,buf);
+    parse_coeffs(buf,NULL,0);
     force->bond->coeff(narg,arg);
     buf += m;
   }
@@ -875,8 +875,10 @@ void ReadData::anglecoeffs(int which)
 
   for (i = 0; i < atom->nangletypes; i++) {
     m = strlen(buf) + 1;
-    parse_coeffs(0,buf);
-    force->angle->coeff(which,narg,arg);
+    if (which == 0) parse_coeffs(buf,NULL,0);
+    else if (which == 1) parse_coeffs(buf,"bb",0);
+    else if (which == 2) parse_coeffs(buf,"ba",0);
+    force->angle->coeff(narg,arg);
     buf += m;
   }
   delete [] original;
@@ -906,8 +908,13 @@ void ReadData::dihedralcoeffs(int which)
 
   for (i = 0; i < atom->ndihedraltypes; i++) {
     m = strlen(buf) + 1;
-    parse_coeffs(0,buf);
-    force->dihedral->coeff(which,narg,arg);
+    if (which == 0) parse_coeffs(buf,NULL,0);
+    else if (which == 1) parse_coeffs(buf,"mbt",0);
+    else if (which == 2) parse_coeffs(buf,"ebt",0);
+    else if (which == 3) parse_coeffs(buf,"at",0);
+    else if (which == 4) parse_coeffs(buf,"aat",0);
+    else if (which == 5) parse_coeffs(buf,"bb13",0);
+    force->dihedral->coeff(narg,arg);
     buf += m;
   }
   delete [] original;
@@ -937,8 +944,9 @@ void ReadData::impropercoeffs(int which)
 
   for (i = 0; i < atom->nimpropertypes; i++) {
     m = strlen(buf) + 1;
-    parse_coeffs(0,buf);
-    force->improper->coeff(which,narg,arg);
+    if (which == 0) parse_coeffs(buf,NULL,0);
+    else if (which == 1) parse_coeffs(buf,"aa",0);
+    force->improper->coeff(narg,arg);
     buf += m;
   }
   delete [] original;
@@ -1314,10 +1322,11 @@ void ReadData::skip_lines(int n)
    parse a line of coeffs into words, storing them in narg,arg
    trim anything from '#' onward
    word strings remain in line, are not copied
-   if addflag, duplicate 1st word, so pair_coeff "2" looks like "2 2"
+   if addstr != NULL, add addstr as 2nd arg for class2 angle/dihedral/improper
+   if dupflag, duplicate 1st word, so pair_coeff "2" becomes "2 2"
 ------------------------------------------------------------------------- */
 
-void ReadData::parse_coeffs(int addflag, char *line)
+void ReadData::parse_coeffs(char *line, char *addstr, int dupflag)
 {
   char *ptr;
   if (ptr = strchr(line,'#')) *ptr = '\0';
@@ -1331,7 +1340,8 @@ void ReadData::parse_coeffs(int addflag, char *line)
 	memory->srealloc(arg,maxarg*sizeof(char *),"read_data:arg");
     }
     arg[narg++] = word;
-    if (addflag && narg == 1) continue;
+    if (addstr && narg == 1) arg[narg++] = addstr;
+    if (dupflag && narg == 1) arg[narg++] = word;
     word = strtok(NULL," \t\n\r\f");
   }
 }

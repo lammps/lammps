@@ -30,7 +30,7 @@ class DihedralHarmonic : public Dihedral {
   DihedralHarmonic(class LAMMPS *);
   ~DihedralHarmonic();
   void compute(int, int);
-  void coeff(int, int, char **);
+  void coeff(int, char **);
   void write_restart(FILE *);
   void read_restart(FILE *);
 

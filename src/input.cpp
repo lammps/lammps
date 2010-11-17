@@ -727,7 +727,7 @@ void Input::angle_coeff()
     error->all("Angle_coeff command before angle_style is defined");
   if (atom->avec->angles_allow == 0) 
     error->all("Angle_coeff command when no angles allowed");
-  force->angle->coeff(0,narg,arg);
+  force->angle->coeff(narg,arg);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -830,7 +830,7 @@ void Input::dihedral_coeff()
     error->all("Dihedral_coeff command before dihedral_style is defined");
   if (atom->avec->dihedrals_allow == 0) 
     error->all("Dihedral_coeff command when no dihedrals allowed");
-  force->dihedral->coeff(0,narg,arg);
+  force->dihedral->coeff(narg,arg);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -917,7 +917,7 @@ void Input::improper_coeff()
     error->all("Improper_coeff command before improper_style is defined");
   if (atom->avec->impropers_allow == 0) 
     error->all("Improper_coeff command when no impropers allowed");
-  force->improper->coeff(0,narg,arg);
+  force->improper->coeff(narg,arg);
 }
 
 /* ---------------------------------------------------------------------- */

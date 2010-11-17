@@ -184,7 +184,7 @@ void ImproperHybrid::settings(int narg, char **arg)
    set coeffs for one type
 ---------------------------------------------------------------------- */
 
-void ImproperHybrid::coeff(int which, int narg, char **arg)
+void ImproperHybrid::coeff(int narg, char **arg)
 {
   if (!allocated) allocate();
 
@@ -211,7 +211,7 @@ void ImproperHybrid::coeff(int which, int narg, char **arg)
 
   // invoke sub-style coeff() starting with 1st arg
 
-  if (!none) styles[m]->coeff(which,narg-1,&arg[1]);
+  if (!none) styles[m]->coeff(narg-1,&arg[1]);
 
   // set setflag and which type maps to which sub-style
   // if sub-style is none: set hybrid setflag, wipe out map

@@ -30,7 +30,7 @@ class DihedralClass2 : public Dihedral {
   DihedralClass2(class LAMMPS *);
   ~DihedralClass2();
   void compute(int, int);
-  void coeff(int, int, char **);
+  void coeff(int, char **);
   void write_restart(FILE *);
   void read_restart(FILE *);
 

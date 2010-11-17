@@ -325,9 +325,8 @@ void DihedralCharmm::allocate()
    set coeffs for one type
 ------------------------------------------------------------------------- */
 
-void DihedralCharmm::coeff(int which, int narg, char **arg)
+void DihedralCharmm::coeff(int narg, char **arg)
 {
-  if (which > 0) return;
   if (narg != 5) error->all("Incorrect args for dihedral coefficients");
   if (!allocated) allocate();
 

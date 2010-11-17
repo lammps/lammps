@@ -32,7 +32,7 @@ class Angle : protected Pointers {
   virtual void init();
   virtual void compute(int, int) = 0;
   virtual void settings(int, char **) {}
-  virtual void coeff(int, int, char **) = 0;
+  virtual void coeff(int, char **) = 0;
   virtual double equilibrium_angle(int) = 0;
   virtual void write_restart(FILE *) = 0;
   virtual void read_restart(FILE *) = 0;

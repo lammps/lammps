@@ -50,13 +50,13 @@ this is not required.
 </P>
 <P>See <A HREF = "#Sun">(Sun)</A> for a description of the COMPASS class2 force field.
 </P>
-<P>The following coefficients must be defined for each improper type via the
-<A HREF = "improper_coeff.html">improper_coeff</A> command as in the example above, or in
-the data file or restart files read by the <A HREF = "read_data.html">read_data</A>
-or <A HREF = "read_restart.html">read_restart</A> commands:
+<P>Coefficients for the Ei and Eaa formulas must be defined for each
+improper type via the <A HREF = "improper_coeff.html">improper_coeff</A> command as
+in the example above, or in the data file or restart files read by the
+<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
+commands.
 </P>
-<P>For this style, coefficients for the Ei formula can be specified in
-either the input script or data file.  These are the 2 coefficients:
+<P>These are the 2 coefficients for the Ei formula:
 </P>
 <UL><LI>K (energy/radian^2)
 <LI>X0 (degrees) 
@@ -64,11 +64,15 @@ either the input script or data file.  These are the 2 coefficients:
 <P>X0 is specified in degrees, but LAMMPS converts it to radians
 internally; hence the units of K are in energy/radian^2.
 </P>
-<P>Coefficients for the Eaa formula can only be specified in the data
-file.  For the Eaa formula, the coefficients are listed under a
-"AngleAngle Coeffs" heading and each line lists 6 coefficients:
+<P>For the Eaa formula, each line in a
+<A HREF = "improper_coeff.html">improper_coeff</A> command in the input script lists
+7 coefficients, the first of which is "aa" to indicate they are
+AngleAngle coefficients.  In a data file, these coefficients should be
+listed under a "AngleAngle Coeffs" heading and you must leave out the
+"aa", i.e. only list 6 coefficients after the improper type.
 </P>
-<UL><LI>M1 (energy/distance)
+<UL><LI>aa
+<LI>M1 (energy/distance)
 <LI>M2 (energy/distance)
 <LI>M3 (energy/distance)
 <LI>theta1 (degrees)

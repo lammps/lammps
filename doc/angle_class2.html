@@ -32,8 +32,13 @@ the equilibrium bond lengths.
 </P>
 <P>See <A HREF = "#Sun">(Sun)</A> for a description of the COMPASS class2 force field.
 </P>
-<P>For this style, coefficients for the Ea formula can be specified in
-the input script or data file.  These are the 4 coefficients:
+<P>Coefficients for the Ea, Ebb, and Eba formulas must be defined for
+each angle type via the <A HREF = "bond_coeff.html">bond_coeff</A> command as in the
+example above, or in the data file or restart files read by the
+<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
+commands.
+</P>
+<P>These are the 4 coefficients for the Ea formula:
 </P>
 <UL><LI>theta0 (degrees)
 <LI>K2 (energy/radian^2)
@@ -43,20 +48,27 @@ the input script or data file.  These are the 4 coefficients:
 <P>Theta0 is specified in degrees, but LAMMPS converts it to radians
 internally; hence the units of the various K are in per-radian.
 </P>
-<P>Coefficients for the Ebb and Eba formulas can only be specified in the
-data file.
+<P>For the Ebb formula, each line in a <A HREF = "bond_coeff.html">bond_coeff</A>
+command in the input script lists 4 coefficients, the first of which
+is "bb" to indicate they are BondBond coefficients.  In a data file,
+these coefficients can be listed under a "BondBond Coeffs" heading and
+you must leave out the "bb", i.e. only list 3 coefficients after the
+angle type.
 </P>
-<P>For the Ebb formula, the coefficients are listed under a "BondBond
-Coeffs" heading and each line lists 3 coefficients:
-</P>
-<UL><LI>M (energy/distance^2)
+<UL><LI>bb
+<LI>M (energy/distance^2)
 <LI>r1 (distance)
 <LI>r2 (distance) 
 </UL>
-<P>For the Eba formula, the coefficients are listed under a "BondAngle
-Coeffs" heading and each line lists 4 coefficients:
+<P>For the Eba formula, each line in a <A HREF = "bond_coeff.html">bond_coeff</A>
+command in the input script lists 5 coefficients, the first of which
+is "ba" to indicate they are BondAngle coefficients.  In a data file,
+these coefficients can be listed under a "BondAngle Coeffs" heading
+and you must leave out the "ba", i.e. only list 4 coefficients after
+the angle type.
 </P>
-<UL><LI>N1 (energy/distance^2)
+<UL><LI>ba
+<LI>N1 (energy/distance^2)
 <LI>N2 (energy/distance^2)
 <LI>r1 (distance)
 <LI>r2 (distance) 

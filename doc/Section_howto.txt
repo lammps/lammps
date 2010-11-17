@@ -1687,7 +1687,7 @@ details.
 The key idea of the library interface is that you can write any
 functions you wish to define how your code talks to LAMMPS and add
 them to src/library.cpp and src/library.h, as well as to the "Python
-interface"_doc/Section_python.html.  The routines you add can access
+interface"_Section_python.html.  The routines you add can access
 or change any LAMMPS data you wish.  The couple and python directories
 have example C++ and C and Python codes which show how a driver code
 can link to LAMMPS as a library, run LAMMPS on a subset of processors,

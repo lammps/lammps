@@ -32,10 +32,6 @@ if (test $1 = 1) then
   if (test -e ../pair_cg_cmm_coul_long.cpp) then
     cp pair_cg_cmm_coul_long_gpu.cpp ..
     cp pair_cg_cmm_coul_long_gpu.h ..
-    cp pair_cg_cmm_coul_msm.cpp ..
-    cp pair_cg_cmm_coul_msm.h ..
-    cp pair_cg_cmm_coul_msm_gpu.cpp ..
-    cp pair_cg_cmm_coul_msm_gpu.h ..
   fi
 
   cp pair_lj_cut_gpu.cpp ..

@@ -11,15 +11,19 @@
 
 <H3>pair_style lj96/cut command 
 </H3>
+<H3>pair_style lj96/cut/gpu command 
+</H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>pair_style lj96/cut cutoff 
+<PRE>pair_style style cutoff 
 </PRE>
-<UL><LI>cutoff = global cutoff for lj96/cut interactions (distance units) 
+<UL><LI>style = <I>lj96/cut</I> or <I>lj96/cut/gpu</I>
+<LI>cutoff = global cutoff for lj96/cut interactions (distance units) 
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>pair_style lj96/cut 2.5
+pair_style lj96/cut/gpu 2.5
 pair_coeff * * 1.0 1.0 4.0
 pair_coeff 1 1 1.0 1.0 
 </PRE>
@@ -31,6 +35,9 @@ of the standard 12/6 potential, given by
 <CENTER><IMG SRC = "Eqs/pair_lj96.jpg">
 </CENTER>
 <P>Rc is the cutoff.
+</P>
+<P>Style <I>lj96/cut/gpu</I> is a GPU-enabled version of style <I>lj96/cut</I>.
+See more details below.
 </P>
 <P>The following coefficients must be defined for each pair of atoms
 types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
@@ -44,6 +51,26 @@ commands, or by mixing as described below:
 </UL>
 <P>The last coefficient is optional.  If not specified, the global LJ
 cutoff specified in the pair_style command is used.
+</P>
+<HR>
+
+<P>The <I>lj96/cut/gpu</I> style is identical to the <I>lj96/cut</I> style, except that
+each processor off-loads its pairwise calculations to a 
+GPU chip. Depending on the hardware available on your system this can provide a
+speed-up.  See the <A HREF = "Section_start.html#2_8">Running on GPUs</A> section of
+the manual for more details about hardware and software requirements
+for using GPUs.
+</P>
+<P>More details about these settings and various possible hardware
+configuration are in <A HREF = "Section_start.html#2_8">this section</A> of the
+manual.
+</P>
+<P>Additional requirements in your input script to run with the <I>lj96/cut/gpu</I> 
+style are as follows:
+</P>
+<P>The <A HREF = "newton.html">newton pair</A> setting must be <I>off</I> and
+<A HREF = "fix_gpu.html">fix gpu</A> must be used. The fix controls the
+essential GPU selection and initialization steps
 </P>
 <HR>
 
@@ -76,7 +103,11 @@ details.
 </P>
 <HR>
 
-<P><B>Restrictions:</B> none
+<P><B>Restrictions:</B>
+</P>
+<P>The <I>lj96/cut/gpu</I> style is part of the "gpu" package. It
+is only enabled if LAMMPS is built with this packages.  See the
+<A HREF = "Section_start.html#2_3">Making LAMMPS</A> section for more info.
 </P>
 <P><B>Related commands:</B>
 </P>

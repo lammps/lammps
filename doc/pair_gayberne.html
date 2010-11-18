@@ -17,11 +17,9 @@
 </P>
 <PRE>pair_style gayberne gamma upsilon mu cutoff 
 </PRE>
-<PRE>pair_style gayberne/gpu gpuflag gpunum gamma upsilon mu cutoff 
+<PRE>pair_style gayberne/gpu gamma upsilon mu cutoff 
 </PRE>
 <UL><LI>style = <I>gayberne</I> or <I>gayberne/gpu</I>
-<LI>gpumode = <I>one/node</I> or <I>one/gpu</I> or <I>multi/gpu</I>, only used with gayberne/gpu
-<LI>gpuID = ID or number of GPUs, only used with gayberne/gpu
 <LI>gamma = shift for potential minimum (typically 1)
 <LI>upsilon = exponent for eta orientation-dependent energy function
 <LI>mu = exponent for chi orientation-dependent energy function
@@ -30,7 +28,7 @@
 <P><B>Examples:</B>
 </P>
 <PRE>pair_style gayberne 1.0 1.0 1.0 10.0
-pair_style gayberne/gpu one/node 0 1.0 1.0 1.0 10.0
+pair_style gayberne/gpu 1.0 1.0 1.0 10.0
 pair_coeff * * 1.0 1.7 1.7 3.4 3.4 1.0 1.0 1.0 
 </PRE>
 <P><B>Description:</B>
@@ -50,10 +48,8 @@ both particles are spherical, the formula reduces to the usual
 Lennard-Jones interaction (see details below for when Gay-Berne treats
 a particle as "spherical").
 </P>
-<P>Style <I>gayberne/gpu</I> is a GPU-enabled version of style <I>gayberne</I> that
-should give identical answers.  Depending on system size and the GPU
-processor you have on your system, it may be 100x faster (for the
-pairwise portion of the run time).  See more details below.
+<P>Style <I>gayberne/gpu</I> is a GPU-enabled version of style <I>gayberne</I>.
+See more details below.
 </P>
 <P>For large uniform molecules it has been shown that the energy
 parameters are approximately representable in terms of local contact
@@ -141,26 +137,10 @@ to specify its interaction with other spherical particles.
 <P>The <I>gayberne/gpu</I> style is identical to the <I>gayberne</I> style, except
 that each processor off-loads its pairwise calculations to a GPU chip.
 Depending on the hardware available on your system this can provide a
-significant speed-up, espcially for the relatively expensive
+significant speed-up, especially for the relatively expensive
 computations inherent in Gay-Berne interactions.  See the <A HREF = "Section_start.html#2_8">Running on
 GPUs</A> section of the manual for more details
 about hardware and software requirements for using GPUs.
-</P>
-<P>The <I>gpumode</I> and <I>gpuID</I> settings in the pair_style command refer to
-how the GPUs on your system are configured.
-</P>
-<P>Set <I>gpumode</I> to <I>one/node</I> if you have a single compute "node" on
-your system, which may have multiple cores and/or GPUs.  <I>GpuID</I>
-should be set to the ID of the (first) GPU you wish to use with LAMMPS
-(another GPU might be driving your display).
-</P>
-<P>Set <I>gpumode</I> to <I>one/gpu</I> if you have multiple compute "nodes" on
-your system, with one GPU per node.  <I>GpuID</I> should be set to the ID
-of the GPU.
-</P>
-<P>Set <I>gpumode</I> to <I>multi/gpu</I> if you have multiple compute "nodes" on
-your system, each with multiple GPUs.  <I>GpuID</I> should be set to the
-number of GPUs per node.
 </P>
 <P>More details about these settings and various possible hardware
 configuration are in <A HREF = "Section_start.html#2_8">this section</A> of the
@@ -169,7 +149,9 @@ manual.
 <P>Additional requirements in your input script to run with style
 <I>gayberne/gpu</I> are as follows:
 </P>
-<P>The <A HREF = "newton.html">newton pair</A> setting must be <I>off</I>.
+<P>The <A HREF = "newton.html">newton pair</A> setting must be <I>off</I> and
+<A HREF = "fix_gpu.html">fix gpu</A> must be used. The fix controls the
+essential GPU selection and initialization steps.
 </P>
 <HR>
 

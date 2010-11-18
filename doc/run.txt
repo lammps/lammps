@@ -116,7 +116,7 @@ also prevent any variables in the command from being evaluated until
 it is executed multiple times during the run.  Note that if a command
 itself needs one of its arguments quoted (e.g. the "print"_print.html
 command), then you can use a combination of single and double quotes,
-as in the example above.
+as in the example above or below.
 
 The {every} keyword is a means to avoid listing a long series of runs
 and interleaving commands in your input script.  For example, a

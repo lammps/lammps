@@ -24,9 +24,9 @@ print "The system volume is now $v" :pre
 
 Print a text string to the screen and logfile.  One line of output is
 generated.  If the string has white space in it (spaces, tabs, etc),
-then you must enclose it in single or double quotes so that it is
-treated as a single argument.  If variables are included in the
-string, they will be evaluated and their current values printed.
+then you must enclose it in quotes so that it is treated as a single
+argument.  If variables are included in the string, they will be
+evaluated and their current values printed.
 
 If you want the print command to be executed multiple times (with
 changing variable values), there are 3 options.  First, consider using

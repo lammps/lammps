@@ -56,7 +56,7 @@ are executed.  The elif and else keywords and their associated
 commands are optional.  If they aren't specified and the initial
 Boolean expression is FALSE, then no commands are executed.
 </P>
-<P>The allowed syntax for each Boolean expression is described below.
+<P>The syntax for Boolean expressions is described below.
 </P>
 <P>Each command (t1, f1, e1, etc) can be any valid LAMMPS input script
 command.  If the command is more than one word, it must enclosed in
@@ -147,9 +147,9 @@ order of evaluation than what would occur with the default precedence.
 </P>
 <P>The 6 relational operators return either a 1.0 or 0.0 depending on
 whether the relationship between x and y is true or false.  The
-logical AND operator will return 1.0 of both its arguments are
+logical AND operator will return 1.0 if both its arguments are
 non-zero, else return a 0.0.  The logical OR operator will return 1.0
-of either of its arguments is non-zero, else return a 0.0.
+if either of its arguments is non-zero, else return a 0.0.
 </P>
 <P>The overall Boolean expression produces a TRUE result if the result is
 non-zero.  If the result is zero, the expression result is FALSE.

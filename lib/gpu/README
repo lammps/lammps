@@ -37,6 +37,8 @@ Current pair styles supporting GPU acceleration:
   3. lj/cut/coul/long/gpu
   4. lj96/cut/gpu
   5. gayberne/gpu
+  6. cmm/cg/gpu
+  7. cmm/cg/coul/long/gpu
 
                      MULTIPLE LAMMPS PROCESSES
                      
@@ -49,22 +51,29 @@ LAMMPS user manual for details on running with GPU acceleration.
 
                     BUILDING AND PRECISION MODES
 
-To build, edit the CUDA_ARCH, CUDA_PRECISION, CUDA_INCLUDE, CUDA_LIB,
-and CUDA_OPTS values in one of the Makefiles. CUDA_ARCH should be set
-based on the compute capability for your GPU. This can be verified by
+To build, edit the CUDA_ARCH, CUDA_PRECISION, CUDA_HOME, NVCC, CUDA_INCLUD,
+CUDA_LIB and CUDA_OPTS variables in one of the Makefiles. CUDA_ARCH should
+be set based on the compute capability of your GPU. This can be verified by
 running the nvc_get_devices executable after the build is complete.
-Additionally, the GPU package must be installed and
-compiled for LAMMPS. This may require editing the gpu_SYSPATH variable
-in the LAMMPS makefile.
+Additionally, the GPU package must be installed and compiled for LAMMPS.
+This may require editing the gpu_SYSPATH variable in the LAMMPS makefile.
 
-The library supports 3 precision modes as determined by 
+Please note that the GPU library accesses the CUDA driver library directly,
+so it needs to be linked not only to the CUDA runtime library (libcudart.so)
+that ships with the CUDA toolkit, but also with the CUDA driver library
+(libcuda.so) that ships with the Nvidia driver. If you are compiling LAMMPS
+on the head node of a GPU cluster, this library may not be installed,
+so you may need to copy it over from one of the compute nodes (best into
+this directory).
+
+The gpu library supports 3 precision modes as determined by 
 the CUDA_PRECISION variable:
 
   CUDA_PREC = -D_SINGLE_SINGLE  # Single precision for all calculations
   CUDA_PREC = -D_DOUBLE_DOUBLE  # Double precision for all calculations
   CUDA_PREC = -D_SINGLE_DOUBLE  # Accumulation of forces, etc. in double
 
-NOTE: Double precision is only supported on certain GPUS (with
+NOTE: Double precision is only supported on certain GPUs (with
       compute capability>=1.3).
       
 NOTE: For Tesla and other graphics cards with compute capability>=1.3,
@@ -75,6 +84,14 @@ NOTE: For Fermi, make sure that -arch=sm_20 is set on the CUDA_ARCH line.
 NOTE: The gayberne/gpu pair style will only be installed if the ASPHERE
       package has been installed before installing the GPU package in LAMMPS.
 
+NOTE: The cg/cmm/gpu and cg/cmm/coul/long/gpu pair styles will only be
+      installed if the USER-CG-CMM package has been installed before
+      installing the GPU package in LAMMPS.
+
+NOTE: The lj/cut/coul/long/gpu and cg/cmm/coul/long/gpu style will only be 
+      installed if the KSPACE package has been installed before installing
+      the GPU package in LAMMPS.
+
                       EXAMPLE BUILD PROCESS
                     
 cd ~/lammps/lib/gpu
@@ -84,6 +101,10 @@ make -f Makefile.linux
 cd ../../src
 emacs ./MAKE/Makefile.linux
 make yes-asphere
+make yes-kspace
 make yes-gpu
 make linux
 
+------------------------------------------------------------------------
+Last merge with gpulammps: r561 on 2010-11-12
+------------------------------------------------------------------------

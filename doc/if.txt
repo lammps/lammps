@@ -111,7 +111,7 @@ syntax.  Note that each expression is a single argument within the if
 command.  Thus if you want to include spaces in the expression for
 clarity, you must enclose the entire expression in quotes.
 
-An expression is built out of numbers
+An expression is built out of numbers:
 
 0.2, 100, 1.0e20, -15.4, etc :pre
 
@@ -123,7 +123,7 @@ Each A and B is a number or a variable reference like $a or $\{abc\},
 or another Boolean expression.
 
 If a variable is used it must produce a number when evaluated and
-substituted for in the expression.
+substituted for in the expression, else an error will be generated.
 
 Expressions are evaluated left to right and have the usual C-style
 precedence: the 4 relational operators "<", "<=", ">", and ">=" have

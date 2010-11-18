@@ -331,17 +331,17 @@ relational operators "<", "<=", ">", and ">="; those 4 relational
 operators before the remaining two relational operators "==" and "!=";
 those two relational operators before the logical AND operator "&&";
 and the AND operator "&&" before the logical OR operator "||".
-Parenthesis can be used to group one or more portions of a formula and
-enforce a different order of evaluation than what would occur with the
-default precedence.
+Parenthesis can be used to group one or more portions of a formula
+and/or enforce a different order of evaluation than what would occur
+with the default precedence.
 
 The 6 relational operators return either a 1.0 or 0.0 depending on
 whether the relationship between x and y is true or false.  For
 example the expression x<10.0 in an atom-style variable formula will
 return 1.0 for all atoms whose x-coordinate is less than 10.0, and 0.0
-for the others.  The logical AND operator will return 1.0 of both its
+for the others.  The logical AND operator will return 1.0 if both its
 arguments are non-zero, else return a 0.0.  The logical OR operator
-will return 1.0 of either of its arguments is non-zero, else return a
+will return 1.0 if either of its arguments is non-zero, else return a
 0.0.  These relational and logical operators can be used as a masking
 or selection operation in a formula.  For example, the number of atoms
 whose properties satifsy one or more criteria could be calculated by

@@ -13,23 +13,23 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>print str1 str2 ... 
+<PRE>print str 
 </PRE>
-<UL><LI>str1,str2,...,strN = one or more text strings to print, which may contain variables 
+<UL><LI>str1 = text string to print, which may contain variables 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>print Done with equilibration
-print The system volume is now $v
+<PRE>print "Done with equilibration"
+print Vol=$v
 print "The system volume is now $v" 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Print one or more text strings to the screen and logfile.  The
-individual text strings are effectively concatenated into a single
-string, and one line of output is generated.  Thus the 2nd and 3rd
-examples above are equivalent.  If variables are included in any of
-the strings, they will be evaluated and their current values printed.
+<P>Print a text string to the screen and logfile.  One line of output is
+generated.  If the string has white space in it (spaces, tabs, etc),
+then you must enclose it in single or double quotes so that it is
+treated as a single argument.  If variables are included in the
+string, they will be evaluated and their current values printed.
 </P>
 <P>If you want the print command to be executed multiple times (with
 changing variable values), there are 3 options.  First, consider using

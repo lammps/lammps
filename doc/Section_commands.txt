@@ -111,11 +111,23 @@ underscores, or punctuation characters.
 line are arguments.
 
 (6) If you want text with spaces to be treated as a single argument,
-it can be enclosed in double quotes.  The quotes are removed when the
-single argument is stored in its final form.  See the "dump modify
-format"_dump_modify.html or "if"_if.html commands for examples.  A "#"
-or "$" character that is between double quotes will not be treated as
-a comment indicator in (2) or substituted for as a variable in (3).
+it can be enclosed in either double or single quotes.  E.g.
+
+print "Volume = $v"
+print 'Volume = $v' :pre
+
+The quotes are removed when the single argument is stored internally.
+See the "dump modify format"_dump_modify.html or "if"_if.html commands
+for examples.  A "#" or "$" character that is between quotes will not
+be treated as a comment indicator in (2) or substituted for as a
+variable in (3).
+
+IMPORTANT NOTE: If the argument is itself a command that requires a
+quoted argument (e.g. using a "print"_print.html command as part of an
+"if"_if.html or "run every"_run.html command), then the double and
+single quotes can be nested in the usual manner.  See the doc pages
+for those commands for examples.  Only one of level of nesting is
+allowed, but that should be sufficient for most use cases.
 
 :line
 

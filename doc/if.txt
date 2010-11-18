@@ -10,64 +10,81 @@ if command :h3
 
 [Syntax:]
 
-if value1 operator value2 then t1 t2 ... else e1 e2 ... :pre
+if boolean then t1 t2 ... elif boolean f1 f2 ... elif boolean f1 f2 ... else e1 e2 ... :pre
 
-value1 = 1st value
-operator = "<" or "<=" or ">" or ">=" or "==" or "!="
-value2 = 2nd value
+boolean = a Boolean expression evaluated as TRUE or FALSE (see below)
 then = required word
 t1,t2,...,tN = one or more LAMMPS commands to execute if condition is met, each enclosed in quotes
+elif = optional word, can appear multiple times
+f1,f2,...,fN = one or more LAMMPS commands to execute if elif condition is met, each enclosed in quotes (optional arguments)
 else = optional argument
-e1,e2,...,eN = one or more LAMMPS commands to execute if condition is not met, each enclosed in quotes (optional arguments) :ul
+e1,e2,...,eN = one or more LAMMPS commands to execute if no condition is met, each enclosed in quotes (optional arguments) :ul
 
 [Examples:]
 
-if $\{steps\} > 1000 then exit
-if $x <= $y then "print X is smaller = $x" else "print Y is smaller = $y"
-if $\{eng\} > 0.0 then "timestep 0.005"
-if $\{eng\} > $\{eng_previous\} then "jump file1" else "jump file2" :pre
+if "$\{steps\} > 1000" then exit
+if "$x <= $y" then "print X is smaller = $x" else "print Y is smaller = $y"
+if "($\{eng\} > 0.0) || ($n < 1000)" then &
+  "timestep 0.005" &
+elif $n<10000 &
+  "timestep 0.01" &
+else &
+  "timestep 0.02" &
+  "print 'Max step reached'"
+if "$\{eng\} > $\{eng_previous\}" then "jump file1" else "jump file2" :pre
 
 [Description:]
 
 This command provides an in-then-else capability within an input
-script.  Two values are numerically compared to each other and the
-result is TRUE or FALSE.  Note that as in the examples above, either
-of the two values can be variables, as defined by the
-"variable"_variable.html command, so that when the if command is
-executed, the variable(s) will be evaluated, which could calculate a
-user-defined formula that reflects the current state of the
-simulation.
+script.  A Boolean expression is evaluted and the result is TRUE or
+FALSE.  Note that as in the examples above, the expression can contain
+variables, as defined by the "variable"_variable.html command, which
+will be evaluated as part of the expression.  Thus a user-defined
+formula that reflects the current state of the simulation can be used
+to issue one or more new commands.
 
-If the result of the if test is TRUE, then one or more commands (t1,
-t2, ..., tN) are executed.  If the result of the if test is FALSE and
-no optional "else" argument is included, then the if command does
-nothing.  If the result of the if test is FALSE and the optional
-"else" argument is included, then one or more commands (e1,
-e2, ..., eN) are executed.
+If the result of the Boolean expression is TRUE, then one or more
+commands (t1, t2, ..., tN) are executed.  If it is FALSE, then Boolean
+expressions associated with successive elif keywords are evaluated
+until one is found to be true, in which case its commands (f1, f2,
+..., fN) are executed.  If no Boolean expression is TRUE, then the
+commands associated witht the else keyword, namely (e1, e2, ..., eN),
+are executed.  The elif and else keywords and their associated
+commands are optional.  If they aren't specified and the initial
+Boolean expression is FALSE, then no commands are executed.
 
-Each then or else command (t1, e1, etc) can be any valid LAMMPS input
-script command.  Each command should be enclosed in quotes, so it will
-be treated as a single argument, as in the examples above.
+The syntax for Boolean expressions is described below.
+
+Each command (t1, f1, e1, etc) can be any valid LAMMPS input script
+command.  If the command is more than one word, it must enclosed in
+quotes, so it will be treated as a single argument, as in the examples
+above.
+
+IMPORTANT NOTE: If a command itself requires a quoted argument (e.g. a
+"print"_print.html command), then double and single quotes can be used
+and nested in the usual manner, as in the examples above and below.
+See "this section"_Section_commands.html#3_2 of the manual for more
+details on using quotes in arguments.  Only one of level of nesting is
+allowed, but that should be sufficient for most use cases.
 
 Note that by using the line continuation character "&", the if command
-can be spread across many lines, though it is still a single
-command:
+can be spread across many lines, though it is still a single command:
 
-if $a < $b then &
-  "print Minimum value = $a" &
+if "$a < $b" then &
+  "print 'Minimum value = $a'" &
   "run 1000" &
 else &      
-  "print Minimum value = $b" &
+  'print "Minimum value = $b"' &
   "minimize 0.001 0.001 1000 10000" :pre
 
-Note that if any executed comand is a bogus LAMMPS command, such as
-"exit" in the first example above, then executing the command will
-cause LAMMPS to halt.
+Note that if one of the commands to execute is an invalid LAMMPS
+command, such as "exit" in the first example above, then executing the
+command will cause LAMMPS to halt.
 
 Note that by jumping to a label in the same input script, the if
 command can be used to break out of a loop.  See the "variable
-delete"_variable.html for info on how to delete the associated loop
-variable, so that it can be re-used later in the input script.
+delete"_variable.html command for info on how to delete the associated
+loop variable, so that it can be re-used later in the input script.
 
 Here is an example of a double loop which uses the if and
 "jump"_jump.html commands to break out of the inner loop when a
@@ -79,13 +96,59 @@ variable    a loop 5
   variable  b loop 5
   print	    "A,B = $a,$b"
   run       10000
-  if	    $b > 2 then "jump in.script break"
+  if	    '$b > 2' then "print 'Jumping to another script'" "jump in.script break"
   next	    b
   jump	    in.script loopb
 label	    break
 variable    b delete :pre
 next	    a
 jump	    in.script loopa :pre
+
+:line
+
+The Boolean expressions for the if and elif keywords have a C-like
+syntax.  Note that each expression is a single argument within the if
+command.  Thus if you want to include spaces in the expression for
+clarity, you must enclose the entire expression in quotes.
+
+An expression is built out of numbers
+
+0.2, 100, 1.0e20, -15.4, etc :pre
+
+and Boolean operators:
+
+A == B
+A != B
+A < B
+A <= B
+A > B
+A >= B
+A && B
+A || B :pre
+
+Each A and B is a number or a variable reference like $a or $\{abc\},
+or another Boolean expression.
+
+If a variable is used it must produce a number when evaluated and
+substituted for in the expression.
+
+Expressions are evaluated left to right and have the usual C-style
+precedence: the 4 relational operators "<", "<=", ">", and ">=" have
+the highest precedence; those 4 relational operators before the
+remaining two relational operators "==" and "!="; those two relational
+operators before the logical AND operator "&&"; and the AND operator
+"&&" before the logical OR operator "||".  Parenthesis can be used to
+group one or more portions of an expression and/or enforce a different
+order of evaluation than what would occur with the default precedence.
+
+The 6 relational operators return either a 1.0 or 0.0 depending on
+whether the relationship between x and y is true or false.  The
+logical AND operator will return 1.0 if both its arguments are
+non-zero, else return a 0.0.  The logical OR operator will return 1.0
+if either of its arguments is non-zero, else return a 0.0.
+
+The overall Boolean expression produces a TRUE result if the result is
+non-zero.  If the result is zero, the expression result is FALSE.
 
 [Restrictions:] none
 

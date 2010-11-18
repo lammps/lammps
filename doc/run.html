@@ -41,7 +41,7 @@
 run 1000000 upto
 run 100 start 0 stop 1000
 run 1000 pre no post yes
-run 100000 start 0 stop 1000000 every 1000 "print Protein Rg = $r"
+run 100000 start 0 stop 1000000 every 1000 "print 'Protein Rg = $r'"
 run 100000 every 1000 NULL 
 </PRE>
 <P><B>Description:</B>
@@ -120,7 +120,10 @@ number of arguments.  Each of the trailing arguments is a single
 LAMMPS command, and each command should be enclosed in quotes, so that
 the entire command will be treated as a single argument.  This will
 also prevent any variables in the command from being evaluated until
-it is executed multiple times during the run.
+it is executed multiple times during the run.  Note that if a command
+itself needs one of its arguments quoted (e.g. the <A HREF = "print.html">print</A>
+command), then you can use a combination of single and double quotes,
+as in the example above.
 </P>
 <P>The <I>every</I> keyword is a means to avoid listing a long series of runs
 and interleaving commands in your input script.  For example, a
@@ -161,10 +164,10 @@ command can be spread across many lines, though it is still a single
 command:
 </P>
 <PRE>run 100000 every 1000 &
-  "print Minimum value = $a" &
-  "print Maximum value = $b" &
-  "print Temp = $c" &
-  "print Press = $d" 
+  "print 'Minimum value = $a'" &
+  "print 'Maximum value = $b'" &
+  "print 'Temp = $c'" &
+  "print 'Press = $d'" 
 </PRE>
 <P>If the <I>pre</I> and <I>post</I> options are set to "no" when used with the
 <I>every</I> keyword, then the 1st run will do the full setup and the last

@@ -32,6 +32,7 @@ class Variable : protected Pointers {
   double compute_equal(int);
   void compute_atom(int, int, double *, int, int);
   int int_between_brackets(char *&);
+  double evaluate_boolean(char *);
 
  private:
   int me;

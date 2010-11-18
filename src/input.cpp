@@ -265,7 +265,7 @@ char *Input::one(const char *single)
    command = first word
    narg = # of args
    arg[] = individual args
-   treat text between double quotes as one arg
+   treat text between single/double quotes as one arg
 ------------------------------------------------------------------------- */
 
 void Input::parse()
@@ -275,19 +275,17 @@ void Input::parse()
   strcpy(copy,line);
 
   // strip any # comment by resetting string terminator
-  // do not strip # inside double quotes
+  // do not strip # inside single/double quotes
 
-  int level = 0;
+  char quote = '\0';
   char *ptr = copy;
   while (*ptr) {
-    if (*ptr == '#' && level == 0) {
+    if (*ptr == '#' && !quote) {
       *ptr = '\0';
       break;
     }
-    if (*ptr == '"') {
-      if (level == 0) level = 1;
-      else level = 0;
-    }
+    if (*ptr == quote) quote = '\0';
+    else if (*ptr == '"' || *ptr == '\'') quote = *ptr;
     ptr++;
   }
 
@@ -302,8 +300,11 @@ void Input::parse()
   if (command == NULL) return;
 
   // point arg[] at each subsequent arg
-  // treat text between double quotes as one arg
+  // treat text between single/double quotes as one arg
   // insert string terminators in copy to delimit args
+
+  quote = '\0';
+  int iarg,argstart;
 
   narg = 0;
   while (1) {
@@ -312,19 +313,23 @@ void Input::parse()
       arg = (char **) memory->srealloc(arg,maxarg*sizeof(char *),"input:arg");
     }
     arg[narg] = strtok(NULL," \t\n\r\f");
-    if (arg[narg] && arg[narg][0] == '\"') {
+    if (!arg[narg]) break;
+    if (!quote && (arg[narg][0] == '"' || arg[narg][0] == '\'')) {
+      quote = arg[narg][0];
+      argstart = narg;
       arg[narg] = &arg[narg][1];
-      if (arg[narg][strlen(arg[narg])-1] == '\"')
-	arg[narg][strlen(arg[narg])-1] = '\0';
-      else {
-	arg[narg][strlen(arg[narg])] = ' ';
-	ptr = strtok(arg[narg],"\"");
-	if (ptr == NULL) error->all("Unbalanced quotes in input line");
-      }
     }
-    if (arg[narg]) narg++;
-    else break;
+    if (quote && arg[narg][strlen(arg[narg])-1] == quote) {
+      for (iarg = argstart; iarg < narg; iarg++)
+	arg[iarg][strlen(arg[iarg])] = ' ';
+      arg[narg][strlen(arg[narg])-1] = '\0';
+      narg = argstart;
+      quote = '\0';
+    }
+    narg++;
   }
+
+  if (quote) error->all("Unbalanced quotes in input line");
 }
 
 /* ----------------------------------------------------------------------
@@ -335,18 +340,18 @@ void Input::parse()
 void Input::substitute(char *str, int flag)
 {
   // use work[] as scratch space to expand str
-  // do not replace $ inside double quotes as flagged by level
+  // do not replace $ inside single/double quotes
   // var = pts at variable name, ended by NULL
   //   if $ is followed by '{', trailing '}' becomes NULL
   //   else $x becomes x followed by NULL
   // beyond = pts at text following variable
 
   char *var,*value,*beyond;
-  int level = 0;
+  char quote = '\0';
   char *ptr = str;
 
   while (*ptr) {
-    if (*ptr == '$' && level == 0) {
+    if (*ptr == '$' && !quote) {
       if (*(ptr+1) == '{') {
 	var = ptr+2;
 	int i = 0;
@@ -379,10 +384,8 @@ void Input::substitute(char *str, int flag)
       }
       continue;
     }
-    if (*ptr == '"') {
-      if (level == 0) level = 1;
-      else level = 0;
-    }
+    if (*ptr == quote) quote = '\0';
+    else if (*ptr == '"' || *ptr == '\'') quote = *ptr;
     ptr++;
   }
 }
@@ -521,72 +524,107 @@ void Input::echo()
 
 void Input::ifthenelse()
 {
-  if (narg < 5) error->all("Illegal if command");
+  if (narg < 4) error->all("Illegal if command");
 
-  // flag = 0 for "then"
-  // flag = 1 for "else"
+  // substitute for variables in Boolean expression for "if"
+  // in case expression was enclosed in quotes
 
-  int flag = 0;
-  if (strcmp(arg[1],"==") == 0) {
-    if (atof(arg[0]) == atof(arg[2])) flag = 1;
-  } else if (strcmp(arg[1],"!=") == 0) {
-    if (atof(arg[0]) != atof(arg[2])) flag = 1;
-  } else if (strcmp(arg[1],"<") == 0) {
-    if (atof(arg[0]) < atof(arg[2])) flag = 1;
-  } else if (strcmp(arg[1],"<=") == 0) {
-    if (atof(arg[0]) <= atof(arg[2])) flag = 1;
-  } else if (strcmp(arg[1],">") == 0) {
-    if (atof(arg[0]) > atof(arg[2])) flag = 1;
-  } else if (strcmp(arg[1],">=") == 0) {
-    if (atof(arg[0]) >= atof(arg[2])) flag = 1;
-  } else error->all("Illegal if command");
+  substitute(arg[0],0);
 
-  // first = arg index of first "then" or "else" command
-  // last = arg index of last "then" or "else" command
-  
-  int iarg,first,last;
+  // evaluate Boolean expression for "if"
 
-  // identify range of commands within arg list for then or else
-  // for else, if no comands, just return
+  double btest = variable->evaluate_boolean(arg[0]);
 
-  if (strcmp(arg[3],"then") != 0) error->all("Illegal if command");
-  if (flag) {
-    iarg = first = 4;
-    while (iarg < narg && strcmp(arg[iarg],"else") != 0) iarg++;
+  // bound "then" commands
+
+  if (strcmp(arg[1],"then") != 0) error->all("Illegal if command");
+
+  int first = 2;
+  int iarg = first;
+  while (iarg < narg && 
+	 (strcmp(arg[iarg],"elif") != 0 && strcmp(arg[iarg],"else") != 0))
+    iarg++;
+  int last = iarg-1;
+
+  // execute "then" commands
+  // make copies of all arg string commands
+  // required because re-parsing a command via one() will wipe out args
+
+  if (btest != 0.0) {
+    int ncommands = last-first + 1;
+    if (ncommands <= 0) error->all("Illegal if command");
+
+    char **commands = new char*[ncommands];
+    ncommands = 0;
+    for (int i = first; i <= last; i++) {
+      int n = strlen(arg[i]) + 1;
+      if (n == 1) error->all("Illegal if command");
+      commands[ncommands] = new char[n];
+      strcpy(commands[ncommands],arg[i]);
+      ncommands++;
+    }
+    
+    for (int i = 0; i < ncommands; i++)
+      char *command = input->one(commands[i]);
+    
+    for (int i = 0; i < ncommands; i++) delete [] commands[i];
+    delete [] commands;
+
+    return;
+  }
+
+  // done if no "elif" or "else"
+
+  if (iarg == narg) return;
+
+  // check "elif" or "else" until find commands to execute
+  // substitute for variables and evaluate Boolean expression for "elif"
+  // bound and execute "elif" or "else" commands
+
+  while (1) {
+    if (iarg+2 > narg) error->all("Illegal if command");
+    if (strcmp(arg[iarg],"elif") == 0) {
+      substitute(arg[iarg+1],0);
+      btest = variable->evaluate_boolean(arg[iarg+1]);
+      first = iarg+2;
+    } else {
+      btest = 1.0;
+      first = iarg+1;
+    }
+
+    iarg = first;
+    while (iarg < narg && 
+	   (strcmp(arg[iarg],"elif") != 0 && strcmp(arg[iarg],"else") != 0))
+      iarg++;
     last = iarg-1;
-  } else {
-    iarg = 4;
-    while (iarg < narg && strcmp(arg[iarg],"else") != 0) iarg++;
-    if (iarg == narg) return;
-    first = iarg+1;
-    last = narg-1;
+
+    if (btest == 0.0) continue;
+
+    int ncommands = last-first + 1;
+    if (ncommands <= 0) error->all("Illegal if command");
+
+    char **commands = new char*[ncommands];
+    ncommands = 0;
+    for (int i = first; i <= last; i++) {
+      int n = strlen(arg[i]) + 1;
+      if (n == 1) error->all("Illegal if command");
+      commands[ncommands] = new char[n];
+      strcpy(commands[ncommands],arg[i]);
+      ncommands++;
+    }
+    
+    // execute the list of commands
+    
+    for (int i = 0; i < ncommands; i++)
+      char *command = input->one(commands[i]);
+    
+    // clean up
+
+    for (int i = 0; i < ncommands; i++) delete [] commands[i];
+    delete [] commands;
+
+    return;
   }
-
-  int ncommands = last-first + 1;
-  if (ncommands <= 0) error->all("Illegal if command");
-
-  // make copies of arg strings that are commands
-  // required because re-parsing commands via one() will wipe out args
-
-  char **commands = new char*[ncommands];
-  ncommands = 0;
-  for (int i = first; i <= last; i++) {
-    int n = strlen(arg[i]) + 1;
-    if (n == 1) error->all("Illegal if command");
-    commands[ncommands] = new char[n];
-    strcpy(commands[ncommands],arg[i]);
-    ncommands++;
-  }
-
-  // execute the list of commands
-
-  for (int i = 0; i < ncommands; i++)
-    char *command = input->one(commands[i]);
-
-  // clean up
-
-  for (int i = 0; i < ncommands; i++) delete [] commands[i];
-  delete [] commands;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -685,17 +723,14 @@ void Input::next_command()
 
 void Input::print()
 {
-  if (narg == 0) error->all("Illegal print command");
+  if (narg != 1) error->all("Illegal print command");
 
-  // substitute for $ variables (no printing)
-  // print args one at a time, separated by spaces
+  // substitute for $ variables (no printing) and print arg
 
-  for (int i = 0; i < narg; i++) {
-    substitute(arg[i],0);
-    if (me == 0) {
-      if (screen) fprintf(screen,"%s ",arg[i]);
-      if (logfile) fprintf(logfile,"%s ",arg[i]);
-    }
+  substitute(arg[0],0);
+  if (me == 0) {
+    if (screen) fprintf(screen,"%s ",arg[0]);
+    if (logfile) fprintf(logfile,"%s ",arg[0]);
   }
 
   if (me == 0) {

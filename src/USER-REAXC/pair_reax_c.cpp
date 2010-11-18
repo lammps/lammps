@@ -85,6 +85,8 @@ PairReaxC::PairReaxC(LAMMPS *lmp) : Pair(lmp)
 
   nextra = 14;
   pvector = new double[nextra];
+
+  setup_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -222,12 +224,22 @@ void PairReaxC::coeff( int nargs, char **args )
   // read args that map atom types to elements in potential file
   // map[i] = which element the Ith atom type is, -1 if NULL
 
+  int itmp;
+  int nreax_types = system->reax_param.num_atom_types;
   for (int i = 3; i < nargs; i++) {
     if (strcmp(args[i],"NULL") == 0) {
       map[i-2] = -1;
       continue;
     }
-    map[i-2] = atoi(args[i]) - 1;
+
+    itmp = atoi(args[i]) - 1;
+    map[i-2] = itmp;
+
+    // error check
+
+    if (itmp < 0 || itmp >= nreax_types)
+      error->all("Non-existent ReaxFF type");
+
   }
 
   int n = atom->ntypes;
@@ -254,9 +266,9 @@ void PairReaxC::init_style( )
   if (iqeq == modify->nfix && qeqflag == 1) 
     error->all("Pair reax/c requires use of fix qeq/reax");
 
-  system->n = atom->nlocal;
-  system->N = atom->nlocal + atom->nghost;
-  system->bigN = static_cast<int> (atom->natoms);
+  system->n = atom->nlocal; // my atoms
+  system->N = atom->nlocal + atom->nghost; // mine + ghosts
+  system->bigN = static_cast<int> (atom->natoms);  // all atoms in the system
   system->wsize = comm->nprocs;
 
   system->big_box.V = 0;
@@ -293,6 +305,66 @@ void PairReaxC::init_style( )
 
 /* ---------------------------------------------------------------------- */
 
+void PairReaxC::setup( )
+{
+  int oldN;
+
+  system->n = atom->nlocal; // my atoms
+  system->N = atom->nlocal + atom->nghost; // mine + ghosts
+  oldN = system->N;
+  system->bigN = static_cast<int> (atom->natoms);  // all atoms in the system
+
+  if (setup_flag == 0) {
+
+    setup_flag = 1;
+    
+    int *num_bonds = fix_reax->num_bonds;
+    int *num_hbonds = fix_reax->num_hbonds;
+
+    control->vlist_cut = neighbor->cutneighmax;
+
+    // determine the local and total capacity
+
+    system->local_cap = MAX( (int)(system->n * SAFE_ZONE), MIN_CAP );
+    system->total_cap = MAX( (int)(system->N * SAFE_ZONE), MIN_CAP );
+
+    // initialize my data structures
+
+    PreAllocate_Space( system, control, workspace, world );
+    write_reax_atoms();
+    
+    int num_nbrs = estimate_reax_lists();
+    if(!Make_List(system->total_cap, num_nbrs, TYP_FAR_NEIGHBOR, 
+		  lists+FAR_NBRS, world))
+      error->all("Pair reax/c problem in far neighbor list");
+  
+    write_reax_lists();
+    Initialize( system, control, data, workspace, &lists, out_control, 
+		mpi_data, world );
+    for( int k = 0; k < system->N; ++k ) {
+      num_bonds[k] = system->my_atoms[k].num_bonds;
+      num_hbonds[k] = system->my_atoms[k].num_hbonds;
+    }
+
+  } else {
+
+    // fill in reax datastructures
+
+    write_reax_atoms();
+
+    // reset the bond list info for new atoms
+
+    for(int k = oldN; k < system->N; ++k)
+      Set_End_Index( k, Start_Index( k, lists+BONDS ), lists+BONDS );
+    
+    // check if I need to shrink/extend my data-structs
+
+    ReAllocate( system, control, data, workspace, &lists, mpi_data );
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
 double PairReaxC::init_one(int i, int j)
 {
   return cutmax;
@@ -302,7 +374,6 @@ double PairReaxC::init_one(int i, int j)
 
 void PairReaxC::compute(int eflag, int vflag)
 {
-  int k, oldN;
   double evdwl,ecoul;
   double t_start, t_end;
 
@@ -321,7 +392,6 @@ void PairReaxC::compute(int eflag, int vflag)
   else control->virial = 0;
 
   system->n = atom->nlocal; // my atoms
-  oldN = system->N;
   system->N = atom->nlocal + atom->nghost; // mine + ghosts
   system->bigN = static_cast<int> (atom->natoms);  // all atoms in the system
 
@@ -331,43 +401,9 @@ void PairReaxC::compute(int eflag, int vflag)
   system->big_box.box_norms[2] = 0;
   if( comm->me == 0 ) t_start = MPI_Wtime();
 
-  if( update->ntimestep == 0 ) {
-    control->vlist_cut = neighbor->cutneighmax;
+  // setup data structures
 
-    // determine the local and total capacity
-
-    system->local_cap = MAX( (int)(system->n * SAFE_ZONE), MIN_CAP );
-    system->total_cap = MAX( (int)(system->N * SAFE_ZONE), MIN_CAP );
-
-    // initialize my data structures
-
-    PreAllocate_Space( system, control, workspace, world );
-    write_reax_atoms();
-    
-    int num_nbrs = estimate_reax_lists();
-    if(!Make_List(system->total_cap, num_nbrs, TYP_FAR_NEIGHBOR, 
-		  lists+FAR_NBRS, world))
-      error->all("Pair reax/c problem in far neighbor list");
-    
-    write_reax_lists();
-    Initialize( system, control, data, workspace, &lists, out_control, 
-		mpi_data, world );
-    for( k = 0; k < system->N; ++k ) {
-      num_bonds[k] = system->my_atoms[k].num_bonds;
-      num_hbonds[k] = system->my_atoms[k].num_hbonds;
-    }
-
-  } else {
-    // fill in reax datastructures
-    write_reax_atoms();
-
-    // reset the bond list info for new atoms
-    for( k = oldN; k < system->N; ++k )
-      Set_End_Index( k, Start_Index( k, lists+BONDS ), lists+BONDS );
-
-    // check if I need to shrink/extend my data-structs
-    ReAllocate( system, control, data, workspace, &lists, mpi_data );
-  }
+  setup();
   
   Reset( system, control, data, workspace, &lists, world );
   workspace->realloc.num_far = write_reax_lists();
@@ -382,7 +418,7 @@ void PairReaxC::compute(int eflag, int vflag)
   Compute_Forces(system,control,data,workspace,&lists,out_control,mpi_data);
   read_reax_forces();
 
-  for( k = 0; k < system->N; ++k ) {
+  for(int k = 0; k < system->N; ++k) {
     num_bonds[k] = system->my_atoms[k].num_bonds;
     num_hbonds[k] = system->my_atoms[k].num_hbonds;
   }

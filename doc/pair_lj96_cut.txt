@@ -7,16 +7,19 @@
 :line
 
 pair_style lj96/cut command :h3
+pair_style lj96/cut/gpu command :h3
 
 [Syntax:]
 
-pair_style lj96/cut cutoff :pre
+pair_style style cutoff :pre
 
+style = {lj96/cut} or {lj96/cut/gpu}
 cutoff = global cutoff for lj96/cut interactions (distance units) :ul
 
 [Examples:]
 
 pair_style lj96/cut 2.5
+pair_style lj96/cut/gpu 2.5
 pair_coeff * * 1.0 1.0 4.0
 pair_coeff 1 1 1.0 1.0 :pre
 
@@ -28,6 +31,9 @@ of the standard 12/6 potential, given by
 :c,image(Eqs/pair_lj96.jpg)
 
 Rc is the cutoff.
+
+Style {lj96/cut/gpu} is a GPU-enabled version of style {lj96/cut}.
+See more details below.
 
 The following coefficients must be defined for each pair of atoms
 types via the "pair_coeff"_pair_coeff.html command as in the examples
@@ -41,6 +47,26 @@ cutoff (distance units) :ul
 
 The last coefficient is optional.  If not specified, the global LJ
 cutoff specified in the pair_style command is used.
+
+:line
+
+The {lj96/cut/gpu} style is identical to the {lj96/cut} style, except that
+each processor off-loads its pairwise calculations to a 
+GPU chip. Depending on the hardware available on your system this can provide a
+speed-up.  See the "Running on GPUs"_Section_start.html#2_8 section of
+the manual for more details about hardware and software requirements
+for using GPUs.
+
+More details about these settings and various possible hardware
+configuration are in "this section"_Section_start.html#2_8 of the
+manual.
+
+Additional requirements in your input script to run with the {lj96/cut/gpu} 
+style are as follows:
+
+The "newton pair"_newton.html setting must be {off} and
+"fix gpu"_fix_gpu.html must be used. The fix controls the
+essential GPU selection and initialization steps
 
 :line
 
@@ -73,7 +99,11 @@ details.
 
 :line
 
-[Restrictions:] none
+[Restrictions:]
+
+The {lj96/cut/gpu} style is part of the "gpu" package. It
+is only enabled if LAMMPS is built with this packages.  See the
+"Making LAMMPS"_Section_start.html#2_3 section for more info.
 
 [Related commands:]
 

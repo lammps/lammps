@@ -7,22 +7,29 @@
 :line
 
 pair_style cg/cmm command :h3
+pair_style cg/cmm/gpu command :h3
 pair_style cg/cmm/coul/cut command :h3
 pair_style cg/cmm/coul/long command :h3
+pair_style cg/cmm/coul/long/gpu command :h3
 
 [Syntax:]
 
 pair_style style args :pre
 
-style = {cg/cmm} or {cg/cmm/coul/cut} or {cg/cmm/coul/long}
+style = {cg/cmm} or {cg/cmm/gpu} or {cg/cmm/coul/cut} or {cg/cmm/coul/long} or {cg/cmm/coul/long/gpu}
 args = list of arguments for a particular style :ul
   {cg/cmm} args = cutoff
+    cutoff = global cutoff for Lennard Jones interactions (distance units)
+  {cg/cmm/gpu} args = cutoff
     cutoff = global cutoff for Lennard Jones interactions (distance units)
   {cg/cmm/coul/cut} args = cutoff (cutoff2) (kappa)
     cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (optional) (distance units)
     kappa = Debye length (optional, defaults to 0.0 = disabled) (inverse distance units)
   {cg/cmm/coul/long} args = cutoff (cutoff2)
+    cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
+    cutoff2 = global cutoff for Coulombic (optional) (distance units) :pre
+  {cg/cmm/coul/long/gpu} args = cutoff (cutoff2)
     cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (optional) (distance units) :pre
 
@@ -48,6 +55,9 @@ given by
 
 as required for the CMM Coarse-grained MD parametrization discussed in
 "(Shinoda)"_#Shinoda and "(DeVane)"_#DeVane.  Rc is the cutoff.
+
+Style {cg/cmm/gpu} is a GPU-enabled version of style {cg/cmm}.
+See more details below.
 
 Style {cg/cmm/coul/cut} adds a Coulombic pairwise interaction given by
 
@@ -77,6 +87,9 @@ option.  The Coulombic cutoff specified for this style means that
 pairwise interactions within this distance are computed directly;
 interactions outside that distance are computed in reciprocal space.
 
+Style {cg/cmm/coul/long/gpu} is a GPU-enabled version of style {cg/cmm/coul/long}.
+See more details below.
+
 The following coefficients must be defined for each pair of atoms
 types via the "pair_coeff"_pair_coeff.html command as in the examples
 above, or in the data file or restart files read by the
@@ -104,6 +117,27 @@ For {cg/cmm/coul/long} only the LJ cutoff can be specified since a
 Coulombic cutoff cannot be specified for an individual I,J type pair.
 All type pairs use the same global Coulombic cutoff specified in the
 pair_style command.
+
+:line
+
+The {cg/cmm/gpu} and {cg/cmm/coul/long/gpu} styles 
+are identical to the {cg/cmm} and {cg/cmm/coul/long}
+styles, except that each processor off-loads its pairwise calculations to a 
+GPU chip. Depending on the hardware available on your system this can provide a
+speed-up.  See the "Running on GPUs"_Section_start.html#2_8 section of
+the manual for more details about hardware and software requirements
+for using GPUs.
+
+More details about these settings and various possible hardware
+configuration are in "this section"_Section_start.html#2_8 of the
+manual.
+
+Additional requirements in your input script to run with GPU-enabled styles
+are as follows:
+
+The "newton pair"_newton.html setting must be {off} and
+"fix gpu"_fix_gpu.html must be used. The fix controls the
+essential GPU selection and initialization steps.
 
 :line
 

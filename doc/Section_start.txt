@@ -396,9 +396,9 @@ The two exceptions to this are the "gpu" and "opt" packages.  Some of
 the files in these packages require other packages to also be
 included.  If this is not the case, then those subsidiary files in
 "gpu" and "opt" will not be installed either.  To install all the
-files in package "gpu", the "asphere" package must also be installed.
-To install all the files in package "opt", the "kspace" and "manybody"
-packages must also be installed.
+files in package "gpu", the "asphere" and "kspace" packages must also be 
+installed. To install all the files in package "opt", the "kspace" and 
+"manybody" packages must also be installed.
 
 You may wish to exclude certain packages if you will never run certain
 kinds of simulations.  This will keep you from having to build
@@ -899,53 +899,141 @@ certain NVIDIA CUDA software on your system:
 
 Check if you have an NVIDIA card: cat /proc/driver/nvidia/cards/0
 Go to http://www.nvidia.com/object/cuda_get.html
-Install a driver and toolkit appopriate for your system (SDK is not necessary)
-Run make in lammps/lib/gpu, editing a Makefile if necessary
+Install a driver and toolkit appropriate for your system (SDK is not necessary)
+Follow the instructions in README in lammps/lib/gpu to build the library.
 Run lammps/lib/gpu/nvc_get_devices to list supported devices and properties :ul
 
-GPU hardware :h4
+GPU configuration :h4
 
 When using GPUs, you are restricted to one physical GPU per LAMMPS
-process.  This can be multiple GPUs on a single node or across
-multiple nodes.  For each GPU pair style, the first two arguments (GPU
-mode followed by GPU ID) control how GPUs are selected.  If you are
-running on a single node, the mode is "one/node" and the parameter is
-the ID of the first GPU to select:
+process. Multiple processes can share a single GPU and in many cases it
+will be more efficient to run with multiple processes per GPU. Any GPU
+accelerated style requires that "fix gpu"_fix_gpu.html be used in the
+input script to select and initialize the GPUs. The format for the fix
+is:
 
-pair_style lj/cut/gpu one/node 0 2.5 :pre
+fix {name} all gpu {mode} {first} {last} {split} :pre
 
-The ID is the GPU ID reported by the driver for CUDA enabled graphics
-cards.  For multiple GPU cards on a node, an MPI process should be run
-for each graphics card.  In this case, each process will grab the GPU
-with ID equal to the process rank plus the GPU parameter.
+where {name} is the name for the fix. The gpu fix must be the first
+fix specified for a given run, otherwise the program will exit
+with an error. The gpu fix will not have any effect on runs 
+that do not use GPU acceleration; there should be no problem
+with specifying the fix first in any input script.
 
-For multiple nodes with one GPU per node, the mode is "one/gpu" and
-the parameter is the ID of the GPU used on every node:
+{mode} can be either "force" or "force/neigh". In the former,
+neighbor list calculation is performed on the CPU using the
+standard LAMMPS routines. In the latter, the neighbor list
+calculation is performed on the GPU. The GPU neighbor list
+can be used for better performance, however, it 
+should not be used with a triclinic box.
 
-pair_style lj/cut/gpu one/gpu 1 2.5 :pre
+There are cases when it might be more efficient to select the CPU for neighbor
+list builds. If a non-GPU enabled style requires a neighbor list, it will also
+be built using CPU routines. Redundant CPU and GPU neighbor list calculations
+will typically be less efficient. For "hybrid"_pair_hybrid.html pair
+styles, GPU calculated neighbor lists might be less efficient because
+no particles will be skipped in a given neighbor list.
 
-In this case, MPI should be run with exactly one process per node.
+{first} is the ID (as reported by lammps/lib/gpu/nvc_get_devices)
+of the first GPU that will be used on each node. {last} is the
+ID of the last GPU that will be used on each node. If you have
+only one GPU per node, {first} and {last} will typically both be
+0. Selecting a non-sequential set of GPU IDs (e.g. 0,1,3)
+is not currently supported.
 
-For multiple nodes with multiple GPUs, the mode is "multi/gpu" and the
-parameter is the number of GPUs per node:
+{split} is the fraction of particles whose forces, torques,
+energies, and/or virials will be calculated on the GPU. This
+can be used to perform CPU and GPU force calculations
+simultaneously. If {split} is negative, the software will
+attempt to calculate the optimal fraction automatically 
+every 25 timesteps based on CPU and GPU timings. Because the GPU speedups
+are dependent on the number of particles, automatic calculation of the
+split can be less efficient, but typically results in loop times
+within 20% of an optimal fixed split.
 
-pair_style lj/cut/gpu multi/gpu 3 2.5 :pre
+If you have two GPUs per node, 8 CPU cores per node, and
+would like to run on 4 nodes with dynamic balancing of
+force calculation across CPU and GPU cores, the fix
+might be
 
-In this case, LAMMPS will attempt to grab 3 GPUs per node and this
-requires that the number of processes per node be 3. The first GPU
-selected must have ID zero for this mode (in the example, GPUs 0, 1,
-and 2 will be selected on every node).  An additional constraint is
-that the MPI processes must be filled by slot on each node such that
-the process ranks on each node are always sequential. This is a option
-for the MPI launcher (mpirun/mpiexec) and will be the default on many
-clusters.
+fix 0 all gpu force/neigh 0 1 -1 :pre
+
+with LAMMPS run on 32 processes. In this case, all
+CPU cores and GPU devices on the nodes would be utilized.
+Each GPU device would be shared by 4 CPU cores. The
+CPU cores would perform force calculations for some
+fraction of the particles at the same time the GPUs
+performed force calculation for the other particles.
+
+Because of the large number of cores on each GPU
+device, it might be more efficient to run on fewer
+processes per GPU when the number of particles per process
+is small (100's of particles); this can be necessary
+to keep the GPU cores busy.
+
+GPU input script :h4
+
+In order to use GPU acceleration in LAMMPS, 
+"fix_gpu"_fix_gpu.html
+should be used in order to initialize and configure the
+GPUs for use. Additionally, GPU enabled styles must be
+selected in the input script. Currently,
+this is limited to a few "pair styles"_pair_style.html.
+Some GPU-enabled styles have additional restrictions
+listed in their documentation.
+
+GPU asynchronous pair computation :h4
+
+The GPU accelerated pair styles can be used to perform
+pair style force calculation on the GPU while other 
+calculations are
+performed on the CPU. One method to do this is to specify
+a {split} in the gpu fix as described above. In this case,
+force calculation for the pair style will also be performed
+on the CPU. 
+
+When the CPU work in a GPU pair style has finished,
+the next force computation will begin, possibly before the
+GPU has finished. If {split} is 1.0 in the gpu fix, the next
+force computation will begin almost immediately. This can
+be used to run a "hybrid"_pair_hybrid.html GPU pair style at 
+the same time as a hybrid CPU pair style. In this case, the 
+GPU pair style should be first in the hybrid command in order to
+perform simultaneous calculations. This also
+allows "bond"_bond_style.html, "angle"_angle_style.html, 
+"dihedral"_dihedral_style.html, "improper"_improper_style.html, 
+and "long-range"_kspace_style.html force
+computations to be run simultaneously with the GPU pair style.
+Once all CPU force computations have completed, the gpu fix
+will block until the GPU has finished all work before continuing
+the run.
+
+GPU timing :h4
+
+GPU accelerated pair styles can perform computations asynchronously
+with CPU computations. The "Pair" time reported by LAMMPS
+will be the maximum of the time required to complete the CPU
+pair style computations and the time required to complete the GPU
+pair style computations. Any time spent for GPU-enabled pair styles
+for computations that run simultaneously with "bond"_bond_style.html, 
+"angle"_angle_style.html, "dihedral"_dihedral_style.html, 
+"improper"_improper_style.html, and "long-range"_kspace_style.html calculations
+will not be included in the "Pair" time.
+
+When {mode} for the gpu fix is force/neigh,
+the time for neighbor list calculations on the GPU will be added
+into the "Pair" time, not the "Neigh" time. A breakdown of the
+times required for various tasks on the GPU (data copy, neighbor
+calculations, force computations, etc.) are output only
+with the LAMMPS screen output at the end of each run. These timings represent
+total time spent on the GPU for each routine, regardless of asynchronous
+CPU calculations.
 
 GPU single vs double precision :h4
 
 See the lammps/lib/gpu/README file for instructions on how to build 
-the LAMMPS gpu library for single vs double precision.  The latter
-requires that your GPU card supports double precision. The lj/cut/gpu
-pair style does not support double precision.
+the LAMMPS gpu library for single, mixed, and double precision.  The latter
+requires that your GPU card supports double precision. 
 
 :line
 

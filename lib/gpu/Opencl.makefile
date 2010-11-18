@@ -38,14 +38,12 @@ OBJS = $(OBJ_DIR)/pair_gpu_atom.o $(OBJ_DIR)/pair_gpu_nbor.o \
        $(OBJ_DIR)/ljc_cut_gpu_memory.o $(OBJ_DIR)/ljc_cut_gpu.o \
        $(OBJ_DIR)/ljcl_cut_gpu_memory.o $(OBJ_DIR)/ljcl_cut_gpu.o \
        $(OBJ_DIR)/cmm_cut_gpu_memory.o $(OBJ_DIR)/cmm_cut_gpu.o \
-       $(OBJ_DIR)/cmmc_long_gpu_memory.o $(OBJ_DIR)/cmmc_long_gpu.o \
-       $(OBJ_DIR)/cmmc_msm_gpu_memory.o $(OBJ_DIR)/cmmc_msm_gpu.o
+       $(OBJ_DIR)/cmmc_long_gpu_memory.o $(OBJ_DIR)/cmmc_long_gpu.o 
 KERS = $(OBJ_DIR)/pair_gpu_atom_cl.h $(OBJ_DIR)/pair_gpu_nbor_cl.h \
        $(OBJ_DIR)/gb_gpu_nbor_cl.h $(OBJ_DIR)/gb_gpu_cl.h \
        $(OBJ_DIR)/lj_cut_gpu_cl.h $(OBJ_DIR)/lj96_cut_gpu_cl.h \
        $(OBJ_DIR)/ljc_cut_gpu_cl.h $(OBJ_DIR)/ljcl_cut_gpu_cl.h \
        $(OBJ_DIR)/cmm_cut_gpu_cl.h $(OBJ_DIR)/cmmc_long_gpu_cl.h \
-       $(OBJ_DIR)/cmmc_msm_gpu_cl.h
        
 OCL_EXECS = $(BIN_DIR)/ocl_get_devices
 
@@ -140,15 +138,6 @@ $(OBJ_DIR)/cmmc_long_gpu_memory.o: $(ALL_H) cmmc_long_gpu_memory.h cmmc_long_gpu
 
 $(OBJ_DIR)/cmmc_long_gpu.o: $(ALL_H) cmmc_long_gpu_memory.h cmmc_long_gpu.cpp
 	$(OCL) -o $@ -c cmmc_long_gpu.cpp -I$(OBJ_DIR)
-
-$(OBJ_DIR)/cmmc_msm_gpu_cl.h: cmmc_msm_gpu_kernel.cu
-	$(BSH) ./geryon/file_to_cstr.sh cmmc_msm_gpu_kernel.cu $(OBJ_DIR)/cmmc_msm_gpu_cl.h;
-
-$(OBJ_DIR)/cmmc_msm_gpu_memory.o: $(ALL_H) cmmc_msm_gpu_memory.h cmmc_msm_gpu_memory.cpp  $(OBJ_DIR)/cmmc_msm_gpu_cl.h $(OBJ_DIR)/pair_gpu_nbor_cl.h $(OBJ_DIR)/cmmc_msm_gpu_cl.h $(OBJ_DIR)/atomic_gpu_memory.o
-	$(OCL) -o $@ -c cmmc_msm_gpu_memory.cpp -I$(OBJ_DIR)
-
-$(OBJ_DIR)/cmmc_msm_gpu.o: $(ALL_H) cmmc_msm_gpu_memory.h cmmc_msm_gpu.cpp
-	$(OCL) -o $@ -c cmmc_msm_gpu.cpp -I$(OBJ_DIR)
 
 $(BIN_DIR)/ocl_get_devices: ./geryon/ucl_get_devices.cpp
 	$(OCL) -o $@ ./geryon/ucl_get_devices.cpp -DUCL_OPENCL $(OCL_LINK) 

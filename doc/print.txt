@@ -12,13 +12,14 @@ print command :h3
 
 print str :pre
 
-str1 = text string to print, which may contain variables :ul
+str = text string to print, which may contain variables :ul
 
 [Examples:]
 
 print "Done with equilibration"
 print Vol=$v
-print "The system volume is now $v" :pre
+print "The system volume is now $v"
+print 'The system volume is now $v' :pre
 
 [Description:]
 

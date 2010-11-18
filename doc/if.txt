@@ -117,14 +117,7 @@ An expression is built out of numbers
 
 and Boolean operators:
 
-A == B
-A != B
-A < B
-A <= B
-A > B
-A >= B
-A && B
-A || B :pre
+A == B, A != B, A < B, A <= B, A > B, A >= B, A && B, A || B :pre
 
 Each A and B is a number or a variable reference like $a or $\{abc\},
 or another Boolean expression.

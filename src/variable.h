@@ -49,7 +49,8 @@ class Variable : protected Pointers {
   class RanMars *randomequal;   // random number generator for equal-style vars
   class RanMars *randomatom;    // random number generator for atom-style vars
 
-  int precedence[15];      // precedence level of math operators
+  int precedence[16];      // precedence level of math operators
+                           // set length to include OR in enum
 
   struct Tree {            // parse tree for atom-style variables
     double value;

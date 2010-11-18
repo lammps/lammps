@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
@@ -48,7 +48,7 @@ enum{ARG,OP};
 // customize by adding a function
 
 enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,UNARY,
-       EQ,NE,LT,LE,GT,GE,AND,OR,
+       NOT,EQ,NE,LT,LE,GT,GE,AND,OR,
        SQRT,EXP,LN,LOG,SIN,COS,TAN,ASIN,ACOS,ATAN,ATAN2,
        RANDOM,NORMAL,CEIL,FLOOR,ROUND,RAMP,STAGGER,LOGFREQ,
        VDISPLACE,SWIGGLE,CWIGGLE,GMASK,RMASK,GRMASK,
@@ -90,7 +90,7 @@ Variable::Variable(LAMMPS *lmp) : Pointers(lmp)
   precedence[ADD] = precedence[SUBTRACT] = 5;
   precedence[MULTIPLY] = precedence[DIVIDE] = 6;
   precedence[CARAT] = 7;
-  precedence[UNARY] = 8;
+  precedence[UNARY] = precedence[NOT] = 8;
 
   PI = 4.0*atan(1.0);
 }
@@ -1256,9 +1256,10 @@ double Variable::evaluate(char *str, Tree **tree)
 	op = EQ;
 	i++;
       } else if (onechar == '!') {
-	if (str[i+1] != '=') error->all("Invalid syntax in variable formula");
-	op = NE;
-	i++;
+	if (str[i+1] == '=') {
+	  op = NE;
+	  i++;
+	} else op = NOT;
       } else if (onechar == '<') {
 	if (str[i+1] != '=') op = LT;
 	else {
@@ -1287,6 +1288,10 @@ double Variable::evaluate(char *str, Tree **tree)
 	opstack[nopstack++] = UNARY;
 	continue;
       }
+      if (op == NOT && expect == ARG) {
+	opstack[nopstack++] = op;
+	continue;
+      }
 
       if (expect == ARG) error->all("Invalid syntax in variable formula");
       expect = ARG;
@@ -1312,7 +1317,8 @@ double Variable::evaluate(char *str, Tree **tree)
 
 	} else {
 	  value2 = argstack[--nargstack];
-	  if (opprevious != UNARY) value1 = argstack[--nargstack];
+	  if (opprevious != UNARY && opprevious != NOT)
+	    value1 = argstack[--nargstack];
 
 	  if (opprevious == ADD)
 	    argstack[nargstack++] = value1 + value2;
@@ -1328,6 +1334,9 @@ double Variable::evaluate(char *str, Tree **tree)
 	    argstack[nargstack++] = pow(value1,value2);
 	  } else if (opprevious == UNARY) {
 	    argstack[nargstack++] = -value2;
+	  } else if (opprevious == NOT) {
+	    if (value2 == 0.0) argstack[nargstack++] = 1.0;
+	    else argstack[nargstack++] = 0.0;
 	  } else if (opprevious == EQ) {
 	    if (value1 == value2) argstack[nargstack++] = 1.0;
 	    else argstack[nargstack++] = 0.0;
@@ -1457,6 +1466,15 @@ double Variable::collapse_tree(Tree *tree)
     if (tree->left->type != VALUE) return 0.0;
     tree->type = VALUE;
     tree->value = -arg1;
+    return tree->value;
+  }
+
+  if (tree->type == NOT) {
+    arg1 = collapse_tree(tree->left);
+    if (tree->left->type != VALUE) return 0.0;
+    tree->type = VALUE;
+    if (arg1 == 0.0) tree->value = 1.0;
+    else tree->value = 0.0;
     return tree->value;
   }
 
@@ -1817,6 +1835,10 @@ double Variable::eval_tree(Tree *tree, int i)
   }
   if (tree->type == UNARY) return -eval_tree(tree->left,i);
 
+  if (tree->type == NOT) {
+    if (eval_tree(tree->left,i) == 0.0) return 1.0;
+    else return 0.0;
+  }
   if (tree->type == EQ) {
     if (eval_tree(tree->left,i) == eval_tree(tree->right,i)) return 1.0;
     else return 0.0;
@@ -3157,10 +3179,10 @@ double Variable::evaluate_boolean(char *str)
 	op = EQ;
 	i++;
       } else if (onechar == '!') {
-	if (str[i+1] != '=') 
-	  error->all("Invalid Boolean syntax in if command");
-	op = NE;
-	i++;
+	if (str[i+1] == '=') {
+	  op = NE;
+	  i++;
+	} else op = NOT;
       } else if (onechar == '<') {
 	if (str[i+1] != '=') op = LT;
 	else {
@@ -3187,19 +3209,27 @@ double Variable::evaluate_boolean(char *str)
       
       i++;
       
+      if (op == NOT && expect == ARG) {
+	opstack[nopstack++] = op;
+	continue;
+      }
+
       if (expect == ARG) error->all("Invalid Boolean syntax in if command");
       expect = ARG;
       
       // evaluate stack as deep as possible while respecting precedence
       // before pushing current op onto stack
-      
+
       while (nopstack && precedence[opstack[nopstack-1]] >= precedence[op]) {
 	opprevious = opstack[--nopstack];
 	
 	value2 = argstack[--nargstack];
-	value1 = argstack[--nargstack];
+	if (opprevious != NOT) value1 = argstack[--nargstack];
 	
-	if (opprevious == EQ) {
+	if (opprevious == NOT) {
+	  if (value2 == 0.0) argstack[nargstack++] = 1.0;
+	  else argstack[nargstack++] = 0.0;
+	} else if (opprevious == EQ) {
 	  if (value1 == value2) argstack[nargstack++] = 1.0;
 	  else argstack[nargstack++] = 0.0;
 	} else if (opprevious == NE) {

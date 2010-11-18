@@ -39,7 +39,7 @@ style = {delete} or {index} or {loop} or {world} or {universe} or {uloop} or {st
     constants = PI
     thermo keywords = vol, ke, press, etc from "thermo_style"_thermo_style.html
     math operators = (), -x, x+y, x-y, x*y, x/y, x^y, 
-                     x==y, x!=y, x<y, x<=y, x>y, x>=y, x&&y, x||y
+                     x==y, x!=y, x<y, x<=y, x>y, x>=y, x&&y, x||y, !x
     math functions = sqrt(x), exp(x), ln(x), log(x),
                      sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x),
                      random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x)
@@ -265,7 +265,7 @@ references to other variables.
 Number: 0.2, 100, 1.0e20, -15.4, etc
 Constant: PI
 Thermo keywords: vol, pe, ebond, etc
-Math operators: (), -x, x+y, x-y, x*y, x/y, x^y, x==y, x!=y, x<y, x<=y, x>y, x>=y, x&&y, x||y
+Math operators: (), -x, x+y, x-y, x*y, x/y, x^y, x==y, x!=y, x<y, x<=y, x>y, x>=y, x&&y, x||y, !x
 Math functions: sqrt(x), exp(x), ln(x), log(x), sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x), random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x), ramp(x,y), stagger(x,y), logfreq(x,y,z), vdisplace(x,y), swiggle(x,y,z), cwiggle(x,y,z)
 Group functions: count(ID), mass(ID), charge(ID), xcm(ID,dim), \
                  vcm(ID,dim), fcm(ID,dim), bound(ID,dir), \
@@ -324,26 +324,28 @@ scalars, where "vy+vz" is the element-by-element sum of two per-atom
 vectors of y and z velocities.
 
 Operators are evaluated left to right and have the usual C-style
-precedence: unary minus before exponentiation ("^"); exponentiation
-before multiplication and division; multiplication and division before
-addition and subtraction; addition and subtraction before the 4
-relational operators "<", "<=", ">", and ">="; those 4 relational
-operators before the remaining two relational operators "==" and "!=";
-those two relational operators before the logical AND operator "&&";
-and the AND operator "&&" before the logical OR operator "||".
-Parenthesis can be used to group one or more portions of a formula
-and/or enforce a different order of evaluation than what would occur
-with the default precedence.
+precedence: unary minus and unary logical NOT operator "!" have the
+highest precedence, exponentiation "^" is next; multiplication and
+division are next; addition and subtraction are next; the 4 relational
+operators "<", "<=", ">", and ">=" are next; the two remaining
+relational operators "==" and "!=" are next; then the logical AND
+operator "&&"; and finally the logical OR operator "||" has the lowest
+precedence.  Parenthesis can be used to group one or more portions of
+a formula and/or enforce a different order of evaluation than what
+would occur with the default precedence.
 
 The 6 relational operators return either a 1.0 or 0.0 depending on
-whether the relationship between x and y is true or false.  For
+whether the relationship between x and y is TRUE or FALSE.  For
 example the expression x<10.0 in an atom-style variable formula will
 return 1.0 for all atoms whose x-coordinate is less than 10.0, and 0.0
 for the others.  The logical AND operator will return 1.0 if both its
-arguments are non-zero, else return a 0.0.  The logical OR operator
-will return 1.0 if either of its arguments is non-zero, else return a
-0.0.  These relational and logical operators can be used as a masking
-or selection operation in a formula.  For example, the number of atoms
+arguments are non-zero, else it returns 0.0.  The logical OR operator
+will return 1.0 if either of its arguments is non-zero, else it
+returns 0.0.  The logical NOT operator returns 1.0 if its argument is
+0.0, else it returns 0.0.
+
+These relational and logical operators can be used as a masking or
+selection operation in a formula.  For example, the number of atoms
 whose properties satifsy one or more criteria could be calculated by
 taking the returned per-atom vector of ones and zeroes and passing it
 to the "compute reduce"_compute_reduce.html command.

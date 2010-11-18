@@ -1,0 +1,5 @@
+This is a stripped down and customized version
+of the CUDA performance primitives library for
+use with the GPU package in LAMMPS.
+Don't use for anything else, get the real thing
+from http://code.google.com/p/cudpp/ instead!

@@ -2072,6 +2072,7 @@ void pair(FILE *fp, Data &data, char *style, int flag)
       }
 
   } else if (strcmp(style,"reax") == 0) {
+  } else if (strcmp(style,"reax/c") == 0) {
 
   } else if ((strcmp(style,"soft") == 0) ||
 	     (strcmp(style,"soft/omp") == 0)) {
@@ -2836,6 +2837,7 @@ void Data::write(FILE *fp, FILE *fp2)
 	(strcmp(pair_style,"gran/hertzian/omp") != 0) &&
 	(strcmp(pair_style,"meam") != 0) &&
 	(strcmp(pair_style,"reax") != 0) &&
+	(strcmp(pair_style,"reax/c") != 0) &&
 	(strcmp(pair_style,"sw") != 0) &&
 	(strcmp(pair_style,"sw/omp") != 0) &&
 	(strcmp(pair_style,"table") != 0) &&

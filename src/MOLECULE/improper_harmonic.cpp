@@ -230,9 +230,8 @@ void ImproperHarmonic::allocate()
    set coeffs for one type
 ------------------------------------------------------------------------- */
 
-void ImproperHarmonic::coeff(int which, int narg, char **arg)
+void ImproperHarmonic::coeff(int narg, char **arg)
 {
-  if (which > 0) return;
   if (narg != 3) error->all("Incorrect args for improper coefficients");
   if (!allocated) allocate();
 

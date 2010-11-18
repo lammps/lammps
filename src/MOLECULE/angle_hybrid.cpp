@@ -234,7 +234,7 @@ void AngleHybrid::settings(int narg, char **arg)
    set coeffs for one type
 ---------------------------------------------------------------------- */
 
-void AngleHybrid::coeff(int which, int narg, char **arg)
+void AngleHybrid::coeff(int narg, char **arg)
 {
   if (!allocated) allocate();
 
@@ -261,7 +261,7 @@ void AngleHybrid::coeff(int which, int narg, char **arg)
 
   // invoke sub-style coeff() starting with 1st arg
 
-  if (!none) styles[m]->coeff(which,narg-1,&arg[1]);
+  if (!none) styles[m]->coeff(narg-1,&arg[1]);
 
   // set setflag and which type maps to which sub-style
   // if sub-style is none: set hybrid setflag, wipe out map

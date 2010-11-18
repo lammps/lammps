@@ -30,7 +30,7 @@ class DihedralHelix : public Dihedral {
   DihedralHelix(class LAMMPS *);
   ~DihedralHelix();
   void compute(int, int);
-  void coeff(int, int, char **);
+  void coeff(int, char **);
   void write_restart(FILE *);
   void read_restart(FILE *);
 

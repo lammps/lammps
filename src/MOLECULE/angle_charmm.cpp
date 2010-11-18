@@ -191,9 +191,8 @@ void AngleCharmm::allocate()
    set coeffs for one type
 ------------------------------------------------------------------------- */
 
-void AngleCharmm::coeff(int which, int narg, char **arg)
+void AngleCharmm::coeff(int narg, char **arg)
 {
-  if (which > 0) return;
   if (narg != 5) error->all("Incorrect args for angle coefficients");
   if (!allocated) allocate();
 

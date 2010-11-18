@@ -23,23 +23,24 @@ angle_coeff 3 file.table ENTRY1 :pre
 [Description:]
 
 Style {table} creates interpolation tables of length {N} from angle
-potential and force values listed in a file(s) as a function of angle
-The files are read by the "angle_coeff"_angle_coeff.html command.
+potential and derivative values listed in a file(s) as a function of
+angle The files are read by the "angle_coeff"_angle_coeff.html
+command.
 
 The interpolation tables are created by fitting cubic splines to the
-file values and interpolating energy and force values at each of {N}
-distances.  During a simulation, these tables are used to interpolate
-energy and force values as needed.  The interpolation is done in one
-of 2 styles: {linear} or {spline}.
+file values and interpolating energy and derivative values at each of
+{N} angles.  During a simulation, these tables are used to interpolate
+energy and force values on individual atoms as needed.  The
+interpolation is done in one of 2 styles: {linear} or {spline}.
 
 For the {linear} style, the angle is used to find 2 surrounding table
-values from which an energy or force is computed by linear
+values from which an energy or its derivative is computed by linear
 interpolation.
 
 For the {spline} style, a cubic spline coefficients are computed and
 stored at each of the {N} values in the table.  The angle is used to
 find the appropriate set of coefficients which are used to evaluate a
-cubic polynomial which computes the energy or force.
+cubic polynomial which computes the energy or derivative.
 
 The following coefficients must be defined for each angle type via the
 "angle_coeff"_angle_coeff.html command as in the example above.
@@ -47,9 +48,9 @@ The following coefficients must be defined for each angle type via the
 filename
 keyword :ul
 
-The filename specifies a file containing tabulated energy and force
-values.  The keyword specifies a section of the file.  The format of
-this file is described below.
+The filename specifies a file containing tabulated energy and
+derivative values.  The keyword specifies a section of the file.  The
+format of this file is described below.
 
 :line
 
@@ -62,7 +63,7 @@ HAM                           (keyword is the first text on line)
 N 181 FP 0 0 EQ 90.0          (N, FP, EQ parameters)
                               (blank line)
 N 181 FP 0 0                  (N, FP parameters)
-1 0.0 200.5 2.5               (index, angle, energy, force)
+1 0.0 200.5 2.5               (index, angle, energy, derivative)
 2 1.0 198.0 2.5
 ...
 181 180.0 0.0 0.0 :pre
@@ -82,20 +83,20 @@ specified in the "angle_style table"_angle_style.html command.  Let
 Ntable = {N} in the angle_style command, and Nfile = "N" in the
 tabulated file.  What LAMMPS does is a preliminary interpolation by
 creating splines using the Nfile tabulated values as nodal points.  It
-uses these to interpolate as needed to generate energy and force
+uses these to interpolate as needed to generate energy and derivative
 values at Ntable different points.  The resulting tables of length
 Ntable are then used as described above, when computing energy and
-force for individual angles.  This means that if you want the
-interpolation tables of length Ntable to match exactly what is in the
-tabulated file (with effectively no preliminary interpolation), you
-should set Ntable = Nfile.
+force for individual angles and their atoms.  This means that if you
+want the interpolation tables of length Ntable to match exactly what
+is in the tabulated file (with effectively no preliminary
+interpolation), you should set Ntable = Nfile.
 
 The "FP" parameter is optional.  If used, it is followed by two values
-fplo and fphi, which are the derivatives of the force at the innermost
-and outermost angle settings.  These values are needed by the spline
+fplo and fphi, which are the 2nd derivatives at the innermost and
+outermost angle settings.  These values are needed by the spline
 construction routines.  If not specified by the "FP" parameter, they
-are estimated (less accurately) by the first two and last two force
-values in the table.
+are estimated (less accurately) by the first two and last two
+derivative values in the table.
 
 The "EQ" parameter is also optional.  If used, it is followed by a the
 equilibrium angle value, which is used, for example, by the "fix
@@ -105,10 +106,13 @@ set to 180.0.
 Following a blank line, the next N lines list the tabulated values.
 On each line, the 1st value is the index from 1 to N, the 2nd value is
 the angle value (in degrees), the 3rd value is the energy (in energy
-units), and the 4th is the force (in force units).  The angle values
-must increase from one line to the next.  The angle values must also
-begin with 0.0 and end with 180.0, i.e. span the full range of
-possible angles.
+units), and the 4th is -dE/d(theta) (also in energy units).  The 3rd
+term is the energy of the 3-atom configuration for the specified
+angle.  The last term is the derivative of the energy with respect to
+the angle (in degrees, not radians).  Thus the units of the last term
+are still energy, not force.  The angle values must increase from one
+line to the next.  The angle values must also begin with 0.0 and end
+with 180.0, i.e. span the full range of possible angles.
 
 Note that one file can contain many sections, each with a tabulated
 potential.  LAMMPS reads the file section by section until it finds

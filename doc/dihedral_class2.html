@@ -35,8 +35,14 @@ bond lengths.
 </P>
 <P>See <A HREF = "#Sun">(Sun)</A> for a description of the COMPASS class2 force field.
 </P>
-<P>For this style, coefficients for the Ed formula can be specified in
-either the input script or data file.  These are the 6 coefficients:
+<P>Coefficients for the Ed, Embt, Eebt, Eat, Eaat, and Ebb13 formulas
+must be defined for each dihedral type via the
+<A HREF = "dihedral_coeff.html">dihedral_coeff</A> command as in the example above,
+or in the data file or restart files read by the
+<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
+commands.
+</P>
+<P>These are the 6 coefficients for the Ed formula:
 </P>
 <UL><LI>K1 (energy)
 <LI>phi1 (degrees)
@@ -45,21 +51,30 @@ either the input script or data file.  These are the 6 coefficients:
 <LI>K3 (energy)
 <LI>phi3 (degrees) 
 </UL>
-<P>Coefficients for all the other formulas can only be specified in the
-data file.
+<P>For the Embt formula, each line in a
+<A HREF = "dihedral_coeff.html">dihedral_coeff</A> command in the input script lists
+5 coefficients, the first of which is "mbt" to indicate they are
+MiddleBondTorsion coefficients.  In a data file, these coefficients
+should be listed under a "MiddleBondTorsion Coeffs" heading and you
+must leave out the "mbt", i.e. only list 4 coefficients after the
+dihedral type.
 </P>
-<P>For the Embt formula, the coefficients are listed under a
-"MiddleBondTorsion Coeffs" heading and each line lists 4 coefficients:
-</P>
-<UL><LI>A1 (energy/distance)
+<UL><LI>mbt
+<LI>A1 (energy/distance)
 <LI>A2 (energy/distance)
 <LI>A3 (energy/distance)
 <LI>r2 (distance) 
 </UL>
-<P>For the Eebt formula, the coefficients are listed under a
-"EndBondTorsion Coeffs" heading and each line lists 8 coefficients:
+<P>For the Eebt formula, each line in a
+<A HREF = "dihedral_coeff.html">dihedral_coeff</A> command in the input script lists
+9 coefficients, the first of which is "ebt" to indicate they are
+EndBondTorsion coefficients.  In a data file, these coefficients
+should be listed under a "EndBondTorsion Coeffs" heading and you must
+leave out the "ebt", i.e. only list 8 coefficients after the dihedral
+type.
 </P>
-<UL><LI>B1 (energy/distance)
+<UL><LI>ebt
+<LI>B1 (energy/distance)
 <LI>B2 (energy/distance)
 <LI>B3 (energy/distance)
 <LI>C1 (energy/distance)
@@ -68,10 +83,15 @@ data file.
 <LI>r1 (distance)
 <LI>r3 (distance) 
 </UL>
-<P>For the Eat formula, the coefficients are listed under a "AngleTorsion
-Coeffs" heading and each line lists 8 coefficients:
+<P>For the Eat formula, each line in a
+<A HREF = "dihedral_coeff.html">dihedral_coeff</A> command in the input script lists
+9 coefficients, the first of which is "at" to indicate they are
+AngleTorsion coefficients.  In a data file, these coefficients should
+be listed under a "AngleTorsion Coeffs" heading and you must leave out
+the "at", i.e. only list 8 coefficients after the dihedral type.
 </P>
-<UL><LI>D1 (energy/radian)
+<UL><LI>at
+<LI>D1 (energy/radian)
 <LI>D2 (energy/radian)
 <LI>D3 (energy/radian)
 <LI>E1 (energy/radian)
@@ -84,20 +104,31 @@ Coeffs" heading and each line lists 8 coefficients:
 to radians internally; hence the units of D and E are in
 energy/radian.
 </P>
-<P>For the Eaat formula, the coefficients are listed under a
-"AngleAngleTorsion Coeffs" heading and each line lists 3 coefficients:
+<P>For the Eaat formula, each line in a
+<A HREF = "dihedral_coeff.html">dihedral_coeff</A> command in the input script lists
+4 coefficients, the first of which is "aat" to indicate they are
+AngleAngleTorsion coefficients.  In a data file, these coefficients
+should be listed under a "AngleAngleTorsion Coeffs" heading and you
+must leave out the "aat", i.e. only list 3 coefficients after the
+dihedral type.
 </P>
-<UL><LI>M (energy/radian^2)
+<UL><LI>aat
+<LI>M (energy/radian^2)
 <LI>theta1 (degrees)
 <LI>theta2 (degrees) 
 </UL>
 <P>Theta1 and theta2 are specified in degrees, but LAMMPS converts them
 to radians internally; hence the units of M are in energy/radian^2.
 </P>
-<P>For the Ebb13 formula, the coefficients are listed under a "BondBond13
-Coeffs" heading and each line lists 3 coefficients:
+<P>For the Ebb13 formula, each line in a
+<A HREF = "dihedral_coeff.html">dihedral_coeff</A> command in the input script lists
+4 coefficients, the first of which is "bb13" to indicate they are
+BondBond13 coefficients.  In a data file, these coefficients should be
+listed under a "BondBond13 Coeffs" heading and you must leave out the
+"bb13", i.e. only list 3 coefficients after the dihedral type.
 </P>
-<UL><LI>N (energy/distance^2)
+<UL><LI>bb13
+<LI>N (energy/distance^2)
 <LI>r1 (distance)
 <LI>r3 (distance) 
 </UL>

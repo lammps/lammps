@@ -150,9 +150,8 @@ void AngleCosine::allocate()
    set coeffs for one type
 ------------------------------------------------------------------------- */
 
-void AngleCosine::coeff(int which, int narg, char **arg)
+void AngleCosine::coeff(int narg, char **arg)
 {
-  if (which > 0) return;
   if (narg != 2) error->all("Incorrect args for angle coefficients");
   if (!allocated) allocate();
 

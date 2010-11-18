@@ -31,7 +31,7 @@ class AngleCGCMM : public Angle, public CGCMMParms {
   AngleCGCMM(class LAMMPS *);
   ~AngleCGCMM();
   void compute(int, int);
-  void coeff(int, int, char **);
+  void coeff(int, char **);
   double equilibrium_angle(int);
   void write_restart(FILE *);
   void read_restart(FILE *);

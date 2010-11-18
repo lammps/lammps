@@ -281,9 +281,8 @@ void DihedralHelix::allocate()
    set coeffs from one line in input script
 ------------------------------------------------------------------------- */
 
-void DihedralHelix::coeff(int which, int narg, char **arg)
+void DihedralHelix::coeff(int narg, char **arg)
 {
-  if (which > 0) return;
   if (narg != 4) error->all("Incorrect args for dihedral coefficients");
   if (!allocated) allocate();
 

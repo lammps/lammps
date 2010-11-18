@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "math.h"
+#include "string.h"
 #include "stdlib.h"
 #include "improper_class2.h"
 #include "atom.h"
@@ -522,14 +523,13 @@ void ImproperClass2::allocate()
 
 /* ----------------------------------------------------------------------
    set coeffs for one or more types
-   which = 0 -> improper coeffs
-   which = 1 -> AngleAngle coeffs
+   arg1 = "aa" -> AngleAngle coeffs
+   else arg1 -> improper coeffs
 ------------------------------------------------------------------------- */
 
-void ImproperClass2::coeff(int which, int narg, char **arg)
+void ImproperClass2::coeff(int narg, char **arg)
 {
-  if (which < 0 || which > 1)
-    error->all("Invalid coeffs for this improper style");
+  if (narg < 2) error->all("Incorrect args for improper coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -537,31 +537,15 @@ void ImproperClass2::coeff(int which, int narg, char **arg)
 
   int count = 0;
 
-  if (which == 0) {
-    if (narg != 3) error->all("Incorrect args for improper coefficients");
+  if (strcmp(arg[1],"aa") == 0) {
+    if (narg != 8) error->all("Incorrect args for improper coefficients");
 
-    double k0_one = force->numeric(arg[1]);
-    double chi0_one = force->numeric(arg[2]);
-
-    // convert chi0 from degrees to radians
-
-    for (int i = ilo; i <= ihi; i++) {
-      k0[i] = k0_one;
-      chi0[i] = chi0_one/180.0 * PI;
-      setflag_i[i] = 1;
-      count++;
-    }
-  }
-
-  if (which == 1) {
-    if (narg != 7) error->all("Incorrect args for improper coefficients");
-
-    double k1_one = force->numeric(arg[1]);
-    double k2_one = force->numeric(arg[2]);
-    double k3_one = force->numeric(arg[3]);
-    double theta0_1_one = force->numeric(arg[4]);
-    double theta0_2_one = force->numeric(arg[5]);
-    double theta0_3_one = force->numeric(arg[6]);
+    double k1_one = force->numeric(arg[2]);
+    double k2_one = force->numeric(arg[3]);
+    double k3_one = force->numeric(arg[4]);
+    double theta0_1_one = force->numeric(arg[5]);
+    double theta0_2_one = force->numeric(arg[6]);
+    double theta0_3_one = force->numeric(arg[7]);
     
     // convert theta0's from degrees to radians
 
@@ -573,6 +557,21 @@ void ImproperClass2::coeff(int which, int narg, char **arg)
       aa_theta0_2[i] = theta0_2_one/180.0 * PI;
       aa_theta0_3[i] = theta0_3_one/180.0 * PI;
       setflag_aa[i] = 1;
+      count++;
+    }
+
+  } else {
+    if (narg != 3) error->all("Incorrect args for improper coefficients");
+
+    double k0_one = force->numeric(arg[1]);
+    double chi0_one = force->numeric(arg[2]);
+
+    // convert chi0 from degrees to radians
+
+    for (int i = ilo; i <= ihi; i++) {
+      k0[i] = k0_one;
+      chi0[i] = chi0_one/180.0 * PI;
+      setflag_i[i] = 1;
       count++;
     }
   }

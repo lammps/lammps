@@ -250,9 +250,8 @@ void ImproperUmbrella::allocate()
    set coeffs for one type
 ------------------------------------------------------------------------- */
 
-void ImproperUmbrella::coeff(int which, int narg, char **arg)
+void ImproperUmbrella::coeff(int narg, char **arg)
 {
-  if (which > 0) return;
   if (narg != 3) error->all("Incorrect args for improper coefficients");
   if (!allocated) allocate();
 

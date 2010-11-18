@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "math.h"
+#include "string.h"
 #include "stdlib.h"
 #include "angle_class2.h"
 #include "atom.h"
@@ -259,15 +260,14 @@ void AngleClass2::allocate()
 
 /* ----------------------------------------------------------------------
    set coeffs for one or more types
-   which = 0 -> Angle coeffs
-   which = 1 -> BondBond coeffs
-   which = 2 -> BondAngle coeffs
+   arg1 = "bb" -> BondBond coeffs
+   arg1 = "ba" -> BondAngle coeffs
+   else -> Angle coeffs
 ------------------------------------------------------------------------- */
 
-void AngleClass2::coeff(int which, int narg, char **arg)
+void AngleClass2::coeff(int narg, char **arg)
 {
-  if (which < 0 || which > 2)
-    error->all("Invalid coeffs for this angle style");
+  if (narg < 2) error->all("Incorrect args for angle coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -275,7 +275,39 @@ void AngleClass2::coeff(int which, int narg, char **arg)
 
   int count = 0;
 
-  if (which == 0) {
+  if (strcmp(arg[1],"bb") == 0) {
+    if (narg != 5) error->all("Incorrect args for angle coefficients");
+
+    double bb_k_one = force->numeric(arg[2]);
+    double bb_r1_one = force->numeric(arg[3]);
+    double bb_r2_one = force->numeric(arg[4]);
+    
+    for (int i = ilo; i <= ihi; i++) {
+      bb_k[i] = bb_k_one;
+      bb_r1[i] = bb_r1_one;
+      bb_r2[i] = bb_r2_one;
+      setflag_bb[i] = 1;
+      count++;
+    }
+
+  } else if (strcmp(arg[1],"ba") == 0) {
+    if (narg != 6) error->all("Incorrect args for angle coefficients");
+
+    double ba_k1_one = force->numeric(arg[2]);
+    double ba_k2_one = force->numeric(arg[3]);
+    double ba_r1_one = force->numeric(arg[4]);
+    double ba_r2_one = force->numeric(arg[5]);
+    
+    for (int i = ilo; i <= ihi; i++) {
+      ba_k1[i] = ba_k1_one;
+      ba_k2[i] = ba_k2_one;
+      ba_r1[i] = ba_r1_one;
+      ba_r2[i] = ba_r2_one;
+      setflag_ba[i] = 1;
+      count++;
+    }
+
+  } else {
     if (narg != 5) error->all("Incorrect args for angle coefficients");
 
     double theta0_one = force->numeric(arg[1]);
@@ -291,40 +323,6 @@ void AngleClass2::coeff(int which, int narg, char **arg)
       k3[i] = k3_one;
       k4[i] = k4_one;
       setflag_a[i] = 1;
-      count++;
-    }
-  }
-
-  if (which == 1) {
-    if (narg != 4) error->all("Incorrect args for angle coefficients");
-
-    double bb_k_one = force->numeric(arg[1]);
-    double bb_r1_one = force->numeric(arg[2]);
-    double bb_r2_one = force->numeric(arg[3]);
-    
-    for (int i = ilo; i <= ihi; i++) {
-      bb_k[i] = bb_k_one;
-      bb_r1[i] = bb_r1_one;
-      bb_r2[i] = bb_r2_one;
-      setflag_bb[i] = 1;
-      count++;
-    }
-  }
-
-  if (which == 2) {
-    if (narg != 5) error->all("Incorrect args for angle coefficients");
-
-    double ba_k1_one = force->numeric(arg[1]);
-    double ba_k2_one = force->numeric(arg[2]);
-    double ba_r1_one = force->numeric(arg[3]);
-    double ba_r2_one = force->numeric(arg[4]);
-    
-    for (int i = ilo; i <= ihi; i++) {
-      ba_k1[i] = ba_k1_one;
-      ba_k2[i] = ba_k2_one;
-      ba_r1[i] = ba_r1_one;
-      ba_r2[i] = ba_r2_one;
-      setflag_ba[i] = 1;
       count++;
     }
   }

@@ -30,7 +30,7 @@ class AngleClass2 : public Angle {
   AngleClass2(class LAMMPS *);
   ~AngleClass2();
   void compute(int, int);
-  void coeff(int, int, char **);
+  void coeff(int, char **);
   double equilibrium_angle(int);
   void write_restart(FILE *);
   void read_restart(FILE *);

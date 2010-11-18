@@ -31,7 +31,7 @@ class DihedralHybrid : public Dihedral {
   ~DihedralHybrid();
   void compute(int, int);
   void settings(int, char **);
-  void coeff(int, int, char **);
+  void coeff(int, char **);
   void init_style();
   void write_restart(FILE *);
   void read_restart(FILE *);

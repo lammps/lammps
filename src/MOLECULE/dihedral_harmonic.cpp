@@ -272,9 +272,8 @@ void DihedralHarmonic::allocate()
    set coeffs for one type
 ------------------------------------------------------------------------- */
 
-void DihedralHarmonic::coeff(int which, int narg, char **arg)
+void DihedralHarmonic::coeff(int narg, char **arg)
 {
-  if (which > 0) return;
   if (narg != 4) error->all("Incorrect args for dihedral coefficients");
   if (!allocated) allocate();
 

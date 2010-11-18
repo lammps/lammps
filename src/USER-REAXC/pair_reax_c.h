@@ -53,6 +53,8 @@ class PairReaxC : public Pair {
 
   int qeqflag;
 
+  int setup_flag;
+
   void allocate();
   void write_reax_atoms();
   void get_distance(rvec, rvec, double *, rvec *);
@@ -60,6 +62,7 @@ class PairReaxC : public Pair {
   int estimate_reax_lists();
   int write_reax_lists();
   void read_reax_forces();
+  void setup();
 };
   
 }

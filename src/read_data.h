@@ -44,7 +44,7 @@ class ReadData : protected Pointers {
   void header(int);
   void parse_keyword(int, int);
   void skip_lines(int);
-  void parse_coeffs(int, char *);
+  void parse_coeffs(char *, char *, int);
 
   void atoms();
   void velocities();

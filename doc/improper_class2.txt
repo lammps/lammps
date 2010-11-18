@@ -47,13 +47,13 @@ this is not required.
 
 See "(Sun)"_#Sun for a description of the COMPASS class2 force field.
 
-The following coefficients must be defined for each improper type via the
-"improper_coeff"_improper_coeff.html command as in the example above, or in
-the data file or restart files read by the "read_data"_read_data.html
-or "read_restart"_read_restart.html commands:
+Coefficients for the Ei and Eaa formulas must be defined for each
+improper type via the "improper_coeff"_improper_coeff.html command as
+in the example above, or in the data file or restart files read by the
+"read_data"_read_data.html or "read_restart"_read_restart.html
+commands.
 
-For this style, coefficients for the Ei formula can be specified in
-either the input script or data file.  These are the 2 coefficients:
+These are the 2 coefficients for the Ei formula:
 
 K (energy/radian^2)
 X0 (degrees) :ul
@@ -61,10 +61,14 @@ X0 (degrees) :ul
 X0 is specified in degrees, but LAMMPS converts it to radians
 internally; hence the units of K are in energy/radian^2.
 
-Coefficients for the Eaa formula can only be specified in the data
-file.  For the Eaa formula, the coefficients are listed under a
-"AngleAngle Coeffs" heading and each line lists 6 coefficients:
+For the Eaa formula, each line in a
+"improper_coeff"_improper_coeff.html command in the input script lists
+7 coefficients, the first of which is "aa" to indicate they are
+AngleAngle coefficients.  In a data file, these coefficients should be
+listed under a "AngleAngle Coeffs" heading and you must leave out the
+"aa", i.e. only list 6 coefficients after the improper type.
 
+aa
 M1 (energy/distance)
 M2 (energy/distance)
 M3 (energy/distance)

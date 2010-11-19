@@ -46,7 +46,7 @@ class PairGranHookeHistoryOMP : public PairOMP {
   double dt;
   int freeze_group_bit;
   int history;
-  class FixShearHistoryOMP *fix_history;
+  class FixShearHistory *fix_history;
 
   double *onerad_dynamic,*onerad_frozen;
   double *maxrad_dynamic,*maxrad_frozen;

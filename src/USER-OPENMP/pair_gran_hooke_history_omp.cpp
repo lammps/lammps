@@ -409,7 +409,7 @@ void PairGranHookeHistoryOMP::init_style()
     fixarg[2] = (char *) "SHEAR_HISTORY";
     modify->add_fix(3,fixarg);
     delete [] fixarg;
-    fix_history = (FixShearHistoryOMP *) modify->fix[modify->nfix-1];
+    fix_history = (FixShearHistory *) modify->fix[modify->nfix-1];
     fix_history->pair = this;
   }
 
@@ -427,8 +427,8 @@ void PairGranHookeHistoryOMP::init_style()
   for (i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"pour") == 0) break;
   if (i < modify->nfix) {
-    pour_type = ((FixPourOMP *) modify->fix[i])->ntype;
-    pour_maxrad = ((FixPourOMP *) modify->fix[i])->radius_hi;
+    pour_type = ((FixPour *) modify->fix[i])->ntype;
+    pour_maxrad = ((FixPour *) modify->fix[i])->radius_hi;
   }
 
   // set maxrad_dynamic and maxrad_frozen for each type

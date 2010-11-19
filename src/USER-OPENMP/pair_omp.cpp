@@ -342,7 +342,7 @@ void PairOMP::ev_tally4_thr(int i, int j, int k, int m, double evdwl,
   double epairfourth,v[6];
 
   if (eflag_either) {
-    if (eflag_global) eng_vdwl += evdwl;
+    if (eflag_global) eng_vdwl_thr[tid] += evdwl;
     if (eflag_atom) {
       epairfourth = 0.25 * evdwl;
       eatom_thr[tid][i] += epairfourth;

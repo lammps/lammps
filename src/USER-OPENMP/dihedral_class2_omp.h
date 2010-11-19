@@ -30,7 +30,7 @@ class DihedralClass2OMP : public DihedralOMP {
   DihedralClass2OMP(class LAMMPS *);
   virtual ~DihedralClass2OMP();
   virtual void compute(int, int);
-  virtual void coeff(int, int, char **);
+  virtual void coeff(int, char **);
   virtual void write_restart(FILE *);
   virtual void read_restart(FILE *);
   virtual double memory_usage();

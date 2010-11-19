@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
@@ -48,7 +48,7 @@ enum{ARG,OP};
 // customize by adding a function
 
 enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,UNARY,
-       EQ,NE,LT,LE,GT,GE,AND,OR,
+       NOT,EQ,NE,LT,LE,GT,GE,AND,OR,
        SQRT,EXP,LN,LOG,SIN,COS,TAN,ASIN,ACOS,ATAN,ATAN2,
        RANDOM,NORMAL,CEIL,FLOOR,ROUND,RAMP,STAGGER,LOGFREQ,
        VDISPLACE,SWIGGLE,CWIGGLE,GMASK,RMASK,GRMASK,
@@ -90,7 +90,7 @@ Variable::Variable(LAMMPS *lmp) : Pointers(lmp)
   precedence[ADD] = precedence[SUBTRACT] = 5;
   precedence[MULTIPLY] = precedence[DIVIDE] = 6;
   precedence[CARAT] = 7;
-  precedence[UNARY] = 8;
+  precedence[UNARY] = precedence[NOT] = 8;
 
   PI = 4.0*atan(1.0);
 }
@@ -608,7 +608,7 @@ void Variable::copy(int narg, char **from, char **to)
      constant = PI
      thermo keyword = ke, vol, atoms, ...
      math operation = (),-x,x+y,x-y,x*y,x/y,x^y,
-                      x==y,x!=y,x<y,x<=y,x>y,x>=y,
+                      x==y,x!=y,x<y,x<=y,x>y,x>=y,x&&y,x||y,
                       sqrt(x),exp(x),ln(x),log(x),
 		      sin(x),cos(x),tan(x),asin(x),atan2(y,x),...
      group function = count(group), mass(group), xcm(group,x), ...
@@ -1256,9 +1256,10 @@ double Variable::evaluate(char *str, Tree **tree)
 	op = EQ;
 	i++;
       } else if (onechar == '!') {
-	if (str[i+1] != '=') error->all("Invalid syntax in variable formula");
-	op = NE;
-	i++;
+	if (str[i+1] == '=') {
+	  op = NE;
+	  i++;
+	} else op = NOT;
       } else if (onechar == '<') {
 	if (str[i+1] != '=') op = LT;
 	else {
@@ -1287,6 +1288,10 @@ double Variable::evaluate(char *str, Tree **tree)
 	opstack[nopstack++] = UNARY;
 	continue;
       }
+      if (op == NOT && expect == ARG) {
+	opstack[nopstack++] = op;
+	continue;
+      }
 
       if (expect == ARG) error->all("Invalid syntax in variable formula");
       expect = ARG;
@@ -1312,7 +1317,8 @@ double Variable::evaluate(char *str, Tree **tree)
 
 	} else {
 	  value2 = argstack[--nargstack];
-	  if (opprevious != UNARY) value1 = argstack[--nargstack];
+	  if (opprevious != UNARY && opprevious != NOT)
+	    value1 = argstack[--nargstack];
 
 	  if (opprevious == ADD)
 	    argstack[nargstack++] = value1 + value2;
@@ -1328,6 +1334,9 @@ double Variable::evaluate(char *str, Tree **tree)
 	    argstack[nargstack++] = pow(value1,value2);
 	  } else if (opprevious == UNARY) {
 	    argstack[nargstack++] = -value2;
+	  } else if (opprevious == NOT) {
+	    if (value2 == 0.0) argstack[nargstack++] = 1.0;
+	    else argstack[nargstack++] = 0.0;
 	  } else if (opprevious == EQ) {
 	    if (value1 == value2) argstack[nargstack++] = 1.0;
 	    else argstack[nargstack++] = 0.0;
@@ -1457,6 +1466,15 @@ double Variable::collapse_tree(Tree *tree)
     if (tree->left->type != VALUE) return 0.0;
     tree->type = VALUE;
     tree->value = -arg1;
+    return tree->value;
+  }
+
+  if (tree->type == NOT) {
+    arg1 = collapse_tree(tree->left);
+    if (tree->left->type != VALUE) return 0.0;
+    tree->type = VALUE;
+    if (arg1 == 0.0) tree->value = 1.0;
+    else tree->value = 0.0;
     return tree->value;
   }
 
@@ -1817,6 +1835,10 @@ double Variable::eval_tree(Tree *tree, int i)
   }
   if (tree->type == UNARY) return -eval_tree(tree->left,i);
 
+  if (tree->type == NOT) {
+    if (eval_tree(tree->left,i) == 0.0) return 1.0;
+    else return 0.0;
+  }
   if (tree->type == EQ) {
     if (eval_tree(tree->left,i) == eval_tree(tree->right,i)) return 1.0;
     else return 0.0;
@@ -3068,4 +3090,184 @@ void Variable::print_tree(Tree *tree, int level)
   if (tree->middle) print_tree(tree->middle,level+1);
   if (tree->right) print_tree(tree->right,level+1);
   return;
+}
+
+/* ----------------------------------------------------------------------
+   recursive evaluation of string str
+   called from "if" command in input script
+   str is a boolean expression containing one or more items:
+     number = 0.0, -5.45, 2.8e-4, ...
+     math operation = (),x==y,x!=y,x<y,x<=y,x>y,x>=y,x&&y,x||y
+------------------------------------------------------------------------- */
+
+double Variable::evaluate_boolean(char *str)
+{
+  int op,opprevious;
+  double value1,value2;
+  char onechar;
+  char *ptr;
+
+  double argstack[MAXLEVEL];
+  int opstack[MAXLEVEL];
+  int nargstack = 0;
+  int nopstack = 0;
+
+  int i = 0;
+  int expect = ARG;
+
+  while (1) {
+    onechar = str[i];
+    
+    // whitespace: just skip
+    
+    if (isspace(onechar)) i++;
+    
+    // ----------------
+    // parentheses: recursively evaluate contents of parens
+    // ----------------
+    
+    else if (onechar == '(') {
+      if (expect == OP) error->all("Invalid Boolean syntax in if command");
+      expect = OP;
+      
+      char *contents;
+      i = find_matching_paren(str,i,contents);
+      i++;
+      
+      // evaluate contents and push on stack
+      
+      argstack[nargstack++] = evaluate_boolean(contents);
+      
+      delete [] contents;
+      
+    // ----------------
+    // number: push value onto stack
+    // ----------------
+      
+    } else if (isdigit(onechar) || onechar == '.') {
+      if (expect == OP) error->all("Invalid Boolean syntax in if command");
+      expect = OP;
+      
+      // istop = end of number, including scientific notation
+      
+      int istart = i;
+      while (isdigit(str[i]) || str[i] == '.') i++;
+      if (str[i] == 'e' || str[i] == 'E') {
+	i++;
+	if (str[i] == '+' || str[i] == '-') i++;
+	while (isdigit(str[i])) i++;
+      }
+      int istop = i - 1;
+      
+      int n = istop - istart + 1;
+      char *number = new char[n+1];
+      strncpy(number,&str[istart],n);
+      number[n] = '\0';
+      
+      argstack[nargstack++] = atof(number);
+      
+      delete [] number;
+      
+    // ----------------
+    // Boolean operator, including end-of-string
+    // ----------------
+      
+    } else if (strchr("<>=!&|\0",onechar)) {
+      if (onechar == '=') {
+	if (str[i+1] != '=') 
+	  error->all("Invalid Boolean syntax in if command");
+	op = EQ;
+	i++;
+      } else if (onechar == '!') {
+	if (str[i+1] == '=') {
+	  op = NE;
+	  i++;
+	} else op = NOT;
+      } else if (onechar == '<') {
+	if (str[i+1] != '=') op = LT;
+	else {
+	  op = LE;
+	  i++;
+	}
+      } else if (onechar == '>') {
+	if (str[i+1] != '=') op = GT;
+	else {
+	  op = GE;
+	  i++;
+	}
+      } else if (onechar == '&') {
+	if (str[i+1] != '&') 
+	  error->all("Invalid Boolean syntax in if command");
+	op = AND;
+	i++;
+      } else if (onechar == '|') {
+	if (str[i+1] != '|') 
+	  error->all("Invalid Boolean syntax in if command");
+	op = OR;
+	i++;
+      } else op = DONE;
+      
+      i++;
+      
+      if (op == NOT && expect == ARG) {
+	opstack[nopstack++] = op;
+	continue;
+      }
+
+      if (expect == ARG) error->all("Invalid Boolean syntax in if command");
+      expect = ARG;
+      
+      // evaluate stack as deep as possible while respecting precedence
+      // before pushing current op onto stack
+
+      while (nopstack && precedence[opstack[nopstack-1]] >= precedence[op]) {
+	opprevious = opstack[--nopstack];
+	
+	value2 = argstack[--nargstack];
+	if (opprevious != NOT) value1 = argstack[--nargstack];
+	
+	if (opprevious == NOT) {
+	  if (value2 == 0.0) argstack[nargstack++] = 1.0;
+	  else argstack[nargstack++] = 0.0;
+	} else if (opprevious == EQ) {
+	  if (value1 == value2) argstack[nargstack++] = 1.0;
+	  else argstack[nargstack++] = 0.0;
+	} else if (opprevious == NE) {
+	  if (value1 != value2) argstack[nargstack++] = 1.0;
+	  else argstack[nargstack++] = 0.0;
+	} else if (opprevious == LT) {
+	  if (value1 < value2) argstack[nargstack++] = 1.0;
+	  else argstack[nargstack++] = 0.0;
+	} else if (opprevious == LE) {
+	  if (value1 <= value2) argstack[nargstack++] = 1.0;
+	  else argstack[nargstack++] = 0.0;
+	} else if (opprevious == GT) {
+	  if (value1 > value2) argstack[nargstack++] = 1.0;
+	  else argstack[nargstack++] = 0.0;
+	} else if (opprevious == GE) {
+	  if (value1 >= value2) argstack[nargstack++] = 1.0;
+	  else argstack[nargstack++] = 0.0;
+	} else if (opprevious == AND) {
+	  if (value1 != 0.0 && value2 != 0.0) argstack[nargstack++] = 1.0;
+	  else argstack[nargstack++] = 0.0;
+	} else if (opprevious == OR) {
+	  if (value1 != 0.0 || value2 != 0.0) argstack[nargstack++] = 1.0;
+	  else argstack[nargstack++] = 0.0;
+	}
+      }
+      
+      // if end-of-string, break out of entire formula evaluation loop
+      
+      if (op == DONE) break;
+      
+      // push current operation onto stack
+      
+      opstack[nopstack++] = op;
+      
+    } else error->all("Invalid Boolean syntax in if command");
+  }
+
+  if (nopstack) error->all("Invalid Boolean syntax in if command");
+  if (nargstack != 1) error->all("Invalid Boolean syntax in if command");
+  return argstack[0];
 }

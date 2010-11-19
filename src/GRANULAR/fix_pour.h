@@ -28,6 +28,10 @@ class FixPour : public Fix {
   friend class PairGranHertzHistory;
   friend class PairGranHooke;
   friend class PairGranHookeHistory;
+  // support for OpenMP variants
+  friend class PairGranHertzHistoryOMP;
+  friend class PairGranHookeOMP;
+  friend class PairGranHookeHistoryOMP;
 
  public:
   FixPour(class LAMMPS *, int, char **);

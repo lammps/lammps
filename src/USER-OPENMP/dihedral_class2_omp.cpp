@@ -25,6 +25,7 @@
 #include "comm.h"
 #include "force.h"
 #include "memory.h"
+#include "string.h"
 #include "error.h"
 
 #if defined(_OPENMP)

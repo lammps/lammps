@@ -311,9 +311,8 @@ void DihedralMultiHarmonicOMP::allocate()
    set coeffs for one type
 ------------------------------------------------------------------------- */
 
-void DihedralMultiHarmonicOMP::coeff(int which, int narg, char **arg)
+void DihedralMultiHarmonicOMP::coeff(int narg, char **arg)
 {
-  if (which > 0) return;
   if (narg != 6) error->all("Incorrect args for dihedral coefficients");
   if (!allocated) allocate();
 

@@ -30,7 +30,7 @@ class DihedralMultiHarmonicOMP : public DihedralOMP {
   DihedralMultiHarmonicOMP(class LAMMPS *);
   ~DihedralMultiHarmonicOMP();
   virtual void compute(int, int);
-  virtual void coeff(int, int, char **);
+  virtual void coeff(int, char **);
   virtual void write_restart(FILE *);
   virtual void read_restart(FILE *);
   virtual double memory_usage();

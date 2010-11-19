@@ -30,7 +30,7 @@ class DihedralHelixOMP : public DihedralOMP {
   DihedralHelixOMP(class LAMMPS *);
   ~DihedralHelixOMP();
   virtual void compute(int, int);
-  virtual void coeff(int, int, char **);
+  virtual void coeff(int, char **);
   virtual void write_restart(FILE *);
   virtual void read_restart(FILE *);
 

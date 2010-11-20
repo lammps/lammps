@@ -471,8 +471,9 @@ double PairBuckCoulLongOMP::single(int i, int j, int itype, int jtype,
 
 /* ---------------------------------------------------------------------- */
 
-void *PairBuckCoulLongOMP::extract(char *str)
+void *PairBuckCoulLongOMP::extract(char *str, int &dim)
 {
+  dim = 0;
   if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;
   return NULL;
 }

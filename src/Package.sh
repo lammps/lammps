@@ -49,7 +49,7 @@ elif (test $2 = "update") then
         fi
       done
     else
-      ${SHELL-/bin/sh} Package.sh
+      ${BSH-/bin/sh} Package.sh
     fi
   else
     echo "  $1 package is not installed, no action"

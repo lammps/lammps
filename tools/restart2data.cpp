@@ -421,7 +421,7 @@ int main (int argc, char **argv)
 
 void header(FILE *fp, Data &data)
 {
-  char *version = "10 Sept 2010";
+  char *version = "19 Nov 2010-ICMS";
 
   data.triclinic = 0;
 
@@ -1640,7 +1640,8 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 	  }
 	}
       }
-  } else if (strcmp(style,"gayberne") == 0) {
+  } else if ((strcmp(style,"gayberne") == 0) ||
+	     (strcmp(style,"gayberne/gpu") == 0)) {
 
     double gamma = read_double(fp);
     double upsilon = read_double(fp);
@@ -1819,10 +1820,13 @@ void pair(FILE *fp, Data &data, char *style, int flag)
       }
 
   } else if ((strcmp(style,"lj/cut") == 0) ||
+	   (strcmp(style,"lj/cut/gpu") == 0) ||
 	   (strcmp(style,"lj/cut/opt") == 0) ||
 	   (strcmp(style,"lj/cut/coul/cut") == 0) ||
+	   (strcmp(style,"lj/cut/coul/cut/gpu") == 0) ||
 	   (strcmp(style,"lj/cut/coul/debye") == 0) ||
 	   (strcmp(style,"lj/cut/coul/long") == 0) ||
+	   (strcmp(style,"lj/cut/coul/long/gpu") == 0) ||
 	   (strcmp(style,"lj/cut/coul/long/tip4p") == 0) ||
 	   (strcmp(style,"lj/coul") == 0) ||
 	   (strcmp(style,"lj/cut/omp") == 0) ||
@@ -1832,6 +1836,7 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 	   (strcmp(style,"lj/cut/coul/long/tip4p/omp") == 0)) {
 
     if ((strcmp(style,"lj/cut") == 0) || 
+	(strcmp(style,"lj/cut/gpu") == 0) ||
 	(strcmp(style,"lj/cut/omp") == 0) ||
 	(strcmp(style,"lj/cut/opt") == 0)) {
       m = 0;
@@ -1839,6 +1844,7 @@ void pair(FILE *fp, Data &data, char *style, int flag)
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
     } else if ((strcmp(style,"lj/cut/coul/cut") == 0) ||
+	       (strcmp(style,"lj/cut/coul/cut/gpu") == 0) ||
 	       (strcmp(style,"lj/cut/coul/cut/omp") == 0)) {
       m = 1;
       double cut_lj_global = read_double(fp);
@@ -1854,6 +1860,7 @@ void pair(FILE *fp, Data &data, char *style, int flag)
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
     } else if ((strcmp(style,"lj/cut/coul/long") == 0) ||
+	       (strcmp(style,"lj/cut/coul/long/gpu") == 0) ||
 	       (strcmp(style,"lj/cut/coul/long/omp") == 0)) {
       m = 0;
       double cut_lj_global = read_double(fp);
@@ -2147,9 +2154,11 @@ void pair(FILE *fp, Data &data, char *style, int flag)
       }
 
   } else if ((strcmp(style,"cg/cmm") == 0) ||
+             (strcmp(style,"cg/cmm/gpu") == 0) ||
              (strcmp(style,"cg/cmm/omp") == 0) ||
              (strcmp(style,"cg/cmm/coul/cut") == 0) ||
              (strcmp(style,"cg/cmm/coul/long") == 0) ||
+             (strcmp(style,"cg/cmm/coul/long/gpu") == 0) ||
              (strcmp(style,"cg/cmm/coul/long/omp") == 0) ) {
     m = 0;
     data.cut_lj_global = read_double(fp);
@@ -2168,6 +2177,7 @@ void pair(FILE *fp, Data &data, char *style, int flag)
     data.pair_cut_lj = new double*[numtyp];
     if  ((strcmp(style,"cg/cmm/coul/cut") == 0) ||
 	 (strcmp(style,"cg/cmm/coul/long") == 0) ||
+	 (strcmp(style,"cg/cmm/coul/long/gpu") == 0) ||
 	 (strcmp(style,"cg/cmm/coul/long/omp") == 0)) {
       data.pair_cut_coul = new double*[numtyp];
       m=1;
@@ -2184,6 +2194,7 @@ void pair(FILE *fp, Data &data, char *style, int flag)
       data.pair_cut_lj[i] = new double[numtyp];
       if ((strcmp(style,"cg/cmm/coul/cut") == 0) ||
           (strcmp(style,"cg/cmm/coul/long") == 0) ||
+          (strcmp(style,"cg/cmm/coul/long/gpu") == 0) ||
           (strcmp(style,"cg/cmm/coul/long/omp") == 0)) {
         data.pair_cut_coul[i] = new double[numtyp];
       }
@@ -2886,7 +2897,8 @@ void Data::write(FILE *fp, FILE *fp2)
 	fprintf(fp,"%d %g %g\n",i,
 		pair_dpd_a0[i],pair_dpd_gamma[i]);
       
-    } else if (strcmp(pair_style,"gayberne") == 0) {
+    } else if ((strcmp(pair_style,"gayberne") == 0) ||
+	       (strcmp(pair_style,"gayberne/gpu") == 0)) {
       for (int i = 1; i <= ntypes; i++)
 	fprintf(fp,"%d %g %g %g %g %g %g %g %g\n",i,
 		pair_gb_epsilon[i],pair_gb_sigma[i],
@@ -2916,10 +2928,13 @@ void Data::write(FILE *fp, FILE *fp2)
 		pair_class2_epsilon[i],pair_class2_sigma[i]);
       
     } else if ((strcmp(pair_style,"lj/cut") == 0) || 
+	       (strcmp(pair_style,"lj/cut/gpu") == 0) ||
 	       (strcmp(pair_style,"lj/cut/opt") == 0) ||
 	       (strcmp(pair_style,"lj/cut/coul/cut") == 0) ||
+	       (strcmp(pair_style,"lj/cut/coul/cut/gpu") == 0) ||
 	       (strcmp(pair_style,"lj/cut/coul/debye") == 0) ||
 	       (strcmp(pair_style,"lj/cut/coul/long") == 0) ||
+	       (strcmp(pair_style,"lj/cut/coul/long/gpu") == 0) ||
 	       (strcmp(pair_style,"lj/cut/coul/long/tip4p") == 0) ||
 	       (strcmp(pair_style,"lj/coul") == 0) ||
 	       (strcmp(pair_style,"lj/cut/omp") == 0) || 
@@ -2983,8 +2998,10 @@ void Data::write(FILE *fp, FILE *fp2)
 
   if (pair_style && fp2) {
     if ((strcmp(pair_style,"cg/cmm") == 0) || 
+	(strcmp(pair_style,"cg/cmm/gpu") == 0) || 
 	(strcmp(pair_style,"cg/cmm/coul/cut") == 0) ||
 	(strcmp(pair_style,"cg/cmm/coul/long") == 0) ||
+	(strcmp(pair_style,"cg/cmm/coul/long/gpu") == 0) ||
 	(strcmp(pair_style,"cg/cmm/omp") == 0) || 
 	(strcmp(pair_style,"cg/cmm/coul/long/omp") == 0)) {
       for (int i = 1; i <= ntypes; i++) {

@@ -1,4 +1,4 @@
-# longhorn = TACC longhorn GPU cluster
+# longhorn = TACC longhorn GPU cluster, cuda 3.1, intel 11.1, mvapich, fftw-3.1.2
 
 SHELL = /bin/sh
 
@@ -8,12 +8,12 @@ SHELL = /bin/sh
 # unless additional compiler/linker flags or libraries needed for your machine
 
 CC =		mpicxx
-CCFLAGS =	-O2 -march=core2 -pc64 -funroll-loops -fstrict-aliasing -Wall  \
+CCFLAGS =	-O2 -xHost -pc64 -funroll-loops -fstrict-aliasing  \
      -no-prec-sqrt -no-prec-div -fast-transcendentals
 
 DEPFLAGS =	-M
 LINK =		$(CC)
-LINKFLAGS =	-O2 -march=core2
+LINKFLAGS =	-O2 -xHost
 LIB =           
 ARCHIVE =	ar
 ARFLAGS =	-rc
@@ -25,7 +25,7 @@ SIZE =		size
 
 # LAMMPS ifdef options, see doc/Section_start.html
 
-LMP_INC =	-DLAMMPS_GZIP
+LMP_INC =	-DLAMMPS_GZIP -DMALLOC_MEMALIGN=16
 
 # MPI library, can be src/STUBS dummy lib
 # INC = path for mpi.h, MPI compiler settings
@@ -41,9 +41,9 @@ MPI_LIB =
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC =       -DFFT_FFTW -I$(TACC_FFTW2_INC)
+FFT_INC =       -DFFT_FFTW3 -I$(TACC_FFTW3_INC) -DFFT_SINGLE
 FFT_PATH = 
-FFT_LIB =      -L$(TACC_FFTW2_LIB) -lfftw
+FFT_LIB =      -L$(TACC_FFTW3_LIB) -lfftw3f
 
 # additional system libraries needed by LAMMPS package libraries
 # these settings are IGNORED if the corresponding LAMMPS package

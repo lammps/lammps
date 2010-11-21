@@ -290,7 +290,7 @@ inline void UCL_Device::print_all(std::ostream &out) {
     else
       out << "Unknown\n";
     #endif
-    #if CUDART_VERSION >= 3000
+    #if CUDART_VERSION >= 3010
     out << "  Concurrent kernel execution:                   ";
     if (_properties[i].concurrentKernels)
       out << "Yes\n";

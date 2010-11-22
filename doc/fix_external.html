@@ -24,12 +24,14 @@
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>This fix makes a callback each timestep to an external driver program
-that is using LAMMPS as a library.  This is a way to let another
-program compute forces on atoms which LAMMPS will include in its
-dynamics performed by the <A HREF = "run.html">run</A> command.
+<P>This fix makes a callback each timestep or minimization iteration to
+an external driver program that is using LAMMPS as a library.  This is
+a way to let another program compute forces on atoms which LAMMPS will
+include in its dynamics performed by the <A HREF = "run.html">run</A> command or its
+iterations performed by the <A HREF = "minimize.html">minimize</A> command
 </P>
-<P>The callback function "foo" will be invoked every timestep as:
+<P>The callback function "foo" will be invoked every timestep or
+iteration as:
 </P>
 <PRE>foo(ptr,timestep,nlocal,ids,x,fexternal); 
 </PRE>
@@ -65,7 +67,12 @@ are relevant to this fix.  No global or per-atom quantities are stored
 by this fix for access by various <A HREF = "Section_howto.html#4_15">output
 commands</A>.  No parameter of this fix can be
 used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A> command.
-This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
+</P>
+<P>The forces due to this fix are imposed during an energy minimization,
+invoked by the <A HREF = "minimize.html">minimize</A> command.  However, LAMMPS
+knows nothing about the energy associated with these forces.  So you
+should perform the minimization based on a force tolerance, not an
+energy tolerance.
 </P>
 <P><B>Restrictions:</B> none
 </P>

@@ -21,12 +21,14 @@ fix 1 all external :pre
 
 [Description:]
 
-This fix makes a callback each timestep to an external driver program
-that is using LAMMPS as a library.  This is a way to let another
-program compute forces on atoms which LAMMPS will include in its
-dynamics performed by the "run"_run.html command.
+This fix makes a callback each timestep or minimization iteration to
+an external driver program that is using LAMMPS as a library.  This is
+a way to let another program compute forces on atoms which LAMMPS will
+include in its dynamics performed by the "run"_run.html command or its
+iterations performed by the "minimize"_minimize.html command
 
-The callback function "foo" will be invoked every timestep as:
+The callback function "foo" will be invoked every timestep or
+iteration as:
 
 foo(ptr,timestep,nlocal,ids,x,fexternal); :pre
 
@@ -62,7 +64,12 @@ are relevant to this fix.  No global or per-atom quantities are stored
 by this fix for access by various "output
 commands"_Section_howto.html#4_15.  No parameter of this fix can be
 used with the {start/stop} keywords of the "run"_run.html command.
-This fix is not invoked during "energy minimization"_minimize.html.
+
+The forces due to this fix are imposed during an energy minimization,
+invoked by the "minimize"_minimize.html command.  However, LAMMPS
+knows nothing about the energy associated with these forces.  So you
+should perform the minimization based on a force tolerance, not an
+energy tolerance.
 
 [Restrictions:] none
 

@@ -47,6 +47,7 @@ int FixExternal::setmask()
 {
   int mask = 0;
   mask |= POST_FORCE;
+  mask |= MIN_POST_FORCE;
   return mask;
 }
 
@@ -60,6 +61,13 @@ void FixExternal::init()
 /* ---------------------------------------------------------------------- */
 
 void FixExternal::setup(int vflag)
+{
+  post_force(vflag);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixExternal::min_setup(int vflag)
 {
   post_force(vflag);
 }
@@ -92,6 +100,13 @@ void FixExternal::post_force(int vflag)
       f[i][1] += fexternal[i][1];
       f[i][2] += fexternal[i][2];
     }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixExternal::min_post_force(int vflag)
+{
+  post_force(vflag);
 }
 
 /* ----------------------------------------------------------------------

@@ -245,7 +245,8 @@ void FixWallRegion::post_force(int vflag)
       }
     }
 
-  if (onflag) error->one("Particle on or inside fix wall/region surface");
+  if (onflag) error->one("Particle on or inside surface of region "
+			 "used in fix wall/region");
 }
 
 /* ---------------------------------------------------------------------- */

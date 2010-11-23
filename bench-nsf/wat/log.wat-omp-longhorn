@@ -1,0 +1,202 @@
+LAMMPS (19 Nov 2010-ICMS)
+# TIPS water from charmm.
+
+boundary 	p p p
+units		real
+atom_style	full
+special_bonds lj/coul 0.0 0.0 1.0
+
+read_data	data.wat
+  2 = max bonds/atom
+  1 = max angles/atom
+  orthogonal box = (-5.2675 -4.985 -4.9345) to (4.7325 5.015 5.0655)
+  4 by 4 by 4 processor grid
+  using 2 OpenMP thread(s) per MPI task
+  84 atoms
+  56 bonds
+  28 angles
+  2 = max # of 1-2 neighbors
+  1 = max # of 1-3 neighbors
+  2 = max # of special neighbors
+
+replicate ${num} ${num} ${num}
+replicate 10 ${num} ${num}
+replicate 10 10 ${num}
+replicate 10 10 10
+  orthogonal box = (-5.2675 -4.985 -4.9345) to (94.7325 95.015 95.0655)
+  4 by 4 by 4 processor grid
+  using 2 OpenMP thread(s) per MPI task
+  84000 atoms
+  56000 bonds
+  28000 angles
+  2 = max # of 1-2 neighbors
+  1 = max # of 1-3 neighbors
+  2 = max # of special neighbors
+
+pair_style	lj/cut/coul/long/omp 14.0
+pair_modify	mix arithmetic
+pair_coeff	2 2 0.1521000000 3.15057
+pair_coeff	1 1 0.046        0.400014
+
+# 100x larger for minimize
+angle_style     harmonic
+angle_coeff     1 5500 104.52
+
+# 100x larger constant for minimize
+bond_style      harmonic
+bond_coeff      1 45000 0.9572
+
+kspace_style	pppm 1.0e-4
+
+velocity        all create 300 234324 dist gaussian
+neighbor        2.5 bin
+neigh_modify    delay 2 every 1 check yes
+
+thermo		10
+thermo_style 	custom step pe temp evdwl ecoul vol press spcpu
+thermo_modify   norm yes
+
+minimize        1.0e-4 1.0e-6 100 1000
+WARNING: Resetting reneighboring criteria during minimization
+PPPM initialization ...
+  G vector = 0.186884
+  grid = 36 36 36
+  stencil order = 5
+  RMS precision = 5.73697e-05
+  using single precision FFTs
+  brick FFT buffer size/proc = 2744 900 1764
+Memory usage per processor = 11.1222 Mbytes
+Step PotEng Temp E_vdwl E_coul Volume Press S/CPU 
+       0     656.3994          300    623.49127      10.7913      1000000     13052196            0 
+      10    2.1079218          300    3.7701061    10.339662      1000000    159414.93     9.183384 
+      20   -1.1179164          300   0.80326909     10.22405      1000000    29606.391    7.6934212 
+      30   -1.5482814          300   0.45429355    10.075525      1000000   -6780.3529    5.5983388 
+      40   -1.6615478          300   0.43793571    10.055152      1000000    16576.175    3.7942298 
+      50   -1.8610264          300   0.35826881    9.9278023      1000000    8567.8822    4.3490592 
+      60    -2.113159          300   0.29267303    9.7442739      1000000     6459.288    5.6146874 
+      70   -2.2428442          300   0.27484557    9.6373795      1000000    15518.054    4.4185517 
+      80   -2.4130941          300   0.25471857    9.4965952      1000000    3390.6028    4.5622206 
+      84   -2.4150614          300   0.25444899     9.495168      1000000    4419.2006    2.9993689 
+Loop time of 16.6797 on 128 procs (64 MPI x 2 OpenMP) for 84 steps with 84000 atoms
+
+Minimization stats:
+  Stopping criterion = energy tolerance
+  Energy initial, next-to-last, final = 
+         656.399401959     -2.41482175132     -2.41506139116
+  Force two-norm initial, final = 2.24428e+07 1326.85
+  Force max component initial, final = 305690 14.6931
+  Final line search alpha, max atom move = 7.30151e-06 0.000107281
+  Iterations, force evaluations = 84 443
+
+Pair  time (%) = 12.2296 (73.3204)
+Bond  time (%) = 0.0479575 (0.28752)
+Kspce time (%) = 3.86201 (23.154)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.458186 (2.74697)
+Outpt time (%) = 0.0010033 (0.00601507)
+Other time (%) = 0.0809199 (0.48514)
+
+FFT time (% of Kspce) = 0.0816388 (2.11389)
+FFT Gflps 3d (1d only) = 10.3217 85.3641
+
+Nlocal:    1312.5 ave 1369 max 1259 min
+Histogram: 8 0 16 0 0 16 8 8 0 8
+Nghost:    15043 ave 15311 max 14729 min
+Histogram: 8 0 8 8 0 8 16 8 0 8
+Neighs:    1.03562e+06 ave 1.08657e+06 max 986357 min
+Histogram: 8 0 16 0 0 16 16 0 0 8
+
+Total # of neighbors = 66280000
+Ave neighs/atom = 789.048
+Ave special neighs/atom = 2
+Neighbor list builds = 0
+Dangerous builds = 0
+
+reset_timestep	0
+
+thermo		500
+
+fix             1 all shake 0.0001 20 2000 b 1 a 1
+  0 = # of size 2 clusters
+  0 = # of size 3 clusters
+  0 = # of size 4 clusters
+  28000 = # of frozen angles
+fix             2 all npt temp 300.0 300.0 100.0 iso 0.0 0.0 1000.0
+
+timestep 	2.0
+
+run 		10000
+PPPM initialization ...
+  G vector = 0.186884
+  grid = 36 36 36
+  stencil order = 5
+  RMS precision = 5.73697e-05
+  using single precision FFTs
+  brick FFT buffer size/proc = 2744 900 1764
+SHAKE stats (type/ave/delta) on step 0
+  1 0.957312 0.00034842
+  1 104.485 0.0719648
+Memory usage per processor = 10.795 Mbytes
+Step PotEng Temp E_vdwl E_coul Volume Press S/CPU 
+       0   -2.4164866    450.00268   0.25444899     9.495168      1000000    2681.6722            0 
+     500   -3.1077046    306.86615   0.31622537    8.7480173    955952.95   -1253.8452    40.504091 
+    1000   -3.2043239    298.82128   0.34243217    8.6257832    906184.49   -799.66713    35.748569 
+    1500   -3.2366359    300.98592   0.34391763    8.5919507    873462.51   -550.28446    36.006766 
+SHAKE stats (type/ave/delta) on step 2000
+  1 0.957187 3.91907e-06
+  1 104.52 0.000412683
+    2000   -3.2481602     299.9884   0.34347325     8.581075       851222   -286.84643    33.562239 
+    2500    -3.259908    298.40341   0.34255531    8.5704014     837945.2   -129.41356     34.00444 
+    3000   -3.2617895    298.31092   0.34421476    8.5667716    832206.76    8.8400155    32.532397 
+    3500   -3.2671504    298.90189   0.34327175     8.562567    829684.27     -28.7516    33.457689 
+SHAKE stats (type/ave/delta) on step 4000
+  1 0.957204 4.16062e-06
+  1 104.52 0.000602422
+    4000   -3.2678465    301.00602   0.34755093    8.5573175    829982.88    91.659058     32.22263 
+    4500   -3.2601438    300.21902   0.34611689    8.5667295    831122.18    98.028758    33.367401 
+    5000    -3.260451    300.92742   0.34095428     8.571437    830124.66   -18.557225    32.544782 
+    5500   -3.2632413    300.54126   0.34087156    8.5688076    830512.09   -53.603898    32.944789 
+SHAKE stats (type/ave/delta) on step 6000
+  1 0.957203 4.63746e-06
+  1 104.52 0.000538516
+    6000   -3.2666689    300.46881   0.34163055    8.5645874    830685.53   -65.920436    32.327609 
+    6500   -3.2651721    300.16077    0.3444511    8.5631291    829731.09    26.553756      33.2876 
+    7000   -3.2675687    299.48889   0.34284613    8.5625102    830623.49   -32.091298      32.3446 
+    7500   -3.2630105    298.52773   0.34530678    8.5644677     828805.4    81.763873    33.224521 
+SHAKE stats (type/ave/delta) on step 8000
+  1 0.957202 4.1759e-06
+  1 104.52 0.00053471
+    8000   -3.2659903    299.54359   0.34636056    8.5604593    828253.66    78.594443    32.237324 
+    8500   -3.2624296     298.8526   0.34220114    8.5682185    831022.76   -26.695579    33.437551 
+    9000     -3.26825    298.33793    0.3418415    8.5627666    832490.94   -131.19731    32.404516 
+    9500   -3.2675216      299.134   0.34048302    8.5646679    828434.14   -68.260065    33.215929 
+SHAKE stats (type/ave/delta) on step 10000
+  1 0.957206 3.98311e-06
+  1 104.52 0.000452887
+   10000   -3.2663126    298.40364   0.34322539    8.5632372    830461.78   -29.899976    32.305622 
+Loop time of 298.593 on 128 procs (64 MPI x 2 OpenMP) for 10000 steps with 84000 atoms
+
+Pair  time (%) = 171.475 (57.4277)
+Bond  time (%) = 0.0159633 (0.00534617)
+Kspce time (%) = 50.3823 (16.8732)
+Neigh time (%) = 49.4863 (16.5732)
+Comm  time (%) = 12.3889 (4.14908)
+Outpt time (%) = 0.00299207 (0.00100206)
+Other time (%) = 14.8413 (4.97043)
+
+FFT time (% of Kspce) = 8.58328 (17.0363)
+FFT Gflps 3d (1d only) = 11.6873 85.3446
+
+Nlocal:    1312.5 ave 1353 max 1271 min
+Histogram: 3 1 9 9 9 12 6 7 4 4
+Nghost:    16931.1 ave 17027 max 16825 min
+Histogram: 2 2 4 12 13 7 8 10 4 2
+Neighs:    1.24866e+06 ave 1.31202e+06 max 1.1902e+06 min
+Histogram: 7 8 4 5 7 10 7 8 3 5
+
+Total # of neighbors = 79914191
+Ave neighs/atom = 951.359
+Ave special neighs/atom = 2
+Neighbor list builds = 886
+Dangerous builds = 0
+

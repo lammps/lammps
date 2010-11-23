@@ -1,0 +1,99 @@
+Configuration of the LAMMPS GPU compile:
+
+Installed YES: package ASPHERE
+Installed YES: package CLASS2
+Installed YES: package COLLOID
+Installed YES: package DIPOLE
+Installed  NO: package DSMC
+Installed YES: package GPU
+Installed YES: package GRANULAR
+Installed YES: package KSPACE
+Installed YES: package MANYBODY
+Installed  NO: package MEAM
+Installed YES: package MOLECULE
+Installed YES: package OPT
+Installed  NO: package PERI
+Installed  NO: package POEMS
+Installed  NO: package REAX
+Installed YES: package REPLICA
+Installed  NO: package SHOCK
+Installed  NO: package SRD
+Installed YES: package XTC
+
+Installed  NO: package USER-ACKLAND
+Installed  NO: package USER-ATC
+Installed  NO: package USER-CD-EAM
+Installed YES: package USER-CG-CMM
+Installed  NO: package USER-EFF
+Installed  NO: package USER-EWALDN
+Installed  NO: package USER-GAUSS
+Installed YES: package USER-IMD
+Installed YES: package USER-OPENMP
+Installed YES: package USER-REAXC
+Installed YES: package USER-SMD
+
+Modules used on TACC Longhorn:
+  intel/11.1
+  mvapich2/1.4
+  cuda/3.1
+  fftw3/3.1.2
+
+  LAMMPS compiled with single precision FFT
+  GPU package with mixed precision
+
+
+Modules used on NCSA Lincoln:
+ +openmpi-1.3.2-gcc
+ +fftw-3.1-gcc
+ +cuda-3.0
+
+  LAMMPS compiled with single precision FFT
+  GPU package with mixed precision
+
+
+Configuration of the LAMMPS OpenMP compile:
+Installed YES: package ASPHERE
+Installed YES: package CLASS2
+Installed YES: package COLLOID
+Installed YES: package DIPOLE
+Installed YES: package DSMC
+Installed  NO: package GPU
+Installed YES: package GRANULAR
+Installed YES: package KSPACE
+Installed YES: package MANYBODY
+Installed YES: package MEAM
+Installed YES: package MOLECULE
+Installed YES: package OPT
+Installed YES: package PERI
+Installed YES: package POEMS
+Installed YES: package REAX
+Installed YES: package REPLICA
+Installed YES: package SHOCK
+Installed YES: package SRD
+Installed YES: package XTC
+
+Installed YES: package USER-ACKLAND
+Installed  NO: package USER-ATC
+Installed YES: package USER-CD-EAM
+Installed YES: package USER-CG-CMM
+Installed YES: package USER-EFF
+Installed YES: package USER-EWALDN
+Installed  NO: package USER-GAUSS
+Installed YES: package USER-IMD
+Installed YES: package USER-OPENMP
+Installed YES: package USER-REAXC
+Installed YES: package USER-SMD
+
+Modules used on NCSA abe
+ +gcc-4.4.3
+ +openmpi-1.3.2-gcc
+ +fftw-3.1-gcc
+
+ LAMMPS compiled with single precision FFT
+ and OpenMP enabled (only active in /omp styles).
+ Additional Fortran libraries with gfortran
+ Note: jobs with 8 cores/node with MPI-only
+ fail currently. requesting 7 core/node works.
+ Using less cores/node with MPI-only is usually
+ faster, and OpenMP+MPI often much more.
+

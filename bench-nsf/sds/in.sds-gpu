@@ -1,0 +1,30 @@
+# lammps input script
+
+units           real
+dimension       3
+atom_style      full
+processors   * * 1
+newton off
+
+read_data       DATA.FILE
+include         PARM.FILE-gpu
+
+replicate 8 8 1
+
+kspace_style    pppm/cg 0.00001
+kspace_modify   order 3 
+
+neighbor        2.0 bin
+neigh_modify    delay 4 every 2 check yes
+
+timestep        10.0
+
+fix             0 all gpu force/neigh 0 1 1
+fix             1 all nvt temp 310.0 310.0 100.0 drag 0.1
+
+thermo_style    custom step pe temp evdwl ecoul spcpu
+thermo          500
+
+velocity all create 325.0 63443 
+
+run              10000

@@ -1,0 +1,198 @@
+LAMMPS (19 Nov 2010-ICMS)
+# TIPS water from charmm.
+
+boundary 	p p p
+units		real
+atom_style	full
+special_bonds lj/coul 0.0 0.0 1.0
+
+read_data	data.wat
+  2 = max bonds/atom
+  1 = max angles/atom
+  orthogonal box = (-5.2675 -4.985 -4.9345) to (4.7325 5.015 5.0655)
+  4 by 6 by 8 processor grid
+  84 atoms
+  56 bonds
+  28 angles
+  2 = max # of 1-2 neighbors
+  1 = max # of 1-3 neighbors
+  2 = max # of special neighbors
+
+replicate ${num} ${num} ${num}
+replicate 10 ${num} ${num}
+replicate 10 10 ${num}
+replicate 10 10 10
+  orthogonal box = (-5.2675 -4.985 -4.9345) to (94.7325 95.015 95.0655)
+  4 by 6 by 8 processor grid
+  84000 atoms
+  56000 bonds
+  28000 angles
+  2 = max # of 1-2 neighbors
+  1 = max # of 1-3 neighbors
+  2 = max # of special neighbors
+
+pair_style	lj/cut/coul/long 14.0
+pair_modify	mix arithmetic
+pair_coeff	2 2 0.1521000000 3.15057
+pair_coeff	1 1 0.046        0.400014
+
+# 100x larger for minimize
+angle_style     harmonic
+angle_coeff     1 5500 104.52
+
+# 100x larger constant for minimize
+bond_style      harmonic
+bond_coeff      1 45000 0.9572
+
+kspace_style	pppm 1.0e-4
+
+velocity        all create 300 234324 dist gaussian
+neighbor        2.5 bin
+neigh_modify    delay 2 every 1 check yes
+
+thermo		10
+thermo_style 	custom step pe temp evdwl ecoul vol press spcpu
+thermo_modify   norm yes
+
+minimize        1.0e-4 1.0e-6 100 1000
+WARNING: Resetting reneighboring criteria during minimization
+PPPM initialization ...
+  G vector = 0.186884
+  grid = 36 36 36
+  stencil order = 5
+  RMS precision = 5.73697e-05
+  using single precision FFTs
+  brick FFT buffer size/proc = 1540 324 1848
+Memory usage per processor = 7.75662 Mbytes
+Step PotEng Temp E_vdwl E_coul Volume Press S/CPU 
+       0     656.3994          300    623.49127      10.7913      1000000     13052196            0 
+      10    2.1079218          300    3.7701061    10.339662      1000000    159414.93    10.707797 
+      20   -1.1179164          300   0.80326907     10.22405      1000000    29606.435    7.3382479 
+      30   -1.5413127          300   0.45440054    10.075508      1000000   -5658.5437    5.1318499 
+      40   -1.8832432          300   0.34633205    9.9162614      1000000    28033.599    4.3411616 
+      50   -2.1596493          300   0.28190957    9.7064488      1000000    6042.3853     4.876745 
+      60   -2.2885822          300   0.26657623    9.5969339      1000000    18386.744    4.1734729 
+      65    -2.332473          300   0.26307523    9.5673715      1000000    4893.0497    3.5575948 
+Loop time of 12.4012 on 192 procs for 65 steps with 84000 atoms
+
+Minimization stats:
+  Stopping criterion = energy tolerance
+  Energy initial, next-to-last, final = 
+         656.399401958     -2.33229468198     -2.33247303293
+  Force two-norm initial, final = 2.24428e+07 1730.52
+  Force max component initial, final = 305690 21.2948
+  Final line search alpha, max atom move = 5.00893e-06 0.000106664
+  Iterations, force evaluations = 65 313
+
+Pair  time (%) = 5.53064 (44.5977)
+Bond  time (%) = 0.0170702 (0.13765)
+Kspce time (%) = 5.84682 (47.1473)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.865903 (6.98244)
+Outpt time (%) = 0.00226127 (0.0182343)
+Other time (%) = 0.138474 (1.11662)
+
+FFT time (% of Kspce) = 0.845668 (14.4637)
+FFT Gflps 3d (1d only) = 0.771049 198.232
+
+Nlocal:    437.5 ave 487 max 387 min
+Histogram: 8 16 8 32 16 48 16 32 8 8
+Nghost:    10499.7 ave 10873 max 10263 min
+Histogram: 8 40 48 16 16 16 16 16 8 8
+Neighs:    345208 ave 411558 max 294959 min
+Histogram: 16 16 24 32 32 24 16 24 0 8
+
+Total # of neighbors = 66280000
+Ave neighs/atom = 789.048
+Ave special neighs/atom = 2
+Neighbor list builds = 0
+Dangerous builds = 0
+
+reset_timestep	0
+
+thermo		500
+
+fix             1 all shake 0.0001 20 2000 b 1 a 1
+  0 = # of size 2 clusters
+  0 = # of size 3 clusters
+  0 = # of size 4 clusters
+  28000 = # of frozen angles
+fix             2 all npt temp 300.0 300.0 100.0 iso 0.0 0.0 1000.0
+
+timestep 	2.0
+
+run 		10000
+PPPM initialization ...
+  G vector = 0.186884
+  grid = 36 36 36
+  stencil order = 5
+  RMS precision = 5.73697e-05
+  using single precision FFTs
+  brick FFT buffer size/proc = 1540 324 1848
+SHAKE stats (type/ave/delta) on step 0
+  1 0.957311 0.000373645
+  1 104.485 0.108094
+Memory usage per processor = 7.4441 Mbytes
+Step PotEng Temp E_vdwl E_coul Volume Press S/CPU 
+       0   -2.3339536    450.00268   0.26307523    9.5673715      1000000    3415.7941            0 
+     500   -3.0965437    306.89185   0.31144539    8.7639763    959499.98   -1305.1232    25.630454 
+    1000   -3.2019513    299.28489   0.33803663    8.6324646    909881.25   -918.99691    24.589112 
+    1500   -3.2315125    297.78482   0.34180482    8.5993473    875103.19   -578.53795     24.26369 
+SHAKE stats (type/ave/delta) on step 2000
+  1 0.957188 5.14594e-06
+  1 104.52 0.000440008
+    2000   -3.2456498    300.36289    0.3442019    8.5828853     852504.1   -235.64853    23.625835 
+    2500   -3.2603291    301.37552   0.34305886    8.5693961    838816.66   -130.70507    23.291917 
+    3000   -3.2675439    300.78014   0.34644061    8.5587943    831272.03     36.70687    23.061098 
+    3500    -3.267466     299.2436   0.34316658    8.5622896    828845.48    2.4426423    22.877272 
+SHAKE stats (type/ave/delta) on step 4000
+  1 0.957201 4.04177e-06
+  1 104.52 0.000450165
+    4000   -3.2705333    299.10224   0.34219339    8.5602044       829525   -68.526293       22.671 
+    4500   -3.2664854     300.9659   0.34488432    8.5614209     826217.8     136.9385    23.184648 
+    5000   -3.2657184    300.10526   0.34427724    8.5627759    829790.76    1.4076215    22.215397 
+    5500   -3.2687694    299.54022   0.34251545    8.5616194    828079.84   -7.3904078    23.064579 
+SHAKE stats (type/ave/delta) on step 6000
+  1 0.957199 4.15823e-06
+  1 104.52 0.000587369
+    6000   -3.2693663    298.25407   0.34219766    8.5613077    830752.21   -87.456588      22.6827 
+    6500    -3.263847    299.68818   0.34258405    8.5663426    826601.21    70.686947    22.317941 
+    7000   -3.2647311    300.43542   0.34273155    8.5654377    829943.31    5.3523823    23.055551 
+    7500   -3.2664504    298.08507   0.34160188    8.5648135     829441.3   -39.963157    23.326366 
+SHAKE stats (type/ave/delta) on step 8000
+  1 0.957198 4.17898e-06
+  1 104.52 0.000492297
+    8000   -3.2585013    300.92969    0.3383492    8.5759686    830595.95   -54.270799    23.175749 
+    8500   -3.2648639    299.14215     0.345095    8.5629333    827541.55    96.622647    22.800435 
+    9000    -3.267811    300.60054   0.34054102    8.5647458     827827.4   -33.461682    22.963775 
+    9500   -3.2628668    300.97999   0.34151803    8.5685138    829552.94    10.407906    23.099483 
+SHAKE stats (type/ave/delta) on step 10000
+  1 0.957201 4.28515e-06
+  1 104.52 0.000437212
+   10000   -3.2588617    300.30595   0.33664437    8.5773697    831708.21   -149.87244    22.955751 
+Loop time of 430.694 on 192 procs for 10000 steps with 84000 atoms
+
+Pair  time (%) = 167.416 (38.8712)
+Bond  time (%) = 0.0252663 (0.00586641)
+Kspce time (%) = 179.486 (41.6736)
+Neigh time (%) = 18.7471 (4.35275)
+Comm  time (%) = 35.0826 (8.14558)
+Outpt time (%) = 0.00815926 (0.00189444)
+Other time (%) = 29.9295 (6.94912)
+
+FFT time (% of Kspce) = 129.636 (72.2266)
+FFT Gflps 3d (1d only) = 0.773823 200.502
+
+Nlocal:    437.5 ave 469 max 405 min
+Histogram: 3 9 18 26 34 34 38 20 6 4
+Nghost:    11997.2 ave 12176 max 11850 min
+Histogram: 4 12 20 33 51 38 21 11 0 2
+Neighs:    415546 ave 474125 max 364487 min
+Histogram: 5 10 24 34 37 36 26 15 3 2
+
+Total # of neighbors = 79784797
+Ave neighs/atom = 949.819
+Ave special neighs/atom = 2
+Neighbor list builds = 889
+Dangerous builds = 0
+

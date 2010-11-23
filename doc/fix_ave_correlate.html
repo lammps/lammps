@@ -113,11 +113,12 @@ correlations between input values are calculated is determined by the
 <P>The <I>Nevery</I>, <I>Nrepeat</I>, and <I>Nfreq</I> arguments specify on what
 timesteps the input values will be used to calculate correlation data.
 The input values are sampled every <I>Nevery</I> timesteps.  The
-correlation data for the preceding samples is computed every <I>Nfreq</I>
-timesteps.  Consider a set of samples from some initial time up to an
-output timestep.  The initial time could be the beginning of the
-simulation or the last output time; see the <I>ave</I> keyword for options.
-For the set of samples, the correlation value Cij is calculated as:
+correlation data for the preceding samples is computed on timesteps
+that are a multiple of <I>Nfreq</I>.  Consider a set of samples from some
+initial time up to an output timestep.  The initial time could be the
+beginning of the simulation or the last output time; see the <I>ave</I>
+keyword for options.  For the set of samples, the correlation value
+Cij is calculated as:
 </P>
 <PRE>Cij(delta) = ave(Vi(t)*Vj(t+delta)) 
 </PRE>

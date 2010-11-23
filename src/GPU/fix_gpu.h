@@ -10,7 +10,7 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
-
+ 
 #ifdef FIX_CLASS
 
 FixStyle(gpu,FixGPU)

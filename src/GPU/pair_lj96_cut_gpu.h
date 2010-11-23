@@ -10,7 +10,7 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
-
+ 
 #ifdef PAIR_CLASS
 
 PairStyle(lj96/cut/gpu,PairLJ96CutGPU)

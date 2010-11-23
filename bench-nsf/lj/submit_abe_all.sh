@@ -1,5 +1,5 @@
 #!/bin/sh 
-#PBS -A TG-TRA100009
+#PBS -A <project>
 #PBS -q normal
 #PBS -N lj-all
 #PBS -l nodes=16:ppn=8

@@ -1,5 +1,5 @@
 #!/bin/sh 
-#PBS -A TG-TRA100009
+#PBS -A <project>
 #PBS -N gb-all
 #PBS -l size=192
 #PBS -j oe

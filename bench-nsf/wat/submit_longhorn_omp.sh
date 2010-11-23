@@ -1,5 +1,5 @@
 #!/bin/sh
-#$ -A TG-DMR100081
+#$ -A <project>
 #$ -V
 #$ -cwd
 #$ -N wat-omp

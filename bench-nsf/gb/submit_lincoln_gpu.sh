@@ -1,5 +1,5 @@
 #!/bin/sh
-#PBS -A epe 
+#PBS -A <project>
 #PBS -l nodes=16:ppn=8
 #PBS -q lincoln 
 #PBS -l walltime=1:00:00

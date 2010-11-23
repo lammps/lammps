@@ -9,7 +9,7 @@
 // ------------------------------------------------------------- 
 #ifndef __CUDPP_PLAN_MANAGER_H__
 #define __CUDPP_PLAN_MANAGER_H__
-
+ 
 #include <map>
 
 class CUDPPPlan;

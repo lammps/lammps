@@ -20,7 +20,7 @@
    certain rights in this software.  This software is distributed under 
    the Simplified BSD License.
    ----------------------------------------------------------------------- */
-
+ 
 #ifndef NVD_MEMORY_H
 #define NVD_MEMORY_H
 

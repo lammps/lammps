@@ -7,7 +7,7 @@
 // This source code is distributed under the terms of license.txt 
 // in the root directory of this source distribution.
 // ------------------------------------------------------------- 
-
+ 
 /**
 * @file
 * cudpp_scan.h

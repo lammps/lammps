@@ -8,7 +8,7 @@
 // in the root directory of this source distribution.
 // ------------------------------------------------------------- 
 #include "cudpp_maximal_launch.h"
-
+ 
 inline size_t min(size_t x, size_t y)
 {
     return (x <= y) ? x : y;

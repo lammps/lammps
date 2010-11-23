@@ -9,7 +9,7 @@
 // ------------------------------------------------------------- 
 #ifndef __CUDPP_PLAN_H__
 #define __CUDPP_PLAN_H__
-
+ 
 typedef void* KernelPointer;
 
 extern "C" size_t getNumCTAs(KernelPointer kernel);

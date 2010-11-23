@@ -1,6 +1,6 @@
 #ifndef NVD_MACROS_H
 #define NVD_MACROS_H
-
+ 
 #include <stdio.h>
 #include <cassert>
 #include <cuda.h>

@@ -1569,6 +1569,40 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 	}
       }
 
+  } else if ((strcmp(style,"dpd/tstat") == 0) ||
+	     (strcmp(style,"dpd/tstat/omp") == 0)) {
+
+    double tstart = read_double(fp);
+    double tstop = read_double(fp);
+    double cut_global = read_double(fp);
+    int seed = read_int(fp);
+    int mix_flag = read_int(fp);
+
+    if (!flag) return;
+
+    data.pair_dpd_a0 = new double[data.ntypes+1];
+    data.pair_dpd_gamma = new double[data.ntypes+1];
+
+    for (i = 1; i <= data.ntypes; i++)
+      for (j = i; j <= data.ntypes; j++) {
+	itmp = read_int(fp);
+	if (i == j && itmp == 0) {
+	  printf("ERROR: Pair coeff %d,%d is not in restart file\n",i,j);
+	  exit(1);
+	}
+	if (itmp) {
+	  if (i == j) {
+	    data.pair_dpd_a0[i] = read_double(fp);
+	    data.pair_dpd_gamma[i] = read_double(fp);
+	    double cut = read_double(fp);
+	  } else {
+	    double dpd_a0 = read_double(fp);
+	    double dpd_gamma = read_double(fp);
+	    double cut = read_double(fp);
+	  }
+	}
+      }
+
   } else if (strcmp(style,"eam") == 0) {
   } else if (strcmp(style,"eam/opt") == 0) {
   } else if (strcmp(style,"eam/alloy") == 0) {
@@ -2897,6 +2931,12 @@ void Data::write(FILE *fp, FILE *fp2)
 	fprintf(fp,"%d %g %g\n",i,
 		pair_dpd_a0[i],pair_dpd_gamma[i]);
       
+    } else if ((strcmp(pair_style,"dpd/tstat") == 0) ||
+	       (strcmp(pair_style,"dpd/tstat/omp") == 0)) {
+      for (int i = 1; i <= ntypes; i++)
+	fprintf(fp,"%d %g\n",i,
+		pair_dpd_gamma[i]);
+
     } else if ((strcmp(pair_style,"gayberne") == 0) ||
 	       (strcmp(pair_style,"gayberne/gpu") == 0) ||
 	       (strcmp(pair_style,"gayberne/omp") == 0)) {

@@ -1417,9 +1417,9 @@ void Neighbor::modify_params(int narg, char **arg)
 
       } else if (strcmp(arg[iarg+1],"molecule") == 0) {
 	if (iarg+3 > narg) error->all("Illegal neigh_modify command");
-	if (atom->molecular == 0) {
+	if (atom->molecule_flag == 0) {
 	  char *str = (char *)
-	    "Must use molecular atom style with neigh_modify exclude molecule";
+	    "Neigh_modify exclude molecule requires atom attribute molecule";
 	  error->all(str);
 	}
 	if (nex_mol == maxex_mol) {

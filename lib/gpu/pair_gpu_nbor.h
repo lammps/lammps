@@ -12,77 +12,196 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Mike Brown (SNL), wmbrown@sandia.gov
-                         Peng Wang (Nvidia), penwang@nvidia.com
-                         Paul Crozier (SNL), pscrozi@sandia.gov
+   Contributing authors: Mike Brown (ORNL), brownw@ornl.gov
 ------------------------------------------------------------------------- */
 
 #ifndef PAIR_GPU_NBOR_H
 #define PAIR_GPU_NBOR_H
 
-#include "nvc_macros.h"
-#include "nvc_timer.h"
-#include "nvc_memory.h"
+#include "pair_gpu_atom.h"
 
 #define IJ_SIZE 131072
 
+#ifdef USE_OPENCL
+
+#include "geryon/ocl_device.h"
+#include "geryon/ocl_timer.h"
+#include "geryon/ocl_mat.h"
+#include "geryon/ocl_kernel.h"
+#include "geryon/ocl_texture.h"
+using namespace ucl_opencl;
+
+#else
+
+#include "geryon/nvd_device.h"
+#include "geryon/nvd_timer.h"
+#include "geryon/nvd_mat.h"
+#include "geryon/nvd_kernel.h"
+#include "geryon/nvd_texture.h"
+using namespace ucl_cudadr;
+
+#endif
+
 class PairGPUNbor {
  public:
-  PairGPUNbor() : _use_packing(false), allocated(false) {}
+  PairGPUNbor() : _allocated(false), _use_packing(false), _compiled(false) {}
   ~PairGPUNbor() { clear(); }
  
-  /// Determine whether neighbor packing should be used
-  /** If true, twice as much memory is reserved to allow packing neighbors by 
-    * atom for coalesced access after cutoff evaluation. This can be used
-    * for expensive potentials where it is more efficient to evaluate the 
-    * cutoff separately from the potential in order to reduce thread divergence 
-    * for expensive routines **/
+  /// Determine whether neighbor unpacking should be used
+  /** If false, twice as much memory is reserved to allow unpacking neighbors by 
+    * atom for coalesced access. **/
   void packing(const bool use_packing) { _use_packing=use_packing; }
   
-  /// Called once to allocate memory
-  bool init(const int ij_size, const int max_atoms, const int max_nbors);
+  /// Clear any old data and setup for new LAMMPS run
+  /** \param inum Initial number of particles whose neighbors stored on device
+    * \param host_inum Initial number of particles whose nbors copied to host
+    * \param max_nbors Initial number of rows in the neighbor matrix
+    * \param gpu_nbor True if device will perform neighboring
+    * \param gpu_host 0 if host will not perform force calculations,
+    *                 1 if gpu_nbor is true, and host needs a half nbor list,
+    *                 2 if gpu_nbor is true, and host needs a full nbor list
+    * \param pre_cut True if cutoff test will be performed in separate kernel
+    *                than the force kernel **/
+  bool init(const int inum, const int host_inum, const int max_nbors, 
+            const int maxspecial, UCL_Device &dev, const bool gpu_nbor,
+            const int gpu_host, const bool pre_cut);
+
+  /// Set the size of the cutoff+skin
+  inline void cell_size(const double size) { _cell_size=size; }
   
-  void resize(const int nlocal, const int max_nbor, bool &success);
+  /// Get the size of the cutoff+skin
+  inline double cell_size() const { return _cell_size; }
+
+  /// Check if there is enough memory for neighbor data and realloc if not
+  /** \param inum Number of particles whose nbors will be stored on device
+    * \param max_nbor Current max number of neighbors for a particle
+    * \param success False if insufficient memory **/
+  inline void resize(const int inum, const int max_nbor, bool &success) {
+    if (inum>_max_atoms || max_nbor>_max_nbors) {
+      _max_atoms=static_cast<int>(static_cast<double>(inum)*1.10);
+      if (max_nbor>_max_nbors)
+        _max_nbors=static_cast<int>(static_cast<double>(max_nbor)*1.10);
+      alloc(success);
+    }
+  }
+
+  /// Check if there is enough memory for neighbor data and realloc if not
+  /** \param inum Number of particles whose nbors will be stored on device
+    * \param host_inum Number of particles whose nbors will be copied to host
+    * \param max_nbor Current max number of neighbors for a particle
+    * \param success False if insufficient memory **/
+  inline void resize(const int inum, const int host_inum, const int max_nbor, 
+                     bool &success) {
+    if (inum>_max_atoms || max_nbor>_max_nbors || host_inum>_max_host) {
+      _max_atoms=static_cast<int>(static_cast<double>(inum)*1.10);
+      _max_host=static_cast<int>(static_cast<double>(host_inum)*1.10);
+      if (max_nbor>_max_nbors)
+        _max_nbors=static_cast<int>(static_cast<double>(max_nbor)*1.10);
+      alloc(success);
+    }
+  }
 
   /// Free all memory on host and device
   void clear();
  
   /// Bytes per atom used on device
   int bytes_per_atom(const int max_nbors) const;
+  
   /// Total host memory used by class
   double host_memory_usage() const;
+  
+  /// True if neighboring performed on GPU
+  inline bool gpu_nbor() const { return _gpu_nbor; }
+  
+  /// Make a copy of unpacked nbor lists in the packed storage area (for gb)
+  inline void copy_unpacked(const int inum, const int maxj) 
+    { ucl_copy(dev_packed,dev_nbor,inum*(maxj+2),true); }
 
-  /// Reset neighbor data (first time or from a rebuild)  
-  void reset(const int inum, int *ilist, const int *numj, cudaStream_t &s);
-  /// Add neighbor data from host
-  inline void add(const int num_ij, cudaStream_t &s)
-    { host_ij.copy_to_device(ij.begin()+ij_total,num_ij,s); ij_total+=num_ij; }
+  /// Copy neighbor list from host (first time or from a rebuild)  
+  void get_host(const int inum, int *ilist, int *numj, 
+                int **firstneigh, const int block_size);
+  
+  /// Return the stride in elements for each nbor row
+  inline int nbor_pitch() const { return _nbor_pitch; }
+  
+  /// Return the maximum number of atoms that can currently be stored
+  inline int max_atoms() const { return _max_atoms; }
 
-  /// Pack neighbors satisfying cutoff by atom for coalesced access
-  void pack_nbors(const int GX, const int BX, const int start, 
-                  const int inum, const int form_low, const int form_high);
+  /// Return the maximum number of nbors for a particle based on current alloc
+  inline int max_nbors() const { return _max_nbors; }
 
-    
+  /// Loop through neighbor count array and return maximum nbors for a particle
+  inline int max_nbor_loop(const int inum, int *numj) const {
+    int mn=0;
+    for (int i=0; i<inum; i++)
+      mn=std::max(mn,numj[i]);
+    return mn;
+  }
+
+  /// Build nbor list on the device
+  template <class numtyp, class acctyp>
+  void build_nbor_list(const int inum, const int host_inum, const int nall,
+                       PairGPUAtom<numtyp,acctyp> &atom, double *boxlo,
+                       double *boxhi, int *tag, int **nspecial, int **special, 
+                       bool &success, int &max_nbors);
+
+  /// Return the number of bytes used on device
+  inline double gpu_bytes() {
+    double res = _gpu_bytes + _c_bytes + _cell_bytes;
+    if (_gpu_nbor==false)
+      res += 2*IJ_SIZE*sizeof(int);
+
+    return res;
+  }
+  
   // ------------------------------- Data -------------------------------
 
-  // Store IJ interactions on device
-  NVC_VecI ij;
-  // Buffer for moving ij data to GPU
-  NVC_HostI host_ij;
+  /// Device neighbor matrix
+  /** - 1st row is i (index into atom data)
+    * - 2nd row is numj (number of neighbors)
+    * - 3rd row is starting location in packed nbors
+    * - Remaining rows are the neighbors arranged for coalesced access **/
+  UCL_D_Vec<int> dev_nbor;
+  /// Packed storage for neighbor lists copied from host
+  UCL_D_Vec<int> dev_packed;
+  /// Host buffer for copying neighbor lists
+  UCL_H_Vec<int> host_packed;
+  /// Host storage for nbor counts (row 1) & accumulated neighbor counts (row2)
+  UCL_H_Vec<int> host_acc;
 
-  // --------------- Atom neighbors
-  // 3 x n
-  // - 1st row is i
-  // - 2nd row is numj (number of neighbors)
-  // - 3rd row is starting address in host_ij of neighbors
-  NVC_VecI dev_nbor;
+  // ----------------- Data for GPU Neighbor Calculation ---------------
 
-  // --------------- Timing Stuff
-  NVCTimer time_nbor;
+  /// Host storage for device calculated neighbor lists
+  /** Same storage format as device matrix **/
+  UCL_H_Vec<int> host_nbor;
+  /// Device storage for neighbor list matrix that will be copied to host
+  /** - 1st row is numj
+    * - Remaining rows are nbors **/
+  UCL_D_Vec<int> dev_host_nbor;
+  /// Device storage for special neighbor counts
+  UCL_D_Vec<int> dev_nspecial;
+  /// Device storage for special neighbors
+  UCL_D_Vec<int> dev_special, dev_special_t;
+  /// Texture for cached position/type access with CUDA
+  UCL_Texture neigh_tex;
+
+  /// Device timers
+  UCL_Timer time_nbor, time_kernel;
   
-  int ij_total;
  private:
-  bool allocated, _use_packing;
+  UCL_Device *dev;
+  UCL_Program *nbor_program, *build_program;
+  UCL_Kernel k_nbor, k_cell_id, k_cell_counts, k_build_nbor;
+  UCL_Kernel k_transpose, k_special;
+  bool _allocated, _use_packing, _compiled;
+  void compile_kernels(UCL_Device &dev);
+  int _max_atoms, _max_nbors, _max_host, _nbor_pitch, _maxspecial;
+  bool _gpu_nbor, _gpu_host, _alloc_packed;
+  double _cell_size;
+
+  double _gpu_bytes, _c_bytes, _cell_bytes;
+  void alloc(bool &success);
 };
 
 #endif
+

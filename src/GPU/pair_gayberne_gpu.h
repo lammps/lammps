@@ -29,21 +29,19 @@ class PairGayBerneGPU : public PairGayBerne {
  public:
   PairGayBerneGPU(LAMMPS *lmp);
   ~PairGayBerneGPU();
+  void cpu_compute(int, int, int);
+  void cpu_compute(int *, int, int, int);
   void compute(int, int);
-  void settings(int, char **);
   void init_style();
   double memory_usage();
- 
-  enum { ONE_NODE, ONE_GPU, MULTI_GPU };
 
- private:  
-  int ij_size;
-  int *ij_new[MAX_GPU_THREADS], *olist[MAX_GPU_THREADS];
- 
-  int my_thread, nthreads, thread_inum[MAX_GPU_THREADS], omp_chunk;
- 
-  int last_neighbor, multi_gpu_mode, multi_gpu_param;
-  bool output_time;
+  enum { GPU_PAIR, GPU_NEIGH };
+
+ private:
+  int *olist;
+  int gpu_mode;
+  double cpu_time;
+  int *gpulist;
 };
 
 }

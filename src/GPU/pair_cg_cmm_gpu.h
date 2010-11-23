@@ -13,21 +13,21 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(lj/cut/gpu,PairLJCutGPU)
+PairStyle(cg/cmm/gpu,PairCGCMMGPU)
 
 #else
 
-#ifndef LMP_PAIR_LJ_LIGHT_GPU_H
-#define LMP_PAIR_LJ_LIGHT_GPU_H
+#ifndef LMP_PAIR_CG_CMM_GPU_H
+#define LMP_PAIR_CG_CMM_GPU_H
 
-#include "pair_lj_cut.h"
+#include "pair_cg_cmm.h"
 
 namespace LAMMPS_NS {
 
-class PairLJCutGPU : public PairLJCut {
+class PairCGCMMGPU : public PairCGCMM {
  public:
-  PairLJCutGPU(LAMMPS *lmp);
-  ~PairLJCutGPU();
+  PairCGCMMGPU(LAMMPS *lmp);
+  ~PairCGCMMGPU();
   void cpu_compute(int, int, int);
   void cpu_compute(int *, int, int, int);
   void compute(int, int);
@@ -45,4 +45,3 @@ class PairLJCutGPU : public PairLJCut {
 }
 #endif
 #endif
-

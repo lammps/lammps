@@ -18,7 +18,7 @@
 #include "math.h"
 #include "stdio.h"
 #include "stdlib.h"
-#include "pair_lj_cut_gpu.h"
+#include "pair_lj96_cut_gpu.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "comm.h"
@@ -39,31 +39,31 @@
 
 // External functions from cuda library for atom decomposition
 
-bool ljl_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
-                  double **host_lj2, double **host_lj3, double **host_lj4, 
-                  double **offset, double *special_lj, const int nlocal, 
-                  const int nall, const int max_nbors, const int maxspecial,
-                  const double cell_size, int &gpu_mode, FILE *screen);
-void ljl_gpu_clear();
-int * ljl_gpu_compute_n(const int timestep, const int ago, const int inum,
-	 	        const int nall, double **host_x, int *host_type, 
-                        double *boxlo, double *boxhi, int *tag, int **nspecial,
-                        int **special, const bool eflag, const bool vflag,
-                        const bool eatom, const bool vatom, int &host_start,
-                        const double cpu_time, bool &success);
-void ljl_gpu_compute(const int timestep, const int ago, const int inum,
-	 	     const int nall, double **host_x, int *host_type,
-                     int *ilist, int *numj, int **firstneigh,
-		     const bool eflag, const bool vflag, const bool eatom,
-                     const bool vatom, int &host_start, const double cpu_time,
-                     bool &success);
-double ljl_gpu_bytes();
+bool lj96_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
+                   double **host_lj2, double **host_lj3, double **host_lj4, 
+                   double **offset, double *special_lj, const int nlocal, 
+                   const int nall, const int max_nbors, const int maxspecial,
+                   const double cell_size, int &gpu_mode, FILE *screen);
+void lj96_gpu_clear();
+int * lj96_gpu_compute_n(const int timestep, const int ago, const int inum,
+	 	         const int nall, double **host_x, int *host_type, 
+                         double *boxlo, double *boxhi, int *tag, int **nspecial,
+                         int **special, const bool eflag, const bool vflag,
+                         const bool eatom, const bool vatom, int &host_start,
+                         const double cpu_time, bool &success);
+void lj96_gpu_compute(const int timestep, const int ago, const int inum,
+	 	      const int nall, double **host_x, int *host_type,
+                      int *ilist, int *numj, int **firstneigh,
+		      const bool eflag, const bool vflag, const bool eatom,
+                      const bool vatom, int &host_start, const double cpu_time,
+                      bool &success);
+double lj96_gpu_bytes();
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutGPU::PairLJCutGPU(LAMMPS *lmp) : PairLJCut(lmp), gpu_mode(GPU_PAIR)
+PairLJ96CutGPU::PairLJ96CutGPU(LAMMPS *lmp) : PairLJ96Cut(lmp), gpu_mode(GPU_PAIR)
 {
   respa_enable = 0;
   cpu_time = 0.0;
@@ -73,14 +73,14 @@ PairLJCutGPU::PairLJCutGPU(LAMMPS *lmp) : PairLJCut(lmp), gpu_mode(GPU_PAIR)
    free all arrays
 ------------------------------------------------------------------------- */
 
-PairLJCutGPU::~PairLJCutGPU()
+PairLJ96CutGPU::~PairLJ96CutGPU()
 {
-  ljl_gpu_clear();
+  lj96_gpu_clear();
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJCutGPU::compute(int eflag, int vflag)
+void PairLJ96CutGPU::compute(int eflag, int vflag)
 {
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
@@ -92,17 +92,17 @@ void PairLJCutGPU::compute(int eflag, int vflag)
   
   if (gpu_mode == GPU_NEIGH) {
     inum = atom->nlocal;
-    gpulist = ljl_gpu_compute_n(update->ntimestep, neighbor->ago, inum, nall,
-			        atom->x, atom->type, domain->sublo,
-				domain->subhi, atom->tag, atom->nspecial,
-                                atom->special, eflag, vflag, eflag_atom,
-                                vflag_atom, host_start, cpu_time, success);
+    gpulist = lj96_gpu_compute_n(update->ntimestep, neighbor->ago, inum, nall,
+			         atom->x, atom->type, domain->sublo,
+				 domain->subhi, atom->tag, atom->nspecial,
+                                 atom->special, eflag, vflag, eflag_atom,
+                                 vflag_atom, host_start, cpu_time, success);
   } else {
     inum = list->inum;
-    ljl_gpu_compute(update->ntimestep, neighbor->ago, inum, nall, atom->x,
-		    atom->type, list->ilist, list->numneigh, list->firstneigh,
-		    eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time,
-                    success);
+    lj96_gpu_compute(update->ntimestep, neighbor->ago, inum, nall, atom->x,
+		     atom->type, list->ilist, list->numneigh, list->firstneigh,
+		     eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time,
+                     success);
   }
   if (!success)
     error->one("Out of memory on GPGPU");
@@ -121,7 +121,7 @@ void PairLJCutGPU::compute(int eflag, int vflag)
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
-void PairLJCutGPU::init_style()
+void PairLJ96CutGPU::init_style()
 {
   cut_respa = NULL;
 
@@ -148,15 +148,15 @@ void PairLJCutGPU::init_style()
   int maxspecial=0;
   if (atom->molecular)
     maxspecial=atom->maxspecial;
-  bool init_ok = ljl_gpu_init(atom->ntypes+1, cutsq, lj1, lj2, lj3, lj4,
-                              offset, force->special_lj, atom->nlocal,
-                              atom->nlocal+atom->nghost, 300, maxspecial,
-                              cell_size, gpu_mode, screen);
+  bool init_ok = lj96_gpu_init(atom->ntypes+1, cutsq, lj1, lj2, lj3, lj4,
+                               offset, force->special_lj, atom->nlocal,
+                               atom->nlocal+atom->nghost, 300, maxspecial,
+                               cell_size, gpu_mode, screen);
   if (!init_ok)
     error->one("Insufficient memory on accelerator (or no fix gpu).\n"); 
 
   if (force->newton_pair) 
-    error->all("Cannot use newton pair with GPU LJ pair style");
+    error->all("Cannot use newton pair with GPU LJ96 pair style");
 
   if (gpu_mode != GPU_NEIGH) {
     int irequest = neighbor->request(this);
@@ -167,18 +167,18 @@ void PairLJCutGPU::init_style()
 
 /* ---------------------------------------------------------------------- */
 
-double PairLJCutGPU::memory_usage()
+double PairLJ96CutGPU::memory_usage()
 {
   double bytes = Pair::memory_usage();
-  return bytes + ljl_gpu_bytes();
+  return bytes + lj96_gpu_bytes();
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJCutGPU::cpu_compute(int start, int eflag, int vflag) {
+void PairLJ96CutGPU::cpu_compute(int start, int eflag, int vflag) {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double rsq,r2inv,r6inv,forcelj,factor_lj;
+  double rsq,r2inv,r3inv,r6inv,forcelj,factor_lj;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   double **x = atom->x;
@@ -222,7 +222,8 @@ void PairLJCutGPU::cpu_compute(int start, int eflag, int vflag) {
       if (rsq < cutsq[itype][jtype]) {
 	r2inv = 1.0/rsq;
 	r6inv = r2inv*r2inv*r2inv;
-	forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
+	r3inv = sqrt(r6inv);
+	forcelj = r6inv * (lj1[itype][jtype]*r3inv - lj2[itype][jtype]);
 	fpair = factor_lj*forcelj*r2inv;
 
 	f[i][0] += delx*fpair;
@@ -230,7 +231,7 @@ void PairLJCutGPU::cpu_compute(int start, int eflag, int vflag) {
 	f[i][2] += delz*fpair;
 
 	if (eflag) {
-	  evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
+	  evdwl = r6inv*(lj3[itype][jtype]*r3inv-lj4[itype][jtype]) -
 	    offset[itype][jtype];
 	  evdwl *= factor_lj;
 	}
@@ -243,13 +244,13 @@ void PairLJCutGPU::cpu_compute(int start, int eflag, int vflag) {
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJCutGPU::cpu_compute(int *nbors, int start, int eflag, int vflag) {
+void PairLJ96CutGPU::cpu_compute(int *nbors, int start, int eflag, int vflag) {
   int i,j,itype,jtype;
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
   int stride = nlocal-start;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double rsq,r2inv,r6inv,forcelj,factor_lj;
+  double rsq,r2inv,r3inv,r6inv,forcelj,factor_lj;
   double *special_lj = force->special_lj;
 
   double **x = atom->x;
@@ -286,7 +287,8 @@ void PairLJCutGPU::cpu_compute(int *nbors, int start, int eflag, int vflag) {
       if (rsq < cutsq[itype][jtype]) {
 	r2inv = 1.0/rsq;
 	r6inv = r2inv*r2inv*r2inv;
-	forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
+	r3inv = sqrt(r6inv);
+	forcelj = r6inv * (lj1[itype][jtype]*r3inv - lj2[itype][jtype]);
 	fpair = factor_lj*forcelj*r2inv;
 
 	f[i][0] += delx*fpair;
@@ -294,7 +296,7 @@ void PairLJCutGPU::cpu_compute(int *nbors, int start, int eflag, int vflag) {
 	f[i][2] += delz*fpair;
 
 	if (eflag) {
-	  evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
+	  evdwl = r6inv*(lj3[itype][jtype]*r3inv-lj4[itype][jtype]) -
 	    offset[itype][jtype];
 	  evdwl *= factor_lj;
 	}
@@ -314,4 +316,3 @@ void PairLJCutGPU::cpu_compute(int *nbors, int start, int eflag, int vflag) {
     }
   }
 }
-

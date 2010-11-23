@@ -421,7 +421,7 @@ int main (int argc, char **argv)
 
 void header(FILE *fp, Data &data)
 {
-  char *version = "19 Nov 2010-ICMS";
+  char *version = "23 Nov 2010-ICMS";
 
   data.triclinic = 0;
 
@@ -1835,7 +1835,7 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 	   (strcmp(style,"lj/cut/coul/long/omp") == 0) ||
 	   (strcmp(style,"lj/cut/coul/long/tip4p/omp") == 0)) {
 
-    if ((strcmp(style,"lj/cut") == 0) || 
+    if ((strcmp(style,"lj/cut") == 0) ||
 	(strcmp(style,"lj/cut/gpu") == 0) ||
 	(strcmp(style,"lj/cut/omp") == 0) ||
 	(strcmp(style,"lj/cut/opt") == 0)) {
@@ -2898,7 +2898,8 @@ void Data::write(FILE *fp, FILE *fp2)
 		pair_dpd_a0[i],pair_dpd_gamma[i]);
       
     } else if ((strcmp(pair_style,"gayberne") == 0) ||
-	       (strcmp(pair_style,"gayberne/gpu") == 0)) {
+	       (strcmp(pair_style,"gayberne/gpu") == 0) ||
+	       (strcmp(pair_style,"gayberne/omp") == 0)) {
       for (int i = 1; i <= ntypes; i++)
 	fprintf(fp,"%d %g %g %g %g %g %g %g %g\n",i,
 		pair_gb_epsilon[i],pair_gb_sigma[i],

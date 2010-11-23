@@ -1,0 +1,107 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix gpu command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID gpu mode first last split 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>gpu = style name of this fix command 
+
+<LI>mode = force or force/neigh 
+
+<LI>first = ID of first GPU to be used on each node 
+
+<LI>last = ID of last GPU to be used on each node 
+
+<LI>split = fraction of particles assigned to the GPU 
+
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 0 all gpu force 0 0 1.0
+fix 0 all gpu force 0 0 0.75
+fix 0 all gpu force/neigh 0 0 1.0
+fix 0 all gpu force/neigh 0 1 -1.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Select and initialize GPUs to be used for acceleration and configure
+GPU acceleration in LAMMPS. This fix is required in order to use
+any style with GPU acceleration. The fix must be the first fix
+specified for a run or an error will be generated. The fix will not have an 
+effect on any LAMMPS computations that do not use GPU acceleration, so there 
+should not be any problems with specifying this fix first in input scripts.
+</P>
+<P><I>mode</I> specifies where neighbor list calculations will be performed.
+If <I>mode</I> is force, neighbor list calculation is performed on the
+CPU. If <I>mode</I> is force/neigh, neighbor list calculation is 
+performed on the GPU. GPU neighbor
+list calculation currently cannot be used with a triclinic box.
+GPU neighbor lists are not compatible with styles that are not GPU-enabled.
+When a non-GPU enabled style requires a neighbor list, it will also be
+built using CPU routines. In these cases, it will typically be more efficient
+to only use CPU neighbor list builds. For <A HREF = "pair_hybrid.html">hybrid</A> pair
+styles, GPU calculated neighbor lists might be less efficient because
+no particles will be skipped in a given neighbor list.
+</P>
+<P><I>first</I> and <I>last</I> specify the GPUs that will be used for simulation.
+On each node, the GPU IDs in the inclusive range from <I>first</I> to <I>last</I> will
+be used.
+</P>
+<P><I>split</I> can be used for load balancing force calculation work between
+CPU and GPU cores in GPU-enabled pair styles. If 0<<I>split</I><1.0, 
+a fixed fraction of particles is offloaded to the GPU while force calculation
+for the other particles occurs simulataneously on the CPU. If <I>split</I><0,
+the optimal fraction (based on CPU and GPU timings) is calculated
+every 25 timesteps. If <I>split</I>=1.0, all force calculations for 
+GPU accelerated pair styles are performed
+on the GPU. In this case, <A HREF = "pair_hybrid.html">hybrid</A>, 
+<A HREF = "bond_style.html">bond</A>, <A HREF = "angle_style.html">angle</A>, 
+<A HREF = "dihedral_style.html">dihedral</A>, <A HREF = "improper_style.html">improper</A>, 
+and <A HREF = "kspace_style.html">long-range</A> calculations can be performed on the CPU 
+while the GPU is performing force calculations for the GPU-enabled pair
+style.
+</P>
+<P>In order to use GPU acceleration, a GPU enabled style must be
+selected in the input script in addition to this fix. Currently,
+this is limited to a few <A HREF = "pair_style.html">pair styles</A>.
+</P>
+<P>More details about these settings and various possible hardware
+configuration are in <A HREF = "Section_start.html#2_8">this section</A> of the
+manual.
+</P>
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
+are relevant to this fix.
+</P>
+<P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
+the <A HREF = "run.html">run</A> command.
+</P>
+<P><B>Restrictions:</B> 
+</P>
+<P>The fix must be the first fix specified for a given run. The force/neigh
+<I>mode</I> should not be used with a triclinic box or GPU-enabled pair styles
+that need <A HREF = "special_bonds.html">special_bonds</A> settings.
+</P>
+<P>Currently, group-ID must be all.
+</P>
+<P><B>Related commands:</B> none
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

@@ -1,0 +1,97 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+fix gpu command :h3
+
+[Syntax:]
+
+fix ID group-ID gpu mode first last split :pre
+
+ID, group-ID are documented in "fix"_fix.html command :ulb,l
+gpu = style name of this fix command :l
+mode = force or force/neigh :l
+first = ID of first GPU to be used on each node :l
+last = ID of last GPU to be used on each node :l
+split = fraction of particles assigned to the GPU :l
+:ule
+
+[Examples:]
+
+fix 0 all gpu force 0 0 1.0
+fix 0 all gpu force 0 0 0.75
+fix 0 all gpu force/neigh 0 0 1.0
+fix 0 all gpu force/neigh 0 1 -1.0 :pre
+
+[Description:]
+
+Select and initialize GPUs to be used for acceleration and configure
+GPU acceleration in LAMMPS. This fix is required in order to use
+any style with GPU acceleration. The fix must be the first fix
+specified for a run or an error will be generated. The fix will not have an 
+effect on any LAMMPS computations that do not use GPU acceleration, so there 
+should not be any problems with specifying this fix first in input scripts.
+
+{mode} specifies where neighbor list calculations will be performed.
+If {mode} is force, neighbor list calculation is performed on the
+CPU. If {mode} is force/neigh, neighbor list calculation is 
+performed on the GPU. GPU neighbor
+list calculation currently cannot be used with a triclinic box.
+GPU neighbor lists are not compatible with styles that are not GPU-enabled.
+When a non-GPU enabled style requires a neighbor list, it will also be
+built using CPU routines. In these cases, it will typically be more efficient
+to only use CPU neighbor list builds. For "hybrid"_pair_hybrid.html pair
+styles, GPU calculated neighbor lists might be less efficient because
+no particles will be skipped in a given neighbor list.
+
+{first} and {last} specify the GPUs that will be used for simulation.
+On each node, the GPU IDs in the inclusive range from {first} to {last} will
+be used.
+
+{split} can be used for load balancing force calculation work between
+CPU and GPU cores in GPU-enabled pair styles. If 0<{split}<1.0, 
+a fixed fraction of particles is offloaded to the GPU while force calculation
+for the other particles occurs simulataneously on the CPU. If {split}<0,
+the optimal fraction (based on CPU and GPU timings) is calculated
+every 25 timesteps. If {split}=1.0, all force calculations for 
+GPU accelerated pair styles are performed
+on the GPU. In this case, "hybrid"_pair_hybrid.html, 
+"bond"_bond_style.html, "angle"_angle_style.html, 
+"dihedral"_dihedral_style.html, "improper"_improper_style.html, 
+and "long-range"_kspace_style.html calculations can be performed on the CPU 
+while the GPU is performing force calculations for the GPU-enabled pair
+style.
+
+In order to use GPU acceleration, a GPU enabled style must be
+selected in the input script in addition to this fix. Currently,
+this is limited to a few "pair styles"_pair_style.html.
+
+More details about these settings and various possible hardware
+configuration are in "this section"_Section_start.html#2_8 of the
+manual.
+
+[Restart, fix_modify, output, run start/stop, minimize info:]
+
+No information about this fix is written to "binary restart
+files"_restart.html.  None of the "fix_modify"_fix_modify.html options
+are relevant to this fix.
+
+No parameter of this fix can be used with the {start/stop} keywords of
+the "run"_run.html command.
+
+[Restrictions:] 
+
+The fix must be the first fix specified for a given run. The force/neigh
+{mode} should not be used with a triclinic box or GPU-enabled pair styles
+that need "special_bonds"_special_bonds.html settings.
+
+Currently, group-ID must be all.
+
+[Related commands:] none
+
+[Default:] none
+

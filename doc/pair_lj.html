@@ -17,9 +17,13 @@
 </H3>
 <H3>pair_style lj/cut/coul/cut command 
 </H3>
+<H3>pair_style lj/cut/coul/cut/gpu command 
+</H3>
 <H3>pair_style lj/cut/coul/debye command 
 </H3>
 <H3>pair_style lj/cut/coul/long command 
+</H3>
+<H3>pair_style lj/cut/coul/long/gpu command 
 </H3>
 <H3>pair_style lj/cut/coul/long/tip4p command 
 </H3>
@@ -27,18 +31,19 @@
 </P>
 <PRE>pair_style style args 
 </PRE>
-<UL><LI>style = <I>lj/cut</I> or <I>lj/cut/gpu</I> or <I>lj/cut/opt</I> or <I>lj/cut/coul/cut</I> or <I>lj/cut/coul/debye</I>         or <I>lj/cut/coul/long</I> or <I>lj/cut/coul/long/tip4p</I>
+<UL><LI>style = <I>lj/cut</I> or <I>lj/cut/gpu</I> or <I>lj/cut/opt</I> or <I>lj/cut/coul/cut</I>         or <I>lj/cut/coul/debye</I> or <I>lj/cut/coul/long</I> or <I>lj/cut/coul/long/tip4p</I>
 <LI>args = list of arguments for a particular style 
 </UL>
 <PRE>  <I>lj/cut</I> args = cutoff
     cutoff = global cutoff for Lennard Jones interactions (distance units)
-  <I>lj/cut/gpu</I> args = gpumode gpuID cutoff
-    gpumode = <I>one/node</I> or <I>one/gpu</I> or <I>multi/gpu</I>
-    gpuID = ID or number of GPUs
+  <I>lj/cut/gpu</I> args = cutoff
     cutoff = global cutoff for Lennard Jones interactions (distance units)
   <I>lj/cut/opt</I> args = cutoff
     cutoff = global cutoff for Lennard Jones interactions (distance units)
   <I>lj/cut/coul/cut</I> args = cutoff (cutoff2)
+    cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
+    cutoff2 = global cutoff for Coulombic (optional) (distance units)
+  <I>lj/cut/coul/cut/gpu</I> args = cutoff (cutoff2)
     cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (optional) (distance units)
   <I>lj/cut/coul/debye</I> args = kappa cutoff (cutoff2)
@@ -46,6 +51,9 @@
     cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (optional) (distance units)
   <I>lj/cut/coul/long</I> args = cutoff (cutoff2)
+    cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
+    cutoff2 = global cutoff for Coulombic (optional) (distance units)
+  <I>lj/cut/coul/long/gpu</I> args = cutoff (cutoff2)
     cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (optional) (distance units)
   <I>lj/cut/coul/long/tip4p</I> args = otype htype btype atype qdist cutoff (cutoff2)
@@ -58,12 +66,13 @@
 <P><B>Examples:</B>
 </P>
 <PRE>pair_style lj/cut 2.5
-pair_style lj/cut/gpu one/node 0 2.5
+pair_style lj/cut/gpu 2.5
 pair_style lj/cut/opt 2.5
 pair_coeff * * 1 1
 pair_coeff 1 1 1 1.1 2.8 
 </PRE>
 <PRE>pair_style lj/cut/coul/cut 10.0
+pair_style lj/cut/coul/cut/gpu 10.0
 pair_style lj/cut/coul/cut 10.0 8.0
 pair_coeff * * 100.0 3.0
 pair_coeff 1 1 100.0 3.5 9.0
@@ -76,6 +85,7 @@ pair_coeff 1 1 1.0 1.5 2.5
 pair_coeff 1 1 1.0 1.5 2.5 5.0 
 </PRE>
 <PRE>pair_style lj/cut/coul/long 10.0
+pair_style lj/cut/coul/long/gpu 10.0
 pair_style lj/cut/coul/long 10.0 8.0
 pair_coeff * * 100.0 3.0
 pair_coeff 1 1 100.0 3.5 9.0 
@@ -94,10 +104,8 @@ given by
 </CENTER>
 <P>Rc is the cutoff.
 </P>
-<P>Style <I>lj/cut/gpu</I> is a GPU-enabled version of style <I>lj/cut</I> that
-should give identical answers.  Depending on system size and the GPU
-processor you have on your system, it may be 4x faster (for the
-pairwise portion of the run time).  See more details below.
+<P>Style <I>lj/cut/gpu</I> is a GPU-enabled version of style <I>lj/cut</I>.
+See more details below.
 </P>
 <P>Style <I>lj/cut/opt</I> is an optimized version of style <I>lj/cut</I> that
 should give identical answers.  Depending on system size and the
@@ -115,6 +123,9 @@ specified in the pair_style command, it is used for both the LJ and
 Coulombic terms.  If two cutoffs are specified, they are used as
 cutoffs for the LJ and Coulombic terms respectively.
 </P>
+<P>Style <I>lj/cut/coul/cut/gpu</I> is a GPU-enabled version of style <I>lj/cut/coul/cut</I>.
+See more details below.
+</P>
 <P>Style <I>lj/cut/coul/debye</I> adds an additional exp() damping factor
 to the Coulombic term, given by
 </P>
@@ -130,6 +141,9 @@ the <A HREF = "kspace_style.html">kspace_style</A> command and its <I>ewald</I> 
 option.  The Coulombic cutoff specified for this style means that
 pairwise interactions within this distance are computed directly;
 interactions outside that distance are computed in reciprocal space.
+</P>
+<P>Style <I>lj/cut/coul/long/gpu</I> is a GPU-enabled version of style <I>lj/cut/coul/long</I>.
+See more details below.
 </P>
 <P>Style <I>lj/cut/coul/long/tip4p</I> implements the TIP4P water model of
 <A HREF = "#Jorgensen">(Jorgensen)</A>, which introduces a massless site located a
@@ -177,9 +191,10 @@ Coulombic cutoff specified in the pair_style command.
 </P>
 <HR>
 
-<P>The <I>lj/cut/gpu</I> style is identical to the <I>lj/cut</I> style, except that
-each processor off-loads its pairwise calculations to a GPU chip.
-Depending on the hardware available on your system this can provide a
+<P>The <I>lj/cut/gpu</I>, <I>lj/cut/coul/cut/gpu</I>, and <I>lj/cut/coul/long/gpu</I> styles 
+are identical to the <I>lj/cut</I>, <I>lj/cut/coul/cut</I>, and <I>lj/cut/coul/long</I>
+styles, except that each processor off-loads its pairwise calculations to a 
+GPU chip. Depending on the hardware available on your system this can provide a
 speed-up.  See the <A HREF = "Section_start.html#2_8">Running on GPUs</A> section of
 the manual for more details about hardware and software requirements
 for using GPUs.
@@ -204,10 +219,12 @@ number of GPUs per node.
 configuration are in <A HREF = "Section_start.html#2_8">this section</A> of the
 manual.
 </P>
-<P>Additional requirements in your input script to run with style
-<I>lj/cut/gpu</I> are as follows:
+<P>Additional requirements in your input script to run with GPU-enabled styles
+are as follows:
 </P>
-<P>The <A HREF = "newton.html">newton pair</A> setting must be <I>off</I>.
+<P>The <A HREF = "newton.html">newton pair</A> setting must be <I>off</I> and
+<A HREF = "fix_gpu.html">fix gpu</A> must be used. The fix controls
+the essential GPU selection and initialization steps.
 </P>
 <HR>
 
@@ -248,7 +265,8 @@ See the <A HREF = "run_style.html">run_style</A> command for details.
 <P><B>Restrictions:</B>
 </P>
 <P>The <I>lj/cut/coul/long</I> and <I>lj/cut/coul/long/tip4p</I> styles are part of
-the "kspace" package.  The <I>lj/cut/gpu</I> style is part of the "gpu"
+the "kspace" package.  The <I>lj/cut/gpu</I>, <I>lj/cut/coul/cut/gpu</I>, and
+<I>lj/cut/coul/long/gpu</I> styles are part of the "gpu"
 package.  The <I>lj/cut/opt</I> style is part of the "opt" package.  They
 are only enabled if LAMMPS was built with those packages.  See the
 <A HREF = "Section_start.html#2_3">Making LAMMPS</A> section for more info.  Note

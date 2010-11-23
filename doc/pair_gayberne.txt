@@ -12,11 +12,9 @@ pair_style gayberne/gpu command :h3
 [Syntax:]
 
 pair_style gayberne gamma upsilon mu cutoff :pre
-pair_style gayberne/gpu gpuflag gpunum gamma upsilon mu cutoff :pre
+pair_style gayberne/gpu gamma upsilon mu cutoff :pre
 
 style = {gayberne} or {gayberne/gpu}
-gpumode = {one/node} or {one/gpu} or {multi/gpu}, only used with gayberne/gpu
-gpuID = ID or number of GPUs, only used with gayberne/gpu
 gamma = shift for potential minimum (typically 1)
 upsilon = exponent for eta orientation-dependent energy function
 mu = exponent for chi orientation-dependent energy function
@@ -25,7 +23,7 @@ cutoff = global cutoff for interactions (distance units) :ul
 [Examples:]
 
 pair_style gayberne 1.0 1.0 1.0 10.0
-pair_style gayberne/gpu one/node 0 1.0 1.0 1.0 10.0
+pair_style gayberne/gpu 1.0 1.0 1.0 10.0
 pair_coeff * * 1.0 1.7 1.7 3.4 3.4 1.0 1.0 1.0 :pre
 
 [Description:]
@@ -45,10 +43,8 @@ both particles are spherical, the formula reduces to the usual
 Lennard-Jones interaction (see details below for when Gay-Berne treats
 a particle as "spherical").
 
-Style {gayberne/gpu} is a GPU-enabled version of style {gayberne} that
-should give identical answers.  Depending on system size and the GPU
-processor you have on your system, it may be 100x faster (for the
-pairwise portion of the run time).  See more details below.
+Style {gayberne/gpu} is a GPU-enabled version of style {gayberne}.
+See more details below.
 
 For large uniform molecules it has been shown that the energy
 parameters are approximately representable in terms of local contact
@@ -136,26 +132,10 @@ to specify its interaction with other spherical particles.
 The {gayberne/gpu} style is identical to the {gayberne} style, except
 that each processor off-loads its pairwise calculations to a GPU chip.
 Depending on the hardware available on your system this can provide a
-significant speed-up, espcially for the relatively expensive
+significant speed-up, especially for the relatively expensive
 computations inherent in Gay-Berne interactions.  See the "Running on
 GPUs"_Section_start.html#2_8 section of the manual for more details
 about hardware and software requirements for using GPUs.
-
-The {gpumode} and {gpuID} settings in the pair_style command refer to
-how the GPUs on your system are configured.
-
-Set {gpumode} to {one/node} if you have a single compute "node" on
-your system, which may have multiple cores and/or GPUs.  {GpuID}
-should be set to the ID of the (first) GPU you wish to use with LAMMPS
-(another GPU might be driving your display).
-
-Set {gpumode} to {one/gpu} if you have multiple compute "nodes" on
-your system, with one GPU per node.  {GpuID} should be set to the ID
-of the GPU.
-
-Set {gpumode} to {multi/gpu} if you have multiple compute "nodes" on
-your system, each with multiple GPUs.  {GpuID} should be set to the
-number of GPUs per node.
 
 More details about these settings and various possible hardware
 configuration are in "this section"_Section_start.html#2_8 of the
@@ -164,7 +144,9 @@ manual.
 Additional requirements in your input script to run with style
 {gayberne/gpu} are as follows:
 
-The "newton pair"_newton.html setting must be {off}.
+The "newton pair"_newton.html setting must be {off} and
+"fix gpu"_fix_gpu.html must be used. The fix controls the
+essential GPU selection and initialization steps.
 
 :line
 

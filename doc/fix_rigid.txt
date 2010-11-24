@@ -261,21 +261,28 @@ for info on how to re-specify a fix in an input script that reads a
 restart file, so that the operation of the fix continues in an
 uninterrupted fashion.
 
-None of the "fix_modify"_fix_modify.html options are relevant to these
-fixes.
+The "fix_modify"_fix_modify.html {energy} option is supported by the
+rigid/nvt fix to add the energy change induced by the thermostatting
+to the system's potential energy as part of "thermodynamic
+output"_thermo_style.html.
 
-These fixes compute a global array of values which can be accessed by
-various "output commands"_Section_howto.html#4_15.  The number of rows
-in the array is equal to the number of rigid bodies.  The number of
-columns is 15.  Thus for each rigid body, 12 values are stored: the
-xyz coords of the center of mass (COM), the xyz components of the COM
-velocity, the xyz components of the force acting on the COM, the xyz
-components of the torque acting on the COM, and the xyz image flags of
-the COM, which have the same meaning as image flags for atom positions
-(see the "dump" command).  The force and torque values in the array
-are not affected by the {force} and {torque} keywords in the fix rigid
-command; they reflect values before any changes are made by those
-keywords.
+The rigid/nvt fix computes a global scalar which can be accessed by
+various "output commands"_Section_howto.html#4_15.  The scalar value
+calculated by the rigid/nvt fix is "extensive".  The scalar is the
+cumulative energy change due to the thermostatting the fix performs.
+
+All of these fixes compute a global array of values which can be
+accessed by various "output commands"_Section_howto.html#4_15.  The
+number of rows in the array is equal to the number of rigid bodies.
+The number of columns is 15.  Thus for each rigid body, 12 values are
+stored: the xyz coords of the center of mass (COM), the xyz components
+of the COM velocity, the xyz components of the force acting on the
+COM, the xyz components of the torque acting on the COM, and the xyz
+image flags of the COM, which have the same meaning as image flags for
+atom positions (see the "dump" command).  The force and torque values
+in the array are not affected by the {force} and {torque} keywords in
+the fix rigid command; they reflect values before any changes are made
+by those keywords.
 
 The ordering of the rigid bodies (by row in the array) is as follows.
 For the {single} keyword there is just one rigid body.  For the

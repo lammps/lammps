@@ -41,6 +41,7 @@ class PairOMP : public Pair {
   PairOMP(class LAMMPS *);
   virtual ~PairOMP();
 
+  virtual void *extract(char *, int &) {return NULL;}
   virtual double memory_usage();
 
  protected:

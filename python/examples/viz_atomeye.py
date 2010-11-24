@@ -1,9 +1,9 @@
 #!/usr/local/bin/python -i
 # preceeding line should have path for Python on your machine
 
-# viz.py
-# Purpose: viz running LAMMPS simulation via GL tool in Pizza.py
-# Syntax:  viz.py in.lammps Nfreq Nsteps
+# viz_atomeye.py
+# Purpose: viz running LAMMPS simulation via AtomEye
+# Syntax:  viz_atomeye.py in.lammps Nfreq Nsteps
 #          in.lammps = LAMMPS input script
 #          Nfreq = dump and viz shapshot every this many steps
 #          Nsteps = run for this many steps
@@ -18,7 +18,7 @@ ATOMEYE3 = "/home/sjplimp/tools/atomeye3/A3.i686-20060530"
 
 argv = sys.argv
 if len(argv) != 4:
-  print "Syntax: viz.py in.lammps Nfreq Nsteps"
+  print "Syntax: viz_atomeye.py in.lammps Nfreq Nsteps"
   sys.exit()
 
 infile = sys.argv[1]

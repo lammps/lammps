@@ -1,9 +1,9 @@
 #!/usr/local/bin/python -i
 # preceeding line should have path for Python on your machine
 
-# viz.py
+# viz_gl.py
 # Purpose: viz running LAMMPS simulation via GL tool in Pizza.py
-# Syntax:  viz.py in.lammps Nfreq Nsteps
+# Syntax:  viz_gl.py in.lammps Nfreq Nsteps
 #          in.lammps = LAMMPS input script
 #          Nfreq = dump and viz shapshot every this many steps
 #          Nsteps = run for this many steps
@@ -15,7 +15,7 @@ sys.path.append("./pizza")
 
 argv = sys.argv
 if len(argv) != 4:
-  print "Syntax: viz.py in.lammps Nfreq Nsteps"
+  print "Syntax: viz_gl.py in.lammps Nfreq Nsteps"
   sys.exit()
 
 infile = sys.argv[1]

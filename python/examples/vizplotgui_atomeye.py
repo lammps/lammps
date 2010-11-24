@@ -15,6 +15,7 @@
 import sys,os,time
 sys.path.append("./pizza")
 
+# set this to point to AtomEye version 3 executable
 # first line if want AtomEye output to screen, 2nd line to file
 #ATOMEYE3 = "/home/sjplimp/tools/atomeye3/A3.i686-20060530"
 ATOMEYE3 = "/home/sjplimp/tools/atomeye3/A3.i686-20060530 > atomeye.out"
@@ -85,7 +86,7 @@ breakflag = 0
 runflag = 0
 temptarget = 1.0
 
-# wrapper on GL window via Pizza.py gl tool
+# wrapper on AtomEye
 # just proc 0 handles reading of dump file and viz
 
 if me == 0:

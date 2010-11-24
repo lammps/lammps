@@ -11,8 +11,9 @@
 import sys,os
 
 # set this to point to AtomEye version 3 executable
-
-ATOMEYE3 = "/home/sjplimp/tools/atomeye3/A3.i686-20060530"
+# first line if want AtomEye output to screen, 2nd line to file
+#ATOMEYE3 = "/home/sjplimp/tools/atomeye3/A3.i686-20060530"
+ATOMEYE3 = "/home/sjplimp/tools/atomeye3/A3.i686-20060530 > atomeye.out"
 
 # parse command line
 

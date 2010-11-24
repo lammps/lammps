@@ -42,7 +42,9 @@ FixRigidNVT::FixRigidNVT(LAMMPS *lmp, int narg, char **arg) :
 { 
   // other settings are made by FixRigid parent
 
+  scalar_flag = 1;
   restart_global = 1;
+  extscalar = 1;
   
   // error checking
   // convert input period to frequency
@@ -58,7 +60,7 @@ FixRigidNVT::FixRigidNVT(LAMMPS *lmp, int narg, char **arg) :
   if (t_iter < 1) error->all("Illegal fix_modify command");
   if (t_order != 3 && t_order != 5) 
     error->all("Fix_modify order must be 3 or 5"); 
-
+  
   allocate_chain();
   allocate_order();
   conjqm = memory->create_2d_double_array(nbody,4,"nve_rigid:conjqm");
@@ -104,7 +106,9 @@ void FixRigidNVT::init()
   for (int ibody = 0; ibody < nbody; ibody++)
     for (int k = 0; k < domain->dimension; k++)
       if (fabs(inertia[ibody][k]) < 1e-6) nf_r--;
-  	  
+  
+  // see Table 1 in Kamberaj et al
+
   if (t_order == 3) {
     w[0] = 1.0 / (2.0 - pow(2.0, 1.0/3.0));
     w[1] = 1.0 - 2.0*w[0];
@@ -200,12 +204,12 @@ void FixRigidNVT::initial_integrate(int vflag)
     xcm[ibody][1] += dtv * vcm[ibody][1];
     xcm[ibody][2] += dtv * vcm[ibody][2];
     
-    // step 1.3 - apply torque (body coords) to quaternion momentum
-    
     torque[ibody][0] *= tflag[ibody][0];
     torque[ibody][1] *= tflag[ibody][1];
     torque[ibody][2] *= tflag[ibody][2];
     
+    // step 1.3 - apply torque (body coords) to quaternion momentum
+
     matvec_rows(ex_space[ibody],ey_space[ibody],ez_space[ibody],
 		torque[ibody],tbody);
     quatvec(quat[ibody],tbody,fquat);
@@ -219,7 +223,7 @@ void FixRigidNVT::initial_integrate(int vflag)
     conjqm[ibody][2] *= scale_r;
     conjqm[ibody][3] *= scale_r;
   
-    // step 1.4 to 1.13 - use no_squish rotate to update p and q
+    // step 1.4 to 1.8 - use no_squish rotate to update p (i.e. conjqm) and q
   
     no_squish_rotate(3,conjqm[ibody],quat[ibody],inertia[ibody],dtq);
     no_squish_rotate(2,conjqm[ibody],quat[ibody],inertia[ibody],dtq);
@@ -227,7 +231,7 @@ void FixRigidNVT::initial_integrate(int vflag)
     no_squish_rotate(2,conjqm[ibody],quat[ibody],inertia[ibody],dtq);
     no_squish_rotate(3,conjqm[ibody],quat[ibody],inertia[ibody],dtq);
   
-    // update the exyz_space
+    // update the exyz_space from new quaternion
     // transform p back to angmom
     // update angular velocity
     
@@ -271,7 +275,7 @@ void FixRigidNVT::final_integrate()
   double tmp,scale_t,scale_r,akin_t,akin_r;
   double dtfm,xy,xz,yz;
   
-  // intialize velocity scale for translation and rotation
+  // compute velocity scales for translation and rotation
   
   tmp = -1.0 * dtq * eta_dot_t[0];
   scale_t = exp(tmp);
@@ -360,7 +364,7 @@ void FixRigidNVT::final_integrate()
     torque[ibody][1] = all[ibody][4];
     torque[ibody][2] = all[ibody][5];
 
-    // update vcm by 1/2 step
+    // 2.5-2.6 update vcm by 1/2 step
   
     dtfm = dtf / masstotal[ibody];
     vcm[ibody][0] *= scale_t;
@@ -370,21 +374,30 @@ void FixRigidNVT::final_integrate()
     vcm[ibody][1] += dtfm * fcm[ibody][1] * fflag[ibody][1];
     vcm[ibody][2] += dtfm * fcm[ibody][2] * fflag[ibody][2];
     
-    // update conjqm, then transform to angmom, set velocity again
-    // virial is already setup from initial_integrate
+    // 2.1-2.4 update conjqm, angular momentum and angular velocity
+    // apply body torque flags  
     
     torque[ibody][0] *= tflag[ibody][0];
     torque[ibody][1] *= tflag[ibody][1];
     torque[ibody][2] *= tflag[ibody][2];
     
+    // convert torque to the body frame 
+    
     matvec_rows(ex_space[ibody],ey_space[ibody],ez_space[ibody],
 		torque[ibody],tbody);
+    
+    // compute "force" for quaternion
+    
     quatvec(quat[ibody],tbody,fquat);
+    
+    // update the conjugate quaternion momentum (conjqm)
     
     conjqm[ibody][0] = scale_r * conjqm[ibody][0] + dtf2 * fquat[0];
     conjqm[ibody][1] = scale_r * conjqm[ibody][1] + dtf2 * fquat[1];
     conjqm[ibody][2] = scale_r * conjqm[ibody][2] + dtf2 * fquat[2];
     conjqm[ibody][3] = scale_r * conjqm[ibody][3] + dtf2 * fquat[3];
+    
+    // compute angular momentum in the body frame then convert to the space-fixed frame
     
     invquatvec(quat[ibody],conjqm[ibody],mbody);
     matvec_cols(ex_space[ibody],ey_space[ibody],ez_space[ibody],
@@ -393,6 +406,8 @@ void FixRigidNVT::final_integrate()
     angmom[ibody][0] *= 0.5;
     angmom[ibody][1] *= 0.5;
     angmom[ibody][2] *= 0.5;  
+    
+    // compute new angular velocity
     
     omega_from_angmom(angmom[ibody],ex_space[ibody],ey_space[ibody],
 		  ez_space[ibody],inertia[ibody],omega[ibody]);
@@ -533,6 +548,76 @@ void FixRigidNVT::write_restart(FILE *fp)
   }
   
   delete list;
+}
+
+/* ---------------------------------------------------------------------- 
+   compute kinetic energy in the extended Hamiltonian
+   conserved quantity = sum of returned energy and potential energy
+-----------------------------------------------------------------------*/
+
+double FixRigidNVT::compute_scalar()
+{
+  int i,k,ibody;
+  double kt = boltz * t_target;
+  double energy,ke_t,ke_q,tmp,Pkq[4];
+  
+  // compute the kinetic parts of H_NVE in Kameraj et al (JCP 2005, pp 224114)
+  
+  // translational kinetic energy
+
+  ke_t = 0.0;
+  for (ibody = 0; ibody < nbody; ibody++)
+    ke_t += 0.5 * masstotal[ibody] * (vcm[ibody][0]*vcm[ibody][0] +
+				      vcm[ibody][1]*vcm[ibody][1] +
+				      vcm[ibody][2]*vcm[ibody][2]);
+  
+  // rotational kinetic energy
+
+  ke_q = 0.0;
+  for (ibody = 0; ibody < nbody; ibody++) {
+    for (k = 1; k < 4; k++) {
+      if (k == 1) {
+        Pkq[0] = -quat[ibody][1];
+        Pkq[1] =  quat[ibody][0];
+        Pkq[2] =  quat[ibody][3];
+        Pkq[3] = -quat[ibody][2];
+      } else if (k == 2) {
+        Pkq[0] = -quat[ibody][2];
+        Pkq[1] = -quat[ibody][3];
+        Pkq[2] =  quat[ibody][0];
+        Pkq[3] =  quat[ibody][1];
+      } else if (k == 3) {
+        Pkq[0] = -quat[ibody][3];
+        Pkq[1] =  quat[ibody][2];
+        Pkq[2] = -quat[ibody][1];
+        Pkq[3] =  quat[ibody][0];      
+      }
+   
+      tmp = conjqm[ibody][0]*Pkq[0] + conjqm[ibody][1]*Pkq[1] +
+	conjqm[ibody][2]*Pkq[2] + conjqm[ibody][3]*Pkq[3];
+      tmp *= tmp;
+    
+      if (fabs(inertia[ibody][k-1]) < 1e-6) tmp = 0.0;
+      else tmp /= (8.0 * inertia[ibody][k-1]); 
+      ke_q += tmp;
+    }
+  }
+  
+  energy = ke_t + ke_q;
+  
+  // thermostat chain energy: from equation 12 in Kameraj et al (JCP 2005)
+
+  energy += kt * (nf_t * eta_t[0] + nf_r * eta_r[0]);
+  
+  for (i = 1; i < t_chain; i++) 
+    energy += kt * (eta_t[i] + eta_r[i]);
+  
+  for (i = 0;  i < t_chain; i++) {
+    energy += 0.5 * q_t[i] * (eta_dot_t[i] * eta_dot_t[i]);
+    energy += 0.5 * q_r[i] * (eta_dot_r[i] * eta_dot_r[i]);
+  }
+    
+  return energy;
 }
 
 /* ----------------------------------------------------------------------

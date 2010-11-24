@@ -32,6 +32,7 @@ class FixRigidNVT : public FixRigid {
   void setup(int);
   void initial_integrate(int);
   void final_integrate();
+  double compute_scalar();
   void write_restart(FILE *);
   void restart(char *);
   void reset_target(double);

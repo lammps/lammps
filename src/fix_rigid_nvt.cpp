@@ -88,6 +88,20 @@ FixRigidNVT::~FixRigidNVT()
 
 /* ---------------------------------------------------------------------- */
 
+int FixRigidNVT::setmask()
+{
+  int mask = 0;
+  mask |= INITIAL_INTEGRATE;
+  mask |= FINAL_INTEGRATE;
+  mask |= PRE_NEIGHBOR;
+  mask |= THERMO_ENERGY;
+  mask |= INITIAL_INTEGRATE_RESPA;
+  mask |= FINAL_INTEGRATE_RESPA;
+  return mask;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixRigidNVT::init()
 {
   FixRigid::init();

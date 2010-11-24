@@ -28,6 +28,7 @@ class FixRigidNVT : public FixRigid {
  public:
   FixRigidNVT(class LAMMPS *, int, char **);
   ~FixRigidNVT();
+  int setmask();
   void init();
   void setup(int);
   void initial_integrate(int);

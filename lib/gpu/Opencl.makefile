@@ -43,7 +43,7 @@ KERS = $(OBJ_DIR)/pair_gpu_atom_cl.h $(OBJ_DIR)/pair_gpu_nbor_cl.h \
        $(OBJ_DIR)/gb_gpu_nbor_cl.h $(OBJ_DIR)/gb_gpu_cl.h \
        $(OBJ_DIR)/lj_cut_gpu_cl.h $(OBJ_DIR)/lj96_cut_gpu_cl.h \
        $(OBJ_DIR)/ljc_cut_gpu_cl.h $(OBJ_DIR)/ljcl_cut_gpu_cl.h \
-       $(OBJ_DIR)/cmm_cut_gpu_cl.h $(OBJ_DIR)/cmmc_long_gpu_cl.h \
+       $(OBJ_DIR)/cmm_cut_gpu_cl.h $(OBJ_DIR)/cmmc_long_gpu_cl.h 
        
 OCL_EXECS = $(BIN_DIR)/ocl_get_devices
 

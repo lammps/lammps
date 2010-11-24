@@ -93,8 +93,8 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 
   } else if (strcmp(arg[3],"molecule") == 0) {
     iarg = 4;
-    if (atom->molecular == 0)
-      error->all("Must use a molecular atom style with fix rigid molecule");
+    if (atom->molecule_flag == 0)
+      error->all("Fix rigid molecule requires atom attribute molecule");
 
     int *mask = atom->mask;
     int *molecule = atom->molecule;

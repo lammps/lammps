@@ -20,7 +20,7 @@
    certain rights in this software.  This software is distributed under 
    the Simplified BSD License.
    ----------------------------------------------------------------------- */
-
+ 
 #ifndef OCL_DEVICE
 #define OCL_DEVICE
 

@@ -1,13 +1,13 @@
 // -------------------------------------------------------------
 // CUDPP -- CUDA Data Parallel Primitives library
 // -------------------------------------------------------------
-// $Revision:$
-// $Date:$
+// $Revision$
+// $Date$
 // ------------------------------------------------------------- 
 // This source code is distributed under the terms of license.txt in
 // the root directory of this source distribution.
 // ------------------------------------------------------------- 
-
+ 
 /**
  * @file
  * cudpp.h

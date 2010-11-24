@@ -31,7 +31,9 @@ class FixExternal : public Fix {
   int setmask();
   void init();
   void setup(int);
+  void min_setup(int);
   void post_force(int);
+  void min_post_force(int);
 
   typedef void (*FnPtr)(void *, int, int, int *, double **, double **);
   void set_callback(FnPtr, void *);

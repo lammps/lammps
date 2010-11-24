@@ -11,7 +11,7 @@
 #include "cudpp_plan.h"
 #include "cudpp_plan_manager.h"
 #include "cudpp_maximal_launch.h"
-
+ 
 typedef void* KernelPointer;
 
 extern "C" size_t getNumCTAs(KernelPointer kernel)

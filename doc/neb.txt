@@ -20,8 +20,8 @@ filename = file specifying final atom coordinates on other side of barrier :ul
 
 [Examples:]
 
-neb 0.0 0.0 1000 500 50 coords.final
-neb 1.0e-6 0.001 1000 500 50 coords.final :pre
+neb 0.0 1000 500 50 coords.final
+neb 0.001 1000 500 50 coords.final :pre
 
 [Description:]
 

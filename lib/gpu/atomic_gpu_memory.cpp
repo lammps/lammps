@@ -10,11 +10,11 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
-
+ 
 /* ----------------------------------------------------------------------
    Contributing authors: Mike Brown (ORNL), brownw@ornl.gov
 ------------------------------------------------------------------------- */
-
+ 
 #include "atomic_gpu_memory.h"
 #define AtomicGPUMemoryT AtomicGPUMemory<numtyp, acctyp>
 

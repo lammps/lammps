@@ -58,8 +58,6 @@ elif (test $1 = 0) then
   rm ../pair_lj_cut_coul_long_gpu.cpp
   rm ../pair_cg_cmm_gpu.cpp
   rm ../pair_cg_cmm_coul_long_gpu.cpp
-  rm ../pair_cg_cmm_coul_msm.cpp
-  rm ../pair_cg_cmm_coul_msm_gpu.cpp
   rm ../fix_gpu.cpp
 
   rm ../pair_gayberne_gpu.h
@@ -69,8 +67,6 @@ elif (test $1 = 0) then
   rm ../pair_lj_cut_coul_long_gpu.h
   rm ../pair_cg_cmm_gpu.h
   rm ../pair_cg_cmm_coul_long_gpu.h
-  rm ../pair_cg_cmm_coul_msm.h
-  rm ../pair_cg_cmm_coul_msm_gpu.h
   rm ../fix_gpu.h
   
 fi

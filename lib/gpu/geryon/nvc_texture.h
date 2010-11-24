@@ -20,7 +20,7 @@
    certain rights in this software.  This software is distributed under 
    the Simplified BSD License.
    ----------------------------------------------------------------------- */
-
+ 
 #ifndef NVC_TEXTURE
 #define NVC_TEXTURE
 

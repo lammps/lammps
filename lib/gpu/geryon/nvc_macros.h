@@ -6,7 +6,7 @@
 #undef _GLIBCXX_ATOMIC_BUILTINS
 #endif // _GLIBCXX_ATOMIC_BUILTINS
 #endif // __APPLE__
-
+ 
 #include <stdio.h>
 #include <cassert>
 #include <cuda_runtime.h>

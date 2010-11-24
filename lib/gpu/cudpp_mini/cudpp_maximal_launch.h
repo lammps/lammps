@@ -9,7 +9,7 @@
 // ------------------------------------------------------------- 
 #ifndef _MAXIMAL_LAUNCH_H_
 #define _MAXIMAL_LAUNCH_H_
-
+ 
 #include "cuda_runtime.h"
 
 extern "C"

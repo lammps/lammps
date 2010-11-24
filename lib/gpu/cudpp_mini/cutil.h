@@ -26,7 +26,7 @@
 * 227.7202-4 (JUNE 1995), all U.S. Government End Users acquire the 
 * source code with only those rights set forth herein.
 */
-
+ 
 
 /* CUda UTility Library */
 

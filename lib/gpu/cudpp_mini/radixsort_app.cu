@@ -22,7 +22,7 @@
 /** @name RadixSort Functions
  * @{
  */
- 
+  
 
 #include "cudpp.h"
 #include "cudpp_util.h"

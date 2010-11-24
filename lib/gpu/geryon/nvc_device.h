@@ -13,7 +13,7 @@
     copyright            : (C) 2009 by W. Michael Brown
     email                : brownw@ornl.gov
  ***************************************************************************/
-
+ 
 /* -----------------------------------------------------------------------
    Copyright (2009) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -290,7 +290,11 @@ inline void UCL_Device::print_all(std::ostream &out) {
     else
       out << "Unknown\n";
     #endif
+<<<<<<< HEAD
     #if CUDART_VERSION >= 3010
+=======
+    #if CUDART_VERSION >= 3000
+>>>>>>> master
     out << "  Concurrent kernel execution:                   ";
     if (_properties[i].concurrentKernels)
       out << "Yes\n";

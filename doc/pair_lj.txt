@@ -21,7 +21,7 @@ pair_style lj/cut/coul/long/tip4p command :h3
 
 pair_style style args :pre
 
-style = {lj/cut} or {lj/cut/gpu} or {lj/cut/omp} or {lj/cut/opt} or {lj/cut/coul/cut} \
+style = {lj/cut} or {lj/cut/gpu} or {lj/cut/opt} or {lj/cut/coul/cut} \
         or {lj/cut/coul/debye} or {lj/cut/coul/long} or {lj/cut/coul/long/tip4p}
 args = list of arguments for a particular style :ul
   {lj/cut} args = cutoff

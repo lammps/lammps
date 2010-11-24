@@ -12,7 +12,7 @@
 #include "cta/scan_cta.cu"
 #include <cudpp.h>
 #include <stdio.h>
-
+ 
 #include <cudpp_util.h>
 #include <math.h>
 #include "sharedmem.h"

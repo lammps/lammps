@@ -2,14 +2,14 @@
 // cuDPP -- CUDA Data Parallel Primitives library
 // -------------------------------------------------------------
 // $Revision: 3572$
-// $Date: 2007-11-19 13:58:06 +0000 (Mon, 19 Nov 2007) $
+// $Date$
 // ------------------------------------------------------------- 
 // This source code is distributed under the terms of license.txt
 // in the root directory of this source distribution.
 // ------------------------------------------------------------- 
 #ifndef __CUDPP_PLAN_MANAGER_H__
 #define __CUDPP_PLAN_MANAGER_H__
-
+ 
 #include <map>
 
 class CUDPPPlan;

@@ -18,3 +18,14 @@ in the syntax file (lammps.vim). You can easily add new ones.
 
 Gerolf Ziegenhain <gerolf@ziegenhain.com> 2007
 
+---------------
+
+updated by Sam Bateman, 11/2010
+
+Sam Bateman
+Naval Research Laboratory
+Code 7434
+1005 Balch Blvd.
+Stennis Space Center, MS 39529
+Phone: (228) 688-4328
+Email: sam.bateman@nrlssc.navy.mil

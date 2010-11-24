@@ -371,8 +371,8 @@ and barostatting to the system's potential energy as part of
 
 These fixes compute a global scalar and a global vector of quantities,
 which can be accessed by various "output
-commands"_Section_howto.html#4_15.  The scalar values calculated by
-this fix are "extensive"; the vector values are "intensive".
+commands"_Section_howto.html#4_15.  The scalar value calculated by
+these fixes is "extensive"; the vector values are "intensive".
 
 The scalar is the cumulative energy change due to the fix.
 
@@ -432,7 +432,6 @@ outermost rRESPA timestep, the barostat dynamics are not the
 limiting factor for numerical stability. Both 
 factorizations are time-reversible and can be shown to preserve the phase 
 space measure of the underlying non-Hamiltonian equations of motion.
-
 
 [Restrictions:]
 

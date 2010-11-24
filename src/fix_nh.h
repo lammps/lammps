@@ -34,6 +34,7 @@ class FixNH : public Fix {
   void write_restart(FILE *);
   void restart(char *);
   int modify_param(int, char **);
+  void reset_target(double);
   void reset_dt();
 
  protected:

@@ -1,9 +1,9 @@
 #!/usr/local/bin/python -i
 # preceeding line should have path for Python on your machine
 
-# vizplotgui.py
-# Purpose: viz running LAMMPS simulation with plot and GUI
-# Syntax:  vizplotgui.py in.lammps Nfreq compute-ID
+# vizplotgui_gl.py
+# Purpose: viz running LAMMPS simulation via GL tool with plot and GUI
+# Syntax:  vizplotgui_gl.py in.lammps Nfreq compute-ID
 #          in.lammps = LAMMPS input script
 #          Nfreq = plot data point and viz shapshot every this many steps
 #          compute-ID = ID of compute that calculates temperature
@@ -46,7 +46,7 @@ def update(ntimestep):
 
 argv = sys.argv
 if len(argv) != 4:
-  print "Syntax: vizplotgui.py in.lammps Nfreq compute-ID"
+  print "Syntax: vizplotgui_gl.py in.lammps Nfreq compute-ID"
   sys.exit()
 
 infile = sys.argv[1]

@@ -1,13 +1,20 @@
+# Pizza.py toolkit, www.cs.sandia.gov/~sjplimp/pizza.html
+# Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
 #
-# Minimalistic VMD embedding for Pizza.py
-#
-# This class will replace the VMD startup script,
-# open a pipe to the executable, and feed it Tcl
-# command lines one at a time.
-#
-# (c) 2010 Axel Kohlmeyer <akohlmey@gmail.com>
+# Copyright (2005) Sandia Corporation.  Under the terms of Contract
+# DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+# certain rights in this software.  This software is distributed under 
+# the GNU General Public License.
 
-oneline = "Control VMD from python."
+# vmd tool
+
+# Minimalistic VMD embedding for Pizza.py
+# (c) 2010 Axel Kohlmeyer <akohlmey@gmail.com>
+# This class will replace the VMD startup script,
+#   open a pipe to the executable,
+#   and feed it Tcl command lines one at a time
+
+oneline = "Control VMD from python"
 
 docstr = """
 v = vmd()		       start up VMD
@@ -30,6 +37,9 @@ v.enter()		       enter interactive shell
 v.debug([True|False])	       display generated VMD script commands?
 """
 
+# History
+#   11/10, Axel Kohlmeyer (Temple U): original version
+
 # Imports and external programs
 
 import types, os
@@ -46,8 +56,10 @@ except: PIZZA_VMDARCH = "LINUX"
 
 try: import pexpect
 except: 
-  print "pexpect from http://pypi.python.org/pypi/pexpect/ is required for vmd module"
+  print "pexpect from http://pypi.python.org/pypi/pexpect", \
+      "is required for vmd tool"
   raise
+
 # Class definition
 
 class vmd:

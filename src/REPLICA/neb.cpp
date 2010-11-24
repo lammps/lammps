@@ -383,12 +383,13 @@ void NEB::print_status()
   for (int i = 1; i < nreplica; i++)
     rdist[i] = rdist[i-1] + all[i][1];
   double endpt = rdist[nreplica-1] = rdist[nreplica-2] + all[nreplica-2][2];
-  for (int i = 1; i < nreplica; i++)
-    rdist[i] /= endpt;
+  if (endpt > 0.0)
+    for (int i = 1; i < nreplica; i++)
+      rdist[i] /= endpt;
 
   // look up GradV for the initial, final, and climbing replicas
-  // These are identical to fnorm2, but better to be safe we
-  // take them straight from fix_neb
+  // these should be identical to fnorm2
+  // but to be safe take them straight from fix neb
 
   double gradvnorm0, gradvnorm1, gradvnormc;
 

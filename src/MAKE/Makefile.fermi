@@ -41,9 +41,9 @@ MPI_LIB =	-Wl,-rpath,$(OMPI_HOME)/lib
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC =       -DFFT_FFTW
+FFT_INC =       -DFFT_FFTW3 -DFFT_SINGLE
 FFT_PATH = 
-FFT_LIB =       -lfftw
+FFT_LIB =       -lfftw3f
 
 # additional system libraries needed by LAMMPS package libraries
 # these settings are IGNORED if the corresponding LAMMPS package

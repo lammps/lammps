@@ -275,6 +275,8 @@ void PairCoulLong::init_style()
 
 double PairCoulLong::init_one(int i, int j)
 {
+  scale[j][i] = scale[i][j];
+
   return cut_coul;
 }
 

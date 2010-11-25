@@ -1,9 +1,9 @@
 #!/usr/local/bin/python -i
 # preceeding line should have path for Python on your machine
 
-# vizplotgui_pymol.py
-# Purpose: viz running LAMMPS simulation via PyMol with plot and GUI
-# Syntax:  vizplotgui_pymol.py in.lammps Nfreq compute-ID
+# vizplotgui_vmd.py
+# Purpose: viz running LAMMPS simulation via VMD with plot and GUI
+# Syntax:  vizplotgui_vmd.py in.lammps Nfreq compute-ID
 #          in.lammps = LAMMPS input script
 #          Nfreq = plot data point and viz shapshot every this many steps
 #          compute-ID = ID of compute that calculates temperature
@@ -37,8 +37,7 @@ def update(ntimestep):
   d.next()
   d.unscale()
   p.single(ntimestep)
-  pm.load("tmp.pdb")
-  pm.forward()
+  v.append('tmp.pdb','pdb')
   value = lmp.extract_compute(compute,0,0)
   xaxis.append(ntimestep)
   yaxis.append(value)
@@ -48,7 +47,7 @@ def update(ntimestep):
 
 argv = sys.argv
 if len(argv) != 4:
-  print "Syntax: vizplotgui_pymol.py in.lammps Nfreq compute-ID"
+  print "Syntax: vizplotgui_vmd.py in.lammps Nfreq compute-ID"
   sys.exit()
 
 infile = sys.argv[1]
@@ -84,24 +83,24 @@ breakflag = 0
 runflag = 0
 temptarget = 1.0
 
-# wrapper on PyMol
+# wrapper on VMD window via Pizza.py vmd tool
 # just proc 0 handles reading of dump file and viz
 
 if me == 0:
-  import pymol
-  pymol.finish_launching()
+  from vmd import vmd
+  v = vmd()
+  v('menu main off')
+  v.rep('VDW')
 
   from dump import dump
   from pdbfile import pdbfile
-  from pymol import cmd as pm
 
-  d = dump("tmp.dump",0)
+  d = dump('tmp.dump',0)
   p = pdbfile(d)
   d.next()
   d.unscale()
   p.single(ntimestep)
-  pm.load("tmp.pdb")
-  pm.show("spheres","tmp")
+  v.new('tmp.pdb','pdb')
 
 # display GUI with run/stop buttons and slider for temperature
 

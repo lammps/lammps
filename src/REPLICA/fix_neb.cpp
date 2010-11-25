@@ -132,6 +132,7 @@ void FixNEB::min_setup(int vflag)
 void FixNEB::min_post_force(int vflag)
 {
   MPI_Status status;
+  MPI_Request request;
   double vprev,vnext,vmax,vmin;
   double delx,dely,delz;
   double delta1[3],delta2[3];
@@ -141,10 +142,21 @@ void FixNEB::min_post_force(int vflag)
 
   veng = pe->compute_scalar();
 
-  if (ireplica < nreplica-1)
+  if (ireplica == 0) 
+    MPI_Send(&veng,1,MPI_DOUBLE,procnext,0,uworld);
+  else if (ireplica == nreplica-1) {
+    MPI_Irecv(&vprev,1,MPI_DOUBLE,procprev,0,uworld,&request);
+    MPI_Wait(&request,&status);
+  } else
     MPI_Sendrecv(&veng,1,MPI_DOUBLE,procnext,0,
 		 &vprev,1,MPI_DOUBLE,procprev,0,uworld,&status);
-  if (ireplica > 0)
+
+  if (ireplica == 0) {
+    MPI_Irecv(&vnext,1,MPI_DOUBLE,procnext,0,uworld,&request);
+    MPI_Wait(&request,&status);
+  } else if (ireplica == nreplica-1) 
+    MPI_Send(&veng,1,MPI_DOUBLE,procprev,0,uworld);
+  else 
     MPI_Sendrecv(&veng,1,MPI_DOUBLE,procprev,0,
 		 &vnext,1,MPI_DOUBLE,procnext,0,uworld,&status);
 
@@ -157,10 +169,21 @@ void FixNEB::min_post_force(int vflag)
   int nlocal = atom->nlocal;
   if (nlocal != natoms) error->one("Atom count changed in fix neb");
 
-  if (ireplica < nreplica-1)
+  if (ireplica == 0) 
+    MPI_Send(x[0],3*nlocal,MPI_DOUBLE,procnext,0,uworld);
+  else if (ireplica == nreplica-1) {
+    MPI_Irecv(xprev[0],3*nlocal,MPI_DOUBLE,procprev,0,uworld,&request);
+    MPI_Wait(&request,&status);
+  } else
     MPI_Sendrecv(x[0],3*nlocal,MPI_DOUBLE,procnext,0,
 		 xprev[0],3*nlocal,MPI_DOUBLE,procprev,0,uworld,&status);
-  if (ireplica > 0)
+
+  if (ireplica == 0) {
+    MPI_Irecv(xnext[0],3*nlocal,MPI_DOUBLE,procnext,0,uworld,&request);
+    MPI_Wait(&request,&status);
+  } else if (ireplica == nreplica-1) 
+    MPI_Send(x[0],3*nlocal,MPI_DOUBLE,procprev,0,uworld);
+  else
     MPI_Sendrecv(x[0],3*nlocal,MPI_DOUBLE,procprev,0,
 		 xnext[0],3*nlocal,MPI_DOUBLE,procnext,0,uworld,&status);
 

@@ -219,6 +219,8 @@ double PairCoulCut::init_one(int i, int j)
   if (setflag[i][j] == 0)
     cut[i][j] = mix_distance(cut[i][i],cut[j][j]);
 
+  scale[j][i] = scale[i][j];
+
   return cut[i][j];
 }
 

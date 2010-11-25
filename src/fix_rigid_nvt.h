@@ -28,10 +28,12 @@ class FixRigidNVT : public FixRigid {
  public:
   FixRigidNVT(class LAMMPS *, int, char **);
   virtual ~FixRigidNVT();
+  virtual int setmask();
   virtual void init();
   virtual void setup(int);
   virtual void initial_integrate(int);
   virtual void final_integrate();
+  virtual double compute_scalar();
   virtual void write_restart(FILE *);
   virtual void restart(char *);
   virtual void reset_target(double);

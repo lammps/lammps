@@ -28,7 +28,7 @@ class FixRigid : public Fix {
  public:
   FixRigid(class LAMMPS *, int, char **);
   virtual ~FixRigid();
-  int setmask();
+  virtual int setmask();
   virtual void init();
   virtual void setup(int);
   virtual void initial_integrate(int);

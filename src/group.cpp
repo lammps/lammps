@@ -1241,6 +1241,87 @@ void Group::angmom(int igroup, double *cm, double *lmom, int iregion)
 }
 
 /* ----------------------------------------------------------------------
+   compute the torque T (tq) on group
+   around center-of-mass cm
+   must unwrap atoms to compute T correctly
+------------------------------------------------------------------------- */
+
+void Group::torque(int igroup, double *cm, double *tq)
+{
+  int groupbit = bitmask[igroup];
+
+  double **x = atom->x;
+  double **f = atom->f;
+  int *mask = atom->mask;
+  int *image = atom->image;
+  int nlocal = atom->nlocal;
+
+  int xbox,ybox,zbox;
+  double dx,dy,dz;
+  double xprd = domain->xprd;
+  double yprd = domain->yprd;
+  double zprd = domain->zprd;
+  double tlocal[3];
+  tlocal[0] = tlocal[1] = tlocal[2] = 0.0;
+
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit) {
+      xbox = (image[i] & 1023) - 512;
+      ybox = (image[i] >> 10 & 1023) - 512;
+      zbox = (image[i] >> 20) - 512;
+      dx = (x[i][0] + xbox*xprd) - cm[0];
+      dy = (x[i][1] + ybox*yprd) - cm[1];
+      dz = (x[i][2] + zbox*zprd) - cm[2];
+      tlocal[0] += dy*f[i][2] - dz*f[i][1];
+      tlocal[1] += dz*f[i][0] - dx*f[i][2];
+      tlocal[2] += dx*f[i][1] - dy*f[i][0];
+    }
+
+  MPI_Allreduce(tlocal,tq,3,MPI_DOUBLE,MPI_SUM,world);
+}
+
+/* ----------------------------------------------------------------------
+   compute the torque T (tq) on group of atoms in region
+   around center-of-mass cm
+   must unwrap atoms to compute T correctly
+------------------------------------------------------------------------- */
+
+void Group::torque(int igroup, double *cm, double *tq, int iregion)
+{
+  int groupbit = bitmask[igroup];
+  Region *region = domain->regions[iregion];
+
+  double **x = atom->x;
+  double **f = atom->f;
+  int *mask = atom->mask;
+  int *image = atom->image;
+  int nlocal = atom->nlocal;
+
+  int xbox,ybox,zbox;
+  double dx,dy,dz;
+  double xprd = domain->xprd;
+  double yprd = domain->yprd;
+  double zprd = domain->zprd;
+  double tlocal[3];
+  tlocal[0] = tlocal[1] = tlocal[2] = 0.0;
+
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
+      xbox = (image[i] & 1023) - 512;
+      ybox = (image[i] >> 10 & 1023) - 512;
+      zbox = (image[i] >> 20) - 512;
+      dx = (x[i][0] + xbox*xprd) - cm[0];
+      dy = (x[i][1] + ybox*yprd) - cm[1];
+      dz = (x[i][2] + zbox*zprd) - cm[2];
+      tlocal[0] += dy*f[i][2] - dz*f[i][1];
+      tlocal[1] += dz*f[i][0] - dx*f[i][2];
+      tlocal[2] += dx*f[i][1] - dy*f[i][0];
+    }
+
+  MPI_Allreduce(tlocal,tq,3,MPI_DOUBLE,MPI_SUM,world);
+}
+
+/* ----------------------------------------------------------------------
    compute moment of inertia tensor around center-of-mass cm of group
    must unwrap atoms to compute itensor correctly
 ------------------------------------------------------------------------- */

@@ -47,11 +47,13 @@ style = {delete} or {index} or {loop} or {world} or {universe} or {uloop} or {st
     group functions = count(group), mass(group), charge(group),
 		      xcm(group,dim), vcm(group,dim), fcm(group,dim),
 		      bound(group,xmin), gyration(group), ke(group),
-		      angmom(group,dim),inertia(group,dimdim),omega(group,dim)
+		      angmom(group,dim), torque(group,dim),
+                      inertia(group,dimdim), omega(group,dim)
     region functions = count(group,region), mass(group,region), charge(group,region),
 		      xcm(group,dim,region), vcm(group,dim,region), fcm(group,dim,region),
 		      bound(group,xmin,region), gyration(group,region), ke(group,reigon),
-		      angmom(group,dim,region), inertia(group,dimdim,region),omega(group,dim,region)
+		      angmom(group,dim,region), torque(group,dim,region), 
+		      inertia(group,dimdim,region), omega(group,dim,region)
     special functions = sum(x), min(x), max(x), ave(x), trap(x), gmask(x), rmask(x), grmask(x,y)
     atom value = mass\[i\], type\[i\], x\[i\], y\[i\], z\[i\], vx\[i\], vy\[i\], vz\[i\], fx\[i\], fy\[i\], fz\[i\]
     atom vector = mass, type, x, y, z, vx, vy, vz, fx, fy, fz
@@ -269,12 +271,13 @@ Math operators: (), -x, x+y, x-y, x*y, x/y, x^y, x==y, x!=y, x<y, x<=y, x>y, x>=
 Math functions: sqrt(x), exp(x), ln(x), log(x), sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x), random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x), ramp(x,y), stagger(x,y), logfreq(x,y,z), vdisplace(x,y), swiggle(x,y,z), cwiggle(x,y,z)
 Group functions: count(ID), mass(ID), charge(ID), xcm(ID,dim), \
                  vcm(ID,dim), fcm(ID,dim), bound(ID,dir), \
-		 gyration(ID), ke(ID), angmom(ID,dim), \
+		 gyration(ID), ke(ID), angmom(ID,dim), torque(ID,dim), \
 		 inertia(ID,dimdim), omega(ID,dim)
 Region functions: count(ID,IDR), mass(ID,IDR), charge(ID,IDR), \
 		  xcm(ID,dim,IDR), vcm(ID,dim,IDR), fcm(ID,dim,IDR), \
 		  bound(ID,dir,IDR), gyration(ID,IDR), ke(ID,IDR), \
-		  angmom(ID,dim,IDR), inertia(ID,dimdim,IDR), omega(ID,dim,IDR)
+		  angmom(ID,dim,IDR), torque(ID,dim,IDR), \
+                  inertia(ID,dimdim,IDR), omega(ID,dim,IDR)
 Special functions: sum(x), min(x), max(x), ave(x), trap(x), gmask(x), rmask(x), grmask(x,y)
 Atom values: mass\[i\], type\[i\], x\[i\], y\[i\], z\[i\], \
              vx\[i\], vy\[i\], vz\[i\], fx\[i\], fy\[i\], fz\[i\]
@@ -475,10 +478,12 @@ the min/max of a particular coordinate for all atoms in the group.
 Gyration() computes the radius-of-gyration of the group of atoms.  See
 the "compute gyration"_compute_gyration.html command for a definition
 of the formula.  Angmom() returns components of the angular momentum
-of the group of atoms around its center of mass.  Inertia() returns
-one of 6 components of the inertia tensor of the group of atoms around
-its center of mass.  Omega() returns components of the angular
-velocity of the group of atoms around its center of mass.
+of the group of atoms around its center of mass.  Torque() returns
+components of the torque on the group of atoms around its center of
+mass, based on current forces on the atoms.  Inertia() returns one of
+6 components of the inertia tensor of the group of atoms around its
+center of mass.  Omega() returns components of the angular velocity of
+the group of atoms around its center of mass.
 
 Region functions are specified exactly the same way as group functions
 except they take an extra argument which is the region ID.  The

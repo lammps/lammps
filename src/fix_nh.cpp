@@ -1416,6 +1416,13 @@ double FixNH::compute_vector(int n)
 
 /* ---------------------------------------------------------------------- */
 
+void FixNH::reset_target(double t_new)
+{
+  t_start = t_stop = t_new;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixNH::reset_dt()
 {
   dtv = update->dt;

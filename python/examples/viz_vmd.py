@@ -81,9 +81,9 @@ lmp.command("run 0 pre no post yes")
 if me == 0:
   v.flush()
   # uncomment the following, if you want to work with the viz some more.
-  v('menu main on')
-  # print "type quit to terminate."
-  v.enter()
+  #v('menu main on')
+  #print "type quit to terminate."
+  #v.enter()
   #v.stop()
 
 # uncomment if running in parallel via Pypar

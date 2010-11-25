@@ -1,9 +1,9 @@
 #!/usr/local/bin/python -i
 # preceeding line should have path for Python on your machine
 
-# vizplotgui.py
-# Purpose: viz running LAMMPS simulation with plot and GUI
-# Syntax:  vizplotgui.py in.lammps Nfreq compute-ID
+# vizplotgui_atomeye.py
+# Purpose: viz running LAMMPS simulation via AtomEye with plot and GUI
+# Syntax:  vizplotgui_atomeye.py in.lammps Nfreq compute-ID
 #          in.lammps = LAMMPS input script
 #          Nfreq = plot data point and viz shapshot every this many steps
 #          compute-ID = ID of compute that calculates temperature
@@ -15,6 +15,7 @@
 import sys,os,time
 sys.path.append("./pizza")
 
+# set this to point to AtomEye version 3 executable
 # first line if want AtomEye output to screen, 2nd line to file
 #ATOMEYE3 = "/home/sjplimp/tools/atomeye3/A3.i686-20060530"
 ATOMEYE3 = "/home/sjplimp/tools/atomeye3/A3.i686-20060530 > atomeye.out"
@@ -49,7 +50,7 @@ def update(ntimestep):
 
 argv = sys.argv
 if len(argv) != 4:
-  print "Syntax: vizplotgui.py in.lammps Nfreq compute-ID"
+  print "Syntax: vizplotgui_atomeye.py in.lammps Nfreq compute-ID"
   sys.exit()
 
 infile = sys.argv[1]
@@ -85,7 +86,7 @@ breakflag = 0
 runflag = 0
 temptarget = 1.0
 
-# wrapper on GL window via Pizza.py gl tool
+# wrapper on AtomEye
 # just proc 0 handles reading of dump file and viz
 
 if me == 0:

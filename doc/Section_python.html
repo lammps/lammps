@@ -609,14 +609,14 @@ distribution.
 <TR><TD >gui.py</TD><TD > GUI go/stop/temperature-slider to control LAMMPS</TD></TR>
 <TR><TD >plot.py</TD><TD > real-time temeperature plot with GnuPlot via Pizza.py</TD></TR>
 <TR><TD >viz_tool.py</TD><TD > real-time viz via some viz package</TD></TR>
-<TR><TD >vizplotgui_tool.py</TD><TD > combination of viz.py and plot.py and gui.py 
+<TR><TD >vizplotgui_tool.py</TD><TD > combination of viz_tool.py and plot.py and gui.py 
 </TD></TR></TABLE></DIV>
 
 <HR>
 
 <P>For the viz_tool.py and vizplotgui_tool.py commands, replace "tool"
-with "gl" or "atomeye" or "pymol", depending on what visualization
-package you have installed.  We hope to add a VMD option soon.
+with "gl" or "atomeye" or "pymol" or "vmd", depending on what
+visualization package you have installed. 
 </P>
 <P>Note that for GL, you need to be able to run the Pizza.py GL tool,
 which is included in the pizza sub-directory.  See the <A HREF = "http://www.sandia.gov/~sjplimp/pizza.html">Pizza.py doc
@@ -624,7 +624,7 @@ pages</A> for more info:
 </P>
 
 
-<P>Note that for AtomEye, you need version 3, and their is a line in the
+<P>Note that for AtomEye, you need version 3, and there is a line in the
 scripts that specifies the path and name of the executable.  See the
 AtomEye WWW pages <A HREF = "http://mt.seas.upenn.edu/Archive/Graphics/A">here</A> or <A HREF = "http://mt.seas.upenn.edu/Archive/Graphics/A3/A3.html">here</A> for more details:
 </P>
@@ -652,6 +652,10 @@ http://sourceforge.net/scm/?type=svn&group_id=4546
 
 <P>The latter link is to the open-source version.
 </P>
+<P>Note that for VMD, you need a fairly current version (1.8.7 works for
+me) and there are some lines in the pizza/vmd.py script for 4 PIZZA
+variables that have to match the VMD installation on your system.
+</P>
 <HR>
 
 <P>See the python/README file for instructions on how to run them and the
@@ -665,5 +669,7 @@ different visualization package options.  Click to see larger images:
 <A HREF = "JPG/screenshot_atomeye.jpg"><IMG SRC = "JPG/screenshot_atomeye_small.jpg"></A>
 
 <A HREF = "JPG/screenshot_pymol.jpg"><IMG SRC = "JPG/screenshot_pymol_small.jpg"></A>
+
+<A HREF = "JPG/screenshot_vmd.jpg"><IMG SRC = "JPG/screenshot_vmd_small.jpg"></A>
 
 </HTML>

@@ -2423,8 +2423,8 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
    customize by adding a group function with optional region arg:
      count(group),mass(group),charge(group),
      xcm(group,dim),vcm(group,dim),fcm(group,dim),
-     bound(group,xmin),gyration(group),ke(group),angmom(group),
-     inertia(group,dim),omega(group,dim)
+     bound(group,xmin),gyration(group),ke(group),angmom(group,dim),
+     torque(group,dim),inertia(group,dim),omega(group,dim)
 ------------------------------------------------------------------------- */
 
 int Variable::group_function(char *word, char *contents, Tree **tree,
@@ -2438,7 +2438,8 @@ int Variable::group_function(char *word, char *contents, Tree **tree,
       strcmp(word,"vcm") && strcmp(word,"fcm") &&
       strcmp(word,"bound") && strcmp(word,"gyration") &&
       strcmp(word,"ke") && strcmp(word,"angmom") &&
-      strcmp(word,"inertia") && strcmp(word,"omega"))
+      strcmp(word,"torque") && strcmp(word,"inertia") && 
+      strcmp(word,"omega"))
     return 0;
 
   // parse contents for arg1,arg2,arg3 separated by commas
@@ -2586,6 +2587,24 @@ int Variable::group_function(char *word, char *contents, Tree **tree,
     if (strcmp(arg2,"x") == 0) value = lmom[0];
     else if (strcmp(arg2,"y") == 0) value = lmom[1];
     else if (strcmp(arg2,"z") == 0) value = lmom[2];
+    else error->all("Invalid group function in variable formula");
+
+  } else if (strcmp(word,"torque") == 0) {
+    atom->check_mass();
+    double xcm[3],tq[3];
+    if (narg == 2) {
+      double masstotal = group->mass(igroup);
+      group->xcm(igroup,masstotal,xcm);
+      group->torque(igroup,xcm,tq);
+    } else if (narg == 3) {
+      int iregion = region_function(arg3);
+      double masstotal = group->mass(igroup,iregion);
+      group->xcm(igroup,masstotal,xcm,iregion);
+      group->torque(igroup,xcm,tq,iregion);
+    } else error->all("Invalid group function in variable formula");
+    if (strcmp(arg2,"x") == 0) value = tq[0];
+    else if (strcmp(arg2,"y") == 0) value = tq[1];
+    else if (strcmp(arg2,"z") == 0) value = tq[2];
     else error->all("Invalid group function in variable formula");
 
   } else if (strcmp(word,"inertia") == 0) {

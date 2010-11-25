@@ -94,6 +94,25 @@ Modules used on NCSA abe
  Additional Fortran libraries with gfortran
  Note: jobs with 8 cores/node with MPI-only
  fail currently. requesting 7 core/node works.
- Using less cores/node with MPI-only is usually
- faster, and OpenMP+MPI often much more.
+ Using less than 8 cores/node with MPI-only is
+ usually faster, and OpenMP+MPI often even more.
+
+Modules used on NICS kraken:
+  PrgEnv-gnu
+  fftw/2.1.5.2
+  gcc/4.4.4
+
+ LAMMPS compiled with single precision FFT
+ and OpenMP enabled in lmp_kraken-omp (only
+ active in /omp styles).
+ Additional Fortran libraries with gfortran
+
+Modules used on TACC ranger:
+  mvapich/1.0.1
+  gcc/4.4.5
+  self-compiled fftw3
+
+ LAMMPS compiled with single precision FFT
+ and OpenMP enabled (only active in /omp styles).
+ Additional Fortran libraries with gfortran
 

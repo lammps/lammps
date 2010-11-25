@@ -1,0 +1,95 @@
+LAMMPS (19 Nov 2010-ICMS)
+# Nanodroplet formation using gayberne/gpu 
+
+newton on
+units lj
+atom_style  ellipsoid
+
+lattice sc 0.02
+Lattice spacing in x,y,z = 3.68403 3.68403 3.68403
+region  box block 0 ${len} 0 ${len} 0 ${len}
+region  box block 0 40.0 0 ${len} 0 ${len}
+region  box block 0 40.0 0 40.0 0 ${len}
+region  box block 0 40.0 0 40.0 0 40.0
+create_box 2 box
+Created orthogonal box = (0 0 0) to (147.361 147.361 147.361)
+  4 by 4 by 8 processor grid
+  using 1 OpenMP thread(s) per MPI task
+create_atoms 1 box
+Created 64000 atoms
+set group all type/fraction 2 1.0 14992
+  64000 settings made for type/fraction
+set group all quat/random 982381
+  64000 settings made for quat/random
+
+mass 1 1.0
+mass 2 1.5
+shape 1 1 1 1
+shape 2 1 1 3
+
+compute  rot all temp/asphere
+group      spheroid type 2
+64000 atoms in group spheroid
+variable     dof equal count(spheroid)+3
+compute_modify rot extra ${dof}
+compute_modify rot extra 64003
+
+velocity all create 2.4 41787 loop geom
+
+pair_style gayberne 1.0 3.0 1.0 7.0
+pair_coeff  1 1 3.0 1.0 0 0 0 0 0 0
+pair_coeff  1 2 3.0 1.0 3.0 3.0 3.0 1.0 1.0 0.2
+pair_coeff  2 2 1.0 1.0 1.0 1.0 0.2 1.0 1.0 0.2
+
+neighbor 0.8 bin
+
+timestep 0.002
+thermo 500
+thermo_style custom step pe temp evdwl spcpu
+
+fix  1 all npt/asphere temp 2.4 2.4 0.5 aniso 0.0 8.0 0.5
+compute_modify 1_temp extra ${dof}
+compute_modify 1_temp extra 64003
+run 10000
+Memory usage per processor = 2.59186 Mbytes
+Step PotEng Temp E_vdwl S/CPU 
+       0 -0.016216854          2.4 -0.016216854            0 
+     500  -0.29837376    3.0757148  -0.29837376    90.551314 
+    1000  -0.50138904    3.4397183  -0.50138904    61.669421 
+    1500  -0.70332072    3.3393744  -0.70332072    40.456744 
+    2000   -0.9761366    3.2911215   -0.9761366    27.706592 
+    2500   -1.3088158    3.2729179   -1.3088158    20.328313 
+    3000   -1.6862181    3.2358745   -1.6862181    15.970273 
+    3500   -2.0810781    3.1495514   -2.0810781    13.192229 
+    4000   -2.4364152    2.9853059   -2.4364152    11.738991 
+    4500   -2.7936849    2.8126611   -2.7936849    10.554373 
+    5000   -3.1294346    2.6855407   -3.1294346    9.6248862 
+    5500   -3.4411484    2.5726425   -3.4411484    9.0449355 
+    6000   -3.7403824    2.5090896   -3.7403824    8.5244104 
+    6500   -3.9909007    2.4626671   -3.9909007    8.3037041 
+    7000   -4.2694985    2.4418208   -4.2694985     8.058727 
+    7500   -4.5229253    2.4397944   -4.5229253    7.9586218 
+    8000   -4.8018956    2.4417071   -4.8018956    7.8233987 
+    8500   -5.0872555    2.4412287   -5.0872555    7.7143876 
+    9000   -5.4119596    2.4480127   -5.4119596    7.6372015 
+    9500   -5.7609502    2.4470828   -5.7609502    7.5348036 
+   10000    -6.129455    2.4546422    -6.129455    7.5202357 
+Loop time of 905.814 on 128 procs (128 MPI x 1 OpenMP) for 10000 steps with 64000 atoms
+
+Pair  time (%) = 783.497 (86.4964)
+Neigh time (%) = 1.73443 (0.191477)
+Comm  time (%) = 109.671 (12.1074)
+Outpt time (%) = 0.0034452 (0.000380343)
+Other time (%) = 10.9089 (1.20432)
+
+Nlocal:    500 ave 520 max 480 min
+Histogram: 1 5 7 20 27 33 16 12 5 2
+Nghost:    7037.27 ave 7089 max 6990 min
+Histogram: 3 1 10 35 25 19 21 10 3 1
+Neighs:    151426 ave 158776 max 145762 min
+Histogram: 4 5 15 30 32 22 12 7 0 1
+
+Total # of neighbors = 19382509
+Ave neighs/atom = 302.852
+Neighbor list builds = 444
+Dangerous builds = 0

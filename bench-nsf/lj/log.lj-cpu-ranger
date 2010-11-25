@@ -1,0 +1,76 @@
+LAMMPS (19 Nov 2010-ICMS)
+# 3d Lennard-Jones melt using lj/cut
+
+units		lj
+atom_style	atomic
+newton      on
+lattice		fcc 0.8442
+Lattice spacing in x,y,z = 1.6796 1.6796 1.6796
+region		box block 0 ${len} 0 ${len} 0 ${len}
+region		box block 0 66.0 0 ${len} 0 ${len}
+region		box block 0 66.0 0 66.0 0 ${len}
+region		box block 0 66.0 0 66.0 0 66.0
+create_box	1 box
+Created orthogonal box = (0 0 0) to (110.853 110.853 110.853)
+  4 by 4 by 8 processor grid
+  using 1 OpenMP thread(s) per MPI task
+create_atoms	1 box
+Created 1149984 atoms
+mass		1 1.0
+
+velocity	all create 1.44 87287 loop geom
+
+pair_style	lj/cut 2.5
+pair_coeff	1 1 1.0 1.0 2.5
+
+neighbor	0.3 bin
+neigh_modify	delay 0 every 20 check no
+
+fix		1 all nve
+
+timestep	0.003
+thermo_style	custom step pe temp evdwl spcpu
+thermo		500
+run		10000
+Memory usage per processor = 3.90622 Mbytes
+Step PotEng Temp E_vdwl S/CPU 
+       0   -6.7733681         1.44   -6.7733681            0 
+     500   -5.7453038   0.74861098   -5.7453038    43.056216 
+    1000   -5.7056929    0.7228418   -5.7056929    42.395829 
+    1500   -5.6811575   0.70709837   -5.6811575    44.387522 
+    2000   -5.6707466   0.70046945   -5.6707466    42.560316 
+    2500   -5.6666449   0.69785204   -5.6666449    44.630102 
+    3000   -5.6676175   0.69848234   -5.6676175    42.560117 
+    3500   -5.6661251   0.69752961   -5.6661251    44.486554 
+    4000   -5.6672726   0.69826758   -5.6672726    42.753843 
+    4500   -5.6660498   0.69748434   -5.6660498    44.727568 
+    5000   -5.6675565   0.69846897   -5.6675565    42.563899 
+    5500   -5.6666967   0.69791433   -5.6666967    44.698487 
+    6000   -5.6671846   0.69823594   -5.6671846    42.729046 
+    6500   -5.6673205   0.69834276   -5.6673205    44.496864 
+    7000   -5.6677629   0.69861691   -5.6677629    42.890501 
+    7500   -5.6662069   0.69756634   -5.6662069    44.588129 
+    8000   -5.6667828   0.69794866   -5.6667828    42.680066 
+    8500   -5.6670407   0.69815988   -5.6670407    44.453205 
+    9000   -5.6675355   0.69847056   -5.6675355    42.568306 
+    9500    -5.666852   0.69801381    -5.666852    44.521619 
+   10000   -5.6671847   0.69824158   -5.6671847     42.54944 
+Loop time of 229.916 on 128 procs (128 MPI x 1 OpenMP) for 10000 steps with 1149984 atoms
+
+Pair  time (%) = 130.101 (56.5862)
+Neigh time (%) = 12.3356 (5.36525)
+Comm  time (%) = 78.21 (34.0167)
+Outpt time (%) = 0.0136956 (0.00595676)
+Other time (%) = 9.25608 (4.02585)
+
+Nlocal:    8984.25 ave 9041 max 8922 min
+Histogram: 2 3 7 20 27 24 25 13 3 4
+Nghost:    9240.91 ave 9327 max 9162 min
+Histogram: 1 5 13 20 32 25 20 6 3 3
+Neighs:    336960 ave 340589 max 332558 min
+Histogram: 4 3 13 14 19 19 24 14 11 7
+
+Total # of neighbors = 43130882
+Ave neighs/atom = 37.5056
+Neighbor list builds = 500
+Dangerous builds = 0

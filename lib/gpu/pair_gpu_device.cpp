@@ -34,19 +34,20 @@ PairGPUDeviceT::~PairGPUDevice() {
 }
 
 template <class numtyp, class acctyp>
-bool PairGPUDeviceT::init_device(const int first_gpu, const int last_gpu,
+bool PairGPUDeviceT::init_device(MPI_Comm world, const int first_gpu, const int last_gpu,
                                  const int gpu_mode, const double p_split) {
   if (_device_init)
     return true;
   _device_init=true;
+  _world=world;
   _first_device=first_gpu;
   _last_device=last_gpu;
   _gpu_mode=gpu_mode;
   _particle_split=p_split;
 
   // Get the rank within the world
-  MPI_Comm_rank(MPI_COMM_WORLD,&_world_me);
-  MPI_Comm_size(MPI_COMM_WORLD,&_world_size);
+  MPI_Comm_rank(_world,&_world_me);
+  MPI_Comm_size(_world,&_world_size);
 
   // Get the names of all nodes
   int name_length;
@@ -54,7 +55,7 @@ bool PairGPUDeviceT::init_device(const int first_gpu, const int last_gpu,
   char node_names[MPI_MAX_PROCESSOR_NAME*_world_size];
   MPI_Get_processor_name(node_name,&name_length);
   MPI_Allgather(&node_name,MPI_MAX_PROCESSOR_NAME,MPI_CHAR,&node_names,
-                MPI_MAX_PROCESSOR_NAME,MPI_CHAR,MPI_COMM_WORLD);
+                MPI_MAX_PROCESSOR_NAME,MPI_CHAR,_world);
   std::string node_string=std::string(node_name);
   
   // Get the number of procs per node                
@@ -80,7 +81,7 @@ bool PairGPUDeviceT::init_device(const int first_gpu, const int last_gpu,
   
   // Set up a per node communicator and find rank within
   MPI_Comm node_comm;
-  MPI_Comm_split(MPI_COMM_WORLD, split_id, 0, &node_comm);  
+  MPI_Comm_split(_world, split_id, 0, &node_comm);
   int node_rank;
   MPI_Comm_rank(node_comm,&node_rank);                  
 
@@ -175,11 +176,11 @@ void PairGPUDeviceT::output_times(UCL_Timer &time_pair, const double avg_split,
   single[3]=time_pair.total_seconds();
   single[4]=atom.cast_time();
 
-  MPI_Reduce(single,times,5,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+  MPI_Reduce(single,times,5,MPI_DOUBLE,MPI_SUM,0,_world);
 
   double my_max_bytes=max_bytes;
   double mpi_max_bytes;
-  MPI_Reduce(&my_max_bytes,&mpi_max_bytes,1,MPI_DOUBLE,MPI_MAX,0,MPI_COMM_WORLD);
+  MPI_Reduce(&my_max_bytes,&mpi_max_bytes,1,MPI_DOUBLE,MPI_MAX,0,_world);
   double max_mb=mpi_max_bytes/(1024.0*1024.0);
 
   if (world_me()==0)
@@ -239,9 +240,9 @@ double PairGPUDeviceT::host_memory_usage() const {
 template class PairGPUDevice<PRECISION,ACC_PRECISION>;
 PairGPUDevice<PRECISION,ACC_PRECISION> pair_gpu_device;
 
-bool lmp_init_device(const int first_gpu, const int last_gpu,
+bool lmp_init_device(MPI_Comm world, const int first_gpu, const int last_gpu,
                      const int gpu_mode, const double particle_split) {
-  return pair_gpu_device.init_device(first_gpu,last_gpu,gpu_mode,
+  return pair_gpu_device.init_device(world,first_gpu,last_gpu,gpu_mode,
                                      particle_split);
 }
 

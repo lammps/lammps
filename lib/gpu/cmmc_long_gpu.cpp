@@ -41,6 +41,7 @@ bool cmml_gpu_init(const int ntypes, double **cutsq, int **cg_type,
   double gpu_split=CMMLMF.device->particle_split();
   int first_gpu=CMMLMF.device->first_device();
   int last_gpu=CMMLMF.device->last_device();
+  MPI_Comm world=CMMLMF.device->world();
   int world_me=CMMLMF.device->world_me();
   int gpu_rank=CMMLMF.device->gpu_rank();
   int procs_per_gpu=CMMLMF.device->procs_per_gpu();
@@ -66,7 +67,7 @@ bool cmml_gpu_init(const int ntypes, double **cutsq, int **cg_type,
       return false;
   }
 
-  MPI_Barrier(MPI_COMM_WORLD);
+  MPI_Barrier(world);
   if (message)
     fprintf(screen,"Done.\n");
 

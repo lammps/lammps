@@ -34,7 +34,7 @@ class PairGPUDevice {
   /// Initialize the device for use by this process
   /** Sets up a per-device MPI communicator for load balancing and initializes
     * the device (>=first_gpu and <=last_gpu) that this proc will be using **/
-  bool init_device(const int first_gpu, const int last_gpu,
+  bool init_device(MPI_Comm world, const int first_gpu, const int last_gpu,
                    const int gpu_mode, const double particle_split);
 
   /// Initialize the device for Atom and Neighbor storage
@@ -85,6 +85,8 @@ class PairGPUDevice {
   inline int procs_per_gpu() const { return _procs_per_gpu; }
   /// Return my rank in the device communicator
   inline int gpu_rank() const { return _gpu_rank; }
+  /// My world communicator
+  inline MPI_Comm world() const { return _world; }
   /// My rank within all processes
   inline int world_me() const { return _world_me; }
   /// Total number of processes
@@ -122,6 +124,7 @@ class PairGPUDevice {
  private:
   int _init_count;
   bool _device_init;
+  MPI_Comm _world;
   int _procs_per_gpu, _gpu_rank, _world_me, _world_size;
   int _gpu_mode, _first_device, _last_device;
   double _particle_split;

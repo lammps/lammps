@@ -39,6 +39,7 @@ bool ljl_gpu_init(const int ntypes, double **cutsq,
   double gpu_split=LJLMF.device->particle_split();
   int first_gpu=LJLMF.device->first_device();
   int last_gpu=LJLMF.device->last_device();
+  MPI_Comm world=LJLMF.device->world();
   int world_me=LJLMF.device->world_me();
   int gpu_rank=LJLMF.device->gpu_rank();
   int procs_per_gpu=LJLMF.device->procs_per_gpu();
@@ -62,7 +63,7 @@ bool ljl_gpu_init(const int ntypes, double **cutsq,
       return false;
   }
 
-  MPI_Barrier(MPI_COMM_WORLD);
+  MPI_Barrier(world);
   if (message)
     fprintf(screen,"Done.\n");
 

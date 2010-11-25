@@ -210,6 +210,7 @@ void GB_GPU_MemoryT::clear() {
   // Output any timing information
   acc_timers();
   double single[6], times[6];
+  MPI_Comm world=device->world();
 
   single[0]=atom->transfer_time();
   single[1]=nbor->time_nbor.total_seconds();
@@ -222,7 +223,7 @@ void GB_GPU_MemoryT::clear() {
     single[4]=0;
   single[5]=atom->cast_time();
 
-  MPI_Reduce(single,times,6,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+  MPI_Reduce(single,times,6,MPI_DOUBLE,MPI_SUM,0,world);
   double avg_split=hd_balancer.all_avg_split();
 
   _max_bytes+=dev_error.row_bytes()+lj1.row_bytes()+lj3.row_bytes()+
@@ -230,7 +231,7 @@ void GB_GPU_MemoryT::clear() {
               shape.row_bytes()+well.row_bytes()+lshape.row_bytes()+
               gamma_upsilon_mu.row_bytes();
   double mpi_max_bytes;
-  MPI_Reduce(&_max_bytes,&mpi_max_bytes,1,MPI_DOUBLE,MPI_MAX,0,MPI_COMM_WORLD);
+  MPI_Reduce(&_max_bytes,&mpi_max_bytes,1,MPI_DOUBLE,MPI_MAX,0,world);
   double max_mb=mpi_max_bytes/(1024*1024);
 
   if (device->world_me()==0)

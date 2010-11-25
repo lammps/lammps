@@ -62,6 +62,7 @@ bool gb_gpu_init(const int ntypes, const double gamma,
   double gpu_split=GBMF.device->particle_split();
   int first_gpu=GBMF.device->first_device();
   int last_gpu=GBMF.device->last_device();
+  MPI_Comm world=GBMF.device->world();
   int world_me=GBMF.device->world_me();
   int gpu_rank=GBMF.device->gpu_rank();
   int procs_per_gpu=GBMF.device->procs_per_gpu();
@@ -86,7 +87,7 @@ bool gb_gpu_init(const int ntypes, const double gamma,
       return false;
   }
 
-  MPI_Barrier(MPI_COMM_WORLD);
+  MPI_Barrier(world);
   if (message)
     fprintf(screen,"Done.\n");
         

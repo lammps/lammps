@@ -66,9 +66,9 @@ class PairGPUBalance {
     if (_load_balance) {
       double _all_avg_split=0.0;
       int nprocs;
-      MPI_Comm_size(MPI_COMM_WORLD,&nprocs);
+      MPI_Comm_size(_device->world(),&nprocs);
       MPI_Reduce(&_avg_split,&_all_avg_split,1,MPI_DOUBLE,MPI_SUM,0,
-                 MPI_COMM_WORLD);
+                 _device->world());
       _all_avg_split/=nprocs;
       return _all_avg_split/_avg_count;
     } else

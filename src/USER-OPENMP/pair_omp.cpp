@@ -30,6 +30,7 @@ PairOMP::PairOMP(LAMMPS *lmp) : Pair(lmp)
   // for hybrid OpenMP/MPI we need multiple copies
   // of some accumulators to avoid race conditions
   const int nthreads = comm->nthreads;
+  is_omp = 1;
   eng_vdwl_thr = (double *)memory->smalloc(nthreads*sizeof(double),
 					   "pair:eng_vdwl_thr");
   eng_coul_thr = (double *)memory->smalloc(nthreads*sizeof(double),

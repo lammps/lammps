@@ -6,6 +6,8 @@ if (test $1 = 1) then
   cp dihedral_omp.cpp ..
   
   if (test -e ../dihedral_harmonic.cpp); then
+    cp dihedral_charmm_omp.h ..
+    cp dihedral_charmm_omp.cpp ..
     cp dihedral_harmonic_omp.h ..
     cp dihedral_harmonic_omp.cpp ..
     cp dihedral_helix_omp.h ..
@@ -151,6 +153,8 @@ elif (test $1 = 0) then
 
   rm ../dihedral_omp.h
   rm ../dihedral_omp.cpp
+  rm -f ../dihedral_charmm_omp.h
+  rm -f ../dihedral_charmm_omp.cpp
   rm -f ../dihedral_harmonic_omp.h
   rm -f ../dihedral_harmonic_omp.cpp
   rm -f ../dihedral_helix_omp.h

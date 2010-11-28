@@ -259,6 +259,9 @@ double PairLJCharmmCoulCharmmImplicitOMP::single(int i, int j,
 
 void *PairLJCharmmCoulCharmmImplicitOMP::extract(char *str, int &dim)
 {
+  void *rv = PairOMP::extract(str,dim);
+  if (rv) return rv;
+
   dim = 2;
   if (strcmp(str,"lj14_1") == 0) return (void *) lj14_1;
   if (strcmp(str,"lj14_2") == 0) return (void *) lj14_2;

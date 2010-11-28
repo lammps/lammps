@@ -396,8 +396,8 @@ double DihedralHarmonicOMP::memory_usage()
 
   double bytes = DihedralOMP::memory_usage();
 
-  bytes += 9*((n+1)*(n+1) * sizeof(double) + (n+1)*sizeof(double *));
-  bytes += 1*((n+1)*(n+1) * sizeof(int) + (n+1)*sizeof(int *));
+  bytes +=  5*(n+1) * sizeof(double);
+  bytes +=  1*(n+1) * sizeof(int);
 
   return bytes;
 }

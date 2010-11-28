@@ -27,6 +27,7 @@
 namespace LAMMPS_NS {
 
 class PairOMP : public Pair {
+  friend class DihedralCharmmOMP;
 
  protected:
   double *eng_vdwl_thr;         // per thread accumulated vdw energy
@@ -36,12 +37,16 @@ class PairOMP : public Pair {
   double ***vatom_thr;		// per thread per atom virial
 
   int maxeatom_thr, maxvatom_thr;
+  int is_omp;
   
  public:
   PairOMP(class LAMMPS *);
   virtual ~PairOMP();
 
-  virtual void *extract(char *, int &) {return NULL;}
+  virtual void *extract(char *str, int &dim) {
+    if (strcmp(str,"omp") == 0) return (void *) &is_omp;
+    return NULL;
+  }
   virtual double memory_usage();
 
  protected:

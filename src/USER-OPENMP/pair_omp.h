@@ -43,10 +43,7 @@ class PairOMP : public Pair {
   PairOMP(class LAMMPS *);
   virtual ~PairOMP();
 
-  virtual void *extract(char *str, int &dim) {
-    if (strcmp(str,"omp") == 0) return (void *) &is_omp;
-    return NULL;
-  }
+  virtual void *extract(char *, int &);
   virtual double memory_usage();
 
  protected:

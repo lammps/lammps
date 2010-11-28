@@ -549,6 +549,13 @@ void PairOMP::ev_reduce_thr()
 
 /* ---------------------------------------------------------------------- */
 
+void *PairOMP::extract(char *str, int &dim) {
+    if (strcmp(str,"omp") == 0) return (void *) &is_omp;
+    return NULL;
+}
+
+/* ---------------------------------------------------------------------- */
+
 double PairOMP::memory_usage()
 {
   const int nthreads=comm->nthreads;

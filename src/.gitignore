@@ -4,7 +4,6 @@ lammps-icms-win.zip
 lammps-icms-mpich-win.exe
 lammps-icms-mpich-win.zip
 
-
 angle_cg_cmm.cpp
 angle_cg_cmm.h
 angle_charmm.cpp
@@ -87,6 +86,8 @@ dihedral_omp.cpp
 dihedral_omp.h
 dihedral_charmm.cpp
 dihedral_charmm.h
+dihedral_charmm_omp.cpp
+dihedral_charmm_omp.h
 dihedral_class2.cpp
 dihedral_class2.h
 dihedral_class2_omp.cpp
@@ -187,6 +188,8 @@ fix_shear_history_omp.cpp
 fix_shear_history_omp.h
 fix_smd.cpp
 fix_smd.h
+fix_spring_pull.cpp
+fix_spring_pull.h
 fix_srd.cpp
 fix_srd.h
 fix_temp_rescale_eff.cpp

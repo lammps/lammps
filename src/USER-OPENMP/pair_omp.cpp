@@ -21,6 +21,8 @@
 #include "pair_omp.h"
 #include "memory.h"
 
+#include <string.h>
+
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */

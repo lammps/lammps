@@ -109,7 +109,26 @@ void Finish::end(int flag)
 		"Loop time of %g on %d procs for %d steps with %.15g atoms\n",
 		time_loop,nprocs,update->nsteps,natoms);
 #endif
-    }
+      // extra performance data for simulations with non-reduced time units
+      if ((strcmp(update->unit_style,"metal") == 0) ||
+	(strcmp(update->unit_style,"real") == 0)) {
+	float t_step, ns_day, hrs_ns, tps, one_fs = 1.0;
+
+	// conversion factor to femtoseconds
+	if (strcmp(update->unit_style,"metal") == 0) one_fs = 0.001;
+	t_step = (float)time_loop / ((float) update->nsteps);
+	tps = 1.0/t_step;
+	hrs_ns = t_step / update->dt * 1000000.0 * one_fs / 60.0 / 60.0;
+	ns_day = 24.0 * 60.0 * 60.0 / t_step * update->dt / one_fs / 1000000.0;
+
+	if (screen) 
+	  fprintf(screen, "Performance: %.3f ns/day  %.3f hours/ns  %.3f timesteps/s\n",
+		  ns_day, hrs_ns, tps);
+	if (logfile) 
+	  fprintf(logfile, "Performance: %.3f ns/day  %.3f hours/ns  %.3f timesteps/s\n",
+		  ns_day, hrs_ns, tps);
+	}
+      }
     if (time_loop == 0.0) time_loop = 1.0;
   }
 

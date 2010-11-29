@@ -33,9 +33,9 @@
 </PRE>
 <LI>one or more input values can be listed 
 
-<LI>value = x, y, z, vx, vy, vz, fx, fy, fz, density/mass, density/number, c_ID, c_ID[I], f_ID, f_ID[I], v_name 
+<LI>value = vx, vy, vz, fx, fy, fz, density/mass, density/number, c_ID, c_ID[I], f_ID, f_ID[I], v_name 
 
-<PRE>  x,y,z,vx,vy,vz,fx,fy,fz = atom attribute (velocity, force component)
+<PRE>  vx,vy,vz,fx,fy,fz = atom attribute (velocity, force component)
   density/number, density/mass = number or mass density
   c_ID = per-atom vector calculated by a compute with ID
   c_ID[I] = Ith column of per-atom array calculated by a compute with ID
@@ -176,9 +176,9 @@ to <I>reduced</I> when using a triclinic simulation box, as noted below.
 </P>
 <HR>
 
-<P>The atom attribute values (x,y,z,vx,vy,vz,fx,fy,fz) are
-self-explanatory.  Note that other atom attributes can be used as
-inputs to this fix by using the <A HREF = "compute_property_atom.html">compute
+<P>The atom attribute values (vx,vy,vz,fx,fy,fz) are self-explanatory.
+Note that other atom attributes (including atom postitions x,y,z) can
+be used as inputs to this fix by using the <A HREF = "compute_property_atom.html">compute
 property/atom</A> command and then specifying
 an input value from that compute.
 </P>

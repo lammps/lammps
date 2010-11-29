@@ -127,8 +127,8 @@ void Finish::end(int flag)
 	if (logfile) 
 	  fprintf(logfile, "Performance: %.3f ns/day  %.3f hours/ns  %.3f timesteps/s\n",
 		  ns_day, hrs_ns, tps);
-	}
       }
+    }
     if (time_loop == 0.0) time_loop = 1.0;
   }
 

@@ -361,6 +361,7 @@ void PairAIREBO::REBO_neigh()
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
+      j = (j < nall) ? j : j % nall;
       jtype = map[type[j]];
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -436,6 +437,7 @@ void PairAIREBO::REBO_neigh()
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
+      j = (j < nall) ? j : j % nall;
       if (j == i) continue;
       jtype = map[type[j]];
       delx = xtmp - x[j][0];
@@ -590,6 +592,7 @@ void PairAIREBO::FLJ(int eflag, int vflag)
   int *tag = atom->tag;
   int *type = atom->type;
   int nlocal = atom->nlocal;
+  int nall = nlocal + atom->nghost;
   int newton_pair = force->newton_pair;
 
   inum = list->inum;
@@ -612,6 +615,7 @@ void PairAIREBO::FLJ(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
+      j = (j < nall) ? j : j % nall;
       jtag = tag[j];
 
       if (itag > jtag) {

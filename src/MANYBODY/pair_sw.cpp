@@ -114,7 +114,7 @@ void PairSW::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      j = (j > nall) ? j % nall : j;
+      j = (j < nall) ? j : j % nall;
       jtag = tag[j];
 
       if (itag > jtag) {
@@ -165,7 +165,7 @@ void PairSW::compute(int eflag, int vflag)
 
       for (kk = jj+1; kk < jnum; kk++) {
 	k = jlist[kk];
-	k = (k > nall) ? k % nall : k;
+	k = (k < nall) ? k : k % nall;
 	ktype = map[type[k]];
 	ikparam = elem2param[itype][ktype][ktype];
 	ijkparam = elem2param[itype][jtype][ktype];

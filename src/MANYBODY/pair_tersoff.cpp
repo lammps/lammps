@@ -118,7 +118,7 @@ void PairTersoff::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      j = (j > nall) ? j % nall : j;
+      j = (j < nall) ? j : j % nall;
       jtag = tag[j];
 
       if (itag > jtag) {
@@ -159,7 +159,7 @@ void PairTersoff::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      j = (j > nall) ? j % nall : j;
+      j = (j < nall) ? j : j % nall;
       jtype = map[type[j]];
       iparam_ij = elem2param[itype][jtype][jtype];
 
@@ -176,7 +176,7 @@ void PairTersoff::compute(int eflag, int vflag)
       for (kk = 0; kk < jnum; kk++) {
 	if (jj == kk) continue;
 	k = jlist[kk];
-	k = (k > nall) ? k % nall : k;
+	k = (k < nall) ? k : k % nall;
 	ktype = map[type[k]];
 	iparam_ijk = elem2param[itype][jtype][ktype];
 
@@ -208,7 +208,7 @@ void PairTersoff::compute(int eflag, int vflag)
       for (kk = 0; kk < jnum; kk++) {
 	if (jj == kk) continue;
 	k = jlist[kk];
-	k = (k > nall) ? k % nall : k;
+	k = (k < nall) ? k : k % nall;
 	ktype = map[type[k]];
 	iparam_ijk = elem2param[itype][jtype][ktype];
 

@@ -142,7 +142,7 @@ void PairSWOMP::eval()
 
       for (jj = 0; jj < jnum; jj++) {
 	j = jlist[jj];
-	j = (j > nall) ? j % nall : j;
+	j = (j < nall) ? j : j % nall;
 	jtag = tag[j];
 
 	if (itag > jtag) {
@@ -185,7 +185,7 @@ void PairSWOMP::eval()
 
       for (jj = 0; jj < jnumm1; jj++) {
 	j = jlist[jj];
-	j = (j > nall) ? j % nall : j;
+	j = (j < nall) ? j : j % nall;
 	jtype = map[type[j]];
 	ijparam = elem2param[itype][jtype][jtype];
 	delr1[0] = x[j][0] - xtmp;
@@ -196,7 +196,7 @@ void PairSWOMP::eval()
 
 	for (kk = jj+1; kk < jnum; kk++) {
 	  k = jlist[kk];
-	  k = (k > nall) ? k % nall : k;
+	  k = (k < nall) ? k : k % nall;
 	  ktype = map[type[k]];
 	  ikparam = elem2param[itype][ktype][ktype];
 	  ijkparam = elem2param[itype][jtype][ktype];

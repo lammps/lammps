@@ -208,7 +208,7 @@ void PairEAMOMP::eval()
 
       for (jj = 0; jj < jnum; jj++) {
 	j = jlist[jj];
-	j = (j > nall) ? j % nall : j;
+	j = (j < nall) ? j : j % nall;
 
 	delx = xtmp - x[j][0];
 	dely = ytmp - x[j][1];
@@ -300,7 +300,7 @@ void PairEAMOMP::eval()
 
       for (jj = 0; jj < jnum; jj++) {
 	j = jlist[jj];
-	j = (j > nall) ? j % nall : j;
+	j = (j < nall) ? j : j % nall;
 
 	delx = xtmp - x[j][0];
 	dely = ytmp - x[j][1];

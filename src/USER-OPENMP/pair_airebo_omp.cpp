@@ -386,6 +386,7 @@ void PairAIREBOOMP::REBO_neigh()
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
+      j = (j < nall) ? j : j % nall;
       jtype = map[type[j]];
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -461,6 +462,7 @@ void PairAIREBOOMP::REBO_neigh()
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
+      j = (j < nall) ? j : j % nall;
       if (j == i) continue;
       jtype = map[type[j]];
       delx = xtmp - x[j][0];
@@ -642,6 +644,7 @@ void PairAIREBOOMP::FLJ()
 
       for (jj = 0; jj < jnum; jj++) {
 	j = jlist[jj];
+	j = (j < nall) ? j : j % nall;
 	atomj = j;
 	if (tag[i] > tag[j]) continue;
 	jtype = map[type[j]];

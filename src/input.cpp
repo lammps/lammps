@@ -524,7 +524,7 @@ void Input::echo()
 
 void Input::ifthenelse()
 {
-  if (narg < 4) error->all("Illegal if command");
+  if (narg < 3) error->all("Illegal if command");
 
   // substitute for variables in Boolean expression for "if"
   // in case expression was enclosed in quotes

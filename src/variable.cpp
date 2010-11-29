@@ -3163,13 +3163,13 @@ double Variable::evaluate_boolean(char *str)
     // number: push value onto stack
     // ----------------
       
-    } else if (isdigit(onechar) || onechar == '.') {
+    } else if (isdigit(onechar) || onechar == '.' || onechar == '-') {
       if (expect == OP) error->all("Invalid Boolean syntax in if command");
       expect = OP;
       
       // istop = end of number, including scientific notation
       
-      int istart = i;
+      int istart = i++;
       while (isdigit(str[i]) || str[i] == '.') i++;
       if (str[i] == 'e' || str[i] == 'E') {
 	i++;
@@ -3282,7 +3282,7 @@ double Variable::evaluate_boolean(char *str)
       // push current operation onto stack
       
       opstack[nopstack++] = op;
-      
+
     } else error->all("Invalid Boolean syntax in if command");
   }
 

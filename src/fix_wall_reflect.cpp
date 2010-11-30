@@ -26,8 +26,8 @@
 
 using namespace LAMMPS_NS;
 
-enum{XLO,XHI,YLO,YHI,ZLO,ZHI};
-enum{NONE,EDGE,CONSTANT,VARIABLE};
+enum{XLO=0,XHI=1,YLO=2,YHI=3,ZLO=4,ZHI=5};
+enum{NONE=0,EDGE,CONSTANT,VARIABLE};
 
 /* ---------------------------------------------------------------------- */
 
@@ -213,7 +213,7 @@ void FixWallReflect::post_integrate()
 	    v[i][dim] = -v[i][dim];
 	  }
 	} else {
-	  if (x[i][0] > coord) {
+	  if (x[i][dim] > coord) {
 	    x[i][dim] = coord - (x[i][dim] - coord);
 	    v[i][dim] = -v[i][dim];
 	  }

@@ -22,8 +22,8 @@ dim, origin, delta can be repeated 1, 2, or 3 times for 1d, 2d, or 3d bins :l
   origin = {lower} or {center} or {upper} or coordinate value (distance units)
   delta = thickness of spatial bins in dim (distance units) :pre
 one or more input values can be listed :l
-value = x, y, z, vx, vy, vz, fx, fy, fz, density/mass, density/number, c_ID, c_ID\[I\], f_ID, f_ID\[I\], v_name :l
-  x,y,z,vx,vy,vz,fx,fy,fz = atom attribute (velocity, force component)
+value = vx, vy, vz, fx, fy, fz, density/mass, density/number, c_ID, c_ID\[I\], f_ID, f_ID\[I\], v_name :l
+  vx,vy,vz,fx,fy,fz = atom attribute (velocity, force component)
   density/number, density/mass = number or mass density
   c_ID = per-atom vector calculated by a compute with ID
   c_ID\[I\] = Ith column of per-atom array calculated by a compute with ID
@@ -161,9 +161,9 @@ to {reduced} when using a triclinic simulation box, as noted below.
 
 :line
 
-The atom attribute values (x,y,z,vx,vy,vz,fx,fy,fz) are
-self-explanatory.  Note that other atom attributes can be used as
-inputs to this fix by using the "compute
+The atom attribute values (vx,vy,vz,fx,fy,fz) are self-explanatory.
+Note that other atom attributes (including atom postitions x,y,z) can
+be used as inputs to this fix by using the "compute
 property/atom"_compute_property_atom.html command and then specifying
 an input value from that compute.
 

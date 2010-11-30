@@ -34,7 +34,7 @@
 using namespace LAMMPS_NS;
 
 enum{LOWER,CENTER,UPPER,COORD};
-enum{X,V,F,DENSITY_NUMBER,DENSITY_MASS,COMPUTE,FIX,VARIABLE};
+enum{V,F,DENSITY_NUMBER,DENSITY_MASS,COMPUTE,FIX,VARIABLE};
 enum{SAMPLE,ALL};
 enum{BOX,LATTICE,REDUCED};
 enum{ONE,RUNNING,WINDOW};
@@ -102,17 +102,7 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     ids[nvalues] = NULL;
 
-    if (strcmp(arg[iarg],"x") == 0) {
-      which[nvalues] = X;
-      argindex[nvalues++] = 0;
-    } else if (strcmp(arg[iarg],"y") == 0) {
-      which[nvalues] = X;
-      argindex[nvalues++] = 1;
-    } else if (strcmp(arg[iarg],"z") == 0) {
-      which[nvalues] = X;
-      argindex[nvalues++] = 2;
-
-    } else if (strcmp(arg[iarg],"vx") == 0) {
+    if (strcmp(arg[iarg],"vx") == 0) {
       which[nvalues] = V;
       argindex[nvalues++] = 0;
     } else if (strcmp(arg[iarg],"vy") == 0) {
@@ -554,12 +544,11 @@ void FixAveSpatial::end_of_step()
     n = value2index[m];
     j = argindex[m];
 
-    // X,V,F adds coords,velocities,forces to values
+    // V,F adds velocities,forces to values
 
-    if (which[m] == X || which[m] == V || which[m] == F) {
+    if (which[m] == V || which[m] == F) {
       double **attribute;
-      if (which[m] == X) attribute = x;
-      else if (which[m] == V) attribute = atom->v;
+      if (which[m] == V) attribute = atom->v;
       else attribute = atom->f;
       
       if (regionflag == 0) {

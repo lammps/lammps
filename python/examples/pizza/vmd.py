@@ -54,6 +54,12 @@ except: PIZZA_VMDDEV = "win"
 try: from DEFAULTS import PIZZA_VMDARCH
 except: PIZZA_VMDARCH = "LINUX"
 
+# try these settings for a Mac
+#PIZZA_VMDNAME = "vmd"
+#PIZZA_VMDDIR = "/Applications/VMD\ 1.8.7.app/Contents/vmd"
+#PIZZA_VMDDEV = "win"
+#PIZZA_VMDARCH = "MACOSXX86"
+
 try: import pexpect
 except: 
   print "pexpect from http://pypi.python.org/pypi/pexpect", \

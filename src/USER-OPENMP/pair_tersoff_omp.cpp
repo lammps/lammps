@@ -47,8 +47,7 @@ PairTersoffOMP::PairTersoffOMP(LAMMPS *lmp) : PairOMP(lmp)
 
   nelements = 0;
   elements = NULL;
-  nparams = 0;
-  maxparam = 0;
+  nparams = maxparam = 0;
   params = NULL;
   elem2param = NULL;
 }
@@ -383,9 +382,9 @@ void PairTersoffOMP::read_file(char *file)
   int params_per_line = 17;
   char **words = new char*[params_per_line+1];
 
-  if (params) delete [] params;
+  memory->sfree(params);
   params = NULL;
-  nparams = 0;
+  nparams = maxparam = 0;
 
   // open file on proc 0
 

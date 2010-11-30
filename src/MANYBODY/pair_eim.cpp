@@ -130,6 +130,7 @@ void PairEIM::compute(int eflag, int vflag)
   double **f = atom->f;
   int *type = atom->type;
   int nlocal = atom->nlocal;
+  int nall = nlocal + atom->nghost;
   int newton_pair = force->newton_pair;
 
   inum = list->inum;

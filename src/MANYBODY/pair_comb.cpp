@@ -142,6 +142,7 @@ void PairComb::compute(int eflag, int vflag)
   int *tag = atom->tag;
   int *type = atom->type;
   int nlocal = atom->nlocal;
+  int nall = nlocal + atom->nghost;
   int newton_pair = force->newton_pair;
   int ntype = atom->ntypes;
 
@@ -1635,6 +1636,7 @@ double PairComb::yasu_char(double *qf_fix, int &igroup)
   int *tag = atom->tag;
   int *type = atom->type;
   int nlocal = atom->nlocal;
+  int nall = nlocal + atom->nghost;
   
   int inum = list->inum;
   ilist = list->ilist;

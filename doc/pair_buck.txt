@@ -110,8 +110,9 @@ The {buck/coul/long} pair style does not support the
 "pair_modify"_pair_modify.html table option since a tabulation
 capability has not yet been added to this potential.
 
-These styles do not support the "pair_modify"_pair_modify.html tail
-option for adding long-range tail corrections to energy and pressure.
+These styles support the pair_modify tail option for adding long-range
+tail corrections to energy and pressure for the A,C terms in the
+pair interaction.
 
 These styles write their information to "binary restart
 files"_restart.html, so pair_style and pair_coeff commands do not need

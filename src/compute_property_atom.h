@@ -94,12 +94,6 @@ class ComputePropertyAtom : public Compute {
   void pack_eradius(int);
   void pack_ervel(int);
   void pack_erforce(int);
-  void pack_end1x(int);
-  void pack_end1y(int);
-  void pack_end1z(int);
-  void pack_end2x(int);
-  void pack_end2y(int);
-  void pack_end2z(int);
 };
 
 }

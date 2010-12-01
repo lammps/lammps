@@ -11,7 +11,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
 #include "string.h"
 #include "compute_property_atom.h"
 #include "atom.h"
@@ -218,37 +217,6 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
 	error->all("Compute property/atom for "
 		   "atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_erforce;
-
-    } else if (strcmp(arg[iarg],"end1x") == 0) {
-      if (!atom->line_flag)
-	error->all("Compute property/atom for "
-		   "atom property that isn't allocated");
-      pack_choice[i] = &ComputePropertyAtom::pack_end1x;
-    } else if (strcmp(arg[iarg],"end1y") == 0) {
-      if (!atom->line_flag)
-	error->all("Compute property/atom for "
-		   "atom property that isn't allocated");
-      pack_choice[i] = &ComputePropertyAtom::pack_end1y;
-    } else if (strcmp(arg[iarg],"end1z") == 0) {
-      if (!atom->line_flag)
-	error->all("Compute property/atom for "
-		   "atom property that isn't allocated");
-      pack_choice[i] = &ComputePropertyAtom::pack_end1z;
-    } else if (strcmp(arg[iarg],"end2x") == 0) {
-      if (!atom->line_flag)
-	error->all("Compute property/atom for "
-		   "atom property that isn't allocated");
-      pack_choice[i] = &ComputePropertyAtom::pack_end2x;
-    } else if (strcmp(arg[iarg],"end2y") == 0) {
-      if (!atom->line_flag)
-	error->all("Compute property/atom for "
-		   "atom property that isn't allocated");
-      pack_choice[i] = &ComputePropertyAtom::pack_end2y;
-    } else if (strcmp(arg[iarg],"end2z") == 0) {
-      if (!atom->line_flag)
-	error->all("Compute property/atom for "
-		   "atom property that isn't allocated");
-      pack_choice[i] = &ComputePropertyAtom::pack_end2z;
 
     } else error->all("Invalid keyword in compute property/atom command");
   }
@@ -1132,102 +1100,3 @@ void ComputePropertyAtom::pack_erforce(int n)
     n += nvalues;
   }
 }
-
-/* ---------------------------------------------------------------------- */
-
-void ComputePropertyAtom::pack_end1x(int n)
-{
-  double **x = atom->x;
-  double *length = atom->length;
-  double *theta = atom->theta;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = x[i][0] - 0.5*length[i]*cos(theta[i]);
-    else buf[n] = 0.0;
-    n += nvalues;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void ComputePropertyAtom::pack_end1y(int n)
-{
-  double **x = atom->x;
-  double *length = atom->length;
-  double *theta = atom->theta;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = x[i][1] - 0.5*length[i]*sin(theta[i]);
-    else buf[n] = 0.0;
-    n += nvalues;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void ComputePropertyAtom::pack_end1z(int n)
-{
-  double **x = atom->x;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = x[i][2];
-    else buf[n] = 0.0;
-    n += nvalues;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void ComputePropertyAtom::pack_end2x(int n)
-{
-  double **x = atom->x;
-  double *length = atom->length;
-  double *theta = atom->theta;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = x[i][0] + 0.5*length[i]*cos(theta[i]);
-    else buf[n] = 0.0;
-    n += nvalues;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void ComputePropertyAtom::pack_end2y(int n)
-{
-  double **x = atom->x;
-  double *length = atom->length;
-  double *theta = atom->theta;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = x[i][1] + 0.5*length[i]*sin(theta[i]);
-    else buf[n] = 0.0;
-    n += nvalues;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void ComputePropertyAtom::pack_end2z(int n)
-{
-  double **x = atom->x;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = x[i][2];
-    else buf[n] = 0.0;
-    n += nvalues;
-  }
-}
-

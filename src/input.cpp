@@ -333,13 +333,14 @@ void Input::parse()
 }
 
 /* ----------------------------------------------------------------------
-   substitute for $ variables in str
+   substitute for $ variables in str and return it
+   str assumed to be long enough to hold expanded version
    print updated string if flag is set and not searching for label
 ------------------------------------------------------------------------- */
 
 void Input::substitute(char *str, int flag)
 {
-  // use work[] as scratch space to expand str
+  // use work[] as scratch space to expand str, then copy back to str
   // do not replace $ inside single/double quotes
   // var = pts at variable name, ended by NULL
   //   if $ is followed by '{', trailing '}' becomes NULL
@@ -528,12 +529,15 @@ void Input::ifthenelse()
 
   // substitute for variables in Boolean expression for "if"
   // in case expression was enclosed in quotes
+  // must substitute on copy of arg else will step on subsequent args
 
-  substitute(arg[0],0);
+  char *scopy = new char[MAXLINE];
+  strcpy(scopy,arg[0]);
+  substitute(scopy,0);
 
   // evaluate Boolean expression for "if"
 
-  double btest = variable->evaluate_boolean(arg[0]);
+  double btest = variable->evaluate_boolean(scopy);
 
   // bound "then" commands
 
@@ -545,6 +549,8 @@ void Input::ifthenelse()
 	 (strcmp(arg[iarg],"elif") != 0 && strcmp(arg[iarg],"else") != 0))
     iarg++;
   int last = iarg-1;
+
+  printf("FIRSTLAST %d %d\n",first,last);
 
   // execute "then" commands
   // make copies of all arg string commands
@@ -569,23 +575,29 @@ void Input::ifthenelse()
     
     for (int i = 0; i < ncommands; i++) delete [] commands[i];
     delete [] commands;
+    delete [] scopy;
 
     return;
   }
 
   // done if no "elif" or "else"
 
-  if (iarg == narg) return;
+  if (iarg == narg) {
+    delete [] scopy;
+    return;
+  }
 
   // check "elif" or "else" until find commands to execute
   // substitute for variables and evaluate Boolean expression for "elif"
+  // must substitute on copy of arg else will step on subsequent args
   // bound and execute "elif" or "else" commands
 
   while (1) {
     if (iarg+2 > narg) error->all("Illegal if command");
     if (strcmp(arg[iarg],"elif") == 0) {
-      substitute(arg[iarg+1],0);
-      btest = variable->evaluate_boolean(arg[iarg+1]);
+      strcpy(scopy,arg[iarg+1]);
+      substitute(scopy,0);
+      btest = variable->evaluate_boolean(scopy);
       first = iarg+2;
     } else {
       btest = 1.0;
@@ -622,6 +634,7 @@ void Input::ifthenelse()
 
     for (int i = 0; i < ncommands; i++) delete [] commands[i];
     delete [] commands;
+    delete [] scopy;
 
     return;
   }

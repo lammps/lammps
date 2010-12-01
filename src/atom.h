@@ -55,6 +55,8 @@ class Atom : protected Pointers {
   int *spin;
   double *eradius,*ervel,*erforce;
 
+  double *length,*theta;
+
   int **nspecial;               // 0,1,2 = cummulative # of 1-2,1-3,1-4 neighs
   int **special;                // IDs of 1-2,1-3,1-4 neighs of each atom
   int maxspecial;               // special[nlocal][maxspecial]
@@ -84,6 +86,7 @@ class Atom : protected Pointers {
   int quat_flag,omega_flag,angmom_flag,torque_flag;
   int radius_flag,density_flag,rmass_flag,vfrac_flag;
   int spin_flag,eradius_flag,ervel_flag,erforce_flag;
+  int line_flag;
 
   // extra peratom info in restart file destined for fix & diag 
 

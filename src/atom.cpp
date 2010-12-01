@@ -76,6 +76,8 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   spin = NULL;
   eradius = ervel = erforce = NULL;
 
+  length = theta = NULL;
+
   maxspecial = 1;
   nspecial = NULL;
   special = NULL;
@@ -102,6 +104,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   quat_flag = omega_flag = angmom_flag = torque_flag = 0;
   radius_flag = density_flag = rmass_flag = vfrac_flag = 0;
   spin_flag = eradius_flag = ervel_flag = erforce_flag = 0;
+  line_flag = 0;
 
   // ntype-length arrays
 
@@ -185,6 +188,9 @@ Atom::~Atom()
   memory->sfree(ervel);
   memory->sfree(erforce);
 
+  memory->sfree(length);
+  memory->sfree(theta);
+
   memory->sfree(molecule);
 
   memory->destroy_2d_int_array(nspecial);
@@ -262,7 +268,8 @@ void Atom::create_avec(const char *style, int narg, char **arg)
   quat_flag = omega_flag = angmom_flag = torque_flag = 0;
   radius_flag = density_flag = rmass_flag = vfrac_flag = 0;
   spin_flag = eradius_flag = ervel_flag = erforce_flag = 0;
-
+  line_flag = 0;
+    
   avec = new_avec(style,narg,arg);
   int n = strlen(style) + 1;
   atom_style = new char[n];

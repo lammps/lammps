@@ -550,8 +550,6 @@ void Input::ifthenelse()
     iarg++;
   int last = iarg-1;
 
-  printf("FIRSTLAST %d %d\n",first,last);
-
   // execute "then" commands
   // make copies of all arg string commands
   // required because re-parsing a command via one() will wipe out args

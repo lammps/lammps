@@ -213,7 +213,7 @@ void FixWallReflect::post_integrate()
 	    v[i][dim] = -v[i][dim];
 	  }
 	} else {
-	  if (x[i][0] > coord) {
+	  if (x[i][dim] > coord) {
 	    x[i][dim] = coord - (x[i][dim] - coord);
 	    v[i][dim] = -v[i][dim];
 	  }

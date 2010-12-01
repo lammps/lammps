@@ -3,7 +3,8 @@
 
 The files provided in this directory will enable syntax highlighting
 for the lammps script syntax in vim. The simulation scripts have to
-end on .lmp (see mysyntax.vim).  By far not all commands are included
+end on *.lmp or start with in.* (see mysyntax.vim).  
+By far not all commands are included
 in the syntax file (lammps.vim). You can easily add new ones.
 
 =To enable the highlighting:
@@ -31,11 +32,8 @@ if exists("did_load_filetypes")
 endif
 
 augroup filetypedetect
- au! BufRead,BufNewFile *.pdb          setfiletype none
- au! BufRead,BufNewFile *.psf          setfiletype none
-
- au! BufRead,BufNewFile *.cu           setfiletype c
  au! BufRead,BufNewFile in.*           setfiletype lammps
+ au! BufRead,BufNewFile *.lmp          setfiletype lammps
 augroup END
 (4) the end
 

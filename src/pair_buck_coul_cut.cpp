@@ -296,6 +296,36 @@ double PairBuckCoulCut::init_one(int i, int j)
   buck2[j][i] = buck2[i][j];
   offset[j][i] = offset[i][j];
 
+  // compute I,J contribution to long-range tail correction 
+  // count total # of atoms of type I and J via Allreduce 
+
+  if (tail_flag) {
+    int *type = atom->type;
+    int nlocal = atom->nlocal;
+
+    double count[2],all[2];
+    count[0] = count[1] = 0.0;
+    for (int k = 0; k < nlocal; k++) {
+      if (type[k] == i) count[0] += 1.0;
+      if (type[k] == j) count[1] += 1.0;
+    }
+    MPI_Allreduce(count,all,2,MPI_DOUBLE,MPI_SUM,world);
+
+    double PI = 4.0*atan(1.0);
+    double rho1 = rho[i][j];
+    double rho2 = rho1*rho1;
+    double rho3 = rho2*rho1;
+    double rc = cut_lj[i][j];
+    double rc2 = rc*rc;
+    double rc3 = rc2*rc;
+    etail_ij = 2.0*PI*all[0]*all[1]*
+      (a[i][j]*exp(-rc/rho1)*rho1*(rc2 + 2.0*rho1*rc + 2.0*rho2) - 
+       c[i][j]/(3.0*rc3));
+    ptail_ij = (-1/3.0)*2.0*PI*all[0]*all[1]*
+      (-a[i][j]*exp(-rc/rho1)*
+       (rc3 + 3.0*rho1*rc2 + 6.0*rho2*rc + 6.0*rho3) + 2.0*c[i][j]/rc3);
+  }
+  
   return cut;
 }
 

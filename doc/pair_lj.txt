@@ -235,7 +235,7 @@ interaction.
 
 All of the lj/cut pair styles support the
 "pair_modify"_pair_modify.html tail option for adding a long-range
-tail correction to the energy and pressure of the Lennard-Jones
+tail correction to the energy and pressure for the Lennard-Jones
 portion of the pair interaction.
 
 All of the lj/cut pair styles write their information to "binary

@@ -135,10 +135,10 @@ void DumpDCD::write_header(int n)
 
   // dim[] = size and angle cosines of orthogonal or triclinic box
   // dim[0] = a = length of unit cell vector along x-axis
-  // dim[1] = alpha = cosine of angle between b and c
+  // dim[1] = gamma = cosine of angle between a and b
   // dim[2] = b = length of unit cell vector in xy-plane
   // dim[3] = beta = cosine of angle between a and c
-  // dim[4] = gamma = cosine of angle between a and b
+  // dim[4] = alpha = cosine of angle between b and c
   // dim[5] = c = length of final unit cell vector
   // 48 = 6 doubles
 
@@ -151,9 +151,9 @@ void DumpDCD::write_header(int n)
     dim[0] = alen;
     dim[2] = blen;
     dim[5] = clen;
-    dim[1] = (h[5]*h[4] + h[1]*h[3]) / blen/clen;
-    dim[3] = (h[0]*h[4]) / alen/clen;
-    dim[4] = (h[0]*h[5]) / alen/blen;
+    dim[4] = (h[5]*h[4] + h[1]*h[3]) / blen/clen; // alpha
+    dim[3] = (h[0]*h[4]) / alen/clen;             // beta
+    dim[1] = (h[0]*h[5]) / alen/blen;             // gamma
   } else {
     dim[0] = domain->xprd;
     dim[2] = domain->yprd;

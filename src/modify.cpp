@@ -638,12 +638,10 @@ void Modify::add_fix(int narg, char **arg)
 
   else error->all("Invalid fix style");
 
-  // if fix is new, set it's mask values and increment nfix
+  // set fix mask values and increment nfix (if new)
 
-  if (newflag) {
-    fmask[ifix] = fix[ifix]->setmask();
-    nfix++;
-  }
+  fmask[ifix] = fix[ifix]->setmask();
+  if (newflag) nfix++;
 
   // check if Fix is in restart_global list
   // if yes, pass state info to the Fix so it can reset itself

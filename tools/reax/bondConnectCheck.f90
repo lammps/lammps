@@ -3,7 +3,7 @@
 !# NCSU
 !#
 !# This is a program to read the output from 'fix reax/bond', TPRD, Lammps
-!# The output is saved into file "bonds.connect", where each image is divided
+!# The output is saved into file "bonds.reax", where each image is divided
 !# into three parts: 
 !# 
 !# (1) Head, 7 Lines;
@@ -30,7 +30,7 @@ integer headline, tailline
 integer id, atype, nb, bd1, bd2, bd3, bd4, mol
 double precision bo1, bo2, bo3, bo4, abo, nlp, q
 
-open (unit=10, file='bonds.connect')
+open (unit=10, file='bonds.reax')
 
 open (unit=20, file='N129.txt', status='unknown')
 open (unit=21, file='N133.txt', status='unknown')
@@ -44,10 +44,10 @@ open (unit=27, file='N157.txt', status='unknown')
 open (unit=30, file='reactionRecord.txt', status='unknown')
 
 !# Make changes accordingly.
-image = 2000
+image = 1
 headline = 7
 tailline = 1
-natom = 160
+natom = 384
 
 do I = 1, image+1
 

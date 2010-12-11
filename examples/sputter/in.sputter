@@ -1,0 +1,92 @@
+# surface sputtering demo
+
+# dimension variables
+# box length in x and y
+variable len  index  20.0
+# height of layer
+variable hgt  index  8.0
+# delta between insert area and box
+variable len0  index  0.1
+# full length minus delta
+variable len1  equal ${len}-${len0}
+# half length
+variable len2  equal ${len}*0.5
+
+units		lj
+atom_style	atomic
+boundary        p p f
+
+lattice		fcc 0.85
+region		box block 0.0 ${len} 0.0 ${len} -1.0 40.0 units lattice
+
+# particle density in z-direction is inhomogeneous:
+# only do domain decomposition in x- and y-direction
+processors      * * 1
+
+# two atom types: surface and sputter atoms
+create_box	2 box
+
+region          layer block 0.0 ${len} 0.0 ${len} 0.0 ${hgt}
+create_atoms	1 region layer
+mass		1 1.0
+mass            2 3.0
+
+region          fixed block INF INF INF INF 0.0 0.1
+group           fixed region fixed
+group           mobile subtract all fixed
+
+
+pair_style	lj/cut/opt 2.5
+pair_coeff	1 1 1.0 1.0 
+pair_coeff	2 2 0.5 1.2 
+
+neighbor	0.3 bin
+neigh_modify	every 2 delay 6 check yes
+
+minimize   1.0e-5 1.0e-8  1000 10000
+reset_timestep 0
+
+velocity	mobile create 0.4 87287
+# use the temperature of the mobile layer atoms as reference 
+compute         mtemp mobile temp
+fix		1 mobile nve
+fix             2 mobile langevin 0.2 0.2 5.0 982434 
+fix_modify      2 temp mtemp 
+
+thermo		100
+thermo_style custom step atoms temp etotal
+thermo_modify   temp mtemp 
+
+dump		id all xyz 200 sputter.xyz
+
+# minimal equilibration
+run		1000
+
+# define region for inserting particles
+region sphere  sphere ${len2} ${len2} 42.0 ${len2}  units lattice 
+region insert  intersect 2 box sphere
+
+# define group of inserted particles
+group           insert region insert
+# deposite particles regularly into insert volume
+fix      insert insert deposit 50 2 200 12345 region insert vz -8.0 -9.0 &
+                target ${len2} ${len2} ${hgt} units lattice
+neigh_modify	every 1 delay 0 check yes
+
+# time integrate inserted particles
+fix    4 insert nve
+
+# remove thermostat on layer atoms
+unfix  2
+
+variable nlayer  equal count(mobile)+count(fixed)
+variable ninsert equal count(insert)
+
+thermo_style custom step atoms v_nlayer v_ninsert temp etotal
+thermo_modify   temp mtemp 
+
+# handling of atoms the get bounced back from surface
+# or sputtered off the surface.
+thermo_modify  lost ignore
+
+run 15000 

@@ -1,0 +1,353 @@
+LAMMPS (5 Dec 2010-ICMS)
+# surface sputtering demo
+
+# dimension variables
+# box length in x and y
+variable len  index  20.0
+# height of layer
+variable hgt  index  8.0
+# delta between insert area and box
+variable len0  index  0.1
+# full length minus delta
+variable len1  equal ${len}-${len0}
+variable len1  equal 20.0-${len0}
+variable len1  equal 20.0-0.1
+# half length
+variable len2  equal ${len}*0.5
+variable len2  equal 20.0*0.5
+
+units		lj
+atom_style	atomic
+boundary        p p f
+
+lattice		fcc 0.85
+Lattice spacing in x,y,z = 1.67577 1.67577 1.67577
+region		box block 0.0 ${len} 0.0 ${len} -1.0 40.0 units lattice
+region		box block 0.0 20.0 0.0 ${len} -1.0 40.0 units lattice
+region		box block 0.0 20.0 0.0 20.0 -1.0 40.0 units lattice
+
+# particle density in z-direction is inhomogeneous:
+# only do domain decomposition in x- and y-direction
+processors      * * 1
+
+# two atom types: surface and sputter atoms
+create_box	2 box
+Created orthogonal box = (0 0 -1.67577) to (33.5153 33.5153 67.0307)
+  1 by 2 by 1 processor grid
+
+region          layer block 0.0 ${len} 0.0 ${len} 0.0 ${hgt}
+region          layer block 0.0 20.0 0.0 ${len} 0.0 ${hgt}
+region          layer block 0.0 20.0 0.0 20.0 0.0 ${hgt}
+region          layer block 0.0 20.0 0.0 20.0 0.0 8.0
+create_atoms	1 region layer
+Created 13600 atoms
+mass		1 1.0
+mass            2 3.0
+
+region          fixed block INF INF INF INF 0.0 0.1
+group           fixed region fixed
+800 atoms in group fixed
+group           mobile subtract all fixed
+12800 atoms in group mobile
+
+
+pair_style	lj/cut/opt 2.5
+pair_coeff	1 1 1.0 1.0 
+pair_coeff	2 2 0.5 1.2 
+
+neighbor	0.3 bin
+neigh_modify	every 2 delay 6 check yes
+
+minimize   1.0e-5 1.0e-8  1000 10000
+WARNING: Resetting reneighboring criteria during minimization
+Memory usage per processor = 4.96717 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0            0   -6.5259752            0   -6.5259752   -1.2281195 
+      36            0   -7.3412246            0   -7.3412246  -0.29303042 
+Loop time of 3.30338 on 2 procs for 36 steps with 13600 atoms
+
+Minimization stats:
+  Stopping criterion = energy tolerance
+  Energy initial, next-to-last, final = 
+        -6.52597518616     -7.34117366997     -7.34122455255
+  Force two-norm initial, final = 303.542 14.6837
+  Force max component initial, final = 7.48566 0.188904
+  Final line search alpha, max atom move = 0.00302967 0.000572317
+  Iterations, force evaluations = 36 111
+
+Pair  time (%) = 2.75307 (83.3409)
+Neigh time (%) = 0.237482 (7.18905)
+Comm  time (%) = 0.243272 (7.36433)
+Outpt time (%) = 0 (0)
+Other time (%) = 0.0695615 (2.10576)
+
+Nlocal:    6800 ave 6820 max 6780 min
+Histogram: 1 0 0 0 0 0 0 0 0 1
+Nghost:    3987 ave 4007 max 3967 min
+Histogram: 1 0 0 0 0 0 0 0 0 1
+Neighs:    293600 ave 294742 max 292458 min
+Histogram: 1 0 0 0 0 0 0 0 0 1
+
+Total # of neighbors = 587200
+Ave neighs/atom = 43.1765
+Neighbor list builds = 8
+Dangerous builds = 0
+reset_timestep 0
+
+velocity	mobile create 0.4 87287
+# use the temperature of the mobile layer atoms as reference 
+compute         mtemp mobile temp
+fix		1 mobile nve
+fix             2 mobile langevin 0.2 0.2 5.0 982434 
+fix_modify      2 temp mtemp 
+
+thermo		100
+thermo_style custom step atoms temp etotal
+thermo_modify   temp mtemp 
+WARNING: Temperature for thermo pressure is not for group all
+
+dump		id all xyz 200 sputter.xyz
+
+# minimal equilibration
+run		1000
+Memory usage per processor = 4.23188 Mbytes
+Step Atoms Temp TotEng 
+       0    13600          0.4   -6.7765628 
+     100    13600   0.20121051   -6.7800703 
+     200    13600   0.20083791   -6.7814731 
+     300    13600   0.20020268   -6.7841591 
+     400    13600   0.20046153   -6.7837273 
+     500    13600   0.19788085   -6.7821283 
+     600    13600    0.1964279   -6.7773028 
+     700    13600   0.20007955   -6.7764748 
+     800    13600   0.20386935   -6.7780111 
+     900    13600   0.20641972    -6.780506 
+    1000    13600   0.20832321   -6.7844653 
+Loop time of 18.4513 on 2 procs for 1000 steps with 13600 atoms
+
+Pair  time (%) = 13.2945 (72.052)
+Neigh time (%) = 2.13272 (11.5586)
+Comm  time (%) = 1.1551 (6.26028)
+Outpt time (%) = 0.273862 (1.48425)
+Other time (%) = 1.59509 (8.64487)
+
+Nlocal:    6800 ave 6812 max 6788 min
+Histogram: 1 0 0 0 0 0 0 0 0 1
+Nghost:    3976 ave 3994 max 3958 min
+Histogram: 1 0 0 0 0 0 0 0 0 1
+Neighs:    273924 ave 274745 max 273104 min
+Histogram: 1 0 0 0 0 0 0 0 0 1
+
+Total # of neighbors = 547849
+Ave neighs/atom = 40.283
+Neighbor list builds = 62
+Dangerous builds = 0
+
+# define region for inserting particles
+region sphere  sphere ${len2} ${len2} 42.0 ${len2}  units lattice 
+region sphere  sphere 10 ${len2} 42.0 ${len2}  units lattice 
+region sphere  sphere 10 10 42.0 ${len2}  units lattice 
+region sphere  sphere 10 10 42.0 10  units lattice 
+region insert  intersect 2 box sphere
+
+# define group of inserted particles
+group           insert region insert
+0 atoms in group insert
+# deposite particles regularly into insert volume
+fix      insert insert deposit 50 2 200 12345 region insert vz -8.0 -9.0                 target ${len2} ${len2} ${hgt} units lattice
+fix      insert insert deposit 50 2 200 12345 region insert vz -8.0 -9.0                 target 10 ${len2} ${hgt} units lattice
+fix      insert insert deposit 50 2 200 12345 region insert vz -8.0 -9.0                 target 10 10 ${hgt} units lattice
+fix      insert insert deposit 50 2 200 12345 region insert vz -8.0 -9.0                 target 10 10 8.0 units lattice
+neigh_modify	every 1 delay 0 check yes
+
+# time integrate inserted particles
+fix    4 insert nve
+
+# remove thermostat on layer atoms
+unfix  2
+
+variable nlayer  equal count(mobile)+count(fixed)
+variable ninsert equal count(insert)
+
+thermo_style custom step atoms v_nlayer v_ninsert temp etotal
+WARNING: New thermo_style command, previous thermo_modify settings will be lost
+thermo_modify   temp mtemp 
+WARNING: Temperature for thermo pressure is not for group all
+
+# handling of atoms the get bounced back from surface
+# or sputtered off the surface.
+thermo_modify  lost ignore
+
+run 15000 
+Memory usage per processor = 4.23398 Mbytes
+Step Atoms nlayer ninsert Temp TotEng 
+    1000    13600        13600            0   0.20832321   -6.7844653 
+    1100    13601        13600            1   0.21058022   -6.7843547 
+    1200    13601        13600            1   0.21340281    -6.784861 
+    1300    13602        13600            2   0.21403698   -6.7845421 
+    1400    13602        13600            2   0.21225101   -6.7844137 
+    1500    13603        13600            3    0.2112857   -6.7836914 
+    1600    13603        13600            3   0.20929795    -6.783739 
+    1700    13604        13600            4   0.20751001   -6.7825912 
+    1800    13604        13600            4   0.21300915   -6.7639251 
+    1900    13605        13600            5   0.21176073   -6.7606992 
+    2000    13605        13600            5   0.21404592   -6.7618863 
+    2100    13606        13600            6   0.22238836   -6.7421581 
+    2200    13606        13600            6   0.24216274   -6.7039303 
+    2300    13607        13600            7    0.2417962   -6.6971856 
+    2400    13607        13600            7   0.24042085   -6.6968129 
+    2500    13608        13600            8   0.24045507   -6.6958318 
+    2600    13608        13600            8   0.25176736   -6.6749343 
+    2700    13609        13600            9   0.25900073   -6.6486764 
+    2800    13609        13600            9   0.25015559   -6.6464785 
+    2900    13610        13600           10    0.2439077   -6.6451635 
+    3000    13610        13600           10   0.25658018   -6.6231917 
+    3100    13611        13600           11    0.2613481    -6.602238 
+    3200    13611        13600           11   0.25723347   -6.5982424 
+    3300    13612        13600           12   0.26827614   -6.5821563 
+    3400    13612        13600           12   0.27429368   -6.5772633 
+    3500    13613        13600           13   0.27369134   -6.5771909 
+    3600    13613        13600           13   0.28242118   -6.5597949 
+    3700    13614        13600           14   0.28249581   -6.5538872 
+    3800    13614        13600           14   0.28726974   -6.5316737 
+    3900    13615        13600           15   0.28098713   -6.5306333 
+    4000    13615        13600           15   0.29108569   -6.5083705 
+    4100    13616        13600           16   0.28844946   -6.5066682 
+    4200    13616        13600           16   0.28992033   -6.4976801 
+    4300    13617        13600           17    0.2900645   -6.4841474 
+    4400    13617        13600           17   0.29384833   -6.4842992 
+    4500    13617        13599           18   0.30205092   -6.4664539 
+    4600    13617        13599           18   0.30710089   -6.4659031 
+    4700    13618        13599           19   0.30950759   -6.4464885 
+    4800    13618        13599           19    0.3125975    -6.447011 
+    4900    13619        13599           20   0.32026098   -6.4269473 
+    5000    13619        13599           20   0.32731476   -6.4057706 
+    5100    13620        13599           21    0.3325174    -6.382266 
+    5200    13620        13599           21   0.33400486   -6.3755647 
+    5300    13621        13599           22   0.32854612   -6.3747623 
+    5400    13621        13599           22   0.33642524    -6.354324 
+    5500    13622        13599           23   0.33014217   -6.3508996 
+    5600    13622        13599           23    0.3365548    -6.338443 
+    5700    13623        13599           24   0.34746859   -6.3074228 
+    5800    13623        13599           24   0.34815069   -6.3026891 
+    5900    13624        13599           25   0.34779043   -6.3018994 
+    6000    13624        13599           25   0.34785697   -6.3020403 
+    6100    13625        13599           26   0.35678241   -6.2765048 
+    6200    13625        13599           26   0.36339634    -6.260885 
+    6300    13626        13599           27   0.36162866   -6.2585204 
+    6400    13626        13599           27   0.36114131    -6.258271 
+    6500    13627        13599           28   0.36972629   -6.2431921 
+    6600    13627        13599           28   0.37440147   -6.2190753 
+    6700    13628        13599           29   0.36867416   -6.2124175 
+    6800    13628        13599           29    0.3700442   -6.2030189 
+    6900    13629        13599           30   0.37885383   -6.1916269 
+    7000    13629        13599           30   0.37772273   -6.1895715 
+    7100    13630        13599           31    0.3839563   -6.1732165 
+    7200    13630        13599           31   0.39196673   -6.1529669 
+    7300    13631        13599           32     0.393845   -6.1480924 
+    7400    13631        13599           32   0.39881509    -6.146092 
+    7500    13632        13599           33    0.4079294   -6.1257628 
+    7600    13632        13599           33   0.41107484   -6.1045312 
+    7700    13633        13599           34   0.40835826   -6.0991979 
+    7800    13633        13599           34   0.41450904   -6.0798907 
+    7900    13634        13599           35   0.40791093   -6.0774146 
+    8000    13634        13599           35   0.41276541   -6.0608485 
+    8100    13635        13599           36   0.41057353   -6.0547596 
+    8200    13634        13598           36   0.40873687   -6.0537089 
+    8300    13635        13598           37   0.41552214   -6.0358319 
+    8400    13635        13598           37     0.425368   -6.0216733 
+    8500    13636        13598           38     0.425068   -6.0140163 
+    8600    13636        13598           38   0.44531917   -5.9936724 
+    8700    13637        13598           39   0.43327704    -5.989434 
+    8800    13637        13598           39   0.43516665   -5.9849514 
+    8900    13638        13598           40   0.44728126   -5.9672792 
+    9000    13638        13598           40   0.43967925   -5.9657483 
+    9100    13639        13598           41   0.44772275   -5.9438221 
+    9200    13639        13598           41   0.45074179   -5.9250545 
+    9300    13640        13598           42   0.45273687    -5.913662 
+    9400    13640        13598           42   0.45072012   -5.9020303 
+    9500    13641        13598           43   0.44556267   -5.8981662 
+    9600    13641        13598           43   0.45466918    -5.881651 
+    9700    13642        13598           44   0.45327111   -5.8745981 
+    9800    13642        13598           44   0.46467321   -5.8525411 
+    9900    13643        13598           45   0.47756597   -5.8344292 
+   10000    13643        13598           45   0.47554676   -5.8300508 
+   10100    13644        13598           46   0.47699644   -5.8283877 
+   10200    13644        13598           46   0.48308309   -5.8146058 
+   10300    13645        13598           47   0.49182207   -5.7927428 
+   10400    13645        13598           47   0.48611494   -5.7842182 
+   10500    13646        13598           48   0.49601147   -5.7603372 
+   10600    13646        13598           48   0.48890039   -5.7567369 
+   10700    13647        13598           49   0.48721712   -5.7535371 
+   10800    13647        13598           49   0.49062265   -5.7365295 
+   10900    13647        13597           50   0.49149207   -5.7183349 
+   11000    13646        13596           50   0.49196107   -5.7194844 
+   11100    13646        13596           50   0.49227515   -5.7095232 
+   11200    13646        13596           50   0.49086426    -5.708591 
+   11300    13646        13596           50    0.4999325    -5.690973 
+   11400    13645        13595           50    0.5087244    -5.676373 
+   11500    13645        13595           50   0.51158471   -5.6699749 
+   11600    13645        13595           50   0.51837942   -5.6660993 
+   11700    13645        13595           50   0.52060372   -5.6512303 
+   11800    13645        13595           50   0.51649441    -5.649488 
+   11900    13645        13595           50   0.51069584   -5.6478531 
+   12000    13645        13595           50   0.50684316   -5.6451634 
+   12100    13645        13595           50   0.50498726   -5.6458569 
+   12200    13645        13595           50   0.50560556   -5.6450684 
+   12300    13645        13595           50    0.5035552   -5.6450399 
+   12400    13645        13595           50   0.50402115   -5.6439875 
+   12500    13645        13595           50   0.49890249   -5.6445616 
+   12600    13644        13594           50     0.501075    -5.648631 
+   12700    13644        13594           50   0.50683173     -5.65101 
+   12800    13644        13594           50   0.51043653   -5.6508532 
+   12900    13644        13594           50   0.51154851   -5.6505932 
+   13000    13644        13594           50   0.51138889   -5.6505739 
+   13100    13644        13594           50   0.51682645   -5.6509008 
+   13200    13644        13594           50   0.51338525   -5.6516941 
+   13300    13644        13594           50   0.50921613   -5.6511795 
+   13400    13644        13594           50   0.51245321   -5.6498126 
+   13500    13644        13594           50   0.51002695   -5.6509423 
+   13600    13644        13594           50   0.50688879   -5.6497583 
+   13700    13644        13594           50    0.5083792   -5.6495744 
+   13800    13644        13594           50   0.50691706   -5.6497556 
+   13900    13644        13594           50   0.50461476    -5.649312 
+   14000    13644        13594           50   0.50973646   -5.6497581 
+   14100    13644        13594           50    0.5092232   -5.6504694 
+   14200    13644        13594           50   0.51307881   -5.6499432 
+   14300    13644        13594           50   0.51593536   -5.6511145 
+   14400    13643        13593           50   0.50940383    -5.651823 
+   14500    13642        13592           50   0.51533411   -5.6528822 
+   14600    13642        13592           50   0.52389431   -5.6529784 
+   14700    13642        13592           50   0.52160091   -5.6539425 
+   14800    13642        13592           50   0.51759686   -5.6529695 
+   14900    13642        13592           50   0.51695824     -5.65242 
+   15000    13641        13591           50    0.5146085   -5.6539402 
+   15100    13640        13590           50   0.51108108   -5.6539714 
+   15200    13640        13590           50   0.50982199   -5.6541109 
+   15300    13640        13590           50    0.5099508   -5.6536099 
+   15400    13640        13590           50   0.51324068   -5.6532432 
+   15500    13640        13590           50    0.5147851   -5.6534988 
+   15600    13640        13590           50   0.51818529   -5.6530576 
+   15700    13640        13590           50   0.51838253   -5.6538436 
+   15800    13638        13588           50    0.5196605   -5.6552535 
+   15900    13637        13587           50    0.5212409   -5.6570219 
+   16000    13637        13587           50    0.5169173   -5.6569506 
+Loop time of 370.179 on 2 procs for 15000 steps with 13637 atoms
+
+Pair  time (%) = 189.401 (51.1648)
+Neigh time (%) = 145.628 (39.3399)
+Comm  time (%) = 21.6744 (5.85511)
+Outpt time (%) = 4.05343 (1.09499)
+Other time (%) = 9.42176 (2.54519)
+
+Nlocal:    6818.5 ave 6830 max 6807 min
+Histogram: 1 0 0 0 0 0 0 0 0 1
+Nghost:    3942 ave 3959 max 3925 min
+Histogram: 1 0 0 0 0 0 0 0 0 1
+Neighs:    256816 ave 257886 max 255747 min
+Histogram: 1 0 0 0 0 0 0 0 0 1
+
+Total # of neighbors = 513633
+Ave neighs/atom = 37.6647
+Neighbor list builds = 4402
+Dangerous builds = 0

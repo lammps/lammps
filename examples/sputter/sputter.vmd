@@ -1,0 +1,52 @@
+#!/usr/local/bin/vmd
+set viewplist {}
+set fixedlist {}
+
+# Display settings
+display eyesep       0.065000
+display focallength  2.000000
+display height       6.000000
+display distance     -2.000000
+display projection   Orthographic
+display nearclip set 0.000100
+display farclip  set 10.000000
+display depthcue   on
+display cuestart   0.500000
+display cueend     10.000000
+display cuedensity 0.400000
+display cuemode    Exp2
+
+package require topotools 
+set thismol [topo readvarxyz sputter.xyz]
+pbc set {33.592 33.592 67.1838 90.0 90.0 90.0} -all
+pbc box
+
+graphics 0 material Transparent
+graphics 0 color white
+graphics 0 sphere {16.796 16.796 69.00} radius 16.796
+
+mol delrep 0 top
+mol representation Points 10.000000
+mol color Name
+mol selection {(all) and user > 0}
+mol material Opaque
+mol addrep top
+mol selupdate 0 top 1
+set viewpoints([molinfo top]) {{{1 0 0 -8.21226} {0 1 0 -8.41433} {0 0 1 -4.82487} {0 0 0 1}} {{0.943765 -0.330613 -0.00163335 0} {0.0501411 0.138246 0.989128 0} {-0.326792 -0.933587 0.14705 0} {0 0 0 1}} {{0.0368523 0 0 0} {0 0.0368523 0 0} {0 0 0.0368523 0} {0 0 0 1}} {{1 0 0 0.02} {0 1 0 -0.88} {0 0 1 0} {0 0 0 1}}}
+lappend viewplist [molinfo top]
+set topmol [molinfo top]
+# done with molecule 0
+foreach v $viewplist {
+  molinfo $v set {center_matrix rotate_matrix scale_matrix global_matrix} $viewpoints($v)
+}
+foreach v $fixedlist {
+  molinfo $v set fixed 1
+}
+unset viewplist
+unset fixedlist
+mol top $topmol
+unset topmol
+
+animate goto 0
+animate speed 0.7
+animate forward

@@ -48,6 +48,7 @@ own sub-directories with their own Makefiles.
 "eam database"_#eamdb
 "eam generate"_#eamgn
 "eff_#eff
+"emacs_#emacs
 "ipp_#ipp
 "lmp2arc"_#arc
 "lmp2cfg"_#cfg
@@ -190,6 +191,17 @@ electron force field (eFF).
 
 These tools were provided by Andres Jaramillo-Botero at CalTech
 (ajaramil at wag.caltech.edu).
+
+:line
+
+emacs tool :h4,link(emacs)
+
+The tools/emacs directory contains a Lips add-on file for Emacs that
+enables a lammps-mode for editing of input scripts when using Emacs,
+with various highlighting options setup.
+
+These tools were provided by Aidan Thompson at Sandia
+(athomps at sandia.gov).
 
 :line
 

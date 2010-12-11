@@ -144,8 +144,8 @@ file is formatted as follows:
 <LI>line 3: Nrho, drho, Nr, dr, cutoff 
 </UL>
 <P>On line 2, all values but the mass are ignored by LAMMPS.  The mass is
-in mass <A HREF = "units.html">units</A> (e.g. mass number or grams/mole for metal
-units).  The cubic lattice constant is in Angstroms.  On line 3, Nrho
+in mass <A HREF = "units.html">units</A>, e.g. mass number or grams/mole for metal
+units.  The cubic lattice constant is in Angstroms.  On line 3, Nrho
 and Nr are the number of tabulated values in the subsequent arrays,
 drho and dr are the spacing in density and distance space for the
 values in those arrays, and the specified cutoff becomes the pairwise
@@ -251,10 +251,11 @@ element, each with the following format:
 <LI>embedding function F(rho) (Nrho values)
 <LI>density function rho(r) (Nr values) 
 </UL>
-<P>As with the <I>funcfl</I> files, only the mass (g/cm^3) is used by LAMMPS
-from the 1st line.  The cubic lattice constant is in Angstroms.  The F
-and rho arrays are unique to a single element and have the same format
-and units as in a <I>funcfl</I> file.
+<P>As with the <I>funcfl</I> files, only the mass (in mass <A HREF = "units.html">units</A>,
+e.g. mass number or grams/mole for metal units) is used by LAMMPS from
+the 1st line.  The cubic lattice constant is in Angstroms.  The F and
+rho arrays are unique to a single element and have the same format and
+units as in a <I>funcfl</I> file.
 </P>
 <P>Following the Nelements sections, Nr values for each pair potential
 phi(r) array are listed for all i,j element pairs in the same format

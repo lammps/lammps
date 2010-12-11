@@ -13,7 +13,7 @@ fix ave/correlate command :h3
 fix ID group-ID ave/correlate Nevery Nrepeat Nfreq value1 value2 ... keyword args ... :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
-ave/time = style name of this fix command :l
+ave/correlate = style name of this fix command :l
 Nevery = use input values every this many timesteps :l
 Nrepeat = # of correlation time windows to accumulate :l
 Nfreq = calculate tine window averages every this many timesteps :l

@@ -37,11 +37,12 @@ class FixDeposit : public Fix {
 
  private:
   int ninsert,ntype,nfreq,seed;
-  int iregion,globalflag,localflag,maxattempt,rateflag,scaleflag;
+  int iregion,globalflag,localflag,maxattempt,rateflag,scaleflag,targetflag;
   char *idregion;
   double lo,hi,deltasq,nearsq,rate;
   double vxlo,vxhi,vylo,vyhi,vzlo,vzhi;
   double xlo,xhi,ylo,yhi,zlo,zhi;
+  double tx,ty,tz;
   int nfirst,ninserted;
   class RanPark *random;
 

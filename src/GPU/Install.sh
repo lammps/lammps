@@ -32,18 +32,27 @@ if (test $1 = 1) then
   if (test -e ../pair_cg_cmm_coul_long.cpp) then
     cp pair_cg_cmm_coul_long_gpu.cpp ..
     cp pair_cg_cmm_coul_long_gpu.h ..
+    cp pair_cg_cmm_coul_msm.cpp ..
+    cp pair_cg_cmm_coul_msm.h ..
+    cp pair_cg_cmm_coul_msm_gpu.cpp ..
+    cp pair_cg_cmm_coul_msm_gpu.h ..
   fi
 
   cp pair_lj_cut_gpu.cpp ..
   cp pair_lj96_cut_gpu.cpp ..
   cp pair_lj_cut_coul_cut_gpu.cpp ..
+  cp pair_lj_cut_tgpu.cpp ..
   cp pair_lj_cut_gpu.h ..
   cp pair_lj96_cut_gpu.h ..
   cp pair_lj_cut_coul_cut_gpu.h ..
+  cp pair_lj_cut_tgpu.h ..
   
   cp fix_gpu.cpp ..
   cp fix_gpu.h ..
 
+  cp pair_omp_gpu.cpp ..
+  cp pair_omp_gpu.h ..
+  
 elif (test $1 = 0) then
 
   if (test -e ../Makefile.package) then
@@ -56,17 +65,26 @@ elif (test $1 = 0) then
   rm ../pair_lj96_cut_gpu.cpp
   rm ../pair_lj_cut_coul_cut_gpu.cpp
   rm ../pair_lj_cut_coul_long_gpu.cpp
+  rm ../pair_lj_cut_tgpu.cpp
   rm ../pair_cg_cmm_gpu.cpp
   rm ../pair_cg_cmm_coul_long_gpu.cpp
+  rm ../pair_cg_cmm_coul_msm.cpp
+  rm ../pair_cg_cmm_coul_msm_gpu.cpp
   rm ../fix_gpu.cpp
+  rm ../pair_omp_gpu.cpp
 
   rm ../pair_gayberne_gpu.h
   rm ../pair_lj_cut_gpu.h
   rm ../pair_lj96_cut_gpu.h
   rm ../pair_lj_cut_coul_cut_gpu.h
   rm ../pair_lj_cut_coul_long_gpu.h
+  rm ../pair_lj_cut_tgpu.cpp
   rm ../pair_cg_cmm_gpu.h
   rm ../pair_cg_cmm_coul_long_gpu.h
+  rm ../pair_cg_cmm_coul_msm.h
+  rm ../pair_cg_cmm_coul_msm_gpu.h
   rm ../fix_gpu.h
+  rm ../pair_omp_gpu.h
   
 fi
+

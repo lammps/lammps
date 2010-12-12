@@ -29,7 +29,8 @@ using namespace LAMMPS_NS;
 enum{GPU_FORCE, GPU_NEIGH};
 
 extern bool lmp_init_device(const int first_gpu, const int last_gpu,
-                            const int gpu_mode, const double particle_split);
+                            const int gpu_mode, const double particle_split,
+                            const int nthreads);
 extern void lmp_clear_device();
 extern double lmp_gpu_forces(double **f, double **tor, double *eatom,
                              double **vatom, double *virial, double &ecoul);
@@ -62,8 +63,25 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   particle_split = force->numeric(arg[6]);
   if (particle_split==0 || particle_split>1)
     error->all("Illegal fix gpu command.");
+    
+  int nthreads = 1;
+  if (narg == 9) {
+    if (strcmp(arg[7],"nthreads") == 0)
+      nthreads = atoi(arg[8]);
+    else
+      error->all("Illegal fix gpu command.");
+  } else if (narg != 7)
+    error->all("Illegal fix gpu command.");
 
-  if (!lmp_init_device(first_gpu,last_gpu,gpu_mode,particle_split))
+  if (nthreads < 1)
+    error->all("Illegal fix gpu command.");
+    
+  #ifndef _OPENMP
+  if (nthreads > 1)
+    error->all("No OpenMP support compiled in.");
+  #endif
+
+  if (!lmp_init_device(first_gpu,last_gpu,gpu_mode,particle_split,nthreads))
     error->one("Could not find or initialize a specified accelerator device.");
 }
 

@@ -10,7 +10,7 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
- 
+
 /* ----------------------------------------------------------------------
    Contributing authors: Mike Brown (ORNL), brownw@ornl.gov
 ------------------------------------------------------------------------- */
@@ -35,7 +35,8 @@ class PairGPUDevice {
   /** Sets up a per-device MPI communicator for load balancing and initializes
     * the device (>=first_gpu and <=last_gpu) that this proc will be using **/
   bool init_device(const int first_gpu, const int last_gpu,
-                   const int gpu_mode, const double particle_split);
+                   const int gpu_mode, const double particle_split,
+                   const int nthreads);
 
   /// Initialize the device for Atom and Neighbor storage
   /** \param rot True if quaternions need to be stored
@@ -83,6 +84,8 @@ class PairGPUDevice {
 
   /// Return the number of procs sharing a device (size of device commincator)
   inline int procs_per_gpu() const { return _procs_per_gpu; }
+  /// Return the number of threads per proc
+  inline int num_threads() const { return _nthreads; }
   /// Return my rank in the device communicator
   inline int gpu_rank() const { return _gpu_rank; }
   /// My rank within all processes
@@ -123,7 +126,7 @@ class PairGPUDevice {
   int _init_count;
   bool _device_init;
   int _procs_per_gpu, _gpu_rank, _world_me, _world_size;
-  int _gpu_mode, _first_device, _last_device;
+  int _gpu_mode, _first_device, _last_device, _nthreads;
   double _particle_split;
   double _cpu_full;
 

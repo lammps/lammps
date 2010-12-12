@@ -10,7 +10,7 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
- 
+
 /* ----------------------------------------------------------------------
    Contributing authors: Mike Brown (ORNL), brownw@ornl.gov
 ------------------------------------------------------------------------- */
@@ -19,6 +19,9 @@
 #include "pair_gpu_precision.h"
 #include <map>
 #include <math.h>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 #define PairGPUDeviceT PairGPUDevice<numtyp, acctyp>
 
@@ -35,7 +38,13 @@ PairGPUDeviceT::~PairGPUDevice() {
 
 template <class numtyp, class acctyp>
 bool PairGPUDeviceT::init_device(const int first_gpu, const int last_gpu,
-                                 const int gpu_mode, const double p_split) {
+                                 const int gpu_mode, const double p_split,
+                                 const int nthreads) {
+  _nthreads=nthreads;
+  #ifdef _OPENMP
+  omp_set_num_threads(nthreads);
+  #endif
+
   if (_device_init)
     return true;
   _device_init=true;
@@ -141,6 +150,7 @@ void PairGPUDeviceT::init_message(FILE *screen, const char *name,
     fprintf(screen,"-------------------------------------\n");
     fprintf(screen,"- Using GPGPU acceleration for %s:\n",name);
     fprintf(screen,"-  with %d procs per device.\n",_procs_per_gpu);
+    fprintf(screen,"-  with %d threads per proc.\n",_nthreads);
     fprintf(screen,"-------------------------------------");
     fprintf(screen,"-------------------------------------\n");
 
@@ -240,9 +250,10 @@ template class PairGPUDevice<PRECISION,ACC_PRECISION>;
 PairGPUDevice<PRECISION,ACC_PRECISION> pair_gpu_device;
 
 bool lmp_init_device(const int first_gpu, const int last_gpu,
-                     const int gpu_mode, const double particle_split) {
+                     const int gpu_mode, const double particle_split,
+                     const int nthreads) {
   return pair_gpu_device.init_device(first_gpu,last_gpu,gpu_mode,
-                                     particle_split);
+                                     particle_split,nthreads);
 }
 
 void lmp_clear_device() {
@@ -261,3 +272,4 @@ double lmp_gpu_forces(double **f, double **tor, double *eatom,
   }
   return 0.0;
 }
+

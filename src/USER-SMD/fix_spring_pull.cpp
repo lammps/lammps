@@ -126,7 +126,7 @@ void FixSpringPull::post_force(int vflag)
   
   dx = xcm[0] - xc;
   dy = xcm[1] - yc;
-  dz = xcm[2] - xc;
+  dz = xcm[2] - zc;
   domain->minimum_image(dx,dy,dz);
   
   if (!xflag) dx = 0.0;

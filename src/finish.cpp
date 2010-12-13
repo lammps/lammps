@@ -110,8 +110,9 @@ void Finish::end(int flag)
 		time_loop,nprocs,update->nsteps,natoms);
 #endif
       // extra performance data for simulations with non-reduced time units
-      if ((strcmp(update->unit_style,"metal") == 0) ||
-	(strcmp(update->unit_style,"real") == 0)) {
+      if ( (update->nsteps > 0) &&
+	((strcmp(update->unit_style,"metal") == 0) ||
+	(strcmp(update->unit_style,"real") == 0)) ) {
 	float t_step, ns_day, hrs_ns, tps, one_fs = 1.0;
 
 	// conversion factor to femtoseconds

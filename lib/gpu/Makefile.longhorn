@@ -27,7 +27,7 @@ CUDR_CPP = mpicxx -DMPI_GERYON -DMPICH_IGNORE_CXX_SEEK
 CUDR_OPTS = -O2 # -xHost -no-prec-div -ansi-alias
 
 BIN_DIR = ./
-OBJ_DIR = ./obj
+OBJ_DIR = ./
 LIB_DIR = ./
 AR = ar
 

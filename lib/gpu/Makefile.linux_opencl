@@ -22,7 +22,7 @@ OCL_LINK = -lOpenCL
 OCL_PREC = -D_SINGLE_SINGLE
 
 BIN_DIR = ./
-OBJ_DIR = ./ocl_obj
+OBJ_DIR = ./
 LIB_DIR = ./
 AR = ar
 BSH = /bin/sh

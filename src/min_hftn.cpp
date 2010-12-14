@@ -492,6 +492,7 @@ int MinHFTN::execute_hftn_(const bool      bPrintProgress,
 	  requestor[m]->min_x_set(m);
 	}
       }
+      modify->min_clearstore();
       bHaveEvaluatedAtX = false;
       
       //---- UPDATE THE TRUST REGION.

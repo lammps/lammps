@@ -48,7 +48,7 @@ bool ljcl_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
   LJCLMF.device->init_message(screen,"lj/cut/coul/long",first_gpu,last_gpu);
 
   bool message=false;
-  if (world_me==0 && screen)
+  if (LJCLMF.device->replica_me()==0 && screen)
     message=true;
 
   if (message) {
@@ -66,14 +66,14 @@ bool ljcl_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
       return false;
   }
 
-  MPI_Barrier(MPI_COMM_WORLD);
+  LJCLMF.device->world_barrier();
   if (message)
     fprintf(screen,"Done.\n");
 
   for (int i=0; i<procs_per_gpu; i++) {
     if (message) {
       if (last_gpu-first_gpu==0)
-        fprintf(screen,"Initializing GPU %d on core %d...",gpu_rank,i);
+        fprintf(screen,"Initializing GPU %d on core %d...",first_gpu,i);
       else
         fprintf(screen,"Initializing GPUs %d-%d on core %d...",first_gpu,
                 last_gpu,i);
@@ -88,7 +88,7 @@ bool ljcl_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
       if (!init_ok)
         return false;
     }
-    MPI_Barrier(LJCLMF.device->gpu_comm);
+    LJCLMF.device->gpu_barrier();
     if (message) 
       fprintf(screen,"Done.\n");
   }

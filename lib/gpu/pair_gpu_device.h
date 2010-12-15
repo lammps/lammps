@@ -34,9 +34,9 @@ class PairGPUDevice {
   /// Initialize the device for use by this process
   /** Sets up a per-device MPI communicator for load balancing and initializes
     * the device (>=first_gpu and <=last_gpu) that this proc will be using **/
-  bool init_device(const int first_gpu, const int last_gpu,
-                   const int gpu_mode, const double particle_split,
-                   const int nthreads);
+  bool init_device(MPI_Comm world, MPI_Comm replica, const int first_gpu, 
+                   const int last_gpu, const int gpu_mode, 
+                   const double particle_split, const int nthreads);
 
   /// Initialize the device for Atom and Neighbor storage
   /** \param rot True if quaternions need to be stored
@@ -86,12 +86,24 @@ class PairGPUDevice {
   inline int procs_per_gpu() const { return _procs_per_gpu; }
   /// Return the number of threads per proc
   inline int num_threads() const { return _nthreads; }
-  /// Return my rank in the device communicator
-  inline int gpu_rank() const { return _gpu_rank; }
   /// My rank within all processes
   inline int world_me() const { return _world_me; }
   /// Total number of processes
   inline int world_size() const { return _world_size; }
+  /// MPI Barrier for world
+  inline int world_barrier() { MPI_Barrier(_comm_world); }
+  /// Return the replica MPI communicator
+  inline MPI_Comm & replica() { return _comm_replica; }
+  /// My rank within replica communicator
+  inline int replica_me() const { return _replica_me; }
+  /// Number of procs in replica communicator
+  inline int replica_size() const { return _replica_size; }
+  /// Return the per-GPU MPI communicator
+  inline MPI_Comm & gpu_comm() { return _comm_gpu; }
+  /// Return my rank in the device communicator
+  inline int gpu_rank() const { return _gpu_rank; }
+  /// MPI Barrier for gpu
+  inline int gpu_barrier() { MPI_Barrier(_comm_gpu); }
   /// Return the 'mode' for acceleration: GPU_FORCE or GPU_NEIGH
   inline int gpu_mode() const { return _gpu_mode; }
   /// Index of first device used by a node
@@ -107,8 +119,6 @@ class PairGPUDevice {
 
   /// Geryon Device
   UCL_Device *gpu;
-  /// Device communicator
-  MPI_Comm gpu_comm;
 
   enum{GPU_FORCE, GPU_NEIGH};
 
@@ -125,7 +135,9 @@ class PairGPUDevice {
  private:
   int _init_count;
   bool _device_init;
-  int _procs_per_gpu, _gpu_rank, _world_me, _world_size;
+  MPI_Comm _comm_world, _comm_replica, _comm_gpu;
+  int _procs_per_gpu, _gpu_rank, _world_me, _world_size, _replica_me, 
+      _replica_size;
   int _gpu_mode, _first_device, _last_device, _nthreads;
   double _particle_split;
   double _cpu_full;

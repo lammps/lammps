@@ -23,12 +23,14 @@
 #include "timer.h"
 #include "modify.h"
 #include "domain.h"
+#include "universe.h"
 
 using namespace LAMMPS_NS;
 
 enum{GPU_FORCE, GPU_NEIGH};
 
-extern bool lmp_init_device(const int first_gpu, const int last_gpu,
+extern bool lmp_init_device(MPI_Comm world, MPI_Comm replica,
+                            const int first_gpu, const int last_gpu,
                             const int gpu_mode, const double particle_split,
                             const int nthreads);
 extern void lmp_clear_device();
@@ -81,7 +83,8 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
     error->all("No OpenMP support compiled in.");
   #endif
 
-  if (!lmp_init_device(first_gpu,last_gpu,gpu_mode,particle_split,nthreads))
+  if (!lmp_init_device(universe->uworld,world,first_gpu,last_gpu,gpu_mode,
+                       particle_split,nthreads))
     error->one("Could not find or initialize a specified accelerator device.");
 }
 

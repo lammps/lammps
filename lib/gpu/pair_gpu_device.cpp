@@ -120,10 +120,13 @@ bool PairGPUDeviceT::init(const bool charge, const bool rot, const int nlocal,
     return false;                          
   if (_init_count==0) {
     // Initialize atom and nbor data
-    if (!atom.init(nlocal,nall,charge,rot,*gpu,gpu_nbor,
+    int ef_nlocal=nlocal;
+    if (_particle_split<1.0 && _particle_split>0.0)
+      ef_nlocal=static_cast<int>(_particle_split*nlocal);
+    if (!atom.init(ef_nlocal,nall,charge,rot,*gpu,gpu_nbor,
                    gpu_nbor && maxspecial>0))
       return false;
-    if (!nbor.init(nlocal,host_nlocal,max_nbors,maxspecial,*gpu,gpu_nbor,
+    if (!nbor.init(ef_nlocal,host_nlocal,max_nbors,maxspecial,*gpu,gpu_nbor,
                    gpu_host,pre_cut))
       return false;
     nbor.cell_size(cell_size);

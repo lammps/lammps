@@ -63,6 +63,7 @@ own sub-directories with their own Makefiles.
 <LI><A HREF = "#msi">msi2lmp</A>
 <LI><A HREF = "#pymol">pymol_asphere</A>
 <LI><A HREF = "#pythontools">python</A>
+<LI><A HREF = "#reax">reax</A>
 <LI><A HREF = "#restart">restart2data</A>
 <LI><A HREF = "#thermo_extract">thermo_extract</A>
 <LI><A HREF = "#vim">vim</A>
@@ -345,7 +346,7 @@ examples directory within pymol_asphere for more information.
 <H4><A NAME = "pythontools"></A>python tool 
 </H4>
 <P>The python sub-directory contains several Python scripts
-that perform common LAMMPS post-processing tasks, like
+that perform common LAMMPS post-processing tasks, such as:
 </P>
 <UL><LI>extract thermodynamic info from a log file as columns of numbers
 <LI>plot two columns of thermodynamic info from a log file using GnuPlot
@@ -355,6 +356,17 @@ that perform common LAMMPS post-processing tasks, like
 </UL>
 <P>These are simple scripts built on <A HREF = "http://www.sandia.gov/~sjplimp/pizza.html">Pizza.py</A> modules.  See the
 README for more info on Pizza.py and how to use these scripts.
+</P>
+<HR>
+
+<H4><A NAME = "reax"></A>reax tool 
+</H4>
+<P>The reax sub-directory contains stand-alond codes that can
+post-process the output of the <A HREF = "fix_reax_bonds.html">fix reax/bonds</A>
+command from a LAMMPS simulation using <A HREF = "pair_reax.html">ReaxFF</A>.  See
+the README.txt file for more info.
+</P>
+<P>These tools were written by Aidan Thompson at Sandia.
 </P>
 <HR>
 

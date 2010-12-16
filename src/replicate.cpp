@@ -125,11 +125,15 @@ void Replicate::command(int narg, char **arg)
   atom->create_avec(old->atom_style,nstyles,keywords);
 
   // check that new problem size will not be too large
-  // if N > 2^31, turn off tags
+  // if N > 2^31, turn off tags for existing and new atoms
   // if molecular, N/Nbonds/etc cannot be > 2^31 else tags/counts invalid
 
   double rep = nrep;
   if (rep*old->natoms > MAXATOMS) atom->tag_enable = 0;
+
+  if (atom->tag_enable == 0)
+    for (int i = 0; i < atom->nlocal; i++)
+      atom->tag[i] = 0;
 
   if (atom->molecular) {
     if (rep*old->natoms > MAXATOMS || rep*old->nbonds > MAXATOMS ||

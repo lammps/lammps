@@ -59,6 +59,7 @@ own sub-directories with their own Makefiles.
 "msi2lmp"_#msi
 "pymol_asphere"_#pymol
 "python"_#pythontools
+"reax"_#reax
 "restart2data"_#restart
 "thermo_extract"_#thermo_extract
 "vim"_#vim
@@ -341,7 +342,7 @@ This tool was written by Mike Brown at Sandia.
 python tool :h4,link(pythontools)
 
 The python sub-directory contains several Python scripts
-that perform common LAMMPS post-processing tasks, like
+that perform common LAMMPS post-processing tasks, such as:
 
 extract thermodynamic info from a log file as columns of numbers
 plot two columns of thermodynamic info from a log file using GnuPlot
@@ -351,6 +352,17 @@ convert dump files into XYZ, CFG, or PDB format for viz by other packages :ul
 
 These are simple scripts built on "Pizza.py"_pizza modules.  See the
 README for more info on Pizza.py and how to use these scripts.
+
+:line
+
+reax tool :h4,link(reax)
+
+The reax sub-directory contains stand-alond codes that can
+post-process the output of the "fix reax/bonds"_fix_reax_bonds.html
+command from a LAMMPS simulation using "ReaxFF"_pair_reax.html.  See
+the README.txt file for more info.
+
+These tools were written by Aidan Thompson at Sandia.
 
 :line
 

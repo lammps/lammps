@@ -65,7 +65,6 @@ class PairGPUBalance {
   inline double all_avg_split() {
     if (_load_balance) {
       double _all_avg_split=0.0;
-      int nprocs;
       MPI_Reduce(&_avg_split,&_all_avg_split,1,MPI_DOUBLE,MPI_SUM,0,
                  _device->replica());
       _all_avg_split/=_device->replica_size();

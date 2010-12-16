@@ -91,7 +91,7 @@ class PairGPUDevice {
   /// Total number of processes
   inline int world_size() const { return _world_size; }
   /// MPI Barrier for world
-  inline int world_barrier() { MPI_Barrier(_comm_world); }
+  inline void world_barrier() { MPI_Barrier(_comm_world); }
   /// Return the replica MPI communicator
   inline MPI_Comm & replica() { return _comm_replica; }
   /// My rank within replica communicator
@@ -103,7 +103,7 @@ class PairGPUDevice {
   /// Return my rank in the device communicator
   inline int gpu_rank() const { return _gpu_rank; }
   /// MPI Barrier for gpu
-  inline int gpu_barrier() { MPI_Barrier(_comm_gpu); }
+  inline void gpu_barrier() { MPI_Barrier(_comm_gpu); }
   /// Return the 'mode' for acceleration: GPU_FORCE or GPU_NEIGH
   inline int gpu_mode() const { return _gpu_mode; }
   /// Index of first device used by a node

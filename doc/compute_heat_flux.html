@@ -161,8 +161,11 @@ thermo	     $d
 fix       NVT all nvt temp $T $T 10 drag 0.2
 run       8000 
 </PRE>
-<P># -------------- flux calculation ---------------
+<P># -------------- flux calculation, switch to NVE if desired --------
 </P>
+<PRE>#unfix     NVT
+#fix       NVE all nve 
+</PRE>
 <PRE>reset_timestep  0
 compute   myKE all ke/atom
 compute   myPE all pe/atom

@@ -158,7 +158,10 @@ velocity  all create $T 102486 mom yes rot yes dist gaussian
 fix       NVT all nvt temp $T $T 10 drag 0.2
 run       8000 :pre
 
-# -------------- flux calculation ---------------
+# -------------- flux calculation, switch to NVE if desired --------
+
+#unfix     NVT
+#fix       NVE all nve :pre
 
 reset_timestep  0
 compute   myKE all ke/atom

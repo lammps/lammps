@@ -47,9 +47,9 @@ own sub-directories with their own Makefiles.
 "data2xmovie"_#data
 "eam database"_#eamdb
 "eam generate"_#eamgn
-"eff_#eff
-"emacs_#emacs
-"ipp_#ipp
+"eff"_#eff
+"emacs"_#emacs
+"ipp"_#ipp
 "lmp2arc"_#arc
 "lmp2cfg"_#cfg
 "lmp2traj"_#traj

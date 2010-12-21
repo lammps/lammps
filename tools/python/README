@@ -45,7 +45,7 @@ to drive the Pizza.py modules.
 Before you run the scripts:
 
 To use these scripts you must set the environment variable
-LAMMPS_TOOLS_PYTHON in your shell to point to the Pizza.py modules
+LAMMPS_PYTHON_TOOLS in your shell to point to the Pizza.py modules
 that the scripts use.  This can either be a) the pizza sub-directory
 under lammps/tools/python, or b) the src directory in the Pizza.py
 package if you have installed Pizza.py on your box.

@@ -30,6 +30,8 @@
 
 using namespace LAMMPS_NS;
 
+enum{GEOMETRIC,ARITHMETIC,SIXTHPOWER};   // same as in pair.cpp
+
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
@@ -38,6 +40,7 @@ using namespace LAMMPS_NS;
 PairLJCharmmCoulCharmm::PairLJCharmmCoulCharmm(LAMMPS *lmp) : Pair(lmp)
 {
   implicit = 0;
+  mix_flag = ARITHMETIC;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -314,13 +317,13 @@ void PairLJCharmmCoulCharmm::init_style()
 
 double PairLJCharmmCoulCharmm::init_one(int i, int j)
 {
-  // always mix arithmetically
-
   if (setflag[i][j] == 0) {
-    epsilon[i][j] = sqrt(epsilon[i][i]*epsilon[j][j]);
-    sigma[i][j] = 0.5 * (sigma[i][i] + sigma[j][j]);
-    eps14[i][j] = sqrt(eps14[i][i]*eps14[j][j]);
-    sigma14[i][j] = 0.5 * (sigma14[i][i] + sigma14[j][j]);
+    epsilon[i][j] = mix_energy(epsilon[i][i],epsilon[j][j],
+			       sigma[i][i],sigma[j][j]);
+    sigma[i][j] = mix_distance(sigma[i][i],sigma[j][j]);
+    eps14[i][j] = mix_energy(eps14[i][i],eps14[j][j],
+			       sigma14[i][i],sigma14[j][j]);
+    sigma14[i][j] = mix_distance(sigma14[i][i],sigma14[j][j]);
   }
 
   double cut = MAX(cut_lj,cut_coul);

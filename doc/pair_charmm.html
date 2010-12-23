@@ -119,8 +119,9 @@ the pair_style command.
 </P>
 <P>For atom type pairs I,J and I != J, the epsilon, sigma, epsilon_14,
 and sigma_14 coefficients for all of the lj/charmm pair styles can be
-mixed.  They are always mixed with the value <I>arithmetic</I>.  See the
-"pair_modify" command for details.
+mixed.  The default mix value is <I>arithmetic</I> to coincide with the
+usual settings for the CHARMM force field.  See the "pair_modify"
+command for details.
 </P>
 <P>None of the lj/charmm pair styles support the
 <A HREF = "pair_modify.html">pair_modify</A> shift option, since the Lennard-Jones

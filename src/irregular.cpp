@@ -272,7 +272,7 @@ int Irregular::create_atom(int n, int *sizes, int *proclist)
     nrecvsize += length_recv[i];
   }
 
-  // barrier to insure all MPI_ANY_SOURCE messages are received
+  // barrier to insure all messages are received on all processors or
   // else another proc could proceed to exchange_atom() and send to me
 
   MPI_Barrier(world);

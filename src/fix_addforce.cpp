@@ -140,27 +140,27 @@ void FixAddForce::init()
     if (xvar < 0) error->all("Variable name for fix addforce does not exist");
     if (input->variable->equalstyle(xvar)) xstyle = EQUAL;
     else if (input->variable->atomstyle(xvar)) xstyle = ATOM;
-    else error->all("Variable for fix setforce is invalid style");
+    else error->all("Variable for fix addforce is invalid style");
   }
   if (ystr) {
     yvar = input->variable->find(ystr);
     if (yvar < 0) error->all("Variable name for fix addforce does not exist");
     if (input->variable->equalstyle(yvar)) ystyle = EQUAL;
     else if (input->variable->atomstyle(yvar)) ystyle = ATOM;
-    else error->all("Variable for fix setforce is invalid style");
+    else error->all("Variable for fix addforce is invalid style");
   }
   if (zstr) {
     zvar = input->variable->find(zstr);
     if (zvar < 0) error->all("Variable name for fix addforce does not exist");
     if (input->variable->equalstyle(zvar)) zstyle = EQUAL;
     else if (input->variable->atomstyle(zvar)) zstyle = ATOM;
-    else error->all("Variable for fix setforce is invalid style");
+    else error->all("Variable for fix addforce is invalid style");
   }
   if (estr) {
     evar = input->variable->find(estr);
     if (evar < 0) error->all("Variable name for fix addforce does not exist");
     if (input->variable->atomstyle(evar)) estyle = ATOM;
-    else error->all("Variable for fix setforce is invalid style");
+    else error->all("Variable for fix addforce is invalid style");
   } else estyle = NONE;
 
   // set index and check validity of region

@@ -118,6 +118,7 @@ Neighbor::Neighbor(LAMMPS *lmp) : Pointers(lmp)
   requests = NULL;
 
   old_style = BIN;
+  old_triclinic = 0;
   old_nrequest = 0;
   old_requests = NULL;
 
@@ -382,10 +383,12 @@ void Neighbor::init()
 
   // test if pairwise lists need to be re-created
   // no need to re-create if:
-  // neigh style has not changed and current requests = old requests
+  //   neigh style and triclinic has not changed and
+  //   current requests = old requests
 
   int same = 1;
   if (style != old_style) same = 0;
+  if (triclinic != old_triclinic) same = 0;
   if (nrequest != old_nrequest) same = 0;
   else
     for (i = 0; i < nrequest; i++)
@@ -629,6 +632,7 @@ void Neighbor::init()
   nrequest = maxrequest = 0;
   requests = NULL;
   old_style = style;
+  old_triclinic = triclinic;
 
   // ------------------------------------------------------------------
   // topology lists

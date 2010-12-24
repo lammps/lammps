@@ -165,6 +165,21 @@ void FixSetForce::init()
 
   if (strcmp(update->integrate_style,"respa") == 0)
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
+
+  // cannot use non-zero forces for a minimization since no energy is integrated
+  // use fix addforce instead
+
+  int flag = 0;
+  if (update->whichflag == 2) {
+    if (xstyle == EQUAL || xstyle == ATOM) flag = 1;
+    if (ystyle == EQUAL || ystyle == ATOM) flag = 1;
+    if (zstyle == EQUAL || zstyle == ATOM) flag = 1;
+    if (xstyle == CONSTANT && xvalue != 0.0) flag = 1;
+    if (ystyle == CONSTANT && yvalue != 0.0) flag = 1;
+    if (zstyle == CONSTANT && zvalue != 0.0) flag = 1;
+  }
+  if (flag) 
+    error->all("Cannot use non-zero forces in an energy minimization");
 }
 
 /* ---------------------------------------------------------------------- */

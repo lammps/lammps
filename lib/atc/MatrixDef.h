@@ -37,7 +37,6 @@ using std::showbase;
 //* @typedef INDEX
 //* @brief indexing type (default: unsigned) for matrix classes
 typedef unsigned INDEX;
-typedef vector<INDEX> List;
 //* @typedef CLONE_TYPE
 //* @brief dimension of matrix to clone
 enum CLONE_TYPE { CLONE_ROW=0, CLONE_COL=1, CLONE_DIAG=2 };

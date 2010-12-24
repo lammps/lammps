@@ -16,7 +16,7 @@ ID, group-ID are documented in "fix"_fix.html command :ulb,l
 indent = style name of this fix command :l
 K = force constant for indenter surface (force/distance^2 units) :l
 one or more keyword/value pairs may be appended :l
-keyword = {sphere} or {cylinder} or {plane} or {vel} or {rstart} or {side} or {units} :l
+keyword = {sphere} or {cylinder} or {plane} or {side} or {units} :l
   {sphere} args = x y z R
     x,y,z = initial position of center of indenter (distance units)
     R = sphere radius of indenter (distance units)

@@ -267,12 +267,12 @@ int Irregular::create_atom(int n, int *sizes, int *proclist)
 
   int nrecvsize = 0;
   for (i = 0; i < nrecv; i++) {
-    MPI_Recv(&length_recv[i],1,MPI_INT,proc_send[i],0,world,status+i);
-    proc_recv[i] = status[i].MPI_SOURCE;
+    MPI_Recv(&length_recv[i],1,MPI_INT,MPI_ANY_SOURCE,0,world,status);
+    proc_recv[i] = status->MPI_SOURCE;
     nrecvsize += length_recv[i];
   }
 
-  // barrier to insure all messages are received on all processors or
+  // barrier to insure all MPI_ANY_SOURCE messages are received
   // else another proc could proceed to exchange_atom() and send to me
 
   MPI_Barrier(world);
@@ -489,13 +489,13 @@ int Irregular::create_data(int n, int *proclist)
 
   int nrecvsize = 0;
   for (i = 0; i < nrecv; i++) {
-    MPI_Recv(&num_recv[i],1,MPI_INT,proc_send[i],0,world,status+i);
-    proc_recv[i] = status[i].MPI_SOURCE;
+    MPI_Recv(&num_recv[i],1,MPI_INT,MPI_ANY_SOURCE,0,world,status);
+    proc_recv[i] = status->MPI_SOURCE;
     nrecvsize += num_recv[i];
   }
   nrecvsize += num_self;
 
-  // barrier to insure all messages are received on all processors or
+  // barrier to insure all MPI_ANY_SOURCE messages are received
   // else another proc could proceed to exchange_data() and send to me
 
   MPI_Barrier(world);

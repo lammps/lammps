@@ -75,10 +75,8 @@ bool CRML_GPU_MemoryT::init(const int ntypes,
     host_write[i]=0.0;
 
   lj1.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
-  this->atom->type_pack2(ntypes,lj_types,lj1,host_write,host_lj1,host_lj2);
-
-  lj3.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
-  this->atom->type_pack2(ntypes,lj_types,lj3,host_write,host_lj3,host_lj4);
+  this->atom->type_pack4(ntypes,lj_types,lj1,host_write,host_lj1,host_lj2,
+                         host_lj3,host_lj4);
 
   sp_lj.alloc(8,*(this->ucl_device),UCL_READ_ONLY);
   for (int i=0; i<4; i++) {
@@ -87,17 +85,16 @@ bool CRML_GPU_MemoryT::init(const int ntypes,
   }
   ucl_copy(sp_lj,host_write,8,false);
 
-  // _cutoffs.x = cut_bothsq, _cutoffs.y = cut_coulsq, _cutoffs.z = cut_ljsq
-  _cutoffs.x = host_cut_bothsq;
-  _cutoffs.y = host_cut_coulsq;
-  _cutoffs.z = host_cut_ljsq;
-  _cutoffs.w = cut_lj_innersq;
+  _cut_bothsq = host_cut_bothsq;
+  _cut_coulsq = host_cut_coulsq;
+  _cut_ljsq = host_cut_ljsq;
+  _cut_lj_innersq = cut_lj_innersq;
   _qqrd2e=qqrd2e;
   _g_ewald=g_ewald;
   _denom_lj=denom_lj;
 
   _allocated=true;
-  this->_max_bytes=lj1.row_bytes()+lj3.row_bytes()+sp_lj.row_bytes();
+  this->_max_bytes=lj1.row_bytes()+sp_lj.row_bytes();
   return true;
 }
 
@@ -108,7 +105,6 @@ void CRML_GPU_MemoryT::clear() {
   _allocated=false;
 
   lj1.clear();
-  lj3.clear();
   sp_lj.clear();
   this->clear_atomic();
 }
@@ -145,21 +141,22 @@ void CRML_GPU_MemoryT::loop(const bool _eflag, const bool _vflag) {
   if (shared_types) {
     this->k_pair_fast.set_size(GX,BX);
     this->k_pair_fast.run(&this->atom->dev_x.begin(), &lj1.begin(),
-                          &lj3.begin(), &sp_lj.begin(),
-                          &this->nbor->dev_nbor.begin(),
+                          &sp_lj.begin(), &this->nbor->dev_nbor.begin(),
                           &this->atom->dev_ans.begin(),
                           &this->atom->dev_engv.begin(), &eflag, &vflag,
                           &ainum, &anall, &nbor_pitch,
-                          &this->atom->dev_q.begin(), &_cutoffs,
-                          &_qqrd2e, &_g_ewald, &_denom_lj);
+                          &this->atom->dev_q.begin(), &_cut_coulsq,
+                          &_qqrd2e, &_g_ewald, &_denom_lj, &_cut_bothsq,
+                          &_cut_ljsq, &_cut_lj_innersq);
   } else {
     this->k_pair.set_size(GX,BX);
-    this->k_pair.run(&this->atom->dev_x.begin(), &lj1.begin(), &lj3.begin(),
+    this->k_pair.run(&this->atom->dev_x.begin(), &lj1.begin(),
                      &_lj_types, &sp_lj.begin(), &this->nbor->dev_nbor.begin(),
                      &this->atom->dev_ans.begin(),
                      &this->atom->dev_engv.begin(), &eflag, &vflag, &ainum,
                      &anall, &nbor_pitch, &this->atom->dev_q.begin(),
-                     &_cutoffs, &_qqrd2e, &_g_ewald, &_denom_lj);
+                     &_cut_coulsq, &_qqrd2e, &_g_ewald, &_denom_lj,
+                     &_cut_bothsq, &_cut_ljsq, &_cut_lj_innersq);
   }
   this->time_pair.stop();
 }

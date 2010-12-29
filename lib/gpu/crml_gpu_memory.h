@@ -52,10 +52,8 @@ class CRML_GPU_Memory : public ChargeGPUMemory<numtyp, acctyp> {
 
   // --------------------------- TYPE DATA --------------------------
 
-  /// lj1.x = lj1, lj1.y = lj2
-  UCL_D_Vec<numtyp2> lj1;
-  /// lj3.x = lj3, lj3.y = lj4
-  UCL_D_Vec<numtyp2> lj3;
+  /// x = lj1, y = lj2, z = lj3, w = lj4
+  UCL_D_Vec<numtyp4> lj1;
   /// Special LJ values [0-3] and Special Coul values [4-7]
   UCL_D_Vec<numtyp> sp_lj;
 
@@ -67,8 +65,7 @@ class CRML_GPU_Memory : public ChargeGPUMemory<numtyp, acctyp> {
 
   numtyp _qqrd2e, _g_ewald, _denom_lj;
 
-  // x = cut_bothsq, y = cut_coulsq, z = cut_ljsq, w = cut_lj_innersq
-  numtyp4 _cutoffs;
+  numtyp _cut_coulsq, _cut_bothsq, _cut_ljsq, _cut_lj_innersq;
 
  private:
   bool _allocated;

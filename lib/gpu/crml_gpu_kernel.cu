@@ -93,15 +93,17 @@ __inline float fetch_q(const int& i, const float *q)
 
 #endif
 
-__kernel void kernel_pair(__global numtyp4 *x_, __global numtyp2 *lj1,
-                          __global numtyp2* lj3, const int lj_types, 
+__kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *lj1,
+                          const int lj_types, 
                           __global numtyp *sp_lj_in, __global int *dev_nbor, 
                           __global acctyp4 *ans, __global acctyp *engv, 
                           const int eflag, const int vflag, const int inum, 
                           const int nall, const int nbor_pitch,
-                          __global numtyp *q_ , const numtyp4 cutoffs,
+                          __global numtyp *q_, const numtyp cut_coulsq,
                           const numtyp qqrd2e, const numtyp g_ewald,
-                          const numtyp denom_lj) {
+                          const numtyp denom_lj, const numtyp cut_bothsq, 
+                          const numtyp cut_ljsq, const numtyp cut_lj_innersq) {
+
   // ii indexes the two interacting particles in gi
   int ii=GLOBAL_ID_X;
   __local numtyp sp_lj[8];
@@ -158,27 +160,27 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp2 *lj1,
       numtyp rsq = delx*delx+dely*dely+delz*delz;
 
       int mtype=itype*lj_types+jtype;
-      if (rsq<cutoffs.x) {
+      if (rsq<cut_bothsq) {
         numtyp r2inv=(numtyp)1.0/rsq;
         numtyp forcecoul, force_lj, force, r6inv, prefactor, _erfc, switch1;
 
-        if (rsq < cutoffs.z) {
+        if (rsq < cut_ljsq) {
           r6inv = r2inv*r2inv*r2inv;
           force_lj = factor_lj*r6inv*(lj1[mtype].x*r6inv-lj1[mtype].y);
-          if (rsq > cutoffs.w) {
-            switch1 = (cutoffs.z-rsq);
-            numtyp switch2 = (numtyp)12.0*rsq*switch1*(rsq-cutoffs.w)/ 
+          if (rsq > cut_lj_innersq) {
+            switch1 = (cut_ljsq-rsq);
+            numtyp switch2 = (numtyp)12.0*rsq*switch1*(rsq-cut_lj_innersq)/ 
                              denom_lj;
             switch1 *= switch1;
-            switch1 *= (cutoffs.z+(numtyp)2.0*rsq-(numtyp)3.0*cutoffs.w)/
+            switch1 *= (cut_ljsq+(numtyp)2.0*rsq-(numtyp)3.0*cut_lj_innersq)/
                        denom_lj;
-            switch2 *= r6inv*(lj3[mtype].x*r6inv-lj3[mtype].y);
+            switch2 *= r6inv*(lj1[mtype].z*r6inv-lj1[mtype].w);
             force_lj = force_lj*switch1+switch2;
           }
         } else
           force_lj = (numtyp)0.0;
 
-        if (rsq < cutoffs.y) {
+        if (rsq < cut_coulsq) {
           numtyp r = sqrt(rsq);
           numtyp grij = g_ewald * r;
           numtyp expm2 = exp(-grij*grij);
@@ -199,9 +201,9 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp2 *lj1,
 
         if (eflag>0) {
           e_coul += prefactor*(_erfc-factor_coul);
-          if (rsq < cutoffs.z) {
-            numtyp e=r6inv*(lj3[mtype].x*r6inv-lj3[mtype].y);
-            if (rsq > cutoffs.w)
+          if (rsq < cut_ljsq) {
+            numtyp e=r6inv*(lj1[mtype].z*r6inv-lj1[mtype].w);
+            if (rsq > cut_lj_innersq)
               e *= switch1;
             energy+=factor_lj*e;
           } 
@@ -236,27 +238,25 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp2 *lj1,
   } // if ii
 }
 
-__kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp2 *lj1_in,
-                               __global numtyp2* lj3_in, 
+__kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
                                __global numtyp* sp_lj_in, __global int *dev_nbor, 
                                __global acctyp4 *ans, __global acctyp *engv, 
                                const int eflag, const int vflag, const int inum, 
                                const int nall, const int nbor_pitch,
-                               __global numtyp *q_ , const numtyp4 cutoffs,
+                               __global numtyp *q_, const numtyp cut_coulsq, 
                                const numtyp qqrd2e, const numtyp g_ewald,
-                               const numtyp denom_lj) {
+                               const numtyp denom_lj, const numtyp cut_bothsq, 
+                               const numtyp cut_ljsq,
+                               const numtyp cut_lj_innersq) {
   // ii indexes the two interacting particles in gi
   int ii=THREAD_ID_X;
-  __local numtyp2 lj1[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
-  __local numtyp2 lj3[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
+  __local numtyp4 lj1[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   __local numtyp sp_lj[8];
   if (ii<8)
     sp_lj[ii]=sp_lj_in[ii];
-  if (ii<MAX_SHARED_TYPES*MAX_SHARED_TYPES) {
+  if (ii<MAX_SHARED_TYPES*MAX_SHARED_TYPES)
     lj1[ii]=lj1_in[ii];
-    if (eflag>0)
-      lj3[ii]=lj3_in[ii];
-  }
+
   ii+=mul24((int)BLOCK_ID_X,(int)BLOCK_SIZE_X);
   __syncthreads();
   
@@ -305,27 +305,27 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp2 *lj1_in,
       numtyp delz = ix.z-jx.z;
       numtyp rsq = delx*delx+dely*dely+delz*delz;
 
-      if (rsq<cutoffs.x) {
+      if (rsq<cut_bothsq) {
         numtyp r2inv=(numtyp)1.0/rsq;
         numtyp forcecoul, force_lj, force, r6inv, prefactor, _erfc, switch1;
 
-        if (rsq < cutoffs.z) {
+        if (rsq < cut_ljsq) {
           r6inv = r2inv*r2inv*r2inv;
           force_lj = factor_lj*r6inv*(lj1[mtype].x*r6inv-lj1[mtype].y);
-          if (rsq > cutoffs.w) {
-            switch1 = (cutoffs.z-rsq);
-            numtyp switch2 = (numtyp)12.0*rsq*switch1*(rsq-cutoffs.w)/ 
+          if (rsq > cut_lj_innersq) {
+            switch1 = (cut_ljsq-rsq);
+            numtyp switch2 = (numtyp)12.0*rsq*switch1*(rsq-cut_lj_innersq)/ 
                              denom_lj;
             switch1 *= switch1;
-            switch1 *= (cutoffs.z+(numtyp)2.0*rsq-(numtyp)3.0*cutoffs.w)/
+            switch1 *= (cut_ljsq+(numtyp)2.0*rsq-(numtyp)3.0*cut_lj_innersq)/
                        denom_lj;
-            switch2 *= r6inv*(lj3[mtype].x*r6inv-lj3[mtype].y);
+            switch2 *= r6inv*(lj1[mtype].z*r6inv-lj1[mtype].w);
             force_lj = force_lj*switch1+switch2;
           }
         } else
           force_lj = (numtyp)0.0;
 
-        if (rsq < cutoffs.y) {
+        if (rsq < cut_coulsq) {
           numtyp r = sqrt(rsq);
           numtyp grij = g_ewald * r;
           numtyp expm2 = exp(-grij*grij);
@@ -346,9 +346,9 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp2 *lj1_in,
 
         if (eflag>0) {
           e_coul += prefactor*(_erfc-factor_coul);
-          if (rsq < cutoffs.z) {
-            numtyp e=r6inv*(lj3[mtype].x*r6inv-lj3[mtype].y);
-            if (rsq > cutoffs.w)
+          if (rsq < cut_ljsq) {
+            numtyp e=r6inv*(lj1[mtype].z*r6inv-lj1[mtype].w);
+            if (rsq > cut_lj_innersq)
               e *= switch1;
             energy+=factor_lj*e;
           }

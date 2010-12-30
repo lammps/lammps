@@ -18,7 +18,7 @@
 #ifndef CRML_GPU_KERNEL
 #define CRML_GPU_KERNEL
 
-#define MAX_SHARED_TYPES 8
+#define MAX_BIO_SHARED_TYPES 21
 
 #ifdef _DOUBLE_DOUBLE
 #define numtyp double
@@ -238,6 +238,163 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *lj1,
   } // if ii
 }
 
+__kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp4 *g_lj1,
+                               __global numtyp* sp_lj_in, __global int *dev_nbor, 
+                               __global acctyp4 *ans, __global acctyp *engv, 
+                               const int eflag, const int vflag, const int inum, 
+                               const int nall, const int nbor_pitch,
+                               __global numtyp *q_, const numtyp cut_coulsq, 
+                               const numtyp qqrd2e, const numtyp g_ewald,
+                               const numtyp denom_lj, const numtyp cut_bothsq, 
+                               const numtyp cut_ljsq,
+                               const numtyp cut_lj_innersq, const int ntypes) {
+  // ii indexes the two interacting particles in gi
+  int ii=THREAD_ID_X;
+  __local numtyp4 s_lj1[MAX_BIO_SHARED_TYPES*MAX_BIO_SHARED_TYPES];
+  __local numtyp sp_lj[8];
+  if (ii<8)
+    sp_lj[ii]=sp_lj_in[ii];
+  
+  int lj_offset=0;
+  for (int si=0; si<7; si++) {
+    int lji=ii+lj_offset;
+    if (lji<MAX_BIO_SHARED_TYPES*MAX_BIO_SHARED_TYPES)
+      s_lj1[lji]=g_lj1[lji];
+    lj_offset+=64;
+  }
+
+  ii+=mul24((int)BLOCK_ID_X,(int)BLOCK_SIZE_X);
+  __syncthreads();
+  
+  if (ii<inum) {
+  
+    acctyp energy=(numtyp)0;
+    acctyp e_coul=(numtyp)0;
+    acctyp4 f;
+    f.x=(numtyp)0;
+    f.y=(numtyp)0;
+    f.z=(numtyp)0;
+    acctyp virial[6];
+    for (int i=0; i<6; i++)
+      virial[i]=(numtyp)0;
+  
+    __global int *nbor=dev_nbor+ii;
+    int i=*nbor;
+    nbor+=nbor_pitch;
+    int numj=*nbor;
+    nbor+=nbor_pitch;
+    __global int *list_end=nbor+mul24(numj,nbor_pitch);
+  
+    numtyp4 ix=fetch_pos(i,x_); //x_[i];
+    numtyp qtmp=fetch_q(i,q_);
+    int iw=ix.w;
+    int itype=mul24(ntypes,iw);
+
+    for ( ; nbor<list_end; nbor+=nbor_pitch) {
+      int j=*nbor;
+
+      numtyp factor_lj, factor_coul;
+      if (j < nall) {
+        factor_lj = (numtyp)1.0;
+        factor_coul = (numtyp)0.0;
+      } else {
+        factor_lj = sp_lj[j/nall];
+        factor_coul = (numtyp)1.0-sp_lj[j/nall+4];
+        j %= nall;
+      }
+      numtyp4 jx=fetch_pos(j,x_); //x_[j];
+      int mtype=itype+jx.w;
+
+      // Compute r12
+      numtyp delx = ix.x-jx.x;
+      numtyp dely = ix.y-jx.y;
+      numtyp delz = ix.z-jx.z;
+      numtyp rsq = delx*delx+dely*dely+delz*delz;
+
+      if (rsq<cut_bothsq) {
+        numtyp r2inv=(numtyp)1.0/rsq;
+        numtyp forcecoul, force_lj, force, r6inv, prefactor, _erfc, switch1;
+
+        numtyp4 lj1;
+        if (mtype<MAX_BIO_SHARED_TYPES*MAX_BIO_SHARED_TYPES)
+          lj1 = s_lj1[mtype];
+        else
+          lj1 = g_lj1[mtype];
+        if (rsq < cut_ljsq) {
+          r6inv = r2inv*r2inv*r2inv;
+          force_lj = factor_lj*r6inv*(lj1.x*r6inv-lj1.y);
+          if (rsq > cut_lj_innersq) {
+            switch1 = (cut_ljsq-rsq);
+            numtyp switch2 = (numtyp)12.0*rsq*switch1*(rsq-cut_lj_innersq)/ 
+                             denom_lj;
+            switch1 *= switch1;
+            switch1 *= (cut_ljsq+(numtyp)2.0*rsq-(numtyp)3.0*cut_lj_innersq)/
+                       denom_lj;
+            switch2 *= r6inv*(lj1.z*r6inv-lj1.w);
+            force_lj = force_lj*switch1+switch2;
+          }
+        } else
+          force_lj = (numtyp)0.0;
+
+        if (rsq < cut_coulsq) {
+          numtyp r = sqrt(rsq);
+          numtyp grij = g_ewald * r;
+          numtyp expm2 = exp(-grij*grij);
+          numtyp t = (numtyp)1.0 / ((numtyp)1.0 + EWALD_P*grij);
+          _erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+          prefactor = qqrd2e * qtmp*fetch_q(j,q_)/r;
+          forcecoul = prefactor * (_erfc + EWALD_F*grij*expm2-factor_coul);
+        } else {
+          forcecoul = (numtyp)0.0;
+          prefactor = (numtyp)0.0;
+        }
+
+        force = (force_lj + forcecoul) * r2inv;
+
+        f.x+=delx*force;
+        f.y+=dely*force;
+        f.z+=delz*force;
+
+        if (eflag>0) {
+          e_coul += prefactor*(_erfc-factor_coul);
+          if (rsq < cut_ljsq) {
+            numtyp e=r6inv*(lj1.z*r6inv-lj1.w);
+            if (rsq > cut_lj_innersq)
+              e *= switch1;
+            energy+=factor_lj*e;
+          }
+        }
+        if (vflag>0) {
+          virial[0] += delx*delx*force;
+          virial[1] += dely*dely*force;
+          virial[2] += delz*delz*force;
+          virial[3] += delx*dely*force;
+          virial[4] += delx*delz*force;
+          virial[5] += dely*delz*force;
+        }
+      }
+
+    } // for nbor
+
+    // Store answers
+    __global acctyp *ap1=engv+ii;
+    if (eflag>0) {
+      *ap1=energy;
+      ap1+=inum;
+      *ap1=e_coul;
+      ap1+=inum;
+    }
+    if (vflag>0) {
+      for (int i=0; i<6; i++) {
+        *ap1=virial[i];
+        ap1+=inum;
+      }
+    }
+    ans[ii]=f;
+  } // if ii*/
+}
+
+/*
 __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
                                __global numtyp* sp_lj_in, __global int *dev_nbor, 
                                __global acctyp4 *ans, __global acctyp *engv, 
@@ -250,11 +407,11 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
                                const numtyp cut_lj_innersq) {
   // ii indexes the two interacting particles in gi
   int ii=THREAD_ID_X;
-  __local numtyp4 lj1[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
+  __local numtyp4 lj1[MAX_BIO_SHARED_TYPES*MAX_BIO_SHARED_TYPES];
   __local numtyp sp_lj[8];
   if (ii<8)
     sp_lj[ii]=sp_lj_in[ii];
-  if (ii<MAX_SHARED_TYPES*MAX_SHARED_TYPES)
+  if (ii<MAX_BIO_SHARED_TYPES*MAX_BIO_SHARED_TYPES)
     lj1[ii]=lj1_in[ii];
 
   ii+=mul24((int)BLOCK_ID_X,(int)BLOCK_SIZE_X);
@@ -282,7 +439,7 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
     numtyp4 ix=fetch_pos(i,x_); //x_[i];
     numtyp qtmp=fetch_q(i,q_);
     int iw=ix.w;
-    int itype=mul24((int)MAX_SHARED_TYPES,iw);
+    int itype=mul24((int)MAX_BIO_SHARED_TYPES,iw);
 
     for ( ; nbor<list_end; nbor+=nbor_pitch) {
       int j=*nbor;
@@ -380,8 +537,9 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
       }
     }
     ans[ii]=f;
-  } // if ii*/
+  } // if ii
 }
+*/
 
 #endif
 

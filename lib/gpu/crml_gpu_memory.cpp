@@ -61,10 +61,8 @@ bool CRML_GPU_MemoryT::init(const int ntypes,
   // If atom type constants fit in shared memory use fast kernel
   int lj_types=ntypes;
   shared_types=false;
-  if (lj_types<=MAX_SHARED_TYPES && this->_block_size>=MAX_SHARED_TYPES) {
-    lj_types=MAX_SHARED_TYPES;
+  if (this->_block_size==64)
     shared_types=true;
-  }
   _lj_types=lj_types;
 
   // Allocate a host write buffer for data initialization
@@ -74,7 +72,14 @@ bool CRML_GPU_MemoryT::init(const int ntypes,
   for (int i=0; i<lj_types*lj_types; i++)
     host_write[i]=0.0;
 
-  lj1.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
+//+  lj1.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
+  if (lj_types<MAX_BIO_SHARED_TYPES)
+    lj1.alloc(MAX_BIO_SHARED_TYPES*MAX_BIO_SHARED_TYPES,*(this->ucl_device),
+              UCL_READ_ONLY);
+  else
+    lj1.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
+  
+
   this->atom->type_pack4(ntypes,lj_types,lj1,host_write,host_lj1,host_lj2,
                          host_lj3,host_lj4);
 
@@ -147,7 +152,7 @@ void CRML_GPU_MemoryT::loop(const bool _eflag, const bool _vflag) {
                           &ainum, &anall, &nbor_pitch,
                           &this->atom->dev_q.begin(), &_cut_coulsq,
                           &_qqrd2e, &_g_ewald, &_denom_lj, &_cut_bothsq,
-                          &_cut_ljsq, &_cut_lj_innersq);
+                          &_cut_ljsq, &_cut_lj_innersq, &_lj_types);
   } else {
     this->k_pair.set_size(GX,BX);
     this->k_pair.run(&this->atom->dev_x.begin(), &lj1.begin(),

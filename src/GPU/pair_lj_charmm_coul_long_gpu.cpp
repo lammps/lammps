@@ -56,7 +56,7 @@ bool crml_gpu_init(const int ntypes, double cut_bothsq, double **host_lj1,
 		   double host_cut_ljsq, double host_cut_coulsq,
 		   double *host_special_coul, const double qqrd2e,
 		   const double g_ewald, const double cut_lj_innersq,
-		   const double denom_lj);
+		   const double denom_lj, double **epsilon, double **sigma);
 void crml_gpu_clear();
 int * crml_gpu_compute_n(const int timestep, const int ago, const int inum,
 			 const int nall, double **host_x, int *host_type, 
@@ -181,7 +181,7 @@ void PairLJCharmmCoulLongGPU::init_style()
 			       atom->nlocal+atom->nghost, 300, maxspecial,
 			       cell_size, gpu_mode, screen, cut_ljsq, cut_coulsq,
 			       force->special_coul, force->qqrd2e, g_ewald, cut_lj_innersq,
-			       denom_lj);
+			       denom_lj,epsilon,sigma);
   if (!init_ok)
     error->one("Insufficient memory on accelerator (or no fix gpu).\n"); 
 

@@ -54,7 +54,8 @@ bool CRML_GPU_MemoryT::init(const int ntypes,
                            double host_cut_ljsq, const double host_cut_coulsq,
                            double *host_special_coul, const double qqrd2e,
                            const double g_ewald, const double cut_lj_innersq,
-                           const double denom_lj) {
+                           const double denom_lj, double **epsilon,
+                           double **sigma) {
   this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
                     _screen,crml_gpu_kernel);
 
@@ -66,22 +67,27 @@ bool CRML_GPU_MemoryT::init(const int ntypes,
   _lj_types=lj_types;
 
   // Allocate a host write buffer for data initialization
-  UCL_H_Vec<numtyp> host_write(lj_types*lj_types*32,*(this->ucl_device),
+  int h_size=lj_types;
+  if (lj_types*lj_types<MAX_BIO_SHARED_TYPES)
+    h_size=MAX_BIO_SHARED_TYPES;
+  UCL_H_Vec<numtyp> host_write(h_size*h_size*32,*(this->ucl_device),
                                UCL_WRITE_OPTIMIZED);
 
   for (int i=0; i<lj_types*lj_types; i++)
     host_write[i]=0.0;
 
-//+  lj1.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
-  if (lj_types<MAX_BIO_SHARED_TYPES)
-    lj1.alloc(MAX_BIO_SHARED_TYPES*MAX_BIO_SHARED_TYPES,*(this->ucl_device),
-              UCL_READ_ONLY);
-  else
-    lj1.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
-  
-
+  lj1.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,lj1,host_write,host_lj1,host_lj2,
                          host_lj3,host_lj4);
+
+  ljd.alloc(MAX_BIO_SHARED_TYPES,*(this->ucl_device),UCL_READ_ONLY);
+  for (int i=0; i<lj_types; i++) {
+    host_write[i*2]=static_cast<numtyp>(epsilon[i][i]);
+    host_write[i*2+1]=static_cast<numtyp>(sigma[i][i]);
+  }
+  UCL_H_Vec<numtyp2> view;
+  view.view((numtyp2*)host_write.begin(),lj_types,*(this->ucl_device));
+  ucl_copy(ljd,view,false);
 
   sp_lj.alloc(8,*(this->ucl_device),UCL_READ_ONLY);
   for (int i=0; i<4; i++) {
@@ -99,7 +105,7 @@ bool CRML_GPU_MemoryT::init(const int ntypes,
   _denom_lj=denom_lj;
 
   _allocated=true;
-  this->_max_bytes=lj1.row_bytes()+sp_lj.row_bytes();
+  this->_max_bytes=lj1.row_bytes()+ljd.row_bytes()+sp_lj.row_bytes();
   return true;
 }
 
@@ -110,6 +116,7 @@ void CRML_GPU_MemoryT::clear() {
   _allocated=false;
 
   lj1.clear();
+  ljd.clear();
   sp_lj.clear();
   this->clear_atomic();
 }
@@ -145,7 +152,7 @@ void CRML_GPU_MemoryT::loop(const bool _eflag, const bool _vflag) {
   this->time_pair.start();
   if (shared_types) {
     this->k_pair_fast.set_size(GX,BX);
-    this->k_pair_fast.run(&this->atom->dev_x.begin(), &lj1.begin(),
+    this->k_pair_fast.run(&this->atom->dev_x.begin(), &ljd.begin(),
                           &sp_lj.begin(), &this->nbor->dev_nbor.begin(),
                           &this->atom->dev_ans.begin(),
                           &this->atom->dev_engv.begin(), &eflag, &vflag,

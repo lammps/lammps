@@ -38,7 +38,8 @@ class CRML_GPU_Memory : public ChargeGPUMemory<numtyp, acctyp> {
             const double gpu_split, FILE *screen, double host_cut_ljsq,
             const double host_cut_coulsq, double *host_special_coul,
             const double qqrd2e, const double g_ewald,
-            const double cut_lj_innersq, const double denom_lj);
+            const double cut_lj_innersq, const double denom_lj, 
+            double **epsilon, double **sigma);
 
   /// Clear all host and device data
   /** \note This is called at the beginning of the init() routine **/
@@ -54,6 +55,8 @@ class CRML_GPU_Memory : public ChargeGPUMemory<numtyp, acctyp> {
 
   /// x = lj1, y = lj2, z = lj3, w = lj4
   UCL_D_Vec<numtyp4> lj1;
+  /// x = epsilon, y = sigma
+  UCL_D_Vec<numtyp2> ljd;
   /// Special LJ values [0-3] and Special Coul values [4-7]
   UCL_D_Vec<numtyp> sp_lj;
 

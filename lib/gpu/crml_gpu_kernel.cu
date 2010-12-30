@@ -306,21 +306,18 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp2 *ljd_in,
 
       if (rsq<cut_bothsq) {
         numtyp r2inv=(numtyp)1.0/rsq;
-        numtyp forcecoul, force_lj, force, r6inv, prefactor, _erfc, switch1;
+        numtyp forcecoul, force_lj, force, prefactor, _erfc, switch1;
         numtyp lj3, lj4;
 
         if (rsq < cut_ljsq) {
           numtyp eps = sqrt(ljd[itype].x*ljd[jtype].x);
           numtyp sig6 = (numtyp)0.5 * (ljd[itype].y+ljd[jtype].y);
-          sig6 *= sig6;
-          sig6 = sig6 * sig6 * sig6;
-          numtyp sig12 = sig6 * sig6;
-          numtyp lj1 = (numtyp)48.0 * eps * sig12;
-          numtyp lj2 = (numtyp)24.0 * eps * sig6;
-          lj3 = (numtyp)4.0 * eps * sig12;
-          lj4 = (numtyp)4.0 * eps * sig6;
-          r6inv = r2inv*r2inv*r2inv;
-          force_lj = factor_lj*r6inv*(lj1*r6inv-lj2);
+
+          numtyp sig_r_6 = sig6*sig6*r2inv;
+          sig_r_6 = sig_r_6*sig_r_6*sig_r_6;
+          lj4 = (numtyp)4.0*eps*sig_r_6;
+          lj3 = lj4*sig_r_6;
+          force_lj = factor_lj*((numtyp)12.0 * lj3 - (numtyp)6.0 * lj4);
           if (rsq > cut_lj_innersq) {
             switch1 = (cut_ljsq-rsq);
             numtyp switch2 = (numtyp)12.0*rsq*switch1*(rsq-cut_lj_innersq)/ 
@@ -328,7 +325,7 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp2 *ljd_in,
             switch1 *= switch1;
             switch1 *= (cut_ljsq+(numtyp)2.0*rsq-(numtyp)3.0*cut_lj_innersq)/
                        denom_lj;
-            switch2 *= r6inv*(lj3*r6inv-lj4);
+            switch2 *= lj3-lj4;
             force_lj = force_lj*switch1+switch2;
           }
         } else
@@ -356,7 +353,7 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp2 *ljd_in,
         if (eflag>0) {
           e_coul += prefactor*(_erfc-factor_coul);
           if (rsq < cut_ljsq) {
-            numtyp e=r6inv*(lj3*r6inv-lj4);
+            numtyp e=lj3-lj4;
             if (rsq > cut_lj_innersq)
               e *= switch1;
             energy+=factor_lj*e;

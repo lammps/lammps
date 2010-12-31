@@ -201,6 +201,19 @@ class PairGPUAtom {
     ucl_copy(dev_v,view,false);
   }
 
+  /// Pack LAMMPS atom "self" type constants into 2 vectors and copy to device
+  template <class dev_typ, class t1, class t2>
+  inline void self_pack2(const int n, UCL_D_Vec<dev_typ> &dev_v, 
+                         UCL_H_Vec<numtyp> &buffer, t1 **one, t2 **two) {
+    for (int i=0; i<n; i++) {
+      buffer[i*2]=static_cast<numtyp>(one[i][i]);
+      buffer[i*2+1]=static_cast<numtyp>(two[i][i]);
+    }
+    UCL_H_Vec<dev_typ> view;
+    view.view((dev_typ*)buffer.begin(),n,*dev);
+    ucl_copy(dev_v,view,false);
+  }
+
   // -------------------------COPY TO GPU ----------------------------------
 
   /// Cast positions and types to write buffer

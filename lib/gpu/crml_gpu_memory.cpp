@@ -81,13 +81,7 @@ bool CRML_GPU_MemoryT::init(const int ntypes,
                          host_lj3,host_lj4);
 
   ljd.alloc(MAX_BIO_SHARED_TYPES,*(this->ucl_device),UCL_READ_ONLY);
-  for (int i=0; i<lj_types; i++) {
-    host_write[i*2]=static_cast<numtyp>(epsilon[i][i]);
-    host_write[i*2+1]=static_cast<numtyp>(sigma[i][i]);
-  }
-  UCL_H_Vec<numtyp2> view;
-  view.view((numtyp2*)host_write.begin(),lj_types,*(this->ucl_device));
-  ucl_copy(ljd,view,false);
+  this->atom->self_pack2(ntypes,ljd,host_write,epsilon,sigma);
 
   sp_lj.alloc(8,*(this->ucl_device),UCL_READ_ONLY);
   for (int i=0; i<4; i++) {
@@ -159,7 +153,7 @@ void CRML_GPU_MemoryT::loop(const bool _eflag, const bool _vflag) {
                           &ainum, &anall, &nbor_pitch,
                           &this->atom->dev_q.begin(), &_cut_coulsq,
                           &_qqrd2e, &_g_ewald, &_denom_lj, &_cut_bothsq,
-                          &_cut_ljsq, &_cut_lj_innersq, &_lj_types);
+                          &_cut_ljsq, &_cut_lj_innersq);
   } else {
     this->k_pair.set_size(GX,BX);
     this->k_pair.run(&this->atom->dev_x.begin(), &lj1.begin(),

@@ -159,7 +159,9 @@ void PairGPUDeviceT::init_message(FILE *screen, const char *name,
     fprintf(screen,"-------------------------------------\n");
     fprintf(screen,"- Using GPGPU acceleration for %s:\n",name);
     fprintf(screen,"-  with %d procs per device.\n",_procs_per_gpu);
+    #ifdef _OPENMP
     fprintf(screen,"-  with %d threads per proc.\n",_nthreads);
+    #endif
     fprintf(screen,"-------------------------------------");
     fprintf(screen,"-------------------------------------\n");
 

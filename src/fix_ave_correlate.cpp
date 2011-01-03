@@ -280,10 +280,6 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
       save_corr[i][j] = corr[i][j] = 0.0;
   }
 
-  lastindex = -1;
-  firstindex = 0;
-  nsample = 0;
-
   // this fix produces a global array
 
   array_flag = 1;
@@ -292,17 +288,14 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
   extarray = 0;
 
   // nvalid = next step on which end_of_step does something
-  // this step if multiple of nevery, else next multiple
-  // startstep is lower bound
-
-  nvalid = update->ntimestep;
-  if (startstep > nvalid) nvalid = startstep;
-  if (nvalid % nevery) nvalid = (nvalid/nevery)*nevery + nevery;
-
   // add nvalid to all computes that store invocation times
   // since don't know a priori which are invoked by this fix
   // once in end_of_step() can set timestep for ones actually invoked
 
+  lastindex = -1;
+  firstindex = 0;
+  nsample = 0;
+  nvalid = nextvalid();
   modify->addstep_compute_all(nvalid);
 }
 
@@ -359,6 +352,16 @@ void FixAveCorrelate::init()
 	error->all("Variable name for fix ave/correlate does not exist");
       value2index[i] = ivariable;
     }
+  }
+
+  // need to reset nvalid if nvalid < ntimestep b/c minimize was performed
+
+  if (nvalid < update->ntimestep) {
+    lastindex = -1;
+    firstindex = 0;
+    nsample = 0;
+    nvalid = nextvalid();
+    modify->addstep_compute_all(nvalid);
   }
 }
 
@@ -574,4 +577,18 @@ double FixAveCorrelate::compute_array(int i, int j)
   else if (j == 1) return 1.0*save_count[i];
   else if (save_count[i]) return save_corr[i][j-2];
   return 0.0;
+}
+
+/* ----------------------------------------------------------------------
+   nvalid = next step on which end_of_step does something
+   this step if multiple of nevery, else next multiple
+   startstep is lower bound
+------------------------------------------------------------------------- */
+
+int FixAveCorrelate::nextvalid()
+{
+  int nvalid = update->ntimestep;
+  if (startstep > nvalid) nvalid = startstep;
+  if (nvalid % nevery) nvalid = (nvalid/nevery)*nevery + nevery;
+  return nvalid;
 }

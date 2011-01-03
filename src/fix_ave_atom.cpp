@@ -187,21 +187,12 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
       array[i][m] = 0.0;
   
   // nvalid = next step on which end_of_step does something
-  // can be this timestep if multiple of peratom_freq and nrepeat = 1
-  // else backup from next multiple of peratom_freq
-
-  irepeat = 0;
-  nvalid = (update->ntimestep/peratom_freq)*peratom_freq + peratom_freq;
-  if (nvalid-peratom_freq == update->ntimestep && nrepeat == 1)
-    nvalid = update->ntimestep;
-  else
-    nvalid -= (nrepeat-1)*nevery;
-  if (nvalid < update->ntimestep) nvalid += peratom_freq;
-
   // add nvalid to all computes that store invocation times
   // since don't know a priori which are invoked by this fix
   // once in end_of_step() can set timestep for ones actually invoked
 
+  irepeat = 0;
+  nvalid = nextvalid();
   modify->addstep_compute_all(nvalid);
 }
 
@@ -257,6 +248,14 @@ void FixAveAtom::init()
       value2index[m] = ivariable;
 
     } else value2index[m] = -1;
+  }
+
+  // need to reset nvalid if nvalid < ntimestep b/c minimize was performed
+
+  if (nvalid < update->ntimestep) {
+    irepeat = 0;
+    nvalid = nextvalid();
+    modify->addstep_compute_all(nvalid);
   }
 }
 
@@ -428,4 +427,21 @@ int FixAveAtom::unpack_exchange(int nlocal, double *buf)
 {
   for (int m = 0; m < nvalues; m++) array[nlocal][m] = buf[m];
   return nvalues;
+}
+
+/* ----------------------------------------------------------------------
+   calculate nvalid = next step on which end_of_step does something
+   can be this timestep if multiple of nfreq and nrepeat = 1
+   else backup from next multiple of nfreq
+------------------------------------------------------------------------- */
+
+int FixAveAtom::nextvalid()
+{
+  int nvalid = (update->ntimestep/peratom_freq)*peratom_freq + peratom_freq;
+  if (nvalid-peratom_freq == update->ntimestep && nrepeat == 1)
+    nvalid = update->ntimestep;
+  else
+    nvalid -= (nrepeat-1)*nevery;
+  if (nvalid < update->ntimestep) nvalid += peratom_freq;
+  return nvalid;
 }

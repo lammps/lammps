@@ -63,6 +63,7 @@ class FixAveTime : public Fix {
   void invoke_vector(int);
   void options(int, char **);
   void allocate_values(int);
+  int nextvalid();
 };
 
 }

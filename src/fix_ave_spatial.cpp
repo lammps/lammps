@@ -372,20 +372,11 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
   values_list = NULL;
 
   // nvalid = next step on which end_of_step does something
-  // can be this timestep if multiple of nfreq and nrepeat = 1
-  // else backup from next multiple of nfreq
-
-  nvalid = (update->ntimestep/nfreq)*nfreq + nfreq;
-  if (nvalid-nfreq == update->ntimestep && nrepeat == 1)
-    nvalid = update->ntimestep;
-  else
-    nvalid -= (nrepeat-1)*nevery;
-  if (nvalid < update->ntimestep) nvalid += nfreq;
-
   // add nvalid to all computes that store invocation times
   // since don't know a priori which are invoked by this fix
   // once in end_of_step() can set timestep for ones actually invoked
 
+  nvalid = nextvalid();
   modify->addstep_compute_all(nvalid);
 }
 
@@ -473,6 +464,14 @@ void FixAveSpatial::init()
       value2index[m] = ivariable;
 
     } else value2index[m] = -1;
+  }
+
+  // need to reset nvalid if nvalid < ntimestep b/c minimize was performed
+
+  if (nvalid < update->ntimestep) {
+    irepeat = 0;
+    nvalid = nextvalid();
+    modify->addstep_compute_all(nvalid);
   }
 }
 
@@ -1261,6 +1260,23 @@ double FixAveSpatial::compute_array(int i, int j)
   j -= ndim+1;
   if (j < 0) return count_total[i]/norm;
   return values_total[i][j]/norm;
+}
+
+/* ----------------------------------------------------------------------
+   calculate nvalid = next step on which end_of_step does something
+   can be this timestep if multiple of nfreq and nrepeat = 1
+   else backup from next multiple of nfreq
+------------------------------------------------------------------------- */
+
+int FixAveSpatial::nextvalid()
+{
+  int nvalid = (update->ntimestep/nfreq)*nfreq + nfreq;
+  if (nvalid-nfreq == update->ntimestep && nrepeat == 1)
+    nvalid = update->ntimestep;
+  else
+    nvalid -= (nrepeat-1)*nevery;
+  if (nvalid < update->ntimestep) nvalid += nfreq;
+  return nvalid;
 }
 
 /* ----------------------------------------------------------------------

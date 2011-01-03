@@ -72,6 +72,7 @@ class FixAveSpatial : public Fix {
   void atom2bin1d();
   void atom2bin2d();
   void atom2bin3d();
+  int nextvalid();
 };
 
 }

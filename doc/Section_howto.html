@@ -32,7 +32,9 @@ LAMMPS.
 4.16 <A HREF = "#4_16">Thermostatting, barostatting and computing temperature</A><BR>
 4.17 <A HREF = "#4_17">Walls</A><BR>
 4.18 <A HREF = "#4_18">Elastic constants</A><BR>
-4.19 <A HREF = "#4_19">Library interface to LAMMPS</A> <BR>
+4.19 <A HREF = "#4_19">Library interface to LAMMPS</A><BR>
+4.20 <A HREF = "#4_20">Calculating thermal conductivity</A><BR>
+4.21 <A HREF = "#4_21">Calculating viscosity</A> <BR>
 
 <P>The example input scripts included in the LAMMPS distribution and
 highlighted in <A HREF = "Section_example.html">this section</A> also show how to
@@ -1707,6 +1709,184 @@ grab data from LAMMPS, change it, and put it back into LAMMPS.
 </P>
 <HR>
 
+<A NAME = "4_20"></A><H4>4.20 Calculating thermal conductivity 
+</H4>
+<P>The thermal conductivity kappa of a material can be measured in at
+least 3 ways using various options in LAMMPS.  (See <A HREF = "Section_howto.html#4_21">this
+section</A> of the manual for an analogous
+discussion for viscosity).  The thermal conducitivity tensor kappa is
+a measure of the propensity of a material to transmit heat energy in a
+diffusive manner as given by Fourier's law
+</P>
+<P>J = -kappa grad(T)
+</P>
+<P>where J is the heat flux in units of energy per area per time and
+grad(T) is the spatial gradient of temperature.  The thermal
+conductivity thus has units of energy per distance per time per degree
+K and is often approximated as an isotropic quantity, i.e. as a
+scalar.
+</P>
+<P>The first method is to setup two thermostatted regions at opposite
+ends of a simulation box, or one in the middle and one at the end of a
+periodic box.  By holding the two regions at different temperatures
+with a <A HREF = "Section_howto.html#4_13">thermostatting fix</A>, the energy added
+to the hot region should equal the energy subtracted from the cold
+region and be proportional to the heat flux moving between the
+regions.  See the paper by <A HREF = "#Ikeshoji">Ikeshoji and Hafskjold</A> for
+details of this idea.  Note that thermostatting fixes such as <A HREF = "fix_nh.html">fix
+nvt</A>, <A HREF = "fix_langevin.html">fix langevin</A>, and <A HREF = "fix_temp_rescale.html">fix
+temp/rescale</A> store the cumulative energy they
+add/subtract.  Alternatively, the <A HREF = "fix_heat.html">fix heat</A> command can
+used in place of thermostats on each of two regions, and the resulting
+temperatures of the two regions monitored with the "compute
+temp/region" command or the temperature profile of the intermediate
+region monitored with the <A HREF = "fix_ave_spatial.html">fix ave/spatial</A> and
+<A HREF = "compute_ke_atom.html">compute ke/atom</A> commands.
+</P>
+<P>The second method is to perform a reverse non-equilibrium MD
+simulation using the <A HREF = "fix_thermal_conductivity.html">fix
+thermal/conductivity</A> command which
+implements the rNEMD algorithm of Muller-Plathe.  Kinetic energy is
+swapped between atoms in two different layers of the simulation box.
+This induces a temperature gradient between the two layers which can
+be monitored with the <A HREF = "fix_ave_spatial.html">fix ave/spatial</A> and
+<A HREF = "compute_ke_atom.html">compute ke/atom</A> commands.  The fix tallies the
+cumulative energy transfer that it performs.  See the <A HREF = "fix_thermal_conductivity.html">fix
+thermal/conductivity</A> command for
+details.
+</P>
+<P>The third method is based on the Green-Kubo (GK) formula which relates
+the ensemble average of the auto-correlation of the heat flux to
+kappa.  The heat flux can be calculated from the fluctuations of
+per-atom potential and kinetic energies and per-atom stress tensor in
+a steady-state equilibrated simulation.  This is in contrast to the
+two preceding non-equilibrium methods, where energy flows continuously
+between hot and cold regions of the simulation box.
+</P>
+<P>The <A HREF = "compute_heat_flux.html">compute heat/flux</A> command can calculate
+the needed heat flux and describes how to implement the Green_Kubo
+formalism using additional LAMMPS commands, such as the <A HREF = "fix_ave_correlate.html">fix
+ave/correlate</A> command to calculate the needed
+auto-correlation.  See the doc page for the <A HREF = "compute_heat_flux.html">compute
+heat/flux</A> command for an example input script
+that calculates the thermal conductivity of solid Ar via the GK
+formalism.
+</P>
+<HR>
+
+<A NAME = "4_21"></A><H4>4.21 Calculating viscosity 
+</H4>
+<P>The shear viscosity eta of a fluid can be measured in at least 3 ways
+using various options in LAMMPS.  (See <A HREF = "Section_howto.html#4_">this
+section</A>??? of the manual for an analogous
+discussion for thermal conductivity).  Eta is a measure of the
+propensity of a fluid to transmit momentum in a direction
+perpendicular to the direction of velocity or momentum flow.
+Alternatively it is the resistance the fluid has to being sheared.  It
+is given by
+</P>
+<P>J = -eta grad(Vstream)
+</P>
+<P>where J is the momentum flux in units of momentum per area per time.
+and grad(Vstream) is the spatial gradient of the velocity of the fluid
+moving in another direction, normal to the area through which the
+momentum flows.  Viscosity thus has units of pressure-time.
+</P>
+<P>The first method is to perform a non-equlibrium MD (NEMD) simulation
+by shearing the simulation box via the <A HREF = "fix_deform.html">fix deform</A>
+command, and using the <A HREF = "fix_nvt_sllod.html">fix nvt/sllod</A> command to
+thermostat the fluid via the SLLOD equations of motion.  The velocity
+profile setup in the fluid by this procedure can be monitored by the
+<A HREF = "fix_ave_spatial.html">fix ave/spatial</A> command, which determines
+grad(Vstream) in the equation above.  E.g. the derivative in the
+y-direction of the Vx component of fluid motion or grad(Vstream) =
+dVx/dy.  In this case, the Pxy off-diagonal component of the pressure
+or stress tensor, as calculated by the <A HREF = "compute_pressure.html">compute
+pressure</A> command, can also be monitored, which
+is the J term in the equation above.  See <A HREF = "Section_howto.html#4_13">this
+section</A> of the manual for details on NEMD
+simulations.
+</P>
+<P>The second method is to perform a reverse non-equilibrium MD
+simulation using the <A HREF = "fix_viscosity.html">fix viscosity</A> command which
+implements the rNEMD algorithm of Muller-Plathe.  Momentum in one
+dimension is swapped between atoms in two different layers of the
+simulation box in a different dimension.  This induces a velocity
+gradient which can be monitored with the <A HREF = "fix_ave_spatial.html">fix
+ave/spatial</A> command.  The fix tallies the
+cummulative momentum transfer that it performs.  See the <A HREF = "fix_viscosity.html">fix
+viscosity</A> command for details.
+</P>
+<P>The third method is based on the Green-Kubo (GK) formula which relates
+the ensemble average of the auto-correlation of the stress/pressure
+tensor to eta.  This can be done in a steady-state equilibrated
+simulation which is in contrast to the two preceding non-equilibrium
+methods, where momentum flows continuously through the simulation box.
+</P>
+<P>Here is an example input script that calculates the viscosity of
+liquid Ar via the GK formalism:
+</P>
+<PRE># Sample LAMMPS input script for viscosity of liquid Ar 
+</PRE>
+<PRE>units       real
+variable    T equal 86.4956
+variable    V equal vol
+variable    dt equal 4.0
+variable    p equal 400     # correlation length
+variable    s equal 5       # sample interval
+variable    d equal $p*$s   # dump interval 
+</PRE>
+<PRE># convert from LAMMPS real units to SI 
+</PRE>
+<PRE>variable    kB equal 1.3806504e-23    # [J/K/</B> Boltzmann
+variable    atm2Pa equal 101325.0
+variable    A2m equal 1.0e-10
+variable    fs2s equal 1.0e-15
+variable    convert equal ${atm2Pa}*${atm2Pa}*${fs2s}*${A2m}*${A2m}*${A2m} 
+</PRE>
+<PRE># setup problem 
+</PRE>
+<PRE>dimension    3
+boundary     p p p
+lattice      fcc 5.376 orient x 1 0 0 orient y 0 1 0 orient z 0 0 1
+region       box block 0 4 0 4 0 4
+create_box   1 box
+create_atoms 1 box
+mass	     1 39.948
+pair_style   lj/cut 13.0
+pair_coeff   * * 0.2381 3.405
+timestep     ${dt}
+thermo	     $d 
+</PRE>
+<PRE># equilibration and thermalization 
+</PRE>
+<PRE>velocity     all create $T 102486 mom yes rot yes dist gaussian
+fix          NVT all nvt temp $T $T 10 drag 0.2
+run          8000 
+</PRE>
+<PRE># viscosity calculation, switch to NVE if desired 
+</PRE>
+<PRE>#unfix       NVT
+#fix         NVE all nve 
+</PRE>
+<PRE>reset_timestep 0
+variable     pxy equal pxy
+variable     pxz equal pxz
+variable     pyz equal pyz
+fix          SS all ave/correlate $s $p $d &
+             v_pxy v_pxz v_pyz type auto file S0St.dat ave running
+variable     scale equal ${convert}/(${kB}*$T)*$V*$s*${dt}
+variable     v11 equal trap(f_SS[3/</B>)*${scale}
+variable     v22 equal trap(f_SS[4/</B>)*${scale}
+variable     v33 equal trap(f_SS[5/</B>)*${scale}
+thermo_style custom step temp press v_pxy v_pxz v_pyz v_v11 v_v22 v_v33
+run          100000
+variable     v equal (v_v11+v_v22+v_v33)/3.0
+variable     ndens equal count(all)/vol
+print        "average viscosity: $v [Pa.s/</B> @ $T K, ${ndens} /A^3" 
+</PRE>
+<HR>
+
 <HR>
 
 <A NAME = "Berendsen"></A>
@@ -1723,6 +1903,11 @@ Spellmeyer, Fox, Caldwell, Kollman, JACS 117, 5179-5197 (1995).
 
 <P><B>(Horn)</B> Horn, Swope, Pitera, Madura, Dick, Hura, and Head-Gordon,
 J Chem Phys, 120, 9665 (2004).
+</P>
+<A NAME = "Ikeshoji"></A>
+
+<P><B>(Ikeshoji)</B> Ikeshoji and Hafskjold, Molecular Physics, 81, 251-261
+(1994).
 </P>
 <A NAME = "MacKerell"></A>
 

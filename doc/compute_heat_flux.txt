@@ -86,8 +86,8 @@ The "fix ave/correlate"_fix_ave_correlate.html command can calclate
 the autocorrelation.  The trap() function in the
 "variable"_variable.html command can calculate the integral.
 
-An an example LAMMPS input script for solid Ar is appended below.  
-The result should be: average conductivity ~0.29 in W/mK.
+An example LAMMPS input script for solid Ar is appended below.  The
+result should be: average conductivity ~0.29 in W/mK.
 
 :line
 
@@ -125,24 +125,29 @@ energy/area/time "units"_units.html
 
 :line
 
-Sample LAMMPS input script :h4
+# Sample LAMMPS input script for thermal conductivity of solid Ar :pre
 
-atom_style  atomic
 units       real
-variable    kB equal 1.3806504e-23 # \[J/K\] Boltzmann
-variable    kCal2J equal 4186.0/6.02214e23
 variable    T equal 70
 variable    V equal vol
 variable    dt equal 4.0
-variable    p equal 200 # correlation length
-variable    s equal 10  # sample interval
-variable    d equal $p*$s # dump interval :pre
+variable    p equal 200     # correlation length
+variable    s equal 10      # sample interval
+variable    d equal $p*$s   # dump interval :pre
 
-# ---------------------------------------------------------
+# convert from LAMMPS real units to SI :pre
+
+variable    kB equal 1.3806504e-23    # \[J/K\] Boltzmann
+variable    kCal2J equal 4186.0/6.02214e23
+variable    A2m equal 1.0e-10
+variable    fs2s equal 1.0e-15
+variable    convert equal $\{kCal2J\}*$\{kCal2J\}/$\{fs2s\}/$\{A2m\} :pre
+
+# setup problem :pre
 
 dimension    3
 boundary     p p p
-lattice      fcc  5.376  orient x 1 0 0 orient y 0 1 0 orient z 0 0 1
+lattice      fcc 5.376 orient x 1 0 0 orient y 0 1 0 orient z 0 0 1
 region       box block 0 4 0 4 0 4
 create_box   1 box
 create_atoms 1 box
@@ -152,32 +157,33 @@ pair_coeff   * * 0.2381 3.405
 timestep     $\{dt\}
 thermo	     $d :pre
 
-# ------------- equilibration and thermalization ----------------
+# equilibration and thermalization :pre
 
-velocity  all create $T 102486 mom yes rot yes dist gaussian
-fix       NVT all nvt temp $T $T 10 drag 0.2
-run       8000 :pre
+velocity     all create $T 102486 mom yes rot yes dist gaussian
+fix          NVT all nvt temp $T $T 10 drag 0.2
+run          8000 :pre
 
-# -------------- flux calculation, switch to NVE if desired --------
+# thermal conductivity calculation, switch to NVE if desired :pre
 
-#unfix     NVT
-#fix       NVE all nve :pre
+#unfix       NVT
+#fix         NVE all nve :pre
 
-reset_timestep  0
-compute   myKE all ke/atom
-compute   myPE all pe/atom
-compute   myStress all stress/atom virial
-compute   flux all heat/flux myKE myPE myStress
-variable  Jx equal c_flux\[1\]/vol
-variable  Jy equal c_flux\[2\]/vol
-variable  Jz equal c_flux\[3\]/vol
-fix       JJ all ave/correlate $s $p $d &
-          c_flux\[1\] c_flux\[2\] c_flux\[3\] type auto file J0Jt.dat ave running
-variable  scale equal $\{kCal2J\}*$\{kCal2J\}/$\{kB\}/$T/$T/$V*$s*$\{dt\}*1.0e25
-variable  k11 equal trap(f_JJ\[3\])*$\{scale\}
-variable  k22 equal trap(f_JJ\[4\])*$\{scale\}
-variable  k33 equal trap(f_JJ\[5\])*$\{scale\}
+reset_timestep 0
+compute      myKE all ke/atom
+compute      myPE all pe/atom
+compute      myStress all stress/atom virial
+compute      flux all heat/flux myKE myPE myStress
+variable     Jx equal c_flux\[1\]/vol
+variable     Jy equal c_flux\[2\]/vol
+variable     Jz equal c_flux\[3\]/vol
+fix          JJ all ave/correlate $s $p $d &
+             c_flux\[1\] c_flux\[2\] c_flux\[3\] type auto file J0Jt.dat ave running
+variable     scale equal $\{convert\}/$\{kB\}/$T/$T/$V*$s*$\{dt\}
+variable     k11 equal trap(f_JJ\[3\])*$\{scale\}
+variable     k22 equal trap(f_JJ\[4\])*$\{scale\}
+variable     k33 equal trap(f_JJ\[5\])*$\{scale\}
 thermo_style custom step temp v_Jx v_Jy v_Jz v_k11 v_k22 v_k33
-run       100000
-variable  k equal (v_k11+v_k22+v_k33)/3.0
-print     "average conductivity: $k \[W/mK\]" :pre
+run          100000
+variable     k equal (v_k11+v_k22+v_k33)/3.0
+variable     ndens equal count(all)/vol
+print        "average conductivity: $k\[W/mK\] @ $T K, $\{ndens\} /A^3" :pre

@@ -259,6 +259,7 @@ void PairReaxC::coeff( int nargs, char **args )
 void PairReaxC::init_style( )
 {
   if (!atom->q_flag) error->all("Pair reax/c requires atom attribute q");
+  firstwarn = 1;
 
   int iqeq;
   for (iqeq = 0; iqeq < modify->nfix; iqeq++)
@@ -387,6 +388,13 @@ void PairReaxC::compute(int eflag, int vflag)
   evdwl = ecoul = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = eflag_global = vflag_global = 0;
+
+  if ((eflag_atom || vflag_atom) && firstwarn) {
+    firstwarn = 0;
+    if (comm->me == 0) 
+      error->warning("Pair reax/c cannot yet compute "
+		     "per-atom energy or stress");
+  }
 
   if (vflag_global) control->virial = 1;
   else control->virial = 0;

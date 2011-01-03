@@ -1766,7 +1766,7 @@ formalism.
 
 The shear viscosity eta of a fluid can be measured in at least 3 ways
 using various options in LAMMPS.  (See "this
-section"_Section_howto.html#4_??? of the manual for an analogous
+section"_Section_howto.html#4_20 of the manual for an analogous
 discussion for thermal conductivity).  Eta is a measure of the
 propensity of a fluid to transmit momentum in a direction
 perpendicular to the direction of velocity or momentum flow.

@@ -80,7 +80,7 @@ class Data {
   int style_hybrid,style_molecular,style_peri;
 
   uint64_t natoms;
-  int nbonds,nangles,ndihedrals,nimpropers;
+  uint64_t nbonds,nangles,ndihedrals,nimpropers;
   int ntypes,nbondtypes,nangletypes,ndihedraltypes,nimpropertypes;
   int bond_per_atom,angle_per_atom,dihedral_per_atom,improper_per_atom;
   int triclinic;
@@ -480,16 +480,16 @@ void header(FILE *fp, Data &data)
 
     else if (flag == NATOMS) data.natoms = read_uint64(fp);
     else if (flag == NTYPES) data.ntypes = read_int(fp);
-    else if (flag == NBONDS) data.nbonds = read_int(fp);
+    else if (flag == NBONDS) data.nbonds = read_uint64(fp);
     else if (flag == NBONDTYPES) data.nbondtypes = read_int(fp);
     else if (flag == BOND_PER_ATOM) data.bond_per_atom = read_int(fp);
-    else if (flag == NANGLES) data.nangles = read_int(fp);
+    else if (flag == NANGLES) data.nangles = read_uint64(fp);
     else if (flag == NANGLETYPES) data.nangletypes = read_int(fp);
     else if (flag == ANGLE_PER_ATOM) data.angle_per_atom = read_int(fp);
-    else if (flag == NDIHEDRALS) data.ndihedrals = read_int(fp);
+    else if (flag == NDIHEDRALS) data.ndihedrals = read_uint64(fp);
     else if (flag == NDIHEDRALTYPES) data.ndihedraltypes = read_int(fp);
     else if (flag == DIHEDRAL_PER_ATOM) data.dihedral_per_atom = read_int(fp);
-    else if (flag == NIMPROPERS) data.nimpropers = read_int(fp);
+    else if (flag == NIMPROPERS) data.nimpropers = read_uint64(fp);
     else if (flag == NIMPROPERTYPES) data.nimpropertypes = read_int(fp);
     else if (flag == IMPROPER_PER_ATOM) data.improper_per_atom = read_int(fp);
     else if (flag == BOXLO_0) data.xlo = read_double(fp);
@@ -2600,10 +2600,10 @@ void Data::stats()
   printf("  Ntimestep = %d\n",ntimestep);
   printf("  Nprocs = %d\n",nprocs);
   printf("  Natoms = %lu\n",natoms);
-  printf("  Nbonds = %d\n",nbonds);
-  printf("  Nangles = %d\n",nangles);
-  printf("  Ndihedrals = %d\n",ndihedrals);
-  printf("  Nimpropers = %d\n",nimpropers);
+  printf("  Nbonds = %lu\n",nbonds);
+  printf("  Nangles = %lu\n",nangles);
+  printf("  Ndihedrals = %lu\n",ndihedrals);
+  printf("  Nimpropers = %lu\n",nimpropers);
   printf("  Unit style = %s\n",unit_style);
   printf("  Atom style = %s\n",atom_style);
   printf("  Pair style = %s\n",pair_style);
@@ -2632,10 +2632,10 @@ void Data::write(FILE *fp, FILE *fp2)
   fprintf(fp,"\n");
 
   fprintf(fp,"%lu atoms\n",natoms);
-  if (nbonds) fprintf(fp,"%d bonds\n",nbonds);
-  if (nangles) fprintf(fp,"%d angles\n",nangles);
-  if (ndihedrals) fprintf(fp,"%d dihedrals\n",ndihedrals);
-  if (nimpropers) fprintf(fp,"%d impropers\n",nimpropers);
+  if (nbonds) fprintf(fp,"%lu bonds\n",nbonds);
+  if (nangles) fprintf(fp,"%lu angles\n",nangles);
+  if (ndihedrals) fprintf(fp,"%lu dihedrals\n",ndihedrals);
+  if (nimpropers) fprintf(fp,"%lu impropers\n",nimpropers);
 
   fprintf(fp,"\n");
 
@@ -3226,21 +3226,21 @@ void Data::write(FILE *fp, FILE *fp2)
 
   if (nbonds) {
     fprintf(fp,"\nBonds\n\n");
-    for (int i = 0; i < nbonds; i++)
+    for (uint64_t i = 0; i < nbonds; i++)
       fprintf(fp,"%d %d %d %d\n",
 	      i+1,bond_type[i],bond_atom1[i],bond_atom2[i]);
   }
 
   if (nangles) {
     fprintf(fp,"\nAngles\n\n");
-    for (int i = 0; i < nangles; i++)
+    for (uint64_t i = 0; i < nangles; i++)
       fprintf(fp,"%d %d %d %d %d\n",
 	      i+1,angle_type[i],angle_atom1[i],angle_atom2[i],angle_atom3[i]);
   }
 
   if (ndihedrals) {
     fprintf(fp,"\nDihedrals\n\n");
-    for (int i = 0; i < ndihedrals; i++)
+    for (uint64_t i = 0; i < ndihedrals; i++)
       fprintf(fp,"%d %d %d %d %d %d\n",
 	      i+1,dihedral_type[i],dihedral_atom1[i],dihedral_atom2[i],
 	      dihedral_atom3[i],dihedral_atom4[i]);
@@ -3248,7 +3248,7 @@ void Data::write(FILE *fp, FILE *fp2)
 
   if (nimpropers) {
     fprintf(fp,"\nImpropers\n\n");
-    for (int i = 0; i < nimpropers; i++)
+    for (uint64_t i = 0; i < nimpropers; i++)
       fprintf(fp,"%d %d %d %d %d %d\n",
 	      i+1,improper_type[i],improper_atom1[i],improper_atom2[i],
 	      improper_atom3[i],improper_atom4[i]);

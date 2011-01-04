@@ -536,7 +536,7 @@ void Velocity::zero_momentum()
 {
   // cannot have 0 atoms in group
 
-  if (group->count(igroup) == 0.0)
+  if (group->count(igroup) == 0)
     error->all("Cannot zero momentum of 0 atoms");
 
   // compute velocity of center-of-mass of group
@@ -569,7 +569,7 @@ void Velocity::zero_rotation()
 
   // cannot have 0 atoms in group
 
-  if (group->count(igroup) == 0.0)
+  if (group->count(igroup) == 0)
     error->all("Cannot zero momentum of 0 atoms");
 
   // compute omega (angular velocity) of group around center-of-mass

@@ -22,6 +22,7 @@ FixStyle(qeq/comb,FixQEQComb)
 
 #include "stdio.h"
 #include "fix.h"
+#include "lmptype.h"
 
 namespace LAMMPS_NS {
 
@@ -40,7 +41,7 @@ class FixQEQComb : public Fix {
   int me,firstflag;
   double precision;
   int nlevels_respa;
-  double ngroup;
+  bigint ngroup;
   FILE *fp;
 
   class PairComb *comb;

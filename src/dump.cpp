@@ -173,7 +173,7 @@ void Dump::init()
     if (nprocs > 1 && irregular == NULL)
       irregular = new Irregular(lmp);
 
-    double size = group->count(igroup);
+    bigint size = group->count(igroup);
     if (size > MAXINT32) error->all("Too many atoms to dump sort");
 
     // set reorderflag = 1 if can simply reorder local atoms rather than sort

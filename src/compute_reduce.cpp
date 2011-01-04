@@ -14,6 +14,7 @@
 #include "string.h"
 #include "stdlib.h"
 #include "compute_reduce.h"
+#include "lmptype.h"
 #include "atom.h"
 #include "update.h"
 #include "domain.h"
@@ -589,7 +590,7 @@ double ComputeReduce::compute_one(int m, int flag)
 
 /* ---------------------------------------------------------------------- */
 
-double ComputeReduce::count(int m)
+bigint ComputeReduce::count(int m)
 {
   int vidx = value2index[m];
   int aidx = argindex[m];
@@ -601,9 +602,9 @@ double ComputeReduce::count(int m)
     if (flavor[m] == PERATOM) {
       return group->count(igroup);
     } else if (flavor[m] == LOCAL) {
-      double ncount = compute->size_local_rows;
-      double ncountall;
-      MPI_Allreduce(&ncount,&ncountall,1,MPI_DOUBLE,MPI_SUM,world);
+      bigint ncount = compute->size_local_rows;
+      bigint ncountall;
+      MPI_Allreduce(&ncount,&ncountall,1,MPI_UNSIGNED_LONG,MPI_SUM,world);
       return ncountall;
     }
   } else if (which[m] == FIX) {
@@ -611,15 +612,16 @@ double ComputeReduce::count(int m)
     if (flavor[m] == PERATOM) {
       return group->count(igroup);
     } else if (flavor[m] == LOCAL) {
-      double ncount = fix->size_local_rows;
-      double ncountall;
-      MPI_Allreduce(&ncount,&ncountall,1,MPI_DOUBLE,MPI_SUM,world);
+      bigint ncount = fix->size_local_rows;
+      bigint ncountall;
+      MPI_Allreduce(&ncount,&ncountall,1,MPI_UNSIGNED_LONG,MPI_SUM,world);
       return ncountall;
     }
   } else if (which[m] == VARIABLE)
     return group->count(igroup);
 
-  return 0.0;
+  bigint dummy = 0;
+  return dummy;
 }
 
 /* ----------------------------------------------------------------------

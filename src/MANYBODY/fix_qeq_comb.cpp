@@ -119,7 +119,7 @@ void FixQEQComb::init()
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
   ngroup = group->count(igroup);
-  if (ngroup == 0.0) error->all("Fix qeq/comb group has no atoms");
+  if (ngroup == 0) error->all("Fix qeq/comb group has no atoms");
 }
 
 /* ---------------------------------------------------------------------- */

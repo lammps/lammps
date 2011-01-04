@@ -17,6 +17,7 @@
 #include "string.h"
 #include "stdlib.h"
 #include "group.h"
+#include "lmptype.h"
 #include "domain.h"
 #include "atom.h"
 #include "force.h"
@@ -481,10 +482,9 @@ void Group::read_restart(FILE *fp)
 
 /* ----------------------------------------------------------------------
    count atoms in group
-   compute in double precision in case system is huge
 ------------------------------------------------------------------------- */
 
-double Group::count(int igroup)
+bigint Group::count(int igroup)
 {
   int groupbit = bitmask[igroup];
 
@@ -495,18 +495,17 @@ double Group::count(int igroup)
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) n++;
 
-  double nsingle = n;
-  double nall;
-  MPI_Allreduce(&nsingle,&nall,1,MPI_DOUBLE,MPI_SUM,world);
+  bigint nsingle = n;
+  bigint nall;
+  MPI_Allreduce(&nsingle,&nall,1,MPI_UNSIGNED_LONG,MPI_SUM,world);
   return nall;
 }
 
 /* ----------------------------------------------------------------------
    count atoms in group and region
-   compute in double precision in case system is huge
 ------------------------------------------------------------------------- */
 
-double Group::count(int igroup, int iregion)
+bigint Group::count(int igroup, int iregion)
 {
   int groupbit = bitmask[igroup];
   Region *region = domain->regions[iregion];
@@ -519,9 +518,9 @@ double Group::count(int igroup, int iregion)
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) n++;
 
-  double nsingle = n;
-  double nall;
-  MPI_Allreduce(&nsingle,&nall,1,MPI_DOUBLE,MPI_SUM,world);
+  bigint nsingle = n;
+  bigint nall;
+  MPI_Allreduce(&nsingle,&nall,1,MPI_UNSIGNED_LONG,MPI_SUM,world);
   return nall;
 }
 

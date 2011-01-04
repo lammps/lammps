@@ -230,7 +230,7 @@ FixIMD::FixIMD(LAMMPS *lmp, int narg, char **arg) :
 
   imd_port = atoi(arg[3]); 
   if (imd_port < 1024)
-    error->all("Illegal fix imd parameter. port < 1024.");
+    error->all("Illegal fix imd parameter: port < 1024");
 
   /* default values for optional flags */
   unwrap_flag = 0;
@@ -259,7 +259,7 @@ FixIMD::FixIMD(LAMMPS *lmp, int narg, char **arg) :
     } else if (0 == strcmp(arg[argsdone], "trate")) {
       imd_trate = atoi(arg[argsdone+1]);
     } else {
-      error->all("Unknown fix imd parameter.");
+      error->all("Unknown fix imd parameter");
     }
     ++argsdone; ++argsdone;
   }
@@ -268,12 +268,11 @@ FixIMD::FixIMD(LAMMPS *lmp, int narg, char **arg) :
   if (imd_trate < 1)
     error->all("Illegal fix imd parameter. trate < 1.");
 
-  if (igroup == group->find("all")) {
-    num_coords = static_cast<int> (atom->natoms);
-  } else {
-    num_coords = static_cast<int> (group->count(igroup));
-    if (num_coords <= 0) error->all("Invalid number of group atoms for 'fix imd'");
-  }
+  bigint n;
+  if (igroup == group->find("all"))  n = atom->natoms;
+  else n = group->count(igroup);
+  if (n > MAXINT32) error->all("Too many atoms for fix imd");
+  num_coords = static_cast<int> (n);
 
   MPI_Comm_rank(world,&me);
 

@@ -28,6 +28,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
+#include "stdint.h"
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
@@ -78,7 +79,8 @@ class Data {
   int style_ellipsoid,style_full,style_granular;
   int style_hybrid,style_molecular,style_peri;
 
-  int natoms,nbonds,nangles,ndihedrals,nimpropers;
+  uint64_t natoms;
+  int nbonds,nangles,ndihedrals,nimpropers;
   int ntypes,nbondtypes,nangletypes,ndihedraltypes,nimpropertypes;
   int bond_per_atom,angle_per_atom,dihedral_per_atom,improper_per_atom;
   int triclinic;
@@ -285,6 +287,7 @@ int atom_peri(double *, Data &, int);
 int read_int(FILE *fp);
 double read_double(FILE *fp);
 char *read_char(FILE *fp);
+uint64_t read_uint64(FILE *fp);
 
 // ---------------------------------------------------------------------
 // main program
@@ -475,7 +478,7 @@ void header(FILE *fp, Data &data)
       }
     }
 
-    else if (flag == NATOMS) data.natoms = static_cast<int> (read_double(fp));
+    else if (flag == NATOMS) data.natoms = read_uint64(fp);
     else if (flag == NTYPES) data.ntypes = read_int(fp);
     else if (flag == NBONDS) data.nbonds = read_int(fp);
     else if (flag == NBONDTYPES) data.nbondtypes = read_int(fp);
@@ -2596,7 +2599,7 @@ void Data::stats()
   printf("  Restart file version = %s\n",version);
   printf("  Ntimestep = %d\n",ntimestep);
   printf("  Nprocs = %d\n",nprocs);
-  printf("  Natoms = %d\n",natoms);
+  printf("  Natoms = %lu\n",natoms);
   printf("  Nbonds = %d\n",nbonds);
   printf("  Nangles = %d\n",nangles);
   printf("  Ndihedrals = %d\n",ndihedrals);
@@ -2628,7 +2631,7 @@ void Data::write(FILE *fp, FILE *fp2)
 
   fprintf(fp,"\n");
 
-  fprintf(fp,"%d atoms\n",natoms);
+  fprintf(fp,"%lu atoms\n",natoms);
   if (nbonds) fprintf(fp,"%d bonds\n",nbonds);
   if (nangles) fprintf(fp,"%d angles\n",nangles);
   if (ndihedrals) fprintf(fp,"%d dihedrals\n",ndihedrals);
@@ -3147,7 +3150,7 @@ void Data::write(FILE *fp, FILE *fp2)
     fprintf(fp,"\nAtoms\n\n");
 
     int ix,iy,iz;
-    for (int i = 0; i < natoms; i++) {
+    for (uint64_t i = 0; i < natoms; i++) {
 
       ix = (image[i] & 1023) - 512;
       iy = (image[i] >> 10 & 1023) - 512;
@@ -3188,7 +3191,7 @@ void Data::write(FILE *fp, FILE *fp2)
 
   if (natoms) {
     fprintf(fp,"\nVelocities\n\n");
-    for (int i = 0; i < natoms; i++)
+    for (uint64_t i = 0; i < natoms; i++)
 
       if (style_hybrid == 0) {
 	if (style_angle) write_vel_angle(fp,i);
@@ -3480,3 +3483,11 @@ char *read_char(FILE *fp)
   fread(value,sizeof(char),n,fp);
   return value;
 }
+
+uint64_t read_uint64(FILE *fp)
+{
+  uint64_t value;
+  fread(&value,sizeof(uint64_t),1,fp);
+  return value;
+}
+

@@ -378,20 +378,20 @@ void Replicate::command(int narg, char **arg)
 
   if (me == 0) {
     if (atom->nbonds) {
-      if (screen) fprintf(screen,"  %d bonds\n",atom->nbonds);
-      if (logfile) fprintf(logfile,"  %d bonds\n",atom->nbonds);
+      if (screen) fprintf(screen,"  %lu bonds\n",atom->nbonds);
+      if (logfile) fprintf(logfile,"  %lu bonds\n",atom->nbonds);
     }
     if (atom->nangles) {
-      if (screen) fprintf(screen,"  %d angles\n",atom->nangles);
-      if (logfile) fprintf(logfile,"  %d angles\n",atom->nangles);
+      if (screen) fprintf(screen,"  %lu angles\n",atom->nangles);
+      if (logfile) fprintf(logfile,"  %lu angles\n",atom->nangles);
     }
     if (atom->ndihedrals) {
-      if (screen) fprintf(screen,"  %d dihedrals\n",atom->ndihedrals);
-      if (logfile) fprintf(logfile,"  %d dihedrals\n",atom->ndihedrals);
+      if (screen) fprintf(screen,"  %lu dihedrals\n",atom->ndihedrals);
+      if (logfile) fprintf(logfile,"  %lu dihedrals\n",atom->ndihedrals);
     }
     if (atom->nimpropers) {
-      if (screen) fprintf(screen,"  %d impropers\n",atom->nimpropers);
-      if (logfile) fprintf(logfile,"  %d impropers\n",atom->nimpropers);
+      if (screen) fprintf(screen,"  %lu impropers\n",atom->nimpropers);
+      if (logfile) fprintf(logfile,"  %lu impropers\n",atom->nimpropers);
     }
   }
 

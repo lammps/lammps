@@ -339,7 +339,7 @@ void ReadData::header(int flag)
     if (strstr(line,"atoms")) sscanf(line,"%lu",&atom->natoms);
     else if (strstr(line,"bonds")) sscanf(line,"%lu",&atom->nbonds);
     else if (strstr(line,"angles")) sscanf(line,"%lu",&atom->nangles);
-    else if (strstr(line,"dihedrals")) sscanf(line,"lu",&atom->ndihedrals);
+    else if (strstr(line,"dihedrals")) sscanf(line,"%lu",&atom->ndihedrals);
     else if (strstr(line,"impropers")) sscanf(line,"%lu",&atom->nimpropers);
 
     else if (strstr(line,"atom types")) sscanf(line,"%d",&atom->ntypes);
@@ -680,7 +680,7 @@ void ReadData::impropers()
   bigint nimpropers = atom->nimpropers;
 
   while (nread < nimpropers) {
-    nchunk = MIN(nread,CHUNK);
+    nchunk = MIN(nimpropers-nread,CHUNK);
     if (me == 0) {
       char *eof;
       m = 0;

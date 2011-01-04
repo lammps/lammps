@@ -60,5 +60,4 @@ dump		2 nonneb atom 10 dump.nonneb.$u
 
 min_style	quickmin
 
-#neb		0.0 1000 1000 100 final.hop1
-neb		0.1 1000 1000 100 final.hop1
+neb		0.0 0.1 1000 1000 100 final.hop1

@@ -100,10 +100,19 @@ the <I>one</I> and <I>multi</I> thermo_style settings.
 <P>The <I>format</I> keyword sets the numeric format of individual printed
 quantities.  The <I>int</I> and <I>float</I> keywords set the format for all
 integer or floating-point quantities printed.  The setting with a
-numeric value (e.g. format 5 %10.4g) sets the format of the Mth value
-printed in each output line, the 5th column of output in this case.
-If the format for a specific column has been set, it will take
-precedent over the <I>int</I> or <I>float</I> setting.
+numeric value M (e.g. format 5 %10.4g) sets the format of the Mth
+value printed in each output line, e.g. the 5th column of output in
+this case.  If the format for a specific column has been set, it will
+take precedent over the <I>int</I> or <I>float</I> setting.
+</P>
+<P>IMPORTANT NOTE: The thermo output values <I>step</I> and <I>atoms</I> are stored
+internally as 8-byte unsigned integers, rather than the usual 4-byte
+signed integers.  When specifying the "format int" keyword you can use
+a "%d"-style format identifier in the format string and LAMMPS will
+convert this to the corresponding "%lu" form when it is applied to
+those keywords.  However, when specifying the "format M string"
+keyword for <I>step</I> and <I>natoms</I>, you should specify a string
+appropriate for an 8-byte unsigned integer, e.g. one with "%lu".
 </P>
 <P>The <I>temp</I> keyword is used to determine how thermodynamic temperature
 is calculated, which is used by all thermo quantities that require a
@@ -176,7 +185,7 @@ temp/press = compute IDs defined by thermo_style, every = non-variable
 setting provided by the <A HREF = "thermo.html">thermo</A> command.
 </P>
 <P>The defaults for the line and format options depend on the thermo
-style.  For styles "one" and and "custom" the line and format defaults
+style.  For styles "one" and "custom", the line and format defaults
 are "one", "%8d", and "%12.8g".  For style "multi", the line and
 format defaults are "multi", "%8d", and "%14.4f".
 </P>

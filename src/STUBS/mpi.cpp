@@ -16,6 +16,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "stdio.h"
+#include "stdint.h"
 #include <sys/time.h>
 #include "mpi.h"
 
@@ -86,6 +87,19 @@ double MPI_Wtime()
   gettimeofday(&tv,NULL);
   time = 1.0 * tv.tv_sec + 1.0e-6 * tv.tv_usec;
   return time;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int MPI_Type_size(MPI_Datatype datatype, int *size)
+{
+  if (datatype == MPI_INT) *size = sizeof(int);
+  else if (datatype == MPI_FLOAT) *size = sizeof(float);
+  else if (datatype == MPI_DOUBLE) *size = sizeof(double);
+  else if (datatype == MPI_CHAR) *size = sizeof(char);
+  else if (datatype == MPI_BYTE) *size = sizeof(char);
+  else if (datatype == MPI_UNSIGNED_LONG) *size = sizeof(uint64_t);
+  else if (datatype == MPI_DOUBLE_INT) *size = sizeof(double_int);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -247,6 +261,7 @@ int MPI_Allreduce(void *sendbuf, void *recvbuf, int count,
   else if (datatype == MPI_DOUBLE) n = count*sizeof(double);
   else if (datatype == MPI_CHAR) n = count*sizeof(char);
   else if (datatype == MPI_BYTE) n = count*sizeof(char);
+  else if (datatype == MPI_UNSIGNED_LONG) n = count*sizeof(uint64_t);
   else if (datatype == MPI_DOUBLE_INT) n = count*sizeof(double_int);
 
   memcpy(recvbuf,sendbuf,n);
@@ -267,6 +282,7 @@ int MPI_Reduce(void *sendbuf, void *recvbuf, int count,
   else if (datatype == MPI_DOUBLE) n = count*sizeof(double);
   else if (datatype == MPI_CHAR) n = count*sizeof(char);
   else if (datatype == MPI_BYTE) n = count*sizeof(char);
+  else if (datatype == MPI_UNSIGNED_LONG) n = count*sizeof(uint64_t);
   else if (datatype == MPI_DOUBLE_INT) n = count*sizeof(double_int);
 
   memcpy(recvbuf,sendbuf,n);
@@ -285,6 +301,7 @@ int MPI_Scan(void *sendbuf, void *recvbuf, int count,
   else if (datatype == MPI_DOUBLE) n = count*sizeof(double);
   else if (datatype == MPI_CHAR) n = count*sizeof(char);
   else if (datatype == MPI_BYTE) n = count*sizeof(char);
+  else if (datatype == MPI_UNSIGNED_LONG) n = count*sizeof(uint64_t);
   else if (datatype == MPI_DOUBLE_INT) n = count*sizeof(double_int);
 
   memcpy(recvbuf,sendbuf,n);
@@ -305,6 +322,7 @@ int MPI_Allgather(void *sendbuf, int sendcount, MPI_Datatype sendtype,
   else if (sendtype == MPI_DOUBLE) n = sendcount*sizeof(double);
   else if (sendtype == MPI_CHAR) n = sendcount*sizeof(char);
   else if (sendtype == MPI_BYTE) n = sendcount*sizeof(char);
+  else if (sendtype == MPI_UNSIGNED_LONG) n = sendcount*sizeof(uint64_t);
   else if (sendtype == MPI_DOUBLE_INT) n = sendcount*sizeof(double_int);
 
   memcpy(recvbuf,sendbuf,n);
@@ -325,6 +343,7 @@ int MPI_Allgatherv(void *sendbuf, int sendcount, MPI_Datatype sendtype,
   else if (sendtype == MPI_DOUBLE) n = sendcount*sizeof(double);
   else if (sendtype == MPI_CHAR) n = sendcount*sizeof(char);
   else if (sendtype == MPI_BYTE) n = sendcount*sizeof(char);
+  else if (sendtype == MPI_UNSIGNED_LONG) n = sendcount*sizeof(uint64_t);
   else if (sendtype == MPI_DOUBLE_INT) n = sendcount*sizeof(double_int);
 
   memcpy(recvbuf,sendbuf,n);
@@ -344,6 +363,7 @@ int MPI_Reduce_scatter(void *sendbuf, void *recvbuf, int *recvcounts,
   else if (datatype == MPI_DOUBLE) n = *recvcounts*sizeof(double);
   else if (datatype == MPI_CHAR) n = *recvcounts*sizeof(char);
   else if (datatype == MPI_BYTE) n = *recvcounts*sizeof(char);
+  else if (datatype == MPI_UNSIGNED_LONG) n = *recvcounts*sizeof(uint64_t);
   else if (datatype == MPI_DOUBLE_INT) n = *recvcounts*sizeof(double_int);
 
   memcpy(recvbuf,sendbuf,n);
@@ -364,6 +384,7 @@ int MPI_Gather(void *sendbuf, int sendcount, MPI_Datatype sendtype,
   else if (sendtype == MPI_DOUBLE) n = sendcount*sizeof(double);
   else if (sendtype == MPI_CHAR) n = sendcount*sizeof(char);
   else if (sendtype == MPI_BYTE) n = sendcount*sizeof(char);
+  else if (sendtype == MPI_UNSIGNED_LONG) n = sendcount*sizeof(uint64_t);
   else if (sendtype == MPI_DOUBLE_INT) n = sendcount*sizeof(double_int);
 
   memcpy(recvbuf,sendbuf,n);
@@ -384,6 +405,7 @@ int MPI_Gatherv(void *sendbuf, int sendcount, MPI_Datatype sendtype,
   else if (sendtype == MPI_DOUBLE) n = sendcount*sizeof(double);
   else if (sendtype == MPI_CHAR) n = sendcount*sizeof(char);
   else if (sendtype == MPI_BYTE) n = sendcount*sizeof(char);
+  else if (sendtype == MPI_UNSIGNED_LONG) n = sendcount*sizeof(uint64_t);
   else if (sendtype == MPI_DOUBLE_INT) n = sendcount*sizeof(double_int);
 
   memcpy(recvbuf,sendbuf,n);

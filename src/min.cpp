@@ -199,10 +199,10 @@ void Min::setup()
   // ndoftotal = total dof for entire minimization problem
   // dof for atoms, extra per-atom, extra global
 
-  double ndofme = 3.0*atom->nlocal;
+  bigint ndofme = 3*atom->nlocal;
   for (int m = 0; m < nextra_atom; m++)
     ndofme += extra_peratom[m]*atom->nlocal;
-  MPI_Allreduce(&ndofme,&ndoftotal,1,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(&ndofme,&ndoftotal,1,MPI_UNSIGNED_LONG,MPI_SUM,world);
   ndoftotal += nextra_global;
 
   // setup domain, communication and neighboring

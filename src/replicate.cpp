@@ -13,7 +13,6 @@
 
 #include "stdlib.h"
 #include "string.h"
-#include "stdint.h"
 #include "replicate.h"
 #include "lmptype.h"
 #include "atom.h"

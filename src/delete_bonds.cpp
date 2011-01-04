@@ -339,30 +339,32 @@ void DeleteBonds::command(int narg, char **arg)
   if (remove_flag) {
 
     if (atom->avec->bonds_allow) {
-      int nbonds = 0;
+      bigint nbonds = 0;
       for (i = 0; i < nlocal; i++) nbonds += atom->num_bond[i];
-      MPI_Allreduce(&nbonds,&atom->nbonds,1,MPI_INT,MPI_SUM,world);
+      MPI_Allreduce(&nbonds,&atom->nbonds,1,MPI_UNSIGNED_LONG,MPI_SUM,world);
       if (force->newton_bond == 0) atom->nbonds /= 2;
     }
 
     if (atom->avec->angles_allow) {
-      int nangles = 0;
+      bigint nangles = 0;
       for (i = 0; i < nlocal; i++) nangles += atom->num_angle[i];
-      MPI_Allreduce(&nangles,&atom->nangles,1,MPI_INT,MPI_SUM,world);
+      MPI_Allreduce(&nangles,&atom->nangles,1,MPI_UNSIGNED_LONG,MPI_SUM,world);
       if (force->newton_bond == 0) atom->nangles /= 3;
     }
 
     if (atom->avec->dihedrals_allow) {
-      int ndihedrals = 0;
+      bigint ndihedrals = 0;
       for (i = 0; i < nlocal; i++) ndihedrals += atom->num_dihedral[i];
-      MPI_Allreduce(&ndihedrals,&atom->ndihedrals,1,MPI_INT,MPI_SUM,world);
+      MPI_Allreduce(&ndihedrals,&atom->ndihedrals,
+		    1,MPI_UNSIGNED_LONG,MPI_SUM,world);
       if (force->newton_bond == 0) atom->ndihedrals /= 4;
     }
 
     if (atom->avec->impropers_allow) {
-      int nimpropers = 0;
+      bigint nimpropers = 0;
       for (i = 0; i < nlocal; i++) nimpropers += atom->num_improper[i];
-      MPI_Allreduce(&nimpropers,&atom->nimpropers,1,MPI_INT,MPI_SUM,world);
+      MPI_Allreduce(&nimpropers,&atom->nimpropers,
+		    1,MPI_UNSIGNED_LONG,MPI_SUM,world);
       if (force->newton_bond == 0) atom->nimpropers /= 4;
     }
 
@@ -370,11 +372,11 @@ void DeleteBonds::command(int narg, char **arg)
 
   // compute and print stats
 
-  int tmp;
-  int bond_on,bond_off;
-  int angle_on,angle_off;
-  int dihedral_on,dihedral_off;
-  int improper_on,improper_off;
+  bigint tmp;
+  bigint bond_on,bond_off;
+  bigint angle_on,angle_off;
+  bigint dihedral_on,dihedral_off;
+  bigint improper_on,improper_off;
 
   if (atom->avec->bonds_allow) {
     bond_on = bond_off = 0;
@@ -382,9 +384,9 @@ void DeleteBonds::command(int narg, char **arg)
       for (m = 0; m < atom->num_bond[i]; m++)
 	if (atom->bond_type[i][m] > 0) bond_on++;
 	else bond_off++;
-    MPI_Allreduce(&bond_on,&tmp,1,MPI_INT,MPI_SUM,world);
+    MPI_Allreduce(&bond_on,&tmp,1,MPI_UNSIGNED_LONG,MPI_SUM,world);
     bond_on = tmp;
-    MPI_Allreduce(&bond_off,&tmp,1,MPI_INT,MPI_SUM,world);
+    MPI_Allreduce(&bond_off,&tmp,1,MPI_UNSIGNED_LONG,MPI_SUM,world);
     bond_off = tmp;
     if (force->newton_bond == 0) {
       bond_on /= 2;
@@ -398,9 +400,9 @@ void DeleteBonds::command(int narg, char **arg)
       for (m = 0; m < atom->num_angle[i]; m++)
 	if (atom->angle_type[i][m] > 0) angle_on++;
 	else angle_off++;
-    MPI_Allreduce(&angle_on,&tmp,1,MPI_INT,MPI_SUM,world);
+    MPI_Allreduce(&angle_on,&tmp,1,MPI_UNSIGNED_LONG,MPI_SUM,world);
     angle_on = tmp;
-    MPI_Allreduce(&angle_off,&tmp,1,MPI_INT,MPI_SUM,world);
+    MPI_Allreduce(&angle_off,&tmp,1,MPI_UNSIGNED_LONG,MPI_SUM,world);
     angle_off = tmp;
     if (force->newton_bond == 0) {
       angle_on /= 3;
@@ -414,9 +416,9 @@ void DeleteBonds::command(int narg, char **arg)
       for (m = 0; m < atom->num_dihedral[i]; m++)
 	if (atom->dihedral_type[i][m] > 0) dihedral_on++;
 	else dihedral_off++;
-    MPI_Allreduce(&dihedral_on,&tmp,1,MPI_INT,MPI_SUM,world);
+    MPI_Allreduce(&dihedral_on,&tmp,1,MPI_UNSIGNED_LONG,MPI_SUM,world);
     dihedral_on = tmp;
-    MPI_Allreduce(&dihedral_off,&tmp,1,MPI_INT,MPI_SUM,world);
+    MPI_Allreduce(&dihedral_off,&tmp,1,MPI_UNSIGNED_LONG,MPI_SUM,world);
     dihedral_off = tmp;
     if (force->newton_bond == 0) {
       dihedral_on /= 4;
@@ -430,9 +432,9 @@ void DeleteBonds::command(int narg, char **arg)
       for (m = 0; m < atom->num_improper[i]; m++)
 	if (atom->improper_type[i][m] > 0) improper_on++;
 	else improper_off++;
-    MPI_Allreduce(&improper_on,&tmp,1,MPI_INT,MPI_SUM,world);
+    MPI_Allreduce(&improper_on,&tmp,1,MPI_UNSIGNED_LONG,MPI_SUM,world);
     improper_on = tmp;
-    MPI_Allreduce(&improper_off,&tmp,1,MPI_INT,MPI_SUM,world);
+    MPI_Allreduce(&improper_off,&tmp,1,MPI_UNSIGNED_LONG,MPI_SUM,world);
     improper_off = tmp;
     if (force->newton_bond == 0) {
       improper_on /= 4;
@@ -443,30 +445,32 @@ void DeleteBonds::command(int narg, char **arg)
   if (comm->me == 0) {
     if (screen) {
       if (atom->avec->bonds_allow)
-	fprintf(screen,"  %d total bonds, %d turned on, %d turned off\n",
+	fprintf(screen,"  %lu total bonds, %lu turned on, %lu turned off\n",
 		atom->nbonds,bond_on,bond_off);
       if (atom->avec->angles_allow)
-	fprintf(screen,"  %d total angles, %d turned on, %d turned off\n",
+	fprintf(screen,"  %lu total angles, %lu turned on, %lu turned off\n",
 		atom->nangles,angle_on,angle_off);
       if (atom->avec->dihedrals_allow)
-	fprintf(screen,"  %d total dihedrals, %d turned on, %d turned off\n",
+	fprintf(screen,"  %lu total dihedrals, %lu turned on, %lu turned off\n",
 		atom->ndihedrals,dihedral_on,dihedral_off);
       if (atom->avec->impropers_allow)
-	fprintf(screen,"  %d total impropers, %d turned on, %d turned off\n",
+	fprintf(screen,"  %lu total impropers, %lu turned on, %lu turned off\n",
 		atom->nimpropers,improper_on,improper_off);
     }
     if (logfile) {
       if (atom->avec->bonds_allow)
-	fprintf(logfile,"  %d total bonds, %d turned on, %d turned off\n",
+	fprintf(logfile,"  %lu total bonds, %lu turned on, %lu turned off\n",
 		atom->nbonds,bond_on,bond_off);
       if (atom->avec->angles_allow)
-	fprintf(logfile,"  %d total angles, %d turned on, %d turned off\n",
+	fprintf(logfile,"  %lu total angles, %lu turned on, %lu turned off\n",
 		atom->nangles,angle_on,angle_off);
       if (atom->avec->dihedrals_allow)
-	fprintf(logfile,"  %d total dihedrals, %d turned on, %d turned off\n",
+	fprintf(logfile,"  %lu total dihedrals, %lu turned on, "
+		"%lu turned off\n",
 		atom->ndihedrals,dihedral_on,dihedral_off);
       if (atom->avec->impropers_allow)
-	fprintf(logfile,"  %d total impropers, %d turned on, %d turned off\n",
+	fprintf(logfile,"  %lu total impropers, %lu turned on, "
+		"%lu turned off\n",
 		atom->nimpropers,improper_on,improper_off);
     }
   }

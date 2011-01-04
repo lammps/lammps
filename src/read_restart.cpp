@@ -304,20 +304,20 @@ void ReadRestart::command(int narg, char **arg)
 
   if (me == 0) {
     if (atom->nbonds) {
-      if (screen) fprintf(screen,"  %d bonds\n",atom->nbonds);
-      if (logfile) fprintf(logfile,"  %d bonds\n",atom->nbonds);
+      if (screen) fprintf(screen,"  %lu bonds\n",atom->nbonds);
+      if (logfile) fprintf(logfile,"  %lu bonds\n",atom->nbonds);
     }
     if (atom->nangles) {
-      if (screen) fprintf(screen,"  %d angles\n",atom->nangles);
-      if (logfile) fprintf(logfile,"  %d angles\n",atom->nangles);
+      if (screen) fprintf(screen,"  %lu angles\n",atom->nangles);
+      if (logfile) fprintf(logfile,"  %lu angles\n",atom->nangles);
     }
     if (atom->ndihedrals) {
-      if (screen) fprintf(screen,"  %d dihedrals\n",atom->ndihedrals);
-      if (logfile) fprintf(logfile,"  %d dihedrals\n",atom->ndihedrals);
+      if (screen) fprintf(screen,"  %lu dihedrals\n",atom->ndihedrals);
+      if (logfile) fprintf(logfile,"  %lu dihedrals\n",atom->ndihedrals);
     }
     if (atom->nimpropers) {
-      if (screen) fprintf(screen,"  %d impropers\n",atom->nimpropers);
-      if (logfile) fprintf(logfile,"  %d impropers\n",atom->nimpropers);
+      if (screen) fprintf(screen,"  %lu impropers\n",atom->nimpropers);
+      if (logfile) fprintf(logfile,"  %lu impropers\n",atom->nimpropers);
     }
   }
 
@@ -599,25 +599,25 @@ void ReadRestart::header()
     } else if (flag == NTYPES) {
       atom->ntypes = read_int();
     } else if (flag == NBONDS) {
-      atom->nbonds = read_int();
+      atom->nbonds = read_bigint();
     } else if (flag == NBONDTYPES) {
       atom->nbondtypes = read_int();
     } else if (flag == BOND_PER_ATOM) {
       atom->bond_per_atom = read_int();
     } else if (flag == NANGLES) {
-      atom->nangles = read_int();
+      atom->nangles = read_bigint();
     } else if (flag == NANGLETYPES) {
       atom->nangletypes = read_int();
     } else if (flag == ANGLE_PER_ATOM) {
       atom->angle_per_atom = read_int();
     } else if (flag == NDIHEDRALS) {
-      atom->ndihedrals = read_int();
+      atom->ndihedrals = read_bigint();
     } else if (flag == NDIHEDRALTYPES) {
       atom->ndihedraltypes = read_int();
     } else if (flag == DIHEDRAL_PER_ATOM) {
       atom->dihedral_per_atom = read_int();
     } else if (flag == NIMPROPERS) {
-      atom->nimpropers = read_int();
+      atom->nimpropers = read_bigint();
     } else if (flag == NIMPROPERTYPES) {
       atom->nimpropertypes = read_int();
     } else if (flag == IMPROPER_PER_ATOM) {

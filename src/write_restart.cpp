@@ -334,16 +334,16 @@ void WriteRestart::header()
 
   write_bigint(NATOMS,natoms);
   write_int(NTYPES,atom->ntypes);
-  write_int(NBONDS,atom->nbonds);
+  write_bigint(NBONDS,atom->nbonds);
   write_int(NBONDTYPES,atom->nbondtypes);
   write_int(BOND_PER_ATOM,atom->bond_per_atom);
-  write_int(NANGLES,atom->nangles);
+  write_bigint(NANGLES,atom->nangles);
   write_int(NANGLETYPES,atom->nangletypes);
   write_int(ANGLE_PER_ATOM,atom->angle_per_atom);
-  write_int(NDIHEDRALS,atom->ndihedrals);
+  write_bigint(NDIHEDRALS,atom->ndihedrals);
   write_int(NDIHEDRALTYPES,atom->ndihedraltypes);
   write_int(DIHEDRAL_PER_ATOM,atom->dihedral_per_atom);
-  write_int(NIMPROPERS,atom->nimpropers);
+  write_bigint(NIMPROPERS,atom->nimpropers);
   write_int(NIMPROPERTYPES,atom->nimpropertypes);
   write_int(IMPROPER_PER_ATOM,atom->improper_per_atom);
 

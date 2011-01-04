@@ -58,6 +58,7 @@ class FixAveCorrelate : public Fix {
   double **save_corr;
     
   void accumulate();
+  int nextvalid();
 };
 
 }

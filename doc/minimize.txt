@@ -63,12 +63,6 @@ damped dynamics using an Euler integration step.  Thus they require a
 "timestep"_timestep.html be defined, typically the same value used for
 "running dynamics"_run.html with the system.
 
-IMPORTANT NOTE: {Etol} should be set to 0.0 when using the {quickmin}
-or {fire} "minimization styles"_min_style.html.  This is because they
-periodically reset velocities to 0.0 and take a zero-length step which
-will appear as a 0.0 energy change, stopping the minimizer if {etol}
-is finite.
-
 The objective function being minimized is the total potential energy
 of the system as a function of the N atom coordinates:
 
@@ -101,7 +95,10 @@ For the first criterion, the specified energy tolerance {etol} is
 unitless; it is met when the energy change between successive
 iterations divided by the energy magnitude is less than or equal to
 the tolerance.  For example, a setting of 1.0e-4 for {etol} means an
-energy tolerance of one part in 10^4.
+energy tolerance of one part in 10^4.  For the damped dynamics
+minimizers this check is not performed for a few steps after
+velocities are reset to 0, otherwise the minimizer would prematurely
+converge.
 
 For the second criterion, the specified force tolerance {ftol} is in
 force units, since it is the length of the global force vector for all

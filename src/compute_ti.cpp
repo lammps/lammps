@@ -32,8 +32,6 @@ using namespace LAMMPS_NS;
 
 enum{PAIR,TAIL,KSPACE};
 
-#define INVOKED_SCALAR 1
-
 /* ---------------------------------------------------------------------- */
 
 ComputeTI::ComputeTI(LAMMPS *lmp, int narg, char **arg) : 
@@ -67,25 +65,25 @@ ComputeTI::ComputeTI(LAMMPS *lmp, int narg, char **arg) :
 
   int iarg = 3;
   while (iarg < narg) {
-    if (iarg+3 > narg) error->all("Illegal fix adapt command");
+    if (iarg+3 > narg) error->all("Illegal compute ti command");
     if (strcmp(arg[iarg],"kspace") == 0) which[nterms] = KSPACE;
     else if (strcmp(arg[iarg],"tail") == 0) which[nterms] = TAIL;
     else {
       which[nterms] = PAIR;
-      int n = strlen(&arg[iarg+1][2]) + 1;
+      int n = strlen(arg[iarg]) + 1;
       pstyle[nterms] = new char[n];
-      strcpy(pstyle[nterms],&arg[iarg+1][2]);
+      strcpy(pstyle[nterms],arg[iarg]);
     }
 
+    if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
+      int n = strlen(&arg[iarg+1][2]) + 1;
+      var1[nterms] = new char[n];
+      strcpy(var1[nterms],&arg[iarg+1][2]);
+    } else error->all("Illegal compute ti command");
     if (strstr(arg[iarg+2],"v_") == arg[iarg+2]) {
       int n = strlen(&arg[iarg+2][2]) + 1;
-      var1[nterms] = new char[n];
-      strcpy(var1[nterms],&arg[iarg+2][2]);
-    } else error->all("Illegal compute ti command");
-    if (strstr(arg[iarg+3],"v_") == arg[iarg+3]) {
-      int n = strlen(&arg[iarg+3][2]) + 1;
       var2[nterms] = new char[n];
-      strcpy(var2[nterms],&arg[iarg+3][2]);
+      strcpy(var2[nterms],&arg[iarg+2][2]);
     } else error->all("Illegal compute ti command");
 
     nterms++;
@@ -148,7 +146,7 @@ double ComputeTI::compute_scalar()
 {
   double eng,engall,value1,value2;
 
-  invoked_scalar |= INVOKED_SCALAR;
+  invoked_scalar = update->ntimestep;
   if (update->eflag_global != invoked_scalar)
     error->all("Energy was not tallied on needed timestep");
 

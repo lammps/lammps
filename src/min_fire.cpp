@@ -193,15 +193,15 @@ int MinFire::iterate(int maxiter)
     neval++;
 
     // energy tolerance criterion
+    // only check after DELAYSTEP elapsed since velocties reset to 0
     // sync across replicas if running multi-replica minimization
 
-    if (update->etol > 0.0) {
+    if (update->etol > 0.0 && ntimestep-last_negative > DELAYSTEP) {
       if (update->multireplica == 0) {
 	if (fabs(ecurrent-eprevious) < 
 	    update->etol * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS_ENERGY))
 	  return ETOL;
       } else {
-	printf("EEE %g %g\n",ecurrent,eprevious);
 	if (fabs(ecurrent-eprevious) < 
 	    update->etol * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS_ENERGY))
 	  flag = 0;

@@ -142,8 +142,7 @@ The option defaults are swap = 1.
 :line
 
 :link(Muller-Plathe)
-[(Muller-Plathe)] Muller-Plathe and Reith, Computational and
-Theoretical Polymer Science, 9, 203-209 (1999).
+[(Muller-Plathe)] Muller-Plathe, J Chem Phys, 106, 6082 (1997).
 
 :link(Zhang)
 [(Zhang)] Zhang, Lussetti, de Souza, Muller-Plathe, J Phys Chem B,

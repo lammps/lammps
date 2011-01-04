@@ -113,7 +113,9 @@ listed above.
   4.16 "Thermostatting, barostatting, and compute temperature"_4_16 :b
   4.17 "Walls"_4_17 :b
   4.18 "Elastic constants"_4_18 :b
-  4.19 "Library interface to LAMMPS"_4_19 :ule,b
+  4.19 "Library interface to LAMMPS"_4_19 :b
+  4.20 "Calculating thermal conductivity"_4_20 :b
+  4.21 "Calculating viscosity"_4_21 :ule,b
 "Example problems"_Section_example.html :l
 "Performance & scalability"_Section_perf.html :l
 "Additional tools"_Section_tools.html :l
@@ -176,6 +178,8 @@ listed above.
 :link(4_17,Section_howto.html#4_17)
 :link(4_18,Section_howto.html#4_18)
 :link(4_19,Section_howto.html#4_19)
+:link(4_20,Section_howto.html#4_20)
+:link(4_21,Section_howto.html#4_21)
 
 :link(9_1,Section_python.html#9_1)
 :link(9_2,Section_python.html#9_2)

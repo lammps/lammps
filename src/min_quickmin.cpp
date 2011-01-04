@@ -35,6 +35,8 @@ enum{MAXITER,MAXEVAL,ETOL,FTOL,DOWNHILL,ZEROALPHA,ZEROFORCE,ZEROQUAD};
 #define MIN(A,B) ((A) < (B)) ? (A) : (B)
 #define MAX(A,B) ((A) > (B)) ? (A) : (B)
 
+#define DELAYSTEP 5
+
 /* ---------------------------------------------------------------------- */
 
 MinQuickMin::MinQuickMin(LAMMPS *lmp) : Min(lmp) {}
@@ -82,6 +84,7 @@ int MinQuickMin::iterate(int maxiter)
   double dtvone,dtv,dtfm;
 
   alpha_final = 0.0;
+  int last_negative = update->ntimestep;
 
   for (int iter = 0; iter < maxiter; iter++) {
     ntimestep = ++update->ntimestep;
@@ -100,6 +103,7 @@ int MinQuickMin::iterate(int maxiter)
     MPI_Allreduce(&vdotf,&vdotfall,1,MPI_DOUBLE,MPI_SUM,world);
 
     if (vdotfall < 0.0) {
+      last_negative = ntimestep;
       for (int i = 0; i < nlocal; i++)
 	v[i][0] = v[i][1] = v[i][2] = 0.0;
 
@@ -163,15 +167,15 @@ int MinQuickMin::iterate(int maxiter)
     neval++;
 
     // energy tolerance criterion
+    // only check after DELAYSTEP elapsed since velocties reset to 0
     // sync across replicas if running multi-replica minimization
 
-    if (update->etol > 0.0) {
+    if (update->etol > 0.0 && ntimestep-last_negative > DELAYSTEP) {
       if (update->multireplica == 0) {
 	if (fabs(ecurrent-eprevious) < 
 	    update->etol * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS_ENERGY))
 	  return ETOL;
       } else {
-	printf("EEE %g %g\n",ecurrent,eprevious);
 	if (fabs(ecurrent-eprevious) < 
 	    update->etol * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS_ENERGY))
 	  flag = 0;

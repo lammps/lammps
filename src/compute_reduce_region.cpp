@@ -30,7 +30,7 @@ using namespace LAMMPS_NS;
 
 enum{SUM,MINN,MAXX};
 enum{X,V,F,COMPUTE,FIX,VARIABLE};
-enum{GLOBAL,PERATOM,LOCAL};
+enum{PERATOM,LOCAL};
 
 #define INVOKED_VECTOR 2
 #define INVOKED_ARRAY 4
@@ -101,34 +101,8 @@ double ComputeReduceRegion::compute_one(int m, int flag)
 
   } else if (which[m] == COMPUTE) {
     Compute *compute = modify->compute[n];
-    
-    if (flavor[m] == GLOBAL) {
-      if (j == 0) {
-	if (!(compute->invoked_flag & INVOKED_VECTOR)) {
-	  compute->compute_vector();
-	  compute->invoked_flag |= INVOKED_VECTOR;
-	}
-	double *compute_vector = compute->vector;
-	int n = compute->size_vector;
-	if (flag < 0) 
-	  for (i = 0; i < n; i++)
-	    combine(one,compute_vector[i],i);
-	else one = compute_vector[flag];
-      } else {
-	if (!(compute->invoked_flag & INVOKED_ARRAY)) {
-	  compute->compute_array();
-	  compute->invoked_flag |= INVOKED_ARRAY;
-	}
-	double **compute_array = compute->array;
-	int n = compute->size_array_rows;
-	int jm1 = j - 1;
-	if (flag < 0) 
-	  for (i = 0; i < n; i++)
-	    combine(one,compute_array[i][jm1],i);
-	else one = compute_array[flag][jm1];
-      }
 
-    } else if (flavor[m] == PERATOM) {
+    if (flavor[m] == PERATOM) {
       if (!(compute->invoked_flag & INVOKED_PERATOM)) {
 	compute->compute_peratom();
 	compute->invoked_flag |= INVOKED_PERATOM;
@@ -184,23 +158,7 @@ double ComputeReduceRegion::compute_one(int m, int flag)
       error->all("Fix used in compute reduce not computed at compatible time");
     Fix *fix = modify->fix[n];
 
-    if (flavor[m] == GLOBAL) {
-      if (j == 0) {
-	int n = fix->size_vector;
-	if (flag < 0)
-	  for (i = 0; i < n; i++)
-	    combine(one,fix->compute_vector(i),i);
-	else one = fix->compute_vector(flag);
-      } else {
-	int n = fix->size_array_rows;
-	int jm1 = j - 1;
-	if (flag < 0)
-	  for (i = 0; i < nlocal; i++)
-	    combine(one,fix->compute_array(i,jm1),i);
-	else one = fix->compute_array(flag,jm1);
-      }
-
-    } else if (flavor[m] == PERATOM) {
+    if (flavor[m] == PERATOM) {
       if (j == 0) {
 	double *fix_vector = fix->vector_atom;
 	int n = nlocal;
@@ -274,10 +232,7 @@ double ComputeReduceRegion::count(int m)
     return group->count(igroup,iregion);
   else if (which[m] == COMPUTE) {
     Compute *compute = modify->compute[n];
-    if (flavor[m] == GLOBAL) {
-      if (j == 0) return(1.0*compute->size_vector);
-      else return(1.0*compute->size_array_rows);
-    } else if (flavor[m] == PERATOM) {
+    if (flavor[m] == PERATOM) {
       return group->count(igroup,iregion);
     } else if (flavor[m] == LOCAL) {
       double ncount = compute->size_local_rows;
@@ -287,10 +242,7 @@ double ComputeReduceRegion::count(int m)
     }
   } else if (which[m] == FIX) {
     Fix *fix = modify->fix[n];
-    if (flavor[m] == GLOBAL) {
-      if (j == 0) return(1.0*fix->size_vector);
-      else return(1.0*fix->size_array_rows);
-    } else if (flavor[m] == PERATOM) {
+    if (flavor[m] == PERATOM) {
       return group->count(igroup,iregion);
     } else if (flavor[m] == LOCAL) {
       double ncount = fix->size_local_rows;

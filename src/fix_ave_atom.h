@@ -47,6 +47,8 @@ class FixAveAtom : public Fix {
   char **ids;
 
   double **array;
+
+  int nextvalid();
 };
 
 }

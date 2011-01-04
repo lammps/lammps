@@ -13,7 +13,7 @@
     copyright            : (C) 2010 by W. Michael Brown
     email                : brownw@ornl.gov
  ***************************************************************************/
- 
+
 /* -----------------------------------------------------------------------
    Copyright (2010) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -51,9 +51,9 @@ class UCL_Program {
   /** \note Must call init() after each clear **/
   inline void clear() {
     if (_init_done) {
-      CL_SAFE_CALL(clReleaseProgram(_program)); 
-      CL_SAFE_CALL(clReleaseContext(_context));
-      CL_SAFE_CALL(clReleaseCommandQueue(_cq));
+      CL_DESTRUCT_CALL(clReleaseProgram(_program)); 
+      CL_DESTRUCT_CALL(clReleaseContext(_context));
+      CL_DESTRUCT_CALL(clReleaseCommandQueue(_cq));
       _init_done=false;
     }
   }

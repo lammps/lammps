@@ -29,14 +29,19 @@
 group has moved a distance greater than the specified threshold
 distance when compared to a previously stored reference state
 (i.e. the previous event).  This compute is typically used in
-conjunction with the <A HREF = "prd.html">prd</A> command, to detect if a transition
+conjunction with the <A HREF = "prd.html">prd</A> and <A HREF = "tad.html">tad</A> commands, 
+to detect if a transition
 to a new minimum energy basin has occurred.
 </P>
 <P>This value calculated by the compute is equal to 0 if no particle has
 moved far enough, and equal to 1 if one or more particles have moved
 further than the threshold distance.
 </P>
-<P><B>Output info:</B>
+<P>NOTE: If the system is undergoing significant center-of-mass motion, 
+due to thermal motion, an external force, or an initial net momentum, 
+then this compute will not be able to distinguish that motion from
+local atom displacements and may generate "false postives."
+<B>Output info:</B>
 </P>
 <P>This compute calculates a global scalar (the flag).  This value can be
 used by any command that uses a global scalar value from a compute as
@@ -54,7 +59,7 @@ more info on packages.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "prd.html">prd</A>
+<P><A HREF = "prd.html">prd</A>, <A HREF = "tad.html">tad</A>
 </P>
 <P><B>Default:</B> none
 </P>

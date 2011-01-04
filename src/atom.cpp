@@ -45,7 +45,8 @@ using namespace LAMMPS_NS;
 
 Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
 {
-  natoms = nlocal = nghost = nmax = 0;
+  natoms = 0;
+  nlocal = nghost = nmax = 0;
   ntypes = 0;
   nbondtypes = nangletypes = ndihedraltypes = nimpropertypes = 0;
   nbonds = nangles = ndihedrals = nimpropers = 0;

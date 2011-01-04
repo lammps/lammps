@@ -18,6 +18,7 @@
 #include "string.h"
 #include "stdlib.h"
 #include "library.h"
+#include "lmptype.h"
 #include "lammps.h"
 #include "input.h"
 #include "atom.h"
@@ -347,6 +348,7 @@ void *lammps_extract_variable(void *ptr, char *name, char *group)
 int lammps_get_natoms(void *ptr)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
+  if (lmp->atom->natoms > MAXINT32) return 0;
   int natoms = static_cast<int> (lmp->atom->natoms);
   return natoms;
 }
@@ -360,6 +362,7 @@ void lammps_get_coords(void *ptr, double *coords)
   // error if tags are not defined or not consecutive
 
   if (lmp->atom->tag_enable == 0 || lmp->atom->tag_consecutive() == 0) return;
+  if (lmp->atom->natoms > MAXINT32) return;
 
   int natoms = static_cast<int> (lmp->atom->natoms);
   double *copy = new double[3*natoms];
@@ -391,6 +394,7 @@ void lammps_put_coords(void *ptr, double *coords)
   // error if no map defined by LAMMPS
 
   if (lmp->atom->map_style == 0) return;
+  if (lmp->atom->natoms > MAXINT32) return;
 
   int natoms = static_cast<int> (lmp->atom->natoms);
   double **x = lmp->atom->x;

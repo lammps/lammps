@@ -21,6 +21,7 @@ KSpaceStyle(pppm,PPPM)
 #define LMP_PPPM_H
 
 #include "kspace.h"
+#include "lmptype.h"
 
 namespace LAMMPS_NS {
 
@@ -83,7 +84,7 @@ class PPPM : public KSpace {
   void allocate();
   void deallocate();
   int factorable(int);
-  double rms(double, double, double, double, double **);
+  double rms(double, double, bigint, double, double **);
   double diffpr(double, double, double, double, double **);
   void compute_gf_denom();
   double gf_denom(double, double, double);

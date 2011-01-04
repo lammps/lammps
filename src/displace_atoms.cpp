@@ -15,6 +15,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "displace_atoms.h"
+#include "lmptype.h"
 #include "atom.h"
 #include "modify.h"
 #include "domain.h"
@@ -210,12 +211,12 @@ void DisplaceAtoms::command(int narg, char **arg)
 
   // check if any atoms were lost
 
-  double natoms;
-  double rlocal = atom->nlocal;
-  MPI_Allreduce(&rlocal,&natoms,1,MPI_DOUBLE,MPI_SUM,world);
+  bigint natoms;
+  bigint nblocal = atom->nlocal;
+  MPI_Allreduce(&nblocal,&natoms,1,MPI_UNSIGNED_LONG,MPI_SUM,world);
   if (natoms != atom->natoms) {
     char str[128];
-    sprintf(str,"Lost atoms via displace_atoms: original %.15g current %.15g",
+    sprintf(str,"Lost atoms via displace_atoms: original %lu current %lu",
 	    atom->natoms,natoms);
     error->all(str);
   }

@@ -20,6 +20,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "prd.h"
+#include "lmptype.h"
 #include "universe.h"
 #include "update.h"
 #include "atom.h"
@@ -46,8 +47,6 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
-
-#define MAXINT 0x7FFFFFFF
 
 /* ---------------------------------------------------------------------- */
 
@@ -117,7 +116,7 @@ void PRD::command(int narg, char **arg)
 
   // workspace for inter-replica communication via gathers
 
-  natoms = static_cast<int> (atom->natoms);
+  natoms = atom->natoms;
 
   displacements = NULL;
   tagall = NULL;
@@ -432,7 +431,7 @@ void PRD::dephase()
   timer->barrier_start(TIME_LOOP);
 
   for (int i = 0; i < n_dephase; i++) {
-    int seed = static_cast<int> (random_dephase->uniform() * MAXINT);
+    int seed = static_cast<int> (random_dephase->uniform() * MAXINT32);
     if (seed == 0) seed = 1;
     velocity->create(temp_dephase,seed);
     update->integrate->run(t_dephase);

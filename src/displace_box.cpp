@@ -16,6 +16,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "displace_box.h"
+#include "lmptype.h"
 #include "atom.h"
 #include "modify.h"
 #include "domain.h"
@@ -376,12 +377,12 @@ void DisplaceBox::command(int narg, char **arg)
 
   // check if any atoms were lost
 
-  double natoms;
-  double rlocal = atom->nlocal;
-  MPI_Allreduce(&rlocal,&natoms,1,MPI_DOUBLE,MPI_SUM,world);
+  bigint natoms;
+  bigint nblocal = atom->nlocal;
+  MPI_Allreduce(&nblocal,&natoms,1,MPI_UNSIGNED_LONG,MPI_SUM,world);
   if (natoms != atom->natoms) {
     char str[128];
-    sprintf(str,"Lost atoms via displace_box: original %.15g current %.15g",
+    sprintf(str,"Lost atoms via displace_box: original %lu current %lu",
 	    atom->natoms,natoms);
     error->all(str);
   }

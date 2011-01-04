@@ -16,6 +16,7 @@
 #include "string.h"
 #include "stdlib.h"
 #include "read_data.h"
+#include "lmptype.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "comm.h"
@@ -335,7 +336,7 @@ void ReadData::header(int flag)
 
     // search line for header keyword and set corresponding variable
 
-    if (strstr(line,"atoms")) sscanf(line,"%lg",&atom->natoms);
+    if (strstr(line,"atoms")) sscanf(line,"%lu",&atom->natoms);
     else if (strstr(line,"bonds")) sscanf(line,"%d",&atom->nbonds);
     else if (strstr(line,"angles")) sscanf(line,"%d",&atom->nangles);
     else if (strstr(line,"dihedrals")) sscanf(line,"%d",&atom->ndihedrals);
@@ -402,19 +403,18 @@ void ReadData::header(int flag)
 
 /* ----------------------------------------------------------------------
    read all atoms
-   accumulate nread in double precision to allow natoms > 2^31
 ------------------------------------------------------------------------- */
 
 void ReadData::atoms()
 {
   int i,m,nchunk;
   
-  double nread = 0.0;
-  double natoms = atom->natoms;
+  bigint nread = 0;
+  bigint natoms = atom->natoms;
 
   while (nread < natoms) {
     if (natoms-nread > CHUNK) nchunk = CHUNK;
-    else nchunk = static_cast<int> (natoms - nread);
+    else nchunk = natoms-nread;
     if (me == 0) {
       char *eof;
       m = 0;
@@ -449,24 +449,27 @@ void ReadData::atoms()
   // if any atom ID > 0, error if any atom ID == 0
   // not checking if atom IDs > natoms or are unique
   
+  int nlocal = atom->nlocal;
+  int *tag = atom->tag;
+
   int flag = 0;
-  for (int i = 0; i < atom->nlocal; i++)
-    if (atom->tag[i] < 0) flag = 1;
+  for (int i = 0; i < nlocal; i++)
+    if (tag[i] < 0) flag = 1;
   int flag_all;
   MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
   if (flag_all)
     error->all("Invalid atom ID in Atoms section of data file");
 
   flag = 0;
-  for (int i = 0; i < atom->nlocal; i++)
-    if (atom->tag[i] > 0) flag = 1;
+  for (int i = 0; i < nlocal; i++)
+    if (tag[i] > 0) flag = 1;
   MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_MAX,world);
   if (flag_all == 0) atom->tag_enable = 0;
 
   if (atom->tag_enable) {
     flag = 0;
-    for (int i = 0; i < atom->nlocal; i++)
-      if (atom->tag[i] == 0) flag = 1;
+    for (int i = 0; i < nlocal; i++)
+      if (tag[i] == 0) flag = 1;
     MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
     if (flag_all)
       error->all("Invalid atom ID in Atoms section of data file");
@@ -483,7 +486,6 @@ void ReadData::atoms()
 /* ----------------------------------------------------------------------
    read all velocities
    to find atoms, must build atom map if not a molecular system 
-   accumulate nread in double precision to allow natoms > 2^31
 ------------------------------------------------------------------------- */
 
 void ReadData::velocities()
@@ -498,12 +500,12 @@ void ReadData::velocities()
     atom->map_set();
   }
 
-  double nread = 0.0;
-  double natoms = atom->natoms;
+  bigint nread = 0;
+  bigint natoms = atom->natoms;
 
   while (nread < natoms) {
     if (natoms-nread > CHUNK) nchunk = CHUNK;
-    else nchunk = static_cast<int> (natoms - nread);
+    else nchunk = natoms-nread;
     if (me == 0) {
       char *eof;
       m = 0;
@@ -560,9 +562,11 @@ void ReadData::bonds()
 
   // check that bonds were assigned correctly
 
+  int nlocal = atom->nlocal;
+
   int sum;
   int n = 0;
-  for (i = 0; i < atom->nlocal; i++) n += atom->num_bond[i];
+  for (i = 0; i < nlocal; i++) n += atom->num_bond[i];
   MPI_Allreduce(&n,&sum,1,MPI_INT,MPI_SUM,world);
   int factor = 1;
   if (!force->newton_bond) factor = 2;
@@ -602,9 +606,11 @@ void ReadData::angles()
 
   // check that angles were assigned correctly
 
+  int nlocal = atom->nlocal;
+
   int sum;
   int n = 0;
-  for (i = 0; i < atom->nlocal; i++) n += atom->num_angle[i];
+  for (i = 0; i < nlocal; i++) n += atom->num_angle[i];
   MPI_Allreduce(&n,&sum,1,MPI_INT,MPI_SUM,world);
   int factor = 1;
   if (!force->newton_bond) factor = 3;
@@ -644,9 +650,11 @@ void ReadData::dihedrals()
 
   // check that dihedrals were assigned correctly
 
+  int nlocal = atom->nlocal;
+
   int sum;
   int n = 0;
-  for (i = 0; i < atom->nlocal; i++) n += atom->num_dihedral[i];
+  for (i = 0; i < nlocal; i++) n += atom->num_dihedral[i];
   MPI_Allreduce(&n,&sum,1,MPI_INT,MPI_SUM,world);
   int factor = 1;
   if (!force->newton_bond) factor = 4;
@@ -687,9 +695,11 @@ void ReadData::impropers()
 
   // check that impropers were assigned correctly
 
+  int nlocal = atom->nlocal;
+
   int sum;
   int n = 0;
-  for (i = 0; i < atom->nlocal; i++) n += atom->num_improper[i];
+  for (i = 0; i < nlocal; i++) n += atom->num_improper[i];
   MPI_Allreduce(&n,&sum,1,MPI_INT,MPI_SUM,world);
   int factor = 1;
   if (!force->newton_bond) factor = 4;

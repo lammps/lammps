@@ -14,6 +14,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "delete_atoms.h"
+#include "lmptype.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "comm.h"
@@ -49,7 +50,7 @@ void DeleteAtoms::command(int narg, char **arg)
 
   // store state before delete
 
-  int natoms_previous = static_cast<int> (atom->natoms);
+  bigint natoms_previous = atom->natoms;
 
   // delete the atoms
 
@@ -91,8 +92,8 @@ void DeleteAtoms::command(int narg, char **arg)
   // reset atom->map if it exists
   // set nghost to 0 so old ghosts of deleted atoms won't be mapped
 
-  double rlocal = atom->nlocal;
-  MPI_Allreduce(&rlocal,&atom->natoms,1,MPI_DOUBLE,MPI_SUM,world);
+  bigint nblocal = atom->nlocal;
+  MPI_Allreduce(&nblocal,&atom->natoms,1,MPI_UNSIGNED_LONG,MPI_SUM,world);
   if (atom->map_style) {
     atom->nghost = 0;
     atom->map_init();
@@ -101,12 +102,12 @@ void DeleteAtoms::command(int narg, char **arg)
 
   // print before and after atom count
 
-  int ndelete = static_cast<int> (natoms_previous - atom->natoms);
+  bigint ndelete = natoms_previous - atom->natoms;
 
   if (comm->me == 0) {
-    if (screen) fprintf(screen,"Deleted %d atoms, new total = %.15g\n",
+    if (screen) fprintf(screen,"Deleted %lu atoms, new total = %lu\n",
 			ndelete,atom->natoms);
-    if (logfile) fprintf(logfile,"Deleted %d atoms, new total = %.15g\n",
+    if (logfile) fprintf(logfile,"Deleted %lu atoms, new total = %lu\n",
 			 ndelete,atom->natoms);
   }
 }

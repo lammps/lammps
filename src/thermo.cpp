@@ -56,7 +56,7 @@ using namespace LAMMPS_NS;
 
 enum{IGNORE,WARN,ERROR};           // same as write_restart.cpp
 enum{ONELINE,MULTILINE};
-enum{INT,FLOAT};
+enum{INT,FLOAT,BIGINT};
 enum{SCALAR,VECTOR,ARRAY};
 
 #define INVOKED_SCALAR 1
@@ -135,12 +135,15 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   format_multi = (char *) "---------------- Step %8d ----- "
                           "CPU = %11.4f (sec) ----------------";
+  format_float_one_def = (char *) "%12.8g";
+  format_float_multi_def = (char *) "%14.4f";
   format_int_one_def = (char *) "%8d";
   format_int_multi_def = (char *) "%14d";
-  format_g_def = (char *) "%12.8g";
-  format_f_def = (char *) "%14.4f";
-  format_int_user = NULL;
+  format_bigint_one_def = (char *) "%8lu";
+  format_bigint_multi_def = (char *) "%14lu";
   format_float_user = NULL;
+  format_int_user = NULL;
+  format_bigint_user = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -154,8 +157,9 @@ Thermo::~Thermo()
 
   // format strings
 
-  delete [] format_int_user;
   delete [] format_float_user;
+  delete [] format_int_user;
+  delete [] format_bigint_user;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -188,13 +192,19 @@ void Thermo::init()
     if (lineflag == MULTILINE && i % 3 == 0) strcat(format[i],"\n");
 
     if (format_user[i]) ptr = format_user[i];
-    else if (vtype[i] == INT && format_int_user) ptr = format_int_user;
-    else if (vtype[i] == INT && lineflag == ONELINE) ptr = format_int_one_def;
-    else if (vtype[i] == INT && lineflag == MULTILINE) 
-      ptr = format_int_multi_def;
-    else if (vtype[i] == FLOAT && format_float_user) ptr = format_float_user;
-    else if (lineflag == ONELINE) ptr = format_g_def;
-    else if (lineflag == MULTILINE) ptr = format_f_def;
+    else if (vtype[i] == FLOAT) {
+      if (format_float_user) ptr = format_float_user;
+      else if (lineflag == ONELINE) ptr = format_float_one_def;
+      else if (lineflag == MULTILINE) ptr = format_float_multi_def;
+    } else if (vtype[i] == INT) {
+      if (format_int_user) ptr = format_int_user;
+      else if (lineflag == ONELINE) ptr = format_int_one_def;
+      else if (lineflag == MULTILINE) ptr = format_int_multi_def;
+    } else if (vtype[i] == BIGINT) {
+      if (format_bigint_user) ptr = format_bigint_user;
+      else if (lineflag == ONELINE) ptr = format_bigint_one_def;
+      else if (lineflag == MULTILINE) ptr = format_bigint_multi_def;
+    }
 
     n = strlen(format[i]);
     if (lineflag == ONELINE) sprintf(&format[i][n],"%s ",ptr);
@@ -310,8 +320,13 @@ void Thermo::compute(int flag)
 
   for (ifield = 0; ifield < nfield; ifield++) {
     (this->*vfunc[ifield])();
-    if (vtype[ifield] == INT) loc += sprintf(&line[loc],format[ifield],ivalue);
-    else loc += sprintf(&line[loc],format[ifield],dvalue);
+    if (vtype[ifield] == FLOAT)
+      loc += sprintf(&line[loc],format[ifield],dvalue);
+    else if (vtype[ifield] == INT) 
+      loc += sprintf(&line[loc],format[ifield],ivalue);
+    else if (vtype[ifield] == BIGINT) {
+      loc += sprintf(&line[loc],format[ifield],bivalue);
+    }
   }
 
   // kludge for RedStorm timing issue
@@ -332,13 +347,13 @@ void Thermo::compute(int flag)
    check for lost atoms, return current number of atoms
 ------------------------------------------------------------------------- */
 
-double Thermo::lost_check()
+bigint Thermo::lost_check()
 {
   // ntotal = current # of atoms
 
-  double ntotal;
-  double rlocal = atom->nlocal;
-  MPI_Allreduce(&rlocal,&ntotal,1,MPI_DOUBLE,MPI_SUM,world);
+  bigint ntotal;
+  bigint nblocal = atom->nlocal;
+  MPI_Allreduce(&nblocal,&ntotal,1,MPI_UNSIGNED_LONG,MPI_SUM,world);
   if (ntotal == atom->natoms) return ntotal;
 
   // if not checking or already warned, just return
@@ -350,15 +365,14 @@ double Thermo::lost_check()
 
   if (lostflag == ERROR) {
     char str[128];
-    sprintf(str,"Lost atoms: original %.15g current %.15g",
-	    atom->natoms,ntotal);
+    sprintf(str,"Lost atoms: original %lu current %lu",atom->natoms,ntotal);
     error->all(str);
   }
 
   // warning message
 
   char str[128];
-  sprintf(str,"Lost atoms: original %.15g current %.15g",atom->natoms,ntotal);
+  sprintf(str,"Lost atoms: original %lu current %lu",atom->natoms,ntotal);
   if (me == 0) error->warning(str,0);
   lostbefore = 1;
   return ntotal;
@@ -484,6 +498,15 @@ void Thermo::modify_params(int narg, char **arg)
 	int n = strlen(arg[iarg+2]) + 1;
 	format_int_user = new char[n];
 	strcpy(format_int_user,arg[iarg+2]);
+	if (format_bigint_user) delete [] format_bigint_user;
+	n = strlen(format_int_user) + 2;
+	format_bigint_user = new char[n];
+	char *ptr = strchr(format_int_user,'d');
+	if (ptr == NULL) 
+	  error->all("Thermo_modify int format does not contain d character");
+	*ptr = '\0';
+	sprintf(format_bigint_user,"%s%s%s",format_int_user,"lu",ptr+1);
+	*ptr = 'd';
       } else if (strcmp(arg[iarg+1],"float") == 0) {
 	if (format_float_user) delete [] format_float_user;
 	int n = strlen(arg[iarg+2]) + 1;
@@ -610,7 +633,7 @@ void Thermo::parse_fields(char *str)
       addfield("S/CPU",&Thermo::compute_spcpu,FLOAT);
 
     } else if (strcmp(word,"atoms") == 0) {
-      addfield("Atoms",&Thermo::compute_atoms,INT);
+      addfield("Atoms",&Thermo::compute_atoms,BIGINT);
     } else if (strcmp(word,"temp") == 0) {
       addfield("Temp",&Thermo::compute_temp,FLOAT);
       index_temp = add_compute(id_temp,SCALAR);
@@ -942,7 +965,6 @@ int Thermo::evaluate_keyword(char *word, double *answer)
 
   } else if (strcmp(word,"atoms") == 0) {
     compute_atoms();
-    dvalue = ivalue;
 
   } else if (strcmp(word,"temp") == 0) {
     if (!temperature)
@@ -1409,7 +1431,7 @@ void Thermo::compute_spcpu()
 
 void Thermo::compute_atoms()
 {
-  ivalue = static_cast<int> (natoms);
+  bivalue = natoms;
 }
 
 /* ---------------------------------------------------------------------- */

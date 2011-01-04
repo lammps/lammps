@@ -14,6 +14,7 @@
 #include "mpi.h"
 #include "string.h"
 #include "write_restart.h"
+#include "lmptype.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "atom_vec_hybrid.h"
@@ -120,8 +121,8 @@ void WriteRestart::write(char *file)
   // natoms = sum of nlocal = value to write into restart file
   // if unequal and thermo lostflag is "error", don't write restart file
 
-  double rlocal = atom->nlocal;
-  MPI_Allreduce(&rlocal,&natoms,1,MPI_DOUBLE,MPI_SUM,world);
+  bigint nblocal = atom->nlocal;
+  MPI_Allreduce(&nblocal,&natoms,1,MPI_UNSIGNED_LONG,MPI_SUM,world);
   if (natoms != atom->natoms && output->thermo->lostflag == ERROR) 
     error->all("Atom count is inconsistent, cannot write restart file");
 
@@ -331,7 +332,7 @@ void WriteRestart::header()
     }
   }
 
-  write_double(NATOMS,natoms);
+  write_bigint(NATOMS,natoms);
   write_int(NTYPES,atom->ntypes);
   write_int(NBONDS,atom->nbonds);
   write_int(NBONDTYPES,atom->nbondtypes);
@@ -484,3 +485,14 @@ void WriteRestart::write_char(int flag, char *value)
   fwrite(&n,sizeof(int),1,fp);
   fwrite(value,sizeof(char),n,fp);
 }
+
+/* ----------------------------------------------------------------------
+   write a flag and a bigint into restart file 
+------------------------------------------------------------------------- */
+
+void WriteRestart::write_bigint(int flag, bigint value)
+{
+  fwrite(&flag,sizeof(int),1,fp);
+  fwrite(&value,sizeof(bigint),1,fp);
+}
+

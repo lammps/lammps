@@ -13,7 +13,9 @@
 
 #include "stdlib.h"
 #include "string.h"
+#include "stdint.h"
 #include "replicate.h"
+#include "lmptype.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "atom_vec_hybrid.h"
@@ -27,7 +29,6 @@
 using namespace LAMMPS_NS;
 
 #define LB_FACTOR 1.1
-#define MAXATOMS  0x7FFFFFFF
 #define EPSILON   1.0e-6
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
@@ -129,16 +130,16 @@ void Replicate::command(int narg, char **arg)
   // if molecular, N/Nbonds/etc cannot be > 2^31 else tags/counts invalid
 
   double rep = nrep;
-  if (rep*old->natoms > MAXATOMS) atom->tag_enable = 0;
+  if (rep*old->natoms > MAXINT32) atom->tag_enable = 0;
 
   if (atom->tag_enable == 0)
     for (int i = 0; i < atom->nlocal; i++)
       atom->tag[i] = 0;
 
   if (atom->molecular) {
-    if (rep*old->natoms > MAXATOMS || rep*old->nbonds > MAXATOMS ||
-	rep*old->nangles > MAXATOMS || rep*old->ndihedrals > MAXATOMS ||
-	rep*old->nimpropers > MAXATOMS)
+    if (rep*old->natoms > MAXINT32 || rep*old->nbonds > MAXINT32 ||
+	rep*old->nangles > MAXINT32 || rep*old->ndihedrals > MAXINT32 ||
+	rep*old->nimpropers > MAXINT32)
       error->all("Too big a problem to replicate with molecular atom style");
   }
 
@@ -363,13 +364,13 @@ void Replicate::command(int narg, char **arg)
 
   // check that all atoms were assigned to procs
 
-  double natoms;
-  double rlocal = atom->nlocal;
-  MPI_Allreduce(&rlocal,&natoms,1,MPI_DOUBLE,MPI_SUM,world);
+  bigint natoms;
+  bigint nblocal = atom->nlocal;
+  MPI_Allreduce(&nblocal,&natoms,1,MPI_UNSIGNED_LONG,MPI_SUM,world);
 
   if (me == 0) {
-    if (screen) fprintf(screen,"  %.15g atoms\n",natoms);
-    if (logfile) fprintf(logfile,"  %.15g atoms\n",natoms);
+    if (screen) fprintf(screen,"  %lu atoms\n",natoms);
+    if (logfile) fprintf(logfile,"  %lu atoms\n",natoms);
   }
 
   if (natoms != atom->natoms)

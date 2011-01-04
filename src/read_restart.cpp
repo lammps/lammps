@@ -17,6 +17,7 @@
 #include "sys/types.h"
 #include "dirent.h"
 #include "read_restart.h"
+#include "lmptype.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "domain.h"
@@ -290,13 +291,13 @@ void ReadRestart::command(int narg, char **arg)
 
   // check that all atoms were assigned to procs
 
-  double natoms;
-  double rlocal = atom->nlocal;
-  MPI_Allreduce(&rlocal,&natoms,1,MPI_DOUBLE,MPI_SUM,world);
+  bigint natoms;
+  bigint nblocal = atom->nlocal;
+  MPI_Allreduce(&nblocal,&natoms,1,MPI_UNSIGNED_LONG,MPI_SUM,world);
 
   if (me == 0) {
-    if (screen) fprintf(screen,"  %.15g atoms\n",natoms);
-    if (logfile) fprintf(logfile,"  %.15g atoms\n",natoms);
+    if (screen) fprintf(screen,"  %lu atoms\n",natoms);
+    if (logfile) fprintf(logfile,"  %lu atoms\n",natoms);
   }
 
   if (natoms != atom->natoms) error->all("Did not assign all atoms correctly");
@@ -594,7 +595,7 @@ void ReadRestart::header()
       delete [] style;
 
     } else if (flag == NATOMS) {
-      atom->natoms = read_double();
+      atom->natoms = read_bigint();
     } else if (flag == NTYPES) {
       atom->ntypes = read_int();
     } else if (flag == NBONDS) {
@@ -807,5 +808,17 @@ char *ReadRestart::read_char()
   char *value = new char[n];
   if (me == 0) fread(value,sizeof(char),n,fp);
   MPI_Bcast(value,n,MPI_CHAR,0,world);
+  return value;
+}
+
+/* ----------------------------------------------------------------------
+   read a bigint from restart file and bcast it
+------------------------------------------------------------------------- */
+
+bigint ReadRestart::read_bigint()
+{
+  bigint value;
+  if (me == 0) fread(&value,sizeof(bigint),1,fp);
+  MPI_Bcast(&value,1,MPI_UNSIGNED_LONG,0,world);
   return value;
 }

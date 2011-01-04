@@ -44,9 +44,10 @@ void Finish::end(int flag)
   int i,m,nneigh,nneighfull;
   int histo[10];
   int loopflag,minflag,prdflag,timeflag,fftflag,histoflag,neighflag;
-  double time,tmp,ave,max,min,natoms;
+  double time,tmp,ave,max,min;
   double time_loop,time_other;
-  
+  bigint natoms;
+
   int me,nprocs;
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
@@ -85,17 +86,17 @@ void Finish::end(int flag)
     // overall loop time
     // use actual natoms, in case atoms were lost
 
-    double rlocal = atom->nlocal;
-    MPI_Allreduce(&rlocal,&natoms,1,MPI_DOUBLE,MPI_SUM,world);
+    bigint nblocal = atom->nlocal;
+    MPI_Allreduce(&nblocal,&natoms,1,MPI_UNSIGNED_LONG,MPI_SUM,world);
     
     if (me == 0) {
       if (screen) 
 	fprintf(screen,
-		"Loop time of %g on %d procs for %d steps with %.15g atoms\n",
+		"Loop time of %g on %d procs for %d steps with %lu atoms\n",
 		time_loop,nprocs,update->nsteps,natoms);
       if (logfile)
 	fprintf(logfile,
-		"Loop time of %g on %d procs for %d steps with %.15g atoms\n",
+		"Loop time of %g on %d procs for %d steps with %lu atoms\n",
 		time_loop,nprocs,update->nsteps,natoms);
     }
 

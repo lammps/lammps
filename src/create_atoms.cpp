@@ -15,6 +15,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "create_atoms.h"
+#include "lmptype.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "comm.h"
@@ -28,7 +29,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MAXATOMS 0x7FFFFFFF
 #define BIG      1.0e30
 #define EPSILON  1.0e-6
 
@@ -145,7 +145,7 @@ void CreateAtoms::command(int narg, char **arg)
 
   // add atoms
 
-  double natoms_previous = atom->natoms;
+  bigint natoms_previous = atom->natoms;
   int nlocal_previous = atom->nlocal;
 
   if (style == SINGLE) add_single();
@@ -168,16 +168,16 @@ void CreateAtoms::command(int narg, char **arg)
 
   // new total # of atoms
 
-  double rlocal = atom->nlocal;
-  MPI_Allreduce(&rlocal,&atom->natoms,1,MPI_DOUBLE,MPI_SUM,world);
+  bigint nblocal = atom->nlocal;
+  MPI_Allreduce(&nblocal,&atom->natoms,1,MPI_UNSIGNED_LONG,MPI_SUM,world);
 
   // print status
 
   if (comm->me == 0) {
     if (screen)
-      fprintf(screen,"Created %.15g atoms\n",atom->natoms-natoms_previous);
+      fprintf(screen,"Created %lu atoms\n",atom->natoms-natoms_previous);
     if (logfile)
-      fprintf(logfile,"Created %.15g atoms\n",atom->natoms-natoms_previous);
+      fprintf(logfile,"Created %lu atoms\n",atom->natoms-natoms_previous);
   }
 
   // reset simulation now that more atoms are defined
@@ -185,8 +185,8 @@ void CreateAtoms::command(int narg, char **arg)
   // if global map exists, reset it
   // if a molecular system, set nspecial to 0 for new atoms
 
-  if (atom->natoms > MAXATOMS) atom->tag_enable = 0;
-  if (atom->natoms <= MAXATOMS) atom->tag_extend();
+  if (atom->natoms > MAXINT32) atom->tag_enable = 0;
+  if (atom->natoms <= MAXINT32) atom->tag_extend();
 
   if (atom->map_style) {
     atom->nghost = 0;

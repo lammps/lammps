@@ -18,7 +18,11 @@
 
 namespace LAMMPS_NS {
 
+#if defined(__MINGW32_VERSION)
+typedef unsigned long long int bigint;
+#else
 typedef uint64_t bigint;
+#endif
 #define MAXINT32 0x7FFFFFFF
 
 }

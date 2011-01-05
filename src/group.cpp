@@ -497,7 +497,7 @@ bigint Group::count(int igroup)
 
   bigint nsingle = n;
   bigint nall;
-  MPI_Allreduce(&nsingle,&nall,1,MPI_UNSIGNED_LONG,MPI_SUM,world);
+  MPI_Allreduce(&nsingle,&nall,1,MPI_UNSIGNED_LONG_LONG,MPI_SUM,world);
   return nall;
 }
 
@@ -520,7 +520,7 @@ bigint Group::count(int igroup, int iregion)
 
   bigint nsingle = n;
   bigint nall;
-  MPI_Allreduce(&nsingle,&nall,1,MPI_UNSIGNED_LONG,MPI_SUM,world);
+  MPI_Allreduce(&nsingle,&nall,1,MPI_UNSIGNED_LONG_LONG,MPI_SUM,world);
   return nall;
 }
 

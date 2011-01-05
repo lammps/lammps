@@ -365,7 +365,7 @@ void Replicate::command(int narg, char **arg)
 
   bigint natoms;
   bigint nblocal = atom->nlocal;
-  MPI_Allreduce(&nblocal,&natoms,1,MPI_UNSIGNED_LONG,MPI_SUM,world);
+  MPI_Allreduce(&nblocal,&natoms,1,MPI_UNSIGNED_LONG_LONG,MPI_SUM,world);
 
   if (me == 0) {
     if (screen) fprintf(screen,"  %lu atoms\n",natoms);

@@ -169,7 +169,7 @@ void CreateAtoms::command(int narg, char **arg)
   // new total # of atoms
 
   bigint nblocal = atom->nlocal;
-  MPI_Allreduce(&nblocal,&atom->natoms,1,MPI_UNSIGNED_LONG,MPI_SUM,world);
+  MPI_Allreduce(&nblocal,&atom->natoms,1,MPI_UNSIGNED_LONG_LONG,MPI_SUM,world);
 
   // print status
 

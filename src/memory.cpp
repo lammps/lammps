@@ -23,18 +23,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Memory::Memory(LAMMPS *lmp) : Pointers(lmp)
-{
-  // check datatype sizes
-
-  if (sizeof(bigint) != 8)
-    error->all("No support for 8-byte unsigned integers");
-
-  int mpisize;
-  MPI_Type_size(MPI_UNSIGNED_LONG,&mpisize);
-  if (mpisize != 8)
-    error->all("MPI_UNSIGNED_LONG is not 8-byte data type");
-}
+Memory::Memory(LAMMPS *lmp) : Pointers(lmp) {}
 
 /* ----------------------------------------------------------------------
    safe malloc 

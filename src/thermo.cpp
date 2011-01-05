@@ -353,7 +353,7 @@ bigint Thermo::lost_check()
 
   bigint ntotal;
   bigint nblocal = atom->nlocal;
-  MPI_Allreduce(&nblocal,&ntotal,1,MPI_UNSIGNED_LONG,MPI_SUM,world);
+  MPI_Allreduce(&nblocal,&ntotal,1,MPI_UNSIGNED_LONG_LONG,MPI_SUM,world);
   if (ntotal == atom->natoms) return ntotal;
 
   // if not checking or already warned, just return

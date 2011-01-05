@@ -87,7 +87,7 @@ void Finish::end(int flag)
     // use actual natoms, in case atoms were lost
 
     bigint nblocal = atom->nlocal;
-    MPI_Allreduce(&nblocal,&natoms,1,MPI_UNSIGNED_LONG,MPI_SUM,world);
+    MPI_Allreduce(&nblocal,&natoms,1,MPI_UNSIGNED_LONG_LONG,MPI_SUM,world);
     
     if (me == 0) {
       if (screen) 

@@ -122,7 +122,7 @@ void WriteRestart::write(char *file)
   // if unequal and thermo lostflag is "error", don't write restart file
 
   bigint nblocal = atom->nlocal;
-  MPI_Allreduce(&nblocal,&natoms,1,MPI_UNSIGNED_LONG,MPI_SUM,world);
+  MPI_Allreduce(&nblocal,&natoms,1,MPI_UNSIGNED_LONG_LONG,MPI_SUM,world);
   if (natoms != atom->natoms && output->thermo->lostflag == ERROR) 
     error->all("Atom count is inconsistent, cannot write restart file");
 

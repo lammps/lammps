@@ -93,7 +93,7 @@ void DeleteAtoms::command(int narg, char **arg)
   // set nghost to 0 so old ghosts of deleted atoms won't be mapped
 
   bigint nblocal = atom->nlocal;
-  MPI_Allreduce(&nblocal,&atom->natoms,1,MPI_UNSIGNED_LONG,MPI_SUM,world);
+  MPI_Allreduce(&nblocal,&atom->natoms,1,MPI_UNSIGNED_LONG_LONG,MPI_SUM,world);
   if (atom->map_style) {
     atom->nghost = 0;
     atom->map_init();

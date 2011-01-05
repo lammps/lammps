@@ -56,7 +56,6 @@ __inline float4 fetch_pos(const int& i, const float4 *pos)
 
 #define CELL_BLOCK_SIZE 64
 #define BLOCK_2D 8
-#define O2_BLOCK_SIZE 64
 
 __kernel void transpose(int *out, int *in, int columns_in, int rows_in)
 {
@@ -142,7 +141,7 @@ __kernel void calc_neigh_list_cell(numtyp4 *pos,
 				     int *nbor_list,
 				     int *host_nbor_list, 
 				     int neigh_bin_size, 
-				     numtyp cell_size_sq,
+				     numtyp cell_size,
 				     int ncellx, int ncelly, int ncellz,
 				     int inum, int nt, int nall)
 {
@@ -227,7 +226,7 @@ __kernel void calc_neigh_list_cell(numtyp4 *pos,
                   diff.z = atom_i.z - pos_sh[j].z;
 		
                   r2 = diff.x*diff.x + diff.y*diff.y + diff.z*diff.z;
-                  if (r2 < cell_size_sq && r2 > 1e-5) {
+                  if (r2 < cell_size*cell_size && r2 > 1e-5) {
                     if (cnt < neigh_bin_size) {
                       *neigh_list = pid_j;
                       neigh_list+=stride;
@@ -294,72 +293,3 @@ __kernel void kernel_special(__global int *dev_nbor,
   } // if ii
 }
 
-__kernel void kernel_nbor_o2(__global numtyp4 *x_, __global int *dev_nbor, 
-                             __global int *host_nbor_list, const int inum,
-                             const int nt, const int nall, 
-                             numtyp cell_size_sq, const int max_nbors) {
-  int ii=THREAD_ID_X;
-  int i=ii+mul24((int)BLOCK_ID_X,(int)BLOCK_SIZE_X);
-  int numj=0;
-
-  int *nbor;
-  int nbor_pitch;
-  
-  if (i < inum) {
-    nbor_pitch=inum;
-    nbor=dev_nbor+i;
-    *nbor=i;
-    nbor+=nbor_pitch;
-  } else {
-    nbor_pitch=nt-inum;
-    nbor=host_nbor_list+i-inum;
-  }
-  nbor+=nbor_pitch;
-  
-  // Shared memory for atom positions
-  __local numtyp4 x[O2_BLOCK_SIZE];
-
-  numtyp4 x_me;
-  if (i<nt)
-    x_me=x_[i];
-
-  for (int j=0; j<nall; j+=O2_BLOCK_SIZE) {
-    int thread_j=j+ii;
-    if (thread_j<nall)
-      x[ii]=x_[thread_j];
-
-    __syncthreads();
-    
-    if (i<nt) {
-      for (int k=0; k<O2_BLOCK_SIZE; k++) {
-        numtyp rsq=x_me.x-x[k].x;
-        rsq*=rsq;
-        numtyp tsq=x_me.y-x[k].y;
-        rsq+=tsq*tsq;
-        tsq=x_me.z-x[k].z;
-        rsq+=tsq*tsq;
-        
-        if (rsq<cell_size_sq) {
-          int tj=j+k;
-          if (tj<nall && tj!=i) {
-            if (i<inum || tj<inum || tj>i) {
-              if (numj<max_nbors)
-                *nbor=tj;
-              nbor+=nbor_pitch;
-              numj++;
-            }
-          }
-        }
-      }
-    }
-    
-    __syncthreads();
-  }
-
-  if (i < inum)
-    nbor=dev_nbor+i+nbor_pitch;
-  else
-    nbor=host_nbor_list+i-inum;
-  if (i < nt)
-    *nbor=numj;
-}

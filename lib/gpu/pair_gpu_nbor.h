@@ -191,7 +191,7 @@ class PairGPUNbor {
  private:
   UCL_Device *dev;
   UCL_Program *nbor_program, *build_program;
-  UCL_Kernel k_nbor, k_cell_id, k_cell_counts, k_build_nbor, k_build_o2;
+  UCL_Kernel k_nbor, k_cell_id, k_cell_counts, k_build_nbor;
   UCL_Kernel k_transpose, k_special;
   bool _allocated, _use_packing, _compiled;
   void compile_kernels(UCL_Device &dev);

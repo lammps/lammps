@@ -158,7 +158,6 @@ void PairGPUNbor::clear() {
       k_cell_id.clear();
       k_cell_counts.clear();
       k_build_nbor.clear();
-      k_build_o2.clear();
       k_transpose.clear();
       k_special.clear();
       delete build_program;
@@ -263,7 +262,6 @@ void PairGPUNbor::compile_kernels(UCL_Device &dev) {
     k_cell_id.set_function(*build_program,"calc_cell_id");
     k_cell_counts.set_function(*build_program,"kernel_calc_cell_counts");
     k_build_nbor.set_function(*build_program,"calc_neigh_list_cell");
-    k_build_o2.set_function(*build_program,"kernel_nbor_o2");
     k_transpose.set_function(*build_program,"transpose");
     k_special.set_function(*build_program,"kernel_special");
     neigh_tex.get_texture(*build_program,"neigh_tex");
@@ -303,61 +301,50 @@ void PairGPUNbor::build_nbor_list(const int inum, const int host_inum,
     time_kernel.start();
 
   _nbor_pitch=inum;
-  numtyp cell_size_sq=_cell_size*_cell_size;
+  neigh_tex.bind_float(atom.dev_x,4);
+
+  int ncellx, ncelly, ncellz, ncell_3d;
+  ncellx = static_cast<int>(ceil(((boxhi[0] - boxlo[0]) +
+                                  2.0*_cell_size)/_cell_size));
+  ncelly = static_cast<int>(ceil(((boxhi[1] - boxlo[1]) +
+                                  2.0*_cell_size)/_cell_size));
+  ncellz = static_cast<int>(ceil(((boxhi[2] - boxlo[2]) +
+                                  2.0*_cell_size)/_cell_size));
+  ncell_3d = ncellx * ncelly * ncellz;
+  UCL_D_Vec<int> cell_counts;
+  cell_counts.alloc(ncell_3d+1,dev_nbor);
+  _cell_bytes=cell_counts.row_bytes();
+
+  /* build cell list on GPU */
+  const int neigh_block=128;
+  const int GX=(int)ceil((float)nall/neigh_block);
+  const numtyp boxlo0=static_cast<numtyp>(boxlo[0]);
+  const numtyp boxlo1=static_cast<numtyp>(boxlo[1]);
+  const numtyp boxlo2=static_cast<numtyp>(boxlo[2]);
+  const numtyp boxhi0=static_cast<numtyp>(boxhi[0]);
+  const numtyp boxhi1=static_cast<numtyp>(boxhi[1]);
+  const numtyp boxhi2=static_cast<numtyp>(boxhi[2]);
+  const numtyp cell_size_cast=static_cast<numtyp>(_cell_size);
+  k_cell_id.set_size(GX,neigh_block);
+  k_cell_id.run(&atom.dev_x.begin(), &atom.dev_cell_id.begin(), 
+                &atom.dev_particle_id.begin(),
+  				      &boxlo0, &boxlo1, &boxlo2, &boxhi0, &boxhi1, 
+  				      &boxhi2, &cell_size_cast, &ncellx, &ncelly, &nall);
+
+  atom.sort_neighbor(nall);
+
+  /* calculate cell count */
+  k_cell_counts.set_size(GX,neigh_block);
+  k_cell_counts.run(&atom.dev_cell_id.begin(), &cell_counts.begin(), &nall, 
+                    &ncell_3d);
+
+  /* build the neighbor list */
   const int cell_block=64;
-
-  if (true) {
-    const int o2_block=64;
-    const int GX2=static_cast<int>(ceil(static_cast<double>(nt)/o2_block));
-    k_build_o2.set_size(GX2,o2_block);
-    k_build_o2.run(&atom.dev_x.begin(), &dev_nbor.begin(),
-                   &dev_host_nbor.begin(), &inum, &nt, &nall, &cell_size_sq,
-                   &_max_nbors);
-  } else {
-    neigh_tex.bind_float(atom.dev_x,4);
-
-    int ncellx, ncelly, ncellz, ncell_3d;
-    ncellx = static_cast<int>(ceil(((boxhi[0] - boxlo[0]) +
-                                    2.0*_cell_size)/_cell_size));
-    ncelly = static_cast<int>(ceil(((boxhi[1] - boxlo[1]) +
-                                    2.0*_cell_size)/_cell_size));
-    ncellz = static_cast<int>(ceil(((boxhi[2] - boxlo[2]) +
-                                    2.0*_cell_size)/_cell_size));
-    ncell_3d = ncellx * ncelly * ncellz;
-    UCL_D_Vec<int> cell_counts;
-    cell_counts.alloc(ncell_3d+1,dev_nbor);
-    _cell_bytes=cell_counts.row_bytes();
-
-    /* build cell list on GPU */
-    const int neigh_block=128;
-    const int GX=(int)ceil((float)nall/neigh_block);
-    const numtyp boxlo0=static_cast<numtyp>(boxlo[0]);
-    const numtyp boxlo1=static_cast<numtyp>(boxlo[1]);
-    const numtyp boxlo2=static_cast<numtyp>(boxlo[2]);
-    const numtyp boxhi0=static_cast<numtyp>(boxhi[0]);
-    const numtyp boxhi1=static_cast<numtyp>(boxhi[1]);
-    const numtyp boxhi2=static_cast<numtyp>(boxhi[2]);
-    const numtyp cell_size_cast=static_cast<numtyp>(_cell_size);
-    k_cell_id.set_size(GX,neigh_block);
-    k_cell_id.run(&atom.dev_x.begin(), &atom.dev_cell_id.begin(), 
-                  &atom.dev_particle_id.begin(),
-    				      &boxlo0, &boxlo1, &boxlo2, &boxhi0, &boxhi1, 
-    				      &boxhi2, &cell_size_cast, &ncellx, &ncelly, &nall);
-
-    atom.sort_neighbor(nall);
-
-    /* calculate cell count */
-    k_cell_counts.set_size(GX,neigh_block);
-    k_cell_counts.run(&atom.dev_cell_id.begin(), &cell_counts.begin(), &nall, 
-                      &ncell_3d);
-
-    /* build the neighbor list */
-    k_build_nbor.set_size(ncellx, ncelly*ncellz, cell_block, 1);
-    k_build_nbor.run(&atom.dev_x.begin(), &atom.dev_particle_id.begin(),
-                     &cell_counts.begin(), &dev_nbor.begin(),
-                     &dev_host_nbor.begin(), &_max_nbors, &cell_size_sq,
-                     &ncellx, &ncelly, &ncellz, &inum, &nt, &nall);
-  }
+  k_build_nbor.set_size(ncellx, ncelly*ncellz, cell_block, 1);
+  k_build_nbor.run(&atom.dev_x.begin(), &atom.dev_particle_id.begin(),
+                   &cell_counts.begin(), &dev_nbor.begin(),
+                   &dev_host_nbor.begin(), &_max_nbors, &cell_size_cast,
+                   &ncellx, &ncelly, &ncellz, &inum, &nt, &nall);
 
   /* Get the maximum number of nbors and realloc if necessary */
   UCL_D_Vec<int> numj;

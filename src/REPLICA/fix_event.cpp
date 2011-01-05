@@ -86,9 +86,6 @@ void FixEvent::store_event()
   for (int i = 0; i < nlocal; i++) 
     domain->unmap(x[i],image[i],xevent[i]);
 
-//   printf("store_event %g %d %g %d \n",
-// 	 x[8][1],image[8],xevent[8][1],0);
-
 }
 
 /* ----------------------------------------------------------------------
@@ -102,9 +99,6 @@ void FixEvent::restore_event()
   int *image = atom->image;
   int nlocal = atom->nlocal;
 
-//   printf("restore_event1 %g %d %g %d \n",
-//   	 x[8][1],image[8],xevent[8][1],0);
-
   for (int i = 0; i < nlocal; i++) {
     x[i][0] = xevent[i][0];
     x[i][1] = xevent[i][1];
@@ -117,9 +111,6 @@ void FixEvent::restore_event()
     domain->remap(x[i],image[i]);
     //    domain->remap(x[i]);
   }
-
-//   printf("restore_event2 %g %d %g %d \n",
-//   	 x[8][1],image[8],xevent[8][1],0);
 
 }
 
@@ -135,9 +126,6 @@ void FixEvent::store_state()
   double **v = atom->v;
   int *image = atom->image;
   int nlocal = atom->nlocal;
-
-//   printf("store_state %g %d %g %d \n",
-// 	 xold[8][1],imageold[8],x[8][1],image[8]);
 
   for (int i = 0; i < nlocal; i++) {
     xold[i][0] = x[i][0];
@@ -161,9 +149,6 @@ void FixEvent::restore_state()
   double **v = atom->v;
   int *image = atom->image;
   int nlocal = atom->nlocal;
-
-//   printf("restore_state %g %d %g %d \n",
-// 	 xold[8][1],imageold[8],x[8][1],image[8]);
 
   for (int i = 0; i < nlocal; i++) {
     x[i][0] = xold[i][0];

@@ -341,14 +341,16 @@ void DeleteBonds::command(int narg, char **arg)
     if (atom->avec->bonds_allow) {
       bigint nbonds = 0;
       for (i = 0; i < nlocal; i++) nbonds += atom->num_bond[i];
-      MPI_Allreduce(&nbonds,&atom->nbonds,1,MPI_UNSIGNED_LONG_LONG,MPI_SUM,world);
+      MPI_Allreduce(&nbonds,&atom->nbonds,1,MPI_UNSIGNED_LONG_LONG,
+		    MPI_SUM,world);
       if (force->newton_bond == 0) atom->nbonds /= 2;
     }
 
     if (atom->avec->angles_allow) {
       bigint nangles = 0;
       for (i = 0; i < nlocal; i++) nangles += atom->num_angle[i];
-      MPI_Allreduce(&nangles,&atom->nangles,1,MPI_UNSIGNED_LONG_LONG,MPI_SUM,world);
+      MPI_Allreduce(&nangles,&atom->nangles,1,MPI_UNSIGNED_LONG_LONG,
+		    MPI_SUM,world);
       if (force->newton_bond == 0) atom->nangles /= 3;
     }
 

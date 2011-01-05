@@ -41,7 +41,7 @@ class FixEventPRD : public FixEvent {
 
   // methods specific to FixEventPRD, invoked by PRD
 
-  void store_event(int, int);
+  void store_event_prd(int, int);
 
  private:
 

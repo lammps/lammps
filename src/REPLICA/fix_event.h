@@ -35,10 +35,10 @@ class FixEvent : public Fix {
 
   // methods specific to FixEvent
 
-  virtual void store_event(); // base class stores quenched atoms
+  void store_event();         // store quenched atoms
   void restore_event();       // restore quenched atoms
-  void store_state();
-  void restore_state();
+  void store_state();         // store hot atoms
+  void restore_state();       // restore hot atoms
 
  private:
   double **xevent;       // atom coords at last event

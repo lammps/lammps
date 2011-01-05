@@ -56,9 +56,9 @@ FixEventPRD::~FixEventPRD()
    update clock = elapsed time since last event, across all replicas
 ------------------------------------------------------------------------- */
 
-void FixEventPRD::store_event(int timestep, int delta_clock)
+void FixEventPRD::store_event_prd(int timestep, int delta_clock)
 {
-  FixEvent::store_event();
+  store_event();
   event_timestep = timestep;
   clock += delta_clock;
   event_number++;

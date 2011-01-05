@@ -39,7 +39,7 @@ class FixEventTAD : public FixEvent {
 
   // methods specific to FixEventTAD, invoked by TAD
 
-  void store_event(int);
+  void store_event_tad(int);
 
  private:
 

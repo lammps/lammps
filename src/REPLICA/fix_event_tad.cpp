@@ -56,9 +56,9 @@ FixEventTAD::~FixEventTAD()
    set event_timestep = when event occurred
 ------------------------------------------------------------------------- */
 
-void FixEventTAD::store_event(int timestep)
+void FixEventTAD::store_event_tad(int timestep)
 {
-  FixEvent::store_event();
+  store_event();
   event_timestep = timestep;
 }
 

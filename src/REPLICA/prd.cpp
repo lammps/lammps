@@ -607,9 +607,9 @@ void PRD::share_event(int ireplica, int flag)
   // don't change the clock or timestep if this is a restart
 
   if (flag == 0 && fix_event->event_number != 0) 
-    fix_event->store_event(fix_event->event_timestep,0);
+    fix_event->store_event_prd(fix_event->event_timestep,0);
   else {
-    fix_event->store_event(update->ntimestep,delta);
+    fix_event->store_event_prd(update->ntimestep,delta);
     fix_event->replica_number = ireplica;
     fix_event->correlated_event = 0;
     if (flag == 2) fix_event->correlated_event = 1;

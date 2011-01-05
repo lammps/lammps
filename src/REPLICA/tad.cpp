@@ -250,7 +250,7 @@ void TAD::command(int narg, char **arg)
   quench();
   timer->barrier_start(TIME_LOOP);
   time_start = timer->array[TIME_LOOP];
-  fix_event->store_event(update->ntimestep);
+  fix_event->store_event_tad(update->ntimestep);
   log_event();
   fix_event->restore_state();
 
@@ -885,7 +885,7 @@ void TAD::add_event()
 
   // store quenched state for new event
 
-  fix_event_list[ievent]->store_event(update->ntimestep);
+  fix_event_list[ievent]->store_event_tad(update->ntimestep);
 
   // store hot state for new event
 
@@ -963,7 +963,7 @@ void TAD::perform_event(int ievent)
   fix_event->event_number++;
   fix_event->event_timestep = update->ntimestep;
   fix_event_list[ievent]->restore_event();
-  fix_event->store_event(fix_event_list[ievent]->event_timestep);
+  fix_event->store_event_tad(fix_event_list[ievent]->event_timestep);
 
   // output stats and dump for quenched state
 

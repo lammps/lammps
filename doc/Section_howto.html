@@ -345,13 +345,18 @@ periodically.
 </P>
 <UL><LI><A HREF = "neb.html">neb</A> for nudged elastic band calculations
 <LI><A HREF = "prd.html">prd</A> for parallel replica dynamics
+<LI><A HREF = "tad.html">tad</A> for temperature accelerated dynamics
 <LI><A HREF = "temper.html">temper</A> for parallel tempering 
 </UL>
 <P>NEB is a method for finding transition states and barrier energies.
-PRD is a method for performing accelerated dynamics to find and
-perform infrequent events.  Parallel tempering or replica exchange
+PRD and TAD are methods for performing accelerated dynamics to find
+and perform infrequent events.  Parallel tempering or replica exchange
 runs different replicas at a series of temperature to facilitate
 rare-event sampling.
+</P>
+<P>These command can only be used if LAMMPS was built with the "replica"
+package.  See the <A HREF = "Section_start.html#2_3">Making LAMMPS</A> section for
+more info on packages.
 </P>
 <P>In all these cases, you must run with one or more processors per
 replica.  The processors assigned to each replica are determined at
@@ -1149,7 +1154,7 @@ discussed below, it can be referenced via the following bracket
 notation, where ID in this case is the ID of a compute.  The leading
 "c_" would be replaced by "f_" for a fix, or "v_" for a variable:
 </P>
-<DIV ALIGN=center><TABLE  BORDER=1 >
+<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
 <TR><TD >c_ID </TD><TD > entire scalar, vector, or array</TD></TR>
 <TR><TD >c_ID[I] </TD><TD > one element of vector, one column of array</TD></TR>
 <TR><TD >c_ID[I][J] </TD><TD > one element of array 
@@ -1343,7 +1348,7 @@ data and scalar/vector/array data.
 input, that could be an element of a vector or array.  Likewise a
 vector input could be a column of an array.
 </P>
-<DIV ALIGN=center><TABLE  BORDER=1 >
+<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
 <TR><TD >Command</TD><TD > Input</TD><TD > Output</TD><TD ></TD></TR>
 <TR><TD ><A HREF = "thermo_style.html">thermo_style custom</A></TD><TD > global scalars</TD><TD > screen, log file</TD><TD ></TD></TR>
 <TR><TD ><A HREF = "dump.html">dump custom</A></TD><TD > per-atom vectors</TD><TD > dump file</TD><TD ></TD></TR>

@@ -220,7 +220,7 @@ double ComputeReduceRegion::compute_one(int m, int flag)
 
 /* ---------------------------------------------------------------------- */
 
-double ComputeReduceRegion::count(int m)
+bigint ComputeReduceRegion::count(int m)
 {
   int n = value2index[m];
   int j = argindex[m];
@@ -235,8 +235,8 @@ double ComputeReduceRegion::count(int m)
     if (flavor[m] == PERATOM) {
       return group->count(igroup,iregion);
     } else if (flavor[m] == LOCAL) {
-      double ncount = compute->size_local_rows;
-      double ncountall;
+      bigint ncount = compute->size_local_rows;
+      bigint ncountall;
       MPI_Allreduce(&ncount,&ncountall,1,MPI_DOUBLE,MPI_SUM,world);
       return ncountall;
     }
@@ -245,13 +245,14 @@ double ComputeReduceRegion::count(int m)
     if (flavor[m] == PERATOM) {
       return group->count(igroup,iregion);
     } else if (flavor[m] == LOCAL) {
-      double ncount = fix->size_local_rows;
-      double ncountall;
+      bigint ncount = fix->size_local_rows;
+      bigint ncountall;
       MPI_Allreduce(&ncount,&ncountall,1,MPI_DOUBLE,MPI_SUM,world);
       return ncountall;
     }
   } else if (which[m] == VARIABLE)
     return group->count(igroup,iregion);
 
-  return 0.0;
+  bigint dummy = 0;
+  return dummy;
 }

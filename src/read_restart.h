@@ -22,6 +22,7 @@ CommandStyle(read_restart,ReadRestart)
 
 #include "stdio.h"
 #include "pointers.h"
+#include "lmptype.h"
 
 namespace LAMMPS_NS {
 
@@ -43,6 +44,7 @@ class ReadRestart : protected Pointers {
   int read_int();
   double read_double();
   char *read_char();
+  bigint read_bigint();
 };
 
 }

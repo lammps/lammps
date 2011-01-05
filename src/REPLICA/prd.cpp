@@ -20,6 +20,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "prd.h"
+#include "lmptype.h"
 #include "universe.h"
 #include "update.h"
 #include "atom.h"
@@ -33,7 +34,7 @@
 #include "modify.h"
 #include "compute.h"
 #include "fix.h"
-#include "fix_event.h"
+#include "fix_event_prd.h"
 #include "force.h"  
 #include "pair.h"
 #include "random_park.h"
@@ -46,8 +47,6 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
-
-#define MAXINT 0x7FFFFFFF
 
 /* ---------------------------------------------------------------------- */
 
@@ -117,7 +116,7 @@ void PRD::command(int narg, char **arg)
 
   // workspace for inter-replica communication via gathers
 
-  natoms = static_cast<int> (atom->natoms);
+  natoms = atom->natoms;
 
   displacements = NULL;
   tagall = NULL;
@@ -163,13 +162,13 @@ void PRD::command(int narg, char **arg)
   args[1] = (char *) dist_setting;
   if (dist_setting) velocity->options(2,args);
 
-  // create FixEvent class to store event and pre-quench states
+  // create FixEventPRD class to store event and pre-quench states
 
   args[0] = (char *) "prd_event";
   args[1] = (char *) "all";
-  args[2] = (char *) "EVENT";
+  args[2] = (char *) "EVENT/PRD";
   modify->add_fix(3,args);
-  fix_event = (FixEvent *) modify->fix[modify->nfix-1];
+  fix_event = (FixEventPRD *) modify->fix[modify->nfix-1];
 
   // create Finish for timing output
 
@@ -181,7 +180,7 @@ void PRD::command(int narg, char **arg)
   delete [] loop_setting;
   delete [] dist_setting;
 
-  // assign FixEvent to event-detection compute
+  // assign FixEventPRD to event-detection compute
   // necessary so it will know atom coords at last event
 
   int icompute = modify->find_compute(id_compute);
@@ -432,7 +431,7 @@ void PRD::dephase()
   timer->barrier_start(TIME_LOOP);
 
   for (int i = 0; i < n_dephase; i++) {
-    int seed = static_cast<int> (random_dephase->uniform() * MAXINT);
+    int seed = static_cast<int> (random_dephase->uniform() * MAXINT32);
     if (seed == 0) seed = 1;
     velocity->create(temp_dephase,seed);
     update->integrate->run(t_dephase);

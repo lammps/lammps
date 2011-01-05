@@ -404,13 +404,13 @@ void FixOrientFCC::post_force(int vflag)
 
     if (me == 0) { 
       if (screen) {
-	fprintf(screen,"orient step %d: %g atoms have %d neighbors\n",
+	fprintf(screen,"orient step %d: %lu atoms have %d neighbors\n",
 		update->ntimestep,atom->natoms,total);
 	fprintf(screen,"  neighs: min = %d, max = %d, ave = %g\n",
 		min,max,ave);
       }
       if (logfile) {
-	fprintf(logfile,"orient step %d: %g atoms have %d neighbors\n",
+	fprintf(logfile,"orient step %d: %lu atoms have %d neighbors\n",
 		update->ntimestep,atom->natoms,total);
 	fprintf(logfile,"  neighs: min = %d, max = %d, ave = %g\n",
 		min,max,ave);

@@ -11,18 +11,17 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "mpi.h"
 #include "math.h"
 #include "string.h"
-#include "mpi.h"
 #include "min_cg.h"
+#include "lmptype.h"
 #include "atom.h"
 #include "update.h"
 #include "output.h"
 #include "timer.h"
 
 using namespace LAMMPS_NS;
-
-#define MAXATOMS 0x7FFFFFFF
 
 // EPS_ENERGY = minimum normalization for energy tolerance
 
@@ -52,7 +51,7 @@ int MinCG::iterate(int maxiter)
   // nlimit = max # of CG iterations before restarting
   // set to ndoftotal unless too big
 
-  int nlimit = static_cast<int> (MIN(MAXATOMS,ndoftotal));
+  int nlimit = static_cast<int> (MIN(MAXINT32,ndoftotal));
 
   // initialize working vectors
 

@@ -241,6 +241,16 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
     }
   }
 
+  // check datatype sizes
+
+  if (sizeof(bigint) != 8)
+    error->all("No support for 8-byte unsigned integers");
+
+  int mpisize;
+  MPI_Type_size(MPI_UNSIGNED_LONG_LONG,&mpisize);
+  if (mpisize != 8)
+    error->all("MPI_UNSIGNED_LONG_LONG is not 8-byte data type");
+
   // allocate input class now that MPI is fully setup
 
   input = new Input(this,narg,arg);

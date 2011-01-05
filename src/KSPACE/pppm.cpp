@@ -21,6 +21,7 @@
 #include "stdlib.h"
 #include "math.h"
 #include "pppm.h"
+#include "lmptype.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
@@ -895,7 +896,7 @@ void PPPM::set_grid()
   acons[7][6] = 4887769399.0 / 37838389248.0;
 
   double q2 = qsqsum / force->dielectric;
-  double natoms = atom->natoms;
+  bigint natoms = atom->natoms;
 
   // use xprd,yprd,zprd even if triclinic so grid size is the same
   // adjust z dimension for 2d slab PPPM
@@ -1054,7 +1055,7 @@ int PPPM::factorable(int n)
    compute RMS precision for a dimension
 ------------------------------------------------------------------------- */
 
-double PPPM::rms(double h, double prd, double natoms,
+double PPPM::rms(double h, double prd, bigint natoms,
 		 double q2, double **acons)
 {
   double sum = 0.0;
@@ -1075,7 +1076,7 @@ double PPPM::diffpr(double hx, double hy, double hz, double q2, double **acons)
   double xprd = domain->xprd;
   double yprd = domain->yprd;
   double zprd = domain->zprd;
-  double natoms = atom->natoms;
+  bigint natoms = atom->natoms;
 
   lprx = rms(hx,xprd,natoms,q2,acons);
   lpry = rms(hy,yprd,natoms,q2,acons);

@@ -1075,7 +1075,7 @@ void FixSRD::vbin_unpack(double *buf, BinAve *vbin, int n, int *list)
 
 void FixSRD::collisions_single()
 {
-  int i,j,k,m,type,nbig,ibin,ibounce,inside,collide_flag;
+  int i,j,k,m,type,mbig,ibin,ibounce,inside,collide_flag;
   double dt,t_remain;
   double norm[3],xscoll[3],xbcoll[3],vsnew[3];
   Big *big;
@@ -1107,11 +1107,11 @@ void FixSRD::collisions_single()
     dt = dt_big;
 
     while (collide_flag) {
-      nbig = nbinbig[ibin];
-      if (ibounce == 0) ncheck += nbig;
+      mbig = nbinbig[ibin];
+      if (ibounce == 0) ncheck += mbig;
 
       collide_flag = 0;
-      for (m = 0; m < nbig; m++) {
+      for (m = 0; m < mbig; m++) {
 	k = binbig[ibin][m];
 	big = &biglist[k];
 	j = big->index;
@@ -1236,7 +1236,7 @@ void FixSRD::collisions_single()
 
 void FixSRD::collisions_multi()
 {
-  int i,j,k,m,type,nbig,ibin,ibounce,inside,jfirst,typefirst;
+  int i,j,k,m,type,mbig,ibin,ibounce,inside,jfirst,typefirst;
   double dt,t_remain,t_first;
   double norm[3],xscoll[3],xbcoll[3],vsnew[3];
   double normfirst[3],xscollfirst[3],xbcollfirst[3];
@@ -1268,11 +1268,11 @@ void FixSRD::collisions_multi()
     dt = dt_big;
 
     while (1) {
-      nbig = nbinbig[ibin];
-      if (ibounce == 0) ncheck += nbig;
+      mbig = nbinbig[ibin];
+      if (ibounce == 0) ncheck += mbig;
 
       t_first = 0.0;
-      for (m = 0; m < nbig; m++) {
+      for (m = 0; m < mbig; m++) {
 	k = binbig[ibin][m];
 	big = &biglist[k];
 	j = big->index;
@@ -2236,9 +2236,9 @@ void FixSRD::parameterize()
 
   // particle counts
 
-  double nbig = 0.0;
-  if (bigexist) nbig = group->count(biggroup);
-  double nsrd = group->count(igroup);
+  bigint mbig = 0;
+  if (bigexist) mbig = group->count(biggroup);
+  bigint nsrd = group->count(igroup);
 
   // mass_big = total mass of all big particles
 
@@ -2293,7 +2293,7 @@ void FixSRD::parameterize()
   else
     ncell = volsrd / (binsize3x*binsize3y);
 
-  srd_per_cell = nsrd / ncell;
+  srd_per_cell = (double) nsrd / ncell;
 
   // kinematic viscosity of SRD fluid
   // output in cm^2/sec units, converted by xxt2kmu
@@ -2317,7 +2317,7 @@ void FixSRD::parameterize()
   if (me == 0) {
     if (screen) {
       fprintf(screen,"SRD info:\n");
-      fprintf(screen,"  SRD/big particles = %g %g\n",nsrd,nbig);
+      fprintf(screen,"  SRD/big particles = %lu %lu\n",nsrd,mbig);
       fprintf(screen,"  big particle diameter max/min = %g %g\n",
 	      maxbigdiam,minbigdiam);
       fprintf(screen,"  SRD temperature & lamda = %g %g\n",
@@ -2332,7 +2332,7 @@ void FixSRD::parameterize()
     }
     if (logfile) {
       fprintf(logfile,"SRD info:\n");
-      fprintf(logfile,"  SRD/big particles = %g %g\n",nsrd,nbig);
+      fprintf(logfile,"  SRD/big particles = %lu %lu\n",nsrd,mbig);
       fprintf(logfile,"  big particle diameter max/min = %g %g\n",
 	      maxbigdiam,minbigdiam);
       fprintf(logfile,"  SRD temperature & lamda = %g %g\n",

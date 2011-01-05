@@ -16,6 +16,7 @@
 #include "string.h"
 #include "stdlib.h"
 #include "read_data.h"
+#include "lmptype.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "comm.h"
@@ -335,11 +336,11 @@ void ReadData::header(int flag)
 
     // search line for header keyword and set corresponding variable
 
-    if (strstr(line,"atoms")) sscanf(line,"%lg",&atom->natoms);
-    else if (strstr(line,"bonds")) sscanf(line,"%d",&atom->nbonds);
-    else if (strstr(line,"angles")) sscanf(line,"%d",&atom->nangles);
-    else if (strstr(line,"dihedrals")) sscanf(line,"%d",&atom->ndihedrals);
-    else if (strstr(line,"impropers")) sscanf(line,"%d",&atom->nimpropers);
+    if (strstr(line,"atoms")) sscanf(line,"%lu",&atom->natoms);
+    else if (strstr(line,"bonds")) sscanf(line,"%lu",&atom->nbonds);
+    else if (strstr(line,"angles")) sscanf(line,"%lu",&atom->nangles);
+    else if (strstr(line,"dihedrals")) sscanf(line,"%lu",&atom->ndihedrals);
+    else if (strstr(line,"impropers")) sscanf(line,"%lu",&atom->nimpropers);
 
     else if (strstr(line,"atom types")) sscanf(line,"%d",&atom->ntypes);
     else if (strstr(line,"bond types")) sscanf(line,"%d",&atom->nbondtypes);
@@ -402,19 +403,18 @@ void ReadData::header(int flag)
 
 /* ----------------------------------------------------------------------
    read all atoms
-   accumulate nread in double precision to allow natoms > 2^31
 ------------------------------------------------------------------------- */
 
 void ReadData::atoms()
 {
   int i,m,nchunk;
   
-  double nread = 0.0;
-  double natoms = atom->natoms;
+  bigint nread = 0;
+  bigint natoms = atom->natoms;
 
   while (nread < natoms) {
     if (natoms-nread > CHUNK) nchunk = CHUNK;
-    else nchunk = static_cast<int> (natoms - nread);
+    else nchunk = natoms-nread;
     if (me == 0) {
       char *eof;
       m = 0;
@@ -434,12 +434,12 @@ void ReadData::atoms()
 
   // check that all atoms were assigned correctly
 
-  double tmp = atom->nlocal;
-  MPI_Allreduce(&tmp,&natoms,1,MPI_DOUBLE,MPI_SUM,world);
+  bigint tmp = atom->nlocal;
+  MPI_Allreduce(&tmp,&natoms,1,MPI_UNSIGNED_LONG_LONG,MPI_SUM,world);
 
   if (me == 0) {
-    if (screen) fprintf(screen,"  %.15g atoms\n",natoms);
-    if (logfile) fprintf(logfile,"  %.15g atoms\n",natoms);
+    if (screen) fprintf(screen,"  %lu atoms\n",natoms);
+    if (logfile) fprintf(logfile,"  %lu atoms\n",natoms);
   }
 
   if (natoms != atom->natoms) error->all("Did not assign all atoms correctly");
@@ -449,24 +449,27 @@ void ReadData::atoms()
   // if any atom ID > 0, error if any atom ID == 0
   // not checking if atom IDs > natoms or are unique
   
+  int nlocal = atom->nlocal;
+  int *tag = atom->tag;
+
   int flag = 0;
-  for (int i = 0; i < atom->nlocal; i++)
-    if (atom->tag[i] < 0) flag = 1;
+  for (int i = 0; i < nlocal; i++)
+    if (tag[i] < 0) flag = 1;
   int flag_all;
   MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
   if (flag_all)
     error->all("Invalid atom ID in Atoms section of data file");
 
   flag = 0;
-  for (int i = 0; i < atom->nlocal; i++)
-    if (atom->tag[i] > 0) flag = 1;
+  for (int i = 0; i < nlocal; i++)
+    if (tag[i] > 0) flag = 1;
   MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_MAX,world);
   if (flag_all == 0) atom->tag_enable = 0;
 
   if (atom->tag_enable) {
     flag = 0;
-    for (int i = 0; i < atom->nlocal; i++)
-      if (atom->tag[i] == 0) flag = 1;
+    for (int i = 0; i < nlocal; i++)
+      if (tag[i] == 0) flag = 1;
     MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
     if (flag_all)
       error->all("Invalid atom ID in Atoms section of data file");
@@ -483,7 +486,6 @@ void ReadData::atoms()
 /* ----------------------------------------------------------------------
    read all velocities
    to find atoms, must build atom map if not a molecular system 
-   accumulate nread in double precision to allow natoms > 2^31
 ------------------------------------------------------------------------- */
 
 void ReadData::velocities()
@@ -498,12 +500,12 @@ void ReadData::velocities()
     atom->map_set();
   }
 
-  double nread = 0.0;
-  double natoms = atom->natoms;
+  bigint nread = 0;
+  bigint natoms = atom->natoms;
 
   while (nread < natoms) {
     if (natoms-nread > CHUNK) nchunk = CHUNK;
-    else nchunk = static_cast<int> (natoms - nread);
+    else nchunk = natoms-nread;
     if (me == 0) {
       char *eof;
       m = 0;
@@ -527,8 +529,8 @@ void ReadData::velocities()
   }
 
   if (me == 0) {
-    if (screen) fprintf(screen,"  %.15g velocities\n",natoms);
-    if (logfile) fprintf(logfile,"  %.15g velocities\n",natoms);
+    if (screen) fprintf(screen,"  %lu velocities\n",natoms);
+    if (logfile) fprintf(logfile,"  %lu velocities\n",natoms);
   }
 }
 
@@ -538,9 +540,11 @@ void ReadData::bonds()
 {
   int i,m,nchunk;
 
-  int nread = 0;
-  while (nread < atom->nbonds) {
-    nchunk = MIN(atom->nbonds-nread,CHUNK);
+  bigint nread = 0;
+  bigint nbonds = atom->nbonds;
+
+  while (nread < nbonds) {
+    nchunk = MIN(nbonds-nread,CHUNK);
     if (me == 0) {
       char *eof;
       m = 0;
@@ -560,16 +564,17 @@ void ReadData::bonds()
 
   // check that bonds were assigned correctly
 
-  int sum;
-  int n = 0;
-  for (i = 0; i < atom->nlocal; i++) n += atom->num_bond[i];
-  MPI_Allreduce(&n,&sum,1,MPI_INT,MPI_SUM,world);
+  int nlocal = atom->nlocal;
+  bigint sum;
+  bigint n = 0;
+  for (i = 0; i < nlocal; i++) n += atom->num_bond[i];
+  MPI_Allreduce(&n,&sum,1,MPI_UNSIGNED_LONG_LONG,MPI_SUM,world);
   int factor = 1;
   if (!force->newton_bond) factor = 2;
 
   if (me == 0) {
-    if (screen) fprintf(screen,"  %d bonds\n",sum/factor);
-    if (logfile) fprintf(logfile,"  %d bonds\n",sum/factor);
+    if (screen) fprintf(screen,"  %lu bonds\n",sum/factor);
+    if (logfile) fprintf(logfile,"  %lu bonds\n",sum/factor);
   }
   if (sum != factor*atom->nbonds) error->all("Bonds assigned incorrectly");
 }
@@ -580,9 +585,11 @@ void ReadData::angles()
 {
   int i,m,nchunk;
 
-  int nread = 0;
-  while (nread < atom->nangles) {
-    nchunk = MIN(atom->nangles-nread,CHUNK);
+  bigint nread = 0;
+  bigint nangles = atom->nangles;
+
+  while (nread < nangles) {
+    nchunk = MIN(nangles-nread,CHUNK);
     if (me == 0) {
       char *eof;
       m = 0;
@@ -600,18 +607,19 @@ void ReadData::angles()
     nread += nchunk;
   }
 
-  // check that angles were assigned correctly
+  // check that ang
 
-  int sum;
-  int n = 0;
-  for (i = 0; i < atom->nlocal; i++) n += atom->num_angle[i];
-  MPI_Allreduce(&n,&sum,1,MPI_INT,MPI_SUM,world);
+  int nlocal = atom->nlocal;
+  bigint sum;
+  bigint n = 0;
+  for (i = 0; i < nlocal; i++) n += atom->num_angle[i];
+  MPI_Allreduce(&n,&sum,1,MPI_UNSIGNED_LONG_LONG,MPI_SUM,world);
   int factor = 1;
   if (!force->newton_bond) factor = 3;
 
   if (me == 0) {
-    if (screen) fprintf(screen,"  %d angles\n",sum/factor);
-    if (logfile) fprintf(logfile,"  %d angles\n",sum/factor);
+    if (screen) fprintf(screen,"  %lu angles\n",sum/factor);
+    if (logfile) fprintf(logfile,"  %lu angles\n",sum/factor);
   }
   if (sum != factor*atom->nangles) error->all("Angles assigned incorrectly");
 }
@@ -622,9 +630,11 @@ void ReadData::dihedrals()
 {
   int i,m,nchunk;
 
-  int nread = 0;
-  while (nread < atom->ndihedrals) {
-    nchunk = MIN(atom->ndihedrals-nread,CHUNK);
+  bigint nread = 0;
+  bigint ndihedrals = atom->ndihedrals;
+
+  while (nread < ndihedrals) {
+    nchunk = MIN(ndihedrals-nread,CHUNK);
     if (me == 0) {
       char *eof;
       m = 0;
@@ -644,16 +654,17 @@ void ReadData::dihedrals()
 
   // check that dihedrals were assigned correctly
 
-  int sum;
-  int n = 0;
-  for (i = 0; i < atom->nlocal; i++) n += atom->num_dihedral[i];
-  MPI_Allreduce(&n,&sum,1,MPI_INT,MPI_SUM,world);
+  int nlocal = atom->nlocal;
+  bigint sum;
+  bigint n = 0;
+  for (i = 0; i < nlocal; i++) n += atom->num_dihedral[i];
+  MPI_Allreduce(&n,&sum,1,MPI_UNSIGNED_LONG_LONG,MPI_SUM,world);
   int factor = 1;
   if (!force->newton_bond) factor = 4;
 
   if (me == 0) {
-    if (screen) fprintf(screen,"  %d dihedrals\n",sum/factor);
-    if (logfile) fprintf(logfile,"  %d dihedrals\n",sum/factor);
+    if (screen) fprintf(screen,"  %lu dihedrals\n",sum/factor);
+    if (logfile) fprintf(logfile,"  %lu dihedrals\n",sum/factor);
   }
   if (sum != factor*atom->ndihedrals) 
     error->all("Dihedrals assigned incorrectly");
@@ -665,9 +676,11 @@ void ReadData::impropers()
 {
   int i,m,nchunk;
 
-  int nread = 0;
-  while (nread < atom->nimpropers) {
-    nchunk = MIN(atom->nimpropers-nread,CHUNK);
+  bigint nread = 0;
+  bigint nimpropers = atom->nimpropers;
+
+  while (nread < nimpropers) {
+    nchunk = MIN(nimpropers-nread,CHUNK);
     if (me == 0) {
       char *eof;
       m = 0;
@@ -687,16 +700,17 @@ void ReadData::impropers()
 
   // check that impropers were assigned correctly
 
-  int sum;
-  int n = 0;
-  for (i = 0; i < atom->nlocal; i++) n += atom->num_improper[i];
-  MPI_Allreduce(&n,&sum,1,MPI_INT,MPI_SUM,world);
+  int nlocal = atom->nlocal;
+  bigint sum;
+  bigint n = 0;
+  for (i = 0; i < nlocal; i++) n += atom->num_improper[i];
+  MPI_Allreduce(&n,&sum,1,MPI_UNSIGNED_LONG_LONG,MPI_SUM,world);
   int factor = 1;
   if (!force->newton_bond) factor = 4;
 
   if (me == 0) {
-    if (screen) fprintf(screen,"  %d impropers\n",sum/factor);
-    if (logfile) fprintf(logfile,"  %d impropers\n",sum/factor);
+    if (screen) fprintf(screen,"  %lu impropers\n",sum/factor);
+    if (logfile) fprintf(logfile,"  %lu impropers\n",sum/factor);
   }
   if (sum != factor*atom->nimpropers) 
     error->all("Impropers assigned incorrectly");
@@ -961,6 +975,9 @@ void ReadData::scan(int &bond_per_atom, int &angle_per_atom,
 {
   int i,tmp1,tmp2,atom1,atom2,atom3,atom4;
   char *eof;
+
+  if (atom->natoms > MAXINT32)
+    error->all("Molecular data file has too many atoms");
 
   int natoms = static_cast<int> (atom->natoms);
   bond_per_atom = angle_per_atom = dihedral_per_atom = improper_per_atom = 0;

@@ -15,6 +15,7 @@
 #define LMP_ATOM_H
 
 #include "pointers.h"
+#include "lmptype.h"
 
 namespace LAMMPS_NS {
 
@@ -25,14 +26,14 @@ class Atom : protected Pointers {
 
   // atom counts
 
-  double natoms;                // total # of atoms in system, could be 0
+  bigint natoms;                // total # of atoms in system, could be 0
   int nlocal,nghost;            // # of owned and ghost atoms on this proc
   int nmax;                     // max # of owned+ghost in arrays on this proc
   int tag_enable;               // 0/1 if atom ID tags are defined
   int molecular;                // 0 = atomic, 1 = molecular system
 
+  bigint nbonds,nangles,ndihedrals,nimpropers;
   int ntypes,nbondtypes,nangletypes,ndihedraltypes,nimpropertypes;
-  int nbonds,nangles,ndihedrals,nimpropers;
   int bond_per_atom,angle_per_atom,dihedral_per_atom,improper_per_atom;
   int extra_bond_per_atom;
 

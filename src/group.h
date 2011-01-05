@@ -16,6 +16,7 @@
 
 #include "stdio.h"
 #include "pointers.h"
+#include "lmptype.h"
 
 namespace LAMMPS_NS {
 
@@ -34,8 +35,8 @@ class Group : protected Pointers {
   void write_restart(FILE *);
   void read_restart(FILE *);
 
-  double count(int);                       // count atoms in group
-  double count(int,int);                   // count atoms in group & region
+  bigint count(int);                       // count atoms in group
+  bigint count(int,int);                   // count atoms in group & region
   double mass(int);                        // total mass of atoms in group
   double mass(int,int);
   double charge(int);                      // total charge of atoms in group

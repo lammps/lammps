@@ -91,7 +91,7 @@ FixRecenter::FixRecenter(LAMMPS *lmp, int narg, char **arg) :
 
   // cannot have 0 atoms in group
 
-  if (group->count(igroup) == 0.0)
+  if (group->count(igroup) == 0)
     error->all("Fix recenter group has no atoms");
 }
 

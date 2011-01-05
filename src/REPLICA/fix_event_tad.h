@@ -13,42 +13,36 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(neb,FixNEB)
+FixStyle(EVENT/TAD,FixEventTAD)
 
 #else
 
-#ifndef LMP_FIX_NEB_H
-#define LMP_FIX_NEB_H
+#ifndef LMP_FIX_EVENT_TAD_H
+#define LMP_FIX_EVENT_TAD_H
 
-#include "fix.h"
+#include "fix_event.h"
 
 namespace LAMMPS_NS {
 
-class FixNEB : public Fix {
+class FixEventTAD : public FixEvent {
  public:
-  double veng,plen,nlen;
-  int rclimber;
-  double gradvnorm;
+  int event_number;      // event counter
+  int event_timestep;    // timestep of last event
+  double tlo;            // event time at low temperature 
+  double ebarrier;       // energy barrier for this event
 
-  FixNEB(class LAMMPS *, int, char **);
-  ~FixNEB();
-  int setmask();
-  void init();
-  void min_setup(int);
-  void min_post_force(int);
+  FixEventTAD(class LAMMPS *, int, char **);
+  ~FixEventTAD();
+
+  void write_restart(FILE *);
+  void restart(char *);
+
+  // methods specific to FixEventTAD, invoked by TAD
+
+  void store_event(int);
 
  private:
-  double kspring;
-  int ireplica,nreplica;
-  int procnext,procprev;
-  MPI_Comm uworld;
 
-  char *id_pe;
-  class Compute *pe;
-
-  int nebatoms;
-  double **xprev,**xnext;
-  double **tangent;
 };
 
 }

@@ -94,7 +94,7 @@ void FixHeat::init()
 
   // cannot have 0 atoms in group
 
-  if (group->count(igroup) == 0.0) error->all("Fix heat group has no atoms");
+  if (group->count(igroup) == 0) error->all("Fix heat group has no atoms");
   masstotal = group->mass(igroup);
 }
 

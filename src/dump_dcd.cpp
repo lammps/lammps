@@ -22,6 +22,7 @@
 #include "time.h"
 #include "string.h"
 #include "dump_dcd.h"
+#include "lmptype.h"
 #include "domain.h"
 #include "atom.h"
 #include "update.h"
@@ -67,9 +68,11 @@ DumpDCD::DumpDCD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
     
   // allocate global array for atom coords
 
-  if (igroup == 0) natoms = static_cast<int> (atom->natoms);
-  else natoms = static_cast<int> (group->count(igroup));
-  if (natoms <= 0) error->all("Invalid natoms for dump dcd");
+  bigint n;
+  if (igroup == 0) n = static_cast<int> (atom->natoms);
+  else n = static_cast<int> (group->count(igroup));
+  if (n > MAXINT32) error->all("Too many atoms for dump dcd");
+  natoms = n;
 
   coords = (float *) memory->smalloc(3*natoms*sizeof(float),"dump:coords");
   xf = &coords[0*natoms];

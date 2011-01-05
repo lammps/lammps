@@ -17,6 +17,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "velocity.h"
+#include "lmptype.h"
 #include "atom.h"
 #include "update.h"
 #include "domain.h"
@@ -222,6 +223,8 @@ void Velocity::create(double t_desired, int seed)
 
     // error check
 
+    if (atom->natoms > MAXINT32)
+      error->all("Too big a problem to use velocity create loop all");
     if (atom->tag_enable == 0)
       error->all("Cannot use velocity create loop all unless atoms have IDs");
     if (atom->tag_consecutive() == 0)
@@ -533,7 +536,7 @@ void Velocity::zero_momentum()
 {
   // cannot have 0 atoms in group
 
-  if (group->count(igroup) == 0.0)
+  if (group->count(igroup) == 0)
     error->all("Cannot zero momentum of 0 atoms");
 
   // compute velocity of center-of-mass of group
@@ -566,7 +569,7 @@ void Velocity::zero_rotation()
 
   // cannot have 0 atoms in group
 
-  if (group->count(igroup) == 0.0)
+  if (group->count(igroup) == 0)
     error->all("Cannot zero momentum of 0 atoms");
 
   // compute omega (angular velocity) of group around center-of-mass

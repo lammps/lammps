@@ -11,12 +11,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef FIX_CLASS
-
-FixStyle(EVENT,FixEvent)
-
-#else
-
 #ifndef LMP_FIX_EVENT_H
 #define LMP_FIX_EVENT_H
 
@@ -26,15 +20,9 @@ namespace LAMMPS_NS {
 
 class FixEvent : public Fix {
  public:
-  int event_number;      // event counter
-  int event_timestep;    // timestep of last event on any replica
-  int clock;             // total elapsed timesteps across all replicas
-  int replica_number;    // replica where last event occured
-  int correlated_event;  // 1 if last event was correlated, 0 otherwise
-  int ncoincident;       // # of simultaneous events on different replicas
 
   FixEvent(class LAMMPS *, int, char **);
-  ~FixEvent();
+  virtual ~FixEvent()=0;    // Use destructor to make base class virtual
   int setmask();
 
   double memory_usage();
@@ -42,22 +30,23 @@ class FixEvent : public Fix {
   void copy_arrays(int, int);
   int pack_exchange(int, double *);
   int unpack_exchange(int, double *);
-  void write_restart(FILE *);
-  void restart(char *);
+  virtual void write_restart(FILE *);
+  virtual void restart(char *);
 
-  // methods specific to FixEvent, invoked by PRD
+  // methods specific to FixEvent
 
-  void store_event(int, int);
+  virtual void store_event(); // base class stores quenched atoms
+  void restore_event();       // restore quenched atoms
   void store_state();
   void restore_state();
 
  private:
   double **xevent;       // atom coords at last event
   double **xold;         // atom coords for reset/restore
+  double **vold;         // atom vels for reset/restore
   int *imageold;         // image flags for reset/restore
 };
 
 }
 
-#endif
 #endif

@@ -36,7 +36,7 @@ class ComputeEventDisplace : public Compute {
   int triclinic;
   double displace_distsq;
   char *id_event;
-  class Fix *fix;
+  class FixEvent *fix_event;
 };
 
 }

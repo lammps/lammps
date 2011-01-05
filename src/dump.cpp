@@ -16,6 +16,7 @@
 #include "string.h"
 #include "stdio.h"
 #include "dump.h"
+#include "lmptype.h"
 #include "atom.h"
 #include "irregular.h"
 #include "update.h"
@@ -31,7 +32,6 @@ using namespace LAMMPS_NS;
 
 Dump *Dump::dumpptr;
 
-#define MAXATOMS 0x7FFFFFFF
 #define BIG 1.0e20
 #define IBIG 2147483647
 #define EPSILON 1.0e-6
@@ -173,8 +173,8 @@ void Dump::init()
     if (nprocs > 1 && irregular == NULL)
       irregular = new Irregular(lmp);
 
-    double size = group->count(igroup);
-    if (size > MAXATOMS) error->all("Too many atoms to dump sort");
+    bigint size = group->count(igroup);
+    if (size > MAXINT32) error->all("Too many atoms to dump sort");
 
     // set reorderflag = 1 if can simply reorder local atoms rather than sort
     // criteria: sorting by ID, atom IDs are consecutive from 1 to Natoms

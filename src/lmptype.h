@@ -11,47 +11,16 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef FIX_CLASS
+#ifndef LMP_LMPTYPE_H
+#define LMP_LMPTYPE_H
 
-FixStyle(neb,FixNEB)
-
-#else
-
-#ifndef LMP_FIX_NEB_H
-#define LMP_FIX_NEB_H
-
-#include "fix.h"
+#include "stdint.h"
 
 namespace LAMMPS_NS {
 
-class FixNEB : public Fix {
- public:
-  double veng,plen,nlen;
-  int rclimber;
-  double gradvnorm;
-
-  FixNEB(class LAMMPS *, int, char **);
-  ~FixNEB();
-  int setmask();
-  void init();
-  void min_setup(int);
-  void min_post_force(int);
-
- private:
-  double kspring;
-  int ireplica,nreplica;
-  int procnext,procprev;
-  MPI_Comm uworld;
-
-  char *id_pe;
-  class Compute *pe;
-
-  int nebatoms;
-  double **xprev,**xnext;
-  double **tangent;
-};
+typedef uint64_t bigint;
+#define MAXINT32 0x7FFFFFFF
 
 }
 
-#endif
 #endif

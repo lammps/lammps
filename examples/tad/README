@@ -1,0 +1,3 @@
+run this example as:
+
+mpirun -np 3 lmp_linux -partition 3x1 -in in.tad

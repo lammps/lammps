@@ -102,6 +102,14 @@ int MinQuickMin::iterate(int maxiter)
       vdotf += v[i][0]*f[i][0] + v[i][1]*f[i][1] + v[i][2]*f[i][2];
     MPI_Allreduce(&vdotf,&vdotfall,1,MPI_DOUBLE,MPI_SUM,world);
 
+    // sum vdotf over replicas, if necessary
+    // this communicator would be invalid for multiprocess replicas
+
+    if (update->multireplica == 1) {
+      vdotf = vdotfall;
+      MPI_Allreduce(&vdotf,&vdotfall,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
+    }
+
     if (vdotfall < 0.0) {
       last_negative = ntimestep;
       for (int i = 0; i < nlocal; i++)
@@ -112,6 +120,15 @@ int MinQuickMin::iterate(int maxiter)
       for (int i = 0; i < nlocal; i++)
 	fdotf += f[i][0]*f[i][0] + f[i][1]*f[i][1] + f[i][2]*f[i][2];
       MPI_Allreduce(&fdotf,&fdotfall,1,MPI_DOUBLE,MPI_SUM,world);
+
+      // sum fdotf over replicas, if necessary
+      // this communicator would be invalid for multiprocess replicas
+
+      if (update->multireplica == 1) {
+	fdotf = fdotfall;
+	MPI_Allreduce(&fdotf,&fdotfall,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
+      }
+
       if (fdotfall == 0.0) scale = 0.0;
       else scale = vdotfall/fdotfall;
       for (int i = 0; i < nlocal; i++) {
@@ -135,6 +152,14 @@ int MinQuickMin::iterate(int maxiter)
       if (dtvone*vmax > dmax) dtvone = dmax/vmax;
     }
     MPI_Allreduce(&dtvone,&dtv,1,MPI_DOUBLE,MPI_MIN,world);
+
+    // min dtv over replicas, if necessary
+    // this communicator would be invalid for multiprocess replicas
+
+    if (update->multireplica == 1) {
+      dtvone = dtv;
+      MPI_Allreduce(&dtvone,&dtv,1,MPI_DOUBLE,MPI_MIN,universe->uworld);
+    }
 
     // Euler integration step
 

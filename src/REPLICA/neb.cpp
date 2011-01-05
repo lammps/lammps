@@ -40,6 +40,50 @@ using namespace LAMMPS_NS;
 
 NEB::NEB(LAMMPS *lmp) : Pointers(lmp) {}
 
+/* ----------------------------------------------------------------------
+   internal NEB constructor 
+------------------------------------------------------------------------- */
+
+NEB::NEB(LAMMPS *lmp, double etol_in, double ftol_in, int n1steps_in,
+	 int n2steps_in, int nevery_in, double *buf_init, double *buf_final) 
+  : Pointers(lmp) 
+{
+  double delx,dely,delz;
+
+  etol = etol_in;
+  ftol = ftol_in;
+  n1steps = n1steps_in;
+  n2steps = n2steps_in;
+  nevery = nevery_in;
+
+  // replica info
+
+  nreplica = universe->nworlds;
+  ireplica = universe->iworld;
+  me_universe = universe->me;
+  uworld = universe->uworld;
+  MPI_Comm_rank(world,&me);
+
+  // generate linear interpolate replica
+
+  double fraction = ireplica/(nreplica-1.0);
+
+  double **x = atom->x;
+  int nlocal = atom->nlocal;
+
+  int ii = 0;
+  for (int i = 0; i < nlocal; i++) {
+    delx = buf_final[ii] - buf_init[ii];
+    dely = buf_final[ii+1] - buf_init[ii+1];
+    delz = buf_final[ii+2] - buf_init[ii+2];
+    domain->minimum_image(delx,dely,delz);
+    x[i][0] = buf_init[ii] + fraction*delx;
+    x[i][1] = buf_init[ii+1] + fraction*dely;
+    x[i][2] = buf_init[ii+2] + fraction*delz;
+    ii += 3;
+  }
+}
+
 /* ---------------------------------------------------------------------- */
 
 NEB::~NEB()
@@ -58,16 +102,18 @@ void NEB::command(int narg, char **arg)
   if (domain->box_exist == 0) 
     error->all("NEB command before simulation box is defined");
 
-  if (narg != 5) error->universe_all("Illegal NEB command");
+  if (narg != 6) error->universe_all("Illegal NEB command");
   
-  double ftol = atof(arg[0]);
-  int n1steps = atoi(arg[1]);
-  int n2steps = atoi(arg[2]);
-  int nevery = atoi(arg[3]);
-  char *infile = arg[4];
+  etol = atof(arg[0]);
+  ftol = atof(arg[1]);
+  n1steps = atoi(arg[2]);
+  n2steps = atoi(arg[3]);
+  nevery = atoi(arg[4]);
+  infile = arg[5];
 
   // error checks
 
+  if (etol < 0.0) error->all("Illegal NEB command");
   if (ftol < 0.0) error->all("Illegal NEB command");
   if (nevery == 0) error->universe_all("Illegal NEB command");
   if (n1steps % nevery || n2steps % nevery)
@@ -81,6 +127,22 @@ void NEB::command(int narg, char **arg)
   uworld = universe->uworld;
   MPI_Comm_rank(world,&me);
 
+  // read in file of final state atom coords and reset my coords
+
+  readfile(infile);
+
+  // run the NEB calculation
+
+  run();
+
+}
+
+/* ----------------------------------------------------------------------
+   run NEB on multiple replicas
+------------------------------------------------------------------------- */
+
+void NEB::run()
+{
   // create MPI communicator for root proc from each world
 
   int color;
@@ -104,13 +166,14 @@ void NEB::command(int narg, char **arg)
   if (ineb == modify->nfix) error->all("NEB requires use of fix neb");
 
   fneb = (FixNEB *) modify->fix[ineb];
-  all = memory->create_2d_double_array(nreplica,3,"neb:all");
+  nall = 4;
+  all = memory->create_2d_double_array(nreplica,nall,"neb:all");
   rdist = new double[nreplica];
 
   // initialize LAMMPS
 
   update->whichflag = 2;
-  update->etol = 0.0;
+  update->etol = etol;
   update->ftol = ftol;
   update->multireplica = 1;
 
@@ -119,11 +182,7 @@ void NEB::command(int narg, char **arg)
   if (update->minimize->searchflag)
     error->all("NEB requires damped dynamics minimizer");
 
-  // read in file of final state atom coords and reset my coords
-
-  readfile(infile);
-
-  // setup regular NEB minimizaiton
+  // setup regular NEB minimization
 
   if (me_universe == 0 && universe->uscreen)
     fprintf(universe->uscreen,"Setting up regular NEB ...\n");
@@ -139,10 +198,12 @@ void NEB::command(int narg, char **arg)
     if (universe->uscreen)
       fprintf(universe->uscreen,"Step MaxReplicaForce MaxAtomForce "
 	      "GradV0 GradV1 GradVc "
+	      "EBF EBR RDT "
 	      "RD1 PE1 RD2 PE2 ... RDN PEN\n");
     if (universe->ulogfile)
       fprintf(universe->ulogfile,"Step MaxReplicaForce MaxAtomForce "
 	      "GradV0 GradV1 GradVc "
+	      "EBF EBR RDT "
 	      "RD1 PE1 RD2 PE2 ... RDN PEN\n");
   }
   print_status();
@@ -206,10 +267,12 @@ void NEB::command(int narg, char **arg)
     if (universe->uscreen)
       fprintf(universe->uscreen,"Step MaxReplicaForce MaxAtomForce "
 	      "GradV0 GradV1 GradVc "
+	      "EBF EBR RDT "
 	      "RD1 PE1 RD2 PE2 ... RDN PEN\n");
     if (universe->ulogfile)
       fprintf(universe->ulogfile,"Step MaxReplicaForce MaxAtomForce "
 	      "GradV0 GradV1 GradVc "
+	      "EBF EBR RDT "
 	      "RD1 PE1 RD2 PE2 ... RDN PEN\n");
   }
   print_status();
@@ -220,7 +283,6 @@ void NEB::command(int narg, char **arg)
   // damped dynamic min styles insure all replicas converge together
   
   timer->barrier_start(TIME_LOOP);
-  
   while (update->minimize->niter < n2steps) {
     update->minimize->run(nevery);
     print_status();
@@ -372,38 +434,39 @@ void NEB::print_status()
   double fmaxatom;
   MPI_Allreduce(&fnorminf,&fmaxatom,1,MPI_DOUBLE,MPI_MAX,roots);
 
-  double one[3];
+  double one[4];
   one[0] = fneb->veng;
   one[1] = fneb->plen;
   one[2] = fneb->nlen;
+  one[nall-1] = fneb->gradvnorm;
+
   if (output->thermo->normflag) one[0] /= atom->natoms;
-  if (me == 0) MPI_Allgather(one,3,MPI_DOUBLE,&all[0][0],3,MPI_DOUBLE,roots);
+  if (me == 0)
+    MPI_Allgather(one,nall,MPI_DOUBLE,&all[0][0],nall,MPI_DOUBLE,roots);
 
   rdist[0] = 0.0;
   for (int i = 1; i < nreplica; i++)
     rdist[i] = rdist[i-1] + all[i][1];
   double endpt = rdist[nreplica-1] = rdist[nreplica-2] + all[nreplica-2][2];
-  if (endpt > 0.0)
-    for (int i = 1; i < nreplica; i++)
-      rdist[i] /= endpt;
+  for (int i = 1; i < nreplica; i++)
+    rdist[i] /= endpt;
 
   // look up GradV for the initial, final, and climbing replicas
-  // these should be identical to fnorm2
-  // but to be safe take them straight from fix neb
+  // these are identical to fnorm2, but to be safe we
+  // take them straight from fix_neb
 
   double gradvnorm0, gradvnorm1, gradvnormc;
 
   int irep;
   irep = 0;
-  if (me_universe == irep) gradvnorm0 = fneb->gradvnorm;
-  MPI_Bcast(&gradvnorm0,1,MPI_DOUBLE,irep,uworld);
+  gradvnorm0 = all[irep][3];
   irep = nreplica-1;
-  if (me_universe == irep) gradvnorm1 = fneb->gradvnorm;
-  MPI_Bcast(&gradvnorm1,1,MPI_DOUBLE,irep,uworld);
+  gradvnorm1 = all[irep][3];
   irep = fneb->rclimber;
   if (irep > -1) {
-    if (me_universe == irep) gradvnormc = fneb->gradvnorm;
-    MPI_Bcast(&gradvnormc,1,MPI_DOUBLE,irep,uworld);
+    gradvnormc = all[irep][3];
+    ebf = all[irep][0]-all[0][0];
+    ebr = all[irep][0]-all[nreplica-1][0];
   } else {
     double vmax = all[0][0];
     int top = 0;
@@ -413,8 +476,9 @@ void NEB::print_status()
 	top = m;
       }
     irep = top;
-    if (me_universe == irep) gradvnormc = fneb->gradvnorm;
-    MPI_Bcast(&gradvnormc,1,MPI_DOUBLE,irep,uworld);
+    gradvnormc = all[irep][3];
+    ebf = all[irep][0]-all[0][0];
+    ebr = all[irep][0]-all[nreplica-1][0];
   }
 
   if (me_universe == 0) {
@@ -423,6 +487,7 @@ void NEB::print_status()
 	      fmaxreplica,fmaxatom);
       fprintf(universe->uscreen,"%g %g %g ",
 	      gradvnorm0,gradvnorm1,gradvnormc);
+      fprintf(universe->uscreen,"%g %g %g ",ebf,ebr,endpt);
       for (int i = 0; i < nreplica; i++) 
 	fprintf(universe->uscreen,"%g %g ",rdist[i],all[i][0]);
       fprintf(universe->uscreen,"\n");
@@ -432,6 +497,7 @@ void NEB::print_status()
 	      fmaxreplica,fmaxatom);
       fprintf(universe->ulogfile,"%g %g %g ",
 	      gradvnorm0,gradvnorm1,gradvnormc);
+      fprintf(universe->ulogfile,"%g %g %g ",ebf,ebr,endpt);
       for (int i = 0; i < nreplica; i++)
 	fprintf(universe->ulogfile,"%g %g ",rdist[i],all[i][0]);
       fprintf(universe->ulogfile,"\n");

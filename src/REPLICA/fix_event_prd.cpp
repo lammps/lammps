@@ -1,0 +1,107 @@
+/* ----------------------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under 
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   Contributing author: Mike Brown (SNL)
+------------------------------------------------------------------------- */
+
+#include "stdlib.h"
+#include "string.h"
+#include "fix_event_prd.h"
+#include "atom.h"
+#include "update.h"
+#include "domain.h"
+#include "neighbor.h"
+#include "comm.h"
+#include "universe.h"
+#include "memory.h"
+#include "error.h"
+
+using namespace LAMMPS_NS;
+
+/* ---------------------------------------------------------------------- */
+
+FixEventPRD::FixEventPRD(LAMMPS *lmp, int narg, char **arg) :
+  FixEvent(lmp, narg, arg)
+{
+  if (narg != 3) error->all("Illegal fix event command");
+
+  restart_global = 1;
+
+  event_number = 0;
+  event_timestep = update->ntimestep;
+  clock = 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+FixEventPRD::~FixEventPRD()
+{
+}
+
+/* ----------------------------------------------------------------------
+   save current atom coords as an event (via call to base class)
+   called when an event occurs in some replica
+   set event_timestep = when event occurred in a particular replica
+   update clock = elapsed time since last event, across all replicas
+------------------------------------------------------------------------- */
+
+void FixEventPRD::store_event(int timestep, int delta_clock)
+{
+  FixEvent::store_event();
+  event_timestep = timestep;
+  clock += delta_clock;
+  event_number++;
+}
+
+/* ----------------------------------------------------------------------
+   pack entire state of Fix into one write 
+------------------------------------------------------------------------- */
+
+void FixEventPRD::write_restart(FILE *fp)
+{
+  int n = 0;
+  double list[6];
+  list[n++] = event_number;
+  list[n++] = event_timestep;
+  list[n++] = clock;
+  list[n++] = replica_number;
+  list[n++] = correlated_event;
+  list[n++] = ncoincident;
+
+  if (comm->me == 0) {
+    int size = n * sizeof(double);
+    fwrite(&size,sizeof(int),1,fp);
+    fwrite(list,sizeof(double),n,fp);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   use state info from restart file to restart the Fix 
+------------------------------------------------------------------------- */
+
+void FixEventPRD::restart(char *buf)
+{
+  int n = 0;
+  double *list = (double *) buf;
+
+  event_number = static_cast<int> (list[n++]);
+  printf("Event number restart = %d\n",event_number);
+  event_timestep = static_cast<int> (list[n++]);
+  clock = static_cast<int> (list[n++]);
+  replica_number = static_cast<int> (list[n++]);
+  correlated_event = static_cast<int> (list[n++]);
+  ncoincident = static_cast<int> (list[n++]);
+}
+
+

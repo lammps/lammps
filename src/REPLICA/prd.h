@@ -54,7 +54,7 @@ class PRD : protected Pointers {
   class RanPark *random_select;
   class RanMars *random_dephase;
   class Compute *compute_event;
-  class FixEvent *fix_event;
+  class FixEventPRD *fix_event;
   class Velocity *velocity;
   class Compute *temperature;
   class Finish *finish;

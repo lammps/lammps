@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Mike Brown (SNL)
+   Contributing author: Mike Brown (SNL), Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
 #include "stdlib.h"
@@ -43,13 +43,10 @@ FixEvent::FixEvent(LAMMPS *lmp, int narg, char **arg) :
 
   xevent = NULL;
   xold = NULL;
+  vold = NULL;
   imageold = NULL;
   grow_arrays(atom->nmax);
   atom->add_callback(0);
-
-  event_number = 0;
-  event_timestep = update->ntimestep;
-  clock = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -64,6 +61,7 @@ FixEvent::~FixEvent()
 
   memory->destroy_2d_double_array(xevent);
   memory->destroy_2d_double_array(xold);
+  memory->destroy_2d_double_array(vold);
   memory->sfree(imageold);
 }
 
@@ -76,12 +74,10 @@ int FixEvent::setmask()
 
 /* ----------------------------------------------------------------------
    save current atom coords as an event
-   called when an event occurs in some replica
-   set event_timestep = when event occurred in a particular replica
-   update clock = elapsed time since last event, across all replicas
+   called when an event occurs
 ------------------------------------------------------------------------- */
 
-void FixEvent::store_event(int timestep, int delta_clock)
+void FixEvent::store_event()
 {
   double **x = atom->x;
   int *image = atom->image;
@@ -90,9 +86,41 @@ void FixEvent::store_event(int timestep, int delta_clock)
   for (int i = 0; i < nlocal; i++) 
     domain->unmap(x[i],image[i],xevent[i]);
 
-  event_timestep = timestep;
-  clock += delta_clock;
-  event_number++;
+//   printf("store_event %g %d %g %d \n",
+// 	 x[8][1],image[8],xevent[8][1],0);
+
+}
+
+/* ----------------------------------------------------------------------
+   restore atom coords to quenched initial state
+   called prior to NEB calculation
+------------------------------------------------------------------------- */
+
+void FixEvent::restore_event()
+{
+  double **x = atom->x;
+  int *image = atom->image;
+  int nlocal = atom->nlocal;
+
+//   printf("restore_event1 %g %d %g %d \n",
+//   	 x[8][1],image[8],xevent[8][1],0);
+
+  for (int i = 0; i < nlocal; i++) {
+    x[i][0] = xevent[i][0];
+    x[i][1] = xevent[i][1];
+    x[i][2] = xevent[i][2];
+
+    // Since xevent is unwrapped coordinate, need to
+    // adjust image flags when remapping
+
+    image[i] = (512 << 20) | (512 << 10) | 512;
+    domain->remap(x[i],image[i]);
+    //    domain->remap(x[i]);
+  }
+
+//   printf("restore_event2 %g %d %g %d \n",
+//   	 x[8][1],image[8],xevent[8][1],0);
+
 }
 
 /* ----------------------------------------------------------------------
@@ -104,14 +132,20 @@ void FixEvent::store_event(int timestep, int delta_clock)
 void FixEvent::store_state()
 {
   double **x = atom->x;
-  double **f = atom->f;
+  double **v = atom->v;
   int *image = atom->image;
   int nlocal = atom->nlocal;
+
+//   printf("store_state %g %d %g %d \n",
+// 	 xold[8][1],imageold[8],x[8][1],image[8]);
 
   for (int i = 0; i < nlocal; i++) {
     xold[i][0] = x[i][0];
     xold[i][1] = x[i][1];
     xold[i][2] = x[i][2];
+    vold[i][0] = v[i][0];
+    vold[i][1] = v[i][1];
+    vold[i][2] = v[i][2];
     imageold[i] = image[i];
   }
 }
@@ -124,13 +158,20 @@ void FixEvent::store_state()
 void FixEvent::restore_state()
 {
   double **x = atom->x;
+  double **v = atom->v;
   int *image = atom->image;
   int nlocal = atom->nlocal;
+
+//   printf("restore_state %g %d %g %d \n",
+// 	 xold[8][1],imageold[8],x[8][1],image[8]);
 
   for (int i = 0; i < nlocal; i++) {
     x[i][0] = xold[i][0];
     x[i][1] = xold[i][1];
     x[i][2] = xold[i][2];
+    v[i][0] = vold[i][0];
+    v[i][1] = vold[i][1];
+    v[i][2] = vold[i][2];
     image[i] = imageold[i];
   }
 }
@@ -154,6 +195,7 @@ void FixEvent::grow_arrays(int nmax)
 {
   xevent = memory->grow_2d_double_array(xevent,nmax,3,"event:xevent");
   xold = memory->grow_2d_double_array(xold,nmax,3,"event:xold");
+  vold = memory->grow_2d_double_array(vold,nmax,3,"event:vold");
   imageold = (int *) 
     memory->srealloc(imageold,nmax*sizeof(int),"event:imageold");
 
@@ -174,6 +216,9 @@ void FixEvent::copy_arrays(int i, int j)
   xold[j][0] = xold[i][0];
   xold[j][1] = xold[i][1];
   xold[j][2] = xold[i][2];
+  vold[j][0] = vold[i][0];
+  vold[j][1] = vold[i][1];
+  vold[j][2] = vold[i][2];
   imageold[j] = imageold[i];
 }
 
@@ -189,9 +234,12 @@ int FixEvent::pack_exchange(int i, double *buf)
   buf[3] = xold[i][0];
   buf[4] = xold[i][1];
   buf[5] = xold[i][2];
-  buf[6] = imageold[i];
+  buf[6] = vold[i][0];
+  buf[7] = vold[i][1];
+  buf[8] = vold[i][2];
+  buf[9] = imageold[i];
 
-  return 7;
+  return 10;
 }
 
 /* ----------------------------------------------------------------------
@@ -206,9 +254,12 @@ int FixEvent::unpack_exchange(int nlocal, double *buf)
   xold[nlocal][0] = buf[3];
   xold[nlocal][1] = buf[4];
   xold[nlocal][2] = buf[5];
-  imageold[nlocal] = static_cast<int>(buf[6]);
+  vold[nlocal][0] = buf[6];
+  vold[nlocal][1] = buf[7];
+  vold[nlocal][2] = buf[8];
+  imageold[nlocal] = static_cast<int>(buf[9]);
 
-  return 7;
+  return 10;
 }
 
 /* ----------------------------------------------------------------------
@@ -217,20 +268,6 @@ int FixEvent::unpack_exchange(int nlocal, double *buf)
 
 void FixEvent::write_restart(FILE *fp)
 {
-  int n = 0;
-  double list[5];
-  list[n++] = event_number;
-  list[n++] = event_timestep;
-  list[n++] = clock;
-  list[n++] = replica_number;
-  list[n++] = correlated_event;
-  list[n++] = ncoincident;
-
-  if (comm->me == 0) {
-    int size = n * sizeof(double);
-    fwrite(&size,sizeof(int),1,fp);
-    fwrite(list,sizeof(double),n,fp);
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -239,13 +276,4 @@ void FixEvent::write_restart(FILE *fp)
 
 void FixEvent::restart(char *buf)
 {
-  int n = 0;
-  double *list = (double *) buf;
-
-  event_number = static_cast<int> (list[n++]);
-  event_timestep = static_cast<int> (list[n++]);
-  clock = static_cast<int> (list[n++]);
-  replica_number = static_cast<int> (list[n++]);
-  correlated_event = static_cast<int> (list[n++]);
-  ncoincident = static_cast<int> (list[n++]);
 }

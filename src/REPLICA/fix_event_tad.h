@@ -11,32 +11,38 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef COMPUTE_CLASS
+#ifdef FIX_CLASS
 
-ComputeStyle(event/displace,ComputeEventDisplace)
+FixStyle(EVENT/TAD,FixEventTAD)
 
 #else
 
-#ifndef LMP_COMPUTE_EVENT_DISPLACE_H
-#define LMP_COMPUTE_EVENT_DISPLACE_H
+#ifndef LMP_FIX_EVENT_TAD_H
+#define LMP_FIX_EVENT_TAD_H
 
-#include "compute.h"
+#include "fix_event.h"
 
 namespace LAMMPS_NS {
 
-class ComputeEventDisplace : public Compute {
+class FixEventTAD : public FixEvent {
  public:
-  ComputeEventDisplace(class LAMMPS *, int, char **);
-  ~ComputeEventDisplace();
-  void init();
-  double compute_scalar();
-  void reset_extra_compute_fix(char *);
+  int event_number;      // event counter
+  int event_timestep;    // timestep of last event
+  double tlo;            // event time at low temperature 
+  double ebarrier;       // energy barrier for this event
+
+  FixEventTAD(class LAMMPS *, int, char **);
+  ~FixEventTAD();
+
+  void write_restart(FILE *);
+  void restart(char *);
+
+  // methods specific to FixEventTAD, invoked by TAD
+
+  void store_event(int);
 
  private:
-  int triclinic;
-  double displace_distsq;
-  char *id_event;
-  class FixEvent *fix_event;
+
 };
 
 }

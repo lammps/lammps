@@ -34,7 +34,7 @@
 #include "modify.h"
 #include "compute.h"
 #include "fix.h"
-#include "fix_event.h"
+#include "fix_event_prd.h"
 #include "force.h"  
 #include "pair.h"
 #include "random_park.h"
@@ -162,13 +162,13 @@ void PRD::command(int narg, char **arg)
   args[1] = (char *) dist_setting;
   if (dist_setting) velocity->options(2,args);
 
-  // create FixEvent class to store event and pre-quench states
+  // create FixEventPRD class to store event and pre-quench states
 
   args[0] = (char *) "prd_event";
   args[1] = (char *) "all";
-  args[2] = (char *) "EVENT";
+  args[2] = (char *) "EVENT/PRD";
   modify->add_fix(3,args);
-  fix_event = (FixEvent *) modify->fix[modify->nfix-1];
+  fix_event = (FixEventPRD *) modify->fix[modify->nfix-1];
 
   // create Finish for timing output
 
@@ -180,7 +180,7 @@ void PRD::command(int narg, char **arg)
   delete [] loop_setting;
   delete [] dist_setting;
 
-  // assign FixEvent to event-detection compute
+  // assign FixEventPRD to event-detection compute
   // necessary so it will know atom coords at last event
 
   int icompute = modify->find_compute(id_compute);

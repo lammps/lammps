@@ -67,14 +67,8 @@ void Finish::end(int flag)
     timeflag = histoflag = neighflag = 1;
     if (strstr(force->kspace_style,"pppm")) fftflag = 1;
   }
-  if (flag == 2) {
-    prdflag = histoflag = neighflag = 1;
-    
-  }
-  if (flag == 3) {
-    tadflag = histoflag = neighflag = 1;
-    
-  }
+  if (flag == 2) prdflag = histoflag = neighflag = 1;
+  if (flag == 3) tadflag = histoflag = neighflag = 1;
 
   // loop stats
 

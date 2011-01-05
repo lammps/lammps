@@ -684,7 +684,7 @@ void PPPMCG::compute(int eflag, int vflag)
 
     charged_num = static_cast<double>(num_charged);
     MPI_Reduce(&charged_num,&charged_all,1,MPI_DOUBLE,MPI_SUM,0,world);
-    charged_all = charged_all * 100.0 / atom->natoms;
+    charged_all = charged_all * 100.0 / static_cast<double>(atom->natoms);
 
     charged_num = 100.0 * static_cast<double>(num_charged) / static_cast<double>(atom->nlocal);
     MPI_Reduce(&charged_num,&charged_nmax,1,MPI_DOUBLE,MPI_MAX,0,world);
@@ -1096,7 +1096,7 @@ int PPPMCG::factorable(int n)
    compute RMS precision for a dimension
 ------------------------------------------------------------------------- */
 
-double PPPMCG::rms(double h, double prd, double natoms,
+double PPPMCG::rms(double h, double prd, bigint natoms,
 		 double q2, double **acons)
 {
   double sum = 0.0;
@@ -1117,14 +1117,14 @@ double PPPMCG::diffpr(double hx, double hy, double hz, double q2, double **acons
   double xprd = domain->xprd;
   double yprd = domain->yprd;
   double zprd = domain->zprd;
-  double natoms = atom->natoms;
+  bigint natoms = atom->natoms;
 
   lprx = rms(hx,xprd,natoms,q2,acons);
   lpry = rms(hy,yprd,natoms,q2,acons);
   lprz = rms(hz,zprd*slab_volfactor,natoms,q2,acons);
   kspace_prec = sqrt(lprx*lprx + lpry*lpry + lprz*lprz) / sqrt(3.0);
   real_prec = 2.0*q2 * exp(-g_ewald*g_ewald*cutoff*cutoff) / 
-   sqrt(natoms*cutoff*xprd*yprd*zprd);
+   sqrt(static_cast<double>(natoms)*cutoff*xprd*yprd*zprd);
   double value = kspace_prec - real_prec;
   return value;
 }

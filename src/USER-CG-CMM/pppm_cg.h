@@ -30,6 +30,7 @@ typedef double FFT_SCALAR;
 #endif
 
 #include "kspace.h"
+#include "lmptype.h"
 
 namespace LAMMPS_NS {
 
@@ -95,7 +96,7 @@ class PPPMCG : public KSpace {
   void allocate();
   void deallocate();
   int factorable(int);
-  double rms(double, double, double, double, double **);
+  double rms(double, double, bigint, double, double **);
   double diffpr(double, double, double, double, double **);
   void compute_gf_denom();
   double gf_denom(double, double, double);

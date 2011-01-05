@@ -1083,7 +1083,7 @@ double PPPM::diffpr(double hx, double hy, double hz, double q2, double **acons)
   lprz = rms(hz,zprd*slab_volfactor,natoms,q2,acons);
   kspace_prec = sqrt(lprx*lprx + lpry*lpry + lprz*lprz) / sqrt(3.0);
   real_prec = 2.0*q2 * exp(-g_ewald*g_ewald*cutoff*cutoff) / 
-   sqrt(natoms*cutoff*xprd*yprd*zprd);
+   sqrt(static_cast<double>(natoms)*cutoff*xprd*yprd*zprd);
   double value = kspace_prec - real_prec;
   return value;
 }

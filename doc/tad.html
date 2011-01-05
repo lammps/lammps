@@ -62,60 +62,51 @@ tad 2000 50 1800 2300 0.01 0.01 event 54985 &
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Run a temperature accelerated dynamics (TAD) simulation. This
-method requires two or more partitions to perform NEB transition 
-state searches.
+<P>Run a temperature accelerated dynamics (TAD) simulation. This method
+requires two or more partitions to perform NEB transition state
+searches.
 </P>
 <P>TAD is described in <A HREF = "#Voter">this paper</A> by Art Voter.  It is a method
-that uses accelerated dynamics at an elevated temperature to 
-generate results at a specified lower temperature.
-A good
-overview of accelerated dynamics methods for such systems is given in
-<A HREF = "#Voter2">this review paper</A> from the same group. In general, these methods assume
-that the long-time dynamics is dominated by infrequent events i.e. the system is
-is confined to low energy basins for long periods,
-punctuated by brief, randomly-occurring transitions to adjacent basins.   
-TAD is suitable for
-infrequent-event systems, where in addition, the transition 
-kinetics are well-approximated
-by harmonic transition state theory (hTST). In hTST, the temperature
-dependence of transition rates follows the Arrhenius relation. 
-As a consequence a set of event times generated in a high-temperature 
-simulation can be mapped to a set of much longer estimated times 
-in the low-temperature system. However, because this mapping involves
-the energy barrier of the transition event, which is different for each event,
-the first event at the high temperature may not be the earliest event at the
-low temperature. TAD handles this by first generating 
-a set of possible events from the current basin. After each event,
-the simulation is reflected backwards into the current basin.
-This is repeated until the stopping criterion is satisfied,
-at which point the event with the earliest 
-low-temperature occurrence time is selected. 
-The stopping criterion is that the confidence measure
-be greater than 1-<I>delta</I>. The confidence measure is
-the probability that no earlier low-temperature 
-event will occur at some later time 
-in the high-temperature simulation. 
-hTST provides an lower bound for this probability,
-based on the user-specified minimum pre-exponential
+that uses accelerated dynamics at an elevated temperature to generate
+results at a specified lower temperature.  A good overview of
+accelerated dynamics methods for such systems is given in <A HREF = "#Voter2">this review
+paper</A> from the same group. In general, these methods assume
+that the long-time dynamics is dominated by infrequent events i.e. the
+system is is confined to low energy basins for long periods,
+punctuated by brief, randomly-occurring transitions to adjacent
+basins.  TAD is suitable for infrequent-event systems, where in
+addition, the transition kinetics are well-approximated by harmonic
+transition state theory (hTST). In hTST, the temperature dependence of
+transition rates follows the Arrhenius relation.  As a consequence a
+set of event times generated in a high-temperature simulation can be
+mapped to a set of much longer estimated times in the low-temperature
+system. However, because this mapping involves the energy barrier of
+the transition event, which is different for each event, the first
+event at the high temperature may not be the earliest event at the low
+temperature. TAD handles this by first generating a set of possible
+events from the current basin. After each event, the simulation is
+reflected backwards into the current basin.  This is repeated until
+the stopping criterion is satisfied, at which point the event with the
+earliest low-temperature occurrence time is selected.  The stopping
+criterion is that the confidence measure be greater than
+1-<I>delta</I>. The confidence measure is the probability that no earlier
+low-temperature event will occur at some later time in the
+high-temperature simulation.  hTST provides an lower bound for this
+probability, based on the user-specified minimum pre-exponential
 factor (reciprocal of <I>tmax</I>).
 </P>
-<P>In order to estimate the energy barrier for each event, the
-TAD method invokes the <A HREF = "neb.html">NEB</A> method. Each NEB
-replica runs on a partition of processors. The current
-NEB implementation in LAMMPS restricts you to having
-exactly one processor per replica. For more information, 
-see the documentation for the <A HREF = "neb.html">neb</A> command.
-In the current LAMMPS implementation of TAD, all the non-NEB
-TAD operations are performed on the first partition, while the
-other partitions remain idle. Processor partitions are
-defined at run-time using the -partition command-line
-switch.
+<P>In order to estimate the energy barrier for each event, the TAD method
+invokes the <A HREF = "neb.html">NEB</A> method. Each NEB replica runs on a
+partition of processors. The current NEB implementation in LAMMPS
+restricts you to having exactly one processor per replica. For more
+information, see the documentation for the <A HREF = "neb.html">neb</A> command.  In
+the current LAMMPS implementation of TAD, all the non-NEB TAD
+operations are performed on the first partition, while the other
+partitions remain idle. Processor partitions are defined at run-time
+using the -partition command-line switch.
 </P>
-<P>A TAD run has several stages, 
-which are repeated each time an event
-is performed.  The logic for a TAD
-run is as follows:
+<P>A TAD run has several stages, which are repeated each time an event is
+performed.  The logic for a TAD run is as follows:
 </P>
 <PRE>while (time remains):
   while (time < tstop):
@@ -129,22 +120,20 @@ run is as follows:
     reflect back into current basin
   perform earliest event 
 </PRE>
-<P>Before this outer loop begins, 
-the initial potential energy basin is identified by
-quenching (an energy minimization, see below) the initial state and
-storing the resulting coordinates for reference.
+<P>Before this outer loop begins, the initial potential energy basin is
+identified by quenching (an energy minimization, see below) the
+initial state and storing the resulting coordinates for reference.
 </P>
 <P>Inside the inner loop, dynamics is run continuously according to
-whatever integrator has been specified by the user, stopping
-every <I>t_event</I> steps to check if a transition event has occurred.
-This check is performed by quenching the system and comparing the
-resulting atom coordinates to the coordinates from the previous basin.
+whatever integrator has been specified by the user, stopping every
+<I>t_event</I> steps to check if a transition event has occurred.  This
+check is performed by quenching the system and comparing the resulting
+atom coordinates to the coordinates from the previous basin.
 </P>
 <P>A quench is an energy minimization and is performed by whichever
-algorithm has been defined by the <I>min</I> and <I>min_style</I> keywords or 
-their default values. Note that typically, you do not
-need to perform a highly-converged minimization to detect a transition
-event.
+algorithm has been defined by the <I>min</I> and <I>min_style</I> keywords or
+their default values. Note that typically, you do not need to perform
+a highly-converged minimization to detect a transition event.
 </P>
 <P>The event check is performed by a compute with the specified
 <I>compute-ID</I>.  Currently there is only one compute that works with the
@@ -155,142 +144,134 @@ event/displace</A> checks whether any atom in
 the compute group has moved further than a specified threshold
 distance.  If so, an "event" has occurred.
 </P>
-<P>The neb calculation is similar to that invoked by the <A HREF = "neb.html">neb</A> command,
-except that the final state is generated internally, instead of being read
-in from a file. The TAD implementation provides default values
-for the NEB settings, which can be overridden using the <I>neb</I> and <I>neb_style</I>
-keywords. 
+<P>The neb calculation is similar to that invoked by the <A HREF = "neb.html">neb</A>
+command, except that the final state is generated internally, instead
+of being read in from a file. The TAD implementation provides default
+values for the NEB settings, which can be overridden using the <I>neb</I>
+and <I>neb_style</I> keywords.
 </P>
 <HR>
 
-<P>A key aspect of the TAD method is setting the stopping criterion appropriately. 
-If this criterion is
-too conservative, then many events must be generated before one is finally performed.
-Conversely, if this criterion is too aggressive, high-entropy high-barrier events will
-be over-sampled, while low-entropy low-barrier events will be under-sampled. If the lowest
-pre-exponential factor is known fairly accurately, then it can be used to estimate <I>tmax</I>,
-and the value of <I>delta</I> can be set to the desired confidence level e.g. <I>delta</I> = 0.05
-corresponds to 95% confidence. However, for systems where the dynamics are not well
-characterized (the most common case), it will be necessary to experiment with the values
-of <I>delta</I> and <I>tmax</I> to get a good trade-off between accuracy and performance. To aid
-with this, for each new event that is detected, a line is printed to the 
-screen and log output for the first partition, as follows:
+<P>A key aspect of the TAD method is setting the stopping criterion
+appropriately.  If this criterion is too conservative, then many
+events must be generated before one is finally performed.  Conversely,
+if this criterion is too aggressive, high-entropy high-barrier events
+will be over-sampled, while low-entropy low-barrier events will be
+under-sampled. If the lowest pre-exponential factor is known fairly
+accurately, then it can be used to estimate <I>tmax</I>, and the value of
+<I>delta</I> can be set to the desired confidence level e.g. <I>delta</I> = 0.05
+corresponds to 95% confidence. However, for systems where the dynamics
+are not well characterized (the most common case), it will be
+necessary to experiment with the values of <I>delta</I> and <I>tmax</I> to get a
+good trade-off between accuracy and performance. To aid with this, for
+each new event that is detected, a line is printed to the screen and
+log output for the first partition, as follows:
 </P>
 <PRE>New event: t_hi = 1950 ievent = 2 eb = 2.97066 dt_lo = 114049 dt_hi/t_stop = 0.610293 
 </PRE>
-<P><I>t_hi</I> is the timestep on which the event occurrred.
-<I>ievent</I> is the event index, zero for the first event in each basin. 
-<I>eb</I> is the energy barrier for the event.
-<I>dt_lo</I> is the low-temperature time since entering the basin. 
-<I>dt_hi/t_stop</I> is a measure of how close the stopping criterion is to
-being met (if > 1.0, then the criterion is met).
+<P><I>t_hi</I> is the timestep on which the event occurrred.  <I>ievent</I> is the
+event index, zero for the first event in each basin.  <I>eb</I> is the
+energy barrier for the event.  <I>dt_lo</I> is the low-temperature time
+since entering the basin.  <I>dt_hi/t_stop</I> is a measure of how close
+the stopping criterion is to being met (if > 1.0, then the criterion
+is met).
 </P>
-<P>A second key aspect is the choice of <I>t_hi</I>. A larger value greatly increases
-the rate at which new events are generated. 
-However, too large a value introduces errors due to anharmonicity (not accounted
-for within hTST). Once again, for any given system, experimentation is necessary
-to determine the best value of <I>t_hi</I>.
+<P>A second key aspect is the choice of <I>t_hi</I>. A larger value greatly
+increases the rate at which new events are generated.  However, too
+large a value introduces errors due to anharmonicity (not accounted
+for within hTST). Once again, for any given system, experimentation is
+necessary to determine the best value of <I>t_hi</I>.
 </P>
 <HR>
 
 <P>Five kinds of output can be generated during a TAD run: event
-statistics, NEB statistics, thermodynamic output by each replica, 
-dump files, and restart files.
+statistics, NEB statistics, thermodynamic output by each replica, dump
+files, and restart files.
 </P>
-<P>Event statistics are printed to the screen and master log.lammps 
-file each time an event is performed. The quantities are the timestep,
-CPU time, clock, and event number. 
-The timestep is the usual LAMMPS 
-timestep, which corresponds to
-the high-temperature time at which the event was detected, 
-in units of timestep. 
-The CPU time is the total processor 
-time since the start of the TAD run. 
-The clock is the low-temperature
-event time, in units of timestep. 
-Each clock interval is equal to the timestep interval
-between events scaled by an exponential factor that depends on
-the hi/lo temperature ratio and the energy barrier for that event.
-The event number is a counter that increments with each performed 
-event.
+<P>Event statistics are printed to the screen and master log.lammps file
+each time an event is performed. The quantities are the timestep, CPU
+time, clock, and event number.  The timestep is the usual LAMMPS
+timestep, which corresponds to the high-temperature time at which the
+event was detected, in units of timestep.  The CPU time is the total
+processor time since the start of the TAD run.  The clock is the
+low-temperature event time, in units of timestep.  Each clock interval
+is equal to the timestep interval between events scaled by an
+exponential factor that depends on the hi/lo temperature ratio and the
+energy barrier for that event.  The event number is a counter that
+increments with each performed event.
 </P>
-<P>The NEB statistics are written to the file specified 
-by the <I>neb_log</I> keyword. If the keyword value is "none",
-then no NEB statistics are printed out. The statistics
-are written every <I>Nevery</I> timesteps. 
-See the <A HREF = "neb.html">neb</A> command for a full description of
-the NEB statistics. When invoked from TAD, NEB statistics are
-never printed to the screen.
+<P>The NEB statistics are written to the file specified by the <I>neb_log</I>
+keyword. If the keyword value is "none", then no NEB statistics are
+printed out. The statistics are written every <I>Nevery</I> timesteps.  See
+the <A HREF = "neb.html">neb</A> command for a full description of the NEB
+statistics. When invoked from TAD, NEB statistics are never printed to
+the screen.
 </P>
-<P>Because the NEB calculation must run on multiple partitions, 
-LAMMPS produces additional screen and log
-files for each partition, e.g. log.lammps.0, log.lammps.1, etc. For
-the TAD command, these contain the thermodynamic output of each
-NEB replica. In addition, the log file for the first partition, 
-log.lammps.0, will contain thermodynamic output from short runs and 
-minimizations corresponding to the dynamics and quench operations, as
-well as a line for each new detected event, as described above.
+<P>Because the NEB calculation must run on multiple partitions, LAMMPS
+produces additional screen and log files for each partition,
+e.g. log.lammps.0, log.lammps.1, etc. For the TAD command, these
+contain the thermodynamic output of each NEB replica. In addition, the
+log file for the first partition, log.lammps.0, will contain
+thermodynamic output from short runs and minimizations corresponding
+to the dynamics and quench operations, as well as a line for each new
+detected event, as described above.
 </P>
 <P>After the TAD command completes, timing statistics for the TAD run are
 printed in each replica's log file, giving a breakdown of how much CPU
 time was spent in each stage (NEB, dynamics, quenching, etc).
 </P>
-<P>Any <A HREF = "dump.html">dump files</A> defined in the input script will be
-written to during a TAD run at timesteps when an event
-is performed.  This means the the requested dump
-frequency in the <A HREF = "dump.html">dump</A> command is ignored.  There will be
-one dump file (per dump command) created for all partitions.
-The atom coordinates of the dump snapshot are those of the minimum
-energy configuration resulting from quenching following the
-performed event. 
-The timesteps written into the dump files correspond to the
-timestep at which the event occurred and NOT the clock.  A dump
-snapshot corresponding to the initial minimum state used for event
-detection is written to the dump file at the beginning of each TAD
-run.
+<P>Any <A HREF = "dump.html">dump files</A> defined in the input script will be written
+to during a TAD run at timesteps when an event is performed.  This
+means the the requested dump frequency in the <A HREF = "dump.html">dump</A> command
+is ignored.  There will be one dump file (per dump command) created
+for all partitions.  The atom coordinates of the dump snapshot are
+those of the minimum energy configuration resulting from quenching
+following the performed event.  The timesteps written into the dump
+files correspond to the timestep at which the event occurred and NOT
+the clock.  A dump snapshot corresponding to the initial minimum state
+used for event detection is written to the dump file at the beginning
+of each TAD run.
 </P>
 <P>If the <A HREF = "restart.html">restart</A> command is used, a single restart file
 for all the partitions is generated, which allows a TAD run to be
-continued by a new input script in the usual manner. 
-The restart file is generated after an event is performed. The restart
-file contains a snapshot of the system in the new quenched state, 
-including the event number and the low-temperature time.
-The restart frequency specified in the <A HREF = "restart.html">restart</A> command
-is interpreted differently when performing a TAD run.  It does not
-mean the timestep interval between restart files.  Instead it means an
-event interval for performed events.  Thus a frequency of 1 means
-write a restart file every time an event is performed.  A
-frequency of 10 means write a restart file every 10th performed
-event.
-When an input script reads a restart file from a previous TAD run, the
-new script can be run on a different number of replicas or processors.
+continued by a new input script in the usual manner.  The restart file
+is generated after an event is performed. The restart file contains a
+snapshot of the system in the new quenched state, including the event
+number and the low-temperature time.  The restart frequency specified
+in the <A HREF = "restart.html">restart</A> command is interpreted differently when
+performing a TAD run.  It does not mean the timestep interval between
+restart files.  Instead it means an event interval for performed
+events.  Thus a frequency of 1 means write a restart file every time
+an event is performed.  A frequency of 10 means write a restart file
+every 10th performed event.  When an input script reads a restart file
+from a previous TAD run, the new script can be run on a different
+number of replicas or processors.
 </P>
 <P>Note that within a single state, the dynamics will typically
 temporarily continue beyond the event that is ultimately chosen, until
-the stopping criterionis satisfied. 
-When the event is eventually performed, 
-the timestep counter is reset to the
-value when the event was detected. Similarly, after each quench
-and NEB minimization,
-the timestep counter is reset to the value at the start of the 
+the stopping criterionis satisfied.  When the event is eventually
+performed, the timestep counter is reset to the value when the event
+was detected. Similarly, after each quench and NEB minimization, the
+timestep counter is reset to the value at the start of the
 minimization. This means that the timesteps listed in the replica log
-files do not always increase monotonically. However, 
-the timestep values printed to the master log file, dump files, and
-restart files are always monotonically increasing.
+files do not always increase monotonically. However, the timestep
+values printed to the master log file, dump files, and restart files
+are always monotonically increasing.
 </P>
+<HR>
+
 <P><B>Restrictions:</B>
 </P>
 <P>This command can only be used if LAMMPS was built with the "replica"
 package.  See the <A HREF = "Section_start.html#2_3">Making LAMMPS</A> section for
 more info on packages.
 </P>
-<P><I>N</I> setting must be integer multiple of
-<I>t_event</I>.
+<P><I>N</I> setting must be integer multiple of <I>t_event</I>.
 </P>
 <P>Runs restarted from restart files written during a TAD run will only
-produce identical results if the user-specified integrator
-supports exact restarts. So <A HREF = "fix_nh.html">fix nvt</A> will produce an exact restart,
-but <A HREF = "fix_langevin.html">fix langevin</A> will not. 
+produce identical results if the user-specified integrator supports
+exact restarts. So <A HREF = "fix_nh.html">fix nvt</A> will produce an exact
+restart, but <A HREF = "fix_langevin.html">fix langevin</A> will not.
 </P>
 <P>This command cannot be used when any fixes are defined that keep track
 of elapsed time to perform time-dependent operations.  Examples
@@ -308,9 +289,9 @@ dt/reset</A> and <A HREF = "fix_deposit.html">fix deposit</A>.
 </P>
 <P><B>Default:</B> 
 </P>
-<P>The option defaults are <I>min</I> = 0.1 0.1 40 50, <I>neb</I> = 0.01 100 100 10, 
-<I>min_style</I> = <I>cg</I>, <I>neb_style</I> = <I>quickmin</I>, 
-and <I>neb_log</I> = "none"
+<P>The option defaults are <I>min</I> = 0.1 0.1 40 50, <I>neb</I> = 0.01 100 100
+10, <I>min_style</I> = <I>cg</I>, <I>neb_style</I> = <I>quickmin</I>, and <I>neb_log</I> =
+"none"
 </P>
 <HR>
 

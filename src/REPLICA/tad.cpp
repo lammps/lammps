@@ -390,11 +390,11 @@ void TAD::command(int narg, char **arg)
   if (me_universe == 0) {
     if (universe->uscreen) 
       fprintf(universe->uscreen,
-              "Loop time of %g on %d procs for %d steps with %.15g atoms\n",
+              "Loop time of %g on %d procs for %d steps with %lu atoms\n",
 	      timer->array[TIME_LOOP],nprocs_universe,nsteps,atom->natoms);
     if (universe->ulogfile) 
       fprintf(universe->ulogfile,
-              "Loop time of %g on %d procs for %d steps with %.15g atoms\n",
+              "Loop time of %g on %d procs for %d steps with %lu atoms\n",
               timer->array[TIME_LOOP],nprocs_universe,nsteps,atom->natoms);
   }
 

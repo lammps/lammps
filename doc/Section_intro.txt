@@ -216,6 +216,7 @@ Multi-replica models :h4
 
 "nudged elastic band"_neb.html
 "parallel replica dynamics"_prd.html
+"temperature accelerated dynamics"_tad.html
 "parallel tempering"_temper.html
 
 Pre- and post-processing :h4

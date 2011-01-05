@@ -341,11 +341,12 @@ These are the relevant commands:
 
 "neb"_neb.html for nudged elastic band calculations
 "prd"_prd.html for parallel replica dynamics
+"tad"_tad.html for temperature accelerated dynamics :ul
 "temper"_temper.html for parallel tempering :ul
 
 NEB is a method for finding transition states and barrier energies.
-PRD is a method for performing accelerated dynamics to find and
-perform infrequent events.  Parallel tempering or replica exchange
+PRD and TAD are methods for performing accelerated dynamics to find
+and perform infrequent events.  Parallel tempering or replica exchange
 runs different replicas at a series of temperature to facilitate
 rare-event sampling.
 

@@ -62,18 +62,17 @@ bool CRML_GPU_MemoryT::init(const int ntypes,
   // If atom type constants fit in shared memory use fast kernel
   int lj_types=ntypes;
   shared_types=false;
-  if (this->_block_size==64)
+  if (this->_block_size>=64)
     shared_types=true;
   _lj_types=lj_types;
 
   // Allocate a host write buffer for data initialization
-  int h_size=lj_types;
-  if (lj_types*lj_types<MAX_BIO_SHARED_TYPES)
+  int h_size=lj_types*lj_types;
+  if (h_size<MAX_BIO_SHARED_TYPES)
     h_size=MAX_BIO_SHARED_TYPES;
-  UCL_H_Vec<numtyp> host_write(h_size*h_size*32,*(this->ucl_device),
+  UCL_H_Vec<numtyp> host_write(h_size*32,*(this->ucl_device),
                                UCL_WRITE_OPTIMIZED);
-
-  for (int i=0; i<lj_types*lj_types; i++)
+  for (int i=0; i<h_size*32; i++)
     host_write[i]=0.0;
 
   lj1.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);

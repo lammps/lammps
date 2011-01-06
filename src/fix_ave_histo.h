@@ -65,6 +65,7 @@ class FixAveHisto : public Fix {
   void bin_atoms(double *, int);
   void options(int, char **);
   void allocate_values(int);
+  int nextvalid();
 };
 
 }

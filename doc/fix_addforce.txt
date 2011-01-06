@@ -17,7 +17,7 @@ addforce = style name of this fix command :l
 fx,fy,fz = force component values (force units) :l
 any of fx,fy,fz can be a variable (see below) :l
 zero or more keyword/value pairs may be appended to args :l
-keyword = {region}  :l
+keyword = {region} or {energy} :l
   {region} value = region-ID
     region-ID = ID of region atoms must be in to have added force
   {energy} value = v_name

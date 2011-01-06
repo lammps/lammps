@@ -28,8 +28,12 @@ namespace LAMMPS_NS {
 class NEB : protected Pointers {
  public:
   NEB(class LAMMPS *);
+  NEB(class LAMMPS *, double, double, int, int, int, double *, double *);
   ~NEB();
-  void command(int, char **);
+  void command(int, char **);  // process neb command
+  void run();                  // run NEB
+
+  double ebf,ebr;              // forward and reverse energy barriers
 
  private:
   int me,me_universe;          // my proc ID in world and universe
@@ -38,9 +42,15 @@ class NEB : protected Pointers {
   MPI_Comm roots;              // MPI comm with 1 root proc from each world
   FILE *fp;
   int compressed;
+  double etol;                 // energy tolerance convergence criterion
+  double ftol;                 // force tolerance convergence criterion
+  int n1steps, n2steps;        // number of steps in stage 1 and 2
+  int nevery;                  // output interval
+  char *infile;                // name of file containing final state
 
   class FixNEB *fneb;
-  double **all;                // PE,plen,nlen from each replica
+  int nall;                    // per-replica dimension of array all
+  double **all;                // PE,plen,nlen,gradvnorm from each replica
   double *rdist;               // normalize reaction distance, 0 to 1
 
   void readfile(char *);

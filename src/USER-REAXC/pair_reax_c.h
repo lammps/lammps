@@ -50,10 +50,9 @@ class PairReaxC : public Pair {
   class FixReaxC *fix_reax;
   
   double *chi,*eta,*gamma;
-
   int qeqflag;
-
   int setup_flag;
+  int firstwarn;
 
   void allocate();
   void write_reax_atoms();

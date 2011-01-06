@@ -15,6 +15,7 @@
 #define LMP_MIN_H
 
 #include "pointers.h"
+#include "lmptype.h"
 
 namespace LAMMPS_NS {
 
@@ -70,7 +71,7 @@ class Min : protected Pointers {
   class Compute *pe_compute;        // compute for potential energy
   double ecurrent;                  // current potential energy
 
-  double ndoftotal;           // total dof for entire problem
+  bigint ndoftotal;           // total dof for entire problem
 
   int nvec;                   // local atomic dof = length of xvec
   double *xvec;               // variables for atomic dof, as 1d vector

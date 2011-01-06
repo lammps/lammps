@@ -17,6 +17,7 @@
 #include "sys/types.h"
 #include "dirent.h"
 #include "read_restart.h"
+#include "lmptype.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "domain.h"
@@ -290,33 +291,33 @@ void ReadRestart::command(int narg, char **arg)
 
   // check that all atoms were assigned to procs
 
-  double natoms;
-  double rlocal = atom->nlocal;
-  MPI_Allreduce(&rlocal,&natoms,1,MPI_DOUBLE,MPI_SUM,world);
+  bigint natoms;
+  bigint nblocal = atom->nlocal;
+  MPI_Allreduce(&nblocal,&natoms,1,MPI_UNSIGNED_LONG_LONG,MPI_SUM,world);
 
   if (me == 0) {
-    if (screen) fprintf(screen,"  %.15g atoms\n",natoms);
-    if (logfile) fprintf(logfile,"  %.15g atoms\n",natoms);
+    if (screen) fprintf(screen,"  %lu atoms\n",natoms);
+    if (logfile) fprintf(logfile,"  %lu atoms\n",natoms);
   }
 
   if (natoms != atom->natoms) error->all("Did not assign all atoms correctly");
 
   if (me == 0) {
     if (atom->nbonds) {
-      if (screen) fprintf(screen,"  %d bonds\n",atom->nbonds);
-      if (logfile) fprintf(logfile,"  %d bonds\n",atom->nbonds);
+      if (screen) fprintf(screen,"  %lu bonds\n",atom->nbonds);
+      if (logfile) fprintf(logfile,"  %lu bonds\n",atom->nbonds);
     }
     if (atom->nangles) {
-      if (screen) fprintf(screen,"  %d angles\n",atom->nangles);
-      if (logfile) fprintf(logfile,"  %d angles\n",atom->nangles);
+      if (screen) fprintf(screen,"  %lu angles\n",atom->nangles);
+      if (logfile) fprintf(logfile,"  %lu angles\n",atom->nangles);
     }
     if (atom->ndihedrals) {
-      if (screen) fprintf(screen,"  %d dihedrals\n",atom->ndihedrals);
-      if (logfile) fprintf(logfile,"  %d dihedrals\n",atom->ndihedrals);
+      if (screen) fprintf(screen,"  %lu dihedrals\n",atom->ndihedrals);
+      if (logfile) fprintf(logfile,"  %lu dihedrals\n",atom->ndihedrals);
     }
     if (atom->nimpropers) {
-      if (screen) fprintf(screen,"  %d impropers\n",atom->nimpropers);
-      if (logfile) fprintf(logfile,"  %d impropers\n",atom->nimpropers);
+      if (screen) fprintf(screen,"  %lu impropers\n",atom->nimpropers);
+      if (logfile) fprintf(logfile,"  %lu impropers\n",atom->nimpropers);
     }
   }
 
@@ -594,29 +595,29 @@ void ReadRestart::header()
       delete [] style;
 
     } else if (flag == NATOMS) {
-      atom->natoms = read_double();
+      atom->natoms = read_bigint();
     } else if (flag == NTYPES) {
       atom->ntypes = read_int();
     } else if (flag == NBONDS) {
-      atom->nbonds = read_int();
+      atom->nbonds = read_bigint();
     } else if (flag == NBONDTYPES) {
       atom->nbondtypes = read_int();
     } else if (flag == BOND_PER_ATOM) {
       atom->bond_per_atom = read_int();
     } else if (flag == NANGLES) {
-      atom->nangles = read_int();
+      atom->nangles = read_bigint();
     } else if (flag == NANGLETYPES) {
       atom->nangletypes = read_int();
     } else if (flag == ANGLE_PER_ATOM) {
       atom->angle_per_atom = read_int();
     } else if (flag == NDIHEDRALS) {
-      atom->ndihedrals = read_int();
+      atom->ndihedrals = read_bigint();
     } else if (flag == NDIHEDRALTYPES) {
       atom->ndihedraltypes = read_int();
     } else if (flag == DIHEDRAL_PER_ATOM) {
       atom->dihedral_per_atom = read_int();
     } else if (flag == NIMPROPERS) {
-      atom->nimpropers = read_int();
+      atom->nimpropers = read_bigint();
     } else if (flag == NIMPROPERTYPES) {
       atom->nimpropertypes = read_int();
     } else if (flag == IMPROPER_PER_ATOM) {
@@ -807,5 +808,17 @@ char *ReadRestart::read_char()
   char *value = new char[n];
   if (me == 0) fread(value,sizeof(char),n,fp);
   MPI_Bcast(value,n,MPI_CHAR,0,world);
+  return value;
+}
+
+/* ----------------------------------------------------------------------
+   read a bigint from restart file and bcast it
+------------------------------------------------------------------------- */
+
+bigint ReadRestart::read_bigint()
+{
+  bigint value;
+  if (me == 0) fread(&value,sizeof(bigint),1,fp);
+  MPI_Bcast(&value,1,MPI_UNSIGNED_LONG_LONG,0,world);
   return value;
 }

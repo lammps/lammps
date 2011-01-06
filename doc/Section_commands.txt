@@ -375,6 +375,7 @@ in the command's documentation.
 "shape"_shape.html,
 "shell"_shell.html,
 "special_bonds"_special_bonds.html,
+"tad"_tad.html,
 "temper"_temper.html,
 "thermo"_thermo.html,
 "thermo_modify"_thermo_modify.html,

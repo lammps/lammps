@@ -46,7 +46,7 @@ class FixNEB : public Fix {
   char *id_pe;
   class Compute *pe;
 
-  int natoms;
+  int nebatoms;
   double **xprev,**xnext;
   double **tangent;
 };

@@ -21,6 +21,7 @@ ComputeStyle(reduce,ComputeReduce)
 #define LMP_COMPUTE_REDUCE_H
 
 #include "compute.h"
+#include "lmptype.h"
 
 namespace LAMMPS_NS {
 
@@ -53,7 +54,7 @@ class ComputeReduce : public Compute {
   Pair pairme,pairall;
 
   virtual double compute_one(int, int);
-  virtual double count(int);
+  virtual bigint count(int);
   void combine(double &, double, int);
 };
 

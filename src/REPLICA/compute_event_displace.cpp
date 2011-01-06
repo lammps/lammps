@@ -23,7 +23,7 @@
 #include "atom.h"
 #include "domain.h"
 #include "modify.h"
-#include "fix.h"
+#include "fix_event.h"
 #include "memory.h"
 #include "error.h"
 #include "update.h"
@@ -70,9 +70,10 @@ void ComputeEventDisplace::init()
   if (id_event != NULL) {
     int ifix = modify->find_fix(id_event);
     if (ifix < 0) error->all("Could not find compute event/displace fix ID");
-    fix = modify->fix[ifix];
+    fix_event = (FixEvent*) modify->fix[ifix];
     
-    if (strcmp(fix->style,"EVENT") != 0)
+    if (strcmp(fix_event->style,"EVENT/PRD") != 0 &&
+	strcmp(fix_event->style,"EVENT/TAD") != 0)
       error->all("Compute event/displace has invalid fix event assigned");
   }
 
@@ -90,7 +91,7 @@ double ComputeEventDisplace::compute_scalar()
   if (id_event == NULL) return 0.0;
 
   double event = 0.0;
-  double **xevent = fix->array_atom;
+  double **xevent = fix_event->array_atom;
 
   double **x = atom->x;
   int *mask = atom->mask;
@@ -119,7 +120,6 @@ double ComputeEventDisplace::compute_scalar()
           break;
         }
       }
-
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
@@ -138,6 +138,7 @@ double ComputeEventDisplace::compute_scalar()
   }
 
   MPI_Allreduce(&event,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
+
   return scalar;
 }
 

@@ -43,10 +43,11 @@ void Finish::end(int flag)
 {
   int i,m,nneigh,nneighfull;
   int histo[10];
-  int loopflag,minflag,prdflag,timeflag,fftflag,histoflag,neighflag;
-  double time,tmp,ave,max,min,natoms;
+  int loopflag,minflag,prdflag,tadflag,timeflag,fftflag,histoflag,neighflag;
+  double time,tmp,ave,max,min;
   double time_loop,time_other;
-  
+  bigint natoms;
+
   int me,nprocs;
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
@@ -56,19 +57,18 @@ void Finish::end(int flag)
   // flag = 0 = just loop summary
   // flag = 1 = dynamics or minimization
   // flag = 2 = PRD
+  // flag = 3 = TAD
   
   loopflag = 1;
-  minflag = prdflag = timeflag = fftflag = histoflag = neighflag = 0;
+  minflag = prdflag = tadflag = timeflag = fftflag = histoflag = neighflag = 0;
 
   if (flag == 1) {
     if (update->whichflag == 2) minflag = 1;
     timeflag = histoflag = neighflag = 1;
     if (strstr(force->kspace_style,"pppm")) fftflag = 1;
   }
-  if (flag == 2) {
-    prdflag = histoflag = neighflag = 1;
-    
-  }
+  if (flag == 2) prdflag = histoflag = neighflag = 1;
+  if (flag == 3) tadflag = histoflag = neighflag = 1;
 
   // loop stats
 
@@ -85,17 +85,17 @@ void Finish::end(int flag)
     // overall loop time
     // use actual natoms, in case atoms were lost
 
-    double rlocal = atom->nlocal;
-    MPI_Allreduce(&rlocal,&natoms,1,MPI_DOUBLE,MPI_SUM,world);
+    bigint nblocal = atom->nlocal;
+    MPI_Allreduce(&nblocal,&natoms,1,MPI_UNSIGNED_LONG_LONG,MPI_SUM,world);
     
     if (me == 0) {
       if (screen) 
 	fprintf(screen,
-		"Loop time of %g on %d procs for %d steps with %.15g atoms\n",
+		"Loop time of %g on %d procs for %d steps with %lu atoms\n",
 		time_loop,nprocs,update->nsteps,natoms);
       if (logfile)
 	fprintf(logfile,
-		"Loop time of %g on %d procs for %d steps with %.15g atoms\n",
+		"Loop time of %g on %d procs for %d steps with %lu atoms\n",
 		time_loop,nprocs,update->nsteps,natoms);
     }
 
@@ -154,7 +154,6 @@ void Finish::end(int flag)
     }
   }
 
-
   // PRD stats using PAIR,BOND,KSPACE for dephase,dynamics,quench
 
   if (prdflag) {
@@ -199,6 +198,92 @@ void Finish::end(int flag)
 		time,time/time_loop*100.0);
       if (logfile) 
 	fprintf(logfile,"  Quench   time (%%) = %g (%g)\n",
+		time,time/time_loop*100.0);
+    }
+
+    time = time_other;
+    MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+    time = tmp/nprocs;
+    if (me == 0) {
+      if (screen) 
+	fprintf(screen,"  Other    time (%%) = %g (%g)\n",
+		time,time/time_loop*100.0);
+      if (logfile) 
+	fprintf(logfile,"  Other    time (%%) = %g (%g)\n",
+		time,time/time_loop*100.0);
+    }
+  }
+
+  // TAD stats using PAIR,BOND,KSPACE for neb,dynamics,quench
+
+  if (tadflag) {
+    if (me == 0) {
+      if (screen) fprintf(screen,"\n");
+      if (logfile) fprintf(logfile,"\n");
+    }
+
+    if (screen) fprintf(screen,"TAD stats:\n");
+    if (logfile) fprintf(logfile,"TAD stats:\n");
+
+    time = timer->array[TIME_PAIR];
+    MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+    time = tmp/nprocs;
+    if (me == 0) {
+      if (screen) 
+	fprintf(screen,"  NEB      time (%%) = %g (%g)\n",
+		time,time/time_loop*100.0);
+      if (logfile) 
+	fprintf(logfile,"  NEB      time (%%) = %g (%g)\n",
+		time,time/time_loop*100.0);
+    }
+
+    time = timer->array[TIME_BOND];
+    MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+    time = tmp/nprocs;
+    if (me == 0) {
+      if (screen) 
+	fprintf(screen,"  Dynamics time (%%) = %g (%g)\n",
+		time,time/time_loop*100.0);
+      if (logfile) 
+	fprintf(logfile,"  Dynamics time (%%) = %g (%g)\n",
+		time,time/time_loop*100.0);
+    }
+
+    time = timer->array[TIME_KSPACE];
+    MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+    time = tmp/nprocs;
+    if (me == 0) {
+      if (screen) 
+	fprintf(screen,"  Quench   time (%%) = %g (%g)\n",
+		time,time/time_loop*100.0);
+      if (logfile) 
+	fprintf(logfile,"  Quench   time (%%) = %g (%g)\n",
+		time,time/time_loop*100.0);
+    }
+
+
+    time = timer->array[TIME_COMM];
+    MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+    time = tmp/nprocs;
+    if (me == 0) {
+      if (screen) 
+	fprintf(screen,"  Comm     time (%%) = %g (%g)\n",
+		time,time/time_loop*100.0);
+      if (logfile) 
+	fprintf(logfile,"  Comm     time (%%) = %g (%g)\n",
+		time,time/time_loop*100.0);
+    }
+
+
+    time = timer->array[TIME_OUTPUT];
+    MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+    time = tmp/nprocs;
+    if (me == 0) {
+      if (screen) 
+	fprintf(screen,"  Output   time (%%) = %g (%g)\n",
+		time,time/time_loop*100.0);
+      if (logfile) 
+	fprintf(logfile,"  Output   time (%%) = %g (%g)\n",
 		time,time/time_loop*100.0);
     }
 

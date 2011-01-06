@@ -1,3 +1,5 @@
-run this example as:
+Run this example as:
 
 mpirun -np 4 lmp_linux -partition 4x1 -in in.prd
+
+You should be able to use any number of replicas >= 3.

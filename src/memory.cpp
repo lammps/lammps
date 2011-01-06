@@ -16,6 +16,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "memory.h"
+#include "lmptype.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;

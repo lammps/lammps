@@ -10,8 +10,9 @@ neb command :h3
 
 [Syntax:]
 
-neb ftol N1 N2 Nevery filename :pre
+neb etol ftol N1 N2 Nevery filename :pre
 
+etol = stopping tolerance for energy (energy units)
 ftol = stopping tolerance for force (force units)
 N1 = max # of iterations (timesteps) to run initial NEB 
 N2 = max # of iterations (timesteps) to run barrier-climbing NEB
@@ -20,8 +21,8 @@ filename = file specifying final atom coordinates on other side of barrier :ul
 
 [Examples:]
 
-neb 0.0 1000 500 50 coords.final
-neb 0.001 1000 500 50 coords.final :pre
+neb 0.1 0.0 1000 500 50 coords.final
+neb 0.0 0.001 1000 500 50 coords.final :pre
 
 [Description:]
 
@@ -102,10 +103,18 @@ first define an appropriate "min_style"_min_style.html, such as
 used, since they perform iterative line searches in their inner loop,
 which cannot be easily synchronized across multiple replicas.
 
-The minimizer tolerances for force is set by {ftol}, the same as for
-the "minimize"_minimize.html command.  In this case a non-zero {ftol}
-means that the {ftol} criterion must be met by every replica in order
-for the NEB calculation to converge.  The forces being compared to
+The minimizer tolerances for energy and force are set by {etol} and {ftol}, 
+the same as for
+the "minimize"_minimize.html command.
+
+A non-zero {etol}
+means that the NEB calculation will terminate if the energy criterion is met 
+by every replica.  The energies being compared to
+{etol} do not include any contribution from the inter-replica forces, since
+these are non-conservative.
+A non-zero {ftol}
+means that the NEB calculation will terminate if the force criterion is met 
+by every replica.  The forces being compared to
 {ftol} include the inter-replica forces between an atom and its images
 in adjacent replicas.
 
@@ -116,8 +125,8 @@ damped dynamics is like a single timestep in a dynamics
 replica and its normalized distance along the reaction path (reaction
 coordinate RD) will be printed to the screen and log file every
 {Nevery} timesteps.  The RD is 0 and 1 for the first and last replica.
-For intermediate replicas, it is the cummulative distance (normalized
-by the total cummulative distance) between adjacent replicas, where
+For intermediate replicas, it is the cumulative distance (normalized
+by the total cumulative distance) between adjacent replicas, where
 "distance" is defined as the length of the 3N-vector of differences in
 atomic coordinates, where N is the number of NEB atoms involved in the
 transition.  These outputs allow you to monitor NEB's progress in
@@ -144,7 +153,7 @@ When both stages are complete, if the NEB calculation was successful,
 one of the replicas should be an atomic configuration at the top or
 saddle point of the barrier, the potential energies for the set of
 replicas should represent the energy profile of the barrier along the
-MEP, and the configurations of the replicas should be a seqeunce of
+MEP, and the configurations of the replicas should be a sequence of
 configurations along the MEP.
 
 :line
@@ -203,8 +212,11 @@ this case), the print-out to the screen and master log.lammps file
 contains a line of output, printed once every {Nevery} timesteps.  It
 contains the timestep, the maximum force per replica, the maximum
 force per atom (in any replica), potential gradients in the initial,
- final, and climbing replicas, and
-the reaction coordinate and potential energy of each replica.  
+ final, and climbing replicas,  
+the forward and backward energy barriers, 
+the total reaction coordinate (RDT), and
+the normalized reaction coordinate and potential energy of each replica.
+  
 The "maximum force per replica" is
 the two-norm of the 3N-length force vector for the atoms in each
 replica, maximized across replicas, which is what the {ftol} setting
@@ -221,12 +233,18 @@ replica, and so the potential gradient in the highest energy replica
 is reported, since this replica will become the climbing replica
 in the second stage of NEB.
 
-The "reaction coordinate" (RC) for each
+The "reaction coordinate" (RD) for each
 replica is the two-norm of the 3N-length vector of distances between
-its atoms and the preceding replica's atoms, added to the RC of the
-preceding replica.  The RC of the first replica = 0.0; the remaining
-RCs are normalized so that the RC of the last replica = 1.0.  In this
-case, N is only the atoms being operated on by the fix neb command.
+its atoms and the preceding replica's atoms, added to the RD of the
+preceding replica. The RD of the first replica RD1 = 0.0; 
+the RD of the final replica RDN = RDT, the total reaction coordinate.
+The normalized RDs are divided by RDT,
+so that they form a monotonically increasing sequence
+from zero to one. When computing RD, N only includes the atoms 
+being operated on by the fix neb command.
+
+The forward (reverse) energy barrier is the potential energy of the highest
+replica minus the energy of the first (last) replica.
 
 When running on multiple partitions, LAMMPS produces additional log
 files for each partition, e.g. log.lammps.0, log.lammps.1, etc.  For a

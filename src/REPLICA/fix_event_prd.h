@@ -34,14 +34,14 @@ class FixEventPRD : public FixEvent {
   int ncoincident;       // # of simultaneous events on different replicas
 
   FixEventPRD(class LAMMPS *, int, char **);
-  ~FixEventPRD();
+  ~FixEventPRD() {}
 
   void write_restart(FILE *);
   void restart(char *);
 
   // methods specific to FixEventPRD, invoked by PRD
 
-  void store_event(int, int);
+  void store_event_prd(int, int);
 
  private:
 

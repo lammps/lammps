@@ -44,21 +44,15 @@ FixEventTAD::FixEventTAD(LAMMPS *lmp, int narg, char **arg) :
   ebarrier = 0.0;
 }
 
-/* ---------------------------------------------------------------------- */
-
-FixEventTAD::~FixEventTAD()
-{
-}
-
 /* ----------------------------------------------------------------------
    save current atom coords as an event (via call to base class)
    called when an event occurs in some replica
    set event_timestep = when event occurred
 ------------------------------------------------------------------------- */
 
-void FixEventTAD::store_event(int timestep)
+void FixEventTAD::store_event_tad(int timestep)
 {
-  FixEvent::store_event();
+  store_event();
   event_timestep = timestep;
 }
 

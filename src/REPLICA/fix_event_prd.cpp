@@ -43,12 +43,6 @@ FixEventPRD::FixEventPRD(LAMMPS *lmp, int narg, char **arg) :
   clock = 0;
 }
 
-/* ---------------------------------------------------------------------- */
-
-FixEventPRD::~FixEventPRD()
-{
-}
-
 /* ----------------------------------------------------------------------
    save current atom coords as an event (via call to base class)
    called when an event occurs in some replica
@@ -56,9 +50,9 @@ FixEventPRD::~FixEventPRD()
    update clock = elapsed time since last event, across all replicas
 ------------------------------------------------------------------------- */
 
-void FixEventPRD::store_event(int timestep, int delta_clock)
+void FixEventPRD::store_event_prd(int timestep, int delta_clock)
 {
-  FixEvent::store_event();
+  store_event();
   event_timestep = timestep;
   clock += delta_clock;
   event_number++;
@@ -96,7 +90,6 @@ void FixEventPRD::restart(char *buf)
   double *list = (double *) buf;
 
   event_number = static_cast<int> (list[n++]);
-  printf("Event number restart = %d\n",event_number);
   event_timestep = static_cast<int> (list[n++]);
   clock = static_cast<int> (list[n++]);
   replica_number = static_cast<int> (list[n++]);

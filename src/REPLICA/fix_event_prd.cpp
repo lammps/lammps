@@ -43,12 +43,6 @@ FixEventPRD::FixEventPRD(LAMMPS *lmp, int narg, char **arg) :
   clock = 0;
 }
 
-/* ---------------------------------------------------------------------- */
-
-FixEventPRD::~FixEventPRD()
-{
-}
-
 /* ----------------------------------------------------------------------
    save current atom coords as an event (via call to base class)
    called when an event occurs in some replica

@@ -604,7 +604,7 @@ bigint ComputeReduce::count(int m)
     } else if (flavor[m] == LOCAL) {
       bigint ncount = compute->size_local_rows;
       bigint ncountall;
-      MPI_Allreduce(&ncount,&ncountall,1,MPI_UNSIGNED_LONG_LONG,MPI_SUM,world);
+      MPI_Allreduce(&ncount,&ncountall,1,MPI_LMP_BIGINT,MPI_SUM,world);
       return ncountall;
     }
   } else if (which[m] == FIX) {
@@ -614,7 +614,7 @@ bigint ComputeReduce::count(int m)
     } else if (flavor[m] == LOCAL) {
       bigint ncount = fix->size_local_rows;
       bigint ncountall;
-      MPI_Allreduce(&ncount,&ncountall,1,MPI_UNSIGNED_LONG_LONG,MPI_SUM,world);
+      MPI_Allreduce(&ncount,&ncountall,1,MPI_LMP_BIGINT,MPI_SUM,world);
       return ncountall;
     }
   } else if (which[m] == VARIABLE)

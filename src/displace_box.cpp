@@ -379,7 +379,7 @@ void DisplaceBox::command(int narg, char **arg)
 
   bigint natoms;
   bigint nblocal = atom->nlocal;
-  MPI_Allreduce(&nblocal,&natoms,1,MPI_UNSIGNED_LONG_LONG,MPI_SUM,world);
+  MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
   if (natoms != atom->natoms) {
     char str[128];
     sprintf(str,"Lost atoms via displace_box: original %lu current %lu",

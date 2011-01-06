@@ -202,7 +202,7 @@ void Min::setup()
   bigint ndofme = 3*atom->nlocal;
   for (int m = 0; m < nextra_atom; m++)
     ndofme += extra_peratom[m]*atom->nlocal;
-  MPI_Allreduce(&ndofme,&ndoftotal,1,MPI_UNSIGNED_LONG_LONG,MPI_SUM,world);
+  MPI_Allreduce(&ndofme,&ndoftotal,1,MPI_LMP_BIGINT,MPI_SUM,world);
   ndoftotal += nextra_global;
 
   // setup domain, communication and neighboring

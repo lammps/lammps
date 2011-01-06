@@ -293,7 +293,7 @@ void ReadRestart::command(int narg, char **arg)
 
   bigint natoms;
   bigint nblocal = atom->nlocal;
-  MPI_Allreduce(&nblocal,&natoms,1,MPI_UNSIGNED_LONG_LONG,MPI_SUM,world);
+  MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
 
   if (me == 0) {
     if (screen) fprintf(screen,"  %lu atoms\n",natoms);
@@ -819,6 +819,6 @@ bigint ReadRestart::read_bigint()
 {
   bigint value;
   if (me == 0) fread(&value,sizeof(bigint),1,fp);
-  MPI_Bcast(&value,1,MPI_UNSIGNED_LONG_LONG,0,world);
+  MPI_Bcast(&value,1,MPI_LMP_BIGINT,0,world);
   return value;
 }

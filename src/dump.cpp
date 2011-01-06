@@ -174,7 +174,7 @@ void Dump::init()
       irregular = new Irregular(lmp);
 
     bigint size = group->count(igroup);
-    if (size > MAXINT32) error->all("Too many atoms to dump sort");
+    if (size > MAXSMALLINT) error->all("Too many atoms to dump sort");
 
     // set reorderflag = 1 if can simply reorder local atoms rather than sort
     // criteria: sorting by ID, atom IDs are consecutive from 1 to Natoms

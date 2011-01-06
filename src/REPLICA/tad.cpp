@@ -1,6 +1,3 @@
-// To do:
-// Mysterious problem with   //  if (universe->iworld == 0) 
-
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
@@ -718,10 +715,10 @@ void TAD::perform_neb(int ievent)
 
   // Run NEB
 
-  double beginstep_hold = update->beginstep;
-  double endstep_hold = update->endstep;
-  double ntimestep_hold = update->ntimestep;
-  double nsteps_hold = update->nsteps;
+  int beginstep_hold = update->beginstep;
+  int endstep_hold = update->endstep;
+  int ntimestep_hold = update->ntimestep;
+  int nsteps_hold = update->nsteps;
 
   if (universe->me == 0) {
     universe->ulogfile = ulogfile_neb;

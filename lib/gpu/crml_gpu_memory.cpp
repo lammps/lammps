@@ -55,14 +55,14 @@ bool CRML_GPU_MemoryT::init(const int ntypes,
                            double *host_special_coul, const double qqrd2e,
                            const double g_ewald, const double cut_lj_innersq,
                            const double denom_lj, double **epsilon,
-                           double **sigma) {
+                           double **sigma, const bool mix_arithmetic) {
   this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
                     _screen,crml_gpu_kernel);
 
   // If atom type constants fit in shared memory use fast kernel
   int lj_types=ntypes;
   shared_types=false;
-  if (this->_block_size>=64)
+  if (this->_block_size>=64 && mix_arithmetic)
     shared_types=true;
   _lj_types=lj_types;
 

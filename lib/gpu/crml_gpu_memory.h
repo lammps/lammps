@@ -39,7 +39,7 @@ class CRML_GPU_Memory : public ChargeGPUMemory<numtyp, acctyp> {
             const double host_cut_coulsq, double *host_special_coul,
             const double qqrd2e, const double g_ewald,
             const double cut_lj_innersq, const double denom_lj, 
-            double **epsilon, double **sigma);
+            double **epsilon, double **sigma, const bool mix_arithmetic);
 
   /// Clear all host and device data
   /** \note This is called at the beginning of the init() routine **/

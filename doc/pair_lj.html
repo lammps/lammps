@@ -199,22 +199,6 @@ speed-up.  See the <A HREF = "Section_start.html#2_8">Running on GPUs</A> sectio
 the manual for more details about hardware and software requirements
 for using GPUs.
 </P>
-<P>The <I>gpumode</I> and <I>gpuID</I> settings in the pair_style command refer to
-how the GPUs on your system are configured.
-</P>
-<P>Set <I>gpumode</I> to <I>one/node</I> if you have a single compute "node" on
-your system, which may have multiple cores and/or GPUs.  <I>GpuID</I>
-should be set to the ID of the (first) GPU you wish to use with LAMMPS
-(another GPU might be driving your display).
-</P>
-<P>Set <I>gpumode</I> to <I>one/gpu</I> if you have multiple compute "nodes" on
-your system, with one GPU per node.  <I>GpuID</I> should be set to the ID
-of the GPU.
-</P>
-<P>Set <I>gpumode</I> to <I>multi/gpu</I> if you have multiple compute "nodes" on
-your system, each with multiple GPUs.  <I>GpuID</I> should be set to the
-number of GPUs per node.
-</P>
 <P>More details about these settings and various possible hardware
 configuration are in <A HREF = "Section_start.html#2_8">this section</A> of the
 manual.

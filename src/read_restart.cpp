@@ -258,7 +258,9 @@ void ReadRestart::command(int narg, char **arg)
 
     // move atoms to new processors via irregular()
     // in case read by different proc than wrote restart file
+    // first do map_init() since irregular->migrate_atoms() will do map_clear()
 
+    if (atom->map_style) atom->map_init();
     if (domain->triclinic) domain->x2lamda(atom->nlocal);
     Irregular *irregular = new Irregular(lmp);
     irregular->migrate_atoms();

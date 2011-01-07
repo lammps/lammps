@@ -431,7 +431,7 @@ void PRD::dephase()
   timer->barrier_start(TIME_LOOP);
 
   for (int i = 0; i < n_dephase; i++) {
-    int seed = static_cast<int> (random_dephase->uniform() * MAXINT32);
+    int seed = static_cast<int> (random_dephase->uniform() * MAXSMALLINT);
     if (seed == 0) seed = 1;
     velocity->create(temp_dephase,seed);
     update->integrate->run(t_dephase);

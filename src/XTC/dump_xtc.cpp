@@ -67,9 +67,11 @@ DumpXTC::DumpXTC(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
 
   // allocate global array for atom coords
 
-  if (igroup == 0) natoms = static_cast<int> (atom->natoms);
-  else natoms = static_cast<int> (group->count(igroup));
-  if (natoms <= 0) error->all("Invalid natoms for dump xtc");
+  bigint n;
+  if (igroup == 0) n = static_cast<int> (atom->natoms);
+  else n = static_cast<int> (group->count(igroup));
+  if (n > MAXSMALLINT) error->all("Too many atoms for dump xtc");
+  natoms = n;
 
   coords = (float *) memory->smalloc(3*natoms*sizeof(float),"dump:coords");
 

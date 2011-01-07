@@ -341,7 +341,7 @@ void DeleteBonds::command(int narg, char **arg)
     if (atom->avec->bonds_allow) {
       bigint nbonds = 0;
       for (i = 0; i < nlocal; i++) nbonds += atom->num_bond[i];
-      MPI_Allreduce(&nbonds,&atom->nbonds,1,MPI_UNSIGNED_LONG_LONG,
+      MPI_Allreduce(&nbonds,&atom->nbonds,1,MPI_LMP_BIGINT,
 		    MPI_SUM,world);
       if (force->newton_bond == 0) atom->nbonds /= 2;
     }
@@ -349,7 +349,7 @@ void DeleteBonds::command(int narg, char **arg)
     if (atom->avec->angles_allow) {
       bigint nangles = 0;
       for (i = 0; i < nlocal; i++) nangles += atom->num_angle[i];
-      MPI_Allreduce(&nangles,&atom->nangles,1,MPI_UNSIGNED_LONG_LONG,
+      MPI_Allreduce(&nangles,&atom->nangles,1,MPI_LMP_BIGINT,
 		    MPI_SUM,world);
       if (force->newton_bond == 0) atom->nangles /= 3;
     }
@@ -358,7 +358,7 @@ void DeleteBonds::command(int narg, char **arg)
       bigint ndihedrals = 0;
       for (i = 0; i < nlocal; i++) ndihedrals += atom->num_dihedral[i];
       MPI_Allreduce(&ndihedrals,&atom->ndihedrals,
-		    1,MPI_UNSIGNED_LONG_LONG,MPI_SUM,world);
+		    1,MPI_LMP_BIGINT,MPI_SUM,world);
       if (force->newton_bond == 0) atom->ndihedrals /= 4;
     }
 
@@ -366,7 +366,7 @@ void DeleteBonds::command(int narg, char **arg)
       bigint nimpropers = 0;
       for (i = 0; i < nlocal; i++) nimpropers += atom->num_improper[i];
       MPI_Allreduce(&nimpropers,&atom->nimpropers,
-		    1,MPI_UNSIGNED_LONG_LONG,MPI_SUM,world);
+		    1,MPI_LMP_BIGINT,MPI_SUM,world);
       if (force->newton_bond == 0) atom->nimpropers /= 4;
     }
 
@@ -386,9 +386,9 @@ void DeleteBonds::command(int narg, char **arg)
       for (m = 0; m < atom->num_bond[i]; m++)
 	if (atom->bond_type[i][m] > 0) bond_on++;
 	else bond_off++;
-    MPI_Allreduce(&bond_on,&tmp,1,MPI_UNSIGNED_LONG_LONG,MPI_SUM,world);
+    MPI_Allreduce(&bond_on,&tmp,1,MPI_LMP_BIGINT,MPI_SUM,world);
     bond_on = tmp;
-    MPI_Allreduce(&bond_off,&tmp,1,MPI_UNSIGNED_LONG_LONG,MPI_SUM,world);
+    MPI_Allreduce(&bond_off,&tmp,1,MPI_LMP_BIGINT,MPI_SUM,world);
     bond_off = tmp;
     if (force->newton_bond == 0) {
       bond_on /= 2;
@@ -402,9 +402,9 @@ void DeleteBonds::command(int narg, char **arg)
       for (m = 0; m < atom->num_angle[i]; m++)
 	if (atom->angle_type[i][m] > 0) angle_on++;
 	else angle_off++;
-    MPI_Allreduce(&angle_on,&tmp,1,MPI_UNSIGNED_LONG_LONG,MPI_SUM,world);
+    MPI_Allreduce(&angle_on,&tmp,1,MPI_LMP_BIGINT,MPI_SUM,world);
     angle_on = tmp;
-    MPI_Allreduce(&angle_off,&tmp,1,MPI_UNSIGNED_LONG_LONG,MPI_SUM,world);
+    MPI_Allreduce(&angle_off,&tmp,1,MPI_LMP_BIGINT,MPI_SUM,world);
     angle_off = tmp;
     if (force->newton_bond == 0) {
       angle_on /= 3;
@@ -418,9 +418,9 @@ void DeleteBonds::command(int narg, char **arg)
       for (m = 0; m < atom->num_dihedral[i]; m++)
 	if (atom->dihedral_type[i][m] > 0) dihedral_on++;
 	else dihedral_off++;
-    MPI_Allreduce(&dihedral_on,&tmp,1,MPI_UNSIGNED_LONG_LONG,MPI_SUM,world);
+    MPI_Allreduce(&dihedral_on,&tmp,1,MPI_LMP_BIGINT,MPI_SUM,world);
     dihedral_on = tmp;
-    MPI_Allreduce(&dihedral_off,&tmp,1,MPI_UNSIGNED_LONG_LONG,MPI_SUM,world);
+    MPI_Allreduce(&dihedral_off,&tmp,1,MPI_LMP_BIGINT,MPI_SUM,world);
     dihedral_off = tmp;
     if (force->newton_bond == 0) {
       dihedral_on /= 4;
@@ -434,9 +434,9 @@ void DeleteBonds::command(int narg, char **arg)
       for (m = 0; m < atom->num_improper[i]; m++)
 	if (atom->improper_type[i][m] > 0) improper_on++;
 	else improper_off++;
-    MPI_Allreduce(&improper_on,&tmp,1,MPI_UNSIGNED_LONG_LONG,MPI_SUM,world);
+    MPI_Allreduce(&improper_on,&tmp,1,MPI_LMP_BIGINT,MPI_SUM,world);
     improper_on = tmp;
-    MPI_Allreduce(&improper_off,&tmp,1,MPI_UNSIGNED_LONG_LONG,MPI_SUM,world);
+    MPI_Allreduce(&improper_off,&tmp,1,MPI_LMP_BIGINT,MPI_SUM,world);
     improper_off = tmp;
     if (force->newton_bond == 0) {
       improper_on /= 4;

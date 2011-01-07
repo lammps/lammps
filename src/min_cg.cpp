@@ -51,7 +51,7 @@ int MinCG::iterate(int maxiter)
   // nlimit = max # of CG iterations before restarting
   // set to ndoftotal unless too big
 
-  int nlimit = static_cast<int> (MIN(MAXINT32,ndoftotal));
+  int nlimit = static_cast<int> (MIN(MAXSMALLINT,ndoftotal));
 
   // initialize working vectors
 

@@ -435,7 +435,7 @@ void ReadData::atoms()
   // check that all atoms were assigned correctly
 
   bigint tmp = atom->nlocal;
-  MPI_Allreduce(&tmp,&natoms,1,MPI_UNSIGNED_LONG_LONG,MPI_SUM,world);
+  MPI_Allreduce(&tmp,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
 
   if (me == 0) {
     if (screen) fprintf(screen,"  %lu atoms\n",natoms);
@@ -568,7 +568,7 @@ void ReadData::bonds()
   bigint sum;
   bigint n = 0;
   for (i = 0; i < nlocal; i++) n += atom->num_bond[i];
-  MPI_Allreduce(&n,&sum,1,MPI_UNSIGNED_LONG_LONG,MPI_SUM,world);
+  MPI_Allreduce(&n,&sum,1,MPI_LMP_BIGINT,MPI_SUM,world);
   int factor = 1;
   if (!force->newton_bond) factor = 2;
 
@@ -613,7 +613,7 @@ void ReadData::angles()
   bigint sum;
   bigint n = 0;
   for (i = 0; i < nlocal; i++) n += atom->num_angle[i];
-  MPI_Allreduce(&n,&sum,1,MPI_UNSIGNED_LONG_LONG,MPI_SUM,world);
+  MPI_Allreduce(&n,&sum,1,MPI_LMP_BIGINT,MPI_SUM,world);
   int factor = 1;
   if (!force->newton_bond) factor = 3;
 
@@ -658,7 +658,7 @@ void ReadData::dihedrals()
   bigint sum;
   bigint n = 0;
   for (i = 0; i < nlocal; i++) n += atom->num_dihedral[i];
-  MPI_Allreduce(&n,&sum,1,MPI_UNSIGNED_LONG_LONG,MPI_SUM,world);
+  MPI_Allreduce(&n,&sum,1,MPI_LMP_BIGINT,MPI_SUM,world);
   int factor = 1;
   if (!force->newton_bond) factor = 4;
 
@@ -704,7 +704,7 @@ void ReadData::impropers()
   bigint sum;
   bigint n = 0;
   for (i = 0; i < nlocal; i++) n += atom->num_improper[i];
-  MPI_Allreduce(&n,&sum,1,MPI_UNSIGNED_LONG_LONG,MPI_SUM,world);
+  MPI_Allreduce(&n,&sum,1,MPI_LMP_BIGINT,MPI_SUM,world);
   int factor = 1;
   if (!force->newton_bond) factor = 4;
 
@@ -976,7 +976,7 @@ void ReadData::scan(int &bond_per_atom, int &angle_per_atom,
   int i,tmp1,tmp2,atom1,atom2,atom3,atom4;
   char *eof;
 
-  if (atom->natoms > MAXINT32)
+  if (atom->natoms > MAXSMALLINT)
     error->all("Molecular data file has too many atoms");
 
   int natoms = static_cast<int> (atom->natoms);

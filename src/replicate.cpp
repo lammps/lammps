@@ -129,16 +129,16 @@ void Replicate::command(int narg, char **arg)
   // if molecular, N/Nbonds/etc cannot be > 2^31 else tags/counts invalid
 
   double rep = nrep;
-  if (rep*old->natoms > MAXINT32) atom->tag_enable = 0;
+  if (rep*old->natoms > MAXSMALLINT) atom->tag_enable = 0;
 
   if (atom->tag_enable == 0)
     for (int i = 0; i < atom->nlocal; i++)
       atom->tag[i] = 0;
 
   if (atom->molecular) {
-    if (rep*old->natoms > MAXINT32 || rep*old->nbonds > MAXINT32 ||
-	rep*old->nangles > MAXINT32 || rep*old->ndihedrals > MAXINT32 ||
-	rep*old->nimpropers > MAXINT32)
+    if (rep*old->natoms > MAXBIGINT || rep*old->nbonds > MAXBIGINT ||
+	rep*old->nangles > MAXBIGINT || rep*old->ndihedrals > MAXBIGINT ||
+	rep*old->nimpropers > MAXBIGINT)
       error->all("Too big a problem to replicate with molecular atom style");
   }
 
@@ -365,7 +365,7 @@ void Replicate::command(int narg, char **arg)
 
   bigint natoms;
   bigint nblocal = atom->nlocal;
-  MPI_Allreduce(&nblocal,&natoms,1,MPI_UNSIGNED_LONG_LONG,MPI_SUM,world);
+  MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
 
   if (me == 0) {
     if (screen) fprintf(screen,"  %lu atoms\n",natoms);

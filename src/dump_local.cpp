@@ -187,13 +187,13 @@ int DumpLocal::modify_param(int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpLocal::write_header(int ndump)
+void DumpLocal::write_header(bigint ndump)
 {
   if (me == 0) {
     fprintf(fp,"ITEM: TIMESTEP\n");
     fprintf(fp,"%d\n",update->ntimestep);
     fprintf(fp,"ITEM: NUMBER OF %s\n",label);
-    fprintf(fp,"%d\n",ndump);
+    fprintf(fp,BIGINT_FORMAT_NL,ndump);
     fprintf(fp,"ITEM: %s %s\n",label,columns);
   }
 }

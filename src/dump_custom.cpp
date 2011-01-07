@@ -236,7 +236,7 @@ void DumpCustom::init_style()
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCustom::write_header(int ndump)
+void DumpCustom::write_header(bigint ndump)
 {
   if (multiproc) (this->*header_choice)(ndump);
   else if (me == 0) (this->*header_choice)(ndump);
@@ -244,10 +244,10 @@ void DumpCustom::write_header(int ndump)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCustom::header_binary(int ndump)
+void DumpCustom::header_binary(bigint ndump)
 {
   fwrite(&update->ntimestep,sizeof(int),1,fp);
-  fwrite(&ndump,sizeof(int),1,fp);
+  fwrite(&ndump,sizeof(bigint),1,fp);
   fwrite(&domain->triclinic,sizeof(int),1,fp);
   fwrite(&boxxlo,sizeof(double),1,fp);
   fwrite(&boxxhi,sizeof(double),1,fp);
@@ -264,10 +264,10 @@ void DumpCustom::header_binary(int ndump)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCustom::header_binary_triclinic(int ndump)
+void DumpCustom::header_binary_triclinic(bigint ndump)
 {
   fwrite(&update->ntimestep,sizeof(int),1,fp);
-  fwrite(&ndump,sizeof(int),1,fp);
+  fwrite(&ndump,sizeof(bigint),1,fp);
   fwrite(&domain->triclinic,sizeof(int),1,fp);
   fwrite(&boxxlo,sizeof(double),1,fp);
   fwrite(&boxxhi,sizeof(double),1,fp);
@@ -287,12 +287,12 @@ void DumpCustom::header_binary_triclinic(int ndump)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCustom::header_item(int ndump)
+void DumpCustom::header_item(bigint ndump)
 {
   fprintf(fp,"ITEM: TIMESTEP\n");
   fprintf(fp,"%d\n",update->ntimestep);
   fprintf(fp,"ITEM: NUMBER OF ATOMS\n");
-  fprintf(fp,"%d\n",ndump);
+  fprintf(fp,BIGINT_FORMAT_NL,ndump);
   fprintf(fp,"ITEM: BOX BOUNDS\n");
   fprintf(fp,"%g %g\n",boxxlo,boxxhi);
   fprintf(fp,"%g %g\n",boxylo,boxyhi);
@@ -302,12 +302,12 @@ void DumpCustom::header_item(int ndump)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCustom::header_item_triclinic(int ndump)
+void DumpCustom::header_item_triclinic(bigint ndump)
 {
   fprintf(fp,"ITEM: TIMESTEP\n");
   fprintf(fp,"%d\n",update->ntimestep);
   fprintf(fp,"ITEM: NUMBER OF ATOMS\n");
-  fprintf(fp,"%d\n",ndump);
+  fprintf(fp,BIGINT_FORMAT_NL,ndump);
   fprintf(fp,"ITEM: BOX BOUNDS xy xz yz\n");
   fprintf(fp,"%g %g %g\n",boxxlo,boxxhi,boxxy);
   fprintf(fp,"%g %g %g\n",boxylo,boxyhi,boxxz);

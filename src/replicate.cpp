@@ -124,23 +124,25 @@ void Replicate::command(int narg, char **arg)
   }
   atom->create_avec(old->atom_style,nstyles,keywords);
 
-  // check that new problem size will not be too large
-  // if N > 2^31, turn off tags for existing and new atoms
-  // if molecular, N/Nbonds/etc cannot be > 2^31 else tags/counts invalid
+  // check that new system will not be too large
+  // if molecular and N > MAXTAGINT, error
+  // if atomic and new N > MAXTAGINT, turn off tags for existing and new atoms
+  // new system cannot exceed MAXBIGINT
 
-  double rep = nrep;
-  if (rep*old->natoms > MAXSMALLINT) atom->tag_enable = 0;
-
+  if (atom->molecular && (nrep*old->natoms < 0 || nrep*old->natoms > MAXTAGINT))
+    error->all("Replicated molecular system atom IDs are too big");
+  if (nrep*old->natoms < 0 || nrep*old->natoms > MAXTAGINT)
+    atom->tag_enable = 0;
   if (atom->tag_enable == 0)
     for (int i = 0; i < atom->nlocal; i++)
       atom->tag[i] = 0;
 
-  if (atom->molecular) {
-    if (rep*old->natoms > MAXBIGINT || rep*old->nbonds > MAXBIGINT ||
-	rep*old->nangles > MAXBIGINT || rep*old->ndihedrals > MAXBIGINT ||
-	rep*old->nimpropers > MAXBIGINT)
-      error->all("Too big a problem to replicate with molecular atom style");
-  }
+  if (nrep*old->natoms < 0 || nrep*old->natoms > MAXBIGINT ||
+      nrep*old->nbonds < 0 || nrep*old->nbonds > MAXBIGINT || 
+      nrep*old->nangles < 0 || nrep*old->nangles > MAXBIGINT || 
+      nrep*old->ndihedrals < 0 || nrep*old->ndihedrals > MAXBIGINT || 
+      nrep*old->nimpropers < 0 || nrep*old->nimpropers > MAXBIGINT)
+    error->all("Replicated system is too big");
 
   // assign atom and topology counts in new class from old one
 
@@ -368,8 +370,10 @@ void Replicate::command(int narg, char **arg)
   MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
 
   if (me == 0) {
-    if (screen) fprintf(screen,"  %lu atoms\n",natoms);
-    if (logfile) fprintf(logfile,"  %lu atoms\n",natoms);
+    char str[32];
+    sprintf(str,"  %s atoms\n",BIGINT_FORMAT);
+    if (screen) fprintf(screen,str,natoms);
+    if (logfile) fprintf(logfile,str,natoms);
   }
 
   if (natoms != atom->natoms)
@@ -377,20 +381,28 @@ void Replicate::command(int narg, char **arg)
 
   if (me == 0) {
     if (atom->nbonds) {
-      if (screen) fprintf(screen,"  %lu bonds\n",atom->nbonds);
-      if (logfile) fprintf(logfile,"  %lu bonds\n",atom->nbonds);
+      char str[32];
+      sprintf(str,"  %s bonds\n",BIGINT_FORMAT);
+      if (screen) fprintf(screen,str,atom->nbonds);
+      if (logfile) fprintf(logfile,str,atom->nbonds);
     }
     if (atom->nangles) {
-      if (screen) fprintf(screen,"  %lu angles\n",atom->nangles);
-      if (logfile) fprintf(logfile,"  %lu angles\n",atom->nangles);
+      char str[32];
+      sprintf(str,"  %s angles\n",BIGINT_FORMAT);
+      if (screen) fprintf(screen,str,atom->nangles);
+      if (logfile) fprintf(logfile,str,atom->nangles);
     }
     if (atom->ndihedrals) {
-      if (screen) fprintf(screen,"  %lu dihedrals\n",atom->ndihedrals);
-      if (logfile) fprintf(logfile,"  %lu dihedrals\n",atom->ndihedrals);
+      char str[32];
+      sprintf(str,"  %s dihedrals\n",BIGINT_FORMAT);
+      if (screen) fprintf(screen,str,atom->ndihedrals);
+      if (logfile) fprintf(logfile,str,atom->ndihedrals);
     }
     if (atom->nimpropers) {
-      if (screen) fprintf(screen,"  %lu impropers\n",atom->nimpropers);
-      if (logfile) fprintf(logfile,"  %lu impropers\n",atom->nimpropers);
+      char str[32];
+      sprintf(str,"  %s impropers\n",BIGINT_FORMAT);
+      if (screen) fprintf(screen,str,atom->nimpropers);
+      if (logfile) fprintf(logfile,str,atom->nimpropers);
     }
   }
 

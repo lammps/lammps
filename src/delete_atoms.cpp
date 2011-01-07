@@ -105,10 +105,11 @@ void DeleteAtoms::command(int narg, char **arg)
   bigint ndelete = natoms_previous - atom->natoms;
 
   if (comm->me == 0) {
-    if (screen) fprintf(screen,"Deleted %lu atoms, new total = %lu\n",
-			ndelete,atom->natoms);
-    if (logfile) fprintf(logfile,"Deleted %lu atoms, new total = %lu\n",
-			 ndelete,atom->natoms);
+    char str[64];
+    sprintf(str,"Deleted %s atoms, new total = %s\n",
+	    BIGINT_FORMAT,BIGINT_FORMAT);
+    if (screen) fprintf(screen,str,ndelete,atom->natoms);
+    if (logfile) fprintf(logfile,str,ndelete,atom->natoms);
   }
 }
 

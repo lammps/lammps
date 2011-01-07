@@ -268,10 +268,8 @@ FixIMD::FixIMD(LAMMPS *lmp, int narg, char **arg) :
   if (imd_trate < 1)
     error->all("Illegal fix imd parameter. trate < 1.");
 
-  bigint n;
-  if (igroup == group->find("all"))  n = atom->natoms;
-  else n = group->count(igroup);
-  if (n > MAXINT32) error->all("Too many atoms for fix imd");
+  bigint n = group->count(igroup);
+  if (n > MAXSMALLINT) error->all("Too many atoms for fix imd");
   num_coords = static_cast<int> (n);
 
   MPI_Comm_rank(world,&me);

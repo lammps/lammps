@@ -2315,9 +2315,11 @@ void FixSRD::parameterize()
   // print SRD parameters
 
   if (me == 0) {
+    char str[64];
+    sprintf(str,"  SRD/big particles = %s %s\n",BIGINT_FORMAT,BIGINT_FORMAT);
     if (screen) {
       fprintf(screen,"SRD info:\n");
-      fprintf(screen,"  SRD/big particles = %lu %lu\n",nsrd,mbig);
+      fprintf(screen,str,nsrd,mbig);
       fprintf(screen,"  big particle diameter max/min = %g %g\n",
 	      maxbigdiam,minbigdiam);
       fprintf(screen,"  SRD temperature & lamda = %g %g\n",
@@ -2332,7 +2334,7 @@ void FixSRD::parameterize()
     }
     if (logfile) {
       fprintf(logfile,"SRD info:\n");
-      fprintf(logfile,"  SRD/big particles = %lu %lu\n",nsrd,mbig);
+      fprintf(logfile,str,nsrd,mbig);
       fprintf(logfile,"  big particle diameter max/min = %g %g\n",
 	      maxbigdiam,minbigdiam);
       fprintf(logfile,"  SRD temperature & lamda = %g %g\n",

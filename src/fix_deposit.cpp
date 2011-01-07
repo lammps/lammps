@@ -322,22 +322,23 @@ void FixDeposit::pre_exchange()
 
   // warn if not successful b/c too many attempts or no proc owned particle
 
-  if (comm->me == 0)
-    if (success == 0)
-      error->warning("Particle deposition was unsuccessful",0);
+  if (!success && comm->me == 0)
+    error->warning("Particle deposition was unsuccessful",0);
 
-  // set tag # of new particle beyond all previous atoms
   // reset global natoms
+  // set tag # of new particle beyond all previous atoms
   // if global map exists, reset it now instead of waiting for comm
   // since deleting atoms messes up ghosts
 
-  if (success && atom->tag_enable) {
-    atom->tag_extend();
+  if (success) {
     atom->natoms += 1;
-    if (atom->map_style) {
-      atom->nghost = 0;
-      atom->map_init();
-      atom->map_set();
+    if (atom->tag_enable) {
+      atom->tag_extend();
+      if (atom->map_style) {
+	atom->nghost = 0;
+	atom->map_init();
+	atom->map_set();
+      }
     }
   }
 

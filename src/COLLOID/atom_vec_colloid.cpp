@@ -13,6 +13,7 @@
 
 #include "stdlib.h"
 #include "atom_vec_colloid.h"
+#include "lmptype.h"
 #include "atom.h"
 #include "force.h"
 #include "domain.h"
@@ -58,6 +59,8 @@ void AtomVecColloid::grow(int n)
   if (n == 0) nmax += DELTA;
   else nmax = n;
   atom->nmax = nmax;
+  if (nmax < 0 || nmax > MAXSMALLINT)
+    error->one("Per-processor system is too big");
 
   tag = atom->tag = (int *)
     memory->srealloc(atom->tag,nmax*sizeof(int),"atom:tag");

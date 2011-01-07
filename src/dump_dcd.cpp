@@ -68,11 +68,9 @@ DumpDCD::DumpDCD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
     
   // allocate global array for atom coords
 
-  bigint n;
-  if (igroup == 0) n = static_cast<int> (atom->natoms);
-  else n = static_cast<int> (group->count(igroup));
+  bigint n = group->count(igroup);
   if (n > MAXSMALLINT) error->all("Too many atoms for dump dcd");
-  natoms = n;
+  natoms = static_cast<int> (n);
 
   coords = (float *) memory->smalloc(3*natoms*sizeof(float),"dump:coords");
   xf = &coords[0*natoms];
@@ -124,7 +122,7 @@ void DumpDCD::openfile()
 
 /* ---------------------------------------------------------------------- */
 
-void DumpDCD::write_header(int n)
+void DumpDCD::write_header(bigint n)
 {
   if (n != natoms) error->all("Dump dcd of non-matching # of atoms");
 

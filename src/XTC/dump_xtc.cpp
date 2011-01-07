@@ -67,11 +67,9 @@ DumpXTC::DumpXTC(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
 
   // allocate global array for atom coords
 
-  bigint n;
-  if (igroup == 0) n = static_cast<int> (atom->natoms);
-  else n = static_cast<int> (group->count(igroup));
+  bigint n = group->count(igroup);
   if (n > MAXSMALLINT) error->all("Too many atoms for dump xtc");
-  natoms = n;
+  natoms = static_cast<int> (n);
 
   coords = (float *) memory->smalloc(3*natoms*sizeof(float),"dump:coords");
 
@@ -136,8 +134,11 @@ void DumpXTC::openfile()
 
 /* ---------------------------------------------------------------------- */
 
-void DumpXTC::write_header(int n)
+void DumpXTC::write_header(bigint nbig)
 {
+  if (nbig > MAXSMALLINT) error->all("Too many atoms for dump xtc");
+  int n = nbig;
+
   // all procs realloc coords if total count grew
 
   if (n != natoms) {

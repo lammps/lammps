@@ -68,7 +68,7 @@ class Thermo : protected Pointers {
 
                          // data used by routines that compute single values
   int ivalue;            // integer value to print
-  double dvalue;         // dvalue = double value to print
+  double dvalue;         // double value to print
   bigint bivalue;        // big integer value to print
   int ifield;            // which field in thermo output is being computed
   int *field2index;      // which compute,fix,variable calcs this field

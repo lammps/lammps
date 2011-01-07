@@ -139,8 +139,13 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   format_float_multi_def = (char *) "%14.4f";
   format_int_one_def = (char *) "%8d";
   format_int_multi_def = (char *) "%14d";
-  format_bigint_one_def = (char *) "%8lu";
-  format_bigint_multi_def = (char *) "%14lu";
+  if (sizeof(bigint) == 8) {
+    format_bigint_one_def = (char *) "%8ld";
+    format_bigint_multi_def = (char *) "%14ld";
+  } else if (sizeof(bigint) == 4) {
+    format_bigint_one_def = (char *) "%8d";
+    format_bigint_multi_def = (char *) "%14d";
+  }
   format_float_user = NULL;
   format_int_user = NULL;
   format_bigint_user = NULL;
@@ -354,6 +359,7 @@ bigint Thermo::lost_check()
   bigint ntotal;
   bigint nblocal = atom->nlocal;
   MPI_Allreduce(&nblocal,&ntotal,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  if (ntotal < 0 || ntotal > MAXBIGINT) error->all("Too many total atoms");
   if (ntotal == atom->natoms) return ntotal;
 
   // if not checking or already warned, just return
@@ -364,15 +370,19 @@ bigint Thermo::lost_check()
   // error message
 
   if (lostflag == ERROR) {
-    char str[128];
-    sprintf(str,"Lost atoms: original %lu current %lu",atom->natoms,ntotal);
+    char fstr[64],str[64];
+    sprintf(fstr,
+	    "Lost atoms: original %s current %s",BIGINT_FORMAT,BIGINT_FORMAT);
+    sprintf(str,fstr,atom->natoms,ntotal);
     error->all(str);
   }
 
   // warning message
 
-  char str[128];
-  sprintf(str,"Lost atoms: original %lu current %lu",atom->natoms,ntotal);
+  char fstr[64],str[64];
+  sprintf(fstr,
+	  "Lost atoms: original %s current %s",BIGINT_FORMAT,BIGINT_FORMAT);
+  sprintf(str,fstr,atom->natoms,ntotal);
   if (me == 0) error->warning(str,0);
   lostbefore = 1;
   return ntotal;
@@ -505,7 +515,10 @@ void Thermo::modify_params(int narg, char **arg)
 	if (ptr == NULL) 
 	  error->all("Thermo_modify int format does not contain d character");
 	*ptr = '\0';
-	sprintf(format_bigint_user,"%s%s%s",format_int_user,"lu",ptr+1);
+	if (sizeof(bigint) == 8)
+	  sprintf(format_bigint_user,"%s%s%s",format_int_user,"ld",ptr+1);
+	else if (sizeof(bigint) == 4)
+	  sprintf(format_bigint_user,"%s%s%s",format_int_user,"d",ptr+1);
 	*ptr = 'd';
       } else if (strcmp(arg[iarg+1],"float") == 0) {
 	if (format_float_user) delete [] format_float_user;

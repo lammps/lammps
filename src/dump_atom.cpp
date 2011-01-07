@@ -162,7 +162,8 @@ void DumpAtom::write_data(int n, double *mybuf)
 
 void DumpAtom::header_binary(bigint ndump)
 {
-  fwrite(&update->ntimestep,sizeof(int),1,fp);
+  bigint ntimestep = update->ntimestep;
+  fwrite(&ntimestep,sizeof(bigint),1,fp);
   fwrite(&ndump,sizeof(bigint),1,fp);
   fwrite(&domain->triclinic,sizeof(int),1,fp);
   fwrite(&boxxlo,sizeof(double),1,fp);
@@ -182,7 +183,8 @@ void DumpAtom::header_binary(bigint ndump)
 
 void DumpAtom::header_binary_triclinic(bigint ndump)
 {
-  fwrite(&update->ntimestep,sizeof(int),1,fp);
+  bigint ntimestep = update->ntimestep;
+  fwrite(&ntimestep,sizeof(bigint),1,fp);
   fwrite(&ndump,sizeof(bigint),1,fp);
   fwrite(&domain->triclinic,sizeof(int),1,fp);
   fwrite(&boxxlo,sizeof(double),1,fp);

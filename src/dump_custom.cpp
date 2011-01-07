@@ -246,7 +246,8 @@ void DumpCustom::write_header(bigint ndump)
 
 void DumpCustom::header_binary(bigint ndump)
 {
-  fwrite(&update->ntimestep,sizeof(int),1,fp);
+  bigint ntimestep = update->ntimestep;
+  fwrite(&ntimestep,sizeof(int),1,fp);
   fwrite(&ndump,sizeof(bigint),1,fp);
   fwrite(&domain->triclinic,sizeof(int),1,fp);
   fwrite(&boxxlo,sizeof(double),1,fp);

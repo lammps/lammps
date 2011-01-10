@@ -39,6 +39,7 @@ class Velocity : protected Pointers {
   double xscale,yscale,zscale;
   class Compute *temperature;
 
+  void reverse(int, char **);
   void set(int, char **);
   void scale(int, char **);
   void ramp(int, char **);

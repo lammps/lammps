@@ -13,7 +13,7 @@ velocity command :h3
 velocity group-ID style args keyword value ... :pre
 
 group-ID = ID of group of atoms whose velocity will be changed :ulb,l
-style = {create} or {set} or {scale} or {ramp} or {zero} :l
+style = {create} or {set} or {scale} or {ramp} or {reverse} or {zero} :l
   {create} args = temp seed
     temp = temperature value (temperature units)
     seed = random # seed (positive integer)
@@ -26,6 +26,7 @@ style = {create} or {set} or {scale} or {ramp} or {zero} :l
     vlo,vhi = lower and upper velocity value (velocity units)
     dim = {x} or {y} or {z}
     clo,chi = lower and upper coordinate bound (distance units)
+  {reverse}
   {zero} arg = {linear} or {angular}
     {linear} = zero the linear momentum
     {angular} = zero the angular momentum :pre
@@ -47,6 +48,7 @@ velocity all create 300.0 4928459 rot yes dist gaussian
 velocity border set NULL 4.0 3.0 sum yes units box
 velocity flow scale 300.0
 velocity flow ramp vx 0.0 5.0 y 5 25 temp mytemp
+velocity all reverse
 velocity all zero linear :pre
 
 [Description:]
@@ -76,6 +78,10 @@ assigned a x-velocity of 1.25 (1/4 of the way from 0.0 to 5.0).  Atoms
 outside the coordinate bounds (less than 5 or greater than 25 in this
 case), are assigned velocities equal to vlo or vhi (0.0 or 5.0 in this
 case).
+
+The {reverse} style replaces the velocities of the group of atoms with
+the negative of the original values. The total kinetic energy is unchanged.
+No other changes are made to the velocities of the atoms.
 
 The {zero} style adjusts the velocities of the group of atoms so that
 the aggregate linear or angular momentum is zero.  No other changes

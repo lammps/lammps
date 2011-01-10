@@ -445,35 +445,35 @@ void DeleteBonds::command(int narg, char **arg)
   }
 
   if (comm->me == 0) {
-    if (screen) {
-      if (atom->avec->bonds_allow)
-	fprintf(screen,"  %lu total bonds, %lu turned on, %lu turned off\n",
-		atom->nbonds,bond_on,bond_off);
-      if (atom->avec->angles_allow)
-	fprintf(screen,"  %lu total angles, %lu turned on, %lu turned off\n",
-		atom->nangles,angle_on,angle_off);
-      if (atom->avec->dihedrals_allow)
-	fprintf(screen,"  %lu total dihedrals, %lu turned on, %lu turned off\n",
-		atom->ndihedrals,dihedral_on,dihedral_off);
-      if (atom->avec->impropers_allow)
-	fprintf(screen,"  %lu total impropers, %lu turned on, %lu turned off\n",
-		atom->nimpropers,improper_on,improper_off);
+    if (atom->avec->bonds_allow) {
+      char str[128];
+      sprintf(str,"  %s total bonds, %s turned on, %s turned off\n",
+	      BIGINT_FORMAT,BIGINT_FORMAT,BIGINT_FORMAT);
+      if (screen) fprintf(screen,str,atom->nbonds,bond_on,bond_off);
+      if (logfile) fprintf(logfile,str,atom->nbonds,bond_on,bond_off);
     }
-    if (logfile) {
-      if (atom->avec->bonds_allow)
-	fprintf(logfile,"  %lu total bonds, %lu turned on, %lu turned off\n",
-		atom->nbonds,bond_on,bond_off);
-      if (atom->avec->angles_allow)
-	fprintf(logfile,"  %lu total angles, %lu turned on, %lu turned off\n",
-		atom->nangles,angle_on,angle_off);
-      if (atom->avec->dihedrals_allow)
-	fprintf(logfile,"  %lu total dihedrals, %lu turned on, "
-		"%lu turned off\n",
-		atom->ndihedrals,dihedral_on,dihedral_off);
-      if (atom->avec->impropers_allow)
-	fprintf(logfile,"  %lu total impropers, %lu turned on, "
-		"%lu turned off\n",
-		atom->nimpropers,improper_on,improper_off);
+    if (atom->avec->angles_allow) {
+      char str[128];
+      sprintf(str,"  %s total angles, %s turned on, %s turned off\n",
+	      BIGINT_FORMAT,BIGINT_FORMAT,BIGINT_FORMAT);
+      if (screen) fprintf(screen,str,atom->nangles,angle_on,angle_off);
+      if (logfile) fprintf(logfile,str,atom->nangles,angle_on,angle_off);
+    }
+    if (atom->avec->dihedrals_allow) {
+      char str[128];
+      sprintf(str,"  %s total dihedrals, %s turned on, %s turned off\n",
+	      BIGINT_FORMAT,BIGINT_FORMAT,BIGINT_FORMAT);
+      if (screen) fprintf(screen,str,atom->ndihedrals,dihedral_on,dihedral_off);
+      if (logfile) fprintf(logfile,str,
+			   atom->ndihedrals,dihedral_on,dihedral_off);
+    }
+    if (atom->avec->impropers_allow) {
+      char str[128];
+      sprintf(str,"  %s total impropers, %s turned on, %s turned off\n",
+	      BIGINT_FORMAT,BIGINT_FORMAT,BIGINT_FORMAT);
+      if (screen) fprintf(screen,str,atom->nimpropers,improper_on,improper_off);
+      if (logfile) fprintf(logfile,str,
+			   atom->nimpropers,improper_on,improper_off);
     }
   }
 

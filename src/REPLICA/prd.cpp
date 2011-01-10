@@ -376,13 +376,14 @@ void PRD::command(int narg, char **arg)
   neighbor->ndanger = ndanger;
 
   if (me_universe == 0) {
+    char str[128];
+    sprintf(str,"Loop time of %%g on %%d procs for %%d steps with %s atoms\n",
+	    BIGINT_FORMAT);
     if (universe->uscreen) 
-      fprintf(universe->uscreen,
-              "Loop time of %g on %d procs for %d steps with %lu atoms\n",
+      fprintf(universe->uscreen,str,
 	      timer->array[TIME_LOOP],nprocs_universe,nsteps,atom->natoms);
     if (universe->ulogfile) 
-      fprintf(universe->ulogfile,
-              "Loop time of %g on %d procs for %d steps with %lu atoms\n",
+      fprintf(universe->ulogfile,str,
               timer->array[TIME_LOOP],nprocs_universe,nsteps,atom->natoms);
   }
   

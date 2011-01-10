@@ -36,17 +36,17 @@ class DumpAtom : public Dump {
 
   void init_style();
   int modify_param(int, char **);
-  void write_header(int);
+  void write_header(bigint);
   int count();
   void pack(int *);
   void write_data(int, double *);
 
-  typedef void (DumpAtom::*FnPtrHeader)(int);
+  typedef void (DumpAtom::*FnPtrHeader)(bigint);
   FnPtrHeader header_choice;           // ptr to write header functions
-  void header_binary(int);
-  void header_binary_triclinic(int);
-  void header_item(int);
-  void header_item_triclinic(int);
+  void header_binary(bigint);
+  void header_binary_triclinic(bigint);
+  void header_item(bigint);
+  void header_item_triclinic(bigint);
 
   typedef void (DumpAtom::*FnPtrPack)(int *);
   FnPtrPack pack_choice;               // ptr to pack functions

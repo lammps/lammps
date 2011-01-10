@@ -38,7 +38,7 @@ class DumpCFG : public DumpCustom {
   double **rbuf;             // buf of data lines for data lines rearrangement
 
   void init_style();
-  void write_header(int);
+  void write_header(bigint);
   void write_data(int, double *);
 
   int modify_param2(int, char **);

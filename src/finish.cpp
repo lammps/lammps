@@ -90,24 +90,19 @@ void Finish::end(int flag)
     MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
     
     if (me == 0) {
+      char str[128];
 #if defined(_OPENMP)
+      sprintf(str,"Loop time of %%g on %%d procs (%%d MPI x %%d OpenMP) for %%d steps with %s atoms\n",
+	      BIGINT_FORMAT);
       if (screen) 
-	fprintf(screen,
-		"Loop time of %g on %d procs (%d MPI x %d OpenMP) for %d steps with %.15g atoms\n",
-		time_loop,nprocs*comm->nthreads,nprocs,comm->nthreads,update->nsteps,natoms);
+	fprintf(screen,str,time_loop,nprocs*comm->nthreads,nprocs,comm->nthreads,update->nsteps,natoms);
       if (logfile)
-	fprintf(logfile,
-		"Loop time of %g on %d procs (%d MPI x %d OpenMP) for %d steps with %.15g atoms\n",
-		time_loop,nprocs*comm->nthreads,nprocs,comm->nthreads,update->nsteps,natoms);
+	fprintf(logfile,str,time_loop,nprocs*comm->nthreads,nprocs,comm->nthreads,update->nsteps,natoms);
 #else
-      if (screen) 
-	fprintf(screen,
-		"Loop time of %g on %d procs for %d steps with %lu atoms\n",
-		time_loop,nprocs,update->nsteps,natoms);
-      if (logfile)
-	fprintf(logfile,
-		"Loop time of %g on %d procs for %d steps with %lu atoms\n",
-		time_loop,nprocs,update->nsteps,natoms);
+      sprintf(str,"Loop time of %%g on %%d procs for %%d steps with %s atoms\n",
+	      BIGINT_FORMAT);
+      if (screen) fprintf(screen,str,time_loop,nprocs,update->nsteps,natoms);
+      if (logfile) fprintf(logfile,str,time_loop,nprocs,update->nsteps,natoms);
 #endif
       // extra performance data for simulations with non-reduced time units
       if ( (update->nsteps > 0) &&

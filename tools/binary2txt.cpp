@@ -23,10 +23,15 @@
 #include "stdlib.h"
 #include "string.h"
 
+// this should match setting in src/lmptype.h
+
+typedef int64_t bigint;
+
 main(int narg, char **arg)
 {
   int i,j,k,m,n;
-  int ntimestep,natoms,size_one,nchunk,triclinic;
+  bigint ntimestep,natoms;
+  int size_one,nchunk,triclinic;
   double xlo,xhi,ylo,yhi,zlo,zhi,xy,xz,yz;
   int maxbuf = 0;
   double *buf = NULL;
@@ -58,7 +63,7 @@ main(int narg, char **arg)
 
     while (1) {
 
-      fread(&ntimestep,sizeof(int),1,fp);
+      fread(&ntimestep,sizeof(bigint),1,fp);
 
       // detect end-of-file
 
@@ -68,7 +73,7 @@ main(int narg, char **arg)
 	break;
       }
 
-      fread(&natoms,sizeof(int),1,fp);
+      fread(&natoms,sizeof(bigint),1,fp);
       fread(&triclinic,sizeof(int),1,fp);
       fread(&xlo,sizeof(double),1,fp);
       fread(&xhi,sizeof(double),1,fp);
@@ -84,10 +89,17 @@ main(int narg, char **arg)
       fread(&size_one,sizeof(int),1,fp);
       fread(&nchunk,sizeof(int),1,fp);
       
-      fprintf(fptxt,"ITEM: TIMESTEP\n");
-      fprintf(fptxt,"%d\n",ntimestep);
-      fprintf(fptxt,"ITEM: NUMBER OF ATOMS\n");
-      fprintf(fptxt,"%d\n",natoms);
+      if (sizeof(bigint) == 8) {
+	fprintf(fptxt,"ITEM: TIMESTEP\n");
+	fprintf(fptxt,"%ld\n",ntimestep);
+	fprintf(fptxt,"ITEM: NUMBER OF ATOMS\n");
+	fprintf(fptxt,"%ld\n",natoms);
+      } else if (sizeof(bigint) == 4) {
+	fprintf(fptxt,"ITEM: TIMESTEP\n");
+	fprintf(fptxt,"%d\n",ntimestep);
+	fprintf(fptxt,"ITEM: NUMBER OF ATOMS\n");
+	fprintf(fptxt,"%d\n",natoms);
+      }
       if (!triclinic) {
 	fprintf(fptxt,"ITEM: BOX BOUNDS\n");
 	fprintf(fptxt,"%g %g\n",xlo,xhi);
@@ -125,7 +137,8 @@ main(int narg, char **arg)
 	}
       }
 
-      printf(" %d",ntimestep);
+      if (sizeof(bigint) == 8) printf(" %ld",ntimestep);
+      else if (sizeof(bigint) == 4) printf(" %d",ntimestep);
       fflush(stdout);
     }
     printf("\n");

@@ -336,11 +336,14 @@ void ReadData::header(int flag)
 
     // search line for header keyword and set corresponding variable
 
-    if (strstr(line,"atoms")) sscanf(line,"%lu",&atom->natoms);
-    else if (strstr(line,"bonds")) sscanf(line,"%lu",&atom->nbonds);
-    else if (strstr(line,"angles")) sscanf(line,"%lu",&atom->nangles);
-    else if (strstr(line,"dihedrals")) sscanf(line,"%lu",&atom->ndihedrals);
-    else if (strstr(line,"impropers")) sscanf(line,"%lu",&atom->nimpropers);
+    if (strstr(line,"atoms")) sscanf(line,BIGINT_FORMAT,&atom->natoms);
+
+    else if (strstr(line,"bonds")) sscanf(line,BIGINT_FORMAT,&atom->nbonds);
+    else if (strstr(line,"angles")) sscanf(line,BIGINT_FORMAT,&atom->nangles);
+    else if (strstr(line,"dihedrals")) sscanf(line,BIGINT_FORMAT,
+					      &atom->ndihedrals);
+    else if (strstr(line,"impropers")) sscanf(line,BIGINT_FORMAT,
+					      &atom->nimpropers);
 
     else if (strstr(line,"atom types")) sscanf(line,"%d",&atom->ntypes);
     else if (strstr(line,"bond types")) sscanf(line,"%d",&atom->nbondtypes);
@@ -363,6 +366,17 @@ void ReadData::header(int flag)
       domain->triclinic = 1;
       sscanf(line,"%lg %lg %lg",&domain->xy,&domain->xz,&domain->yz);
     } else break;
+  }
+
+  // error check on total system size
+
+  if (atom->natoms < 0 || atom->natoms > MAXBIGINT ||
+      atom->nbonds < 0 || atom->nbonds > MAXBIGINT ||
+      atom->nangles < 0 || atom->nangles > MAXBIGINT ||
+      atom->ndihedrals < 0 || atom->ndihedrals > MAXBIGINT ||
+      atom->nimpropers < 0 || atom->nimpropers > MAXBIGINT) {
+    if (flag == 0) error->one("System in data file is too big");
+    else error->all("System in data file is too big");
   }
 
   // check that exiting string is a valid section keyword
@@ -438,8 +452,10 @@ void ReadData::atoms()
   MPI_Allreduce(&tmp,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
 
   if (me == 0) {
-    if (screen) fprintf(screen,"  %lu atoms\n",natoms);
-    if (logfile) fprintf(logfile,"  %lu atoms\n",natoms);
+    char str[32];
+    sprintf(str,"  %s atoms\n",BIGINT_FORMAT);
+    if (screen) fprintf(screen,str,natoms);
+    if (logfile) fprintf(logfile,str,natoms);
   }
 
   if (natoms != atom->natoms) error->all("Did not assign all atoms correctly");
@@ -529,8 +545,10 @@ void ReadData::velocities()
   }
 
   if (me == 0) {
-    if (screen) fprintf(screen,"  %lu velocities\n",natoms);
-    if (logfile) fprintf(logfile,"  %lu velocities\n",natoms);
+    char str[32];
+    sprintf(str,"  %s velocities\n",BIGINT_FORMAT);
+    if (screen) fprintf(screen,str,natoms);
+    if (logfile) fprintf(logfile,str,natoms);
   }
 }
 
@@ -573,8 +591,10 @@ void ReadData::bonds()
   if (!force->newton_bond) factor = 2;
 
   if (me == 0) {
-    if (screen) fprintf(screen,"  %lu bonds\n",sum/factor);
-    if (logfile) fprintf(logfile,"  %lu bonds\n",sum/factor);
+    char str[32];
+    sprintf(str,"  %s bonds\n",BIGINT_FORMAT);
+    if (screen) fprintf(screen,str,sum/factor);
+    if (logfile) fprintf(logfile,str,sum/factor);
   }
   if (sum != factor*atom->nbonds) error->all("Bonds assigned incorrectly");
 }
@@ -618,8 +638,10 @@ void ReadData::angles()
   if (!force->newton_bond) factor = 3;
 
   if (me == 0) {
-    if (screen) fprintf(screen,"  %lu angles\n",sum/factor);
-    if (logfile) fprintf(logfile,"  %lu angles\n",sum/factor);
+    char str[32];
+    sprintf(str,"  %s angles\n",BIGINT_FORMAT);
+    if (screen) fprintf(screen,str,sum/factor);
+    if (logfile) fprintf(logfile,str,sum/factor);
   }
   if (sum != factor*atom->nangles) error->all("Angles assigned incorrectly");
 }
@@ -663,8 +685,10 @@ void ReadData::dihedrals()
   if (!force->newton_bond) factor = 4;
 
   if (me == 0) {
-    if (screen) fprintf(screen,"  %lu dihedrals\n",sum/factor);
-    if (logfile) fprintf(logfile,"  %lu dihedrals\n",sum/factor);
+    char str[32];
+    sprintf(str,"  %s dihedrals\n",BIGINT_FORMAT);
+    if (screen) fprintf(screen,str,sum/factor);
+    if (logfile) fprintf(logfile,str,sum/factor);
   }
   if (sum != factor*atom->ndihedrals) 
     error->all("Dihedrals assigned incorrectly");
@@ -709,8 +733,10 @@ void ReadData::impropers()
   if (!force->newton_bond) factor = 4;
 
   if (me == 0) {
-    if (screen) fprintf(screen,"  %lu impropers\n",sum/factor);
-    if (logfile) fprintf(logfile,"  %lu impropers\n",sum/factor);
+    char str[32];
+    sprintf(str,"  %s impropers\n",BIGINT_FORMAT);
+    if (screen) fprintf(screen,str,sum/factor);
+    if (logfile) fprintf(logfile,str,sum/factor);
   }
   if (sum != factor*atom->nimpropers) 
     error->all("Impropers assigned incorrectly");

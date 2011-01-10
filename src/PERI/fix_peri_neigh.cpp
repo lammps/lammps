@@ -300,12 +300,12 @@ void FixPeriNeigh::setup(int vflag)
     if (screen) {
       fprintf(screen,"Peridynamic bonds:\n");
       fprintf(screen,"  total # of bonds = %d\n",nall);
-      fprintf(screen,"  bonds/atom = %g\n",nall/atom->natoms);
+      fprintf(screen,"  bonds/atom = %g\n",(double)nall/atom->natoms);
     }
     if (logfile) {
       fprintf(logfile,"Peridynamic bonds:\n");
       fprintf(logfile,"  total # of bonds = %d\n",nall);
-      fprintf(logfile,"  bonds/atom = %g\n",nall/atom->natoms);
+      fprintf(logfile,"  bonds/atom = %g\n",(double)nall/atom->natoms);
     }
   }
 }

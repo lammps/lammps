@@ -15,9 +15,9 @@
    Contributing author: Andres Jaramillo-Botero (Caltech)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
 #include "stdlib.h"
 #include "atom_vec_electron.h"
+#include "lmptype.h"
 #include "atom.h"
 #include "domain.h"
 #include "modify.h"
@@ -63,7 +63,9 @@ void AtomVecElectron::grow(int n)
   if (n == 0) nmax += DELTA;
   else nmax = n;
   atom->nmax = nmax;
-  
+  if (nmax < 0 || nmax > MAXSMALLINT)
+    error->one("Per-processor system is too big");
+
   tag = atom->tag = (int *) 
     memory->srealloc(atom->tag,nmax*sizeof(int),"atom:tag");
   type = atom->type = (int *)
@@ -102,7 +104,8 @@ void AtomVecElectron::grow_reset()
   tag = atom->tag; type = atom->type;
   mask = atom->mask; image = atom->image;
   x = atom->x; v = atom->v; f = atom->f;
-  q = atom->q; eradius = atom->eradius; ervel = atom->ervel; erforce = atom->erforce;
+  q = atom->q;
+  eradius = atom->eradius; ervel = atom->ervel; erforce = atom->erforce;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -16,6 +16,7 @@
 
 #include "stdio.h"
 #include "pointers.h"
+#include "lmptype.h"
 
 namespace LAMMPS_NS {
 
@@ -69,7 +70,7 @@ class Dump : protected Pointers {
   double boxzlo,boxzhi;
   double boxxy,boxxz,boxyz;
 
-  int ntotal;                // # of per-atom lines in snapshot
+  bigint ntotal;             // # of per-atom lines in snapshot
   int reorderflag;           // 1 if OK to reorder instead of sort
   int ntotal_reorder;        // # of atoms that must be in snapshot
   int nme_reorder;           // # of atoms I must own in snapshot
@@ -91,7 +92,7 @@ class Dump : protected Pointers {
   virtual void init_style() = 0;
   virtual void openfile();
   virtual int modify_param(int, char **) {return 0;}
-  virtual void write_header(int) = 0;
+  virtual void write_header(bigint) = 0;
   virtual int count() = 0;
   virtual void pack(int *) = 0;
   virtual void write_data(int, double *) = 0;

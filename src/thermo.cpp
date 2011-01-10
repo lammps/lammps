@@ -509,16 +509,14 @@ void Thermo::modify_params(int narg, char **arg)
 	format_int_user = new char[n];
 	strcpy(format_int_user,arg[iarg+2]);
 	if (format_bigint_user) delete [] format_bigint_user;
-	n = strlen(format_int_user) + 2;
+	n = strlen(format_int_user) + 3;
 	format_bigint_user = new char[n];
 	char *ptr = strchr(format_int_user,'d');
 	if (ptr == NULL) 
 	  error->all("Thermo_modify int format does not contain d character");
 	*ptr = '\0';
-	if (sizeof(bigint) == 8)
-	  sprintf(format_bigint_user,"%s%s%s",format_int_user,"ld",ptr+1);
-	else if (sizeof(bigint) == 4)
-	  sprintf(format_bigint_user,"%s%s%s",format_int_user,"d",ptr+1);
+	sprintf(format_bigint_user,"%s%s%s",format_int_user,
+		BIGINT_FORMAT,ptr+1);
 	*ptr = 'd';
       } else if (strcmp(arg[iarg+1],"float") == 0) {
 	if (format_float_user) delete [] format_float_user;

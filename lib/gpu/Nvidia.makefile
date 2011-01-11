@@ -50,7 +50,6 @@ OBJS = $(OBJ_DIR)/pair_gpu_atom.o $(OBJ_DIR)/pair_gpu_nbor.o \
        $(OBJ_DIR)/crml_gpu_memory.o $(OBJ_DIR)/crml_gpu.o \
        $(OBJ_DIR)/cmm_cut_gpu_memory.o $(OBJ_DIR)/cmm_cut_gpu.o \
        $(OBJ_DIR)/cmmc_long_gpu_memory.o $(OBJ_DIR)/cmmc_long_gpu.o \
-       $(OBJ_DIR)/cmmc_msm_gpu_memory.o $(OBJ_DIR)/cmmc_msm_gpu.o \
        $(CUDPP)
 PTXS = $(OBJ_DIR)/pair_gpu_atom_kernel.ptx $(OBJ_DIR)/pair_gpu_atom_ptx.h \
        $(OBJ_DIR)/pair_gpu_nbor_kernel.ptx $(OBJ_DIR)/pair_gpu_nbor_ptx.h \
@@ -63,8 +62,7 @@ PTXS = $(OBJ_DIR)/pair_gpu_atom_kernel.ptx $(OBJ_DIR)/pair_gpu_atom_ptx.h \
        $(OBJ_DIR)/ljcl_cut_gpu_kernel.ptx $(OBJ_DIR)/ljcl_cut_gpu_ptx.h \
        $(OBJ_DIR)/crml_cut_gpu_kernel.ptx $(OBJ_DIR)/crml_cut_gpu_ptx.h \
        $(OBJ_DIR)/cmm_cut_gpu_kernel.ptx $(OBJ_DIR)/cmm_cut_gpu_ptx.h \
-       $(OBJ_DIR)/cmmc_long_gpu_kernel.ptx $(OBJ_DIR)/cmmc_long_gpu_ptx.h \
-       $(OBJ_DIR)/cmmc_msm_gpu_kernel.ptx $(OBJ_DIR)/cmmc_msm_gpu_ptx.h
+       $(OBJ_DIR)/cmmc_long_gpu_kernel.ptx $(OBJ_DIR)/cmmc_long_gpu_ptx.h
 
 all: $(GPU_LIB) $(EXECS)
 
@@ -220,18 +218,6 @@ $(OBJ_DIR)/cmmc_long_gpu_memory.o: $(ALL_H) cmmc_long_gpu_memory.h cmmc_long_gpu
 
 $(OBJ_DIR)/cmmc_long_gpu.o: $(ALL_H) cmmc_long_gpu_memory.h cmmc_long_gpu.cpp
 	$(CUDR) -o $@ -c cmmc_long_gpu.cpp -I$(OBJ_DIR)
-
-$(OBJ_DIR)/cmmc_msm_gpu_kernel.ptx: cmmc_msm_gpu_kernel.cu pair_gpu_precision.h
-	$(CUDA) --ptx -DNV_KERNEL -o $@ cmmc_msm_gpu_kernel.cu
-
-$(OBJ_DIR)/cmmc_msm_gpu_ptx.h: $(OBJ_DIR)/cmmc_msm_gpu_kernel.ptx $(OBJ_DIR)/cmmc_msm_gpu_kernel.ptx
-	$(BSH) ./geryon/file_to_cstr.sh $(OBJ_DIR)/cmmc_msm_gpu_kernel.ptx $(OBJ_DIR)/cmmc_msm_gpu_ptx.h
-
-$(OBJ_DIR)/cmmc_msm_gpu_memory.o: $(ALL_H) cmmc_msm_gpu_memory.h cmmc_msm_gpu_memory.cpp $(OBJ_DIR)/cmmc_msm_gpu_ptx.h $(OBJ_DIR)/atomic_gpu_memory.o
-	$(CUDR) -o $@ -c cmmc_msm_gpu_memory.cpp -I$(OBJ_DIR)
-
-$(OBJ_DIR)/cmmc_msm_gpu.o: $(ALL_H) cmmc_msm_gpu_memory.h cmmc_msm_gpu.cpp
-	$(CUDR) -o $@ -c cmmc_msm_gpu.cpp -I$(OBJ_DIR)
 
 $(BIN_DIR)/nvc_get_devices: ./geryon/ucl_get_devices.cpp $(NVC_H)
 	$(CUDR) -o $@ ./geryon/ucl_get_devices.cpp -DUCL_CUDART $(CUDA_LINK) 

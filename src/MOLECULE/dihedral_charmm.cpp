@@ -19,6 +19,7 @@
 #include "math.h"
 #include "stdlib.h"
 #include "dihedral_charmm.h"
+#include "lmptype.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
@@ -146,9 +147,9 @@ void DihedralCharmm::compute(int eflag, int vflag)
       int me;
       MPI_Comm_rank(world,&me);
       if (screen) {
-	char str[128];
-	sprintf(str,"Dihedral problem: %d %d %d %d %d %d",
-		me,update->ntimestep,
+	char str[128],fstr[64];
+	sprintf(fstr,"Dihedral problem: %%d %s %%d %%d %%d %%d",BIGINT_FORMAT);
+	sprintf(str,fstr,me,update->ntimestep,
 		atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
 	error->warning(str,0);
 	fprintf(screen,"  1st atom: %d %g %g %g\n",

@@ -376,13 +376,14 @@ void PRD::command(int narg, char **arg)
   neighbor->ndanger = ndanger;
 
   if (me_universe == 0) {
+    char str[128];
+    sprintf(str,"Loop time of %%g on %%d procs for %%d steps with %s atoms\n",
+	    BIGINT_FORMAT);
     if (universe->uscreen) 
-      fprintf(universe->uscreen,
-              "Loop time of %g on %d procs for %d steps with %lu atoms\n",
+      fprintf(universe->uscreen,str,
 	      timer->array[TIME_LOOP],nprocs_universe,nsteps,atom->natoms);
     if (universe->ulogfile) 
-      fprintf(universe->ulogfile,
-              "Loop time of %g on %d procs for %d steps with %lu atoms\n",
+      fprintf(universe->ulogfile,str,
               timer->array[TIME_LOOP],nprocs_universe,nsteps,atom->natoms);
   }
   
@@ -423,7 +424,7 @@ void PRD::command(int narg, char **arg)
 
 void PRD::dephase()
 {
-  int ntimestep_hold = update->ntimestep;
+  bigint ntimestep_hold = update->ntimestep;
 
   update->whichflag = 1;
   update->nsteps = n_dephase*t_dephase;
@@ -431,7 +432,7 @@ void PRD::dephase()
   timer->barrier_start(TIME_LOOP);
 
   for (int i = 0; i < n_dephase; i++) {
-    int seed = static_cast<int> (random_dephase->uniform() * MAXINT32);
+    int seed = static_cast<int> (random_dephase->uniform() * MAXSMALLINT);
     if (seed == 0) seed = 1;
     velocity->create(temp_dephase,seed);
     update->integrate->run(t_dephase);
@@ -485,8 +486,8 @@ void PRD::dynamics()
 
 void PRD::quench()
 {
-  int ntimestep_hold = update->ntimestep;
-  int endstep_hold = update->endstep;
+  bigint ntimestep_hold = update->ntimestep;
+  bigint endstep_hold = update->endstep;
 
   // need to change whichflag so that minimize->setup() calling 
   // modify->setup() will call fix->min_setup()
@@ -648,8 +649,10 @@ void PRD::log_event()
 {
   timer->array[TIME_LOOP] = time_start;
   if (universe->me == 0) {
+    char fstr[32];
+    sprintf(fstr,"%s %%.3f %%d %%d %%d %%d %%d\n",BIGINT_FORMAT);
     if (universe->uscreen)
-      fprintf(universe->uscreen,"%d %.3f %d %d %d %d %d\n",
+      fprintf(universe->uscreen,fstr,
               fix_event->event_timestep,
 	      timer->elapsed(TIME_LOOP),
 	      fix_event->clock,
@@ -657,7 +660,7 @@ void PRD::log_event()
 	      fix_event->ncoincident,
               fix_event->replica_number);
     if (universe->ulogfile)
-      fprintf(universe->ulogfile,"%d %.3f %d %d %d %d %d\n",
+      fprintf(universe->ulogfile,fstr,
               fix_event->event_timestep,
 	      timer->elapsed(TIME_LOOP),
 	      fix_event->clock,

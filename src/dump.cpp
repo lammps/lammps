@@ -174,7 +174,7 @@ void Dump::init()
       irregular = new Irregular(lmp);
 
     bigint size = group->count(igroup);
-    if (size > MAXINT32) error->all("Too many atoms to dump sort");
+    if (size > MAXSMALLINT) error->all("Too many atoms to dump sort");
 
     // set reorderflag = 1 if can simply reorder local atoms rather than sort
     // criteria: sorting by ID, atom IDs are consecutive from 1 to Natoms
@@ -253,6 +253,7 @@ void Dump::write()
   // nme = # of dump lines this proc will contribute to dump
 
   nme = count();
+  bigint bnme = nme;
 
   // ntotal = total # of dump lines
   // nmax = max # of dump lines on any proc
@@ -260,21 +261,24 @@ void Dump::write()
   int nmax;
   if (multiproc) nmax = nme;
   else {
-    MPI_Allreduce(&nme,&ntotal,1,MPI_INT,MPI_SUM,world);
+    MPI_Allreduce(&bnme,&ntotal,1,MPI_LMP_BIGINT,MPI_SUM,world);
     MPI_Allreduce(&nme,&nmax,1,MPI_INT,MPI_MAX,world);
   }
 
   // write timestep header
 
-  if (multiproc) write_header(nme);
+  if (multiproc) write_header(bnme);
   else write_header(ntotal);
 
-  // this insures proc 0 can receive everyone's info
+  // insure proc 0 can receive everyone's info
+  // limit nmax*size_one to int since used as arg in MPI_Rsend() below
   // pack my data into buf
   // if sorting on IDs also request ID list from pack()
   // sort buf as needed
 
   if (nmax > maxbuf) {
+    if ((bigint) nmax * size_one > MAXSMALLINT)
+      error->all("Too much per-proc info for dump");
     maxbuf = nmax;
     memory->sfree(buf);
     buf = (double *) 
@@ -355,7 +359,9 @@ void Dump::openfile()
     filecurrent = new char[strlen(filename) + 16];
     char *ptr = strchr(filename,'*');
     *ptr = '\0';
-    sprintf(filecurrent,"%s%d%s",filename,update->ntimestep,ptr+1);
+    char fstr[16];
+    sprintf(fstr,"%%s%s%%s",BIGINT_FORMAT);
+    sprintf(filecurrent,fstr,filename,update->ntimestep,ptr+1);
     *ptr = '*';
   }
 

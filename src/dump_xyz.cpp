@@ -58,10 +58,10 @@ void DumpXYZ::init_style()
 
 /* ---------------------------------------------------------------------- */
 
-void DumpXYZ::write_header(int n)
+void DumpXYZ::write_header(bigint n)
 {
   if (me == 0) {
-    fprintf(fp,"%d\n",n);
+    fprintf(fp,BIGINT_FORMAT_NL,n);
     fprintf(fp,"Atoms\n");
   }
 }

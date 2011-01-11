@@ -187,13 +187,13 @@ int DumpLocal::modify_param(int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpLocal::write_header(int ndump)
+void DumpLocal::write_header(bigint ndump)
 {
   if (me == 0) {
     fprintf(fp,"ITEM: TIMESTEP\n");
-    fprintf(fp,"%d\n",update->ntimestep);
+    fprintf(fp,BIGINT_FORMAT_NL,update->ntimestep);
     fprintf(fp,"ITEM: NUMBER OF %s\n",label);
-    fprintf(fp,"%d\n",ndump);
+    fprintf(fp,BIGINT_FORMAT_NL,ndump);
     fprintf(fp,"ITEM: %s %s\n",label,columns);
   }
 }
@@ -207,7 +207,6 @@ int DumpLocal::count()
   // invoke Computes for local quantities
 
   if (ncompute) {
-    int ntimestep = update->ntimestep;
     for (i = 0; i < ncompute; i++) {
       if (!(compute[i]->invoked_flag & INVOKED_LOCAL)) {
 	compute[i]->compute_local();

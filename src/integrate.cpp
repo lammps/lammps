@@ -13,6 +13,7 @@
 
 #include "stdlib.h"
 #include "integrate.h"
+#include "lmptype.h"
 #include "update.h"
 #include "modify.h"
 #include "compute.h"
@@ -93,7 +94,7 @@ void Integrate::ev_setup()
    vflag = 5 or 6 = both global and per-atom virial
 ------------------------------------------------------------------------- */
 
-void Integrate::ev_set(int ntimestep)
+void Integrate::ev_set(bigint ntimestep)
 {
   int i,flag;
 

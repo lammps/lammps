@@ -20,6 +20,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "fix_ave_correlate.h"
+#include "lmptype.h"
 #include "update.h"
 #include "modify.h"
 #include "compute.h"
@@ -383,7 +384,7 @@ void FixAveCorrelate::end_of_step()
 
   // skip if not step which requires doing something
 
-  int ntimestep = update->ntimestep;
+  bigint ntimestep = update->ntimestep;
   if (ntimestep != nvalid) return;
 
   // accumulate results of computes,fixes,variables to origin
@@ -466,7 +467,9 @@ void FixAveCorrelate::end_of_step()
   // output to file
 
   if (fp && me == 0) {
-    fprintf(fp,"%d %d\n",ntimestep,nrepeat);
+    char fstr[16];
+    sprintf(fstr,"%s %%d\n",BIGINT_FORMAT);
+    fprintf(fp,fstr,ntimestep,nrepeat);
     for (i = 0; i < nrepeat; i++) {
       fprintf(fp,"%d %d %d",i+1,i*nevery,count[i]);
       if (count[i])
@@ -585,9 +588,9 @@ double FixAveCorrelate::compute_array(int i, int j)
    startstep is lower bound
 ------------------------------------------------------------------------- */
 
-int FixAveCorrelate::nextvalid()
+bigint FixAveCorrelate::nextvalid()
 {
-  int nvalid = update->ntimestep;
+  bigint nvalid = update->ntimestep;
   if (startstep > nvalid) nvalid = startstep;
   if (nvalid % nevery) nvalid = (nvalid/nevery)*nevery + nevery;
   return nvalid;

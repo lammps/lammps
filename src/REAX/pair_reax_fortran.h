@@ -65,75 +65,75 @@ class ReaxParams {
 
 // data structures corresponding to values in Fortran library
 
-extern struct {
+extern "C" struct {
   double abo[ReaxParams::nat];
 } FORTRAN(cbkabo,CBKABO);
 
-extern struct {
+extern "C" struct {
   double bo[ReaxParams::nbomax];
 } FORTRAN(cbkbo,CBKBO);
 
-extern struct {
+extern "C" struct {
   double c[3*ReaxParams::nat]; double cglobal[3*ReaxParams::nattot];
   int itag[ReaxParams::nat];
 } FORTRAN(cbkc,CBKC);
 
-extern struct {
+extern "C" struct {
 double ch[ReaxParams::nat];
 } FORTRAN(cbkch,CBKCH);
 
-extern struct {
+extern "C" struct {
   double chi[ReaxParams::nsort];
   double eta[ReaxParams::nsort];
   double gam[ReaxParams::nsort];
 } FORTRAN(cbkchb,CBKCHB);
 
-extern struct {
+extern "C" struct {
   double d[3*ReaxParams::nat]; double estrain[ReaxParams::nat];
 } FORTRAN(cbkd,CBKD);
 
-extern struct {
+extern "C" struct {
   double atomvirial[6*ReaxParams::nat];
   double virial[6]; 
   int Lvirial;
   int Latomvirial;
 } FORTRAN(cbkvirial,CBKVIRIAL);
 
-extern struct {
+extern "C" struct {
   int ia[ReaxParams::nat*(ReaxParams::mbond+3)];
   int iag[ReaxParams::nat*(ReaxParams::mbond+3)];
 } FORTRAN(cbkia,CBKIA);
 
-extern struct {
+extern "C" struct {
   double vlp[ReaxParams::nat];
   double dvlpdsbo[ReaxParams::nat];
 } FORTRAN(cbklonpar,CBKLONPAR);
 
-extern struct {
+extern "C" struct {
   int nubon1[ReaxParams::nat*(ReaxParams::mbond)];
   int nubon2[ReaxParams::nat*(ReaxParams::mbond)];
 } FORTRAN(cbknubon2,CBKNUBON2);
 
-extern struct {
+extern "C" struct {
   int nvl1[ReaxParams::nneighmax * ReaxParams::nat];
   int nvl2[ReaxParams::nneighmax * ReaxParams::nat];
   int nvpair;
   int nvlself;
 } FORTRAN(cbkpairs,CBKPAIRS);
 
-extern struct {
+extern "C" struct {
   int nvlbo[ReaxParams::nneighmax * ReaxParams::nat];
 } FORTRAN(cbknvlbo,CBKNVLBO);
 
-extern struct {
+extern "C" struct {
   int nvlown[ReaxParams::nneighmax * ReaxParams::nat];
 } FORTRAN(cbknvlown,CBKNVLOWN);
 
-extern struct {
+extern "C" struct {
   char qa[20*ReaxParams::nattot+10];
 } FORTRAN(cbkqa,CBKQA);
 
-extern struct {
+extern "C" struct {
   double eb;
   double eoop;
   double epen;
@@ -157,7 +157,7 @@ extern struct {
   double ekin;
 } FORTRAN(cbkenergies,CBKENERGIES);
 
-extern struct {
+extern "C" struct {
   double tset; 
   double dseed; 
   double tempmd; 

@@ -18,6 +18,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "fix_reax_bonds.h"
+#include "lmptype.h"
 #include "pair_reax_fortran.h"
 #include "atom.h"
 #include "update.h"
@@ -98,7 +99,7 @@ void FixReaxBonds::end_of_step()
 
 /* ---------------------------------------------------------------------- */
 
-void FixReaxBonds::OutputReaxBonds(int timestep, FILE *fp) 
+void FixReaxBonds::OutputReaxBonds(bigint ntimestep, FILE *fp) 
 {
   int nparticles,nparticles_tot,nbuf,nbuf_local,most,j;
   int ii,jn,mbond,numbonds,nsbmax,nsbmax_most;
@@ -120,7 +121,9 @@ void FixReaxBonds::OutputReaxBonds(int timestep, FILE *fp)
   MPI_Allreduce(&nsbmax,&nsbmax_most,1,MPI_INT,MPI_MAX,world);
  
   if (me == 0) {
-    fprintf(fp,"# Timestep %d \n",timestep);
+    char fstr[32];
+    sprintf(fstr,"# Timestep %d \n",BIGINT_FORMAT);
+    fprintf(fp,fstr,ntimestep);
     fprintf(fp,"# \n");
     fprintf(fp,"# Number of particles %d \n",nparticles_tot);
     fprintf(fp,"# \n");

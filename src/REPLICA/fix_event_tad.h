@@ -21,13 +21,14 @@ FixStyle(EVENT/TAD,FixEventTAD)
 #define LMP_FIX_EVENT_TAD_H
 
 #include "fix_event.h"
+#include "lmptype.h"
 
 namespace LAMMPS_NS {
 
 class FixEventTAD : public FixEvent {
  public:
   int event_number;      // event counter
-  int event_timestep;    // timestep of last event
+  bigint event_timestep; // timestep of last event
   double tlo;            // event time at low temperature 
   double ebarrier;       // energy barrier for this event
 
@@ -39,7 +40,7 @@ class FixEventTAD : public FixEvent {
 
   // methods specific to FixEventTAD, invoked by TAD
 
-  void store_event_tad(int);
+  void store_event_tad(bigint);
 
  private:
 

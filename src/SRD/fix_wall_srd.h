@@ -21,6 +21,7 @@ FixStyle(wall/srd,FixWallSRD)
 #define LMP_FIX_WALL_SRD_H
 
 #include "fix.h"
+#include "lmptype.h"
 
 namespace LAMMPS_NS {
 
@@ -47,7 +48,7 @@ class FixWallSRD : public Fix {
 
   double dt;
   double xwalllast[6];
-  int laststep;
+  bigint laststep;
   
   double **fwall_all;
   int force_flag;

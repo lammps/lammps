@@ -15,6 +15,7 @@
 #define LMP_COMPUTE_H
 
 #include "pointers.h"
+#include "lmptype.h"
 
 namespace LAMMPS_NS {
 
@@ -63,14 +64,14 @@ class Compute : protected Pointers {
   int timeflag;       // 1 if Compute stores list of timesteps it's called on
   int ntime;          // # of entries in time list
   int maxtime;        // max # of entries time list can hold
-  int *tlist;         // time list of steps the Compute is called on
+  bigint *tlist;      // list of timesteps the Compute is called on
 
-  int invoked_flag;     // non-zero if invoked or accessed this step, 0 if not
-  int invoked_scalar;   // last timestep on which compute_scalar() was invoked
-  int invoked_vector;   // ditto for compute_vector()
-  int invoked_array;    // ditto for compute_array()
-  int invoked_peratom;  // ditto for compute_peratom()
-  int invoked_local;    // ditto for compute_local()
+  int invoked_flag;       // non-zero if invoked or accessed this step, 0 if not
+  bigint invoked_scalar;  // last timestep on which compute_scalar() was invoked
+  bigint invoked_vector;  // ditto for compute_vector()
+  bigint invoked_array;   // ditto for compute_array()
+  bigint invoked_peratom; // ditto for compute_peratom()
+  bigint invoked_local;   // ditto for compute_local()
 
   double dof;         // degrees-of-freedom for temperature
 
@@ -103,8 +104,8 @@ class Compute : protected Pointers {
 
   virtual void reset_extra_compute_fix(char *);
 
-  void addstep(int);
-  int matchstep(int);
+  void addstep(bigint);
+  int matchstep(bigint);
   void clearstep();
 
   virtual double memory_usage() {return 0.0;}

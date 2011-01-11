@@ -18,6 +18,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "fix_event_tad.h"
+#include "lmptype.h"
 #include "atom.h"
 #include "update.h"
 #include "domain.h"
@@ -50,10 +51,10 @@ FixEventTAD::FixEventTAD(LAMMPS *lmp, int narg, char **arg) :
    set event_timestep = when event occurred
 ------------------------------------------------------------------------- */
 
-void FixEventTAD::store_event_tad(int timestep)
+void FixEventTAD::store_event_tad(bigint ntimestep)
 {
   store_event();
-  event_timestep = timestep;
+  event_timestep = ntimestep;
 }
 
 /* ----------------------------------------------------------------------

@@ -42,7 +42,8 @@ using namespace LAMMPS_NS;
 
 // same as read_restart.cpp and tools/restart2data.cpp
 
-enum{VERSION,UNITS,NTIMESTEP,DIMENSION,NPROCS,PROCGRID_0,PROCGRID_1,PROCGRID_2,
+enum{VERSION,SMALLINT,TAGINT,BIGINT,
+       UNITS,NTIMESTEP,DIMENSION,NPROCS,PROCGRID_0,PROCGRID_1,PROCGRID_2,
        NEWTON_PAIR,NEWTON_BOND,XPERIODIC,YPERIODIC,ZPERIODIC,
        BOUNDARY_00,BOUNDARY_01,BOUNDARY_10,BOUNDARY_11,BOUNDARY_20,BOUNDARY_21,
        ATOM_STYLE,NATOMS,NTYPES,
@@ -85,7 +86,9 @@ void WriteRestart::command(int narg, char **arg)
 
   if (ptr = strchr(arg[0],'*')) {
     *ptr = '\0';
-    sprintf(file,"%s%d%s",arg[0],update->ntimestep,ptr+1);
+    char fstr[16];
+    sprintf(fstr,"%%s%s%%s",BIGINT_FORMAT);
+    sprintf(file,fstr,arg[0],update->ntimestep,ptr+1);
   } else strcpy(file,arg[0]);
 
   // init entire system since comm->exchange is done
@@ -122,7 +125,7 @@ void WriteRestart::write(char *file)
   // if unequal and thermo lostflag is "error", don't write restart file
 
   bigint nblocal = atom->nlocal;
-  MPI_Allreduce(&nblocal,&natoms,1,MPI_UNSIGNED_LONG_LONG,MPI_SUM,world);
+  MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
   if (natoms != atom->natoms && output->thermo->lostflag == ERROR) 
     error->all("Atom count is inconsistent, cannot write restart file");
 
@@ -295,8 +298,11 @@ void WriteRestart::write(char *file)
 void WriteRestart::header()
 {
   write_char(VERSION,universe->version);
+  write_int(SMALLINT,sizeof(smallint));
+  write_int(TAGINT,sizeof(tagint));
+  write_int(BIGINT,sizeof(bigint));
   write_char(UNITS,update->unit_style);
-  write_int(NTIMESTEP,update->ntimestep);
+  write_bigint(NTIMESTEP,update->ntimestep);
   write_int(DIMENSION,domain->dimension);
   write_int(NPROCS,nprocs);
   write_int(PROCGRID_0,comm->procgrid[0]);

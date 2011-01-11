@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "neighbor.h"
+#include "lmptype.h"
 #include "atom.h"
 #include "force.h"
 #include "update.h"
@@ -41,9 +42,10 @@ void Neighbor::bond_all()
     for (m = 0; m < num_bond[i]; m++) {
       atom1 = atom->map(bond_atom[i][m]);
       if (atom1 == -1) {
-	char str[128];
-	sprintf(str,"Bond atoms %d %d missing on proc %d at step %d",
-		tag[i],bond_atom[i][m],me,update->ntimestep);
+	char str[128],fstr[64];
+	sprintf(fstr,"Bond atoms %%d %%d missing on proc %%d at step %s",
+		BIGINT_FORMAT);
+	sprintf(str,fstr,tag[i],bond_atom[i][m],me,update->ntimestep);
 	error->one(str);
       }
       if (newton_bond || i < atom1) {
@@ -80,9 +82,10 @@ void Neighbor::bond_partial()
       if (bond_type[i][m] <= 0) continue;
       atom1 = atom->map(bond_atom[i][m]);
       if (atom1 == -1) {
-	char str[128];
-	sprintf(str,"Bond atoms %d %d missing on proc %d at step %d",
-		tag[i],bond_atom[i][m],me,update->ntimestep);
+	char str[128],fstr[64];
+	sprintf(fstr,"Bond atoms %%d %%d missing on proc %%d at step %s",
+		BIGINT_FORMAT);
+	sprintf(str,fstr,tag[i],bond_atom[i][m],me,update->ntimestep);
 	error->one(str);
       }
       if (newton_bond || i < atom1) {
@@ -121,8 +124,10 @@ void Neighbor::angle_all()
       atom2 = atom->map(angle_atom2[i][m]);
       atom3 = atom->map(angle_atom3[i][m]);
       if (atom1 == -1 || atom2 == -1 || atom3 == -1) {
-	char str[128];
-	sprintf(str,"Angle atoms %d %d %d missing on proc %d at step %d",
+	char str[128],fstr[64];
+	sprintf(fstr,"Angle atoms %%d %%d %%d missing on proc %%d at step %s",
+		BIGINT_FORMAT);
+	sprintf(str,fstr,
 		angle_atom1[i][m],angle_atom2[i][m],angle_atom3[i][m],
 		me,update->ntimestep);
 	error->one(str);
@@ -165,8 +170,10 @@ void Neighbor::angle_partial()
       atom2 = atom->map(angle_atom2[i][m]);
       atom3 = atom->map(angle_atom3[i][m]);
       if (atom1 == -1 || atom2 == -1 || atom3 == -1) {
-	char str[128];
-	sprintf(str,"Angle atoms %d %d %d missing on proc %d at step %d",
+	char str[128],fstr[64];
+	sprintf(fstr,"Angle atoms %%d %%d %%d missing on proc %%d at step %s",
+		BIGINT_FORMAT);
+	sprintf(str,fstr,
 		angle_atom1[i][m],angle_atom2[i][m],angle_atom3[i][m],
 		me,update->ntimestep);
 	error->one(str);
@@ -210,8 +217,10 @@ void Neighbor::dihedral_all()
       atom3 = atom->map(dihedral_atom3[i][m]);
       atom4 = atom->map(dihedral_atom4[i][m]);
       if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1) {
-	char str[128];
-	sprintf(str,"Dihedral atoms %d %d %d %d missing on proc %d at step %d",
+	char str[128],fstr[128];
+	sprintf(fstr,"Dihedral atoms %%d %%d %%d %%d "
+		"missing on proc %%d at step %s",BIGINT_FORMAT);
+	sprintf(str,fstr,
 		dihedral_atom1[i][m],dihedral_atom2[i][m],
 		dihedral_atom3[i][m],dihedral_atom4[i][m],
 		me,update->ntimestep);
@@ -260,8 +269,10 @@ void Neighbor::dihedral_partial()
       atom3 = atom->map(dihedral_atom3[i][m]);
       atom4 = atom->map(dihedral_atom4[i][m]);
       if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1) {
-	char str[128];
-	sprintf(str,"Dihedral atoms %d %d %d %d missing on proc %d at step %d",
+	char str[128],fstr[128];
+	sprintf(fstr,"Dihedral atoms %%d %%d %%d %%d "
+		"missing on proc %%d at step %s",BIGINT_FORMAT);
+	sprintf(str,fstr,
 		dihedral_atom1[i][m],dihedral_atom2[i][m],
 		dihedral_atom3[i][m],dihedral_atom4[i][m],
 		me,update->ntimestep);
@@ -309,8 +320,10 @@ void Neighbor::improper_all()
       atom3 = atom->map(improper_atom3[i][m]);
       atom4 = atom->map(improper_atom4[i][m]);
       if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1) {
-	char str[128];
-	sprintf(str,"Improper atoms %d %d %d %d missing on proc %d at step %d",
+	char str[128],fstr[128];
+	sprintf(fstr,"Improper atoms %%d %%d %%d %%d "
+		"missing on proc %%d at step %s",BIGINT_FORMAT);
+	sprintf(str,fstr,
 		improper_atom1[i][m],improper_atom2[i][m],
 		improper_atom3[i][m],improper_atom4[i][m],
 		me,update->ntimestep);
@@ -359,8 +372,10 @@ void Neighbor::improper_partial()
       atom3 = atom->map(improper_atom3[i][m]);
       atom4 = atom->map(improper_atom4[i][m]);
       if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1) {
-	char str[128];
-	sprintf(str,"Improper atoms %d %d %d %d missing on proc %d at step %d",
+	char str[128],fstr[128];
+	sprintf(fstr,"Improper atoms %%d %%d %%d %%d "
+		"missing on proc %%d at step %s",BIGINT_FORMAT);
+	sprintf(str,fstr,
 		improper_atom1[i][m],improper_atom2[i][m],
 		improper_atom3[i][m],improper_atom4[i][m],
 		me,update->ntimestep);

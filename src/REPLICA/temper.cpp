@@ -19,6 +19,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "temper.h"
+#include "lmptype.h"
 #include "universe.h"
 #include "domain.h"
 #include "atom.h"
@@ -342,15 +343,15 @@ void Temper::scale_velocities(int t_partner, int t_me)
 void Temper::print_status()
 {
   if (universe->uscreen) {
-    fprintf(universe->uscreen,"%d ",update->ntimestep);
+    fprintf(universe->uscreen,BIGINT_FORMAT,update->ntimestep);
     for (int i = 0; i < nworlds; i++) 
-      fprintf(universe->uscreen,"%d ",world2temp[i]);
+      fprintf(universe->uscreen," %d",world2temp[i]);
     fprintf(universe->uscreen,"\n");
   }
   if (universe->ulogfile) {
-    fprintf(universe->ulogfile,"%d ",update->ntimestep);
+    fprintf(universe->ulogfile,BIGINT_FORMAT,update->ntimestep);
     for (int i = 0; i < nworlds; i++)
-      fprintf(universe->ulogfile,"%d ",world2temp[i]);
+      fprintf(universe->ulogfile," %d",world2temp[i]);
     fprintf(universe->ulogfile,"\n");
     fflush(universe->ulogfile);
   }

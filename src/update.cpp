@@ -278,8 +278,9 @@ void Update::reset_timestep(int narg, char **arg)
   for (int i = 0; i < modify->ncompute; i++)
     if (modify->compute[i]->timeflag) modify->compute[i]->clearstep();
 
-  ntimestep = atoi(arg[0]);
+  ntimestep = ATOBIGINT(arg[0]);
   if (ntimestep < 0) error->all("Timestep must be >= 0");
+  if (ntimestep > MAXBIGINT) error->all("Too big a timestep");
 }
 
 /* ----------------------------------------------------------------------

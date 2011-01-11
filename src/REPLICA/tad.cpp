@@ -1,6 +1,3 @@
-// To do:
-// Mysterious problem with   //  if (universe->iworld == 0) 
-
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
@@ -82,7 +79,8 @@ void TAD::command(int narg, char **arg)
 
   if (domain->box_exist == 0) 
     error->all("tad command before simulation box is defined");
-  if (universe->nworlds == 1) error->all("Cannot use TAD with a single replica for NEB");
+  if (universe->nworlds == 1) 
+    error->all("Cannot use TAD with a single replica for NEB");
   if (universe->nworlds != universe->nprocs)
     error->all("Can only use TAD with 1-processor replicas for NEB");
   if (atom->sortfreq > 0)
@@ -225,11 +223,9 @@ void TAD::command(int narg, char **arg)
 
   if (me_universe == 0) {
     if (universe->uscreen) 
-      fprintf(universe->uscreen,"Step CPU Clock Event "
-	      "\n");
+      fprintf(universe->uscreen,"Step CPU Clock Event\n");
     if (universe->ulogfile) 
-      fprintf(universe->ulogfile,"Step CPU Clock Event "
-	      "\n");
+      fprintf(universe->ulogfile,"Step CPU Clock Event\n");
   }
 
   ulogfile_lammps = universe->ulogfile;
@@ -388,13 +384,14 @@ void TAD::command(int narg, char **arg)
   neighbor->ndanger = ndanger;
 
   if (me_universe == 0) {
+    char str[128];
+    sprintf(str,"Loop time of %%g on %%d procs for %%d steps with %s atoms\n",
+	    BIGINT_FORMAT);
     if (universe->uscreen) 
-      fprintf(universe->uscreen,
-              "Loop time of %g on %d procs for %d steps with %lu atoms\n",
+      fprintf(universe->uscreen,str,
 	      timer->array[TIME_LOOP],nprocs_universe,nsteps,atom->natoms);
     if (universe->ulogfile) 
-      fprintf(universe->ulogfile,
-              "Loop time of %g on %d procs for %d steps with %lu atoms\n",
+      fprintf(universe->ulogfile,str,
               timer->array[TIME_LOOP],nprocs_universe,nsteps,atom->natoms);
   }
 
@@ -454,8 +451,8 @@ void TAD::dynamics()
 
 void TAD::quench()
 {
-  int ntimestep_hold = update->ntimestep;
-  int endstep_hold = update->endstep;
+  bigint ntimestep_hold = update->ntimestep;
+  bigint endstep_hold = update->endstep;
 
   // need to change whichflag so that minimize->setup() calling 
   // modify->setup() will call fix->min_setup()
@@ -520,14 +517,16 @@ void TAD::log_event()
 {
   timer->array[TIME_LOOP] = time_start;
   if (universe->me == 0) {
+    char fstr[32];
+    sprintf(fstr,"%s %%.3f %%.3f %%d\n",BIGINT_FORMAT);
     if (universe->uscreen)
-      fprintf(universe->uscreen,"%d %.3f %.3f %d\n",
+      fprintf(universe->uscreen,fstr,
               fix_event->event_timestep,
 	      timer->elapsed(TIME_LOOP),
 	      fix_event->tlo,
               fix_event->event_number);
     if (universe->ulogfile)
-      fprintf(universe->ulogfile,"%d %.3f %.3f %d\n",
+      fprintf(universe->ulogfile,fstr,
               fix_event->event_timestep,
 	      timer->elapsed(TIME_LOOP),
 	      fix_event->tlo,
@@ -718,10 +717,10 @@ void TAD::perform_neb(int ievent)
 
   // Run NEB
 
-  double beginstep_hold = update->beginstep;
-  double endstep_hold = update->endstep;
-  double ntimestep_hold = update->ntimestep;
-  double nsteps_hold = update->nsteps;
+  int beginstep_hold = update->beginstep;
+  int endstep_hold = update->endstep;
+  int ntimestep_hold = update->ntimestep;
+  int nsteps_hold = update->nsteps;
 
   if (universe->me == 0) {
     universe->ulogfile = ulogfile_neb;
@@ -915,7 +914,7 @@ void TAD::compute_tlo(int ievent)
   // first-replica output about each event
 
   if (universe->me == 0) {
-    char str[128];
+    char str[128],fstr[128];
     double tfrac = 0.0;
     if (ievent > 0) tfrac = delthi/deltstop;
 //     sprintf(str,
@@ -923,15 +922,14 @@ void TAD::compute_tlo(int ievent)
 // 	    ievent,ebarrier,deltlo,delthi,tfrac);
 //     error->warning(str);
 
+    sprintf(fstr,"New event: t_hi = %s ievent = %%d eb = %%g "
+	    "dt_lo = %%g dt_hi/t_stop = %%g \n",BIGINT_FORMAT);
+
     if (screen) 
-      fprintf(screen,
-	     "New event: t_hi = %d ievent = %d eb = %g dt_lo = %g dt_hi/t_stop = %g \n",
-	      fix_event_list[ievent]->event_timestep,
+      fprintf(screen,fstr,fix_event_list[ievent]->event_timestep,
 	      ievent,ebarrier,deltlo,tfrac);
     if (logfile) 
-      fprintf(logfile,
-	     "New event: t_hi = %d ievent = %d eb = %g dt_lo = %g dt_hi/t_stop = %g \n",
-	      fix_event_list[ievent]->event_timestep,
+      fprintf(logfile,fstr,fix_event_list[ievent]->event_timestep,
 	      ievent,ebarrier,deltlo,tfrac);
   }
 

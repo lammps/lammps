@@ -18,6 +18,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "fix_event_prd.h"
+#include "lmptype.h"
 #include "atom.h"
 #include "update.h"
 #include "domain.h"
@@ -50,10 +51,10 @@ FixEventPRD::FixEventPRD(LAMMPS *lmp, int narg, char **arg) :
    update clock = elapsed time since last event, across all replicas
 ------------------------------------------------------------------------- */
 
-void FixEventPRD::store_event_prd(int timestep, int delta_clock)
+void FixEventPRD::store_event_prd(bigint ntimestep, int delta_clock)
 {
   store_event();
-  event_timestep = timestep;
+  event_timestep = ntimestep;
   clock += delta_clock;
   event_number++;
 }

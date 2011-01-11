@@ -21,13 +21,14 @@ FixStyle(EVENT/PRD,FixEventPRD)
 #define LMP_FIX_EVENT_PRD_H
 
 #include "fix_event.h"
+#include "lmptype.h"
 
 namespace LAMMPS_NS {
 
 class FixEventPRD : public FixEvent {
  public:
   int event_number;      // event counter
-  int event_timestep;    // timestep of last event on any replica
+  bigint event_timestep; // timestep of last event on any replica
   int clock;             // total elapsed timesteps across all replicas
   int replica_number;    // replica where last event occured
   int correlated_event;  // 1 if last event was correlated, 0 otherwise
@@ -41,7 +42,7 @@ class FixEventPRD : public FixEvent {
 
   // methods specific to FixEventPRD, invoked by PRD
 
-  void store_event_prd(int, int);
+  void store_event_prd(bigint, int);
 
  private:
 

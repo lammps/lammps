@@ -21,6 +21,7 @@
 #include "string.h"
 #include "stdlib.h"
 #include "fix_ttm.h"
+#include "lmptype.h"
 #include "atom.h"
 #include "force.h"
 #include "update.h"
@@ -525,7 +526,7 @@ void FixTTM::end_of_step()
                   total_nnodes,MPI_DOUBLE,MPI_SUM,world);
   
     if (me == 0) {
-      fprintf(fp,"%d ",update->ntimestep);
+      fprintf(fp,BIGINT_FORMAT,update->ntimestep);
 
       double T_a;
       for (int ixnode = 0; ixnode < nxnodes; ixnode++)
@@ -535,7 +536,7 @@ void FixTTM::end_of_step()
             if (nsum_all[ixnode][iynode][iznode] > 0)
               T_a = sum_mass_vsq_all[ixnode][iynode][iznode]/
                 (3.0*force->boltz*nsum_all[ixnode][iynode][iznode]/force->mvv2e);
-            fprintf(fp,"%f ",T_a);
+            fprintf(fp," %f",T_a);
           }
             
       fprintf(fp,"\t");

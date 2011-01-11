@@ -98,7 +98,7 @@ class Min : protected Pointers {
   double compute_force_norm_inf();
 
   void ev_setup();
-  void ev_set(int);
+  void ev_set(bigint);
 
   char *stopstrings(int);
 };

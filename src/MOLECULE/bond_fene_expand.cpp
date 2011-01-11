@@ -14,6 +14,7 @@
 #include "math.h"
 #include "stdlib.h"
 #include "bond_fene_expand.h"
+#include "lmptype.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"
@@ -90,9 +91,9 @@ void BondFENEExpand::compute(int eflag, int vflag)
     // if r > 2*r0 something serious is wrong, abort
 
     if (rlogarg < 0.1) {
-      char str[128];
-      sprintf(str,"FENE bond too long: %d %d %d %g",
-              update->ntimestep,atom->tag[i1],atom->tag[i2],sqrt(rsq));
+      char str[128],fstr[64];
+      sprintf(fstr,"FENE bond too long: %s %%d %%d %%g",BIGINT_FORMAT);
+      sprintf(str,fstr,update->ntimestep,atom->tag[i1],atom->tag[i2],sqrt(rsq));
       error->warning(str,0);
       if (rlogarg <= -3.0) error->one("Bad FENE bond");
       rlogarg = 0.1;
@@ -256,8 +257,9 @@ double BondFENEExpand::single(int type, double rsq, int i, int j)
   // if r > 2*r0 something serious is wrong, abort
 
   if (rlogarg < 0.1) {
-    char str[128];
-    sprintf(str,"FENE bond too long: %d %g",update->ntimestep,sqrt(rsq));
+    char str[128],fstr[64];
+    sprintf(fstr,"FENE bond too long: %s %%g",BIGINT_FORMAT);
+    sprintf(str,fstr,update->ntimestep,sqrt(rsq));
     error->warning(str,0);
     if (rlogarg <= -3.0) error->one("Bad FENE bond");
     rlogarg = 0.1;

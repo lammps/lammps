@@ -19,6 +19,7 @@ style = {create} or {set} or {scale} or {ramp} or {zero} :l
     seed = random # seed (positive integer)
   {set} args = vx vy vz
     vx,vy,vz = velocity value or NULL (velocity units)
+    any of vx,vy,vz van be a variable (see below)
   {scale} arg = temp
     temp = temperature value (temperature units)
   {ramp} args = vdim vlo vhi dim clo chi
@@ -44,7 +45,7 @@ keyword = {dist} or {sum} or {mom} or {rot} or {temp} or {loop} or {units} :l
 [Examples:]
 
 velocity all create 300.0 4928459 rot yes dist gaussian
-velocity border set NULL 4.0 3.0 sum yes units box
+velocity border set NULL 4.0 v_vz sum yes units box
 velocity flow scale 300.0
 velocity flow ramp vx 0.0 5.0 y 5 25 temp mytemp
 velocity all zero linear :pre
@@ -61,7 +62,20 @@ number generator with the specified seed as the specified temperature.
 
 The {set} style sets the velocities of all atoms in the group to the
 specified values.  If any component is specified as NULL, then it is
-not set.
+not set.  Any of the vx,vy,vz velocity components can be specified as
+an equal-style or atom-style "variable"_variable.html.  If the value
+is a variable, it should be specified as v_name, where name is the
+variable name.  In this case, the variable will be evaluated, and its
+value used to determine the velocity component.
+
+Equal-style variables can specify formulas with various mathematical
+functions, and include "thermo_style"_thermo_style.html command
+keywords for the simulation box parameters or other parameters.
+
+Atom-style variables can specify the same formulas as equal-style
+variables but can also include per-atom values, such as atom
+coordinates.  Thus it is easy to specify a spatially-dependent
+velocity field.
 
 The {scale} style computes the current temperature of the group of
 atoms and then rescales the velocities to the specified temperature.

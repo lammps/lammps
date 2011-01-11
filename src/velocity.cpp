@@ -34,7 +34,7 @@
 
 using namespace LAMMPS_NS;
 
-enum{CREATE,SET,SCALE,RAMP,REVERSE,ZERO};
+enum{CREATE,SET,SCALE,RAMP,ZERO};
 enum{ALL,LOCAL,GEOM};
 
 #define WARMUP 100
@@ -74,7 +74,6 @@ void Velocity::command(int narg, char **arg)
   else if (strcmp(arg[1],"set") == 0) style = SET;
   else if (strcmp(arg[1],"scale") == 0) style = SCALE;
   else if (strcmp(arg[1],"ramp") == 0) style = RAMP;
-  else if (strcmp(arg[1],"reverse") == 0) style = REVERSE;
   else if (strcmp(arg[1],"zero") == 0) style = ZERO;
   else error->all("Illegal velocity command");
 
@@ -122,7 +121,6 @@ void Velocity::command(int narg, char **arg)
   else if (style == SET) set(narg-2,&arg[2]);
   else if (style == SCALE) scale(narg-2,&arg[2]);
   else if (style == RAMP) ramp(narg-2,&arg[2]);
-  else if (style == REVERSE) reverse(narg-2,&arg[2]);
   else if (style == ZERO) zero(narg-2,&arg[2]);
 }
 
@@ -527,24 +525,6 @@ void Velocity::rescale(double t_old, double t_new)
       v[i][0] *= factor;
       v[i][1] *= factor;
       v[i][2] *= factor;
-    }
-}
-
-/* ----------------------------------------------------------------------
-   reverse velocities, so an MD can run backwards.
-------------------------------------------------------------------------- */
-
-void Velocity::reverse(int narg, char **arg)
-{
-  double **v = atom->v;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
-      v[i][0] = -v[i][0];
-      v[i][1] = -v[i][1];
-      v[i][2] = -v[i][2];
     }
 }
 

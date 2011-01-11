@@ -39,6 +39,7 @@
 
 typedef int tagint;
 typedef int64_t bigint;
+#define BIGINT_FORMAT "%lld"
 
 // same as write_restart.cpp
 
@@ -2615,22 +2616,25 @@ Data::Data() {}
 
 void Data::stats()
 {
+  char fstr[64];
+
   printf("  Restart file version = %s\n",version);
-  printf("  Ntimestep = %d\n",ntimestep);
+  sprintf(fstr,"  Ntimestep = %s\n",BIGINT_FORMAT);
+  printf(fstr,ntimestep);
+
   printf("  Nprocs = %d\n",nprocs);
-  if (size_bigint == 8) {
-    printf("  Natoms = %ld\n",natoms);
-    printf("  Nbonds = %ld\n",nbonds);
-    printf("  Nangles = %ld\n",nangles);
-    printf("  Ndihedrals = %ld\n",ndihedrals);
-    printf("  Nimpropers = %ld\n",nimpropers);
-  } else if (size_bigint == 4) {
-    printf("  Natoms = %d\n",natoms);
-    printf("  Nbonds = %d\n",nbonds);
-    printf("  Nangles = %d\n",nangles);
-    printf("  Ndihedrals = %d\n",ndihedrals);
-    printf("  Nimpropers = %d\n",nimpropers);
-  }
+
+  sprintf(fstr,"  Natoms = %s\n",BIGINT_FORMAT);
+  printf(fstr,natoms);
+  sprintf(fstr,"  Nbonds = %s\n",BIGINT_FORMAT);
+  printf(fstr,nbonds);
+  sprintf(fstr,"  Nangles = %s\n",BIGINT_FORMAT);
+  printf(fstr,nangles);
+  sprintf(fstr,"  Ndihedrals = %s\n",BIGINT_FORMAT);
+  printf(fstr,ndihedrals);
+  sprintf(fstr,"  Nimpropers = %s\n",BIGINT_FORMAT);
+  printf(fstr,nimpropers);
+
   printf("  Unit style = %s\n",unit_style);
   printf("  Atom style = %s\n",atom_style);
   printf("  Pair style = %s\n",pair_style);
@@ -2648,35 +2652,36 @@ void Data::stats()
 }
 
 // ---------------------------------------------------------------------
-// write the data file
+// write the data file and input file
 // ---------------------------------------------------------------------
 
 void Data::write(FILE *fp, FILE *fp2)
 {
-  if (size_bigint == 8) 
-    fprintf(fp,
-	    "LAMMPS data file from restart file: timestep = %ld, procs = %d\n",
-	    ntimestep,nprocs);
-  else 
-    fprintf(fp,
-	    "LAMMPS data file from restart file: timestep = %d, procs = %d\n",
-	    ntimestep,nprocs);
-
+  char fstr[128];
+  sprintf(fstr,
+	  "LAMMPS data file from restart file: timestep = %s, procs = %%d\n",
+	  BIGINT_FORMAT);
+  fprintf(fp,fstr,ntimestep,nprocs);
   fprintf(fp,"\n");
 
-  if (size_bigint == 8) {
-    fprintf(fp,"%ld atoms\n",natoms);
-    if (nbonds) fprintf(fp,"%ld bonds\n",nbonds);
-    if (nangles) fprintf(fp,"%ld angles\n",nangles);
-    if (ndihedrals) fprintf(fp,"%ld dihedrals\n",ndihedrals);
-    if (nimpropers) fprintf(fp,"%ld impropers\n",nimpropers);
-  } else if (size_bigint == 4) {
-    fprintf(fp,"%d atoms\n",natoms);
-    if (nbonds) fprintf(fp,"%d bonds\n",nbonds);
-    if (nangles) fprintf(fp,"%d angles\n",nangles);
-    if (ndihedrals) fprintf(fp,"%d dihedrals\n",ndihedrals);
-    if (nimpropers) fprintf(fp,"%d impropers\n",nimpropers);
-  } else
+  sprintf(fstr,"%s atoms\n",BIGINT_FORMAT);
+  fprintf(fp,fstr,natoms);
+  if (nbonds) {
+    sprintf(fstr,"%s bonds\n",BIGINT_FORMAT);
+    fprintf(fp,fstr,nbonds);
+  }
+  if (nangles) {
+    sprintf(fstr,"%s angles\n",BIGINT_FORMAT);
+    fprintf(fp,fstr,nangles);
+  }
+  if (ndihedrals) {
+    sprintf(fstr,"%s dihedrals\n",BIGINT_FORMAT);
+    fprintf(fp,fstr,ndihedrals);
+  }
+  if (nimpropers) {
+    sprintf(fstr,"%s impropers\n",BIGINT_FORMAT);
+    fprintf(fp,fstr,nimpropers);
+  }
 
   fprintf(fp,"\n");
 
@@ -2696,8 +2701,12 @@ void Data::write(FILE *fp, FILE *fp2)
   // write ff styles to input file
 
   if (fp2) {
-    fprintf(fp2,"# LAMMPS input file from restart file: timestep = %d, procs = %d\n\n",
-	  ntimestep,nprocs);
+    sprintf(fstr,
+	    "# LAMMPS input file from restart file: "
+	    "timestep = %s, procs = %%d\n\n",
+	    BIGINT_FORMAT);
+    fprintf(fp2,fstr,ntimestep,nprocs);
+
     if (pair_style) fprintf(fp2,"pair_style %s\n",pair_style);
     if (bond_style) fprintf(fp2,"bond_style %s\n",bond_style);
     if (angle_style) fprintf(fp2,"angle_style %s\n",angle_style);

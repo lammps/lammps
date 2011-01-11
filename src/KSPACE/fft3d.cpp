@@ -840,7 +840,6 @@ void bifactor(int n, int *factor1, int *factor2)
 {
   int n1,n2,facmax;
 
-  //facmax = static_cast<int> (sqrt((double) n));
   facmax = static_cast<int> (sqrt(n));
 
   for (n1 = facmax; n1 > 0; n1--) {

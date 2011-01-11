@@ -13,7 +13,7 @@
 
 // define integer data types used by LAMMPS and associated size limits
 
-// smallint = variables for system on 1 processor (nlocal, etc)
+// smallint = variables for system on 1 processor (nlocal, nmax, etc)
 // tagint = variables for atom IDs (tag)
 // bigint = variables for total system (natoms, ntimestep, etc)
 
@@ -31,8 +31,8 @@
 
 // NOTE: if your machine/MPI does not support "long long" ints,
 //       but only "long" ints, then you will likely need to set
-//       MPI_LMP_BIGINT to MPI_LONG, LLONG_MAX to LONG_MAX,
-//       "lld" to "ld", and ATOBIGINT to atol
+//       MPI_LONG_LONG to MPI_LONG, LLONG_MAX to LONG_MAX,
+//       "lld" to "ld", and atoll to atol
 
 #ifndef LMP_LMPTYPE_H
 #define LMP_LMPTYPE_H

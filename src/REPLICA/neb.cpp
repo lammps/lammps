@@ -192,6 +192,8 @@ void NEB::run()
   update->endstep = update->laststep = update->firststep + n1steps;
   update->nsteps = n1steps;
   update->max_eval = n1steps;
+  if (update->laststep < 0 || update->laststep > MAXBIGINT)
+    error->all("Too many timesteps");
 
   update->minimize->setup();
   
@@ -259,6 +261,8 @@ void NEB::run()
   update->endstep = update->laststep = update->firststep + n2steps;
   update->nsteps = n2steps;
   update->max_eval = n2steps;
+  if (update->laststep < 0 || update->laststep > MAXBIGINT)
+    error->all("Too many timesteps");
 
   update->minimize->init();
   fneb->rclimber = top;

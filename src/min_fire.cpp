@@ -81,15 +81,16 @@ void MinFire::reset_vectors()
 
 int MinFire::iterate(int maxiter)
 {
-  int ntimestep,flag,flagall;
+  bigint ntimestep;
   double vmax,vdotf,vdotfall,vdotv,vdotvall,fdotf,fdotfall;
   double scale1,scale2;
   double dtvone,dtv,dtfm;
+  int flag,flagall;
 
   alpha_final = 0.0;
   double alpha = ALPHA0;
   double dtmax = TMAX * dt;
-  int last_negative = update->ntimestep;
+  bigint last_negative = update->ntimestep;
 
   for (int iter = 0; iter < maxiter; iter++) {
     ntimestep = ++update->ntimestep;

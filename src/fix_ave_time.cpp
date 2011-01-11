@@ -18,6 +18,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "fix_ave_time.h"
+#include "lmptype.h"
 #include "update.h"
 #include "modify.h"
 #include "compute.h"
@@ -506,7 +507,7 @@ void FixAveTime::end_of_step()
 {
   // skip if not step which requires doing something
 
-  int ntimestep = update->ntimestep;
+  bigint ntimestep = update->ntimestep;
   if (ntimestep != nvalid) return;
 
   if (mode == SCALAR) invoke_scalar(ntimestep);
@@ -515,7 +516,7 @@ void FixAveTime::end_of_step()
 
 /* ---------------------------------------------------------------------- */
 
-void FixAveTime::invoke_scalar(int ntimestep)
+void FixAveTime::invoke_scalar(bigint ntimestep)
 {
   int i,m;
   double scalar;
@@ -629,7 +630,7 @@ void FixAveTime::invoke_scalar(int ntimestep)
   // output result to file
 
   if (fp && me == 0) {
-    fprintf(fp,"%d",ntimestep);
+    fprintf(fp,BIGINT_FORMAT,ntimestep);
     for (i = 0; i < nvalues; i++) fprintf(fp," %g",vector_total[i]/norm);
     fprintf(fp,"\n");
     fflush(fp);
@@ -638,7 +639,7 @@ void FixAveTime::invoke_scalar(int ntimestep)
 
 /* ---------------------------------------------------------------------- */
 
-void FixAveTime::invoke_vector(int ntimestep)
+void FixAveTime::invoke_vector(bigint ntimestep)
 {
   int i,j,m;
   
@@ -769,7 +770,9 @@ void FixAveTime::invoke_vector(int ntimestep)
   // output result to file
       
   if (fp && me == 0) {
-    fprintf(fp,"%d %d\n",ntimestep,nrows);
+    char fstr[16];
+    sprintf(fstr,"%s %%d\n",BIGINT_FORMAT);
+    fprintf(fp,fstr,ntimestep,nrows);
     for (i = 0; i < nrows; i++) {
       fprintf(fp,"%d",i+1);
       for (j = 0; j < nvalues; j++) fprintf(fp," %g",array_total[i][j]/norm);
@@ -920,9 +923,9 @@ void FixAveTime::allocate_values(int n)
    else backup from next multiple of nfreq
 ------------------------------------------------------------------------- */
 
-int FixAveTime::nextvalid()
+bigint FixAveTime::nextvalid()
 {
-  int nvalid = (update->ntimestep/nfreq)*nfreq + nfreq;
+  bigint nvalid = (update->ntimestep/nfreq)*nfreq + nfreq;
   if (nvalid-nfreq == update->ntimestep && nrepeat == 1)
     nvalid = update->ntimestep;
   else

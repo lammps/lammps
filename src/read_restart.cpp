@@ -493,9 +493,7 @@ void ReadRestart::header()
       delete [] style;
 
     } else if (flag == NTIMESTEP) {
-      // placeholder until ntimestep is 8-bytes
-      bigint ntimestep = read_bigint();
-      update->ntimestep = static_cast<int> (ntimestep);
+      update->ntimestep = read_bigint();
 
       // set dimension from restart file
 

@@ -445,7 +445,7 @@ void Respa::setup_minimal(int flag)
 
 void Respa::run(int n)
 {
-  int ntimestep;
+  bigint ntimestep;
 
   for (int i = 0; i < n; i++) {
 

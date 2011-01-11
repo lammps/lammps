@@ -692,8 +692,9 @@ void FixSRD::post_force(int vflag)
 	
 	if (ix < 0 || ix >= nbin2x || iy < 0 || iy >= nbin2y || 
 	    iz < 0 || iz >= nbin2z) {
-	  printf("SRD particle %d on step %d\n",
-		 atom->tag[i],update->ntimestep);
+	  char fstr[64];
+	  sprintf(fstr,"SRD particle %%d on step %s\n",BIGINT_FORMAT);
+	  printf(fstr,atom->tag[i],update->ntimestep);
 	  printf("v = %g %g %g\n",v[i][0],v[i][1],v[i][2]);
 	  printf("x = %g %g %g\n",x[i][0],x[i][1],x[i][2]);
 	  printf("ix,iy,iz nx,ny,nz = %d %d %d %d %d %d\n",
@@ -1150,28 +1151,22 @@ void FixSRD::collisions_single()
 
 	  if (t_remain > dt) {
 	    ninside++;
-	    if (insideflag == INSIDE_ERROR) {
-	      char str[128];
-	      if (type != WALL)
-		sprintf(str,"SRD particle %d started "
-			"inside big particle %d on step %d bounce %d\n",
+	    if (insideflag == INSIDE_ERROR || insideflag == INSIDE_WARN) {
+	      char str[128],fstr[128];
+	      if (type != WALL) {
+		sprintf(fstr,"SRD particle %%d started "
+			"inside big particle %%d on step %s bounce %%d\n",
+			BIGINT_FORMAT);
+		sprintf(str,fstr,
 			atom->tag[i],atom->tag[j],update->ntimestep,ibounce+1);
-	      else
-		sprintf(str,"SRD particle %d started "
-			"inside wall %d on step %d bounce %d\n",
+	      } else {
+		sprintf(fstr,"SRD particle %%d started "
+			"inside wall %%d on step %s bounce %%d\n",
+			BIGINT_FORMAT);
+		sprintf(str,fstr,
 			atom->tag[i],j,update->ntimestep,ibounce+1);
-	      error->one(str);
-	    }
-	    if (insideflag == INSIDE_WARN) {
-	      char str[128];
-	      if (type != WALL)
-		sprintf(str,"SRD particle %d started "
-			"inside big particle %d on step %d bounce %d\n",
-			atom->tag[i],atom->tag[j],update->ntimestep,ibounce+1);
-	      else
-		sprintf(str,"SRD particle %d started "
-			"inside wall %d on step %d bounce %d\n",
-			atom->tag[i],j,update->ntimestep,ibounce+1);
+	      }
+	      if (insideflag == INSIDE_ERROR) error->one(str);
 	      error->warning(str);
 	    }
 	    break;
@@ -1300,18 +1295,14 @@ void FixSRD::collisions_multi()
 
 	  if (t_remain > dt || t_remain < 0.0) {
 	    ninside++;
-	    if (insideflag == INSIDE_ERROR) {
-	      char str[128];
-	      sprintf(str,"SRD particle %d started "
-		      "inside big particle %d on step %d bounce %d\n",
+	    if (insideflag == INSIDE_ERROR || insideflag == INSIDE_WARN) {
+	      char str[128],fstr[128];
+	      sprintf(fstr,"SRD particle %%d started "
+		      "inside big particle %%d on step %s bounce %%d\n",
+		      BIGINT_FORMAT);
+	      sprintf(str,fstr,
 		      atom->tag[i],atom->tag[j],update->ntimestep,ibounce+1);
-	      error->one(str);
-	    }
-	    if (insideflag == INSIDE_WARN) {
-	      char str[128];
-	      sprintf(str,"SRD particle %d started "
-		      "inside big particle %d on step %d bounce %d\n",
-		      atom->tag[i],atom->tag[j],update->ntimestep,ibounce+1);
+	      if (insideflag == INSIDE_ERROR) error->one(str);
 	      error->warning(str);
 	    }
 	    t_first = 0.0;
@@ -2081,8 +2072,9 @@ int FixSRD::update_srd(int i, double dt, double *xscoll, double *vsnew,
       xs[1] < srdlo[1] || xs[1] > srdhi[1] || 
       xs[2] < srdlo[2] || xs[2] > srdhi[2]) {
     printf("Bad SRD particle move\n");
-    printf("  particle %d on proc %d at timestep %d\n",
-	   atom->tag[i],me,update->ntimestep);
+    char fstr[64];
+    sprintf(fstr,"  particle %%d on proc %%d at timestep %s\n",BIGINT_FORMAT);
+    printf(fstr,atom->tag[i],me,update->ntimestep);
     printf("  xnew %g %g %g\n",xs[0],xs[1],xs[2]);
     printf("  srdlo/hi x %g %g\n",srdlo[0],srdhi[0]);
     printf("  srdlo/hi y %g %g\n",srdlo[1],srdhi[1]);

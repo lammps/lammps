@@ -19,6 +19,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "pair_gayberne_gpu.h"
+#include "lmptype.h"
 #include "math_extra.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -88,6 +89,10 @@ PairGayBerneGPU::~PairGayBerneGPU()
 
 void PairGayBerneGPU::compute(int eflag, int vflag)
 {
+  if (update->ntimestep > MAXSMALLINT)
+    error->all("Timestep too big for GPU pair style");
+  int ntimestep = update->ntimestep;
+
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
 
@@ -98,13 +103,13 @@ void PairGayBerneGPU::compute(int eflag, int vflag)
 
   if (gpu_mode == GPU_NEIGH) {
     inum = atom->nlocal;
-    gpulist = gb_gpu_compute_n(update->ntimestep, neighbor->ago, inum, nall,
+    gpulist = gb_gpu_compute_n(ntimestep, neighbor->ago, inum, nall,
 			       atom->x, atom->type, domain->sublo, domain->subhi,
 			       eflag, vflag, eflag_atom, vflag_atom, host_start,
                                cpu_time, success, atom->quat);
   } else {
     inum = list->inum;
-    olist = gb_gpu_compute(update->ntimestep, neighbor->ago, inum, nall, atom->x,
+    olist = gb_gpu_compute(ntimestep, neighbor->ago, inum, nall, atom->x,
 			   atom->type, list->ilist, list->numneigh,
 			   list->firstneigh, eflag, vflag, eflag_atom,
                            vflag_atom, host_start, cpu_time, success,

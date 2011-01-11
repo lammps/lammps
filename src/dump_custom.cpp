@@ -246,8 +246,7 @@ void DumpCustom::write_header(bigint ndump)
 
 void DumpCustom::header_binary(bigint ndump)
 {
-  bigint ntimestep = update->ntimestep;
-  fwrite(&ntimestep,sizeof(int),1,fp);
+  fwrite(&update->ntimestep,sizeof(bigint),1,fp);
   fwrite(&ndump,sizeof(bigint),1,fp);
   fwrite(&domain->triclinic,sizeof(int),1,fp);
   fwrite(&boxxlo,sizeof(double),1,fp);
@@ -267,7 +266,7 @@ void DumpCustom::header_binary(bigint ndump)
 
 void DumpCustom::header_binary_triclinic(bigint ndump)
 {
-  fwrite(&update->ntimestep,sizeof(int),1,fp);
+  fwrite(&update->ntimestep,sizeof(bigint),1,fp);
   fwrite(&ndump,sizeof(bigint),1,fp);
   fwrite(&domain->triclinic,sizeof(int),1,fp);
   fwrite(&boxxlo,sizeof(double),1,fp);
@@ -291,7 +290,7 @@ void DumpCustom::header_binary_triclinic(bigint ndump)
 void DumpCustom::header_item(bigint ndump)
 {
   fprintf(fp,"ITEM: TIMESTEP\n");
-  fprintf(fp,"%d\n",update->ntimestep);
+  fprintf(fp,BIGINT_FORMAT_NL,update->ntimestep);
   fprintf(fp,"ITEM: NUMBER OF ATOMS\n");
   fprintf(fp,BIGINT_FORMAT_NL,ndump);
   fprintf(fp,"ITEM: BOX BOUNDS\n");
@@ -306,7 +305,7 @@ void DumpCustom::header_item(bigint ndump)
 void DumpCustom::header_item_triclinic(bigint ndump)
 {
   fprintf(fp,"ITEM: TIMESTEP\n");
-  fprintf(fp,"%d\n",update->ntimestep);
+  fprintf(fp,BIGINT_FORMAT_NL,update->ntimestep);
   fprintf(fp,"ITEM: NUMBER OF ATOMS\n");
   fprintf(fp,BIGINT_FORMAT_NL,ndump);
   fprintf(fp,"ITEM: BOX BOUNDS xy xz yz\n");
@@ -344,7 +343,6 @@ int DumpCustom::count()
   // invoke Computes for per-atom quantities
 
   if (ncompute) {
-    int ntimestep = update->ntimestep;
     for (i = 0; i < ncompute; i++)
       if (!(compute[i]->invoked_flag & INVOKED_PERATOM)) {
 	compute[i]->compute_peratom();

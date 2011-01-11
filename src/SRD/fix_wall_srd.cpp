@@ -230,7 +230,7 @@ void FixWallSRD::wall_params(int flag)
 
   if (varflag) modify->clearstep_compute();
 
-  int ntimestep = update->ntimestep;
+  bigint ntimestep = update->ntimestep;
 
   for (int m = 0; m < nwall; m++) {
     if (wallstyle[m] == VARIABLE)

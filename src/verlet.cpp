@@ -188,7 +188,8 @@ void Verlet::setup_minimal(int flag)
 
 void Verlet::run(int n)
 {
-  int nflag,ntimestep,sortflag;
+  bigint ntimestep;
+  int nflag,sortflag;
 
   int n_post_integrate = modify->n_post_integrate;
   int n_pre_exchange = modify->n_pre_exchange;

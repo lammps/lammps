@@ -14,6 +14,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "fix_ave_atom.h"
+#include "lmptype.h"
 #include "atom.h"
 #include "domain.h"
 #include "update.h"
@@ -276,7 +277,7 @@ void FixAveAtom::end_of_step()
 
   // skip if not step which requires doing something
 
-  int ntimestep = update->ntimestep;
+  bigint ntimestep = update->ntimestep;
   if (ntimestep != nvalid) return;
 
   // zero if first step
@@ -435,9 +436,9 @@ int FixAveAtom::unpack_exchange(int nlocal, double *buf)
    else backup from next multiple of nfreq
 ------------------------------------------------------------------------- */
 
-int FixAveAtom::nextvalid()
+bigint FixAveAtom::nextvalid()
 {
-  int nvalid = (update->ntimestep/peratom_freq)*peratom_freq + peratom_freq;
+  bigint nvalid = (update->ntimestep/peratom_freq)*peratom_freq + peratom_freq;
   if (nvalid-peratom_freq == update->ntimestep && nrepeat == 1)
     nvalid = update->ntimestep;
   else

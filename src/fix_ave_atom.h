@@ -22,6 +22,7 @@ FixStyle(ave/atom,FixAveAtom)
 
 #include "stdio.h"
 #include "fix.h"
+#include "lmptype.h"
 
 namespace LAMMPS_NS {
 
@@ -42,13 +43,13 @@ class FixAveAtom : public Fix {
 
  private:
   int nvalues;
-  int nrepeat,nvalid,irepeat;
+  int nrepeat,irepeat;
+  bigint nvalid;
   int *which,*argindex,*value2index;
   char **ids;
-
   double **array;
 
-  int nextvalid();
+  bigint nextvalid();
 };
 
 }

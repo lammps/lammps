@@ -23,6 +23,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "min.h"
+#include "lmptype.h"
 #include "atom.h"
 #include "domain.h"
 #include "comm.h"
@@ -648,7 +649,7 @@ void Min::ev_setup()
    vflag = 5 or 6 = both global and per-atom virial
 ------------------------------------------------------------------------- */
 
-void Min::ev_set(int ntimestep)
+void Min::ev_set(bigint ntimestep)
 {
   int i,flag;
 

@@ -22,6 +22,7 @@ FixStyle(ave/time,FixAveTime)
 
 #include "stdio.h"
 #include "fix.h"
+#include "lmptype.h"
 
 namespace LAMMPS_NS {
 
@@ -39,7 +40,8 @@ class FixAveTime : public Fix {
 
  private:
   int me,nvalues;
-  int nrepeat,nfreq,nvalid,irepeat;
+  int nrepeat,nfreq,irepeat;
+  bigint nvalid;
   int *which,*argindex,*value2index,*offcol;
   char **ids;
   FILE *fp;
@@ -59,11 +61,11 @@ class FixAveTime : public Fix {
   double **array_total;
   double ***array_list;
 
-  void invoke_scalar(int);
-  void invoke_vector(int);
+  void invoke_scalar(bigint);
+  void invoke_vector(bigint);
   void options(int, char **);
   void allocate_values(int);
-  int nextvalid();
+  bigint nextvalid();
 };
 
 }

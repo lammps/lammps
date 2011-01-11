@@ -69,7 +69,7 @@ DumpDCD::DumpDCD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
   // allocate global array for atom coords
 
   bigint n = group->count(igroup);
-  if (n > MAXSMALLINT) error->all("Too many atoms for dump dcd");
+  if (n > MAXSMALLINT/sizeof(float)) error->all("Too many atoms for dump dcd");
   natoms = static_cast<int> (n);
 
   coords = (float *) memory->smalloc(3*natoms*sizeof(float),"dump:coords");
@@ -125,6 +125,8 @@ void DumpDCD::openfile()
 void DumpDCD::write_header(bigint n)
 {
   if (n != natoms) error->all("Dump dcd of non-matching # of atoms");
+  if (update->ntimestep > MAXSMALLINT)
+    error->all("Too big a timestep for dump dcd");
 
   // first time, write header for entire file
 
@@ -323,14 +325,16 @@ void DumpDCD::write_dcd_header(const char *remarks)
   time_t cur_time;
   struct tm *tmbuf;
 
+  int ntimestep = update->ntimestep;
+
   out_integer = 84;
   fwrite_int32(fp,out_integer);
   strcpy(title_string,"CORD");
   fwrite(title_string,4,1,fp);
   fwrite_int32(fp,0);                    // NFILE = # of snapshots in file
-  fwrite_int32(fp,update->ntimestep);    // START = timestep of first snapshot
+  fwrite_int32(fp,ntimestep);            // START = timestep of first snapshot
   fwrite_int32(fp,nevery_save);          // SKIP = interval between snapshots
-  fwrite_int32(fp,update->ntimestep);    // NSTEP = timestep of last snapshot
+  fwrite_int32(fp,ntimestep);            // NSTEP = timestep of last snapshot
   fwrite_int32(fp,0);			 // NAMD writes NSTEP or ISTART
   fwrite_int32(fp,0);
   fwrite_int32(fp,0);

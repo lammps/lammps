@@ -148,7 +148,7 @@ void Output::init()
 
 void Output::setup(int flag)
 {
-  int ntimestep = update->ntimestep;
+  bigint ntimestep = update->ntimestep;
 
   // perform dump at start of run if current timestep is multiple of every
   //   and last dump was not on this timestep
@@ -239,7 +239,7 @@ void Output::setup(int flag)
    do dump/restart before thermo so thermo CPU time will include them
 ------------------------------------------------------------------------- */
 
-void Output::write(int ntimestep)
+void Output::write(bigint ntimestep)
 {
   // next_dump does not force output on last step of run
   // wrap dumps that invoke computes with clear/add
@@ -273,7 +273,9 @@ void Output::write(int ntimestep)
       char *file = new char[strlen(restart1) + 16];
       char *ptr = strchr(restart1,'*');
       *ptr = '\0';
-      sprintf(file,"%s%d%s",restart1,ntimestep,ptr+1);
+      char fstr[16];
+      sprintf(fstr,"%%s%s%%s",BIGINT_FORMAT);
+      sprintf(file,fstr,restart1,ntimestep,ptr+1);
       *ptr = '*';
       restart->write(file);
       delete [] file;
@@ -316,7 +318,7 @@ void Output::write(int ntimestep)
    force a snapshot to be written for all dumps
 ------------------------------------------------------------------------- */
 
-void Output::write_dump(int ntimestep)
+void Output::write_dump(bigint ntimestep)
 {
   for (int idump = 0; idump < ndump; idump++) {
     dump[idump]->write();
@@ -328,13 +330,15 @@ void Output::write_dump(int ntimestep)
    force a restart file to be written
 ------------------------------------------------------------------------- */
 
-void Output::write_restart(int ntimestep)
+void Output::write_restart(bigint ntimestep)
 {
   if (restart_toggle == 0) {
     char *file = new char[strlen(restart1) + 16];
     char *ptr = strchr(restart1,'*');
     *ptr = '\0';
-    sprintf(file,"%s%d%s",restart1,ntimestep,ptr+1);
+    char fstr[16];
+    sprintf(fstr,"%%s%s%%s",BIGINT_FORMAT);
+    sprintf(file,fstr,restart1,ntimestep,ptr+1);
     *ptr = '*';
     restart->write(file);
     delete [] file;
@@ -373,10 +377,10 @@ void Output::add_dump(int narg, char **arg)
       memory->srealloc(dump,max_dump*sizeof(Dump *),"output:dump");
     every_dump = (int *)
       memory->srealloc(every_dump,max_dump*sizeof(int),"output:every_dump");
-    next_dump = (int *)
-      memory->srealloc(next_dump,max_dump*sizeof(int),"output:next_dump");
-    last_dump = (int *)
-      memory->srealloc(last_dump,max_dump*sizeof(int),"output:last_dump");
+    next_dump = (bigint *)
+      memory->srealloc(next_dump,max_dump*sizeof(bigint),"output:next_dump");
+    last_dump = (bigint *)
+      memory->srealloc(last_dump,max_dump*sizeof(bigint),"output:last_dump");
     var_dump = (char **)
       memory->srealloc(var_dump,max_dump*sizeof(char *),"output:var_dump");
     ivar_dump = (int *)

@@ -61,6 +61,9 @@ typedef int64_t bigint;
 #define TAGINT_FORMAT_NL "%d\n"
 #define BIGINT_FORMAT_NL "%lld\n"
 
+#define ATOTAGINT atoi
+#define ATOBIGINT atoll
+
 // for molecular problems that exceed 2 billion (2^31) atoms
 // 32-bit smallint, 64-bit tagint and bigint
 // NOTE: 64-bit tagint is not yet supported
@@ -81,6 +84,9 @@ typedef int64_t bigint;
 #define BIGINT_FORMAT "%lld"
 #define TAGINT_FORMAT_NL "%lld\n"
 #define BIGINT_FORMAT_NL "%lld\n"
+
+#define ATOTAGINT atoll
+#define ATOBIGINT atoll
 */
 
 // for machines that do not support 64-bit ints
@@ -102,6 +108,9 @@ typedef int bigint;
 #define BIGINT_FORMAT "%d"
 #define TAGINT_FORMAT_NL "%d\n"
 #define BIGINT_FORMAT_NL "%d\n"
+
+#define ATOTAGINT atoi
+#define ATOBIGINT atoi
 */
 
 }

@@ -20,6 +20,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "fix_qeq_comb.h"
+#include "lmptype.h"
 #include "atom.h"
 #include "force.h"
 #include "group.h"
@@ -171,8 +172,11 @@ void FixQEQComb::post_force(int vflag)
 
   // charge-equilibration loop
 
-  if (me == 0 && fp)
-    fprintf(fp,"Charge equilibration on step %d\n",update->ntimestep);
+  if (me == 0 && fp) {
+    char fstr[64];
+    sprintf(fstr,"Charge equilibration on step %s\n",BIGINT_FORMAT);
+    fprintf(fp,fstr,update->ntimestep);
+  }
   
   heatpq = 0.01;
   qmass = 0.06;

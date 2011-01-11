@@ -14,6 +14,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "fix_ave_histo.h"
+#include "lmptype.h"
 #include "atom.h"
 #include "update.h"
 #include "modify.h"
@@ -568,7 +569,7 @@ void FixAveHisto::end_of_step()
 
   // skip if not step which requires doing something
 
-  int ntimestep = update->ntimestep;
+  bigint ntimestep = update->ntimestep;
   if (ntimestep != nvalid) return;
 
   // zero if first step
@@ -788,8 +789,9 @@ void FixAveHisto::end_of_step()
   // output result to file
 
   if (fp && me == 0) {
-    fprintf(fp,"%d %d %g %g %g %g\n",
-	    ntimestep,nbins,
+    char fstr[32];
+    sprintf(fstr,"%s %%d %%g %%g %%g %%g\n",BIGINT_FORMAT);
+    fprintf(fp,fstr,ntimestep,nbins,
 	    stats_total[0],stats_total[1],stats_total[2],stats_total[3]);
     if (stats_total[0] != 0.0)
       for (i = 0; i < nbins; i++)
@@ -989,9 +991,9 @@ void FixAveHisto::allocate_values(int n)
    else backup from next multiple of nfreq
 ------------------------------------------------------------------------- */
 
-int FixAveHisto::nextvalid()
+bigint FixAveHisto::nextvalid()
 {
-  int nvalid = (update->ntimestep/nfreq)*nfreq + nfreq;
+  bigint nvalid = (update->ntimestep/nfreq)*nfreq + nfreq;
   if (nvalid-nfreq == update->ntimestep && nrepeat == 1)
     nvalid = update->ntimestep;
   else

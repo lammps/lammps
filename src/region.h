@@ -15,6 +15,7 @@
 #define LMP_REGION_H
 
 #include "pointers.h"
+#include "lmptype.h"
 
 namespace LAMMPS_NS {
 
@@ -60,7 +61,7 @@ class Region : protected Pointers {
   char *xstr,*ystr,*zstr,*tstr;
   int xvar,yvar,zvar,tvar;
   double dx,dy,dz,theta;
-  int laststep;
+  bigint laststep;
 
   void forward_transform(double &, double &, double &);
   void inverse_transform(double &, double &, double &);

@@ -22,6 +22,7 @@ FixStyle(ave/histo,FixAveHisto)
 
 #include "stdio.h"
 #include "fix.h"
+#include "lmptype.h"
 
 namespace LAMMPS_NS {
 
@@ -38,7 +39,8 @@ class FixAveHisto : public Fix {
 
  private:
   int me,nvalues;
-  int nrepeat,nfreq,nvalid,irepeat;
+  int nrepeat,nfreq,irepeat;
+  bigint nvalid;
   int *which,*argindex,*value2index;
   char **ids;
   FILE *fp;
@@ -65,7 +67,7 @@ class FixAveHisto : public Fix {
   void bin_atoms(double *, int);
   void options(int, char **);
   void allocate_values(int);
-  int nextvalid();
+  bigint nextvalid();
 };
 
 }

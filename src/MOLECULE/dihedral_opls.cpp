@@ -18,6 +18,7 @@
 #include "math.h"
 #include "stdlib.h"
 #include "dihedral_opls.h"
+#include "lmptype.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
@@ -164,20 +165,22 @@ void DihedralOPLS::compute(int eflag, int vflag)
     // error check
 
     if (c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE)) {
+      int me;
+      MPI_Comm_rank(world,&me);
       if (screen) {
-	char str[128];
-	sprintf(str,"Dihedral problem: %d %d %d %d %d %d",
-		comm->me,update->ntimestep,
+	char str[128],fstr[64];
+	sprintf(fstr,"Dihedral problem: %%d %s %%d %%d %%d %%d",BIGINT_FORMAT);
+	sprintf(str,fstr,me,update->ntimestep,
 		atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
 	error->warning(str,0);
 	fprintf(screen,"  1st atom: %d %g %g %g\n",
-		comm->me,x[i1][0],x[i1][1],x[i1][2]);
+		me,x[i1][0],x[i1][1],x[i1][2]);
 	fprintf(screen,"  2nd atom: %d %g %g %g\n",
-		comm->me,x[i2][0],x[i2][1],x[i2][2]);
+		me,x[i2][0],x[i2][1],x[i2][2]);
 	fprintf(screen,"  3rd atom: %d %g %g %g\n",
-		comm->me,x[i3][0],x[i3][1],x[i3][2]);
+		me,x[i3][0],x[i3][1],x[i3][2]);
 	fprintf(screen,"  4th atom: %d %g %g %g\n",
-		comm->me,x[i4][0],x[i4][1],x[i4][2]);
+		me,x[i4][0],x[i4][1],x[i4][2]);
       }
     }
     

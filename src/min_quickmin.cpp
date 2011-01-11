@@ -14,6 +14,7 @@
 #include "mpi.h"
 #include "math.h"
 #include "min_quickmin.h"
+#include "lmptype.h"
 #include "universe.h"
 #include "atom.h"
 #include "force.h"
@@ -79,12 +80,13 @@ void MinQuickMin::reset_vectors()
 
 int MinQuickMin::iterate(int maxiter)
 {
-  int ntimestep,flag,flagall;
+  bigint ntimestep;
   double vmax,vdotf,vdotfall,fdotf,fdotfall,scale;
   double dtvone,dtv,dtfm;
+  int flag,flagall;
 
   alpha_final = 0.0;
-  int last_negative = update->ntimestep;
+  bigint last_negative = update->ntimestep;
 
   for (int iter = 0; iter < maxiter; iter++) {
     ntimestep = ++update->ntimestep;

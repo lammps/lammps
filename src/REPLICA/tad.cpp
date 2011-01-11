@@ -79,7 +79,8 @@ void TAD::command(int narg, char **arg)
 
   if (domain->box_exist == 0) 
     error->all("tad command before simulation box is defined");
-  if (universe->nworlds == 1) error->all("Cannot use TAD with a single replica for NEB");
+  if (universe->nworlds == 1) 
+    error->all("Cannot use TAD with a single replica for NEB");
   if (universe->nworlds != universe->nprocs)
     error->all("Can only use TAD with 1-processor replicas for NEB");
   if (atom->sortfreq > 0)
@@ -222,11 +223,9 @@ void TAD::command(int narg, char **arg)
 
   if (me_universe == 0) {
     if (universe->uscreen) 
-      fprintf(universe->uscreen,"Step CPU Clock Event "
-	      "\n");
+      fprintf(universe->uscreen,"Step CPU Clock Event\n");
     if (universe->ulogfile) 
-      fprintf(universe->ulogfile,"Step CPU Clock Event "
-	      "\n");
+      fprintf(universe->ulogfile,"Step CPU Clock Event\n");
   }
 
   ulogfile_lammps = universe->ulogfile;
@@ -452,8 +451,8 @@ void TAD::dynamics()
 
 void TAD::quench()
 {
-  int ntimestep_hold = update->ntimestep;
-  int endstep_hold = update->endstep;
+  bigint ntimestep_hold = update->ntimestep;
+  bigint endstep_hold = update->endstep;
 
   // need to change whichflag so that minimize->setup() calling 
   // modify->setup() will call fix->min_setup()
@@ -518,14 +517,16 @@ void TAD::log_event()
 {
   timer->array[TIME_LOOP] = time_start;
   if (universe->me == 0) {
+    char fstr[32];
+    sprintf(fstr,"%s %%.3f %%.3f %%d\n",BIGINT_FORMAT);
     if (universe->uscreen)
-      fprintf(universe->uscreen,"%d %.3f %.3f %d\n",
+      fprintf(universe->uscreen,fstr,
               fix_event->event_timestep,
 	      timer->elapsed(TIME_LOOP),
 	      fix_event->tlo,
               fix_event->event_number);
     if (universe->ulogfile)
-      fprintf(universe->ulogfile,"%d %.3f %.3f %d\n",
+      fprintf(universe->ulogfile,fstr,
               fix_event->event_timestep,
 	      timer->elapsed(TIME_LOOP),
 	      fix_event->tlo,
@@ -913,7 +914,7 @@ void TAD::compute_tlo(int ievent)
   // first-replica output about each event
 
   if (universe->me == 0) {
-    char str[128];
+    char str[128],fstr[128];
     double tfrac = 0.0;
     if (ievent > 0) tfrac = delthi/deltstop;
 //     sprintf(str,
@@ -921,15 +922,14 @@ void TAD::compute_tlo(int ievent)
 // 	    ievent,ebarrier,deltlo,delthi,tfrac);
 //     error->warning(str);
 
+    sprintf(fstr,"New event: t_hi = %s ievent = %%d eb = %%g "
+	    "dt_lo = %%g dt_hi/t_stop = %%g \n",BIGINT_FORMAT);
+
     if (screen) 
-      fprintf(screen,
-	     "New event: t_hi = %d ievent = %d eb = %g dt_lo = %g dt_hi/t_stop = %g \n",
-	      fix_event_list[ievent]->event_timestep,
+      fprintf(screen,fstr,fix_event_list[ievent]->event_timestep,
 	      ievent,ebarrier,deltlo,tfrac);
     if (logfile) 
-      fprintf(logfile,
-	     "New event: t_hi = %d ievent = %d eb = %g dt_lo = %g dt_hi/t_stop = %g \n",
-	      fix_event_list[ievent]->event_timestep,
+      fprintf(logfile,fstr,fix_event_list[ievent]->event_timestep,
 	      ievent,ebarrier,deltlo,tfrac);
   }
 

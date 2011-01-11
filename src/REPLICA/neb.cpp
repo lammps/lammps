@@ -16,6 +16,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "neb.h"
+#include "lmptype.h"
 #include "universe.h"
 #include "atom.h"
 #include "update.h"
@@ -482,8 +483,10 @@ void NEB::print_status()
   }
 
   if (me_universe == 0) {
+    char fstr[32];
+    sprintf(fstr,"%s %%g %%g ",BIGINT_FORMAT);
     if (universe->uscreen) {
-      fprintf(universe->uscreen,"%d %g %g ",update->ntimestep,
+      fprintf(universe->uscreen,fstr,update->ntimestep,
 	      fmaxreplica,fmaxatom);
       fprintf(universe->uscreen,"%g %g %g ",
 	      gradvnorm0,gradvnorm1,gradvnormc);
@@ -493,7 +496,7 @@ void NEB::print_status()
       fprintf(universe->uscreen,"\n");
     }
     if (universe->ulogfile) {
-      fprintf(universe->ulogfile,"%d %g %g ",update->ntimestep,
+      fprintf(universe->ulogfile,fstr,update->ntimestep,
 	      fmaxreplica,fmaxatom);
       fprintf(universe->ulogfile,"%g %g %g ",
 	      gradvnorm0,gradvnorm1,gradvnormc);

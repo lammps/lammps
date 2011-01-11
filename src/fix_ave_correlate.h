@@ -22,6 +22,7 @@ FixStyle(ave/correlate,FixAveCorrelate)
 
 #include "stdio.h"
 #include "fix.h"
+#include "lmptype.h"
 
 namespace LAMMPS_NS {
 
@@ -37,7 +38,8 @@ class FixAveCorrelate : public Fix {
 
  private:
   int me,nvalues;
-  int nrepeat,nfreq,nvalid;
+  int nrepeat,nfreq;
+  bigint nvalid;
   int *which,*argindex,*value2index;
   char **ids;
   FILE *fp;
@@ -58,7 +60,7 @@ class FixAveCorrelate : public Fix {
   double **save_corr;
     
   void accumulate();
-  int nextvalid();
+  bigint nextvalid();
 };
 
 }

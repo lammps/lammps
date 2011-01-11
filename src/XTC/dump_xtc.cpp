@@ -68,7 +68,8 @@ DumpXTC::DumpXTC(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
   // allocate global array for atom coords
 
   bigint n = group->count(igroup);
-  if (n > MAXSMALLINT) error->all("Too many atoms for dump xtc");
+  if (n > MAXSMALLINT/3/sizeof(float)) 
+    error->all("Too many atoms for dump xtc");
   natoms = static_cast<int> (n);
 
   coords = (float *) memory->smalloc(3*natoms*sizeof(float),"dump:coords");
@@ -138,6 +139,9 @@ void DumpXTC::write_header(bigint nbig)
 {
   if (nbig > MAXSMALLINT) error->all("Too many atoms for dump xtc");
   int n = nbig;
+  if (update->ntimestep > MAXSMALLINT)
+    error->all("Too big a timestep for dump xtc");
+  int ntimestep = update->ntimestep;
 
   // all procs realloc coords if total count grew
 
@@ -154,8 +158,8 @@ void DumpXTC::write_header(bigint nbig)
   int tmp = XTC_MAGIC;
   xdr_int(&xd,&tmp);
   xdr_int(&xd,&n);
-  xdr_int(&xd,&update->ntimestep);
-  float time_value = update->ntimestep * update->dt;
+  xdr_int(&xd,&ntimestep);
+  float time_value = ntimestep * update->dt;
   xdr_float(&xd,&time_value);
 
   // cell basis vectors

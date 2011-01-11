@@ -424,7 +424,7 @@ void PRD::command(int narg, char **arg)
 
 void PRD::dephase()
 {
-  int ntimestep_hold = update->ntimestep;
+  bigint ntimestep_hold = update->ntimestep;
 
   update->whichflag = 1;
   update->nsteps = n_dephase*t_dephase;
@@ -486,8 +486,8 @@ void PRD::dynamics()
 
 void PRD::quench()
 {
-  int ntimestep_hold = update->ntimestep;
-  int endstep_hold = update->endstep;
+  bigint ntimestep_hold = update->ntimestep;
+  bigint endstep_hold = update->endstep;
 
   // need to change whichflag so that minimize->setup() calling 
   // modify->setup() will call fix->min_setup()
@@ -649,8 +649,10 @@ void PRD::log_event()
 {
   timer->array[TIME_LOOP] = time_start;
   if (universe->me == 0) {
+    char fstr[32];
+    sprintf(fstr,"%s %%.3f %%d %%d %%d %%d %%d\n",BIGINT_FORMAT);
     if (universe->uscreen)
-      fprintf(universe->uscreen,"%d %.3f %d %d %d %d %d\n",
+      fprintf(universe->uscreen,fstr,
               fix_event->event_timestep,
 	      timer->elapsed(TIME_LOOP),
 	      fix_event->clock,
@@ -658,7 +660,7 @@ void PRD::log_event()
 	      fix_event->ncoincident,
               fix_event->replica_number);
     if (universe->ulogfile)
-      fprintf(universe->ulogfile,"%d %.3f %d %d %d %d %d\n",
+      fprintf(universe->ulogfile,fstr,
               fix_event->event_timestep,
 	      timer->elapsed(TIME_LOOP),
 	      fix_event->clock,

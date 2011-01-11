@@ -86,7 +86,9 @@ void WriteRestart::command(int narg, char **arg)
 
   if (ptr = strchr(arg[0],'*')) {
     *ptr = '\0';
-    sprintf(file,"%s%d%s",arg[0],update->ntimestep,ptr+1);
+    char fstr[16];
+    sprintf(fstr,"%%s%s%%s",BIGINT_FORMAT);
+    sprintf(file,fstr,arg[0],update->ntimestep,ptr+1);
   } else strcpy(file,arg[0]);
 
   // init entire system since comm->exchange is done
@@ -300,9 +302,7 @@ void WriteRestart::header()
   write_int(TAGINT,sizeof(tagint));
   write_int(BIGINT,sizeof(bigint));
   write_char(UNITS,update->unit_style);
-  // placeholder until ntimestep is 8-byte
-  bigint ntimestep = update->ntimestep;
-  write_bigint(NTIMESTEP,ntimestep);
+  write_bigint(NTIMESTEP,update->ntimestep);
   write_int(DIMENSION,domain->dimension);
   write_int(NPROCS,nprocs);
   write_int(PROCGRID_0,comm->procgrid[0]);

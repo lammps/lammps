@@ -19,8 +19,8 @@
 #include "math.h"
 #include "stdlib.h"
 #include "string.h"
-#include "limits.h"
 #include "neighbor.h"
+#include "lmptype.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "atom.h"
@@ -283,6 +283,13 @@ void Neighbor::init()
   else special_flag[3] = 2;
 
   if (force->kspace) special_flag[1] = special_flag[2] = special_flag[3] = 2;
+
+  // maxwt = max multiplicative factor on atom indices stored in neigh list
+
+  maxwt = 0;
+  if (special_flag[1] == 2) maxwt = 2;
+  if (special_flag[2] == 2) maxwt = 3;
+  if (special_flag[3] == 2) maxwt = 4;
 
   // rRESPA cutoffs
 
@@ -1060,6 +1067,14 @@ void Neighbor::build()
     bins = (int *) memory->smalloc(maxbin*sizeof(int),"bins");
   }
 
+  // check that pairwise lists with special bond weighting will not overflow
+
+  if (atom->molecular && maxwt && nblist) {
+    bigint max = maxwt * static_cast<bigint> (atom->nlocal + atom->nghost);
+    if (max > MAXSMALLINT)
+      error->one("Weighted neighbor list values are too big");
+  }
+
   // invoke building of pair and molecular neighbor lists
   // only for pairwise lists with buildflag set
 
@@ -1176,8 +1191,8 @@ void Neighbor::setup_bins()
 
   // test for too many global bins in any dimension due to huge global domain
 
-  if (bbox[0]*binsizeinv > INT_MAX || bbox[1]*binsizeinv > INT_MAX ||
-      bbox[2]*binsizeinv > INT_MAX)
+  if (bbox[0]*binsizeinv > MAXSMALLINT || bbox[1]*binsizeinv > MAXSMALLINT ||
+      bbox[2]*binsizeinv > MAXSMALLINT)
     error->all("Domain too large for neighbor bins");
 
   // create actual bins
@@ -1259,9 +1274,9 @@ void Neighbor::setup_bins()
 
   // memory for bin ptrs
 
-  if (1.0*mbinx*mbiny*mbinz > INT_MAX) error->one("Too many neighbor bins");
-
-  mbins = mbinx*mbiny*mbinz;
+  bigint bbin = mbinx*mbiny*mbinz;
+  if (bbin > MAXSMALLINT) error->one("Too many neighbor bins");
+  mbins = bbin;
   if (mbins > maxhead) {
     maxhead = mbins;
     memory->sfree(binhead);

@@ -223,7 +223,7 @@ void Velocity::create(double t_desired, int seed)
 
     // error check
 
-    if (atom->natoms > MAXINT32)
+    if (atom->natoms > MAXSMALLINT)
       error->all("Too big a problem to use velocity create loop all");
     if (atom->tag_enable == 0)
       error->all("Cannot use velocity create loop all unless atoms have IDs");

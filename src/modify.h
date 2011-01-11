@@ -16,6 +16,7 @@
 
 #include "stdio.h"
 #include "pointers.h"
+#include "lmptype.h"
 
 namespace LAMMPS_NS {
 
@@ -88,8 +89,8 @@ class Modify : protected Pointers {
   void delete_compute(char *);
   int find_compute(char *);
   void clearstep_compute();
-  void addstep_compute(int);
-  void addstep_compute_all(int);
+  void addstep_compute(bigint);
+  void addstep_compute_all(bigint);
 
   void write_restart(FILE *);
   int read_restart(FILE *);

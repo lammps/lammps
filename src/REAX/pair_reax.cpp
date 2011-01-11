@@ -490,8 +490,8 @@ void PairREAX::settings(int narg, char **arg)
   
   if (narg == 4) {
     hbcut = force->numeric(arg[0]);
-    ihbnew = force->numeric(arg[1]);
-    itripstaball = force->numeric(arg[2]);
+    ihbnew = static_cast<int> (force->numeric(arg[1]));
+    itripstaball = static_cast<int> (force->numeric(arg[2]));
     precision = force->numeric(arg[3]);
 
     if (hbcut <= 0.0 || 

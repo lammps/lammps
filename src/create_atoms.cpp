@@ -169,15 +169,19 @@ void CreateAtoms::command(int narg, char **arg)
   // new total # of atoms
 
   bigint nblocal = atom->nlocal;
-  MPI_Allreduce(&nblocal,&atom->natoms,1,MPI_UNSIGNED_LONG_LONG,MPI_SUM,world);
+  MPI_Allreduce(&nblocal,&atom->natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  if (atom->natoms < 0 || atom->natoms > MAXBIGINT)
+    error->all("Too many total atoms");
 
   // print status
 
   if (comm->me == 0) {
+    char str[32];
+    sprintf(str,"Created %s atoms\n",BIGINT_FORMAT);
     if (screen)
-      fprintf(screen,"Created %lu atoms\n",atom->natoms-natoms_previous);
+      fprintf(screen,str,atom->natoms-natoms_previous);
     if (logfile)
-      fprintf(logfile,"Created %lu atoms\n",atom->natoms-natoms_previous);
+      fprintf(logfile,str,atom->natoms-natoms_previous);
   }
 
   // reset simulation now that more atoms are defined
@@ -185,8 +189,8 @@ void CreateAtoms::command(int narg, char **arg)
   // if global map exists, reset it
   // if a molecular system, set nspecial to 0 for new atoms
 
-  if (atom->natoms > MAXINT32) atom->tag_enable = 0;
-  if (atom->natoms <= MAXINT32) atom->tag_extend();
+  if (atom->natoms > MAXTAGINT) atom->tag_enable = 0;
+  if (atom->natoms <= MAXTAGINT) atom->tag_extend();
 
   if (atom->map_style) {
     atom->nghost = 0;

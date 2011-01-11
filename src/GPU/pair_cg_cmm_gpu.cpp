@@ -19,6 +19,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "pair_cg_cmm_gpu.h"
+#include "lmptype.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "comm.h"
@@ -83,6 +84,10 @@ PairCGCMMGPU::~PairCGCMMGPU()
 
 void PairCGCMMGPU::compute(int eflag, int vflag)
 {
+  if (update->ntimestep > MAXSMALLINT)
+    error->all("Timestep too big for GPU pair style");
+  int ntimestep = update->ntimestep;
+
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
   
@@ -93,14 +98,14 @@ void PairCGCMMGPU::compute(int eflag, int vflag)
   
   if (gpu_mode == GPU_NEIGH) {
     inum = atom->nlocal;
-    gpulist = cmm_gpu_compute_n(update->ntimestep, neighbor->ago, inum, nall,
+    gpulist = cmm_gpu_compute_n(ntimestep, neighbor->ago, inum, nall,
 			        atom->x, atom->type, domain->sublo,
 				domain->subhi, atom->tag, atom->nspecial,
                                 atom->special, eflag, vflag, eflag_atom,
                                 vflag_atom, host_start, cpu_time, success);
   } else {
     inum = list->inum;
-    cmm_gpu_compute(update->ntimestep, neighbor->ago, inum, nall, atom->x,
+    cmm_gpu_compute(ntimestep, neighbor->ago, inum, nall, atom->x,
 		    atom->type, list->ilist, list->numneigh, list->firstneigh,
 		    eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time,
                     success);

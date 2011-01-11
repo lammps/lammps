@@ -19,6 +19,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "pair_lj_cut_coul_cut_gpu.h"
+#include "lmptype.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "comm.h"
@@ -84,6 +85,10 @@ PairLJCutCoulCutGPU::~PairLJCutCoulCutGPU()
 
 void PairLJCutCoulCutGPU::compute(int eflag, int vflag)
 {
+  if (update->ntimestep > MAXSMALLINT)
+    error->all("Timestep too big for GPU pair style");
+  int ntimestep = update->ntimestep;
+
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
   
@@ -94,7 +99,7 @@ void PairLJCutCoulCutGPU::compute(int eflag, int vflag)
   
   if (gpu_mode == GPU_NEIGH) {
     inum = atom->nlocal;
-    gpulist = ljc_gpu_compute_n(update->ntimestep, neighbor->ago, inum, nall,
+    gpulist = ljc_gpu_compute_n(ntimestep, neighbor->ago, inum, nall,
 			        atom->x, atom->type, domain->sublo,
 				domain->subhi, atom->tag, atom->nspecial,
                                 atom->special, eflag, vflag, eflag_atom,
@@ -102,7 +107,7 @@ void PairLJCutCoulCutGPU::compute(int eflag, int vflag)
                                 atom->q);
   } else {
     inum = list->inum;
-    ljc_gpu_compute(update->ntimestep, neighbor->ago, inum, nall, atom->x,
+    ljc_gpu_compute(ntimestep, neighbor->ago, inum, nall, atom->x,
 		    atom->type, list->ilist, list->numneigh, list->firstneigh,
 		    eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time,
                     success, atom->q);

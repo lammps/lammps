@@ -184,10 +184,12 @@ void DumpCFG::init_style()
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCFG::write_header(int n)
+void DumpCFG::write_header(bigint n)
 {
   if (me == 0 || multiproc) {
-    fprintf(fp,"Number of particles = %d\n", n);
+    char str[64];
+    sprintf(str,"Number of particles = %s\n",BIGINT_FORMAT);
+    fprintf(fp,str,n);
     fprintf(fp,"A = 1.0 Angstrom (basic length-scale)\n");
     fprintf(fp,"H0(1,1) = %g A\n",domain->xprd);
     fprintf(fp,"H0(1,2) = 0 A \n");

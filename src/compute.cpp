@@ -16,6 +16,7 @@
 #include "string.h"
 #include "ctype.h"
 #include "compute.h"
+#include "lmptype.h"
 #include "atom.h"
 #include "domain.h"
 #include "comm.h"
@@ -147,7 +148,7 @@ void Compute::reset_extra_compute_fix(char *)
    search from top downward, since list of times is in decreasing order
 ------------------------------------------------------------------------- */
 
-void Compute::addstep(int ntimestep)
+void Compute::addstep(bigint ntimestep)
 {
   // i = location in list to insert ntimestep
 
@@ -162,8 +163,8 @@ void Compute::addstep(int ntimestep)
 
   if (ntime == maxtime) {
     maxtime += DELTA;
-    tlist = (int *)
-      memory->srealloc(tlist,maxtime*sizeof(int),"compute:tlist");
+    tlist = (bigint *)
+      memory->srealloc(tlist,maxtime*sizeof(bigint),"compute:tlist");
   }
 
   // move remainder of list upward and insert ntimestep
@@ -179,7 +180,7 @@ void Compute::addstep(int ntimestep)
    search from top downward, since list of times is in decreasing order
 ------------------------------------------------------------------------- */
 
-int Compute::matchstep(int ntimestep)
+int Compute::matchstep(bigint ntimestep)
 {
   for (int i = ntime-1; i >= 0; i--) {
     if (ntimestep < tlist[i]) return 0;

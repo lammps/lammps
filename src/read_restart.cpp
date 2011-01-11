@@ -43,7 +43,8 @@ using namespace LAMMPS_NS;
 
 // same as write_restart.cpp
 
-enum{VERSION,UNITS,NTIMESTEP,DIMENSION,NPROCS,PROCGRID_0,PROCGRID_1,PROCGRID_2,
+enum{VERSION,SMALLINT,TAGINT,BIGINT,
+       UNITS,NTIMESTEP,DIMENSION,NPROCS,PROCGRID_0,PROCGRID_1,PROCGRID_2,
        NEWTON_PAIR,NEWTON_BOND,XPERIODIC,YPERIODIC,ZPERIODIC,
        BOUNDARY_00,BOUNDARY_01,BOUNDARY_10,BOUNDARY_11,BOUNDARY_20,BOUNDARY_21,
        ATOM_STYLE,NATOMS,NTYPES,
@@ -257,7 +258,9 @@ void ReadRestart::command(int narg, char **arg)
 
     // move atoms to new processors via irregular()
     // in case read by different proc than wrote restart file
+    // first do map_init() since irregular->migrate_atoms() will do map_clear()
 
+    if (atom->map_style) atom->map_init();
     if (domain->triclinic) domain->x2lamda(atom->nlocal);
     Irregular *irregular = new Irregular(lmp);
     irregular->migrate_atoms();
@@ -293,31 +296,41 @@ void ReadRestart::command(int narg, char **arg)
 
   bigint natoms;
   bigint nblocal = atom->nlocal;
-  MPI_Allreduce(&nblocal,&natoms,1,MPI_UNSIGNED_LONG_LONG,MPI_SUM,world);
+  MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
 
   if (me == 0) {
-    if (screen) fprintf(screen,"  %lu atoms\n",natoms);
-    if (logfile) fprintf(logfile,"  %lu atoms\n",natoms);
+    char str[32];
+    sprintf(str,"  %s atoms\n",BIGINT_FORMAT);
+    if (screen) fprintf(screen,str,natoms);
+    if (logfile) fprintf(logfile,str,natoms);
   }
 
   if (natoms != atom->natoms) error->all("Did not assign all atoms correctly");
 
   if (me == 0) {
     if (atom->nbonds) {
-      if (screen) fprintf(screen,"  %lu bonds\n",atom->nbonds);
-      if (logfile) fprintf(logfile,"  %lu bonds\n",atom->nbonds);
+      char str[32];
+      sprintf(str,"  %s bonds\n",BIGINT_FORMAT);
+      if (screen) fprintf(screen,str,atom->nbonds);
+      if (logfile) fprintf(logfile,str,atom->nbonds);
     }
     if (atom->nangles) {
-      if (screen) fprintf(screen,"  %lu angles\n",atom->nangles);
-      if (logfile) fprintf(logfile,"  %lu angles\n",atom->nangles);
+      char str[32];
+      sprintf(str,"  %s angles\n",BIGINT_FORMAT);
+      if (screen) fprintf(screen,str,atom->nangles);
+      if (logfile) fprintf(logfile,str,atom->nangles);
     }
     if (atom->ndihedrals) {
-      if (screen) fprintf(screen,"  %lu dihedrals\n",atom->ndihedrals);
-      if (logfile) fprintf(logfile,"  %lu dihedrals\n",atom->ndihedrals);
+      char str[32];
+      sprintf(str,"  %s dihedrals\n",BIGINT_FORMAT);
+      if (screen) fprintf(screen,str,atom->ndihedrals);
+      if (logfile) fprintf(logfile,str,atom->ndihedrals);
     }
     if (atom->nimpropers) {
-      if (screen) fprintf(screen,"  %lu impropers\n",atom->nimpropers);
-      if (logfile) fprintf(logfile,"  %lu impropers\n",atom->nimpropers);
+      char str[32];
+      sprintf(str,"  %s impropers\n",BIGINT_FORMAT);
+      if (screen) fprintf(screen,str,atom->nimpropers);
+      if (logfile) fprintf(logfile,str,atom->nimpropers);
     }
   }
 
@@ -455,6 +468,21 @@ void ReadRestart::header()
 			    version,universe->version);
       }
       delete [] version;
+      
+      // check lmptype.h sizes, error if different
+
+    } else if (flag == SMALLINT) {
+      int size = read_int();
+      if (size != sizeof(smallint))
+	error->all("Smallint setting in lmptype.h is not compatible");
+    } else if (flag == TAGINT) {
+      int size = read_int();
+      if (size != sizeof(tagint))
+	error->all("Tagint setting in lmptype.h is not compatible");
+    } else if (flag == BIGINT) {
+      int size = read_int();
+      if (size != sizeof(bigint))
+	error->all("Bigint setting in lmptype.h is not compatible");
 
       // reset unit_style only if different
       // so that timestep,neighbor-skin are not changed
@@ -465,7 +493,7 @@ void ReadRestart::header()
       delete [] style;
 
     } else if (flag == NTIMESTEP) {
-      update->ntimestep = read_int();
+      update->ntimestep = read_bigint();
 
       // set dimension from restart file
 
@@ -819,6 +847,6 @@ bigint ReadRestart::read_bigint()
 {
   bigint value;
   if (me == 0) fread(&value,sizeof(bigint),1,fp);
-  MPI_Bcast(&value,1,MPI_UNSIGNED_LONG_LONG,0,world);
+  MPI_Bcast(&value,1,MPI_LMP_BIGINT,0,world);
   return value;
 }

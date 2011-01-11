@@ -35,9 +35,16 @@
 
 #define MAX_GROUP 32
 
+// these should match settings in src/lmptype.h
+
+typedef int tagint;
+typedef int64_t bigint;
+#define BIGINT_FORMAT "%lld"
+
 // same as write_restart.cpp
 
-enum{VERSION,UNITS,NTIMESTEP,DIMENSION,NPROCS,PROCGRID_0,PROCGRID_1,PROCGRID_2,
+enum{VERSION,SMALLINT,TAGINT,BIGINT,
+       UNITS,NTIMESTEP,DIMENSION,NPROCS,PROCGRID_0,PROCGRID_1,PROCGRID_2,
        NEWTON_PAIR,NEWTON_BOND,XPERIODIC,YPERIODIC,ZPERIODIC,
        BOUNDARY_00,BOUNDARY_01,BOUNDARY_10,BOUNDARY_11,BOUNDARY_20,BOUNDARY_21,
        ATOM_STYLE,NATOMS,NTYPES,
@@ -65,7 +72,8 @@ class Data {
   // global settings
 
   char *version;
-  int ntimestep;
+  int size_smallint,size_tagint,size_bigint;
+  bigint ntimestep;
   int nprocs;
   char *unit_style;
   int dimension;
@@ -79,8 +87,8 @@ class Data {
   int style_ellipsoid,style_full,style_granular;
   int style_hybrid,style_molecular,style_peri;
 
-  uint64_t natoms;
-  uint64_t nbonds,nangles,ndihedrals,nimpropers;
+  bigint natoms;
+  bigint nbonds,nangles,ndihedrals,nimpropers;
   int ntypes,nbondtypes,nangletypes,ndihedraltypes,nimpropertypes;
   int bond_per_atom,angle_per_atom,dihedral_per_atom,improper_per_atom;
   int triclinic;
@@ -183,7 +191,8 @@ class Data {
   double *mass,*shape,*dipole;
   double *x,*y,*z,*vx,*vy,*vz;
   double *omegax,*omegay,*omegaz;
-  int *tag,*type,*mask,*image;
+  tagint *tag;
+  int *type,*mask,*image;
   int *molecule;
   double *q,*mux,*muy,*muz,*radius,*density,*vfrac,*rmass;
   double *s0,*x0x,*x0y,*x0z;
@@ -287,7 +296,7 @@ int atom_peri(double *, Data &, int);
 int read_int(FILE *fp);
 double read_double(FILE *fp);
 char *read_char(FILE *fp);
-uint64_t read_uint64(FILE *fp);
+bigint read_bigint(FILE *fp);
 
 // ---------------------------------------------------------------------
 // main program
@@ -332,6 +341,14 @@ int main (int argc, char **argv)
   Data data;
 
   header(fp,data);
+  if (data.size_smallint != sizeof(int) || 
+      data.size_tagint != sizeof(tagint) || 
+      data.size_bigint != sizeof(bigint)) {
+    printf("ERROR: Data type sizes in restart file "
+	   "are incompatible with restart2data.cpp\n");
+    return 1;
+  }
+
   groups(fp);
   type_arrays(fp,data);
   force_fields(fp,data);
@@ -434,8 +451,11 @@ void header(FILE *fp, Data &data)
 	printf("  restart2data version = %s\n",version);
       }
     }
+    else if (flag == SMALLINT) data.size_smallint = read_int(fp);
+    else if (flag == TAGINT) data.size_tagint = read_int(fp);
+    else if (flag == BIGINT) data.size_bigint = read_int(fp);
     else if (flag == UNITS) data.unit_style = read_char(fp);
-    else if (flag == NTIMESTEP) data.ntimestep = read_int(fp);
+    else if (flag == NTIMESTEP) data.ntimestep = read_bigint(fp);
     else if (flag == DIMENSION) data.dimension = read_int(fp);
     else if (flag == NPROCS) data.nprocs = read_int(fp);
     else if (flag == PROCGRID_0) data.px = read_int(fp);
@@ -478,18 +498,18 @@ void header(FILE *fp, Data &data)
       }
     }
 
-    else if (flag == NATOMS) data.natoms = read_uint64(fp);
+    else if (flag == NATOMS) data.natoms = read_bigint(fp);
     else if (flag == NTYPES) data.ntypes = read_int(fp);
-    else if (flag == NBONDS) data.nbonds = read_uint64(fp);
+    else if (flag == NBONDS) data.nbonds = read_bigint(fp);
     else if (flag == NBONDTYPES) data.nbondtypes = read_int(fp);
     else if (flag == BOND_PER_ATOM) data.bond_per_atom = read_int(fp);
-    else if (flag == NANGLES) data.nangles = read_uint64(fp);
+    else if (flag == NANGLES) data.nangles = read_bigint(fp);
     else if (flag == NANGLETYPES) data.nangletypes = read_int(fp);
     else if (flag == ANGLE_PER_ATOM) data.angle_per_atom = read_int(fp);
-    else if (flag == NDIHEDRALS) data.ndihedrals = read_uint64(fp);
+    else if (flag == NDIHEDRALS) data.ndihedrals = read_bigint(fp);
     else if (flag == NDIHEDRALTYPES) data.ndihedraltypes = read_int(fp);
     else if (flag == DIHEDRAL_PER_ATOM) data.dihedral_per_atom = read_int(fp);
-    else if (flag == NIMPROPERS) data.nimpropers = read_uint64(fp);
+    else if (flag == NIMPROPERS) data.nimpropers = read_bigint(fp);
     else if (flag == NIMPROPERTYPES) data.nimpropertypes = read_int(fp);
     else if (flag == IMPROPER_PER_ATOM) data.improper_per_atom = read_int(fp);
     else if (flag == BOXLO_0) data.xlo = read_double(fp);
@@ -2596,14 +2616,25 @@ Data::Data() {}
 
 void Data::stats()
 {
+  char fstr[64];
+
   printf("  Restart file version = %s\n",version);
-  printf("  Ntimestep = %d\n",ntimestep);
+  sprintf(fstr,"  Ntimestep = %s\n",BIGINT_FORMAT);
+  printf(fstr,ntimestep);
+
   printf("  Nprocs = %d\n",nprocs);
-  printf("  Natoms = %lu\n",natoms);
-  printf("  Nbonds = %lu\n",nbonds);
-  printf("  Nangles = %lu\n",nangles);
-  printf("  Ndihedrals = %lu\n",ndihedrals);
-  printf("  Nimpropers = %lu\n",nimpropers);
+
+  sprintf(fstr,"  Natoms = %s\n",BIGINT_FORMAT);
+  printf(fstr,natoms);
+  sprintf(fstr,"  Nbonds = %s\n",BIGINT_FORMAT);
+  printf(fstr,nbonds);
+  sprintf(fstr,"  Nangles = %s\n",BIGINT_FORMAT);
+  printf(fstr,nangles);
+  sprintf(fstr,"  Ndihedrals = %s\n",BIGINT_FORMAT);
+  printf(fstr,ndihedrals);
+  sprintf(fstr,"  Nimpropers = %s\n",BIGINT_FORMAT);
+  printf(fstr,nimpropers);
+
   printf("  Unit style = %s\n",unit_style);
   printf("  Atom style = %s\n",atom_style);
   printf("  Pair style = %s\n",pair_style);
@@ -2621,21 +2652,36 @@ void Data::stats()
 }
 
 // ---------------------------------------------------------------------
-// write the data file
+// write the data file and input file
 // ---------------------------------------------------------------------
 
 void Data::write(FILE *fp, FILE *fp2)
 {
-  fprintf(fp,"LAMMPS data file from restart file: timestep = %d, procs = %d\n",
-	  ntimestep,nprocs);
-
+  char fstr[128];
+  sprintf(fstr,
+	  "LAMMPS data file from restart file: timestep = %s, procs = %%d\n",
+	  BIGINT_FORMAT);
+  fprintf(fp,fstr,ntimestep,nprocs);
   fprintf(fp,"\n");
 
-  fprintf(fp,"%lu atoms\n",natoms);
-  if (nbonds) fprintf(fp,"%lu bonds\n",nbonds);
-  if (nangles) fprintf(fp,"%lu angles\n",nangles);
-  if (ndihedrals) fprintf(fp,"%lu dihedrals\n",ndihedrals);
-  if (nimpropers) fprintf(fp,"%lu impropers\n",nimpropers);
+  sprintf(fstr,"%s atoms\n",BIGINT_FORMAT);
+  fprintf(fp,fstr,natoms);
+  if (nbonds) {
+    sprintf(fstr,"%s bonds\n",BIGINT_FORMAT);
+    fprintf(fp,fstr,nbonds);
+  }
+  if (nangles) {
+    sprintf(fstr,"%s angles\n",BIGINT_FORMAT);
+    fprintf(fp,fstr,nangles);
+  }
+  if (ndihedrals) {
+    sprintf(fstr,"%s dihedrals\n",BIGINT_FORMAT);
+    fprintf(fp,fstr,ndihedrals);
+  }
+  if (nimpropers) {
+    sprintf(fstr,"%s impropers\n",BIGINT_FORMAT);
+    fprintf(fp,fstr,nimpropers);
+  }
 
   fprintf(fp,"\n");
 
@@ -2655,8 +2701,12 @@ void Data::write(FILE *fp, FILE *fp2)
   // write ff styles to input file
 
   if (fp2) {
-    fprintf(fp2,"# LAMMPS input file from restart file: timestep = %d, procs = %d\n\n",
-	  ntimestep,nprocs);
+    sprintf(fstr,
+	    "# LAMMPS input file from restart file: "
+	    "timestep = %s, procs = %%d\n\n",
+	    BIGINT_FORMAT);
+    fprintf(fp2,fstr,ntimestep,nprocs);
+
     if (pair_style) fprintf(fp2,"pair_style %s\n",pair_style);
     if (bond_style) fprintf(fp2,"bond_style %s\n",bond_style);
     if (angle_style) fprintf(fp2,"angle_style %s\n",angle_style);
@@ -3484,10 +3534,9 @@ char *read_char(FILE *fp)
   return value;
 }
 
-uint64_t read_uint64(FILE *fp)
+bigint read_bigint(FILE *fp)
 {
-  uint64_t value;
-  fread(&value,sizeof(uint64_t),1,fp);
+  bigint value;
+  fread(&value,sizeof(bigint),1,fp);
   return value;
 }
-

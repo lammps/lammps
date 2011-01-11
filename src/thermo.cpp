@@ -133,14 +133,18 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   // format strings
 
-  format_multi = (char *) "---------------- Step %8d ----- "
-                          "CPU = %11.4f (sec) ----------------";
+  char *bigint_format = BIGINT_FORMAT;
+  char *fformat_multi = (char *) "---------------- Step %%8%s ----- "
+    "CPU = %%11.4f (sec) ----------------";
+
+  sprintf(format_multi,fformat_multi,&bigint_format[1]);
   format_float_one_def = (char *) "%12.8g";
   format_float_multi_def = (char *) "%14.4f";
   format_int_one_def = (char *) "%8d";
   format_int_multi_def = (char *) "%14d";
-  format_bigint_one_def = (char *) "%8lu";
-  format_bigint_multi_def = (char *) "%14lu";
+  sprintf(format_bigint_one_def,"%%8%s",&bigint_format[1]);
+  sprintf(format_bigint_multi_def,"%%14%s",&bigint_format[1]);
+
   format_float_user = NULL;
   format_int_user = NULL;
   format_bigint_user = NULL;
@@ -276,7 +280,7 @@ void Thermo::compute(int flag)
   int i;
 
   firststep = flag;
-  int ntimestep = update->ntimestep;
+  bigint ntimestep = update->ntimestep;
 
   // check for lost atoms
   // turn off normflag if natoms = 0 to avoid divide by 0
@@ -353,7 +357,8 @@ bigint Thermo::lost_check()
 
   bigint ntotal;
   bigint nblocal = atom->nlocal;
-  MPI_Allreduce(&nblocal,&ntotal,1,MPI_UNSIGNED_LONG_LONG,MPI_SUM,world);
+  MPI_Allreduce(&nblocal,&ntotal,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  if (ntotal < 0 || ntotal > MAXBIGINT) error->all("Too many total atoms");
   if (ntotal == atom->natoms) return ntotal;
 
   // if not checking or already warned, just return
@@ -364,15 +369,19 @@ bigint Thermo::lost_check()
   // error message
 
   if (lostflag == ERROR) {
-    char str[128];
-    sprintf(str,"Lost atoms: original %lu current %lu",atom->natoms,ntotal);
+    char fstr[64],str[64];
+    sprintf(fstr,
+	    "Lost atoms: original %s current %s",BIGINT_FORMAT,BIGINT_FORMAT);
+    sprintf(str,fstr,atom->natoms,ntotal);
     error->all(str);
   }
 
   // warning message
 
-  char str[128];
-  sprintf(str,"Lost atoms: original %lu current %lu",atom->natoms,ntotal);
+  char fstr[64],str[64];
+  sprintf(fstr,
+	  "Lost atoms: original %s current %s",BIGINT_FORMAT,BIGINT_FORMAT);
+  sprintf(str,fstr,atom->natoms,ntotal);
   if (me == 0) error->warning(str,0);
   lostbefore = 1;
   return ntotal;
@@ -499,13 +508,14 @@ void Thermo::modify_params(int narg, char **arg)
 	format_int_user = new char[n];
 	strcpy(format_int_user,arg[iarg+2]);
 	if (format_bigint_user) delete [] format_bigint_user;
-	n = strlen(format_int_user) + 2;
+	n = strlen(format_int_user) + 3;
 	format_bigint_user = new char[n];
 	char *ptr = strchr(format_int_user,'d');
 	if (ptr == NULL) 
 	  error->all("Thermo_modify int format does not contain d character");
 	*ptr = '\0';
-	sprintf(format_bigint_user,"%s%s%s",format_int_user,"lu",ptr+1);
+	sprintf(format_bigint_user,"%s%s%s",format_int_user,
+		BIGINT_FORMAT,ptr+1);
 	*ptr = 'd';
       } else if (strcmp(arg[iarg+1],"float") == 0) {
 	if (format_float_user) delete [] format_float_user;
@@ -618,11 +628,11 @@ void Thermo::parse_fields(char *str)
   while (word) {
 
     if (strcmp(word,"step") == 0) {
-      addfield("Step",&Thermo::compute_step,INT);
+      addfield("Step",&Thermo::compute_step,BIGINT);
     } else if (strcmp(word,"elapsed") == 0) {
-      addfield("Elapsed",&Thermo::compute_elapsed,INT);
+      addfield("Elapsed",&Thermo::compute_elapsed,BIGINT);
     } else if (strcmp(word,"elaplong") == 0) {
-      addfield("Elaplong",&Thermo::compute_elapsed_long,INT);
+      addfield("Elaplong",&Thermo::compute_elapsed_long,BIGINT);
     } else if (strcmp(word,"dt") == 0) {
       addfield("Dt",&Thermo::compute_dt,FLOAT);
     } else if (strcmp(word,"cpu") == 0) {
@@ -931,7 +941,6 @@ int Thermo::evaluate_keyword(char *word, double *answer)
 
   if (strcmp(word,"step") == 0) {
     compute_step();
-    dvalue = ivalue;
 
   } else if (strcmp(word,"elapsed") == 0) {
     if (update->whichflag == 0) 
@@ -1345,27 +1354,27 @@ void Thermo::compute_variable()
    one method for every keyword thermo can output
    called by compute() or evaluate_keyword()
    compute will have already been called
-   set ivalue/dvalue if value is integer/double
+   set ivalue/dvalue/bivalue if value is int/double/bigint
    customize a new keyword by adding a method
 ------------------------------------------------------------------------- */
 
 void Thermo::compute_step()
 {
-  ivalue = update->ntimestep;
+  bivalue = update->ntimestep;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void Thermo::compute_elapsed()
 {
-  ivalue = update->ntimestep - update->firststep;
+  bivalue = update->ntimestep - update->firststep;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void Thermo::compute_elapsed_long()
 {
-  ivalue = update->ntimestep - update->beginstep;
+  bivalue = update->ntimestep - update->beginstep;
 }
 
 /* ---------------------------------------------------------------------- */

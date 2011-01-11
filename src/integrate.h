@@ -15,6 +15,7 @@
 #define LMP_INTEGRATE_H
 
 #include "pointers.h"
+#include "lmptype.h"
 
 namespace LAMMPS_NS {
 
@@ -42,7 +43,7 @@ class Integrate : protected Pointers {
   class Compute **vlist_atom;
 
   void ev_setup();
-  void ev_set(int);
+  void ev_set(bigint);
 };
 
 }

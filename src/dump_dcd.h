@@ -40,7 +40,7 @@ class DumpDCD : public Dump {
 
   void init_style();
   void openfile();
-  void write_header(int);
+  void write_header(bigint);
   int count();
   void pack(int *);
   void write_data(int, double *);

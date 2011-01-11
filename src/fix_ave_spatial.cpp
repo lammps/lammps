@@ -18,6 +18,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "fix_ave_spatial.h"
+#include "lmptype.h"
 #include "atom.h"
 #include "update.h"
 #include "force.h"
@@ -494,7 +495,7 @@ void FixAveSpatial::end_of_step()
 
   // skip if not step which requires doing something
 
-  int ntimestep = update->ntimestep;
+  bigint ntimestep = update->ntimestep;
   if (ntimestep != nvalid) return;
 
   // zero out arrays that accumulate over many samples
@@ -788,7 +789,9 @@ void FixAveSpatial::end_of_step()
   // output result to file
   
   if (fp && me == 0) {
-    fprintf(fp,"%d %d\n",ntimestep,nbins);
+    char fstr[16];
+    sprintf(fstr,"%s %%d\n",BIGINT_FORMAT);
+    fprintf(fp,fstr,ntimestep,nbins);
     if (ndim == 1)
       for (m = 0; m < nbins; m++) {
 	fprintf(fp,"  %d %g %g",m+1,coord[m][0],
@@ -1268,9 +1271,9 @@ double FixAveSpatial::compute_array(int i, int j)
    else backup from next multiple of nfreq
 ------------------------------------------------------------------------- */
 
-int FixAveSpatial::nextvalid()
+bigint FixAveSpatial::nextvalid()
 {
-  int nvalid = (update->ntimestep/nfreq)*nfreq + nfreq;
+  bigint nvalid = (update->ntimestep/nfreq)*nfreq + nfreq;
   if (nvalid-nfreq == update->ntimestep && nrepeat == 1)
     nvalid = update->ntimestep;
   else

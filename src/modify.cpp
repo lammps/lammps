@@ -831,7 +831,7 @@ void Modify::clearstep_compute()
    called everywhere that computes are used, after computes are invoked
 ------------------------------------------------------------------------- */
 
-void Modify::addstep_compute(int newstep)
+void Modify::addstep_compute(bigint newstep)
 {
   for (int icompute = 0; icompute < n_timeflag; icompute++)
     if (compute[list_timeflag[icompute]]->invoked_flag)
@@ -845,7 +845,7 @@ void Modify::addstep_compute(int newstep)
    do not loop only over n_timeflag, since may not be set yet
 ------------------------------------------------------------------------- */
 
-void Modify::addstep_compute_all(int newstep)
+void Modify::addstep_compute_all(bigint newstep)
 {
   for (int icompute = 0; icompute < ncompute; icompute++)
     if (compute[icompute]->timeflag) compute[icompute]->addstep(newstep);

@@ -25,7 +25,7 @@
 #define MPI_DOUBLE 3
 #define MPI_CHAR 4
 #define MPI_BYTE 5
-#define MPI_UNSIGNED_LONG_LONG 6
+#define MPI_LONG_LONG 6
 #define MPI_DOUBLE_INT 7
 
 #define MPI_SUM 1

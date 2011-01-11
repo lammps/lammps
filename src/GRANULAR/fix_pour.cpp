@@ -484,18 +484,20 @@ void FixPour::pre_exchange()
     }
   }
 
-  // set tag # of new particles beyond all previous atoms
   // reset global natoms
+  // set tag # of new particles beyond all previous atoms
   // if global map exists, reset it now instead of waiting for comm
   // since deleting atoms messes up ghosts
 
-  if (atom->tag_enable) {
-    atom->tag_extend();
+  if (nnear - nprevious > 0) {
     atom->natoms += nnear - nprevious;
-    if (atom->map_style) {
-      atom->nghost = 0;
-      atom->map_init();
-      atom->map_set();
+    if (atom->tag_enable) {
+      atom->tag_extend();
+      if (atom->map_style) {
+	atom->nghost = 0;
+	atom->map_init();
+	atom->map_set();
+      }
     }
   }
 

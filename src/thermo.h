@@ -46,11 +46,11 @@ class Thermo : protected Pointers {
   int *vtype;
 
   char **format,**format_user;
-  char *format_multi;
   char *format_float_one_def,*format_float_multi_def;
   char *format_int_one_def,*format_int_multi_def;
-  char *format_bigint_one_def,*format_bigint_multi_def;
   char *format_float_user,*format_int_user,*format_bigint_user;
+  char format_multi[128];
+  char format_bigint_one_def[8],format_bigint_multi_def[8];
 
   int normvalue;         // use this for normflag unless natoms = 0
   int normuserflag;      // 0 if user has not set, 1 if has
@@ -62,13 +62,13 @@ class Thermo : protected Pointers {
 
   double last_tpcpu,last_spcpu;
   double last_time;
-  int last_step;
+  bigint last_step;
 
   bigint natoms;
 
                          // data used by routines that compute single values
   int ivalue;            // integer value to print
-  double dvalue;         // dvalue = double value to print
+  double dvalue;         // double value to print
   bigint bivalue;        // big integer value to print
   int ifield;            // which field in thermo output is being computed
   int *field2index;      // which compute,fix,variable calcs this field

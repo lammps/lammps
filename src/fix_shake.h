@@ -21,6 +21,7 @@ FixStyle(shake,FixShake)
 #define LMP_FIX_SHAKE_H
 
 #include "fix.h"
+#include "lmptype.h"
 
 namespace LAMMPS_NS {
 
@@ -53,7 +54,7 @@ class FixShake : public Fix {
   double tolerance;                      // SHAKE tolerance
   int max_iter;                          // max # of SHAKE iterations
   int output_every;                      // SHAKE stat output every so often
-  int next_output;                       // timestep for next output
+  bigint next_output;                    // timestep for next output
 
                                          // settings from input command
   int *bond_flag,*angle_flag;            // bond/angle types to constrain

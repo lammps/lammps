@@ -22,6 +22,7 @@ FixStyle(ave/spatial,FixAveSpatial)
 
 #include "stdio.h"
 #include "fix.h"
+#include "lmptype.h"
 
 namespace LAMMPS_NS {
 
@@ -38,7 +39,8 @@ class FixAveSpatial : public Fix {
 
  private:
   int me,nvalues;
-  int nrepeat,nfreq,nvalid,irepeat;
+  int nrepeat,nfreq,irepeat;
+  bigint nvalid;
   int ndim,normflag,regionflag,iregion;
   char *tstring,*sstring,*idregion;
   int *which,*argindex,*value2index;
@@ -72,7 +74,7 @@ class FixAveSpatial : public Fix {
   void atom2bin1d();
   void atom2bin2d();
   void atom2bin3d();
-  int nextvalid();
+  bigint nextvalid();
 };
 
 }

@@ -70,7 +70,7 @@ class DumpCustom : public Dump {
   // private methods
 
   virtual void init_style();
-  virtual void write_header(int);
+  virtual void write_header(bigint);
   int count();
   void pack(int *);
   virtual void write_data(int, double *);
@@ -83,12 +83,12 @@ class DumpCustom : public Dump {
   int modify_param(int, char **);
   virtual int modify_param2(int, char **) {return 0;}
 
-  typedef void (DumpCustom::*FnPtrHeader)(int);
+  typedef void (DumpCustom::*FnPtrHeader)(bigint);
   FnPtrHeader header_choice;           // ptr to write header functions
-  void header_binary(int);
-  void header_binary_triclinic(int);
-  void header_item(int);
-  void header_item_triclinic(int);
+  void header_binary(bigint);
+  void header_binary_triclinic(bigint);
+  void header_item(bigint);
+  void header_item_triclinic(bigint);
 
   typedef void (DumpCustom::*FnPtrData)(int, double *);
   FnPtrData write_choice;              // ptr to write data functions

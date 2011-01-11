@@ -20,7 +20,6 @@ namespace LAMMPS_NS {
 
 class FixEvent : public Fix {
  public:
-
   FixEvent(class LAMMPS *, int, char **);
   virtual ~FixEvent()=0;    // Use destructor to make base class virtual
   int setmask();

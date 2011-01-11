@@ -29,10 +29,10 @@
 // MPI_LMP_TAGINT = MPI data type corresponding to tagint
 // MPI_LMP_BIGINT = MPI data type corresponding to bigint
 
-// NOTE:
-// if your machine/MPI does not support "long long" data types,
-// but only "long" data types, then you will need to set
-// MPI_LMP_BIGINT to MPI_LONG, LLONG_MAX to LONG_MAX, and "lld" to "ld"
+// NOTE: if your machine/MPI does not support "long long" ints,
+//       but only "long" ints, then you will likely need to set
+//       MPI_LMP_BIGINT to MPI_LONG, LLONG_MAX to LONG_MAX,
+//       "lld" to "ld", and ATOBIGINT to atol
 
 #ifndef LMP_LMPTYPE_H
 #define LMP_LMPTYPE_H

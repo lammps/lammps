@@ -86,6 +86,7 @@ elif (test $1 = 0) then
   rm ../pair_omp_gpu.cpp
 
   rm ../pppm_gpu.h
+  rm ../pair_gayberne_gpu.h
   rm ../pair_lj_cut_gpu.h
   rm ../pair_lj96_cut_gpu.h
   rm ../pair_lj_cut_coul_cut_gpu.h

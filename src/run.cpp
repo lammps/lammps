@@ -14,6 +14,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "run.h"
+#include "lmptype.h"
 #include "domain.h"
 #include "update.h"
 #include "integrate.h"
@@ -44,14 +45,14 @@ void Run::command(int narg, char **arg)
   if (domain->box_exist == 0)
     error->all("Run command before simulation box is defined");
 
-  int nsteps = atoi(arg[0]);
+  bigint nsteps_input = ATOBIGINT(arg[0]);
 
   // parse optional args
 
   int uptoflag = 0;
   int startflag = 0;
   int stopflag = 0;
-  int start,stop;
+  bigint start,stop;
   int preflag = 1;
   int postflag = 1;
   int nevery = 0;
@@ -67,12 +68,12 @@ void Run::command(int narg, char **arg)
     } else if (strcmp(arg[iarg],"start") == 0) {
       if (iarg+2 > narg) error->all("Illegal run command");
       startflag = 1;
-      start = atoi(arg[iarg+1]);
+      start = ATOBIGINT(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"stop") == 0) {
       if (iarg+2 > narg) error->all("Illegal run command");
       stopflag = 1;
-      stop = atoi(arg[iarg+1]);
+      stop = ATOBIGINT(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"pre") == 0) {
       if (iarg+2 > narg) error->all("Illegal run command");
@@ -103,9 +104,34 @@ void Run::command(int narg, char **arg)
     } else error->all("Illegal run command");
   }
 
-  // adjust nsteps if upto was specified
+  // set nsteps as integer, using upto value if specified
+  
+  int nsteps;
+  if (!uptoflag) {
+    if (nsteps_input < 0 || nsteps_input > MAXSMALLINT)
+      error->all("Invalid run command N value");
+    nsteps = static_cast<int> (nsteps_input);
+  } else {
+    bigint delta = nsteps_input - update->ntimestep;
+    if (delta < 0 || delta > MAXSMALLINT)
+      error->all("Invalid run command upto value");
+    nsteps = static_cast<int> (delta);
+  }
 
-  if (uptoflag) nsteps -= update->ntimestep;
+  // error check
+
+  if (startflag) {
+    if (start < 0 || start > MAXBIGINT)
+      error->all("Invalid run command start/stop value");
+    if (start > update->ntimestep)
+      error->all("Run command start value is after start of run");
+  }
+  if (stopflag) {
+    if (stop < 0 || stop > MAXBIGINT)
+      error->all("Invalid run command start/stop value");
+    if (stop < update->ntimestep + nsteps)
+      error->all("Run command stop value is before end of run");
+  }
 
   // if nevery, make copies of arg strings that are commands
   // required because re-parsing commands via input->one() will wipe out args
@@ -122,15 +148,6 @@ void Run::command(int narg, char **arg)
     }
   }
 
-  // error check
-
-  if (uptoflag && nsteps < 0)
-    error->all("Run command upto value is before current timestep");
-  if (startflag && start > update->ntimestep)
-    error->all("Run command start value is after start of run");
-  if (stopflag && stop < update->ntimestep + nsteps)
-    error->all("Run command stop value is before end of run");
-
   // perform a single run
   // use start/stop to set begin/end step
   // if pre or 1st run, do System init/setup,
@@ -143,6 +160,8 @@ void Run::command(int narg, char **arg)
     update->nsteps = nsteps;
     update->firststep = update->ntimestep;
     update->laststep = update->ntimestep + nsteps;
+    if (update->laststep < 0 || update->laststep > MAXBIGINT)
+      error->all("Too many timesteps");
 
     if (startflag) update->beginstep = start;
     else update->beginstep = update->firststep;
@@ -181,6 +200,8 @@ void Run::command(int narg, char **arg)
       update->nsteps = nsteps;
       update->firststep = update->ntimestep;
       update->laststep = update->ntimestep + nsteps;
+      if (update->laststep < 0 || update->laststep > MAXBIGINT)
+	error->all("Too many timesteps");
 
       if (startflag) update->beginstep = start;
       else update->beginstep = update->firststep;

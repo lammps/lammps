@@ -88,7 +88,7 @@ void FixEventTAD::restart(char *buf)
 
   event_number = static_cast<int> (list[n++]);
   event_timestep = static_cast<int> (list[n++]);
-  tlo = static_cast<double> (list[n++]);
+  tlo = list[n++];
   ebarrier = list[n++];
 }
 

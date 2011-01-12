@@ -77,6 +77,7 @@ class Neighbor : protected Pointers {
 
   int maxlocal;                    // size of atom-based NeighList arrays
   int maxbond,maxangle,maxdihedral,maximproper;   // size of bond lists
+  int maxwt;                       // max weighting factor applied + 1
 
   int build_once;                  // 1 if only build lists once per run
   int must_check;                  // 1 if must check other classes to reneigh

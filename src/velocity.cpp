@@ -22,6 +22,8 @@
 #include "update.h"
 #include "domain.h"
 #include "lattice.h"
+#include "input.h"
+#include "variable.h"
 #include "force.h"
 #include "modify.h"
 #include "compute.h"
@@ -36,6 +38,7 @@ using namespace LAMMPS_NS;
 
 enum{CREATE,SET,SCALE,RAMP,ZERO};
 enum{ALL,LOCAL,GEOM};
+enum{NONE,CONSTANT,EQUAL,ATOM};
 
 #define WARMUP 100
 #define SMALL  0.001
@@ -95,20 +98,6 @@ void Velocity::command(int narg, char **arg)
   else if (style == SCALE) options(narg-3,&arg[3]);
   else if (style == RAMP) options(narg-8,&arg[8]);
   else if (style == ZERO) options(narg-3,&arg[3]);
-
-  // set scaling for SET and RAMP styles
-
-  if (style == SET || style == RAMP) {
-    if (scale_flag && domain->lattice == NULL)
-      error->all("Use of velocity with undefined lattice");
-
-    if (scale_flag) {
-      xscale = domain->lattice->xlattice;
-      yscale = domain->lattice->ylattice;
-      zscale = domain->lattice->zlattice;
-    }
-    else xscale = yscale = zscale = 1.0;
-  }
 
   // initialize velocities based on style
   // create() invoked differently, so can be called externally
@@ -352,43 +341,160 @@ void Velocity::create(double t_desired, int seed)
 
 void Velocity::set(int narg, char **arg)
 {
-  int xflag,yflag,zflag;
+  int xstyle,ystyle,zstyle,varflag;
   double vx,vy,vz;
+  char *xstr,*ystr,*zstr;
+  int xvar,yvar,zvar;
 
-  if (strcmp(arg[0],"NULL") == 0) xflag = 0;
-  else {
-    xflag = 1;
-    vx = xscale * atof(arg[0]);
+  // parse 3 args
+
+  xstyle = ystyle = zstyle = CONSTANT;
+  xstr = ystr = zstr = NULL;
+
+  if (strstr(arg[0],"v_") == arg[0]) {
+    int n = strlen(&arg[0][2]) + 1;
+    xstr = new char[n];
+    strcpy(xstr,&arg[0][2]);
+  } else if (strcmp(arg[0],"NULL") == 0) xstyle = NONE;
+  else vx = xscale * atof(arg[0]);
+
+  if (strstr(arg[1],"v_") == arg[1]) {
+    int n = strlen(&arg[1][2]) + 1;
+    ystr = new char[n];
+    strcpy(ystr,&arg[1][2]);
+  } else if (strcmp(arg[1],"NULL") == 0) ystyle = NONE;
+  else vy = yscale * atof(arg[1]);
+
+  if (strstr(arg[2],"v_") == arg[2]) {
+    int n = strlen(&arg[2][2]) + 1;
+    zstr = new char[n];
+    strcpy(zstr,&arg[2][2]);
+  } else if (strcmp(arg[2],"NULL") == 0) zstyle = NONE;
+  else vz = zscale * atof(arg[2]);
+
+  // set and apply scale factors
+
+  xscale = yscale = zscale = 1.0;
+
+  if (xstyle && !xstr) {
+    if (scale_flag && domain->lattice == NULL)
+      error->all("Use of velocity with undefined lattice");
+    if (scale_flag) xscale = domain->lattice->xlattice;
+    vx *= xscale;
   }
-  if (strcmp(arg[1],"NULL") == 0) yflag = 0;
-  else {
-    yflag = 1;
-    vy = yscale * atof(arg[1]);
+  if (ystyle && !ystr) {
+    if (scale_flag && domain->lattice == NULL)
+      error->all("Use of velocity with undefined lattice");
+    if (scale_flag) yscale = domain->lattice->ylattice;
+    vy *= yscale;
   }
-  if (strcmp(arg[2],"NULL") == 0) zflag = 0;
-  else {
-    zflag = 1;
-    vz = zscale * atof(arg[2]);
+  if (zstyle && !zstr) {
+    if (scale_flag && domain->lattice == NULL)
+      error->all("Use of velocity with undefined lattice");
+    if (scale_flag) zscale = domain->lattice->zlattice;
+    vz *= zscale;
   }
+
+  // check variables
+
+  int dimension = domain->dimension;
+  if (dimension == 2 && zstyle)
+    error->all("Cannot set z velocity for 2d simulation");
+
+  if (xstr) {
+    xvar = input->variable->find(xstr);
+    if (xvar < 0) error->all("Variable name for velocity set does not exist");
+    if (input->variable->equalstyle(xvar)) xstyle = EQUAL;
+    else if (input->variable->atomstyle(xvar)) xstyle = ATOM;
+    else error->all("Variable for velocity set is invalid style");
+  }
+  if (ystr) {
+    yvar = input->variable->find(ystr);
+    if (yvar < 0) error->all("Variable name for velocity set does not exist");
+    if (input->variable->equalstyle(yvar)) ystyle = EQUAL;
+    else if (input->variable->atomstyle(yvar)) ystyle = ATOM;
+    else error->all("Variable for velocity set is invalid style");
+  }
+  if (zstr) {
+    zvar = input->variable->find(zstr);
+    if (zvar < 0) error->all("Variable name for velocity set does not exist");
+    if (input->variable->equalstyle(zvar)) zstyle = EQUAL;
+    else if (input->variable->atomstyle(zvar)) zstyle = ATOM;
+    else error->all("Variable for velocity set is invalid style");
+  }
+
+  if (xstyle == ATOM || ystyle == ATOM || zstyle == ATOM)
+    varflag = ATOM;
+  else if (xstyle == EQUAL || ystyle == EQUAL || zstyle == EQUAL)
+    varflag = EQUAL;
+  else varflag = CONSTANT;
+
+  // allocate vfield array if necessary
+
+  double **vfield = NULL;
+  if (varflag == ATOM)
+    vfield = memory->create_2d_double_array(atom->nlocal,3,"velocity:vfield");
+
+  // set velocities via constants
 
   double **v = atom->v;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  int dimension = domain->dimension;
 
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
-      if (sum_flag == 0) {
-	if (xflag) v[i][0] = vx;
-	if (yflag) v[i][1] = vy;
-	if (zflag && dimension == 3) v[i][2] = vz;
-      } else {
-	if (xflag) v[i][0] += vx;
-	if (yflag) v[i][1] += vy;
-	if (zflag && dimension == 3) v[i][2] += vz;
+  if (varflag == CONSTANT) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+	if (sum_flag == 0) {
+	  if (xstyle) v[i][0] = vx;
+	  if (ystyle) v[i][1] = vy;
+	  if (zstyle) v[i][2] = vz;
+	} else {
+	  if (xstyle) v[i][0] += vx;
+	  if (ystyle) v[i][1] += vy;
+	  if (zstyle) v[i][2] += vz;
+	}
       }
     }
+
+  // set velocities via variables
+
+  } else {
+    if (xstyle == EQUAL) vx = input->variable->compute_equal(xvar);
+    else if (xstyle == ATOM)
+      input->variable->compute_atom(xvar,igroup,&vfield[0][0],3,0);
+    if (ystyle == EQUAL) vy = input->variable->compute_equal(yvar);
+    else if (ystyle == ATOM)
+      input->variable->compute_atom(yvar,igroup,&vfield[0][1],3,0);
+    if (zstyle == EQUAL) vz = input->variable->compute_equal(zvar);
+    else if (zstyle == ATOM)
+      input->variable->compute_atom(zvar,igroup,&vfield[0][2],3,0);
+
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+	if (sum_flag == 0) {
+	  if (xstyle == ATOM) v[i][0] = vfield[i][0];
+	  else if (xstyle) v[i][0] = vx;
+	  if (ystyle == ATOM) v[i][1] = vfield[i][1];
+	  else if (ystyle) v[i][1] = vy;
+	  if (zstyle == ATOM) v[i][2] = vfield[i][2];
+	  else if (zstyle) v[i][2] = vz;
+	} else {
+	  if (xstyle == ATOM) v[i][0] += vfield[i][0];
+	  else if (xstyle) v[i][0] += vx;
+	  if (ystyle == ATOM) v[i][1] += vfield[i][1];
+	  else if (ystyle) v[i][1] += vy;
+	  if (zstyle == ATOM) v[i][2] += vfield[i][2];
+	  else if (zstyle) v[i][2] += vz;
+	}
+      }
   }
+
+  // clean up
+
+  delete [] xstr;
+  delete [] ystr;
+  delete [] zstr;
+  memory->destroy_2d_double_array(vfield);
 }
 
 /* ----------------------------------------------------------------------
@@ -435,6 +541,20 @@ void Velocity::scale(int narg, char **arg)
 
 void Velocity::ramp(int narg, char **arg)
 {
+  // set scale factors
+
+  if (scale_flag && domain->lattice == NULL)
+    error->all("Use of velocity with undefined lattice");
+
+  if (scale_flag) {
+    xscale = domain->lattice->xlattice;
+    yscale = domain->lattice->ylattice;
+    zscale = domain->lattice->zlattice;
+  }
+  else xscale = yscale = zscale = 1.0;
+
+  // parse args
+
   int v_dim;
   if (strcmp(arg[0],"vx") == 0) v_dim = 0;
   else if (strcmp(arg[0],"vy") == 0) v_dim = 1;

@@ -122,7 +122,7 @@ void FixReaxBonds::OutputReaxBonds(bigint ntimestep, FILE *fp)
  
   if (me == 0) {
     char fstr[32];
-    sprintf(fstr,"# Timestep %d \n",BIGINT_FORMAT);
+    sprintf(fstr,"# Timestep %s \n",BIGINT_FORMAT);
     fprintf(fp,fstr,ntimestep);
     fprintf(fp,"# \n");
     fprintf(fp,"# Number of particles %d \n",nparticles_tot);

@@ -21,6 +21,7 @@ FixStyle(dt/reset,FixDtReset)
 #define LMP_FIX_DT_RESET_H
 
 #include "fix.h"
+#include "lmptype.h"
 
 namespace LAMMPS_NS {
 
@@ -36,7 +37,8 @@ class FixDtReset : public Fix {
   double compute_vector(int);
 
  private:
-  int minbound,maxbound,laststep;
+  bigint laststep;
+  int minbound,maxbound;
   double tmin,tmax,xmax;
   double ftm2v;
   double t_elapsed;

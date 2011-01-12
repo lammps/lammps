@@ -15,8 +15,7 @@ set style ID keyword values ... :pre
 style = {atom} or {group} or {region} :ulb,l
 ID = atom ID or group ID or region ID :l
 one or more keyword/value pairs may be appended :l
-keyword = {type} or {type/fraction} or {mol} or \
-	  {x} or {y} or {z} or {vx} or {vy} or {vz} or \
+keyword = {type} or {type/fraction} or {mol} or {x} or {y} or {z} or \
           {charge} or {dipole} or {dipole/random} or {quat/random} or \
 	  {diameter} or {density} or {volume} or {image} or
 	  {bond} or {angle} or {dihedral} or {improper} :l
@@ -27,7 +26,6 @@ keyword = {type} or {type/fraction} or {mol} or \
     seed = random # seed (positive integer)
   {mol} value = molecule ID
   {x},{y},{z} value = atom coordinate (distance units)
-  {vx},{vy},{vz} value = velocity component (velocity units)
   {charge} value = atomic charge (charge units)
   {dipole} values = x y z
     x,y,z = orientation of dipole moment vector
@@ -55,7 +53,7 @@ set group solvent type 2
 set group solvent type/fraction 2 0.5 12393
 set group edge bond 4
 set region half charge 0.5
-set atom 100 x 0.5 vx 1.0
+set atom 100 x 0.5 y 1.0
 set atom 1492 type 3 :pre
 
 [Description:]
@@ -100,10 +98,9 @@ Keyword {mol} sets the molecule ID for all selected atoms.  The "atom
 style"_atom_style.html being used must support the use of molecule
 IDs.
 
-Keywords {x}, {y}, {z}, {vx}, {vy}, {vz}, and {charge} set the
-coordinates, velocity, or charge of all selected atoms.  For {charge},
-the "atom style"_atom_style.html being used must support the use of
-atomic charge.
+Keywords {x}, {y}, {z}, and {charge} set the coordinates or charge of
+all selected atoms.  For {charge}, the "atom style"_atom_style.html
+being used must support the use of atomic charge.
 
 Keyword {dipole} uses the specified x,y,z values as components of a
 vector to set as the orientation of the dipole moment vectors of the

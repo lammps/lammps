@@ -65,11 +65,9 @@ class PairGPUBalance {
   inline double all_avg_split() {
     if (_load_balance) {
       double _all_avg_split=0.0;
-      int nprocs;
-      MPI_Comm_size(MPI_COMM_WORLD,&nprocs);
       MPI_Reduce(&_avg_split,&_all_avg_split,1,MPI_DOUBLE,MPI_SUM,0,
-                 MPI_COMM_WORLD);
-      _all_avg_split/=nprocs;
+                 _device->replica());
+      _all_avg_split/=_device->replica_size();
       return _all_avg_split/_avg_count;
     } else
       return _actual_split;
@@ -83,10 +81,10 @@ class PairGPUBalance {
   inline void start_timer() {
     if (_measure_this_step) {
       _device->gpu->sync();
-      MPI_Barrier(_device->gpu_comm);
+      _device->gpu_barrier();
       _device_time.start();
       _device->gpu->sync();
-      MPI_Barrier(_device->gpu_comm);
+      _device->gpu_barrier();
       _device->start_host_timer();
     }
   }
@@ -178,7 +176,7 @@ void PairGPUBalanceT::balance(const double cpu_time, const bool gpu_nbor) {
     cpu_gpu_time[2]=(_device->host_time()-cpu_time)/_inum_full;
 
     MPI_Allreduce(cpu_gpu_time,max_times,3,MPI_DOUBLE,MPI_MAX,
-                  _device->gpu_comm);
+                  _device->gpu_comm());
     double split=(max_times[0]+max_times[2])/(max_times[0]+max_times[1]);
     split*=_HD_BALANCE_GAP;
 

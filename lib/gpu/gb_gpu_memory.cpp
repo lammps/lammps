@@ -222,7 +222,7 @@ void GB_GPU_MemoryT::clear() {
     single[4]=0;
   single[5]=atom->cast_time();
 
-  MPI_Reduce(single,times,6,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+  MPI_Reduce(single,times,6,MPI_DOUBLE,MPI_SUM,0,device->replica());
   double avg_split=hd_balancer.all_avg_split();
 
   _max_bytes+=dev_error.row_bytes()+lj1.row_bytes()+lj3.row_bytes()+
@@ -230,12 +230,13 @@ void GB_GPU_MemoryT::clear() {
               shape.row_bytes()+well.row_bytes()+lshape.row_bytes()+
               gamma_upsilon_mu.row_bytes();
   double mpi_max_bytes;
-  MPI_Reduce(&_max_bytes,&mpi_max_bytes,1,MPI_DOUBLE,MPI_MAX,0,MPI_COMM_WORLD);
+  MPI_Reduce(&_max_bytes,&mpi_max_bytes,1,MPI_DOUBLE,MPI_MAX,0,
+             device->replica());
   double max_mb=mpi_max_bytes/(1024*1024);
 
-  if (device->world_me()==0)
+  if (device->replica_me()==0)
     if (screen && times[3]>0.0) {
-      int world_size=device->world_size();
+      int replica_size=device->replica_size();
 
       fprintf(screen,"\n\n-------------------------------------");
       fprintf(screen,"--------------------------------\n");
@@ -244,15 +245,15 @@ void GB_GPU_MemoryT::clear() {
       fprintf(screen,"--------------------------------\n");
 
       if (device->procs_per_gpu()==1) {
-        fprintf(screen,"Data Transfer:   %.4f s.\n",times[0]/world_size);
-        fprintf(screen,"Data Cast/Pack:  %.4f s.\n",times[5]/world_size);
-        fprintf(screen,"Neighbor copy:   %.4f s.\n",times[1]/world_size);
+        fprintf(screen,"Data Transfer:   %.4f s.\n",times[0]/replica_size);
+        fprintf(screen,"Data Cast/Pack:  %.4f s.\n",times[5]/replica_size);
+        fprintf(screen,"Neighbor copy:   %.4f s.\n",times[1]/replica_size);
         if (nbor->gpu_nbor())
-          fprintf(screen,"Neighbor build:  %.4f s.\n",times[2]/world_size);
+          fprintf(screen,"Neighbor build:  %.4f s.\n",times[2]/replica_size);
         else
-          fprintf(screen,"Neighbor unpack: %.4f s.\n",times[2]/world_size);
-        fprintf(screen,"Force calc:      %.4f s.\n",times[3]/world_size);
-        fprintf(screen,"LJ calc:         %.4f s.\n",times[4]/world_size);
+          fprintf(screen,"Neighbor unpack: %.4f s.\n",times[2]/replica_size);
+        fprintf(screen,"Force calc:      %.4f s.\n",times[3]/replica_size);
+        fprintf(screen,"LJ calc:         %.4f s.\n",times[4]/replica_size);
       }
       fprintf(screen,"Average split:   %.4f.\n",avg_split);
       fprintf(screen,"Max Mem / Proc:  %.2f MB.\n",max_mb);

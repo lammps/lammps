@@ -69,7 +69,7 @@ bool gb_gpu_init(const int ntypes, const double gamma,
   GBMF.device->init_message(screen,"gayberne",first_gpu,last_gpu);
 
   bool message=false;
-  if (world_me==0 && screen)
+  if (GBMF.device->replica_me()==0 && screen)
     message=true;
 
   if (message) {
@@ -86,14 +86,14 @@ bool gb_gpu_init(const int ntypes, const double gamma,
       return false;
   }
 
-  MPI_Barrier(MPI_COMM_WORLD);
+  GBMF.device->world_barrier();
   if (message)
     fprintf(screen,"Done.\n");
         
   for (int i=0; i<procs_per_gpu; i++) {
     if (message) {
       if (last_gpu-first_gpu==0)
-        fprintf(screen,"Initializing GPU %d on core %d...",gpu_rank,i);
+        fprintf(screen,"Initializing GPU %d on core %d...",first_gpu,i);
       else
         fprintf(screen,"Initializing GPUs %d-%d on core %d...",first_gpu,
                 last_gpu,i);
@@ -108,7 +108,7 @@ bool gb_gpu_init(const int ntypes, const double gamma,
       if (!init_ok)
         return false;
     }
-    MPI_Barrier(GBMF.device->gpu_comm);
+    GBMF.device->gpu_barrier();
     if (message) 
       fprintf(screen,"Done.\n");
   }

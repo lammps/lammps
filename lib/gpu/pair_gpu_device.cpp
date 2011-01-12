@@ -10,7 +10,7 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
- 
+
 /* ----------------------------------------------------------------------
    Contributing authors: Mike Brown (ORNL), brownw@ornl.gov
 ------------------------------------------------------------------------- */
@@ -34,19 +34,28 @@ PairGPUDeviceT::~PairGPUDevice() {
 }
 
 template <class numtyp, class acctyp>
-bool PairGPUDeviceT::init_device(const int first_gpu, const int last_gpu,
-                                 const int gpu_mode, const double p_split) {
+bool PairGPUDeviceT::init_device(MPI_Comm world, MPI_Comm replica, 
+                                 const int first_gpu, const int last_gpu,
+                                 const int gpu_mode, const double p_split,
+                                 const int nthreads) {
+  _nthreads=nthreads;
+
   if (_device_init)
     return true;
   _device_init=true;
+  _comm_world=world;
+  _comm_replica=replica;
   _first_device=first_gpu;
   _last_device=last_gpu;
   _gpu_mode=gpu_mode;
   _particle_split=p_split;
 
-  // Get the rank within the world
-  MPI_Comm_rank(MPI_COMM_WORLD,&_world_me);
-  MPI_Comm_size(MPI_COMM_WORLD,&_world_size);
+  // Get the rank/size within the world
+  MPI_Comm_rank(_comm_world,&_world_me);
+  MPI_Comm_size(_comm_world,&_world_size);
+  // Get the rank/size within the replica
+  MPI_Comm_rank(_comm_replica,&_replica_me);
+  MPI_Comm_size(_comm_replica,&_replica_size);
 
   // Get the names of all nodes
   int name_length;
@@ -54,7 +63,7 @@ bool PairGPUDeviceT::init_device(const int first_gpu, const int last_gpu,
   char node_names[MPI_MAX_PROCESSOR_NAME*_world_size];
   MPI_Get_processor_name(node_name,&name_length);
   MPI_Allgather(&node_name,MPI_MAX_PROCESSOR_NAME,MPI_CHAR,&node_names,
-                MPI_MAX_PROCESSOR_NAME,MPI_CHAR,MPI_COMM_WORLD);
+                MPI_MAX_PROCESSOR_NAME,MPI_CHAR,_comm_world);
   std::string node_string=std::string(node_name);
   
   // Get the number of procs per node                
@@ -80,7 +89,7 @@ bool PairGPUDeviceT::init_device(const int first_gpu, const int last_gpu,
   
   // Set up a per node communicator and find rank within
   MPI_Comm node_comm;
-  MPI_Comm_split(MPI_COMM_WORLD, split_id, 0, &node_comm);  
+  MPI_Comm_split(_comm_world, split_id, 0, &node_comm);  
   int node_rank;
   MPI_Comm_rank(node_comm,&node_rank);                  
 
@@ -90,8 +99,8 @@ bool PairGPUDeviceT::init_device(const int first_gpu, const int last_gpu,
   int my_gpu=node_rank/_procs_per_gpu;
   
   // Set up a per device communicator
-  MPI_Comm_split(node_comm,my_gpu,0,&gpu_comm);
-  MPI_Comm_rank(gpu_comm,&_gpu_rank);
+  MPI_Comm_split(node_comm,my_gpu,0,&_comm_gpu);
+  MPI_Comm_rank(_comm_gpu,&_gpu_rank);
 
   gpu=new UCL_Device();
   if (my_gpu>=gpu->num_devices())
@@ -111,10 +120,13 @@ bool PairGPUDeviceT::init(const bool charge, const bool rot, const int nlocal,
     return false;                          
   if (_init_count==0) {
     // Initialize atom and nbor data
-    if (!atom.init(nlocal,nall,charge,rot,*gpu,gpu_nbor,
+    int ef_nlocal=nlocal;
+    if (_particle_split<1.0 && _particle_split>0.0)
+      ef_nlocal=static_cast<int>(_particle_split*nlocal);
+    if (!atom.init(ef_nlocal,nall,charge,rot,*gpu,gpu_nbor,
                    gpu_nbor && maxspecial>0))
       return false;
-    if (!nbor.init(nlocal,host_nlocal,max_nbors,maxspecial,*gpu,gpu_nbor,
+    if (!nbor.init(ef_nlocal,host_nlocal,max_nbors,maxspecial,*gpu,gpu_nbor,
                    gpu_host,pre_cut))
       return false;
     nbor.cell_size(cell_size);
@@ -136,7 +148,7 @@ void PairGPUDeviceT::init_message(FILE *screen, const char *name,
   std::string fs=toa(gpu->free_gigabytes())+"/";
   #endif
   
-  if (_world_me == 0 && screen) {
+  if (_replica_me == 0 && screen) {
     fprintf(screen,"\n-------------------------------------");
     fprintf(screen,"-------------------------------------\n");
     fprintf(screen,"- Using GPGPU acceleration for %s:\n",name);
@@ -175,14 +187,14 @@ void PairGPUDeviceT::output_times(UCL_Timer &time_pair, const double avg_split,
   single[3]=time_pair.total_seconds();
   single[4]=atom.cast_time();
 
-  MPI_Reduce(single,times,5,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+  MPI_Reduce(single,times,5,MPI_DOUBLE,MPI_SUM,0,_comm_replica);
 
   double my_max_bytes=max_bytes;
   double mpi_max_bytes;
-  MPI_Reduce(&my_max_bytes,&mpi_max_bytes,1,MPI_DOUBLE,MPI_MAX,0,MPI_COMM_WORLD);
+  MPI_Reduce(&my_max_bytes,&mpi_max_bytes,1,MPI_DOUBLE,MPI_MAX,0,_comm_replica);
   double max_mb=mpi_max_bytes/(1024.0*1024.0);
 
-  if (world_me()==0)
+  if (replica_me()==0)
     if (screen && times[3]>0.0) {
       fprintf(screen,"\n\n-------------------------------------");
       fprintf(screen,"--------------------------------\n");
@@ -191,14 +203,14 @@ void PairGPUDeviceT::output_times(UCL_Timer &time_pair, const double avg_split,
       fprintf(screen,"--------------------------------\n");
 
       if (procs_per_gpu()==1) {
-        fprintf(screen,"Data Transfer:   %.4f s.\n",times[0]/_world_size);
-        fprintf(screen,"Data Cast/Pack:  %.4f s.\n",times[4]/_world_size);
-        fprintf(screen,"Neighbor copy:   %.4f s.\n",times[1]/_world_size);
+        fprintf(screen,"Data Transfer:   %.4f s.\n",times[0]/_replica_size);
+        fprintf(screen,"Data Cast/Pack:  %.4f s.\n",times[4]/_replica_size);
+        fprintf(screen,"Neighbor copy:   %.4f s.\n",times[1]/_replica_size);
         if (nbor.gpu_nbor())
-          fprintf(screen,"Neighbor build:  %.4f s.\n",times[2]/_world_size);
+          fprintf(screen,"Neighbor build:  %.4f s.\n",times[2]/_replica_size);
         else
-          fprintf(screen,"Neighbor unpack: %.4f s.\n",times[2]/_world_size);
-        fprintf(screen,"Force calc:      %.4f s.\n",times[3]/_world_size);
+          fprintf(screen,"Neighbor unpack: %.4f s.\n",times[2]/_replica_size);
+        fprintf(screen,"Force calc:      %.4f s.\n",times[3]/_replica_size);
       }
       fprintf(screen,"Average split:   %.4f.\n",avg_split);
       fprintf(screen,"Max Mem / Proc:  %.2f MB.\n",max_mb);
@@ -239,10 +251,11 @@ double PairGPUDeviceT::host_memory_usage() const {
 template class PairGPUDevice<PRECISION,ACC_PRECISION>;
 PairGPUDevice<PRECISION,ACC_PRECISION> pair_gpu_device;
 
-bool lmp_init_device(const int first_gpu, const int last_gpu,
-                     const int gpu_mode, const double particle_split) {
-  return pair_gpu_device.init_device(first_gpu,last_gpu,gpu_mode,
-                                     particle_split);
+bool lmp_init_device(MPI_Comm world, MPI_Comm replica, const int first_gpu,
+                     const int last_gpu, const int gpu_mode, 
+                     const double particle_split, const int nthreads) {
+  return pair_gpu_device.init_device(world,replica,first_gpu,last_gpu,gpu_mode,
+                                     particle_split,nthreads);
 }
 
 void lmp_clear_device() {
@@ -261,3 +274,4 @@ double lmp_gpu_forces(double **f, double **tor, double *eatom,
   }
   return 0.0;
 }
+

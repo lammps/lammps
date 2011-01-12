@@ -28,7 +28,7 @@ CUDR_CPP = mpic++ -DMPI_GERYON
 CUDR_OPTS = -O3 -DMPI_GERYON -ffast-math -funroll-loops
 
 BIN_DIR = ./
-OBJ_DIR = ./obj
+OBJ_DIR = ./
 LIB_DIR = ./
 AR = ar
 

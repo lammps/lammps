@@ -30,7 +30,7 @@ CUDR_CPP = mpic++
 CUDR_OPTS = -O2 -m32 -g
 
 BIN_DIR = ./
-OBJ_DIR = ./obj
+OBJ_DIR = ./
 LIB_DIR = ./
 AR = ar
 BSH = /bin/sh

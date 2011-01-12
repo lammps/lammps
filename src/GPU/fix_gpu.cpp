@@ -23,13 +23,16 @@
 #include "timer.h"
 #include "modify.h"
 #include "domain.h"
+#include "universe.h"
 
 using namespace LAMMPS_NS;
 
 enum{GPU_FORCE, GPU_NEIGH};
 
-extern bool lmp_init_device(const int first_gpu, const int last_gpu,
-                            const int gpu_mode, const double particle_split);
+extern bool lmp_init_device(MPI_Comm world, MPI_Comm replica,
+                            const int first_gpu, const int last_gpu,
+                            const int gpu_mode, const double particle_split,
+                            const int nthreads);
 extern void lmp_clear_device();
 extern double lmp_gpu_forces(double **f, double **tor, double *eatom,
                              double **vatom, double *virial, double &ecoul);
@@ -39,7 +42,7 @@ extern double lmp_gpu_forces(double **f, double **tor, double *eatom,
 FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 7) error->all("Illegal fix gpu command");
+  if (narg != 7) error->all("Illegal fix gpu command");
 
   if (strcmp(arg[1],"all") != 0)
     error->all("Illegal fix gpu command");
@@ -62,8 +65,9 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   particle_split = force->numeric(arg[6]);
   if (particle_split==0 || particle_split>1)
     error->all("Illegal fix gpu command.");
-
-  if (!lmp_init_device(first_gpu,last_gpu,gpu_mode,particle_split))
+    
+  if (!lmp_init_device(universe->uworld,world,first_gpu,last_gpu,gpu_mode,
+                       particle_split,1))
     error->one("Could not find or initialize a specified accelerator device.");
 }
 

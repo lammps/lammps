@@ -64,7 +64,10 @@ PTXS = $(OBJ_DIR)/pair_gpu_atom_kernel.ptx $(OBJ_DIR)/pair_gpu_atom_ptx.h \
        $(OBJ_DIR)/cmm_cut_gpu_kernel.ptx $(OBJ_DIR)/cmm_cut_gpu_ptx.h \
        $(OBJ_DIR)/cmmc_long_gpu_kernel.ptx $(OBJ_DIR)/cmmc_long_gpu_ptx.h
 
-all: $(GPU_LIB) $(EXECS)
+all: $(OBJ_DIR) $(GPU_LIB) $(EXECS)
+
+$(OBJ_DIR):
+	mkdir -p $@
 
 $(OBJ_DIR)/cudpp.o: cudpp_mini/cudpp.cpp
 	$(CUDR) -o $@ -c cudpp_mini/cudpp.cpp -Icudpp_mini

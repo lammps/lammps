@@ -29,7 +29,7 @@ CUDR_CPP =  env OMPI_CC=$(GCC)/bin/gcc OMPI_CXX=$(GCC)/bin/g++ mpic++ -DMPI_GERY
 CUDR_OPTS = -O3 -march=native -mpc64 -fno-exceptions -fno-rtti -ffast-math -funroll-loops -fstrict-aliasing -fstrict-aliasing 
 
 BIN_DIR = ./
-OBJ_DIR = ./
+OBJ_DIR = ./obj
 LIB_DIR = ./
 AR = ar
 

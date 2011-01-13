@@ -134,6 +134,10 @@ fix_bond_swap.cpp
 fix_bond_swap.h
 fix_event.cpp
 fix_event.h
+fix_event_prd.cpp
+fix_event_prd.h
+fix_event_tad.cpp
+fix_event_tad.h
 fix_freeze.cpp
 fix_freeze.h
 fix_gpu.cpp
@@ -345,6 +349,8 @@ pair_lj_charmm_coul_charmm_implicit_omp.cpp
 pair_lj_charmm_coul_charmm_implicit_omp.h
 pair_lj_charmm_coul_long.cpp
 pair_lj_charmm_coul_long.h
+pair_lj_charmm_coul_long_gpu.cpp
+pair_lj_charmm_coul_long_gpu.h
 pair_lj_charmm_coul_long_omp.cpp
 pair_lj_charmm_coul_long_omp.h
 pair_lj_charmm_coul_long_opt.cpp
@@ -518,6 +524,8 @@ style_kspace.h
 style_minimize.h
 style_pair.h
 style_region.h
+tad.cpp
+tad.h
 temper.cpp
 temper.h
 xdr_compat.cpp

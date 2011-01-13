@@ -49,7 +49,10 @@ KERS = $(OBJ_DIR)/pair_gpu_atom_cl.h $(OBJ_DIR)/pair_gpu_nbor_cl.h \
        
 OCL_EXECS = $(BIN_DIR)/ocl_get_devices
 
-all: $(OCL_LIB) $(EXECS)
+all: $(OBJ_DIR) $(OCL_LIB) $(EXECS)
+
+$(OBJ_DIR):
+	mkdir -p $@
 
 $(OBJ_DIR)/pair_gpu_atom_cl.h: pair_gpu_atom_kernel.cu
 	$(BSH) ./geryon/file_to_cstr.sh pair_gpu_atom_kernel.cu $(OBJ_DIR)/pair_gpu_atom_cl.h

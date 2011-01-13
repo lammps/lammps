@@ -11,40 +11,38 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef FIX_CLASS
+#ifdef PAIR_CLASS
 
-FixStyle(reax/bonds,FixReaxBonds)
+PairStyle(lj/charmm/coul/long/gpu,PairLJCharmmCoulLongGPU)
 
 #else
 
-#ifndef LMP_FIX_REAX_BONDS_H
-#define LMP_FIX_REAX_BONDS_H
+#ifndef LMP_PAIR_LJ_CHARMM_COUL_LONG_GPU_H
+#define LMP_PAIR_LJ_CHARMM_COUL_LONG_GPU_H
 
-#include "stdio.h"
-#include "fix.h"
-#include "lmptype.h"
+#include "pair_lj_charmm_coul_long.h"
 
 namespace LAMMPS_NS {
 
-class FixReaxBonds : public Fix {
+class PairLJCharmmCoulLongGPU : public PairLJCharmmCoulLong {
  public:
-  FixReaxBonds(class LAMMPS *, int, char **);
-  ~FixReaxBonds();
-  int setmask();
-  void init();
-  void setup(int);
-  void end_of_step();
+  PairLJCharmmCoulLongGPU(LAMMPS *lmp);
+  ~PairLJCharmmCoulLongGPU();
+  void cpu_compute(int, int, int);
+  void cpu_compute(int *, int, int, int);
+  void compute(int, int);
+  void init_style();
+  double memory_usage();
+
+ enum { GPU_PAIR, GPU_NEIGH };
 
  private:
-  int me;
-  int nfreq;
-  FILE *fp;
-
-  void OutputReaxBonds(bigint, FILE*);
-  int nint(const double&);
+  int gpu_mode;
+  double cpu_time;
+  int *gpulist;
 };
 
 }
+#endif
+#endif
 
-#endif
-#endif

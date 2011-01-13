@@ -1,6 +1,6 @@
 #ifndef NVD_MACROS_H
 #define NVD_MACROS_H
- 
+
 #include <stdio.h>
 #include <cassert>
 #include <cuda.h>
@@ -16,6 +16,11 @@
 #define NVD_GERYON_EXIT MPI_Abort(MPI_COMM_WORLD,-1)
 #else
 #define NVD_GERYON_EXIT assert(0==1)
+#endif
+
+#ifdef UCL_DEBUG
+#define UCL_SYNC_DEBUG
+#define UCL_DESTRUCT_CHECK
 #endif
 
 #ifndef UCL_NO_API_CHECK
@@ -50,6 +55,18 @@
 // void macros for performance reasons
 #define CU_SAFE_CALL_NS( call ) call
 #define CU_SAFE_CALL( call) call
+
+#endif
+
+#ifdef UCL_DESTRUCT_CHECK
+
+#define CU_DESTRUCT_CALL( call) CU_SAFE_CALL( call)
+#define CU_DESTRUCT_CALL_NS( call) CU_SAFE_CALL_NS( call)
+
+#else
+
+#define CU_DESTRUCT_CALL( call) call
+#define CU_DESTRUCT_CALL_NS( call) call
 
 #endif
 

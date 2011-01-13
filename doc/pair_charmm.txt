@@ -9,13 +9,14 @@
 pair_style lj/charmm/coul/charmm command :h3
 pair_style lj/charmm/coul/charmm/implicit command :h3
 pair_style lj/charmm/coul/long command :h3
+pair_style lj/charmm/coul/long/gpu command :h3
 pair_style lj/charmm/coul/long/opt command :h3
 
 [Syntax:]
 
 pair_style style args :pre
 
-style = {lj/charmm/coul/charmm} or {lj/charmm/coul/charmm/implicit} or {lj/charmm/coul/long} or {lj/charmm/coul/long/opt}
+style = {lj/charmm/coul/charmm} or {lj/charmm/coul/charmm/implicit} or {lj/charmm/coul/long} or {lj/charmm/coul/long/gpu} or {lj/charmm/coul/long/opt}
 args = list of arguments for a particular style :ul
   {lj/charmm/coul/charmm} args = inner outer (inner2) (outer2)
     inner, outer = global switching cutoffs for Lennard Jones (and Coulombic if only 2 args)
@@ -24,6 +25,9 @@ args = list of arguments for a particular style :ul
     inner, outer = global switching cutoffs for LJ (and Coulombic if only 2 args)
     inner2, outer2 = global switching cutoffs for Coulombic (optional)
   {lj/charmm/coul/long} args = inner outer (cutoff)
+    inner, outer = global switching cutoffs for LJ (and Coulombic if only 2 args)
+    cutoff = global cutoff for Coulombic (optional, outer is Coulombic cutoff if only 2 args)
+  {lj/charmm/coul/long/gpu} args = inner outer (cutoff)
     inner, outer = global switching cutoffs for LJ (and Coulombic if only 2 args)
     cutoff = global cutoff for Coulombic (optional, outer is Coulombic cutoff if only 2 args) :pre
 
@@ -79,6 +83,9 @@ applied to the Coulombic term, as in the discussion for pair style
 command, then the outer LJ cutoff is used as the single Coulombic
 cutoff.
 
+Style {lj/charmm/coul/long/gpu} is a GPU-enabled version of style {lj/charmm/coul/long}.
+See more details below.
+
 Style {lj/charmm/coul/long/opt} is an optimized version of style
 {lj/charmm/coul/long} that should give identical answers.  Depending
 on system size and the processor you are running on, it may be 5-25%
@@ -105,6 +112,26 @@ also first and fourth atoms in any dihedral.  No cutoffs are specified
 because this CHARMM force field does not allow varying cutoffs for
 individual atom pairs; all pairs use the global cutoff(s) specified in
 the pair_style command.
+
+:line
+
+The {lj/charmm/coul/long/gpu} style is identical to the {lj/charmm/coul/long}
+style, except that each processor off-loads its pairwise calculations to 
+a GPU chip. Depending on the hardware available on your system this can 
+provide a significant speed-up.  See the "Running on
+GPUs"_Section_start.html#2_8 section of the manual for more details
+about hardware and software requirements for using GPUs.
+
+More details about these settings and various possible hardware
+configuration are in "this section"_Section_start.html#2_8 of the
+manual.
+
+Additional requirements in your input script to run with style
+{lj/charmm/coul/long/gpu} are as follows:
+
+The "newton pair"_newton.html setting must be {off} and
+"fix gpu"_fix_gpu.html must be used. The fix controls the
+essential GPU selection and initialization steps.
 
 :line
 
@@ -147,7 +174,9 @@ support the {pair} keyword of run_style respa.  See the
 
 The {lj/charmm/coul/charmm} and {lj/charmm/coul/charmm/implicit}
 styles are part of the "molecule" package.  The {lj/charmm/coul/long}
-style is part of the "kspace" package.  The {lj/charmm/coul/long/opt}
+style is part of the "kspace" package.  The {lj/charmm/coul/long/gpu}
+style is part of the "gpu" package and also requires the "kspace"
+package. The {lj/charmm/coul/long/opt}
 style is part of the "opt" package and also requires the "kspace"
 package.  They are only enabled if LAMMPS was built with those
 package(s) (molecule and kspace are by default).  See the "Making

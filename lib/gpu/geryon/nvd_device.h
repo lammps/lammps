@@ -20,7 +20,7 @@
    certain rights in this software.  This software is distributed under 
    the Simplified BSD License.
    ----------------------------------------------------------------------- */
- 
+
 #ifndef NVD_DEVICE
 #define NVD_DEVICE
 
@@ -233,7 +233,7 @@ inline UCL_Device::UCL_Device() {
                       &_properties.back().canMapHostMemory, 
                       CU_DEVICE_ATTRIBUTE_CAN_MAP_HOST_MEMORY, dev));
     #endif
-    #if CUDA_VERSION >= 3000
+    #if CUDA_VERSION >= 3010
     CU_SAFE_CALL_NS(cuDeviceGetAttribute(
                       &_properties.back().concurrentKernels, 
                       CU_DEVICE_ATTRIBUTE_CONCURRENT_KERNELS, dev));
@@ -339,7 +339,7 @@ inline void UCL_Device::print_all(std::ostream &out) {
     else
       out << "No\n";
     #endif
-    #if CUDA_VERSION >= 3000
+    #if CUDA_VERSION >= 3010
     out << "  Concurrent kernel execution:                   ";
     if (_properties[i].concurrentKernels)
       out << "Yes\n";

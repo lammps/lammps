@@ -13,7 +13,7 @@
     copyright            : (C) 2009 by W. Michael Brown
     email                : brownw@ornl.gov
  ***************************************************************************/
- 
+
 /* -----------------------------------------------------------------------
    Copyright (2009) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -95,7 +95,7 @@ class UCL_Device {
   /** \note You cannot delete the default stream **/
   inline void pop_command_queue() {
     if (_cq.size()<2) return;
-    CUDA_SAFE_CALL_NS(cudaStreamDestroy(_cq.back()));
+    CUDA_DESTRUCT_CALL_NS(cudaStreamDestroy(_cq.back()));
     _cq.pop_back();
   }
   

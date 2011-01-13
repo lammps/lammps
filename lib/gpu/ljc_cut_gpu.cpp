@@ -40,7 +40,6 @@ bool ljc_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
   double gpu_split=LJCMF.device->particle_split();
   int first_gpu=LJCMF.device->first_device();
   int last_gpu=LJCMF.device->last_device();
-  MPI_Comm world=LJCMF.device->world();
   int world_me=LJCMF.device->world_me();
   int gpu_rank=LJCMF.device->gpu_rank();
   int procs_per_gpu=LJCMF.device->procs_per_gpu();
@@ -48,7 +47,7 @@ bool ljc_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
   LJCMF.device->init_message(screen,"lj/cut/coul/cut",first_gpu,last_gpu);
 
   bool message=false;
-  if (world_me==0 && screen)
+  if (LJCMF.device->replica_me()==0 && screen)
     message=true;
 
   if (message) {
@@ -66,14 +65,14 @@ bool ljc_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
       return false;
   }
 
-  MPI_Barrier(world);
+  LJCMF.device->world_barrier();
   if (message)
     fprintf(screen,"Done.\n");
 
   for (int i=0; i<procs_per_gpu; i++) {
     if (message) {
       if (last_gpu-first_gpu==0)
-        fprintf(screen,"Initializing GPU %d on core %d...",gpu_rank,i);
+        fprintf(screen,"Initializing GPU %d on core %d...",first_gpu,i);
       else
         fprintf(screen,"Initializing GPUs %d-%d on core %d...",first_gpu,
                 last_gpu,i);
@@ -88,7 +87,7 @@ bool ljc_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
       if (!init_ok)
         return false;
     }
-    MPI_Barrier(LJCMF.device->gpu_comm);
+    LJCMF.device->gpu_barrier();
     if (message) 
       fprintf(screen,"Done.\n");
   }

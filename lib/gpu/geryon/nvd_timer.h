@@ -20,7 +20,7 @@
    certain rights in this software.  This software is distributed under 
    the Simplified BSD License.
    ----------------------------------------------------------------------- */
- 
+
 #ifndef NVD_TIMER_H
 #define NVD_TIMER_H
 
@@ -41,8 +41,8 @@ class UCL_Timer {
   /** \note init() must be called to reuse timer after a clear() **/
   inline void clear() {
     if (_initialized) { 
-      CU_SAFE_CALL(cuEventDestroy(start_event));
-      CU_SAFE_CALL(cuEventDestroy(stop_event));
+      CU_DESTRUCT_CALL(cuEventDestroy(start_event));
+      CU_DESTRUCT_CALL(cuEventDestroy(stop_event));
       _initialized=false;
       _total_time=0.0;
     }

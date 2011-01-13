@@ -30,7 +30,8 @@ __win_sort _win_sort;
 
 template <class numtyp, class acctyp>
 PairGPUAtomT::PairGPUAtom() : _compiled(false),_allocated(false),_eflag(false),
-                              _vflag(false),_inum(0),_ilist(NULL) {
+                              _vflag(false),_inum(0),_ilist(NULL), 
+                              _newton(false) {
   #ifndef USE_OPENCL
   sort_config.op = CUDPP_ADD;
   sort_config.datatype = CUDPP_UINT;
@@ -64,7 +65,13 @@ int PairGPUAtomT::bytes_per_atom() const {
 }
 
 template <class numtyp, class acctyp>
-bool PairGPUAtomT::alloc(const int max_atoms) {
+bool PairGPUAtomT::alloc(const int inum, const int nall) {
+  _max_atoms=static_cast<int>(static_cast<double>(nall)*1.10);
+  if (_newton)
+    _max_local=_max_atoms;
+  else
+    _max_local=static_cast<int>(static_cast<double>(inum)*1.10);
+
   bool success=true;
   
   int ans_elements=4;
@@ -79,10 +86,10 @@ bool PairGPUAtomT::alloc(const int max_atoms) {
   // Allocate storage for CUDPP sort
   #ifndef USE_OPENCL
   #ifdef WINDLL
-  _win_sort_alloc(max_atoms);
+  _win_sort_alloc(_max_atoms);
   #else
   if (_gpu_nbor) {
-    CUDPPResult result = cudppPlan(&sort_plan, sort_config, max_atoms, 1, 0);  
+    CUDPPResult result = cudppPlan(&sort_plan, sort_config, _max_atoms, 1, 0);  
     if (CUDPP_SUCCESS != result)
       return false;
   }
@@ -92,23 +99,23 @@ bool PairGPUAtomT::alloc(const int max_atoms) {
   // --------------------------   Host allocations
   // Get a host write only buffer
   #ifdef GPU_CAST
-  success=success && (host_x_cast.alloc(max_atoms*3,*dev,
+  success=success && (host_x_cast.alloc(_max_atoms*3,*dev,
                                         UCL_WRITE_OPTIMIZED)==UCL_SUCCESS);
-  success=success && (host_type_cast.alloc(max_atoms,*dev,
+  success=success && (host_type_cast.alloc(_max_atoms,*dev,
                                            UCL_WRITE_OPTIMIZED)==UCL_SUCCESS);
   #else
-  success=success && (host_x.alloc(max_atoms*4,*dev,
+  success=success && (host_x.alloc(_max_atoms*4,*dev,
                       UCL_WRITE_OPTIMIZED)==UCL_SUCCESS);
   #endif                      
-  success=success && (host_ans.alloc(ans_elements*max_atoms,*dev)==UCL_SUCCESS);
-  success=success && (host_engv.alloc(_ev_fields*max_atoms,*dev)==UCL_SUCCESS);
+  success=success &&(host_ans.alloc(ans_elements*_max_local,*dev)==UCL_SUCCESS);
+  success=success &&(host_engv.alloc(_ev_fields*_max_local,*dev)==UCL_SUCCESS);
   // Buffer for casting only if different precisions
   if (_charge)
-    success=success && (host_q.alloc(max_atoms,*dev,
+    success=success && (host_q.alloc(_max_atoms,*dev,
                                      UCL_WRITE_OPTIMIZED)==UCL_SUCCESS);
   // Buffer for casting only if different precisions
   if (_rot)
-    success=success && (host_quat.alloc(max_atoms*4,*dev,
+    success=success && (host_quat.alloc(_max_atoms*4,*dev,
                                         UCL_WRITE_OPTIMIZED)==UCL_SUCCESS);
 
     
@@ -128,43 +135,44 @@ bool PairGPUAtomT::alloc(const int max_atoms) {
       dev_q.view(host_q);
   } else {
     #ifdef GPU_CAST
-    success=success && (UCL_SUCCESS==dev_x.alloc(max_atoms*4,*dev));
+    success=success && (UCL_SUCCESS==dev_x.alloc(_max_atoms*4,*dev));
     success=success && (UCL_SUCCESS==
-                        dev_x_cast.alloc(max_atoms*3,*dev,UCL_READ_ONLY));
+                        dev_x_cast.alloc(_max_atoms*3,*dev,UCL_READ_ONLY));
     success=success && (UCL_SUCCESS==
-                        dev_type_cast.alloc(max_atoms,*dev,UCL_READ_ONLY));
+                        dev_type_cast.alloc(_max_atoms,*dev,UCL_READ_ONLY));
     _gpu_bytes+=dev_x_cast.row_bytes()+dev_type_cast.row_bytes();
     #else
     success=success && (UCL_SUCCESS==
-                        dev_x.alloc(max_atoms*4,*dev,UCL_READ_ONLY));
+                        dev_x.alloc(_max_atoms*4,*dev,UCL_READ_ONLY));
     #endif
-    success=success && (dev_engv.alloc(_ev_fields*max_atoms,*dev,
+    success=success && (dev_engv.alloc(_ev_fields*_max_local,*dev,
                                        UCL_WRITE_ONLY)==UCL_SUCCESS);
-    success=success && (dev_ans.alloc(ans_elements*max_atoms,
+    success=success && (dev_ans.alloc(ans_elements*_max_local,
                                       *dev,UCL_WRITE_ONLY)==UCL_SUCCESS);
     if (_charge) {
-      success=success && (dev_q.alloc(max_atoms,*dev,
+      success=success && (dev_q.alloc(_max_atoms,*dev,
                                       UCL_READ_ONLY)==UCL_SUCCESS);
       _gpu_bytes+=dev_q.row_bytes();
     }
     if (_rot) {
-      success=success && (dev_quat.alloc(max_atoms*4,*dev,
+      success=success && (dev_quat.alloc(_max_atoms*4,*dev,
                                       UCL_READ_ONLY)==UCL_SUCCESS);
       _gpu_bytes+=dev_quat.row_bytes();
     }
   }
   if (_gpu_nbor) {
-    success=success && (dev_cell_id.alloc(max_atoms,*dev)==UCL_SUCCESS);
-    success=success && (dev_particle_id.alloc(max_atoms,*dev)==UCL_SUCCESS);
+    success=success && (dev_cell_id.alloc(_max_atoms,*dev)==UCL_SUCCESS);
+    success=success && (dev_particle_id.alloc(_max_atoms,*dev)==UCL_SUCCESS);
     _gpu_bytes+=dev_cell_id.row_bytes()+dev_particle_id.row_bytes();
     if (_bonds) {
-      success=success && (dev_tag.alloc(max_atoms,*dev)==UCL_SUCCESS);
+      success=success && (dev_tag.alloc(_max_atoms,*dev)==UCL_SUCCESS);
       _gpu_bytes+=dev_tag.row_bytes();
     }
   }
 
   _gpu_bytes+=dev_x.row_bytes()+dev_engv.row_bytes()+dev_ans.row_bytes();
-    
+  
+  _allocated=true;  
   return success;
 }
 
@@ -188,14 +196,13 @@ bool PairGPUAtomT::init(const int inum, const int nall, const bool charge,
   _ev_fields=6+_e_fields;
     
   // Initialize atom and nbor data
-  int max_local=static_cast<int>(static_cast<double>(inum)*1.10);
-  if (max_local==0)
-    max_local=1000;
-  if (nall<=inum)
-    _max_atoms=max_local*2;
-  else
-    _max_atoms=static_cast<int>(static_cast<double>(nall)*1.10);
-    
+  int ef_inum=inum;
+  if (ef_inum==0)
+    ef_inum=1000;
+  int ef_nall=nall;
+  if (ef_nall<=ef_inum)
+    ef_nall=ef_inum*2;
+  
   // Initialize timers for the selected device
   time_pos.init(*dev);
   time_other.init(*dev);
@@ -209,8 +216,7 @@ bool PairGPUAtomT::init(const int inum, const int nall, const bool charge,
   compile_kernels(*dev);
   #endif
   
-  _allocated=true;
-  return success && alloc(_max_atoms);
+  return success && alloc(ef_inum,ef_nall);
 }
   
 template <class numtyp, class acctyp>
@@ -285,7 +291,7 @@ double PairGPUAtomT::host_memory_usage() const {
     atom_bytes+=4;
   int ans_bytes=atom_bytes+_ev_fields;
   return _max_atoms*atom_bytes*sizeof(numtyp)+
-         ans_bytes*(_max_atoms)*sizeof(acctyp)+
+         ans_bytes*(_max_local)*sizeof(acctyp)+
          sizeof(PairGPUAtom<numtyp,acctyp>);
 }
   

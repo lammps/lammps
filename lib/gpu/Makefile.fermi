@@ -31,7 +31,7 @@ CUDR_CPP = mpic++ -DMPI_GERYON -I$(CUDA_HOME)/include
 CUDR_OPTS = -O3 -Wall -fexpensive-optimizations -funsafe-math-optimizations -fno-rtti -fno-exceptions -mpc64 -march=native -ffast-math -funroll-loops -DMPI_GERYON
 
 BIN_DIR = ./
-OBJ_DIR = ./obj
+OBJ_DIR = ./
 LIB_DIR = ./
 AR = ar
 BSH = /bin/sh

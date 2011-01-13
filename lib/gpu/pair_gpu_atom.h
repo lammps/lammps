@@ -77,11 +77,9 @@ class PairGPUAtom {
   inline bool resize(const int inum, const int nall, bool &success) {
     _inum=inum;
     _nall=nall;
-    if (nall>_max_atoms) {
+    if (inum>_max_local || nall>_max_atoms) {
       clear_resize();
-      _max_atoms=static_cast<int>(static_cast<double>(nall)*1.10);
-      _allocated=true;
-      success = success && alloc(_max_atoms);
+      success = success && alloc(inum,nall);
       return true;
     }
     return false;
@@ -200,6 +198,19 @@ class PairGPUAtom {
     }
     UCL_H_Vec<dev_typ> view;
     view.view((dev_typ*)buffer.begin(),m_size*m_size,*dev);
+    ucl_copy(dev_v,view,false);
+  }
+
+  /// Pack LAMMPS atom "self" type constants into 2 vectors and copy to device
+  template <class dev_typ, class t1, class t2>
+  inline void self_pack2(const int n, UCL_D_Vec<dev_typ> &dev_v, 
+                         UCL_H_Vec<numtyp> &buffer, t1 **one, t2 **two) {
+    for (int i=0; i<n; i++) {
+      buffer[i*2]=static_cast<numtyp>(one[i][i]);
+      buffer[i*2+1]=static_cast<numtyp>(two[i][i]);
+    }
+    UCL_H_Vec<dev_typ> view;
+    view.view((dev_typ*)buffer.begin(),n,*dev);
     ucl_copy(dev_v,view,false);
   }
 
@@ -386,15 +397,17 @@ class PairGPUAtom {
 
   bool _compiled;
 
-  bool alloc(const int max_atoms);
+  bool alloc(const int inum, const int nall);
   
   bool _allocated, _eflag, _vflag, _ef_atom, _vf_atom, _rot, _charge, _other;
-  int _max_atoms, _nall, _inum, _e_fields, _ev_fields;
+  int _max_local, _max_atoms, _nall, _inum, _e_fields, _ev_fields;
   bool _gpu_nbor, _bonds;
   int *_ilist;
   double _time_cast;
   
   double _gpu_bytes;
+  
+  bool _newton;
 
   #ifndef USE_OPENCL
   CUDPPConfiguration sort_config;

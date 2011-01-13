@@ -1733,6 +1733,7 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 	   (strcmp(style,"lj/charmm/coul/charmm/implicit") == 0) ||
 	   (strcmp(style,"lj/charmm/coul/long") == 0) ||
 	   (strcmp(style,"lj/charmm/coul/long/opt") == 0) ||
+	   (strcmp(style,"lj/charmm/coul/long/gpu") == 0) ||
 	   (strcmp(style,"lj/charmm/coul/charmm/omp") == 0) ||
 	   (strcmp(style,"lj/charmm/coul/charmm/implicit/omp") == 0) ||
 	   (strcmp(style,"lj/charmm/coul/long/omp") == 0)) {
@@ -1755,6 +1756,7 @@ void pair(FILE *fp, Data &data, char *style, int flag)
       int mix_flag = read_int(fp);
     } else if ((strcmp(style,"lj/charmm/coul/long") == 0) ||
 	       (strcmp(style,"lj/charmm/coul/long/omp") == 0) ||
+	       (strcmp(style,"lj/charmm/coul/long/gpu") == 0) ||
 	       (strcmp(style,"lj/charmm/coul/long/opt") == 0)) {
       double cut_lj_inner = read_double(fp);
       double cut_lj = read_double(fp);

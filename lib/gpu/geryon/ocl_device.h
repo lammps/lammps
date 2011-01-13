@@ -20,7 +20,7 @@
    certain rights in this software.  This software is distributed under 
    the Simplified BSD License.
    ----------------------------------------------------------------------- */
- 
+
 #ifndef OCL_DEVICE
 #define OCL_DEVICE
 
@@ -265,10 +265,10 @@ inline UCL_Device::UCL_Device() {
 inline UCL_Device::~UCL_Device() {
   if (_device>-1) {
     for (size_t i=0; i<_cq.size(); i++) {
-      CL_SAFE_CALL(clReleaseCommandQueue(_cq.back()));
+      CL_DESTRUCT_CALL(clReleaseCommandQueue(_cq.back()));
       _cq.pop_back();
     }
-    CL_SAFE_CALL(clReleaseContext(_context));
+    CL_DESTRUCT_CALL(clReleaseContext(_context));
   }
 }
 

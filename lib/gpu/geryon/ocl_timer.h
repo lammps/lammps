@@ -20,7 +20,7 @@
    certain rights in this software.  This software is distributed under 
    the Simplified BSD License.
    ----------------------------------------------------------------------- */
- 
+
 #ifndef OCL_TIMER_H
 #define OCL_TIMER_H
 
@@ -41,7 +41,7 @@ class UCL_Timer {
   /** \note init() must be called to reuse timer after a clear() **/
   inline void clear() {
     if (_initialized) {
-      CL_SAFE_CALL(clReleaseCommandQueue(_cq));
+      CL_DESTRUCT_CALL(clReleaseCommandQueue(_cq));
       clReleaseEvent(start_event);
       clReleaseEvent(stop_event);
       _initialized=false;

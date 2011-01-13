@@ -91,14 +91,14 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *lj1,
 
   if (ii<inum) {
   
-    acctyp energy=(numtyp)0;
+    acctyp energy=(acctyp)0;
     acctyp4 f;
-    f.x=(numtyp)0;
-    f.y=(numtyp)0;
-    f.z=(numtyp)0;
+    f.x=(acctyp)0;
+    f.y=(acctyp)0;
+    f.z=(acctyp)0;
     acctyp virial[6];
     for (int i=0; i<6; i++)
-      virial[i]=(numtyp)0;
+      virial[i]=(acctyp)0;
   
     __global int *nbor=dev_nbor+ii;
     int i=*nbor;
@@ -195,14 +195,14 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
   
   if (ii<inum) {
   
-    acctyp energy=(numtyp)0;
+    acctyp energy=(acctyp)0;
     acctyp4 f;
-    f.x=(numtyp)0;
-    f.y=(numtyp)0;
-    f.z=(numtyp)0;
+    f.x=(acctyp)0;
+    f.y=(acctyp)0;
+    f.z=(acctyp)0;
     acctyp virial[6];
     for (int i=0; i<6; i++)
-      virial[i]=(numtyp)0;
+      virial[i]=(acctyp)0;
   
     __global int *nbor=dev_nbor+ii;
     int i=*nbor;

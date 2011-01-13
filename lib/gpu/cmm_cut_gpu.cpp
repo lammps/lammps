@@ -39,7 +39,6 @@ bool cmm_gpu_init(const int ntypes, double **cutsq, int **cg_types,
   double gpu_split=CMMMF.device->particle_split();
   int first_gpu=CMMMF.device->first_device();
   int last_gpu=CMMMF.device->last_device();
-  MPI_Comm world=CMMMF.device->world();
   int world_me=CMMMF.device->world_me();
   int gpu_rank=CMMMF.device->gpu_rank();
   int procs_per_gpu=CMMMF.device->procs_per_gpu();
@@ -47,7 +46,7 @@ bool cmm_gpu_init(const int ntypes, double **cutsq, int **cg_types,
   CMMMF.device->init_message(screen,"cg/cmm",first_gpu,last_gpu);
 
   bool message=false;
-  if (world_me==0 && screen)
+  if (CMMMF.device->replica_me()==0 && screen)
     message=true;
 
   if (message) {
@@ -63,14 +62,14 @@ bool cmm_gpu_init(const int ntypes, double **cutsq, int **cg_types,
       return false;
   }
 
-  MPI_Barrier(world);
+  CMMMF.device->world_barrier();
   if (message)
     fprintf(screen,"Done.\n");
 
   for (int i=0; i<procs_per_gpu; i++) {
     if (message) {
       if (last_gpu-first_gpu==0)
-        fprintf(screen,"Initializing GPU %d on core %d...",gpu_rank,i);
+        fprintf(screen,"Initializing GPU %d on core %d...",first_gpu,i);
       else
         fprintf(screen,"Initializing GPUs %d-%d on core %d...",first_gpu,
                 last_gpu,i);
@@ -84,7 +83,7 @@ bool cmm_gpu_init(const int ntypes, double **cutsq, int **cg_types,
       if (!init_ok)
         return false;
     }
-    MPI_Barrier(CMMMF.device->gpu_comm);
+    CMMMF.device->gpu_barrier();
     if (message) 
       fprintf(screen,"Done.\n");
   }

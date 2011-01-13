@@ -20,7 +20,7 @@
    certain rights in this software.  This software is distributed under 
    the Simplified BSD License.
    ----------------------------------------------------------------------- */
- 
+
 #ifndef NVD_MEMORY_H
 #define NVD_MEMORY_H
 
@@ -78,7 +78,7 @@ inline int _host_alloc(mat_type &mat, UCL_Device &dev, const size_t n,
 template <class mat_type>
 inline void _host_free(mat_type &mat, const enum UCL_MEMOPT kind) {
   if (kind!=UCL_NOT_PINNED)
-    CU_SAFE_CALL(cuMemFreeHost(mat.begin()));
+    CU_DESTRUCT_CALL(cuMemFreeHost(mat.begin()));
   else
     free(mat.begin());
 }
@@ -134,7 +134,7 @@ inline int _device_alloc(mat_type &mat, UCL_Device &d, const size_t rows,
 
 template <class mat_type>
 inline void _device_free(mat_type &mat) {
-  CU_SAFE_CALL(cuMemFree(mat.cbegin()));
+  CU_DESTRUCT_CALL(cuMemFree(mat.cbegin()));
 }
 
 inline void _device_view(CUdeviceptr *ptr, CUdeviceptr &in) { 

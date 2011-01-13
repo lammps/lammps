@@ -6,7 +6,7 @@
 #undef _GLIBCXX_ATOMIC_BUILTINS
 #endif // _GLIBCXX_ATOMIC_BUILTINS
 #endif // __APPLE__
- 
+
 #include <stdio.h>
 #include <cassert>
 #include <cuda_runtime.h>
@@ -16,6 +16,11 @@
 #define NVC_GERYON_EXIT MPI_Abort(MPI_COMM_WORLD,-1)
 #else
 #define NVC_GERYON_EXIT assert(0==1)
+#endif
+
+#ifdef UCL_DEBUG
+#define UCL_SYNC_DEBUG
+#define UCL_DESTRUCT_CHECK
 #endif
 
 #ifndef UCL_NO_API_CHECK
@@ -32,7 +37,7 @@
 
 #define CUDA_SAFE_CALL( call) do {                                           \
     CUDA_SAFE_CALL_NS( call);                                                \
-    cudaError err=cudaThreadSynchronize();                                             \
+    cudaError err=cudaThreadSynchronize();                                   \
     if( cudaSuccess != err) {                                                \
         fprintf(stderr, "Cuda error in file '%s' in line %i : %s.\n",        \
                 __FILE__, __LINE__, cudaGetErrorString( err) );              \
@@ -50,6 +55,18 @@
 // void macros for performance reasons
 #define CUDA_SAFE_CALL( call) call
 #define CUDA_SAFE_CALL_NS( call) call
+
+#endif
+
+#ifdef UCL_DESTRUCT_CHECK
+
+#define CUDA_DESTRUCT_CALL( call) CUDA_SAFE_CALL( call)
+#define CUDA_DESTRUCT_CALL_NS( call) CUDA_SAFE_CALL_NS( call)
+
+#else
+
+#define CUDA_DESTRUCT_CALL( call) call
+#define CUDA_DESTRUCT_CALL_NS( call) call
 
 #endif
 

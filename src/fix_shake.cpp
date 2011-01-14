@@ -454,10 +454,9 @@ void FixShake::pre_neighbor()
 	atom1 = atom->map(shake_atom[i][0]);
 	atom2 = atom->map(shake_atom[i][1]);
 	if (atom1 == -1 || atom2 == -1) {
-	  char str[128],fstr[64];
-	  sprintf(fstr,"Shake atoms %%d %%d missing on proc %%d at step %s",
-		  BIGINT_FORMAT);
-	  sprintf(str,fstr,
+	  char str[128];
+	  sprintf(str,
+		  "Shake atoms %d %d missing on proc %d at step " BIGINT_FORMAT,
 		  shake_atom[i][0],shake_atom[i][1],me,update->ntimestep);
 	  error->one(str);
 	}
@@ -467,10 +466,10 @@ void FixShake::pre_neighbor()
 	atom2 = atom->map(shake_atom[i][1]);
 	atom3 = atom->map(shake_atom[i][2]);
 	if (atom1 == -1 || atom2 == -1 || atom3 == -1) {
-	  char str[128],fstr[64];
-	  sprintf(fstr,"Shake atoms %%d %%d %%d missing on proc %%d at step %s",
-		  BIGINT_FORMAT);
-	  sprintf(str,fstr,
+	  char str[128];
+	  sprintf(str,
+		  "Shake atoms %d %d %d missing on proc %d at step " 
+		  BIGINT_FORMAT,
 		  shake_atom[i][0],shake_atom[i][1],shake_atom[i][2],
 		  me,update->ntimestep);
 	  error->one(str);
@@ -482,11 +481,10 @@ void FixShake::pre_neighbor()
 	atom3 = atom->map(shake_atom[i][2]);
 	atom4 = atom->map(shake_atom[i][3]);
 	if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1) {
-	  char str[128],fstr[64];
-	  sprintf(fstr,
-		  "Shake atoms %%d %%d %%d %%d missing on proc %%d at step %s",
-		  BIGINT_FORMAT);
-	  sprintf(str,fstr,
+	  char str[128];
+	  sprintf(str,
+		  "Shake atoms %d %d %d %d missing on proc %d at step " 
+		  BIGINT_FORMAT,
 		  shake_atom[i][0],shake_atom[i][1],
 		  shake_atom[i][2],shake_atom[i][3],
 		  me,update->ntimestep);
@@ -2147,10 +2145,11 @@ void FixShake::stats()
   // print stats only for non-zero counts
 
   if (me == 0) {
-    char fstr[64];
-    sprintf(fstr,"SHAKE stats (type/ave/delta) on step %s\n",BIGINT_FORMAT);
+
     if (screen) {
-      fprintf(screen,fstr,update->ntimestep);
+      fprintf(screen,
+	      "SHAKE stats (type/ave/delta) on step " BIGINT_FORMAT "\n",
+	      update->ntimestep);
       for (i = 1; i < nb; i++) 
 	if (b_count_all[i])
 	  fprintf(screen,"  %d %g %g\n",i,
@@ -2161,7 +2160,9 @@ void FixShake::stats()
 		  a_ave_all[i]/a_count_all[i],a_max_all[i]-a_min_all[i]);
     }
     if (logfile) {
-      fprintf(logfile,fstr,update->ntimestep);
+      fprintf(logfile,
+	      "SHAKE stats (type/ave/delta) on step " BIGINT_FORMAT "\n",
+	      update->ntimestep);
       for (i = 0; i < nb; i++) 
 	if (b_count_all[i])
 	  fprintf(logfile,"  %d %g %g\n",i,

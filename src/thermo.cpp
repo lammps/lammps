@@ -369,19 +369,19 @@ bigint Thermo::lost_check()
   // error message
 
   if (lostflag == ERROR) {
-    char fstr[64],str[64];
-    sprintf(fstr,
-	    "Lost atoms: original %s current %s",BIGINT_FORMAT,BIGINT_FORMAT);
-    sprintf(str,fstr,atom->natoms,ntotal);
+    char str[64];
+    sprintf(str,
+	    "Lost atoms: original " BIGINT_FORMAT " current " BIGINT_FORMAT,
+	    atom->natoms,ntotal);
     error->all(str);
   }
 
   // warning message
 
-  char fstr[64],str[64];
-  sprintf(fstr,
-	  "Lost atoms: original %s current %s",BIGINT_FORMAT,BIGINT_FORMAT);
-  sprintf(str,fstr,atom->natoms,ntotal);
+  char str[64];
+  sprintf(str,
+	  "Lost atoms: original " BIGINT_FORMAT " current " BIGINT_FORMAT,
+	  atom->natoms,ntotal);
   if (me == 0) error->warning(str,0);
   lostbefore = 1;
   return ntotal;
@@ -514,8 +514,8 @@ void Thermo::modify_params(int narg, char **arg)
 	if (ptr == NULL) 
 	  error->all("Thermo_modify int format does not contain d character");
 	*ptr = '\0';
-	sprintf(format_bigint_user,"%s%s%s",format_int_user,
-		BIGINT_FORMAT,ptr+1);
+	sprintf(format_bigint_user,"%s" BIGINT_FORMAT "%s",
+		format_int_user,ptr+1);
 	*ptr = 'd';
       } else if (strcmp(arg[iarg+1],"float") == 0) {
 	if (format_float_user) delete [] format_float_user;

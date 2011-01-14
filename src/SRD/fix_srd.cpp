@@ -692,13 +692,14 @@ void FixSRD::post_force(int vflag)
 	
 	if (ix < 0 || ix >= nbin2x || iy < 0 || iy >= nbin2y || 
 	    iz < 0 || iz >= nbin2z) {
-	  char fstr[64];
-	  sprintf(fstr,"SRD particle %%d on step %s\n",BIGINT_FORMAT);
-	  printf(fstr,atom->tag[i],update->ntimestep);
-	  printf("v = %g %g %g\n",v[i][0],v[i][1],v[i][2]);
-	  printf("x = %g %g %g\n",x[i][0],x[i][1],x[i][2]);
-	  printf("ix,iy,iz nx,ny,nz = %d %d %d %d %d %d\n",
-		 ix,iy,iz,nbin2x,nbin2y,nbin2z);
+	  if (screen) {
+	    fprintf(screen,"SRD particle %d on step " BIGINT_FORMAT "\n",
+		    atom->tag[i],update->ntimestep);
+	    fprintf(screen,"v = %g %g %g\n",v[i][0],v[i][1],v[i][2]);
+	    fprintf(screen,"x = %g %g %g\n",x[i][0],x[i][1],x[i][2]);
+	    fprintf(screen,"ix,iy,iz nx,ny,nz = %d %d %d %d %d %d\n",
+		    ix,iy,iz,nbin2x,nbin2y,nbin2z);
+	  }
 	  error->one("Fix SRD: bad bin assignment for SRD advection");
 	}
       }
@@ -1152,20 +1153,19 @@ void FixSRD::collisions_single()
 	  if (t_remain > dt) {
 	    ninside++;
 	    if (insideflag == INSIDE_ERROR || insideflag == INSIDE_WARN) {
-	      char str[128],fstr[128];
-	      if (type != WALL) {
-		sprintf(fstr,"SRD particle %%d started "
-			"inside big particle %%d on step %s bounce %%d\n",
-			BIGINT_FORMAT);
-		sprintf(str,fstr,
+	      char str[128];
+	      if (type != WALL)
+		sprintf(str,
+			"SRD particle %d started "
+			"inside big particle %d on step " BIGINT_FORMAT 
+			" bounce %d\n",
 			atom->tag[i],atom->tag[j],update->ntimestep,ibounce+1);
-	      } else {
-		sprintf(fstr,"SRD particle %%d started "
-			"inside wall %%d on step %s bounce %%d\n",
-			BIGINT_FORMAT);
-		sprintf(str,fstr,
-			atom->tag[i],j,update->ntimestep,ibounce+1);
-	      }
+	      else
+		sprintf(str,
+			"SRD particle %d started "
+			"inside big particle %d on step " BIGINT_FORMAT 
+			" bounce %d\n",
+			atom->tag[i],atom->tag[j],update->ntimestep,ibounce+1);
 	      if (insideflag == INSIDE_ERROR) error->one(str);
 	      error->warning(str);
 	    }
@@ -1296,11 +1296,11 @@ void FixSRD::collisions_multi()
 	  if (t_remain > dt || t_remain < 0.0) {
 	    ninside++;
 	    if (insideflag == INSIDE_ERROR || insideflag == INSIDE_WARN) {
-	      char str[128],fstr[128];
-	      sprintf(fstr,"SRD particle %%d started "
-		      "inside big particle %%d on step %s bounce %%d\n",
-		      BIGINT_FORMAT);
-	      sprintf(str,fstr,
+	      char str[128];
+	      sprintf(str,
+		      "SRD particle %d started "
+		      "inside big particle %d on step " BIGINT_FORMAT 
+		      " bounce %d\n",
 		      atom->tag[i],atom->tag[j],update->ntimestep,ibounce+1);
 	      if (insideflag == INSIDE_ERROR) error->one(str);
 	      error->warning(str);
@@ -2071,15 +2071,15 @@ int FixSRD::update_srd(int i, double dt, double *xscoll, double *vsnew,
   if (xs[0] < srdlo[0] || xs[0] > srdhi[0] || 
       xs[1] < srdlo[1] || xs[1] > srdhi[1] || 
       xs[2] < srdlo[2] || xs[2] > srdhi[2]) {
-    printf("Bad SRD particle move\n");
-    char fstr[64];
-    sprintf(fstr,"  particle %%d on proc %%d at timestep %s\n",BIGINT_FORMAT);
-    printf(fstr,atom->tag[i],me,update->ntimestep);
-    printf("  xnew %g %g %g\n",xs[0],xs[1],xs[2]);
-    printf("  srdlo/hi x %g %g\n",srdlo[0],srdhi[0]);
-    printf("  srdlo/hi y %g %g\n",srdlo[1],srdhi[1]);
-    printf("  srdlo/hi z %g %g\n",srdlo[2],srdhi[2]);
-    error->warning("Fix srd particle moved outside valid domain");
+    if (screen) {
+      error->warning("Fix srd particle moved outside valid domain");
+      fprintf(screen,"  particle %d on proc %d at timestep " BIGINT_FORMAT,
+	      atom->tag[i],me,update->ntimestep);
+      fprintf(screen,"  xnew %g %g %g\n",xs[0],xs[1],xs[2]);
+      fprintf(screen,"  srdlo/hi x %g %g\n",srdlo[0],srdhi[0]);
+      fprintf(screen,"  srdlo/hi y %g %g\n",srdlo[1],srdhi[1]);
+      fprintf(screen,"  srdlo/hi z %g %g\n",srdlo[2],srdhi[2]);
+    }
   }
 
   if (triclinic) domain->lamda2x(xs,xs);
@@ -2307,11 +2307,11 @@ void FixSRD::parameterize()
   // print SRD parameters
 
   if (me == 0) {
-    char str[64];
-    sprintf(str,"  SRD/big particles = %s %s\n",BIGINT_FORMAT,BIGINT_FORMAT);
     if (screen) {
       fprintf(screen,"SRD info:\n");
-      fprintf(screen,str,nsrd,mbig);
+      fprintf(screen,
+	      "  SRD/big particles = " BIGINT_FORMAT " " BIGINT_FORMAT "\n",
+	      nsrd,mbig);
       fprintf(screen,"  big particle diameter max/min = %g %g\n",
 	      maxbigdiam,minbigdiam);
       fprintf(screen,"  SRD temperature & lamda = %g %g\n",
@@ -2326,7 +2326,9 @@ void FixSRD::parameterize()
     }
     if (logfile) {
       fprintf(logfile,"SRD info:\n");
-      fprintf(logfile,str,nsrd,mbig);
+      fprintf(logfile,
+	      "  SRD/big particles = " BIGINT_FORMAT " " BIGINT_FORMAT "\n",
+	      nsrd,mbig);
       fprintf(logfile,"  big particle diameter max/min = %g %g\n",
 	      maxbigdiam,minbigdiam);
       fprintf(logfile,"  SRD temperature & lamda = %g %g\n",

@@ -172,11 +172,9 @@ void FixQEQComb::post_force(int vflag)
 
   // charge-equilibration loop
 
-  if (me == 0 && fp) {
-    char fstr[64];
-    sprintf(fstr,"Charge equilibration on step %s\n",BIGINT_FORMAT);
-    fprintf(fp,fstr,update->ntimestep);
-  }
+  if (me == 0 && fp)
+    fprintf(fp,"Charge equilibration on step " BIGINT_FORMAT "\n",
+	    update->ntimestep);
   
   heatpq = 0.01;
   qmass = 0.06;

@@ -789,9 +789,7 @@ void FixAveHisto::end_of_step()
   // output result to file
 
   if (fp && me == 0) {
-    char fstr[32];
-    sprintf(fstr,"%s %%d %%g %%g %%g %%g\n",BIGINT_FORMAT);
-    fprintf(fp,fstr,ntimestep,nbins,
+    fprintf(fp,BIGINT_FORMAT " %d %g %g %g %g\n",ntimestep,nbins,
 	    stats_total[0],stats_total[1],stats_total[2],stats_total[3]);
     if (stats_total[0] != 0.0)
       for (i = 0; i < nbins; i++)

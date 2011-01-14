@@ -86,9 +86,7 @@ void WriteRestart::command(int narg, char **arg)
 
   if (ptr = strchr(arg[0],'*')) {
     *ptr = '\0';
-    char fstr[16];
-    sprintf(fstr,"%%s%s%%s",BIGINT_FORMAT);
-    sprintf(file,fstr,arg[0],update->ntimestep,ptr+1);
+    sprintf(file,"%s" BIGINT_FORMAT "%s",arg[0],update->ntimestep,ptr+1);
   } else strcpy(file,arg[0]);
 
   // init entire system since comm->exchange is done

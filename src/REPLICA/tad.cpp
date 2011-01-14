@@ -386,14 +386,15 @@ void TAD::command(int narg, char **arg)
   neighbor->ndanger = ndanger;
 
   if (me_universe == 0) {
-    char str[128];
-    sprintf(str,"Loop time of %%g on %%d procs for %%d steps with %s atoms\n",
-	    BIGINT_FORMAT);
     if (universe->uscreen) 
-      fprintf(universe->uscreen,str,
+      fprintf(universe->uscreen,
+	      "Loop time of %g on %d procs for %d steps with " BIGINT_FORMAT 
+	      " atoms\n",
 	      timer->array[TIME_LOOP],nprocs_universe,nsteps,atom->natoms);
     if (universe->ulogfile) 
-      fprintf(universe->ulogfile,str,
+      fprintf(universe->ulogfile,
+	      "Loop time of %g on %d procs for %d steps with " BIGINT_FORMAT 
+	      " atoms\n",
               timer->array[TIME_LOOP],nprocs_universe,nsteps,atom->natoms);
   }
 
@@ -521,16 +522,14 @@ void TAD::log_event()
 {
   timer->array[TIME_LOOP] = time_start;
   if (universe->me == 0) {
-    char fstr[32];
-    sprintf(fstr,"%s %%.3f %%.3f %%d\n",BIGINT_FORMAT);
     if (universe->uscreen)
-      fprintf(universe->uscreen,fstr,
+      fprintf(universe->uscreen,BIGINT_FORMAT " %.3f %.3f %d\n",
               fix_event->event_timestep,
 	      timer->elapsed(TIME_LOOP),
 	      fix_event->tlo,
               fix_event->event_number);
     if (universe->ulogfile)
-      fprintf(universe->ulogfile,fstr,
+      fprintf(universe->ulogfile,BIGINT_FORMAT " %.3f %.3f %d\n",
               fix_event->event_timestep,
 	      timer->elapsed(TIME_LOOP),
 	      fix_event->tlo,
@@ -918,22 +917,27 @@ void TAD::compute_tlo(int ievent)
   // first-replica output about each event
 
   if (universe->me == 0) {
-    char str[128],fstr[128];
     double tfrac = 0.0;
     if (ievent > 0) tfrac = delthi/deltstop;
-//     sprintf(str,
-// 	    "New event: ievent = %d eb = %g t_lo = %g t_hi = %g t_hi/t_stop = %g \n",
-// 	    ievent,ebarrier,deltlo,delthi,tfrac);
-//     error->warning(str);
 
-    sprintf(fstr,"New event: t_hi = %s ievent = %%d eb = %%g "
-	    "dt_lo = %%g dt_hi/t_stop = %%g \n",BIGINT_FORMAT);
+    // char str[128];
+    //     sprintf(str,
+    // 	    "New event: ievent = %d eb = %g t_lo = %g t_hi = %g t_hi/t_stop = %g \n",
+    // 	    ievent,ebarrier,deltlo,delthi,tfrac);
+    //     error->warning(str);
+
 
     if (screen) 
-      fprintf(screen,fstr,fix_event_list[ievent]->event_timestep,
+      fprintf(screen,
+	      "New event: t_hi = " BIGINT_FORMAT " ievent = %d eb = %g "
+	      "dt_lo = %g dt_hi/t_stop = %g \n",
+	      fix_event_list[ievent]->event_timestep,
 	      ievent,ebarrier,deltlo,tfrac);
     if (logfile) 
-      fprintf(logfile,fstr,fix_event_list[ievent]->event_timestep,
+      fprintf(logfile,
+	      "New event: t_hi = " BIGINT_FORMAT " ievent = %d eb = %g "
+	      "dt_lo = %g dt_hi/t_stop = %g \n",
+	      fix_event_list[ievent]->event_timestep,
 	      ievent,ebarrier,deltlo,tfrac);
   }
 

@@ -403,11 +403,14 @@ void FixOrientFCC::post_force(int vflag)
     MPI_Allreduce(&maxcount,&max,1,MPI_INT,MPI_MAX,world);
 
     if (me == 0) { 
-      char str[64];
-      sprintf(str,"orient step %%d: %s atoms have %%d neighbors\n",
-	      BIGINT_FORMAT);
-      if (screen) fprintf(screen,str,update->ntimestep,atom->natoms,total);
-      if (logfile) fprintf(logfile,str,update->ntimestep,atom->natoms,total);
+      if (screen) fprintf(screen,
+			  "orient step %d: " BIGINT_FORMAT 
+			  " atoms have %d neighbors\n",
+			  update->ntimestep,atom->natoms,total);
+      if (logfile) fprintf(logfile,
+			  "orient step %d: " BIGINT_FORMAT 
+			  " atoms have %d neighbors\n",
+			  update->ntimestep,atom->natoms,total);
       if (screen)
 	fprintf(screen,"  neighs: min = %d, max = %d, ave = %g\n",
 		min,max,ave);

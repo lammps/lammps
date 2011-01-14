@@ -370,39 +370,35 @@ void Replicate::command(int narg, char **arg)
   MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
 
   if (me == 0) {
-    char str[32];
-    sprintf(str,"  %s atoms\n",BIGINT_FORMAT);
-    if (screen) fprintf(screen,str,natoms);
-    if (logfile) fprintf(logfile,str,natoms);
+    if (screen) fprintf(screen,"  " BIGINT_FORMAT " atoms\n",natoms);
+    if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " atoms\n",natoms);
   }
 
   if (natoms != atom->natoms)
     error->all("Replicate did not assign all atoms correctly");
-
+  
   if (me == 0) {
     if (atom->nbonds) {
-      char str[32];
-      sprintf(str,"  %s bonds\n",BIGINT_FORMAT);
-      if (screen) fprintf(screen,str,atom->nbonds);
-      if (logfile) fprintf(logfile,str,atom->nbonds);
+      if (screen) fprintf(screen,"  " BIGINT_FORMAT " bonds\n",atom->nbonds);
+      if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " bonds\n",atom->nbonds);
     }
     if (atom->nangles) {
-      char str[32];
-      sprintf(str,"  %s angles\n",BIGINT_FORMAT);
-      if (screen) fprintf(screen,str,atom->nangles);
-      if (logfile) fprintf(logfile,str,atom->nangles);
+      if (screen) fprintf(screen,"  " BIGINT_FORMAT " angles\n",
+			  atom->nangles);
+      if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " angles\n",
+			   atom->nangles);
     }
     if (atom->ndihedrals) {
-      char str[32];
-      sprintf(str,"  %s dihedrals\n",BIGINT_FORMAT);
-      if (screen) fprintf(screen,str,atom->ndihedrals);
-      if (logfile) fprintf(logfile,str,atom->ndihedrals);
+      if (screen) fprintf(screen,"  " BIGINT_FORMAT " dihedrals\n",
+			  atom->ndihedrals);
+      if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " dihedrals\n",
+			   atom->ndihedrals);
     }
     if (atom->nimpropers) {
-      char str[32];
-      sprintf(str,"  %s impropers\n",BIGINT_FORMAT);
-      if (screen) fprintf(screen,str,atom->nimpropers);
-      if (logfile) fprintf(logfile,str,atom->nimpropers);
+      if (screen) fprintf(screen,"  " BIGINT_FORMAT " impropers\n",
+			  atom->nimpropers);
+      if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " impropers\n",
+			   atom->nimpropers);
     }
   }
 

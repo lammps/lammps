@@ -15,10 +15,10 @@
 </P>
 <PRE>pair_style reax hbcut hbnewflag tripflag precision 
 </PRE>
-<UL><LI>hbcut = hydrogen-bond cutoff (distance units)
-<LI>hbnewflag = use old or new hbond function style (0 or 1)
-<LI>tripflag = apply stabilization to all triple bonds (0 or 1)
-<LI>precision = precision for charge equilibration 
+<UL><LI>hbcut = hydrogen-bond cutoff (optional) (distance units)
+<LI>hbnewflag = use old or new hbond function style (0 or 1) (optional)
+<LI>tripflag = apply stabilization to all triple bonds (0 or 1) (optional)
+<LI>precision = precision for charge equilibration (optional) 
 </UL>
 <P><B>Examples:</B>
 </P>
@@ -62,15 +62,13 @@ can use other ffield files for specific chemical systems that may be
 available elsewhere (but note that their accuracy may not have been
 tested).
 </P>
-<P>The <I>hbcut</I>, <I>hbnewflag</I>, <I>tripflag</I>, and <I>precision</I> 
-settings are optional arguments.  
-If
-neither is provided, default settings are used: <I>hbcut</I> = 6 (which is
-Angstroms in real units), <I>hbnewflag</I> = 1 (use new hbond function style), 
-<I>tripflag</I> = 1 (apply stabilization to all triple bonds), 
-and <I>precision</I> = 1.0e-6 (one part in 10^6).
-If you wish to override any of these defaults, then all settings
-must be specified.
+<P>The <I>hbcut</I>, <I>hbnewflag</I>, <I>tripflag</I>, and <I>precision</I> settings are
+optional arguments.  If none are provided, default settings are used:
+<I>hbcut</I> = 6 (which is Angstroms in real units), <I>hbnewflag</I> = 1 (use
+new hbond function style), <I>tripflag</I> = 1 (apply stabilization to all
+triple bonds), and <I>precision</I> = 1.0e-6 (one part in 10^6).  If you
+wish to override any of these defaults, then all of the settings must
+be specified.
 </P>
 <P>Two examples using <I>pair_style reax</I> are provided in the examples/reax
 sub-directory, along with corresponding examples for 

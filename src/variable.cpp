@@ -1597,8 +1597,8 @@ double Variable::collapse_tree(Tree *tree)
 
   if (tree->type == SIN) {
     arg1 = collapse_tree(tree->left);
-    tree->type = VALUE;
     if (tree->left->type != VALUE) return 0.0;
+    tree->type = VALUE;
     tree->value = sin(arg1);
     return tree->value;
   }

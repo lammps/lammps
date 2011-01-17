@@ -47,7 +47,8 @@ namespace LAMMPS_NS {
 
 typedef int smallint;
 typedef int tagint;
-typedef int64_t bigint;
+//typedef int64_t bigint;
+typedef long long int bigint;
 
 #define MAXSMALLINT INT_MAX
 #define MAXTAGINT INT_MAX

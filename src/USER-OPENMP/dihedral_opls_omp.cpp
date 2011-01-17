@@ -203,7 +203,7 @@ void DihedralOPLSOMP::eval()
       if (c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE)) {
 	if (screen) {
 	  char str[128];
-	  sprintf(str,"Dihedral problem: %d/%d %d %d %d %d %d",
+	  sprintf(str,"Dihedral problem: %d/%d " BIGINT_FORMAT " %d %d %d %d",
 		  comm->me,tid,update->ntimestep,
 		  atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
 	  error->warning(str,0);

@@ -58,8 +58,6 @@ typedef int64_t bigint;
 
 #define TAGINT_FORMAT "%d"
 #define BIGINT_FORMAT "%lld"
-#define TAGINT_FORMAT_NL "%d\n"
-#define BIGINT_FORMAT_NL "%lld\n"
 
 #define ATOTAGINT atoi
 #define ATOBIGINT atoll
@@ -82,8 +80,6 @@ typedef int64_t bigint;
 
 #define TAGINT_FORMAT "%lld"
 #define BIGINT_FORMAT "%lld"
-#define TAGINT_FORMAT_NL "%lld\n"
-#define BIGINT_FORMAT_NL "%lld\n"
 
 #define ATOTAGINT atoll
 #define ATOBIGINT atoll
@@ -106,8 +102,6 @@ typedef int bigint;
 
 #define TAGINT_FORMAT "%d"
 #define BIGINT_FORMAT "%d"
-#define TAGINT_FORMAT_NL "%d\n"
-#define BIGINT_FORMAT_NL "%d\n"
 
 #define ATOTAGINT atoi
 #define ATOBIGINT atoi

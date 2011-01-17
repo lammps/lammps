@@ -206,9 +206,9 @@ void DumpAtom::header_binary_triclinic(bigint ndump)
 void DumpAtom::header_item(bigint ndump)
 {
   fprintf(fp,"ITEM: TIMESTEP\n");
-  fprintf(fp,BIGINT_FORMAT_NL,update->ntimestep);
+  fprintf(fp,BIGINT_FORMAT "\n",update->ntimestep);
   fprintf(fp,"ITEM: NUMBER OF ATOMS\n");
-  fprintf(fp,BIGINT_FORMAT_NL,ndump);
+  fprintf(fp,BIGINT_FORMAT "\n",ndump);
   fprintf(fp,"ITEM: BOX BOUNDS\n");
   fprintf(fp,"%g %g\n",boxxlo,boxxhi);
   fprintf(fp,"%g %g\n",boxylo,boxyhi);
@@ -221,9 +221,9 @@ void DumpAtom::header_item(bigint ndump)
 void DumpAtom::header_item_triclinic(bigint ndump)
 {
   fprintf(fp,"ITEM: TIMESTEP\n");
-  fprintf(fp,BIGINT_FORMAT_NL,update->ntimestep);
+  fprintf(fp,BIGINT_FORMAT "\n",update->ntimestep);
   fprintf(fp,"ITEM: NUMBER OF ATOMS\n");
-  fprintf(fp,BIGINT_FORMAT_NL,ndump);
+  fprintf(fp,BIGINT_FORMAT "\n",ndump);
   fprintf(fp,"ITEM: BOX BOUNDS xy xz yz\n");
   fprintf(fp,"%g %g %g\n",boxxlo,boxxhi,boxxy);
   fprintf(fp,"%g %g %g\n",boxylo,boxyhi,boxxz);

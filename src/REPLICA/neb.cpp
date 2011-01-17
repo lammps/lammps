@@ -487,10 +487,8 @@ void NEB::print_status()
   }
 
   if (me_universe == 0) {
-    char fstr[32];
-    sprintf(fstr,"%s %%g %%g ",BIGINT_FORMAT);
     if (universe->uscreen) {
-      fprintf(universe->uscreen,fstr,update->ntimestep,
+      fprintf(universe->uscreen,BIGINT_FORMAT " %g %g ",update->ntimestep,
 	      fmaxreplica,fmaxatom);
       fprintf(universe->uscreen,"%g %g %g ",
 	      gradvnorm0,gradvnorm1,gradvnormc);
@@ -500,7 +498,7 @@ void NEB::print_status()
       fprintf(universe->uscreen,"\n");
     }
     if (universe->ulogfile) {
-      fprintf(universe->ulogfile,fstr,update->ntimestep,
+      fprintf(universe->ulogfile,BIGINT_FORMAT " %g %g ",update->ntimestep,
 	      fmaxreplica,fmaxatom);
       fprintf(universe->ulogfile,"%g %g %g ",
 	      gradvnorm0,gradvnorm1,gradvnormc);

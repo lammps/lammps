@@ -157,12 +157,11 @@ void ImproperClass2::compute(int eflag, int vflag)
 	int me;
 	MPI_Comm_rank(world,&me);
 	if (screen) {
-	  char str[128],fstr[64];
-	  sprintf(fstr,"Improper problem: %%d %s %%d %%d %%d %%d",
-		  BIGINT_FORMAT);
-	  sprintf(str,fstr,me,update->ntimestep,
+	  char str[128];
+	  sprintf(str,
+		  "Improper problem: %d " BIGINT_FORMAT " %d %d %d %d",
+		  me,update->ntimestep,
 		  atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
-	  error->warning(str,0);
 	  error->warning(str,0);
 	  fprintf(screen,"  1st atom: %d %g %g %g\n",
 		  me,x[i1][0],x[i1][1],x[i1][2]);

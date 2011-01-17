@@ -215,10 +215,9 @@ void DisplaceAtoms::command(int narg, char **arg)
   bigint nblocal = atom->nlocal;
   MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
   if (natoms != atom->natoms) {
-    char fstr[64],str[128];
-    sprintf(fstr,"Lost atoms via displace_atoms: original %s current %s",
-	    BIGINT_FORMAT,BIGINT_FORMAT);
-    sprintf(str,fstr,atom->natoms,natoms);
+    char str[128];
+    sprintf(str,"Lost atoms via displace_atoms: original " BIGINT_FORMAT 
+	    " current " BIGINT_FORMAT,atom->natoms,natoms);
     error->all(str);
   }
 }

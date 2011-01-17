@@ -121,13 +121,11 @@ void FixReaxBonds::OutputReaxBonds(bigint ntimestep, FILE *fp)
   MPI_Allreduce(&nsbmax,&nsbmax_most,1,MPI_INT,MPI_MAX,world);
  
   if (me == 0) {
-    char fstr[32];
-    sprintf(fstr,"# Timestep %s \n",BIGINT_FORMAT);
-    fprintf(fp,fstr,ntimestep);
+    fprintf(fp,"# Timestep " BIGINT_FORMAT " \n",ntimestep);
     fprintf(fp,"# \n");
     fprintf(fp,"# Number of particles %d \n",nparticles_tot);
     fprintf(fp,"# \n");
-    fprintf(fp,"# Max.number of bonds per atom %d with "
+    fprintf(fp,"# Max number of bonds per atom %d with "
 	    "coarse bond order cutoff %5.3f \n",
 	    nsbmax_most,cutof3);
     fprintf(fp,"# Particle connection table and bond orders \n");

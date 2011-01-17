@@ -369,19 +369,19 @@ bigint Thermo::lost_check()
   // error message
 
   if (lostflag == ERROR) {
-    char fstr[64],str[64];
-    sprintf(fstr,
-	    "Lost atoms: original %s current %s",BIGINT_FORMAT,BIGINT_FORMAT);
-    sprintf(str,fstr,atom->natoms,ntotal);
+    char str[64];
+    sprintf(str,
+	    "Lost atoms: original " BIGINT_FORMAT " current " BIGINT_FORMAT,
+	    atom->natoms,ntotal);
     error->all(str);
   }
 
   // warning message
 
-  char fstr[64],str[64];
-  sprintf(fstr,
-	  "Lost atoms: original %s current %s",BIGINT_FORMAT,BIGINT_FORMAT);
-  sprintf(str,fstr,atom->natoms,ntotal);
+  char str[64];
+  sprintf(str,
+	  "Lost atoms: original " BIGINT_FORMAT " current " BIGINT_FORMAT,
+	  atom->natoms,ntotal);
   if (me == 0) error->warning(str,0);
   lostbefore = 1;
   return ntotal;

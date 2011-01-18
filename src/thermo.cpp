@@ -941,18 +941,19 @@ int Thermo::evaluate_keyword(char *word, double *answer)
 
   if (strcmp(word,"step") == 0) {
     compute_step();
+    dvalue = bivalue;
 
   } else if (strcmp(word,"elapsed") == 0) {
     if (update->whichflag == 0) 
       error->all("This variable thermo keyword cannot be used between runs");
     compute_elapsed();
-    dvalue = ivalue;
+    dvalue = bivalue;
 
   } else if (strcmp(word,"elaplong") == 0) {
     if (update->whichflag == 0) 
       error->all("This variable thermo keyword cannot be used between runs");
     compute_elapsed_long();
-    dvalue = ivalue;
+    dvalue = bivalue;
 
   } else if (strcmp(word,"dt") == 0) {
     compute_dt();
@@ -974,6 +975,7 @@ int Thermo::evaluate_keyword(char *word, double *answer)
 
   } else if (strcmp(word,"atoms") == 0) {
     compute_atoms();
+    dvalue = bivalue;
 
   } else if (strcmp(word,"temp") == 0) {
     if (!temperature)

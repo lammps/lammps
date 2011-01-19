@@ -208,7 +208,11 @@ void Neighbor::init()
   // cutneigh = force cutoff + skin if cutforce > 0, else cutneigh = 0
 
   triggersq = 0.25*skin*skin;
-
+  shrinkcheck = 0;
+  if (domain->box_change && (domain->xperiodic || domain->yperiodic || 
+			     (dimension == 3 && domain->zperiodic)))
+      shrinkcheck = 1;
+      
   n = atom->ntypes;
   if (cutneighsq == NULL) {
     cutneighsq = memory->create_2d_double_array(n+1,n+1,"neigh:cutneighsq");
@@ -996,11 +1000,23 @@ int Neighbor::decide()
   } else return 0;
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   if any atom moved trigger distance (half of neighbor skin) return 1
+   shrink trigger distance if periodic box dimension has decreased
+------------------------------------------------------------------------- */
 
 int Neighbor::check_distance()
 {
-  double delx,dely,delz,rsq;
+  double delx,dely,delz,rsq,deltasq;
+
+  if (shrinkcheck) {
+    double delta = 0.0;
+    if (domain->xperiodic) delta = MIN(delta,domain->xprd-xprdhold);
+    if (domain->yperiodic) delta = MIN(delta,domain->yprd-yprdhold);
+    if (domain->zperiodic) delta = MIN(delta,domain->zprd-zprdhold);
+    delta = 0.5*skin - delta;
+    deltasq = delta*delta;
+  } else deltasq = triggersq;
 
   double **x = atom->x;
   int nlocal = atom->nlocal;
@@ -1012,7 +1028,7 @@ int Neighbor::check_distance()
     dely = x[i][1] - xhold[i][1];
     delz = x[i][2] - xhold[i][2];
     rsq = delx*delx + dely*dely + delz*delz;
-    if (rsq > triggersq) flag = 1;
+    if (rsq > deltasq) flag = 1;
   }
 
   int flagall;
@@ -1033,7 +1049,7 @@ void Neighbor::build()
   ago = 0;
   ncalls++;
 
-  // store current atom positions if needed
+  // store current atom positions and box size if needed
 
   if (dist_check) {
     double **x = atom->x;
@@ -1049,6 +1065,9 @@ void Neighbor::build()
       xhold[i][1] = x[i][1];
       xhold[i][2] = x[i][2];
     }
+    xprdhold = domain->xprd;
+    yprdhold = domain->yprd;
+    zprdhold = domain->zprd;
   }
 
   // if necessary, extend atom arrays in pairwise lists

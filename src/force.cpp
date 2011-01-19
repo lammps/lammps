@@ -105,6 +105,7 @@ void Force::init()
 
   if (kspace) kspace->init();         // kspace must come before pair
   if (pair) pair->init();             // so g_ewald is defined
+  if (bond) bond->init();
   if (angle) angle->init();
   if (dihedral) dihedral->init();
   if (improper) improper->init();

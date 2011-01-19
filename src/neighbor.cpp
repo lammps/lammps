@@ -1014,7 +1014,7 @@ int Neighbor::check_distance()
     if (domain->xperiodic) delta = MIN(delta,domain->xprd-xprdhold);
     if (domain->yperiodic) delta = MIN(delta,domain->yprd-yprdhold);
     if (domain->zperiodic) delta = MIN(delta,domain->zprd-zprdhold);
-    delta = 0.5*skin - delta;
+    delta = MAX(0.5*skin-delta,0.0);
     deltasq = delta*delta;
   } else deltasq = triggersq;
 

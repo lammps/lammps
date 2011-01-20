@@ -49,8 +49,8 @@ FFT_LIB =	-lfftw
 # SYSPATH = paths of libraries
 
 gpu_SYSLIB =       -lcudart -lcuda
-meam_SYSLIB =      -lifcore -lsvml -lompstub -limf
-reax_SYSLIB =      -lifcore -lsvml -lompstub -limf
+meam_SYSLIB =      -lgfortran
+reax_SYSLIB =      -lgfortran
 user-atc_SYSLIB =  -lblas -llapack
 
 gpu_SYSPATH =      -L$(HOME)/cuda/lib64 -L/usr/lib64/nvidia  -Wl,-rpath,$(HOME)/cuda/lib64

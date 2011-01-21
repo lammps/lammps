@@ -22,6 +22,7 @@ FixStyle(reax/bonds,FixReaxBonds)
 
 #include "stdio.h"
 #include "fix.h"
+#include "lmptype.h"
 
 namespace LAMMPS_NS {
 
@@ -39,7 +40,7 @@ class FixReaxBonds : public Fix {
   int nfreq;
   FILE *fp;
 
-  void OutputReaxBonds(int, FILE*);
+  void OutputReaxBonds(bigint, FILE*);
   int nint(const double&);
 };
 

@@ -19,6 +19,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "pair_lj_charmm_coul_long_gpu.h"
+#include "lmptype.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "comm.h"
@@ -79,7 +80,8 @@ enum{GEOMETRIC,ARITHMETIC,SIXTHPOWER};
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCharmmCoulLongGPU::PairLJCharmmCoulLongGPU(LAMMPS *lmp) : PairLJCharmmCoulLong(lmp), gpu_mode(GPU_PAIR)
+PairLJCharmmCoulLongGPU::PairLJCharmmCoulLongGPU(LAMMPS *lmp) : 
+  PairLJCharmmCoulLong(lmp), gpu_mode(GPU_PAIR)
 {
   respa_enable = 0;
   cpu_time = 0.0;
@@ -98,6 +100,8 @@ PairLJCharmmCoulLongGPU::~PairLJCharmmCoulLongGPU()
 
 void PairLJCharmmCoulLongGPU::compute(int eflag, int vflag)
 {
+  int ntimestep = static_cast<int>(update->ntimestep % MAXSMALLINT);
+
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
   
@@ -108,7 +112,7 @@ void PairLJCharmmCoulLongGPU::compute(int eflag, int vflag)
   
   if (gpu_mode == GPU_NEIGH) {
     inum = atom->nlocal;
-    gpulist = crml_gpu_compute_n(update->ntimestep, neighbor->ago, inum, nall,
+    gpulist = crml_gpu_compute_n(ntimestep, neighbor->ago, inum, nall,
 			         atom->x, atom->type, domain->sublo,
 				 domain->subhi, atom->tag, atom->nspecial,
                                  atom->special, eflag, vflag, eflag_atom,
@@ -116,7 +120,7 @@ void PairLJCharmmCoulLongGPU::compute(int eflag, int vflag)
                                  atom->q);
   } else {
     inum = list->inum;
-    crml_gpu_compute(update->ntimestep, neighbor->ago, inum, nall, atom->x,
+    crml_gpu_compute(ntimestep, neighbor->ago, inum, nall, atom->x,
 		     atom->type, list->ilist, list->numneigh, list->firstneigh,
 		     eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time,
 		     success, atom->q);

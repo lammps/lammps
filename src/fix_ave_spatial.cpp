@@ -789,9 +789,7 @@ void FixAveSpatial::end_of_step()
   // output result to file
   
   if (fp && me == 0) {
-    char fstr[16];
-    sprintf(fstr,"%s %%d\n",BIGINT_FORMAT);
-    fprintf(fp,fstr,ntimestep,nbins);
+    fprintf(fp,BIGINT_FORMAT " %d\n",ntimestep,nbins);
     if (ndim == 1)
       for (m = 0; m < nbins; m++) {
 	fprintf(fp,"  %d %g %g",m+1,coord[m][0],

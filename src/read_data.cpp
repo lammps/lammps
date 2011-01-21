@@ -452,10 +452,8 @@ void ReadData::atoms()
   MPI_Allreduce(&tmp,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
 
   if (me == 0) {
-    char str[32];
-    sprintf(str,"  %s atoms\n",BIGINT_FORMAT);
-    if (screen) fprintf(screen,str,natoms);
-    if (logfile) fprintf(logfile,str,natoms);
+    if (screen) fprintf(screen,"  " BIGINT_FORMAT " atoms\n",natoms);
+    if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " atoms\n",natoms);
   }
 
   if (natoms != atom->natoms) error->all("Did not assign all atoms correctly");
@@ -545,10 +543,8 @@ void ReadData::velocities()
   }
 
   if (me == 0) {
-    char str[32];
-    sprintf(str,"  %s velocities\n",BIGINT_FORMAT);
-    if (screen) fprintf(screen,str,natoms);
-    if (logfile) fprintf(logfile,str,natoms);
+    if (screen) fprintf(screen,"  " BIGINT_FORMAT " velocities\n",natoms);
+    if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " velocities\n",natoms);
   }
 }
 
@@ -591,10 +587,8 @@ void ReadData::bonds()
   if (!force->newton_bond) factor = 2;
 
   if (me == 0) {
-    char str[32];
-    sprintf(str,"  %s bonds\n",BIGINT_FORMAT);
-    if (screen) fprintf(screen,str,sum/factor);
-    if (logfile) fprintf(logfile,str,sum/factor);
+    if (screen) fprintf(screen,"  " BIGINT_FORMAT " bonds\n",sum/factor);
+    if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " bonds\n",sum/factor);
   }
   if (sum != factor*atom->nbonds) error->all("Bonds assigned incorrectly");
 }
@@ -638,10 +632,8 @@ void ReadData::angles()
   if (!force->newton_bond) factor = 3;
 
   if (me == 0) {
-    char str[32];
-    sprintf(str,"  %s angles\n",BIGINT_FORMAT);
-    if (screen) fprintf(screen,str,sum/factor);
-    if (logfile) fprintf(logfile,str,sum/factor);
+    if (screen) fprintf(screen,"  " BIGINT_FORMAT " angles\n",sum/factor);
+    if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " angles\n",sum/factor);
   }
   if (sum != factor*atom->nangles) error->all("Angles assigned incorrectly");
 }
@@ -685,10 +677,8 @@ void ReadData::dihedrals()
   if (!force->newton_bond) factor = 4;
 
   if (me == 0) {
-    char str[32];
-    sprintf(str,"  %s dihedrals\n",BIGINT_FORMAT);
-    if (screen) fprintf(screen,str,sum/factor);
-    if (logfile) fprintf(logfile,str,sum/factor);
+    if (screen) fprintf(screen,"  " BIGINT_FORMAT " dihedrals\n",sum/factor);
+    if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " dihedrals\n",sum/factor);
   }
   if (sum != factor*atom->ndihedrals) 
     error->all("Dihedrals assigned incorrectly");
@@ -733,10 +723,8 @@ void ReadData::impropers()
   if (!force->newton_bond) factor = 4;
 
   if (me == 0) {
-    char str[32];
-    sprintf(str,"  %s impropers\n",BIGINT_FORMAT);
-    if (screen) fprintf(screen,str,sum/factor);
-    if (logfile) fprintf(logfile,str,sum/factor);
+    if (screen) fprintf(screen,"  " BIGINT_FORMAT " impropers\n",sum/factor);
+    if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " impropers\n",sum/factor);
   }
   if (sum != factor*atom->nimpropers) 
     error->all("Impropers assigned incorrectly");

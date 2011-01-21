@@ -176,12 +176,12 @@ void CreateAtoms::command(int narg, char **arg)
   // print status
 
   if (comm->me == 0) {
-    char str[32];
-    sprintf(str,"Created %s atoms\n",BIGINT_FORMAT);
     if (screen)
-      fprintf(screen,str,atom->natoms-natoms_previous);
+      fprintf(screen,"Created " BIGINT_FORMAT " atoms\n",
+	      atom->natoms-natoms_previous);
     if (logfile)
-      fprintf(logfile,str,atom->natoms-natoms_previous);
+      fprintf(logfile,"Created " BIGINT_FORMAT " atoms\n",
+	      atom->natoms-natoms_previous);
   }
 
   // reset simulation now that more atoms are defined

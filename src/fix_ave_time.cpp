@@ -770,9 +770,7 @@ void FixAveTime::invoke_vector(bigint ntimestep)
   // output result to file
       
   if (fp && me == 0) {
-    char fstr[16];
-    sprintf(fstr,"%s %%d\n",BIGINT_FORMAT);
-    fprintf(fp,fstr,ntimestep,nrows);
+    fprintf(fp,BIGINT_FORMAT " %d\n",ntimestep,nrows);
     for (i = 0; i < nrows; i++) {
       fprintf(fp,"%d",i+1);
       for (j = 0; j < nvalues; j++) fprintf(fp," %g",array_total[i][j]/norm);

@@ -285,9 +285,9 @@ void FixTMD::initial_integrate(int vflag)
     work_lambda += lambda*(rho_target - rho_old);
     if (!(update->ntimestep % nfileevery) && 
 	(previous_stat != update->ntimestep)) {
-      char fstr[64];
-      sprintf(fstr,"%s %%g %%g %%g %%g %%g %%g %%g\n",BIGINT_FORMAT);
-      fprintf(fp,fstr,update->ntimestep,rho_target,rho_old,
+      fprintf(fp,
+	      BIGINT_FORMAT " %g %g %g %g %g %g %g\n",
+	      update->ntimestep,rho_target,rho_old,
               gamma_back,gamma_forward,lambda,work_lambda,work_analytical);
       fflush(fp);
       previous_stat = update->ntimestep;

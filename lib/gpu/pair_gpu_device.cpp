@@ -19,6 +19,9 @@
 #include "pair_gpu_precision.h"
 #include <map>
 #include <math.h>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 #define PairGPUDeviceT PairGPUDevice<numtyp, acctyp>
 
@@ -39,6 +42,9 @@ bool PairGPUDeviceT::init_device(MPI_Comm world, MPI_Comm replica,
                                  const int gpu_mode, const double p_split,
                                  const int nthreads) {
   _nthreads=nthreads;
+  #ifdef _OPENMP
+  omp_set_num_threads(nthreads);
+  #endif
 
   if (_device_init)
     return true;
@@ -153,6 +159,9 @@ void PairGPUDeviceT::init_message(FILE *screen, const char *name,
     fprintf(screen,"-------------------------------------\n");
     fprintf(screen,"- Using GPGPU acceleration for %s:\n",name);
     fprintf(screen,"-  with %d procs per device.\n",_procs_per_gpu);
+    #ifdef _OPENMP
+    fprintf(screen,"-  with %d threads per proc.\n",_nthreads);
+    #endif
     fprintf(screen,"-------------------------------------");
     fprintf(screen,"-------------------------------------\n");
 

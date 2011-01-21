@@ -50,26 +50,25 @@
 // External functions from cuda library for atom decomposition
 
 bool ljcl_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
-                  double **host_lj2, double **host_lj3, double **host_lj4, 
-                  double **offset, double *special_lj, const int nlocal, 
-                  const int nall, const int max_nbors, const int maxspecial,
-                  const double cell_size, int &gpu_mode, FILE *screen,
-                  double **host_cut_ljsq, double host_cut_coulsq,
-                  double *host_special_coul, const double qqrd2e,
-                  const double g_ewald);
+		   double **host_lj2, double **host_lj3, double **host_lj4, 
+		   double **offset, double *special_lj, const int nlocal, 
+		   const int nall, const int max_nbors, const int maxspecial,
+		   const double cell_size, int &gpu_mode, FILE *screen,
+		   double **host_cut_ljsq, double host_cut_coulsq,
+		   double *host_special_coul, const double qqrd2e,
+		   const double g_ewald);
 void ljcl_gpu_clear();
-int * ljcl_gpu_compute_n(const int timestep, const int ago, const int inum,
-	 	        const int nall, double **host_x, int *host_type, 
-                        double *boxlo, double *boxhi, int *tag, int **nspecial,
-                        int **special, const bool eflag, const bool vflag,
-                        const bool eatom, const bool vatom, int &host_start,
-                        const double cpu_time, bool &success, double *host_q);
-void ljcl_gpu_compute(const int timestep, const int ago, const int inum,
-	 	     const int nall, double **host_x, int *host_type,
-                     int *ilist, int *numj, int **firstneigh,
-		     const bool eflag, const bool vflag, const bool eatom,
-                     const bool vatom, int &host_start, const double cpu_time,
-                     bool &success, double *host_q);
+int * ljcl_gpu_compute_n(const int ago, const int inum,
+			 const int nall, double **host_x, int *host_type, 
+			 double *boxlo, double *boxhi, int *tag, int **nspecial,
+			 int **special, const bool eflag, const bool vflag,
+			 const bool eatom, const bool vatom, int &host_start,
+			 const double cpu_time, bool &success, double *host_q);
+void ljcl_gpu_compute(const int ago, const int inum, const int nall,
+		      double **host_x, int *host_type, int *ilist, int *numj,
+		      int **firstneigh, const bool eflag, const bool vflag,
+		      const bool eatom, const bool vatom, int &host_start,
+		      const double cpu_time, bool &success, double *host_q);
 double ljcl_gpu_bytes();
 
 using namespace LAMMPS_NS;
@@ -96,8 +95,6 @@ PairLJCutCoulLongGPU::~PairLJCutCoulLongGPU()
 
 void PairLJCutCoulLongGPU::compute(int eflag, int vflag)
 {
-  int ntimestep = static_cast<int>(update->ntimestep % MAXSMALLINT);
-
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
   
@@ -108,18 +105,17 @@ void PairLJCutCoulLongGPU::compute(int eflag, int vflag)
   
   if (gpu_mode == GPU_NEIGH) {
     inum = atom->nlocal;
-    gpulist = ljcl_gpu_compute_n(ntimestep, neighbor->ago, inum, nall,
-			         atom->x, atom->type, domain->sublo,
-				 domain->subhi, atom->tag, atom->nspecial,
-                                 atom->special, eflag, vflag, eflag_atom,
-                                 vflag_atom, host_start, cpu_time, success,
-                                 atom->q);
+    gpulist = ljcl_gpu_compute_n(neighbor->ago, inum, nall, atom->x,
+				 atom->type, domain->sublo, domain->subhi,
+				 atom->tag, atom->nspecial, atom->special,
+				 eflag, vflag, eflag_atom, vflag_atom,
+				 host_start, cpu_time, success, atom->q);
   } else {
     inum = list->inum;
-    ljcl_gpu_compute(ntimestep, neighbor->ago, inum, nall, atom->x,
-		    atom->type, list->ilist, list->numneigh, list->firstneigh,
-		    eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time,
-                    success, atom->q);
+    ljcl_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type,
+		     list->ilist, list->numneigh, list->firstneigh, eflag,
+		     vflag, eflag_atom, vflag_atom, host_start, cpu_time,
+		     success, atom->q);
   }
   if (!success)
     error->one("Out of memory on GPGPU");

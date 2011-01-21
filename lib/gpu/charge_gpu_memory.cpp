@@ -157,14 +157,13 @@ inline void ChargeGPUMemoryT::build_nbor_list(const int inum,
 // Copy nbor list from host if necessary and then calculate forces, virials,..
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-void ChargeGPUMemoryT::compute(const int timestep, const int f_ago,
-                               const int inum_full, const int nall,
-                              double **host_x, int *host_type,
-                              int *ilist, int *numj, int **firstneigh,
-                              const bool eflag, const bool vflag,
-                              const bool eatom, const bool vatom,
-                              int &host_start, const double cpu_time,
-                              bool &success, double *host_q) {
+void ChargeGPUMemoryT::compute(const int f_ago, const int inum_full,
+                               const int nall, double **host_x, int *host_type,
+                               int *ilist, int *numj, int **firstneigh,
+                               const bool eflag, const bool vflag,
+                               const bool eatom, const bool vatom,
+                               int &host_start, const double cpu_time,
+                               bool &success, double *host_q) {
   acc_timers();
   if (inum_full==0) {
     zero_timers();
@@ -172,7 +171,7 @@ void ChargeGPUMemoryT::compute(const int timestep, const int f_ago,
   }
   
   int ago=hd_balancer.ago_first(f_ago);
-  int inum=hd_balancer.balance(timestep,ago,inum_full,cpu_time,
+  int inum=hd_balancer.balance(ago,inum_full,cpu_time,
 		               nbor->gpu_nbor());
   atom->inum(inum);
   host_start=inum;
@@ -198,11 +197,10 @@ void ChargeGPUMemoryT::compute(const int timestep, const int f_ago,
 // Reneighbor on GPU if necessary and then compute forces, virials, energies
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-int * ChargeGPUMemoryT::compute(const int timestep, const int ago,
-                                const int inum_full, const int nall, 
-                                double **host_x, int *host_type, double *boxlo,
-                                double *boxhi, int *tag, int **nspecial,
-                                int **special, const bool eflag, 
+int * ChargeGPUMemoryT::compute(const int ago, const int inum_full,
+                                const int nall, double **host_x, int *host_type,
+                                double *boxlo, double *boxhi, int *tag,
+                                int **nspecial, int **special, const bool eflag, 
                                 const bool vflag, const bool eatom,
                                 const bool vatom, int &host_start,
                                 const double cpu_time, bool &success,
@@ -214,7 +212,7 @@ int * ChargeGPUMemoryT::compute(const int timestep, const int ago,
   }
   
   hd_balancer.balance(cpu_time,nbor->gpu_nbor());
-  int inum=hd_balancer.get_gpu_count(timestep,ago,inum_full);
+  int inum=hd_balancer.get_gpu_count(ago,inum_full);
   atom->inum(inum);
   host_start=inum;
  

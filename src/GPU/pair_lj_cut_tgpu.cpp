@@ -45,18 +45,17 @@ bool ljl_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                   const int nall, const int max_nbors, const int maxspecial,
                   const double cell_size, int &gpu_mode, FILE *screen);
 void ljl_gpu_clear();
-int * ljl_gpu_compute_n(const int timestep, const int ago, const int inum,
+int * ljl_gpu_compute_n(const int ago, const int inum,
 	 	        const int nall, double **host_x, int *host_type, 
                         double *boxlo, double *boxhi, int *tag, int **nspecial,
                         int **special, const bool eflag, const bool vflag,
                         const bool eatom, const bool vatom, int &host_start,
                         const double cpu_time, bool &success);
-void ljl_gpu_compute(const int timestep, const int ago, const int inum,
-	 	     const int nall, double **host_x, int *host_type,
-                     int *ilist, int *numj, int **firstneigh,
-		     const bool eflag, const bool vflag, const bool eatom,
-                     const bool vatom, int &host_start, const double cpu_time,
-                     bool &success);
+void ljl_gpu_compute(const int ago, const int inum, const int nall,
+		     double **host_x, int *host_type, int *ilist, int *numj,
+		     int **firstneigh, const bool eflag, const bool vflag,
+		     const bool eatom, const bool vatom, int &host_start,
+		     const double cpu_time, bool &success);
 double ljl_gpu_bytes();
 
 using namespace LAMMPS_NS;
@@ -98,16 +97,16 @@ void PairLJCutTGPU::compute(int eflag, int vflag)
   
   if (gpu_mode == GPU_NEIGH) {
     inum = atom->nlocal;
-    gpulist = ljl_gpu_compute_n(update->ntimestep, neighbor->ago, inum, nall,
+    gpulist = ljl_gpu_compute_n(neighbor->ago, inum, nall,
 			        atom->x, atom->type, domain->sublo,
 				domain->subhi, atom->tag, atom->nspecial,
                                 atom->special, eflag, vflag, eflag_atom,
                                 vflag_atom, host_start, cpu_time, success);
   } else {
     inum = list->inum;
-    ljl_gpu_compute(update->ntimestep, neighbor->ago, inum, nall, atom->x,
-		    atom->type, list->ilist, list->numneigh, list->firstneigh,
-		    eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time,
+    ljl_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type, 
+		    list->ilist, list->numneigh, list->firstneigh, eflag,
+		    vflag, eflag_atom, vflag_atom, host_start, cpu_time,
                     success);
   }
   if (!success)

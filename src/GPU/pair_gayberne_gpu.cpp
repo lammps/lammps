@@ -50,18 +50,17 @@ bool gb_gpu_init(const int ntypes, const double gamma, const double upsilon,
                  const int max_nbors, const double cell_size,
                  int &gpu_mode, FILE *screen);
 void gb_gpu_clear();
-int * gb_gpu_compute_n(const int timestep, const int ago, const int inum,
-	 	       const int nall, double **host_x, int *host_type,
-                       double *boxlo, double *boxhi, const bool eflag,
-		       const bool vflag, const bool eatom, const bool vatom,
-                       int &host_start, const double cpu_time, bool &success,
+int * gb_gpu_compute_n(const int ago, const int inum, const int nall,
+		       double **host_x, int *host_type, double *boxlo,
+		       double *boxhi, const bool eflag, const bool vflag,
+		       const bool eatom, const bool vatom, int &host_start,
+		       const double cpu_time, bool &success,
 		       double **host_quat);
-int * gb_gpu_compute(const int timestep, const int ago, const int inum,
-	 	     const int nall, double **host_x, int *host_type,
-                     int *ilist, int *numj, int **firstneigh,
-		     const bool eflag, const bool vflag, const bool eatom,
-                     const bool vatom, int &host_start, const double cpu_time,
-                     bool &success, double **host_quat);
+int * gb_gpu_compute(const int ago, const int inum, const int nall,
+		     double **host_x, int *host_type, int *ilist, int *numj,
+		     int **firstneigh, const bool eflag, const bool vflag,
+		     const bool eatom, const bool vatom, int &host_start,
+		     const double cpu_time, bool &success, double **host_quat);
 double gb_gpu_bytes();
 
 using namespace LAMMPS_NS;
@@ -89,8 +88,6 @@ PairGayBerneGPU::~PairGayBerneGPU()
 
 void PairGayBerneGPU::compute(int eflag, int vflag)
 {
-  int ntimestep = static_cast<int>(update->ntimestep % MAXSMALLINT);
-
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
 
@@ -101,17 +98,16 @@ void PairGayBerneGPU::compute(int eflag, int vflag)
 
   if (gpu_mode == GPU_NEIGH) {
     inum = atom->nlocal;
-    gpulist = gb_gpu_compute_n(ntimestep, neighbor->ago, inum, nall,
-			       atom->x, atom->type, domain->sublo, domain->subhi,
-			       eflag, vflag, eflag_atom, vflag_atom, host_start,
+    gpulist = gb_gpu_compute_n(neighbor->ago, inum, nall, atom->x, atom->type,
+			       domain->sublo, domain->subhi, eflag, vflag,
+			       eflag_atom, vflag_atom, host_start,
                                cpu_time, success, atom->quat);
   } else {
     inum = list->inum;
-    olist = gb_gpu_compute(ntimestep, neighbor->ago, inum, nall, atom->x,
-			   atom->type, list->ilist, list->numneigh,
-			   list->firstneigh, eflag, vflag, eflag_atom,
-                           vflag_atom, host_start, cpu_time, success,
-                           atom->quat);
+    olist = gb_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type,
+			   list->ilist, list->numneigh, list->firstneigh,
+			   eflag, vflag, eflag_atom, vflag_atom, host_start,
+			   cpu_time, success, atom->quat);
   }
   if (!success)
     error->one("Out of memory on GPGPU");

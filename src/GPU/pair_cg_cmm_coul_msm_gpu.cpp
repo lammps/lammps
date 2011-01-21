@@ -50,18 +50,17 @@ bool cmmm_gpu_init(const int ntypes, double **cutsq, int **cg_type,
                    double *host_special_coul, const double qqrd2e,
                    const int smooth);
 void cmmm_gpu_clear();
-int * cmmm_gpu_compute_n(const int timestep, const int ago, const int inum,
+int * cmmm_gpu_compute_n(const int ago, const int inum,
 	 	         const int nall, double **host_x, int *host_type, 
                          double *boxlo, double *boxhi, int *tag, int **nspecial,
                          int **special, const bool eflag, const bool vflag,
                          const bool eatom, const bool vatom, int &host_start,
                          const double cpu_time, bool &success, double *host_q);
-void cmmm_gpu_compute(const int timestep, const int ago, const int inum,
-	 	      const int nall, double **host_x, int *host_type,
-                      int *ilist, int *numj, int **firstneigh,
-		      const bool eflag, const bool vflag, const bool eatom,
-                      const bool vatom, int &host_start, const double cpu_time,
-                      bool &success, double *host_q);
+void cmmm_gpu_compute(const int ago, const int inum, const int nall,
+		      double **host_x, int *host_type, int *ilist, int *numj,
+		      int **firstneigh, const bool eflag, const bool vflag,
+		      const bool eatom, const bool vatom, int &host_start,
+		      const double cpu_time, bool &success, double *host_q);
 double cmmm_gpu_bytes();
 
 using namespace LAMMPS_NS;
@@ -98,17 +97,16 @@ void PairCGCMMCoulMSMGPU::compute(int eflag, int vflag)
   
   if (gpu_mode == GPU_NEIGH) {
     inum = atom->nlocal;
-    gpulist = cmmm_gpu_compute_n(update->ntimestep, neighbor->ago, inum, nall,
-			         atom->x, atom->type, domain->sublo,
-				 domain->subhi, atom->tag, atom->nspecial,
-                                 atom->special, eflag, vflag, eflag_atom,
-                                 vflag_atom, host_start, cpu_time, success,
-                                 atom->q);
+    gpulist = cmmm_gpu_compute_n(neighbor->ago, inum, nall, atom->x,
+				 atom->type, domain->sublo, domain->subhi,
+				 atom->tag, atom->nspecial, atom->special,
+				 eflag, vflag, eflag_atom, vflag_atom,
+				 host_start, cpu_time, success, atom->q);
   } else {
     inum = list->inum;
-    cmmm_gpu_compute(update->ntimestep, neighbor->ago, inum, nall, atom->x,
-		     atom->type, list->ilist, list->numneigh, list->firstneigh,
-		     eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time,
+    cmmm_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type,
+		     list->ilist, list->numneigh, list->firstneigh, eflag,
+		     vflag, eflag_atom, vflag_atom, host_start, cpu_time,
                      success, atom->q);
   }
   if (!success)

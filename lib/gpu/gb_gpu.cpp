@@ -326,7 +326,7 @@ void _gb_gpu_gayberne(GBMT &gbm, const bool _eflag, const bool _vflag) {
 // Reneighbor on GPU if necessary and then compute forces, torques, energies
 // ---------------------------------------------------------------------------
 template <class gbmtyp>
-inline int * _gb_gpu_compute_n(gbmtyp &gbm, const int timestep, const int ago,
+inline int * _gb_gpu_compute_n(gbmtyp &gbm, const int ago,
 		               const int inum_full, const int nall,
 			       double **host_x, int *host_type,
 			       double *boxlo, double *boxhi, const bool eflag,
@@ -341,7 +341,7 @@ inline int * _gb_gpu_compute_n(gbmtyp &gbm, const int timestep, const int ago,
   }
 
   gbm.hd_balancer.balance(cpu_time,gbm.nbor->gpu_nbor());
-  int inum=gbm.hd_balancer.get_gpu_count(timestep,ago,inum_full);
+  int inum=gbm.hd_balancer.get_gpu_count(ago,inum_full);
   gbm.atom->inum(inum);
   gbm.last_ellipse=std::min(inum,gbm.max_last_ellipse);
   host_start=inum;
@@ -369,29 +369,28 @@ inline int * _gb_gpu_compute_n(gbmtyp &gbm, const int timestep, const int ago,
   return gbm.device->nbor.host_nbor.begin();
 }
 
-int * gb_gpu_compute_n(const int timestep, const int ago, const int inum_full,
-	 	       const int nall, double **host_x, int *host_type,
-                       double *boxlo, double *boxhi, const bool eflag,
-		       const bool vflag, const bool eatom, const bool vatom,
-                       int &host_start, const double cpu_time, bool &success,
-		       double **host_quat) {
-  return _gb_gpu_compute_n(GBMF, timestep, ago, inum_full, nall, host_x,
-			   host_type, boxlo, boxhi, eflag, vflag, eatom, vatom,
-                           host_start, cpu_time, success, host_quat);
+int * gb_gpu_compute_n(const int ago, const int inum_full, const int nall,
+                       double **host_x, int *host_type, double *boxlo,
+                       double *boxhi, const bool eflag, const bool vflag,
+                       const bool eatom, const bool vatom, int &host_start,
+                       const double cpu_time, bool &success,
+                       double **host_quat) {
+  return _gb_gpu_compute_n(GBMF, ago, inum_full, nall, host_x, host_type, boxlo,
+                           boxhi, eflag, vflag, eatom, vatom, host_start,
+                           cpu_time, success, host_quat);
 }  
 
 // ---------------------------------------------------------------------------
 // Copy nbor list from host if necessary and then calculate forces, torques,..
 // ---------------------------------------------------------------------------
 template <class gbmtyp>
-inline int * _gb_gpu_compute(gbmtyp &gbm, const int timestep, const int f_ago,
-			     const int inum_full,const int nall,double **host_x,
-			     int *host_type, int *ilist, int *numj,
-			     int **firstneigh, const bool eflag,
-			     const bool vflag, const bool eatom,
-                             const bool vatom, int &host_start,
-			     const double cpu_time, bool &success,
-			     double **host_quat) {
+inline int * _gb_gpu_compute(gbmtyp &gbm, const int f_ago, const int inum_full,
+                             const int nall,double **host_x, int *host_type,
+                             int *ilist, int *numj, int **firstneigh,
+                             const bool eflag, const bool vflag,
+                             const bool eatom, const bool vatom,
+                             int &host_start, const double cpu_time,
+                             bool &success, double **host_quat) {
   gbm.acc_timers();
   if (inum_full==0) {
     gbm.zero_timers();
@@ -399,8 +398,7 @@ inline int * _gb_gpu_compute(gbmtyp &gbm, const int timestep, const int f_ago,
   }
   
   int ago=gbm.hd_balancer.ago_first(f_ago);
-  int inum=gbm.hd_balancer.balance(timestep,ago,inum_full,cpu_time,
-				   gbm.nbor->gpu_nbor());
+  int inum=gbm.hd_balancer.balance(ago,inum_full,cpu_time,gbm.nbor->gpu_nbor());
   gbm.atom->inum(inum);
   gbm.last_ellipse=std::min(inum,gbm.max_last_ellipse);
   host_start=inum;
@@ -429,13 +427,12 @@ inline int * _gb_gpu_compute(gbmtyp &gbm, const int timestep, const int f_ago,
   return list;
 }
 
-int * gb_gpu_compute(const int timestep, const int ago, const int inum_full,
-	 	     const int nall, double **host_x, int *host_type,
-                     int *ilist, int *numj, int **firstneigh,
-		     const bool eflag, const bool vflag, const bool eatom,
-                     const bool vatom, int &host_start, const double cpu_time,
-                     bool &success, double **host_quat) {
-  return _gb_gpu_compute(GBMF, timestep, ago, inum_full, nall, host_x,
+int * gb_gpu_compute(const int ago, const int inum_full, const int nall,
+                     double **host_x, int *host_type, int *ilist, int *numj,
+                     int **firstneigh, const bool eflag, const bool vflag,
+                     const bool eatom, const bool vatom, int &host_start,
+                     const double cpu_time, bool &success, double **host_quat) {
+  return _gb_gpu_compute(GBMF, ago, inum_full, nall, host_x,
 			 host_type, ilist, numj, firstneigh, eflag, vflag,
 			 eatom, vatom, host_start, cpu_time, success,
                          host_quat);

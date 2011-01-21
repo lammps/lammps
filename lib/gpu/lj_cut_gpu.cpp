@@ -96,24 +96,23 @@ void ljl_gpu_clear() {
   LJLMF.clear();
 }
 
-int * ljl_gpu_compute_n(const int timestep, const int ago, const int inum_full,
+int * ljl_gpu_compute_n(const int ago, const int inum_full,
                         const int nall, double **host_x, int *host_type,
                         double *boxlo, double *boxhi, int *tag, int **nspecial,
                         int **special, const bool eflag, const bool vflag,
                         const bool eatom, const bool vatom, int &host_start,
                         const double cpu_time, bool &success) {
-  return LJLMF.compute(timestep, ago, inum_full, nall, host_x, host_type, boxlo,
+  return LJLMF.compute(ago, inum_full, nall, host_x, host_type, boxlo,
                        boxhi, tag, nspecial, special, eflag, vflag, eatom,
                        vatom, host_start, cpu_time, success);
 }  
 			
-void ljl_gpu_compute(const int timestep, const int ago, const int inum_full,
-	 	     const int nall, double **host_x, int *host_type,
-                     int *ilist, int *numj, int **firstneigh,
-		     const bool eflag, const bool vflag, const bool eatom,
-                     const bool vatom, int &host_start, const double cpu_time,
-                     bool &success) {
-  LJLMF.compute(timestep,ago,inum_full,nall,host_x,host_type,ilist,numj,
+void ljl_gpu_compute(const int ago, const int inum_full, const int nall,
+                     double **host_x, int *host_type, int *ilist, int *numj,
+                     int **firstneigh, const bool eflag, const bool vflag,
+                     const bool eatom, const bool vatom, int &host_start,
+                     const double cpu_time, bool &success) {
+  LJLMF.compute(ago,inum_full,nall,host_x,host_type,ilist,numj,
                 firstneigh,eflag,vflag,eatom,vatom,host_start,cpu_time,success);
 }
 

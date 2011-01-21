@@ -58,8 +58,7 @@ class PairGPUBalance {
   }
 
   /// Return the number of particles the device will handle this timestep
-  inline int get_gpu_count(const int timestep, const int ago,
-                           const int inum_full);
+  inline int get_gpu_count(const int ago, const int inum_full);
 
   /// Return the average fraction of particles handled by device on all procs
   inline double all_avg_split() {
@@ -98,10 +97,10 @@ class PairGPUBalance {
   inline void balance(const double cpu_time, const bool gpu_nbor);
 
   /// Calls balance() and then get_gpu_count()
-  inline int balance(const int timestep, const int ago, const int inum_full,
+  inline int balance(const int ago, const int inum_full,
                      const double cpu_time, const bool gpu_nbor) {
     balance(cpu_time,gpu_nbor);
-    return get_gpu_count(timestep,ago,inum_full);
+    return get_gpu_count(ago,inum_full);
   }
   
  private:
@@ -114,7 +113,7 @@ class PairGPUBalance {
   int _avg_count;
 
   bool _measure_this_step;
-  int _inum, _inum_full;
+  int _inum, _inum_full, _timestep;
 };
 
 #define PairGPUBalanceT PairGPUBalance<numtyp,acctyp>
@@ -138,14 +137,14 @@ void PairGPUBalanceT::init(PairGPUDevice<numtyp, acctyp> *gpu,
   _actual_split=_desired_split;
   _avg_split=0.0;
   _avg_count=0;
+  _timestep=0;
 }
 
 template <class numtyp, class acctyp>
-int PairGPUBalanceT::get_gpu_count(const int timestep, const int ago,
-			           const int inum_full) {
+int PairGPUBalanceT::get_gpu_count(const int ago, const int inum_full) {
   _measure_this_step=false;
   if (_load_balance) {
-    if (_avg_count<11 || timestep%_HD_BALANCE_EVERY==0) {
+    if (_avg_count<11 || _timestep%_HD_BALANCE_EVERY==0) {
       _measure_this_step=true;
       _inum_full=inum_full;
     }

@@ -123,10 +123,10 @@ int MPI_Gatherv(void *sendbuf, int sendcount, MPI_Datatype sendtype,
 		    void *recvbuf, int *recvcounts, int *displs,
 		    MPI_Datatype recvtype, int root, MPI_Comm comm);
 
+void MPI_Get_processor_name(char *name, int *resultlen);
+
 #ifdef __cplusplus
 }
 #endif
-
-void MPI_Get_processor_name(char *name, int *resultlen);
 
 #endif

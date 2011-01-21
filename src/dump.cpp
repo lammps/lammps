@@ -359,9 +359,8 @@ void Dump::openfile()
     filecurrent = new char[strlen(filename) + 16];
     char *ptr = strchr(filename,'*');
     *ptr = '\0';
-    char fstr[16];
-    sprintf(fstr,"%%s%s%%s",BIGINT_FORMAT);
-    sprintf(filecurrent,fstr,filename,update->ntimestep,ptr+1);
+    sprintf(filecurrent,"%s" BIGINT_FORMAT "%s",
+	    filename,update->ntimestep,ptr+1);
     *ptr = '*';
   }
 

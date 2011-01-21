@@ -447,33 +447,48 @@ void DeleteBonds::command(int narg, char **arg)
   if (comm->me == 0) {
     if (atom->avec->bonds_allow) {
       char str[128];
-      sprintf(str,"  %s total bonds, %s turned on, %s turned off\n",
-	      BIGINT_FORMAT,BIGINT_FORMAT,BIGINT_FORMAT);
-      if (screen) fprintf(screen,str,atom->nbonds,bond_on,bond_off);
-      if (logfile) fprintf(logfile,str,atom->nbonds,bond_on,bond_off);
+      if (screen) fprintf(screen,
+			  "  " BIGINT_FORMAT " total bonds, " BIGINT_FORMAT 
+			  " turned on, " BIGINT_FORMAT " turned off\n",
+			  atom->nbonds,bond_on,bond_off);
+      if (logfile) fprintf(logfile,
+			   "  " BIGINT_FORMAT " total bonds, " BIGINT_FORMAT 
+			   " turned on, " BIGINT_FORMAT " turned off\n",
+			   atom->nbonds,bond_on,bond_off);
     }
     if (atom->avec->angles_allow) {
-      char str[128];
-      sprintf(str,"  %s total angles, %s turned on, %s turned off\n",
-	      BIGINT_FORMAT,BIGINT_FORMAT,BIGINT_FORMAT);
-      if (screen) fprintf(screen,str,atom->nangles,angle_on,angle_off);
-      if (logfile) fprintf(logfile,str,atom->nangles,angle_on,angle_off);
+      if (screen) fprintf(screen,
+			  "  " BIGINT_FORMAT " total angles, " BIGINT_FORMAT 
+			  " turned on, " BIGINT_FORMAT " turned off\n",
+			  atom->nangles,angle_on,angle_off);
+      if (logfile) fprintf(logfile,
+			  "  " BIGINT_FORMAT " total angles, " BIGINT_FORMAT 
+			   " turned on, " BIGINT_FORMAT " turned off\n",
+			   atom->nangles,angle_on,angle_off);
     }
     if (atom->avec->dihedrals_allow) {
-      char str[128];
-      sprintf(str,"  %s total dihedrals, %s turned on, %s turned off\n",
-	      BIGINT_FORMAT,BIGINT_FORMAT,BIGINT_FORMAT);
-      if (screen) fprintf(screen,str,atom->ndihedrals,dihedral_on,dihedral_off);
-      if (logfile) fprintf(logfile,str,
-			   atom->ndihedrals,dihedral_on,dihedral_off);
+      if (screen) fprintf(screen,
+			  "  " BIGINT_FORMAT " total dihedrals, " 
+			  BIGINT_FORMAT " turned on, " BIGINT_FORMAT 
+			  " turned off\n",
+			  atom->ndihedrals,dihedral_on,dihedral_off);
+      if (logfile) fprintf(logfile,
+			  "  " BIGINT_FORMAT " total dihedrals, " 
+			  BIGINT_FORMAT " turned on, " BIGINT_FORMAT 
+			  " turned off\n",
+			  atom->ndihedrals,dihedral_on,dihedral_off);
     }
     if (atom->avec->impropers_allow) {
-      char str[128];
-      sprintf(str,"  %s total impropers, %s turned on, %s turned off\n",
-	      BIGINT_FORMAT,BIGINT_FORMAT,BIGINT_FORMAT);
-      if (screen) fprintf(screen,str,atom->nimpropers,improper_on,improper_off);
-      if (logfile) fprintf(logfile,str,
-			   atom->nimpropers,improper_on,improper_off);
+      if (screen) fprintf(screen,
+			  "  " BIGINT_FORMAT " total impropers, " 
+			  BIGINT_FORMAT " turned on, " BIGINT_FORMAT 
+			  " turned off\n",
+			  atom->nimpropers,improper_on,improper_off);
+      if (logfile) fprintf(logfile,
+			  "  " BIGINT_FORMAT " total impropers, " 
+			  BIGINT_FORMAT " turned on, " BIGINT_FORMAT 
+			  " turned off\n",
+			  atom->nimpropers,improper_on,improper_off);
     }
   }
 

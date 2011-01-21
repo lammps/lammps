@@ -89,9 +89,7 @@ PairGayBerneGPU::~PairGayBerneGPU()
 
 void PairGayBerneGPU::compute(int eflag, int vflag)
 {
-  if (update->ntimestep > MAXSMALLINT)
-    error->all("Timestep too big for GPU pair style");
-  int ntimestep = update->ntimestep;
+  int ntimestep = static_cast<int>(update->ntimestep % MAXSMALLINT);
 
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;

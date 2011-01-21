@@ -598,6 +598,7 @@ potentials.  Click on the style itself for a full description:
 "lj/charmm/coul/charmm"_pair_charmm.html,
 "lj/charmm/coul/charmm/implicit"_pair_charmm.html,
 "lj/charmm/coul/long"_pair_charmm.html,
+"lj/charmm/coul/long/gpu"_pair_charmm.html,
 "lj/charmm/coul/long/opt"_pair_charmm.html,
 "lj/class2"_pair_class2.html,
 "lj/class2/coul/cut"_pair_class2.html,

@@ -161,6 +161,10 @@ configurations along the MEP.
 A few other settings in your input script are required or advised to
 perform a NEB calculation.
 
+An atom map must be defined which it is not by default for "atom_style
+atomic"_atom_style.html problems.  The "atom_modify
+map"_atom_modify.html command can be used to do this.
+
 The "atom_modify sort 0 0.0" command should be used to turn off atom
 sorting.
 

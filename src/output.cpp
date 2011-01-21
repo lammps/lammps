@@ -273,9 +273,7 @@ void Output::write(bigint ntimestep)
       char *file = new char[strlen(restart1) + 16];
       char *ptr = strchr(restart1,'*');
       *ptr = '\0';
-      char fstr[16];
-      sprintf(fstr,"%%s%s%%s",BIGINT_FORMAT);
-      sprintf(file,fstr,restart1,ntimestep,ptr+1);
+      sprintf(file,"%s" BIGINT_FORMAT "%s",restart1,ntimestep,ptr+1);
       *ptr = '*';
       restart->write(file);
       delete [] file;
@@ -336,9 +334,7 @@ void Output::write_restart(bigint ntimestep)
     char *file = new char[strlen(restart1) + 16];
     char *ptr = strchr(restart1,'*');
     *ptr = '\0';
-    char fstr[16];
-    sprintf(fstr,"%%s%s%%s",BIGINT_FORMAT);
-    sprintf(file,fstr,restart1,ntimestep,ptr+1);
+    sprintf(file,"%s" BIGINT_FORMAT "%s",restart1,ntimestep,ptr+1);
     *ptr = '*';
     restart->write(file);
     delete [] file;

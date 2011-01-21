@@ -191,9 +191,9 @@ void DumpLocal::write_header(bigint ndump)
 {
   if (me == 0) {
     fprintf(fp,"ITEM: TIMESTEP\n");
-    fprintf(fp,BIGINT_FORMAT_NL,update->ntimestep);
+    fprintf(fp,BIGINT_FORMAT "\n",update->ntimestep);
     fprintf(fp,"ITEM: NUMBER OF %s\n",label);
-    fprintf(fp,BIGINT_FORMAT_NL,ndump);
+    fprintf(fp,BIGINT_FORMAT "\n",ndump);
     fprintf(fp,"ITEM: %s %s\n",label,columns);
   }
 }

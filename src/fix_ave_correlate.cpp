@@ -467,9 +467,7 @@ void FixAveCorrelate::end_of_step()
   // output to file
 
   if (fp && me == 0) {
-    char fstr[16];
-    sprintf(fstr,"%s %%d\n",BIGINT_FORMAT);
-    fprintf(fp,fstr,ntimestep,nrepeat);
+    fprintf(fp,BIGINT_FORMAT " %d\n",ntimestep,nrepeat);
     for (i = 0; i < nrepeat; i++) {
       fprintf(fp,"%d %d %d",i+1,i*nevery,count[i]);
       if (count[i])

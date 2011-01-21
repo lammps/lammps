@@ -403,11 +403,14 @@ void FixOrientFCC::post_force(int vflag)
     MPI_Allreduce(&maxcount,&max,1,MPI_INT,MPI_MAX,world);
 
     if (me == 0) { 
-      char str[64];
-      sprintf(str,"orient step %%d: %s atoms have %%d neighbors\n",
-	      BIGINT_FORMAT);
-      if (screen) fprintf(screen,str,update->ntimestep,atom->natoms,total);
-      if (logfile) fprintf(logfile,str,update->ntimestep,atom->natoms,total);
+      if (screen) fprintf(screen,
+			  "orient step " BIGINT_FORMAT ": " BIGINT_FORMAT 
+			  " atoms have %d neighbors\n",
+			  update->ntimestep,atom->natoms,total);
+      if (logfile) fprintf(logfile,
+			   "orient step " BIGINT_FORMAT ": " BIGINT_FORMAT 
+			   " atoms have %d neighbors\n",
+			   update->ntimestep,atom->natoms,total);
       if (screen)
 	fprintf(screen,"  neighs: min = %d, max = %d, ave = %g\n",
 		min,max,ave);
@@ -446,7 +449,7 @@ int FixOrientFCC::pack_comm(int n, int *list, double *buf,
   for (i = 0; i < n; i++) {
     k = list[i];
     num = nbr[k].n;
-    buf[m++] = static_cast<double> (num);
+    buf[m++] = num;
     buf[m++] = nbr[k].duxi;
 
     for (j = 0; j < num; j++) {
@@ -461,7 +464,7 @@ int FixOrientFCC::pack_comm(int n, int *list, double *buf,
 
       id = nbr[k].id[j];
       if (k < nlocal) id = tag[id];
-      buf[m++] = static_cast<double> (id);
+      buf[m++] = id;
     }
 
     m += (12-num) * 3;

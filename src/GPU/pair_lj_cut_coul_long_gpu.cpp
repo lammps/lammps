@@ -76,7 +76,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutCoulLongGPU::PairLJCutCoulLongGPU(LAMMPS *lmp) : PairLJCutCoulLong(lmp), gpu_mode(GPU_PAIR)
+PairLJCutCoulLongGPU::PairLJCutCoulLongGPU(LAMMPS *lmp) : 
+  PairLJCutCoulLong(lmp), gpu_mode(GPU_PAIR)
 {
   respa_enable = 0;
   cpu_time = 0.0;
@@ -95,9 +96,7 @@ PairLJCutCoulLongGPU::~PairLJCutCoulLongGPU()
 
 void PairLJCutCoulLongGPU::compute(int eflag, int vflag)
 {
-  if (update->ntimestep > MAXSMALLINT)
-    error->all("Timestep too big for GPU pair style");
-  int ntimestep = update->ntimestep;
+  int ntimestep = static_cast<int>(update->ntimestep % MAXSMALLINT);
 
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;

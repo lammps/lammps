@@ -33,7 +33,7 @@ using namespace LAMMPS_NS;
 
 enum{ATOM,GROUP,REGION};
 enum{TYPE,TYPE_FRACTION,MOLECULE,
-       X,Y,Z,VX,VY,VZ,CHARGE,
+       X,Y,Z,CHARGE,
        DIPOLE,DIPOLE_RANDOM,QUAT,QUAT_RANDOM,
        DIAMETER,DENSITY,VOLUME,IMAGE,
        BOND,ANGLE,DIHEDRAL,IMPROPER};
@@ -117,21 +117,6 @@ void Set::command(int narg, char **arg)
       if (iarg+2 > narg) error->all("Illegal set command");
       dvalue = atof(arg[iarg+1]);
       set(Z);
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"vx") == 0) {
-      if (iarg+2 > narg) error->all("Illegal set command");
-      dvalue = atof(arg[iarg+1]);
-      set(VX);
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"vy") == 0) {
-      if (iarg+2 > narg) error->all("Illegal set command");
-      dvalue = atof(arg[iarg+1]);
-      set(VY);
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"vz") == 0) {
-      if (iarg+2 > narg) error->all("Illegal set command");
-      dvalue = atof(arg[iarg+1]);
-      set(VZ);
       iarg += 2;
     } else if (strcmp(arg[iarg],"charge") == 0) {
       if (iarg+2 > narg) error->all("Illegal set command");
@@ -329,9 +314,6 @@ void Set::set(int keyword)
       else if (keyword == X) atom->x[i][0] = dvalue;
       else if (keyword == Y) atom->x[i][1] = dvalue;
       else if (keyword == Z) atom->x[i][2] = dvalue;
-      else if (keyword == VX) atom->v[i][0] = dvalue;
-      else if (keyword == VY) atom->v[i][1] = dvalue;
-      else if (keyword == VZ) atom->v[i][2] = dvalue;
       else if (keyword == CHARGE) atom->q[i] = dvalue;
 
       // set radius from diameter

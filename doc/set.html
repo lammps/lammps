@@ -21,7 +21,7 @@
 
 <LI>one or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>type</I> or <I>type/fraction</I> or <I>mol</I> or 	  <I>x</I> or <I>y</I> or <I>z</I> or <I>vx</I> or <I>vy</I> or <I>vz</I> or           <I>charge</I> or <I>dipole</I> or <I>dipole/random</I> or <I>quat/random</I> or 	  <I>diameter</I> or <I>density</I> or <I>volume</I> or <I>image</I> or
+<LI>keyword = <I>type</I> or <I>type/fraction</I> or <I>mol</I> or <I>x</I> or <I>y</I> or <I>z</I> or           <I>charge</I> or <I>dipole</I> or <I>dipole/random</I> or <I>quat/random</I> or 	  <I>diameter</I> or <I>density</I> or <I>volume</I> or <I>image</I> or
 	  <I>bond</I> or <I>angle</I> or <I>dihedral</I> or <I>improper</I> 
 
 <PRE>  <I>type</I> value = atom type
@@ -31,7 +31,6 @@
     seed = random # seed (positive integer)
   <I>mol</I> value = molecule ID
   <I>x</I>,<I>y</I>,<I>z</I> value = atom coordinate (distance units)
-  <I>vx</I>,<I>vy</I>,<I>vz</I> value = velocity component (velocity units)
   <I>charge</I> value = atomic charge (charge units)
   <I>dipole</I> values = x y z
     x,y,z = orientation of dipole moment vector
@@ -60,7 +59,7 @@
 set group solvent type/fraction 2 0.5 12393
 set group edge bond 4
 set region half charge 0.5
-set atom 100 x 0.5 vx 1.0
+set atom 100 x 0.5 y 1.0
 set atom 1492 type 3 
 </PRE>
 <P><B>Description:</B>
@@ -105,10 +104,9 @@ used.
 style</A> being used must support the use of molecule
 IDs.
 </P>
-<P>Keywords <I>x</I>, <I>y</I>, <I>z</I>, <I>vx</I>, <I>vy</I>, <I>vz</I>, and <I>charge</I> set the
-coordinates, velocity, or charge of all selected atoms.  For <I>charge</I>,
-the <A HREF = "atom_style.html">atom style</A> being used must support the use of
-atomic charge.
+<P>Keywords <I>x</I>, <I>y</I>, <I>z</I>, and <I>charge</I> set the coordinates or charge of
+all selected atoms.  For <I>charge</I>, the <A HREF = "atom_style.html">atom style</A>
+being used must support the use of atomic charge.
 </P>
 <P>Keyword <I>dipole</I> uses the specified x,y,z values as components of a
 vector to set as the orientation of the dipole moment vectors of the

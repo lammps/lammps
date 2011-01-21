@@ -19,8 +19,8 @@
 #include "math.h"
 #include "stdlib.h"
 #include "string.h"
-#include "limits.h"
 #include "neighbor.h"
+#include "lmptype.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "atom.h"
@@ -208,7 +208,11 @@ void Neighbor::init()
   // cutneigh = force cutoff + skin if cutforce > 0, else cutneigh = 0
 
   triggersq = 0.25*skin*skin;
-
+  shrinkcheck = 0;
+  if (domain->box_change && (domain->xperiodic || domain->yperiodic || 
+			     (dimension == 3 && domain->zperiodic)))
+      shrinkcheck = 1;
+      
   n = atom->ntypes;
   if (cutneighsq == NULL) {
     cutneighsq = memory->create_2d_double_array(n+1,n+1,"neigh:cutneighsq");
@@ -283,6 +287,13 @@ void Neighbor::init()
   else special_flag[3] = 2;
 
   if (force->kspace) special_flag[1] = special_flag[2] = special_flag[3] = 2;
+
+  // maxwt = max multiplicative factor on atom indices stored in neigh list
+
+  maxwt = 0;
+  if (special_flag[1] == 2) maxwt = 2;
+  if (special_flag[2] == 2) maxwt = 3;
+  if (special_flag[3] == 2) maxwt = 4;
 
   // rRESPA cutoffs
 
@@ -989,11 +1000,23 @@ int Neighbor::decide()
   } else return 0;
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   if any atom moved trigger distance (half of neighbor skin) return 1
+   shrink trigger distance if periodic box dimension has decreased
+------------------------------------------------------------------------- */
 
 int Neighbor::check_distance()
 {
-  double delx,dely,delz,rsq;
+  double delx,dely,delz,rsq,deltasq;
+
+  if (shrinkcheck) {
+    double delta = 0.0;
+    if (domain->xperiodic) delta = MIN(delta,domain->xprd-xprdhold);
+    if (domain->yperiodic) delta = MIN(delta,domain->yprd-yprdhold);
+    if (domain->zperiodic) delta = MIN(delta,domain->zprd-zprdhold);
+    delta = MAX(0.5*skin+delta,0.0);
+    deltasq = delta*delta;
+  } else deltasq = triggersq;
 
   double **x = atom->x;
   int nlocal = atom->nlocal;
@@ -1005,7 +1028,7 @@ int Neighbor::check_distance()
     dely = x[i][1] - xhold[i][1];
     delz = x[i][2] - xhold[i][2];
     rsq = delx*delx + dely*dely + delz*delz;
-    if (rsq > triggersq) flag = 1;
+    if (rsq > deltasq) flag = 1;
   }
 
   int flagall;
@@ -1026,7 +1049,7 @@ void Neighbor::build()
   ago = 0;
   ncalls++;
 
-  // store current atom positions if needed
+  // store current atom positions and box size if needed
 
   if (dist_check) {
     double **x = atom->x;
@@ -1042,6 +1065,9 @@ void Neighbor::build()
       xhold[i][1] = x[i][1];
       xhold[i][2] = x[i][2];
     }
+    xprdhold = domain->xprd;
+    yprdhold = domain->yprd;
+    zprdhold = domain->zprd;
   }
 
   // if necessary, extend atom arrays in pairwise lists
@@ -1058,6 +1084,14 @@ void Neighbor::build()
     maxbin = atom->nmax;
     memory->sfree(bins);
     bins = (int *) memory->smalloc(maxbin*sizeof(int),"bins");
+  }
+
+  // check that pairwise lists with special bond weighting will not overflow
+
+  if (atom->molecular && maxwt && nblist) {
+    bigint max = maxwt * static_cast<bigint> (atom->nlocal + atom->nghost);
+    if (max > MAXSMALLINT)
+      error->one("Weighted neighbor list values are too big");
   }
 
   // invoke building of pair and molecular neighbor lists
@@ -1176,8 +1210,8 @@ void Neighbor::setup_bins()
 
   // test for too many global bins in any dimension due to huge global domain
 
-  if (bbox[0]*binsizeinv > INT_MAX || bbox[1]*binsizeinv > INT_MAX ||
-      bbox[2]*binsizeinv > INT_MAX)
+  if (bbox[0]*binsizeinv > MAXSMALLINT || bbox[1]*binsizeinv > MAXSMALLINT ||
+      bbox[2]*binsizeinv > MAXSMALLINT)
     error->all("Domain too large for neighbor bins");
 
   // create actual bins
@@ -1259,9 +1293,9 @@ void Neighbor::setup_bins()
 
   // memory for bin ptrs
 
-  if (1.0*mbinx*mbiny*mbinz > INT_MAX) error->one("Too many neighbor bins");
-
-  mbins = mbinx*mbiny*mbinz;
+  bigint bbin = mbinx*mbiny*mbinz;
+  if (bbin > MAXSMALLINT) error->one("Too many neighbor bins");
+  mbins = bbin;
   if (mbins > maxhead) {
     maxhead = mbins;
     memory->sfree(binhead);

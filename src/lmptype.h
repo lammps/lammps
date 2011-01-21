@@ -40,6 +40,9 @@
 #include "limits.h"
 #include "stdint.h"
 
+#define __STDC_FORMAT_MACROS
+#include "inttypes.h"
+
 namespace LAMMPS_NS {
 
 // default settings
@@ -47,8 +50,8 @@ namespace LAMMPS_NS {
 
 typedef int smallint;
 typedef int tagint;
-//typedef int64_t bigint;
-typedef long long int bigint;
+typedef int64_t bigint;
+//typedef long long int bigint;
 
 #define MAXSMALLINT INT_MAX
 #define MAXTAGINT INT_MAX
@@ -58,7 +61,7 @@ typedef long long int bigint;
 #define MPI_LMP_BIGINT MPI_LONG_LONG
 
 #define TAGINT_FORMAT "%d"
-#define BIGINT_FORMAT "%lld"
+#define BIGINT_FORMAT "%" PRId64
 
 #define ATOTAGINT atoi
 #define ATOBIGINT atoll

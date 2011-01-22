@@ -119,7 +119,7 @@ performed.  The logic for a TAD run is as follows:
     update earliest event
     update tstop
     reflect back into current basin
-  perform earliest event 
+  execute earliest event 
 </PRE>
 <P>Before this outer loop begins, the initial potential energy basin is
 identified by quenching (an energy minimization, see below) the
@@ -155,7 +155,7 @@ and <I>neb_style</I> keywords.
 
 <P>A key aspect of the TAD method is setting the stopping criterion
 appropriately.  If this criterion is too conservative, then many
-events must be generated before one is finally performed.  Conversely,
+events must be generated before one is finally executed.  Conversely,
 if this criterion is too aggressive, high-entropy high-barrier events
 will be over-sampled, while low-entropy low-barrier events will be
 under-sampled. If the lowest pre-exponential factor is known fairly
@@ -164,18 +164,7 @@ accurately, then it can be used to estimate <I>tmax</I>, and the value of
 corresponds to 95% confidence. However, for systems where the dynamics
 are not well characterized (the most common case), it will be
 necessary to experiment with the values of <I>delta</I> and <I>tmax</I> to get a
-good trade-off between accuracy and performance. To aid with this, for
-each new event that is detected, a line is printed to the screen and
-log output for the first partition, as follows:
-</P>
-<PRE>New event: t_hi = 1950 ievent = 2 eb = 2.97066 dt_lo = 114049 dt_hi/t_stop = 0.610293 
-</PRE>
-<P><I>t_hi</I> is the timestep on which the event occurrred.  <I>ievent</I> is the
-event index, zero for the first event in each basin.  <I>eb</I> is the
-energy barrier for the event.  <I>dt_lo</I> is the low-temperature time
-since entering the basin.  <I>dt_hi/t_stop</I> is a measure of how close
-the stopping criterion is to being met (if > 1.0, then the criterion
-is met).
+good trade-off between accuracy and performance.
 </P>
 <P>A second key aspect is the choice of <I>t_hi</I>. A larger value greatly
 increases the rate at which new events are generated.  However, too
@@ -190,16 +179,25 @@ statistics, NEB statistics, thermodynamic output by each replica, dump
 files, and restart files.
 </P>
 <P>Event statistics are printed to the screen and master log.lammps file
-each time an event is performed. The quantities are the timestep, CPU
-time, clock, and event number.  The timestep is the usual LAMMPS
+each time an event is executed. The quantities are the timestep, CPU
+time, global event number N, local event number M,
+event status, energy barrier, time margin, and clock.  
+The timestep is the usual LAMMPS
 timestep, which corresponds to the high-temperature time at which the
 event was detected, in units of timestep.  The CPU time is the total
 processor time since the start of the TAD run.  The clock is the
 low-temperature event time, in units of timestep.  Each clock interval
 is equal to the timestep interval between events scaled by an
 exponential factor that depends on the hi/lo temperature ratio and the
-energy barrier for that event.  The event number is a counter that
-increments with each performed event.
+energy barrier for that event.  The global event number N is a counter 
+that increments with each executed event. The local event number
+is a counter that resets to zero upon entering each new basin.
+The event status is <I>E</I> when an event is executed, and 
+is <I>D</I> for an event that is detected, while <I>DF</I> is for a detected
+event that is also the earliest (first) event at the low temperature.
+The time margin is the ratio of the high temperature time in the current
+basin to the stopping time. This last number can be used to judge
+whether the stopping time is too short or too long (see above).
 </P>
 <P>The NEB statistics are written to the file specified by the <I>neb_log</I>
 keyword. If the keyword value is "none", then no NEB statistics are
@@ -222,12 +220,12 @@ printed in each replica's log file, giving a breakdown of how much CPU
 time was spent in each stage (NEB, dynamics, quenching, etc).
 </P>
 <P>Any <A HREF = "dump.html">dump files</A> defined in the input script will be written
-to during a TAD run at timesteps when an event is performed.  This
+to during a TAD run at timesteps when an event is executed.  This
 means the the requested dump frequency in the <A HREF = "dump.html">dump</A> command
 is ignored.  There will be one dump file (per dump command) created
 for all partitions.  The atom coordinates of the dump snapshot are
 those of the minimum energy configuration resulting from quenching
-following the performed event.  The timesteps written into the dump
+following the executed event.  The timesteps written into the dump
 files correspond to the timestep at which the event occurred and NOT
 the clock.  A dump snapshot corresponding to the initial minimum state
 used for event detection is written to the dump file at the beginning
@@ -236,22 +234,22 @@ of each TAD run.
 <P>If the <A HREF = "restart.html">restart</A> command is used, a single restart file
 for all the partitions is generated, which allows a TAD run to be
 continued by a new input script in the usual manner.  The restart file
-is generated after an event is performed. The restart file contains a
+is generated after an event is executed. The restart file contains a
 snapshot of the system in the new quenched state, including the event
 number and the low-temperature time.  The restart frequency specified
 in the <A HREF = "restart.html">restart</A> command is interpreted differently when
 performing a TAD run.  It does not mean the timestep interval between
-restart files.  Instead it means an event interval for performed
+restart files.  Instead it means an event interval for executed
 events.  Thus a frequency of 1 means write a restart file every time
-an event is performed.  A frequency of 10 means write a restart file
-every 10th performed event.  When an input script reads a restart file
+an event is executed.  A frequency of 10 means write a restart file
+every 10th executed event.  When an input script reads a restart file
 from a previous TAD run, the new script can be run on a different
 number of replicas or processors.
 </P>
 <P>Note that within a single state, the dynamics will typically
 temporarily continue beyond the event that is ultimately chosen, until
 the stopping criterionis satisfied.  When the event is eventually
-performed, the timestep counter is reset to the value when the event
+executed, the timestep counter is reset to the value when the event
 was detected. Similarly, after each quench and NEB minimization, the
 timestep counter is reset to the value at the start of the
 minimization. This means that the timesteps listed in the replica log

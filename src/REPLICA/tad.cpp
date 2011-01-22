@@ -539,9 +539,9 @@ void TAD::log_event(int ievent)
     if (universe->ulogfile)
       fprintf(universe->ulogfile,
 	      BIGINT_FORMAT " %.3f %d %d %s %.3f %.3f %.3f\n",
-	      fix_event->event_timestep,ievent,
+	      fix_event->event_timestep,
 	      timer->elapsed(TIME_LOOP),
-	      fix_event->event_number,
+	      fix_event->event_number,ievent,
 	      "E ",
 	      fix_event->ebarrier,tfrac,
 	      fix_event->tlo);

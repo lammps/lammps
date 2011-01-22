@@ -225,9 +225,13 @@ void TAD::command(int narg, char **arg)
 
   if (me_universe == 0) {
     if (universe->uscreen) 
-      fprintf(universe->uscreen,"Step CPU Clock Event\n");
+      fprintf(universe->uscreen,
+	      "Step CPU N M Status Barrier Margin Clock\n"
+	      );
     if (universe->ulogfile) 
-      fprintf(universe->ulogfile,"Step CPU Clock Event\n");
+      fprintf(universe->ulogfile,
+	      "Step CPU N M Status Barrier Margin Clock\n"
+	      );
   }
 
   ulogfile_lammps = universe->ulogfile;
@@ -249,7 +253,7 @@ void TAD::command(int narg, char **arg)
   timer->barrier_start(TIME_LOOP);
   time_start = timer->array[TIME_LOOP];
   fix_event->store_event_tad(update->ntimestep);
-  log_event();
+  log_event(0);
   fix_event->restore_state();
 
   // do full init/setup
@@ -518,22 +522,29 @@ int TAD::check_event()
    universe proc 0 prints event info
 ------------------------------------------------------------------------- */
 
-void TAD::log_event()
+void TAD::log_event(int ievent)
 {
   timer->array[TIME_LOOP] = time_start;
   if (universe->me == 0) {
+    double tfrac = 0.0;
     if (universe->uscreen)
-      fprintf(universe->uscreen,BIGINT_FORMAT " %.3f %.3f %d\n",
-              fix_event->event_timestep,
+      fprintf(universe->uscreen,
+	      BIGINT_FORMAT " %.3f %d %d %s %.3f %.3f %.3f\n",
+	      fix_event->event_timestep,
 	      timer->elapsed(TIME_LOOP),
-	      fix_event->tlo,
-              fix_event->event_number);
+	      fix_event->event_number,ievent,
+	      "E ",
+	      fix_event->ebarrier,tfrac,
+	      fix_event->tlo);
     if (universe->ulogfile)
-      fprintf(universe->ulogfile,BIGINT_FORMAT " %.3f %.3f %d\n",
-              fix_event->event_timestep,
+      fprintf(universe->ulogfile,
+	      BIGINT_FORMAT " %.3f %d %d %s %.3f %.3f %.3f\n",
+	      fix_event->event_timestep,ievent,
 	      timer->elapsed(TIME_LOOP),
-	      fix_event->tlo,
-              fix_event->event_number);
+	      fix_event->event_number,
+	      "E ",
+	      fix_event->ebarrier,tfrac,
+	      fix_event->tlo);
   }
 
   // dump snapshot of quenched coords
@@ -914,41 +925,44 @@ void TAD::compute_tlo(int ievent)
   deltlo = delthi*exp(ebarrier*delta_beta);
   fix_event_list[ievent]->tlo = fix_event->tlo + deltlo;
 
-  // first-replica output about each event
-
-  if (universe->me == 0) {
-    double tfrac = 0.0;
-    if (ievent > 0) tfrac = delthi/deltstop;
-
-    // char str[128];
-    //     sprintf(str,
-    // 	    "New event: ievent = %d eb = %g t_lo = %g t_hi = %g t_hi/t_stop = %g \n",
-    // 	    ievent,ebarrier,deltlo,delthi,tfrac);
-    //     error->warning(str);
-
-
-    if (screen) 
-      fprintf(screen,
-	      "New event: t_hi = " BIGINT_FORMAT " ievent = %d eb = %g "
-	      "dt_lo = %g dt_hi/t_stop = %g \n",
-	      fix_event_list[ievent]->event_timestep,
-	      ievent,ebarrier,deltlo,tfrac);
-    if (logfile) 
-      fprintf(logfile,
-	      "New event: t_hi = " BIGINT_FORMAT " ievent = %d eb = %g "
-	      "dt_lo = %g dt_hi/t_stop = %g \n",
-	      fix_event_list[ievent]->event_timestep,
-	      ievent,ebarrier,deltlo,tfrac);
-  }
-
   // update first event
+
+  char* statstr = "D ";
 
   if (ievent == 0) {
     deltfirst = deltlo;
     event_first = ievent;
+    statstr = "DF";
   } else if (deltlo < deltfirst) {
     deltfirst = deltlo;
     event_first = ievent;
+    statstr = "DF";
+  }
+
+  // first-replica output about each event
+  
+  timer->array[TIME_LOOP] = time_start;
+  if (universe->me == 0) {
+    double tfrac = 0.0;
+    if (ievent > 0) tfrac = delthi/deltstop;
+
+    if (universe->uscreen) 
+      fprintf(universe->uscreen,
+	      BIGINT_FORMAT " %.3f %d %d %s %.3f %.3f %.3f\n",
+	      fix_event_list[ievent]->event_timestep,
+	      timer->elapsed(TIME_LOOP),
+	      fix_event->event_number,
+	      ievent,statstr,ebarrier,tfrac,
+	      fix_event_list[ievent]->tlo);
+
+    if (universe->ulogfile) 
+      fprintf(universe->ulogfile,
+	      BIGINT_FORMAT " %.3f %d %d %s %.3f %.3f %.3f\n",
+	      fix_event_list[ievent]->event_timestep,
+	      timer->elapsed(TIME_LOOP),
+	      fix_event->event_number,
+	      ievent,statstr,ebarrier,tfrac,
+	      fix_event_list[ievent]->tlo);
   }
 
 }
@@ -964,8 +978,9 @@ void TAD::perform_event(int ievent)
   update->ntimestep = fix_event_list[ievent]->event_timestep;
 
   // Copy event to current event
-
+  // Should really use copy constructor for this
   fix_event->tlo = fix_event_list[ievent]->tlo;
+  fix_event->ebarrier = fix_event_list[ievent]->ebarrier;
   fix_event->event_number++;
   fix_event->event_timestep = update->ntimestep;
   fix_event_list[ievent]->restore_event();
@@ -973,7 +988,7 @@ void TAD::perform_event(int ievent)
 
   // output stats and dump for quenched state
 
-  log_event();
+  log_event(ievent);
 
   // load and store hot state
 

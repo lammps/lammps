@@ -20,13 +20,6 @@
 #include "pair_gpu_nbor.h"
 #include "math.h"
 
-#ifdef USE_OPENCL
-#include "pair_gpu_nbor_cl.h"
-#else
-#include "pair_gpu_nbor_ptx.h"
-#include "pair_gpu_build_ptx.h"
-#endif
-
 int PairGPUNbor::bytes_per_atom(const int max_nbors) const {
   if (_gpu_nbor)
     return (max_nbors+2)*sizeof(int);
@@ -36,12 +29,14 @@ int PairGPUNbor::bytes_per_atom(const int max_nbors) const {
     return (max_nbors+3)*sizeof(int);
 }
 
-bool PairGPUNbor::init(const int inum, const int host_inum, const int max_nbors, 
+bool PairGPUNbor::init(PairGPUNborShared *shared, const int inum,
+                       const int host_inum, const int max_nbors, 
                        const int maxspecial, UCL_Device &devi, 
                        const bool gpu_nbor, const int gpu_host, 
                        const bool pre_cut) {
   clear();
 
+  _shared=shared;
   dev=&devi;
   _gpu_nbor=gpu_nbor;
   if (gpu_host==0)
@@ -81,7 +76,7 @@ bool PairGPUNbor::init(const int inum, const int host_inum, const int max_nbors,
                                           UCL_WRITE_OPTIMIZED)==UCL_SUCCESS);
   alloc(success);
   if (_use_packing==false)
-    compile_kernels(devi);
+    _shared->compile_kernels(devi,gpu_nbor);
 
   return success;
 }
@@ -152,21 +147,6 @@ void PairGPUNbor::clear() {
     time_kernel.clear();
     time_nbor.clear();
   }
-
-  if (_compiled) {
-    if (_gpu_nbor) {
-      k_cell_id.clear();
-      k_cell_counts.clear();
-      k_build_nbor.clear();
-      k_transpose.clear();
-      k_special.clear();
-      delete build_program;
-    } else {
-      k_nbor.clear();
-      delete nbor_program;
-    }
-    _compiled=false;
-  }
 }
 
 double PairGPUNbor::host_memory_usage() const {
@@ -186,7 +166,7 @@ void PairGPUNbor::get_host(const int inum, int *ilist, int *numj,
 
   UCL_H_Vec<int> ilist_view;
   ilist_view.view(ilist,inum,*dev);
-  ucl_copy(dev_nbor,ilist_view,true);
+  ucl_copy(dev_nbor,ilist_view,false);
 
   UCL_D_Vec<int> nbor_offset;
   UCL_H_Vec<int> host_offset;
@@ -238,35 +218,10 @@ void PairGPUNbor::get_host(const int inum, int *ilist, int *numj,
   if (_use_packing==false) {
     time_kernel.start();
     int GX=static_cast<int>(ceil(static_cast<double>(inum)/block_size));
-    k_nbor.set_size(GX,block_size);
-    k_nbor.run(&dev_nbor.begin(), &dev_packed.begin(), &inum);
+    _shared->k_nbor.set_size(GX,block_size);
+    _shared->k_nbor.run(&dev_nbor.begin(), &dev_packed.begin(), &inum);
     time_kernel.stop();
   }
-}
-
-void PairGPUNbor::compile_kernels(UCL_Device &dev) {
-  std::string flags="-cl-fast-relaxed-math -cl-mad-enable";
-
-  if (_gpu_nbor==false) {
-    nbor_program=new UCL_Program(dev);
-    nbor_program->load_string(pair_gpu_nbor_kernel,flags.c_str());
-    k_nbor.set_function(*nbor_program,"kernel_unpack");
-  } else {
-    build_program=new UCL_Program(dev);
-    #ifdef USE_OPENCL
-    std::cerr << "CANNOT CURRENTLY USE GPU NEIGHBORING WITH OPENCL\n";
-    exit(1);
-    #else
-    build_program->load_string(pair_gpu_build_kernel,flags.c_str());
-    #endif
-    k_cell_id.set_function(*build_program,"calc_cell_id");
-    k_cell_counts.set_function(*build_program,"kernel_calc_cell_counts");
-    k_build_nbor.set_function(*build_program,"calc_neigh_list_cell");
-    k_transpose.set_function(*build_program,"transpose");
-    k_special.set_function(*build_program,"kernel_special");
-    neigh_tex.get_texture(*build_program,"neigh_tex");
-  }
-  _compiled=true;
 }
 
 template <class numtyp, class acctyp>
@@ -294,14 +249,14 @@ void PairGPUNbor::build_nbor_list(const int inum, const int host_inum,
     const int b2y=8;
     const int g2x=static_cast<int>(ceil(static_cast<double>(_maxspecial)/b2x));
     const int g2y=static_cast<int>(ceil(static_cast<double>(nt)/b2y));
-    k_transpose.set_size(g2x,g2y,b2x,b2y);
-    k_transpose.run(&dev_special.begin(),&dev_special_t.begin(),&_maxspecial,
-                    &nt);        
+    _shared->k_transpose.set_size(g2x,g2y,b2x,b2y);
+    _shared->k_transpose.run(&dev_special.begin(),&dev_special_t.begin(),
+                             &_maxspecial,&nt);        
   } else
     time_kernel.start();
 
   _nbor_pitch=inum;
-  neigh_tex.bind_float(atom.dev_x,4);
+  _shared->neigh_tex.bind_float(atom.dev_x,4);
 
   int ncellx, ncelly, ncellz, ncell_3d;
   ncellx = static_cast<int>(ceil(((boxhi[0] - boxlo[0]) +
@@ -325,26 +280,26 @@ void PairGPUNbor::build_nbor_list(const int inum, const int host_inum,
   const numtyp boxhi1=static_cast<numtyp>(boxhi[1]);
   const numtyp boxhi2=static_cast<numtyp>(boxhi[2]);
   const numtyp cell_size_cast=static_cast<numtyp>(_cell_size);
-  k_cell_id.set_size(GX,neigh_block);
-  k_cell_id.run(&atom.dev_x.begin(), &atom.dev_cell_id.begin(), 
-                &atom.dev_particle_id.begin(),
-  				      &boxlo0, &boxlo1, &boxlo2, &boxhi0, &boxhi1, 
-  				      &boxhi2, &cell_size_cast, &ncellx, &ncelly, &nall);
+  _shared->k_cell_id.set_size(GX,neigh_block);
+  _shared->k_cell_id.run(&atom.dev_x.begin(), &atom.dev_cell_id.begin(), 
+                         &atom.dev_particle_id.begin(),
+  				               &boxlo0, &boxlo1, &boxlo2, &boxhi0, &boxhi1, 
+  				               &boxhi2, &cell_size_cast, &ncellx, &ncelly, &nall);
 
   atom.sort_neighbor(nall);
 
   /* calculate cell count */
-  k_cell_counts.set_size(GX,neigh_block);
-  k_cell_counts.run(&atom.dev_cell_id.begin(), &cell_counts.begin(), &nall, 
-                    &ncell_3d);
+  _shared->k_cell_counts.set_size(GX,neigh_block);
+  _shared->k_cell_counts.run(&atom.dev_cell_id.begin(), &cell_counts.begin(), &nall, 
+                             &ncell_3d);
 
   /* build the neighbor list */
   const int cell_block=64;
-  k_build_nbor.set_size(ncellx, ncelly*ncellz, cell_block, 1);
-  k_build_nbor.run(&atom.dev_x.begin(), &atom.dev_particle_id.begin(),
-                   &cell_counts.begin(), &dev_nbor.begin(),
-                   &dev_host_nbor.begin(), &_max_nbors, &cell_size_cast,
-                   &ncellx, &ncelly, &ncellz, &inum, &nt, &nall);
+  _shared->k_build_nbor.set_size(ncellx, ncelly*ncellz, cell_block, 1);
+  _shared->k_build_nbor.run(&atom.dev_x.begin(), &atom.dev_particle_id.begin(),
+                            &cell_counts.begin(), &dev_nbor.begin(),
+                            &dev_host_nbor.begin(),&_max_nbors,&cell_size_cast,
+                            &ncellx, &ncelly, &ncellz, &inum, &nt, &nall);
 
   /* Get the maximum number of nbors and realloc if necessary */
   UCL_D_Vec<int> numj;
@@ -392,10 +347,10 @@ void PairGPUNbor::build_nbor_list(const int inum, const int host_inum,
   
   if (_maxspecial>0) {
     const int GX2=static_cast<int>(ceil(static_cast<double>(nt)/cell_block));
-    k_special.set_size(GX2,cell_block);
-    k_special.run(&dev_nbor.begin(), &dev_host_nbor.begin(), 
-                  &atom.dev_tag.begin(), &dev_nspecial.begin(), 
-                  &dev_special.begin(), &inum, &nt, &nall);
+    _shared->k_special.set_size(GX2,cell_block);
+    _shared->k_special.run(&dev_nbor.begin(), &dev_host_nbor.begin(), 
+                           &atom.dev_tag.begin(), &dev_nspecial.begin(), 
+                           &dev_special.begin(), &inum, &nt, &nall);
   }
   time_kernel.stop();
 
@@ -404,9 +359,3 @@ void PairGPUNbor::build_nbor_list(const int inum, const int host_inum,
     ucl_copy(host_nbor,dev_host_nbor,host_inum*(mn+1),false);
   time_nbor.stop();
 }
-
-template void PairGPUNbor::build_nbor_list<PRECISION,ACC_PRECISION>
-     (const int inum, const int host_inum, const int nall, 
-      PairGPUAtom<PRECISION,ACC_PRECISION> &atom, double *boxlo, double *boxhi,
-      int *, int **, int **, bool &success, int &mn);
-

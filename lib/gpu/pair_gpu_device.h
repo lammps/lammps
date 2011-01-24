@@ -52,16 +52,17 @@ class PairGPUDevice {
     * \param pre_cut True if cutoff test will be performed in separate kernel
     *                than the force kernel **/
   bool init(const bool charge, const bool rot, const int nlocal,
-            const int host_nlocal, const int nall, const int maxspecial, 
-            const bool gpu_nbor, const int gpu_host, const int max_nbors,
-            const double cell_size, const bool pre_cut);
+            const int host_nlocal, const int nall, PairGPUNbor *nbor, 
+            const int maxspecial, const bool gpu_nbor, const int gpu_host, 
+            const int max_nbors, const double cell_size, const bool pre_cut);
 
   /// Output a message for pair_style acceleration with device stats
   void init_message(FILE *screen, const char *name,
                     const int first_gpu, const int last_gpu);
 
   /// Output a message with timing information
-  void output_times(UCL_Timer &time_pair, const double avg_split, 
+  void output_times(UCL_Timer &time_pair, PairGPUNbor &nbor, 
+                    const double avg_split, 
                     const double max_bytes, FILE *screen);
 
   /// Clear all memory on host and device associated with atom and nbor data
@@ -130,7 +131,7 @@ class PairGPUDevice {
   // --------------------------- NBOR DATA ----------------------------
   
   /// Neighbor Data
-  PairGPUNbor nbor;
+  PairGPUNborShared _nbor_shared;
 
  private:
   int _init_count;

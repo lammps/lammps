@@ -366,7 +366,7 @@ inline int * _gb_gpu_compute_n(gbmtyp &gbm, const int ago,
   _gb_gpu_gayberne<PRECISION,ACC_PRECISION>(gbm,eflag,vflag);
   gbm.atom->copy_answers(eflag,vflag,eatom,vatom);
   gbm.hd_balancer.stop_timer();
-  return gbm.device->nbor.host_nbor.begin();
+  return gbm.nbor->host_nbor.begin();
 }
 
 int * gb_gpu_compute_n(const int ago, const int inum_full, const int nall,

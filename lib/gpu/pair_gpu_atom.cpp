@@ -221,10 +221,25 @@ bool PairGPUAtomT::init(const int inum, const int nall, const bool charge,
   
 template <class numtyp, class acctyp>
 bool PairGPUAtomT::add_fields(const bool charge, const bool rot) {
-  if (charge && _charge=false) {
+  bool realloc=false;
+  if (charge && _charge==false) {
     _charge=true;
     _e_fields++;
-    
+    realloc=true;
+  }
+  if (rot && _rot==false) {
+    _rot=true;
+    realloc=true;
+  }
+  if (realloc) {
+    _other=_charge || _rot;
+    int inum=_max_local;
+    int nall=_max_atoms;
+    clear_resize();
+    return alloc(inum,nall);
+  }
+  return true;
+}
 
 template <class numtyp, class acctyp>
 void PairGPUAtomT::clear_resize() {

@@ -119,28 +119,30 @@ bool PairGPUDeviceT::init_device(MPI_Comm world, MPI_Comm replica,
 template <class numtyp, class acctyp>
 bool PairGPUDeviceT::init(const bool charge, const bool rot, const int nlocal, 
                           const int host_nlocal, const int nall,
-                          const int maxspecial, const bool gpu_nbor, 
-                          const int gpu_host, const int max_nbors, 
-                          const double cell_size, const bool pre_cut) {
+                          PairGPUNbor *nbor, const int maxspecial, 
+                          const bool gpu_nbor, const int gpu_host, 
+                          const int max_nbors, const double cell_size,
+                          const bool pre_cut) {
   if (!_device_init)
     return false;                          
+
+  // Initial number of local particles
+  int ef_nlocal=nlocal;
+  if (_particle_split<1.0 && _particle_split>0.0)
+    ef_nlocal=static_cast<int>(_particle_split*nlocal);
+
   if (_init_count==0) {
     // Initialize atom and nbor data
-    int ef_nlocal=nlocal;
-    if (_particle_split<1.0 && _particle_split>0.0)
-      ef_nlocal=static_cast<int>(_particle_split*nlocal);
     if (!atom.init(ef_nlocal,nall,charge,rot,*gpu,gpu_nbor,
                    gpu_nbor && maxspecial>0))
       return false;
-    if (!nbor.init(ef_nlocal,host_nlocal,max_nbors,maxspecial,*gpu,gpu_nbor,
-                   gpu_host,pre_cut))
-      return false;
-    nbor.cell_size(cell_size);
-  } else {
+  } else
     atom.add_fields(charge,rot);
-    if (cell_size>nbor.cell_size())
-      nbor.cell_size(cell_size);
-  }
+
+  if (!nbor->init(&_nbor_shared,ef_nlocal,host_nlocal,max_nbors,maxspecial,
+                  *gpu,gpu_nbor,gpu_host,pre_cut))
+    return false;
+  nbor->cell_size(cell_size);
 
   _init_count++;
   return true;
@@ -187,7 +189,8 @@ void PairGPUDeviceT::init_message(FILE *screen, const char *name,
 }
 
 template <class numtyp, class acctyp>
-void PairGPUDeviceT::output_times(UCL_Timer &time_pair, const double avg_split,
+void PairGPUDeviceT::output_times(UCL_Timer &time_pair, PairGPUNbor &nbor,
+                                  const double avg_split, 
                                   const double max_bytes, FILE *screen) {
   double single[5], times[5];
 
@@ -236,7 +239,7 @@ void PairGPUDeviceT::clear() {
     _init_count--;
     if (_init_count==0) {
       atom.clear();
-      nbor.clear();
+      _nbor_shared.clear();
     }
   }
 }
@@ -253,8 +256,7 @@ void PairGPUDeviceT::clear_device() {
 
 template <class numtyp, class acctyp>
 double PairGPUDeviceT::host_memory_usage() const {
-  return atom.host_memory_usage()+
-         nbor.host_memory_usage()+4*sizeof(numtyp)+
+  return atom.host_memory_usage()+4*sizeof(numtyp)+
          sizeof(PairGPUDevice<numtyp,acctyp>);
 }
 

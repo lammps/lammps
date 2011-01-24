@@ -23,15 +23,17 @@ extern PairGPUDevice<PRECISION,ACC_PRECISION> pair_gpu_device;
 template <class numtyp, class acctyp>
 AtomicGPUMemoryT::AtomicGPUMemory() : _compiled(false), _max_bytes(0)  {
   device=&pair_gpu_device;
+  nbor=new PairGPUNbor();
 }
 
 template <class numtyp, class acctyp>
 AtomicGPUMemoryT::~AtomicGPUMemory() {
+  delete nbor;
 }
 
 template <class numtyp, class acctyp>
 int AtomicGPUMemoryT::bytes_per_atom_atomic(const int max_nbors) const {
-  return device->atom.bytes_per_atom()+device->nbor.bytes_per_atom(max_nbors);
+  return device->atom.bytes_per_atom()+nbor->bytes_per_atom(max_nbors);
 }
 
 template <class numtyp, class acctyp>
@@ -52,12 +54,11 @@ bool AtomicGPUMemoryT::init_atomic(const int nlocal, const int nall,
   if (host_nlocal>0)
     _gpu_host=1;
 
-  if (!device->init(false,false,nlocal,host_nlocal,nall,maxspecial,gpu_nbor,
-                    _gpu_host,max_nbors,cell_size,false))
+  if (!device->init(false,false,nlocal,host_nlocal,nall,nbor,maxspecial,
+                    gpu_nbor,_gpu_host,max_nbors,cell_size,false))
     return false;
   ucl_device=device->gpu;
   atom=&device->atom;
-  nbor=&device->nbor;
 
   _block_size=BLOCK_1D;
   if (static_cast<size_t>(_block_size)>ucl_device->group_size())
@@ -83,7 +84,8 @@ void AtomicGPUMemoryT::clear_atomic() {
   // Output any timing information
   acc_timers();
   double avg_split=hd_balancer.all_avg_split();
-  device->output_times(time_pair,avg_split,_max_bytes+_max_an_bytes,screen);
+  device->output_times(time_pair,*nbor,avg_split,_max_bytes+_max_an_bytes,
+                       screen);
 
   if (_compiled) {
     k_pair_fast.clear();
@@ -228,14 +230,13 @@ int * AtomicGPUMemoryT::compute(const int ago, const int inum_full,
   atom->copy_answers(eflag,vflag,eatom,vatom);
   hd_balancer.stop_timer();
   
-  return device->nbor.host_nbor.begin();
+  return nbor->host_nbor.begin();
 }
 
 template <class numtyp, class acctyp>
 double AtomicGPUMemoryT::host_memory_usage_atomic() const {
-  return device->atom.host_memory_usage()+
-         device->nbor.host_memory_usage()+4*sizeof(numtyp)+
-         sizeof(AtomicGPUMemory<numtyp,acctyp>);
+  return device->atom.host_memory_usage()+nbor->host_memory_usage()+
+         4*sizeof(numtyp)+sizeof(AtomicGPUMemory<numtyp,acctyp>);
 }
 
 template <class numtyp, class acctyp>

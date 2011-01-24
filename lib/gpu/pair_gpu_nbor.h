@@ -19,32 +19,27 @@
 #define PAIR_GPU_NBOR_H
 
 #include "pair_gpu_atom.h"
+#include "pair_gpu_nbor_shared.h"
 
 #define IJ_SIZE 131072
 
 #ifdef USE_OPENCL
 
-#include "geryon/ocl_device.h"
 #include "geryon/ocl_timer.h"
 #include "geryon/ocl_mat.h"
-#include "geryon/ocl_kernel.h"
-#include "geryon/ocl_texture.h"
 using namespace ucl_opencl;
 
 #else
 
-#include "geryon/nvd_device.h"
 #include "geryon/nvd_timer.h"
 #include "geryon/nvd_mat.h"
-#include "geryon/nvd_kernel.h"
-#include "geryon/nvd_texture.h"
 using namespace ucl_cudadr;
 
 #endif
 
 class PairGPUNbor {
  public:
-  PairGPUNbor() : _allocated(false), _use_packing(false), _compiled(false) {}
+  PairGPUNbor() : _allocated(false), _use_packing(false) {}
   ~PairGPUNbor() { clear(); }
  
   /// Determine whether neighbor unpacking should be used
@@ -62,9 +57,9 @@ class PairGPUNbor {
     *                 2 if gpu_nbor is true, and host needs a full nbor list
     * \param pre_cut True if cutoff test will be performed in separate kernel
     *                than the force kernel **/
-  bool init(const int inum, const int host_inum, const int max_nbors, 
-            const int maxspecial, UCL_Device &dev, const bool gpu_nbor,
-            const int gpu_host, const bool pre_cut);
+  bool init(PairGPUNborShared *shared, const int inum, const int host_inum,
+            const int max_nbors, const int maxspecial, UCL_Device &dev,
+            const bool gpu_nbor, const int gpu_host, const bool pre_cut);
 
   /// Set the size of the cutoff+skin
   inline void cell_size(const double size) { _cell_size=size; }
@@ -182,19 +177,14 @@ class PairGPUNbor {
   UCL_D_Vec<int> dev_nspecial;
   /// Device storage for special neighbors
   UCL_D_Vec<int> dev_special, dev_special_t;
-  /// Texture for cached position/type access with CUDA
-  UCL_Texture neigh_tex;
 
   /// Device timers
   UCL_Timer time_nbor, time_kernel;
   
  private:
+  PairGPUNborShared *_shared;
   UCL_Device *dev;
-  UCL_Program *nbor_program, *build_program;
-  UCL_Kernel k_nbor, k_cell_id, k_cell_counts, k_build_nbor;
-  UCL_Kernel k_transpose, k_special;
-  bool _allocated, _use_packing, _compiled;
-  void compile_kernels(UCL_Device &dev);
+  bool _allocated, _use_packing;
   int _max_atoms, _max_nbors, _max_host, _nbor_pitch, _maxspecial;
   bool _gpu_nbor, _gpu_host, _alloc_packed;
   double _cell_size;

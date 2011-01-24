@@ -32,16 +32,18 @@ template <class numtyp, class acctyp>
 GB_GPU_MemoryT::GB_GPU_Memory() : _allocated(false), _compiled(false),
                                   _max_bytes(0.0) {
   device=&pair_gpu_device;
+  nbor=new PairGPUNbor;
 }
 
 template <class numtyp, class acctyp>
 GB_GPU_MemoryT::~GB_GPU_Memory() { 
   clear();
+  delete nbor;
 }
  
 template <class numtyp, class acctyp>
 int GB_GPU_MemoryT::bytes_per_atom(const int max_nbors) const {
-  return device->atom.bytes_per_atom()+device->nbor.bytes_per_atom(max_nbors);
+  return device->atom.bytes_per_atom()+nbor->bytes_per_atom(max_nbors);
 }
 
 template <class numtyp, class acctyp>
@@ -68,12 +70,11 @@ bool GB_GPU_MemoryT::init(const int ntypes, const double gamma,
   if (host_nlocal>0)
     _gpu_host=1;
   
-  if (!device->init(false,true,nlocal,host_nlocal,nall,0,gpu_nbor,_gpu_host,
-                    max_nbors,cell_size,true))
+  if (!device->init(false,true,nlocal,host_nlocal,nall,nbor,0,gpu_nbor,
+                    _gpu_host,max_nbors,cell_size,true))
     return false;
   ucl_device=device->gpu;
   atom=&device->atom;
-  nbor=&device->nbor;
 
   _block_size=BLOCK_1D;
   if (static_cast<size_t>(_block_size)>ucl_device->group_size())
@@ -299,10 +300,9 @@ void GB_GPU_MemoryT::clear() {
 
 template <class numtyp, class acctyp>
 double GB_GPU_MemoryT::host_memory_usage() const {
-  return device->atom.host_memory_usage()+
-         device->nbor.host_memory_usage()+4*sizeof(numtyp)+
-         sizeof(GB_GPU_Memory<numtyp,acctyp>)+
-         device->nbor.max_atoms()*sizeof(int);
+  return device->atom.host_memory_usage()+nbor->host_memory_usage()+
+         4*sizeof(numtyp)+sizeof(GB_GPU_Memory<numtyp,acctyp>)+
+         nbor->max_atoms()*sizeof(int);
 }
 
 template <class numtyp, class acctyp>

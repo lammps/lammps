@@ -88,7 +88,10 @@ class PairGPUAtom {
   /// If already initialized by another LAMMPS style, add fields as necessary
   /** \param rot True if atom storage needs quaternions
     * \param gpu_nbor True if neighboring will be performed on device **/
-  bool add_fields(const bool charge, const bool rot);  
+  bool add_fields(const bool charge, const bool rot);
+  
+  /// True if charge data is available for kernels
+  bool charge_avail() const { return _charge; }
 
   /// Only free matrices of length inum or nall for resizing
   void clear_resize();
@@ -223,41 +226,46 @@ class PairGPUAtom {
 
   /// Cast positions and types to write buffer
   inline void cast_x_data(double **host_ptr, const int *host_type) {
-    double t=MPI_Wtime();
-    #ifdef GPU_CAST
-    memcpy(host_x_cast.begin(),host_ptr[0],_nall*3*sizeof(double));
-    memcpy(host_type_cast.begin(),host_type,_nall*sizeof(int));
-    #else
-    numtyp *_write_loc=host_x.begin();
-    for (int i=0; i<_nall; i++) {
-      *_write_loc=host_ptr[i][0];
-      _write_loc++;
-      *_write_loc=host_ptr[i][1];
-      _write_loc++;
-      *_write_loc=host_ptr[i][2];
-      _write_loc++;
-      *_write_loc=host_type[i];
-      _write_loc++;
+    if (_x_avail==false) {
+      double t=MPI_Wtime();
+      #ifdef GPU_CAST
+      memcpy(host_x_cast.begin(),host_ptr[0],_nall*3*sizeof(double));
+      memcpy(host_type_cast.begin(),host_type,_nall*sizeof(int));
+      #else
+      numtyp *_write_loc=host_x.begin();
+      for (int i=0; i<_nall; i++) {
+        *_write_loc=host_ptr[i][0];
+        _write_loc++;
+        *_write_loc=host_ptr[i][1];
+        _write_loc++;
+        *_write_loc=host_ptr[i][2];
+        _write_loc++;
+        *_write_loc=host_type[i];
+        _write_loc++;
+      }
+      #endif
+      _time_cast+=MPI_Wtime()-t;
     }
-    #endif
-    _time_cast+=MPI_Wtime()-t;
-  }      
+  }
 
   /// Copy positions and types to device asynchronously
   /** Copies nall() elements **/
   inline void add_x_data(double **host_ptr, int *host_type) { 
     time_pos.start();
-    #ifdef GPU_CAST
-    ucl_copy(dev_x_cast,host_x_cast,_nall*3,true);
-    ucl_copy(dev_type_cast,host_type_cast,_nall,true);
-    int block_size=64;
-    int GX=static_cast<int>(ceil(static_cast<double>(_nall)/block_size));
-    k_cast_x.set_size(GX,block_size);
-    k_cast_x.run(&dev_x.begin(), &dev_x_cast.begin(), &dev_type_cast.begin(), 
-                 &_nall);
-    #else
-    ucl_copy(dev_x,host_x,_nall*4,true);
-    #endif
+    if (_x_avail==false) {
+      #ifdef GPU_CAST
+      ucl_copy(dev_x_cast,host_x_cast,_nall*3,true);
+      ucl_copy(dev_type_cast,host_type_cast,_nall,true);
+      int block_size=64;
+      int GX=static_cast<int>(ceil(static_cast<double>(_nall)/block_size));
+      k_cast_x.set_size(GX,block_size);
+      k_cast_x.run(&dev_x.begin(), &dev_x_cast.begin(), &dev_type_cast.begin(), 
+                   &_nall);
+      #else
+      ucl_copy(dev_x,host_x,_nall*4,true);
+      #endif
+      _x_avail=true;
+    }
     time_pos.stop();
   }
 
@@ -267,63 +275,75 @@ class PairGPUAtom {
     add_x_data(host_ptr,host_type);
   }
 
-  /// Cast charges to write buffer
+  // Cast charges to write buffer
   template<class cpytyp>
   inline void cast_q_data(cpytyp *host_ptr) {
-    double t=MPI_Wtime();
-    if (dev->device_type()==UCL_CPU) {
-      if (sizeof(numtyp)==sizeof(double)) {
-        host_q.view((numtyp*)host_ptr,_nall,*dev);
-        dev_q.view(host_q);
-      } else
-        for (int i=0; i<_nall; i++) host_q[i]=host_ptr[i];
-    } else {
-      if (sizeof(numtyp)==sizeof(double))
-        memcpy(host_q.begin(),host_ptr,_nall*sizeof(numtyp));
-      else
-        for (int i=0; i<_nall; i++) host_q[i]=host_ptr[i];
+    if (_q_avail==false) {
+      double t=MPI_Wtime();
+      if (dev->device_type()==UCL_CPU) {
+        if (sizeof(numtyp)==sizeof(double)) {
+          host_q.view((numtyp*)host_ptr,_nall,*dev);
+          dev_q.view(host_q);
+        } else
+          for (int i=0; i<_nall; i++) host_q[i]=host_ptr[i];
+      } else {
+        if (sizeof(numtyp)==sizeof(double))
+          memcpy(host_q.begin(),host_ptr,_nall*sizeof(numtyp));
+        else
+          for (int i=0; i<_nall; i++) host_q[i]=host_ptr[i];
+      }
+      _time_cast+=MPI_Wtime()-t;
     }
-    _time_cast+=MPI_Wtime()-t;
   }
 
-  /// Copy charges to device asynchronously
+  // Copy charges to device asynchronously
   inline void add_q_data() {
-    ucl_copy(dev_q,host_q,_nall,true);
+    if (_q_avail==false) {
+      ucl_copy(dev_q,host_q,_nall,true);
+      _q_avail=true;
+    }
   }
 
-  /// Cast quaternions to write buffer
+  // Cast quaternions to write buffer
   template<class cpytyp>
   inline void cast_quat_data(cpytyp *host_ptr) {
-    double t=MPI_Wtime();
-    if (dev->device_type()==UCL_CPU) {
-      if (sizeof(numtyp)==sizeof(double)) {
-        host_quat.view((numtyp*)host_ptr,_nall*4,*dev);
-        dev_quat.view(host_quat);
-      } else
-        for (int i=0; i<_nall*4; i++) host_quat[i]=host_ptr[i];
-    } else {
-      if (sizeof(numtyp)==sizeof(double))
-        memcpy(host_quat.begin(),host_ptr,_nall*4*sizeof(numtyp));
-      else
-        for (int i=0; i<_nall*4; i++) host_quat[i]=host_ptr[i];
+    if (_quat_avail==false) {
+      double t=MPI_Wtime();
+      if (dev->device_type()==UCL_CPU) {
+        if (sizeof(numtyp)==sizeof(double)) {
+          host_quat.view((numtyp*)host_ptr,_nall*4,*dev);
+          dev_quat.view(host_quat);
+        } else
+          for (int i=0; i<_nall*4; i++) host_quat[i]=host_ptr[i];
+      } else {
+        if (sizeof(numtyp)==sizeof(double))
+          memcpy(host_quat.begin(),host_ptr,_nall*4*sizeof(numtyp));
+        else
+          for (int i=0; i<_nall*4; i++) host_quat[i]=host_ptr[i];
+      }
+      _time_cast+=MPI_Wtime()-t;
     }
-    _time_cast+=MPI_Wtime()-t;
   }
 
-  /// Copy quaternions to device
+  // Copy quaternions to device
   /** Copies nall()*4 elements **/
   inline void add_quat_data() {
-    ucl_copy(dev_quat,host_quat,_nall*4,true);
+    if (_quat_avail==false) {
+      ucl_copy(dev_quat,host_quat,_nall*4,true);
+      _quat_avail=true;
+    }
   }
 
-  /// Copy data other than pos and data to device
+  /// Copy data other than pos and type to device
   inline void add_other_data() {
-    time_other.start();
-    if (_charge)
-      add_q_data();
-    if (_rot)
-      add_quat_data();
-    time_other.stop();
+    if (_other) {
+      time_other.start();
+      if (_charge)
+        add_q_data();
+      if (_rot)
+        add_quat_data();
+      time_other.stop();
+    }
   }
   
   /// Return number of bytes used on device
@@ -401,6 +421,9 @@ class PairGPUAtom {
   #endif
 
   bool _compiled;
+  
+  // True if data has been copied to device already
+  int _x_avail, _q_avail, _quat_avail;
 
   bool alloc(const int inum, const int nall);
   

@@ -359,3 +359,9 @@ void PairGPUNbor::build_nbor_list(const int inum, const int host_inum,
     ucl_copy(host_nbor,dev_host_nbor,host_inum*(mn+1),false);
   time_nbor.stop();
 }
+
+template void PairGPUNbor::build_nbor_list<PRECISION,ACC_PRECISION>
+     (const int inum, const int host_inum, const int nall,
+      PairGPUAtom<PRECISION,ACC_PRECISION> &atom, double *boxlo, double *boxhi,
+      int *, int **, int **, bool &success, int &mn);
+

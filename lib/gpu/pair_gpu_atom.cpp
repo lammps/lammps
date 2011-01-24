@@ -183,6 +183,9 @@ bool PairGPUAtomT::init(const int inum, const int nall, const bool charge,
   clear();
 
   bool success=true;
+  _x_avail=false;
+  _q_avail=false;
+  _quat_avail=false;
   _gpu_nbor=gpu_nbor;
   _bonds=bonds;
   _charge=charge;
@@ -516,6 +519,9 @@ double PairGPUAtomT::energy_virial(double *eatom, double **vatom,
 
 template <class numtyp, class acctyp>
 void PairGPUAtomT::get_answers(double **f, double **tor) {
+  _x_avail=false;
+  _q_avail=false;
+  _quat_avail=false;
   acctyp *ap=host_ans.begin();
   if (_gpu_nbor) {
     for (int i=0; i<_inum; i++) {

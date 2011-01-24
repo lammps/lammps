@@ -220,6 +220,13 @@ bool PairGPUAtomT::init(const int inum, const int nall, const bool charge,
 }
   
 template <class numtyp, class acctyp>
+bool PairGPUAtomT::add_fields(const bool charge, const bool rot) {
+  if (charge && _charge=false) {
+    _charge=true;
+    _e_fields++;
+    
+
+template <class numtyp, class acctyp>
 void PairGPUAtomT::clear_resize() {
   if (!_allocated)
     return;

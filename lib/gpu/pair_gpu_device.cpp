@@ -137,6 +137,7 @@ bool PairGPUDeviceT::init(const bool charge, const bool rot, const int nlocal,
       return false;
     nbor.cell_size(cell_size);
   } else {
+    atom.add_fields(charge,rot);
     if (cell_size>nbor.cell_size())
       nbor.cell_size(cell_size);
   }

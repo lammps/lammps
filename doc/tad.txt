@@ -185,9 +185,15 @@ is a counter that resets to zero upon entering each new basin.
 The event status is {E} when an event is executed, and 
 is {D} for an event that is detected, while {DF} is for a detected
 event that is also the earliest (first) event at the low temperature.
+  
 The time margin is the ratio of the high temperature time in the current
 basin to the stopping time. This last number can be used to judge
-whether the stopping time is too short or too long (see above).
+whether the stopping time is too short or too long (see above). 
+
+On lines for executed events, with status {E}, the global event number is
+incremented by one, and the timestep, clock, local event number, 
+and energy barrier match the last event with status {DF} in the 
+immediately preceding block of detected events.
 
 The NEB statistics are written to the file specified by the {neb_log}
 keyword. If the keyword value is "none", then no NEB statistics are

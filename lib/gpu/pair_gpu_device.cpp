@@ -281,6 +281,7 @@ double lmp_gpu_forces(double **f, double **tor, double *eatom,
     pair_gpu_device.gpu->sync();
     double evdw=pair_gpu_device.atom.energy_virial(eatom,vatom,virial,ecoul);
     pair_gpu_device.atom.get_answers(f,tor);
+    pair_gpu_device.atom.data_unavail();
 
     return evdw;
   }

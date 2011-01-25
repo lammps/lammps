@@ -23,7 +23,6 @@
 
 #ifdef USE_OPENCL
 
-#include "geryon/ocl_device.h"
 #include "geryon/ocl_timer.h"
 #include "geryon/ocl_mat.h"
 #include "geryon/ocl_kernel.h"
@@ -32,16 +31,11 @@ using namespace ucl_opencl;
 #else
 
 #include "cudpp.h"
-#include "geryon/nvd_device.h"
 #include "geryon/nvd_timer.h"
 #include "geryon/nvd_mat.h"
 #include "geryon/nvd_kernel.h"
 using namespace ucl_cudadr;
 
-#endif
-
-#ifndef int2
-struct int2 { int x; int y; };
 #endif
 
 #include "pair_gpu_precision.h"
@@ -56,13 +50,9 @@ class PairGPUAtom {
   inline int max_atoms() const { return _max_atoms; }
   /// Current number of local+ghost atoms stored
   inline int nall() const { return _nall; }
-  /// Current number of local atoms stored
-  inline int inum() const { return _inum; }
 
   /// Set number of local+ghost atoms for future copy operations
   inline void nall(const int n) { _nall=n; }
-  /// Set number of local atoms for future copy operations
-  inline void inum(const int n) { _inum=n; }
   
   /// Memory usage per atom in this class
   int bytes_per_atom() const; 
@@ -70,16 +60,15 @@ class PairGPUAtom {
   /// Clear any previous data and set up for a new LAMMPS run
   /** \param rot True if atom storage needs quaternions
     * \param gpu_nbor True if neighboring will be performed on device **/
-  bool init(const int inum, const int nall, const bool charge, const bool rot, 
+  bool init(const int nall, const bool charge, const bool rot, 
             UCL_Device &dev, const bool gpu_nbor=false, const bool bonds=false);
   
   /// Check if we have enough device storage and realloc if not
-  inline bool resize(const int inum, const int nall, bool &success) {
-    _inum=inum;
+  inline bool resize(const int nall, bool &success) {
     _nall=nall;
-    if (inum>_max_local || nall>_max_atoms) {
+    if (nall>_max_atoms) {
       clear_resize();
-      success = success && alloc(inum,nall);
+      success = success && alloc(nall);
       return true;
     }
     return false;
@@ -90,9 +79,6 @@ class PairGPUAtom {
     * \param gpu_nbor True if neighboring will be performed on device **/
   bool add_fields(const bool charge, const bool rot);
   
-  /// True if charge data is available for kernels
-  bool charge_avail() const { return _charge; }
-
   /// Only free matrices of length inum or nall for resizing
   void clear_resize();
   
@@ -108,7 +94,6 @@ class PairGPUAtom {
   /// Add copy times to timers
   inline void acc_timers() {
     time_pos.add_to_total();
-    time_answer.add_to_total();
     if (_other)
       time_other.add_to_total();
   }
@@ -116,14 +101,13 @@ class PairGPUAtom {
   /// Add copy times to timers
   inline void zero_timers() {
     time_pos.zero();
-    time_answer.zero();
     if (_other)
       time_other.zero();
   }
 
   /// Return the total time for host/device data transfer
   inline double transfer_time() {
-    double total=time_pos.total_seconds()+time_answer.total_seconds();
+    double total=time_pos.total_seconds();
     if (_other) total+=time_other.total_seconds();
     return total;
   }
@@ -223,6 +207,10 @@ class PairGPUAtom {
   }
 
   // -------------------------COPY TO GPU ----------------------------------
+
+  /// Signal that we need to transfer atom data for next timestep
+  inline void data_unavail()
+    { _x_avail=false; _q_avail=false; _quat_avail=false; }
 
   /// Cast positions and types to write buffer
   inline void cast_x_data(double **host_ptr, const int *host_type) {
@@ -349,26 +337,6 @@ class PairGPUAtom {
   /// Return number of bytes used on device
   inline double gpu_bytes() { return _gpu_bytes; } 
 
-  // -------------------------COPY FROM GPU -------------------------------
-
-  /// Copy answers from device into read buffer asynchronously
-  void copy_answers(const bool eflag, const bool vflag,
-                    const bool ef_atom, const bool vf_atom);
-
-  /// Copy answers from device into read buffer asynchronously
-  void copy_answers(const bool eflag, const bool vflag,
-                    const bool ef_atom, const bool vf_atom, int *ilist);
-  
-  /// Copy energy and virial data into LAMMPS memory
-  double energy_virial(double *eatom, double **vatom, double *virial);
-
-  /// Copy energy and virial data into LAMMPS memory
-  double energy_virial(double *eatom, double **vatom, double *virial,
-                       double &ecoul);
-
-  /// Add forces and torques from the GPU into a LAMMPS pointer
-  void get_answers(double **f, double **tor);
-
   // ------------------------------ DATA ----------------------------------
 
   /// Atom coordinates and types ([0] is x, [1] is y, [2] is z, [3] is type
@@ -377,10 +345,6 @@ class PairGPUAtom {
   UCL_D_Vec<numtyp> dev_q;
   /// Quaterions
   UCL_D_Vec<numtyp> dev_quat;
-  /// Force and possibly torque
-  UCL_D_Vec<acctyp> dev_ans;
-  /// Energy and virial per-atom storage
-  UCL_D_Vec<acctyp> dev_engv;
   
   #ifdef GPU_CAST
   UCL_D_Vec<double> dev_x_cast;
@@ -395,10 +359,6 @@ class PairGPUAtom {
   UCL_H_Vec<numtyp> host_q;
   /// Buffer for moving quat data to GPU
   UCL_H_Vec<numtyp> host_quat;
-  /// Force and possibly torque data on host
-  UCL_H_Vec<acctyp> host_ans;
-  /// Energy/virial data on host
-  UCL_H_Vec<acctyp> host_engv;
   
   /// Cell list identifiers for device nbor builds
   UCL_D_Vec<unsigned> dev_cell_id;
@@ -408,7 +368,7 @@ class PairGPUAtom {
   UCL_D_Vec<int> dev_tag;
 
   /// Device timers
-  UCL_Timer time_pos, time_other, time_answer;
+  UCL_Timer time_pos, time_other;
   
   /// Geryon device
   UCL_Device *dev;
@@ -423,20 +383,17 @@ class PairGPUAtom {
   bool _compiled;
   
   // True if data has been copied to device already
-  int _x_avail, _q_avail, _quat_avail;
+  bool _x_avail, _q_avail, _quat_avail;
 
-  bool alloc(const int inum, const int nall);
+  bool alloc(const int nall);
   
-  bool _allocated, _eflag, _vflag, _ef_atom, _vf_atom, _rot, _charge, _other;
-  int _max_local, _max_atoms, _nall, _inum, _e_fields, _ev_fields;
+  bool _allocated, _rot, _charge, _other;
+  int _max_atoms, _nall;
   bool _gpu_nbor, _bonds;
-  int *_ilist;
   double _time_cast;
   
   double _gpu_bytes;
   
-  bool _newton;
-
   #ifndef USE_OPENCL
   CUDPPConfiguration sort_config;
   CUDPPHandle sort_plan;

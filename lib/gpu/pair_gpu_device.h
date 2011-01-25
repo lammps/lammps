@@ -19,11 +19,13 @@
 #define PAIR_GPU_DEVICE_H
 
 #include "pair_gpu_atom.h"
+#include "pair_gpu_ans.h"
 #include "pair_gpu_nbor.h"
 #include "mpi.h"
 #include <sstream>
 #include "stdio.h"
 #include <string>
+#include <queue>
 
 template <class numtyp, class acctyp>
 class PairGPUDevice {
@@ -70,6 +72,9 @@ class PairGPUDevice {
   
   /// Clear all memory on host and device
   void clear_device();
+
+  /// Add an answer object for putting forces, energies, etc from GPU to LAMMPS
+  inline void add_ans_object(PairGPUAns *ans) { ans_queue.push(ans); }
 
   /// Start timer on host
   inline void start_host_timer() { _cpu_full=MPI_Wtime(); }
@@ -134,6 +139,7 @@ class PairGPUDevice {
   PairGPUNborShared _nbor_shared;
 
  private:
+  std::queue<PairGPUAns *> ans_queue;
   int _init_count;
   bool _device_init;
   MPI_Comm _comm_world, _comm_replica, _comm_gpu;

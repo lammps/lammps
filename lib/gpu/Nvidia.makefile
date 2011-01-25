@@ -30,8 +30,9 @@ UCL_H  = $(wildcard ./geryon/ucl*.h)
 NVC_H  = $(wildcard ./geryon/nvc*.h) $(UCL_H)
 NVD_H  = $(wildcard ./geryon/nvd*.h) $(UCL_H) 
 # Headers for Pair Stuff
-PAIR_H  = pair_gpu_atom.h pair_gpu_nbor_shared.h pair_gpu_nbor.h \
-          pair_gpu_precision.h pair_gpu_device.h pair_gpu_balance.h
+PAIR_H  = pair_gpu_atom.h pair_gpu_ans.h pair_gpu_nbor_shared.h \
+          pair_gpu_nbor.h pair_gpu_precision.h pair_gpu_device.h \
+          pair_gpu_balance.h
 
 ALL_H = $(NVD_H) $(PAIR_H)
 
@@ -39,8 +40,9 @@ EXECS = $(BIN_DIR)/nvc_get_devices
 CUDPP = $(OBJ_DIR)/cudpp.o $(OBJ_DIR)/cudpp_plan.o \
         $(OBJ_DIR)/cudpp_maximal_launch.o $(OBJ_DIR)/cudpp_plan_manager.o \
         $(OBJ_DIR)/radixsort_app.cu_o $(OBJ_DIR)/scan_app.cu_o
-OBJS = $(OBJ_DIR)/pair_gpu_atom.o $(OBJ_DIR)/pair_gpu_nbor.o \
-       $(OBJ_DIR)/pair_gpu_nbor_shared.o $(OBJ_DIR)/pair_gpu_device.o \
+OBJS = $(OBJ_DIR)/pair_gpu_atom.o $(OBJ_DIR)/pair_gpu_ans.o \
+       $(OBJ_DIR)/pair_gpu_nbor.o $(OBJ_DIR)/pair_gpu_nbor_shared.o \
+       $(OBJ_DIR)/pair_gpu_device.o \
        $(OBJ_DIR)/atomic_gpu_memory.o $(OBJ_DIR)/charge_gpu_memory.o \
        $(OBJ_DIR)/gb_gpu_memory.o $(OBJ_DIR)/gb_gpu.o \
        $(OBJ_DIR)/lj_cut_gpu_memory.o $(OBJ_DIR)/lj_cut_gpu.o \
@@ -94,6 +96,9 @@ $(OBJ_DIR)/pair_gpu_atom_ptx.h: $(OBJ_DIR)/pair_gpu_atom_kernel.ptx
 
 $(OBJ_DIR)/pair_gpu_atom.o: pair_gpu_atom.cpp pair_gpu_atom.h $(NVD_H) $(OBJ_DIR)/pair_gpu_atom_ptx.h
 	$(CUDR) -o $@ -c pair_gpu_atom.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/pair_gpu_ans.o: pair_gpu_ans.cpp pair_gpu_ans.h $(NVD_H)
+	$(CUDR) -o $@ -c pair_gpu_ans.cpp -I$(OBJ_DIR)
 
 $(OBJ_DIR)/pair_gpu_nbor_kernel.ptx: pair_gpu_nbor_kernel.cu
 	$(CUDA) --ptx -DNV_KERNEL -o $@ pair_gpu_nbor_kernel.cu

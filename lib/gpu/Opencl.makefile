@@ -23,14 +23,16 @@ OCL_LIB = $(LIB_DIR)/libgpu.a
 UCL_H  = $(wildcard ./geryon/ucl*.h)
 OCL_H  = $(wildcard ./geryon/ocl*.h) $(UCL_H)
 # Headers for Pair Stuff
-PAIR_H  = pair_gpu_atom.h pair_gpu_nbor_shared.h pair_gpu_nbor.h \
-          pair_gpu_precision.h pair_gpu_device.h pair_gpu_balance.h
+PAIR_H  = pair_gpu_atom.h pair_gpu_ans.h pair_gpu_nbor_shared.h \
+          pair_gpu_nbor.h pair_gpu_precision.h pair_gpu_device.h \
+          pair_gpu_balance.h
 
 ALL_H = $(OCL_H) $(PAIR_H)
 
 EXECS = $(BIN_DIR)/ocl_get_devices
-OBJS = $(OBJ_DIR)/pair_gpu_atom.o $(OBJ_DIR)/pair_gpu_nbor_shared.o \
-       $(OBJ_DIR)/pair_gpu_nbor.o $(OBJ_DIR)/pair_gpu_device.o \
+OBJS = $(OBJ_DIR)/pair_gpu_atom.o $(OBJ_DIR)/pair_gpu_ans.o \
+       $(OBJ_DIR)/pair_gpu_nbor_shared.o $(OBJ_DIR)/pair_gpu_nbor.o \
+       $(OBJ_DIR)/pair_gpu_device.o \
        $(OBJ_DIR)/atomic_gpu_memory.o $(OBJ_DIR)/charge_gpu_memory.o \
        $(OBJ_DIR)/gb_gpu_memory.o $(OBJ_DIR)/gb_gpu.o \
        $(OBJ_DIR)/lj_cut_gpu_memory.o $(OBJ_DIR)/lj_cut_gpu.o \
@@ -46,7 +48,7 @@ KERS = $(OBJ_DIR)/pair_gpu_atom_cl.h $(OBJ_DIR)/pair_gpu_nbor_cl.h \
        $(OBJ_DIR)/ljc_cut_gpu_cl.h $(OBJ_DIR)/ljcl_cut_gpu_cl.h \
        $(OBJ_DIR)/crml_gpu_cl.h \
        $(OBJ_DIR)/cmm_cut_gpu_cl.h $(OBJ_DIR)/cmmc_long_gpu_cl.h 
-       
+
 OCL_EXECS = $(BIN_DIR)/ocl_get_devices
 
 all: $(OCL_LIB) $(EXECS)

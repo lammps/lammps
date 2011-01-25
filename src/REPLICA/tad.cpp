@@ -226,11 +226,11 @@ void TAD::command(int narg, char **arg)
   if (me_universe == 0) {
     if (universe->uscreen) 
       fprintf(universe->uscreen,
-	      "Step CPU N M Status Barrier Margin Clock\n"
+	      "Step CPU N M Status Barrier Margin t_lo delt_lo\n"
 	      );
     if (universe->ulogfile) 
       fprintf(universe->ulogfile,
-	      "Step CPU N M Status Barrier Margin Clock\n"
+	      "Step CPU N M Status Barrier Margin t_lo delt_lo\n"
 	      );
   }
 
@@ -529,22 +529,22 @@ void TAD::log_event(int ievent)
     double tfrac = 0.0;
     if (universe->uscreen)
       fprintf(universe->uscreen,
-	      BIGINT_FORMAT " %.3f %d %d %s %.3f %.3f %.3f\n",
+	      BIGINT_FORMAT " %.3f %d %d %s %.3f %.3f %.3f %.3f\n",
 	      fix_event->event_timestep,
 	      timer->elapsed(TIME_LOOP),
 	      fix_event->event_number,ievent,
 	      "E ",
 	      fix_event->ebarrier,tfrac,
-	      fix_event->tlo);
+	      fix_event->tlo,deltfirst);
     if (universe->ulogfile)
       fprintf(universe->ulogfile,
-	      BIGINT_FORMAT " %.3f %d %d %s %.3f %.3f %.3f\n",
+	      BIGINT_FORMAT " %.3f %d %d %s %.3f %.3f %.3f %.3f\n",
 	      fix_event->event_timestep,
 	      timer->elapsed(TIME_LOOP),
 	      fix_event->event_number,ievent,
 	      "E ",
 	      fix_event->ebarrier,tfrac,
-	      fix_event->tlo);
+	      fix_event->tlo,deltfirst);
   }
 
   // dump snapshot of quenched coords
@@ -948,21 +948,21 @@ void TAD::compute_tlo(int ievent)
 
     if (universe->uscreen) 
       fprintf(universe->uscreen,
-	      BIGINT_FORMAT " %.3f %d %d %s %.3f %.3f %.3f\n",
+	      BIGINT_FORMAT " %.3f %d %d %s %.3f %.3f %.3f %.3f\n",
 	      fix_event_list[ievent]->event_timestep,
 	      timer->elapsed(TIME_LOOP),
 	      fix_event->event_number,
 	      ievent,statstr,ebarrier,tfrac,
-	      fix_event_list[ievent]->tlo);
+	      fix_event->tlo,deltlo);
 
     if (universe->ulogfile) 
       fprintf(universe->ulogfile,
-	      BIGINT_FORMAT " %.3f %d %d %s %.3f %.3f %.3f\n",
+	      BIGINT_FORMAT " %.3f %d %d %s %.3f %.3f %.3f %.3f\n",
 	      fix_event_list[ievent]->event_timestep,
 	      timer->elapsed(TIME_LOOP),
 	      fix_event->event_number,
 	      ievent,statstr,ebarrier,tfrac,
-	      fix_event_list[ievent]->tlo);
+	      fix_event->tlo,deltlo);
   }
 
 }

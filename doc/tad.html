@@ -180,17 +180,14 @@ files, and restart files.
 </P>
 <P>Event statistics are printed to the screen and master log.lammps file
 each time an event is executed. The quantities are the timestep, CPU
-time, global event number N, local event number M,
-event status, energy barrier, time margin, and clock.  
+time, global event number <I>N</I>, local event number <I>M</I>,
+event status, energy barrier, time margin, <I>t_lo</I> and <I>delt_lo</I>.  
 The timestep is the usual LAMMPS
 timestep, which corresponds to the high-temperature time at which the
 event was detected, in units of timestep.  The CPU time is the total
-processor time since the start of the TAD run.  The clock is the
-low-temperature event time, in units of timestep.  Each clock interval
-is equal to the timestep interval between events scaled by an
-exponential factor that depends on the hi/lo temperature ratio and the
-energy barrier for that event.  The global event number N is a counter 
-that increments with each executed event. The local event number
+processor time since the start of the TAD run.  
+The global event number <I>N</I> is a counter 
+that increments with each executed event. The local event number <I>M</I>
 is a counter that resets to zero upon entering each new basin.
 The event status is <I>E</I> when an event is executed, and 
 is <I>D</I> for an event that is detected, while <I>DF</I> is for a detected
@@ -200,9 +197,17 @@ event that is also the earliest (first) event at the low temperature.
 basin to the stopping time. This last number can be used to judge
 whether the stopping time is too short or too long (see above). 
 </P>
+<P><I>t_lo</I> is the low-temperature event time when the current basin was entered, 
+in units of timestep.  del<I>t_lo</I> is the time of each detected 
+event, measured relative to <I>t_lo</I>.  <I>delt_lo</I>
+is equal to the high-temperature time since entering the current
+basin, scaled by an
+exponential factor that depends on the hi/lo temperature ratio and the
+energy barrier for that event.  
+</P>
 <P>On lines for executed events, with status <I>E</I>, the global event number is
-incremented by one, and the timestep, clock, local event number, 
-and energy barrier match the last event with status <I>DF</I> in the 
+incremented by one, and the timestep, local event number, 
+energy barrier, <I>t_lo</I>, and <I>delt_lo</I>  match the last event with status <I>DF</I> in the 
 immediately preceding block of detected events.
 </P>
 <P>The NEB statistics are written to the file specified by the <I>neb_log</I>

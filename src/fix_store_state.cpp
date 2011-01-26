@@ -483,6 +483,10 @@ double FixStoreState::memory_usage()
 
 void FixStoreState::grow_arrays(int nmax)
 {
+  // allocate storage for at least one element to avoid NULL
+  // pointer dereferences on MPI ranks without local atoms.
+  if (nmax==0) nmax=1;
+
   values = memory->grow_2d_double_array(values,nmax,nvalues,
 					"fix_store:values");
   if (nvalues == 0) vector_atom = &values[0][0];

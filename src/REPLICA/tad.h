@@ -71,7 +71,7 @@ class TAD : protected Pointers {
   int check_event();
   int check_confidence();
   void perform_neb(int);
-  void log_event();
+  void log_event(int);
   void options(int, char **);
   void revert();
   void add_event();

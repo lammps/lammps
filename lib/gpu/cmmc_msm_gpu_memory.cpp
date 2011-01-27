@@ -133,9 +133,9 @@ void CMMM_GPU_MemoryT::loop(const bool _eflag, const bool _vflag) {
   else
     vflag=0;
   
-  int GX=static_cast<int>(ceil(static_cast<double>(this->atom->inum())/BX));
+  int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/BX));
 
-  int ainum=this->atom->inum();
+  int ainum=this->ans->inum();
   int anall=this->atom->nall();
   int nbor_pitch=this->nbor->nbor_pitch();
   this->time_pair.start();
@@ -144,8 +144,8 @@ void CMMM_GPU_MemoryT::loop(const bool _eflag, const bool _vflag) {
     this->k_pair_fast.run(&this->atom->dev_x.begin(), &lj1.begin(),
                           &lj3.begin(), &sp_lj.begin(),
                           &this->nbor->dev_nbor.begin(),
-                          &this->atom->dev_ans.begin(),
-                          &this->atom->dev_engv.begin(), &eflag, &vflag,
+                          &this->ans->dev_ans.begin(),
+                          &this->ans->dev_engv.begin(), &eflag, &vflag,
                           &ainum, &anall, &nbor_pitch,
                           &this->atom->dev_q.begin(), &_cut_coulsq,
                           &_qqrd2e, &_smooth);
@@ -153,8 +153,8 @@ void CMMM_GPU_MemoryT::loop(const bool _eflag, const bool _vflag) {
     this->k_pair.set_size(GX,BX);
     this->k_pair.run(&this->atom->dev_x.begin(), &lj1.begin(), &lj3.begin(),
                      &_lj_types, &sp_lj.begin(), &this->nbor->dev_nbor.begin(),
-                     &this->atom->dev_ans.begin(),
-                     &this->atom->dev_engv.begin(), &eflag, &vflag, &ainum,
+                     &this->ans->dev_ans.begin(),
+                     &this->ans->dev_engv.begin(), &eflag, &vflag, &ainum,
                      &anall, &nbor_pitch, &this->atom->dev_q.begin(),
                      &_cut_coulsq, &_qqrd2e, &_smooth);
   }

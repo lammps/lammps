@@ -32,12 +32,14 @@ template <class numtyp, class acctyp>
 GB_GPU_MemoryT::GB_GPU_Memory() : _allocated(false), _compiled(false),
                                   _max_bytes(0.0) {
   device=&pair_gpu_device;
+  ans=new PairGPUAns<numtyp,acctyp>();
   nbor=new PairGPUNbor;
 }
 
 template <class numtyp, class acctyp>
 GB_GPU_MemoryT::~GB_GPU_Memory() { 
   clear();
+  delete ans;
   delete nbor;
 }
  
@@ -70,7 +72,7 @@ bool GB_GPU_MemoryT::init(const int ntypes, const double gamma,
   if (host_nlocal>0)
     _gpu_host=1;
   
-  if (!device->init(false,true,nlocal,host_nlocal,nall,nbor,0,gpu_nbor,
+  if (!device->init(*ans,false,true,nlocal,host_nlocal,nall,nbor,0,gpu_nbor,
                     _gpu_host,max_nbors,cell_size,true))
     return false;
   ucl_device=device->gpu;
@@ -187,9 +189,9 @@ bool GB_GPU_MemoryT::init(const int ntypes, const double gamma,
   }
   
   if (multiple_forms)
-    atom->dev_ans.zero();
+    ans->dev_ans.zero();
 
-  _max_bytes=atom->gpu_bytes()+nbor->gpu_bytes();
+  _max_bytes=ans->gpu_bytes()+nbor->gpu_bytes();
 
   // Memory for ilist ordered by particle type
   return (host_olist.alloc(nbor->max_atoms(),*ucl_device)==UCL_SUCCESS);
@@ -212,7 +214,7 @@ void GB_GPU_MemoryT::clear() {
   acc_timers();
   double single[6], times[6];
 
-  single[0]=atom->transfer_time();
+  single[0]=atom->transfer_time()+ans->transfer_time();
   single[1]=nbor->time_nbor.total_seconds();
   single[2]=time_kernel.total_seconds()+time_kernel2.total_seconds()+
             nbor->time_kernel.total_seconds();
@@ -221,7 +223,7 @@ void GB_GPU_MemoryT::clear() {
     single[4]=time_pair.total_seconds();
   else
     single[4]=0;
-  single[5]=atom->cast_time();
+  single[5]=atom->cast_time()+ans->cast_time();
 
   MPI_Reduce(single,times,6,MPI_DOUBLE,MPI_SUM,0,device->replica());
   double avg_split=hd_balancer.all_avg_split();
@@ -229,7 +231,7 @@ void GB_GPU_MemoryT::clear() {
   _max_bytes+=dev_error.row_bytes()+lj1.row_bytes()+lj3.row_bytes()+
               sigma_epsilon.row_bytes()+cut_form.row_bytes()+
               shape.row_bytes()+well.row_bytes()+lshape.row_bytes()+
-              gamma_upsilon_mu.row_bytes();
+              gamma_upsilon_mu.row_bytes()+atom->max_gpu_bytes();
   double mpi_max_bytes;
   MPI_Reduce(&_max_bytes,&mpi_max_bytes,1,MPI_DOUBLE,MPI_MAX,0,
              device->replica());

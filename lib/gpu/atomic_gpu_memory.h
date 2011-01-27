@@ -48,8 +48,9 @@ class AtomicGPUMemory {
   /// Check if there is enough storage for atom arrays and realloc if not
   /** \param success set to false if insufficient memory **/
   inline void resize_atom(const int inum, const int nall, bool &success) {
-    if (atom->resize(inum, nall, success))
+    if (atom->resize(nall, success))
       pos_tex.bind_float(atom->dev_x,4);
+    ans->resize(inum,success);
   }
 
   /// Check if there is enough storage for neighbors and realloc if not
@@ -92,6 +93,7 @@ class AtomicGPUMemory {
     }
     time_pair.add_to_total();
     atom->acc_timers();
+    ans->acc_timers();
   }
 
   /// Zero timers
@@ -99,6 +101,7 @@ class AtomicGPUMemory {
     nbor_time_avail=false;
     time_pair.zero();
     atom->zero_timers();
+    ans->zero_timers();
   }
 
   /// Copy neighbor list from host
@@ -148,6 +151,9 @@ class AtomicGPUMemory {
   /// Atom Data
   PairGPUAtom<numtyp,acctyp> *atom;
 
+  // ------------------------ FORCE/ENERGY DATA -----------------------
+
+  PairGPUAns<numtyp,acctyp> *ans;
 
   // --------------------------- NBOR DATA ----------------------------
 

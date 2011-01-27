@@ -49,9 +49,10 @@ class GB_GPU_Memory {
   /// Check if there is enough storage for atom arrays and realloc if not
   /** \param success set to false if insufficient memory **/
   inline void resize_atom(const int inum, const int nall, bool &success) {
-    atom->resize(inum, nall, success);
-    if (multiple_forms) atom->dev_ans.zero();
-    double bytes=atom->gpu_bytes()+nbor->gpu_bytes();
+    atom->resize(nall, success);
+    ans->resize(inum, success);
+    if (multiple_forms) ans->dev_ans.zero();
+    double bytes=ans->gpu_bytes()+nbor->gpu_bytes();
     if (bytes>_max_bytes)
       _max_bytes=bytes;
   }
@@ -74,7 +75,7 @@ class GB_GPU_Memory {
       success=success && (host_olist.alloc(new_size,*ucl_device)==UCL_SUCCESS);
     }
     nbor->resize(nlocal,host_inum,max_nbors,success);
-    double bytes=atom->gpu_bytes()+nbor->gpu_bytes();
+    double bytes=ans->gpu_bytes()+nbor->gpu_bytes();
     if (bytes>_max_bytes)
       _max_bytes=bytes;
   }
@@ -104,6 +105,7 @@ class GB_GPU_Memory {
       time_pair.add_to_total();
     }
     atom->acc_timers();
+    ans->acc_timers();
   }
   
   /// Accumulate timers
@@ -117,6 +119,7 @@ class GB_GPU_Memory {
       time_pair.zero();
     }
     atom->zero_timers();
+    ans->zero_timers();
   }
 
   // -------------------------- DEVICE DATA ------------------------- 
@@ -167,6 +170,10 @@ class GB_GPU_Memory {
   UCL_D_Vec<numtyp> lshape;
 
   int last_ellipse, max_last_ellipse;
+
+  // ------------------------ FORCE/ENERGY DATA -----------------------
+
+  PairGPUAns<numtyp,acctyp> *ans;
 
   // --------------------------- NBOR DATA ----------------------------
 

@@ -138,11 +138,10 @@ void PairGPUAnsT::clear() {
   if (!_allocated)
     return;
 
-  time_pos.clear();
-  time_other.clear();
   time_answer.clear();
   clear_resize();
   _inum=0;
+  _ilist=NULL;
   _eflag=false;
   _vflag=false;
 }
@@ -181,7 +180,6 @@ void PairGPUAnsT::copy_answers(const bool eflag, const bool vflag,
   else
     ucl_copy(host_ans,dev_ans,_inum*4,true);
   time_answer.stop();
-  dev->add_answer_object(this);
 }
 
 template <class numtyp, class acctyp>
@@ -199,7 +197,7 @@ double PairGPUAnsT::energy_virial(double *eatom, double **vatom,
     return 0.0;
 
   double evdwl=0.0;
-  if (_gpu_nbor) {
+  if (_ilist==NULL) {
     for (int i=0; i<_inum; i++) {
       acctyp *ap=host_engv.begin()+i;
       if (_eflag) {
@@ -279,7 +277,7 @@ double PairGPUAnsT::energy_virial(double *eatom, double **vatom,
 
   double evdwl=0.0;
   double _ecoul=0.0;
-  if (_gpu_nbor) {
+  if (_ilist==NULL) {
     for (int i=0; i<_inum; i++) {
       acctyp *ap=host_engv.begin()+i;
       if (_eflag) {
@@ -359,11 +357,8 @@ double PairGPUAnsT::energy_virial(double *eatom, double **vatom,
 
 template <class numtyp, class acctyp>
 void PairGPUAnsT::get_answers(double **f, double **tor) {
-  _x_avail=false;
-  _q_avail=false;
-  _quat_avail=false;
   acctyp *ap=host_ans.begin();
-  if (_gpu_nbor) {
+  if (_ilist==NULL) {
     for (int i=0; i<_inum; i++) {
       f[i][0]+=*ap;
       ap++;

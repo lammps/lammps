@@ -117,10 +117,11 @@ bool PairGPUDeviceT::init_device(MPI_Comm world, MPI_Comm replica,
 }
 
 template <class numtyp, class acctyp>
-bool PairGPUDeviceT::init(const bool charge, const bool rot, const int nlocal, 
+bool PairGPUDeviceT::init(PairGPUAns<numtyp,acctyp> &ans, const bool charge,
+                          const bool rot, const int nlocal, 
                           const int host_nlocal, const int nall,
-                          PairGPUNbor *nbor, const int maxspecial, 
-                          const bool gpu_nbor, const int gpu_host, 
+                          PairGPUNbor *nbor, const int maxspecial,
+                          const bool gpu_nbor, const int gpu_host,
                           const int max_nbors, const double cell_size,
                           const bool pre_cut) {
   if (!_device_init)
@@ -133,11 +134,13 @@ bool PairGPUDeviceT::init(const bool charge, const bool rot, const int nlocal,
 
   if (_init_count==0) {
     // Initialize atom and nbor data
-    if (!atom.init(ef_nlocal,nall,charge,rot,*gpu,gpu_nbor,
-                   gpu_nbor && maxspecial>0))
+    if (!atom.init(nall,charge,rot,*gpu,gpu_nbor,gpu_nbor && maxspecial>0))
       return false;
   } else
     atom.add_fields(charge,rot);
+
+  if (!ans.init(ef_nlocal,charge,rot,*gpu))
+    return false;
 
   if (!nbor->init(&_nbor_shared,ef_nlocal,host_nlocal,max_nbors,maxspecial,
                   *gpu,gpu_nbor,gpu_host,pre_cut))
@@ -189,20 +192,21 @@ void PairGPUDeviceT::init_message(FILE *screen, const char *name,
 }
 
 template <class numtyp, class acctyp>
-void PairGPUDeviceT::output_times(UCL_Timer &time_pair, PairGPUNbor &nbor,
-                                  const double avg_split, 
+void PairGPUDeviceT::output_times(UCL_Timer &time_pair, 
+                                  PairGPUAns<numtyp,acctyp> &ans, 
+                                  PairGPUNbor &nbor, const double avg_split, 
                                   const double max_bytes, FILE *screen) {
   double single[5], times[5];
 
-  single[0]=atom.transfer_time();
+  single[0]=atom.transfer_time()+ans.transfer_time();
   single[1]=nbor.time_nbor.total_seconds();
   single[2]=nbor.time_kernel.total_seconds();
   single[3]=time_pair.total_seconds();
-  single[4]=atom.cast_time();
+  single[4]=atom.cast_time()+ans.cast_time();
 
   MPI_Reduce(single,times,5,MPI_DOUBLE,MPI_SUM,0,_comm_replica);
 
-  double my_max_bytes=max_bytes;
+  double my_max_bytes=max_bytes+atom.max_gpu_bytes();
   double mpi_max_bytes;
   MPI_Reduce(&my_max_bytes,&mpi_max_bytes,1,MPI_DOUBLE,MPI_MAX,0,_comm_replica);
   double max_mb=mpi_max_bytes/(1024.0*1024.0);
@@ -276,15 +280,5 @@ void lmp_clear_device() {
 
 double lmp_gpu_forces(double **f, double **tor, double *eatom,
                       double **vatom, double *virial, double &ecoul) {
-  if (pair_gpu_device.init_count()) {
-    pair_gpu_device.stop_host_timer();
-    pair_gpu_device.gpu->sync();
-    double evdw=pair_gpu_device.atom.energy_virial(eatom,vatom,virial,ecoul);
-    pair_gpu_device.atom.get_answers(f,tor);
-    pair_gpu_device.atom.data_unavail();
-
-    return evdw;
-  }
-  return 0.0;
+  return pair_gpu_device.fix_gpu(f,tor,eatom,vatom,virial,ecoul);
 }
-

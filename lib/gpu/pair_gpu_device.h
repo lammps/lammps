@@ -53,18 +53,19 @@ class PairGPUDevice {
     * \param cell_size cutoff+skin 
     * \param pre_cut True if cutoff test will be performed in separate kernel
     *                than the force kernel **/
-  bool init(const bool charge, const bool rot, const int nlocal,
-            const int host_nlocal, const int nall, PairGPUNbor *nbor, 
-            const int maxspecial, const bool gpu_nbor, const int gpu_host, 
-            const int max_nbors, const double cell_size, const bool pre_cut);
+  bool init(PairGPUAns<numtyp,acctyp> &a, const bool charge, const bool rot,
+            const int nlocal, const int host_nlocal, const int nall,
+            PairGPUNbor *nbor, const int maxspecial, const bool gpu_nbor,
+            const int gpu_host, const int max_nbors, const double cell_size,
+            const bool pre_cut);
 
   /// Output a message for pair_style acceleration with device stats
   void init_message(FILE *screen, const char *name,
                     const int first_gpu, const int last_gpu);
 
   /// Output a message with timing information
-  void output_times(UCL_Timer &time_pair, PairGPUNbor &nbor, 
-                    const double avg_split, 
+  void output_times(UCL_Timer &time_pair, PairGPUAns<numtyp,acctyp> &ans, 
+                    PairGPUNbor &nbor, const double avg_split, 
                     const double max_bytes, FILE *screen);
 
   /// Clear all memory on host and device associated with atom and nbor data
@@ -74,7 +75,24 @@ class PairGPUDevice {
   void clear_device();
 
   /// Add an answer object for putting forces, energies, etc from GPU to LAMMPS
-  inline void add_ans_object(PairGPUAns *ans) { ans_queue.push(ans); }
+  inline void add_ans_object(PairGPUAns<numtyp,acctyp> *ans)
+    { ans_queue.push(ans); }
+
+  /// Add "answers" (force,energies,etc.) into LAMMPS structures
+  inline double fix_gpu(double **f, double **tor, double *eatom,
+                      double **vatom, double *virial, double &ecoul) {
+    atom.data_unavail();
+    if (ans_queue.empty()==false) {
+      stop_host_timer();
+      double evdw=0.0;
+      while (ans_queue.empty()==false) {
+        evdw+=ans_queue.front()->get_answers(f,tor,eatom,vatom,virial,ecoul);
+        ans_queue.pop();
+      }                                                 
+      return evdw;
+    }
+    return 0.0;
+  }
 
   /// Start timer on host
   inline void start_host_timer() { _cpu_full=MPI_Wtime(); }
@@ -139,7 +157,7 @@ class PairGPUDevice {
   PairGPUNborShared _nbor_shared;
 
  private:
-  std::queue<PairGPUAns *> ans_queue;
+  std::queue<PairGPUAns<numtyp,acctyp> *> ans_queue;
   int _init_count;
   bool _device_init;
   MPI_Comm _comm_world, _comm_replica, _comm_gpu;

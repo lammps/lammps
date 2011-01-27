@@ -23,11 +23,13 @@ extern PairGPUDevice<PRECISION,ACC_PRECISION> pair_gpu_device;
 template <class numtyp, class acctyp>
 AtomicGPUMemoryT::AtomicGPUMemory() : _compiled(false), _max_bytes(0)  {
   device=&pair_gpu_device;
+  ans=new PairGPUAns<numtyp,acctyp>();
   nbor=new PairGPUNbor();
 }
 
 template <class numtyp, class acctyp>
 AtomicGPUMemoryT::~AtomicGPUMemory() {
+  delete ans;
   delete nbor;
 }
 
@@ -54,7 +56,7 @@ bool AtomicGPUMemoryT::init_atomic(const int nlocal, const int nall,
   if (host_nlocal>0)
     _gpu_host=1;
 
-  if (!device->init(false,false,nlocal,host_nlocal,nall,nbor,maxspecial,
+  if (!device->init(*ans,false,false,nlocal,host_nlocal,nall,nbor,maxspecial,
                     gpu_nbor,_gpu_host,max_nbors,cell_size,false))
     return false;
   ucl_device=device->gpu;
@@ -74,7 +76,7 @@ bool AtomicGPUMemoryT::init_atomic(const int nlocal, const int nall,
 
   pos_tex.bind_float(atom->dev_x,4);
 
-  _max_an_bytes=atom->gpu_bytes()+nbor->gpu_bytes();
+  _max_an_bytes=ans->gpu_bytes()+nbor->gpu_bytes();
 
   return true;
 }
@@ -84,7 +86,7 @@ void AtomicGPUMemoryT::clear_atomic() {
   // Output any timing information
   acc_timers();
   double avg_split=hd_balancer.all_avg_split();
-  device->output_times(time_pair,*nbor,avg_split,_max_bytes+_max_an_bytes,
+  device->output_times(time_pair,*ans,*nbor,avg_split,_max_bytes+_max_an_bytes,
                        screen);
 
   if (_compiled) {
@@ -118,7 +120,7 @@ int * AtomicGPUMemoryT::reset_nbors(const int nall, const int inum, int *ilist,
 
   nbor->get_host(inum,ilist,numj,firstneigh,block_size());
 
-  double bytes=atom->gpu_bytes()+nbor->gpu_bytes();
+  double bytes=ans->gpu_bytes()+nbor->gpu_bytes();
   if (bytes>_max_an_bytes)
     _max_an_bytes=bytes;
   
@@ -149,7 +151,7 @@ inline void AtomicGPUMemoryT::build_nbor_list(const int inum,
   nbor->build_nbor_list(inum, host_inum, nall, *atom, boxlo, boxhi, tag,
                         nspecial, special, success, mn);
 
-  double bytes=atom->gpu_bytes()+nbor->gpu_bytes();
+  double bytes=ans->gpu_bytes()+nbor->gpu_bytes();
   if (bytes>_max_an_bytes)
     _max_an_bytes=bytes;
 }
@@ -173,7 +175,7 @@ void AtomicGPUMemoryT::compute(const int f_ago, const int inum_full,
   
   int ago=hd_balancer.ago_first(f_ago);
   int inum=hd_balancer.balance(ago,inum_full,cpu_time,nbor->gpu_nbor());
-  atom->inum(inum);
+  ans->inum(inum);
   host_start=inum;
 
   if (ago==0) {
@@ -187,7 +189,8 @@ void AtomicGPUMemoryT::compute(const int f_ago, const int inum_full,
   atom->add_x_data(host_x,host_type);
 
   loop(eflag,vflag);
-  atom->copy_answers(eflag,vflag,eatom,vatom,ilist);
+  ans->copy_answers(eflag,vflag,eatom,vatom,ilist);
+  device->add_ans_object(ans);
   hd_balancer.stop_timer();
 }
 
@@ -210,7 +213,7 @@ int * AtomicGPUMemoryT::compute(const int ago, const int inum_full,
   
   hd_balancer.balance(cpu_time,nbor->gpu_nbor());
   int inum=hd_balancer.get_gpu_count(ago,inum_full);
-  atom->inum(inum);
+  ans->inum(inum);
   host_start=inum;
  
   // Build neighbor list on GPU if necessary
@@ -227,7 +230,8 @@ int * AtomicGPUMemoryT::compute(const int ago, const int inum_full,
   }
 
   loop(eflag,vflag);
-  atom->copy_answers(eflag,vflag,eatom,vatom);
+  ans->copy_answers(eflag,vflag,eatom,vatom);
+  device->add_ans_object(ans);
   hd_balancer.stop_timer();
   
   return nbor->host_nbor.begin();

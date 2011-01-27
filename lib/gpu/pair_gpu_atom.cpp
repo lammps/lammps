@@ -29,7 +29,8 @@ __win_sort _win_sort;
 #endif
 
 template <class numtyp, class acctyp>
-PairGPUAtomT::PairGPUAtom() : _compiled(false),_allocated(false) {
+PairGPUAtomT::PairGPUAtom() : _compiled(false),_allocated(false),
+                              _max_gpu_bytes(0) {
   #ifndef USE_OPENCL
   sort_config.op = CUDPP_ADD;
   sort_config.datatype = CUDPP_UINT;
@@ -108,7 +109,7 @@ bool PairGPUAtomT::alloc(const int nall) {
 
     
   // ---------------------------  Device allocations
-  _gpu_bytes=0;
+  int gpu_bytes=0;
   if (cpuview) {
     #ifdef GPU_CAST
     assert(0==1);
@@ -126,7 +127,7 @@ bool PairGPUAtomT::alloc(const int nall) {
                         dev_x_cast.alloc(_max_atoms*3,*dev,UCL_READ_ONLY));
     success=success && (UCL_SUCCESS==
                         dev_type_cast.alloc(_max_atoms,*dev,UCL_READ_ONLY));
-    _gpu_bytes+=dev_x_cast.row_bytes()+dev_type_cast.row_bytes();
+    gpu_bytes+=dev_x_cast.row_bytes()+dev_type_cast.row_bytes();
     #else
     success=success && (UCL_SUCCESS==
                         dev_x.alloc(_max_atoms*4,*dev,UCL_READ_ONLY));
@@ -134,25 +135,27 @@ bool PairGPUAtomT::alloc(const int nall) {
     if (_charge) {
       success=success && (dev_q.alloc(_max_atoms,*dev,
                                       UCL_READ_ONLY)==UCL_SUCCESS);
-      _gpu_bytes+=dev_q.row_bytes();
+      gpu_bytes+=dev_q.row_bytes();
     }
     if (_rot) {
       success=success && (dev_quat.alloc(_max_atoms*4,*dev,
                                       UCL_READ_ONLY)==UCL_SUCCESS);
-      _gpu_bytes+=dev_quat.row_bytes();
+      gpu_bytes+=dev_quat.row_bytes();
     }
   }
   if (_gpu_nbor) {
     success=success && (dev_cell_id.alloc(_max_atoms,*dev)==UCL_SUCCESS);
     success=success && (dev_particle_id.alloc(_max_atoms,*dev)==UCL_SUCCESS);
-    _gpu_bytes+=dev_cell_id.row_bytes()+dev_particle_id.row_bytes();
+    gpu_bytes+=dev_cell_id.row_bytes()+dev_particle_id.row_bytes();
     if (_bonds) {
       success=success && (dev_tag.alloc(_max_atoms,*dev)==UCL_SUCCESS);
-      _gpu_bytes+=dev_tag.row_bytes();
+      gpu_bytes+=dev_tag.row_bytes();
     }
   }
 
-  _gpu_bytes+=dev_x.row_bytes();
+  gpu_bytes+=dev_x.row_bytes();
+  if (gpu_bytes>_max_gpu_bytes)
+    _max_gpu_bytes=gpu_bytes;
   
   _allocated=true;  
   return success;
@@ -168,6 +171,7 @@ bool PairGPUAtomT::init(const int nall, const bool charge, const bool rot,
   _x_avail=false;
   _q_avail=false;
   _quat_avail=false;
+  _resized=false;
   _gpu_nbor=gpu_nbor;
   _bonds=bonds;
   _charge=charge;
@@ -182,9 +186,11 @@ bool PairGPUAtomT::init(const int nall, const bool charge, const bool rot,
   
   // Initialize timers for the selected device
   time_pos.init(*dev);
-  time_other.init(*dev);
+  time_q.init(*dev);
+  time_quat.init(*dev);
   time_pos.zero();
-  time_other.zero();
+  time_q.zero();
+  time_quat.zero();
   _time_cast=0.0;
   
   #ifdef GPU_CAST
@@ -252,12 +258,13 @@ void PairGPUAtomT::clear_resize() {
 
 template <class numtyp, class acctyp>
 void PairGPUAtomT::clear() {
-  _gpu_bytes=0;
+  _max_gpu_bytes=0;
   if (!_allocated)
     return;
 
   time_pos.clear();
-  time_other.clear();
+  time_q.clear();
+  time_quat.clear();
   clear_resize();
 
   #ifdef GPU_CAST

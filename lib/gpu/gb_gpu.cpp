@@ -216,9 +216,9 @@ void _gb_gpu_gayberne(GBMT &gbm, const bool _eflag, const bool _vflag) {
   else
     vflag=0;
   
-  int GX=static_cast<int>(ceil(static_cast<double>(gbm.atom->inum())/BX));
+  int GX=static_cast<int>(ceil(static_cast<double>(gbm.ans->inum())/BX));
   int stride=gbm.nbor->nbor_pitch();
-  int ainum=gbm.atom->inum();
+  int ainum=gbm.ans->inum();
   int anall=gbm.atom->nall();
 
   if (gbm.multiple_forms) {
@@ -237,11 +237,11 @@ void _gb_gpu_gayberne(GBMT &gbm, const bool _eflag, const bool _vflag) {
            &gbm.atom->dev_quat.begin(), &gbm.shape.begin(), &gbm.well.begin(),
            &gbm.gamma_upsilon_mu.begin(), &gbm.sigma_epsilon.begin(), 
            &gbm._lj_types, &gbm.lshape.begin(), &gbm.nbor->dev_nbor.begin(),
-           &stride, &gbm.atom->dev_ans.begin(),&ainum,&gbm.atom->dev_engv.begin(),
+           &stride, &gbm.ans->dev_ans.begin(),&ainum,&gbm.ans->dev_engv.begin(),
            &gbm.dev_error.begin(), &eflag, &vflag, &gbm.last_ellipse, &anall);
       gbm.time_gayberne.stop();
 
-      if (gbm.last_ellipse==gbm.atom->inum()) {
+      if (gbm.last_ellipse==gbm.ans->inum()) {
         gbm.time_kernel2.start();
         gbm.time_kernel2.stop();
         gbm.time_gayberne2.start();
@@ -254,9 +254,9 @@ void _gb_gpu_gayberne(GBMT &gbm, const bool _eflag, const bool _vflag) {
       // ------------ SPHERE_ELLIPSE ---------------
 
       gbm.time_kernel2.start();
-      GX=static_cast<int>(ceil(static_cast<double>(gbm.atom->inum()-
+      GX=static_cast<int>(ceil(static_cast<double>(gbm.ans->inum()-
                                gbm.last_ellipse)/BX));
-      gb_gpu_pack_nbors(gbm,GX,BX,gbm.last_ellipse,gbm.atom->inum(),
+      gb_gpu_pack_nbors(gbm,GX,BX,gbm.last_ellipse,gbm.ans->inum(),
 			SPHERE_ELLIPSE,SPHERE_ELLIPSE);
       gbm.time_kernel2.stop();
 
@@ -266,13 +266,13 @@ void _gb_gpu_gayberne(GBMT &gbm, const bool _eflag, const bool _vflag) {
               &gbm.shape.begin(), &gbm.well.begin(), 
               &gbm.gamma_upsilon_mu.begin(), &gbm.sigma_epsilon.begin(), 
               &gbm._lj_types, &gbm.lshape.begin(), 
-              &gbm.nbor->dev_nbor.begin(), &stride, &gbm.atom->dev_ans.begin(),
-              &gbm.atom->dev_engv.begin(), &gbm.dev_error.begin(), &eflag,
+              &gbm.nbor->dev_nbor.begin(), &stride, &gbm.ans->dev_ans.begin(),
+              &gbm.ans->dev_engv.begin(), &gbm.dev_error.begin(), &eflag,
               &vflag, &gbm.last_ellipse, &ainum, &anall);
       gbm.time_gayberne2.stop();
    } else {
-      gbm.atom->dev_ans.zero();
-      gbm.atom->dev_engv.zero();
+      gbm.ans->dev_ans.zero();
+      gbm.ans->dev_engv.zero();
       gbm.time_kernel.stop();
       gbm.time_gayberne.start();                                 
       gbm.time_gayberne.stop();
@@ -284,29 +284,29 @@ void _gb_gpu_gayberne(GBMT &gbm, const bool _eflag, const bool _vflag) {
     
     // ------------         LJ      ---------------
     gbm.time_pair.start();
-    if (gbm.last_ellipse<gbm.atom->inum()) {
+    if (gbm.last_ellipse<gbm.ans->inum()) {
       if (gbm.shared_types) {
         GBMF.k_lj_fast.set_size(GX,BX);
         GBMF.k_lj_fast.run(&gbm.atom->dev_x.begin(), &gbm.lj1.begin(),
                            &gbm.lj3.begin(), &gbm.gamma_upsilon_mu.begin(),
                            &stride, &gbm.nbor->dev_packed.begin(),
-                           &gbm.atom->dev_ans.begin(),
-                           &gbm.atom->dev_engv.begin(), &gbm.dev_error.begin(),
+                           &gbm.ans->dev_ans.begin(),
+                           &gbm.ans->dev_engv.begin(), &gbm.dev_error.begin(),
                            &eflag, &vflag, &gbm.last_ellipse, &ainum, &anall);
       } else {
         GBMF.k_lj.set_size(GX,BX);
         GBMF.k_lj.run(&gbm.atom->dev_x.begin(), &gbm.lj1.begin(),
                       &gbm.lj3.begin(), &gbm._lj_types, 
                       &gbm.gamma_upsilon_mu.begin(), &stride, 
-                      &gbm.nbor->dev_packed.begin(), &gbm.atom->dev_ans.begin(),
-                      &gbm.atom->dev_engv.begin(), &gbm.dev_error.begin(),
+                      &gbm.nbor->dev_packed.begin(), &gbm.ans->dev_ans.begin(),
+                      &gbm.ans->dev_engv.begin(), &gbm.dev_error.begin(),
                       &eflag, &vflag, &gbm.last_ellipse, &ainum, &anall);
       }
     }
     gbm.time_pair.stop();
   } else {
     gbm.time_kernel.start();
-    gb_gpu_pack_nbors(gbm, GX, BX, 0, gbm.atom->inum(),SPHERE_SPHERE,
+    gb_gpu_pack_nbors(gbm, GX, BX, 0, gbm.ans->inum(),SPHERE_SPHERE,
 		      ELLIPSE_ELLIPSE);
     gbm.time_kernel.stop();
     gbm.time_gayberne.start(); 
@@ -315,8 +315,8 @@ void _gb_gpu_gayberne(GBMT &gbm, const bool _eflag, const bool _vflag) {
             &gbm.shape.begin(), &gbm.well.begin(), 
             &gbm.gamma_upsilon_mu.begin(), &gbm.sigma_epsilon.begin(), 
             &gbm._lj_types, &gbm.lshape.begin(), &gbm.nbor->dev_nbor.begin(),
-            &stride, &gbm.atom->dev_ans.begin(), &ainum,
-            &gbm.atom->dev_engv.begin(), &gbm.dev_error.begin(),
+            &stride, &gbm.ans->dev_ans.begin(), &ainum,
+            &gbm.ans->dev_engv.begin(), &gbm.dev_error.begin(),
             &eflag, &vflag, &ainum, &anall);
     gbm.time_gayberne.stop();
   }
@@ -342,7 +342,7 @@ inline int * _gb_gpu_compute_n(gbmtyp &gbm, const int ago,
 
   gbm.hd_balancer.balance(cpu_time,gbm.nbor->gpu_nbor());
   int inum=gbm.hd_balancer.get_gpu_count(ago,inum_full);
-  gbm.atom->inum(inum);
+  gbm.ans->inum(inum);
   gbm.last_ellipse=std::min(inum,gbm.max_last_ellipse);
   host_start=inum;
   
@@ -361,10 +361,11 @@ inline int * _gb_gpu_compute_n(gbmtyp &gbm, const int ago,
     gbm.atom->add_x_data(host_x,host_type);
   }
 
-  gbm.atom->add_other_data();
+  gbm.atom->add_quat_data();
 
   _gb_gpu_gayberne<PRECISION,ACC_PRECISION>(gbm,eflag,vflag);
-  gbm.atom->copy_answers(eflag,vflag,eatom,vatom);
+  gbm.ans->copy_answers(eflag,vflag,eatom,vatom);
+  gbm.device->add_ans_object(gbm.ans);
   gbm.hd_balancer.stop_timer();
   return gbm.nbor->host_nbor.begin();
 }
@@ -399,7 +400,7 @@ inline int * _gb_gpu_compute(gbmtyp &gbm, const int f_ago, const int inum_full,
   
   int ago=gbm.hd_balancer.ago_first(f_ago);
   int inum=gbm.hd_balancer.balance(ago,inum_full,cpu_time,gbm.nbor->gpu_nbor());
-  gbm.atom->inum(inum);
+  gbm.ans->inum(inum);
   gbm.last_ellipse=std::min(inum,gbm.max_last_ellipse);
   host_start=inum;
 
@@ -419,10 +420,11 @@ inline int * _gb_gpu_compute(gbmtyp &gbm, const int f_ago, const int inum_full,
   gbm.atom->cast_quat_data(host_quat[0]);
   gbm.hd_balancer.start_timer();
   gbm.atom->add_x_data(host_x,host_type);
-  gbm.atom->add_other_data();
+  gbm.atom->add_quat_data();
 
   _gb_gpu_gayberne<PRECISION,ACC_PRECISION>(gbm,eflag,vflag);
-  gbm.atom->copy_answers(eflag,vflag,eatom,vatom,list);
+  gbm.ans->copy_answers(eflag,vflag,eatom,vatom,list);
+  gbm.device->add_ans_object(gbm.ans);
   gbm.hd_balancer.stop_timer();
   return list;
 }

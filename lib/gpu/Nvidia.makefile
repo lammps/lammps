@@ -118,7 +118,7 @@ $(OBJ_DIR)/pair_gpu_nbor_shared.o: pair_gpu_nbor_shared.cpp pair_gpu_nbor_shared
 $(OBJ_DIR)/pair_gpu_nbor.o: pair_gpu_nbor.cpp pair_gpu_nbor.h pair_gpu_nbor_shared.h $(NVD_H)
 	$(CUDR) -o $@ -c pair_gpu_nbor.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/pair_gpu_device.o: pair_gpu_device.cpp pair_gpu_device.h $(NVD_H)
+$(OBJ_DIR)/pair_gpu_device.o: pair_gpu_device.cpp pair_gpu_device.h $(ALL_H)
 	$(CUDR) -o $@ -c pair_gpu_device.cpp
 
 $(OBJ_DIR)/atomic_gpu_memory.o: $(ALL_H) atomic_gpu_memory.h atomic_gpu_memory.cpp

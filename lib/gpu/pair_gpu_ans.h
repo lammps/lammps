@@ -58,14 +58,12 @@ class PairGPUAns {
   bool init(const int inum, const bool charge, const bool rot, UCL_Device &dev);
   
   /// Check if we have enough device storage and realloc if not
-  inline bool resize(const int inum, bool &success) {
+  inline void resize(const int inum, bool &success) {
     _inum=inum;
     if (inum>_max_local) {
       clear_resize();
       success = success && alloc(inum);
-      return true;
     }
-    return false;
   }
   
   /// If already initialized by another LAMMPS style, add fields as necessary
@@ -122,6 +120,16 @@ class PairGPUAns {
 
   /// Add forces and torques from the GPU into a LAMMPS pointer
   void get_answers(double **f, double **tor);
+
+  inline double get_answers(double **f, double **tor, double *eatom, 
+                            double **vatom, double *virial, double &ecoul) {
+    time_answer.sync_stop();
+    double ts=MPI_Wtime();
+    double evdw=energy_virial(eatom,vatom,virial,ecoul);
+    get_answers(f,tor);
+    _time_cast+=MPI_Wtime()-ts;
+    return evdw;
+  }
 
   // ------------------------------ DATA ----------------------------------
 

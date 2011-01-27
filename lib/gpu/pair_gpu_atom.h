@@ -64,14 +64,15 @@ class PairGPUAtom {
             UCL_Device &dev, const bool gpu_nbor=false, const bool bonds=false);
   
   /// Check if we have enough device storage and realloc if not
+  /** Returns true if resized with any call during this timestep **/
   inline bool resize(const int nall, bool &success) {
     _nall=nall;
     if (nall>_max_atoms) {
       clear_resize();
       success = success && alloc(nall);
-      return true;
+      _resized=true;
     }
-    return false;
+    return _resized;
   }
   
   /// If already initialized by another LAMMPS style, add fields as necessary
@@ -94,26 +95,42 @@ class PairGPUAtom {
   /// Add copy times to timers
   inline void acc_timers() {
     time_pos.add_to_total();
-    if (_other)
-      time_other.add_to_total();
+    if (_charge)
+      time_q.add_to_total();
+    if (_rot)
+      time_quat.add_to_total();
   }
 
   /// Add copy times to timers
   inline void zero_timers() {
     time_pos.zero();
-    if (_other)
-      time_other.zero();
+    if (_charge)
+      time_q.zero();
+    if (_rot)
+      time_quat.zero();
   }
 
   /// Return the total time for host/device data transfer
+  /** Zeros the total so that the atom times are only included once **/
   inline double transfer_time() {
     double total=time_pos.total_seconds();
-    if (_other) total+=time_other.total_seconds();
+    time_pos.zero_total();
+    if (_charge) {
+      total+=time_q.total_seconds();
+      time_q.zero_total();
+    }
+    if (_rot) {
+      total+=time_q.total_seconds();
+      time_quat.zero_total();
+    }
+    
     return total;
   }
   
   /// Return the total time for data cast/pack
-  inline double cast_time() { return _time_cast; }
+  /** Zeros the time so that atom times are only included once **/
+  inline double cast_time() 
+    { double t=_time_cast; _time_cast=0.0; return t; }
 
   /// Pack LAMMPS atom type constants into matrix and copy to device
   template <class dev_typ, class t1>
@@ -210,7 +227,7 @@ class PairGPUAtom {
 
   /// Signal that we need to transfer atom data for next timestep
   inline void data_unavail()
-    { _x_avail=false; _q_avail=false; _quat_avail=false; }
+    { _x_avail=false; _q_avail=false; _quat_avail=false; _resized=false; }
 
   /// Cast positions and types to write buffer
   inline void cast_x_data(double **host_ptr, const int *host_type) {
@@ -322,20 +339,9 @@ class PairGPUAtom {
     }
   }
 
-  /// Copy data other than pos and type to device
-  inline void add_other_data() {
-    if (_other) {
-      time_other.start();
-      if (_charge)
-        add_q_data();
-      if (_rot)
-        add_quat_data();
-      time_other.stop();
-    }
-  }
-  
   /// Return number of bytes used on device
-  inline double gpu_bytes() { return _gpu_bytes; } 
+  inline double max_gpu_bytes() 
+    { double m=_max_gpu_bytes; _max_gpu_bytes=0.0; return m; } 
 
   // ------------------------------ DATA ----------------------------------
 
@@ -368,7 +374,7 @@ class PairGPUAtom {
   UCL_D_Vec<int> dev_tag;
 
   /// Device timers
-  UCL_Timer time_pos, time_other;
+  UCL_Timer time_pos, time_q, time_quat;
   
   /// Geryon device
   UCL_Device *dev;
@@ -383,7 +389,7 @@ class PairGPUAtom {
   bool _compiled;
   
   // True if data has been copied to device already
-  bool _x_avail, _q_avail, _quat_avail;
+  bool _x_avail, _q_avail, _quat_avail, _resized;
 
   bool alloc(const int nall);
   
@@ -392,7 +398,7 @@ class PairGPUAtom {
   bool _gpu_nbor, _bonds;
   double _time_cast;
   
-  double _gpu_bytes;
+  double _max_gpu_bytes;
   
   #ifndef USE_OPENCL
   CUDPPConfiguration sort_config;

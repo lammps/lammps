@@ -12,11 +12,11 @@
 # ------------------------------------------------------------------------- */
 #                                                                             
 # /* ----------------------------------------------------------------------   
-# Makefile for NCSA's lincoln GPU cluster. use with "soft +cuda-3.0"
+# Makefile for NCSA's lincoln GPU cluster. use with "soft +cuda-3.2"
 # ------------------------------------------------------------------------- */
 
 GCC=/usr/local/gcc-4.4.3
-CUDA_HOME = /usr/local/cuda-3.0
+CUDA_HOME = /usr/local/cuda-3.2
 NVCC = $(CUDA_HOME)/bin/nvcc
 
 CUDA_ARCH = -arch=sm_13

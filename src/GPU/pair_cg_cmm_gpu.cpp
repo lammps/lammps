@@ -126,8 +126,8 @@ void PairCGCMMGPU::init_style()
 {
   cut_respa = NULL;
 
-  if (force->pair_match("gpu",0) == NULL)
-    error->all("Cannot use pair hybrid with multiple GPU pair styles");
+  if (force->newton_pair) 
+    error->all("Cannot use newton pair with GPU CGCMM pair style");
 
   // Repeat cutsq calculation because done after call to init_style
   double maxcut = -1.0;
@@ -155,9 +155,6 @@ void PairCGCMMGPU::init_style()
                               cell_size, gpu_mode, screen);
   if (!init_ok)
     error->one("Insufficient memory on accelerator (or no fix gpu).\n"); 
-
-  if (force->newton_pair) 
-    error->all("Cannot use newton pair with GPU CGCMM pair style");
 
   if (gpu_mode != GPU_NEIGH) {
     int irequest = neighbor->request(this);

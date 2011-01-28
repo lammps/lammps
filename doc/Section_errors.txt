@@ -1136,9 +1136,9 @@ For kspace style pppm, all 3 dimensions must have periodic boundaries
 unless you use the kspace_modify command to define a 2d slab with a
 non-periodic z dimension. :dd
 
-{Cannot use pair hybrid with multiple GPU pair styles} :dt
+{Cannot use pair hybrid with GPU neighbor builds} :dt
 
-Self-explanatory. :dd
+See documentation for fix gpu. :dd
 
 {Cannot use pair tail corrections with 2d simulations} :dt
 
@@ -2156,6 +2156,10 @@ This is not allowed.  Make your SRD bin size smaller. :dd
 {Final box dimension due to fix deform is < 0.0} :dt
 
 Self-explanatory. :dd
+
+{Fix gpu split must be positive for hybrid pair styles.} :dt
+
+See documentation for fix gpu. :dd
 
 {Fix ID for compute reduce does not exist} :dt
 

@@ -47,13 +47,12 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   if (strcmp(arg[1],"all") != 0)
     error->all("Illegal fix gpu command");
 
-  int gpu_mode, first_gpu, last_gpu;
-  double particle_split;
+  int first_gpu, last_gpu;
 
   if (strcmp(arg[3],"force") == 0)
-    gpu_mode = GPU_FORCE;
+    _gpu_mode = GPU_FORCE;
   else if (strcmp(arg[3],"force/neigh") == 0) {
-    gpu_mode = GPU_NEIGH;
+    _gpu_mode = GPU_NEIGH;
     if (domain->triclinic)
       error->all("Cannot use force/neigh with triclinic box.");
   } else
@@ -62,8 +61,8 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   first_gpu = atoi(arg[4]);
   last_gpu = atoi(arg[5]);
 
-  particle_split = force->numeric(arg[6]);
-  if (particle_split==0 || particle_split>1)
+  _particle_split = force->numeric(arg[6]);
+  if (_particle_split==0 || _particle_split>1)
     error->all("Illegal fix gpu command.");
     
   int nthreads = 1;
@@ -83,8 +82,8 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
     error->all("No OpenMP support compiled in.");
   #endif
 
-  if (!lmp_init_device(universe->uworld,world,first_gpu,last_gpu,gpu_mode,
-                       particle_split,nthreads))
+  if (!lmp_init_device(universe->uworld,world,first_gpu,last_gpu,_gpu_mode,
+                       _particle_split,nthreads))
     error->one("Could not find or initialize a specified accelerator device.");
 }
 
@@ -112,6 +111,15 @@ void FixGPU::init()
   // Can only have 1 gpu fix that must be the first fix for a run
   if ((void*)modify->fix[0] != (void*)this)
     error->all("GPU is not the first fix for this run.");
+  // Hybrid cannot be used with force/neigh option
+  if (_gpu_mode == GPU_NEIGH)
+    if (force->pair_match("hybrid",1) != NULL ||
+	force->pair_match("hybrid/overlay",1) != NULL)
+      error->all("Cannot use pair hybrid with GPU neighbor builds.");
+  if (_particle_split < 0)
+    if (force->pair_match("hybrid",1) != NULL ||
+	force->pair_match("hybrid/overlay",1) != NULL)
+      error->all("Fix gpu split must be positive for hybrid pair styles.");
 }
 
 /* ---------------------------------------------------------------------- */

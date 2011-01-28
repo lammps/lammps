@@ -964,14 +964,13 @@ neighbor list calculation is performed on the CPU using the
 standard LAMMPS routines. In the latter, the neighbor list
 calculation is performed on the GPU. The GPU neighbor list
 can be used for better performance, however, it 
-should not be used with a triclinic box.
+cannot not be used with a triclinic box or with "hybrid"_pair_hybrid.html
+pair styles.
 
 There are cases when it might be more efficient to select the CPU for neighbor
 list builds. If a non-GPU enabled style requires a neighbor list, it will also
 be built using CPU routines. Redundant CPU and GPU neighbor list calculations
-will typically be less efficient. For "hybrid"_pair_hybrid.html pair
-styles, GPU calculated neighbor lists might be less efficient because
-no particles will be skipped in a given neighbor list.
+will typically be less efficient.
 
 {first} is the ID (as reported by lammps/lib/gpu/nvc_get_devices)
 of the first GPU that will be used on each node. {last} is the

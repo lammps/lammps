@@ -140,8 +140,8 @@ void PairLJCutCoulLongGPU::init_style()
 
   if (!atom->q_flag)
     error->all("Pair style lj/cut/coul/cut requires atom attribute q");
-  if (force->pair_match("gpu",0) == NULL)
-    error->all("Cannot use pair hybrid with multiple GPU pair styles");
+  if (force->newton_pair) 
+    error->all("Cannot use newton pair with GPU LJ pair style");
 
   // Repeat cutsq calculation because done after call to init_style
   double maxcut = -1.0;
@@ -182,9 +182,6 @@ void PairLJCutCoulLongGPU::init_style()
                               force->special_coul, force->qqrd2e, g_ewald);
   if (!init_ok)
     error->one("Insufficient memory on accelerator (or no fix gpu).\n"); 
-
-  if (force->newton_pair) 
-    error->all("Cannot use newton pair with GPU LJ pair style");
 
   if (gpu_mode != GPU_NEIGH) {
     int irequest = neighbor->request(this);

@@ -144,8 +144,8 @@ void PairLJCharmmCoulLongGPU::init_style()
 
   if (!atom->q_flag)
     error->all("Pair style lj/charmm/coul/long requires atom attribute q");
-  if (force->pair_match("gpu",0) == NULL)
-    error->all("Cannot use pair hybrid with multiple GPU pair styles");
+  if (force->newton_pair) 
+    error->all("Cannot use newton pair with GPU CHARMM pair style");
 
   // Repeat cutsq calculation because done after call to init_style
   double cut;
@@ -188,9 +188,6 @@ void PairLJCharmmCoulLongGPU::init_style()
 			       mix_flag == ARITHMETIC);
   if (!init_ok)
     error->one("Insufficient memory on accelerator (or no fix gpu).\n"); 
-
-  if (force->newton_pair) 
-    error->all("Cannot use newton pair with GPU CHARMM pair style");
 
   if (gpu_mode != GPU_NEIGH) {
     int irequest = neighbor->request(this);

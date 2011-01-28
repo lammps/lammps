@@ -128,8 +128,8 @@ void PairGayBerneGPU::compute(int eflag, int vflag)
 
 void PairGayBerneGPU::init_style()
 {
-  if (force->pair_match("gpu",0) == NULL)
-    error->all("Cannot use pair hybrid with multiple GPU pair styles");
+  if (force->newton_pair) 
+    error->all("Cannot use newton pair with GPU Gay-Berne pair style");
   if (!atom->quat_flag || !atom->torque_flag || !atom->avec->shape_type)
     error->all("Pair gayberne requires atom attributes quat, torque, shape");
   if (atom->radius_flag)
@@ -171,9 +171,6 @@ void PairGayBerneGPU::init_style()
                              cell_size, gpu_mode, screen);
   if (!init_ok)
     error->one("Insufficient memory on accelerator (or no fix gpu).");
-
-  if (force->newton_pair) 
-    error->all("Cannot use newton pair with GPU Gay-Berne pair style");
 
   if (gpu_mode != GPU_NEIGH) {
     int irequest = neighbor->request(this);

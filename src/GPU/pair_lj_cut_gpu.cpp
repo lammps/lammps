@@ -125,6 +125,9 @@ void PairLJCutGPU::init_style()
 {
   cut_respa = NULL;
 
+  if (force->newton_pair) 
+    error->all("Cannot use newton pair with GPU LJ pair style");
+
   // Repeat cutsq calculation because done after call to init_style
   double maxcut = -1.0;
   double cut;
@@ -152,21 +155,10 @@ void PairLJCutGPU::init_style()
   if (!init_ok)
     error->one("Insufficient memory on accelerator (or no fix gpu).\n"); 
 
-  if (force->newton_pair) 
-    error->all("Cannot use newton pair with GPU LJ pair style");
-
   if (gpu_mode != GPU_NEIGH) {
     int irequest = neighbor->request(this);
     neighbor->requests[irequest]->half = 0;
     neighbor->requests[irequest]->full = 1;
-    if (force->pair_match("hybrid/overlay",1) != NULL &&
-	force->pair_match_count("gpu") > 1) 
-      error->all("Cannot use pair hybrid/overlay with multiple GPU styles");  
-  } else {
-    if ((force->pair_match("hybrid",1) != NULL ||
-	 force->pair_match("hybrid/overlay",1) != NULL) &&
-	force->pair_match_count("gpu") > 0)
-      error->all("Cannot use pair hybrid with GPU style and GPU neighbor.");
   }
 }
 

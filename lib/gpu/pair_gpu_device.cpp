@@ -152,6 +152,26 @@ bool PairGPUDeviceT::init(PairGPUAns<numtyp,acctyp> &ans, const bool charge,
 }
 
 template <class numtyp, class acctyp>
+bool PairGPUDeviceT::init(PairGPUAns<numtyp,acctyp> &ans, const bool charge,
+                          const bool rot, const int nlocal, const int nall) {
+  if (!_device_init)
+    return false;                          
+
+  if (_init_count==0) {
+    // Initialize atom and nbor data
+    if (!atom.init(nall,charge,rot,*gpu,false,false))
+      return false;
+  } else
+    atom.add_fields(charge,rot);
+
+  if (!ans.init(nlocal,charge,rot,*gpu))
+    return false;
+
+  _init_count++;
+  return true;
+}
+
+template <class numtyp, class acctyp>
 void PairGPUDeviceT::init_message(FILE *screen, const char *name,
                                   const int first_gpu, const int last_gpu) {
   #ifdef USE_OPENCL
@@ -230,6 +250,42 @@ void PairGPUDeviceT::output_times(UCL_Timer &time_pair,
         fprintf(screen,"Force calc:      %.4f s.\n",times[3]/_replica_size);
       }
       fprintf(screen,"Average split:   %.4f.\n",avg_split);
+      fprintf(screen,"Max Mem / Proc:  %.2f MB.\n",max_mb);
+
+      fprintf(screen,"-------------------------------------");
+      fprintf(screen,"--------------------------------\n\n");
+    }
+}
+
+template <class numtyp, class acctyp>
+void PairGPUDeviceT::output_kspace_times(UCL_Timer &time_data,  
+                                         PairGPUAns<numtyp,acctyp> &ans, 
+                                         const double max_bytes, FILE *screen) {
+  double single[2], times[2];
+
+  single[0]=atom.transfer_time()+ans.transfer_time()+time_data.total_seconds();
+  single[1]=atom.cast_time()+ans.cast_time();
+
+  MPI_Reduce(single,times,2,MPI_DOUBLE,MPI_SUM,0,_comm_replica);
+
+  double my_max_bytes=max_bytes+atom.max_gpu_bytes();
+  double mpi_max_bytes;
+  MPI_Reduce(&my_max_bytes,&mpi_max_bytes,1,MPI_DOUBLE,MPI_MAX,0,_comm_replica);
+  double max_mb=mpi_max_bytes/(1024.0*1024.0);
+
+  if (replica_me()==0)
+    if (screen && times[3]>0.0) {
+      fprintf(screen,"\n\n-------------------------------------");
+      fprintf(screen,"--------------------------------\n");
+      fprintf(screen,"      GPU Time Info (average): ");
+      fprintf(screen,"\n-------------------------------------");
+      fprintf(screen,"--------------------------------\n");
+
+      if (procs_per_gpu()==1) {
+        fprintf(screen,"Data Transfer:   %.4f s.\n",times[0]/_replica_size);
+        fprintf(screen,"Data Cast/Pack:  %.4f s.\n",times[1]/_replica_size);
+//        fprintf(screen,"Force calc:      %.4f s.\n",times[3]/_replica_size);
+      }
       fprintf(screen,"Max Mem / Proc:  %.2f MB.\n",max_mb);
 
       fprintf(screen,"-------------------------------------");

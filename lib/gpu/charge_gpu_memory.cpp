@@ -35,7 +35,8 @@ ChargeGPUMemoryT::~ChargeGPUMemory() {
 
 template <class numtyp, class acctyp>
 int ChargeGPUMemoryT::bytes_per_atom_atomic(const int max_nbors) const {
-  return device->atom.bytes_per_atom()+nbor->bytes_per_atom(max_nbors);
+  return device->atom.bytes_per_atom()+ans->bytes_per_atom()+
+         nbor->bytes_per_atom(max_nbors);
 }
 
 template <class numtyp, class acctyp>

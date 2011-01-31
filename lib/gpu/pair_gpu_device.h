@@ -59,6 +59,13 @@ class PairGPUDevice {
             const int gpu_host, const int max_nbors, const double cell_size,
             const bool pre_cut);
 
+  /// Initialize the device for Atom storage only
+  /** \param rot True if quaternions need to be stored
+    * \param nlocal Total number of local particles to allocate memory for
+    * \param nall Total number of local+ghost particles **/
+  bool init(PairGPUAns<numtyp,acctyp> &ans, const bool charge,
+            const bool rot, const int nlocal, const int nall);
+
   /// Output a message for pair_style acceleration with device stats
   void init_message(FILE *screen, const char *name,
                     const int first_gpu, const int last_gpu);
@@ -67,6 +74,10 @@ class PairGPUDevice {
   void output_times(UCL_Timer &time_pair, PairGPUAns<numtyp,acctyp> &ans, 
                     PairGPUNbor &nbor, const double avg_split, 
                     const double max_bytes, FILE *screen);
+
+  /// Output a message with timing information
+  void output_kspace_times(UCL_Timer &time_data, PairGPUAns<numtyp,acctyp> &ans, 
+                           const double max_bytes, FILE *screen);
 
   /// Clear all memory on host and device associated with atom and nbor data
   void clear();

@@ -45,7 +45,8 @@ GB_GPU_MemoryT::~GB_GPU_Memory() {
  
 template <class numtyp, class acctyp>
 int GB_GPU_MemoryT::bytes_per_atom(const int max_nbors) const {
-  return device->atom.bytes_per_atom()+nbor->bytes_per_atom(max_nbors);
+  return device->atom.bytes_per_atom()+ans->bytes_per_atom()+
+         nbor->bytes_per_atom(max_nbors);
 }
 
 template <class numtyp, class acctyp>

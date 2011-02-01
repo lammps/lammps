@@ -50,6 +50,9 @@ bool PPPMGPUMemoryT::init(const int nlocal, const int nall, FILE *_screen,
                           const int nylo_out, const int nzlo_out,
                           const int nxhi_out, const int nyhi_out,
                           const int nzhi_out, double **rho_coeff) {
+  clear();
+  
+  _max_bytes=0;
   screen=_screen;
 
   if (!device->init(*ans,true,false,nlocal,nall))
@@ -81,12 +84,19 @@ bool PPPMGPUMemoryT::init(const int nlocal, const int nall, FILE *_screen,
   _nyhi_out=nyhi_out;
   _nzhi_out=nzhi_out;
   
+  // Get rho_coeff on device
   int n2lo=(1-order)/2;
   int numel=order*( order/2 - n2lo + 1 );
   d_rho_coeff.alloc(numel,*ucl_device,UCL_READ_ONLY);
   UCL_H_Vec<double> view;
   view.view(rho_coeff[0]+n2lo,numel,*ucl_device);
   ucl_copy(d_rho_coeff,view,true);
+  _max_bytes+=d_rho_coeff.row_bytes();
+  
+  // Allocate vector with count of atoms assigned to each grid point
+  numel=(nxhi_out-nxlo_out+1)*(nyhi_out-nylo_out+1)*(nzhi_out-nzlo_out+1);
+  d_brick_counts.alloc(numel,*ucl_device);
+  _max_bytes+=d_brick_counts.row_bytes();
 
   return true;
 }
@@ -160,6 +170,8 @@ void PPPMGPUMemoryT::compute(const int ago, const int nlocal, const int nall,
   numtyp f_delyinv=delyinv;
   numtyp f_delzinv=delzinv;
 
+
+
 //  this->time_pair.start();
 //  this->k_pair.set_size(GX,BX);
 //  this->k_pair.run(&this->atom->dev_x.begin(), &lj1.begin(), &lj3.begin(),
@@ -169,6 +181,11 @@ void PPPMGPUMemoryT::compute(const int ago, const int nlocal, const int nall,
 //                   &anall, &nbor_pitch, &this->atom->dev_q.begin(),
 //                   &cutsq.begin(), &_qqrd2e);
 //  this->time_pair.stop();
+
+
+  int flag_all;
+  MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
+  if (flag_all) error->all("Out of range atoms - cannot compute PPPMGPU");
 
 
 //  ans->copy_answers(eflag,vflag,eatom,vatom,ilist);

@@ -18,7 +18,7 @@
 #ifndef PPPM_GPU_KERNEL
 #define PPPM_GPU_KERNEL
 
-#define MAX_SHARED_TYPES 8
+#define OFFSET 16384
 
 #ifdef _DOUBLE_DOUBLE
 #define numtyp double
@@ -85,132 +85,37 @@ __inline float fetch_q(const int& i, const float *q)
 
 #endif
 
-__kernel void kernel_compute(__global numtyp4 *x_, __global numtyp4 *lj1_in,
-                               __global numtyp4* lj3_in, 
-                               __global numtyp* sp_lj_in, __global int *dev_nbor, 
-                               __global acctyp4 *ans, __global acctyp *engv, 
-                               const int eflag, const int vflag, const int inum, 
-                               const int nall, const int nbor_pitch,
-                               __global numtyp *q_ , __global numtyp *_cutsq,
-                               const numtyp qqrd2e) {
+__kernel void particle_map(__global numtyp4 *x_, const int nlocal, 
+                           __global int *counts, __global int *ans, 
+                           const numtyp boxlo_x, const numtyp boxlo_y,
+                           const numtyp boxlo_z, const numtyp delxinv,
+                           const numtyp delyinv, const numtyp delzinv,
+                           const numtyp shift, const int nxlo_out,
+                           const int nxhi_out, const int nylo_out,
+                           const int nyhi_out, const int nzlo_out,
+                           const int nzhi_out, const int nlower,
+                           const int nupper, __global int *error) {
   // ii indexes the two interacting particles in gi
-  int ii=THREAD_ID_X;
-  __local numtyp4 lj1[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
-  __local numtyp4 lj3[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
-  __local numtyp cutsq[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
-  __local numtyp sp_lj[8];
-  if (ii<8)
-    sp_lj[ii]=sp_lj_in[ii];
-  if (ii<MAX_SHARED_TYPES*MAX_SHARED_TYPES) {
-    lj1[ii]=lj1_in[ii];
-    cutsq[ii]=_cutsq[ii];
-    if (eflag>0)
-      lj3[ii]=lj3_in[ii];
-  }
-  ii+=mul24((int)BLOCK_ID_X,(int)BLOCK_SIZE_X);
-  __syncthreads();
-  
-  if (ii<inum) {
-  
-    acctyp energy=(acctyp)0;
-    acctyp e_coul=(acctyp)0;
-    acctyp4 f;
-    f.x=(acctyp)0;
-    f.y=(acctyp)0;
-    f.z=(acctyp)0;
-    acctyp virial[6];
-    for (int i=0; i<6; i++)
-      virial[i]=(acctyp)0;
-  
-    __global int *nbor=dev_nbor+ii;
-    int i=*nbor;
-    nbor+=nbor_pitch;
-    int numj=*nbor;
-    nbor+=nbor_pitch;
-    __global int *list_end=nbor+mul24(numj,nbor_pitch);
-  
-    numtyp4 ix=fetch_pos(i,x_); //x_[i];
-    numtyp qtmp=fetch_q(i,q_);
-    int iw=ix.w;
-    int itype=mul24((int)MAX_SHARED_TYPES,iw);
+  int ii=GLOBAL_ID_X;
+  int nx,ny,nz;
+/*
+  if (ii<nlocal) {
+    numtyp4 p=fetch_pos(ii,x_);
+// shift boxlo
 
-    for ( ; nbor<list_end; nbor+=nbor_pitch) {
-      int j=*nbor;
+    nx = int((p.x-boxlo_x)*delxinv+shift) - OFFSET;
+    ny = int((p.y-boxlo_y)*delyinv+shift) - OFFSET;
+    nz = int((p.z-boxlo_z)*delzinv+shift) - OFFSET;
+    counts[
+    part2grid[i][0] = nx;
+    part2grid[i][1] = ny;
+    part2grid[i][2] = nz;
 
-      numtyp factor_lj, factor_coul;
-      if (j < nall) {
-        factor_lj = (numtyp)1.0;
-        factor_coul = (numtyp)1.0;
-      } else {
-        factor_lj = sp_lj[j/nall];
-        factor_coul = sp_lj[j/nall+4];
-        j %= nall;
-      }
-      numtyp4 jx=fetch_pos(j,x_); //x_[j];
-      int mtype=itype+jx.w;
-
-      // Compute r12
-      numtyp delx = ix.x-jx.x;
-      numtyp dely = ix.y-jx.y;
-      numtyp delz = ix.z-jx.z;
-      numtyp rsq = delx*delx+dely*dely+delz*delz;
-
-      if (rsq<cutsq[mtype]) {
-        numtyp r2inv=(numtyp)1.0/rsq;
-        numtyp forcecoul, force_lj, force, r6inv;
-
-        if (rsq < lj1[mtype].z) {
-          r6inv = r2inv*r2inv*r2inv;
-          force_lj = factor_lj*r6inv*(lj1[mtype].x*r6inv-lj1[mtype].y);
-        } else
-          force_lj = (numtyp)0.0;
-
-        if (rsq < lj1[mtype].w)
-          forcecoul = qqrd2e*qtmp*fetch_q(j,q_)*sqrt(r2inv)*factor_coul;
-        else
-          forcecoul = (numtyp)0.0;
-
-        force = (force_lj + forcecoul) * r2inv;
-
-        f.x+=delx*force;
-        f.y+=dely*force;
-        f.z+=delz*force;
-
-        if (eflag>0) {
-          e_coul += forcecoul;
-          if (rsq < lj1[mtype].z) {
-            numtyp e=r6inv*(lj3[mtype].x*r6inv-lj3[mtype].y);
-            energy+=factor_lj*(e-lj3[mtype].z);
-          }
-        }
-        if (vflag>0) {
-          virial[0] += delx*delx*force;
-          virial[1] += dely*dely*force;
-          virial[2] += delz*delz*force;
-          virial[3] += delx*dely*force;
-          virial[4] += delx*delz*force;
-          virial[5] += dely*delz*force;
-        }
-      }
-
-    } // for nbor
-
-    // Store answers
-    __global acctyp *ap1=engv+ii;
-    if (eflag>0) {
-      *ap1=energy;
-      ap1+=inum;
-      *ap1=e_coul;
-      ap1+=inum;
-    }
-    if (vflag>0) {
-      for (int i=0; i<6; i++) {
-        *ap1=virial[i];
-        ap1+=inum;
-      }
-    }
-    ans[ii]=f;
-  } // if ii*/
+    // check that entire stencil around nx,ny,nz will fit in my 3d brick
+    if (nx+nlower < nxlo_out || nx+nupper > nxhi_out ||
+        ny+nlower < nylo_out || ny+nupper > nyhi_out ||
+        nz+nlower < nzlo_out || nz+nupper > nzhi_out) *error=1;
+  }*/
 }
 
 #endif

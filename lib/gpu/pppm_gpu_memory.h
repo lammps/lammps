@@ -107,6 +107,9 @@ class PPPMGPUMemory {
   UCL_H_Vec<numtyp> *h_brick;
   UCL_D_Vec<numtyp> *d_brick;
   
+  // Count of number of atoms assigned to each grid point
+  UCL_D_Vec<int> d_brick_counts;
+  
   // -------------------------- STENCIL DATA -------------------------
   UCL_D_Vec<numtyp> d_rho_coeff;
   int _order, _nxlo_out, _nylo_out, _nzlo_out, _nxhi_out, _nyhi_out, _nzhi_out;

@@ -28,7 +28,6 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
-#include "stdint.h"
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
@@ -36,10 +35,14 @@
 #define MAX_GROUP 32
 
 // these should match settings in src/lmptype.h
+#include "stdint.h"
+#define __STDC_FORMAT_MACROS
+#include "inttypes.h"
 
 typedef int tagint;
 typedef int64_t bigint;
-#define BIGINT_FORMAT "%lld"
+#define BIGINT_FORMAT "%" PRId64
+
 
 // same as write_restart.cpp
 
@@ -3454,21 +3457,21 @@ void Data::write(FILE *fp, FILE *fp2)
   if (nbonds) {
     fprintf(fp,"\nBonds\n\n");
     for (uint64_t i = 0; i < nbonds; i++)
-      fprintf(fp,"%d %d %d %d\n",
+      fprintf(fp,BIGINT_FORMAT " %d %d %d\n",
 	      i+1,bond_type[i],bond_atom1[i],bond_atom2[i]);
   }
 
   if (nangles) {
     fprintf(fp,"\nAngles\n\n");
     for (uint64_t i = 0; i < nangles; i++)
-      fprintf(fp,"%d %d %d %d %d\n",
+      fprintf(fp,BIGINT_FORMAT " %d %d %d %d\n",
 	      i+1,angle_type[i],angle_atom1[i],angle_atom2[i],angle_atom3[i]);
   }
 
   if (ndihedrals) {
     fprintf(fp,"\nDihedrals\n\n");
     for (uint64_t i = 0; i < ndihedrals; i++)
-      fprintf(fp,"%d %d %d %d %d %d\n",
+      fprintf(fp,BIGINT_FORMAT " %d %d %d %d %d\n",
 	      i+1,dihedral_type[i],dihedral_atom1[i],dihedral_atom2[i],
 	      dihedral_atom3[i],dihedral_atom4[i]);
   }
@@ -3476,7 +3479,7 @@ void Data::write(FILE *fp, FILE *fp2)
   if (nimpropers) {
     fprintf(fp,"\nImpropers\n\n");
     for (uint64_t i = 0; i < nimpropers; i++)
-      fprintf(fp,"%d %d %d %d %d %d\n",
+      fprintf(fp,BIGINT_FORMAT " %d %d %d %d %d\n",
 	      i+1,improper_type[i],improper_atom1[i],improper_atom2[i],
 	      improper_atom3[i],improper_atom4[i]);
   }

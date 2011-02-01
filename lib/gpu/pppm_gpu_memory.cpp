@@ -45,7 +45,11 @@ int PPPMGPUMemoryT::bytes_per_atom() const {
 }
 
 template <class numtyp, class acctyp>
-bool PPPMGPUMemoryT::init(const int nlocal, const int nall, FILE *_screen) {
+bool PPPMGPUMemoryT::init(const int nlocal, const int nall, FILE *_screen,
+                          const int order, const int nxlo_out,
+                          const int nylo_out, const int nzlo_out,
+                          const int nxhi_out, const int nyhi_out,
+                          const int nzhi_out, double **rho_coeff) {
   screen=_screen;
 
   if (!device->init(*ans,true,false,nlocal,nall))
@@ -68,6 +72,21 @@ bool PPPMGPUMemoryT::init(const int nlocal, const int nall, FILE *_screen) {
   _allocated=true;
   _max_bytes=0;
   _max_an_bytes=ans->gpu_bytes();
+  
+  _order=order;
+  _nxlo_out=nxlo_out;
+  _nylo_out=nylo_out;
+  _nzlo_out=nzlo_out;
+  _nxhi_out=nxhi_out;
+  _nyhi_out=nyhi_out;
+  _nzhi_out=nzhi_out;
+  
+  int n2lo=(1-order)/2;
+  int numel=order*( order/2 - n2lo + 1 );
+  d_rho_coeff.alloc(numel,*ucl_device,UCL_READ_ONLY);
+  UCL_H_Vec<double> view;
+  view.view(rho_coeff[0]+n2lo,numel,*ucl_device);
+  ucl_copy(d_rho_coeff,view,true);
 
   return true;
 }
@@ -98,8 +117,10 @@ void PPPMGPUMemoryT::clear() {
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
 void PPPMGPUMemoryT::compute(const int ago, const int nlocal, const int nall,
-                             double **host_x, int *host_type,
-                             bool &success, double *host_q) {
+                             double **host_x, int *host_type, bool &success,
+                             double *host_q, double *boxlo, 
+                             const double delxinv, const double delyinv,
+                             const double delzinv) {
   acc_timers();
   if (nlocal==0) {
     zero_timers();
@@ -132,6 +153,12 @@ void PPPMGPUMemoryT::compute(const int ago, const int nlocal, const int nall,
 
   int ainum=this->ans->inum();
   int anall=this->atom->nall();
+  numtyp f_boxlo_x=boxlo[0];
+  numtyp f_boxlo_y=boxlo[1];
+  numtyp f_boxlo_z=boxlo[2];
+  numtyp f_delxinv=delxinv;
+  numtyp f_delyinv=delyinv;
+  numtyp f_delzinv=delzinv;
 
 //  this->time_pair.start();
 //  this->k_pair.set_size(GX,BX);

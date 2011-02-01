@@ -28,7 +28,10 @@ static PPPMGPUMemory<PRECISION,ACC_PRECISION> PPPMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
-bool pppm_gpu_init(const int nlocal, const int nall, FILE *screen) {
+bool pppm_gpu_init(const int nlocal, const int nall, FILE *screen,
+                   const int order, const int nxlo_out, const int nylo_out,
+                   const int nzlo_out, const int nxhi_out, const int nyhi_out,
+                   const int nzhi_out, double **rho_coeff) {
   PPPMF.clear();
   int first_gpu=PPPMF.device->first_device();
   int last_gpu=PPPMF.device->last_device();
@@ -48,7 +51,8 @@ bool pppm_gpu_init(const int nlocal, const int nall, FILE *screen) {
   }
 
   if (world_me==0) {
-    bool init_ok=PPPMF.init(nlocal,nall,screen);
+    bool init_ok=PPPMF.init(nlocal,nall,screen,order,nxlo_out,nylo_out,
+                            nzlo_out,nxhi_out,nyhi_out,nzhi_out,rho_coeff);
     if (!init_ok)
       return false;
   }
@@ -67,7 +71,8 @@ bool pppm_gpu_init(const int nlocal, const int nall, FILE *screen) {
       fflush(screen);
     }
     if (gpu_rank==i && world_me!=0) {
-      bool init_ok=PPPMF.init(nlocal,nall,screen);
+      bool init_ok=PPPMF.init(nlocal,nall,screen,order,nxlo_out,nylo_out,
+                              nzlo_out,nxhi_out,nyhi_out,nzhi_out,rho_coeff);
       if (!init_ok)
         return false;
     }
@@ -86,8 +91,10 @@ void pppm_gpu_clear() {
 
 void pppm_gpu_compute(const int ago, const int nlocal, const int nall,
                       double **host_x, int *host_type, bool &success,
-                      double *host_q) {
-  PPPMF.compute(ago,nlocal,nall,host_x,host_type,success,host_q);
+                      double *host_q, double *boxlo, const double delxinv,
+                      const double delyinv, const double delzinv) {
+  PPPMF.compute(ago,nlocal,nall,host_x,host_type,success,host_q,boxlo,delxinv,
+                delyinv,delzinv);
 }
 
 double pppm_gpu_bytes() {

@@ -37,7 +37,10 @@ class PPPMGPUMemory {
   virtual ~PPPMGPUMemory();
 
   /// Clear any previous data and set up for a new LAMMPS run
-  bool init(const int nlocal, const int nall, FILE *screen);
+  bool init(const int nlocal, const int nall, FILE *screen, const int order,
+            const int nxlo_out, const int nylo_out, const int nzlo_out,
+            const int nxhi_out, const int nyhi_out, const int nzhi_out,
+            double **rho_coeff);
 
   /// Check if there is enough storage for atom arrays and realloc if not
   /** \param success set to false if insufficient memory **/
@@ -75,8 +78,9 @@ class PPPMGPUMemory {
     ans->zero_timers();
   }
 
-  void compute(const int ago, const int nlocal, const int nall, double **host_x,
-               int *host_type, bool &success, double *charge);
+  void compute(const int ago,const int nlocal,const int nall,double **host_x,
+               int *host_type,bool &success,double *charge,double *boxlo,
+               const double delxinv,const double delyinv,const double delzinv);
 
   // -------------------------- DEVICE DATA ------------------------- 
 
@@ -97,6 +101,15 @@ class PPPMGPUMemory {
   /// Atom Data
   PairGPUAtom<numtyp,acctyp> *atom;
 
+
+  // --------------------------- GRID DATA --------------------------
+
+  UCL_H_Vec<numtyp> *h_brick;
+  UCL_D_Vec<numtyp> *d_brick;
+  
+  // -------------------------- STENCIL DATA -------------------------
+  UCL_D_Vec<numtyp> d_rho_coeff;
+  int _order, _nxlo_out, _nylo_out, _nzlo_out, _nxhi_out, _nyhi_out, _nzhi_out;
 
   // ------------------------ FORCE/ENERGY DATA -----------------------
 

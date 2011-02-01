@@ -37,11 +37,15 @@
 
 // External functions from cuda library for atom decomposition
 
-bool pppm_gpu_init(const int nlocal, const int nall, FILE *screen);
+bool pppm_gpu_init(const int nlocal, const int nall, FILE *screen,
+                   const int order, const int nxlo_out, const int nylo_out,
+                   const int nzlo_out, const int nxhi_out, const int nyhi_out,
+                   const int nzhi_out, double **rho_coeff);
 void pppm_gpu_clear();
 void pppm_gpu_compute(const int ago, const int nlocal, const int nall,
                       double **host_x, int *host_type, bool &success,
-                      double *host_q);
+                      double *host_q, double *boxlo, const double delxinv,
+                      const double delyinv, const double delzinv);
 double pppm_gpu_bytes();
 
 using namespace LAMMPS_NS;
@@ -112,8 +116,8 @@ std::cout << "DEBUG_TIMES: " << time1 << " " << time2 << " " << time3
 void PPPMGPU::init()
 {
   if (me == 0) {
-    if (screen) fprintf(screen,"PPPMGPU initialization ...\n");
-    if (logfile) fprintf(logfile,"PPPMGPU initialization ...\n");
+    if (screen) fprintf(screen,"PPPM initialization ...\n");
+    if (logfile) fprintf(logfile,"PPPM initialization ...\n");
   }
 
   // error check
@@ -134,7 +138,7 @@ void PPPMGPU::init()
 
   if (order > MAXORDER) {
     char str[128];
-    sprintf(str,"PPPMGPU order cannot be greater than %d",MAXORDER);
+    sprintf(str,"PPPM order cannot be greater than %d",MAXORDER);
     error->all(str);
   }
 
@@ -220,7 +224,7 @@ void PPPMGPU::init()
     set_grid();
 
     if (nx_pppm >= OFFSET || ny_pppm >= OFFSET || nz_pppm >= OFFSET)
-      error->all("PPPMGPU grid is too large");
+      error->all("PPPM grid is too large");
 
     // global indices of PPPMGPU grid range from 0 to N-1
     // nlo_in,nhi_in = lower/upper limits of the 3d sub-brick of
@@ -391,7 +395,7 @@ void PPPMGPU::init()
     order--;
   }
 
-  if (order == 0) error->all("PPPMGPU order has been reduced to 0");
+  if (order == 0) error->all("PPPM order has been reduced to 0");
 
   // decomposition of FFT mesh
   // global indices range from 0 to N-1
@@ -492,7 +496,8 @@ void PPPMGPU::init()
   compute_rho_coeff();
 
   bool init_ok = pppm_gpu_init(atom->nlocal, atom->nlocal+atom->nghost,
-                               screen);
+                               screen, order, nxlo_out, nylo_out, nzlo_out,
+                               nxhi_out, nyhi_out, nzhi_out, rho_coeff);
   if (!init_ok)
     error->one("Insufficient memory on accelerator (or no fix gpu).\n"); 
 time1=0; time2=0; time3=0;
@@ -659,7 +664,8 @@ void PPPMGPU::compute(int eflag, int vflag)
 {
   bool success = true;
   pppm_gpu_compute(neighbor->ago, atom->nlocal, atom->nlocal + atom->nghost,
-                   atom->x, atom->type, success, atom->q);
+                   atom->x, atom->type, success, atom->q, domain->boxlo,
+                   delxinv, delyinv, delzinv);
   if (!success)
     error->one("Out of memory on GPGPU");
 

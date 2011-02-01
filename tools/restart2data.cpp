@@ -2754,21 +2754,15 @@ void Data::stats()
   char fstr[64];
 
   printf("  Restart file version = %s\n",version);
-  sprintf(fstr,"  Ntimestep = %s\n",BIGINT_FORMAT);
-  printf(fstr,ntimestep);
+  printf("  Ntimestep = " BIGINT_FORMAT "\n",ntimestep);
 
   printf("  Nprocs = %d\n",nprocs);
 
-  sprintf(fstr,"  Natoms = %s\n",BIGINT_FORMAT);
-  printf(fstr,natoms);
-  sprintf(fstr,"  Nbonds = %s\n",BIGINT_FORMAT);
-  printf(fstr,nbonds);
-  sprintf(fstr,"  Nangles = %s\n",BIGINT_FORMAT);
-  printf(fstr,nangles);
-  sprintf(fstr,"  Ndihedrals = %s\n",BIGINT_FORMAT);
-  printf(fstr,ndihedrals);
-  sprintf(fstr,"  Nimpropers = %s\n",BIGINT_FORMAT);
-  printf(fstr,nimpropers);
+  printf("  Natoms = " BIGINT_FORMAT "\n",natoms);
+  printf("  Nbonds = " BIGINT_FORMAT "\n",nbonds);
+  printf("  Nangles = " BIGINT_FORMAT "\n",nangles);
+  printf("  Ndihedrals = " BIGINT_FORMAT "\n",ndihedrals);
+  printf("  Nimpropers = " BIGINT_FORMAT "\n",nimpropers);
 
   printf("  Unit style = %s\n",unit_style);
   printf("  Atom style = %s\n",atom_style);

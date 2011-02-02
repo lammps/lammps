@@ -90,32 +90,36 @@ __kernel void particle_map(__global numtyp4 *x_, const int nlocal,
                            const numtyp boxlo_x, const numtyp boxlo_y,
                            const numtyp boxlo_z, const numtyp delxinv,
                            const numtyp delyinv, const numtyp delzinv,
-                           const numtyp shift, const int nxlo_out,
-                           const int nxhi_out, const int nylo_out,
-                           const int nyhi_out, const int nzlo_out,
-                           const int nzhi_out, const int nlower,
-                           const int nupper, __global int *error) {
+                           const int npts_x, const int npts_y, const int npts_z,
+                           const int max_atoms, __global int *error) {
   // ii indexes the two interacting particles in gi
   int ii=GLOBAL_ID_X;
   int nx,ny,nz;
-/*
+  numtyp tx,ty,tz;
+
   if (ii<nlocal) {
     numtyp4 p=fetch_pos(ii,x_);
-// shift boxlo
 
-    nx = int((p.x-boxlo_x)*delxinv+shift) - OFFSET;
-    ny = int((p.y-boxlo_y)*delyinv+shift) - OFFSET;
-    nz = int((p.z-boxlo_z)*delzinv+shift) - OFFSET;
-    counts[
-    part2grid[i][0] = nx;
-    part2grid[i][1] = ny;
-    part2grid[i][2] = nz;
+    // Boxlo is adjusted to include ghost cells so that starting index is 0
+    tx=(p.x-boxlo_x)*delxinv;
+    if (t<0) *error=1;
+    nx=int(tx);
+    
+    ty=(p.y-boxlo_y)*delyinv;
+    if (t<0) *error=1;
+    ny=int(ty);
 
-    // check that entire stencil around nx,ny,nz will fit in my 3d brick
-    if (nx+nlower < nxlo_out || nx+nupper > nxhi_out ||
-        ny+nlower < nylo_out || ny+nupper > nyhi_out ||
-        nz+nlower < nzlo_out || nz+nupper > nzhi_out) *error=1;
-  }*/
+    tz=(p.z-boxlo_z)*delzinv;
+    if (tz<0) *error=1;
+    nz=int(tz);
+
+    if (tx<0 || ty<0 || tz<0 || nx>=npts_x || ny>=npts_y || nz>=npts_z)
+      *error=1;
+    else {
+      int old=atom_add(counts+ nz*npts_y*npts_x + ny*npts_x + nx, 1);
+      if (old==max_atoms-1) *error=2;
+    }
+  }
 }
 
 #endif

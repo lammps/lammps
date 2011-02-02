@@ -123,4 +123,108 @@ __kernel void particle_map(__global numtyp4 *x_, const int nlocal,
   }
 }
 
+/*
+__kernel void particle_map(__global numtyp4 *x_, __global numtyp *q_,
+                           __global int *counts, __global int *atoms, 
+                           const numtyp boxlo_x, const numtyp boxlo_y,
+                           const numtyp boxlo_z, const numtyp delxinv,
+                           const numtyp delyinv, const numtyp delzinv,
+                           const int npts_x, const int npts_y,
+                           const int npts_z, const int _brick_stride,
+                           const int max_atoms, __global int *error) {
+  // ii indexes the two interacting particles in gi
+  int xx=THREAD_ID_X;
+  int yy=THREAD_ID_Y;
+  int bx=BLOCK_ID_X;
+  int by=BLOCK_ID_Y;
+  int block_size=BLOCK_SIZE_X;
+  
+  int max_y=BLOCK_ID_Y*block_size+block_size;
+  int max_x=BLOCK_ID_X*block_size+block_size;
+  
+  __local numtyp4 p;
+  __local numtyp q,dx,dy,dz;
+  __local int brick_i,count,atom_i;
+  
+  for (int z=-nlower; z<npts_z-order; z++)
+    for (int ny=max_y-block_size; ny<max_y; ny++) {
+      if (ny>npts_y)
+        break;
+      brick_i = z*npts_x*npts_y + ny*npts_x + max_x - block_size;
+      for (int nx=max_x-block_size; nx<max_x; nx++) {
+        if (nx>npts_x)
+          break;
+        count=counts[brick_i];
+        for (int i=0; i<count; i++) {
+          int atom_i=atoms[brick_i+i*_brick_stride];
+          p=fetch_pos(x_,atom_i);
+          q=fetch_q(q_,atom_i);
+          
+    dx = nx+shiftone - (x[i][0]-boxlo[0])*delxinv;
+    dy = ny+shiftone - (x[i][1]-boxlo[1])*delyinv;
+    dz = nz+shiftone - (x[i][2]-boxlo[2])*delzinv;
+          
+          
+        
+        
+        
+        brick_i++;
+  
+  
+  int nx=GLOBAL_ID_X+nlower;
+  int ny=GLOBAL_ID_Y+nlower;
+  int block_size=BLOCK_SIZE_X;
+  
+    for (
+
+  // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
+  // (dx,dy,dz) = distance to "lower left" grid pt
+  // (mx,my,mz) = global coords of moving stencil pt
+
+  double *q = atom->q;
+  double **x = atom->x;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+
+    nx = part2grid[i][0];
+    ny = part2grid[i][1];
+    nz = part2grid[i][2];
+
+    compute_rho1d(dx,dy,dz);
+
+    z0 = delvolinv * q[i];
+    for (n = nlower; n <= nupper; n++) {
+      mz = n+nz;  // z-index of point being updated
+      y0 = z0*rho1d[2][n]; 
+      for (m = nlower; m <= nupper; m++) {
+        my = m+ny;
+        x0 = y0*rho1d[1][m];
+        for (l = nlower; l <= nupper; l++) {
+          mx = l+nx;
+          density_brick[mz][my][mx] += x0*rho1d[0][l];
+        }
+      }
+    }
+  }
+}
+
+void PPPMGPU::compute_rho1d(double dx, double dy, double dz)
+{
+  int k,l;
+
+  for (k = (1-order)/2; k <= order/2; k++) {
+    rho1d[0][k] = 0.0;
+    rho1d[1][k] = 0.0;
+    rho1d[2][k] = 0.0;
+    for (l = order-1; l >= 0; l--) {
+      rho1d[0][k] = rho_coeff[l][k] + rho1d[0][k]*dx;
+      rho1d[1][k] = rho_coeff[l][k] + rho1d[1][k]*dy;
+      rho1d[2][k] = rho_coeff[l][k] + rho1d[2][k]*dz;
+    }
+  }
+}
+
+*/
+
 #endif

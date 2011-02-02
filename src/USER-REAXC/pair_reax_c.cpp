@@ -239,7 +239,6 @@ void PairReaxC::coeff( int nargs, char **args )
 
     if (itmp < 0 || itmp >= nreax_types)
       error->all("Non-existent ReaxFF type");
-
   }
 
   int n = atom->ntypes;
@@ -290,7 +289,7 @@ void PairReaxC::init_style( )
 
   cutmax = MAX3(control->nonb_cut, control->hbond_cut, 2*control->bond_cut);
 
-  for( int i = 0; i < LIST_N; ++i )
+  for(int i = 0; i < LIST_N; ++i )
     lists[i].allocated = 0;
 
   if (fix_reax == NULL) {

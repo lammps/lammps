@@ -55,7 +55,7 @@ class PPPMGPUMemory {
   /// Check if there is enough storage for local atoms and realloc if not
   inline void resize_local(const int inum, bool &success) {
   }
-
+  
   /// Clear all host and device data
   /** \note This is called at the beginning of the init() routine **/
   void clear();
@@ -112,13 +112,15 @@ class PPPMGPUMemory {
   
   // Count of number of atoms assigned to each grid point
   UCL_D_Vec<int> d_brick_counts;
+  // Atoms assigned to each grid point
+  UCL_D_Vec<int> d_brick_atoms;
   
   // Error checking for out of bounds atoms
   UCL_D_Vec<int> d_error_flag;
   UCL_H_Vec<int> h_error_flag;
   
   // Number of grid points in brick (including ghost)
-  int _npts_x, _npts_y, _npts_z;
+  int _npts_x, _npts_y, _npts_z, _brick_stride;
   
   // -------------------------- STENCIL DATA -------------------------
   UCL_D_Vec<numtyp> d_rho_coeff;
@@ -140,7 +142,7 @@ class PPPMGPUMemory {
 
  protected:
   bool _allocated, _compiled;
-  int _block_size;
+  int _block_size, _max_brick_atoms;
   double  _max_bytes, _max_an_bytes;
 
   void compile_kernels(UCL_Device &dev);

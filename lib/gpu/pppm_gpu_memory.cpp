@@ -41,7 +41,7 @@ PPPMGPUMemoryT::~PPPMGPUMemory() {
 
 template <class numtyp, class acctyp>
 int PPPMGPUMemoryT::bytes_per_atom() const {
-  return device->atom.bytes_per_atom()+ans->bytes_per_atom();
+  return device->atom.bytes_per_atom()+ans->bytes_per_atom()+1;
 }
 
 template <class numtyp, class acctyp>
@@ -52,7 +52,7 @@ bool PPPMGPUMemoryT::init(const int nlocal, const int nall, FILE *_screen,
                           const int nzhi_out, double **rho_coeff) {
   clear();
   
-  _max_bytes=0;
+  _max_bytes=10;
   screen=_screen;
 
   if (!device->init(*ans,true,false,nlocal,nall))
@@ -86,6 +86,7 @@ bool PPPMGPUMemoryT::init(const int nlocal, const int nall, FILE *_screen,
   _nxhi_out=nxhi_out;
   _nyhi_out=nyhi_out;
   _nzhi_out=nzhi_out;
+  _max_brick_atoms=10;
   
   // Get rho_coeff on device
   int n2lo=(1-order)/2;
@@ -100,14 +101,19 @@ bool PPPMGPUMemoryT::init(const int nlocal, const int nall, FILE *_screen,
   _npts_x=nxhi_out-nxlo_out+1;
   _npts_y=nyhi_out-nylo_out+1;
   _npts_z=nzhi_out-nzlo_out+1;
-  numel=_npts_x*_npts_y*_npts_z;
-  d_brick_counts.alloc(numel,*ucl_device);
+  _brick_stride=_npts_x*_npts_y*_npts_z;
+  d_brick_counts.alloc(_brick_stride,*ucl_device);
   _max_bytes+=d_brick_counts.row_bytes();
+
+  // Allocate storage for atoms assigned to each grid point
+  d_brick_atoms.alloc(_brick_stride*_max_brick_atoms,*ucl_device);
+  _max_bytes+=d_brick_atoms.row_bytes();
 
   // Allocate error flags for checking out of bounds atoms
   h_error_flag.alloc(1,*ucl_device);
   d_error_flag.alloc(1,*ucl_device,UCL_WRITE_ONLY);
   d_error_flag.zero();
+  _max_bytes+=d_brick_atoms.row_bytes();
   
   return true;
 }
@@ -121,6 +127,8 @@ void PPPMGPUMemoryT::clear() {
   d_brick_counts.clear();
   h_error_flag.clear();
   d_error_flag.clear();
+  d_brick_atoms.clear();
+  
   acc_timers();
   device->output_kspace_times(time_in,time_kernel,*ans,_max_bytes+_max_an_bytes,
                               screen);
@@ -202,14 +210,23 @@ int PPPMGPUMemoryT::compute(const int ago, const int nlocal, const int nall,
   d_brick_counts.zero();
   k_particle_map.set_size(GX,BX);
   k_particle_map.run(&atom->dev_x.begin(), &ainum, &d_brick_counts.begin(),
-                     &d_brick_counts.begin(), &f_boxlo_x, &f_boxlo_y, 
+                     &d_brick_atoms.begin(), &f_boxlo_x, &f_boxlo_y, 
                      &f_boxlo_z, &f_delxinv, &f_delyinv, &f_delzinv, &_npts_x,
-                     &_npts_y, &_npts_z, &_max_atoms, &d_error_flag.begin());
+                     &_npts_y, &_npts_z, &_brick_stride, &_max_brick_atoms, 
+                     &d_error_flag.begin());
   time_kernel.stop();
   ucl_copy(h_error_flag,d_error_flag,false);
   
-  if (h_error_flag[0]==2)
-    std::cerr << "NEED TO RESIZE!\n";
+  if (h_error_flag[0]==2) {
+    // Not enough storage for atoms on the brick
+    _max_brick_atoms*=2;
+    d_brick_atoms.clear();
+    d_brick_atoms.alloc(_brick_stride*_max_atoms,*ucl_device);
+    _max_bytes+=d_brick_atoms.row_bytes();
+    return compute(ago,nlocal,nall,host_x,host_type,success,host_q,boxlo, 
+                   delxinv,delyinv,delzinv);
+  }
+  
   return h_error_flag[0];
 }
 

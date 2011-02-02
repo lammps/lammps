@@ -91,8 +91,9 @@ __kernel void particle_map(__global numtyp4 *x_, const int nlocal,
                            const numtyp boxlo_x, const numtyp boxlo_y,
                            const numtyp boxlo_z, const numtyp delxinv,
                            const numtyp delyinv, const numtyp delzinv,
-                           const int npts_x, const int npts_y, const int npts_z,
-                           const int max_atoms_m_1, __global int *error) {
+                           const int npts_x, const int npts_y,
+                           const int npts_z, const int _brick_stride,
+                           const int max_atoms, __global int *error) {
   // ii indexes the two interacting particles in gi
   int ii=GLOBAL_ID_X;
   int nx,ny,nz;
@@ -112,11 +113,14 @@ __kernel void particle_map(__global numtyp4 *x_, const int nlocal,
     if (tx<0 || ty<0 || tz<0 || nx>=npts_x || ny>=npts_y || nz>=npts_z)
       *error=1;
     else {
-      int old=atom_add(counts+nz*npts_y*npts_x+ny*npts_x+nx, 1);
-      if (old==max_atoms_m_1) *error=2;
+      int i=nz*npts_y*npts_x+ny*npts_x+nx;
+      int old=atom_add(counts+i, 1);
+      if (old==max_atoms)
+        *error=2;
+      else
+        ans[_brick_stride*old+i]=ii;
     }
   }
 }
 
 #endif
-

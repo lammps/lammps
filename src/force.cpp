@@ -190,34 +190,6 @@ Pair *Force::pair_match(const char *word, int exact)
 }
 
 /* ----------------------------------------------------------------------
-   return count of style names (including hybrid subclasses) that
-   contain word
-------------------------------------------------------------------------- */
-
-int Force::pair_match_count(const char *word)
-{
-  int count=0;
-
-  if (strstr(pair_style,word)) count++;
-
-  if (strcmp(pair_style,"hybrid") == 0) {
-    PairHybrid *hybrid = (PairHybrid *) pair;
-    for (int i = 0; i < hybrid->nstyles; i++) {
-      if (strstr(hybrid->keywords[i],word))
-	count++;
-    }
-  } else if (strcmp(pair_style,"hybrid/overlay") == 0) {
-    PairHybridOverlay *hybrid = (PairHybridOverlay *) pair;
-    for (int i = 0; i < hybrid->nstyles; i++) {
-      if (strstr(hybrid->keywords[i],word))
-	count++;
-    }
-  }
-
-  return count;
-}
-
-/* ----------------------------------------------------------------------
    create a bond style, called from input script or restart file
 ------------------------------------------------------------------------- */
 

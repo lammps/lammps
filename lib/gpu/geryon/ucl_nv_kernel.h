@@ -13,7 +13,7 @@
     copyright            : (C) 2010 by W. Michael Brown
     email                : brownw@ornl.gov
  ***************************************************************************/
- 
+
 /* -----------------------------------------------------------------------
    Copyright (2010) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -38,5 +38,6 @@
 #define mul24 __mul24
 #define __global  
 #define __inline static __inline__ __device__ 
+#define atom_add atomicAdd
 
 #endif

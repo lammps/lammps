@@ -70,6 +70,8 @@ class PPPMGPUMemory {
   inline void acc_timers() {
     atom->acc_timers();
     ans->acc_timers();
+    time_in.add_to_total();
+    time_kernel.add_to_total();
   }
 
   /// Zero timers
@@ -78,9 +80,10 @@ class PPPMGPUMemory {
     ans->zero_timers();
   }
 
-  void compute(const int ago,const int nlocal,const int nall,double **host_x,
-               int *host_type,bool &success,double *charge,double *boxlo,
-               const double delxinv,const double delyinv,const double delzinv);
+  /// Returns non-zero if out of bounds atoms
+  int compute(const int ago,const int nlocal,const int nall,double **host_x,
+              int *host_type,bool &success,double *charge,double *boxlo,
+              const double delxinv,const double delyinv,const double delzinv);
 
   // -------------------------- DEVICE DATA ------------------------- 
 
@@ -91,7 +94,7 @@ class PPPMGPUMemory {
   UCL_Device *ucl_device;
 
   /// Device Timers
-  UCL_Timer time_in;
+  UCL_Timer time_in, time_kernel;
 
   /// LAMMPS pointer for screen output
   FILE *screen;
@@ -110,9 +113,17 @@ class PPPMGPUMemory {
   // Count of number of atoms assigned to each grid point
   UCL_D_Vec<int> d_brick_counts;
   
+  // Error checking for out of bounds atoms
+  UCL_D_Vec<int> d_error_flag;
+  UCL_H_Vec<int> h_error_flag;
+  
+  // Number of grid points in brick (including ghost)
+  int _npts_x, _npts_y, _npts_z;
+  
   // -------------------------- STENCIL DATA -------------------------
   UCL_D_Vec<numtyp> d_rho_coeff;
-  int _order, _nxlo_out, _nylo_out, _nzlo_out, _nxhi_out, _nyhi_out, _nzhi_out;
+  int _order, _nlower;
+  int _nxlo_out, _nylo_out, _nzlo_out, _nxhi_out, _nyhi_out, _nzhi_out;
 
   // ------------------------ FORCE/ENERGY DATA -----------------------
 
@@ -120,7 +131,7 @@ class PPPMGPUMemory {
 
   // ------------------------- DEVICE KERNELS -------------------------
   UCL_Program *pppm_program;
-  UCL_Kernel k_compute;
+  UCL_Kernel k_particle_map;
   inline int block_size() { return _block_size; }
 
   // --------------------------- TEXTURES -----------------------------

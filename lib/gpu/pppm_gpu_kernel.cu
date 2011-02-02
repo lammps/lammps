@@ -73,6 +73,7 @@ __inline float fetch_q(const int& i, const float *q)
 #else
 
 #pragma OPENCL EXTENSION cl_khr_fp64: enable
+#pragma OPENCL EXTENSION cl_khr_local_int32_base_atomics : enable
 #define GLOBAL_ID_X get_global_id(0)
 #define THREAD_ID_X get_local_id(0)
 #define BLOCK_ID_X get_group_id(0)
@@ -91,7 +92,7 @@ __kernel void particle_map(__global numtyp4 *x_, const int nlocal,
                            const numtyp boxlo_z, const numtyp delxinv,
                            const numtyp delyinv, const numtyp delzinv,
                            const int npts_x, const int npts_y, const int npts_z,
-                           const int max_atoms, __global int *error) {
+                           const int max_atoms_m_1, __global int *error) {
   // ii indexes the two interacting particles in gi
   int ii=GLOBAL_ID_X;
   int nx,ny,nz;
@@ -102,22 +103,17 @@ __kernel void particle_map(__global numtyp4 *x_, const int nlocal,
 
     // Boxlo is adjusted to include ghost cells so that starting index is 0
     tx=(p.x-boxlo_x)*delxinv;
-    if (t<0) *error=1;
     nx=int(tx);
-    
     ty=(p.y-boxlo_y)*delyinv;
-    if (t<0) *error=1;
     ny=int(ty);
-
     tz=(p.z-boxlo_z)*delzinv;
-    if (tz<0) *error=1;
     nz=int(tz);
 
     if (tx<0 || ty<0 || tz<0 || nx>=npts_x || ny>=npts_y || nz>=npts_z)
       *error=1;
     else {
-      int old=atom_add(counts+ nz*npts_y*npts_x + ny*npts_x + nx, 1);
-      if (old==max_atoms-1) *error=2;
+      int old=atom_add(counts+nz*npts_y*npts_x+ny*npts_x+nx, 1);
+      if (old==max_atoms_m_1) *error=2;
     }
   }
 }

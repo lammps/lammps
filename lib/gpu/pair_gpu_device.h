@@ -76,7 +76,8 @@ class PairGPUDevice {
                     const double max_bytes, FILE *screen);
 
   /// Output a message with timing information
-  void output_kspace_times(UCL_Timer &time_data, PairGPUAns<numtyp,acctyp> &ans, 
+  void output_kspace_times(UCL_Timer &time_in, UCL_Timer & time_kernel,
+                           PairGPUAns<numtyp,acctyp> &ans, 
                            const double max_bytes, FILE *screen);
 
   /// Clear all memory on host and device associated with atom and nbor data

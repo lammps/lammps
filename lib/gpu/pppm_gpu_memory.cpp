@@ -68,6 +68,8 @@ bool PPPMGPUMemoryT::init(const int nlocal, const int nall, FILE *_screen,
   // Initialize timers for the selected GPU
   time_in.init(*ucl_device);
   time_in.zero();
+  time_kernel.init(*ucl_device);
+  time_kernel.zero();
 
   pos_tex.bind_float(atom->dev_x,4);
   q_tex.bind_float(atom->dev_q,1);
@@ -77,6 +79,7 @@ bool PPPMGPUMemoryT::init(const int nlocal, const int nall, FILE *_screen,
   _max_an_bytes=ans->gpu_bytes();
   
   _order=order;
+  _nlower=-(_order-1)/2;
   _nxlo_out=nxlo_out;
   _nylo_out=nylo_out;
   _nzlo_out=nzlo_out;
@@ -94,10 +97,18 @@ bool PPPMGPUMemoryT::init(const int nlocal, const int nall, FILE *_screen,
   _max_bytes+=d_rho_coeff.row_bytes();
   
   // Allocate vector with count of atoms assigned to each grid point
-  numel=(nxhi_out-nxlo_out+1)*(nyhi_out-nylo_out+1)*(nzhi_out-nzlo_out+1);
+  _npts_x=nxhi_out-nxlo_out+1;
+  _npts_y=nyhi_out-nylo_out+1;
+  _npts_z=nzhi_out-nzlo_out+1;
+  numel=_npts_x*_npts_y*_npts_z;
   d_brick_counts.alloc(numel,*ucl_device);
   _max_bytes+=d_brick_counts.row_bytes();
 
+  // Allocate error flags for checking out of bounds atoms
+  h_error_flag.alloc(1,*ucl_device);
+  d_error_flag.alloc(1,*ucl_device,UCL_WRITE_ONLY);
+  d_error_flag.zero();
+  
   return true;
 }
 
@@ -107,17 +118,21 @@ void PPPMGPUMemoryT::clear() {
     return;
   _allocated=false;
   
+  d_brick_counts.clear();
+  h_error_flag.clear();
+  d_error_flag.clear();
   acc_timers();
-  device->output_kspace_times(time_in,*ans,_max_bytes+_max_an_bytes,
+  device->output_kspace_times(time_in,time_kernel,*ans,_max_bytes+_max_an_bytes,
                               screen);
 
   if (_compiled) {
-    k_compute.clear();
+    k_particle_map.clear();
     delete pppm_program;
     _compiled=false;
   }
 
   time_in.clear();
+  time_kernel.clear();
 
   device->clear();
 }
@@ -126,15 +141,15 @@ void PPPMGPUMemoryT::clear() {
 // Copy nbor list from host if necessary and then calculate forces, virials,..
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-void PPPMGPUMemoryT::compute(const int ago, const int nlocal, const int nall,
-                             double **host_x, int *host_type, bool &success,
-                             double *host_q, double *boxlo, 
-                             const double delxinv, const double delyinv,
-                             const double delzinv) {
+int PPPMGPUMemoryT::compute(const int ago, const int nlocal, const int nall,
+                            double **host_x, int *host_type, bool &success,
+                            double *host_q, double *boxlo, 
+                            const double delxinv, const double delyinv,
+                            const double delzinv) {
   acc_timers();
   if (nlocal==0) {
     zero_timers();
-    return;
+    return 0;
   }
   
   ans->inum(nlocal);
@@ -143,7 +158,7 @@ void PPPMGPUMemoryT::compute(const int ago, const int nlocal, const int nall,
     resize_atom(nlocal,nall,success);
     resize_local(nlocal,success);
     if (!success)
-      return;
+      return 0;
 
     double bytes=ans->gpu_bytes();
     if (bytes>_max_an_bytes)
@@ -155,41 +170,47 @@ void PPPMGPUMemoryT::compute(const int ago, const int nlocal, const int nall,
   atom->add_x_data(host_x,host_type);
   atom->add_q_data();
 
-
   // Compute the block size and grid size to keep all cores busy
   const int BX=this->block_size();
   
   int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/BX));
 
+  int _max_atoms=10;
   int ainum=this->ans->inum();
-  int anall=this->atom->nall();
-  numtyp f_boxlo_x=boxlo[0];
-  numtyp f_boxlo_y=boxlo[1];
-  numtyp f_boxlo_z=boxlo[2];
+  
+  // Boxlo adjusted to include ghost cells and shift for even stencil order
+  double lo_shift_x=static_cast<double>(_nlower);
+  double lo_shift_y=static_cast<double>(_nlower);
+  double lo_shift_z=static_cast<double>(_nlower);
+  if (_order % 2) {
+    lo_shift_x-=0.5;
+    lo_shift_y-=0.5;
+    lo_shift_z-=0.5;
+  }
+  lo_shift_x/=delxinv;
+  lo_shift_y/=delyinv;
+  lo_shift_z/=delzinv;
+  
+  numtyp f_boxlo_x=boxlo[0]+lo_shift_x;
+  numtyp f_boxlo_y=boxlo[1]+lo_shift_y;
+  numtyp f_boxlo_z=boxlo[2]+lo_shift_z;
   numtyp f_delxinv=delxinv;
   numtyp f_delyinv=delyinv;
   numtyp f_delzinv=delzinv;
 
-
-
-//  this->time_pair.start();
-//  this->k_pair.set_size(GX,BX);
-//  this->k_pair.run(&this->atom->dev_x.begin(), &lj1.begin(), &lj3.begin(),
-//                   &_lj_types, &sp_lj.begin(), &this->nbor->dev_nbor.begin(),
-//                   &this->ans->dev_ans.begin(),
-//                   &this->ans->dev_engv.begin(), &eflag, &vflag, &ainum,
-//                   &anall, &nbor_pitch, &this->atom->dev_q.begin(),
-//                   &cutsq.begin(), &_qqrd2e);
-//  this->time_pair.stop();
-
-
-  int flag_all;
-  MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
-  if (flag_all) error->all("Out of range atoms - cannot compute PPPMGPU");
-
-
-//  ans->copy_answers(eflag,vflag,eatom,vatom,ilist);
-//  device->add_ans_object(ans);
+  time_kernel.start();
+  d_brick_counts.zero();
+  k_particle_map.set_size(GX,BX);
+  k_particle_map.run(&atom->dev_x.begin(), &ainum, &d_brick_counts.begin(),
+                     &d_brick_counts.begin(), &f_boxlo_x, &f_boxlo_y, 
+                     &f_boxlo_z, &f_delxinv, &f_delyinv, &f_delzinv, &_npts_x,
+                     &_npts_y, &_npts_z, &_max_atoms, &d_error_flag.begin());
+  time_kernel.stop();
+  ucl_copy(h_error_flag,d_error_flag,false);
+  
+  if (h_error_flag[0]==2)
+    std::cerr << "NEED TO RESIZE!\n";
+  return h_error_flag[0];
 }
 
 template <class numtyp, class acctyp>
@@ -207,8 +228,7 @@ void PPPMGPUMemoryT::compile_kernels(UCL_Device &dev) {
 
   pppm_program=new UCL_Program(dev);
   pppm_program->load_string(pppm_gpu_kernel,flags.c_str());
-//  k_pair_fast.set_function(*pair_program,"kernel_pair_fast");
-//  k_pair.set_function(*pair_program,"kernel_pair");
+  k_particle_map.set_function(*pppm_program,"particle_map");
   pos_tex.get_texture(*pppm_program,"pos_tex");
   q_tex.get_texture(*pppm_program,"q_tex");
 

@@ -16,9 +16,9 @@ ID, group-ID are documented in "fix"_fix.html command :ulb,l
 ave/histo = style name of this fix command :l
 Nevery = use input values every this many timesteps :l
 Nrepeat = # of times to use input values for calculating histogram :l
-Nfreq = calculate histogram every this many timesteps
-lo,hi = lo/hi bounds within which to histogram
-Nbin = # of histogram bins
+Nfreq = calculate histogram every this many timesteps :l
+lo,hi = lo/hi bounds within which to histogram :l
+Nbin = # of histogram bins :l
 one or more input values can be listed :l
 value = x, y, z, vx, vy, vz, fx, fy, fz, c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_name :l
   x,y,z,vx,vy,vz,fx,fy,fz = atom attribute (position, velocity, force component)

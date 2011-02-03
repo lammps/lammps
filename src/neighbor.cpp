@@ -1139,7 +1139,7 @@ void Neighbor::build_one(int i)
    setup neighbor binning parameters
    bin numbering in each dimension is global:
      0 = 0.0 to binsize, 1 = binsize to 2*binsize, etc
-     nbin-1,nbin,etc = bbox-binsize to bbox, bbox to bbox+binsize, etc
+     nbin-1,nbin,etc = bbox-binsize to binsize, bbox to bbox+binsize, etc
      -1,-2,etc = -binsize to 0.0, -2*size to -size, etc
    code will work for any binsize
      since next(xyz) and stencil extend as far as necessary
@@ -1538,32 +1538,23 @@ int Neighbor::coord2bin(double *x)
 
   if (x[0] >= bboxhi[0])
     ix = static_cast<int> ((x[0]-bboxhi[0])*bininvx) + nbinx - mbinxlo;
-  else if (x[0] >= bboxlo[0]) {
-    ix = static_cast<int> ((x[0]-bboxlo[0])*bininvx);
-    if (ix == nbinx) ix = nbinx-1;
-    else if (ix == -1) ix = 0;
-    ix -= mbinxlo;
-  } else
+  else if (x[0] >= bboxlo[0])
+    ix = static_cast<int> ((x[0]-bboxlo[0])*bininvx) - mbinxlo;
+  else
     ix = static_cast<int> ((x[0]-bboxlo[0])*bininvx) - mbinxlo - 1;
   
   if (x[1] >= bboxhi[1])
     iy = static_cast<int> ((x[1]-bboxhi[1])*bininvy) + nbiny - mbinylo;
-  else if (x[1] >= bboxlo[1]) {
-    iy = static_cast<int> ((x[1]-bboxlo[1])*bininvy);
-    if (iy == nbiny) iy = nbiny-1;
-    else if (iy == -1) iy = 0;
-    iy -= mbinylo;
-  } else
+  else if (x[1] >= bboxlo[1])
+    iy = static_cast<int> ((x[1]-bboxlo[1])*bininvy) - mbinylo;
+  else
     iy = static_cast<int> ((x[1]-bboxlo[1])*bininvy) - mbinylo - 1;
   
   if (x[2] >= bboxhi[2])
     iz = static_cast<int> ((x[2]-bboxhi[2])*bininvz) + nbinz - mbinzlo;
-  else if (x[2] >= bboxlo[2]) {
-    iz = static_cast<int> ((x[2]-bboxlo[2])*bininvz);
-    if (iz == nbinz) iz = nbinz-1;
-    else if (iz == -1) iz = 0;
-    iz -= mbinzlo;
-  } else
+  else if (x[2] >= bboxlo[2])
+    iz = static_cast<int> ((x[2]-bboxlo[2])*bininvz) - mbinzlo;
+  else
     iz = static_cast<int> ((x[2]-bboxlo[2])*bininvz) - mbinzlo - 1;
 
   return (iz*mbiny*mbinx + iy*mbinx + ix);

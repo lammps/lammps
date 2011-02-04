@@ -111,3 +111,14 @@ void Error::warning(const char *str, int logflag)
   if (screen) fprintf(screen,"WARNING: %s\n",str);
   if (logflag && logfile) fprintf(logfile,"WARNING: %s\n",str);
 }
+
+/* ----------------------------------------------------------------------
+   called by one proc in world, typically proc 0
+   write message to screen and logfile (if logflag is set)
+------------------------------------------------------------------------- */
+
+void Error::message(char *str, int logflag)
+{
+  if (screen) fprintf(screen,"%s\n",str);
+  if (logflag && logfile) fprintf(logfile,"%s\n",str);
+}

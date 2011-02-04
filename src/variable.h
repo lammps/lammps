@@ -23,7 +23,7 @@ class Variable : protected Pointers {
   Variable(class LAMMPS *);
   ~Variable();
   void set(int, char **);
-  void set(char *, char *);
+  void set(char *, int, char **);
   int next(int, char **);
   int find(char *);
   int equalstyle(int);

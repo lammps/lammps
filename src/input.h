@@ -58,6 +58,7 @@ class Input : protected Pointers {
   void log();
   void next_command();
   void print();
+  void shell();
   void variable_command();
 
   void angle_coeff();          // LAMMPS commands

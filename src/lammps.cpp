@@ -57,7 +57,8 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   int iarg = 1;
 
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"-partition") == 0) {
+    if (strcmp(arg[iarg],"-partition") == 0 || 
+	strcmp(arg[iarg],"-p") == 0) {
       universe->existflag = 1;
       if (iarg+2 > narg) 
 	error->universe_all("Invalid command-line argument");
@@ -66,26 +67,32 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
 	universe->add_world(arg[iarg]);
 	iarg++;
       }
-    } else if (strcmp(arg[iarg],"-in") == 0) {
+    } else if (strcmp(arg[iarg],"-in") == 0 || 
+	       strcmp(arg[iarg],"-i") == 0) {
       if (iarg+2 > narg) 
 	error->universe_all("Invalid command-line argument");
       inflag = iarg + 1;
       iarg += 2;
-    } else if (strcmp(arg[iarg],"-screen") == 0) {
+    } else if (strcmp(arg[iarg],"-screen") == 0 || 
+	       strcmp(arg[iarg],"-s") == 0) {
       if (iarg+2 > narg) 
 	error->universe_all("Invalid command-line argument");
       screenflag = iarg + 1;
       iarg += 2;
-    } else if (strcmp(arg[iarg],"-log") == 0) {
+    } else if (strcmp(arg[iarg],"-log") == 0 || 
+	       strcmp(arg[iarg],"-l") == 0) {
       if (iarg+2 > narg) 
 	error->universe_all("Invalid command-line argument");
       logflag = iarg + 1;
       iarg += 2;
-    } else if (strcmp(arg[iarg],"-var") == 0) {
+    } else if (strcmp(arg[iarg],"-var") == 0 || 
+	       strcmp(arg[iarg],"-v") == 0) {
       if (iarg+3 > narg) 
 	error->universe_all("Invalid command-line argument");
-      iarg += 3;
-    } else if (strcmp(arg[iarg],"-echo") == 0) {
+      iarg += 2;
+      while (iarg < narg && arg[iarg][0] != '-') iarg++;
+    } else if (strcmp(arg[iarg],"-echo") == 0 || 
+	       strcmp(arg[iarg],"-e") == 0) {
       if (iarg+2 > narg) 
 	error->universe_all("Invalid command-line argument");
       iarg += 2;

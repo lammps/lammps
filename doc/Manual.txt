@@ -19,7 +19,7 @@
 
 LAMMPS Documentation :c,h3
 
-Version info:
+Version info: :h4
 
 The LAMMPS "version" is the date when it was released, such as 1 May
 2010. LAMMPS is updated continuously.  Whenever we fix a bug or add a

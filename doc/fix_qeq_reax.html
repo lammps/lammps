@@ -48,11 +48,12 @@ should be formatted as follows:
 <PRE>itype chi eta gamma 
 </PRE>
 <P>where <I>itype</I> is the atom type from 1 to Ntypes, <I>chi</I> denotes the
-electronegativity in energy units, <I>eta</I> denotes the self-Coulomb
-potential in energy units, and <I>gamma</I> denotes the valence orbital
+electronegativity in eV, <I>eta</I> denotes the self-Coulomb
+potential in eV, and <I>gamma</I> denotes the valence orbital
 exponent.  Note that these 3 quantities are also in the ReaxFF
 potential file, except that eta is defined here as twice the eta value
-in the ReaxFF file.
+in the ReaxFF file. Note that unlike the rest of LAMMPS, the units
+of this fix are hard-coded to be A, eV, and electronic charge. 
 </P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>

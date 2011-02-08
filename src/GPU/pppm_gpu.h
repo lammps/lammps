@@ -98,6 +98,7 @@ class PPPMGPU : public KSpace {
   void compute_rho1d(double, double, double);
   void compute_rho_coeff();
   void slabcorr(int);
+float *host_brick;
 double time1,time2,time3;  
 };
 

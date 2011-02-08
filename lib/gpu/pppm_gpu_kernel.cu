@@ -91,8 +91,8 @@ __kernel void particle_map(__global numtyp4 *x_, const int nlocal,
                            const numtyp boxlo_x, const numtyp boxlo_y,
                            const numtyp boxlo_z, const numtyp delxinv,
                            const numtyp delyinv, const numtyp delzinv,
-                           const int npts_x, const int npts_y,
-                           const int npts_z, const int _brick_stride,
+                           const int nlocal_x, const int nlocal_y,
+                           const int nlocal_z, const int atom_stride,
                            const int max_atoms, __global int *error) {
   // ii indexes the two interacting particles in gi
   int ii=GLOBAL_ID_X;
@@ -102,7 +102,6 @@ __kernel void particle_map(__global numtyp4 *x_, const int nlocal,
   if (ii<nlocal) {
     numtyp4 p=fetch_pos(ii,x_);
 
-    // Boxlo is adjusted to include ghost cells so that starting index is 0
     tx=(p.x-boxlo_x)*delxinv;
     nx=int(tx);
     ty=(p.y-boxlo_y)*delyinv;
@@ -110,121 +109,98 @@ __kernel void particle_map(__global numtyp4 *x_, const int nlocal,
     tz=(p.z-boxlo_z)*delzinv;
     nz=int(tz);
 
-    if (tx<0 || ty<0 || tz<0 || nx>=npts_x || ny>=npts_y || nz>=npts_z)
+    if (tx<0 || ty<0 || tz<0 || nx>=nlocal_x || ny>=nlocal_y || nz>=nlocal_z)
       *error=1;
     else {
-      int i=nz*npts_y*npts_x+ny*npts_x+nx;
+      int i=nz*nlocal_y*nlocal_x+ny*nlocal_x+nx;
       int old=atom_add(counts+i, 1);
-      if (old==max_atoms)
+      if (old==max_atoms) {
         *error=2;
-      else
-        ans[_brick_stride*old+i]=ii;
-    }
-  }
-}
-
-/*
-__kernel void particle_map(__global numtyp4 *x_, __global numtyp *q_,
-                           __global int *counts, __global int *atoms, 
-                           const numtyp boxlo_x, const numtyp boxlo_y,
-                           const numtyp boxlo_z, const numtyp delxinv,
-                           const numtyp delyinv, const numtyp delzinv,
-                           const int npts_x, const int npts_y,
-                           const int npts_z, const int _brick_stride,
-                           const int max_atoms, __global int *error) {
-  // ii indexes the two interacting particles in gi
-  int xx=THREAD_ID_X;
-  int yy=THREAD_ID_Y;
-  int bx=BLOCK_ID_X;
-  int by=BLOCK_ID_Y;
-  int block_size=BLOCK_SIZE_X;
-  
-  int max_y=BLOCK_ID_Y*block_size+block_size;
-  int max_x=BLOCK_ID_X*block_size+block_size;
-  
-  __local numtyp4 p;
-  __local numtyp q,dx,dy,dz;
-  __local int brick_i,count,atom_i;
-  
-  for (int z=-nlower; z<npts_z-order; z++)
-    for (int ny=max_y-block_size; ny<max_y; ny++) {
-      if (ny>npts_y)
-        break;
-      brick_i = z*npts_x*npts_y + ny*npts_x + max_x - block_size;
-      for (int nx=max_x-block_size; nx<max_x; nx++) {
-        if (nx>npts_x)
-          break;
-        count=counts[brick_i];
-        for (int i=0; i<count; i++) {
-          int atom_i=atoms[brick_i+i*_brick_stride];
-          p=fetch_pos(x_,atom_i);
-          q=fetch_q(q_,atom_i);
-          
-    dx = nx+shiftone - (x[i][0]-boxlo[0])*delxinv;
-    dy = ny+shiftone - (x[i][1]-boxlo[1])*delyinv;
-    dz = nz+shiftone - (x[i][2]-boxlo[2])*delzinv;
-          
-          
-        
-        
-        
-        brick_i++;
-  
-  
-  int nx=GLOBAL_ID_X+nlower;
-  int ny=GLOBAL_ID_Y+nlower;
-  int block_size=BLOCK_SIZE_X;
-  
-    for (
-
-  // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
-  // (dx,dy,dz) = distance to "lower left" grid pt
-  // (mx,my,mz) = global coords of moving stencil pt
-
-  double *q = atom->q;
-  double **x = atom->x;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++) {
-
-    nx = part2grid[i][0];
-    ny = part2grid[i][1];
-    nz = part2grid[i][2];
-
-    compute_rho1d(dx,dy,dz);
-
-    z0 = delvolinv * q[i];
-    for (n = nlower; n <= nupper; n++) {
-      mz = n+nz;  // z-index of point being updated
-      y0 = z0*rho1d[2][n]; 
-      for (m = nlower; m <= nupper; m++) {
-        my = m+ny;
-        x0 = y0*rho1d[1][m];
-        for (l = nlower; l <= nupper; l++) {
-          mx = l+nx;
-          density_brick[mz][my][mx] += x0*rho1d[0][l];
-        }
+        atom_add(counts+i,-1);
       }
+      else
+        ans[atom_stride*old+i]=ii;
     }
   }
 }
 
-void PPPMGPU::compute_rho1d(double dx, double dy, double dz)
+__device__ inline void atomicFloatAdd(float *address, float val)
 {
-  int k,l;
+       int i_val = __float_as_int(val);
+       int tmp0 = 0;
+       int tmp1;
 
-  for (k = (1-order)/2; k <= order/2; k++) {
-    rho1d[0][k] = 0.0;
-    rho1d[1][k] = 0.0;
-    rho1d[2][k] = 0.0;
-    for (l = order-1; l >= 0; l--) {
-      rho1d[0][k] = rho_coeff[l][k] + rho1d[0][k]*dx;
-      rho1d[1][k] = rho_coeff[l][k] + rho1d[1][k]*dy;
-      rho1d[2][k] = rho_coeff[l][k] + rho1d[2][k]*dz;
-    }
-  }
+       while( (tmp1 = atomicCAS((int *)address, tmp0, i_val)) != tmp0)
+       {
+               tmp0 = tmp1;
+               i_val = __float_as_int(val + __int_as_float(tmp1));
+       }
 }
 
-*/
+__kernel void make_rho(__global numtyp4 *x_, __global numtyp *q_,
+                       __global int *counts, __global int *atoms,
+                       __global numtyp *brick, __global numtyp *rho_coeff,
+                       const int atom_stride,
+                       const int npts_x, const int npts_y,
+                       const int npts_z, const int nlower,
+                       const int nupper, const numtyp boxlo_x,
+                       const numtyp boxlo_y, const numtyp boxlo_z,
+                       const numtyp delxinv, const numtyp delyinv,
+                       const numtyp delzinv,
+                       const int order, const numtyp delvolinv) {
+  // ii indexes the two interacting particles in gi
+  int nx=GLOBAL_ID_X;
+  int ny=GLOBAL_ID_Y;
+  int nz=0;
+  
+  int nlocal_x=npts_x-nupper+nlower;
+  int nlocal_y=npts_y-nupper+nlower;
+  int nlocal_z=npts_z-nupper+nlower;
+
+  if (nx<nlocal_x && ny<nlocal_y) {
+    int z_stride=nlocal_x*nlocal_y;
+    int z_pos=nz*z_stride+ny*nlocal_x+nx;
+    for ( ; nz<nlocal_z; nz++) {
+      int natoms=counts[z_pos];
+      for (int row=0; row<natoms; row++) {
+        int atom=atoms[atom_stride*row+z_pos];
+        numtyp4 p=fetch_pos(atom,x_);
+        numtyp z0=delvolinv*fetch_q(atom,q_);
+        
+        numtyp dx = nx - (p.x-boxlo_x)*delxinv;
+        numtyp dy = ny - (p.y-boxlo_y)*delyinv;
+        numtyp dz = nz - (p.z-boxlo_z)*delzinv;
+
+        numtyp rho1d[3][8];
+        for (int k = 0; k < order; k++) {
+          rho1d[0][k] = 0.0;
+          rho1d[1][k] = 0.0;
+          rho1d[2][k] = 0.0;
+          for (int l = order-1; l >= 0; l--) {
+            rho1d[0][k] = rho_coeff[l*order+k] + rho1d[0][k]*dx;
+            rho1d[1][k] = rho_coeff[l*order+k] + rho1d[1][k]*dy;
+            rho1d[2][k] = rho_coeff[l*order+k] + rho1d[2][k]*dz;
+          }
+        }
+        
+        for (int n = 0; n < order; n++) {
+          int mz = n+nz;
+          numtyp y0 = z0*rho1d[2][n];
+          for (int m = 0; m < order; m++) {
+            int my = m+ny;
+	          numtyp x0 = y0*rho1d[1][m];
+	          for (int l = 0; l < order; l++) {
+	            int mx = l+nx;
+	            int bi = mz*npts_y*npts_x+my*npts_x+mx;
+              atomicFloatAdd(brick+bi,x0*rho1d[0][l]);
+	          }
+	        }
+	      }
+	    }
+	    z_pos+=z_stride;
+	  }
+	}
+}
 
 #endif
+

@@ -76,7 +76,8 @@ class PairGPUDevice {
                     const double max_bytes, FILE *screen);
 
   /// Output a message with timing information
-  void output_kspace_times(UCL_Timer &time_in, UCL_Timer & time_kernel,
+  void output_kspace_times(UCL_Timer &time_in, UCL_Timer &time_out,
+                           UCL_Timer & time_map, UCL_Timer & time_rho,
                            PairGPUAns<numtyp,acctyp> &ans, 
                            const double max_bytes, FILE *screen);
 

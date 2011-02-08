@@ -37,10 +37,10 @@
 
 // External functions from cuda library for atom decomposition
 
-bool pppm_gpu_init(const int nlocal, const int nall, FILE *screen,
-                   const int order, const int nxlo_out, const int nylo_out,
-                   const int nzlo_out, const int nxhi_out, const int nyhi_out,
-                   const int nzhi_out, double **rho_coeff);
+float* pppm_gpu_init(const int nlocal, const int nall, FILE *screen,
+                     const int order, const int nxlo_out, const int nylo_out,
+                     const int nzlo_out, const int nxhi_out, const int nyhi_out,
+                     const int nzhi_out, double **rho_coeff, bool &success);
 void pppm_gpu_clear();
 int pppm_gpu_compute(const int ago, const int nlocal, const int nall,
                      double **host_x, int *host_type, bool &success,
@@ -495,10 +495,11 @@ void PPPMGPU::init()
   compute_gf_denom();
   compute_rho_coeff();
 
-  bool init_ok = pppm_gpu_init(atom->nlocal, atom->nlocal+atom->nghost,
-                               screen, order, nxlo_out, nylo_out, nzlo_out,
-                               nxhi_out, nyhi_out, nzhi_out, rho_coeff);
-  if (!init_ok)
+  bool success;
+  host_brick = pppm_gpu_init(atom->nlocal, atom->nlocal+atom->nghost, screen,
+                             order, nxlo_out, nylo_out, nzlo_out, nxhi_out,
+                             nyhi_out, nzhi_out, rho_coeff,success);
+  if (!success)
     error->one("Insufficient memory on accelerator (or no fix gpu).\n"); 
 time1=0; time2=0; time3=0;
 }
@@ -701,6 +702,18 @@ time2+=MPI_Wtime()-t2;
 double t3=MPI_Wtime();
   make_rho();
 time3+=MPI_Wtime()-t3;
+
+int _npts_x=nxhi_out-nxlo_out+1;
+int _npts_y=nyhi_out-nylo_out+1;
+int _npts_z=nzhi_out-nzlo_out+1;
+double *cpup = &density_brick[nlower][nlower][nlower];
+float *gpup = host_brick;
+int iend=_npts_x*_npts_y*_npts_z;
+for (int i=0; i<iend; i++) {
+  std::cout << "CPU GPU: " << *cpup << " " << *gpup << std::endl;
+  cpup++;
+  gpup++;
+}
 
   // all procs communicate density values from their ghost cells
   //   to fully sum contribution in their 3d bricks

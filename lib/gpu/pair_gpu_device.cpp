@@ -259,16 +259,20 @@ void PairGPUDeviceT::output_times(UCL_Timer &time_pair,
 
 template <class numtyp, class acctyp>
 void PairGPUDeviceT::output_kspace_times(UCL_Timer &time_in, 
-                                         UCL_Timer &time_kernel,
+                                         UCL_Timer &time_out,
+                                         UCL_Timer &time_map,
+                                         UCL_Timer &time_rho,
                                          PairGPUAns<numtyp,acctyp> &ans, 
                                          const double max_bytes, FILE *screen) {
-  double single[3], times[3];
+  double single[4], times[4];
 
-  single[0]=atom.transfer_time()+ans.transfer_time()+time_in.total_seconds();
+  single[0]=atom.transfer_time()+ans.transfer_time()+time_in.total_seconds()+
+            time_out.total_seconds();
   single[1]=atom.cast_time()+ans.cast_time();
-  single[2]=time_kernel.total_seconds();
+  single[2]=time_map.total_seconds();
+  single[3]=time_rho.total_seconds();
 
-  MPI_Reduce(single,times,3,MPI_DOUBLE,MPI_SUM,0,_comm_replica);
+  MPI_Reduce(single,times,4,MPI_DOUBLE,MPI_SUM,0,_comm_replica);
 
   double my_max_bytes=max_bytes+atom.max_gpu_bytes();
   double mpi_max_bytes;
@@ -286,7 +290,8 @@ void PairGPUDeviceT::output_kspace_times(UCL_Timer &time_in,
       if (procs_per_gpu()==1) {
         fprintf(screen,"Data Transfer:   %.4f s.\n",times[0]/_replica_size);
         fprintf(screen,"Data Cast/Pack:  %.4f s.\n",times[1]/_replica_size);
-        fprintf(screen,"Kernel:          %.4f s.\n",times[2]/_replica_size);
+        fprintf(screen,"Kernel (map):    %.4f s.\n",times[2]/_replica_size);
+        fprintf(screen,"Kernel (rho):    %.4f s.\n",times[3]/_replica_size);
 //        fprintf(screen,"Force calc:      %.4f s.\n",times[3]/_replica_size);
       }
       fprintf(screen,"Max Mem / Proc:  %.2f MB.\n",max_mb);

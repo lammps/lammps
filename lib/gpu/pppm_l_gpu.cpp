@@ -28,10 +28,11 @@ static PPPMGPUMemory<PRECISION,ACC_PRECISION> PPPMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
-bool pppm_gpu_init(const int nlocal, const int nall, FILE *screen,
-                   const int order, const int nxlo_out, const int nylo_out,
-                   const int nzlo_out, const int nxhi_out, const int nyhi_out,
-                   const int nzhi_out, double **rho_coeff) {
+float * pppm_gpu_init(const int nlocal, const int nall, FILE *screen,
+                      const int order, const int nxlo_out, const int nylo_out,
+                      const int nzlo_out, const int nxhi_out, 
+                      const int nyhi_out, const int nzhi_out,
+                      double **rho_coeff, bool &success) {
   PPPMF.clear();
   int first_gpu=PPPMF.device->first_device();
   int last_gpu=PPPMF.device->last_device();
@@ -50,11 +51,14 @@ bool pppm_gpu_init(const int nlocal, const int nall, FILE *screen,
     fflush(screen);
   }
 
+  success=true;
+  float * host_brick;
   if (world_me==0) {
-    bool init_ok=PPPMF.init(nlocal,nall,screen,order,nxlo_out,nylo_out,
-                            nzlo_out,nxhi_out,nyhi_out,nzhi_out,rho_coeff);
-    if (!init_ok)
-      return false;
+    host_brick=PPPMF.init(nlocal,nall,screen,order,nxlo_out,nylo_out,
+                                  nzlo_out,nxhi_out,nyhi_out,nzhi_out,rho_coeff,
+                                  success);
+    if (!success)
+      return host_brick;
   }
 
   PPPMF.device->world_barrier();
@@ -71,10 +75,11 @@ bool pppm_gpu_init(const int nlocal, const int nall, FILE *screen,
       fflush(screen);
     }
     if (gpu_rank==i && world_me!=0) {
-      bool init_ok=PPPMF.init(nlocal,nall,screen,order,nxlo_out,nylo_out,
-                              nzlo_out,nxhi_out,nyhi_out,nzhi_out,rho_coeff);
-      if (!init_ok)
-        return false;
+      host_brick=PPPMF.init(nlocal,nall,screen,order,nxlo_out,nylo_out,
+                            nzlo_out,nxhi_out,nyhi_out,nzhi_out,rho_coeff,
+                            success);
+      if (!success)
+        return host_brick;
     }
     PPPMF.device->gpu_barrier();
     if (message) 
@@ -82,7 +87,7 @@ bool pppm_gpu_init(const int nlocal, const int nall, FILE *screen,
   }
   if (message)
     fprintf(screen,"\n");
-  return true;
+  return host_brick;
 }
 
 void pppm_gpu_clear() {

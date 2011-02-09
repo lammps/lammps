@@ -48,7 +48,7 @@ set		group upper type 5
 
 compute	  	new mobile temp
 velocity	mobile create 0.01 887723 temp new
-velocity	upper set 0.0 0.3 0.0
+velocity	upper set 0.0 0.3 NULL
 velocity	mobile ramp vy 0.0 0.3 y 1.25 38.75 sum yes
 
 # fixes

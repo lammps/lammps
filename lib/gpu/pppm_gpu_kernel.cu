@@ -18,7 +18,7 @@
 #ifndef PPPM_GPU_KERNEL
 #define PPPM_GPU_KERNEL
 
-#define OFFSET 16384
+#define MAX_STENCIL 8
 
 #ifdef _DOUBLE_DOUBLE
 #define numtyp double
@@ -153,24 +153,26 @@ __kernel void particle_map(__global numtyp4 *x_, const int nlocal,
 
 __kernel void make_rho(__global numtyp4 *x_, __global numtyp *q_,
                        __global int *counts, __global int *atoms,
-                       __global numtyp *brick, __global numtyp *rho_coeff,
-                       const int atom_stride,
-                       const int npts_x, const int npts_y,
-                       const int npts_z, const int nlower,
-                       const int nupper, const numtyp b_lo_x,
+                       __global numtyp *brick, __global numtyp *_rho_coeff,
+                       const int atom_stride, const int npts_x,
+                       const int npts_y, const int nlocal_x, const int nlocal_y,
+                       const int nlocal_z, const numtyp b_lo_x,
                        const numtyp b_lo_y, const numtyp b_lo_z,
                        const numtyp delxinv, const numtyp delyinv,
-                       const numtyp delzinv,
-                       const int order, const numtyp delvolinv) {
-  // ii indexes the two interacting particles in gi
-  int nx=GLOBAL_ID_X;
-  int ny=GLOBAL_ID_Y;
+                       const numtyp delzinv, const int order,
+                       const numtyp delvolinv) {
+  __local numtyp rho_coeff[MAX_STENCIL*MAX_STENCIL];
+  int nx=THREAD_ID_X;
+  int ny=THREAD_ID_Y;
+  if (nx<order && ny<order) {
+    int ri=nx*order+ny;
+    rho_coeff[ri]=_rho_coeff[ri];
+  }
+  
+  nx+=BLOCK_ID_X*BLOCK_SIZE_X;
+  ny+=BLOCK_ID_Y*BLOCK_SIZE_Y;
   int nz=0;
   
-  int nlocal_x=npts_x-nupper+nlower;
-  int nlocal_y=npts_y-nupper+nlower;
-  int nlocal_z=npts_z-nupper+nlower;
-
   if (nx<nlocal_x && ny<nlocal_y) {
     int z_stride=nlocal_x*nlocal_y;
     int z_pos=nz*z_stride+ny*nlocal_x+nx;
@@ -185,29 +187,28 @@ __kernel void make_rho(__global numtyp4 *x_, __global numtyp *q_,
         numtyp dy = ny - (p.y-b_lo_y)*delyinv;
         numtyp dz = nz - (p.z-b_lo_z)*delzinv;
 
-        numtyp rho1d[3][8];
+        numtyp rho1d[2][MAX_STENCIL];
         for (int k = 0; k < order; k++) {
           rho1d[0][k] = 0.0;
           rho1d[1][k] = 0.0;
-          rho1d[2][k] = 0.0;
           for (int l = order-1; l >= 0; l--) {
             rho1d[0][k] = rho_coeff[l*order+k] + rho1d[0][k]*dx;
             rho1d[1][k] = rho_coeff[l*order+k] + rho1d[1][k]*dy;
-            rho1d[2][k] = rho_coeff[l*order+k] + rho1d[2][k]*dz;
           }
         }
         
         for (int n = 0; n < order; n++) {
-          int mz = n+nz;
-          numtyp y0 = z0*rho1d[2][n];
+          numtyp rho1d_2 = 0.0;
+          for (int k = order-1; k >= 0; k--)
+            rho1d_2 = rho_coeff[k*order+n] + rho1d_2*dz;
+          numtyp y0 = z0*rho1d_2;
+          int mz = (n+nz)*npts_y*npts_x + ny*npts_x +nx;
           for (int m = 0; m < order; m++) {
-            int my = m+ny;
 	          numtyp x0 = y0*rho1d[1][m];
 	          for (int l = 0; l < order; l++) {
-	            int mx = l+nx;
-	            int bi = mz*npts_y*npts_x+my*npts_x+mx;
-              atomicFloatAdd(brick+bi,x0*rho1d[0][l]);
+              atomicFloatAdd(brick+mz+l,x0*rho1d[0][l]);
 	          }
+	          mz+=npts_x;
 	        }
 	      }
 	    }

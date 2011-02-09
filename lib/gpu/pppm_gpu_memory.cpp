@@ -269,7 +269,7 @@ std::cout << "Delx: " << 1.0/delxinv << " " << 1.0/delyinv << " " << 1.0/delzinv
   k_make_rho.run(&atom->dev_x.begin(), &atom->dev_q.begin(),
                  &d_brick_counts.begin(), &d_brick_atoms.begin(),
                  &d_brick.begin(), &d_rho_coeff.begin(), &_atom_stride, &_npts_x,
-                 &_npts_y, &_npts_z, &_nlower, &_nupper, &f_brick_x,
+                 &_npts_y, &_nlocal_x, &_nlocal_y, &_nlocal_z, &f_brick_x,
                  &f_brick_y, &f_brick_z, &f_delxinv, &f_delyinv, &f_delzinv,
                  &_order, &f_delvolinv);
   time_rho.stop();

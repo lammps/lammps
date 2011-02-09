@@ -37,7 +37,7 @@
 
 // External functions from cuda library for atom decomposition
 
-float* pppm_gpu_init(const int nlocal, const int nall, FILE *screen,
+numtyp* pppm_gpu_init(const int nlocal, const int nall, FILE *screen,
                      const int order, const int nxlo_out, const int nylo_out,
                      const int nzlo_out, const int nxhi_out, const int nyhi_out,
                      const int nzhi_out, double **rho_coeff, bool &success);
@@ -703,17 +703,36 @@ double t3=MPI_Wtime();
   make_rho();
 time3+=MPI_Wtime()-t3;
 
+double max_error=0;
 int _npts_x=nxhi_out-nxlo_out+1;
 int _npts_y=nyhi_out-nylo_out+1;
 int _npts_z=nzhi_out-nzlo_out+1;
-double *cpup = &density_brick[nlower][nlower][nlower];
-float *gpup = host_brick;
+double *cpup = &density_brick[nxlo_out][nylo_out][nzlo_out];
+numtyp *gpup = host_brick;
 int iend=_npts_x*_npts_y*_npts_z;
+int counter_x=0, counter_y=0, counter_z=0;
 for (int i=0; i<iend; i++) {
-  std::cout << "CPU GPU: " << *cpup << " " << *gpup << std::endl;
+  double error=0.0;
+  if (*cpup>1e-8)
+    error = fabs(((*gpup)-(*cpup))/(*cpup));
+  if (error>0.05)
+//    std::cout << "* ";
+    std::cout << counter_z << " " << counter_y << " " << counter_x << " CPU GPU: " << error << " " << *cpup << " " << *gpup << std::endl;
+  if (error>max_error)
+    max_error=error;
   cpup++;
   gpup++;
+  counter_x++;
+  if (counter_x==_npts_x) {
+    counter_x=0;
+    counter_y++;
+  }
+  if (counter_y==_npts_y) {
+    counter_y=0;
+    counter_z++;
+  }
 }
+std::cout << "Maximum relative error: " << max_error*100.0 << "%\n";
 
   // all procs communicate density values from their ghost cells
   //   to fully sum contribution in their 3d bricks

@@ -23,6 +23,8 @@ KSpaceStyle(pppm/gpu,PPPMGPU)
 #include "pppm.h"
 #include "lmptype.h"
 
+#define numtyp float
+
 namespace LAMMPS_NS {
 
 class PPPMGPU : public KSpace {
@@ -98,7 +100,7 @@ class PPPMGPU : public KSpace {
   void compute_rho1d(double, double, double);
   void compute_rho_coeff();
   void slabcorr(int);
-float *host_brick;
+numtyp *host_brick;
 double time1,time2,time3;  
 };
 

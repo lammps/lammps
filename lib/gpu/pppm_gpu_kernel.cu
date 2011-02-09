@@ -59,6 +59,18 @@ __inline double fetch_q(const int& i, const double *q)
 {
   return q[i];
 }
+
+__device__ inline void atomicFloatAdd(double* address, double val) {
+  double old = *address, assumed;
+  do { 
+    assumed = old;
+    old = __longlong_as_double( atomicCAS((unsigned long long int*)address, 
+                                          __double_as_longlong(assumed),
+                                          __double_as_longlong(val +
+                                          assumed)));
+  } while (assumed != old); 
+}
+
 #else
 __inline float4 fetch_pos(const int& i, const float4 *pos)
 {
@@ -68,6 +80,21 @@ __inline float fetch_q(const int& i, const float *q)
 {
   return tex1Dfetch(q_tex, i);
 }
+
+__device__ inline void atomicFloatAdd(float *address, float val)
+{
+       int i_val = __float_as_int(val);
+       int tmp0 = 0;
+       int tmp1;
+
+       while( (tmp1 = atomicCAS((int *)address, tmp0, i_val)) != tmp0)
+       {
+               tmp0 = tmp1;
+               i_val = __float_as_int(val + __int_as_float(tmp1));
+       }
+}
+
+
 #endif
 
 #else
@@ -88,8 +115,8 @@ __inline float fetch_q(const int& i, const float *q)
 
 __kernel void particle_map(__global numtyp4 *x_, const int nlocal, 
                            __global int *counts, __global int *ans, 
-                           const numtyp boxlo_x, const numtyp boxlo_y,
-                           const numtyp boxlo_z, const numtyp delxinv,
+                           const numtyp b_lo_x, const numtyp b_lo_y,
+                           const numtyp b_lo_z, const numtyp delxinv,
                            const numtyp delyinv, const numtyp delzinv,
                            const int nlocal_x, const int nlocal_y,
                            const int nlocal_z, const int atom_stride,
@@ -102,11 +129,11 @@ __kernel void particle_map(__global numtyp4 *x_, const int nlocal,
   if (ii<nlocal) {
     numtyp4 p=fetch_pos(ii,x_);
 
-    tx=(p.x-boxlo_x)*delxinv;
+    tx=(p.x-b_lo_x)*delxinv;
     nx=int(tx);
-    ty=(p.y-boxlo_y)*delyinv;
+    ty=(p.y-b_lo_y)*delyinv;
     ny=int(ty);
-    tz=(p.z-boxlo_z)*delzinv;
+    tz=(p.z-b_lo_z)*delzinv;
     nz=int(tz);
 
     if (tx<0 || ty<0 || tz<0 || nx>=nlocal_x || ny>=nlocal_y || nz>=nlocal_z)
@@ -124,27 +151,14 @@ __kernel void particle_map(__global numtyp4 *x_, const int nlocal,
   }
 }
 
-__device__ inline void atomicFloatAdd(float *address, float val)
-{
-       int i_val = __float_as_int(val);
-       int tmp0 = 0;
-       int tmp1;
-
-       while( (tmp1 = atomicCAS((int *)address, tmp0, i_val)) != tmp0)
-       {
-               tmp0 = tmp1;
-               i_val = __float_as_int(val + __int_as_float(tmp1));
-       }
-}
-
 __kernel void make_rho(__global numtyp4 *x_, __global numtyp *q_,
                        __global int *counts, __global int *atoms,
                        __global numtyp *brick, __global numtyp *rho_coeff,
                        const int atom_stride,
                        const int npts_x, const int npts_y,
                        const int npts_z, const int nlower,
-                       const int nupper, const numtyp boxlo_x,
-                       const numtyp boxlo_y, const numtyp boxlo_z,
+                       const int nupper, const numtyp b_lo_x,
+                       const numtyp b_lo_y, const numtyp b_lo_z,
                        const numtyp delxinv, const numtyp delyinv,
                        const numtyp delzinv,
                        const int order, const numtyp delvolinv) {
@@ -167,9 +181,9 @@ __kernel void make_rho(__global numtyp4 *x_, __global numtyp *q_,
         numtyp4 p=fetch_pos(atom,x_);
         numtyp z0=delvolinv*fetch_q(atom,q_);
         
-        numtyp dx = nx - (p.x-boxlo_x)*delxinv;
-        numtyp dy = ny - (p.y-boxlo_y)*delyinv;
-        numtyp dz = nz - (p.z-boxlo_z)*delzinv;
+        numtyp dx = nx - (p.x-b_lo_x)*delxinv;
+        numtyp dy = ny - (p.y-b_lo_y)*delyinv;
+        numtyp dz = nz - (p.z-b_lo_z)*delzinv;
 
         numtyp rho1d[3][8];
         for (int k = 0; k < order; k++) {

@@ -100,7 +100,7 @@ numtyp * PPPMGPUMemoryT::init(const int nlocal, const int nall, FILE *_screen,
   _nyhi_out=nyhi_out;
   _nzhi_out=nzhi_out;
   _max_brick_atoms=10;
-  
+
   // Get rho_coeff on device
   int n2lo=(1-order)/2;
   int numel=order*( order/2 - n2lo + 1 );
@@ -142,6 +142,11 @@ numtyp * PPPMGPUMemoryT::init(const int nlocal, const int nall, FILE *_screen,
   d_error_flag.zero();
   _max_bytes+=1;
   
+std::cout << "LO: " << _nxlo_out << " " << _nylo_out << " " << _nzlo_out << " " << _nlower << std::endl;
+std::cout << "HI: " << _nxhi_out << " " << _nyhi_out << " " << _nzhi_out << " " << _nupper << std::endl;
+std::cout << "pts: " << _npts_x << " " << _npts_y << " " << _npts_z << std::endl;
+std::cout << "local: " << _nlocal_x << " " << _nlocal_y << " " << _nlocal_z << std::endl;
+
   return h_brick.begin();
 }
 
@@ -218,43 +223,54 @@ int PPPMGPUMemoryT::compute(const int ago, const int nlocal, const int nall,
   int _max_atoms=10;
   int ainum=this->ans->inum();
   
-  // Boxlo adjusted to include ghost cells and shift for even stencil order
+  // Boxlo adjusted to be upper left brick and shift for even stencil order
   double shift=0.0;
   if (_order % 2)
-    shift-=0.5/delxinv;
+    shift=0.5;
+  numtyp f_brick_x=boxlo[0]+(_nxlo_out-_nlower-shift)/delxinv;
+  numtyp f_brick_y=boxlo[1]+(_nylo_out-_nlower-shift)/delyinv;
+  numtyp f_brick_z=boxlo[2]+(_nzlo_out-_nlower-shift)/delzinv;
   
-  numtyp f_boxlo_x=boxlo[0]+shift;
-  numtyp f_boxlo_y=boxlo[1]+shift;
-  numtyp f_boxlo_z=boxlo[2]+shift;
   numtyp f_delxinv=delxinv;
   numtyp f_delyinv=delyinv;
   numtyp f_delzinv=delzinv;
   double delvolinv = delxinv*delyinv*delzinv;
   numtyp f_delvolinv = delvolinv;
 
+std::cout << "BOX: " << boxlo[0] << " " << boxlo[1] << " " << boxlo[2] << "\n";
+std::cout << "Brick: " << f_brick_x << " " << f_brick_y << " " << f_brick_z << "\n";
+std::cout << "Delx: " << 1.0/delxinv << " " << 1.0/delyinv << " " << 1.0/delzinv << std::endl;
   time_map.start();
   d_brick_counts.zero();
   k_particle_map.set_size(GX,BX);
   k_particle_map.run(&atom->dev_x.begin(), &ainum, &d_brick_counts.begin(),
-                     &d_brick_atoms.begin(), &f_boxlo_x, &f_boxlo_y, 
-                     &f_boxlo_z, &f_delxinv, &f_delyinv, &f_delzinv, &_nlocal_x,
+                     &d_brick_atoms.begin(), &f_brick_x, &f_brick_y, 
+                     &f_brick_z, &f_delxinv, &f_delyinv, &f_delzinv, &_nlocal_x,
                      &_nlocal_y, &_nlocal_z, &_atom_stride, &_max_brick_atoms, 
                      &d_error_flag.begin());
   time_map.stop();
+//std::cout << "COUNTS: " << d_brick_counts << std::endl;
 
+  if (_order % 2)
+    shift=0.0;
+  else
+    shift=0.5;
+  f_brick_x=boxlo[0]+(_nxlo_out-_nlower+shift)/delxinv;
+  f_brick_y=boxlo[1]+(_nylo_out-_nlower+shift)/delyinv;
+  f_brick_z=boxlo[2]+(_nzlo_out-_nlower+shift)/delzinv;
 
   time_rho.start();
   BX=block_x_size();
   int BY=block_y_size();
-  GX=static_cast<int>(ceil(static_cast<double>(_nlocal_x))/BX);
-  int GY=static_cast<int>(ceil(static_cast<double>(_nlocal_y))/BY);
+  GX=static_cast<int>(ceil(static_cast<double>(_nlocal_x)/BX));
+  int GY=static_cast<int>(ceil(static_cast<double>(_nlocal_y)/BY));
   d_brick.zero();
   k_make_rho.set_size(GX,GY,BX,BY);
   k_make_rho.run(&atom->dev_x.begin(), &atom->dev_q.begin(),
                  &d_brick_counts.begin(), &d_brick_atoms.begin(),
                  &d_brick.begin(), &d_rho_coeff.begin(), &_atom_stride, &_npts_x,
-                 &_npts_y, &_npts_z, &_nlower, &_nupper, &f_boxlo_x,
-                 &f_boxlo_y, &f_boxlo_z, &f_delxinv, &f_delyinv, &f_delzinv,
+                 &_npts_y, &_npts_z, &_nlower, &_nupper, &f_brick_x,
+                 &f_brick_y, &f_brick_z, &f_delxinv, &f_delyinv, &f_delzinv,
                  &_order, &f_delvolinv);
   time_rho.stop();
 

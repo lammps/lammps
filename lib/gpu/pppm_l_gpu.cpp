@@ -28,11 +28,12 @@ static PPPMGPUMemory<PRECISION,ACC_PRECISION> PPPMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
-float * pppm_gpu_init(const int nlocal, const int nall, FILE *screen,
-                      const int order, const int nxlo_out, const int nylo_out,
-                      const int nzlo_out, const int nxhi_out, 
-                      const int nyhi_out, const int nzhi_out,
-                      double **rho_coeff, bool &success) {
+PRECISION * pppm_gpu_init(const int nlocal, const int nall, FILE *screen,
+                          const int order, const int nxlo_out, 
+                          const int nylo_out, const int nzlo_out,
+                          const int nxhi_out, const int nyhi_out,
+                          const int nzhi_out, double **rho_coeff,
+                          bool &success) {
   PPPMF.clear();
   int first_gpu=PPPMF.device->first_device();
   int last_gpu=PPPMF.device->last_device();
@@ -52,7 +53,7 @@ float * pppm_gpu_init(const int nlocal, const int nall, FILE *screen,
   }
 
   success=true;
-  float * host_brick;
+  PRECISION * host_brick=NULL;
   if (world_me==0) {
     host_brick=PPPMF.init(nlocal,nall,screen,order,nxlo_out,nylo_out,
                                   nzlo_out,nxhi_out,nyhi_out,nzhi_out,rho_coeff,

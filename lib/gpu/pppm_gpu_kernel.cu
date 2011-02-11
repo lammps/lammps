@@ -191,8 +191,8 @@ __kernel void make_rho(__global numtyp4 *x_, __global numtyp *q_,
 
         numtyp rho1d[2][MAX_STENCIL];
         for (int k = 0; k < order; k++) {
-          rho1d[0][k] = 0.0;
-          rho1d[1][k] = 0.0;
+          rho1d[0][k] = (numtyp)0.0;
+          rho1d[1][k] = (numtyp)0.0;
           for (int l = order-1; l >= 0; l--) {
             rho1d[0][k] = rho_coeff[l*order+k] + rho1d[0][k]*dx;
             rho1d[1][k] = rho_coeff[l*order+k] + rho1d[1][k]*dy;
@@ -200,7 +200,7 @@ __kernel void make_rho(__global numtyp4 *x_, __global numtyp *q_,
         }
         
         for (int n = 0; n < order; n++) {
-          numtyp rho1d_2 = 0.0;
+          numtyp rho1d_2 = (numtyp)0.0;
           for (int k = order-1; k >= 0; k--)
             rho1d_2 = rho_coeff[k*order+n] + rho1d_2*dz;
           numtyp y0 = z0*rho1d_2;
@@ -225,8 +225,10 @@ __kernel void make_rho2(__global numtyp4 *x_, __global numtyp *q_,
                        __global int *counts, __global int *atoms,
                        __global numtyp *brick, __global numtyp *_rho_coeff,
                        const int atom_stride, const int npts_x,
-                       const int npts_y, const int nlocal_x, const int nlocal_y,
-                       const int nlocal_z, const numtyp b_lo_x,
+                       const int npts_y, const int npts_z, 
+                       const int nlocal_x, const int nlocal_y,
+                       const int nlocal_z, const int nlower,
+                       const int nupper, const numtyp b_lo_x,
                        const numtyp b_lo_y, const numtyp b_lo_z,
                        const numtyp delxinv, const numtyp delyinv,
                        const numtyp delzinv, const int order,
@@ -240,51 +242,63 @@ __kernel void make_rho2(__global numtyp4 *x_, __global numtyp *q_,
     rho_coeff[tx]=_rho_coeff[tx];
   __syncthreads();
 
-  int nz=tx;
-  if (nx<nlocal_x && ny<nlocal_y) {
-    int z_stride=nlocal_x*nlocal_y;
-    int z_pos=nz*z_stride+ny*nlocal_x+nx;
-    z_stride*=BLOCK_1D;
-    for ( ; nz<nlocal_z; nz+=BLOCK_1D) {
-      int natoms=counts[z_pos];
-      for (int i=0; i<order; i++)
-        for (int j=0; j<order; j++) {
-          int atom=atoms[atom_stride*row+z_pos+i*nlocal_x+j];
-          numtyp4 p=fetch_pos(atom,x_);
-          numtyp z0=delvolinv*fetch_q(atom,q_);
-        
-          numtyp dx = nx - (p.x-b_lo_x)*delxinv;
-          numtyp dy = ny - (p.y-b_lo_y)*delyinv;
-          numtyp dz = nz - (p.z-b_lo_z)*delzinv;
-          
-z0*rho1d_2*          rho1d[1][j]*rho1d[0][i] ??
+  if (nx<npts_x && ny<npts_y) {
+    int x_start=0;
+    int y_start=0;
+    int x_stop=order;
+    int y_stop=order;
+    if (nx<-nlower)
+      x_start=-(nx+nlower);
+    if (ny<-nlower)
+      y_start=-(ny+nlower);
+    if (nx>=nlocal_x)
+      x_stop-=nx-nlocal_x+1;
+    if (ny>=nlocal_y)
+      y_stop-=ny-nlocal_y+1;
 
-        numtyp rho1d[2][MAX_STENCIL];
-        for (int k = 0; k < order; k++) {
-          rho1d[0][k] = 0.0;
-          rho1d[1][k] = 0.0;
-          for (int l = order-1; l >= 0; l--) {
-            rho1d[0][k] = rho_coeff[l*order+k] + rho1d[0][k]*dx;
-            rho1d[1][k] = rho_coeff[l*order+k] + rho1d[1][k]*dy;
-          }
-        }
+    for (int nz=tx ; nz<npts_z; nz+=BLOCK_1D) {
+      int pt = nz*npts_x*npts_y + ny*npts_x + nx;
+
+      int z_start=0;
+      int z_stop=order;
+      if (nz<-nlower)
+        z_start=-(nz+nlower);
+      if (nz>=nlocal_z)
+        z_stop-=nz-nlocal_z+1;
+
+      for (int n=z_start; n<z_stop; n++) {
+        int z_pos=(nz+n+nlower);
+        for (int m=y_start; m<y_stop; m++) {
+          int y_pos=(ny+m+nlower);
+          for (int l=x_start; l<x_stop; l++) {
+            int x_pos=nx+l+nlower;
+            int pos=z_pos*nlocal_x*nlocal_y+y_pos*nlocal_x+x_pos;
+            int natoms=counts[pos];
+            for (int row=0; row<natoms; row++) {
+              int atom=atoms[atom_stride*row+pos];
+              numtyp4 p=fetch_pos(atom,x_);
+              numtyp z0=delvolinv*fetch_q(atom,q_);
         
-        for (int n = 0; n < order; n++) {
-          numtyp rho1d_2 = 0.0;
-          for (int k = order-1; k >= 0; k--)
-            rho1d_2 = rho_coeff[k*order+n] + rho1d_2*dz;
-          numtyp y0 = z0*rho1d_2;
-          int mz = (n+nz)*npts_y*npts_x + ny*npts_x +nx;
-          for (int m = 0; m < order; m++) {
-	          numtyp x0 = y0*rho1d[1][m];
-	          for (int l = 0; l < order; l++) {
-              atomicFloatAdd(brick+mz+l,x0*rho1d[0][l]);
-	          }
-	          mz+=npts_x;
-	        }
-	      }
+              numtyp dx = x_pos - (p.x-b_lo_x)*delxinv;
+              numtyp dy = y_pos - (p.y-b_lo_y)*delyinv;
+              numtyp dz = z_pos - (p.z-b_lo_z)*delzinv;
+            
+              numtyp rho1d_2 = (numtyp)0.0;
+              numtyp rho1d_1 = (numtyp)0.0;
+              numtyp rho1d_0 = (numtyp)0.0;
+              for (int k = order-1; k >= 0; k--) {
+                rho1d_2 = rho_coeff[k*order+n] + rho1d_2*dz;
+                rho1d_1 = rho_coeff[k*order+m] + rho1d_1*dy;
+                rho1d_0 = rho_coeff[k*order+l] + rho1d_0*dx;
+              }
+            
+              numtyp y0 = z0*rho1d_2;
+    	        numtyp x0 = y0*rho1d_1;
+              brick[pt]=p.x;
+  	        }
+  	      }
+  	    }
 	    }
-	    z_pos+=z_stride;
 	  }
 	}
 }
@@ -334,8 +348,8 @@ __kernel void make_rho3(__global numtyp4 *x_, __global numtyp *q_,
 
       numtyp rho1d[2][MAX_STENCIL];
       for (int k = 0; k < order; k++) {
-        rho1d[0][k] = 0.0;
-        rho1d[1][k] = 0.0;
+        rho1d[0][k] = (numtyp)0.0;
+        rho1d[1][k] = (numtyp)0.0;
         for (int l = order-1; l >= 0; l--) {
           rho1d[0][k] = rho_coeff[l*order+k] + rho1d[0][k]*dx;
           rho1d[1][k] = rho_coeff[l*order+k] + rho1d[1][k]*dy;
@@ -343,7 +357,7 @@ __kernel void make_rho3(__global numtyp4 *x_, __global numtyp *q_,
       }
         
       for (int n = 0; n < order; n++) {
-        numtyp rho1d_2 = 0.0;
+        numtyp rho1d_2 = (numtyp)0.0;
         for (int k = order-1; k >= 0; k--)
           rho1d_2 = rho_coeff[k*order+n] + rho1d_2*dz;
         numtyp y0 = z0*rho1d_2;

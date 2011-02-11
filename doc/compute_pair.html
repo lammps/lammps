@@ -18,7 +18,7 @@
 <UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
 <LI>pair = style name of this compute command
 <LI>pstyle = style name of a pair style that calculates additional values
-<LI>evalue = <I>epair</I> or <I>evdwl</I> or <I>evoul</I> or blank (optional setting) 
+<LI>evalue = <I>epair</I> or <I>evdwl</I> or <I>ecoul</I> or blank (optional setting) 
 </UL>
 <P><B>Examples:</B>
 </P>
@@ -39,7 +39,7 @@ hybrid/overlay</A> command.
 </P>
 <P>The <I>evalue</I> setting is optional; it may be left off the command.  All
 pair styles tally a potential energy <I>epair</I> which may be broken into
-two parts: <I>evdwl</I> and <I>ecoul</I> such that <I>epair</I> = <I>evdwl</I> + <I>evoul</I>.
+two parts: <I>evdwl</I> and <I>ecoul</I> such that <I>epair</I> = <I>evdwl</I> + <I>ecoul</I>.
 If the pair style calculates Coulombic interactions, their energy will
 be tallied in <I>ecoul</I>.  Everything else (whether it is a Lennard-Jones
 style van der Waals interaction or not) is tallied in <I>evdwl</I>.  If
@@ -59,7 +59,7 @@ are stored as a global vector by this compute.  See the doc page for
 <P><B>Output info:</B>
 </P>
 <P>This compute calculates a global scalar which is <I>epair</I> or <I>evdwl</I> or
-<I>evoul</I>.  If the pair style supports it, it also calculates a global
+<I>ecoul</I>.  If the pair style supports it, it also calculates a global
 vector of length >= 1, as determined by the pair style.  These values
 can be used by any command that uses global scalar or vector values
 from a compute as input.  See <A HREF = "Section_howto.html#4_15">this section</A>

@@ -2817,7 +2817,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
     
     if (compute) {
       double *vec;
-      if (index) vec = &compute->array[0][index];
+      if (index) vec = &compute->array[0][index-1];
       else vec = compute->vector; 
       
       int j = 0;

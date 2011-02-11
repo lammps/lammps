@@ -130,7 +130,7 @@ void Ewald::init()
 
   // setup K-space resolution
 
-  g_ewald = (1.35 - 0.15*log(precision))/cutoff;
+  if (!gewaldflag) g_ewald = (1.35 - 0.15*log(precision))/cutoff;
   gsqmx = -4.0*g_ewald*g_ewald*log(precision);
 
   if (comm->me == 0) {

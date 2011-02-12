@@ -64,7 +64,8 @@ void KSpace::modify_params(int narg, char **arg)
       if (slab_volfactor <= 1.0)
 	error->all("Bad kspace_modify slab parameter");
       if (slab_volfactor < 2.0 && comm->me == 0) 
-	error->warning("Kspace_modify slab param < 2.0 may cause unphysical behavior");
+	error->warning("Kspace_modify slab param < 2.0 may "
+		       "cause unphysical behavior");
       slabflag = 1;
     } else error->all("Illegal kspace_modify command");
   }

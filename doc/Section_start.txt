@@ -639,18 +639,23 @@ describes how input scripts are structured and what commands they
 contain.
 
 You can test LAMMPS on any of the sample inputs provided in the
-examples directory.  Input scripts are named in.* and sample outputs
-are named log.*.name.P where name is a machine and P is the number of
-processors it was run on.
+examples or bench directory.  Input scripts are named in.* and sample
+outputs are named log.*.name.P where name is a machine and P is the
+number of processors it was run on.
 
-Here is how you might run one of the Lennard-Jones tests on a Linux
-box, using mpirun to launch a parallel job:
+Here is how you might run a standard Lennard-Jones benchmark on a
+Linux box, using mpirun to launch a parallel job:
 
 cd src
 make linux
-cp lmp_linux ../examples/lj
-cd ../examples/lj
-mpirun -np 4 lmp_linux < in.lj.nve :pre
+cp lmp_linux ../bench
+cd ../bench
+mpirun -np 4 lmp_linux < in.lj :pre
+
+See "this page"_bench for timings for this and the other benchmarks
+on various platforms.
+
+:link(bench,http://lammps.sandia.gov/bench.html)
 
 :line
 

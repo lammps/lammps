@@ -234,73 +234,79 @@ __kernel void make_rho2(__global numtyp4 *x_, __global numtyp *q_,
                        const numtyp delzinv, const int order,
                        const numtyp delvolinv) {
   __local numtyp rho_coeff[MAX_STENCIL*MAX_STENCIL];
+  __local int nx,ny,x_start,y_start,x_stop,y_stop,nlow2;
 
-  int nx=BLOCK_ID_X;
-  int ny=BLOCK_ID_Y;
   int tx=THREAD_ID_X;
-  if (tx<order*order)
-    rho_coeff[tx]=_rho_coeff[tx];
-  __syncthreads();
-
-  if (nx<npts_x && ny<npts_y) {
-    int x_start=0;
-    int y_start=0;
-    int x_stop=order;
-    int y_stop=order;
-    if (nx<-nlower)
-      x_start=-(nx+nlower);
-    if (ny<-nlower)
-      y_start=-(ny+nlower);
+  if (tx==0) {
+    nx=BLOCK_ID_X;
+    ny=BLOCK_ID_Y;
+    x_start=0;
+    y_start=0;
+    x_stop=order;
+    y_stop=order;
+    nlow2=nlower*-2;
+    if (nx<nlow2)
+      x_start=nlow2-nx;
+    if (ny<nlow2)
+      y_start=nlow2-ny;
     if (nx>=nlocal_x)
       x_stop-=nx-nlocal_x+1;
     if (ny>=nlocal_y)
       y_stop-=ny-nlocal_y+1;
+  }
+  
+  if (tx<order*order)
+    rho_coeff[tx]=_rho_coeff[tx];
+  __syncthreads();
 
-    for (int nz=tx ; nz<npts_z; nz+=BLOCK_1D) {
-      int pt = nz*npts_x*npts_y + ny*npts_x + nx;
-
-      int z_start=0;
-      int z_stop=order;
-      if (nz<-nlower)
-        z_start=-(nz+nlower);
-      if (nz>=nlocal_z)
-        z_stop-=nz-nlocal_z+1;
-
-      for (int n=z_start; n<z_stop; n++) {
-        int z_pos=(nz+n+nlower);
-        for (int m=y_start; m<y_stop; m++) {
-          int y_pos=(ny+m+nlower);
-          for (int l=x_start; l<x_stop; l++) {
-            int x_pos=nx+l+nlower;
-            int pos=z_pos*nlocal_x*nlocal_y+y_pos*nlocal_x+x_pos;
-            int natoms=counts[pos];
-            for (int row=0; row<natoms; row++) {
-              int atom=atoms[atom_stride*row+pos];
-              numtyp4 p=fetch_pos(atom,x_);
-              numtyp z0=delvolinv*fetch_q(atom,q_);
-        
-              numtyp dx = x_pos - (p.x-b_lo_x)*delxinv;
-              numtyp dy = y_pos - (p.y-b_lo_y)*delyinv;
-              numtyp dz = z_pos - (p.z-b_lo_z)*delzinv;
+  numtyp ans[MAX_STENCIL];
+  int loop_count=nlocal_z/BLOCK_1D+1;
+  int nz=tx;
+  for (int i=0 ; i<loop_count; i++) {
+    for (int n=0; n<MAX_STENCIL; n++)
+      ans[n]=(numtyp)0.0;
+    if (nz<nlocal_z) {
+      for (int m=y_start; m<y_stop; m++) {
+        int y_pos=(ny+m-nlow2);
+        for (int l=x_start; l<x_stop; l++) {
+          int x_pos=nx+l-nlow2;
+          int pos=nz*nlocal_x*nlocal_y+y_pos*nlocal_x+x_pos;
+          int natoms=counts[pos];
+          for (int row=0; row<natoms; row++) {
+            int atom=atoms[atom_stride*row+pos];
+            numtyp4 p=fetch_pos(atom,x_);
+            numtyp z0=delvolinv*fetch_q(atom,q_);
+      
+            numtyp dx = x_pos - (p.x-b_lo_x)*delxinv;
+            numtyp dy = y_pos - (p.y-b_lo_y)*delyinv;
+            numtyp dz = nz - (p.z-b_lo_z)*delzinv;
             
+            numtyp rho1d_1 = (numtyp)0.0;
+            numtyp rho1d_0 = (numtyp)0.0;
+            for (int k = order-1; k >= 0; k--) {
+              rho1d_1 = rho_coeff[k*order+(order-m-1)] + rho1d_1*dy;
+              rho1d_0 = rho_coeff[k*order+(order-l-1)] + rho1d_0*dx;
+            }
+
+            for (int n=0; n<order; n++) {
               numtyp rho1d_2 = (numtyp)0.0;
-              numtyp rho1d_1 = (numtyp)0.0;
-              numtyp rho1d_0 = (numtyp)0.0;
-              for (int k = order-1; k >= 0; k--) {
+              for (int k = order-1; k >= 0; k--)
                 rho1d_2 = rho_coeff[k*order+n] + rho1d_2*dz;
-                rho1d_1 = rho_coeff[k*order+m] + rho1d_1*dy;
-                rho1d_0 = rho_coeff[k*order+l] + rho1d_0*dx;
-              }
-            
               numtyp y0 = z0*rho1d_2;
-    	        numtyp x0 = y0*rho1d_1;
-              brick[pt]=p.x;
-  	        }
-  	      }
-  	    }
-	    }
-	  }
-	}
+              numtyp x0 = y0*rho1d_1;
+              ans[n]+=x0*rho1d_0;
+            }
+          }
+        }
+      }
+    }
+    for (int n=0; n<order; n++) {
+      int pt = (nz+n)*npts_x*npts_y + ny*npts_x + nx;
+      brick[pt]+=ans[n];
+      __syncthreads();
+    }
+    nz+=BLOCK_1D;
+  }
 }
 
 /* --------------------------- */

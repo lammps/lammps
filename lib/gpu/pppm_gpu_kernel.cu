@@ -272,14 +272,6 @@ __kernel void make_rho2(__global numtyp4 *x_, __global numtyp *q_,
   int pt = nz*npts_x*npts_y + ny*npts_x + nx;
   int z_local = nz*nlocal_x*nlocal_y;
   for (int i=0 ; i<loop_count; i++) {
-    int offset1,offset2;
-    if (i%2) {
-      offset1=0;
-      offset2=1;
-    } else {
-      offset1=1;
-      offset2=0;
-    }
     for (int n=0; n<order; n++)
       ans[n]=(numtyp)0.0;
     if (nz<nlocal_z) {

@@ -707,7 +707,7 @@ double max_error=0;
 int _npts_x=nxhi_out-nxlo_out+1;
 int _npts_y=nyhi_out-nylo_out+1;
 int _npts_z=nzhi_out-nzlo_out+1;
-double *cpup = &density_brick[nxlo_out][nylo_out][nzlo_out];
+double *cpup = &density_brick[nzlo_out][nylo_out][nxlo_out];
 numtyp *gpup = host_brick;
 int iend=_npts_x*_npts_y*_npts_z;
 int counter_x=0, counter_y=0, counter_z=0;

@@ -93,6 +93,7 @@ numtyp * PPPMGPUMemoryT::init(const int nlocal, const int nall, FILE *_screen,
   _order=order;
   _nlower=-(_order-1)/2;
   _nupper=order/2;
+  _nlow2=_nlower*-2;
   _nxlo_out=nxlo_out;
   _nylo_out=nylo_out;
   _nzlo_out=nzlo_out;
@@ -372,7 +373,7 @@ int PPPMGPUMemoryT::compute(const int ago, const int nlocal, const int nall,
                  &d_brick_counts.begin(), &d_brick_atoms.begin(),
                  &d_brick.begin(), &d_rho_coeff.begin(), &_atom_stride, &_npts_x,
                  &_npts_y, &_npts_z, &_nlocal_x, &_nlocal_y, &_nlocal_z,
-                 &_nlower, &_nupper, &f_brick_x, &f_brick_y, &f_brick_z,
+                 &_nlow2, &f_brick_x, &f_brick_y, &f_brick_z,
                  &f_delxinv, &f_delyinv, &f_delzinv, &_order, &f_delvolinv);
   time_rho.stop();
 

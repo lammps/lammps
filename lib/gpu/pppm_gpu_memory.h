@@ -131,7 +131,7 @@ class PPPMGPUMemory {
   
   // -------------------------- STENCIL DATA -------------------------
   UCL_D_Vec<numtyp> d_rho_coeff;
-  int _order, _nlower, _nupper;
+  int _order, _nlower, _nupper, _nlow2;
   int _nxlo_out, _nylo_out, _nzlo_out, _nxhi_out, _nyhi_out, _nzhi_out;
 
   // ------------------------ FORCE/ENERGY DATA -----------------------

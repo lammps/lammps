@@ -196,6 +196,12 @@ void Set::command(int narg, char **arg)
 	zimageflag = 1;
 	zimage = atoi(arg[iarg+3]);
       }
+      if (ximageflag && ximage && !domain->xperiodic) 
+	error->all("Cannot set non-zero image flag for non-periodic dimension");
+      if (yimageflag && yimage && !domain->yperiodic) 
+	error->all("Cannot set non-zero image flag for non-periodic dimension");
+      if (zimageflag && zimage && !domain->zperiodic) 
+	error->all("Cannot set non-zero image flag for non-periodic dimension");
       set(IMAGE);
       iarg += 4;
     } else if (strcmp(arg[iarg],"bond") == 0) {

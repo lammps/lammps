@@ -150,6 +150,10 @@ performed.  This can be used when a ReaxFF potential is used as part
 of the <I>hybrid</I> pair style.  The NULL values are placeholders for atom
 types that will be used with other potentials.
 </P>
+<P>IMPORTANT NOTE: Currently the reax pair style cannot be used as part
+of the <I>hybrid</I> pair style.  Some additional changes still need to be
+made to enable this.
+</P>
 <P>As an example, say your LAMMPS simulation has 4 atom types and the
 elements are ordered as C, H, O, N in the <I>ffield</I> file.  If you want
 the LAMMPS atom type 1 and 2 to be C, type 3 to be N, and type 4 to be
@@ -188,7 +192,8 @@ appropriate units if your simulation doesn't use "real" units.
 </P>
 <P><B>Default:</B> 
 </P>
-<P>The keyword defaults are <I>hbcut</I> = 6,  <I>hbnewflag</I> = 1, <I>tripflag</I> = 1, <I>precision</I> = 1.0e-6
+<P>The keyword defaults are <I>hbcut</I> = 6, <I>hbnewflag</I> = 1, <I>tripflag</I> = 1,
+<I>precision</I> = 1.0e-6.
 </P>
 <HR>
 

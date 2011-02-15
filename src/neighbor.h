@@ -28,6 +28,7 @@ class Neighbor : protected Pointers {
   int pgsize;                      // size of neighbor page
   int oneatom;                     // max # of neighbors for one atom
   int includegroup;                // only build pairwise lists for this group
+  int build_once;                  // 1 if only build lists once per run
 
   double skin;                     // skin distance
   double cutneighmin;              // min neighbor cutoff for all type pairs
@@ -79,7 +80,6 @@ class Neighbor : protected Pointers {
   int maxbond,maxangle,maxdihedral,maximproper;   // size of bond lists
   int maxwt;                       // max weighting factor applied + 1
 
-  int build_once;                  // 1 if only build lists once per run
   int must_check;                  // 1 if must check other classes to reneigh
   int restart_check;               // 1 if restart enabled, 0 if no
   int fix_check;                   // # of fixes that induce reneigh

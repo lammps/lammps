@@ -156,14 +156,15 @@ PeriDynamics), then it also sets their mass.
 by PeriDynamics.
 </P>
 <P>Keyword <I>image</I> sets which image of the simulation box the atom is
-considered to be in.  It is only applied to periodic dimensions.  An
-image of 0 means it is inside the box as defined.  A value of 2 means
-add 2 box lengths to get the true value.  A value of -1 means subtract
-1 box length to get the true value.  LAMMPS updates these flags as
-atoms cross periodic boundaries during the simulation.  The flags can
-be output with atom snapshots via the <A HREF = "dump.html">dump</A> command.  If a
-value of NULL is specified for any of nx,ny,nz, then the current image
-value for that dimension is unchanged.
+considered to be in.  An image of 0 means it is inside the box as
+defined.  A value of 2 means add 2 box lengths to get the true value.
+A value of -1 means subtract 1 box length to get the true value.
+LAMMPS updates these flags as atoms cross periodic boundaries during
+the simulation.  The flags can be output with atom snapshots via the
+<A HREF = "dump.html">dump</A> command.  If a value of NULL is specified for any of
+nx,ny,nz, then the current image value for that dimension is
+unchanged.  For non-periodic dimensions only a value of 0 is allowed
+to be specified.
 </P>
 <P>This command can be useful after a system has been equilibrated and
 atoms have diffused one or more box lengths in various directions.

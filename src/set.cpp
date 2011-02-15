@@ -184,15 +184,15 @@ void Set::command(int narg, char **arg)
     } else if (strcmp(arg[iarg],"image") == 0) {
       if (iarg+4 > narg) error->all("Illegal set command");
       ximageflag = yimageflag = zimageflag = 0;
-      if (strcmp(arg[iarg+1],"NULL") != 0 && domain->xperiodic) {
+      if (strcmp(arg[iarg+1],"NULL") != 0) {
 	ximageflag = 1;
 	ximage = atoi(arg[iarg+1]);
       }
-      if (strcmp(arg[iarg+2],"NULL") != 0 && domain->yperiodic) {
+      if (strcmp(arg[iarg+2],"NULL") != 0) {
 	yimageflag = 1;
 	yimage = atoi(arg[iarg+2]);
       }
-      if (strcmp(arg[iarg+3],"NULL") != 0 && domain->zperiodic) {
+      if (strcmp(arg[iarg+3],"NULL") != 0) {
 	zimageflag = 1;
 	zimage = atoi(arg[iarg+3]);
       }

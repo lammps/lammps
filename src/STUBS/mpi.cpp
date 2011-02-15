@@ -51,6 +51,23 @@ int MPI_Initialized(int *flag)
 
 /* ---------------------------------------------------------------------- */
 
+/* Returns "localhost" as the name of the processor */
+
+void MPI_Get_processor_name(char *name, int *resultlen)
+{
+  const char host[] = "localhost";
+  int len;
+
+  if (!name || !resultlen) return;
+
+  len = strlen(host);
+  memcpy(name,host,len+1);
+  *resultlen = len;
+  return;
+}
+
+/* ---------------------------------------------------------------------- */
+
 int MPI_Comm_rank(MPI_Comm comm, int *me)
 {
   *me = 0;

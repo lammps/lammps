@@ -30,15 +30,17 @@
 // MPI_LMP_BIGINT = MPI data type corresponding to bigint
 
 // NOTE: if your machine/MPI does not support "long long" ints,
-//       but only "long" ints, then you will likely need to set
-//       MPI_LONG_LONG to MPI_LONG, LLONG_MAX to LONG_MAX,
-//       "lld" to "ld", and atoll to atol
+//       but only "long" ints, then you will need to set
+//       MPI_LONG_LONG to MPI_LONG and atoll to atol
 
 #ifndef LMP_LMPTYPE_H
 #define LMP_LMPTYPE_H
 
 #include "limits.h"
+#define __STDC_LIMIT_MACROS
 #include "stdint.h"
+#define __STDC_FORMAT_MACROS
+#include "inttypes.h"
 
 namespace LAMMPS_NS {
 
@@ -51,13 +53,13 @@ typedef int64_t bigint;
 
 #define MAXSMALLINT INT_MAX
 #define MAXTAGINT INT_MAX
-#define MAXBIGINT LLONG_MAX
+#define MAXBIGINT INT64_MAX
 
 #define MPI_LMP_TAGINT MPI_INT
 #define MPI_LMP_BIGINT MPI_LONG_LONG
 
 #define TAGINT_FORMAT "%d"
-#define BIGINT_FORMAT "%lld"
+#define BIGINT_FORMAT "%" PRId64
 
 #define ATOTAGINT atoi
 #define ATOBIGINT atoll
@@ -72,14 +74,14 @@ typedef int64_t tagint;
 typedef int64_t bigint;
 
 #define MAXSMALLINT INT_MAX
-#define MAXTAGINT LLONG_MAX
-#define MAXBIGINT LLONG_MAX
+#define MAXTAGINT INT64_MAX
+#define MAXBIGINT INT64_MAX
 
 #define MPI_LMP_TAGINT MPI_LONG_LONG
 #define MPI_LMP_BIGINT MPI_LONG_LONG
 
-#define TAGINT_FORMAT "%lld"
-#define BIGINT_FORMAT "%lld"
+#define TAGINT_FORMAT "%" PRId64
+#define BIGINT_FORMAT "%" PRId64
 
 #define ATOTAGINT atoll
 #define ATOBIGINT atoll

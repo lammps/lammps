@@ -28,6 +28,7 @@ class Neighbor : protected Pointers {
   int pgsize;                      // size of neighbor page
   int oneatom;                     // max # of neighbors for one atom
   int includegroup;                // only build pairwise lists for this group
+  int build_once;                  // 1 if only build lists once per run
 
   double skin;                     // skin distance
   double cutneighmin;              // min neighbor cutoff for all type pairs
@@ -79,7 +80,6 @@ class Neighbor : protected Pointers {
   int maxbond,maxangle,maxdihedral,maximproper;   // size of bond lists
   int maxwt;                       // max weighting factor applied + 1
 
-  int build_once;                  // 1 if only build lists once per run
   int must_check;                  // 1 if must check other classes to reneigh
   int restart_check;               // 1 if restart enabled, 0 if no
   int fix_check;                   // # of fixes that induce reneigh
@@ -91,10 +91,11 @@ class Neighbor : protected Pointers {
 
   double triggersq;                // trigger = build when atom moves this dist
 
-  double **xhold;                     // atom coords at last neighbor build
-  int maxhold;                        // size of xhold array
-  double xprdhold,yprdhold,zprdhold;  // box size at last neighbor build
-  int shrinkcheck;
+  double **xhold;                      // atom coords at last neighbor build
+  int maxhold;                         // size of xhold array
+  int boxcheck;                        // 1 if need to store box size
+  double boxlo_hold[3],boxhi_hold[3];  // box size at last neighbor build
+  double corners_hold[8][3];           // box corners at last neighbor build
 
   int nbinx,nbiny,nbinz;           // # of global bins
   int *bins;                       // ptr to next atom in each bin
@@ -119,7 +120,8 @@ class Neighbor : protected Pointers {
   int triclinic;                   // 0 if domain is orthog, 1 if triclinic
   int newton_pair;                 // 0 if newton off, 1 if on for pairwise
 
-  double *bboxlo,*bboxhi;          // copy of full domain bounding box
+  double *bboxlo,*bboxhi;          // ptrs to full domain bounding box
+  double (*corners)[3];            // ptr to 8 corners of triclinic box
 
   double inner[2],middle[2];       // rRESPA cutoffs for extra lists
   double cut_inner_sq;		   // outer cutoff for inner neighbor list

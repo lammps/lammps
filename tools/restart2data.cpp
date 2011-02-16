@@ -39,10 +39,13 @@
 #define __STDC_FORMAT_MACROS
 #include "inttypes.h"
 
+#include "stdint.h"
+#define __STDC_FORMAT_MACROS
+#include "inttypes.h"
+
 typedef int tagint;
 typedef int64_t bigint;
 #define BIGINT_FORMAT "%" PRId64
-
 
 // same as write_restart.cpp
 
@@ -2755,9 +2758,7 @@ void Data::stats()
 
   printf("  Restart file version = %s\n",version);
   printf("  Ntimestep = " BIGINT_FORMAT "\n",ntimestep);
-
   printf("  Nprocs = %d\n",nprocs);
-
   printf("  Natoms = " BIGINT_FORMAT "\n",natoms);
   printf("  Nbonds = " BIGINT_FORMAT "\n",nbonds);
   printf("  Nangles = " BIGINT_FORMAT "\n",nangles);
@@ -2786,31 +2787,14 @@ void Data::stats()
 
 void Data::write(FILE *fp, FILE *fp2)
 {
-  char fstr[128];
-  sprintf(fstr,
-	  "LAMMPS data file from restart file: timestep = %s, procs = %%d\n",
-	  BIGINT_FORMAT);
-  fprintf(fp,fstr,ntimestep,nprocs);
-  fprintf(fp,"\n");
+  fprintf(fp,"LAMMPS data file from restart file: timestep = "
+	  BIGINT_FORMAT ", procs = %d\n\n",ntimestep,nprocs);
 
-  sprintf(fstr,"%s atoms\n",BIGINT_FORMAT);
-  fprintf(fp,fstr,natoms);
-  if (nbonds) {
-    sprintf(fstr,"%s bonds\n",BIGINT_FORMAT);
-    fprintf(fp,fstr,nbonds);
-  }
-  if (nangles) {
-    sprintf(fstr,"%s angles\n",BIGINT_FORMAT);
-    fprintf(fp,fstr,nangles);
-  }
-  if (ndihedrals) {
-    sprintf(fstr,"%s dihedrals\n",BIGINT_FORMAT);
-    fprintf(fp,fstr,ndihedrals);
-  }
-  if (nimpropers) {
-    sprintf(fstr,"%s impropers\n",BIGINT_FORMAT);
-    fprintf(fp,fstr,nimpropers);
-  }
+  fprintf(fp,BIGINT_FORMAT " atoms\n",natoms);
+  if (nbonds) fprintf(fp,BIGINT_FORMAT " bonds\n",nbonds);
+  if (nangles) fprintf(fp,BIGINT_FORMAT " angles\n",nangles);
+  if (ndihedrals) fprintf(fp,BIGINT_FORMAT " dihedrals\n",ndihedrals);
+  if (nimpropers) fprintf(fp,BIGINT_FORMAT " impropers\n",nimpropers);
 
   fprintf(fp,"\n");
 
@@ -2830,11 +2814,8 @@ void Data::write(FILE *fp, FILE *fp2)
   // write ff styles to input file
 
   if (fp2) {
-    sprintf(fstr,
-	    "# LAMMPS input file from restart file: "
-	    "timestep = %s, procs = %%d\n\n",
-	    BIGINT_FORMAT);
-    fprintf(fp2,fstr,ntimestep,nprocs);
+    fprintf(fp2,"# LAMMPS input file from restart file: "
+	    "timestep = " BIGINT_FORMAT ", procs = %d\n\n",ntimestep,nprocs);
 
     if (pair_style) fprintf(fp2,"pair_style %s\n",pair_style);
     if (bond_style) fprintf(fp2,"bond_style %s\n",bond_style);

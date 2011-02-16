@@ -1138,3 +1138,30 @@ void Domain::bbox(double *lo, double *hi, double *bboxlo, double *bboxhi)
   bboxlo[1] = MIN(bboxlo[1],x[1]); bboxhi[1] = MAX(bboxhi[1],x[1]);
   bboxlo[2] = MIN(bboxlo[2],x[2]); bboxhi[2] = MAX(bboxhi[2],x[2]);
 }
+
+/* ----------------------------------------------------------------------
+   compute 8 corner pts of triclinic box
+   8 are ordered with x changing fastest, then y, finally z
+   could be more efficient if just coded with xy,yz,xz explicitly
+------------------------------------------------------------------------- */
+
+void Domain::box_corners()
+{
+  corners[0][0] = 0.0; corners[0][1] = 0.0; corners[0][2] = 0.0;
+  lamda2x(corners[0],corners[0]);
+  corners[1][0] = 1.0; corners[1][1] = 0.0; corners[1][2] = 0.0;
+  lamda2x(corners[1],corners[1]);
+  corners[2][0] = 0.0; corners[2][1] = 1.0; corners[2][2] = 0.0;
+  lamda2x(corners[2],corners[2]);
+  corners[3][0] = 1.0; corners[3][1] = 1.0; corners[3][2] = 0.0;
+  lamda2x(corners[3],corners[3]);
+  corners[4][0] = 0.0; corners[4][1] = 0.0; corners[4][2] = 1.0;
+  lamda2x(corners[4],corners[4]);
+  corners[5][0] = 1.0; corners[5][1] = 0.0; corners[5][2] = 1.0;
+  lamda2x(corners[5],corners[5]);
+  corners[6][0] = 0.0; corners[6][1] = 1.0; corners[6][2] = 1.0;
+  lamda2x(corners[6],corners[6]);
+  corners[7][0] = 1.0; corners[7][1] = 1.0; corners[7][2] = 1.0;
+  lamda2x(corners[7],corners[7]);
+}
+

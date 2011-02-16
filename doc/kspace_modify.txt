@@ -60,14 +60,15 @@ small problems are run on large numbers of processors.  A warning will
 be generated indicating the order parameter is being reduced to allow
 LAMMPS to run the problem.
 
-The {gewald} keyword sets the value of the PPPM G-ewald parameter.
-Without this setting, LAMMPS chooses the parameter automatically as a
-function of cutoff, precision, grid spacing, etc.  This means it can
-vary from one simulation to the next which may not be desirable for
-matching a KSpace solver to a pre-tabulated pairwise potential.  This
-setting can also be useful if PPPM fails to choose a good grid spacing
-and G-ewald parameter automatically.  If the value is set to 0.0,
-LAMMPS will choose the G-ewald parameter automatically.
+The {gewald} keyword sets the value of the Ewald or PPPM G-ewald
+parameter.  Without this setting, LAMMPS chooses the parameter
+automatically as a function of cutoff, precision, grid spacing, etc.
+This means it can vary from one simulation to the next which may not
+be desirable for matching a KSpace solver to a pre-tabulated pairwise
+potential.  This setting can also be useful if Ewald or PPPM fails to
+choose a good grid spacing and G-ewald parameter automatically.  If
+the value is set to 0.0, LAMMPS will choose the G-ewald parameter
+automatically.
 
 The {slab} keyword allows an Ewald or PPPM solver to be used for a
 systems that are periodic in x,y but non-periodic in z - a

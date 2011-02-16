@@ -148,6 +148,18 @@ different molecule ID is treated as a rigid body.
 separate rigid body.  Only atoms that are also in the fix group are
 included in each rigid body.
 </P>
+<P>IMPORTANT NOTE: To compute the initial center-of-mass position and
+other properties of each rigid body, the image flags for each atom in
+the body are used to "unwrap" the atom coordinates.  Thus you must
+insure that these image flags are consistent so that the unwrapping
+creates a valid rigid body (one where the atoms are close together),
+particularly if the atoms in a single rigid body straddle a periodic
+boundary.  This means the input data file or restart file must define
+the image flags for each atom consistently or that you have used the
+<A HREF = "set.html">set</A> command to specify them correctly.  If a dimension is
+non-periodic then the image flag of each atom must be 0 in that
+dimension, else an error is generated.
+</P>
 <P>By default, each rigid body is acted on by other atoms which induce an
 external force and torque on its center of mass, causing it to
 translate and rotate.  Components of the external center-of-mass force
@@ -285,7 +297,7 @@ cumulative energy change due to the thermostatting the fix performs.
 <P>All of these fixes compute a global array of values which can be
 accessed by various <A HREF = "Section_howto.html#4_15">output commands</A>.  The
 number of rows in the array is equal to the number of rigid bodies.
-The number of columns is 15.  Thus for each rigid body, 12 values are
+The number of columns is 15.  Thus for each rigid body, 15 values are
 stored: the xyz coords of the center of mass (COM), the xyz components
 of the COM velocity, the xyz components of the force acting on the
 COM, the xyz components of the torque acting on the COM, and the xyz
@@ -314,11 +326,6 @@ of the <A HREF = "run.html">run</A> command.  These fixes are not invoked during
 proportional in length to the number of rigid bodies.  Hence they will
 not scale well in parallel if large numbers of rigid bodies are
 simulated.
-</P>
-<P>If the atoms in a single rigid body initially straddle a periodic
-boundary, the input data file must define the image flags for each
-atom correctly, so that LAMMPS can "unwrap" the atoms into a valid
-rigid body.
 </P>
 <P><B>Related commands:</B>
 </P>

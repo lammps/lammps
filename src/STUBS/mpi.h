@@ -61,6 +61,8 @@ typedef struct __MPI_Status MPI_Status;
 
 int MPI_Init(int *argc, char ***argv);
 int MPI_Initialized(int *flag);
+void MPI_Get_processor_name(char *name, int *resultlen);
+
 int MPI_Comm_rank(MPI_Comm comm, int *me);
 int MPI_Comm_size(MPI_Comm comm, int *nprocs);
 int MPI_Abort(MPI_Comm comm, int errorcode);

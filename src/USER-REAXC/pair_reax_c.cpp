@@ -223,12 +223,15 @@ void PairReaxC::coeff( int nargs, char **args )
  
   // read args that map atom types to elements in potential file
   // map[i] = which element the Ith atom type is, -1 if NULL
+  // NOTE: for now throw an error if NULL is used to disallow use with hybrid
+  //       REAX/C lib will have to be modified to allow this
 
   int itmp;
   int nreax_types = system->reax_param.num_atom_types;
   for (int i = 3; i < nargs; i++) {
     if (strcmp(args[i],"NULL") == 0) {
       map[i-2] = -1;
+      error->all("Cannot currently use pair reax/c with pair hybrid");
       continue;
     }
 

@@ -54,6 +54,7 @@ class Domain : protected Pointers {
                                          // boxlo/hi = same as if untilted
   double boxlo_lamda[3],boxhi_lamda[3];  // lamda box = (0,1)
   double boxlo_bound[3],boxhi_bound[3];  // bounding box of tilted domain
+  double corners[8][3];                  // 8 corner points
 
                                          // orthogonal box & triclinic box
   double minxlo,minxhi;                  // minimum size of global box
@@ -111,6 +112,7 @@ class Domain : protected Pointers {
   void lamda2x(double *, double *);
   void x2lamda(double *, double *);
   void bbox(double *, double *, double *, double *);
+  void box_corners();
 };
 
 }

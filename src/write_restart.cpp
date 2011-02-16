@@ -26,6 +26,7 @@
 #include "dihedral.h"
 #include "improper.h"
 #include "update.h"
+#include "neighbor.h"
 #include "domain.h"
 #include "modify.h"
 #include "universe.h"
@@ -119,6 +120,15 @@ void WriteRestart::command(int narg, char **arg)
 
 void WriteRestart::write(char *file)
 {
+  // special case where reneighboring is not done in integrator
+  //   on timestep restart file is written (due to build_once being set)
+  // if box is changing, must be reset, else restart file will have
+  //   wrong box size and atoms will be lost when restart file is read
+  // other calls to pbc and domain and comm are not made,
+  //   b/c they only make sense if reneighboring is actually performed
+
+  if (neighbor->build_once) domain->reset_box();
+
   // natoms = sum of nlocal = value to write into restart file
   // if unequal and thermo lostflag is "error", don't write restart file
 

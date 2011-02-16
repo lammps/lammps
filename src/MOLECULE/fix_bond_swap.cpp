@@ -229,6 +229,7 @@ void FixBondSwap::pre_neighbor()
   // atom j must be on-processor (j < nlocal)
   // atom j must be in fix group
   // i and j must be same distance from chain end (mol[i] = mol[j])
+  // NOTE: must use extra parens in if test on mask[j] & groupbit
 
   int ntest = static_cast<int> (fraction * neligible);
   int accept = 0;
@@ -241,7 +242,7 @@ void FixBondSwap::pre_neighbor()
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       if (j >= nlocal) continue;
-      if (mask[j] & groupbit == 0) continue;
+      if ((mask[j] & groupbit) == 0) continue;
       if (molecule[i] != molecule[j]) continue;
 
       // look at all bond partners of atoms i and j

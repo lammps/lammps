@@ -91,9 +91,10 @@ numtyp * PPPMGPUMemoryT::init(const int nlocal, const int nall, FILE *_screen,
   _max_an_bytes=ans->gpu_bytes();
   
   _order=order;
+  _order_m_1=order-1;
+  _order2=_order_m_1*_order;
   _nlower=-(_order-1)/2;
   _nupper=order/2;
-  _nlow2=_nlower*-2;
   _nxlo_out=nxlo_out;
   _nylo_out=nylo_out;
   _nzlo_out=nzlo_out;
@@ -116,6 +117,7 @@ numtyp * PPPMGPUMemoryT::init(const int nlocal, const int nall, FILE *_screen,
   _npts_x=nxhi_out-nxlo_out+1;
   _npts_y=nyhi_out-nylo_out+1;
   _npts_z=nzhi_out-nzlo_out+1;
+  _npts_yx=_npts_x*_npts_y;
   success=success && (d_brick.alloc(_npts_x*_npts_y*_npts_z,*ucl_device)==
                       UCL_SUCCESS);
   success=success && (h_brick.alloc(_npts_x*_npts_y*_npts_z,*ucl_device)==
@@ -126,6 +128,7 @@ numtyp * PPPMGPUMemoryT::init(const int nlocal, const int nall, FILE *_screen,
   _nlocal_x=_npts_x+_nlower-_nupper;
   _nlocal_y=_npts_y+_nlower-_nupper;
   _nlocal_z=_npts_z+_nlower-_nupper;
+  _nlocal_yx=_nlocal_x*_nlocal_y;
   _atom_stride=_nlocal_x*_nlocal_y*_nlocal_z;
   success=success && (d_brick_counts.alloc(_atom_stride,*ucl_device)==
                       UCL_SUCCESS);
@@ -266,9 +269,9 @@ int PPPMGPUMemoryT::compute(const int ago, const int nlocal, const int nall,
   k_make_rho.run(&atom->dev_x.begin(), &atom->dev_q.begin(),
                  &d_brick_counts.begin(), &d_brick_atoms.begin(),
                  &d_brick.begin(), &d_rho_coeff.begin(), &_atom_stride, &_npts_x,
-                 &_npts_y, &_nlocal_x, &_nlocal_y, &_nlocal_z, &f_brick_x,
+                 &_npts_yx, &_nlocal_x, &_nlocal_y, &_nlocal_z, &f_brick_x,
                  &f_brick_y, &f_brick_z, &f_delxinv, &f_delyinv, &f_delzinv,
-                 &_order, &f_delvolinv);
+                 &_order, &_order2, &f_delvolinv);
   time_rho.stop();
 
   time_out.start();
@@ -289,7 +292,7 @@ int PPPMGPUMemoryT::compute(const int ago, const int nlocal, const int nall,
   return h_error_flag[0];
 }
 */
-
+/*
 // ---------------------------------------------------------------------------
 // Copy nbor list from host if necessary and then calculate forces, virials,..
 // ---------------------------------------------------------------------------
@@ -351,7 +354,7 @@ int PPPMGPUMemoryT::compute(const int ago, const int nlocal, const int nall,
   k_particle_map.run(&atom->dev_x.begin(), &ainum, &d_brick_counts.begin(),
                      &d_brick_atoms.begin(), &f_brick_x, &f_brick_y, 
                      &f_brick_z, &f_delxinv, &f_delyinv, &f_delzinv, &_nlocal_x,
-                     &_nlocal_y, &_nlocal_z, &_atom_stride, &_max_brick_atoms, 
+                     &_nlocal_y, &_nlocal_z, &_atom_stride, &_max_brick_atoms,
                      &d_error_flag.begin());
   time_map.stop();
 
@@ -367,14 +370,14 @@ int PPPMGPUMemoryT::compute(const int ago, const int nlocal, const int nall,
   BX=block_size();
   GX=_npts_x;
   int GY=_npts_y;
-  d_brick.zero();
   k_make_rho.set_size(GX,GY,BX,1);
   k_make_rho.run(&atom->dev_x.begin(), &atom->dev_q.begin(),
                  &d_brick_counts.begin(), &d_brick_atoms.begin(),
                  &d_brick.begin(), &d_rho_coeff.begin(), &_atom_stride, &_npts_x,
-                 &_npts_y, &_npts_z, &_nlocal_x, &_nlocal_y, &_nlocal_z,
-                 &_nlow2, &f_brick_x, &f_brick_y, &f_brick_z,
-                 &f_delxinv, &f_delyinv, &f_delzinv, &_order, &f_delvolinv);
+                 &_npts_yx, &_npts_z, &_nlocal_x, &_nlocal_y, &_nlocal_z,
+                 &_order_m_1, &f_brick_x, &f_brick_y, &f_brick_z,
+                 &f_delxinv, &f_delyinv, &f_delzinv, &_order, &_order2,
+                 &f_delvolinv);
   time_rho.stop();
 
   time_out.start();
@@ -394,8 +397,8 @@ int PPPMGPUMemoryT::compute(const int ago, const int nlocal, const int nall,
   
   return h_error_flag[0];
 }
+*/
 
-/*
 // ---------------------------------------------------------------------------
 // Copy nbor list from host if necessary and then calculate forces, virials,..
 // ---------------------------------------------------------------------------
@@ -438,11 +441,8 @@ int PPPMGPUMemoryT::compute(const int ago, const int nlocal, const int nall,
   
   // Boxlo adjusted to be upper left brick and shift for even stencil order
   double shift=0.0;
-  numtyp shift2=-0.5;
-  if (_order % 2) {
+  if (_order % 2)
     shift=0.5;
-    shift2=0.5;
-  }
   numtyp f_brick_x=boxlo[0]+(_nxlo_out-_nlower-shift)/delxinv;
   numtyp f_brick_y=boxlo[1]+(_nylo_out-_nlower-shift)/delyinv;
   numtyp f_brick_z=boxlo[2]+(_nzlo_out-_nlower-shift)/delzinv;
@@ -452,18 +452,19 @@ int PPPMGPUMemoryT::compute(const int ago, const int nlocal, const int nall,
   numtyp f_delzinv=delzinv;
   double delvolinv = delxinv*delyinv*delzinv;
   numtyp f_delvolinv = delvolinv;
-
+  
   time_map.start();
   time_map.stop();
 
   time_rho.start();
   d_brick.zero();
+
   k_make_rho.set_size(GX,BX);
   k_make_rho.run(&atom->dev_x.begin(), &atom->dev_q.begin(), &ainum,
                  &d_brick.begin(), &d_rho_coeff.begin(), &_npts_x,
-                 &_npts_y, &_nlocal_x, &_nlocal_y, &_nlocal_z, &f_brick_x,
+                 &_npts_yx, &_nlocal_x, &_nlocal_y, &_nlocal_z, &f_brick_x,
                  &f_brick_y, &f_brick_z, &f_delxinv, &f_delyinv, &f_delzinv,
-                 &shift2, &_order, &f_delvolinv, &d_error_flag.begin());
+                 &_order, &_order2, &f_delvolinv, &d_error_flag.begin());
   time_rho.stop();
 
   time_out.start();
@@ -473,7 +474,7 @@ int PPPMGPUMemoryT::compute(const int ago, const int nlocal, const int nall,
   
   return h_error_flag[0];
 }
-*/
+
 
 template <class numtyp, class acctyp>
 double PPPMGPUMemoryT::host_memory_usage() const {
@@ -491,7 +492,7 @@ void PPPMGPUMemoryT::compile_kernels(UCL_Device &dev) {
   pppm_program=new UCL_Program(dev);
   pppm_program->load_string(pppm_gpu_kernel,flags.c_str());
   k_particle_map.set_function(*pppm_program,"particle_map");
-  k_make_rho.set_function(*pppm_program,"make_rho2");
+  k_make_rho.set_function(*pppm_program,"make_rho3");
   pos_tex.get_texture(*pppm_program,"pos_tex");
   q_tex.get_texture(*pppm_program,"q_tex");
 

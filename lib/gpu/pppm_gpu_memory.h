@@ -124,14 +124,14 @@ class PPPMGPUMemory {
   UCL_H_Vec<int> h_error_flag;
   
   // Number of grid points in brick (including ghost)
-  int _npts_x, _npts_y, _npts_z;
+  int _npts_x, _npts_y, _npts_z, _npts_yx;
   
   // Number of local grid points in brick
-  int _nlocal_x, _nlocal_y, _nlocal_z, _atom_stride;
+  int _nlocal_x, _nlocal_y, _nlocal_z, _nlocal_yx, _atom_stride;
   
   // -------------------------- STENCIL DATA -------------------------
   UCL_D_Vec<numtyp> d_rho_coeff;
-  int _order, _nlower, _nupper, _nlow2;
+  int _order, _nlower, _nupper, _order_m_1, _order2;
   int _nxlo_out, _nylo_out, _nzlo_out, _nxhi_out, _nyhi_out, _nzhi_out;
 
   // ------------------------ FORCE/ENERGY DATA -----------------------

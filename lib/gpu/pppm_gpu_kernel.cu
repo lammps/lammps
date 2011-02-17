@@ -120,14 +120,13 @@ __kernel void particle_map(__global numtyp4 *x_, const int nlocal,
                            const numtyp delyinv, const numtyp delzinv,
                            const int nlocal_x, const int nlocal_y,
                            const int nlocal_z, const int atom_stride,
-                           const int max_atoms, __global int *error,
-                           const int skip) {
+                           const int max_atoms, __global int *error) {
   // ii indexes the two interacting particles in gi
   int ii=GLOBAL_ID_X;
 
   // Resequence the atom indices to avoid collisions during atomic ops
   int nthreads=GLOBAL_SIZE_X;
-  ii=mul24(ii,skip);
+  ii=mul24(ii,BLOCK_1D);
   ii-=int(ii/nthreads)*(nthreads-1);
 
   int nx,ny,nz;
@@ -356,8 +355,7 @@ __kernel void make_rho3(__global numtyp4 *x_, __global numtyp *q_,
                         const numtyp b_lo_z, const numtyp delxinv,
                         const numtyp delyinv, const numtyp delzinv,
                         const int order, const int order2,
-                        const numtyp delvolinv, __global int *error,
-                        const int skip) {
+                        const numtyp delvolinv, __global int *error) {
   __local numtyp rho_coeff[MAX_STENCIL*MAX_STENCIL];
   int ii=THREAD_ID_X;
   if (ii<order2+order)
@@ -368,7 +366,7 @@ __kernel void make_rho3(__global numtyp4 *x_, __global numtyp *q_,
   
   // Resequence the atom indices to avoid collisions during atomic ops
   int nthreads=GLOBAL_SIZE_X;
-  ii=mul24(ii,skip);
+  ii=mul24(ii,BLOCK_1D);
   ii-=int(ii/nthreads)*(nthreads-1);
 
   int nx,ny,nz;

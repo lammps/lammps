@@ -25,6 +25,7 @@
 #define BLOCK_1D 64
 #define BLOCK_X 8
 #define BLOCK_Y 8
+#define MAX_STENCIL 8
 #define PPPMGPUMemoryT PPPMGPUMemory<numtyp, acctyp>
 
 extern PairGPUDevice<PRECISION,ACC_PRECISION> pair_gpu_device;
@@ -146,10 +147,18 @@ numtyp * PPPMGPUMemoryT::init(const int nlocal, const int nall, FILE *_screen,
   d_error_flag.zero();
   _max_bytes+=1;
   
+  // Used to resequence atom indices to reduce probability of collisions
+  //   during atomic ops
+  _resequence_skip=ucl_device->cores();
+  if (_resequence_skip%_block_size!=0)
+    _resequence_skip=int(_resequence_skip/_block_size+1)*_block_size;
+  assert(_block_size%_block_x_size==0);
+  
 std::cout << "LO: " << _nxlo_out << " " << _nylo_out << " " << _nzlo_out << " " << _nlower << std::endl;
 std::cout << "HI: " << _nxhi_out << " " << _nyhi_out << " " << _nzhi_out << " " << _nupper << std::endl;
 std::cout << "pts: " << _npts_x << " " << _npts_y << " " << _npts_z << std::endl;
 std::cout << "local: " << _nlocal_x << " " << _nlocal_y << " " << _nlocal_z << std::endl;
+
 
   return h_brick.begin();
 }
@@ -185,7 +194,7 @@ void PPPMGPUMemoryT::clear() {
 
   device->clear();
 }
-/*
+
 // ---------------------------------------------------------------------------
 // Copy nbor list from host if necessary and then calculate forces, virials,..
 // ---------------------------------------------------------------------------
@@ -221,8 +230,11 @@ int PPPMGPUMemoryT::compute(const int ago, const int nlocal, const int nall,
 
   // Compute the block size and grid size to keep all cores busy
   int BX=this->block_size();
-  
   int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/BX));
+  // Resequence atom indices to avoid collisions during atomic ops
+  int skip=_resequence_skip;
+  if (skip>GX*BX/8)
+    skip=_block_x_size;
 
   int _max_atoms=10;
   int ainum=this->ans->inum();
@@ -248,7 +260,7 @@ int PPPMGPUMemoryT::compute(const int ago, const int nlocal, const int nall,
                      &d_brick_atoms.begin(), &f_brick_x, &f_brick_y, 
                      &f_brick_z, &f_delxinv, &f_delyinv, &f_delzinv, &_nlocal_x,
                      &_nlocal_y, &_nlocal_z, &_atom_stride, &_max_brick_atoms, 
-                     &d_error_flag.begin());
+                     &d_error_flag.begin(),&skip);
   time_map.stop();
 
   if (_order % 2)
@@ -264,14 +276,17 @@ int PPPMGPUMemoryT::compute(const int ago, const int nlocal, const int nall,
   int BY=block_y_size();
   GX=static_cast<int>(ceil(static_cast<double>(_nlocal_x)/BX));
   int GY=static_cast<int>(ceil(static_cast<double>(_nlocal_y)/BY));
+  int x_threads=GX*BX;
+  int GZ=static_cast<int>(ceil(static_cast<double>(_nlocal_z)/8));
+  GX*=GZ;
   d_brick.zero();
   k_make_rho.set_size(GX,GY,BX,BY);
   k_make_rho.run(&atom->dev_x.begin(), &atom->dev_q.begin(),
                  &d_brick_counts.begin(), &d_brick_atoms.begin(),
                  &d_brick.begin(), &d_rho_coeff.begin(), &_atom_stride, &_npts_x,
-                 &_npts_yx, &_nlocal_x, &_nlocal_y, &_nlocal_z, &f_brick_x,
-                 &f_brick_y, &f_brick_z, &f_delxinv, &f_delyinv, &f_delzinv,
-                 &_order, &_order2, &f_delvolinv);
+                 &_npts_yx, &_nlocal_x, &_nlocal_y, &_nlocal_z, &x_threads,
+                 &f_brick_x, &f_brick_y, &f_brick_z, &f_delxinv, &f_delyinv,
+                 &f_delzinv, &_order, &_order2, &f_delvolinv);
   time_rho.stop();
 
   time_out.start();
@@ -291,7 +306,7 @@ int PPPMGPUMemoryT::compute(const int ago, const int nlocal, const int nall,
   
   return h_error_flag[0];
 }
-*/
+
 /*
 // ---------------------------------------------------------------------------
 // Copy nbor list from host if necessary and then calculate forces, virials,..
@@ -328,8 +343,11 @@ int PPPMGPUMemoryT::compute(const int ago, const int nlocal, const int nall,
 
   // Compute the block size and grid size to keep all cores busy
   int BX=this->block_size();
-  
   int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/BX));
+  // Resequence atom indices to avoid collisions during atomic ops
+  int skip=_resequence_skip;
+  if (skip>GX*BX/8)
+    skip=_block_x_size;
 
   int _max_atoms=10;
   int ainum=this->ans->inum();
@@ -355,7 +373,7 @@ int PPPMGPUMemoryT::compute(const int ago, const int nlocal, const int nall,
                      &d_brick_atoms.begin(), &f_brick_x, &f_brick_y, 
                      &f_brick_z, &f_delxinv, &f_delyinv, &f_delzinv, &_nlocal_x,
                      &_nlocal_y, &_nlocal_z, &_atom_stride, &_max_brick_atoms,
-                     &d_error_flag.begin());
+                     &d_error_flag.begin(),&skip);
   time_map.stop();
 
   if (_order % 2)
@@ -398,7 +416,7 @@ int PPPMGPUMemoryT::compute(const int ago, const int nlocal, const int nall,
   return h_error_flag[0];
 }
 */
-
+/*
 // ---------------------------------------------------------------------------
 // Copy nbor list from host if necessary and then calculate forces, virials,..
 // ---------------------------------------------------------------------------
@@ -434,8 +452,11 @@ int PPPMGPUMemoryT::compute(const int ago, const int nlocal, const int nall,
 
   // Compute the block size and grid size to keep all cores busy
   int BX=this->block_size();
-  
   int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/BX));
+  // Resequence atom indices to avoid collisions during atomic ops
+  int skip=_resequence_skip;
+  if (skip>GX*BX/8)
+    skip=_block_x_size;
 
   int ainum=this->ans->inum();
   
@@ -458,13 +479,13 @@ int PPPMGPUMemoryT::compute(const int ago, const int nlocal, const int nall,
 
   time_rho.start();
   d_brick.zero();
-
   k_make_rho.set_size(GX,BX);
   k_make_rho.run(&atom->dev_x.begin(), &atom->dev_q.begin(), &ainum,
                  &d_brick.begin(), &d_rho_coeff.begin(), &_npts_x,
                  &_npts_yx, &_nlocal_x, &_nlocal_y, &_nlocal_z, &f_brick_x,
                  &f_brick_y, &f_brick_z, &f_delxinv, &f_delyinv, &f_delzinv,
-                 &_order, &_order2, &f_delvolinv, &d_error_flag.begin());
+                 &_order, &_order2, &f_delvolinv, &d_error_flag.begin(),
+                 &skip);
   time_rho.stop();
 
   time_out.start();
@@ -474,7 +495,7 @@ int PPPMGPUMemoryT::compute(const int ago, const int nlocal, const int nall,
   
   return h_error_flag[0];
 }
-
+*/
 
 template <class numtyp, class acctyp>
 double PPPMGPUMemoryT::host_memory_usage() const {
@@ -492,7 +513,7 @@ void PPPMGPUMemoryT::compile_kernels(UCL_Device &dev) {
   pppm_program=new UCL_Program(dev);
   pppm_program->load_string(pppm_gpu_kernel,flags.c_str());
   k_particle_map.set_function(*pppm_program,"particle_map");
-  k_make_rho.set_function(*pppm_program,"make_rho3");
+  k_make_rho.set_function(*pppm_program,"make_rho");
   pos_tex.get_texture(*pppm_program,"pos_tex");
   q_tex.get_texture(*pppm_program,"q_tex");
 

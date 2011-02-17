@@ -106,6 +106,7 @@ __device__ inline void atomicFloatAdd(float *address, float val)
 #define THREAD_ID_X get_local_id(0)
 #define BLOCK_ID_X get_group_id(0)
 #define BLOCK_SIZE_X get_local_size(0)
+#define GLOBAL_SIZE_X get_global_size(0)
 #define __syncthreads() barrier(CLK_LOCAL_MEM_FENCE)
 #define __inline inline
 
@@ -121,9 +122,16 @@ __kernel void particle_map(__global numtyp4 *x_, const int nlocal,
                            const numtyp delyinv, const numtyp delzinv,
                            const int nlocal_x, const int nlocal_y,
                            const int nlocal_z, const int atom_stride,
-                           const int max_atoms, __global int *error) {
+                           const int max_atoms, __global int *error,
+                           const int skip) {
   // ii indexes the two interacting particles in gi
   int ii=GLOBAL_ID_X;
+
+  // Resequence the atom indices to avoid collisions during atomic ops
+  int nthreads=GLOBAL_SIZE_X;
+  ii=__mul24(ii,skip);
+  ii-=int(ii/nthreads)*(nthreads-1);
+
   int nx,ny,nz;
   numtyp tx,ty,tz;
 
@@ -156,32 +164,40 @@ __kernel void make_rho(__global numtyp4 *x_, __global numtyp *q_,
                        __global numtyp *brick, __global numtyp *_rho_coeff,
                        const int atom_stride, const int npts_x,
                        const int npts_yx, const int nlocal_x,
-                       const int nlocal_y,
-                       const int nlocal_z, const numtyp b_lo_x,
+                       const int nlocal_y, const int nlocal_z,
+                       const int x_threads, const numtyp b_lo_x,
                        const numtyp b_lo_y, const numtyp b_lo_z,
                        const numtyp delxinv, const numtyp delyinv,
                        const numtyp delzinv, const int order, const int order2,
                        const numtyp delvolinv) {
   __local numtyp rho_coeff[MAX_STENCIL*MAX_STENCIL];
+
   int nx=THREAD_ID_X;
   int ny=THREAD_ID_Y;
   if (nx<order && ny<order) {
-    int ri=nx*order+ny;
+    int ri=__mul24(nx,order)+ny;
     rho_coeff[ri]=_rho_coeff[ri];
   }
   __syncthreads();
   
-  nx+=BLOCK_ID_X*BLOCK_SIZE_X;
-  ny+=BLOCK_ID_Y*BLOCK_SIZE_Y;
-  int nz=0;
+  nx+=__mul24(BLOCK_ID_X,BLOCK_SIZE_X);
+  ny+=__mul24(BLOCK_ID_Y,BLOCK_SIZE_Y);
+
+  // Get the z-block we are working on
+  int z_block=nx/x_threads;
+  nx=nx%x_threads;
+  int nz=__mul24(z_block,8);
+  int z_stop=nz+8;
+  if (z_stop>nlocal_z)
+    z_stop=nlocal_z;
   
   if (nx<nlocal_x && ny<nlocal_y) {
-    int z_stride=nlocal_x*nlocal_y;
-    int z_pos=nz*z_stride+ny*nlocal_x+nx;
-    for ( ; nz<nlocal_z; nz++) {
+    int z_stride=__mul24(nlocal_x,nlocal_y);
+    int z_pos=__mul24(nz,z_stride)+__mul24(ny,nlocal_x)+nx;
+    for ( ; nz<z_stop; nz++) {
       int natoms=counts[z_pos];
       for (int row=0; row<natoms; row++) {
-        int atom=atoms[atom_stride*row+z_pos];
+        int atom=atoms[__mul24(atom_stride,row)+z_pos];
         numtyp4 p=fetch_pos(atom,x_);
         numtyp z0=delvolinv*fetch_q(atom,q_);
         
@@ -199,13 +215,13 @@ __kernel void make_rho(__global numtyp4 *x_, __global numtyp *q_,
           }
         }
         
-        int mz=nz*npts_yx+nx;
+        int mz=__mul24(nz,npts_yx)+nx;
         for (int n=0; n<order; n++) {
           numtyp rho1d_2=(numtyp)0.0;
           for (int k=order2+n; k>=n; k-=order)
             rho1d_2=rho_coeff[k]+rho1d_2*dz;
           numtyp y0=z0*rho1d_2;
-          int my=mz+ny*npts_x;
+          int my=mz+__mul24(ny,npts_x);
           for (int m=0; m<order; m++) {
 	          numtyp x0=y0*rho1d[1][m];
 	          for (int l=0; l<order; l++) {
@@ -259,8 +275,8 @@ __kernel void make_rho2(__global numtyp4 *x_, __global numtyp *q_,
       x_stop-=nx-nlocal_x+1;
     if (ny>=nlocal_y)
       y_stop-=ny-nlocal_y+1;
-    z_stride=npts_yx*BLOCK_1D;
-    z_local_stride=nlocal_x*nlocal_y*BLOCK_1D;
+    z_stride=__mul24(npts_yx,BLOCK_1D);
+    z_local_stride=__mul24(__mul24(nlocal_x,nlocal_y),BLOCK_1D);
   }
   
   if (tx<order) 
@@ -271,19 +287,19 @@ __kernel void make_rho2(__global numtyp4 *x_, __global numtyp *q_,
   numtyp ans[MAX_STENCIL];
   int loop_count=npts_z/BLOCK_1D+1;
   int nz=tx;
-  int pt=nz*npts_yx+ny*npts_x+nx;
-  int z_local=nz*nlocal_x*nlocal_y;
+  int pt=__mul24(nz,npts_yx)+__mul24(ny,npts_x)+nx;
+  int z_local=__mul24(__mul24(nz,nlocal_x),nlocal_y);
   for (int i=0 ; i<loop_count; i++) {
     for (int n=0; n<order; n++)
       ans[n]=(numtyp)0.0;
     if (nz<nlocal_z) {
       for (int m=y_start; m<y_stop; m++) {
         int y_pos=ny+m-order_m_1;
-        int y_local=y_pos*nlocal_x;
+        int y_local=__mul24(y_pos,nlocal_x);
         for (int l=x_start; l<x_stop; l++) {
           int x_pos=nx+l-order_m_1;
           int pos=z_local+y_local+x_pos;
-          int natoms=counts[pos]*atom_stride;
+          int natoms=__mul24(counts[pos],atom_stride);
           for (int row=pos; row<natoms; row+=atom_stride) {
             int atom=atoms[row];
             numtyp4 p=fetch_pos(atom,x_);
@@ -343,7 +359,8 @@ __kernel void make_rho3(__global numtyp4 *x_, __global numtyp *q_,
                         const numtyp b_lo_z, const numtyp delxinv,
                         const numtyp delyinv, const numtyp delzinv,
                         const int order, const int order2,
-                        const numtyp delvolinv, __global int *error) {
+                        const numtyp delvolinv, __global int *error,
+                        const int skip) {
   __local numtyp rho_coeff[MAX_STENCIL*MAX_STENCIL];
   int ii=THREAD_ID_X;
   if (ii<order2+order)
@@ -351,9 +368,11 @@ __kernel void make_rho3(__global numtyp4 *x_, __global numtyp *q_,
   __syncthreads();
   
   ii+=BLOCK_ID_X*BLOCK_SIZE_X;
-
-//  ii=8*ii - ii/4000*31999;
-
+  
+  // Resequence the atom indices to avoid collisions during atomic ops
+  int nthreads=GLOBAL_SIZE_X;
+  ii=__mul24(ii,skip);
+  ii-=int(ii/nthreads)*(nthreads-1);
 
   int nx,ny,nz;
   numtyp tx,ty,tz;
@@ -387,13 +406,13 @@ __kernel void make_rho3(__global numtyp4 *x_, __global numtyp *q_,
         }
       }
         
-      int mz=nz*npts_yx+nx;
+      int mz=__mul24(nz,npts_yx)+nx;
       for (int n=0; n<order; n++) {
         numtyp rho1d_2=(numtyp)0.0;
         for (int k=order2+n; k>=n; k-=order)
           rho1d_2=rho_coeff[k]+rho1d_2*dz;
         numtyp y0=z0*rho1d_2;
-        int my=mz+ny*npts_x;
+        int my=mz+__mul24(ny,npts_x);
         for (int m=0; m<order; m++) {
           numtyp x0=y0*rho1d[1][m];
 	        for (int l=0; l<order; l++) {

@@ -495,6 +495,9 @@ void PPPMGPU::init()
   compute_gf_denom();
   compute_rho_coeff();
 
+  if (order>8)
+    error->all("Cannot use order greater than 8 with pppm/gpu.");
+
   bool success;
   host_brick = pppm_gpu_init(atom->nlocal, atom->nlocal+atom->nghost, screen,
                              order, nxlo_out, nylo_out, nzlo_out, nxhi_out,
@@ -689,19 +692,15 @@ double t1=MPI_Wtime();
     nmax = atom->nmax;
     part2grid = memory->create_2d_int_array(nmax,3,"pppm:part2grid");
   }
-time1+=MPI_Wtime()-t1;
   energy = 0.0;
   if (vflag) for (i = 0; i < 6; i++) virial[i] = 0.0;
 
   // find grid points for all my particles
   // map my particle charge onto my local 3d density grid
 
-double t2=MPI_Wtime();
   particle_map();
-time2+=MPI_Wtime()-t2;
-double t3=MPI_Wtime();
   make_rho();
-time3+=MPI_Wtime()-t3;
+time1+=MPI_Wtime()-t1;
 
 double max_error=0;
 int _npts_x=nxhi_out-nxlo_out+1;
@@ -753,7 +752,9 @@ std::cout << "Maximum relative error: " << max_error*100.0 << "%\n";
 
   // calculate the force on my particles
 
+double t2=MPI_Wtime();
   fieldforce();
+time2+=MPI_Wtime()-t2;
 
   // sum energy across procs and add in volume-dependent term
 

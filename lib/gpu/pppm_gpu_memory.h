@@ -152,6 +152,7 @@ class PPPMGPUMemory {
  protected:
   bool _allocated, _compiled;
   int _block_size, _block_x_size, _block_y_size, _max_brick_atoms;
+  int _resequence_skip;
   double  _max_bytes, _max_an_bytes;
 
   void compile_kernels(UCL_Device &dev);

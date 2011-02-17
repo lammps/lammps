@@ -27,6 +27,8 @@
 
 #define GLOBAL_ID_X threadIdx.x+__mul24(blockIdx.x,blockDim.x)
 #define GLOBAL_ID_Y threadIdx.y+__mul24(blockIdx.y,blockDim.y)
+#define GLOBAL_SIZE_X __mul24(gridDim.x,blockDim.x);
+#define GLOBAL_SIZE_Y __mul24(gridDim.y,blockDim.y);
 #define THREAD_ID_X threadIdx.x
 #define THREAD_ID_Y threadIdx.y
 #define BLOCK_ID_X blockIdx.x

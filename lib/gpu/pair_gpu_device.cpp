@@ -293,6 +293,7 @@ void PairGPUDeviceT::output_kspace_times(UCL_Timer &time_in,
         fprintf(screen,"Kernel (map):    %.4f s.\n",times[2]/_replica_size);
         fprintf(screen,"Kernel (rho):    %.4f s.\n",times[3]/_replica_size);
 //        fprintf(screen,"Force calc:      %.4f s.\n",times[3]/_replica_size);
+        fprintf(screen,"Total:           %.4f s.\n",(times[0]+times[1]+times[2]+times[3])/_replica_size);
       }
       fprintf(screen,"Max Mem / Proc:  %.2f MB.\n",max_mb);
 

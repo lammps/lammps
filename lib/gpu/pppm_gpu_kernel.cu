@@ -352,7 +352,8 @@ __kernel void make_rho3(__global numtyp4 *x_, __global numtyp *q_,
   
   ii+=BLOCK_ID_X*BLOCK_SIZE_X;
 
-//ii=(ii*9)%32000;
+//  ii=8*ii - ii/4000*31999;
+
 
   int nx,ny,nz;
   numtyp tx,ty,tz;

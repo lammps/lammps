@@ -195,6 +195,7 @@ void PPPMGPUMemoryT::clear() {
   device->clear();
 }
 
+/*
 // ---------------------------------------------------------------------------
 // Copy nbor list from host if necessary and then calculate forces, virials,..
 // ---------------------------------------------------------------------------
@@ -306,6 +307,7 @@ int PPPMGPUMemoryT::compute(const int ago, const int nlocal, const int nall,
   
   return h_error_flag[0];
 }
+*/
 
 /*
 // ---------------------------------------------------------------------------
@@ -416,7 +418,7 @@ int PPPMGPUMemoryT::compute(const int ago, const int nlocal, const int nall,
   return h_error_flag[0];
 }
 */
-/*
+
 // ---------------------------------------------------------------------------
 // Copy nbor list from host if necessary and then calculate forces, virials,..
 // ---------------------------------------------------------------------------
@@ -495,7 +497,7 @@ int PPPMGPUMemoryT::compute(const int ago, const int nlocal, const int nall,
   
   return h_error_flag[0];
 }
-*/
+
 
 template <class numtyp, class acctyp>
 double PPPMGPUMemoryT::host_memory_usage() const {
@@ -513,7 +515,7 @@ void PPPMGPUMemoryT::compile_kernels(UCL_Device &dev) {
   pppm_program=new UCL_Program(dev);
   pppm_program->load_string(pppm_gpu_kernel,flags.c_str());
   k_particle_map.set_function(*pppm_program,"particle_map");
-  k_make_rho.set_function(*pppm_program,"make_rho");
+  k_make_rho.set_function(*pppm_program,"make_rho3");
   pos_tex.get_texture(*pppm_program,"pos_tex");
   q_tex.get_texture(*pppm_program,"q_tex");
 

@@ -61,15 +61,14 @@ __inline double fetch_q(const int& i, const double *q)
   return q[i];
 }
 
-__device__ inline void atomicFloatAdd(double* address, double val) {
+__device__ inline void atom_add_float(double* address, double val) {
   double old=*address, assumed;
   do { 
     assumed=old;
     old=__longlong_as_double( atomicCAS((unsigned long long int*)address, 
                                           __double_as_longlong(assumed),
-                                          __double_as_longlong(val +
-                                          assumed)));
-  } while (assumed != old); 
+                                          __double_as_longlong(val+assumed)));
+  } while (assumed!=old); 
 }
 
 #else
@@ -82,19 +81,18 @@ __inline float fetch_q(const int& i, const float *q)
   return tex1Dfetch(q_tex, i);
 }
 
-__device__ inline void atomicFloatAdd(float *address, float val)
-{
-       int i_val=__float_as_int(val);
-       int tmp0=0;
-       int tmp1;
-
-       while( (tmp1=atomicCAS((int *)address, tmp0, i_val)) != tmp0)
-       {
-               tmp0=tmp1;
-               i_val=__float_as_int(val+__int_as_float(tmp1));
-       }
+#if (__CUDA_ARCH__ < 200)
+__device__ inline void atom_add_float(float *address, float val) {
+  float old=*address, assumed;
+  do { 
+    assumed=old;
+    old=__int_as_float( atomicCAS((int *)address, __float_as_int(assumed),
+                        __float_as_int(val+assumed)));
+  } while (assumed != old); 
 }
-
+#else
+#define atom_add_float atomicAdd
+#endif
 
 #endif
 
@@ -129,7 +127,7 @@ __kernel void particle_map(__global numtyp4 *x_, const int nlocal,
 
   // Resequence the atom indices to avoid collisions during atomic ops
   int nthreads=GLOBAL_SIZE_X;
-  ii=__mul24(ii,skip);
+  ii=mul24(ii,skip);
   ii-=int(ii/nthreads)*(nthreads-1);
 
   int nx,ny,nz;
@@ -175,29 +173,29 @@ __kernel void make_rho(__global numtyp4 *x_, __global numtyp *q_,
   int nx=THREAD_ID_X;
   int ny=THREAD_ID_Y;
   if (nx<order && ny<order) {
-    int ri=__mul24(nx,order)+ny;
+    int ri=mul24(nx,order)+ny;
     rho_coeff[ri]=_rho_coeff[ri];
   }
   __syncthreads();
   
-  nx+=__mul24(BLOCK_ID_X,BLOCK_SIZE_X);
-  ny+=__mul24(BLOCK_ID_Y,BLOCK_SIZE_Y);
+  nx+=mul24(BLOCK_ID_X,BLOCK_SIZE_X);
+  ny+=mul24(BLOCK_ID_Y,BLOCK_SIZE_Y);
 
   // Get the z-block we are working on
   int z_block=nx/x_threads;
   nx=nx%x_threads;
-  int nz=__mul24(z_block,8);
+  int nz=mul24(z_block,8);
   int z_stop=nz+8;
   if (z_stop>nlocal_z)
     z_stop=nlocal_z;
   
   if (nx<nlocal_x && ny<nlocal_y) {
-    int z_stride=__mul24(nlocal_x,nlocal_y);
-    int z_pos=__mul24(nz,z_stride)+__mul24(ny,nlocal_x)+nx;
+    int z_stride=mul24(nlocal_x,nlocal_y);
+    int z_pos=mul24(nz,z_stride)+mul24(ny,nlocal_x)+nx;
     for ( ; nz<z_stop; nz++) {
       int natoms=counts[z_pos];
       for (int row=0; row<natoms; row++) {
-        int atom=atoms[__mul24(atom_stride,row)+z_pos];
+        int atom=atoms[mul24(atom_stride,row)+z_pos];
         numtyp4 p=fetch_pos(atom,x_);
         numtyp z0=delvolinv*fetch_q(atom,q_);
         
@@ -215,18 +213,17 @@ __kernel void make_rho(__global numtyp4 *x_, __global numtyp *q_,
           }
         }
         
-        int mz=__mul24(nz,npts_yx)+nx;
+        int mz=mul24(nz,npts_yx)+nx;
         for (int n=0; n<order; n++) {
           numtyp rho1d_2=(numtyp)0.0;
           for (int k=order2+n; k>=n; k-=order)
             rho1d_2=rho_coeff[k]+rho1d_2*dz;
           numtyp y0=z0*rho1d_2;
-          int my=mz+__mul24(ny,npts_x);
+          int my=mz+mul24(ny,npts_x);
           for (int m=0; m<order; m++) {
 	          numtyp x0=y0*rho1d[1][m];
-	          for (int l=0; l<order; l++) {
-              atomicFloatAdd(brick+my+l,x0*rho1d[0][l]);
-	          }
+	          for (int l=0; l<order; l++)
+              atom_add_float(brick+my+l,x0*rho1d[0][l]);
 	          my+=npts_x;
 	        }
 	        mz+=npts_yx;
@@ -275,8 +272,8 @@ __kernel void make_rho2(__global numtyp4 *x_, __global numtyp *q_,
       x_stop-=nx-nlocal_x+1;
     if (ny>=nlocal_y)
       y_stop-=ny-nlocal_y+1;
-    z_stride=__mul24(npts_yx,BLOCK_1D);
-    z_local_stride=__mul24(__mul24(nlocal_x,nlocal_y),BLOCK_1D);
+    z_stride=mul24(npts_yx,BLOCK_1D);
+    z_local_stride=mul24(mul24(nlocal_x,nlocal_y),BLOCK_1D);
   }
   
   if (tx<order) 
@@ -287,19 +284,19 @@ __kernel void make_rho2(__global numtyp4 *x_, __global numtyp *q_,
   numtyp ans[MAX_STENCIL];
   int loop_count=npts_z/BLOCK_1D+1;
   int nz=tx;
-  int pt=__mul24(nz,npts_yx)+__mul24(ny,npts_x)+nx;
-  int z_local=__mul24(__mul24(nz,nlocal_x),nlocal_y);
+  int pt=mul24(nz,npts_yx)+mul24(ny,npts_x)+nx;
+  int z_local=mul24(mul24(nz,nlocal_x),nlocal_y);
   for (int i=0 ; i<loop_count; i++) {
     for (int n=0; n<order; n++)
       ans[n]=(numtyp)0.0;
     if (nz<nlocal_z) {
       for (int m=y_start; m<y_stop; m++) {
         int y_pos=ny+m-order_m_1;
-        int y_local=__mul24(y_pos,nlocal_x);
+        int y_local=mul24(y_pos,nlocal_x);
         for (int l=x_start; l<x_stop; l++) {
           int x_pos=nx+l-order_m_1;
           int pos=z_local+y_local+x_pos;
-          int natoms=__mul24(counts[pos],atom_stride);
+          int natoms=mul24(counts[pos],atom_stride);
           for (int row=pos; row<natoms; row+=atom_stride) {
             int atom=atoms[row];
             numtyp4 p=fetch_pos(atom,x_);
@@ -371,7 +368,7 @@ __kernel void make_rho3(__global numtyp4 *x_, __global numtyp *q_,
   
   // Resequence the atom indices to avoid collisions during atomic ops
   int nthreads=GLOBAL_SIZE_X;
-  ii=__mul24(ii,skip);
+  ii=mul24(ii,skip);
   ii-=int(ii/nthreads)*(nthreads-1);
 
   int nx,ny,nz;
@@ -406,18 +403,17 @@ __kernel void make_rho3(__global numtyp4 *x_, __global numtyp *q_,
         }
       }
         
-      int mz=__mul24(nz,npts_yx)+nx;
+      int mz=mul24(nz,npts_yx)+nx;
       for (int n=0; n<order; n++) {
         numtyp rho1d_2=(numtyp)0.0;
         for (int k=order2+n; k>=n; k-=order)
           rho1d_2=rho_coeff[k]+rho1d_2*dz;
         numtyp y0=z0*rho1d_2;
-        int my=mz+__mul24(ny,npts_x);
+        int my=mz+mul24(ny,npts_x);
         for (int m=0; m<order; m++) {
           numtyp x0=y0*rho1d[1][m];
-	        for (int l=0; l<order; l++) {
-            atomicFloatAdd(brick+my+l,x0*rho1d[0][l]);
-	        }
+	        for (int l=0; l<order; l++)
+            atom_add_float(brick+my+l,x0*rho1d[0][l]);
           my+=npts_x;
         }
         mz+=npts_yx;

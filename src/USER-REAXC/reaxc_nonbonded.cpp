@@ -116,9 +116,9 @@ void vdW_Coulomb_Energy( reax_system *system, control_params *control,
 	
 	e_vdW = twbp->D * (exp1 - 2.0 * exp2);
 	data->my_en.e_vdW += Tap * e_vdW;
-	
+
 	CEvd = dTap * e_vdW - 
-	  Tap * twbp->D * (twbp->alpha / twbp->r_vdW) * (exp1 - exp2);
+	  Tap * twbp->D * (twbp->alpha / twbp->r_vdW) * (exp1 - exp2) / r_ij;
       }
 
       if(system->reax_param.gp.vdw_type==2 || system->reax_param.gp.vdw_type==3)
@@ -127,7 +127,7 @@ void vdW_Coulomb_Energy( reax_system *system, control_params *control,
 	  data->my_en.e_vdW += Tap * e_core;
 
 	  de_core = -(twbp->acore/twbp->rcore) * e_core;
-	  CEvd += dTap * e_core + Tap * de_core;
+	  CEvd += dTap * e_core + Tap * de_core / r_ij;
 	}
 
       /*Coulomb Calculations*/

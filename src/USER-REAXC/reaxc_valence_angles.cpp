@@ -235,7 +235,7 @@ void Valence_Angles( reax_system *system, control_params *control,
 	  
 	  
 	  if( (j < system->n) && (BOA_jk > 0.0) && 
-	      (bo_ij->BO * bo_jk->BO > SQR(control->thb_cut)/*0*/) ) {
+              (bo_ij->BO * bo_jk->BO > SQR(control->thb_cut)/*0*/) ) {
 	    r_jk = pbond_jk->d;		      
 	    thbh = &( system->reax_param.thbp[ type_i ][ type_j ][ type_k ] );
 	    
@@ -343,7 +343,7 @@ void Valence_Angles( reax_system *system, control_params *control,
 		p_coa3 = system->reax_param.gp.l[38];
 		p_coa4 = system->reax_param.gp.l[30];
 		
-		exp_coa2 = exp( p_coa2 * workspace->Delta_boc[j] );
+		exp_coa2 = exp( p_coa2 * workspace->Delta_val[j] );
 		data->my_en.e_coa += e_coa = 
 		  p_coa1 / (1. + exp_coa2) *
 		  exp( -p_coa3 * SQR(workspace->total_bond_order[i]-BOA_ij) ) *

@@ -1137,6 +1137,8 @@ void BO( reax_system *system, control_params *control, simulation_data *data,
     workspace->Delta_e[j] = workspace->total_bond_order[j] - sbp_j->valency_e;
     workspace->Delta_boc[j] = workspace->total_bond_order[j] -
       sbp_j->valency_boc;
+    workspace->Delta_val[j] = workspace->total_bond_order[j] -
+      sbp_j->valency_val;
 
     workspace->vlpex[j] = workspace->Delta_e[j] - 
       2.0 * (int)(workspace->Delta_e[j]/2.0);    

@@ -1,4 +1,4 @@
-Reactive MD-force field: c/h/o combustion force field November 2006
+Reactive MD-force field c/h/o combustion force field: Chenoweth, K.; van Duin, A.C.T.; Goddard, W.A. J. Phys. Chem. A 2008, 112, 1040-1053.
  39       ! Number of general parameters                                        
    50.0000 !p(boc1)
     9.5469 !p(boc2)
@@ -37,7 +37,7 @@ Reactive MD-force field: c/h/o combustion force field November 2006
     0.0000 !not used                                                            
     0.0000 !not used                                                            
     0.0000 !not used
-    1.0    !Version number
+    0.0000 !not used                                         
     2.6962 !p(coa3)
   3    ! Nr of atoms; atomID;ro(sigma); Val;atom mass;Rvdw;Dij;gamma;ro(pi);Val(e)
             alfa;gamma(w);Val(angle);p(ovun5);n.u.;chiEEM;etaEEM;n.u.               

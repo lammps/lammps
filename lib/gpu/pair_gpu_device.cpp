@@ -266,9 +266,12 @@ void PairGPUDeviceT::output_kspace_times(UCL_Timer &time_in,
                                          const double max_bytes, FILE *screen) {
   double single[4], times[4];
 
-  single[0]=atom.transfer_time()+ans.transfer_time()+time_in.total_seconds()+
-            time_out.total_seconds();
-  single[1]=atom.cast_time()+ans.cast_time();
+//  single[0]=atom.transfer_time()+ans.transfer_time()+time_in.total_seconds()+
+//            time_out.total_seconds();
+//  single[1]=atom.cast_time()+ans.cast_time();
+
+  single[0]=time_out.total_seconds();
+  single[1]=0.0;
   single[2]=time_map.total_seconds();
   single[3]=time_rho.total_seconds();
 

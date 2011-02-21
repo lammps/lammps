@@ -47,6 +47,7 @@ namespace LAMMPS_NS {
 // default settings
 // 32-bit smallint and tagint, 64-bit bigint
 
+/*
 typedef int smallint;
 typedef int tagint;
 typedef int64_t bigint;
@@ -63,6 +64,7 @@ typedef int64_t bigint;
 
 #define ATOTAGINT atoi
 #define ATOBIGINT atoll
+*/
 
 // for molecular problems that exceed 2 billion (2^31) atoms
 // 32-bit smallint, 64-bit tagint and bigint
@@ -90,7 +92,6 @@ typedef int64_t bigint;
 // for machines that do not support 64-bit ints
 // 32-bit smallint and tagint and bigint
 
-/*
 typedef int smallint;
 typedef int tagint;
 typedef int bigint;
@@ -107,7 +108,6 @@ typedef int bigint;
 
 #define ATOTAGINT atoi
 #define ATOBIGINT atoi
-*/
 
 }
 

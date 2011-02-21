@@ -105,7 +105,14 @@ PPPMGPU::~PPPMGPU()
   deallocate();
   memory->destroy_2d_int_array(part2grid);
   pppm_gpu_clear();
-std::cout << "DEBUG_TIMES: " << time1 << " " << time2 << " " << time3 
+double total1, total2, total3;
+int rank;
+MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+MPI_Allreduce(&time1,&total1,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+MPI_Allreduce(&time2,&total2,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+MPI_Allreduce(&time3,&total3,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+if (rank==0)
+std::cout << "DEBUG_TIMES: " << total1 << " " << total2 << " " << total3 
           << std::endl;
 }
 
@@ -702,6 +709,8 @@ double t1=MPI_Wtime();
   make_rho();
 time1+=MPI_Wtime()-t1;
 
+
+/*
 double max_error=0;
 int _npts_x=nxhi_out-nxlo_out+1;
 int _npts_y=nyhi_out-nylo_out+1;
@@ -732,6 +741,8 @@ for (int i=0; i<iend; i++) {
   }
 }
 std::cout << "Maximum relative error: " << max_error*100.0 << "%\n";
+*/
+
 
   // all procs communicate density values from their ghost cells
   //   to fully sum contribution in their 3d bricks

@@ -147,12 +147,6 @@ numtyp * PPPMGPUMemoryT::init(const int nlocal, const int nall, FILE *_screen,
   d_error_flag.zero();
   _max_bytes+=1;
   
-std::cout << "LO: " << _nxlo_out << " " << _nylo_out << " " << _nzlo_out << " " << _nlower << std::endl;
-std::cout << "HI: " << _nxhi_out << " " << _nyhi_out << " " << _nzhi_out << " " << _nupper << std::endl;
-std::cout << "pts: " << _npts_x << " " << _npts_y << " " << _npts_z << std::endl;
-std::cout << "local: " << _nlocal_x << " " << _nlocal_y << " " << _nlocal_z << std::endl;
-
-
   return h_brick.begin();
 }
 
@@ -188,7 +182,7 @@ void PPPMGPUMemoryT::clear() {
   device->clear();
 }
 
-/*
+
 // ---------------------------------------------------------------------------
 // Copy nbor list from host if necessary and then calculate forces, virials,..
 // ---------------------------------------------------------------------------
@@ -296,6 +290,113 @@ int PPPMGPUMemoryT::compute(const int ago, const int nlocal, const int nall,
   
   return h_error_flag[0];
 }
+
+
+/*
+// ---------------------------------------------------------------------------
+// Copy nbor list from host if necessary and then calculate forces, virials,..
+// ---------------------------------------------------------------------------
+template <class numtyp, class acctyp>
+int PPPMGPUMemoryT::compute(const int ago, const int nlocal, const int nall,
+                            double **host_x, int *host_type, bool &success,
+                            double *host_q, double *boxlo, 
+                            const double delxinv, const double delyinv,
+                            const double delzinv) {
+  acc_timers();
+  if (nlocal==0) {
+    zero_timers();
+    return 0;
+  }
+  
+  ans->inum(nlocal);
+
+  if (ago==0) {
+    resize_atom(nlocal,nall,success);
+    resize_local(nlocal,success);
+    if (!success)
+      return 0;
+
+    double bytes=ans->gpu_bytes();
+    if (bytes>_max_an_bytes)
+      _max_an_bytes=bytes;
+  }
+
+  atom->cast_x_data(host_x,host_type);
+  atom->cast_q_data(host_q);
+  atom->add_x_data(host_x,host_type);
+  atom->add_q_data();
+
+  time_map.start();
+
+  // Compute the block size and grid size to keep all cores busy
+  int BX=this->block_size();
+  int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/BX));
+
+  int _max_atoms=10;
+  int ainum=this->ans->inum();
+  
+  // Boxlo adjusted to be upper left brick and shift for even stencil order
+  double shift=0.0;
+  if (_order % 2)
+    shift=0.5;
+  numtyp f_brick_x=boxlo[0]+(_nxlo_out-_nlower-shift)/delxinv;
+  numtyp f_brick_y=boxlo[1]+(_nylo_out-_nlower-shift)/delyinv;
+  numtyp f_brick_z=boxlo[2]+(_nzlo_out-_nlower-shift)/delzinv;
+  
+  numtyp f_delxinv=delxinv;
+  numtyp f_delyinv=delyinv;
+  numtyp f_delzinv=delzinv;
+  double delvolinv = delxinv*delyinv*delzinv;
+  numtyp f_delvolinv = delvolinv;
+
+  d_brick_counts.zero();
+  k_particle_map.set_size(GX,BX);
+  k_particle_map.run(&atom->dev_x.begin(), &ainum, &d_brick_counts.begin(),
+                     &d_brick_atoms.begin(), &f_brick_x, &f_brick_y, 
+                     &f_brick_z, &f_delxinv, &f_delyinv, &f_delzinv, &_nlocal_x,
+                     &_nlocal_y, &_nlocal_z, &_atom_stride, &_max_brick_atoms,
+                     &d_error_flag.begin());
+  time_map.stop();
+
+  time_rho.start();
+  if (_order % 2)
+    shift=0.0;
+  else
+    shift=0.5;
+  f_brick_x=boxlo[0]+(_nxlo_out-_nlower+shift)/delxinv;
+  f_brick_y=boxlo[1]+(_nylo_out-_nlower+shift)/delyinv;
+  f_brick_z=boxlo[2]+(_nzlo_out-_nlower+shift)/delzinv;
+
+  BX=block_size();
+  GX=_npts_x;
+  int GY=_npts_y;
+  k_make_rho.set_size(GX,GY,BX,1);
+  k_make_rho.run(&atom->dev_x.begin(), &atom->dev_q.begin(),
+                 &d_brick_counts.begin(), &d_brick_atoms.begin(),
+                 &d_brick.begin(), &d_rho_coeff.begin(), &_atom_stride, &_npts_x,
+                 &_npts_yx, &_npts_z, &_nlocal_x, &_nlocal_y, &_nlocal_z,
+                 &_order_m_1, &f_brick_x, &f_brick_y, &f_brick_z,
+                 &f_delxinv, &f_delyinv, &f_delzinv, &_order, &_order2,
+                 &f_delvolinv);
+  time_rho.stop();
+
+  time_out.start();
+  ucl_copy(h_brick,d_brick,true);
+  ucl_copy(h_error_flag,d_error_flag,false);
+  time_out.stop();
+  
+  if (h_error_flag[0]==2) {
+    // Not enough storage for atoms on the brick
+    _max_brick_atoms*=2;
+    d_brick_atoms.clear();
+    d_brick_atoms.alloc(_atom_stride*_max_atoms,*ucl_device);
+    _max_bytes+=d_brick_atoms.row_bytes();
+    return compute(ago,nlocal,nall,host_x,host_type,success,host_q,boxlo, 
+                   delxinv,delyinv,delzinv);
+  }
+  
+  return h_error_flag[0];
+}
 */
 
 /*
@@ -332,115 +433,14 @@ int PPPMGPUMemoryT::compute(const int ago, const int nlocal, const int nall,
   atom->add_x_data(host_x,host_type);
   atom->add_q_data();
 
-  // Compute the block size and grid size to keep all cores busy
-  int BX=this->block_size();
-  int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/BX));
-
-  int _max_atoms=10;
-  int ainum=this->ans->inum();
-  
-  // Boxlo adjusted to be upper left brick and shift for even stencil order
-  double shift=0.0;
-  if (_order % 2)
-    shift=0.5;
-  numtyp f_brick_x=boxlo[0]+(_nxlo_out-_nlower-shift)/delxinv;
-  numtyp f_brick_y=boxlo[1]+(_nylo_out-_nlower-shift)/delyinv;
-  numtyp f_brick_z=boxlo[2]+(_nzlo_out-_nlower-shift)/delzinv;
-  
-  numtyp f_delxinv=delxinv;
-  numtyp f_delyinv=delyinv;
-  numtyp f_delzinv=delzinv;
-  double delvolinv = delxinv*delyinv*delzinv;
-  numtyp f_delvolinv = delvolinv;
-
   time_map.start();
-  d_brick_counts.zero();
-  k_particle_map.set_size(GX,BX);
-  k_particle_map.run(&atom->dev_x.begin(), &ainum, &d_brick_counts.begin(),
-                     &d_brick_atoms.begin(), &f_brick_x, &f_brick_y, 
-                     &f_brick_z, &f_delxinv, &f_delyinv, &f_delzinv, &_nlocal_x,
-                     &_nlocal_y, &_nlocal_z, &_atom_stride, &_max_brick_atoms,
-                     &d_error_flag.begin());
   time_map.stop();
 
-  if (_order % 2)
-    shift=0.0;
-  else
-    shift=0.5;
-  f_brick_x=boxlo[0]+(_nxlo_out-_nlower+shift)/delxinv;
-  f_brick_y=boxlo[1]+(_nylo_out-_nlower+shift)/delyinv;
-  f_brick_z=boxlo[2]+(_nzlo_out-_nlower+shift)/delzinv;
-
   time_rho.start();
-  BX=block_size();
-  GX=_npts_x;
-  int GY=_npts_y;
-  k_make_rho.set_size(GX,GY,BX,1);
-  k_make_rho.run(&atom->dev_x.begin(), &atom->dev_q.begin(),
-                 &d_brick_counts.begin(), &d_brick_atoms.begin(),
-                 &d_brick.begin(), &d_rho_coeff.begin(), &_atom_stride, &_npts_x,
-                 &_npts_yx, &_npts_z, &_nlocal_x, &_nlocal_y, &_nlocal_z,
-                 &_order_m_1, &f_brick_x, &f_brick_y, &f_brick_z,
-                 &f_delxinv, &f_delyinv, &f_delzinv, &_order, &_order2,
-                 &f_delvolinv);
-  time_rho.stop();
-
-  time_out.start();
-  ucl_copy(h_brick,d_brick,true);
-  ucl_copy(h_error_flag,d_error_flag,false);
-  time_out.stop();
-  
-  if (h_error_flag[0]==2) {
-    // Not enough storage for atoms on the brick
-    _max_brick_atoms*=2;
-    d_brick_atoms.clear();
-    d_brick_atoms.alloc(_atom_stride*_max_atoms,*ucl_device);
-    _max_bytes+=d_brick_atoms.row_bytes();
-    return compute(ago,nlocal,nall,host_x,host_type,success,host_q,boxlo, 
-                   delxinv,delyinv,delzinv);
-  }
-  
-  return h_error_flag[0];
-}
-*/
-
-// ---------------------------------------------------------------------------
-// Copy nbor list from host if necessary and then calculate forces, virials,..
-// ---------------------------------------------------------------------------
-template <class numtyp, class acctyp>
-int PPPMGPUMemoryT::compute(const int ago, const int nlocal, const int nall,
-                            double **host_x, int *host_type, bool &success,
-                            double *host_q, double *boxlo, 
-                            const double delxinv, const double delyinv,
-                            const double delzinv) {
-  acc_timers();
-  if (nlocal==0) {
-    zero_timers();
-    return 0;
-  }
-  
-  ans->inum(nlocal);
-
-  if (ago==0) {
-    resize_atom(nlocal,nall,success);
-    resize_local(nlocal,success);
-    if (!success)
-      return 0;
-
-    double bytes=ans->gpu_bytes();
-    if (bytes>_max_an_bytes)
-      _max_an_bytes=bytes;
-  }
-
-  atom->cast_x_data(host_x,host_type);
-  atom->cast_q_data(host_q);
-  atom->add_x_data(host_x,host_type);
-  atom->add_q_data();
 
   // Compute the block size and grid size to keep all cores busy
   int BX=this->block_size();
   int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/BX));
-
   int ainum=this->ans->inum();
   
   // Boxlo adjusted to be upper left brick and shift for even stencil order
@@ -457,10 +457,6 @@ int PPPMGPUMemoryT::compute(const int ago, const int nlocal, const int nall,
   double delvolinv = delxinv*delyinv*delzinv;
   numtyp f_delvolinv = delvolinv;
   
-  time_map.start();
-  time_map.stop();
-
-  time_rho.start();
   d_brick.zero();
   k_make_rho.set_size(GX,BX);
   k_make_rho.run(&atom->dev_x.begin(), &atom->dev_q.begin(), &ainum,
@@ -477,7 +473,7 @@ int PPPMGPUMemoryT::compute(const int ago, const int nlocal, const int nall,
   
   return h_error_flag[0];
 }
-
+*/
 
 template <class numtyp, class acctyp>
 double PPPMGPUMemoryT::host_memory_usage() const {
@@ -495,7 +491,7 @@ void PPPMGPUMemoryT::compile_kernels(UCL_Device &dev) {
   pppm_program=new UCL_Program(dev);
   pppm_program->load_string(pppm_gpu_kernel,flags.c_str());
   k_particle_map.set_function(*pppm_program,"particle_map");
-  k_make_rho.set_function(*pppm_program,"make_rho3");
+  k_make_rho.set_function(*pppm_program,"make_rho");
   pos_tex.get_texture(*pppm_program,"pos_tex");
   q_tex.get_texture(*pppm_program,"q_tex");
 

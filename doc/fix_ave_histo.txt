@@ -16,9 +16,9 @@ ID, group-ID are documented in "fix"_fix.html command :ulb,l
 ave/histo = style name of this fix command :l
 Nevery = use input values every this many timesteps :l
 Nrepeat = # of times to use input values for calculating histogram :l
-Nfreq = calculate histogram every this many timesteps
-lo,hi = lo/hi bounds within which to histogram
-Nbin = # of histogram bins
+Nfreq = calculate histogram every this many timesteps :l
+lo,hi = lo/hi bounds within which to histogram :l
+Nbin = # of histogram bins :l
 one or more input values can be listed :l
 value = x, y, z, vx, vy, vz, fx, fy, fz, c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_name :l
   x,y,z,vx,vy,vz,fx,fy,fz = atom attribute (position, velocity, force component)
@@ -283,7 +283,7 @@ The global vector has 4 values:
 1 = total counts in the histogram
 2 = values that were not histogrammed (see {beyond} keyword)
 3 = min value of all input values, including ones not histogrammed
-4 = max value of all input values, including ones not histogrammed
+4 = max value of all input values, including ones not histogrammed :ul
 
 The global array has # of rows = Nbins and # of columns = 3.  The
 first column has the bin coordinate, the 2nd column has the count of

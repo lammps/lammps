@@ -407,7 +407,9 @@ void FixStoreState::end_of_step()
 
   // fill vector or array with per-atom values
 
-  buf = &values[0][0];
+  if (values) buf = &values[0][0];
+  else buf = NULL;
+
   for (int m = 0; m < nvalues; m++) {
     if (which[m] == KEYWORD && kflag) (this->*pack_choice[m])(m);
 
@@ -485,8 +487,10 @@ void FixStoreState::grow_arrays(int nmax)
 {
   values = memory->grow_2d_double_array(values,nmax,nvalues,
 					"fix_store:values");
-  if (nvalues == 0) vector_atom = &values[0][0];
-  else array_atom = values;
+  if (nvalues == 0) {
+    if (nmax) vector_atom = &values[0][0];
+    else vector_atom = NULL;
+  } else array_atom = values;
 }
 
 /* ----------------------------------------------------------------------

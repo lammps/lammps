@@ -1,0 +1,17 @@
+simulation_name		AuO_example ! output files will carry this name + their specific ext
+
+tabulate_long_range	10000 ! denotes the granularity of long range tabulation, 0 means no tabulation
+energy_update_freq 	1 
+
+nbrhood_cutoff		4.5  ! near neighbors cutoff for bond calculations in A
+hbond_cutoff		6.0  ! cutoff distance for hydrogen bond interactions
+bond_graph_cutoff	0.3  ! bond strength cutoff for bond graphs
+thb_cutoff		0.001 ! cutoff value for three body interactions
+
+write_freq		1    ! write trajectory after so many steps
+traj_title		AuO  ! (no white spaces)
+atom_info		1    ! 0: no atom info, 1: print basic atom info in the trajectory file
+atom_forces		1    ! 0: basic atom format, 1: print force on each atom in the trajectory file
+atom_velocities		0    ! 0: basic atom format, 1: print the velocity of each atom in the trajectory file
+bond_info		1    ! 0: do not print bonds, 1: print bonds in the trajectory file
+angle_info		1    ! 0: do not print angles, 1: print angles in the trajectory file 

@@ -397,10 +397,6 @@ void Velocity::set(int narg, char **arg)
 
   // check variables
 
-  int dimension = domain->dimension;
-  if (dimension == 2 && zstyle)
-    error->all("Cannot set z velocity for 2d simulation");
-
   if (xstr) {
     xvar = input->variable->find(xstr);
     if (xvar < 0) error->all("Variable name for velocity set does not exist");
@@ -428,6 +424,15 @@ void Velocity::set(int narg, char **arg)
   else if (xstyle == EQUAL || ystyle == EQUAL || zstyle == EQUAL)
     varflag = EQUAL;
   else varflag = CONSTANT;
+
+  // error check for 2d models
+
+  if (domain->dimension == 2) {
+    if (zstyle == CONSTANT && vz != 0.0)
+      error->all("Cannot set non-zero z velocity for 2d simulation");
+    if (zstyle == EQUAL || zstyle == ATOM)
+      error->all("Cannot set varaible z velocity for 2d simulation");
+  }
 
   // allocate vfield array if necessary
 

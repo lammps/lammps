@@ -748,7 +748,7 @@ typedef struct
   /* bond order related storage */
   real *total_bond_order;
   real *Deltap, *Deltap_boc;
-  real *Delta, *Delta_lp, *Delta_lp_temp, *Delta_e, *Delta_boc;
+  real *Delta, *Delta_lp, *Delta_lp_temp, *Delta_e, *Delta_boc, *Delta_val;
   real *dDelta_lp, *dDelta_lp_temp;
   real *nlp, *nlp_temp, *Clp, *vlpex;
   rvec *dDeltap_self;

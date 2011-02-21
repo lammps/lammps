@@ -535,10 +535,12 @@ void FixRigid::init()
   }
 
   // compute masstotal & center-of-mass of each rigid body
-  
+  // error if image flag is not 0 in a non-periodic dim
+
   double **x = atom->x;
   int *image = atom->image;
   
+  int *periodicity = domain->periodicity;
   double xprd = domain->xprd;
   double yprd = domain->yprd;
   double zprd = domain->zprd;
@@ -561,6 +563,11 @@ void FixRigid::init()
     if (rmass) massone = rmass[i];
     else massone = mass[type[i]];
 
+    if ((xbox && !periodicity[0]) || (ybox && !periodicity[1]) ||
+	(zbox && !periodicity[2]))
+	error->one("Fix rigid atom has non-zero image flag "
+		   "in a non-periodic dimension");
+
     if (triclinic == 0) {
       xunwrap = x[i][0] + xbox*xprd;
       yunwrap = x[i][1] + ybox*yprd;
@@ -576,7 +583,7 @@ void FixRigid::init()
     sum[ibody][2] += zunwrap * massone;
     sum[ibody][3] += massone;
   }
-  
+
   MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);
   
   for (ibody = 0; ibody < nbody; ibody++) {
@@ -585,7 +592,7 @@ void FixRigid::init()
     xcm[ibody][1] = all[ibody][1]/masstotal[ibody];
     xcm[ibody][2] = all[ibody][2]/masstotal[ibody];
   }
-  
+
   // remap the xcm of each body back into simulation box if needed
   // only really necessary the 1st time a run is performed
 

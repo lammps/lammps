@@ -1,0 +1,50 @@
+LAMMPS (18 Jan 2011)
+# REAX potential for high energy CHON systems
+# .....
+
+units		real
+
+atom_style	charge
+read_data	data.RDX
+  orthogonal box = (0 0 0) to (25 25 25)
+  1 by 2 by 2 processor grid
+  105 atoms
+
+pair_style	reax/c lmp_control
+pair_coeff	* * ffield.reax.rdx 2 1 3 4
+
+neighbor	2 bin
+neigh_modify	every 10 delay 0 check no
+
+fix		1 all nve
+fix             2 all qeq/reax 1 0.0 10.0 1e-6 param.qeq
+fix             3 all temp/berendsen 500.0 500.0 100.0
+
+timestep	0.25
+
+dump		1 all atom 30 dump.reax.rdx
+
+run		3000
+Memory usage per processor = 3.12657 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0            0   -10197.932            0   -10197.932    38.347492 
+    3000    507.16511   -10090.577            0   -9933.3534    520.87142 
+Loop time of 52.5856 on 4 procs for 3000 steps with 105 atoms
+
+Pair  time (%) = 35.3037 (67.1356)
+Neigh time (%) = 0.0323967 (0.0616075)
+Comm  time (%) = 1.76248 (3.35164)
+Outpt time (%) = 0.0193251 (0.0367498)
+Other time (%) = 15.4678 (29.4144)
+
+Nlocal:    26.25 ave 46 max 8 min
+Histogram: 1 0 0 1 0 1 0 0 0 1
+Nghost:    399.5 ave 512 max 288 min
+Histogram: 1 0 0 1 0 0 1 0 0 1
+Neighs:    1011.25 ave 1818 max 421 min
+Histogram: 1 0 1 1 0 0 0 0 0 1
+
+Total # of neighbors = 4045
+Ave neighs/atom = 38.5238
+Neighbor list builds = 300
+Dangerous builds = 0

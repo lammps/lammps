@@ -190,7 +190,7 @@ void FixWallRegion::min_setup(int vflag)
 void FixWallRegion::post_force(int vflag)
 {
   int i,m,n;
-  double fx,fy,fz,tooclose;
+  double rinv,fx,fy,fz,tooclose;
 
   eflag = 0;
   ewall[0] = ewall[1] = ewall[2] = ewall[3] = 0.0;
@@ -224,7 +224,7 @@ void FixWallRegion::post_force(int vflag)
 	if (region->contact[m].r <= tooclose) {
 	  onflag = 1;
 	  continue;
-	}
+	} else rinv = 1.0/region->contact[m].r;
 
 	if (style == LJ93) lj93(region->contact[m].r);
 	else if (style == LJ126) lj126(region->contact[m].r);
@@ -233,9 +233,9 @@ void FixWallRegion::post_force(int vflag)
 	else harmonic(region->contact[m].r);
 
 	ewall[0] += eng;
-	fx = fwall * region->contact[m].delx;
-	fy = fwall * region->contact[m].dely;
-	fz = fwall * region->contact[m].delz;
+	fx = fwall * region->contact[m].delx * rinv;
+	fy = fwall * region->contact[m].dely * rinv;
+	fz = fwall * region->contact[m].delz * rinv;
 	f[i][0] += fx;
 	f[i][1] += fy;
 	f[i][2] += fz;

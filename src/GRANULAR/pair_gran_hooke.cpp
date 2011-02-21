@@ -32,6 +32,7 @@ using namespace LAMMPS_NS;
 
 PairGranHooke::PairGranHooke(LAMMPS *lmp) : PairGranHookeHistory(lmp)
 {
+  no_virial_compute = 0;
   history = 0;
 }
 

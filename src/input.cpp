@@ -16,6 +16,8 @@
 #include "stdlib.h"
 #include "string.h"
 #include "ctype.h"
+#include "unistd.h"
+#include "sys/stat.h"
 #include "input.h"
 #include "style_command.h"
 #include "universe.h"
@@ -81,10 +83,13 @@ Input::Input(LAMMPS *lmp, int argc, char **argv) : Pointers(lmp)
 
   int iarg = 0;
   while (iarg < argc) {
-    if (strcmp(argv[iarg],"-var") == 0) {
-      variable->set(argv[iarg+1],argv[iarg+2]);
-      iarg += 3;
-    } else if (strcmp(argv[iarg],"-echo") == 0) {
+    if (strcmp(argv[iarg],"-var") == 0 || strcmp(argv[iarg],"-v") == 0) {
+      int jarg = iarg+2;
+      while (jarg < argc && argv[jarg][0] != '-') jarg++;
+      variable->set(argv[iarg+1],jarg-iarg-2,&argv[iarg+2]);
+      iarg = jarg;
+    } else if (strcmp(argv[iarg],"-echo") == 0 || 
+	       strcmp(argv[iarg],"-e") == 0) {
       narg = 1;
       char **tmp = arg;        // trick echo() into using argv instead of arg
       arg = &argv[iarg+1];
@@ -409,6 +414,7 @@ int Input::execute_command()
   else if (!strcmp(command,"log")) log();
   else if (!strcmp(command,"next")) next_command();
   else if (!strcmp(command,"print")) print();
+  else if (!strcmp(command,"shell")) shell();
   else if (!strcmp(command,"variable")) variable_command();
 
   else if (!strcmp(command,"angle_coeff")) angle_coeff();
@@ -748,6 +754,43 @@ void Input::print()
     if (screen) fprintf(screen,"\n");
     if (logfile) fprintf(logfile,"\n");
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::shell()
+{
+  if (narg < 1) error->all("Illegal shell command");
+
+  if (strcmp(arg[0],"cd") == 0) {
+    if (narg != 2) error->all("Illegal shell command");
+    chdir(arg[1]);
+
+  } else if (strcmp(arg[0],"mkdir") == 0) {
+    if (narg < 2) error->all("Illegal shell command");
+#if !defined(WINDOWS) && !defined(__MINGW32_VERSION) 
+    if (me == 0)
+      for (int i = 1; i < narg; i++)
+	mkdir(arg[i], S_IRWXU | S_IRGRP | S_IXGRP);
+#endif
+
+  } else if (strcmp(arg[0],"mv") == 0) {
+    if (narg != 3) error->all("Illegal shell command");
+    if (me == 0) rename(arg[1],arg[2]);
+
+  } else if (strcmp(arg[0],"rm") == 0) {
+    if (narg < 2) error->all("Illegal shell command");
+    if (me == 0)
+      for (int i = 1; i < narg; i++)
+	unlink(arg[i]);
+
+  } else if (strcmp(arg[0],"rmdir") == 0) {
+    if (narg < 2) error->all("Illegal shell command");
+    if (me == 0)
+      for (int i = 1; i < narg; i++)
+	rmdir(arg[i]);
+
+  } else error->all("Illegal shell command");
 }
 
 /* ---------------------------------------------------------------------- */

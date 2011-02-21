@@ -28,6 +28,7 @@
 #include "neigh_request.h"
 #include "comm.h"
 #include "output.h"
+#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -49,6 +50,10 @@ FixOrientFCC::FixOrientFCC(LAMMPS *lmp, int narg, char **arg) :
   scalar_flag = 1;
   global_freq = 1;
   extscalar = 1;
+  
+  peratom_flag = 1;
+  size_peratom_cols = 2;
+  peratom_freq = 1;
 
   nstats = atoi(arg[3]);
   direction_of_motion = atoi(arg[4]);
@@ -151,6 +156,16 @@ FixOrientFCC::FixOrientFCC(LAMMPS *lmp, int narg, char **arg) :
   else comm_forward = 50;
 
   added_energy = 0.0;
+
+  nmax = atom->nmax;
+  nbr = (Nbr *) memory->smalloc(nmax*sizeof(Nbr),"orient/fcc:nbr");
+  order = memory->create_2d_double_array(nmax,2,"orient/fcc:order");
+  array_atom = order;
+
+  // zero the array since a variable may access it before first run
+
+  int nlocal = atom->nlocal;
+  for (int i = 0; i < nlocal; i++) order[i][0] = order[i][1] = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -159,7 +174,8 @@ FixOrientFCC::~FixOrientFCC()
 {
   delete [] xifilename;
   delete [] chifilename;
-  if (nmax) delete [] nbr;
+  memory->sfree(nbr);
+  memory->destroy_2d_double_array(order);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -235,12 +251,15 @@ void FixOrientFCC::post_force(int vflag)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  // insure nbr data structure is adequate size
+  // insure nbr and order data structures are adequate size
 
   if (nall > nmax) {
-    if (nmax) delete [] nbr;
-    nbr = new Nbr[nall];
     nmax = nall;
+    memory->sfree(nbr);
+    memory->destroy_2d_double_array(order);
+    nbr = (Nbr *) memory->smalloc(nmax*sizeof(Nbr),"orient/fcc:nbr");
+    order = memory->create_2d_double_array(nmax,2,"orient/fcc:order");
+    array_atom = order;
   }
 
   // loop over owned atoms and build Nbr data structure of neighbors
@@ -314,19 +333,23 @@ void FixOrientFCC::post_force(int vflag)
       if (use_xismooth) nbr[i].xismooth[j] = sort[j].xismooth;
     }
     xi_total /= n;
+    order[i][0] = xi_total;
 
     // compute potential derivative to xi
 
     if (xi_total < xi0) {
       nbr[i].duxi = 0.0;
       edelta = 0.0;
+      order[i][1] = 0.0;
     } else if (xi_total > xi1) {
       nbr[i].duxi = 0.0;
       edelta = Vxi;
+      order[i][1] = 1.0;
     } else {
       omega = (0.5*PI)*(xi_total-xi0) / (xi1-xi0);
       nbr[i].duxi = PI*Vxi*sin(2.0*omega) / (2.0*(xi1-xi0));
       edelta = Vxi*(1 - cos(2.0*omega)) / 2.0;
+      order[i][1] = omega / (0.5*PI);
     }
     added_energy += edelta;
   }
@@ -432,8 +455,9 @@ void FixOrientFCC::post_force_respa(int vflag, int ilevel, int iloop)
 
 double FixOrientFCC::compute_scalar()
 {
-  MPI_Allreduce(&added_energy,&total_added_e,1,MPI_DOUBLE,MPI_SUM,world);
-  return total_added_e;
+  double added_energy_total;
+  MPI_Allreduce(&added_energy,&added_energy_total,1,MPI_DOUBLE,MPI_SUM,world);
+  return added_energy_total;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -562,6 +586,7 @@ int FixOrientFCC::compare(const void *pi, const void *pj)
 
 double FixOrientFCC::memory_usage()
 {
-  double bytes = atom->nmax * sizeof(Nbr);
+  double bytes = nmax * sizeof(Nbr);
+  bytes += 2*nmax * sizeof(double);
   return bytes;
 }

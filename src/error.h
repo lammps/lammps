@@ -28,6 +28,7 @@ class Error : protected Pointers {
   void all(const char *);
   void one(const char *);
   void warning(const char *, int = 1);
+  void message(char *, int = 1);
 };
 
 }

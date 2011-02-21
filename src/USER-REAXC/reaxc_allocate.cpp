@@ -176,6 +176,7 @@ void DeAllocate_Workspace( control_params *control, storage *workspace )
   sfree( workspace->dDelta_lp_temp, "dDelta_lp_temp" );
   sfree( workspace->Delta_e, "Delta_e" );
   sfree( workspace->Delta_boc, "Delta_boc" );
+  sfree( workspace->Delta_val, "Delta_val" );
   sfree( workspace->nlp, "nlp" );
   sfree( workspace->nlp_temp, "nlp_temp" );
   sfree( workspace->Clp, "Clp" );
@@ -311,6 +312,7 @@ int Allocate_Workspace( reax_system *system, control_params *control,
     smalloc( total_real, "dDelta_lp_temp", comm );
   workspace->Delta_e = (real*) smalloc( total_real, "Delta_e", comm );
   workspace->Delta_boc = (real*) smalloc( total_real, "Delta_boc", comm );
+  workspace->Delta_val = (real*) smalloc( total_real, "Delta_val", comm );
   workspace->nlp = (real*) smalloc( total_real, "nlp", comm );
   workspace->nlp_temp = (real*) smalloc( total_real, "nlp_temp", comm );
   workspace->Clp = (real*) smalloc( total_real, "Clp", comm );

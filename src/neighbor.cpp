@@ -208,10 +208,10 @@ void Neighbor::init()
   // cutneigh = force cutoff + skin if cutforce > 0, else cutneigh = 0
 
   triggersq = 0.25*skin*skin;
-  shrinkcheck = 0;
+  boxcheck = 0;
   if (domain->box_change && (domain->xperiodic || domain->yperiodic || 
 			     (dimension == 3 && domain->zperiodic)))
-      shrinkcheck = 1;
+      boxcheck = 1;
       
   n = atom->ntypes;
   if (cutneighsq == NULL) {
@@ -1002,20 +1002,46 @@ int Neighbor::decide()
 
 /* ----------------------------------------------------------------------
    if any atom moved trigger distance (half of neighbor skin) return 1
-   shrink trigger distance if periodic box dimension has decreased
+   shrink trigger distance if box size has changed
+   conservative shrink procedure:
+     compute distance each of 8 corners of box has moved since last reneighbor
+     reduce skin distance by sum of 2 largest of the 8 values
+     new trigger = 1/2 of reduced skin distance
+   for orthogonal box, only need 2 lo/hi corners
+   for triclinic, need all 8 corners since deformations can displace all 8
 ------------------------------------------------------------------------- */
 
 int Neighbor::check_distance()
 {
-  double delx,dely,delz,rsq,deltasq;
+  double delx,dely,delz,rsq;
+  double delta,deltasq,delta1,delta2;
 
-  if (shrinkcheck) {
-    double delta = 0.0;
-    if (domain->xperiodic) delta = MIN(delta,domain->xprd-xprdhold);
-    if (domain->yperiodic) delta = MIN(delta,domain->yprd-yprdhold);
-    if (domain->zperiodic) delta = MIN(delta,domain->zprd-zprdhold);
-    delta = MAX(0.5*skin+delta,0.0);
-    deltasq = delta*delta;
+  if (boxcheck) {
+    if (triclinic == 0) {
+      delx = bboxlo[0] - boxlo_hold[0];
+      dely = bboxlo[1] - boxlo_hold[1];
+      delz = bboxlo[2] - boxlo_hold[2];
+      delta1 = sqrt(delx*delx + dely*dely + delz*delz);
+      delx = bboxhi[0] - boxhi_hold[0];
+      dely = bboxhi[1] - boxhi_hold[1];
+      delz = bboxhi[2] - boxhi_hold[2];
+      delta2 = sqrt(delx*delx + dely*dely + delz*delz);
+      delta = 0.5 * (skin - (delta1+delta2));
+      deltasq = delta*delta;
+    } else {
+      domain->box_corners();
+      delta1 = delta2 = 0.0;
+      for (int i = 0; i < 8; i++) {
+	delx = corners[i][0] - corners_hold[i][0];
+	dely = corners[i][1] - corners_hold[i][1];
+	delz = corners[i][2] - corners_hold[i][2];
+	delta = sqrt(delx*delx + dely*dely + delz*delz);
+	if (delta > delta1) delta1 = delta;
+	else if (delta > delta2) delta2 = delta;
+      }
+      delta = 0.5 * (skin - (delta1+delta2));
+      deltasq = delta*delta;
+    }
   } else deltasq = triggersq;
 
   double **x = atom->x;
@@ -1065,9 +1091,23 @@ void Neighbor::build()
       xhold[i][1] = x[i][1];
       xhold[i][2] = x[i][2];
     }
-    xprdhold = domain->xprd;
-    yprdhold = domain->yprd;
-    zprdhold = domain->zprd;
+    if (boxcheck) {
+      if (triclinic == 0) {
+	boxlo_hold[0] = bboxlo[0];
+	boxlo_hold[1] = bboxlo[1];
+	boxlo_hold[2] = bboxlo[2];
+	boxhi_hold[0] = bboxhi[0];
+	boxhi_hold[1] = bboxhi[1];
+	boxhi_hold[2] = bboxhi[2];
+      } else {
+	domain->box_corners();
+	for (i = 0; i < 8; i++) {
+	  corners_hold[i][0] = corners[i][0];
+	  corners_hold[i][1] = corners[i][1];
+	  corners_hold[i][2] = corners[i][2];
+	}
+      }
+    }
   }
 
   // if necessary, extend atom arrays in pairwise lists
@@ -1139,8 +1179,8 @@ void Neighbor::build_one(int i)
    setup neighbor binning parameters
    bin numbering in each dimension is global:
      0 = 0.0 to binsize, 1 = binsize to 2*binsize, etc
-     nbin-1,nbin,etc = bbox-binsize to binsize, bbox to bbox+binsize, etc
-     -1,-2,etc = -binsize to 0.0, -2*size to -size, etc
+     nbin-1,nbin,etc = bbox-binsize to bbox, bbox to bbox+binsize, etc
+     -1,-2,etc = -binsize to 0.0, -2*binsize to -binsize, etc
    code will work for any binsize
      since next(xyz) and stencil extend as far as necessary
      binsize = 1/2 of cutoff is roughly optimal
@@ -1190,6 +1230,7 @@ void Neighbor::setup_bins()
     hi[1] = domain->subhi_lamda[1] + cutghost[1];
     hi[2] = domain->subhi_lamda[2] + cutghost[2];
     domain->bbox(lo,hi,bsubboxlo,bsubboxhi);
+    corners = domain->corners;
   }
 
   bbox[0] = bboxhi[0] - bboxlo[0];
@@ -1526,7 +1567,10 @@ void Neighbor::bin_atoms()
 /* ----------------------------------------------------------------------
    convert atom coords into local bin #
    for orthogonal, only ghost atoms will have coord >= bboxhi or coord < bboxlo
-     take special care to insure ghosts are put in correct bins
+     take special care to insure ghosts are in correct bins even w/ roundoff
+     hi ghost atoms = nbin,nbin+1,etc
+     owned atoms = 0 to nbin-1
+     lo ghost atoms = -1,-2,etc
      this is necessary so that both procs on either side of PBC
        treat a pair of atoms straddling the PBC in a consistent way
    for triclinic, doesn't matter since stencil & neigh list built differently
@@ -1537,27 +1581,30 @@ int Neighbor::coord2bin(double *x)
   int ix,iy,iz;
 
   if (x[0] >= bboxhi[0])
-    ix = static_cast<int> ((x[0]-bboxhi[0])*bininvx) + nbinx - mbinxlo;
-  else if (x[0] >= bboxlo[0])
-    ix = static_cast<int> ((x[0]-bboxlo[0])*bininvx) - mbinxlo;
-  else
-    ix = static_cast<int> ((x[0]-bboxlo[0])*bininvx) - mbinxlo - 1;
+    ix = static_cast<int> ((x[0]-bboxhi[0])*bininvx) + nbinx;
+  else if (x[0] >= bboxlo[0]) {
+    ix = static_cast<int> ((x[0]-bboxlo[0])*bininvx);
+    ix = MIN(ix,nbinx-1);
+  } else
+    ix = static_cast<int> ((x[0]-bboxlo[0])*bininvx) - 1;
   
   if (x[1] >= bboxhi[1])
-    iy = static_cast<int> ((x[1]-bboxhi[1])*bininvy) + nbiny - mbinylo;
-  else if (x[1] >= bboxlo[1])
-    iy = static_cast<int> ((x[1]-bboxlo[1])*bininvy) - mbinylo;
-  else
-    iy = static_cast<int> ((x[1]-bboxlo[1])*bininvy) - mbinylo - 1;
+    iy = static_cast<int> ((x[1]-bboxhi[1])*bininvy) + nbiny;
+  else if (x[1] >= bboxlo[1]) {
+    iy = static_cast<int> ((x[1]-bboxlo[1])*bininvy);
+    iy = MIN(iy,nbiny-1);
+  } else
+    iy = static_cast<int> ((x[1]-bboxlo[1])*bininvy) - 1;
   
   if (x[2] >= bboxhi[2])
-    iz = static_cast<int> ((x[2]-bboxhi[2])*bininvz) + nbinz - mbinzlo;
-  else if (x[2] >= bboxlo[2])
-    iz = static_cast<int> ((x[2]-bboxlo[2])*bininvz) - mbinzlo;
-  else
-    iz = static_cast<int> ((x[2]-bboxlo[2])*bininvz) - mbinzlo - 1;
+    iz = static_cast<int> ((x[2]-bboxhi[2])*bininvz) + nbinz;
+  else if (x[2] >= bboxlo[2]) {
+    iz = static_cast<int> ((x[2]-bboxlo[2])*bininvz);
+    iz = MIN(iz,nbinz-1);
+  } else
+    iz = static_cast<int> ((x[2]-bboxlo[2])*bininvz) - 1;
 
-  return (iz*mbiny*mbinx + iy*mbinx + ix);
+  return (iz-mbinzlo)*mbiny*mbinx + (iy-mbinylo)*mbinx + (ix-mbinxlo);
 }
 
 /* ----------------------------------------------------------------------

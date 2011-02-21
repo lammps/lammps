@@ -144,6 +144,7 @@ void PPPM::init()
   cutoff = *p_cutoff;
 
   // if kspace is TIP4P, extract TIP4P params from pair style
+  // bond/angle are not yet init(), so insure equilibrium request is valid
 
   qdist = 0.0;
 
@@ -165,6 +166,12 @@ void PPPM::init()
 
     if (force->angle == NULL || force->bond == NULL)
       error->all("Bond and angle potentials must be defined for TIP4P");
+    if (typeA < 1 || typeA > atom->nangletypes || 
+	force->angle->setflag[typeA] == 0)
+      error->all("Bad TIP4P angle type for PPPM/TIP4P");
+    if (typeB < 1 || typeA > atom->nbondtypes || 
+	force->bond->setflag[typeB] == 0)
+      error->all("Bad TIP4P bond type for PPPM/TIP4P");
     double theta = force->angle->equilibrium_angle(typeA);
     double blen = force->bond->equilibrium_distance(typeB);
     alpha = qdist / (2.0 * cos(0.5*theta) * blen);

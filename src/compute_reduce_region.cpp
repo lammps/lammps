@@ -28,7 +28,7 @@
 
 using namespace LAMMPS_NS;
 
-enum{SUM,MINN,MAXX};
+enum{SUM,MINN,MAXX,AVE};
 enum{X,V,F,COMPUTE,FIX,VARIABLE};
 enum{PERATOM,LOCAL};
 
@@ -75,6 +75,7 @@ double ComputeReduceRegion::compute_one(int m, int flag)
   if (mode == SUM) one = 0.0;
   else if (mode == MINN) one = BIG;
   else if (mode == MAXX) one = -BIG;
+  else if (mode == AVE) one = 0.0;
 
   if (which[m] == X) {
     if (flag < 0) {

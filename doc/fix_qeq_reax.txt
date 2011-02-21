@@ -45,11 +45,12 @@ should be formatted as follows:
 itype chi eta gamma :pre
 
 where {itype} is the atom type from 1 to Ntypes, {chi} denotes the
-electronegativity in energy units, {eta} denotes the self-Coulomb
-potential in energy units, and {gamma} denotes the valence orbital
+electronegativity in eV, {eta} denotes the self-Coulomb
+potential in eV, and {gamma} denotes the valence orbital
 exponent.  Note that these 3 quantities are also in the ReaxFF
 potential file, except that eta is defined here as twice the eta value
-in the ReaxFF file.
+in the ReaxFF file. Note that unlike the rest of LAMMPS, the units
+of this fix are hard-coded to be A, eV, and electronic charge. 
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 

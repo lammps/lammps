@@ -322,17 +322,17 @@ void Variable::set(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   single-value INDEX variable created by command-line argument
+   INDEX variable created by command-line argument
    make it INDEX rather than STRING so cannot be re-defined in input script
 ------------------------------------------------------------------------- */
 
-void Variable::set(char *name, char *value)
+void Variable::set(char *name, int narg, char **arg)
 {
-  char **newarg = new char*[3];
+  char **newarg = new char*[2+narg];
   newarg[0] = name;
   newarg[1] = (char *) "index";
-  newarg[2] = value;
-  set(3,newarg);
+  for (int i = 0; i < narg; i++) newarg[2+i] = arg[i];
+  set(2+narg,newarg);
   delete [] newarg;
 }
 
@@ -2817,7 +2817,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
     
     if (compute) {
       double *vec;
-      if (index) vec = &compute->array[0][index];
+      if (index) vec = &compute->array[0][index-1];
       else vec = compute->vector; 
       
       int j = 0;

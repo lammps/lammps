@@ -15,7 +15,7 @@ compute ID group-ID pair pstyle evalue :pre
 ID, group-ID are documented in "compute"_compute.html command
 pair = style name of this compute command
 pstyle = style name of a pair style that calculates additional values
-evalue = {epair} or {evdwl} or {evoul} or blank (optional setting) :ul
+evalue = {epair} or {evdwl} or {ecoul} or blank (optional setting) :ul
 
 [Examples:]
 
@@ -36,7 +36,7 @@ hybrid/overlay"_pair_hybrid.html command.
 
 The {evalue} setting is optional; it may be left off the command.  All
 pair styles tally a potential energy {epair} which may be broken into
-two parts: {evdwl} and {ecoul} such that {epair} = {evdwl} + {evoul}.
+two parts: {evdwl} and {ecoul} such that {epair} = {evdwl} + {ecoul}.
 If the pair style calculates Coulombic interactions, their energy will
 be tallied in {ecoul}.  Everything else (whether it is a Lennard-Jones
 style van der Waals interaction or not) is tallied in {evdwl}.  If
@@ -56,7 +56,7 @@ are stored as a global vector by this compute.  See the doc page for
 [Output info:]
 
 This compute calculates a global scalar which is {epair} or {evdwl} or
-{evoul}.  If the pair style supports it, it also calculates a global
+{ecoul}.  If the pair style supports it, it also calculates a global
 vector of length >= 1, as determined by the pair style.  These values
 can be used by any command that uses global scalar or vector values
 from a compute as input.  See "this section"_Section_howto.html#4_15

@@ -9,12 +9,11 @@ contains validated parameter files for a particular
 published version of ReaxFF. In all cases, the examples
 use pair_style reax/c.
 
-CHO: Reactive MD-force field c/h/o combustion force field
-This version requires tripflag = 0 and hbnewflag = 1
-
 AB: Reactive MD-force field for Ammonia Borane: Weismiller, M.R.; van Duin, A.C.T.; Lee, J.; Yetter, R.A. J. Phys. Chem. A 2010, 114, 5485-5492
 
 Au_O: Reactive MD-force field: Au-Au: Keith, J. A. et al. Phys Rev B 2010, 81, 235404; Joshi, K. et al., J. Mat. Chem 2010, 20, 10431-10437
+
+CHO: Reactive MD-force field c/h/o combustion force field: Chenoweth, K.; van Duin, A.C.T.; Goddard, W.A. J. Phys. Chem. A 2008, 112, 1040-1053.
 
 Fe_O_C_H: Reactive MD-force field: Fe/O/water: Aryanpour, M.; van Duin, A. C. T.; Kubicki, J. D. J. Phys. Chem. A 2010, 114, 6298-6307
 

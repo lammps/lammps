@@ -1101,6 +1101,7 @@ void Neighbor::build()
 	boxhi_hold[2] = bboxhi[2];
       } else {
 	domain->box_corners();
+	corners = domain->corners;
 	for (i = 0; i < 8; i++) {
 	  corners_hold[i][0] = corners[i][0];
 	  corners_hold[i][1] = corners[i][1];
@@ -1230,7 +1231,6 @@ void Neighbor::setup_bins()
     hi[1] = domain->subhi_lamda[1] + cutghost[1];
     hi[2] = domain->subhi_lamda[2] + cutghost[2];
     domain->bbox(lo,hi,bsubboxlo,bsubboxhi);
-    corners = domain->corners;
   }
 
   bbox[0] = bboxhi[0] - bboxlo[0];

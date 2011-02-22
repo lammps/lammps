@@ -7,7 +7,7 @@ SHELL = /bin/sh
 # specify flags and libraries needed for your compiler
 
 CC =		mpiicpc
-CCFLAGS =	-O2 -fno-exceptions -fno-rtti -ansi-alias -march=core2 -mtune=core2 -pc64 -no-prec-div -no-prec-sqrt -unroll 
+CCFLAGS =	-D__STDC_LIMIT_MACROS -D__STDC_FORMAT_MACROS -O2 -fno-exceptions -fno-rtti -ansi-alias -march=core2 -mtune=core2 -pc64 -no-prec-div -no-prec-sqrt -unroll 
 DEPFLAGS =	-M
 LINK =		mpiicpc 
 LINKFLAGS =	-O -i-static #-openmp

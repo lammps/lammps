@@ -36,10 +36,17 @@
 #ifndef LMP_LMPTYPE_H
 #define LMP_LMPTYPE_H
 
-#include "limits.h"
+
+#ifndef __STDC_LIMIT_MACROS
 #define __STDC_LIMIT_MACROS
-#include "stdint.h"
+#endif
+
+#ifndef __STDC_FORMAT_MACROS
 #define __STDC_FORMAT_MACROS
+#endif
+
+#include "limits.h"
+#include "stdint.h"
 #include "inttypes.h"
 
 namespace LAMMPS_NS {

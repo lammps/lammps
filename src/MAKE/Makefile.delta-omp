@@ -7,7 +7,7 @@ SHELL = /bin/sh
 # specify flags and libraries needed for your compiler
 
 CC =		mpic++
-CCFLAGS =	-O3 -fopenmp -fno-exceptions -fno-rtti -ffast-math -funroll-loops -fstrict-aliasing -Wall -W -Wno-uninitialized
+CCFLAGS =	-D__STDC_LIMIT_MACROS -D__STDC_FORMAT_MACROS -O3 -fopenmp -fno-exceptions -fno-rtti -ffast-math -funroll-loops -fstrict-aliasing -Wall -W -Wno-uninitialized
 DEPFLAGS =	-M
 LINK =		mpic++
 LINKFLAGS =	-O -fopenmp

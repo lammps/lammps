@@ -420,5 +420,78 @@ __kernel void make_rho3(__global numtyp4 *x_, __global numtyp *q_,
 	}
 }
 
+__kernel void field_force(__global numtyp4 *x_, __global numtyp *q_,
+                          const int nlocal, __global numtyp *x_brick,
+                          __global numtyp *y_brick, __global numtyp *z_brick,
+                          __global numtyp *_rho_coeff, const int npts_x,
+                          const int npts_yx, const numtyp b_lo_x,
+                          const numtyp b_lo_y, const numtyp b_lo_z,
+                          const numtyp delxinv,  const numtyp delyinv,
+                          const numtyp delzinv, const int order,
+                          const int order2, const numtyp qqrd2e, 
+                          const numtyp scale, __global acctyp4 *ans) {
+  __local numtyp rho_coeff[MAX_STENCIL*MAX_STENCIL];
+  int ii=THREAD_ID_X;
+  if (ii<order2+order)
+    rho_coeff[ii]=_rho_coeff[ii];
+  __syncthreads();
+  
+  ii+=BLOCK_ID_X*BLOCK_SIZE_X;
+  
+  int nx,ny,nz;
+  numtyp tx,ty,tz;
+
+  if (ii<nlocal) {
+    numtyp4 p=fetch_pos(ii,x_);
+    numtyp qs=qqrd2e*scale*fetch_q(ii,q_);
+
+    tx=(p.x-b_lo_x)*delxinv;
+    nx=int(tx);
+    ty=(p.y-b_lo_y)*delyinv;
+    ny=int(ty);
+    tz=(p.z-b_lo_z)*delzinv;
+    nz=int(tz);
+
+    numtyp dx=nx+(numtyp)0.5-tx;
+    numtyp dy=ny+(numtyp)0.5-ty;
+    numtyp dz=nz+(numtyp)0.5-tz;
+
+    numtyp rho1d[2][MAX_STENCIL];
+    for (int k=0; k<order; k++) {
+      rho1d[0][k]=(numtyp)0.0;
+      rho1d[1][k]=(numtyp)0.0;
+      for (int l=order2+k; l>=k; l-=order) {
+        rho1d[0][k]=rho_coeff[l]+rho1d[0][k]*dx;
+        rho1d[1][k]=rho_coeff[l]+rho1d[1][k]*dy;
+      }
+    }
+        
+    numtyp4 ek;
+    ek.x=(acctyp)0.0;
+    ek.y=(acctyp)0.0;
+    ek.z=(acctyp)0.0;
+    int mz=mul24(nz,npts_yx)+nx;
+    for (int n=0; n<order; n++) {
+      numtyp rho1d_2=(numtyp)0.0;
+      for (int k=order2+n; k>=n; k-=order)
+        rho1d_2=rho_coeff[k]+rho1d_2*dz;
+      numtyp z0=qs*rho1d_2;
+      int my=mz+mul24(ny,npts_x);
+      for (int m=0; m<order; m++) {
+        numtyp y0=z0*rho1d[1][m];
+	      for (int l=0; l<order; l++) {
+	        numtyp x0=y0*rho1d[0][l];
+	        ek.x-=x0*x_brick[my+l];
+	        ek.y-=x0*y_brick[my+l];
+	        ek.z-=x0*z_brick[my+l];
+	      }
+        my+=npts_x;
+      }
+      mz+=npts_yx;
+	  }
+    ans[ii]=ek;
+	}
+}
+
 #endif
 

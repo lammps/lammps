@@ -167,8 +167,8 @@ void FixQEQComb::post_force(int vflag)
   // more loops for first-time charge equilibrium
 
   iloop = 0; 
-  if (firstflag) loopmax = 1000;
-  else loopmax = 500;
+  if (firstflag) loopmax = 5000;
+  else loopmax = 2000;
 
   // charge-equilibration loop
 
@@ -176,10 +176,10 @@ void FixQEQComb::post_force(int vflag)
     fprintf(fp,"Charge equilibration on step " BIGINT_FORMAT "\n",
 	    update->ntimestep);
   
-  heatpq = 0.01;
-  qmass = 0.06;
-  dtq = 0.040;
-  dtq2 = 0.5*dtq*dtq/qmass;
+  heatpq = 0.05;
+  qmass  = 0.000548580;
+  dtq    = 0.0006;
+  dtq2   = 0.5*dtq*dtq/qmass;
 
   double enegchk = 0.0;
   double enegtot = 0.0; 
@@ -195,8 +195,8 @@ void FixQEQComb::post_force(int vflag)
   for (iloop = 0; iloop < loopmax; iloop ++ ) {
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	q1[i] = qf[i]*dtq2 - heatpq*q1[i];
-	q[i] += q1[i]; 
+	q1[i] += qf[i]*dtq2 - heatpq*q1[i];
+	q[i]  += q1[i]; 
       }
 
     enegtot = comb->yasu_char(qf,igroup);
@@ -215,8 +215,8 @@ void FixQEQComb::post_force(int vflag)
     enegchk = enegchkall/ngroup;
     MPI_Allreduce(&enegmax,&enegmaxall,1,MPI_DOUBLE,MPI_MAX,world);
     enegmax = enegmaxall;
-    
-    if (enegchk <= precision && enegmax <= 10.0*precision) break;
+  
+    if (enegchk <= precision && enegmax <= 100.0*precision) break;
 
     if (me == 0 && fp)
       fprintf(fp,"  iteration: %d, enegtot %.6g, "

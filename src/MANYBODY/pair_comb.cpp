@@ -714,8 +714,8 @@ void PairComb::read_file(char *file)
 	params[nparams].QL2 > 0.0 || params[nparams].QU2 < 0.0 || 
 	params[nparams].DL2 < 0.0 || params[nparams].DU2 > 0.0 ||
 	params[nparams].chi < 0.0 || 
-	params[nparams].dj < 0.0 || params[nparams].dk < 0.0 || 
-	params[nparams].dl < 0.0 || params[nparams].dm < 0.0 || 
+//	params[nparams].dj < 0.0 || params[nparams].dk < 0.0 || 
+//	params[nparams].dl < 0.0 || params[nparams].dm < 0.0 || 
 	params[nparams].esm1 < 0.0) 
       error->all("Illegal COMB parameter");
 
@@ -1122,9 +1122,9 @@ double PairComb::self(Param *param, double qi, double selfpot)
  double s1=param->chi, s2=param->dj, s3=param->dk, s4=param->dl, s5=param->dm;
 
  self_tmp = 0.0; 
- qmin = param->QL1*1.10; 
+ qmin = param->QL1*0.90; 
  qmax = param->QU1*0.90;
- cmin = cmax = 3000.0;
+ cmin = cmax = 1000.0;
 
  self_tmp = qi*(s1+qi*(s2+selfpot+qi*(s3+qi*(s4+qi*qi*s5))));
 
@@ -1770,28 +1770,27 @@ double PairComb::qfo_self(Param *param, double qi, double selfpot)
  double s5 = param->dm;
 
  self_d = 0.0; 
- qmin = param->QL1; 
- qmax = param->QU1;
+ qmin = param->QL1*0.90; 
+ qmax = param->QU1*0.90;
+ if (qmax > 4.50 ) qmax = -0.70;
  cmin = cmax = 1000.0;
  
  self_d = s1+qi*(2.0*(s2+selfpot)+qi*(3.0*s3+qi*(4.0*s4+qi*qi*6.0*s5)));
  
- /*
  if (qi < qmin) {
-   char str[128];
-   sprintf(str,"Pair COMB charge %.10f with force %.10f hit min barrier",
-	   qi,self_d);
-   error->warning(str,0);
+   // char str[128];
+   // sprintf(str,"Pair COMB charge %.10f with force %.10f hit min barrier",
+   // qi,self_d);
+   // error->warning(str,0);
    self_d += 4.0 * cmin * pow((qi-qmin),3);
  }
  if (qi > qmax) {
-   char str[128];
-   sprintf(str,"Pair COMB charge %.10f with force %.10f hit max barrier",
-	   qi,self_d);
-   error->warning(str,0);
+   // char str[128];
+   // sprintf(str,"Pair COMB charge %.10f with force %.10f hit max barrier",
+   //	   qi,self_d);
+   // error->warning(str,0);
    self_d += 4.0 * cmax * pow((qi-qmax),3);
  }
- */
 
  return self_d;
 }

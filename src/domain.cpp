@@ -1164,4 +1164,3 @@ void Domain::box_corners()
   corners[7][0] = 1.0; corners[7][1] = 1.0; corners[7][2] = 1.0;
   lamda2x(corners[7],corners[7]);
 }
-

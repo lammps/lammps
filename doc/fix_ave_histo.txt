@@ -283,7 +283,7 @@ The global vector has 4 values:
 1 = total counts in the histogram
 2 = values that were not histogrammed (see {beyond} keyword)
 3 = min value of all input values, including ones not histogrammed
-4 = max value of all input values, including ones not histogrammed
+4 = max value of all input values, including ones not histogrammed :ul
 
 The global array has # of rows = Nbins and # of columns = 3.  The
 first column has the bin coordinate, the 2nd column has the count of

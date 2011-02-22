@@ -61,7 +61,7 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   size_vector = 4;
   extvector = 0;
   array_flag = 1;
-  size_local_cols = 3;
+  size_array_cols = 3;
   extarray = 0;
   time_depend = 1;
 
@@ -432,7 +432,7 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   // allocate and initialize memory for averaging
 
   if (beyond == EXTRA) nbins += 2;
-  size_local_rows = nbins;
+  size_array_rows = nbins;
 
   bin = new double[nbins];
   bin_total = new double[nbins];

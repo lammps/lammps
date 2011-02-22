@@ -388,7 +388,7 @@ void LR_vdW_Coulomb( reax_system *system, storage *workspace,
 	
     lr->e_vdW = Tap * twbp->D * (exp1 - 2.0 * exp2);
     lr->CEvd = dTap * twbp->D * (exp1 - 2.0 * exp2) -
-      Tap * twbp->D * (twbp->alpha / twbp->r_vdW) * (exp1 - exp2);
+      Tap * twbp->D * (twbp->alpha / twbp->r_vdW) * (exp1 - exp2) / r_ij;
   }
 
   if(system->reax_param.gp.vdw_type==2 || system->reax_param.gp.vdw_type==3)
@@ -397,7 +397,7 @@ void LR_vdW_Coulomb( reax_system *system, storage *workspace,
       lr->e_vdW += Tap * e_core;
       
       de_core = -(twbp->acore/twbp->rcore) * e_core;
-      lr->CEvd += dTap * e_core + Tap * de_core;
+      lr->CEvd += dTap * e_core + Tap * de_core / r_ij;
     }
 
   

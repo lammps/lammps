@@ -223,15 +223,12 @@ void PairReaxC::coeff( int nargs, char **args )
  
   // read args that map atom types to elements in potential file
   // map[i] = which element the Ith atom type is, -1 if NULL
-  // NOTE: for now throw an error if NULL is used to disallow use with hybrid
-  //       REAX/C lib will have to be modified to allow this
 
   int itmp;
   int nreax_types = system->reax_param.num_atom_types;
   for (int i = 3; i < nargs; i++) {
     if (strcmp(args[i],"NULL") == 0) {
       map[i-2] = -1;
-      error->all("Cannot currently use pair reax/c with pair hybrid");
       continue;
     }
 
@@ -242,6 +239,7 @@ void PairReaxC::coeff( int nargs, char **args )
 
     if (itmp < 0 || itmp >= nreax_types)
       error->all("Non-existent ReaxFF type");
+
   }
 
   int n = atom->ntypes;
@@ -292,7 +290,7 @@ void PairReaxC::init_style( )
 
   cutmax = MAX3(control->nonb_cut, control->hbond_cut, 2*control->bond_cut);
 
-  for(int i = 0; i < LIST_N; ++i )
+  for( int i = 0; i < LIST_N; ++i )
     lists[i].allocated = 0;
 
   if (fix_reax == NULL) {

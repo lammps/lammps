@@ -422,21 +422,3 @@ int MPI_Gatherv(void *sendbuf, int sendcount, MPI_Datatype sendtype,
   memcpy(recvbuf,sendbuf,n);
   return 0;
 }
-
-/* ---------------------------------------------------------------------- */
-
-/* Returns "localhost" as the name of the processor.  */
-
-void MPI_Get_processor_name(char *name, int *resultlen)
-{
-  const char host[] = "localhost";
-  int len;
-
-  if (!name || !resultlen) return;
-
-  len = strlen(host);
-  memcpy(name,host,len+1);
-  *resultlen = len;
-  return;
-}
-

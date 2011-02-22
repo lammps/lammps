@@ -1,0 +1,9 @@
+In the Auger process, a valence electron falls in to a core hole, which
+releases enough energy to eject another valence electron. Thus a state with
+two valence holes is created. Using eFF it is possible to track, for the first
+time, the continuous evolution of a core-hole state into a two-valence hole state,
+with full electron and nuclear dynamics included (Adamantane case).
+To simulate the dissociation dynamics of core-ionized adamantane, we proceed
+by deleting a core electron from the data.adamantane structure.
+An complete Adamantane molecule is also provided.
+Finite system.

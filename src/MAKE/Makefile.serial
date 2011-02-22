@@ -7,11 +7,11 @@ SHELL = /bin/sh
 # generally no need to edit this section
 # unless additional compiler/linker flags or libraries needed for your machine
 
-CC =		g++4
-CCFLAGS =	-O
+CC =		g++
+CCFLAGS =	-O3 -march=native -mpc64 -fno-exceptions -fno-rtti -ffast-math -funroll-loops -fstrict-aliasing -Wall 
 DEPFLAGS =	-M
-LINK =		g++4
-LINKFLAGS =	-O
+LINK =		g++
+LINKFLAGS =	-O2 -march=native -mpc64 -fno-exceptions -fno-rtti
 LIB =           
 ARCHIVE =	ar
 ARFLAGS =	-rc
@@ -23,7 +23,7 @@ SIZE =		size
 
 # LAMMPS ifdef options, see doc/Section_start.html
 
-LMP_INC =	-DLAMMPS_GZIP
+LMP_INC =	-DLAMMPS_GZIP -DMALLOC_MEMALIGN=64
 
 # MPI library, can be src/STUBS dummy lib
 # INC = path for mpi.h, MPI compiler settings
@@ -39,9 +39,9 @@ MPI_LIB =	../STUBS/libmpi.a
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC =       -DFFT_NONE
+FFT_INC =       -DFFT_FFTW3 -DFFT_SINGLE
 FFT_PATH = 
-FFT_LIB =
+FFT_LIB =       -lfftw3f
 
 # additional system libraries needed by LAMMPS package libraries
 # these settings are IGNORED if the corresponding LAMMPS package
@@ -49,12 +49,12 @@ FFT_LIB =
 # SYSLIB = names of libraries
 # SYSPATH = paths of libraries
 
-gpu_SYSLIB =       -lcudart
+gpu_SYSLIB =       -lcudart -lcuda
 meam_SYSLIB =      -lgfortran
 reax_SYSLIB =      -lgfortran
 user-atc_SYSLIB =  -lblas -llapack
 
-gpu_SYSPATH =      -L/usr/local/cuda/lib64
+gpu_SYSPATH =      -L$(HOME)/cuda/lib64 -L/usr/lib64/nvidia  -Wl,-rpath,$(HOME)/cuda/lib64
 meam_SYSPATH =     
 reax_SYSPATH =     
 user-atc_SYSPATH = 	

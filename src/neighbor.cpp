@@ -1173,6 +1173,16 @@ void Neighbor::build_one(int i)
     bins = (int *) memory->smalloc(maxbin*sizeof(int),"bins");
   }
 
+  // this condition can cause LAMMPS to crash
+  // no easy workaround b/c all neighbor lists really need to be rebuilt
+  // solution is for input script to check more often for rebuild, so warn
+
+  int flag = 0;
+  if (dist_check) flag = check_distance();
+  if (flag && me == 0)
+    error->warning("Building an occasional neighobr list when "
+		   "atoms may have moved too far");
+
   (this->*pair_build[i])(lists[i]);
 }
 

@@ -20,6 +20,7 @@ c rho0_meam = density scaling parameter
 c delta_meam = heat of formation for alloys
 c beta[0-3]_meam = electron density constants 
 c t[0-3]_meam = coefficients on densities in Gamma computation
+c rho_ref_meam = background density for reference structure
 c ibar_meam(i) = selection parameter for Gamma function for elt i,
 c lattce_meam(i,j) = lattce configuration for elt i or alloy (i,j)
 c neltypes = maximum number of element type defined
@@ -29,12 +30,15 @@ c phirar[1-6] = spline coeffs
 c attrac_meam = attraction parameter in Rose energy
 c repuls_meam = repulsion parameter in Rose energy
 c nn2_meam = 1 if second nearest neighbors are to be computed, else 0
+c zbl_meam = 1 if zbl potential for small r to be use, else 0
 c Cmin_meam, Cmax_meam = min and max values in screening cutoff
 c rc_meam = cutoff distance for meam
 c delr_meam = cutoff region for meam
 c ebound_meam = factor giving maximum boundary of sceen fcn ellipse
 c augt1 = flag for whether t1 coefficient should be augmented
 c ialloy = flag for newer alloy formulation (as in dynamo code)
+c mix_ref_t = flag to recover "old" way of computing t in reference config
+c erose_form = selection parameter for form of E_rose function
 c gsmooth_factor = factor determining length of G smoothing region
 c vind[23]D = Voight notation index maps for 2 and 3D
 c v2D,v3D = array of factors to apply for Voight notation
@@ -50,9 +54,11 @@ c nrar,rdrar = spline coeff array parameters
       real*8 beta2_meam(maxelt),beta3_meam(maxelt)
       real*8 t0_meam(maxelt),t1_meam(maxelt)
       real*8 t2_meam(maxelt),t3_meam(maxelt)
+      real*8 rho_ref_meam(maxelt)
       integer ibar_meam(maxelt),ielt_meam(maxelt)
       character*3 lattce_meam(maxelt,maxelt)
       integer nn2_meam(maxelt,maxelt)
+      integer zbl_meam(maxelt,maxelt)
       integer eltind(maxelt,maxelt)
       integer neltypes
 
@@ -66,7 +72,7 @@ c nrar,rdrar = spline coeff array parameters
       real*8 Cmin_meam(maxelt,maxelt,maxelt)
       real*8 Cmax_meam(maxelt,maxelt,maxelt)
       real*8 rc_meam,delr_meam,ebound_meam(maxelt,maxelt)
-      integer augt1, ialloy
+      integer augt1, ialloy, mix_ref_t, erose_form
       real*8  gsmooth_factor
       integer vind2D(3,3),vind3D(3,3,3)
       integer v2D(6),v3D(10)

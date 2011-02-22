@@ -263,12 +263,15 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
             endif
             rho0(i) = rho0(i) + rhoa0j
             rho0(j) = rho0(j) + rhoa0i
-            t_ave(1,i) = t_ave(1,i) + t1_meam(eltj)*rhoa0j
-            t_ave(2,i) = t_ave(2,i) + t2_meam(eltj)*rhoa0j
-            t_ave(3,i) = t_ave(3,i) + t3_meam(eltj)*rhoa0j
-            t_ave(1,j) = t_ave(1,j) + t1_meam(elti)*rhoa0i
-            t_ave(2,j) = t_ave(2,j) + t2_meam(elti)*rhoa0i
-            t_ave(3,j) = t_ave(3,j) + t3_meam(elti)*rhoa0i
+c For ialloy = 2, use single-element value (not average)
+            if (ialloy.ne.2) then
+              t_ave(1,i) = t_ave(1,i) + t1_meam(eltj)*rhoa0j
+              t_ave(2,i) = t_ave(2,i) + t2_meam(eltj)*rhoa0j
+              t_ave(3,i) = t_ave(3,i) + t3_meam(eltj)*rhoa0j
+              t_ave(1,j) = t_ave(1,j) + t1_meam(elti)*rhoa0i
+              t_ave(2,j) = t_ave(2,j) + t2_meam(elti)*rhoa0i
+              t_ave(3,j) = t_ave(3,j) + t3_meam(elti)*rhoa0i
+            endif
             if (ialloy.eq.1) then
               tsq_ave(1,i) = tsq_ave(1,i) +
      $             t1_meam(eltj)*t1_meam(eltj)*rhoa0j

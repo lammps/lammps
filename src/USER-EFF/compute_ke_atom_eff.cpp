@@ -15,6 +15,7 @@
    Contributing author: Andres Jaramillo-Botero
 ------------------------------------------------------------------------- */
 
+#include "math.h"
 #include "string.h"
 #include "compute_ke_atom_eff.h"
 #include "atom.h"
@@ -96,7 +97,7 @@ void ComputeKEAtomEff::compute_peratom()
       if (mask[i] & groupbit) {
         ke[i] = 0.5 * mvv2e * mass[type[i]] * 
           (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
-        if (abs(spin[i])==1)
+        if (fabs(spin[i])==1)
           ke[i] += 0.5 * mvv2e * mass[type[i]] * ervel[i]*ervel[i] * 0.75;
       } else ke[i] = 0.0;
     }

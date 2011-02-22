@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "mpi.h"
+#include "math.h"
 #include "string.h"
 #include "compute_temp_eff.h"
 #include "atom.h"
@@ -80,7 +81,7 @@ void ComputeTempEff::dof_compute()
   int one = 0;
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      if (abs(spin[i])==1) one++;
+      if (fabs(spin[i])==1) one++;
     }
   int nelectrons;
   MPI_Allreduce(&one,&nelectrons,1,MPI_INT,MPI_SUM,world);
@@ -114,7 +115,7 @@ double ComputeTempEff::compute_scalar()
       if (mask[i] & groupbit) {
         t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * 
           mass[type[i]];
-        if (abs(spin[i])==1) t += 0.75*mass[type[i]]*ervel[i]*ervel[i];
+        if (fabs(spin[i])==1) t += 0.75*mass[type[i]]*ervel[i]*ervel[i];
       }
     }
   }
@@ -153,7 +154,7 @@ void ComputeTempEff::compute_vector()
       t[3] += massone * v[i][0]*v[i][1];
       t[4] += massone * v[i][0]*v[i][2];
       t[5] += massone * v[i][1]*v[i][2];
-      if (abs(spin[i])==1) {
+      if (fabs(spin[i])==1) {
         t[0] += 0.75*massone*ervel[i]*ervel[i];
         t[1] += 0.75*massone*ervel[i]*ervel[i];
         t[2] += 0.75*massone*ervel[i]*ervel[i];

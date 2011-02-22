@@ -60,7 +60,7 @@ void FixNHEff::nve_v()
 
   for (int i = 0; i < nlocal; i++) {    
     if (mask[i] & groupbit) {
-      if (abs(spin[i])==1) {
+      if (fabs(spin[i])==1) {
 	dtfm = dtf / mass[type[i]];
 	ervel[i] = dtfm * erforce[i] / 0.75;
       }
@@ -87,7 +87,7 @@ void FixNHEff::nve_x()
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
-      if (abs(spin[i])==1) eradius[i] += dtv * ervel[i];
+      if (fabs(spin[i])==1) eradius[i] += dtv * ervel[i];
 }
 
 /* ----------------------------------------------------------------------
@@ -108,5 +108,5 @@ void FixNHEff::nh_v_temp()
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
-      if (abs(spin[i])==1) ervel[i] *= factor_eta;
+      if (fabs(spin[i])==1) ervel[i] *= factor_eta;
 }

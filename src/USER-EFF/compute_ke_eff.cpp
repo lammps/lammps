@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "mpi.h"
+#include "math.h"
 #include "compute_ke_eff.h"
 #include "atom.h"
 #include "update.h"
@@ -70,7 +71,7 @@ double ComputeKEEff::compute_scalar()
       if (mask[i] & groupbit) {
         ke += mass[type[i]]*(v[i][0]*v[i][0] + v[i][1]*v[i][1] + 
                              v[i][2]*v[i][2]);
-        if (abs(spin[i])==1) ke += 0.75*mass[type[i]]*ervel[i]*ervel[i];
+        if (fabs(spin[i])==1) ke += 0.75*mass[type[i]]*ervel[i]*ervel[i];
       }
   }
 

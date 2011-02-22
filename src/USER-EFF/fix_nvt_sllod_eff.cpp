@@ -121,7 +121,7 @@ void FixNVTSllodEff::nh_v_temp()
       v[i][1] = v[i][1]*factor_eta - dthalf*vdelu[1];
       v[i][2] = v[i][2]*factor_eta - dthalf*vdelu[2];
       temperature->restore_bias(i,v[i]);
-      if (abs(spin[i])==1)
+      if (fabs(spin[i])==1)
         ervel[i] = ervel[i]*factor_eta -
           dthalf*sqrt(pow(vdelu[0],2)+pow(vdelu[1],2)+pow(vdelu[2],2));
     }

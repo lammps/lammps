@@ -15,6 +15,7 @@
    Contributing author: Andres Jaramillo-Botero (Caltech)
 ------------------------------------------------------------------------- */
 
+#include "math.h"
 #include "stdio.h"
 #include "string.h"
 #include "fix_nve_eff.h"
@@ -98,7 +99,7 @@ void FixNVEEff::initial_integrate(int vflag)
         x[i][0] += dtv * v[i][0];
         x[i][1] += dtv * v[i][1];
         x[i][2] += dtv * v[i][2];
-        if (abs(spin[i])==1) {
+        if (fabs(spin[i])==1) {
           ervel[i] += dtfm * erforce[i] / 0.75;
           eradius[i] += dtv * ervel[i];
         }
@@ -133,7 +134,7 @@ void FixNVEEff::final_integrate()
         v[i][0] += dtfm * f[i][0];
         v[i][1] += dtfm * f[i][1];
         v[i][2] += dtfm * f[i][2];
-        if (abs(spin[i])==1)
+        if (fabs(spin[i])==1)
           ervel[i] += dtfm * erforce[i] / 0.75;
       }
     }

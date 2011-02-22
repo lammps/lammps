@@ -817,9 +817,9 @@ double FixAveHisto::compute_vector(int i)
 
 double FixAveHisto::compute_array(int i, int j)
 {
-  if (j == 0) return coord[j];
-  else if (j == 1) return bin_total[j];
-  else if (stats_total[0] != 0.0) return bin_total[j]/stats_total[0];
+  if (j == 0) return coord[i];
+  else if (j == 1) return bin_total[i];
+  else if (stats_total[0] != 0.0) return bin_total[i]/stats_total[0];
   return 0.0;
 }
 

@@ -20,19 +20,32 @@ ComputeStyle(temp/deform/eff,ComputeTempDeformEff)
 #ifndef LMP_COMPUTE_TEMP_DEFORM_EFF_H
 #define LMP_COMPUTE_TEMP_DEFORM_EFF_H
 
-#include "compute_temp_deform.h"
+#include "compute.h"
 
 namespace LAMMPS_NS {
 
-class ComputeTempDeformEff : public ComputeTempDeform {
+class ComputeTempDeformEff : public Compute {
  public:
   ComputeTempDeformEff(class LAMMPS *, int, char **);
-  ~ComputeTempDeformEff() {}
-  double compute_scalar();
-  void compute_vector();
+  virtual ~ComputeTempDeformEff();
+  void init();
+  virtual double compute_scalar();
+  virtual void compute_vector();
 
- private:
-  void dof_compute();
+  void remove_bias(int, double *);
+  void remove_bias_all();
+  void restore_bias(int, double *);
+  void restore_bias_all();
+  double memory_usage();
+
+ protected:
+  int fix_dof;
+  double tfactor;
+  double vbias[3];    // stored velocity bias for one atom
+  double **vbiasall;  // stored velocity bias for all atoms
+  int maxbias;        // size of vbiasall array
+
+  virtual void dof_compute();
 };
 
 }

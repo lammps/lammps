@@ -12,19 +12,8 @@
 ------------------------------------------------------------------------- */
 
 #include "string.h"
-#include "stdlib.h"
-#include "math.h"
 #include "fix_npt_eff.h"
-#include "atom.h"
-#include "force.h"
-#include "comm.h"
 #include "modify.h"
-#include "fix_deform.h"
-#include "compute.h"
-#include "kspace.h"
-#include "update.h"
-#include "respa.h"
-#include "domain.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;

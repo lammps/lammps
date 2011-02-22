@@ -32,12 +32,37 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeTempEff::ComputeTempEff(LAMMPS *lmp, int narg, char **arg) : 
-  ComputeTemp(lmp, narg, arg)
+  Compute(lmp, narg, arg)
 {
   // error check
 
   if (!atom->spin_flag || !atom->ervel_flag) 
     error->all("Compute temp/eff requires atom attributes spin, ervel");
+
+  scalar_flag = vector_flag = 1;
+  size_vector = 6;
+  extscalar = 0; 
+  extvector = 1;
+  tempflag = 1;
+  
+  vector = new double[size_vector];
+}
+
+/* ---------------------------------------------------------------------- */
+
+ComputeTempEff::~ComputeTempEff()
+{
+  delete [] vector;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputeTempEff::init()
+{
+  fix_dof = 0;
+  for (int i = 0; i < modify->nfix; i++)
+    fix_dof += modify->fix[i]->dof(igroup);
+  dof_compute();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -55,7 +80,7 @@ void ComputeTempEff::dof_compute()
   int one = 0;
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      if (spin[i]) one++;
+      if (abs(spin[i])==1) one++;
     }
   int nelectrons;
   MPI_Allreduce(&one,&nelectrons,1,MPI_INT,MPI_SUM,world);
@@ -77,29 +102,19 @@ double ComputeTempEff::compute_scalar()
   double **v = atom->v;
   double *ervel = atom->ervel;
   double *mass = atom->mass;
-  double *rmass = atom->rmass;
   int *spin = atom->spin;
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  double massone;
-
   double t = 0.0;
    
-  if (rmass) {
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-        t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2])*rmass[i];
-        if (spin[i]) t += 0.75*rmass[i]*ervel[i]*ervel[i];
-      }
-    }
-  } else {
+  if (mass) {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
         t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * 
-	  mass[type[i]];
-        if (spin[i]) t += 0.75*mass[type[i]]*ervel[i]*ervel[i];
+          mass[type[i]];
+        if (abs(spin[i])==1) t += 0.75*mass[type[i]]*ervel[i]*ervel[i];
       }
     }
   }
@@ -121,26 +136,24 @@ void ComputeTempEff::compute_vector()
   double **v = atom->v;
   double *ervel = atom->ervel;
   double *mass = atom->mass;
-  double *rmass = atom->rmass;
   int *spin = atom->spin;
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  double massone,ervel_adj,t[6];
+  double massone,t[6];
   for (i = 0; i < 6; i++) t[i] = 0.0;
 
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      if (rmass) massone = rmass[i];
-      else massone = mass[type[i]];
+      massone = mass[type[i]];
       t[0] += massone * v[i][0]*v[i][0];
       t[1] += massone * v[i][1]*v[i][1];
       t[2] += massone * v[i][2]*v[i][2];
       t[3] += massone * v[i][0]*v[i][1];
       t[4] += massone * v[i][0]*v[i][2];
       t[5] += massone * v[i][1]*v[i][2];
-      if (spin[i]) {
+      if (abs(spin[i])==1) {
         t[0] += 0.75*massone*ervel[i]*ervel[i];
         t[1] += 0.75*massone*ervel[i]*ervel[i];
         t[2] += 0.75*massone*ervel[i]*ervel[i];

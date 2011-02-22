@@ -12,8 +12,6 @@
 ------------------------------------------------------------------------- */
 
 #include "math.h"
-#include "string.h"
-#include "stdlib.h"
 #include "fix_nvt_sllod_eff.h"
 #include "math_extra.h"
 #include "atom.h"
@@ -32,12 +30,16 @@ enum{NO_REMAP,X_REMAP,V_REMAP};                   // same as fix_deform.cpp
 /* ---------------------------------------------------------------------- */
 
 FixNVTSllodEff::FixNVTSllodEff(LAMMPS *lmp, int narg, char **arg) :
-  FixNVTEff(lmp, narg, arg)
+  FixNHEff(lmp, narg, arg)
 {
   if (!tstat_flag)
     error->all("Temperature control must be used with fix nvt/sllod/eff");
   if (pstat_flag)
     error->all("Pressure control can not be used with fix nvt/sllod/eff");
+
+  // default values
+
+  if (mtchain_default_flag) mtchain = 1;
 
   // create a new compute temp style
   // id = fix-ID + temp
@@ -46,7 +48,7 @@ FixNVTSllodEff::FixNVTSllodEff(LAMMPS *lmp, int narg, char **arg) :
   id_temp = new char[n];
   strcpy(id_temp,id);
   strcat(id_temp,"_temp");
-  
+
   char **newarg = new char*[3];
   newarg[0] = id_temp;
   newarg[1] = group->names[igroup];
@@ -61,7 +63,7 @@ FixNVTSllodEff::FixNVTSllodEff(LAMMPS *lmp, int narg, char **arg) :
 
 void FixNVTSllodEff::init()
 {
-  FixNVTEff::init();
+  FixNHEff::init();
 
   if (!temperature->tempbias)
     error->all("Temperature for fix nvt/sllod/eff does not have a bias");
@@ -119,7 +121,7 @@ void FixNVTSllodEff::nh_v_temp()
       v[i][1] = v[i][1]*factor_eta - dthalf*vdelu[1];
       v[i][2] = v[i][2]*factor_eta - dthalf*vdelu[2];
       temperature->restore_bias(i,v[i]);
-      if (spin[i])
+      if (abs(spin[i])==1)
         ervel[i] = ervel[i]*factor_eta -
           dthalf*sqrt(pow(vdelu[0],2)+pow(vdelu[1],2)+pow(vdelu[2],2));
     }

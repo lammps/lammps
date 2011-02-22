@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Andres Jaramillo-Botero (Caltech)
+   Contributing author: Andres Jaramillo-Botero
 ------------------------------------------------------------------------- */
 
 #include "string.h"
@@ -86,28 +86,17 @@ void ComputeKEAtomEff::compute_peratom()
   double **v = atom->v;
   double *ervel = atom->ervel;
   double *mass = atom->mass;
-  double *rmass = atom->rmass;
   int *spin = atom->spin;
   int *mask = atom->mask;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-
-  if (rmass)
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-        ke[i] = 0.5 * mvv2e * rmass[i] * 
-	  (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
-	if (spin[i]) 
-          ke[i] += 0.5 * mvv2e * rmass[i] * ervel[i]*ervel[i] * 0.75;
-      } else ke[i] = 0.0;
-    }
-
-  else
+  
+  if (mass)
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
         ke[i] = 0.5 * mvv2e * mass[type[i]] * 
-	  (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
-	if (spin[i]) 
+          (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
+        if (abs(spin[i])==1)
           ke[i] += 0.5 * mvv2e * mass[type[i]] * ervel[i]*ervel[i] * 0.75;
       } else ke[i] = 0.0;
     }

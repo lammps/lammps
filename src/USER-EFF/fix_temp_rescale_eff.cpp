@@ -25,6 +25,7 @@
 #include "update.h"
 #include "domain.h"
 #include "region.h"
+#include "comm.h"
 #include "modify.h"
 #include "compute.h"
 #include "error.h"
@@ -36,12 +37,29 @@ enum{NOBIAS,BIAS};
 /* ---------------------------------------------------------------------- */
 
 FixTempRescaleEff::FixTempRescaleEff(LAMMPS *lmp, int narg, char **arg) :
-  FixTempRescale(lmp, narg, arg)
+  Fix(lmp, narg, arg)
 {
-  // create a new compute temp/eff, wiping out one parent class just created
+  if (narg < 8) error->all("Illegal fix temp/rescale/eff command");
+
+  nevery = atoi(arg[3]);
+  if (nevery <= 0) error->all("Illegal fix temp/rescale/eff command");
+
+  scalar_flag = 1;
+  global_freq = nevery;
+  extscalar = 1;
+
+  t_start = atof(arg[4]);
+  t_stop = atof(arg[5]);
+  t_window = atof(arg[6]);
+  fraction = atof(arg[7]);
+
+  // create a new compute temp/eff
   // id = fix-ID + temp, compute group = fix group
 
-  modify->delete_compute(id_temp);
+  int n = strlen(id) + 6;
+  id_temp = new char[n];
+  strcpy(id_temp,id);
+  strcat(id_temp,"_temp");
 
   char **newarg = new char*[6];
   newarg[0] = id_temp;
@@ -49,6 +67,42 @@ FixTempRescaleEff::FixTempRescaleEff(LAMMPS *lmp, int narg, char **arg) :
   newarg[2] = (char *) "temp/eff";
   modify->add_compute(3,newarg);
   delete [] newarg;
+  tflag = 1;
+
+  energy = 0.0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+FixTempRescaleEff::~FixTempRescaleEff()
+{
+  // delete temperature if fix created it
+
+  if (tflag) modify->delete_compute(id_temp);
+  delete [] id_temp;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixTempRescaleEff::setmask()
+{
+  int mask = 0;
+  mask |= END_OF_STEP;
+  mask |= THERMO_ENERGY;
+  return mask;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixTempRescaleEff::init()
+{
+  int icompute = modify->find_compute(id_temp);
+  if (icompute < 0)
+    error->all("Temperature ID for fix temp/rescale/eff does not exist");
+  temperature = modify->compute[icompute];
+
+  if (temperature->tempbias) which = BIAS;
+  else which = NOBIAS;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -86,7 +140,7 @@ void FixTempRescaleEff::end_of_step()
 	  v[i][0] *= factor;
 	  v[i][1] *= factor;
 	  v[i][2] *= factor;
-          if (spin[i]) 
+          if (abs(spin[i])==1) 
             ervel[i] *= factor;
 	}
       }
@@ -98,7 +152,7 @@ void FixTempRescaleEff::end_of_step()
 	  v[i][0] *= factor;
 	  v[i][1] *= factor;
 	  v[i][2] *= factor;
-          if (spin[i])
+          if (abs(spin[i])==1)
             ervel[i] *= factor;          
 	  temperature->restore_bias(i,v[i]);
 	}
@@ -107,3 +161,46 @@ void FixTempRescaleEff::end_of_step()
 
   }
 }
+
+/* ---------------------------------------------------------------------- */
+
+int FixTempRescaleEff::modify_param(int narg, char **arg)
+{
+  if (strcmp(arg[0],"temp/eff") == 0) {
+    if (narg < 2) error->all("Illegal fix_modify command");
+    if (tflag) {
+      modify->delete_compute(id_temp);
+      tflag = 0;
+    }
+    delete [] id_temp;
+    int n = strlen(arg[1]) + 1;
+    id_temp = new char[n];
+    strcpy(id_temp,arg[1]);
+
+    int icompute = modify->find_compute(id_temp);
+    if (icompute < 0) error->all("Could not find fix_modify temperature ID");
+    temperature = modify->compute[icompute];
+
+    if (temperature->tempflag == 0)
+      error->all("Fix_modify temperature ID does not compute temperature");
+    if (temperature->igroup != igroup && comm->me == 0)
+      error->warning("Group for fix_modify temp != fix group");
+    return 2;
+  }
+  return 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixTempRescaleEff::reset_target(double t_new)
+{
+  t_start = t_stop = t_new;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double FixTempRescaleEff::compute_scalar()
+{
+  return energy;
+}
+ 

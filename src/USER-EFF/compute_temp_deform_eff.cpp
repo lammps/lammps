@@ -12,18 +12,24 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Andres Jaramillo-Botero (Caltech))
+   Contributing author: Andres Jaramillo-Botero (Caltech)
 ------------------------------------------------------------------------- */
 
 #include "mpi.h"
 #include "compute_temp_deform_eff.h"
-#include "update.h"
-#include "atom.h"
+#include "string.h"
 #include "domain.h"
+#include "atom.h"
+#include "update.h"
 #include "force.h"
 #include "modify.h"
+#include "fix.h"
+#include "fix_deform.h"
 #include "group.h"
+#include "comm.h"
+#include "memory.h"
 #include "error.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -32,12 +38,56 @@ enum{NO_REMAP,X_REMAP,V_REMAP};                   // same as fix_deform.cpp
 /* ---------------------------------------------------------------------- */
 
 ComputeTempDeformEff::ComputeTempDeformEff(LAMMPS *lmp, int narg, char **arg) :
-  ComputeTempDeform(lmp, narg, arg)
+  Compute(lmp, narg, arg)
 {
-  // error check
+  if (narg != 3) error->all("Illegal compute temp/deform/eff command");
 
   if (!atom->spin_flag || !atom->ervel_flag) 
     error->all("Compute temp/deform/eff requires atom attributes spin, ervel");
+
+  scalar_flag = vector_flag = 1;
+  size_vector = 6;
+  extscalar = 0;
+  extvector = 1;
+  tempflag = 1;
+  tempbias = 1;
+
+  maxbias = 0;
+  vbiasall = NULL;
+  vector = new double[6];
+}
+
+/* ---------------------------------------------------------------------- */
+
+ComputeTempDeformEff::~ComputeTempDeformEff()
+{
+  memory->destroy_2d_double_array(vbiasall);
+  delete [] vector;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputeTempDeformEff::init()
+{
+  int i;
+
+  fix_dof = 0;
+  for (i = 0; i < modify->nfix; i++)
+    fix_dof += modify->fix[i]->dof(igroup);
+  dof_compute();
+
+  // check fix deform remap settings
+
+  for (i = 0; i < modify->nfix; i++) 
+    if (strcmp(modify->fix[i]->style,"deform") == 0) {
+      if (((FixDeform *) modify->fix[i])->remapflag == X_REMAP &&
+          comm->me == 0)
+        error->warning("Using compute temp/deform/eff with inconsistent "
+                       "fix deform remap option");
+      break;
+    }
+  if (i == modify->nfix && comm->me == 0)
+    error->warning("Using compute temp/deform/eff with no fix deform defined");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -57,7 +107,7 @@ void ComputeTempDeformEff::dof_compute()
   int one = 0;
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      if (spin[i]) one++;
+      if (abs(spin[i])==1) one++;
     }
   int nelectrons;
   MPI_Allreduce(&one,&nelectrons,1,MPI_INT,MPI_SUM,world);
@@ -80,7 +130,6 @@ double ComputeTempDeformEff::compute_scalar()
   double **v = atom->v;
   double *ervel = atom->ervel;
   double *mass = atom->mass;
-  double *rmass = atom->rmass;
   int *spin = atom->spin;
   int *type = atom->type;
   int *mask = atom->mask;
@@ -99,21 +148,17 @@ double ComputeTempDeformEff::compute_scalar()
     if (mask[i] & groupbit) {
       domain->x2lamda(x[i],lamda);
       vstream[0] = h_rate[0]*lamda[0] + h_rate[5]*lamda[1] + 
-	h_rate[4]*lamda[2] + h_ratelo[0];
+        h_rate[4]*lamda[2] + h_ratelo[0];
       vstream[1] = h_rate[1]*lamda[1] + h_rate[3]*lamda[2] + h_ratelo[1];
       vstream[2] = h_rate[2]*lamda[2] + h_ratelo[2];
       vthermal[0] = v[i][0] - vstream[0];
       vthermal[1] = v[i][1] - vstream[1];
       vthermal[2] = v[i][2] - vstream[2];
       
-      if (rmass) {
-	t += (vthermal[0]*vthermal[0] + vthermal[1]*vthermal[1] + 
-	      vthermal[2]*vthermal[2]) * rmass[i];
-        if (spin[i]) t += 0.75*rmass[i]*ervel[i]*ervel[i];
-      } else {
-	t += (vthermal[0]*vthermal[0] + vthermal[1]*vthermal[1] + 
-	      vthermal[2]*vthermal[2])* mass[type[i]];
-        if (spin[i]) t += 0.75*mass[type[i]]*ervel[i]*ervel[i];
+      if (mass) {
+        t += (vthermal[0]*vthermal[0] + vthermal[1]*vthermal[1] + 
+              vthermal[2]*vthermal[2])* mass[type[i]];
+        if (abs(spin[i])==1) t += 0.75*mass[type[i]]*ervel[i]*ervel[i];
       }
     }
   
@@ -135,7 +180,6 @@ void ComputeTempDeformEff::compute_vector()
   double **v = atom->v;
   double *ervel = atom->ervel;
   double *mass = atom->mass;
-  double *rmass = atom->rmass;
   int *spin = atom->spin; 
   int *type = atom->type;
   int *mask = atom->mask;
@@ -151,22 +195,21 @@ void ComputeTempDeformEff::compute_vector()
     if (mask[i] & groupbit) {
       domain->x2lamda(x[i],lamda);
       vstream[0] = h_rate[0]*lamda[0] + h_rate[5]*lamda[1] + 
-	h_rate[4]*lamda[2] + h_ratelo[0];
+        h_rate[4]*lamda[2] + h_ratelo[0];
       vstream[1] = h_rate[1]*lamda[1] + h_rate[3]*lamda[2] + h_ratelo[1];
       vstream[2] = h_rate[2]*lamda[2] + h_ratelo[2];
       vthermal[0] = v[i][0] - vstream[0];
       vthermal[1] = v[i][1] - vstream[1];
       vthermal[2] = v[i][2] - vstream[2];
       
-      if (rmass) massone = rmass[i];
-      else massone = mass[type[i]];
+      massone = mass[type[i]];
       t[0] += massone * vthermal[0]*vthermal[0]; 
       t[1] += massone * vthermal[1]*vthermal[1];
       t[2] += massone * vthermal[2]*vthermal[2];
       t[3] += massone * vthermal[0]*vthermal[1];
       t[4] += massone * vthermal[0]*vthermal[2];
       t[5] += massone * vthermal[1]*vthermal[2];
-      if (spin[i]) {
+      if (abs(spin[i])==1) {
         t[0] += 0.75 * massone * ervel[i]*ervel[i];
         t[1] += 0.75 * massone * ervel[i]*ervel[i];
         t[2] += 0.75 * massone * ervel[i]*ervel[i];
@@ -176,3 +219,98 @@ void ComputeTempDeformEff::compute_vector()
   MPI_Allreduce(t,vector,6,MPI_DOUBLE,MPI_SUM,world);
   for (int i = 0; i < 6; i++) vector[i] *= force->mvv2e;
 }
+
+/* ----------------------------------------------------------------------
+   remove velocity bias from atom I to leave thermal velocity
+------------------------------------------------------------------------- */
+
+void ComputeTempDeformEff::remove_bias(int i, double *v)
+{
+  double lamda[3];
+  double *h_rate = domain->h_rate;
+  double *h_ratelo = domain->h_ratelo;
+
+  domain->x2lamda(atom->x[i],lamda);
+  vbias[0] = h_rate[0]*lamda[0] + h_rate[5]*lamda[1] +
+    h_rate[4]*lamda[2] + h_ratelo[0];
+  vbias[1] = h_rate[1]*lamda[1] + h_rate[3]*lamda[2] + h_ratelo[1];
+  vbias[2] = h_rate[2]*lamda[2] + h_ratelo[2];
+  v[0] -= vbias[0];
+  v[1] -= vbias[1];
+  v[2] -= vbias[2];
+}
+
+/* ----------------------------------------------------------------------
+   remove velocity bias from all atoms to leave thermal velocity
+   NOTE: only removes translational velocity bias from electrons
+------------------------------------------------------------------------- */
+
+void ComputeTempDeformEff::remove_bias_all()
+{
+  double **v = atom->v;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  if (nlocal > maxbias) {
+    memory->destroy_2d_double_array(vbiasall);
+    maxbias = atom->nmax;
+    vbiasall = memory->create_2d_double_array(maxbias,3,
+                                              "temp/deform/eff:vbiasall");
+  }
+
+  double lamda[3];
+  double *h_rate = domain->h_rate;
+  double *h_ratelo = domain->h_ratelo;
+
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit) {
+      domain->x2lamda(atom->x[i],lamda);
+      vbiasall[i][0] = h_rate[0]*lamda[0] + h_rate[5]*lamda[1] +
+        h_rate[4]*lamda[2] + h_ratelo[0];
+      vbiasall[i][1] = h_rate[1]*lamda[1] + h_rate[3]*lamda[2] + h_ratelo[1];
+      vbiasall[i][2] = h_rate[2]*lamda[2] + h_ratelo[2];
+      v[i][0] -= vbiasall[i][0];
+      v[i][1] -= vbiasall[i][1];
+      v[i][2] -= vbiasall[i][2];
+    }
+}
+
+/* ----------------------------------------------------------------------
+   add back in velocity bias to atom I removed by remove_bias()
+   assume remove_bias() was previously called
+------------------------------------------------------------------------- */
+
+void ComputeTempDeformEff::restore_bias(int i, double *v)
+{
+  v[0] += vbias[0];
+  v[1] += vbias[1];
+  v[2] += vbias[2];
+}
+
+/* ----------------------------------------------------------------------
+   add back in velocity bias to all atoms removed by remove_bias_all()
+   assume remove_bias_all() was previously called
+------------------------------------------------------------------------- */
+
+void ComputeTempDeformEff::restore_bias_all()
+{
+  double **v = atom->v;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit) {
+      v[i][0] += vbiasall[i][0];
+      v[i][1] += vbiasall[i][1];
+      v[i][2] += vbiasall[i][2];
+    }
+}
+
+/* ---------------------------------------------------------------------- */
+
+double ComputeTempDeformEff::memory_usage()
+{
+  double bytes = maxbias * sizeof(double);
+  return bytes;
+}
+

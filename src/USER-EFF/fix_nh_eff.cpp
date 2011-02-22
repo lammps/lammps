@@ -32,7 +32,7 @@ FixNHEff::FixNHEff(LAMMPS *lmp, int narg, char **arg) : FixNH(lmp, narg, arg)
 {
   if (!atom->spin_flag || !atom->eradius_flag || 
       !atom->ervel_flag || !atom->erforce_flag) 
-    error->all("Fix nvt/nph/npt eff requires atom attributes "
+    error->all("Fix nvt/nph/npt/eff requires atom attributes "
 	       "spin, eradius, ervel, erforce");
 }
 
@@ -48,7 +48,6 @@ void FixNHEff::nve_v()
 
   double *erforce = atom->erforce;
   double *ervel = atom->ervel;
-  double *rmass = atom->rmass;
   double *mass = atom->mass;
   int *spin = atom->spin;
   int *type = atom->type;
@@ -56,27 +55,14 @@ void FixNHEff::nve_v()
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
-  // 2 cases depending on rmass vs mass
-
   int itype;
   double dtfm;
 
-  if (rmass) {
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-	if (spin[i]) {
-	  dtfm = dtf / rmass[i];
-	  ervel[i] = dtfm * erforce[i] / 0.75;
-	}
-      }
-    }
-  } else {
-    for (int i = 0; i < nlocal; i++) {    
-      if (mask[i] & groupbit) {
-	if (spin[i]) {
-	  dtfm = dtf / mass[type[i]];
-	  ervel[i] = dtfm * erforce[i] / 0.75;
-	}
+  for (int i = 0; i < nlocal; i++) {    
+    if (mask[i] & groupbit) {
+      if (abs(spin[i])==1) {
+	dtfm = dtf / mass[type[i]];
+	ervel[i] = dtfm * erforce[i] / 0.75;
       }
     }
   }
@@ -101,7 +87,7 @@ void FixNHEff::nve_x()
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
-      if (spin[i]) eradius[i] += dtv * ervel[i];
+      if (abs(spin[i])==1) eradius[i] += dtv * ervel[i];
 }
 
 /* ----------------------------------------------------------------------
@@ -122,5 +108,5 @@ void FixNHEff::nh_v_temp()
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
-      if (spin[i]) ervel[i] *= factor_eta;
+      if (abs(spin[i])==1) ervel[i] *= factor_eta;
 }

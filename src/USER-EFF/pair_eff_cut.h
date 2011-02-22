@@ -48,6 +48,8 @@ class PairEffCut : public Pair {
   int limit_size_flag, flexible_pressure_flag;
   double cut_global;
   double **cut;
+  double PAULI_CORE_A, PAULI_CORE_B, PAULI_CORE_C;
+  double hhmss2e, h2e;
   
   int nmax;
   double *min_eradius,*min_erforce;

@@ -60,13 +60,13 @@ void FixLangevinEff::post_force_no_tally()
 
   double **v = atom->v;
   double **f = atom->f;
-  double *rmass = atom->rmass;
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double *ervel = atom->ervel;
   double *erforce = atom->erforce;
+  int *spin = atom->spin;
 
   double delta = update->ntimestep - update->beginstep;
   delta /= update->endstep - update->beginstep;
@@ -80,78 +80,33 @@ void FixLangevinEff::post_force_no_tally()
   //   test v = 0 since some computes mask non-participating atoms via v = 0
   //   and added force has extra term not multiplied by v = 0
 
-  if (rmass) {
-    double boltz = force->boltz;
-    double dt = update->dt;
-    double mvv2e = force->mvv2e;
-    double ftm2v = force->ftm2v;
-
-    if (which == NOBIAS) {
-      for (int i = 0; i < nlocal; i++) {
-	if (mask[i] & groupbit) {
-	  gamma1 = -rmass[i] / t_period / ftm2v;
-	  gamma2 = sqrt(rmass[i]) * sqrt(24.0*boltz/t_period/dt/mvv2e) / ftm2v;
-	  gamma1 *= 1.0/ratio[type[i]];
-	  gamma2 *= 1.0/sqrt(ratio[type[i]]) * tsqrt;
-	  f[i][0] += gamma1*v[i][0] + gamma2*(random->uniform()-0.5);
-	  f[i][1] += gamma1*v[i][1] + gamma2*(random->uniform()-0.5);
-	  f[i][2] += gamma1*v[i][2] + gamma2*(random->uniform()-0.5);
-          erforce[i] += gamma1*ervel[i] + gamma2*(random->uniform()-0.5);
-	}
-      }
-
-    } else if (which == BIAS) {
-      double tmp = temperature->compute_scalar();
-      for (int i = 0; i < nlocal; i++) {
-	if (mask[i] & groupbit) {
-	  gamma1 = -rmass[i] / t_period / ftm2v;
-	  gamma2 = sqrt(rmass[i]) * sqrt(24.0*boltz/t_period/dt/mvv2e) / ftm2v;
-	  gamma1 *= 1.0/ratio[type[i]];
-	  gamma2 *= 1.0/sqrt(ratio[type[i]]) * tsqrt;
-	  temperature->remove_bias(i,v[i]);
-	  if (v[i][0] != 0.0)
-	    f[i][0] += gamma1*v[i][0] + gamma2*(random->uniform()-0.5);
-	  if (v[i][1] != 0.0)
-	    f[i][1] += gamma1*v[i][1] + gamma2*(random->uniform()-0.5);
-	  if (v[i][2] != 0.0)
-	    f[i][2] += gamma1*v[i][2] + gamma2*(random->uniform()-0.5);
-          if (ervel[i] != 0.0)
-            erforce[i] += gamma1*ervel[i] + gamma2*(random->uniform()-0.5);
-	  temperature->restore_bias(i,v[i]);
-	}
+  if (which == NOBIAS) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+        gamma1 = gfactor1[type[i]];
+	gamma2 = gfactor2[type[i]] * tsqrt;
+	f[i][0] += gamma1*v[i][0] + gamma2*(random->uniform()-0.5);
+	f[i][1] += gamma1*v[i][1] + gamma2*(random->uniform()-0.5);
+	f[i][2] += gamma1*v[i][2] + gamma2*(random->uniform()-0.5);
+        if (abs(spin[i])==1) erforce[i] += 0.75*gamma1*ervel[i] + 0.866025404*gamma2*(random->uniform()-0.5);
       }
     }
-
-  } else {
-    if (which == NOBIAS) {
-      for (int i = 0; i < nlocal; i++) {
-	if (mask[i] & groupbit) {
-	  gamma1 = gfactor1[type[i]];
-	  gamma2 = gfactor2[type[i]] * tsqrt;
+  } else if (which == BIAS) {
+    double tmp = temperature->compute_scalar();
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+	gamma1 = gfactor1[type[i]];
+	gamma2 = gfactor2[type[i]] * tsqrt;
+	temperature->remove_bias(i,v[i]);
+	if (v[i][0] != 0.0)
 	  f[i][0] += gamma1*v[i][0] + gamma2*(random->uniform()-0.5);
+	if (v[i][1] != 0.0)
 	  f[i][1] += gamma1*v[i][1] + gamma2*(random->uniform()-0.5);
+	if (v[i][2] != 0.0)
 	  f[i][2] += gamma1*v[i][2] + gamma2*(random->uniform()-0.5);
-          erforce[i] += gamma1*ervel[i] + gamma2*(random->uniform()-0.5);
-	}
-      }
-
-    } else if (which == BIAS) {
-      double tmp = temperature->compute_scalar();
-      for (int i = 0; i < nlocal; i++) {
-	if (mask[i] & groupbit) {
-	  gamma1 = gfactor1[type[i]];
-	  gamma2 = gfactor2[type[i]] * tsqrt;
-	  temperature->remove_bias(i,v[i]);
-	  if (v[i][0] != 0.0)
-	    f[i][0] += gamma1*v[i][0] + gamma2*(random->uniform()-0.5);
-	  if (v[i][1] != 0.0)
-	    f[i][1] += gamma1*v[i][1] + gamma2*(random->uniform()-0.5);
-	  if (v[i][2] != 0.0)
-	    f[i][2] += gamma1*v[i][2] + gamma2*(random->uniform()-0.5);
-          if (ervel[i] != 0.0)
-            erforce[i] += gamma1*ervel[i] + gamma2*(random->uniform()-0.5);
-	  temperature->restore_bias(i,v[i]);
-	}
+        if (abs(spin[i])==1 && ervel[i] != 0.0)
+          erforce[i] += 0.75*gamma1*ervel[i] + 0.866025404*gamma2*(random->uniform()-0.5);
+	temperature->restore_bias(i,v[i]);
       }
     }
   }
@@ -176,13 +131,13 @@ void FixLangevinEff::post_force_tally()
 
   double **v = atom->v;
   double **f = atom->f;
-  double *rmass = atom->rmass;
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double *erforce = atom->erforce;
   double *ervel = atom->ervel;
+  int *spin = atom->spin;
 
   double delta = update->ntimestep - update->beginstep;
   delta /= update->endstep - update->beginstep;
@@ -196,92 +151,40 @@ void FixLangevinEff::post_force_tally()
   //   test v = 0 since some computes mask non-participating atoms via v = 0
   //   and added force has extra term not multiplied by v = 0
 
-  if (rmass) {
-    double boltz = force->boltz;
-    double dt = update->dt;
-    double mvv2e = force->mvv2e;
-    double ftm2v = force->ftm2v;
-
-    if (which == NOBIAS) {
-      for (int i = 0; i < nlocal; i++) {
-	if (mask[i] & groupbit) {
-	  gamma1 = -rmass[i] / t_period / ftm2v;
-	  gamma2 = sqrt(rmass[i]) * sqrt(24.0*boltz/t_period/dt/mvv2e) / ftm2v;
-	  gamma1 *= 1.0/ratio[type[i]];
-	  gamma2 *= 1.0/sqrt(ratio[type[i]]) * tsqrt;
-	  flangevin[i][0] = gamma1*v[i][0] + gamma2*(random->uniform()-0.5);
-	  flangevin[i][1] = gamma1*v[i][1] + gamma2*(random->uniform()-0.5);
-	  flangevin[i][2] = gamma1*v[i][2] + gamma2*(random->uniform()-0.5);
-          erforcelangevin[i] = gamma1*ervel[i]+gamma2*(random->uniform()-0.5);
-	  f[i][0] += flangevin[i][0];
-	  f[i][1] += flangevin[i][1];
-	  f[i][2] += flangevin[i][2];
-          erforce[i] += erforcelangevin[i];
-	}
-      }
-
-    } else if (which == BIAS) {
-      double tmp = temperature->compute_scalar();
-      for (int i = 0; i < nlocal; i++) {
-	if (mask[i] & groupbit) {
-	  gamma1 = -rmass[i] / t_period / ftm2v;
-	  gamma2 = sqrt(rmass[i]) * sqrt(24.0*boltz/t_period/dt/mvv2e) / ftm2v;
-	  gamma1 *= 1.0/ratio[type[i]];
-	  gamma2 *= 1.0/sqrt(ratio[type[i]]) * tsqrt;
-	  temperature->remove_bias(i,v[i]);
-	  flangevin[i][0] = gamma1*v[i][0] + gamma2*(random->uniform()-0.5);
-	  flangevin[i][1] = gamma1*v[i][1] + gamma2*(random->uniform()-0.5);
-	  flangevin[i][2] = gamma1*v[i][2] + gamma2*(random->uniform()-0.5);
-          erforcelangevin[i] = gamma1*ervel[i]+gamma2*(random->uniform()-0.5);
-	  if (v[i][0] != 0.0) f[i][0] += flangevin[i][0];
-	  else flangevin[i][0] = 0;
-	  if (v[i][1] != 0.0) f[i][1] += flangevin[i][1];
-	  else flangevin[i][1] = 0;
-	  if (v[i][2] != 0.0) f[i][2] += flangevin[i][2];
-	  else flangevin[i][2] = 0;
-          if (ervel[i] != 0.0) erforce[i] += erforcelangevin[i];
-	  temperature->restore_bias(i,v[i]);
-	}
+  if (which == NOBIAS) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+	gamma1 = gfactor1[type[i]];
+	gamma2 = gfactor2[type[i]] * tsqrt;
+	flangevin[i][0] = gamma1*v[i][0] + gamma2*(random->uniform()-0.5);
+	flangevin[i][1] = gamma1*v[i][1] + gamma2*(random->uniform()-0.5);
+	flangevin[i][2] = gamma1*v[i][2] + gamma2*(random->uniform()-0.5);
+        erforcelangevin[i] = 0.75*gamma1*ervel[i]+0.866025404*gamma2*(random->uniform()-0.5);
+	f[i][0] += flangevin[i][0];
+	f[i][1] += flangevin[i][1];
+	f[i][2] += flangevin[i][2];
+        if (abs(spin[i])==1) erforce[i] += erforcelangevin[i];
       }
     }
-
-  } else {
-    if (which == NOBIAS) {
-      for (int i = 0; i < nlocal; i++) {
-	if (mask[i] & groupbit) {
-	  gamma1 = gfactor1[type[i]];
-	  gamma2 = gfactor2[type[i]] * tsqrt;
-	  flangevin[i][0] = gamma1*v[i][0] + gamma2*(random->uniform()-0.5);
-	  flangevin[i][1] = gamma1*v[i][1] + gamma2*(random->uniform()-0.5);
-	  flangevin[i][2] = gamma1*v[i][2] + gamma2*(random->uniform()-0.5);
-          erforcelangevin[i] = gamma1*ervel[i]+gamma2*(random->uniform()-0.5);
-	  f[i][0] += flangevin[i][0];
-	  f[i][1] += flangevin[i][1];
-	  f[i][2] += flangevin[i][2];
-          erforce[i] += erforcelangevin[i];
-	}
-      }
-
-    } else if (which == BIAS) {
-      double tmp = temperature->compute_scalar();
-      for (int i = 0; i < nlocal; i++) {
-	if (mask[i] & groupbit) {
-	  gamma1 = gfactor1[type[i]];
-	  gamma2 = gfactor2[type[i]] * tsqrt;
-	  temperature->remove_bias(i,v[i]);
-	  flangevin[i][0] = gamma1*v[i][0] + gamma2*(random->uniform()-0.5);
-	  flangevin[i][1] = gamma1*v[i][1] + gamma2*(random->uniform()-0.5);
-	  flangevin[i][2] = gamma1*v[i][2] + gamma2*(random->uniform()-0.5);
-          erforcelangevin[i] = gamma1*ervel[i]+gamma2*(random->uniform()-0.5);
-	  if (v[i][0] != 0.0) f[i][0] += flangevin[i][0];
-	  else flangevin[i][0] = 0.0;
-	  if (v[i][1] != 0.0) f[i][1] += flangevin[i][1];
-	  else flangevin[i][1] = 0.0;
-	  if (v[i][2] != 0.0) f[i][2] += flangevin[i][2];
-	  else flangevin[i][2] = 0.0;
-          if (ervel[i] != 0.0) erforce[i] += erforcelangevin[i];
-	  temperature->restore_bias(i,v[i]);
-	}
+  } else if (which == BIAS) {
+    double tmp = temperature->compute_scalar();
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+	gamma1 = gfactor1[type[i]];
+	gamma2 = gfactor2[type[i]] * tsqrt;
+	temperature->remove_bias(i,v[i]);
+	flangevin[i][0] = gamma1*v[i][0] + gamma2*(random->uniform()-0.5);
+	flangevin[i][1] = gamma1*v[i][1] + gamma2*(random->uniform()-0.5);
+	flangevin[i][2] = gamma1*v[i][2] + gamma2*(random->uniform()-0.5);
+        erforcelangevin[i] = 0.75*gamma1*ervel[i]+0.866025404*gamma2*(random->uniform()-0.5);
+	if (v[i][0] != 0.0) f[i][0] += flangevin[i][0];
+	else flangevin[i][0] = 0.0;
+	if (v[i][1] != 0.0) f[i][1] += flangevin[i][1];
+	else flangevin[i][1] = 0.0;
+	if (v[i][2] != 0.0) f[i][2] += flangevin[i][2];
+	else flangevin[i][2] = 0.0;
+        if (abs(spin[i])==1 && ervel[i] != 0.0) erforce[i] += erforcelangevin[i];
+	temperature->restore_bias(i,v[i]);
       }
     }
   }
@@ -298,14 +201,16 @@ void FixLangevinEff::end_of_step()
   double **v = atom->v;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;  
+  int *spin = atom->spin;
 
   energy_onestep = 0.0;
  
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit)
+    if (mask[i] & groupbit) {
       energy_onestep += flangevin[i][0]*v[i][0] + flangevin[i][1]*v[i][1] + 
-	flangevin[i][2]*v[i][2] + erforcelangevin[i];
-
+	flangevin[i][2]*v[i][2];
+      if (abs(spin[i])==1) energy_onestep += erforcelangevin[i];
+    }
   energy += energy_onestep*update->dt;
 }
 
@@ -320,13 +225,16 @@ double FixLangevinEff::compute_scalar()
   double **v = atom->v;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;  
+  int *spin = atom->spin;
 
   if (update->ntimestep == update->beginstep) {
     energy_onestep = 0.0;
     for (int i = 0; i < nlocal; i++) 
-      if (mask[i] & groupbit) 
+      if (mask[i] & groupbit) {
 	energy_onestep += flangevin[i][0]*v[i][0] + flangevin[i][1]*v[i][1] + 
-	  flangevin[i][2]*v[i][2] + erforcelangevin[i];
+	  flangevin[i][2]*v[i][2];
+        if (abs(spin[i])==1) energy_onestep += erforcelangevin[i];
+      }
     energy = 0.5*energy_onestep*update->dt;
   }
 

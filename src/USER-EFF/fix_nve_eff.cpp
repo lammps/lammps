@@ -30,14 +30,37 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 FixNVEEff::FixNVEEff(LAMMPS *lmp, int narg, char **arg) :
-  FixNVE(lmp, narg, arg)
+  Fix(lmp, narg, arg)
 {
-  // error check
-
   if (!atom->spin_flag || !atom->eradius_flag || 
       !atom->ervel_flag || !atom->erforce_flag) 
     error->all("Fix nve/eff requires atom attributes "
-	       "spin, eradius, ervel, erforce");
+               "spin, eradius, ervel, erforce");
+
+  time_integrate = 1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixNVEEff::setmask()
+{   
+  int mask = 0;
+  mask |= INITIAL_INTEGRATE;
+  mask |= FINAL_INTEGRATE;
+  mask |= INITIAL_INTEGRATE_RESPA;
+  mask |= FINAL_INTEGRATE_RESPA;
+  return mask;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixNVEEff::init()
+{
+  dtv = update->dt;
+  dtf = 0.5 * update->dt * force->ftm2v;
+
+  if (strcmp(update->integrate_style,"respa") == 0)
+    step_respa = ((Respa *) update->integrate)->step;
 }
 
 /* ----------------------------------------------------------------------
@@ -57,7 +80,6 @@ void FixNVEEff::initial_integrate(int vflag)
   double **f = atom->f;
   double *erforce = atom->erforce;
   double *mass = atom->mass;
-  double *rmass = atom->rmass;
   int *spin = atom->spin;
   int *type = atom->type;
   int *mask = atom->mask;
@@ -66,37 +88,20 @@ void FixNVEEff::initial_integrate(int vflag)
 
   // x + dt * [v + 0.5 * dt * (f / m)];
   
-  if (rmass) {
+  if (mass) {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-	dtfm = dtf / rmass[i];
-	v[i][0] += dtfm * f[i][0];
-	v[i][1] += dtfm * f[i][1];
-	v[i][2] += dtfm * f[i][2];
-	x[i][0] += dtv * v[i][0];
-	x[i][1] += dtv * v[i][1];
-	x[i][2] += dtv * v[i][2];
-	if (spin[i]) {
-	  ervel[i] += dtfm * erforce[i] / 0.75;
-	  eradius[i] += dtv * ervel[i];
-	}
-      }
-    }
-    
-  } else {
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-	dtfm = dtf / mass[type[i]];
-	v[i][0] += dtfm * f[i][0];
-	v[i][1] += dtfm * f[i][1];
-	v[i][2] += dtfm * f[i][2];
-	x[i][0] += dtv * v[i][0];
-	x[i][1] += dtv * v[i][1];
-	x[i][2] += dtv * v[i][2];
-	if (spin[i]) {
-	  ervel[i] += dtfm * erforce[i] / 0.75;
-	  eradius[i] += dtv * ervel[i];
-	}
+        dtfm = dtf / mass[type[i]];
+        v[i][0] += dtfm * f[i][0];
+        v[i][1] += dtfm * f[i][1];
+        v[i][2] += dtfm * f[i][2];
+        x[i][0] += dtv * v[i][0];
+        x[i][1] += dtv * v[i][1];
+        x[i][2] += dtv * v[i][2];
+        if (abs(spin[i])==1) {
+          ervel[i] += dtfm * erforce[i] / 0.75;
+          eradius[i] += dtv * ervel[i];
+        }
       }
     }
   }
@@ -113,7 +118,6 @@ void FixNVEEff::final_integrate()
   double *erforce = atom->erforce;
   double **f = atom->f;
   double *mass = atom->mass;
-  double *rmass = atom->rmass;
   int *spin = atom->spin;
   int *type = atom->type;
   int *mask = atom->mask;
@@ -122,28 +126,47 @@ void FixNVEEff::final_integrate()
   
   // dyn_v[i] += m * dt * dyn_f[i];
 
-  if (rmass) {
+  if (mass) {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-	dtfm = dtf / rmass[i];
-	v[i][0] += dtfm * f[i][0];
-	v[i][1] += dtfm * f[i][1];
-	v[i][2] += dtfm * f[i][2];
-	if (spin[i] != 0) 
-	  ervel[i] += dtfm * erforce[i] / 0.75;
-      }
-    }
-    
-  } else {
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-	dtfm = dtf / mass[type[i]];
-	v[i][0] += dtfm * f[i][0];
-	v[i][1] += dtfm * f[i][1];
-	v[i][2] += dtfm * f[i][2];
-	if (spin[i] != 0) 
-	  ervel[i] += dtfm * erforce[i] / 0.75;
+        dtfm = dtf / mass[type[i]];
+        v[i][0] += dtfm * f[i][0];
+        v[i][1] += dtfm * f[i][1];
+        v[i][2] += dtfm * f[i][2];
+        if (abs(spin[i])==1)
+          ervel[i] += dtfm * erforce[i] / 0.75;
       }
     }
   }
 }
+
+/* ---------------------------------------------------------------------- */
+
+void FixNVEEff::initial_integrate_respa(int vflag, int ilevel, int iloop)
+{
+  dtv = step_respa[ilevel];
+  dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
+
+  // innermost level - NVE update of v and x
+  // all other levels - NVE update of v
+
+  if (ilevel == 0) initial_integrate(vflag);
+  else final_integrate();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixNVEEff::final_integrate_respa(int ilevel, int iloop)
+{
+  dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
+  final_integrate();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixNVEEff::reset_dt()
+{
+  dtv = update->dt;
+  dtf = 0.5 * update->dt * force->ftm2v;
+}
+

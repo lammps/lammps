@@ -20,16 +20,28 @@ ComputeStyle(temp/region/eff,ComputeTempRegionEff)
 #ifndef LMP_COMPUTE_TEMP_REGION_EFF_H
 #define LMP_COMPUTE_TEMP_REGION_EFF_H
 
-#include "compute_temp_region.h"
+#include "compute.h"
 
 namespace LAMMPS_NS {
 
-class ComputeTempRegionEff : public ComputeTempRegion {
+class ComputeTempRegionEff : public Compute {
  public:
   ComputeTempRegionEff(class LAMMPS *, int, char **);
-  ~ComputeTempRegionEff() {}
-  double compute_scalar();
-  void compute_vector();
+  virtual ~ComputeTempRegionEff();
+  void init();
+  virtual double compute_scalar();
+  virtual void compute_vector();
+
+  int dof_remove(int);
+  void remove_bias(int, double *);
+  void remove_bias_all();
+  void restore_bias(int, double *);
+  void restore_bias_all();
+  double memory_usage();
+ 
+ protected:
+  int iregion;
+  char *idregion;
 };
 
 }

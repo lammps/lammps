@@ -12,6 +12,8 @@ Version: August 2009
 Reads in an eff .cfg file and produces the corresponding lammps data and input files
 
 NOTE: Unsupported functions will be reported in the output log
+
+12/2010: Added support for fixed-core and pseudo-core structures
 """
 
 # import essentials: 
@@ -38,15 +40,31 @@ units		electron
 newton		on
 boundary	%s
 
-atom_style      hybrid charge electron
+atom_style      electron
 
 read_data       data.${sname}
 
 pair_style      eff/cut %s
 pair_coeff      * *
 
+compute         energies all pair eff/cut
+variable        eke equal c_energies[1]
+variable        epauli equal c_energies[2]
+variable        estatics equal c_energies[3]
+variable        errestrain equal c_energies[4]
+
+communicate     single vel yes
+
+compute         peratom all stress/atom
+compute         p all reduce sum c_peratom[1] c_peratom[2] c_peratom[3]
+variable        press equal -(c_p[1]+c_p[2]+c_p[3])/(3*vol)
+
+compute         effTemp all temp/eff
+compute         effPress all pressure effTemp
+
 thermo          %s
-thermo_style    multi
+thermo_style    custom step etotal pe ke v_eke v_epauli v_estatics v_errestrain temp press v_press 
+thermo_modify   temp effTemp press effPress
 """
 #%(date,name,boundary,cutoff,period)
 
@@ -55,7 +73,7 @@ minimize="""
 
 min_style       cg
 dump            1 %s xyz %s ${sname}.min.xyz
-dump            2 %s custom %s ${sname}.min.lammpstrj id type x y z radius fx fy fz rf
+dump            2 %s custom %s ${sname}.min.lammpstrj id type q spin eradius x y z fx fy fz erforce
 min_modify      line quadratic
 minimize        0 1.0e-5 %s %s
 
@@ -77,7 +95,7 @@ timestep        %s
 
 fix             %s
 
-dump            1 %s custom %s ${sname}.%s.lammpstrj id type x y z spin radius
+dump            1 %s custom %s ${sname}.%s.lammpstrj id type q spin eradius x y z
 dump		2 %s custom %s ${sname}.%s.xyz
 
 run             %s
@@ -114,8 +132,10 @@ def generate_lammps_input(infile):
     lines = fin.xreadlines()
     print 7*"\b"+"[DONE]"
     
+    numcores=0
     numnuclei=0
     numelec=0
+    cores={}
     nuclei={}
     electrons={}
     masses=[]
@@ -131,6 +151,9 @@ def generate_lammps_input(infile):
       # 1st level keywords
       if line.find("@params")==0:
         flag='params'
+        continue
+      elif line.find("@cores")==0:
+        flag='cores'
         continue
       elif line.find("@nuclei")==0:
         flag='nuclei'
@@ -198,7 +221,7 @@ def generate_lammps_input(infile):
         if line.find("set_limit_stiffness")>=0:
           continue
         if line.find("output_position")>=0:
-          dump_pos="dump\t1 all custom %s ${sname}.lammpstrj id type x y z spin radius "%(period)
+          dump_pos="dump\t1 all custom %s ${sname}.lammpstrj id type q spin eradius x y z "%(period)
         if line.find("output_velocities")>=0:
           dump_pos+="vx vy vz "
         if line.find("output_energy_forces")>=0:
@@ -230,6 +253,22 @@ def generate_lammps_input(infile):
           zbound="%s %s zlo zhi\n"%(zbnds[0],zbnds[1])
         if line.find("taper_cutoff")>=0:
           cutoff=line.split()[2]            
+        continue
+
+      if flag=='cores' and len(line)>1:
+        numcores+=1
+        ln=line.split()
+        nc=' '.join(ln[0:3])
+        q=ln[3]
+        spin='3'
+        radius=ln[4]
+        m=q2m[int(float(q))]
+        if m not in masses:
+          masses.append(m)
+          massstr+="%d %s\n"%(types,m)
+          q2type[q]=types
+          types+=1
+        cores[numcores]=[nc,q,spin,radius]
         continue
 
       if flag=='nuclei' and len(line)>1:
@@ -282,15 +321,17 @@ def generate_lammps_input(infile):
     print "Writing datafile to %s ...                   "%('data.'+infile),
     sys.stdout.flush()
     print "\b"*19+"General section  ",
-    datafile.writelines("Created using cfg2lammps (c) AJB-2009\n\n%d atoms\n%d atom types\n\n%s%s%s\n"%(numnuclei+numelec,types,xbound,ybound,zbound))
+    datafile.writelines("Created using cfg2lammps (c) AJB-2009\n\n%d atoms\n%d atom types\n\n%s%s%s\n"%(numcores+numnuclei+numelec,types,xbound,ybound,zbound))
     print "\b"*19+"Masses section   ",
     datafile.writelines(massstr)
     print "\b"*19+"Atoms section    ",
     datafile.writelines("Atoms\n\n")
+    for n in range(numcores):
+      datafile.writelines("%d %d %2.2f %s %s %s\n"%(n+1,q2type[cores[n+1][1]],float(cores[n+1][1]),cores[n+1][2],cores[n+1][3],cores[n+1][0]))
     for n in range(numnuclei):
-      datafile.writelines("%d %d %s %s 0 0.0\n"%(n+1,q2type[nuclei[n+1][1]],nuclei[n+1][0],nuclei[n+1][1]))
+      datafile.writelines("%d %d %2.2f 0 0.0 %s\n"%(n+numcores+1,q2type[nuclei[n+1][1]],float(nuclei[n+1][1]),nuclei[n+1][0]))
     for e in range(numelec):
-      datafile.write("%d %d %s 0.0 %s %s\n"%(e+numnuclei+1,types,electrons[e+1][0],electrons[e+1][1],electrons[e+1][2]))
+      datafile.write("%d %d 0.0 %s %s %s\n"%(e+numnuclei+numcores+1,types,electrons[e+1][1],electrons[e+1][2],electrons[e+1][0]))
     print "\b"*19+"Velocities section\n",
     datafile.writelines(vels)
     datafile.writelines("\n")

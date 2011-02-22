@@ -171,7 +171,7 @@ proc do_radii {args} {
   foreach elec $data_array(0) r $data_array($fr) {
     set s [atomselect $molid "index [expr {$elec -1}]"]
     #set nr [expr {exp($r)}]
-    set nr $r
+    set nr [expr $r*1.5]
     $s set radius $nr
     $s delete
     #puts stderr "$fr $elec $nr"
@@ -192,9 +192,6 @@ global data_array molid
 set xyz xyzfile
 set data radiifile
 
-# switch default rep to VDW.
-mol default style VDW
-
 # load nuclear and electron xyz trajectory 
 #set xyz [lindex $::argv 0]
 
@@ -202,7 +199,35 @@ mol default style VDW
 #set datafile [lindex $::argv 1]
 
 set molid [mol new $xyz waitfor all]
-mol modstyle 0 [molinfo top] VDW 1.0 32.0
+#mol modstyle 0 [molinfo top] VDW 0.2 32.0
+
+set s [atomselect $molid "all"]
+$s set radius 0.1
+$s delete
+
+color Display Background white
+display projection orthographic
+
+# switch default rep to VDW.
+mol default style VDW
+mol delrep 0 $molid
+mol selection "name H He Li Be B C Si"
+mol addrep $molid
+mol modstyle 0 $molid VDW 2.0 32.0
+# spin +1
+mol material Transparent
+mol selection "name Au"
+mol addrep $molid
+mol modstyle 1 $molid VDW 0.4 32.0
+# spin -1
+#mol material Transparent
+mol selection "name Tl"
+mol addrep $molid
+mol modstyle 2 $molid VDW 0.4 32.0
+mol material Opaque
+mol selection "name H He Li Be B C Si"
+mol addrep $molid
+mol modstyle 3 $molid DynamicBonds 1.6 0.1 32
 
 puts "Starting ..."
 readFile $data

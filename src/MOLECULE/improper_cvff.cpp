@@ -11,11 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "mpi.h"
 #include "math.h"
 #include "stdlib.h"
 #include "improper_cvff.h"
-#include "lmptype.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"

@@ -15,10 +15,10 @@
    Contributing author: Pieter in 't Veld (SNL)
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "stdlib.h"
 #include "string.h"
 #include "fix_ave_spatial.h"
-#include "lmptype.h"
 #include "atom.h"
 #include "update.h"
 #include "force.h"

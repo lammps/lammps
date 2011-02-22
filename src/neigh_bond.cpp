@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "neighbor.h"
 #include "lmptype.h"
+#include "neighbor.h"
 #include "atom.h"
 #include "force.h"
 #include "update.h"

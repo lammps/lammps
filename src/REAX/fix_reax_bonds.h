@@ -20,9 +20,9 @@ FixStyle(reax/bonds,FixReaxBonds)
 #ifndef LMP_FIX_REAX_BONDS_H
 #define LMP_FIX_REAX_BONDS_H
 
+#include "lmptype.h"
 #include "stdio.h"
 #include "fix.h"
-#include "lmptype.h"
 
 namespace LAMMPS_NS {
 

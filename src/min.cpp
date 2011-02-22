@@ -19,11 +19,11 @@
             JR Shewchuk, http://www-2.cs.cmu.edu/~jrs/jrspapers.html#cg
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "math.h"
 #include "stdlib.h"
 #include "string.h"
 #include "min.h"
-#include "lmptype.h"
 #include "atom.h"
 #include "domain.h"
 #include "comm.h"

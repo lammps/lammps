@@ -15,11 +15,11 @@
    Contributing author: Mark Sears (SNL)
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "math.h"
 #include "stdlib.h"
 #include "string.h"
 #include "temper.h"
-#include "lmptype.h"
 #include "universe.h"
 #include "domain.h"
 #include "atom.h"

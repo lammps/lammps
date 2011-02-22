@@ -11,12 +11,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "math.h"
 #include "mpi.h"
 #include "string.h"
 #include "stdlib.h"
 #include "read_data.h"
-#include "lmptype.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "comm.h"

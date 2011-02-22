@@ -15,10 +15,10 @@
    Contributing author: Mark Stevens (SNL)
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "math.h"
 #include "stdlib.h"
 #include "dihedral_opls.h"
-#include "lmptype.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"

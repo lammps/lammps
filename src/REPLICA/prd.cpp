@@ -15,12 +15,12 @@
    Contributing author: Mike Brown (SNL)
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "mpi.h"
 #include "math.h"
 #include "stdlib.h"
 #include "string.h"
 #include "prd.h"
-#include "lmptype.h"
 #include "universe.h"
 #include "update.h"
 #include "atom.h"

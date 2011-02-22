@@ -15,10 +15,10 @@
    Contributing author: Mike Parks (SNL)
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "float.h"
 #include "stdlib.h"
 #include "atom_vec_peri.h"
-#include "lmptype.h"
 #include "atom.h"
 #include "domain.h"
 #include "modify.h"

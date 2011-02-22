@@ -15,10 +15,10 @@
    Contributing author: Mathias Puetz (SNL) and friends
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "math.h"
 #include "stdlib.h"
 #include "dihedral_multi_harmonic.h"
-#include "lmptype.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"

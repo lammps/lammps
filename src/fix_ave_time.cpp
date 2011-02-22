@@ -15,10 +15,10 @@
    Contributing author: Pieter in 't Veld (SNL)
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "stdlib.h"
 #include "string.h"
 #include "fix_ave_time.h"
-#include "lmptype.h"
 #include "update.h"
 #include "modify.h"
 #include "compute.h"

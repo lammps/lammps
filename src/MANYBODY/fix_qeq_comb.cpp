@@ -15,12 +15,12 @@
    Contributing author: Tzu-Ray Shan (U Florida, rayshan@ufl.edu)
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "mpi.h"
 #include "math.h"
 #include "stdlib.h"
 #include "string.h"
 #include "fix_qeq_comb.h"
-#include "lmptype.h"
 #include "atom.h"
 #include "force.h"
 #include "group.h"

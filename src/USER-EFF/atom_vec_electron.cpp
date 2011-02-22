@@ -15,9 +15,9 @@
    Contributing author: Andres Jaramillo-Botero (Caltech)
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "stdlib.h"
 #include "atom_vec_electron.h"
-#include "lmptype.h"
 #include "atom.h"
 #include "domain.h"
 #include "modify.h"

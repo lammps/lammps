@@ -11,11 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "math.h"
 #include "stdlib.h"
 #include "string.h"
 #include "atom_vec_granular.h"
-#include "lmptype.h"
 #include "atom.h"
 #include "domain.h"
 #include "modify.h"

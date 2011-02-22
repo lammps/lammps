@@ -15,12 +15,12 @@
    Contributing author (triclinic and multi-neigh) : Pieter in 't Veld (SNL)
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "mpi.h"
 #include "math.h"
 #include "stdlib.h"
 #include "string.h"
 #include "neighbor.h"
-#include "lmptype.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "atom.h"

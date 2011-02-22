@@ -45,6 +45,7 @@ using namespace LAMMPS_NS;
 PairPeriPMB::PairPeriPMB(LAMMPS *lmp) : Pair(lmp)
 {
   for (int i = 0; i < 6; i++) virial[i] = 0.0;
+  no_virial_compute=1;
 
   ifix_peri = -1;
 
@@ -112,7 +113,7 @@ void PairPeriPMB::compute(int eflag, int vflag)
 
   int nall = atom->nlocal + atom->nghost;
   int newton_pair = force->newton_pair;
-  int nonperiodic = domain->nonperiodic;
+  int periodic = (domain->xperiodic || domain->yperiodic || domain->zperiodic);
 
   inum = list->inum;
   ilist = list->ilist;
@@ -145,7 +146,7 @@ void PairPeriPMB::compute(int eflag, int vflag)
       delx0 = xtmp0 - x0[j][0];
       dely0 = ytmp0 - x0[j][1];
       delz0 = ztmp0 - x0[j][2];
-      if (nonperiodic == 0) domain->minimum_image(delx0,dely0,delz0);
+      if (periodic) domain->minimum_image(delx0,dely0,delz0);
       rsq0 = delx0*delx0 + dely0*dely0 + delz0*delz0;
       jtype = type[j];
  
@@ -178,8 +179,7 @@ void PairPeriPMB::compute(int eflag, int vflag)
         }
 
         if (eflag) evdwl = 0.5*rk*dr;
-	if (evflag) ev_tally(i,j,nlocal,newton_pair,
-			     evdwl,0.0,fpair,delx,dely,delz);
+	if (evflag) ev_tally(i,j,nlocal,newton_pair,evdwl,0.0,fpair*vfrac[i],delx,dely,delz);
       }
     }
   }
@@ -224,7 +224,7 @@ void PairPeriPMB::compute(int eflag, int vflag)
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
-      if (nonperiodic == 0) domain->minimum_image(delx,dely,delz);
+      if (periodic) domain->minimum_image(delx,dely,delz);
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
       delta = sqrt(cutsq[itype][jtype]);
@@ -254,8 +254,7 @@ void PairPeriPMB::compute(int eflag, int vflag)
       // since I-J is double counted, set newton off & use 1/2 factor and I,I 
 
       if (eflag) evdwl = 0.5*rk*dr;
-      if (evflag) ev_tally(i,i,nlocal,0,
-			   0.5*evdwl,0.0,0.5*fbond,delx,dely,delz);
+      if (evflag) ev_tally(i,i,nlocal,0,0.5*evdwl,0.0,0.5*fbond*vfrac[i],delx,dely,delz);
 
       // find stretch in bond I-J and break if necessary
       // use s0 from previous timestep
@@ -267,16 +266,12 @@ void PairPeriPMB::compute(int eflag, int vflag)
       if (first)
          s0_new[i] = s00[itype][jtype] - (alpha[itype][jtype] * stretch);
       else
-         s0_new[i] = MAX(s0_new[i],
-			 s00[itype][jtype] - (alpha[itype][jtype] * stretch));
+         s0_new[i] = MAX(s0_new[i],s00[itype][jtype] - (alpha[itype][jtype] * stretch));
       first = false;
     }
   }
 
-  if (vflag_fdotr) virial_compute();
-
   // store new s0
-
   for (i = 0; i < nlocal; i++) s0[i] = s0_new[i]; 
 }
 
@@ -474,7 +469,8 @@ double PairPeriPMB::single(int i, int j, int itype, int jtype, double rsq,
   delx0 = x0[i][0] - x0[j][0];
   dely0 = x0[i][1] - x0[j][1];
   delz0 = x0[i][2] - x0[j][2];
-  if (domain->nonperiodic == 0) domain->minimum_image(delx0,dely0,delz0);
+  int periodic = domain->xperiodic || domain->yperiodic || domain->zperiodic;
+  if (periodic) domain->minimum_image(delx0,dely0,delz0);
   rsq0 = delx0*delx0 + dely0*dely0 + delz0*delz0;
 
   d_ij = MIN(0.9*sqrt(rsq0),1.35*lc);

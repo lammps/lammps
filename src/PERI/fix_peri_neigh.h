@@ -36,6 +36,7 @@ class FixPeriNeigh : public Fix {
   void init();
   void init_list(int, class NeighList *);
   void setup(int);
+  void min_setup(int);
 
   double memory_usage();
   void grow_arrays(int);

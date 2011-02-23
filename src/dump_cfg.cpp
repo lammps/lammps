@@ -15,6 +15,7 @@
    Contributing author: Liang Wan (Chinese Academy of Sciences)
 ------------------------------------------------------------------------- */
 
+#include "math.h" 
 #include "stdlib.h"
 #include "string.h"
 #include "dump_cfg.h"
@@ -186,11 +187,27 @@ void DumpCFG::init_style()
 
 void DumpCFG::write_header(bigint n)
 {
+  // special handling for atom style peri
+  // use average volume of particles to scale particles to mimic C atoms
+  // scale box dimension to sc lattice for C with sigma = 1.44 Angstroms  
+ 
+  double scale;
+  if (atom->style_match("peri")) {
+    int nlocal = atom->nlocal;
+    double vone = 0.0;
+    for (int i = 0; i < nlocal; i++) vone += atom->vfrac[i];
+    double vave;
+    MPI_Allreduce(&vone,&vave,1,MPI_DOUBLE,MPI_SUM,world); 
+    if (atom->natoms) vave /= atom->natoms; 
+    if (vave > 0.0) scale = 1.44 / pow(vave,1.0/3.0); 
+    else scale = 1.0;
+  } else scale = 1.0;
+ 
   if (me == 0 || multiproc) {
     char str[64];
     sprintf(str,"Number of particles = %s\n",BIGINT_FORMAT);
     fprintf(fp,str,n);
-    fprintf(fp,"A = 1.0 Angstrom (basic length-scale)\n");
+    fprintf(fp,"A = %g Angstrom (basic length-scale)\n",scale);
     fprintf(fp,"H0(1,1) = %g A\n",domain->xprd);
     fprintf(fp,"H0(1,2) = 0 A \n");
     fprintf(fp,"H0(1,3) = 0 A \n");
@@ -228,7 +245,11 @@ void DumpCFG::write_data(int n, double *mybuf)
 {
   int i,j,m,itype;
   int tag_i,index;
+
+  double *rmass = atom->rmass;
   double *mass = atom->mass;
+  int *type = atom->type;
+  int nlocal = atom->nlocal;
 
   // transfer data from buf to rbuf
   // if write by proc 0, transfer chunk by chunk
@@ -246,7 +267,8 @@ void DumpCFG::write_data(int n, double *mybuf)
       for (i = 0; i < nchosen; i++)
 	if (rbuf[i][1] == itype) break;
       if (i < nchosen) {
-	fprintf(fp,"%g\n",mass[itype]);
+	if (rmass) fprintf(fp,"%g\n",rmass[i]);
+	else fprintf(fp,"%g\n",mass[itype]);
 	fprintf(fp,"%s\n",typenames[itype]);
 	for (; i < nchosen; i++) {
 	  if (rbuf[i][1] == itype) {

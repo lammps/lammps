@@ -20,7 +20,9 @@ KSpaceStyle(pppm/cg,PPPMCG)
 #ifndef LMP_PPPM_CG_H
 #define LMP_PPPM_CG_H
 
+#include "lmptype.h"
 #include <mpi.h>
+
 #ifdef FFT_SINGLE
 typedef float FFT_SCALAR;
 #define  MPI_FFT_SCALAR MPI_FLOAT
@@ -30,7 +32,6 @@ typedef double FFT_SCALAR;
 #endif
 
 #include "kspace.h"
-#include "lmptype.h"
 
 namespace LAMMPS_NS {
 

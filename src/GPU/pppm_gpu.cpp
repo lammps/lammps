@@ -106,14 +106,14 @@ PPPMGPU::~PPPMGPU()
   memory->destroy_2d_int_array(part2grid);
   pppm_gpu_clear();
 double total1, total2, total3;
-int rank;
+int rank,size;
 MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+MPI_Comm_size(MPI_COMM_WORLD,&size);
 MPI_Allreduce(&time1,&total1,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 MPI_Allreduce(&time2,&total2,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 MPI_Allreduce(&time3,&total3,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-if (rank==0)
-std::cout << "DEBUG_TIMES: " << total1 << " " << total2 << " " << total3 
-          << std::endl;
+if (rank==0 && screen)
+fprintf(screen,"DEBUG_TIMES: %f %f %f\n",total1/size,total2/size,total3/size);
 }
 
 /* ----------------------------------------------------------------------

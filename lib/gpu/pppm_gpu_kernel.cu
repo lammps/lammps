@@ -168,6 +168,8 @@ __kernel void make_rho(__global numtyp4 *x_, __global numtyp *q_,
                        const numtyp delzinv, const int order, const int order2,
                        const numtyp delvolinv) {
   __local numtyp rho_coeff[MAX_STENCIL*MAX_STENCIL];
+  __local numtyp rho1d_0[MAX_STENCIL][BLOCK_1D];
+  __local numtyp rho1d_1[MAX_STENCIL][BLOCK_1D];
 
   int nx=THREAD_ID_X;
   int ny=THREAD_ID_Y;
@@ -177,6 +179,7 @@ __kernel void make_rho(__global numtyp4 *x_, __global numtyp *q_,
   }
   __syncthreads();
   
+  int tid=mul24(BLOCK_SIZE_X,ny)+nx;
   nx+=mul24(BLOCK_ID_X,BLOCK_SIZE_X);
   ny+=mul24(BLOCK_ID_Y,BLOCK_SIZE_Y);
 
@@ -202,13 +205,12 @@ __kernel void make_rho(__global numtyp4 *x_, __global numtyp *q_,
         numtyp dy=ny-(p.y-b_lo_y)*delyinv;
         numtyp dz=nz-(p.z-b_lo_z)*delzinv;
 
-        numtyp rho1d[2][MAX_STENCIL];
         for (int k=0; k<order; k++) {
-          rho1d[0][k]=(numtyp)0.0;
-          rho1d[1][k]=(numtyp)0.0;
+          rho1d_0[k][tid]=(numtyp)0.0;
+          rho1d_1[k][tid]=(numtyp)0.0;
           for (int l=order2+k; l>=k; l-=order) {
-            rho1d[0][k]=rho_coeff[l]+rho1d[0][k]*dx;
-            rho1d[1][k]=rho_coeff[l]+rho1d[1][k]*dy;
+            rho1d_0[k][tid]=rho_coeff[l]+rho1d_0[k][tid]*dx;
+            rho1d_1[k][tid]=rho_coeff[l]+rho1d_1[k][tid]*dy;
           }
         }
         
@@ -220,9 +222,9 @@ __kernel void make_rho(__global numtyp4 *x_, __global numtyp *q_,
           numtyp y0=z0*rho1d_2;
           int my=mz+mul24(ny,npts_x);
           for (int m=0; m<order; m++) {
-	          numtyp x0=y0*rho1d[1][m];
+	          numtyp x0=y0*rho1d_1[m][tid];
 	          for (int l=0; l<order; l++)
-              atom_add_float(brick+my+l,x0*rho1d[0][l]);
+              atom_add_float(brick+my+l,x0*rho1d_0[l][tid]);
 	          my+=npts_x;
 	        }
 	        mz+=npts_yx;
@@ -248,6 +250,7 @@ __kernel void make_rho2(__global numtyp4 *x_, __global numtyp *q_,
                         const numtyp delvolinv) {
   __local numtyp rho_coeff[MAX_STENCIL*MAX_STENCIL];
   __local numtyp front[BLOCK_1D+MAX_STENCIL];
+  __local numtyp ans[MAX_STENCIL][BLOCK_1D];
   __local int nx,ny,x_start,y_start,x_stop,y_stop;
   __local int z_stride, z_local_stride;
 
@@ -280,14 +283,13 @@ __kernel void make_rho2(__global numtyp4 *x_, __global numtyp *q_,
     
   __syncthreads();
 
-  numtyp ans[MAX_STENCIL];
   int loop_count=npts_z/BLOCK_1D+1;
   int nz=tx;
   int pt=mul24(nz,npts_yx)+mul24(ny,npts_x)+nx;
   int z_local=mul24(mul24(nz,nlocal_x),nlocal_y);
   for (int i=0 ; i<loop_count; i++) {
     for (int n=0; n<order; n++)
-      ans[n]=(numtyp)0.0;
+      ans[n][tx]=(numtyp)0.0;
     if (nz<nlocal_z) {
       for (int m=y_start; m<y_stop; m++) {
         int y_pos=ny+m-order_m_1;
@@ -317,7 +319,7 @@ __kernel void make_rho2(__global numtyp4 *x_, __global numtyp *q_,
               numtyp rho1d_2=(numtyp)0.0;
               for (int k=order2+n; k>=n; k-=order)
                 rho1d_2=rho_coeff[k]+rho1d_2*dz;
-              ans[n]+=z0*rho1d_2;
+              ans[n][tx]+=z0*rho1d_2;
             }
           }
         }
@@ -332,7 +334,7 @@ __kernel void make_rho2(__global numtyp4 *x_, __global numtyp *q_,
       front[tx]=(numtyp)0.0;
     
     for (int n=0; n<order; n++) {
-      front[tx+n]+=ans[n];
+      front[tx+n]+=ans[n][tx];
       __syncthreads();
     }
 
@@ -357,12 +359,15 @@ __kernel void make_rho3(__global numtyp4 *x_, __global numtyp *q_,
                         const int order, const int order2,
                         const numtyp delvolinv, __global int *error) {
   __local numtyp rho_coeff[MAX_STENCIL*MAX_STENCIL];
-  int ii=THREAD_ID_X;
-  if (ii<order2+order)
-    rho_coeff[ii]=_rho_coeff[ii];
+  __local numtyp rho1d_0[MAX_STENCIL][BLOCK_1D];
+  __local numtyp rho1d_1[MAX_STENCIL][BLOCK_1D];
+  
+  int tid=THREAD_ID_X;
+  if (tid<order2+order)
+    rho_coeff[tid]=_rho_coeff[tid];
   __syncthreads();
   
-  ii+=BLOCK_ID_X*BLOCK_SIZE_X;
+  int ii=tid+BLOCK_ID_X*BLOCK_SIZE_X;
   
   // Resequence the atom indices to avoid collisions during atomic ops
   int nthreads=GLOBAL_SIZE_X;
@@ -391,13 +396,12 @@ __kernel void make_rho3(__global numtyp4 *x_, __global numtyp *q_,
       numtyp dy=ny+(numtyp)0.5-ty;
       numtyp dz=nz+(numtyp)0.5-tz;
 
-      numtyp rho1d[2][MAX_STENCIL];
       for (int k=0; k<order; k++) {
-        rho1d[0][k]=(numtyp)0.0;
-        rho1d[1][k]=(numtyp)0.0;
+        rho1d_0[k][tid]=(numtyp)0.0;
+        rho1d_1[k][tid]=(numtyp)0.0;
         for (int l=order2+k; l>=k; l-=order) {
-          rho1d[0][k]=rho_coeff[l]+rho1d[0][k]*dx;
-          rho1d[1][k]=rho_coeff[l]+rho1d[1][k]*dy;
+          rho1d_0[k][tid]=rho_coeff[l]+rho1d_0[k][tid]*dx;
+          rho1d_1[k][tid]=rho_coeff[l]+rho1d_1[k][tid]*dy;
         }
       }
         
@@ -409,9 +413,9 @@ __kernel void make_rho3(__global numtyp4 *x_, __global numtyp *q_,
         numtyp y0=z0*rho1d_2;
         int my=mz+mul24(ny,npts_x);
         for (int m=0; m<order; m++) {
-          numtyp x0=y0*rho1d[1][m];
+          numtyp x0=y0*rho1d_1[m][tid];
 	        for (int l=0; l<order; l++)
-            atom_add_float(brick+my+l,x0*rho1d[0][l]);
+            atom_add_float(brick+my+l,x0*rho1d_0[l][tid]);
           my+=npts_x;
         }
         mz+=npts_yx;
@@ -431,12 +435,15 @@ __kernel void field_force(__global numtyp4 *x_, __global numtyp *q_,
                           const int order2, const numtyp qqrd2e, 
                           const numtyp scale, __global acctyp4 *ans) {
   __local numtyp rho_coeff[MAX_STENCIL*MAX_STENCIL];
-  int ii=THREAD_ID_X;
-  if (ii<order2+order)
-    rho_coeff[ii]=_rho_coeff[ii];
+  __local numtyp rho1d_0[MAX_STENCIL][BLOCK_1D];
+  __local numtyp rho1d_1[MAX_STENCIL][BLOCK_1D];
+
+  int tid=THREAD_ID_X;
+  if (tid<order2+order)
+    rho_coeff[tid]=_rho_coeff[tid];
   __syncthreads();
   
-  ii+=BLOCK_ID_X*BLOCK_SIZE_X;
+  int ii=tid+BLOCK_ID_X*BLOCK_SIZE_X;
   
   int nx,ny,nz;
   numtyp tx,ty,tz;
@@ -456,13 +463,12 @@ __kernel void field_force(__global numtyp4 *x_, __global numtyp *q_,
     numtyp dy=ny+(numtyp)0.5-ty;
     numtyp dz=nz+(numtyp)0.5-tz;
 
-    numtyp rho1d[2][MAX_STENCIL];
     for (int k=0; k<order; k++) {
-      rho1d[0][k]=(numtyp)0.0;
-      rho1d[1][k]=(numtyp)0.0;
+      rho1d_0[k][tid]=(numtyp)0.0;
+      rho1d_1[k][tid]=(numtyp)0.0;
       for (int l=order2+k; l>=k; l-=order) {
-        rho1d[0][k]=rho_coeff[l]+rho1d[0][k]*dx;
-        rho1d[1][k]=rho_coeff[l]+rho1d[1][k]*dy;
+        rho1d_0[k][tid]=rho_coeff[l]+rho1d_0[k][tid]*dx;
+        rho1d_1[k][tid]=rho_coeff[l]+rho1d_1[k][tid]*dy;
       }
     }
         
@@ -478,9 +484,9 @@ __kernel void field_force(__global numtyp4 *x_, __global numtyp *q_,
       numtyp z0=qs*rho1d_2;
       int my=mz+mul24(ny,npts_x);
       for (int m=0; m<order; m++) {
-        numtyp y0=z0*rho1d[1][m];
+        numtyp y0=z0*rho1d_1[m][tid];
 	      for (int l=0; l<order; l++) {
-	        numtyp x0=y0*rho1d[0][l];
+	        numtyp x0=y0*rho1d_0[l][tid];
 	        ek.x-=x0*x_brick[my+l];
 	        ek.y-=x0*y_brick[my+l];
 	        ek.z-=x0*z_brick[my+l];

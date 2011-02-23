@@ -398,8 +398,8 @@ int PPPMGPUMemoryT::compute(const int ago, const int nlocal, const int nall,
   return h_error_flag[0];
 }
 */
-
 /*
+
 // ---------------------------------------------------------------------------
 // Copy nbor list from host if necessary and then calculate forces, virials,..
 // ---------------------------------------------------------------------------

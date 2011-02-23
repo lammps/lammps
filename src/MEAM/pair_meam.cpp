@@ -37,11 +37,12 @@ using namespace LAMMPS_NS;
 
 #define MAXLINE 1024
 
-enum{FCC,BCC,HCP,DIM,DIAMOND,B1,C11,L12};
-int nkeywords = 16;
+enum{FCC,BCC,HCP,DIM,DIAMOND,B1,C11,L12,B2};
+int nkeywords = 19;
 char *keywords[] = {"Ec","alpha","rho0","delta","lattce",
 		    "attrac","repuls","nn2","Cmin","Cmax","rc","delr",
-		    "augt1","gsmooth_factor","re","ialloy"};
+		    "augt1","gsmooth_factor","re","ialloy","mixture_ref_t",
+                    "erose_form","zbl"};
 
 /* ---------------------------------------------------------------------- */
 
@@ -707,6 +708,7 @@ void PairMEAM::read_files(char *globalfile, char *userfile)
       else if (strcmp(params[nparams-1],"b1")  == 0) value = B1;
       else if (strcmp(params[nparams-1],"c11") == 0) value = C11;
       else if (strcmp(params[nparams-1],"l12") == 0) value = L12;
+      else if (strcmp(params[nparams-1],"b2")  == 0) value = B2;
       else error->all("Unrecognized lattice type in MEAM file 2");
     }
     else value = atof(params[nparams-1]);
@@ -764,7 +766,6 @@ int PairMEAM::pack_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
     buf[m++] = tsq_ave[j][1];
     buf[m++] = tsq_ave[j][2];
   }
-
   return comm_forward;
 }
 

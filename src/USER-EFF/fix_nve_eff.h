@@ -20,15 +20,25 @@ FixStyle(nve/eff,FixNVEEff)
 #ifndef LMP_FIX_NVE_EFF_H
 #define LMP_FIX_NVE_EFF_H
 
-#include "fix_nve.h"
+#include "fix.h"
 
 namespace LAMMPS_NS {
 
-class FixNVEEff : public FixNVE {
+class FixNVEEff : public Fix {
  public:
   FixNVEEff(class LAMMPS *, int, char **);
-  void initial_integrate(int);
-  void final_integrate();
+  int setmask();
+  virtual void init();
+  virtual void initial_integrate(int);
+  virtual void final_integrate();
+  void initial_integrate_respa(int, int, int);
+  void final_integrate_respa(int, int);
+  void reset_dt();
+
+ protected:
+  double dtv,dtf;
+  double *step_respa;
+  int mass_require;
 };
 
 }

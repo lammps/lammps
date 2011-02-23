@@ -13,7 +13,7 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(nph/sphere,FixNPHEff)
+FixStyle(nph/eff,FixNPHEff)
 
 #else
 

@@ -44,6 +44,7 @@ using namespace LAMMPS_NS;
 PairPeriLPS::PairPeriLPS(LAMMPS *lmp) : Pair(lmp)			
 {
   for (int i = 0; i < 6; i++) virial[i] = 0.0;
+  no_virial_compute=1;
 
   ifix_peri = -1;
 
@@ -120,7 +121,7 @@ void PairPeriLPS::compute(int eflag, int vflag)
 
   int nall = atom->nlocal + atom->nghost;
   int newton_pair = force->newton_pair;
-  int nonperiodic = domain->nonperiodic;
+  int periodic = domain->xperiodic || domain->yperiodic || domain->zperiodic;
 
   inum = list->inum;
   ilist = list->ilist;
@@ -156,7 +157,7 @@ void PairPeriLPS::compute(int eflag, int vflag)
       delx0 = xtmp0 - x0[j][0];
       dely0 = ytmp0 - x0[j][1];
       delz0 = ztmp0 - x0[j][2];
-      if (nonperiodic == 0) domain->minimum_image(delx0,dely0,delz0);
+      if (periodic) domain->minimum_image(delx0,dely0,delz0);
       rsq0 = delx0*delx0 + dely0*dely0 + delz0*delz0;
       jtype = type[j];
  
@@ -194,8 +195,7 @@ void PairPeriLPS::compute(int eflag, int vflag)
         }
 
         if (eflag) evdwl = 0.5*rk*dr;
-	if (evflag) ev_tally(i,j,nlocal,newton_pair,
-			     evdwl,0.0,fpair,delx,dely,delz);
+	if (evflag) ev_tally(i,j,nlocal,newton_pair,evdwl,0.0,fpair*vfrac[i],delx,dely,delz);
       }
     }
   }
@@ -265,12 +265,12 @@ void PairPeriLPS::compute(int eflag, int vflag)
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
-      if (nonperiodic == 0) domain->minimum_image(delx,dely,delz);
+      if (periodic) domain->minimum_image(delx,dely,delz);
       rsq = delx*delx + dely*dely + delz*delz;
       delx0 = xtmp0 - x0[j][0];						
       dely0 = ytmp0 - x0[j][1];						
       delz0 = ztmp0 - x0[j][2];						
-      if (nonperiodic == 0) domain->minimum_image(delx0,dely0,delz0);   
+      if (periodic) domain->minimum_image(delx0,dely0,delz0);   
       jtype = type[j];
       delta = sqrt(cutsq[itype][jtype]);
       r = sqrt(rsq);
@@ -309,8 +309,7 @@ void PairPeriLPS::compute(int eflag, int vflag)
       if (eflag) evdwl = 0.5 * 15 * (shearmodulus[itype][itype]/wvolume[i]) * 
 		   omega_plus*(deviatoric_extension * deviatoric_extension) *
 		   vfrac[j] * vfrac_scale;
-      if (evflag) ev_tally(i,i,nlocal,0,
-			   0.5*evdwl,0.0,0.5*fbond,delx,dely,delz);
+      if (evflag) ev_tally(i,i,nlocal,0,0.5*evdwl,0.0,0.5*fbond*vfrac[i],delx,dely,delz);
 
       // find stretch in bond I-J and break if necessary
       // use s0 from previous timestep
@@ -329,8 +328,6 @@ void PairPeriLPS::compute(int eflag, int vflag)
       first = false;
     }
   }
-
-  if (vflag_fdotr) virial_compute();
 
   // store new s0
   for (i = 0; i < nlocal; i++) s0[i] = s0_new[i];
@@ -542,7 +539,8 @@ double PairPeriLPS::single(int i, int j, int itype, int jtype,
   delx0 = x0[i][0] - x0[j][0];
   dely0 = x0[i][1] - x0[j][1];
   delz0 = x0[i][2] - x0[j][2];
-  if (domain->nonperiodic == 0) domain->minimum_image(delx0,dely0,delz0);
+  int periodic = domain->xperiodic || domain->yperiodic || domain->zperiodic;
+  if (periodic) domain->minimum_image(delx0,dely0,delz0);
   rsq0 = delx0*delx0 + dely0*dely0 + delz0*delz0;
 
   d_ij = MIN(0.9*sqrt(rsq0),1.35*lc);
@@ -663,7 +661,7 @@ void PairPeriLPS::compute_dilatation()
   int *npartner = ((FixPeriNeigh *) modify->fix[ifix_peri])->npartner;
   double *wvolume = ((FixPeriNeigh *) modify->fix[ifix_peri])->wvolume;
 
-  int nonperiodic = domain->nonperiodic;
+  int periodic = domain->xperiodic || domain->yperiodic || domain->zperiodic;
 
   // compute the dilatation theta
 
@@ -693,12 +691,12 @@ void PairPeriLPS::compute_dilatation()
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
-      if (nonperiodic == 0) domain->minimum_image(delx,dely,delz);
+      if (periodic) domain->minimum_image(delx,dely,delz);
       rsq = delx*delx + dely*dely + delz*delz;
       delx0 = xtmp0 - x0[j][0];
       dely0 = ytmp0 - x0[j][1];
       delz0 = ztmp0 - x0[j][2];
-      if (nonperiodic == 0) domain->minimum_image(delx0,dely0,delz0);
+      if (periodic) domain->minimum_image(delx0,dely0,delz0);
 
       r = sqrt(rsq);
       dr = r - r0[i][jj];

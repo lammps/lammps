@@ -14,8 +14,8 @@
 #ifndef LMP_ATOM_H
 #define LMP_ATOM_H
 
-#include "pointers.h"
 #include "lmptype.h"
+#include "pointers.h"
 
 namespace LAMMPS_NS {
 

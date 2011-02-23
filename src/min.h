@@ -14,8 +14,8 @@
 #ifndef LMP_MIN_H
 #define LMP_MIN_H
 
-#include "pointers.h"
 #include "lmptype.h"
+#include "pointers.h"
 
 namespace LAMMPS_NS {
 

@@ -15,10 +15,10 @@
    Contributing author: Mike Brown (SNL)
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "stdlib.h"
 #include "string.h"
 #include "fix_event_tad.h"
-#include "lmptype.h"
 #include "atom.h"
 #include "update.h"
 #include "domain.h"

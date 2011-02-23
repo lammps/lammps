@@ -11,11 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "mpi.h"
 #include "stdlib.h"
 #include "string.h"
 #include "displace_atoms.h"
-#include "lmptype.h"
 #include "atom.h"
 #include "modify.h"
 #include "domain.h"

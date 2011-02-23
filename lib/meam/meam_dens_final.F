@@ -48,7 +48,7 @@ c
       integer i, elti
       integer m
       real*8  rhob, G, dG, Gbar, dGbar, gam, shp(3), shpi(3), Z
-      real*8  B, denom
+      real*8  B, denom, rho_bkgd
 
 c     Complete the calculation of density
 
@@ -75,6 +75,10 @@ c     Complete the calculation of density
               t_ave(1,i) = t_ave(1,i)/tsq_ave(1,i)
               t_ave(2,i) = t_ave(2,i)/tsq_ave(2,i)
               t_ave(3,i) = t_ave(3,i)/tsq_ave(3,i)
+            else if (ialloy.eq.2) then
+              t_ave(1,i) = t1_meam(elti)
+              t_ave(2,i) = t2_meam(elti)
+              t_ave(3,i) = t3_meam(elti)
             else
               t_ave(1,i) = t_ave(1,i)/rho0(i)
               t_ave(2,i) = t_ave(2,i)/rho0(i)
@@ -88,7 +92,9 @@ c     Complete the calculation of density
           if( rho0(i) .gt. 0.0 ) then
             Gamma(i) = Gamma(i)/(rho0(i)*rho0(i))
           end if
-          
+
+          Z = Z_meam(elti)
+
           call G_gam(Gamma(i),ibar_meam(elti),
      $         gsmooth_factor,G,errorflag)
           if (errorflag.ne.0) return
@@ -96,27 +102,38 @@ c     Complete the calculation of density
             Gbar = 1.d0
           else
             call get_shpfcn(shp,lattce_meam(elti,elti))
-            gam = (t_ave(1,i)*shp(1)+t_ave(2,i)*shp(2)
-     $           +t_ave(3,i)*shp(3))/(Z_meam(elti)**2)
+            if (mix_ref_t.eq.1) then
+              gam = (t_ave(1,i)*shpi(1)+t_ave(2,i)*shpi(2)
+     $             +t_ave(3,i)*shpi(3))/(Z*Z)
+            else
+              gam = (t1_meam(elti)*shp(1)+t2_meam(elti)*shp(2)
+     $             +t3_meam(elti)*shp(3))/(Z*Z)
+            endif
             call G_gam(gam,ibar_meam(elti),gsmooth_factor,
      $           Gbar,errorflag)
           endif
           rho(i) = rho0(i) * G
-          rhob = rho(i)/(rho0_meam(elti)*Z_meam(elti)*Gbar)
-          
-          Z = Z_meam(elti)
-          call dG_gam(Gamma(i),ibar_meam(elti),gsmooth_factor,G,dG)
-          if (ibar_meam(elti).le.0) then
-            Gbar = 1.d0
-            dGbar = 0.d0
+
+          if (mix_ref_t.eq.1) then
+            if (ibar_meam(elti).le.0) then
+              Gbar = 1.d0
+              dGbar = 0.d0
+            else
+              call get_shpfcn(shpi,lattce_meam(elti,elti))
+              gam = (t_ave(1,i)*shpi(1)+t_ave(2,i)*shpi(2)
+     $             +t_ave(3,i)*shpi(3))/(Z*Z)
+              call dG_gam(gam,ibar_meam(elti),gsmooth_factor,
+     $             Gbar,dGbar)
+            endif
+            rho_bkgd = rho0_meam(elti)*Z*Gbar
           else
-            call get_shpfcn(shpi,lattce_meam(elti,elti))
-            gam = (t_ave(1,i)*shpi(1)+t_ave(2,i)*shpi(2)
-     $           +t_ave(3,i)*shpi(3))/(Z*Z)
-            call dG_gam(gam,ibar_meam(elti),gsmooth_factor,
-     $           Gbar,dGbar)
+            rho_bkgd = rho_ref_meam(elti)
           endif
-          denom = 1.d0/(rho0_meam(elti)*Z*Gbar)
+          rhob = rho(i)/rho_bkgd
+          denom = 1.d0/rho_bkgd
+
+          call dG_gam(Gamma(i),ibar_meam(elti),gsmooth_factor,G,dG)
+          
           dGamma1(i) = (G - 2*dG*Gamma(i))*denom
           
           if( rho0(i) .ne. 0.d0 ) then
@@ -124,9 +141,16 @@ c     Complete the calculation of density
           else
             dGamma2(i) = 0.d0
           end if
-          
-          dGamma3(i) = rho0(i)*G*dGbar/(Gbar*Z*Z)*denom
-          
+
+c     dGamma3 is nonzero only if we are using the "mixed" rule for
+c     computing t in the reference system (which is not correct, but
+c     included for backward compatibility
+          if (mix_ref_t.eq.1) then
+            dGamma3(i) = rho0(i)*G*dGbar/(Gbar*Z*Z)*denom
+          else
+            dGamma3(i) = 0.0
+          endif
+
           B = A_meam(elti)*Ec_meam(elti,elti)
           
           if( rhob .ne. 0.d0 ) then

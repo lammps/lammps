@@ -14,9 +14,9 @@
 #ifndef LMP_MODIFY_H
 #define LMP_MODIFY_H
 
+#include "lmptype.h"
 #include "stdio.h"
 #include "pointers.h"
-#include "lmptype.h"
 
 namespace LAMMPS_NS {
 

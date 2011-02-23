@@ -16,12 +16,12 @@
                          Carolyn Phillips (University of Michigan)
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "mpi.h"
 #include "math.h"
 #include "string.h"
 #include "stdlib.h"
 #include "fix_ttm.h"
-#include "lmptype.h"
 #include "atom.h"
 #include "force.h"
 #include "update.h"

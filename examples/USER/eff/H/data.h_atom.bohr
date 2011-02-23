@@ -3,9 +3,9 @@ Created by AJB
 2 atoms
 2 atom types
 
--10.0 10.0 xlo xhi
--10.0 10.0 ylo yhi
--10.0 10.0 zlo zhi
+-1.0 1.0 xlo xhi
+-1.0 1.0 ylo yhi
+-1.0 1.0 zlo zhi
 
 Masses
 
@@ -13,7 +13,7 @@ Masses
 2 1.000000	# electron mass
 
 Atoms
-#id|type|q|spin|r|x|y|z|
+
 1 1 1.0 0 0.0 0.0 0.0 0.0
 2 2 0.0 1 1.0 0.0 0.0 0.0
 

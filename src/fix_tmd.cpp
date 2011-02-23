@@ -16,12 +16,12 @@
                          Christian Burisch (Bochum Univeristy, Germany)
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "mpi.h"
 #include "math.h"
 #include "stdlib.h"
 #include "string.h"
 #include "fix_tmd.h"
-#include "lmptype.h"
 #include "atom.h"
 #include "update.h"
 #include "modify.h"

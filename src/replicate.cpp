@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "stdlib.h"
 #include "string.h"
 #include "replicate.h"
-#include "lmptype.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "atom_vec_hybrid.h"

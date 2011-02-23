@@ -282,8 +282,8 @@ volume = volume of atom (distance^3 units)
 x,y,z = coordinates of atom
 mux,muy,muz = direction of dipole moment of atom
 quatw,quati,quatj,quatk = quaternion components for orientation of atom
-spin = electron spin (+1/-1), 0 for nuclei
-eradius = electron radius :ul
+spin = electron spin (+1/-1), 0 = nuclei, 2 = fixed-core, 3 = pseudo-cores (i.e. ECP)
+eradius = electron radius (or fixed-core radius) :ul
 
 The units for these quantities depend on the unit style; see the
 "units"_units.html command for details.
@@ -619,7 +619,7 @@ where the keywords have these meanings:
 vx,vy,vz = translational velocity of atom
 lx,ly,lz = angular momentum of aspherical atom
 wx,wy,wz = angular velocity of granular atom
-evel = electron radial velocity :ul
+evel = electron radial velocity (0 for fixed-core):ul
 
 The velocity lines can appear in any order.  This section can only be
 used after an {Atoms} section.  This is because the {Atoms} section

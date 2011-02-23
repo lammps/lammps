@@ -20,9 +20,9 @@ FixStyle(ave/atom,FixAveAtom)
 #ifndef LMP_FIX_AVE_ATOM_H
 #define LMP_FIX_AVE_ATOM_H
 
+#include "lmptype.h"
 #include "stdio.h"
 #include "fix.h"
-#include "lmptype.h"
 
 namespace LAMMPS_NS {
 

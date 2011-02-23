@@ -120,6 +120,15 @@ void FixPeriNeigh::init_list(int id, NeighList *ptr)
   list = ptr;
 }
 
+/* ---------------------------------------------------------------------- 
+   For minimization: setup as with dynamics 
+------------------------------------------------------------------------- */
+
+void FixPeriNeigh::min_setup(int vflag)
+{
+  setup(vflag); 
+}
+
 /* ----------------------------------------------------------------------
    create initial list of neighbor partners via call to neighbor->build()
    must be done in setup (not init) since fix init comes before neigh init
@@ -229,6 +238,20 @@ void FixPeriNeigh::setup(int vflag)
         vinter[i] += vfrac[j];
       }
     }
+  }
+
+  // Sanity check: Does any atom appear twice in any neigborlist?
+  // Should only be possible if using pbc and domain not at least of width 2 \delta 
+  if (domain->xperiodic || domain->yperiodic || domain->zperiodic) {
+    for (i = 0; i < nlocal; i++) {
+      jnum = npartner[i];
+      for (jj = 0; jj < jnum; jj++) {
+        for (int kk = jj+1; kk < jnum; kk++) {
+          if (partner[i][jj] == partner[i][kk]) error->one("Duplicate particle in bond family. Check that box is greater than size 2*delta in periodic dimensions.");
+        }
+      }
+    }
+
   }
 
   // compute wvolume for each atom

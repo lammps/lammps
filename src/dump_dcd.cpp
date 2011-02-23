@@ -16,13 +16,13 @@
                         Axel Kohlmeyer (Temple U), support for groups
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "math.h"
 #include "inttypes.h"
 #include "stdio.h"
 #include "time.h"
 #include "string.h"
 #include "dump_dcd.h"
-#include "lmptype.h"
 #include "domain.h"
 #include "atom.h"
 #include "update.h"

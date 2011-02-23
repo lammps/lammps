@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "mpi.h"
 #include "math.h"
 #include "min_quickmin.h"
-#include "lmptype.h"
 #include "universe.h"
 #include "atom.h"
 #include "force.h"

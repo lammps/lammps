@@ -15,11 +15,11 @@
    Contributing author: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "mpi.h"
 #include "math.h"
 #include "stdlib.h"
 #include "dihedral_charmm.h"
-#include "lmptype.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"

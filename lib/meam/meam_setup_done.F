@@ -75,6 +75,9 @@ c indices and factors for Voight notation
         enddo
       enddo
 
+c     Compute background densities for reference structure
+      call compute_reference_density
+
 c     Compute pair potentials and setup arrays for interpolation
       nr = 1000
       dr = 1.1*rc_meam/nr
@@ -208,20 +211,16 @@ c loop over r values and compute
 c if using second-nearest neighbor, solve recursive problem
 c (see Lee and Baskes, PRB 62(13):8564 eqn.(21))
             if (nn2_meam(a,b).eq.1) then
-c              if (a.ne.b) then
-c                write(6,*) 'Second-neighbor currently only valid '
-c                write(6,*) 'if element types are the same.'
-c                call error(' ')
-c              endif
               call get_Zij(Z1,lattce_meam(a,b))
               call get_Zij2(Z2,arat,scrn,lattce_meam(a,b),
      $             Cmin_meam(a,a,b),Cmax_meam(a,a,b))
 
-c     The B1 and L12 cases with NN2 have a trick to them; we need to
+c     The B1, B2,  and L12 cases with NN2 have a trick to them; we need to
 c     compute the contributions from second nearest neighbors, like a-a
 c     pairs, but need to include NN2 contributions to those pairs as
 c     well.
               if (lattce_meam(a,b).eq.'b1'.or.
+     $             lattce_meam(a,b).eq.'b2'.or.
      $             lattce_meam(a,b).eq.'l12') then
                 rarat = r*arat
 
@@ -251,8 +250,9 @@ c               phi_bb
                   enddo
                 endif
                 
-                if (lattce_meam(a,b).eq.'b1') then
-c     Add contributions to the B1 potential
+                if (lattce_meam(a,b).eq.'b1'.
+     $               or.lattce_meam(a,b).eq.'b2') then
+c     Add contributions to the B1 or B2 potential
                   call get_Zij(Z1,lattce_meam(a,b))
                   call get_Zij2(Z2,arat,scrn,lattce_meam(a,b),
      $                 Cmin_meam(a,a,b),Cmax_meam(a,a,b))
@@ -290,25 +290,28 @@ c     atoms.
 
             endif
 
+c For Zbl potential:
 c if astar <= -3
 c   potential is zbl potential
 c else if -3 < astar < -1
 c   potential is linear combination with zbl potential
 c endif
-            astar = alpha_meam(a,b) * (r/re_meam(a,b) - 1.d0)
-            if (astar.le.-3.d0) then
-              phir(j,nv2) = zbl(r,ielt_meam(a),ielt_meam(b))
-            else if (astar.gt.-3.d0.and.astar.lt.-1.d0) then
-              call fcut(1-(astar+1.d0)/(-3.d0+1.d0),frac)
-              phizbl = zbl(r,ielt_meam(a),ielt_meam(b))
-              phir(j,nv2) = frac*phir(j,nv2) + (1-frac)*phizbl
+            if (zbl_meam(a,b).eq.1) then
+              astar = alpha_meam(a,b) * (r/re_meam(a,b) - 1.d0)
+              if (astar.le.-3.d0) then
+                phir(j,nv2) = zbl(r,ielt_meam(a),ielt_meam(b))
+              else if (astar.gt.-3.d0.and.astar.lt.-1.d0) then
+                call fcut(1-(astar+1.d0)/(-3.d0+1.d0),frac)
+                phizbl = zbl(r,ielt_meam(a),ielt_meam(b))
+                phir(j,nv2) = frac*phir(j,nv2) + (1-frac)*phizbl
+              endif
             endif
-
+            
           enddo
 
 c call interpolation
           call interpolate_meam(nv2)
-          
+
         enddo
       enddo
 
@@ -341,6 +344,7 @@ c
       integer Z12, errorflag
       integer n,nmax,Z1nn,Z2nn
       character*3 latta,lattb
+      real*8 rho_bkgd1, rho_bkgd2
 
       real*8, external :: erose
 
@@ -362,13 +366,22 @@ c if densities are too small, numerical problems may result; just return zero
 
 c calculate average weighting factors for the reference structure
       if (lattce_meam(a,b).eq.'c11') then
-        scalfac = 1.0/(rho01+rho02) 
-        t11av = scalfac*(t1_meam(a)*rho01 + t1_meam(b)*rho02)
-        t12av = t11av 
-        t21av = scalfac*(t2_meam(a)*rho01 + t2_meam(b)*rho02)
-        t22av = t21av 
-        t31av = scalfac*(t3_meam(a)*rho01 + t3_meam(b)*rho02)
-        t32av = t31av 
+        if (ialloy.eq.2) then
+          t11av = t1_meam(a)
+          t12av = t1_meam(b)
+          t21av = t2_meam(a)
+          t22av = t2_meam(b)
+          t31av = t3_meam(a)
+          t32av = t3_meam(b)
+        else
+          scalfac = 1.0/(rho01+rho02) 
+          t11av = scalfac*(t1_meam(a)*rho01 + t1_meam(b)*rho02)
+          t12av = t11av 
+          t21av = scalfac*(t2_meam(a)*rho01 + t2_meam(b)*rho02)
+          t22av = t21av 
+          t31av = scalfac*(t3_meam(a)*rho01 + t3_meam(b)*rho02)
+          t32av = t31av 
+        endif
       else      
 c average weighting factors for the reference structure, eqn. I.8
          call get_tavref(t11av,t21av,t31av,t12av,t22av,t32av,
@@ -400,52 +413,47 @@ c for c11b structure, calculate background electron densities
       else 
 c for other structures, use formalism developed in Huang's paper
 c
-c composition-dependent scaling, equation I.7
-c -- note: The shape factors for the individual elements are used, since
-c          this function should cancel the F(rho) terms when the atoms are
-c          in the reference structure.
-c -- GJW (6/12/09): I suspect there may be a problem here... since we should be
-c                   using the pure element reference structure, we should also
-c                   be using the element "t" values (not the averages compute
-c                   above).  It doesn't matter for reference structures with
-c                   s(1)=s(2)=s(3)=0, but might cause diffs otherwise.  For now
-c                   what's here is consistent with what's done in meam_dens_final.
-         Z1 = Z_meam(a)
-         Z2 = Z_meam(b)
-         if (ibar_meam(a).le.0) then
+c     composition-dependent scaling, equation I.7 
+c     If using mixing rule for t, apply to reference structure; else
+c     use precomputed values
+        if (mix_ref_t.eq.1) then
+          Z1 = Z_meam(a)
+          Z2 = Z_meam(b)
+          if (ibar_meam(a).le.0) then
             G1 = 1.d0
-         else
+          else
             call get_shpfcn(s1,lattce_meam(a,a))
             Gam1 = (s1(1)*t11av+s1(2)*t21av+s1(3)*t31av)/(Z1*Z1)
             call G_gam(Gam1,ibar_meam(a),gsmooth_factor,G1,errorflag)
-         endif
-         if (ibar_meam(b).le.0) then
+          endif
+          if (ibar_meam(b).le.0) then
             G2 = 1.d0
-         else
+          else
             call get_shpfcn(s2,lattce_meam(b,b))
             Gam2 = (s2(1)*t12av+s2(2)*t22av+s2(3)*t32av)/(Z2*Z2)
             call G_gam(Gam2,ibar_meam(b),gsmooth_factor,G2,errorflag)
-         endif
-         rho0_1 = rho0_meam(a)*Z1*G1
-         rho0_2 = rho0_meam(b)*Z2*G2
-         
-c get number of neighbors in the reference structure
-c   Nref(i,j) = # of i's neighbors of type j
-c		call get_Zij(Z12,lattce_meam(a,b))
-c	
-c		call get_densref(r,a,b,rho01,rho11,rho21,rho31,
-c		$     rho02,rho12,rho22,rho32)
-      
-c compute total background density, eqn I.6
-         Gam1 = (t11av*rho11+t21av*rho21+t31av*rho31)
-         Gam1 = Gam1/(rho01*rho01)
-         Gam2 = (t12av*rho12+t22av*rho22+t32av*rho32)
-         Gam2 = Gam2/(rho02*rho02)
-         call G_gam(Gam1,ibar_meam(a),gsmooth_factor,G1,errorflag)
-         call G_gam(Gam2,ibar_meam(b),gsmooth_factor,G2,errorflag)
-         rhobar1 = rho01/rho0_1*G1
-         rhobar2 = rho02/rho0_2*G2
+          endif
+          rho0_1 = rho0_meam(a)*Z1*G1
+          rho0_2 = rho0_meam(b)*Z2*G2
+        endif
+        Gam1 = (t11av*rho11+t21av*rho21+t31av*rho31)
+        Gam1 = Gam1/(rho01*rho01)
+        Gam2 = (t12av*rho12+t22av*rho22+t32av*rho32)
+        Gam2 = Gam2/(rho02*rho02)
+        call G_gam(Gam1,ibar_meam(a),gsmooth_factor,G1,errorflag)
+        call G_gam(Gam2,ibar_meam(b),gsmooth_factor,G2,errorflag)
+        if (mix_ref_t.eq.1) then
+          rho_bkgd1 = rho0_1
+          rho_bkgd2 = rho0_2
+        else
+          rho_bkgd1 = rho_ref_meam(a)
+          rho_bkgd2 = rho_ref_meam(b)
+        endif
+        rhobar1 = rho01/rho_bkgd1*G1
+        rhobar2 = rho02/rho_bkgd2*G2
+
       endif
+
 c compute embedding functions, eqn I.5
       if (rhobar1.eq.0.d0) then
         F1 = 0.d0
@@ -460,7 +468,7 @@ c compute embedding functions, eqn I.5
 
 c compute Rose function, I.16
       Eu = erose(r,re_meam(a,b),alpha_meam(a,b),
-     $     Ec_meam(a,b),repuls_meam(a,b),attrac_meam(a,b))
+     $     Ec_meam(a,b),repuls_meam(a,b),attrac_meam(a,b),erose_form)
 
 c calculate the pair energy
       if (lattce_meam(a,b).eq.'c11') then
@@ -501,13 +509,60 @@ c if r = 0, just return 0
       return
       end
 
+c----------------------------------------------------------------------c
+c Compute background density for reference structure of each element
+      subroutine compute_reference_density
+      use meam_data
+      implicit none
+
+      integer a,Z,Z2,errorflag
+      real*8  gam,Gbar,shp(3)
+      real*8  rho0,rho0_2nn,arat,scrn
+
+c loop over element types
+      do a = 1,neltypes
+
+        Z = Z_meam(a)
+        if (ibar_meam(a).le.0) then
+          Gbar = 1.d0
+        else
+          call get_shpfcn(shp,lattce_meam(a,a))
+          gam = (t1_meam(a)*shp(1)+t2_meam(a)*shp(2)
+     $         +t3_meam(a)*shp(3))/(Z*Z)
+          call G_gam(gam,ibar_meam(a),gsmooth_factor,
+     $         Gbar,errorflag)
+        endif
+        
+c     The zeroth order density in the reference structure, with
+c     equilibrium spacing, is just the number of first neighbors times
+c     the rho0_meam coefficient...
+        rho0 = rho0_meam(a)*Z
+
+c     ...unless we have unscreened second neighbors, in which case we
+c     add on the contribution from those (accounting for partial
+c     screening)
+        if (nn2_meam(a,a).eq.1) then
+          call get_Zij2(Z2,arat,scrn,lattce_meam(a,a),
+     $         Cmin_meam(a,a,a),Cmax_meam(a,a,a))
+          rho0_2nn = rho0_meam(a)*exp(-beta0_meam(a)*(arat-1))
+          rho0 = rho0 + Z2*rho0_2nn*scrn
+        endif
+
+        rho_ref_meam(a) = rho0*Gbar
+
+      enddo
+
+      return
+      end
+
 c----------------------------------------------------------------------c      
 c Shape factors for various configurations
       subroutine get_shpfcn(s,latt)
       implicit none
       real*8 s(3)
       character*3 latt
-      if (latt.eq.'fcc'.or.latt.eq.'bcc'.or.latt.eq.'b1') then
+      if (latt.eq.'fcc'.or.latt.eq.'bcc'.
+     $     or.latt.eq.'b1'.or.latt.eq.'b2') then
         s(1) = 0.d0
         s(2) = 0.d0
         s(3) = 0.d0
@@ -542,31 +597,42 @@ c Average weighting factors for the reference structure
       integer a,b
       character*3 latt
       real*8 rhoa01,rhoa02,a1,a2,rho01,rho02
-      if (latt.eq.'fcc'.or.latt.eq.'bcc'.or.latt.eq.'dia'
-     $     .or.latt.eq.'hcp'.or.latt.eq.'b1'
-     $     .or.latt.eq.'dim') then
-c all neighbors are of the opposite type
-        t11av = t12
-        t21av = t22
-        t31av = t32
-        t12av = t11
-        t22av = t21
-        t32av = t31
+
+c     For ialloy = 2, no averaging is done
+      if (ialloy.eq.2) then
+          t11av = t11
+          t21av = t21
+          t31av = t31
+          t12av = t12
+          t22av = t22
+          t32av = t32
       else
-        a1  = r/re_meam(a,a) - 1.d0
-        a2  = r/re_meam(b,b) - 1.d0
-        rhoa01 = rho0_meam(a)*exp(-beta0_meam(a)*a1)
-        rhoa02 = rho0_meam(b)*exp(-beta0_meam(b)*a2)
-        if (latt.eq.'l12') then
-          rho01 = 8*rhoa01 + 4*rhoa02
-          t11av = (8*t11*rhoa01 + 4*t12*rhoa02)/rho01
+        if (latt.eq.'fcc'.or.latt.eq.'bcc'.or.latt.eq.'dia'
+     $       .or.latt.eq.'hcp'.or.latt.eq.'b1'
+     $       .or.latt.eq.'dim'.or.latt.eq.'b2') then
+c     all neighbors are of the opposite type
+          t11av = t12
+          t21av = t22
+          t31av = t32
           t12av = t11
-          t21av = (8*t21*rhoa01 + 4*t22*rhoa02)/rho01
           t22av = t21
-          t31av = (8*t31*rhoa01 + 4*t32*rhoa02)/rho01
           t32av = t31
         else
-c         call error('Lattice not defined in get_tavref.')
+          a1  = r/re_meam(a,a) - 1.d0
+          a2  = r/re_meam(b,b) - 1.d0
+          rhoa01 = rho0_meam(a)*exp(-beta0_meam(a)*a1)
+          rhoa02 = rho0_meam(b)*exp(-beta0_meam(b)*a2)
+          if (latt.eq.'l12') then
+            rho01 = 8*rhoa01 + 4*rhoa02
+            t11av = (8*t11*rhoa01 + 4*t12*rhoa02)/rho01
+            t12av = t11
+            t21av = (8*t21*rhoa01 + 4*t22*rhoa02)/rho01
+            t22av = t21
+            t31av = (8*t31*rhoa01 + 4*t32*rhoa02)/rho01
+            t32av = t31
+          else
+c     call error('Lattice not defined in get_tavref.')
+          endif
         endif
       endif
       return
@@ -593,6 +659,8 @@ c Number of neighbors for the reference structure
         Zij = 10
       else if (latt.eq.'l12') then
         Zij = 12
+      else if (latt.eq.'b2') then
+        Zij = 8
       else
 c        call error('Lattice not defined in get_Zij.')
       endif
@@ -638,6 +706,16 @@ c          call error('can not do 2NN MEAM for dia')
         Zij2 = 6
         a = sqrt(2.d0)
         numscr = 4
+      else if (latt.eq.'b2') then
+        Zij2 = 6
+        a = 2.d0/sqrt(3.d0)
+        numscr = 4
+      else if (latt.eq.'dim') then
+c        this really shouldn't be allowed; make sure screening is zero
+         Zij2 = 0
+         a = 1
+         S = 0
+         return
       else
 c        call error('Lattice not defined in get_Zij2.')
       endif
@@ -746,15 +824,18 @@ c Calculate density functions, assuming reference configuration
       else if (lat.eq.'l12') then
         rho01 = 8*rhoa01 + 4*rhoa02
         rho02 = 12*rhoa01
-        if (ialloy.eq.0) then
-          rho21 = 8./3.*(rhoa21-rhoa22)*(rhoa21-rhoa22)
-        else
+        if (ialloy.eq.1) then
           rho21 = 8./3.*(rhoa21*t2_meam(a)-rhoa22*t2_meam(b))**2
           denom = 8*rhoa01*t2_meam(a)**2 + 4*rhoa02*t2_meam(b)**2
           if (denom.gt.0.) then
             rho21 = rho21/denom * rho01
           endif
+        else
+          rho21 = 8./3.*(rhoa21-rhoa22)*(rhoa21-rhoa22)
         endif
+      else if (lat.eq.'b2') then
+        rho01 = 8.d0*rhoa02
+        rho02 = 8.d0*rhoa01
       else
 c        call error('Lattice not defined in get_densref.')
       endif
@@ -826,9 +907,10 @@ c azero = (9pi^2/128)^1/3 (0.529) Angstroms
 c---------------------------------------------------------------------
 c Compute Rose energy function, I.16
 c
-      real*8 function erose(r,re,alpha,Ec,repuls,attrac)
+      real*8 function erose(r,re,alpha,Ec,repuls,attrac,form)
       implicit none
       real*8 r,re,alpha,Ec,repuls,attrac,astar,a3
+      integer form
 
       erose = 0.d0
       
@@ -840,8 +922,14 @@ c
         else if (astar.lt.0) then
           a3 = repuls
         endif
-        erose = -Ec * (1 + astar + a3*(astar**3)/(r/re)) * exp(-astar)
-c      erose = -Ec*(1+astar+(-attrac+repuls/r)*(astar**3))*exp(-astar)
+        if (form.eq.1) then
+          erose = -Ec*(1+astar+(-attrac+repuls/r)*
+     $         (astar**3))*exp(-astar)
+        else if (form.eq.2) then
+          erose = -Ec * (1 +astar + a3*(astar**3))*exp(-astar)
+        else
+          erose = -Ec * (1 + astar + a3*(astar**3)/(r/re)) * exp(-astar)
+        endif
       endif
 
       return

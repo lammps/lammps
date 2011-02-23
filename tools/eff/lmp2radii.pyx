@@ -11,9 +11,9 @@ Version: August 2009
 
 Extracts the electron radii from a lammps trajectory dump of style custom:
 
-dump    1 all custom period dump_file id type x y z spin radius ...
+dump    1 all custom period dump_file id type q spin eradius x y z...
 
-NOTE: The radius must be the 6th column per trajectory entry in the dump file
+NOTE: The radius must be the 5th column per trajectory entry in the dump file
 
 """
 
@@ -59,7 +59,7 @@ def makeradii(infile):
       elif (i >= lo) and (i < hi):
         lparse=line.split()
         id=int(lparse[0])
-        r=float(lparse[6])
+        r=float(lparse[4])
         if (r!=0): 
           arry[id-1][framecnt]=r
           if (framecnt==0): ecount+=1
@@ -87,7 +87,7 @@ def makeradii(infile):
           fout.writelines("%f\t"%(arry[a][f]))
         fout.writelines("\n")
     print
-    print "DONE .... GOODBYE !!"
+    print "Done !! (generated radii/frame table) \n"
     fout.close()
     fin.close()
 

@@ -15,11 +15,11 @@
    Contributing author: Eric Simon (Cray)
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "math.h"
 #include "string.h"
 #include "stdlib.h"
 #include "improper_class2.h"
-#include "lmptype.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "update.h"

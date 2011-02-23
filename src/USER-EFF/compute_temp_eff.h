@@ -20,18 +20,23 @@ ComputeStyle(temp/eff,ComputeTempEff)
 #ifndef LMP_COMPUTE_TEMP_EFF_H
 #define LMP_COMPUTE_TEMP_EFF_H
 
-#include "compute_temp.h"
+#include "compute.h"
 
 namespace LAMMPS_NS {
 	
-class ComputeTempEff : public ComputeTemp {
+class ComputeTempEff : public Compute {
  public:
   ComputeTempEff(class LAMMPS *, int, char **);
-  ~ComputeTempEff() {}
+  virtual ~ComputeTempEff();
+  void init();
   double compute_scalar();
   void compute_vector();
   
  private:
+  int fix_dof;
+  double tfactor;
+  double *inertia;
+
   void dof_compute();
 };
 	

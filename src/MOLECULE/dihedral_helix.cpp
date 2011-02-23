@@ -16,11 +16,11 @@
                          Mark Stevens (Sandia)
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "math.h"
 #include "stdlib.h"
 #include "mpi.h"
 #include "dihedral_helix.h"
-#include "lmptype.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"

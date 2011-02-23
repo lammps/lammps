@@ -15,10 +15,10 @@
    Contributing author: Aidan Thompson (Sandia)
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "stdlib.h"
 #include "string.h"
 #include "fix_reax_bonds.h"
-#include "lmptype.h"
 #include "pair_reax_fortran.h"
 #include "atom.h"
 #include "update.h"

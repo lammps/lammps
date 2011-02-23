@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "stdlib.h"
 #include "integrate.h"
-#include "lmptype.h"
 #include "update.h"
 #include "modify.h"
 #include "compute.h"

@@ -14,8 +14,8 @@
 #ifndef LMP_FIX_H
 #define LMP_FIX_H
 
-#include "pointers.h"
 #include "lmptype.h"
+#include "pointers.h"
 
 namespace LAMMPS_NS {
 

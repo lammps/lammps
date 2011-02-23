@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "math.h"
 #include "stdlib.h"
 #include "bond_fene_expand.h"
-#include "lmptype.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"

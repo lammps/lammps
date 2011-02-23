@@ -197,6 +197,8 @@ double PairGPUAnsT::energy_virial(double *eatom, double **vatom,
     return 0.0;
 
   double evdwl=0.0;
+  double virial_acc[6];
+  for (int i=0; i<6; i++) virial_acc[i]=0.0;
   if (_ilist==NULL) {
     for (int i=0; i<_inum; i++) {
       acctyp *ap=host_engv.begin()+i;
@@ -214,19 +216,19 @@ double PairGPUAnsT::energy_virial(double *eatom, double **vatom,
         if (_vf_atom) {
           for (int j=0; j<6; j++) {
             vatom[i][j]+=*ap*0.5;
-            virial[j]+=*ap;
+            virial_acc[j]+=*ap;
             ap+=_inum;
           }
         } else {
           for (int j=0; j<6; j++) {
-            virial[j]+=*ap;
+            virial_acc[j]+=*ap;
             ap+=_inum;
           }
         }
       }
     }
     for (int j=0; j<6; j++)
-      virial[j]*=0.5;
+      virial[j]+=virial_acc[j]*0.5;
   } else {
     for (int i=0; i<_inum; i++) {
       acctyp *ap=host_engv.begin()+i;
@@ -245,19 +247,19 @@ double PairGPUAnsT::energy_virial(double *eatom, double **vatom,
         if (_vf_atom) {
           for (int j=0; j<6; j++) {
             vatom[ii][j]+=*ap*0.5;
-            virial[j]+=*ap;
+            virial_acc[j]+=*ap;
             ap+=_inum;
           }
         } else {
           for (int j=0; j<6; j++) {
-            virial[j]+=*ap;
+            virial_acc[j]+=*ap;
             ap+=_inum;
           }
         }
       }
     }
     for (int j=0; j<6; j++)
-      virial[j]*=0.5;
+      virial[j]+=virial_acc[j]*0.5;
   }
   
   evdwl*=0.5;
@@ -277,6 +279,8 @@ double PairGPUAnsT::energy_virial(double *eatom, double **vatom,
 
   double evdwl=0.0;
   double _ecoul=0.0;
+  double virial_acc[6];
+  for (int i=0; i<6; i++) virial_acc[i]=0.0;
   if (_ilist==NULL) {
     for (int i=0; i<_inum; i++) {
       acctyp *ap=host_engv.begin()+i;
@@ -299,19 +303,19 @@ double PairGPUAnsT::energy_virial(double *eatom, double **vatom,
         if (_vf_atom) {
           for (int j=0; j<6; j++) {
             vatom[i][j]+=*ap*0.5;
-            virial[j]+=*ap;
+            virial_acc[j]+=*ap;
             ap+=_inum;
           }
         } else {
           for (int j=0; j<6; j++) {
-            virial[j]+=*ap;
+            virial_acc[j]+=*ap;
             ap+=_inum;
           }
         }
       }
     }
     for (int j=0; j<6; j++)
-      virial[j]*=0.5;
+      virial[j]+=virial_acc[j]*0.5;
   } else {
     for (int i=0; i<_inum; i++) {
       acctyp *ap=host_engv.begin()+i;
@@ -335,19 +339,19 @@ double PairGPUAnsT::energy_virial(double *eatom, double **vatom,
         if (_vf_atom) {
           for (int j=0; j<6; j++) {
             vatom[ii][j]+=*ap*0.5;
-            virial[j]+=*ap;
+            virial_acc[j]+=*ap;
             ap+=_inum;
           }
         } else {
           for (int j=0; j<6; j++) {
-            virial[j]+=*ap;
+            virial_acc[j]+=*ap;
             ap+=_inum;
           }
         }
       }
     }
     for (int j=0; j<6; j++)
-      virial[j]*=0.5;
+      virial[j]+=virial_acc[j]*0.5;
   }
   
   evdwl*=0.5;

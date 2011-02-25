@@ -240,7 +240,8 @@ int PPPMGPUMemoryT::compute(const int ago, const int nlocal, const int nall,
 
   d_brick_counts.zero();
   k_particle_map.set_size(GX,BX);
-  k_particle_map.run(&atom->dev_x.begin(), &ainum, &d_brick_counts.begin(),
+  k_particle_map.run(&atom->dev_x.begin(), &atom->dev_q.begin(), &f_delvolinv,
+                     &ainum, &d_brick_counts.begin(),
                      &d_brick_atoms.begin(), &f_brick_x, &f_brick_y, 
                      &f_brick_z, &f_delxinv, &f_delyinv, &f_delzinv, &_nlocal_x,
                      &_nlocal_y, &_nlocal_z, &_atom_stride, &_max_brick_atoms,
@@ -264,9 +265,7 @@ int PPPMGPUMemoryT::compute(const int ago, const int nlocal, const int nall,
                  &d_brick_counts.begin(), &d_brick_atoms.begin(),
                  &d_brick.begin(), &d_rho_coeff.begin(), &_atom_stride, &_npts_x,
                  &_npts_yx, &_npts_z, &_nlocal_x, &_nlocal_y, &_nlocal_z,
-                 &_order_m_1, &f_brick_x, &f_brick_y, &f_brick_z,
-                 &f_delxinv, &f_delyinv, &f_delzinv, &_order, &_order2,
-                 &f_delvolinv);
+                 &_order_m_1, &_order, &_order2);
   time_rho.stop();
 
   time_out.start();

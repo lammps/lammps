@@ -90,8 +90,9 @@ __inline float fetch_q(const int& i, const float *q)
 
 #endif
 
-__kernel void particle_map(__global numtyp4 *x_, const int nlocal, 
-                           __global int *counts, __global int *ans, 
+__kernel void particle_map(__global numtyp4 *x_,  __global numtyp *q_,
+                           const numtyp delvolinv, const int nlocal, 
+                           __global int *counts, __global numtyp4 *ans, 
                            const numtyp b_lo_x, const numtyp b_lo_y,
                            const numtyp b_lo_z, const numtyp delxinv,
                            const numtyp delyinv, const numtyp delzinv,
@@ -107,28 +108,33 @@ __kernel void particle_map(__global numtyp4 *x_, const int nlocal,
   ii-=int(ii/nthreads)*(nthreads-1);
 
   int nx,ny,nz;
-  numtyp tx,ty,tz;
 
   if (ii<nlocal) {
     numtyp4 p=fetch_pos(ii,x_);
+    numtyp4 delta;
+    delta.w=delvolinv*fetch_q(ii,q_);
+    
+    delta.x=(p.x-b_lo_x)*delxinv;
+    nx=int(delta.x);
+    delta.y=(p.y-b_lo_y)*delyinv;
+    ny=int(delta.y);
+    delta.z=(p.z-b_lo_z)*delzinv;
+    nz=int(delta.z);
 
-    tx=(p.x-b_lo_x)*delxinv;
-    nx=int(tx);
-    ty=(p.y-b_lo_y)*delyinv;
-    ny=int(ty);
-    tz=(p.z-b_lo_z)*delzinv;
-    nz=int(tz);
-
-    if (tx<0 || ty<0 || tz<0 || nx>=nlocal_x || ny>=nlocal_y || nz>=nlocal_z)
+    if (delta.x<0 || delta.y<0 || delta.z<0 || 
+        nx>=nlocal_x || ny>=nlocal_y || nz>=nlocal_z)
       *error=1;
     else {
+      delta.x=nx+0.5-delta.x;
+      delta.y=ny+0.5-delta.y;
+      delta.z=nz+0.5-delta.z;
+      
       int i=nz*nlocal_y*nlocal_x+ny*nlocal_x+nx;
       int old=atom_add(counts+i, 1);
-      if (old==max_atoms) {
+      if (old>=max_atoms)
         *error=2;
-        atom_add(counts+i,-1);
-      } else
-        ans[atom_stride*old+i]=ii;
+      else
+        ans[atom_stride*old+i]=delta;
     }
   }
 }
@@ -136,16 +142,12 @@ __kernel void particle_map(__global numtyp4 *x_, const int nlocal,
 /* --------------------------- */
 
 __kernel void make_rho(__global numtyp4 *x_, __global numtyp *q_,
-                       __global int *counts, __global int *atoms,
+                       __global int *counts, __global numtyp4 *atoms,
                        __global numtyp *brick, __global numtyp *_rho_coeff,
                        const int atom_stride, const int npts_x,
                        const int npts_yx, const int npts_z, const int nlocal_x,
                        const int nlocal_y, const int nlocal_z,
-                       const int order_m_1, const numtyp b_lo_x,
-                       const numtyp b_lo_y, const numtyp b_lo_z,
-                       const numtyp delxinv, const numtyp delyinv,
-                       const numtyp delzinv, const int order, const int order2,
-                       const numtyp delvolinv) {
+                       const int order_m_1, const int order, const int order2) {
   __local numtyp rho_coeff[MAX_STENCIL*MAX_STENCIL];
   __local numtyp front[BLOCK_1D+MAX_STENCIL];
   __local numtyp ans[MAX_STENCIL][BLOCK_1D];
@@ -197,27 +199,21 @@ __kernel void make_rho(__global numtyp4 *x_, __global numtyp *q_,
           int pos=z_local+y_local+x_pos;
           int natoms=mul24(counts[pos],atom_stride);
           for (int row=pos; row<natoms; row+=atom_stride) {
-            int atom=atoms[row];
-            numtyp4 p=fetch_pos(atom,x_);
-            numtyp z0=delvolinv*fetch_q(atom,q_);
+            numtyp4 delta=atoms[row];
       
-            numtyp dx=x_pos-(p.x-b_lo_x)*delxinv;
-            numtyp dy=y_pos-(p.y-b_lo_y)*delyinv;
-            numtyp dz=nz-(p.z-b_lo_z)*delzinv;
-            
             numtyp rho1d_1=(numtyp)0.0;
             numtyp rho1d_0=(numtyp)0.0;
             for (int k=order2+order-1; k > -1; k-=order) {
-              rho1d_1=rho_coeff[k-m]+rho1d_1*dy;
-              rho1d_0=rho_coeff[k-l]+rho1d_0*dx;
+              rho1d_1=rho_coeff[k-m]+rho1d_1*delta.y;
+              rho1d_0=rho_coeff[k-l]+rho1d_0*delta.x;
             }
-            z0*=rho1d_1*rho1d_0;
+            delta.w*=rho1d_1*rho1d_0;
 
             for (int n=0; n<order; n++) {
               numtyp rho1d_2=(numtyp)0.0;
               for (int k=order2+n; k>=n; k-=order)
-                rho1d_2=rho_coeff[k]+rho1d_2*dz;
-              ans[n][tx]+=z0*rho1d_2;
+                rho1d_2=rho_coeff[k]+rho1d_2*delta.z;
+              ans[n][tx]+=delta.w*rho1d_2;
             }
           }
         }

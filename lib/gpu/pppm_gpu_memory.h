@@ -117,7 +117,7 @@ class PPPMGPUMemory {
   // Count of number of atoms assigned to each grid point
   UCL_D_Vec<int> d_brick_counts;
   // Atoms assigned to each grid point
-  UCL_D_Vec<int> d_brick_atoms;
+  UCL_D_Vec<numtyp4> d_brick_atoms;
   
   // Error checking for out of bounds atoms
   UCL_D_Vec<int> d_error_flag;

@@ -14,6 +14,7 @@
 # /* ----------------------------------------------------------------------   
 #    Contributing authors: Mike Brown (ORNL), brownw@ornl.gov               
 #                          Peng Wang (Nvidia), penwang@nvidia.com             
+#                          Inderaj Bains (NVIDIA), ibains@nvidia.com
 #                          Paul Crozier (SNL), pscrozi@sandia.gov             
 # ------------------------------------------------------------------------- */
 
@@ -38,6 +39,7 @@ OBJS = $(OBJ_DIR)/pair_gpu_atom.o $(OBJ_DIR)/pair_gpu_ans.o \
        $(OBJ_DIR)/gb_gpu_memory.o $(OBJ_DIR)/gb_gpu.o \
        $(OBJ_DIR)/lj_cut_gpu_memory.o $(OBJ_DIR)/lj_cut_gpu.o \
        $(OBJ_DIR)/lj96_cut_gpu_memory.o $(OBJ_DIR)/lj96_cut_gpu.o \
+       $(OBJ_DIR)/lj_expand_gpu_memory.o $(OBJ_DIR)/lj_expand_gpu.o \
        $(OBJ_DIR)/ljc_cut_gpu_memory.o $(OBJ_DIR)/ljc_cut_gpu.o \
        $(OBJ_DIR)/ljcl_cut_gpu_memory.o $(OBJ_DIR)/ljcl_cut_gpu.o \
        $(OBJ_DIR)/crml_gpu_memory.o $(OBJ_DIR)/crml_gpu.o \
@@ -47,8 +49,8 @@ KERS = $(OBJ_DIR)/pair_gpu_atom_cl.h $(OBJ_DIR)/pair_gpu_nbor_cl.h \
        $(OBJ_DIR)/pppm_gpu_cl.h \
        $(OBJ_DIR)/gb_gpu_nbor_cl.h $(OBJ_DIR)/gb_gpu_cl.h \
        $(OBJ_DIR)/lj_cut_gpu_cl.h $(OBJ_DIR)/lj96_cut_gpu_cl.h \
-       $(OBJ_DIR)/ljc_cut_gpu_cl.h $(OBJ_DIR)/ljcl_cut_gpu_cl.h \
-       $(OBJ_DIR)/crml_gpu_cl.h \
+       $(OBJ_DIR)/lj_expand_gpu_cl.h $(OBJ_DIR)/ljc_cut_gpu_cl.h \
+       $(OBJ_DIR)/ljcl_cut_gpu_cl.h $(OBJ_DIR)/crml_gpu_cl.h \
        $(OBJ_DIR)/cmm_cut_gpu_cl.h $(OBJ_DIR)/cmmc_long_gpu_cl.h 
 
 OCL_EXECS = $(BIN_DIR)/ocl_get_devices
@@ -147,6 +149,15 @@ $(OBJ_DIR)/lj96_cut_gpu_memory.o: $(ALL_H) lj96_cut_gpu_memory.h lj96_cut_gpu_me
 
 $(OBJ_DIR)/lj96_cut_gpu.o: $(ALL_H) lj96_cut_gpu_memory.h lj96_cut_gpu.cpp
 	$(OCL) -o $@ -c lj96_cut_gpu.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lj_expand_gpu_cl.h: lj_expand_gpu_kernel.cu
+	$(BSH) ./geryon/file_to_cstr.sh lj_expand_gpu_kernel.cu $(OBJ_DIR)/lj_expand_gpu_cl.h;
+
+$(OBJ_DIR)/lj_expand_gpu_memory.o: $(ALL_H) lj_expand_gpu_memory.h lj_expand_gpu_memory.cpp  $(OBJ_DIR)/lj_expand_gpu_cl.h $(OBJ_DIR)/pair_gpu_nbor_cl.h $(OBJ_DIR)/lj_expand_gpu_cl.h $(OBJ_DIR)/atomic_gpu_memory.o
+	$(OCL) -o $@ -c lj_expand_gpu_memory.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lj_expand_gpu.o: $(ALL_H) lj_expand_gpu_memory.h lj_expand_gpu.cpp
+	$(OCL) -o $@ -c lj_expand_gpu.cpp -I$(OBJ_DIR)
 
 $(OBJ_DIR)/cmm_cut_gpu_cl.h: cmm_cut_gpu_kernel.cu
 	$(BSH) ./geryon/file_to_cstr.sh cmm_cut_gpu_kernel.cu $(OBJ_DIR)/cmm_cut_gpu_cl.h;

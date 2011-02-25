@@ -13,41 +13,36 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(lj/expand,PairLJExpand)
+PairStyle(lj/expand/gpu,PairLJExpandGPU)
 
 #else
 
-#ifndef LMP_PAIR_LJ_EXPAND_H
-#define LMP_PAIR_LJ_EXPAND_H
+#ifndef LMP_PAIR_LJE_LIGHT_GPU_H
+#define LMP_PAIR_LJE_LIGHT_GPU_H
 
-#include "pair.h"
+#include "pair_lj_expand.h"
 
 namespace LAMMPS_NS {
 
-class PairLJExpand : public Pair {
+class PairLJExpandGPU : public PairLJExpand {
  public:
-  PairLJExpand(class LAMMPS *);
-  ~PairLJExpand();
+  PairLJExpandGPU(LAMMPS *lmp);
+  ~PairLJExpandGPU();
+  void cpu_compute(int, int, int);
+  void cpu_compute(int *, int, int, int);
   void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  double init_one(int, int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
-  double single(int, int, int, int, double, double, double, double &);
+  void init_style();
+  double memory_usage();
 
- protected:
-  double cut_global;
-  double **cut;
-  double **epsilon,**sigma,**shift;
-  double **lj1,**lj2,**lj3,**lj4,**offset;
+ enum { GPU_PAIR, GPU_NEIGH };
 
-  void allocate();
+ private:
+  int gpu_mode;
+  double cpu_time;
+  int *gpulist;
 };
 
 }
+#endif
+#endif
 
-#endif
-#endif

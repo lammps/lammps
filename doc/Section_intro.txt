@@ -490,6 +490,7 @@ the list.
 
 :link(sjp,http://www.sandia.gov/~sjplimp)
 
+pair_style lj/cut/expand : Inderaj Bains (NVIDIA)
 ipp Perl script tool : Reese Jones (Sandia)
 eam_database and createatoms tools : Xiaowang Zhou (Sandia)
 electron force field (eFF) : Andres Jaramillo-Botero and Julius Su (Caltech)

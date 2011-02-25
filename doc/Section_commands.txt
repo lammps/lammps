@@ -613,6 +613,7 @@ potentials.  Click on the style itself for a full description:
 "lj/cut/coul/long/gpu"_pair_lj.html,
 "lj/cut/coul/long/tip4p"_pair_lj.html,
 "lj/expand"_pair_lj_expand.html,
+"lj/expand/gpu"_pair_lj_expand.html,
 "lj/gromacs"_pair_gromacs.html,
 "lj/gromacs/coul/gromacs"_pair_gromacs.html,
 "lj/smooth"_pair_lj_smooth.html,

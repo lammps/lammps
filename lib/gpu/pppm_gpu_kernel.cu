@@ -61,16 +61,6 @@ __inline double fetch_q(const int& i, const double *q)
   return q[i];
 }
 
-__device__ inline void atom_add_float(double* address, double val) {
-  double old=*address, assumed;
-  do { 
-    assumed=old;
-    old=__longlong_as_double( atomicCAS((unsigned long long int*)address, 
-                                          __double_as_longlong(assumed),
-                                          __double_as_longlong(val+assumed)));
-  } while (assumed!=old); 
-}
-
 #else
 __inline float4 fetch_pos(const int& i, const float4 *pos)
 {
@@ -80,19 +70,6 @@ __inline float fetch_q(const int& i, const float *q)
 {
   return tex1Dfetch(q_tex, i);
 }
-
-#if (__CUDA_ARCH__ < 200)
-__device__ inline void atom_add_float(float *address, float val) {
-  float old=*address, assumed;
-  do { 
-    assumed=old;
-    old=__int_as_float( atomicCAS((int *)address, __float_as_int(assumed),
-                        __float_as_int(val+assumed)));
-  } while (assumed != old); 
-}
-#else
-#define atom_add_float atomicAdd
-#endif
 
 #endif
 
@@ -156,98 +133,19 @@ __kernel void particle_map(__global numtyp4 *x_, const int nlocal,
   }
 }
 
+/* --------------------------- */
+
 __kernel void make_rho(__global numtyp4 *x_, __global numtyp *q_,
                        __global int *counts, __global int *atoms,
                        __global numtyp *brick, __global numtyp *_rho_coeff,
                        const int atom_stride, const int npts_x,
-                       const int npts_yx, const int nlocal_x,
+                       const int npts_yx, const int npts_z, const int nlocal_x,
                        const int nlocal_y, const int nlocal_z,
-                       const int x_threads, const numtyp b_lo_x,
+                       const int order_m_1, const numtyp b_lo_x,
                        const numtyp b_lo_y, const numtyp b_lo_z,
                        const numtyp delxinv, const numtyp delyinv,
                        const numtyp delzinv, const int order, const int order2,
                        const numtyp delvolinv) {
-  __local numtyp rho_coeff[MAX_STENCIL*MAX_STENCIL];
-  __local numtyp rho1d_0[MAX_STENCIL][BLOCK_1D];
-  __local numtyp rho1d_1[MAX_STENCIL][BLOCK_1D];
-
-  int nx=THREAD_ID_X;
-  int ny=THREAD_ID_Y;
-  if (nx<order && ny<order) {
-    int ri=mul24(nx,order)+ny;
-    rho_coeff[ri]=_rho_coeff[ri];
-  }
-  __syncthreads();
-  
-  int tid=mul24(BLOCK_SIZE_X,ny)+nx;
-  nx+=mul24(BLOCK_ID_X,BLOCK_SIZE_X);
-  ny+=mul24(BLOCK_ID_Y,BLOCK_SIZE_Y);
-
-  // Get the z-block we are working on
-  int z_block=nx/x_threads;
-  nx=nx%x_threads;
-  int nz=mul24(z_block,8);
-  int z_stop=nz+8;
-  if (z_stop>nlocal_z)
-    z_stop=nlocal_z;
-  
-  if (nx<nlocal_x && ny<nlocal_y) {
-    int z_stride=mul24(nlocal_x,nlocal_y);
-    int z_pos=mul24(nz,z_stride)+mul24(ny,nlocal_x)+nx;
-    for ( ; nz<z_stop; nz++) {
-      int natoms=counts[z_pos];
-      for (int row=0; row<natoms; row++) {
-        int atom=atoms[mul24(atom_stride,row)+z_pos];
-        numtyp4 p=fetch_pos(atom,x_);
-        numtyp z0=delvolinv*fetch_q(atom,q_);
-        
-        numtyp dx=nx-(p.x-b_lo_x)*delxinv;
-        numtyp dy=ny-(p.y-b_lo_y)*delyinv;
-        numtyp dz=nz-(p.z-b_lo_z)*delzinv;
-
-        for (int k=0; k<order; k++) {
-          rho1d_0[k][tid]=(numtyp)0.0;
-          rho1d_1[k][tid]=(numtyp)0.0;
-          for (int l=order2+k; l>=k; l-=order) {
-            rho1d_0[k][tid]=rho_coeff[l]+rho1d_0[k][tid]*dx;
-            rho1d_1[k][tid]=rho_coeff[l]+rho1d_1[k][tid]*dy;
-          }
-        }
-        
-        int mz=mul24(nz,npts_yx)+nx;
-        for (int n=0; n<order; n++) {
-          numtyp rho1d_2=(numtyp)0.0;
-          for (int k=order2+n; k>=n; k-=order)
-            rho1d_2=rho_coeff[k]+rho1d_2*dz;
-          numtyp y0=z0*rho1d_2;
-          int my=mz+mul24(ny,npts_x);
-          for (int m=0; m<order; m++) {
-	          numtyp x0=y0*rho1d_1[m][tid];
-	          for (int l=0; l<order; l++)
-              atom_add_float(brick+my+l,x0*rho1d_0[l][tid]);
-	          my+=npts_x;
-	        }
-	        mz+=npts_yx;
-	      }
-	    }
-	    z_pos+=z_stride;
-	  }
-	}
-}
-
-/* --------------------------- */
-
-__kernel void make_rho2(__global numtyp4 *x_, __global numtyp *q_,
-                        __global int *counts, __global int *atoms,
-                        __global numtyp *brick, __global numtyp *_rho_coeff,
-                        const int atom_stride, const int npts_x,
-                        const int npts_yx, const int npts_z, const int nlocal_x,
-                        const int nlocal_y, const int nlocal_z,
-                        const int order_m_1, const numtyp b_lo_x,
-                        const numtyp b_lo_y, const numtyp b_lo_z,
-                        const numtyp delxinv, const numtyp delyinv,
-                        const numtyp delzinv, const int order, const int order2,
-                        const numtyp delvolinv) {
   __local numtyp rho_coeff[MAX_STENCIL*MAX_STENCIL];
   __local numtyp front[BLOCK_1D+MAX_STENCIL];
   __local numtyp ans[MAX_STENCIL][BLOCK_1D];
@@ -344,84 +242,6 @@ __kernel void make_rho2(__global numtyp4 *x_, __global numtyp *q_,
     pt+=z_stride;
     z_local+=z_local_stride;
   }
-}
-
-/* --------------------------- */
-
-__kernel void make_rho3(__global numtyp4 *x_, __global numtyp *q_,
-                        const int nlocal, __global numtyp *brick,
-                        __global numtyp *_rho_coeff, const int npts_x,
-                        const int npts_yx, const int nlocal_x,
-                        const int nlocal_y, const int nlocal_z,
-                        const numtyp b_lo_x, const numtyp b_lo_y,
-                        const numtyp b_lo_z, const numtyp delxinv,
-                        const numtyp delyinv, const numtyp delzinv,
-                        const int order, const int order2,
-                        const numtyp delvolinv, __global int *error) {
-  __local numtyp rho_coeff[MAX_STENCIL*MAX_STENCIL];
-  __local numtyp rho1d_0[MAX_STENCIL][BLOCK_1D];
-  __local numtyp rho1d_1[MAX_STENCIL][BLOCK_1D];
-  
-  int tid=THREAD_ID_X;
-  if (tid<order2+order)
-    rho_coeff[tid]=_rho_coeff[tid];
-  __syncthreads();
-  
-  int ii=tid+BLOCK_ID_X*BLOCK_SIZE_X;
-  
-  // Resequence the atom indices to avoid collisions during atomic ops
-  int nthreads=GLOBAL_SIZE_X;
-  ii=mul24(ii,BLOCK_1D);
-  ii-=int(ii/nthreads)*(nthreads-1);
-
-  int nx,ny,nz;
-  numtyp tx,ty,tz;
-
-  if (ii<nlocal) {
-    numtyp4 p=fetch_pos(ii,x_);
-
-    tx=(p.x-b_lo_x)*delxinv;
-    nx=int(tx);
-    ty=(p.y-b_lo_y)*delyinv;
-    ny=int(ty);
-    tz=(p.z-b_lo_z)*delzinv;
-    nz=int(tz);
-
-    if (tx<0 || ty<0 || tz<0 || nx>=nlocal_x || ny>=nlocal_y || nz>=nlocal_z)
-      *error=1;
-    else {
-      numtyp z0=delvolinv*fetch_q(ii,q_);
-        
-      numtyp dx=nx+(numtyp)0.5-tx;
-      numtyp dy=ny+(numtyp)0.5-ty;
-      numtyp dz=nz+(numtyp)0.5-tz;
-
-      for (int k=0; k<order; k++) {
-        rho1d_0[k][tid]=(numtyp)0.0;
-        rho1d_1[k][tid]=(numtyp)0.0;
-        for (int l=order2+k; l>=k; l-=order) {
-          rho1d_0[k][tid]=rho_coeff[l]+rho1d_0[k][tid]*dx;
-          rho1d_1[k][tid]=rho_coeff[l]+rho1d_1[k][tid]*dy;
-        }
-      }
-        
-      int mz=mul24(nz,npts_yx)+nx;
-      for (int n=0; n<order; n++) {
-        numtyp rho1d_2=(numtyp)0.0;
-        for (int k=order2+n; k>=n; k-=order)
-          rho1d_2=rho_coeff[k]+rho1d_2*dz;
-        numtyp y0=z0*rho1d_2;
-        int my=mz+mul24(ny,npts_x);
-        for (int m=0; m<order; m++) {
-          numtyp x0=y0*rho1d_1[m][tid];
-	        for (int l=0; l<order; l++)
-            atom_add_float(brick+my+l,x0*rho1d_0[l][tid]);
-          my+=npts_x;
-        }
-        mz+=npts_yx;
-	    }
-	  }
-	}
 }
 
 __kernel void field_force(__global numtyp4 *x_, __global numtyp *q_,

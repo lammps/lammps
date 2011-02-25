@@ -710,7 +710,7 @@ double t1=MPI_Wtime();
 time1+=MPI_Wtime()-t1;
 
 
-/*
+
 double max_error=0;
 int _npts_x=nxhi_out-nxlo_out+1;
 int _npts_y=nyhi_out-nylo_out+1;
@@ -741,7 +741,7 @@ for (int i=0; i<iend; i++) {
   }
 }
 std::cout << "Maximum relative error: " << max_error*100.0 << "%\n";
-*/
+
 
 
   // all procs communicate density values from their ghost cells

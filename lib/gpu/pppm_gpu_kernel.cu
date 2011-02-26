@@ -151,92 +151,89 @@ __kernel void make_rho(__global numtyp4 *x_, __global numtyp *q_,
   __local numtyp rho_coeff[MAX_STENCIL*MAX_STENCIL];
   __local numtyp front[BLOCK_1D+MAX_STENCIL];
   __local numtyp ans[MAX_STENCIL][BLOCK_1D];
-  __local int nx,ny,x_start,y_start,x_stop,y_stop;
-  __local int z_stride, z_local_stride;
+  __local int ny,nz,y_start,z_start,y_stop,z_stop;
+  __local int z_stride;
 
-  int tx=THREAD_ID_X;
-  int tx_halo=BLOCK_1D+tx;
-  if (tx<order2+order)
-    rho_coeff[tx]=_rho_coeff[tx];
+  int tid=THREAD_ID_X;
+  int tid_halo=BLOCK_1D+tid;
+  if (tid<order2+order)
+    rho_coeff[tid]=_rho_coeff[tid];
     
-  if (tx==0) {
-    nx=BLOCK_ID_X;
-    ny=BLOCK_ID_Y;
-    x_start=0;
+  if (tid==0) {
+    ny=BLOCK_ID_X;
+    nz=BLOCK_ID_Y;
     y_start=0;
-    x_stop=order;
+    z_start=0;
     y_stop=order;
-    if (nx<order_m_1)
-      x_start=order_m_1-nx;
+    z_stop=order;
     if (ny<order_m_1)
       y_start=order_m_1-ny;
-    if (nx>=nlocal_x)
-      x_stop-=nx-nlocal_x+1;
+    if (nz<order_m_1)
+      z_start=order_m_1-nz;
     if (ny>=nlocal_y)
       y_stop-=ny-nlocal_y+1;
-    z_stride=mul24(npts_yx,BLOCK_1D);
-    z_local_stride=mul24(mul24(nlocal_x,nlocal_y),BLOCK_1D);
+    if (nz>=nlocal_z)
+      z_stop-=nz-nlocal_z+1;
+    z_stride=mul24(nlocal_x,nlocal_y);
   }
   
-  if (tx<order) 
-    front[tx_halo]=(numtyp)0.0;
+  if (tid<order) 
+    front[tid_halo]=(numtyp)0.0;
     
   __syncthreads();
 
-  int loop_count=npts_z/BLOCK_1D+1;
-  int nz=tx;
+  int loop_count=npts_x/BLOCK_1D+1;
+  int nx=tid;
   int pt=mul24(nz,npts_yx)+mul24(ny,npts_x)+nx;
-  int z_local=mul24(mul24(nz,nlocal_x),nlocal_y);
   for (int i=0 ; i<loop_count; i++) {
     for (int n=0; n<order; n++)
-      ans[n][tx]=(numtyp)0.0;
-    if (nz<nlocal_z) {
-      for (int m=y_start; m<y_stop; m++) {
-        int y_pos=ny+m-order_m_1;
-        int y_local=mul24(y_pos,nlocal_x);
-        for (int l=x_start; l<x_stop; l++) {
-          int x_pos=nx+l-order_m_1;
-          int pos=z_local+y_local+x_pos;
+      ans[n][tid]=(numtyp)0.0;
+    if (nx<nlocal_x) {
+      int z_pos=mul24(nz+z_start-order_m_1,z_stride);
+      for (int m=z_start; m<z_stop; m++) {
+        int y_pos=mul24(ny+y_start-order_m_1,nlocal_x);
+        for (int l=y_start; l<y_stop; l++) {
+          int pos=z_pos+y_pos+nx;
           int natoms=mul24(counts[pos],atom_stride);
           for (int row=pos; row<natoms; row+=atom_stride) {
             numtyp4 delta=atoms[row];
       
             numtyp rho1d_1=(numtyp)0.0;
-            numtyp rho1d_0=(numtyp)0.0;
+            numtyp rho1d_2=(numtyp)0.0;
             for (int k=order2+order-1; k > -1; k-=order) {
-              rho1d_1=rho_coeff[k-m]+rho1d_1*delta.y;
-              rho1d_0=rho_coeff[k-l]+rho1d_0*delta.x;
+              rho1d_1=rho_coeff[k-l]+rho1d_1*delta.y;
+              rho1d_2=rho_coeff[k-m]+rho1d_2*delta.z;
             }
-            delta.w*=rho1d_1*rho1d_0;
+            delta.w*=rho1d_1*rho1d_2;
 
             for (int n=0; n<order; n++) {
-              numtyp rho1d_2=(numtyp)0.0;
+              numtyp rho1d_0=(numtyp)0.0;
               for (int k=order2+n; k>=n; k-=order)
-                rho1d_2=rho_coeff[k]+rho1d_2*delta.z;
-              ans[n][tx]+=delta.w*rho1d_2;
+                rho1d_0=rho_coeff[k]+rho1d_0*delta.x;
+              ans[n][tid]+=delta.w*rho1d_0;
             }
           }
+          y_pos+=nlocal_x;
         }
+        z_pos+=z_stride;
       }
     }
     
     __syncthreads();
-    if (tx<order) {
-      front[tx]=front[tx_halo];
-      front[tx_halo]=(numtyp)0.0;
+    if (tid<order) {
+      front[tid]=front[tid_halo];
+      front[tid_halo]=(numtyp)0.0;
     } else 
-      front[tx]=(numtyp)0.0;
+      front[tid]=(numtyp)0.0;
     
     for (int n=0; n<order; n++) {
-      front[tx+n]+=ans[n][tx];
+      front[tid+n]+=ans[n][tid];
       __syncthreads();
     }
 
-    if (nz<npts_z)
-      brick[pt]=front[tx];
-    nz+=BLOCK_1D;
-    pt+=z_stride;
-    z_local+=z_local_stride;
+    if (nx<npts_x)
+      brick[pt]=front[tid];
+    pt+=BLOCK_1D;
   }
 }
 

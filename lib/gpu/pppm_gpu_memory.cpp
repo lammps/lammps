@@ -258,8 +258,8 @@ int PPPMGPUMemoryT::compute(const int ago, const int nlocal, const int nall,
   f_brick_z=boxlo[2]+(_nzlo_out-_nlower+shift)/delzinv;
 
   BX=block_size();
-  GX=_npts_x;
-  int GY=_npts_y;
+  GX=_npts_y;
+  int GY=_npts_z;
   k_make_rho.set_size(GX,GY,BX,1);
   k_make_rho.run(&atom->dev_x.begin(), &atom->dev_q.begin(),
                  &d_brick_counts.begin(), &d_brick_atoms.begin(),

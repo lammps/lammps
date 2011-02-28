@@ -28,7 +28,7 @@
 #if (__CUDA_ARCH__ < 200)
 #define mul24 __mul24
 #else
-#define mul24(X,Y) X*Y
+#define mul24(X,Y) (X)*(Y)
 #endif
 
 #define GLOBAL_ID_X threadIdx.x+mul24(blockIdx.x,blockDim.x)

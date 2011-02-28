@@ -276,6 +276,7 @@ int PPPMGPUMemoryT::compute(const int ago, const int nlocal, const int nall,
   if (h_error_flag[0]==2) {
     // Not enough storage for atoms on the brick
     _max_brick_atoms*=2;
+    d_error_flag.zero();
     d_brick_atoms.clear();
     d_brick_atoms.alloc(_atom_stride*_max_atoms,*ucl_device);
     _max_bytes+=d_brick_atoms.row_bytes();

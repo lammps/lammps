@@ -234,6 +234,7 @@ __kernel void make_rho(__global numtyp4 *x_, __global numtyp *q_,
     if (nx<npts_x)
       brick[pt]=front[tid];
     pt+=BLOCK_1D;
+    nx+=BLOCK_1D;
   }
 }
 

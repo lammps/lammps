@@ -163,7 +163,7 @@ void _gb_gpu_reset_nbors(gbmtyp &gbm, const int nall,
     
   gbm.nbor_time_avail=true;
 
-  int mn=gbm.nbor->max_nbor_loop(inum,numj);
+  int mn=gbm.nbor->max_nbor_loop(inum,numj,ilist);
   gbm.resize_atom(inum,nall,success);
   gbm.resize_local(inum,0,mn,osize,success);
   if (!success)
@@ -336,6 +336,7 @@ inline int * _gb_gpu_compute_n(gbmtyp &gbm, const int ago,
 			       double **host_quat) {
   gbm.acc_timers();
   if (inum_full==0) {
+    host_start=0;
     gbm.zero_timers();
     return NULL;
   }
@@ -394,6 +395,7 @@ inline int * _gb_gpu_compute(gbmtyp &gbm, const int f_ago, const int inum_full,
                              bool &success, double **host_quat) {
   gbm.acc_timers();
   if (inum_full==0) {
+    host_start=0;
     gbm.zero_timers();
     return NULL;
   }

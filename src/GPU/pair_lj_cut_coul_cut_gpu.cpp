@@ -92,7 +92,7 @@ void PairLJCutCoulCutGPU::compute(int eflag, int vflag)
   int inum, host_start;
   
   bool success = true;
-  
+
   if (gpu_mode == GPU_NEIGH) {
     inum = atom->nlocal;
     gpulist = ljc_gpu_compute_n(neighbor->ago, inum, nall, atom->x,

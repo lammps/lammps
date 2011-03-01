@@ -126,10 +126,10 @@ class PairGPUNbor {
   inline int max_nbors() const { return _max_nbors; }
 
   /// Loop through neighbor count array and return maximum nbors for a particle
-  inline int max_nbor_loop(const int inum, int *numj) const {
+  inline int max_nbor_loop(const int inum, int *numj, int *ilist) const {
     int mn=0;
     for (int i=0; i<inum; i++)
-      mn=std::max(mn,numj[i]);
+      mn=std::max(mn,numj[ilist[i]]);
     return mn;
   }
 

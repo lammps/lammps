@@ -114,7 +114,7 @@ int * ChargeGPUMemoryT::reset_nbors(const int nall, const int inum, int *ilist,
 
   nbor_time_avail=true;
 
-  int mn=nbor->max_nbor_loop(inum,numj);
+  int mn=nbor->max_nbor_loop(inum,numj,ilist);
   resize_atom(inum,nall,success);
   resize_local(inum,mn,success);
   if (!success)
@@ -171,6 +171,7 @@ void ChargeGPUMemoryT::compute(const int f_ago, const int inum_full,
                                bool &success, double *host_q) {
   acc_timers();
   if (inum_full==0) {
+    host_start=0;
     zero_timers();
     return;
   }
@@ -213,6 +214,7 @@ int * ChargeGPUMemoryT::compute(const int ago, const int inum_full,
                                 double *host_q) {
   acc_timers();
   if (inum_full==0) {
+    host_start=0;
     zero_timers();
     return NULL;
   }

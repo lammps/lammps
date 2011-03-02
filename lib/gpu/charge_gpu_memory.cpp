@@ -172,6 +172,8 @@ void ChargeGPUMemoryT::compute(const int f_ago, const int inum_full,
   acc_timers();
   if (inum_full==0) {
     host_start=0;
+    // Make sure textures are correct if realloc by a different hybrid style
+    resize_atom(0,nall,success);
     zero_timers();
     return;
   }
@@ -215,6 +217,8 @@ int * ChargeGPUMemoryT::compute(const int ago, const int inum_full,
   acc_timers();
   if (inum_full==0) {
     host_start=0;
+    // Make sure textures are correct if realloc by a different hybrid style
+    resize_atom(0,nall,success);
     zero_timers();
     return NULL;
   }

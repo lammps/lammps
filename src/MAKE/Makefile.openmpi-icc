@@ -1,4 +1,4 @@
-# openmpi-icc = Fedora 12, Intel C++ 11.0, OpenMPI-1.4.1, MKL 11.0, x86_64
+# openmpi-icc = Fedora 12, Intel C++ 11.1, OpenMPI-1.4.1, MKL 11.1, x86_64
 SHELL = /bin/sh
 
 # ---------------------------------------------------------------------
@@ -39,7 +39,7 @@ MPI_LIB =
 # INC = -DFFT_FFTW, -DFFT_INTEL, -DFFT_NONE, etc, FFT compiler settings
 # PATH = path for FFT library
 # LIB = name of FFT library
-MKL_PATH = /opt/intel/Compiler/11.0/083/mkl
+MKL_PATH = /opt/intel/Compiler/11.1/072/mkl
 FFT_INC =  -DFFT_MKL -I$(MKL_PATH)/include
 FFT_PATH = 
 FFT_LIB = -L$(MKL_PATH)/lib/em64t -Wl,-rpath,$(MKL_PATH)/lib/em64t -lmkl_intel_lp64 -lmkl_sequential -lmkl_core

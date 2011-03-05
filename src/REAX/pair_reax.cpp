@@ -125,7 +125,8 @@ void PairREAX::compute(int eflag, int vflag)
 
   evdwl = ecoul = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = eflag_global = vflag_global = 0;
+  else evflag = vflag_fdotr = eflag_global = vflag_global =
+	 eflag_atom = vflag_atom = 0;
 
   if (vflag_global) FORTRAN(cbkvirial, CBKVIRIAL).Lvirial = 1;
   else FORTRAN(cbkvirial, CBKVIRIAL).Lvirial = 0;

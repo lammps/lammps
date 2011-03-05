@@ -355,19 +355,19 @@ void FixStoreState::init()
     if (which[m] == COMPUTE) {
       int icompute = modify->find_compute(ids[m]);
       if (icompute < 0)
-	error->all("Compute ID for fix ave/atom does not exist");
+	error->all("Compute ID for fix store/state does not exist");
       value2index[m] = icompute;
       
     } else if (which[m] == FIX) {
       int ifix = modify->find_fix(ids[m]);
       if (ifix < 0) 
-	error->all("Fix ID for fix ave/atom does not exist");
+	error->all("Fix ID for fix store/state does not exist");
       value2index[m] = ifix;
 
     } else if (which[m] == VARIABLE) {
       int ivariable = input->variable->find(ids[m]);
       if (ivariable < 0) 
-	error->all("Variable name for fix ave/atom does not exist");
+	error->all("Variable name for fix store/state does not exist");
       value2index[m] = ivariable;
     }
   }

@@ -31,24 +31,32 @@ class Memory : protected Pointers {
 
   /// create a 1d array with index from nlo to nhi inclusive 
   template <typename T>
-  T *create_1d_array(bigint nlo, bigint nhi, const char *name) {
+  bool create_1d_array(T **ptr, bigint nlo, bigint nhi, const char *name) {
+    if (ptr == 0) return false;
+
     bigint n = nhi - nlo + 1;
     T *array = (T *) smalloc(n*sizeof(T),name);
-    return array-nlo;
+    *ptr=array-nlo;
+    return true;
   };
 
   /// free 1d array with index offset.
   template <typename T>
   void destroy_1d_array(T *array, bigint offset) {
     if (array == NULL) return;
-    sfree(array + offset);
+    sfree(array+offset);
   };
 
-  /// create a 2d array. if either dim is 0, return NULL 
+  /// create a 2d array. if either dim is 0, fail.
   template <typename T>
-  T **create_2d_array(bigint n1, bigint n2, const char *name) {
+  bool create_2d_array(T ***ptr, bigint n1, bigint n2, const char *name) {
 
-    if (n1 == 0 || n2 == 0) return NULL;
+    if (ptr == 0) return false;
+
+    if (n1 == 0 || n2 == 0) {
+      *ptr = NULL;
+      return false;
+    }
 
     T *data = (T *) smalloc(n1*n2*sizeof(T),name);
     T **array = (T **) smalloc(n1*sizeof(T *),name);
@@ -58,29 +66,33 @@ class Memory : protected Pointers {
       array[i] = &data[n];
       n += n2;
     }
-    return array;
+    *ptr=array;
+    return true;
   };
 
   /// grow or shrink 1st dim of a 2d array. last dim must stay the same.
   template <typename T>
-  T **grow_2d_array(T **array, bigint n1, bigint n2, const char *name) {
+  bool grow_2d_array(T ***array, bigint n1, bigint n2, const char *name) {
+
+    if (array == 0) return false;
 
     if (n1 == 0 || n2 == 0) {
-      destroy_2d_array(array);
-      return NULL;
+      destroy_2d_array(*array);
+      *array = NULL;
+      return false;
     }
 
-    if (array == NULL) return create_2d_array<T>(n1,n2,name);
+    if (*array == NULL) return create_2d_array(array,n1,n2,name);
 
-    T *data = (T *) srealloc(array[0],n1*n2*sizeof(T),name);
-    array = (T **) srealloc(array,n1*sizeof(T *),name);
+    T *data = (T *) srealloc((*array)[0],n1*n2*sizeof(T),name);
+    *array = (T **) srealloc(*array,n1*sizeof(T *),name);
 
     bigint n = 0;
     for (bigint i = 0; i < n1; i++) {
-      array[i] = &data[n];
+      (*array)[i] = &data[n];
       n += n2;
     }
-    return array;
+    return true;
   };
 
   /// free regular 2d array.
@@ -93,13 +105,19 @@ class Memory : protected Pointers {
 
   /// create a 2d array with 2nd index from n2lo to n2hi inclusive 
   template <typename T>
-  T **create_2d_array(bigint n1, bigint n2lo, bigint n2hi,
-			     const char *name) {
-    bigint n2 = n2hi - n2lo + 1;
-    T **array = create_2d_array<T>(n1,n2,name);
+  bool create_2d_array(T ***ptr, bigint n1, bigint n2lo, bigint n2hi,
+		       const char *name) {
 
-    for (bigint i = 0; i < n1; i++) array[i] -= n2lo;
-    return array;
+    if (ptr == 0) return false;
+
+    bigint n2 = n2hi - n2lo + 1;
+    T **array;
+    if (create_2d_array(&array,n1,n2,name)) {
+      for (bigint i = 0; i < n1; i++)
+	array[i] -= n2lo;
+      *ptr = array;
+      return true;
+    } else return false;
   };
 
   /// free a 2d array with 2nd index offset
@@ -112,10 +130,15 @@ class Memory : protected Pointers {
 
   /// create a 3d array 
   template <typename T>
-  T ***create_3d_array(bigint n1, bigint n2, bigint n3,
+  bool create_3d_array(T ****ptr, bigint n1, bigint n2, bigint n3,
 		       const char *name) {
 
-    if (n1 == 0 || n2 == 0 || n3 == 0) return NULL;
+    if (ptr == 0) return false;
+
+    if (n1 == 0 || n2 == 0 || n3 == 0) {
+      *ptr = NULL;
+      return false;
+    }
 
     T *data = (T *) smalloc(n1*n2*n3*sizeof(T),name);
     T **plane = (T **) smalloc(n1*n2*sizeof(T *),name);
@@ -130,7 +153,8 @@ class Memory : protected Pointers {
 	n += n3;
       }
     }
-    return array;
+    *ptr = array;
+    return true;
   };
 
   /// free a 3d double array 
@@ -144,39 +168,48 @@ class Memory : protected Pointers {
 
   /// grow or shrink 1st dim of a 3d array, last 2 dims must stay the same
   template <typename T>
-  T ***grow_3d_array(T ***array, bigint n1, bigint n2,
-			     bigint n3, const char *name) {
+  bool grow_3d_array(T ****array, bigint n1, bigint n2,
+		     bigint n3, const char *name) {
+
+    if (array == 0) return false;
 
     if (n1 == 0 || n2 == 0 || n3 == 0) {
-      destroy_3d_array(array);
-      return NULL;
+      destroy_3d_array(*array);
+      *array = NULL;
+      return false;
     }
 
-    if (array == NULL) return create_3d_array<T>(n1,n2,n3,name);
+    if (*array == NULL) return create_3d_array(array,n1,n2,n3,name);
 
-    T *data = (T *) srealloc(array[0][0],n1*n2*n3*sizeof(T),name);
-    T **plane = (T **) srealloc(array[0],n1*n2*sizeof(T *),name);
-    array = (T ***) srealloc(array,n1*sizeof(T **),name);
+    T *data = (T *) srealloc((*array)[0][0],n1*n2*n3*sizeof(T),name);
+    T **plane = (T **) srealloc((*array)[0],n1*n2*sizeof(T *),name);
+    *array = (T ***) srealloc(*array,n1*sizeof(T **),name);
 
     bigint i,j;
     bigint n = 0;
     for (i = 0; i < n1; i++) {
-      array[i] = &plane[i*n2];
+      (*array)[i] = &plane[i*n2];
       for (j = 0; j < n2; j++) {
 	plane[i*n2+j] = &data[n];
 	n += n3;
       }
     }
-    return array;
+    return true;
   };
 
   /// a 3d array with 1st index from n1lo to n1hi inclusive 
   template <typename T>
-  T ***create_3d_array(bigint n1lo, bigint n1hi, 
+  bool create_3d_array(T ****ptr, bigint n1lo, bigint n1hi,
 		       bigint n2, bigint n3, const char *name) {
+
+    if (ptr == 0) return false;
+
     bigint n1 = n1hi - n1lo + 1;
-    T ***array = create_3d_array<T>(n1,n2,n3,name);
-    return array-n1lo;
+    T ***array;
+    if (create_3d_array(&array,n1,n2,n3,name)) {
+      *ptr = array-n1lo;
+      return true;
+    } else return false;
   };
 
   /// free a 3d array with 1st index offset 
@@ -189,18 +222,23 @@ class Memory : protected Pointers {
   // 2nd index from n2lo to n2hi inclusive, 
   // 3rd index from n3lo to n3hi inclusive 
   template <typename T>
-  T ***create_3d_array(bigint n1lo, bigint n1hi,
-		       bigint n2lo, bigint n2hi,
-		       bigint n3lo, bigint n3hi, const char *name) {
+  bool create_3d_array(T ****ptr, bigint n1lo, bigint n1hi,
+		       bigint n2lo, bigint n2hi, bigint n3lo,
+		       bigint n3hi, const char *name) {
+
+    if (ptr == 0) return false;
+
     bigint n1 = n1hi - n1lo + 1;
     bigint n2 = n2hi - n2lo + 1;
     bigint n3 = n3hi - n3lo + 1;
-    T ***array = create_3d_array<T>(n1,n2,n3,name);
-
-    bigint i;
-    for (i = 0; i < n1*n2; i++) array[0][i] -= n3lo;
-    for (i = 0; i < n1; i++) array[i] -= n2lo;
-    return array-n1lo;
+    T ***array;
+    if (create_3d_array(&array,n1,n2,n3,name)) {
+      bigint i;
+      for (i = 0; i < n1*n2; i++) array[0][i] -= n3lo;
+      for (i = 0; i < n1; i++) array[i] -= n2lo;
+      *ptr = array-n1lo;
+      return true;
+    } else return false;
   };
 
   /// free a 3d array with all 3 indices offset 
@@ -215,9 +253,15 @@ class Memory : protected Pointers {
 
   /// create a 4d array 
   template <typename T>
-  T ****create_4d_array(bigint n1, bigint n2, bigint n3,
-			bigint n4, const char *name) {
-    if (n1==0 || n2==0 || n3==0 || n4==0) return NULL;
+  bool create_4d_array(T *****ptr, bigint n1, bigint n2, bigint n3,
+		       bigint n4, const char *name) {
+
+    if (ptr == 0) return false;
+
+    if (n1==0 || n2==0 || n3==0 || n4==0) {
+      *ptr = NULL;
+      return false;
+    }
 
     T *data = (T *) smalloc(n1*n2*n3*n4*sizeof(T),name);
     T **cube = (T **) smalloc(n1*n2*n3*sizeof(T *),name);
@@ -236,7 +280,8 @@ class Memory : protected Pointers {
 	}
       }
     }
-    return array;
+    *ptr = array;
+    return true;
   };
 
   /// free a 4d array 

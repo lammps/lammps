@@ -83,7 +83,10 @@ void *Memory::srealloc(void *ptr, bigint n, const char *name)
 
 double *Memory::create_1d_double_array(int nlo, int nhi, const char *name)
 {
-  return create_1d_array<double>(nlo,nhi,name);
+  double *array;
+  if (create_1d_array(&array,nlo,nhi,name))
+    return array;
+  else return NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -101,7 +104,10 @@ void Memory::destroy_1d_double_array(double *array, int offset)
 
 double **Memory::create_2d_double_array(int n1, int n2, const char *name)
 {
-  return create_2d_array<double>(n1, n2, name);
+  double **array;
+  if (create_2d_array(&array,n1, n2, name))
+    return array;
+  else return NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -121,9 +127,10 @@ void Memory::destroy_2d_double_array(double **array)
 
 double **Memory::grow_2d_double_array(double **array,
 				      int n1, int n2, const char *name)
-
 {
-  return grow_2d_array(array, n1, n2, name);
+  if (grow_2d_array(&array, n1, n2, name))
+    return array;
+  else return NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -133,7 +140,10 @@ double **Memory::grow_2d_double_array(double **array,
 
 int **Memory::create_2d_int_array(int n1, int n2, const char *name)
 {
-  return create_2d_array<int>(n1,n2,name);
+  int **array;
+  if (create_2d_array(&array,n1,n2,name))
+    return array;
+  else return NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -153,7 +163,9 @@ void Memory::destroy_2d_int_array(int **array)
 
 int **Memory::grow_2d_int_array(int **array, int n1, int n2, const char *name)
 {
-  return grow_2d_array(array,n1,n2,name);
+  if (grow_2d_array(&array, n1, n2, name))
+    return array;
+  else return NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -163,7 +175,10 @@ int **Memory::grow_2d_int_array(int **array, int n1, int n2, const char *name)
 double **Memory::create_2d_double_array(int n1, int n2lo, int n2hi,
 					const char *name)
 {
-  return create_2d_array<double>(n1, n2lo, n2hi, name);
+  double **array;
+  if (create_2d_array(&array, n1, n2lo, n2hi, name))
+    return array;
+  else return NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -181,7 +196,10 @@ void Memory::destroy_2d_double_array(double **array, int offset)
 
 float **Memory::create_2d_float_array(int n1, int n2, const char *name)
 {
-  return create_2d_array<float>(n1,n2,name);
+  float **array;
+  if (create_2d_array(&array, n1, n2, name))
+    return array;
+  else return NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -203,7 +221,9 @@ float **Memory::grow_2d_float_array(float **array,
 				      int n1, int n2, const char *name)
 
 {
-  return grow_2d_array(array, n1, n2, name);
+  if (grow_2d_array(&array, n1, n2, name))
+    return array;
+  else return NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -213,7 +233,10 @@ float **Memory::grow_2d_float_array(float **array,
 float **Memory::create_2d_float_array(int n1, int n2lo, int n2hi,
 					const char *name)
 {
-  return create_2d_array<float>(n1, n2lo, n2hi, name);
+  float **array;
+  if (create_2d_array(&array, n1, n2lo, n2hi, name))
+    return array;
+  else return NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -232,7 +255,10 @@ void Memory::destroy_2d_float_array(float **array, int offset)
 double ***Memory::create_3d_double_array(int n1, int n2, int n3,
 					 const char *name)
 {
-  return create_3d_array<double>(n1,n2,n3,name);
+  double ***array;
+  if (create_3d_array(&array,n1,n2,n3,name))
+    return array;
+  else return NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -254,7 +280,9 @@ double ***Memory::grow_3d_double_array(double ***array,
 				       int n1, int n2, int n3,
 				       const char *name)
 {
-  return grow_3d_array(array,n1,n2,n3,name);
+  if (grow_3d_array(&array,n1,n2,n3,name))
+    return array;
+  else return NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -264,7 +292,10 @@ double ***Memory::grow_3d_double_array(double ***array,
 double ***Memory::create_3d_double_array(int n1lo, int n1hi, 
 					 int n2, int n3, const char *name)
 {
-  return create_3d_array<double>(n1lo,n1hi,n2,n3,name);
+  double ***array;
+  if (create_3d_array(&array,n1lo,n1hi,n2,n3,name))
+    return array;
+  else return NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -287,7 +318,10 @@ double ***Memory::create_3d_double_array(int n1lo, int n1hi,
 					 int n2lo, int n2hi,
 					 int n3lo, int n3hi, const char *name)
 {
-  return create_3d_array<double>(n1lo,n1hi,n2lo,n2hi,n3lo,n3hi,name);
+  double ***array;
+  if (create_3d_array(&array,n1lo,n1hi,n2lo,n2hi,n3lo,n3hi,name))
+    return array;
+  else return NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -307,7 +341,10 @@ void Memory::destroy_3d_double_array(double ***array, int n1_offset,
 float ***Memory::create_3d_float_array(int n1, int n2, int n3,
 					 const char *name)
 {
-  return create_3d_array<float>(n1,n2,n3,name);
+  float ***array;
+  if (create_3d_array(&array,n1,n2,n3,name))
+    return array;
+  else return NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -328,8 +365,10 @@ void Memory::destroy_3d_float_array(float ***array)
 float ***Memory::grow_3d_float_array(float ***array,
 				       int n1, int n2, int n3,
 				       const char *name)
-{
-  return grow_3d_array(array,n1,n2,n3,name);
+{ 
+  if (grow_3d_array(&array,n1,n2,n3,name))
+    return array;
+  else return NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -339,7 +378,10 @@ float ***Memory::grow_3d_float_array(float ***array,
 float ***Memory::create_3d_float_array(int n1lo, int n1hi, 
 					 int n2, int n3, const char *name)
 {
-  return create_3d_array<float>(n1lo,n1hi,n2,n3,name);
+  float ***array;
+  if (create_3d_array(&array,n1lo,n1hi,n2,n3,name))
+    return array;
+  else return NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -362,7 +404,10 @@ float ***Memory::create_3d_float_array(int n1lo, int n1hi,
 					 int n2lo, int n2hi,
 					 int n3lo, int n3hi, const char *name)
 {
-  return create_3d_array<float>(n1lo,n1hi,n2lo,n2hi,n3lo,n3hi,name);
+  float ***array;
+  if (create_3d_array(&array,n1lo,n1hi,n2lo,n2hi,n3lo,n3hi,name))
+    return array;
+  else return NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -381,7 +426,10 @@ void Memory::destroy_3d_float_array(float ***array, int n1_offset,
 
 int ***Memory::create_3d_int_array(int n1, int n2, int n3, const char *name)
 {
-  return create_3d_array<int>(n1,n2,n3,name);
+  int ***array;
+  if (create_3d_array(&array,n1,n2,n3,name))
+    return array;
+  else return NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -400,7 +448,10 @@ void Memory::destroy_3d_int_array(int ***array)
 double ****Memory::create_4d_double_array(int n1, int n2, int n3, int n4,
 					  const char *name)
 {
-  return create_4d_array<double>(n1,n2,n3,n4,name);
+  double ****array;
+  if (create_4d_array(&array,n1,n2,n3,n4,name))
+    return array;
+  else return NULL;
 }
 
 /* ----------------------------------------------------------------------

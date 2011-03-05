@@ -49,17 +49,17 @@ PairLJCut::PairLJCut(LAMMPS *lmp) : Pair(lmp)
 PairLJCut::~PairLJCut()
 {
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
+    memory->destroy_2d_array(setflag);
+    memory->destroy_2d_array(cutsq);
 
-    memory->destroy_2d_double_array(cut);
-    memory->destroy_2d_double_array(epsilon);
-    memory->destroy_2d_double_array(sigma);
-    memory->destroy_2d_double_array(lj1);
-    memory->destroy_2d_double_array(lj2);
-    memory->destroy_2d_double_array(lj3);
-    memory->destroy_2d_double_array(lj4);
-    memory->destroy_2d_double_array(offset);
+    memory->destroy_2d_array(cut);
+    memory->destroy_2d_array(epsilon);
+    memory->destroy_2d_array(sigma);
+    memory->destroy_2d_array(lj1);
+    memory->destroy_2d_array(lj2);
+    memory->destroy_2d_array(lj3);
+    memory->destroy_2d_array(lj4);
+    memory->destroy_2d_array(offset);
   }
 }
 
@@ -424,21 +424,21 @@ void PairLJCut::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
+  memory->create_2d_array(&setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+  memory->create_2d_array(&cutsq,n+1,n+1,"pair:cutsq");
 
-  cut = memory->create_2d_double_array(n+1,n+1,"pair:cut");
-  epsilon = memory->create_2d_double_array(n+1,n+1,"pair:epsilon");
-  sigma = memory->create_2d_double_array(n+1,n+1,"pair:sigma");
-  lj1 = memory->create_2d_double_array(n+1,n+1,"pair:lj1");
-  lj2 = memory->create_2d_double_array(n+1,n+1,"pair:lj2");
-  lj3 = memory->create_2d_double_array(n+1,n+1,"pair:lj3");
-  lj4 = memory->create_2d_double_array(n+1,n+1,"pair:lj4");
-  offset = memory->create_2d_double_array(n+1,n+1,"pair:offset");
+  memory->create_2d_array(&cut,n+1,n+1,"pair:cut");
+  memory->create_2d_array(&epsilon,n+1,n+1,"pair:epsilon");
+  memory->create_2d_array(&sigma,n+1,n+1,"pair:sigma");
+  memory->create_2d_array(&lj1,n+1,n+1,"pair:lj1");
+  memory->create_2d_array(&lj2,n+1,n+1,"pair:lj2");
+  memory->create_2d_array(&lj3,n+1,n+1,"pair:lj3");
+  memory->create_2d_array(&lj4,n+1,n+1,"pair:lj4");
+  memory->create_2d_array(&offset,n+1,n+1,"pair:offset");
 }
 
 /* ----------------------------------------------------------------------

@@ -791,8 +791,6 @@ void PairEffCut::init_style()
       !atom->eradius_flag || !atom->erforce_flag)
     error->all("Pair eff/cut requires atom attributes "
 	       "q, spin, eradius, erforce");
-  if (comm->ghost_velocity == 0)
-    error->all("Pair eff/cut requires ghost atoms store velocity");
 
   // add hook to minimizer for eradius and erforce
 

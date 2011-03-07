@@ -75,8 +75,8 @@ __inline float4 fetch_pos(const int& i, const float4 *pos)
 
 #endif
 
-__kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *lj1,
-                          __global numtyp4* lj3, const int lj_types, 
+__kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *mor1,
+                          __global numtyp2* mor2, const int lj_types, 
                           __global numtyp *sp_lj_in, __global int *dev_nbor, 
                           __global acctyp4 *ans, __global acctyp *engv, 
                           const int eflag, const int vflag, const int inum, 
@@ -127,22 +127,23 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *lj1,
       numtyp delx = ix.x-jx.x;
       numtyp dely = ix.y-jx.y;
       numtyp delz = ix.z-jx.z;
-      numtyp r2inv = delx*delx+dely*dely+delz*delz;
+      numtyp r = delx*delx+dely*dely+delz*delz;
         
       int mtype=itype*lj_types+jtype;
-      if (r2inv<lj1[mtype].z) {
-        r2inv=(numtyp)1.0/r2inv;
-        numtyp r6inv = r2inv*r2inv*r2inv;
-        numtyp force = r2inv*r6inv*(lj1[mtype].x*r6inv-lj1[mtype].y);
-        force*=factor_lj;
+      if (r<mor1[mtype].x) {
+        r=sqrt(r);
+        numtyp dexp=r-mor1[mtype].z;
+        dexp=exp(-mor1[mtype].w*dexp);
+        numtyp dm=dexp*dexp-dexp;
+        numtyp force = mor1[mtype].y*dm/r*factor_lj;
       
         f.x+=delx*force;
         f.y+=dely*force;
         f.z+=delz*force;
 
         if (eflag>0) {
-          numtyp e=r6inv*(lj3[mtype].x*r6inv-lj3[mtype].y);
-          energy+=factor_lj*(e-lj3[mtype].z); 
+          numtyp e=mor2[mtype].x*(dexp*dexp - 2.0*dexp) - mor2[mtype].y;
+          energy+=e*factor_lj; 
         }
         if (vflag>0) {
           virial[0] += delx*delx*force;
@@ -172,23 +173,23 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *lj1,
   } // if ii
 }
 
-__kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
-                               __global numtyp4* lj3_in, 
+__kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp4 *mor1_in,
+                               __global numtyp2* mor2_in, 
                                __global numtyp* sp_lj_in, __global int *dev_nbor, 
                                __global acctyp4 *ans, __global acctyp *engv, 
                                const int eflag, const int vflag, const int inum, 
                                const int nall, const int nbor_pitch) {
   // ii indexes the two interacting particles in gi
   int ii=THREAD_ID_X;
-  __local numtyp4 lj1[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
-  __local numtyp4 lj3[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
+  __local numtyp4 mor1[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
+  __local numtyp2 mor2[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   __local numtyp sp_lj[4];
   if (ii<4)
     sp_lj[ii]=sp_lj_in[ii];
   if (ii<MAX_SHARED_TYPES*MAX_SHARED_TYPES) {
-    lj1[ii]=lj1_in[ii];
+    mor1[ii]=mor1_in[ii];
     if (eflag>0)
-      lj3[ii]=lj3_in[ii];
+      mor2[ii]=mor2_in[ii];
   }
   ii+=mul24((int)BLOCK_ID_X,(int)BLOCK_SIZE_X);
   __syncthreads();
@@ -232,20 +233,22 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
       numtyp delx = ix.x-jx.x;
       numtyp dely = ix.y-jx.y;
       numtyp delz = ix.z-jx.z;
-      numtyp r2inv = delx*delx+dely*dely+delz*delz;
+      numtyp r = delx*delx+dely*dely+delz*delz;
         
-      if (r2inv<lj1[mtype].z) {
-        r2inv=(numtyp)1.0/r2inv;
-        numtyp r6inv = r2inv*r2inv*r2inv;
-        numtyp force = factor_lj*r2inv*r6inv*(lj1[mtype].x*r6inv-lj1[mtype].y);
+      if (r<mor1[mtype].x) {
+        r=sqrt(r);
+        numtyp dexp=r-mor1[mtype].z;
+        dexp=exp(-mor1[mtype].w*dexp);
+        numtyp dm=dexp*dexp-dexp;
+        numtyp force = mor1[mtype].y*dm/r*factor_lj;
       
         f.x+=delx*force;
         f.y+=dely*force;
         f.z+=delz*force;
 
         if (eflag>0) {
-          numtyp e=r6inv*(lj3[mtype].x*r6inv-lj3[mtype].y);
-          energy+=factor_lj*(e-lj3[mtype].z); 
+          numtyp e=mor2[mtype].x*(dm-dexp)-mor2[mtype].y;
+          energy+=e*factor_lj; 
         }
         if (vflag>0) {
           virial[0] += delx*delx*force;

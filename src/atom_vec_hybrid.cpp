@@ -211,7 +211,7 @@ int AtomVecHybrid::pack_comm_vel(int n, int *list, double *buf,
 				 int pbc_flag, int *pbc)
 {
   int i,j,k,m;
-  double dx,dy,dz;
+  double dx,dy,dz,dvx,dvy,dvz;
   int omega_flag = atom->omega_flag;
   int angmom_flag = atom->angmom_flag;
 
@@ -248,26 +248,59 @@ int AtomVecHybrid::pack_comm_vel(int n, int *list, double *buf,
       dy = pbc[1]*domain->yprd + pbc[3]*domain->yz;
       dz = pbc[2]*domain->zprd;
     }
-    for (i = 0; i < n; i++) {
-      j = list[i];
-      buf[m++] = x[j][0] + dx;
-      buf[m++] = x[j][1] + dy;
-      buf[m++] = x[j][2] + dz;
-      buf[m++] = v[j][0];
-      buf[m++] = v[j][1];
-      buf[m++] = v[j][2];
-      if (omega_flag) {
-	buf[m++] = omega[j][0];
-	buf[m++] = omega[j][1];
-	buf[m++] = omega[j][2];
+    if (!deform_vremap) {
+      for (i = 0; i < n; i++) {
+	j = list[i];
+	buf[m++] = x[j][0] + dx;
+	buf[m++] = x[j][1] + dy;
+	buf[m++] = x[j][2] + dz;
+	buf[m++] = v[j][0];
+	buf[m++] = v[j][1];
+	buf[m++] = v[j][2];
+	if (omega_flag) {
+	  buf[m++] = omega[j][0];
+	  buf[m++] = omega[j][1];
+	  buf[m++] = omega[j][2];
+	}
+	if (angmom_flag) {
+	  buf[m++] = angmom[j][0];
+	  buf[m++] = angmom[j][1];
+	  buf[m++] = angmom[j][2];
+	}
+	for (k = 0; k < nstyles; k++)
+	  m += styles[k]->pack_comm_one(j,&buf[m]);
       }
-      if (angmom_flag) {
-	buf[m++] = angmom[j][0];
-	buf[m++] = angmom[j][1];
-	buf[m++] = angmom[j][2];
+    } else {
+      dvx = pbc[0]*h_rate[0] + pbc[5]*h_rate[5] + pbc[4]*h_rate[4];
+      dvy = pbc[1]*h_rate[1] + pbc[3]*h_rate[3];
+      dvz = pbc[2]*h_rate[2];
+      for (i = 0; i < n; i++) {
+	j = list[i];
+	buf[m++] = x[j][0] + dx;
+	buf[m++] = x[j][1] + dy;
+	buf[m++] = x[j][2] + dz;
+	if (mask[i] & deform_groupbit) {
+	  buf[m++] = v[j][0] + dvx;
+	  buf[m++] = v[j][1] + dvy;
+	  buf[m++] = v[j][2] + dvz;
+	} else {
+	  buf[m++] = v[j][0];
+	  buf[m++] = v[j][1];
+	  buf[m++] = v[j][2];
+	}
+	if (omega_flag) {
+	  buf[m++] = omega[j][0];
+	  buf[m++] = omega[j][1];
+	  buf[m++] = omega[j][2];
+	}
+	if (angmom_flag) {
+	  buf[m++] = angmom[j][0];
+	  buf[m++] = angmom[j][1];
+	  buf[m++] = angmom[j][2];
+	}
+	for (k = 0; k < nstyles; k++)
+	  m += styles[k]->pack_comm_one(j,&buf[m]);
       }
-      for (k = 0; k < nstyles; k++)
-	m += styles[k]->pack_comm_one(j,&buf[m]);
     }
   }
   return m;
@@ -409,7 +442,7 @@ int AtomVecHybrid::pack_border_vel(int n, int *list, double *buf,
 				   int pbc_flag, int *pbc)
 {
   int i,j,k,m;
-  double dx,dy,dz;
+  double dx,dy,dz,dvx,dvy,dvz;
   int omega_flag = atom->omega_flag;
   int angmom_flag = atom->angmom_flag;
 
@@ -449,29 +482,65 @@ int AtomVecHybrid::pack_border_vel(int n, int *list, double *buf,
       dy = pbc[1];
       dz = pbc[2];
     }
-    for (i = 0; i < n; i++) {
-      j = list[i];
-      buf[m++] = x[j][0] + dx;
-      buf[m++] = x[j][1] + dy;
-      buf[m++] = x[j][2] + dz;
-      buf[m++] = tag[j];
-      buf[m++] = type[j];
-      buf[m++] = mask[j];
-      buf[m++] = v[j][0];
-      buf[m++] = v[j][1];
-      buf[m++] = v[j][2];
-      if (omega_flag) {
-	buf[m++] = omega[j][0];
-	buf[m++] = omega[j][1];
-	buf[m++] = omega[j][2];
-      }
-      if (angmom_flag) {
-	buf[m++] = angmom[j][0];
-	buf[m++] = angmom[j][1];
-	buf[m++] = angmom[j][2];
-      }
-      for (k = 0; k < nstyles; k++)
+    if (!deform_vremap) {
+      for (i = 0; i < n; i++) {
+	j = list[i];
+	buf[m++] = x[j][0] + dx;
+	buf[m++] = x[j][1] + dy;
+	buf[m++] = x[j][2] + dz;
+	buf[m++] = tag[j];
+	buf[m++] = type[j];
+	buf[m++] = mask[j];
+	buf[m++] = v[j][0];
+	buf[m++] = v[j][1];
+	buf[m++] = v[j][2];
+	if (omega_flag) {
+	  buf[m++] = omega[j][0];
+	  buf[m++] = omega[j][1];
+	  buf[m++] = omega[j][2];
+	}
+	if (angmom_flag) {
+	  buf[m++] = angmom[j][0];
+	  buf[m++] = angmom[j][1];
+	  buf[m++] = angmom[j][2];
+	}
+	for (k = 0; k < nstyles; k++)
 	m += styles[k]->pack_border_one(j,&buf[m]);
+      }
+    } else {
+      dvx = pbc[0]*h_rate[0] + pbc[5]*h_rate[5] + pbc[4]*h_rate[4];
+      dvy = pbc[1]*h_rate[1] + pbc[3]*h_rate[3];
+      dvz = pbc[2]*h_rate[2];
+      for (i = 0; i < n; i++) {
+	j = list[i];
+	buf[m++] = x[j][0] + dx;
+	buf[m++] = x[j][1] + dy;
+	buf[m++] = x[j][2] + dz;
+	buf[m++] = tag[j];
+	buf[m++] = type[j];
+	buf[m++] = mask[j];
+	if (mask[i] & deform_groupbit) {
+	  buf[m++] = v[j][0] + dvx;
+	  buf[m++] = v[j][1] + dvy;
+	  buf[m++] = v[j][2] + dvz;
+	} else {
+	  buf[m++] = v[j][0];
+	  buf[m++] = v[j][1];
+	  buf[m++] = v[j][2];
+	}
+	if (omega_flag) {
+	  buf[m++] = omega[j][0];
+	  buf[m++] = omega[j][1];
+	  buf[m++] = omega[j][2];
+	}
+	if (angmom_flag) {
+	  buf[m++] = angmom[j][0];
+	  buf[m++] = angmom[j][1];
+	  buf[m++] = angmom[j][2];
+	}
+	for (k = 0; k < nstyles; k++)
+	m += styles[k]->pack_border_one(j,&buf[m]);
+      }
     }
   }
   return m;

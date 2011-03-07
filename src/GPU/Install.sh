@@ -49,11 +49,13 @@ if (test $1 = 1) then
   fi
 
   cp pair_lj_cut_gpu.cpp ..
+  cp pair_morse_gpu.cpp ..
   cp pair_lj96_cut_gpu.cpp ..
   cp pair_lj_expand_gpu.cpp ..
   cp pair_lj_cut_coul_cut_gpu.cpp ..
   cp pair_lj_cut_tgpu.cpp ..
   cp pair_lj_cut_gpu.h ..
+  cp pair_morse_gpu.h ..
   cp pair_lj96_cut_gpu.h ..
   cp pair_lj_expand_gpu.h ..
   cp pair_lj_cut_coul_cut_gpu.h ..
@@ -75,6 +77,7 @@ elif (test $1 = 0) then
   rm ../pppm_gpu.cpp
   rm ../pair_gayberne_gpu.cpp
   rm ../pair_lj_cut_gpu.cpp
+  rm ../pair_morse_gpu.cpp
   rm ../pair_lj96_cut_gpu.cpp
   rm ../pair_lj_expand_gpu.cpp
   rm ../pair_lj_cut_coul_cut_gpu.cpp
@@ -91,6 +94,7 @@ elif (test $1 = 0) then
   rm ../pppm_gpu.h
   rm ../pair_gayberne_gpu.h
   rm ../pair_lj_cut_gpu.h
+  rm ../pair_morse_gpu.h
   rm ../pair_lj96_cut_gpu.h
   rm ../pair_lj_expand_gpu.h
   rm ../pair_lj_cut_coul_cut_gpu.h

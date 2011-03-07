@@ -52,6 +52,7 @@ OBJS = $(OBJ_DIR)/pair_gpu_atom.o $(OBJ_DIR)/pair_gpu_ans.o \
        $(OBJ_DIR)/lj_expand_gpu_memory.o $(OBJ_DIR)/lj_expand_gpu.o \
        $(OBJ_DIR)/ljc_cut_gpu_memory.o $(OBJ_DIR)/ljc_cut_gpu.o \
        $(OBJ_DIR)/ljcl_cut_gpu_memory.o $(OBJ_DIR)/ljcl_cut_gpu.o \
+       $(OBJ_DIR)/morse_gpu_memory.o $(OBJ_DIR)/morse_gpu.o \
        $(OBJ_DIR)/crml_gpu_memory.o $(OBJ_DIR)/crml_gpu.o \
        $(OBJ_DIR)/cmm_cut_gpu_memory.o $(OBJ_DIR)/cmm_cut_gpu.o \
        $(OBJ_DIR)/cmmc_long_gpu_memory.o $(OBJ_DIR)/cmmc_long_gpu.o \
@@ -68,6 +69,7 @@ PTXS = $(OBJ_DIR)/pair_gpu_atom_kernel.ptx $(OBJ_DIR)/pair_gpu_atom_ptx.h \
        $(OBJ_DIR)/lj_expand_gpu_kernel.ptx $(OBJ_DIR)/lj_expand_gpu_ptx.h \
        $(OBJ_DIR)/ljc_cut_gpu_kernel.ptx $(OBJ_DIR)/ljc_cut_gpu_ptx.h \
        $(OBJ_DIR)/ljcl_cut_gpu_kernel.ptx $(OBJ_DIR)/ljcl_cut_gpu_ptx.h \
+       $(OBJ_DIR)/morse_gpu_kernel.ptx $(OBJ_DIR)/morse_gpu_ptx.h \
        $(OBJ_DIR)/crml_gpu_kernel.ptx $(OBJ_DIR)/crml_gpu_ptx.h \
        $(OBJ_DIR)/cmm_cut_gpu_kernel.ptx $(OBJ_DIR)/cmm_cut_gpu_ptx.h \
        $(OBJ_DIR)/cmmc_long_gpu_kernel.ptx $(OBJ_DIR)/cmmc_long_gpu_ptx.h \
@@ -197,6 +199,18 @@ $(OBJ_DIR)/ljcl_cut_gpu_memory.o: $(ALL_H) ljcl_cut_gpu_memory.h ljcl_cut_gpu_me
 
 $(OBJ_DIR)/ljcl_cut_gpu.o: $(ALL_H) ljcl_cut_gpu_memory.h ljcl_cut_gpu.cpp
 	$(CUDR) -o $@ -c ljcl_cut_gpu.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/morse_gpu_kernel.ptx: morse_gpu_kernel.cu pair_gpu_precision.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ morse_gpu_kernel.cu
+
+$(OBJ_DIR)/morse_gpu_ptx.h: $(OBJ_DIR)/morse_gpu_kernel.ptx $(OBJ_DIR)/morse_gpu_kernel.ptx
+	$(BSH) ./geryon/file_to_cstr.sh $(OBJ_DIR)/morse_gpu_kernel.ptx $(OBJ_DIR)/morse_gpu_ptx.h
+
+$(OBJ_DIR)/morse_gpu_memory.o: $(ALL_H) morse_gpu_memory.h morse_gpu_memory.cpp $(OBJ_DIR)/morse_gpu_ptx.h $(OBJ_DIR)/atomic_gpu_memory.o
+	$(CUDR) -o $@ -c morse_gpu_memory.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/morse_gpu.o: $(ALL_H) morse_gpu_memory.h morse_gpu.cpp
+	$(CUDR) -o $@ -c morse_gpu.cpp -I$(OBJ_DIR)
 
 $(OBJ_DIR)/crml_gpu_kernel.ptx: crml_gpu_kernel.cu pair_gpu_precision.h
 	$(CUDA) --ptx -DNV_KERNEL -o $@ crml_gpu_kernel.cu

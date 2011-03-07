@@ -40,10 +40,10 @@ AtomVecElectron::AtomVecElectron(LAMMPS *lmp, int narg, char **arg) :
   mass_type = 1;
   molecular = 0;
   
-  size_forward = 5;
+  size_forward = 4;
   size_reverse = 4;	
-  size_border = 10;	
-  size_velocity = 4;
+  size_border = 9;	
+  size_velocity = 3;
   size_data_atom = 8;
   size_data_vel = 5;
   xcol_data = 6;
@@ -102,7 +102,8 @@ void AtomVecElectron::grow_reset()
   tag = atom->tag; type = atom->type;
   mask = atom->mask; image = atom->image;
   x = atom->x; v = atom->v; f = atom->f;
-  q = atom->q; eradius = atom->eradius; ervel = atom->ervel; erforce = atom->erforce;
+  q = atom->q;
+  eradius = atom->eradius; ervel = atom->ervel; erforce = atom->erforce;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -146,7 +147,6 @@ int AtomVecElectron::pack_comm(int n, int *list, double *buf,
       buf[m++] = x[j][1];
       buf[m++] = x[j][2];
       buf[m++] = eradius[j];
-      buf[m++] = ervel[j];
     }
   } else {
     if (domain->triclinic == 0) {
@@ -164,7 +164,6 @@ int AtomVecElectron::pack_comm(int n, int *list, double *buf,
       buf[m++] = x[j][1] + dy;
       buf[m++] = x[j][2] + dz;
       buf[m++] = eradius[j];
-      buf[m++] = ervel[j];
     }
   }
   return m;
@@ -176,7 +175,7 @@ int AtomVecElectron::pack_comm_vel(int n, int *list, double *buf,
 				   int pbc_flag, int *pbc)
 {
   int i,j,m;
-  double dx,dy,dz;
+  double dx,dy,dz,dvx,dvy,dvz;
 
   m = 0;
   if (pbc_flag == 0) {
@@ -185,11 +184,10 @@ int AtomVecElectron::pack_comm_vel(int n, int *list, double *buf,
       buf[m++] = x[j][0];
       buf[m++] = x[j][1];
       buf[m++] = x[j][2];
+      buf[m++] = eradius[j];
       buf[m++] = v[j][0];
       buf[m++] = v[j][1];
       buf[m++] = v[j][2];
-      buf[m++] = eradius[j];
-      buf[m++] = ervel[j];
     }
   } else {
     if (domain->triclinic == 0) {
@@ -201,16 +199,37 @@ int AtomVecElectron::pack_comm_vel(int n, int *list, double *buf,
       dy = pbc[1]*domain->yprd + pbc[3]*domain->yz;
       dz = pbc[2]*domain->zprd;
     }
-    for (i = 0; i < n; i++) {
-      j = list[i];
-      buf[m++] = x[j][0] + dx;
-      buf[m++] = x[j][1] + dy;
-      buf[m++] = x[j][2] + dz;
-      buf[m++] = v[j][0];
-      buf[m++] = v[j][1];
-      buf[m++] = v[j][2];
-      buf[m++] = eradius[j];
-      buf[m++] = ervel[j];
+    if (!deform_vremap) {
+      for (i = 0; i < n; i++) {
+	j = list[i];
+	buf[m++] = x[j][0] + dx;
+	buf[m++] = x[j][1] + dy;
+	buf[m++] = x[j][2] + dz;
+	buf[m++] = eradius[j];
+	buf[m++] = v[j][0];
+	buf[m++] = v[j][1];
+	buf[m++] = v[j][2];
+      }
+    } else {
+      dvx = pbc[0]*h_rate[0] + pbc[5]*h_rate[5] + pbc[4]*h_rate[4];
+      dvy = pbc[1]*h_rate[1] + pbc[3]*h_rate[3];
+      dvz = pbc[2]*h_rate[2];
+      for (i = 0; i < n; i++) {
+	j = list[i];
+	buf[m++] = x[j][0] + dx;
+	buf[m++] = x[j][1] + dy;
+	buf[m++] = x[j][2] + dz;
+	buf[m++] = eradius[j];
+	if (mask[i] & deform_groupbit) {
+	  buf[m++] = v[j][0] + dvx;
+	  buf[m++] = v[j][1] + dvy;
+	  buf[m++] = v[j][2] + dvz;
+	} else {
+	  buf[m++] = v[j][0];
+	  buf[m++] = v[j][1];
+	  buf[m++] = v[j][2];
+	}
+      }
     }
   }
   return m;
@@ -229,7 +248,6 @@ void AtomVecElectron::unpack_comm(int n, int first, double *buf)
     x[i][1] = buf[m++];
     x[i][2] = buf[m++];
     eradius[i] = buf[m++];
-    ervel[i] = buf[m++];
   }
 }
 
@@ -245,11 +263,10 @@ void AtomVecElectron::unpack_comm_vel(int n, int first, double *buf)
     x[i][0] = buf[m++];
     x[i][1] = buf[m++];
     x[i][2] = buf[m++];
+    eradius[i] = buf[m++];
     v[i][0] = buf[m++];
     v[i][1] = buf[m++];
     v[i][2] = buf[m++];
-    eradius[i] = buf[m++];
-    ervel[i] = buf[m++];
   }
 }
 
@@ -258,9 +275,7 @@ void AtomVecElectron::unpack_comm_vel(int n, int first, double *buf)
 int AtomVecElectron::pack_comm_one(int i, double *buf)
 {
   buf[0] = eradius[i];
-  buf[1] = ervel[i];
-  
-  return 2;
+  return 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -268,9 +283,7 @@ int AtomVecElectron::pack_comm_one(int i, double *buf)
 int AtomVecElectron::unpack_comm_one(int i, double *buf)
 {
   eradius[i] = buf[0];
-  ervel[i] = buf[1];
-  
-  return 2;
+  return 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -295,7 +308,6 @@ int AtomVecElectron::pack_reverse(int n, int first, double *buf)
 int AtomVecElectron::pack_reverse_one(int i, double *buf)
 {
   buf[0] = erforce[i];
-
   return 1;
 }
 
@@ -320,90 +332,7 @@ void AtomVecElectron::unpack_reverse(int n, int *list, double *buf)
 int AtomVecElectron::unpack_reverse_one(int i, double *buf)
 {
   erforce[i] += buf[0];
-  
   return 1;
-}
-
-/* ---------------------------------------------------------------------- */
-
-int AtomVecElectron::pack_border_vel(int n, int *list, double *buf,
-				     int pbc_flag, int *pbc)
-{
-  int i,j,m;
-  double dx,dy,dz;
-
-  m = 0;
-  if (pbc_flag == 0) {
-    for (i = 0; i < n; i++) {
-      j = list[i];
-      buf[m++] = x[j][0];
-      buf[m++] = x[j][1];
-      buf[m++] = x[j][2];
-      buf[m++] = tag[j];
-      buf[m++] = type[j];
-      buf[m++] = mask[j];
-      buf[m++] = v[j][0];
-      buf[m++] = v[j][1];
-      buf[m++] = v[j][2];
-      buf[m++] = q[j];
-      buf[m++] = spin[j];
-      buf[m++] = eradius[j];
-      buf[m++] = ervel[j];
-    }
-  } else {
-    if (domain->triclinic == 0) {
-      dx = pbc[0]*domain->xprd;
-      dy = pbc[1]*domain->yprd;
-      dz = pbc[2]*domain->zprd;
-    } else {
-      dx = pbc[0];
-      dy = pbc[1];
-      dz = pbc[2];
-    }
-    for (i = 0; i < n; i++) {
-      j = list[i];
-      buf[m++] = x[j][0] + dx;
-      buf[m++] = x[j][1] + dy;
-      buf[m++] = x[j][2] + dz;
-      buf[m++] = tag[j];
-      buf[m++] = type[j];
-      buf[m++] = mask[j];
-      buf[m++] = v[j][0];
-      buf[m++] = v[j][1];
-      buf[m++] = v[j][2];
-      buf[m++] = q[j];
-      buf[m++] = spin[j];
-      buf[m++] = eradius[j];
-      buf[m++] = ervel[j];
-    }
-  }
-  return m;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void AtomVecElectron::unpack_border_vel(int n, int first, double *buf)
-{
-  int i,m,last;
-  
-  m = 0;
-  last = first + n;
-  for (i = first; i < last; i++) {
-    if (i == nmax) grow(0);
-    x[i][0] = buf[m++];
-    x[i][1] = buf[m++];
-    x[i][2] = buf[m++];
-    tag[i] = static_cast<int> (buf[m++]);
-    type[i] = static_cast<int> (buf[m++]);
-    mask[i] = static_cast<int> (buf[m++]);
-    v[i][0] = buf[m++];
-    v[i][1] = buf[m++];
-    v[i][2] = buf[m++];
-    q[i] = buf[m++];
-    spin[i] = static_cast<int> (buf[m++]);
-    eradius[i] = buf[m++];
-    ervel[i] = buf[m++];
-  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -427,7 +356,6 @@ int AtomVecElectron::pack_border(int n, int *list, double *buf,
       buf[m++] = q[j];
       buf[m++] = spin[j];
       buf[m++] = eradius[j];
-      buf[m++] = ervel[j];
     }
   } else {
     if (domain->triclinic == 0) {
@@ -450,7 +378,87 @@ int AtomVecElectron::pack_border(int n, int *list, double *buf,
       buf[m++] = q[j];
       buf[m++] = spin[j];
       buf[m++] = eradius[j];
-      buf[m++] = ervel[j];
+    }
+  }
+  return m;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int AtomVecElectron::pack_border_vel(int n, int *list, double *buf,
+				     int pbc_flag, int *pbc)
+{
+  int i,j,m;
+  double dx,dy,dz,dvx,dvy,dvz;
+
+  m = 0;
+  if (pbc_flag == 0) {
+    for (i = 0; i < n; i++) {
+      j = list[i];
+      buf[m++] = x[j][0];
+      buf[m++] = x[j][1];
+      buf[m++] = x[j][2];
+      buf[m++] = tag[j];
+      buf[m++] = type[j];
+      buf[m++] = mask[j];
+      buf[m++] = q[j];
+      buf[m++] = spin[j];
+      buf[m++] = eradius[j];
+      buf[m++] = v[j][0];
+      buf[m++] = v[j][1];
+      buf[m++] = v[j][2];
+    }
+  } else {
+    if (domain->triclinic == 0) {
+      dx = pbc[0]*domain->xprd;
+      dy = pbc[1]*domain->yprd;
+      dz = pbc[2]*domain->zprd;
+    } else {
+      dx = pbc[0];
+      dy = pbc[1];
+      dz = pbc[2];
+    }
+    if (domain->triclinic == 0) {
+      for (i = 0; i < n; i++) {
+	j = list[i];
+	buf[m++] = x[j][0] + dx;
+	buf[m++] = x[j][1] + dy;
+	buf[m++] = x[j][2] + dz;
+	buf[m++] = tag[j];
+	buf[m++] = type[j];
+	buf[m++] = mask[j];
+	buf[m++] = q[j];
+	buf[m++] = spin[j];
+	buf[m++] = eradius[j];
+	buf[m++] = v[j][0];
+	buf[m++] = v[j][1];
+	buf[m++] = v[j][2];
+      }
+    } else {
+      dvx = pbc[0]*h_rate[0] + pbc[5]*h_rate[5] + pbc[4]*h_rate[4];
+      dvy = pbc[1]*h_rate[1] + pbc[3]*h_rate[3];
+      dvz = pbc[2]*h_rate[2];
+      for (i = 0; i < n; i++) {
+	j = list[i];
+	buf[m++] = x[j][0] + dx;
+	buf[m++] = x[j][1] + dy;
+	buf[m++] = x[j][2] + dz;
+	buf[m++] = tag[j];
+	buf[m++] = type[j];
+	buf[m++] = mask[j];
+	buf[m++] = q[j];
+	buf[m++] = spin[j];
+	buf[m++] = eradius[j];
+	if (mask[i] & deform_groupbit) {
+	  buf[m++] = v[j][0] + dvx;
+	  buf[m++] = v[j][1] + dvy;
+	  buf[m++] = v[j][2] + dvz;
+	} else {
+	  buf[m++] = v[j][0];
+	  buf[m++] = v[j][1];
+	  buf[m++] = v[j][2];
+	}
+      }
     }
   }
   return m;
@@ -463,9 +471,7 @@ int AtomVecElectron::pack_border_one(int i, double *buf)
   buf[0] = q[i];
   buf[1] = spin[i];
   buf[2] = eradius[i];
-  buf[3] = ervel[i];
-  
-  return 4;
+  return 3;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -487,7 +493,31 @@ void AtomVecElectron::unpack_border(int n, int first, double *buf)
     q[i] = buf[m++];
     spin[i] = static_cast<int> (buf[m++]);
     eradius[i] = buf[m++];
-    ervel[i] = buf[m++];
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AtomVecElectron::unpack_border_vel(int n, int first, double *buf)
+{
+  int i,m,last;
+  
+  m = 0;
+  last = first + n;
+  for (i = first; i < last; i++) {
+    if (i == nmax) grow(0);
+    x[i][0] = buf[m++];
+    x[i][1] = buf[m++];
+    x[i][2] = buf[m++];
+    tag[i] = static_cast<int> (buf[m++]);
+    type[i] = static_cast<int> (buf[m++]);
+    mask[i] = static_cast<int> (buf[m++]);
+    q[i] = buf[m++];
+    spin[i] = static_cast<int> (buf[m++]);
+    eradius[i] = buf[m++];
+    v[i][0] = buf[m++];
+    v[i][1] = buf[m++];
+    v[i][2] = buf[m++];
   }
 }
 
@@ -498,9 +528,7 @@ int AtomVecElectron::unpack_border_one(int i, double *buf)
   q[i] = buf[0];
   spin[i] = static_cast<int> (buf[1]);
   eradius[i] = buf[2];
-  ervel[i] = buf[3];
-  
-  return 4;
+  return 3;
 }
 
 /* ----------------------------------------------------------------------
@@ -746,7 +774,7 @@ int AtomVecElectron::data_atom_hybrid(int nlocal, char **values)
   v[nlocal][2] = 0.0;
   ervel[nlocal] = 0.0;
   
-  return 2;
+  return 3;
 }
 
 /* ----------------------------------------------------------------------
@@ -768,7 +796,6 @@ void AtomVecElectron::data_vel(int m, char **values)
 int AtomVecElectron::data_vel_hybrid(int m, char **values)
 {
   ervel[m] = atof(values[0]);
-  
   return 1;
 }
 

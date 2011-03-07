@@ -180,7 +180,7 @@ int AtomVecEllipsoid::pack_comm_vel(int n, int *list, double *buf,
 				    int pbc_flag, int *pbc)
 {
   int i,j,m;
-  double dx,dy,dz;
+  double dx,dy,dz,dvx,dvy,dvz;
 
   m = 0;
   if (pbc_flag == 0) {
@@ -210,21 +210,49 @@ int AtomVecEllipsoid::pack_comm_vel(int n, int *list, double *buf,
       dy = pbc[1]*domain->yprd + pbc[3]*domain->yz;
       dz = pbc[2]*domain->zprd;
     }
-    for (i = 0; i < n; i++) {
-      j = list[i];
-      buf[m++] = x[j][0] + dx;
-      buf[m++] = x[j][1] + dy;
-      buf[m++] = x[j][2] + dz;
-      buf[m++] = quat[j][0];
-      buf[m++] = quat[j][1];
-      buf[m++] = quat[j][2];
-      buf[m++] = quat[j][3];
-      buf[m++] = v[j][0];
-      buf[m++] = v[j][1];
-      buf[m++] = v[j][2];
-      buf[m++] = angmom[j][0];
-      buf[m++] = angmom[j][1];
-      buf[m++] = angmom[j][2];
+    if (!deform_vremap) {
+      for (i = 0; i < n; i++) {
+	j = list[i];
+	buf[m++] = x[j][0] + dx;
+	buf[m++] = x[j][1] + dy;
+	buf[m++] = x[j][2] + dz;
+	buf[m++] = quat[j][0];
+	buf[m++] = quat[j][1];
+	buf[m++] = quat[j][2];
+	buf[m++] = quat[j][3];
+	buf[m++] = v[j][0];
+	buf[m++] = v[j][1];
+	buf[m++] = v[j][2];
+	buf[m++] = angmom[j][0];
+	buf[m++] = angmom[j][1];
+	buf[m++] = angmom[j][2];
+      }
+    } else {
+      dvx = pbc[0]*h_rate[0] + pbc[5]*h_rate[5] + pbc[4]*h_rate[4];
+      dvy = pbc[1]*h_rate[1] + pbc[3]*h_rate[3];
+      dvz = pbc[2]*h_rate[2];
+      for (i = 0; i < n; i++) {
+	j = list[i];
+	buf[m++] = x[j][0] + dx;
+	buf[m++] = x[j][1] + dy;
+	buf[m++] = x[j][2] + dz;
+	buf[m++] = quat[j][0];
+	buf[m++] = quat[j][1];
+	buf[m++] = quat[j][2];
+	buf[m++] = quat[j][3];
+	if (mask[i] & deform_groupbit) {
+	  buf[m++] = v[j][0] + dvx;
+	  buf[m++] = v[j][1] + dvy;
+	  buf[m++] = v[j][2] + dvz;
+	} else {
+	  buf[m++] = v[j][0];
+	  buf[m++] = v[j][1];
+	  buf[m++] = v[j][2];
+	}
+	buf[m++] = angmom[j][0];
+	buf[m++] = angmom[j][1];
+	buf[m++] = angmom[j][2];
+      }
     }
   }
   return m;
@@ -409,7 +437,7 @@ int AtomVecEllipsoid::pack_border_vel(int n, int *list, double *buf,
 				      int pbc_flag, int *pbc)
 {
   int i,j,m;
-  double dx,dy,dz;
+  double dx,dy,dz,dvx,dvy,dvz;
 
   m = 0;
   if (pbc_flag == 0) {
@@ -442,24 +470,55 @@ int AtomVecEllipsoid::pack_border_vel(int n, int *list, double *buf,
       dy = pbc[1];
       dz = pbc[2];
     }
-    for (i = 0; i < n; i++) {
-      j = list[i];
-      buf[m++] = x[j][0] + dx;
-      buf[m++] = x[j][1] + dy;
-      buf[m++] = x[j][2] + dz;
-      buf[m++] = tag[j];
-      buf[m++] = type[j];
-      buf[m++] = mask[j];
-      buf[m++] = quat[j][0];
-      buf[m++] = quat[j][1];
-      buf[m++] = quat[j][2];
-      buf[m++] = quat[j][3];
-      buf[m++] = v[j][0];
-      buf[m++] = v[j][1];
-      buf[m++] = v[j][2];
-      buf[m++] = angmom[j][0];
-      buf[m++] = angmom[j][1];
-      buf[m++] = angmom[j][2];
+    if (!deform_vremap) {
+      for (i = 0; i < n; i++) {
+	j = list[i];
+	buf[m++] = x[j][0] + dx;
+	buf[m++] = x[j][1] + dy;
+	buf[m++] = x[j][2] + dz;
+	buf[m++] = tag[j];
+	buf[m++] = type[j];
+	buf[m++] = mask[j];
+	buf[m++] = quat[j][0];
+	buf[m++] = quat[j][1];
+	buf[m++] = quat[j][2];
+	buf[m++] = quat[j][3];
+	buf[m++] = v[j][0];
+	buf[m++] = v[j][1];
+	buf[m++] = v[j][2];
+	buf[m++] = angmom[j][0];
+	buf[m++] = angmom[j][1];
+	buf[m++] = angmom[j][2];
+      }
+    } else {
+      dvx = pbc[0]*h_rate[0] + pbc[5]*h_rate[5] + pbc[4]*h_rate[4];
+      dvy = pbc[1]*h_rate[1] + pbc[3]*h_rate[3];
+      dvz = pbc[2]*h_rate[2];
+      for (i = 0; i < n; i++) {
+	j = list[i];
+	buf[m++] = x[j][0] + dx;
+	buf[m++] = x[j][1] + dy;
+	buf[m++] = x[j][2] + dz;
+	buf[m++] = tag[j];
+	buf[m++] = type[j];
+	buf[m++] = mask[j];
+	buf[m++] = quat[j][0];
+	buf[m++] = quat[j][1];
+	buf[m++] = quat[j][2];
+	buf[m++] = quat[j][3];
+	if (mask[i] & deform_groupbit) {
+	  buf[m++] = v[j][0] + dvx;
+	  buf[m++] = v[j][1] + dvy;
+	  buf[m++] = v[j][2] + dvz;
+	} else {
+	  buf[m++] = v[j][0];
+	  buf[m++] = v[j][1];
+	  buf[m++] = v[j][2];
+	}
+	buf[m++] = angmom[j][0];
+	buf[m++] = angmom[j][1];
+	buf[m++] = angmom[j][2];
+      }
     }
   }
   return m;

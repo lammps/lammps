@@ -9,38 +9,38 @@
 
 <HR>
 
-<H3>compute coord/atom command 
+<H3>compute cluster/atom command 
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>compute ID group-ID coord/atom cutoff 
+<PRE>compute ID group-ID cluster/atom cutoff 
 </PRE>
 <UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
-<LI>coord/atom = style name of this compute command
-<LI>cutoff = distance within which to count coordination neighbors (distance units) 
+<LI>cluster/atom = style name of this compute command
+<LI>cutoff = distance within which to label atoms as part of same cluster (distance units) 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>compute 1 all coord/atom 2.0 
+<PRE>compute 1 all cluster/atom 1.0 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Define a computation that calculates the coordination number for each
-atom in a group.
+<P>Define a computation that assigns each atom a cluster ID.
 </P>
-<P>The value of the coordination number will be 0.0 for atoms not in the
-specified compute group.
+<P>A cluster is defined as a set of atoms, each of which is within the
+cutoff distance from one or more other atoms in the cluster.  If an
+atom has no neighbors within the cutoff distance, then it is a 1-atom
+cluster.  The ID of every atom in the cluster will be the smallest
+atom ID of any atom in the cluster.
 </P>
-<P>The coordination number is defined as the number of neighbor atoms
-within the specified cutoff distance from the central atom.  Atoms not
-in the group are included in the coordination number of atoms in the
-group.
+<P>Only atoms in the compute group are clustered and assigned cluster
+IDs.  Atoms not in the compute group are assigned a cluster ID = 0.
 </P>
 <P>The neighbor list needed to compute this quantity is constructed each
 time the calculation is performed (i.e. each time a snapshot of atoms
 is dumped).  Thus it can be inefficient to compute/dump this quantity
 too frequently or to have multiple compute/dump commands, each of a
-<I>coord/atom</I> style.
+<I>clsuter/atom</I> style.
 </P>
 <P><B>Output info:</B>
 </P>
@@ -49,14 +49,13 @@ any command that uses per-atom values from a compute as input.  See
 <A HREF = "Section_howto.html#4_15">this section</A> for an overview of LAMMPS
 output options.
 </P>
-<P>The per-atom vector values will be a number >= 0.0, as explained
-above.
+<P>The per-atom vector values will be an ID > 0, as explained above.
 </P>
 <P><B>Restrictions:</B> none
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "compute_cluster_atom.html">compute cluster/atom</A>
+<P><A HREF = "compute_coord_atom.html">compute coord/atom</A>
 </P>
 <P><B>Default:</B> none
 </P>

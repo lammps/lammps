@@ -40,8 +40,7 @@ class AtomVec : protected Pointers {
 
   AtomVec(class LAMMPS *, int, char **);
   virtual ~AtomVec() {}
-  void init();
-  virtual void init_style() {}
+  virtual void init();
 
   virtual void grow(int) = 0;
   virtual void grow_reset() = 0;

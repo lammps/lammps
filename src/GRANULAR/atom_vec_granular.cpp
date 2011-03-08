@@ -54,8 +54,10 @@ AtomVecGranular::AtomVecGranular(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-void AtomVecGranular::init_style()
+void AtomVecGranular::init()
 {
+  AtomVec::init();
+
   // set radvary if particle diameters are time-varying due to fix adapt
 
   radvary = 0;

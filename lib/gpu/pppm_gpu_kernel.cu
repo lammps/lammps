@@ -20,6 +20,8 @@
 
 #define MAX_STENCIL 8
 #define BLOCK_1D 64
+#define BLOCK_PENCILS 8
+#define PENCIL_SIZE 8
 
 #ifdef _DOUBLE_DOUBLE
 #define numtyp double
@@ -146,46 +148,45 @@ __kernel void make_rho(__global numtyp4 *x_, __global numtyp *q_,
                        __global int *counts, __global numtyp4 *atoms,
                        __global numtyp *brick, __global numtyp *_rho_coeff,
                        const int atom_stride, const int npts_x,
-                       const int npts_yx, const int npts_z, const int nlocal_x,
+                       const int npts_y, const int npts_z, const int nlocal_x,
                        const int nlocal_y, const int nlocal_z,
                        const int order_m_1, const int order, const int order2) {
   __local numtyp rho_coeff[MAX_STENCIL*MAX_STENCIL];
-  __local numtyp front[BLOCK_1D+MAX_STENCIL];
+  __local numtyp front[BLOCK_PENCILS][PENCIL_SIZE+MAX_STENCIL];
   __local numtyp ans[MAX_STENCIL][BLOCK_1D];
-  __local int ny,nz,y_start,z_start,y_stop,z_stop;
-  __local int z_stride;
-
+  
   int tid=THREAD_ID_X;
-  int tid_halo=BLOCK_1D+tid;
   if (tid<order2+order)
     rho_coeff[tid]=_rho_coeff[tid];
     
-  if (tid==0) {
-    ny=BLOCK_ID_X;
-    nz=BLOCK_ID_Y;
-    y_start=0;
-    z_start=0;
-    y_stop=order;
-    z_stop=order;
-    if (ny<order_m_1)
-      y_start=order_m_1-ny;
-    if (nz<order_m_1)
-      z_start=order_m_1-nz;
-    if (ny>=nlocal_y)
-      y_stop-=ny-nlocal_y+1;
-    if (nz>=nlocal_z)
-      z_stop-=nz-nlocal_z+1;
-    z_stride=mul24(nlocal_x,nlocal_y);
-  }
-  
-  if (tid<order) 
-    front[tid_halo]=(numtyp)0.0;
-    
+  int pid=tid/PENCIL_SIZE;
+  int fid=tid%PENCIL_SIZE;
+  int fid_halo=PENCIL_SIZE+fid;
+  if (fid<order) 
+    front[pid][fid_halo]=(numtyp)0.0;
+
   __syncthreads();
 
-  int loop_count=npts_x/BLOCK_1D+1;
-  int nx=tid;
-  int pt=mul24(nz,npts_yx)+mul24(ny,npts_x)+nx;
+  int bt=BLOCK_ID_X/BLOCK_PENCILS;
+  int ny=bt%npts_y;
+  int nz=bt/npts_y;
+  int y_start=0;
+  int z_start=0;
+  int y_stop=order;
+  int z_stop=order;
+  if (ny<order_m_1)
+    y_start=order_m_1-ny;
+  if (nz<order_m_1)
+    z_start=order_m_1-nz;
+  if (ny>=nlocal_y)
+    y_stop-=ny-nlocal_y+1;
+  if (nz>=nlocal_z)
+    z_stop-=nz-nlocal_z+1;
+  int z_stride=mul24(nlocal_x,nlocal_y);
+
+  int loop_count=npts_x/PENCIL_SIZE+1;
+  int nx=fid;
+  int pt=mul24(nz,mul24(npts_y,npts_x))+mul24(ny,npts_x)+nx;
   for (int i=0 ; i<loop_count; i++) {
     for (int n=0; n<order; n++)
       ans[n][tid]=(numtyp)0.0;
@@ -221,21 +222,21 @@ __kernel void make_rho(__global numtyp4 *x_, __global numtyp *q_,
     }
     
     __syncthreads();
-    if (tid<order) {
-      front[tid]=front[tid_halo];
-      front[tid_halo]=(numtyp)0.0;
+    if (fid<order) {
+      front[pid][fid]=front[pid][fid_halo];
+      front[pid][fid_halo]=(numtyp)0.0;
     } else 
-      front[tid]=(numtyp)0.0;
+      front[pid][fid]=(numtyp)0.0;
     
     for (int n=0; n<order; n++) {
-      front[tid+n]+=ans[n][tid];
+      front[pid][fid+n]+=ans[n][tid];
       __syncthreads();
     }
 
     if (nx<npts_x)
-      brick[pt]=front[tid];
-    pt+=BLOCK_1D;
-    nx+=BLOCK_1D;
+      brick[pt]=front[pid][fid];
+    pt+=PENCIL_SIZE;
+    nx+=PENCIL_SIZE;
   }
 }
 

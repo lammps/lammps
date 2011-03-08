@@ -48,7 +48,7 @@ class FixStoreState : public Fix {
   int *which,*argindex,*value2index;
   char **ids;
   double **values;         // archived atom properties
-  double *buf;             // 1d ptr to values
+  double *vbuf;            // 1d ptr to values
 
   int comflag;
   double cm[3];            // center of mass

@@ -109,6 +109,12 @@ not.  The <I>yes</I> setting is needed by some pair styles which require
 the velocity state of both the I and J particles to compute a pairwise
 I,J interaction.
 </P>
+<P>Note that if the <A HREF = "fix_deform.html">fix deform</A> command is being used
+with its "remap v" option enabled, then the velocities for ghost atoms
+(in the fix deform group) mirrored across a periodic boundary will
+also include components due to any velocity shift that occurs across
+that boundary (e.g. due to dilation or shear).
+</P>
 <P><B>Restrictions:</B> none
 </P>
 <P><B>Related commands:</B>

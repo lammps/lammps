@@ -28,7 +28,7 @@ class AtomVecGranular : public AtomVec {
  public:
   AtomVecGranular(class LAMMPS *, int, char **);
   ~AtomVecGranular() {}
-  void init();
+  void init_style();
   void grow(int);
   void grow_reset();
   void copy(int, int);

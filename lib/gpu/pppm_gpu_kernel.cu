@@ -190,7 +190,7 @@ __kernel void make_rho(__global numtyp4 *x_, __global numtyp *q_,
   for (int i=0 ; i<loop_count; i++) {
     for (int n=0; n<order; n++)
       ans[n][tid]=(numtyp)0.0;
-    if (nx<nlocal_x) {
+    if (nx<nlocal_x && nz<npts_z) {
       int z_pos=mul24(nz+z_start-order_m_1,z_stride);
       for (int m=z_start; m<z_stop; m++) {
         int y_pos=mul24(ny+y_start-order_m_1,nlocal_x);
@@ -233,7 +233,7 @@ __kernel void make_rho(__global numtyp4 *x_, __global numtyp *q_,
       __syncthreads();
     }
 
-    if (nx<npts_x)
+    if (nx<npts_x && nz<npts_z)
       brick[pt]=front[pid][fid];
     pt+=PENCIL_SIZE;
     nx+=PENCIL_SIZE;

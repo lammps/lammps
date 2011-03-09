@@ -36,7 +36,7 @@ class Dump : protected Pointers {
   Dump(class LAMMPS *, int, char **);
   virtual ~Dump();
   void init();
-  void write();
+  virtual void write();
   void modify_params(int, char **);
   virtual double memory_usage();
 
@@ -53,6 +53,7 @@ class Dump : protected Pointers {
   int flush_flag;            // 0 if no flush, 1 if flush every dump
   int sort_flag;             // 1 if sorted output
   int append_flag;           // 1 if open file in append mode, 0 if not
+  int padflag;               // timestep padding in filename
   int singlefile_opened;     // 1 = one big file, already opened, else 0
   int sortcol;               // 0 to sort on ID, 1-N on columns
   int sortcolm1;             // sortcol - 1

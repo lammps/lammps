@@ -70,6 +70,7 @@ Dump::Dump(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   clearstep = 0;
   sort_flag = 0;
   append_flag = 0;
+  padflag = 0;
 
   maxbuf = maxids = maxsort = maxproc = 0;
   buf = bufsort = NULL;
@@ -359,8 +360,15 @@ void Dump::openfile()
     filecurrent = new char[strlen(filename) + 16];
     char *ptr = strchr(filename,'*');
     *ptr = '\0';
-    sprintf(filecurrent,"%s" BIGINT_FORMAT "%s",
-	    filename,update->ntimestep,ptr+1);
+    if (padflag == 0) 
+      sprintf(filecurrent,"%s" BIGINT_FORMAT "%s",
+	      filename,update->ntimestep,ptr+1);
+    else {
+      char bif[8],pad[16];
+      strcpy(bif,BIGINT_FORMAT);
+      sprintf(pad,"%%s%%0%d%s%%s",padflag,&bif[1]);
+      sprintf(filecurrent,pad,filename,update->ntimestep,ptr+1);
+    }
     *ptr = '*';
   }
 
@@ -665,6 +673,11 @@ void Dump::modify_params(int narg, char **arg)
 	format_user = new char[n];
 	strcpy(format_user,arg[iarg+1]);
       }
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"pad") == 0) {
+      if (iarg+2 > narg) error->all("Illegal dump_modify command");
+      padflag = atoi(arg[iarg+1]);
+      if (padflag < 0) error->all("Illegal dump_modify command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"sort") == 0) {
       if (iarg+2 > narg) error->all("Illegal dump_modify command");

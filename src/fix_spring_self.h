@@ -50,6 +50,7 @@ class FixSpringSelf : public Fix {
  private:
   double k,espring;
   double **xoriginal;         // original coords of atoms
+  int xflag, yflag, zflag;
   int nlevels_respa;
 };
 

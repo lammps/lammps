@@ -102,6 +102,14 @@ AtomVecHybrid::~AtomVecHybrid()
   delete [] keywords;
 }
 
+/* ---------------------------------------------------------------------- */
+
+void AtomVecHybrid::init()
+{
+  AtomVec::init();
+  for (int k = 0; k < nstyles; k++) styles[k]->init();
+}
+
 /* ----------------------------------------------------------------------
    grow atom arrays
    n = 0 grows arrays by DELTA

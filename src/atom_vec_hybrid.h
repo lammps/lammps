@@ -32,6 +32,7 @@ class AtomVecHybrid : public AtomVec {
 
   AtomVecHybrid(class LAMMPS *, int, char **);
   ~AtomVecHybrid();
+  void init();
   void grow(int);
   void grow_reset();
   void copy(int, int);

@@ -319,7 +319,7 @@ void Atom::init()
       error->all("Could not find atom_modify first group ID");
   } else firstgroup = -1;
 
-  // init sub-style
+  // init AtomVec
 
   avec->init();
 }

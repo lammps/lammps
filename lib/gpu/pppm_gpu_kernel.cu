@@ -167,7 +167,7 @@ __kernel void make_rho(__global numtyp4 *x_, __global numtyp *q_,
 
   __syncthreads();
 
-  int bt=BLOCK_ID_X/BLOCK_PENCILS;
+  int bt=BLOCK_ID_X*BLOCK_PENCILS+pid;
   int ny=bt%npts_y;
   int nz=bt/npts_y;
   int y_start=0;

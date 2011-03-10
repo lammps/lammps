@@ -198,7 +198,7 @@ Style {cfg} has the same command syntax as style {custom} and writes
 extended CFG format files, as used by the
 "AtomEye"_http://mt.seas.upenn.edu/Archive/Graphics/A visualization
 package.  Since the extended CFG format uses a single snapshot of the
-system per file, a wild-card "*" must be included in the filename, as
+system per file, a wildcard "*" must be included in the filename, as
 discussed below.  The list of atom attributes for style {cfg} must
 begin with "id type xs ys zs", since these quantities are needed to
 write the CFG files in the appropriate format (though the "id" and
@@ -266,7 +266,7 @@ dump command is invoked and closed when an "undump"_undump.html
 command is used or when LAMMPS exits.  For the {dcd} and {xtc} styles,
 this is a single large binary file.
 
-Dump filenames can contain two wild-card characters.  If a "*"
+Dump filenames can contain two wildcard characters.  If a "*"
 character appears in the filename, then one file per snapshot is
 written and the "*" character is replaced with the timestep value.
 For example, tmp.dump.* becomes tmp.dump.0, tmp.dump.10000,

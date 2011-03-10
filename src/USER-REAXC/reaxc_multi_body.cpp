@@ -97,40 +97,37 @@ void Atom_Energy( reax_system *system, control_params *control,
 #endif
 
     /* correction for C2 */
-    if( system->reax_param.gp.l[5] > 0.001 &&
-	!strcmp( system->reax_param.sbp[type_i].name, "C" ) )
-      for( pj = Start_Index(i, bonds); pj < End_Index(i, bonds); ++pj )
-	if( system->my_atoms[i].orig_id < 
-	    system->my_atoms[bonds->select.bond_list[pj].nbr].orig_id ) {
-	  j = bonds->select.bond_list[pj].nbr;
-	  type_j = system->my_atoms[j].type;
+    if( p_lp3 > 0.001 && !strcmp(system->reax_param.sbp[type_i].name, "C") )
+      for( pj = Start_Index(i, bonds); pj < End_Index(i, bonds); ++pj ) {
+	j = bonds->select.bond_list[pj].nbr;
+	type_j = system->my_atoms[j].type;
 
-	  if( !strcmp( system->reax_param.sbp[type_j].name, "C" ) ) {
-	    twbp = &( system->reax_param.tbp[type_i][type_j]);
-	    bo_ij = &( bonds->select.bond_list[pj].bo_data );
-	    Di = workspace->Delta[i];
-	    vov3 = bo_ij->BO - Di - 0.040*pow(Di, 4.);
+	if( !strcmp( system->reax_param.sbp[type_j].name, "C" ) ) {
+	  twbp = &( system->reax_param.tbp[type_i][type_j]);
+	  bo_ij = &( bonds->select.bond_list[pj].bo_data );
+	  Di = workspace->Delta[i];
+	  vov3 = bo_ij->BO - Di - 0.040*pow(Di, 4.);
 
-	    if( vov3 > 3. ) {
-	      data->my_en.e_lp += e_lph = p_lp3 * SQR(vov3-3.0);
+	  if( vov3 > 3. ) {
+	    data->my_en.e_lp += e_lph = p_lp3 * SQR(vov3-3.0);
 		
-	      deahu2dbo = 2.*p_lp3*(vov3 - 3.);
-	      deahu2dsbo = 2.*p_lp3*(vov3 - 3.)*(-1. - 0.16*pow(Di, 3.));
+	    deahu2dbo = 2.*p_lp3*(vov3 - 3.);
+	    deahu2dsbo = 2.*p_lp3*(vov3 - 3.)*(-1. - 0.16*pow(Di, 3.));
 		
-	      bo_ij->Cdbo += deahu2dbo;
-	      workspace->CdDelta[i] += deahu2dsbo;
+	    bo_ij->Cdbo += deahu2dbo;
+	    workspace->CdDelta[i] += deahu2dsbo;
 #ifdef TEST_ENERGY
-	      fprintf(out_control->elp,"C2cor%6d%6d%12.6f%12.6f%12.6f\n",
+	    fprintf(out_control->elp,"C2cor%6d%6d%12.6f%12.6f%12.6f\n",
 	            system->my_atoms[i].orig_id, system->my_atoms[j].orig_id,
 	            e_lph, deahu2dbo, deahu2dsbo );
 #endif
 #ifdef TEST_FORCES
-	      Add_dBO(system, lists, i, pj, deahu2dbo, workspace->f_lp);
-	      Add_dDelta(system, lists, i, deahu2dsbo, workspace->f_lp);
+	    Add_dBO(system, lists, i, pj, deahu2dbo, workspace->f_lp);
+	    Add_dDelta(system, lists, i, deahu2dsbo, workspace->f_lp);
 #endif
-	    }
-	  }    
-	}
+	  }
+	}    
+      }
   }
 
 

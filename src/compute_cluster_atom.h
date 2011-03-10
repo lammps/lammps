@@ -11,30 +11,35 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef DUMP_CLASS
+#ifdef COMPUTE_CLASS
 
-DumpStyle(xyz,DumpXYZ)
+ComputeStyle(cluster/atom,ComputeClusterAtom)
 
 #else
 
-#ifndef LMP_DUMP_XYZ_H
-#define LMP_DUMP_XYZ_H
+#ifndef LMP_COMPUTE_CLUSTER_ATOM_H
+#define LMP_COMPUTE_CLUSTER_ATOM_H
 
-#include "dump.h"
+#include "compute.h"
 
 namespace LAMMPS_NS {
 
-class DumpXYZ : public Dump {
+class ComputeClusterAtom : public Compute {
  public:
-  DumpXYZ(class LAMMPS *, int, char**);
-  ~DumpXYZ() {}
+  ComputeClusterAtom(class LAMMPS *, int, char **);
+  ~ComputeClusterAtom();
+  void init();
+  void init_list(int, class NeighList *);
+  void compute_peratom();
+  int pack_comm(int, int *, double *, int, int *);
+  void unpack_comm(int, int, double *);
+  double memory_usage();
 
  private:
-  void init_style();
-  void write_header(bigint);
-  int count();
-  void pack(int *);
-  void write_data(int, double *);
+  int nmax;
+  double cutsq;
+  class NeighList *list;
+  double *clusterID;
 };
 
 }

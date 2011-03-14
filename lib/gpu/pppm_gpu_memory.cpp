@@ -17,15 +17,23 @@
 
 #ifdef USE_OPENCL
 #include "pppm_gpu_cl.h"
+#define MEM_THREADS 16
 #else
 #include "pppm_gpu_ptx.h"
+#include "geryon/ucl_nv_kernel.h"
 #endif
 #include "pppm_gpu_memory.h"
+#include <cassert>
 
-#define BLOCK_1D 64
-#define BLOCK_X 8
-#define BLOCK_Y 8
+// Maximum order for stencil
 #define MAX_STENCIL 8
+// Thread block size for all kernels (Must be >=MAX_STENCIL^2)
+#define BLOCK_1D 64
+// Number of threads per pencil for charge spread
+#define PENCIL_SIZE MEM_THREADS
+// Number of pencils per block for charge spread
+#define BLOCK_PENCILS (BLOCK_1D/PENCIL_SIZE)
+
 #define PPPMGPUMemoryT PPPMGPUMemory<numtyp, acctyp>
 
 extern PairGPUDevice<PRECISION,ACC_PRECISION> pair_gpu_device;
@@ -68,8 +76,8 @@ numtyp * PPPMGPUMemoryT::init(const int nlocal, const int nall, FILE *_screen,
   atom=&device->atom;
 
   _block_size=BLOCK_1D;
-  _block_x_size=BLOCK_X;
-  _block_y_size=BLOCK_Y;
+  assert(BLOCK_PENCILS*PENCIL_SIZE==BLOCK_1D);
+  assert(MAX_STENCIL*MAX_STENCIL<=BLOCK_1D);
   if (static_cast<size_t>(_block_size)>ucl_device->group_size())
     _block_size=ucl_device->group_size();
   compile_kernels(*ucl_device);
@@ -250,7 +258,7 @@ int PPPMGPUMemoryT::spread(const int ago, const int nlocal, const int nall,
   time_rho.start();
 
   BX=block_size();
-  GX=static_cast<int>(ceil(static_cast<double>(_npts_y*_npts_z)/2));
+  GX=static_cast<int>(ceil(static_cast<double>(_npts_y*_npts_z)/BLOCK_PENCILS));
   k_make_rho.set_size(GX,BX);
   k_make_rho.run(&atom->dev_x.begin(), &atom->dev_q.begin(),
                  &d_brick_counts.begin(), &d_brick_atoms.begin(),

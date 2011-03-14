@@ -18,11 +18,6 @@
 #ifndef PPPM_GPU_KERNEL
 #define PPPM_GPU_KERNEL
 
-#define MAX_STENCIL 8
-#define BLOCK_1D 64
-#define BLOCK_PENCILS 2
-#define PENCIL_SIZE 32
-
 #ifdef _DOUBLE_DOUBLE
 #define numtyp double
 #define numtyp2 double2
@@ -89,8 +84,18 @@ __inline float fetch_q(const int& i, const float *q)
 
 #define fetch_pos(i,y) x_[i]
 #define fetch_q(i,y) q_[i]
+#define MEM_THREADS 16
 
 #endif
+
+// Maximum order for stencil
+#define MAX_STENCIL 8
+// Thread block size for all kernels (Must be >=MAX_STENCIL^2)
+#define BLOCK_1D 64
+// Number of threads per pencil for charge spread
+#define PENCIL_SIZE MEM_THREADS
+// Number of pencils per block for charge spread
+#define BLOCK_PENCILS (BLOCK_1D/PENCIL_SIZE)
 
 __kernel void particle_map(__global numtyp4 *x_,  __global numtyp *q_,
                            const numtyp delvolinv, const int nlocal, 

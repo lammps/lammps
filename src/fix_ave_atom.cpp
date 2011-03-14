@@ -351,7 +351,7 @@ void FixAveAtom::end_of_step()
 
     // evaluate atom-style variable
 
-    } else if (which[m] == VARIABLE)
+    } else if (which[m] == VARIABLE && array)
       input->variable->compute_atom(n,igroup,&array[0][m],nvalues,1);
   }
 

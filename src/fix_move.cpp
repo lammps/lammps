@@ -576,27 +576,33 @@ void FixMove::initial_integrate(int vflag)
 
     if (xvarstr) {
       if (xvarstyle == EQUAL) dx = input->variable->compute_equal(xvar);
-      else input->variable->compute_atom(xvar,igroup,&displace[0][0],3,0);
+      else if (displace)
+	input->variable->compute_atom(xvar,igroup,&displace[0][0],3,0);
     }
     if (yvarstr) {
       if (yvarstyle == EQUAL) dy = input->variable->compute_equal(yvar);
-      else input->variable->compute_atom(yvar,igroup,&displace[0][1],3,0);
+      else if (displace)
+	input->variable->compute_atom(yvar,igroup,&displace[0][1],3,0);
     }
     if (zvarstr) {
       if (zvarstyle == EQUAL) dz = input->variable->compute_equal(zvar);
-      else input->variable->compute_atom(zvar,igroup,&displace[0][2],3,0);
+      else if (displace)
+	input->variable->compute_atom(zvar,igroup,&displace[0][2],3,0);
     }
     if (vxvarstr) {
       if (vxvarstyle == EQUAL) vx = input->variable->compute_equal(vxvar);
-      else input->variable->compute_atom(vxvar,igroup,&velocity[0][0],3,0);
+      else if (velocity)
+	input->variable->compute_atom(vxvar,igroup,&velocity[0][0],3,0);
     }
     if (vyvarstr) {
       if (vyvarstyle == EQUAL) vy = input->variable->compute_equal(vyvar);
-      else input->variable->compute_atom(vyvar,igroup,&velocity[0][1],3,0);
+      else if (velocity)
+	input->variable->compute_atom(vyvar,igroup,&velocity[0][1],3,0);
     }
     if (vzvarstr) {
       if (vzvarstyle == EQUAL) vz = input->variable->compute_equal(vzvar);
-      else input->variable->compute_atom(vzvar,igroup,&velocity[0][2],3,0);
+      else if (velocity)
+	input->variable->compute_atom(vzvar,igroup,&velocity[0][2],3,0);
     }
 
     modify->addstep_compute(update->ntimestep + 1);

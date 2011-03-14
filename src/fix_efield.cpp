@@ -184,13 +184,13 @@ void FixEfield::post_force(int vflag)
     modify->clearstep_compute();
 
     if (xstyle == EQUAL) ex = qe2f * input->variable->compute_equal(xvar);
-    else if (xstyle == ATOM)
+    else if (xstyle == ATOM && efield)
       input->variable->compute_atom(xvar,igroup,&efield[0][0],3,0);
     if (ystyle == EQUAL) ey = qe2f * input->variable->compute_equal(yvar);
-    else if (ystyle == ATOM)
+    else if (ystyle == ATOM && efield)
       input->variable->compute_atom(yvar,igroup,&efield[0][1],3,0);
     if (zstyle == EQUAL) ez = qe2f * input->variable->compute_equal(zvar);
-    else if (zstyle == ATOM)
+    else if (zstyle == ATOM && efield)
       input->variable->compute_atom(zvar,igroup,&efield[0][2],3,0);
 
     modify->addstep_compute(update->ntimestep + 1);

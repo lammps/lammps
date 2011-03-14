@@ -30,9 +30,11 @@
 // Thread block size for all kernels (Must be >=MAX_STENCIL^2)
 #define BLOCK_1D 64
 // Number of threads per pencil for charge spread
-#define PENCIL_SIZE MEM_THREADS
+//#define PENCIL_SIZE MEM_THREADS
+#define PENCIL_SIZE 32
 // Number of pencils per block for charge spread
-#define BLOCK_PENCILS (BLOCK_1D/PENCIL_SIZE)
+//#define BLOCK_PENCILS (BLOCK_1D/PENCIL_SIZE)
+#define BLOCK_PENCILS 2
 
 #define PPPMGPUMemoryT PPPMGPUMemory<numtyp, acctyp>
 

@@ -95,12 +95,12 @@ void pppm_gpu_clear() {
   PPPMF.clear();
 }
 
-int pppm_gpu_compute(const int ago, const int nlocal, const int nall,
-                     double **host_x, int *host_type, bool &success,
-                     double *host_q, double *boxlo, const double delxinv,
-                     const double delyinv, const double delzinv) {
-  return PPPMF.compute(ago,nlocal,nall,host_x,host_type,success,host_q,boxlo,
-                       delxinv,delyinv,delzinv);
+int pppm_gpu_spread(const int ago, const int nlocal, const int nall,
+                    double **host_x, int *host_type, bool &success,
+                    double *host_q, double *boxlo, const double delxinv,
+                    const double delyinv, const double delzinv) {
+  return PPPMF.spread(ago,nlocal,nall,host_x,host_type,success,host_q,boxlo,
+                      delxinv,delyinv,delzinv);
 }
 
 double pppm_gpu_bytes() {

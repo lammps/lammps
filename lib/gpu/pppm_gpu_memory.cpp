@@ -183,14 +183,14 @@ void PPPMGPUMemoryT::clear() {
 }
 
 // ---------------------------------------------------------------------------
-// Copy nbor list from host if necessary and then calculate forces, virials,..
+// Charge spreading stuff
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-int PPPMGPUMemoryT::compute(const int ago, const int nlocal, const int nall,
-                            double **host_x, int *host_type, bool &success,
-                            double *host_q, double *boxlo, 
-                            const double delxinv, const double delyinv,
-                            const double delzinv) {
+int PPPMGPUMemoryT::spread(const int ago, const int nlocal, const int nall,
+                           double **host_x, int *host_type, bool &success,
+                           double *host_q, double *boxlo, 
+                           const double delxinv, const double delyinv,
+                           const double delzinv) {
   acc_timers();
   if (nlocal==0) {
     zero_timers();
@@ -228,34 +228,26 @@ int PPPMGPUMemoryT::compute(const int ago, const int nlocal, const int nall,
   double shift=0.0;
   if (_order % 2)
     shift=0.5;
-  numtyp f_brick_x=boxlo[0]+(_nxlo_out-_nlower-shift)/delxinv;
-  numtyp f_brick_y=boxlo[1]+(_nylo_out-_nlower-shift)/delyinv;
-  numtyp f_brick_z=boxlo[2]+(_nzlo_out-_nlower-shift)/delzinv;
+  _brick_x=boxlo[0]+(_nxlo_out-_nlower-shift)/delxinv;
+  _brick_y=boxlo[1]+(_nylo_out-_nlower-shift)/delyinv;
+  _brick_z=boxlo[2]+(_nzlo_out-_nlower-shift)/delzinv;
   
-  numtyp f_delxinv=delxinv;
-  numtyp f_delyinv=delyinv;
-  numtyp f_delzinv=delzinv;
+  _delxinv=delxinv;
+  _delyinv=delyinv;
+  _delzinv=delzinv;
   double delvolinv = delxinv*delyinv*delzinv;
   numtyp f_delvolinv = delvolinv;
 
   d_brick_counts.zero();
   k_particle_map.set_size(GX,BX);
   k_particle_map.run(&atom->dev_x.begin(), &atom->dev_q.begin(), &f_delvolinv,
-                     &ainum, &d_brick_counts.begin(),
-                     &d_brick_atoms.begin(), &f_brick_x, &f_brick_y, 
-                     &f_brick_z, &f_delxinv, &f_delyinv, &f_delzinv, &_nlocal_x,
-                     &_nlocal_y, &_nlocal_z, &_atom_stride, &_max_brick_atoms,
-                     &d_error_flag.begin());
+                     &ainum, &d_brick_counts.begin(), &d_brick_atoms.begin(),
+                     &_brick_x, &_brick_y, &_brick_z, &_delxinv, &_delyinv, 
+                     &_delzinv, &_nlocal_x, &_nlocal_y, &_nlocal_z, 
+                     &_atom_stride, &_max_brick_atoms, &d_error_flag.begin());
   time_map.stop();
 
   time_rho.start();
-  if (_order % 2)
-    shift=0.0;
-  else
-    shift=0.5;
-  f_brick_x=boxlo[0]+(_nxlo_out-_nlower+shift)/delxinv;
-  f_brick_y=boxlo[1]+(_nylo_out-_nlower+shift)/delyinv;
-  f_brick_z=boxlo[2]+(_nzlo_out-_nlower+shift)/delzinv;
 
   BX=block_size();
   GX=static_cast<int>(ceil(static_cast<double>(_npts_y*_npts_z)/8));
@@ -279,11 +271,41 @@ int PPPMGPUMemoryT::compute(const int ago, const int nlocal, const int nall,
     d_brick_atoms.clear();
     d_brick_atoms.alloc(_atom_stride*_max_atoms,*ucl_device);
     _max_bytes+=d_brick_atoms.row_bytes();
-    return compute(ago,nlocal,nall,host_x,host_type,success,host_q,boxlo, 
-                   delxinv,delyinv,delzinv);
+    return spread(ago,nlocal,nall,host_x,host_type,success,host_q,boxlo, 
+                  delxinv,delyinv,delzinv);
   }
   
   return h_error_flag[0];
+}
+
+// ---------------------------------------------------------------------------
+// Charge spreading stuff
+// ---------------------------------------------------------------------------
+template <class numtyp, class acctyp>
+void PPPMGPUMemoryT::interp(const numtyp qqrd2e_scale) {
+/*
+  time_map.start();
+
+  // Compute the block size and grid size to keep all cores busy
+  int BX=this->block_size();
+  int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/BX));
+
+  int ainum=this->ans->inum();
+  
+  k_interp.set_size(GX,BX);
+  k_interp.run(&atom->dev_x.begin(), &atom->dev_q.begin(), &ainum, 
+               &x_brick.begin(), &y_brick.begin(), &z_brick.begin(),
+               &d_rho_coeff.begin(), &_npts_x, &_npts_yx, &_brick_x, &_brick_y, 
+               &_brick_z, &_delxinv, &_delyinv, &_delzinv, &_order, &_order2,
+               &qqrd2e_scale, ans->dev_ans.begin());
+  time_map.stop();
+
+
+  time_out.start();
+  ucl_copy(h_brick,d_brick,true);
+  ucl_copy(h_error_flag,d_error_flag,false);
+  time_out.stop();
+*/  
 }
 
 

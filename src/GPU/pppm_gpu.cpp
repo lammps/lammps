@@ -42,10 +42,10 @@ numtyp* pppm_gpu_init(const int nlocal, const int nall, FILE *screen,
                      const int nzlo_out, const int nxhi_out, const int nyhi_out,
                      const int nzhi_out, double **rho_coeff, bool &success);
 void pppm_gpu_clear();
-int pppm_gpu_compute(const int ago, const int nlocal, const int nall,
-                     double **host_x, int *host_type, bool &success,
-                     double *host_q, double *boxlo, const double delxinv,
-                     const double delyinv, const double delzinv);
+int pppm_gpu_spread(const int ago, const int nlocal, const int nall,
+                    double **host_x, int *host_type, bool &success,
+                    double *host_q, double *boxlo, const double delxinv,
+                    const double delyinv, const double delzinv);
 double pppm_gpu_bytes();
 
 using namespace LAMMPS_NS;
@@ -674,9 +674,9 @@ void PPPMGPU::setup()
 void PPPMGPU::compute(int eflag, int vflag)
 {
   bool success = true;
-  int flag=pppm_gpu_compute(neighbor->ago, atom->nlocal, atom->nlocal + 
-                            atom->nghost, atom->x, atom->type, success, atom->q,
-                            domain->boxlo, delxinv, delyinv, delzinv);
+  int flag=pppm_gpu_spread(neighbor->ago, atom->nlocal, atom->nlocal + 
+                           atom->nghost, atom->x, atom->type, success, atom->q,
+                           domain->boxlo, delxinv, delyinv, delzinv);
   if (!success)
     error->one("Out of memory on GPGPU");
   if (flag != 0)

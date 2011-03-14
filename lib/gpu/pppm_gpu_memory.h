@@ -85,9 +85,11 @@ class PPPMGPUMemory {
   }
 
   /// Returns non-zero if out of bounds atoms
-  int compute(const int ago,const int nlocal,const int nall,double **host_x,
-              int *host_type,bool &success,double *charge,double *boxlo,
-              const double delxinv,const double delyinv,const double delzinv);
+  int spread(const int ago,const int nlocal,const int nall,double **host_x,
+             int *host_type,bool &success,double *charge,double *boxlo,
+             const double delxinv,const double delyinv,const double delzinv);
+
+  void interp(const numtyp qqrd2e_scale);
 
   // -------------------------- DEVICE DATA ------------------------- 
 
@@ -153,6 +155,8 @@ class PPPMGPUMemory {
   bool _allocated, _compiled;
   int _block_size, _block_x_size, _block_y_size, _max_brick_atoms;
   double  _max_bytes, _max_an_bytes;
+  
+  numtyp _brick_x, _brick_y, _brick_z, _delxinv, _delyinv, _delzinv; 
 
   void compile_kernels(UCL_Device &dev);
 };

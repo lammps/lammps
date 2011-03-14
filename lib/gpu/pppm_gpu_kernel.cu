@@ -20,8 +20,8 @@
 
 #define MAX_STENCIL 8
 #define BLOCK_1D 64
-#define BLOCK_PENCILS 8
-#define PENCIL_SIZE 8
+#define BLOCK_PENCILS 2
+#define PENCIL_SIZE 32
 
 #ifdef _DOUBLE_DOUBLE
 #define numtyp double

@@ -262,20 +262,22 @@ void PairGPUDeviceT::output_kspace_times(UCL_Timer &time_in,
                                          UCL_Timer &time_out,
                                          UCL_Timer &time_map,
                                          UCL_Timer &time_rho,
+                                         UCL_Timer &time_interp,
                                          PairGPUAns<numtyp,acctyp> &ans, 
                                          const double max_bytes, FILE *screen) {
-  double single[4], times[4];
+  double single[5], times[5];
 
 //  single[0]=atom.transfer_time()+ans.transfer_time()+time_in.total_seconds()+
 //            time_out.total_seconds();
 //  single[1]=atom.cast_time()+ans.cast_time();
 
   single[0]=time_out.total_seconds();
-  single[1]=0.0;
+  single[1]=time_in.total_seconds();
   single[2]=time_map.total_seconds();
   single[3]=time_rho.total_seconds();
+  single[4]=time_interp.total_seconds();
 
-  MPI_Reduce(single,times,4,MPI_DOUBLE,MPI_SUM,0,_comm_replica);
+  MPI_Reduce(single,times,5,MPI_DOUBLE,MPI_SUM,0,_comm_replica);
 
   double my_max_bytes=max_bytes+atom.max_gpu_bytes();
   double mpi_max_bytes;
@@ -291,12 +293,14 @@ void PairGPUDeviceT::output_kspace_times(UCL_Timer &time_in,
       fprintf(screen,"--------------------------------\n");
 
       if (procs_per_gpu()==1) {
-        fprintf(screen,"Data Transfer:   %.4f s.\n",times[0]/_replica_size);
-        fprintf(screen,"Data Cast/Pack:  %.4f s.\n",times[1]/_replica_size);
+        fprintf(screen,"Data Out:        %.4f s.\n",times[0]/_replica_size);
+        fprintf(screen,"Data In:         %.4f s.\n",times[1]/_replica_size);
         fprintf(screen,"Kernel (map):    %.4f s.\n",times[2]/_replica_size);
         fprintf(screen,"Kernel (rho):    %.4f s.\n",times[3]/_replica_size);
-//        fprintf(screen,"Force calc:      %.4f s.\n",times[3]/_replica_size);
-        fprintf(screen,"Total:           %.4f s.\n",(times[0]+times[1]+times[2]+times[3])/_replica_size);
+        fprintf(screen,"Force interp:    %.4f s.\n",times[4]/_replica_size);
+        fprintf(screen,"Total rho:       %.4f s.\n",(times[0]+times[2]+times[3])/_replica_size);
+        fprintf(screen,"Total interp:    %.4f s.\n",(times[1]+times[4])/_replica_size);
+        fprintf(screen,"Total:           %.4f s.\n",(times[0]+times[1]+times[2]+times[3]+times[4])/_replica_size);
       }
       fprintf(screen,"Max Mem / Proc:  %.2f MB.\n",max_mb);
 

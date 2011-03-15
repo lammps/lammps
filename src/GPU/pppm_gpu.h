@@ -58,7 +58,7 @@ class PPPMGPU : public KSpace {
   int ngrid,nfft,nbuf,nfft_both;
 
   double ***density_brick;
-  double ***vdx_brick,***vdy_brick,***vdz_brick;
+  numtyp ***vdx_brick,***vdy_brick,***vdz_brick;
   double *greensfn;
   double **vg;
   double *fkx,*fky,*fkz;
@@ -102,6 +102,11 @@ class PPPMGPU : public KSpace {
   void slabcorr(int);
 numtyp *host_brick;
 double time1,time2,time3;  
+
+ numtyp ***create_3d_offset(int, int, int, int, int, int, const char *,
+			    numtyp *);
+  void destroy_3d_offset(numtyp ***, int, int);
+  
 };
 
 }

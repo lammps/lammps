@@ -38,7 +38,8 @@ class PPPMGPUMemory {
   numtyp * init(const int nlocal, const int nall, FILE *screen, const int order,
                 const int nxlo_out, const int nylo_out, const int nzlo_out,
                 const int nxhi_out, const int nyhi_out, const int nzhi_out,
-                double **rho_coeff, bool &success);
+                double **rho_coeff, numtyp **vdx_brick, numtyp **vdy_brick,
+                numtyp **vdz_brick, bool &success);
 
   /// Check if there is enough storage for atom arrays and realloc if not
   /** \param success set to false if insufficient memory **/
@@ -72,6 +73,7 @@ class PPPMGPUMemory {
     time_out.add_to_total();
     time_map.add_to_total();
     time_rho.add_to_total();
+    time_interp.add_to_total();
   }
 
   /// Zero timers
@@ -82,6 +84,7 @@ class PPPMGPUMemory {
     time_out.zero();
     time_map.zero();
     time_rho.zero();
+    time_interp.zero();
   }
 
   /// Returns non-zero if out of bounds atoms
@@ -100,7 +103,7 @@ class PPPMGPUMemory {
   UCL_Device *ucl_device;
 
   /// Device Timers
-  UCL_Timer time_in, time_out, time_map, time_rho;
+  UCL_Timer time_in, time_out, time_map, time_rho, time_interp;
 
   /// LAMMPS pointer for screen output
   FILE *screen;
@@ -113,8 +116,8 @@ class PPPMGPUMemory {
 
   // --------------------------- GRID DATA --------------------------
 
-  UCL_H_Vec<numtyp> h_brick;
-  UCL_D_Vec<numtyp> d_brick;
+  UCL_H_Vec<numtyp> h_brick, h_x_brick, h_y_brick, h_z_brick;
+  UCL_D_Vec<numtyp> d_brick, d_y_brick, d_z_brick;
   
   // Count of number of atoms assigned to each grid point
   UCL_D_Vec<int> d_brick_counts;
@@ -139,10 +142,10 @@ class PPPMGPUMemory {
   // ------------------------ FORCE/ENERGY DATA -----------------------
 
   PairGPUAns<numtyp,acctyp> *ans;
-
+UCL_H_Vec<numtyp> force_temp;
   // ------------------------- DEVICE KERNELS -------------------------
   UCL_Program *pppm_program;
-  UCL_Kernel k_particle_map, k_make_rho;
+  UCL_Kernel k_particle_map, k_make_rho, k_interp;
   inline int block_size() { return _block_size; }
   inline int block_x_size() { return _block_x_size; }
   inline int block_y_size() { return _block_y_size; }

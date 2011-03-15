@@ -38,15 +38,21 @@
 // External functions from cuda library for atom decomposition
 
 numtyp* pppm_gpu_init(const int nlocal, const int nall, FILE *screen,
-                     const int order, const int nxlo_out, const int nylo_out,
-                     const int nzlo_out, const int nxhi_out, const int nyhi_out,
-                     const int nzhi_out, double **rho_coeff, bool &success);
+		      const int order, const int nxlo_out, const int nylo_out,
+		      const int nzlo_out, const int nxhi_out,
+		      const int nyhi_out, const int nzhi_out,
+		      double **rho_coeff, numtyp **_vdx_brick,
+		      numtyp **_vdy_brick, numtyp **_vdz_brick,
+		      bool &success);
 void pppm_gpu_clear();
 int pppm_gpu_spread(const int ago, const int nlocal, const int nall,
                     double **host_x, int *host_type, bool &success,
                     double *host_q, double *boxlo, const double delxinv,
                     const double delyinv, const double delzinv);
+void pppm_gpu_interp(const numtyp qqrd2e_scale);
 double pppm_gpu_bytes();
+
+numtyp *pppm_gpu_force();
 
 using namespace LAMMPS_NS;
 
@@ -77,7 +83,8 @@ PPPMGPU::PPPMGPU(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
-  density_brick = vdx_brick = vdy_brick = vdz_brick = NULL;
+  density_brick = NULL;
+  vdx_brick = vdy_brick = vdz_brick = NULL;
   density_fft = NULL;
   greensfn = NULL;
   work1 = work2 = NULL;
@@ -506,9 +513,22 @@ void PPPMGPU::init()
     error->all("Cannot use order greater than 8 with pppm/gpu.");
 
   bool success;
+  numtyp *data_x, *data_y, *data_z;
   host_brick = pppm_gpu_init(atom->nlocal, atom->nlocal+atom->nghost, screen,
                              order, nxlo_out, nylo_out, nzlo_out, nxhi_out,
-                             nyhi_out, nzhi_out, rho_coeff,success);
+                             nyhi_out, nzhi_out, rho_coeff, &data_x, &data_y,
+			     &data_z, success);
+
+  vdx_brick =
+    create_3d_offset(nzlo_out,nzhi_out,nylo_out,nyhi_out,
+		     nxlo_out,nxhi_out,"pppm:vdx_brick",data_x);
+  vdy_brick = 
+    create_3d_offset(nzlo_out,nzhi_out,nylo_out,nyhi_out,
+		     nxlo_out,nxhi_out,"pppm:vdy_brick",data_y);
+  vdz_brick = 
+    create_3d_offset(nzlo_out,nzhi_out,nylo_out,nyhi_out,
+		     nxlo_out,nxhi_out,"pppm:vdz_brick",data_z);
+
   if (!success)
     error->one("Insufficient memory on accelerator (or no fix gpu).\n"); 
 time1=0; time2=0; time3=0;
@@ -740,7 +760,7 @@ for (int i=0; i<iend; i++) {
     counter_z++;
   }
 }
-std::cout << "Maximum relative error: " << max_error*100.0 << "%\n";
+std::cout << "Force relative error: " << max_error*100.0 << "%\n";
 
 
 
@@ -760,6 +780,9 @@ std::cout << "Maximum relative error: " << max_error*100.0 << "%\n";
   //   surrounding their 3d bricks
 
   fillbrick();
+
+  numtyp qqrd2e_scale=qqrd2e*scale;
+  pppm_gpu_interp(qqrd2e_scale);
 
   // calculate the force on my particles
 
@@ -806,15 +829,6 @@ void PPPMGPU::allocate()
   density_brick = 
     memory->create_3d_double_array(nzlo_out,nzhi_out,nylo_out,nyhi_out,
 				   nxlo_out,nxhi_out,"pppm:density_brick");
-  vdx_brick =
-    memory->create_3d_double_array(nzlo_out,nzhi_out,nylo_out,nyhi_out,
-				   nxlo_out,nxhi_out,"pppm:vdx_brick");
-  vdy_brick = 
-    memory->create_3d_double_array(nzlo_out,nzhi_out,nylo_out,nyhi_out,
-				   nxlo_out,nxhi_out,"pppm:vdy_brick");
-  vdz_brick = 
-    memory->create_3d_double_array(nzlo_out,nzhi_out,nylo_out,nyhi_out,
-				   nxlo_out,nxhi_out,"pppm:vdz_brick");
 
   density_fft = 
     (double *) memory->smalloc(nfft_both*sizeof(double),"pppm:density_fft");
@@ -868,9 +882,9 @@ void PPPMGPU::allocate()
 void PPPMGPU::deallocate()
 {
   memory->destroy_3d_double_array(density_brick,nzlo_out,nylo_out,nxlo_out);
-  memory->destroy_3d_double_array(vdx_brick,nzlo_out,nylo_out,nxlo_out);
-  memory->destroy_3d_double_array(vdy_brick,nzlo_out,nylo_out,nxlo_out);
-  memory->destroy_3d_double_array(vdz_brick,nzlo_out,nylo_out,nxlo_out);
+  destroy_3d_offset(vdx_brick,nzlo_out,nylo_out);
+  destroy_3d_offset(vdy_brick,nzlo_out,nylo_out);
+  destroy_3d_offset(vdz_brick,nzlo_out,nylo_out);
 
   memory->sfree(density_fft);
   memory->sfree(greensfn);
@@ -1762,6 +1776,12 @@ void PPPMGPU::fieldforce()
   double **f = atom->f;
   int nlocal = atom->nlocal;
 
+
+
+numtyp *gpu_force=pppm_gpu_force();
+double max_error=0;
+
+
   for (i = 0; i < nlocal; i++) {
     nx = part2grid[i][0];
     ny = part2grid[i][1];
@@ -1789,12 +1809,29 @@ void PPPMGPU::fieldforce()
       }
     }
 
+for (int jj=0; jj<3; jj++) {
+  double f0= qqrd2e*scale * q[i]*ek[jj];
+  double error=0.0;
+  if (f0>1e-8)
+    error = fabs(((gpu_force[i*4+jj])-(f0))/(f0));
+  if (error>0.05)
+//    std::cout << "* ";
+    std::cout << i << " : CPU GPU: " << error << " " << f0 << " " 
+              << gpu_force[i*4+jj] << std::endl;
+  if (error>max_error)
+    max_error=error;
+}
+
     // convert E-field to force
 
     f[i][0] += qqrd2e*scale * q[i]*ek[0];
     f[i][1] += qqrd2e*scale * q[i]*ek[1];
     f[i][2] += qqrd2e*scale * q[i]*ek[2];
   }
+
+std::cout << "Maximum relative error: " << max_error*100.0 << "%\n";
+
+
 }
 
 /* ----------------------------------------------------------------------
@@ -1983,6 +2020,48 @@ void PPPMGPU::timing(int n, double &time3d, double &time1d)
   MPI_Barrier(world);
   time2 = MPI_Wtime();
   time1d = time2 - time1;
+}
+
+/* ----------------------------------------------------------------------
+   Create array using offsets from pinned memory allocation
+------------------------------------------------------------------------- */
+
+numtyp ***PPPMGPU::create_3d_offset(int n1lo, int n1hi, int n2lo, int n2hi,
+				    int n3lo, int n3hi, const char *name,
+				    numtyp *data)
+{
+  int i,j;
+  int n1 = n1hi - n1lo + 1;
+  int n2 = n2hi - n2lo + 1;
+  int n3 = n3hi - n3lo + 1;
+
+  numtyp **plane = (numtyp **)memory->smalloc(n1*n2*sizeof(numtyp *),name);
+  numtyp ***array = (numtyp ***)memory->smalloc(n1*sizeof(numtyp **),name);
+
+  int n = 0;
+  for (i = 0; i < n1; i++) {
+    array[i] = &plane[i*n2];
+    for (j = 0; j < n2; j++) {
+      plane[i*n2+j] = &data[n];
+      n += n3;
+    }
+  }
+
+  for (i = 0; i < n1*n2; i++) array[0][i] -= n3lo;
+  for (i = 0; i < n1; i++) array[i] -= n2lo;
+  return array-n1lo;
+}
+
+/* ----------------------------------------------------------------------
+   templated 3d memory offsets
+------------------------------------------------------------------------- */
+
+void PPPMGPU::destroy_3d_offset(numtyp ***array, int n1_offset,
+				int n2_offset)
+{
+  if (array == NULL) return;
+  memory->sfree(&array[n1_offset][n2_offset]);
+  memory->sfree(array + n1_offset);
 }
 
 /* ----------------------------------------------------------------------

@@ -20,7 +20,6 @@
 #define MEM_THREADS 16
 #else
 #include "pppm_gpu_ptx.h"
-#include "geryon/ucl_nv_kernel.h"
 #endif
 #include "pppm_gpu_memory.h"
 #include <cassert>
@@ -64,7 +63,8 @@ numtyp * PPPMGPUMemoryT::init(const int nlocal, const int nall, FILE *_screen,
                               const int nylo_out, const int nzlo_out,
                               const int nxhi_out, const int nyhi_out,
                               const int nzhi_out, double **rho_coeff,
-                              bool &success) {
+                              numtyp **vdx_brick, numtyp **vdy_brick,
+                              numtyp **vdz_brick, bool &success) {
   clear();
   
   _max_bytes=10;
@@ -93,6 +93,8 @@ numtyp * PPPMGPUMemoryT::init(const int nlocal, const int nall, FILE *_screen,
   time_map.zero();
   time_rho.init(*ucl_device);
   time_rho.zero();
+  time_interp.init(*ucl_device);
+  time_interp.zero();
 
   pos_tex.bind_float(atom->dev_x,4);
   q_tex.bind_float(atom->dev_q,1);
@@ -131,9 +133,22 @@ numtyp * PPPMGPUMemoryT::init(const int nlocal, const int nall, FILE *_screen,
   _npts_yx=_npts_x*_npts_y;
   success=success && (d_brick.alloc(_npts_x*_npts_y*_npts_z,*ucl_device)==
                       UCL_SUCCESS);
+  success=success && (d_y_brick.alloc(_npts_x*_npts_y*_npts_z,*ucl_device,
+                                      UCL_READ_ONLY)==UCL_SUCCESS);
+  success=success && (d_z_brick.alloc(_npts_x*_npts_y*_npts_z,*ucl_device,
+                                      UCL_READ_ONLY)==UCL_SUCCESS);
   success=success && (h_brick.alloc(_npts_x*_npts_y*_npts_z,*ucl_device)==
                       UCL_SUCCESS);
-  _max_bytes+=d_brick.row_bytes();
+  success=success && (h_x_brick.alloc(_npts_x*_npts_y*_npts_z,*ucl_device)==
+                      UCL_SUCCESS);
+  success=success && (h_y_brick.alloc(_npts_x*_npts_y*_npts_z,*ucl_device)==
+                      UCL_SUCCESS);
+  success=success && (h_z_brick.alloc(_npts_x*_npts_y*_npts_z,*ucl_device)==
+                      UCL_SUCCESS);
+  *vdx_brick=h_x_brick.begin();
+  *vdy_brick=h_y_brick.begin();
+  *vdz_brick=h_z_brick.begin();
+  _max_bytes+=d_brick.row_bytes()+d_y_brick.row_bytes()+d_z_brick.row_bytes();
 
   // Allocate vector with count of atoms assigned to each grid point
   _nlocal_x=_npts_x+_nlower-_nupper;
@@ -156,6 +171,8 @@ numtyp * PPPMGPUMemoryT::init(const int nlocal, const int nall, FILE *_screen,
                                          UCL_SUCCESS);
   d_error_flag.zero();
   _max_bytes+=1;
+
+success=success && (force_temp.alloc(nall*4*2,*ucl_device)==UCL_SUCCESS);
   
   return h_brick.begin();
 }
@@ -167,19 +184,25 @@ void PPPMGPUMemoryT::clear() {
   _allocated=false;
   
   d_brick.clear();
+  d_y_brick.clear();
+  d_z_brick.clear();
   h_brick.clear();
+  h_x_brick.clear();
+  h_y_brick.clear();
+  h_z_brick.clear();
   d_brick_counts.clear();
   h_error_flag.clear();
   d_error_flag.clear();
   d_brick_atoms.clear();
   
   acc_timers();
-  device->output_kspace_times(time_in,time_out,time_map,time_rho,*ans,
-                              _max_bytes+_max_an_bytes,screen);
+  device->output_kspace_times(time_in,time_out,time_map,time_rho,time_interp,
+                              *ans,_max_bytes+_max_an_bytes,screen);
 
   if (_compiled) {
     k_particle_map.clear();
     k_make_rho.clear();
+    k_interp.clear();
     delete pppm_program;
     _compiled=false;
   }
@@ -188,6 +211,7 @@ void PPPMGPUMemoryT::clear() {
   time_out.clear();
   time_map.clear();
   time_rho.clear();
+  time_interp.clear();
 
   device->clear();
 }
@@ -293,9 +317,13 @@ int PPPMGPUMemoryT::spread(const int ago, const int nlocal, const int nall,
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
 void PPPMGPUMemoryT::interp(const numtyp qqrd2e_scale) {
-/*
-  time_map.start();
-
+  time_in.start();
+  ucl_copy(d_brick,h_x_brick,true);
+  ucl_copy(d_y_brick,h_y_brick,true);
+  ucl_copy(d_z_brick,h_z_brick,true);
+  time_in.stop();
+  
+  time_interp.start();
   // Compute the block size and grid size to keep all cores busy
   int BX=this->block_size();
   int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/BX));
@@ -304,10 +332,16 @@ void PPPMGPUMemoryT::interp(const numtyp qqrd2e_scale) {
   
   k_interp.set_size(GX,BX);
   k_interp.run(&atom->dev_x.begin(), &atom->dev_q.begin(), &ainum, 
-               &x_brick.begin(), &y_brick.begin(), &z_brick.begin(),
+               &d_brick.begin(), &d_y_brick.begin(), &d_z_brick.begin(),
                &d_rho_coeff.begin(), &_npts_x, &_npts_yx, &_brick_x, &_brick_y, 
                &_brick_z, &_delxinv, &_delyinv, &_delzinv, &_order, &_order2,
-               &qqrd2e_scale, ans->dev_ans.begin());
+               &qqrd2e_scale, &ans->dev_ans.begin());
+  time_interp.stop();
+
+  ucl_copy(force_temp,ans->dev_ans,ans->dev_ans.numel(),false);
+/*
+  time_map.start();
+
   time_map.stop();
 
 
@@ -336,6 +370,7 @@ void PPPMGPUMemoryT::compile_kernels(UCL_Device &dev) {
   pppm_program->load_string(pppm_gpu_kernel,flags.c_str());
   k_particle_map.set_function(*pppm_program,"particle_map");
   k_make_rho.set_function(*pppm_program,"make_rho");
+  k_interp.set_function(*pppm_program,"interp");
   pos_tex.get_texture(*pppm_program,"pos_tex");
   q_tex.get_texture(*pppm_program,"q_tex");
 

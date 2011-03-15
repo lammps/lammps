@@ -247,16 +247,16 @@ __kernel void make_rho(__global numtyp4 *x_, __global numtyp *q_,
   }
 }
 
-__kernel void field_force(__global numtyp4 *x_, __global numtyp *q_,
-                          const int nlocal, __global numtyp *x_brick,
-                          __global numtyp *y_brick, __global numtyp *z_brick,
-                          __global numtyp *_rho_coeff, const int npts_x,
-                          const int npts_yx, const numtyp b_lo_x,
-                          const numtyp b_lo_y, const numtyp b_lo_z,
-                          const numtyp delxinv,  const numtyp delyinv,
-                          const numtyp delzinv, const int order,
-                          const int order2, const numtyp qqrd2e_scale, 
-                          __global acctyp4 *ans) {
+__kernel void interp(__global numtyp4 *x_, __global numtyp *q_,
+                     const int nlocal, __global numtyp *x_brick,
+                     __global numtyp *y_brick, __global numtyp *z_brick,
+                     __global numtyp *_rho_coeff, const int npts_x,
+                     const int npts_yx, const numtyp b_lo_x,
+                     const numtyp b_lo_y, const numtyp b_lo_z,
+                     const numtyp delxinv,  const numtyp delyinv,
+                     const numtyp delzinv, const int order,
+                     const int order2, const numtyp qqrd2e_scale, 
+                     __global acctyp4 *ans) {
   __local numtyp rho_coeff[MAX_STENCIL*MAX_STENCIL];
   __local numtyp rho1d_0[MAX_STENCIL][BLOCK_1D];
   __local numtyp rho1d_1[MAX_STENCIL][BLOCK_1D];

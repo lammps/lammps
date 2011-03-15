@@ -320,18 +320,7 @@ void PPPMGPUMemoryT::interp(const numtyp qqrd2e_scale) {
                &_order, &_order2, &qqrd2e_scale, &ans->dev_ans.begin());
   time_interp.stop();
 
-  ucl_copy(force_temp,ans->dev_ans,ans->dev_ans.numel(),false);
-/*
-  time_map.start();
-
-  time_map.stop();
-
-
-  time_out.start();
-  ucl_copy(h_brick,d_brick,true);
-  ucl_copy(h_error_flag,d_error_flag,false);
-  time_out.stop();
-*/  
+ucl_copy(force_temp,ans->dev_ans,ans->dev_ans.numel(),false);
 }
 
 

@@ -1356,12 +1356,14 @@ void PPPMGPU::fillbrick()
   // unpack and sum recv data into my ghost cells
 
   n = 0;
+  int x_lo = nxlo_in * 4;
+  int x_hi = nxhi_in * 4 + 1;
   for (iz = nzhi_in-nzhi_ghost+1; iz <= nzhi_in; iz++)
     for (iy = nylo_in; iy <= nyhi_in; iy++)
-      for (ix = nxlo_in; ix <= nxhi_in; ix++) {
-	buf1[n++] = vd_brick[iz][iy][ix*4];
-	buf1[n++] = vd_brick[iz][iy][ix*4+1];
-	buf1[n++] = vd_brick[iz][iy][ix*4+2];
+      for (ix = x_lo; ix < x_hi; ix+=4) {
+	buf1[n++] = vd_brick[iz][iy][ix];
+	buf1[n++] = vd_brick[iz][iy][ix+1];
+	buf1[n++] = vd_brick[iz][iy][ix+2];
       }
 
   if (comm->procneigh[2][1] == me)
@@ -1375,10 +1377,10 @@ void PPPMGPU::fillbrick()
   n = 0;
   for (iz = nzlo_out; iz < nzlo_in; iz++)
     for (iy = nylo_in; iy <= nyhi_in; iy++)
-      for (ix = nxlo_in; ix <= nxhi_in; ix++) {
-	vd_brick[iz][iy][ix*4] = buf2[n++];
-	vd_brick[iz][iy][ix*4+1] = buf2[n++];
-	vd_brick[iz][iy][ix*4+2] = buf2[n++];
+      for (ix = x_lo; ix < x_hi; ix+=4) {
+	vd_brick[iz][iy][ix] = buf2[n++];
+	vd_brick[iz][iy][ix+1] = buf2[n++];
+	vd_brick[iz][iy][ix+2] = buf2[n++];
       }
 
   // pack my real cells for -z processor
@@ -1388,10 +1390,10 @@ void PPPMGPU::fillbrick()
   n = 0;
   for (iz = nzlo_in; iz < nzlo_in+nzlo_ghost; iz++)
     for (iy = nylo_in; iy <= nyhi_in; iy++)
-      for (ix = nxlo_in; ix <= nxhi_in; ix++) {
-	buf1[n++] = vd_brick[iz][iy][ix*4];
-	buf1[n++] = vd_brick[iz][iy][ix*4+1];
-	buf1[n++] = vd_brick[iz][iy][ix*4+2];
+      for (ix = x_lo; ix < x_hi; ix+=4) {
+	buf1[n++] = vd_brick[iz][iy][ix];
+	buf1[n++] = vd_brick[iz][iy][ix+1];
+	buf1[n++] = vd_brick[iz][iy][ix+2];
       }
 
   if (comm->procneigh[2][0] == me)
@@ -1405,10 +1407,10 @@ void PPPMGPU::fillbrick()
   n = 0;
   for (iz = nzhi_in+1; iz <= nzhi_out; iz++)
     for (iy = nylo_in; iy <= nyhi_in; iy++)
-      for (ix = nxlo_in; ix <= nxhi_in; ix++) {
-	vd_brick[iz][iy][ix*4] = buf2[n++];
-	vd_brick[iz][iy][ix*4+1] = buf2[n++];
-	vd_brick[iz][iy][ix*4+2] = buf2[n++];
+      for (ix = x_lo; ix < x_hi; ix+=4) {
+	vd_brick[iz][iy][ix] = buf2[n++];
+	vd_brick[iz][iy][ix+1] = buf2[n++];
+	vd_brick[iz][iy][ix+2] = buf2[n++];
       }
 
   // pack my real cells for +y processor
@@ -1418,10 +1420,10 @@ void PPPMGPU::fillbrick()
   n = 0;
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nyhi_in-nyhi_ghost+1; iy <= nyhi_in; iy++)
-      for (ix = nxlo_in; ix <= nxhi_in; ix++) {
-	buf1[n++] = vd_brick[iz][iy][ix*4];
-	buf1[n++] = vd_brick[iz][iy][ix*4+1];
-	buf1[n++] = vd_brick[iz][iy][ix*4+2];
+      for (ix = x_lo; ix < x_hi; ix+=4) {
+	buf1[n++] = vd_brick[iz][iy][ix];
+	buf1[n++] = vd_brick[iz][iy][ix+1];
+	buf1[n++] = vd_brick[iz][iy][ix+2];
       }
 
   if (comm->procneigh[1][1] == me)
@@ -1435,10 +1437,10 @@ void PPPMGPU::fillbrick()
   n = 0;
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nylo_out; iy < nylo_in; iy++)
-      for (ix = nxlo_in; ix <= nxhi_in; ix++) {
-	vd_brick[iz][iy][ix*4] = buf2[n++];
-	vd_brick[iz][iy][ix*4+1] = buf2[n++];
-	vd_brick[iz][iy][ix*4+2] = buf2[n++];
+      for (ix = x_lo; ix < x_hi; ix+=4) {
+	vd_brick[iz][iy][ix] = buf2[n++];
+	vd_brick[iz][iy][ix+1] = buf2[n++];
+	vd_brick[iz][iy][ix+2] = buf2[n++];
       }
 
   // pack my real cells for -y processor
@@ -1448,10 +1450,10 @@ void PPPMGPU::fillbrick()
   n = 0;
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nylo_in; iy < nylo_in+nylo_ghost; iy++)
-      for (ix = nxlo_in; ix <= nxhi_in; ix++) {
-	buf1[n++] = vd_brick[iz][iy][ix*4];
-	buf1[n++] = vd_brick[iz][iy][ix*4+1];
-	buf1[n++] = vd_brick[iz][iy][ix*4+2];
+      for (ix = x_lo; ix < x_hi; ix+=4) {
+	buf1[n++] = vd_brick[iz][iy][ix];
+	buf1[n++] = vd_brick[iz][iy][ix+1];
+	buf1[n++] = vd_brick[iz][iy][ix+2];
       }
 
   if (comm->procneigh[1][0] == me)
@@ -1465,10 +1467,10 @@ void PPPMGPU::fillbrick()
   n = 0;
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nyhi_in+1; iy <= nyhi_out; iy++)
-      for (ix = nxlo_in; ix <= nxhi_in; ix++) {
-	vd_brick[iz][iy][ix*4] = buf2[n++];
-	vd_brick[iz][iy][ix*4+1] = buf2[n++];
-	vd_brick[iz][iy][ix*4+2] = buf2[n++];
+      for (ix = x_lo; ix < x_hi; ix+=4) {
+	vd_brick[iz][iy][ix] = buf2[n++];
+	vd_brick[iz][iy][ix+1] = buf2[n++];
+	vd_brick[iz][iy][ix+2] = buf2[n++];
       }
 
   // pack my real cells for +x processor
@@ -1476,12 +1478,13 @@ void PPPMGPU::fillbrick()
   // unpack and sum recv data into my ghost cells
 
   n = 0;
+  x_lo = (nxhi_in-nxhi_ghost+1) * 4;
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nylo_out; iy <= nyhi_out; iy++)
-      for (ix = nxhi_in-nxhi_ghost+1; ix <= nxhi_in; ix++) {
-	buf1[n++] = vd_brick[iz][iy][ix*4];
-	buf1[n++] = vd_brick[iz][iy][ix*4+1];
-	buf1[n++] = vd_brick[iz][iy][ix*4+2];
+      for (ix = x_lo; ix < x_hi; ix+=4) {
+	buf1[n++] = vd_brick[iz][iy][ix];
+	buf1[n++] = vd_brick[iz][iy][ix+1];
+	buf1[n++] = vd_brick[iz][iy][ix+2];
       }
 
   if (comm->procneigh[0][1] == me)
@@ -1493,12 +1496,14 @@ void PPPMGPU::fillbrick()
   }
 
   n = 0;
+  x_lo = nxlo_out * 4;
+  x_hi = nxlo_in * 4;
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nylo_out; iy <= nyhi_out; iy++)
-      for (ix = nxlo_out; ix < nxlo_in; ix++) {
-	vd_brick[iz][iy][ix*4] = buf2[n++];
-	vd_brick[iz][iy][ix*4+1] = buf2[n++];
-	vd_brick[iz][iy][ix*4+2] = buf2[n++];
+      for (ix = x_lo; ix < x_hi; ix+=4) {
+	vd_brick[iz][iy][ix] = buf2[n++];
+	vd_brick[iz][iy][ix+1] = buf2[n++];
+	vd_brick[iz][iy][ix+2] = buf2[n++];
       }
 
   // pack my real cells for -x processor
@@ -1506,12 +1511,14 @@ void PPPMGPU::fillbrick()
   // unpack and sum recv data into my ghost cells
 
   n = 0;
+  x_lo = x_hi;
+  x_hi = (nxlo_in+nxlo_ghost) * 4;
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nylo_out; iy <= nyhi_out; iy++)
-      for (ix = nxlo_in; ix < nxlo_in+nxlo_ghost; ix++) {
-	buf1[n++] = vd_brick[iz][iy][ix*4];
-	buf1[n++] = vd_brick[iz][iy][ix*4+1];
-	buf1[n++] = vd_brick[iz][iy][ix*4+2];
+      for (ix = x_lo; ix < x_hi; ix+=4) {
+	buf1[n++] = vd_brick[iz][iy][ix];
+	buf1[n++] = vd_brick[iz][iy][ix+1];
+	buf1[n++] = vd_brick[iz][iy][ix+2];
       }
 
   if (comm->procneigh[0][0] == me)
@@ -1523,12 +1530,14 @@ void PPPMGPU::fillbrick()
   }
 
   n = 0;
+  x_lo = (nxhi_in + 1) * 4;
+  x_hi = nxhi_out * 4 + 1;
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nylo_out; iy <= nyhi_out; iy++)
-      for (ix = nxhi_in+1; ix <= nxhi_out; ix++) {
-	vd_brick[iz][iy][ix*4] = buf2[n++];
-	vd_brick[iz][iy][ix*4+1] = buf2[n++];
-	vd_brick[iz][iy][ix*4+2] = buf2[n++];
+      for (ix = x_lo; ix < x_hi; ix+=4) {
+	vd_brick[iz][iy][ix] = buf2[n++];
+	vd_brick[iz][iy][ix+1] = buf2[n++];
+	vd_brick[iz][iy][ix+2] = buf2[n++];
       }
 }
 
@@ -1695,10 +1704,11 @@ void PPPMGPU::poisson(int eflag, int vflag)
   fft2->compute(work2,work2,-1);
 
   n = 0;
+  int x_hi = nxhi_in * 4 + 3;
   for (k = nzlo_in; k <= nzhi_in; k++)
     for (j = nylo_in; j <= nyhi_in; j++)
-      for (i = nxlo_in; i <= nxhi_in; i++) {
-	vd_brick[k][j][i*4] = work2[n];
+      for (i = nxlo_in * 4; i < x_hi; i+=4) {
+	vd_brick[k][j][i] = work2[n];
 	n += 2;
       }
 
@@ -1718,8 +1728,8 @@ void PPPMGPU::poisson(int eflag, int vflag)
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
     for (j = nylo_in; j <= nyhi_in; j++)
-      for (i = nxlo_in; i <= nxhi_in; i++) {
-	vd_brick[k][j][i*4+1] = work2[n];
+      for (i = nxlo_in * 4 + 1; i < x_hi; i+=4) {
+	vd_brick[k][j][i] = work2[n];
 	n += 2;
       }
 
@@ -1739,8 +1749,8 @@ void PPPMGPU::poisson(int eflag, int vflag)
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
     for (j = nylo_in; j <= nyhi_in; j++)
-      for (i = nxlo_in; i <= nxhi_in; i++) {
-	vd_brick[k][j][i*4+2] = work2[n];
+      for (i = nxlo_in * 4 + 2; i < x_hi; i+=4) {
+	vd_brick[k][j][i] = work2[n];
 	n += 2;
       }
 }

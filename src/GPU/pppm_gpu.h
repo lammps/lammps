@@ -58,7 +58,7 @@ class PPPMGPU : public KSpace {
   int ngrid,nfft,nbuf,nfft_both;
 
   double ***density_brick;
-  numtyp ***vdx_brick,***vdy_brick,***vdz_brick;
+  numtyp ***vd_brick;
   double *greensfn;
   double **vg;
   double *fkx,*fky,*fkz;

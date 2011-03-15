@@ -41,8 +41,7 @@ numtyp* pppm_gpu_init(const int nlocal, const int nall, FILE *screen,
 		      const int order, const int nxlo_out, const int nylo_out,
 		      const int nzlo_out, const int nxhi_out,
 		      const int nyhi_out, const int nzhi_out,
-		      double **rho_coeff, numtyp **_vdx_brick,
-		      numtyp **_vdy_brick, numtyp **_vdz_brick,
+		      double **rho_coeff, numtyp **_vd_brick,
 		      bool &success);
 void pppm_gpu_clear();
 int pppm_gpu_spread(const int ago, const int nlocal, const int nall,
@@ -84,7 +83,7 @@ PPPMGPU::PPPMGPU(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
   MPI_Comm_size(world,&nprocs);
 
   density_brick = NULL;
-  vdx_brick = vdy_brick = vdz_brick = NULL;
+  vd_brick = NULL;
   density_fft = NULL;
   greensfn = NULL;
   work1 = work2 = NULL;
@@ -513,21 +512,14 @@ void PPPMGPU::init()
     error->all("Cannot use order greater than 8 with pppm/gpu.");
 
   bool success;
-  numtyp *data_x, *data_y, *data_z;
+  numtyp *data;
   host_brick = pppm_gpu_init(atom->nlocal, atom->nlocal+atom->nghost, screen,
                              order, nxlo_out, nylo_out, nzlo_out, nxhi_out,
-                             nyhi_out, nzhi_out, rho_coeff, &data_x, &data_y,
-			     &data_z, success);
+                             nyhi_out, nzhi_out, rho_coeff, &data, success);
 
-  vdx_brick =
+  vd_brick =
     create_3d_offset(nzlo_out,nzhi_out,nylo_out,nyhi_out,
-		     nxlo_out,nxhi_out,"pppm:vdx_brick",data_x);
-  vdy_brick = 
-    create_3d_offset(nzlo_out,nzhi_out,nylo_out,nyhi_out,
-		     nxlo_out,nxhi_out,"pppm:vdy_brick",data_y);
-  vdz_brick = 
-    create_3d_offset(nzlo_out,nzhi_out,nylo_out,nyhi_out,
-		     nxlo_out,nxhi_out,"pppm:vdz_brick",data_z);
+		     nxlo_out,nxhi_out,"pppm:vd_brick",data);
 
   if (!success)
     error->one("Insufficient memory on accelerator (or no fix gpu).\n"); 
@@ -882,9 +874,7 @@ void PPPMGPU::allocate()
 void PPPMGPU::deallocate()
 {
   memory->destroy_3d_double_array(density_brick,nzlo_out,nylo_out,nxlo_out);
-  destroy_3d_offset(vdx_brick,nzlo_out,nylo_out);
-  destroy_3d_offset(vdy_brick,nzlo_out,nylo_out);
-  destroy_3d_offset(vdz_brick,nzlo_out,nylo_out);
+  destroy_3d_offset(vd_brick,nzlo_out,nylo_out);
 
   memory->sfree(density_fft);
   memory->sfree(greensfn);
@@ -1369,9 +1359,9 @@ void PPPMGPU::fillbrick()
   for (iz = nzhi_in-nzhi_ghost+1; iz <= nzhi_in; iz++)
     for (iy = nylo_in; iy <= nyhi_in; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++) {
-	buf1[n++] = vdx_brick[iz][iy][ix];
-	buf1[n++] = vdy_brick[iz][iy][ix];
-	buf1[n++] = vdz_brick[iz][iy][ix];
+	buf1[n++] = vd_brick[iz][iy][ix*4];
+	buf1[n++] = vd_brick[iz][iy][ix*4+1];
+	buf1[n++] = vd_brick[iz][iy][ix*4+2];
       }
 
   if (comm->procneigh[2][1] == me)
@@ -1386,9 +1376,9 @@ void PPPMGPU::fillbrick()
   for (iz = nzlo_out; iz < nzlo_in; iz++)
     for (iy = nylo_in; iy <= nyhi_in; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++) {
-	vdx_brick[iz][iy][ix] = buf2[n++];
-	vdy_brick[iz][iy][ix] = buf2[n++];
-	vdz_brick[iz][iy][ix] = buf2[n++];
+	vd_brick[iz][iy][ix*4] = buf2[n++];
+	vd_brick[iz][iy][ix*4+1] = buf2[n++];
+	vd_brick[iz][iy][ix*4+2] = buf2[n++];
       }
 
   // pack my real cells for -z processor
@@ -1399,9 +1389,9 @@ void PPPMGPU::fillbrick()
   for (iz = nzlo_in; iz < nzlo_in+nzlo_ghost; iz++)
     for (iy = nylo_in; iy <= nyhi_in; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++) {
-	buf1[n++] = vdx_brick[iz][iy][ix];
-	buf1[n++] = vdy_brick[iz][iy][ix];
-	buf1[n++] = vdz_brick[iz][iy][ix];
+	buf1[n++] = vd_brick[iz][iy][ix*4];
+	buf1[n++] = vd_brick[iz][iy][ix*4+1];
+	buf1[n++] = vd_brick[iz][iy][ix*4+2];
       }
 
   if (comm->procneigh[2][0] == me)
@@ -1416,9 +1406,9 @@ void PPPMGPU::fillbrick()
   for (iz = nzhi_in+1; iz <= nzhi_out; iz++)
     for (iy = nylo_in; iy <= nyhi_in; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++) {
-	vdx_brick[iz][iy][ix] = buf2[n++];
-	vdy_brick[iz][iy][ix] = buf2[n++];
-	vdz_brick[iz][iy][ix] = buf2[n++];
+	vd_brick[iz][iy][ix*4] = buf2[n++];
+	vd_brick[iz][iy][ix*4+1] = buf2[n++];
+	vd_brick[iz][iy][ix*4+2] = buf2[n++];
       }
 
   // pack my real cells for +y processor
@@ -1429,9 +1419,9 @@ void PPPMGPU::fillbrick()
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nyhi_in-nyhi_ghost+1; iy <= nyhi_in; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++) {
-	buf1[n++] = vdx_brick[iz][iy][ix];
-	buf1[n++] = vdy_brick[iz][iy][ix];
-	buf1[n++] = vdz_brick[iz][iy][ix];
+	buf1[n++] = vd_brick[iz][iy][ix*4];
+	buf1[n++] = vd_brick[iz][iy][ix*4+1];
+	buf1[n++] = vd_brick[iz][iy][ix*4+2];
       }
 
   if (comm->procneigh[1][1] == me)
@@ -1446,9 +1436,9 @@ void PPPMGPU::fillbrick()
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nylo_out; iy < nylo_in; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++) {
-	vdx_brick[iz][iy][ix] = buf2[n++];
-	vdy_brick[iz][iy][ix] = buf2[n++];
-	vdz_brick[iz][iy][ix] = buf2[n++];
+	vd_brick[iz][iy][ix*4] = buf2[n++];
+	vd_brick[iz][iy][ix*4+1] = buf2[n++];
+	vd_brick[iz][iy][ix*4+2] = buf2[n++];
       }
 
   // pack my real cells for -y processor
@@ -1459,9 +1449,9 @@ void PPPMGPU::fillbrick()
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nylo_in; iy < nylo_in+nylo_ghost; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++) {
-	buf1[n++] = vdx_brick[iz][iy][ix];
-	buf1[n++] = vdy_brick[iz][iy][ix];
-	buf1[n++] = vdz_brick[iz][iy][ix];
+	buf1[n++] = vd_brick[iz][iy][ix*4];
+	buf1[n++] = vd_brick[iz][iy][ix*4+1];
+	buf1[n++] = vd_brick[iz][iy][ix*4+2];
       }
 
   if (comm->procneigh[1][0] == me)
@@ -1476,9 +1466,9 @@ void PPPMGPU::fillbrick()
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nyhi_in+1; iy <= nyhi_out; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++) {
-	vdx_brick[iz][iy][ix] = buf2[n++];
-	vdy_brick[iz][iy][ix] = buf2[n++];
-	vdz_brick[iz][iy][ix] = buf2[n++];
+	vd_brick[iz][iy][ix*4] = buf2[n++];
+	vd_brick[iz][iy][ix*4+1] = buf2[n++];
+	vd_brick[iz][iy][ix*4+2] = buf2[n++];
       }
 
   // pack my real cells for +x processor
@@ -1489,9 +1479,9 @@ void PPPMGPU::fillbrick()
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nylo_out; iy <= nyhi_out; iy++)
       for (ix = nxhi_in-nxhi_ghost+1; ix <= nxhi_in; ix++) {
-	buf1[n++] = vdx_brick[iz][iy][ix];
-	buf1[n++] = vdy_brick[iz][iy][ix];
-	buf1[n++] = vdz_brick[iz][iy][ix];
+	buf1[n++] = vd_brick[iz][iy][ix*4];
+	buf1[n++] = vd_brick[iz][iy][ix*4+1];
+	buf1[n++] = vd_brick[iz][iy][ix*4+2];
       }
 
   if (comm->procneigh[0][1] == me)
@@ -1506,9 +1496,9 @@ void PPPMGPU::fillbrick()
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nylo_out; iy <= nyhi_out; iy++)
       for (ix = nxlo_out; ix < nxlo_in; ix++) {
-	vdx_brick[iz][iy][ix] = buf2[n++];
-	vdy_brick[iz][iy][ix] = buf2[n++];
-	vdz_brick[iz][iy][ix] = buf2[n++];
+	vd_brick[iz][iy][ix*4] = buf2[n++];
+	vd_brick[iz][iy][ix*4+1] = buf2[n++];
+	vd_brick[iz][iy][ix*4+2] = buf2[n++];
       }
 
   // pack my real cells for -x processor
@@ -1519,9 +1509,9 @@ void PPPMGPU::fillbrick()
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nylo_out; iy <= nyhi_out; iy++)
       for (ix = nxlo_in; ix < nxlo_in+nxlo_ghost; ix++) {
-	buf1[n++] = vdx_brick[iz][iy][ix];
-	buf1[n++] = vdy_brick[iz][iy][ix];
-	buf1[n++] = vdz_brick[iz][iy][ix];
+	buf1[n++] = vd_brick[iz][iy][ix*4];
+	buf1[n++] = vd_brick[iz][iy][ix*4+1];
+	buf1[n++] = vd_brick[iz][iy][ix*4+2];
       }
 
   if (comm->procneigh[0][0] == me)
@@ -1536,9 +1526,9 @@ void PPPMGPU::fillbrick()
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nylo_out; iy <= nyhi_out; iy++)
       for (ix = nxhi_in+1; ix <= nxhi_out; ix++) {
-	vdx_brick[iz][iy][ix] = buf2[n++];
-	vdy_brick[iz][iy][ix] = buf2[n++];
-	vdz_brick[iz][iy][ix] = buf2[n++];
+	vd_brick[iz][iy][ix*4] = buf2[n++];
+	vd_brick[iz][iy][ix*4+1] = buf2[n++];
+	vd_brick[iz][iy][ix*4+2] = buf2[n++];
       }
 }
 
@@ -1708,7 +1698,7 @@ void PPPMGPU::poisson(int eflag, int vflag)
   for (k = nzlo_in; k <= nzhi_in; k++)
     for (j = nylo_in; j <= nyhi_in; j++)
       for (i = nxlo_in; i <= nxhi_in; i++) {
-	vdx_brick[k][j][i] = work2[n];
+	vd_brick[k][j][i*4] = work2[n];
 	n += 2;
       }
 
@@ -1729,7 +1719,7 @@ void PPPMGPU::poisson(int eflag, int vflag)
   for (k = nzlo_in; k <= nzhi_in; k++)
     for (j = nylo_in; j <= nyhi_in; j++)
       for (i = nxlo_in; i <= nxhi_in; i++) {
-	vdy_brick[k][j][i] = work2[n];
+	vd_brick[k][j][i*4+1] = work2[n];
 	n += 2;
       }
 
@@ -1750,7 +1740,7 @@ void PPPMGPU::poisson(int eflag, int vflag)
   for (k = nzlo_in; k <= nzhi_in; k++)
     for (j = nylo_in; j <= nyhi_in; j++)
       for (i = nxlo_in; i <= nxhi_in; i++) {
-	vdz_brick[k][j][i] = work2[n];
+	vd_brick[k][j][i*4+2] = work2[n];
 	n += 2;
       }
 }
@@ -1802,9 +1792,9 @@ double max_error=0;
 	for (l = nlower; l <= nupper; l++) {
 	  mx = l+nx;
 	  x0 = y0*rho1d[0][l];
-	  ek[0] -= x0*vdx_brick[mz][my][mx];;
-	  ek[1] -= x0*vdy_brick[mz][my][mx];;
-	  ek[2] -= x0*vdz_brick[mz][my][mx];;
+	  ek[0] -= x0*vd_brick[mz][my][mx*4];;
+	  ek[1] -= x0*vd_brick[mz][my][mx*4+1];;
+	  ek[2] -= x0*vd_brick[mz][my][mx*4+2];;
 	}
       }
     }
@@ -2043,11 +2033,11 @@ numtyp ***PPPMGPU::create_3d_offset(int n1lo, int n1hi, int n2lo, int n2hi,
     array[i] = &plane[i*n2];
     for (j = 0; j < n2; j++) {
       plane[i*n2+j] = &data[n];
-      n += n3;
+      n += n3*4;
     }
   }
 
-  for (i = 0; i < n1*n2; i++) array[0][i] -= n3lo;
+  for (i = 0; i < n1*n2; i++) array[0][i] -= n3lo*4;
   for (i = 0; i < n1; i++) array[i] -= n2lo;
   return array-n1lo;
 }

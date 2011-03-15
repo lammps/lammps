@@ -63,8 +63,7 @@ numtyp * PPPMGPUMemoryT::init(const int nlocal, const int nall, FILE *_screen,
                               const int nylo_out, const int nzlo_out,
                               const int nxhi_out, const int nyhi_out,
                               const int nzhi_out, double **rho_coeff,
-                              numtyp **vdx_brick, numtyp **vdy_brick,
-                              numtyp **vdz_brick, bool &success) {
+                              numtyp **vd_brick, bool &success) {
   clear();
   
   _max_bytes=10;
@@ -131,24 +130,14 @@ numtyp * PPPMGPUMemoryT::init(const int nlocal, const int nall, FILE *_screen,
   _npts_y=nyhi_out-nylo_out+1;
   _npts_z=nzhi_out-nzlo_out+1;
   _npts_yx=_npts_x*_npts_y;
-  success=success && (d_brick.alloc(_npts_x*_npts_y*_npts_z,*ucl_device)==
+  success=success && (d_brick.alloc(_npts_x*_npts_y*_npts_z*4,*ucl_device)==
                       UCL_SUCCESS);
-  success=success && (d_y_brick.alloc(_npts_x*_npts_y*_npts_z,*ucl_device,
-                                      UCL_READ_ONLY)==UCL_SUCCESS);
-  success=success && (d_z_brick.alloc(_npts_x*_npts_y*_npts_z,*ucl_device,
-                                      UCL_READ_ONLY)==UCL_SUCCESS);
   success=success && (h_brick.alloc(_npts_x*_npts_y*_npts_z,*ucl_device)==
                       UCL_SUCCESS);
-  success=success && (h_x_brick.alloc(_npts_x*_npts_y*_npts_z,*ucl_device)==
+  success=success && (h_vd_brick.alloc(_npts_x*_npts_y*_npts_z*4,*ucl_device)==
                       UCL_SUCCESS);
-  success=success && (h_y_brick.alloc(_npts_x*_npts_y*_npts_z,*ucl_device)==
-                      UCL_SUCCESS);
-  success=success && (h_z_brick.alloc(_npts_x*_npts_y*_npts_z,*ucl_device)==
-                      UCL_SUCCESS);
-  *vdx_brick=h_x_brick.begin();
-  *vdy_brick=h_y_brick.begin();
-  *vdz_brick=h_z_brick.begin();
-  _max_bytes+=d_brick.row_bytes()+d_y_brick.row_bytes()+d_z_brick.row_bytes();
+  *vd_brick=h_vd_brick.begin();
+  _max_bytes+=d_brick.row_bytes();
 
   // Allocate vector with count of atoms assigned to each grid point
   _nlocal_x=_npts_x+_nlower-_nupper;
@@ -184,12 +173,8 @@ void PPPMGPUMemoryT::clear() {
   _allocated=false;
   
   d_brick.clear();
-  d_y_brick.clear();
-  d_z_brick.clear();
   h_brick.clear();
-  h_x_brick.clear();
-  h_y_brick.clear();
-  h_z_brick.clear();
+  h_vd_brick.clear();
   d_brick_counts.clear();
   h_error_flag.clear();
   d_error_flag.clear();
@@ -294,7 +279,7 @@ int PPPMGPUMemoryT::spread(const int ago, const int nlocal, const int nall,
   time_rho.stop();
 
   time_out.start();
-  ucl_copy(h_brick,d_brick,true);
+  ucl_copy(h_brick,d_brick,_npts_yx*_npts_z,true);
   ucl_copy(h_error_flag,d_error_flag,false);
   time_out.stop();
   
@@ -318,9 +303,7 @@ int PPPMGPUMemoryT::spread(const int ago, const int nlocal, const int nall,
 template <class numtyp, class acctyp>
 void PPPMGPUMemoryT::interp(const numtyp qqrd2e_scale) {
   time_in.start();
-  ucl_copy(d_brick,h_x_brick,true);
-  ucl_copy(d_y_brick,h_y_brick,true);
-  ucl_copy(d_z_brick,h_z_brick,true);
+  ucl_copy(d_brick,h_vd_brick,true);
   time_in.stop();
   
   time_interp.start();
@@ -332,10 +315,9 @@ void PPPMGPUMemoryT::interp(const numtyp qqrd2e_scale) {
   
   k_interp.set_size(GX,BX);
   k_interp.run(&atom->dev_x.begin(), &atom->dev_q.begin(), &ainum, 
-               &d_brick.begin(), &d_y_brick.begin(), &d_z_brick.begin(),
-               &d_rho_coeff.begin(), &_npts_x, &_npts_yx, &_brick_x, &_brick_y, 
-               &_brick_z, &_delxinv, &_delyinv, &_delzinv, &_order, &_order2,
-               &qqrd2e_scale, &ans->dev_ans.begin());
+               &d_brick.begin(), &d_rho_coeff.begin(), &_npts_x, &_npts_yx,
+               &_brick_x, &_brick_y, &_brick_z, &_delxinv, &_delyinv, &_delzinv,
+               &_order, &_order2, &qqrd2e_scale, &ans->dev_ans.begin());
   time_interp.stop();
 
   ucl_copy(force_temp,ans->dev_ans,ans->dev_ans.numel(),false);

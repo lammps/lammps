@@ -33,8 +33,7 @@ PRECISION * pppm_gpu_init(const int nlocal, const int nall, FILE *screen,
                           const int nylo_out, const int nzlo_out,
                           const int nxhi_out, const int nyhi_out,
                           const int nzhi_out, double **rho_coeff,
-                          PRECISION **vdx_brick, PRECISION **vdy_brick,
-                          PRECISION **vdz_brick, bool &success) {
+                          PRECISION **vd_brick, bool &success) {
   PPPMF.clear();
   int first_gpu=PPPMF.device->first_device();
   int last_gpu=PPPMF.device->last_device();
@@ -58,7 +57,7 @@ PRECISION * pppm_gpu_init(const int nlocal, const int nall, FILE *screen,
   if (world_me==0) {
     host_brick=PPPMF.init(nlocal,nall,screen,order,nxlo_out,nylo_out,
                                   nzlo_out,nxhi_out,nyhi_out,nzhi_out,rho_coeff,
-                                  vdx_brick, vdy_brick, vdz_brick, success);
+                                  vd_brick, success);
     if (!success)
       return host_brick;
   }
@@ -79,7 +78,7 @@ PRECISION * pppm_gpu_init(const int nlocal, const int nall, FILE *screen,
     if (gpu_rank==i && world_me!=0) {
       host_brick=PPPMF.init(nlocal,nall,screen,order,nxlo_out,nylo_out,
                             nzlo_out,nxhi_out,nyhi_out,nzhi_out,rho_coeff,
-                            vdx_brick, vdy_brick, vdz_brick, success);
+                            vd_brick, success);
       if (!success)
         return host_brick;
     }

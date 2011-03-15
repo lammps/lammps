@@ -38,8 +38,7 @@ class PPPMGPUMemory {
   numtyp * init(const int nlocal, const int nall, FILE *screen, const int order,
                 const int nxlo_out, const int nylo_out, const int nzlo_out,
                 const int nxhi_out, const int nyhi_out, const int nzhi_out,
-                double **rho_coeff, numtyp **vdx_brick, numtyp **vdy_brick,
-                numtyp **vdz_brick, bool &success);
+                double **rho_coeff, numtyp **vd_brick, bool &success);
 
   /// Check if there is enough storage for atom arrays and realloc if not
   /** \param success set to false if insufficient memory **/
@@ -116,8 +115,8 @@ class PPPMGPUMemory {
 
   // --------------------------- GRID DATA --------------------------
 
-  UCL_H_Vec<numtyp> h_brick, h_x_brick, h_y_brick, h_z_brick;
-  UCL_D_Vec<numtyp> d_brick, d_y_brick, d_z_brick;
+  UCL_H_Vec<numtyp> h_brick, h_vd_brick;
+  UCL_D_Vec<numtyp> d_brick;
   
   // Count of number of atoms assigned to each grid point
   UCL_D_Vec<int> d_brick_counts;

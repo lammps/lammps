@@ -248,8 +248,7 @@ __kernel void make_rho(__global numtyp4 *x_, __global numtyp *q_,
 }
 
 __kernel void interp(__global numtyp4 *x_, __global numtyp *q_,
-                     const int nlocal, __global numtyp *x_brick,
-                     __global numtyp *y_brick, __global numtyp *z_brick,
+                     const int nlocal, __global numtyp4 *brick,
                      __global numtyp *_rho_coeff, const int npts_x,
                      const int npts_yx, const numtyp b_lo_x,
                      const numtyp b_lo_y, const numtyp b_lo_z,
@@ -310,9 +309,10 @@ __kernel void interp(__global numtyp4 *x_, __global numtyp *q_,
         numtyp y0=z0*rho1d_1[m][tid];
 	      for (int l=0; l<order; l++) {
 	        numtyp x0=y0*rho1d_0[l][tid];
-	        ek.x-=x0*x_brick[my+l];
-	        ek.y-=x0*y_brick[my+l];
-	        ek.z-=x0*z_brick[my+l];
+	        numtyp4 el=brick[my+l];
+	        ek.x-=x0*el.x;
+	        ek.y-=x0*el.y;
+	        ek.z-=x0*el.z;
 	      }
         my+=npts_x;
       }

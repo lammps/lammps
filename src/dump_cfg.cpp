@@ -113,8 +113,7 @@ DumpCFG::~DumpCFG()
 
 void DumpCFG::init_style()
 {
-  if (multifile == 0)
-    error->all("Dump in CFG format requires one snapshot per file");
+  if (multifile == 0) error->all("Dump cfg requires one snapshot per file");
 
   if (typenames == NULL) {
     typenames = new char*[ntypes+1];

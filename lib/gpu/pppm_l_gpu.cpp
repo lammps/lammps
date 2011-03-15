@@ -111,5 +111,7 @@ double pppm_gpu_bytes() {
   return PPPMF.host_memory_usage();
 }
 
+/*
 PRECISION * pppm_gpu_force() { return PPPMF.force_temp.begin(); }
+*/
 

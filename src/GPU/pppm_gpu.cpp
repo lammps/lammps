@@ -51,7 +51,7 @@ int pppm_gpu_spread(const int ago, const int nlocal, const int nall,
 void pppm_gpu_interp(const numtyp qqrd2e_scale);
 double pppm_gpu_bytes();
 
-numtyp *pppm_gpu_force();
+//numtyp *pppm_gpu_force();
 
 using namespace LAMMPS_NS;
 
@@ -722,7 +722,7 @@ double t1=MPI_Wtime();
 time1+=MPI_Wtime()-t1;
 
 
-
+/*
 double max_error=0;
 int _npts_x=nxhi_out-nxlo_out+1;
 int _npts_y=nyhi_out-nylo_out+1;
@@ -753,9 +753,9 @@ for (int i=0; i<iend; i++) {
   }
 }
 std::cout << "Force relative error: " << max_error*100.0 << "%\n";
+*/
 
-
-
+double t3=MPI_Wtime();
   // all procs communicate density values from their ghost cells
   //   to fully sum contribution in their 3d bricks
   // remap from 3d decomposition to FFT decomposition
@@ -772,6 +772,7 @@ std::cout << "Force relative error: " << max_error*100.0 << "%\n";
   //   surrounding their 3d bricks
 
   fillbrick();
+time3+=MPI_Wtime()-t3;
 
   numtyp qqrd2e_scale=qqrd2e*scale;
   pppm_gpu_interp(qqrd2e_scale);
@@ -1778,8 +1779,8 @@ void PPPMGPU::fieldforce()
 
 
 
-numtyp *gpu_force=pppm_gpu_force();
-double max_error=0;
+//numtyp *gpu_force=pppm_gpu_force();
+//double max_error=0;
 
 
   for (i = 0; i < nlocal; i++) {
@@ -1809,18 +1810,18 @@ double max_error=0;
       }
     }
 
-for (int jj=0; jj<3; jj++) {
-  double f0= qqrd2e*scale * q[i]*ek[jj];
-  double error=0.0;
-  if (f0>1e-8)
-    error = fabs(((gpu_force[i*4+jj])-(f0))/(f0));
-  if (error>0.05)
-//    std::cout << "* ";
-    std::cout << i << " : CPU GPU: " << error << " " << f0 << " " 
-              << gpu_force[i*4+jj] << std::endl;
-  if (error>max_error)
-    max_error=error;
-}
+//for (int jj=0; jj<3; jj++) {
+//  double f0= qqrd2e*scale * q[i]*ek[jj];
+//  double error=0.0;
+//  if (f0>1e-8)
+//    error = fabs(((gpu_force[i*4+jj])-(f0))/(f0));
+//  if (error>0.05)
+////    std::cout << "* ";
+//    std::cout << i << " : CPU GPU: " << error << " " << f0 << " " 
+//              << gpu_force[i*4+jj] << std::endl;
+//  if (error>max_error)
+//    max_error=error;
+//}
 
     // convert E-field to force
 
@@ -1829,7 +1830,7 @@ for (int jj=0; jj<3; jj++) {
     f[i][2] += qqrd2e*scale * q[i]*ek[2];
   }
 
-std::cout << "Maximum relative error: " << max_error*100.0 << "%\n";
+//std::cout << "Maximum relative error: " << max_error*100.0 << "%\n";
 
 
 }

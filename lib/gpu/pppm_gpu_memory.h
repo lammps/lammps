@@ -141,7 +141,8 @@ class PPPMGPUMemory {
   // ------------------------ FORCE/ENERGY DATA -----------------------
 
   PairGPUAns<numtyp,acctyp> *ans;
-UCL_H_Vec<numtyp> force_temp;
+//UCL_H_Vec<numtyp> force_temp;
+
   // ------------------------- DEVICE KERNELS -------------------------
   UCL_Program *pppm_program;
   UCL_Kernel k_particle_map, k_make_rho, k_interp;

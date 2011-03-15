@@ -102,7 +102,7 @@ bool PairGPUDeviceT::init_device(MPI_Comm world, MPI_Comm replica,
   // set the device ID
   _procs_per_gpu=static_cast<int>(ceil(static_cast<double>(procs_per_node)/
                                        (last_gpu-first_gpu+1)));
-  int my_gpu=node_rank/_procs_per_gpu;
+  int my_gpu=node_rank/_procs_per_gpu+first_gpu;
   
   // Set up a per device communicator
   MPI_Comm_split(node_comm,my_gpu,0,&_comm_gpu);

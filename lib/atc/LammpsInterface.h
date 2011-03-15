@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include "mpi.h"
 #include "../../src/lammps.h"
+#include "../../src/lmptype.h"
 
 #include "ATC_TypeDefs.h"
 
@@ -258,7 +259,7 @@ class LammpsInterface {
   /*@{*/
   int  atomPE_create(void);
   void atomPE_init(void);
-  void atomPE_addstep(int step);
+  void atomPE_addstep(LAMMPS_NS::bigint step);
   double * atomPE_compute(void);
   /*@}*/
 

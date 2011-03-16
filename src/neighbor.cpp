@@ -1093,8 +1093,6 @@ void Neighbor::build()
     }
     if (boxcheck) {
       if (triclinic == 0) {
-	bboxlo = domain->boxlo;
-	bboxhi = domain->boxhi;
 	boxlo_hold[0] = bboxlo[0];
 	boxlo_hold[1] = bboxlo[1];
 	boxlo_hold[2] = bboxlo[2];

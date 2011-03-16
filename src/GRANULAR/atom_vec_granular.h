@@ -58,7 +58,7 @@ class AtomVecGranular : public AtomVec {
   int data_atom_hybrid(int, char **);
   void data_vel(int, char **);
   int data_vel_hybrid(int, char **);
-  double memory_usage();
+  bigint memory_usage();
 
  private:
   double PI;

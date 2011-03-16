@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "stdlib.h"
 #include "string.h"
 #include "ctype.h"
@@ -523,14 +524,14 @@ int Force::inumeric(char *str)
    memory usage of force classes
 ------------------------------------------------------------------------- */
 
-double Force::memory_usage()
+bigint Force::memory_usage()
 {
-  double bytes = 0.0;
-  if (pair) bytes += pair->memory_usage();
-  if (bond) bytes += bond->memory_usage();
-  if (angle) bytes += angle->memory_usage();
-  if (dihedral) bytes += dihedral->memory_usage();
-  if (improper) bytes += improper->memory_usage();
-  if (kspace) bytes += kspace->memory_usage();
+  bigint bytes = 0;
+  if (pair) bytes += static_cast<bigint> (pair->memory_usage());
+  if (bond) bytes += static_cast<bigint> (bond->memory_usage());
+  if (angle) bytes += static_cast<bigint> (angle->memory_usage());
+  if (dihedral) bytes += static_cast<bigint> (dihedral->memory_usage());
+  if (improper) bytes += static_cast<bigint> (improper->memory_usage());
+  if (kspace) bytes += static_cast<bigint> (kspace->memory_usage());
   return bytes;
 }

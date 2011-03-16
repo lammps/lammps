@@ -14,7 +14,6 @@
 #ifndef LMP_UNIVERSE_H
 #define LMP_UNIVERSE_H
 
-#include "mpi.h"
 #include "stdio.h"
 #include "pointers.h"
 

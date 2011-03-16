@@ -20,7 +20,6 @@ FixStyle(shake,FixShake)
 #ifndef LMP_FIX_SHAKE_H
 #define LMP_FIX_SHAKE_H
 
-#include "lmptype.h"
 #include "fix.h"
 
 namespace LAMMPS_NS {

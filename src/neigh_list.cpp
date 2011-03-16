@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "neigh_list.h"
 #include "atom.h"
 #include "comm.h"
@@ -136,7 +137,7 @@ void NeighList::stencil_allocate(int smax, int style)
     if (smax > maxstencil) {
       maxstencil = smax;
       memory->destroy(stencil);
-      memory->create(stencil,smax,"neighlist:stencil");
+      memory->create(stencil,maxstencil,"neighlist:stencil");
     }
 
   } else {
@@ -156,8 +157,10 @@ void NeighList::stencil_allocate(int smax, int style)
       for (i = 1; i <= n; i++) {
 	memory->destroy(stencil_multi[i]);
 	memory->destroy(distsq_multi[i]);
-	memory->create(stencil_multi[i],smax,"neighlist:stencil_multi");
-	memory->create(distsq_multi[i],smax,"neighlist:distsq_multi");
+	memory->create(stencil_multi[i],maxstencil_multi,
+		       "neighlist:stencil_multi");
+	memory->create(distsq_multi[i],maxstencil_multi,
+		       "neighlist:distsq_multi");
       }
     }
   }
@@ -247,22 +250,23 @@ void NeighList::print_attributes()
    if stencilflag = 0, maxstencil * maxstencil_multi will also be 0
 ------------------------------------------------------------------------- */
 
-double NeighList::memory_usage()
+bigint NeighList::memory_usage()
 {
-  double bytes = 0.0;
-  bytes += 2 * maxlocal * sizeof(int);
+  bigint bytes = 0;
+  bytes += memory->usage(ilist,maxlocal);
+  bytes += memory->usage(numneigh,maxlocal);
   bytes += maxlocal * sizeof(int *);
-  bytes += maxpage*pgsize * sizeof(int);
+  bytes += memory->usage(pages,maxpage,pgsize);
 
   if (dnum) {
     bytes += maxlocal * sizeof(double *);
-    bytes += dnum * maxpage*pgsize * sizeof(double);
+    bytes += memory->usage(dpages,maxpage,dnum*pgsize);
   }
 
-  if (maxstencil) bytes += maxstencil * sizeof(int);
+  if (maxstencil) bytes += memory->usage(stencil,maxstencil);
   if (maxstencil_multi) {
-    bytes += atom->ntypes * maxstencil_multi * sizeof(int);
-    bytes += atom->ntypes * maxstencil_multi * sizeof(double);
+    bytes += memory->usage(stencil_multi,atom->ntypes,maxstencil_multi);
+    bytes += memory->usage(distsq_multi,atom->ntypes,maxstencil_multi);
   }
 
   return bytes;

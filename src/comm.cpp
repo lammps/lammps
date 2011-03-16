@@ -15,6 +15,7 @@
    Contributing author (triclinic) : Pieter in 't Veld (SNL)
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "mpi.h"
 #include "math.h"
 #include "string.h"
@@ -75,11 +76,11 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   maxswap = 6;
   allocate_swap(maxswap);
 
-  sendlist = (int **) memory->smalloc(maxswap*sizeof(int *),"sendlist");
-  memory->create(maxsendlist,maxswap,"maxsendlist");
+  sendlist = (int **) memory->smalloc(maxswap*sizeof(int *),"comm:sendlist");
+  maxsendlist = new int[maxswap];
   for (int i = 0; i < maxswap; i++) {
     maxsendlist[i] = BUFMIN;
-    memory->create(sendlist[i],BUFMIN,"sendlist[i]");
+    memory->create(sendlist[i],BUFMIN,"comm:sendlist[i]");
   }
 
   maxforward_fix = maxreverse_fix = 0;
@@ -98,9 +99,9 @@ Comm::~Comm()
     memory->destroy(cutghostmulti);
   }
 
-  memory->destroy(maxsendlist);
   if (sendlist) for (int i = 0; i < maxswap; i++) memory->destroy(sendlist[i]);
   memory->sfree(sendlist);
+  delete [] maxsendlist;
 
   memory->destroy(buf_send);
   memory->destroy(buf_recv);
@@ -1280,13 +1281,12 @@ void Comm::set(int narg, char **arg)
    return # of bytes of allocated memory 
 ------------------------------------------------------------------------- */
 
-double Comm::memory_usage()
+bigint Comm::memory_usage()
 {
-  double bytes = 0.0;
-
-  for (int i = 0; i < nswap; i++) bytes += maxsendlist[i] * sizeof(int);
-  bytes += maxsend * sizeof(double);
-  bytes += maxrecv * sizeof(double);
-
+  bigint bytes = 0;
+  for (int i = 0; i < nswap; i++) 
+    bytes += memory->usage(sendlist[i],maxsendlist[i]);
+  bytes += memory->usage(buf_send,maxsend+BUFEXTRA);
+  bytes += memory->usage(buf_recv,maxrecv);
   return bytes;
 }

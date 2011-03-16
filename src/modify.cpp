@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "stdio.h"
 #include "string.h"
 #include "modify.h"
@@ -1102,10 +1103,12 @@ void Modify::list_init_compute()
    return # of bytes of allocated memory from all fixes
 ------------------------------------------------------------------------- */
 
-double Modify::memory_usage()
+bigint Modify::memory_usage()
 {
-  double bytes = 0.0;
-  for (int i = 0; i < nfix; i++) bytes += fix[i]->memory_usage();
-  for (int i = 0; i < ncompute; i++) bytes += compute[i]->memory_usage();
+  bigint bytes = 0;
+  for (int i = 0; i < nfix; i++) 
+    bytes += static_cast<bigint> (fix[i]->memory_usage());
+  for (int i = 0; i < ncompute; i++) 
+    bytes += static_cast<bigint> (compute[i]->memory_usage());
   return bytes;
 }

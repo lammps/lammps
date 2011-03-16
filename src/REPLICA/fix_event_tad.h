@@ -20,7 +20,6 @@ FixStyle(EVENT/TAD,FixEventTAD)
 #ifndef LMP_FIX_EVENT_TAD_H
 #define LMP_FIX_EVENT_TAD_H
 
-#include "lmptype.h"
 #include "fix_event.h"
 
 namespace LAMMPS_NS {

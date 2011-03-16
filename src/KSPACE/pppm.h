@@ -20,7 +20,6 @@ KSpaceStyle(pppm,PPPM)
 #ifndef LMP_PPPM_H
 #define LMP_PPPM_H
 
-#include "lmptype.h"
 #include "kspace.h"
 
 namespace LAMMPS_NS {

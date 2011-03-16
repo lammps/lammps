@@ -710,15 +710,15 @@ void Dump::modify_params(int narg, char **arg)
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
-double Dump::memory_usage()
+bigint Dump::memory_usage()
 {
-  double bytes = maxbuf*size_one * sizeof(double);      // buf
+  bigint bytes = memory->usage(buf,size_one*maxbuf);
   if (sort_flag) {
-    if (sortcol == 0) bytes += maxids * sizeof(int);    // ids
-    bytes += maxsort*size_one * sizeof(double);         // bufsort
-    if (sortcol == 0) bytes += maxsort * sizeof(int);   // idsort
-    bytes += maxsort * sizeof(int);                     // index
-    bytes += maxproc * sizeof(int);                     // proclist
+    if (sortcol == 0) bytes += memory->usage(ids,maxids);
+    bytes += memory->usage(bufsort,size_one*maxsort);
+    if (sortcol == 0) bytes += memory->usage(idsort,maxsort);
+    bytes += memory->usage(index,maxsort);
+    bytes += memory->usage(proclist,maxproc);
     if (irregular) bytes += irregular->memory_usage();
   }
   return bytes;

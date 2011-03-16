@@ -1645,22 +1645,22 @@ int Neighbor::exclusion(int i, int j, int itype, int jtype,
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
-double Neighbor::memory_usage()
+bigint Neighbor::memory_usage()
 {
-  double bytes = 0.0;
-  bytes += maxhold*3 * sizeof(double);
+  bigint bytes = 0;
+  bytes += memory->usage(xhold,maxhold,3);
 
   if (style != NSQ) {
-    bytes += maxbin * sizeof(int);
-    bytes += maxhead * sizeof(int);
+    bytes += memory->usage(bins,maxbin);
+    bytes += memory->usage(binhead,maxhead);
   }
 
   for (int i = 0; i < nlist; i++) bytes += lists[i]->memory_usage();
 
-  bytes += maxbond*3 * sizeof(int);
-  bytes += maxangle*4 * sizeof(int);
-  bytes += maxdihedral*5 * sizeof(int);
-  bytes += maximproper*5 * sizeof(int);
+  bytes += memory->usage(bondlist,maxbond,3);
+  bytes += memory->usage(anglelist,maxangle,4);
+  bytes += memory->usage(dihedrallist,maxdihedral,5);
+  bytes += memory->usage(improperlist,maximproper,5);
 
   return bytes;
 }

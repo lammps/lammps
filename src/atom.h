@@ -14,7 +14,6 @@
 #ifndef LMP_ATOM_H
 #define LMP_ATOM_H
 
-#include "lmptype.h"
 #include "pointers.h"
 
 namespace LAMMPS_NS {
@@ -160,7 +159,7 @@ class Atom : protected Pointers {
 
   void *extract(char *);
 
-  double memory_usage();
+  bigint memory_usage();
   int memcheck(const char *);
 
   // functions for global to local ID mapping

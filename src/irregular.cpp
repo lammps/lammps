@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "mpi.h"
 #include "stdlib.h"
 #include "string.h"
@@ -673,9 +674,9 @@ void Irregular::grow_recv(int n)
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
-double Irregular::memory_usage()
+bigint Irregular::memory_usage()
 {
-  double bytes = maxsend * sizeof(double);
-  bytes += maxrecv * sizeof(double);
+  bigint bytes = memory->usage(buf_send,maxsend);
+  bytes += memory->usage(buf_recv,maxrecv);
   return bytes;
 }

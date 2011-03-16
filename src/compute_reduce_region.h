@@ -20,7 +20,6 @@ ComputeStyle(reduce/region,ComputeReduceRegion)
 #ifndef LMP_COMPUTE_REDUCE_REGION_H
 #define LMP_COMPUTE_REDUCE_REGION_H
 
-#include "lmptype.h"
 #include "compute_reduce.h"
 
 namespace LAMMPS_NS {

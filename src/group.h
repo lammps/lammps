@@ -14,7 +14,6 @@
 #ifndef LMP_GROUP_H
 #define LMP_GROUP_H
 
-#include "lmptype.h"
 #include "stdio.h"
 #include "pointers.h"
 

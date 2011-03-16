@@ -14,7 +14,6 @@
 #ifndef LMP_MEMORY_H
 #define LMP_MEMORY_H
 
-#include "lmptype.h"
 #include "pointers.h"
 
 namespace LAMMPS_NS {
@@ -68,8 +67,9 @@ class Memory : protected Pointers {
 
 
 /* ----------------------------------------------------------------------
-   NOTE: to avoid code bloat, only use these for int,double,float,char
-   otherwise, just use smalloc,srealloc,sfree
+   to avoid code bloat, only use these for int,double,float,char
+   not for int* or double** or arbitrary structs
+   in those cases, just use smalloc,srealloc,sfree directly
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
@@ -396,6 +396,44 @@ class Memory : protected Pointers {
       sfree_new(array[0][0]);
       sfree_new(array[0]);
       sfree_new(array);
+    }
+
+/* ----------------------------------------------------------------------
+   memory usage of arrays, including pointers
+------------------------------------------------------------------------- */
+
+  template <typename TYPE>
+    bigint usage(TYPE *array, int n)
+    {
+      bigint bytes = sizeof(TYPE) * n;
+      return bytes;
+    }
+
+  template <typename TYPE>
+    bigint usage(TYPE **array, int n1, int n2)
+    {
+      bigint bytes = sizeof(TYPE) * n1*n2;
+      bytes += sizeof(TYPE *) * n1;
+      return bytes;
+    }
+
+  template <typename TYPE>
+    bigint usage(TYPE ***array, int n1, int n2, int n3)
+    {
+      bigint bytes = sizeof(TYPE) * n1*n2*n3;
+      bytes += sizeof(TYPE *) * n1*n2;
+      bytes += sizeof(TYPE **) * n1;
+      return bytes;
+    }
+
+  template <typename TYPE>
+    bigint usage(TYPE ****array, int n1, int n2, int n3, int n4)
+    {
+      bigint bytes = sizeof(TYPE) * n1*n2*n3*n4;
+      bytes += sizeof(TYPE *) * n1*n2*n3;
+      bytes += sizeof(TYPE **) * n1*n2;
+      bytes += sizeof(TYPE ***) * n1;
+      return bytes;
     }
 };
 

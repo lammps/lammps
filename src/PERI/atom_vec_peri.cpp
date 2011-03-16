@@ -798,23 +798,23 @@ int AtomVecPeri::data_atom_hybrid(int nlocal, char **values)
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
  
-double AtomVecPeri::memory_usage()
+bigint AtomVecPeri::memory_usage()
 {
-  double bytes = 0.0;
- 
-  if (atom->memcheck("tag")) bytes += nmax * sizeof(int);
-  if (atom->memcheck("type")) bytes += nmax * sizeof(int);
-  if (atom->memcheck("mask")) bytes += nmax * sizeof(int);
-  if (atom->memcheck("image")) bytes += nmax * sizeof(int);
-  if (atom->memcheck("x")) bytes += nmax*3 * sizeof(double);
-  if (atom->memcheck("v")) bytes += nmax*3 * sizeof(double);
-  if (atom->memcheck("f")) bytes += nmax*3 * sizeof(double);
- 
-  if (atom->memcheck("vfrac")) bytes += nmax * sizeof(double);
-  if (atom->memcheck("density")) bytes += nmax * sizeof(double);
-  if (atom->memcheck("rmass")) bytes += nmax * sizeof(double);
-  if (atom->memcheck("s0")) bytes += nmax * sizeof(double);
-  if (atom->memcheck("x0")) bytes += nmax*3 * sizeof(double);
+  bigint bytes = 0;
+
+  if (atom->memcheck("tag")) bytes += memory->usage(tag,nmax);
+  if (atom->memcheck("type")) bytes += memory->usage(type,nmax);
+  if (atom->memcheck("mask")) bytes += memory->usage(mask,nmax);
+  if (atom->memcheck("image")) bytes += memory->usage(image,nmax);
+  if (atom->memcheck("x")) bytes += memory->usage(x,nmax,3);
+  if (atom->memcheck("v")) bytes += memory->usage(v,nmax,3);
+  if (atom->memcheck("f")) bytes += memory->usage(f,nmax,3);
+
+  if (atom->memcheck("vfrac")) bytes += memory->usage(vfrac,nmax);
+  if (atom->memcheck("density")) bytes += memory->usage(density,nmax);
+  if (atom->memcheck("rmass")) bytes += memory->usage(rmass,nmax);
+  if (atom->memcheck("s0")) bytes += memory->usage(s0,nmax);
+  if (atom->memcheck("x0")) bytes += memory->usage(x0,nmax,3);
  
   return bytes;
 }

@@ -87,7 +87,7 @@ class Force : protected Pointers {
   void bounds(char *, int, int &, int &);
   double numeric(char *);
   int inumeric(char *);
-  double memory_usage();
+  bigint memory_usage();
 };
 
 }

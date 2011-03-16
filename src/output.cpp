@@ -517,19 +517,19 @@ void Output::create_restart(int narg, char **arg)
 
 /* ----------------------------------------------------------------------
    sum and print memory usage
-   is only memory on proc 0, not averaged across procs
+   result is only memory on proc 0, not averaged across procs
 ------------------------------------------------------------------------- */
 
 void Output::memory_usage()
 {
-  double bytes = 0.0;
+  bigint bytes = 0;
   bytes += atom->memory_usage();
   bytes += neighbor->memory_usage();
   bytes += comm->memory_usage();
   bytes += update->memory_usage();
   bytes += force->memory_usage();
   bytes += modify->memory_usage();
-  for (int i = 0; i < ndump; i++) bytes += dump[i]->memory_usage();
+  for (int i = 0; i < ndump; i++) dump[i]->memory_usage();
 
   double mbytes = bytes/1024.0/1024.0;
 

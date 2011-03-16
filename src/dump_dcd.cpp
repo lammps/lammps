@@ -279,10 +279,10 @@ int DumpDCD::modify_param(int narg, char **arg)
    return # of bytes of allocated memory in buf and global coords array
 ------------------------------------------------------------------------- */
 
-double DumpDCD::memory_usage()
+bigint DumpDCD::memory_usage()
 {
-  double bytes = Dump::memory_usage();
-  bytes += 3*natoms * sizeof(float);
+  bigint bytes = Dump::memory_usage();
+  bytes += memory->usage(coords,natoms*3);
   return bytes;
 }
 

@@ -77,7 +77,7 @@ class NeighList : protected Pointers {
   int **add_pages();                    // add pages to neigh list
   void copy_skip_info(int *, int **);   // copy skip info from a neigh request
   void print_attributes();              // debug routine
-  double memory_usage();
+  bigint memory_usage();
 
  private:
   int maxlocal;                    // size of allocated atom arrays

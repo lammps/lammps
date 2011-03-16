@@ -14,7 +14,6 @@
 #ifndef LMP_UPDATE_H
 #define LMP_UPDATE_H
 
-#include "lmptype.h"
 #include "pointers.h"
 
 namespace LAMMPS_NS {
@@ -52,7 +51,7 @@ class Update : protected Pointers {
   void create_integrate(int, char **);
   void create_minimize(int, char **);
   void reset_timestep(int, char **);
-  double memory_usage();
+  bigint memory_usage();
 };
 
 }

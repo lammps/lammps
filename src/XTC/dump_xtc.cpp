@@ -22,6 +22,7 @@
 			   support for groups
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "math.h"
 #include "stdio.h"
 #include "stdlib.h"
@@ -304,10 +305,10 @@ int DumpXTC::modify_param(int narg, char **arg)
    return # of bytes of allocated memory in buf and global coords array
 ------------------------------------------------------------------------- */
 
-double DumpXTC::memory_usage()
+bigint DumpXTC::memory_usage()
 {
-  double bytes = Dump::memory_usage();
-  bytes += 3*natoms * sizeof(float);
+  bigint bytes = Dump::memory_usage();
+  bytes += memory->usage(coords,natoms*3);
   return bytes;
 }
 

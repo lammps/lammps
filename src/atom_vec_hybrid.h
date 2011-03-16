@@ -55,7 +55,7 @@ class AtomVecHybrid : public AtomVec {
   void data_atom(double *, int, char **);
   int data_atom_hybrid(int, char **) {return 0;}
   void data_vel(int, char **);
-  double memory_usage();
+  bigint memory_usage();
 
  private:
   int *tag,*type,*mask,*image;

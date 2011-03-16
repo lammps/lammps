@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "string.h"
 #include "stdlib.h"
 #include "update.h"
@@ -287,9 +288,9 @@ void Update::reset_timestep(int narg, char **arg)
    memory usage of update and integrate/minimize
 ------------------------------------------------------------------------- */
 
-double Update::memory_usage()
+bigint Update::memory_usage()
 {
-  double bytes = 0.0;
+  bigint bytes = 0;
   if (whichflag == 1) bytes += integrate->memory_usage();
   else if (whichflag == 2) bytes += minimize->memory_usage();
   return bytes;

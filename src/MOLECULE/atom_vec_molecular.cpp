@@ -944,61 +944,62 @@ int AtomVecMolecular::data_atom_hybrid(int nlocal, char **values)
    return # of bytes of allocated memory 
 ------------------------------------------------------------------------- */
 
-double AtomVecMolecular::memory_usage()
+bigint AtomVecMolecular::memory_usage()
 {
-  double bytes = 0.0;
+  bigint bytes = 0;
 
-  if (atom->memcheck("tag")) bytes += nmax * sizeof(int);
-  if (atom->memcheck("type")) bytes += nmax * sizeof(int);
-  if (atom->memcheck("mask")) bytes += nmax * sizeof(int);
-  if (atom->memcheck("image")) bytes += nmax * sizeof(int);
-  if (atom->memcheck("x")) bytes += nmax*3 * sizeof(double);
-  if (atom->memcheck("v")) bytes += nmax*3 * sizeof(double);
-  if (atom->memcheck("f")) bytes += nmax*3 * sizeof(double);
+  if (atom->memcheck("tag")) bytes += memory->usage(tag,nmax);
+  if (atom->memcheck("type")) bytes += memory->usage(type,nmax);
+  if (atom->memcheck("mask")) bytes += memory->usage(mask,nmax);
+  if (atom->memcheck("image")) bytes += memory->usage(image,nmax);
+  if (atom->memcheck("x")) bytes += memory->usage(x,nmax,3);
+  if (atom->memcheck("v")) bytes += memory->usage(v,nmax,3);
+  if (atom->memcheck("f")) bytes += memory->usage(f,nmax,3);
 
-  if (atom->memcheck("molecule")) bytes += nmax * sizeof(int);
-  if (atom->memcheck("nspecial")) bytes += nmax*3 * sizeof(int);
-  if (atom->memcheck("special")) bytes += nmax*atom->maxspecial * sizeof(int);
+  if (atom->memcheck("molecule")) bytes += memory->usage(molecule,nmax);
+  if (atom->memcheck("nspecial")) bytes += memory->usage(nspecial,nmax,3);
+  if (atom->memcheck("special")) 
+    bytes += memory->usage(special,nmax,atom->maxspecial);
 
-  if (atom->memcheck("num_bond")) bytes += nmax * sizeof(int);
-  if (atom->memcheck("bond_type"))
-    bytes += nmax*atom->bond_per_atom * sizeof(int);
-  if (atom->memcheck("bond_atom"))
-    bytes += nmax*atom->bond_per_atom * sizeof(int);
+  if (atom->memcheck("num_bond")) bytes += memory->usage(num_bond,nmax);
+  if (atom->memcheck("bond_type")) 
+    bytes += memory->usage(bond_type,nmax,atom->bond_per_atom);
+  if (atom->memcheck("bond_atom")) 
+    bytes += memory->usage(bond_atom,nmax,atom->bond_per_atom);
 
-  if (atom->memcheck("num_angle")) bytes += nmax * sizeof(int);
-  if (atom->memcheck("angle_type"))
-    bytes += nmax*atom->angle_per_atom * sizeof(int);
-  if (atom->memcheck("angle_atom1"))
-    bytes += nmax*atom->angle_per_atom * sizeof(int);
-  if (atom->memcheck("angle_atom2"))
-    bytes += nmax*atom->angle_per_atom * sizeof(int);
-  if (atom->memcheck("angle_atom3"))
-    bytes += nmax*atom->angle_per_atom * sizeof(int);
+  if (atom->memcheck("num_angle")) bytes += memory->usage(num_angle,nmax);
+  if (atom->memcheck("angle_type")) 
+    bytes += memory->usage(angle_type,nmax,atom->angle_per_atom);
+  if (atom->memcheck("angle_atom1")) 
+    bytes += memory->usage(angle_atom1,nmax,atom->angle_per_atom);
+  if (atom->memcheck("angle_atom2")) 
+    bytes += memory->usage(angle_atom2,nmax,atom->angle_per_atom);
+  if (atom->memcheck("angle_atom3")) 
+    bytes += memory->usage(angle_atom3,nmax,atom->angle_per_atom);
 
-  if (atom->memcheck("num_dihedral")) bytes += nmax * sizeof(int);
-  if (atom->memcheck("dihedral_type"))
-    bytes += nmax*atom->dihedral_per_atom * sizeof(int);
-  if (atom->memcheck("dihedral_atom1"))
-    bytes += nmax*atom->dihedral_per_atom * sizeof(int);
-  if (atom->memcheck("dihedral_atom2"))
-    bytes += nmax*atom->dihedral_per_atom * sizeof(int);
-  if (atom->memcheck("dihedral_atom3"))
-    bytes += nmax*atom->dihedral_per_atom * sizeof(int);
-  if (atom->memcheck("dihedral_atom4"))
-    bytes += nmax*atom->dihedral_per_atom * sizeof(int);
+  if (atom->memcheck("num_dihedral")) bytes += memory->usage(num_dihedral,nmax);
+  if (atom->memcheck("dihedral_type")) 
+    bytes += memory->usage(dihedral_type,nmax,atom->dihedral_per_atom);
+  if (atom->memcheck("dihedral_atom1")) 
+    bytes += memory->usage(dihedral_atom1,nmax,atom->dihedral_per_atom);
+  if (atom->memcheck("dihedral_atom2")) 
+    bytes += memory->usage(dihedral_atom2,nmax,atom->dihedral_per_atom);
+  if (atom->memcheck("dihedral_atom3")) 
+    bytes += memory->usage(dihedral_atom3,nmax,atom->dihedral_per_atom);
+  if (atom->memcheck("dihedral_atom4")) 
+    bytes += memory->usage(dihedral_atom4,nmax,atom->dihedral_per_atom);
 
-  if (atom->memcheck("num_improper")) bytes += nmax * sizeof(int);
-  if (atom->memcheck("improper_type"))
-    bytes += nmax*atom->improper_per_atom * sizeof(int);
-  if (atom->memcheck("improper_atom1"))
-    bytes += nmax*atom->improper_per_atom * sizeof(int);
-  if (atom->memcheck("improper_atom2"))
-    bytes += nmax*atom->improper_per_atom * sizeof(int);
-  if (atom->memcheck("improper_atom3"))
-    bytes += nmax*atom->improper_per_atom * sizeof(int);
-  if (atom->memcheck("improper_atom4"))
-    bytes += nmax*atom->improper_per_atom * sizeof(int);
+  if (atom->memcheck("num_improper")) bytes += memory->usage(num_improper,nmax);
+  if (atom->memcheck("improper_type")) 
+    bytes += memory->usage(improper_type,nmax,atom->improper_per_atom);
+  if (atom->memcheck("improper_atom1")) 
+    bytes += memory->usage(improper_atom1,nmax,atom->improper_per_atom);
+  if (atom->memcheck("improper_atom2")) 
+    bytes += memory->usage(improper_atom2,nmax,atom->improper_per_atom);
+  if (atom->memcheck("improper_atom3")) 
+    bytes += memory->usage(improper_atom3,nmax,atom->improper_per_atom);
+  if (atom->memcheck("improper_atom4")) 
+    bytes += memory->usage(improper_atom4,nmax,atom->improper_per_atom);
 
   return bytes;
 }

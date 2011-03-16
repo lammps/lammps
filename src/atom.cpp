@@ -1612,21 +1612,25 @@ void *Atom::extract(char *name)
    add in global to local mapping storage
 ------------------------------------------------------------------------- */
 
-double Atom::memory_usage()
+bigint Atom::memory_usage()
 {
   memlength = DELTA_MEMSTR;
   memory->create(memstr,memlength,"atom:memstr");
   memstr[0] = '\0';
+  bigint bytes = avec->memory_usage();
+  memory->destroy(memstr);
 
-  double bytes = avec->memory_usage();
   if (map_style == 1)
-    bytes += map_tag_max * sizeof(int);
+    bytes += memory->usage(map_array,map_tag_max+1);
   else if (map_style == 2) {
     bytes += map_nbucket*sizeof(int);
     bytes += map_nhash*sizeof(HashElem);
   }
+  if (maxnext) {
+    bytes += memory->usage(next,maxnext);
+    bytes += memory->usage(permute,maxnext);
+  }
 
-  memory->destroy(memstr);
   return bytes;
 }
 

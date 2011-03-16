@@ -729,23 +729,23 @@ int AtomVecColloid::data_vel_hybrid(int m, char **values)
 }
 
 /* ----------------------------------------------------------------------
-   return # of bytes of allocated memory
+   return # of bytes of allocated memory 
 ------------------------------------------------------------------------- */
 
-double AtomVecColloid::memory_usage()
+bigint AtomVecColloid::memory_usage()
 {
-  double bytes = 0.0;
+  bigint bytes = 0;
 
-  if (atom->memcheck("tag")) bytes += nmax * sizeof(int);
-  if (atom->memcheck("type")) bytes += nmax * sizeof(int);
-  if (atom->memcheck("mask")) bytes += nmax * sizeof(int);
-  if (atom->memcheck("image")) bytes += nmax * sizeof(int);
-  if (atom->memcheck("x")) bytes += nmax*3 * sizeof(double);
-  if (atom->memcheck("v")) bytes += nmax*3 * sizeof(double);
-  if (atom->memcheck("f")) bytes += nmax*3 * sizeof(double);
+  if (atom->memcheck("tag")) bytes += memory->usage(tag,nmax);
+  if (atom->memcheck("type")) bytes += memory->usage(type,nmax);
+  if (atom->memcheck("mask")) bytes += memory->usage(mask,nmax);
+  if (atom->memcheck("image")) bytes += memory->usage(image,nmax);
+  if (atom->memcheck("x")) bytes += memory->usage(x,nmax,3);
+  if (atom->memcheck("v")) bytes += memory->usage(v,nmax,3);
+  if (atom->memcheck("f")) bytes += memory->usage(f,nmax,3);
 
-  if (atom->memcheck("omega")) bytes += nmax*3 * sizeof(double);
-  if (atom->memcheck("torque")) bytes += nmax*3 * sizeof(double);
+  if (atom->memcheck("omega")) bytes += memory->usage(omega,nmax,3);
+  if (atom->memcheck("torque")) bytes += memory->usage(torque,nmax,3);
 
   return bytes;
 }

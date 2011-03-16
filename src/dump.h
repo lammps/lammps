@@ -14,7 +14,6 @@
 #ifndef LMP_DUMP_H
 #define LMP_DUMP_H
 
-#include "lmptype.h"
 #include "stdio.h"
 #include "pointers.h"
 
@@ -38,7 +37,7 @@ class Dump : protected Pointers {
   void init();
   virtual void write();
   void modify_params(int, char **);
-  virtual double memory_usage();
+  virtual bigint memory_usage();
 
  protected:
   int me,nprocs;             // proc info

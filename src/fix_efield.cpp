@@ -100,7 +100,7 @@ void FixEfield::init()
 {
   // require an atom style with charge defined
 
-  if (atom->nlocal > 0 && atom->q == NULL)
+  if (atom->q == NULL)
     error->all("Must use charged atom style with fix efield");
 
   // check variables

@@ -138,26 +138,26 @@ Neighbor::Neighbor(LAMMPS *lmp) : Pointers(lmp)
 
 Neighbor::~Neighbor()
 {
-  memory->destroy_2d_double_array(cutneighsq);
+  memory->destroy(cutneighsq);
   delete [] cuttype;
   delete [] cuttypesq;
   delete [] fixchecklist;
 
-  memory->destroy_2d_double_array(xhold);
+  memory->destroy(xhold);
 
-  memory->sfree(binhead);
-  memory->sfree(bins);
+  memory->destroy(binhead);
+  memory->destroy(bins);
 
-  memory->sfree(ex1_type);
-  memory->sfree(ex2_type);
-  memory->destroy_2d_int_array(ex_type);
+  memory->destroy(ex1_type);
+  memory->destroy(ex2_type);
+  memory->destroy(ex_type);
 
-  memory->sfree(ex1_group);
-  memory->sfree(ex2_group);
+  memory->destroy(ex1_group);
+  memory->destroy(ex2_group);
   delete [] ex1_bit;
   delete [] ex2_bit;
 
-  memory->sfree(ex_mol_group);
+  memory->destroy(ex_mol_group);
   delete [] ex_mol_bit;
 
   for (int i = 0; i < nlist; i++) delete lists[i];
@@ -173,10 +173,10 @@ Neighbor::~Neighbor()
   for (int i = 0; i < old_nrequest; i++) delete old_requests[i];
   memory->sfree(old_requests);
 
-  memory->destroy_2d_int_array(bondlist);
-  memory->destroy_2d_int_array(anglelist);
-  memory->destroy_2d_int_array(dihedrallist);
-  memory->destroy_2d_int_array(improperlist);
+  memory->destroy(bondlist);
+  memory->destroy(anglelist);
+  memory->destroy(dihedrallist);
+  memory->destroy(improperlist);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -225,7 +225,7 @@ void Neighbor::init()
       
   n = atom->ntypes;
   if (cutneighsq == NULL) {
-    cutneighsq = memory->create_2d_double_array(n+1,n+1,"neigh:cutneighsq");
+    memory->create(cutneighsq,n+1,n+1,"neigh:cutneighsq");
     cuttype = new double[n+1];
     cuttypesq = new double[n+1];
   }
@@ -326,14 +326,14 @@ void Neighbor::init()
   // free xhold and bins if not needed for this run
 
   if (dist_check == 0) {
-    memory->destroy_2d_double_array(xhold);
+    memory->destroy(xhold);
     maxhold = 0;
     xhold = NULL;
   }
 
   if (style == NSQ) {
-    memory->sfree(bins);
-    memory->sfree(binhead);
+    memory->destroy(bins);
+    memory->destroy(binhead);
     maxbin = maxhead = 0;
     binhead = NULL;
     bins = NULL;
@@ -344,14 +344,14 @@ void Neighbor::init()
   if (dist_check) {
     if (maxhold == 0) {
       maxhold = atom->nmax;
-      xhold = memory->create_2d_double_array(maxhold,3,"neigh:xhold");
+      memory->create(xhold,maxhold,3,"neigh:xhold");
     }
   }
 
   if (style != NSQ) {
     if (maxbin == 0) {
       maxbin = atom->nmax;
-      bins = (int *) memory->smalloc(maxbin*sizeof(int),"bins");
+      memory->create(bins,maxbin,"bins");
     }
   }
     
@@ -363,8 +363,8 @@ void Neighbor::init()
   else exclude = 1;
 
   if (nex_type) {
-    memory->destroy_2d_int_array(ex_type);
-    ex_type = (int **) memory->create_2d_int_array(n+1,n+1,"neigh:ex_type");
+    memory->destroy(ex_type);
+    memory->create(ex_type,n+1,n+1,"neigh:ex_type");
 
     for (i = 1; i <= n; i++)
       for (j = 1; j <= n; j++)
@@ -647,7 +647,7 @@ void Neighbor::init()
   // copy current requests and style to old for next run
   
   for (i = 0; i < old_nrequest; i++) delete old_requests[i];
-  memory->sfree(old_requests);
+  memory->destroy(old_requests);
   old_nrequest = nrequest;
   old_requests = requests;
   nrequest = maxrequest = 0;
@@ -663,29 +663,27 @@ void Neighbor::init()
   if (atom->molecular && atom->nbonds && maxbond == 0) {
     if (nprocs == 1) maxbond = atom->nbonds;
     else maxbond = static_cast<int> (LB_FACTOR * atom->nbonds / nprocs);
-    bondlist = memory->create_2d_int_array(maxbond,3,"neigh:bondlist");
+    memory->create(bondlist,maxbond,3,"neigh:bondlist");
   }
 
   if (atom->molecular && atom->nangles && maxangle == 0) {
     if (nprocs == 1) maxangle = atom->nangles;
     else maxangle = static_cast<int> (LB_FACTOR * atom->nangles / nprocs);
-    anglelist =  memory->create_2d_int_array(maxangle,4,"neigh:anglelist");
+    memory->create(anglelist,maxangle,4,"neigh:anglelist");
   }
 
   if (atom->molecular && atom->ndihedrals && maxdihedral == 0) {
     if (nprocs == 1) maxdihedral = atom->ndihedrals;
     else maxdihedral = static_cast<int> 
 	   (LB_FACTOR * atom->ndihedrals / nprocs);
-    dihedrallist = 
-      memory->create_2d_int_array(maxdihedral,5,"neigh:dihedrallist");
+    memory->create(dihedrallist,maxdihedral,5,"neigh:dihedrallist");
   }
 
   if (atom->molecular && atom->nimpropers && maximproper == 0) {
     if (nprocs == 1) maximproper = atom->nimpropers;
     else maximproper = static_cast<int>
 	   (LB_FACTOR * atom->nimpropers / nprocs);
-    improperlist = 
-      memory->create_2d_int_array(maximproper,5,"neigh:improperlist");
+    memory->create(improperlist,maximproper,5,"neigh:improperlist");
   }
 
   // set flags that determine which topology neighboring routines to use
@@ -1093,8 +1091,8 @@ void Neighbor::build()
     if (includegroup) nlocal = atom->nfirst;
     if (nlocal > maxhold) {
       maxhold = atom->nmax;
-      memory->destroy_2d_double_array(xhold);
-      xhold = memory->create_2d_double_array(maxhold,3,"neigh:xhold");
+      memory->destroy(xhold);
+      memory->create(xhold,maxhold,3,"neigh:xhold");
     }
     for (i = 0; i < nlocal; i++) {
       xhold[i][0] = x[i][0];
@@ -1133,8 +1131,8 @@ void Neighbor::build()
 
   if (style != NSQ && atom->nmax > maxbin) {
     maxbin = atom->nmax;
-    memory->sfree(bins);
-    bins = (int *) memory->smalloc(maxbin*sizeof(int),"bins");
+    memory->destroy(bins);
+    memory->create(bins,maxbin,"bins");
   }
 
   // check that pairwise lists with special bond weighting will not overflow
@@ -1179,8 +1177,8 @@ void Neighbor::build_one(int i)
 
   if (style != NSQ && atom->nmax > maxbin) {
     maxbin = atom->nmax;
-    memory->sfree(bins);
-    bins = (int *) memory->smalloc(maxbin*sizeof(int),"bins");
+    memory->destroy(bins);
+    memory->create(bins,maxbin,"bins");
   }
 
   // this condition can cause LAMMPS to crash
@@ -1354,8 +1352,8 @@ void Neighbor::setup_bins()
   mbins = bbin;
   if (mbins > maxhead) {
     maxhead = mbins;
-    memory->sfree(binhead);
-    binhead = (int *) memory->smalloc(maxhead*sizeof(int),"neigh:binhead");
+    memory->destroy(binhead);
+    memory->create(binhead,maxhead,"neigh:binhead");
   }
 
   // create stencil of bins to search over in neighbor list construction
@@ -1481,10 +1479,8 @@ void Neighbor::modify_params(int narg, char **arg)
 	if (iarg+4 > narg) error->all("Illegal neigh_modify command");
 	if (nex_type == maxex_type) {
 	  maxex_type += EXDELTA;
-	  ex1_type = (int *) memory->srealloc(ex1_type,maxex_type*sizeof(int),
-					      "neigh:ex1_type");
-	  ex2_type = (int *) memory->srealloc(ex2_type,maxex_type*sizeof(int),
-					      "neigh:ex2_type");
+	  memory->grow(ex1_type,maxex_type,"neigh:ex1_type");
+	  memory->grow(ex2_type,maxex_type,"neigh:ex2_type");
 	}
 	ex1_type[nex_type] = atoi(arg[iarg+2]);
 	ex2_type[nex_type] = atoi(arg[iarg+3]);
@@ -1495,12 +1491,8 @@ void Neighbor::modify_params(int narg, char **arg)
 	if (iarg+4 > narg) error->all("Illegal neigh_modify command");
 	if (nex_group == maxex_group) {
 	  maxex_group += EXDELTA;
-	  ex1_group = 
-	    (int *) memory->srealloc(ex1_group,maxex_group*sizeof(int),
-				     "neigh:ex1_group");
-	  ex2_group = 
-	    (int *) memory->srealloc(ex2_group,maxex_group*sizeof(int),
-				     "neigh:ex2_group");
+	  memory->grow(ex1_group,maxex_group,"neigh:ex1_group");
+	  memory->grow(ex2_group,maxex_group,"neigh:ex2_group");
 	}
 	ex1_group[nex_group] = group->find(arg[iarg+2]);
 	ex2_group[nex_group] = group->find(arg[iarg+3]);
@@ -1518,9 +1510,7 @@ void Neighbor::modify_params(int narg, char **arg)
 	}
 	if (nex_mol == maxex_mol) {
 	  maxex_mol += EXDELTA;
-	  ex_mol_group = 
-	    (int *) memory->srealloc(ex_mol_group,maxex_mol*sizeof(int),
-				     "neigh:ex_mol_group");
+	  memory->grow(ex_mol_group,maxex_mol,"neigh:ex_mol_group");
 	}
 	ex_mol_group[nex_mol] = group->find(arg[iarg+2]);
 	if (ex_mol_group[nex_mol] == -1)

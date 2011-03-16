@@ -64,27 +64,19 @@ void AtomVecPeri::grow(int n)
   if (nmax < 0 || nmax > MAXSMALLINT)
     error->one("Per-processor system is too big");
 
-  tag = atom->tag = (int *)
-    memory->srealloc(atom->tag,nmax*sizeof(int),"atom:tag");
-  type = atom->type = (int *)
-    memory->srealloc(atom->type,nmax*sizeof(int),"atom:type");
-  mask = atom->mask = (int *)
-    memory->srealloc(atom->mask,nmax*sizeof(int),"atom:mask");
-  image = atom->image = (int *)
-    memory->srealloc(atom->image,nmax*sizeof(int),"atom:image");
-  x = atom->x = memory->grow_2d_double_array(atom->x,nmax,3,"atom:x");
-  v = atom->v = memory->grow_2d_double_array(atom->v,nmax,3,"atom:v");
-  f = atom->f = memory->grow_2d_double_array(atom->f,nmax,3,"atom:f");
+  tag = memory->grow(atom->tag,nmax,"atom:tag");
+  type = memory->grow(atom->type,nmax,"atom:type");
+  mask = memory->grow(atom->mask,nmax,"atom:mask");
+  image = memory->grow(atom->image,nmax,"atom:image");
+  x = memory->grow(atom->x,nmax,3,"atom:x");
+  v = memory->grow(atom->v,nmax,3,"atom:v");
+  f = memory->grow(atom->f,nmax,3,"atom:f");
 
-  vfrac = atom->vfrac = (double *) 
-    memory->srealloc(atom->vfrac,nmax*sizeof(double),"atom:vfrac");
-  density = atom->density = (double *)
-    memory->srealloc(atom->density,nmax*sizeof(double),"atom:density");
-  rmass = atom->rmass = (double *) 
-    memory->srealloc(atom->rmass,nmax*sizeof(double),"atom:rmass");
-  s0 = atom->s0 = (double *) 
-    memory->srealloc(atom->s0,nmax*sizeof(double),"atom:s0");
-  x0 = atom->x0 = memory->grow_2d_double_array(atom->x0,nmax,3,"atom:x0");
+  vfrac = memory->grow(atom->vfrac,nmax,"atom:vfrac");
+  density = memory->grow(atom->density,nmax,"atom:density");
+  rmass = memory->grow(atom->rmass,nmax,"atom:rmass");
+  s0 = memory->grow(atom->s0,nmax,"atom:s0");
+  x0 = memory->grow(atom->x0,nmax,3,"atom:x0");
  
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)

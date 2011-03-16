@@ -51,8 +51,7 @@ void Neighbor::bond_all()
       if (newton_bond || i < atom1) {
 	if (nbondlist == maxbond) {
 	  maxbond += BONDDELTA;
-	  bondlist = memory->grow_2d_int_array(bondlist,maxbond,3,
-					       "neighbor:bondlist");
+	  memory->grow(bondlist,maxbond,3,"neighbor:bondlist");
 	}
 	bondlist[nbondlist][0] = i;
 	bondlist[nbondlist][1] = atom1;
@@ -91,8 +90,7 @@ void Neighbor::bond_partial()
       if (newton_bond || i < atom1) {
 	if (nbondlist == maxbond) {
 	  maxbond += BONDDELTA;
-	  bondlist = memory->grow_2d_int_array(bondlist,maxbond,3,
-					       "neighbor:bondlist");
+	  memory->grow(bondlist,maxbond,3,"neighbor:bondlist");
 	}
 	bondlist[nbondlist][0] = i;
 	bondlist[nbondlist][1] = atom1;
@@ -135,8 +133,7 @@ void Neighbor::angle_all()
       if (newton_bond || (i <= atom1 && i <= atom2 && i <= atom3)) {
 	if (nanglelist == maxangle) {
 	  maxangle += BONDDELTA;
-	  anglelist = memory->grow_2d_int_array(anglelist,maxangle,4,
-						  "neighbor:anglelist");
+	  memory->grow(anglelist,maxangle,4,"neighbor:anglelist");
 	}
 	anglelist[nanglelist][0] = atom1;
 	anglelist[nanglelist][1] = atom2;
@@ -181,8 +178,7 @@ void Neighbor::angle_partial()
       if (newton_bond || (i <= atom1 && i <= atom2 && i <= atom3)) {
 	if (nanglelist == maxangle) {
 	  maxangle += BONDDELTA;
-	  anglelist = memory->grow_2d_int_array(anglelist,maxangle,4,
-						  "neighbor:anglelist");
+	  memory->grow(anglelist,maxangle,4,"neighbor:anglelist");
 	}
 	anglelist[nanglelist][0] = atom1;
 	anglelist[nanglelist][1] = atom2;
@@ -230,9 +226,7 @@ void Neighbor::dihedral_all()
 	  (i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4)) {
 	if (ndihedrallist == maxdihedral) {
 	  maxdihedral += BONDDELTA;
-	  dihedrallist = 
-	    memory->grow_2d_int_array(dihedrallist,maxdihedral,5,
-				      "neighbor:dihedrallist");
+	  memory->grow(dihedrallist,maxdihedral,5,"neighbor:dihedrallist");
 	}
 	dihedrallist[ndihedrallist][0] = atom1;
 	dihedrallist[ndihedrallist][1] = atom2;
@@ -282,9 +276,7 @@ void Neighbor::dihedral_partial()
 	  (i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4)) {
 	if (ndihedrallist == maxdihedral) {
 	  maxdihedral += BONDDELTA;
-	  dihedrallist = 
-	    memory->grow_2d_int_array(dihedrallist,maxdihedral,5,
-				      "neighbor:dihedrallist");
+	  memory->grow(dihedrallist,maxdihedral,5,"neighbor:dihedrallist");
 	}
 	dihedrallist[ndihedrallist][0] = atom1;
 	dihedrallist[ndihedrallist][1] = atom2;
@@ -333,9 +325,7 @@ void Neighbor::improper_all()
 	  (i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4)) {
 	if (nimproperlist == maximproper) {
 	  maximproper += BONDDELTA;
-	  improperlist = 
-	    memory->grow_2d_int_array(improperlist,maximproper,5,
-				      "neighbor:improperlist");
+	  memory->grow(improperlist,maximproper,5,"neighbor:improperlist");
 	}
 	improperlist[nimproperlist][0] = atom1;
 	improperlist[nimproperlist][1] = atom2;
@@ -385,9 +375,7 @@ void Neighbor::improper_partial()
 	  (i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4)) {
 	if (nimproperlist == maximproper) {
 	  maximproper += BONDDELTA;
-	  improperlist = 
-	    memory->grow_2d_int_array(improperlist,maximproper,5,
-				      "neighbor:improperlist");
+	  memory->grow(improperlist,maximproper,5,"neighbor:improperlist");
 	}
 	improperlist[nimproperlist][0] = atom1;
 	improperlist[nimproperlist][1] = atom2;

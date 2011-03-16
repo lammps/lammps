@@ -64,7 +64,7 @@ NeighRequest::NeighRequest(LAMMPS *lmp) : Pointers(lmp)
 NeighRequest::~NeighRequest()
 {
   delete [] iskip;
-  memory->destroy_2d_int_array(ijskip);
+  memory->destroy(ijskip);
 }
 
 /* ----------------------------------------------------------------------

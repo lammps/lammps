@@ -14,7 +14,6 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "atom.h"
-#include "memory.h"
 
 using namespace LAMMPS_NS;
 

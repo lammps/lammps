@@ -72,6 +72,51 @@ void *Memory::srealloc(void *ptr, int n, const char *name)
 }
 
 /* ----------------------------------------------------------------------
+   newer routines
+------------------------------------------------------------------------- */
+
+void *Memory::smalloc_new(bigint nbytes, const char *name)
+{
+  if (nbytes == 0) return NULL;
+
+  void *ptr = malloc(nbytes);
+  if (ptr == NULL) {
+    char str[128];
+    sprintf(str,"Failed to allocate " BIGINT_FORMAT "bytes for array %s",
+	    nbytes,name);
+    error->one(str);
+  }
+  return ptr;
+}
+
+void *Memory::srealloc_new(void *ptr, bigint nbytes, const char *name)
+{
+  if (nbytes == 0) {
+    sfree_new(ptr);
+    return NULL;
+  }
+
+  ptr = realloc(ptr,nbytes);
+  if (ptr == NULL) {
+    char str[128];
+    sprintf(str,"Failed to reallocate " BIGINT_FORMAT "bytes for array %s",
+	    nbytes,name);
+    error->one(str);
+  }
+  return ptr;
+}
+
+void Memory::sfree_new(void *ptr)
+{
+  if (ptr == NULL) return;
+  free(ptr);
+}
+
+/* ----------------------------------------------------------------------
+   older routines
+------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
    create a 1d double array with index from nlo to nhi inclusive 
 ------------------------------------------------------------------------- */
 
@@ -360,7 +405,6 @@ void Memory::destroy_3d_double_array(double ***array, int n1_offset,
   sfree(&array[n1_offset][n2_offset]);
   sfree(array + n1_offset);
 }
-
 
 /* ----------------------------------------------------------------------
    create a 3d int array 

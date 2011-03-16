@@ -68,20 +68,18 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   // initialize comm buffers & exchange memory
 
   maxsend = BUFMIN;
-  buf_send = (double *) 
-    memory->smalloc((maxsend+BUFEXTRA)*sizeof(double),"comm:buf_send");
+  memory->create(buf_send,maxsend+BUFEXTRA,"comm:buf_send");
   maxrecv = BUFMIN;
-  buf_recv = (double *) 
-    memory->smalloc(maxrecv*sizeof(double),"comm:buf_recv");
+  memory->create(buf_recv,maxrecv,"comm:buf_recv");
 
   maxswap = 6;
   allocate_swap(maxswap);
 
   sendlist = (int **) memory->smalloc(maxswap*sizeof(int *),"sendlist");
-  maxsendlist = (int *) memory->smalloc(maxswap*sizeof(int),"maxsendlist");
+  memory->create(maxsendlist,maxswap,"maxsendlist");
   for (int i = 0; i < maxswap; i++) {
     maxsendlist[i] = BUFMIN;
-    sendlist[i] = (int *) memory->smalloc(BUFMIN*sizeof(int),"sendlist[i]");
+    memory->create(sendlist[i],BUFMIN,"sendlist[i]");
   }
 
   maxforward_fix = maxreverse_fix = 0;
@@ -92,20 +90,20 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
 
 Comm::~Comm()
 {
-  if (grid2proc) memory->destroy_3d_int_array(grid2proc);
+  if (grid2proc) memory->destroy(grid2proc);
 
   free_swap();
   if (style == MULTI) {
     free_multi();
-    memory->destroy_2d_double_array(cutghostmulti);
+    memory->destroy(cutghostmulti);
   }
 
-  memory->sfree(maxsendlist);
-  if (sendlist) for (int i = 0; i < maxswap; i++) memory->sfree(sendlist[i]);
+  memory->destroy(maxsendlist);
+  if (sendlist) for (int i = 0; i < maxswap; i++) memory->destroy(sendlist[i]);
   memory->sfree(sendlist);
 
-  memory->sfree(buf_send);
-  memory->sfree(buf_recv);
+  memory->destroy(buf_send);
+  memory->destroy(buf_recv);
 }
 
 /* ----------------------------------------------------------------------
@@ -121,9 +119,9 @@ void Comm::set_procs()
   if (domain->dimension == 2 && procgrid[2] != 1)
     error->all("Processor count in z must be 1 for 2d simulation");
 
-  if (grid2proc) memory->destroy_3d_int_array(grid2proc);
-  grid2proc = memory->create_3d_int_array(procgrid[0],procgrid[1],procgrid[2],
-					  "comm:grid2proc");
+  if (grid2proc) memory->destroy(grid2proc);
+  memory->create(grid2proc,procgrid[0],procgrid[1],procgrid[2],
+		 "comm:grid2proc");
 
   // use MPI Cartesian routines to setup 3d grid of procs
   // grid2proc[i][j][k] = proc that owns i,j,k location in grid
@@ -213,12 +211,11 @@ void Comm::init()
 
   if (style == MULTI && multilo == NULL) {
     allocate_multi(maxswap);
-    cutghostmulti = 
-      memory->create_2d_double_array(atom->ntypes+1,3,"comm:cutghostmulti");
+    memory->create(cutghostmulti,atom->ntypes+1,3,"comm:cutghostmulti");
   }
   if (style == SINGLE && multilo) {
     free_multi();
-    memory->destroy_2d_double_array(cutghostmulti);
+    memory->destroy(cutghostmulti);
   }
 }
 
@@ -1129,13 +1126,10 @@ void Comm::grow_send(int n, int flag)
 {
   maxsend = static_cast<int> (BUFFACTOR * n);
   if (flag)
-    buf_send = (double *) 
-      memory->srealloc(buf_send,(maxsend+BUFEXTRA)*sizeof(double),
-		       "comm:buf_send");
+    memory->grow(buf_send,(maxsend+BUFEXTRA),"comm:buf_send");
   else {
-    memory->sfree(buf_send);
-    buf_send = (double *) memory->smalloc((maxsend+BUFEXTRA)*sizeof(double),
-					  "comm:buf_send");
+    memory->destroy(buf_send);
+    memory->create(buf_send,maxsend+BUFEXTRA,"comm:buf_send");
   }
 }
 
@@ -1146,9 +1140,8 @@ void Comm::grow_send(int n, int flag)
 void Comm::grow_recv(int n)
 {
   maxrecv = static_cast<int> (BUFFACTOR * n);
-  memory->sfree(buf_recv);
-  buf_recv = (double *) memory->smalloc(maxrecv*sizeof(double),
-					"comm:buf_recv");
+  memory->destroy(buf_recv);
+  memory->create(buf_recv,maxrecv,"comm:buf_recv");
 }
 
 /* ----------------------------------------------------------------------
@@ -1158,9 +1151,7 @@ void Comm::grow_recv(int n)
 void Comm::grow_list(int iswap, int n)
 {
   maxsendlist[iswap] = static_cast<int> (BUFFACTOR * n);
-  sendlist[iswap] = (int *) 
-    memory->srealloc(sendlist[iswap],maxsendlist[iswap]*sizeof(int),
-		     "comm:sendlist[iswap]");
+  memory->grow(sendlist[iswap],maxsendlist[iswap],"comm:sendlist[iswap]");
 }
 
 /* ----------------------------------------------------------------------
@@ -1178,12 +1169,10 @@ void Comm::grow_swap(int n)
 
   sendlist = (int **)
     memory->srealloc(sendlist,n*sizeof(int *),"comm:sendlist");
-  maxsendlist = (int *)
-    memory->srealloc(maxsendlist,n*sizeof(int),"comm:maxsendlist");
+  memory->grow(maxsendlist,n,"comm:maxsendlist");
   for (int i = maxswap; i < n; i++) {
     maxsendlist[i] = BUFMIN;
-    sendlist[i] = (int *)
-      memory->smalloc(BUFMIN*sizeof(int),"comm:sendlist[i]");
+    memory->create(sendlist[i],BUFMIN,"comm:sendlist[i]");
   }
   maxswap = n;
 }
@@ -1194,20 +1183,19 @@ void Comm::grow_swap(int n)
 
 void Comm::allocate_swap(int n)
 {
-  sendnum = (int *) memory->smalloc(n*sizeof(int),"comm:sendnum");
-  recvnum = (int *) memory->smalloc(n*sizeof(int),"comm:recvnum");
-  sendproc = (int *) memory->smalloc(n*sizeof(int),"comm:sendproc");
-  recvproc = (int *) memory->smalloc(n*sizeof(int),"comm:recvproc");
-  size_forward_recv = (int *) memory->smalloc(n*sizeof(int),"comm:size");
-  size_reverse_send = (int *) memory->smalloc(n*sizeof(int),"comm:size");
-  size_reverse_recv = (int *) memory->smalloc(n*sizeof(int),"comm:size");
-  slablo = (double *) memory->smalloc(n*sizeof(double),"comm:slablo");
-  slabhi = (double *) memory->smalloc(n*sizeof(double),"comm:slabhi");
-  firstrecv = (int *) memory->smalloc(n*sizeof(int),"comm:firstrecv");
-  pbc_flag = (int *) memory->smalloc(n*sizeof(int),"comm:pbc_flag");
-  pbc = (int **) memory->create_2d_int_array(n,6,"comm:pbc");
+  memory->create(sendnum,n,"comm:sendnum");
+  memory->create(recvnum,n,"comm:recvnum");
+  memory->create(sendproc,n,"comm:sendproc");
+  memory->create(recvproc,n,"comm:recvproc");
+  memory->create(size_forward_recv,n,"comm:size");
+  memory->create(size_reverse_send,n,"comm:size");
+  memory->create(size_reverse_recv,n,"comm:size");
+  memory->create(slablo,n,"comm:slablo");
+  memory->create(slabhi,n,"comm:slabhi");
+  memory->create(firstrecv,n,"comm:firstrecv");
+  memory->create(pbc_flag,n,"comm:pbc_flag");
+  memory->create(pbc,n,6,"comm:pbc");
 }
-
 
 /* ----------------------------------------------------------------------
    allocation of multi-type swap info
@@ -1215,8 +1203,8 @@ void Comm::allocate_swap(int n)
 
 void Comm::allocate_multi(int n)
 {
-  multilo = memory->create_2d_double_array(n,atom->ntypes+1,"comm:multilo");
-  multihi = memory->create_2d_double_array(n,atom->ntypes+1,"comm:multihi");
+  multilo = memory->create(multilo,n,atom->ntypes+1,"comm:multilo");
+  multihi = memory->create(multihi,n,atom->ntypes+1,"comm:multihi");
 }
 
 /* ----------------------------------------------------------------------
@@ -1225,17 +1213,17 @@ void Comm::allocate_multi(int n)
 
 void Comm::free_swap()
 {
-  memory->sfree(sendnum);
-  memory->sfree(recvnum);
-  memory->sfree(sendproc);
-  memory->sfree(recvproc);
-  memory->sfree(size_forward_recv);
-  memory->sfree(size_reverse_send);
-  memory->sfree(size_reverse_recv);
-  memory->sfree(slablo);
-  memory->sfree(slabhi);
-  memory->sfree(firstrecv);
-  memory->sfree(pbc_flag);
+  memory->destroy(sendnum);
+  memory->destroy(recvnum);
+  memory->destroy(sendproc);
+  memory->destroy(recvproc);
+  memory->destroy(size_forward_recv);
+  memory->destroy(size_reverse_send);
+  memory->destroy(size_reverse_recv);
+  memory->destroy(slablo);
+  memory->destroy(slabhi);
+  memory->destroy(firstrecv);
+  memory->destroy(pbc_flag);
   memory->destroy_2d_int_array(pbc);
 }
 
@@ -1245,8 +1233,8 @@ void Comm::free_swap()
 
 void Comm::free_multi()
 {
-  memory->destroy_2d_double_array(multilo);
-  memory->destroy_2d_double_array(multihi);
+  memory->destroy(multilo);
+  memory->destroy(multihi);
 }
 
 /* ----------------------------------------------------------------------

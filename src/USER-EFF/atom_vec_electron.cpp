@@ -64,30 +64,20 @@ void AtomVecElectron::grow(int n)
   else nmax = n;
   atom->nmax = nmax;
   
-  tag = atom->tag = (int *) 
-    memory->srealloc(atom->tag,nmax*sizeof(int),"atom:tag");
-  type = atom->type = (int *)
-    memory->srealloc(atom->type,nmax*sizeof(int),"atom:type");
-  mask = atom->mask = (int *) 
-    memory->srealloc(atom->mask,nmax*sizeof(int),"atom:mask");
-  image = atom->image = (int *) 
-    memory->srealloc(atom->image,nmax*sizeof(int),"atom:image");
-  
-  x = atom->x = memory->grow_2d_double_array(atom->x,nmax,3,"atom:x");
-  v = atom->v = memory->grow_2d_double_array(atom->v,nmax,3,"atom:v");
-  f = atom->f = memory->grow_2d_double_array(atom->f,nmax,3,"atom:f");
-  
-  q = atom->q = (double *)
-    memory->srealloc(atom->q,nmax*sizeof(double),"atom:q");
-  spin = atom->spin = (int *)
-    memory->srealloc(atom->spin,nmax*sizeof(int),"atom:spin");
-  eradius = atom->eradius = (double *)
-    memory->srealloc(atom->eradius,nmax*sizeof(double),"atom:eradius");
-  ervel = atom->ervel = (double *)
-    memory->srealloc(atom->ervel,nmax*sizeof(double),"atom:ervel");
-  erforce = atom->erforce = (double *)
-    memory->srealloc(atom->erforce,nmax*sizeof(double),"atom:erforce");
-  
+  tag = memory->grow(atom->tag,nmax,"atom:tag");
+  type = memory->grow(atom->type,nmax,"atom:type");
+  mask = memory->grow(atom->mask,nmax,"atom:mask");
+  image = memory->grow(atom->image,nmax,"atom:image");
+  x = memory->grow(atom->x,nmax,3,"atom:x");
+  v = memory->grow(atom->v,nmax,3,"atom:v");
+  f = memory->grow(atom->f,nmax,3,"atom:f");
+
+  q = memory->grow(atom->q,nmax,"atom:q");
+  spin = memory->grow(atom->spin,nmax,"atom:spin");
+  eradius = memory->grow(atom->eradius,nmax,"atom:eradius");
+  ervel = memory->grow(atom->ervel,nmax,"atom:ervel");
+  erforce = memory->grow(atom->erforce,nmax,"atom:erforce");
+
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++) 
       modify->fix[atom->extra_grow[iextra]]->grow_arrays(nmax);

@@ -62,23 +62,17 @@ void AtomVecColloid::grow(int n)
   if (nmax < 0 || nmax > MAXSMALLINT)
     error->one("Per-processor system is too big");
 
-  tag = atom->tag = (int *)
-    memory->srealloc(atom->tag,nmax*sizeof(int),"atom:tag");
-  type = atom->type = (int *)
-    memory->srealloc(atom->type,nmax*sizeof(int),"atom:type");
-  mask = atom->mask = (int *)
-    memory->srealloc(atom->mask,nmax*sizeof(int),"atom:mask");
-  image = atom->image = (int *)
-    memory->srealloc(atom->image,nmax*sizeof(int),"atom:image");
-  x = atom->x = memory->grow_2d_double_array(atom->x,nmax,3,"atom:x");
-  v = atom->v = memory->grow_2d_double_array(atom->v,nmax,3,"atom:v");
-  f = atom->f = memory->grow_2d_double_array(atom->f,nmax,3,"atom:f");
+  tag = memory->grow(atom->tag,nmax,"atom:tag");
+  type = memory->grow(atom->type,nmax,"atom:type");
+  mask = memory->grow(atom->mask,nmax,"atom:mask");
+  image = memory->grow(atom->image,nmax,"atom:image");
+  x = memory->grow(atom->x,nmax,3,"atom:x");
+  v = memory->grow(atom->v,nmax,3,"atom:v");
+  f = memory->grow(atom->f,nmax,3,"atom:f");
 
-  omega = atom->omega = 
-    memory->grow_2d_double_array(atom->omega,nmax,3,"atom:omega");
-  torque = atom->torque = 
-    memory->grow_2d_double_array(atom->torque,nmax,3,"atom:torque");
-  
+  omega = memory->grow(atom->omega,nmax,3,"atom:omega");
+  torque = memory->grow(atom->torque,nmax,3,"atom:torque");
+
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
       modify->fix[atom->extra_grow[iextra]]->grow_arrays(nmax);

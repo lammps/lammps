@@ -152,83 +152,83 @@ Atom::~Atom()
   delete avec;
 
   delete [] firstgroupname;
-  memory->sfree(binhead);
-  memory->sfree(next);
-  memory->sfree(permute);
+  memory->destroy(binhead);
+  memory->destroy(next);
+  memory->destroy(permute);
 
   // delete atom arrays
   // customize by adding new array
 
-  memory->sfree(tag);
-  memory->sfree(type);
-  memory->sfree(mask);
-  memory->sfree(image);
-  memory->destroy_2d_double_array(x);
-  memory->destroy_2d_double_array(v);
-  memory->destroy_2d_double_array(f);
+  memory->destroy(tag);
+  memory->destroy(type);
+  memory->destroy(mask);
+  memory->destroy(image);
+  memory->destroy(x);
+  memory->destroy(v);
+  memory->destroy(f);
 
-  memory->sfree(q);
-  memory->destroy_2d_double_array(mu);
-  memory->destroy_2d_double_array(quat);
-  memory->destroy_2d_double_array(omega);
-  memory->destroy_2d_double_array(angmom);
-  memory->destroy_2d_double_array(torque);
+  memory->destroy(q);
+  memory->destroy(mu);
+  memory->destroy(quat);
+  memory->destroy(omega);
+  memory->destroy(angmom);
+  memory->destroy(torque);
 
-  memory->sfree(radius);
-  memory->sfree(density);
-  memory->sfree(rmass);
-  memory->sfree(vfrac);
-  memory->sfree(s0);
-  memory->destroy_2d_double_array(x0);
+  memory->destroy(radius);
+  memory->destroy(density);
+  memory->destroy(rmass);
+  memory->destroy(vfrac);
+  memory->destroy(s0);
+  memory->destroy(x0);
 
-  memory->sfree(spin);
-  memory->sfree(eradius);
-  memory->sfree(ervel);
-  memory->sfree(erforce);
+  memory->destroy(spin);
+  memory->destroy(eradius);
+  memory->destroy(ervel);
+  memory->destroy(erforce);
 
-  memory->sfree(molecule);
+  memory->destroy(molecule);
 
-  memory->destroy_2d_int_array(nspecial);
-  memory->destroy_2d_int_array(special);
+  memory->destroy(nspecial);
+  memory->destroy(special);
 
-  memory->sfree(num_bond);
-  memory->destroy_2d_int_array(bond_type);
-  memory->destroy_2d_int_array(bond_atom);
+  memory->destroy(num_bond);
+  memory->destroy(bond_type);
+  memory->destroy(bond_atom);
 
-  memory->sfree(num_angle);
-  memory->destroy_2d_int_array(angle_type);
-  memory->destroy_2d_int_array(angle_atom1);
-  memory->destroy_2d_int_array(angle_atom2);
-  memory->destroy_2d_int_array(angle_atom3);
+  memory->destroy(num_angle);
+  memory->destroy(angle_type);
+  memory->destroy(angle_atom1);
+  memory->destroy(angle_atom2);
+  memory->destroy(angle_atom3);
 
-  memory->sfree(num_dihedral);
-  memory->destroy_2d_int_array(dihedral_type);
-  memory->destroy_2d_int_array(dihedral_atom1);
-  memory->destroy_2d_int_array(dihedral_atom2);
-  memory->destroy_2d_int_array(dihedral_atom3);
-  memory->destroy_2d_int_array(dihedral_atom4);
+  memory->destroy(num_dihedral);
+  memory->destroy(dihedral_type);
+  memory->destroy(dihedral_atom1);
+  memory->destroy(dihedral_atom2);
+  memory->destroy(dihedral_atom3);
+  memory->destroy(dihedral_atom4);
 
-  memory->sfree(num_improper);
-  memory->destroy_2d_int_array(improper_type);
-  memory->destroy_2d_int_array(improper_atom1);
-  memory->destroy_2d_int_array(improper_atom2);
-  memory->destroy_2d_int_array(improper_atom3);
-  memory->destroy_2d_int_array(improper_atom4);
+  memory->destroy(num_improper);
+  memory->destroy(improper_type);
+  memory->destroy(improper_atom1);
+  memory->destroy(improper_atom2);
+  memory->destroy(improper_atom3);
+  memory->destroy(improper_atom4);
 
   // delete per-type arrays
 
   delete [] mass;
   delete [] mass_setflag;
-  memory->destroy_2d_double_array(shape);
+  memory->destroy(shape);
   delete [] shape_setflag;
   delete [] dipole;
   delete [] dipole_setflag;
 
   // delete extra arrays
 
-  memory->sfree(extra_grow);
-  memory->sfree(extra_restart);
-  memory->destroy_2d_double_array(extra);
+  memory->destroy(extra_grow);
+  memory->destroy(extra_restart);
+  memory->destroy(extra);
 
   // delete mapping data structures
 
@@ -300,7 +300,7 @@ void Atom::init()
   // delete extra array since it doesn't persist past first run
 
   if (nextra_store) {
-    memory->destroy_2d_double_array(extra);
+    memory->destroy(extra);
     extra = NULL;
     nextra_store = 0;
   }
@@ -420,8 +420,7 @@ void Atom::map_init()
   MPI_Allreduce(&max,&map_tag_max,1,MPI_INT,MPI_MAX,world);
 
   if (map_style == 1) {
-    map_array = (int *) 
-      memory->smalloc((map_tag_max+1)*sizeof(int),"atom:map_array");
+    memory->create(map_array,map_tag_max+1,"atom:map_array");
     for (int i = 0; i <= map_tag_max; i++) map_array[i] = -1;
 
   } else {
@@ -605,7 +604,7 @@ void Atom::map_one(int global, int local)
 void Atom::map_delete()
 {
   if (map_style == 1) {
-    if (map_tag_max) memory->sfree(map_array);
+    if (map_tag_max) memory->destroy(map_array);
   } else {
     if (map_nhash) {
       delete [] map_bucket;
@@ -696,20 +695,21 @@ int Atom::tag_consecutive()
 int Atom::count_words(const char *line)
 {
   int n = strlen(line) + 1;
-  char *copy = (char *) memory->smalloc(n*sizeof(char),"copy");
+  char *copy;
+  memory->create(copy,n,"atom:copy");
   strcpy(copy,line);
 
   char *ptr;
   if (ptr = strchr(copy,'#')) *ptr = '\0';
 
   if (strtok(copy," \t\n\r\f") == NULL) {
-    memory->sfree(copy);
+    memory->destroy(copy);
     return 0;
   }
   n = 1;
   while (strtok(NULL," \t\n\r\f")) n++;
 
-  memory->sfree(copy);
+  memory->destroy(copy);
   return n;
 }
 
@@ -1066,7 +1066,7 @@ void Atom::allocate_type_arrays()
     for (int itype = 1; itype <= ntypes; itype++) mass_setflag[itype] = 0;
   }
   if (avec->shape_type) {
-    shape = memory->create_2d_double_array(ntypes+1,3,"atom:shape");
+    memory->create(shape,ntypes+1,3,"atom:shape");
     shape_setflag = new int[ntypes+1];
     for (int itype = 1; itype <= ntypes; itype++) shape_setflag[itype] = 0;
   }    
@@ -1365,11 +1365,11 @@ void Atom::sort()
   // reallocate per-atom vectors if needed
 
   if (nlocal > maxnext) {
-    memory->sfree(next);
-    memory->sfree(permute);
+    memory->destroy(next);
+    memory->destroy(permute);
     maxnext = atom->nmax;
-    next = (int *) memory->smalloc(maxnext*sizeof(int),"atom:next");
-    permute = (int *) memory->smalloc(maxnext*sizeof(int),"atom:permute");
+    memory->create(next,maxnext,"atom:next");
+    memory->create(permute,maxnext,"atom:permute");
   }
 
   // insure there is one extra atom location at end of arrays for swaps
@@ -1497,9 +1497,9 @@ void Atom::setup_sort_bins()
   // reallocate per-bin memory if needed
 
   if (nbins > maxbin) {
-    memory->sfree(binhead);
+    memory->destroy(binhead);
     maxbin = nbins;
-    binhead = (int *) memory->smalloc(maxbin*sizeof(int),"atom:binhead");
+    memory->create(binhead,maxbin,"atom:binhead");
   }
 }
 
@@ -1528,18 +1528,14 @@ void Atom::add_callback(int flag)
   if (flag == 0) {
     if (nextra_grow == nextra_grow_max) {
       nextra_grow_max += DELTA;
-      extra_grow = (int *) 
-	memory->srealloc(extra_grow,nextra_grow_max*sizeof(int),
-			 "atom:extra_grow");
+      memory->grow(extra_grow,nextra_grow_max,"atom:extra_grow");
     }
     extra_grow[nextra_grow] = ifix;
     nextra_grow++;
   } else if (flag == 1) {
     if (nextra_restart == nextra_restart_max) {
       nextra_restart_max += DELTA;
-      extra_restart = (int *) 
-	memory->srealloc(extra_restart,nextra_restart_max*sizeof(int),
-			 "atom:extra_restart");
+      memory->grow(extra_restart,nextra_restart_max,"atom:extra_restart");
     }
     extra_restart[nextra_restart] = ifix;
     nextra_restart++;
@@ -1619,7 +1615,7 @@ void *Atom::extract(char *name)
 double Atom::memory_usage()
 {
   memlength = DELTA_MEMSTR;
-  memstr = (char *) memory->smalloc(memlength*sizeof(char),"atom:memstr");
+  memory->create(memstr,memlength,"atom:memstr");
   memstr[0] = '\0';
 
   double bytes = avec->memory_usage();
@@ -1630,7 +1626,7 @@ double Atom::memory_usage()
     bytes += map_nhash*sizeof(HashElem);
   }
 
-  memory->sfree(memstr);
+  memory->destroy(memstr);
   return bytes;
 }
 
@@ -1654,8 +1650,7 @@ int Atom::memcheck(const char *str)
 
   if (strlen(memstr) + n >= memlength) {
     memlength += DELTA_MEMSTR;
-    memstr = (char *) memory->srealloc(memstr,memlength*sizeof(char),
-				       "atom:memstr");
+    memory->grow(memstr,memlength,"atom:memstr");
   }
 
   strcat(memstr,padded);

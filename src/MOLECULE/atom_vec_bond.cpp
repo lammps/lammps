@@ -63,36 +63,25 @@ void AtomVecBond::grow(int n)
   if (nmax < 0 || nmax > MAXSMALLINT)
     error->one("Per-processor system is too big");
 
-  tag = atom->tag = (int *) 
-    memory->srealloc(atom->tag,nmax*sizeof(int),"atom:tag");
-  type = atom->type = (int *)
-    memory->srealloc(atom->type,nmax*sizeof(int),"atom:type");
-  mask = atom->mask = (int *) 
-    memory->srealloc(atom->mask,nmax*sizeof(int),"atom:mask");
-  image = atom->image = (int *) 
-    memory->srealloc(atom->image,nmax*sizeof(int),"atom:image");
-  x = atom->x = memory->grow_2d_double_array(atom->x,nmax,3,"atom:x");
-  v = atom->v = memory->grow_2d_double_array(atom->v,nmax,3,"atom:v");
-  f = atom->f = memory->grow_2d_double_array(atom->f,nmax,3,"atom:f");
+  tag = memory->grow(atom->tag,nmax,"atom:tag");
+  type = memory->grow(atom->type,nmax,"atom:type");
+  mask = memory->grow(atom->mask,nmax,"atom:mask");
+  image = memory->grow(atom->image,nmax,"atom:image");
+  x = memory->grow(atom->x,nmax,3,"atom:x");
+  v = memory->grow(atom->v,nmax,3,"atom:v");
+  f = memory->grow(atom->f,nmax,3,"atom:f");
 
-  molecule = atom->molecule = (int *) 
-    memory->srealloc(atom->molecule,nmax*sizeof(int),"atom:molecule");
+  molecule = memory->grow(atom->molecule,nmax,"atom:molecule");
 
-  nspecial = atom->nspecial =
-    memory->grow_2d_int_array(atom->nspecial,nmax,3,"atom:nspecial");
-  special = atom->special =
-    memory->grow_2d_int_array(atom->special,nmax,atom->maxspecial,
-			      "atom:special");
+  nspecial = memory->grow(atom->nspecial,nmax,3,"atom:nspecial");
+  special = memory->grow(atom->special,nmax,atom->maxspecial,"atom:special");
 
-  num_bond = atom->num_bond = (int *) 
-    memory->srealloc(atom->num_bond,nmax*sizeof(int),"atom:num_bond");
-  bond_type = atom->bond_type = 
-    memory->grow_2d_int_array(atom->bond_type,nmax,atom->bond_per_atom,
-			      "atom:bond_type");
-  bond_atom = atom->bond_atom = 
-    memory->grow_2d_int_array(atom->bond_atom,nmax,atom->bond_per_atom,
-			      "atom:bond_atom");
-
+  num_bond = memory->grow(atom->num_bond,nmax,"atom:num_bond");
+  bond_type = memory->grow(atom->bond_type,nmax,atom->bond_per_atom,
+			   "atom:bond_type");
+  bond_atom = memory->grow(atom->bond_atom,nmax,atom->bond_per_atom,
+			   "atom:bond_atom");
+  
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++) 
       modify->fix[atom->extra_grow[iextra]]->grow_arrays(nmax);

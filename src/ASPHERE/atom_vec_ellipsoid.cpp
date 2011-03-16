@@ -66,24 +66,17 @@ void AtomVecEllipsoid::grow(int n)
   if (nmax < 0 || nmax > MAXSMALLINT)
     error->one("Per-processor system is too big");
 
-  tag = atom->tag = (int *)
-    memory->srealloc(atom->tag,nmax*sizeof(int),"atom:tag");
-  type = atom->type = (int *)
-    memory->srealloc(atom->type,nmax*sizeof(int),"atom:type");
-  mask = atom->mask = (int *)
-    memory->srealloc(atom->mask,nmax*sizeof(int),"atom:mask");
-  image = atom->image = (int *)
-    memory->srealloc(atom->image,nmax*sizeof(int),"atom:image");
-  x = atom->x = memory->grow_2d_double_array(atom->x,nmax,3,"atom:x");
-  v = atom->v = memory->grow_2d_double_array(atom->v,nmax,3,"atom:v");
-  f = atom->f = memory->grow_2d_double_array(atom->f,nmax,3,"atom:f");
+  tag = memory->grow(atom->tag,nmax,"atom:tag");
+  type = memory->grow(atom->type,nmax,"atom:type");
+  mask = memory->grow(atom->mask,nmax,"atom:mask");
+  image = memory->grow(atom->image,nmax,"atom:image");
+  x = memory->grow(atom->x,nmax,3,"atom:x");
+  v = memory->grow(atom->v,nmax,3,"atom:v");
+  f = memory->grow(atom->f,nmax,3,"atom:f");
 
-  quat = atom->quat = 
-    memory->grow_2d_double_array(atom->quat,nmax,4,"atom:quat");
-  angmom = atom->angmom = 
-    memory->grow_2d_double_array(atom->angmom,nmax,3,"atom:angmom");
-  torque = atom->torque = 
-    memory->grow_2d_double_array(atom->torque,nmax,3,"atom:torque");
+  quat = memory->grow(atom->quat,nmax,4,"atom:quat");
+  angmom = memory->grow(atom->angmom,nmax,3,"atom:angmom");
+  torque = memory->grow(atom->torque,nmax,3,"atom:torque");
   
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)

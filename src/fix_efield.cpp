@@ -98,10 +98,7 @@ int FixEfield::setmask()
 
 void FixEfield::init()
 {
-  // require an atom style with charge defined
-
-  if (atom->q == NULL)
-    error->all("Must use charged atom style with fix efield");
+  if (!atom->q_flag) error->all("Fix efield requires atom attribute q");
 
   // check variables
 

@@ -201,6 +201,16 @@ void Neighbor::init()
   // ------------------------------------------------------------------
   // settings
 
+  // bbox lo/hi = bounding box of entire domain, stored by Domain
+
+  if (triclinic == 0) {
+    bboxlo = domain->boxlo;
+    bboxhi = domain->boxhi;
+  } else {
+    bboxlo = domain->boxlo_bound;
+    bboxhi = domain->boxhi_bound;
+  }
+
   // set neighbor cutoffs (force cutoff + skin)
   // trigger determines when atoms migrate and neighbor lists are rebuilt
   //   needs to be non-zero for migration distance check
@@ -1209,7 +1219,6 @@ void Neighbor::build_one(int i)
 
 void Neighbor::setup_bins()
 {
-  // bbox lo/hi = bounding box of entire domain
   // bbox = size of bbox of entire domain
   // bsubbox lo/hi = bounding box of my subdomain extended by comm->cutghost
   // for triclinic:
@@ -1222,8 +1231,6 @@ void Neighbor::setup_bins()
   double *cutghost = comm->cutghost;
 
   if (triclinic == 0) {
-    bboxlo = domain->boxlo;
-    bboxhi = domain->boxhi;
     bsubboxlo[0] = domain->sublo[0] - cutghost[0];
     bsubboxlo[1] = domain->sublo[1] - cutghost[1];
     bsubboxlo[2] = domain->sublo[2] - cutghost[2];
@@ -1231,8 +1238,6 @@ void Neighbor::setup_bins()
     bsubboxhi[1] = domain->subhi[1] + cutghost[1];
     bsubboxhi[2] = domain->subhi[2] + cutghost[2];
   } else {
-    bboxlo = domain->boxlo_bound;
-    bboxhi = domain->boxhi_bound;
     double lo[3],hi[3];
     lo[0] = domain->sublo_lamda[0] - cutghost[0];
     lo[1] = domain->sublo_lamda[1] - cutghost[1];

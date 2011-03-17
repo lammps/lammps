@@ -14,6 +14,7 @@
 #ifndef LMP_MEMORY_H
 #define LMP_MEMORY_H
 
+#include "error.h"
 #include "pointers.h"
 
 namespace LAMMPS_NS {
@@ -22,11 +23,12 @@ class Memory : protected Pointers {
  public:
   Memory(class LAMMPS *);
 
-  // older routines
-
-  void *smalloc(int n, const char *);
+  void *smalloc(bigint n, const char *);
+  void *srealloc(void *, bigint n, const char *);
   void sfree(void *);
-  void *srealloc(void *, int n, const char *);
+  void fail(const char *);
+
+  // older routines, will be deprecated at some point
 
   double *create_1d_double_array(int, int, const char *);
   void destroy_1d_double_array(double *, int);
@@ -60,16 +62,12 @@ class Memory : protected Pointers {
 
   // newer routines
 
- public:
-  void *smalloc_new(bigint n, const char *);
-  void *srealloc_new(void *, bigint n, const char *);
-  void sfree_new(void *);
-
-
 /* ----------------------------------------------------------------------
-   to avoid code bloat, only use these for int,double,float,char
-   not for int* or double** or arbitrary structs
-   in those cases, just use smalloc,srealloc,sfree directly
+   create/grow/destroy vecs and multidim arrays with contiguous memory blocks
+   only use with primitive data types, e.g. 1d vec of ints, 2d array of doubles
+   cannot use with pointers, e.g. 1d vec of int*, due to mismatched destroy 
+   avoid use with non-primitive data types to avoid code bloat
+   for these other cases, use smalloc/srealloc/sfree directly
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
@@ -80,9 +78,12 @@ class Memory : protected Pointers {
     TYPE *create(TYPE *&array, int n, const char *name)
     {
       bigint nbytes = sizeof(TYPE) * n;
-      array = (TYPE *) smalloc_new(nbytes,name);
+      array = (TYPE *) smalloc(nbytes,name);
       return array;
     };
+
+  template <typename TYPE>
+    TYPE **create(TYPE **&array, int n, const char *name) {fail(name);}
 
 /* ----------------------------------------------------------------------
    grow or shrink 1d array
@@ -99,9 +100,12 @@ class Memory : protected Pointers {
       }
       
       bigint nbytes = sizeof(TYPE) * n;
-      array = (TYPE *) srealloc_new(array,nbytes,name);
+      array = (TYPE *) srealloc(array,nbytes,name);
       return array;
     };
+
+  template <typename TYPE>
+    TYPE **grow(TYPE **&array, int n, const char *name) {fail(name);}
 
 /* ----------------------------------------------------------------------
    destroy a 1d array 
@@ -110,30 +114,35 @@ class Memory : protected Pointers {
   template <typename TYPE>
     void destroy(TYPE *array) 
     {
-      sfree_new(array);
+      sfree(array);
     };
 
 /* ----------------------------------------------------------------------
    create a 1d array with index from nlo to nhi inclusive 
+   cannot grow it
 ------------------------------------------------------------------------- */
 
   template <typename TYPE>
-    TYPE *create(TYPE *&array, int nlo, int nhi, const char *name) 
+    TYPE *create1d_offset(TYPE *&array, int nlo, int nhi, const char *name) 
     {
       bigint nbytes = sizeof(TYPE) * (nhi-nlo+1);
-      array = (TYPE *) smalloc_new(nbytes,name);
+      array = (TYPE *) smalloc(nbytes,name);
       array = array-nlo;
       return array;
     }
+
+  template <typename TYPE>
+    TYPE **create1d_offset(TYPE **&array, int nlo, int nhi, const char *name)
+    {fail(name);}
 
 /* ----------------------------------------------------------------------
    destroy a 1d array with index offset 
 ------------------------------------------------------------------------- */
 
   template <typename TYPE>
-    void destroy(TYPE *array, int offset) 
+    void destroy1d_offset(TYPE *array, int offset) 
     {
-      if (array) sfree_new(array+offset);
+      if (array) sfree(array+offset);
     }
 
 /* ----------------------------------------------------------------------
@@ -144,9 +153,9 @@ class Memory : protected Pointers {
     TYPE **create(TYPE **&array, int n1, int n2, const char *name) 
     {
       bigint nbytes = sizeof(TYPE) * n1*n2;
-      TYPE *data = (TYPE *) smalloc_new(nbytes,name);
+      TYPE *data = (TYPE *) smalloc(nbytes,name);
       nbytes = sizeof(TYPE *) * n1;
-      array = (TYPE **) smalloc_new(nbytes,name);
+      array = (TYPE **) smalloc(nbytes,name);
       
       int n = 0;
       for (int i = 0; i < n1; i++) {
@@ -155,6 +164,10 @@ class Memory : protected Pointers {
       }
       return array;
     }
+
+  template <typename TYPE>
+    TYPE ***create(TYPE ***&array, int n1, int n2, const char *name)
+    {fail(name);}
 
 /* ----------------------------------------------------------------------
    grow or shrink 1st dim of a 2d array
@@ -172,9 +185,9 @@ class Memory : protected Pointers {
       }
       
       bigint nbytes = sizeof(TYPE) * n1*n2;
-      TYPE *data = (TYPE *) srealloc_new(array[0],nbytes,name);
+      TYPE *data = (TYPE *) srealloc(array[0],nbytes,name);
       nbytes = sizeof(TYPE *) * n1;
-      array = (TYPE **) srealloc_new(array,nbytes,name);
+      array = (TYPE **) srealloc(array,nbytes,name);
       
       int n = 0;
       for (int i = 0; i < n1; i++) {
@@ -184,6 +197,10 @@ class Memory : protected Pointers {
       return array;
     }
 
+  template <typename TYPE>
+    TYPE ***grow(TYPE ***&array, int n1, int n2, const char *name)
+    {fail(name);}
+
 /* ----------------------------------------------------------------------
    destroy a 2d array 
 ------------------------------------------------------------------------- */
@@ -192,17 +209,18 @@ class Memory : protected Pointers {
     void destroy(TYPE **array)
     {
       if (array == NULL) return;
-      sfree_new(array[0]);
-      sfree_new(array);
+      sfree(array[0]);
+      sfree(array);
     }
 
 /* ----------------------------------------------------------------------
    create a 2d array with 2nd index from n2lo to n2hi inclusive 
+   cannot grow it
 ------------------------------------------------------------------------- */
 
   template <typename TYPE>
-    TYPE **create(TYPE **&array, int n1, int n2lo, int n2hi,
-		  const char *name)
+    TYPE **create2d_offset(TYPE **&array, int n1, int n2lo, int n2hi,
+			   const char *name)
     {
       int n2 = n2hi - n2lo + 1;
       create(array,n1,n2,name);
@@ -210,16 +228,20 @@ class Memory : protected Pointers {
       return array;
     }
 
+  template <typename TYPE>
+    TYPE ***create2d_offset(TYPE ***&array, int n1, int n2lo, int n2hi,
+			    const char *name) {fail(name);}
+
 /* ----------------------------------------------------------------------
    destroy a 2d array with 2nd index offset 
 ------------------------------------------------------------------------- */
 
   template <typename TYPE>
-    void destroy(TYPE **array, int offset)
+    void destroy2d_offset(TYPE **array, int offset)
     {
       if (array == NULL) return;
-      sfree_new(&array[0][offset]);
-      sfree_new(array);
+      sfree(&array[0][offset]);
+      sfree(array);
     }
 
 /* ----------------------------------------------------------------------
@@ -230,11 +252,11 @@ class Memory : protected Pointers {
     TYPE ***create(TYPE ***&array, int n1, int n2, int n3, const char *name) 
     {
       bigint nbytes = sizeof(TYPE) * n1*n2*n3;
-      TYPE *data = (TYPE *) smalloc_new(nbytes,name);
+      TYPE *data = (TYPE *) smalloc(nbytes,name);
       nbytes = sizeof(TYPE *) * n1*n2;
-      TYPE **plane = (TYPE **) smalloc_new(nbytes,name);
+      TYPE **plane = (TYPE **) smalloc(nbytes,name);
       nbytes = sizeof(TYPE **) * n1;
-      array = (TYPE ***) smalloc_new(nbytes,name);
+      array = (TYPE ***) smalloc(nbytes,name);
       
       int i,j;
       int n = 0;
@@ -247,6 +269,10 @@ class Memory : protected Pointers {
       }
       return array;
     }
+
+  template <typename TYPE>
+    TYPE ****create(TYPE ****&array, int n1, int n2, int n3, const char *name) 
+    {fail(name);}
 
 /* ----------------------------------------------------------------------
    grow or shrink 1st dim of a 3d array
@@ -264,11 +290,11 @@ class Memory : protected Pointers {
       }
       
       bigint nbytes = sizeof(TYPE) * n1*n2*n3;
-      TYPE *data = (TYPE *) srealloc_new(array[0][0],nbytes,name);
+      TYPE *data = (TYPE *) srealloc(array[0][0],nbytes,name);
       nbytes = sizeof(TYPE *) * n1*n2;
-      TYPE **plane = (TYPE **) srealloc_new(array[0],nbytes,name);
+      TYPE **plane = (TYPE **) srealloc(array[0],nbytes,name);
       nbytes = sizeof(TYPE **) * n1;
-      array = (TYPE ***) srealloc_new(array,nbytes,name);
+      array = (TYPE ***) srealloc(array,nbytes,name);
       
       int i,j;
       int n = 0;
@@ -282,6 +308,10 @@ class Memory : protected Pointers {
       return array;
     }
 
+  template <typename TYPE>
+    TYPE ****grow(TYPE ****&array, int n1, int n2, int n3, const char *name) 
+    {fail(name);}
+
 /* ----------------------------------------------------------------------
    destroy a 3d array 
 ------------------------------------------------------------------------- */
@@ -290,30 +320,36 @@ class Memory : protected Pointers {
     void destroy(TYPE ***array) 
     {
       if (array == NULL) return;
-      sfree_new(array[0][0]);
-      sfree_new(array[0]);
-      sfree_new(array);
+      sfree(array[0][0]);
+      sfree(array[0]);
+      sfree(array);
     }
 
 /* ----------------------------------------------------------------------
    create a 3d array with 1st index from n1lo to n1hi inclusive 
+   cannot grow it
 ------------------------------------------------------------------------- */
 
   template <typename TYPE>
-    TYPE ***create(TYPE ***&array, int n1lo, int n1hi, 
-		   int n2, int n3, const char *name)
+    TYPE ***create3d_offset(TYPE ***&array, int n1lo, int n1hi, 
+			    int n2, int n3, const char *name)
     {
       int n1 = n1hi - n1lo + 1;
       create(array,n1,n2,n3,name);
       return array-n1lo;
     }
 
+  template <typename TYPE>
+    TYPE ****create3d_offset(TYPE ****&array, int n1lo, int n1hi, 
+			     int n2, int n3, const char *name)
+    {fail(name);}
+
 /* ----------------------------------------------------------------------
    free a 3d array with 1st index offset 
 ------------------------------------------------------------------------- */
 
   template <typename TYPE>
-    void destroy(TYPE ***array, int offset)
+    void destroy3d_offset(TYPE ***array, int offset)
     {
       if (array) destroy(array+offset);
     }
@@ -323,11 +359,13 @@ class Memory : protected Pointers {
    1st index from n1lo to n1hi inclusive,
    2nd index from n2lo to n2hi inclusive,
    3rd index from n3lo to n3hi inclusive 
+   cannot grow it
 ------------------------------------------------------------------------- */
 
   template <typename TYPE>
-    TYPE ***create(TYPE ***&array, int n1lo, int n1hi, int n2lo, int n2hi,
-		   int n3lo, int n3hi, const char *name)
+    TYPE ***create3d_offset(TYPE ***&array, int n1lo, int n1hi, 
+			    int n2lo, int n2hi, int n3lo, int n3hi,
+			    const char *name)
     {
       int n1 = n1hi - n1lo + 1;
       int n2 = n2hi - n2lo + 1;
@@ -339,17 +377,24 @@ class Memory : protected Pointers {
       return array-n1lo;
     }
 
+  template <typename TYPE>
+    TYPE ****create3d_offset(TYPE ****&array, int n1lo, int n1hi, 
+			     int n2lo, int n2hi, int n3lo, int n3hi,
+			     const char *name)
+    {fail(name);}
+
 /* ----------------------------------------------------------------------
    free a 3d array with all 3 indices offset 
 ------------------------------------------------------------------------- */
 
   template <typename TYPE>
-    void destroy(TYPE ***array, int n1_offset, int n2_offset, int n3_offset)
+    void destroy3d_offset(TYPE ***array, 
+			  int n1_offset, int n2_offset, int n3_offset)
     {
       if (array == NULL) return;
-      sfree_new(&array[n1_offset][n2_offset][n3_offset]);
-      sfree_new(&array[n1_offset][n2_offset]);
-      sfree_new(array + n1_offset);
+      sfree(&array[n1_offset][n2_offset][n3_offset]);
+      sfree(&array[n1_offset][n2_offset]);
+      sfree(array + n1_offset);
     }
 
 /* ----------------------------------------------------------------------
@@ -361,13 +406,13 @@ class Memory : protected Pointers {
 		    const char *name)
     {
       bigint nbytes = sizeof(TYPE) * n1*n2*n3*n4;
-      TYPE *data = (double *) smalloc_new(nbytes,name);
+      TYPE *data = (double *) smalloc(nbytes,name);
       nbytes = sizeof(TYPE *) * n1*n2*n3;
-      TYPE **cube = (double **) smalloc_new(nbytes,name);
+      TYPE **cube = (double **) smalloc(nbytes,name);
       nbytes = sizeof(TYPE **) * n1*n2;
-      TYPE ***plane = (double ***) smalloc_new(nbytes,name);
+      TYPE ***plane = (double ***) smalloc(nbytes,name);
       nbytes = sizeof(TYPE ***) * n1;
-      array = (double ****) smalloc_new(nbytes,name);
+      array = (double ****) smalloc(nbytes,name);
       
       int i,j,k;
       int n = 0;
@@ -384,6 +429,11 @@ class Memory : protected Pointers {
       return array;
     }
 
+  template <typename TYPE>
+    TYPE *****create(TYPE *****&array, int n1, int n2, int n3, int n4,
+		     const char *name)
+    {fail(name);}
+
 /* ----------------------------------------------------------------------
    destroy a 4d array 
 ------------------------------------------------------------------------- */
@@ -392,10 +442,10 @@ class Memory : protected Pointers {
     void destroy(TYPE ****array)
     {
       if (array == NULL) return;
-      sfree_new(array[0][0][0]);
-      sfree_new(array[0][0]);
-      sfree_new(array[0]);
-      sfree_new(array);
+      sfree(array[0][0][0]);
+      sfree(array[0][0]);
+      sfree(array[0]);
+      sfree(array);
     }
 
 /* ----------------------------------------------------------------------

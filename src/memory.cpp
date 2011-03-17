@@ -29,13 +29,36 @@ Memory::Memory(LAMMPS *lmp) : Pointers(lmp) {}
    safe malloc 
 ------------------------------------------------------------------------- */
 
-void *Memory::smalloc(int n, const char *name)
+void *Memory::smalloc(bigint nbytes, const char *name)
 {
-  if (n == 0) return NULL;
-  void *ptr = malloc(n);
+  if (nbytes == 0) return NULL;
+
+  void *ptr = malloc(nbytes);
   if (ptr == NULL) {
     char str[128];
-    sprintf(str,"Failed to allocate %d bytes for array %s",n,name);
+    sprintf(str,"Failed to allocate " BIGINT_FORMAT "bytes for array %s",
+	    nbytes,name);
+    error->one(str);
+  }
+  return ptr;
+}
+
+/* ----------------------------------------------------------------------
+   safe realloc 
+------------------------------------------------------------------------- */
+
+void *Memory::srealloc(void *ptr, bigint nbytes, const char *name)
+{
+  if (nbytes == 0) {
+    sfree(ptr);
+    return NULL;
+  }
+
+  ptr = realloc(ptr,nbytes);
+  if (ptr == NULL) {
+    char str[128];
+    sprintf(str,"Failed to reallocate " BIGINT_FORMAT "bytes for array %s",
+	    nbytes,name);
     error->one(str);
   }
   return ptr;
@@ -52,68 +75,18 @@ void Memory::sfree(void *ptr)
 }
 
 /* ----------------------------------------------------------------------
-   safe realloc 
+   erroneous usage of templated create/grow functions
 ------------------------------------------------------------------------- */
 
-void *Memory::srealloc(void *ptr, int n, const char *name)
+void Memory::fail(const char *name)
 {
-  if (n == 0) {
-    sfree(ptr);
-    return NULL;
-  }
-
-  ptr = realloc(ptr,n);
-  if (ptr == NULL) {
-    char str[128];
-    sprintf(str,"Failed to reallocate %d bytes for array %s",n,name);
-    error->one(str);
-  }
-  return ptr;
+  char str[128];
+  sprintf(str,"Cannot create/grow a vector/array of pointers for %s",name);
+  error->one(str);
 }
 
 /* ----------------------------------------------------------------------
-   newer routines
-------------------------------------------------------------------------- */
-
-void *Memory::smalloc_new(bigint nbytes, const char *name)
-{
-  if (nbytes == 0) return NULL;
-
-  void *ptr = malloc(nbytes);
-  if (ptr == NULL) {
-    char str[128];
-    sprintf(str,"Failed to allocate " BIGINT_FORMAT "bytes for array %s",
-	    nbytes,name);
-    error->one(str);
-  }
-  return ptr;
-}
-
-void *Memory::srealloc_new(void *ptr, bigint nbytes, const char *name)
-{
-  if (nbytes == 0) {
-    sfree_new(ptr);
-    return NULL;
-  }
-
-  ptr = realloc(ptr,nbytes);
-  if (ptr == NULL) {
-    char str[128];
-    sprintf(str,"Failed to reallocate " BIGINT_FORMAT "bytes for array %s",
-	    nbytes,name);
-    error->one(str);
-  }
-  return ptr;
-}
-
-void Memory::sfree_new(void *ptr)
-{
-  if (ptr == NULL) return;
-  free(ptr);
-}
-
-/* ----------------------------------------------------------------------
-   older routines
+   older routines, will be deprecated at some point
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------

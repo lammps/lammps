@@ -346,11 +346,6 @@ double PairPeriPMB::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all("All pair coeffs are not set");
 
-  cutsq[i][j] = cut[i][j] * cut[i][j];
-  cutsq[j][i] = cutsq[i][j];
-
-  // set other j,i parameters
-
   kspring[j][i] = kspring[i][j];
   alpha[j][i] = alpha[i][j];
   s00[j][i] = s00[i][j];

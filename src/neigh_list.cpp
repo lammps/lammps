@@ -30,10 +30,10 @@ enum{NSQ,BIN,MULTI};     // also in neighbor.cpp
 
 NeighList::NeighList(LAMMPS *lmp, int size) : Pointers(lmp)
 {
-  maxlocal = 0;
+  maxatoms = 0;
   pgsize = size;
 
-  inum = 0;
+  inum = gnum = 0;
   ilist = NULL;
   numneigh = NULL;
   firstneigh = NULL;
@@ -59,6 +59,7 @@ NeighList::NeighList(LAMMPS *lmp, int size) : Pointers(lmp)
 
   maxstencil = 0;
   stencil = NULL;
+  stencilxyz = NULL;
 
   maxstencil_multi = 0;
   nstencil_multi = NULL;
@@ -88,6 +89,8 @@ NeighList::~NeighList()
   memory->destroy(ijskip);
 
   if (maxstencil) memory->destroy(stencil);
+  if (ghostflag) memory->destroy(stencilxyz);
+
   if (maxstencil_multi) {
     for (int i = 1; i <= atom->ntypes; i++) {
       memory->destroy(stencil_multi[i]);
@@ -106,22 +109,27 @@ NeighList::~NeighList()
 
 void NeighList::grow(int nmax)
 {
-  // skip if grow not needed
+  // skip if grow not needed by this list
+  // each list stores own maxatoms, b/c list->grow() called at different times
+  // if list does not store neighbors of ghosts, compare nmax to maxatoms
+  // else compare nlocal+nghost to maxatoms
+  // if reset list size, set it to nmax
 
-  if (nmax <= maxlocal) return;
-  maxlocal = nmax;
+  if (!ghostflag && atom->nlocal <= maxatoms) return;
+  if (ghostflag && atom->nlocal+atom->nghost <= maxatoms) return;
+  maxatoms = nmax;
 
   memory->destroy(ilist);
   memory->destroy(numneigh);
   memory->sfree(firstneigh);
-  memory->create(ilist,maxlocal,"neighlist:ilist");
-  memory->create(numneigh,maxlocal,"neighlist:numneigh");
+  memory->create(ilist,maxatoms,"neighlist:ilist");
+  memory->create(numneigh,maxatoms,"neighlist:numneigh");
   firstneigh = (int **)
-    memory->smalloc(maxlocal*sizeof(int *),"neighlist:firstneigh");
+    memory->smalloc(maxatoms*sizeof(int *),"neighlist:firstneigh");
 
   if (dnum) 
     firstdouble = (double **)
-      memory->smalloc(maxlocal*sizeof(double *),"neighlist:firstdouble");
+      memory->smalloc(maxatoms*sizeof(double *),"neighlist:firstdouble");
 }
 
 /* ----------------------------------------------------------------------
@@ -138,6 +146,10 @@ void NeighList::stencil_allocate(int smax, int style)
       maxstencil = smax;
       memory->destroy(stencil);
       memory->create(stencil,maxstencil,"neighlist:stencil");
+      if (ghostflag) {
+	memory->destroy(stencilxyz);
+	memory->create(stencilxyz,maxstencil,3,"neighlist:stencilxyz");
+      }
     }
 
   } else {
@@ -220,6 +232,7 @@ void NeighList::print_attributes()
   printf("  %d = build flag\n",buildflag);
   printf("  %d = grow flag\n",growflag);
   printf("  %d = stencil flag\n",stencilflag);
+  printf("  %d = ghost flag\n",ghostflag);
   printf("\n");
   printf("  %d = pair\n",rq->pair);
   printf("  %d = fix\n",rq->fix);
@@ -237,6 +250,7 @@ void NeighList::print_attributes()
   printf("\n");
   printf("  %d = occasional\n",rq->occasional);
   printf("  %d = dnum\n",rq->dnum);
+  printf("  %d = ghost\n",rq->ghost);
   printf("  %d = copy\n",rq->copy);
   printf("  %d = skip\n",rq->skip);
   printf("  %d = otherlist\n",rq->otherlist);
@@ -246,24 +260,26 @@ void NeighList::print_attributes()
 
 /* ----------------------------------------------------------------------
    return # of bytes of allocated memory
-   if growflag = 0, maxlocal & maxpage will also be 0
+   if growflag = 0, maxatoms & maxpage will also be 0
    if stencilflag = 0, maxstencil * maxstencil_multi will also be 0
 ------------------------------------------------------------------------- */
 
 bigint NeighList::memory_usage()
 {
   bigint bytes = 0;
-  bytes += memory->usage(ilist,maxlocal);
-  bytes += memory->usage(numneigh,maxlocal);
-  bytes += maxlocal * sizeof(int *);
+  bytes += memory->usage(ilist,maxatoms);
+  bytes += memory->usage(numneigh,maxatoms);
+  bytes += maxatoms * sizeof(int *);
   bytes += memory->usage(pages,maxpage,pgsize);
 
   if (dnum) {
-    bytes += maxlocal * sizeof(double *);
+    bytes += maxatoms * sizeof(double *);
     bytes += memory->usage(dpages,maxpage,dnum*pgsize);
   }
 
   if (maxstencil) bytes += memory->usage(stencil,maxstencil);
+  if (ghostflag) bytes += memory->usage(stencilxyz,maxstencil,3);
+
   if (maxstencil_multi) {
     bytes += memory->usage(stencil_multi,atom->ntypes,maxstencil_multi);
     bytes += memory->usage(distsq_multi,atom->ntypes,maxstencil_multi);

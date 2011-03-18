@@ -31,7 +31,7 @@ class NeighRequest : protected Pointers {
   int compute;
   int command;
 
-  // kind of list requested, one flag is 1, others are 0
+  // kind of list requested
   // set by requesting class
 
   int half;              // 1 if half neigh list
@@ -62,6 +62,10 @@ class NeighRequest : protected Pointers {
   // set by requesting class
 
   int dnum;
+
+  // 1 if also need neighbors of ghosts
+
+  int ghost;
 
   // set by neighbor and pair_hybrid after all requests are made
   // these settings do not change kind value

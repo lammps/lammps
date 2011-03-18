@@ -51,6 +51,7 @@ PairHybrid::~PairHybrid()
   if (allocated) {
     memory->destroy_2d_int_array(setflag);
     memory->destroy_2d_double_array(cutsq);
+    memory->destroy_2d_double_array(cutghost);
     memory->destroy_2d_int_array(nmap);
     memory->destroy_3d_int_array(map);
   }
@@ -157,6 +158,7 @@ void PairHybrid::allocate()
       setflag[i][j] = 0;
 
   cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+  cutghost = memory->create_2d_double_array(n+1,n+1,"pair:cutghost");
 
   nmap = memory->create_2d_int_array(n+1,n+1,"pair:nmap");
   map = memory->create_3d_int_array(n+1,n+1,nstyles,"pair:map");
@@ -187,6 +189,7 @@ void PairHybrid::settings(int narg, char **arg)
   if (allocated) {
     memory->destroy_2d_int_array(setflag);
     memory->destroy_2d_double_array(cutsq);
+    memory->destroy_2d_double_array(cutghost);
     memory->destroy_2d_int_array(nmap);
     memory->destroy_3d_int_array(map);
   }
@@ -262,6 +265,7 @@ void PairHybrid::settings(int narg, char **arg)
   // single_enable = 0 if any sub-style = 0
   // respa_enable = 1 if any sub-style is set
   // no_virial_compute = 1 if any sub-style is set
+  // ghostneigh = 1 if any sub-style is set
 
   for (m = 0; m < nstyles; m++)
     if (styles[m]->single_enable == 0) single_enable = 0;
@@ -269,6 +273,8 @@ void PairHybrid::settings(int narg, char **arg)
     if (styles[m]->respa_enable) respa_enable = 1;
   for (m = 0; m < nstyles; m++)
     if (styles[m]->no_virial_compute) no_virial_compute = 1;
+  for (m = 0; m < nstyles; m++)
+    if (styles[m]->ghostneigh) ghostneigh = 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -455,12 +461,14 @@ double PairHybrid::init_one(int i, int j)
   }
 
   // call init/mixing for all sub-styles of I,J
-  // set cutsq in sub-style just as pair::init_one() does
+  // set cutsq in sub-style just as Pair::init() does via call to init_one()
+  // set cutghost for I,J and J,I just as sub-style does
   // sum tail corrections for I,J
   // return max cutoff of all sub-styles assigned to I,J
   // if no sub-styles assigned to I,J (pair_coeff none), cutmax = 0.0 returned
 
   double cutmax = 0.0;
+  cutghost[i][j] = cutghost[j][i] = 0.0;
   if (tail_flag) etail_ij = ptail_ij = 0.0;
 
   nmap[j][i] = nmap[i][j];
@@ -470,6 +478,9 @@ double PairHybrid::init_one(int i, int j)
     double cut = styles[map[i][j][k]]->init_one(i,j);
     styles[map[i][j][k]]->cutsq[i][j] = 
       styles[map[i][j][k]]->cutsq[j][i] = cut*cut;
+    if (styles[map[i][j][k]]->ghostneigh)
+      cutghost[i][j] = cutghost[j][i] = 
+	MAX(cutghost[i][j],styles[map[i][j][k]]->cutghost[i][j]);
     if (tail_flag) {
       etail_ij += styles[map[i][j][k]]->etail_ij;
       ptail_ij += styles[map[i][j][k]]->ptail_ij;
@@ -491,7 +502,7 @@ void PairHybrid::modify_requests()
 
   // loop over pair requests only
   // if list is skip list and not copy, look for non-skip list of same kind
-  // if one exists, point at that one
+  // if one exists, point at that one via otherlist
   // else make new non-skip request of same kind and point at that one
   //   don't bother to set ID for new request, since pair hybrid ignores list
   // only exception is half_from_full:

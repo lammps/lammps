@@ -48,14 +48,17 @@ PairAIREBO::PairAIREBO(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
   one_coeff = 1;
+  ghostneigh = 1;
 
   maxlocal = 0;
   REBO_numneigh = NULL;
   REBO_firstneigh = NULL;
-  closestdistsq = NULL;
   maxpage = 0;
   pages = NULL;
   nC = nH = NULL;
+
+  time1 = 0.0;
+  time2 = 0.0;
 }
 
 /* ----------------------------------------------------------------------
@@ -68,13 +71,13 @@ PairAIREBO::~PairAIREBO()
   memory->sfree(REBO_firstneigh);
   for (int i = 0; i < maxpage; i++) memory->sfree(pages[i]);
   memory->sfree(pages);
-  memory->sfree(closestdistsq);
   memory->sfree(nC);
   memory->sfree(nH);
 
   if (allocated) {
     memory->destroy_2d_int_array(setflag);
     memory->destroy_2d_double_array(cutsq);
+    memory->destroy_2d_double_array(cutghost);
 
     memory->destroy_2d_double_array(cutljsq);
     memory->destroy_2d_double_array(lj1);
@@ -92,12 +95,18 @@ void PairAIREBO::compute(int eflag, int vflag)
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = vflag_atom = 0;
 
+  double tstart = MPI_Wtime();
   REBO_neigh();
+  double tmid = MPI_Wtime();
   FREBO(eflag,vflag);
   if (ljflag) FLJ(eflag,vflag);
   if (torflag) TORSION(eflag,vflag);
   
   if (vflag_fdotr) virial_compute();
+  double tstop = MPI_Wtime();
+
+  time1 += tmid-tstart;
+  time2 += tstop-tmid;
 }
 
 /* ----------------------------------------------------------------------
@@ -115,6 +124,7 @@ void PairAIREBO::allocate()
       setflag[i][j] = 0;
 
   cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+  cutghost = memory->create_2d_double_array(n+1,n+1,"pair:cutghost");
 
   // only sized by C,H = 2 types
 
@@ -210,11 +220,12 @@ void PairAIREBO::init_style()
   if (force->newton_pair == 0)
     error->all("Pair style AIREBO requires newton pair on");
 
-  // need a full neighbor list
+  // need a full neighbor list, including neighbors of ghosts
 
   int irequest = neighbor->request(this);
   neighbor->requests[irequest]->half = 0;
   neighbor->requests[irequest]->full = 1;
+  neighbor->requests[irequest]->ghost = 1;
 
   // local REBO neighbor list memory
 
@@ -261,6 +272,7 @@ double PairAIREBO::init_one(int i, int j)
   //   rcLJmax + 2*rcmax, since I-J < rcLJmax and J-L,L-N = REBO distances
   //   long interaction = I-J with I = owned and J = ghost
   //   cutlj*sigma, since I-J < LJ cutoff
+  // cutghost = REBO cutoff used in REBO_neigh() for neighbors of ghosts
 
   double cutmax = cut3rebo;
   if (ljflag) {
@@ -268,14 +280,14 @@ double PairAIREBO::init_one(int i, int j)
     cutmax = MAX(cutmax,cutlj*sigma[0][0]);
   }
 
-  cutsq[i][j] = cutmax * cutmax;
+  cutghost[i][j] = rcmax[ii][jj];
   cutljsq[ii][jj] = cutlj*sigma[ii][jj] * cutlj*sigma[ii][jj];
   lj1[ii][jj] = 48.0 * epsilon[ii][jj] * pow(sigma[ii][jj],12.0);
   lj2[ii][jj] = 24.0 * epsilon[ii][jj] * pow(sigma[ii][jj],6.0);
   lj3[ii][jj] = 4.0 * epsilon[ii][jj] * pow(sigma[ii][jj],12.0);
   lj4[ii][jj] = 4.0 * epsilon[ii][jj] * pow(sigma[ii][jj],6.0);
 
-  cutsq[j][i] = cutsq[i][j];
+  cutghost[j][i] = cutghost[i][j];
   cutljsq[jj][ii] = cutljsq[ii][jj];
   lj1[jj][ii] = lj1[ii][jj];
   lj2[jj][ii] = lj2[ii][jj];
@@ -292,7 +304,7 @@ double PairAIREBO::init_one(int i, int j)
 
 void PairAIREBO::REBO_neigh()
 {
-  int i,j,ii,jj,m,n,inum,jnum,itype,jtype;
+  int i,j,ii,jj,m,n,allnum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq,dS;
   int *ilist,*jlist,*numneigh,**firstneigh;
   int *neighptr;
@@ -306,41 +318,28 @@ void PairAIREBO::REBO_neigh()
     maxlocal = atom->nmax;
     memory->sfree(REBO_numneigh);
     memory->sfree(REBO_firstneigh);
-    memory->sfree(closestdistsq);
     memory->sfree(nC);
     memory->sfree(nH);
     REBO_numneigh = (int *)
       memory->smalloc(maxlocal*sizeof(int),"AIREBO:numneigh");
     REBO_firstneigh = (int **)
       memory->smalloc(maxlocal*sizeof(int *),"AIREBO:firstneigh");
-    closestdistsq = (double *) 
-      memory->smalloc(maxlocal*sizeof(double),"AIREBO:closestdistsq");
     nC = (double *) memory->smalloc(maxlocal*sizeof(double),"AIREBO:nC");
     nH = (double *) memory->smalloc(maxlocal*sizeof(double),"AIREBO:nH");
   }
   
-  inum = list->inum;
+  allnum = list->inum + list->gnum;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  // initialize ghost atom references to -1 and closest distance = cutljrebosq
-
-  for (i = nlocal; i < nall; i++) {
-    REBO_numneigh[i] = -1;
-    closestdistsq[i] = cutljrebosq;
-  }
-
-  // store all REBO neighs of owned atoms
+  // store all REBO neighs of owned and ghost atoms
   // scan full neighbor list of I
-  // if J is ghost and within LJ cutoff:
-  //   flag it via REBO_numneigh so its REBO neighbors will be stored below
-  //   REBO requires neighbors of neighbors of i,j in each i,j LJ interaction
 
   npage = 0;
   int npnt = 0;
 
-  for (ii = 0; ii < inum; ii++) {
+  for (ii = 0; ii < allnum; ii++) {
     i = ilist[ii];
 
     if (pgsize - npnt < oneatom) {
@@ -361,82 +360,6 @@ void PairAIREBO::REBO_neigh()
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      jtype = map[type[j]];
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;
-
-      if (rsq < rcmaxsq[itype][jtype]) {
-	neighptr[n++] = j;
-	if (jtype == 0)
-	  nC[i] += Sp(sqrt(rsq),rcmin[itype][jtype],rcmax[itype][jtype],dS);
-	else
-	  nH[i] += Sp(sqrt(rsq),rcmin[itype][jtype],rcmax[itype][jtype],dS);
-      }
-      if (j >= nlocal && rsq < closestdistsq[j]) {
-	REBO_numneigh[j] = i;
-	closestdistsq[j] = rsq;
-      }
-    }
-
-    REBO_firstneigh[i] = neighptr;
-    REBO_numneigh[i] = n;
-    npnt += n;
-    if (npnt >= pgsize)
-      error->one("Neighbor list overflow, boost neigh_modify one or page");
-  }
-
-  // store REBO neighs of ghost atoms I that have been flagged in REBO_numneigh
-  // find by scanning full neighbor list of owned atom M = closest neigh of I
-
-  for (i = nlocal; i < nall; i++) {
-
-    if (pgsize - npnt < oneatom) {
-      npnt = 0;
-      npage++;
-      if (npage == maxpage) add_pages(npage);
-    }
-    neighptr = &pages[npage][npnt];
-    n = 0;
-
-    xtmp = x[i][0];
-    ytmp = x[i][1];
-    ztmp = x[i][2];
-    itype = map[type[i]];
-    nC[i] = nH[i] = 0.0;
-    m = REBO_numneigh[i];
-    if (m < 0) {
-      REBO_firstneigh[i] = neighptr;
-      REBO_numneigh[i] = 0;
-      continue;
-    }
-
-    jtype = map[type[m]];
-    delx = xtmp - x[m][0];
-    dely = ytmp - x[m][1];
-    delz = ztmp - x[m][2];
-    rsq = delx*delx + dely*dely + delz*delz;
-
-    // add M as neigh of I if close enough
-
-    if (rsq < rcmaxsq[itype][jtype]) {
-      neighptr[n++] = m;
-      if (jtype == 0)
-	nC[i] += Sp(sqrt(rsq),rcmin[itype][jtype],rcmax[itype][jtype],dS);
-      else
-	nH[i] += Sp(sqrt(rsq),rcmin[itype][jtype],rcmax[itype][jtype],dS);
-    }
-
-    jlist = firstneigh[m];
-    jnum = numneigh[m];
-
-    // add M's neighbors as neighs of I if close enough
-    // skip I itself
-
-    for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-      if (j == i) continue;
       jtype = map[type[j]];
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];

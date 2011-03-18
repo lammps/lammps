@@ -29,7 +29,7 @@ class Pair : protected Pointers {
   double *eatom,**vatom;         // accumulated per-atom energy/virial
 
   double cutforce;               // max cutoff for all atom pairs
-  double **cutsq;                // max cutoff sq for each atom pair
+  double **cutsq;                // cutoff sq for each atom pair
   int **setflag;                 // 0/1 = whether each i,j has been set
 
   int comm_forward;              // size of forward communication (0 if none)
@@ -39,6 +39,8 @@ class Pair : protected Pointers {
   int respa_enable;              // 1 if inner/middle/outer rRESPA routines
   int one_coeff;                 // 1 if allows only one coeff * * call
   int no_virial_compute;         // 1 if does not invoke virial_compute()
+  int ghostneigh;                // 1 if pair style needs neighbors of ghosts
+  double **cutghost;             // cutoff for each ghost pair
 
   int tail_flag;                 // pair_modify flag for LJ tail correction
   double etail,ptail;            // energy/pressure tail corrections

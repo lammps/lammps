@@ -348,7 +348,6 @@ double PairColloid::init_one(int i, int j)
   sigma6[j][i] = sigma6[i][j];
   diameter[j][i] = diameter[i][j];
   cut[j][i] = cut[i][j];
-  cutsq[j][i] = cutsq[i][j] = cut[i][j] * cut[i][j];
 
   double epsilon = a12[i][j]/144.0;
   lj1[j][i] = lj1[i][j] = 48.0 * epsilon * sigma6[i][j] * sigma6[i][j];
@@ -359,7 +358,8 @@ double PairColloid::init_one(int i, int j)
   offset[j][i] = offset[i][j] = 0.0;
   if (offset_flag) {
     double tmp;
-    offset[j][i] = offset[i][j] = single(0,0,i,j,cutsq[i][j],0.0,1.0,tmp);
+    offset[j][i] = offset[i][j] = 
+      single(0,0,i,j,cut[i][j]*cut[i][j],0.0,1.0,tmp);
   }
 
   return cut[i][j];

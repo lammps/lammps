@@ -36,6 +36,8 @@ class PairAIREBO : public Pair {
   double memory_usage();
 
  private:
+  double time1,time2;
+
   int me;
   int ljflag,torflag;              // 0/1 if LJ,torsion terms included
   int maxlocal;                    // size of numneigh, firstneigh arrays

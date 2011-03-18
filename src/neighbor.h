@@ -86,6 +86,7 @@ class Neighbor : protected Pointers {
   int *fixchecklist;               // which fixes to check
 
   double **cutneighsq;             // neighbor cutneigh sq for each type pair
+  double **cutneighghostsq;        // neighbor cutnsq for each ghost type pair
   double cutneighmaxsq;            // cutneighmax squared
   double *cuttypesq;               // cuttype squared
 
@@ -130,6 +131,9 @@ class Neighbor : protected Pointers {
 
   int special_flag[4];             // flags for 1-2, 1-3, 1-4 neighbors
 
+  int anyghostlist;                // 1 if any non-occasional list
+                                   // stores neighbors of ghosts
+
   int exclude;                     // 0 if no type/group exclusions, 1 if yes
 
   int nex_type;                    // # of entries in type exclusion list
@@ -155,6 +159,7 @@ class Neighbor : protected Pointers {
   void bin_atoms();                     // bin all atoms
   double bin_distance(int, int, int);   // distance between binx
   int coord2bin(double *);              // mapping atom coord to a bin
+  int coord2bin(double *, int &, int &, int&); // ditto
 
   int exclusion(int, int, int, int, int *, int *);  // test for pair exclusion
   void choose_build(int, class NeighRequest *);
@@ -210,7 +215,9 @@ class Neighbor : protected Pointers {
   void half_multi_newton_tri(class NeighList *);
 
   void full_nsq(class NeighList *);
+  void full_nsq_ghost(class NeighList *);
   void full_bin(class NeighList *);
+  void full_bin_ghost(class NeighList *);
   void full_multi(class NeighList *);
 
   void half_from_full_no_newton(class NeighList *);
@@ -252,7 +259,9 @@ class Neighbor : protected Pointers {
   void stencil_half_multi_3d_newton_tri(class NeighList *, int, int, int);
 
   void stencil_full_bin_2d(class NeighList *, int, int, int);
+  void stencil_full_ghost_bin_2d(class NeighList *, int, int, int);
   void stencil_full_bin_3d(class NeighList *, int, int, int);
+  void stencil_full_ghost_bin_3d(class NeighList *, int, int, int);
   void stencil_full_multi_2d(class NeighList *, int, int, int);
   void stencil_full_multi_3d(class NeighList *, int, int, int);
 

@@ -55,6 +55,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
 
   firstgroupname = NULL;
   sortfreq = 1000;
+  nextsort = 0;
   userbinsize = 0.0;
   maxbin = maxnext = 0;
   binhead = NULL;
@@ -1357,6 +1358,10 @@ void Atom::sort()
 {
   int i,m,n,ix,iy,iz,ibin,empty;
 
+  // set next timestep for sorting to take place
+
+  nextsort = (update->ntimestep/sortfreq)*sortfreq + sortfreq;
+
   // re-setup sort bins if needed
 
   if (domain->box_change) setup_sort_bins();
@@ -1440,10 +1445,6 @@ void Atom::sort()
   //int flagall;
   //MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
   //if (flagall) error->all("Atom sort did not operate correctly");
-
-  // set next timestep for sorting to take place
-
-  nextsort = (update->ntimestep/sortfreq)*sortfreq + sortfreq;
 }
 
 /* ----------------------------------------------------------------------

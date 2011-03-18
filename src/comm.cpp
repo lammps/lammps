@@ -77,7 +77,7 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   allocate_swap(maxswap);
 
   sendlist = (int **) memory->smalloc(maxswap*sizeof(int *),"comm:sendlist");
-  maxsendlist = new int[maxswap];
+  memory->create(maxsendlist,maxswap,"comm:maxsendlist");
   for (int i = 0; i < maxswap; i++) {
     maxsendlist[i] = BUFMIN;
     memory->create(sendlist[i],BUFMIN,"comm:sendlist[i]");
@@ -101,7 +101,7 @@ Comm::~Comm()
 
   if (sendlist) for (int i = 0; i < maxswap; i++) memory->destroy(sendlist[i]);
   memory->sfree(sendlist);
-  delete [] maxsendlist;
+  memory->destroy(maxsendlist);
 
   memory->destroy(buf_send);
   memory->destroy(buf_recv);
@@ -1225,7 +1225,7 @@ void Comm::free_swap()
   memory->destroy(slabhi);
   memory->destroy(firstrecv);
   memory->destroy(pbc_flag);
-  memory->destroy_2d_int_array(pbc);
+  memory->destroy(pbc);
 }
 
 /* ----------------------------------------------------------------------

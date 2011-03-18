@@ -409,11 +409,6 @@ double PairPeriLPS::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all("All pair coeffs are not set");
 
-  cutsq[i][j] = cut[i][j] * cut[i][j];
-  cutsq[j][i] = cutsq[i][j];
-
-  // set other j,i parameters
-
   bulkmodulus[j][i] = bulkmodulus[i][j];		
   shearmodulus[j][i] = shearmodulus[i][j];		
   s00[j][i] = s00[i][j];		

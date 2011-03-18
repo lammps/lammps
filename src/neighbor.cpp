@@ -849,9 +849,13 @@ void Neighbor::choose_build(int index, NeighRequest *rq)
   } else if (rq->full) {
     if (style == NSQ) {
       if (rq->ghost == 0) pb = &Neighbor::full_nsq;
+      else if (includegroup) 
+	error->all("Neighbor include group not allowed with ghost neighbors");
       else if (rq->ghost == 1) pb = &Neighbor::full_nsq_ghost;
     } else if (style == BIN) {
       if (rq->ghost == 0) pb = &Neighbor::full_bin;
+      else if (includegroup) 
+	error->all("Neighbor include group not allowed with ghost neighbors");
       else if (rq->ghost == 1) pb = &Neighbor::full_bin_ghost;
     } else if (style == MULTI) {
       if (rq->ghost == 0) pb = &Neighbor::full_multi;

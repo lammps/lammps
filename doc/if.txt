@@ -145,6 +145,8 @@ returns 0.0.
 The overall Boolean expression produces a TRUE result if the result is
 non-zero.  If the result is zero, the expression result is FALSE.
 
+:line
+
 [Restrictions:] none
 
 [Related commands:]

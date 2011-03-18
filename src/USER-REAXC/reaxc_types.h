@@ -30,7 +30,6 @@
 #include "string.h"
 #include "sys/time.h"
 #include "time.h"
-#include "zlib.h"
 
 /************* SOME DEFS - crucial for reax_types.h *********/
 

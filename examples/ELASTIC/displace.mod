@@ -1,7 +1,6 @@
 # NOTE: This script should not need to be
 # modified. See in.elastic for more info.
 #
-
 # Find which reference length to use
 
 if "${dir} == 1" then &
@@ -18,11 +17,13 @@ if "${dir} == 6" then &
    "variable len0 equal ${ly0}" 
 
 # Reset box and simulation parameters
+
 clear
 read_restart restart.equil
 include potential.mod
 
 # Negative deformation
+
 variable delta equal -${up}*${len0}
 if "${dir} == 1" then &
    "displace_box all x delta 0 ${delta} units box"
@@ -66,11 +67,13 @@ variable C5neg equal ${d5}
 variable C6neg equal ${d6}
 
 # Reset box and simulation parameters
+
 clear
 read_restart restart.equil
 include potential.mod
 
 # Positive deformation
+
 variable delta equal ${up}*${len0}
 if "${dir} == 1" then &
    "displace_box all x delta 0 ${delta} units box"

@@ -368,5 +368,5 @@ void FixWallRegion::colloid(double r, double rad)
 void FixWallRegion::harmonic(double r)
 {
   fwall = 2.0*epsilon*r;
-  eng = epsilon*r*r - offset;
+  eng = epsilon*r*r;
 }

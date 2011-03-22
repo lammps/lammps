@@ -662,7 +662,7 @@ void Neighbor::init()
   // copy current requests and style to old for next run
   
   for (i = 0; i < old_nrequest; i++) delete old_requests[i];
-  memory->destroy(old_requests);
+  memory->sfree(old_requests);
   old_nrequest = nrequest;
   old_requests = requests;
   nrequest = maxrequest = 0;

@@ -397,7 +397,8 @@ void FixAveAtom::grow_arrays(int nmax)
   array = memory->grow_2d_double_array(array,nmax,nvalues,
 				       "fix_ave/atom:array");
   array_atom = array;
-  vector_atom = array[0];
+  if (array) vector_atom = array[0];
+  else vector_atom = NULL;
 }
 
 /* ----------------------------------------------------------------------

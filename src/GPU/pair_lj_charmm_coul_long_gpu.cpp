@@ -75,8 +75,6 @@ double crml_gpu_bytes();
 
 using namespace LAMMPS_NS;
 
-enum{GEOMETRIC,ARITHMETIC,SIXTHPOWER};
-
 /* ---------------------------------------------------------------------- */
 
 PairLJCharmmCoulLongGPU::PairLJCharmmCoulLongGPU(LAMMPS *lmp) : 
@@ -179,13 +177,23 @@ void PairLJCharmmCoulLongGPU::init_style()
   int maxspecial=0;
   if (atom->molecular)
     maxspecial=atom->maxspecial;
+
+  bool arithmetic = true;
+  for (int i = 1; i < atom->ntypes + 1; i++)
+    for (int j = i + 1; j < atom->ntypes + 1; j++) {
+      if (epsilon[i][j] != sqrt(epsilon[i][i] * epsilon[j][j]))
+	arithmetic = false;
+      if (sigma[i][j] != 0.5 * (sigma[i][i] + sigma[j][j]))
+	arithmetic = false;
+    }
+
   bool init_ok = crml_gpu_init(atom->ntypes+1, cut_bothsq, lj1, lj2, lj3, lj4,
 			       offset, force->special_lj, atom->nlocal,
 			       atom->nlocal+atom->nghost, 300, maxspecial,
 			       cell_size, gpu_mode, screen, cut_ljsq, 
 			       cut_coulsq, force->special_coul, force->qqrd2e,
 			       g_ewald, cut_lj_innersq,denom_lj,epsilon,sigma,
-			       mix_flag == ARITHMETIC);
+			       arithmetic);
   if (!init_ok)
     error->one("Insufficient memory on accelerator (or no fix gpu).\n"); 
 

@@ -87,17 +87,12 @@ class Memory : protected Pointers {
 
 /* ----------------------------------------------------------------------
    grow or shrink 1d array
-   if dim is 0, return NULL 
 ------------------------------------------------------------------------- */
 
   template <typename TYPE>
     TYPE *grow(TYPE *&array, int n, const char *name) 
     {
       if (array == NULL) return create(array,n,name);
-      if (n == 0) {
-	destroy(array);
-	return NULL;
-      }
       
       bigint nbytes = sizeof(TYPE) * n;
       array = (TYPE *) srealloc(array,nbytes,name);
@@ -172,17 +167,12 @@ class Memory : protected Pointers {
 /* ----------------------------------------------------------------------
    grow or shrink 1st dim of a 2d array
    last dim must stay the same
-   if either dim is 0, destroy it and return NULL 
 ------------------------------------------------------------------------- */
 
   template <typename TYPE>
     TYPE **grow(TYPE **&array, int n1, int n2, const char *name) 
     {
       if (array == NULL) return create(array,n1,n2,name);
-      if (n1 == 0 || n2 == 0) {
-	destroy(array);
-	return NULL;
-      }
       
       bigint nbytes = sizeof(TYPE) * n1*n2;
       TYPE *data = (TYPE *) srealloc(array[0],nbytes,name);
@@ -277,17 +267,12 @@ class Memory : protected Pointers {
 /* ----------------------------------------------------------------------
    grow or shrink 1st dim of a 3d array
    last 2 dims must stay the same
-   if any dim is 0, destroy it and return NULL 
 ------------------------------------------------------------------------- */
 
   template <typename TYPE>
     TYPE ***grow(TYPE ***&array, int n1, int n2, int n3, const char *name) 
     {
       if (array == NULL) return create(array,n1,n2,n3,name);
-      if (n1 == 0 || n2 == 0 || n3 == 0) {
-	destroy(array);
-	return NULL;
-      }
       
       bigint nbytes = sizeof(TYPE) * n1*n2*n3;
       TYPE *data = (TYPE *) srealloc(array[0][0],nbytes,name);

@@ -55,16 +55,13 @@ class PairGPUDevice {
     *                than the force kernel **/
   bool init(PairGPUAns<numtyp,acctyp> &a, const bool charge, const bool rot,
             const int nlocal, const int host_nlocal, const int nall,
-            PairGPUNbor *nbor, const int maxspecial, const bool gpu_nbor,
-            const int gpu_host, const int max_nbors, const double cell_size,
-            const bool pre_cut);
+            PairGPUNbor *nbor, const int maxspecial, const int gpu_host,
+            const int max_nbors, const double cell_size, const bool pre_cut);
 
   /// Initialize the device for Atom storage only
-  /** \param rot True if quaternions need to be stored
-    * \param nlocal Total number of local particles to allocate memory for
+  /** \param nlocal Total number of local particles to allocate memory for
     * \param nall Total number of local+ghost particles **/
-  bool init(PairGPUAns<numtyp,acctyp> &ans, const bool charge,
-            const bool rot, const int nlocal, const int nall);
+  bool init(PairGPUAns<numtyp,acctyp> &ans, const int nlocal, const int nall);
 
   /// Output a message for pair_style acceleration with device stats
   void init_message(FILE *screen, const char *name,

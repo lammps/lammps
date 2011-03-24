@@ -33,7 +33,8 @@ class PairGPUBalance {
   inline ~PairGPUBalance() { clear(); }
 
   /// Clear any old data and setup for new LAMMPS run
-  inline void init(PairGPUDevice<numtyp, acctyp> *gpu, const double split);
+  inline void init(PairGPUDevice<numtyp, acctyp> *gpu, const bool gpu_nbor,
+                   const double split);
 
   /// Clear all host and device data
   inline void clear() {
@@ -45,10 +46,9 @@ class PairGPUBalance {
   }
 
   /// Get a count of the number of particles host will handle for initial alloc
-  inline int first_host_count(const int nlocal,const bool gpu_nbor,
-                              const double gpu_split) const {
+  inline int first_host_count(const int nlocal, const double gpu_split) const {
     int host_nlocal=0;
-    if (gpu_nbor && gpu_split!=1.0) {
+    if (_gpu_nbor && gpu_split!=1.0) {
       if (gpu_split>0)
         host_nlocal=static_cast<int>(ceil((1.0-gpu_split)*nlocal));
       else
@@ -94,19 +94,18 @@ class PairGPUBalance {
   /// Calculate the new host/device split based on the cpu and device times
   /** \note Only does calculation every _HD_BALANCE_EVERY timesteps 
             (and first 10) **/
-  inline void balance(const double cpu_time, const bool gpu_nbor);
+  inline void balance(const double cpu_time);
 
   /// Calls balance() and then get_gpu_count()
-  inline int balance(const int ago, const int inum_full,
-                     const double cpu_time, const bool gpu_nbor) {
-    balance(cpu_time,gpu_nbor);
+  inline int balance(const int ago,const int inum_full,const double cpu_time) {
+    balance(cpu_time);
     return get_gpu_count(ago,inum_full);
   }
   
  private:
   PairGPUDevice<numtyp,acctyp> *_device;
   UCL_Timer _device_time;
-  bool _init_done;
+  bool _init_done, _gpu_nbor;
   
   bool _load_balance;
   double _actual_split, _avg_split, _desired_split, _max_split;
@@ -119,9 +118,10 @@ class PairGPUBalance {
 #define PairGPUBalanceT PairGPUBalance<numtyp,acctyp>
 
 template <class numtyp, class acctyp>
-void PairGPUBalanceT::init(PairGPUDevice<numtyp, acctyp> *gpu,
-			   const double split) {
+void PairGPUBalanceT::init(PairGPUDevice<numtyp, acctyp> *gpu, 
+                           const bool gpu_nbor, const double split) {
   clear();
+  _gpu_nbor=gpu_nbor;
   _init_done=true;
   
   _device=gpu;
@@ -159,7 +159,7 @@ int PairGPUBalanceT::get_gpu_count(const int ago, const int inum_full) {
 }
     
 template <class numtyp, class acctyp>
-void PairGPUBalanceT::balance(const double cpu_time, const bool gpu_nbor) {
+void PairGPUBalanceT::balance(const double cpu_time) {
   if (_measure_this_step) {
     if (_inum_full==_inum) {
       _desired_split=1.0;
@@ -187,7 +187,7 @@ void PairGPUBalanceT::balance(const double cpu_time, const bool gpu_nbor) {
       _desired_split=_desired_split*(1.0-_HD_BALANCE_WEIGHT)+
                      _HD_BALANCE_WEIGHT*split;
 
-    if (!gpu_nbor) {
+    if (!_gpu_nbor) {
       if (_desired_split<_max_split)
         _actual_split=_desired_split;
       else

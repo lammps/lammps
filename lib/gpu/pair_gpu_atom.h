@@ -78,7 +78,8 @@ class PairGPUAtom {
   /// If already initialized by another LAMMPS style, add fields as necessary
   /** \param rot True if atom storage needs quaternions
     * \param gpu_nbor True if neighboring will be performed on device **/
-  bool add_fields(const bool charge, const bool rot);
+  bool add_fields(const bool charge, const bool rot, const bool gpu_nbor,
+                  const bool bonds);
   
   /// Only free matrices of length inum or nall for resizing
   void clear_resize();

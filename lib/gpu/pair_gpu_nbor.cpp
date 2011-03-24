@@ -232,7 +232,6 @@ void PairGPUNbor::build_nbor_list(const int inum, const int host_inum,
                                   int **nspecial, int **special, bool &success,
                                   int &mn) {
   const int nt=inum+host_inum;
-
   if (_maxspecial>0) {
     time_nbor.start();
     UCL_H_Vec<int> view_nspecial, view_special, view_tag;

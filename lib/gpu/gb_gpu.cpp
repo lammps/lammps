@@ -341,7 +341,7 @@ inline int * _gb_gpu_compute_n(gbmtyp &gbm, const int ago,
     return NULL;
   }
 
-  gbm.hd_balancer.balance(cpu_time,gbm.nbor->gpu_nbor());
+  gbm.hd_balancer.balance(cpu_time);
   int inum=gbm.hd_balancer.get_gpu_count(ago,inum_full);
   gbm.ans->inum(inum);
   gbm.last_ellipse=std::min(inum,gbm.max_last_ellipse);
@@ -401,7 +401,7 @@ inline int * _gb_gpu_compute(gbmtyp &gbm, const int f_ago, const int inum_full,
   }
   
   int ago=gbm.hd_balancer.ago_first(f_ago);
-  int inum=gbm.hd_balancer.balance(ago,inum_full,cpu_time,gbm.nbor->gpu_nbor());
+  int inum=gbm.hd_balancer.balance(ago,inum_full,cpu_time);
   gbm.ans->inum(inum);
   gbm.last_ellipse=std::min(inum,gbm.max_last_ellipse);
   host_start=inum;

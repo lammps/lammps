@@ -69,7 +69,7 @@ numtyp * PPPMGPUMemoryT::init(const int nlocal, const int nall, FILE *_screen,
   _max_bytes=10;
   screen=_screen;
 
-  if (!device->init(*ans,true,false,nlocal,nall)) {
+  if (!device->init(*ans,nlocal,nall)) {
     success=false;
     return 0;
   }

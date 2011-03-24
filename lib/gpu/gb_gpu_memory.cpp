@@ -69,11 +69,11 @@ bool GB_GPU_MemoryT::init(const int ntypes, const double gamma,
     gpu_nbor=true;
 
   int _gpu_host=0;
-  int host_nlocal=hd_balancer.first_host_count(nlocal,gpu_nbor,gpu_split);
+  int host_nlocal=hd_balancer.first_host_count(nlocal,gpu_split);
   if (host_nlocal>0)
     _gpu_host=1;
   
-  if (!device->init(*ans,false,true,nlocal,host_nlocal,nall,nbor,0,gpu_nbor,
+  if (!device->init(*ans,false,true,nlocal,host_nlocal,nall,nbor,0,
                     _gpu_host,max_nbors,cell_size,true))
     return false;
   ucl_device=device->gpu;
@@ -85,7 +85,7 @@ bool GB_GPU_MemoryT::init(const int ntypes, const double gamma,
   compile_kernels(*ucl_device);
 
   // Initialize host-device load balancer
-  hd_balancer.init(device,gpu_split);
+  hd_balancer.init(device,gpu_nbor,gpu_split);
 
   // Initialize timers for the selected GPU
   time_pair.init(*ucl_device);

@@ -121,9 +121,8 @@ bool PairGPUDeviceT::init(PairGPUAns<numtyp,acctyp> &ans, const bool charge,
                           const bool rot, const int nlocal, 
                           const int host_nlocal, const int nall,
                           PairGPUNbor *nbor, const int maxspecial,
-                          const bool gpu_nbor, const int gpu_host,
-                          const int max_nbors, const double cell_size,
-                          const bool pre_cut) {
+                          const int gpu_host, const int max_nbors, 
+                          const double cell_size, const bool pre_cut) {
   if (!_device_init)
     return false;                          
 
@@ -132,12 +131,16 @@ bool PairGPUDeviceT::init(PairGPUAns<numtyp,acctyp> &ans, const bool charge,
   if (_particle_split<1.0 && _particle_split>0.0)
     ef_nlocal=static_cast<int>(_particle_split*nlocal);
 
+  bool gpu_nbor=false;
+  if (_gpu_mode==GPU_NEIGH)
+    gpu_nbor=true;
+    
   if (_init_count==0) {
     // Initialize atom and nbor data
     if (!atom.init(nall,charge,rot,*gpu,gpu_nbor,gpu_nbor && maxspecial>0))
       return false;
   } else
-    atom.add_fields(charge,rot);
+    atom.add_fields(charge,rot,gpu_nbor,gpu_nbor && maxspecial);
 
   if (!ans.init(ef_nlocal,charge,rot,*gpu))
     return false;
@@ -152,19 +155,19 @@ bool PairGPUDeviceT::init(PairGPUAns<numtyp,acctyp> &ans, const bool charge,
 }
 
 template <class numtyp, class acctyp>
-bool PairGPUDeviceT::init(PairGPUAns<numtyp,acctyp> &ans, const bool charge,
-                          const bool rot, const int nlocal, const int nall) {
+bool PairGPUDeviceT::init(PairGPUAns<numtyp,acctyp> &ans, const int nlocal,
+                          const int nall) {
   if (!_device_init)
     return false;                          
 
   if (_init_count==0) {
     // Initialize atom and nbor data
-    if (!atom.init(nall,charge,rot,*gpu,false,false))
+    if (!atom.init(nall,true,false,*gpu,false,false))
       return false;
   } else
-    atom.add_fields(charge,rot);
+    atom.add_fields(true,false,false,false);
 
-  if (!ans.init(nlocal,charge,rot,*gpu))
+  if (!ans.init(nlocal,true,false,*gpu))
     return false;
 
   _init_count++;

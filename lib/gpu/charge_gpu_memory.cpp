@@ -53,12 +53,12 @@ bool ChargeGPUMemoryT::init_atomic(const int nlocal, const int nall,
     gpu_nbor=true;
 
   int _gpu_host=0;
-  int host_nlocal=hd_balancer.first_host_count(nlocal,gpu_nbor,gpu_split);
+  int host_nlocal=hd_balancer.first_host_count(nlocal,gpu_split);
   if (host_nlocal>0)
     _gpu_host=1;
 
   if (!device->init(*ans,true,false,nlocal,host_nlocal,nall,nbor,maxspecial,
-                    gpu_nbor,_gpu_host,max_nbors,cell_size,false))
+                    _gpu_host,max_nbors,cell_size,false))
     return false;
   ucl_device=device->gpu;
   atom=&device->atom;
@@ -69,7 +69,7 @@ bool ChargeGPUMemoryT::init_atomic(const int nlocal, const int nall,
   compile_kernels(*ucl_device,pair_program);
 
   // Initialize host-device load balancer
-  hd_balancer.init(device,gpu_split);
+  hd_balancer.init(device,gpu_nbor,gpu_split);
 
   // Initialize timers for the selected GPU
   time_pair.init(*ucl_device);
@@ -179,8 +179,7 @@ void ChargeGPUMemoryT::compute(const int f_ago, const int inum_full,
   }
   
   int ago=hd_balancer.ago_first(f_ago);
-  int inum=hd_balancer.balance(ago,inum_full,cpu_time,
-		               nbor->gpu_nbor());
+  int inum=hd_balancer.balance(ago,inum_full,cpu_time);
   ans->inum(inum);
   host_start=inum;
 
@@ -223,7 +222,7 @@ int * ChargeGPUMemoryT::compute(const int ago, const int inum_full,
     return NULL;
   }
   
-  hd_balancer.balance(cpu_time,nbor->gpu_nbor());
+  hd_balancer.balance(cpu_time);
   int inum=hd_balancer.get_gpu_count(ago,inum_full);
   ans->inum(inum);
   host_start=inum;

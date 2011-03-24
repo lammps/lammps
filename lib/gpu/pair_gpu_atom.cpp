@@ -162,6 +162,35 @@ bool PairGPUAtomT::alloc(const int nall) {
 }
 
 template <class numtyp, class acctyp>
+bool PairGPUAtomT::add_fields(const bool charge, const bool rot,
+                              const bool gpu_nbor, const bool bonds) {
+  bool realloc=false;
+  if (charge && _charge==false) {
+    _charge=true;
+    realloc=true;
+  }
+  if (rot && _rot==false) {
+    _rot=true;
+    realloc=true;
+  }
+  if (gpu_nbor && _gpu_nbor==false) {
+    _gpu_nbor=true;
+    realloc=true;
+  }
+  if (bonds && _bonds==false) {
+    _bonds=true;
+    realloc=true;
+  }
+  if (realloc) {
+    _other=_charge || _rot;
+    int max_atoms=_max_atoms;
+    clear_resize();
+    return alloc(max_atoms);
+  }
+  return true;
+}
+
+template <class numtyp, class acctyp>
 bool PairGPUAtomT::init(const int nall, const bool charge, const bool rot,
                         UCL_Device &devi, const bool gpu_nbor,
                         const bool bonds) {
@@ -200,26 +229,6 @@ bool PairGPUAtomT::init(const int nall, const bool charge, const bool rot,
   return success && alloc(ef_nall);
 }
   
-template <class numtyp, class acctyp>
-bool PairGPUAtomT::add_fields(const bool charge, const bool rot) {
-  bool realloc=false;
-  if (charge && _charge==false) {
-    _charge=true;
-    realloc=true;
-  }
-  if (rot && _rot==false) {
-    _rot=true;
-    realloc=true;
-  }
-  if (realloc) {
-    _other=_charge || _rot;
-    int max_atoms=_max_atoms;
-    clear_resize();
-    return alloc(max_atoms);
-  }
-  return true;
-}
-
 template <class numtyp, class acctyp>
 void PairGPUAtomT::clear_resize() {
   if (!_allocated)

@@ -512,14 +512,17 @@ void PPPMGPU::init()
     error->all("Cannot use order greater than 8 with pppm/gpu.");
 
   bool success;
-  numtyp *data;
-  host_brick = pppm_gpu_init(atom->nlocal, atom->nlocal+atom->nghost, screen,
-                             order, nxlo_out, nylo_out, nzlo_out, nxhi_out,
-                             nyhi_out, nzhi_out, rho_coeff, &data, success);
+  numtyp *data, *h_brick;
+  h_brick = pppm_gpu_init(atom->nlocal, atom->nlocal+atom->nghost, screen,
+			  order, nxlo_out, nylo_out, nzlo_out, nxhi_out,
+			  nyhi_out, nzhi_out, rho_coeff, &data, success);
 
+  density_brick =
+    create_3d_offset(nzlo_out,nzhi_out,nylo_out,nyhi_out,
+		     nxlo_out,nxhi_out,"pppm:density_brick",h_brick,1);
   vd_brick =
     create_3d_offset(nzlo_out,nzhi_out,nylo_out,nyhi_out,
-		     nxlo_out,nxhi_out,"pppm:vd_brick",data);
+		     nxlo_out,nxhi_out,"pppm:vd_brick",data,4);
 
   if (!success)
     error->one("Insufficient memory on accelerator (or no fix gpu).\n"); 
@@ -705,7 +708,6 @@ void PPPMGPU::compute(int eflag, int vflag)
   }
 
   // extend size of per-atom arrays if necessary
-double t1=MPI_Wtime();
   if (atom->nlocal > nmax) {
     memory->destroy_2d_int_array(part2grid);
     nmax = atom->nmax;
@@ -718,42 +720,6 @@ double t1=MPI_Wtime();
   // map my particle charge onto my local 3d density grid
 
   particle_map();
-  make_rho();
-time1+=MPI_Wtime()-t1;
-
-
-/*
-double max_error=0;
-int _npts_x=nxhi_out-nxlo_out+1;
-int _npts_y=nyhi_out-nylo_out+1;
-int _npts_z=nzhi_out-nzlo_out+1;
-double *cpup = &density_brick[nzlo_out][nylo_out][nxlo_out];
-numtyp *gpup = host_brick;
-int iend=_npts_x*_npts_y*_npts_z;
-int counter_x=0, counter_y=0, counter_z=0;
-for (int i=0; i<iend; i++) {
-  double error=0.0;
-  if (*cpup>1e-8)
-    error = fabs(((*gpup)-(*cpup))/(*cpup));
-  if (error>0.05)
-//    std::cout << "* ";
-    std::cout << counter_z << " " << counter_y << " " << counter_x << " CPU GPU: " << error << " " << *cpup << " " << *gpup << std::endl;
-  if (error>max_error)
-    max_error=error;
-  cpup++;
-  gpup++;
-  counter_x++;
-  if (counter_x==_npts_x) {
-    counter_x=0;
-    counter_y++;
-  }
-  if (counter_y==_npts_y) {
-    counter_y=0;
-    counter_z++;
-  }
-}
-std::cout << "Force relative error: " << max_error*100.0 << "%\n";
-*/
 
 double t3=MPI_Wtime();
   // all procs communicate density values from their ghost cells
@@ -819,10 +785,6 @@ time2+=MPI_Wtime()-t2;
 
 void PPPMGPU::allocate()
 {
-  density_brick = 
-    memory->create_3d_double_array(nzlo_out,nzhi_out,nylo_out,nyhi_out,
-				   nxlo_out,nxhi_out,"pppm:density_brick");
-
   density_fft = 
     (double *) memory->smalloc(nfft_both*sizeof(double),"pppm:density_fft");
   greensfn = 
@@ -874,7 +836,7 @@ void PPPMGPU::allocate()
 
 void PPPMGPU::deallocate()
 {
-  memory->destroy_3d_double_array(density_brick,nzlo_out,nylo_out,nxlo_out);
+  destroy_3d_offset(density_brick,nzlo_out,nylo_out);
   destroy_3d_offset(vd_brick,nzlo_out,nylo_out);
 
   memory->sfree(density_fft);
@@ -1583,59 +1545,6 @@ void PPPMGPU::particle_map()
 }
 
 /* ----------------------------------------------------------------------
-   create discretized "density" on section of global grid due to my particles
-   density(x,y,z) = charge "density" at grid points of my 3d brick
-   (nxlo:nxhi,nylo:nyhi,nzlo:nzhi) is extent of my brick (including ghosts)
-   in global grid 
-------------------------------------------------------------------------- */
-
-void PPPMGPU::make_rho()
-{
-  int i,l,m,n,nx,ny,nz,mx,my,mz;
-  double dx,dy,dz,x0,y0,z0;
-
-  // clear 3d density array
-
-  double *vec = &density_brick[nzlo_out][nylo_out][nxlo_out];
-  for (i = 0; i < ngrid; i++) vec[i] = 0.0;
-
-  // loop over my charges, add their contribution to nearby grid points
-  // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
-  // (dx,dy,dz) = distance to "lower left" grid pt
-  // (mx,my,mz) = global coords of moving stencil pt
-
-  double *q = atom->q;
-  double **x = atom->x;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++) {
-
-    nx = part2grid[i][0];
-    ny = part2grid[i][1];
-    nz = part2grid[i][2];
-    dx = nx+shiftone - (x[i][0]-boxlo[0])*delxinv;
-    dy = ny+shiftone - (x[i][1]-boxlo[1])*delyinv;
-    dz = nz+shiftone - (x[i][2]-boxlo[2])*delzinv;
-
-    compute_rho1d(dx,dy,dz);
-
-    z0 = delvolinv * q[i];
-    for (n = nlower; n <= nupper; n++) {
-      mz = n+nz;
-      y0 = z0*rho1d[2][n];
-      for (m = nlower; m <= nupper; m++) {
-	my = m+ny;
-	x0 = y0*rho1d[1][m];
-	for (l = nlower; l <= nupper; l++) {
-	  mx = l+nx;
-	  density_brick[mz][my][mx] += x0*rho1d[0][l];
-	}
-      }
-    }
-  }
-}
-
-/* ----------------------------------------------------------------------
    FFT-based Poisson solver 
 ------------------------------------------------------------------------- */
 
@@ -2029,7 +1938,7 @@ void PPPMGPU::timing(int n, double &time3d, double &time1d)
 
 numtyp ***PPPMGPU::create_3d_offset(int n1lo, int n1hi, int n2lo, int n2hi,
 				    int n3lo, int n3hi, const char *name,
-				    numtyp *data)
+				    numtyp *data, int vec_length)
 {
   int i,j;
   int n1 = n1hi - n1lo + 1;
@@ -2044,11 +1953,11 @@ numtyp ***PPPMGPU::create_3d_offset(int n1lo, int n1hi, int n2lo, int n2hi,
     array[i] = &plane[i*n2];
     for (j = 0; j < n2; j++) {
       plane[i*n2+j] = &data[n];
-      n += n3*4;
+      n += n3*vec_length;
     }
   }
 
-  for (i = 0; i < n1*n2; i++) array[0][i] -= n3lo*4;
+  for (i = 0; i < n1*n2; i++) array[0][i] -= n3lo*vec_length;
   for (i = 0; i < n1; i++) array[i] -= n2lo;
   return array-n1lo;
 }

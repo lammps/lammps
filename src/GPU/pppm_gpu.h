@@ -57,7 +57,7 @@ class PPPMGPU : public KSpace {
   int nlower,nupper;
   int ngrid,nfft,nbuf,nfft_both;
 
-  double ***density_brick;
+  numtyp ***density_brick;
   numtyp ***vd_brick;
   double *greensfn;
   double **vg;
@@ -91,7 +91,6 @@ class PPPMGPU : public KSpace {
   void compute_gf_denom();
   double gf_denom(double, double, double);
   virtual void particle_map();
-  virtual void make_rho();
   void brick2fft();
   void fillbrick();
   void poisson(int, int);
@@ -100,11 +99,10 @@ class PPPMGPU : public KSpace {
   void compute_rho1d(double, double, double);
   void compute_rho_coeff();
   void slabcorr(int);
-numtyp *host_brick;
 double time1,time2,time3;  
 
  numtyp ***create_3d_offset(int, int, int, int, int, int, const char *,
-			    numtyp *);
+			    numtyp *, int);
   void destroy_3d_offset(numtyp ***, int, int);
   
 };

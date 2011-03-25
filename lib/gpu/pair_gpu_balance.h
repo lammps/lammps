@@ -46,9 +46,10 @@ class PairGPUBalance {
   }
 
   /// Get a count of the number of particles host will handle for initial alloc
-  inline int first_host_count(const int nlocal, const double gpu_split) const {
+  inline int first_host_count(const int nlocal, const double gpu_split,
+                              const bool gpu_nbor) const {
     int host_nlocal=0;
-    if (_gpu_nbor && gpu_split!=1.0) {
+    if (gpu_nbor && gpu_split!=1.0) {
       if (gpu_split>0)
         host_nlocal=static_cast<int>(ceil((1.0-gpu_split)*nlocal));
       else

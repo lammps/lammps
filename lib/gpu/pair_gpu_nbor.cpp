@@ -289,8 +289,8 @@ void PairGPUNbor::build_nbor_list(const int inum, const int host_inum,
 
   /* calculate cell count */
   _shared->k_cell_counts.set_size(GX,neigh_block);
-  _shared->k_cell_counts.run(&atom.dev_cell_id.begin(), &cell_counts.begin(), &nall, 
-                             &ncell_3d);
+  _shared->k_cell_counts.run(&atom.dev_cell_id.begin(), &cell_counts.begin(), 
+                             &nall, &ncell_3d);
 
   /* build the neighbor list */
   const int cell_block=64;

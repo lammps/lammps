@@ -69,7 +69,7 @@ bool GB_GPU_MemoryT::init(const int ntypes, const double gamma,
     gpu_nbor=true;
 
   int _gpu_host=0;
-  int host_nlocal=hd_balancer.first_host_count(nlocal,gpu_split);
+  int host_nlocal=hd_balancer.first_host_count(nlocal,gpu_split,gpu_nbor);
   if (host_nlocal>0)
     _gpu_host=1;
   

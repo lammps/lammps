@@ -51,7 +51,7 @@ AngleHybrid::~AngleHybrid()
     delete [] nanglelist;
     delete [] maxangle;
     for (int i = 0; i < nstyles; i++)
-      memory->destroy_2d_int_array(anglelist[i]);
+      memory->destroy(anglelist[i]);
     delete [] anglelist;
   }
 }
@@ -80,10 +80,9 @@ void AngleHybrid::compute(int eflag, int vflag)
     }
     for (m = 0; m < nstyles; m++) {
       if (nanglelist[m] > maxangle[m]) {
-	memory->destroy_2d_int_array(anglelist[m]);
+	memory->destroy(anglelist[m]);
 	maxangle[m] = nanglelist[m] + EXTRA;
-	anglelist[m] = (int **)
-	  memory->create_2d_int_array(maxangle[m],4,"angle_hybrid:anglelist");
+	memory->create(anglelist[m],maxangle[m],4,"angle_hybrid:anglelist");
       }
       nanglelist[m] = 0;
     }
@@ -180,7 +179,7 @@ void AngleHybrid::settings(int narg, char **arg)
     delete [] nanglelist;
     delete [] maxangle;
     for (int i = 0; i < nstyles; i++)
-      memory->destroy_2d_int_array(anglelist[i]);
+      memory->destroy(anglelist[i]);
     delete [] anglelist;
   }
   allocated = 0;

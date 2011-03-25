@@ -73,12 +73,12 @@ PairEAM::~PairEAM()
   memory->sfree(fp);
 
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
     delete [] map;
     delete [] type2frho;
-    memory->destroy_2d_int_array(type2rhor);
-    memory->destroy_2d_int_array(type2z2r);
+    memory->destroy(type2rhor);
+    memory->destroy(type2z2r);
   }
 
   if (funcfl) {
@@ -95,8 +95,8 @@ PairEAM::~PairEAM()
     for (int i = 0; i < setfl->nelements; i++) delete [] setfl->elements[i];
     delete [] setfl->elements;
     delete [] setfl->mass;
-    memory->destroy_2d_double_array(setfl->frho);
-    memory->destroy_2d_double_array(setfl->rhor);
+    memory->destroy(setfl->frho);
+    memory->destroy(setfl->rhor);
     memory->destroy(setfl->z2r);
     delete setfl;
   }
@@ -105,15 +105,15 @@ PairEAM::~PairEAM()
     for (int i = 0; i < fs->nelements; i++) delete [] fs->elements[i];
     delete [] fs->elements;
     delete [] fs->mass;
-    memory->destroy_2d_double_array(fs->frho);
+    memory->destroy(fs->frho);
     memory->destroy(fs->rhor);
     memory->destroy(fs->z2r);
     delete fs;
   }
 
-  memory->destroy_2d_double_array(frho);
-  memory->destroy_2d_double_array(rhor);
-  memory->destroy_2d_double_array(z2r);
+  memory->destroy(frho);
+  memory->destroy(rhor);
+  memory->destroy(z2r);
 
   memory->destroy(frho_spline);
   memory->destroy(rhor_spline);
@@ -310,19 +310,19 @@ void PairEAM::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
   map = new int[n+1];
   for (int i = 1; i <= n; i++) map[i] = -1;
 
   type2frho = new int[n+1];
-  type2rhor = memory->create_2d_int_array(n+1,n+1,"pair:type2rhor");
-  type2z2r = memory->create_2d_int_array(n+1,n+1,"pair:type2z2r");
+  memory->create(type2rhor,n+1,n+1,"pair:type2rhor");
+  memory->create(type2z2r,n+1,n+1,"pair:type2z2r");
 }
 
 /* ----------------------------------------------------------------------
@@ -523,8 +523,8 @@ void PairEAM::file2array()
   // nfrho = # of funcfl files + 1 for zero array
   
   nfrho = nfuncfl + 1;
-  memory->destroy_2d_double_array(frho);
-  frho = (double **) memory->create_2d_double_array(nfrho,nrho+1,"pair:frho");
+  memory->destroy(frho);
+  memory->create(frho,nfrho,nrho+1,"pair:frho");
 
   // interpolate each file's frho to a single grid and cutoff
 
@@ -572,8 +572,8 @@ void PairEAM::file2array()
   // nrhor = # of funcfl files
 
   nrhor = nfuncfl;
-  memory->destroy_2d_double_array(rhor);
-  rhor = (double **) memory->create_2d_double_array(nrhor,nr+1,"pair:rhor");
+  memory->destroy(rhor);
+  memory->create(rhor,nrhor,nr+1,"pair:rhor");
 
   // interpolate each file's rhor to a single grid and cutoff
 
@@ -614,8 +614,8 @@ void PairEAM::file2array()
   // nz2r = N*(N+1)/2 where N = # of funcfl files
 
   nz2r = nfuncfl*(nfuncfl+1)/2;
-  memory->destroy_2d_double_array(z2r);
-  z2r = (double **) memory->create_2d_double_array(nz2r,nr+1,"pair:z2r");
+  memory->destroy(z2r);
+  memory->create(z2r,nz2r,nr+1,"pair:z2r");
 
   // create a z2r array for each file against other files, only for I >= J
   // interpolate zri and zrj to a single grid and cutoff

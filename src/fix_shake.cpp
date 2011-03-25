@@ -219,9 +219,9 @@ FixShake::~FixShake()
   // delete locally stored arrays
 
   memory->sfree(shake_flag);
-  memory->destroy_2d_int_array(shake_atom);
-  memory->destroy_2d_int_array(shake_type);
-  memory->destroy_2d_double_array(xshake);
+  memory->destroy(shake_atom);
+  memory->destroy(shake_type);
+  memory->destroy(xshake);
 
   delete [] bond_flag;
   delete [] angle_flag;
@@ -659,20 +659,15 @@ void FixShake::find_clusters()
     memory->smalloc(nlocal*sizeof(double),"shake:npartner");
   int *nshake = (int *)
     memory->smalloc(nlocal*sizeof(double),"shake:nshake");
-  int **partner_tag = 
-    memory->create_2d_int_array(nlocal,max,"shake:partner_tag");
-  int **partner_mask = 
-    memory->create_2d_int_array(nlocal,max,"shake:partner_mask");
-  int **partner_type = 
-    memory->create_2d_int_array(nlocal,max,"shake:partner_type");
-  int **partner_massflag = 
-    memory->create_2d_int_array(nlocal,max,"shake:partner_massflag");
-  int **partner_bondtype = 
-    memory->create_2d_int_array(nlocal,max,"shake:partner_bondtype");
-  int **partner_shake = 
-    memory->create_2d_int_array(nlocal,max,"shake:partner_shake");
-  int **partner_nshake = 
-    memory->create_2d_int_array(nlocal,max,"shake:partner_nshake");
+  int **partner_tag,**partner_mask,**partner_type,**partner_massflag;
+  int ** partner_bondtype,**partner_shake,**partner_nshake;
+  memory->create(partner_tag,nlocal,max,"shake:partner_tag");
+  memory->create(partner_mask,nlocal,max,"shake:partner_mask");
+  memory->create(partner_type,nlocal,max,"shake:partner_type");
+  memory->create(partner_massflag,nlocal,max,"shake:partner_massflag");
+  memory->create(partner_bondtype,nlocal,max,"shake:partner_bondtype");
+  memory->create(partner_shake,nlocal,max,"shake:partner_shake");
+  memory->create(partner_nshake,nlocal,max,"shake:partner_nshake");
 
   // -----------------------------------------------------
   // set npartner and partner_tag from special arrays
@@ -1121,13 +1116,13 @@ void FixShake::find_clusters()
 
   memory->sfree(npartner);
   memory->sfree(nshake);
-  memory->destroy_2d_int_array(partner_tag);
-  memory->destroy_2d_int_array(partner_mask);
-  memory->destroy_2d_int_array(partner_type);
-  memory->destroy_2d_int_array(partner_massflag);
-  memory->destroy_2d_int_array(partner_bondtype);
-  memory->destroy_2d_int_array(partner_shake);
-  memory->destroy_2d_int_array(partner_nshake);
+  memory->destroy(partner_tag);
+  memory->destroy(partner_mask);
+  memory->destroy(partner_type);
+  memory->destroy(partner_massflag);
+  memory->destroy(partner_bondtype);
+  memory->destroy(partner_shake);
+  memory->destroy(partner_nshake);
 
   // -----------------------------------------------------
   // set bond_type and angle_type negative for SHAKE clusters
@@ -2244,12 +2239,10 @@ void FixShake::grow_arrays(int nmax)
 {
   shake_flag = (int *)
     memory->srealloc(shake_flag,nmax*sizeof(int),"shake:shake_flag");
-  shake_atom =
-    memory->grow_2d_int_array(shake_atom,nmax,4,"shake:shake_atom");
-  shake_type =
-    memory->grow_2d_int_array(shake_type,nmax,3,"shake:shake_type");
-  memory->destroy_2d_double_array(xshake);
-  xshake = memory->create_2d_double_array(nmax,3,"shake:xshake");
+  memory->grow(shake_atom,nmax,4,"shake:shake_atom");
+  memory->grow(shake_type,nmax,3,"shake:shake_type");
+  memory->destroy(xshake);
+  memory->create(xshake,nmax,3,"shake:xshake");
 }
 
 /* ----------------------------------------------------------------------

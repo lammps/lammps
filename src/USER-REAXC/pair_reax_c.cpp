@@ -122,8 +122,8 @@ PairReaxC::~PairReaxC()
 
   // deallocate interface storage
   if( allocated ) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
     delete [] map;
 
     delete [] chi;
@@ -143,8 +143,8 @@ void PairReaxC::allocate( )
   allocated = 1;
   int n = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
   map = new int[n+1];
 
   chi = new double[n+1];

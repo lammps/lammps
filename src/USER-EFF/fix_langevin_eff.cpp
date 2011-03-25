@@ -121,10 +121,10 @@ void FixLangevinEff::post_force_tally()
   // reallocate flangevin if necessary
 
   if (atom->nmax > nmax) {
-    memory->destroy_2d_double_array(flangevin);
+    memory->destroy(flangevin);
     memory->sfree(erforcelangevin);
     nmax = atom->nmax;
-    flangevin = memory->create_2d_double_array(nmax,3,"langevin:flangevin");
+    memory->create(flangevin,nmax,3,"langevin:flangevin");
     erforcelangevin = (double *) 
       memory->smalloc(nmax*sizeof(double),"langevin/eff:erforcelangevin");
   }

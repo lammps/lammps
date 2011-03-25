@@ -81,7 +81,7 @@ FixEfield::~FixEfield()
   delete [] xstr;
   delete [] ystr;
   delete [] zstr;
-  memory->destroy_2d_double_array(efield);
+  memory->destroy(efield);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -162,8 +162,8 @@ void FixEfield::post_force(int vflag)
 
   if (varflag == ATOM && nlocal > maxatom) {
     maxatom = atom->nmax;
-    memory->destroy_2d_double_array(efield);
-    efield = memory->create_2d_double_array(maxatom,3,"efield:efield");
+    memory->destroy(efield);
+    memory->create(efield,maxatom,3,"efield:efield");
   }
 
   if (varflag == CONSTANT) {

@@ -87,7 +87,7 @@ FixSpringSelf::~FixSpringSelf()
 
   // delete locally stored array
 
-  memory->destroy_2d_double_array(xoriginal);
+  memory->destroy(xoriginal);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -205,8 +205,7 @@ double FixSpringSelf::memory_usage()
 
 void FixSpringSelf::grow_arrays(int nmax)
 {
-  xoriginal =
-    memory->grow_2d_double_array(xoriginal,nmax,3,"fix_spring/self:xoriginal");
+  memory->grow(xoriginal,nmax,3,"fix_spring/self:xoriginal");
 }
 
 /* ----------------------------------------------------------------------

@@ -50,13 +50,13 @@ PairGauss::~PairGauss()
   delete [] pvector;
 
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
 
-    memory->destroy_2d_double_array(cut);
-    memory->destroy_2d_double_array(a);
-    memory->destroy_2d_double_array(b);
-    memory->destroy_2d_double_array(offset);
+    memory->destroy(cut);
+    memory->destroy(a);
+    memory->destroy(b);
+    memory->destroy(offset);
   }
 }
 
@@ -150,17 +150,17 @@ void PairGauss::allocate()
   allocated = 1;
   int n = atom->ntypes;
   
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = 1; j <= n; j++)
       setflag[i][j] = 0;
   
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
   
-  cut = memory->create_2d_double_array(n+1,n+1,"pair:cut_gauss");
-  a = memory->create_2d_double_array(n+1,n+1,"pair:a");
-  b = memory->create_2d_double_array(n+1,n+1,"pair:b");
-  offset = memory->create_2d_double_array(n+1,n+1,"pair:offset");  
+  memory->create(cut,n+1,n+1,"pair:cut_gauss");
+  memory->create(a,n+1,n+1,"pair:a");
+  memory->create(b,n+1,n+1,"pair:b");
+  memory->create(offset,n+1,n+1,"pair:offset");  
 }
 
 /* ----------------------------------------------------------------------

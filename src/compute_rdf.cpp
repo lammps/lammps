@@ -87,9 +87,9 @@ ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
       for (j = jlo[m]; j <= jhi[m]; j++)
 	rdfpair[nrdfpair[i][j]++][i][j] = m;
 
-  hist = memory->create_2d_double_array(npairs,nbin,"rdf:hist");
-  histall = memory->create_2d_double_array(npairs,nbin,"rdf:histall");
-  array = memory->create_2d_double_array(nbin,1+2*npairs,"rdf:array");
+  memory->create(hist,npairs,nbin,"rdf:hist");
+  memory->create(histall,npairs,nbin,"rdf:histall");
+  memory->create(array,nbin,1+2*npairs,"rdf:array");
   typecount = new int[ntypes+1];
   icount = new int[npairs];
   jcount = new int[npairs];
@@ -100,14 +100,14 @@ ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
 ComputeRDF::~ComputeRDF()
 {
   memory->destroy(rdfpair);
-  memory->destroy_2d_int_array(nrdfpair);
+  memory->destroy(nrdfpair);
   delete [] ilo;
   delete [] ihi;
   delete [] jlo;
   delete [] jhi;
-  memory->destroy_2d_double_array(hist);
-  memory->destroy_2d_double_array(histall);
-  memory->destroy_2d_double_array(array);
+  memory->destroy(hist);
+  memory->destroy(histall);
+  memory->destroy(array);
   delete [] typecount;
   delete [] icount;
   delete [] jcount;

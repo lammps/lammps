@@ -173,7 +173,7 @@ FixTTM::~FixTTM()
   memory->destroy(sum_mass_vsq_all);
   memory->destroy(T_electron_old);
   memory->destroy(T_electron);
-  memory->destroy_2d_double_array(flangevin);
+  memory->destroy(flangevin);
   memory->destroy(net_energy_transfer);
   memory->destroy(net_energy_transfer_all); 
 }
@@ -554,7 +554,7 @@ double FixTTM::memory_usage()
 void FixTTM::grow_arrays(int ngrow) 
 {
 
- flangevin = memory->grow_2d_double_array(flangevin,ngrow,3,"TTM:flangevin");  
+ memory->grow(flangevin,ngrow,3,"TTM:flangevin");  
 
 }
 

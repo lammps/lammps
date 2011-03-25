@@ -59,9 +59,9 @@ PairTable::~PairTable()
   memory->sfree(tables);
 
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
-    memory->destroy_2d_int_array(tabindex);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
+    memory->destroy(tabindex);
   }
 }
 
@@ -196,13 +196,13 @@ void PairTable::allocate()
   allocated = 1;
   int nt = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(nt+1,nt+1,"pair:setflag");
+  memory->create(setflag,nt+1,nt+1,"pair:setflag");
   for (int i = 1; i <= nt; i++)
     for (int j = i; j <= nt; j++)
       setflag[i][j] = 0;
 
-  cutsq = memory->create_2d_double_array(nt+1,nt+1,"pair:cutsq");
-  tabindex = memory->create_2d_int_array(nt+1,nt+1,"pair:tabindex");
+  memory->create(cutsq,nt+1,nt+1,"pair:cutsq");
+  memory->create(tabindex,nt+1,nt+1,"pair:tabindex");
 }
 
 /* ----------------------------------------------------------------------
@@ -230,9 +230,9 @@ void PairTable::settings(int narg, char **arg)
   memory->sfree(tables);
 
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
-    memory->destroy_2d_int_array(tabindex);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
+    memory->destroy(tabindex);
   }
   allocated = 0;
 

@@ -273,9 +273,9 @@ FixMove::~FixMove()
 
   // delete locally stored arrays
 
-  memory->destroy_2d_double_array(xoriginal);
-  memory->destroy_2d_double_array(displace);
-  memory->destroy_2d_double_array(velocity);
+  memory->destroy(xoriginal);
+  memory->destroy(displace);
+  memory->destroy(velocity);
 
   delete [] xvarstr;
   delete [] yvarstr;
@@ -561,12 +561,12 @@ void FixMove::initial_integrate(int vflag)
     if ((displaceflag || velocityflag) && nlocal > maxatom) {
       maxatom = atom->nmax;
       if (displaceflag) {
-	memory->destroy_2d_double_array(displace);
-	displace = memory->create_2d_double_array(maxatom,3,"move:displace");
+	memory->destroy(displace);
+	memory->create(displace,maxatom,3,"move:displace");
       }
       if (velocityflag) {
-	memory->destroy_2d_double_array(velocity);
-	velocity = memory->create_2d_double_array(maxatom,3,"move:velocity");
+	memory->destroy(velocity);
+	memory->create(velocity,maxatom,3,"move:velocity");
       }
     }
 
@@ -843,8 +843,7 @@ void FixMove::restart(char *buf)
 
 void FixMove::grow_arrays(int nmax)
 {
-  xoriginal =
-    memory->grow_2d_double_array(xoriginal,nmax,3,"move:xoriginal");
+  memory->grow(xoriginal,nmax,3,"move:xoriginal");
   array_atom = xoriginal;
 }
 

@@ -65,12 +65,12 @@ PairPeriPMB::~PairPeriPMB()
   if (ifix_peri >= 0) modify->delete_fix("PERI_NEIGH");
 
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
-    memory->destroy_2d_double_array(kspring);
-    memory->destroy_2d_double_array(s00);
-    memory->destroy_2d_double_array(alpha);
-    memory->destroy_2d_double_array(cut);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
+    memory->destroy(kspring);
+    memory->destroy(s00);
+    memory->destroy(alpha);
+    memory->destroy(cut);
     memory->sfree(s0_new);
   }
 }
@@ -284,16 +284,16 @@ void PairPeriPMB::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
-  kspring = memory->create_2d_double_array(n+1,n+1,"pair:kspring");
-  s00 = memory->create_2d_double_array(n+1,n+1,"pair:s00");
-  alpha = memory->create_2d_double_array(n+1,n+1,"pair:alpha");
-  cut = memory->create_2d_double_array(n+1,n+1,"pair:cut");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
+  memory->create(kspring,n+1,n+1,"pair:kspring");
+  memory->create(s00,n+1,n+1,"pair:s00");
+  memory->create(alpha,n+1,n+1,"pair:alpha");
+  memory->create(cut,n+1,n+1,"pair:cut");
 }
 
 /* ----------------------------------------------------------------------

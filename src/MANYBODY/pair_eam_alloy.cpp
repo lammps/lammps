@@ -60,8 +60,8 @@ void PairEAMAlloy::coeff(int narg, char **arg)
     for (i = 0; i < setfl->nelements; i++) delete [] setfl->elements[i];
     delete [] setfl->elements;
     delete [] setfl->mass;
-    memory->destroy_2d_double_array(setfl->frho);
-    memory->destroy_2d_double_array(setfl->rhor);
+    memory->destroy(setfl->frho);
+    memory->destroy(setfl->rhor);
     memory->destroy(setfl->z2r);
     delete setfl;
   }
@@ -174,12 +174,10 @@ void PairEAMAlloy::read_file(char *filename)
   MPI_Bcast(&file->cut,1,MPI_DOUBLE,0,world);
 
   file->mass = new double[file->nelements];
-  file->frho = memory->create_2d_double_array(file->nelements,file->nrho+1,
-					      "pair:frho");
-  file->rhor = memory->create_2d_double_array(file->nelements,file->nr+1,
-					      "pair:rhor");
-  memory->create(file->z2r,file->nelements,file->nelements,
-		 file->nr+1,"pair:z2r");
+  memory->create(file->frho,file->nelements,file->nrho+1,"pair:frho");
+  memory->create(file->rhor,file->nelements,file->nr+1,"pair:rhor");
+  memory->create(file->z2r,file->nelements,file->nelements,file->nr+1,
+		 "pair:z2r");
 
   int i,j,tmp;
   for (i = 0; i < file->nelements; i++) {
@@ -230,8 +228,8 @@ void PairEAMAlloy::file2array()
   // nfrho = # of setfl elements + 1 for zero array
   
   nfrho = setfl->nelements + 1;
-  memory->destroy_2d_double_array(frho);
-  frho = (double **) memory->create_2d_double_array(nfrho,nrho+1,"pair:frho");
+  memory->destroy(frho);
+  memory->create(frho,nfrho,nrho+1,"pair:frho");
 
   // copy each element's frho to global frho
 
@@ -259,8 +257,8 @@ void PairEAMAlloy::file2array()
   // nrhor = # of setfl elements
 
   nrhor = setfl->nelements;
-  memory->destroy_2d_double_array(rhor);
-  rhor = (double **) memory->create_2d_double_array(nrhor,nr+1,"pair:rhor");
+  memory->destroy(rhor);
+  memory->create(rhor,nrhor,nr+1,"pair:rhor");
 
   // copy each element's rhor to global rhor
 
@@ -283,8 +281,8 @@ void PairEAMAlloy::file2array()
   // nz2r = N*(N+1)/2 where N = # of setfl elements
 
   nz2r = setfl->nelements * (setfl->nelements+1) / 2;
-  memory->destroy_2d_double_array(z2r);
-  z2r = (double **) memory->create_2d_double_array(nz2r,nr+1,"pair:z2r");
+  memory->destroy(z2r);
+  memory->create(z2r,nz2r,nr+1,"pair:z2r");
 
   // copy each element pair z2r to global z2r, only for I >= J
 

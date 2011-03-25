@@ -43,25 +43,25 @@ PairColloid::PairColloid(LAMMPS *lmp) : Pair(lmp) {}
 PairColloid::~PairColloid()
 {
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
 
-    memory->destroy_2d_int_array(form);
-    memory->destroy_2d_double_array(a12);
-    memory->destroy_2d_double_array(sigma);
-    memory->destroy_2d_double_array(d1);
-    memory->destroy_2d_double_array(d2);
-    memory->destroy_2d_double_array(a1);
-    memory->destroy_2d_double_array(a2);
-    memory->destroy_2d_double_array(diameter);
-    memory->destroy_2d_double_array(cut);		
-    memory->destroy_2d_double_array(offset);
-    memory->destroy_2d_double_array(sigma3);
-    memory->destroy_2d_double_array(sigma6);
-    memory->destroy_2d_double_array(lj1);
-    memory->destroy_2d_double_array(lj2);
-    memory->destroy_2d_double_array(lj3);
-    memory->destroy_2d_double_array(lj4);
+    memory->destroy(form);
+    memory->destroy(a12);
+    memory->destroy(sigma);
+    memory->destroy(d1);
+    memory->destroy(d2);
+    memory->destroy(a1);
+    memory->destroy(a2);
+    memory->destroy(diameter);
+    memory->destroy(cut);		
+    memory->destroy(offset);
+    memory->destroy(sigma3);
+    memory->destroy(sigma6);
+    memory->destroy(lj1);
+    memory->destroy(lj2);
+    memory->destroy(lj3);
+    memory->destroy(lj4);
   }
 }
 
@@ -218,29 +218,29 @@ void PairColloid::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
-  form = memory->create_2d_int_array(n+1,n+1,"pair:form");
-  a12 = memory->create_2d_double_array(n+1,n+1,"pair:a12");
-  sigma = memory->create_2d_double_array(n+1,n+1,"pair:sigma");
-  d1 = memory->create_2d_double_array(n+1,n+1,"pair:d1");
-  d2 = memory->create_2d_double_array(n+1,n+1,"pair:d2");
-  a1 = memory->create_2d_double_array(n+1,n+1,"pair:a1");
-  a2 = memory->create_2d_double_array(n+1,n+1,"pair:a2");
-  diameter = memory->create_2d_double_array(n+1,n+1,"pair:diameter");
-  cut = memory->create_2d_double_array(n+1,n+1,"pair:cut");
-  offset = memory->create_2d_double_array(n+1,n+1,"pair:offset");
-  sigma3 = memory->create_2d_double_array(n+1,n+1,"pair:sigma3");
-  sigma6 = memory->create_2d_double_array(n+1,n+1,"pair:sigma6");
-  lj1 = memory->create_2d_double_array(n+1,n+1,"pair:lj1");
-  lj2 = memory->create_2d_double_array(n+1,n+1,"pair:lj2");
-  lj3 = memory->create_2d_double_array(n+1,n+1,"pair:lj3");
-  lj4 = memory->create_2d_double_array(n+1,n+1,"pair:lj4");
+  memory->create(form,n+1,n+1,"pair:form");
+  memory->create(a12,n+1,n+1,"pair:a12");
+  memory->create(sigma,n+1,n+1,"pair:sigma");
+  memory->create(d1,n+1,n+1,"pair:d1");
+  memory->create(d2,n+1,n+1,"pair:d2");
+  memory->create(a1,n+1,n+1,"pair:a1");
+  memory->create(a2,n+1,n+1,"pair:a2");
+  memory->create(diameter,n+1,n+1,"pair:diameter");
+  memory->create(cut,n+1,n+1,"pair:cut");
+  memory->create(offset,n+1,n+1,"pair:offset");
+  memory->create(sigma3,n+1,n+1,"pair:sigma3");
+  memory->create(sigma6,n+1,n+1,"pair:sigma6");
+  memory->create(lj1,n+1,n+1,"pair:lj1");
+  memory->create(lj2,n+1,n+1,"pair:lj2");
+  memory->create(lj3,n+1,n+1,"pair:lj3");
+  memory->create(lj4,n+1,n+1,"pair:lj4");
 }
 
 /* ----------------------------------------------------------------------

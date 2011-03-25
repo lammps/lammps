@@ -41,20 +41,20 @@ PairBuckCoulCut::PairBuckCoulCut(LAMMPS *lmp) : Pair(lmp) {}
 PairBuckCoulCut::~PairBuckCoulCut()
 {
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
 
-    memory->destroy_2d_double_array(cut_lj);
-    memory->destroy_2d_double_array(cut_ljsq);
-    memory->destroy_2d_double_array(cut_coul);
-    memory->destroy_2d_double_array(cut_coulsq);
-    memory->destroy_2d_double_array(a);
-    memory->destroy_2d_double_array(rho);
-    memory->destroy_2d_double_array(c);
-    memory->destroy_2d_double_array(rhoinv);
-    memory->destroy_2d_double_array(buck1);
-    memory->destroy_2d_double_array(buck2);
-    memory->destroy_2d_double_array(offset);
+    memory->destroy(cut_lj);
+    memory->destroy(cut_ljsq);
+    memory->destroy(cut_coul);
+    memory->destroy(cut_coulsq);
+    memory->destroy(a);
+    memory->destroy(rho);
+    memory->destroy(c);
+    memory->destroy(rhoinv);
+    memory->destroy(buck1);
+    memory->destroy(buck2);
+    memory->destroy(offset);
   }
 }
 
@@ -170,24 +170,25 @@ void PairBuckCoulCut::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
+
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
-  cut_lj = memory->create_2d_double_array(n+1,n+1,"pair:cut_lj");
-  cut_ljsq = memory->create_2d_double_array(n+1,n+1,"pair:cut_ljsq");
-  cut_coul = memory->create_2d_double_array(n+1,n+1,"pair:cut_coul");
-  cut_coulsq = memory->create_2d_double_array(n+1,n+1,"pair:cut_coulsq");
-  a = memory->create_2d_double_array(n+1,n+1,"pair:a");
-  rho = memory->create_2d_double_array(n+1,n+1,"pair:rho");
-  c = memory->create_2d_double_array(n+1,n+1,"pair:c");
-  rhoinv = memory->create_2d_double_array(n+1,n+1,"pair:rhoinv");
-  buck1 = memory->create_2d_double_array(n+1,n+1,"pair:buck1");
-  buck2 = memory->create_2d_double_array(n+1,n+1,"pair:buck2");
-  offset = memory->create_2d_double_array(n+1,n+1,"pair:offset");
+  memory->create(cut_lj,n+1,n+1,"pair:cut_lj");
+  memory->create(cut_ljsq,n+1,n+1,"pair:cut_ljsq");
+  memory->create(cut_coul,n+1,n+1,"pair:cut_coul");
+  memory->create(cut_coulsq,n+1,n+1,"pair:cut_coulsq");
+  memory->create(a,n+1,n+1,"pair:a");
+  memory->create(rho,n+1,n+1,"pair:rho");
+  memory->create(c,n+1,n+1,"pair:c");
+  memory->create(rhoinv,n+1,n+1,"pair:rhoinv");
+  memory->create(buck1,n+1,n+1,"pair:buck1");
+  memory->create(buck2,n+1,n+1,"pair:buck2");
+  memory->create(offset,n+1,n+1,"pair:offset");
 }
 
 /* ----------------------------------------------------------------------

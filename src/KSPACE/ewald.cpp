@@ -65,7 +65,7 @@ Ewald::Ewald(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
 Ewald::~Ewald()
 {
   deallocate();
-  memory->destroy_2d_double_array(ek);
+  memory->destroy(ek);
   memory->destroy3d_offset(cs,-kmax_created);
   memory->destroy3d_offset(sn,-kmax_created);
 }
@@ -191,11 +191,11 @@ void Ewald::setup()
     deallocate();
     allocate();
 
-    memory->destroy_2d_double_array(ek);
+    memory->destroy(ek);
     memory->destroy3d_offset(cs,-kmax_created);
     memory->destroy3d_offset(sn,-kmax_created);
     nmax = atom->nmax;
-    ek = memory->create_2d_double_array(nmax,3,"ewald:ek");
+    memory->create(ek,nmax,3,"ewald:ek");
     memory->create3d_offset(cs,-kmax,kmax,3,nmax,"ewald:cs");
     memory->create3d_offset(sn,-kmax,kmax,3,nmax,"ewald:sn");
     kmax_created = kmax;
@@ -220,11 +220,11 @@ void Ewald::compute(int eflag, int vflag)
   // extend size of per-atom arrays if necessary
 
   if (atom->nlocal > nmax) {
-    memory->destroy_2d_double_array(ek);
+    memory->destroy(ek);
     memory->destroy3d_offset(cs,-kmax_created);
     memory->destroy3d_offset(sn,-kmax_created);
     nmax = atom->nmax;
-    ek = memory->create_2d_double_array(nmax,3,"ewald:ek");
+    memory->create(ek,nmax,3,"ewald:ek");
     memory->create3d_offset(cs,-kmax,kmax,3,nmax,"ewald:cs");
     memory->create3d_offset(sn,-kmax,kmax,3,nmax,"ewald:sn");
     kmax_created = kmax;
@@ -766,8 +766,8 @@ void Ewald::allocate()
   kzvecs = new int[kmax3d];
 
   ug = new double[kmax3d];
-  eg = memory->create_2d_double_array(kmax3d,3,"ewald:eg");
-  vg = memory->create_2d_double_array(kmax3d,6,"ewald:vg");
+  memory->create(eg,kmax3d,3,"ewald:eg");
+  memory->create(vg,kmax3d,6,"ewald:vg");
 
   sfacrl = new double[kmax3d];
   sfacim = new double[kmax3d];
@@ -786,8 +786,8 @@ void Ewald::deallocate()
   delete [] kzvecs;
   
   delete [] ug;
-  memory->destroy_2d_double_array(eg);
-  memory->destroy_2d_double_array(vg);
+  memory->destroy(eg);
+  memory->destroy(vg);
 
   delete [] sfacrl;
   delete [] sfacim;

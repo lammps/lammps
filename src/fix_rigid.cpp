@@ -181,24 +181,24 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   nrigid = (int *) memory->smalloc(nbody*sizeof(int),"rigid:nrigid");
   masstotal = (double *)
     memory->smalloc(nbody*sizeof(double),"rigid:masstotal");
-  xcm = memory->create_2d_double_array(nbody,3,"rigid:xcm");
-  vcm = memory->create_2d_double_array(nbody,3,"rigid:vcm");
-  fcm = memory->create_2d_double_array(nbody,3,"rigid:fcm");
-  inertia = memory->create_2d_double_array(nbody,3,"rigid:inertia");
-  ex_space = memory->create_2d_double_array(nbody,3,"rigid:ex_space");
-  ey_space = memory->create_2d_double_array(nbody,3,"rigid:ey_space");
-  ez_space = memory->create_2d_double_array(nbody,3,"rigid:ez_space");
-  angmom = memory->create_2d_double_array(nbody,3,"rigid:angmom");
-  omega = memory->create_2d_double_array(nbody,3,"rigid:omega");
-  torque = memory->create_2d_double_array(nbody,3,"rigid:torque");
-  quat = memory->create_2d_double_array(nbody,4,"rigid:quat");
+  memory->create(xcm,nbody,3,"rigid:xcm");
+  memory->create(vcm,nbody,3,"rigid:vcm");
+  memory->create(fcm,nbody,3,"rigid:fcm");
+  memory->create(inertia,nbody,3,"rigid:inertia");
+  memory->create(ex_space,nbody,3,"rigid:ex_space");
+  memory->create(ey_space,nbody,3,"rigid:ey_space");
+  memory->create(ez_space,nbody,3,"rigid:ez_space");
+  memory->create(angmom,nbody,3,"rigid:angmom");
+  memory->create(omega,nbody,3,"rigid:omega");
+  memory->create(torque,nbody,3,"rigid:torque");
+  memory->create(quat,nbody,4,"rigid:quat");
   imagebody = (int *) memory->smalloc(nbody*sizeof(int),"rigid:imagebody");
-  fflag = memory->create_2d_double_array(nbody,3,"rigid:fflag");
-  tflag = memory->create_2d_double_array(nbody,3,"rigid:tflag");
+  memory->create(fflag,nbody,3,"rigid:fflag");
+  memory->create(tflag,nbody,3,"rigid:tflag");
 
-  sum = memory->create_2d_double_array(nbody,6,"rigid:sum");
-  all = memory->create_2d_double_array(nbody,6,"rigid:all");
-  remapflag = memory->create_2d_int_array(nbody,4,"rigid:remapflag");
+  memory->create(sum,nbody,6,"rigid:sum");
+  memory->create(all,nbody,6,"rigid:all");
+  memory->create(remapflag,nbody,4,"rigid:remapflag");
 
   // initialize force/torque flags to default = 1.0
 
@@ -384,33 +384,33 @@ FixRigid::~FixRigid()
   // delete locally stored arrays
   
   memory->sfree(body);
-  memory->destroy_2d_double_array(displace);
+  memory->destroy(displace);
   memory->sfree(eflags);
-  memory->destroy_2d_double_array(dorient);
-  memory->destroy_2d_double_array(qorient);
+  memory->destroy(dorient);
+  memory->destroy(qorient);
   
   // delete nbody-length arrays
 
   memory->sfree(nrigid);
   memory->sfree(masstotal);
-  memory->destroy_2d_double_array(xcm);
-  memory->destroy_2d_double_array(vcm);
-  memory->destroy_2d_double_array(fcm);
-  memory->destroy_2d_double_array(inertia);
-  memory->destroy_2d_double_array(ex_space);
-  memory->destroy_2d_double_array(ey_space);
-  memory->destroy_2d_double_array(ez_space);
-  memory->destroy_2d_double_array(angmom);
-  memory->destroy_2d_double_array(omega);
-  memory->destroy_2d_double_array(torque);
-  memory->destroy_2d_double_array(quat);
+  memory->destroy(xcm);
+  memory->destroy(vcm);
+  memory->destroy(fcm);
+  memory->destroy(inertia);
+  memory->destroy(ex_space);
+  memory->destroy(ey_space);
+  memory->destroy(ez_space);
+  memory->destroy(angmom);
+  memory->destroy(omega);
+  memory->destroy(torque);
+  memory->destroy(quat);
   memory->sfree(imagebody);
-  memory->destroy_2d_double_array(fflag);
-  memory->destroy_2d_double_array(tflag);
+  memory->destroy(fflag);
+  memory->destroy(tflag);
 
-  memory->destroy_2d_double_array(sum);
-  memory->destroy_2d_double_array(all);
-  memory->destroy_2d_int_array(remapflag);
+  memory->destroy(sum);
+  memory->destroy(all);
+  memory->destroy(remapflag);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -693,8 +693,9 @@ void FixRigid::init()
   // inertia = 3 eigenvalues = principal moments of inertia
   // ex_space,ey_space,ez_space = 3 eigenvectors = principal axes of rigid body
   
-  double **tensor = memory->create_2d_double_array(3,3,"fix_rigid:tensor");
-  double **evectors = memory->create_2d_double_array(3,3,"fix_rigid:evectors");
+  double **tensor,**evectors;
+  memory->create(tensor,3,3,"fix_rigid:tensor");
+  memory->create(evectors,3,3,"fix_rigid:evectors");
 
   int ierror;
   double ez0,ez1,ez2;
@@ -756,8 +757,8 @@ void FixRigid::init()
 
   // free temporary memory
   
-  memory->destroy_2d_double_array(tensor);
-  memory->destroy_2d_double_array(evectors);
+  memory->destroy(tensor);
+  memory->destroy(evectors);
   
   // displace = initial atom coords in basis of principal axes
   // set displace = 0.0 for atoms not in any rigid body
@@ -2156,14 +2157,12 @@ double FixRigid::memory_usage()
 void FixRigid::grow_arrays(int nmax)
 {
   body = (int *) memory->srealloc(body,nmax*sizeof(int),"rigid:body");
-  displace = memory->grow_2d_double_array(displace,nmax,3,"rigid:displace");
+  memory->grow(displace,nmax,3,"rigid:displace");
   if (extended) {
     eflags = (int *)
       memory->srealloc(eflags,nmax*sizeof(int),"rigid:eflags");
-    if (dorientflag)
-      dorient = memory->grow_2d_double_array(dorient,nmax,3,"rigid:dorient");
-    if (qorientflag)
-      qorient = memory->grow_2d_double_array(qorient,nmax,4,"rigid:qorient");
+    if (dorientflag) memory->grow(dorient,nmax,3,"rigid:dorient");
+    if (qorientflag) memory->grow(qorient,nmax,4,"rigid:qorient");
   }
 }
 

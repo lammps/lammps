@@ -297,12 +297,10 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
     vector = new double[nvalues];
     vector_total = new double[nvalues];
     if (ave == WINDOW)
-      vector_list = memory->create_2d_double_array(nwindow,nvalues,
-						   "ave/time:vector_list");
+      memory->create(vector_list,nwindow,nvalues,"ave/time:vector_list");
   } else {
-    array = memory->create_2d_double_array(nrows,nvalues,"ave/time:array");
-    array_total = memory->create_2d_double_array(nrows,nvalues,
-						 "ave/time:array_total");
+    memory->create(array,nrows,nvalues,"ave/time:array");
+    memory->create(array_total,nrows,nvalues,"ave/time:array_total");
     if (ave == WINDOW)
       memory->create(array_list,nwindow,nrows,nvalues,"ave/time:array_list");
   }
@@ -441,8 +439,8 @@ FixAveTime::~FixAveTime()
   delete [] vector;
   delete [] vector_total;
   delete [] column;
-  memory->destroy_2d_double_array(array);
-  memory->destroy_2d_double_array(array_total);
+  memory->destroy(array);
+  memory->destroy(array_total);
   memory->destroy(array_list);
 }
 

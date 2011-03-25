@@ -159,7 +159,7 @@ FixOrientFCC::FixOrientFCC(LAMMPS *lmp, int narg, char **arg) :
 
   nmax = atom->nmax;
   nbr = (Nbr *) memory->smalloc(nmax*sizeof(Nbr),"orient/fcc:nbr");
-  order = memory->create_2d_double_array(nmax,2,"orient/fcc:order");
+  memory->create(order,nmax,2,"orient/fcc:order");
   array_atom = order;
 
   // zero the array since a variable may access it before first run
@@ -175,7 +175,7 @@ FixOrientFCC::~FixOrientFCC()
   delete [] xifilename;
   delete [] chifilename;
   memory->sfree(nbr);
-  memory->destroy_2d_double_array(order);
+  memory->destroy(order);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -256,9 +256,9 @@ void FixOrientFCC::post_force(int vflag)
   if (nall > nmax) {
     nmax = nall;
     memory->sfree(nbr);
-    memory->destroy_2d_double_array(order);
+    memory->destroy(order);
     nbr = (Nbr *) memory->smalloc(nmax*sizeof(Nbr),"orient/fcc:nbr");
-    order = memory->create_2d_double_array(nmax,2,"orient/fcc:order");
+    memory->create(order,nmax,2,"orient/fcc:order");
     array_atom = order;
   }
 

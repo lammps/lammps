@@ -50,7 +50,7 @@ ImproperHybrid::~ImproperHybrid()
     delete [] nimproperlist;
     delete [] maximproper;
     for (int i = 0; i < nstyles; i++)
-      memory->destroy_2d_int_array(improperlist[i]);
+      memory->destroy(improperlist[i]);
     delete [] improperlist;
   }
 }
@@ -79,11 +79,10 @@ void ImproperHybrid::compute(int eflag, int vflag)
     }
     for (m = 0; m < nstyles; m++) {
       if (nimproperlist[m] > maximproper[m]) {
-	memory->destroy_2d_int_array(improperlist[m]);
+	memory->destroy(improperlist[m]);
 	maximproper[m] = nimproperlist[m] + EXTRA;
-	improperlist[m] = (int **)
-	  memory->create_2d_int_array(maximproper[m],5,
-				      "improper_hybrid:improperlist");
+	memory->create(improperlist[m],maximproper[m],5,
+		       "improper_hybrid:improperlist");
       }
       nimproperlist[m] = 0;
     }

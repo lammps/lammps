@@ -66,7 +66,7 @@ ComputeDihedralLocal::ComputeDihedralLocal(LAMMPS *lmp, int narg, char **arg) :
 ComputeDihedralLocal::~ComputeDihedralLocal()
 {
   memory->sfree(vector);
-  memory->destroy_2d_double_array(array);
+  memory->destroy(array);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -219,9 +219,8 @@ void ComputeDihedralLocal::reallocate(int n)
 					"bond/local:vector");
     vector_local = vector;
   } else {
-    memory->destroy_2d_double_array(array);
-    array = memory->create_2d_double_array(nmax,nvalues,
-					   "bond/local:array");
+    memory->destroy(array);
+    memory->create(array,nmax,nvalues,"bond/local:array");
     array_local = array;
   }
 }

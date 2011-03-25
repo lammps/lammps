@@ -116,8 +116,8 @@ FixWallSRD::FixWallSRD(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extarray = 1;
 
-  fwall = memory->create_2d_double_array(nwall,3,"wall/srd:fwall");
-  fwall_all = memory->create_2d_double_array(nwall,3,"wall/srd:fwall_all");
+  memory->create(fwall,nwall,3,"wall/srd:fwall");
+  memory->create(fwall_all,nwall,3,"wall/srd:fwall_all");
 
   // scale coord for CONSTANT walls
 
@@ -169,8 +169,8 @@ FixWallSRD::~FixWallSRD()
 {
   for (int m = 0; m < nwall; m++)
     if (wallstyle[m] == VARIABLE) delete [] varstr[m];
-  memory->destroy_2d_double_array(fwall);
-  memory->destroy_2d_double_array(fwall_all);
+  memory->destroy(fwall);
+  memory->destroy(fwall_all);
 }
 
 /* ---------------------------------------------------------------------- */

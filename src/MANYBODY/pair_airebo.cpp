@@ -73,15 +73,15 @@ PairAIREBO::~PairAIREBO()
   memory->sfree(nH);
 
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
-    memory->destroy_2d_double_array(cutghost);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
+    memory->destroy(cutghost);
 
-    memory->destroy_2d_double_array(cutljsq);
-    memory->destroy_2d_double_array(lj1);
-    memory->destroy_2d_double_array(lj2);
-    memory->destroy_2d_double_array(lj3);
-    memory->destroy_2d_double_array(lj4);
+    memory->destroy(cutljsq);
+    memory->destroy(lj1);
+    memory->destroy(lj2);
+    memory->destroy(lj3);
+    memory->destroy(lj4);
     delete [] map;
   }
 }
@@ -110,21 +110,21 @@ void PairAIREBO::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
-  cutghost = memory->create_2d_double_array(n+1,n+1,"pair:cutghost");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
+  memory->create(cutghost,n+1,n+1,"pair:cutghost");
 
   // only sized by C,H = 2 types
 
-  cutljsq = memory->create_2d_double_array(2,2,"pair:cutljsq");
-  lj1 = memory->create_2d_double_array(2,2,"pair:lj1");
-  lj2 = memory->create_2d_double_array(2,2,"pair:lj2");
-  lj3 = memory->create_2d_double_array(2,2,"pair:lj3");
-  lj4 = memory->create_2d_double_array(2,2,"pair:lj4");
+  memory->create(cutljsq,2,2,"pair:cutljsq");
+  memory->create(lj1,2,2,"pair:lj1");
+  memory->create(lj2,2,2,"pair:lj2");
+  memory->create(lj3,2,2,"pair:lj3");
+  memory->create(lj4,2,2,"pair:lj4");
 
   map = new int[n+1];
 }

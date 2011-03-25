@@ -59,9 +59,9 @@ FixEvent::~FixEvent()
 
   // delete locally stored array
 
-  memory->destroy_2d_double_array(xevent);
-  memory->destroy_2d_double_array(xold);
-  memory->destroy_2d_double_array(vold);
+  memory->destroy(xevent);
+  memory->destroy(xold);
+  memory->destroy(vold);
   memory->sfree(imageold);
 }
 
@@ -178,9 +178,9 @@ double FixEvent::memory_usage()
 
 void FixEvent::grow_arrays(int nmax)
 {
-  xevent = memory->grow_2d_double_array(xevent,nmax,3,"event:xevent");
-  xold = memory->grow_2d_double_array(xold,nmax,3,"event:xold");
-  vold = memory->grow_2d_double_array(vold,nmax,3,"event:vold");
+  memory->grow(xevent,nmax,3,"event:xevent");
+  memory->grow(xold,nmax,3,"event:xold");
+  memory->grow(vold,nmax,3,"event:vold");
   imageold = (int *) 
     memory->srealloc(imageold,nmax*sizeof(int),"event:imageold");
 

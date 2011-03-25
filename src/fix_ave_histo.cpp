@@ -444,10 +444,8 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   vector = NULL;
   maxatom = 0;
   if (ave == WINDOW) {
-    stats_list = memory->create_2d_double_array(nwindow,4,
-						"ave/histo:stats_list");
-    bin_list = memory->create_2d_double_array(nwindow,nbins,
-					      "ave/histo:bin_list");
+    memory->create(stats_list,nwindow,4,"histo:stats_list");
+    memory->create(bin_list,nwindow,nbins,"ave/histo:bin_list");
   }
 
   // initializations
@@ -502,8 +500,8 @@ FixAveHisto::~FixAveHisto()
   delete [] bin_total;
   delete [] bin_all;
   delete [] coord;
-  memory->destroy_2d_double_array(stats_list);
-  memory->destroy_2d_double_array(bin_list);
+  memory->destroy(stats_list);
+  memory->destroy(bin_list);
   memory->sfree(vector);
 }
 

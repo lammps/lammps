@@ -83,8 +83,8 @@ FixPeriNeigh::~FixPeriNeigh()
   // delete locally stored arrays
 
   memory->sfree(npartner);
-  memory->destroy_2d_int_array(partner);
-  memory->destroy_2d_double_array(r0);
+  memory->destroy(partner);
+  memory->destroy(r0);
   memory->sfree(vinter);
   memory->sfree(wvolume);
 }
@@ -195,8 +195,8 @@ void FixPeriNeigh::setup(int vflag)
 
   // realloc arrays with correct value for maxpartner
 
-  memory->destroy_2d_int_array(partner);
-  memory->destroy_2d_double_array(r0);
+  memory->destroy(partner);
+  memory->destroy(r0);
   memory->sfree(npartner);
 
   npartner = NULL;
@@ -356,9 +356,8 @@ void FixPeriNeigh::grow_arrays(int nmax)
 {
   npartner = (int *) memory->srealloc(npartner,nmax*sizeof(int),
 				      "peri_neigh:npartner");
-  partner = memory->grow_2d_int_array(partner,nmax,maxpartner,
-				      "peri_neigh:partner");
-  r0 = memory->grow_2d_double_array(r0,nmax,maxpartner,"peri_neigh:r0");
+  memory->grow(partner,nmax,maxpartner,"peri_neigh:partner");
+  memory->grow(r0,nmax,maxpartner,"peri_neigh:r0");
   vinter = (double *) memory->srealloc(vinter,nmax*sizeof(double),
 				       "peri_neigh:vinter");
   wvolume = (double *) memory->srealloc(wvolume,nmax*sizeof(double),

@@ -66,7 +66,7 @@ ComputeCNAAtom::ComputeCNAAtom(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeCNAAtom::~ComputeCNAAtom()
 {
-  memory->destroy_2d_int_array(nearest);
+  memory->destroy(nearest);
   memory->sfree(nnearest);
   memory->sfree(pattern);
 }
@@ -127,12 +127,12 @@ void ComputeCNAAtom::compute_peratom()
   // grow arrays if necessary
 
   if (atom->nlocal > nmax) {
-    memory->destroy_2d_int_array(nearest);
+    memory->destroy(nearest);
     memory->sfree(nnearest);
     memory->sfree(pattern);
     nmax = atom->nmax;
 
-    nearest = memory->create_2d_int_array(nmax,MAXNEAR,"cna:nearest");
+    memory->create(nearest,nmax,MAXNEAR,"cna:nearest");
     nnearest = (int *) memory->smalloc(nmax*sizeof(int),"cna:nnearest");
     pattern = (double *) memory->smalloc(nmax*sizeof(double),
 					 "cna:cna_pattern");

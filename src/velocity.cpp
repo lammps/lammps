@@ -164,7 +164,8 @@ void Velocity::create(double t_desired, int seed)
 
   double **v = atom->v;
   int nlocal = atom->nlocal;
-  double **vhold = memory->create_2d_double_array(nlocal,3,"velocity:vnew");
+  double **vhold;
+  memory->create(vhold,nlocal,3,"velocity:vnew");
 
   for (i = 0; i < nlocal; i++) {
     vhold[i][0] = v[i][0];
@@ -332,7 +333,7 @@ void Velocity::create(double t_desired, int seed)
   // free local memory
   // if temperature was created, delete it
 
-  memory->destroy_2d_double_array(vhold);
+  memory->destroy(vhold);
   delete random;
   if (tflag) delete temperature;
 }
@@ -437,8 +438,7 @@ void Velocity::set(int narg, char **arg)
   // allocate vfield array if necessary
 
   double **vfield = NULL;
-  if (varflag == ATOM)
-    vfield = memory->create_2d_double_array(atom->nlocal,3,"velocity:vfield");
+  if (varflag == ATOM) memory->create(vfield,atom->nlocal,3,"velocity:vfield");
 
   // set velocities via constants
 
@@ -499,7 +499,7 @@ void Velocity::set(int narg, char **arg)
   delete [] xstr;
   delete [] ystr;
   delete [] zstr;
-  memory->destroy_2d_double_array(vfield);
+  memory->destroy(vfield);
 }
 
 /* ----------------------------------------------------------------------

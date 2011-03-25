@@ -70,13 +70,13 @@ PairPeriLPS::~PairPeriLPS()
   if (ifix_peri >= 0) modify->delete_fix("PERI_NEIGH");
 
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
-    memory->destroy_2d_double_array(bulkmodulus);		
-    memory->destroy_2d_double_array(shearmodulus); 		
-    memory->destroy_2d_double_array(s00); 		
-    memory->destroy_2d_double_array(alpha); 		
-    memory->destroy_2d_double_array(cut);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
+    memory->destroy(bulkmodulus);		
+    memory->destroy(shearmodulus); 		
+    memory->destroy(s00); 		
+    memory->destroy(alpha); 		
+    memory->destroy(cut);
     memory->sfree(theta);					
     memory->sfree(s0_new);					
   }
@@ -343,18 +343,17 @@ void PairPeriLPS::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
-  bulkmodulus = memory->create_2d_double_array(n+1,n+1,"pair:bulkmodulus");
-  shearmodulus = memory->create_2d_double_array(n+1,n+1,"pair:shearmodulus");
-  s00 = memory->create_2d_double_array(n+1,n+1,"pair:s00");		
-  alpha = memory->create_2d_double_array(n+1,n+1,"pair:alpha");		
-  cut = memory->create_2d_double_array(n+1,n+1,"pair:cut");
-
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
+  memory->create(bulkmodulus,n+1,n+1,"pair:bulkmodulus");
+  memory->create(shearmodulus,n+1,n+1,"pair:shearmodulus");
+  memory->create(s00,n+1,n+1,"pair:s00");		
+  memory->create(alpha,n+1,n+1,"pair:alpha");		
+  memory->create(cut,n+1,n+1,"pair:cut");
 }
 
 /* ----------------------------------------------------------------------

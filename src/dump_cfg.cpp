@@ -101,7 +101,7 @@ DumpCFG::~DumpCFG()
     delete [] typenames;
   }
 
-  if (rbuf) memory->destroy_2d_double_array(rbuf);
+  if (rbuf) memory->destroy(rbuf);
 
   if (auxname) {
     for (int i = 0; i < nfield-5; i++) delete [] auxname[i];
@@ -230,8 +230,8 @@ void DumpCFG::write_header(bigint n)
   // allocate memory needed for data rearrangement on writing proc(s)
 
   if (multiproc || me == 0) {
-    if (rbuf) memory->destroy_2d_double_array(rbuf);
-    rbuf = memory->create_2d_double_array(nchosen,size_one,"dump:rbuf");
+    if (rbuf) memory->destroy(rbuf);
+    memory->create(rbuf,nchosen,size_one,"dump:rbuf");
   }
 }
 

@@ -41,11 +41,11 @@ PairSoft::PairSoft(LAMMPS *lmp) : Pair(lmp)
 PairSoft::~PairSoft()
 {
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
 
-    memory->destroy_2d_double_array(prefactor);
-    memory->destroy_2d_double_array(cut);
+    memory->destroy(prefactor);
+    memory->destroy(cut);
   }
 }
 
@@ -138,15 +138,15 @@ void PairSoft::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
-  prefactor = memory->create_2d_double_array(n+1,n+1,"pair:prefactor");
-  cut = memory->create_2d_double_array(n+1,n+1,"pair:cut");
+  memory->create(prefactor,n+1,n+1,"pair:prefactor");
+  memory->create(cut,n+1,n+1,"pair:cut");
 }
 
 /* ----------------------------------------------------------------------

@@ -126,7 +126,7 @@ void PRD::command(int narg, char **arg)
   if (nreplica != nprocs_universe) {
     displacements = new int[nprocs];
     tagall = (int *) memory->smalloc(natoms*sizeof(int),"prd:tagall");
-    xall = memory->create_2d_double_array(natoms,3,"prd:xall");
+    memory->create(xall,natoms,3,"prd:xall");
     imageall = (int *) memory->smalloc(natoms*sizeof(int),"prd:imageall");
   }
 
@@ -407,7 +407,7 @@ void PRD::command(int narg, char **arg)
 
   delete [] displacements;
   memory->sfree(tagall);
-  memory->destroy_2d_double_array(xall);
+  memory->destroy(xall);
   memory->sfree(imageall);
   
   MPI_Comm_free(&comm_replica);

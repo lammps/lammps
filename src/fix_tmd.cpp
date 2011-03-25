@@ -141,8 +141,8 @@ FixTMD::~FixTMD()
 
   // delete locally stored arrays
 
-  memory->destroy_2d_double_array(xf);
-  memory->destroy_2d_double_array(xold);
+  memory->destroy(xf);
+  memory->destroy(xold);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -350,8 +350,8 @@ double FixTMD::memory_usage()
 
 void FixTMD::grow_arrays(int nmax)
 {
-  xf = memory->grow_2d_double_array(xf,nmax,3,"fix_tmd:xf");
-  xold = memory->grow_2d_double_array(xold,nmax,3,"fix_tmd:xold");
+  memory->grow(xf,nmax,3,"fix_tmd:xf");
+  memory->grow(xold,nmax,3,"fix_tmd:xold");
 }
 
 /* ----------------------------------------------------------------------

@@ -44,9 +44,8 @@ ComputeGyrationMolecule::ComputeGyrationMolecule(LAMMPS *lmp,
 					"gyration/molecule:massproc");
   masstotal = (double *) memory->smalloc(nmolecules*sizeof(double),
 					 "gyration/molecule:masstotal");
-  com = memory->create_2d_double_array(nmolecules,3,"gyration/molecule:com");
-  comall = memory->create_2d_double_array(nmolecules,3,
-					  "gyration/molecule:comall");
+  memory->create(com,nmolecules,3,"gyration/molecule:com");
+  memory->create(comall,nmolecules,3,"gyration/molecule:comall");
   rg = (double *) memory->smalloc(nmolecules*sizeof(double),
 				  "gyration/molecule:rg");
   rgall = (double *) memory->smalloc(nmolecules*sizeof(double),
@@ -86,8 +85,8 @@ ComputeGyrationMolecule::~ComputeGyrationMolecule()
 {
   memory->sfree(massproc);
   memory->sfree(masstotal);
-  memory->destroy_2d_double_array(com);
-  memory->destroy_2d_double_array(comall);
+  memory->destroy(com);
+  memory->destroy(comall);
   memory->sfree(rg);
   memory->sfree(rgall);
 }

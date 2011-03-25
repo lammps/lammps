@@ -79,7 +79,7 @@ ComputeStressAtom::ComputeStressAtom(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeStressAtom::~ComputeStressAtom()
 {
-  memory->destroy_2d_double_array(stress);
+  memory->destroy(stress);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -97,10 +97,9 @@ void ComputeStressAtom::compute_peratom()
   // needs to be atom->nmax in length
 
   if (atom->nmax > nmax) {
-    memory->destroy_2d_double_array(stress);
+    memory->destroy(stress);
     nmax = atom->nmax;
-    stress =
-      memory->create_2d_double_array(nmax,6,"stress/atom:stress");
+    memory->create(stress,nmax,6,"stress/atom:stress");
     array_atom = stress;
   }
 

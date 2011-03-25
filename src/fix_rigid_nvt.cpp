@@ -63,7 +63,7 @@ FixRigidNVT::FixRigidNVT(LAMMPS *lmp, int narg, char **arg) :
   
   allocate_chain();
   allocate_order();
-  conjqm = memory->create_2d_double_array(nbody,4,"nve_rigid:conjqm");
+  memory->create(conjqm,nbody,4,"nve_rigid:conjqm");
   
   // one-time initialize of thermostat variables
   
@@ -83,7 +83,7 @@ FixRigidNVT::~FixRigidNVT()
 {
   deallocate_chain();
   deallocate_order();
-  memory->destroy_2d_double_array(conjqm);
+  memory->destroy(conjqm);
 }
 
 /* ---------------------------------------------------------------------- */

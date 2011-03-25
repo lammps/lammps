@@ -49,10 +49,10 @@ PairHybrid::~PairHybrid()
   }
 
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
-    memory->destroy_2d_double_array(cutghost);
-    memory->destroy_2d_int_array(nmap);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
+    memory->destroy(cutghost);
+    memory->destroy(nmap);
     memory->destroy(map);
   }
 }
@@ -152,15 +152,15 @@ void PairHybrid::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
-  cutghost = memory->create_2d_double_array(n+1,n+1,"pair:cutghost");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
+  memory->create(cutghost,n+1,n+1,"pair:cutghost");
 
-  nmap = memory->create_2d_int_array(n+1,n+1,"pair:nmap");
+  memory->create(nmap,n+1,n+1,"pair:nmap");
   memory->create(map,n+1,n+1,nstyles,"pair:map");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
@@ -187,10 +187,10 @@ void PairHybrid::settings(int narg, char **arg)
   }
 
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
-    memory->destroy_2d_double_array(cutghost);
-    memory->destroy_2d_int_array(nmap);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
+    memory->destroy(cutghost);
+    memory->destroy(nmap);
     memory->destroy(map);
   }
   allocated = 0;
@@ -395,8 +395,8 @@ void PairHybrid::init_style()
     // set iskip = 1 only if all ijskip for itype are 1
 
     int *iskip = new int[ntypes+1];
-    int **ijskip = memory->create_2d_int_array(ntypes+1,ntypes+1,
-					       "pair_hybrid:ijskip");
+    int **ijskip;
+    memory->create(ijskip,ntypes+1,ntypes+1,"pair_hybrid:ijskip");
 
     for (itype = 1; itype <= ntypes; itype++)
       for (jtype = 1; jtype <= ntypes; jtype++)
@@ -434,7 +434,7 @@ void PairHybrid::init_style()
       neighbor->requests[i]->ijskip = ijskip;
     } else {
       delete [] iskip;
-      memory->destroy_2d_int_array(ijskip);
+      memory->destroy(ijskip);
     }
   }
 

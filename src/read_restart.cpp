@@ -140,7 +140,7 @@ void ReadRestart::command(int narg, char **arg)
 
   int nextra = modify->read_restart(fp);
   atom->nextra_store = nextra;
-  atom->extra = memory->create_2d_double_array(n,nextra,"atom:extra");
+  memory->create(atom->extra,n,nextra,"atom:extra");
 
   // single file:
   // nprocs_file = # of chunks in file
@@ -271,9 +271,8 @@ void ReadRestart::command(int narg, char **arg)
     // destroy temporary fix
 
     if (nextra) {
-      memory->destroy_2d_double_array(atom->extra);
-      atom->extra = memory->create_2d_double_array(atom->nmax,nextra,
-      						   "atom:extra");
+      memory->destroy(atom->extra);
+      memory->create(atom->extra,atom->nmax,nextra,"atom:extra");
       int ifix = modify->find_fix("_read_restart");
       FixReadRestart *fix = (FixReadRestart *) modify->fix[ifix];
       int *count = fix->count;
@@ -704,12 +703,12 @@ void ReadRestart::type_arrays()
       delete [] mass;
 
     } else if (flag == SHAPE) {
-      double **shape =
-	memory->create_2d_double_array(atom->ntypes+1,3,"restart:shape");
+      double **shape;
+      memory->create(shape,atom->ntypes+1,3,"restart:shape");
       if (me == 0) fread(&shape[1][0],sizeof(double),atom->ntypes*3,fp);
       MPI_Bcast(&shape[1][0],atom->ntypes*3,MPI_DOUBLE,0,world);
       atom->set_shape(shape);
-      memory->destroy_2d_double_array(shape);
+      memory->destroy(shape);
 
     } else if (flag == DIPOLE) {
       double *dipole = new double[atom->ntypes+1];

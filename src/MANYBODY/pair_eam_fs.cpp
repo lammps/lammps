@@ -60,7 +60,7 @@ void PairEAMFS::coeff(int narg, char **arg)
     for (i = 0; i < fs->nelements; i++) delete [] fs->elements[i];
     delete [] fs->elements;
     delete [] fs->mass;
-    memory->destroy_2d_double_array(fs->frho);
+    memory->destroy(fs->frho);
     memory->destroy(fs->rhor);
     memory->destroy(fs->z2r);
     delete fs;
@@ -174,7 +174,7 @@ void PairEAMFS::read_file(char *filename)
   MPI_Bcast(&file->cut,1,MPI_DOUBLE,0,world);
 
   file->mass = new double[file->nelements];
-  file->frho = memory->create_2d_double_array(file->nelements,file->nrho+1,
+  memory->create(file->frho,file->nelements,file->nrho+1,
 					      "pair:frho");
   memory->create(file->rhor,file->nelements,file->nelements,
 		 file->nr+1,"pair:rhor");
@@ -233,8 +233,8 @@ void PairEAMFS::file2array()
   // nfrho = # of fs elements + 1 for zero array
   
   nfrho = fs->nelements + 1;
-  memory->destroy_2d_double_array(frho);
-  frho = (double **) memory->create_2d_double_array(nfrho,nrho+1,"pair:frho");
+  memory->destroy(frho);
+  memory->create(frho,nfrho,nrho+1,"pair:frho");
 
   // copy each element's frho to global frho
 
@@ -262,8 +262,8 @@ void PairEAMFS::file2array()
   // nrhor = square of # of fs elements
 
   nrhor = fs->nelements * fs->nelements;
-  memory->destroy_2d_double_array(rhor);
-  rhor = (double **) memory->create_2d_double_array(nrhor,nr+1,"pair:rhor");
+  memory->destroy(rhor);
+  memory->create(rhor,nrhor,nr+1,"pair:rhor");
 
   // copy each element pair rhor to global rhor
 
@@ -290,8 +290,8 @@ void PairEAMFS::file2array()
   // nz2r = N*(N+1)/2 where N = # of fs elements
 
   nz2r = fs->nelements * (fs->nelements+1) / 2;
-  memory->destroy_2d_double_array(z2r);
-  z2r = (double **) memory->create_2d_double_array(nz2r,nr+1,"pair:z2r");
+  memory->destroy(z2r);
+  memory->create(z2r,nz2r,nr+1,"pair:z2r");
 
   // copy each element pair z2r to global z2r, only for I >= J
 

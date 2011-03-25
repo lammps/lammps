@@ -59,7 +59,7 @@ FixReadRestart::~FixReadRestart()
   // delete locally stored arrays
 
   memory->sfree(count);
-  memory->destroy_2d_double_array(extra);
+  memory->destroy(extra);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -89,8 +89,7 @@ void FixReadRestart::grow_arrays(int nmax)
 {
   count =
     (int *) memory->srealloc(count,nmax*sizeof(int),"read_restart:count");
-  extra =
-    memory->grow_2d_double_array(extra,nmax,nextra,"read_restart:extra");
+  memory->grow(extra,nmax,nextra,"read_restart:extra");
 }
 
 /* ----------------------------------------------------------------------

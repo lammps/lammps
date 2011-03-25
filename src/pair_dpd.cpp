@@ -49,13 +49,13 @@ PairDPD::PairDPD(LAMMPS *lmp) : Pair(lmp)
 PairDPD::~PairDPD()
 {
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
 
-    memory->destroy_2d_double_array(cut);
-    memory->destroy_2d_double_array(a0);
-    memory->destroy_2d_double_array(gamma);
-    memory->destroy_2d_double_array(sigma);
+    memory->destroy(cut);
+    memory->destroy(a0);
+    memory->destroy(gamma);
+    memory->destroy(sigma);
   }
 
   if (random) delete random;
@@ -174,17 +174,17 @@ void PairDPD::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
-  cut = memory->create_2d_double_array(n+1,n+1,"pair:cut");
-  a0 = memory->create_2d_double_array(n+1,n+1,"pair:a0");
-  gamma = memory->create_2d_double_array(n+1,n+1,"pair:gamma");
-  sigma = memory->create_2d_double_array(n+1,n+1,"pair:sigma");
+  memory->create(cut,n+1,n+1,"pair:cut");
+  memory->create(a0,n+1,n+1,"pair:a0");
+  memory->create(gamma,n+1,n+1,"pair:gamma");
+  memory->create(sigma,n+1,n+1,"pair:sigma");
 }
 
 /* ----------------------------------------------------------------------

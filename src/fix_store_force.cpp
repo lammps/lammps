@@ -34,7 +34,7 @@ FixStoreForce::FixStoreForce(LAMMPS *lmp, int narg, char **arg) :
   peratom_freq = 1;
 
   nmax = atom->nmax;
-  foriginal = memory->create_2d_double_array(nmax,3,"store/force:foriginal");
+  memory->create(foriginal,nmax,3,"store/force:foriginal");
   array_atom = foriginal;
 
   // zero the array since dump may access it on timestep 0
@@ -49,7 +49,7 @@ FixStoreForce::FixStoreForce(LAMMPS *lmp, int narg, char **arg) :
 
 FixStoreForce::~FixStoreForce()
 {
-  memory->destroy_2d_double_array(foriginal);
+  memory->destroy(foriginal);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -97,8 +97,8 @@ void FixStoreForce::post_force(int vflag)
 {
   if (atom->nlocal > nmax) {
     nmax = atom->nmax;
-    memory->destroy_2d_double_array(foriginal);
-    foriginal = memory->create_2d_double_array(nmax,3,"store/force:foriginal");
+    memory->destroy(foriginal);
+    memory->create(foriginal,nmax,3,"store/force:foriginal");
     array_atom = foriginal;
   }
 

@@ -263,16 +263,13 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
   // set count and corr to zero since they accumulate
   // also set save versions to zero in case accessed via compute_array()
 
-  values = memory->create_2d_double_array(nrepeat,nvalues,
-					  "ave/correlate:values");
+  memory->create(values,nrepeat,nvalues,"ave/correlate:values");
   count = (int *) memory->smalloc(nrepeat*sizeof(int),
 				  "ave/correlate:count");
   save_count = (int *) memory->smalloc(nrepeat*sizeof(int),
 				       "ave/correlate:save_count");
-  corr = memory->create_2d_double_array(nrepeat,npair,
-					"ave/correlate:corr");
-  save_corr = memory->create_2d_double_array(nrepeat,npair,
-					     "ave/correlate:save_corr");
+  memory->create(corr,nrepeat,npair,"ave/correlate:corr");
+  memory->create(save_corr,nrepeat,npair,"ave/correlate:save_corr");
 
   int i,j;
   for (i = 0; i < nrepeat; i++) {
@@ -310,11 +307,11 @@ FixAveCorrelate::~FixAveCorrelate()
   for (int i = 0; i < nvalues; i++) delete [] ids[i];
   delete [] ids;
 
-  memory->destroy_2d_double_array(values);
+  memory->destroy(values);
   memory->sfree(count);
   memory->sfree(save_count);
-  memory->destroy_2d_double_array(corr);
-  memory->destroy_2d_double_array(save_corr);
+  memory->destroy(corr);
+  memory->destroy(save_corr);
 
   if (fp && me == 0) fclose(fp);
 }

@@ -265,9 +265,9 @@ FixSRD::~FixSRD()
     }
 
   memory->sfree(nbinbig);
-  memory->destroy_2d_int_array(binbig);
+  memory->destroy(binbig);
   memory->sfree(binsrd);
-  memory->destroy_2d_int_array(stencil);
+  memory->destroy(stencil);
   memory->sfree(biglist);
 }
 
@@ -3123,10 +3123,10 @@ void FixSRD::setup_search_bins()
   nbins2 = nbin2x*nbin2y*nbin2z;
   if (nbins2 > maxbin2) {
     memory->sfree(nbinbig);
-    memory->destroy_2d_int_array(binbig);
+    memory->destroy(binbig);
     maxbin2 = nbins2;
     nbinbig = (int *) memory->smalloc(nbins2*sizeof(int),"fix/srd:nbinbig");
-    binbig = memory->create_2d_int_array(nbins2,ATOMPERBIN,"fix/srd:binbig");
+    memory->create(binbig,nbins2,ATOMPERBIN,"fix/srd:binbig");
   }
 }
 
@@ -3153,9 +3153,9 @@ void FixSRD::setup_search_stencil()
 
   int max = (2*nx+1) * (2*ny+1) * (2*nz+1);
   if (max > maxstencil) {
-    memory->destroy_2d_int_array(stencil);
+    memory->destroy(stencil);
     maxstencil = max;
-    stencil = memory->create_2d_int_array(max,4,"fix/srd:stencil");
+    memory->create(stencil,max,4,"fix/srd:stencil");
   }
 
   // loop over all bins

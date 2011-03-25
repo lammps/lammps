@@ -36,15 +36,15 @@ PairMorse::PairMorse(LAMMPS *lmp) : Pair(lmp) {}
 PairMorse::~PairMorse()
 {
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
 
-    memory->destroy_2d_double_array(cut);
-    memory->destroy_2d_double_array(d0);
-    memory->destroy_2d_double_array(alpha);
-    memory->destroy_2d_double_array(r0);
-    memory->destroy_2d_double_array(morse1);
-    memory->destroy_2d_double_array(offset);
+    memory->destroy(cut);
+    memory->destroy(d0);
+    memory->destroy(alpha);
+    memory->destroy(r0);
+    memory->destroy(morse1);
+    memory->destroy(offset);
   }
 }
 
@@ -139,19 +139,19 @@ void PairMorse::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
-  cut = memory->create_2d_double_array(n+1,n+1,"pair:cut");
-  d0 = memory->create_2d_double_array(n+1,n+1,"pair:d0");
-  alpha = memory->create_2d_double_array(n+1,n+1,"pair:alpha");
-  r0 = memory->create_2d_double_array(n+1,n+1,"pair:r0");
-  morse1 = memory->create_2d_double_array(n+1,n+1,"pair:morse1");
-  offset = memory->create_2d_double_array(n+1,n+1,"pair:offset");
+  memory->create(cut,n+1,n+1,"pair:cut");
+  memory->create(d0,n+1,n+1,"pair:d0");
+  memory->create(alpha,n+1,n+1,"pair:alpha");
+  memory->create(r0,n+1,n+1,"pair:r0");
+  memory->create(morse1,n+1,n+1,"pair:morse1");
+  memory->create(offset,n+1,n+1,"pair:offset");
 }
 
 /* ----------------------------------------------------------------------

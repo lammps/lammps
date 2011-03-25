@@ -59,9 +59,9 @@ PairEffCut::~PairEffCut()
   memory->sfree(min_erforce);
 
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
-    memory->destroy_2d_double_array(cut);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
+    memory->destroy(cut);
   }
 }
 
@@ -677,13 +677,13 @@ void PairEffCut::allocate()
   allocated = 1;
   int n = atom->ntypes;
   
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
   
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
-  cut = memory->create_2d_double_array(n+1,n+1,"pair:cut");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
+  memory->create(cut,n+1,n+1,"pair:cut");
 }
 
 /* ---------------------------------------------------------------------

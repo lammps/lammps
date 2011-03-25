@@ -90,12 +90,12 @@ PairMEAM::~PairMEAM()
   memory->sfree(dgamma3);
   memory->sfree(arho2b);
 
-  memory->destroy_2d_double_array(arho1);
-  memory->destroy_2d_double_array(arho2);
-  memory->destroy_2d_double_array(arho3);
-  memory->destroy_2d_double_array(arho3b);
-  memory->destroy_2d_double_array(t_ave);
-  memory->destroy_2d_double_array(tsq_ave);
+  memory->destroy(arho1);
+  memory->destroy(arho2);
+  memory->destroy(arho3);
+  memory->destroy(arho3b);
+  memory->destroy(t_ave);
+  memory->destroy(tsq_ave);
 
   memory->sfree(scrfcn);
   memory->sfree(dscrfcn);
@@ -106,8 +106,8 @@ PairMEAM::~PairMEAM()
   delete [] mass;
 
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
     delete [] map;
     delete [] fmap;
   }
@@ -143,12 +143,12 @@ void PairMEAM::compute(int eflag, int vflag)
     memory->sfree(dgamma2);
     memory->sfree(dgamma3);
     memory->sfree(arho2b);
-    memory->destroy_2d_double_array(arho1);
-    memory->destroy_2d_double_array(arho2);
-    memory->destroy_2d_double_array(arho3);
-    memory->destroy_2d_double_array(arho3b);
-    memory->destroy_2d_double_array(t_ave);
-    memory->destroy_2d_double_array(tsq_ave);
+    memory->destroy(arho1);
+    memory->destroy(arho2);
+    memory->destroy(arho3);
+    memory->destroy(arho3b);
+    memory->destroy(t_ave);
+    memory->destroy(tsq_ave);
 
     nmax = atom->nmax;
 
@@ -163,12 +163,12 @@ void PairMEAM::compute(int eflag, int vflag)
     dgamma2 = (double *) memory->smalloc(nmax*sizeof(double),"pair:dgamma2");
     dgamma3 = (double *) memory->smalloc(nmax*sizeof(double),"pair:dgamma3");
     arho2b = (double *) memory->smalloc(nmax*sizeof(double),"pair:arho2b");
-    arho1 = memory->create_2d_double_array(nmax,3,"pair:arho1");
-    arho2 = memory->create_2d_double_array(nmax,6,"pair:arho2");
-    arho3 = memory->create_2d_double_array(nmax,10,"pair:arho3");
-    arho3b = memory->create_2d_double_array(nmax,3,"pair:arho3b");
-    t_ave = memory->create_2d_double_array(nmax,3,"pair:t_ave");
-    tsq_ave = memory->create_2d_double_array(nmax,3,"pair:tsq_ave");
+    memory->create(arho1,nmax,3,"pair:arho1");
+    memory->create(arho2,nmax,6,"pair:arho2");
+    memory->create(arho3,nmax,10,"pair:arho3");
+    memory->create(arho3b,nmax,3,"pair:arho3b");
+    memory->create(t_ave,nmax,3,"pair:t_ave");
+    memory->create(tsq_ave,nmax,3,"pair:tsq_ave");
   }
 
   // neighbor list info
@@ -307,8 +307,8 @@ void PairMEAM::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
   map = new int[n+1];
   fmap = new int[n];

@@ -52,14 +52,14 @@ PairDSMC::PairDSMC(LAMMPS *lmp) : Pair(lmp)
 PairDSMC::~PairDSMC()
 {
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
-    memory->destroy_2d_double_array(sigma);
-    memory->destroy_2d_double_array(cut);
-    memory->destroy_2d_double_array(V_sigma_max);
-    memory->destroy_2d_int_array(particle_list);
-    memory->destroy_2d_int_array(first);
-    memory->destroy_2d_int_array(number);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
+    memory->destroy(sigma);
+    memory->destroy(cut);
+    memory->destroy(V_sigma_max);
+    memory->destroy(particle_list);
+    memory->destroy(first);
+    memory->destroy(number);
   }
 
   delete [] next_particle;
@@ -113,9 +113,8 @@ void PairDSMC::compute(int eflag, int vflag)
       number_of_A = number[itype][icell];
       if (number_of_A > max_particle_list) {
         max_particle_list = number_of_A;
-        particle_list = memory->grow_2d_int_array(particle_list,atom->ntypes+1,
-						  max_particle_list,
-						  "pair:particle_list");
+        memory->grow(particle_list,atom->ntypes+1,max_particle_list,
+		     "pair:particle_list");
       }
 
       int m = first[itype][icell];
@@ -191,16 +190,16 @@ void PairDSMC::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
-  cut = memory->create_2d_double_array(n+1,n+1,"pair:cut");
-  sigma = memory->create_2d_double_array(n+1,n+1,"pair:sigma");
-  V_sigma_max = memory->create_2d_double_array(n+1,n+1,"pair:V_sigma_max");
+  memory->create(cut,n+1,n+1,"pair:cut");
+  memory->create(sigma,n+1,n+1,"pair:sigma");
+  memory->create(V_sigma_max,n+1,n+1,"pair:V_sigma_max");
 }
 
 /* ----------------------------------------------------------------------
@@ -297,12 +296,9 @@ void PairDSMC::init_style()
   total_ncells = ncellsx*ncellsy*ncellsz;
   vol = cellx*celly*cellz;
 
-  particle_list = memory->create_2d_int_array(atom->ntypes+1,0,
-					      "pair:particle_list");
-  first = memory->create_2d_int_array(atom->ntypes+1,total_ncells,
-				      "pair:first");
-  number = memory->create_2d_int_array(atom->ntypes+1,total_ncells,
-				       "pair:number");
+  memory->create(particle_list,atom->ntypes+1,0,"pair:particle_list");
+  memory->create(first,atom->ntypes+1,total_ncells,"pair:first");
+  memory->create(number,atom->ntypes+1,total_ncells,"pair:number");
 
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = 1; j <= atom->ntypes; j++)

@@ -114,7 +114,7 @@ FixAddForce::~FixAddForce()
   delete [] zstr;
   delete [] estr;
   delete [] idregion;
-  memory->destroy_2d_double_array(sforce);
+  memory->destroy(sforce);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -220,8 +220,8 @@ void FixAddForce::post_force(int vflag)
 
   if ((varflag == ATOM || estyle == ATOM) && nlocal > maxatom) {
     maxatom = atom->nmax;
-    memory->destroy_2d_double_array(sforce);
-    sforce = memory->create_2d_double_array(maxatom,4,"addforce:sforce");
+    memory->destroy(sforce);
+    memory->create(sforce,maxatom,4,"addforce:sforce");
   }
 
   // foriginal[0] = "potential energy" for added force

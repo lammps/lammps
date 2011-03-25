@@ -146,10 +146,8 @@ FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   int n = atom->ntypes;
   for (int m = 0; m < nadapt; m++)
-    if (adapt[m].which == PAIR) {
-      adapt[m].array_orig = 
-	memory->create_2d_double_array(n+1,n+1,"adapt:array_orig");
-    }
+    if (adapt[m].which == PAIR)
+      memory->create(adapt[m].array_orig,n+1,n+1,"adapt:array_orig");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -161,7 +159,7 @@ FixAdapt::~FixAdapt()
     if (adapt[m].which == PAIR) {
       delete [] adapt[m].pstyle;
       delete [] adapt[m].pparam;
-      memory->destroy_2d_double_array(adapt[m].array_orig);
+      memory->destroy(adapt[m].array_orig);
     }
   }
   delete [] adapt;

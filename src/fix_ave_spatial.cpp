@@ -401,12 +401,12 @@ FixAveSpatial::~FixAveSpatial()
   memory->sfree(count_many);
   memory->sfree(count_sum);
   memory->sfree(count_total);
-  memory->destroy_2d_double_array(coord);
-  memory->destroy_2d_double_array(count_list);
-  memory->destroy_2d_double_array(values_one);
-  memory->destroy_2d_double_array(values_many);
-  memory->destroy_2d_double_array(values_sum);
-  memory->destroy_2d_double_array(values_total);
+  memory->destroy(coord);
+  memory->destroy(count_list);
+  memory->destroy(values_one);
+  memory->destroy(values_many);
+  memory->destroy(values_sum);
+  memory->destroy(values_total);
   memory->destroy(values_list);
 }
 
@@ -895,23 +895,16 @@ void FixAveSpatial::setup_bins()
       memory->srealloc(count_total,nbins*sizeof(double),
 		       "ave/spatial:count_total");
     
-    coord = 
-      memory->grow_2d_double_array(coord,nbins,ndim,"ave/spatial:coord");
-    values_one = memory->grow_2d_double_array(values_one,nbins,nvalues,
-					      "ave/spatial:values_one");
-    values_many = memory->grow_2d_double_array(values_many,nbins,nvalues,
-					       "ave/spatial:values_many");
-    values_sum = memory->grow_2d_double_array(values_sum,nbins,nvalues,
-					      "ave/spatial:values_sum");
-    values_total = memory->grow_2d_double_array(values_total,nbins,nvalues,
-						"ave/spatial:values_total");
+    memory->grow(coord,nbins,ndim,"ave/spatial:coord");
+    memory->grow(values_one,nbins,nvalues,"ave/spatial:values_one");
+    memory->grow(values_many,nbins,nvalues,"ave/spatial:values_many");
+    memory->grow(values_sum,nbins,nvalues,"ave/spatial:values_sum");
+    memory->grow(values_total,nbins,nvalues,"ave/spatial:values_total");
     
     // only allocate count and values list for ave = WINDOW
     
     if (ave == WINDOW) {
-      count_list =
-	memory->create_2d_double_array(nwindow,nbins,
-				       "ave/spatial:count_list");
+      memory->create(count_list,nwindow,nbins,"ave/spatial:count_list");
       memory->create(values_list,nwindow,nbins,nvalues,
 		     "ave/spatial:values_list");
     }

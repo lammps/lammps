@@ -28,21 +28,6 @@ class Memory : protected Pointers {
   void sfree(void *);
   void fail(const char *);
 
-  // older routines, will be deprecated at some point
-
-  double **create_2d_double_array(int, int, const char *);
-  void destroy_2d_double_array(double **);
-  double **grow_2d_double_array(double **, int, int, const char *);
-
-  int **create_2d_int_array(int, int, const char *);
-  void destroy_2d_int_array(int **);
-  int **grow_2d_int_array(int **, int, int, const char *);
-
-  double **create_2d_double_array(int, int, int, const char *);
-  void destroy_2d_double_array(double **, int);
-
-  // newer routines
-
 /* ----------------------------------------------------------------------
    create/grow/destroy vecs and multidim arrays with contiguous memory blocks
    only use with primitive data types, e.g. 1d vec of ints, 2d array of doubles

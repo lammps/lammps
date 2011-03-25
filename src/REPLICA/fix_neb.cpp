@@ -78,9 +78,9 @@ FixNEB::~FixNEB()
   modify->delete_compute(id_pe);
   delete [] id_pe;
 
-  memory->destroy_2d_double_array(xprev);
-  memory->destroy_2d_double_array(xnext);
-  memory->destroy_2d_double_array(tangent);
+  memory->destroy(xprev);
+  memory->destroy(xnext);
+  memory->destroy(tangent);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -107,13 +107,13 @@ void FixNEB::init()
 
   // setup xprev and xnext arrays
 
-  memory->destroy_2d_double_array(xprev);
-  memory->destroy_2d_double_array(xnext);
-  memory->destroy_2d_double_array(tangent);
+  memory->destroy(xprev);
+  memory->destroy(xnext);
+  memory->destroy(tangent);
   nebatoms = atom->nlocal;
-  xprev = memory->create_2d_double_array(nebatoms,3,"neb:xprev");
-  xnext = memory->create_2d_double_array(nebatoms,3,"neb:xnext");
-  tangent = memory->create_2d_double_array(nebatoms,3,"neb:tangent");
+  memory->create(xprev,nebatoms,3,"neb:xprev");
+  memory->create(xnext,nebatoms,3,"neb:xnext");
+  memory->create(tangent,nebatoms,3,"neb:tangent");
 }
 
 /* ---------------------------------------------------------------------- */

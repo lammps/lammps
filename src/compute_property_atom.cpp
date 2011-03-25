@@ -232,7 +232,7 @@ ComputePropertyAtom::~ComputePropertyAtom()
 {
   delete [] pack_choice;
   memory->sfree(vector);
-  memory->destroy_2d_double_array(array);
+  memory->destroy(array);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -251,9 +251,8 @@ void ComputePropertyAtom::compute_peratom()
 					  "property/atom:vector");
       vector_atom = vector;
     } else {
-      memory->destroy_2d_double_array(array);
-      array = memory->create_2d_double_array(nmax,nvalues,
-					     "property/atom:array");
+      memory->destroy(array);
+      memory->create(array,nmax,nvalues,"property/atom:array");
       array_atom = array;
     }
   }

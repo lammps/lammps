@@ -195,7 +195,7 @@ FixWallGran::~FixWallGran()
 
   // delete locally stored arrays
 
-  memory->destroy_2d_double_array(shear);
+  memory->destroy(shear);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -678,7 +678,7 @@ double FixWallGran::memory_usage()
 
 void FixWallGran::grow_arrays(int nmax)
 {
-  shear = memory->grow_2d_double_array(shear,nmax,3,"fix_wall_gran:shear");
+  memory->grow(shear,nmax,3,"fix_wall_gran:shear");
 }
 
 /* ----------------------------------------------------------------------

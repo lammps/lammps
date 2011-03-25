@@ -62,7 +62,7 @@ ComputeTempDeformEff::ComputeTempDeformEff(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeTempDeformEff::~ComputeTempDeformEff()
 {
-  memory->destroy_2d_double_array(vbiasall);
+  memory->destroy(vbiasall);
   delete [] vector;
 }
 
@@ -253,10 +253,9 @@ void ComputeTempDeformEff::remove_bias_all()
   int nlocal = atom->nlocal;
 
   if (nlocal > maxbias) {
-    memory->destroy_2d_double_array(vbiasall);
+    memory->destroy(vbiasall);
     maxbias = atom->nmax;
-    vbiasall = memory->create_2d_double_array(maxbias,3,
-                                              "temp/deform/eff:vbiasall");
+    memory->create(vbiasall,maxbias,3,"temp/deform/eff:vbiasall");
   }
 
   double lamda[3];

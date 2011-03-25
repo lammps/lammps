@@ -110,13 +110,13 @@ FixQEqReax::~FixQEqReax()
  
   atom->delete_callback(id,0);
 
-  memory->destroy_2d_double_array(s_hist);
-  memory->destroy_2d_double_array(t_hist);
+  memory->destroy(s_hist);
+  memory->destroy(t_hist);
 
   deallocate_storage();
   deallocate_matrix();
 
-  memory->destroy_2d_double_array(shld);
+  memory->destroy(shld);
 
   if (!reaxflag) {
     memory->sfree(chi);
@@ -315,7 +315,7 @@ void FixQEqReax::init_shielding()
   int ntypes;
 
   ntypes = atom->ntypes;
-  shld = memory->create_2d_double_array(ntypes+1, ntypes+1, "qeq:shileding");
+  memory->create(shld,ntypes+1,ntypes+1,"qeq:shileding");
   
   for( i = 1; i <= ntypes; ++i )
     for( j = 1; j <= ntypes; ++j )
@@ -714,8 +714,8 @@ double FixQEqReax::memory_usage()
 
 void FixQEqReax::grow_arrays(int nmax)
 {
-  s_hist = memory->grow_2d_double_array(s_hist,nmax,nprev,"qeq:s_hist");
-  t_hist = memory->grow_2d_double_array(t_hist,nmax,nprev,"qeq:t_hist");
+  memory->grow(s_hist,nmax,nprev,"qeq:s_hist");
+  memory->grow(t_hist,nmax,nprev,"qeq:t_hist");
 }
 
 /* ----------------------------------------------------------------------

@@ -97,9 +97,8 @@ ComputeTempProfile::ComputeTempProfile(LAMMPS *lmp, int narg, char **arg) :
   nbins = nbinx*nbiny*nbinz;
   if (nbins <= 0) error->all("Illegal compute temp/profile command");
 
-  vbin = memory->create_2d_double_array(nbins,ncount+1,"temp/profile:vbin");
-  binave = memory->create_2d_double_array(nbins,ncount+1,
-					  "temp/profile:binave");
+  memory->create(vbin,nbins,ncount+1,"temp/profile:vbin");
+  memory->create(binave,nbins,ncount+1,"temp/profile:binave");
   
   maxatom = 0;
   bin = NULL;
@@ -113,10 +112,10 @@ ComputeTempProfile::ComputeTempProfile(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeTempProfile::~ComputeTempProfile()
 {
-  memory->destroy_2d_double_array(vbin);
-  memory->destroy_2d_double_array(binave);
+  memory->destroy(vbin);
+  memory->destroy(binave);
   memory->sfree(bin);
-  memory->destroy_2d_double_array(vbiasall);
+  memory->destroy(vbiasall);
   delete [] vector;
 }
 
@@ -280,10 +279,9 @@ void ComputeTempProfile::remove_bias_all()
   int nlocal = atom->nlocal;
 
   if (nlocal > maxbias) {
-    memory->destroy_2d_double_array(vbiasall);
+    memory->destroy(vbiasall);
     maxbias = atom->nmax;
-    vbiasall = memory->create_2d_double_array(maxbias,3,
-					      "temp/profile:vbiasall");
+    memory->create(vbiasall,maxbias,3,"temp/profile:vbiasall");
   }
 
   int ibin;

@@ -51,7 +51,7 @@ BondHybrid::~BondHybrid()
     delete [] nbondlist;
     delete [] maxbond;
     for (int i = 0; i < nstyles; i++)
-      memory->destroy_2d_int_array(bondlist[i]);
+      memory->destroy(bondlist[i]);
     delete [] bondlist;
   }
 }
@@ -80,10 +80,9 @@ void BondHybrid::compute(int eflag, int vflag)
     }
     for (m = 0; m < nstyles; m++) {
       if (nbondlist[m] > maxbond[m]) {
-	memory->destroy_2d_int_array(bondlist[m]);
+	memory->destroy(bondlist[m]);
 	maxbond[m] = nbondlist[m] + EXTRA;
-	bondlist[m] = (int **)
-	  memory->create_2d_int_array(maxbond[m],3,"bond_hybrid:bondlist");
+	memory->create(bondlist[m],maxbond[m],3,"bond_hybrid:bondlist");
       }
       nbondlist[m] = 0;
     }
@@ -179,7 +178,7 @@ void BondHybrid::settings(int narg, char **arg)
     delete [] nbondlist;
     delete [] maxbond;
     for (int i = 0; i < nstyles; i++)
-      memory->destroy_2d_int_array(bondlist[i]);
+      memory->destroy(bondlist[i]);
     delete [] bondlist;
   }
   allocated = 0;

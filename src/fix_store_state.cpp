@@ -333,7 +333,7 @@ FixStoreState::~FixStoreState()
   delete [] value2index;
   delete [] pack_choice;
 
-  memory->destroy_2d_double_array(values);
+  memory->destroy(values);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -485,8 +485,7 @@ double FixStoreState::memory_usage()
 
 void FixStoreState::grow_arrays(int nmax)
 {
-  values = memory->grow_2d_double_array(values,nmax,nvalues,
-					"fix_store:values");
+  memory->grow(values,nmax,nvalues,"fix_store:values");
   if (nvalues == 1) {
     if (nmax) vector_atom = &values[0][0];
     else vector_atom = NULL;

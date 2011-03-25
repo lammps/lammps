@@ -90,7 +90,7 @@ NEB::NEB(LAMMPS *lmp, double etol_in, double ftol_in, int n1steps_in,
 NEB::~NEB()
 {
   MPI_Comm_free(&roots);
-  memory->destroy_2d_double_array(all);
+  memory->destroy(all);
   delete [] rdist;
 }
 
@@ -167,7 +167,7 @@ void NEB::run()
 
   fneb = (FixNEB *) modify->fix[ineb];
   nall = 4;
-  all = memory->create_2d_double_array(nreplica,nall,"neb:all");
+  memory->create(all,nreplica,nall,"neb:all");
   rdist = new double[nreplica];
 
   // initialize LAMMPS

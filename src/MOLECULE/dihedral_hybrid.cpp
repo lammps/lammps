@@ -50,7 +50,7 @@ DihedralHybrid::~DihedralHybrid()
     delete [] ndihedrallist;
     delete [] maxdihedral;
     for (int i = 0; i < nstyles; i++)
-      memory->destroy_2d_int_array(dihedrallist[i]);
+      memory->destroy(dihedrallist[i]);
     delete [] dihedrallist;
   }
 }
@@ -79,11 +79,10 @@ void DihedralHybrid::compute(int eflag, int vflag)
     }
     for (m = 0; m < nstyles; m++) {
       if (ndihedrallist[m] > maxdihedral[m]) {
-	memory->destroy_2d_int_array(dihedrallist[m]);
+	memory->destroy(dihedrallist[m]);
 	maxdihedral[m] = ndihedrallist[m] + EXTRA;
-	dihedrallist[m] = (int **)
-	  memory->create_2d_int_array(maxdihedral[m],5,
-				      "dihedral_hybrid:dihedrallist");
+	memory->create(dihedrallist[m],maxdihedral[m],5,
+		       "dihedral_hybrid:dihedrallist");
       }
       ndihedrallist[m] = 0;
     }

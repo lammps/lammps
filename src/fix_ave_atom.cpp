@@ -211,7 +211,7 @@ FixAveAtom::~FixAveAtom()
   delete [] ids;
   delete [] value2index;
 
-  memory->destroy_2d_double_array(array);
+  memory->destroy(array);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -394,8 +394,7 @@ double FixAveAtom::memory_usage()
 
 void FixAveAtom::grow_arrays(int nmax)
 {
-  array = memory->grow_2d_double_array(array,nmax,nvalues,
-				       "fix_ave/atom:array");
+  memory->grow(array,nmax,nvalues,"fix_ave/atom:array");
   array_atom = array;
   if (array) vector_atom = array[0];
   else vector_atom = NULL;

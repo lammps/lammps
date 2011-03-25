@@ -81,7 +81,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
 Pair::~Pair()
 {
   memory->sfree(eatom);
-  memory->destroy_2d_double_array(vatom);
+  memory->destroy(vatom);
 }
 
 /* ----------------------------------------------------------------------
@@ -287,8 +287,8 @@ void Pair::ev_setup(int eflag, int vflag)
   }
   if (vflag_atom && atom->nmax > maxvatom) {
     maxvatom = atom->nmax;
-    memory->destroy_2d_double_array(vatom);
-    vatom = memory->create_2d_double_array(maxvatom,6,"pair:vatom");
+    memory->destroy(vatom);
+    memory->create(vatom,maxvatom,6,"pair:vatom");
   }
 
   // zero accumulators

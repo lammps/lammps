@@ -36,8 +36,6 @@ class PairAIREBO : public Pair {
   double memory_usage();
 
  private:
-  double time1,time2;
-
   int me;
   int ljflag,torflag;              // 0/1 if LJ,torsion terms included
   int maxlocal;                    // size of numneigh, firstneigh arrays
@@ -47,6 +45,8 @@ class PairAIREBO : public Pair {
   int oneatom;                     // max # of neighbors for one atom
   int npage;                       // current page in page list
   int *map;                        // 0 (C), 1 (H), or -1 (NULL) for each type
+
+  double PI;
   double cutlj;                    // user-specified LJ cutoff
   double cutljrebosq;              // cut for when to compute
                                    // REBO neighs of ghost atoms

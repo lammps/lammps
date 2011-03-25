@@ -135,7 +135,6 @@ void NEB::command(int narg, char **arg)
   // run the NEB calculation
 
   run();
-
 }
 
 /* ----------------------------------------------------------------------

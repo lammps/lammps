@@ -77,7 +77,8 @@ class PairGPUDevice {
                            UCL_Timer & time_map, UCL_Timer & time_rho,
                            UCL_Timer &time_interp, 
                            PairGPUAns<numtyp,acctyp> &ans, 
-                           const double max_bytes, FILE *screen);
+                           const double max_bytes, const double cpu_time,
+                           FILE *screen);
 
   /// Clear all memory on host and device associated with atom and nbor data
   void clear();
@@ -91,7 +92,7 @@ class PairGPUDevice {
 
   /// Add "answers" (force,energies,etc.) into LAMMPS structures
   inline double fix_gpu(double **f, double **tor, double *eatom,
-                      double **vatom, double *virial, double &ecoul) {
+                        double **vatom, double *virial, double &ecoul) {
     atom.data_unavail();
     if (ans_queue.empty()==false) {
       stop_host_timer();
@@ -106,10 +107,16 @@ class PairGPUDevice {
   }
 
   /// Start timer on host
-  inline void start_host_timer() { _cpu_full=MPI_Wtime(); }
+  inline void start_host_timer() 
+    { _cpu_full=MPI_Wtime(); _host_timer_started=true; }
   
   /// Stop timer on host
-  inline void stop_host_timer() { _cpu_full=MPI_Wtime()-_cpu_full; }
+  inline void stop_host_timer() { 
+    if (_host_timer_started) {
+      _cpu_full=MPI_Wtime()-_cpu_full; 
+      _host_timer_started=false;
+    }
+  }
   
   /// Return host time
   inline double host_time() { return _cpu_full; }
@@ -170,7 +177,7 @@ class PairGPUDevice {
  private:
   std::queue<PairGPUAns<numtyp,acctyp> *> ans_queue;
   int _init_count;
-  bool _device_init;
+  bool _device_init, _host_timer_started;
   MPI_Comm _comm_world, _comm_replica, _comm_gpu;
   int _procs_per_gpu, _gpu_rank, _world_me, _world_size, _replica_me, 
       _replica_size;

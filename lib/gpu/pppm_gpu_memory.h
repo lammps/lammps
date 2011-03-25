@@ -56,7 +56,7 @@ class PPPMGPUMemory {
   
   /// Clear all host and device data
   /** \note This is called at the beginning of the init() routine **/
-  void clear();
+  void clear(const double cpu_time);
 
   /// Returns memory usage on device per atom
   int bytes_per_atom() const;
@@ -133,7 +133,7 @@ class PPPMGPUMemory {
   // Number of local grid points in brick
   int _nlocal_x, _nlocal_y, _nlocal_z, _nlocal_yx, _atom_stride;
   
-  // -------------------------- STENCIL DATA -------------------------
+  // -------------------------- SPLINE DATA -------------------------
   UCL_D_Vec<numtyp> d_rho_coeff;
   int _order, _nlower, _nupper, _order_m_1, _order2;
   int _nxlo_out, _nylo_out, _nzlo_out, _nxhi_out, _nyhi_out, _nzhi_out;
@@ -141,7 +141,6 @@ class PPPMGPUMemory {
   // ------------------------ FORCE/ENERGY DATA -----------------------
 
   PairGPUAns<numtyp,acctyp> *ans;
-//UCL_H_Vec<numtyp> force_temp;
 
   // ------------------------- DEVICE KERNELS -------------------------
   UCL_Program *pppm_program;

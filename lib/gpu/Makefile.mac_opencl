@@ -17,7 +17,7 @@
 #                          Paul Crozier (SNL), pscrozi@sandia.gov             
 # ------------------------------------------------------------------------- */
 
-OCL_CPP = mpic++ -I./geryon/opencl_1_0 -O3 -DMPI_GERYON
+OCL_CPP = mpic++ -I./geryon/opencl_1_0 -O3 -DMPI_GERYON -DUCL_NO_EXIT
 OCL_LINK = -framework OpenCL
 OCL_PREC = -D_SINGLE_SINGLE
 

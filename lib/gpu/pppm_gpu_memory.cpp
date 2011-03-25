@@ -24,9 +24,9 @@
 #include "pppm_gpu_memory.h"
 #include <cassert>
 
-// Maximum order for stencil
-#define MAX_STENCIL 8
-// Thread block size for all kernels (Must be >=MAX_STENCIL^2)
+// Maximum order for spline
+#define MAX_SPLINE 8
+// Thread block size for all kernels (Must be >=MAX_SPLINE^2)
 #define BLOCK_1D 64
 // Number of threads per pencil for charge spread
 //#define PENCIL_SIZE MEM_THREADS
@@ -48,7 +48,7 @@ PPPMGPUMemoryT::PPPMGPUMemory() : _allocated(false), _compiled(false),
 
 template <class numtyp, class acctyp>
 PPPMGPUMemoryT::~PPPMGPUMemory() {
-  clear();
+  clear(0.0);
   delete ans;
 }
 
@@ -64,8 +64,6 @@ numtyp * PPPMGPUMemoryT::init(const int nlocal, const int nall, FILE *_screen,
                               const int nxhi_out, const int nyhi_out,
                               const int nzhi_out, double **rho_coeff,
                               numtyp **vd_brick, bool &success) {
-  clear();
-  
   _max_bytes=10;
   screen=_screen;
 
@@ -78,7 +76,7 @@ numtyp * PPPMGPUMemoryT::init(const int nlocal, const int nall, FILE *_screen,
 
   _block_size=BLOCK_1D;
   assert(BLOCK_PENCILS*PENCIL_SIZE==BLOCK_1D);
-  assert(MAX_STENCIL*MAX_STENCIL<=BLOCK_1D);
+  assert(MAX_SPLINE*MAX_SPLINE<=BLOCK_1D);
   if (static_cast<size_t>(_block_size)>ucl_device->group_size())
     _block_size=ucl_device->group_size();
   compile_kernels(*ucl_device);
@@ -161,13 +159,11 @@ numtyp * PPPMGPUMemoryT::init(const int nlocal, const int nall, FILE *_screen,
   d_error_flag.zero();
   _max_bytes+=1;
 
-//success=success && (force_temp.alloc(nall*4*2,*ucl_device)==UCL_SUCCESS);
-  
   return h_brick.begin();
 }
 
 template <class numtyp, class acctyp>
-void PPPMGPUMemoryT::clear() {
+void PPPMGPUMemoryT::clear(const double cpu_time) {
   if (!_allocated)
     return;
   _allocated=false;
@@ -182,7 +178,7 @@ void PPPMGPUMemoryT::clear() {
   
   acc_timers();
   device->output_kspace_times(time_in,time_out,time_map,time_rho,time_interp,
-                              *ans,_max_bytes+_max_an_bytes,screen);
+                              *ans,_max_bytes+_max_an_bytes,cpu_time,screen);
 
   if (_compiled) {
     k_particle_map.clear();
@@ -210,6 +206,8 @@ int PPPMGPUMemoryT::spread(const int ago, const int nlocal, const int nall,
                            double *host_q, double *boxlo, 
                            const double delxinv, const double delyinv,
                            const double delzinv) {
+  device->stop_host_timer();
+  
   acc_timers();
   if (nlocal==0) {
     zero_timers();
@@ -243,7 +241,7 @@ int PPPMGPUMemoryT::spread(const int ago, const int nlocal, const int nall,
   int _max_atoms=10;
   int ainum=this->ans->inum();
   
-  // Boxlo adjusted to be upper left brick and shift for even stencil order
+  // Boxlo adjusted to be upper left brick and shift for even spline order
   double shift=0.0;
   if (_order % 2)
     shift=0.5;
@@ -267,7 +265,6 @@ int PPPMGPUMemoryT::spread(const int ago, const int nlocal, const int nall,
   time_map.stop();
 
   time_rho.start();
-
   BX=block_size();
   GX=static_cast<int>(ceil(static_cast<double>(_npts_y*_npts_z)/BLOCK_PENCILS));
   k_make_rho.set_size(GX,BX);
@@ -320,7 +317,8 @@ void PPPMGPUMemoryT::interp(const numtyp qqrd2e_scale) {
                &_order, &_order2, &qqrd2e_scale, &ans->dev_ans.begin());
   time_interp.stop();
 
-//ucl_copy(force_temp,ans->dev_ans,ans->dev_ans.numel(),false);
+  ans->copy_answers(false,false,false,false);
+  device->add_ans_object(ans);
 }
 
 

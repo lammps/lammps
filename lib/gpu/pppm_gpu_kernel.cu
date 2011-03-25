@@ -88,9 +88,9 @@ __inline float fetch_q(const int& i, const float *q)
 
 #endif
 
-// Maximum order for stencil
-#define MAX_STENCIL 8
-// Thread block size for all kernels (Must be >=MAX_STENCIL^2)
+// Maximum order for spline
+#define MAX_SPLINE 8
+// Thread block size for all kernels (Must be >=MAX_SPLINE^2)
 #define BLOCK_1D 64
 // Number of threads per pencil for charge spread
 //#define PENCIL_SIZE MEM_THREADS
@@ -158,9 +158,9 @@ __kernel void make_rho(__global numtyp4 *x_, __global numtyp *q_,
                        const int npts_y, const int npts_z, const int nlocal_x,
                        const int nlocal_y, const int nlocal_z,
                        const int order_m_1, const int order, const int order2) {
-  __local numtyp rho_coeff[MAX_STENCIL*MAX_STENCIL];
-  __local numtyp front[BLOCK_PENCILS][PENCIL_SIZE+MAX_STENCIL];
-  __local numtyp ans[MAX_STENCIL][BLOCK_1D];
+  __local numtyp rho_coeff[MAX_SPLINE*MAX_SPLINE];
+  __local numtyp front[BLOCK_PENCILS][PENCIL_SIZE+MAX_SPLINE];
+  __local numtyp ans[MAX_SPLINE][BLOCK_1D];
   
   int tid=THREAD_ID_X;
   if (tid<order2+order)
@@ -256,9 +256,9 @@ __kernel void interp(__global numtyp4 *x_, __global numtyp *q_,
                      const numtyp delzinv, const int order,
                      const int order2, const numtyp qqrd2e_scale, 
                      __global acctyp4 *ans) {
-  __local numtyp rho_coeff[MAX_STENCIL*MAX_STENCIL];
-  __local numtyp rho1d_0[MAX_STENCIL][BLOCK_1D];
-  __local numtyp rho1d_1[MAX_STENCIL][BLOCK_1D];
+  __local numtyp rho_coeff[MAX_SPLINE*MAX_SPLINE];
+  __local numtyp rho1d_0[MAX_SPLINE][BLOCK_1D];
+  __local numtyp rho1d_1[MAX_SPLINE][BLOCK_1D];
 
   int tid=THREAD_ID_X;
   if (tid<order2+order)

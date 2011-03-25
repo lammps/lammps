@@ -43,7 +43,7 @@ numtyp* pppm_gpu_init(const int nlocal, const int nall, FILE *screen,
 		      const int nyhi_out, const int nzhi_out,
 		      double **rho_coeff, numtyp **_vd_brick,
 		      bool &success);
-void pppm_gpu_clear();
+void pppm_gpu_clear(const double poisson_time);
 int pppm_gpu_spread(const int ago, const int nlocal, const int nall,
                     double **host_x, int *host_type, bool &success,
                     double *host_q, double *boxlo, const double delxinv,
@@ -98,7 +98,6 @@ PPPMGPU::PPPMGPU(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
   remap = NULL;
 
   nmax = 0;
-  part2grid = NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -109,17 +108,7 @@ PPPMGPU::~PPPMGPU()
 {
   delete [] factors;
   deallocate();
-  memory->destroy_2d_int_array(part2grid);
-  pppm_gpu_clear();
-double total1, total2, total3;
-int rank,size;
-MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-MPI_Comm_size(MPI_COMM_WORLD,&size);
-MPI_Allreduce(&time1,&total1,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-MPI_Allreduce(&time2,&total2,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-MPI_Allreduce(&time3,&total3,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-if (rank==0 && screen)
-fprintf(screen,"DEBUG_TIMES: %f %f %f\n",total1/size,total2/size,total3/size);
+  pppm_gpu_clear(poisson_time);
 }
 
 /* ----------------------------------------------------------------------
@@ -510,6 +499,7 @@ void PPPMGPU::init()
 
   if (order>8)
     error->all("Cannot use order greater than 8 with pppm/gpu.");
+  pppm_gpu_clear(poisson_time);
 
   bool success;
   numtyp *data, *h_brick;
@@ -526,7 +516,8 @@ void PPPMGPU::init()
 
   if (!success)
     error->one("Insufficient memory on accelerator (or no fix gpu).\n"); 
-time1=0; time2=0; time3=0;
+
+  poisson_time=0;
 }
 
 /* ----------------------------------------------------------------------
@@ -707,21 +698,11 @@ void PPPMGPU::compute(int eflag, int vflag)
     domain->x2lamda(atom->nlocal);
   }
 
-  // extend size of per-atom arrays if necessary
-  if (atom->nlocal > nmax) {
-    memory->destroy_2d_int_array(part2grid);
-    nmax = atom->nmax;
-    part2grid = memory->create_2d_int_array(nmax,3,"pppm:part2grid");
-  }
   energy = 0.0;
   if (vflag) for (i = 0; i < 6; i++) virial[i] = 0.0;
 
-  // find grid points for all my particles
-  // map my particle charge onto my local 3d density grid
+  double t3=MPI_Wtime();
 
-  particle_map();
-
-double t3=MPI_Wtime();
   // all procs communicate density values from their ghost cells
   //   to fully sum contribution in their 3d bricks
   // remap from 3d decomposition to FFT decomposition
@@ -738,16 +719,13 @@ double t3=MPI_Wtime();
   //   surrounding their 3d bricks
 
   fillbrick();
-time3+=MPI_Wtime()-t3;
 
-  numtyp qqrd2e_scale=qqrd2e*scale;
-  pppm_gpu_interp(qqrd2e_scale);
+  poisson_time+=MPI_Wtime()-t3;
 
   // calculate the force on my particles
 
-double t2=MPI_Wtime();
-  fieldforce();
-time2+=MPI_Wtime()-t2;
+  numtyp qqrd2e_scale=qqrd2e*scale;
+  pppm_gpu_interp(qqrd2e_scale);
 
   // sum energy across procs and add in volume-dependent term
 
@@ -1505,46 +1483,6 @@ void PPPMGPU::fillbrick()
 }
 
 /* ----------------------------------------------------------------------
-   find center grid pt for each of my particles
-   check that full stencil for the particle will fit in my 3d brick
-   store central grid pt indices in part2grid array 
-------------------------------------------------------------------------- */
-
-void PPPMGPU::particle_map()
-{
-  int nx,ny,nz;
-
-  double **x = atom->x;
-  int nlocal = atom->nlocal;
-
-  int flag = 0;
-  for (int i = 0; i < nlocal; i++) {
-    
-    // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
-    // current particle coord can be outside global and local box
-    // add/subtract OFFSET to avoid int(-0.75) = 0 when want it to be -1
-
-    nx = static_cast<int> ((x[i][0]-boxlo[0])*delxinv+shift) - OFFSET;
-    ny = static_cast<int> ((x[i][1]-boxlo[1])*delyinv+shift) - OFFSET;
-    nz = static_cast<int> ((x[i][2]-boxlo[2])*delzinv+shift) - OFFSET;
-
-    part2grid[i][0] = nx;
-    part2grid[i][1] = ny;
-    part2grid[i][2] = nz;
-
-    // check that entire stencil around nx,ny,nz will fit in my 3d brick
-
-    if (nx+nlower < nxlo_out || nx+nupper > nxhi_out ||
-	ny+nlower < nylo_out || ny+nupper > nyhi_out ||
-	nz+nlower < nzlo_out || nz+nupper > nzhi_out) flag++;
-  }
-
-  int flag_all;
-  MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
-  if (flag_all) error->all("Out of range atoms - cannot compute PPPMGPU");
-}
-
-/* ----------------------------------------------------------------------
    FFT-based Poisson solver 
 ------------------------------------------------------------------------- */
 
@@ -1663,85 +1601,6 @@ void PPPMGPU::poisson(int eflag, int vflag)
 	vd_brick[k][j][i] = work2[n];
 	n += 2;
       }
-}
-
-/* ----------------------------------------------------------------------
-   interpolate from grid to get electric field & force on my particles 
-------------------------------------------------------------------------- */
-
-void PPPMGPU::fieldforce()
-{
-  int i,l,m,n,nx,ny,nz,mx,my,mz;
-  double dx,dy,dz,x0,y0,z0;
-  double ek[3];
-
-  // loop over my charges, interpolate electric field from nearby grid points
-  // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
-  // (dx,dy,dz) = distance to "lower left" grid pt
-  // (mx,my,mz) = global coords of moving stencil pt
-  // ek = 3 components of E-field on particle
-
-  double *q = atom->q;
-  double **x = atom->x;
-  double **f = atom->f;
-  int nlocal = atom->nlocal;
-
-
-
-//numtyp *gpu_force=pppm_gpu_force();
-//double max_error=0;
-
-
-  for (i = 0; i < nlocal; i++) {
-    nx = part2grid[i][0];
-    ny = part2grid[i][1];
-    nz = part2grid[i][2];
-    dx = nx+shiftone - (x[i][0]-boxlo[0])*delxinv;
-    dy = ny+shiftone - (x[i][1]-boxlo[1])*delyinv;
-    dz = nz+shiftone - (x[i][2]-boxlo[2])*delzinv;
-
-    compute_rho1d(dx,dy,dz);
-
-    ek[0] = ek[1] = ek[2] = 0.0;
-    for (n = nlower; n <= nupper; n++) {
-      mz = n+nz;
-      z0 = rho1d[2][n];
-      for (m = nlower; m <= nupper; m++) {
-	my = m+ny;
-	y0 = z0*rho1d[1][m];
-	for (l = nlower; l <= nupper; l++) {
-	  mx = l+nx;
-	  x0 = y0*rho1d[0][l];
-	  ek[0] -= x0*vd_brick[mz][my][mx*4];;
-	  ek[1] -= x0*vd_brick[mz][my][mx*4+1];;
-	  ek[2] -= x0*vd_brick[mz][my][mx*4+2];;
-	}
-      }
-    }
-
-//for (int jj=0; jj<3; jj++) {
-//  double f0= qqrd2e*scale * q[i]*ek[jj];
-//  double error=0.0;
-//  if (f0>1e-8)
-//    error = fabs(((gpu_force[i*4+jj])-(f0))/(f0));
-//  if (error>0.05)
-////    std::cout << "* ";
-//    std::cout << i << " : CPU GPU: " << error << " " << f0 << " " 
-//              << gpu_force[i*4+jj] << std::endl;
-//  if (error>max_error)
-//    max_error=error;
-//}
-
-    // convert E-field to force
-
-    f[i][0] += qqrd2e*scale * q[i]*ek[0];
-    f[i][1] += qqrd2e*scale * q[i]*ek[1];
-    f[i][2] += qqrd2e*scale * q[i]*ek[2];
-  }
-
-//std::cout << "Maximum relative error: " << max_error*100.0 << "%\n";
-
-
 }
 
 /* ----------------------------------------------------------------------

@@ -72,7 +72,6 @@ class PPPMGPU : public KSpace {
   class FFT3d *fft1,*fft2;
   class Remap *remap;
 
-  int **part2grid;             // storage for particle -> grid mapping
   int nmax;
 
   int triclinic;               // domain settings, orthog or triclinic
@@ -90,19 +89,18 @@ class PPPMGPU : public KSpace {
   double diffpr(double, double, double, double, double **);
   void compute_gf_denom();
   double gf_denom(double, double, double);
-  virtual void particle_map();
   void brick2fft();
   void fillbrick();
   void poisson(int, int);
-  virtual void fieldforce();
   void procs2grid2d(int,int,int,int *, int*);
   void compute_rho1d(double, double, double);
   void compute_rho_coeff();
   void slabcorr(int);
-double time1,time2,time3;  
 
- numtyp ***create_3d_offset(int, int, int, int, int, int, const char *,
-			    numtyp *, int);
+  double poisson_time;  
+
+  numtyp ***create_3d_offset(int, int, int, int, int, int, const char *,
+			     numtyp *, int);
   void destroy_3d_offset(numtyp ***, int, int);
   
 };

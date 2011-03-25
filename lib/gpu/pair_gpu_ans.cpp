@@ -269,10 +269,8 @@ double PairGPUAnsT::energy_virial(double *eatom, double **vatom,
 template <class numtyp, class acctyp>
 double PairGPUAnsT::energy_virial(double *eatom, double **vatom,
                                    double *virial, double &ecoul) {
-  if (_eflag==false && _vflag==false) {
-    ecoul=0.0;
+  if (_eflag==false && _vflag==false)
     return 0.0;
-  }
 
   if (_charge==false)
     return energy_virial(eatom,vatom,virial);

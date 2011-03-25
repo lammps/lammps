@@ -34,7 +34,7 @@ PRECISION * pppm_gpu_init(const int nlocal, const int nall, FILE *screen,
                           const int nxhi_out, const int nyhi_out,
                           const int nzhi_out, double **rho_coeff,
                           PRECISION **vd_brick, bool &success) {
-  PPPMF.clear();
+  PPPMF.clear(0.0);
   int first_gpu=PPPMF.device->first_device();
   int last_gpu=PPPMF.device->last_device();
   int world_me=PPPMF.device->world_me();
@@ -91,8 +91,8 @@ PRECISION * pppm_gpu_init(const int nlocal, const int nall, FILE *screen,
   return host_brick;
 }
 
-void pppm_gpu_clear() {
-  PPPMF.clear();
+void pppm_gpu_clear(const double cpu_time) {
+  PPPMF.clear(cpu_time);
 }
 
 int pppm_gpu_spread(const int ago, const int nlocal, const int nall,
@@ -110,8 +110,4 @@ void pppm_gpu_interp(const PRECISION qqrd2e_scale) {
 double pppm_gpu_bytes() {
   return PPPMF.host_memory_usage();
 }
-
-/*
-PRECISION * pppm_gpu_force() { return PPPMF.force_temp.begin(); }
-*/
 

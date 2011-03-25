@@ -407,7 +407,7 @@ FixAveSpatial::~FixAveSpatial()
   memory->destroy_2d_double_array(values_many);
   memory->destroy_2d_double_array(values_sum);
   memory->destroy_2d_double_array(values_total);
-  memory->destroy_3d_double_array(values_list);
+  memory->destroy(values_list);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -912,9 +912,8 @@ void FixAveSpatial::setup_bins()
       count_list =
 	memory->create_2d_double_array(nwindow,nbins,
 				       "ave/spatial:count_list");
-      values_list =
-	memory->create_3d_double_array(nwindow,nbins,nvalues,
-				       "ave/spatial:values_list");
+      memory->create(values_list,nwindow,nbins,nvalues,
+		     "ave/spatial:values_list");
     }
 
     // reinitialize regrown count/values total since they accumulate

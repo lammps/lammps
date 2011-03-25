@@ -97,9 +97,9 @@ PairEIM::~PairEIM()
   memory->destroy_2d_double_array(Gij);
   memory->destroy_2d_double_array(phiij);
 
-  memory->destroy_3d_double_array(Fij_spline);
-  memory->destroy_3d_double_array(Gij_spline);
-  memory->destroy_3d_double_array(phiij_spline);
+  memory->destroy(Fij_spline);
+  memory->destroy(Gij_spline);
+  memory->destroy(phiij_spline);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -566,12 +566,10 @@ void PairEIM::read_file(char *filename)
     }
   }
   
-  setfl->Fij = memory->create_3d_double_array(nelements,nelements,
-                                             setfl->nr+1,"pair:Fij");
-  setfl->Gij = memory->create_3d_double_array(nelements,nelements,
-                                             setfl->nr+1,"pair:Gij");
-  setfl->phiij = memory->create_3d_double_array(nelements,nelements,
-					     setfl->nr+1,"pair:phiij");
+  memory->create(setfl->Fij,nelements,nelements,setfl->nr+1,"pair:Fij");
+  memory->create(setfl->Gij,nelements,nelements,setfl->nr+1,"pair:Gij");
+  memory->create(setfl->phiij,nelements,nelements,setfl->nr+1,"pair:phiij");
+
   for (int i = 0; i < nelements; i++)  
     for (int j = 0; j < nelements; j++) {
       for (int k = 0; k < setfl->nr; k++) {
@@ -638,9 +636,9 @@ void PairEIM::deallocate_setfl()
   delete [] setfl->rs;
   delete [] setfl->tp;
   memory->destroy_2d_double_array(setfl->cuts);
-  memory->destroy_3d_double_array(setfl->Fij);
-  memory->destroy_3d_double_array(setfl->Gij);
-  memory->destroy_3d_double_array(setfl->phiij);
+  memory->destroy(setfl->Fij);
+  memory->destroy(setfl->Gij);
+  memory->destroy(setfl->phiij);
   delete setfl;
 }
 
@@ -830,13 +828,13 @@ void PairEIM::array2spline()
 {
   rdr = 1.0/dr;
 
-  memory->destroy_3d_double_array(Fij_spline);
-  memory->destroy_3d_double_array(Gij_spline);
-  memory->destroy_3d_double_array(phiij_spline);
+  memory->destroy(Fij_spline);
+  memory->destroy(Gij_spline);
+  memory->destroy(phiij_spline);
 
-  Fij_spline = memory->create_3d_double_array(nFij,nr+1,7,"pair:Fij");
-  Gij_spline = memory->create_3d_double_array(nGij,nr+1,7,"pair:Gij");
-  phiij_spline = memory->create_3d_double_array(nphiij,nr+1,7,"pair:phiij");
+  memory->create(Fij_spline,nFij,nr+1,7,"pair:Fij");
+  memory->create(Gij_spline,nGij,nr+1,7,"pair:Gij");
+  memory->create(phiij_spline,nphiij,nr+1,7,"pair:phiij");
 
   for (int i = 0; i < nFij; i++)
     interpolate(nr,dr,Fij[i],Fij_spline[i],0.0);

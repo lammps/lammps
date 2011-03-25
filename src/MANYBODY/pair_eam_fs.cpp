@@ -61,8 +61,8 @@ void PairEAMFS::coeff(int narg, char **arg)
     delete [] fs->elements;
     delete [] fs->mass;
     memory->destroy_2d_double_array(fs->frho);
-    memory->destroy_3d_double_array(fs->rhor);
-    memory->destroy_3d_double_array(fs->z2r);
+    memory->destroy(fs->rhor);
+    memory->destroy(fs->z2r);
     delete fs;
   }
   fs = new Fs();
@@ -176,10 +176,11 @@ void PairEAMFS::read_file(char *filename)
   file->mass = new double[file->nelements];
   file->frho = memory->create_2d_double_array(file->nelements,file->nrho+1,
 					      "pair:frho");
-  file->rhor = memory->create_3d_double_array(file->nelements,file->nelements,
-					      file->nr+1,"pair:rhor");
-  file->z2r = memory->create_3d_double_array(file->nelements,file->nelements,
-					     file->nr+1,"pair:z2r");
+  memory->create(file->rhor,file->nelements,file->nelements,
+		 file->nr+1,"pair:rhor");
+  memory->create(file->z2r,file->nelements,file->nelements,
+		 file->nr+1,"pair:z2r");
+
   int i,j,tmp;
   for (i = 0; i < file->nelements; i++) {
     if (me == 0) {

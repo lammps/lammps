@@ -66,8 +66,8 @@ Ewald::~Ewald()
 {
   deallocate();
   memory->destroy_2d_double_array(ek);
-  memory->destroy_3d_double_array(cs,-kmax_created);
-  memory->destroy_3d_double_array(sn,-kmax_created);
+  memory->destroy3d_offset(cs,-kmax_created);
+  memory->destroy3d_offset(sn,-kmax_created);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -192,12 +192,12 @@ void Ewald::setup()
     allocate();
 
     memory->destroy_2d_double_array(ek);
-    memory->destroy_3d_double_array(cs,-kmax_created);
-    memory->destroy_3d_double_array(sn,-kmax_created);
+    memory->destroy3d_offset(cs,-kmax_created);
+    memory->destroy3d_offset(sn,-kmax_created);
     nmax = atom->nmax;
     ek = memory->create_2d_double_array(nmax,3,"ewald:ek");
-    cs = memory->create_3d_double_array(-kmax,kmax,3,nmax,"ewald:cs");
-    sn = memory->create_3d_double_array(-kmax,kmax,3,nmax,"ewald:sn");
+    memory->create3d_offset(cs,-kmax,kmax,3,nmax,"ewald:cs");
+    memory->create3d_offset(sn,-kmax,kmax,3,nmax,"ewald:sn");
     kmax_created = kmax;
   }
 
@@ -221,12 +221,12 @@ void Ewald::compute(int eflag, int vflag)
 
   if (atom->nlocal > nmax) {
     memory->destroy_2d_double_array(ek);
-    memory->destroy_3d_double_array(cs,-kmax_created);
-    memory->destroy_3d_double_array(sn,-kmax_created);
+    memory->destroy3d_offset(cs,-kmax_created);
+    memory->destroy3d_offset(sn,-kmax_created);
     nmax = atom->nmax;
     ek = memory->create_2d_double_array(nmax,3,"ewald:ek");
-    cs = memory->create_3d_double_array(-kmax,kmax,3,nmax,"ewald:cs");
-    sn = memory->create_3d_double_array(-kmax,kmax,3,nmax,"ewald:sn");
+    memory->create3d_offset(cs,-kmax,kmax,3,nmax,"ewald:cs");
+    memory->create3d_offset(sn,-kmax,kmax,3,nmax,"ewald:sn");
     kmax_created = kmax;
   }
 

@@ -86,7 +86,7 @@ PairComb::~PairComb()
     for (int i = 0; i < nelements; i++) delete [] elements[i];
   delete [] elements;
   memory->sfree(params);
-  memory->destroy_3d_int_array(elem2param);
+  memory->destroy(elem2param);
 
   memory->destroy_2d_int_array(intype);
   memory->destroy_2d_double_array(fafb);
@@ -741,9 +741,8 @@ void PairComb::setup()
   // must be a single exact match to lines read from file
   // do not allow for ACB in place of ABC
 
-  if (elem2param) memory->destroy_3d_int_array(elem2param);
-  elem2param = memory->create_3d_int_array(nelements,nelements,nelements,
-					   "pair:elem2param");
+  memory->destroy(elem2param);
+  memory->create(elem2param,nelements,nelements,nelements,"pair:elem2param");
 
   for (i = 0; i < nelements; i++)
     for (j = 0; j < nelements; j++)

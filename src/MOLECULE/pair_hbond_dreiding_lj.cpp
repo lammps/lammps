@@ -71,7 +71,7 @@ PairHbondDreidingLJ::~PairHbondDreidingLJ()
 
     delete [] donor;
     delete [] acceptor;
-    memory->destroy_3d_int_array(type2param);
+    memory->destroy(type2param);
   }
 }
 
@@ -253,7 +253,7 @@ void PairHbondDreidingLJ::allocate()
   
   donor = new int[n+1];
   acceptor = new int[n+1];
-  type2param = memory->create_3d_int_array(n+1,n+1,n+1,"pair:type2param");
+  memory->create(type2param,n+1,n+1,n+1,"pair:type2param");
 
   int i,j,k;
   for (i = 1; i <= n; i++)

@@ -730,18 +730,14 @@ void PPPM::compute(int eflag, int vflag)
 
 void PPPM::allocate()
 {
-  density_brick = 
-    memory->create_3d_double_array(nzlo_out,nzhi_out,nylo_out,nyhi_out,
-				   nxlo_out,nxhi_out,"pppm:density_brick");
-  vdx_brick =
-    memory->create_3d_double_array(nzlo_out,nzhi_out,nylo_out,nyhi_out,
-				   nxlo_out,nxhi_out,"pppm:vdx_brick");
-  vdy_brick = 
-    memory->create_3d_double_array(nzlo_out,nzhi_out,nylo_out,nyhi_out,
-				   nxlo_out,nxhi_out,"pppm:vdy_brick");
-  vdz_brick = 
-    memory->create_3d_double_array(nzlo_out,nzhi_out,nylo_out,nyhi_out,
-				   nxlo_out,nxhi_out,"pppm:vdz_brick");
+  memory->create3d_offset(density_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
+			  nxlo_out,nxhi_out,"pppm:density_brick");
+  memory->create3d_offset(vdx_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
+			  nxlo_out,nxhi_out,"pppm:vdx_brick");
+  memory->create3d_offset(vdy_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
+			  nxlo_out,nxhi_out,"pppm:vdy_brick");
+  memory->create3d_offset(vdz_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
+			  nxlo_out,nxhi_out,"pppm:vdz_brick");
 
   density_fft = 
     (double *) memory->smalloc(nfft_both*sizeof(double),"pppm:density_fft");
@@ -751,9 +747,9 @@ void PPPM::allocate()
   work2 = (double *) memory->smalloc(2*nfft_both*sizeof(double),"pppm:work2");
   vg = memory->create_2d_double_array(nfft_both,6,"pppm:vg");
 
-  fkx = memory->create_1d_double_array(nxlo_fft,nxhi_fft,"pppm:fkx");
-  fky = memory->create_1d_double_array(nylo_fft,nyhi_fft,"pppm:fky");
-  fkz = memory->create_1d_double_array(nzlo_fft,nzhi_fft,"pppm:fkz");
+  memory->create1d_offset(fkx,nxlo_fft,nxhi_fft,"pppm:fkx");
+  memory->create1d_offset(fky,nylo_fft,nyhi_fft,"pppm:fky");
+  memory->create1d_offset(fkz,nzlo_fft,nzhi_fft,"pppm:fkz");
 
   buf1 = (double *) memory->smalloc(nbuf*sizeof(double),"pppm:buf1");
   buf2 = (double *) memory->smalloc(nbuf*sizeof(double),"pppm:buf2");
@@ -794,10 +790,10 @@ void PPPM::allocate()
 
 void PPPM::deallocate()
 {
-  memory->destroy_3d_double_array(density_brick,nzlo_out,nylo_out,nxlo_out);
-  memory->destroy_3d_double_array(vdx_brick,nzlo_out,nylo_out,nxlo_out);
-  memory->destroy_3d_double_array(vdy_brick,nzlo_out,nylo_out,nxlo_out);
-  memory->destroy_3d_double_array(vdz_brick,nzlo_out,nylo_out,nxlo_out);
+  memory->destroy3d_offset(density_brick,nzlo_out,nylo_out,nxlo_out);
+  memory->destroy3d_offset(vdx_brick,nzlo_out,nylo_out,nxlo_out);
+  memory->destroy3d_offset(vdy_brick,nzlo_out,nylo_out,nxlo_out);
+  memory->destroy3d_offset(vdz_brick,nzlo_out,nylo_out,nxlo_out);
 
   memory->sfree(density_fft);
   memory->sfree(greensfn);
@@ -805,9 +801,9 @@ void PPPM::deallocate()
   memory->sfree(work2);
   memory->destroy_2d_double_array(vg);
 
-  memory->destroy_1d_double_array(fkx,nxlo_fft);
-  memory->destroy_1d_double_array(fky,nylo_fft);
-  memory->destroy_1d_double_array(fkz,nzlo_fft);
+  memory->destroy1d_offset(fkx,nxlo_fft);
+  memory->destroy1d_offset(fky,nylo_fft);
+  memory->destroy1d_offset(fkz,nzlo_fft);
 
   memory->sfree(buf1);
   memory->sfree(buf2);

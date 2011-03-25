@@ -62,7 +62,7 @@ void PairEAMAlloy::coeff(int narg, char **arg)
     delete [] setfl->mass;
     memory->destroy_2d_double_array(setfl->frho);
     memory->destroy_2d_double_array(setfl->rhor);
-    memory->destroy_3d_double_array(setfl->z2r);
+    memory->destroy(setfl->z2r);
     delete setfl;
   }
   setfl = new Setfl();
@@ -178,8 +178,9 @@ void PairEAMAlloy::read_file(char *filename)
 					      "pair:frho");
   file->rhor = memory->create_2d_double_array(file->nelements,file->nr+1,
 					      "pair:rhor");
-  file->z2r = memory->create_3d_double_array(file->nelements,file->nelements,
-					     file->nr+1,"pair:z2r");
+  memory->create(file->z2r,file->nelements,file->nelements,
+		 file->nr+1,"pair:z2r");
+
   int i,j,tmp;
   for (i = 0; i < file->nelements; i++) {
     if (me == 0) {

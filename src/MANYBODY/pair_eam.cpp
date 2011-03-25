@@ -97,7 +97,7 @@ PairEAM::~PairEAM()
     delete [] setfl->mass;
     memory->destroy_2d_double_array(setfl->frho);
     memory->destroy_2d_double_array(setfl->rhor);
-    memory->destroy_3d_double_array(setfl->z2r);
+    memory->destroy(setfl->z2r);
     delete setfl;
   }
 
@@ -106,8 +106,8 @@ PairEAM::~PairEAM()
     delete [] fs->elements;
     delete [] fs->mass;
     memory->destroy_2d_double_array(fs->frho);
-    memory->destroy_3d_double_array(fs->rhor);
-    memory->destroy_3d_double_array(fs->z2r);
+    memory->destroy(fs->rhor);
+    memory->destroy(fs->z2r);
     delete fs;
   }
 
@@ -115,9 +115,9 @@ PairEAM::~PairEAM()
   memory->destroy_2d_double_array(rhor);
   memory->destroy_2d_double_array(z2r);
 
-  memory->destroy_3d_double_array(frho_spline);
-  memory->destroy_3d_double_array(rhor_spline);
-  memory->destroy_3d_double_array(z2r_spline);
+  memory->destroy(frho_spline);
+  memory->destroy(rhor_spline);
+  memory->destroy(z2r_spline);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -699,13 +699,13 @@ void PairEAM::array2spline()
   rdr = 1.0/dr;
   rdrho = 1.0/drho;
 
-  memory->destroy_3d_double_array(frho_spline);
-  memory->destroy_3d_double_array(rhor_spline);
-  memory->destroy_3d_double_array(z2r_spline);
+  memory->destroy(frho_spline);
+  memory->destroy(rhor_spline);
+  memory->destroy(z2r_spline);
 
-  frho_spline = memory->create_3d_double_array(nfrho,nrho+1,7,"pair:frho");
-  rhor_spline = memory->create_3d_double_array(nrhor,nr+1,7,"pair:rhor");
-  z2r_spline = memory->create_3d_double_array(nz2r,nr+1,7,"pair:z2r");
+  memory->create(frho_spline,nfrho,nrho+1,7,"pair:frho");
+  memory->create(rhor_spline,nrhor,nr+1,7,"pair:rhor");
+  memory->create(z2r_spline,nz2r,nr+1,7,"pair:z2r");
 
   for (int i = 0; i < nfrho; i++)
     interpolate(nrho,drho,frho[i],frho_spline[i]);

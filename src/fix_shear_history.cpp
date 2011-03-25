@@ -65,7 +65,7 @@ FixShearHistory::~FixShearHistory()
 
   memory->sfree(npartner);
   memory->destroy_2d_int_array(partner);
-  memory->destroy_3d_double_array(shearpartner);
+  memory->destroy(shearpartner);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -180,9 +180,7 @@ void FixShearHistory::grow_arrays(int nmax)
 				      "shear_history:npartner");
   partner = memory->grow_2d_int_array(partner,nmax,MAXTOUCH,
 				      "shear_history:partner");
-  shearpartner = 
-    memory->grow_3d_double_array(shearpartner,nmax,MAXTOUCH,3,
-				 "shear_history:shearpartner");
+  memory->grow(shearpartner,nmax,MAXTOUCH,3,"shear_history:shearpartner");
 }
 
 /* ----------------------------------------------------------------------

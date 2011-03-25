@@ -304,8 +304,7 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
     array_total = memory->create_2d_double_array(nrows,nvalues,
 						 "ave/time:array_total");
     if (ave == WINDOW)
-      array_list = memory->create_3d_double_array(nwindow,nrows,nvalues,
-						  "ave/time:array_list");
+      memory->create(array_list,nwindow,nrows,nvalues,"ave/time:array_list");
   }
 
   // this fix produces either a global scalar or vector or array
@@ -444,7 +443,7 @@ FixAveTime::~FixAveTime()
   delete [] column;
   memory->destroy_2d_double_array(array);
   memory->destroy_2d_double_array(array_total);
-  memory->destroy_3d_double_array(array_list);
+  memory->destroy(array_list);
 }
 
 /* ---------------------------------------------------------------------- */

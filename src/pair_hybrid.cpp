@@ -53,7 +53,7 @@ PairHybrid::~PairHybrid()
     memory->destroy_2d_double_array(cutsq);
     memory->destroy_2d_double_array(cutghost);
     memory->destroy_2d_int_array(nmap);
-    memory->destroy_3d_int_array(map);
+    memory->destroy(map);
   }
 }
 
@@ -161,7 +161,7 @@ void PairHybrid::allocate()
   cutghost = memory->create_2d_double_array(n+1,n+1,"pair:cutghost");
 
   nmap = memory->create_2d_int_array(n+1,n+1,"pair:nmap");
-  map = memory->create_3d_int_array(n+1,n+1,nstyles,"pair:map");
+  memory->create(map,n+1,n+1,nstyles,"pair:map");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       nmap[i][j] = 0;
@@ -191,7 +191,7 @@ void PairHybrid::settings(int narg, char **arg)
     memory->destroy_2d_double_array(cutsq);
     memory->destroy_2d_double_array(cutghost);
     memory->destroy_2d_int_array(nmap);
-    memory->destroy_3d_int_array(map);
+    memory->destroy(map);
   }
   allocated = 0;
 

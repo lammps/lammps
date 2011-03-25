@@ -52,9 +52,8 @@ ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
   size_array_cols = 1 + 2*npairs;
 
   int ntypes = atom->ntypes;
-  rdfpair = memory->create_3d_int_array(npairs,ntypes+1,ntypes+1,
-					"rdf:rdfpair");
-  nrdfpair = memory->create_2d_int_array(ntypes+1,ntypes+1,"rdf:nrdfpair");
+  memory->create(rdfpair,npairs,ntypes+1,ntypes+1,"rdf:rdfpair");
+  memory->create(nrdfpair,ntypes+1,ntypes+1,"rdf:nrdfpair");
   ilo = new int[npairs];
   ihi = new int[npairs];
   jlo = new int[npairs];
@@ -100,7 +99,7 @@ ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeRDF::~ComputeRDF()
 {
-  memory->destroy_3d_int_array(rdfpair);
+  memory->destroy(rdfpair);
   memory->destroy_2d_int_array(nrdfpair);
   delete [] ilo;
   delete [] ihi;

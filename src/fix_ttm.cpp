@@ -118,32 +118,20 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
 
   total_nnodes = nxnodes*nynodes*nznodes;
 
-  nsum = memory->create_3d_int_array(nxnodes,nynodes,nznodes,"ttm:nsum");
-  nsum_all = memory->create_3d_int_array(nxnodes,nynodes,nznodes,
-                                         "ttm:nsum_all");
-  T_initial_set = memory->create_3d_int_array(nxnodes,nynodes,nznodes,
-                                              "ttm:T_initial_set");
-  sum_vsq = memory->create_3d_double_array(nxnodes,nynodes,nznodes,
-                                           "ttm:sum_vsq");
-  sum_mass_vsq = 
-    memory->create_3d_double_array(nxnodes,nynodes,nznodes,
-                                   "ttm:sum_mass_vsq");
-  sum_vsq_all = memory->create_3d_double_array(nxnodes,nynodes,nznodes,
-                                               "ttm:sum_vsq_all");
-  sum_mass_vsq_all = 
-    memory->create_3d_double_array(nxnodes,nynodes,nznodes,
-                                   "ttm:sum_mass_vsq_all");
-  T_electron_old = 
-    memory->create_3d_double_array(nxnodes,nynodes,nznodes,
-                                   "ttm:T_electron_old");
-  T_electron = 
-    memory->create_3d_double_array(nxnodes,nynodes,nznodes,"ttm:T_electron");
-  net_energy_transfer = 
-    memory->create_3d_double_array(nxnodes,nynodes,nznodes,
-                                        "TTM:net_energy_transfer");
-  net_energy_transfer_all = 
-    memory->create_3d_double_array(nxnodes,nynodes,nznodes,
-                                        "TTM:net_energy_transfer_all");
+  memory->create(nsum,nxnodes,nynodes,nznodes,"ttm:nsum");
+  memory->create(nsum_all,nxnodes,nynodes,nznodes,"ttm:nsum_all");
+  memory->create(T_initial_set,nxnodes,nynodes,nznodes,"ttm:T_initial_set");
+  memory->create(sum_vsq,nxnodes,nynodes,nznodes,"ttm:sum_vsq");
+  memory->create(sum_mass_vsq,nxnodes,nynodes,nznodes,"ttm:sum_mass_vsq");
+  memory->create(sum_vsq_all,nxnodes,nynodes,nznodes,"ttm:sum_vsq_all");
+  memory->create(sum_mass_vsq_all,nxnodes,nynodes,nznodes,
+		 "ttm:sum_mass_vsq_all");
+  memory->create(T_electron_old,nxnodes,nynodes,nznodes,"ttm:T_electron_old");
+  memory->create(T_electron,nxnodes,nynodes,nznodes,"ttm:T_electron");
+  memory->create(net_energy_transfer,nxnodes,nynodes,nznodes,
+		 "TTM:net_energy_transfer");
+  memory->create(net_energy_transfer_all,nxnodes,nynodes,nznodes,
+		 "TTM:net_energy_transfer_all");
  
   flangevin = NULL;
   grow_arrays(atom->nmax);
@@ -176,18 +164,18 @@ FixTTM::~FixTTM()
   delete [] gfactor1;
   delete [] gfactor2;
 
-  memory->destroy_3d_int_array(nsum);
-  memory->destroy_3d_int_array(nsum_all);
-  memory->destroy_3d_int_array(T_initial_set);
-  memory->destroy_3d_double_array(sum_vsq);
-  memory->destroy_3d_double_array(sum_mass_vsq);
-  memory->destroy_3d_double_array(sum_vsq_all);
-  memory->destroy_3d_double_array(sum_mass_vsq_all);
-  memory->destroy_3d_double_array(T_electron_old);
-  memory->destroy_3d_double_array(T_electron);
+  memory->destroy(nsum);
+  memory->destroy(nsum_all);
+  memory->destroy(T_initial_set);
+  memory->destroy(sum_vsq);
+  memory->destroy(sum_mass_vsq);
+  memory->destroy(sum_vsq_all);
+  memory->destroy(sum_mass_vsq_all);
+  memory->destroy(T_electron_old);
+  memory->destroy(T_electron);
   memory->destroy_2d_double_array(flangevin);
-  memory->destroy_3d_double_array(net_energy_transfer);
-  memory->destroy_3d_double_array(net_energy_transfer_all); 
+  memory->destroy(net_energy_transfer);
+  memory->destroy(net_energy_transfer_all); 
 }
 
 /* ---------------------------------------------------------------------- */

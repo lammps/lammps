@@ -103,7 +103,7 @@ class Memory : protected Pointers {
     {
       bigint nbytes = sizeof(TYPE) * (nhi-nlo+1);
       array = (TYPE *) smalloc(nbytes,name);
-      array = array-nlo;
+      array -= nlo;
       return array;
     }
 
@@ -118,7 +118,7 @@ class Memory : protected Pointers {
   template <typename TYPE>
     void destroy1d_offset(TYPE *array, int offset) 
     {
-      if (array) sfree(array+offset);
+      if (array) sfree(&array[offset]);
     }
 
 /* ----------------------------------------------------------------------
@@ -302,7 +302,8 @@ class Memory : protected Pointers {
     {
       int n1 = n1hi - n1lo + 1;
       create(array,n1,n2,n3,name);
-      return array-n1lo;
+      array -= n1lo;
+      return array;
     }
 
   template <typename TYPE>
@@ -317,7 +318,7 @@ class Memory : protected Pointers {
   template <typename TYPE>
     void destroy3d_offset(TYPE ***array, int offset)
     {
-      if (array) destroy(array+offset);
+      if (array) destroy(&array[offset]);
     }
 
 /* ----------------------------------------------------------------------
@@ -340,7 +341,8 @@ class Memory : protected Pointers {
       
       for (int i = 0; i < n1*n2; i++) array[0][i] -= n3lo;
       for (int i = 0; i < n1; i++) array[i] -= n2lo;
-      return array-n1lo;
+      array -= n1lo;
+      return array;
     }
 
   template <typename TYPE>
@@ -360,7 +362,7 @@ class Memory : protected Pointers {
       if (array == NULL) return;
       sfree(&array[n1_offset][n2_offset][n3_offset]);
       sfree(&array[n1_offset][n2_offset]);
-      sfree(array + n1_offset);
+      sfree(&array[n1_offset]);
     }
 
 /* ----------------------------------------------------------------------

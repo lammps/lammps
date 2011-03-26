@@ -137,7 +137,7 @@ if(njoint){
 		array = new int[NodeValue->value->listOfNodes.GetNumElements()];
 		arrayFromChain = NodeValue->value->listOfNodes.CreateArray();
 		numElementsInSystem = NodeValue->value->listOfNodes.GetNumElements();								
-		for(int counter = 0; counter < numElementsInSystem; counter++){
+		for(counter = 0; counter < numElementsInSystem; counter++){
 			array[counter] = *arrayFromChain[counter];
 		}
 				

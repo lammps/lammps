@@ -62,15 +62,15 @@ public:
 template<class T> ListElement<T>::ListElement(){
   next = prev = 0;
   value = 0;
-};
+}
 
 template<class T> ListElement<T>::ListElement(T* v){
   next = prev = 0;
   value = v;
-};
+}
 
 template<class T> ListElement<T>::~ListElement(){
-};
+}
 
 //
 // List
@@ -79,33 +79,33 @@ template<class T> ListElement<T>::~ListElement(){
 template<class S> List<S>::List(){
   head = tail = 0;
   numelements = 0;
-};
+}
 
 template<class S> List<S>::~List(){
   // delete all list elements
 
   while(numelements)
     Remove(tail);
-};
+}
 
 template<class S> void List<S>::Append(List<S> * listToAppend)
 {
 	tail->next = listToAppend->head;
 	listToAppend->head->prev = tail;
 	tail = listToAppend->tail;
-};
+}
 
 template<class S> int List<S>::GetNumElements(){
   return numelements;
-};
+}
 
 template<class S> ListElement<S>* List<S>::GetHeadElement(){
   return head;
-};
+}
 
 template<class S> ListElement<S>* List<S>::GetTailElement(){
 	return tail;
-};
+}
 
 
 template<class S> void List<S>::Remove(ListElement<S>* ele){
@@ -131,7 +131,7 @@ template<class S> void List<S>::Remove(ListElement<S>* ele){
   numelements--;
   if(ele)
   delete ele;
-};
+}
 
 template<class S> ListElement<S>* List<S>::Append(S* v){
   if(!v){
@@ -156,7 +156,7 @@ template<class S> ListElement<S>* List<S>::Append(S* v){
 	  
   }    
   return ele;
-};
+}
 
 template<class S> ListElement<S>* List<S>::Prepend(S* v){
   if(!v){
@@ -175,7 +175,7 @@ template<class S> ListElement<S>* List<S>::Prepend(S* v){
 	  ele->next->prev = ele;
   }
   return ele;
-};
+}
 
 template<class S> S** List<S>::CreateArray(){
   S** array = new S* [numelements];
@@ -186,7 +186,7 @@ template<class S> S** List<S>::CreateArray(){
     ele = ele->next;
   }
   return array;
-};
+}
 
 template<class S> S* List<S>::operator()(int id){
   if(id >= numelements){
@@ -200,18 +200,18 @@ template<class S> S* List<S>::operator()(int id){
   }
   
   return ele->value;
-};
+}
 
 template<class S> void List<S>::DeleteValues(){
   while(numelements)
     RemoveElementAndDeleteValue(tail);
-};
+}
 
 template<class S> void List<S>::RemoveElementAndDeleteValue(ListElement<S>* ele){
   S* v = ele->value;
   Remove(ele);
   delete v;
-};
+}
 
 template<class S> void List<S>::PrintList(){
 	cout<<"Printing List "<<endl;
@@ -223,7 +223,7 @@ template<class S> void List<S>::PrintList(){
 		ele = ele->next;
 	}
 	cout<<*(ele->value)<<endl;
-};
+}
 
 
 #endif

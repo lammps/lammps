@@ -14,7 +14,6 @@
 #ifndef LMP_MEMORY_H
 #define LMP_MEMORY_H
 
-#include "error.h"
 #include "pointers.h"
 
 namespace LAMMPS_NS {

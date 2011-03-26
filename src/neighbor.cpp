@@ -106,7 +106,7 @@ Neighbor::Neighbor(LAMMPS *lmp) : Pointers(lmp)
 
   // pair lists
 
-  maxlocal = 0;
+  maxatom = 0;
   nblist = nglist = nslist = 0;
 
   nlist = 0;
@@ -590,10 +590,10 @@ void Neighbor::init()
 
     // allocate atom arrays and 1st pages of lists that store them
 
-    maxlocal = atom->nmax;
+    maxatom = atom->nmax;
     for (i = 0; i < nlist; i++)
       if (lists[i]->growflag) {
-	lists[i]->grow(maxlocal);
+	lists[i]->grow(maxatom);
 	lists[i]->add_pages();
       }
 
@@ -1151,13 +1151,16 @@ void Neighbor::build()
   }
 
   // if any lists store neighbors of ghosts:
-  //   invoke grow() on all in case nlocal+nghost is now too big
-  // else only invoke grow() if nlocal has exceeded previous list size
-  // only for lists with growflag set and which are perpetual
+  // invoke grow() if nlocal+nghost exceeds previous list size
+  // else only invoke grow() if nlocal exceeds previous list size
+  // only done for lists with growflag set and which are perpetual
 
-  if (anyghostlist || atom->nlocal > maxlocal) {
-    maxlocal = atom->nmax;
-    for (i = 0; i < nglist; i++) lists[glist[i]]->grow(maxlocal);
+  if (anyghostlist && atom->nlocal+atom->nghost > maxatom) {
+    maxatom = atom->nmax;
+    for (i = 0; i < nglist; i++) lists[glist[i]]->grow(maxatom);
+  } else if (atom->nlocal > maxatom) {
+    maxatom = atom->nmax;
+    for (i = 0; i < nglist; i++) lists[glist[i]]->grow(maxatom);
   }
   
   // extend atom bin list if necessary
@@ -1199,14 +1202,14 @@ void Neighbor::build_one(int i)
 {
   // update stencils and grow atom arrays and bins as needed
   // only for relevant settings of stencilflag and growflag
-  // do not reset maxlocal to atom->nmax, since not all lists are being grown
+  // grow atom array for this list to current size of perpetual lists
 
   if (lists[i]->stencilflag) {
     lists[i]->stencil_allocate(smax,style);
     (this->*stencil_create[i])(lists[i],sx,sy,sz);
   }
 
-  if (lists[i]->growflag) lists[i]->grow(maxlocal);
+  if (lists[i]->growflag) lists[i]->grow(maxatom);
 
   if (style != NSQ && atom->nmax > maxbin) {
     maxbin = atom->nmax;

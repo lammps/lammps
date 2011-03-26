@@ -20,6 +20,12 @@
 #include "memory.h"
 #include "error.h"
 
+
+
+#include "update.h"
+
+
+
 using namespace LAMMPS_NS;
 
 #define PGDELTA 1
@@ -105,18 +111,14 @@ NeighList::~NeighList()
 /* ----------------------------------------------------------------------
    grow atom arrays to allow for nmax atoms
    triggered by more atoms on a processor
+   caller knows if this list stores neighs of local atoms or local+ghost
 ------------------------------------------------------------------------- */
 
 void NeighList::grow(int nmax)
 {
-  // skip if grow not needed by this list
-  // each list stores own maxatoms, b/c list->grow() called at different times
-  // if list does not store neighbors of ghosts, compare nmax to maxatoms
-  // else compare nlocal+nghost to maxatoms
-  // if reset list size, set it to nmax
+  // skip if this list is already long enough to store nmax atoms
 
-  if (!ghostflag && atom->nlocal <= maxatoms) return;
-  if (ghostflag && atom->nlocal+atom->nghost <= maxatoms) return;
+  if (nmax <= maxatoms) return;
   maxatoms = nmax;
 
   memory->destroy(ilist);

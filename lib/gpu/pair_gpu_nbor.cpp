@@ -84,13 +84,14 @@ bool PairGPUNbor::init(PairGPUNborShared *shared, const int inum,
 void PairGPUNbor::alloc(bool &success) { 
   dev_nbor.clear();
   host_acc.clear();
+  int nt=_max_atoms+_max_host;
   if (_use_packing==false || _gpu_nbor) 
     success=success && (dev_nbor.alloc((_max_nbors+2)*_max_atoms,*dev,
                                        UCL_READ_ONLY)==UCL_SUCCESS);
   else 
     success=success && (dev_nbor.alloc(3*_max_atoms,*dev,
                                        UCL_READ_ONLY)==UCL_SUCCESS);
-  success=success && (host_acc.alloc((_max_atoms+_max_host)*2,*dev,
+  success=success && (host_acc.alloc(nt*2,*dev,
                                      UCL_WRITE_OPTIMIZED)==UCL_SUCCESS);
 
   _c_bytes=dev_nbor.row_bytes();
@@ -103,11 +104,27 @@ void PairGPUNbor::alloc(bool &success) {
   if (_max_host>0) {
     host_nbor.clear();
     dev_host_nbor.clear();
-    success=success && (host_nbor.alloc((_max_nbors+1)*_max_host,*dev,
+    dev_host_numj.clear();
+    host_ilist.clear();
+    host_jlist.clear();
+    
+    success=success && (host_nbor.alloc(_max_nbors*_max_host,*dev,
                                         UCL_RW_OPTIMIZED)==UCL_SUCCESS);
-    success=success && (dev_host_nbor.alloc((_max_nbors+1)*_max_host,
+    success=success && (dev_host_nbor.alloc(_max_nbors*_max_host,
                                             *dev,UCL_WRITE_ONLY)==UCL_SUCCESS);
-    _c_bytes+=dev_host_nbor.row_bytes();
+    success=success && (dev_host_numj.alloc(_max_host,*dev,
+                                            UCL_WRITE_ONLY)==UCL_SUCCESS);
+    success=success && (host_ilist.alloc(nt,*dev,UCL_NOT_PINNED)==UCL_SUCCESS);
+    for (int i=0; i<nt; i++)
+      host_ilist[i]=i;
+    success=success && (host_jlist.alloc(_max_host,*dev,
+                                         UCL_NOT_PINNED)==UCL_SUCCESS);
+    int *ptr=host_nbor.begin();
+    for (int i=0; i<_max_host; i++) {
+      host_jlist[i]=ptr;
+      ptr+=_max_nbors;
+    }                                                 
+    _c_bytes+=dev_host_nbor.row_bytes()+dev_host_numj.row_bytes();
   }
   if (_maxspecial>0) {
     dev_nspecial.clear();
@@ -140,6 +157,9 @@ void PairGPUNbor::clear() {
     dev_host_nbor.clear();
     dev_packed.clear();
     host_nbor.clear();
+    dev_host_numj.clear();
+    host_ilist.clear();
+    host_jlist.clear();
     dev_nspecial.clear();
     dev_special.clear();
     dev_special_t.clear();
@@ -152,7 +172,8 @@ void PairGPUNbor::clear() {
 double PairGPUNbor::host_memory_usage() const {
   if (_gpu_nbor) {
     if (_gpu_host)
-      return host_nbor.row_bytes()*host_nbor.rows();
+      return host_nbor.row_bytes()*host_nbor.rows()+host_ilist.row_bytes()+
+             host_jlist.row_bytes();
     else
       return 0;
   } else 
@@ -297,7 +318,8 @@ void PairGPUNbor::build_nbor_list(const int inum, const int host_inum,
   _shared->k_build_nbor.set_size(ncellx, ncelly*ncellz, cell_block, 1);
   _shared->k_build_nbor.run(&atom.dev_x.begin(), &atom.dev_particle_id.begin(),
                             &cell_counts.begin(), &dev_nbor.begin(),
-                            &dev_host_nbor.begin(),&_max_nbors,&cell_size_cast,
+                            &dev_host_nbor.begin(), &dev_host_numj.begin(),
+                            &_max_nbors,&cell_size_cast,
                             &ncellx, &ncelly, &ncellz, &inum, &nt, &nall);
 
   /* Get the maximum number of nbors and realloc if necessary */
@@ -307,7 +329,7 @@ void PairGPUNbor::build_nbor_list(const int inum, const int host_inum,
   if (nt>inum) {
     UCL_H_Vec<int> host_offset;
     host_offset.view_offset(inum,host_acc,nt-inum);
-    ucl_copy(host_offset,dev_host_nbor,nt-inum,false);
+    ucl_copy(host_offset,dev_host_numj,nt-inum,false);
   }
   mn=host_acc[0];
   for (int i=1; i<nt; i++)
@@ -322,10 +344,15 @@ void PairGPUNbor::build_nbor_list(const int inum, const int host_inum,
     if (_max_host>0) {
       host_nbor.clear();
       dev_host_nbor.clear();
-      success=success && (host_nbor.alloc((mn+1)*_max_host,dev_nbor,
+      success=success && (host_nbor.alloc(mn*_max_host,dev_nbor,
                                           UCL_RW_OPTIMIZED)==UCL_SUCCESS);
-      success=success && (dev_host_nbor.alloc((mn+1)*_max_host,
+      success=success && (dev_host_nbor.alloc(mn*_max_host,
                                         dev_nbor,UCL_WRITE_ONLY)==UCL_SUCCESS);
+      int *ptr=host_nbor.begin();
+      for (int i=0; i<_max_host; i++) {
+        host_jlist[i]=ptr;
+        ptr+=mn;
+      }                                                 
       _gpu_bytes+=dev_host_nbor.row_bytes();
     }
     if (_alloc_packed) {
@@ -348,14 +375,15 @@ void PairGPUNbor::build_nbor_list(const int inum, const int host_inum,
     const int GX2=static_cast<int>(ceil(static_cast<double>(nt)/cell_block));
     _shared->k_special.set_size(GX2,cell_block);
     _shared->k_special.run(&dev_nbor.begin(), &dev_host_nbor.begin(), 
-                           &atom.dev_tag.begin(), &dev_nspecial.begin(), 
-                           &dev_special.begin(), &inum, &nt, &nall);
+                           &dev_host_numj.begin(), &atom.dev_tag.begin(), 
+                           &dev_nspecial.begin(), &dev_special.begin(), 
+                           &inum, &nt, &nall, &_max_nbors);
   }
   time_kernel.stop();
 
   time_nbor.start();
   if (_gpu_host)
-    ucl_copy(host_nbor,dev_host_nbor,host_inum*(mn+1),false);
+    ucl_copy(host_nbor,dev_host_nbor,false);
   time_nbor.stop();
 }
 

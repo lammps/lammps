@@ -139,7 +139,8 @@ __kernel void calc_neigh_list_cell(numtyp4 *pos,
 				     int *cell_particle_id, 
 				     int *cell_counts,
 				     int *nbor_list,
-				     int *host_nbor_list, 
+				     int *host_nbor_list,
+				     int *host_numj, 
 				     int neigh_bin_size, 
 				     numtyp cell_size,
 				     int ncellx, int ncelly, int ncellz,
@@ -183,9 +184,9 @@ __kernel void calc_neigh_list_cell(numtyp4 *pos,
       neigh_list=neigh_counts+stride;
       nbor_list[pid_i]=pid_i;
     } else {
-      stride=nt-inum;
-    	neigh_counts=host_nbor_list+pid_i-inum;
-      neigh_list=neigh_counts+stride;
+      stride=1;
+    	neigh_counts=host_numj+pid_i-inum;
+      neigh_list=host_nbor_list+(pid_i-inum)*neigh_bin_size;
     }
     
     // loop through neighbors
@@ -220,20 +221,18 @@ __kernel void calc_neigh_list_cell(numtyp4 *pos,
 	    
               for (int j = 0; j < end_idx; j++) {
                 int pid_j = cell_list_sh[j]; // gather from shared memory
-                if (pid_i<inum || pid_j<inum || pid_j>pid_i) {
-                  diff.x = atom_i.x - pos_sh[j].x;
-                  diff.y = atom_i.y - pos_sh[j].y;
-                  diff.z = atom_i.z - pos_sh[j].z;
+                diff.x = atom_i.x - pos_sh[j].x;
+                diff.y = atom_i.y - pos_sh[j].y;
+                diff.z = atom_i.z - pos_sh[j].z;
 		
-                  r2 = diff.x*diff.x + diff.y*diff.y + diff.z*diff.z;
-                  if (r2 < cell_size*cell_size && r2 > 1e-5) {
-                    if (cnt < neigh_bin_size) {
-                      *neigh_list = pid_j;
-                      neigh_list+=stride;
-                    }
-                    cnt++;
-                  }		
-                }
+                r2 = diff.x*diff.x + diff.y*diff.y + diff.z*diff.z;
+                if (r2 < cell_size*cell_size && r2 > 1e-5) {
+                  if (cnt < neigh_bin_size) {
+                    *neigh_list = pid_j;
+                    neigh_list+=stride;
+                  }
+                  cnt++;
+                }		
               }
             }
 	          __syncthreads();
@@ -247,9 +246,10 @@ __kernel void calc_neigh_list_cell(numtyp4 *pos,
 }
 
 __kernel void kernel_special(__global int *dev_nbor, 
-                             __global int *host_nbor_list, __global int *tag,
+                             __global int *host_nbor_list, 
+                             __global int *host_numj, __global int *tag,
                              __global int *nspecial, __global int *special,
-                             int inum, int nt, int nall) {
+                             int inum, int nt, int nall, int max_nbors) {
   // ii indexes the two interacting particles in gi
   int ii=GLOBAL_ID_X;
 
@@ -261,15 +261,17 @@ __kernel void kernel_special(__global int *dev_nbor,
     int n2=nspecial[ii*3+1];
     int n3=nspecial[ii*3+2];
 
+    int numj;
     if (ii < inum) {
       stride=inum;
       list=dev_nbor+stride+ii;
+      numj=*list;
+      list+=stride;
     } else {
-      stride=nt-inum;
-      list=host_nbor_list+ii-inum;
+      stride=1;
+      list=host_nbor_list+(ii-inum)*max_nbors;
+      numj=host_numj[ii];
     }
-    int numj=*list;
-    list+=stride;
     list_end=list+numj*stride;
   
     for ( ; list<list_end; list+=stride) {

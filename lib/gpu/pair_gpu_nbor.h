@@ -171,8 +171,11 @@ class PairGPUNbor {
   UCL_H_Vec<int> host_nbor;
   /// Device storage for neighbor list matrix that will be copied to host
   /** - 1st row is numj
-    * - Remaining rows are nbors **/
+    * - Remaining rows are by atom, columns are nbors **/
   UCL_D_Vec<int> dev_host_nbor;
+  UCL_D_Vec<int> dev_host_numj;
+  UCL_H_Vec<int> host_ilist;
+  UCL_H_Vec<int*> host_jlist;
   /// Device storage for special neighbor counts
   UCL_D_Vec<int> dev_nspecial;
   /// Device storage for special neighbors

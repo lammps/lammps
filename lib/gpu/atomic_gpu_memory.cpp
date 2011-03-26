@@ -243,6 +243,55 @@ int * AtomicGPUMemoryT::compute(const int ago, const int inum_full,
   return nbor->host_nbor.begin();
 }
 
+// ---------------------------------------------------------------------------
+// Reneighbor on GPU if necessary and then compute forces, virials, energies
+// ---------------------------------------------------------------------------
+template <class numtyp, class acctyp>
+int ** AtomicGPUMemoryT::compute(const int ago, const int inum_full,
+                                 const int nall, double **host_x, int *host_type,
+                                 double *boxlo, double *boxhi, int *tag,
+                                 int **nspecial, int **special, const bool eflag, 
+                                 const bool vflag, const bool eatom,
+                                 const bool vatom, int &host_start,
+                                 int **ilist, int **jnum,
+                                 const double cpu_time, bool &success) {
+  acc_timers();
+  if (inum_full==0) {
+    host_start=0;
+    // Make sure textures are correct if realloc by a different hybrid style
+    resize_atom(0,nall,success);
+    zero_timers();
+    return NULL;
+  }
+  
+  hd_balancer.balance(cpu_time);
+  int inum=hd_balancer.get_gpu_count(ago,inum_full);
+  ans->inum(inum);
+  host_start=inum;
+ 
+  // Build neighbor list on GPU if necessary
+  if (ago==0) {
+    build_nbor_list(inum, inum_full-inum, nall, host_x, host_type,
+                    boxlo, boxhi, tag, nspecial, special, success);
+    if (!success)
+      return NULL;
+    hd_balancer.start_timer();
+  } else {
+    atom->cast_x_data(host_x,host_type);
+    hd_balancer.start_timer();
+    atom->add_x_data(host_x,host_type);
+  }
+  *ilist=nbor->host_ilist.begin();
+  *jnum=nbor->host_acc.begin();
+
+  loop(eflag,vflag);
+  ans->copy_answers(eflag,vflag,eatom,vatom);
+  device->add_ans_object(ans);
+  hd_balancer.stop_timer();
+  
+  return nbor->host_jlist.begin()-host_start;
+}
+
 template <class numtyp, class acctyp>
 double AtomicGPUMemoryT::host_memory_usage_atomic() const {
   return device->atom.host_memory_usage()+nbor->host_memory_usage()+

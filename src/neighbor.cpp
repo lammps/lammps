@@ -1217,12 +1217,14 @@ void Neighbor::build_one(int i)
     memory->create(bins,maxbin,"bins");
   }
 
-  // this condition can cause LAMMPS to crash
+  // when occasional list built, LAMMPS can crash if atoms have moved too far
+  // why is this?, give warning if this is the case
   // no easy workaround b/c all neighbor lists really need to be rebuilt
-  // solution is for input script to check more often for rebuild, so warn
+  // solution is for input script to check more often for rebuild
+  // only check_distance if running a simulation, not between simulations
 
   int flag = 0;
-  if (dist_check) flag = check_distance();
+  if (dist_check && update->whichflag) flag = check_distance();
   if (flag && me == 0)
     error->warning("Building an occasional neighobr list when "
 		   "atoms may have moved too far");

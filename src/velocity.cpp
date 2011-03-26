@@ -432,7 +432,7 @@ void Velocity::set(int narg, char **arg)
     if (zstyle == CONSTANT && vz != 0.0)
       error->all("Cannot set non-zero z velocity for 2d simulation");
     if (zstyle == EQUAL || zstyle == ATOM)
-      error->all("Cannot set varaible z velocity for 2d simulation");
+      error->all("Cannot set variable z velocity for 2d simulation");
   }
 
   // allocate vfield array if necessary

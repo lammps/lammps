@@ -220,7 +220,7 @@ void FixAdapt::init()
 
     } else if (ad->which == KSPACE) {
       if (force->kspace == NULL) 
-	error->all("Fix adapt is incompatible with KSpace style");
+	error->all("Fix adapt kspace style does not exist");
       kspace_scale = (double *) force->kspace->extract("scale");
 
     } else if (ad->which == ATOM) {

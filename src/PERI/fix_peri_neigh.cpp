@@ -240,18 +240,20 @@ void FixPeriNeigh::setup(int vflag)
     }
   }
 
-  // Sanity check: Does any atom appear twice in any neigborlist?
-  // Should only be possible if using pbc and domain not at least of width 2 \delta 
+  // sanity check: does any atom appear twice in any neigborlist?
+  // should only be possible if using pbc and domain < 2*delta 
+
   if (domain->xperiodic || domain->yperiodic || domain->zperiodic) {
     for (i = 0; i < nlocal; i++) {
       jnum = npartner[i];
       for (jj = 0; jj < jnum; jj++) {
         for (int kk = jj+1; kk < jnum; kk++) {
-          if (partner[i][jj] == partner[i][kk]) error->one("Duplicate particle in bond family. Check that box is greater than size 2*delta in periodic dimensions.");
+          if (partner[i][jj] == partner[i][kk])
+	    error->one("Duplicate particle in PeriDynamic bond - "
+		       "simulation box is too small");
         }
       }
     }
-
   }
 
   // compute wvolume for each atom

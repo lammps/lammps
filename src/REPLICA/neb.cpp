@@ -192,7 +192,7 @@ void NEB::run()
   update->nsteps = n1steps;
   update->max_eval = n1steps;
   if (update->laststep < 0 || update->laststep > MAXBIGINT)
-    error->all("Too many timesteps");
+    error->all("Too many timesteps for NEB");
 
   update->minimize->setup();
   

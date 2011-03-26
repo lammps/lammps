@@ -135,7 +135,7 @@ void ComputeTI::init()
 
     } else if (which[m] == KSPACE) {
       if (force->kspace == NULL) 
-	error->all("Compute ti is incompatible with KSpace style");
+	error->all("Compute ti kspace style does not exist");
     }
   }
 }

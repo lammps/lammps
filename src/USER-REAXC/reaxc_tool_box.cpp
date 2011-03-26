@@ -453,7 +453,7 @@ void *scalloc( int n, int size, char *name, MPI_Comm comm )
 
 
 /* safe free */
-void destroy( void *ptr, char *name )
+void sfree( void *ptr, char *name )
 {
   if( ptr == NULL ) {
     fprintf( stderr, "WARNING: trying to free the already NULL pointer %s!\n",

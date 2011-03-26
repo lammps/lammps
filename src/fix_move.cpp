@@ -885,7 +885,7 @@ void FixMove::set_arrays(int i)
   // backup particle to time_origin
 
   if (mstyle == VARIABLE)
-    error->all("Cannot add atoms to fix move variable after");
+    error->all("Cannot add atoms to fix move variable");
 
   domain->unmap(x[i],image[i],xoriginal[i]);
   double delta = (update->ntimestep - time_origin) * update->dt;

@@ -125,12 +125,12 @@ Dump::~Dump()
   delete [] format_default;
   delete [] format_user;
 
-  memory->sfree(buf);
-  memory->sfree(bufsort);
-  memory->sfree(ids);
-  memory->sfree(idsort);
-  memory->sfree(index);
-  memory->sfree(proclist);
+  memory->destroy(buf);
+  memory->destroy(bufsort);
+  memory->destroy(ids);
+  memory->destroy(idsort);
+  memory->destroy(index);
+  memory->destroy(proclist);
   delete irregular;
 
   // XTC style sets fp to NULL since it closes file in its destructor
@@ -153,11 +153,11 @@ void Dump::init()
   init_style();
 
   if (!sort_flag) {
-    memory->sfree(bufsort);
-    memory->sfree(ids);
-    memory->sfree(idsort);
-    memory->sfree(index);
-    memory->sfree(proclist);
+    memory->destroy(bufsort);
+    memory->destroy(ids);
+    memory->destroy(idsort);
+    memory->destroy(index);
+    memory->destroy(proclist);
     delete irregular;
 
     maxids = maxsort = maxproc = 0;
@@ -281,14 +281,13 @@ void Dump::write()
     if ((bigint) nmax * size_one > MAXSMALLINT)
       error->all("Too much per-proc info for dump");
     maxbuf = nmax;
-    memory->sfree(buf);
-    buf = (double *) 
-      memory->smalloc(maxbuf*size_one*sizeof(double),"dump:buf");
+    memory->destroy(buf);
+    memory->create(buf,maxbuf*size_one,"dump:buf");
   }
   if (sort_flag && sortcol == 0 && nmax > maxids) {
     maxids = nmax;
-    memory->sfree(ids);
-    ids = (int *) memory->smalloc(maxids*sizeof(int),"dump:ids");
+    memory->destroy(ids);
+    memory->create(ids,maxids,"dump:ids");
   }
 
   if (sort_flag && sortcol == 0) pack(ids);
@@ -414,14 +413,13 @@ void Dump::sort()
   if (nprocs == 1) {
     if (nme > maxsort) {
       maxsort = nme;
-      memory->sfree(bufsort);
-      bufsort = (double *)
-	memory->smalloc(maxsort*size_one*sizeof(double),"dump:bufsort");
-      memory->sfree(index);
-      index = (int *) memory->smalloc(maxsort*sizeof(int),"dump:index");
+      memory->destroy(bufsort);
+      memory->create(bufsort,maxsort*size_one,"dump:bufsort");
+      memory->destroy(index);
+      memory->create(index,maxsort,"dump:index");
       if (sortcol == 0) {
-	memory->sfree(idsort);
-	idsort = (int *) memory->smalloc(maxsort*sizeof(int),"dump:idsort");
+	memory->destroy(idsort);
+	memory->create(idsort,maxsort,"dump:idsort");
       }
     }
 
@@ -443,8 +441,8 @@ void Dump::sort()
 
     if (nme > maxproc) {
       maxproc = nme;
-      memory->sfree(proclist);
-      proclist = (int *) memory->smalloc(maxproc*sizeof(int),"dump:proclist");
+      memory->destroy(proclist);
+      memory->create(proclist,maxproc,"dump:proclist");
     }
     
     // proclist[i] = which proc Ith datum will be sent to
@@ -493,14 +491,13 @@ void Dump::sort()
 
     if (nme > maxsort) {
       maxsort = nme;
-      memory->sfree(bufsort);
-      bufsort = (double *) 
-	memory->smalloc(maxsort*size_one*sizeof(double),"dump:bufsort");
-      memory->sfree(index);
-      index = (int *) memory->smalloc(maxsort*sizeof(int),"dump:index");
+      memory->destroy(bufsort);
+      memory->create(bufsort,maxsort*size_one,"dump:bufsort");
+      memory->destroy(index);
+      memory->create(index,maxsort,"dump:index");
       if (sortcol == 0) {
-	memory->sfree(idsort);
-	idsort = (int *) memory->smalloc(maxsort*sizeof(int),"dump:idsort");
+	memory->destroy(idsort);
+	memory->create(idsort,maxsort,"dump:idsort");
       }
     }
     
@@ -545,9 +542,8 @@ void Dump::sort()
 
   if (nmax > maxbuf) {
     maxbuf = nmax;
-    memory->sfree(buf);
-    buf = (double *) 
-      memory->smalloc(maxbuf*size_one*sizeof(double),"dump:buf");
+    memory->destroy(buf);
+    memory->create(buf,maxbuf*size_one,"dump:buf");
   }
 
   // copy data from bufsort to buf using index

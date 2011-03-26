@@ -172,9 +172,8 @@ void ReadRestart::command(int narg, char **arg)
       MPI_Bcast(&n,1,MPI_INT,0,world);
       if (n > maxbuf) {
 	maxbuf = n;
-	memory->sfree(buf);
-	buf = (double *) memory->smalloc(maxbuf*sizeof(double),
-					 "read_restart:buf");
+	memory->destroy(buf);
+	memory->create(buf,maxbuf,"read_restart:buf");
       }
 
       if (n > 0) {
@@ -226,9 +225,8 @@ void ReadRestart::command(int narg, char **arg)
       fread(&n,sizeof(int),1,fp);
       if (n > maxbuf) {
 	maxbuf = n;
-	memory->sfree(buf);
-	buf = (double *) memory->smalloc(maxbuf*sizeof(double),
-					 "read_restart:buf");
+	memory->destroy(buf);
+	memory->create(buf,maxbuf,"read_restart:buf");
       }
       if (n > 0) fread(buf,sizeof(double),n,fp);
 
@@ -289,7 +287,7 @@ void ReadRestart::command(int narg, char **arg)
   // clean-up memory
 
   delete [] file;
-  memory->sfree(buf);
+  memory->destroy(buf);
 
   // check that all atoms were assigned to procs
 

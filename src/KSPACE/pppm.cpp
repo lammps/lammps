@@ -739,20 +739,18 @@ void PPPM::allocate()
   memory->create3d_offset(vdz_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
 			  nxlo_out,nxhi_out,"pppm:vdz_brick");
 
-  density_fft = 
-    (double *) memory->smalloc(nfft_both*sizeof(double),"pppm:density_fft");
-  greensfn = 
-    (double *) memory->smalloc(nfft_both*sizeof(double),"pppm:greensfn");
-  work1 = (double *) memory->smalloc(2*nfft_both*sizeof(double),"pppm:work1");
-  work2 = (double *) memory->smalloc(2*nfft_both*sizeof(double),"pppm:work2");
+  memory->create(density_fft,nfft_both,"pppm:density_fft");
+  memory->create(greensfn,nfft_both,"pppm:greensfn");
+  memory->create(work1,2*nfft_both,"pppm:work1");
+  memory->create(work2,2*nfft_both,"pppm:work2");
   memory->create(vg,nfft_both,6,"pppm:vg");
 
   memory->create1d_offset(fkx,nxlo_fft,nxhi_fft,"pppm:fkx");
   memory->create1d_offset(fky,nylo_fft,nyhi_fft,"pppm:fky");
   memory->create1d_offset(fkz,nzlo_fft,nzhi_fft,"pppm:fkz");
 
-  buf1 = (double *) memory->smalloc(nbuf*sizeof(double),"pppm:buf1");
-  buf2 = (double *) memory->smalloc(nbuf*sizeof(double),"pppm:buf2");
+  memory->create(buf1,nbuf,"pppm:buf1");
+  memory->create(buf2,nbuf,"pppm:buf2");
 
   // summation coeffs
 
@@ -794,18 +792,18 @@ void PPPM::deallocate()
   memory->destroy3d_offset(vdy_brick,nzlo_out,nylo_out,nxlo_out);
   memory->destroy3d_offset(vdz_brick,nzlo_out,nylo_out,nxlo_out);
 
-  memory->sfree(density_fft);
-  memory->sfree(greensfn);
-  memory->sfree(work1);
-  memory->sfree(work2);
+  memory->destroy(density_fft);
+  memory->destroy(greensfn);
+  memory->destroy(work1);
+  memory->destroy(work2);
   memory->destroy(vg);
 
   memory->destroy1d_offset(fkx,nxlo_fft);
   memory->destroy1d_offset(fky,nylo_fft);
   memory->destroy1d_offset(fkz,nzlo_fft);
 
-  memory->sfree(buf1);
-  memory->sfree(buf2);
+  memory->destroy(buf1);
+  memory->destroy(buf2);
 
   delete [] gf_b;
   memory->destroy2d_offset(rho1d,-order/2);

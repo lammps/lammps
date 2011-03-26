@@ -74,9 +74,9 @@ FixQEQComb::FixQEQComb(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   }
   
   nmax = atom->nmax;
-  qf = (double *) memory->smalloc(nmax*sizeof(double),"qeq:qf");
-  q1 = (double *) memory->smalloc(nmax*sizeof(double),"qeq:q1");
-  q2 = (double *) memory->smalloc(nmax*sizeof(double),"qeq:q2");
+  memory->create(qf,nmax,"qeq:qf");
+  memory->create(q1,nmax,"qeq:q1");
+  memory->create(q2,nmax,"qeq:q2");
   vector_atom = qf;
 
   // zero the vector since dump may access it on timestep 0
@@ -91,9 +91,9 @@ FixQEQComb::FixQEQComb(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 FixQEQComb::~FixQEQComb()
 {
   if (me == 0 && fp) fclose(fp);
-  memory->sfree(qf);
-  memory->sfree(q1);
-  memory->sfree(q2);
+  memory->destroy(qf);
+  memory->destroy(q1);
+  memory->destroy(q2);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -154,13 +154,13 @@ void FixQEQComb::post_force(int vflag)
   // q2 = tmp storage of charge force for next iteration
 
   if (atom->nmax > nmax) {
-    memory->sfree(qf);
-    memory->sfree(q1);
-    memory->sfree(q2);
+    memory->destroy(qf);
+    memory->destroy(q1);
+    memory->destroy(q2);
     nmax = atom->nmax;
-    qf = (double *) memory->smalloc(nmax*sizeof(double),"qeq:qf");
-    q1 = (double *) memory->smalloc(nmax*sizeof(double),"qeq:q1");
-    q2 = (double *) memory->smalloc(nmax*sizeof(double),"qeq:q2");
+    memory->create(qf,nmax,"qeq:qf");
+    memory->create(q1,nmax,"qeq:q1");
+    memory->create(q2,nmax,"qeq:q2");
     vector_atom = qf;
   }
   

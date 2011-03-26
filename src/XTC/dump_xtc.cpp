@@ -73,7 +73,7 @@ DumpXTC::DumpXTC(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
     error->all("Too many atoms for dump xtc");
   natoms = static_cast<int> (n);
 
-  coords = (float *) memory->smalloc(3*natoms*sizeof(float),"dump:coords");
+  memory->create(coords,3*natoms,"dump:coords");
 
   // sfactor = conversion of coords to XTC units
   // GROMACS standard is nanometers, not Angstroms
@@ -90,7 +90,7 @@ DumpXTC::DumpXTC(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
 
 DumpXTC::~DumpXTC()
 {
-  memory->sfree(coords);
+  memory->destroy(coords);
 
   if (me == 0) {
     xdrclose(&xd);
@@ -148,8 +148,8 @@ void DumpXTC::write_header(bigint nbig)
 
   if (n != natoms) {
     natoms = n;
-    memory->sfree(coords);
-    coords = (float *) memory->smalloc(3*natoms*sizeof(float),"dump:coords");
+    memory->destroy(coords);
+    memory->create(coords,3*natoms,"dump:coords");
   }
 
   // only proc 0 writes header

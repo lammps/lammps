@@ -43,13 +43,13 @@ DihedralCharmm::DihedralCharmm(LAMMPS *lmp) : Dihedral(lmp) {}
 DihedralCharmm::~DihedralCharmm()
 {
   if (allocated) {
-    memory->sfree(setflag);
-    memory->sfree(k);
-    memory->sfree(multiplicity);
-    memory->sfree(shift);
-    memory->sfree(cos_shift);
-    memory->sfree(sin_shift);
-    memory->sfree(weight);
+    memory->destroy(setflag);
+    memory->destroy(k);
+    memory->destroy(multiplicity);
+    memory->destroy(shift);
+    memory->destroy(cos_shift);
+    memory->destroy(sin_shift);
+    memory->destroy(weight);
   }
 }
 
@@ -307,18 +307,13 @@ void DihedralCharmm::allocate()
   allocated = 1;
   int n = atom->ndihedraltypes;
 
-  k = (double *) memory->smalloc((n+1)*sizeof(double),"dihedral:k");
-  multiplicity = (int *) 
-    memory->smalloc((n+1)*sizeof(double),"dihedral:multiplicity");
-  shift = (int *) 
-    memory->smalloc((n+1)*sizeof(double),"dihedral:shift");
-  cos_shift = (double *) 
-    memory->smalloc((n+1)*sizeof(double),"dihedral:cos_shift");
-  sin_shift = (double *) 
-    memory->smalloc((n+1)*sizeof(double),"dihedral:sin_shift");
-  weight = (double *) memory->smalloc((n+1)*sizeof(double),"dihedral:weight");
+  memory->create(k,n+1,"dihedral:k");
+  memory->create(shift,n+1,"dihedral:shift");
+  memory->create(cos_shift,n+1,"dihedral:cos_shift");
+  memory->create(sin_shift,n+1,"dihedral:sin_shift");
+  memory->create(weight,n+1,"dihedral:weight");
 
-  setflag = (int *) memory->smalloc((n+1)*sizeof(int),"dihedral:setflag");
+  memory->create(setflag,n+1,"dihedral:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
 }
 

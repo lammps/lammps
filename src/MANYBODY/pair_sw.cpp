@@ -59,7 +59,7 @@ PairSW::~PairSW()
   if (elements)
     for (int i = 0; i < nelements; i++) delete [] elements[i];
   delete [] elements;
-  memory->sfree(params);
+  memory->destroy(params);
   memory->destroy(elem2param);
 
   if (allocated) {

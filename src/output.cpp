@@ -101,12 +101,12 @@ Output::~Output()
   if (thermo) delete thermo;
   delete [] var_thermo;
 
-  memory->sfree(every_dump);
-  memory->sfree(next_dump);
-  memory->sfree(last_dump);
+  memory->destroy(every_dump);
+  memory->destroy(next_dump);
+  memory->destroy(last_dump);
   for (int i = 0; i < ndump; i++) delete [] var_dump[i];
   memory->sfree(var_dump);
-  memory->sfree(ivar_dump);
+  memory->destroy(ivar_dump);
   for (int i = 0; i < ndump; i++) delete dump[i];
   memory->sfree(dump);
 
@@ -371,16 +371,12 @@ void Output::add_dump(int narg, char **arg)
     max_dump += DELTA;
     dump = (Dump **)
       memory->srealloc(dump,max_dump*sizeof(Dump *),"output:dump");
-    every_dump = (int *)
-      memory->srealloc(every_dump,max_dump*sizeof(int),"output:every_dump");
-    next_dump = (bigint *)
-      memory->srealloc(next_dump,max_dump*sizeof(bigint),"output:next_dump");
-    last_dump = (bigint *)
-      memory->srealloc(last_dump,max_dump*sizeof(bigint),"output:last_dump");
+    memory->grow(every_dump,max_dump,"output:every_dump");
+    memory->grow(next_dump,max_dump,"output:next_dump");
+    memory->grow(last_dump,max_dump,"output:last_dump");
     var_dump = (char **)
       memory->srealloc(var_dump,max_dump*sizeof(char *),"output:var_dump");
-    ivar_dump = (int *)
-      memory->srealloc(ivar_dump,max_dump*sizeof(int),"output:ivar_dump");
+    memory->grow(ivar_dump,max_dump,"output:ivar_dump");
   }
 
   // create the Dump

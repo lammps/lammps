@@ -62,7 +62,7 @@ FixEvent::~FixEvent()
   memory->destroy(xevent);
   memory->destroy(xold);
   memory->destroy(vold);
-  memory->sfree(imageold);
+  memory->destroy(imageold);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -181,8 +181,7 @@ void FixEvent::grow_arrays(int nmax)
   memory->grow(xevent,nmax,3,"event:xevent");
   memory->grow(xold,nmax,3,"event:xold");
   memory->grow(vold,nmax,3,"event:vold");
-  imageold = (int *) 
-    memory->srealloc(imageold,nmax*sizeof(int),"event:imageold");
+  memory->grow(imageold,nmax,"event:imageold");
 
   // allow compute event to access stored event coords
 

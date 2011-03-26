@@ -137,7 +137,7 @@ void FixReaxBonds::OutputReaxBonds(bigint ntimestep, FILE *fp)
   // nbuf_local = size of local buffer for table of atom bonds
  
   nbuf = 1+(2*nsbmax_most+7)*most;
-  buf = (double *) memory->smalloc(nbuf*sizeof(double),"reax/bonds:buf");
+  memory->create(buf,nbuf,"reax/bonds:buf");
  
   j = 2;
   jn = ReaxParams::nat;
@@ -224,7 +224,7 @@ void FixReaxBonds::OutputReaxBonds(bigint ntimestep, FILE *fp)
 
   if (me == 0) fprintf(fp,"# \n");
 
-  memory->sfree(buf);
+  memory->destroy(buf);
 }
 
 /* ---------------------------------------------------------------------- */

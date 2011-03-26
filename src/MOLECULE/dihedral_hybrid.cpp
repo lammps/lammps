@@ -45,8 +45,8 @@ DihedralHybrid::~DihedralHybrid()
   }
 
   if (allocated) {
-    memory->sfree(setflag);
-    memory->sfree(map);
+    memory->destroy(setflag);
+    memory->destroy(map);
     delete [] ndihedrallist;
     delete [] maxdihedral;
     for (int i = 0; i < nstyles; i++)
@@ -144,8 +144,8 @@ void DihedralHybrid::allocate()
   allocated = 1;
   int n = atom->ndihedraltypes;
 
-  map = (int *) memory->smalloc((n+1)*sizeof(int),"dihedral:map");
-  setflag = (int *) memory->smalloc((n+1)*sizeof(int),"dihedral:setflag");
+  memory->create(map,n+1,"dihedral:map");
+  memory->create(setflag,n+1,"dihedral:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
 
   ndihedrallist = new int[nstyles];

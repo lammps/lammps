@@ -255,7 +255,7 @@ void FixOrientFCC::post_force(int vflag)
 
   if (nall > nmax) {
     nmax = nall;
-    memory->sfree(nbr);
+    memory->destroy(nbr);
     memory->destroy(order);
     nbr = (Nbr *) memory->smalloc(nmax*sizeof(Nbr),"orient/fcc:nbr");
     memory->create(order,nmax,2,"orient/fcc:order");

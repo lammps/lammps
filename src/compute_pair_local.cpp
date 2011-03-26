@@ -62,7 +62,7 @@ ComputePairLocal::ComputePairLocal(LAMMPS *lmp, int narg, char **arg) :
 
 ComputePairLocal::~ComputePairLocal()
 {
-  memory->sfree(vector);
+  memory->destroy(vector);
   memory->destroy(array);
 }
 
@@ -213,9 +213,8 @@ void ComputePairLocal::reallocate(int n)
   while (nmax < n) nmax += DELTA;
 
   if (nvalues == 1) {
-    memory->sfree(vector);
-    vector = (double *) memory->smalloc(nmax*sizeof(double),
-					"pair/local:vector");
+    memory->destroy(vector);
+    memory->create(vector,nmax,"pair/local:vector");
     vector_local = vector;
   } else {
     memory->destroy(array);

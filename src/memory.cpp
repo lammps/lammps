@@ -50,7 +50,7 @@ void *Memory::smalloc(bigint nbytes, const char *name)
 void *Memory::srealloc(void *ptr, bigint nbytes, const char *name)
 {
   if (nbytes == 0) {
-    sfree(ptr);
+    destroy(ptr);
     return NULL;
   }
 

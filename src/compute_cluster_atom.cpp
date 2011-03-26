@@ -54,7 +54,7 @@ ComputeClusterAtom::ComputeClusterAtom(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeClusterAtom::~ComputeClusterAtom()
 {
-  memory->sfree(clusterID);
+  memory->destroy(clusterID);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -105,10 +105,9 @@ void ComputeClusterAtom::compute_peratom()
   // grow clusterID array if necessary
 
   if (atom->nlocal > nmax) {
-    memory->sfree(clusterID);
+    memory->destroy(clusterID);
     nmax = atom->nmax;
-    clusterID = (double *) 
-      memory->smalloc(nmax*sizeof(double),"cluster/atom:clusterID");
+    memory->create(clusterID,nmax,"cluster/atom:clusterID");
     vector_atom = clusterID;
   }
 

@@ -125,9 +125,9 @@ void PRD::command(int narg, char **arg)
 
   if (nreplica != nprocs_universe) {
     displacements = new int[nprocs];
-    tagall = (int *) memory->smalloc(natoms*sizeof(int),"prd:tagall");
+    memory->create(tagall,natoms,"prd:tagall");
     memory->create(xall,natoms,3,"prd:xall");
-    imageall = (int *) memory->smalloc(natoms*sizeof(int),"prd:imageall");
+    memory->create(imageall,natoms,"prd:imageall");
   }
 
   // random_select = same RNG for each replica for multiple event selection
@@ -406,9 +406,9 @@ void PRD::command(int narg, char **arg)
   // clean up
 
   delete [] displacements;
-  memory->sfree(tagall);
+  memory->destroy(tagall);
   memory->destroy(xall);
-  memory->sfree(imageall);
+  memory->destroy(imageall);
   
   MPI_Comm_free(&comm_replica);
   delete random_select;

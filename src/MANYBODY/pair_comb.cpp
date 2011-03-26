@@ -80,7 +80,7 @@ PairComb::PairComb(LAMMPS *lmp) : Pair(lmp)
 
 PairComb::~PairComb()
 {
-  memory->sfree(NCo);
+  memory->destroy(NCo);
 
   if (elements)
     for (int i = 0; i < nelements; i++) delete [] elements[i];
@@ -131,9 +131,9 @@ void PairComb::compute(int eflag, int vflag)
   // grow coordination array if necessary
 
   if (atom->nmax > nmax) {
-    memory->sfree(NCo);
+    memory->destroy(NCo);
     nmax = atom->nmax;
-    NCo = (int *) memory->smalloc(nmax*sizeof(double),"pair:NCo");
+    memory->create(NCo,nmax,"pair:NCo");
   }
 
   double **x = atom->x;

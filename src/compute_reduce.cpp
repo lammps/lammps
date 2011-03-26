@@ -294,7 +294,7 @@ ComputeReduce::~ComputeReduce()
   delete [] indices;
   delete [] owner;
 
-  memory->sfree(varatom);
+  memory->destroy(varatom);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -573,9 +573,8 @@ double ComputeReduce::compute_one(int m, int flag)
   } else if (which[m] == VARIABLE) {
     if (nlocal > maxatom) {
       maxatom = atom->nmax;
-      memory->sfree(varatom);
-      varatom =	(double *) 
-	memory->smalloc(maxatom*sizeof(double),"reduce:varatom");
+      memory->destroy(varatom);
+      memory->create(varatom,maxatom,"reduce:varatom");
     }
 
     input->variable->compute_atom(vidx,igroup,varatom,1,0);

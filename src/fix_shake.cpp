@@ -218,7 +218,7 @@ FixShake::~FixShake()
 
   // delete locally stored arrays
 
-  memory->sfree(shake_flag);
+  memory->destroy(shake_flag);
   memory->destroy(shake_atom);
   memory->destroy(shake_type);
   memory->destroy(xshake);
@@ -251,7 +251,7 @@ FixShake::~FixShake()
     delete [] a_min_all;
   }
 
-  memory->sfree(list);
+  memory->destroy(list);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -440,8 +440,8 @@ void FixShake::pre_neighbor()
 
   if (nlocal > maxlist) {
     maxlist = nlocal;
-    memory->sfree(list);
-    list = (int *) memory->smalloc(maxlist*sizeof(int),"shake:list");
+    memory->destroy(list);
+    memory->create(list,maxlist,"shake:list");
   }
 
   // build list of SHAKE clusters I compute
@@ -655,10 +655,10 @@ void FixShake::find_clusters()
   int max = 0;
   for (i = 0; i < nlocal; i++) max = MAX(max,nspecial[i][0]);
 
-  int *npartner = (int *) 
-    memory->smalloc(nlocal*sizeof(double),"shake:npartner");
-  int *nshake = (int *)
-    memory->smalloc(nlocal*sizeof(double),"shake:nshake");
+  int *npartner,*nshake;
+  memory->create(npartner,nlocal,"shake:npartner");
+  memory->create(nshake,nlocal,"shake:nshake");
+
   int **partner_tag,**partner_mask,**partner_type,**partner_massflag;
   int ** partner_bondtype,**partner_shake,**partner_nshake;
   memory->create(partner_tag,nlocal,max,"shake:partner_tag");
@@ -1114,8 +1114,8 @@ void FixShake::find_clusters()
   // free local memory
   // -----------------------------------------------------
 
-  memory->sfree(npartner);
-  memory->sfree(nshake);
+  memory->destroy(npartner);
+  memory->destroy(nshake);
   memory->destroy(partner_tag);
   memory->destroy(partner_mask);
   memory->destroy(partner_type);
@@ -2237,8 +2237,7 @@ double FixShake::memory_usage()
 
 void FixShake::grow_arrays(int nmax)
 {
-  shake_flag = (int *)
-    memory->srealloc(shake_flag,nmax*sizeof(int),"shake:shake_flag");
+  memory->grow(shake_flag,nmax,"shake:shake_flag");
   memory->grow(shake_atom,nmax,4,"shake:shake_atom");
   memory->grow(shake_type,nmax,3,"shake:shake_type");
   memory->destroy(xshake);

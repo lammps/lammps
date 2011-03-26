@@ -394,13 +394,13 @@ FixAveSpatial::~FixAveSpatial()
 
   if (fp && me == 0) fclose(fp);
 
-  memory->sfree(varatom);
-  memory->sfree(bin);
+  memory->destroy(varatom);
+  memory->destroy(bin);
 
-  memory->sfree(count_one);
-  memory->sfree(count_many);
-  memory->sfree(count_sum);
-  memory->sfree(count_total);
+  memory->destroy(count_one);
+  memory->destroy(count_many);
+  memory->destroy(count_sum);
+  memory->destroy(count_total);
   memory->destroy(coord);
   memory->destroy(count_list);
   memory->destroy(values_one);
@@ -524,9 +524,8 @@ void FixAveSpatial::end_of_step()
 
   if (nlocal > maxatom) {
     maxatom = atom->nmax;
-    memory->sfree(bin);
-    bin = (int *) 
-      memory->smalloc(maxatom*sizeof(int),"ave/spatial:bin");
+    memory->destroy(bin);
+    memory->create(bin,maxatom,"ave/spatial:bin");
   }
 
   if (ndim == 1) atom2bin1d();
@@ -651,9 +650,8 @@ void FixAveSpatial::end_of_step()
     } else if (which[m] == VARIABLE) {
       if (nlocal > maxvar) {
 	maxvar = atom->nmax;
-	memory->sfree(varatom);
-	varatom = (double *) 
-	  memory->smalloc(maxvar*sizeof(double),"ave/spatial:varatom");
+	memory->destroy(varatom);
+	memory->create(varatom,maxvar,"ave/spatial:varatom");
       }
 
       input->variable->compute_atom(n,igroup,varatom,1,0);
@@ -882,18 +880,10 @@ void FixAveSpatial::setup_bins()
 
   if (nbins > maxbin) {
     maxbin = nbins;
-    count_one = (double *) 
-      memory->srealloc(count_one,nbins*sizeof(double),
-		       "ave/spatial:count_one");
-    count_many = (double *) 
-      memory->srealloc(count_many,nbins*sizeof(double),
-		       "ave/spatial:count_many");
-    count_sum = (double *) 
-      memory->srealloc(count_sum,nbins*sizeof(double),
-		       "ave/spatial:count_sum");
-    count_total = (double *) 
-      memory->srealloc(count_total,nbins*sizeof(double),
-		       "ave/spatial:count_total");
+    memory->grow(count_one,nbins,"ave/spatial:count_one");
+    memory->grow(count_many,nbins,"ave/spatial:count_many");
+    memory->grow(count_sum,nbins,"ave/spatial:count_sum");
+    memory->grow(count_total,nbins,"ave/spatial:count_total");
     
     memory->grow(coord,nbins,ndim,"ave/spatial:coord");
     memory->grow(values_one,nbins,nvalues,"ave/spatial:values_one");

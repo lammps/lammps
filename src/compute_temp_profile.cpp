@@ -114,7 +114,7 @@ ComputeTempProfile::~ComputeTempProfile()
 {
   memory->destroy(vbin);
   memory->destroy(binave);
-  memory->sfree(bin);
+  memory->destroy(bin);
   memory->destroy(vbiasall);
   delete [] vector;
 }
@@ -408,8 +408,8 @@ void ComputeTempProfile::bin_assign()
 
   if (atom->nlocal > maxatom) {
     maxatom = atom->nmax;
-    memory->sfree(bin);
-    bin = (int *) memory->smalloc(maxatom*sizeof(int),"temp/profile:bin");
+    memory->destroy(bin);
+    memory->create(bin,maxatom,"temp/profile:bin");
   }
 
   // assign each atom to a bin, accounting for PBC

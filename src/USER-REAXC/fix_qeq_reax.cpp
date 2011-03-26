@@ -119,9 +119,9 @@ FixQEqReax::~FixQEqReax()
   memory->destroy(shld);
 
   if (!reaxflag) {
-    memory->sfree(chi);
-    memory->sfree(eta);
-    memory->sfree(gamma);
+    memory->destroy(chi);
+    memory->destroy(eta);
+    memory->destroy(gamma);
   }
 }
 
@@ -159,10 +159,9 @@ void FixQEqReax::pertype_parameters(char *arg)
   reaxflag = 0;
   ntypes = atom->ntypes;
 
-  chi = (double*) memory->smalloc(sizeof(double)*(ntypes+1),"qeq/reax:chi");
-  eta = (double*) memory->smalloc(sizeof(double)*(ntypes+1),"qeq/reax:eta");
-  gamma = (double*) memory->smalloc(sizeof(double)*(ntypes+1),
-				    "qeq/reax:gamma");
+  memory->create(chi,ntypes+1,"qeq/reax:chi");
+  memory->create(eta,ntypes+1,"qeq/reax:eta");
+  memory->create(gamma,ntypes+1,"qeq/reax:gamma");
 
   if (comm->me == 0) {
     if ((pf = fopen(arg,"r")) == NULL)
@@ -191,39 +190,38 @@ void FixQEqReax::allocate_storage()
 {
   nmax = atom->nmax;
 
-  s = (double*) memory->smalloc( nmax * sizeof(double), "qeq:s" );
-  t = (double*) memory->smalloc( nmax * sizeof(double), "qeq:t" );
+  memory->create(s,nmax,"qeq:s");
+  memory->create(t,nmax,"qeq:t");
 
-  Hdia_inv = (double*) memory->smalloc(nmax * sizeof(double), "qeq:Hdia_inv");
-  b_s = (double*) memory->smalloc( nmax * sizeof(double), "qeq:b_s" );
-  b_t = (double*) memory->smalloc( nmax * sizeof(double), "qeq:b_t" );
-  b_prc = (double*) memory->smalloc( nmax * sizeof(double), "qeq:b_prc" );
-  b_prm = (double*) memory->smalloc( nmax * sizeof(double), "qeq:b_prm" );
+  memory->create(Hdia_inv,nmax,"qeq:Hdia_inv");
+  memory->create(b_s,nmax,"qeq:b_s");
+  memory->create(b_t,nmax,"qeq:b_t");
+  memory->create(b_prc,nmax,"qeq:b_prc");
+  memory->create(b_prm,nmax,"qeq:b_prm");
 
-  // CG
-  p = (double*) memory->smalloc( nmax * sizeof(double), "qeq:p" );
-  q = (double*) memory->smalloc( nmax * sizeof(double), "qeq:q" );
-  r = (double*) memory->smalloc( nmax * sizeof(double), "qeq:r" );
-  d = (double*) memory->smalloc( nmax * sizeof(double), "qeq:d" );
+  memory->create(p,nmax,"qeq:p");
+  memory->create(q,nmax,"qeq:q");
+  memory->create(r,nmax,"qeq:r");
+  memory->create(d,nmax,"qeq:d");
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixQEqReax::deallocate_storage()
 {
-  memory->sfree(s);
-  memory->sfree(t);
+  memory->destroy(s);
+  memory->destroy(t);
 
-  memory->sfree( Hdia_inv );
-  memory->sfree( b_s );
-  memory->sfree( b_t );
-  memory->sfree( b_prc );
-  memory->sfree( b_prm );
+  memory->destroy( Hdia_inv );
+  memory->destroy( b_s );
+  memory->destroy( b_t );
+  memory->destroy( b_prc );
+  memory->destroy( b_prm );
 
-  memory->sfree( p );
-  memory->sfree( q );
-  memory->sfree( r );
-  memory->sfree( d );
+  memory->destroy( p );
+  memory->destroy( q );
+  memory->destroy( r );
+  memory->destroy( d );
 }
 
 /* ---------------------------------------------------------------------- */
@@ -255,20 +253,20 @@ void FixQEqReax::allocate_matrix()
   
   H.n = n_cap;
   H.m = m_cap;
-  H.firstnbr = (int*) memory->smalloc( n_cap * sizeof(int), "qeq:H.firstnbr" );
-  H.numnbrs = (int*) memory->smalloc( n_cap * sizeof(int), "qeq:H.numnbrs" );
-  H.jlist = (int*)  memory->smalloc( m_cap * sizeof(int), "qeq:H.jlist" );
-  H.val = (double*) memory->smalloc( m_cap * sizeof(double), "qeq:H.val" );
+  memory->create(H.firstnbr,n_cap,"qeq:H.firstnbr");
+  memory->create(H.numnbrs,n_cap,"qeq:H.numnbrs");
+  memory->create(H.jlist,m_cap,"qeq:H.jlist");
+  memory->create(H.val,m_cap,"qeq:H.val");
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixQEqReax::deallocate_matrix()
 {
-  memory->sfree( H.firstnbr );
-  memory->sfree( H.numnbrs );
-  memory->sfree( H.jlist );
-  memory->sfree( H.val ); 
+  memory->destroy( H.firstnbr );
+  memory->destroy( H.numnbrs );
+  memory->destroy( H.jlist );
+  memory->destroy( H.val ); 
 }
 
 /* ---------------------------------------------------------------------- */

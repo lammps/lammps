@@ -425,10 +425,10 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
 
 FixAveTime::~FixAveTime()
 {
-  memory->sfree(which);
-  memory->sfree(argindex);
-  memory->sfree(value2index);
-  memory->sfree(offcol);
+  memory->destroy(which);
+  memory->destroy(argindex);
+  memory->destroy(value2index);
+  memory->destroy(offcol);
   for (int i = 0; i < nvalues; i++) delete [] ids[i];
   memory->sfree(ids);
 
@@ -868,8 +868,7 @@ void FixAveTime::options(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"off") == 0) {
       if (iarg+2 > narg) error->all("Illegal fix ave/time command");
-      offlist = (int *) 
-	memory->srealloc(offlist,(noff+1)*sizeof(int),"ave/time:offlist");
+      memory->grow(offlist,noff+1,"ave/time:offlist");
       offlist[noff++] = atoi(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"title1") == 0) {
@@ -903,12 +902,10 @@ void FixAveTime::options(int narg, char **arg)
 
 void FixAveTime::allocate_values(int n)
 {
-  which = (int *) memory->srealloc(which,n*sizeof(int),"ave/time:which");
-  argindex = (int *) memory->srealloc(argindex,n*sizeof(int),
-				      "ave/time:argindex");
-  value2index = (int *) memory->srealloc(value2index,n*sizeof(int),
-					 "ave/time:value2index");
-  offcol = (int *) memory->srealloc(offcol,n*sizeof(int),"ave/time:offcol");
+  memory->grow(which,n,"ave/time:which");
+  memory->grow(argindex,n,"ave/time:argindex");
+  memory->grow(value2index,n,"ave/time:value2index");
+  memory->grow(offcol,n,"ave/time:offcol");
   ids = (char **) memory->srealloc(ids,n*sizeof(char *),"ave/time:ids");
 }
 

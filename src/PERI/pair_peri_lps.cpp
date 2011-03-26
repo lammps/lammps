@@ -77,8 +77,8 @@ PairPeriLPS::~PairPeriLPS()
     memory->destroy(s00); 		
     memory->destroy(alpha); 		
     memory->destroy(cut);
-    memory->sfree(theta);					
-    memory->sfree(s0_new);					
+    memory->destroy(theta);					
+    memory->destroy(s0_new);					
   }
 }
 
@@ -203,11 +203,11 @@ void PairPeriLPS::compute(int eflag, int vflag)
   // grow bond forces array if necessary
 
   if (atom->nmax > nmax) {
-    memory->sfree(s0_new);				
-    memory->sfree(theta);				
+    memory->destroy(s0_new);				
+    memory->destroy(theta);				
     nmax = atom->nmax;
-    s0_new = (double *) memory->smalloc(nmax*sizeof(double),"pair:s0_new");
-    theta = (double *) memory->smalloc(nmax*sizeof(double),"pair:theta");
+    memory->create(s0_new,nmax,"pair:s0_new");
+    memory->create(theta,nmax,"pair:theta");
   }
 
   // Compute the dilatation on each particle				
@@ -554,9 +554,9 @@ double PairPeriLPS::single(int i, int j, int itype, int jtype,
   }
  
    if (atom->nmax > nmax) {
-    memory->sfree(theta);
+    memory->destroy(theta);
     nmax = atom->nmax;
-    theta = (double *) memory->smalloc(nmax*sizeof(double),"pair:theta");
+    memory->create(theta,nmax,"pair:theta");
   }
 
   // Compute the dilatation on each particle			

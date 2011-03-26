@@ -56,7 +56,8 @@ TAD::TAD(LAMMPS *lmp) : Pointers(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
-TAD::~TAD() {
+TAD::~TAD()
+{
   memory->sfree(fix_event_list);
   if (neb_logfilename != NULL) delete [] neb_logfilename;
   delete [] min_style;
@@ -655,8 +656,8 @@ void TAD::perform_neb(int ievent)
   double **x = atom->x;
   int nlocal = atom->nlocal;
 
-  double *buf_final = (double *) 
-    memory->smalloc(3*nlocal*sizeof(double),"tad:buffinal");
+  double *buf_final;
+  memory->create(buf_final,3*nlocal,"tad:buffinal");
 
   // set system to quenched state of event ievent
 
@@ -675,8 +676,8 @@ void TAD::perform_neb(int ievent)
   MPI_Bcast(buf_final,3*nlocal,MPI_DOUBLE,universe->root_proc[0],
 	    universe->uworld);
 
-  double *buf_init = (double *)
-    memory->smalloc(3*nlocal*sizeof(double),"tad:bufinit");
+  double *buf_init;
+  memory->create(buf_init,3*nlocal,"tad:bufinit");
     
   // set system to quenched state of fix_event
 
@@ -727,8 +728,8 @@ void TAD::perform_neb(int ievent)
 
   // free up temporary arrays
 
-  memory->sfree(buf_init);
-  memory->sfree(buf_final);
+  memory->destroy(buf_init);
+  memory->destroy(buf_final);
 
   // Run NEB
 
@@ -1003,7 +1004,8 @@ void TAD::perform_event(int ievent)
 
 void TAD::grow_event_list(int nmax) {
   if (nmax_event_list > nmax) return;
-  fix_event_list = (FixEventTAD **) memory->srealloc(fix_event_list,nmax*sizeof(FixEventTAD *),"tad:eventlist");
+  fix_event_list = (FixEventTAD **) 
+    memory->srealloc(fix_event_list,nmax*sizeof(FixEventTAD *),"tad:eventlist");
   nmax_event_list = nmax;
 }
 

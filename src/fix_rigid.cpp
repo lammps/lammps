@@ -178,9 +178,8 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 
   // create all nbody-length arrays
 
-  nrigid = (int *) memory->smalloc(nbody*sizeof(int),"rigid:nrigid");
-  masstotal = (double *)
-    memory->smalloc(nbody*sizeof(double),"rigid:masstotal");
+  memory->create(nrigid,nbody,"rigid:nrigid");
+  memory->create(masstotal,nbody,"rigid:masstotal");
   memory->create(xcm,nbody,3,"rigid:xcm");
   memory->create(vcm,nbody,3,"rigid:vcm");
   memory->create(fcm,nbody,3,"rigid:fcm");
@@ -192,7 +191,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   memory->create(omega,nbody,3,"rigid:omega");
   memory->create(torque,nbody,3,"rigid:torque");
   memory->create(quat,nbody,4,"rigid:quat");
-  imagebody = (int *) memory->smalloc(nbody*sizeof(int),"rigid:imagebody");
+  memory->create(imagebody,nbody,"rigid:imagebody");
   memory->create(fflag,nbody,3,"rigid:fflag");
   memory->create(tflag,nbody,3,"rigid:tflag");
 
@@ -383,16 +382,16 @@ FixRigid::~FixRigid()
   
   // delete locally stored arrays
   
-  memory->sfree(body);
+  memory->destroy(body);
   memory->destroy(displace);
-  memory->sfree(eflags);
+  memory->destroy(eflags);
   memory->destroy(dorient);
   memory->destroy(qorient);
   
   // delete nbody-length arrays
 
-  memory->sfree(nrigid);
-  memory->sfree(masstotal);
+  memory->destroy(nrigid);
+  memory->destroy(masstotal);
   memory->destroy(xcm);
   memory->destroy(vcm);
   memory->destroy(fcm);
@@ -404,7 +403,7 @@ FixRigid::~FixRigid()
   memory->destroy(omega);
   memory->destroy(torque);
   memory->destroy(quat);
-  memory->sfree(imagebody);
+  memory->destroy(imagebody);
   memory->destroy(fflag);
   memory->destroy(tflag);
 
@@ -2156,11 +2155,10 @@ double FixRigid::memory_usage()
 
 void FixRigid::grow_arrays(int nmax)
 {
-  body = (int *) memory->srealloc(body,nmax*sizeof(int),"rigid:body");
+  memory->grow(body,nmax,"rigid:body");
   memory->grow(displace,nmax,3,"rigid:displace");
   if (extended) {
-    eflags = (int *)
-      memory->srealloc(eflags,nmax*sizeof(int),"rigid:eflags");
+    memory->grow(eflags,nmax,"rigid:eflags");
     if (dorientflag) memory->grow(dorient,nmax,3,"rigid:dorient");
     if (qorientflag) memory->grow(qorient,nmax,4,"rigid:qorient");
   }

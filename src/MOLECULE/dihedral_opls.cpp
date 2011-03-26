@@ -46,11 +46,11 @@ DihedralOPLS::DihedralOPLS(LAMMPS *lmp) : Dihedral(lmp) {}
 DihedralOPLS::~DihedralOPLS()
 {
   if (allocated) {
-    memory->sfree(setflag);
-    memory->sfree(k1);
-    memory->sfree(k2);
-    memory->sfree(k3);
-    memory->sfree(k4);
+    memory->destroy(setflag);
+    memory->destroy(k1);
+    memory->destroy(k2);
+    memory->destroy(k3);
+    memory->destroy(k4);
   }
 }
 
@@ -273,12 +273,12 @@ void DihedralOPLS::allocate()
   allocated = 1;
   int n = atom->ndihedraltypes;
 
-  k1 = (double *) memory->smalloc((n+1)*sizeof(double),"dihedral:k1");
-  k2 = (double *) memory->smalloc((n+1)*sizeof(double),"dihedral:k2");
-  k3 = (double *) memory->smalloc((n+1)*sizeof(double),"dihedral:k3");
-  k4 = (double *) memory->smalloc((n+1)*sizeof(double),"dihedral:k4");
+  memory->create(k1,n+1,"dihedral:k1");
+  memory->create(k2,n+1,"dihedral:k2");
+  memory->create(k3,n+1,"dihedral:k3");
+  memory->create(k4,n+1,"dihedral:k4");
 
-  setflag = (int *) memory->smalloc((n+1)*sizeof(int),"dihedral:setflag");
+  memory->create(setflag,n+1,"dihedral:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
 }
 

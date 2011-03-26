@@ -72,8 +72,8 @@ PairCDEAM::PairCDEAM(LAMMPS *lmp, int _cdeamVersion) : PairEAM(lmp), PairEAMAllo
 
 PairCDEAM::~PairCDEAM()
 {
-	memory->sfree(rhoB);
-	memory->sfree(D_values);
+	memory->destroy(rhoB);
+	memory->destroy(D_values);
 	if(hcoeff) delete[] hcoeff;
 }
 
@@ -90,15 +90,15 @@ void PairCDEAM::compute(int eflag, int vflag)
 
 	// Grow per-atom arrays if necessary
 	if(atom->nmax > nmax) {
-		memory->sfree(rho);
-		memory->sfree(fp);
-		memory->sfree(rhoB);
-		memory->sfree(D_values);
+		memory->destroy(rho);
+		memory->destroy(fp);
+		memory->destroy(rhoB);
+		memory->destroy(D_values);
 		nmax = atom->nmax;
-		rho = (double *)memory->smalloc(nmax*sizeof(double),"pair:rho");
-		rhoB = (double *)memory->smalloc(nmax*sizeof(double),"pair:rhoB");
-		fp = (double *)memory->smalloc(nmax*sizeof(double),"pair:fp");
-		D_values = (double *)memory->smalloc(nmax*sizeof(double),"pair:D_values");
+		memory->create(rho,nmax,"pair:rho");
+		memory->create(rhoB,nmax,"pair:rhoB");
+		memory->create(fp,nmax,"pair:fp");
+		memory->create(D_values,nmax,"pair:D_values");
 	}
 
 	double **x = atom->x;

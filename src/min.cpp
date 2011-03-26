@@ -84,9 +84,9 @@ Min::~Min()
 
   memory->sfree(xextra_atom);
   memory->sfree(fextra_atom);
-  memory->sfree(extra_peratom);
-  memory->sfree(extra_nlen);
-  memory->sfree(extra_max);
+  memory->destroy(extra_peratom);
+  memory->destroy(extra_nlen);
+  memory->destroy(extra_max);
   memory->sfree(requestor);
 }
 
@@ -116,9 +116,9 @@ void Min::init()
   nextra_atom = 0;
   memory->sfree(xextra_atom);
   memory->sfree(fextra_atom);
-  memory->sfree(extra_peratom);
-  memory->sfree(extra_nlen);
-  memory->sfree(extra_max);
+  memory->destroy(extra_peratom);
+  memory->destroy(extra_nlen);
+  memory->destroy(extra_max);
   memory->sfree(requestor);
   xextra_atom = fextra_atom = NULL;
   extra_peratom = extra_nlen = NULL;
@@ -554,12 +554,9 @@ int Min::request(Pair *pair, int peratom, double maxvalue)
 					     "min:xextra_atom");
   fextra_atom = (double **) memory->srealloc(fextra_atom,n*sizeof(double *),
 					     "min:fextra_atom");
-  extra_peratom = (int *) memory->srealloc(extra_peratom,n*sizeof(int),
-					   "min:extra_peratom");
-  extra_nlen = (int *) memory->srealloc(extra_nlen,n*sizeof(int),
-					"min:extra_nlen");
-  extra_max = (double *) memory->srealloc(extra_max,n*sizeof(double),
-					  "min:extra_max");
+  memory->grow(extra_peratom,n,"min:extra_peratom");
+  memory->grow(extra_nlen,n,"min:extra_nlen");
+  memory->grow(extra_max,n,"min:extra_max");
   requestor = (Pair **) memory->srealloc(requestor,n*sizeof(Pair *),
 					 "min:requestor");
 

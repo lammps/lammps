@@ -183,12 +183,8 @@ void WriteRestart::write(char *file)
   MPI_Allreduce(&send_size,&max_size,1,MPI_INT,MPI_MAX,world);
 
   double *buf;
-  if (me == 0) 
-    buf = (double *) 
-      memory->smalloc(max_size*sizeof(double),"write_restart:buf");
-  else
-    buf = (double *) 
-      memory->smalloc(send_size*sizeof(double),"write_restart:buf");
+  if (me == 0) memory->create(buf,max_size,"write_restart:buf");
+  else memory->create(buf,send_size,"write_restart:buf");
 
   // pack my atom data into buf
 
@@ -296,7 +292,7 @@ void WriteRestart::write(char *file)
     fclose(fp);
   }
     
-  memory->sfree(buf);
+  memory->destroy(buf);
 }
 
 /* ----------------------------------------------------------------------

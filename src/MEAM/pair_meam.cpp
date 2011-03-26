@@ -78,17 +78,17 @@ PairMEAM::~PairMEAM()
 {
   meam_cleanup_();
 
-  memory->sfree(rho);
-  memory->sfree(rho0);
-  memory->sfree(rho1);
-  memory->sfree(rho2);
-  memory->sfree(rho3);
-  memory->sfree(frhop);
-  memory->sfree(gamma);
-  memory->sfree(dgamma1);
-  memory->sfree(dgamma2);
-  memory->sfree(dgamma3);
-  memory->sfree(arho2b);
+  memory->destroy(rho);
+  memory->destroy(rho0);
+  memory->destroy(rho1);
+  memory->destroy(rho2);
+  memory->destroy(rho3);
+  memory->destroy(frhop);
+  memory->destroy(gamma);
+  memory->destroy(dgamma1);
+  memory->destroy(dgamma2);
+  memory->destroy(dgamma3);
+  memory->destroy(arho2b);
 
   memory->destroy(arho1);
   memory->destroy(arho2);
@@ -97,9 +97,9 @@ PairMEAM::~PairMEAM()
   memory->destroy(t_ave);
   memory->destroy(tsq_ave);
 
-  memory->sfree(scrfcn);
-  memory->sfree(dscrfcn);
-  memory->sfree(fcpair);
+  memory->destroy(scrfcn);
+  memory->destroy(dscrfcn);
+  memory->destroy(fcpair);
   
   for (int i = 0; i < nelements; i++) delete [] elements[i];
   delete [] elements;
@@ -132,17 +132,17 @@ void PairMEAM::compute(int eflag, int vflag)
   // grow local arrays if necessary
 
   if (atom->nmax > nmax) {
-    memory->sfree(rho);
-    memory->sfree(rho0);
-    memory->sfree(rho1);
-    memory->sfree(rho2);
-    memory->sfree(rho3);
-    memory->sfree(frhop);
-    memory->sfree(gamma);
-    memory->sfree(dgamma1);
-    memory->sfree(dgamma2);
-    memory->sfree(dgamma3);
-    memory->sfree(arho2b);
+    memory->destroy(rho);
+    memory->destroy(rho0);
+    memory->destroy(rho1);
+    memory->destroy(rho2);
+    memory->destroy(rho3);
+    memory->destroy(frhop);
+    memory->destroy(gamma);
+    memory->destroy(dgamma1);
+    memory->destroy(dgamma2);
+    memory->destroy(dgamma3);
+    memory->destroy(arho2b);
     memory->destroy(arho1);
     memory->destroy(arho2);
     memory->destroy(arho3);
@@ -152,17 +152,17 @@ void PairMEAM::compute(int eflag, int vflag)
 
     nmax = atom->nmax;
 
-    rho = (double *) memory->smalloc(nmax*sizeof(double),"pair:rho");
-    rho0 = (double *) memory->smalloc(nmax*sizeof(double),"pair:rho0");
-    rho1 = (double *) memory->smalloc(nmax*sizeof(double),"pair:rho1");
-    rho2 = (double *) memory->smalloc(nmax*sizeof(double),"pair:rho2");
-    rho3 = (double *) memory->smalloc(nmax*sizeof(double),"pair:rho3");
-    frhop = (double *) memory->smalloc(nmax*sizeof(double),"pair:frhop");
-    gamma = (double *) memory->smalloc(nmax*sizeof(double),"pair:gamma");
-    dgamma1 = (double *) memory->smalloc(nmax*sizeof(double),"pair:dgamma1");
-    dgamma2 = (double *) memory->smalloc(nmax*sizeof(double),"pair:dgamma2");
-    dgamma3 = (double *) memory->smalloc(nmax*sizeof(double),"pair:dgamma3");
-    arho2b = (double *) memory->smalloc(nmax*sizeof(double),"pair:arho2b");
+    memory->create(rho,nmax,"pair:rho");
+    memory->create(rho0,nmax,"pair:rho0");
+    memory->create(rho1,nmax,"pair:rho1");
+    memory->create(rho2,nmax,"pair:rho2");
+    memory->create(rho3,nmax,"pair:rho3");
+    memory->create(frhop,nmax,"pair:frhop");
+    memory->create(gamma,nmax,"pair:gamma");
+    memory->create(dgamma1,nmax,"pair:dgamma1");
+    memory->create(dgamma2,nmax,"pair:dgamma2");
+    memory->create(dgamma3,nmax,"pair:dgamma3");
+    memory->create(arho2b,nmax,"pair:arho2b");
     memory->create(arho1,nmax,3,"pair:arho1");
     memory->create(arho2,nmax,6,"pair:arho2");
     memory->create(arho3,nmax,10,"pair:arho3");
@@ -189,16 +189,13 @@ void PairMEAM::compute(int eflag, int vflag)
   for (ii = 0; ii < inum_half; ii++) n += numneigh_half[ilist_half[ii]];
 
   if (n > maxneigh) {
-    memory->sfree(scrfcn);
-    memory->sfree(dscrfcn);
-    memory->sfree(fcpair);
+    memory->destroy(scrfcn);
+    memory->destroy(dscrfcn);
+    memory->destroy(fcpair);
     maxneigh = n;
-    scrfcn =
-      (double *) memory->smalloc(maxneigh*sizeof(double),"pair:scrfcn");
-    dscrfcn = 
-      (double *) memory->smalloc(maxneigh*sizeof(double),"pair:dscrfcn");
-    fcpair = 
-      (double *) memory->smalloc(maxneigh*sizeof(double),"pair:fcpair");
+    memory->create(scrfcn,maxneigh,"pair:scrfcn");
+    memory->create(dscrfcn,maxneigh,"pair:dscrfcn");
+    memory->create(fcpair,maxneigh,"pair:fcpair");
   }
 
   // zero out local arrays

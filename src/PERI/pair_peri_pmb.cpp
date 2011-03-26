@@ -71,7 +71,7 @@ PairPeriPMB::~PairPeriPMB()
     memory->destroy(s00);
     memory->destroy(alpha);
     memory->destroy(cut);
-    memory->sfree(s0_new);
+    memory->destroy(s0_new);
   }
 }
 
@@ -187,9 +187,9 @@ void PairPeriPMB::compute(int eflag, int vflag)
   // grow bond forces array if necessary
 
   if (nlocal > nmax) {
-    memory->sfree(s0_new);
+    memory->destroy(s0_new);
     nmax = atom->nmax;
-    s0_new = (double *) memory->smalloc(nmax*sizeof(double),"pair:s0_new");
+    memory->create(s0_new,nmax,"pair:s0_new");
   }
 
   // loop over my particles and their partners

@@ -102,17 +102,17 @@ PairREAX::~PairREAX()
     delete [] map;
   }
 
-  memory->sfree(arow_ptr);
-  memory->sfree(ch);
-  memory->sfree(elcvec);
-  memory->sfree(rcg);
-  memory->sfree(wcg);
-  memory->sfree(pcg);
-  memory->sfree(poldcg);
-  memory->sfree(qcg);
+  memory->destroy(arow_ptr);
+  memory->destroy(ch);
+  memory->destroy(elcvec);
+  memory->destroy(rcg);
+  memory->destroy(wcg);
+  memory->destroy(pcg);
+  memory->destroy(poldcg);
+  memory->destroy(qcg);
 
-  memory->sfree(aval);
-  memory->sfree(acol_ind);
+  memory->destroy(aval);
+  memory->destroy(acol_ind);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -137,23 +137,23 @@ void PairREAX::compute(int eflag, int vflag)
   // reallocate charge equilibration and CG arrays if necessary
 
   if (atom->nmax > nmax) {
-    memory->sfree(rcg);
-    memory->sfree(wcg);
-    memory->sfree(pcg);
-    memory->sfree(poldcg);
-    memory->sfree(qcg);
+    memory->destroy(rcg);
+    memory->destroy(wcg);
+    memory->destroy(pcg);
+    memory->destroy(poldcg);
+    memory->destroy(qcg);
 
     nmax = atom->nmax;
     int n = nmax+1;
 
-    arow_ptr = (int *) memory->smalloc(n*sizeof(int),"reax:arow_ptr");
-    ch = (double *) memory->smalloc(n*sizeof(double),"reax:ch");
-    elcvec = (double *) memory->smalloc(n*sizeof(double),"reax:elcvec");
-    rcg = (double *) memory->smalloc(n*sizeof(double),"reax:rcg");
-    wcg = (double *) memory->smalloc(n*sizeof(double),"reax:wcg");
-    pcg = (double *) memory->smalloc(n*sizeof(double),"reax:pcg");
-    poldcg = (double *) memory->smalloc(n*sizeof(double),"reax:poldcg");
-    qcg = (double *) memory->smalloc(n*sizeof(double),"reax:qcg");
+    memory->create(arow_ptr,n,"reax:arow_ptr");
+    memory->create(ch,n,"reax:ch");
+    memory->create(elcvec,n,"reax:elcvec");
+    memory->create(rcg,n,"reax:rcg");
+    memory->create(wcg,n,"reax:wcg");
+    memory->create(pcg,n,"reax:pcg");
+    memory->create(poldcg,n,"reax:poldcg");
+    memory->create(qcg,n,"reax:qcg");
   }
 
   // calculate the atomic charge distribution
@@ -779,11 +779,11 @@ void PairREAX::compute_charge(double &energy_charge_equilibration)
     numneigh_total += numneigh[ilist[ii]];
 
   if (numneigh_total + 2*nlocal > matmax) {
-    memory->sfree(aval);
-    memory->sfree(acol_ind);
+    memory->destroy(aval);
+    memory->destroy(acol_ind);
     matmax = numneigh_total + 2*nlocal;
-    aval = (double *) memory->smalloc(matmax*sizeof(double),"reax:aval");
-    acol_ind = (int *) memory->smalloc(matmax*sizeof(int),"reax:acol_ind");
+    memory->create(aval,matmax,"reax:aval");
+    memory->create(acol_ind,matmax,"reax:acol_ind");
   }
 
   // build linear system

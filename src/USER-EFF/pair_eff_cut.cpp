@@ -55,8 +55,8 @@ PairEffCut::PairEffCut(LAMMPS *lmp) : Pair(lmp)
 PairEffCut::~PairEffCut()
 {
   delete [] pvector;
-  memory->sfree(min_eradius);
-  memory->sfree(min_erforce);
+  memory->destroy(min_eradius);
+  memory->destroy(min_erforce);
 
   if (allocated) {
     memory->destroy(setflag);
@@ -898,13 +898,11 @@ void PairEffCut::min_xf_pointers(int ignore, double **xextra, double **fextra)
   // need to be atom->nmax in length
 
   if (atom->nmax > nmax) {
-    memory->sfree(min_eradius);
-    memory->sfree(min_erforce);
+    memory->destroy(min_eradius);
+    memory->destroy(min_erforce);
     nmax = atom->nmax;
-    min_eradius = (double *) memory->smalloc(nmax*sizeof(double),
-					     "pair:min_eradius");
-    min_erforce = (double *) memory->smalloc(nmax*sizeof(double),
-					     "pair:min_erforce");
+    memory->create(min_eradius,nmax,"pair:min_eradius");
+    memory->create(min_erforce,nmax,"pair:min_erforce");
   }
 
   *xextra = min_eradius;

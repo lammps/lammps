@@ -42,12 +42,12 @@ BondQuartic::BondQuartic(LAMMPS *lmp) : Bond(lmp)
 BondQuartic::~BondQuartic()
 {
   if (allocated) {
-    memory->sfree(setflag);
-    memory->sfree(k);
-    memory->sfree(b1);
-    memory->sfree(b2);
-    memory->sfree(rc);
-    memory->sfree(u0);
+    memory->destroy(setflag);
+    memory->destroy(k);
+    memory->destroy(b1);
+    memory->destroy(b2);
+    memory->destroy(rc);
+    memory->destroy(u0);
   }
 }
 
@@ -184,13 +184,13 @@ void BondQuartic::allocate()
   allocated = 1;
   int n = atom->nbondtypes;
 
-  k = (double *) memory->smalloc((n+1)*sizeof(double),"bond:k");
-  b1 = (double *) memory->smalloc((n+1)*sizeof(double),"bond:b1");
-  b2 = (double *) memory->smalloc((n+1)*sizeof(double),"bond:b2");
-  rc = (double *) memory->smalloc((n+1)*sizeof(double),"bond:rc");
-  u0 = (double *) memory->smalloc((n+1)*sizeof(double),"bond:u0");
+  memory->create(k,n+1,"bond:k");
+  memory->create(b1,n+1,"bond:b1");
+  memory->create(b2,n+1,"bond:b2");
+  memory->create(rc,n+1,"bond:rc");
+  memory->create(u0,n+1,"bond:u0");
 
-  setflag = (int *) memory->smalloc((n+1)*sizeof(int),"bond:setflag");
+  memory->create(setflag,n+1,"bond:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
 }
 

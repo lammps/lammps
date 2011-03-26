@@ -61,8 +61,8 @@ FixReaxC::~FixReaxC()
 
   // delete locally stored arrays
 
-  memory->sfree(num_bonds);
-  memory->sfree(num_hbonds);
+  memory->destroy(num_bonds);
+  memory->destroy(num_hbonds);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -90,10 +90,8 @@ double FixReaxC::memory_usage()
 
 void FixReaxC::grow_arrays(int nmax)
 {
-  num_bonds = (int *) memory->srealloc(num_bonds,nmax*sizeof(int),
-				       "reaxc:num_bonds");
-  num_hbonds = (int *) memory->srealloc(num_hbonds,nmax*sizeof(int),
-					"reaxc:num_hbonds");
+  memory->grow(num_bonds,nmax,"reaxc:num_bonds");
+  memory->grow(num_hbonds,nmax,"reaxc:num_hbonds");
 }
 
 /* ----------------------------------------------------------------------

@@ -1008,7 +1008,8 @@ void FixNH::write_restart(FILE *fp)
     if (deviatoric_flag) nsize += 6;
   }
 
-  double* list = (double *) memory->smalloc(nsize*sizeof(double),"nh:list");
+  double *list;
+  memory->create(list,nsize,"nh:list");
 
   int n = 0;
 
@@ -1062,7 +1063,7 @@ void FixNH::write_restart(FILE *fp)
     fwrite(list,sizeof(double),nsize,fp);
   }
 
-  memory->sfree(list);
+  memory->destroy(list);
 }
 
 /* ----------------------------------------------------------------------

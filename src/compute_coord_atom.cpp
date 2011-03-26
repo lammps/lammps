@@ -50,7 +50,7 @@ ComputeCoordAtom::ComputeCoordAtom(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeCoordAtom::~ComputeCoordAtom()
 {
-  memory->sfree(coordination);
+  memory->destroy(coordination);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -98,10 +98,9 @@ void ComputeCoordAtom::compute_peratom()
   // grow coordination array if necessary
 
   if (atom->nlocal > nmax) {
-    memory->sfree(coordination);
+    memory->destroy(coordination);
     nmax = atom->nmax;
-    coordination = (double *) 
-      memory->smalloc(nmax*sizeof(double),"coord/atom:coordination");
+    memory->create(coordination,nmax,"coord/atom:coordination");
     vector_atom = coordination;
   }
 

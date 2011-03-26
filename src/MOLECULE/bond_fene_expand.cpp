@@ -38,12 +38,12 @@ BondFENEExpand::BondFENEExpand(LAMMPS *lmp) : Bond(lmp)
 BondFENEExpand::~BondFENEExpand()
 {
   if (allocated) {
-    memory->sfree(setflag);
-    memory->sfree(k);
-    memory->sfree(r0);
-    memory->sfree(epsilon);
-    memory->sfree(sigma);
-    memory->sfree(shift);
+    memory->destroy(setflag);
+    memory->destroy(k);
+    memory->destroy(r0);
+    memory->destroy(epsilon);
+    memory->destroy(sigma);
+    memory->destroy(shift);
   }
 }
 
@@ -142,12 +142,12 @@ void BondFENEExpand::allocate()
   allocated = 1;
   int n = atom->nbondtypes;
 
-  k = (double *) memory->smalloc((n+1)*sizeof(double),"bond:k");
-  r0 = (double *) memory->smalloc((n+1)*sizeof(double),"bond:r0");
-  epsilon = (double *) memory->smalloc((n+1)*sizeof(double),"bond:epsilon");
-  sigma = (double *) memory->smalloc((n+1)*sizeof(double),"bond:sigma");
-  shift = (double *) memory->smalloc((n+1)*sizeof(double),"bond:shift");
-  setflag = (int *) memory->smalloc((n+1)*sizeof(int),"bond:setflag");
+  memory->create(k,n+1,"bond:k");
+  memory->create(r0,n+1,"bond:r0");
+  memory->create(epsilon,n+1,"bond:epsilon");
+  memory->create(sigma,n+1,"bond:sigma");
+  memory->create(shift,n+1,"bond:shift");
+  memory->create(setflag,n+1,"bond:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
 }
 

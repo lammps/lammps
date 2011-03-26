@@ -82,11 +82,11 @@ FixPeriNeigh::~FixPeriNeigh()
 
   // delete locally stored arrays
 
-  memory->sfree(npartner);
+  memory->destroy(npartner);
   memory->destroy(partner);
   memory->destroy(r0);
-  memory->sfree(vinter);
-  memory->sfree(wvolume);
+  memory->destroy(vinter);
+  memory->destroy(wvolume);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -197,7 +197,7 @@ void FixPeriNeigh::setup(int vflag)
 
   memory->destroy(partner);
   memory->destroy(r0);
-  memory->sfree(npartner);
+  memory->destroy(npartner);
 
   npartner = NULL;
   partner = NULL;
@@ -354,14 +354,11 @@ double FixPeriNeigh::memory_usage()
 
 void FixPeriNeigh::grow_arrays(int nmax)
 {
-  npartner = (int *) memory->srealloc(npartner,nmax*sizeof(int),
-				      "peri_neigh:npartner");
+  memory->grow(npartner,nmax,"peri_neigh:npartner");
   memory->grow(partner,nmax,maxpartner,"peri_neigh:partner");
   memory->grow(r0,nmax,maxpartner,"peri_neigh:r0");
-  vinter = (double *) memory->srealloc(vinter,nmax*sizeof(double),
-				       "peri_neigh:vinter");
-  wvolume = (double *) memory->srealloc(wvolume,nmax*sizeof(double),
-                                       "peri_neigh:wvolume");
+  memory->grow(vinter,nmax,"peri_neigh:vinter");
+  memory->grow(wvolume,nmax,"peri_neigh:wvolume");
 }
 
 /* ----------------------------------------------------------------------

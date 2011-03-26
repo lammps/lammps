@@ -63,7 +63,7 @@ FixShearHistory::~FixShearHistory()
 
   // delete locally stored arrays
 
-  memory->sfree(npartner);
+  memory->destroy(npartner);
   memory->destroy(partner);
   memory->destroy(shearpartner);
 }
@@ -176,8 +176,7 @@ double FixShearHistory::memory_usage()
 
 void FixShearHistory::grow_arrays(int nmax)
 {
-  npartner = (int *) memory->srealloc(npartner,nmax*sizeof(int),
-				      "shear_history:npartner");
+  memory->grow(npartner,nmax,"shear_history:npartner");
   memory->grow(partner,nmax,MAXTOUCH,"shear_history:partner");
   memory->grow(shearpartner,nmax,MAXTOUCH,3,"shear_history:shearpartner");
 }

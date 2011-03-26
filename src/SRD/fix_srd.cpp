@@ -249,24 +249,24 @@ FixSRD::~FixSRD()
   delete random;
   delete randomshift;
 
-  memory->sfree(binhead);
-  memory->sfree(binnext);
-  memory->sfree(sbuf1);
-  memory->sfree(sbuf2);
-  memory->sfree(rbuf1);
-  memory->sfree(rbuf2);
+  memory->destroy(binhead);
+  memory->destroy(binnext);
+  memory->destroy(sbuf1);
+  memory->destroy(sbuf2);
+  memory->destroy(rbuf1);
+  memory->destroy(rbuf2);
 
   memory->sfree(shifts[0].vbin);
   memory->sfree(shifts[1].vbin);
   for (int ishift = 0; ishift < 2; ishift++)
     for (int iswap = 0; iswap < 6; iswap++) {
-      memory->sfree(shifts[ishift].bcomm[iswap].sendlist);
-      memory->sfree(shifts[ishift].bcomm[iswap].recvlist);
+      memory->destroy(shifts[ishift].bcomm[iswap].sendlist);
+      memory->destroy(shifts[ishift].bcomm[iswap].recvlist);
     }
 
-  memory->sfree(nbinbig);
+  memory->destroy(nbinbig);
   memory->destroy(binbig);
-  memory->sfree(binsrd);
+  memory->destroy(binsrd);
   memory->destroy(stencil);
   memory->sfree(biglist);
 }
@@ -425,10 +425,10 @@ void FixSRD::pre_neighbor()
 
   if (atom->nlocal > nmax) {
     nmax = atom->nmax;
-    memory->sfree(binsrd);
-    memory->sfree(binnext);
-    binsrd = (int *) memory->smalloc(nmax*sizeof(int),"fix/srd:binsrd");
-    binnext = (int *) memory->smalloc(nmax*sizeof(int),"fix/srd:binnext");
+    memory->destroy(binsrd);
+    memory->destroy(binnext);
+    memory->create(binsrd,nmax,"fix/srd:binsrd");
+    memory->create(binnext,nmax,"fix/srd:binnext");
   }
 
   // setup and grow BIG info list if necessary
@@ -452,7 +452,7 @@ void FixSRD::pre_neighbor()
 
     if (ninfo > maxbig) {
       maxbig = ninfo;
-      memory->sfree(biglist);
+      memory->destroy(biglist);
       biglist = (Big *) memory->smalloc(maxbig*sizeof(Big),"fix/srd:biglist");
     }
 
@@ -2690,9 +2690,9 @@ void FixSRD::setup_velocity_bins()
   max = MAX(max,shifts[1].nbins);
 
   if (max > maxbin1) {
-    memory->sfree(binhead);
+    memory->destroy(binhead);
     maxbin1 = max;
-    binhead = (int *) memory->smalloc(max*sizeof(int),"fix/srd:binhead");
+    memory->create(binhead,max,"fix/srd:binhead");
   }
 
   // allocate sbuf,rbuf based on biggest bin message
@@ -2705,19 +2705,15 @@ void FixSRD::setup_velocity_bins()
     }
 
   if (max > maxbuf) {
-    memory->sfree(sbuf1);
-    memory->sfree(sbuf2);
-    memory->sfree(rbuf1);
-    memory->sfree(rbuf2);
+    memory->destroy(sbuf1);
+    memory->destroy(sbuf2);
+    memory->destroy(rbuf1);
+    memory->destroy(rbuf2);
     maxbuf = max;
-    sbuf1 = (double *) 
-      memory->smalloc(max*VBINSIZE*sizeof(double),"fix/srd:sbuf");
-    sbuf2 = (double *) 
-      memory->smalloc(max*VBINSIZE*sizeof(double),"fix/srd:sbuf");
-    rbuf1 = (double *) 
-      memory->smalloc(max*VBINSIZE*sizeof(double),"fix/srd:rbuf");
-    rbuf2 = (double *) 
-      memory->smalloc(max*VBINSIZE*sizeof(double),"fix/srd:rbuf");
+    memory->create(sbuf1,max*VBINSIZE,"fix/srd:sbuf");
+    memory->create(sbuf2,max*VBINSIZE,"fix/srd:sbuf");
+    memory->create(rbuf1,max*VBINSIZE,"fix/srd:rbuf");
+    memory->create(rbuf2,max*VBINSIZE,"fix/srd:rbuf");
   }
 
   // commflag = 1 if any comm required due to bins overlapping proc boundaries
@@ -2865,18 +2861,14 @@ void FixSRD::setup_velocity_shift(int ishift, int dynamic)
   }
 
   if (reallocflag) {
-    memory->sfree(first->sendlist);
-    memory->sfree(first->recvlist);
-    memory->sfree(second->sendlist);
-    memory->sfree(second->recvlist);
-    first->sendlist = (int *) 
-      memory->smalloc(nbinsq*sizeof(int),"fix/srd:sendlist");
-    first->recvlist = (int *) 
-      memory->smalloc(nbinsq*sizeof(int),"fix/srd:sendlist");
-    second->sendlist = (int *) 
-      memory->smalloc(nbinsq*sizeof(int),"fix/srd:sendlist");
-    second->recvlist = (int *) 
-      memory->smalloc(nbinsq*sizeof(int),"fix/srd:sendlist");
+    memory->destroy(first->sendlist);
+    memory->destroy(first->recvlist);
+    memory->destroy(second->sendlist);
+    memory->destroy(second->recvlist);
+    memory->create(first->sendlist,nbinsq,"fix/srd:sendlist");
+    memory->create(first->recvlist,nbinsq,"fix/srd:sendlist");
+    memory->create(second->sendlist,nbinsq,"fix/srd:sendlist");
+    memory->create(second->recvlist,nbinsq,"fix/srd:sendlist");
   }
 
   m = 0;
@@ -2911,18 +2903,14 @@ void FixSRD::setup_velocity_shift(int ishift, int dynamic)
   }
   
   if (reallocflag) {
-    memory->sfree(first->sendlist);
-    memory->sfree(first->recvlist);
-    memory->sfree(second->sendlist);
-    memory->sfree(second->recvlist);
-    first->sendlist = (int *) 
-      memory->smalloc(nbinsq*sizeof(int),"fix/srd:sendlist");
-    first->recvlist = (int *) 
-      memory->smalloc(nbinsq*sizeof(int),"fix/srd:sendlist");
-    second->sendlist = (int *) 
-      memory->smalloc(nbinsq*sizeof(int),"fix/srd:sendlist");
-    second->recvlist = (int *) 
-      memory->smalloc(nbinsq*sizeof(int),"fix/srd:sendlist");
+    memory->destroy(first->sendlist);
+    memory->destroy(first->recvlist);
+    memory->destroy(second->sendlist);
+    memory->destroy(second->recvlist);
+    memory->create(first->sendlist,nbinsq,"fix/srd:sendlist");
+    memory->create(first->recvlist,nbinsq,"fix/srd:sendlist");
+    memory->create(second->sendlist,nbinsq,"fix/srd:sendlist");
+    memory->create(second->recvlist,nbinsq,"fix/srd:sendlist");
   }
   
   m = 0;
@@ -2958,18 +2946,14 @@ void FixSRD::setup_velocity_shift(int ishift, int dynamic)
     }
     
     if (reallocflag) {
-      memory->sfree(first->sendlist);
-      memory->sfree(first->recvlist);
-      memory->sfree(second->sendlist);
-      memory->sfree(second->recvlist);
-      first->sendlist = (int *) 
-	memory->smalloc(nbinx*nbiny*sizeof(int),"fix/srd:sendlist");
-      first->recvlist = (int *) 
-	memory->smalloc(nbinx*nbiny*sizeof(int),"fix/srd:sendlist");
-      second->sendlist = (int *) 
-	memory->smalloc(nbinx*nbiny*sizeof(int),"fix/srd:sendlist");
-      second->recvlist = (int *) 
-	memory->smalloc(nbinx*nbiny*sizeof(int),"fix/srd:sendlist");
+      memory->destroy(first->sendlist);
+      memory->destroy(first->recvlist);
+      memory->destroy(second->sendlist);
+      memory->destroy(second->recvlist);
+      memory->create(first->sendlist,nbinx*nbiny,"fix/srd:sendlist");
+      memory->create(first->recvlist,nbinx*nbiny,"fix/srd:sendlist");
+      memory->create(second->sendlist,nbinx*nbiny,"fix/srd:sendlist");
+      memory->create(second->recvlist,nbinx*nbiny,"fix/srd:sendlist");
     }
     
     m = 0;
@@ -2993,7 +2977,7 @@ void FixSRD::setup_velocity_shift(int ishift, int dynamic)
   // allocate vbins, only for dynamic = 0
   
   if (dynamic == 0 && nbins > shifts[ishift].maxvbin) {
-    memory->sfree(shifts[ishift].vbin);
+    memory->destroy(shifts[ishift].vbin);
     shifts[ishift].maxvbin = nbins;
     shifts[ishift].vbin = (BinAve *) 
       memory->smalloc(nbins*sizeof(BinAve),"fix/srd:vbin");
@@ -3122,10 +3106,10 @@ void FixSRD::setup_search_bins()
 
   nbins2 = nbin2x*nbin2y*nbin2z;
   if (nbins2 > maxbin2) {
-    memory->sfree(nbinbig);
+    memory->destroy(nbinbig);
     memory->destroy(binbig);
     maxbin2 = nbins2;
-    nbinbig = (int *) memory->smalloc(nbins2*sizeof(int),"fix/srd:nbinbig");
+    memory->create(nbinbig,nbins2,"fix/srd:nbinbig");
     memory->create(binbig,nbins2,ATOMPERBIN,"fix/srd:binbig");
   }
 }

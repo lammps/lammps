@@ -39,10 +39,10 @@ AngleCosinePeriodic::AngleCosinePeriodic(LAMMPS *lmp) : Angle(lmp) {}
 AngleCosinePeriodic::~AngleCosinePeriodic()
 {
   if (allocated) {
-    memory->sfree(setflag);
-    memory->sfree(k);
-    memory->sfree(b);
-    memory->sfree(multiplicity);
+    memory->destroy(setflag);
+    memory->destroy(k);
+    memory->destroy(b);
+    memory->destroy(multiplicity);
   }
 }
 
@@ -185,12 +185,11 @@ void AngleCosinePeriodic::allocate()
   allocated = 1;
   int n = atom->nangletypes;
 
-  k = (double *) memory->smalloc((n+1)*sizeof(double),"angle:k");
-  multiplicity = (int *) memory->smalloc((n+1)*sizeof(int),
-					 "angle:multiplicity");
-  b = (int *) memory->smalloc((n+1)*sizeof(int),"angle:b");
+  memory->create(k,n+1,"angle:k");
+  memory->create(multiplicity,n+1,"angle:multiplicity");
+  memory->create(b,n+1,"angle:b");
 
-  setflag = (int *) memory->smalloc((n+1)*sizeof(int),"angle:setflag");
+  memory->create(setflag,n+1,"angle:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
 }
 

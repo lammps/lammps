@@ -65,12 +65,12 @@ PairAIREBO::PairAIREBO(LAMMPS *lmp) : Pair(lmp)
 
 PairAIREBO::~PairAIREBO()
 {
-  memory->sfree(REBO_numneigh);
+  memory->destroy(REBO_numneigh);
   memory->sfree(REBO_firstneigh);
-  for (int i = 0; i < maxpage; i++) memory->sfree(pages[i]);
+  for (int i = 0; i < maxpage; i++) memory->destroy(pages[i]);
   memory->sfree(pages);
-  memory->sfree(nC);
-  memory->sfree(nH);
+  memory->destroy(nC);
+  memory->destroy(nH);
 
   if (allocated) {
     memory->destroy(setflag);
@@ -308,16 +308,15 @@ void PairAIREBO::REBO_neigh()
 
   if (nall > maxlocal) {
     maxlocal = atom->nmax;
-    memory->sfree(REBO_numneigh);
+    memory->destroy(REBO_numneigh);
     memory->sfree(REBO_firstneigh);
-    memory->sfree(nC);
-    memory->sfree(nH);
-    REBO_numneigh = (int *)
-      memory->smalloc(maxlocal*sizeof(int),"AIREBO:numneigh");
-    REBO_firstneigh = (int **)
-      memory->smalloc(maxlocal*sizeof(int *),"AIREBO:firstneigh");
-    nC = (double *) memory->smalloc(maxlocal*sizeof(double),"AIREBO:nC");
-    nH = (double *) memory->smalloc(maxlocal*sizeof(double),"AIREBO:nH");
+    memory->destroy(nC);
+    memory->destroy(nH);
+    memory->create(REBO_numneigh,maxlocal,"AIREBO:numneigh");
+    REBO_firstneigh = (int **) memory->smalloc(maxlocal*sizeof(int *),
+					       "AIREBO:firstneigh");
+    memory->create(nC,maxlocal,"AIREBO:nC");
+    memory->create(nH,maxlocal,"AIREBO:nH");
   }
   
   allnum = list->inum + list->gnum;
@@ -3360,7 +3359,7 @@ void PairAIREBO::add_pages(int npage)
   pages = (int **) 
     memory->srealloc(pages,maxpage*sizeof(int *),"AIREBO:pages");
   for (int i = npage; i < maxpage; i++)
-    pages[i] = (int *) memory->smalloc(pgsize*sizeof(int),"AIREBO:pages[i]");
+    memory->create(pages[i],pgsize,"AIREBO:pages[i]");
 }
 
 /* ----------------------------------------------------------------------

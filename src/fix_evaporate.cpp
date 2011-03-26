@@ -91,8 +91,8 @@ FixEvaporate::~FixEvaporate()
 {
   delete [] idregion;
   delete random;
-  memory->sfree(list);
-  memory->sfree(mark);
+  memory->destroy(list);
+  memory->destroy(mark);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -169,11 +169,11 @@ void FixEvaporate::pre_exchange()
   // grow list and mark arrays if necessary
 
   if (atom->nlocal > nmax) {
-    memory->sfree(list);
-    memory->sfree(mark);
+    memory->destroy(list);
+    memory->destroy(mark);
     nmax = atom->nmax;
-    list = (int *) memory->smalloc(nmax*sizeof(int),"evaporate:list");
-    mark = (int *) memory->smalloc(nmax*sizeof(int),"evaporate:mark");
+    memory->create(list,nmax,"evaporate:list");
+    memory->create(mark,nmax,"evaporate:mark");
   }
 
   // ncount = # of deletable atoms in region that I own

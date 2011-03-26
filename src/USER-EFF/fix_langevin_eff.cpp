@@ -49,7 +49,7 @@ FixLangevinEff::FixLangevinEff(LAMMPS *lmp, int narg, char **arg) :
 
 FixLangevinEff::~FixLangevinEff()
 {
-  memory->sfree(erforcelangevin);
+  memory->destroy(erforcelangevin);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -122,11 +122,10 @@ void FixLangevinEff::post_force_tally()
 
   if (atom->nmax > nmax) {
     memory->destroy(flangevin);
-    memory->sfree(erforcelangevin);
+    memory->destroy(erforcelangevin);
     nmax = atom->nmax;
     memory->create(flangevin,nmax,3,"langevin:flangevin");
-    erforcelangevin = (double *) 
-      memory->smalloc(nmax*sizeof(double),"langevin/eff:erforcelangevin");
+    memory->create(erforcelangevin,nmax,"langevin/eff:erforcelangevin");
   }
 
   double **v = atom->v;

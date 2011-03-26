@@ -39,9 +39,9 @@ ImproperHarmonic::ImproperHarmonic(LAMMPS *lmp) : Improper(lmp) {}
 ImproperHarmonic::~ImproperHarmonic()
 {
   if (allocated) {
-    memory->sfree(setflag);
-    memory->sfree(k);
-    memory->sfree(chi);
+    memory->destroy(setflag);
+    memory->destroy(k);
+    memory->destroy(chi);
   }
 }
 
@@ -221,10 +221,10 @@ void ImproperHarmonic::allocate()
   allocated = 1;
   int n = atom->nimpropertypes;
 
-  k = (double *) memory->smalloc((n+1)*sizeof(double),"improper:k");
-  chi = (double *) memory->smalloc((n+1)*sizeof(double),"improper:chi");
+  memory->create(k,n+1,"improper:k");
+  memory->create(chi,n+1,"improper:chi");
 
-  setflag = (int *) memory->smalloc((n+1)*sizeof(int),"improper:setflag");
+  memory->create(setflag,n+1,"improper:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
 }
 

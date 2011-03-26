@@ -272,7 +272,7 @@ FixPOEMS::~FixPOEMS()
 
   // delete locally stored arrays
 
-  memory->sfree(natom2body);
+  memory->destroy(natom2body);
   memory->destroy(atom2body);
   memory->destroy(displace);
 
@@ -921,7 +921,7 @@ void FixPOEMS::readfile(char *file)
     nbody++;
   }
 
-  memory->sfree(line);
+  memory->destroy(line);
   fclose(fp);
 }
 
@@ -936,8 +936,7 @@ int FixPOEMS::readline(FILE *fp, char **pline, int *pmaxline)
   while (1) {
     if (n+1 >= maxline) {
       maxline += DELTA;
-      line = (char *) 
-	memory->srealloc(line,maxline*sizeof(char),"fix_poems:line");
+      memory->grow(line,maxline,"fix_poems:line");
     }
     if (fgets(&line[n],maxline-n,fp) == NULL) {
       n = 0;
@@ -1524,8 +1523,7 @@ void FixPOEMS::set_v()
 
 void FixPOEMS::grow_arrays(int nmax)
 {
-  natom2body = (int *)
-    memory->srealloc(natom2body,nmax*sizeof(int),"fix_poems:natom2body");
+  memory->grow(natom2body,nmax,"fix_poems:natom2body");
   memory->grow(atom2body,nmax,MAXBODY,"fix_poems:atom2body");
   memory->grow(displace,nmax,3,"fix_poems:displace");
 }

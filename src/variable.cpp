@@ -106,10 +106,10 @@ Variable::~Variable()
     delete [] data[i];
   }
   memory->sfree(names);
-  memory->sfree(style);
-  memory->sfree(num);
-  memory->sfree(which);
-  memory->sfree(pad);
+  memory->destroy(style);
+  memory->destroy(num);
+  memory->destroy(which);
+  memory->destroy(pad);
   memory->sfree(data);
 
   delete randomequal;
@@ -579,10 +579,10 @@ void Variable::extend()
   maxvar += VARDELTA;
   names = (char **)
     memory->srealloc(names,maxvar*sizeof(char *),"var:names");
-  style = (int *) memory->srealloc(style,maxvar*sizeof(int),"var:style");
-  num = (int *) memory->srealloc(num,maxvar*sizeof(int),"var:num");
-  which = (int *) memory->srealloc(which,maxvar*sizeof(int),"var:which");
-  pad = (int *) memory->srealloc(pad,maxvar*sizeof(int),"var:pad");
+  memory->grow(style,maxvar,"var:style");
+  memory->grow(num,maxvar,"var:num");
+  memory->grow(which,maxvar,"var:which");
+  memory->grow(pad,maxvar,"var:pad");
   data = (char ***) 
     memory->srealloc(data,maxvar*sizeof(char **),"var:data");
 }
@@ -1143,12 +1143,12 @@ double Variable::evaluate(char *str, Tree **tree)
 
 	} else if (nbracket && style[ivar] == ATOM) {
 
-	  double *result = (double *)
-	    memory->smalloc(atom->nlocal*sizeof(double),"variable:result");
+	  double *result;
+	  memory->create(result,atom->nlocal,"variable:result");
 	  compute_atom(ivar,0,result,1,0);
 	  peratom2global(1,NULL,result,1,index,
 			 tree,treestack,ntreestack,argstack,nargstack);
-	  memory->sfree(result);
+	  memory->destroy(result);
 
 	} else error->all("Mismatched variable in variable formula");
 

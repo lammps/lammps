@@ -72,7 +72,7 @@ DumpDCD::DumpDCD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
   if (n > MAXSMALLINT/sizeof(float)) error->all("Too many atoms for dump dcd");
   natoms = static_cast<int> (n);
 
-  coords = (float *) memory->smalloc(3*natoms*sizeof(float),"dump:coords");
+  memory->create(coords,3*natoms,"dump:coords");
   xf = &coords[0*natoms];
   yf = &coords[1*natoms];
   zf = &coords[2*natoms];
@@ -87,7 +87,7 @@ DumpDCD::DumpDCD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
 
 DumpDCD::~DumpDCD()
 {
-  memory->sfree(coords);
+  memory->destroy(coords);
 }
 
 /* ---------------------------------------------------------------------- */

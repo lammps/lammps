@@ -646,10 +646,10 @@ void Finish::stats(int n, double *data,
     histo[m]++;
   }
 
-  histotmp = (int *) memory->smalloc(nhisto*sizeof(int),"finish:histotmp");
+  memory->create(histotmp,nhisto,"finish:histotmp");
   MPI_Allreduce(histo,histotmp,nhisto,MPI_INT,MPI_SUM,world);
   for (i = 0; i < nhisto; i++) histo[i] = histotmp[i];
-  memory->sfree(histotmp);
+  memory->destroy(histotmp);
 
   *pave = ave;
   *pmax = max;

@@ -48,22 +48,22 @@ using namespace LAMMPS_NS;
 
 PairReaxC::PairReaxC(LAMMPS *lmp) : Pair(lmp)
 {
-  system = (reax_system *) 
-    memory->smalloc( sizeof(reax_system), "reax:system" );
+  system = (reax_system *)
+    memory->smalloc(sizeof(reax_system),"reax:system");
   control = (control_params *) 
-    memory->smalloc( sizeof(control_params), "reax:control" );
-  data = (simulation_data *) 
-    memory->smalloc( sizeof(simulation_data), "reax:data" );
-  workspace = (storage *) 
-    memory->smalloc( sizeof(storage), "reax:storage" );
+    memory->smalloc(sizeof(control_params),"reax:control");
+  data = (simulation_data *)
+    memory->smalloc(sizeof(simulation_data),"reax:data");
+  workspace = (storage *)
+    memory->smalloc(sizeof(storage),"reax:storage");
   lists = (reax_list *) 
-    memory->smalloc( LIST_N * sizeof(reax_list), "reax:lists" );
-  out_control = (output_controls *) 
-    memory->smalloc( sizeof(output_controls), "reax:out_control" );
-  mpi_data = (mpi_datatypes *) 
-    memory->smalloc( sizeof(mpi_datatypes), "reax:mpi");
+    memory->smalloc(LIST_N * sizeof(reax_list),"reax:lists");
+  out_control = (output_controls *)
+    memory->smalloc(sizeof(output_controls),"reax:out_control");
+  mpi_data = (mpi_datatypes *)
+    memory->smalloc(sizeof(mpi_datatypes),"reax:mpi");
 
-  MPI_Comm_rank(world, &system->my_rank);
+  MPI_Comm_rank(world,&system->my_rank);
 
   system->my_coords[0] = 0;
   system->my_coords[1] = 0;
@@ -111,13 +111,13 @@ PairReaxC::~PairReaxC()
   DeAllocate_System( system );
   //fprintf( stderr, "4\n" );
   
-  memory->sfree( system );
-  memory->sfree( control );
-  memory->sfree( data );
-  memory->sfree( workspace );
-  memory->sfree( lists );
-  memory->sfree( out_control );
-  memory->sfree( mpi_data );
+  memory->destroy( system );
+  memory->destroy( control );
+  memory->destroy( data );
+  memory->destroy( workspace );
+  memory->destroy( lists );
+  memory->destroy( out_control );
+  memory->destroy( mpi_data );
   //fprintf( stderr, "5\n" );
 
   // deallocate interface storage

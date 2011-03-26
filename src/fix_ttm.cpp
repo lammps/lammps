@@ -594,8 +594,8 @@ double FixTTM::compute_vector(int n)
 
 void FixTTM::write_restart(FILE *fp)
 {
-  double *rlist = (double *) 
-    memory->smalloc((1+nxnodes*nynodes*nznodes)*sizeof(double),"TTM:rlist");
+  double *rlist;
+  memory->create(rlist,nxnodes*nynodes*nznodes+1,"TTM:rlist");
 
   int n = 0;
   rlist[n++] = seed;
@@ -611,7 +611,7 @@ void FixTTM::write_restart(FILE *fp)
     fwrite(rlist,sizeof(double),n,fp);
   }
 
-  memory->sfree(rlist);
+  memory->destroy(rlist);
 }
 
 /* ----------------------------------------------------------------------

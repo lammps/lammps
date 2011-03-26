@@ -39,7 +39,7 @@ Angle::Angle(LAMMPS *lmp) : Pointers(lmp)
 
 Angle::~Angle()
 {
-  memory->sfree(eatom);
+  memory->destroy(eatom);
   memory->destroy(vatom);
 }
 
@@ -77,8 +77,8 @@ void Angle::ev_setup(int eflag, int vflag)
 
   if (eflag_atom && atom->nmax > maxeatom) {
     maxeatom = atom->nmax;
-    memory->sfree(eatom);
-    eatom = (double *) memory->smalloc(maxeatom*sizeof(double),"bond:eatom");
+    memory->destroy(eatom);
+    memory->create(eatom,maxeatom,"bond:eatom");
   }
   if (vflag_atom && atom->nmax > maxvatom) {
     maxvatom = atom->nmax;

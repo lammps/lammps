@@ -73,8 +73,8 @@ PairEIM::PairEIM(LAMMPS *lmp) : Pair(lmp)
 
 PairEIM::~PairEIM()
 {
-  memory->sfree(rho);
-  memory->sfree(fp);
+  memory->destroy(rho);
+  memory->destroy(fp);
 
   if (allocated) {
     memory->destroy(setflag);
@@ -119,11 +119,11 @@ void PairEIM::compute(int eflag, int vflag)
   // grow energy array if necessary
 
   if (atom->nmax > nmax) {
-    memory->sfree(rho);
-    memory->sfree(fp);
+    memory->destroy(rho);
+    memory->destroy(fp);
     nmax = atom->nmax;
-    rho = (double *) memory->smalloc(nmax*sizeof(double),"pair:rho");
-    fp = (double *) memory->smalloc(nmax*sizeof(double),"pair:fp");
+    memory->create(rho,nmax,"pair:rho");
+    memory->create(fp,nmax,"pair:fp");
   }
 
   double **x = atom->x;

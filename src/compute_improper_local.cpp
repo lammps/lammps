@@ -63,7 +63,7 @@ ComputeImproperLocal::ComputeImproperLocal(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeImproperLocal::~ComputeImproperLocal()
 {
-  memory->sfree(vector);
+  memory->destroy(vector);
   memory->destroy(array);
 }
 
@@ -209,9 +209,8 @@ void ComputeImproperLocal::reallocate(int n)
   while (nmax < n) nmax += DELTA;
 
   if (nvalues == 1) {
-    memory->sfree(vector);
-    vector = (double *) memory->smalloc(nmax*sizeof(double),
-					"bond/local:vector");
+    memory->destroy(vector);
+    memory->create(vector,nmax,"bond/local:vector");
     vector_local = vector;
   } else {
     memory->destroy(array);

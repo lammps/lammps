@@ -48,10 +48,10 @@ DihedralHelix::DihedralHelix(LAMMPS *lmp) : Dihedral(lmp) {}
 DihedralHelix::~DihedralHelix()
 {
   if (allocated) {
-    memory->sfree(setflag);
-    memory->sfree(aphi);
-    memory->sfree(bphi);
-    memory->sfree(cphi);
+    memory->destroy(setflag);
+    memory->destroy(aphi);
+    memory->destroy(bphi);
+    memory->destroy(cphi);
   }
 }
 
@@ -270,11 +270,11 @@ void DihedralHelix::allocate()
   allocated = 1;
   int n = atom->ndihedraltypes;
 
-  aphi = (double *) memory->smalloc((n+1)*sizeof(double),"dihedral:aphi");
-  bphi = (double *) memory->smalloc((n+1)*sizeof(double),"dihedral:bphi");
-  cphi = (double *) memory->smalloc((n+1)*sizeof(double),"dihedral:cphi");
+  memory->create(aphi,n+1,"dihedral:aphi");
+  memory->create(bphi,n+1,"dihedral:bphi");
+  memory->create(cphi,n+1,"dihedral:cphi");
 
-  setflag = (int *) memory->smalloc((n+1)*sizeof(int),"dihedral:setflag");
+  memory->create(setflag,n+1,"dihedral:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
 }
 

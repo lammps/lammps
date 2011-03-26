@@ -58,11 +58,11 @@ ComputeAcklandAtom::ComputeAcklandAtom(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeAcklandAtom::~ComputeAcklandAtom()
 {
-  memory->sfree(structure);
-  memory->sfree(distsq);
-  memory->sfree(nearest);
-  memory->sfree(nearest_n0);
-  memory->sfree(nearest_n1);
+  memory->destroy(structure);
+  memory->destroy(distsq);
+  memory->destroy(nearest);
+  memory->destroy(nearest_n0);
+  memory->destroy(nearest_n1);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -106,10 +106,9 @@ void ComputeAcklandAtom::compute_peratom()
   // grow structure array if necessary
 
   if (atom->nlocal > nmax) {
-    memory->sfree(structure);
+    memory->destroy(structure);
     nmax = atom->nmax;
-    structure = (double *) 
-      memory->smalloc(nmax*sizeof(double),"compute/ackland/atom:ackland");
+    memory->create(structure,nmax,"compute/ackland/atom:ackland");
     vector_atom = structure;
   }
 
@@ -142,19 +141,15 @@ void ComputeAcklandAtom::compute_peratom()
       // ensure distsq and nearest arrays are long enough
 
       if (jnum > maxneigh) {
-      	memory->sfree(distsq);
-      	memory->sfree(nearest);
-	memory->sfree(nearest_n0);
-	memory->sfree(nearest_n1);
+      	memory->destroy(distsq);
+      	memory->destroy(nearest);
+	memory->destroy(nearest_n0);
+	memory->destroy(nearest_n1);
       	maxneigh = jnum;
-      	distsq = (double *) memory->smalloc(maxneigh*sizeof(double),
-					    "compute/ackland/atom:distsq");
-      	nearest = (int *) memory->smalloc(maxneigh*sizeof(int),
-					  "compute/ackland/atom:nearest");
-	nearest_n0 = (int *) memory->smalloc(maxneigh*sizeof(int),
-					     "compute/ackland/atom:nearest_n0");
-	nearest_n1 = (int *) memory->smalloc(maxneigh*sizeof(int),
-					     "compute/ackland/atom:nearest_n1");
+      	memory->create(distsq,maxneigh,"compute/ackland/atom:distsq");
+      	memory->create(nearest,maxneigh,"compute/ackland/atom:nearest");
+	memory->create(nearest_n0,maxneigh,"compute/ackland/atom:nearest_n0");
+	memory->create(nearest_n1,maxneigh,"compute/ackland/atom:nearest_n1");
       }
 
       // loop over list of all neighbors within force cutoff

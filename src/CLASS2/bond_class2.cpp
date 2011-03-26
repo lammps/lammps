@@ -37,11 +37,11 @@ BondClass2::BondClass2(LAMMPS *lmp) : Bond(lmp) {}
 BondClass2::~BondClass2()
 {
   if (allocated) {
-    memory->sfree(setflag);
-    memory->sfree(r0);
-    memory->sfree(k2);
-    memory->sfree(k3);
-    memory->sfree(k4);
+    memory->destroy(setflag);
+    memory->destroy(r0);
+    memory->destroy(k2);
+    memory->destroy(k3);
+    memory->destroy(k4);
   }
 }
 
@@ -114,12 +114,12 @@ void BondClass2::allocate()
   allocated = 1;
   int n = atom->nbondtypes;
 
-  r0 = (double *) memory->smalloc((n+1)*sizeof(double),"bond:r0");
-  k2 = (double *) memory->smalloc((n+1)*sizeof(double),"bond:k2");
-  k3 = (double *) memory->smalloc((n+1)*sizeof(double),"bond:k3");
-  k4 = (double *) memory->smalloc((n+1)*sizeof(double),"bond:k4");
+  memory->create(r0,n+1,"bond:r0");
+  memory->create(k2,n+1,"bond:k2");
+  memory->create(k3,n+1,"bond:k3");
+  memory->create(k4,n+1,"bond:k4");
 
-  setflag = (int *) memory->smalloc((n+1)*sizeof(int),"bond:setflag");
+  memory->create(setflag,n+1,"bond:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
 }
 

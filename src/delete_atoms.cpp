@@ -76,7 +76,7 @@ void DeleteAtoms::command(int narg, char **arg)
   }
 
   atom->nlocal = nlocal;
-  memory->sfree(dlist);
+  memory->destroy(dlist);
 
   // if non-molecular system and compress flag set,
   // reset atom tags to be contiguous
@@ -130,7 +130,7 @@ void DeleteAtoms::delete_group(int narg, char **arg)
   // allocate and initialize deletion list
   
   int nlocal = atom->nlocal;
-  dlist = (int *) memory->smalloc(nlocal*sizeof(int),"delete_atoms:dlist");
+  memory->create(dlist,nlocal,"delete_atoms:dlist");
   for (int i = 0; i < nlocal; i++) dlist[i] = 0;
 
   int *mask = atom->mask;
@@ -155,7 +155,7 @@ void DeleteAtoms::delete_region(int narg, char **arg)
   // allocate and initialize deletion list
   
   int nlocal = atom->nlocal;
-  dlist = (int *) memory->smalloc(nlocal*sizeof(int),"delete_atoms:dlist");
+  memory->create(dlist,nlocal,"delete_atoms:dlist");
   for (int i = 0; i < nlocal; i++) dlist[i] = 0;
 
   double **x = atom->x;
@@ -234,7 +234,7 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
   // must be after exchange potentially changes nlocal
   
   int nlocal = atom->nlocal;
-  dlist = (int *) memory->smalloc(nlocal*sizeof(int),"delete_atoms:dlist");
+  memory->create(dlist,nlocal,"delete_atoms:dlist");
   for (int i = 0; i < nlocal; i++) dlist[i] = 0;
 
   // double loop over owned atoms and their full neighbor list
@@ -333,7 +333,7 @@ void DeleteAtoms::delete_porosity(int narg, char **arg)
   // allocate and initialize deletion list
  
   int nlocal = atom->nlocal;
-  dlist = (int *) memory->smalloc(nlocal*sizeof(int),"delete_atoms:dlist");
+  memory->create(dlist,nlocal,"delete_atoms:dlist");
   for (int i = 0; i < nlocal; i++) dlist[i] = 0;
 
   double **x = atom->x;

@@ -46,8 +46,8 @@ Universe::Universe(LAMMPS *lmp, MPI_Comm communicator) : Pointers(lmp)
 
 Universe::~Universe()
 {
-  memory->sfree(procs_per_world);
-  memory->sfree(root_proc);
+  memory->destroy(procs_per_world);
+  memory->destroy(root_proc);
 }
 
 /* ----------------------------------------------------------------------
@@ -74,12 +74,8 @@ void Universe::add_world(char *str)
     nper = atoi(str);
   }
 
-  procs_per_world = 
-    (int *) memory->srealloc(procs_per_world,(nworlds+n)*sizeof(int),
-			     "universe:procs_per_world");
-  root_proc = 
-    (int *) memory->srealloc(root_proc,(nworlds+n)*sizeof(int),
-			     "universe:root_proc");
+  memory->grow(procs_per_world,nworlds+n,"universe:procs_per_world");
+  memory->grow(root_proc,(nworlds+n),"universe:root_proc");
 
   for (int i = 0; i < n; i++) {
     procs_per_world[nworlds] = nper;

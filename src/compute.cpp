@@ -94,8 +94,8 @@ Compute::~Compute()
   delete [] id;
   delete [] style;
 
-  memory->sfree(tlist);
-  memory->sfree(molmap);
+  memory->destroy(tlist);
+  memory->destroy(molmap);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -163,8 +163,7 @@ void Compute::addstep(bigint ntimestep)
 
   if (ntime == maxtime) {
     maxtime += DELTA;
-    tlist = (bigint *)
-      memory->srealloc(tlist,maxtime*sizeof(bigint),"compute:tlist");
+    memory->grow(tlist,maxtime,"compute:tlist");
   }
 
   // move remainder of list upward and insert ntimestep
@@ -215,7 +214,7 @@ int Compute::molecules_in_group(int &idlo, int &idhi)
 {
   int i;
 
-  memory->sfree(molmap);
+  memory->destroy(molmap);
   molmap = NULL;
 
   // find lo/hi molecule ID for any atom in group
@@ -252,15 +251,15 @@ int Compute::molecules_in_group(int &idlo, int &idhi)
   // set to 1 for IDs that appear in group across all procs, else 0
 
   int nlen = idhi-idlo+1;
-  molmap = (int *) memory->smalloc(nlen*sizeof(int),"compute:molmap");
+  memory->create(molmap,nlen,"compute:molmap");
   for (i = 0; i < nlen; i++) molmap[i] = 0;
 
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
       molmap[molecule[i]-idlo] = 1;
 
-  int *molmapall = 
-    (int *) memory->smalloc(nlen*sizeof(int),"compute:molmapall");
+  int *molmapall;
+  memory->create(molmapall,nlen,"compute:molmapall");
   MPI_Allreduce(molmap,molmapall,nlen,MPI_INT,MPI_MAX,world);
 
   // nmolecules = # of non-zero IDs in molmap
@@ -270,7 +269,7 @@ int Compute::molecules_in_group(int &idlo, int &idhi)
   for (i = 0; i < nlen; i++)
     if (molmapall[i]) molmap[i] = nmolecules++;
     else molmap[i] = -1;
-  memory->sfree(molmapall);
+  memory->destroy(molmapall);
 
   // warn if any molecule has some atoms in group and some not in group
 
@@ -290,7 +289,7 @@ int Compute::molecules_in_group(int &idlo, int &idhi)
 
   if (nmolecules < nlen) return nmolecules;
   if (idlo > 1) return nmolecules;
-  memory->sfree(molmap);
+  memory->destroy(molmap);
   molmap = NULL;
   return nmolecules;
 }

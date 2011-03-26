@@ -80,7 +80,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
 
 Pair::~Pair()
 {
-  memory->sfree(eatom);
+  memory->destroy(eatom);
   memory->destroy(vatom);
 }
 
@@ -282,8 +282,8 @@ void Pair::ev_setup(int eflag, int vflag)
 
   if (eflag_atom && atom->nmax > maxeatom) {
     maxeatom = atom->nmax;
-    memory->sfree(eatom);
-    eatom = (double *) memory->smalloc(maxeatom*sizeof(double),"pair:eatom");
+    memory->destroy(eatom);
+    memory->create(eatom,maxeatom,"pair:eatom");
   }
   if (vflag_atom && atom->nmax > maxvatom) {
     maxvatom = atom->nmax;

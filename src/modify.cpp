@@ -107,7 +107,7 @@ Modify::~Modify()
 
   while (nfix) delete_fix(fix[0]->id);
   memory->sfree(fix);
-  memory->sfree(fmask);
+  memory->destroy(fmask);
 
   // delete all computes
 
@@ -622,8 +622,7 @@ void Modify::add_fix(int narg, char **arg)
     if (nfix == maxfix) {
       maxfix += DELTA;
       fix = (Fix **) memory->srealloc(fix,maxfix*sizeof(Fix *),"modify:fix");
-      fmask = (int *) 
-	memory->srealloc(fmask,maxfix*sizeof(int),"modify:fmask");
+      memory->grow(fmask,maxfix,"modify:fmask");
     }
   }
 

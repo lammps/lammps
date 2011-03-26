@@ -112,8 +112,8 @@ Input::~Input()
   delete [] copy;
   delete [] work;
   if (labelstr) delete [] labelstr;
-  if (arg) memory->sfree(arg);
-  if (infiles) memory->sfree(infiles);
+  memory->sfree(arg);
+  memory->sfree(infiles);
 }
 
 /* ----------------------------------------------------------------------

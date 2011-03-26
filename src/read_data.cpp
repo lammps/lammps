@@ -1001,7 +1001,8 @@ void ReadData::scan(int &bond_per_atom, int &angle_per_atom,
   // will grow via reallocate() if atom IDs > natoms
 
   int cmax = natoms + 1;
-  int *count = (int *) memory->smalloc(cmax*sizeof(int),"read_data:count");
+  int *count;
+  memory->create(count,cmax,"read_data:count");
 
   while (strlen(keyword)) {
 
@@ -1229,7 +1230,7 @@ void ReadData::scan(int &bond_per_atom, int &angle_per_atom,
 
   // free topology counting vector
 
-  memory->sfree(count);
+  memory->destroy(count);
 
   // error check that topology was specified in file
 
@@ -1248,8 +1249,7 @@ void ReadData::scan(int &bond_per_atom, int &angle_per_atom,
 int ReadData::reallocate(int **pcount, int cmax, int amax)
 {
   int *count = *pcount;
-  count = (int *) 
-    memory->srealloc(count,(amax+1)*sizeof(int),"read_data:count");
+  memory->grow(count,amax+1,"read_data:count");
   for (int i = cmax; i <= amax; i++) count[i] = 0;
   *pcount = count;
   return amax+1;

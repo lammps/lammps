@@ -231,7 +231,7 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
 ComputePropertyAtom::~ComputePropertyAtom()
 {
   delete [] pack_choice;
-  memory->sfree(vector);
+  memory->destroy(vector);
   memory->destroy(array);
 }
 
@@ -246,9 +246,8 @@ void ComputePropertyAtom::compute_peratom()
   if (atom->nlocal > nmax) {
     nmax = atom->nmax;
     if (nvalues == 1) {
-      memory->sfree(vector);
-      vector = (double *) memory->smalloc(nmax*sizeof(double),
-					  "property/atom:vector");
+      memory->destroy(vector);
+      memory->create(vector,nmax,"property/atom:vector");
       vector_atom = vector;
     } else {
       memory->destroy(array);

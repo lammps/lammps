@@ -39,10 +39,10 @@ ImproperCvff::ImproperCvff(LAMMPS *lmp) : Improper(lmp) {}
 ImproperCvff::~ImproperCvff()
 {
   if (allocated) {
-    memory->sfree(setflag);
-    memory->sfree(k);
-    memory->sfree(sign);
-    memory->sfree(multiplicity);
+    memory->destroy(setflag);
+    memory->destroy(k);
+    memory->destroy(sign);
+    memory->destroy(multiplicity);
   }
 }
 
@@ -281,12 +281,11 @@ void ImproperCvff::allocate()
   allocated = 1;
   int n = atom->nimpropertypes;
 
-  k = (double *) memory->smalloc((n+1)*sizeof(double),"improper:k");
-  sign = (int *) memory->smalloc((n+1)*sizeof(int),"improper:sign");
-  multiplicity = (int *) 
-    memory->smalloc((n+1)*sizeof(int),"improper:multiplicity");
+  memory->create(k,n+1,"improper:k");
+  memory->create(sign,n+1,"improper:sign");
+  memory->create(multiplicity,n+1,"improper:multiplicity");
 
-  setflag = (int *) memory->smalloc((n+1)*sizeof(int),"improper:setflag");
+  memory->create(setflag,n+1,"improper:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
 }
 

@@ -69,8 +69,8 @@ PairEAM::PairEAM(LAMMPS *lmp) : Pair(lmp)
 
 PairEAM::~PairEAM()
 {
-  memory->sfree(rho);
-  memory->sfree(fp);
+  memory->destroy(rho);
+  memory->destroy(fp);
 
   if (allocated) {
     memory->destroy(setflag);
@@ -84,9 +84,9 @@ PairEAM::~PairEAM()
   if (funcfl) {
     for (int i = 0; i < nfuncfl; i++) {
       delete [] funcfl[i].file;
-      memory->sfree(funcfl[i].frho);
-      memory->sfree(funcfl[i].rhor);
-      memory->sfree(funcfl[i].zr);
+      memory->destroy(funcfl[i].frho);
+      memory->destroy(funcfl[i].rhor);
+      memory->destroy(funcfl[i].zr);
     }
     memory->sfree(funcfl);
   }
@@ -138,11 +138,11 @@ void PairEAM::compute(int eflag, int vflag)
   // need to be atom->nmax in length
 
   if (atom->nmax > nmax) {
-    memory->sfree(rho);
-    memory->sfree(fp);
+    memory->destroy(rho);
+    memory->destroy(fp);
     nmax = atom->nmax;
-    rho = (double *) memory->smalloc(nmax*sizeof(double),"pair:rho");
-    fp = (double *) memory->smalloc(nmax*sizeof(double),"pair:fp");
+    memory->create(rho,nmax,"pair:rho");
+    memory->create(fp,nmax,"pair:fp");
   }
 
   double **x = atom->x;
@@ -460,12 +460,9 @@ void PairEAM::read_file(char *filename)
   MPI_Bcast(&file->dr,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&file->cut,1,MPI_DOUBLE,0,world);
 
-  file->frho = (double *) memory->smalloc((file->nrho+1)*sizeof(double),
-					  "pair:frho");
-  file->rhor = (double *) memory->smalloc((file->nr+1)*sizeof(double),
-					  "pair:rhor");
-  file->zr = (double *) memory->smalloc((file->nr+1)*sizeof(double),
-					"pair:zr");
+  memory->create(file->frho,(file->nrho+1),"pair:frho");
+  memory->create(file->rhor,(file->nr+1),"pair:rhor");
+  memory->create(file->zr,(file->nr+1),"pair:zr");
 
   if (me == 0) grab(fptr,file->nrho,&file->frho[1]);
   MPI_Bcast(&file->frho[1],file->nrho,MPI_DOUBLE,0,world);

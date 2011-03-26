@@ -104,8 +104,8 @@ void Replicate::command(int narg, char **arg)
   int send_size = atom->avec->size_restart();
   MPI_Allreduce(&send_size,&max_size,1,MPI_INT,MPI_MAX,world);
 
-  double *buf = 
-    (double *) memory->smalloc(max_size*sizeof(double),"replicate:buf");
+  double *buf;
+  memory->create(buf,max_size,"replicate:buf");
 
   // old = original atom class
   // atom = new replicated atom class
@@ -360,7 +360,7 @@ void Replicate::command(int narg, char **arg)
 
   // free communication buffer and old atom class
 
-  memory->sfree(buf);
+  memory->destroy(buf);
   delete old;
 
   // check that all atoms were assigned to procs

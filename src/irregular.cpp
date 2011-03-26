@@ -50,11 +50,9 @@ Irregular::Irregular(LAMMPS *lmp) : Pointers(lmp)
   // these can persist for multiple irregular operations
 
   maxsend = BUFMIN;
-  buf_send = (double *) 
-    memory->smalloc((maxsend+BUFEXTRA)*sizeof(double),"comm:buf_send");
+  memory->create(buf_send,maxsend+BUFEXTRA,"comm:buf_send");
   maxrecv = BUFMIN;
-  buf_recv = (double *) 
-    memory->smalloc(maxrecv*sizeof(double),"comm:buf_recv");
+  memory->create(buf_recv,maxrecv,"comm:buf_recv");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -64,8 +62,8 @@ Irregular::~Irregular()
   if (aplan) destroy_atom();
   if (dplan) destroy_data();
 
-  memory->sfree(buf_send);
-  memory->sfree(buf_recv);
+  memory->destroy(buf_send);
+  memory->destroy(buf_recv);
 }
 
 /* ----------------------------------------------------------------------
@@ -168,8 +166,7 @@ int Irregular::create_atom(int n, int *sizes, int *proclist)
   // allocate plan and work vectors
 
   if (aplan) destroy_atom();
-  aplan = (struct PlanAtom *)
-    memory->smalloc(sizeof(PlanAtom),"irregular:aplan");
+  aplan = (PlanAtom *) memory->smalloc(sizeof(PlanAtom),"irregular:aplan");
   int *list = new int[nprocs];
   int *count = new int[nprocs];
 
@@ -325,8 +322,8 @@ void Irregular::exchange_atom(double *sendbuf, int *sizes, double *recvbuf)
 
   // allocate buf for largest send
 
-  double *buf = (double *) memory->smalloc(aplan->sendmax*sizeof(double),
-					   "irregular:buf");
+  double *buf;
+  memory->create(buf,aplan->sendmax,"irregular:buf");
 
   // send each message
   // pack buf with list of atoms
@@ -351,7 +348,7 @@ void Irregular::exchange_atom(double *sendbuf, int *sizes, double *recvbuf)
 
   // free temporary send buffer
 
-  memory->sfree(buf);
+  memory->destroy(buf);
 
   // wait on all incoming messages
 
@@ -390,8 +387,7 @@ int Irregular::create_data(int n, int *proclist)
 
   // allocate plan and work vectors
 
-  dplan = (struct PlanData *) 
-    memory->smalloc(sizeof(PlanData),"irregular:dplan");
+  dplan = (PlanData *) memory->smalloc(sizeof(PlanData),"irregular:dplan");
   int *list = new int[nprocs];
   int *count = new int[nprocs];
 
@@ -548,7 +544,8 @@ void Irregular::exchange_data(char *sendbuf, int nbytes, char *recvbuf)
 
   // allocate buf for largest send
 
-  char *buf = (char *) memory->smalloc(dplan->sendmax*nbytes,"irregular:buf");
+  char *buf;
+  memory->create(buf,dplan->sendmax*nbytes,"irregular:buf");
 
   // send each message
   // pack buf with list of datums
@@ -570,7 +567,7 @@ void Irregular::exchange_data(char *sendbuf, int nbytes, char *recvbuf)
 
   // free temporary send buffer
 
-  memory->sfree(buf);
+  memory->destroy(buf);
 
   // copy datums to self, put at beginning of recvbuf
 
@@ -648,13 +645,10 @@ void Irregular::grow_send(int n, int flag)
 {
   maxsend = static_cast<int> (BUFFACTOR * n);
   if (flag)
-    buf_send = (double *) 
-      memory->srealloc(buf_send,(maxsend+BUFEXTRA)*sizeof(double),
-		       "comm:buf_send");
+    memory->grow(buf_send,maxsend+BUFEXTRA,"comm:buf_send");
   else {
-    memory->sfree(buf_send);
-    buf_send = (double *) memory->smalloc((maxsend+BUFEXTRA)*sizeof(double),
-					  "comm:buf_send");
+    memory->destroy(buf_send);
+    memory->create(buf_send,maxsend+BUFEXTRA,"comm:buf_send");
   }
 }
 
@@ -665,9 +659,8 @@ void Irregular::grow_send(int n, int flag)
 void Irregular::grow_recv(int n)
 {
   maxrecv = static_cast<int> (BUFFACTOR * n);
-  memory->sfree(buf_recv);
-  buf_recv = (double *) memory->smalloc(maxrecv*sizeof(double),
-					"comm:buf_recv");
+  memory->destroy(buf_recv);
+  memory->create(buf_recv,maxrecv,"comm:buf_recv");
 }
 
 /* ----------------------------------------------------------------------

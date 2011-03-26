@@ -488,9 +488,9 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
 
 FixAveHisto::~FixAveHisto()
 {
-  memory->sfree(which);
-  memory->sfree(argindex);
-  memory->sfree(value2index);
+  memory->destroy(which);
+  memory->destroy(argindex);
+  memory->destroy(value2index);
   for (int i = 0; i < nvalues; i++) delete [] ids[i];
   memory->sfree(ids);
 
@@ -502,7 +502,7 @@ FixAveHisto::~FixAveHisto()
   delete [] coord;
   memory->destroy(stats_list);
   memory->destroy(bin_list);
-  memory->sfree(vector);
+  memory->destroy(vector);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -692,10 +692,9 @@ void FixAveHisto::end_of_step()
 
     } else if (which[i] == VARIABLE && kind == PERATOM) {
       if (atom->nlocal > maxatom) {
-	memory->sfree(vector);
+	memory->destroy(vector);
 	maxatom = atom->nmax;
-	vector = (double *) memory->smalloc(maxatom*sizeof(double),
-					    "ave/histo:vector");
+	memory->create(vector,maxatom,"ave/histo:vector");
       }
       input->variable->compute_atom(m,igroup,vector,1,0);
       bin_atoms(vector,1);
@@ -973,11 +972,9 @@ void FixAveHisto::options(int narg, char **arg)
 
 void FixAveHisto::allocate_values(int n)
 {
-  which = (int *) memory->srealloc(which,n*sizeof(int),"ave/time:which");
-  argindex = (int *) memory->srealloc(argindex,n*sizeof(int),
-				      "ave/time:argindex");
-  value2index = (int *) memory->srealloc(value2index,n*sizeof(int),
-					 "ave/time:value2index");
+  memory->grow(which,n,"ave/time:which");
+  memory->grow(argindex,n,"ave/time:argindex");
+  memory->grow(value2index,n,"ave/time:value2index");
   ids = (char **) memory->srealloc(ids,n*sizeof(char *),"ave/time:ids");
 }
 

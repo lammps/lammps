@@ -186,7 +186,7 @@ ComputePropertyLocal::ComputePropertyLocal(LAMMPS *lmp, int narg, char **arg) :
 ComputePropertyLocal::~ComputePropertyLocal()
 {
   delete [] pack_choice;
-  memory->sfree(vector);
+  memory->destroy(vector);
   memory->destroy(array);
   memory->destroy(indices);
 }
@@ -530,9 +530,8 @@ void ComputePropertyLocal::reallocate(int n)
 
   while (nmax < n) nmax += DELTA;
   if (nvalues == 1) {
-    memory->sfree(vector);
-    vector = (double *) memory->smalloc(nmax*sizeof(double),
-					"property/local:vector");
+    memory->destroy(vector);
+    memory->create(vector,nmax,"property/local:vector");
     vector_local = vector;
   } else {
     memory->destroy(array);

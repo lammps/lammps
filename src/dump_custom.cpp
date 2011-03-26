@@ -69,8 +69,8 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
 
   // computes, fixes, variables which the dump accesses
 
-  field2index = (int *) memory->smalloc(nfield*sizeof(int),"dump:field2index");
-  argindex = (int *) memory->smalloc(nfield*sizeof(int),"dump:argindex");
+  memory->create(field2index,nfield,"dump:field2index");
+  memory->create(argindex,nfield,"dump:argindex");
 
   ncompute = 0;
   id_compute = NULL;
@@ -126,13 +126,13 @@ DumpCustom::~DumpCustom()
 {
   delete [] pack_choice;
   delete [] vtype;
-  memory->sfree(field2index);
-  memory->sfree(argindex);
+  memory->destroy(field2index);
+  memory->destroy(argindex);
 
   delete [] idregion;
-  memory->sfree(thresh_array);
-  memory->sfree(thresh_op);
-  memory->sfree(thresh_value);
+  memory->destroy(thresh_array);
+  memory->destroy(thresh_op);
+  memory->destroy(thresh_value);
 
   for (int i = 0; i < ncompute; i++) delete [] id_compute[i];
   memory->sfree(id_compute);
@@ -145,11 +145,11 @@ DumpCustom::~DumpCustom()
   for (int i = 0; i < nvariable; i++) delete [] id_variable[i];
   memory->sfree(id_variable);
   delete [] variable;
-  for (int i = 0; i < nvariable; i++) memory->sfree(vbuf[i]);
+  for (int i = 0; i < nvariable; i++) memory->destroy(vbuf[i]);
   delete [] vbuf;
 
-  memory->sfree(choose);
-  memory->sfree(dchoose);
+  memory->destroy(choose);
+  memory->destroy(dchoose);
 
   for (int i = 0; i < size_one; i++) delete [] vformat[i];
   delete [] vformat;
@@ -327,16 +327,14 @@ int DumpCustom::count()
   if (nlocal > maxlocal) {
     maxlocal = atom->nmax;
 
-    memory->sfree(choose);
-    memory->sfree(dchoose);
-    choose = (int *) memory->smalloc(maxlocal*sizeof(int),"dump:choose");
-    dchoose = (double *) 
-      memory->smalloc(maxlocal*sizeof(double),"dump:dchoose");
+    memory->destroy(choose);
+    memory->destroy(dchoose);
+    memory->create(choose,maxlocal,"dump:choose");
+    memory->create(dchoose,maxlocal,"dump:dchoose");
 
     for (i = 0; i < nvariable; i++) {
-      memory->sfree(vbuf[i]);
-      vbuf[i] = (double *) 
-	memory->smalloc(maxlocal*sizeof(double),"dump:vbuf");
+      memory->destroy(vbuf[i]);
+      memory->create(vbuf[i],maxlocal,"dump:vbuf");
     }
   }
 
@@ -1215,9 +1213,9 @@ int DumpCustom::modify_param(int narg, char **arg)
     if (narg < 2) error->all("Illegal dump_modify command");
     if (strcmp(arg[1],"none") == 0) {
       if (nthresh) {
-	memory->sfree(thresh_array);
-	memory->sfree(thresh_op);
-	memory->sfree(thresh_value);
+	memory->destroy(thresh_array);
+	memory->destroy(thresh_op);
+	memory->destroy(thresh_value);
 	thresh_array = NULL;
 	thresh_op = NULL;
 	thresh_value = NULL;
@@ -1230,15 +1228,9 @@ int DumpCustom::modify_param(int narg, char **arg)
     
     // grow threshhold arrays
     
-    thresh_array = (int *)
-      memory->srealloc(thresh_array,(nthresh+1)*sizeof(int),
-		       "dump:thresh_array");
-    thresh_op = (int *)
-      memory->srealloc(thresh_op,(nthresh+1)*sizeof(int),
-		       "dump:thresh_op");
-    thresh_value = (double *)
-      memory->srealloc(thresh_value,(nthresh+1)*sizeof(double),
-		       "dump:thresh_value");
+    memory->grow(thresh_array,nthresh+1,"dump:thresh_array");
+    memory->grow(thresh_op,(nthresh+1),"dump:thresh_op");
+    memory->grow(thresh_value,(nthresh+1),"dump:thresh_value");
 
     // set attribute type of threshhold
     // customize by adding to if statement
@@ -1320,12 +1312,8 @@ int DumpCustom::modify_param(int narg, char **arg)
 
     else if (strncmp(arg[1],"c_",2) == 0) {
       thresh_array[nthresh] = COMPUTE;
-      field2index = (int *) memory->srealloc(field2index,
-					     (nfield+nthresh+1)*sizeof(int),
-					     "dump:field2index");
-      argindex = (int *) memory->srealloc(argindex,
-					  (nfield+nthresh+1)*sizeof(int),
-					  "dump:argindex");
+      memory->grow(field2index,nfield+nthresh+1,"dump:field2index");
+      memory->grow(argindex,nfield+nthresh+1,"dump:argindex");
       int n = strlen(arg[1]);
       char *suffix = new char[n];
       strcpy(suffix,&arg[1][2]);
@@ -1362,12 +1350,8 @@ int DumpCustom::modify_param(int narg, char **arg)
 
     } else if (strncmp(arg[1],"f_",2) == 0) {
       thresh_array[nthresh] = FIX;
-      field2index = (int *) memory->srealloc(field2index,
-					     (nfield+nthresh+1)*sizeof(int),
-					     "dump:field2index");
-      argindex = (int *) memory->srealloc(argindex,
-					  (nfield+nthresh+1)*sizeof(int),
-					  "dump:argindex");
+      memory->grow(field2index,nfield+nthresh+1,"dump:field2index");
+      memory->grow(argindex,nfield+nthresh+1,"dump:argindex");
       int n = strlen(arg[1]);
       char *suffix = new char[n];
       strcpy(suffix,&arg[1][2]);
@@ -1403,12 +1387,8 @@ int DumpCustom::modify_param(int narg, char **arg)
 
     } else if (strncmp(arg[1],"v_",2) == 0) {
       thresh_array[nthresh] = VARIABLE;
-      field2index = (int *) memory->srealloc(field2index,
-					     (nfield+nthresh+1)*sizeof(int),
-					     "dump:field2index");
-      argindex = (int *) memory->srealloc(argindex,
-					  (nfield+nthresh+1)*sizeof(int),
-					  "dump:argindex");
+      memory->grow(field2index,nfield+nthresh+1,"dump:field2index");
+      memory->grow(argindex,nfield+nthresh+1,"dump:argindex");
       int n = strlen(arg[1]);
       char *suffix = new char[n];
       strcpy(suffix,&arg[1][2]);

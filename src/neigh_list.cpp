@@ -121,15 +121,15 @@ void NeighList::grow(int nmax)
 
   memory->destroy(ilist);
   memory->destroy(numneigh);
-  memory->sfree(firstneigh);
+  memory->destroy(firstneigh);
   memory->create(ilist,maxatoms,"neighlist:ilist");
   memory->create(numneigh,maxatoms,"neighlist:numneigh");
-  firstneigh = (int **)
-    memory->smalloc(maxatoms*sizeof(int *),"neighlist:firstneigh");
+  firstneigh = (int **) memory->smalloc(maxatoms*sizeof(int *),
+					"neighlist:firstneigh");
 
   if (dnum) 
-    firstdouble = (double **)
-      memory->smalloc(maxatoms*sizeof(double *),"neighlist:firstdouble");
+    firstdouble = (double **) memory->smalloc(maxatoms*sizeof(double *),
+					      "neighlist:firstdouble");
 }
 
 /* ----------------------------------------------------------------------

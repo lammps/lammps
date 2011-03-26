@@ -33,9 +33,9 @@ BondHarmonic::BondHarmonic(LAMMPS *lmp) : Bond(lmp) {}
 BondHarmonic::~BondHarmonic()
 {
   if (allocated) {
-    memory->sfree(setflag);
-    memory->sfree(k);
-    memory->sfree(r0);
+    memory->destroy(setflag);
+    memory->destroy(k);
+    memory->destroy(r0);
   }
 }
 
@@ -105,10 +105,10 @@ void BondHarmonic::allocate()
   allocated = 1;
   int n = atom->nbondtypes;
 
-  k = (double *) memory->smalloc((n+1)*sizeof(double),"bond:k");
-  r0 = (double *) memory->smalloc((n+1)*sizeof(double),"bond:r0");
+  memory->create(k,n+1,"bond:k");
+  memory->create(r0,n+1,"bond:r0");
 
-  setflag = (int *) memory->smalloc((n+1)*sizeof(int),"bond:setflag");
+  memory->create(setflag,n+1,"bond:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
 }
 

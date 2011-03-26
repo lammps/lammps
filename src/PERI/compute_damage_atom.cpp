@@ -47,7 +47,7 @@ ComputeDamageAtom::ComputeDamageAtom(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeDamageAtom::~ComputeDamageAtom()
 {
-  memory->sfree(damage);
+  memory->destroy(damage);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -78,10 +78,9 @@ void ComputeDamageAtom::compute_peratom()
   // grow damage array if necessary
 
   if (atom->nlocal > nmax) {
-    memory->sfree(damage);
+    memory->destroy(damage);
     nmax = atom->nmax;
-    damage = (double *) memory->smalloc(nmax*sizeof(double),
-					"damage/atom:damage");
+    memory->create(damage,nmax,"damage/atom:damage");
     vector_atom = damage;
   }
 

@@ -39,11 +39,11 @@ AngleCharmm::AngleCharmm(LAMMPS *lmp) : Angle(lmp) {}
 AngleCharmm::~AngleCharmm()
 {
   if (allocated) {
-    memory->sfree(setflag);
-    memory->sfree(k);
-    memory->sfree(theta0);
-    memory->sfree(k_ub);
-    memory->sfree(r_ub);
+    memory->destroy(setflag);
+    memory->destroy(k);
+    memory->destroy(theta0);
+    memory->destroy(k_ub);
+    memory->destroy(r_ub);
   }
 }
 
@@ -179,11 +179,11 @@ void AngleCharmm::allocate()
   allocated = 1;
   int n = atom->nangletypes;
 
-  k = (double *) memory->smalloc((n+1)*sizeof(double),"angle:k");
-  theta0 = (double *) memory->smalloc((n+1)*sizeof(double),"angle:theta0");
-  k_ub = (double *) memory->smalloc((n+1)*sizeof(double),"angle:k_ub");
-  r_ub = (double *) memory->smalloc((n+1)*sizeof(double),"angle:r_ub");
-  setflag = (int *) memory->smalloc((n+1)*sizeof(int),"angle:setflag");
+  memory->create(k,n+1,"angle:k");
+  memory->create(theta0,n+1,"angle:theta0");
+  memory->create(k_ub,n+1,"angle:k_ub");
+  memory->create(r_ub,n+1,"angle:r_ub");
+  memory->create(setflag,n+1,"angle:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
 }
 

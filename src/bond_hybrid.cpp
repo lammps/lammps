@@ -46,8 +46,8 @@ BondHybrid::~BondHybrid()
   }
 
   if (allocated) {
-    memory->sfree(setflag);
-    memory->sfree(map);
+    memory->destroy(setflag);
+    memory->destroy(map);
     delete [] nbondlist;
     delete [] maxbond;
     for (int i = 0; i < nstyles; i++)
@@ -142,8 +142,8 @@ void BondHybrid::allocate()
   allocated = 1;
   int n = atom->nbondtypes;
 
-  map = (int *) memory->smalloc((n+1)*sizeof(int),"bond:map");
-  setflag = (int *) memory->smalloc((n+1)*sizeof(int),"bond:setflag");
+  memory->create(map,n+1,"bond:map");
+  memory->create(setflag,n+1,"bond:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
 
   nbondlist = new int[nstyles];
@@ -173,8 +173,8 @@ void BondHybrid::settings(int narg, char **arg)
   }
 
   if (allocated) {
-    memory->sfree(setflag);
-    memory->sfree(map);
+    memory->destroy(setflag);
+    memory->destroy(map);
     delete [] nbondlist;
     delete [] maxbond;
     for (int i = 0; i < nstyles; i++)

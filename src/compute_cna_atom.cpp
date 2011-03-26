@@ -67,8 +67,8 @@ ComputeCNAAtom::ComputeCNAAtom(LAMMPS *lmp, int narg, char **arg) :
 ComputeCNAAtom::~ComputeCNAAtom()
 {
   memory->destroy(nearest);
-  memory->sfree(nnearest);
-  memory->sfree(pattern);
+  memory->destroy(nnearest);
+  memory->destroy(pattern);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -128,14 +128,13 @@ void ComputeCNAAtom::compute_peratom()
 
   if (atom->nlocal > nmax) {
     memory->destroy(nearest);
-    memory->sfree(nnearest);
-    memory->sfree(pattern);
+    memory->destroy(nnearest);
+    memory->destroy(pattern);
     nmax = atom->nmax;
 
     memory->create(nearest,nmax,MAXNEAR,"cna:nearest");
-    nnearest = (int *) memory->smalloc(nmax*sizeof(int),"cna:nnearest");
-    pattern = (double *) memory->smalloc(nmax*sizeof(double),
-					 "cna:cna_pattern");
+    memory->create(nnearest,nmax,"cna:nnearest");
+    memory->create(pattern,nmax,"cna:cna_pattern");
     vector_atom = pattern;
   }
 

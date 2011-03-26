@@ -61,7 +61,7 @@ PairTersoff::~PairTersoff()
   if (elements)
     for (int i = 0; i < nelements; i++) delete [] elements[i];
   delete [] elements;
-  memory->sfree(params);
+  memory->destroy(params);
   memory->destroy(elem2param);
 
   if (allocated) {
@@ -363,7 +363,7 @@ void PairTersoff::read_file(char *file)
   int params_per_line = 17;
   char **words = new char*[params_per_line+1];
 
-  if (params) memory->sfree(params);
+  memory->sfree(params);
   params = NULL;
   nparams = maxparam = 0;
 

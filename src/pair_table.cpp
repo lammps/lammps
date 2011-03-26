@@ -369,12 +369,9 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
 
   fgets(line,MAXLINE,fp);
   param_extract(tb,line);
-  tb->rfile = (double *) 
-    memory->smalloc(tb->ninput*sizeof(double),"pair:rfile");
-  tb->efile = (double *) 
-    memory->smalloc(tb->ninput*sizeof(double),"pair:efile");
-  tb->ffile = (double *) 
-    memory->smalloc(tb->ninput*sizeof(double),"pair:ffile");
+  memory->create(tb->rfile,tb->ninput,"pair:rfile");
+  memory->create(tb->efile,tb->ninput,"pair:efile");
+  memory->create(tb->ffile,tb->ninput,"pair:ffile");
 
   // setup bitmap parameters for table to read in
 
@@ -437,12 +434,9 @@ void PairTable::bcast_table(Table *tb)
   int me;
   MPI_Comm_rank(world,&me);
   if (me > 0) {
-    tb->rfile = (double *) 
-      memory->smalloc(tb->ninput*sizeof(double),"pair:rfile");
-    tb->efile = (double *) 
-      memory->smalloc(tb->ninput*sizeof(double),"pair:efile");
-    tb->ffile = (double *) 
-      memory->smalloc(tb->ninput*sizeof(double),"pair:ffile");
+    memory->create(tb->rfile,tb->ninput,"pair:rfile");
+    memory->create(tb->efile,tb->ninput,"pair:efile");
+    memory->create(tb->ffile,tb->ninput,"pair:ffile");
   }
 
   MPI_Bcast(tb->rfile,tb->ninput,MPI_DOUBLE,0,world);
@@ -468,10 +462,8 @@ void PairTable::bcast_table(Table *tb)
 
 void PairTable::spline_table(Table *tb)
 {
-  tb->e2file = (double *) 
-    memory->smalloc(tb->ninput*sizeof(double),"pair:e2file");
-  tb->f2file = (double *) 
-    memory->smalloc(tb->ninput*sizeof(double),"pair:f2file");
+  memory->create(tb->e2file,tb->ninput,"pair:e2file");
+  memory->create(tb->f2file,tb->ninput,"pair:f2file");
 
   double ep0 = - tb->ffile[0];
   double epn = - tb->ffile[tb->ninput-1];
@@ -557,8 +549,8 @@ void PairTable::compute_table(Table *tb)
   // e,f are never a match to read-in values, always computed via spline interp
 
   if (tabstyle == LOOKUP) {
-    tb->e = (double *) memory->smalloc(tlm1*sizeof(double),"pair:e");
-    tb->f = (double *) memory->smalloc(tlm1*sizeof(double),"pair:f");
+    memory->create(tb->e,tlm1,"pair:e");
+    memory->create(tb->f,tlm1,"pair:f");
 
     double r,rsq;
     for (int i = 0; i < tlm1; i++) {
@@ -578,11 +570,11 @@ void PairTable::compute_table(Table *tb)
   // e,f can match read-in values, else compute via spline interp
 
   if (tabstyle == LINEAR) {
-    tb->rsq = (double *) memory->smalloc(tablength*sizeof(double),"pair:rsq");
-    tb->e = (double *) memory->smalloc(tablength*sizeof(double),"pair:e");
-    tb->f = (double *) memory->smalloc(tablength*sizeof(double),"pair:f");
-    tb->de = (double *) memory->smalloc(tlm1*sizeof(double),"pair:de");
-    tb->df = (double *) memory->smalloc(tlm1*sizeof(double),"pair:df");
+    memory->create(tb->rsq,tablength,"pair:rsq");
+    memory->create(tb->e,tablength,"pair:e");
+    memory->create(tb->f,tablength,"pair:f");
+    memory->create(tb->de,tlm1,"pair:de");
+    memory->create(tb->df,tlm1,"pair:df");
 
     double r,rsq;
     for (int i = 0; i < tablength; i++) {
@@ -613,11 +605,11 @@ void PairTable::compute_table(Table *tb)
   // e,f can match read-in values, else compute via spline interp
 
   if (tabstyle == SPLINE) {
-    tb->rsq = (double *) memory->smalloc(tablength*sizeof(double),"pair:rsq");
-    tb->e = (double *) memory->smalloc(tablength*sizeof(double),"pair:e");
-    tb->f = (double *) memory->smalloc(tablength*sizeof(double),"pair:f");
-    tb->e2 = (double *) memory->smalloc(tablength*sizeof(double),"pair:e2");
-    tb->f2 = (double *) memory->smalloc(tablength*sizeof(double),"pair:f2");
+    memory->create(tb->rsq,tablength,"pair:rsq");
+    memory->create(tb->e,tablength,"pair:e");
+    memory->create(tb->f,tablength,"pair:f");
+    memory->create(tb->e2,tablength,"pair:e2");
+    memory->create(tb->f2,tablength,"pair:f2");
 
     tb->deltasq6 = tb->delta*tb->delta / 6.0;
 
@@ -688,12 +680,12 @@ void PairTable::compute_table(Table *tb)
     int ntable = 1 << tablength;
     int ntablem1 = ntable - 1;
 
-    tb->rsq = (double *) memory->smalloc(ntable*sizeof(double),"pair:rsq");
-    tb->e = (double *) memory->smalloc(ntable*sizeof(double),"pair:e");
-    tb->f = (double *) memory->smalloc(ntable*sizeof(double),"pair:f");
-    tb->de = (double *) memory->smalloc(ntable*sizeof(double),"pair:de");
-    tb->df = (double *) memory->smalloc(ntable*sizeof(double),"pair:df");
-    tb->drsq = (double *) memory->smalloc(ntable*sizeof(double),"pair:drsq");
+    memory->create(tb->rsq,ntable,"pair:rsq");
+    memory->create(tb->e,ntable,"pair:e");
+    memory->create(tb->f,ntable,"pair:f");
+    memory->create(tb->de,ntable,"pair:de");
+    memory->create(tb->df,ntable,"pair:df");
+    memory->create(tb->drsq,ntable,"pair:drsq");
   
     union_int_float_t minrsq_lookup;
     minrsq_lookup.i = 0 << tb->nshiftbits;
@@ -788,20 +780,20 @@ void PairTable::null_table(Table *tb)
 
 void PairTable::free_table(Table *tb)
 {
-  memory->sfree(tb->rfile);
-  memory->sfree(tb->efile);
-  memory->sfree(tb->ffile);
-  memory->sfree(tb->e2file);
-  memory->sfree(tb->f2file);
+  memory->destroy(tb->rfile);
+  memory->destroy(tb->efile);
+  memory->destroy(tb->ffile);
+  memory->destroy(tb->e2file);
+  memory->destroy(tb->f2file);
 
-  memory->sfree(tb->rsq);
-  memory->sfree(tb->drsq);
-  memory->sfree(tb->e);
-  memory->sfree(tb->de);
-  memory->sfree(tb->f);
-  memory->sfree(tb->df);
-  memory->sfree(tb->e2);
-  memory->sfree(tb->f2);
+  memory->destroy(tb->rsq);
+  memory->destroy(tb->drsq);
+  memory->destroy(tb->e);
+  memory->destroy(tb->de);
+  memory->destroy(tb->f);
+  memory->destroy(tb->df);
+  memory->destroy(tb->e2);
+  memory->destroy(tb->f2);
 }
 
 /* ----------------------------------------------------------------------

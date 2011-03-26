@@ -39,9 +39,9 @@ AngleCosineSquared::AngleCosineSquared(LAMMPS *lmp) : Angle(lmp) {}
 AngleCosineSquared::~AngleCosineSquared()
 {
   if (allocated) {
-    memory->sfree(setflag);
-    memory->sfree(k);
-    memory->sfree(theta0);
+    memory->destroy(setflag);
+    memory->destroy(k);
+    memory->destroy(theta0);
   }
 }
 
@@ -151,10 +151,10 @@ void AngleCosineSquared::allocate()
   allocated = 1;
   int n = atom->nangletypes;
 
-  k = (double *) memory->smalloc((n+1)*sizeof(double),"angle:k");
-  theta0 = (double *) memory->smalloc((n+1)*sizeof(double),"angle:theta0");
+  memory->create(k,n+1,"angle:k");
+  memory->create(theta0,n+1,"angle:theta0");
 
-  setflag = (int *) memory->smalloc((n+1)*sizeof(int),"angle:setflag");
+  memory->create(setflag,n+1,"angle:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
 }
 

@@ -138,10 +138,8 @@ ComputeAtomMolecule(LAMMPS *lmp, int narg, char **arg) :
   aone = array = NULL;
 
   if (nvalues == 1) {
-    vone = (double *) memory->smalloc(nmolecules*sizeof(double),
-				      "atom/molecule:vone");
-    vector = (double *) memory->smalloc(nmolecules*sizeof(double),
-					"atom/molecule:vector");
+    memory->create(vone,nmolecules,"atom/molecule:vone");
+    memory->create(vector,nmolecules,"atom/molecule:vector");
     vector_flag = 1;
     size_vector = nmolecules;
     extvector = 0;
@@ -168,11 +166,11 @@ ComputeAtomMolecule::~ComputeAtomMolecule()
   delete [] ids;
   delete [] value2index;
 
-  memory->sfree(vone);
-  memory->sfree(vector);
+  memory->destroy(vone);
+  memory->destroy(vector);
   memory->destroy(aone);
   memory->destroy(array);
-  memory->sfree(scratch);
+  memory->destroy(scratch);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -320,9 +318,8 @@ void ComputeAtomMolecule::compute_one(int m)
   } else if (which[m] == VARIABLE) {
     if (atom->nlocal > maxatom) {
       maxatom = atom->nmax;
-      memory->sfree(scratch);
-      scratch =	(double *) 
-	memory->smalloc(maxatom*sizeof(double),"atom/molecule:scratch");
+      memory->destroy(scratch);
+      memory->create(scratch,maxatom,"atom/molecule:scratch");
       peratom = scratch;
     }
 

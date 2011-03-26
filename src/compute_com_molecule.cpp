@@ -39,10 +39,8 @@ ComputeCOMMolecule::ComputeCOMMolecule(LAMMPS *lmp, int narg, char **arg) :
   nmolecules = molecules_in_group(idlo,idhi);
   size_array_rows = nmolecules;
 
-  massproc = (double *) memory->smalloc(nmolecules*sizeof(double),
-					"com/molecule:massproc");
-  masstotal = (double *) memory->smalloc(nmolecules*sizeof(double),
-					 "com/molecule:masstotal");
+  memory->create(massproc,nmolecules,"com/molecule:massproc");
+  memory->create(masstotal,nmolecules,"com/molecule:masstotal");
   memory->create(com,nmolecules,3,"com/molecule:com");
   memory->create(comall,nmolecules,3,"com/molecule:comall");
   array = comall;
@@ -78,8 +76,8 @@ ComputeCOMMolecule::ComputeCOMMolecule(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeCOMMolecule::~ComputeCOMMolecule()
 {
-  memory->sfree(massproc);
-  memory->sfree(masstotal);
+  memory->destroy(massproc);
+  memory->destroy(masstotal);
   memory->destroy(com);
   memory->destroy(comall);
 }

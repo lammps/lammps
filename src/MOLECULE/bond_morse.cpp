@@ -37,10 +37,10 @@ BondMorse::BondMorse(LAMMPS *lmp) : Bond(lmp) {}
 BondMorse::~BondMorse()
 {
   if (allocated) {
-    memory->sfree(setflag);
-    memory->sfree(d0);
-    memory->sfree(alpha);
-    memory->sfree(r0);
+    memory->destroy(setflag);
+    memory->destroy(d0);
+    memory->destroy(alpha);
+    memory->destroy(r0);
   }
 }
 
@@ -110,10 +110,10 @@ void BondMorse::allocate()
   allocated = 1;
   int n = atom->nbondtypes;
 
-  d0 = (double *) memory->smalloc((n+1)*sizeof(double),"bond:d0");
-  alpha = (double *) memory->smalloc((n+1)*sizeof(double),"bond:alpha");
-  r0 = (double *) memory->smalloc((n+1)*sizeof(double),"bond:r0");
-  setflag = (int *) memory->smalloc((n+1)*sizeof(int),"bond:setflag");
+  memory->create(d0,n+1,"bond:d0");
+  memory->create(alpha,n+1,"bond:alpha");
+  memory->create(r0,n+1,"bond:r0");
+  memory->create(setflag,n+1,"bond:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
 }
 

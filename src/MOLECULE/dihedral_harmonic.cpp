@@ -43,12 +43,12 @@ DihedralHarmonic::DihedralHarmonic(LAMMPS *lmp) : Dihedral(lmp) {}
 DihedralHarmonic::~DihedralHarmonic()
 {
   if (allocated) {
-    memory->sfree(setflag);
-    memory->sfree(k);
-    memory->sfree(sign);
-    memory->sfree(multiplicity);
-    memory->sfree(cos_shift);
-    memory->sfree(sin_shift);
+    memory->destroy(setflag);
+    memory->destroy(k);
+    memory->destroy(sign);
+    memory->destroy(multiplicity);
+    memory->destroy(cos_shift);
+    memory->destroy(sin_shift);
   }
 }
 
@@ -256,16 +256,13 @@ void DihedralHarmonic::allocate()
   allocated = 1;
   int n = atom->ndihedraltypes;
 
-  k = (double *) memory->smalloc((n+1)*sizeof(double),"dihedral:k");
-  sign = (int *) memory->smalloc((n+1)*sizeof(double),"dihedral:sign");
-  multiplicity = (int *) 
-    memory->smalloc((n+1)*sizeof(double),"dihedral:multiplicity");
-  cos_shift = (double *)
-    memory->smalloc((n+1)*sizeof(double),"dihedral:cos_shift");
-  sin_shift = (double *)
-    memory->smalloc((n+1)*sizeof(double),"dihedral:sin_shift");
+  memory->create(k,n+1,"dihedral:k");
+  memory->create(sign,n+1,"dihedral:sign");
+  memory->create(multiplicity,n+1,"dihedral:multiplicity");
+  memory->create(cos_shift,n+1,"dihedral:cos_shift");
+  memory->create(sin_shift,n+1,"dihedral:sin_shift");
 
-  setflag = (int *) memory->smalloc((n+1)*sizeof(int),"dihedral:setflag");
+  memory->create(setflag,n+1,"dihedral:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
 }
 

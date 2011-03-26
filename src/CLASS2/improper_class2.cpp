@@ -45,19 +45,19 @@ ImproperClass2::ImproperClass2(LAMMPS *lmp) : Improper(lmp)
 ImproperClass2::~ImproperClass2()
 {
   if (allocated) {
-    memory->sfree(setflag);
-    memory->sfree(setflag_i);
-    memory->sfree(setflag_aa);
+    memory->destroy(setflag);
+    memory->destroy(setflag_i);
+    memory->destroy(setflag_aa);
 
-    memory->sfree(k0);
-    memory->sfree(chi0);
+    memory->destroy(k0);
+    memory->destroy(chi0);
 
-    memory->sfree(aa_k1);
-    memory->sfree(aa_k2);
-    memory->sfree(aa_k3);
-    memory->sfree(aa_theta0_1);
-    memory->sfree(aa_theta0_2);
-    memory->sfree(aa_theta0_3);
+    memory->destroy(aa_k1);
+    memory->destroy(aa_k2);
+    memory->destroy(aa_k3);
+    memory->destroy(aa_theta0_1);
+    memory->destroy(aa_theta0_2);
+    memory->destroy(aa_theta0_3);
   }
 }
 
@@ -501,24 +501,19 @@ void ImproperClass2::allocate()
   allocated = 1;
   int n = atom->nimpropertypes;
 
-  k0 = (double *) memory->smalloc((n+1)*sizeof(double),"improper:k0");
-  chi0 = (double *) memory->smalloc((n+1)*sizeof(double),"improper:chi0");
+  memory->create(k0,n+1,"improper:k0");
+  memory->create(chi0,n+1,"improper:chi0");
 
-  aa_k1 = (double *) memory->smalloc((n+1)*sizeof(double),"improper:aa_k1");
-  aa_k2 = (double *) memory->smalloc((n+1)*sizeof(double),"improper:aa_k2");
-  aa_k3 = (double *) memory->smalloc((n+1)*sizeof(double),"improper:aa_k3");
-  aa_theta0_1 = (double *) 
-    memory->smalloc((n+1)*sizeof(double),"improper:aa_theta0_1");
-  aa_theta0_2 = (double *) 
-    memory->smalloc((n+1)*sizeof(double),"improper:aa_theta0_2");
-  aa_theta0_3 = (double *) 
-    memory->smalloc((n+1)*sizeof(double),"improper:aa_theta0_3");
+  memory->create(aa_k1,n+1,"improper:aa_k1");
+  memory->create(aa_k2,n+1,"improper:aa_k2");
+  memory->create(aa_k3,n+1,"improper:aa_k3");
+  memory->create(aa_theta0_1,n+1,"improper:aa_theta0_1");
+  memory->create(aa_theta0_2,n+1,"improper:aa_theta0_2");
+  memory->create(aa_theta0_3,n+1,"improper:aa_theta0_3");
 
-  setflag = (int *) memory->smalloc((n+1)*sizeof(int),"improper:setflag");
-  setflag_i = (int *) 
-    memory->smalloc((n+1)*sizeof(int),"improper:setflag_i");
-  setflag_aa = (int *) 
-    memory->smalloc((n+1)*sizeof(int),"improper:setflag_aa");
+  memory->create(setflag,n+1,"improper:setflag");
+  memory->create(setflag_i,n+1,"improper:setflag_i");
+  memory->create(setflag_aa,n+1,"improper:setflag_aa");
   for (int i = 1; i <= n; i++)
     setflag[i] = setflag_i[i] = setflag_aa[i] = 0;
 }

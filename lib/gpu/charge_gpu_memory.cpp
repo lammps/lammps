@@ -84,12 +84,19 @@ bool ChargeGPUMemoryT::init_atomic(const int nlocal, const int nall,
 }
 
 template <class numtyp, class acctyp>
+void ChargeGPUMemoryT::estimate_gpu_overhead() {
+  device->estimate_gpu_overhead(1,_gpu_overhead,_driver_overhead);
+}
+
+template <class numtyp, class acctyp>
 void ChargeGPUMemoryT::clear_atomic() {
   // Output any timing information
   acc_timers();
   double avg_split=hd_balancer.all_avg_split();
+  _gpu_overhead*=hd_balancer.timestep();
+  _driver_overhead*=hd_balancer.timestep();
   device->output_times(time_pair,*ans,*nbor,avg_split,_max_bytes+_max_an_bytes,
-                       screen);
+                       _gpu_overhead,_driver_overhead,screen);
 
   if (_compiled) {
     k_pair_fast.clear();

@@ -94,6 +94,7 @@ bool PairGPUAnsT::init(const int inum, const bool charge, const bool rot,
   time_answer.init(*dev);
   time_answer.zero();
   _time_cast=0.0;
+  _time_cpu_idle=0.0;
   
   return success && alloc(ef_inum);
 }

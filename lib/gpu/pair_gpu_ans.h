@@ -123,13 +123,18 @@ class PairGPUAns {
 
   inline double get_answers(double **f, double **tor, double *eatom, 
                             double **vatom, double *virial, double &ecoul) {
+    double ta=MPI_Wtime();
     time_answer.sync_stop();
+    _time_cpu_idle+=MPI_Wtime()-ta;
     double ts=MPI_Wtime();
     double evdw=energy_virial(eatom,vatom,virial,ecoul);
     get_answers(f,tor);
     _time_cast+=MPI_Wtime()-ts;
     return evdw;
   }
+  
+  /// Return the time the CPU was idle waiting for GPU
+  inline double cpu_idle_time() { return _time_cpu_idle; }
 
   // ------------------------------ DATA ----------------------------------
 
@@ -155,7 +160,7 @@ class PairGPUAns {
   bool _allocated, _eflag, _vflag, _ef_atom, _vf_atom, _rot, _charge, _other;
   int _max_local, _inum, _e_fields, _ev_fields;
   int *_ilist;
-  double _time_cast;
+  double _time_cast, _time_cpu_idle;
   
   double _gpu_bytes;
   

@@ -68,12 +68,18 @@ class PairGPUDevice {
                     const int first_gpu, const int last_gpu);
 
   /// Esimate the overhead from GPU calls from multiple procs
-  void estimate_gpu_overhead();
+  /** \param kernel_calls Number of kernel calls/timestep for timing estimated
+    *                     overhead
+    * \param gpu_overhead Estimated gpu overhead per timestep (sec)
+    * \param driver_overhead Estimated overhead from driver per timestep (s) **/
+  void estimate_gpu_overhead(const int kernel_calls, double &gpu_overhead,
+                             double &gpu_driver_overhead);
   
   /// Output a message with timing information
   void output_times(UCL_Timer &time_pair, PairGPUAns<numtyp,acctyp> &ans, 
                     PairGPUNbor &nbor, const double avg_split, 
-                    const double max_bytes, FILE *screen);
+                    const double max_bytes, const double gpu_overhead,
+                    const double driver_overhead, FILE *screen);
 
   /// Output a message with timing information
   void output_kspace_times(UCL_Timer &time_in, UCL_Timer &time_out,
@@ -196,7 +202,6 @@ class PairGPUDevice {
   int _gpu_mode, _first_device, _last_device, _nthreads;
   double _particle_split;
   double _cpu_full;
-  double _gpu_overhead;
 
   int _block_size;
   UCL_Program *dev_program;
@@ -204,6 +209,8 @@ class PairGPUDevice {
   bool _compiled;
   void compile_kernels();
 
+  int _data_in_estimate, _data_out_estimate;
+  
   template <class t>
   inline std::string toa(const t& in) {
     std::ostringstream o;

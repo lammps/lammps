@@ -89,7 +89,7 @@ bool ljl_gpu_init(const int ntypes, double **cutsq,
   }
   if (message)
     fprintf(screen,"\n");
-  LJLMF.device->estimate_gpu_overhead();
+  LJLMF.estimate_gpu_overhead();
 
   return true;
 }

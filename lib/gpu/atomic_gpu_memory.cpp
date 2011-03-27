@@ -68,9 +68,6 @@ bool AtomicGPUMemoryT::init_atomic(const int nlocal, const int nall,
     _block_size=ucl_device->group_size();
   compile_kernels(*ucl_device,pair_program);
 
-  // Initialize host-device load balancer
-  hd_balancer.init(device,gpu_nbor,gpu_split);
-
   // Initialize timers for the selected GPU
   time_pair.init(*ucl_device);
   time_pair.zero();
@@ -79,7 +76,15 @@ bool AtomicGPUMemoryT::init_atomic(const int nlocal, const int nall,
 
   _max_an_bytes=ans->gpu_bytes()+nbor->gpu_bytes();
 
+  // Initialize host-device load balancer
+  hd_balancer.init(device,gpu_nbor,gpu_split);
+
   return true;
+}
+
+template <class numtyp, class acctyp>
+void AtomicGPUMemoryT::estimate_gpu_overhead() {
+  device->estimate_gpu_overhead(1,_gpu_overhead,_driver_overhead);
 }
 
 template <class numtyp, class acctyp>
@@ -87,8 +92,10 @@ void AtomicGPUMemoryT::clear_atomic() {
   // Output any timing information
   acc_timers();
   double avg_split=hd_balancer.all_avg_split();
+  _gpu_overhead*=hd_balancer.timestep();
+  _driver_overhead*=hd_balancer.timestep();
   device->output_times(time_pair,*ans,*nbor,avg_split,_max_bytes+_max_an_bytes,
-                       screen);
+                       _gpu_overhead,_driver_overhead,screen);
 
   if (_compiled) {
     k_pair_fast.clear();

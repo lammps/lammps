@@ -23,7 +23,7 @@
 
 #define _HD_BALANCE_EVERY 25
 #define _HD_BALANCE_WEIGHT 0.5
-#define _HD_BALANCE_GAP 1.05
+#define _HD_BALANCE_GAP 1.10
 
 /// Host/device load balancer
 template<class numtyp, class acctyp>
@@ -44,6 +44,9 @@ class PairGPUBalance {
       _init_done=false;
     }
   }
+  
+  /// Return the timestep since initialization
+  inline int timestep() { return _timestep; }
 
   /// Get a count of the number of particles host will handle for initial alloc
   inline int first_host_count(const int nlocal, const double gpu_split,
@@ -82,10 +85,10 @@ class PairGPUBalance {
     if (_measure_this_step) {
       _device->gpu->sync();
       _device->gpu_barrier();
+      _device->start_host_timer();
       _device_time.start();
       _device->gpu->sync();
       _device->gpu_barrier();
-      _device->start_host_timer();
     }
   }
 
@@ -156,6 +159,7 @@ int PairGPUBalanceT::get_gpu_count(const int ago, const int inum_full) {
   }
   _inum=static_cast<int>(floor(_actual_split*inum_full));
   if (_inum==0) _inum++;
+  _timestep++;
   return _inum;
 }
     

@@ -53,7 +53,7 @@ class PairGPUBalance {
       if (gpu_split>0)
         host_nlocal=static_cast<int>(ceil((1.0-gpu_split)*nlocal));
       else
-        host_nlocal=static_cast<int>(ceil(0.1*nlocal));
+        host_nlocal=static_cast<int>(ceil(0.05*nlocal));
     }
     return host_nlocal;
   }
@@ -130,7 +130,7 @@ void PairGPUBalanceT::init(PairGPUDevice<numtyp, acctyp> *gpu,
   
   if (split<0.0) {
     _load_balance=true;
-    _desired_split=0.9;
+    _desired_split=0.90;
   } else {
     _load_balance=false;
     _desired_split=split;
@@ -162,31 +162,27 @@ int PairGPUBalanceT::get_gpu_count(const int ago, const int inum_full) {
 template <class numtyp, class acctyp>
 void PairGPUBalanceT::balance(const double cpu_time) {
   if (_measure_this_step) {
+    _measure_this_step=false;
+    double gpu_time=_device_time.seconds();
+
+    double max_gpu_time;
+    MPI_Allreduce(&gpu_time,&max_gpu_time,1,MPI_DOUBLE,MPI_MAX,
+                  _device->gpu_comm());
+
     if (_inum_full==_inum) {
       _desired_split=1.0;
       return;
     }
 
-    _measure_this_step=false;
-    double gpu_time=_device_time.seconds();
+    double cpu_time_per_atom=cpu_time/(_inum_full-_inum);
+    double cpu_other_time=_device->host_time()-cpu_time;
+    int host_inum=static_cast<int>((max_gpu_time-cpu_other_time)/
+                                   cpu_time_per_atom);
 
-    double cpu_gpu_time[3], max_times[3];
-    cpu_gpu_time[0]=cpu_time/(_inum_full-_inum);
-    cpu_gpu_time[1]=gpu_time/_inum;
-    cpu_gpu_time[2]=(_device->host_time()-cpu_time)/_inum_full;
-
-    MPI_Allreduce(cpu_gpu_time,max_times,3,MPI_DOUBLE,MPI_MAX,
-                  _device->gpu_comm());
-    double split=(max_times[0]+max_times[2])/(max_times[0]+max_times[1]);
-    split*=_HD_BALANCE_GAP;
-
-    if (split>1.0)
-      split=1.0;
-    if (_avg_count<10)
-      _desired_split=(_desired_split*_avg_count+split)/(_avg_count+1);
-    else
-      _desired_split=_desired_split*(1.0-_HD_BALANCE_WEIGHT)+
-                     _HD_BALANCE_WEIGHT*split;
+    double split=static_cast<double>(_inum_full-host_inum)/_inum_full;
+    _desired_split=split*_HD_BALANCE_GAP;
+    if (_desired_split<0.0)
+      _desired_split=0.0;
 
     if (!_gpu_nbor) {
       if (_desired_split<_max_split)
@@ -194,6 +190,7 @@ void PairGPUBalanceT::balance(const double cpu_time) {
       else
         _actual_split=_max_split;
     }
+//std::cout << gpu_time << " " << max_gpu_time << " " << cpu_other_time << " " << cpu_time_per_atom << " " << cpu_time << " " << _desired_split << " " << host_inum << std::endl;
   }
   _avg_split+=_desired_split;
   _avg_count++;

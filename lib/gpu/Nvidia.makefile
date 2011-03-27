@@ -58,7 +58,8 @@ OBJS = $(OBJ_DIR)/pair_gpu_atom.o $(OBJ_DIR)/pair_gpu_ans.o \
        $(OBJ_DIR)/cmmc_long_gpu_memory.o $(OBJ_DIR)/cmmc_long_gpu.o \
        $(OBJ_DIR)/cmmc_msm_gpu_memory.o $(OBJ_DIR)/cmmc_msm_gpu.o \
        $(CUDPP)
-PTXS = $(OBJ_DIR)/pair_gpu_atom_kernel.ptx $(OBJ_DIR)/pair_gpu_atom_ptx.h \
+PTXS = $(OBJ_DIR)/pair_gpu_dev_kernel.ptx \
+       $(OBJ_DIR)/pair_gpu_atom_kernel.ptx $(OBJ_DIR)/pair_gpu_atom_ptx.h \
        $(OBJ_DIR)/pair_gpu_nbor_kernel.ptx $(OBJ_DIR)/pair_gpu_nbor_ptx.h \
        $(OBJ_DIR)/pair_gpu_build_kernel.ptx $(OBJ_DIR)/pair_gpu_build_ptx.h \
        $(OBJ_DIR)/pppm_gpu_kernel.ptx $(OBJ_DIR)/pppm_gpu_ptx.h \
@@ -125,8 +126,14 @@ $(OBJ_DIR)/pair_gpu_nbor_shared.o: pair_gpu_nbor_shared.cpp pair_gpu_nbor_shared
 $(OBJ_DIR)/pair_gpu_nbor.o: pair_gpu_nbor.cpp pair_gpu_nbor.h pair_gpu_nbor_shared.h $(NVD_H)
 	$(CUDR) -o $@ -c pair_gpu_nbor.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/pair_gpu_device.o: pair_gpu_device.cpp pair_gpu_device.h $(ALL_H)
-	$(CUDR) -o $@ -c pair_gpu_device.cpp
+$(OBJ_DIR)/pair_gpu_dev_kernel.ptx: pair_gpu_dev_kernel.cu
+	$(CUDA) --ptx -DNV_KERNEL -o $@ pair_gpu_dev_kernel.cu
+
+$(OBJ_DIR)/pair_gpu_dev_ptx.h: $(OBJ_DIR)/pair_gpu_dev_kernel.ptx
+	$(BSH) ./geryon/file_to_cstr.sh $(OBJ_DIR)/pair_gpu_dev_kernel.ptx $(OBJ_DIR)/pair_gpu_dev_ptx.h
+
+$(OBJ_DIR)/pair_gpu_device.o: pair_gpu_device.cpp pair_gpu_device.h $(ALL_H) $(OBJ_DIR)/pair_gpu_dev_ptx.h
+	$(CUDR) -o $@ -c pair_gpu_device.cpp -I$(OBJ_DIR)
 
 $(OBJ_DIR)/atomic_gpu_memory.o: $(ALL_H) atomic_gpu_memory.h atomic_gpu_memory.cpp
 	$(CUDR) -o $@ -c atomic_gpu_memory.cpp

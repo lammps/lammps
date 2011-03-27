@@ -46,8 +46,8 @@ OBJS = $(OBJ_DIR)/pair_gpu_atom.o $(OBJ_DIR)/pair_gpu_ans.o \
        $(OBJ_DIR)/crml_gpu_memory.o $(OBJ_DIR)/crml_gpu.o \
        $(OBJ_DIR)/cmm_cut_gpu_memory.o $(OBJ_DIR)/cmm_cut_gpu.o \
        $(OBJ_DIR)/cmmc_long_gpu_memory.o $(OBJ_DIR)/cmmc_long_gpu.o 
-KERS = $(OBJ_DIR)/pair_gpu_atom_cl.h $(OBJ_DIR)/pair_gpu_nbor_cl.h \
-       $(OBJ_DIR)/pppm_gpu_cl.h \
+KERS = $(OBJ_DIR)/pair_gpu_dev_cl.h $(OBJ_DIR)/pair_gpu_atom_cl.h \
+       $(OBJ_DIR)/pair_gpu_nbor_cl.h $(OBJ_DIR)/pppm_gpu_cl.h \
        $(OBJ_DIR)/gb_gpu_nbor_cl.h $(OBJ_DIR)/gb_gpu_cl.h \
        $(OBJ_DIR)/lj_cut_gpu_cl.h $(OBJ_DIR)/lj96_cut_gpu_cl.h \
        $(OBJ_DIR)/lj_expand_gpu_cl.h $(OBJ_DIR)/ljc_cut_gpu_cl.h \
@@ -74,8 +74,11 @@ $(OBJ_DIR)/pair_gpu_nbor_shared.o: pair_gpu_nbor_shared.cpp pair_gpu_nbor_shared
 $(OBJ_DIR)/pair_gpu_nbor.o: pair_gpu_nbor.cpp pair_gpu_nbor.h $(OCL_H) pair_gpu_nbor_shared.h
 	$(OCL) -o $@ -c pair_gpu_nbor.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/pair_gpu_device.o: pair_gpu_device.cpp pair_gpu_device.h $(ALL_H)
-	$(OCL) -o $@ -c pair_gpu_device.cpp
+$(OBJ_DIR)/pair_gpu_dev_cl.h: pair_gpu_dev_kernel.cu
+	$(BSH) ./geryon/file_to_cstr.sh pair_gpu_dev_kernel.cu $(OBJ_DIR)/pair_gpu_dev_cl.h
+
+$(OBJ_DIR)/pair_gpu_device.o: pair_gpu_device.cpp pair_gpu_device.h $(ALL_H) $(OBJ_DIR)/pair_gpu_dev_cl.h
+	$(OCL) -o $@ -c pair_gpu_device.cpp -I$(OBJ_DIR)
 
 $(OBJ_DIR)/atomic_gpu_memory.o: $(OCL_H) atomic_gpu_memory.h atomic_gpu_memory.cpp
 	$(OCL) -o $@ -c atomic_gpu_memory.cpp

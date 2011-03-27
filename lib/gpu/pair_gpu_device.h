@@ -67,6 +67,9 @@ class PairGPUDevice {
   void init_message(FILE *screen, const char *name,
                     const int first_gpu, const int last_gpu);
 
+  /// Esimate the overhead from GPU calls from multiple procs
+  void estimate_gpu_overhead();
+  
   /// Output a message with timing information
   void output_times(UCL_Timer &time_pair, PairGPUAns<numtyp,acctyp> &ans, 
                     PairGPUNbor &nbor, const double avg_split, 
@@ -157,6 +160,15 @@ class PairGPUDevice {
   /// Return the initialization count for the device
   inline int init_count() const { return _init_count; }
 
+  // -------------------- SHARED DEVICE ROUTINES -------------------- 
+  // Perform asynchronous zero of integer array 
+  void zero(UCL_D_Vec<int> &mem, const int numel) {
+    int num_blocks=static_cast<int>(ceil(static_cast<double>(numel)/
+                                    _block_size));
+    k_zero.set_size(num_blocks,_block_size);
+    k_zero.run(&mem.begin(),&numel);
+  }
+
   // -------------------------- DEVICE DATA ------------------------- 
 
   /// Geryon Device
@@ -184,6 +196,13 @@ class PairGPUDevice {
   int _gpu_mode, _first_device, _last_device, _nthreads;
   double _particle_split;
   double _cpu_full;
+  double _gpu_overhead;
+
+  int _block_size;
+  UCL_Program *dev_program;
+  UCL_Kernel k_zero;
+  bool _compiled;
+  void compile_kernels();
 
   template <class t>
   inline std::string toa(const t& in) {

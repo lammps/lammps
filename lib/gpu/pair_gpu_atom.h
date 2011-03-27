@@ -81,6 +81,12 @@ class PairGPUAtom {
   bool add_fields(const bool charge, const bool rot, const bool gpu_nbor,
                   const bool bonds);
   
+  /// Returns true if GPU is using charges
+  bool charge() { return _charge; }
+  
+  /// Returns true if GPU is using quaternions
+  bool quat() { return _rot; }
+  
   /// Only free matrices of length inum or nall for resizing
   void clear_resize();
   

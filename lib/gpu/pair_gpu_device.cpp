@@ -23,12 +23,19 @@
 #include <omp.h>
 #endif
 
+#ifdef USE_OPENCL
+#include "pair_gpu_dev_cl.h"
+#else
+#include "pair_gpu_dev_ptx.h"
+#endif
+
+#define BLOCK_1D 64
 #define PairGPUDeviceT PairGPUDevice<numtyp, acctyp>
 
 template <class numtyp, class acctyp>
 PairGPUDeviceT::PairGPUDevice() : _init_count(0), _device_init(false),
                                   _gpu_mode(GPU_FORCE), _first_device(0),
-                                  _last_device(0) {
+                                  _last_device(0), _compiled(false) {
 }
 
 template <class numtyp, class acctyp>
@@ -113,6 +120,11 @@ bool PairGPUDeviceT::init_device(MPI_Comm world, MPI_Comm replica,
     return false;
   
   gpu->set(my_gpu);
+
+  _block_size=BLOCK_1D;
+  if (static_cast<size_t>(_block_size)>gpu->group_size())
+    _block_size=gpu->group_size();
+
   return true;
 }
 
@@ -139,6 +151,7 @@ bool PairGPUDeviceT::init(PairGPUAns<numtyp,acctyp> &ans, const bool charge,
     // Initialize atom and nbor data
     if (!atom.init(nall,charge,rot,*gpu,gpu_nbor,gpu_nbor && maxspecial>0))
       return false;
+    compile_kernels();
   } else
     atom.add_fields(charge,rot,gpu_nbor,gpu_nbor && maxspecial);
 
@@ -149,6 +162,7 @@ bool PairGPUDeviceT::init(PairGPUAns<numtyp,acctyp> &ans, const bool charge,
                   *gpu,gpu_nbor,gpu_host,pre_cut))
     return false;
   nbor->cell_size(cell_size);
+  _gpu_overhead=0.0;
 
   _init_count++;
   return true;
@@ -164,6 +178,7 @@ bool PairGPUDeviceT::init(PairGPUAns<numtyp,acctyp> &ans, const int nlocal,
     // Initialize atom and nbor data
     if (!atom.init(nall,true,false,*gpu,false,false))
       return false;
+    compile_kernels();
   } else
     atom.add_fields(true,false,false,false);
 
@@ -214,6 +229,71 @@ void PairGPUDeviceT::init_message(FILE *screen, const char *name,
   }
 }
 
+template <class numtyp, class acctyp>
+void PairGPUDeviceT::estimate_gpu_overhead() {
+  UCL_H_Vec<int> h_sample_x(1,*gpu), h_sample_q(1,*gpu);
+  UCL_H_Vec<int> h_sample_quat(1,*gpu), h_sample_ans(1,*gpu);
+  UCL_D_Vec<int> d_sample_x(1,*gpu), d_sample_q(1,*gpu);
+  UCL_D_Vec<int> d_sample_quat(1,*gpu), d_sample_ans(1,*gpu);
+  UCL_Timer x_timer(*gpu), q_timer(*gpu);
+  UCL_Timer quat_timer(*gpu), ans_timer(*gpu), kernel_timer(*gpu);
+  UCL_Timer over_timer(*gpu);
+  
+  h_sample_x[0]=1;
+  h_sample_q[0]=1;
+  h_sample_quat[0]=1;
+  
+  _gpu_overhead=0.0;
+  
+  for (int i=0; i<10; i++) {
+    gpu->sync();
+    gpu_barrier();
+    over_timer.start();
+    gpu->sync();
+    gpu_barrier();
+/*
+    x_timer.start();
+    ucl_copy(d_sample_x,h_sample_x,true);
+    x_timer.stop();
+    
+    if (atom.charge()) {
+      q_timer.start();
+      ucl_copy(d_sample_q,h_sample_q,true);
+      q_timer.stop();
+    }
+    
+    if (atom.quat()) {
+      quat_timer.start();
+      ucl_copy(d_sample_quat,h_sample_quat,true);
+      quat_timer.stop();
+    }
+*/    
+    kernel_timer.start();
+    zero(d_sample_ans,1);
+    kernel_timer.stop();
+    
+    ans_timer.start();
+    ucl_copy(h_sample_ans,d_sample_ans,true);
+    ans_timer.stop();
+    
+    over_timer.stop();
+/*    x_timer.add_to_total();
+    if (atom.charge())
+      q_timer.add_to_total();
+    if (atom.quat())
+      quat_timer.add_to_total();
+*/    kernel_timer.add_to_total();
+    ans_timer.add_to_total();
+    double time, mpi_time;
+    time = over_timer.seconds();
+    MPI_Allreduce(&time,&mpi_time,1,MPI_DOUBLE,MPI_MAX,gpu_comm());
+    _gpu_overhead+=mpi_time;
+  }
+  if (world_me()==0)
+    std::cout << "Estimated overhead per timestep: " << _gpu_overhead/10.0 
+              << " seconds.\n";
+}              
+  
 template <class numtyp, class acctyp>
 void PairGPUDeviceT::output_times(UCL_Timer &time_pair, 
                                   PairGPUAns<numtyp,acctyp> &ans, 
@@ -326,6 +406,11 @@ void PairGPUDeviceT::clear() {
     if (_init_count==0) {
       atom.clear();
       _nbor_shared.clear();
+      if (_compiled) {
+        k_zero.clear();
+        delete dev_program;
+        _compiled=false;
+      }
     }
   }
 }
@@ -338,6 +423,18 @@ void PairGPUDeviceT::clear_device() {
     delete gpu;
     _device_init=false;
   }
+}
+
+template <class numtyp, class acctyp>
+void PairGPUDeviceT::compile_kernels() {
+  if (_compiled)
+  	return;
+  	
+  std::string flags="-cl-mad-enable";
+  dev_program=new UCL_Program(*gpu);
+  dev_program->load_string(pair_gpu_dev_kernel,flags.c_str());
+  k_zero.set_function(*dev_program,"kernel_zero");
+  _compiled=true;
 }
 
 template <class numtyp, class acctyp>

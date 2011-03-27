@@ -32,6 +32,7 @@
 #include "random_mars.h"
 #include "memory.h"
 #include "error.h"
+#include "group.h"
 
 using namespace LAMMPS_NS;
 
@@ -71,6 +72,7 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
 
   for (int i = 1; i <= atom->ntypes; i++) ratio[i] = 1.0;
   tally = 0;
+  zerosum = 0;
 
   int iarg = 7;
   while (iarg < narg) {
@@ -86,6 +88,12 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg) error->all("Illegal fix langevin command");
       if (strcmp(arg[iarg+1],"no") == 0) tally = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) tally = 1;
+      else error->all("Illegal fix langevin command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"zerosum") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix langevin command");
+      if (strcmp(arg[iarg+1],"no") == 0) zerosum = 0;
+      else if (strcmp(arg[iarg+1],"yes") == 0) zerosum = 1;
       else error->all("Illegal fix langevin command");
       iarg += 2;
     } else error->all("Illegal fix langevin command");
@@ -204,7 +212,20 @@ void FixLangevin::post_force_no_tally()
   //   computed on current nlocal atoms to remove bias
   //   test v = 0 since some computes mask non-participating atoms via v = 0
   //   and added force has extra term not multiplied by v = 0
+  // for ZEROSUM:
+  //   Sum random force over all atoms in group
+  //   Subtract sum/count from each atom in group    
 
+  double fran[3],fsum[3],fsumall[3];
+  fsum[0] = fsum[1] = fsum[2] = 0.0;
+  bigint count;
+  
+  if (zerosum) {
+    count = group->count(igroup);
+    if (count == 0)
+      error->all("Cannot zero Langevin force of 0 atoms");
+  }
+  
   if (rmass) {
     double boltz = force->boltz;
     double dt = update->dt;
@@ -218,9 +239,15 @@ void FixLangevin::post_force_no_tally()
 	  gamma2 = sqrt(rmass[i]) * sqrt(24.0*boltz/t_period/dt/mvv2e) / ftm2v;
 	  gamma1 *= 1.0/ratio[type[i]];
 	  gamma2 *= 1.0/sqrt(ratio[type[i]]) * tsqrt;
-	  f[i][0] += gamma1*v[i][0] + gamma2*(random->uniform()-0.5);
-	  f[i][1] += gamma1*v[i][1] + gamma2*(random->uniform()-0.5);
-	  f[i][2] += gamma1*v[i][2] + gamma2*(random->uniform()-0.5);
+	  fran[0] = gamma2*(random->uniform()-0.5);
+	  fran[1] = gamma2*(random->uniform()-0.5);
+	  fran[2] = gamma2*(random->uniform()-0.5);
+	  f[i][0] += gamma1*v[i][0] + fran[0];
+	  f[i][1] += gamma1*v[i][1] + fran[1];
+	  f[i][2] += gamma1*v[i][2] + fran[2];
+	  fsum[0] += fran[0];
+	  fsum[1] += fran[1];
+	  fsum[2] += fran[2];
 	}
       }
 
@@ -233,27 +260,42 @@ void FixLangevin::post_force_no_tally()
 	  gamma1 *= 1.0/ratio[type[i]];
 	  gamma2 *= 1.0/sqrt(ratio[type[i]]) * tsqrt;
 	  temperature->remove_bias(i,v[i]);
+	  fran[0] = gamma2*(random->uniform()-0.5);
+	  fran[1] = gamma2*(random->uniform()-0.5);
+	  fran[2] = gamma2*(random->uniform()-0.5);
 	  if (v[i][0] != 0.0)
-	    f[i][0] += gamma1*v[i][0] + gamma2*(random->uniform()-0.5);
+	    f[i][0] += gamma1*v[i][0] + fran[0];
 	  if (v[i][1] != 0.0)
-	    f[i][1] += gamma1*v[i][1] + gamma2*(random->uniform()-0.5);
+	    f[i][1] += gamma1*v[i][1] + fran[1];
 	  if (v[i][2] != 0.0)
-	    f[i][2] += gamma1*v[i][2] + gamma2*(random->uniform()-0.5);
+	    f[i][2] += gamma1*v[i][2] + fran[2];
+	  fsum[0] += fran[0];
+	  fsum[1] += fran[1];
+	  fsum[2] += fran[2];
 	  temperature->restore_bias(i,v[i]);
 	}
       }
     }
 
   } else {
+    
     if (which == NOBIAS) {
+
       for (int i = 0; i < nlocal; i++) {
 	if (mask[i] & groupbit) {
 	  gamma1 = gfactor1[type[i]];
 	  gamma2 = gfactor2[type[i]] * tsqrt;
-	  f[i][0] += gamma1*v[i][0] + gamma2*(random->uniform()-0.5);
-	  f[i][1] += gamma1*v[i][1] + gamma2*(random->uniform()-0.5);
-	  f[i][2] += gamma1*v[i][2] + gamma2*(random->uniform()-0.5);
+	  fran[0] = gamma2*(random->uniform()-0.5);
+	  fran[1] = gamma2*(random->uniform()-0.5);
+	  fran[2] = gamma2*(random->uniform()-0.5);
+	  f[i][0] += gamma1*v[i][0] + fran[0];
+	  f[i][1] += gamma1*v[i][1] + fran[1];
+	  f[i][2] += gamma1*v[i][2] + fran[2];
+	  fsum[0] += fran[0];
+	  fsum[1] += fran[1];
+	  fsum[2] += fran[2];
 	}
+
       }
 
     } else if (which == BIAS) {
@@ -263,17 +305,40 @@ void FixLangevin::post_force_no_tally()
 	  gamma1 = gfactor1[type[i]];
 	  gamma2 = gfactor2[type[i]] * tsqrt;
 	  temperature->remove_bias(i,v[i]);
+	  fran[0] = gamma2*(random->uniform()-0.5);
+	  fran[1] = gamma2*(random->uniform()-0.5);
+	  fran[2] = gamma2*(random->uniform()-0.5);
 	  if (v[i][0] != 0.0)
-	    f[i][0] += gamma1*v[i][0] + gamma2*(random->uniform()-0.5);
+	    f[i][0] += gamma1*v[i][0] + fran[0];
 	  if (v[i][1] != 0.0)
-	    f[i][1] += gamma1*v[i][1] + gamma2*(random->uniform()-0.5);
+	    f[i][1] += gamma1*v[i][1] + fran[1];
 	  if (v[i][2] != 0.0)
-	    f[i][2] += gamma1*v[i][2] + gamma2*(random->uniform()-0.5);
+	    f[i][2] += gamma1*v[i][2] + fran[2];
+	  fsum[0] += fran[0];
+	  fsum[1] += fran[1];
+	  fsum[2] += fran[2];
 	  temperature->restore_bias(i,v[i]);
 	}
       }
     }
   }
+
+  // Set total force to zero
+
+  if (zerosum) {
+    MPI_Allreduce(fsum,fsumall,3,MPI_DOUBLE,MPI_SUM,world);
+    fsumall[0] /= count;
+    fsumall[1] /= count;
+    fsumall[2] /= count;
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+	f[i][0] -= fsumall[0];
+	f[i][1] -= fsumall[1];
+	f[i][2] -= fsumall[2];
+      }
+    }
+  }
+
 }
 
 /* ---------------------------------------------------------------------- */

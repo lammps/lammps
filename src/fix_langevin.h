@@ -41,7 +41,7 @@ class FixLangevin : public Fix {
   double memory_usage();
 
  protected:
-  int which,tally;
+  int which,tally,zerosum;
   double t_start,t_stop,t_period;
   double *gfactor1,*gfactor2,*ratio;
   double energy,energy_onestep;

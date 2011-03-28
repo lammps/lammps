@@ -94,11 +94,12 @@ void PairCGCMMGPU::compute(int eflag, int vflag)
   int *ilist, *numneigh, **firstneigh;    
   if (gpu_mode == GPU_NEIGH) {
     inum = atom->nlocal;
-    gpulist = cmm_gpu_compute_n(neighbor->ago, inum, nall, atom->x, atom->type,
-				domain->sublo, domain->subhi, atom->tag,
-				atom->nspecial, atom->special, eflag, vflag,
-				eflag_atom, vflag_atom, host_start, &ilist,
-				&numneigh, cpu_time, success);
+    firstneigh = cmm_gpu_compute_n(neighbor->ago, inum, nall, atom->x,
+				   atom->type, domain->sublo, domain->subhi,
+				   atom->tag, atom->nspecial, atom->special,
+				   eflag, vflag, eflag_atom, vflag_atom,
+				   host_start, &ilist, &numneigh, cpu_time,
+				   success);
   } else {
     inum = list->inum;
     ilist = list->ilist;

@@ -46,6 +46,9 @@ class GB_GPU_Memory {
             const int max_nbors, const double cell_size,
             const double gpu_split, FILE *screen);
 
+  /// Estimate the overhead for GPU context changes and CPU driver
+  void estimate_gpu_overhead();
+
   /// Check if there is enough storage for atom arrays and realloc if not
   /** \param success set to false if insufficient memory **/
   inline void resize_atom(const int inum, const int nall, bool &success) {
@@ -194,6 +197,7 @@ class GB_GPU_Memory {
   bool _allocated, _compiled;
   int _block_size;
   double _max_bytes;
+  double _gpu_overhead, _driver_overhead;
   
   void compile_kernels(UCL_Device &dev);
 };

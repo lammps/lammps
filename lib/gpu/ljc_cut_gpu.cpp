@@ -93,6 +93,7 @@ bool ljc_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
   }
   if (message)
     fprintf(screen,"\n");
+  LJCMF.estimate_gpu_overhead();
   return true;
 }
 
@@ -100,15 +101,17 @@ void ljc_gpu_clear() {
   LJCMF.clear();
 }
 
-int * ljc_gpu_compute_n(const int ago, const int inum_full,
+int** ljc_gpu_compute_n(const int ago, const int inum_full,
                         const int nall, double **host_x, int *host_type,
                         double *boxlo, double *boxhi, int *tag, int **nspecial, 
                         int **special, const bool eflag, const bool vflag,
                         const bool eatom, const bool vatom, int &host_start,
-                        const double cpu_time, bool &success, double *host_q) {
+                        int **ilist, int **jnum, const double cpu_time,
+                        bool &success, double *host_q) {
   return LJCMF.compute(ago, inum_full, nall, host_x, host_type, boxlo,
                        boxhi, tag, nspecial, special, eflag, vflag, eatom,
-                       vatom, host_start, cpu_time, success, host_q);
+                       vatom, host_start, ilist, jnum, cpu_time, success,
+                       host_q);
 }  
 			
 void ljc_gpu_compute(const int ago, const int inum_full, const int nall,

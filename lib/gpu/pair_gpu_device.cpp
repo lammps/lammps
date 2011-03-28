@@ -246,9 +246,9 @@ template <class numtyp, class acctyp>
 void PairGPUDeviceT::estimate_gpu_overhead(const int kernel_calls, 
                                            double &gpu_overhead,
                                            double &gpu_driver_overhead) {
-  UCL_H_Vec<int> *host_data_in, *host_data_out;
-  UCL_D_Vec<int> *dev_data_in, *dev_data_out, *kernel_data;
-  UCL_Timer *timers_in, *timers_out, *timers_kernel;
+  UCL_H_Vec<int> *host_data_in=NULL, *host_data_out=NULL;
+  UCL_D_Vec<int> *dev_data_in=NULL, *dev_data_out=NULL, *kernel_data=NULL;
+  UCL_Timer *timers_in=NULL, *timers_out=NULL, *timers_kernel=NULL;
   UCL_Timer over_timer(*gpu);
 
   if (_data_in_estimate>0) {
@@ -291,7 +291,6 @@ void PairGPUDeviceT::estimate_gpu_overhead(const int kernel_calls,
   for (int i=0; i<10; i++) {
     gpu->sync();
     gpu_barrier();
-    double driver_t=MPI_Wtime();
     over_timer.start();
     gpu->sync();
     gpu_barrier();

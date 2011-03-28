@@ -127,12 +127,13 @@ class ChargeGPUMemory {
                const double cpu_time, bool &success, double *charge);
 
   /// Pair loop with device neighboring
-  int * compute(const int ago, const int inum_full, const int nall,
+  int** compute(const int ago, const int inum_full, const int nall,
                 double **host_x, int *host_type, double *boxlo,
                 double *boxhi, int *tag, int **nspecial,
                 int **special, const bool eflag, const bool vflag, 
                 const bool eatom, const bool vatom, int &host_start, 
-                const double cpu_time, bool &success, double *charge);
+                int **ilist, int **numj, const double cpu_time, bool &success,
+                double *charge);
 
   // -------------------------- DEVICE DATA ------------------------- 
 

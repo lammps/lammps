@@ -98,11 +98,11 @@ void PairGayBerneGPU::compute(int eflag, int vflag)
   int *ilist, *numneigh, **firstneigh;  
   if (gpu_mode == GPU_NEIGH) {
     inum = atom->nlocal;
-    gpulist = gb_gpu_compute_n(neighbor->ago, inum, nall, atom->x, atom->type,
-			       domain->sublo, domain->subhi, eflag, vflag,
-			       eflag_atom, vflag_atom, host_start,
-                               &ilist, &numneigh, cpu_time, success,
-			       atom->quat);
+    firstneigh = gb_gpu_compute_n(neighbor->ago, inum, nall, atom->x,
+				  atom->type, domain->sublo, domain->subhi,
+				  eflag, vflag, eflag_atom, vflag_atom,
+				  host_start, &ilist, &numneigh, cpu_time,
+				  success, atom->quat);
   } else {
     inum = list->inum;
     ilist = list->ilist;

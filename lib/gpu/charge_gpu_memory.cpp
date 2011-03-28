@@ -212,12 +212,13 @@ void ChargeGPUMemoryT::compute(const int f_ago, const int inum_full,
 // Reneighbor on GPU if necessary and then compute forces, virials, energies
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-int * ChargeGPUMemoryT::compute(const int ago, const int inum_full,
+int** ChargeGPUMemoryT::compute(const int ago, const int inum_full,
                                 const int nall, double **host_x, int *host_type,
                                 double *boxlo, double *boxhi, int *tag,
                                 int **nspecial, int **special, const bool eflag, 
                                 const bool vflag, const bool eatom,
                                 const bool vatom, int &host_start,
+                                int **ilist, int **jnum,
                                 const double cpu_time, bool &success,
                                 double *host_q) {
   acc_timers();
@@ -249,13 +250,15 @@ int * ChargeGPUMemoryT::compute(const int ago, const int inum_full,
     atom->add_x_data(host_x,host_type);
   }
   atom->add_q_data();
+  *ilist=nbor->host_ilist.begin();
+  *jnum=nbor->host_acc.begin();
 
   loop(eflag,vflag);
   ans->copy_answers(eflag,vflag,eatom,vatom);
   device->add_ans_object(ans);
   hd_balancer.stop_timer();
   
-  return nbor->host_nbor.begin();
+  return nbor->host_jlist.begin()-host_start;
 }
 
 template <class numtyp, class acctyp>

@@ -114,6 +114,7 @@ bool gb_gpu_init(const int ntypes, const double gamma,
   }
   if (message)
     fprintf(screen,"\n");
+  GBMF.estimate_gpu_overhead();
   return true;
 }
 
@@ -326,14 +327,14 @@ void _gb_gpu_gayberne(GBMT &gbm, const bool _eflag, const bool _vflag) {
 // Reneighbor on GPU if necessary and then compute forces, torques, energies
 // ---------------------------------------------------------------------------
 template <class gbmtyp>
-inline int * _gb_gpu_compute_n(gbmtyp &gbm, const int ago,
-		               const int inum_full, const int nall,
-			       double **host_x, int *host_type,
-			       double *boxlo, double *boxhi, const bool eflag,
-			       const bool vflag, const bool eatom,
+inline int** _gb_gpu_compute_n(gbmtyp &gbm, const int ago,
+                               const int inum_full, const int nall,
+                               double **host_x, int *host_type,
+                               double *boxlo, double *boxhi, const bool eflag,
+                               const bool vflag, const bool eatom,
                                const bool vatom, int &host_start,
-		               const double cpu_time, bool &success,
-			       double **host_quat) {
+                               int **ilist, int **jnum, const double cpu_time,
+                               bool &success, double **host_quat) {
   gbm.acc_timers();
   if (inum_full==0) {
     host_start=0;
@@ -363,23 +364,25 @@ inline int * _gb_gpu_compute_n(gbmtyp &gbm, const int ago,
   }
 
   gbm.atom->add_quat_data();
+  *ilist=gbm.nbor->host_ilist.begin();
+  *jnum=gbm.nbor->host_acc.begin();
 
   _gb_gpu_gayberne<PRECISION,ACC_PRECISION>(gbm,eflag,vflag);
   gbm.ans->copy_answers(eflag,vflag,eatom,vatom);
   gbm.device->add_ans_object(gbm.ans);
   gbm.hd_balancer.stop_timer();
-  return gbm.nbor->host_nbor.begin();
+  return gbm.nbor->host_jlist.begin()-host_start;
 }
 
-int * gb_gpu_compute_n(const int ago, const int inum_full, const int nall,
+int** gb_gpu_compute_n(const int ago, const int inum_full, const int nall,
                        double **host_x, int *host_type, double *boxlo,
                        double *boxhi, const bool eflag, const bool vflag,
                        const bool eatom, const bool vatom, int &host_start,
-                       const double cpu_time, bool &success,
-                       double **host_quat) {
+                       int **ilist, int **jnum, const double cpu_time,
+                       bool &success, double **host_quat) {
   return _gb_gpu_compute_n(GBMF, ago, inum_full, nall, host_x, host_type, boxlo,
-                           boxhi, eflag, vflag, eatom, vatom, host_start,
-                           cpu_time, success, host_quat);
+                           boxhi, eflag, vflag, eatom, vatom, host_start, ilist,
+                           jnum, cpu_time, success, host_quat);
 }  
 
 // ---------------------------------------------------------------------------

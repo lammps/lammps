@@ -199,6 +199,11 @@ bool GB_GPU_MemoryT::init(const int ntypes, const double gamma,
 }
 
 template <class numtyp, class acctyp>
+void GB_GPU_MemoryT::estimate_gpu_overhead() {
+  device->estimate_gpu_overhead(2,_gpu_overhead,_driver_overhead);
+}
+
+template <class numtyp, class acctyp>
 void GB_GPU_MemoryT::clear() {
   if (!_allocated)
     return;
@@ -213,7 +218,7 @@ void GB_GPU_MemoryT::clear() {
 
   // Output any timing information
   acc_timers();
-  double single[6], times[6];
+  double single[9], times[9];
 
   single[0]=atom->transfer_time()+ans->transfer_time();
   single[1]=nbor->time_nbor.total_seconds();
@@ -225,6 +230,9 @@ void GB_GPU_MemoryT::clear() {
   else
     single[4]=0;
   single[5]=atom->cast_time()+ans->cast_time();
+  single[6]=_gpu_overhead;
+  single[7]=_driver_overhead;
+  single[8]=ans->cpu_idle_time();
 
   MPI_Reduce(single,times,6,MPI_DOUBLE,MPI_SUM,0,device->replica());
   double avg_split=hd_balancer.all_avg_split();
@@ -259,10 +267,19 @@ void GB_GPU_MemoryT::clear() {
         fprintf(screen,"Force calc:      %.4f s.\n",times[3]/replica_size);
         fprintf(screen,"LJ calc:         %.4f s.\n",times[4]/replica_size);
       }
+      fprintf(screen,"GPU Overhead:    %.4f s.\n",times[6]/replica_size);
       fprintf(screen,"Average split:   %.4f.\n",avg_split);
       fprintf(screen,"Max Mem / Proc:  %.2f MB.\n",max_mb);
+      fprintf(screen,"CPU Driver_Time: %.4f s.\n",times[7]/replica_size);
+      fprintf(screen,"CPU Idle_Time:   %.4f s.\n",times[8]/replica_size);
       fprintf(screen,"-------------------------------------");
       fprintf(screen,"--------------------------------\n\n");
+
+
+      fprintf(screen,"Average split:   %.4f.\n",avg_split);
+      fprintf(screen,"Max Mem / Proc:  %.2f MB.\n",max_mb);
+
+
     }
   _max_bytes=0.0;
 

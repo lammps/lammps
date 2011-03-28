@@ -29,6 +29,7 @@ class PairMorseGPU : public PairMorse {
   PairMorseGPU(LAMMPS *lmp);
   ~PairMorseGPU();
   void cpu_compute(int, int, int, int, int *, int *, int **);
+  void compute(int, int);
   void init_style();
   double memory_usage();
 

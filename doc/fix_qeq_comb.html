@@ -38,12 +38,14 @@
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>This fix is designed for use with the pair_style comb command which
-implements the COMB COMB (Charge-Optimized Many-Body) potential as
-described in <A HREF = "#COMB_1">(COMB_1)</A> and <A HREF = "#COMB_2">(COMB_2)</A>.  It performs
-the charge equilibration portion of the calculation using the
-so-called QEq method, whereby the charge on each atom is adjusted to
-minimize the energy of the system.
+<P>Perform charge equilibration (QeQ) in conjunction with the COMB
+(Charge-Optimized Many-Body) potential as described in
+<A HREF = "#COMB_1">(COMB_1)</A> and <A HREF = "#COMB_2">(COMB_2)</A>.  It performs the charge
+equilibration portion of the calculation using the so-called QEq
+method, whereby the charge on each atom is adjusted to minimize the
+energy of the system.  This fix can only be used with the COMB
+potential; see the <A HREF = "fix_qeq_reqx.html">fix qeq/reax</A> command for a QeQ
+calculation that can be used with any potential.
 </P>
 <P>Only charges on the atoms in the specified group are equilibrated.
 The fix relies on the pair style (COMB in this case) to calculate the

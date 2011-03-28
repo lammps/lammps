@@ -46,12 +46,13 @@ bool mor_gpu_init(const int ntypes, double **cutsq, double **host_morse1,
                   const int nall, const int max_nbors, const int maxspecial,
                   const double cell_size, int &gpu_mode, FILE *screen);
 void mor_gpu_clear();
-int * mor_gpu_compute_n(const int ago, const int inum,
-	 	        const int nall, double **host_x, int *host_type, 
-                        double *boxlo, double *boxhi, int *tag, int **nspecial,
-                        int **special, const bool eflag, const bool vflag,
-                        const bool eatom, const bool vatom, int &host_start,
-                        const double cpu_time, bool &success);
+int ** mor_gpu_compute_n(const int ago, const int inum,
+			 const int nall, double **host_x, int *host_type, 
+			 double *boxlo, double *boxhi, int *tag, int **nspecial,
+			 int **special, const bool eflag, const bool vflag,
+			 const bool eatom, const bool vatom, int &host_start,
+			 int **ilist, int **jnum,
+			 const double cpu_time, bool &success);
 void mor_gpu_compute(const int ago, const int inum, const int nall, 
 		     double **host_x, int *host_type, int *ilist, int *numj,
 		     int **firstneigh, const bool eflag, const bool vflag,
@@ -88,30 +89,30 @@ void PairMorseGPU::compute(int eflag, int vflag)
   int inum, host_start;
   
   bool success = true;
-  
+  int *ilist, *numneigh, **firstneigh;    
   if (gpu_mode == GPU_NEIGH) {
     inum = atom->nlocal;
     gpulist = mor_gpu_compute_n(neighbor->ago, inum, nall,
 			        atom->x, atom->type, domain->sublo,
 				domain->subhi, atom->tag, atom->nspecial,
                                 atom->special, eflag, vflag, eflag_atom,
-                                vflag_atom, host_start, cpu_time, success);
+                                vflag_atom, host_start, &ilist, &numneigh,
+				cpu_time, success);
   } else {
     inum = list->inum;
+    ilist = list->ilist;
+    numneigh = list->numneigh;
+    firstneigh = list->firstneigh;
     mor_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type,
-		    list->ilist, list->numneigh, list->firstneigh, eflag,
-		    vflag, eflag_atom, vflag_atom, host_start, cpu_time,
-                    success);
+		    ilist, numneigh, firstneigh, eflag, vflag, eflag_atom,
+		    vflag_atom, host_start, cpu_time, success);
   }
   if (!success)
     error->one("Out of memory on GPGPU");
 
   if (host_start<inum) {
     cpu_time = MPI_Wtime();
-    if (gpu_mode == GPU_NEIGH)
-      cpu_compute(gpulist, host_start, eflag, vflag);
-    else
-      cpu_compute(host_start, eflag, vflag);
+    cpu_compute(host_start, inum, eflag, vflag, ilist, numneigh, firstneigh);
     cpu_time = MPI_Wtime() - cpu_time;
   }
 }
@@ -169,11 +170,13 @@ double PairMorseGPU::memory_usage()
 
 /* ---------------------------------------------------------------------- */
 
-void PairMorseGPU::cpu_compute(int start, int eflag, int vflag) {
-  int i,j,ii,jj,inum,jnum,itype,jtype;
+void PairMorseGPU::cpu_compute(int start, int inum, int eflag, int vflag,
+			       int *ilist, int *numneigh, int **firstneigh)
+{
+  int i,j,ii,jj,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq,r,dr,dexp,factor_lj;
-  int *ilist,*jlist,*numneigh,**firstneigh;
+  int *jlist;
 
   double **x = atom->x;
   double **f = atom->f;
@@ -182,11 +185,6 @@ void PairMorseGPU::cpu_compute(int start, int eflag, int vflag) {
   int nall = nlocal + atom->nghost;
   double *special_lj = force->special_lj;
 
-  inum = list->inum;
-  ilist = list->ilist;
-  numneigh = list->numneigh;
-  firstneigh = list->firstneigh;
-  
   // loop over neighbors of my atoms
 
   for (ii = start; ii < inum; ii++) {
@@ -230,81 +228,6 @@ void PairMorseGPU::cpu_compute(int start, int eflag, int vflag) {
 	}
 
 	if (evflag) ev_tally_full(i,evdwl,0.0,fpair,delx,dely,delz);
-      }
-    }
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void PairMorseGPU::cpu_compute(int *nbors, int start, int eflag, int vflag) {
-  int i,j,itype,jtype;
-  int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
-  int stride = nlocal-start;
-  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double rsq,r,dr,dexp,factor_lj;
-  int *ilist,*jlist,*numneigh,**firstneigh;
-
-  double **x = atom->x;
-  double **f = atom->f;
-  int *type = atom->type;
-  double *special_lj = force->special_lj;
-
-  // loop over neighbors of my atoms
-
-  for (i = start; i < nlocal; i++) {
-    xtmp = x[i][0];
-    ytmp = x[i][1];
-    ztmp = x[i][2];
-    itype = type[i];
-    int *nbor = nbors + i - start;
-    int jnum = *nbor;
-    nbor += stride;
-    int *nbor_end = nbor + stride * jnum;
-
-    for (; nbor<nbor_end; nbor+=stride) {
-      j = *nbor;
-      
-      if (j < nall) factor_lj = 1.0;
-      else {
-	factor_lj = special_lj[j/nall];
-	j %= nall;
-      }
-
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;
-      jtype = type[j];
-
-      if (rsq < cutsq[itype][jtype]) {
-	r = sqrt(rsq);
-	dr = r - r0[itype][jtype];
-	dexp = exp(-alpha[itype][jtype] * dr);
-	fpair = factor_lj * morse1[itype][jtype] * (dexp*dexp - dexp) / r;
-
-	f[i][0] += delx*fpair;
-	f[i][1] += dely*fpair;
-	f[i][2] += delz*fpair;
-
-	if (eflag) {
-	  evdwl = d0[itype][jtype] * (dexp*dexp - 2.0*dexp) -
-	    offset[itype][jtype];
-	  evdwl *= factor_lj;
-	}
-
-        if (j<start) {
-  	  if (evflag) ev_tally_full(i,evdwl,0.0,fpair,delx,dely,delz);
-        } else {
-          if (j<nlocal) {
-	    f[j][0] -= delx*fpair;
-	    f[j][1] -= dely*fpair;
-	    f[j][2] -= delz*fpair;
-  	  }
-	  if (evflag) ev_tally(i,j,nlocal,0,
-			       evdwl,0.0,fpair,delx,dely,delz);
-	}
       }
     }
   }

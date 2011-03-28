@@ -60,11 +60,12 @@ bool crml_gpu_init(const int ntypes, double cut_bothsq, double **host_lj1,
 		   const double denom_lj, double **epsilon, double **sigma,
 		   const bool mix_arithmetic);
 void crml_gpu_clear();
-int * crml_gpu_compute_n(const int ago, const int inum,
-			 const int nall, double **host_x, int *host_type, 
-			 double *boxlo, double *boxhi, int *tag, int **nspecial,
-			 int **special, const bool eflag, const bool vflag,
-			 const bool eatom, const bool vatom, int &host_start,
+int ** crml_gpu_compute_n(const int ago, const int inum,
+			  const int nall, double **host_x, int *host_type, 
+			  double *boxlo, double *boxhi, int *tag,
+			  int **nspecial, int **special, const bool eflag,
+			  const bool vflag, const bool eatom, const bool vatom,
+			  int &host_start, int **ilist, int **jnum,
 			 const double cpu_time, bool &success, double *host_q);
 void crml_gpu_compute(const int ago, const int inum, const int nall,
 		      double **host_x, int *host_type, int *ilist, int *numj,
@@ -104,7 +105,7 @@ void PairLJCharmmCoulLongGPU::compute(int eflag, int vflag)
   int inum, host_start;
   
   bool success = true;
-  
+  int *ilist, *numneigh, **firstneigh;    
   if (gpu_mode == GPU_NEIGH) {
     inum = atom->nlocal;
     gpulist = crml_gpu_compute_n(neighbor->ago, inum, nall, atom->x,
@@ -114,20 +115,19 @@ void PairLJCharmmCoulLongGPU::compute(int eflag, int vflag)
 				 host_start, cpu_time, success, atom->q);
   } else {
     inum = list->inum;
+    ilist = list->ilist;
+    numneigh = list->numneigh;
+    firstneigh = list->firstneigh;
     crml_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type,
-		     list->ilist, list->numneigh, list->firstneigh,
-		     eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time,
-		     success, atom->q);
+		     ilist, numneigh, firstneigh, eflag, vflag, eflag_atom,
+		     vflag_atom, host_start, cpu_time, success, atom->q);
   }
   if (!success)
     error->one("Out of memory on GPGPU");
 
   if (host_start<inum) {
     cpu_time = MPI_Wtime();
-    if (gpu_mode == GPU_NEIGH)
-      cpu_compute(gpulist, host_start, eflag, vflag);
-    else
-      cpu_compute(host_start, eflag, vflag);
+    cpu_compute(host_start, inum, eflag, vflag, ilist, numneigh, firstneigh);
     cpu_time = MPI_Wtime() - cpu_time;
   }
 }
@@ -214,15 +214,17 @@ double PairLJCharmmCoulLongGPU::memory_usage()
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJCharmmCoulLongGPU::cpu_compute(int start, int eflag, int vflag)
+void PairLJCharmmCoulLongGPU::cpu_compute(int start, int inum, int eflag,
+					  int vflag, int *ilist,
+					  int *numneigh, int **firstneigh)
 {
-  int i,j,ii,jj,inum,jnum,itype,jtype,itable;
+  int i,j,ii,jj,jnum,itype,jtype,itable;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
   double fraction,table;
   double r,r2inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
   double grij,expm2,prefactor,t,erfc;
   double philj,switch1,switch2;
-  int *ilist,*jlist,*numneigh,**firstneigh;
+  int *jlist;
   double rsq;
 
   evdwl = ecoul = 0.0;
@@ -237,11 +239,6 @@ void PairLJCharmmCoulLongGPU::cpu_compute(int start, int eflag, int vflag)
   double *special_lj = force->special_lj;
   double qqrd2e = force->qqrd2e;
 
-  inum = list->inum;
-  ilist = list->ilist;
-  numneigh = list->numneigh;
-  firstneigh = list->firstneigh;
-  
   // loop over neighbors of my atoms
 
   for (ii = start; ii < inum; ii++) {
@@ -345,145 +342,3 @@ void PairLJCharmmCoulLongGPU::cpu_compute(int start, int eflag, int vflag)
     }
   }
 }
-
-/* ---------------------------------------------------------------------- */
-
-void PairLJCharmmCoulLongGPU::cpu_compute(int *nbors, int start, int eflag,
-                                      int vflag)
-{
-  int i,j,jnum,itype,jtype,itable;
-  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
-  double fraction,table;
-  double r,r2inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
-  double grij,expm2,prefactor,t,erfc;
-  double philj,switch1,switch2;
-  double rsq;
-
-  evdwl = ecoul = 0.0;
-
-  double **x = atom->x;
-  double **f = atom->f;
-  double *q = atom->q;
-  int *type = atom->type;
-  int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
-  int stride = nlocal - start;
-  double *special_coul = force->special_coul;
-  double *special_lj = force->special_lj;
-  double qqrd2e = force->qqrd2e;
-
-  // loop over neighbors of my atoms
-
-  for (i = start; i < nlocal; i++) {
-    qtmp = q[i];
-    xtmp = x[i][0];
-    ytmp = x[i][1];
-    ztmp = x[i][2];
-    itype = type[i];
-    int *nbor = nbors + i - start;
-    jnum = *nbor;
-    nbor += stride;
-    int *nbor_end = nbor + stride * jnum;
-
-    for (; nbor<nbor_end; nbor+=stride) {
-      j = *nbor;
-
-      if (j < nall) factor_coul = factor_lj = 1.0;
-      else {
-	factor_coul = special_coul[j/nall];
-	factor_lj = special_lj[j/nall];
-	j %= nall;
-      }
-
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;
-
-      if (rsq < cut_bothsq) {
-	r2inv = 1.0/rsq;
-
-	if (rsq < cut_coulsq) {
-	  if (!ncoultablebits || rsq <= tabinnersq) {
-	    r = sqrt(rsq);
-	    grij = g_ewald * r;
-	    expm2 = exp(-grij*grij);
-	    t = 1.0 / (1.0 + EWALD_P*grij);
-	    erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
-	    prefactor = qqrd2e * qtmp*q[j]/r;
-	    forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
-	    if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
-	  } else {
-	    union_int_float_t rsq_lookup;
-	    rsq_lookup.f = rsq;
-	    itable = rsq_lookup.i & ncoulmask;
-	    itable >>= ncoulshiftbits;
-	    fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
-	    table = ftable[itable] + fraction*dftable[itable];
-	    forcecoul = qtmp*q[j] * table;
-	    if (factor_coul < 1.0) {
-	      table = ctable[itable] + fraction*dctable[itable];
-	      prefactor = qtmp*q[j] * table;
-	      forcecoul -= (1.0-factor_coul)*prefactor;
-	    }
-	  }
-	} else forcecoul = 0.0;
-
-	if (rsq < cut_ljsq) {
-	  r6inv = r2inv*r2inv*r2inv;
-	  jtype = type[j];
-	  forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-	  if (rsq > cut_lj_innersq) {
-	    switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
-	      (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
-	    switch2 = 12.0*rsq * (cut_ljsq-rsq) * 
-	      (rsq-cut_lj_innersq) / denom_lj;
-	    philj = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]);
-	    forcelj = forcelj*switch1 + philj*switch2;
-	  }
-	} else forcelj = 0.0;
-
-	fpair = (forcecoul + factor_lj*forcelj) * r2inv;
-
-	f[i][0] += delx*fpair;
-	f[i][1] += dely*fpair;
-	f[i][2] += delz*fpair;
-
-	if (eflag) {
-	  if (rsq < cut_coulsq) {
-	    if (!ncoultablebits || rsq <= tabinnersq)
-	      ecoul = prefactor*erfc;
-	    else {
-	      table = etable[itable] + fraction*detable[itable];
-	      ecoul = qtmp*q[j] * table;
-	    }
-	    if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
-	  } else ecoul = 0.0;
-
-	  if (rsq < cut_ljsq) {
-	    evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
-	    if (rsq > cut_lj_innersq) {
-	      switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
-		(cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
-	      evdwl *= switch1;
-	    }
-	    evdwl *= factor_lj;
-	  } else evdwl = 0.0;
-	}
-
-        if (j<start) {
-  	  if (evflag) ev_tally_full(i,evdwl,ecoul,fpair,delx,dely,delz);
-        } else {
-          if (j<nlocal) {
-	    f[j][0] -= delx*fpair;
-	    f[j][1] -= dely*fpair;
-	    f[j][2] -= delz*fpair;
-  	  }
-	  if (evflag) ev_tally(i,j,nlocal,0,
-			       evdwl,ecoul,fpair,delx,dely,delz);
-        }
-      }
-    }
-  }
-}
-

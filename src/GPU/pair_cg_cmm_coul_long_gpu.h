@@ -28,8 +28,7 @@ class PairCGCMMCoulLongGPU : public PairCGCMMCoulLong {
  public:
   PairCGCMMCoulLongGPU(LAMMPS *lmp);
   ~PairCGCMMCoulLongGPU();
-  void cpu_compute(int, int, int);
-  void cpu_compute(int *, int, int, int);
+  void cpu_compute(int, int, int, int, int *, int *, int **);
   void compute(int, int);
   void init_style();
   double memory_usage();

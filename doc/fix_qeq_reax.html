@@ -33,7 +33,10 @@ fix 1 all qeq/reax 1 0.0 10.0 1.0e-6 param.qeq
 and Goddard, 1991)</A> and formulated in <A HREF = "#Nakano_1997">(Nakano,
 1997)</A>.  It is typically used in conjunction with the
 ReaxFF force field model as implemented in the <A HREF = "pair_reax_c.html">pair_style
-reax/c</A> command.
+reax/c</A> command, but it can be used with any
+potential in LAMMPS, so long as it defines and uses charges on each
+atom.  The <A HREF = "fix_qeq_comb.html">fix qeq/comb</A> command should be used to
+perform charge equliibration with the <A HREF = "pair_comb.html">COMB potential</A>.
 </P>
 <P>The QEq method minimizes the electrostatic energy of the system by
 adjusting the partial charge on individual atoms based on interactions
@@ -42,8 +45,9 @@ If the <I>params</I> setting above is the word "reax/c", then these are
 extracted from the <A HREF = "pair_reax_c.html">pair_style reax/c</A> command and
 the ReaxFF force field file it reads in.  If a file name is specified
 for <I>params</I>, then the parameters are taken from the specified file
-and the file must contain one line for each atom type.  Each line
-should be formatted as follows:
+and the file must contain one line for each atom type.  The latter
+form must be used when performing QeQ with a non-ReaxFF potential.
+Each line should be formatted as follows:
 </P>
 <PRE>itype chi eta gamma 
 </PRE>

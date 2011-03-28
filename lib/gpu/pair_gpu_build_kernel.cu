@@ -270,7 +270,7 @@ __kernel void kernel_special(__global int *dev_nbor,
     } else {
       stride=1;
       list=host_nbor_list+(ii-inum)*max_nbors;
-      numj=host_numj[ii];
+      numj=host_numj[ii-inum];
     }
     list_end=list+numj*stride;
   

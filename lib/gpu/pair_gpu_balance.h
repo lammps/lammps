@@ -185,6 +185,8 @@ void PairGPUBalanceT::balance(const double cpu_time) {
 
     double split=static_cast<double>(_inum_full-host_inum)/_inum_full;
     _desired_split=split*_HD_BALANCE_GAP;
+    if (_desired_split>1.0)
+      _desired_split=1.0;
     if (_desired_split<0.0)
       _desired_split=0.0;
 

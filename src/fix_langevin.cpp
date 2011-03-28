@@ -72,7 +72,7 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
 
   for (int i = 1; i <= atom->ntypes; i++) ratio[i] = 1.0;
   tally = 0;
-  zerosum = 0;
+  zeroflag = 1;
 
   int iarg = 7;
   while (iarg < narg) {
@@ -90,10 +90,10 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[iarg+1],"yes") == 0) tally = 1;
       else error->all("Illegal fix langevin command");
       iarg += 2;
-    } else if (strcmp(arg[iarg],"zerosum") == 0) {
+    } else if (strcmp(arg[iarg],"zero") == 0) {
       if (iarg+2 > narg) error->all("Illegal fix langevin command");
-      if (strcmp(arg[iarg+1],"no") == 0) zerosum = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) zerosum = 1;
+      if (strcmp(arg[iarg+1],"no") == 0) zeroflag = 0;
+      else if (strcmp(arg[iarg+1],"yes") == 0) zeroflag = 1;
       else error->all("Illegal fix langevin command");
       iarg += 2;
     } else error->all("Illegal fix langevin command");
@@ -212,15 +212,15 @@ void FixLangevin::post_force_no_tally()
   //   computed on current nlocal atoms to remove bias
   //   test v = 0 since some computes mask non-participating atoms via v = 0
   //   and added force has extra term not multiplied by v = 0
-  // for ZEROSUM:
-  //   Sum random force over all atoms in group
-  //   Subtract sum/count from each atom in group    
+  // for ZEROFLAG:
+  //   sum random force over all atoms in group
+  //   subtract sum/count from each atom in group    
 
   double fran[3],fsum[3],fsumall[3];
   fsum[0] = fsum[1] = fsum[2] = 0.0;
   bigint count;
   
-  if (zerosum) {
+  if (zeroflag) {
     count = group->count(igroup);
     if (count == 0)
       error->all("Cannot zero Langevin force of 0 atoms");
@@ -323,9 +323,9 @@ void FixLangevin::post_force_no_tally()
     }
   }
 
-  // Set total force to zero
+  // set total force to zero
 
-  if (zerosum) {
+  if (zeroflag) {
     MPI_Allreduce(fsum,fsumall,3,MPI_DOUBLE,MPI_SUM,world);
     fsumall[0] /= count;
     fsumall[1] /= count;

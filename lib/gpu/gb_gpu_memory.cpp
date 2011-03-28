@@ -234,7 +234,7 @@ void GB_GPU_MemoryT::clear() {
   single[7]=_driver_overhead;
   single[8]=ans->cpu_idle_time();
 
-  MPI_Reduce(single,times,6,MPI_DOUBLE,MPI_SUM,0,device->replica());
+  MPI_Reduce(single,times,9,MPI_DOUBLE,MPI_SUM,0,device->replica());
   double avg_split=hd_balancer.all_avg_split();
 
   _max_bytes+=dev_error.row_bytes()+lj1.row_bytes()+lj3.row_bytes()+

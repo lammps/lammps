@@ -151,10 +151,10 @@ thermostat. Because the random forces on different atoms are
 independent, they do not sum exactly to zero.  As a result, this fix
 applies a small random force to the entire system, and the
 center-of-mass of the system undergoes a slow random walk.  If the
-keyword {zerosum} is set to {yes}, the total random force is set
-exactly to zero by subtracting off an equal part of it from each atom
-in the group.  As a result, the center-of-mass of a system with zero
-initial momentum will not drift over time.
+keyword {zero} is set to {yes}, the total random force is set exactly
+to zero by subtracting off an equal part of it from each atom in the
+group.  As a result, the center-of-mass of a system with zero initial
+momentum will not drift over time.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
@@ -200,7 +200,7 @@ dpd/tstat"_pair_dpd.html
 [Default:]
 
 The option defaults are scale = 1.0 for all types, tally = no, zero =
-yes.
+no.
 
 :line
 

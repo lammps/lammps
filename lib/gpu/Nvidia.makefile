@@ -33,7 +33,7 @@ NVD_H  = $(wildcard ./geryon/nvd*.h) $(UCL_H)
 # Headers for Pair Stuff
 PAIR_H  = pair_gpu_atom.h pair_gpu_ans.h pair_gpu_nbor_shared.h \
           pair_gpu_nbor.h pair_gpu_precision.h pair_gpu_device.h \
-          pair_gpu_balance.h
+          pair_gpu_balance.h pppm_gpu_memory.h
 
 ALL_H = $(NVD_H) $(PAIR_H)
 

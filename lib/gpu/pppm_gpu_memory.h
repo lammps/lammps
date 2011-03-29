@@ -18,15 +18,16 @@
 #ifndef PPPM_GPU_MEMORY_H
 #define PPPM_GPU_MEMORY_H
 
-#include "pair_gpu_device.h"
-#include "pair_gpu_balance.h"
 #include "mpi.h"
+#include "pair_gpu_device.h"
 
 #ifdef USE_OPENCL
 #include "geryon/ocl_texture.h"
 #else
 #include "geryon/nvd_texture.h"
 #endif
+
+template <class numtyp, class acctyp> class PairGPUDevice;
 
 template <class numtyp, class acctyp, class grdtyp, class grdtyp4>
 class PPPMGPUMemory {
@@ -45,7 +46,9 @@ class PPPMGPUMemory {
   grdtyp * init(const int nlocal, const int nall, FILE *screen, const int order,
                 const int nxlo_out, const int nylo_out, const int nzlo_out,
                 const int nxhi_out, const int nyhi_out, const int nzhi_out,
-                double **rho_coeff, grdtyp **vd_brick, int &success);
+                double **rho_coeff, grdtyp **vd_brick, 
+                const double slab_volfactor, const int nx_pppm, 
+                const int ny_pppm, const int nz_pppm, int &success);
 
   /// Check if there is enough storage for atom arrays and realloc if not
   /** \param success set to false if insufficient memory **/
@@ -93,10 +96,16 @@ class PPPMGPUMemory {
     time_interp.zero();
   }
 
+  /// Precomputations for charge assignment that can be done asynchronously
+  void precompute(const int ago, const int nlocal, const int nall,
+                  double **host_x, int *host_type, bool &success,
+                  double *charge, double *boxlo, const double delxinv,
+                  const double delyinv, const double delzinv);
+
   /// Returns non-zero if out of bounds atoms
-  int spread(const int ago,const int nlocal,const int nall,double **host_x,
-             int *host_type,bool &success,double *charge,double *boxlo,
-             const double delxinv,const double delyinv,const double delzinv);
+  int spread(const int ago, const int nlocal, const int nall, double **host_x,
+             int *host_type, bool &success, double *charge, double *boxlo,
+             const double delxinv, const double delyinv, const double delzinv);
 
   void interp(const grdtyp qqrd2e_scale);
 
@@ -161,12 +170,15 @@ class PPPMGPUMemory {
   UCL_Texture q_tex;
 
  protected:
-  bool _allocated, _compiled;
-  int _block_size, _block_x_size, _block_y_size, _max_brick_atoms;
+  bool _allocated, _compiled, _precompute_done;
+  int _block_size, _block_x_size, _block_y_size, _max_brick_atoms, _max_atoms;
   double  _max_bytes, _max_an_bytes;
   
   grdtyp _brick_x, _brick_y, _brick_z, _delxinv, _delyinv, _delzinv; 
 
+  double _slab_volfactor;
+  int _nx_pppm, _ny_pppm, _nz_pppm;
+  
   void compile_kernels(UCL_Device &dev);
 };
 

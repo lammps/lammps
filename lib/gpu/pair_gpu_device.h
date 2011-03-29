@@ -21,11 +21,15 @@
 #include "pair_gpu_atom.h"
 #include "pair_gpu_ans.h"
 #include "pair_gpu_nbor.h"
+#include "pppm_gpu_memory.h"
 #include "mpi.h"
 #include <sstream>
 #include "stdio.h"
 #include <string>
 #include <queue>
+
+template <class numtyp, class acctyp, 
+          class grdtyp, class grdtyp4> class PPPMGPUMemory;
 
 template <class numtyp, class acctyp>
 class PairGPUDevice {
@@ -66,6 +70,14 @@ class PairGPUDevice {
   /// Output a message for pair_style acceleration with device stats
   void init_message(FILE *screen, const char *name,
                     const int first_gpu, const int last_gpu);
+
+  /// Perform charge assignment asynchronously for PPPM
+	void set_single_precompute(PPPMGPUMemory<numtyp,acctyp,
+	                                         float,_lgpu_float4> *pppm);
+
+  /// Perform charge assignment asynchronously for PPPM
+	void set_double_precompute(PPPMGPUMemory<numtyp,acctyp,
+	                                         double,_lgpu_double4> *pppm);
 
   /// Esimate the overhead from GPU calls from multiple procs
   /** \param kernel_calls Number of kernel calls/timestep for timing estimated
@@ -194,6 +206,20 @@ class PairGPUDevice {
   
   /// Neighbor Data
   PairGPUNborShared _nbor_shared;
+
+  // ------------------------ LONG RANGE DATA -------------------------
+  
+  // Long Range Data
+  int _long_range_precompute;
+  PPPMGPUMemory<numtyp,acctyp,float,_lgpu_float4> *pppm_single;
+  PPPMGPUMemory<numtyp,acctyp,double,_lgpu_double4> *pppm_double;
+  /// Precomputations for long range charge assignment (asynchronously)
+//  inline void precompute(const int ago, const int nlocal, const int nall,
+//                         double **host_x, int *host_type, bool &success,
+//                         double *charge, double *boxlo, const double delxinv,
+//                         const double delyinv, const double delzinv) {
+                         
+
 
  private:
   std::queue<PairGPUAns<numtyp,acctyp> *> ans_queue;

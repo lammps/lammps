@@ -35,7 +35,7 @@ grdtyp * pppm_gpu_init(memtyp &pppm, const int nlocal, const int nall,
                        const int nylo_out, const int nzlo_out,
                        const int nxhi_out, const int nyhi_out,
                        const int nzhi_out, double **rho_coeff,
-                       grdtyp **vd_brick, bool &success) {
+                       grdtyp **vd_brick, int &success) {
   pppm.clear(0.0);
   int first_gpu=pppm.device->first_device();
   int last_gpu=pppm.device->last_device();
@@ -54,13 +54,11 @@ grdtyp * pppm_gpu_init(memtyp &pppm, const int nlocal, const int nall,
     fflush(screen);
   }
 
-  success=true;
+  success=0;
   grdtyp * host_brick=NULL;
   if (world_me==0) {
     host_brick=pppm.init(nlocal,nall,screen,order,nxlo_out,nylo_out,nzlo_out,
                          nxhi_out,nyhi_out,nzhi_out,rho_coeff,vd_brick,success);
-    if (!success)
-      return host_brick;
   }
 
   pppm.device->world_barrier();
@@ -80,8 +78,6 @@ grdtyp * pppm_gpu_init(memtyp &pppm, const int nlocal, const int nall,
       host_brick=pppm.init(nlocal,nall,screen,order,nxlo_out,nylo_out,
                            nzlo_out,nxhi_out,nyhi_out,nzhi_out,rho_coeff,
                            vd_brick, success);
-      if (!success)
-        return host_brick;
     }
     pppm.device->gpu_barrier();
     if (message) 
@@ -97,7 +93,7 @@ float * pppm_gpu_init_f(const int nlocal, const int nall, FILE *screen,
                         const int nylo_out, const int nzlo_out,
                         const int nxhi_out, const int nyhi_out,
                         const int nzhi_out, double **rho_coeff,
-                        float **vd_brick, bool &success) {
+                        float **vd_brick, int &success) {
   return pppm_gpu_init(PPPMF,nlocal,nall,screen,order,nxlo_out,nylo_out,
                        nzlo_out,nxhi_out,nyhi_out,nzhi_out,rho_coeff,vd_brick,
                        success);                        
@@ -128,7 +124,7 @@ double * pppm_gpu_init_d(const int nlocal, const int nall, FILE *screen,
                          const int nylo_out, const int nzlo_out,
                          const int nxhi_out, const int nyhi_out,
                          const int nzhi_out, double **rho_coeff,
-                         double **vd_brick, bool &success) {
+                         double **vd_brick, int &success) {
   return pppm_gpu_init(PPPMD,nlocal,nall,screen,order,nxlo_out,nylo_out,
                        nzlo_out,nxhi_out,nyhi_out,nzhi_out,rho_coeff,vd_brick,
                        success);                        

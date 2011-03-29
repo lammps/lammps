@@ -74,6 +74,9 @@ class PairGPUDevice {
     * \param driver_overhead Estimated overhead from driver per timestep (s) **/
   void estimate_gpu_overhead(const int kernel_calls, double &gpu_overhead,
                              double &gpu_driver_overhead);
+
+  /// Returns true if double precision is supported on card
+  inline bool double_precision() { return gpu->double_precision(); }
   
   /// Output a message with timing information
   void output_times(UCL_Timer &time_pair, PairGPUAns<numtyp,acctyp> &ans, 

@@ -101,4 +101,3 @@ class PPPMGPU : public KSpace {
 }
 
 #endif
-#endif

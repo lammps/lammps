@@ -64,14 +64,20 @@ grdtyp * PPPMGPUMemoryT::init(const int nlocal, const int nall, FILE *_screen,
                               const int nylo_out, const int nzlo_out,
                               const int nxhi_out, const int nyhi_out,
                               const int nzhi_out, double **rho_coeff,
-                              grdtyp **vd_brick, bool &success) {
+                              grdtyp **vd_brick, int &flag) {
   _max_bytes=10;
   screen=_screen;
+  bool success=true;
 
   if (!device->init(*ans,nlocal,nall)) {
-    success=false;
+    flag=-2;
     return 0;
   }
+  if (sizeof(grdtyp)==sizeof(double) && device->double_precision()==false) {
+    flag=-5;
+    return 0;
+  }
+
   ucl_device=device->gpu;
   atom=&device->atom;
 
@@ -157,6 +163,11 @@ grdtyp * PPPMGPUMemoryT::init(const int nlocal, const int nall, FILE *_screen,
   success=success && (h_error_flag.alloc(1,*ucl_device)==UCL_SUCCESS);
   success=success && (d_error_flag.alloc(1,*ucl_device,UCL_WRITE_ONLY)==
                                          UCL_SUCCESS);
+  if (!success) {
+    flag=-3;
+    return 0;
+  }
+  
   d_error_flag.zero();
   _max_bytes+=1;
 
@@ -269,8 +280,7 @@ int PPPMGPUMemoryT::spread(const int ago, const int nlocal, const int nall,
   BX=block_size();
   GX=static_cast<int>(ceil(static_cast<double>(_npts_y*_npts_z)/BLOCK_PENCILS));
   k_make_rho.set_size(GX,BX);
-  k_make_rho.run(&atom->dev_x.begin(), &atom->dev_q.begin(),
-                 &d_brick_counts.begin(), &d_brick_atoms.begin(),
+  k_make_rho.run(&d_brick_counts.begin(), &d_brick_atoms.begin(),
                  &d_brick.begin(), &d_rho_coeff.begin(), &_atom_stride, &_npts_x,
                  &_npts_y, &_npts_z, &_nlocal_x, &_nlocal_y, &_nlocal_z,
                  &_order_m_1, &_order, &_order2);

@@ -148,8 +148,7 @@ __kernel void particle_map(__global numtyp4 *x_,  __global numtyp *q_,
 
 /* --------------------------- */
 
-__kernel void make_rho(__global numtyp4 *x_, __global numtyp *q_,
-                       __global int *counts, __global grdtyp4 *atoms,
+__kernel void make_rho(__global int *counts, __global grdtyp4 *atoms,
                        __global grdtyp *brick, __global grdtyp *_rho_coeff,
                        const int atom_stride, const int npts_x,
                        const int npts_y, const int npts_z, const int nlocal_x,

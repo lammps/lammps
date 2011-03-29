@@ -101,7 +101,7 @@ PPPMGPUT::~PPPMGPU()
 ------------------------------------------------------------------------- */
 
 template <class grdtyp>
-void PPPMGPUT::init()
+void PPPMGPUT::base_init()
 {
   if (me == 0) {
     if (screen) fprintf(screen,"PPPM initialization ...\n");
@@ -111,8 +111,8 @@ void PPPMGPUT::init()
   // error check
 
   if (domain->triclinic)
-    error->all("Cannot (yet) use PPPMGPU with triclinic box");
-  if (domain->dimension == 2) error->all("Cannot use PPPMGPU with 2d simulation");
+    error->all("Cannot (yet) use PPPM with triclinic box");
+  if (domain->dimension == 2) error->all("Cannot use PPPM with 2d simulation");
 
   if (!atom->q_flag) error->all("Kspace style requires atom attribute q");
 

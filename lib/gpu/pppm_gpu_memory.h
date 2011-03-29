@@ -35,10 +35,17 @@ class PPPMGPUMemory {
   virtual ~PPPMGPUMemory();
 
   /// Clear any previous data and set up for a new LAMMPS run
+  /** Success will be:
+    * -  0 if successfull
+    * - -1 if fix gpu not found
+    * - -2 if GPU could not be found
+    * - -3 if there is an out of memory error
+    * - -4 if the GPU library was not compiled for GPU
+    * - -5 Double precision is not supported on card **/
   grdtyp * init(const int nlocal, const int nall, FILE *screen, const int order,
                 const int nxlo_out, const int nylo_out, const int nzlo_out,
                 const int nxhi_out, const int nyhi_out, const int nzhi_out,
-                double **rho_coeff, grdtyp **vd_brick, bool &success);
+                double **rho_coeff, grdtyp **vd_brick, int &success);
 
   /// Check if there is enough storage for atom arrays and realloc if not
   /** \param success set to false if insufficient memory **/

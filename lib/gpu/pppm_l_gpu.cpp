@@ -23,28 +23,30 @@
 
 using namespace std;
 
-static PPPMGPUMemory<PRECISION,ACC_PRECISION> PPPMF;
+static PPPMGPUMemory<PRECISION,ACC_PRECISION,float,_lgpu_float4> PPPMF;
+static PPPMGPUMemory<PRECISION,ACC_PRECISION,double,_lgpu_double4> PPPMD;
 
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
-PRECISION * pppm_gpu_init(const int nlocal, const int nall, FILE *screen,
-                          const int order, const int nxlo_out, 
-                          const int nylo_out, const int nzlo_out,
-                          const int nxhi_out, const int nyhi_out,
-                          const int nzhi_out, double **rho_coeff,
-                          PRECISION **vd_brick, bool &success) {
-  PPPMF.clear(0.0);
-  int first_gpu=PPPMF.device->first_device();
-  int last_gpu=PPPMF.device->last_device();
-  int world_me=PPPMF.device->world_me();
-  int gpu_rank=PPPMF.device->gpu_rank();
-  int procs_per_gpu=PPPMF.device->procs_per_gpu();
+template <class grdtyp, class memtyp>
+grdtyp * pppm_gpu_init(memtyp &pppm, const int nlocal, const int nall,
+                       FILE *screen, const int order, const int nxlo_out, 
+                       const int nylo_out, const int nzlo_out,
+                       const int nxhi_out, const int nyhi_out,
+                       const int nzhi_out, double **rho_coeff,
+                       grdtyp **vd_brick, bool &success) {
+  pppm.clear(0.0);
+  int first_gpu=pppm.device->first_device();
+  int last_gpu=pppm.device->last_device();
+  int world_me=pppm.device->world_me();
+  int gpu_rank=pppm.device->gpu_rank();
+  int procs_per_gpu=pppm.device->procs_per_gpu();
 
-  PPPMF.device->init_message(screen,"pppm",first_gpu,last_gpu);
+  pppm.device->init_message(screen,"pppm",first_gpu,last_gpu);
 
   bool message=false;
-  if (PPPMF.device->replica_me()==0 && screen)
+  if (pppm.device->replica_me()==0 && screen)
     message=true;
 
   if (message) {
@@ -53,16 +55,15 @@ PRECISION * pppm_gpu_init(const int nlocal, const int nall, FILE *screen,
   }
 
   success=true;
-  PRECISION * host_brick=NULL;
+  grdtyp * host_brick=NULL;
   if (world_me==0) {
-    host_brick=PPPMF.init(nlocal,nall,screen,order,nxlo_out,nylo_out,
-                                  nzlo_out,nxhi_out,nyhi_out,nzhi_out,rho_coeff,
-                                  vd_brick, success);
+    host_brick=pppm.init(nlocal,nall,screen,order,nxlo_out,nylo_out,nzlo_out,
+                         nxhi_out,nyhi_out,nzhi_out,rho_coeff,vd_brick,success);
     if (!success)
       return host_brick;
   }
 
-  PPPMF.device->world_barrier();
+  pppm.device->world_barrier();
   if (message)
     fprintf(screen,"Done.\n");
 
@@ -76,13 +77,13 @@ PRECISION * pppm_gpu_init(const int nlocal, const int nall, FILE *screen,
       fflush(screen);
     }
     if (gpu_rank==i && world_me!=0) {
-      host_brick=PPPMF.init(nlocal,nall,screen,order,nxlo_out,nylo_out,
-                            nzlo_out,nxhi_out,nyhi_out,nzhi_out,rho_coeff,
-                            vd_brick, success);
+      host_brick=pppm.init(nlocal,nall,screen,order,nxlo_out,nylo_out,
+                           nzlo_out,nxhi_out,nyhi_out,nzhi_out,rho_coeff,
+                           vd_brick, success);
       if (!success)
         return host_brick;
     }
-    PPPMF.device->gpu_barrier();
+    pppm.device->gpu_barrier();
     if (message) 
       fprintf(screen,"Done.\n");
   }
@@ -91,23 +92,65 @@ PRECISION * pppm_gpu_init(const int nlocal, const int nall, FILE *screen,
   return host_brick;
 }
 
-void pppm_gpu_clear(const double cpu_time) {
+float * pppm_gpu_init_f(const int nlocal, const int nall, FILE *screen,
+                        const int order, const int nxlo_out, 
+                        const int nylo_out, const int nzlo_out,
+                        const int nxhi_out, const int nyhi_out,
+                        const int nzhi_out, double **rho_coeff,
+                        float **vd_brick, bool &success) {
+  return pppm_gpu_init(PPPMF,nlocal,nall,screen,order,nxlo_out,nylo_out,
+                       nzlo_out,nxhi_out,nyhi_out,nzhi_out,rho_coeff,vd_brick,
+                       success);                        
+}
+
+void pppm_gpu_clear_f(const double cpu_time) {
   PPPMF.clear(cpu_time);
 }
 
-int pppm_gpu_spread(const int ago, const int nlocal, const int nall,
-                    double **host_x, int *host_type, bool &success,
-                    double *host_q, double *boxlo, const double delxinv,
-                    const double delyinv, const double delzinv) {
+int pppm_gpu_spread_f(const int ago, const int nlocal, const int nall,
+                     double **host_x, int *host_type, bool &success,
+                     double *host_q, double *boxlo, const double delxinv,
+                     const double delyinv, const double delzinv) {
   return PPPMF.spread(ago,nlocal,nall,host_x,host_type,success,host_q,boxlo,
                       delxinv,delyinv,delzinv);
 }
 
-void pppm_gpu_interp(const PRECISION qqrd2e_scale) {
+void pppm_gpu_interp_f(const float qqrd2e_scale) {
   return PPPMF.interp(qqrd2e_scale);
 }
 
-double pppm_gpu_bytes() {
+double pppm_gpu_bytes_f() {
   return PPPMF.host_memory_usage();
+}
+
+double * pppm_gpu_init_d(const int nlocal, const int nall, FILE *screen,
+                         const int order, const int nxlo_out, 
+                         const int nylo_out, const int nzlo_out,
+                         const int nxhi_out, const int nyhi_out,
+                         const int nzhi_out, double **rho_coeff,
+                         double **vd_brick, bool &success) {
+  return pppm_gpu_init(PPPMD,nlocal,nall,screen,order,nxlo_out,nylo_out,
+                       nzlo_out,nxhi_out,nyhi_out,nzhi_out,rho_coeff,vd_brick,
+                       success);                        
+}
+
+void pppm_gpu_clear_d(const double cpu_time) {
+  PPPMD.clear(cpu_time);
+}
+
+int pppm_gpu_spread_d(const int ago, const int nlocal, const int nall,
+                      double **host_x, int *host_type, bool &success,
+                      double *host_q, double *boxlo, const double delxinv,
+                      const double delyinv, const double delzinv) {
+  return PPPMD.spread(ago,nlocal,nall,host_x,host_type,success,host_q,boxlo,
+                      delxinv,delyinv,delzinv);
+}
+
+void pppm_gpu_interp_d(const double qqrd2e_scale) {
+  return PPPMD.interp(qqrd2e_scale);
+}
+
+double pppm_gpu_bytes_d() {
+  return PPPMD.host_memory_usage();
 }
 

@@ -19,7 +19,8 @@
 #include "pppm_gpu_cl.h"
 #define MEM_THREADS 16
 #else
-#include "pppm_gpu_ptx.h"
+#include "pppm_f_gpu_ptx.h"
+#include "pppm_d_gpu_ptx.h"
 #endif
 #include "pppm_gpu_memory.h"
 #include <cassert>
@@ -35,35 +36,35 @@
 //#define BLOCK_PENCILS (BLOCK_1D/PENCIL_SIZE)
 #define BLOCK_PENCILS 2
 
-#define PPPMGPUMemoryT PPPMGPUMemory<numtyp, acctyp>
+#define PPPMGPUMemoryT PPPMGPUMemory<numtyp, acctyp, grdtyp, grdtyp4>
 
 extern PairGPUDevice<PRECISION,ACC_PRECISION> pair_gpu_device;
 
-template <class numtyp, class acctyp>
+template <class numtyp, class acctyp, class grdtyp, class grdtyp4>
 PPPMGPUMemoryT::PPPMGPUMemory() : _allocated(false), _compiled(false),
                                   _max_bytes(0) {
   device=&pair_gpu_device;
   ans=new PairGPUAns<numtyp,acctyp>();
 }
 
-template <class numtyp, class acctyp>
+template <class numtyp, class acctyp, class grdtyp, class grdtyp4>
 PPPMGPUMemoryT::~PPPMGPUMemory() {
   clear(0.0);
   delete ans;
 }
 
-template <class numtyp, class acctyp>
+template <class numtyp, class acctyp, class grdtyp, class grdtyp4>
 int PPPMGPUMemoryT::bytes_per_atom() const {
   return device->atom.bytes_per_atom()+ans->bytes_per_atom()+1;
 }
 
-template <class numtyp, class acctyp>
-numtyp * PPPMGPUMemoryT::init(const int nlocal, const int nall, FILE *_screen,
+template <class numtyp, class acctyp, class grdtyp, class grdtyp4>
+grdtyp * PPPMGPUMemoryT::init(const int nlocal, const int nall, FILE *_screen,
                               const int order, const int nxlo_out,
                               const int nylo_out, const int nzlo_out,
                               const int nxhi_out, const int nyhi_out,
                               const int nzhi_out, double **rho_coeff,
-                              numtyp **vd_brick, bool &success) {
+                              grdtyp **vd_brick, bool &success) {
   _max_bytes=10;
   screen=_screen;
 
@@ -162,7 +163,7 @@ numtyp * PPPMGPUMemoryT::init(const int nlocal, const int nall, FILE *_screen,
   return h_brick.begin();
 }
 
-template <class numtyp, class acctyp>
+template <class numtyp, class acctyp, class grdtyp, class grdtyp4>
 void PPPMGPUMemoryT::clear(const double cpu_time) {
   if (!_allocated)
     return;
@@ -200,7 +201,7 @@ void PPPMGPUMemoryT::clear(const double cpu_time) {
 // ---------------------------------------------------------------------------
 // Charge spreading stuff
 // ---------------------------------------------------------------------------
-template <class numtyp, class acctyp>
+template <class numtyp, class acctyp, class grdtyp, class grdtyp4>
 int PPPMGPUMemoryT::spread(const int ago, const int nlocal, const int nall,
                            double **host_x, int *host_type, bool &success,
                            double *host_q, double *boxlo, 
@@ -253,7 +254,7 @@ int PPPMGPUMemoryT::spread(const int ago, const int nlocal, const int nall,
   _delyinv=delyinv;
   _delzinv=delzinv;
   double delvolinv = delxinv*delyinv*delzinv;
-  numtyp f_delvolinv = delvolinv;
+  grdtyp f_delvolinv = delvolinv;
 
   d_brick_counts.zero();
   k_particle_map.set_size(GX,BX);
@@ -297,8 +298,8 @@ int PPPMGPUMemoryT::spread(const int ago, const int nlocal, const int nall,
 // ---------------------------------------------------------------------------
 // Charge spreading stuff
 // ---------------------------------------------------------------------------
-template <class numtyp, class acctyp>
-void PPPMGPUMemoryT::interp(const numtyp qqrd2e_scale) {
+template <class numtyp, class acctyp, class grdtyp, class grdtyp4>
+void PPPMGPUMemoryT::interp(const grdtyp qqrd2e_scale) {
   time_in.start();
   ucl_copy(d_brick,h_vd_brick,true);
   time_in.stop();
@@ -322,21 +323,30 @@ void PPPMGPUMemoryT::interp(const numtyp qqrd2e_scale) {
 }
 
 
-template <class numtyp, class acctyp>
+template <class numtyp, class acctyp, class grdtyp, class grdtyp4>
 double PPPMGPUMemoryT::host_memory_usage() const {
-  return device->atom.host_memory_usage()+sizeof(PPPMGPUMemory<numtyp,acctyp>);
+  return device->atom.host_memory_usage()+
+         sizeof(PPPMGPUMemory<numtyp,acctyp,grdtyp,grdtyp4>);
 }
 
-template <class numtyp, class acctyp>
+template <class numtyp, class acctyp, class grdtyp, class grdtyp4>
 void PPPMGPUMemoryT::compile_kernels(UCL_Device &dev) {
   if (_compiled)
     return;
 
   std::string flags="-cl-fast-relaxed-math -cl-mad-enable "+
                     std::string(OCL_PRECISION_COMPILE);
+  #ifdef USE_OPENCL
+  flags+=std::string("-D grdtyp=")+ucl_template_name<grdtyp>()+" -D grdtyp4="+
+         ucl_template_name<grdtyp>()+"4";
+  #endif
 
   pppm_program=new UCL_Program(dev);
-  pppm_program->load_string(pppm_gpu_kernel,flags.c_str());
+  if (sizeof(grdtyp)==sizeof(float))
+    pppm_program->load_string(pppm_f_gpu_kernel,flags.c_str());
+  else
+    pppm_program->load_string(pppm_d_gpu_kernel,flags.c_str());
+
   k_particle_map.set_function(*pppm_program,"particle_map");
   k_make_rho.set_function(*pppm_program,"make_rho");
   k_interp.set_function(*pppm_program,"interp");
@@ -346,5 +356,6 @@ void PPPMGPUMemoryT::compile_kernels(UCL_Device &dev) {
   _compiled=true;
 }
 
-template class PPPMGPUMemory<PRECISION,ACC_PRECISION>;
+template class PPPMGPUMemory<PRECISION,ACC_PRECISION,float,_lgpu_float4>;
+template class PPPMGPUMemory<PRECISION,ACC_PRECISION,double,_lgpu_double4>;
 

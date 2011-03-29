@@ -28,17 +28,17 @@
 #include "geryon/nvd_texture.h"
 #endif
 
-template <class numtyp, class acctyp>
+template <class numtyp, class acctyp, class grdtyp, class grdtyp4>
 class PPPMGPUMemory {
  public:
   PPPMGPUMemory();
   virtual ~PPPMGPUMemory();
 
   /// Clear any previous data and set up for a new LAMMPS run
-  numtyp * init(const int nlocal, const int nall, FILE *screen, const int order,
+  grdtyp * init(const int nlocal, const int nall, FILE *screen, const int order,
                 const int nxlo_out, const int nylo_out, const int nzlo_out,
                 const int nxhi_out, const int nyhi_out, const int nzhi_out,
-                double **rho_coeff, numtyp **vd_brick, bool &success);
+                double **rho_coeff, grdtyp **vd_brick, bool &success);
 
   /// Check if there is enough storage for atom arrays and realloc if not
   /** \param success set to false if insufficient memory **/
@@ -91,7 +91,7 @@ class PPPMGPUMemory {
              int *host_type,bool &success,double *charge,double *boxlo,
              const double delxinv,const double delyinv,const double delzinv);
 
-  void interp(const numtyp qqrd2e_scale);
+  void interp(const grdtyp qqrd2e_scale);
 
   // -------------------------- DEVICE DATA ------------------------- 
 
@@ -115,13 +115,13 @@ class PPPMGPUMemory {
 
   // --------------------------- GRID DATA --------------------------
 
-  UCL_H_Vec<numtyp> h_brick, h_vd_brick;
-  UCL_D_Vec<numtyp> d_brick;
+  UCL_H_Vec<grdtyp> h_brick, h_vd_brick;
+  UCL_D_Vec<grdtyp> d_brick;
   
   // Count of number of atoms assigned to each grid point
   UCL_D_Vec<int> d_brick_counts;
   // Atoms assigned to each grid point
-  UCL_D_Vec<numtyp4> d_brick_atoms;
+  UCL_D_Vec<grdtyp4> d_brick_atoms;
   
   // Error checking for out of bounds atoms
   UCL_D_Vec<int> d_error_flag;
@@ -134,7 +134,7 @@ class PPPMGPUMemory {
   int _nlocal_x, _nlocal_y, _nlocal_z, _nlocal_yx, _atom_stride;
   
   // -------------------------- SPLINE DATA -------------------------
-  UCL_D_Vec<numtyp> d_rho_coeff;
+  UCL_D_Vec<grdtyp> d_rho_coeff;
   int _order, _nlower, _nupper, _order_m_1, _order2;
   int _nxlo_out, _nylo_out, _nzlo_out, _nxhi_out, _nyhi_out, _nzhi_out;
 
@@ -158,7 +158,7 @@ class PPPMGPUMemory {
   int _block_size, _block_x_size, _block_y_size, _max_brick_atoms;
   double  _max_bytes, _max_an_bytes;
   
-  numtyp _brick_x, _brick_y, _brick_z, _delxinv, _delyinv, _delzinv; 
+  grdtyp _brick_x, _brick_y, _brick_z, _delxinv, _delyinv, _delzinv; 
 
   void compile_kernels(UCL_Device &dev);
 };

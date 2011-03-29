@@ -11,31 +11,25 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef KSPACE_CLASS
-
-KSpaceStyle(pppm/gpu,PPPMGPU)
-
-#else
-
 #ifndef LMP_PPPM_GPU_H
 #define LMP_PPPM_GPU_H
 
-#include "pppm.h"
+#include "kspace.h"
 #include "lmptype.h"
-
-#define numtyp float
 
 namespace LAMMPS_NS {
 
+template <class grdtyp>
 class PPPMGPU : public KSpace {
  public:
   PPPMGPU(class LAMMPS *, int, char **);
-  ~PPPMGPU();
-  void init();
+  virtual ~PPPMGPU();
+  virtual void init() = 0;
+  void base_init();
   void setup();
-  void compute(int, int);
+  virtual void compute(int, int) = 0;
   void timing(int, double &, double &);
-  double memory_usage();
+  virtual double memory_usage() = 0;
 
  protected:
   int me,nprocs;
@@ -57,8 +51,8 @@ class PPPMGPU : public KSpace {
   int nlower,nupper;
   int ngrid,nfft,nbuf,nfft_both;
 
-  numtyp ***density_brick;
-  numtyp ***vd_brick;
+  grdtyp ***density_brick;
+  grdtyp ***vd_brick;
   double *greensfn;
   double **vg;
   double *fkx,*fky,*fkz;
@@ -99,10 +93,9 @@ class PPPMGPU : public KSpace {
 
   double poisson_time;  
 
-  numtyp ***create_3d_offset(int, int, int, int, int, int, const char *,
-			     numtyp *, int);
-  void destroy_3d_offset(numtyp ***, int, int);
-  
+  grdtyp ***create_3d_offset(int, int, int, int, int, int, const char *,
+			     grdtyp *, int);
+  void destroy_3d_offset(grdtyp ***, int, int);
 };
 
 }

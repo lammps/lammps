@@ -20,7 +20,6 @@
 
 #ifdef _DOUBLE_DOUBLE
 #define numtyp double
-#define numtyp2 double2
 #define numtyp4 double4
 #define acctyp double
 #define acctyp4 double4
@@ -28,7 +27,6 @@
 
 #ifdef _SINGLE_DOUBLE
 #define numtyp float
-#define numtyp2 float2
 #define numtyp4 float4
 #define acctyp double
 #define acctyp4 double4
@@ -36,7 +34,6 @@
 
 #ifndef numtyp
 #define numtyp float
-#define numtyp2 float2
 #define numtyp4 float4
 #define acctyp float
 #define acctyp4 float4
@@ -100,11 +97,11 @@ __inline float fetch_q(const int& i, const float *q)
 #define BLOCK_PENCILS 2
 
 __kernel void particle_map(__global numtyp4 *x_,  __global numtyp *q_,
-                           const numtyp delvolinv, const int nlocal, 
-                           __global int *counts, __global numtyp4 *ans, 
-                           const numtyp b_lo_x, const numtyp b_lo_y,
-                           const numtyp b_lo_z, const numtyp delxinv,
-                           const numtyp delyinv, const numtyp delzinv,
+                           const grdtyp delvolinv, const int nlocal, 
+                           __global int *counts, __global grdtyp4 *ans, 
+                           const grdtyp b_lo_x, const grdtyp b_lo_y,
+                           const grdtyp b_lo_z, const grdtyp delxinv,
+                           const grdtyp delyinv, const grdtyp delzinv,
                            const int nlocal_x, const int nlocal_y,
                            const int nlocal_z, const int atom_stride,
                            const int max_atoms, __global int *error) {
@@ -120,7 +117,7 @@ __kernel void particle_map(__global numtyp4 *x_,  __global numtyp *q_,
 
   if (ii<nlocal) {
     numtyp4 p=fetch_pos(ii,x_);
-    numtyp4 delta;
+    grdtyp4 delta;
     delta.w=delvolinv*fetch_q(ii,q_);
     
     delta.x=(p.x-b_lo_x)*delxinv;
@@ -152,15 +149,15 @@ __kernel void particle_map(__global numtyp4 *x_,  __global numtyp *q_,
 /* --------------------------- */
 
 __kernel void make_rho(__global numtyp4 *x_, __global numtyp *q_,
-                       __global int *counts, __global numtyp4 *atoms,
-                       __global numtyp *brick, __global numtyp *_rho_coeff,
+                       __global int *counts, __global grdtyp4 *atoms,
+                       __global grdtyp *brick, __global grdtyp *_rho_coeff,
                        const int atom_stride, const int npts_x,
                        const int npts_y, const int npts_z, const int nlocal_x,
                        const int nlocal_y, const int nlocal_z,
                        const int order_m_1, const int order, const int order2) {
-  __local numtyp rho_coeff[MAX_SPLINE*MAX_SPLINE];
-  __local numtyp front[BLOCK_PENCILS][PENCIL_SIZE+MAX_SPLINE];
-  __local numtyp ans[MAX_SPLINE][BLOCK_1D];
+  __local grdtyp rho_coeff[MAX_SPLINE*MAX_SPLINE];
+  __local grdtyp front[BLOCK_PENCILS][PENCIL_SIZE+MAX_SPLINE];
+  __local grdtyp ans[MAX_SPLINE][BLOCK_1D];
   
   int tid=THREAD_ID_X;
   if (tid<order2+order)
@@ -170,7 +167,7 @@ __kernel void make_rho(__global numtyp4 *x_, __global numtyp *q_,
   int fid=tid%PENCIL_SIZE;
   int fid_halo=PENCIL_SIZE+fid;
   if (fid<order) 
-    front[pid][fid_halo]=(numtyp)0.0;
+    front[pid][fid_halo]=(grdtyp)0.0;
 
   __syncthreads();
 
@@ -196,7 +193,7 @@ __kernel void make_rho(__global numtyp4 *x_, __global numtyp *q_,
   int pt=mul24(nz,mul24(npts_y,npts_x))+mul24(ny,npts_x)+nx;
   for (int i=0 ; i<loop_count; i++) {
     for (int n=0; n<order; n++)
-      ans[n][tid]=(numtyp)0.0;
+      ans[n][tid]=(grdtyp)0.0;
     if (nx<nlocal_x && nz<npts_z) {
       int z_pos=mul24(nz+z_start-order_m_1,z_stride);
       for (int m=z_start; m<z_stop; m++) {
@@ -205,10 +202,10 @@ __kernel void make_rho(__global numtyp4 *x_, __global numtyp *q_,
           int pos=z_pos+y_pos+nx;
           int natoms=mul24(counts[pos],atom_stride);
           for (int row=pos; row<natoms; row+=atom_stride) {
-            numtyp4 delta=atoms[row];
+            grdtyp4 delta=atoms[row];
       
-            numtyp rho1d_1=(numtyp)0.0;
-            numtyp rho1d_2=(numtyp)0.0;
+            grdtyp rho1d_1=(grdtyp)0.0;
+            grdtyp rho1d_2=(grdtyp)0.0;
             for (int k=order2+order-1; k > -1; k-=order) {
               rho1d_1=rho_coeff[k-l]+rho1d_1*delta.y;
               rho1d_2=rho_coeff[k-m]+rho1d_2*delta.z;
@@ -216,7 +213,7 @@ __kernel void make_rho(__global numtyp4 *x_, __global numtyp *q_,
             delta.w*=rho1d_1*rho1d_2;
 
             for (int n=0; n<order; n++) {
-              numtyp rho1d_0=(numtyp)0.0;
+              grdtyp rho1d_0=(grdtyp)0.0;
               for (int k=order2+n; k>=n; k-=order)
                 rho1d_0=rho_coeff[k]+rho1d_0*delta.x;
               ans[n][tid]+=delta.w*rho1d_0;
@@ -231,9 +228,9 @@ __kernel void make_rho(__global numtyp4 *x_, __global numtyp *q_,
     __syncthreads();
     if (fid<order) {
       front[pid][fid]=front[pid][fid_halo];
-      front[pid][fid_halo]=(numtyp)0.0;
+      front[pid][fid_halo]=(grdtyp)0.0;
     } else 
-      front[pid][fid]=(numtyp)0.0;
+      front[pid][fid]=(grdtyp)0.0;
     
     for (int n=0; n<order; n++) {
       front[pid][fid+n]+=ans[n][tid];
@@ -248,17 +245,17 @@ __kernel void make_rho(__global numtyp4 *x_, __global numtyp *q_,
 }
 
 __kernel void interp(__global numtyp4 *x_, __global numtyp *q_,
-                     const int nlocal, __global numtyp4 *brick,
-                     __global numtyp *_rho_coeff, const int npts_x,
-                     const int npts_yx, const numtyp b_lo_x,
-                     const numtyp b_lo_y, const numtyp b_lo_z,
-                     const numtyp delxinv,  const numtyp delyinv,
-                     const numtyp delzinv, const int order,
-                     const int order2, const numtyp qqrd2e_scale, 
+                     const int nlocal, __global grdtyp4 *brick,
+                     __global grdtyp *_rho_coeff, const int npts_x,
+                     const int npts_yx, const grdtyp b_lo_x,
+                     const grdtyp b_lo_y, const grdtyp b_lo_z,
+                     const grdtyp delxinv,  const grdtyp delyinv,
+                     const grdtyp delzinv, const int order,
+                     const int order2, const grdtyp qqrd2e_scale, 
                      __global acctyp4 *ans) {
-  __local numtyp rho_coeff[MAX_SPLINE*MAX_SPLINE];
-  __local numtyp rho1d_0[MAX_SPLINE][BLOCK_1D];
-  __local numtyp rho1d_1[MAX_SPLINE][BLOCK_1D];
+  __local grdtyp rho_coeff[MAX_SPLINE*MAX_SPLINE];
+  __local grdtyp rho1d_0[MAX_SPLINE][BLOCK_1D];
+  __local grdtyp rho1d_1[MAX_SPLINE][BLOCK_1D];
 
   int tid=THREAD_ID_X;
   if (tid<order2+order)
@@ -268,11 +265,11 @@ __kernel void interp(__global numtyp4 *x_, __global numtyp *q_,
   int ii=tid+BLOCK_ID_X*BLOCK_SIZE_X;
   
   int nx,ny,nz;
-  numtyp tx,ty,tz;
+  grdtyp tx,ty,tz;
 
   if (ii<nlocal) {
     numtyp4 p=fetch_pos(ii,x_);
-    numtyp qs=qqrd2e_scale*fetch_q(ii,q_);
+    grdtyp qs=qqrd2e_scale*fetch_q(ii,q_);
 
     tx=(p.x-b_lo_x)*delxinv;
     nx=int(tx);
@@ -281,35 +278,35 @@ __kernel void interp(__global numtyp4 *x_, __global numtyp *q_,
     tz=(p.z-b_lo_z)*delzinv;
     nz=int(tz);
 
-    numtyp dx=nx+(numtyp)0.5-tx;
-    numtyp dy=ny+(numtyp)0.5-ty;
-    numtyp dz=nz+(numtyp)0.5-tz;
+    grdtyp dx=nx+(grdtyp)0.5-tx;
+    grdtyp dy=ny+(grdtyp)0.5-ty;
+    grdtyp dz=nz+(grdtyp)0.5-tz;
 
     for (int k=0; k<order; k++) {
-      rho1d_0[k][tid]=(numtyp)0.0;
-      rho1d_1[k][tid]=(numtyp)0.0;
+      rho1d_0[k][tid]=(grdtyp)0.0;
+      rho1d_1[k][tid]=(grdtyp)0.0;
       for (int l=order2+k; l>=k; l-=order) {
         rho1d_0[k][tid]=rho_coeff[l]+rho1d_0[k][tid]*dx;
         rho1d_1[k][tid]=rho_coeff[l]+rho1d_1[k][tid]*dy;
       }
     }
         
-    numtyp4 ek;
+    acctyp4 ek;
     ek.x=(acctyp)0.0;
     ek.y=(acctyp)0.0;
     ek.z=(acctyp)0.0;
     int mz=mul24(nz,npts_yx)+nx;
     for (int n=0; n<order; n++) {
-      numtyp rho1d_2=(numtyp)0.0;
+      grdtyp rho1d_2=(grdtyp)0.0;
       for (int k=order2+n; k>=n; k-=order)
         rho1d_2=rho_coeff[k]+rho1d_2*dz;
-      numtyp z0=qs*rho1d_2;
+      grdtyp z0=qs*rho1d_2;
       int my=mz+mul24(ny,npts_x);
       for (int m=0; m<order; m++) {
-        numtyp y0=z0*rho1d_1[m][tid];
+        grdtyp y0=z0*rho1d_1[m][tid];
 	      for (int l=0; l<order; l++) {
-	        numtyp x0=y0*rho1d_0[l][tid];
-	        numtyp4 el=brick[my+l];
+	        grdtyp x0=y0*rho1d_0[l][tid];
+	        grdtyp4 el=brick[my+l];
 	        ek.x-=x0*el.x;
 	        ek.y-=x0*el.y;
 	        ek.z-=x0*el.z;

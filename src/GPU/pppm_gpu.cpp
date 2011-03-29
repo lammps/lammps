@@ -35,24 +35,6 @@
 #include "memory.h"
 #include "error.h"
 
-// External functions from cuda library for atom decomposition
-
-numtyp* pppm_gpu_init(const int nlocal, const int nall, FILE *screen,
-		      const int order, const int nxlo_out, const int nylo_out,
-		      const int nzlo_out, const int nxhi_out,
-		      const int nyhi_out, const int nzhi_out,
-		      double **rho_coeff, numtyp **_vd_brick,
-		      bool &success);
-void pppm_gpu_clear(const double poisson_time);
-int pppm_gpu_spread(const int ago, const int nlocal, const int nall,
-                    double **host_x, int *host_type, bool &success,
-                    double *host_q, double *boxlo, const double delxinv,
-                    const double delyinv, const double delzinv);
-void pppm_gpu_interp(const numtyp qqrd2e_scale);
-double pppm_gpu_bytes();
-
-//numtyp *pppm_gpu_force();
-
 using namespace LAMMPS_NS;
 
 #define MAXORDER 7
@@ -64,9 +46,12 @@ using namespace LAMMPS_NS;
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
+#define PPPMGPUT PPPMGPU<grdtyp>
+
 /* ---------------------------------------------------------------------- */
 
-PPPMGPU::PPPMGPU(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
+template <class grdtyp>
+PPPMGPUT::PPPMGPU(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
 {
   if (narg != 1) error->all("Illegal kspace_style pppm command");
 
@@ -104,18 +89,19 @@ PPPMGPU::PPPMGPU(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
    free all memory 
 ------------------------------------------------------------------------- */
 
-PPPMGPU::~PPPMGPU()
+template <class grdtyp>
+PPPMGPUT::~PPPMGPU()
 {
   delete [] factors;
   deallocate();
-  pppm_gpu_clear(poisson_time);
 }
 
 /* ----------------------------------------------------------------------
    called once before run 
 ------------------------------------------------------------------------- */
 
-void PPPMGPU::init()
+template <class grdtyp>
+void PPPMGPUT::init()
 {
   if (me == 0) {
     if (screen) fprintf(screen,"PPPM initialization ...\n");
@@ -496,35 +482,14 @@ void PPPMGPU::init()
 
   compute_gf_denom();
   compute_rho_coeff();
-
-  if (order>8)
-    error->all("Cannot use order greater than 8 with pppm/gpu.");
-  pppm_gpu_clear(poisson_time);
-
-  bool success;
-  numtyp *data, *h_brick;
-  h_brick = pppm_gpu_init(atom->nlocal, atom->nlocal+atom->nghost, screen,
-			  order, nxlo_out, nylo_out, nzlo_out, nxhi_out,
-			  nyhi_out, nzhi_out, rho_coeff, &data, success);
-
-  density_brick =
-    create_3d_offset(nzlo_out,nzhi_out,nylo_out,nyhi_out,
-		     nxlo_out,nxhi_out,"pppm:density_brick",h_brick,1);
-  vd_brick =
-    create_3d_offset(nzlo_out,nzhi_out,nylo_out,nyhi_out,
-		     nxlo_out,nxhi_out,"pppm:vd_brick",data,4);
-
-  if (!success)
-    error->one("Insufficient memory on accelerator (or no fix gpu).\n"); 
-
-  poisson_time=0;
 }
 
 /* ----------------------------------------------------------------------
    adjust PPPMGPU coeffs, called initially and whenever volume has changed 
 ------------------------------------------------------------------------- */
 
-void PPPMGPU::setup()
+template <class grdtyp>
+void PPPMGPUT::setup()
 {
   int i,j,k,l,m,n;
   double *prd;
@@ -674,94 +639,11 @@ void PPPMGPU::setup()
 }
 
 /* ----------------------------------------------------------------------
-   compute the PPPMGPU long-range force, energy, virial 
-------------------------------------------------------------------------- */
-
-void PPPMGPU::compute(int eflag, int vflag)
-{
-  bool success = true;
-  int flag=pppm_gpu_spread(neighbor->ago, atom->nlocal, atom->nlocal + 
-                           atom->nghost, atom->x, atom->type, success, atom->q,
-                           domain->boxlo, delxinv, delyinv, delzinv);
-  if (!success)
-    error->one("Out of memory on GPGPU");
-  if (flag != 0)
-    error->one("Out of range atoms - cannot compute PPPM");
-
-  int i;
-
-  // convert atoms from box to lamda coords
-  
-  if (triclinic == 0) boxlo = domain->boxlo;
-  else {
-    boxlo = domain->boxlo_lamda;
-    domain->x2lamda(atom->nlocal);
-  }
-
-  energy = 0.0;
-  if (vflag) for (i = 0; i < 6; i++) virial[i] = 0.0;
-
-  double t3=MPI_Wtime();
-
-  // all procs communicate density values from their ghost cells
-  //   to fully sum contribution in their 3d bricks
-  // remap from 3d decomposition to FFT decomposition
-
-  brick2fft();
-
-  // compute potential gradient on my FFT grid and
-  //   portion of e_long on this proc's FFT grid
-  // return gradients (electric fields) in 3d brick decomposition
-  
-  poisson(eflag,vflag);
-
-  // all procs communicate E-field values to fill ghost cells
-  //   surrounding their 3d bricks
-
-  fillbrick();
-
-  poisson_time+=MPI_Wtime()-t3;
-
-  // calculate the force on my particles
-
-  numtyp qqrd2e_scale=qqrd2e*scale;
-  pppm_gpu_interp(qqrd2e_scale);
-
-  // sum energy across procs and add in volume-dependent term
-
-  if (eflag) {
-    double energy_all;
-    MPI_Allreduce(&energy,&energy_all,1,MPI_DOUBLE,MPI_SUM,world);
-    energy = energy_all;
-   
-    energy *= 0.5*volume;
-    energy -= g_ewald*qsqsum/1.772453851 +
-      0.5*PI*qsum*qsum / (g_ewald*g_ewald*volume);
-    energy *= qqrd2e*scale;
-  }
-
-  // sum virial across procs
-
-  if (vflag) {
-    double virial_all[6];
-    MPI_Allreduce(virial,virial_all,6,MPI_DOUBLE,MPI_SUM,world);
-    for (i = 0; i < 6; i++) virial[i] = 0.5*qqrd2e*scale*volume*virial_all[i];
-  }
-
-  // 2d slab correction
-
-  if (slabflag) slabcorr(eflag);
-
-  // convert atoms back from lamda to box coords
-  
-  if (triclinic) domain->lamda2x(atom->nlocal);
-}
-
-/* ----------------------------------------------------------------------
    allocate memory that depends on # of K-vectors and order 
 ------------------------------------------------------------------------- */
 
-void PPPMGPU::allocate()
+template <class grdtyp>
+void PPPMGPUT::allocate()
 {
   density_fft = 
     (double *) memory->smalloc(nfft_both*sizeof(double),"pppm:density_fft");
@@ -812,7 +694,8 @@ void PPPMGPU::allocate()
    deallocate memory that depends on # of K-vectors and order 
 ------------------------------------------------------------------------- */
 
-void PPPMGPU::deallocate()
+template <class grdtyp>
+void PPPMGPUT::deallocate()
 {
   destroy_3d_offset(density_brick,nzlo_out,nylo_out);
   destroy_3d_offset(vd_brick,nzlo_out,nylo_out);
@@ -843,7 +726,8 @@ void PPPMGPU::deallocate()
    set size of FFT grid (nx,ny,nz_pppm) and g_ewald 
 ------------------------------------------------------------------------- */
 
-void PPPMGPU::set_grid()
+template <class grdtyp>
+void PPPMGPUT::set_grid()
 {
   // see JCP 109, pg 7698 for derivation of coefficients
   // higher order coefficients may be computed if needed
@@ -962,7 +846,7 @@ void PPPMGPU::set_grid()
     g_ewald = gew2;
     fmid = diffpr(hx,hy,hz,q2,acons);
 
-    if (f*fmid >= 0.0) error->all("Cannot compute PPPMGPU G");
+    if (f*fmid >= 0.0) error->all("Cannot compute PPPM G");
     rtb = f < 0.0 ? (dgew=gew2-gew1,gew1) : (dgew=gew1-gew2,gew2);
     ncount = 0;
     while (fabs(dgew) > SMALL && fmid != 0.0) {
@@ -971,7 +855,7 @@ void PPPMGPU::set_grid()
       fmid = diffpr(hx,hy,hz,q2,acons);      
       if (fmid <= 0.0) rtb = g_ewald;
       ncount++;
-      if (ncount > LARGE) error->all("Cannot compute PPPMGPU G");
+      if (ncount > LARGE) error->all("Cannot compute PPPM G");
     }
   }
 
@@ -1011,7 +895,8 @@ void PPPMGPU::set_grid()
    return 1 if yes, 0 if no 
 ------------------------------------------------------------------------- */
 
-int PPPMGPU::factorable(int n)
+template <class grdtyp>
+int PPPMGPUT::factorable(int n)
 {
   int i;
 
@@ -1032,8 +917,9 @@ int PPPMGPU::factorable(int n)
    compute RMS precision for a dimension
 ------------------------------------------------------------------------- */
 
-double PPPMGPU::rms(double h, double prd, bigint natoms,
-		 double q2, double **acons)
+template <class grdtyp>
+double PPPMGPUT::rms(double h, double prd, bigint natoms,
+		     double q2, double **acons)
 {
   double sum = 0.0;
   for (int m = 0; m < order; m++) 
@@ -1047,7 +933,9 @@ double PPPMGPU::rms(double h, double prd, bigint natoms,
    compute difference in real-space and kspace RMS precision
 ------------------------------------------------------------------------- */
 
-double PPPMGPU::diffpr(double hx, double hy, double hz, double q2, double **acons)
+template <class grdtyp>
+double PPPMGPUT::diffpr(double hx, double hy, double hz, double q2,
+			double **acons)
 {
   double lprx,lpry,lprz,kspace_prec,real_prec;
   double xprd = domain->xprd;
@@ -1077,7 +965,8 @@ double PPPMGPU::diffpr(double hx, double hy, double hz, double q2, double **acon
    gf_b = denominator expansion coeffs 
 ------------------------------------------------------------------------- */
 
-double PPPMGPU::gf_denom(double x, double y, double z)
+template <class grdtyp>
+double PPPMGPUT::gf_denom(double x, double y, double z)
 {
   double sx,sy,sz;
   sz = sy = sx = 0.0;
@@ -1094,7 +983,8 @@ double PPPMGPU::gf_denom(double x, double y, double z)
    pre-compute Green's function denominator expansion coeffs, Gamma(2n) 
 ------------------------------------------------------------------------- */
 
-void PPPMGPU::compute_gf_denom()
+template <class grdtyp>
+void PPPMGPUT::compute_gf_denom()
 {
   int k,l,m;
   
@@ -1118,7 +1008,8 @@ void PPPMGPU::compute_gf_denom()
    remap density from 3d brick decomposition to FFT decomposition
 ------------------------------------------------------------------------- */
 
-void PPPMGPU::brick2fft()
+template <class grdtyp>
+void PPPMGPUT::brick2fft()
 {
   int i,n,ix,iy,iz;
   MPI_Request request;
@@ -1286,7 +1177,8 @@ void PPPMGPU::brick2fft()
    ghost-swap to fill ghost cells of my brick with field values
 ------------------------------------------------------------------------- */
 
-void PPPMGPU::fillbrick()
+template <class grdtyp>
+void PPPMGPUT::fillbrick()
 {
   int i,n,ix,iy,iz;
   MPI_Request request;
@@ -1486,7 +1378,8 @@ void PPPMGPU::fillbrick()
    FFT-based Poisson solver 
 ------------------------------------------------------------------------- */
 
-void PPPMGPU::poisson(int eflag, int vflag)
+template <class grdtyp>
+void PPPMGPUT::poisson(int eflag, int vflag)
 {
   int i,j,k,n;
   double eng;
@@ -1607,7 +1500,8 @@ void PPPMGPU::poisson(int eflag, int vflag)
    map nprocs to NX by NY grid as PX by PY procs - return optimal px,py 
 ------------------------------------------------------------------------- */
 
-void PPPMGPU::procs2grid2d(int nprocs, int nx, int ny, int *px, int *py)
+template <class grdtyp>
+void PPPMGPUT::procs2grid2d(int nprocs, int nx, int ny, int *px, int *py)
 {
   // loop thru all possible factorizations of nprocs
   // surf = surface area of largest proc sub-domain
@@ -1646,7 +1540,8 @@ void PPPMGPU::procs2grid2d(int nprocs, int nx, int ny, int *px, int *py)
    dx,dy,dz = distance of particle from "lower left" grid point 
 ------------------------------------------------------------------------- */
 
-void PPPMGPU::compute_rho1d(double dx, double dy, double dz)
+template <class grdtyp>
+void PPPMGPUT::compute_rho1d(double dx, double dy, double dz)
 {
   int k,l;
 
@@ -1681,7 +1576,8 @@ void PPPMGPU::compute_rho1d(double dx, double dy, double dz)
   rho_coeff(l,((k+mod(n+1,2))/2) = a(l,k) 
 ------------------------------------------------------------------------- */
 
-void PPPMGPU::compute_rho_coeff()
+template <class grdtyp>
+void PPPMGPUT::compute_rho_coeff()
 {
   int j,k,l,m;
   double s;
@@ -1722,7 +1618,8 @@ void PPPMGPU::compute_rho_coeff()
    111, 3155).  Slabs defined here to be parallel to the xy plane. 
 ------------------------------------------------------------------------- */
 
-void PPPMGPU::slabcorr(int eflag)
+template <class grdtyp>
+void PPPMGPUT::slabcorr(int eflag)
 {
   // compute local contribution to global dipole moment
 
@@ -1756,7 +1653,8 @@ void PPPMGPU::slabcorr(int eflag)
    perform and time the 4 FFTs required for N timesteps
 ------------------------------------------------------------------------- */
 
-void PPPMGPU::timing(int n, double &time3d, double &time1d)
+template <class grdtyp>
+void PPPMGPUT::timing(int n, double &time3d, double &time1d)
 {
   double time1,time2;
 
@@ -1795,17 +1693,18 @@ void PPPMGPU::timing(int n, double &time3d, double &time1d)
    Create array using offsets from pinned memory allocation
 ------------------------------------------------------------------------- */
 
-numtyp ***PPPMGPU::create_3d_offset(int n1lo, int n1hi, int n2lo, int n2hi,
-				    int n3lo, int n3hi, const char *name,
-				    numtyp *data, int vec_length)
+template <class grdtyp>
+grdtyp ***PPPMGPUT::create_3d_offset(int n1lo, int n1hi, int n2lo, int n2hi,
+				     int n3lo, int n3hi, const char *name,
+				     grdtyp *data, int vec_length)
 {
   int i,j;
   int n1 = n1hi - n1lo + 1;
   int n2 = n2hi - n2lo + 1;
   int n3 = n3hi - n3lo + 1;
 
-  numtyp **plane = (numtyp **)memory->smalloc(n1*n2*sizeof(numtyp *),name);
-  numtyp ***array = (numtyp ***)memory->smalloc(n1*sizeof(numtyp **),name);
+  grdtyp **plane = (grdtyp **)memory->smalloc(n1*n2*sizeof(grdtyp *),name);
+  grdtyp ***array = (grdtyp ***)memory->smalloc(n1*sizeof(grdtyp **),name);
 
   int n = 0;
   for (i = 0; i < n1; i++) {
@@ -1825,26 +1724,14 @@ numtyp ***PPPMGPU::create_3d_offset(int n1lo, int n1hi, int n2lo, int n2hi,
    templated 3d memory offsets
 ------------------------------------------------------------------------- */
 
-void PPPMGPU::destroy_3d_offset(numtyp ***array, int n1_offset,
-				int n2_offset)
+template <class grdtyp>
+void PPPMGPUT::destroy_3d_offset(grdtyp ***array, int n1_offset,
+				 int n2_offset)
 {
   if (array == NULL) return;
   memory->sfree(&array[n1_offset][n2_offset]);
   memory->sfree(array + n1_offset);
 }
 
-/* ----------------------------------------------------------------------
-   memory usage of local arrays 
-------------------------------------------------------------------------- */
-
-double PPPMGPU::memory_usage()
-{
-  double bytes = nmax*3 * sizeof(double);
-  int nbrick = (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) * 
-    (nzhi_out-nzlo_out+1);
-  bytes += 4 * nbrick * sizeof(double);
-  bytes += 6 * nfft_both * sizeof(double);
-  bytes += nfft_both*6 * sizeof(double);
-  bytes += 2 * nbuf * sizeof(double);
-  return bytes + pppm_gpu_bytes();
-}
+template class PPPMGPU<float>;
+template class PPPMGPU<double>;

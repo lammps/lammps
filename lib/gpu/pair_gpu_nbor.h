@@ -136,8 +136,8 @@ class PairGPUNbor {
   /// Build nbor list on the device
   template <class numtyp, class acctyp>
   void build_nbor_list(const int inum, const int host_inum, const int nall,
-                       PairGPUAtom<numtyp,acctyp> &atom, double *boxlo,
-                       double *boxhi, int *tag, int **nspecial, int **special, 
+                       PairGPUAtom<numtyp,acctyp> &atom, double *sublo,
+                       double *subhi, int *tag, int **nspecial, int **special, 
                        bool &success, int &max_nbors);
 
   /// Return the number of bytes used on device

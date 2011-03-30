@@ -214,12 +214,16 @@ class PairGPUDevice {
   PPPMGPUMemory<numtyp,acctyp,float,_lgpu_float4> *pppm_single;
   PPPMGPUMemory<numtyp,acctyp,double,_lgpu_double4> *pppm_double;
   /// Precomputations for long range charge assignment (asynchronously)
-//  inline void precompute(const int ago, const int nlocal, const int nall,
-//                         double **host_x, int *host_type, bool &success,
-//                         double *charge, double *boxlo, const double delxinv,
-//                         const double delyinv, const double delzinv) {
-                         
-
+  inline void precompute(const int ago, const int nlocal, const int nall,
+                         double **host_x, int *host_type, bool &success,
+                         double *charge, double *boxlo, double *prd) {
+    if (_long_range_precompute==1)
+      pppm_single->precompute(ago,nlocal,nall,host_x,host_type,success,charge,
+                              boxlo,prd);
+    else if (_long_range_precompute==2)
+      pppm_double->precompute(ago,nlocal,nall,host_x,host_type,success,charge,
+                              boxlo,prd);
+  }
 
  private:
   std::queue<PairGPUAns<numtyp,acctyp> *> ans_queue;

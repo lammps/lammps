@@ -97,10 +97,15 @@ class PPPMGPUMemory {
   }
 
   /// Precomputations for charge assignment that can be done asynchronously
-  void precompute(const int ago, const int nlocal, const int nall,
-                  double **host_x, int *host_type, bool &success,
-                  double *charge, double *boxlo, const double delxinv,
-                  const double delyinv, const double delzinv);
+  inline void precompute(const int ago, const int nlocal, const int nall,
+                         double **host_x, int *host_type, bool &success,
+                         double *charge, double *boxlo, double *prd) {
+    double delxinv=_nx_pppm/prd[0];
+    double delyinv=_ny_pppm/prd[1];
+    double delzinv=_nz_pppm/(prd[2]*_slab_volfactor);
+    _precompute(ago,nlocal,nall,host_x,host_type,success,charge,boxlo,delxinv,
+                delyinv,delzinv);
+  }
 
   /// Returns non-zero if out of bounds atoms
   int spread(const int ago, const int nlocal, const int nall, double **host_x,
@@ -180,6 +185,10 @@ class PPPMGPUMemory {
   int _nx_pppm, _ny_pppm, _nz_pppm;
   
   void compile_kernels(UCL_Device &dev);
+  void _precompute(const int ago, const int nlocal, const int nall,
+                   double **host_x, int *host_type, bool &success,
+                   double *charge, double *boxlo, const double delxinv,
+                   const double delyinv, const double delzinv);
 };
 
 #endif

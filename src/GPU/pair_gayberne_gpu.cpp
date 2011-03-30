@@ -51,8 +51,8 @@ bool gb_gpu_init(const int ntypes, const double gamma, const double upsilon,
                  int &gpu_mode, FILE *screen);
 void gb_gpu_clear();
 int ** gb_gpu_compute_n(const int ago, const int inum, const int nall,
-			double **host_x, int *host_type, double *boxlo,
-			double *boxhi, const bool eflag, const bool vflag,
+			double **host_x, int *host_type, double *sublo,
+			double *subhi, const bool eflag, const bool vflag,
 			const bool eatom, const bool vatom, int &host_start,
 			int **ilist, int **jnum, const double cpu_time,
 			bool &success, double **host_quat);

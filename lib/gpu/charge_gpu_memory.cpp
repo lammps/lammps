@@ -143,8 +143,8 @@ template <class numtyp, class acctyp>
 inline void ChargeGPUMemoryT::build_nbor_list(const int inum,
                                               const int host_inum,
                                               const int nall, double **host_x,
-                                              int *host_type, double *boxlo,
-                                              double *boxhi, int *tag, 
+                                              int *host_type, double *sublo,
+                                              double *subhi, int *tag, 
                                               int **nspecial, int **special,
                                               bool &success) {
   nbor_time_avail=true;
@@ -157,7 +157,7 @@ inline void ChargeGPUMemoryT::build_nbor_list(const int inum,
   atom->cast_copy_x(host_x,host_type);
 
   int mn;
-  nbor->build_nbor_list(inum, host_inum, nall, *atom, boxlo, boxhi, tag,
+  nbor->build_nbor_list(inum, host_inum, nall, *atom, sublo, subhi, tag,
                         nspecial, special, success, mn);
 
   double bytes=ans->gpu_bytes()+nbor->gpu_bytes();
@@ -175,7 +175,8 @@ void ChargeGPUMemoryT::compute(const int f_ago, const int inum_full,
                                const bool eflag, const bool vflag,
                                const bool eatom, const bool vatom,
                                int &host_start, const double cpu_time,
-                               bool &success, double *host_q) {
+                               bool &success, double *host_q,
+                               const int nlocal, double *boxlo, double *prd) {
   acc_timers();
   if (inum_full==0) {
     host_start=0;
@@ -202,6 +203,9 @@ void ChargeGPUMemoryT::compute(const int f_ago, const int inum_full,
   atom->add_x_data(host_x,host_type);
   atom->add_q_data();
 
+  device->precompute(f_ago,nlocal,nall,host_x,host_type,success,host_q,
+                     boxlo, prd);
+
   loop(eflag,vflag);
   ans->copy_answers(eflag,vflag,eatom,vatom,ilist);
   device->add_ans_object(ans);
@@ -214,13 +218,13 @@ void ChargeGPUMemoryT::compute(const int f_ago, const int inum_full,
 template <class numtyp, class acctyp>
 int** ChargeGPUMemoryT::compute(const int ago, const int inum_full,
                                 const int nall, double **host_x, int *host_type,
-                                double *boxlo, double *boxhi, int *tag,
+                                double *sublo, double *subhi, int *tag,
                                 int **nspecial, int **special, const bool eflag, 
                                 const bool vflag, const bool eatom,
                                 const bool vatom, int &host_start,
                                 int **ilist, int **jnum,
                                 const double cpu_time, bool &success,
-                                double *host_q) {
+                                double *host_q, double *boxlo, double *prd) {
   acc_timers();
   if (inum_full==0) {
     host_start=0;
@@ -238,7 +242,7 @@ int** ChargeGPUMemoryT::compute(const int ago, const int inum_full,
   // Build neighbor list on GPU if necessary
   if (ago==0) {
     build_nbor_list(inum, inum_full-inum, nall, host_x, host_type,
-                    boxlo, boxhi, tag, nspecial, special, success);
+                    sublo, subhi, tag, nspecial, special, success);
     if (!success)
       return NULL;
     atom->cast_q_data(host_q);
@@ -252,6 +256,9 @@ int** ChargeGPUMemoryT::compute(const int ago, const int inum_full,
   atom->add_q_data();
   *ilist=nbor->host_ilist.begin();
   *jnum=nbor->host_acc.begin();
+
+  device->precompute(ago,inum_full,nall,host_x,host_type,success,host_q,
+                     boxlo, prd);
 
   loop(eflag,vflag);
   ans->copy_answers(eflag,vflag,eatom,vatom);

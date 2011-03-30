@@ -222,16 +222,14 @@ void PPPMGPUMemoryT::clear(const double cpu_time) {
 // Charge assignment that can be performed asynchronously
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp, class grdtyp, class grdtyp4>
-void PPPMGPUMemoryT::precompute(const int ago, const int nlocal, const int nall,
-                                double **host_x, int *host_type, bool &success,
-                                double *host_q, double *boxlo, 
-                                const double delxinv, const double delyinv,
-                                const double delzinv) {
+void PPPMGPUMemoryT::_precompute(const int ago, const int nlocal, const int nall,
+                                 double **host_x, int *host_type, bool &success,
+                                 double *host_q, double *boxlo, 
+                                 const double delxinv, const double delyinv,
+                                 const double delzinv) {
   if (_precompute_done)
     return;
-    
-  device->stop_host_timer();
-  
+
   acc_timers();
   if (nlocal==0) {
     zero_timers();
@@ -301,7 +299,7 @@ void PPPMGPUMemoryT::precompute(const int ago, const int nlocal, const int nall,
   ucl_copy(h_brick,d_brick,_npts_yx*_npts_z,true);
   ucl_copy(h_error_flag,d_error_flag,true);
   time_out.stop();
-  
+
   _precompute_done=true;
 }
 
@@ -314,8 +312,11 @@ int PPPMGPUMemoryT::spread(const int ago, const int nlocal, const int nall,
                            double *host_q, double *boxlo, 
                            const double delxinv, const double delyinv,
                            const double delzinv) {
-  precompute(ago,nlocal,nall,host_x,host_type,success,host_q,boxlo,delxinv,
-             delyinv,delzinv);
+  _precompute(ago,nlocal,nall,host_x,host_type,success,host_q,boxlo,delxinv,
+              delyinv,delzinv);
+
+  device->stop_host_timer();
+  
   if (!success || nlocal==0)
     return 0;
     
@@ -336,7 +337,6 @@ int PPPMGPUMemoryT::spread(const int ago, const int nlocal, const int nall,
   
   return h_error_flag[0];
 }
-
 
 // ---------------------------------------------------------------------------
 // Charge spreading stuff

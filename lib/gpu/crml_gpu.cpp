@@ -109,15 +109,16 @@ void crml_gpu_clear() {
 
 int** crml_gpu_compute_n(const int ago, const int inum_full,
                          const int nall, double **host_x, int *host_type,
-                         double *boxlo, double *boxhi, int *tag, int **nspecial, 
+                         double *sublo, double *subhi, int *tag, int **nspecial, 
                          int **special, const bool eflag, const bool vflag,
                          const bool eatom, const bool vatom, int &host_start,
                          int **ilist, int **jnum, const double cpu_time,
-                         bool &success, double *host_q) {
-  return CRMLMF.compute(ago, inum_full, nall, host_x, host_type, boxlo,
-                        boxhi, tag, nspecial, special, eflag, vflag, eatom,
+                         bool &success, double *host_q, double *boxlo,
+                         double *prd) {
+  return CRMLMF.compute(ago, inum_full, nall, host_x, host_type, sublo,
+                        subhi, tag, nspecial, special, eflag, vflag, eatom,
                         vatom, host_start, ilist, jnum, cpu_time, success,
-                        host_q);
+                        host_q, boxlo, prd);
 }  
 			
 void crml_gpu_compute(const int ago, const int inum_full,
@@ -125,9 +126,11 @@ void crml_gpu_compute(const int ago, const int inum_full,
                       int *ilist, int *numj, int **firstneigh,
 		                  const bool eflag, const bool vflag, const bool eatom,
                       const bool vatom, int &host_start, const double cpu_time,
-                      bool &success, double *host_q) {
+                      bool &success, double *host_q, const int nlocal, 
+                      double *boxlo, double *prd) {
   CRMLMF.compute(ago,inum_full,nall,host_x,host_type,ilist,numj,firstneigh,
-                 eflag,vflag,eatom,vatom,host_start,cpu_time,success,host_q);
+                 eflag,vflag,eatom,vatom,host_start,cpu_time,success,host_q,
+                 nlocal,boxlo,prd);
 }
 
 double crml_gpu_bytes() {

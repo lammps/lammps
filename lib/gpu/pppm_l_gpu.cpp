@@ -139,7 +139,7 @@ double * pppm_gpu_init_d(const int nlocal, const int nall, FILE *screen,
                           nzlo_out,nxhi_out,nyhi_out,nzhi_out,rho_coeff,
                           vd_brick,slab_volfactor,nx_pppm,ny_pppm,nz_pppm,
                           success);                        
-  PPPMF.device->set_single_precompute(&PPPMF);                         
+  PPPMF.device->set_double_precompute(&PPPMD);                         
   return b;
 }
 

@@ -50,17 +50,19 @@ bool ljc_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
 void ljc_gpu_clear();
 int ** ljc_gpu_compute_n(const int ago, const int inum,
 			 const int nall, double **host_x, int *host_type, 
-			 double *boxlo, double *boxhi, int *tag, int **nspecial,
+			 double *sublo, double *subhi, int *tag, int **nspecial,
 			 int **special, const bool eflag, const bool vflag,
 			 const bool eatom, const bool vatom, int &host_start,
-			 int **ilist, int **jnum,
-			 const double cpu_time, bool &success, double *host_q);
+			 int **ilist, int **jnum, const double cpu_time,
+			 bool &success, double *host_q, double *boxlo,
+			 double *prd);
 void ljc_gpu_compute(const int ago, const int inum,
 	 	     const int nall, double **host_x, int *host_type,
                      int *ilist, int *numj, int **firstneigh,
 		     const bool eflag, const bool vflag, const bool eatom,
                      const bool vatom, int &host_start, const double cpu_time,
-                     bool &success, double *host_q);
+                     bool &success, double *host_q, const int nlocal,
+		     double *boxlo, double *prd);
 double ljc_gpu_bytes();
 
 using namespace LAMMPS_NS;
@@ -101,7 +103,8 @@ void PairLJCutCoulCutGPU::compute(int eflag, int vflag)
 				   atom->tag, atom->nspecial, atom->special,
 				   eflag, vflag, eflag_atom, vflag_atom,
 				   host_start, &ilist, &numneigh, cpu_time,
-				   success, atom->q);
+				   success, atom->q, domain->boxlo, 
+				   domain->prd);
   } else {
     inum = list->inum;
     ilist = list->ilist;
@@ -109,7 +112,8 @@ void PairLJCutCoulCutGPU::compute(int eflag, int vflag)
     firstneigh = list->firstneigh;
     ljc_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type,
 		    ilist, numneigh, firstneigh, eflag, vflag, eflag_atom,
-		    vflag_atom, host_start, cpu_time, success, atom->q);
+		    vflag_atom, host_start, cpu_time, success, atom->q,
+		    atom->nlocal, domain->boxlo, domain->prd);
   }
   if (!success)
     error->one("Out of memory on GPGPU");

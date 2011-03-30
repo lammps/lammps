@@ -249,7 +249,7 @@ template <class numtyp, class acctyp>
 void PairGPUNbor::build_nbor_list(const int inum, const int host_inum,
                                   const int nall, 
                                   PairGPUAtom<numtyp,acctyp> &atom, 
-                                  double *boxlo, double *boxhi, int *tag, 
+                                  double *sublo, double *subhi, int *tag, 
                                   int **nspecial, int **special, bool &success,
                                   int &mn) {
   const int nt=inum+host_inum;
@@ -279,11 +279,11 @@ void PairGPUNbor::build_nbor_list(const int inum, const int host_inum,
   _shared->neigh_tex.bind_float(atom.dev_x,4);
 
   int ncellx, ncelly, ncellz, ncell_3d;
-  ncellx = static_cast<int>(ceil(((boxhi[0] - boxlo[0]) +
+  ncellx = static_cast<int>(ceil(((subhi[0] - sublo[0]) +
                                   2.0*_cell_size)/_cell_size));
-  ncelly = static_cast<int>(ceil(((boxhi[1] - boxlo[1]) +
+  ncelly = static_cast<int>(ceil(((subhi[1] - sublo[1]) +
                                   2.0*_cell_size)/_cell_size));
-  ncellz = static_cast<int>(ceil(((boxhi[2] - boxlo[2]) +
+  ncellz = static_cast<int>(ceil(((subhi[2] - sublo[2]) +
                                   2.0*_cell_size)/_cell_size));
   ncell_3d = ncellx * ncelly * ncellz;
   UCL_D_Vec<int> cell_counts;
@@ -293,18 +293,18 @@ void PairGPUNbor::build_nbor_list(const int inum, const int host_inum,
   /* build cell list on GPU */
   const int neigh_block=128;
   const int GX=(int)ceil((float)nall/neigh_block);
-  const numtyp boxlo0=static_cast<numtyp>(boxlo[0]);
-  const numtyp boxlo1=static_cast<numtyp>(boxlo[1]);
-  const numtyp boxlo2=static_cast<numtyp>(boxlo[2]);
-  const numtyp boxhi0=static_cast<numtyp>(boxhi[0]);
-  const numtyp boxhi1=static_cast<numtyp>(boxhi[1]);
-  const numtyp boxhi2=static_cast<numtyp>(boxhi[2]);
+  const numtyp sublo0=static_cast<numtyp>(sublo[0]);
+  const numtyp sublo1=static_cast<numtyp>(sublo[1]);
+  const numtyp sublo2=static_cast<numtyp>(sublo[2]);
+  const numtyp subhi0=static_cast<numtyp>(subhi[0]);
+  const numtyp subhi1=static_cast<numtyp>(subhi[1]);
+  const numtyp subhi2=static_cast<numtyp>(subhi[2]);
   const numtyp cell_size_cast=static_cast<numtyp>(_cell_size);
   _shared->k_cell_id.set_size(GX,neigh_block);
   _shared->k_cell_id.run(&atom.dev_x.begin(), &atom.dev_cell_id.begin(), 
                          &atom.dev_particle_id.begin(),
-  				               &boxlo0, &boxlo1, &boxlo2, &boxhi0, &boxhi1, 
-  				               &boxhi2, &cell_size_cast, &ncellx, &ncelly, &nall);
+  				               &sublo0, &sublo1, &sublo2, &subhi0, &subhi1, 
+  				               &subhi2, &cell_size_cast, &ncellx, &ncelly, &nall);
 
   atom.sort_neighbor(nall);
 
@@ -366,7 +366,7 @@ void PairGPUNbor::build_nbor_list(const int inum, const int host_inum,
     _max_nbors=mn;
     time_kernel.stop();
     time_kernel.add_to_total();
-    build_nbor_list(inum, host_inum, nall, atom, boxlo, boxhi, tag, nspecial,
+    build_nbor_list(inum, host_inum, nall, atom, sublo, subhi, tag, nspecial,
                     special, success, mn);
     return;
   }
@@ -389,6 +389,6 @@ void PairGPUNbor::build_nbor_list(const int inum, const int host_inum,
 
 template void PairGPUNbor::build_nbor_list<PRECISION,ACC_PRECISION>
      (const int inum, const int host_inum, const int nall,
-      PairGPUAtom<PRECISION,ACC_PRECISION> &atom, double *boxlo, double *boxhi,
+      PairGPUAtom<PRECISION,ACC_PRECISION> &atom, double *sublo, double *subhi,
       int *, int **, int **, bool &success, int &mn);
 

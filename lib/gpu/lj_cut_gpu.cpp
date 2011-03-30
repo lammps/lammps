@@ -100,13 +100,13 @@ void ljl_gpu_clear() {
 
 int ** ljl_gpu_compute_n(const int ago, const int inum_full,
                         const int nall, double **host_x, int *host_type,
-                        double *boxlo, double *boxhi, int *tag, int **nspecial,
+                        double *sublo, double *subhi, int *tag, int **nspecial,
                         int **special, const bool eflag, const bool vflag,
                         const bool eatom, const bool vatom, int &host_start,
                         int **ilist, int **jnum, const double cpu_time,
                         bool &success) {
-  return LJLMF.compute(ago, inum_full, nall, host_x, host_type, boxlo,
-                       boxhi, tag, nspecial, special, eflag, vflag, eatom,
+  return LJLMF.compute(ago, inum_full, nall, host_x, host_type, sublo,
+                       subhi, tag, nspecial, special, eflag, vflag, eatom,
                        vatom, host_start, ilist, jnum, cpu_time, success);
 }  
 			

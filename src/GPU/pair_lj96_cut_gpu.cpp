@@ -47,8 +47,8 @@ bool lj96_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                    const double cell_size, int &gpu_mode, FILE *screen);
 void lj96_gpu_clear();
 int ** lj96_gpu_compute_n(const int ago, const int inum, const int nall,
-			  double **host_x, int *host_type, double *boxlo,
-			  double *boxhi, int *tag, int **nspecial,
+			  double **host_x, int *host_type, double *sublo,
+			  double *subhi, int *tag, int **nspecial,
 			  int **special, const bool eflag, const bool vflag,
 			  const bool eatom, const bool vatom, int &host_start,
 			  int **ilist, int **jnum,

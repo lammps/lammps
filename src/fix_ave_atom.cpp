@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "stdlib.h"
 #include "string.h"
 #include "fix_ave_atom.h"
-#include "lmptype.h"
 #include "atom.h"
 #include "domain.h"
 #include "update.h"
@@ -211,7 +211,7 @@ FixAveAtom::~FixAveAtom()
   delete [] ids;
   delete [] value2index;
 
-  memory->destroy_2d_double_array(array);
+  memory->destroy(array);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -351,7 +351,7 @@ void FixAveAtom::end_of_step()
 
     // evaluate atom-style variable
 
-    } else if (which[m] == VARIABLE)
+    } else if (which[m] == VARIABLE && array)
       input->variable->compute_atom(n,igroup,&array[0][m],nvalues,1);
   }
 
@@ -394,10 +394,10 @@ double FixAveAtom::memory_usage()
 
 void FixAveAtom::grow_arrays(int nmax)
 {
-  array = memory->grow_2d_double_array(array,nmax,nvalues,
-				       "fix_ave/atom:array");
+  memory->grow(array,nmax,nvalues,"fix_ave/atom:array");
   array_atom = array;
-  vector_atom = array[0];
+  if (array) vector_atom = array[0];
+  else vector_atom = NULL;
 }
 
 /* ----------------------------------------------------------------------

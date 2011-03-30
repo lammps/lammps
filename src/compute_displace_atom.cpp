@@ -67,7 +67,7 @@ ComputeDisplaceAtom::~ComputeDisplaceAtom()
   if (modify->nfix) modify->delete_fix(id_fix);
 
   delete [] id_fix;
-  memory->destroy_2d_double_array(displace);
+  memory->destroy(displace);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -90,10 +90,9 @@ void ComputeDisplaceAtom::compute_peratom()
   // grow local displacement array if necessary
 
   if (atom->nlocal > nmax) {
-    memory->destroy_2d_double_array(displace);
+    memory->destroy(displace);
     nmax = atom->nmax;
-    displace =
-      memory->create_2d_double_array(nmax,4,"displace/atom:displace");
+    memory->create(displace,nmax,4,"displace/atom:displace");
     array_atom = displace;
   }
 

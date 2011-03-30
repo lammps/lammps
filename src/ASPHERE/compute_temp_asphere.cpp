@@ -55,8 +55,7 @@ ComputeTempAsphere::ComputeTempAsphere(LAMMPS *lmp, int narg, char **arg) :
   }
 
   vector = new double[6];
-  inertia = 
-    memory->create_2d_double_array(atom->ntypes+1,3,"fix_temp_sphere:inertia");
+  memory->create(inertia,atom->ntypes+1,3,"fix_temp_sphere:inertia");
 
   // error checks
 
@@ -75,7 +74,7 @@ ComputeTempAsphere::~ComputeTempAsphere()
 {
   delete [] id_bias;
   delete [] vector;
-  memory->destroy_2d_double_array(inertia);
+  memory->destroy(inertia);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -453,6 +453,7 @@ class dump:
   # --------------------------------------------------------------------
 
   def scale_one(self,snap,x,y,z):
+    if snap.atoms == None: return
     xprdinv = 1.0 / (snap.xhi - snap.xlo)
     yprdinv = 1.0 / (snap.yhi - snap.ylo)
     zprdinv = 1.0 / (snap.zhi - snap.zlo)
@@ -481,6 +482,7 @@ class dump:
   # --------------------------------------------------------------------
 
   def unscale_one(self,snap,x,y,z):
+    if snap.atoms == None: return
     xprd = snap.xhi - snap.xlo
     yprd = snap.yhi - snap.ylo
     zprd = snap.zhi - snap.zlo

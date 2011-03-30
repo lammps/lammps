@@ -331,10 +331,11 @@ void LAMMPS::init()
   update->init();
   force->init();         // pair must come after update due to minimizer
   domain->init();
-  atom->init();          // atom must come after force:
+  atom->init();          // atom must come after force and domain
                          //   atom deletes extra array
                          //   used by fix shear_history::unpack_restart()
                          //   when force->pair->gran_history creates fix ??
+                         //   atom_vec init uses deform_vremap
   modify->init();        // modify must come after update, force, atom, domain
   neighbor->init();      // neighbor must come after force, modify
   comm->init();          // comm must come after force, modify, neighbor

@@ -39,7 +39,6 @@ using namespace LAMMPS_NS;
 
 #define MAXLINE 1024
 #define TOL 1.0e-9
-#define PI 3.14159265
 #define PGDELTA 1
 
 /* ---------------------------------------------------------------------- */
@@ -48,14 +47,16 @@ PairAIREBO::PairAIREBO(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
   one_coeff = 1;
+  ghostneigh = 1;
 
   maxlocal = 0;
   REBO_numneigh = NULL;
   REBO_firstneigh = NULL;
-  closestdistsq = NULL;
   maxpage = 0;
   pages = NULL;
   nC = nH = NULL;
+
+  PI = 4.0*atan(1.0);
 }
 
 /* ----------------------------------------------------------------------
@@ -64,23 +65,23 @@ PairAIREBO::PairAIREBO(LAMMPS *lmp) : Pair(lmp)
 
 PairAIREBO::~PairAIREBO()
 {
-  memory->sfree(REBO_numneigh);
+  memory->destroy(REBO_numneigh);
   memory->sfree(REBO_firstneigh);
-  for (int i = 0; i < maxpage; i++) memory->sfree(pages[i]);
+  for (int i = 0; i < maxpage; i++) memory->destroy(pages[i]);
   memory->sfree(pages);
-  memory->sfree(closestdistsq);
-  memory->sfree(nC);
-  memory->sfree(nH);
+  memory->destroy(nC);
+  memory->destroy(nH);
 
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
+    memory->destroy(cutghost);
 
-    memory->destroy_2d_double_array(cutljsq);
-    memory->destroy_2d_double_array(lj1);
-    memory->destroy_2d_double_array(lj2);
-    memory->destroy_2d_double_array(lj3);
-    memory->destroy_2d_double_array(lj4);
+    memory->destroy(cutljsq);
+    memory->destroy(lj1);
+    memory->destroy(lj2);
+    memory->destroy(lj3);
+    memory->destroy(lj4);
     delete [] map;
   }
 }
@@ -109,20 +110,21 @@ void PairAIREBO::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
+  memory->create(cutghost,n+1,n+1,"pair:cutghost");
 
   // only sized by C,H = 2 types
 
-  cutljsq = memory->create_2d_double_array(2,2,"pair:cutljsq");
-  lj1 = memory->create_2d_double_array(2,2,"pair:lj1");
-  lj2 = memory->create_2d_double_array(2,2,"pair:lj2");
-  lj3 = memory->create_2d_double_array(2,2,"pair:lj3");
-  lj4 = memory->create_2d_double_array(2,2,"pair:lj4");
+  memory->create(cutljsq,2,2,"pair:cutljsq");
+  memory->create(lj1,2,2,"pair:lj1");
+  memory->create(lj2,2,2,"pair:lj2");
+  memory->create(lj3,2,2,"pair:lj3");
+  memory->create(lj4,2,2,"pair:lj4");
 
   map = new int[n+1];
 }
@@ -210,11 +212,12 @@ void PairAIREBO::init_style()
   if (force->newton_pair == 0)
     error->all("Pair style AIREBO requires newton pair on");
 
-  // need a full neighbor list
+  // need a full neighbor list, including neighbors of ghosts
 
   int irequest = neighbor->request(this);
   neighbor->requests[irequest]->half = 0;
   neighbor->requests[irequest]->full = 1;
+  neighbor->requests[irequest]->ghost = 1;
 
   // local REBO neighbor list memory
 
@@ -261,6 +264,7 @@ double PairAIREBO::init_one(int i, int j)
   //   rcLJmax + 2*rcmax, since I-J < rcLJmax and J-L,L-N = REBO distances
   //   long interaction = I-J with I = owned and J = ghost
   //   cutlj*sigma, since I-J < LJ cutoff
+  // cutghost = REBO cutoff used in REBO_neigh() for neighbors of ghosts
 
   double cutmax = cut3rebo;
   if (ljflag) {
@@ -268,14 +272,14 @@ double PairAIREBO::init_one(int i, int j)
     cutmax = MAX(cutmax,cutlj*sigma[0][0]);
   }
 
-  cutsq[i][j] = cutmax * cutmax;
+  cutghost[i][j] = rcmax[ii][jj];
   cutljsq[ii][jj] = cutlj*sigma[ii][jj] * cutlj*sigma[ii][jj];
   lj1[ii][jj] = 48.0 * epsilon[ii][jj] * pow(sigma[ii][jj],12.0);
   lj2[ii][jj] = 24.0 * epsilon[ii][jj] * pow(sigma[ii][jj],6.0);
   lj3[ii][jj] = 4.0 * epsilon[ii][jj] * pow(sigma[ii][jj],12.0);
   lj4[ii][jj] = 4.0 * epsilon[ii][jj] * pow(sigma[ii][jj],6.0);
 
-  cutsq[j][i] = cutsq[i][j];
+  cutghost[j][i] = cutghost[i][j];
   cutljsq[jj][ii] = cutljsq[ii][jj];
   lj1[jj][ii] = lj1[ii][jj];
   lj2[jj][ii] = lj2[ii][jj];
@@ -292,7 +296,7 @@ double PairAIREBO::init_one(int i, int j)
 
 void PairAIREBO::REBO_neigh()
 {
-  int i,j,ii,jj,m,n,inum,jnum,itype,jtype;
+  int i,j,ii,jj,m,n,allnum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq,dS;
   int *ilist,*jlist,*numneigh,**firstneigh;
   int *neighptr;
@@ -304,43 +308,29 @@ void PairAIREBO::REBO_neigh()
 
   if (nall > maxlocal) {
     maxlocal = atom->nmax;
-    memory->sfree(REBO_numneigh);
+    memory->destroy(REBO_numneigh);
     memory->sfree(REBO_firstneigh);
-    memory->sfree(closestdistsq);
-    memory->sfree(nC);
-    memory->sfree(nH);
-    REBO_numneigh = (int *)
-      memory->smalloc(maxlocal*sizeof(int),"AIREBO:numneigh");
-    REBO_firstneigh = (int **)
-      memory->smalloc(maxlocal*sizeof(int *),"AIREBO:firstneigh");
-    closestdistsq = (double *) 
-      memory->smalloc(maxlocal*sizeof(double),"AIREBO:closestdistsq");
-    nC = (double *) memory->smalloc(maxlocal*sizeof(double),"AIREBO:nC");
-    nH = (double *) memory->smalloc(maxlocal*sizeof(double),"AIREBO:nH");
+    memory->destroy(nC);
+    memory->destroy(nH);
+    memory->create(REBO_numneigh,maxlocal,"AIREBO:numneigh");
+    REBO_firstneigh = (int **) memory->smalloc(maxlocal*sizeof(int *),
+					       "AIREBO:firstneigh");
+    memory->create(nC,maxlocal,"AIREBO:nC");
+    memory->create(nH,maxlocal,"AIREBO:nH");
   }
   
-  inum = list->inum;
+  allnum = list->inum + list->gnum;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  // initialize ghost atom references to -1 and closest distance = cutljrebosq
-
-  for (i = nlocal; i < nall; i++) {
-    REBO_numneigh[i] = -1;
-    closestdistsq[i] = cutljrebosq;
-  }
-
-  // store all REBO neighs of owned atoms
+  // store all REBO neighs of owned and ghost atoms
   // scan full neighbor list of I
-  // if J is ghost and within LJ cutoff:
-  //   flag it via REBO_numneigh so its REBO neighbors will be stored below
-  //   REBO requires neighbors of neighbors of i,j in each i,j LJ interaction
 
   npage = 0;
   int npnt = 0;
 
-  for (ii = 0; ii < inum; ii++) {
+  for (ii = 0; ii < allnum; ii++) {
     i = ilist[ii];
 
     if (pgsize - npnt < oneatom) {
@@ -361,82 +351,6 @@ void PairAIREBO::REBO_neigh()
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      jtype = map[type[j]];
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;
-
-      if (rsq < rcmaxsq[itype][jtype]) {
-	neighptr[n++] = j;
-	if (jtype == 0)
-	  nC[i] += Sp(sqrt(rsq),rcmin[itype][jtype],rcmax[itype][jtype],dS);
-	else
-	  nH[i] += Sp(sqrt(rsq),rcmin[itype][jtype],rcmax[itype][jtype],dS);
-      }
-      if (j >= nlocal && rsq < closestdistsq[j]) {
-	REBO_numneigh[j] = i;
-	closestdistsq[j] = rsq;
-      }
-    }
-
-    REBO_firstneigh[i] = neighptr;
-    REBO_numneigh[i] = n;
-    npnt += n;
-    if (npnt >= pgsize)
-      error->one("Neighbor list overflow, boost neigh_modify one or page");
-  }
-
-  // store REBO neighs of ghost atoms I that have been flagged in REBO_numneigh
-  // find by scanning full neighbor list of owned atom M = closest neigh of I
-
-  for (i = nlocal; i < nall; i++) {
-
-    if (pgsize - npnt < oneatom) {
-      npnt = 0;
-      npage++;
-      if (npage == maxpage) add_pages(npage);
-    }
-    neighptr = &pages[npage][npnt];
-    n = 0;
-
-    xtmp = x[i][0];
-    ytmp = x[i][1];
-    ztmp = x[i][2];
-    itype = map[type[i]];
-    nC[i] = nH[i] = 0.0;
-    m = REBO_numneigh[i];
-    if (m < 0) {
-      REBO_firstneigh[i] = neighptr;
-      REBO_numneigh[i] = 0;
-      continue;
-    }
-
-    jtype = map[type[m]];
-    delx = xtmp - x[m][0];
-    dely = ytmp - x[m][1];
-    delz = ztmp - x[m][2];
-    rsq = delx*delx + dely*dely + delz*delz;
-
-    // add M as neigh of I if close enough
-
-    if (rsq < rcmaxsq[itype][jtype]) {
-      neighptr[n++] = m;
-      if (jtype == 0)
-	nC[i] += Sp(sqrt(rsq),rcmin[itype][jtype],rcmax[itype][jtype],dS);
-      else
-	nH[i] += Sp(sqrt(rsq),rcmin[itype][jtype],rcmax[itype][jtype],dS);
-    }
-
-    jlist = firstneigh[m];
-    jnum = numneigh[m];
-
-    // add M's neighbors as neighs of I if close enough
-    // skip I itself
-
-    for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-      if (j == i) continue;
       jtype = map[type[j]];
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -571,6 +485,8 @@ void PairAIREBO::FLJ(int eflag, int vflag)
   double rsq,best,wik,wkm,cij,rij,dwij,dwik,dwkj,dwkm,dwmj;
   double delij[3],rijsq,delik[3],rik,deljk[3];
   double rkj,wkj,dC,VLJ,dVLJ,VA,Str,dStr,Stb;
+  double vdw,slw,dvdw,dslw,drij,swidth,tee,tee2;
+  double rljmin,rljmax,sigcut,sigmin,sigwid;
   double delkm[3],rkm,deljm[3],rmj,wmj,r2inv,r6inv,scale,delscale[3];
   int *ilist,*jlist,*numneigh,**firstneigh;
   int *REBO_neighs_i,*REBO_neighs_k;
@@ -584,6 +500,12 @@ void PairAIREBO::FLJ(int eflag, int vflag)
   // skip 1/2 of interactions since only consider each pair once
 
   evdwl = 0.0;
+  rljmin = 0.0;
+  rljmax = 0.0;
+  sigcut = 0.0;
+  sigmin = 0.0;
+  sigwid = 0.0;
+
 
   double **x = atom->x;
   double **f = atom->f;
@@ -774,12 +696,41 @@ void PairAIREBO::FLJ(int eflag, int vflag)
       if (cij == 0.0) continue;
 
       // compute LJ forces and energy
-  
+
+      sigwid = 0.84;
+      sigcut = 3.0;
+      sigmin = sigcut - sigwid;
+ 
+      rljmin = sigma[itype][jtype];
+      rljmax = sigcut * rljmin;
+      rljmin = sigmin * rljmin;
+ 
+      if (rij > rljmax){
+         slw = 0.0;
+         dslw = 0.0;}
+      else if (rij > rljmin){
+         drij = rij - rljmin;
+         swidth = rljmax - rljmin;
+         tee = drij / swidth;
+         tee2 = pow (tee,2);
+         slw = 1.0 - tee2 * (3.0 - 2.0 * tee);
+         dslw = 6.0 * tee * (1.0 - tee) / rij / swidth;
+      }
+      else
+         slw = 1.0;
+         dslw = 0.0;
+
       r2inv = 1.0/rijsq;
       r6inv = r2inv*r2inv*r2inv;
-      VLJ = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
-      dVLJ = -r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]) / rij;
+
+      vdw = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
+      dvdw = -r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]) / rij;
+
+      // VLJ now becomes vdw * slw, derivaties, etc.
       
+      VLJ = vdw * slw;
+      dVLJ = dvdw * slw + vdw * dslw;
+
       Str = Sp2(rij,rcLJmin[itype][jtype],rcLJmax[itype][jtype],dStr);
       VA = Str*cij*VLJ;
       if (Str > 0.0) {
@@ -887,7 +838,7 @@ void PairAIREBO::FLJ(int eflag, int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   Torsional forces and energy
+   torsional forces and energy
 ------------------------------------------------------------------------- */
 
 void PairAIREBO::TORSION(int eflag, int vflag)
@@ -3158,11 +3109,11 @@ double PairAIREBO::PijSpline(double NijC, double NijH, int typei, int typej,
   // if inputs are out of bounds set them back to a point in bounds
 
   if (typei == 0 && typej == 0) {
-    if (NijC < pCCdom[0][0] || NijC > pCCdom[0][1] || 
-	NijH < pCCdom[1][0] || NijH > pCCdom[1][1]) {
-      NijC=0.0;
-      NijH=0.0;
-    }
+    if (NijC < pCCdom[0][0]) NijC=pCCdom[0][0];
+    if (NijC > pCCdom[0][1]) NijC=pCCdom[0][1];
+    if (NijH < pCCdom[1][0]) NijH=pCCdom[1][0];
+    if (NijH > pCCdom[1][1]) NijH=pCCdom[1][1];
+
     if (fabs(NijC-floor(NijC)) < TOL && fabs(NijH-floor(NijH)) < TOL) {
       Pij = PCCf[(int) NijC][(int) NijH];
       dN2[0] = PCCdfdx[(int) NijC][(int) NijH];
@@ -3179,12 +3130,12 @@ double PairAIREBO::PijSpline(double NijC, double NijH, int typei, int typej,
 
   // if inputs are out of bounds set them back to a point in bounds
   
-  if (!(typei == typej)) {
-    if (NijC < pCHdom[0][0] || NijC > pCHdom[0][1] || 
-	NijH < pCHdom[1][0] || NijH > pCHdom[1][1]) {
-      NijC = 0.0;
-      NijH = 0.0;
-    }	
+   if (typei == 0 && typej == 1){
+     if (NijC < pCHdom[0][0]) NijC=pCHdom[0][0];
+     if (NijC > pCHdom[0][1]) NijC=pCHdom[0][1];
+      if (NijH < pCHdom[0][0]) NijH=pCHdom[1][0];
+      if (NijH > pCHdom[1][1]) NijH=pCHdom[1][1];
+ 
     if (fabs(NijC-floor(NijC)) < TOL && fabs(NijH-floor(NijH)) < TOL) {
       Pij = PCHf[(int) NijC][(int) NijH];
       dN2[0] = PCHdfdx[(int) NijC][(int) NijH];
@@ -3199,6 +3150,13 @@ double PairAIREBO::PijSpline(double NijC, double NijH, int typei, int typej,
     }
   }
   
+  if (typei == 1 && typej == 0) {
+    Pij = 0.0;
+    dN2[0] = 0.0;
+    dN2[1] = 0.0;
+  }
+
+
   if (typei == 1 && typej == 1) {
     Pij = 0.0;
     dN2[0] = 0.0;
@@ -3228,8 +3186,9 @@ double PairAIREBO::piRCSpline(double Nij, double Nji, double Nijconj,
   if (typei==0 && typej==0) {
     //if the inputs are out of bounds set them back to a point in bounds
     if (Nij<piCCdom[0][0]) Nij=piCCdom[0][0];
+    if (Nij>piCCdom[0][1]) Nij=piCCdom[0][1];
     if (Nji<piCCdom[1][0]) Nji=piCCdom[1][0];
-    if (Nji>piCCdom[1][1]) Nji=0.0;
+    if (Nji>piCCdom[1][1]) Nji=piCCdom[1][1];
     if (Nijconj<piCCdom[2][0]) Nijconj=piCCdom[2][0];
     if (Nijconj>piCCdom[2][1]) Nijconj=piCCdom[2][1];
 
@@ -3266,9 +3225,9 @@ double PairAIREBO::piRCSpline(double Nij, double Nji, double Nijconj,
 	Nji<piCHdom[1][0] || Nji>piCHdom[1][1] || 
 	Nijconj<piCHdom[2][0] || Nijconj>piCHdom[2][1]) {
       if (Nij<piCHdom[0][0]) Nij=piCHdom[0][0];
-      if (Nij>piCHdom[0][1]) Nij=0.0;
+      if (Nij>piCHdom[0][1]) Nij=piCHdom[0][1];
       if (Nji<piCHdom[1][0]) Nji=piCHdom[1][0];
-      if (Nji>piCHdom[1][1]) Nji=0.0;
+      if (Nji>piCHdom[1][1]) Nji=piCHdom[1][1];
       if (Nijconj<piCHdom[2][0]) Nijconj=piCHdom[2][0];
       if (Nijconj>piCHdom[2][1]) Nijconj=piCHdom[2][1];
     }
@@ -3400,7 +3359,7 @@ void PairAIREBO::add_pages(int npage)
   pages = (int **) 
     memory->srealloc(pages,maxpage*sizeof(int *),"AIREBO:pages");
   for (int i = npage; i < maxpage; i++)
-    pages[i] = (int *) memory->smalloc(pgsize*sizeof(int),"AIREBO:pages[i]");
+    memory->create(pages[i],pgsize,"AIREBO:pages[i]");
 }
 
 /* ----------------------------------------------------------------------
@@ -3681,8 +3640,8 @@ void PairAIREBO::read_file(char *filename)
     }
     fgets(s,MAXLINE,fp);
     
-    for (i = 0; i < (int) pCCdom[0][1]; i++) {
-      for (j = 0; j < (int) pCCdom[1][1]; j++) {
+    for (i = 0; i < (int) pCHdom[0][1]; i++) {
+      for (j = 0; j < (int) pCHdom[1][1]; j++) {
 	for (k = 0; k < 16; k++) {
 	  fgets(s,MAXLINE,fp);
 	  sscanf(s,"%lg",&pCH[i][j][k]);
@@ -4097,21 +4056,21 @@ void PairAIREBO::spline_init()
   }
   
   PCCf[0][2] = -0.00050;
-  PCCf[0][3] = 0.0161250;
+  PCCf[0][3] = 0.0161253646;
   PCCf[1][1] = -0.010960;
-  PCCf[1][2] = 0.0063260;
+  PCCf[1][2] = 0.00632624824;
   PCCf[2][0] = -0.0276030;
-  PCCf[2][1] = 0.003180;
-  
-  PCHf[0][1] = 0.2093370;
-  PCHf[0][2] = -0.064450;
-  PCHf[0][3] = -0.3039280;
+  PCCf[2][1] = 0.00317953083;
+
+  PCHf[0][1] = 0.209336733;
+  PCHf[0][2] = -0.0644496154;
+  PCHf[0][3] = -0.303927546;
   PCHf[1][0] = 0.010;
-  PCHf[1][1] = -0.1251230;
-  PCHf[1][2] = -0.2989050;
-  PCHf[2][0] = -0.1220420;
-  PCHf[2][1] = -0.3005290;
-  PCHf[3][0] = -0.3075850;
+  PCHf[1][1] = -0.125123401;
+  PCHf[1][2] = -0.298905246;
+  PCHf[2][0] = -0.122042146;
+  PCHf[2][1] = -0.300529172;
+  PCHf[3][0] = -0.307584705;
   
   for (i = 0; i < 5; i++) {
     for (j = 0; j < 5; j++) {
@@ -4135,99 +4094,146 @@ void PairAIREBO::spline_init()
       }
     }
   }
-  
-  for (i = 3; i < 10; i++) piCCf[0][0][i] = 0.0049590;
-  piCCf[1][0][1] = 0.0216940;
-  piCCf[0][1][1] = 0.0216940;
-  for (i = 2; i < 10; i++) piCCf[1][0][i] = 0.0049590;
-  for (i = 2; i < 10; i++) piCCf[0][1][i] = 0.0049590;
+
+  for (i = 3; i < 10; i++) piCCf[0][0][i] = 0.0049586079;
+  piCCf[1][0][1] = 0.021693495;
+  piCCf[0][1][1] = 0.021693495;
+  for (i = 2; i < 10; i++) piCCf[1][0][i] = 0.0049586079;
+  for (i = 2; i < 10; i++) piCCf[0][1][i] = 0.0049586079;
   piCCf[1][1][1] = 0.05250;
-  piCCf[1][1][2] = -0.0020890;
-  for (i = 3; i < 10; i++) piCCf[1][1][i] = -0.0080430;
-  piCCf[2][0][1] = 0.0246990;
-  piCCf[0][2][1] = 0.0246990;
-  piCCf[2][0][2] = -0.0059710;
-  piCCf[0][2][2] = -0.0059710;
-  for (i = 3; i < 10; i++) piCCf[2][0][i] = 0.0049590;
-  for (i = 3; i < 10; i++) piCCf[0][2][i] = 0.0049590;
-  piCCf[2][1][1] = 0.0048250;
-  piCCf[1][2][1] = 0.0048250;
+  piCCf[1][1][2] = -0.002088750;
+  for (i = 3; i < 10; i++) piCCf[1][1][i] = -0.00804280;
+  piCCf[2][0][1] = 0.024698831850;
+  piCCf[0][2][1] = 0.024698831850;
+  piCCf[2][0][2] = -0.00597133450;
+  piCCf[0][2][2] = -0.00597133450;
+  for (i = 3; i < 10; i++) piCCf[2][0][i] = 0.0049586079;
+  for (i = 3; i < 10; i++) piCCf[0][2][i] = 0.0049586079;
+  piCCf[2][1][1] = 0.00482478490;
+  piCCf[1][2][1] = 0.00482478490;
   piCCf[2][1][2] = 0.0150;
   piCCf[1][2][2] = 0.0150;
   piCCf[2][1][3] = -0.010;
   piCCf[1][2][3] = -0.010;
-  piCCf[2][1][4] = -0.0116890;
-  piCCf[1][2][4] = -0.0116890;
-  piCCf[2][1][5] = -0.0133780;
-  piCCf[1][2][5] = -0.0133780;
-  piCCf[2][1][6] = -0.0150670;
-  piCCf[1][2][6] = -0.0150670;
-  for (i = 7; i < 10; i++) piCCf[2][1][i] = -0.0150670;
-  for (i = 7; i < 10; i++) piCCf[1][2][i] = -0.0150670;
-  piCCf[2][2][1] = 0.0472250;
+  piCCf[2][1][4] = -0.01168893870;
+  piCCf[1][2][4] = -0.01168893870;
+  piCCf[2][1][5] = -0.013377877400;
+  piCCf[1][2][5] = -0.013377877400;
+  piCCf[2][1][6] = -0.015066816000;
+  piCCf[1][2][6] = -0.015066816000;
+  for (i = 7; i < 10; i++) piCCf[2][1][i] = -0.015066816000;
+  for (i = 7; i < 10; i++) piCCf[1][2][i] = -0.015066816000;
+  piCCf[2][2][1] = 0.0472247850;
   piCCf[2][2][2] = 0.0110;
-  piCCf[2][2][3] = 0.0198530;
-  piCCf[2][2][4] = 0.0165440;
-  piCCf[2][2][5] = 0.0132350;
-  piCCf[2][2][6] = 0.0099260;
-  piCCf[2][2][7] = 0.0066180;
-  piCCf[2][2][8] = 0.0033090;
-  piCCf[3][0][1] = -0.0998990;
-  piCCf[0][3][1] = -0.0998990;
-  piCCf[3][0][2] = -0.0998990;
-  piCCf[0][3][2] = -0.0998990;
-  for (i = 3; i < 10; i++) piCCf[3][0][i] = 0.0049590;
-  for (i = 3; i < 10; i++) piCCf[0][3][i] = 0.0049590;
-  piCCf[3][1][2] = -0.0624180;
-  piCCf[1][3][2] = -0.0624180;
-  for (i = 3; i < 10; i++) piCCf[3][1][i] = -0.0624180;
-  for (i = 3; i < 10; i++) piCCf[1][3][i] = -0.0624180;
-  piCCf[3][2][1] = -0.0223550;
-  piCCf[2][3][1] = -0.0223550;
-  for (i = 2; i < 10; i++) piCCf[3][2][i] = -0.0223550;
-  for (i = 2; i < 10; i++) piCCf[2][3][i] = -0.0223550;
-  
+  piCCf[2][2][3] = 0.0198529350;
+  piCCf[2][2][4] = 0.01654411250;
+  piCCf[2][2][5] = 0.013235290;
+  piCCf[2][2][6] = 0.00992646749999 ;
+  piCCf[2][2][7] = 0.006617644999;
+  piCCf[2][2][8] = 0.00330882250;
+  piCCf[3][0][1] = -0.05989946750;
+  piCCf[0][3][1] = -0.05989946750;
+  piCCf[3][0][2] = -0.05989946750;
+  piCCf[0][3][2] = -0.05989946750;
+  for (i = 3; i < 10; i++) piCCf[3][0][i] = 0.0049586079;
+  for (i = 3; i < 10; i++) piCCf[0][3][i] = 0.0049586079;
+  piCCf[3][1][2] = -0.0624183760;
+  piCCf[1][3][2] = -0.0624183760;
+  for (i = 3; i < 10; i++) piCCf[3][1][i] = -0.0624183760;
+  for (i = 3; i < 10; i++) piCCf[1][3][i] = -0.0624183760;
+  piCCf[3][2][1] = -0.02235469150;
+  piCCf[2][3][1] = -0.02235469150;
+  for (i = 2; i < 10; i++) piCCf[3][2][i] = -0.02235469150;
+  for (i = 2; i < 10; i++) piCCf[2][3][i] = -0.02235469150;
+
   piCCdfdx[2][1][1] = -0.026250;
   piCCdfdx[2][1][5] = -0.0271880;
   piCCdfdx[2][1][6] = -0.0271880;
   for (i = 7; i < 10; i++) piCCdfdx[2][1][i] = -0.0271880;
-  piCCdfdx[1][3][2] = 0.0375450;
-  for (i = 2; i < 10; i++) piCCdfdx[2][3][i] = 0.0624180;
-  
+  piCCdfdx[1][3][2] = 0.0187723882;
+  for (i = 2; i < 10; i++) piCCdfdx[2][3][i] = 0.031209;
+
   piCCdfdy[1][2][1] = -0.026250;
   piCCdfdy[1][2][5] = -0.0271880;
   piCCdfdy[1][2][6] = -0.0271880;
   for (i = 7; i < 10; i++) piCCdfdy[1][2][i] = -0.0271880;
-  piCCdfdy[3][1][2] = 0.0375450;
-  for (i = 2; i < 10; i++) piCCdfdy[3][2][i] = 0.0624180;
-  
+  piCCdfdy[3][1][2] = 0.0187723882;
+  for (i = 2; i < 10; i++) piCCdfdy[3][2][i] = 0.031209;
+
+  piCCdfdz[1][1][2] = -0.0302715;
   piCCdfdz[2][1][4] = -0.0100220;
   piCCdfdz[1][2][4] = -0.0100220;
   piCCdfdz[2][1][5] = -0.0100220;
   piCCdfdz[1][2][5] = -0.0100220;
-  for (i = 4; i < 10; i++) piCCdfdz[2][2][i] = -0.0033090;
+  for (i = 4; i < 9; i++) piCCdfdz[2][2][i] = -0.0033090;
+
+  //  make top end of piCC flat instead of zero
+  i = 4;
+  for (j = 0; j < 4; j++){
+      for (k = 1; k < 11; k++){
+          piCCf[i][j][k] = piCCf[i-1][j][k];
+      }
+  }
+  for (i = 0; i < 4; i++){ // also enforces some symmetry
+      for (j = i+1; j < 5; j++){
+          for (k = 1; k < 11; k++){
+              piCCf[i][j][k] = piCCf[j][i][k];
+          }
+      }
+  }
+  for (k = 1; k < 11; k++) piCCf[4][4][k] = piCCf[3][4][k];
+  k = 10;
+  for (i = 0; i < 5; i++){
+      for (j = 0; j < 5; j++){
+      piCCf[i][j][k] = piCCf[i][j][k-1];
+      }
+  }
 
   piCHf[1][1][1] = -0.050;
   piCHf[1][1][2] = -0.050;
   piCHf[1][1][3] = -0.30;
   for (i = 4; i < 10; i++) piCHf[1][1][i] = -0.050;
-  for (i = 5; i < 10; i++) piCHf[2][0][i] = -0.0045240;
-  for (i = 5; i < 10; i++) piCHf[0][2][i] = -0.0045240;
+  for (i = 5; i < 10; i++) piCHf[2][0][i] = -0.004523893758064;
+  for (i = 5; i < 10; i++) piCHf[0][2][i] = -0.004523893758064;
   piCHf[2][1][2] = -0.250;
   piCHf[1][2][2] = -0.250;
   piCHf[2][1][3] = -0.250;
   piCHf[1][2][3] = -0.250;
   piCHf[3][1][1] = -0.10;
   piCHf[1][3][1] = -0.10;
-  piCHf[3][1][2] = -0.1250;
-  piCHf[1][3][2] = -0.1250;
-  piCHf[3][1][3] = -0.1250;
-  piCHf[1][3][3] = -0.1250;
+  piCHf[3][1][2] = -0.125;
+  piCHf[1][3][2] = -0.125;
+  piCHf[3][1][3] = -0.125;
+  piCHf[1][3][3] = -0.125;
   for (i = 4; i < 10; i++) piCHf[3][1][i] = -0.10;
   for (i = 4; i < 10; i++) piCHf[1][3][i] = -0.10;
-  
-  piHHf[1][1][1] = 0.1249160;
-  
+
+  // make top end of piCH flat instead of zero
+ // also enforces some symmetry
+
+  i = 4;
+  for (j = 0; j < 4; j++){
+      for (k = 1; k < 11; k++){
+          piCHf[i][j][k] = piCHf[i-1][j][k];
+      }
+  }
+  for (i = 0; i < 4; i++){
+      for (j = i+1; j < 5; j++){
+          for (k = 1; k < 11; k++){
+              piCHf[i][j][k] = piCHf[j][i][k];
+          }
+      }
+  }
+  for (k = 1; k < 11; k++) piCHf[4][4][k] = piCHf[3][4][k];
+  k = 10;
+  for (i = 0; i < 5; i++){
+      for (j = 0; j < 5; j++){
+      piCHf[i][j][k] = piCHf[i][j][k-1];
+      }
+  }
+
+  piHHf[1][1][1] = 0.124915958;
+
   Tf[2][2][1] = -0.035140;
   for (i = 2; i < 10; i++) Tf[2][2][i] = -0.0040480;
 }

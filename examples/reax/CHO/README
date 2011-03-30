@@ -1,0 +1,25 @@
+Disclaimer:  Using these force fields for systems they 
+have not been explicitly trained against may produce
+unrealistic results.  Please see the README file in 
+each subdirectory for more detailed information.
+
+Hydrocarbon oxidation C/H/O:
+
+     The follow information is reproduced from:
+
+     "Chenoweth, K.; van Duin, A.C.T.; Goddard, W.A. 
+     J. Phys. Chem. A 2008, 112, 1040-1053."
+
+     - To obtain the H/C/O compound data required to 
+     extend the hydrocarbon-training set, DFT 
+     calculations were performed on the following systems: 
+     (a) dissociation energies for various bonds 
+     containing carbon, oxygen, and hydrogen.  The 
+     ground state structure was obtained through 
+     full geometry optimization.  Dissociation curves 
+     were calculated by constraining only the bond length of 
+     interest and re-optimization of the remaining 
+     internal coordinates. Optimization was also performed 
+     for the various angles and torsions associated 
+     with C/H/O interactions.
+

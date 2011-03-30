@@ -116,22 +116,22 @@ void PairBuckCoul::settings(int narg, char **arg)
 PairBuckCoul::~PairBuckCoul()
 {
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
 
-    memory->destroy_2d_double_array(cut_buck_read);
-    memory->destroy_2d_double_array(cut_buck);
-    memory->destroy_2d_double_array(cut_bucksq);
-    memory->destroy_2d_double_array(buck_a_read);
-    memory->destroy_2d_double_array(buck_a);
-    memory->destroy_2d_double_array(buck_c_read);
-    memory->destroy_2d_double_array(buck_c);
-    memory->destroy_2d_double_array(buck_rho_read);
-    memory->destroy_2d_double_array(buck_rho);
-    memory->destroy_2d_double_array(buck1);
-    memory->destroy_2d_double_array(buck2);
-    memory->destroy_2d_double_array(rhoinv);
-    memory->destroy_2d_double_array(offset);
+    memory->destroy(cut_buck_read);
+    memory->destroy(cut_buck);
+    memory->destroy(cut_bucksq);
+    memory->destroy(buck_a_read);
+    memory->destroy(buck_a);
+    memory->destroy(buck_c_read);
+    memory->destroy(buck_c);
+    memory->destroy(buck_rho_read);
+    memory->destroy(buck_rho);
+    memory->destroy(buck1);
+    memory->destroy(buck2);
+    memory->destroy(rhoinv);
+    memory->destroy(offset);
   }
   if (ftable) free_tables();
 }
@@ -145,26 +145,26 @@ void PairBuckCoul::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
-  cut_buck_read = memory->create_2d_double_array(n+1,n+1,"pair:cut_buck_read");
-  cut_buck = memory->create_2d_double_array(n+1,n+1,"pair:cut_buck");
-  cut_bucksq = memory->create_2d_double_array(n+1,n+1,"pair:cut_bucksq");
-  buck_a_read = memory->create_2d_double_array(n+1,n+1,"pair:buck_a_read");
-  buck_a = memory->create_2d_double_array(n+1,n+1,"pair:buck_a");
-  buck_c_read = memory->create_2d_double_array(n+1,n+1,"pair:buck_c_read");
-  buck_c = memory->create_2d_double_array(n+1,n+1,"pair:buck_c");
-  buck_rho_read = memory->create_2d_double_array(n+1,n+1,"pair:buck_rho_read");
-  buck_rho = memory->create_2d_double_array(n+1,n+1,"pair:buck_rho");
-  buck1 = memory->create_2d_double_array(n+1,n+1,"pair:buck1");
-  buck2 = memory->create_2d_double_array(n+1,n+1,"pair:buck2");
-  rhoinv = memory->create_2d_double_array(n+1,n+1,"pair:rhoinv");
-  offset = memory->create_2d_double_array(n+1,n+1,"pair:offset");
+  memory->create(cut_buck_read,n+1,n+1,"pair:cut_buck_read");
+  memory->create(cut_buck,n+1,n+1,"pair:cut_buck");
+  memory->create(cut_bucksq,n+1,n+1,"pair:cut_bucksq");
+  memory->create(buck_a_read,n+1,n+1,"pair:buck_a_read");
+  memory->create(buck_a,n+1,n+1,"pair:buck_a");
+  memory->create(buck_c_read,n+1,n+1,"pair:buck_c_read");
+  memory->create(buck_c,n+1,n+1,"pair:buck_c");
+  memory->create(buck_rho_read,n+1,n+1,"pair:buck_rho_read");
+  memory->create(buck_rho,n+1,n+1,"pair:buck_rho");
+  memory->create(buck1,n+1,n+1,"pair:buck1");
+  memory->create(buck2,n+1,n+1,"pair:buck2");
+  memory->create(rhoinv,n+1,n+1,"pair:rhoinv");
+  memory->create(offset,n+1,n+1,"pair:offset");
 }
 
 /* ----------------------------------------------------------------------
@@ -949,22 +949,22 @@ void PairBuckCoul::init_tables()
 
   if (ftable) free_tables();
   
-  rtable = (double *) memory->smalloc(ntable*sizeof(double),"pair:rtable");
-  ftable = (double *) memory->smalloc(ntable*sizeof(double),"pair:ftable");
-  ctable = (double *) memory->smalloc(ntable*sizeof(double),"pair:ctable");
-  etable = (double *) memory->smalloc(ntable*sizeof(double),"pair:etable");
-  drtable = (double *) memory->smalloc(ntable*sizeof(double),"pair:drtable");
-  dftable = (double *) memory->smalloc(ntable*sizeof(double),"pair:dftable");
-  dctable = (double *) memory->smalloc(ntable*sizeof(double),"pair:dctable");
-  detable = (double *) memory->smalloc(ntable*sizeof(double),"pair:detable");
+  memory->create(rtable,ntable,"pair:rtable");
+  memory->create(ftable,ntable,"pair:ftable");
+  memory->create(ctable,ntable,"pair:ctable");
+  memory->create(etable,ntable,"pair:etable");
+  memory->create(drtable,ntable,"pair:drtable");
+  memory->create(dftable,ntable,"pair:dftable");
+  memory->create(dctable,ntable,"pair:dctable");
+  memory->create(detable,ntable,"pair:detable");
 
   if (cut_respa == NULL) {
     vtable = ptable = dvtable = dptable = NULL;
   } else {
-    vtable = (double *) memory->smalloc(ntable*sizeof(double),"pair:vtable");
-    ptable = (double *) memory->smalloc(ntable*sizeof(double),"pair:ptable");
-    dvtable = (double *) memory->smalloc(ntable*sizeof(double),"pair:dvtable");
-    dptable = (double *) memory->smalloc(ntable*sizeof(double),"pair:dptable");
+    memory->create(vtable,ntable,"pair:vtable");
+    memory->create(ptable,ntable,"pair:ptable");
+    memory->create(dvtable,ntable,"pair:dvtable");
+    memory->create(dptable,ntable,"pair:dptable");
   }
 
   union_int_float_t rsq_lookup;
@@ -1101,18 +1101,18 @@ void PairBuckCoul::init_tables()
 
 void PairBuckCoul::free_tables()
 {
-  memory->sfree(rtable);
-  memory->sfree(drtable);
-  memory->sfree(ftable);
-  memory->sfree(dftable);
-  memory->sfree(ctable);
-  memory->sfree(dctable);
-  memory->sfree(etable);
-  memory->sfree(detable);
-  memory->sfree(vtable);
-  memory->sfree(dvtable);
-  memory->sfree(ptable);
-  memory->sfree(dptable);
+  memory->destroy(rtable);
+  memory->destroy(drtable);
+  memory->destroy(ftable);
+  memory->destroy(dftable);
+  memory->destroy(ctable);
+  memory->destroy(dctable);
+  memory->destroy(etable);
+  memory->destroy(detable);
+  memory->destroy(vtable);
+  memory->destroy(dvtable);
+  memory->destroy(ptable);
+  memory->destroy(dptable);
 }
 
 /* ---------------------------------------------------------------------- */

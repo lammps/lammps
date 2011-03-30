@@ -112,8 +112,8 @@ Input::~Input()
   delete [] copy;
   delete [] work;
   if (labelstr) delete [] labelstr;
-  if (arg) memory->sfree(arg);
-  if (infiles) memory->sfree(infiles);
+  memory->sfree(arg);
+  memory->sfree(infiles);
 }
 
 /* ----------------------------------------------------------------------
@@ -746,13 +746,8 @@ void Input::print()
 
   substitute(arg[0],0);
   if (me == 0) {
-    if (screen) fprintf(screen,"%s ",arg[0]);
-    if (logfile) fprintf(logfile,"%s ",arg[0]);
-  }
-
-  if (me == 0) {
-    if (screen) fprintf(screen,"\n");
-    if (logfile) fprintf(logfile,"\n");
+    if (screen) fprintf(screen,"%s\n",arg[0]);
+    if (logfile) fprintf(logfile,"%s\n",arg[0]);
   }
 }
 

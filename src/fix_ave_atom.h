@@ -22,7 +22,6 @@ FixStyle(ave/atom,FixAveAtom)
 
 #include "stdio.h"
 #include "fix.h"
-#include "lmptype.h"
 
 namespace LAMMPS_NS {
 

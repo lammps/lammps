@@ -11,13 +11,13 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "mpi.h"
 #include "string.h"
 #include "stdlib.h"
 #include "sys/types.h"
 #include "dirent.h"
 #include "read_restart.h"
-#include "lmptype.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "domain.h"
@@ -140,7 +140,7 @@ void ReadRestart::command(int narg, char **arg)
 
   int nextra = modify->read_restart(fp);
   atom->nextra_store = nextra;
-  atom->extra = memory->create_2d_double_array(n,nextra,"atom:extra");
+  memory->create(atom->extra,n,nextra,"atom:extra");
 
   // single file:
   // nprocs_file = # of chunks in file
@@ -172,9 +172,8 @@ void ReadRestart::command(int narg, char **arg)
       MPI_Bcast(&n,1,MPI_INT,0,world);
       if (n > maxbuf) {
 	maxbuf = n;
-	memory->sfree(buf);
-	buf = (double *) memory->smalloc(maxbuf*sizeof(double),
-					 "read_restart:buf");
+	memory->destroy(buf);
+	memory->create(buf,maxbuf,"read_restart:buf");
       }
 
       if (n > 0) {
@@ -226,9 +225,8 @@ void ReadRestart::command(int narg, char **arg)
       fread(&n,sizeof(int),1,fp);
       if (n > maxbuf) {
 	maxbuf = n;
-	memory->sfree(buf);
-	buf = (double *) memory->smalloc(maxbuf*sizeof(double),
-					 "read_restart:buf");
+	memory->destroy(buf);
+	memory->create(buf,maxbuf,"read_restart:buf");
       }
       if (n > 0) fread(buf,sizeof(double),n,fp);
 
@@ -271,9 +269,8 @@ void ReadRestart::command(int narg, char **arg)
     // destroy temporary fix
 
     if (nextra) {
-      memory->destroy_2d_double_array(atom->extra);
-      atom->extra = memory->create_2d_double_array(atom->nmax,nextra,
-      						   "atom:extra");
+      memory->destroy(atom->extra);
+      memory->create(atom->extra,atom->nmax,nextra,"atom:extra");
       int ifix = modify->find_fix("_read_restart");
       FixReadRestart *fix = (FixReadRestart *) modify->fix[ifix];
       int *count = fix->count;
@@ -290,7 +287,7 @@ void ReadRestart::command(int narg, char **arg)
   // clean-up memory
 
   delete [] file;
-  memory->sfree(buf);
+  memory->destroy(buf);
 
   // check that all atoms were assigned to procs
 
@@ -704,12 +701,12 @@ void ReadRestart::type_arrays()
       delete [] mass;
 
     } else if (flag == SHAPE) {
-      double **shape =
-	memory->create_2d_double_array(atom->ntypes+1,3,"restart:shape");
+      double **shape;
+      memory->create(shape,atom->ntypes+1,3,"restart:shape");
       if (me == 0) fread(&shape[1][0],sizeof(double),atom->ntypes*3,fp);
       MPI_Bcast(&shape[1][0],atom->ntypes*3,MPI_DOUBLE,0,world);
       atom->set_shape(shape);
-      memory->destroy_2d_double_array(shape);
+      memory->destroy(shape);
 
     } else if (flag == DIPOLE) {
       double *dipole = new double[atom->ntypes+1];

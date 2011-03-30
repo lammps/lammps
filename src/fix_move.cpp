@@ -273,9 +273,9 @@ FixMove::~FixMove()
 
   // delete locally stored arrays
 
-  memory->destroy_2d_double_array(xoriginal);
-  memory->destroy_2d_double_array(displace);
-  memory->destroy_2d_double_array(velocity);
+  memory->destroy(xoriginal);
+  memory->destroy(displace);
+  memory->destroy(velocity);
 
   delete [] xvarstr;
   delete [] yvarstr;
@@ -561,12 +561,12 @@ void FixMove::initial_integrate(int vflag)
     if ((displaceflag || velocityflag) && nlocal > maxatom) {
       maxatom = atom->nmax;
       if (displaceflag) {
-	memory->destroy_2d_double_array(displace);
-	displace = memory->create_2d_double_array(maxatom,3,"move:displace");
+	memory->destroy(displace);
+	memory->create(displace,maxatom,3,"move:displace");
       }
       if (velocityflag) {
-	memory->destroy_2d_double_array(velocity);
-	velocity = memory->create_2d_double_array(maxatom,3,"move:velocity");
+	memory->destroy(velocity);
+	memory->create(velocity,maxatom,3,"move:velocity");
       }
     }
 
@@ -576,27 +576,33 @@ void FixMove::initial_integrate(int vflag)
 
     if (xvarstr) {
       if (xvarstyle == EQUAL) dx = input->variable->compute_equal(xvar);
-      else input->variable->compute_atom(xvar,igroup,&displace[0][0],3,0);
+      else if (displace)
+	input->variable->compute_atom(xvar,igroup,&displace[0][0],3,0);
     }
     if (yvarstr) {
       if (yvarstyle == EQUAL) dy = input->variable->compute_equal(yvar);
-      else input->variable->compute_atom(yvar,igroup,&displace[0][1],3,0);
+      else if (displace)
+	input->variable->compute_atom(yvar,igroup,&displace[0][1],3,0);
     }
     if (zvarstr) {
       if (zvarstyle == EQUAL) dz = input->variable->compute_equal(zvar);
-      else input->variable->compute_atom(zvar,igroup,&displace[0][2],3,0);
+      else if (displace)
+	input->variable->compute_atom(zvar,igroup,&displace[0][2],3,0);
     }
     if (vxvarstr) {
       if (vxvarstyle == EQUAL) vx = input->variable->compute_equal(vxvar);
-      else input->variable->compute_atom(vxvar,igroup,&velocity[0][0],3,0);
+      else if (velocity)
+	input->variable->compute_atom(vxvar,igroup,&velocity[0][0],3,0);
     }
     if (vyvarstr) {
       if (vyvarstyle == EQUAL) vy = input->variable->compute_equal(vyvar);
-      else input->variable->compute_atom(vyvar,igroup,&velocity[0][1],3,0);
+      else if (velocity)
+	input->variable->compute_atom(vyvar,igroup,&velocity[0][1],3,0);
     }
     if (vzvarstr) {
       if (vzvarstyle == EQUAL) vz = input->variable->compute_equal(vzvar);
-      else input->variable->compute_atom(vzvar,igroup,&velocity[0][2],3,0);
+      else if (velocity)
+	input->variable->compute_atom(vzvar,igroup,&velocity[0][2],3,0);
     }
 
     modify->addstep_compute(update->ntimestep + 1);
@@ -837,8 +843,7 @@ void FixMove::restart(char *buf)
 
 void FixMove::grow_arrays(int nmax)
 {
-  xoriginal =
-    memory->grow_2d_double_array(xoriginal,nmax,3,"move:xoriginal");
+  memory->grow(xoriginal,nmax,3,"move:xoriginal");
   array_atom = xoriginal;
 }
 
@@ -880,7 +885,7 @@ void FixMove::set_arrays(int i)
   // backup particle to time_origin
 
   if (mstyle == VARIABLE)
-    error->all("Cannot add atoms to fix move variable after");
+    error->all("Cannot add atoms to fix move variable");
 
   domain->unmap(x[i],image[i],xoriginal[i]);
   double delta = (update->ntimestep - time_origin) * update->dt;

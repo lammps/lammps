@@ -81,7 +81,7 @@ FixEfield::~FixEfield()
   delete [] xstr;
   delete [] ystr;
   delete [] zstr;
-  memory->destroy_2d_double_array(efield);
+  memory->destroy(efield);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -98,10 +98,7 @@ int FixEfield::setmask()
 
 void FixEfield::init()
 {
-  // require an atom style with charge defined
-
-  if (atom->q == NULL)
-    error->all("Must use charged atom style with fix efield");
+  if (!atom->q_flag) error->all("Fix efield requires atom attribute q");
 
   // check variables
 
@@ -165,8 +162,8 @@ void FixEfield::post_force(int vflag)
 
   if (varflag == ATOM && nlocal > maxatom) {
     maxatom = atom->nmax;
-    memory->destroy_2d_double_array(efield);
-    efield = memory->create_2d_double_array(maxatom,3,"efield:efield");
+    memory->destroy(efield);
+    memory->create(efield,maxatom,3,"efield:efield");
   }
 
   if (varflag == CONSTANT) {
@@ -184,13 +181,13 @@ void FixEfield::post_force(int vflag)
     modify->clearstep_compute();
 
     if (xstyle == EQUAL) ex = qe2f * input->variable->compute_equal(xvar);
-    else if (xstyle == ATOM)
+    else if (xstyle == ATOM && efield)
       input->variable->compute_atom(xvar,igroup,&efield[0][0],3,0);
     if (ystyle == EQUAL) ey = qe2f * input->variable->compute_equal(yvar);
-    else if (ystyle == ATOM)
+    else if (ystyle == ATOM && efield)
       input->variable->compute_atom(yvar,igroup,&efield[0][1],3,0);
     if (zstyle == EQUAL) ez = qe2f * input->variable->compute_equal(zvar);
-    else if (zstyle == ATOM)
+    else if (zstyle == ATOM && efield)
       input->variable->compute_atom(zvar,igroup,&efield[0][2],3,0);
 
     modify->addstep_compute(update->ntimestep + 1);

@@ -21,7 +21,6 @@ FixStyle(dt/reset,FixDtReset)
 #define LMP_FIX_DT_RESET_H
 
 #include "fix.h"
-#include "lmptype.h"
 
 namespace LAMMPS_NS {
 

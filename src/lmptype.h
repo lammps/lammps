@@ -13,7 +13,7 @@
 
 // define integer data types used by LAMMPS and associated size limits
 
-// smallint = variables for system on 1 processor (nlocal, nmax, etc)
+// smallint = variables for on-procesor system (nlocal, nmax, etc)
 // tagint = variables for atom IDs (tag)
 // bigint = variables for total system (natoms, ntimestep, etc)
 
@@ -22,24 +22,21 @@
 // NOTE: 64-bit tagint is not yet supported
 // bigint can be 32-bit or 64-bit int, must be >= tagint
 
-// MAXSMALLINT = max value of a smallint
-// MAXTAGINT = max value of a tagint
-// MAXBIGINT = max value of a bigint
-
-// MPI_LMP_TAGINT = MPI data type corresponding to tagint
-// MPI_LMP_BIGINT = MPI data type corresponding to bigint
+// MPI_LMP_TAGINT = MPI data type corresponding to a tagint
+// MPI_LMP_BIGINT = MPI data type corresponding to a bigint
 
 // NOTE: if your machine/MPI does not support "long long" ints,
-//       but only "long" ints, then you will need to set
-//       MPI_LONG_LONG to MPI_LONG and atoll to atol
+//       but only "long" ints, then you will need to change
+//       MPI_LONG_LONG to MPI_LONG, and atoll to atol
 
 #ifndef LMP_LMPTYPE_H
 #define LMP_LMPTYPE_H
 
-#include "limits.h"
 #define __STDC_LIMIT_MACROS
-#include "stdint.h"
 #define __STDC_FORMAT_MACROS
+
+#include "limits.h"
+#include "stdint.h"
 #include "inttypes.h"
 
 namespace LAMMPS_NS {

@@ -15,7 +15,6 @@
 #define LMP_THERMO_H
 
 #include "pointers.h"
-#include "lmptype.h"
 
 namespace LAMMPS_NS {
 

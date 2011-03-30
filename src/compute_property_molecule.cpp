@@ -54,14 +54,12 @@ ComputePropertyMolecule(LAMMPS *lmp, int narg, char **arg) :
   array = NULL;
 
   if (nvalues == 1) {
-    vector = (double *) memory->smalloc(nmolecules*sizeof(double),
-					"property/molecule:vector");
+    memory->create(vector,nmolecules,"property/molecule:vector");
     vector_flag = 1;
     size_vector = nmolecules;
     extvector = 0;
   } else {
-    array = memory->create_2d_double_array(nmolecules,nvalues,
-					   "property/molecule:array");
+    memory->create(array,nmolecules,nvalues,"property/molecule:array");
     array_flag = 1;
     size_array_rows = nmolecules;
     size_array_cols = nvalues;
@@ -85,8 +83,8 @@ ComputePropertyMolecule(LAMMPS *lmp, int narg, char **arg) :
 ComputePropertyMolecule::~ComputePropertyMolecule()
 {
   delete [] pack_choice;
-  memory->sfree(vector);
-  memory->destroy_2d_double_array(array);
+  memory->destroy(vector);
+  memory->destroy(array);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -52,20 +52,20 @@ PairGayBerne::PairGayBerne(LAMMPS *lmp) : Pair(lmp)
 PairGayBerne::~PairGayBerne()
 {
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
 
-    memory->destroy_2d_int_array(form);
-    memory->destroy_2d_double_array(epsilon);
-    memory->destroy_2d_double_array(sigma);
-    memory->destroy_2d_double_array(shape);
-    memory->destroy_2d_double_array(well);
-    memory->destroy_2d_double_array(cut);
-    memory->destroy_2d_double_array(lj1);
-    memory->destroy_2d_double_array(lj2);
-    memory->destroy_2d_double_array(lj3);
-    memory->destroy_2d_double_array(lj4);
-    memory->destroy_2d_double_array(offset);
+    memory->destroy(form);
+    memory->destroy(epsilon);
+    memory->destroy(sigma);
+    memory->destroy(shape);
+    memory->destroy(well);
+    memory->destroy(cut);
+    memory->destroy(lj1);
+    memory->destroy(lj2);
+    memory->destroy(lj3);
+    memory->destroy(lj4);
+    memory->destroy(offset);
     delete [] lshape;
     delete [] setwell;
   }
@@ -227,24 +227,24 @@ void PairGayBerne::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
-  form = memory->create_2d_int_array(n+1,n+1,"pair:form");
-  epsilon = memory->create_2d_double_array(n+1,n+1,"pair:epsilon");
-  sigma = memory->create_2d_double_array(n+1,n+1,"pair:sigma");
-  shape = memory->create_2d_double_array(n+1,3,"pair:shape");
-  well = memory->create_2d_double_array(n+1,3,"pair:well");
-  cut = memory->create_2d_double_array(n+1,n+1,"pair:cut");
-  lj1 = memory->create_2d_double_array(n+1,n+1,"pair:lj1");
-  lj2 = memory->create_2d_double_array(n+1,n+1,"pair:lj2");
-  lj3 = memory->create_2d_double_array(n+1,n+1,"pair:lj3");
-  lj4 = memory->create_2d_double_array(n+1,n+1,"pair:lj4");
-  offset = memory->create_2d_double_array(n+1,n+1,"pair:offset");
+  memory->create(form,n+1,n+1,"pair:form");
+  memory->create(epsilon,n+1,n+1,"pair:epsilon");
+  memory->create(sigma,n+1,n+1,"pair:sigma");
+  memory->create(shape,n+1,3,"pair:shape");
+  memory->create(well,n+1,3,"pair:well");
+  memory->create(cut,n+1,n+1,"pair:cut");
+  memory->create(lj1,n+1,n+1,"pair:lj1");
+  memory->create(lj2,n+1,n+1,"pair:lj2");
+  memory->create(lj3,n+1,n+1,"pair:lj3");
+  memory->create(lj4,n+1,n+1,"pair:lj4");
+  memory->create(offset,n+1,n+1,"pair:offset");
 
   lshape = new double[n+1];
   setwell = new int[n+1];

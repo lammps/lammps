@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "stdio.h"
 #include "string.h"
 #include "modify.h"
@@ -106,7 +107,7 @@ Modify::~Modify()
 
   while (nfix) delete_fix(fix[0]->id);
   memory->sfree(fix);
-  memory->sfree(fmask);
+  memory->destroy(fmask);
 
   // delete all computes
 
@@ -621,8 +622,7 @@ void Modify::add_fix(int narg, char **arg)
     if (nfix == maxfix) {
       maxfix += DELTA;
       fix = (Fix **) memory->srealloc(fix,maxfix*sizeof(Fix *),"modify:fix");
-      fmask = (int *) 
-	memory->srealloc(fmask,maxfix*sizeof(int),"modify:fmask");
+      memory->grow(fmask,maxfix,"modify:fmask");
     }
   }
 
@@ -1102,10 +1102,12 @@ void Modify::list_init_compute()
    return # of bytes of allocated memory from all fixes
 ------------------------------------------------------------------------- */
 
-double Modify::memory_usage()
+bigint Modify::memory_usage()
 {
-  double bytes = 0.0;
-  for (int i = 0; i < nfix; i++) bytes += fix[i]->memory_usage();
-  for (int i = 0; i < ncompute; i++) bytes += compute[i]->memory_usage();
+  bigint bytes = 0;
+  for (int i = 0; i < nfix; i++) 
+    bytes += static_cast<bigint> (fix[i]->memory_usage());
+  for (int i = 0; i < ncompute; i++) 
+    bytes += static_cast<bigint> (compute[i]->memory_usage());
   return bytes;
 }

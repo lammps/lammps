@@ -40,8 +40,8 @@ Bond::Bond(LAMMPS *lmp) : Pointers(lmp)
 
 Bond::~Bond()
 {
-  memory->sfree(eatom);
-  memory->destroy_2d_double_array(vatom);
+  memory->destroy(eatom);
+  memory->destroy(vatom);
 }
 
 /* ----------------------------------------------------------------------
@@ -79,13 +79,13 @@ void Bond::ev_setup(int eflag, int vflag)
 
   if (eflag_atom && atom->nmax > maxeatom) {
     maxeatom = atom->nmax;
-    memory->sfree(eatom);
-    eatom = (double *) memory->smalloc(maxeatom*sizeof(double),"bond:eatom");
+    memory->destroy(eatom);
+    memory->create(eatom,maxeatom,"bond:eatom");
   }
   if (vflag_atom && atom->nmax > maxvatom) {
     maxvatom = atom->nmax;
-    memory->destroy_2d_double_array(vatom);
-    vatom = memory->create_2d_double_array(maxvatom,6,"bond:vatom");
+    memory->destroy(vatom);
+    memory->create(vatom,maxvatom,6,"bond:vatom");
   }
 
   // zero accumulators

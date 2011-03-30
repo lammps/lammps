@@ -15,7 +15,6 @@
 #define LMP_INTEGRATE_H
 
 #include "pointers.h"
-#include "lmptype.h"
 
 namespace LAMMPS_NS {
 
@@ -29,7 +28,7 @@ class Integrate : protected Pointers {
   virtual void run(int) = 0;
   virtual void cleanup() {}
   virtual void reset_dt() {}
-  virtual double memory_usage() {return 0.0;}
+  virtual bigint memory_usage() {return 0;}
 
  protected:
   int eflag,vflag;                  // flags for energy/virial computation

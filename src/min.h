@@ -15,7 +15,6 @@
 #define LMP_MIN_H
 
 #include "pointers.h"
-#include "lmptype.h"
 
 namespace LAMMPS_NS {
 
@@ -37,7 +36,7 @@ class Min : protected Pointers {
   void run(int);
   void cleanup();
   int request(class Pair *, int, double);
-  double memory_usage() {return 0.0;}
+  virtual bigint memory_usage() {return 0;}
   void modify_params(int, char **);
   double fnorm_sqr();
   double fnorm_inf();

@@ -26,7 +26,7 @@ class Irregular : protected Pointers {
   int create_data(int, int *);
   void exchange_data(char *, int, char *);
   void destroy_data();
-  double memory_usage();
+  bigint memory_usage();
 
  private:
   int me,nprocs;

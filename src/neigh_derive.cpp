@@ -161,6 +161,7 @@ void Neighbor::half_from_full_newton(NeighList *list)
    build skip list for subset of types from parent list
    iskip and ijskip flag which atom types and type pairs to skip
    this is for half and full lists
+   if ghostflag, also store neighbors of ghost atoms & set inum,gnum correctly
 ------------------------------------------------------------------------- */
 
 void Neighbor::skip_from(NeighList *list)
@@ -169,6 +170,7 @@ void Neighbor::skip_from(NeighList *list)
   int *neighptr,*jlist;
 
   int *type = atom->type;
+  int nlocal = atom->nlocal;
   int nall = atom->nlocal + atom->nghost;
 
   int *ilist = list->ilist;
@@ -178,7 +180,8 @@ void Neighbor::skip_from(NeighList *list)
   int *ilist_skip = list->listskip->ilist;
   int *numneigh_skip = list->listskip->numneigh;
   int **firstneigh_skip = list->listskip->firstneigh;
-  int inum_skip = list->listskip->inum;
+  int num_skip = list->listskip->inum;
+  if (list->ghostflag) num_skip += list->listskip->gnum;
 
   int *iskip = list->iskip;
   int **ijskip = list->ijskip;
@@ -191,7 +194,7 @@ void Neighbor::skip_from(NeighList *list)
   // skip I atom entirely if iskip is set for type[I]
   // skip I,J pair if ijskip is set for type[I],type[J]
 
-  for (ii = 0; ii < inum_skip; ii++) {
+  for (ii = 0; ii < num_skip; ii++) {
     i = ilist_skip[ii];
     itype = type[i];
     if (iskip[itype]) continue;
@@ -226,6 +229,14 @@ void Neighbor::skip_from(NeighList *list)
   }
 
   list->inum = inum;
+  if (list->ghostflag) {
+    int num = 0;
+    for (i = 0; i < inum; i++)
+      if (ilist[i] < nlocal) num++;
+      else break;
+    list->inum = num;
+    list->gnum = inum - num;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -486,6 +497,7 @@ void Neighbor::copy_from(NeighList *list)
   NeighList *listcopy = list->listcopy;
 
   list->inum = listcopy->inum;
+  list->gnum = listcopy->gnum;
   list->ilist = listcopy->ilist;
   list->numneigh = listcopy->numneigh;
   list->firstneigh = listcopy->firstneigh;

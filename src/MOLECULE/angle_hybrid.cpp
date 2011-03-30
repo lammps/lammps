@@ -46,12 +46,12 @@ AngleHybrid::~AngleHybrid()
   }
 
   if (allocated) {
-    memory->sfree(setflag);
-    memory->sfree(map);
+    memory->destroy(setflag);
+    memory->destroy(map);
     delete [] nanglelist;
     delete [] maxangle;
     for (int i = 0; i < nstyles; i++)
-      memory->destroy_2d_int_array(anglelist[i]);
+      memory->destroy(anglelist[i]);
     delete [] anglelist;
   }
 }
@@ -80,10 +80,9 @@ void AngleHybrid::compute(int eflag, int vflag)
     }
     for (m = 0; m < nstyles; m++) {
       if (nanglelist[m] > maxangle[m]) {
-	memory->destroy_2d_int_array(anglelist[m]);
+	memory->destroy(anglelist[m]);
 	maxangle[m] = nanglelist[m] + EXTRA;
-	anglelist[m] = (int **)
-	  memory->create_2d_int_array(maxangle[m],4,"angle_hybrid:anglelist");
+	memory->create(anglelist[m],maxangle[m],4,"angle_hybrid:anglelist");
       }
       nanglelist[m] = 0;
     }
@@ -144,8 +143,8 @@ void AngleHybrid::allocate()
   allocated = 1;
   int n = atom->nangletypes;
 
-  map = (int *) memory->smalloc((n+1)*sizeof(int),"angle:map");
-  setflag = (int *) memory->smalloc((n+1)*sizeof(int),"angle:setflag");
+  memory->create(map,n+1,"angle:map");
+  memory->create(setflag,n+1,"angle:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
 
   nanglelist = new int[nstyles];
@@ -175,12 +174,12 @@ void AngleHybrid::settings(int narg, char **arg)
   }
 
   if (allocated) {
-    memory->sfree(setflag);
-    memory->sfree(map);
+    memory->destroy(setflag);
+    memory->destroy(map);
     delete [] nanglelist;
     delete [] maxangle;
     for (int i = 0; i < nstyles; i++)
-      memory->destroy_2d_int_array(anglelist[i]);
+      memory->destroy(anglelist[i]);
     delete [] anglelist;
   }
   allocated = 0;

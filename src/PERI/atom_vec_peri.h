@@ -52,7 +52,7 @@ class AtomVecPeri : public AtomVec {
   void create_atom(int, double *);
   void data_atom(double *, int, char **);
   int data_atom_hybrid(int, char **);
-  double memory_usage();
+  bigint memory_usage();
 
  private:
   int *tag,*type,*mask,*image;

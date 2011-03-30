@@ -11,12 +11,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "mpi.h"
 #include "stdlib.h"
 #include "string.h"
 #include "stdio.h"
 #include "dump.h"
-#include "lmptype.h"
 #include "atom.h"
 #include "irregular.h"
 #include "update.h"
@@ -70,6 +70,7 @@ Dump::Dump(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   clearstep = 0;
   sort_flag = 0;
   append_flag = 0;
+  padflag = 0;
 
   maxbuf = maxids = maxsort = maxproc = 0;
   buf = bufsort = NULL;
@@ -124,12 +125,12 @@ Dump::~Dump()
   delete [] format_default;
   delete [] format_user;
 
-  memory->sfree(buf);
-  memory->sfree(bufsort);
-  memory->sfree(ids);
-  memory->sfree(idsort);
-  memory->sfree(index);
-  memory->sfree(proclist);
+  memory->destroy(buf);
+  memory->destroy(bufsort);
+  memory->destroy(ids);
+  memory->destroy(idsort);
+  memory->destroy(index);
+  memory->destroy(proclist);
   delete irregular;
 
   // XTC style sets fp to NULL since it closes file in its destructor
@@ -152,11 +153,11 @@ void Dump::init()
   init_style();
 
   if (!sort_flag) {
-    memory->sfree(bufsort);
-    memory->sfree(ids);
-    memory->sfree(idsort);
-    memory->sfree(index);
-    memory->sfree(proclist);
+    memory->destroy(bufsort);
+    memory->destroy(ids);
+    memory->destroy(idsort);
+    memory->destroy(index);
+    memory->destroy(proclist);
     delete irregular;
 
     maxids = maxsort = maxproc = 0;
@@ -280,14 +281,13 @@ void Dump::write()
     if ((bigint) nmax * size_one > MAXSMALLINT)
       error->all("Too much per-proc info for dump");
     maxbuf = nmax;
-    memory->sfree(buf);
-    buf = (double *) 
-      memory->smalloc(maxbuf*size_one*sizeof(double),"dump:buf");
+    memory->destroy(buf);
+    memory->create(buf,maxbuf*size_one,"dump:buf");
   }
   if (sort_flag && sortcol == 0 && nmax > maxids) {
     maxids = nmax;
-    memory->sfree(ids);
-    ids = (int *) memory->smalloc(maxids*sizeof(int),"dump:ids");
+    memory->destroy(ids);
+    memory->create(ids,maxids,"dump:ids");
   }
 
   if (sort_flag && sortcol == 0) pack(ids);
@@ -359,8 +359,15 @@ void Dump::openfile()
     filecurrent = new char[strlen(filename) + 16];
     char *ptr = strchr(filename,'*');
     *ptr = '\0';
-    sprintf(filecurrent,"%s" BIGINT_FORMAT "%s",
-	    filename,update->ntimestep,ptr+1);
+    if (padflag == 0) 
+      sprintf(filecurrent,"%s" BIGINT_FORMAT "%s",
+	      filename,update->ntimestep,ptr+1);
+    else {
+      char bif[8],pad[16];
+      strcpy(bif,BIGINT_FORMAT);
+      sprintf(pad,"%%s%%0%d%s%%s",padflag,&bif[1]);
+      sprintf(filecurrent,pad,filename,update->ntimestep,ptr+1);
+    }
     *ptr = '*';
   }
 
@@ -406,14 +413,13 @@ void Dump::sort()
   if (nprocs == 1) {
     if (nme > maxsort) {
       maxsort = nme;
-      memory->sfree(bufsort);
-      bufsort = (double *)
-	memory->smalloc(maxsort*size_one*sizeof(double),"dump:bufsort");
-      memory->sfree(index);
-      index = (int *) memory->smalloc(maxsort*sizeof(int),"dump:index");
+      memory->destroy(bufsort);
+      memory->create(bufsort,maxsort*size_one,"dump:bufsort");
+      memory->destroy(index);
+      memory->create(index,maxsort,"dump:index");
       if (sortcol == 0) {
-	memory->sfree(idsort);
-	idsort = (int *) memory->smalloc(maxsort*sizeof(int),"dump:idsort");
+	memory->destroy(idsort);
+	memory->create(idsort,maxsort,"dump:idsort");
       }
     }
 
@@ -435,8 +441,8 @@ void Dump::sort()
 
     if (nme > maxproc) {
       maxproc = nme;
-      memory->sfree(proclist);
-      proclist = (int *) memory->smalloc(maxproc*sizeof(int),"dump:proclist");
+      memory->destroy(proclist);
+      memory->create(proclist,maxproc,"dump:proclist");
     }
     
     // proclist[i] = which proc Ith datum will be sent to
@@ -485,14 +491,13 @@ void Dump::sort()
 
     if (nme > maxsort) {
       maxsort = nme;
-      memory->sfree(bufsort);
-      bufsort = (double *) 
-	memory->smalloc(maxsort*size_one*sizeof(double),"dump:bufsort");
-      memory->sfree(index);
-      index = (int *) memory->smalloc(maxsort*sizeof(int),"dump:index");
+      memory->destroy(bufsort);
+      memory->create(bufsort,maxsort*size_one,"dump:bufsort");
+      memory->destroy(index);
+      memory->create(index,maxsort,"dump:index");
       if (sortcol == 0) {
-	memory->sfree(idsort);
-	idsort = (int *) memory->smalloc(maxsort*sizeof(int),"dump:idsort");
+	memory->destroy(idsort);
+	memory->create(idsort,maxsort,"dump:idsort");
       }
     }
     
@@ -537,9 +542,8 @@ void Dump::sort()
 
   if (nmax > maxbuf) {
     maxbuf = nmax;
-    memory->sfree(buf);
-    buf = (double *) 
-      memory->smalloc(maxbuf*size_one*sizeof(double),"dump:buf");
+    memory->destroy(buf);
+    memory->create(buf,maxbuf*size_one,"dump:buf");
   }
 
   // copy data from bufsort to buf using index
@@ -666,6 +670,11 @@ void Dump::modify_params(int narg, char **arg)
 	strcpy(format_user,arg[iarg+1]);
       }
       iarg += 2;
+    } else if (strcmp(arg[iarg],"pad") == 0) {
+      if (iarg+2 > narg) error->all("Illegal dump_modify command");
+      padflag = atoi(arg[iarg+1]);
+      if (padflag < 0) error->all("Illegal dump_modify command");
+      iarg += 2;
     } else if (strcmp(arg[iarg],"sort") == 0) {
       if (iarg+2 > narg) error->all("Illegal dump_modify command");
       if (strcmp(arg[iarg+1],"off") == 0) sort_flag = 0;
@@ -697,15 +706,15 @@ void Dump::modify_params(int narg, char **arg)
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
-double Dump::memory_usage()
+bigint Dump::memory_usage()
 {
-  double bytes = maxbuf*size_one * sizeof(double);      // buf
+  bigint bytes = memory->usage(buf,size_one*maxbuf);
   if (sort_flag) {
-    if (sortcol == 0) bytes += maxids * sizeof(int);    // ids
-    bytes += maxsort*size_one * sizeof(double);         // bufsort
-    if (sortcol == 0) bytes += maxsort * sizeof(int);   // idsort
-    bytes += maxsort * sizeof(int);                     // index
-    bytes += maxproc * sizeof(int);                     // proclist
+    if (sortcol == 0) bytes += memory->usage(ids,maxids);
+    bytes += memory->usage(bufsort,size_one*maxsort);
+    if (sortcol == 0) bytes += memory->usage(idsort,maxsort);
+    bytes += memory->usage(index,maxsort);
+    bytes += memory->usage(proclist,maxproc);
     if (irregular) bytes += irregular->memory_usage();
   }
   return bytes;

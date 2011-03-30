@@ -96,9 +96,12 @@ c Set some defaults
       ebound_meam(:,:) = (2.8d0**2)/(4.d0*(2.8d0-1.d0))
       delta_meam(:,:) = 0.0
       nn2_meam(:,:) = 0
+      zbl_meam(:,:) = 1
       gsmooth_factor = 99.0
       augt1 = 1
       ialloy = 0
+      mix_ref_t = 0
+      erose_form = 0
 
       return
       end

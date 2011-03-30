@@ -40,24 +40,24 @@ PairLJSmooth::PairLJSmooth(LAMMPS *lmp) : Pair(lmp) {}
 PairLJSmooth::~PairLJSmooth()
 {
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
 
-    memory->destroy_2d_double_array(cut);
-    memory->destroy_2d_double_array(cut_inner);
-    memory->destroy_2d_double_array(cut_inner_sq);
-    memory->destroy_2d_double_array(epsilon);
-    memory->destroy_2d_double_array(sigma);
-    memory->destroy_2d_double_array(lj1);
-    memory->destroy_2d_double_array(lj2);
-    memory->destroy_2d_double_array(lj3);
-    memory->destroy_2d_double_array(lj4);
-    memory->destroy_2d_double_array(ljsw0);
-    memory->destroy_2d_double_array(ljsw1);
-    memory->destroy_2d_double_array(ljsw2);
-    memory->destroy_2d_double_array(ljsw3);
-    memory->destroy_2d_double_array(ljsw4);
-    memory->destroy_2d_double_array(offset);
+    memory->destroy(cut);
+    memory->destroy(cut_inner);
+    memory->destroy(cut_inner_sq);
+    memory->destroy(epsilon);
+    memory->destroy(sigma);
+    memory->destroy(lj1);
+    memory->destroy(lj2);
+    memory->destroy(lj3);
+    memory->destroy(lj4);
+    memory->destroy(ljsw0);
+    memory->destroy(ljsw1);
+    memory->destroy(ljsw2);
+    memory->destroy(ljsw3);
+    memory->destroy(ljsw4);
+    memory->destroy(offset);
   }
 }
 
@@ -168,28 +168,28 @@ void PairLJSmooth::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
-  cut = memory->create_2d_double_array(n+1,n+1,"pair:cut");
-  cut_inner = memory->create_2d_double_array(n+1,n+1,"pair:cut_inner");
-  cut_inner_sq = memory->create_2d_double_array(n+1,n+1,"pair:cut_inner_sq");
-  epsilon = memory->create_2d_double_array(n+1,n+1,"pair:epsilon");
-  sigma = memory->create_2d_double_array(n+1,n+1,"pair:sigma");
-  lj1 = memory->create_2d_double_array(n+1,n+1,"pair:lj1");
-  lj2 = memory->create_2d_double_array(n+1,n+1,"pair:lj2");
-  lj3 = memory->create_2d_double_array(n+1,n+1,"pair:lj3");
-  lj4 = memory->create_2d_double_array(n+1,n+1,"pair:lj4");
-  ljsw0 = memory->create_2d_double_array(n+1,n+1,"pair:ljsw0");
-  ljsw1 = memory->create_2d_double_array(n+1,n+1,"pair:ljsw1");
-  ljsw2 = memory->create_2d_double_array(n+1,n+1,"pair:ljsw2");
-  ljsw3 = memory->create_2d_double_array(n+1,n+1,"pair:ljsw3");
-  ljsw4 = memory->create_2d_double_array(n+1,n+1,"pair:ljsw4");
-  offset = memory->create_2d_double_array(n+1,n+1,"pair:offset");
+  memory->create(cut,n+1,n+1,"pair:cut");
+  memory->create(cut_inner,n+1,n+1,"pair:cut_inner");
+  memory->create(cut_inner_sq,n+1,n+1,"pair:cut_inner_sq");
+  memory->create(epsilon,n+1,n+1,"pair:epsilon");
+  memory->create(sigma,n+1,n+1,"pair:sigma");
+  memory->create(lj1,n+1,n+1,"pair:lj1");
+  memory->create(lj2,n+1,n+1,"pair:lj2");
+  memory->create(lj3,n+1,n+1,"pair:lj3");
+  memory->create(lj4,n+1,n+1,"pair:lj4");
+  memory->create(ljsw0,n+1,n+1,"pair:ljsw0");
+  memory->create(ljsw1,n+1,n+1,"pair:ljsw1");
+  memory->create(ljsw2,n+1,n+1,"pair:ljsw2");
+  memory->create(ljsw3,n+1,n+1,"pair:ljsw3");
+  memory->create(ljsw4,n+1,n+1,"pair:ljsw4");
+  memory->create(offset,n+1,n+1,"pair:offset");
 }
 
 /* ----------------------------------------------------------------------

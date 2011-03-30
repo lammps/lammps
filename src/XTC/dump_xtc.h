@@ -52,7 +52,7 @@ class DumpXTC : public Dump {
   int count();
   void pack(int *);
   void write_data(int, double *);
-  double memory_usage();
+  bigint memory_usage();
 
   void write_frame();
 };

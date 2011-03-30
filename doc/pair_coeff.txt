@@ -37,7 +37,7 @@ can be used for each, as in the 1st example above.  I <= J is
 required.  LAMMPS sets the coefficients for the symmetric J,I
 interaction to the same values.
 
-A wild-card asterisk can be used in place of or in conjunction with the
+A wildcard asterisk can be used in place of or in conjunction with the
 I,J arguments to set the coefficients for multiple pairs of atom
 types.  This takes the form "*" or "*n" or "n*" or "m*n".  If N = the
 number of atom types, then an asterisk with no numeric values means all

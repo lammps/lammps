@@ -331,10 +331,9 @@ void FixPour::pre_exchange()
   // xmine is for my atoms
   // xnear is for atoms from all procs + atoms to be inserted
 
-  double **xmine = 
-    memory->create_2d_double_array(ncount,4,"fix_pour:xmine");
-  double **xnear = 
-    memory->create_2d_double_array(nprevious+nnew,4,"fix_pour:xnear");
+  double **xmine,**xnear;
+  memory->create(xmine,ncount,4,"fix_pour:xmine");
+  memory->create(xnear,nprevious+nnew,4,"fix_pour:xnear");
   int nnear = nprevious;
 
   // setup for allgatherv
@@ -503,8 +502,8 @@ void FixPour::pre_exchange()
 
   // free local memory
 
-  memory->destroy_2d_double_array(xmine);
-  memory->destroy_2d_double_array(xnear);
+  memory->destroy(xmine);
+  memory->destroy(xnear);
 
   // next timestep to insert
 

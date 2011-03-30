@@ -52,9 +52,9 @@ BondTable::~BondTable()
   memory->sfree(tables);
 
   if (allocated) {
-    memory->sfree(setflag);
-    memory->sfree(r0);
-    memory->sfree(tabindex);
+    memory->destroy(setflag);
+    memory->destroy(r0);
+    memory->destroy(tabindex);
   }
 }
 
@@ -122,9 +122,9 @@ void BondTable::allocate()
   allocated = 1;
   int n = atom->nbondtypes;
 
-  tabindex = (int *) memory->smalloc((n+1)*sizeof(int),"bond:tabindex");
-  r0 = (double *) memory->smalloc((n+1)*sizeof(double),"bond:r0");
-  setflag = (int *) memory->smalloc((n+1)*sizeof(int),"bond:setflag");
+  memory->create(tabindex,n+1,"bond:tabindex");
+  memory->create(r0,n+1,"bond:r0");
+  memory->create(setflag,n+1,"bond:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
 }
 
@@ -150,8 +150,8 @@ void BondTable::settings(int narg, char **arg)
   memory->sfree(tables);
 
   if (allocated) {
-     memory->sfree(setflag);
-     memory->sfree(tabindex);
+     memory->destroy(setflag);
+     memory->destroy(tabindex);
   }
   allocated = 0;
 
@@ -267,19 +267,19 @@ void BondTable::null_table(Table *tb)
 
 void BondTable::free_table(Table *tb)
 {
-  memory->sfree(tb->rfile);
-  memory->sfree(tb->efile);
-  memory->sfree(tb->ffile);
-  memory->sfree(tb->e2file);
-  memory->sfree(tb->f2file);
+  memory->destroy(tb->rfile);
+  memory->destroy(tb->efile);
+  memory->destroy(tb->ffile);
+  memory->destroy(tb->e2file);
+  memory->destroy(tb->f2file);
   
-  memory->sfree(tb->r);
-  memory->sfree(tb->e);
-  memory->sfree(tb->de);
-  memory->sfree(tb->f);
-  memory->sfree(tb->df);
-  memory->sfree(tb->e2);
-  memory->sfree(tb->f2);
+  memory->destroy(tb->r);
+  memory->destroy(tb->e);
+  memory->destroy(tb->de);
+  memory->destroy(tb->f);
+  memory->destroy(tb->df);
+  memory->destroy(tb->e2);
+  memory->destroy(tb->f2);
 }
 
 /* ----------------------------------------------------------------------
@@ -318,12 +318,9 @@ void BondTable::read_table(Table *tb, char *file, char *keyword)
 
   fgets(line,MAXLINE,fp);
   param_extract(tb,line);
-  tb->rfile = (double *) 
-    memory->smalloc(tb->ninput*sizeof(double),"bond:rfile");
-  tb->efile = (double *) 
-    memory->smalloc(tb->ninput*sizeof(double),"bond:efile");
-  tb->ffile = (double *) 
-    memory->smalloc(tb->ninput*sizeof(double),"bond:ffile");
+  memory->create(tb->rfile,tb->ninput,"bond:rfile");
+  memory->create(tb->efile,tb->ninput,"bond:efile");
+  memory->create(tb->ffile,tb->ninput,"bond:ffile");
 
   // read r,e,f table values from file
 
@@ -345,10 +342,8 @@ void BondTable::read_table(Table *tb, char *file, char *keyword)
 
 void BondTable::spline_table(Table *tb)
 {
-  tb->e2file = (double *) 
-    memory->smalloc(tb->ninput*sizeof(double),"bond:e2file");
-  tb->f2file = (double *) 
-    memory->smalloc(tb->ninput*sizeof(double),"bond:f2file");
+  memory->create(tb->e2file,tb->ninput,"bond:e2file");
+  memory->create(tb->f2file,tb->ninput,"bond:f2file");
 
   double ep0 = - tb->ffile[0];
   double epn = - tb->ffile[tb->ninput-1];
@@ -384,13 +379,13 @@ void BondTable::compute_table(Table *tb)
   // de,df values = delta values of e,f
   // r,e,f are N in length so de,df arrays can compute difference
 
-  tb->r = (double *) memory->smalloc(tablength*sizeof(double),"bond:r");
-  tb->e = (double *) memory->smalloc(tablength*sizeof(double),"bond:e");
-  tb->de = (double *) memory->smalloc(tlm1*sizeof(double),"bond:de");
-  tb->f = (double *) memory->smalloc(tablength*sizeof(double),"bond:f");
-  tb->df = (double *) memory->smalloc(tlm1*sizeof(double),"bond:df");
-  tb->e2 = (double *) memory->smalloc(tablength*sizeof(double),"bond:e2");
-  tb->f2 = (double *) memory->smalloc(tablength*sizeof(double),"bond:f2");
+  memory->create(tb->r,tablength,"bond:r");
+  memory->create(tb->e,tablength,"bond:e");
+  memory->create(tb->de,tlm1,"bond:de");
+  memory->create(tb->f,tablength,"bond:f");
+  memory->create(tb->df,tlm1,"bond:df");
+  memory->create(tb->e2,tablength,"bond:e2");
+  memory->create(tb->f2,tablength,"bond:f2");
 
   double a;
   for (int i = 0; i < tablength; i++) {
@@ -460,12 +455,9 @@ void BondTable::bcast_table(Table *tb)
   int me;
   MPI_Comm_rank(world,&me);
   if (me > 0) {
-    tb->rfile = (double *) 
-      memory->smalloc(tb->ninput*sizeof(double),"angle:rfile");
-    tb->efile = (double *) 
-      memory->smalloc(tb->ninput*sizeof(double),"angle:efile");
-    tb->ffile = (double *) 
-      memory->smalloc(tb->ninput*sizeof(double),"angle:ffile");
+    memory->create(tb->rfile,tb->ninput,"angle:rfile");
+    memory->create(tb->efile,tb->ninput,"angle:efile");
+    memory->create(tb->ffile,tb->ninput,"angle:ffile");
   }
 
   MPI_Bcast(tb->rfile,tb->ninput,MPI_DOUBLE,0,world);

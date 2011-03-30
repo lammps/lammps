@@ -48,21 +48,21 @@ PairLJCharmmCoulCharmm::PairLJCharmmCoulCharmm(LAMMPS *lmp) : Pair(lmp)
 PairLJCharmmCoulCharmm::~PairLJCharmmCoulCharmm()
 {
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
 
-    memory->destroy_2d_double_array(epsilon);
-    memory->destroy_2d_double_array(sigma);
-    memory->destroy_2d_double_array(eps14);
-    memory->destroy_2d_double_array(sigma14);
-    memory->destroy_2d_double_array(lj1);
-    memory->destroy_2d_double_array(lj2);
-    memory->destroy_2d_double_array(lj3);
-    memory->destroy_2d_double_array(lj4);
-    memory->destroy_2d_double_array(lj14_1);
-    memory->destroy_2d_double_array(lj14_2);
-    memory->destroy_2d_double_array(lj14_3);
-    memory->destroy_2d_double_array(lj14_4);
+    memory->destroy(epsilon);
+    memory->destroy(sigma);
+    memory->destroy(eps14);
+    memory->destroy(sigma14);
+    memory->destroy(lj1);
+    memory->destroy(lj2);
+    memory->destroy(lj3);
+    memory->destroy(lj4);
+    memory->destroy(lj14_1);
+    memory->destroy(lj14_2);
+    memory->destroy(lj14_3);
+    memory->destroy(lj14_4);
   }
 }
 
@@ -202,25 +202,25 @@ void PairLJCharmmCoulCharmm::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
-  epsilon = memory->create_2d_double_array(n+1,n+1,"pair:epsilon");
-  sigma = memory->create_2d_double_array(n+1,n+1,"pair:sigma");
-  eps14 = memory->create_2d_double_array(n+1,n+1,"pair:eps14");
-  sigma14 = memory->create_2d_double_array(n+1,n+1,"pair:sigma14");
-  lj1 = memory->create_2d_double_array(n+1,n+1,"pair:lj1");
-  lj2 = memory->create_2d_double_array(n+1,n+1,"pair:lj2");
-  lj3 = memory->create_2d_double_array(n+1,n+1,"pair:lj3");
-  lj4 = memory->create_2d_double_array(n+1,n+1,"pair:lj4");
-  lj14_1 = memory->create_2d_double_array(n+1,n+1,"pair:lj14_1");
-  lj14_2 = memory->create_2d_double_array(n+1,n+1,"pair:lj14_2");
-  lj14_3 = memory->create_2d_double_array(n+1,n+1,"pair:lj14_3");
-  lj14_4 = memory->create_2d_double_array(n+1,n+1,"pair:lj14_4");
+  memory->create(epsilon,n+1,n+1,"pair:epsilon");
+  memory->create(sigma,n+1,n+1,"pair:sigma");
+  memory->create(eps14,n+1,n+1,"pair:eps14");
+  memory->create(sigma14,n+1,n+1,"pair:sigma14");
+  memory->create(lj1,n+1,n+1,"pair:lj1");
+  memory->create(lj2,n+1,n+1,"pair:lj2");
+  memory->create(lj3,n+1,n+1,"pair:lj3");
+  memory->create(lj4,n+1,n+1,"pair:lj4");
+  memory->create(lj14_1,n+1,n+1,"pair:lj14_1");
+  memory->create(lj14_2,n+1,n+1,"pair:lj14_2");
+  memory->create(lj14_3,n+1,n+1,"pair:lj14_3");
+  memory->create(lj14_4,n+1,n+1,"pair:lj14_4");
 }
 
 /* ----------------------------------------------------------------------

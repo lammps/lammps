@@ -33,6 +33,7 @@
   <I>image</I> arg = <I>yes</I> or <I>no</I>
   <I>label</I> arg = string
     string = character string (e.g. BONDS) to use in header of dump local file
+  <I>pad</I> arg = Nchar = # of characters to convert timestep to
   <I>precision</I> arg = power-of-10 value from 10 to 1000000
   <I>region</I> arg = region-ID or "none"
   <I>scale</I> arg = <I>yes</I> or <I>no</I>
@@ -153,6 +154,16 @@ ITEM: ENTRIES ...
 <P>The word "ENTRIES" will be replaced with the string specified,
 e.g. BONDS or ANGLES.
 </P>
+<P>The <I>pad</I> keyword only applies when the dump filename is specified
+with a wildcard "*" character which becomes the timestep.  If <I>pad</I> is
+0, which is the default, the timestep is converted into a string of
+unpadded length, e.g. 100 or 12000 or 2000000.  When <I>pad</I> is
+specified with <I>Nchar</I> > 0, the string is padded with leading zeroes
+so they are all the same length = <I>Nchar</I>.  For example, pad 7 would
+yield 0000100, 0012000, 2000000.  This can be useful so that
+post-processing programs can easily read the files in ascending
+timestep order.
+</P>
 <P>The <I>precision</I> keyword only applies to the dump <I>xtc</I> style.  A
 specified value of N means that coordinates are stored to 1/N
 nanometer accuracy, e.g. for N = 1000, the coordinates are written to
@@ -227,6 +238,7 @@ box size stored with the snapshot.
 <LI>format = %d and %g for each integer or floating point value
 <LI>image = no
 <LI>label = ENTRIES
+<LI>pad = 0
 <LI>precision = 1000
 <LI>region = none
 <LI>scale = yes

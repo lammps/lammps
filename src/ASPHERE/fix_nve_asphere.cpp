@@ -34,8 +34,7 @@ using namespace LAMMPS_NS;
 FixNVEAsphere::FixNVEAsphere(LAMMPS *lmp, int narg, char **arg) : 
   FixNVE(lmp, narg, arg)
 {
-  inertia = 
-    memory->create_2d_double_array(atom->ntypes+1,3,"fix_nve_asphere:inertia");
+  memory->create(inertia,atom->ntypes+1,3,"fix_nve_asphere:inertia");
 
   // error checks
 
@@ -52,7 +51,7 @@ FixNVEAsphere::FixNVEAsphere(LAMMPS *lmp, int narg, char **arg) :
 
 FixNVEAsphere::~FixNVEAsphere()
 {
-  memory->destroy_2d_double_array(inertia);
+  memory->destroy(inertia);
 }
 
 /* ---------------------------------------------------------------------- */

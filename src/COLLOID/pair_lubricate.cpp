@@ -51,11 +51,11 @@ PairLubricate::PairLubricate(LAMMPS *lmp) : Pair(lmp)
 PairLubricate::~PairLubricate()
 {
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
 
-    memory->destroy_2d_double_array(cut);
-    memory->destroy_2d_double_array(cut_inner);
+    memory->destroy(cut);
+    memory->destroy(cut_inner);
   }
 
   delete random;
@@ -302,15 +302,15 @@ void PairLubricate::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
-  cut = memory->create_2d_double_array(n+1,n+1,"pair:cut");
-  cut_inner = memory->create_2d_double_array(n+1,n+1,"pair:cut_inner");
+  memory->create(cut,n+1,n+1,"pair:cut");
+  memory->create(cut_inner,n+1,n+1,"pair:cut_inner");
 }
 
 /* ----------------------------------------------------------------------

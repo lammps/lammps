@@ -15,13 +15,13 @@
    Contributing authors: Roy Pollock (LLNL), Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "mpi.h"
 #include "string.h"
 #include "stdio.h"
 #include "stdlib.h"
 #include "math.h"
 #include "pppm.h"
-#include "lmptype.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
@@ -90,7 +90,7 @@ PPPM::~PPPM()
 {
   delete [] factors;
   deallocate();
-  memory->destroy_2d_int_array(part2grid);
+  memory->destroy(part2grid);
 }
 
 /* ----------------------------------------------------------------------
@@ -659,9 +659,9 @@ void PPPM::compute(int eflag, int vflag)
   // extend size of per-atom arrays if necessary
 
   if (atom->nlocal > nmax) {
-    memory->destroy_2d_int_array(part2grid);
+    memory->destroy(part2grid);
     nmax = atom->nmax;
-    part2grid = memory->create_2d_int_array(nmax,3,"pppm:part2grid");
+    memory->create(part2grid,nmax,3,"pppm:part2grid");
   }
 
   energy = 0.0;
@@ -730,40 +730,33 @@ void PPPM::compute(int eflag, int vflag)
 
 void PPPM::allocate()
 {
-  density_brick = 
-    memory->create_3d_double_array(nzlo_out,nzhi_out,nylo_out,nyhi_out,
-				   nxlo_out,nxhi_out,"pppm:density_brick");
-  vdx_brick =
-    memory->create_3d_double_array(nzlo_out,nzhi_out,nylo_out,nyhi_out,
-				   nxlo_out,nxhi_out,"pppm:vdx_brick");
-  vdy_brick = 
-    memory->create_3d_double_array(nzlo_out,nzhi_out,nylo_out,nyhi_out,
-				   nxlo_out,nxhi_out,"pppm:vdy_brick");
-  vdz_brick = 
-    memory->create_3d_double_array(nzlo_out,nzhi_out,nylo_out,nyhi_out,
-				   nxlo_out,nxhi_out,"pppm:vdz_brick");
+  memory->create3d_offset(density_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
+			  nxlo_out,nxhi_out,"pppm:density_brick");
+  memory->create3d_offset(vdx_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
+			  nxlo_out,nxhi_out,"pppm:vdx_brick");
+  memory->create3d_offset(vdy_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
+			  nxlo_out,nxhi_out,"pppm:vdy_brick");
+  memory->create3d_offset(vdz_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
+			  nxlo_out,nxhi_out,"pppm:vdz_brick");
 
-  density_fft = 
-    (double *) memory->smalloc(nfft_both*sizeof(double),"pppm:density_fft");
-  greensfn = 
-    (double *) memory->smalloc(nfft_both*sizeof(double),"pppm:greensfn");
-  work1 = (double *) memory->smalloc(2*nfft_both*sizeof(double),"pppm:work1");
-  work2 = (double *) memory->smalloc(2*nfft_both*sizeof(double),"pppm:work2");
-  vg = memory->create_2d_double_array(nfft_both,6,"pppm:vg");
+  memory->create(density_fft,nfft_both,"pppm:density_fft");
+  memory->create(greensfn,nfft_both,"pppm:greensfn");
+  memory->create(work1,2*nfft_both,"pppm:work1");
+  memory->create(work2,2*nfft_both,"pppm:work2");
+  memory->create(vg,nfft_both,6,"pppm:vg");
 
-  fkx = memory->create_1d_double_array(nxlo_fft,nxhi_fft,"pppm:fkx");
-  fky = memory->create_1d_double_array(nylo_fft,nyhi_fft,"pppm:fky");
-  fkz = memory->create_1d_double_array(nzlo_fft,nzhi_fft,"pppm:fkz");
+  memory->create1d_offset(fkx,nxlo_fft,nxhi_fft,"pppm:fkx");
+  memory->create1d_offset(fky,nylo_fft,nyhi_fft,"pppm:fky");
+  memory->create1d_offset(fkz,nzlo_fft,nzhi_fft,"pppm:fkz");
 
-  buf1 = (double *) memory->smalloc(nbuf*sizeof(double),"pppm:buf1");
-  buf2 = (double *) memory->smalloc(nbuf*sizeof(double),"pppm:buf2");
+  memory->create(buf1,nbuf,"pppm:buf1");
+  memory->create(buf2,nbuf,"pppm:buf2");
 
   // summation coeffs
 
   gf_b = new double[order];
-  rho1d = memory->create_2d_double_array(3,-order/2,order/2,"pppm:rho1d");
-  rho_coeff = memory->create_2d_double_array(order,(1-order)/2,order/2,
-					     "pppm:rho_coeff");
+  memory->create2d_offset(rho1d,3,-order/2,order/2,"pppm:rho1d");
+  memory->create2d_offset(rho_coeff,order,(1-order)/2,order/2,"pppm:rho_coeff");
 
   // create 2 FFTs and a Remap
   // 1st FFT keeps data in FFT decompostion
@@ -794,27 +787,27 @@ void PPPM::allocate()
 
 void PPPM::deallocate()
 {
-  memory->destroy_3d_double_array(density_brick,nzlo_out,nylo_out,nxlo_out);
-  memory->destroy_3d_double_array(vdx_brick,nzlo_out,nylo_out,nxlo_out);
-  memory->destroy_3d_double_array(vdy_brick,nzlo_out,nylo_out,nxlo_out);
-  memory->destroy_3d_double_array(vdz_brick,nzlo_out,nylo_out,nxlo_out);
+  memory->destroy3d_offset(density_brick,nzlo_out,nylo_out,nxlo_out);
+  memory->destroy3d_offset(vdx_brick,nzlo_out,nylo_out,nxlo_out);
+  memory->destroy3d_offset(vdy_brick,nzlo_out,nylo_out,nxlo_out);
+  memory->destroy3d_offset(vdz_brick,nzlo_out,nylo_out,nxlo_out);
 
-  memory->sfree(density_fft);
-  memory->sfree(greensfn);
-  memory->sfree(work1);
-  memory->sfree(work2);
-  memory->destroy_2d_double_array(vg);
+  memory->destroy(density_fft);
+  memory->destroy(greensfn);
+  memory->destroy(work1);
+  memory->destroy(work2);
+  memory->destroy(vg);
 
-  memory->destroy_1d_double_array(fkx,nxlo_fft);
-  memory->destroy_1d_double_array(fky,nylo_fft);
-  memory->destroy_1d_double_array(fkz,nzlo_fft);
+  memory->destroy1d_offset(fkx,nxlo_fft);
+  memory->destroy1d_offset(fky,nylo_fft);
+  memory->destroy1d_offset(fkz,nzlo_fft);
 
-  memory->sfree(buf1);
-  memory->sfree(buf2);
+  memory->destroy(buf1);
+  memory->destroy(buf2);
 
   delete [] gf_b;
-  memory->destroy_2d_double_array(rho1d,-order/2);
-  memory->destroy_2d_double_array(rho_coeff,(1-order)/2);
+  memory->destroy2d_offset(rho1d,-order/2);
+  memory->destroy2d_offset(rho_coeff,(1-order)/2);
 
   delete fft1;
   delete fft2;
@@ -830,7 +823,8 @@ void PPPM::set_grid()
   // see JCP 109, pg 7698 for derivation of coefficients
   // higher order coefficients may be computed if needed
 
-  double **acons = memory->create_2d_double_array(8,7,"pppm:acons");
+  double **acons;
+  memory->create(acons,8,7,"pppm:acons");
 
   acons[1][0] = 2.0 / 3.0;
   acons[2][0] = 1.0 / 50.0;
@@ -968,7 +962,7 @@ void PPPM::set_grid()
 
   // free local memory
 
-  memory->destroy_2d_double_array(acons);
+  memory->destroy(acons);
 
   // print info
 
@@ -1807,7 +1801,8 @@ void PPPM::compute_rho_coeff()
   int j,k,l,m;
   double s;
 
-  double **a = memory->create_2d_double_array(order,-order,order,"pppm:a");
+  double **a;
+  memory->create2d_offset(a,order,-order,order,"pppm:a");
 
   for (k = -order; k <= order; k++) 
     for (l = 0; l < order; l++)
@@ -1833,7 +1828,7 @@ void PPPM::compute_rho_coeff()
     m++;
   }
 
-  memory->destroy_2d_double_array(a,-order);
+  memory->destroy2d_offset(a,-order);
 }
 
 /* ----------------------------------------------------------------------

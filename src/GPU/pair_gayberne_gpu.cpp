@@ -15,11 +15,11 @@
    Contributing author: Mike Brown (SNL)
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "math.h"
 #include "stdio.h"
 #include "stdlib.h"
 #include "pair_gayberne_gpu.h"
-#include "lmptype.h"
 #include "math_extra.h"
 #include "atom.h"
 #include "atom_vec.h"

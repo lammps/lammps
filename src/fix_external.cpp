@@ -38,7 +38,7 @@ FixExternal::FixExternal(LAMMPS *lmp, int narg, char **arg) :
 
 FixExternal::~FixExternal()
 {
-  memory->destroy_2d_double_array(fexternal);
+  memory->destroy(fexternal);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -77,9 +77,9 @@ void FixExternal::min_setup(int vflag)
 void FixExternal::post_force(int vflag)
 {
   if (atom->nlocal > nmax) {
-    memory->destroy_2d_double_array(fexternal);
+    memory->destroy(fexternal);
     nmax = atom->nmax;
-    fexternal = memory->create_2d_double_array(nmax,3,"external:fexternal");
+    memory->create(fexternal,nmax,3,"external:fexternal");
   }
 
   // invoke the callback in driver program

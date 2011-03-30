@@ -112,8 +112,8 @@ FixBondBreak::~FixBondBreak()
 
   // delete locally stored arrays
 
-  memory->sfree(partner);
-  memory->sfree(distsq);
+  memory->destroy(partner);
+  memory->destroy(distsq);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -170,13 +170,11 @@ void FixBondBreak::post_integrate()
   // needs to be atom->nmax in length
 
   if (atom->nmax > nmax) {
-    memory->sfree(partner);
-    memory->sfree(distsq);
+    memory->destroy(partner);
+    memory->destroy(distsq);
     nmax = atom->nmax;
-    partner = (int *)
-      memory->smalloc(nmax*sizeof(int),"bond/break:partner");
-    distsq = (double *)
-      memory->smalloc(nmax*sizeof(double),"bond/break:distsq");
+    memory->create(partner,nmax,"bond/break:partner");
+    memory->create(distsq,nmax,"bond/break:distsq");
     probability = distsq;
   }
 

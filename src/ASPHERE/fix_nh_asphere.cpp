@@ -33,8 +33,7 @@ using namespace LAMMPS_NS;
 FixNHAsphere::FixNHAsphere(LAMMPS *lmp, int narg, char **arg) :
   FixNH(lmp, narg, arg)
 {
-  inertia = 
-    memory->create_2d_double_array(atom->ntypes+1,3,"fix_nvt_asphere:inertia");
+  memory->create(inertia,atom->ntypes+1,3,"fix_nvt_asphere:inertia");
 
   if (!atom->quat_flag || !atom->angmom_flag || !atom->torque_flag ||
       !atom->avec->shape_type)
@@ -49,7 +48,7 @@ FixNHAsphere::FixNHAsphere(LAMMPS *lmp, int narg, char **arg) :
 
 FixNHAsphere::~FixNHAsphere()
 {
-  memory->destroy_2d_double_array(inertia);
+  memory->destroy(inertia);
 }
 
 /* ---------------------------------------------------------------------- */

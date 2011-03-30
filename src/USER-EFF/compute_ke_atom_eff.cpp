@@ -12,9 +12,10 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Andres Jaramillo-Botero (Caltech)
+   Contributing author: Andres Jaramillo-Botero
 ------------------------------------------------------------------------- */
 
+#include "math.h"
 #include "string.h"
 #include "compute_ke_atom_eff.h"
 #include "atom.h"
@@ -50,7 +51,7 @@ ComputeKEAtomEff::ComputeKEAtomEff(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeKEAtomEff::~ComputeKEAtomEff()
 {
-  memory->sfree(ke);
+  memory->destroy(ke);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -73,10 +74,9 @@ void ComputeKEAtomEff::compute_peratom()
   // grow ke array if necessary
 
   if (atom->nlocal > nmax) {
-    memory->sfree(ke);
+    memory->destroy(ke);
     nmax = atom->nmax;
-    ke = (double *)
-      memory->smalloc(nmax*sizeof(double),"compute/ke/atom/eff:ke");
+    memory->create(ke,nmax,"compute/ke/atom/eff:ke");
     vector_atom = ke;
   }
   
@@ -86,28 +86,17 @@ void ComputeKEAtomEff::compute_peratom()
   double **v = atom->v;
   double *ervel = atom->ervel;
   double *mass = atom->mass;
-  double *rmass = atom->rmass;
   int *spin = atom->spin;
   int *mask = atom->mask;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-
-  if (rmass)
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-        ke[i] = 0.5 * mvv2e * rmass[i] * 
-	  (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
-	if (spin[i]) 
-          ke[i] += 0.5 * mvv2e * rmass[i] * ervel[i]*ervel[i] * 0.75;
-      } else ke[i] = 0.0;
-    }
-
-  else
+  
+  if (mass)
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
         ke[i] = 0.5 * mvv2e * mass[type[i]] * 
-	  (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
-	if (spin[i]) 
+          (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
+        if (fabs(spin[i])==1)
           ke[i] += 0.5 * mvv2e * mass[type[i]] * ervel[i]*ervel[i] * 0.75;
       } else ke[i] = 0.0;
     }

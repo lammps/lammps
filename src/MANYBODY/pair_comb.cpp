@@ -80,25 +80,25 @@ PairComb::PairComb(LAMMPS *lmp) : Pair(lmp)
 
 PairComb::~PairComb()
 {
-  memory->sfree(NCo);
+  memory->destroy(NCo);
 
   if (elements)
     for (int i = 0; i < nelements; i++) delete [] elements[i];
   delete [] elements;
   memory->sfree(params);
-  memory->destroy_3d_int_array(elem2param);
+  memory->destroy(elem2param);
 
-  memory->destroy_2d_int_array(intype);
-  memory->destroy_2d_double_array(fafb);
-  memory->destroy_2d_double_array(dfafb);
-  memory->destroy_2d_double_array(ddfafb);
-  memory->destroy_2d_double_array(phin);
-  memory->destroy_2d_double_array(dphin);
-  memory->destroy_2d_double_array(erpaw);
+  memory->destroy(intype);
+  memory->destroy(fafb);
+  memory->destroy(dfafb);
+  memory->destroy(ddfafb);
+  memory->destroy(phin);
+  memory->destroy(dphin);
+  memory->destroy(erpaw);
   
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
     delete [] map;
     delete [] esm;
   }
@@ -131,9 +131,9 @@ void PairComb::compute(int eflag, int vflag)
   // grow coordination array if necessary
 
   if (atom->nmax > nmax) {
-    memory->sfree(NCo);
+    memory->destroy(NCo);
     nmax = atom->nmax;
-    NCo = (int *) memory->smalloc(nmax*sizeof(double),"pair:NCo");
+    memory->create(NCo,nmax,"pair:NCo");
   }
 
   double **x = atom->x;
@@ -401,8 +401,8 @@ void PairComb::allocate()
  allocated = 1;
  int n = atom->ntypes;
 
- setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
- cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+ memory->create(setflag,n+1,n+1,"pair:setflag");
+ memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
  map = new int[n+1];
  esm = new double[n]; 
@@ -714,8 +714,8 @@ void PairComb::read_file(char *file)
 	params[nparams].QL2 > 0.0 || params[nparams].QU2 < 0.0 || 
 	params[nparams].DL2 < 0.0 || params[nparams].DU2 > 0.0 ||
 	params[nparams].chi < 0.0 || 
-	params[nparams].dj < 0.0 || params[nparams].dk < 0.0 || 
-	params[nparams].dl < 0.0 || params[nparams].dm < 0.0 || 
+//	params[nparams].dj < 0.0 || params[nparams].dk < 0.0 || 
+//	params[nparams].dl < 0.0 || params[nparams].dm < 0.0 || 
 	params[nparams].esm1 < 0.0) 
       error->all("Illegal COMB parameter");
 
@@ -741,9 +741,8 @@ void PairComb::setup()
   // must be a single exact match to lines read from file
   // do not allow for ACB in place of ABC
 
-  if (elem2param) memory->destroy_3d_int_array(elem2param);
-  elem2param = memory->create_3d_int_array(nelements,nelements,nelements,
-					   "pair:elem2param");
+  memory->destroy(elem2param);
+  memory->create(elem2param,nelements,nelements,nelements,"pair:elem2param");
 
   for (i = 0; i < nelements; i++)
     for (j = 0; j < nelements; j++)
@@ -1122,9 +1121,9 @@ double PairComb::self(Param *param, double qi, double selfpot)
  double s1=param->chi, s2=param->dj, s3=param->dk, s4=param->dl, s5=param->dm;
 
  self_tmp = 0.0; 
- qmin = param->QL1*1.10; 
+ qmin = param->QL1*0.90; 
  qmax = param->QU1*0.90;
- cmin = cmax = 3000.0;
+ cmin = cmax = 1000.0;
 
  self_tmp = qi*(s1+qi*(s2+selfpot+qi*(s3+qi*(s4+qi*qi*s5))));
 
@@ -1352,23 +1351,23 @@ void PairComb::sm_table()
   nntypes = int((n+1)*n/2); // interaction types
   ncoul = int((rc-drin)/dra)+1;
   
-  memory->destroy_2d_int_array(intype);
-  memory->destroy_2d_double_array(fafb);
-  memory->destroy_2d_double_array(dfafb);
-  memory->destroy_2d_double_array(ddfafb);
-  memory->destroy_2d_double_array(phin);
-  memory->destroy_2d_double_array(dphin);
-  memory->destroy_2d_double_array(erpaw);
+  memory->destroy(intype);
+  memory->destroy(fafb);
+  memory->destroy(dfafb);
+  memory->destroy(ddfafb);
+  memory->destroy(phin);
+  memory->destroy(dphin);
+  memory->destroy(erpaw);
   
   // allocate arrays
   
-  intype = memory->create_2d_int_array(n,n,"pair:intype");
-  fafb   = memory->create_2d_double_array(ncoul,nntypes,"pair:fafb");
-  dfafb  = memory->create_2d_double_array(ncoul,nntypes,"pair:dfafb");
-  ddfafb = memory->create_2d_double_array(ncoul,nntypes,"pair:ddfafb");
-  phin   = memory->create_2d_double_array(ncoul,nntypes,"pair:phin");
-  dphin  = memory->create_2d_double_array(ncoul,nntypes,"pair:dphin");
-  erpaw  = memory->create_2d_double_array(25000,2,"pair:erpaw");
+  memory->create(intype,n,n,"pair:intype");
+  memory->create(fafb,ncoul,nntypes,"pair:fafb");
+  memory->create(dfafb,ncoul,nntypes,"pair:dfafb");
+  memory->create(ddfafb,ncoul,nntypes,"pair:ddfafb");
+  memory->create(phin,ncoul,nntypes,"pair:phin");
+  memory->create(dphin,ncoul,nntypes,"pair:dphin");
+  memory->create(erpaw,25000,2,"pair:erpaw");
   
   // set interaction number: 0-0=0, 1-1=1, 0-1=1-0=2
   
@@ -1770,28 +1769,27 @@ double PairComb::qfo_self(Param *param, double qi, double selfpot)
  double s5 = param->dm;
 
  self_d = 0.0; 
- qmin = param->QL1; 
- qmax = param->QU1;
+ qmin = param->QL1*0.90; 
+ qmax = param->QU1*0.90;
+ if (qmax > 4.50 ) qmax = -0.70;
  cmin = cmax = 1000.0;
  
  self_d = s1+qi*(2.0*(s2+selfpot)+qi*(3.0*s3+qi*(4.0*s4+qi*qi*6.0*s5)));
  
- /*
  if (qi < qmin) {
-   char str[128];
-   sprintf(str,"Pair COMB charge %.10f with force %.10f hit min barrier",
-	   qi,self_d);
-   error->warning(str,0);
+   // char str[128];
+   // sprintf(str,"Pair COMB charge %.10f with force %.10f hit min barrier",
+   // qi,self_d);
+   // error->warning(str,0);
    self_d += 4.0 * cmin * pow((qi-qmin),3);
  }
  if (qi > qmax) {
-   char str[128];
-   sprintf(str,"Pair COMB charge %.10f with force %.10f hit max barrier",
-	   qi,self_d);
-   error->warning(str,0);
+   // char str[128];
+   // sprintf(str,"Pair COMB charge %.10f with force %.10f hit max barrier",
+   //	   qi,self_d);
+   // error->warning(str,0);
    self_d += 4.0 * cmax * pow((qi-qmax),3);
  }
- */
 
  return self_d;
 }

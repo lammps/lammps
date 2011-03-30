@@ -28,6 +28,9 @@ c     12 = augt1
 c     13 = gsmooth_factor
 c     14 = re_meam
 c     15 = ialloy
+c     16 = mixture_ref_t
+c     17 = erose_form
+c     18 = zbl_meam
 
       subroutine meam_setup_param(which, value, nindex, 
      $     index, errorflag)
@@ -37,6 +40,7 @@ c     15 = ialloy
 
       integer which, nindex, index(3), errorflag
       real*8  value
+      integer i1, i2
 
       errorflag = 0
 
@@ -74,6 +78,8 @@ c     4 = lattce_meam
           lattce_meam(index(1),index(2)) = 'c11'
         else if (value.eq.7) then
           lattce_meam(index(1),index(2)) = 'l12'
+        else if (value.eq.8) then
+          lattce_meam(index(1),index(2)) = 'b2'
         endif
 
 c     5 = attrac_meam
@@ -86,7 +92,9 @@ c     6 = repuls_meam
 
 c     7 = nn2_meam
       else if (which.eq.7) then
-        nn2_meam(index(1),index(2)) = value
+        i1 = min(index(1),index(2))
+        i2 = max(index(1),index(2))
+        nn2_meam(i1,i2) = value
 
 c     8 = Cmin_meam
       else if (which.eq.8) then
@@ -119,6 +127,20 @@ c     14 = re_meam
 c     15 = ialloy
       else if (which.eq.15) then
         ialloy = value
+
+c     16 = mixture_ref_t
+      else if (which.eq.16) then
+        mix_ref_t = value
+
+c     17 = erose_form
+      else if (which.eq.17) then
+        erose_form = value
+
+c     18 = zbl_meam
+      else if (which.eq.18) then
+        i1 = min(index(1),index(2))
+        i2 = max(index(1),index(2))
+        zbl_meam(i1,i2) = value
 
       else
         errorflag = 1

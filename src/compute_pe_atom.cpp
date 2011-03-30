@@ -66,7 +66,7 @@ ComputePEAtom::ComputePEAtom(LAMMPS *lmp, int narg, char **arg) :
 
 ComputePEAtom::~ComputePEAtom()
 {
-  memory->sfree(energy);
+  memory->destroy(energy);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -83,10 +83,9 @@ void ComputePEAtom::compute_peratom()
   // needs to be atom->nmax in length
 
   if (atom->nmax > nmax) {
-    memory->sfree(energy);
+    memory->destroy(energy);
     nmax = atom->nmax;
-    energy = (double *) 
-      memory->smalloc(nmax*sizeof(double),"pe/atom:energy");
+    memory->create(energy,nmax,"pe/atom:energy");
     vector_atom = energy;
   }
 

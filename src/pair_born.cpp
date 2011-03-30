@@ -41,20 +41,20 @@ PairBorn::PairBorn(LAMMPS *lmp) : Pair(lmp) {}
 PairBorn::~PairBorn()
 {
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
 
-    memory->destroy_2d_double_array(cut);
-    memory->destroy_2d_double_array(a);
-    memory->destroy_2d_double_array(rho);
-    memory->destroy_2d_double_array(sigma);
-    memory->destroy_2d_double_array(c);
-    memory->destroy_2d_double_array(d);
-    memory->destroy_2d_double_array(rhoinv);
-    memory->destroy_2d_double_array(born1);
-    memory->destroy_2d_double_array(born2);
-    memory->destroy_2d_double_array(born3);
-    memory->destroy_2d_double_array(offset);
+    memory->destroy(cut);
+    memory->destroy(a);
+    memory->destroy(rho);
+    memory->destroy(sigma);
+    memory->destroy(c);
+    memory->destroy(d);
+    memory->destroy(rhoinv);
+    memory->destroy(born1);
+    memory->destroy(born2);
+    memory->destroy(born3);
+    memory->destroy(offset);
   }
 }
 
@@ -153,24 +153,24 @@ void PairBorn::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
-  cut = memory->create_2d_double_array(n+1,n+1,"pair:cut");
-  a = memory->create_2d_double_array(n+1,n+1,"pair:a");
-  rho = memory->create_2d_double_array(n+1,n+1,"pair:rho");
-  sigma = memory->create_2d_double_array(n+1,n+1,"pair:sigma");
-  c = memory->create_2d_double_array(n+1,n+1,"pair:c");
-  d = memory->create_2d_double_array(n+1,n+1,"pair:d");
-  rhoinv = memory->create_2d_double_array(n+1,n+1,"pair:rhoinv");
-  born1 = memory->create_2d_double_array(n+1,n+1,"pair:born1");
-  born2 = memory->create_2d_double_array(n+1,n+1,"pair:born2");
-  born3 = memory->create_2d_double_array(n+1,n+1,"pair:born3");
-  offset = memory->create_2d_double_array(n+1,n+1,"pair:offset");
+  memory->create(cut,n+1,n+1,"pair:cut");
+  memory->create(a,n+1,n+1,"pair:a");
+  memory->create(rho,n+1,n+1,"pair:rho");
+  memory->create(sigma,n+1,n+1,"pair:sigma");
+  memory->create(c,n+1,n+1,"pair:c");
+  memory->create(d,n+1,n+1,"pair:d");
+  memory->create(rhoinv,n+1,n+1,"pair:rhoinv");
+  memory->create(born1,n+1,n+1,"pair:born1");
+  memory->create(born2,n+1,n+1,"pair:born2");
+  memory->create(born3,n+1,n+1,"pair:born3");
+  memory->create(offset,n+1,n+1,"pair:offset");
 }
 
 /* ----------------------------------------------------------------------

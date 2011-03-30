@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "string.h"
 #include "stdlib.h"
 #include "update.h"
@@ -168,18 +169,18 @@ void Update::set_units(const char *style)
     neighbor->skin = 0.1;
 
   } else if (strcmp(style,"electron") == 0) {
-    force->boltz = 3.16679e-6;
-    force->mvv2e = 1.0;
-    force->ftm2v = 1 / 1.0327499;	
-    force->mv2d = 1.0;
-    force->nktv2p = 2.9421e13;
-    force->qqr2e = 1.0;
-    force->qe2f = 1.0;
-    force->vxmu2f = 0.6241509647;
-    force->xxt2kmu = 1.0e-4;
+    force->boltz = 3.16681534e-6;  
+    force->mvv2e = 1.06657236;     
+    force->ftm2v = 0.937582899;    
+    force->mv2d = 1.0;             
+    force->nktv2p = 2.94210108e13; 
+    force->qqr2e = 1.0;            
+    force->qe2f = 1.94469051e-10;  
+    force->vxmu2f = 3.39893149e1;  
+    force->xxt2kmu = 3.13796367e-2;
     dt = 0.001;
     neighbor->skin = 2.0;
-
+    
   } else error->all("Illegal units command");
 
   delete [] unit_style;
@@ -287,9 +288,9 @@ void Update::reset_timestep(int narg, char **arg)
    memory usage of update and integrate/minimize
 ------------------------------------------------------------------------- */
 
-double Update::memory_usage()
+bigint Update::memory_usage()
 {
-  double bytes = 0.0;
+  bigint bytes = 0;
   if (whichflag == 1) bytes += integrate->memory_usage();
   else if (whichflag == 2) bytes += minimize->memory_usage();
   return bytes;

@@ -1,0 +1,60 @@
+
+# Created 2010-12-13
+
+# General parameters
+
+variable	sname index C2H6fc.ang
+
+units		real
+newton		on
+boundary	f f f
+
+atom_style      electron
+
+read_data       data.${sname}
+
+pair_style      eff/cut 529.177249
+pair_coeff      * *
+
+compute         energies all pair eff/cut
+variable        eke equal c_energies[1]
+variable        epauli equal c_energies[2]
+variable        estatics equal c_energies[3]
+variable        errestrain equal c_energies[4]
+
+communicate     single vel yes
+
+compute         peratom all stress/atom
+compute         p all reduce sum c_peratom[1] c_peratom[2] c_peratom[3]
+variable        press equal -(c_p[1]+c_p[2]+c_p[3])/(3*vol)
+
+compute         effTemp all temp/eff
+compute         effPress all pressure effTemp
+
+thermo		100
+thermo_style    custom step etotal pe ke v_eke v_epauli v_estatics v_errestrain temp press v_press 
+thermo_modify   temp effTemp press effPress
+
+# Minimization
+
+min_style       cg
+dump            1 all xyz 100 ${sname}.min.xyz
+dump            2 all custom 100 ${sname}.min.lammpstrj id type q spin eradius x y z fx fy fz erforce
+dump            3 all custom 100 data.${sname}.restart id type q spin eradius x y z
+min_modify      line quadratic
+minimize        0 1e-6 1000 2000
+
+undump		1
+undump		2
+undump          3
+
+# Equilibrate at 5000K
+velocity        all create 1.0 4928459 rot yes mom yes dist gaussian
+
+timestep	0.001
+
+fix             1 all nvt/eff temp 1.0 10000.0 1.0
+dump            2 all custom 100 ${sname}.nvt.lammpstrj id type q spin eradius x y z fx fy fz erforce
+
+run             100000
+

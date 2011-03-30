@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "stdlib.h"
 #include "atom_vec_full.h"
-#include "lmptype.h"
 #include "atom.h"
 #include "domain.h"
 #include "modify.h"
@@ -63,88 +63,68 @@ void AtomVecFull::grow(int n)
   if (nmax < 0 || nmax > MAXSMALLINT)
     error->one("Per-processor system is too big");
 
-  tag = atom->tag = (int *) 
-    memory->srealloc(atom->tag,nmax*sizeof(int),"atom:tag");
-  type = atom->type = (int *)
-    memory->srealloc(atom->type,nmax*sizeof(int),"atom:type");
-  mask = atom->mask = (int *) 
-    memory->srealloc(atom->mask,nmax*sizeof(int),"atom:mask");
-  image = atom->image = (int *) 
-    memory->srealloc(atom->image,nmax*sizeof(int),"atom:image");
-  x = atom->x = memory->grow_2d_double_array(atom->x,nmax,3,"atom:x");
-  v = atom->v = memory->grow_2d_double_array(atom->v,nmax,3,"atom:v");
-  f = atom->f = memory->grow_2d_double_array(atom->f,nmax,3,"atom:f");
+  tag = memory->grow(atom->tag,nmax,"atom:tag");
+  type = memory->grow(atom->type,nmax,"atom:type");
+  mask = memory->grow(atom->mask,nmax,"atom:mask");
+  image = memory->grow(atom->image,nmax,"atom:image");
+  x = memory->grow(atom->x,nmax,3,"atom:x");
+  v = memory->grow(atom->v,nmax,3,"atom:v");
+  f = memory->grow(atom->f,nmax,3,"atom:f");
 
-  q = atom->q = (double *) 
-    memory->srealloc(atom->q,nmax*sizeof(double),"atom:q");
-  molecule = atom->molecule = (int *) 
-    memory->srealloc(atom->molecule,nmax*sizeof(int),"atom:molecule");
+  q = memory->grow(atom->q,nmax,"atom:q");
+  molecule = memory->grow(atom->molecule,nmax,"atom:molecule");
 
-  nspecial = atom->nspecial =
-    memory->grow_2d_int_array(atom->nspecial,nmax,3,"atom:nspecial");
-  special = atom->special =
-    memory->grow_2d_int_array(atom->special,nmax,atom->maxspecial,
-			      "atom:special");
+  nspecial = memory->grow(atom->nspecial,nmax,3,"atom:nspecial");
+  special = memory->grow(atom->special,nmax,atom->maxspecial,"atom:special");
+  
+  num_bond = memory->grow(atom->num_bond,nmax,"atom:num_bond");
+  bond_type = memory->grow(atom->bond_type,nmax,atom->bond_per_atom,
+			   "atom:bond_type");
+  bond_atom = memory->grow(atom->bond_atom,nmax,atom->bond_per_atom,
+			   "atom:bond_atom");
 
-  num_bond = atom->num_bond = (int *) 
-    memory->srealloc(atom->num_bond,nmax*sizeof(int),"atom:num_bond");
-  bond_type = atom->bond_type = 
-    memory->grow_2d_int_array(atom->bond_type,nmax,atom->bond_per_atom,
-			      "atom:bond_type");
-  bond_atom = atom->bond_atom = 
-    memory->grow_2d_int_array(atom->bond_atom,nmax,atom->bond_per_atom,
-			      "atom:bond_atom");
+  num_angle = memory->grow(atom->num_angle,nmax,"atom:num_angle");
+  angle_type = memory->grow(atom->angle_type,nmax,atom->angle_per_atom,
+			    "atom:angle_type");
+  angle_atom1 = memory->grow(atom->angle_atom1,nmax,atom->angle_per_atom,
+			     "atom:angle_atom1");
+  angle_atom2 = memory->grow(atom->angle_atom2,nmax,atom->angle_per_atom,
+			     "atom:angle_atom2");
+  angle_atom3 = memory->grow(atom->angle_atom3,nmax,atom->angle_per_atom,
+			     "atom:angle_atom3");
+  
+  num_dihedral = memory->grow(atom->num_dihedral,nmax,"atom:num_dihedral");
+  dihedral_type = memory->grow(atom->dihedral_type,nmax,
+			       atom->dihedral_per_atom,"atom:dihedral_type");
+  dihedral_atom1 = 
+    memory->grow(atom->dihedral_atom1,nmax,atom->dihedral_per_atom,
+		 "atom:dihedral_atom1");
+  dihedral_atom2 = 
+    memory->grow(atom->dihedral_atom2,nmax,atom->dihedral_per_atom,
+		 "atom:dihedral_atom2");
+  dihedral_atom3 = 
+    memory->grow(atom->dihedral_atom3,nmax,atom->dihedral_per_atom,
+		 "atom:dihedral_atom3");
+  dihedral_atom4 = 
+    memory->grow(atom->dihedral_atom4,nmax,atom->dihedral_per_atom,
+		 "atom:dihedral_atom4");
 
-  num_angle = atom->num_angle = (int *) 
-    memory->srealloc(atom->num_angle,nmax*sizeof(int),"atom:num_angle");
-  angle_type = atom->angle_type = 
-    memory->grow_2d_int_array(atom->angle_type,nmax,atom->angle_per_atom,
-			      "atom:angle_type");
-  angle_atom1 = atom->angle_atom1 = 
-    memory->grow_2d_int_array(atom->angle_atom1,nmax,atom->angle_per_atom,
-			      "atom:angle_atom1");
-  angle_atom2 = atom->angle_atom2 = 
-    memory->grow_2d_int_array(atom->angle_atom2,nmax,atom->angle_per_atom,
-			      "atom:angle_atom2");
-  angle_atom3 = atom->angle_atom3 = 
-    memory->grow_2d_int_array(atom->angle_atom3,nmax,atom->angle_per_atom,
-			      "atom:angle_atom3");
-
-  num_dihedral = atom->num_dihedral = (int *) 
-    memory->srealloc(atom->num_dihedral,nmax*sizeof(int),"atom:num_dihedral");
-  dihedral_type = atom->dihedral_type = 
-    memory->grow_2d_int_array(atom->dihedral_type,nmax,atom->dihedral_per_atom,
-			      "atom:dihedral_type");
-  dihedral_atom1 = atom->dihedral_atom1 = 
-    memory->grow_2d_int_array(atom->dihedral_atom1,nmax,
-			      atom->dihedral_per_atom,"atom:dihedral_atom1");
-  dihedral_atom2 = atom->dihedral_atom2 = 
-    memory->grow_2d_int_array(atom->dihedral_atom2,nmax,
-			      atom->dihedral_per_atom,"atom:dihedral_atom2");
-  dihedral_atom3 = atom->dihedral_atom3 = 
-    memory->grow_2d_int_array(atom->dihedral_atom3,nmax,
-			      atom->dihedral_per_atom,"atom:dihedral_atom3");
-  dihedral_atom4 = atom->dihedral_atom4 = 
-    memory->grow_2d_int_array(atom->dihedral_atom4,nmax,
-			      atom->dihedral_per_atom,"atom:dihedral_atom4");
-
-  num_improper = atom->num_improper = (int *) 
-    memory->srealloc(atom->num_improper,nmax*sizeof(int),"atom:num_improper");
-  improper_type = atom->improper_type = 
-    memory->grow_2d_int_array(atom->improper_type,nmax,atom->improper_per_atom,
-			      "atom:improper_type");
-  improper_atom1 = atom->improper_atom1 = 
-    memory->grow_2d_int_array(atom->improper_atom1,nmax,
-			      atom->improper_per_atom,"atom:improper_atom1");
-  improper_atom2 = atom->improper_atom2 = 
-    memory->grow_2d_int_array(atom->improper_atom2,nmax,
-			      atom->improper_per_atom,"atom:improper_atom2");
-  improper_atom3 = atom->improper_atom3 = 
-    memory->grow_2d_int_array(atom->improper_atom3,nmax,
-			      atom->improper_per_atom,"atom:improper_atom3");
-  improper_atom4 = atom->improper_atom4 = 
-    memory->grow_2d_int_array(atom->improper_atom4,nmax,
-			      atom->improper_per_atom,"atom:improper_atom4");
+  num_improper = memory->grow(atom->num_improper,nmax,"atom:num_improper");
+  improper_type = 
+    memory->grow(atom->improper_type,nmax,atom->improper_per_atom,
+		 "atom:improper_type");
+  improper_atom1 = 
+    memory->grow(atom->improper_atom1,nmax,atom->improper_per_atom,
+		 "atom:improper_atom1");
+  improper_atom2 = 
+    memory->grow(atom->improper_atom2,nmax,atom->improper_per_atom,
+		 "atom:improper_atom2");
+  improper_atom3 = 
+    memory->grow(atom->improper_atom3,nmax,atom->improper_per_atom,
+		 "atom:improper_atom3");
+  improper_atom4 = 
+    memory->grow(atom->improper_atom4,nmax,atom->improper_per_atom,
+		 "atom:improper_atom4");
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++) 
@@ -279,7 +259,7 @@ int AtomVecFull::pack_comm_vel(int n, int *list, double *buf,
 			       int pbc_flag, int *pbc)
 {
   int i,j,m;
-  double dx,dy,dz;
+  double dx,dy,dz,dvx,dvy,dvz;
 
   m = 0;
   if (pbc_flag == 0) {
@@ -302,14 +282,35 @@ int AtomVecFull::pack_comm_vel(int n, int *list, double *buf,
       dy = pbc[1]*domain->yprd + pbc[3]*domain->yz;
       dz = pbc[2]*domain->zprd;
     }
-    for (i = 0; i < n; i++) {
-      j = list[i];
-      buf[m++] = x[j][0] + dx;
-      buf[m++] = x[j][1] + dy;
-      buf[m++] = x[j][2] + dz;
-      buf[m++] = v[j][0];
-      buf[m++] = v[j][1];
-      buf[m++] = v[j][2];
+    if (!deform_vremap) {
+      for (i = 0; i < n; i++) {
+	j = list[i];
+	buf[m++] = x[j][0] + dx;
+	buf[m++] = x[j][1] + dy;
+	buf[m++] = x[j][2] + dz;
+	buf[m++] = v[j][0];
+	buf[m++] = v[j][1];
+	buf[m++] = v[j][2];
+      }
+    } else {
+      dvx = pbc[0]*h_rate[0] + pbc[5]*h_rate[5] + pbc[4]*h_rate[4];
+      dvy = pbc[1]*h_rate[1] + pbc[3]*h_rate[3];
+      dvz = pbc[2]*h_rate[2];
+      for (i = 0; i < n; i++) {
+	j = list[i];
+	buf[m++] = x[j][0] + dx;
+	buf[m++] = x[j][1] + dy;
+	buf[m++] = x[j][2] + dz;
+	if (mask[i] & deform_groupbit) {
+	  buf[m++] = v[j][0] + dvx;
+	  buf[m++] = v[j][1] + dvy;
+	  buf[m++] = v[j][2] + dvz;
+	} else {
+	  buf[m++] = v[j][0];
+	  buf[m++] = v[j][1];
+	  buf[m++] = v[j][2];
+	}
+      }
     }
   }
   return m;
@@ -431,7 +432,7 @@ int AtomVecFull::pack_border_vel(int n, int *list, double *buf,
 				 int pbc_flag, int *pbc)
 {
   int i,j,m;
-  double dx,dy,dz;
+  double dx,dy,dz,dvx,dvy,dvz;
 
   m = 0;
   if (pbc_flag == 0) {
@@ -459,19 +460,45 @@ int AtomVecFull::pack_border_vel(int n, int *list, double *buf,
       dy = pbc[1];
       dz = pbc[2];
     }
-    for (i = 0; i < n; i++) {
-      j = list[i];
-      buf[m++] = x[j][0] + dx;
-      buf[m++] = x[j][1] + dy;
-      buf[m++] = x[j][2] + dz;
-      buf[m++] = tag[j];
-      buf[m++] = type[j];
-      buf[m++] = mask[j];
-      buf[m++] = q[j];
-      buf[m++] = molecule[j];
-      buf[m++] = v[j][0];
-      buf[m++] = v[j][1];
-      buf[m++] = v[j][2];
+    if (!deform_vremap) {
+      for (i = 0; i < n; i++) {
+	j = list[i];
+	buf[m++] = x[j][0] + dx;
+	buf[m++] = x[j][1] + dy;
+	buf[m++] = x[j][2] + dz;
+	buf[m++] = tag[j];
+	buf[m++] = type[j];
+	buf[m++] = mask[j];
+	buf[m++] = q[j];
+	buf[m++] = molecule[j];
+	buf[m++] = v[j][0];
+	buf[m++] = v[j][1];
+	buf[m++] = v[j][2];
+      }
+    } else {
+      dvx = pbc[0]*h_rate[0] + pbc[5]*h_rate[5] + pbc[4]*h_rate[4];
+      dvy = pbc[1]*h_rate[1] + pbc[3]*h_rate[3];
+      dvz = pbc[2]*h_rate[2];
+      for (i = 0; i < n; i++) {
+	j = list[i];
+	buf[m++] = x[j][0] + dx;
+	buf[m++] = x[j][1] + dy;
+	buf[m++] = x[j][2] + dz;
+	buf[m++] = tag[j];
+	buf[m++] = type[j];
+	buf[m++] = mask[j];
+	buf[m++] = q[j];
+	buf[m++] = molecule[j];
+	if (mask[i] & deform_groupbit) {
+	  buf[m++] = v[j][0] + dvx;
+	  buf[m++] = v[j][1] + dvy;
+	  buf[m++] = v[j][2] + dvz;
+	} else {
+	  buf[m++] = v[j][0];
+	  buf[m++] = v[j][1];
+	  buf[m++] = v[j][2];
+	}
+      }
     }
   }
   return m;
@@ -780,9 +807,7 @@ int AtomVecFull::unpack_restart(double *buf)
   if (nlocal == nmax) {
     grow(0);
     if (atom->nextra_store)
-      atom->extra = memory->grow_2d_double_array(atom->extra,nmax,
-						 atom->nextra_store,
-						 "atom:extra");
+      memory->grow(atom->extra,nmax,atom->nextra_store,"atom:extra");
   }
 
   int m = 1;
@@ -936,62 +961,63 @@ int AtomVecFull::data_atom_hybrid(int nlocal, char **values)
    return # of bytes of allocated memory 
 ------------------------------------------------------------------------- */
 
-double AtomVecFull::memory_usage()
+bigint AtomVecFull::memory_usage()
 {
-  double bytes = 0.0;
+  bigint bytes = 0;
 
-  if (atom->memcheck("tag")) bytes += nmax * sizeof(int);
-  if (atom->memcheck("type")) bytes += nmax * sizeof(int);
-  if (atom->memcheck("mask")) bytes += nmax * sizeof(int);
-  if (atom->memcheck("image")) bytes += nmax * sizeof(int);
-  if (atom->memcheck("x")) bytes += nmax*3 * sizeof(double);
-  if (atom->memcheck("v")) bytes += nmax*3 * sizeof(double);
-  if (atom->memcheck("f")) bytes += nmax*3 * sizeof(double);
+  if (atom->memcheck("tag")) bytes += memory->usage(tag,nmax);
+  if (atom->memcheck("type")) bytes += memory->usage(type,nmax);
+  if (atom->memcheck("mask")) bytes += memory->usage(mask,nmax);
+  if (atom->memcheck("image")) bytes += memory->usage(image,nmax);
+  if (atom->memcheck("x")) bytes += memory->usage(x,nmax,3);
+  if (atom->memcheck("v")) bytes += memory->usage(v,nmax,3);
+  if (atom->memcheck("f")) bytes += memory->usage(f,nmax,3);
 
-  if (atom->memcheck("q")) bytes += nmax * sizeof(double);
-  if (atom->memcheck("molecule")) bytes += nmax * sizeof(int);
-  if (atom->memcheck("nspecial")) bytes += nmax*3 * sizeof(int);
-  if (atom->memcheck("special")) bytes += nmax*atom->maxspecial * sizeof(int);
+  if (atom->memcheck("q")) bytes += memory->usage(q,nmax);
+  if (atom->memcheck("molecule")) bytes += memory->usage(molecule,nmax);
+  if (atom->memcheck("nspecial")) bytes += memory->usage(nspecial,nmax,3);
+  if (atom->memcheck("special")) 
+    bytes += memory->usage(special,nmax,atom->maxspecial);
 
-  if (atom->memcheck("num_bond")) bytes += nmax * sizeof(int);
-  if (atom->memcheck("bond_type"))
-    bytes += nmax*atom->bond_per_atom * sizeof(int);
-  if (atom->memcheck("bond_atom"))
-    bytes += nmax*atom->bond_per_atom * sizeof(int);
+  if (atom->memcheck("num_bond")) bytes += memory->usage(num_bond,nmax);
+  if (atom->memcheck("bond_type")) 
+    bytes += memory->usage(bond_type,nmax,atom->bond_per_atom);
+  if (atom->memcheck("bond_atom")) 
+    bytes += memory->usage(bond_atom,nmax,atom->bond_per_atom);
 
-  if (atom->memcheck("num_angle")) bytes += nmax * sizeof(int);
-  if (atom->memcheck("angle_type"))
-    bytes += nmax*atom->angle_per_atom * sizeof(int);
-  if (atom->memcheck("angle_atom1"))
-    bytes += nmax*atom->angle_per_atom * sizeof(int);
-  if (atom->memcheck("angle_atom2"))
-    bytes += nmax*atom->angle_per_atom * sizeof(int);
-  if (atom->memcheck("angle_atom3"))
-    bytes += nmax*atom->angle_per_atom * sizeof(int);
+  if (atom->memcheck("num_angle")) bytes += memory->usage(num_angle,nmax);
+  if (atom->memcheck("angle_type")) 
+    bytes += memory->usage(angle_type,nmax,atom->angle_per_atom);
+  if (atom->memcheck("angle_atom1")) 
+    bytes += memory->usage(angle_atom1,nmax,atom->angle_per_atom);
+  if (atom->memcheck("angle_atom2")) 
+    bytes += memory->usage(angle_atom2,nmax,atom->angle_per_atom);
+  if (atom->memcheck("angle_atom3")) 
+    bytes += memory->usage(angle_atom3,nmax,atom->angle_per_atom);
 
-  if (atom->memcheck("num_dihedral")) bytes += nmax * sizeof(int);
-  if (atom->memcheck("dihedral_type"))
-    bytes += nmax*atom->dihedral_per_atom * sizeof(int);
-  if (atom->memcheck("dihedral_atom1"))
-    bytes += nmax*atom->dihedral_per_atom * sizeof(int);
-  if (atom->memcheck("dihedral_atom2"))
-    bytes += nmax*atom->dihedral_per_atom * sizeof(int);
-  if (atom->memcheck("dihedral_atom3"))
-    bytes += nmax*atom->dihedral_per_atom * sizeof(int);
-  if (atom->memcheck("dihedral_atom4"))
-    bytes += nmax*atom->dihedral_per_atom * sizeof(int);
+  if (atom->memcheck("num_dihedral")) bytes += memory->usage(num_dihedral,nmax);
+  if (atom->memcheck("dihedral_type")) 
+    bytes += memory->usage(dihedral_type,nmax,atom->dihedral_per_atom);
+  if (atom->memcheck("dihedral_atom1")) 
+    bytes += memory->usage(dihedral_atom1,nmax,atom->dihedral_per_atom);
+  if (atom->memcheck("dihedral_atom2")) 
+    bytes += memory->usage(dihedral_atom2,nmax,atom->dihedral_per_atom);
+  if (atom->memcheck("dihedral_atom3")) 
+    bytes += memory->usage(dihedral_atom3,nmax,atom->dihedral_per_atom);
+  if (atom->memcheck("dihedral_atom4")) 
+    bytes += memory->usage(dihedral_atom4,nmax,atom->dihedral_per_atom);
 
-  if (atom->memcheck("num_improper")) bytes += nmax * sizeof(int);
-  if (atom->memcheck("improper_type"))
-    bytes += nmax*atom->improper_per_atom * sizeof(int);
-  if (atom->memcheck("improper_atom1"))
-    bytes += nmax*atom->improper_per_atom * sizeof(int);
-  if (atom->memcheck("improper_atom2"))
-    bytes += nmax*atom->improper_per_atom * sizeof(int);
-  if (atom->memcheck("improper_atom3"))
-    bytes += nmax*atom->improper_per_atom * sizeof(int);
-  if (atom->memcheck("improper_atom4"))
-    bytes += nmax*atom->improper_per_atom * sizeof(int);
+  if (atom->memcheck("num_improper")) bytes += memory->usage(num_improper,nmax);
+  if (atom->memcheck("improper_type")) 
+    bytes += memory->usage(improper_type,nmax,atom->improper_per_atom);
+  if (atom->memcheck("improper_atom1")) 
+    bytes += memory->usage(improper_atom1,nmax,atom->improper_per_atom);
+  if (atom->memcheck("improper_atom2")) 
+    bytes += memory->usage(improper_atom2,nmax,atom->improper_per_atom);
+  if (atom->memcheck("improper_atom3")) 
+    bytes += memory->usage(improper_atom3,nmax,atom->improper_per_atom);
+  if (atom->memcheck("improper_atom4")) 
+    bytes += memory->usage(improper_atom4,nmax,atom->improper_per_atom);
 
   return bytes;
 }

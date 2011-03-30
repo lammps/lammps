@@ -15,10 +15,10 @@
    Contributing author: Pieter in 't Veld (SNL)
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "stdlib.h"
 #include "string.h"
 #include "fix_ave_time.h"
-#include "lmptype.h"
 #include "update.h"
 #include "modify.h"
 #include "compute.h"
@@ -297,15 +297,12 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
     vector = new double[nvalues];
     vector_total = new double[nvalues];
     if (ave == WINDOW)
-      vector_list = memory->create_2d_double_array(nwindow,nvalues,
-						   "ave/time:vector_list");
+      memory->create(vector_list,nwindow,nvalues,"ave/time:vector_list");
   } else {
-    array = memory->create_2d_double_array(nrows,nvalues,"ave/time:array");
-    array_total = memory->create_2d_double_array(nrows,nvalues,
-						 "ave/time:array_total");
+    memory->create(array,nrows,nvalues,"ave/time:array");
+    memory->create(array_total,nrows,nvalues,"ave/time:array_total");
     if (ave == WINDOW)
-      array_list = memory->create_3d_double_array(nwindow,nrows,nvalues,
-						  "ave/time:array_list");
+      memory->create(array_list,nwindow,nrows,nvalues,"ave/time:array_list");
   }
 
   // this fix produces either a global scalar or vector or array
@@ -428,10 +425,10 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
 
 FixAveTime::~FixAveTime()
 {
-  memory->sfree(which);
-  memory->sfree(argindex);
-  memory->sfree(value2index);
-  memory->sfree(offcol);
+  memory->destroy(which);
+  memory->destroy(argindex);
+  memory->destroy(value2index);
+  memory->destroy(offcol);
   for (int i = 0; i < nvalues; i++) delete [] ids[i];
   memory->sfree(ids);
 
@@ -442,9 +439,9 @@ FixAveTime::~FixAveTime()
   delete [] vector;
   delete [] vector_total;
   delete [] column;
-  memory->destroy_2d_double_array(array);
-  memory->destroy_2d_double_array(array_total);
-  memory->destroy_3d_double_array(array_list);
+  memory->destroy(array);
+  memory->destroy(array_total);
+  memory->destroy(array_list);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -871,8 +868,7 @@ void FixAveTime::options(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"off") == 0) {
       if (iarg+2 > narg) error->all("Illegal fix ave/time command");
-      offlist = (int *) 
-	memory->srealloc(offlist,(noff+1)*sizeof(int),"ave/time:offlist");
+      memory->grow(offlist,noff+1,"ave/time:offlist");
       offlist[noff++] = atoi(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"title1") == 0) {
@@ -906,12 +902,10 @@ void FixAveTime::options(int narg, char **arg)
 
 void FixAveTime::allocate_values(int n)
 {
-  which = (int *) memory->srealloc(which,n*sizeof(int),"ave/time:which");
-  argindex = (int *) memory->srealloc(argindex,n*sizeof(int),
-				      "ave/time:argindex");
-  value2index = (int *) memory->srealloc(value2index,n*sizeof(int),
-					 "ave/time:value2index");
-  offcol = (int *) memory->srealloc(offcol,n*sizeof(int),"ave/time:offcol");
+  memory->grow(which,n,"ave/time:which");
+  memory->grow(argindex,n,"ave/time:argindex");
+  memory->grow(value2index,n,"ave/time:value2index");
+  memory->grow(offcol,n,"ave/time:offcol");
   ids = (char **) memory->srealloc(ids,n*sizeof(char *),"ave/time:ids");
 }
 

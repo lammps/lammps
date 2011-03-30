@@ -62,8 +62,8 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeBondLocal::~ComputeBondLocal()
 {
-  memory->sfree(vector);
-  memory->destroy_2d_double_array(array);
+  memory->destroy(vector);
+  memory->destroy(array);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -172,14 +172,12 @@ void ComputeBondLocal::reallocate(int n)
   while (nmax < n) nmax += DELTA;
 
   if (nvalues == 1) {
-    memory->sfree(vector);
-    vector = (double *) memory->smalloc(nmax*sizeof(double),
-					"bond/local:vector");
+    memory->destroy(vector);
+    memory->create(vector,nmax,"bond/local:vector");
     vector_local = vector;
   } else {
-    memory->destroy_2d_double_array(array);
-    array = memory->create_2d_double_array(nmax,nvalues,
-					   "bond/local:array");
+    memory->destroy(array);
+    memory->create(array,nmax,nvalues,"bond/local:array");
     array_local = array;
   }
 }

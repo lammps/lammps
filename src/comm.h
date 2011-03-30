@@ -53,7 +53,7 @@ class Comm : protected Pointers {
   void reverse_comm_compute(class Compute *);  // reverse comm from a Compute
 
   void set(int, char **);           // set communication style
-  double memory_usage();
+  bigint memory_usage();
 
  private:
   int style;                        // single vs multi-type comm

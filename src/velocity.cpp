@@ -11,13 +11,13 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "mpi.h"
 #include "math.h"
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
 #include "velocity.h"
-#include "lmptype.h"
 #include "atom.h"
 #include "update.h"
 #include "domain.h"
@@ -164,7 +164,8 @@ void Velocity::create(double t_desired, int seed)
 
   double **v = atom->v;
   int nlocal = atom->nlocal;
-  double **vhold = memory->create_2d_double_array(nlocal,3,"velocity:vnew");
+  double **vhold;
+  memory->create(vhold,nlocal,3,"velocity:vnew");
 
   for (i = 0; i < nlocal; i++) {
     vhold[i][0] = v[i][0];
@@ -332,7 +333,7 @@ void Velocity::create(double t_desired, int seed)
   // free local memory
   // if temperature was created, delete it
 
-  memory->destroy_2d_double_array(vhold);
+  memory->destroy(vhold);
   delete random;
   if (tflag) delete temperature;
 }
@@ -431,14 +432,13 @@ void Velocity::set(int narg, char **arg)
     if (zstyle == CONSTANT && vz != 0.0)
       error->all("Cannot set non-zero z velocity for 2d simulation");
     if (zstyle == EQUAL || zstyle == ATOM)
-      error->all("Cannot set varaible z velocity for 2d simulation");
+      error->all("Cannot set variable z velocity for 2d simulation");
   }
 
   // allocate vfield array if necessary
 
   double **vfield = NULL;
-  if (varflag == ATOM)
-    vfield = memory->create_2d_double_array(atom->nlocal,3,"velocity:vfield");
+  if (varflag == ATOM) memory->create(vfield,atom->nlocal,3,"velocity:vfield");
 
   // set velocities via constants
 
@@ -465,13 +465,13 @@ void Velocity::set(int narg, char **arg)
 
   } else {
     if (xstyle == EQUAL) vx = input->variable->compute_equal(xvar);
-    else if (xstyle == ATOM)
+    else if (xstyle == ATOM && vfield)
       input->variable->compute_atom(xvar,igroup,&vfield[0][0],3,0);
     if (ystyle == EQUAL) vy = input->variable->compute_equal(yvar);
-    else if (ystyle == ATOM)
+    else if (ystyle == ATOM && vfield)
       input->variable->compute_atom(yvar,igroup,&vfield[0][1],3,0);
     if (zstyle == EQUAL) vz = input->variable->compute_equal(zvar);
-    else if (zstyle == ATOM)
+    else if (zstyle == ATOM && vfield)
       input->variable->compute_atom(zvar,igroup,&vfield[0][2],3,0);
 
     for (int i = 0; i < nlocal; i++)
@@ -499,7 +499,7 @@ void Velocity::set(int narg, char **arg)
   delete [] xstr;
   delete [] ystr;
   delete [] zstr;
-  memory->destroy_2d_double_array(vfield);
+  memory->destroy(vfield);
 }
 
 /* ----------------------------------------------------------------------

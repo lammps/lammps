@@ -23,6 +23,10 @@ pair_coeff * * ../potentials/library.meam Ni Al NULL Ni Al Ni Ni
 </PRE>
 <P><B>Description:</B>
 </P>
+<P>NOTE: The behavior of the MEAM potential for alloy systems has changed
+as of November 2010; see description below of the mixture_ref_t
+parameter
+</P>
 <P>Style <I>meam</I> computes pairwise interactions for a variety of materials
 using modified embedded-atom method (MEAM) potentials
 <A HREF = "#Baskes">(Baskes)</A>.  Conceptually, it is an extension to the original
@@ -116,6 +120,32 @@ you wish to read in.  There can be multiple entries in the library
 file with the same "elt" value; LAMMPS reads the 1st matching entry it
 finds and ignores the rest.
 </P>
+<P>Other parameters in the MEAM library file correspond to single-element
+potential parameters:
+</P>
+<PRE>lat      = lattice structure of reference configuration
+z        = number of nearest neighbors in the reference structure
+ielement = atomic number
+atwt     = atomic weight
+alat     = lattice constant of reference structure
+esub     = energy per atom (eV) in the reference structure at equilibrium
+asub     = "A" parameter for MEAM (see e.g. <A HREF = "#Baskes">(Baskes)</A>) 
+</PRE>
+<P>The alpha, b0, b1, b2, b3, t0, t1, t2, t3 parameters correspond to the
+standard MEAM parameters in the literature <A HREF = "#Baskes">(Baskes)</A> (the b
+parameters are the standard beta parameters).  The rozero parameter is
+an element-dependent density scaling that weights the reference
+background density (see e.g. equation 4.5 in <A HREF = "#Gullet">(Gullet)</A>) and
+is typically 1.0 for single-element systems.  The ibar parameter
+selects the form of the function G(Gamma) used to compute the electron
+density; options are
+</P>
+<PRE>   0 => G = sqrt(1+Gamma)
+   1 => G = exp(Gamma/2)
+   2 => not implemented 
+   3 => G = 2/(1+exp(-Gamma))
+   4 => G = sqrt(1+Gamma) 
+</PRE>
 <P>If used, the MEAM parameter file contains settings that override or
 complement the library file settings.  Examples of such parameter
 files are in the potentials directory with a ".meam" suffix.  Their
@@ -160,15 +190,19 @@ lattce(I,J) = lattice structure of I-J reference structure:
 		hcp = hexagonal close-packed
 		c11 = MoSi2 structure
 		l12 = Cu3Au structure (lower case L, followed by 12)
+                b2  = CsCl structure (interpenetrating simple cubic)
 nn2(I,J)    = turn on second-nearest neighbor MEAM formulation for
-              I-J pair (see for example <A HREF = "#Lee">(Lee)</A>).  Only valid for I=J.
+              I-J pair (see for example <A HREF = "#Lee">(Lee)</A>).  
                 0 = second-nearest neighbor formulation off
                 1 = second-nearest neighbor formulation on
                 default = 0
 attrac(I,J) = additional cubic attraction term in Rose energy I-J pair potential
                 default = 0            
 repuls(I,J) = additional cubic repulsive term in Rose energy I-J pair potential
-                default = 0            
+                default = 0     
+zbl(I,J)    = blend the MEAM I-J pair potential with the ZBL potential for small 
+              atom separations <A HREF = "#ZBL">(ZBL)</A> 
+                default = 1       
 gsmooth_factor  = factor determining the length of the G-function smoothing
                   region; only significant for ibar=0 or ibar=4.
                       99.0 = short smoothing region, sharp step
@@ -179,6 +213,21 @@ augt1           = integer flag for whether to augment t1 parameter by
                     0 = don't augment t1
                     1 = augment t1
                     default = 1 
+ialloy          = integer flag to use alternative averaging rule for t parameters,
+                  for comparison with the DYNAMO MEAM code
+                    0 = standard averaging (matches ialloy=0 in DYNAMO)
+                    1 = alternative averaging (matches ialloy=1 in DYNAMO)
+                    2 = no averaging of t (use single-element values)
+                    default = 0
+mixture_ref_t   = integer flag to use mixture average of t to compute the background
+                  reference density for alloys, instead of the single-element values
+                  (see description and warning elsewhere in this doc page)
+                    0 = do not use mixture averaging for t in the reference density
+                    1 = use mixture averaging for t in the reference density
+                    default = 0 
+erose_form      = integer value to select the form of the Rose energy function 
+                  (see description below).
+                    default = 0 
 </PRE>
 <P>Rc, delr, re are in distance units (Angstroms in the case of metal
 units).  Ec and delta are in energy units (eV in the case of metal
@@ -211,19 +260,42 @@ automatically.  When parameter values are fit using the modified
 density function, as in more recent literature, augt1 should be set to
 0.
 </P>
-<P>The parameters attrac and repuls can be used to modify the Rose energy
-function used to compute the pair potential.  This function gives the
-energy of the reference state as a function of interatomic spacing.
-The form of this function is:
+<P>The mixture_ref_t parameter is available to match results with those
+of previous versions of lammps (before January 2011).  Newer versions
+of lammps, by default, use the single-element values of the t
+parameters to compute the background reference density.  This is the
+proper way to compute these parameters.  Earlier versions of lammps
+used an alloy mixture averaged value of t to compute the background
+reference density.  Setting mixture_ref_t=1 gives the old behavior.
+WARNING: using mixture_ref_t=1 will give results that are demonstrably
+incorrect for second-neighbor MEAM, and non-standard for
+first-neighbor MEAM; this option is included only for matching with
+previous versions of lammps and should be avoided if possible.
+</P>
+<P>The parameters attrac and repuls, along with the integer selection
+parameter erose_form, can be used to modify the Rose energy function
+used to compute the pair potential.  This function gives the energy of
+the reference state as a function of interatomic spacing.  The form of
+this function is:
 </P>
 <PRE>astar = alpha * (r/re - 1.d0)
-erose = -Ec*(1+astar+a3*(astar**3)/(r/re))*exp(-astar) 
+if erose_form = 0: erose = -Ec*(1+astar+a3*(astar**3)/(r/re))*exp(-astar) 
+if erose_form = 1: erose = -Ec*(1+astar+(-attrac+repuls/r)*(astar**3))*exp(-astar)
+if erose_form = 2: erose = -Ec*(1 +astar + a3*(astar**3))*exp(-astar)
 a3 = repuls, astar < 0
 a3 = attrac, astar >= 0 
 </PRE>
 <P>Most published MEAM parameter sets use the default values attrac=repulse=0. 
 Setting repuls=attrac=delta corresponds to the form used in several 
 recent published MEAM parameter sets, such as <A HREF = "#Vallone">(Vallone)</A>
+</P>
+<P>NOTE: The default form of the erose expression in LAMMPS was corrected
+in March 2009.  The current version is correct, but may show different
+behavior compared with earlier versions of lammps with the attrac
+and/or repuls parameters are non-zero.  To obtain the previous default
+form, use erose_form = 1 (this form does not seem to appear in the
+literature).  An alternative form (see e.g. <A HREF = "#Lee2">(Lee2)</A>) is
+available using erose_form = 2.
 </P>
 <HR>
 
@@ -278,12 +350,21 @@ This report may be accessed on-line via <A HREF = "http://infoserve.sandia.gov/s
 
 <P><B>(Lee)</B> Lee, Baskes, Phys. Rev. B, 62, 8564-8567 (2000).
 </P>
-<A NAME = "Wang"></A>
+<A NAME = "Lee2"></A>
 
-<P><B>(Wang)</B> Wang, Van Hove, Ross, Baskes, J. Chem. Phys., 121, 5410 (2004).
+<P><B>(Lee2)</B> Lee, Baskes, Kim, Cho.  Phys. Rev. B, 64, 184102 (2001).
 </P>
 <A NAME = "Valone"></A>
 
 <P><B>(Valone)</B> Valone, Baskes, Martin, Phys. Rev. B, 73, 214209 (2006).
+</P>
+<A NAME = "Wang"></A>
+
+<P><B>(Wang)</B> Wang, Van Hove, Ross, Baskes, J. Chem. Phys., 121, 5410 (2004).
+</P>
+<A NAME = "ZBL"></A>
+
+<P><B>(ZBL)</B> J.F. Ziegler, J.P. Biersack, U. Littmark, 'Stopping and Ranges
+of Ions in Matter' Vol 1, 1985, Pergamon Press.
 </P>
 </HTML>

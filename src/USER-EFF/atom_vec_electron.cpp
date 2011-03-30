@@ -15,9 +15,9 @@
    Contributing author: Andres Jaramillo-Botero (Caltech)
 ------------------------------------------------------------------------- */
 
+#include "math.h"
 #include "stdlib.h"
 #include "atom_vec_electron.h"
-#include "lmptype.h"
 #include "atom.h"
 #include "domain.h"
 #include "modify.h"
@@ -40,10 +40,10 @@ AtomVecElectron::AtomVecElectron(LAMMPS *lmp, int narg, char **arg) :
   mass_type = 1;
   molecular = 0;
   
-  size_forward = 5;
+  size_forward = 4;
   size_reverse = 4;	
-  size_border = 10;	
-  size_velocity = 4;
+  size_border = 9;	
+  size_velocity = 3;
   size_data_atom = 8;
   size_data_vel = 5;
   xcol_data = 6;
@@ -63,33 +63,21 @@ void AtomVecElectron::grow(int n)
   if (n == 0) nmax += DELTA;
   else nmax = n;
   atom->nmax = nmax;
-  if (nmax < 0 || nmax > MAXSMALLINT)
-    error->one("Per-processor system is too big");
+  
+  tag = memory->grow(atom->tag,nmax,"atom:tag");
+  type = memory->grow(atom->type,nmax,"atom:type");
+  mask = memory->grow(atom->mask,nmax,"atom:mask");
+  image = memory->grow(atom->image,nmax,"atom:image");
+  x = memory->grow(atom->x,nmax,3,"atom:x");
+  v = memory->grow(atom->v,nmax,3,"atom:v");
+  f = memory->grow(atom->f,nmax,3,"atom:f");
 
-  tag = atom->tag = (int *) 
-    memory->srealloc(atom->tag,nmax*sizeof(int),"atom:tag");
-  type = atom->type = (int *)
-    memory->srealloc(atom->type,nmax*sizeof(int),"atom:type");
-  mask = atom->mask = (int *) 
-    memory->srealloc(atom->mask,nmax*sizeof(int),"atom:mask");
-  image = atom->image = (int *) 
-    memory->srealloc(atom->image,nmax*sizeof(int),"atom:image");
-  
-  x = atom->x = memory->grow_2d_double_array(atom->x,nmax,3,"atom:x");
-  v = atom->v = memory->grow_2d_double_array(atom->v,nmax,3,"atom:v");
-  f = atom->f = memory->grow_2d_double_array(atom->f,nmax,3,"atom:f");
-  
-  q = atom->q = (double *)
-    memory->srealloc(atom->q,nmax*sizeof(double),"atom:q");
-  spin = atom->spin = (int *)
-    memory->srealloc(atom->spin,nmax*sizeof(int),"atom:spin");
-  eradius = atom->eradius = (double *)
-    memory->srealloc(atom->eradius,nmax*sizeof(double),"atom:eradius");
-  ervel = atom->ervel = (double *)
-    memory->srealloc(atom->ervel,nmax*sizeof(double),"atom:ervel");
-  erforce = atom->erforce = (double *)
-    memory->srealloc(atom->erforce,nmax*sizeof(double),"atom:erforce");
-  
+  q = memory->grow(atom->q,nmax,"atom:q");
+  spin = memory->grow(atom->spin,nmax,"atom:spin");
+  eradius = memory->grow(atom->eradius,nmax,"atom:eradius");
+  ervel = memory->grow(atom->ervel,nmax,"atom:ervel");
+  erforce = memory->grow(atom->erforce,nmax,"atom:erforce");
+
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++) 
       modify->fix[atom->extra_grow[iextra]]->grow_arrays(nmax);
@@ -149,7 +137,6 @@ int AtomVecElectron::pack_comm(int n, int *list, double *buf,
       buf[m++] = x[j][1];
       buf[m++] = x[j][2];
       buf[m++] = eradius[j];
-      buf[m++] = ervel[j];
     }
   } else {
     if (domain->triclinic == 0) {
@@ -167,7 +154,6 @@ int AtomVecElectron::pack_comm(int n, int *list, double *buf,
       buf[m++] = x[j][1] + dy;
       buf[m++] = x[j][2] + dz;
       buf[m++] = eradius[j];
-      buf[m++] = ervel[j];
     }
   }
   return m;
@@ -179,7 +165,7 @@ int AtomVecElectron::pack_comm_vel(int n, int *list, double *buf,
 				   int pbc_flag, int *pbc)
 {
   int i,j,m;
-  double dx,dy,dz;
+  double dx,dy,dz,dvx,dvy,dvz;
 
   m = 0;
   if (pbc_flag == 0) {
@@ -188,11 +174,10 @@ int AtomVecElectron::pack_comm_vel(int n, int *list, double *buf,
       buf[m++] = x[j][0];
       buf[m++] = x[j][1];
       buf[m++] = x[j][2];
+      buf[m++] = eradius[j];
       buf[m++] = v[j][0];
       buf[m++] = v[j][1];
       buf[m++] = v[j][2];
-      buf[m++] = eradius[j];
-      buf[m++] = ervel[j];
     }
   } else {
     if (domain->triclinic == 0) {
@@ -204,16 +189,37 @@ int AtomVecElectron::pack_comm_vel(int n, int *list, double *buf,
       dy = pbc[1]*domain->yprd + pbc[3]*domain->yz;
       dz = pbc[2]*domain->zprd;
     }
-    for (i = 0; i < n; i++) {
-      j = list[i];
-      buf[m++] = x[j][0] + dx;
-      buf[m++] = x[j][1] + dy;
-      buf[m++] = x[j][2] + dz;
-      buf[m++] = v[j][0];
-      buf[m++] = v[j][1];
-      buf[m++] = v[j][2];
-      buf[m++] = eradius[j];
-      buf[m++] = ervel[j];
+    if (!deform_vremap) {
+      for (i = 0; i < n; i++) {
+	j = list[i];
+	buf[m++] = x[j][0] + dx;
+	buf[m++] = x[j][1] + dy;
+	buf[m++] = x[j][2] + dz;
+	buf[m++] = eradius[j];
+	buf[m++] = v[j][0];
+	buf[m++] = v[j][1];
+	buf[m++] = v[j][2];
+      }
+    } else {
+      dvx = pbc[0]*h_rate[0] + pbc[5]*h_rate[5] + pbc[4]*h_rate[4];
+      dvy = pbc[1]*h_rate[1] + pbc[3]*h_rate[3];
+      dvz = pbc[2]*h_rate[2];
+      for (i = 0; i < n; i++) {
+	j = list[i];
+	buf[m++] = x[j][0] + dx;
+	buf[m++] = x[j][1] + dy;
+	buf[m++] = x[j][2] + dz;
+	buf[m++] = eradius[j];
+	if (mask[i] & deform_groupbit) {
+	  buf[m++] = v[j][0] + dvx;
+	  buf[m++] = v[j][1] + dvy;
+	  buf[m++] = v[j][2] + dvz;
+	} else {
+	  buf[m++] = v[j][0];
+	  buf[m++] = v[j][1];
+	  buf[m++] = v[j][2];
+	}
+      }
     }
   }
   return m;
@@ -232,7 +238,6 @@ void AtomVecElectron::unpack_comm(int n, int first, double *buf)
     x[i][1] = buf[m++];
     x[i][2] = buf[m++];
     eradius[i] = buf[m++];
-    ervel[i] = buf[m++];
   }
 }
 
@@ -248,11 +253,10 @@ void AtomVecElectron::unpack_comm_vel(int n, int first, double *buf)
     x[i][0] = buf[m++];
     x[i][1] = buf[m++];
     x[i][2] = buf[m++];
+    eradius[i] = buf[m++];
     v[i][0] = buf[m++];
     v[i][1] = buf[m++];
     v[i][2] = buf[m++];
-    eradius[i] = buf[m++];
-    ervel[i] = buf[m++];
   }
 }
 
@@ -261,9 +265,7 @@ void AtomVecElectron::unpack_comm_vel(int n, int first, double *buf)
 int AtomVecElectron::pack_comm_one(int i, double *buf)
 {
   buf[0] = eradius[i];
-  buf[1] = ervel[i];
-  
-  return 2;
+  return 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -271,9 +273,7 @@ int AtomVecElectron::pack_comm_one(int i, double *buf)
 int AtomVecElectron::unpack_comm_one(int i, double *buf)
 {
   eradius[i] = buf[0];
-  ervel[i] = buf[1];
-  
-  return 2;
+  return 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -298,7 +298,6 @@ int AtomVecElectron::pack_reverse(int n, int first, double *buf)
 int AtomVecElectron::pack_reverse_one(int i, double *buf)
 {
   buf[0] = erforce[i];
-
   return 1;
 }
 
@@ -323,90 +322,7 @@ void AtomVecElectron::unpack_reverse(int n, int *list, double *buf)
 int AtomVecElectron::unpack_reverse_one(int i, double *buf)
 {
   erforce[i] += buf[0];
-  
   return 1;
-}
-
-/* ---------------------------------------------------------------------- */
-
-int AtomVecElectron::pack_border_vel(int n, int *list, double *buf,
-				     int pbc_flag, int *pbc)
-{
-  int i,j,m;
-  double dx,dy,dz;
-
-  m = 0;
-  if (pbc_flag == 0) {
-    for (i = 0; i < n; i++) {
-      j = list[i];
-      buf[m++] = x[j][0];
-      buf[m++] = x[j][1];
-      buf[m++] = x[j][2];
-      buf[m++] = tag[j];
-      buf[m++] = type[j];
-      buf[m++] = mask[j];
-      buf[m++] = v[j][0];
-      buf[m++] = v[j][1];
-      buf[m++] = v[j][2];
-      buf[m++] = q[j];
-      buf[m++] = spin[j];
-      buf[m++] = eradius[j];
-      buf[m++] = ervel[j];
-    }
-  } else {
-    if (domain->triclinic == 0) {
-      dx = pbc[0]*domain->xprd;
-      dy = pbc[1]*domain->yprd;
-      dz = pbc[2]*domain->zprd;
-    } else {
-      dx = pbc[0];
-      dy = pbc[1];
-      dz = pbc[2];
-    }
-    for (i = 0; i < n; i++) {
-      j = list[i];
-      buf[m++] = x[j][0] + dx;
-      buf[m++] = x[j][1] + dy;
-      buf[m++] = x[j][2] + dz;
-      buf[m++] = tag[j];
-      buf[m++] = type[j];
-      buf[m++] = mask[j];
-      buf[m++] = v[j][0];
-      buf[m++] = v[j][1];
-      buf[m++] = v[j][2];
-      buf[m++] = q[j];
-      buf[m++] = spin[j];
-      buf[m++] = eradius[j];
-      buf[m++] = ervel[j];
-    }
-  }
-  return m;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void AtomVecElectron::unpack_border_vel(int n, int first, double *buf)
-{
-  int i,m,last;
-  
-  m = 0;
-  last = first + n;
-  for (i = first; i < last; i++) {
-    if (i == nmax) grow(0);
-    x[i][0] = buf[m++];
-    x[i][1] = buf[m++];
-    x[i][2] = buf[m++];
-    tag[i] = static_cast<int> (buf[m++]);
-    type[i] = static_cast<int> (buf[m++]);
-    mask[i] = static_cast<int> (buf[m++]);
-    v[i][0] = buf[m++];
-    v[i][1] = buf[m++];
-    v[i][2] = buf[m++];
-    q[i] = buf[m++];
-    spin[i] = static_cast<int> (buf[m++]);
-    eradius[i] = buf[m++];
-    ervel[i] = buf[m++];
-  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -430,7 +346,6 @@ int AtomVecElectron::pack_border(int n, int *list, double *buf,
       buf[m++] = q[j];
       buf[m++] = spin[j];
       buf[m++] = eradius[j];
-      buf[m++] = ervel[j];
     }
   } else {
     if (domain->triclinic == 0) {
@@ -453,7 +368,87 @@ int AtomVecElectron::pack_border(int n, int *list, double *buf,
       buf[m++] = q[j];
       buf[m++] = spin[j];
       buf[m++] = eradius[j];
-      buf[m++] = ervel[j];
+    }
+  }
+  return m;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int AtomVecElectron::pack_border_vel(int n, int *list, double *buf,
+				     int pbc_flag, int *pbc)
+{
+  int i,j,m;
+  double dx,dy,dz,dvx,dvy,dvz;
+
+  m = 0;
+  if (pbc_flag == 0) {
+    for (i = 0; i < n; i++) {
+      j = list[i];
+      buf[m++] = x[j][0];
+      buf[m++] = x[j][1];
+      buf[m++] = x[j][2];
+      buf[m++] = tag[j];
+      buf[m++] = type[j];
+      buf[m++] = mask[j];
+      buf[m++] = q[j];
+      buf[m++] = spin[j];
+      buf[m++] = eradius[j];
+      buf[m++] = v[j][0];
+      buf[m++] = v[j][1];
+      buf[m++] = v[j][2];
+    }
+  } else {
+    if (domain->triclinic == 0) {
+      dx = pbc[0]*domain->xprd;
+      dy = pbc[1]*domain->yprd;
+      dz = pbc[2]*domain->zprd;
+    } else {
+      dx = pbc[0];
+      dy = pbc[1];
+      dz = pbc[2];
+    }
+    if (domain->triclinic == 0) {
+      for (i = 0; i < n; i++) {
+	j = list[i];
+	buf[m++] = x[j][0] + dx;
+	buf[m++] = x[j][1] + dy;
+	buf[m++] = x[j][2] + dz;
+	buf[m++] = tag[j];
+	buf[m++] = type[j];
+	buf[m++] = mask[j];
+	buf[m++] = q[j];
+	buf[m++] = spin[j];
+	buf[m++] = eradius[j];
+	buf[m++] = v[j][0];
+	buf[m++] = v[j][1];
+	buf[m++] = v[j][2];
+      }
+    } else {
+      dvx = pbc[0]*h_rate[0] + pbc[5]*h_rate[5] + pbc[4]*h_rate[4];
+      dvy = pbc[1]*h_rate[1] + pbc[3]*h_rate[3];
+      dvz = pbc[2]*h_rate[2];
+      for (i = 0; i < n; i++) {
+	j = list[i];
+	buf[m++] = x[j][0] + dx;
+	buf[m++] = x[j][1] + dy;
+	buf[m++] = x[j][2] + dz;
+	buf[m++] = tag[j];
+	buf[m++] = type[j];
+	buf[m++] = mask[j];
+	buf[m++] = q[j];
+	buf[m++] = spin[j];
+	buf[m++] = eradius[j];
+	if (mask[i] & deform_groupbit) {
+	  buf[m++] = v[j][0] + dvx;
+	  buf[m++] = v[j][1] + dvy;
+	  buf[m++] = v[j][2] + dvz;
+	} else {
+	  buf[m++] = v[j][0];
+	  buf[m++] = v[j][1];
+	  buf[m++] = v[j][2];
+	}
+      }
     }
   }
   return m;
@@ -466,9 +461,7 @@ int AtomVecElectron::pack_border_one(int i, double *buf)
   buf[0] = q[i];
   buf[1] = spin[i];
   buf[2] = eradius[i];
-  buf[3] = ervel[i];
-  
-  return 4;
+  return 3;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -490,7 +483,31 @@ void AtomVecElectron::unpack_border(int n, int first, double *buf)
     q[i] = buf[m++];
     spin[i] = static_cast<int> (buf[m++]);
     eradius[i] = buf[m++];
-    ervel[i] = buf[m++];
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AtomVecElectron::unpack_border_vel(int n, int first, double *buf)
+{
+  int i,m,last;
+  
+  m = 0;
+  last = first + n;
+  for (i = first; i < last; i++) {
+    if (i == nmax) grow(0);
+    x[i][0] = buf[m++];
+    x[i][1] = buf[m++];
+    x[i][2] = buf[m++];
+    tag[i] = static_cast<int> (buf[m++]);
+    type[i] = static_cast<int> (buf[m++]);
+    mask[i] = static_cast<int> (buf[m++]);
+    q[i] = buf[m++];
+    spin[i] = static_cast<int> (buf[m++]);
+    eradius[i] = buf[m++];
+    v[i][0] = buf[m++];
+    v[i][1] = buf[m++];
+    v[i][2] = buf[m++];
   }
 }
 
@@ -501,9 +518,7 @@ int AtomVecElectron::unpack_border_one(int i, double *buf)
   q[i] = buf[0];
   spin[i] = static_cast<int> (buf[1]);
   eradius[i] = buf[2];
-  ervel[i] = buf[3];
-  
-  return 4;
+  return 3;
 }
 
 /* ----------------------------------------------------------------------
@@ -632,9 +647,7 @@ int AtomVecElectron::unpack_restart(double *buf)
   if (nlocal == nmax) {
     grow(0);
     if (atom->nextra_store)
-      atom->extra = memory->grow_2d_double_array(atom->extra,nmax,
-						 atom->nextra_store,
-						 "atom:extra");
+      memory->grow(atom->extra,nmax,atom->nextra_store,"atom:extra");
   }
   
   int m = 1;
@@ -749,7 +762,7 @@ int AtomVecElectron::data_atom_hybrid(int nlocal, char **values)
   v[nlocal][2] = 0.0;
   ervel[nlocal] = 0.0;
   
-  return 2;
+  return 3;
 }
 
 /* ----------------------------------------------------------------------
@@ -771,7 +784,6 @@ void AtomVecElectron::data_vel(int m, char **values)
 int AtomVecElectron::data_vel_hybrid(int m, char **values)
 {
   ervel[m] = atof(values[0]);
-  
   return 1;
 }
 
@@ -779,23 +791,23 @@ int AtomVecElectron::data_vel_hybrid(int m, char **values)
    return # of bytes of allocated memory 
 ------------------------------------------------------------------------- */
 
-double AtomVecElectron::memory_usage()
+bigint AtomVecElectron::memory_usage()
 {
-  double bytes = 0.0;
+  bigint bytes = 0;
   
-  if (atom->memcheck("tag")) bytes += nmax * sizeof(int);
-  if (atom->memcheck("type")) bytes += nmax * sizeof(int);
-  if (atom->memcheck("mask")) bytes += nmax * sizeof(int);
-  if (atom->memcheck("image")) bytes += nmax * sizeof(int);
-  if (atom->memcheck("x")) bytes += nmax*3 * sizeof(double);
-  if (atom->memcheck("v")) bytes += nmax*3 * sizeof(double);
-  if (atom->memcheck("f")) bytes += nmax*3 * sizeof(double);
+  if (atom->memcheck("tag")) bytes += memory->usage(tag,nmax);
+  if (atom->memcheck("type")) bytes += memory->usage(type,nmax);
+  if (atom->memcheck("mask")) bytes += memory->usage(mask,nmax);
+  if (atom->memcheck("image")) bytes += memory->usage(image,nmax);
+  if (atom->memcheck("x")) bytes += memory->usage(x,nmax,3);
+  if (atom->memcheck("v")) bytes += memory->usage(v,nmax,3);
+  if (atom->memcheck("f")) bytes += memory->usage(f,nmax,3);
   
-  if (atom->memcheck("q")) bytes += nmax * sizeof(double);
-  if (atom->memcheck("spin")) bytes += nmax * sizeof(int);
-  if (atom->memcheck("eradius")) bytes += nmax * sizeof(double);
-  if (atom->memcheck("ervel")) bytes += nmax * sizeof(double);
-  if (atom->memcheck("erforce")) bytes += nmax * sizeof(double);
+  if (atom->memcheck("q")) bytes += memory->usage(q,nmax);
+  if (atom->memcheck("spin")) bytes += memory->usage(spin,nmax);
+  if (atom->memcheck("eradius")) bytes += memory->usage(eradius,nmax);
+  if (atom->memcheck("ervel")) bytes += memory->usage(ervel,nmax);
+  if (atom->memcheck("erforce")) bytes += memory->usage(erforce,nmax);
   
   return bytes;
 }

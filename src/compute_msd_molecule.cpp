@@ -39,15 +39,12 @@ ComputeMSDMolecule::ComputeMSDMolecule(LAMMPS *lmp, int narg, char **arg) :
   nmolecules = molecules_in_group(idlo,idhi);
   size_array_rows = nmolecules;
 
-  massproc = (double *) memory->smalloc(nmolecules*sizeof(double),
-					"msd/molecule:massproc");
-  masstotal = (double *) memory->smalloc(nmolecules*sizeof(double),
-					 "msd/molecule:masstotal");
-  com = memory->create_2d_double_array(nmolecules,3,"msd/molecule:com");
-  comall = memory->create_2d_double_array(nmolecules,3,"msd/molecule:comall");
-  cominit = memory->create_2d_double_array(nmolecules,3,
-					   "msd/molecule:cominit");
-  msd = memory->create_2d_double_array(nmolecules,4,"msd/molecule:msd");
+  memory->create(massproc,nmolecules,"msd/molecule:massproc");
+  memory->create(masstotal,nmolecules,"msd/molecule:masstotal");
+  memory->create(com,nmolecules,3,"msd/molecule:com");
+  memory->create(comall,nmolecules,3,"msd/molecule:comall");
+  memory->create(cominit,nmolecules,3,"msd/molecule:cominit");
+  memory->create(msd,nmolecules,4,"msd/molecule:msd");
   array = msd;
 
   // compute masstotal for each molecule
@@ -92,12 +89,12 @@ ComputeMSDMolecule::ComputeMSDMolecule(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeMSDMolecule::~ComputeMSDMolecule()
 {
-  memory->sfree(massproc);
-  memory->sfree(masstotal);
-  memory->destroy_2d_double_array(com);
-  memory->destroy_2d_double_array(comall);
-  memory->destroy_2d_double_array(cominit);
-  memory->destroy_2d_double_array(msd);
+  memory->destroy(massproc);
+  memory->destroy(masstotal);
+  memory->destroy(com);
+  memory->destroy(comall);
+  memory->destroy(cominit);
+  memory->destroy(msd);
 }
 
 /* ---------------------------------------------------------------------- */

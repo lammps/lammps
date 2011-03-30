@@ -92,7 +92,7 @@ FixBondSwap::~FixBondSwap()
   if (tflag) modify->delete_compute(id_temp);
   delete [] id_temp;
 
-  memory->sfree(alist);
+  memory->destroy(alist);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -204,9 +204,9 @@ void FixBondSwap::pre_neighbor()
   // grow atom list if necessary
 
   if (nlocal > nmax) {
-    memory->sfree(alist);
+    memory->destroy(alist);
     nmax = atom->nmax;
-    alist = (int *) memory->smalloc(nmax*sizeof(int),"bondswap:alist");
+    memory->create(alist,nmax,"bondswap:alist");
   }
 
   int neligible = 0;

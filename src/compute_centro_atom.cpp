@@ -60,9 +60,9 @@ ComputeCentroAtom::ComputeCentroAtom(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeCentroAtom::~ComputeCentroAtom()
 {
-  memory->sfree(centro);
-  memory->sfree(distsq);
-  memory->sfree(nearest);
+  memory->destroy(centro);
+  memory->destroy(distsq);
+  memory->destroy(nearest);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -108,10 +108,9 @@ void ComputeCentroAtom::compute_peratom()
   // grow centro array if necessary
 
   if (atom->nlocal > nmax) {
-    memory->sfree(centro);
+    memory->destroy(centro);
     nmax = atom->nmax;
-    centro = (double *) 
-      memory->smalloc(nmax*sizeof(double),"centro/atom:centro");
+    memory->create(centro,nmax,"centro/atom:centro");
     vector_atom = centro;
   }
 
@@ -150,13 +149,11 @@ void ComputeCentroAtom::compute_peratom()
       // insure distsq and nearest arrays are long enough
 
       if (jnum > maxneigh) {
-	memory->sfree(distsq);
-	memory->sfree(nearest);
+	memory->destroy(distsq);
+	memory->destroy(nearest);
 	maxneigh = jnum;
-	distsq = (double *) memory->smalloc(maxneigh*sizeof(double),
-					    "centro/atom:distsq");
-	nearest = (int *) memory->smalloc(maxneigh*sizeof(int),
-					  "centro/atom:nearest");
+	memory->create(distsq,maxneigh,"centro/atom:distsq");
+	memory->create(nearest,maxneigh,"centro/atom:nearest");
       }
 
       // loop over list of all neighbors within force cutoff

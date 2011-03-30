@@ -21,7 +21,6 @@ FixStyle(EVENT/PRD,FixEventPRD)
 #define LMP_FIX_EVENT_PRD_H
 
 #include "fix_event.h"
-#include "lmptype.h"
 
 namespace LAMMPS_NS {
 

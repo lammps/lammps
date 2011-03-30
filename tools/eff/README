@@ -5,8 +5,11 @@ generating LAMMPS structure files:
 - h2.pl: rectangular lattice of hydrogen atoms
 - Diamond.pl: diamond A4 box
 - Li-hydride: Lithium hydride solid box
-- Li-solid: Lithium solid box
+- Li-solid: Lithium solid box (Li-solid-angstromg produces data file in Angstroms)
 - Uniform-electron-gas.pl: uniform electron gas on an NaCl lattice
+
+- bohr2ang.py: converts an eFF structure file described in bohr to 
+  its corresponding version in Angstroms
 
 And other useful scripts for processing pEFF related information are
 included, such as:

@@ -28,7 +28,7 @@ class DumpXYZ : public Dump {
  public:
   DumpXYZ(class LAMMPS *, int, char**);
   ~DumpXYZ() {}
-	
+
  private:
   void init_style();
   void write_header(bigint);

@@ -66,12 +66,12 @@ PairHbondDreidingLJ::~PairHbondDreidingLJ()
   delete [] pvector;
 
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
 
     delete [] donor;
     delete [] acceptor;
-    memory->destroy_3d_int_array(type2param);
+    memory->destroy(type2param);
   }
 }
 
@@ -244,16 +244,16 @@ void PairHbondDreidingLJ::allocate()
 
   // mark all setflag as set, since don't require pair_coeff of all I,J
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 1;
 
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
   
   donor = new int[n+1];
   acceptor = new int[n+1];
-  type2param = memory->create_3d_int_array(n+1,n+1,n+1,"pair:type2param");
+  memory->create(type2param,n+1,n+1,n+1,"pair:type2param");
 
   int i,j,k;
   for (i = 1; i <= n; i++)

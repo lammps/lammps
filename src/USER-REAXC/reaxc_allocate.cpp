@@ -512,7 +512,7 @@ int Reallocate_Bonds_List( reax_system *system, reax_list *bonds,
   *total_bonds = 0;
   *est_3body = 0;
   for( i = 0; i < system->N; ++i ){
-    *est_3body += SQR( Num_Entries( i, bonds ) );
+    *est_3body += SQR(system->my_atoms[i].num_bonds);
     // commented out - already updated in validate_lists in forces.c
     // system->my_atoms[i].num_bonds = MAX( Num_Entries(i,bonds)*2, MIN_BONDS );
     *total_bonds += system->my_atoms[i].num_bonds;

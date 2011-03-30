@@ -16,13 +16,13 @@
                         Axel Kohlmeyer (Temple U), support for groups
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "math.h"
 #include "inttypes.h"
 #include "stdio.h"
 #include "time.h"
 #include "string.h"
 #include "dump_dcd.h"
-#include "lmptype.h"
 #include "domain.h"
 #include "atom.h"
 #include "update.h"
@@ -72,7 +72,7 @@ DumpDCD::DumpDCD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
   if (n > MAXSMALLINT/sizeof(float)) error->all("Too many atoms for dump dcd");
   natoms = static_cast<int> (n);
 
-  coords = (float *) memory->smalloc(3*natoms*sizeof(float),"dump:coords");
+  memory->create(coords,3*natoms,"dump:coords");
   xf = &coords[0*natoms];
   yf = &coords[1*natoms];
   zf = &coords[2*natoms];
@@ -87,7 +87,7 @@ DumpDCD::DumpDCD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
 
 DumpDCD::~DumpDCD()
 {
-  memory->sfree(coords);
+  memory->destroy(coords);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -279,10 +279,10 @@ int DumpDCD::modify_param(int narg, char **arg)
    return # of bytes of allocated memory in buf and global coords array
 ------------------------------------------------------------------------- */
 
-double DumpDCD::memory_usage()
+bigint DumpDCD::memory_usage()
 {
-  double bytes = Dump::memory_usage();
-  bytes += 3*natoms * sizeof(float);
+  bigint bytes = Dump::memory_usage();
+  bytes += memory->usage(coords,natoms*3);
   return bytes;
 }
 

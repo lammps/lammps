@@ -42,10 +42,10 @@ ImproperUmbrella::ImproperUmbrella(LAMMPS *lmp) : Improper(lmp) {}
 ImproperUmbrella::~ImproperUmbrella()
 {
   if (allocated) {
-    memory->sfree(setflag);
-    memory->sfree(kw);
-    memory->sfree(w0);
-    memory->sfree(C);
+    memory->destroy(setflag);
+    memory->destroy(kw);
+    memory->destroy(w0);
+    memory->destroy(C);
   }
 }
 
@@ -241,11 +241,11 @@ void ImproperUmbrella::allocate()
   allocated = 1;
   int n = atom->nimpropertypes;
 
-  kw = (double *) memory->smalloc((n+1)*sizeof(double),"improper:kw");
-  w0 = (double *) memory->smalloc((n+1)*sizeof(double),"improper:w0");
-  C = (double *) memory->smalloc((n+1)*sizeof(double),"improper:C");
+  memory->create(kw,n+1,"improper:kw");
+  memory->create(w0,n+1,"improper:w0");
+  memory->create(C,n+1,"improper:C");
 
-  setflag = (int *) memory->smalloc((n+1)*sizeof(int),"improper:setflag");
+  memory->create(setflag,n+1,"improper:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
 }
 

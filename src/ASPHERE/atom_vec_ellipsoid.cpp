@@ -15,9 +15,9 @@
    Contributing author: Mike Brown (SNL)
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "stdlib.h"
 #include "atom_vec_ellipsoid.h"
-#include "lmptype.h"
 #include "math_extra.h"
 #include "atom.h"
 #include "force.h"
@@ -66,24 +66,17 @@ void AtomVecEllipsoid::grow(int n)
   if (nmax < 0 || nmax > MAXSMALLINT)
     error->one("Per-processor system is too big");
 
-  tag = atom->tag = (int *)
-    memory->srealloc(atom->tag,nmax*sizeof(int),"atom:tag");
-  type = atom->type = (int *)
-    memory->srealloc(atom->type,nmax*sizeof(int),"atom:type");
-  mask = atom->mask = (int *)
-    memory->srealloc(atom->mask,nmax*sizeof(int),"atom:mask");
-  image = atom->image = (int *)
-    memory->srealloc(atom->image,nmax*sizeof(int),"atom:image");
-  x = atom->x = memory->grow_2d_double_array(atom->x,nmax,3,"atom:x");
-  v = atom->v = memory->grow_2d_double_array(atom->v,nmax,3,"atom:v");
-  f = atom->f = memory->grow_2d_double_array(atom->f,nmax,3,"atom:f");
+  tag = memory->grow(atom->tag,nmax,"atom:tag");
+  type = memory->grow(atom->type,nmax,"atom:type");
+  mask = memory->grow(atom->mask,nmax,"atom:mask");
+  image = memory->grow(atom->image,nmax,"atom:image");
+  x = memory->grow(atom->x,nmax,3,"atom:x");
+  v = memory->grow(atom->v,nmax,3,"atom:v");
+  f = memory->grow(atom->f,nmax,3,"atom:f");
 
-  quat = atom->quat = 
-    memory->grow_2d_double_array(atom->quat,nmax,4,"atom:quat");
-  angmom = atom->angmom = 
-    memory->grow_2d_double_array(atom->angmom,nmax,3,"atom:angmom");
-  torque = atom->torque = 
-    memory->grow_2d_double_array(atom->torque,nmax,3,"atom:torque");
+  quat = memory->grow(atom->quat,nmax,4,"atom:quat");
+  angmom = memory->grow(atom->angmom,nmax,3,"atom:angmom");
+  torque = memory->grow(atom->torque,nmax,3,"atom:torque");
   
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
@@ -180,7 +173,7 @@ int AtomVecEllipsoid::pack_comm_vel(int n, int *list, double *buf,
 				    int pbc_flag, int *pbc)
 {
   int i,j,m;
-  double dx,dy,dz;
+  double dx,dy,dz,dvx,dvy,dvz;
 
   m = 0;
   if (pbc_flag == 0) {
@@ -210,21 +203,49 @@ int AtomVecEllipsoid::pack_comm_vel(int n, int *list, double *buf,
       dy = pbc[1]*domain->yprd + pbc[3]*domain->yz;
       dz = pbc[2]*domain->zprd;
     }
-    for (i = 0; i < n; i++) {
-      j = list[i];
-      buf[m++] = x[j][0] + dx;
-      buf[m++] = x[j][1] + dy;
-      buf[m++] = x[j][2] + dz;
-      buf[m++] = quat[j][0];
-      buf[m++] = quat[j][1];
-      buf[m++] = quat[j][2];
-      buf[m++] = quat[j][3];
-      buf[m++] = v[j][0];
-      buf[m++] = v[j][1];
-      buf[m++] = v[j][2];
-      buf[m++] = angmom[j][0];
-      buf[m++] = angmom[j][1];
-      buf[m++] = angmom[j][2];
+    if (!deform_vremap) {
+      for (i = 0; i < n; i++) {
+	j = list[i];
+	buf[m++] = x[j][0] + dx;
+	buf[m++] = x[j][1] + dy;
+	buf[m++] = x[j][2] + dz;
+	buf[m++] = quat[j][0];
+	buf[m++] = quat[j][1];
+	buf[m++] = quat[j][2];
+	buf[m++] = quat[j][3];
+	buf[m++] = v[j][0];
+	buf[m++] = v[j][1];
+	buf[m++] = v[j][2];
+	buf[m++] = angmom[j][0];
+	buf[m++] = angmom[j][1];
+	buf[m++] = angmom[j][2];
+      }
+    } else {
+      dvx = pbc[0]*h_rate[0] + pbc[5]*h_rate[5] + pbc[4]*h_rate[4];
+      dvy = pbc[1]*h_rate[1] + pbc[3]*h_rate[3];
+      dvz = pbc[2]*h_rate[2];
+      for (i = 0; i < n; i++) {
+	j = list[i];
+	buf[m++] = x[j][0] + dx;
+	buf[m++] = x[j][1] + dy;
+	buf[m++] = x[j][2] + dz;
+	buf[m++] = quat[j][0];
+	buf[m++] = quat[j][1];
+	buf[m++] = quat[j][2];
+	buf[m++] = quat[j][3];
+	if (mask[i] & deform_groupbit) {
+	  buf[m++] = v[j][0] + dvx;
+	  buf[m++] = v[j][1] + dvy;
+	  buf[m++] = v[j][2] + dvz;
+	} else {
+	  buf[m++] = v[j][0];
+	  buf[m++] = v[j][1];
+	  buf[m++] = v[j][2];
+	}
+	buf[m++] = angmom[j][0];
+	buf[m++] = angmom[j][1];
+	buf[m++] = angmom[j][2];
+      }
     }
   }
   return m;
@@ -409,7 +430,7 @@ int AtomVecEllipsoid::pack_border_vel(int n, int *list, double *buf,
 				      int pbc_flag, int *pbc)
 {
   int i,j,m;
-  double dx,dy,dz;
+  double dx,dy,dz,dvx,dvy,dvz;
 
   m = 0;
   if (pbc_flag == 0) {
@@ -442,24 +463,55 @@ int AtomVecEllipsoid::pack_border_vel(int n, int *list, double *buf,
       dy = pbc[1];
       dz = pbc[2];
     }
-    for (i = 0; i < n; i++) {
-      j = list[i];
-      buf[m++] = x[j][0] + dx;
-      buf[m++] = x[j][1] + dy;
-      buf[m++] = x[j][2] + dz;
-      buf[m++] = tag[j];
-      buf[m++] = type[j];
-      buf[m++] = mask[j];
-      buf[m++] = quat[j][0];
-      buf[m++] = quat[j][1];
-      buf[m++] = quat[j][2];
-      buf[m++] = quat[j][3];
-      buf[m++] = v[j][0];
-      buf[m++] = v[j][1];
-      buf[m++] = v[j][2];
-      buf[m++] = angmom[j][0];
-      buf[m++] = angmom[j][1];
-      buf[m++] = angmom[j][2];
+    if (!deform_vremap) {
+      for (i = 0; i < n; i++) {
+	j = list[i];
+	buf[m++] = x[j][0] + dx;
+	buf[m++] = x[j][1] + dy;
+	buf[m++] = x[j][2] + dz;
+	buf[m++] = tag[j];
+	buf[m++] = type[j];
+	buf[m++] = mask[j];
+	buf[m++] = quat[j][0];
+	buf[m++] = quat[j][1];
+	buf[m++] = quat[j][2];
+	buf[m++] = quat[j][3];
+	buf[m++] = v[j][0];
+	buf[m++] = v[j][1];
+	buf[m++] = v[j][2];
+	buf[m++] = angmom[j][0];
+	buf[m++] = angmom[j][1];
+	buf[m++] = angmom[j][2];
+      }
+    } else {
+      dvx = pbc[0]*h_rate[0] + pbc[5]*h_rate[5] + pbc[4]*h_rate[4];
+      dvy = pbc[1]*h_rate[1] + pbc[3]*h_rate[3];
+      dvz = pbc[2]*h_rate[2];
+      for (i = 0; i < n; i++) {
+	j = list[i];
+	buf[m++] = x[j][0] + dx;
+	buf[m++] = x[j][1] + dy;
+	buf[m++] = x[j][2] + dz;
+	buf[m++] = tag[j];
+	buf[m++] = type[j];
+	buf[m++] = mask[j];
+	buf[m++] = quat[j][0];
+	buf[m++] = quat[j][1];
+	buf[m++] = quat[j][2];
+	buf[m++] = quat[j][3];
+	if (mask[i] & deform_groupbit) {
+	  buf[m++] = v[j][0] + dvx;
+	  buf[m++] = v[j][1] + dvy;
+	  buf[m++] = v[j][2] + dvz;
+	} else {
+	  buf[m++] = v[j][0];
+	  buf[m++] = v[j][1];
+	  buf[m++] = v[j][2];
+	}
+	buf[m++] = angmom[j][0];
+	buf[m++] = angmom[j][1];
+	buf[m++] = angmom[j][2];
+      }
     }
   }
   return m;
@@ -676,9 +728,7 @@ int AtomVecEllipsoid::unpack_restart(double *buf)
   if (nlocal == nmax) {
     grow(0);
     if (atom->nextra_store) 
-      atom->extra = memory->grow_2d_double_array(atom->extra,nmax,
-						 atom->nextra_store,
-						 "atom:extra");
+      memory->grow(atom->extra,nmax,atom->nextra_store,"atom:extra");
   }
 
   int m = 1;
@@ -827,24 +877,24 @@ int AtomVecEllipsoid::data_vel_hybrid(int m, char **values)
 }
 
 /* ----------------------------------------------------------------------
-   return # of bytes of allocated memory
+   return # of bytes of allocated memory 
 ------------------------------------------------------------------------- */
 
-double AtomVecEllipsoid::memory_usage()
+bigint AtomVecEllipsoid::memory_usage()
 {
-  double bytes = 0.0;
+  bigint bytes = 0;
 
-  if (atom->memcheck("tag")) bytes += nmax * sizeof(int);
-  if (atom->memcheck("type")) bytes += nmax * sizeof(int);
-  if (atom->memcheck("mask")) bytes += nmax * sizeof(int);
-  if (atom->memcheck("image")) bytes += nmax * sizeof(int);
-  if (atom->memcheck("x")) bytes += nmax*3 * sizeof(double);
-  if (atom->memcheck("v")) bytes += nmax*3 * sizeof(double);
-  if (atom->memcheck("f")) bytes += nmax*3 * sizeof(double);
+  if (atom->memcheck("tag")) bytes += memory->usage(tag,nmax);
+  if (atom->memcheck("type")) bytes += memory->usage(type,nmax);
+  if (atom->memcheck("mask")) bytes += memory->usage(mask,nmax);
+  if (atom->memcheck("image")) bytes += memory->usage(image,nmax);
+  if (atom->memcheck("x")) bytes += memory->usage(x,nmax,3);
+  if (atom->memcheck("v")) bytes += memory->usage(v,nmax,3);
+  if (atom->memcheck("f")) bytes += memory->usage(f,nmax,3);
 
-  if (atom->memcheck("quat")) bytes += nmax*4 * sizeof(double);
-  if (atom->memcheck("angmom")) bytes += nmax*3 * sizeof(double);
-  if (atom->memcheck("torque")) bytes += nmax*3 * sizeof(double);
+  if (atom->memcheck("quat")) bytes += memory->usage(quat,nmax,4);
+  if (atom->memcheck("angmom")) bytes += memory->usage(angmom,nmax,3);
+  if (atom->memcheck("torque")) bytes += memory->usage(torque,nmax,3);
 
   return bytes;
 }

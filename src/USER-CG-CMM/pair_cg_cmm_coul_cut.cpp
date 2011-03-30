@@ -39,10 +39,10 @@ PairCGCMMCoulCut::PairCGCMMCoulCut(LAMMPS *lmp) : PairCMMCommon(lmp)
 PairCGCMMCoulCut::~PairCGCMMCoulCut()
 {
   if (allocated_coul) {
-    memory->destroy_2d_double_array(cut_lj);
-    memory->destroy_2d_double_array(cut_ljsq);
-    memory->destroy_2d_double_array(cut_coul);
-    memory->destroy_2d_double_array(cut_coulsq);
+    memory->destroy(cut_lj);
+    memory->destroy(cut_ljsq);
+    memory->destroy(cut_coul);
+    memory->destroy(cut_coulsq);
     allocated_coul=0;
   }
 }
@@ -56,10 +56,10 @@ void PairCGCMMCoulCut::allocate()
 
   int n = atom->ntypes;
 
-  cut_lj = memory->create_2d_double_array(n+1,n+1,"paircg:cut_lj");
-  cut_ljsq = memory->create_2d_double_array(n+1,n+1,"paircg:cut_ljsq");
-  cut_coul = memory->create_2d_double_array(n+1,n+1,"paircg:cut_coul");
-  cut_coulsq = memory->create_2d_double_array(n+1,n+1,"paircg:cut_coulsq");
+  memory->create(cut_lj,n+1,n+1,"paircg:cut_lj");
+  memory->create(cut_ljsq,n+1,n+1,"paircg:cut_ljsq");
+  memory->create(cut_coul,n+1,n+1,"paircg:cut_coul");
+  memory->create(cut_coulsq,n+1,n+1,"paircg:cut_coulsq");
 }
 
 /* ---------------------------------------------------------------------- */

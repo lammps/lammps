@@ -73,16 +73,16 @@ PairEIM::PairEIM(LAMMPS *lmp) : Pair(lmp)
 
 PairEIM::~PairEIM()
 {
-  memory->sfree(rho);
-  memory->sfree(fp);
+  memory->destroy(rho);
+  memory->destroy(fp);
 
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
     delete [] map;
-    memory->destroy_2d_int_array(type2Fij);
-    memory->destroy_2d_int_array(type2Gij);
-    memory->destroy_2d_int_array(type2phiij);
+    memory->destroy(type2Fij);
+    memory->destroy(type2Gij);
+    memory->destroy(type2phiij);
   }
 
   for (int i = 0; i < nelements; i++) delete [] elements[i];
@@ -92,14 +92,14 @@ PairEIM::~PairEIM()
 
   delete [] negativity;
   delete [] q0;
-  memory->destroy_2d_double_array(cutforcesq);
-  memory->destroy_2d_double_array(Fij);
-  memory->destroy_2d_double_array(Gij);
-  memory->destroy_2d_double_array(phiij);
+  memory->destroy(cutforcesq);
+  memory->destroy(Fij);
+  memory->destroy(Gij);
+  memory->destroy(phiij);
 
-  memory->destroy_3d_double_array(Fij_spline);
-  memory->destroy_3d_double_array(Gij_spline);
-  memory->destroy_3d_double_array(phiij_spline);
+  memory->destroy(Fij_spline);
+  memory->destroy(Gij_spline);
+  memory->destroy(phiij_spline);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -119,11 +119,11 @@ void PairEIM::compute(int eflag, int vflag)
   // grow energy array if necessary
 
   if (atom->nmax > nmax) {
-    memory->sfree(rho);
-    memory->sfree(fp);
+    memory->destroy(rho);
+    memory->destroy(fp);
     nmax = atom->nmax;
-    rho = (double *) memory->smalloc(nmax*sizeof(double),"pair:rho");
-    fp = (double *) memory->smalloc(nmax*sizeof(double),"pair:fp");
+    memory->create(rho,nmax,"pair:rho");
+    memory->create(fp,nmax,"pair:fp");
   }
 
   double **x = atom->x;
@@ -320,19 +320,19 @@ void PairEIM::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
   map = new int[n+1];
   for (int i = 1; i <= n; i++) map[i] = -1;
 
-  type2Fij = memory->create_2d_int_array(n+1,n+1,"pair:type2Fij");
-  type2Gij = memory->create_2d_int_array(n+1,n+1,"pair:type2Gij");
-  type2phiij = memory->create_2d_int_array(n+1,n+1,"pair:type2phiij");
+  memory->create(type2Fij,n+1,n+1,"pair:type2Fij");
+  memory->create(type2Gij,n+1,n+1,"pair:type2Gij");
+  memory->create(type2phiij,n+1,n+1,"pair:type2phiij");
 }
 
 /* ----------------------------------------------------------------------
@@ -542,8 +542,7 @@ void PairEIM::read_file(char *filename)
   }
   setfl->dr = setfl->cut/(setfl->nr-1.0);
 
-  setfl->cuts = memory->create_2d_double_array(nelements,
-					      nelements,"pair:cuts");
+  memory->create(setfl->cuts,nelements,nelements,"pair:cuts");
   for (int i = 0; i < nelements; i++) {
     for (int j = 0; j < nelements; j++) {
       if (i > j) {
@@ -566,12 +565,10 @@ void PairEIM::read_file(char *filename)
     }
   }
   
-  setfl->Fij = memory->create_3d_double_array(nelements,nelements,
-                                             setfl->nr+1,"pair:Fij");
-  setfl->Gij = memory->create_3d_double_array(nelements,nelements,
-                                             setfl->nr+1,"pair:Gij");
-  setfl->phiij = memory->create_3d_double_array(nelements,nelements,
-					     setfl->nr+1,"pair:phiij");
+  memory->create(setfl->Fij,nelements,nelements,setfl->nr+1,"pair:Fij");
+  memory->create(setfl->Gij,nelements,nelements,setfl->nr+1,"pair:Gij");
+  memory->create(setfl->phiij,nelements,nelements,setfl->nr+1,"pair:phiij");
+
   for (int i = 0; i < nelements; i++)  
     for (int j = 0; j < nelements; j++) {
       for (int k = 0; k < setfl->nr; k++) {
@@ -637,10 +634,10 @@ void PairEIM::deallocate_setfl()
   delete [] setfl->zeta;
   delete [] setfl->rs;
   delete [] setfl->tp;
-  memory->destroy_2d_double_array(setfl->cuts);
-  memory->destroy_3d_double_array(setfl->Fij);
-  memory->destroy_3d_double_array(setfl->Gij);
-  memory->destroy_3d_double_array(setfl->phiij);
+  memory->destroy(setfl->cuts);
+  memory->destroy(setfl->Fij);
+  memory->destroy(setfl->Gij);
+  memory->destroy(setfl->phiij);
   delete setfl;
 }
 
@@ -660,8 +657,7 @@ void PairEIM::file2array()
   delete [] cutforcesq;
   negativity = new double[ntypes+1];
   q0 = new double[ntypes+1];
-  cutforcesq = memory->create_2d_double_array(ntypes+1,ntypes+1,
-					      "pair:cutforcesq");
+  memory->create(cutforcesq,ntypes+1,ntypes+1,"pair:cutforcesq");
   for (i = 1; i <= ntypes; i++) {
     if (map[i] == -1) {
       negativity[i]=0.0;
@@ -691,8 +687,8 @@ void PairEIM::file2array()
   // ------------------------------------------------------------------
 
   nFij = nelements*nelements + 1;
-  memory->destroy_2d_double_array(Fij);
-  Fij = (double **) memory->create_2d_double_array(nFij,nr+1,"pair:Fij");
+  memory->destroy(Fij);
+  memory->create(Fij,nFij,nr+1,"pair:Fij");
 
   // copy each element's Fij to global Fij
 
@@ -733,8 +729,8 @@ void PairEIM::file2array()
   // ------------------------------------------------------------------
 
   nGij = nelements * (nelements+1) / 2 + 1;
-  memory->destroy_2d_double_array(Gij);
-  Gij = (double **) memory->create_2d_double_array(nGij,nr+1,"pair:Gij");
+  memory->destroy(Gij);
+  memory->create(Gij,nGij,nr+1,"pair:Gij");
 
   // copy each element's Gij to global Gij, only for I >= J
 
@@ -780,8 +776,8 @@ void PairEIM::file2array()
   // ------------------------------------------------------------------
 
   nphiij = nelements * (nelements+1) / 2 + 1;
-  memory->destroy_2d_double_array(phiij);
-  phiij = (double **) memory->create_2d_double_array(nphiij,nr+1,"pair:phiij");
+  memory->destroy(phiij);
+  memory->create(phiij,nphiij,nr+1,"pair:phiij");
 
   // copy each element pair phiij to global phiij, only for I >= J
 
@@ -830,13 +826,13 @@ void PairEIM::array2spline()
 {
   rdr = 1.0/dr;
 
-  memory->destroy_3d_double_array(Fij_spline);
-  memory->destroy_3d_double_array(Gij_spline);
-  memory->destroy_3d_double_array(phiij_spline);
+  memory->destroy(Fij_spline);
+  memory->destroy(Gij_spline);
+  memory->destroy(phiij_spline);
 
-  Fij_spline = memory->create_3d_double_array(nFij,nr+1,7,"pair:Fij");
-  Gij_spline = memory->create_3d_double_array(nGij,nr+1,7,"pair:Gij");
-  phiij_spline = memory->create_3d_double_array(nphiij,nr+1,7,"pair:phiij");
+  memory->create(Fij_spline,nFij,nr+1,7,"pair:Fij");
+  memory->create(Gij_spline,nGij,nr+1,7,"pair:Gij");
+  memory->create(phiij_spline,nphiij,nr+1,7,"pair:phiij");
 
   for (int i = 0; i < nFij; i++)
     interpolate(nr,dr,Fij[i],Fij_spline[i],0.0);

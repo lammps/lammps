@@ -61,12 +61,12 @@ PairTersoff::~PairTersoff()
   if (elements)
     for (int i = 0; i < nelements; i++) delete [] elements[i];
   delete [] elements;
-  memory->sfree(params);
-  memory->destroy_3d_int_array(elem2param);
+  memory->destroy(params);
+  memory->destroy(elem2param);
 
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
     delete [] map;
   }
 }
@@ -240,8 +240,8 @@ void PairTersoff::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
   map = new int[n+1];
 }
@@ -363,7 +363,7 @@ void PairTersoff::read_file(char *file)
   int params_per_line = 17;
   char **words = new char*[params_per_line+1];
 
-  if (params) memory->sfree(params);
+  memory->sfree(params);
   params = NULL;
   nparams = maxparam = 0;
 
@@ -506,9 +506,8 @@ void PairTersoff::setup()
   // must be a single exact match to lines read from file
   // do not allow for ACB in place of ABC
 
-  if (elem2param) memory->destroy_3d_int_array(elem2param);
-  elem2param = memory->create_3d_int_array(nelements,nelements,nelements,
-					   "pair:elem2param");
+  memory->destroy(elem2param);
+  memory->create(elem2param,nelements,nelements,nelements,"pair:elem2param");
 
   for (i = 0; i < nelements; i++)
     for (j = 0; j < nelements; j++)

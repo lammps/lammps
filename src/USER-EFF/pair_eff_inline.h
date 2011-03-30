@@ -12,7 +12,7 @@
  ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Andres Jaramillo-Botero and Julius Su (Caltech)
+ Contributing authors: Andres Jaramillo-Botero, Hai Xiao, Julius Su (Caltech)
 ------------------------------------------------------------------------- */
 
 namespace LAMMPS_NS {
@@ -257,17 +257,24 @@ inline double ierfoverx1(double x, double *df)
 
 /* ---------------------------------------------------------------------- */
 
-inline void ElecNucNuc(double q, double rc, double *energy, double *frc)
+inline void KinElec(double radius, double *eke, double *frc)
 {
-  *energy += q / rc;
+  *eke += 1.5 / (radius * radius);
+  *frc += 3.0 / (radius * radius * radius);
+}        
+
+/* ---------------------------------------------------------------------- */
+
+inline void ElecNucNuc(double q, double rc, double *ecoul, double *frc)
+{
+  *ecoul += q / rc;
   *frc += q / (rc * rc);
 }
 
 /* ---------------------------------------------------------------------- */
 
 inline void ElecNucElec(double q, double rc, double re1, 
-			double *energy, double *frc, double *fre1, 
-			int i, int j)
+			double *ecoul, double *frc, double *fre1)
 {
   double a, arc;
   double coeff_a;
@@ -284,11 +291,11 @@ inline void ElecNucElec(double q, double rc, double re1,
   double E, dEdr, dEdr1, f, df;
   
   f = ierfoverx1(arc, &df);
-  dEdr = -q * a * a * df;
-  dEdr1 = q * (a / re1) * (f + arc * df);
-  E = q * a * f;
+  dEdr = q * a * a * df;
+  dEdr1 = -q * (a / re1) * (f + arc * df);
+  E = -q * a * f;
   
-  *energy += E;
+  *ecoul += E;
   *frc += dEdr;
   *fre1 += dEdr1;
 }
@@ -296,8 +303,8 @@ inline void ElecNucElec(double q, double rc, double re1,
 /* ---------------------------------------------------------------------- */
 
 inline void ElecElecElec(double rc, double re1, double re2, 
-			 double *energy, double *frc, double *fre1, 
-			 double *fre2, int i, int j)
+			 double *ecoul, double *frc, double *fre1, 
+			 double *fre2)
 {
   double a, arc, re, fre;
   double coeff_a;
@@ -329,7 +336,7 @@ inline void ElecElecElec(double rc, double re1, double re2,
   
   E = a * f;
   
-  *energy += E;
+  *ecoul += E;
   *frc += dEdr;
   *fre1 += dEdr1;
   *fre2 += dEdr2;
@@ -337,10 +344,88 @@ inline void ElecElecElec(double rc, double re1, double re2,
 
 /* ---------------------------------------------------------------------- */
 
+inline void ElecCoreNuc(double q, double rc, double re1, double *ecoul, double *frc)
+{
+  double a, arc;
+  double coeff_a;
+  double E, dEdr, df, f;
+
+  coeff_a = 1.4142135623730951;    /* sqrt(2) */
+  a = coeff_a / re1;
+  arc = a * rc;
+
+  f = ierfoverx1(arc, &df);
+  dEdr = -q * a * a * df; 
+  E = q * a * f;
+
+  *ecoul += E;
+  *frc += dEdr;
+}
+
+/* ---------------------------------------------------------------------- */
+
+inline void ElecCoreCore(double q, double rc, double re1, double re2, 
+  double *ecoul, double *frc)
+{
+  double a, arc, re;
+  double coeff_a;
+  double E, dEdr, f, fre, df;
+
+  coeff_a = 1.4142135623730951;
+
+  re = sqrt(re1 * re1 + re2 * re2);
+  a = coeff_a / re;
+  arc = a * rc;
+ 
+  f = ierfoverx1(arc, &df);
+  dEdr = -q * a * a * df;
+  fre = q * a * (f + arc * df) / (re * re);
+  E = q * a * f;
+
+  *ecoul += E;
+  *frc += dEdr;
+}
+
+/* ---------------------------------------------------------------------- */
+
+inline void ElecCoreElec(double q, double rc, double re1, double re2, 
+        double *ecoul, double *frc, double *fre2)
+{
+  double a,arc, re;
+  double coeff_a;
+  double E, dEdr, dEdr2, f, df, fre;
+
+  /* sqrt(2) */
+  coeff_a = 1.4142135623730951;
+
+  /*
+  re1: core size
+  re2: electron size
+  re3: size of the core, obtained from the electron density function rho(r) of core 
+  e.g. rho(r) = a1*exp(-((r)/b1)^2), a1 =157.9, b1 = 0.1441 -> re3 = 0.1441 for Si4+
+  */
+
+  re = sqrt(re1 * re1 + re2 * re2);
+
+  a = coeff_a / re;
+  arc = a * rc;
+
+  f = ierfoverx1(arc, &df);
+  E = -q * a * f;
+  dEdr = -q * a * df * a;
+  fre = q * a * (f + arc * df) / (re * re);
+  dEdr2 = fre * re2;
+
+  *ecoul += E;
+  *frc -= dEdr;
+  *fre2 -= dEdr2;
+}
+
+/* ---------------------------------------------------------------------- */
+
 inline void PauliElecElec(int samespin, double rc, 
-			  double re1, double re2, double *energy, 
-			  double *frc, double *fre1, double *fre2,
-			  int i, int j)
+			  double re1, double re2, double *epauli, 
+			  double *frc, double *fre1, double *fre2)
 {
   double ree, rem;
   double S, t1, t2, tt;
@@ -381,7 +466,30 @@ inline void PauliElecElec(int samespin, double rc,
   *fre1 -= PAULI_RE * (dTdr1 * O + ratio * dSdr1);
   *fre2 -= PAULI_RE * (dTdr2 * O + ratio * dSdr2);
   *frc  -= PAULI_RC * (dTdr * O + ratio * dSdr);
-  *energy += tt * O;
+  *epauli += tt*O;
+}
+
+/* ---------------------------------------------------------------------- */
+
+inline void PauliCoreElec(double rc, double re2, double *epauli, double *frc, 
+       double *fre2, double PAULI_CORE_A, double PAULI_CORE_B, double PAULI_CORE_C)
+{
+  double E, dEdrc, dEdre2, rcsq, ssq;
+  
+  rcsq = rc * rc;
+  ssq = re2 * re2;
+
+  E = PAULI_CORE_A * exp((-PAULI_CORE_B * rcsq) / (ssq + PAULI_CORE_C));
+  
+  dEdrc = -2 * PAULI_CORE_A * PAULI_CORE_B * rc * exp(-PAULI_CORE_B * rcsq /
+          (ssq + PAULI_CORE_C)) / (ssq + PAULI_CORE_C);
+
+  dEdre2 = 2 * PAULI_CORE_A * PAULI_CORE_B * re2 * rcsq * exp(-PAULI_CORE_B * rcsq /
+          (ssq + PAULI_CORE_C)) / pow((PAULI_CORE_C + ssq),2);
+
+  *epauli += E;
+  *frc -= dEdrc;
+  *fre2 -= dEdre2;
 }
 
 /* ---------------------------------------------------------------------- */

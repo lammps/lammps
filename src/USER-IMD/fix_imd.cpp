@@ -435,7 +435,7 @@ void FixIMD::setup(int)
 
   MPI_Allreduce(&nme,&nmax,1,MPI_INT,MPI_MAX,world);
   maxbuf = nmax*size_one;
-  comm_buf = memory->smalloc(maxbuf,"imd:comm_buf");
+  comm_buf = (void *) memory->smalloc(maxbuf,"imd:comm_buf");
 
   connect_msg = 1;
   reconnect();
@@ -566,10 +566,10 @@ void FixIMD::post_force(int vflag)
     if (mask[i] & groupbit) ++nme;
 
   MPI_Allreduce(&nme,&nmax,1,MPI_INT,MPI_MAX,world);
-  if (nmax*size_one > maxbuf) {
-    memory->sfree(comm_buf);
+ if (nmax*size_one > maxbuf) {
+    memory->destroy(comm_buf);
     maxbuf = nmax*size_one;
-    comm_buf = memory->smalloc(maxbuf,"imd:comm_buf");
+    comm_buf = (void *) memory->smalloc(maxbuf,"imd:comm_buf");
   }
 
   MPI_Status status;
@@ -666,7 +666,7 @@ void FixIMD::post_force(int vflag)
           /* disconnect from client. wait for new connection. */
           imd_paused = 0;
           imd_forces = 0;
-          memory->sfree(force_buf);
+          memory->destroy(force_buf);
           force_buf = NULL;
           imdsock_destroy(clientsock);
           clientsock = NULL;
@@ -730,9 +730,9 @@ void FixIMD::post_force(int vflag)
           imd_recv_mdcomm(clientsock, length, imd_tags, imd_fdat);
 
           if (imd_forces < length) { /* grow holding space for forces, if needed. */
-            if (force_buf != NULL) 
-              memory->sfree(force_buf);
-            force_buf = memory->smalloc(length*size_one, "imd:force_buf");
+            memory->destroy(force_buf);
+            force_buf = (void *) memory->smalloc(length*size_one,
+                                                 "imd:force_buf");
           }
           imd_forces = length;
           buf = static_cast<struct commdata *>(force_buf);
@@ -801,9 +801,9 @@ void FixIMD::post_force(int vflag)
     /* check if we need to readjust the forces comm buffer on the receiving nodes. */
     if (me != 0) {
       if (old_imd_forces < imd_forces) { /* grow holding space for forces, if needed. */
-        if (force_buf != NULL) 
-          memory->sfree(force_buf);
-        force_buf = memory->smalloc(imd_forces*size_one, "imd:force_buf");
+        memory->destroy(force_buf);
+        force_buf = (void *) memory->smalloc(imd_forces*size_one,
+                                             "imd:force_buf");
       }
     }
     MPI_Bcast(force_buf, imd_forces*size_one, MPI_BYTE, 0, world);

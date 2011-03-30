@@ -15,12 +15,12 @@
    Contributing author: Tzu-Ray Shan (U Florida, rayshan@ufl.edu)
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "mpi.h"
 #include "math.h"
 #include "stdlib.h"
 #include "string.h"
 #include "fix_qeq_comb.h"
-#include "lmptype.h"
 #include "atom.h"
 #include "force.h"
 #include "group.h"
@@ -74,9 +74,9 @@ FixQEQComb::FixQEQComb(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   }
   
   nmax = atom->nmax;
-  qf = (double *) memory->smalloc(nmax*sizeof(double),"qeq:qf");
-  q1 = (double *) memory->smalloc(nmax*sizeof(double),"qeq:q1");
-  q2 = (double *) memory->smalloc(nmax*sizeof(double),"qeq:q2");
+  memory->create(qf,nmax,"qeq:qf");
+  memory->create(q1,nmax,"qeq:q1");
+  memory->create(q2,nmax,"qeq:q2");
   vector_atom = qf;
 
   // zero the vector since dump may access it on timestep 0
@@ -91,9 +91,9 @@ FixQEQComb::FixQEQComb(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 FixQEQComb::~FixQEQComb()
 {
   if (me == 0 && fp) fclose(fp);
-  memory->sfree(qf);
-  memory->sfree(q1);
-  memory->sfree(q2);
+  memory->destroy(qf);
+  memory->destroy(q1);
+  memory->destroy(q2);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -154,21 +154,21 @@ void FixQEQComb::post_force(int vflag)
   // q2 = tmp storage of charge force for next iteration
 
   if (atom->nmax > nmax) {
-    memory->sfree(qf);
-    memory->sfree(q1);
-    memory->sfree(q2);
+    memory->destroy(qf);
+    memory->destroy(q1);
+    memory->destroy(q2);
     nmax = atom->nmax;
-    qf = (double *) memory->smalloc(nmax*sizeof(double),"qeq:qf");
-    q1 = (double *) memory->smalloc(nmax*sizeof(double),"qeq:q1");
-    q2 = (double *) memory->smalloc(nmax*sizeof(double),"qeq:q2");
+    memory->create(qf,nmax,"qeq:qf");
+    memory->create(q1,nmax,"qeq:q1");
+    memory->create(q2,nmax,"qeq:q2");
     vector_atom = qf;
   }
   
   // more loops for first-time charge equilibrium
 
   iloop = 0; 
-  if (firstflag) loopmax = 1000;
-  else loopmax = 500;
+  if (firstflag) loopmax = 5000;
+  else loopmax = 2000;
 
   // charge-equilibration loop
 
@@ -176,10 +176,10 @@ void FixQEQComb::post_force(int vflag)
     fprintf(fp,"Charge equilibration on step " BIGINT_FORMAT "\n",
 	    update->ntimestep);
   
-  heatpq = 0.01;
-  qmass = 0.06;
-  dtq = 0.040;
-  dtq2 = 0.5*dtq*dtq/qmass;
+  heatpq = 0.05;
+  qmass  = 0.000548580;
+  dtq    = 0.0006;
+  dtq2   = 0.5*dtq*dtq/qmass;
 
   double enegchk = 0.0;
   double enegtot = 0.0; 
@@ -195,8 +195,8 @@ void FixQEQComb::post_force(int vflag)
   for (iloop = 0; iloop < loopmax; iloop ++ ) {
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	q1[i] = qf[i]*dtq2 - heatpq*q1[i];
-	q[i] += q1[i]; 
+	q1[i] += qf[i]*dtq2 - heatpq*q1[i];
+	q[i]  += q1[i]; 
       }
 
     enegtot = comb->yasu_char(qf,igroup);
@@ -215,8 +215,8 @@ void FixQEQComb::post_force(int vflag)
     enegchk = enegchkall/ngroup;
     MPI_Allreduce(&enegmax,&enegmaxall,1,MPI_DOUBLE,MPI_MAX,world);
     enegmax = enegmaxall;
-    
-    if (enegchk <= precision && enegmax <= 10.0*precision) break;
+  
+    if (enegchk <= precision && enegmax <= 100.0*precision) break;
 
     if (me == 0 && fp)
       fprintf(fp,"  iteration: %d, enegtot %.6g, "

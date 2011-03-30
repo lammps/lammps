@@ -12,10 +12,11 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Andres Jaramillo-Botero (Caltech)
+   Contributing author: Andres Jaramillo-Botero
 ------------------------------------------------------------------------- */
 
 #include "mpi.h"
+#include "math.h"
 #include "compute_ke_eff.h"
 #include "atom.h"
 #include "update.h"
@@ -57,7 +58,6 @@ double ComputeKEEff::compute_scalar()
 
   double **v = atom->v;
   double *ervel = atom->ervel;
-  double *rmass = atom->rmass;
   double *mass = atom->mass;
   int *spin = atom->spin;
   int *mask = atom->mask;
@@ -66,19 +66,12 @@ double ComputeKEEff::compute_scalar()
 
   double ke = 0.0;
 
-  if (rmass) {
-    for (int i = 0; i < nlocal; i++) 
-      if (mask[i] & groupbit) {
-        ke += rmass[i] * (v[i][0]*v[i][0] + v[i][1]*v[i][1] + 
-			  v[i][2]*v[i][2]);
-        if (spin[i]) ke += 0.75*rmass[i]*ervel[i]*ervel[i];
-      }
-  } else {
+  if (mass) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
         ke += mass[type[i]]*(v[i][0]*v[i][0] + v[i][1]*v[i][1] + 
-			     v[i][2]*v[i][2]);
-        if (spin[i]) ke += 0.75*mass[type[i]]*ervel[i]*ervel[i];
+                             v[i][2]*v[i][2]);
+        if (fabs(spin[i])==1) ke += 0.75*mass[type[i]]*ervel[i]*ervel[i];
       }
   }
 

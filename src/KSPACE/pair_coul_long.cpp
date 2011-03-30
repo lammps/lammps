@@ -57,10 +57,10 @@ PairCoulLong::PairCoulLong(LAMMPS *lmp) : Pair(lmp)
 PairCoulLong::~PairCoulLong()
 {
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
 
-    memory->destroy_2d_double_array(scale);
+    memory->destroy(scale);
   }
   if (ftable) free_tables();
 }
@@ -188,14 +188,14 @@ void PairCoulLong::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
-  scale = memory->create_2d_double_array(n+1,n+1,"pair:scale");
+  memory->create(scale,n+1,n+1,"pair:scale");
 }
 
 /* ----------------------------------------------------------------------
@@ -303,22 +303,22 @@ void PairCoulLong::init_tables()
 
   if (ftable) free_tables();
   
-  rtable = (double *) memory->smalloc(ntable*sizeof(double),"pair:rtable");
-  ftable = (double *) memory->smalloc(ntable*sizeof(double),"pair:ftable");
-  ctable = (double *) memory->smalloc(ntable*sizeof(double),"pair:ctable");
-  etable = (double *) memory->smalloc(ntable*sizeof(double),"pair:etable");
-  drtable = (double *) memory->smalloc(ntable*sizeof(double),"pair:drtable");
-  dftable = (double *) memory->smalloc(ntable*sizeof(double),"pair:dftable");
-  dctable = (double *) memory->smalloc(ntable*sizeof(double),"pair:dctable");
-  detable = (double *) memory->smalloc(ntable*sizeof(double),"pair:detable");
+  memory->create(rtable,ntable,"pair:rtable");
+  memory->create(ftable,ntable,"pair:ftable");
+  memory->create(ctable,ntable,"pair:ctable");
+  memory->create(etable,ntable,"pair:etable");
+  memory->create(drtable,ntable,"pair:drtable");
+  memory->create(dftable,ntable,"pair:dftable");
+  memory->create(dctable,ntable,"pair:dctable");
+  memory->create(detable,ntable,"pair:detable");
 
   if (cut_respa == NULL) {
     vtable = ptable = dvtable = dptable = NULL;
   } else {
-    vtable = (double *) memory->smalloc(ntable*sizeof(double),"pair:vtable");
-    ptable = (double *) memory->smalloc(ntable*sizeof(double),"pair:ptable");
-    dvtable = (double *) memory->smalloc(ntable*sizeof(double),"pair:dvtable");
-    dptable = (double *) memory->smalloc(ntable*sizeof(double),"pair:dptable");
+    memory->create(vtable,ntable,"pair:vtable");
+    memory->create(ptable,ntable,"pair:ptable");
+    memory->create(dvtable,ntable,"pair:dvtable");
+    memory->create(dptable,ntable,"pair:dptable");
   }
 
   union_int_float_t rsq_lookup;
@@ -502,18 +502,18 @@ void PairCoulLong::read_restart_settings(FILE *fp)
 
 void PairCoulLong::free_tables()
 {
-  memory->sfree(rtable);
-  memory->sfree(drtable);
-  memory->sfree(ftable);
-  memory->sfree(dftable);
-  memory->sfree(ctable);
-  memory->sfree(dctable);
-  memory->sfree(etable);
-  memory->sfree(detable);
-  memory->sfree(vtable);
-  memory->sfree(dvtable);
-  memory->sfree(ptable);
-  memory->sfree(dptable);
+  memory->destroy(rtable);
+  memory->destroy(drtable);
+  memory->destroy(ftable);
+  memory->destroy(dftable);
+  memory->destroy(ctable);
+  memory->destroy(dctable);
+  memory->destroy(etable);
+  memory->destroy(detable);
+  memory->destroy(vtable);
+  memory->destroy(dvtable);
+  memory->destroy(ptable);
+  memory->destroy(dptable);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -326,6 +326,15 @@ c     Compute derivatives of weighting functions t wrt rij
                 dt3dr1 = a3i*(t3_meam(eltj)-t3i*t3_meam(eltj)**2)
                 dt3dr2 = a3j*(t3_meam(elti)-t3j*t3_meam(elti)**2)
 
+              else if (ialloy.eq.2) then
+                
+                dt1dr1 = 0.d0
+                dt1dr2 = 0.d0
+                dt2dr1 = 0.d0
+                dt2dr2 = 0.d0
+                dt3dr1 = 0.d0
+                dt3dr2 = 0.d0
+
               else
 
                 ai = 0.d0
@@ -426,6 +435,15 @@ c     Compute derivatives wrt sij, but only if necessary
                   dt2ds2 = a2j*(t2_meam(elti)-t2j*t2_meam(elti)**2)
                   dt3ds1 = a3i*(t3_meam(eltj)-t3i*t3_meam(eltj)**2)
                   dt3ds2 = a3j*(t3_meam(elti)-t3j*t3_meam(elti)**2)
+
+                else if (ialloy.eq.2) then
+
+                  dt1ds1 = 0.d0
+                  dt1ds2 = 0.d0
+                  dt2ds1 = 0.d0
+                  dt2ds2 = 0.d0
+                  dt3ds1 = 0.d0
+                  dt3ds2 = 0.d0
 
                 else
 

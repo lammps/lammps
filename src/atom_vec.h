@@ -40,7 +40,7 @@ class AtomVec : protected Pointers {
 
   AtomVec(class LAMMPS *, int, char **);
   virtual ~AtomVec() {}
-  virtual void init() {}
+  virtual void init();
 
   virtual void grow(int) = 0;
   virtual void grow_reset() = 0;
@@ -78,10 +78,13 @@ class AtomVec : protected Pointers {
   virtual void data_vel(int, char **);
   virtual int data_vel_hybrid(int, char **) {return 0;}
 
-  virtual double memory_usage() = 0;
+  virtual bigint memory_usage() = 0;
 
  protected:
   int nmax;                             // local copy of atom->nmax
+  int deform_vremap;                    // local copy of domain properties
+  int deform_groupbit;
+  double *h_rate;
 };
 
 }

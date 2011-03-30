@@ -45,12 +45,12 @@ ImproperHybrid::~ImproperHybrid()
   }
 
   if (allocated) {
-    memory->sfree(setflag);
-    memory->sfree(map);
+    memory->destroy(setflag);
+    memory->destroy(map);
     delete [] nimproperlist;
     delete [] maximproper;
     for (int i = 0; i < nstyles; i++)
-      memory->destroy_2d_int_array(improperlist[i]);
+      memory->destroy(improperlist[i]);
     delete [] improperlist;
   }
 }
@@ -79,11 +79,10 @@ void ImproperHybrid::compute(int eflag, int vflag)
     }
     for (m = 0; m < nstyles; m++) {
       if (nimproperlist[m] > maximproper[m]) {
-	memory->destroy_2d_int_array(improperlist[m]);
+	memory->destroy(improperlist[m]);
 	maximproper[m] = nimproperlist[m] + EXTRA;
-	improperlist[m] = (int **)
-	  memory->create_2d_int_array(maximproper[m],5,
-				      "improper_hybrid:improperlist");
+	memory->create(improperlist[m],maximproper[m],5,
+		       "improper_hybrid:improperlist");
       }
       nimproperlist[m] = 0;
     }
@@ -145,8 +144,8 @@ void ImproperHybrid::allocate()
   allocated = 1;
   int n = atom->nimpropertypes;
 
-  map = (int *) memory->smalloc((n+1)*sizeof(int),"improper:map");
-  setflag = (int *) memory->smalloc((n+1)*sizeof(int),"improper:setflag");
+  memory->create(map,n+1,"improper:map");
+  memory->create(setflag,n+1,"improper:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
 
   nimproperlist = new int[nstyles];

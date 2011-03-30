@@ -21,7 +21,6 @@ FixStyle(wall/srd,FixWallSRD)
 #define LMP_FIX_WALL_SRD_H
 
 #include "fix.h"
-#include "lmptype.h"
 
 namespace LAMMPS_NS {
 

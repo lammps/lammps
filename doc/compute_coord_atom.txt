@@ -51,6 +51,8 @@ above.
 
 [Restrictions:] none
 
-[Related commands:] none
+[Related commands:]
+
+"compute cluster/atom"_compute_cluster_atom.html
 
 [Default:] none

@@ -114,21 +114,21 @@ void PairLJCoul::settings(int narg, char **arg)
 PairLJCoul::~PairLJCoul()
 {
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
 
-    memory->destroy_2d_double_array(cut_lj_read);
-    memory->destroy_2d_double_array(cut_lj);
-    memory->destroy_2d_double_array(cut_ljsq);
-    memory->destroy_2d_double_array(epsilon_read);
-    memory->destroy_2d_double_array(epsilon);
-    memory->destroy_2d_double_array(sigma_read);
-    memory->destroy_2d_double_array(sigma);
-    memory->destroy_2d_double_array(lj1);
-    memory->destroy_2d_double_array(lj2);
-    memory->destroy_2d_double_array(lj3);
-    memory->destroy_2d_double_array(lj4);
-    memory->destroy_2d_double_array(offset);
+    memory->destroy(cut_lj_read);
+    memory->destroy(cut_lj);
+    memory->destroy(cut_ljsq);
+    memory->destroy(epsilon_read);
+    memory->destroy(epsilon);
+    memory->destroy(sigma_read);
+    memory->destroy(sigma);
+    memory->destroy(lj1);
+    memory->destroy(lj2);
+    memory->destroy(lj3);
+    memory->destroy(lj4);
+    memory->destroy(offset);
   }
   if (ftable) free_tables();
 }
@@ -142,25 +142,25 @@ void PairLJCoul::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
-  cut_lj_read = memory->create_2d_double_array(n+1,n+1,"pair:cut_lj_read");
-  cut_lj = memory->create_2d_double_array(n+1,n+1,"pair:cut_lj");
-  cut_ljsq = memory->create_2d_double_array(n+1,n+1,"pair:cut_ljsq");
-  epsilon_read = memory->create_2d_double_array(n+1,n+1,"pair:epsilon_read");
-  epsilon = memory->create_2d_double_array(n+1,n+1,"pair:epsilon");
-  sigma_read = memory->create_2d_double_array(n+1,n+1,"pair:sigma_read");
-  sigma = memory->create_2d_double_array(n+1,n+1,"pair:sigma");
-  lj1 = memory->create_2d_double_array(n+1,n+1,"pair:lj1");
-  lj2 = memory->create_2d_double_array(n+1,n+1,"pair:lj2");
-  lj3 = memory->create_2d_double_array(n+1,n+1,"pair:lj3");
-  lj4 = memory->create_2d_double_array(n+1,n+1,"pair:lj4");
-  offset = memory->create_2d_double_array(n+1,n+1,"pair:offset");
+  memory->create(cut_lj_read,n+1,n+1,"pair:cut_lj_read");
+  memory->create(cut_lj,n+1,n+1,"pair:cut_lj");
+  memory->create(cut_ljsq,n+1,n+1,"pair:cut_ljsq");
+  memory->create(epsilon_read,n+1,n+1,"pair:epsilon_read");
+  memory->create(epsilon,n+1,n+1,"pair:epsilon");
+  memory->create(sigma_read,n+1,n+1,"pair:sigma_read");
+  memory->create(sigma,n+1,n+1,"pair:sigma");
+  memory->create(lj1,n+1,n+1,"pair:lj1");
+  memory->create(lj2,n+1,n+1,"pair:lj2");
+  memory->create(lj3,n+1,n+1,"pair:lj3");
+  memory->create(lj4,n+1,n+1,"pair:lj4");
+  memory->create(offset,n+1,n+1,"pair:offset");
 }
 
 /* ----------------------------------------------------------------------
@@ -942,22 +942,22 @@ void PairLJCoul::init_tables()
 
   if (ftable) free_tables();
   
-  rtable = (double *) memory->smalloc(ntable*sizeof(double),"pair:rtable");
-  ftable = (double *) memory->smalloc(ntable*sizeof(double),"pair:ftable");
-  ctable = (double *) memory->smalloc(ntable*sizeof(double),"pair:ctable");
-  etable = (double *) memory->smalloc(ntable*sizeof(double),"pair:etable");
-  drtable = (double *) memory->smalloc(ntable*sizeof(double),"pair:drtable");
-  dftable = (double *) memory->smalloc(ntable*sizeof(double),"pair:dftable");
-  dctable = (double *) memory->smalloc(ntable*sizeof(double),"pair:dctable");
-  detable = (double *) memory->smalloc(ntable*sizeof(double),"pair:detable");
+  memory->create(rtable,ntable,"pair:rtable");
+  memory->create(ftable,ntable,"pair:ftable");
+  memory->create(ctable,ntable,"pair:ctable");
+  memory->create(etable,ntable,"pair:etable");
+  memory->create(drtable,ntable,"pair:drtable");
+  memory->create(dftable,ntable,"pair:dftable");
+  memory->create(dctable,ntable,"pair:dctable");
+  memory->create(detable,ntable,"pair:detable");
 
   if (cut_respa == NULL) {
     vtable = ptable = dvtable = dptable = NULL;
   } else {
-    vtable = (double *) memory->smalloc(ntable*sizeof(double),"pair:vtable");
-    ptable = (double *) memory->smalloc(ntable*sizeof(double),"pair:ptable");
-    dvtable = (double *) memory->smalloc(ntable*sizeof(double),"pair:dvtable");
-    dptable = (double *) memory->smalloc(ntable*sizeof(double),"pair:dptable");
+    memory->create(vtable,ntable,"pair:vtable");
+    memory->create(ptable,ntable,"pair:ptable");
+    memory->create(dvtable,ntable,"pair:dvtable");
+    memory->create(dptable,ntable,"pair:dptable");
   }
 
   union_int_float_t rsq_lookup;
@@ -1094,18 +1094,18 @@ void PairLJCoul::init_tables()
 
 void PairLJCoul::free_tables()
 {
-  memory->sfree(rtable);
-  memory->sfree(drtable);
-  memory->sfree(ftable);
-  memory->sfree(dftable);
-  memory->sfree(ctable);
-  memory->sfree(dctable);
-  memory->sfree(etable);
-  memory->sfree(detable);
-  memory->sfree(vtable);
-  memory->sfree(dvtable);
-  memory->sfree(ptable);
-  memory->sfree(dptable);
+  memory->destroy(rtable);
+  memory->destroy(drtable);
+  memory->destroy(ftable);
+  memory->destroy(dftable);
+  memory->destroy(ctable);
+  memory->destroy(dctable);
+  memory->destroy(etable);
+  memory->destroy(detable);
+  memory->destroy(vtable);
+  memory->destroy(dvtable);
+  memory->destroy(ptable);
+  memory->destroy(dptable);
 }
 
 /* ---------------------------------------------------------------------- */

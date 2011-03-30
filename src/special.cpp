@@ -39,9 +39,9 @@ Special::Special(LAMMPS *lmp) : Pointers(lmp)
 
 Special::~Special()
 {
-  memory->destroy_2d_int_array(onetwo);
-  memory->destroy_2d_int_array(onethree);
-  memory->destroy_2d_int_array(onefour);
+  memory->destroy(onetwo);
+  memory->destroy(onethree);
+  memory->destroy(onefour);
 }
 
 /* ----------------------------------------------------------------------
@@ -152,7 +152,7 @@ void Special::build()
     if (logfile) fprintf(logfile,"  %d = max # of 1-2 neighbors\n",maxall);
   }
 
-  onetwo = memory->create_2d_int_array(nlocal,maxall,"special:onetwo");
+  memory->create(onetwo,nlocal,maxall,"special:onetwo");
 
   // count = accumulating counter
 
@@ -303,7 +303,7 @@ void Special::build()
     if (logfile) fprintf(logfile,"  %d = max # of 1-3 neighbors\n",maxall);
   }
 
-  onethree = memory->create_2d_int_array(nlocal,maxall,"special:onethree");
+  memory->create(onethree,nlocal,maxall,"special:onethree");
 
   // nbufmax = largest buffer needed to hold info from any proc
   // info for each atom = 4 scalars + list of 1-2 neighs + list of 1-3 neighs
@@ -470,7 +470,7 @@ void Special::build()
     if (logfile) fprintf(logfile,"  %d = max # of 1-4 neighbors\n",maxall);
   }
 
-  onefour = memory->create_2d_int_array(nlocal,maxall,"special:onefour");
+  memory->create(onefour,nlocal,maxall,"special:onefour");
 
   // nbufmax = largest buffer needed to hold info from any proc
   // info for each atom = 3 scalars + list of 1-3 neighs + list of 1-4 neighs
@@ -637,10 +637,9 @@ void Special::combine()
       fprintf(logfile,"  %d = max # of special neighbors\n",atom->maxspecial);
   }
 
-  memory->destroy_2d_int_array(atom->special);
+  memory->destroy(atom->special);
 
-  atom->special = 
-    memory->create_2d_int_array(atom->nmax,atom->maxspecial,"atom:special");
+  memory->create(atom->special,atom->nmax,atom->maxspecial,"atom:special");
   atom->avec->grow_reset();
   int **special = atom->special;
 
@@ -747,8 +746,8 @@ void Special::angle_trim()
     int maxcount = 0;
     for (i = 0; i < nlocal; i++)
       maxcount = MAX(maxcount,nspecial[i][1]-nspecial[i][0]);
-    int **dflag =
-      memory->create_2d_int_array(nlocal,maxcount,"special::dflag");
+    int **dflag;
+    memory->create(dflag,nlocal,maxcount,"special::dflag");
     
     for (i = 0; i < nlocal; i++) {
       n = nspecial[i][1] - nspecial[i][0];
@@ -842,7 +841,7 @@ void Special::angle_trim()
     
     // clean up
 
-    memory->destroy_2d_int_array(dflag);
+    memory->destroy(dflag);
     delete [] buf;
     delete [] bufcopy;
 
@@ -922,8 +921,8 @@ void Special::dihedral_trim()
     int maxcount = 0;
     for (i = 0; i < nlocal; i++)
       maxcount = MAX(maxcount,nspecial[i][2]-nspecial[i][1]);
-    int **dflag =
-      memory->create_2d_int_array(nlocal,maxcount,"special::dflag");
+    int **dflag;
+    memory->create(dflag,nlocal,maxcount,"special::dflag");
 
     for (i = 0; i < nlocal; i++) {
       n = nspecial[i][2] - nspecial[i][1];
@@ -1003,7 +1002,7 @@ void Special::dihedral_trim()
     
     // clean up
 
-    memory->destroy_2d_int_array(dflag);
+    memory->destroy(dflag);
     delete [] buf;
     delete [] bufcopy;
 

@@ -108,7 +108,7 @@ FixSetForce::~FixSetForce()
   delete [] ystr;
   delete [] zstr;
   delete [] idregion;
-  memory->destroy_2d_double_array(sforce);
+  memory->destroy(sforce);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -216,8 +216,8 @@ void FixSetForce::post_force(int vflag)
 
   if (varflag == ATOM && nlocal > maxatom) {
     maxatom = atom->nmax;
-    memory->destroy_2d_double_array(sforce);
-    sforce = memory->create_2d_double_array(maxatom,3,"setforce:sforce");
+    memory->destroy(sforce);
+    memory->create(sforce,maxatom,3,"setforce:sforce");
   }
 
   foriginal[0] = foriginal[1] = foriginal[2] = 0.0;
@@ -245,13 +245,13 @@ void FixSetForce::post_force(int vflag)
     modify->clearstep_compute();
 
     if (xstyle == EQUAL) xvalue = input->variable->compute_equal(xvar);
-    else if (xstyle == ATOM)
+    else if (xstyle == ATOM && sforce)
       input->variable->compute_atom(xvar,igroup,&sforce[0][0],3,0);
     if (ystyle == EQUAL) yvalue = input->variable->compute_equal(yvar);
-    else if (ystyle == ATOM) 
+    else if (ystyle == ATOM && sforce) 
       input->variable->compute_atom(yvar,igroup,&sforce[0][1],3,0);
     if (zstyle == EQUAL) zvalue = input->variable->compute_equal(zvar);
-    else if (zstyle == ATOM)
+    else if (zstyle == ATOM && sforce)
       input->variable->compute_atom(zvar,igroup,&sforce[0][2],3,0);
 
     modify->addstep_compute(update->ntimestep + 1);

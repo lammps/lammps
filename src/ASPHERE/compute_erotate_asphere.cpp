@@ -34,8 +34,7 @@ ComputeERotateAsphere(LAMMPS *lmp, int narg, char **arg) :
   scalar_flag = 1;
   extscalar = 1;
 
-  inertia = 
-    memory->create_2d_double_array(atom->ntypes+1,3,"fix_temp_sphere:inertia");
+  memory->create(inertia,atom->ntypes+1,3,"fix_temp_sphere:inertia");
 
   // error checks
 
@@ -52,7 +51,7 @@ ComputeERotateAsphere(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeERotateAsphere::~ComputeERotateAsphere()
 {
-  memory->destroy_2d_double_array(inertia);
+  memory->destroy(inertia);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -1,40 +1,41 @@
 # NOTE: This script should not need to be
 # modified. See in.elastic for more info.
 #
-
 # Find which reference length to use
 
-if ${dir} == 1 then &
+if "${dir} == 1" then &
    "variable len0 equal ${lx0}" 
-if ${dir} == 2 then &
+if "${dir} == 2" then &
    "variable len0 equal ${ly0}" 
-if ${dir} == 3 then &
+if "${dir} == 3" then &
    "variable len0 equal ${lz0}" 
-if ${dir} == 4 then &
+if "${dir} == 4" then &
    "variable len0 equal ${lz0}" 
-if ${dir} == 5 then &
+if "${dir} == 5" then &
    "variable len0 equal ${lz0}" 
-if ${dir} == 6 then &
+if "${dir} == 6" then &
    "variable len0 equal ${ly0}" 
 
 # Reset box and simulation parameters
+
 clear
 read_restart restart.equil
 include potential.mod
 
 # Negative deformation
+
 variable delta equal -${up}*${len0}
-if ${dir} == 1 then &
+if "${dir} == 1" then &
    "displace_box all x delta 0 ${delta} units box"
-if ${dir} == 2 then &
+if "${dir} == 2" then &
    "displace_box all y delta 0 ${delta} units box"
-if ${dir} == 3 then &
+if "${dir} == 3" then &
    "displace_box all z delta 0 ${delta} units box"
-if ${dir} == 4 then &
+if "${dir} == 4" then &
    "displace_box all yz delta ${delta} units box"
-if ${dir} == 5 then &
+if "${dir} == 5" then &
    "displace_box all xz delta ${delta} units box"
-if ${dir} == 6 then &
+if "${dir} == 6" then &
    "displace_box all xy delta ${delta} units box"
 
 # Relax atoms positions
@@ -66,23 +67,25 @@ variable C5neg equal ${d5}
 variable C6neg equal ${d6}
 
 # Reset box and simulation parameters
+
 clear
 read_restart restart.equil
 include potential.mod
 
 # Positive deformation
+
 variable delta equal ${up}*${len0}
-if ${dir} == 1 then &
+if "${dir} == 1" then &
    "displace_box all x delta 0 ${delta} units box"
-if ${dir} == 2 then &
+if "${dir} == 2" then &
    "displace_box all y delta 0 ${delta} units box"
-if ${dir} == 3 then &
+if "${dir} == 3" then &
    "displace_box all z delta 0 ${delta} units box"
-if ${dir} == 4 then &
+if "${dir} == 4" then &
    "displace_box all yz delta ${delta} units box"
-if ${dir} == 5 then &
+if "${dir} == 5" then &
    "displace_box all xz delta ${delta} units box"
-if ${dir} == 6 then &
+if "${dir} == 6" then &
    "displace_box all xy delta ${delta} units box"
 
 # Relax atoms positions

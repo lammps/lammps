@@ -21,7 +21,6 @@ ComputeStyle(reduce,ComputeReduce)
 #define LMP_COMPUTE_REDUCE_H
 
 #include "compute.h"
-#include "lmptype.h"
 
 namespace LAMMPS_NS {
 

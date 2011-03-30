@@ -46,7 +46,7 @@ FixRespa::~FixRespa()
 
   // delete locally stored arrays
 
-  memory->destroy_3d_double_array(f_level);
+  memory->destroy(f_level);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -72,8 +72,7 @@ double FixRespa::memory_usage()
 
 void FixRespa::grow_arrays(int nmax)
 {
-  f_level = 
-    memory->grow_3d_double_array(f_level,nmax,nlevels,3,"fix_respa:f_level");
+  memory->grow(f_level,nmax,nlevels,3,"fix_respa:f_level");
 }
 
 /* ----------------------------------------------------------------------

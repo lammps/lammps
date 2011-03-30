@@ -41,7 +41,7 @@ ComputeKEAtom::ComputeKEAtom(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeKEAtom::~ComputeKEAtom()
 {
-  memory->sfree(ke);
+  memory->destroy(ke);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -64,9 +64,9 @@ void ComputeKEAtom::compute_peratom()
   // grow ke array if necessary
 
   if (atom->nlocal > nmax) {
-    memory->sfree(ke);
+    memory->destroy(ke);
     nmax = atom->nmax;
-    ke = (double *) memory->smalloc(nmax*sizeof(double),"ke/atom:ke");
+    memory->create(ke,nmax,"ke/atom:ke");
     vector_atom = ke;
   }
 

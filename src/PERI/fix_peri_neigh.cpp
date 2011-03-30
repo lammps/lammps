@@ -82,11 +82,11 @@ FixPeriNeigh::~FixPeriNeigh()
 
   // delete locally stored arrays
 
-  memory->sfree(npartner);
-  memory->destroy_2d_int_array(partner);
-  memory->destroy_2d_double_array(r0);
-  memory->sfree(vinter);
-  memory->sfree(wvolume);
+  memory->destroy(npartner);
+  memory->destroy(partner);
+  memory->destroy(r0);
+  memory->destroy(vinter);
+  memory->destroy(wvolume);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -118,6 +118,15 @@ void FixPeriNeigh::init()
 void FixPeriNeigh::init_list(int id, NeighList *ptr)
 {
   list = ptr;
+}
+
+/* ---------------------------------------------------------------------- 
+   For minimization: setup as with dynamics 
+------------------------------------------------------------------------- */
+
+void FixPeriNeigh::min_setup(int vflag)
+{
+  setup(vflag); 
 }
 
 /* ----------------------------------------------------------------------
@@ -186,9 +195,9 @@ void FixPeriNeigh::setup(int vflag)
 
   // realloc arrays with correct value for maxpartner
 
-  memory->destroy_2d_int_array(partner);
-  memory->destroy_2d_double_array(r0);
-  memory->sfree(npartner);
+  memory->destroy(partner);
+  memory->destroy(r0);
+  memory->destroy(npartner);
 
   npartner = NULL;
   partner = NULL;
@@ -227,6 +236,22 @@ void FixPeriNeigh::setup(int vflag)
         r0[i][npartner[i]] = sqrt(rsq);
         npartner[i]++;
         vinter[i] += vfrac[j];
+      }
+    }
+  }
+
+  // sanity check: does any atom appear twice in any neigborlist?
+  // should only be possible if using pbc and domain < 2*delta 
+
+  if (domain->xperiodic || domain->yperiodic || domain->zperiodic) {
+    for (i = 0; i < nlocal; i++) {
+      jnum = npartner[i];
+      for (jj = 0; jj < jnum; jj++) {
+        for (int kk = jj+1; kk < jnum; kk++) {
+          if (partner[i][jj] == partner[i][kk])
+	    error->one("Duplicate particle in PeriDynamic bond - "
+		       "simulation box is too small");
+        }
       }
     }
   }
@@ -331,15 +356,11 @@ double FixPeriNeigh::memory_usage()
 
 void FixPeriNeigh::grow_arrays(int nmax)
 {
-  npartner = (int *) memory->srealloc(npartner,nmax*sizeof(int),
-				      "peri_neigh:npartner");
-  partner = memory->grow_2d_int_array(partner,nmax,maxpartner,
-				      "peri_neigh:partner");
-  r0 = memory->grow_2d_double_array(r0,nmax,maxpartner,"peri_neigh:r0");
-  vinter = (double *) memory->srealloc(vinter,nmax*sizeof(double),
-				       "peri_neigh:vinter");
-  wvolume = (double *) memory->srealloc(wvolume,nmax*sizeof(double),
-                                       "peri_neigh:wvolume");
+  memory->grow(npartner,nmax,"peri_neigh:npartner");
+  memory->grow(partner,nmax,maxpartner,"peri_neigh:partner");
+  memory->grow(r0,nmax,maxpartner,"peri_neigh:r0");
+  memory->grow(vinter,nmax,"peri_neigh:vinter");
+  memory->grow(wvolume,nmax,"peri_neigh:wvolume");
 }
 
 /* ----------------------------------------------------------------------

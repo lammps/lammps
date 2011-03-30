@@ -157,9 +157,9 @@ FixBondCreate::~FixBondCreate()
 
   // delete locally stored arrays
 
-  memory->sfree(bondcount);
-  memory->sfree(partner);
-  memory->sfree(distsq);
+  memory->destroy(bondcount);
+  memory->destroy(partner);
+  memory->destroy(distsq);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -287,13 +287,11 @@ void FixBondCreate::post_integrate()
   // needs to be atom->nmax in length
 
   if (atom->nmax > nmax) {
-    memory->sfree(partner);
-    memory->sfree(distsq);
+    memory->destroy(partner);
+    memory->destroy(distsq);
     nmax = atom->nmax;
-    partner = (int *)
-      memory->smalloc(nmax*sizeof(int),"bond/create:partner");
-    distsq = (double *)
-      memory->smalloc(nmax*sizeof(double),"bond/create:distsq");
+    memory->create(partner,nmax,"bond/create:partner");
+    memory->create(distsq,nmax,"bond/create:distsq");
     probability = distsq;
   }
 
@@ -565,8 +563,7 @@ void FixBondCreate::unpack_reverse_comm(int n, int *list, double *buf)
 
 void FixBondCreate::grow_arrays(int nmax)
 {
-  bondcount = (int *)
-    memory->srealloc(bondcount,nmax*sizeof(int),"bond/create:bondcount");
+  memory->grow(bondcount,nmax,"bond/create:bondcount");
 }
 
 /* ----------------------------------------------------------------------

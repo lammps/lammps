@@ -203,9 +203,8 @@ double ComputeReduceRegion::compute_one(int m, int flag)
   } else if (which[m] == VARIABLE) {
     if (nlocal > maxatom) {
       maxatom = atom->nmax;
-      memory->sfree(varatom);
-      varatom =	(double *) 
-	memory->smalloc(maxatom*sizeof(double),"reduce/region:varatom");
+      memory->destroy(varatom);
+      memory->create(varatom,maxatom,"reduce/region:varatom");
     }
 
     input->variable->compute_atom(n,igroup,varatom,1,0);

@@ -46,19 +46,19 @@ PairCMMCommon::PairCMMCommon(class LAMMPS *lmp) : Pair(lmp)
 
 PairCMMCommon::~PairCMMCommon() {
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_int_array(cg_type);
+    memory->destroy(setflag);
+    memory->destroy(cg_type);
 
-    memory->destroy_2d_double_array(cut);
-    memory->destroy_2d_double_array(cutsq);
-    memory->destroy_2d_double_array(epsilon);
-    memory->destroy_2d_double_array(sigma);
-    memory->destroy_2d_double_array(offset);
+    memory->destroy(cut);
+    memory->destroy(cutsq);
+    memory->destroy(epsilon);
+    memory->destroy(sigma);
+    memory->destroy(offset);
 
-    memory->destroy_2d_double_array(lj1);
-    memory->destroy_2d_double_array(lj2);
-    memory->destroy_2d_double_array(lj3);
-    memory->destroy_2d_double_array(lj4);
+    memory->destroy(lj1);
+    memory->destroy(lj2);
+    memory->destroy(lj3);
+    memory->destroy(lj4);
 
     allocated = 0;
   }
@@ -73,8 +73,8 @@ void PairCMMCommon::allocate()
   allocated = 1;
   int n = atom->ntypes;
   
-  setflag = memory->create_2d_int_array(n+1,n+1,"paircg:setflag");
-  cg_type = memory->create_2d_int_array(n+1,n+1,"paircg:cg_type");
+  memory->create(setflag,n+1,n+1,"paircg:setflag");
+  memory->create(cg_type,n+1,n+1,"paircg:cg_type");
   for (int i = 1; i <= n; i++) {
     for (int j = i; j <= n; j++) {
       setflag[i][j] = 0;
@@ -82,16 +82,16 @@ void PairCMMCommon::allocate()
     }
   }
 
-  cut      = memory->create_2d_double_array(n+1,n+1,"paircg:cut");
-  cutsq    = memory->create_2d_double_array(n+1,n+1,"paircg:cutsq");
-  epsilon  = memory->create_2d_double_array(n+1,n+1,"paircg:epsilon");
-  sigma    = memory->create_2d_double_array(n+1,n+1,"paircg:sigma");
-  offset   = memory->create_2d_double_array(n+1,n+1,"paircg:offset"); 
+  memory->create(cut,n+1,n+1,"paircg:cut");
+  memory->create(cutsq,n+1,n+1,"paircg:cutsq");
+  memory->create(epsilon,n+1,n+1,"paircg:epsilon");
+  memory->create(sigma,n+1,n+1,"paircg:sigma");
+  memory->create(offset,n+1,n+1,"paircg:offset"); 
 
-  lj1      = memory->create_2d_double_array(n+1,n+1,"paircg:lj1");
-  lj2      = memory->create_2d_double_array(n+1,n+1,"paircg:lj2");
-  lj3      = memory->create_2d_double_array(n+1,n+1,"paircg:lj3");
-  lj4      = memory->create_2d_double_array(n+1,n+1,"paircg:lj4");
+  memory->create(lj1,n+1,n+1,"paircg:lj1");
+  memory->create(lj2,n+1,n+1,"paircg:lj2");
+  memory->create(lj3,n+1,n+1,"paircg:lj3");
+  memory->create(lj4,n+1,n+1,"paircg:lj4");
 }
 
 /* ----------------------------------------------------------------------

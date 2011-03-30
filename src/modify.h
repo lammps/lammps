@@ -16,7 +16,6 @@
 
 #include "stdio.h"
 #include "pointers.h"
-#include "lmptype.h"
 
 namespace LAMMPS_NS {
 
@@ -96,7 +95,7 @@ class Modify : protected Pointers {
   int read_restart(FILE *);
   void restart_deallocate();
 
-  double memory_usage();
+  bigint memory_usage();
 
  private:
 

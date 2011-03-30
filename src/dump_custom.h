@@ -74,7 +74,7 @@ class DumpCustom : public Dump {
   int count();
   void pack(int *);
   virtual void write_data(int, double *);
-  double memory_usage();
+  bigint memory_usage();
 
   void parse_fields(int, char **);
   int add_compute(char *);

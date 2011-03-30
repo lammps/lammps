@@ -42,10 +42,10 @@ PairCGCMMCoulLong::PairCGCMMCoulLong(LAMMPS *lmp) : PairCMMCommon(lmp)
 PairCGCMMCoulLong::~PairCGCMMCoulLong()
 {
   if (allocated_coul) {
-    memory->destroy_2d_double_array(cut_lj);
-    memory->destroy_2d_double_array(cut_ljsq);
-    memory->destroy_2d_double_array(cut_coul);
-    memory->destroy_2d_double_array(cut_coulsq);
+    memory->destroy(cut_lj);
+    memory->destroy(cut_ljsq);
+    memory->destroy(cut_coul);
+    memory->destroy(cut_coulsq);
     allocated_coul=0;
   }
   if (ftable) free_tables();
@@ -60,10 +60,10 @@ void PairCGCMMCoulLong::allocate()
 
   int n = atom->ntypes;
 
-  cut_lj = memory->create_2d_double_array(n+1,n+1,"paircg:cut_lj");
-  cut_ljsq = memory->create_2d_double_array(n+1,n+1,"paircg:cut_ljsq");
-  cut_coul = memory->create_2d_double_array(n+1,n+1,"paircg:cut_coul");
-  cut_coulsq = memory->create_2d_double_array(n+1,n+1,"paircg:cut_coulsq");
+  memory->create(cut_lj,n+1,n+1,"paircg:cut_lj");
+  memory->create(cut_ljsq,n+1,n+1,"paircg:cut_ljsq");
+  memory->create(cut_coul,n+1,n+1,"paircg:cut_coul");
+  memory->create(cut_coulsq,n+1,n+1,"paircg:cut_coulsq");
 }
 
 /* ----------------------------------------------------------------------
@@ -72,18 +72,18 @@ void PairCGCMMCoulLong::allocate()
 
 void PairCGCMMCoulLong::free_tables()
 {
-  memory->sfree(rtable);
-  memory->sfree(drtable);
-  memory->sfree(ftable);
-  memory->sfree(dftable);
-  memory->sfree(ctable);
-  memory->sfree(dctable);
-  memory->sfree(etable);
-  memory->sfree(detable);
-  memory->sfree(vtable);
-  memory->sfree(dvtable);
-  memory->sfree(ptable);
-  memory->sfree(dptable);
+  memory->destroy(rtable);
+  memory->destroy(drtable);
+  memory->destroy(ftable);
+  memory->destroy(dftable);
+  memory->destroy(ctable);
+  memory->destroy(dctable);
+  memory->destroy(etable);
+  memory->destroy(detable);
+  memory->destroy(vtable);
+  memory->destroy(dvtable);
+  memory->destroy(ptable);
+  memory->destroy(dptable);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -148,22 +148,22 @@ void PairCGCMMCoulLong::init_tables()
 
   if (ftable) free_tables();
   
-  rtable = (double *) memory->smalloc(ntable*sizeof(double),"pair:rtable");
-  ftable = (double *) memory->smalloc(ntable*sizeof(double),"pair:ftable");
-  ctable = (double *) memory->smalloc(ntable*sizeof(double),"pair:ctable");
-  etable = (double *) memory->smalloc(ntable*sizeof(double),"pair:etable");
-  drtable = (double *) memory->smalloc(ntable*sizeof(double),"pair:drtable");
-  dftable = (double *) memory->smalloc(ntable*sizeof(double),"pair:dftable");
-  dctable = (double *) memory->smalloc(ntable*sizeof(double),"pair:dctable");
-  detable = (double *) memory->smalloc(ntable*sizeof(double),"pair:detable");
+  memory->create(rtable,ntable,"pair:rtable");
+  memory->create(ftable,ntable,"pair:ftable");
+  memory->create(ctable,ntable,"pair:ctable");
+  memory->create(etable,ntable,"pair:etable");
+  memory->create(drtable,ntable,"pair:drtable");
+  memory->create(dftable,ntable,"pair:dftable");
+  memory->create(dctable,ntable,"pair:dctable");
+  memory->create(detable,ntable,"pair:detable");
 
   if (cut_respa == NULL) {
     vtable = ptable = dvtable = dptable = NULL;
   } else {
-    vtable = (double *) memory->smalloc(ntable*sizeof(double),"pair:vtable");
-    ptable = (double *) memory->smalloc(ntable*sizeof(double),"pair:ptable");
-    dvtable = (double *) memory->smalloc(ntable*sizeof(double),"pair:dvtable");
-    dptable = (double *) memory->smalloc(ntable*sizeof(double),"pair:dptable");
+    memory->create(vtable,ntable,"pair:vtable");
+    memory->create(ptable,ntable,"pair:ptable");
+    memory->create(dvtable,ntable,"pair:dvtable");
+    memory->create(dptable,ntable,"pair:dptable");
   }
 
   union_int_float_t rsq_lookup;

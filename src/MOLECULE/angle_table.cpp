@@ -54,9 +54,9 @@ AngleTable::~AngleTable()
   memory->sfree(tables);
   
   if (allocated) {
-    memory->sfree(setflag);
-    memory->sfree(theta0);
-    memory->sfree(tabindex);
+    memory->destroy(setflag);
+    memory->destroy(theta0);
+    memory->destroy(tabindex);
   }
 }
 
@@ -170,10 +170,10 @@ void AngleTable::allocate()
   allocated = 1;
   int n = atom->nangletypes;
 
-  theta0 = (double *) memory->smalloc((n+1)*sizeof(double),"angle:theta0");
-  tabindex = (int *) memory->smalloc((n+1)*sizeof(int),"angle:tabindex");
+  memory->create(theta0,n+1,"angle:theta0");
+  memory->create(tabindex,n+1,"angle:tabindex");
 
-  setflag = (int *) memory->smalloc((n+1)*sizeof(int),"angle:setflag");
+  memory->create(setflag,n+1,"angle:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
 }
 
@@ -198,8 +198,8 @@ void AngleTable::settings(int narg, char **arg)
   memory->sfree(tables);
 
   if (allocated) {
-     memory->sfree(setflag);
-     memory->sfree(tabindex);
+     memory->destroy(setflag);
+     memory->destroy(tabindex);
   }
   allocated = 0;
 
@@ -343,19 +343,19 @@ void AngleTable::null_table(Table *tb)
 
 void AngleTable::free_table(Table *tb)
 {
-  memory->sfree(tb->afile);
-  memory->sfree(tb->efile);
-  memory->sfree(tb->ffile);
-  memory->sfree(tb->e2file);
-  memory->sfree(tb->f2file);
+  memory->destroy(tb->afile);
+  memory->destroy(tb->efile);
+  memory->destroy(tb->ffile);
+  memory->destroy(tb->e2file);
+  memory->destroy(tb->f2file);
   
-  memory->sfree(tb->ang);
-  memory->sfree(tb->e);
-  memory->sfree(tb->de);
-  memory->sfree(tb->f);
-  memory->sfree(tb->df);
-  memory->sfree(tb->e2);
-  memory->sfree(tb->f2);
+  memory->destroy(tb->ang);
+  memory->destroy(tb->e);
+  memory->destroy(tb->de);
+  memory->destroy(tb->f);
+  memory->destroy(tb->df);
+  memory->destroy(tb->e2);
+  memory->destroy(tb->f2);
 }
 
 /* ----------------------------------------------------------------------
@@ -394,12 +394,9 @@ void AngleTable::read_table(Table *tb, char *file, char *keyword)
 
   fgets(line,MAXLINE,fp);
   param_extract(tb,line);
-  tb->afile = (double *) 
-    memory->smalloc(tb->ninput*sizeof(double),"angle:afile");
-  tb->efile = (double *) 
-    memory->smalloc(tb->ninput*sizeof(double),"angle:efile");
-  tb->ffile = (double *) 
-    memory->smalloc(tb->ninput*sizeof(double),"angle:ffile");
+  memory->create(tb->afile,tb->ninput,"angle:afile");
+  memory->create(tb->efile,tb->ninput,"angle:efile");
+  memory->create(tb->ffile,tb->ninput,"angle:ffile");
 
   // read a,e,f table values from file
 
@@ -421,10 +418,8 @@ void AngleTable::read_table(Table *tb, char *file, char *keyword)
 
 void AngleTable::spline_table(Table *tb)
 {
-  tb->e2file = (double *) 
-    memory->smalloc(tb->ninput*sizeof(double),"angle:e2file");
-  tb->f2file = (double *) 
-    memory->smalloc(tb->ninput*sizeof(double),"angle:f2file");
+  memory->create(tb->e2file,tb->ninput,"angle:e2file");
+  memory->create(tb->f2file,tb->ninput,"angle:f2file");
 
   double ep0 = - tb->ffile[0];
   double epn = - tb->ffile[tb->ninput-1];
@@ -459,13 +454,13 @@ void AngleTable::compute_table(Table *tb)
   // de,df values = delta values of e,f
   // ang,e,f are N in length so de,df arrays can compute difference
 
-  tb->ang = (double *) memory->smalloc(tablength*sizeof(double),"angle:ang");
-  tb->e = (double *) memory->smalloc(tablength*sizeof(double),"angle:e");
-  tb->de = (double *) memory->smalloc(tlm1*sizeof(double),"angle:de");
-  tb->f = (double *) memory->smalloc(tablength*sizeof(double),"angle:f");
-  tb->df = (double *) memory->smalloc(tlm1*sizeof(double),"angle:df");
-  tb->e2 = (double *) memory->smalloc(tablength*sizeof(double),"angle:e2");
-  tb->f2 = (double *) memory->smalloc(tablength*sizeof(double),"angle:f2");
+  memory->create(tb->ang,tablength,"angle:ang");
+  memory->create(tb->e,tablength,"angle:e");
+  memory->create(tb->de,tlm1,"angle:de");
+  memory->create(tb->f,tablength,"angle:f");
+  memory->create(tb->df,tlm1,"angle:df");
+  memory->create(tb->e2,tablength,"angle:e2");
+  memory->create(tb->f2,tablength,"angle:f2");
 
   double a;
   for (int i = 0; i < tablength; i++) {
@@ -536,12 +531,9 @@ void AngleTable::bcast_table(Table *tb)
   int me;
   MPI_Comm_rank(world,&me);
   if (me > 0) {
-    tb->afile = (double *) 
-      memory->smalloc(tb->ninput*sizeof(double),"angle:afile");
-    tb->efile = (double *) 
-      memory->smalloc(tb->ninput*sizeof(double),"angle:efile");
-    tb->ffile = (double *) 
-      memory->smalloc(tb->ninput*sizeof(double),"angle:ffile");
+    memory->create(tb->afile,tb->ninput,"angle:afile");
+    memory->create(tb->efile,tb->ninput,"angle:efile");
+    memory->create(tb->ffile,tb->ninput,"angle:ffile");
   }
 
   MPI_Bcast(tb->afile,tb->ninput,MPI_DOUBLE,0,world);

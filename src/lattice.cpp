@@ -299,7 +299,7 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
 Lattice::~Lattice()
 {
-  memory->destroy_2d_double_array(basis);
+  memory->destroy(basis);
 }
 
 /* ----------------------------------------------------------------------
@@ -514,7 +514,7 @@ void Lattice::box2lattice(double &x, double &y, double &z)
 
 void Lattice::add_basis(double x, double y, double z)
 {
-  basis = memory->grow_2d_double_array(basis,nbasis+1,3,"lattice:basis");
+  memory->grow(basis,nbasis+1,3,"lattice:basis");
   basis[nbasis][0] = x;
   basis[nbasis][1] = y;
   basis[nbasis][2] = z;

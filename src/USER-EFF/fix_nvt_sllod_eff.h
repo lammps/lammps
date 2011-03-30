@@ -20,11 +20,11 @@ FixStyle(nvt/sllod/eff,FixNVTSllodEff)
 #ifndef LMP_FIX_NVT_SLODD_EFF_H
 #define LMP_FIX_NVT_SLODD_EFF_H
 
-#include "fix_nvt_eff.h"
+#include "fix_nh_eff.h"
 
 namespace LAMMPS_NS {
 
-class FixNVTSllodEff : public FixNVTEff {
+class FixNVTSllodEff : public FixNHEff {
  public:
   FixNVTSllodEff(class LAMMPS *, int, char **);
   ~FixNVTSllodEff() {}

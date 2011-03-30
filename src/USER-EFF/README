@@ -54,6 +54,27 @@ OTHERS FILES INCLUDED:
 User examples are under examples/USER/eff
 eFF tools are under tools/eff
 
+ACKNOWLEDGMENTS:
+
 Thanks to Steve Plimpton and Aidan Thompson for their input on the
 LAMMPS architecture and for their help in customizing some of the
 required LAMMPS core modules.
+
+Version 01/2010: Special thanks to:
+- Hai Xiao (Caltech) for reviewing the fixed-core implementation and 
+  providing useful insights to improve it, and for his work on the effective core pseudopotential.
+- Vaclav Cvicek (Caltech) for thoroughly revising the units, for finding a bug in the 
+  fix_langevin_eff radial scaling factors, and for suggesting changes to clean-up the code.
+- Patrick Theofanis (Caltech) for providing an optimized set of parameters for the Si ECP 
+  (default) and for providing basic cases.
+- Qi An (Caltech) for providing feedback on usage, application cases, and testing.
+
+VERSION NOTES:
+01/2010: Added support for fixed-core and effective core pseudopotentials [ECP]
+(useful for C, Al, Si, O and other elements).  Cleaned up the code to make it
+easier to maintain, revised support for real units, upgraded post-processing
+and visualization tools, added support for "compute pair eff" to allow thermo
+prints with the different eFF energy components (eke, epauli, ecoul and errestrain), 
+fixed radial scaling factors in the eff langevin thermostat.
+
+

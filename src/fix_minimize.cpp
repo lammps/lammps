@@ -45,8 +45,8 @@ FixMinimize::~FixMinimize()
 
   // delete locally stored data
 
-  memory->sfree(peratom);
-  for (int m = 0; m < nvector; m++) memory->sfree(vectors[m]);
+  memory->destroy(peratom);
+  for (int m = 0; m < nvector; m++) memory->destroy(vectors[m]);
   memory->sfree(vectors);
 }
 
@@ -63,14 +63,12 @@ int FixMinimize::setmask()
 
 void FixMinimize::add_vector(int n)
 {
-  peratom = (int *)
-    memory->srealloc(peratom,(nvector+1)*sizeof(int),"minimize:peratom");
+  memory->grow(peratom,nvector+1,"minimize:peratom");
   peratom[nvector] = n;
 
   vectors = (double **)
     memory->srealloc(vectors,(nvector+1)*sizeof(double *),"minimize:vectors");
-  vectors[nvector] = (double *)
-    memory->smalloc(atom->nmax*n*sizeof(double),"minimize:vector");
+  memory->create(vectors[nvector],atom->nmax*n,"minimize:vector");
 
   int ntotal = n*atom->nlocal;
   for (int i = 0; i < ntotal; i++) vectors[nvector][i] = 0.0;
@@ -181,9 +179,7 @@ double FixMinimize::memory_usage()
 void FixMinimize::grow_arrays(int nmax)
 {
   for (int m = 0; m < nvector; m++)
-    vectors[m] = (double *) 
-      memory->srealloc(vectors[m],peratom[m]*nmax*sizeof(double),
-		       "minimize:vector");
+    memory->grow(vectors[m],peratom[m]*nmax,"minimize:vector");
 }
 
 /* ----------------------------------------------------------------------

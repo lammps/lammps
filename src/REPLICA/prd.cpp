@@ -15,12 +15,12 @@
    Contributing author: Mike Brown (SNL)
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "mpi.h"
 #include "math.h"
 #include "stdlib.h"
 #include "string.h"
 #include "prd.h"
-#include "lmptype.h"
 #include "universe.h"
 #include "update.h"
 #include "atom.h"
@@ -125,9 +125,9 @@ void PRD::command(int narg, char **arg)
 
   if (nreplica != nprocs_universe) {
     displacements = new int[nprocs];
-    tagall = (int *) memory->smalloc(natoms*sizeof(int),"prd:tagall");
-    xall = memory->create_2d_double_array(natoms,3,"prd:xall");
-    imageall = (int *) memory->smalloc(natoms*sizeof(int),"prd:imageall");
+    memory->create(tagall,natoms,"prd:tagall");
+    memory->create(xall,natoms,3,"prd:xall");
+    memory->create(imageall,natoms,"prd:imageall");
   }
 
   // random_select = same RNG for each replica for multiple event selection
@@ -406,9 +406,9 @@ void PRD::command(int narg, char **arg)
   // clean up
 
   delete [] displacements;
-  memory->sfree(tagall);
-  memory->destroy_2d_double_array(xall);
-  memory->sfree(imageall);
+  memory->destroy(tagall);
+  memory->destroy(xall);
+  memory->destroy(imageall);
   
   MPI_Comm_free(&comm_replica);
   delete random_select;

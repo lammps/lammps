@@ -55,6 +55,8 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   respa_enable = 0;
   one_coeff = 0;
   no_virial_compute = 0;
+  ghostneigh = 0;
+
   nextra = 0;
   pvector = NULL;
 
@@ -78,8 +80,8 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
 
 Pair::~Pair()
 {
-  memory->sfree(eatom);
-  memory->destroy_2d_double_array(vatom);
+  memory->destroy(eatom);
+  memory->destroy(vatom);
 }
 
 /* ----------------------------------------------------------------------
@@ -280,13 +282,13 @@ void Pair::ev_setup(int eflag, int vflag)
 
   if (eflag_atom && atom->nmax > maxeatom) {
     maxeatom = atom->nmax;
-    memory->sfree(eatom);
-    eatom = (double *) memory->smalloc(maxeatom*sizeof(double),"pair:eatom");
+    memory->destroy(eatom);
+    memory->create(eatom,maxeatom,"pair:eatom");
   }
   if (vflag_atom && atom->nmax > maxvatom) {
     maxvatom = atom->nmax;
-    memory->destroy_2d_double_array(vatom);
-    vatom = memory->create_2d_double_array(maxvatom,6,"pair:vatom");
+    memory->destroy(vatom);
+    memory->create(vatom,maxvatom,6,"pair:vatom");
   }
 
   // zero accumulators

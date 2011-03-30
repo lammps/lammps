@@ -22,7 +22,6 @@ FixStyle(ave/correlate,FixAveCorrelate)
 
 #include "stdio.h"
 #include "fix.h"
-#include "lmptype.h"
 
 namespace LAMMPS_NS {
 

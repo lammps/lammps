@@ -39,14 +39,14 @@ using namespace LAMMPS_NS;
 FixRigidNVE::FixRigidNVE(LAMMPS *lmp, int narg, char **arg) :
   FixRigid(lmp, narg, arg)
 { 
-  conjqm = memory->create_2d_double_array(nbody,4,"rigid/nve:conjqm");
+  memory->create(conjqm,nbody,4,"rigid/nve:conjqm");
 }
 
 /* ---------------------------------------------------------------------- */
 
 FixRigidNVE::~FixRigidNVE()
 {
-  memory->destroy_2d_double_array(conjqm);
+  memory->destroy(conjqm);
 }
 
 /* ---------------------------------------------------------------------- */

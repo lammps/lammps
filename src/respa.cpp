@@ -35,8 +35,8 @@
 #include "modify.h"
 #include "compute.h"
 #include "fix_respa.h"
-#include "memory.h"
 #include "timer.h"
+#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;

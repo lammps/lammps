@@ -37,11 +37,12 @@ using namespace LAMMPS_NS;
 
 #define MAXLINE 1024
 
-enum{FCC,BCC,HCP,DIM,DIAMOND,B1,C11,L12};
-int nkeywords = 16;
+enum{FCC,BCC,HCP,DIM,DIAMOND,B1,C11,L12,B2};
+int nkeywords = 19;
 char *keywords[] = {"Ec","alpha","rho0","delta","lattce",
 		    "attrac","repuls","nn2","Cmin","Cmax","rc","delr",
-		    "augt1","gsmooth_factor","re","ialloy"};
+		    "augt1","gsmooth_factor","re","ialloy","mixture_ref_t",
+                    "erose_form","zbl"};
 
 /* ---------------------------------------------------------------------- */
 
@@ -77,36 +78,36 @@ PairMEAM::~PairMEAM()
 {
   meam_cleanup_();
 
-  memory->sfree(rho);
-  memory->sfree(rho0);
-  memory->sfree(rho1);
-  memory->sfree(rho2);
-  memory->sfree(rho3);
-  memory->sfree(frhop);
-  memory->sfree(gamma);
-  memory->sfree(dgamma1);
-  memory->sfree(dgamma2);
-  memory->sfree(dgamma3);
-  memory->sfree(arho2b);
+  memory->destroy(rho);
+  memory->destroy(rho0);
+  memory->destroy(rho1);
+  memory->destroy(rho2);
+  memory->destroy(rho3);
+  memory->destroy(frhop);
+  memory->destroy(gamma);
+  memory->destroy(dgamma1);
+  memory->destroy(dgamma2);
+  memory->destroy(dgamma3);
+  memory->destroy(arho2b);
 
-  memory->destroy_2d_double_array(arho1);
-  memory->destroy_2d_double_array(arho2);
-  memory->destroy_2d_double_array(arho3);
-  memory->destroy_2d_double_array(arho3b);
-  memory->destroy_2d_double_array(t_ave);
-  memory->destroy_2d_double_array(tsq_ave);
+  memory->destroy(arho1);
+  memory->destroy(arho2);
+  memory->destroy(arho3);
+  memory->destroy(arho3b);
+  memory->destroy(t_ave);
+  memory->destroy(tsq_ave);
 
-  memory->sfree(scrfcn);
-  memory->sfree(dscrfcn);
-  memory->sfree(fcpair);
+  memory->destroy(scrfcn);
+  memory->destroy(dscrfcn);
+  memory->destroy(fcpair);
   
   for (int i = 0; i < nelements; i++) delete [] elements[i];
   delete [] elements;
   delete [] mass;
 
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
     delete [] map;
     delete [] fmap;
   }
@@ -131,43 +132,43 @@ void PairMEAM::compute(int eflag, int vflag)
   // grow local arrays if necessary
 
   if (atom->nmax > nmax) {
-    memory->sfree(rho);
-    memory->sfree(rho0);
-    memory->sfree(rho1);
-    memory->sfree(rho2);
-    memory->sfree(rho3);
-    memory->sfree(frhop);
-    memory->sfree(gamma);
-    memory->sfree(dgamma1);
-    memory->sfree(dgamma2);
-    memory->sfree(dgamma3);
-    memory->sfree(arho2b);
-    memory->destroy_2d_double_array(arho1);
-    memory->destroy_2d_double_array(arho2);
-    memory->destroy_2d_double_array(arho3);
-    memory->destroy_2d_double_array(arho3b);
-    memory->destroy_2d_double_array(t_ave);
-    memory->destroy_2d_double_array(tsq_ave);
+    memory->destroy(rho);
+    memory->destroy(rho0);
+    memory->destroy(rho1);
+    memory->destroy(rho2);
+    memory->destroy(rho3);
+    memory->destroy(frhop);
+    memory->destroy(gamma);
+    memory->destroy(dgamma1);
+    memory->destroy(dgamma2);
+    memory->destroy(dgamma3);
+    memory->destroy(arho2b);
+    memory->destroy(arho1);
+    memory->destroy(arho2);
+    memory->destroy(arho3);
+    memory->destroy(arho3b);
+    memory->destroy(t_ave);
+    memory->destroy(tsq_ave);
 
     nmax = atom->nmax;
 
-    rho = (double *) memory->smalloc(nmax*sizeof(double),"pair:rho");
-    rho0 = (double *) memory->smalloc(nmax*sizeof(double),"pair:rho0");
-    rho1 = (double *) memory->smalloc(nmax*sizeof(double),"pair:rho1");
-    rho2 = (double *) memory->smalloc(nmax*sizeof(double),"pair:rho2");
-    rho3 = (double *) memory->smalloc(nmax*sizeof(double),"pair:rho3");
-    frhop = (double *) memory->smalloc(nmax*sizeof(double),"pair:frhop");
-    gamma = (double *) memory->smalloc(nmax*sizeof(double),"pair:gamma");
-    dgamma1 = (double *) memory->smalloc(nmax*sizeof(double),"pair:dgamma1");
-    dgamma2 = (double *) memory->smalloc(nmax*sizeof(double),"pair:dgamma2");
-    dgamma3 = (double *) memory->smalloc(nmax*sizeof(double),"pair:dgamma3");
-    arho2b = (double *) memory->smalloc(nmax*sizeof(double),"pair:arho2b");
-    arho1 = memory->create_2d_double_array(nmax,3,"pair:arho1");
-    arho2 = memory->create_2d_double_array(nmax,6,"pair:arho2");
-    arho3 = memory->create_2d_double_array(nmax,10,"pair:arho3");
-    arho3b = memory->create_2d_double_array(nmax,3,"pair:arho3b");
-    t_ave = memory->create_2d_double_array(nmax,3,"pair:t_ave");
-    tsq_ave = memory->create_2d_double_array(nmax,3,"pair:tsq_ave");
+    memory->create(rho,nmax,"pair:rho");
+    memory->create(rho0,nmax,"pair:rho0");
+    memory->create(rho1,nmax,"pair:rho1");
+    memory->create(rho2,nmax,"pair:rho2");
+    memory->create(rho3,nmax,"pair:rho3");
+    memory->create(frhop,nmax,"pair:frhop");
+    memory->create(gamma,nmax,"pair:gamma");
+    memory->create(dgamma1,nmax,"pair:dgamma1");
+    memory->create(dgamma2,nmax,"pair:dgamma2");
+    memory->create(dgamma3,nmax,"pair:dgamma3");
+    memory->create(arho2b,nmax,"pair:arho2b");
+    memory->create(arho1,nmax,3,"pair:arho1");
+    memory->create(arho2,nmax,6,"pair:arho2");
+    memory->create(arho3,nmax,10,"pair:arho3");
+    memory->create(arho3b,nmax,3,"pair:arho3b");
+    memory->create(t_ave,nmax,3,"pair:t_ave");
+    memory->create(tsq_ave,nmax,3,"pair:tsq_ave");
   }
 
   // neighbor list info
@@ -188,16 +189,13 @@ void PairMEAM::compute(int eflag, int vflag)
   for (ii = 0; ii < inum_half; ii++) n += numneigh_half[ilist_half[ii]];
 
   if (n > maxneigh) {
-    memory->sfree(scrfcn);
-    memory->sfree(dscrfcn);
-    memory->sfree(fcpair);
+    memory->destroy(scrfcn);
+    memory->destroy(dscrfcn);
+    memory->destroy(fcpair);
     maxneigh = n;
-    scrfcn =
-      (double *) memory->smalloc(maxneigh*sizeof(double),"pair:scrfcn");
-    dscrfcn = 
-      (double *) memory->smalloc(maxneigh*sizeof(double),"pair:dscrfcn");
-    fcpair = 
-      (double *) memory->smalloc(maxneigh*sizeof(double),"pair:fcpair");
+    memory->create(scrfcn,maxneigh,"pair:scrfcn");
+    memory->create(dscrfcn,maxneigh,"pair:dscrfcn");
+    memory->create(fcpair,maxneigh,"pair:fcpair");
   }
 
   // zero out local arrays
@@ -306,8 +304,8 @@ void PairMEAM::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
   map = new int[n+1];
   fmap = new int[n];
@@ -707,6 +705,7 @@ void PairMEAM::read_files(char *globalfile, char *userfile)
       else if (strcmp(params[nparams-1],"b1")  == 0) value = B1;
       else if (strcmp(params[nparams-1],"c11") == 0) value = C11;
       else if (strcmp(params[nparams-1],"l12") == 0) value = L12;
+      else if (strcmp(params[nparams-1],"b2")  == 0) value = B2;
       else error->all("Unrecognized lattice type in MEAM file 2");
     }
     else value = atof(params[nparams-1]);
@@ -764,7 +763,6 @@ int PairMEAM::pack_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
     buf[m++] = tsq_ave[j][1];
     buf[m++] = tsq_ave[j][2];
   }
-
   return comm_forward;
 }
 

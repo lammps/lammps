@@ -120,28 +120,30 @@ __kernel void particle_map(__global numtyp4 *x_,  __global numtyp *q_,
     grdtyp4 delta;
     delta.w=delvolinv*fetch_q(ii,q_);
     
-    delta.x=(p.x-b_lo_x)*delxinv;
-    nx=int(delta.x);
-    delta.y=(p.y-b_lo_y)*delyinv;
-    ny=int(delta.y);
-    delta.z=(p.z-b_lo_z)*delzinv;
-    nz=int(delta.z);
+    if (delta.w!=(numtyp)0.0) {
+      delta.x=(p.x-b_lo_x)*delxinv;
+      nx=int(delta.x);
+      delta.y=(p.y-b_lo_y)*delyinv;
+      ny=int(delta.y);
+      delta.z=(p.z-b_lo_z)*delzinv;
+      nz=int(delta.z);
 
-    if (delta.x<0 || delta.y<0 || delta.z<0 || 
-        nx>=nlocal_x || ny>=nlocal_y || nz>=nlocal_z)
-      *error=1;
-    else {
-      delta.x=nx+0.5-delta.x;
-      delta.y=ny+0.5-delta.y;
-      delta.z=nz+0.5-delta.z;
+      if (delta.x<0 || delta.y<0 || delta.z<0 || 
+          nx>=nlocal_x || ny>=nlocal_y || nz>=nlocal_z)
+        *error=1;
+      else {
+        delta.x=nx+0.5-delta.x;
+        delta.y=ny+0.5-delta.y;
+        delta.z=nz+0.5-delta.z;
       
-      int i=nz*nlocal_y*nlocal_x+ny*nlocal_x+nx;
-      int old=atom_add(counts+i, 1);
-      if (old==max_atoms) {
-        *error=2;
-        atom_add(counts+i, -1);
-      } else
-        ans[atom_stride*old+i]=delta;
+        int i=nz*nlocal_y*nlocal_x+ny*nlocal_x+nx;
+        int old=atom_add(counts+i, 1);
+        if (old==max_atoms) {
+          *error=2;
+          atom_add(counts+i, -1);
+        } else
+          ans[atom_stride*old+i]=delta;
+      }
     }
   }
 }
@@ -269,52 +271,53 @@ __kernel void interp(__global numtyp4 *x_, __global numtyp *q_,
   if (ii<nlocal) {
     numtyp4 p=fetch_pos(ii,x_);
     grdtyp qs=qqrd2e_scale*fetch_q(ii,q_);
+    if (qs!=(numtyp)0.0) {
+      tx=(p.x-b_lo_x)*delxinv;
+      nx=int(tx);
+      ty=(p.y-b_lo_y)*delyinv;
+      ny=int(ty);
+      tz=(p.z-b_lo_z)*delzinv;
+      nz=int(tz);
 
-    tx=(p.x-b_lo_x)*delxinv;
-    nx=int(tx);
-    ty=(p.y-b_lo_y)*delyinv;
-    ny=int(ty);
-    tz=(p.z-b_lo_z)*delzinv;
-    nz=int(tz);
+      grdtyp dx=nx+(grdtyp)0.5-tx;
+      grdtyp dy=ny+(grdtyp)0.5-ty;
+      grdtyp dz=nz+(grdtyp)0.5-tz;
 
-    grdtyp dx=nx+(grdtyp)0.5-tx;
-    grdtyp dy=ny+(grdtyp)0.5-ty;
-    grdtyp dz=nz+(grdtyp)0.5-tz;
-
-    for (int k=0; k<order; k++) {
-      rho1d_0[k][tid]=(grdtyp)0.0;
-      rho1d_1[k][tid]=(grdtyp)0.0;
-      for (int l=order2+k; l>=k; l-=order) {
-        rho1d_0[k][tid]=rho_coeff[l]+rho1d_0[k][tid]*dx;
-        rho1d_1[k][tid]=rho_coeff[l]+rho1d_1[k][tid]*dy;
+      for (int k=0; k<order; k++) {
+        rho1d_0[k][tid]=(grdtyp)0.0;
+        rho1d_1[k][tid]=(grdtyp)0.0;
+        for (int l=order2+k; l>=k; l-=order) {
+          rho1d_0[k][tid]=rho_coeff[l]+rho1d_0[k][tid]*dx;
+          rho1d_1[k][tid]=rho_coeff[l]+rho1d_1[k][tid]*dy;
+        }
       }
-    }
         
-    acctyp4 ek;
-    ek.x=(acctyp)0.0;
-    ek.y=(acctyp)0.0;
-    ek.z=(acctyp)0.0;
-    int mz=mul24(nz,npts_yx)+nx;
-    for (int n=0; n<order; n++) {
-      grdtyp rho1d_2=(grdtyp)0.0;
-      for (int k=order2+n; k>=n; k-=order)
-        rho1d_2=rho_coeff[k]+rho1d_2*dz;
-      grdtyp z0=qs*rho1d_2;
-      int my=mz+mul24(ny,npts_x);
-      for (int m=0; m<order; m++) {
-        grdtyp y0=z0*rho1d_1[m][tid];
-	      for (int l=0; l<order; l++) {
-	        grdtyp x0=y0*rho1d_0[l][tid];
-	        grdtyp4 el=brick[my+l];
-	        ek.x-=x0*el.x;
-	        ek.y-=x0*el.y;
-	        ek.z-=x0*el.z;
-	      }
-        my+=npts_x;
-      }
-      mz+=npts_yx;
-	  }
-    ans[ii]=ek;
+      acctyp4 ek;
+      ek.x=(acctyp)0.0;
+      ek.y=(acctyp)0.0;
+      ek.z=(acctyp)0.0;
+      int mz=mul24(nz,npts_yx)+nx;
+      for (int n=0; n<order; n++) {
+        grdtyp rho1d_2=(grdtyp)0.0;
+        for (int k=order2+n; k>=n; k-=order)
+          rho1d_2=rho_coeff[k]+rho1d_2*dz;
+        grdtyp z0=qs*rho1d_2;
+        int my=mz+mul24(ny,npts_x);
+        for (int m=0; m<order; m++) {
+          grdtyp y0=z0*rho1d_1[m][tid];
+  	      for (int l=0; l<order; l++) {
+  	        grdtyp x0=y0*rho1d_0[l][tid];
+  	        grdtyp4 el=brick[my+l];
+  	        ek.x-=x0*el.x;
+  	        ek.y-=x0*el.y;
+  	        ek.z-=x0*el.z;
+  	      }
+          my+=npts_x;
+        }
+        mz+=npts_yx;
+  	  }
+      ans[ii]=ek;
+    }
 	}
 }
 

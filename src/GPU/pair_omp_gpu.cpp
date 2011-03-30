@@ -52,10 +52,10 @@ PairOMPGPU::~PairOMPGPU()
 void PairOMPGPU::mem_free() {
   memory->sfree(eng_vdwl_thr);
   memory->sfree(eng_coul_thr);
-  memory->destroy_2d_double_array(virial_thr);
-  memory->destroy_2d_double_array(eatom_thr);
-  memory->destroy_3d_double_array(vatom_thr);
-  memory->destroy_2d_double_array(f_thr);
+  memory->destroy(virial_thr);
+  memory->destroy(eatom_thr);
+  memory->destroy(vatom_thr);
+  memory->destroy(f_thr);
   eng_vdwl_thr = NULL;
   eng_coul_thr = NULL;
   virial_thr = NULL;
@@ -88,7 +88,7 @@ void PairOMPGPU::init_style()
 					   "pair:eng_vdwl_thr");
   eng_coul_thr = (double *)memory->smalloc(_nthreads*sizeof(double),
 					   "pair:eng_coul_thr");
-  virial_thr = memory->create_2d_double_array(_nthreads,6,"pair:virial_thr");
+  memory->create(virial_thr,_nthreads,6,"pair:virial_thr");
   
   maxeatom_thr = maxvatom_thr = 0;
 }
@@ -114,15 +114,13 @@ void PairOMPGPU::ev_setup_thr(int eflag, int vflag, int _eflag_either,
   // reallocate per-atom arrays if necessary
   if (eflag_atom && atom->nmax > maxeatom_thr) {
     maxeatom_thr = atom->nmax;
-    memory->destroy_2d_double_array(eatom_thr);
-    eatom_thr = memory->create_2d_double_array(_nthreads,
-					       maxeatom_thr,"pair:eatom_thr");
+    memory->destroy(eatom_thr);
+    memory->create(eatom_thr,_nthreads,maxeatom_thr,"pair:eatom_thr");
   }
   if (vflag_atom && atom->nmax > maxvatom_thr) {
     maxvatom_thr = atom->nmax;
-    memory->destroy_3d_double_array(vatom_thr);
-    vatom_thr = memory->create_3d_double_array(_nthreads,
-					       maxvatom_thr,6,"pair:vatom_thr");
+    memory->destroy(vatom_thr);
+    memory->create(vatom_thr,_nthreads,maxvatom_thr,6,"pair:vatom_thr");
   }
   
   // zero per thread accumulators

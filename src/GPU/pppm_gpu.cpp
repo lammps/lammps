@@ -117,11 +117,11 @@ void PPPMGPUT::base_init()
   if (!atom->q_flag) error->all("Kspace style requires atom attribute q");
 
   if (slabflag == 0 && domain->nonperiodic > 0)
-    error->all("Cannot use nonperiodic boundaries with PPPMGPU");
+    error->all("Cannot use nonperiodic boundaries with PPPM");
   if (slabflag == 1) {
     if (domain->xperiodic != 1 || domain->yperiodic != 1 || 
 	domain->boundary[2][0] != 1 || domain->boundary[2][1] != 1)
-      error->all("Incorrect boundaries with slab PPPMGPU");
+      error->all("Incorrect boundaries with slab PPPM");
   }
 
   if (order > MAXORDER) {
@@ -148,6 +148,7 @@ void PPPMGPUT::base_init()
   cutoff = *p_cutoff;
 
   // if kspace is TIP4P, extract TIP4P params from pair style
+  // bond/angle are not yet init(), so insure equilibrium request is valid
 
   qdist = 0.0;
 
@@ -169,6 +170,12 @@ void PPPMGPUT::base_init()
 
     if (force->angle == NULL || force->bond == NULL)
       error->all("Bond and angle potentials must be defined for TIP4P");
+    if (typeA < 1 || typeA > atom->nangletypes || 
+	force->angle->setflag[typeA] == 0)
+      error->all("Bad TIP4P angle type for PPPM/TIP4P");
+    if (typeB < 1 || typeA > atom->nbondtypes || 
+	force->bond->setflag[typeB] == 0)
+      error->all("Bad TIP4P bond type for PPPM/TIP4P");
     double theta = force->angle->equilibrium_angle(typeA);
     double blen = force->bond->equilibrium_distance(typeB);
     alpha = qdist / (2.0 * cos(0.5*theta) * blen);
@@ -205,7 +212,7 @@ void PPPMGPUT::base_init()
   while (order > 0) {
 
     if (iteration && me == 0)
-      error->warning("Reducing PPPMGPU order b/c stencil extends "
+      error->warning("Reducing PPPM order b/c stencil extends "
 		     "beyond neighbor processor");
     iteration++;
 
@@ -214,10 +221,10 @@ void PPPMGPUT::base_init()
     if (nx_pppm >= OFFSET || ny_pppm >= OFFSET || nz_pppm >= OFFSET)
       error->all("PPPM grid is too large");
 
-    // global indices of PPPMGPU grid range from 0 to N-1
+    // global indices of PPPM grid range from 0 to N-1
     // nlo_in,nhi_in = lower/upper limits of the 3d sub-brick of
-    //   global PPPMGPU grid that I own without ghost cells
-    // for slab PPPMGPU, assign z grid as if it were not extended
+    //   global PPPM grid that I own without ghost cells
+    // for slab PPPM, assign z grid as if it were not extended
 
     nxlo_in = comm->myloc[0]*nx_pppm / comm->procgrid[0];
     nxhi_in = (comm->myloc[0]+1)*nx_pppm / comm->procgrid[0] - 1;
@@ -228,7 +235,7 @@ void PPPMGPUT::base_init()
     nzhi_in = (comm->myloc[2]+1) * 
       (static_cast<int> (nz_pppm/slab_volfactor)) / comm->procgrid[2] - 1;
 
-    // nlower,nupper = stencil size for mapping particles to PPPMGPU grid
+    // nlower,nupper = stencil size for mapping particles to PPPM grid
 
     nlower = -(order-1)/2;
     nupper = order/2;
@@ -242,7 +249,7 @@ void PPPMGPUT::base_init()
     else shiftone = 0.5;
 
     // nlo_out,nhi_out = lower/upper limits of the 3d sub-brick of
-    //   global PPPMGPU grid that my particles can contribute charge to
+    //   global PPPM grid that my particles can contribute charge to
     // effectively nlo_in,nhi_in + ghost cells
     // nlo,nhi = global coords of grid pt to "lower left" of smallest/largest
     //           position a particle in my box can be at
@@ -250,7 +257,7 @@ void PPPMGPUT::base_init()
     //   qdist = offset due to TIP4P fictitious charge
     //   convert to triclinic if necessary
     // nlo_out,nhi_out = nlo,nhi + stencil size for particle mapping
-    // for slab PPPMGPU, assign z grid as if it were not extended
+    // for slab PPPM, assign z grid as if it were not extended
 
     triclinic = domain->triclinic;
     double *prd,*sublo,*subhi;
@@ -304,9 +311,9 @@ void PPPMGPUT::base_init()
     nzlo_out = nlo + nlower;
     nzhi_out = nhi + nupper;
 
-    // for slab PPPMGPU, change the grid boundary for processors at +z end
+    // for slab PPPM, change the grid boundary for processors at +z end
     //   to include the empty volume between periodically repeating slabs
-    // for slab PPPMGPU, want charge data communicated from -z proc to +z proc,
+    // for slab PPPM, want charge data communicated from -z proc to +z proc,
     //   but not vice versa, also want field data communicated from +z proc to
     //   -z proc, but not vice versa
     // this is accomplished by nzhi_in = nzhi_out on +z end (no ghost cells)
@@ -411,7 +418,7 @@ void PPPMGPUT::base_init()
   nzlo_fft = me_z*nz_pppm/npez_fft;
   nzhi_fft = (me_z+1)*nz_pppm/npez_fft - 1;
 
-  // PPPMGPU grid for this proc, including ghosts
+  // PPPM grid for this proc, including ghosts
 
   ngrid = (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) *
     (nzhi_out-nzlo_out+1);
@@ -485,7 +492,7 @@ void PPPMGPUT::base_init()
 }
 
 /* ----------------------------------------------------------------------
-   adjust PPPMGPU coeffs, called initially and whenever volume has changed 
+   adjust PPPM coeffs, called initially and whenever volume has changed 
 ------------------------------------------------------------------------- */
 
 template <class grdtyp>
@@ -495,8 +502,8 @@ void PPPMGPUT::setup()
   double *prd;
 
   // volume-dependent factors
-  // adjust z dimension for 2d slab PPPMGPU
-  // z dimension for 3d PPPMGPU is zprd since slab_volfactor = 1.0
+  // adjust z dimension for 2d slab PPPM
+  // z dimension for 3d PPPM is zprd since slab_volfactor = 1.0
 
   if (triclinic == 0) prd = domain->prd;
   else prd = domain->prd_lamda;
@@ -645,27 +652,24 @@ void PPPMGPUT::setup()
 template <class grdtyp>
 void PPPMGPUT::allocate()
 {
-  density_fft = 
-    (double *) memory->smalloc(nfft_both*sizeof(double),"pppm:density_fft");
-  greensfn = 
-    (double *) memory->smalloc(nfft_both*sizeof(double),"pppm:greensfn");
-  work1 = (double *) memory->smalloc(2*nfft_both*sizeof(double),"pppm:work1");
-  work2 = (double *) memory->smalloc(2*nfft_both*sizeof(double),"pppm:work2");
-  vg = memory->create_2d_double_array(nfft_both,6,"pppm:vg");
+  memory->create(density_fft,nfft_both,"pppm:density_fft");
+  memory->create(greensfn,nfft_both,"pppm:greensfn");
+  memory->create(work1,2*nfft_both,"pppm:work1");
+  memory->create(work2,2*nfft_both,"pppm:work2");
+  memory->create(vg,nfft_both,6,"pppm:vg");
 
-  fkx = memory->create_1d_double_array(nxlo_fft,nxhi_fft,"pppm:fkx");
-  fky = memory->create_1d_double_array(nylo_fft,nyhi_fft,"pppm:fky");
-  fkz = memory->create_1d_double_array(nzlo_fft,nzhi_fft,"pppm:fkz");
+  memory->create1d_offset(fkx,nxlo_fft,nxhi_fft,"pppm:fkx");
+  memory->create1d_offset(fky,nylo_fft,nyhi_fft,"pppm:fky");
+  memory->create1d_offset(fkz,nzlo_fft,nzhi_fft,"pppm:fkz");
 
-  buf1 = (double *) memory->smalloc(nbuf*sizeof(double),"pppm:buf1");
-  buf2 = (double *) memory->smalloc(nbuf*sizeof(double),"pppm:buf2");
+  memory->create(buf1,nbuf,"pppm:buf1");
+  memory->create(buf2,nbuf,"pppm:buf2");
 
   // summation coeffs
 
   gf_b = new double[order];
-  rho1d = memory->create_2d_double_array(3,-order/2,order/2,"pppm:rho1d");
-  rho_coeff = memory->create_2d_double_array(order,(1-order)/2,order/2,
-					     "pppm:rho_coeff");
+  memory->create2d_offset(rho1d,3,-order/2,order/2,"pppm:rho1d");
+  memory->create2d_offset(rho_coeff,order,(1-order)/2,order/2,"pppm:rho_coeff");
 
   // create 2 FFTs and a Remap
   // 1st FFT keeps data in FFT decompostion
@@ -700,22 +704,22 @@ void PPPMGPUT::deallocate()
   destroy_3d_offset(density_brick,nzlo_out,nylo_out);
   destroy_3d_offset(vd_brick,nzlo_out,nylo_out);
 
-  memory->sfree(density_fft);
-  memory->sfree(greensfn);
-  memory->sfree(work1);
-  memory->sfree(work2);
-  memory->destroy_2d_double_array(vg);
+  memory->destroy(density_fft);
+  memory->destroy(greensfn);
+  memory->destroy(work1);
+  memory->destroy(work2);
+  memory->destroy(vg);
 
-  memory->destroy_1d_double_array(fkx,nxlo_fft);
-  memory->destroy_1d_double_array(fky,nylo_fft);
-  memory->destroy_1d_double_array(fkz,nzlo_fft);
+  memory->destroy1d_offset(fkx,nxlo_fft);
+  memory->destroy1d_offset(fky,nylo_fft);
+  memory->destroy1d_offset(fkz,nzlo_fft);
 
-  memory->sfree(buf1);
-  memory->sfree(buf2);
+  memory->destroy(buf1);
+  memory->destroy(buf2);
 
   delete [] gf_b;
-  memory->destroy_2d_double_array(rho1d,-order/2);
-  memory->destroy_2d_double_array(rho_coeff,(1-order)/2);
+  memory->destroy2d_offset(rho1d,-order/2);
+  memory->destroy2d_offset(rho_coeff,(1-order)/2);
 
   delete fft1;
   delete fft2;
@@ -732,7 +736,8 @@ void PPPMGPUT::set_grid()
   // see JCP 109, pg 7698 for derivation of coefficients
   // higher order coefficients may be computed if needed
 
-  double **acons = memory->create_2d_double_array(8,7,"pppm:acons");
+  double **acons;
+  memory->create(acons,8,7,"pppm:acons");
 
   acons[1][0] = 2.0 / 3.0;
   acons[2][0] = 1.0 / 50.0;
@@ -767,8 +772,8 @@ void PPPMGPUT::set_grid()
   bigint natoms = atom->natoms;
 
   // use xprd,yprd,zprd even if triclinic so grid size is the same
-  // adjust z dimension for 2d slab PPPMGPU
-  // 3d PPPMGPU just uses zprd since slab_volfactor = 1.0
+  // adjust z dimension for 2d slab PPPM
+  // 3d PPPM just uses zprd since slab_volfactor = 1.0
 
   double xprd = domain->xprd;
   double yprd = domain->yprd;
@@ -870,7 +875,7 @@ void PPPMGPUT::set_grid()
 
   // free local memory
 
-  memory->destroy_2d_double_array(acons);
+  memory->destroy(acons);
 
   // print info
 
@@ -1582,7 +1587,8 @@ void PPPMGPUT::compute_rho_coeff()
   int j,k,l,m;
   double s;
 
-  double **a = memory->create_2d_double_array(order,-order,order,"pppm:a");
+  double **a;
+  memory->create2d_offset(a,order,-order,order,"pppm:a");
 
   for (k = -order; k <= order; k++) 
     for (l = 0; l < order; l++)
@@ -1608,7 +1614,7 @@ void PPPMGPUT::compute_rho_coeff()
     m++;
   }
 
-  memory->destroy_2d_double_array(a,-order);
+  memory->destroy2d_offset(a,-order);
 }
 
 /* ----------------------------------------------------------------------

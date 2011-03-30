@@ -64,8 +64,7 @@ class PairOMPGPU : protected Pointers {
 	tid = omp_get_thread_num();
 	if (nall > _nmax) {
 #pragma omp master
-	  f_thr = memory->grow_2d_double_array(f_thr,atom->nmax*(_nthreads-1),
-					       3,"pair:f_thr");
+	  memory->grow(f_thr,atom->nmax*(_nthreads-1),3,"pair:f_thr");
 #pragma omp barrier
 	  if (tid == 0)
 	    _nmax = atom->nmax;

@@ -271,6 +271,11 @@ __kernel void interp(__global numtyp4 *x_, __global numtyp *q_,
   if (ii<nlocal) {
     numtyp4 p=fetch_pos(ii,x_);
     grdtyp qs=qqrd2e_scale*fetch_q(ii,q_);
+
+    acctyp4 ek;
+    ek.x=(acctyp)0.0;
+    ek.y=(acctyp)0.0;
+    ek.z=(acctyp)0.0;
     if (qs!=(numtyp)0.0) {
       tx=(p.x-b_lo_x)*delxinv;
       nx=int(tx);
@@ -292,10 +297,6 @@ __kernel void interp(__global numtyp4 *x_, __global numtyp *q_,
         }
       }
         
-      acctyp4 ek;
-      ek.x=(acctyp)0.0;
-      ek.y=(acctyp)0.0;
-      ek.z=(acctyp)0.0;
       int mz=mul24(nz,npts_yx)+nx;
       for (int n=0; n<order; n++) {
         grdtyp rho1d_2=(grdtyp)0.0;
@@ -316,8 +317,8 @@ __kernel void interp(__global numtyp4 *x_, __global numtyp *q_,
         }
         mz+=npts_yx;
   	  }
-      ans[ii]=ek;
     }
+    ans[ii]=ek;
 	}
 }
 

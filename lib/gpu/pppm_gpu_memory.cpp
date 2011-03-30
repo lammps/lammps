@@ -64,7 +64,9 @@ grdtyp * PPPMGPUMemoryT::init(const int nlocal, const int nall, FILE *_screen,
                               const int nylo_out, const int nzlo_out,
                               const int nxhi_out, const int nyhi_out,
                               const int nzhi_out, double **rho_coeff,
-                              grdtyp **vd_brick, int &flag) {
+                              grdtyp **vd_brick, const double slab_volfactor, 
+                              const int nx_pppm, const int ny_pppm,
+                              const int nz_pppm, int &flag) {
   _max_bytes=10;
   screen=_screen;
   bool success=true;
@@ -77,7 +79,7 @@ grdtyp * PPPMGPUMemoryT::init(const int nlocal, const int nall, FILE *_screen,
     flag=-5;
     return 0;
   }
-
+  
   ucl_device=device->gpu;
   atom=&device->atom;
 
@@ -118,6 +120,12 @@ grdtyp * PPPMGPUMemoryT::init(const int nlocal, const int nall, FILE *_screen,
   _nxhi_out=nxhi_out;
   _nyhi_out=nyhi_out;
   _nzhi_out=nzhi_out;
+
+  _slab_volfactor=slab_volfactor;
+  _nx_pppm=nx_pppm;
+  _ny_pppm=ny_pppm;
+  _nz_pppm=nz_pppm;
+
   _max_brick_atoms=10;
 
   // Get rho_coeff on device
@@ -179,6 +187,7 @@ void PPPMGPUMemoryT::clear(const double cpu_time) {
   if (!_allocated)
     return;
   _allocated=false;
+  _precompute_done=false;
   
   d_brick.clear();
   h_brick.clear();
@@ -210,20 +219,21 @@ void PPPMGPUMemoryT::clear(const double cpu_time) {
 }
 
 // ---------------------------------------------------------------------------
-// Charge spreading stuff
+// Charge assignment that can be performed asynchronously
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp, class grdtyp, class grdtyp4>
-int PPPMGPUMemoryT::spread(const int ago, const int nlocal, const int nall,
-                           double **host_x, int *host_type, bool &success,
-                           double *host_q, double *boxlo, 
-                           const double delxinv, const double delyinv,
-                           const double delzinv) {
-  device->stop_host_timer();
-  
+void PPPMGPUMemoryT::_precompute(const int ago, const int nlocal, const int nall,
+                                 double **host_x, int *host_type, bool &success,
+                                 double *host_q, double *boxlo, 
+                                 const double delxinv, const double delyinv,
+                                 const double delzinv) {
+  if (_precompute_done)
+    return;
+
   acc_timers();
   if (nlocal==0) {
     zero_timers();
-    return 0;
+    return;
   }
   
   ans->inum(nlocal);
@@ -232,7 +242,7 @@ int PPPMGPUMemoryT::spread(const int ago, const int nlocal, const int nall,
     resize_atom(nlocal,nall,success);
     resize_local(nlocal,success);
     if (!success)
-      return 0;
+      return;
 
     double bytes=ans->gpu_bytes();
     if (bytes>_max_an_bytes)
@@ -250,7 +260,6 @@ int PPPMGPUMemoryT::spread(const int ago, const int nlocal, const int nall,
   int BX=this->block_size();
   int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/BX));
 
-  int _max_atoms=10;
   int ainum=this->ans->inum();
   
   // Boxlo adjusted to be upper left brick and shift for even spline order
@@ -288,15 +297,39 @@ int PPPMGPUMemoryT::spread(const int ago, const int nlocal, const int nall,
 
   time_out.start();
   ucl_copy(h_brick,d_brick,_npts_yx*_npts_z,true);
-  ucl_copy(h_error_flag,d_error_flag,false);
+  ucl_copy(h_error_flag,d_error_flag,true);
   time_out.stop();
+
+  _precompute_done=true;
+}
+
+// ---------------------------------------------------------------------------
+// Charge spreading stuff
+// ---------------------------------------------------------------------------
+template <class numtyp, class acctyp, class grdtyp, class grdtyp4>
+int PPPMGPUMemoryT::spread(const int ago, const int nlocal, const int nall,
+                           double **host_x, int *host_type, bool &success,
+                           double *host_q, double *boxlo, 
+                           const double delxinv, const double delyinv,
+                           const double delzinv) {
+  _precompute(ago,nlocal,nall,host_x,host_type,success,host_q,boxlo,delxinv,
+              delyinv,delzinv);
+
+  device->stop_host_timer();
   
+  if (!success || nlocal==0)
+    return 0;
+    
+  time_out.sync_stop();
+
+  _precompute_done=false;
+
   if (h_error_flag[0]==2) {
     // Not enough storage for atoms on the brick
     _max_brick_atoms*=2;
     d_error_flag.zero();
     d_brick_atoms.clear();
-    d_brick_atoms.alloc(_atom_stride*_max_atoms,*ucl_device);
+    d_brick_atoms.alloc(_atom_stride*_max_brick_atoms,*ucl_device);
     _max_bytes+=d_brick_atoms.row_bytes();
     return spread(ago,nlocal,nall,host_x,host_type,success,host_q,boxlo, 
                   delxinv,delyinv,delzinv);

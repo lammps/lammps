@@ -141,8 +141,8 @@ template <class numtyp, class acctyp>
 inline void AtomicGPUMemoryT::build_nbor_list(const int inum,
                                               const int host_inum,
                                               const int nall, double **host_x,
-                                              int *host_type, double *boxlo,
-                                              double *boxhi, int *tag,
+                                              int *host_type, double *sublo,
+                                              double *subhi, int *tag,
                                               int **nspecial, int **special,
                                               bool &success) {
   nbor_time_avail=true;
@@ -155,7 +155,7 @@ inline void AtomicGPUMemoryT::build_nbor_list(const int inum,
   atom->cast_copy_x(host_x,host_type);
 
   int mn;
-  nbor->build_nbor_list(inum, host_inum, nall, *atom, boxlo, boxhi, tag,
+  nbor->build_nbor_list(inum, host_inum, nall, *atom, sublo, subhi, tag,
                         nspecial, special, success, mn);
 
   double bytes=ans->gpu_bytes()+nbor->gpu_bytes();
@@ -210,7 +210,7 @@ void AtomicGPUMemoryT::compute(const int f_ago, const int inum_full,
 template <class numtyp, class acctyp>
 int ** AtomicGPUMemoryT::compute(const int ago, const int inum_full,
                                  const int nall, double **host_x, int *host_type,
-                                 double *boxlo, double *boxhi, int *tag,
+                                 double *sublo, double *subhi, int *tag,
                                  int **nspecial, int **special, const bool eflag, 
                                  const bool vflag, const bool eatom,
                                  const bool vatom, int &host_start,
@@ -233,7 +233,7 @@ int ** AtomicGPUMemoryT::compute(const int ago, const int inum_full,
   // Build neighbor list on GPU if necessary
   if (ago==0) {
     build_nbor_list(inum, inum_full-inum, nall, host_x, host_type,
-                    boxlo, boxhi, tag, nspecial, special, success);
+                    sublo, subhi, tag, nspecial, special, success);
     if (!success)
       return NULL;
     hd_balancer.start_timer();

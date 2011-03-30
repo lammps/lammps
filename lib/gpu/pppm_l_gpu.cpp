@@ -35,7 +35,9 @@ grdtyp * pppm_gpu_init(memtyp &pppm, const int nlocal, const int nall,
                        const int nylo_out, const int nzlo_out,
                        const int nxhi_out, const int nyhi_out,
                        const int nzhi_out, double **rho_coeff,
-                       grdtyp **vd_brick, int &success) {
+                       grdtyp **vd_brick, const double slab_volfactor,
+                       const int nx_pppm, const int ny_pppm, const int nz_pppm,
+                       int &success) {
   pppm.clear(0.0);
   int first_gpu=pppm.device->first_device();
   int last_gpu=pppm.device->last_device();
@@ -58,7 +60,8 @@ grdtyp * pppm_gpu_init(memtyp &pppm, const int nlocal, const int nall,
   grdtyp * host_brick=NULL;
   if (world_me==0) {
     host_brick=pppm.init(nlocal,nall,screen,order,nxlo_out,nylo_out,nzlo_out,
-                         nxhi_out,nyhi_out,nzhi_out,rho_coeff,vd_brick,success);
+                         nxhi_out,nyhi_out,nzhi_out,rho_coeff,vd_brick,
+                         slab_volfactor,nx_pppm,ny_pppm,nz_pppm,success);
   }
 
   pppm.device->world_barrier();
@@ -77,7 +80,8 @@ grdtyp * pppm_gpu_init(memtyp &pppm, const int nlocal, const int nall,
     if (gpu_rank==i && world_me!=0) {
       host_brick=pppm.init(nlocal,nall,screen,order,nxlo_out,nylo_out,
                            nzlo_out,nxhi_out,nyhi_out,nzhi_out,rho_coeff,
-                           vd_brick, success);
+                           vd_brick,slab_volfactor,nx_pppm,ny_pppm,nz_pppm,
+                           success);
     }
     pppm.device->gpu_barrier();
     if (message) 
@@ -93,10 +97,14 @@ float * pppm_gpu_init_f(const int nlocal, const int nall, FILE *screen,
                         const int nylo_out, const int nzlo_out,
                         const int nxhi_out, const int nyhi_out,
                         const int nzhi_out, double **rho_coeff,
-                        float **vd_brick, int &success) {
-  return pppm_gpu_init(PPPMF,nlocal,nall,screen,order,nxlo_out,nylo_out,
-                       nzlo_out,nxhi_out,nyhi_out,nzhi_out,rho_coeff,vd_brick,
-                       success);                        
+                        float **vd_brick, const double slab_volfactor,
+                        const int nx_pppm, const int ny_pppm, const int nz_pppm,
+                        int &success) {
+  float *b=pppm_gpu_init(PPPMF,nlocal,nall,screen,order,nxlo_out,nylo_out,
+                         nzlo_out,nxhi_out,nyhi_out,nzhi_out,rho_coeff,vd_brick,
+                         slab_volfactor,nx_pppm,ny_pppm,nz_pppm,success);
+  PPPMF.device->set_single_precompute(&PPPMF);                         
+  return b;
 }
 
 void pppm_gpu_clear_f(const double cpu_time) {
@@ -124,10 +132,15 @@ double * pppm_gpu_init_d(const int nlocal, const int nall, FILE *screen,
                          const int nylo_out, const int nzlo_out,
                          const int nxhi_out, const int nyhi_out,
                          const int nzhi_out, double **rho_coeff,
-                         double **vd_brick, int &success) {
-  return pppm_gpu_init(PPPMD,nlocal,nall,screen,order,nxlo_out,nylo_out,
-                       nzlo_out,nxhi_out,nyhi_out,nzhi_out,rho_coeff,vd_brick,
-                       success);                        
+                         double **vd_brick, const double slab_volfactor,
+                         const int nx_pppm, const int ny_pppm,
+                         const int nz_pppm, int &success) {
+  double *b=pppm_gpu_init(PPPMD,nlocal,nall,screen,order,nxlo_out,nylo_out,
+                          nzlo_out,nxhi_out,nyhi_out,nzhi_out,rho_coeff,
+                          vd_brick,slab_volfactor,nx_pppm,ny_pppm,nz_pppm,
+                          success);                        
+  PPPMF.device->set_double_precompute(&PPPMD);                         
+  return b;
 }
 
 void pppm_gpu_clear_d(const double cpu_time) {

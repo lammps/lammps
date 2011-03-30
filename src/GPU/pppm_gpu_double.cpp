@@ -44,7 +44,9 @@ grdtyp* pppm_gpu_init_d(const int nlocal, const int nall, FILE *screen,
 			const int nylo_out, const int nzlo_out,
 			const int nxhi_out, const int nyhi_out,
 			const int nzhi_out, double **rho_coeff,
-			grdtyp **_vd_brick, int &success);
+			grdtyp **_vd_brick, const double slab_volfactor,
+			const int nx_pppm, const int ny_pppm,
+			const int nz_pppm, int &success);
 void pppm_gpu_clear_d(const double poisson_time);
 int pppm_gpu_spread_d(const int ago, const int nlocal, const int nall,
                       double **host_x, int *host_type, bool &success,
@@ -96,7 +98,9 @@ void PPPMGPUDouble::init()
   grdtyp *data, *h_brick;
   h_brick = pppm_gpu_init_d(atom->nlocal, atom->nlocal+atom->nghost, screen,
 			    order, nxlo_out, nylo_out, nzlo_out, nxhi_out,
-			    nyhi_out, nzhi_out, rho_coeff, &data, success);
+			    nyhi_out, nzhi_out, rho_coeff, &data,
+			    slab_volfactor, nx_pppm, ny_pppm, nz_pppm, 
+			    success);
 
   int all_success;
   MPI_Allreduce(&success, &all_success, 1, MPI_INT, MPI_MIN, world);

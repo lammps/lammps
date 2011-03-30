@@ -125,6 +125,8 @@ bool PairGPUDeviceT::init_device(MPI_Comm world, MPI_Comm replica,
   if (static_cast<size_t>(_block_size)>gpu->group_size())
     _block_size=gpu->group_size();
 
+  _long_range_precompute=0;
+  
   return true;
 }
 
@@ -200,6 +202,20 @@ bool PairGPUDeviceT::init(PairGPUAns<numtyp,acctyp> &ans, const int nlocal,
 
   _init_count++;
   return true;
+}
+
+template <class numtyp, class acctyp>
+void PairGPUDeviceT::set_single_precompute
+                     (PPPMGPUMemory<numtyp,acctyp,float,_lgpu_float4> *pppm) {
+  _long_range_precompute=1;
+  pppm_single=pppm;
+}
+
+template <class numtyp, class acctyp>
+void PairGPUDeviceT::set_double_precompute
+                     (PPPMGPUMemory<numtyp,acctyp,double,_lgpu_double4> *pppm) {
+  _long_range_precompute=2;
+  pppm_double=pppm;
 }
 
 template <class numtyp, class acctyp>
@@ -468,6 +484,7 @@ void PairGPUDeviceT::output_kspace_times(UCL_Timer &time_in,
 template <class numtyp, class acctyp>
 void PairGPUDeviceT::clear() {
   if (_init_count>0) {
+    _long_range_precompute=0;
     _init_count--;
     if (_init_count==0) {
       atom.clear();

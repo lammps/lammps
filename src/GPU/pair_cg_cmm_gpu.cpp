@@ -48,8 +48,8 @@ bool cmm_gpu_init(const int ntypes, double **cutsq, int **cg_types,
                   FILE *screen);
 void cmm_gpu_clear();
 int ** cmm_gpu_compute_n(const int ago, const int inum, const int nall,
-			 double **host_x, int *host_type, double *boxlo,
-			 double *boxhi, int *tag, int **nspecial,
+			 double **host_x, int *host_type, double *sublo,
+			 double *subhi, int *tag, int **nspecial,
 			 int **special, const bool eflag, const bool vflag,
 			 const bool eatom, const bool vatom, int &host_start,
 			 int **ilist, int **jnum,

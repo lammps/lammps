@@ -116,7 +116,7 @@ class ChargeGPUMemory {
   /// Build neighbor list on device
   void build_nbor_list(const int inum, const int host_inum,
                        const int nall, double **host_x, int *host_type,
-                       double *boxlo, double *boxhi, int *tag, int **nspecial,
+                       double *sublo, double *subhi, int *tag, int **nspecial,
                        int **special, bool &success);
 
   /// Pair loop with host neighboring
@@ -124,16 +124,17 @@ class ChargeGPUMemory {
                double **host_x, int *host_type, int *ilist, int *numj,
                int **firstneigh, const bool eflag, const bool vflag,
                const bool eatom, const bool vatom, int &host_start,
-               const double cpu_time, bool &success, double *charge);
+               const double cpu_time, bool &success, double *charge,
+               const int nlocal, double *boxlo, double *prd);
 
   /// Pair loop with device neighboring
   int** compute(const int ago, const int inum_full, const int nall,
-                double **host_x, int *host_type, double *boxlo,
-                double *boxhi, int *tag, int **nspecial,
+                double **host_x, int *host_type, double *sublo,
+                double *subhi, int *tag, int **nspecial,
                 int **special, const bool eflag, const bool vflag, 
                 const bool eatom, const bool vatom, int &host_start, 
                 int **ilist, int **numj, const double cpu_time, bool &success,
-                double *charge);
+                double *charge, double *boxlo, double *prd);
 
   // -------------------------- DEVICE DATA ------------------------- 
 

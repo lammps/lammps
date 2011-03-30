@@ -132,8 +132,8 @@ template <class gbmtyp>
 inline void _gb_gpu_build_nbor_list(gbmtyp &gbm, const int inum,
                                     const int host_inum, const int nall, 
                                     double **host_x, double **host_quat,
-                                    int *host_type, double *boxlo,
-                                    double *boxhi, bool &success) {
+                                    int *host_type, double *sublo,
+                                    double *subhi, bool &success) {
   gbm.nbor_time_avail=true;
 
   success=true;
@@ -145,7 +145,7 @@ inline void _gb_gpu_build_nbor_list(gbmtyp &gbm, const int inum,
   gbm.atom->cast_copy_x(host_x,host_type);
   int mn;
   gbm.nbor->build_nbor_list(inum, host_inum, nall, *gbm.atom,
-                            boxlo, boxhi, NULL, NULL, NULL, success, mn);
+                            sublo, subhi, NULL, NULL, NULL, success, mn);
   gbm.nbor->copy_unpacked(inum,mn);
   gbm.last_ellipse=inum;
   gbm.max_last_ellipse=inum;
@@ -330,7 +330,7 @@ template <class gbmtyp>
 inline int** _gb_gpu_compute_n(gbmtyp &gbm, const int ago,
                                const int inum_full, const int nall,
                                double **host_x, int *host_type,
-                               double *boxlo, double *boxhi, const bool eflag,
+                               double *sublo, double *subhi, const bool eflag,
                                const bool vflag, const bool eatom,
                                const bool vatom, int &host_start,
                                int **ilist, int **jnum, const double cpu_time,
@@ -351,7 +351,7 @@ inline int** _gb_gpu_compute_n(gbmtyp &gbm, const int ago,
   // Build neighbor list on GPU if necessary
   if (ago==0) {
     _gb_gpu_build_nbor_list(gbm, inum, inum_full-inum, nall, host_x,
-                            host_quat, host_type, boxlo, boxhi, success);
+                            host_quat, host_type, sublo, subhi, success);
     if (!success)
       return NULL;
     gbm.atom->cast_quat_data(host_quat[0]);
@@ -375,13 +375,13 @@ inline int** _gb_gpu_compute_n(gbmtyp &gbm, const int ago,
 }
 
 int** gb_gpu_compute_n(const int ago, const int inum_full, const int nall,
-                       double **host_x, int *host_type, double *boxlo,
-                       double *boxhi, const bool eflag, const bool vflag,
+                       double **host_x, int *host_type, double *sublo,
+                       double *subhi, const bool eflag, const bool vflag,
                        const bool eatom, const bool vatom, int &host_start,
                        int **ilist, int **jnum, const double cpu_time,
                        bool &success, double **host_quat) {
-  return _gb_gpu_compute_n(GBMF, ago, inum_full, nall, host_x, host_type, boxlo,
-                           boxhi, eflag, vflag, eatom, vatom, host_start, ilist,
+  return _gb_gpu_compute_n(GBMF, ago, inum_full, nall, host_x, host_type, sublo,
+                           subhi, eflag, vflag, eatom, vatom, host_start, ilist,
                            jnum, cpu_time, success, host_quat);
 }  
 

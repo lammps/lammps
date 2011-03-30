@@ -43,6 +43,7 @@ class Modify : protected Pointers {
   ~Modify();
   void init();
   void setup(int);
+  void setup_pre_exchange();
   void setup_pre_force(int);
   void initial_integrate(int);
   void post_integrate();

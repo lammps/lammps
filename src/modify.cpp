@@ -255,7 +255,17 @@ void Modify::setup(int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   setup pre_force call, only for relevant fixes
+   setup pre_exchange call, only for fixes that define pre_exchange
+------------------------------------------------------------------------- */
+
+void Modify::setup_pre_exchange()
+{
+  for (int i = 0; i < n_pre_exchange; i++)
+    fix[list_pre_exchange[i]]->setup_pre_exchange();
+}
+
+/* ----------------------------------------------------------------------
+   setup pre_force call, only for fixes that define pre_force
 ------------------------------------------------------------------------- */
 
 void Modify::setup_pre_force(int vflag)

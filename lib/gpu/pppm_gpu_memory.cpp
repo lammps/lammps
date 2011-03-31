@@ -276,7 +276,7 @@ void PPPMGPUMemoryT::_precompute(const int ago, const int nlocal, const int nall
   double delvolinv = delxinv*delyinv*delzinv;
   grdtyp f_delvolinv = delvolinv;
 
-  d_brick_counts.zero();
+  device->zero(d_brick_counts,d_brick_counts.numel());
   k_particle_map.set_size(GX,BX);
   k_particle_map.run(&atom->dev_x.begin(), &atom->dev_q.begin(), &f_delvolinv,
                      &ainum, &d_brick_counts.begin(), &d_brick_atoms.begin(),

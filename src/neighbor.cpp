@@ -114,6 +114,7 @@ Neighbor::Neighbor(LAMMPS *lmp) : Pointers(lmp)
   pair_build = NULL;
   stencil_create = NULL;
   blist = glist = slist = NULL;
+  anyghostlist = 0;
 
   nrequest = maxrequest = 0;
   requests = NULL;

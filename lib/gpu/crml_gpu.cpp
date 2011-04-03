@@ -28,16 +28,16 @@ static CRML_GPU_Memory<PRECISION,ACC_PRECISION> CRMLMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
-bool crml_gpu_init(const int ntypes, double cut_bothsq, double **host_lj1,
-                   double **host_lj2, double **host_lj3, double **host_lj4,
-                   double **offset, double *special_lj, const int inum,
-                   const int nall, const int max_nbors, const int maxspecial,
-                   const double cell_size, int &gpu_mode, FILE *screen,
-                   double host_cut_ljsq, double host_cut_coulsq,
-                   double *host_special_coul, const double qqrd2e,
-                   const double g_ewald, const double cut_lj_innersq,
-                   const double denom_lj, double **epsilon,
-                   double **sigma, const bool mix_arithmetic) {
+int crml_gpu_init(const int ntypes, double cut_bothsq, double **host_lj1,
+                  double **host_lj2, double **host_lj3, double **host_lj4,
+                  double **offset, double *special_lj, const int inum,
+                  const int nall, const int max_nbors, const int maxspecial,
+                  const double cell_size, int &gpu_mode, FILE *screen,
+                  double host_cut_ljsq, double host_cut_coulsq,
+                  double *host_special_coul, const double qqrd2e,
+                  const double g_ewald, const double cut_lj_innersq,
+                  const double denom_lj, double **epsilon,
+                  double **sigma, const bool mix_arithmetic) {
   CRMLMF.clear();
   gpu_mode=CRMLMF.device->gpu_mode();
   double gpu_split=CRMLMF.device->particle_split();
@@ -58,16 +58,13 @@ bool crml_gpu_init(const int ntypes, double cut_bothsq, double **host_lj1,
     fflush(screen);
   }
 
-  if (world_me==0) {
-    bool init_ok=CRMLMF.init(ntypes, cut_bothsq, host_lj1, host_lj2, host_lj3,
-                             host_lj4, offset, special_lj, inum, nall, 300,
-                             maxspecial, cell_size, gpu_split, screen,
-                             host_cut_ljsq, host_cut_coulsq, host_special_coul,
-                             qqrd2e, g_ewald, cut_lj_innersq, denom_lj,
-                             epsilon,sigma,mix_arithmetic);
-    if (!init_ok)
-      return false;
-  }
+  int init_ok=0;
+  if (world_me==0)
+    CRMLMF.init(ntypes, cut_bothsq, host_lj1, host_lj2, host_lj3, host_lj4,
+                offset, special_lj, inum, nall, 300, maxspecial, cell_size,
+                gpu_split, screen, host_cut_ljsq, host_cut_coulsq,
+                host_special_coul, qqrd2e, g_ewald, cut_lj_innersq, denom_lj,
+                epsilon,sigma,mix_arithmetic);
 
   CRMLMF.device->world_barrier();
   if (message)
@@ -82,25 +79,24 @@ bool crml_gpu_init(const int ntypes, double cut_bothsq, double **host_lj1,
                 last_gpu,i);
       fflush(screen);
     }
-    if (gpu_rank==i && world_me!=0) {
-      bool init_ok=CRMLMF.init(ntypes, cut_bothsq, host_lj1, host_lj2, host_lj3,
-                               host_lj4, offset, special_lj, inum, nall, 300,
-                               maxspecial, cell_size, gpu_split,
-                               screen, host_cut_ljsq, host_cut_coulsq,
-                               host_special_coul, qqrd2e, g_ewald, 
-                               cut_lj_innersq, denom_lj, epsilon, sigma,
-                               mix_arithmetic);
-      if (!init_ok)
-        return false;
-    }
+    if (gpu_rank==i && world_me!=0)
+      init_ok=CRMLMF.init(ntypes, cut_bothsq, host_lj1, host_lj2, host_lj3,
+                          host_lj4, offset, special_lj, inum, nall, 300,
+                          maxspecial, cell_size, gpu_split, screen,
+                          host_cut_ljsq, host_cut_coulsq, host_special_coul,
+                          qqrd2e, g_ewald,  cut_lj_innersq, denom_lj, epsilon,
+                          sigma, mix_arithmetic);
+
     CRMLMF.device->gpu_barrier();
     if (message) 
       fprintf(screen,"Done.\n");
   }
   if (message)
     fprintf(screen,"\n");
-  CRMLMF.estimate_gpu_overhead();
-  return true;
+
+  if (init_ok==0)
+    CRMLMF.estimate_gpu_overhead();
+  return init_ok;
 }
 
 void crml_gpu_clear() {

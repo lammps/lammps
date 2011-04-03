@@ -42,16 +42,19 @@ int MOR_GPU_MemoryT::bytes_per_atom(const int max_nbors) const {
 }
 
 template <class numtyp, class acctyp>
-bool MOR_GPU_MemoryT::init(const int ntypes, 
-                           double **host_cutsq, double **host_morse1, 
-                           double **host_r0, double **host_alpha, 
-                           double **host_d0, double **host_offset, 
-                           double *host_special_lj, const int nlocal,
-                           const int nall, const int max_nbors,
-                           const int maxspecial, const double cell_size,
-                           const double gpu_split, FILE *_screen) {
-  this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
-                    _screen,morse_gpu_kernel);
+int MOR_GPU_MemoryT::init(const int ntypes, 
+                          double **host_cutsq, double **host_morse1, 
+                          double **host_r0, double **host_alpha, 
+                          double **host_d0, double **host_offset, 
+                          double *host_special_lj, const int nlocal,
+                          const int nall, const int max_nbors,
+                          const int maxspecial, const double cell_size,
+                          const double gpu_split, FILE *_screen) {
+  int success;
+  success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
+                            _screen,morse_gpu_kernel);
+  if (success!=0)
+    return success;
 
   // If atom type constants fit in shared memory use fast kernel
   int types=ntypes;
@@ -83,7 +86,7 @@ bool MOR_GPU_MemoryT::init(const int ntypes,
 
   _allocated=true;
   this->_max_bytes=mor1.row_bytes()+mor2.row_bytes()+sp_lj.row_bytes();
-  return true;
+  return 0;
 }
 
 template <class numtyp, class acctyp>

@@ -35,20 +35,21 @@
 #include "domain.h"
 #include "update.h"
 #include "string.h"
+#include "gpu_extra.h"
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 // External functions from cuda library for atom decomposition
 
-bool gb_gpu_init(const int ntypes, const double gamma, const double upsilon,
-                 const double mu, double **shape, double **well, double **cutsq,
-                 double **sigma, double **epsilon, double *host_lshape,
-                 int **form, double **host_lj1, double **host_lj2,
-                 double **host_lj3, double **host_lj4, double **offset,
-                 double *special_lj, const int nlocal, const int nall,
-                 const int max_nbors, const double cell_size,
-                 int &gpu_mode, FILE *screen);
+int gb_gpu_init(const int ntypes, const double gamma, const double upsilon,
+		const double mu, double **shape, double **well, double **cutsq,
+		double **sigma, double **epsilon, double *host_lshape,
+		int **form, double **host_lj1, double **host_lj2,
+		double **host_lj3, double **host_lj4, double **offset,
+		double *special_lj, const int nlocal, const int nall,
+		const int max_nbors, const double cell_size,
+		int &gpu_mode, FILE *screen);
 void gb_gpu_clear();
 int ** gb_gpu_compute_n(const int ago, const int inum, const int nall,
 			double **host_x, int *host_type, double *sublo,
@@ -165,13 +166,12 @@ void PairGayBerneGPU::init_style()
 
   double cell_size = sqrt(maxcut) + neighbor->skin;
 
-  bool init_ok = gb_gpu_init(atom->ntypes+1, gamma, upsilon, mu, 
-                             shape, well, cutsq, sigma, epsilon, lshape, form,
-                             lj1, lj2, lj3, lj4, offset, force->special_lj, 
-                             atom->nlocal, atom->nlocal+atom->nghost, 300, 
-                             cell_size, gpu_mode, screen);
-  if (!init_ok)
-    error->one("Insufficient memory on accelerator (or no fix gpu).");
+  int success = gb_gpu_init(atom->ntypes+1, gamma, upsilon, mu, 
+			    shape, well, cutsq, sigma, epsilon, lshape, form,
+			    lj1, lj2, lj3, lj4, offset, force->special_lj, 
+			    atom->nlocal, atom->nlocal+atom->nghost, 300, 
+			    cell_size, gpu_mode, screen);
+  GPU_EXTRA::check_flag(success,error,world);
 
   if (gpu_mode != GPU_NEIGH) {
     int irequest = neighbor->request(this);

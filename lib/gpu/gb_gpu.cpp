@@ -49,14 +49,14 @@ void gb_gpu_pack_nbors(GBMT &gbm, const int GX, const int BX, const int start,
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
-bool gb_gpu_init(const int ntypes, const double gamma,
-                 const double upsilon, const double mu, double **shape,
-                 double **well, double **cutsq, double **sigma,
-                 double **epsilon, double *host_lshape, int **form,
-                 double **host_lj1, double **host_lj2, double **host_lj3,
-                 double **host_lj4, double **offset, double *special_lj,
-                 const int inum, const int nall, const int max_nbors, 
-                 const double cell_size, int &gpu_mode, FILE *screen) {
+int gb_gpu_init(const int ntypes, const double gamma,
+                const double upsilon, const double mu, double **shape,
+                double **well, double **cutsq, double **sigma,
+                double **epsilon, double *host_lshape, int **form,
+                double **host_lj1, double **host_lj2, double **host_lj3,
+                double **host_lj4, double **offset, double *special_lj,
+                const int inum, const int nall, const int max_nbors, 
+                const double cell_size, int &gpu_mode, FILE *screen) {
   GBMF.clear();
   gpu_mode=GBMF.device->gpu_mode();
   double gpu_split=GBMF.device->particle_split();
@@ -77,14 +77,12 @@ bool gb_gpu_init(const int ntypes, const double gamma,
     fflush(screen);
   }
 
-  if (world_me==0) {
-    bool init_ok=GBMF.init(ntypes, gamma, upsilon, mu, shape, well, cutsq, 
-                           sigma, epsilon, host_lshape, form, host_lj1, 
-                           host_lj2, host_lj3, host_lj4, offset, special_lj, 
-                           inum, nall, max_nbors, cell_size, gpu_split, screen);
-    if (!init_ok)
-      return false;
-  }
+  int init_ok=0;
+  if (world_me==0)
+    init_ok=GBMF.init(ntypes, gamma, upsilon, mu, shape, well, cutsq, 
+                      sigma, epsilon, host_lshape, form, host_lj1, 
+                      host_lj2, host_lj3, host_lj4, offset, special_lj, 
+                      inum, nall, max_nbors, cell_size, gpu_split, screen);
 
   GBMF.device->world_barrier();
   if (message)
@@ -99,23 +97,22 @@ bool gb_gpu_init(const int ntypes, const double gamma,
                 last_gpu,i);
       fflush(screen);
     }
-    if (gpu_rank==i && world_me!=0) {
-      bool init_ok=GBMF.init(ntypes, gamma, upsilon, mu, shape, well, cutsq, 
-                             sigma, epsilon, host_lshape, form, host_lj1, 
-                             host_lj2, host_lj3, host_lj4, offset, special_lj, 
-                             inum, nall, max_nbors, cell_size, gpu_split, 
-                             screen);
-      if (!init_ok)
-        return false;
-    }
+    if (gpu_rank==i && world_me!=0)
+      init_ok=GBMF.init(ntypes, gamma, upsilon, mu, shape, well, cutsq,  sigma,
+                        epsilon, host_lshape, form, host_lj1, host_lj2,
+                        host_lj3, host_lj4, offset, special_lj,  inum, nall,
+                        max_nbors, cell_size, gpu_split,  screen);
+
     GBMF.device->gpu_barrier();
     if (message) 
       fprintf(screen,"Done.\n");
   }
   if (message)
     fprintf(screen,"\n");
-  GBMF.estimate_gpu_overhead();
-  return true;
+
+  if (init_ok==0)
+    GBMF.estimate_gpu_overhead();
+  return init_ok;
 }
 
 // ---------------------------------------------------------------------------

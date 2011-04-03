@@ -34,17 +34,18 @@
 #include "update.h"
 #include "domain.h"
 #include "string.h"
+#include "gpu_extra.h"
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 // External functions from cuda library for atom decomposition
 
-bool mor_gpu_init(const int ntypes, double **cutsq, double **host_morse1,
-                  double **host_r0, double **host_alpha, double **host_d0, 
-                  double **offset, double *special_lj, const int nlocal, 
-                  const int nall, const int max_nbors, const int maxspecial,
-                  const double cell_size, int &gpu_mode, FILE *screen);
+int mor_gpu_init(const int ntypes, double **cutsq, double **host_morse1,
+		 double **host_r0, double **host_alpha, double **host_d0, 
+		 double **offset, double *special_lj, const int nlocal, 
+		 const int nall, const int max_nbors, const int maxspecial,
+		 const double cell_size, int &gpu_mode, FILE *screen);
 void mor_gpu_clear();
 int ** mor_gpu_compute_n(const int ago, const int inum,
 			 const int nall, double **host_x, int *host_type, 
@@ -146,12 +147,11 @@ void PairMorseGPU::init_style()
   int maxspecial=0;
   if (atom->molecular)
     maxspecial=atom->maxspecial;
-  bool init_ok = mor_gpu_init(atom->ntypes+1, cutsq, morse1, r0, alpha, d0,
-                              offset, force->special_lj, atom->nlocal,
-                              atom->nlocal+atom->nghost, 300, maxspecial,
-                              cell_size, gpu_mode, screen);
-  if (!init_ok)
-    error->one("Insufficient memory on accelerator (or no fix gpu).\n"); 
+  int success = mor_gpu_init(atom->ntypes+1, cutsq, morse1, r0, alpha, d0,
+			     offset, force->special_lj, atom->nlocal,
+			     atom->nlocal+atom->nghost, 300, maxspecial,
+			     cell_size, gpu_mode, screen);
+  GPU_EXTRA::check_flag(success,error,world);
 
   if (gpu_mode != GPU_NEIGH) {
     int irequest = neighbor->request(this);

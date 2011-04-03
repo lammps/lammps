@@ -35,6 +35,7 @@
 #include "domain.h"
 #include "string.h"
 #include "kspace.h"
+#include "gpu_extra.h"
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
@@ -49,16 +50,16 @@
 
 // External functions from cuda library for atom decomposition
 
-bool crml_gpu_init(const int ntypes, double cut_bothsq, double **host_lj1,
-		   double **host_lj2, double **host_lj3, double **host_lj4, 
-		   double **offset, double *special_lj, const int nlocal, 
-		   const int nall, const int max_nbors, const int maxspecial,
-		   const double cell_size, int &gpu_mode, FILE *screen,
-		   double host_cut_ljsq, double host_cut_coulsq,
-		   double *host_special_coul, const double qqrd2e,
-		   const double g_ewald, const double cut_lj_innersq,
-		   const double denom_lj, double **epsilon, double **sigma,
-		   const bool mix_arithmetic);
+int crml_gpu_init(const int ntypes, double cut_bothsq, double **host_lj1,
+		  double **host_lj2, double **host_lj3, double **host_lj4, 
+		  double **offset, double *special_lj, const int nlocal, 
+		  const int nall, const int max_nbors, const int maxspecial,
+		  const double cell_size, int &gpu_mode, FILE *screen,
+		  double host_cut_ljsq, double host_cut_coulsq,
+		  double *host_special_coul, const double qqrd2e,
+		  const double g_ewald, const double cut_lj_innersq,
+		  const double denom_lj, double **epsilon, double **sigma,
+		  const bool mix_arithmetic);
 void crml_gpu_clear();
 int ** crml_gpu_compute_n(const int ago, const int inum,
 			  const int nall, double **host_x, int *host_type, 
@@ -192,15 +193,14 @@ void PairLJCharmmCoulLongGPU::init_style()
 	arithmetic = false;
     }
 
-  bool init_ok = crml_gpu_init(atom->ntypes+1, cut_bothsq, lj1, lj2, lj3, lj4,
-			       offset, force->special_lj, atom->nlocal,
-			       atom->nlocal+atom->nghost, 300, maxspecial,
-			       cell_size, gpu_mode, screen, cut_ljsq, 
-			       cut_coulsq, force->special_coul, force->qqrd2e,
-			       g_ewald, cut_lj_innersq,denom_lj,epsilon,sigma,
-			       arithmetic);
-  if (!init_ok)
-    error->one("Insufficient memory on accelerator (or no fix gpu).\n"); 
+  int success = crml_gpu_init(atom->ntypes+1, cut_bothsq, lj1, lj2, lj3, lj4,
+			      offset, force->special_lj, atom->nlocal,
+			      atom->nlocal+atom->nghost, 300, maxspecial,
+			      cell_size, gpu_mode, screen, cut_ljsq, 
+			      cut_coulsq, force->special_coul, force->qqrd2e,
+			      g_ewald, cut_lj_innersq,denom_lj,epsilon,sigma,
+			      arithmetic);
+  GPU_EXTRA::check_flag(success,error,world);
 
   if (gpu_mode != GPU_NEIGH) {
     int irequest = neighbor->request(this);

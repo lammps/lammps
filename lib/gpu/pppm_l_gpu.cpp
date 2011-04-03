@@ -58,11 +58,10 @@ grdtyp * pppm_gpu_init(memtyp &pppm, const int nlocal, const int nall,
 
   success=0;
   grdtyp * host_brick=NULL;
-  if (world_me==0) {
+  if (world_me==0)
     host_brick=pppm.init(nlocal,nall,screen,order,nxlo_out,nylo_out,nzlo_out,
                          nxhi_out,nyhi_out,nzhi_out,rho_coeff,vd_brick,
                          slab_volfactor,nx_pppm,ny_pppm,nz_pppm,success);
-  }
 
   pppm.device->world_barrier();
   if (message)
@@ -77,12 +76,12 @@ grdtyp * pppm_gpu_init(memtyp &pppm, const int nlocal, const int nall,
                 last_gpu,i);
       fflush(screen);
     }
-    if (gpu_rank==i && world_me!=0) {
+    if (gpu_rank==i && world_me!=0)
       host_brick=pppm.init(nlocal,nall,screen,order,nxlo_out,nylo_out,
                            nzlo_out,nxhi_out,nyhi_out,nzhi_out,rho_coeff,
                            vd_brick,slab_volfactor,nx_pppm,ny_pppm,nz_pppm,
                            success);
-    }
+
     pppm.device->gpu_barrier();
     if (message) 
       fprintf(screen,"Done.\n");

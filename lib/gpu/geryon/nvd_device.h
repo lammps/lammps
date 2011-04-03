@@ -42,6 +42,7 @@ inline void ucl_sync(CUstream &stream) {
 }
 
 struct NVDProperties {
+  int device_id;
   std::string name;
   int major;
   int minor;
@@ -208,14 +209,19 @@ inline UCL_Device::UCL_Device() {
   for (int dev=0; dev<_num_devices; ++dev) {
     CUdevice m;
     CU_SAFE_CALL_NS(cuDeviceGet(&m,dev));
+    int major, minor;
+    CU_SAFE_CALL_NS(cuDeviceComputeCapability(&major,&minor,m));
+    if (major==9999)
+      continue;
+      
     _properties.push_back(NVDProperties());
+    _properties.back().device_id=dev;
+    _properties.back().major=major;
+    _properties.back().minor=minor;
     
     char namecstr[1024];
     CU_SAFE_CALL_NS(cuDeviceGetName(namecstr,1024,m));
     _properties.back().name=namecstr;
-    
-    CU_SAFE_CALL_NS(cuDeviceComputeCapability(&_properties.back().major,
-                                              &_properties.back().minor,m));
     
     CU_SAFE_CALL_NS(cuDeviceTotalMem(&_properties.back().totalGlobalMem,m));
     CU_SAFE_CALL_NS(cuDeviceGetAttribute(&_properties.back().multiProcessorCount,
@@ -262,9 +268,9 @@ inline void UCL_Device::set(int num) {
     CU_SAFE_CALL_NS(cuCtxDestroy(_context));
     for (int i=1; i<num_queues(); i++) pop_command_queue();
   }
-  CU_SAFE_CALL_NS(cuDeviceGet(&_cu_device,num));
+  _device=_properties[num].device_id;
+  CU_SAFE_CALL_NS(cuDeviceGet(&_cu_device,_device));
   CU_SAFE_CALL_NS(cuCtxCreate(&_context,0,_cu_device));
-  _device=num;
 }
 
 // List all devices along with all properties

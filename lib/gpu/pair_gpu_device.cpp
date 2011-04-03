@@ -130,15 +130,22 @@ bool PairGPUDeviceT::init_device(MPI_Comm world, MPI_Comm replica,
   return true;
 }
 
+  /** Success will be:
+    * -  0 if successfull
+    * - -1 if fix gpu not found
+    * - -3 if there is an out of memory error
+    * - -4 if the GPU library was not compiled for GPU
+    * - -5 Double precision is not supported on card **/
+
 template <class numtyp, class acctyp>
-bool PairGPUDeviceT::init(PairGPUAns<numtyp,acctyp> &ans, const bool charge,
-                          const bool rot, const int nlocal, 
-                          const int host_nlocal, const int nall,
-                          PairGPUNbor *nbor, const int maxspecial,
-                          const int gpu_host, const int max_nbors, 
-                          const double cell_size, const bool pre_cut) {
+int PairGPUDeviceT::init(PairGPUAns<numtyp,acctyp> &ans, const bool charge,
+                         const bool rot, const int nlocal, 
+                         const int host_nlocal, const int nall,
+                         PairGPUNbor *nbor, const int maxspecial,
+                         const int gpu_host, const int max_nbors, 
+                         const double cell_size, const bool pre_cut) {
   if (!_device_init)
-    return false;                          
+    return -1;                          
 
   // Counts of data transfers for timing overhead estimates
   _data_in_estimate=0;
@@ -156,7 +163,7 @@ bool PairGPUDeviceT::init(PairGPUAns<numtyp,acctyp> &ans, const bool charge,
   if (_init_count==0) {
     // Initialize atom and nbor data
     if (!atom.init(nall,charge,rot,*gpu,gpu_nbor,gpu_nbor && maxspecial>0))
-      return false;
+      return -3;
     compile_kernels();
     _data_in_estimate++;
     if (charge)
@@ -168,40 +175,42 @@ bool PairGPUDeviceT::init(PairGPUAns<numtyp,acctyp> &ans, const bool charge,
       _data_in_estimate++;
     if (atom.quat()==false && rot)
       _data_in_estimate++;
-    atom.add_fields(charge,rot,gpu_nbor,gpu_nbor && maxspecial);
+    if (!atom.add_fields(charge,rot,gpu_nbor,gpu_nbor && maxspecial))
+      return -3;
   }
   
   if (!ans.init(ef_nlocal,charge,rot,*gpu))
-    return false;
+    return -3;
 
   if (!nbor->init(&_nbor_shared,ef_nlocal,host_nlocal,max_nbors,maxspecial,
                   *gpu,gpu_nbor,gpu_host,pre_cut))
-    return false;
+    return -3;
   nbor->cell_size(cell_size);
 
   _init_count++;
-  return true;
+  return 0;
 }
 
 template <class numtyp, class acctyp>
-bool PairGPUDeviceT::init(PairGPUAns<numtyp,acctyp> &ans, const int nlocal,
-                          const int nall) {
+int PairGPUDeviceT::init(PairGPUAns<numtyp,acctyp> &ans, const int nlocal,
+                         const int nall) {
   if (!_device_init)
-    return false;                          
+    return -1;                          
 
   if (_init_count==0) {
     // Initialize atom and nbor data
     if (!atom.init(nall,true,false,*gpu,false,false))
-      return false;
+      return -3;
     compile_kernels();
   } else
-    atom.add_fields(true,false,false,false);
+    if (!atom.add_fields(true,false,false,false))
+      return -3;
 
   if (!ans.init(nlocal,true,false,*gpu))
-    return false;
+    return -3;
 
   _init_count++;
-  return true;
+  return 0;
 }
 
 template <class numtyp, class acctyp>
@@ -238,7 +247,10 @@ void PairGPUDeviceT::init_message(FILE *screen, const char *name,
     fprintf(screen,"-------------------------------------");
     fprintf(screen,"-------------------------------------\n");
 
-    for (int i=first_gpu; i<=last_gpu; i++) {
+    int last=last_gpu+1;
+    if (last>gpu->num_devices())
+      last=gpu->num_devices();
+    for (int i=first_gpu; i<last; i++) {
       std::string sname=gpu->name(i)+", "+toa(gpu->cores(i))+" cores, "+fs+
                         toa(gpu->gigabytes(i))+" GB, "+toa(gpu->clock_rate(i))+
                         " GHZ (";

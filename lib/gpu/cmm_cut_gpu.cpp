@@ -28,12 +28,12 @@ static CMM_GPU_Memory<PRECISION,ACC_PRECISION> CMMMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
-bool cmm_gpu_init(const int ntypes, double **cutsq, int **cg_types,
-                  double **host_lj1, double **host_lj2, double **host_lj3, 
-                  double **host_lj4, double **offset, double *special_lj,
-                  const int inum, const int nall, const int max_nbors, 
-                  const int maxspecial, const double cell_size, int &gpu_mode,
-                  FILE *screen) {
+int cmm_gpu_init(const int ntypes, double **cutsq, int **cg_types,
+                 double **host_lj1, double **host_lj2, double **host_lj3, 
+                 double **host_lj4, double **offset, double *special_lj,
+                 const int inum, const int nall, const int max_nbors, 
+                 const int maxspecial, const double cell_size, int &gpu_mode,
+                 FILE *screen) {
   CMMMF.clear();
   gpu_mode=CMMMF.device->gpu_mode();
   double gpu_split=CMMMF.device->particle_split();
@@ -54,13 +54,11 @@ bool cmm_gpu_init(const int ntypes, double **cutsq, int **cg_types,
     fflush(screen);
   }
 
-  if (world_me==0) {
-    bool init_ok=CMMMF.init(ntypes,cutsq,cg_types,host_lj1,host_lj2,host_lj3, 
-                            host_lj4, offset, special_lj, inum, nall, 300,
-                            maxspecial, cell_size, gpu_split, screen);
-    if (!init_ok)
-      return false;
-  }
+  int init_ok=0;
+  if (world_me==0)
+    init_ok=CMMMF.init(ntypes,cutsq,cg_types,host_lj1,host_lj2,host_lj3, 
+                       host_lj4, offset, special_lj, inum, nall, 300,
+                       maxspecial, cell_size, gpu_split, screen);
 
   CMMMF.device->world_barrier();
   if (message)
@@ -75,22 +73,21 @@ bool cmm_gpu_init(const int ntypes, double **cutsq, int **cg_types,
                 last_gpu,i);
       fflush(screen);
     }
-    if (gpu_rank==i && world_me!=0) {
-      bool init_ok=CMMMF.init(ntypes,cutsq,cg_types,host_lj1,host_lj2,host_lj3,
-                              host_lj4, offset, special_lj, inum, nall, 300,
-                              maxspecial, cell_size, gpu_split,
-			      screen);
-      if (!init_ok)
-        return false;
-    }
+    if (gpu_rank==i && world_me!=0)
+      init_ok=CMMMF.init(ntypes,cutsq,cg_types,host_lj1,host_lj2,host_lj3,
+                         host_lj4, offset, special_lj, inum, nall, 300,
+                         maxspecial, cell_size, gpu_split, screen);
+
     CMMMF.device->gpu_barrier();
     if (message) 
       fprintf(screen,"Done.\n");
   }
   if (message)
     fprintf(screen,"\n");
-  CMMMF.estimate_gpu_overhead();
-  return true;
+
+  if (init_ok==0)
+    CMMMF.estimate_gpu_overhead();
+  return init_ok;
 }
 
 void cmm_gpu_clear() {

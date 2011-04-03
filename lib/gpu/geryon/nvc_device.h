@@ -167,6 +167,7 @@ class UCL_Device {
   int _device, _num_devices;
   std::vector<cudaDeviceProp> _properties;
   std::vector<cudaStream_t> _cq;
+  std::vector<int> _device_ids;
 };
 
 // Grabs the properties for all devices
@@ -178,6 +179,7 @@ inline UCL_Device::UCL_Device() {
     if (deviceProp.major == 9999 && deviceProp.minor == 9999)
       break;
     _properties.push_back(deviceProp);
+    _device_ids.push_back(dev);
   }
   _device=-1;
   _cq.push_back(cudaStream_t());
@@ -194,7 +196,7 @@ inline void UCL_Device::set(int num) {
     return;
   for (int i=1; i<num_queues(); i++) pop_command_queue();
   cudaThreadExit();
-  CUDA_SAFE_CALL_NS(cudaSetDevice(num));
+  CUDA_SAFE_CALL_NS(cudaSetDevice(_device_ids[num]));
   _device=num;
 }
 

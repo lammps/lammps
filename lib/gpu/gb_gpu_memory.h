@@ -35,16 +35,23 @@ class GB_GPU_Memory {
     * \param max_nbors initial number of rows in the neighbor matrix
     * \param cell_size cutoff + skin
     * \param gpu_split fraction of particles handled by device 
-    * \return false if there is not sufficient memory or device init prob **/
-  bool init(const int ntypes, const double gamma,
-            const double upsilon, const double mu, double **host_shape,
-            double **host_well, double **host_cutsq, double **host_sigma, 
-            double **host_epsilon, double *host_lshape, int **h_form,
-            double **host_lj1, double **host_lj2, double **host_lj3, 
-            double **host_lj4, double **host_offset, 
-            const double *host_special_lj, const int nlocal, const int nall, 
-            const int max_nbors, const double cell_size,
-            const double gpu_split, FILE *screen);
+    * \return false if there is not sufficient memory or device init prob
+    * 
+    * Returns:
+    * -  0 if successfull
+    * - -1 if fix gpu not found
+    * - -3 if there is an out of memory error
+    * - -4 if the GPU library was not compiled for GPU
+    * - -5 Double precision is not supported on card **/
+  int init(const int ntypes, const double gamma,
+           const double upsilon, const double mu, double **host_shape,
+           double **host_well, double **host_cutsq, double **host_sigma, 
+           double **host_epsilon, double *host_lshape, int **h_form,
+           double **host_lj1, double **host_lj2, double **host_lj3, 
+           double **host_lj4, double **host_offset, 
+           const double *host_special_lj, const int nlocal, const int nall, 
+           const int max_nbors, const double cell_size,
+           const double gpu_split, FILE *screen);
 
   /// Estimate the overhead for GPU context changes and CPU driver
   void estimate_gpu_overhead();

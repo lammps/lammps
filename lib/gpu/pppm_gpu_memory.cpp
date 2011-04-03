@@ -71,10 +71,9 @@ grdtyp * PPPMGPUMemoryT::init(const int nlocal, const int nall, FILE *_screen,
   screen=_screen;
   bool success=true;
 
-  if (!device->init(*ans,nlocal,nall)) {
-    flag=-2;
+  flag=device->init(*ans,nlocal,nall);
+  if (flag!=0)
     return 0;
-  }
   if (sizeof(grdtyp)==sizeof(double) && device->double_precision()==false) {
     flag=-5;
     return 0;

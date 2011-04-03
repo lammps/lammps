@@ -75,6 +75,9 @@ bool PairGPUNbor::init(PairGPUNborShared *shared, const int inum,
     success=success && (host_packed.alloc(2*IJ_SIZE,*dev,
                                           UCL_WRITE_OPTIMIZED)==UCL_SUCCESS);
   alloc(success);
+  if (!success)
+    return false;
+    
   if (_use_packing==false)
     _shared->compile_kernels(devi,gpu_nbor);
 
@@ -115,10 +118,14 @@ void PairGPUNbor::alloc(bool &success) {
     success=success && (dev_host_numj.alloc(_max_host,*dev,
                                             UCL_WRITE_ONLY)==UCL_SUCCESS);
     success=success && (host_ilist.alloc(nt,*dev,UCL_NOT_PINNED)==UCL_SUCCESS);
+    if (!success)
+      return;
     for (int i=0; i<nt; i++)
       host_ilist[i]=i;
     success=success && (host_jlist.alloc(_max_host,*dev,
                                          UCL_NOT_PINNED)==UCL_SUCCESS);
+    if (!success)
+      return;
     int *ptr=host_nbor.begin();
     for (int i=0; i<_max_host; i++) {
       host_jlist[i]=ptr;

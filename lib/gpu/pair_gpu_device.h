@@ -56,16 +56,29 @@ class PairGPUDevice {
     * \param max_nbors Initial number of rows in the neighbor matrix
     * \param cell_size cutoff+skin 
     * \param pre_cut True if cutoff test will be performed in separate kernel
-    *                than the force kernel **/
-  bool init(PairGPUAns<numtyp,acctyp> &a, const bool charge, const bool rot,
-            const int nlocal, const int host_nlocal, const int nall,
-            PairGPUNbor *nbor, const int maxspecial, const int gpu_host,
-            const int max_nbors, const double cell_size, const bool pre_cut);
+    *                than the force kernel 
+    * Returns:
+    * -  0 if successfull
+    * - -1 if fix gpu not found
+    * - -3 if there is an out of memory error
+    * - -4 if the GPU library was not compiled for GPU
+    * - -5 Double precision is not supported on card **/
+  int init(PairGPUAns<numtyp,acctyp> &a, const bool charge, const bool rot,
+           const int nlocal, const int host_nlocal, const int nall,
+           PairGPUNbor *nbor, const int maxspecial, const int gpu_host,
+           const int max_nbors, const double cell_size, const bool pre_cut);
 
   /// Initialize the device for Atom storage only
   /** \param nlocal Total number of local particles to allocate memory for
-    * \param nall Total number of local+ghost particles **/
-  bool init(PairGPUAns<numtyp,acctyp> &ans, const int nlocal, const int nall);
+    * \param nall Total number of local+ghost particles
+    *
+    * Returns:
+    * -  0 if successfull
+    * - -1 if fix gpu not found
+    * - -3 if there is an out of memory error
+    * - -4 if the GPU library was not compiled for GPU
+    * - -5 Double precision is not supported on card **/
+  int init(PairGPUAns<numtyp,acctyp> &ans, const int nlocal, const int nall);
 
   /// Output a message for pair_style acceleration with device stats
   void init_message(FILE *screen, const char *name,

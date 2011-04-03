@@ -34,18 +34,19 @@
 #include "update.h"
 #include "domain.h"
 #include "string.h"
+#include "gpu_extra.h"
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 // External functions from cuda library for atom decomposition
 
-bool lje_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
-                  double **host_lj2, double **host_lj3, double **host_lj4, 
-                  double **offset, double **shift, double *special_lj, 
-		  const int nlocal, const int nall, const int max_nbors,
-		  const int maxspecial, const double cell_size, int &gpu_mode,
-		  FILE *screen);
+int lje_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
+		 double **host_lj2, double **host_lj3, double **host_lj4, 
+		 double **offset, double **shift, double *special_lj, 
+		 const int nlocal, const int nall, const int max_nbors,
+		 const int maxspecial, const double cell_size, int &gpu_mode,
+		 FILE *screen);
 void lje_gpu_clear();
 int ** lje_gpu_compute_n(const int ago, const int inum, const int nall,
 			 double **host_x, int *host_type, double *sublo,

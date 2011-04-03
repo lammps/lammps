@@ -29,15 +29,22 @@ class LJC_GPU_Memory : public ChargeGPUMemory<numtyp, acctyp> {
   /// Clear any previous data and set up for a new LAMMPS run
   /** \param max_nbors initial number of rows in the neighbor matrix
     * \param cell_size cutoff + skin
-    * \param gpu_split fraction of particles handled by device **/
-  bool init(const int ntypes, double **host_cutsq, double **host_lj1,
-            double **host_lj2, double **host_lj3, double **host_lj4,
-            double **host_offset, double *host_special_lj,
-            const int nlocal, const int nall, const int max_nbors, 
-            const int maxspecial, const double cell_size,
-            const double gpu_split, FILE *screen, double **host_cut_ljsq,
-            double **host_cut_coulsq, double *host_special_coul,
-            const double qqrd2e);
+    * \param gpu_split fraction of particles handled by device
+    * 
+    * Returns:
+    * -  0 if successfull
+    * - -1 if fix gpu not found
+    * - -3 if there is an out of memory error
+    * - -4 if the GPU library was not compiled for GPU
+    * - -5 Double precision is not supported on card **/
+  int init(const int ntypes, double **host_cutsq, double **host_lj1,
+           double **host_lj2, double **host_lj3, double **host_lj4,
+           double **host_offset, double *host_special_lj,
+           const int nlocal, const int nall, const int max_nbors, 
+           const int maxspecial, const double cell_size,
+           const double gpu_split, FILE *screen, double **host_cut_ljsq,
+           double **host_cut_coulsq, double *host_special_coul,
+           const double qqrd2e);
 
   /// Clear all host and device data
   /** \note This is called at the beginning of the init() routine **/

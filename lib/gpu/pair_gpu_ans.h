@@ -29,7 +29,6 @@ using namespace ucl_opencl;
 
 #else
 
-#include "cudpp.h"
 #include "geryon/nvd_timer.h"
 #include "geryon/nvd_mat.h"
 using namespace ucl_cudadr;

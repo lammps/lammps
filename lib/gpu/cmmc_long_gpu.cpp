@@ -28,14 +28,14 @@ static CMML_GPU_Memory<PRECISION,ACC_PRECISION> CMMLMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
-bool cmml_gpu_init(const int ntypes, double **cutsq, int **cg_type,
-                   double **host_lj1, double **host_lj2, double **host_lj3, 
-                   double **host_lj4, double **offset, double *special_lj,
-                   const int inum, const int nall, const int max_nbors, 
-                   const int maxspecial, const double cell_size, int &gpu_mode,
-                   FILE *screen, double **host_cut_ljsq, double host_cut_coulsq,
-                   double *host_special_coul, const double qqrd2e,
-                   const double g_ewald) {
+int cmml_gpu_init(const int ntypes, double **cutsq, int **cg_type,
+                  double **host_lj1, double **host_lj2, double **host_lj3, 
+                  double **host_lj4, double **offset, double *special_lj,
+                  const int inum, const int nall, const int max_nbors, 
+                  const int maxspecial, const double cell_size, int &gpu_mode,
+                  FILE *screen, double **host_cut_ljsq, double host_cut_coulsq,
+                  double *host_special_coul, const double qqrd2e,
+                  const double g_ewald) {
   CMMLMF.clear();
   gpu_mode=CMMLMF.device->gpu_mode();
   double gpu_split=CMMLMF.device->particle_split();
@@ -56,15 +56,12 @@ bool cmml_gpu_init(const int ntypes, double **cutsq, int **cg_type,
     fflush(screen);
   }
 
-  if (world_me==0) {
-    bool init_ok=CMMLMF.init(ntypes, cutsq, cg_type, host_lj1, host_lj2, 
-                             host_lj3, host_lj4, offset, special_lj, inum, 
-                             nall, 300, maxspecial, cell_size, gpu_split, 
-                             screen, host_cut_ljsq, host_cut_coulsq,
-                             host_special_coul, qqrd2e,g_ewald);
-    if (!init_ok)
-      return false;
-  }
+  int init_ok=0;
+  if (world_me==0)
+    init_ok=CMMLMF.init(ntypes, cutsq, cg_type, host_lj1, host_lj2, host_lj3,
+                        host_lj4, offset, special_lj, inum, nall, 300, 
+                        maxspecial, cell_size, gpu_split, screen, host_cut_ljsq,
+                        host_cut_coulsq, host_special_coul, qqrd2e,g_ewald);
 
   CMMLMF.device->world_barrier();
   if (message)
@@ -79,23 +76,22 @@ bool cmml_gpu_init(const int ntypes, double **cutsq, int **cg_type,
                 last_gpu,i);
       fflush(screen);
     }
-    if (gpu_rank==i && world_me!=0) {
-      bool init_ok=CMMLMF.init(ntypes, cutsq, cg_type, host_lj1, host_lj2, 
-                               host_lj3, host_lj4, offset, special_lj, inum, 
-                               nall, 300, maxspecial, cell_size, gpu_split,
-                               screen, host_cut_ljsq, host_cut_coulsq,
-                               host_special_coul, qqrd2e, g_ewald);
-      if (!init_ok)
-        return false;
-    }
+    if (gpu_rank==i && world_me!=0)
+      init_ok=CMMLMF.init(ntypes, cutsq, cg_type, host_lj1, host_lj2, host_lj3,
+                          host_lj4, offset, special_lj, inum,  nall, 300,
+                          maxspecial, cell_size, gpu_split, screen,
+                          host_cut_ljsq, host_cut_coulsq, host_special_coul,
+                          qqrd2e, g_ewald);
     CMMLMF.device->gpu_barrier();
     if (message) 
       fprintf(screen,"Done.\n");
   }
   if (message)
     fprintf(screen,"\n");
-  CMMLMF.estimate_gpu_overhead();
-  return true;
+
+  if (init_ok==0)
+    CMMLMF.estimate_gpu_overhead();
+  return init_ok;
 }
 
 void cmml_gpu_clear() {

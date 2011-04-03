@@ -42,16 +42,19 @@ int LJL_GPU_MemoryT::bytes_per_atom(const int max_nbors) const {
 }
 
 template <class numtyp, class acctyp>
-bool LJL_GPU_MemoryT::init(const int ntypes, 
-                           double **host_cutsq, double **host_lj1, 
-                           double **host_lj2, double **host_lj3, 
-                           double **host_lj4, double **host_offset, 
-                           double *host_special_lj, const int nlocal,
-                           const int nall, const int max_nbors,
-                           const int maxspecial, const double cell_size,
-                           const double gpu_split, FILE *_screen) {
-  this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
-                    _screen,lj_cut_gpu_kernel);
+int LJL_GPU_MemoryT::init(const int ntypes, 
+                          double **host_cutsq, double **host_lj1, 
+                          double **host_lj2, double **host_lj3, 
+                          double **host_lj4, double **host_offset, 
+                          double *host_special_lj, const int nlocal,
+                          const int nall, const int max_nbors,
+                          const int maxspecial, const double cell_size,
+                          const double gpu_split, FILE *_screen) {
+  int success;
+  success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
+                            _screen,lj_cut_gpu_kernel);
+  if (success!=0)
+    return success;
 
   // If atom type constants fit in shared memory use fast kernel
   int lj_types=ntypes;
@@ -84,7 +87,7 @@ bool LJL_GPU_MemoryT::init(const int ntypes,
 
   _allocated=true;
   this->_max_bytes=lj1.row_bytes()+lj3.row_bytes()+sp_lj.row_bytes();
-  return true;
+  return 0;
 }
 
 template <class numtyp, class acctyp>

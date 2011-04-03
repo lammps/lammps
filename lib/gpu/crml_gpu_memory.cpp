@@ -43,7 +43,7 @@ int CRML_GPU_MemoryT::bytes_per_atom(const int max_nbors) const {
 }
 
 template <class numtyp, class acctyp>
-bool CRML_GPU_MemoryT::init(const int ntypes,
+int CRML_GPU_MemoryT::init(const int ntypes,
                            double host_cut_bothsq, double **host_lj1, 
                            double **host_lj2, double **host_lj3, 
                            double **host_lj4, double **host_offset, 
@@ -56,8 +56,11 @@ bool CRML_GPU_MemoryT::init(const int ntypes,
                            const double g_ewald, const double cut_lj_innersq,
                            const double denom_lj, double **epsilon,
                            double **sigma, const bool mix_arithmetic) {
-  this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
-                    _screen,crml_gpu_kernel);
+  int success;
+  success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
+                            _screen,crml_gpu_kernel);
+  if (success!=0)
+    return success;
 
   // If atom type constants fit in shared memory use fast kernel
   int lj_types=ntypes;
@@ -99,7 +102,7 @@ bool CRML_GPU_MemoryT::init(const int ntypes,
 
   _allocated=true;
   this->_max_bytes=lj1.row_bytes()+ljd.row_bytes()+sp_lj.row_bytes();
-  return true;
+  return 0;
 }
 
 template <class numtyp, class acctyp>

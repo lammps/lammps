@@ -67,6 +67,7 @@ if (test $1 = 1) then
   
   cp fix_gpu.cpp ..
   cp fix_gpu.h ..
+  cp gpu_extra.h ..
 
   cp pair_omp_gpu.cpp ..
   cp pair_omp_gpu.h ..
@@ -114,6 +115,7 @@ elif (test $1 = 0) then
   rm ../pair_cg_cmm_coul_msm.h
   rm ../pair_cg_cmm_coul_msm_gpu.h
   rm ../fix_gpu.h
+  rm ../gpu_extra.h
   rm ../pair_omp_gpu.h
   
 fi

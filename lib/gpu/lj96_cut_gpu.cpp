@@ -28,11 +28,11 @@ static LJ96_GPU_Memory<PRECISION,ACC_PRECISION> LJ96MF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
-bool lj96_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
-                   double **host_lj2, double **host_lj3, double **host_lj4,
-                   double **offset, double *special_lj, const int inum,
-                   const int nall, const int max_nbors, const int maxspecial,
-                   const double cell_size, int &gpu_mode, FILE *screen) {
+int lj96_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
+                  double **host_lj2, double **host_lj3, double **host_lj4,
+                  double **offset, double *special_lj, const int inum,
+                  const int nall, const int max_nbors, const int maxspecial,
+                  const double cell_size, int &gpu_mode, FILE *screen) {
   LJ96MF.clear();
   gpu_mode=LJ96MF.device->gpu_mode();
   double gpu_split=LJ96MF.device->particle_split();
@@ -53,13 +53,11 @@ bool lj96_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
     fflush(screen);
   }
 
-  if (world_me==0) {
-    bool init_ok=LJ96MF.init(ntypes, cutsq, host_lj1, host_lj2, host_lj3,
-                             host_lj4, offset, special_lj, inum, nall, 300,
-                             maxspecial, cell_size, gpu_split, screen);
-    if (!init_ok)
-      return false;
-  }
+  int init_ok=0;
+  if (world_me==0)
+    init_ok=LJ96MF.init(ntypes, cutsq, host_lj1, host_lj2, host_lj3,
+                        host_lj4, offset, special_lj, inum, nall, 300,
+                        maxspecial, cell_size, gpu_split, screen);
 
   LJ96MF.device->world_barrier();
   if (message)
@@ -74,22 +72,21 @@ bool lj96_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                 last_gpu,i);
       fflush(screen);
     }
-    if (gpu_rank==i && world_me!=0) {
-      bool init_ok=LJ96MF.init(ntypes, cutsq, host_lj1, host_lj2, host_lj3,
-                              host_lj4, offset, special_lj, inum, 
-                              nall, 300, maxspecial, cell_size, gpu_split,
-			      screen);
-      if (!init_ok)
-        return false;
-    }
+    if (gpu_rank==i && world_me!=0)
+      init_ok=LJ96MF.init(ntypes, cutsq, host_lj1, host_lj2, host_lj3, host_lj4,
+                          offset, special_lj, inum,  nall, 300, maxspecial,
+                          cell_size, gpu_split, screen);
+
     LJ96MF.device->gpu_barrier();
     if (message) 
       fprintf(screen,"Done.\n");
   }
   if (message)
     fprintf(screen,"\n");
-  LJ96MF.estimate_gpu_overhead();
-  return true;
+
+  if (init_ok==0)
+    LJ96MF.estimate_gpu_overhead();
+  return init_ok;
 }
 
 void lj96_gpu_clear() {

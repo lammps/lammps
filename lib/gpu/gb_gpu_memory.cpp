@@ -50,17 +50,17 @@ int GB_GPU_MemoryT::bytes_per_atom(const int max_nbors) const {
 }
 
 template <class numtyp, class acctyp>
-bool GB_GPU_MemoryT::init(const int ntypes, const double gamma, 
-                          const double upsilon, const double mu, 
-                          double **host_shape, double **host_well, 
-                          double **host_cutsq, double **host_sigma, 
-                          double **host_epsilon, double *host_lshape, 
-                          int **h_form, double **host_lj1, double **host_lj2,
-                          double **host_lj3, double **host_lj4,
-                          double **host_offset, const double *host_special_lj,
-                          const int nlocal, const int nall,
-                          const int max_nbors, const double cell_size,
-                          const double gpu_split, FILE *_screen) {
+int GB_GPU_MemoryT::init(const int ntypes, const double gamma, 
+                         const double upsilon, const double mu, 
+                         double **host_shape, double **host_well, 
+                         double **host_cutsq, double **host_sigma, 
+                         double **host_epsilon, double *host_lshape, 
+                         int **h_form, double **host_lj1, double **host_lj2,
+                         double **host_lj3, double **host_lj4,
+                         double **host_offset, const double *host_special_lj,
+                         const int nlocal, const int nall,
+                         const int max_nbors, const double cell_size,
+                         const double gpu_split, FILE *_screen) {
   nbor_time_avail=false;
   screen=_screen;
 
@@ -73,9 +73,11 @@ bool GB_GPU_MemoryT::init(const int ntypes, const double gamma,
   if (host_nlocal>0)
     _gpu_host=1;
   
-  if (!device->init(*ans,false,true,nlocal,host_nlocal,nall,nbor,0,
-                    _gpu_host,max_nbors,cell_size,true))
-    return false;
+  int success=device->init(*ans,false,true,nlocal,host_nlocal,nall,nbor,0,
+                           _gpu_host,max_nbors,cell_size,true);
+  if (success!=0)
+    return success;
+    
   ucl_device=device->gpu;
   atom=&device->atom;
 
@@ -195,7 +197,9 @@ bool GB_GPU_MemoryT::init(const int ntypes, const double gamma,
   _max_bytes=ans->gpu_bytes()+nbor->gpu_bytes();
 
   // Memory for ilist ordered by particle type
-  return (host_olist.alloc(nbor->max_atoms(),*ucl_device)==UCL_SUCCESS);
+  if (host_olist.alloc(nbor->max_atoms(),*ucl_device)==UCL_SUCCESS)
+    return 0;
+  else return -3;
 }
 
 template <class numtyp, class acctyp>

@@ -28,13 +28,13 @@ static LJC_GPU_Memory<PRECISION,ACC_PRECISION> LJCMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
-bool ljc_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
-                  double **host_lj2, double **host_lj3, double **host_lj4,
-                  double **offset, double *special_lj, const int inum,
-                  const int nall, const int max_nbors, const int maxspecial,
-                  const double cell_size, int &gpu_mode, FILE *screen,
-                  double **host_cut_ljsq, double **host_cut_coulsq,
-                  double *host_special_coul, const double qqrd2e) {
+int ljc_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
+                 double **host_lj2, double **host_lj3, double **host_lj4,
+                 double **offset, double *special_lj, const int inum,
+                 const int nall, const int max_nbors, const int maxspecial,
+                 const double cell_size, int &gpu_mode, FILE *screen,
+                 double **host_cut_ljsq, double **host_cut_coulsq,
+                 double *host_special_coul, const double qqrd2e) {
   LJCMF.clear();
   gpu_mode=LJCMF.device->gpu_mode();
   double gpu_split=LJCMF.device->particle_split();
@@ -55,15 +55,12 @@ bool ljc_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
     fflush(screen);
   }
 
-  if (world_me==0) {
-    bool init_ok=LJCMF.init(ntypes, cutsq, host_lj1, host_lj2, host_lj3,
-                            host_lj4, offset, special_lj, inum, nall, 300,
-                            maxspecial, cell_size, gpu_split, screen,
-                            host_cut_ljsq, host_cut_coulsq, host_special_coul,
-                            qqrd2e);
-    if (!init_ok)
-      return false;
-  }
+  int init_ok=0;
+  if (world_me==0)
+    init_ok=LJCMF.init(ntypes, cutsq, host_lj1, host_lj2, host_lj3,
+                       host_lj4, offset, special_lj, inum, nall, 300,
+                       maxspecial, cell_size, gpu_split, screen, host_cut_ljsq,
+                       host_cut_coulsq, host_special_coul, qqrd2e);
 
   LJCMF.device->world_barrier();
   if (message)
@@ -78,23 +75,22 @@ bool ljc_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                 last_gpu,i);
       fflush(screen);
     }
-    if (gpu_rank==i && world_me!=0) {
-      bool init_ok=LJCMF.init(ntypes, cutsq, host_lj1, host_lj2, host_lj3,
-                              host_lj4, offset, special_lj, inum, nall, 300,
-                              maxspecial, cell_size, gpu_split,
-			      screen, host_cut_ljsq, host_cut_coulsq,
-                              host_special_coul, qqrd2e);
-      if (!init_ok)
-        return false;
-    }
+    if (gpu_rank==i && world_me!=0)
+      init_ok=LJCMF.init(ntypes, cutsq, host_lj1, host_lj2, host_lj3, host_lj4,
+                         offset, special_lj, inum, nall, 300, maxspecial,
+                         cell_size, gpu_split, screen, host_cut_ljsq,
+                         host_cut_coulsq, host_special_coul, qqrd2e);
+
     LJCMF.device->gpu_barrier();
     if (message) 
       fprintf(screen,"Done.\n");
   }
   if (message)
     fprintf(screen,"\n");
-  LJCMF.estimate_gpu_overhead();
-  return true;
+
+  if (init_ok==0)
+    LJCMF.estimate_gpu_overhead();
+  return init_ok;
 }
 
 void ljc_gpu_clear() {

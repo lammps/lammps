@@ -24,6 +24,7 @@
 #include "modify.h"
 #include "domain.h"
 #include "universe.h"
+#include "gpu_extra.h"
 
 using namespace LAMMPS_NS;
 
@@ -82,9 +83,11 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
     error->all("No OpenMP support compiled in.");
   #endif
 
+  int gpu_flag = 0;
   if (!lmp_init_device(universe->uworld,world,first_gpu,last_gpu,_gpu_mode,
                        _particle_split,nthreads))
-    error->one("Could not find or initialize a specified accelerator device.");
+    gpu_flag = -2;
+  GPU_EXTRA::check_flag(gpu_flag,error,world);
 }
 
 /* ---------------------------------------------------------------------- */

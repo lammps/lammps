@@ -40,11 +40,11 @@ int ChargeGPUMemoryT::bytes_per_atom_atomic(const int max_nbors) const {
 }
 
 template <class numtyp, class acctyp>
-bool ChargeGPUMemoryT::init_atomic(const int nlocal, const int nall,
-                                   const int max_nbors, const int maxspecial,
-                                   const double cell_size,
-                                   const double gpu_split, FILE *_screen,
-                                   const char *pair_program) {
+int ChargeGPUMemoryT::init_atomic(const int nlocal, const int nall,
+                                  const int max_nbors, const int maxspecial,
+                                  const double cell_size,
+                                  const double gpu_split, FILE *_screen,
+                                  const char *pair_program) {
   nbor_time_avail=false;
   screen=_screen;
 
@@ -57,9 +57,11 @@ bool ChargeGPUMemoryT::init_atomic(const int nlocal, const int nall,
   if (host_nlocal>0)
     _gpu_host=1;
 
-  if (!device->init(*ans,true,false,nlocal,host_nlocal,nall,nbor,maxspecial,
-                    _gpu_host,max_nbors,cell_size,false))
-    return false;
+  int success=device->init(*ans,true,false,nlocal,host_nlocal,nall,nbor,
+                           maxspecial,_gpu_host,max_nbors,cell_size,false);
+  if (success!=0)
+    return success;
+
   ucl_device=device->gpu;
   atom=&device->atom;
 
@@ -80,7 +82,7 @@ bool ChargeGPUMemoryT::init_atomic(const int nlocal, const int nall,
 
   _max_an_bytes=ans->gpu_bytes()+nbor->gpu_bytes();
 
-  return true;
+  return success;
 }
 
 template <class numtyp, class acctyp>

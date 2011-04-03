@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Roy Pollock (LLNL), Paul Crozier (SNL)
+   Contributing authors: Mike Brown (ORNL)
 ------------------------------------------------------------------------- */
 
 #include "mpi.h"
@@ -34,6 +34,7 @@
 #include "remap_wrap.h"
 #include "memory.h"
 #include "error.h"
+#include "gpu_extra.h"
 
 #define grdtyp double
 
@@ -102,22 +103,7 @@ void PPPMGPUDouble::init()
 			    slab_volfactor, nx_pppm, ny_pppm, nz_pppm, 
 			    success);
 
-  int all_success;
-  MPI_Allreduce(&success, &all_success, 1, MPI_INT, MPI_MIN, world);
-  if (all_success != 0) {
-    if (all_success == -1)
-      error->all("Could not find fix gpu"); 
-    else if (all_success == -2)
-      error->all("At least one node could not find specified GPU.");
-    else if (all_success == -3)
-      error->all("Out of memory on GPU.");
-    else if (all_success == -4)
-      error->all("GPU library not compiled for this GPU.");
-    else if (all_success == -5)
-      error->all("Double precision is not supported on this GPU.");
-    else
-      error->all("Unknown error in GPU library.");
-  }
+  GPU_EXTRA::check_flag(success,error,world);
 
   density_brick =
     create_3d_offset(nzlo_out,nzhi_out,nylo_out,nyhi_out,

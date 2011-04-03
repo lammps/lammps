@@ -34,18 +34,19 @@
 #include "update.h"
 #include "domain.h"
 #include "string.h"
+#include "gpu_extra.h"
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 // External functions from cuda library for atom decomposition
 
-bool cmm_gpu_init(const int ntypes, double **cutsq, int **cg_types, 
-                  double **host_lj1, double **host_lj2, double **host_lj3,
-                  double **host_lj4, double **offset, double *special_lj,
-                  const int nlocal, const int nall, const int max_nbors,
-                  const int maxspecial, const double cell_size, int &gpu_mode,
-                  FILE *screen);
+int cmm_gpu_init(const int ntypes, double **cutsq, int **cg_types, 
+		 double **host_lj1, double **host_lj2, double **host_lj3,
+		 double **host_lj4, double **offset, double *special_lj,
+		 const int nlocal, const int nall, const int max_nbors,
+		 const int maxspecial, const double cell_size, int &gpu_mode,
+		 FILE *screen);
 void cmm_gpu_clear();
 int ** cmm_gpu_compute_n(const int ago, const int inum, const int nall,
 			 double **host_x, int *host_type, double *sublo,
@@ -150,12 +151,11 @@ void PairCGCMMGPU::init_style()
   int maxspecial=0;
   if (atom->molecular)
     maxspecial=atom->maxspecial;
-  bool init_ok = cmm_gpu_init(atom->ntypes+1,cutsq,cg_type,lj1,lj2,lj3,lj4,
-                              offset, force->special_lj, atom->nlocal,
-                              atom->nlocal+atom->nghost, 300, maxspecial,
-                              cell_size, gpu_mode, screen);
-  if (!init_ok)
-    error->one("Insufficient memory on accelerator (or no fix gpu).\n"); 
+  int success = cmm_gpu_init(atom->ntypes+1,cutsq,cg_type,lj1,lj2,lj3,lj4,
+			     offset, force->special_lj, atom->nlocal,
+			     atom->nlocal+atom->nghost, 300, maxspecial,
+			     cell_size, gpu_mode, screen);
+  GPU_EXTRA::check_flag(success,error,world);
 
   if (gpu_mode != GPU_NEIGH) {
     int irequest = neighbor->request(this);

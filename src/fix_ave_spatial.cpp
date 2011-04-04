@@ -168,6 +168,7 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
   idregion = NULL;
   fp = NULL;
   ave = ONE;
+  nwindow = 0;
   char *title1 = NULL;
   char *title2 = NULL;
   char *title3 = NULL;

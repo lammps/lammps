@@ -39,13 +39,13 @@ using namespace LAMMPS_NS;
 // ALPHA_REDUCE = reduction ratio, should be in range [0.5,1)
 // BACKTRACK_SLOPE, should be in range (0,0.5]
 // QUADRATIC_TOL = tolerance on alpha0, should be in range [0.1,1)
-// IDEAL_TOL = ideal energy tolerance for backtracking
+// EMACH = machine accuracy limit of energy changes (1.0e-8)
 // EPS_QUAD = tolerance for quadratic projection
 
 #define ALPHA_MAX 1.0
 #define ALPHA_REDUCE 0.5
 #define BACKTRACK_SLOPE 0.4
-#define IDEAL_TOL 1.0e-8
+#define EMACH 1.0e-8
 #define QUADRATIC_TOL 0.1
 #define EPS_QUAD 1.0e-28
 
@@ -278,7 +278,7 @@ int MinLineSearch::linemin_backtrack(double eoriginal, double &alpha)
     // backtracked all the way to 0.0
     // reset to starting point, exit with error
 
-    if (alpha <= 0.0 || de_ideal >= -IDEAL_TOL) {
+    if (alpha <= 0.0 || de_ideal >= -EMACH) {
       ecurrent = alpha_step(0.0,0);
       return ZEROALPHA;
     }
@@ -461,9 +461,9 @@ int MinLineSearch::linemin_quadratic(double eoriginal, double &alpha)
     relerr = fabs(1.0-(0.5*(alpha-alphaprev)*(fh+fhprev)+ecurrent)/engprev);
     alpha0 = alpha - (alpha-alphaprev)*fh/delfh;
 
-    if (relerr <= QUADRATIC_TOL && alpha0 > 0.0 && alpha0 < alphamax) {
+    if (relerr <= QUADRATIC_TOL	&& alpha0 > 0.0 && alpha0 < alphamax) {
       ecurrent = alpha_step(alpha0,1);
-      if (ecurrent < eoriginal) {
+      if (ecurrent - eoriginal < EMACH) {
 	if (nextra_global) {
 	  int itmp = modify->min_reset_ref();
 	  if (itmp) ecurrent = energy_force(1);
@@ -498,7 +498,7 @@ int MinLineSearch::linemin_quadratic(double eoriginal, double &alpha)
     // backtracked all the way to 0.0
     // reset to starting point, exit with error
 
-    if (alpha <= 0.0 || de_ideal >= -IDEAL_TOL) {
+    if (alpha <= 0.0 || de_ideal >= -EMACH) {
       ecurrent = alpha_step(0.0,0);
       return ZEROALPHA;
     }

@@ -327,6 +327,7 @@ void Respa::setup()
   // build neighbor lists
 
   atom->setup();
+  modify->setup_pre_exchange();
   if (triclinic) domain->x2lamda(atom->nlocal);
   domain->pbc();
   domain->reset_box();

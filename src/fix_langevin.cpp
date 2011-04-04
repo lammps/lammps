@@ -72,7 +72,7 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
 
   for (int i = 1; i <= atom->ntypes; i++) ratio[i] = 1.0;
   tally = 0;
-  zeroflag = 1;
+  zeroflag = 0;
 
   int iarg = 7;
   while (iarg < narg) {

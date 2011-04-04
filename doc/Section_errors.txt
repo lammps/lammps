@@ -170,6 +170,10 @@ An inconsistency was detected when computing the number of 1-4
 neighbors for each atom.  This likely means something is wrong with
 the bond topologies you have defined. :dd
 
+{Accelerated style in input script but no fix gpu} :dt
+
+GPU acceleration requires fix gpu in the input script. :dd
+
 {All angle coeffs are not set} :dt
 
 All angle coefficients must be set in the data file or by the
@@ -1840,7 +1844,7 @@ The compute ID for computing temperature does not exist. :dd
 
 Self-explanatory. :dd
 
-{Could not find or initialize a specified accelerator device} :dt
+{Could not find/initialize a specified accelerator device} :dt
 
 Your GPU setup is invalid. :dd
 
@@ -2119,6 +2123,10 @@ Self-explanatory. :dd
 The domain has become extremely large so that neighbor bins cannot be
 used.  Most likely, one or more atoms have been blown out of the
 simulation box to a great distance. :dd
+
+{Double precision is not supported on this accelerator.} :dt
+
+In this case, you must compile the GPU library for single precision. :dd
 
 {Dump cfg and fix not computed at compatible times} :dt
 
@@ -3228,6 +3236,11 @@ When using a "*" in the restart file name, no matching file was found. :dd
 
 This is the way the fix must be defined in your input script. :dd
 
+{GPU library not compiled for this accelerator} :dt
+
+The GPU library was not built for your accelerator. Check the arch flag in
+lib/gpu. :dd
+
 {Gmask function in equal-style variable formula} :dt
 
 Gmask is per-atom operation. :dd
@@ -3510,7 +3523,7 @@ Eigensolve for rigid body was not sufficiently accurate. :dd
 
 Eigensolve for rigid body was not sufficiently accurate. :dd
 
-{Insufficient memory on accelerator (or no fix gpu)} :dt
+{Insufficient memory on accelerator. } :dt
 
 Self-explanatory. :dd
 

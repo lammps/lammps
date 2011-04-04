@@ -28,15 +28,15 @@ namespace GPU_EXTRA {
     MPI_Allreduce(&error_flag, &all_success, 1, MPI_INT, MPI_MIN, world);
     if (all_success != 0) {
       if (all_success == -1)
-	error->all("Could not find fix gpu"); 
+	error->all("Accelerated style in input script but no fix gpu."); 
       else if (all_success == -2)
 	error->all("Could not find/initialize a specified accelerator device.");
       else if (all_success == -3)
-	error->all("Out of memory on GPU.");
+	error->all("Insufficient memory on accelerator.");
       else if (all_success == -4)
-	error->all("GPU library not compiled for this GPU.");
+	error->all("GPU library not compiled for this accelerator.");
       else if (all_success == -5)
-	error->all("Double precision is not supported on this GPU.");
+	error->all("Double precision is not supported on this accelerator.");
       else
 	error->all("Unknown error in GPU library.");
     }

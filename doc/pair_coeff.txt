@@ -140,6 +140,7 @@ the pair_style command, and coefficients specified by the associated
 "pair_style lubricate"_pair_lubricate.html - hydrodynamic lubrication forces
 "pair_style meam"_pair_meam.html - modified embedded atom method (MEAM)
 "pair_style morse"_pair_morse.html - Morse potential
+"pair_style morse/gpu"_pair_morse.html - GPU-enabled version of Morse potential
 "pair_style morse/opt"_pair_morse.html - optimized version of Morse potential
 "pair_style peri/lps"_pair_peri.html - peridynamic LPS potential
 "pair_style peri/pmb"_pair_peri.html - peridynamic PMB potential

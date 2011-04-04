@@ -67,7 +67,8 @@ style.
 
 In order to use GPU acceleration, a GPU enabled style must be
 selected in the input script in addition to this fix. Currently,
-this is limited to a few "pair styles"_pair_style.html.
+this is limited to a few "pair styles"_pair_style.html and
+the PPPM "kspace style"_kspace_style.html.
 
 More details about these settings and various possible hardware
 configuration are in "this section"_Section_start.html#2_8 of the

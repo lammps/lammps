@@ -370,18 +370,28 @@ void PPPMGPUMemoryT::compile_kernels(UCL_Device &dev) {
   if (_compiled)
     return;
 
+  if (sizeof(grdtyp)==sizeof(double) && ucl_device->double_precision()==false)
+    return;
+if (ucl_device->double_precision()==true)
+  std::cerr << "DOUBLE SUPPORTED!\n";
+std::cerr << "TYPES: " << ucl_template_name<grdtyp>() << std::endl;    
   std::string flags="-cl-fast-relaxed-math -cl-mad-enable "+
                     std::string(OCL_PRECISION_COMPILE);
   #ifdef USE_OPENCL
-  flags+=std::string("-D grdtyp=")+ucl_template_name<grdtyp>()+" -D grdtyp4="+
+  flags+=std::string(" -D grdtyp=")+ucl_template_name<grdtyp>()+" -D grdtyp4="+
          ucl_template_name<grdtyp>()+"4";
   #endif
 
   pppm_program=new UCL_Program(dev);
+  
+  #ifdef USE_OPENCL
+  pppm_program->load_string(pppm_gpu_kernel,flags.c_str());
+  #else
   if (sizeof(grdtyp)==sizeof(float))
     pppm_program->load_string(pppm_f_gpu_kernel,flags.c_str());
   else
     pppm_program->load_string(pppm_d_gpu_kernel,flags.c_str());
+  #endif
 
   k_particle_map.set_function(*pppm_program,"particle_map");
   k_make_rho.set_function(*pppm_program,"make_rho");

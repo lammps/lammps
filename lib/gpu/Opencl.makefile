@@ -65,6 +65,9 @@ $(OBJ_DIR)/pair_gpu_atom_cl.h: pair_gpu_atom_kernel.cu
 $(OBJ_DIR)/pair_gpu_atom.o: pair_gpu_atom.cpp pair_gpu_atom.h $(OCL_H) $(OBJ_DIR)/pair_gpu_atom_cl.h
 	$(OCL) -o $@ -c pair_gpu_atom.cpp -I$(OBJ_DIR)
 
+$(OBJ_DIR)/pair_gpu_ans.o: pair_gpu_ans.cpp pair_gpu_ans.h $(OCL_H)
+	$(OCL) -o $@ -c pair_gpu_ans.cpp -I$(OBJ_DIR)
+
 $(OBJ_DIR)/pair_gpu_nbor_cl.h: pair_gpu_nbor_kernel.cu
 	$(BSH) ./geryon/file_to_cstr.sh pair_gpu_nbor_kernel.cu $(OBJ_DIR)/pair_gpu_nbor_cl.h
 

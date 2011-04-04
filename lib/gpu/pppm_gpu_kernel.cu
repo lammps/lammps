@@ -70,7 +70,7 @@ __inline float fetch_q(const int& i, const float *q)
 #else
 
 #pragma OPENCL EXTENSION cl_khr_fp64: enable
-#pragma OPENCL EXTENSION cl_khr_local_int32_base_atomics : enable
+#pragma OPENCL EXTENSION cl_khr_global_int32_base_atomics: enable
 #define GLOBAL_ID_X get_global_id(0)
 #define THREAD_ID_X get_local_id(0)
 #define BLOCK_ID_X get_group_id(0)
@@ -111,7 +111,7 @@ __kernel void particle_map(__global numtyp4 *x_,  __global numtyp *q_,
   // Resequence the atom indices to avoid collisions during atomic ops
   int nthreads=GLOBAL_SIZE_X;
   ii=mul24(ii,PPPM_BLOCK_1D);
-  ii-=int(ii/nthreads)*(nthreads-1);
+  ii-=(ii/nthreads)*(nthreads-1);
 
   int nx,ny,nz;
 
@@ -120,21 +120,21 @@ __kernel void particle_map(__global numtyp4 *x_,  __global numtyp *q_,
     grdtyp4 delta;
     delta.w=delvolinv*fetch_q(ii,q_);
     
-    if (delta.w!=(numtyp)0.0) {
+    if (delta.w!=(grdtyp)0.0) {
       delta.x=(p.x-b_lo_x)*delxinv;
-      nx=int(delta.x);
+      nx=delta.x;
       delta.y=(p.y-b_lo_y)*delyinv;
-      ny=int(delta.y);
+      ny=delta.y;
       delta.z=(p.z-b_lo_z)*delzinv;
-      nz=int(delta.z);
+      nz=delta.z;
 
-      if (delta.x<0 || delta.y<0 || delta.z<0 || 
+      if (delta.x<(grdtyp)0 || delta.y<(grdtyp)0 || delta.z<(grdtyp)0 || 
           nx>=nlocal_x || ny>=nlocal_y || nz>=nlocal_z)
         *error=1;
       else {
-        delta.x=nx+0.5-delta.x;
-        delta.y=ny+0.5-delta.y;
-        delta.z=nz+0.5-delta.z;
+        delta.x=nx+(grdtyp)0.5-delta.x;
+        delta.y=ny+(grdtyp)0.5-delta.y;
+        delta.z=nz+(grdtyp)0.5-delta.z;
       
         int i=nz*nlocal_y*nlocal_x+ny*nlocal_x+nx;
         int old=atom_add(counts+i, 1);
@@ -276,13 +276,13 @@ __kernel void interp(__global numtyp4 *x_, __global numtyp *q_,
     ek.x=(acctyp)0.0;
     ek.y=(acctyp)0.0;
     ek.z=(acctyp)0.0;
-    if (qs!=(numtyp)0.0) {
+    if (qs!=(grdtyp)0.0) {
       tx=(p.x-b_lo_x)*delxinv;
-      nx=int(tx);
+      nx=tx;
       ty=(p.y-b_lo_y)*delyinv;
-      ny=int(ty);
+      ny=ty;
       tz=(p.z-b_lo_z)*delzinv;
-      nz=int(tz);
+      nz=tz;
 
       grdtyp dx=nx+(grdtyp)0.5-tx;
       grdtyp dy=ny+(grdtyp)0.5-ty;

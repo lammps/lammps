@@ -229,10 +229,7 @@ int Compute::molecules_in_group(int &idlo, int &idhi)
   int flag = 0;
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      if (molecule[i] == 0) {
-	flag = 1;
-	continue;
-      }
+      if (molecule[i] == 0) flag = 1;
       lo = MIN(lo,molecule[i]);
       hi = MAX(hi,molecule[i]);
     }
@@ -276,7 +273,6 @@ int Compute::molecules_in_group(int &idlo, int &idhi)
   flag = 0;
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) continue;
-    if (molecule[i] == 0) continue;
     if (molecule[i] < idlo || molecule[i] > idhi) continue;
     if (molmap[molecule[i]-idlo] >= 0) flag = 1;
   }
@@ -287,9 +283,9 @@ int Compute::molecules_in_group(int &idlo, int &idhi)
 
   // if molmap simply stores 1 to Nmolecules, then free it
 
-  if (nmolecules < nlen) return nmolecules;
-  if (idlo > 1) return nmolecules;
-  memory->destroy(molmap);
-  molmap = NULL;
+  if (idlo == 1 && idhi == nmolecules && nlen == nmolecules) {
+    memory->destroy(molmap);
+    molmap = NULL;
+  }
   return nmolecules;
 }

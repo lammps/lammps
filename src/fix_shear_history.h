@@ -34,6 +34,7 @@ class FixShearHistory : public Fix {
   ~FixShearHistory();
   int setmask();
   void init();
+  void setup_pre_exchange();
   void pre_exchange();
 
   double memory_usage();

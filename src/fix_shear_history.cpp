@@ -33,8 +33,12 @@ using namespace LAMMPS_NS;
 FixShearHistory::FixShearHistory(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
+  // set time_depend so that history will be preserved correctly
+  // across multiple runs via laststep setting in granular pair styles
+
   restart_peratom = 1;
   create_attribute = 1;
+  time_depend = 1;
 
   // perform initial allocation of atom-based arrays
   // register with atom class
@@ -83,6 +87,13 @@ void FixShearHistory::init()
 {
   if (atom->tag_enable == 0) 
     error->all("Pair style granular with history requires atoms have IDs");
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixShearHistory::setup_pre_exchange()
+{
+  pre_exchange();
 }
 
 /* ----------------------------------------------------------------------

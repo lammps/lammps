@@ -46,7 +46,10 @@ class PairGranHookeHistory : public Pair {
   double dt;
   int freeze_group_bit;
   int history;
+
+  bigint laststep;
   class FixShearHistory *fix_history;
+  int shearupdate;
 
   double *onerad_dynamic,*onerad_frozen;
   double *maxrad_dynamic,*maxrad_frozen;

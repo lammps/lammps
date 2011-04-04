@@ -49,6 +49,8 @@ PairGranHookeHistory::PairGranHookeHistory(LAMMPS *lmp) : Pair(lmp)
   no_virial_compute = 1;
   history = 1;
   fix_history = NULL;
+
+  laststep = -1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -87,6 +89,9 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
 
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
+
+  int shearupdate = 0;
+  if (update->ntimestep > laststep) shearupdate = 1;
 
   double **x = atom->x;
   double **v = atom->v;
@@ -199,9 +204,12 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
 
 	touch[jj] = 1;
 	shear = &allshear[3*jj];
-        shear[0] += vtr1*dt;
-        shear[1] += vtr2*dt;
-        shear[2] += vtr3*dt;
+
+	if (shearupdate) {
+	  shear[0] += vtr1*dt;
+	  shear[1] += vtr2*dt;
+	  shear[2] += vtr3*dt;
+	}
         shrmag = sqrt(shear[0]*shear[0] + shear[1]*shear[1] +
 		      shear[2]*shear[2]);
 
@@ -209,9 +217,11 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
 
 	rsht = shear[0]*delx + shear[1]*dely + shear[2]*delz;
 	rsht *= rsqinv;
-        shear[0] -= rsht*delx;
-        shear[1] -= rsht*dely;
-        shear[2] -= rsht*delz;
+	if (shearupdate) {
+	  shear[0] -= rsht*delx;
+	  shear[1] -= rsht*dely;
+	  shear[2] -= rsht*delz;
+	}
 
 	// tangential forces = shear + tangential velocity damping
 
@@ -268,6 +278,8 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
       }
     }
   }
+
+  laststep = update->ntimestep;
 }
 
 /* ----------------------------------------------------------------------

@@ -176,6 +176,7 @@ class PPPMGPUMemory {
   bool _allocated, _compiled, _precompute_done;
   int _block_size, _block_pencils, _pencil_size, _max_brick_atoms, _max_atoms;
   double  _max_bytes, _max_an_bytes;
+  double _cpu_idle_time;
   
   grdtyp _brick_x, _brick_y, _brick_z, _delxinv, _delyinv, _delzinv; 
 

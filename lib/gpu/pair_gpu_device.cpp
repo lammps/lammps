@@ -29,7 +29,6 @@
 #include "pair_gpu_dev_ptx.h"
 #endif
 
-#define BLOCK_1D 64
 #define PairGPUDeviceT PairGPUDevice<numtyp, acctyp>
 
 template <class numtyp, class acctyp>
@@ -121,9 +120,9 @@ bool PairGPUDeviceT::init_device(MPI_Comm world, MPI_Comm replica,
   
   gpu->set(my_gpu);
 
-  _block_size=BLOCK_1D;
-  if (static_cast<size_t>(_block_size)>gpu->group_size())
-    _block_size=gpu->group_size();
+  _block_pair=BLOCK_PAIR;
+  if (static_cast<size_t>(_block_pair)>gpu->group_size())
+    _block_pair=gpu->group_size();
 
   _long_range_precompute=0;
   
@@ -446,8 +445,9 @@ void PairGPUDeviceT::output_kspace_times(UCL_Timer &time_in,
                                          UCL_Timer &time_interp,
                                          PairGPUAns<numtyp,acctyp> &ans, 
                                          const double max_bytes, 
-                                         const double cpu_time, FILE *screen) {
-  double single[7], times[7];
+                                         const double cpu_time, 
+                                         const double idle_time, FILE *screen) {
+  double single[8], times[8];
 
   single[0]=time_out.total_seconds();
   single[1]=time_in.total_seconds()+atom.transfer_time()+atom.cast_time();
@@ -456,8 +456,9 @@ void PairGPUDeviceT::output_kspace_times(UCL_Timer &time_in,
   single[4]=time_interp.total_seconds();
   single[5]=ans.transfer_time()+ans.cast_time();
   single[6]=cpu_time;
+  single[7]=idle_time;
 
-  MPI_Reduce(single,times,7,MPI_DOUBLE,MPI_SUM,0,_comm_replica);
+  MPI_Reduce(single,times,8,MPI_DOUBLE,MPI_SUM,0,_comm_replica);
 
   double my_max_bytes=max_bytes+atom.max_gpu_bytes();
   double mpi_max_bytes;
@@ -486,8 +487,9 @@ void PairGPUDeviceT::output_kspace_times(UCL_Timer &time_in,
         fprintf(screen,"Total:           %.4f s.\n",
                 (times[0]+times[1]+times[2]+times[3]+times[4]+times[5])/
                 _replica_size);
-        fprintf(screen,"CPU Poisson:     %.4f s.\n",times[6]/_replica_size);
       }
+      fprintf(screen,"CPU Poisson:     %.4f s.\n",times[6]/_replica_size);
+      fprintf(screen,"CPU Idle Time:   %.4f s.\n",times[7]/_replica_size);
       fprintf(screen,"Max Mem / Proc:  %.2f MB.\n",max_mb);
 
       fprintf(screen,"-------------------------------------");

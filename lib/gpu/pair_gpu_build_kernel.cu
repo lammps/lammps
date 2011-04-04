@@ -54,27 +54,27 @@ __inline float4 fetch_pos(const int& i, const float4 *pos)
 #define numtyp4 float4
 #endif
 
-#define CELL_BLOCK_SIZE 64
-#define BLOCK_2D 8
+#define BLOCK_CELL_2D 8
+#define BLOCK_NBOR_BUILD 64
 
 __kernel void transpose(int *out, int *in, int columns_in, int rows_in)
 {
-	__local float block[BLOCK_2D][BLOCK_2D+1];
+	__local float block[BLOCK_CELL_2D][BLOCK_CELL_2D+1];
 	
 	unsigned ti=THREAD_ID_X;
 	unsigned tj=THREAD_ID_Y;
 	unsigned bi=BLOCK_ID_X;
 	unsigned bj=BLOCK_ID_Y;
 	
-	unsigned i=bi*BLOCK_2D+ti;
-	unsigned j=bj*BLOCK_2D+tj;
+	unsigned i=bi*BLOCK_CELL_2D+ti;
+	unsigned j=bj*BLOCK_CELL_2D+tj;
 	if ((i<columns_in) && (j<rows_in))
 		block[tj][ti]=in[j*columns_in+i];
 
 	__syncthreads();
 
-	i=bj*BLOCK_2D+ti;
-	j=bi*BLOCK_2D+tj;
+	i=bj*BLOCK_CELL_2D+ti;
+	j=bi*BLOCK_CELL_2D+tj;
 	if ((i<rows_in) && (j<columns_in))
 		out[j*rows_in+i] = block[ti][tj];
 }
@@ -153,8 +153,8 @@ __kernel void calc_neigh_list_cell(numtyp4 *pos,
 	  
   int icell = ix + iy*ncellx + iz*ncellx*ncelly;
 
-  __shared__ int cell_list_sh[CELL_BLOCK_SIZE];
-  __shared__ numtyp4 pos_sh[CELL_BLOCK_SIZE];
+  __shared__ int cell_list_sh[BLOCK_NBOR_BUILD];
+  __shared__ numtyp4 pos_sh[BLOCK_NBOR_BUILD];
 
   int icell_begin = cell_counts[icell];
   int icell_end = cell_counts[icell+1];
@@ -202,13 +202,13 @@ __kernel void calc_neigh_list_cell(numtyp4 *pos,
           int num_atom_cell = jcell_end - jcell_begin;
 	  
           // load jcell to shared memory
-          int num_iter = (int)ceil((numtyp)num_atom_cell/CELL_BLOCK_SIZE);
+          int num_iter = (int)ceil((numtyp)num_atom_cell/BLOCK_NBOR_BUILD);
 
           for (int k = 0; k < num_iter; k++) {
-            int end_idx = min(CELL_BLOCK_SIZE, num_atom_cell-k*CELL_BLOCK_SIZE);
+            int end_idx = min(BLOCK_NBOR_BUILD, num_atom_cell-k*BLOCK_NBOR_BUILD);
 	    
             if (tid < end_idx) {
-              pid_j =  cell_particle_id[tid+k*CELL_BLOCK_SIZE+jcell_begin];
+              pid_j =  cell_particle_id[tid+k*BLOCK_NBOR_BUILD+jcell_begin];
               cell_list_sh[tid] = pid_j;
               atom_j = fetch_pos(pid_j,pos); //[pid_j];
               pos_sh[tid].x = atom_j.x;

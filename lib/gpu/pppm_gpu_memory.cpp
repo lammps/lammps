@@ -164,6 +164,8 @@ grdtyp * PPPMGPUMemoryT::init(const int nlocal, const int nall, FILE *_screen,
   
   d_error_flag.zero();
   _max_bytes+=1;
+  
+  _cpu_idle_time=0.0;
 
   return h_brick.begin();
 }
@@ -185,7 +187,8 @@ void PPPMGPUMemoryT::clear(const double cpu_time) {
   
   acc_timers();
   device->output_kspace_times(time_in,time_out,time_map,time_rho,time_interp,
-                              *ans,_max_bytes+_max_an_bytes,cpu_time,screen);
+                              *ans,_max_bytes+_max_an_bytes,cpu_time,
+                              _cpu_idle_time,screen);
 
   if (_compiled) {
     k_particle_map.clear();
@@ -273,7 +276,7 @@ void PPPMGPUMemoryT::_precompute(const int ago, const int nlocal, const int nall
 
   time_rho.start();
   BX=block_size();
-std::cout << "Block pencils: " << _block_pencils << std::endl;
+
   GX=static_cast<int>(ceil(static_cast<double>(_npts_y*_npts_z)/
                       _block_pencils));
   k_make_rho.set_size(GX,BX);
@@ -308,7 +311,9 @@ int PPPMGPUMemoryT::spread(const int ago, const int nlocal, const int nall,
   if (!success || nlocal==0)
     return 0;
     
+  double t=MPI_Wtime();
   time_out.sync_stop();
+  _cpu_idle_time+=MPI_Wtime()-t;
 
   _precompute_done=false;
 

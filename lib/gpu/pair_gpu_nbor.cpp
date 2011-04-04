@@ -18,6 +18,7 @@
 
 #include "pair_gpu_precision.h"
 #include "pair_gpu_nbor.h"
+#include "pair_gpu_device.h"
 #include "math.h"
 
 int PairGPUNbor::bytes_per_atom(const int max_nbors) const {
@@ -272,8 +273,8 @@ void PairGPUNbor::build_nbor_list(const int inum, const int host_inum,
     time_nbor.stop();
     time_nbor.add_to_total();
     time_kernel.start();
-    const int b2x=8;
-    const int b2y=8;
+    const int b2x=BLOCK_CELL_2D;
+    const int b2y=BLOCK_CELL_2D;
     const int g2x=static_cast<int>(ceil(static_cast<double>(_maxspecial)/b2x));
     const int g2y=static_cast<int>(ceil(static_cast<double>(nt)/b2y));
     _shared->k_transpose.set_size(g2x,g2y,b2x,b2y);
@@ -298,7 +299,7 @@ void PairGPUNbor::build_nbor_list(const int inum, const int host_inum,
   _cell_bytes=cell_counts.row_bytes();
 
   /* build cell list on GPU */
-  const int neigh_block=128;
+  const int neigh_block=BLOCK_CELL_ID;
   const int GX=(int)ceil((float)nall/neigh_block);
   const numtyp sublo0=static_cast<numtyp>(sublo[0]);
   const numtyp sublo1=static_cast<numtyp>(sublo[1]);
@@ -321,7 +322,7 @@ void PairGPUNbor::build_nbor_list(const int inum, const int host_inum,
                              &nall, &ncell_3d);
 
   /* build the neighbor list */
-  const int cell_block=64;
+  const int cell_block=BLOCK_NBOR_BUILD;
   _shared->k_build_nbor.set_size(ncellx, ncelly*ncellz, cell_block, 1);
   _shared->k_build_nbor.run(&atom.dev_x.begin(), &atom.dev_particle_id.begin(),
                             &cell_counts.begin(), &dev_nbor.begin(),

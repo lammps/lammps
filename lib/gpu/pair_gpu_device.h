@@ -34,7 +34,14 @@
 // - Must be >=PPPM_MAX_SPLINE^2
 // - Must be a multiple of 32
 #define PPPM_BLOCK_1D 64
-
+// Default block size for pair styles
+#define BLOCK_PAIR 64
+// Default block size in each dimension for cell list builds and matrix trans
+#define BLOCK_CELL_2D 8
+// Default block size for binning atoms in cell list builds
+#define BLOCK_CELL_ID 128
+// Default block size for neighbor list builds
+#define BLOCK_NBOR_BUILD 64
 
 template <class numtyp, class acctyp, 
           class grdtyp, class grdtyp4> class PPPMGPUMemory;
@@ -123,7 +130,7 @@ class PairGPUDevice {
                            UCL_Timer &time_interp, 
                            PairGPUAns<numtyp,acctyp> &ans, 
                            const double max_bytes, const double cpu_time,
-                           FILE *screen);
+                           const double cpu_idle_time, FILE *screen);
 
   /// Clear all memory on host and device associated with atom and nbor data
   void clear();
@@ -203,13 +210,15 @@ class PairGPUDevice {
   inline int init_count() const { return _init_count; }
   /// Return the number of threads accessing memory simulatenously
   inline int num_mem_threads() const { return _num_mem_threads; }
+  /// Return the min of the pair block size or the device max block size
+  inline int pair_block_size() const { return _block_pair; }
 
   // -------------------- SHARED DEVICE ROUTINES -------------------- 
   // Perform asynchronous zero of integer array 
   void zero(UCL_D_Vec<int> &mem, const int numel) {
     int num_blocks=static_cast<int>(ceil(static_cast<double>(numel)/
-                                    _block_size));
-    k_zero.set_size(num_blocks,_block_size);
+                                    _block_pair));
+    k_zero.set_size(num_blocks,_block_pair);
     k_zero.run(&mem.begin(),&numel);
   }
 
@@ -259,7 +268,7 @@ class PairGPUDevice {
   double _particle_split;
   double _cpu_full;
 
-  int _block_size, _num_mem_threads;
+  int _block_pair, _num_mem_threads;
   UCL_Program *dev_program;
   UCL_Kernel k_zero, k_info;
   bool _compiled;

@@ -65,9 +65,7 @@ int AtomicGPUMemoryT::init_atomic(const int nlocal, const int nall,
   ucl_device=device->gpu;
   atom=&device->atom;
 
-  _block_size=BLOCK_1D;
-  if (static_cast<size_t>(_block_size)>ucl_device->group_size())
-    _block_size=ucl_device->group_size();
+  _block_size=device->pair_block_size();
   compile_kernels(*ucl_device,pair_program);
 
   // Initialize host-device load balancer

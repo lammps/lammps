@@ -81,9 +81,7 @@ int GB_GPU_MemoryT::init(const int ntypes, const double gamma,
   ucl_device=device->gpu;
   atom=&device->atom;
 
-  _block_size=BLOCK_1D;
-  if (static_cast<size_t>(_block_size)>ucl_device->group_size())
-    _block_size=ucl_device->group_size();
+  _block_size=device->pair_block_size();
   compile_kernels(*ucl_device);
 
   // Initialize host-device load balancer

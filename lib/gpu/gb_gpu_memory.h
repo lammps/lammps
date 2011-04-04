@@ -18,8 +18,6 @@
 #ifndef GB_GPU_MEMORY_H
 #define GB_GPU_MEMORY_H
 
-#define BLOCK_1D 64
-
 #include "pair_gpu_device.h"
 #include "pair_gpu_balance.h"
 #include "mpi.h"

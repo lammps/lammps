@@ -149,12 +149,11 @@ void PairLJExpandGPU::init_style()
   int maxspecial=0;
   if (atom->molecular)
     maxspecial=atom->maxspecial;
-  bool init_ok = lje_gpu_init(atom->ntypes+1, cutsq, lj1, lj2, lj3, lj4,
-                              offset, shift, force->special_lj, atom->nlocal,
-                              atom->nlocal+atom->nghost, 300, maxspecial,
-                              cell_size, gpu_mode, screen);
-  if (!init_ok)
-    error->one("Insufficient memory on accelerator (or no fix gpu).\n"); 
+  int success = lje_gpu_init(atom->ntypes+1, cutsq, lj1, lj2, lj3, lj4,
+			     offset, shift, force->special_lj, atom->nlocal,
+			     atom->nlocal+atom->nghost, 300, maxspecial,
+			     cell_size, gpu_mode, screen);
+  GPU_EXTRA::check_flag(success,error,world);
 
   if (gpu_mode != GPU_NEIGH) {
     int irequest = neighbor->request(this);

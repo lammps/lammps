@@ -372,9 +372,7 @@ void PPPMGPUMemoryT::compile_kernels(UCL_Device &dev) {
 
   if (sizeof(grdtyp)==sizeof(double) && ucl_device->double_precision()==false)
     return;
-if (ucl_device->double_precision()==true)
-  std::cerr << "DOUBLE SUPPORTED!\n";
-std::cerr << "TYPES: " << ucl_template_name<grdtyp>() << std::endl;    
+
   std::string flags="-cl-fast-relaxed-math -cl-mad-enable "+
                     std::string(OCL_PRECISION_COMPILE);
   #ifdef USE_OPENCL

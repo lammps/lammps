@@ -86,15 +86,15 @@ __inline float fetch_q(const int& i, const float *q)
 #endif
 
 // Maximum order for spline
-#define MAX_SPLINE 8
-// Thread block size for all kernels (Must be >=MAX_SPLINE^2)
-#define BLOCK_1D 64
+#define PPPM_MAX_SPLINE 8
+// Thread block size for PPPM kernels
+// - Must be >=PPPM_MAX_SPLINE^2
+// - Must be a multiple of 32
+#define PPPM_BLOCK_1D 64
 // Number of threads per pencil for charge spread
-//#define PENCIL_SIZE MEM_THREADS
-#define PENCIL_SIZE 32
+#define PENCIL_SIZE MEM_THREADS
 // Number of pencils per block for charge spread
-//#define BLOCK_PENCILS (BLOCK_1D/PENCIL_SIZE)
-#define BLOCK_PENCILS 2
+#define BLOCK_PENCILS (PPPM_BLOCK_1D/PENCIL_SIZE)
 
 __kernel void particle_map(__global numtyp4 *x_,  __global numtyp *q_,
                            const grdtyp delvolinv, const int nlocal, 
@@ -110,7 +110,7 @@ __kernel void particle_map(__global numtyp4 *x_,  __global numtyp *q_,
 
   // Resequence the atom indices to avoid collisions during atomic ops
   int nthreads=GLOBAL_SIZE_X;
-  ii=mul24(ii,BLOCK_1D);
+  ii=mul24(ii,PPPM_BLOCK_1D);
   ii-=int(ii/nthreads)*(nthreads-1);
 
   int nx,ny,nz;
@@ -156,9 +156,9 @@ __kernel void make_rho(__global int *counts, __global grdtyp4 *atoms,
                        const int npts_y, const int npts_z, const int nlocal_x,
                        const int nlocal_y, const int nlocal_z,
                        const int order_m_1, const int order, const int order2) {
-  __local grdtyp rho_coeff[MAX_SPLINE*MAX_SPLINE];
-  __local grdtyp front[BLOCK_PENCILS][PENCIL_SIZE+MAX_SPLINE];
-  __local grdtyp ans[MAX_SPLINE][BLOCK_1D];
+  __local grdtyp rho_coeff[PPPM_MAX_SPLINE*PPPM_MAX_SPLINE];
+  __local grdtyp front[BLOCK_PENCILS][PENCIL_SIZE+PPPM_MAX_SPLINE];
+  __local grdtyp ans[PPPM_MAX_SPLINE][PPPM_BLOCK_1D];
   
   int tid=THREAD_ID_X;
   if (tid<order2+order)
@@ -254,9 +254,9 @@ __kernel void interp(__global numtyp4 *x_, __global numtyp *q_,
                      const grdtyp delzinv, const int order,
                      const int order2, const grdtyp qqrd2e_scale, 
                      __global acctyp4 *ans) {
-  __local grdtyp rho_coeff[MAX_SPLINE*MAX_SPLINE];
-  __local grdtyp rho1d_0[MAX_SPLINE][BLOCK_1D];
-  __local grdtyp rho1d_1[MAX_SPLINE][BLOCK_1D];
+  __local grdtyp rho_coeff[PPPM_MAX_SPLINE*PPPM_MAX_SPLINE];
+  __local grdtyp rho1d_0[PPPM_MAX_SPLINE][PPPM_BLOCK_1D];
+  __local grdtyp rho1d_1[PPPM_MAX_SPLINE][PPPM_BLOCK_1D];
 
   int tid=THREAD_ID_X;
   if (tid<order2+order)

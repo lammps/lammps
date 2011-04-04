@@ -64,12 +64,13 @@ class UCL_D_Vec : public UCL_BaseMat {
     _row_bytes=cols*sizeof(numtyp);
     int err=_device_alloc(*this,cq,_row_bytes,kind);
     if (err!=UCL_SUCCESS) {
-      _row_bytes=0;
       #ifndef UCL_NO_EXIT
       std::cerr << "UCL Error: Could not allocate " << _row_bytes
                 << " bytes on device.\n";
+      _row_bytes=0;
       exit(1);
       #endif
+      _row_bytes=0;
       return err;
     }
 
@@ -97,12 +98,13 @@ class UCL_D_Vec : public UCL_BaseMat {
     _row_bytes=cols*sizeof(numtyp);
     int err=_device_alloc(*this,device,_row_bytes,kind);
     if (err!=UCL_SUCCESS) {
-      _row_bytes=0;
       #ifndef UCL_NO_EXIT
       std::cerr << "UCL Error: Could not allocate " << _row_bytes
                 << " bytes on device.\n";
+      _row_bytes=0;
       exit(1);
       #endif
+      _row_bytes=0;
       return err;
     }
 

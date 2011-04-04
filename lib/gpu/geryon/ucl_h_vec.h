@@ -68,12 +68,13 @@ class UCL_H_Vec : public UCL_BaseMat {
     int err=_host_alloc(*this,cq,_row_bytes,kind);
 
     if (err!=UCL_SUCCESS) {
-      _row_bytes=0;
       #ifndef UCL_NO_EXIT
       std::cerr << "UCL Error: Could not allocate " << _row_bytes
                 << " bytes on host.\n";
+      _row_bytes=0;
       exit(1);
       #endif
+      _row_bytes=0;
       return err;
     }
 
@@ -98,12 +99,13 @@ class UCL_H_Vec : public UCL_BaseMat {
     int err=_host_alloc(*this,device,_row_bytes,kind);
 
     if (err!=UCL_SUCCESS) {
-      _row_bytes=0;
       #ifndef UCL_NO_EXIT
       std::cerr << "UCL Error: Could not allocate " << _row_bytes
                 << " bytes on host.\n";
+      _row_bytes=0;
       exit(1);
       #endif 
+      _row_bytes=0;
       return err;
     }
 

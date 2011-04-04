@@ -167,8 +167,6 @@ class PPPMGPUMemory {
   UCL_Program *pppm_program;
   UCL_Kernel k_particle_map, k_make_rho, k_interp;
   inline int block_size() { return _block_size; }
-  inline int block_x_size() { return _block_x_size; }
-  inline int block_y_size() { return _block_y_size; }
 
   // --------------------------- TEXTURES -----------------------------
   UCL_Texture pos_tex;
@@ -176,7 +174,7 @@ class PPPMGPUMemory {
 
  protected:
   bool _allocated, _compiled, _precompute_done;
-  int _block_size, _block_x_size, _block_y_size, _max_brick_atoms, _max_atoms;
+  int _block_size, _block_pencils, _pencil_size, _max_brick_atoms, _max_atoms;
   double  _max_bytes, _max_an_bytes;
   
   grdtyp _brick_x, _brick_y, _brick_z, _delxinv, _delyinv, _delzinv; 

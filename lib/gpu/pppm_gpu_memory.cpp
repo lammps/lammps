@@ -17,24 +17,12 @@
 
 #ifdef USE_OPENCL
 #include "pppm_gpu_cl.h"
-#define MEM_THREADS 16
 #else
 #include "pppm_f_gpu_ptx.h"
 #include "pppm_d_gpu_ptx.h"
 #endif
 #include "pppm_gpu_memory.h"
 #include <cassert>
-
-// Maximum order for spline
-#define MAX_SPLINE 8
-// Thread block size for all kernels (Must be >=MAX_SPLINE^2)
-#define BLOCK_1D 64
-// Number of threads per pencil for charge spread
-//#define PENCIL_SIZE MEM_THREADS
-#define PENCIL_SIZE 32
-// Number of pencils per block for charge spread
-//#define BLOCK_PENCILS (BLOCK_1D/PENCIL_SIZE)
-#define BLOCK_PENCILS 2
 
 #define PPPMGPUMemoryT PPPMGPUMemory<numtyp, acctyp, grdtyp, grdtyp4>
 
@@ -82,11 +70,10 @@ grdtyp * PPPMGPUMemoryT::init(const int nlocal, const int nall, FILE *_screen,
   ucl_device=device->gpu;
   atom=&device->atom;
 
-  _block_size=BLOCK_1D;
-  assert(BLOCK_PENCILS*PENCIL_SIZE==BLOCK_1D);
-  assert(MAX_SPLINE*MAX_SPLINE<=BLOCK_1D);
-  if (static_cast<size_t>(_block_size)>ucl_device->group_size())
-    _block_size=ucl_device->group_size();
+  _block_size=PPPM_BLOCK_1D;
+  _pencil_size = device->num_mem_threads();
+  _block_pencils = PPPM_BLOCK_1D/_pencil_size;
+
   compile_kernels(*ucl_device);
 
   // Initialize timers for the selected GPU
@@ -286,12 +273,14 @@ void PPPMGPUMemoryT::_precompute(const int ago, const int nlocal, const int nall
 
   time_rho.start();
   BX=block_size();
-  GX=static_cast<int>(ceil(static_cast<double>(_npts_y*_npts_z)/BLOCK_PENCILS));
+std::cout << "Block pencils: " << _block_pencils << std::endl;
+  GX=static_cast<int>(ceil(static_cast<double>(_npts_y*_npts_z)/
+                      _block_pencils));
   k_make_rho.set_size(GX,BX);
   k_make_rho.run(&d_brick_counts.begin(), &d_brick_atoms.begin(),
-                 &d_brick.begin(), &d_rho_coeff.begin(), &_atom_stride, &_npts_x,
-                 &_npts_y, &_npts_z, &_nlocal_x, &_nlocal_y, &_nlocal_z,
-                 &_order_m_1, &_order, &_order2);
+                 &d_brick.begin(), &d_rho_coeff.begin(), &_atom_stride, 
+                 &_npts_x, &_npts_y, &_npts_z, &_nlocal_x, &_nlocal_y,
+                 &_nlocal_z, &_order_m_1, &_order, &_order2);
   time_rho.stop();
 
   time_out.start();

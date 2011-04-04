@@ -130,13 +130,6 @@ bool PairGPUDeviceT::init_device(MPI_Comm world, MPI_Comm replica,
   return true;
 }
 
-  /** Success will be:
-    * -  0 if successfull
-    * - -1 if fix gpu not found
-    * - -3 if there is an out of memory error
-    * - -4 if the GPU library was not compiled for GPU
-    * - -5 Double precision is not supported on card **/
-
 template <class numtyp, class acctyp>
 int PairGPUDeviceT::init(PairGPUAns<numtyp,acctyp> &ans, const bool charge,
                          const bool rot, const int nlocal, 
@@ -145,7 +138,9 @@ int PairGPUDeviceT::init(PairGPUAns<numtyp,acctyp> &ans, const bool charge,
                          const int gpu_host, const int max_nbors, 
                          const double cell_size, const bool pre_cut) {
   if (!_device_init)
-    return -1;                          
+    return -1;
+  if (sizeof(acctyp)==sizeof(double) && gpu->double_precision()==false)
+    return -5;
 
   // Counts of data transfers for timing overhead estimates
   _data_in_estimate=0;
@@ -164,7 +159,11 @@ int PairGPUDeviceT::init(PairGPUAns<numtyp,acctyp> &ans, const bool charge,
     // Initialize atom and nbor data
     if (!atom.init(nall,charge,rot,*gpu,gpu_nbor,gpu_nbor && maxspecial>0))
       return -3;
-    compile_kernels();
+      
+    int flag=compile_kernels();
+    if (flag!=0)
+      return flag;
+    
     _data_in_estimate++;
     if (charge)
       _data_in_estimate++;
@@ -196,12 +195,17 @@ int PairGPUDeviceT::init(PairGPUAns<numtyp,acctyp> &ans, const int nlocal,
                          const int nall) {
   if (!_device_init)
     return -1;                          
+  if (sizeof(acctyp)==sizeof(double) && gpu->double_precision()==false)
+    return -5;
 
   if (_init_count==0) {
     // Initialize atom and nbor data
     if (!atom.init(nall,true,false,*gpu,false,false))
       return -3;
-    compile_kernels();
+
+    int flag=compile_kernels();
+    if (flag!=0)
+      return flag;
   } else
     if (!atom.add_fields(true,false,false,false))
       return -3;
@@ -445,12 +449,8 @@ void PairGPUDeviceT::output_kspace_times(UCL_Timer &time_in,
                                          const double cpu_time, FILE *screen) {
   double single[7], times[7];
 
-//  single[0]=atom.transfer_time()+ans.transfer_time()+time_in.total_seconds()+
-//            time_out.total_seconds();
-//  single[1]=atom.cast_time()+ans.cast_time();
-
   single[0]=time_out.total_seconds();
-  single[1]=time_in.total_seconds();
+  single[1]=time_in.total_seconds()+atom.transfer_time()+atom.cast_time();
   single[2]=time_map.total_seconds();
   single[3]=time_rho.total_seconds();
   single[4]=time_interp.total_seconds();
@@ -478,8 +478,10 @@ void PairGPUDeviceT::output_kspace_times(UCL_Timer &time_in,
         fprintf(screen,"Kernel (map):    %.4f s.\n",times[2]/_replica_size);
         fprintf(screen,"Kernel (rho):    %.4f s.\n",times[3]/_replica_size);
         fprintf(screen,"Force interp:    %.4f s.\n",times[4]/_replica_size);
-        fprintf(screen,"Total rho:       %.4f s.\n",(times[0]+times[2]+times[3])/_replica_size);
-        fprintf(screen,"Total interp:    %.4f s.\n",(times[1]+times[4])/_replica_size);
+        fprintf(screen,"Total rho:       %.4f s.\n",
+                (times[0]+times[2]+times[3])/_replica_size);
+        fprintf(screen,"Total interp:    %.4f s.\n",
+                (times[1]+times[4])/_replica_size);
         fprintf(screen,"Force copy/cast: %.4f s.\n",times[5]/_replica_size);
         fprintf(screen,"Total:           %.4f s.\n",
                 (times[0]+times[1]+times[2]+times[3]+times[4]+times[5])/
@@ -503,6 +505,7 @@ void PairGPUDeviceT::clear() {
       _nbor_shared.clear();
       if (_compiled) {
         k_zero.clear();
+        k_info.clear();
         delete dev_program;
         _compiled=false;
       }
@@ -521,15 +524,31 @@ void PairGPUDeviceT::clear_device() {
 }
 
 template <class numtyp, class acctyp>
-void PairGPUDeviceT::compile_kernels() {
+int PairGPUDeviceT::compile_kernels() {
+  int flag=0;
+
   if (_compiled)
-  	return;
+  	return flag;
   	
   std::string flags="-cl-mad-enable";
   dev_program=new UCL_Program(*gpu);
-  dev_program->load_string(pair_gpu_dev_kernel,flags.c_str());
+  int success=dev_program->load_string(pair_gpu_dev_kernel,flags.c_str());
+  if (success!=UCL_SUCCESS)
+    return -4;
   k_zero.set_function(*dev_program,"kernel_zero");
+  k_info.set_function(*dev_program,"kernel_info");
   _compiled=true;
+
+  UCL_H_Vec<int> h_gpu_lib_data(2,*gpu,UCL_NOT_PINNED);
+  UCL_D_Vec<int> d_gpu_lib_data(2,*gpu);
+  k_info.set_size(1,1);
+  k_info.run(&d_gpu_lib_data.begin());
+  ucl_copy(h_gpu_lib_data,d_gpu_lib_data,false);
+  if (static_cast<double>(h_gpu_lib_data[0])/100.0>gpu->arch())
+    return -4;
+  _num_mem_threads=h_gpu_lib_data[1];
+
+  return flag;    
 }
 
 template <class numtyp, class acctyp>

@@ -28,6 +28,14 @@
 #include <string>
 #include <queue>
 
+// Maximum order for spline
+#define PPPM_MAX_SPLINE 8
+// Thread block size for PPPM kernels
+// - Must be >=PPPM_MAX_SPLINE^2
+// - Must be a multiple of 32
+#define PPPM_BLOCK_1D 64
+
+
 template <class numtyp, class acctyp, 
           class grdtyp, class grdtyp4> class PPPMGPUMemory;
 
@@ -193,6 +201,8 @@ class PairGPUDevice {
   inline double particle_split() const { return _particle_split; }
   /// Return the initialization count for the device
   inline int init_count() const { return _init_count; }
+  /// Return the number of threads accessing memory simulatenously
+  inline int num_mem_threads() const { return _num_mem_threads; }
 
   // -------------------- SHARED DEVICE ROUTINES -------------------- 
   // Perform asynchronous zero of integer array 
@@ -249,11 +259,11 @@ class PairGPUDevice {
   double _particle_split;
   double _cpu_full;
 
-  int _block_size;
+  int _block_size, _num_mem_threads;
   UCL_Program *dev_program;
-  UCL_Kernel k_zero;
+  UCL_Kernel k_zero, k_info;
   bool _compiled;
-  void compile_kernels();
+  int compile_kernels();
 
   int _data_in_estimate, _data_out_estimate;
   

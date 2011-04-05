@@ -398,19 +398,21 @@ void LammpsInterface::group_bounds(int iGroup, double * b)
 // -----------------------------------------------------------------
 
 double * LammpsInterface::create_1d_double_array(int nlo, int nhi, const char *name) {
-  return lammps_->memory->create_1d_double_array(nlo, nhi, name);
+  double *array;
+  return lammps_->memory->create1d_offset(array, nlo, nhi, name);
 }
 
 void LammpsInterface::destroy_1d_double_array(double * d, int i) {
-  lammps_->memory->destroy_1d_double_array(d, i);
+  lammps_->memory->destroy1d_offset(d, i);
 }
 
 double ** LammpsInterface::create_2d_double_array(int n1, int n2, const char *name) {
-  return lammps_->memory->create_2d_double_array(n1, n2, name);
+  double **array;
+  return lammps_->memory->create(array, n1, n2, name);
 }
 
 void LammpsInterface::destroy_2d_double_array(double **d) {
-  lammps_->memory->destroy_2d_double_array(d);
+  lammps_->memory->destroy(d);
 }
 
 double **LammpsInterface::grow_2d_double_array(double **array, 
@@ -418,19 +420,20 @@ double **LammpsInterface::grow_2d_double_array(double **array,
 					       int n2, 
 					       const char *name) 
 {
-  return lammps_->memory->grow_2d_double_array(array, n1, n2, name);
+  return lammps_->memory->grow(array, n1, n2, name);
 }
 
 int ** LammpsInterface::create_2d_int_array(int n1, int n2, const char *name) {
-  return lammps_->memory->create_2d_int_array(n1, n2, name);
+  int **array;
+  return lammps_->memory->create(array, n1, n2, name);
 }
 
 void LammpsInterface::destroy_2d_int_array(int **i) {
-  lammps_->memory->destroy_2d_int_array(i);
+  lammps_->memory->destroy(i);
 }
 
 int ** LammpsInterface::grow_2d_int_array(int **array, int n1, int n2, const char *name) {
-  return lammps_->memory->grow_2d_int_array(array, n1, n2, name);
+  return lammps_->memory->grow(array, n1, n2, name);
 }
 
 

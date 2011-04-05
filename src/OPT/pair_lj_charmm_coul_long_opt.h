@@ -82,7 +82,6 @@ void PairLJCharmmCoulLongOpt::eval()
   double* __restrict__ q = atom->q;
   int* __restrict__ type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = atom->nlocal + atom->nghost;
   double* __restrict__ special_coul = force->special_coul;
   double* __restrict__ special_lj = force->special_lj;
   double qqrd2e = force->qqrd2e;
@@ -134,7 +133,7 @@ void PairLJCharmmCoulLongOpt::eval()
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       
-      if (j < nall) {
+      if (j <= NEIGHMASK) {
 	double delx = xtmp - xx[j].x;
 	double dely = ytmp - xx[j].y;
 	double delz = ztmp - xx[j].z;
@@ -220,9 +219,10 @@ void PairLJCharmmCoulLongOpt::eval()
 	}
 
       } else {
-	factor_coul = special_coul[j/nall];
-	factor_lj = special_lj[j/nall];
-	j %= nall;
+	factor_lj = special_lj[sbmask(j)];
+	factor_coul = special_coul[sbmask(j)];
+	j &= NEIGHMASK;
+
 	double delx = xtmp - xx[j].x;
 	double dely = ytmp - xx[j].y;
 	double delz = ztmp - xx[j].z;

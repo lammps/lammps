@@ -178,6 +178,7 @@ void ComputeRDF::compute_array()
   int i,j,m,ii,jj,inum,jnum,itype,jtype,ipair,jpair,ibin,ihisto;
   double xtmp,ytmp,ztmp,delx,dely,delz,r;
   int *ilist,*jlist,*numneigh,**firstneigh;
+  double factor_lj,factor_coul;
 
   invoked_array = update->ntimestep;
 
@@ -199,8 +200,6 @@ void ComputeRDF::compute_array()
   // tally the RDF
   // both atom i and j must be in fix group
   // itype,jtype must have been specified by user
-  // weighting factor must be != 0.0 for this pair
-  //   could be 0 and still be in neigh list for long-range Coulombics
   // consider I,J as one interaction even if neighbor pair is stored on 2 procs
   // tally I,J pair each time I is central atom, and each time J is central
 
@@ -226,12 +225,15 @@ void ComputeRDF::compute_array()
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
+      factor_lj = special_lj[sbmask(j)];
+      factor_coul = special_coul[sbmask(j)];
+      j &= NEIGHMASK;
 
-      if (j >= nall) {
-	if (special_coul[j/nall] == 0.0 && special_lj[j/nall] == 0.0)
-	  continue;
-	j %= nall;
-      }
+      // if both weighting factors are 0, skip this pair
+      // could be 0 and still be in neigh list for long-range Coulombics
+      // want consistency with non-charged pairs which wouldn't be in list
+
+      if (factor_lj == 0.0 && factor_coul == 0.0) continue;
 
       if (!(mask[j] & groupbit)) continue;
       jtype = type[j];

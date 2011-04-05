@@ -119,7 +119,6 @@ void PairPeriLPS::compute(int eflag, int vflag)
 
   // short-range forces
 
-  int nall = atom->nlocal + atom->nghost;
   int newton_pair = force->newton_pair;
   int periodic = domain->xperiodic || domain->yperiodic || domain->zperiodic;
 
@@ -147,7 +146,7 @@ void PairPeriLPS::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      j %= nall;
+      j &= NEIGHMASK;
  
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];

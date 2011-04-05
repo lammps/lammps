@@ -136,6 +136,7 @@ void FixShearHistory::pre_exchange()
       if (touch[jj]) {
 	shear = &allshear[3*jj];
 	j = jlist[jj];
+	j &= NEIGHMASK;
 	if (npartner[i] < MAXTOUCH) {
 	  m = npartner[i];
 	  partner[i][m] = tag[j];

@@ -66,7 +66,6 @@ void PairHbondDreidingMorse::compute(int eflag, int vflag)
   int *type = atom->type;
   int **nspecial = atom->nspecial;
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
   double *special_lj = force->special_lj;
   
   inum = list->inum;
@@ -91,11 +90,9 @@ void PairHbondDreidingMorse::compute(int eflag, int vflag)
     
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      if (j < nall) factor_hb = 1.0;
-      else {
-        factor_hb = special_lj[j/nall];
-        j %= nall;
-      }
+      factor_hb = special_lj[sbmask(j)];
+      j &= NEIGHMASK;
+
       jtype = type[j];
       if (!acceptor[jtype]) continue;
 

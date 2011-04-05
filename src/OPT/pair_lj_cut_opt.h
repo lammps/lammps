@@ -61,7 +61,6 @@ void PairLJCutOpt::eval()
   double** __restrict__ f = atom->f;
   int* __restrict__ type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = atom->nlocal + atom->nghost;
   double* __restrict__ special_lj = force->special_lj;
 
   inum = list->inum;
@@ -109,7 +108,7 @@ void PairLJCutOpt::eval()
       j = jlist[jj];
       double factor_lj;
 
-      if (j < nall) {
+      if (j <= NEIGHMASK) {
 	double delx = xtmp - xx[j].x;
 	double dely = ytmp - xx[j].y;
 	double delz = ztmp - xx[j].z;
@@ -142,8 +141,8 @@ void PairLJCutOpt::eval()
 	}
 
       } else {
-	factor_lj = special_lj[j/nall];
-	j = j % nall;
+	factor_lj = special_lj[sbmask(j)];
+	j &= NEIGHMASK;
 
 	double delx = xtmp - xx[j].x;
 	double dely = ytmp - xx[j].y;

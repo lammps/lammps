@@ -561,6 +561,7 @@ int PairReaxC::estimate_reax_lists()
 
     for( itr_j = 0; itr_j < numneigh[i]; ++itr_j ){
       j = jlist[itr_j];
+      j &= NEIGHMASK;
       get_distance( x[j], x[i], &d_sqr, &dvec );
       dist[j] = sqrt(d_sqr);
       
@@ -571,6 +572,7 @@ int PairReaxC::estimate_reax_lists()
     // compute the nbrs among ghost atoms
     for( itr_j = 0; itr_j < numneigh[i]; ++itr_j ){
       j = jlist[itr_j];
+      j &= NEIGHMASK;
       
       if( j >= nlocal && !marked[j] && 
 	  dist[j] <= (control->vlist_cut - control->bond_cut) ){
@@ -579,6 +581,7 @@ int PairReaxC::estimate_reax_lists()
 
 	for( itr_g = 0; itr_g < numneigh[i]; ++itr_g ){
 	  g = jlist[itr_g];
+	  g &= NEIGHMASK;
 	  
 	  if( g >= nlocal && !marked[g] ){
 	    get_distance( x[g], x[j], &g_d_sqr, &g_dvec );
@@ -649,6 +652,7 @@ int PairReaxC::write_reax_lists()
 
     for( itr_j = 0; itr_j < numneigh[i]; ++itr_j ){
       j = jlist[itr_j];
+      j &= NEIGHMASK;
       get_distance( x[j], x[i], &d_sqr, &dvec );
       dist[j] = sqrt( d_sqr );
 
@@ -662,6 +666,7 @@ int PairReaxC::write_reax_lists()
     // compute the nbrs among ghost atoms
     for( itr_j = 0; itr_j < numneigh[i]; ++itr_j ){
       j = jlist[itr_j];
+      j &= NEIGHMASK;
 
       if( j >= nlocal && !marked[j] && 
 	  dist[j] <= (control->vlist_cut - control->bond_cut) ){
@@ -670,6 +675,7 @@ int PairReaxC::write_reax_lists()
 
 	for( itr_g = 0; itr_g < numneigh[i]; ++itr_g ){
 	  g = jlist[itr_g];
+	  g &= NEIGHMASK;
 	  
 	  if( g >= nlocal && !marked[g] ){
 	    get_distance( x[g], x[j], &g_d_sqr, &g_dvec );

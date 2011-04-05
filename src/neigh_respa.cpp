@@ -128,19 +128,20 @@ void Neighbor::respa_nsq_no_newton(NeighList *list)
       rsq = delx*delx + dely*dely + delz*delz;
 
       if (rsq <= cutneighsq[itype][jtype]) {
-	if (molecular) which = find_special(special[i],nspecial[i],tag[j]);
-	else which = 0;
-	if (which == 0) neighptr[n++] = j;
-	else if (which > 0) neighptr[n++] = which*nall + j;
+	if (molecular) {
+	  which = find_special(special[i],nspecial[i],tag[j]);
+	  if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
+	} else neighptr[n++] = j;
 
         if (rsq < cut_inner_sq) {
 	  if (which == 0) neighptr_inner[n_inner++] = j;
-	  else if (which > 0) neighptr_inner[n_inner++] = which*nall + j;
+	  else if (which > 0) neighptr_inner[n_inner++] = j ^ (which << SBBITS);
         }
 
         if (respamiddle && rsq < cut_middle_sq && rsq > cut_middle_inside_sq) {
 	  if (which == 0) neighptr_middle[n_middle++] = j;
-	  else if (which > 0) neighptr_middle[n_middle++] = which*nall + j;
+	  else if (which > 0) 
+	    neighptr_middle[n_middle++] = j ^ (which << SBBITS);
         }
       }
     }
@@ -303,20 +304,21 @@ void Neighbor::respa_nsq_newton(NeighList *list)
       rsq = delx*delx + dely*dely + delz*delz;
 
       if (rsq <= cutneighsq[itype][jtype]) {
-	if (molecular) which = find_special(special[i],nspecial[i],tag[j]);
-	else which = 0;
-	if (which == 0) neighptr[n++] = j;
-	else if (which > 0) neighptr[n++] = which*nall + j;
+	if (molecular) {
+	  which = find_special(special[i],nspecial[i],tag[j]);
+	  if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
+	} else neighptr[n++] = j;
 
         if (rsq < cut_inner_sq) {
 	  if (which == 0) neighptr_inner[n_inner++] = j;
-	  else if (which > 0) neighptr_inner[n_inner++] = which*nall + j;
+	  else if (which > 0) neighptr_inner[n_inner++] = j ^ (which << SBBITS);
         }
 
         if (respamiddle && 
 	    rsq < cut_middle_sq && rsq > cut_middle_inside_sq) {
 	  if (which == 0) neighptr_middle[n_middle++] = j;
-	  else if (which > 0) neighptr_middle[n_middle++] = which*nall + j;
+	  else if (which > 0) 
+	    neighptr_middle[n_middle++] = j ^ (which << SBBITS);
         }
       }
     }
@@ -381,7 +383,6 @@ void Neighbor::respa_bin_no_newton(NeighList *list)
   int *mask = atom->mask;
   int *molecule = atom->molecule;
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
   int molecular = atom->molecular;
   if (includegroup) nlocal = atom->nfirst;
 
@@ -471,20 +472,22 @@ void Neighbor::respa_bin_no_newton(NeighList *list)
 	rsq = delx*delx + dely*dely + delz*delz;
 
 	if (rsq <= cutneighsq[itype][jtype]) {
-	  if (molecular) which = find_special(special[i],nspecial[i],tag[j]);
-	  else which = 0;
-	  if (which == 0) neighptr[n++] = j;
-	  else if (which > 0) neighptr[n++] = which*nall + j;
+	  if (molecular) {
+	    which = find_special(special[i],nspecial[i],tag[j]);
+	    if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
+	  } else neighptr[n++] = j;
 
 	  if (rsq < cut_inner_sq) {
 	    if (which == 0) neighptr_inner[n_inner++] = j;
-	    else if (which > 0) neighptr_inner[n_inner++] = which*nall + j;
+	    else if (which > 0) 
+	      neighptr_inner[n_inner++] = j ^ (which << SBBITS);
 	  }
 
 	  if (respamiddle && 
 	      rsq < cut_middle_sq && rsq > cut_middle_inside_sq) {
 	    if (which == 0) neighptr_middle[n_middle++] = j;
-	    else if (which > 0) neighptr_middle[n_middle++] = which*nall + j;
+	    else if (which > 0) 
+	      neighptr_middle[n_middle++] = j ^ (which << SBBITS);
 	  }
 	}
       }
@@ -549,7 +552,6 @@ void Neighbor::respa_bin_newton(NeighList *list)
   int *mask = atom->mask;
   int *molecule = atom->molecule;
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
   int molecular = atom->molecular;
   if (includegroup) nlocal = atom->nfirst;
 
@@ -642,20 +644,21 @@ void Neighbor::respa_bin_newton(NeighList *list)
       rsq = delx*delx + dely*dely + delz*delz;
 
       if (rsq <= cutneighsq[itype][jtype]) {
-	if (molecular) which = find_special(special[i],nspecial[i],tag[j]);
-	else which = 0;
-	if (which == 0) neighptr[n++] = j;
-	else if (which > 0) neighptr[n++] = which*nall + j;
+	if (molecular) {
+	  which = find_special(special[i],nspecial[i],tag[j]);
+	  if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
+	} else neighptr[n++] = j;
 
         if (rsq < cut_inner_sq) {
 	  if (which == 0) neighptr_inner[n_inner++] = j;
-	  else if (which > 0) neighptr_inner[n_inner++] = which*nall + j;
+	  else if (which > 0) neighptr_inner[n_inner++] = j ^ (which << SBBITS);
         }
 
         if (respamiddle && 
 	    rsq < cut_middle_sq && rsq > cut_middle_inside_sq) {
 	  if (which == 0) neighptr_middle[n_middle++] = j;
-	  else if (which > 0) neighptr_middle[n_middle++] = which*nall + j;
+	  else if (which > 0) 
+	    neighptr_middle[n_middle++] = j ^ (which << SBBITS);
         }
       }
     }
@@ -674,20 +677,22 @@ void Neighbor::respa_bin_newton(NeighList *list)
 	rsq = delx*delx + dely*dely + delz*delz;
 
 	if (rsq <= cutneighsq[itype][jtype]) {
-	  if (molecular) which = find_special(special[i],nspecial[i],tag[j]);
-	  else which = 0;
-	  if (which == 0) neighptr[n++] = j;
-	  else if (which > 0) neighptr[n++] = which*nall + j;
+	  if (molecular) {
+	    which = find_special(special[i],nspecial[i],tag[j]);
+	    if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
+	  } else neighptr[n++] = j;
 
 	  if (rsq < cut_inner_sq) {
 	    if (which == 0) neighptr_inner[n_inner++] = j;
-	    else if (which > 0) neighptr_inner[n_inner++] = which*nall + j;
+	    else if (which > 0) 
+	      neighptr_inner[n_inner++] = j ^ (which << SBBITS);
 	  }
 
 	  if (respamiddle && 
 	      rsq < cut_middle_sq && rsq > cut_middle_inside_sq) {
 	    if (which == 0) neighptr_middle[n_middle++] = j;
-	    else if (which > 0) neighptr_middle[n_middle++] = which*nall + j;
+	    else if (which > 0) 
+	      neighptr_middle[n_middle++] = j ^ (which << SBBITS);
 	  }
 	}
       }
@@ -752,7 +757,6 @@ void Neighbor::respa_bin_newton_tri(NeighList *list)
   int *mask = atom->mask;
   int *molecule = atom->molecule;
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
   int molecular = atom->molecular;
   if (includegroup) nlocal = atom->nfirst;
 
@@ -850,20 +854,22 @@ void Neighbor::respa_bin_newton_tri(NeighList *list)
 	rsq = delx*delx + dely*dely + delz*delz;
 
 	if (rsq <= cutneighsq[itype][jtype]) {
-	  if (molecular) which = find_special(special[i],nspecial[i],tag[j]);
-	  else which = 0;
-	  if (which == 0) neighptr[n++] = j;
-	  else if (which > 0) neighptr[n++] = which*nall + j;
+	  if (molecular) {
+	    which = find_special(special[i],nspecial[i],tag[j]);
+	    if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
+	  } else neighptr[n++] = j;
 
 	  if (rsq < cut_inner_sq) {
 	    if (which == 0) neighptr_inner[n_inner++] = j;
-	    else if (which > 0) neighptr_inner[n_inner++] = which*nall + j;
+	    else if (which > 0) 
+	      neighptr_inner[n_inner++] = j ^ (which << SBBITS);
 	  }
 
 	  if (respamiddle &&
 	      rsq < cut_middle_sq && rsq > cut_middle_inside_sq) {
 	    if (which == 0) neighptr_middle[n_middle++] = j;
-	    else if (which > 0) neighptr_middle[n_middle++] = which*nall + j;
+	    else if (which > 0) 
+	      neighptr_middle[n_middle++] = j ^ (which << SBBITS);
 	  }
 	}
       }

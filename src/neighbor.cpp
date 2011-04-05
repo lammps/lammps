@@ -1172,13 +1172,10 @@ void Neighbor::build()
     memory->create(bins,maxbin,"bins");
   }
 
-  // check that pairwise lists with special bond weighting will not overflow
+  // check that neighbor list with special bond flags will not overflow
 
-  if (atom->molecular && maxwt && nblist) {
-    bigint max = maxwt * static_cast<bigint> (atom->nlocal + atom->nghost);
-    if (max > MAXSMALLINT)
-      error->one("Weighted neighbor list values are too big");
-  }
+  if (atom->nlocal+atom->nghost > NEIGHMASK)
+    error->one("Too many local+ghost atoms for neighbor list");
 
   // invoke building of pair and molecular neighbor lists
   // only for pairwise lists with buildflag set
@@ -1217,6 +1214,11 @@ void Neighbor::build_one(int i)
     memory->destroy(bins);
     memory->create(bins,maxbin,"bins");
   }
+
+  // check that neighbor list with special bond flags will not overflow
+
+  if (atom->nlocal+atom->nghost > NEIGHMASK)
+    error->one("Too many local+ghost atoms for neighbor list");
 
   // when occasional list built, LAMMPS can crash if atoms have moved too far
   // why is this?, give warning if this is the case

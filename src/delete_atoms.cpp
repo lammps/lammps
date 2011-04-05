@@ -251,6 +251,7 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
   int i,j,ii,jj,inum,jnum;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
+  double factor_lj,factor_coul;
 
   inum = list->inum;
   ilist = list->ilist;
@@ -267,15 +268,15 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
+      factor_lj = special_lj[sbmask(j)];
+      factor_coul = special_coul[sbmask(j)];
+      j &= NEIGHMASK;
 
-      // if weighting factors are 0, skip this pair
+      // if both weighting factors are 0, skip this pair
       // could be 0 and still be in neigh list for long-range Coulombics
       // want consistency with non-charged pairs which wouldn't be in list
 
-      if (j >= nall) {
-	if (special_coul[j/nall] == 0.0 && special_lj[j/nall] == 0.0) continue;
-	j %= nall;
-      }
+      if (factor_lj == 0.0 && factor_coul == 0.0) continue;
 
       // only consider deletion if I,J distance < cutoff
 

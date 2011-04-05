@@ -27,7 +27,7 @@ using namespace LAMMPS_NS;
 
 void Neighbor::half_from_full_no_newton(NeighList *list)
 {
-  int i,j,ii,jj,n,jnum;
+  int i,j,ii,jj,n,jnum,joriginal;
   int *neighptr,*jlist;
 
   int *ilist = list->ilist;
@@ -63,8 +63,9 @@ void Neighbor::half_from_full_no_newton(NeighList *list)
     jnum = numneigh_full[i];
 
     for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-      if (j > i) neighptr[n++] = j;
+      joriginal = jlist[jj];
+      j = joriginal & NEIGHMASK;
+      if (j > i) neighptr[n++] = joriginal;
     }
 
     ilist[inum++] = i;
@@ -93,7 +94,6 @@ void Neighbor::half_from_full_newton(NeighList *list)
 
   double **x = atom->x;
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -132,11 +132,11 @@ void Neighbor::half_from_full_newton(NeighList *list)
     jnum = numneigh_full[i];
 
     for (jj = 0; jj < jnum; jj++) {
-      j = joriginal = jlist[jj];
+      joriginal = jlist[jj];
+      j = joriginal & NEIGHMASK;
       if (j < nlocal) {
 	if (i > j) continue;
       } else {
-	if (j >= nall) j %= nall;
 	if (x[j][2] < ztmp) continue;
 	if (x[j][2] == ztmp) {
 	  if (x[j][1] < ytmp) continue;
@@ -171,7 +171,6 @@ void Neighbor::skip_from(NeighList *list)
 
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = atom->nlocal + atom->nghost;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -214,8 +213,8 @@ void Neighbor::skip_from(NeighList *list)
     jnum = numneigh_skip[i];
 
     for (jj = 0; jj < jnum; jj++) {
-      j = joriginal = jlist[jj];
-      if (j >= nall) j %= nall;
+      joriginal = jlist[jj];
+      j = joriginal & NEIGHMASK;
       if (ijskip[itype][type[j]]) continue;
       neighptr[n++] = joriginal;
     }
@@ -252,7 +251,6 @@ void Neighbor::skip_from_granular(NeighList *list)
   double *shearptr,*shearptr_skip;
 
   int *type = atom->type;
-  int nall = atom->nlocal + atom->nghost;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -311,8 +309,8 @@ void Neighbor::skip_from_granular(NeighList *list)
     jnum = numneigh_skip[i];
 
     for (jj = 0; jj < jnum; jj++) {
-      j = joriginal = jlist[jj];
-      if (j >= nall) j %= nall;
+      joriginal = jlist[jj];
+      j = joriginal & NEIGHMASK;
       if (ijskip[itype][type[j]]) continue;
       neighptr[n] = joriginal;
       touchptr[n++] = touchptr_skip[jj];
@@ -346,7 +344,6 @@ void Neighbor::skip_from_respa(NeighList *list)
   int *neighptr,*jlist,*neighptr_inner,*neighptr_middle;
 
   int *type = atom->type;
-  int nall = atom->nlocal + atom->nghost;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -431,8 +428,8 @@ void Neighbor::skip_from_respa(NeighList *list)
     jnum = numneigh_skip[i];
 
     for (jj = 0; jj < jnum; jj++) {
-      j = joriginal = jlist[jj];
-      if (j >= nall) j %= nall;
+      joriginal = jlist[jj];
+      j = joriginal & NEIGHMASK;
       if (ijskip[itype][type[j]]) continue;
       neighptr[n++] = joriginal;
     }
@@ -443,8 +440,8 @@ void Neighbor::skip_from_respa(NeighList *list)
     jnum = numneigh_inner_skip[i];
 
     for (jj = 0; jj < jnum; jj++) {
-      j = joriginal = jlist[jj];
-      if (j >= nall) j %= nall;
+      joriginal = jlist[jj];
+      j = joriginal & NEIGHMASK;
       if (ijskip[itype][type[j]]) continue;
       neighptr_inner[n_inner++] = joriginal;
     }
@@ -456,8 +453,8 @@ void Neighbor::skip_from_respa(NeighList *list)
       jnum = numneigh_middle_skip[i];
 
       for (jj = 0; jj < jnum; jj++) {
-	j = joriginal = jlist[jj];
-	if (j >= nall) j %= nall;
+	joriginal = jlist[jj];
+	j = joriginal & NEIGHMASK;
 	if (ijskip[itype][type[j]]) continue;
 	neighptr_middle[n_middle++] = joriginal;
       }

@@ -188,7 +188,6 @@ void PairLJCutGPU::cpu_compute(int start, int eflag, int vflag) {
   double **f = atom->f;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
   double *special_lj = force->special_lj;
 
   inum = list->inum;
@@ -209,12 +208,8 @@ void PairLJCutGPU::cpu_compute(int start, int eflag, int vflag) {
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-
-      if (j < nall) factor_lj = 1.0;
-      else {
-	factor_lj = special_lj[j/nall];
-	j %= nall;
-      }
+      factor_lj = special_lj[sbmask(j)];
+      j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -249,7 +244,6 @@ void PairLJCutGPU::cpu_compute(int start, int eflag, int vflag) {
 void PairLJCutGPU::cpu_compute(int *nbors, int start, int eflag, int vflag) {
   int i,j,itype,jtype;
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
   int stride = nlocal-start;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq,r2inv,r6inv,forcelj,factor_lj;
@@ -273,12 +267,8 @@ void PairLJCutGPU::cpu_compute(int *nbors, int start, int eflag, int vflag) {
 
     for (; nbor<nbor_end; nbor+=stride) {
       j = *nbor;
-      
-      if (j < nall) factor_lj = 1.0;
-      else {
-	factor_lj = special_lj[j/nall];
-	j %= nall;
-      }
+      factor_lj = special_lj[sbmask(j)];
+      j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];

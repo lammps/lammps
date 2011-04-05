@@ -289,6 +289,7 @@ void FixOrientFCC::post_force(int vflag)
     nsort = 0;
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
+      j &= NEIGHMASK;
       count++;
 
       dx = x[i][0] - x[j][0];

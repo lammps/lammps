@@ -309,9 +309,7 @@ void PairREAX::write_reax_vlist()
   int nvpair, nvlself, nvpairmax;
   int nbond;
   int inum,jnum;
-  int *ilist;
-  int *jlist;
-  int *numneigh,**firstneigh;
+  int *ilist,*jlist,*numneigh,**firstneigh;
   double delr2;
   double delx, dely, delz;
   double rtmp[3];
@@ -343,6 +341,8 @@ void PairREAX::write_reax_vlist()
     
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
+      j &= NEIGHMASK;
+
       xjtmp = x[j][0];
       yjtmp = x[j][1];
       zjtmp = x[j][2];
@@ -755,9 +755,7 @@ void PairREAX::compute_charge(double &energy_charge_equilibration)
   double sw;
   double rtmp[3];
   int inum,jnum;
-  int *ilist;
-  int *jlist;
-  int *numneigh,**firstneigh;
+  int *ilist,*jlist,*numneigh,**firstneigh;
 
   double **x = atom->x;
   double *q = atom->q;
@@ -811,6 +809,8 @@ void PairREAX::compute_charge(double &energy_charge_equilibration)
     
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
+      j &= NEIGHMASK;
+
       xjtmp = x[j][0];
       yjtmp = x[j][1];
       zjtmp = x[j][2];

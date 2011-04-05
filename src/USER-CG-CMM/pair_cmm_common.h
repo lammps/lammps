@@ -185,10 +185,10 @@ namespace LAMMPS_NS {
     const double  * const q = atom->q;
     const int * const type = atom->type;
     const int nlocal = atom->nlocal;
-    const int nall = nlocal + atom->nghost;
     const double * const special_lj = force->special_lj;
     const double * const special_coul = force->special_coul;
     const double qqrd2e = force->qqrd2e;
+    double factor_lj,factor_coul;
 
     const int inum = list->inum;
     const int * const ilist = list->ilist;
@@ -211,15 +211,9 @@ namespace LAMMPS_NS {
 
       for (jj = 0; jj < jnum; jj++) {
         int j2 = jlist[jj];
-
-        double factor_lj = 1.0;
-        double factor_coul = 1.0;
-        if (j2 >= nall) {
-          factor_lj = special_lj[j2/nall];
-          if (COUL_TYPE != CG_COUL_NONE) factor_coul=special_coul[j2/nall];
-          j2 %= nall;
-        }
-        const int j = j2;
+	factor_lj = special_lj[sbmask(j2)];
+	factor_coul = special_coul[sbmask(j2)];
+	const int j = j2 & NEIGHMASK;
 
         const double delx = xtmp - x[j][0];
         const double dely = ytmp - x[j][1];
@@ -323,10 +317,10 @@ namespace LAMMPS_NS {
     const double  * const q = atom->q;
     const int * const type = atom->type;
     const int nlocal = atom->nlocal;
-    const int nall = nlocal + atom->nghost;
     const double * const special_lj = force->special_lj;
     const double * const special_coul = force->special_coul;
     const double qqrd2e = force->qqrd2e;
+    double factor_lj,factor_coul;
 
     const int inum = listinner->inum;
     const int * const ilist = listinner->ilist;
@@ -355,15 +349,9 @@ namespace LAMMPS_NS {
 
       for (jj = 0; jj < jnum; jj++) {
         int j2 = jlist[jj];
-
-        double factor_lj = 1.0;
-        double factor_coul = 1.0;
-        if (j2 >= nall) {
-          factor_lj = special_lj[j2/nall];
-          if (COUL_TYPE != CG_COUL_NONE) factor_coul=special_coul[j2/nall];
-          j2 %= nall;
-        }
-        const int j = j2;
+	factor_lj = special_lj[sbmask(j2)];
+	factor_coul = special_coul[sbmask(j2)];
+	const int j = j2 & NEIGHMASK;
 
         const double delx = xtmp - x[j][0];
         const double dely = ytmp - x[j][1];
@@ -427,10 +415,10 @@ namespace LAMMPS_NS {
     const double  * const q = atom->q;
     const int * const type = atom->type;
     const int nlocal = atom->nlocal;
-    const int nall = nlocal + atom->nghost;
     const double * const special_lj = force->special_lj;
     const double * const special_coul = force->special_coul;
     const double qqrd2e = force->qqrd2e;
+    double factor_lj,factor_coul;
 
     const int inum = listmiddle->inum;
     const int * const ilist = listmiddle->ilist;
@@ -464,15 +452,9 @@ namespace LAMMPS_NS {
 
       for (jj = 0; jj < jnum; jj++) {
         int j2 = jlist[jj];
-
-        double factor_lj = 1.0;
-        double factor_coul = 1.0;
-        if (j2 >= nall) {
-          factor_lj = special_lj[j2/nall];
-          if (COUL_TYPE != CG_COUL_NONE) factor_coul=special_coul[j2/nall];
-          j2 %= nall;
-        }
-        const int j = j2;
+	factor_lj = special_lj[sbmask(j2)];
+	factor_coul = special_coul[sbmask(j2)];
+	const int j = j2 & NEIGHMASK;
 
         const double delx = xtmp - x[j][0];
         const double dely = ytmp - x[j][1];
@@ -545,10 +527,10 @@ namespace LAMMPS_NS {
     const double  * const q = atom->q;
     const int * const type = atom->type;
     const int nlocal = atom->nlocal;
-    const int nall = nlocal + atom->nghost;
     const double * const special_lj = force->special_lj;
     const double * const special_coul = force->special_coul;
     const double qqrd2e = force->qqrd2e;
+    double factor_lj,factor_coul;
 
     const int inum = listouter->inum;
     const int * const ilist = listouter->ilist;
@@ -577,15 +559,9 @@ namespace LAMMPS_NS {
 
       for (jj = 0; jj < jnum; jj++) {
         int j2 = jlist[jj];
-
-        double factor_lj = 1.0;
-        double factor_coul = 1.0;
-        if (j2 >= nall) {
-          factor_lj = special_lj[j2/nall];
-          if (COUL_TYPE != CG_COUL_NONE) factor_coul=special_coul[j2/nall];
-          j2 %= nall;
-        }
-        const int j = j2;
+	factor_lj = special_lj[sbmask(j2)];
+	factor_coul = special_coul[sbmask(j2)];
+	const int j = j2 & NEIGHMASK;
 
         const double delx = xtmp - x[j][0];
         const double dely = ytmp - x[j][1];

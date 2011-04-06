@@ -162,7 +162,7 @@ void ComputeClusterAtom::compute_peratom()
 	n = 0;
 	for (jj = 0; jj < jnum; jj++) {
 	  j = jlist[jj];
-	  if (j >= nall) j %= nall;
+	  j &= NEIGHMASK;
 	  if (!(mask[j] & groupbit)) continue;
 	  if (clusterID[i] == clusterID[j]) continue;
 	  

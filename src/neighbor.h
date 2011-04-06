@@ -165,39 +165,6 @@ class Neighbor : protected Pointers {
   void choose_build(int, class NeighRequest *);
   void choose_stencil(int, class NeighRequest *);
 
-  // find_special: determine if atom j is in special list of atom i
-  // if it is not, return 0
-  // if it is and special flag is 0 (both coeffs are 0.0), return -1
-  // if it is and special flag is 1 (both coeffs are 1.0), return 0
-  // if it is and special flag is 2 (otherwise), return 1,2,3
-  //   for which neighbor it is (and which coeff it maps to)
-
-  inline int find_special(const int *list, const int *nspecial, 
-			  const int tag) const {
-    const int n1 = nspecial[0];
-    const int n2 = nspecial[1];
-    const int n3 = nspecial[2];
-
-    for (int i = 0; i < n3; i++) {
-      if (list[i] == tag) {
-	if (i < n1) {
-	  if (special_flag[1] == 0) return -1;
-	  else if (special_flag[1] == 1) return 0;
-	  else return 1;
-	} else if (i < n2) {
-	  if (special_flag[2] == 0) return -1;
-	  else if (special_flag[2] == 1) return 0;
-	  else return 2;
-	} else {
-	  if (special_flag[3] == 0) return -1;
-	  else if (special_flag[3] == 1) return 0;
-	  else return 3;
-	}
-      }
-    }
-    return 0;
-  };
-
   // pairwise build functions
 
   typedef void (Neighbor::*PairPtr)(class NeighList *);
@@ -284,6 +251,39 @@ class Neighbor : protected Pointers {
   BondPtr improper_build;             // ptr to improper list functions
   void improper_all();                // improper list with all impropers
   void improper_partial();            // exclude certain impropers
+
+  // find_special: determine if atom j is in special list of atom i
+  // if it is not, return 0
+  // if it is and special flag is 0 (both coeffs are 0.0), return -1
+  // if it is and special flag is 1 (both coeffs are 1.0), return 0
+  // if it is and special flag is 2 (otherwise), return 1,2,3
+  //   for which neighbor it is (and which coeff it maps to)
+
+  inline int find_special(const int *list, const int *nspecial, 
+			  const int tag) const {
+    const int n1 = nspecial[0];
+    const int n2 = nspecial[1];
+    const int n3 = nspecial[2];
+
+    for (int i = 0; i < n3; i++) {
+      if (list[i] == tag) {
+	if (i < n1) {
+	  if (special_flag[1] == 0) return -1;
+	  else if (special_flag[1] == 1) return 0;
+	  else return 1;
+	} else if (i < n2) {
+	  if (special_flag[2] == 0) return -1;
+	  else if (special_flag[2] == 1) return 0;
+	  else return 2;
+	} else {
+	  if (special_flag[3] == 0) return -1;
+	  else if (special_flag[3] == 1) return 0;
+	  else return 3;
+	}
+      }
+    }
+    return 0;
+  };
 };
 
 }

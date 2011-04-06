@@ -474,5 +474,3 @@ double PairCMMCommon::eval_single(int coul_type, int i, int j, int itype, int jt
   fforce = factor_lj*lj_force + factor_coul*coul_force;
   return factor_lj*lj_erg + factor_coul*coul_erg;
 }
-
-/* ------------------------------------------------------------------------ */

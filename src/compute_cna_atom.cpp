@@ -168,6 +168,8 @@ void ComputeCNAAtom::compute_peratom()
     n = 0;
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
+      j &= NEIGHMASK;
+
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
@@ -247,6 +249,7 @@ void ComputeCNAAtom::compute_peratom()
 	n = 0;
 	for (kk = 0; kk < jnum; kk++) {
 	  k = jlist[kk];
+	  k &= NEIGHMASK;
 	  if (k == j) continue;
 
 	  delx = xtmp - x[k][0];

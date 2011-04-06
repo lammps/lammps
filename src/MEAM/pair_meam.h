@@ -94,6 +94,7 @@ class PairMEAM : public Pair {
 
   void allocate();
   void read_files(char *, char *);
+  void neigh_strip(int, int *, int *, int **);
   void neigh_f2c(int, int *, int *, int **);
   void neigh_c2f(int, int *, int *, int **);
 };

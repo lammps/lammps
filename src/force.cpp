@@ -47,6 +47,7 @@ Force::Force(LAMMPS *lmp) : Pointers(lmp)
 {
   newton = newton_pair = newton_bond = 1;
 
+  special_lj[0] = special_coul[0] = 1.0;
   special_lj[1] = special_lj[2] = special_lj[3] = 0.0;
   special_coul[1] = special_coul[2] = special_coul[3] = 0.0;
   special_angle = special_dihedral = 0;

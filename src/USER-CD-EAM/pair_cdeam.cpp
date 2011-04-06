@@ -136,6 +136,7 @@ void PairCDEAM::compute(int eflag, int vflag)
 
 		for(jj = 0; jj < jnum; jj++) {
 			j = jlist[jj];
+			j &= NEIGHMASK;
 
 			delx = xtmp - x[j][0];
 			dely = ytmp - x[j][1];
@@ -225,6 +226,7 @@ void PairCDEAM::compute(int eflag, int vflag)
 
 			for(jj = 0; jj < jnum; jj++) {
 				j = jlist[jj];
+				j &= NEIGHMASK;
 				jtype = type[j];
 				if(itype == jtype) continue;
 
@@ -304,6 +306,7 @@ void PairCDEAM::compute(int eflag, int vflag)
 
 		for(jj = 0; jj < jnum; jj++) {
 			j = jlist[jj];
+			j &= NEIGHMASK;
 
 			delx = xtmp - x[j][0];
 			dely = ytmp - x[j][1];

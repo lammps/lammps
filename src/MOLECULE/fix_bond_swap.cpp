@@ -241,6 +241,7 @@ void FixBondSwap::pre_neighbor()
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
+      j &= NEIGHMASK;
       if (j >= nlocal) continue;
       if ((mask[j] & groupbit) == 0) continue;
       if (molecule[i] != molecule[j]) continue;

@@ -351,6 +351,7 @@ void PairAIREBO::REBO_neigh()
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
+      j &= NEIGHMASK;
       jtype = map[type[j]];
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -534,6 +535,7 @@ void PairAIREBO::FLJ(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
+      j &= NEIGHMASK;
       jtag = tag[j];
 
       if (itag > jtag) {

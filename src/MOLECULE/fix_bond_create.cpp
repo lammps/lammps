@@ -328,6 +328,7 @@ void FixBondCreate::post_integrate()
     
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
+      j &= NEIGHMASK;
       if (!(mask[j] & groupbit)) continue;
       jtype = type[j];
 

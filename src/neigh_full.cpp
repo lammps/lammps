@@ -87,10 +87,10 @@ void Neighbor::full_nsq(NeighList *list)
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
       if (rsq <= cutneighsq[itype][jtype]) {
-	if (molecular) which = find_special(special[i],nspecial[i],tag[j]);
-	else which = 0;
-	if (which == 0) neighptr[n++] = j;
-	else if (which > 0) neighptr[n++] = which*nall + j;
+	if (molecular) {
+	  which = find_special(special[i],nspecial[i],tag[j]);
+	  if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
+	} else neighptr[n++] = j;
       }
     }
 
@@ -171,10 +171,10 @@ void Neighbor::full_nsq_ghost(NeighList *list)
 	delz = ztmp - x[j][2];
 	rsq = delx*delx + dely*dely + delz*delz;
 	if (rsq <= cutneighsq[itype][jtype]) {
-	  if (molecular) which = find_special(special[i],nspecial[i],tag[j]);
-	  else which = 0;
-	  if (which == 0) neighptr[n++] = j;
-	  else if (which > 0) neighptr[n++] = which*nall + j;
+	  if (molecular) {
+	    which = find_special(special[i],nspecial[i],tag[j]);
+	    if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
+	  } else neighptr[n++] = j;
 	}
       }
     } else {
@@ -188,10 +188,10 @@ void Neighbor::full_nsq_ghost(NeighList *list)
 	delz = ztmp - x[j][2];
 	rsq = delx*delx + dely*dely + delz*delz;
 	if (rsq <= cutneighghostsq[itype][jtype]) {
-	  if (molecular) which = find_special(special[i],nspecial[i],tag[j]);
-	  else which = 0;
-	  if (which == 0) neighptr[n++] = j;
-	  else if (which > 0) neighptr[n++] = which*nall + j;
+	  if (molecular) {
+	    which = find_special(special[i],nspecial[i],tag[j]);
+	    if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
+	  } else neighptr[n++] = j;
 	}
       }
     }
@@ -232,7 +232,6 @@ void Neighbor::full_bin(NeighList *list)
   int *mask = atom->mask;
   int *molecule = atom->molecule;
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
   int molecular = atom->molecular;
   if (includegroup) nlocal = atom->nfirst;
 
@@ -283,10 +282,10 @@ void Neighbor::full_bin(NeighList *list)
 	rsq = delx*delx + dely*dely + delz*delz;
 
 	if (rsq <= cutneighsq[itype][jtype]) {
-	  if (molecular) which = find_special(special[i],nspecial[i],tag[j]);
-	  else which = 0;
-	  if (which == 0) neighptr[n++] = j;
-	  else if (which > 0) neighptr[n++] = which*nall + j;
+	  if (molecular) {
+	    which = find_special(special[i],nspecial[i],tag[j]);
+	    if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
+	  } else neighptr[n++] = j;
 	}
       }
     }
@@ -381,10 +380,10 @@ void Neighbor::full_bin_ghost(NeighList *list)
 	  rsq = delx*delx + dely*dely + delz*delz;
 	
 	  if (rsq <= cutneighsq[itype][jtype]) {
-	    if (molecular) which = find_special(special[i],nspecial[i],tag[j]);
-	    else which = 0;
-	    if (which == 0) neighptr[n++] = j;
-	    else if (which > 0) neighptr[n++] = which*nall + j;
+	    if (molecular) {
+	      which = find_special(special[i],nspecial[i],tag[j]);
+	      if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
+	    } else neighptr[n++] = j;
 	  }
 	}
       }
@@ -410,10 +409,10 @@ void Neighbor::full_bin_ghost(NeighList *list)
 	  rsq = delx*delx + dely*dely + delz*delz;
 	
 	  if (rsq <= cutneighghostsq[itype][jtype]) {
-	    if (molecular) which = find_special(special[i],nspecial[i],tag[j]);
-	    else which = 0;
-	    if (which == 0) neighptr[n++] = j;
-	    else if (which > 0) neighptr[n++] = which*nall + j;
+	    if (molecular) {
+	      which = find_special(special[i],nspecial[i],tag[j]);
+	      if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
+	    } else neighptr[n++] = j;
 	  }
 	}
       }
@@ -459,7 +458,6 @@ void Neighbor::full_multi(NeighList *list)
   int *mask = atom->mask;
   int *molecule = atom->molecule;
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
   int molecular = atom->molecular;
   if (includegroup) nlocal = atom->nfirst;
 
@@ -514,10 +512,10 @@ void Neighbor::full_multi(NeighList *list)
 	rsq = delx*delx + dely*dely + delz*delz;
 
 	if (rsq <= cutneighsq[itype][jtype]) {
-	  if (molecular) which = find_special(special[i],nspecial[i],tag[j]);
-	  else which = 0;
-	  if (which == 0) neighptr[n++] = j;
-	  else if (which > 0) neighptr[n++] = which*nall + j;
+	  if (molecular) {
+	    which = find_special(special[i],nspecial[i],tag[j]);
+	    if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
+	  } else neighptr[n++] = j;
 	}
       }
     }

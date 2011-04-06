@@ -453,7 +453,6 @@ void PairBuckCoul::compute(int eflag, int vflag)
   double *q = atom->q;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
@@ -480,8 +479,9 @@ void PairBuckCoul::compute(int eflag, int vflag)
     jneighn = (jneigh = list->firstneigh[i])+list->numneigh[i];
 
     for (; jneigh<jneighn; ++jneigh) {			// loop over neighbors
-      if ((j = *jneigh) < nall) ni = -1;
-      else { ni = j/nall; j %= nall; }			// special index
+      j = *jneigh;
+      ni = sbmask(j);
+      j &= NEIGHMASK;
       
       { register double *xj = x0+(j+(j<<1));
 	d[0] = xi[0] - xj[0];				// pair vector
@@ -496,7 +496,7 @@ void PairBuckCoul::compute(int eflag, int vflag)
 	if (!ncoultablebits || rsq <= tabinnersq) {	// series real space
 	  register double x = g_ewald*r;
 	  register double s = qri*q[j], t = 1.0/(1.0+EWALD_P*x);
-	  if (ni < 0) {
+	  if (ni == 0) {
 	    s *= g_ewald*exp(-x*x);
 	    force_coul = (t *= ((((t*A5+A4)*t+A3)*t+A2)*t+A1)*s/x)+EWALD_F*s;
 	    if (eflag) ecoul = t;
@@ -513,7 +513,7 @@ void PairBuckCoul::compute(int eflag, int vflag)
 	  t.f = rsq;
 	  register const int k = (t.i & ncoulmask) >> ncoulshiftbits;
 	  register double f = (rsq-rtable[k])*drtable[k], qiqj = qi*q[j];
-	  if (ni < 0) {
+	  if (ni == 0) {
 	    force_coul = qiqj*(ftable[k]+f*dftable[k]);
 	    if (eflag) ecoul = qiqj*(etable[k]+f*detable[k]);
 	  }
@@ -532,7 +532,7 @@ void PairBuckCoul::compute(int eflag, int vflag)
 	if (order6) {					// long-range
 	  register double x2 = g2*rsq, a2 = 1.0/x2;
 	  x2 = a2*exp(-x2)*buckci[typej];
-	  if (ni < 0) {
+	  if (ni == 0) {
 	    force_buck =
 	      r*expr*buck1i[typej]-g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq;
 	    if (eflag) evdwl = expr*buckai[typej]-g6*((a2+1.0)*a2+0.5)*x2;
@@ -546,7 +546,7 @@ void PairBuckCoul::compute(int eflag, int vflag)
 	  }
 	}
 	else {						// cut
-	  if (ni < 0) {
+	  if (ni == 0) {
 	    force_buck = r*expr*buck1i[typej]-rn*buck2i[typej];
 	    if (eflag) evdwl = expr*buckai[typej] - 
 			 rn*buckci[typej]-offseti[typej];
@@ -591,7 +591,6 @@ void PairBuckCoul::compute_inner()
 
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
   double *x0 = atom->x[0], *f0 = atom->f[0], *fi = f0, *q = atom->q;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
@@ -621,8 +620,9 @@ void PairBuckCoul::compute_inner()
     jneighn = (jneigh = listinner->firstneigh[i])+listinner->numneigh[i];
 
     for (; jneigh<jneighn; ++jneigh) {			// loop over neighbors
-      if ((j = *jneigh) < nall) ni = -1;
-      else { ni = j/nall; j %= nall; }
+      j = *jneigh;
+      ni = sbmask(j);
+      j &= NEIGHMASK;
       
       { register double *xj = x0+(j+(j<<1));
 	d[0] = xi[0] - xj[0];				// pair vector
@@ -634,13 +634,13 @@ void PairBuckCoul::compute_inner()
       r = sqrt(rsq);
 
       if (order1 && (rsq < cut_coulsq))			// coulombic
-	force_coul = ni<0 ?
+	force_coul = ni == 0 ?
 	  qri*q[j]/r : qri*q[j]/r*special_coul[ni];
 
       if (rsq < cut_bucksqi[typej = type[j]]) {		// buckingham
 	register double rn = r2inv*r2inv*r2inv,
 			expr = exp(-r*rhoinvi[typej]);
-	force_buck = ni<0 ?
+	force_buck = ni == 0 ?
 	  (r*expr*buck1i[typej]-rn*buck2i[typej]) :
 	  (r*expr*buck1i[typej]-rn*buck2i[typej])*special_lj[ni];
       }
@@ -676,7 +676,6 @@ void PairBuckCoul::compute_middle()
 
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
   double *x0 = atom->x[0], *f0 = atom->f[0], *fi = f0, *q = atom->q;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
@@ -711,8 +710,9 @@ void PairBuckCoul::compute_middle()
     jneighn = (jneigh = listmiddle->firstneigh[i])+listmiddle->numneigh[i];
 
     for (; jneigh<jneighn; ++jneigh) {			// loop over neighbors
-      if ((j = *jneigh) < nall) ni = -1;
-      else { ni = j/nall; j %= nall; }
+      j = *jneigh;
+      ni = sbmask(j);
+      j &= NEIGHMASK;
       
       { register double *xj = x0+(j+(j<<1));
 	d[0] = xi[0] - xj[0];				// pair vector
@@ -725,13 +725,13 @@ void PairBuckCoul::compute_middle()
       r = sqrt(rsq);
 
       if (order1 && (rsq < cut_coulsq))			// coulombic
-	force_coul = ni<0 ?
+	force_coul = ni == 0 ?
 	  qri*q[j]/r : qri*q[j]/r*special_coul[ni];
 
       if (rsq < cut_bucksqi[typej = type[j]]) {		// buckingham
 	register double rn = r2inv*r2inv*r2inv,
 			expr = exp(-r*rhoinvi[typej]);
-	force_buck = ni<0 ?
+	force_buck = ni == 0 ?
 	  (r*expr*buck1i[typej]-rn*buck2i[typej]) :
 	  (r*expr*buck1i[typej]-rn*buck2i[typej])*special_lj[ni];
       }
@@ -777,7 +777,6 @@ void PairBuckCoul::compute_outer(int eflag, int vflag)
   double *q = atom->q;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
@@ -812,8 +811,9 @@ void PairBuckCoul::compute_outer(int eflag, int vflag)
     jneighn = (jneigh = listouter->firstneigh[i])+listouter->numneigh[i];
 
     for (; jneigh<jneighn; ++jneigh) {			// loop over neighbors
-      if ((j = *jneigh) < nall) ni = -1;
-      else { ni = j/nall; j %= nall; }			// special index
+      j = *jneigh;
+      ni = sbmask(j);
+      j &= NEIGHMASK;
       
       { register double *xj = x0+(j+(j<<1));
 	d[0] = xi[0] - xj[0];				// pair vector
@@ -833,9 +833,9 @@ void PairBuckCoul::compute_outer(int eflag, int vflag)
 	if (!ncoultablebits || rsq <= tabinnersq) {	// series real space
 	  register double s = qri*q[j];
 	  if (respa_flag)				// correct for respa
-	    respa_coul = ni<0 ? frespa*s/r : frespa*s/r*special_coul[ni];
+	    respa_coul = ni == 0 ? frespa*s/r : frespa*s/r*special_coul[ni];
 	  register double x = g_ewald*r, t = 1.0/(1.0+EWALD_P*x);
-	  if (ni < 0) {
+	  if (ni == 0) {
 	    s *= g_ewald*exp(-x*x);
 	    force_coul = (t *= ((((t*A5+A4)*t+A3)*t+A2)*t+A1)*s/x)+EWALD_F*s;
 	    if (eflag) ecoul = t;
@@ -847,14 +847,14 @@ void PairBuckCoul::compute_outer(int eflag, int vflag)
 	  }
 	}						// table real space
 	else {
-	  if (respa_flag) respa_coul = ni<0 ?		// correct for respa
+	  if (respa_flag) respa_coul = ni == 0 ?	// correct for respa
 	      frespa*qri*q[j]/r :
 	      frespa*qri*q[j]/r*special_coul[ni];
 	  register union_int_float_t t;
 	  t.f = rsq;
 	  register const int k = (t.i & ncoulmask) >> ncoulshiftbits;
 	  register double f = (rsq-rtable[k])*drtable[k], qiqj = qi*q[j];
-	  if (ni < 0) {
+	  if (ni == 0) {
 	    force_coul = qiqj*(ftable[k]+f*dftable[k]);
 	    if (eflag) ecoul = qiqj*(etable[k]+f*detable[k]);
 	  }
@@ -870,13 +870,13 @@ void PairBuckCoul::compute_outer(int eflag, int vflag)
       if (rsq < cut_bucksqi[typej]) {			// buckingham
 	register double rn = r2inv*r2inv*r2inv,
 			expr = exp(-r*rhoinvi[typej]);
-	if (respa_flag) respa_buck = ni<0 ? 		// correct for respa
+	if (respa_flag) respa_buck = ni == 0 ? 		// correct for respa
 	    frespa*(r*expr*buck1i[typej]-rn*buck2i[typej]) :
 	    frespa*(r*expr*buck1i[typej]-rn*buck2i[typej])*special_lj[ni];
 	if (order6) {					// long-range form
 	  register double x2 = g2*rsq, a2 = 1.0/x2;
 	  x2 = a2*exp(-x2)*buckci[typej];
-	  if (ni < 0) {
+	  if (ni == 0) {
 	    force_buck =
 	      r*expr*buck1i[typej]-g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq;
 	    if (eflag) evdwl = expr*buckai[typej]-g6*((a2+1.0)*a2+0.5)*x2;
@@ -890,7 +890,7 @@ void PairBuckCoul::compute_outer(int eflag, int vflag)
 	  }
 	}
 	else {						// cut form
-	  if (ni < 0) {
+	  if (ni == 0) {
 	    force_buck = r*expr*buck1i[typej]-rn*buck2i[typej];
 	    if (eflag) 
 	      evdwl = expr*buckai[typej]-rn*buckci[typej]-offseti[typej];

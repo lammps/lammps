@@ -78,7 +78,6 @@ void PairGauss::compute(int eflag, int vflag)
   double **f = atom->f;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
   int newton_pair = force->newton_pair;
   
   inum = list->inum;
@@ -99,6 +98,7 @@ void PairGauss::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) { 
       j = jlist[jj];
+      j &= NEIGHMASK;
 	
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];

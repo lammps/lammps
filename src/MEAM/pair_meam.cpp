@@ -180,6 +180,14 @@ void PairMEAM::compute(int eflag, int vflag)
   numneigh_full = listfull->numneigh;
   firstneigh_full = listfull->firstneigh;
 
+  // strip neighbor lists of any special bond flags before using with MEAM
+  // necessary before doing neigh_f2c and neigh_c2f conversions each step
+
+  if (neighbor->ago == 0) {
+    neigh_strip(inum_half,ilist_half,numneigh_half,firstneigh_half);
+    neigh_strip(inum_half,ilist_half,numneigh_full,firstneigh_full);
+  }
+
   // check size of scrfcn based on half neighbor list
 
   int nlocal = atom->nlocal;
@@ -885,6 +893,27 @@ double PairMEAM::memory_usage()
   bytes += (3 + 6 + 10 + 3 + 3 + 3) * nmax * sizeof(double);
   bytes += 3 * maxneigh * sizeof(double);
   return bytes;
+}
+
+/* ----------------------------------------------------------------------
+   strip special bond flags from neighbor list entries
+   are not used with MEAM
+   need to do here so Fortran lib doesn't see them
+   done once per reneighbor so that neigh_f2c and neigh_c2f don't see them
+------------------------------------------------------------------------- */
+
+void PairMEAM::neigh_strip(int inum, int *ilist, 
+			   int *numneigh, int **firstneigh)
+{
+  int i,j,ii,jnum;
+  int *jlist;
+
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
+    for (j = 0; j < jnum; j++) jlist[j] &= NEIGHMASK;
+  }
 }
 
 /* ----------------------------------------------------------------------

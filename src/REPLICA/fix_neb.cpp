@@ -131,22 +131,23 @@ void FixNEB::min_setup(int vflag)
 
 void FixNEB::min_post_force(int vflag)
 {
-  MPI_Status status;
   double vprev,vnext,vmax,vmin;
   double delx,dely,delz;
   double delta1[3],delta2[3];
+  MPI_Status status;
+  MPI_Request request;
 
   // veng = PE of this replica
   // vprev,vnext = PEs of adjacent replicas
 
   veng = pe->compute_scalar();
 
+  if (ireplica < nreplica-1) MPI_Send(&veng,1,MPI_DOUBLE,procnext,0,uworld);
+  if (ireplica > 0) MPI_Recv(&vprev,1,MPI_DOUBLE,procprev,0,uworld,&status);
+  
+  if (ireplica > 0) MPI_Send(&veng,1,MPI_DOUBLE,procprev,0,uworld);
   if (ireplica < nreplica-1)
-    MPI_Sendrecv(&veng,1,MPI_DOUBLE,procnext,0,
-		 &vprev,1,MPI_DOUBLE,procprev,0,uworld,&status);
-  if (ireplica > 0)
-    MPI_Sendrecv(&veng,1,MPI_DOUBLE,procprev,0,
-		 &vnext,1,MPI_DOUBLE,procnext,0,uworld,&status);
+    MPI_Recv(&vnext,1,MPI_DOUBLE,procnext,0,uworld,&status);
 
   // xprev,xnext = atom coords of adjacent replicas
   // assume order of atoms in all replicas is the same
@@ -157,12 +158,17 @@ void FixNEB::min_post_force(int vflag)
   int nlocal = atom->nlocal;
   if (nlocal != nebatoms) error->one("Atom count changed in fix neb");
 
-  if (ireplica < nreplica-1)
-    MPI_Sendrecv(x[0],3*nlocal,MPI_DOUBLE,procnext,0,
-		 xprev[0],3*nlocal,MPI_DOUBLE,procprev,0,uworld,&status);
   if (ireplica > 0)
-    MPI_Sendrecv(x[0],3*nlocal,MPI_DOUBLE,procprev,0,
-		 xnext[0],3*nlocal,MPI_DOUBLE,procnext,0,uworld,&status);
+    MPI_Irecv(xprev[0],3*nlocal,MPI_DOUBLE,procprev,0,uworld,&request);
+  if (ireplica < nreplica-1)
+    MPI_Send(x[0],3*nlocal,MPI_DOUBLE,procnext,0,uworld);
+  if (ireplica > 0) MPI_Wait(&request,&status);
+
+  if (ireplica < nreplica-1)
+    MPI_Irecv(xnext[0],3*nlocal,MPI_DOUBLE,procnext,0,uworld,&request);
+  if (ireplica > 0)
+    MPI_Send(x[0],3*nlocal,MPI_DOUBLE,procprev,0,uworld);
+  if (ireplica < nreplica-1) MPI_Wait(&request,&status);
 
   // trigger potential energy computation on next timestep
 

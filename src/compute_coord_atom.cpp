@@ -132,7 +132,7 @@ void ComputeCoordAtom::compute_peratom()
       n = 0;
       for (jj = 0; jj < jnum; jj++) {
 	j = jlist[jj];
-	if (j >= nall) j %= nall;
+	j &= NEIGHMASK;
 
 	delx = xtmp - x[j][0];
 	dely = ytmp - x[j][1];

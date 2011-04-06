@@ -57,6 +57,8 @@ OBJS = $(OBJ_DIR)/pair_gpu_atom.o $(OBJ_DIR)/pair_gpu_ans.o \
        $(OBJ_DIR)/cmm_cut_gpu_memory.o $(OBJ_DIR)/cmm_cut_gpu.o \
        $(OBJ_DIR)/cmmc_long_gpu_memory.o $(OBJ_DIR)/cmmc_long_gpu.o \
        $(OBJ_DIR)/cmmc_msm_gpu_memory.o $(OBJ_DIR)/cmmc_msm_gpu.o \
+       $(OBJ_DIR)/charge_gpu_memory2.o \
+       $(OBJ_DIR)/crml_gpu_memory2.o $(OBJ_DIR)/crml_gpu2.o \
        $(CUDPP)
 PTXS = $(OBJ_DIR)/pair_gpu_dev_kernel.ptx \
        $(OBJ_DIR)/pair_gpu_atom_kernel.ptx $(OBJ_DIR)/pair_gpu_atom_ptx.h \
@@ -75,7 +77,8 @@ PTXS = $(OBJ_DIR)/pair_gpu_dev_kernel.ptx \
        $(OBJ_DIR)/crml_gpu_kernel.ptx $(OBJ_DIR)/crml_gpu_ptx.h \
        $(OBJ_DIR)/cmm_cut_gpu_kernel.ptx $(OBJ_DIR)/cmm_cut_gpu_ptx.h \
        $(OBJ_DIR)/cmmc_long_gpu_kernel.ptx $(OBJ_DIR)/cmmc_long_gpu_ptx.h \
-       $(OBJ_DIR)/cmmc_msm_gpu_kernel.ptx $(OBJ_DIR)/cmmc_msm_gpu_ptx.h
+       $(OBJ_DIR)/cmmc_msm_gpu_kernel.ptx $(OBJ_DIR)/cmmc_msm_gpu_ptx.h \
+       $(OBJ_DIR)/crml_gpu_kernel2.ptx $(OBJ_DIR)/crml_gpu_ptx2.h
 
 all: $(GPU_LIB) $(EXECS)
 
@@ -297,6 +300,28 @@ $(OBJ_DIR)/cmmc_msm_gpu_memory.o: $(ALL_H) cmmc_msm_gpu_memory.h cmmc_msm_gpu_me
 
 $(OBJ_DIR)/cmmc_msm_gpu.o: $(ALL_H) cmmc_msm_gpu_memory.h cmmc_msm_gpu.cpp charge_gpu_memory.h
 	$(CUDR) -o $@ -c cmmc_msm_gpu.cpp -I$(OBJ_DIR)
+
+
+
+$(OBJ_DIR)/charge_gpu_memory2.o: $(ALL_H) charge_gpu_memory2.h charge_gpu_memory2.cpp
+	$(CUDR) -o $@ -c charge_gpu_memory2.cpp
+
+$(OBJ_DIR)/crml_gpu_kernel2.ptx: crml_gpu_kernel2.cu pair_gpu_precision.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ crml_gpu_kernel2.cu
+
+$(OBJ_DIR)/crml_gpu_ptx2.h: $(OBJ_DIR)/crml_gpu_kernel2.ptx $(OBJ_DIR)/crml_gpu_kernel2.ptx
+	$(BSH) ./geryon/file_to_cstr.sh $(OBJ_DIR)/crml_gpu_kernel2.ptx $(OBJ_DIR)/crml_gpu_ptx2.h
+
+$(OBJ_DIR)/crml_gpu_memory2.o: $(ALL_H) crml_gpu_memory2.h crml_gpu_memory2.cpp $(OBJ_DIR)/crml_gpu_ptx2.h $(OBJ_DIR)/charge_gpu_memory2.o
+	$(CUDR) -o $@ -c crml_gpu_memory2.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/crml_gpu2.o: $(ALL_H) crml_gpu_memory2.h crml_gpu2.cpp charge_gpu_memory2.h
+	$(CUDR) -o $@ -c crml_gpu2.cpp -I$(OBJ_DIR)
+
+
+
+
+
 
 $(BIN_DIR)/nvc_get_devices: ./geryon/ucl_get_devices.cpp $(NVC_H)
 	$(CUDR) -o $@ ./geryon/ucl_get_devices.cpp -DUCL_CUDART $(CUDA_LINK) 

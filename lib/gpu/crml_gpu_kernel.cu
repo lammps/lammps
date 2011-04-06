@@ -93,6 +93,10 @@ __inline float fetch_q(const int& i, const float *q)
 
 #endif
 
+#define SBBITS 30
+#define NEIGHMASK 0x3FFFFFFF
+__inline int sbmask(int j) { return j >> SBBITS & 3; }
+
 __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *lj1,
                           const int lj_types, 
                           __global numtyp *sp_lj_in, __global int *dev_nbor, 
@@ -142,14 +146,10 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *lj1,
       int j=*nbor;
 
       numtyp factor_lj, factor_coul;
-      if (j < nall) {
-        factor_lj = (numtyp)1.0;
-        factor_coul = (numtyp)0.0;
-      } else {
-        factor_lj = sp_lj[j/nall];
-        factor_coul = (numtyp)1.0-sp_lj[j/nall+4];
-        j %= nall;
-      }
+      factor_lj = sp_lj[sbmask(j)];
+      factor_coul = (numtyp)1.0-sp_lj[sbmask(j)+4];
+      j &= NEIGHMASK;
+
       numtyp4 jx=fetch_pos(j,x_); //x_[j];
       int jtype=jx.w;
 
@@ -238,8 +238,7 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *lj1,
   } // if ii
 }
 
-__kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp2 
-*ljd_in,
+__kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp2 *ljd_in,
                                __global numtyp* sp_lj_in, __global int *dev_nbor, 
                                __global acctyp4 *ans, __global acctyp *engv, 
                                const int eflag, const int vflag, const int inum, 
@@ -288,14 +287,10 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp2
       int j=*nbor;
 
       numtyp factor_lj, factor_coul;
-      if (j < nall) {
-        factor_lj = (numtyp)1.0;
-        factor_coul = (numtyp)0.0;
-      } else {
-        factor_lj = sp_lj[j/nall];
-        factor_coul = (numtyp)1.0-sp_lj[j/nall+4];
-        j %= nall;
-      }
+      factor_lj = sp_lj[sbmask(j)];
+      factor_coul = (numtyp)1.0-sp_lj[sbmask(j)+4];
+      j &= NEIGHMASK;
+
       numtyp4 jx=fetch_pos(j,x_); //x_[j];
       int jtype=jx.w;
 
@@ -390,175 +385,4 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp2
   } // if ii
 }
 
-#define PREFETCH_NUM 16
-
-__kernel void kernel_pair_fast2(__global numtyp4 *x_, __global numtyp2 
-*ljd_in,
-                               __global numtyp* sp_lj_in, __global int *dev_nbor, 
-                               __global acctyp4 *ans, __global acctyp *engv, 
-                               const int eflag, const int vflag, const int inum, 
-                               const int nall, const int nbor_pitch,
-                               __global numtyp *q_, const numtyp cut_coulsq, 
-                               const numtyp qqrd2e, const numtyp g_ewald,
-                               const numtyp denom_lj, const numtyp cut_bothsq, 
-                               const numtyp cut_ljsq,
-                               const numtyp cut_lj_innersq) {
-  // ii indexes the two interacting particles in gi
-  int ii=THREAD_ID_X;
-  __local numtyp2 ljd[MAX_BIO_SHARED_TYPES];
-  __local numtyp sp_lj[8];
-  if (ii<8)
-    sp_lj[ii]=sp_lj_in[ii];
-  ljd[ii]=ljd_in[ii];
-  ljd[ii+64]=ljd_in[ii+64];
-
-  ii+=mul24((int)BLOCK_ID_X,(int)BLOCK_SIZE_X);
-  __syncthreads();
-  
-  if (ii<inum) {
-  
-    acctyp energy=(acctyp)0;
-    acctyp e_coul=(acctyp)0;
-    acctyp4 f;
-    f.x=(acctyp)0;
-    f.y=(acctyp)0;
-    f.z=(acctyp)0;
-    acctyp virial[6];
-    for (int i=0; i<6; i++)
-      virial[i]=(acctyp)0;
-  
-    __global int *nbor=dev_nbor+ii;
-    int i=*nbor;
-    nbor+=nbor_pitch;
-    int numj=*nbor;
-    nbor+=nbor_pitch;
-    __global int *list_end=nbor+mul24(numj,nbor_pitch);
-  
-    numtyp4 ix=fetch_pos(i,x_); //x_[i];
-    numtyp qtmp=fetch_q(i,q_);
-    int itype=ix.w;
-
-    while ( nbor<list_end ) {
-      numtyp4 jx[PREFETCH_NUM];
-      int prej[PREFETCH_NUM];
-      int fetch_count=0;
-      for (int pi=0; pi<PREFETCH_NUM; pi++) {
-        if (nbor<list_end) {
-          fetch_count++;
-          int j=*nbor;
-          prej[pi]=j;
-          if (j>=nall)
-            j%=nall;
-          jx[pi]=fetch_pos(j,x_); //x_[j];
-          nbor+=nbor_pitch;
-        }
-      }
-      
-      for (int pi=0; pi<fetch_count; pi++) {
-        int j=prej[pi];
-        numtyp factor_lj, factor_coul;
-        if (j < nall) {
-          factor_lj = (numtyp)1.0;
-          factor_coul = (numtyp)0.0;
-        } else {
-          factor_lj = sp_lj[j/nall];
-          factor_coul = (numtyp)1.0-sp_lj[j/nall+4];
-          j %= nall;
-        }
-
-        int jtype=jx[pi].w;
-
-        // Compute r12
-        numtyp delx = ix.x-jx[pi].x;
-        numtyp dely = ix.y-jx[pi].y;
-        numtyp delz = ix.z-jx[pi].z;
-        numtyp rsq = delx*delx+dely*dely+delz*delz;
-
-        if (rsq<cut_bothsq) {
-          numtyp r2inv=(numtyp)1.0/rsq;
-          numtyp forcecoul, force_lj, force, prefactor, _erfc, switch1;
-          numtyp lj3, lj4;
-
-          if (rsq < cut_ljsq) {
-            numtyp eps = sqrt(ljd[itype].x*ljd[jtype].x);
-            numtyp sig6 = (numtyp)0.5 * (ljd[itype].y+ljd[jtype].y);
-
-            numtyp sig_r_6 = sig6*sig6*r2inv;
-            sig_r_6 = sig_r_6*sig_r_6*sig_r_6;
-            lj4 = (numtyp)4.0*eps*sig_r_6;
-            lj3 = lj4*sig_r_6;
-            force_lj = factor_lj*((numtyp)12.0 * lj3 - (numtyp)6.0 * lj4);
-            if (rsq > cut_lj_innersq) {
-              switch1 = (cut_ljsq-rsq);
-              numtyp switch2 = (numtyp)12.0*rsq*switch1*(rsq-cut_lj_innersq)/ 
-                               denom_lj;
-              switch1 *= switch1;
-              switch1 *= (cut_ljsq+(numtyp)2.0*rsq-(numtyp)3.0*cut_lj_innersq)/
-                         denom_lj;
-              switch2 *= lj3-lj4;
-              force_lj = force_lj*switch1+switch2;
-            }
-          } else
-            force_lj = (numtyp)0.0;
-
-          if (rsq < cut_coulsq) {
-            numtyp r = sqrt(rsq);
-            numtyp grij = g_ewald * r;
-            numtyp expm2 = exp(-grij*grij);
-            numtyp t = (numtyp)1.0 / ((numtyp)1.0 + EWALD_P*grij);
-            _erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
-            prefactor = qqrd2e * qtmp*fetch_q(j,q_)/r;
-            forcecoul = prefactor * (_erfc + EWALD_F*grij*expm2-factor_coul);
-          } else {
-            forcecoul = (numtyp)0.0;
-            prefactor = (numtyp)0.0;
-          }
-
-          force = (force_lj + forcecoul) * r2inv;
-
-          f.x+=delx*force;
-          f.y+=dely*force;
-          f.z+=delz*force;
-
-          if (eflag>0) {
-            e_coul += prefactor*(_erfc-factor_coul);
-            if (rsq < cut_ljsq) {
-              numtyp e=lj3-lj4;
-              if (rsq > cut_lj_innersq)
-                e *= switch1;
-              energy+=factor_lj*e;
-            }
-          }
-          if (vflag>0) {
-            virial[0] += delx*delx*force;
-            virial[1] += dely*dely*force;
-            virial[2] += delz*delz*force;
-            virial[3] += delx*dely*force;
-            virial[4] += delx*delz*force;
-            virial[5] += dely*delz*force;
-          }
-        }
-      }
-
-    } // for nbor
-
-    // Store answers
-    __global acctyp *ap1=engv+ii;
-    if (eflag>0) {
-      *ap1=energy;
-      ap1+=inum;
-      *ap1=e_coul;
-      ap1+=inum;
-    }
-    if (vflag>0) {
-      for (int i=0; i<6; i++) {
-        *ap1=virial[i];
-        ap1+=inum;
-      }
-    }
-    ans[ii]=f;
-  } // if ii
-}
-
 #endif
-

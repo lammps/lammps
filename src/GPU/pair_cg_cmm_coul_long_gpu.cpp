@@ -239,13 +239,9 @@ void PairCGCMMCoulLongGPU::cpu_compute(int start, int inum, int eflag,
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-
-      if (j < nall) factor_coul = factor_lj = 1.0;
-      else {
-	factor_coul = special_coul[j/nall];
-	factor_lj = special_lj[j/nall];
-	j %= nall;
-      }
+      factor_lj = special_lj[sbmask(j)];
+      factor_coul = special_coul[sbmask(j)];
+      j &= NEIGHMASK;
 
       const double delx = xtmp - x[j][0];
       const double dely = ytmp - x[j][1];

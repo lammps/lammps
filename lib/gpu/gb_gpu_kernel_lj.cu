@@ -22,6 +22,10 @@
 #include "gb_gpu_extra.h"
 #endif
 
+#define SBBITS 30
+#define NEIGHMASK 0x3FFFFFFF
+__inline int sbmask(int j) { return j >> SBBITS & 3; }
+
 __kernel void kernel_sphere_gb(__global numtyp4 *x_,__global numtyp4 *q,
                                __global numtyp4* shape,__global numtyp4* well, 
                                __global numtyp *gum, __global numtyp2* sig_eps, 
@@ -68,12 +72,9 @@ __kernel void kernel_sphere_gb(__global numtyp4 *x_,__global numtyp4 *q,
     for ( ; nbor<nbor_end; nbor+=stride) {
   
       int j=*nbor;
-      if (j < nall) 
-        factor_lj = (numtyp)1.0;
-      else {
-        factor_lj = sp_lj[j/nall];
-        j %= nall;
-      }
+      factor_lj = sp_lj[sbmask(j)];
+      j &= NEIGHMASK;
+
       numtyp4 jx=x_[j];
       int jtype=jx.w;
 
@@ -299,12 +300,9 @@ __kernel void kernel_lj(__global numtyp4 *x_, __global numtyp4 *lj1,
     for ( ; nbor<list_end; nbor+=stride) {
   
       int j=*nbor;
-      if (j < nall) 
-        factor_lj = (numtyp)1.0;
-      else {
-        factor_lj = sp_lj[j/nall];
-        j %= nall;
-      }
+      factor_lj = sp_lj[sbmask(j)];
+      j &= NEIGHMASK;
+
       numtyp4 jx=x_[j];
       int jtype=jx.w;
 
@@ -409,12 +407,9 @@ __kernel void kernel_lj_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
     for ( ; nbor<list_end; nbor+=stride) {
   
       int j=*nbor;
-      if (j < nall) 
-        factor_lj = (numtyp)1.0;
-      else {
-        factor_lj = sp_lj[j/nall];
-        j %= nall;
-      }
+      factor_lj = sp_lj[sbmask(j)];
+      j &= NEIGHMASK;
+
       numtyp4 jx=x_[j];
       int mtype=itype+jx.w;
 

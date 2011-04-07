@@ -127,7 +127,7 @@ double CRML_GPU_Memory2T::host_memory_usage() const {
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
 void CRML_GPU_Memory2T::loop(const bool _eflag, const bool _vflag) {
-  const int threads_per_atom=32;
+  const int threads_per_atom=16;
 
   // Compute the block size and grid size to keep all cores busy
   const int BX=this->block_size();

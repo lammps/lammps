@@ -280,6 +280,7 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp2 *ljd_in,
   f[tid].z=(acctyp)0;
   for (int o=0; o<6; o++)
     virial[tid][o]=(acctyp)0;
+  __syncthreads();
   
   if (ii<inum) {
     nbor=dev_nbor+ii;
@@ -293,7 +294,6 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp2 *ljd_in,
     qtmp=fetch_q(i,q_);
     itype=ix.w;
   }
-  __syncthreads();
 
   if (ii<inum) {
     for (int jj=offset; jj<numj; jj+=t_per_atom) {
@@ -409,7 +409,7 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp2 *ljd_in,
     }
     if (vflag>0) {
       for (int v=0; v<6; v++) {
-        *ap1=virial[tid][i];
+        *ap1=virial[tid][v];
         ap1+=inum;
       }
     }

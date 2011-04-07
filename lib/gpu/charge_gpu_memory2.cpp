@@ -25,6 +25,7 @@ ChargeGPUMemory2T::ChargeGPUMemory2() : _compiled(false), _max_bytes(0) {
   device=&pair_gpu_device;
   ans=new PairGPUAns<numtyp,acctyp>();
   nbor=new PairGPUNbor();
+  nbor->packing(true);
 }
 
 template <class numtyp, class acctyp>

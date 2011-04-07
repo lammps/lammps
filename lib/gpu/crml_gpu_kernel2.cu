@@ -240,6 +240,7 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *lj1,
 
 __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp2 *ljd_in,
                                __global numtyp* sp_lj_in, __global int *dev_nbor, 
+                               __global int *dev_list,
                                __global acctyp4 *ans, __global acctyp *engv, 
                                const int eflag, const int vflag, const int inum, 
                                const int nall, const int nbor_pitch,
@@ -247,44 +248,56 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp2 *ljd_in,
                                const numtyp qqrd2e, const numtyp g_ewald,
                                const numtyp denom_lj, const numtyp cut_bothsq, 
                                const numtyp cut_ljsq,
-                               const numtyp cut_lj_innersq) {
-  // ii indexes the two interacting particles in gi
-  int ii=THREAD_ID_X;
+                               const numtyp cut_lj_innersq, 
+                               const int t_per_atom) {
+  int tid=THREAD_ID_X;
   __local numtyp2 ljd[MAX_BIO_SHARED_TYPES];
   __local numtyp sp_lj[8];
-  if (ii<8)
-    sp_lj[ii]=sp_lj_in[ii];
-  ljd[ii]=ljd_in[ii];
-  ljd[ii+64]=ljd_in[ii+64];
 
-  ii+=mul24((int)BLOCK_ID_X,(int)BLOCK_SIZE_X);
-  __syncthreads();
+  __local acctyp energy[64];
+  __local acctyp e_coul[64];
+  __local acctyp4 f[64];
+  __local acctyp virial[64][6];
+
+  __global int *nbor;
+  numtyp4 ix;
+  numtyp qtmp;
+  int i, numj, itype;
+  
+  if (tid<8)
+    sp_lj[tid]=sp_lj_in[tid];
+  ljd[tid]=ljd_in[tid];
+  ljd[tid+64]=ljd_in[tid+64];
+
+  int ii=mul24((int)BLOCK_ID_X,(int)(BLOCK_SIZE_X)/t_per_atom);
+  ii+=tid/t_per_atom;
+  int offset=tid%t_per_atom;
+  
+  energy[tid]=(acctyp)0;
+  e_coul[tid]=(acctyp)0;
+  f[tid].x=(acctyp)0;
+  f[tid].y=(acctyp)0;
+  f[tid].z=(acctyp)0;
+  for (int o=0; o<6; o++)
+    virial[tid][o]=(acctyp)0;
   
   if (ii<inum) {
-  
-    acctyp energy=(acctyp)0;
-    acctyp e_coul=(acctyp)0;
-    acctyp4 f;
-    f.x=(acctyp)0;
-    f.y=(acctyp)0;
-    f.z=(acctyp)0;
-    acctyp virial[6];
-    for (int i=0; i<6; i++)
-      virial[i]=(acctyp)0;
-  
-    __global int *nbor=dev_nbor+ii;
-    int i=*nbor;
+    nbor=dev_nbor+ii;
+    i=*nbor;
     nbor+=nbor_pitch;
-    int numj=*nbor;
+    numj=*nbor;
     nbor+=nbor_pitch;
-    __global int *list_end=nbor+mul24(numj,nbor_pitch);
+    nbor=dev_list+*nbor;
   
-    numtyp4 ix=fetch_pos(i,x_); //x_[i];
-    numtyp qtmp=fetch_q(i,q_);
-    int itype=ix.w;
+    ix=fetch_pos(i,x_); //x_[i];
+    qtmp=fetch_q(i,q_);
+    itype=ix.w;
+  }
+  __syncthreads();
 
-    for ( ; nbor<list_end; nbor+=nbor_pitch) {
-      int j=*nbor;
+  if (ii<inum) {
+    for (int jj=offset; jj<numj; jj+=t_per_atom) {
+      int j=nbor[jj];
 
       numtyp factor_lj, factor_coul;
       factor_lj = sp_lj[sbmask(j)];
@@ -342,47 +355,66 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp2 *ljd_in,
 
         force = (force_lj + forcecoul) * r2inv;
 
-        f.x+=delx*force;
-        f.y+=dely*force;
-        f.z+=delz*force;
+        f[tid].x+=delx*force;
+        f[tid].y+=dely*force;
+        f[tid].z+=delz*force;
 
         if (eflag>0) {
-          e_coul += prefactor*(_erfc-factor_coul);
+          e_coul[tid] += prefactor*(_erfc-factor_coul);
           if (rsq < cut_ljsq) {
             numtyp e=lj3-lj4;
             if (rsq > cut_lj_innersq)
               e *= switch1;
-            energy+=factor_lj*e;
+            energy[tid]+=factor_lj*e;
           }
         }
         if (vflag>0) {
-          virial[0] += delx*delx*force;
-          virial[1] += dely*dely*force;
-          virial[2] += delz*delz*force;
-          virial[3] += delx*dely*force;
-          virial[4] += delx*delz*force;
-          virial[5] += dely*delz*force;
+          virial[tid][0] += delx*delx*force;
+          virial[tid][1] += dely*dely*force;
+          virial[tid][2] += delz*delz*force;
+          virial[tid][3] += delx*dely*force;
+          virial[tid][4] += delx*delz*force;
+          virial[tid][5] += dely*delz*force;
         }
       }
 
     } // for nbor
+  } // if ii
 
-    // Store answers
-    __global acctyp *ap1=engv+ii;
+  // Reduce answers
+  for (unsigned int s=t_per_atom/2; s>0; s>>=1) {
+    if (offset < s) {
+      f[tid].x += f[tid+s].x;
+      f[tid].y += f[tid+s].y;
+      f[tid].z += f[tid+s].z;
+      energy[tid] += energy[tid+s];
+      e_coul[tid] += e_coul[tid+s];
+      virial[tid][0] += virial[tid+s][0];
+      virial[tid][1] += virial[tid+s][1];
+      virial[tid][2] += virial[tid+s][2];
+      virial[tid][3] += virial[tid+s][3];
+      virial[tid][4] += virial[tid+s][4];
+      virial[tid][5] += virial[tid+s][5];
+    }
+  }
+
+  // Store answers
+  __global acctyp *ap1=engv+ii;
+  if (ii<inum && offset==0) {
     if (eflag>0) {
-      *ap1=energy;
+      *ap1=energy[tid];
       ap1+=inum;
-      *ap1=e_coul;
+      *ap1=e_coul[tid];
       ap1+=inum;
     }
     if (vflag>0) {
-      for (int i=0; i<6; i++) {
-        *ap1=virial[i];
+      for (int v=0; v<6; v++) {
+        *ap1=virial[tid][i];
         ap1+=inum;
       }
     }
-    ans[ii]=f;
-  } // if ii
+    ans[ii]=f[tid];
+  }
 }
 
 #endif

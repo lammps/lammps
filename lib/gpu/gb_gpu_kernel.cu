@@ -22,6 +22,10 @@
 #include "gb_gpu_extra.h"
 #endif
 
+#define SBBITS 30
+#define NEIGHMASK 0x3FFFFFFF
+__inline int sbmask(int j) { return j >> SBBITS & 3; }
+
 __inline void compute_eta_torque(numtyp m[9],numtyp m2[9], const numtyp4 shape, 
                                  numtyp ans[9])
 {
@@ -142,12 +146,9 @@ __kernel void kernel_gayberne(__global numtyp4* x_,__global numtyp4 *q,
   for ( ; nbor<nbor_end; nbor+=stride) {
 
   int j=*nbor;
-  if (j < nall) 
-    factor_lj = (numtyp)1.0;
-  else {
-    factor_lj = sp_lj[j/nall];
-    j %= nall;
-  }
+  factor_lj = sp_lj[sbmask(j)];
+  j &= NEIGHMASK;
+
   numtyp4 jx=x_[j];
   int jtype=jx.w;
 

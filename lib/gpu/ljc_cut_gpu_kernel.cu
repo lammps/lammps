@@ -85,6 +85,10 @@ __inline float fetch_q(const int& i, const float *q)
 
 #endif
 
+#define SBBITS 30
+#define NEIGHMASK 0x3FFFFFFF
+__inline int sbmask(int j) { return j >> SBBITS & 3; }
+
 __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *lj1,
                           __global numtyp4* lj3, const int lj_types, 
                           __global numtyp *sp_lj_in, __global int *dev_nbor, 
@@ -131,14 +135,10 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *lj1,
       int j=*nbor;
 
       numtyp factor_lj, factor_coul;
-      if (j < nall) {
-        factor_lj = (numtyp)1.0;
-        factor_coul = (numtyp)1.0;
-      } else {
-        factor_lj = sp_lj[j/nall];
-        factor_coul = sp_lj[j/nall+4];
-        j %= nall;
-      }
+      factor_lj = sp_lj[sbmask(j)];
+      factor_coul = sp_lj[sbmask(j)+4];
+      j &= NEIGHMASK;
+
       numtyp4 jx=fetch_pos(j,x_); //x_[j];
       int jtype=jx.w;
 
@@ -260,14 +260,10 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
       int j=*nbor;
 
       numtyp factor_lj, factor_coul;
-      if (j < nall) {
-        factor_lj = (numtyp)1.0;
-        factor_coul = (numtyp)1.0;
-      } else {
-        factor_lj = sp_lj[j/nall];
-        factor_coul = sp_lj[j/nall+4];
-        j %= nall;
-      }
+      factor_lj = sp_lj[sbmask(j)];
+      factor_coul = sp_lj[sbmask(j)+4];
+      j &= NEIGHMASK;
+
       numtyp4 jx=fetch_pos(j,x_); //x_[j];
       int mtype=itype+jx.w;
 

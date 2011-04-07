@@ -57,6 +57,8 @@ __inline float4 fetch_pos(const int& i, const float4 *pos)
 #define CELL_BLOCK_SIZE 64
 #define BLOCK_2D 8
 
+#define SBBITS 30
+
 __kernel void transpose(int *out, int *in, int columns_in, int rows_in)
 {
 	__local float block[BLOCK_2D][BLOCK_2D+1];
@@ -279,16 +281,16 @@ __kernel void kernel_special(__global int *dev_nbor,
       int offset=ii;
       for (int i=0; i<n3; i++) {
         if (special[offset]==jtag) {
-          nbor+=nall;
+          int which = 1;
           if (i>=n1)
-            nbor+=nall;
+            which++;
           if (i>=n2)
-            nbor+=nall;
+            which++;
+          nbor=nbor ^ (which << SBBITS);
+          *list=nbor;
         }
         offset+=nt;
       }
-      if (nbor>=nall)
-        *list=nbor;
     }
   } // if ii
 }

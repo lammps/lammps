@@ -75,6 +75,10 @@ __inline float4 fetch_pos(const int& i, const float4 *pos)
 
 #endif
 
+#define SBBITS 30
+#define NEIGHMASK 0x3FFFFFFF
+__inline int sbmask(int j) { return j >> SBBITS & 3; }
+
 __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *lj1,
                           __global numtyp4* lj3, const int lj_types, 
                           __global numtyp *sp_lj_in, __global int *dev_nbor, 
@@ -114,12 +118,9 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *lj1,
     for ( ; nbor<list_end; nbor+=nbor_pitch) {
   
       int j=*nbor;
-      if (j < nall) 
-        factor_lj = (numtyp)1.0;
-      else {
-        factor_lj = sp_lj[j/nall];
-        j %= nall;
-      }
+      factor_lj = sp_lj[sbmask(j)];
+      j &= NEIGHMASK;
+
       numtyp4 jx=fetch_pos(j,x_); //x_[j];
       int jtype=jx.w;
 
@@ -227,12 +228,9 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
     for ( ; nbor<list_end; nbor+=nbor_pitch) {
   
       int j=*nbor;
-      if (j < nall) 
-        factor_lj = (numtyp)1.0;
-      else {
-        factor_lj = sp_lj[j/nall];
-        j %= nall;
-      }
+      factor_lj = sp_lj[sbmask(j)];
+      j &= NEIGHMASK;
+
       numtyp4 jx=fetch_pos(j,x_); //x_[j];
       int mtype=itype+jx.w;
 

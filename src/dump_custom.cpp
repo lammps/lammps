@@ -263,6 +263,7 @@ void DumpCustom::header_binary(bigint ndump)
   fwrite(&update->ntimestep,sizeof(bigint),1,fp);
   fwrite(&ndump,sizeof(bigint),1,fp);
   fwrite(&domain->triclinic,sizeof(int),1,fp);
+  fwrite(&domain->boundary[0][0],6*sizeof(int),1,fp);
   fwrite(&boxxlo,sizeof(double),1,fp);
   fwrite(&boxxhi,sizeof(double),1,fp);
   fwrite(&boxylo,sizeof(double),1,fp);
@@ -283,6 +284,7 @@ void DumpCustom::header_binary_triclinic(bigint ndump)
   fwrite(&update->ntimestep,sizeof(bigint),1,fp);
   fwrite(&ndump,sizeof(bigint),1,fp);
   fwrite(&domain->triclinic,sizeof(int),1,fp);
+  fwrite(&domain->boundary[0][0],6*sizeof(int),1,fp);
   fwrite(&boxxlo,sizeof(double),1,fp);
   fwrite(&boxxhi,sizeof(double),1,fp);
   fwrite(&boxylo,sizeof(double),1,fp);

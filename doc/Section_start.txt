@@ -78,13 +78,13 @@ This section has the following sub-sections:
 
 Building LAMMPS can be non-trivial.  You will likely need to edit a
 makefile, there are compiler options, additional libraries can be used
-(MPI, FFT), etc.  Please read this section carefully.  If you are not
-comfortable with makefiles, or building codes on a Unix platform, or
-running an MPI job on your machine, please find a local expert to help
-you.  Many compiling, linking, and run problems that users are not
-really LAMMPS issues - they are peculiar to the user's system,
-compilers, libraries, etc.  Such questions are better answered by a
-local expert.
+(MPI, FFT, JPEG), etc.  Please read this section carefully.  If you
+are not comfortable with makefiles, or building codes on a Unix
+platform, or running an MPI job on your machine, please find a local
+expert to help you.  Many compiling, linking, and run problems that
+users are not really LAMMPS issues - they are peculiar to the user's
+system, compilers, libraries, etc.  Such questions are better answered
+by a local expert.
 
 If you have a build problem that you are convinced is a LAMMPS issue
 (e.g. the compiler complains about a line of LAMMPS source code), then
@@ -191,17 +191,37 @@ which uses different rules that do not involve dependency files.
 (3) The "system-specific settings" section has 4 parts.
 
 (3.a) The LMP_INC variable is used to include options that turn on
-system-dependent ifdefs within the LAMMPS code.
+system-dependent ifdefs within the LAMMPS code.  The settings
+that are currently recogized are:
+
+-DLAMMPS_GZIP
+-DPACK_ARRAY
+-DPACK_POINTER
+-DPACK_MEMCPY
+-DLAMMPS_XDR
+-DLAMMPS_JPEG :ul
 
 The read_data and dump commands will read/write gzipped files if you
 compile with -DLAMMPS_GZIP.  It requires that your Unix support the
-"popen" command.  Using one of the -DPACK_ARRAY, -DPACK_POINTER, and
--DPACK_MEMCPY options can make for faster parallel FFTs (in the PPPM
-solver) on some platforms.  The -DPACK_ARRAY setting is the default.
+"popen" command.
+
+Using one of the -DPACK_ARRAY, -DPACK_POINTER, and -DPACK_MEMCPY
+options can make for faster parallel FFTs (in the PPPM solver) on some
+platforms.  The -DPACK_ARRAY setting is the default.  See the
+"kspace_style"_kspace_style.html command for info about PPPM.  See
+section (3.c) below for info about building LAMMPS with an FFT
+library.
+
 If you use -DLAMMPS_XDR, the build will include XDR compatibility
 files for doing particle dumps in XTC format.  This is only necessary
 if your platform does have its own XDR files available.  See the
 Restrictions section of the "dump"_dump.html command for details.
+
+If you use -DLAMMPS_JPEG, the "dump image"_dump.html command will be
+able to write out JPEG image files.  If not, it will only be able to
+write out PPM image files.  For JPEG files, you must also link LAMMPS
+with a JPEG library.  See section (3.d) below for more details on
+this.
 
 (3.b) The 3 MPI variables are used to specify an MPI library to build
 LAMMPS with.
@@ -214,19 +234,20 @@ need to specify where the mpi.h file (MPI_INC) and the MPI library
 (MPI_PATH) is found and its name (MPI_LIB).
 
 If you are installing MPI yourself, we recommend Argonne's MPICH 1.2
-or 2.0 which can be downloaded from the "Argonne MPI
-site"_http://www-unix.mcs.anl.gov/mpi.  LAM MPI should also work.  If
+or 2.0 or OpenMPI.  MPICH can be downloaded from the "Argonne MPI
+site"_http://www-unix.mcs.anl.gov/mpi.  OpenMPI can be downloaded the
+"OpenMPI site"_http://www.open-mpi.org.  LAM MPI should also work.  If
 you are running on a big parallel platform, your system people or the
 vendor should have already installed a version of MPI, which will be
-faster than MPICH or LAM, so find out how to build and link with it.
-If you use MPICH or LAM, you will have to configure and build it for
-your platform.  The MPI configure script should have compiler options
-to enable you to use the same compiler you are using for the LAMMPS
-build, which can avoid problems that can arise when linking LAMMPS to
-the MPI library.
+faster than MPICH or OpenMPI or LAM, so find out how to build and link
+with it.  If you use MPICH or OpenMPI or LAM, you will have to
+configure and build it for your platform.  The MPI configure script
+should have compiler options to enable you to use the same compiler
+you are using for the LAMMPS build, which can avoid problems that can
+arise when linking LAMMPS to the MPI library.
 
 If you just want LAMMPS to run on a single processor, you can use the
-STUBS library in place of MPI, since you don't need an MPI library
+STUBS library in place of MPI, since you don't need a true MPI library
 installed on your system.  See the Makefile.serial file for how to
 specify the 3 MPI variables.  You will also need to build the STUBS
 library for your platform before making LAMMPS itself.  From the STUBS
@@ -254,7 +275,7 @@ should work on any platform.  You can download it from
 3.0.X.  Building FFTW for your box should be as simple as ./configure;
 make.  Whichever FFT library you have on your platform, you'll need to
 set the appropriate FFT_INC, FFT_PATH, and FFT_LIB variables in
-Makefile.foo.
+Makefile.foo, so the compiler and linker can find it.
 
 If you examine src/fft3d.c and src.fft3d.h you'll see it's possible to
 add other vendor FFT libraries via #ifdef statements in the
@@ -267,7 +288,18 @@ case you can set FFT_INC to -DFFT_NONE and leave the other 2 FFT
 variables blank.  Or you can exclude the KSPACE package when you build
 LAMMPS (see below).
 
-(3.d) The several SYSLIB and SYSPATH variables can be ignored unless
+(3.d) The 3 JPG variables are used to specify a JPEG library which
+LAMMPS uses when writing a JPEG file via the "dump
+image"_dump_image.html command.  These can be left blank if you are
+not using the -DLAMMPS_JPEG switch discussed above in section (3.a).
+
+A standard JPEG library usually goes by the name libjpeg.a and has an
+associated header file jpeglib.h.  Whichever JPEG library you have on
+your platform, you'll need to set the appropriate JPG_INC, JPG_PATH,
+and JPG_LIB variables in Makefile.foo so that the compiler and linker
+can find it.
+
+(3.e) The several SYSLIB and SYSPATH variables can be ignored unless
 you are building LAMMPS with one or more of the LAMMPS packages that
 require these extra system libraries.  The names of these packages are
 the prefixes on the SYSLIB and SYSPATH variables.  See the "section

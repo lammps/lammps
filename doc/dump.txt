@@ -7,6 +7,7 @@
 :line
    
 dump command :h3
+"dump image"_dump_image.html command :h3
 
 [Syntax:]
 
@@ -14,7 +15,7 @@ dump ID group-ID style N file args :pre
 
 ID = user-assigned name for the dump :ulb,l
 group-ID = ID of the group of atoms to be dumped :l
-style = {atom} or {cfg} or {dcd} or {xtc} or {xyz} or {local} or {custom} :l
+style = {atom} or {cfg} or {dcd} or {xtc} or {xyz} or {image} or {local} or {custom} :l
 N = dump every this many timesteps :l
 file = name of file to write dump info to :l
 args = list of arguments for a particular style :l
@@ -24,6 +25,8 @@ args = list of arguments for a particular style :l
   {xtc} args = none
   {xyz} args = none :pre
 
+  {image} args = discussed on "dump image"_dump_image.html doc page :pre
+
   {local} args = list of local attributes
     possible attributes = index, c_ID, c_ID\[N\], f_ID, f_ID\[N\]
       index = enumeration of local values
@@ -31,7 +34,7 @@ args = list of arguments for a particular style :l
       c_ID\[N\] = Nth column of local array calculated by a compute with ID
       f_ID = local vector calculated by a fix with ID
       f_ID\[N\] = Nth column of local array calculated by a fix with ID :pre
-      
+
   {custom} args = list of atom attributes
     possible attributes = id, mol, type, mass,
 			  x, y, z, xs, ys, zs, xu, yu, zu, ix, iy, iz,
@@ -85,13 +88,19 @@ dump e_data all custom 100 dump.eff id type x y z spin eradius fx fy fz eforce :
 [Description:]
 
 Dump a snapshot of atom quantities to one or more files every N
-timesteps in one of several styles.  As described below, the filename
-determines the kind of output (text or binary or gzipped, one big file
-or one per timestep, one big file or one per processor).  Only
-information for atoms in the specified group is dumped.  The
-"dump_modify"_dump_modify.html command can also alter what atoms are
-included.  Not all styles support all these options; see details
-below.
+timesteps in one of several styles.  The {image} style is the
+exception; it creates a JPG or PPM image file of the atom
+configuration every N timesteps, as discussed on the "dump
+image"_dump_image.html doc page.
+
+Only information for atoms in the specified group is dumped.  The
+"dump_modify thresh and region"_dump_modify.html commands can also
+alter what atoms are included.  Not all styles support all these
+options; see details below.
+
+As described below, the filename determines the kind of output (text
+or binary or gzipped, one big file or one per timestep, one big file
+or one per processor).
 
 IMPORTANT NOTE: Because periodic boundary conditions are enforced only
 on timesteps when neighbor lists are rebuilt, the coordinates of an
@@ -132,20 +141,25 @@ self-describing in the following sense.
 The dimensions of the simulation box are included in each snapshot.
 For an orthogonal simulation box this information is is formatted as:
 
-ITEM: BOX BOUNDS
+ITEM: BOX BOUNDS xx yy zz
 xlo xhi
 ylo yhi
 zlo zhi :pre
 
 where xlo,xhi are the maximum extents of the simulation box in the
-x-dimension, and similarly for y and z.
+x-dimension, and similarly for y and z.  The "xx yy zz" represent 6
+characters that encode the style of boundary for each of the 6
+simulation box boundaries (xlo,xhi and ylo,yhi and zlo,zhi).  Each
+flag is either p = periodic, f = fixed, s = shrink wrap, or m = shrink
+wrapped with a minimum value.  See the "boundary"_doc/boundary.html
+command for details.
 
 For triclinic simulation boxes (non-orthogonal), an orthogonal
 bounding box which encloses the triclinic simulation box is output,
 along with the 3 tilt factors (xy, xz, yz) of the triclinic box,
 formatted as follows:
 
-ITEM: BOX BOUNDS xy xz yz
+ITEM: BOX BOUNDS xx yy zz xy xz yz
 xlo_bound xhi_bound xy
 ylo_bound yhi_bound xz
 zlo_bound zhi_bound yz :pre
@@ -271,7 +285,10 @@ character appears in the filename, then one file per snapshot is
 written and the "*" character is replaced with the timestep value.
 For example, tmp.dump.* becomes tmp.dump.0, tmp.dump.10000,
 tmp.dump.20000, etc.  This option is not available for the {dcd} and
-{xtc} styles.
+{xtc} styles.  Note that the "dump_modify pad"_dump_modify.html
+command can be used to insure all timestep numbers are the same length
+(e.g. 00010), which can make it easier to read a series of dump files
+in order by some post-processing tools.
 
 If a "%" character appears in the filename, then one file is written
 for each processor and the "%" character is replaced with the
@@ -480,6 +497,10 @@ should also work on IBM BG/P, and Windows XP/Vista/7 machines.
 
 [Related commands:]
 
-"dump_modify"_dump_modify.html, "undump"_undump.html
+"dump image"_dump_image.html, "dump_modify"_dump_modify.html,
+"undump"_undump.html
 
-[Default:] none
+[Default:]
+
+The defaults for the image style are listed on the "dump
+image"_dump_image.html doc page.

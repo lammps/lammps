@@ -11,6 +11,8 @@
 
 <H3>dump command 
 </H3>
+<H3><A HREF = "dump_image.html">dump image</A> command 
+</H3>
 <P><B>Syntax:</B>
 </P>
 <PRE>dump ID group-ID style N file args 
@@ -19,7 +21,7 @@
 
 <LI>group-ID = ID of the group of atoms to be dumped 
 
-<LI>style = <I>atom</I> or <I>cfg</I> or <I>dcd</I> or <I>xtc</I> or <I>xyz</I> or <I>local</I> or <I>custom</I> 
+<LI>style = <I>atom</I> or <I>cfg</I> or <I>dcd</I> or <I>xtc</I> or <I>xyz</I> or <I>image</I> or <I>local</I> or <I>custom</I> 
 
 <LI>N = dump every this many timesteps 
 
@@ -32,6 +34,8 @@
   <I>dcd</I> args = none
   <I>xtc</I> args = none
   <I>xyz</I> args = none 
+</PRE>
+<PRE>  <I>image</I> args = discussed on <A HREF = "dump_image.html">dump image</A> doc page 
 </PRE>
 <PRE>  <I>local</I> args = list of local attributes
     possible attributes = index, c_ID, c_ID[N], f_ID, f_ID[N]
@@ -95,13 +99,19 @@ dump e_data all custom 100 dump.eff id type x y z spin eradius fx fy fz eforce
 <P><B>Description:</B>
 </P>
 <P>Dump a snapshot of atom quantities to one or more files every N
-timesteps in one of several styles.  As described below, the filename
-determines the kind of output (text or binary or gzipped, one big file
-or one per timestep, one big file or one per processor).  Only
-information for atoms in the specified group is dumped.  The
-<A HREF = "dump_modify.html">dump_modify</A> command can also alter what atoms are
-included.  Not all styles support all these options; see details
-below.
+timesteps in one of several styles.  The <I>image</I> style is the
+exception; it creates a JPG or PPM image file of the atom
+configuration every N timesteps, as discussed on the <A HREF = "dump_image.html">dump
+image</A> doc page.
+</P>
+<P>Only information for atoms in the specified group is dumped.  The
+<A HREF = "dump_modify.html">dump_modify thresh and region</A> commands can also
+alter what atoms are included.  Not all styles support all these
+options; see details below.
+</P>
+<P>As described below, the filename determines the kind of output (text
+or binary or gzipped, one big file or one per timestep, one big file
+or one per processor).
 </P>
 <P>IMPORTANT NOTE: Because periodic boundary conditions are enforced only
 on timesteps when neighbor lists are rebuilt, the coordinates of an
@@ -142,20 +152,25 @@ self-describing in the following sense.
 <P>The dimensions of the simulation box are included in each snapshot.
 For an orthogonal simulation box this information is is formatted as:
 </P>
-<PRE>ITEM: BOX BOUNDS
+<PRE>ITEM: BOX BOUNDS xx yy zz
 xlo xhi
 ylo yhi
 zlo zhi 
 </PRE>
 <P>where xlo,xhi are the maximum extents of the simulation box in the
-x-dimension, and similarly for y and z.
+x-dimension, and similarly for y and z.  The "xx yy zz" represent 6
+characters that encode the style of boundary for each of the 6
+simulation box boundaries (xlo,xhi and ylo,yhi and zlo,zhi).  Each
+flag is either p = periodic, f = fixed, s = shrink wrap, or m = shrink
+wrapped with a minimum value.  See the <A HREF = "doc/boundary.html">boundary</A>
+command for details.
 </P>
 <P>For triclinic simulation boxes (non-orthogonal), an orthogonal
 bounding box which encloses the triclinic simulation box is output,
 along with the 3 tilt factors (xy, xz, yz) of the triclinic box,
 formatted as follows:
 </P>
-<PRE>ITEM: BOX BOUNDS xy xz yz
+<PRE>ITEM: BOX BOUNDS xx yy zz xy xz yz
 xlo_bound xhi_bound xy
 ylo_bound yhi_bound xz
 zlo_bound zhi_bound yz 
@@ -281,7 +296,10 @@ character appears in the filename, then one file per snapshot is
 written and the "*" character is replaced with the timestep value.
 For example, tmp.dump.* becomes tmp.dump.0, tmp.dump.10000,
 tmp.dump.20000, etc.  This option is not available for the <I>dcd</I> and
-<I>xtc</I> styles.
+<I>xtc</I> styles.  Note that the <A HREF = "dump_modify.html">dump_modify pad</A>
+command can be used to insure all timestep numbers are the same length
+(e.g. 00010), which can make it easier to read a series of dump files
+in order by some post-processing tools.
 </P>
 <P>If a "%" character appears in the filename, then one file is written
 for each processor and the "%" character is replaced with the
@@ -490,8 +508,12 @@ should also work on IBM BG/P, and Windows XP/Vista/7 machines.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "dump_modify.html">dump_modify</A>, <A HREF = "undump.html">undump</A>
+<P><A HREF = "dump_image.html">dump image</A>, <A HREF = "dump_modify.html">dump_modify</A>,
+<A HREF = "undump.html">undump</A>
 </P>
-<P><B>Default:</B> none
+<P><B>Default:</B>
+</P>
+<P>The defaults for the image style are listed on the <A HREF = "dump_image.html">dump
+image</A> doc page.
 </P>
 </HTML>

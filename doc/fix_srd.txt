@@ -337,7 +337,7 @@ No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.  This fix is not invoked during "energy
 minimization"_minimize.html.
 
-[Restrictions:] none
+[Restrictions:]
 
 This command can only be used if LAMMPS was built with the "srd"
 package.  See the "Making LAMMPS"_Section_start.html#2_3 section for
@@ -362,4 +362,5 @@ search = hgrid, cubic = error 0.01, shift = no, stream = yes.
 [(Petersen)] Petersen, Lechman, Plimpton, Grest, in' t Veld, Schunk, J
 Chem Phys, 132, 174106 (2010).
 
-:link(Lechman) [(Lechman)] Lechman, et al, in preparation (2010).
+:link(Lechman)
+[(Lechman)] Lechman, et al, in preparation (2010).

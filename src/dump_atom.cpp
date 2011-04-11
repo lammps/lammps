@@ -57,6 +57,20 @@ void DumpAtom::init_style()
     strcat(format,"\n");
   }
 
+  // setup boundary string
+
+  int m = 0;
+  for (int idim = 0; idim < 3; idim++) {
+    for (int iside = 0; iside < 2; iside++) {
+      if (domain->boundary[idim][iside] == 0) boundstr[m++] = 'p';
+      else if (domain->boundary[idim][iside] == 1) boundstr[m++] = 'f';
+      else if (domain->boundary[idim][iside] == 2) boundstr[m++] = 's';
+      else if (domain->boundary[idim][iside] == 3) boundstr[m++] = 'm';
+    }
+    boundstr[m++] = ' ';
+  }
+  boundstr[8] = '\0';
+
   // setup column string
 
   if (scale_flag == 0 && image_flag == 0)
@@ -209,7 +223,7 @@ void DumpAtom::header_item(bigint ndump)
   fprintf(fp,BIGINT_FORMAT "\n",update->ntimestep);
   fprintf(fp,"ITEM: NUMBER OF ATOMS\n");
   fprintf(fp,BIGINT_FORMAT "\n",ndump);
-  fprintf(fp,"ITEM: BOX BOUNDS\n");
+  fprintf(fp,"ITEM: BOX BOUNDS %s\n",boundstr);
   fprintf(fp,"%g %g\n",boxxlo,boxxhi);
   fprintf(fp,"%g %g\n",boxylo,boxyhi);
   fprintf(fp,"%g %g\n",boxzlo,boxzhi);
@@ -224,7 +238,7 @@ void DumpAtom::header_item_triclinic(bigint ndump)
   fprintf(fp,BIGINT_FORMAT "\n",update->ntimestep);
   fprintf(fp,"ITEM: NUMBER OF ATOMS\n");
   fprintf(fp,BIGINT_FORMAT "\n",ndump);
-  fprintf(fp,"ITEM: BOX BOUNDS xy xz yz\n");
+  fprintf(fp,"ITEM: BOX BOUNDS %s xy xz yz\n",boundstr);
   fprintf(fp,"%g %g %g\n",boxxlo,boxxhi,boxxy);
   fprintf(fp,"%g %g %g\n",boxylo,boxyhi,boxxz);
   fprintf(fp,"%g %g %g\n",boxzlo,boxzhi,boxyz);

@@ -39,20 +39,16 @@ NeighRequest::NeighRequest(LAMMPS *lmp) : Pointers(lmp)
   half_from_full = 0;
   ghost = 0;
 
-  // default is use newton_pair setting in force
-
-  newton = 0;
-
   // default is every reneighboring
-
-  occasional = 0;
-
+  // default is use newton_pair setting in force
+  // default is encode special bond flags
   // default is no auxiliary floating point values
-
-  dnum = 0;
-
   // default is no neighbors of ghosts
 
+  occasional = 0;
+  newton = 0;
+  special = 1;
+  dnum = 0;
   ghost = 0;
 
   // default is no copy or skip
@@ -100,6 +96,7 @@ int NeighRequest::identical(NeighRequest *other)
 
   if (newton != other->newton) same = 0;
   if (occasional != other->occasional) same = 0;
+  if (special != other->special) same = 0;
   if (dnum != other->dnum) same = 0;
   if (ghost != other->ghost) same = 0;
 

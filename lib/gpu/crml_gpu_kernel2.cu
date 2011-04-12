@@ -407,12 +407,12 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp2 *ljd_in,
         s_f[tid].z += s_f[tid+s].z;
         s_energy[tid] += s_energy[tid+s];
         s_e_coul[tid] += s_e_coul[tid+s];
-        s_virial[tid][0] += s_virial[tid+s][0];
-        s_virial[tid][1] += s_virial[tid+s][1];
-        s_virial[tid][2] += s_virial[tid+s][2];
-        s_virial[tid][3] += s_virial[tid+s][3];
-        s_virial[tid][4] += s_virial[tid+s][4];
-        s_virial[tid][5] += s_virial[tid+s][5];
+        s_virial[0][tid] += s_virial[0][tid+s];
+        s_virial[1][tid] += s_virial[1][tid+s];
+        s_virial[2][tid] += s_virial[2][tid+s];
+        s_virial[3][tid] += s_virial[3][tid+s];
+        s_virial[4][tid] += s_virial[4][tid+s];
+        s_virial[5][tid] += s_virial[5][tid+s];
       }
     }
     

@@ -63,8 +63,9 @@ int LJCL_GPU_MemoryT::init(const int ntypes,
   // If atom type constants fit in shared memory use fast kernel
   int lj_types=ntypes;
   shared_types=false;
-  if (lj_types<=MAX_SHARED_TYPES && this->_block_size>=MAX_SHARED_TYPES) {
-    lj_types=MAX_SHARED_TYPES;
+  int max_shared_types=this->device->max_shared_types();
+  if (lj_types<=max_shared_types && this->_block_size>=max_shared_types) {
+    lj_types=max_shared_types;
     shared_types=true;
   }
   _lj_types=lj_types;

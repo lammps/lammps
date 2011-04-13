@@ -28,27 +28,6 @@
 #include <string>
 #include <queue>
 
-// Maximum order for spline
-#define PPPM_MAX_SPLINE 8
-// Thread block size for PPPM kernels
-// - Must be >=PPPM_MAX_SPLINE^2
-// - Must be a multiple of 32
-#define PPPM_BLOCK_1D 64
-// Default block size for pair styles
-#define BLOCK_PAIR 64
-// Default block size in each dimension for cell list builds and matrix trans
-#define BLOCK_CELL_2D 8
-// Default block size for binning atoms in cell list builds
-#define BLOCK_CELL_ID 128
-// Default block size for neighbor list builds
-#define BLOCK_NBOR_BUILD 64
-// Maximum number of atom types that can be stored in shared memory
-// - Must be sqrt of BLOCK_PAIR
-#define MAX_SHARED_TYPES 8
-// Maximum number of atom types that can be stored in shared memory for bio
-// - Must be BLOCK_PAIR*2
-#define MAX_BIO_SHARED_TYPES 128
-
 template <class numtyp, class acctyp, 
           class grdtyp, class grdtyp4> class PPPMGPUMemory;
 
@@ -60,10 +39,15 @@ class PairGPUDevice {
  
   /// Initialize the device for use by this process
   /** Sets up a per-device MPI communicator for load balancing and initializes
-    * the device (>=first_gpu and <=last_gpu) that this proc will be using **/
-  bool init_device(MPI_Comm world, MPI_Comm replica, const int first_gpu, 
+    * the device (>=first_gpu and <=last_gpu) that this proc will be using 
+    * Returns:
+    * -  0 if successfull
+    * - -2 if GPU not found
+    * - -4 if GPU library not compiled for GPU **/
+  int init_device(MPI_Comm world, MPI_Comm replica, const int first_gpu, 
                    const int last_gpu, const int gpu_mode, 
-                   const double particle_split, const int nthreads);
+                   const double particle_split, const int nthreads,
+                   const int t_per_atom);
 
   /// Initialize the device for Atom and Neighbor storage
   /** \param rot True if quaternions need to be stored
@@ -214,10 +198,29 @@ class PairGPUDevice {
   inline double particle_split() const { return _particle_split; }
   /// Return the initialization count for the device
   inline int init_count() const { return _init_count; }
+
   /// Return the number of threads accessing memory simulatenously
   inline int num_mem_threads() const { return _num_mem_threads; }
+  /// Return the number of threads per atom for pair styles
+  inline int threads_per_atom() const { return _threads_per_atom; }
   /// Return the min of the pair block size or the device max block size
   inline int pair_block_size() const { return _block_pair; }
+  /// Return the maximum number of atom types that can be used with shared mem
+  inline int max_shared_types() const { return _max_shared_types; }
+  /// Return the maximum order for PPPM splines
+  inline int pppm_max_spline() const { return _pppm_max_spline; }
+  /// Return the block size for PPPM kernels
+  inline int pppm_block() const { return _pppm_block; }
+  /// Return the block size for neighbor binning
+  inline int block_cell_2d() const { return _block_cell_2d; }
+  /// Return the block size for atom mapping for neighbor builds
+  inline int block_cell_id() const { return _block_cell_id; }
+  /// Return the block size for neighbor build kernel
+  inline int block_nbor_build() const { return _block_nbor_build; }
+  /// Return the block size for "bio" pair styles
+  inline int block_bio_pair() const { return _block_bio_pair; }
+  /// Return the maximum number of atom types for shared mem with "bio" styles
+  inline int max_bio_shared_types() const { return _max_bio_shared_types; }
 
   // -------------------- SHARED DEVICE ROUTINES -------------------- 
   // Perform asynchronous zero of integer array 
@@ -274,7 +277,12 @@ class PairGPUDevice {
   double _particle_split;
   double _cpu_full;
 
-  int _block_pair, _num_mem_threads;
+  int _num_mem_threads, _warp_size, _threads_per_atom;
+  int _pppm_max_spline, _pppm_block;
+  int _block_pair, _max_shared_types;
+  int _block_cell_2d, _block_cell_id, _block_nbor_build;
+  int _block_bio_pair, _max_bio_shared_types;
+
   UCL_Program *dev_program;
   UCL_Kernel k_zero, k_info;
   bool _compiled;

@@ -243,42 +243,41 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *lj1,
   
   // Reduce answers
   if (t_per_atom>1) {
-    __local acctyp s_energy[BLOCK_PAIR];
-    __local acctyp s_e_coul[BLOCK_PAIR];
-    __local acctyp4 s_f[BLOCK_PAIR];
-    __local acctyp s_virial[6][BLOCK_PAIR];
+    __local acctyp red_acc[6][BLOCK_PAIR];
     
-    s_f[tid].x=f.x;
-    s_f[tid].y=f.y;
-    s_f[tid].z=f.z;
-    s_energy[tid]=energy;
-    s_e_coul[tid]=e_coul;
-    for (int v=0; v<6; v++)
-      s_virial[v][tid]=virial[v];
+    red_acc[0][tid]=f.x;
+    red_acc[1][tid]=f.y;
+    red_acc[2][tid]=f.z;
+    red_acc[3][tid]=energy;
+    red_acc[4][tid]=e_coul;
 
     for (unsigned int s=t_per_atom/2; s>0; s>>=1) {
       if (offset < s) {
-        s_f[tid].x += s_f[tid+s].x;
-        s_f[tid].y += s_f[tid+s].y;
-        s_f[tid].z += s_f[tid+s].z;
-        s_energy[tid] += s_energy[tid+s];
-        s_e_coul[tid] += s_e_coul[tid+s];
-        s_virial[0][tid] += s_virial[0][tid+s];
-        s_virial[1][tid] += s_virial[1][tid+s];
-        s_virial[2][tid] += s_virial[2][tid+s];
-        s_virial[3][tid] += s_virial[3][tid+s];
-        s_virial[4][tid] += s_virial[4][tid+s];
-        s_virial[5][tid] += s_virial[5][tid+s];
+        for (int r=0; r<5; r++)
+          red_acc[r][tid] += red_acc[r][tid+s];
       }
     }
     
-    f.x=s_f[tid].x;
-    f.y=s_f[tid].y;
-    f.z=s_f[tid].z;
-    energy=s_energy[tid];
-    e_coul=s_e_coul[tid];
-    for (int v=0; v<6; v++)
-      virial[v]=s_virial[v][tid];
+    f.x=red_acc[0][tid];
+    f.y=red_acc[1][tid];
+    f.z=red_acc[2][tid];
+    energy=red_acc[3][tid];
+    e_coul=red_acc[4][tid];
+
+    if (vflag>0) {
+      for (int r=0; r<6; r++)
+        red_acc[r][tid]=virial[r];
+
+      for (unsigned int s=t_per_atom/2; s>0; s>>=1) {
+        if (offset < s) {
+          for (int r=0; r<6; r++)
+            red_acc[r][tid] += red_acc[r][tid+s];
+        }
+      }
+    
+      for (int r=0; r<6; r++)
+        virial[r]=red_acc[r][tid];
+    }
   }
 
   // Store answers
@@ -323,7 +322,8 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp2 *ljd_in,
   if (tid<8)
     sp_lj[tid]=sp_lj_in[tid];
   ljd[tid]=ljd_in[tid];
-  ljd[tid+BLOCK_PAIR]=ljd_in[tid+BLOCK_PAIR];
+  if (tid+BLOCK_PAIR<MAX_BIO_SHARED_TYPES)
+    ljd[tid+BLOCK_PAIR]=ljd_in[tid+BLOCK_PAIR];
 
   int ii=mul24((int)BLOCK_ID_X,(int)(BLOCK_SIZE_X)/t_per_atom);
   ii+=tid/t_per_atom;
@@ -449,42 +449,41 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp2 *ljd_in,
 
   // Reduce answers
   if (t_per_atom>1) {
-    __local acctyp s_energy[BLOCK_PAIR];
-    __local acctyp s_e_coul[BLOCK_PAIR];
-    __local acctyp4 s_f[BLOCK_PAIR];
-    __local acctyp s_virial[6][BLOCK_PAIR];
+    __local acctyp red_acc[6][BLOCK_PAIR];
     
-    s_f[tid].x=f.x;
-    s_f[tid].y=f.y;
-    s_f[tid].z=f.z;
-    s_energy[tid]=energy;
-    s_e_coul[tid]=e_coul;
-    for (int v=0; v<6; v++)
-      s_virial[v][tid]=virial[v];
+    red_acc[0][tid]=f.x;
+    red_acc[1][tid]=f.y;
+    red_acc[2][tid]=f.z;
+    red_acc[3][tid]=energy;
+    red_acc[4][tid]=e_coul;
 
     for (unsigned int s=t_per_atom/2; s>0; s>>=1) {
       if (offset < s) {
-        s_f[tid].x += s_f[tid+s].x;
-        s_f[tid].y += s_f[tid+s].y;
-        s_f[tid].z += s_f[tid+s].z;
-        s_energy[tid] += s_energy[tid+s];
-        s_e_coul[tid] += s_e_coul[tid+s];
-        s_virial[0][tid] += s_virial[0][tid+s];
-        s_virial[1][tid] += s_virial[1][tid+s];
-        s_virial[2][tid] += s_virial[2][tid+s];
-        s_virial[3][tid] += s_virial[3][tid+s];
-        s_virial[4][tid] += s_virial[4][tid+s];
-        s_virial[5][tid] += s_virial[5][tid+s];
+        for (int r=0; r<5; r++)
+          red_acc[r][tid] += red_acc[r][tid+s];
       }
     }
     
-    f.x=s_f[tid].x;
-    f.y=s_f[tid].y;
-    f.z=s_f[tid].z;
-    energy=s_energy[tid];
-    e_coul=s_e_coul[tid];
-    for (int v=0; v<6; v++)
-      virial[v]=s_virial[v][tid];
+    f.x=red_acc[0][tid];
+    f.y=red_acc[1][tid];
+    f.z=red_acc[2][tid];
+    energy=red_acc[3][tid];
+    e_coul=red_acc[4][tid];
+
+    if (vflag>0) {
+      for (int r=0; r<6; r++)
+        red_acc[r][tid]=virial[r];
+
+      for (unsigned int s=t_per_atom/2; s>0; s>>=1) {
+        if (offset < s) {
+          for (int r=0; r<6; r++)
+            red_acc[r][tid] += red_acc[r][tid+s];
+        }
+      }
+    
+      for (int r=0; r<6; r++)
+        virial[r]=red_acc[r][tid];
+    }
   }
 
   // Store answers

@@ -70,9 +70,9 @@ grdtyp * PPPMGPUMemoryT::init(const int nlocal, const int nall, FILE *_screen,
   ucl_device=device->gpu;
   atom=&device->atom;
 
-  _block_size=PPPM_BLOCK_1D;
-  _pencil_size = device->num_mem_threads();
-  _block_pencils = PPPM_BLOCK_1D/_pencil_size;
+  _block_size=device->pppm_block();
+  _pencil_size=device->num_mem_threads();
+  _block_pencils=_block_size/_pencil_size;
 
   compile_kernels(*ucl_device);
 

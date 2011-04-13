@@ -59,7 +59,9 @@ class PairGPUNbor {
     *                than the force kernel **/
   bool init(PairGPUNborShared *shared, const int inum, const int host_inum,
             const int max_nbors, const int maxspecial, UCL_Device &dev,
-            const bool gpu_nbor, const int gpu_host, const bool pre_cut);
+            const bool gpu_nbor, const int gpu_host, const bool pre_cut,
+            const int block_cell_2d, const int block_cell_id, 
+            const int block_nbor_build);
 
   /// Set the size of the cutoff+skin
   inline void cell_size(const double size) { _cell_size=size; }
@@ -194,6 +196,8 @@ class PairGPUNbor {
 
   double _gpu_bytes, _c_bytes, _cell_bytes;
   void alloc(bool &success);
+  
+  int _block_cell_2d, _block_cell_id, _block_nbor_build;
 };
 
 #endif

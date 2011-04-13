@@ -187,7 +187,7 @@ class ChargeGPUMemory {
 
  protected:
   bool _compiled;
-  int _block_size;
+  int _block_size, _block_bio_size;
   double  _max_bytes, _max_an_bytes;
   double _gpu_overhead, _driver_overhead;
 

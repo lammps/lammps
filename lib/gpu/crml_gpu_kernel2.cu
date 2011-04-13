@@ -18,9 +18,6 @@
 #ifndef CRML_GPU_KERNEL
 #define CRML_GPU_KERNEL
 
-#define MAX_BIO_SHARED_TYPES 128
-#define BLOCK_PAIR 64
-
 #ifdef _DOUBLE_DOUBLE
 #define numtyp double
 #define numtyp2 double2
@@ -55,7 +52,7 @@
 
 #ifdef NV_KERNEL
 
-#include "geryon/ucl_nv_kernel.h"
+#include "nv_kernel_def.h"
 texture<float4> pos_tex;
 texture<float> q_tex;
 
@@ -91,8 +88,11 @@ __inline float fetch_q(const int& i, const float *q)
 
 #define fetch_pos(i,y) x_[i]
 #define fetch_q(i,y) q_[i]
+#define BLOCK_BIO_PAIR 64
 
 #endif
+
+#define MAX_BIO_SHARED_TYPES 128
 
 #define SBBITS 30
 #define NEIGHMASK 0x3FFFFFFF
@@ -243,7 +243,7 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *lj1,
   
   // Reduce answers
   if (t_per_atom>1) {
-    __local acctyp red_acc[6][BLOCK_PAIR];
+    __local acctyp red_acc[6][BLOCK_BIO_PAIR];
     
     red_acc[0][tid]=f.x;
     red_acc[1][tid]=f.y;
@@ -322,8 +322,8 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp2 *ljd_in,
   if (tid<8)
     sp_lj[tid]=sp_lj_in[tid];
   ljd[tid]=ljd_in[tid];
-  if (tid+BLOCK_PAIR<MAX_BIO_SHARED_TYPES)
-    ljd[tid+BLOCK_PAIR]=ljd_in[tid+BLOCK_PAIR];
+  if (tid+BLOCK_BIO_PAIR<MAX_BIO_SHARED_TYPES)
+    ljd[tid+BLOCK_BIO_PAIR]=ljd_in[tid+BLOCK_BIO_PAIR];
 
   int ii=mul24((int)BLOCK_ID_X,(int)(BLOCK_SIZE_X)/t_per_atom);
   ii+=tid/t_per_atom;
@@ -449,7 +449,7 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp2 *ljd_in,
 
   // Reduce answers
   if (t_per_atom>1) {
-    __local acctyp red_acc[6][BLOCK_PAIR];
+    __local acctyp red_acc[6][BLOCK_BIO_PAIR];
     
     red_acc[0][tid]=f.x;
     red_acc[1][tid]=f.y;

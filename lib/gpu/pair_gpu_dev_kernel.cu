@@ -63,14 +63,7 @@
 
 #ifdef NV_KERNEL
 
-#include "geryon/ucl_nv_kernel.h"
-#ifdef __CUDA_ARCH__
-#define ARCH __CUDA_ARCH__
-#else
-#define ARCH 100
-#endif
-
-#define WARP_SIZE 32
+#include "nv_kernel_def.h"
 
 #else
 
@@ -79,18 +72,18 @@
 #define DRIVER 0
 #define MEM_THREADS 16
 #define WARP_SIZE 1
+#define THREADS_PER_ATOM 1
+#define BLOCK_PAIR 64
+#define MAX_SHARED_TYPES 8
+#define BLOCK_NBOR_BUILD 64
+#define BLOCK_BIO_PAIR 64
 
 #endif
 
-#define THREADS_PER_ATOM 1
 #define PPPM_MAX_SPLINE 8
 #define PPPM_BLOCK_1D 64
-#define BLOCK_PAIR 64
-#define MAX_SHARED_TYPES 8
 #define BLOCK_CELL_2D 8
 #define BLOCK_CELL_ID 128
-#define BLOCK_NBOR_BUILD 64
-#define BLOCK_BIO_PAIR 64
 #define MAX_BIO_SHARED_TYPES 128
 
 __kernel void kernel_zero(__global int *mem, int numel) {

@@ -18,8 +18,6 @@
 #ifndef CMMM_GPU_KERNEL
 #define CMMM_GPU_KERNEL
 
-#define MAX_SHARED_TYPES 8
-
 #ifdef _DOUBLE_DOUBLE
 #define numtyp double
 #define numtyp2 double2
@@ -46,7 +44,7 @@
 
 #ifdef NV_KERNEL
 
-#include "geryon/ucl_nv_kernel.h"
+#include "nv_kernel_def.h"
 texture<float4> pos_tex;
 texture<float> q_tex;
 
@@ -82,6 +80,7 @@ __inline float fetch_q(const int& i, const float *q)
 
 #define fetch_pos(i,y) x_[i]
 #define fetch_q(i,y) q_[i]
+#define MAX_SHARED_TYPES 8
 
 #endif
 

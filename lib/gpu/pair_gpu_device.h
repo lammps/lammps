@@ -42,6 +42,12 @@
 #define BLOCK_CELL_ID 128
 // Default block size for neighbor list builds
 #define BLOCK_NBOR_BUILD 64
+// Maximum number of atom types that can be stored in shared memory
+// - Must be sqrt of BLOCK_PAIR
+#define MAX_SHARED_TYPES 8
+// Maximum number of atom types that can be stored in shared memory for bio
+// - Must be BLOCK_PAIR*2
+#define MAX_BIO_SHARED_TYPES 128
 
 template <class numtyp, class acctyp, 
           class grdtyp, class grdtyp4> class PPPMGPUMemory;

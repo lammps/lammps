@@ -18,7 +18,7 @@
 
 #ifdef NV_KERNEL
 
-#include "geryon/ucl_nv_kernel.h"
+#include "nv_kernel_def.h"
 texture<float4> neigh_tex;
 
 #ifdef _DOUBLE_DOUBLE
@@ -36,6 +36,7 @@ __inline float4 fetch_pos(const int& i, const float4 *pos)
 #else
 
 #define fetch_pos(i,y) x_[i]
+#define BLOCK_NBOR_BUILD 64
 
 #endif
 
@@ -55,7 +56,6 @@ __inline float4 fetch_pos(const int& i, const float4 *pos)
 #endif
 
 #define BLOCK_CELL_2D 8
-#define BLOCK_NBOR_BUILD 64
 
 #define SBBITS 30
 

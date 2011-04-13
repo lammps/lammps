@@ -18,8 +18,6 @@
 #ifndef PAIR_GPU_KERNEL_H
 #define PAIR_GPU_KERNEL_H
 
-#define MAX_SHARED_TYPES 8
-
 #ifdef _DOUBLE_DOUBLE
 #define numtyp double
 #define numtyp2 double2
@@ -32,7 +30,7 @@
 
 #ifdef NV_KERNEL
 
-#include "geryon/ucl_nv_kernel.h"
+#include "nv_kernel_def.h"
 
 #else
 
@@ -42,6 +40,7 @@
 #define BLOCK_ID_X get_group_id(0)
 #define BLOCK_SIZE_X get_local_size(0)
 #define __syncthreads() barrier(CLK_LOCAL_MEM_FENCE)
+#define MAX_SHARED_TYPES 8
 
 #endif
 

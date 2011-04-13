@@ -66,6 +66,7 @@ int ChargeGPUMemoryT::init_atomic(const int nlocal, const int nall,
   atom=&device->atom;
 
   _block_size=device->pair_block_size();
+  _block_bio_size=device->block_bio_pair();
   compile_kernels(*ucl_device,pair_program);
 
   // Initialize host-device load balancer

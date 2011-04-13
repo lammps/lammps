@@ -65,7 +65,7 @@ int CRML_GPU_Memory2T::init(const int ntypes,
   // If atom type constants fit in shared memory use fast kernel
   int lj_types=ntypes;
   shared_types=false;
-  if (this->_block_size>=64 && mix_arithmetic)
+  if (this->_block_bio_size>=64 && mix_arithmetic)
     shared_types=true;
   _lj_types=lj_types;
 
@@ -129,7 +129,7 @@ double CRML_GPU_Memory2T::host_memory_usage() const {
 template <class numtyp, class acctyp>
 void CRML_GPU_Memory2T::loop(const bool _eflag, const bool _vflag) {
   // Compute the block size and grid size to keep all cores busy
-  const int BX=this->block_size();
+  const int BX=this->_block_bio_size;
   int eflag, vflag;
   if (_eflag)
     eflag=1;

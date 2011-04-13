@@ -240,7 +240,7 @@ void DumpAtom::header_item_triclinic(bigint ndump)
   fprintf(fp,BIGINT_FORMAT "\n",update->ntimestep);
   fprintf(fp,"ITEM: NUMBER OF ATOMS\n");
   fprintf(fp,BIGINT_FORMAT "\n",ndump);
-  fprintf(fp,"ITEM: BOX BOUNDS %s xy xz yz\n",boundstr);
+  fprintf(fp,"ITEM: BOX BOUNDS xy xz yz %s\n",boundstr);
   fprintf(fp,"%g %g %g\n",boxxlo,boxxhi,boxxy);
   fprintf(fp,"%g %g %g\n",boxylo,boxyhi,boxxz);
   fprintf(fp,"%g %g %g\n",boxzlo,boxzhi,boxyz);

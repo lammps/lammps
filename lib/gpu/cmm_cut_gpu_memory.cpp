@@ -59,8 +59,9 @@ int CMM_GPU_MemoryT::init(const int ntypes, double **host_cutsq,
   // If atom type constants fit in shared memory use fast kernel
   int cmm_types=ntypes;
   shared_types=false;
-  if (cmm_types<=MAX_SHARED_TYPES && this->_block_size>=MAX_SHARED_TYPES) {
-    cmm_types=MAX_SHARED_TYPES;
+  int max_shared_types=this->device->max_shared_types();
+  if (cmm_types<=max_shared_types && this->_block_size>=max_shared_types) {
+    cmm_types=max_shared_types;
     shared_types=true;
   }
   _cmm_types=cmm_types;

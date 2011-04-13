@@ -30,10 +30,10 @@ using namespace LAMMPS_NS;
 
 enum{GPU_FORCE, GPU_NEIGH};
 
-extern bool lmp_init_device(MPI_Comm world, MPI_Comm replica,
-                            const int first_gpu, const int last_gpu,
-                            const int gpu_mode, const double particle_split,
-                            const int nthreads);
+extern int lmp_init_device(MPI_Comm world, MPI_Comm replica,
+                           const int first_gpu, const int last_gpu,
+                           const int gpu_mode, const double particle_split,
+                           const int nthreads, const int t_per_atom);
 extern void lmp_clear_device();
 extern double lmp_gpu_forces(double **f, double **tor, double *eatom,
                              double **vatom, double *virial, double &ecoul);
@@ -67,8 +67,11 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
     error->all("Illegal fix gpu command.");
     
   int nthreads = 1;
+  int threads_per_atom = -1;
   if (narg == 9) {
-    if (strcmp(arg[7],"nthreads") == 0)
+    if (strcmp(arg[7],"threads_per_atom") == 0)
+      threads_per_atom = atoi(arg[8]);
+    else if (strcmp(arg[7],"nthreads") == 0)
       nthreads = atoi(arg[8]);
     else
       error->all("Illegal fix gpu command.");
@@ -83,10 +86,9 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
     error->all("No OpenMP support compiled in.");
   #endif
 
-  int gpu_flag = 0;
-  if (!lmp_init_device(universe->uworld,world,first_gpu,last_gpu,_gpu_mode,
-                       _particle_split,nthreads))
-    gpu_flag = -2;
+  int gpu_flag = lmp_init_device(universe->uworld, world, first_gpu, last_gpu,
+				 _gpu_mode, _particle_split, nthreads,
+				 threads_per_atom);
   GPU_EXTRA::check_flag(gpu_flag,error,world);
 }
 

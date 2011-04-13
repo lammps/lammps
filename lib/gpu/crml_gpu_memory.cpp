@@ -71,8 +71,9 @@ int CRML_GPU_MemoryT::init(const int ntypes,
 
   // Allocate a host write buffer for data initialization
   int h_size=lj_types*lj_types;
-  if (h_size<MAX_BIO_SHARED_TYPES)
-    h_size=MAX_BIO_SHARED_TYPES;
+  int max_bio_shared_types=this->device->max_bio_shared_types();
+  if (h_size<max_bio_shared_types)
+    h_size=max_bio_shared_types;
   UCL_H_Vec<numtyp> host_write(h_size*32,*(this->ucl_device),
                                UCL_WRITE_OPTIMIZED);
   for (int i=0; i<h_size*32; i++)
@@ -82,7 +83,7 @@ int CRML_GPU_MemoryT::init(const int ntypes,
   this->atom->type_pack4(ntypes,lj_types,lj1,host_write,host_lj1,host_lj2,
                          host_lj3,host_lj4);
 
-  ljd.alloc(MAX_BIO_SHARED_TYPES,*(this->ucl_device),UCL_READ_ONLY);
+  ljd.alloc(max_bio_shared_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->self_pack2(ntypes,ljd,host_write,epsilon,sigma);
 
   sp_lj.alloc(8,*(this->ucl_device),UCL_READ_ONLY);

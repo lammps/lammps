@@ -255,7 +255,8 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp2 *ljd_in,
   if (ii<8)
     sp_lj[ii]=sp_lj_in[ii];
   ljd[ii]=ljd_in[ii];
-  ljd[ii+64]=ljd_in[ii+64];
+  if (ii+64<MAX_BIO_SHARED_TYPES)
+    ljd[ii+64]=ljd_in[ii+64];
 
   ii+=mul24((int)BLOCK_ID_X,(int)BLOCK_SIZE_X);
   __syncthreads();

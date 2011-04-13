@@ -25,7 +25,6 @@ ChargeGPUMemory2T::ChargeGPUMemory2() : _compiled(false), _max_bytes(0) {
   device=&pair_gpu_device;
   ans=new PairGPUAns<numtyp,acctyp>();
   nbor=new PairGPUNbor();
-  _threads_per_atom=1;
 }
 
 template <class numtyp, class acctyp>
@@ -58,6 +57,7 @@ int ChargeGPUMemory2T::init_atomic(const int nlocal, const int nall,
   if (host_nlocal>0)
     _gpu_host=1;
 
+  _threads_per_atom=device->threads_per_atom();
   if (_threads_per_atom>1 && gpu_nbor==false) {
     nbor->packing(true);
     _nbor_data=&(nbor->dev_packed);

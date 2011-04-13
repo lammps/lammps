@@ -34,9 +34,13 @@ bool PairGPUNbor::init(PairGPUNborShared *shared, const int inum,
                        const int host_inum, const int max_nbors, 
                        const int maxspecial, UCL_Device &devi, 
                        const bool gpu_nbor, const int gpu_host, 
-                       const bool pre_cut) {
+                       const bool pre_cut, const int block_cell_2d,
+                       const int block_cell_id, const int block_nbor_build) {
   clear();
 
+  _block_cell_2d=block_cell_2d;
+  _block_cell_id=block_cell_id;
+  _block_nbor_build=block_nbor_build;
   _shared=shared;
   dev=&devi;
   _gpu_nbor=gpu_nbor;
@@ -273,8 +277,8 @@ void PairGPUNbor::build_nbor_list(const int inum, const int host_inum,
     time_nbor.stop();
     time_nbor.add_to_total();
     time_kernel.start();
-    const int b2x=BLOCK_CELL_2D;
-    const int b2y=BLOCK_CELL_2D;
+    const int b2x=_block_cell_2d;
+    const int b2y=_block_cell_2d;
     const int g2x=static_cast<int>(ceil(static_cast<double>(_maxspecial)/b2x));
     const int g2y=static_cast<int>(ceil(static_cast<double>(nt)/b2y));
     _shared->k_transpose.set_size(g2x,g2y,b2x,b2y);
@@ -299,7 +303,7 @@ void PairGPUNbor::build_nbor_list(const int inum, const int host_inum,
   _cell_bytes=cell_counts.row_bytes();
 
   /* build cell list on GPU */
-  const int neigh_block=BLOCK_CELL_ID;
+  const int neigh_block=_block_cell_id;
   const int GX=(int)ceil((float)nall/neigh_block);
   const numtyp sublo0=static_cast<numtyp>(sublo[0]);
   const numtyp sublo1=static_cast<numtyp>(sublo[1]);
@@ -322,7 +326,7 @@ void PairGPUNbor::build_nbor_list(const int inum, const int host_inum,
                              &nall, &ncell_3d);
 
   /* build the neighbor list */
-  const int cell_block=BLOCK_NBOR_BUILD;
+  const int cell_block=_block_nbor_build;
   _shared->k_build_nbor.set_size(ncellx, ncelly*ncellz, cell_block, 1);
   _shared->k_build_nbor.run(&atom.dev_x.begin(), &atom.dev_particle_id.begin(),
                             &cell_counts.begin(), &dev_nbor.begin(),

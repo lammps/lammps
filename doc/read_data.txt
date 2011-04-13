@@ -156,7 +156,7 @@ space in LAMMPS data structures for storing the new bonds.
 
 These are the section keywords for the body of the file.
 
-{Atoms, Velocities, Masses, Shapes, Dipoles} = atom-property sections 
+{Atoms, Velocities, Masses} = atom-property sections 
 {Bonds, Angles, Dihedrals, Impropers} = molecular topology sections 
 {Pair Coeffs, Bond Coeffs, Angle Coeffs, Dihedral Coeffs, \
    Improper Coeffs} = force field sections
@@ -260,27 +260,27 @@ angle: atom-ID molecule-ID atom-type x y z
 atomic: atom-ID atom-type x y z
 bond: atom-ID molecule-ID atom-type x y z
 charge: atom-ID atom-type q x y z
-colloid: atom-ID atom-type x y z
 dipole: atom-ID atom-type q x y z mux muy muz
 electron: atom-ID atom-type q spin eradius x y z
-ellipsoid: atom-ID atom-type x y z quatw quati quatj quatk
+ellipsoid: atom-ID atom-type shapex shapey shapez density x y z quatw quati quatj quatk
 full: atom-ID molecule-ID atom-type q x y z
-granular: atom-ID atom-type diameter density x y z
 molecular: atom-ID molecule-ID atom-type x y z
 peri: atom-ID atom-type volume density x y z
+sphere: atom-ID atom-type diameter density x y z
 hybrid: atom-ID atom-type x y z sub-style1 sub-style2 ...  :tb(s=:)
 
 The keywords have these meanings:
 
 atom-ID = integer ID of atom
 molecule-ID = integer ID of molecule the atom belongs to
-type-ID = type of atom (1-Ntype)
+atom-type = type of atom (1-Ntype)
 q = charge on atom (charge units)
-diameter = diameter of atom (distance units)
+diameter = diameter of spherical atom (distance units)
+shapex,shapey,shapez = 3 diameters of ellipsoidal atom (distance units)
 density = density of atom (mass/distance^3 units)
 volume = volume of atom (distance^3 units)
 x,y,z = coordinates of atom
-mux,muy,muz = direction of dipole moment of atom
+mux,muy,muz = components of dipole moment of atom (dipole units)
 quatw,quati,quatj,quatk = quaternion components for orientation of atom
 spin = electron spin (+1/-1), 0 = nuclei, 2 = fixed-core, 3 = pseudo-cores (i.e. ECP)
 eradius = electron radius (or fixed-core radius) :ul
@@ -297,40 +297,43 @@ each atom.  Unique values larger than Natoms can be used, but they
 will cause extra memory to be allocated on each processor, if an atom
 map array is used (see the "atom_modify"_atom_modify.html command).
 If an atom map array is not used (e.g. an atomic system with no
-bonds), velocities are not assigned in the data file, and you don't
-care if unique atom IDs appear in dump files, then the atom-IDs can all
-be set to 0.
+bonds), and velocities are not assigned in the data file, and you
+don't care if unique atom IDs appear in dump files, then the atom-IDs
+can all be set to 0.
 
 The molecule ID is a 2nd identifier attached to an atom.  Normally, it
 is a number from 1 to N, identifying which molecule the atom belongs
 to.  It can be 0 if it is an unbonded atom or if you don't care to
 keep track of molecule assignments.
 
-The diameter specifies the size of a finite size particle, analagous
-to the "shape"_shape.html command which sets the size on a per-type
-basis.  A diameter can be set to 0.0, which means that atom is a point
-particle and not a finite-size particles.  Some pair styles and fixes
-and computes that operate on finite-size particles allow for a mixture
-of finite-size and point particles.  See the doc pages of individual
-commands for details.
+The diameter specifies the size of a finite-size spherical particle.
+It can be set to 0.0, which means that atom is a point particle.
 
-The density is used in conjunction with the diameter to set the mass
-of a particle as mass = density * volume.  If the diameter and volume
-are 0.0 meaning a point particle, then the mass is not 0.0 but is set
-as mass = density.
+The 3 shape values specify the 3 diameters or aspect ratios of a
+finite-size ellipsoidal particle, when it is oriented along the 3
+coordinate axes.  They can all be set to 0.0, which means that atom is
+a point particle.
+
+Some pair styles and fixes and computes that operate on finite-size
+particles allow for a mixture of finite-size and point particles.  See
+the doc pages of individual commands for details.
+
+The density is used in conjunction with the particle volume for
+finite-size particles to set the mass of the particle as mass =
+density * volume.  If the volume is 0.0, meaning a point particle,
+then the density value is used as the mass.
 
 The values {quatw}, {quati}, {quatj}, and {quatk} set the orientation
-of the atom as a quaternion (4-vector).  Note that the
-"shape"_shape.html command or "Shapes" section of the data file
-specifies the aspect ratios of an ellipsoidal particle, which is
-oriented by default with its x-axis along the simulation box's x-axis,
-and similarly for y and z.  If this body is rotated (via the
+of the atom as a quaternion (4-vector).  Note that the shape
+attributes specify the aspect ratios of an ellipsoidal particle, which
+is oriented by default with its x-axis along the simulation box's
+x-axis, and similarly for y and z.  If this body is rotated (via the
 right-hand rule) by an angle theta around a unit vector (a,b,c), then
 the quaternion that represents its new orientation is given by
 (cos(theta/2), a*sin(theta/2), b*sin(theta/2), c*sin(theta/2)).  These
 4 components are quatw, quati, quatj, and quatk as specified above.
-LAMMPS normalizes each atom's quaternion in case (a,b,c) was not a
-unit vector.
+LAMMPS normalizes each atom's quaternion in case (a,b,c) was not
+specified as a unit vector.
 
 For atom_style hybrid, following the 5 initial values (ID,type,x,y,z),
 specific values for each sub-style must be listed.  The order of the
@@ -343,7 +346,7 @@ listed in the same order they appear as listed above.
 
 Thus if
 
-atom_style hybrid charge granular :pre
+atom_style hybrid charge sphere :pre
 
 were used in the input script, each atom line would have these fields:
 
@@ -474,22 +477,6 @@ section must be integers (1, not 1.0).
 
 :line
 
-{Dipoles} section:
-
-one line per atom type :ulb,l
-line syntax: ID dipole-moment :
-  ID = atom type (1-N)
-  dipole-moment = value of dipole moment :pre
-example: :l
-  2 0.5 :pre
-:ule
-
-This defines the dipole moment of each atom type (which can be 0.0 for
-some types).  This can also be set via the "dipole"_dipole.html
-command in the input script.
-
-:line
-
 {EndBondTorsion Coeffs} section:
 
 one line per dihedral type :ulb,l
@@ -550,9 +537,9 @@ example: :l
 :ule
 
 This defines the mass of each atom type.  This can also be set via the
-"mass"_mass.html command in the input script.  This section should not
-be used for atom styles that define a mass for individual atoms -
-e.g. atom style granular.
+"mass"_mass.html command in the input script.  This section cannot be
+used for atom styles that define a mass for individual atoms -
+e.g. "atom_style sphere"_atom_style.html.
 
 :line
 
@@ -584,25 +571,6 @@ script.
 
 :line
 
-{Shapes} section:
-
-one line per atom type :ulb,l
-line syntax: ID x y z :l
-  ID = atom type (1-N)
-  x = x diameter
-  y = y diameter
-  z = z diameter :pre
-example: :l
-  3 2.0 1.0 1.0 :pre
-:ule
-
-This defines the shape of each atom type.  This can also be set via
-the "shape"_mass.html command in the input script.  This section
-should only be used for atom styles that define a shape, e.g. atom
-style dipole or ellipsoid.
-
-:line
-
 {Velocities} section:
 
 one line per atom
@@ -612,13 +580,13 @@ all styles except those listed: atom-ID vx vy vz
 dipole: atom-ID vx vy vz wx wy wz
 electron: atom-ID vx vy vz evel
 ellipsoid: atom-ID vx vy vz lx ly lz
-granular: atom-ID vx vy vz wx wy wz :tb(s=:)
+sphere: atom-ID vx vy vz wx wy wz :tb(s=:)
 
 where the keywords have these meanings:
 
 vx,vy,vz = translational velocity of atom
 lx,ly,lz = angular momentum of aspherical atom
-wx,wy,wz = angular velocity of granular atom
+wx,wy,wz = angular velocity of spherical atom
 evel = electron radial velocity (0 for fixed-core):ul
 
 The velocity lines can appear in any order.  This section can only be

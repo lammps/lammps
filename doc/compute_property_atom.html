@@ -24,9 +24,10 @@
 <PRE>  possible attributes = id, mol, type, mass,
  	                x, y, z, xs, ys, zs, xu, yu, zu, ix, iy, iz,
 		        vx, vy, vz, fx, fy, fz,
-                        q, mux, muy, muz,
+                        q, mux, muy, muz, mu,
                         radius, omegax, omegay, omegaz,
-                        angmomx, angmomy, angmomz,
+			angmomx, angmomy, angmomz,
+			shapex,shapey, shapez,
 		        quatw, quati, quatj, quatk, tqx, tqy, tqz,
 			spin, eradius, ervel, erforce 
 </PRE>
@@ -41,10 +42,12 @@
       vx,vy,vz = atom velocities
       fx,fy,fz = forces on atoms
       q = atom charge
-      mux,muy,muz = orientation of dipolar atom
-      radius = radius of extended spherical particle
+      mux,muy,muz = orientation of dipole moment of atom
+      mu = magnitude of dipole moment of atom
+      radius = radius of spherical particle
       omegax,omegay,omegaz = angular velocity of extended particle
       angmomx,angmomy,angmomz = angular momentum of extended particle
+      shapex,shapey,shapez = 3 diameters of ellipsoidal particle
       quatw,quati,quatj,quatk = quaternion components for aspherical particles
       tqx,tqy,tqz = torque on extended particles
       spin = electron spin

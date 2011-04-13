@@ -258,12 +258,11 @@ Force fields:
 
 Settings:
 
-"communicate"_communicate.html, "dipole"_dipole.html,
-"group"_group.html, "mass"_mass.html, "min_modify"_min_modify.html,
-"min_style"_min_style.html, "neigh_modify"_neigh_modify.html,
-"neighbor"_neighbor.html, "reset_timestep"_reset_timestep.html,
-"run_style"_run_style.html, "set"_set.html, "shape"_shape.html,
-"timestep"_timestep.html, "velocity"_velocity.html
+"communicate"_communicate.html, "group"_group.html, "mass"_mass.html,
+"min_modify"_min_modify.html, "min_style"_min_style.html,
+"neigh_modify"_neigh_modify.html, "neighbor"_neighbor.html,
+"reset_timestep"_reset_timestep.html, "run_style"_run_style.html,
+"set"_set.html, "timestep"_timestep.html, "velocity"_velocity.html
 
 Fixes:
 
@@ -328,7 +327,6 @@ in the command's documentation.
 "dihedral_coeff"_dihedral_coeff.html,
 "dihedral_style"_dihedral_style.html,
 "dimension"_dimension.html,
-"dipole"_dipole.html,
 "displace_atoms"_displace_atoms.html,
 "displace_box"_displace_box.html,
 "dump"_dump.html,
@@ -372,7 +370,6 @@ in the command's documentation.
 "run"_run.html,
 "run_style"_run_style.html,
 "set"_set.html,
-"shape"_shape.html,
 "shell"_shell.html,
 "special_bonds"_special_bonds.html,
 "tad"_tad.html,

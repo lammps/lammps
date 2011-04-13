@@ -390,7 +390,7 @@ velocity and torque can be imparted to them to cause them to rotate.
 <P>To run a simulation of a granular model, you will want to use
 the following commands:
 </P>
-<UL><LI><A HREF = "atom_style.html">atom_style</A> granular
+<UL><LI><A HREF = "atom_style.html">atom_style sphere</A>
 <LI><A HREF = "fix_nve_sphere.html">fix nve/sphere</A>
 <LI><A HREF = "fix_gravity.html">fix gravity</A> 
 </UL>
@@ -913,9 +913,9 @@ profile consistent with the applied shear strain rate.
 </H4>
 <P>Typical MD models treat atoms or particles as point masses.
 Sometimes, however, it is desirable to have a model with finite-size
-particles such as spherioids or aspherical ellipsoids.  The difference
-is that such particles have a moment of inertia, rotational energy,
-and angular momentum.  Rotation is induced by torque from interactions
+particles such as spheres or aspherical ellipsoids.  The difference is
+that such particles have a moment of inertia, rotational energy, and
+angular momentum.  Rotation is induced by torque from interactions
 with other particles.
 </P>
 <P>LAMMPS has several options for running simulations with these kinds of
@@ -929,53 +929,61 @@ particles.  The following aspects are discussed in turn:
 </UL>
 <H5>Atom styles 
 </H5>
-<P>There are 3 <A HREF = "atom_style.html">atom styles</A> that allow for definition of
-finite-size particles: granular, dipole, ellipsoid.
+<P>There are 2 <A HREF = "atom_style.html">atom styles</A> that allow for definition of
+finite-size particles: sphere and ellipsoid.  The peri atom style also
+treats particles as having a volume, but that is internal to the
+<A HREF = "pair_peri.html">pair_style peri</A> potentials.  The dipole atom style is
+most often used in conjunction with finite-size particles.
 </P>
-<P>Granular particles are spheriods and each particle can have a unique
-diameter and mass (or density).  These particles store an angular
-velocity (omega) and can be acted upon by torque.
+<P>The sphere style defines particles that are spheriods and each
+particle can have a unique diameter and mass (or density).  These
+particles store an angular velocity (omega) and can be acted upon by
+torque.  The "set" command can be used to modify the diameter and mass
+of individual particles, after then are created.
 </P>
-<P>Dipolar particles are typically spheriods with a point dipole and each
-particle type has a diamater and mass, set by the <A HREF = "shape.html">shape</A>
-and <A HREF = "mass.html">mass</A> commands.  These particles store an angular
-velocity (omega) and can be acted upon by torque.  They also store an
-orientation for the point dipole (mu) which has a length set by the
-<A HREF = "dipole.html">dipole</A> command.  The <A HREF = "set.html">set</A> command can be used
-to initialize the orientation of dipole moments.
+<P>The ellipsoid style defines particles that are ellipsoids and thus can
+be aspherical.  Each particle has a shape, specified by 3 diameters,
+and mass (or density).  These particles store an angular momentum and
+their orientation (quaternion), and can be acted upon by torque.  They
+do not store an angular velocity (omega), which can be in a different
+direction than angular momentum, rather they compute it as needed.
+The "set" command can be used to modify the diameter, orientation, and
+mass of individual particles, after then are created.  It also has a
+brief explanation of what quaternions are.
 </P>
-<P>Ellipsoid particles are aspherical.  Each particle type has an
-ellipsoidal shape and mass, defined by the <A HREF = "shape.html">shape</A> and
-<A HREF = "mass.html">mass</A> commands.  These particles store an angular momentum
-and their orientation (quaternion), and can be acted upon by torque.
-They do not store an angular velocity (omega), which can be in a
-different direction than angular momentum, rather they compute it as
-needed.  Ellipsoidal particles can also store a dipole moment if an
-<A HREF = "atom_style.html">atom_style hybrid ellipsoid dipole</A> is used.  The
-<A HREF = "set.html">set</A> command can be used to initialize the orientation of
-ellipsoidal particles and has a brief explanation of quaternions.
+<P>The dipole style does not define extended particles, but is often
+used in conjunction with spherical particles, via a command like
+</P>
+<PRE>atom_style hybrid sphere dipole 
+</PRE>
+<P>This is because when dipoles interact with each other, they induce
+torques, and a particle must be extended (i.e. have a moment of
+inertia) in order to respond and rotate.  See the <A HREF = "atom_style.html">atom_style
+dipole</A> command for details.  The "set" command can be
+used to modify the orientation and length of the dipole moment of
+individual particles, after then are created.
 </P>
 <P>Note that if one of these atom styles is used (or multiple styles via
 the <A HREF = "atom_style.html">atom_style hybrid</A> command), not all particles in
 the system are required to be finite-size or aspherical.  For example,
 if the 3 shape parameters are set to the same value, the particle will
-be a spheroid rather than an ellipsoid.  If the 3 shape parameters are
+be a sphere rather than an ellipsoid.  If the 3 shape parameters are
 all set to 0.0 or if the diameter is set to 0.0, it will be a point
-particle.  If the dipole moment is set to zero, the particle will not
-have a point dipole associated with it.  The pair styles used to
-compute pairwise interactions will typically compute the correct
-interaction in these simplified (cheaper) cases.  <A HREF = "pair_hybrid.html">Pair_style
-hybrid</A> can be used to insure the correct
+particle.  If the length of the dipole moment is set to zero, the
+particle will not have a point dipole associated with it.  The pair
+styles used to compute pairwise interactions will typically compute
+the correct interaction in these simplified (cheaper) cases.
+<A HREF = "pair_hybrid.html">Pair_style hybrid</A> can be used to insure the correct
 interactions are computed for the appropriate style of interactions.
-Likewise, using groups to partition particles (ellipsoid versus
-spheroid versus point particles) will allow you to use the appropriate
+Likewise, using groups to partition particles (ellipsoids versus
+spheres versus point particles) will allow you to use the appropriate
 time integrators and temperature computations for each class of
 particles.  See the doc pages for various commands for details.
 </P>
 <P>Also note that for <A HREF = "dimension.html">2d simulations</A>, finite-size
-spheroids and ellipsoids are still treated as 3d particles, rather
-than as disks or ellipses.  This means they have the same moment of
-inertia for a 3d extended object.  When their temperature is
+spheres and ellipsoids are still treated as 3d particles, rather than
+as circular disks or ellipses.  This means they have the same moment
+of inertia for a 3d extended object.  When their temperature is
 coomputed, the correct degrees of freedom are used for rotation in a
 2d versus 3d system.
 </P>
@@ -994,15 +1002,14 @@ that generate torque:
 <LI><A HREF = "pair_resquared.html">pair_style resquared</A>
 <LI><A HREF = "pair_lubricate.html">pair_style lubricate</A> 
 </UL>
-<P>The <A HREF = "pair_gran.html">granular pair styles</A> are used with <A HREF = "atom_style.html">atom_style
-granular</A>.  The <A HREF = "pair_dipole.html">dipole pair style</A>
-is used with <A HREF = "atom_style.html">atom_style dipole</A>.  The
-<A HREF = "pair_gayberne.html">GayBerne</A> and <A HREF = "pair_resquared.html">REsquared</A>
-potentials require particles have a <A HREF = "shape.html">shape</A> and are
-designed for <A HREF = "atom_style.html">ellipsoidal particles</A>.  The
-<A HREF = "pair_lubricate.html">lubrication potential</A> requires that particles
-have a <A HREF = "shape.html">shape</A>.  It can currently only be used with
-extended spherical particles.
+<P>The <A HREF = "pair_gran.html">granular pair styles</A> are used with spherical
+particles.  The <A HREF = "pair_dipole.html">dipole pair style</A> is used with
+<A HREF = "atom_style.html">atom_style dipole</A>, which could be applied to
+spherical or ellipsoidal particles.  The <A HREF = "pair_gayberne.html">GayBerne</A>
+and <A HREF = "pair_resquared.html">REsquared</A> potentials require ellipsoidal
+particles, though they will also work if the 3 shape parameters are
+the same (a sphere).  The <A HREF = "pair_lubricate.html">lubrication potential</A>
+works with spherical particles.
 </P>
 <H5>Time integration 
 </H5>
@@ -1014,8 +1021,8 @@ and angular velocity or angular momentum of the particles:
 <LI><A HREF = "fix_nvt_sphere.html">fix nvt/sphere</A>
 <LI><A HREF = "fix_npt_sphere.html">fix npt/sphere</A> 
 </UL>
-<P>Likewise, there are 3 fixes that perform time integration on extended
-aspherical particles:
+<P>Likewise, there are 3 fixes that perform time integration on
+ellipsoids as extended aspherical particles:
 </P>
 <UL><LI><A HREF = "fix_nve_asphere.html">fix nve/asphere</A>
 <LI><A HREF = "fix_nvt_asphere.html">fix nvt/asphere</A>
@@ -1035,7 +1042,7 @@ extended particles.
 <H5>Computes, thermodynamics, and dump output 
 </H5>
 <P>There are 4 computes that calculate the temperature or rotational energy
-of extended spherical or aspherical particles:
+of extended spherical or aspherical particles (ellipsoids):
 </P>
 <UL><LI><A HREF = "compute_temp_sphere.html">compute temp/sphere</A>
 <LI><A HREF = "compute_temp_asphere.html">compute temp/asphere</A>
@@ -1063,11 +1070,8 @@ particles as a rigid body, computes its inertia tensor, sums the total
 force and torque on the rigid body each timestep due to forces on its
 constituent particles, and integrates the motion of the rigid body.
 </P>
-<P>(NOTE: the feature described in the following paragraph has not yet
-been released.  It will be soon.)
-</P>
 <P>If any of the constituent particles of a rigid body are extended
-particles (spheroids or ellipsoids), then their contribution to the
+particles (spheres or ellipsoids), then their contribution to the
 inertia tensor of the body is different than if they were point
 particles.  This means the rotational dynamics of the rigid body will
 be different.  Thus a model of a dimer is different if the dimer

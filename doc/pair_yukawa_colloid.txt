@@ -107,12 +107,14 @@ This style is part of the "colloid" package.  It is only enabled if
 LAMMPS was built with that package.  See the "Making
 LAMMPS"_Section_start.html#2_3 section for more info.
 
-Because this potential uses the radii of the particles, the atom style
-must support particles whose size is set via the "shape"_shape.html
-command.  For example "atom_style"_atom_style.html colloid or
-ellipsoid.  Only spherical particles are currently allowed for
-pair_style yukawa/colloid, which means that for each particle type,
-its 3 shape diameters must be equal to each other.
+This pair style requires that atoms be finite-size spheres with a
+diameter, as defined by the "atom_style sphere"_atom_style.html
+command.
+
+Per-particle polydispersity is not yet supported by this pair style;
+per-type polydispersity is allowed.  This means all particles of the
+same type must have the same diameter.  Each type can have a different
+diameter.
 
 [Related commands:]
 

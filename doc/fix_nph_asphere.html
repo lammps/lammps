@@ -111,18 +111,23 @@ quantities as does the <A HREF = "fix_nh.html">fix nph</A> command.
 </P>
 <P><B>Restrictions:</B>
 </P>
-<P>This fix requires that atoms store torque and angular velocity (omega)
-as defined by the <A HREF = "atom_style.html">atom_style</A>.  It also require they
-store either a per-particle diameter or per-type <A HREF = "shape.html">shape</A>.
+<P>This fix is part of the "asphere" package.  It is only enabled if
+LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>This fix requires that atoms store torque and angular momementum and a
+quaternion as defined by the <A HREF = "atom_style.html">atom_style ellipsoid</A>
+command.
 </P>
 <P>All particles in the group must be finite-size.  They cannot be point
-particles, but they can be aspherical or spherical.
+particles, but they can be aspherical or spherical as defined by their
+shape attribute.
 </P>
 <P><B>Related commands:</B>
 </P>
 <P><A HREF = "fix_nh.html">fix nph</A>, <A HREF = "fix_nve_asphere.html">fix nve_asphere</A>, <A HREF = "fix_nvt_asphere.html">fix
-nvt_asphere</A>, <A HREF = "fix_npt_asphere.html">fix npt_asphere</A>,
-<A HREF = "fix_modify.html">fix_modify</A>
+nvt_asphere</A>, <A HREF = "fix_npt_asphere.html">fix
+npt_asphere</A>, <A HREF = "fix_modify.html">fix_modify</A>
 </P>
 <P><B>Default:</B> none
 </P>

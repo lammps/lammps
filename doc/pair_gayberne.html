@@ -71,9 +71,7 @@ document</A>.
 <I>asphere</I> extension (e.g. <A HREF = "fix_nve_asphere.html">fix nve/asphere</A>) in
 order to integrate particle rotation.  Additionally, <A HREF = "atom_style.html">atom_style
 ellipsoid</A> should be used since it defines the
-rotational state of the ellipsoidal particles.  The size and shape of
-the ellipsoidal particles are defined by the <A HREF = "shape.html">shape</A>
-command.
+rotational state and the size and shape of each ellipsoidal particle.
 </P>
 <P>The following coefficients must be defined for each pair of atoms
 types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
@@ -94,10 +92,11 @@ commands, or by mixing as described below:
 <P>The last coefficient is optional.  If not specified, the global
 cutoff specified in the pair_style command is used.
 </P>
-<P>It is typical for the Gay-Berne potential to define <I>sigma</I> as the
-minimum of the 3 "shape" diameters for a I,I interaction, though this
-is not required.  Note that this is a different meaning for <I>sigma</I>
-than the <A HREF = "pair_resquared.html">pair_style resquared</A> potential uses.
+<P>It is typical with the Gay-Berne potential to define <I>sigma</I> as the
+minimum of the 3 shape diameters of the particles involved in an I,I
+interaction, though this is not required.  Note that this is a
+different meaning for <I>sigma</I> than the <A HREF = "pair_resquared.html">pair_style
+resquared</A> potential uses.
 </P>
 <P>The epsilon_i and epsilon_j coefficients are actually defined for atom
 types, not for pairs of atom types.  Thus, in a series of pair_coeff
@@ -122,15 +121,15 @@ still need to insure the epsilon a,b,c coefficients are assigned to
 that type in a "pair_coeff I J" command.
 </P>
 <P>IMPORTANT NOTE: If the epsilon a,b,c for an atom type are all 1.0, and
-if the shape of the particle is spherical (see the <A HREF = "shape.html">shape</A>
-command), meaning the 3 diameters are all the same, then the particle
-is treated as "spherical" by the Gay-Berne potential.  This is
-significant because if two "spherical" particles interact, then the
-simple Lennard-Jones formula is used to compute their interaction
-energy/force using epsilon and sigma, which is much cheaper to compute
-than the full Gay-Berne formula.  Thus you should insure epsilon a,b,c
-are set to 1.0 for spherical particle types and use epsilon and sigma
-to specify its interaction with other spherical particles.
+if the shape of the particle itself is spherical, meaning its 3 shape
+parameters are all the same, then the particle is treated as an LJ
+sphere by the Gay-Berne potential.  This is significant because if two
+LJ spheres interact, then the simple Lennard-Jones formula is used to
+compute their interaction energy/force using epsilon and sigma.  This
+is much cheaper to compute than the full Gay-Berne formula.  Thus you
+should insure epsilon a,b,c are set to 1.0 for spherical particle
+types and use epsilon and sigma to specify its interaction with other
+spherical particles.
 </P>
 <HR>
 
@@ -191,14 +190,19 @@ to be specified in an input script that reads a restart file.
 enabled if LAMMPS was built with the those packages.  See the <A HREF = "Section_start.html#2_3">Making
 LAMMPS</A> section for more info.
 </P>
-<P>This pair style requires that atoms store torque and a quaternion to
+<P>These pair style require that atoms store torque and a quaternion to
 represent their orientation, as defined by the
 <A HREF = "atom_style.html">atom_style</A>.  It also require they store a per-type
 <A HREF = "shape.html">shape</A>.  The particles cannot store a per-particle
 diameter.
 </P>
+<P>This pair style requires that atoms be ellipsoids as defined by the
+<A HREF = "atom_style.html">atom_style ellipsoid</A> command.
+</P>
 <P>Particles acted on by the potential can be extended aspherical or
-spherical particles, or point particles.
+spherical particles, or point particles.  Spherical particles have all
+3 of their shape parameters equal to each other.  Point particles have
+all 3 of their shape parameters equal to 0.0.
 </P>
 <P>The Gay-Berne potential does not become isotropic as r increases
 <A HREF = "#Everaers">(Everaers)</A>.  The distance-of-closest-approach

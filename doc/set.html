@@ -15,13 +15,13 @@
 </P>
 <PRE>set style ID keyword values ... 
 </PRE>
-<UL><LI>style = <I>atom</I> or <I>group</I> or <I>region</I> 
+<UL><LI>style = <I>atom</I> or <I>type</I> or <I>mol</I> or <I>group</I> or <I>region</I> 
 
-<LI>ID = atom ID or group ID or region ID 
+<LI>ID = atom ID range or type range or mol ID range or group ID or region ID 
 
 <LI>one or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>type</I> or <I>type/fraction</I> or <I>mol</I> or <I>x</I> or <I>y</I> or <I>z</I> or           <I>charge</I> or <I>dipole</I> or <I>dipole/random</I> or <I>quat/random</I> or 	  <I>diameter</I> or <I>density</I> or <I>volume</I> or <I>image</I> or
+<LI>keyword = <I>type</I> or <I>type/fraction</I> or <I>mol</I> or <I>x</I> or <I>y</I> or <I>z</I> or           <I>charge</I> or <I>dipole</I> or <I>dipole/random</I> or <I>quat</I> or 	  <I>quat/random</I> or <I>diameter</I> or <I>shape</I> or <I>mass</I> or 	  <I>density</I> or <I>volume</I> or <I>image</I> or
 	  <I>bond</I> or <I>angle</I> or <I>dihedral</I> or <I>improper</I> 
 
 <PRE>  <I>type</I> value = atom type
@@ -34,16 +34,20 @@
   <I>charge</I> value = atomic charge (charge units)
   <I>dipole</I> values = x y z
     x,y,z = orientation of dipole moment vector
-  <I>dipole/random</I> value = seed
+  <I>dipole/random</I> value = seed Dlen
     seed = random # seed (positive integer) for dipole moment orientations
+    Dlen = magnitude of dipole moment (dipole units)
   <I>quat</I> values = a b c theta
     a,b,c = unit vector to rotate particle around via right-hand rule
     theta = rotation angle in degrees
   <I>quat/random</I> value = seed
     seed = random # seed (positive integer) for quaternion orientations
-  <I>diameter</I> value = particle diameter (distance units)
-  <I>density</I> value = particle density (mass/distance^3 units)
-  <I>volume</I> value = particle volume (distance^3 units)
+  <I>diameter</I> value = diameter of spherical particle (distance units)
+  <I>shape</I> value = Sx Sy Sz
+    Sx,Sy,Sz = 3 diameters of ellipsoid (distance units)
+  <I>mass</I> value = per-atom mass (mass units)
+  <I>density</I> value = particle density for sphere or ellipsoid (mass/distance^3 units)
+  <I>volume</I> value = particle volume for Peridynamic particle (distance^3 units)
   <I>image</I> nx ny nz
     nx,ny,nz = which periodic image of the simulation box the atom is in
   <I>bond</I> value = bond type for all bonds between selected atoms
@@ -59,7 +63,9 @@
 set group solvent type/fraction 2 0.5 12393
 set group edge bond 4
 set region half charge 0.5
-set atom 100 x 0.5 y 1.0
+set type 3 charge 0.5
+set type 1*3 charge 0.5
+set atom 100*200 x 0.5 y 1.0
 set atom 1492 type 3 
 </PRE>
 <P><B>Description:</B>
@@ -72,18 +78,30 @@ for overriding the default values assigned by the
 <A HREF = "create_atoms.html">create_atoms</A> command (e.g. charge = 0.0).  It can
 be useful for altering pairwise and molecular force interactions,
 since force-field coefficients are defined in terms of types.  It can
-be used to change the labeling of atoms by atom type when they are
-output in <A HREF = "dump.html">dump</A> files.  It can be useful for debugging
-purposes; i.e. positioning an atom at a precise location to compute
-subsequent forces or energy.
+be used to change the labeling of atoms by atom type or molecule ID
+when they are output in <A HREF = "dump.html">dump</A> files.  It can be useful for
+debugging purposes; i.e. positioning an atom at a precise location to
+compute subsequent forces or energy.
 </P>
-<P>The style <I>atom</I> selects a single atom.  The style <I>group</I> selects the
-entire group of atoms.  The style <I>region</I> selects all atoms in the
-geometric region.  The associated ID for each of these styles is
-either the unique atom ID (typically a number from 1 to N = the number
-of atoms in the simulation), the group ID, or the region ID.  See the
-<A HREF = "group.html">group</A> and <A HREF = "region.html">region</A> commands for details of
-how to specify a group or region.
+<P>The style <I>atom</I> selects one or more atoms in a range of atom IDs.
+The style <I>type</I> selects all the atoms in a range of types.  The style
+<I>mol</I> selects all the atoms in a range of molecule IDs.
+</P>
+<P>In each of the range cases, a single value can be specified, or a
+wildcard asterisk can be used to specify a range of values.  This
+takes the form "*" or "*n" or "n*" or "m*n".  For example, for the
+style <I>type</I>, if N = the number of atom types, then an asterisk with
+no numeric values means all types from 1 to N.  A leading asterisk
+means all types from 1 to n (inclusive).  A trailing asterisk means
+all types from n to N (inclusive).  A middle asterisk means all types
+from m to n (inclusive).  Note that the loweest value for the wildcard
+is 1, not 0, so you cannot not use this form to select atoms
+with molecule ID = 0, for example.
+</P>
+<P>The style <I>group</I> selects all the atoms in the specified group.  The
+style <I>region</I> selects all the atoms in the specified geometric
+region.  See the <A HREF = "group.html">group</A> and <A HREF = "region.html">region</A> commands
+for details of how to specify a group or region.
 </P>
 <HR>
 
@@ -110,29 +128,30 @@ being used must support the use of atomic charge.
 </P>
 <P>Keyword <I>dipole</I> uses the specified x,y,z values as components of a
 vector to set as the orientation of the dipole moment vectors of the
-selected atoms.  The magnitude of the dipole moment for each atom is
-set by the <A HREF = "dipole.html">dipole</A> command.
+selected atoms.  The magnitude of the dipole moment is set
+by the length of this orientation vector.
 </P>
 <P>Keyword <I>dipole/random</I> randomizes the orientation of the dipole
-moment vectors of the selected atoms.  The magnitude of the dipole
-moment for each atom is set by the <A HREF = "dipole.html">dipole</A> command.  For
-2d systems, the z component of the orientation is set to 0.0.  Random
-numbers are used in such a way that the orientation of a particular
-atom is the same, regardless of how many processors are being used.
+moment vectors of the selected atoms and sets the magnitude of each to
+the specified <I>Dlen</I> value.  For 2d systems, the z component of the
+orientation is set to 0.0.  Random numbers are used in such a way that
+the orientation of a particular atom is the same, regardless of how
+many processors are being used.
 </P>
 <P>Keyword <I>quat</I> uses the specified values to create a quaternion
 (4-vector) that represents the orientation of the selected atoms.
-Note that the <A HREF = "shape.html">shape</A> command is used to specify the aspect
-ratios of an ellipsoidal particle, which is oriented by default with
-its x-axis along the simulation box's x-axis, and similarly for y and
-z.  If this body is rotated (via the right-hand rule) by an angle
-theta around a unit rotation vector (a,b,c), then the quaternion that
-represents its new orientation is given by (cos(theta/2),
-a*sin(theta/2), b*sin(theta/2), c*sin(theta/2)).  The theta and a,b,c
-values are the arguments to the <I>quat</I> keyword.  LAMMPS normalizes the
-quaternion in case (a,b,c) was not specified as a unit vector.  For 2d
-systems, the a,b,c values are ignored, since a rotation vector of
-(0,0,1) is the only valid choice.
+Note that particles defined by <A HREF = "atom_style.html">atom_style ellipsoid</A>
+have 3 shape paraeters whicha are used to specify the aspect ratios of
+an ellipsoidal particle, which is oriented by default with its x-axis
+along the simulation box's x-axis, and similarly for y and z.  If this
+body is rotated (via the right-hand rule) by an angle theta around a
+unit rotation vector (a,b,c), then the quaternion that represents its
+new orientation is given by (cos(theta/2), a*sin(theta/2),
+b*sin(theta/2), c*sin(theta/2)).  The theta and a,b,c values are the
+arguments to the <I>quat</I> keyword.  LAMMPS normalizes the quaternion in
+case (a,b,c) was not specified as a unit vector.  For 2d systems, the
+a,b,c values are ignored, since a rotation vector of (0,0,1) is the
+only valid choice.
 </P>
 <P>Keyword <I>quat/random</I> randomizes the orientation of the quaternion of
 the selected atoms.  Random numbers are used in such a way that the
@@ -140,20 +159,43 @@ orientation of a particular atom is the same, regardless of how many
 processors are being used.  For 2d systems, only orientations in the
 xy plane are generated.
 </P>
-<P>For the <I>dipole</I> and <I>quat</I> keywords, the <A HREF = "atom_style.html">atom style</A>
-being used must support the use of dipoles or quaternions.
+<P>Keyword <I>diameter</I> sets the size of the selected atoms.  The particles
+must be finite-size spheres as defined by the <A HREF = "atom_style.html">atom_style
+sphere</A> command.  The diameter of a particle can be
+set to 0.0, which means they will be treated as point particles.  Note
+that this command does not adjust the particle mass, even if it was
+defined with a density, e.g. via the <A HREF = "read_data.html">read_data</A>
+command.
 </P>
-<P>Keyword <I>diameter</I> sets the size of all selected particles.  If the
-particles have a per-atom mass and density, then it also sets their
-mass.
+<P>Keyword <I>shape</I> sets the size and shape of the selected atoms.  The
+particles must be aspherical ellipsoids as defined by the <A HREF = "atom_style.html">atom_style
+ellipsoid</A> command.  The <I>Sx</I>, <I>Sy</I>, <I>Sz</I> settings are
+the 3 diameters of the ellipsoid in each direction.  All 3 can be set
+to the same value, which means the ellipsoid is effectively a sphere.
+Or then can all be set to 0.0 which means the particle will be treated
+as a point particle.  Note that this command does not adjust the
+particle mass, even if it was defined with a density, e.g. via the
+<A HREF = "read_data.html">read_data</A> command.
 </P>
-<P>Keyword <I>density</I> sets the density of all selected particles.  If the
-particles have a per-atom mass and diameter, then it also sets their
-mass.  If the particles have a per-atom mass and volume (as defined by
-PeriDynamics), then it also sets their mass.
+<P>Keyword <I>mas</I> sets the mass of all selected particles.  The
+particles must have a per-atom mass attribute, as defined by the
+<A HREF = "atom_style.html">atom_style</A> command.  See the "mass" command for how
+to set mass values on a per-type basis.
 </P>
-<P>Keyword <I>volume</I> sets the volume of all selected particles, as defined
-by PeriDynamics.
+<P>Keyword <I>density</I> sets the mass of all selected particles.  The
+particles must have a per-atom mass attribute, as defined by the
+<A HREF = "atom_style.html">atom_style</A> command.  See the "mass" command for how
+to set mass values on a per-type basis.  If the atom has a radius
+attribute (see <A HREF = "atom_style.html">atom_style sphere</A>) and its radius is
+non-zero, its mass is set from the density and particle volume.  The
+same is true if the atom has a shape attribute (see <A HREF = "atom_style.html">atom_style
+ellipsoid</A>) and its shape parameters are non-zero.
+Otherwise the mass is set to the density value directly.
+</P>
+<P>Keyword <I>volume</I> sets the volume of all selected particles.
+Currently, only the <A HREF = "atom_style.html">atom_style peri</A> command defines
+particles with a volume attribute.  Note that this command does not
+adjust the particle mass.
 </P>
 <P>Keyword <I>image</I> sets which image of the simulation box the atom is
 considered to be in.  An image of 0 means it is inside the box as
@@ -178,11 +220,6 @@ straddles a periodic boundary (rather they should be different by +/-
 up analysis of the trajectories if a LAMMPS diagnostic or your own
 analysis relies on the image flags to unwrap a molecule which
 straddles the periodic box.
-</P>
-<P>For the <I>diameter</I> and <I>density</I> and <I>volume</I> keywords, the <A HREF = "atom_style.html">atom
-style</A> being used must support the use of those
-parameters.  For example, granular particles store a diameter and
-density.  Peridynamic particles store a volume and density.
 </P>
 <P>Keywords <I>bond</I>, <I>angle</I>, <I>dihedral</I>, and <I>improper</I>, set the bond
 type (angle type, etc) of all bonds (angles, etc) of selected atoms to

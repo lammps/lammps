@@ -66,9 +66,7 @@ Use of this pair style requires the NVE, NVT, or NPT fixes with the
 {asphere} extension (e.g. "fix nve/asphere"_fix_nve_asphere.html) in
 order to integrate particle rotation.  Additionally, "atom_style
 ellipsoid"_atom_style.html should be used since it defines the
-rotational state of the ellipsoidal particles.  The size and shape of
-the ellipsoidal particles are defined by the "shape"_shape.html
-command.
+rotational state and the size and shape of each ellipsoidal particle.
 
 The following coefficients must be defined for each pair of atoms
 types via the "pair_coeff"_pair_coeff.html command as in the examples
@@ -89,10 +87,11 @@ cutoff (distance units) :ul
 The last coefficient is optional.  If not specified, the global
 cutoff specified in the pair_style command is used.
 
-It is typical for the Gay-Berne potential to define {sigma} as the
-minimum of the 3 "shape" diameters for a I,I interaction, though this
-is not required.  Note that this is a different meaning for {sigma}
-than the "pair_style resquared"_pair_resquared.html potential uses.
+It is typical with the Gay-Berne potential to define {sigma} as the
+minimum of the 3 shape diameters of the particles involved in an I,I
+interaction, though this is not required.  Note that this is a
+different meaning for {sigma} than the "pair_style
+resquared"_pair_resquared.html potential uses.
  
 The epsilon_i and epsilon_j coefficients are actually defined for atom
 types, not for pairs of atom types.  Thus, in a series of pair_coeff
@@ -117,15 +116,15 @@ still need to insure the epsilon a,b,c coefficients are assigned to
 that type in a "pair_coeff I J" command.
 
 IMPORTANT NOTE: If the epsilon a,b,c for an atom type are all 1.0, and
-if the shape of the particle is spherical (see the "shape"_shape.html
-command), meaning the 3 diameters are all the same, then the particle
-is treated as "spherical" by the Gay-Berne potential.  This is
-significant because if two "spherical" particles interact, then the
-simple Lennard-Jones formula is used to compute their interaction
-energy/force using epsilon and sigma, which is much cheaper to compute
-than the full Gay-Berne formula.  Thus you should insure epsilon a,b,c
-are set to 1.0 for spherical particle types and use epsilon and sigma
-to specify its interaction with other spherical particles.
+if the shape of the particle itself is spherical, meaning its 3 shape
+parameters are all the same, then the particle is treated as an LJ
+sphere by the Gay-Berne potential.  This is significant because if two
+LJ spheres interact, then the simple Lennard-Jones formula is used to
+compute their interaction energy/force using epsilon and sigma.  This
+is much cheaper to compute than the full Gay-Berne formula.  Thus you
+should insure epsilon a,b,c are set to 1.0 for spherical particle
+types and use epsilon and sigma to specify its interaction with other
+spherical particles.
 
 :line
 
@@ -186,14 +185,19 @@ The {gayberne} style is part of the "asphere" package.  The
 enabled if LAMMPS was built with the those packages.  See the "Making
 LAMMPS"_Section_start.html#2_3 section for more info.
 
-This pair style requires that atoms store torque and a quaternion to
+These pair style require that atoms store torque and a quaternion to
 represent their orientation, as defined by the
 "atom_style"_atom_style.html.  It also require they store a per-type
 "shape"_shape.html.  The particles cannot store a per-particle
 diameter.
 
+This pair style requires that atoms be ellipsoids as defined by the
+"atom_style ellipsoid"_atom_style.html command.
+
 Particles acted on by the potential can be extended aspherical or
-spherical particles, or point particles.
+spherical particles, or point particles.  Spherical particles have all
+3 of their shape parameters equal to each other.  Point particles have
+all 3 of their shape parameters equal to 0.0.
 
 The Gay-Berne potential does not become isotropic as r increases
 "(Everaers)"_#Everaers.  The distance-of-closest-approach

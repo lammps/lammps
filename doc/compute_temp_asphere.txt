@@ -44,13 +44,12 @@ this is not the case.  Then there are less dof and you should use the
 "compute_modify extra"_compute_modify.html command to adjust the dof
 accordingly.
 
-For example, an aspherical particle with all three of its
-"shape"_shape.html parameters the same is a sphere.  If it does not
-rotate, then it should have 3 dof instead of 6 in 3d (or 2 instead of
-3 in 2d).  A uniaxial aspherical particle has two of its three shape
-parameters the same.  If it does not rotate around the axis
-perpendicular to its circular cross section, then it should have 5 dof
-instead of 6 in 3d.
+For example, an aspherical particle with all three of its shape
+parameters the same is a sphere.  If it does not rotate, then it
+should have 3 dof instead of 6 in 3d (or 2 instead of 3 in 2d).  A
+uniaxial aspherical particle has two of its three shape parameters the
+same.  If it does not rotate around the axis perpendicular to its
+circular cross section, then it should have 5 dof instead of 6 in 3d.
 
 The translational kinetic energy is computed the same as is described
 by the "compute temp"_compute_temp.html command.  The rotational
@@ -111,10 +110,17 @@ vector values will be in energy "units"_units.html.
 
 [Restrictions:]
 
-This compute requires that particles be represented as extended
-ellipsoids and not point particles.  This means they will have an
-angular momentum and a shape which is determined by the
-"shape"_shape.html command.
+This compute is part of the "asphere" package.  It is only enabled if
+LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#2_3 section for more info.
+
+This compute requires that atoms store angular momementum and a
+quaternion as defined by the "atom_style ellipsoid"_atom_style.html
+command.
+
+All particles in the group must be finite-size.  They cannot be point
+particles, but they can be aspherical or spherical as defined by their
+shape attribute.
 
 [Related commands:]
 

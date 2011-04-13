@@ -38,8 +38,8 @@ assumes point particles and only updates their position and velocity.
 If the {update} keyword is used with the {dipole} value, then the
 orientation of the dipole moment of each particle is also updated
 during the time integration.  This option should be used for models
-where a dipole moment is assigned to particles via the
-"dipole"_dipole.html command.
+where a dipole moment is assigned to particles via use of the
+"atom_style dipole"_atom_style.html command.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
@@ -54,12 +54,13 @@ This fix is not invoked during "energy minimization"_minimize.html.
 [Restrictions:] 
 
 This fix requires that atoms store torque and angular velocity (omega)
-as defined by the "atom_style"_atom_style.html.  It also require they
-store either a per-particle diameter or per-type "shape"_shape.html.  If
-the {dipole} keyword is used, then they must store a dipole moment.
+and a radius as defined by the "atom_style sphere"_atom_style.html
+command.  If the {dipole} keyword is used, then they must also store a
+dipole moment as defined by the "atom_style dipole"_atom_style.html
+command.
 
 All particles in the group must be finite-size spheres.  They cannot
-be point particles, nor can they be aspherical.
+be point particles.
 
 [Related commands:]
 

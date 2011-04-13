@@ -109,11 +109,11 @@ This fix is not invoked during "energy minimization"_minimize.html.
 [Restrictions:]
 
 This fix requires that atoms store torque and angular velocity (omega)
-as defined by the "atom_style"_atom_style.html.  It also require they
-store either a per-particle diameter or per-type "shape"_shape.html.
+and a radius as defined by the "atom_style sphere"_atom_style.html
+command.
 
 All particles in the group must be finite-size spheres.  They cannot
-be point particles, nor can they be aspherical.
+be point particles.
 
 [Related commands:]
 

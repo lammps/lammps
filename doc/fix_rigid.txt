@@ -103,12 +103,12 @@ setforce"_fix_setforce.html command), and integrating them as usual
 :line
 
 The constituent particles within a rigid body can be point particles
-(the default in LAMMPS) or finite-size particles, such as spheroids
-and ellipsoids.  See the "shape"_shape.html command and "atom_style
-granular"_atom_style.html for more details on these kinds of
-particles.  Finite-size particles contribute differently to the moment
-of inertia of a rigid body than do point particles.  Finite-size
-particles can also experience torque (e.g. due to "frictional granular
+(the default in LAMMPS) or finite-size particles, such as spheres and
+ellipsoids.  See the "atom_style sphere and ellipsoid"_atom_style.html
+commands for more details on these kinds of particles.  Finite-size
+particles contribute differently to the moment of inertia of a rigid
+body than do point particles.  Finite-size particles can also
+experience torque (e.g. due to "frictional granular
 interactions"_pair_gran.html) and have an orientation.  These
 contributions are accounted for by these fixes.
 

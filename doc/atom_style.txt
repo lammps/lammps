@@ -13,8 +13,8 @@ atom_style command :h3
 atom_style style args :pre
 
 style = {angle} or {atomic} or {bond} or {charge} or {colloid} or {dipole} or \
-        {electron} or {ellipsoid} or {full} or {granular} or {molecular} or \
-	{peri} or {hybrid} :ul
+        {electron} or {ellipsoid} or {full} or {molecular} or \
+	{peri} or {sphere} or {hybrid} :ul
   args = none for any style except {hybrid}
   {hybrid} args = list of one or more sub-styles :pre
 
@@ -54,35 +54,31 @@ quantities.
 {atomic} | only the default values | coarse-grain liquids, solids, metals |
 {bond} | bonds | bead-spring polymers |
 {charge} | charge | atomic system with charges |
-{colloid} | angular velocity | extended spherical particles |
-{dipole} | charge and dipole moment | atomic system with dipoles |
+{dipole} | charge and dipole moment | system with dipolar particles |
 {electron} | charge and spin and eradius | electronic force field |
-{ellipsoid} | quaternion for particle orientation, angular momentum | extended aspherical particles |
+{ellipsoid} | shape, quaternion for particle orientation, angular momentum | extended aspherical particles |
 {full} | molecular + charge | bio-molecules |
-{granular} | diameter, density, angular velocity | granular models |
 {molecular} | bonds, angles, dihedrals, impropers | uncharged molecules |
-{peri} | density, volume | mesocopic Peridynamic models :tb(c=3,s=|)
-
-All of the styles define point particles, except the {colloid},
-{dipole}, {electron}, {ellipsoid}, {granular}, and {peri} styles,
-which define finite-size particles.  For {colloid}, {dipole}, and
-{ellipsoid} systems, the "shape"_shape.html command is used to specify
-the size and shape of particles on a per-type basis, which is
-spherical for {colloid} and {dipole} particles and spherical or
-aspherical for {ellipsoid} particles.  For {granular} systems, the
-particles are spherical and each has a per-particle specified
-diameter.  For {peri} systems, the particles are spherical and each
-has a per-particle specified volume.  For {electron} systems, the
-particles representing electrons are three dimensional Gaussians with
-a specified position and bandwidth or uncertainty in position, which
-is represented by the eradius = electron size.
+{peri} | mass, volume | mesocopic Peridynamic models |
+{sphere} | diameter, mass, angular velocity | granular models :tb(c=3,s=|)
 
 All of the styles assign mass to particles on a per-type basis, using
-the "mass"_mass.html command, except the {granular} and {peri} styles
-which assign mass on a per-particle basis.  For {granular} systems,
-the specified diameter and density are used to calculate each
-particle's mass.  For {peri} systems, the speficied volume and density
-are used to calculate each particle's mass.
+the "mass"_mass.html command, except for the finite-size particle
+styles discussed below.  They assign mass on a per-atom basis.
+
+All of the styles define point particles, except the {sphere},
+{ellipsoid}, {electron}, and {peri} styles, which define finite-size
+particles.
+
+For the {sphere} style, the particles are spheres and each stores a
+per-particle diameter and mass.  For the {ellipsoid} style, the
+particles are ellipsoids and each stores a per-particle shape vector
+with the 3 diamters of the ellipsoid.  For the {electron} style, the
+particles representing electrons are 3d Gaussians with a specified
+position and bandwidth or uncertainty in position, which is
+represented by the eradius = electron size.  For the {peri} style, the
+particles are spherical and each stores a per-particle mass and
+volume.
 
 :line
 
@@ -95,10 +91,10 @@ If some atoms have bonds, but others do not, use the {bond} style.
 
 The only scenario where the {hybrid} style is needed is if there is no
 single style which defines all needed properties of all atoms.  For
-example, if you want colloidal particles with charge, you would need
-to use "atom_style hybrid colloid charge".  When a hybrid style is
-used, atoms store and communicate the union of all quantities implied
-by the individual styles.
+example, if you want dipolar particles which will be torqued and
+rotate, you would need to use "atom_style hybrid sphere dipole".  When
+a hybrid style is used, atoms store and communicate the union of all
+quantities implied by the individual styles.
 
 LAMMPS can be extended with new atom styles; see "this
 section"_Section_modify.html.
@@ -109,14 +105,13 @@ This command cannot be used after the simulation box is defined by a
 "read_data"_read_data.html or "create_box"_create_box.html command.
 
 The {angle}, {bond}, {full}, and {molecular} styles are part of the
-"molecular" package.  The {granular} style is part of the "granular"
-package.  The {colloid} style is part of the "colloid" package.  The
-{dipole} style is part of the "dipole" package.  The {ellipsoid} style
-is part of the "asphere" package.  The {peri} style is part of the
-"peri" package for Peridynamics.  The {electron} style is part of the
-"user-eff" package for "electronic force fields"_pair_eff.html.  They
-are only enabled if LAMMPS was built with that package.  See the
-"Making LAMMPS"_Section_start.html#2_3 section for more info.
+"molecular" package.  The {dipole} style is part of the "dipole"
+package.  The {ellipsoid} style is part of the "asphere" package.  The
+{peri} style is part of the "peri" package for Peridynamics.  The
+{electron} style is part of the "user-eff" package for "electronic
+force fields"_pair_eff.html.  They are only enabled if LAMMPS was
+built with that package.  See the "Making
+LAMMPS"_Section_start.html#2_3 section for more info.
 
 [Related commands:]
 

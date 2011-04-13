@@ -47,19 +47,12 @@ scalar value will be in energy <A HREF = "units.html">units</A>.
 </P>
 <P><B>Restrictions:</B>
 </P>
-<P>This compute requires that particles be represented as extended
-ellipsoids and not point particles.  This means they will have an
-angular momentum and a shape which is determined by the
-<A HREF = "shape.html">shape</A> command.
-</P>
-<P>This compute requires that atoms store angular momentum and a
-quaternion to represent their orientation, as defined by the
-<A HREF = "atom_style.html">atom_style</A>.  It also require they store a per-type
-<A HREF = "shape.html">shape</A>.  The particles cannot store a per-particle
-diameter or per-particle mass.
+<P>This compute requires that atoms store a shape and quaternion
+orientation and angular momentum as defined by the <A HREF = "atom_style.html">atom_style
+ellipsoid</A> command.
 </P>
 <P>All particles in the group must be finite-size.  They cannot be point
-particles, but they can be aspherical or spherical.
+particles.
 </P>
 <P><B>Related commands:</B> none
 </P>

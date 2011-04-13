@@ -1,6 +1,6 @@
 # Pour granular particles into chute container, then induce flow
 
-atom_style	granular
+atom_style	sphere
 boundary	p p fm
 newton		off
 communicate	single vel yes

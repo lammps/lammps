@@ -33,6 +33,7 @@
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 #define MAX_GROUP 32
+#define PI 4.0*atan(1.0)
 
 // these should match settings in src/lmptype.h
 
@@ -47,19 +48,19 @@ typedef int64_t bigint;
 // same as write_restart.cpp
 
 enum{VERSION,SMALLINT,TAGINT,BIGINT,
-       UNITS,NTIMESTEP,DIMENSION,NPROCS,PROCGRID_0,PROCGRID_1,PROCGRID_2,
-       NEWTON_PAIR,NEWTON_BOND,XPERIODIC,YPERIODIC,ZPERIODIC,
-       BOUNDARY_00,BOUNDARY_01,BOUNDARY_10,BOUNDARY_11,BOUNDARY_20,BOUNDARY_21,
-       ATOM_STYLE,NATOMS,NTYPES,
-       NBONDS,NBONDTYPES,BOND_PER_ATOM,
-       NANGLES,NANGLETYPES,ANGLE_PER_ATOM,
-       NDIHEDRALS,NDIHEDRALTYPES,DIHEDRAL_PER_ATOM,
-       NIMPROPERS,NIMPROPERTYPES,IMPROPER_PER_ATOM,
-       BOXLO_0,BOXHI_0,BOXLO_1,BOXHI_1,BOXLO_2,BOXHI_2,
-       SPECIAL_LJ_1,SPECIAL_LJ_2,SPECIAL_LJ_3,
-       SPECIAL_COUL_1,SPECIAL_COUL_2,SPECIAL_COUL_3,
-       XY,XZ,YZ};
-enum{MASS,SHAPE,DIPOLE};
+     UNITS,NTIMESTEP,DIMENSION,NPROCS,PROCGRID_0,PROCGRID_1,PROCGRID_2,
+     NEWTON_PAIR,NEWTON_BOND,XPERIODIC,YPERIODIC,ZPERIODIC,
+     BOUNDARY_00,BOUNDARY_01,BOUNDARY_10,BOUNDARY_11,BOUNDARY_20,BOUNDARY_21,
+     ATOM_STYLE,NATOMS,NTYPES,
+     NBONDS,NBONDTYPES,BOND_PER_ATOM,
+     NANGLES,NANGLETYPES,ANGLE_PER_ATOM,
+     NDIHEDRALS,NDIHEDRALTYPES,DIHEDRAL_PER_ATOM,
+     NIMPROPERS,NIMPROPERTYPES,IMPROPER_PER_ATOM,
+     BOXLO_0,BOXHI_0,BOXLO_1,BOXHI_1,BOXLO_2,BOXHI_2,
+     SPECIAL_LJ_1,SPECIAL_LJ_2,SPECIAL_LJ_3,
+     SPECIAL_COUL_1,SPECIAL_COUL_2,SPECIAL_COUL_3,
+     XY,XZ,YZ};
+enum{MASS};
 enum{PAIR,BOND,ANGLE,DIHEDRAL,IMPROPER};
 
 static const char * const cg_type_list[] =
@@ -87,8 +88,8 @@ class Data {
 
   char *atom_style;
   int style_angle,style_atomic,style_bond,style_charge,style_dipole;
-  int style_ellipsoid,style_full,style_granular;
-  int style_hybrid,style_molecular,style_peri;
+  int style_ellipsoid,style_full;
+  int style_hybrid,style_molecular,style_peri,style_sphere;
 
   bigint natoms;
   bigint nbonds,nangles,ndihedrals,nimpropers;
@@ -191,7 +192,7 @@ class Data {
 
   int iatoms,ibonds,iangles,idihedrals,iimpropers;
 
-  double *mass,*shape,*dipole;
+  double *mass;
   double *x,*y,*z,*vx,*vy,*vz;
   double *omegax,*omegay,*omegaz;
   tagint *tag;
@@ -199,6 +200,7 @@ class Data {
   int *molecule;
   double *q,*mux,*muy,*muz,*radius,*density,*vfrac,*rmass;
   double *s0,*x0x,*x0y,*x0z;
+  double *shapex,*shapey,*shapez;
   double *quatw,*quati,*quatj,*quatk,*angmomx,*angmomy,*angmomz;
   int *bond_type,*angle_type,*dihedral_type,*improper_type;
   int *bond_atom1,*bond_atom2;
@@ -219,9 +221,9 @@ class Data {
   void write_atom_dipole(FILE *, int, int, int, int);
   void write_atom_ellipsoid(FILE *, int, int, int, int);
   void write_atom_full(FILE *, int, int, int, int);
-  void write_atom_granular(FILE *, int, int, int, int);
   void write_atom_molecular(FILE *, int, int, int, int);
   void write_atom_peri(FILE *, int, int, int, int);
+  void write_atom_sphere(FILE *, int, int, int, int);
 
   void write_atom_angle_extra(FILE *, int);
   void write_atom_atomic_extra(FILE *, int);
@@ -230,9 +232,9 @@ class Data {
   void write_atom_dipole_extra(FILE *, int);
   void write_atom_ellipsoid_extra(FILE *, int);
   void write_atom_full_extra(FILE *, int);
-  void write_atom_granular_extra(FILE *, int);
   void write_atom_molecular_extra(FILE *, int);
   void write_atom_peri_extra(FILE *, int);
+  void write_atom_sphere_extra(FILE *, int);
 
   void write_vel_angle(FILE *, int);
   void write_vel_atomic(FILE *, int);
@@ -241,9 +243,9 @@ class Data {
   void write_vel_dipole(FILE *, int);
   void write_vel_ellipsoid(FILE *, int);
   void write_vel_full(FILE *, int);
-  void write_vel_granular(FILE *, int);
   void write_vel_molecular(FILE *, int);
   void write_vel_peri(FILE *, int);
+  void write_vel_sphere(FILE *, int);
 
   void write_vel_angle_extra(FILE *, int);
   void write_vel_atomic_extra(FILE *, int);
@@ -252,9 +254,9 @@ class Data {
   void write_vel_dipole_extra(FILE *, int);
   void write_vel_ellipsoid_extra(FILE *, int);
   void write_vel_full_extra(FILE *, int);
-  void write_vel_granular_extra(FILE *, int);
   void write_vel_molecular_extra(FILE *, int);
   void write_vel_peri_extra(FILE *, int);
+  void write_vel_sphere_extra(FILE *, int);
 };
 
 // ---------------------------------------------------------------------
@@ -281,9 +283,9 @@ void allocate_charge(Data &data);
 void allocate_dipole(Data &data);
 void allocate_ellipsoid(Data &data);
 void allocate_full(Data &data);
-void allocate_granular(Data &data);
 void allocate_molecular(Data &data);
 void allocate_peri(Data &data);
+void allocate_sphere(Data &data);
 
 int atom_angle(double *, Data &, int);
 int atom_atomic(double *, Data &, int);
@@ -292,9 +294,9 @@ int atom_charge(double *, Data &, int);
 int atom_dipole(double *, Data &, int);
 int atom_ellipsoid(double *, Data &, int);
 int atom_full(double *, Data &, int);
-int atom_granular(double *, Data &, int);
 int atom_molecular(double *, Data &, int);
 int atom_peri(double *, Data &, int);
+int atom_sphere(double *, Data &, int);
 
 int read_int(FILE *fp);
 double read_double(FILE *fp);
@@ -484,8 +486,8 @@ void header(FILE *fp, Data &data)
     else if (flag == ATOM_STYLE) {
       data.style_angle = data.style_atomic = data.style_bond =
 	data.style_charge = data.style_dipole =	
-	data.style_ellipsoid = data.style_full = data.style_granular =
-	data.style_hybrid = data.style_molecular = data.style_peri = 0;
+	data.style_ellipsoid = data.style_full = data.style_hybrid = 
+	data.style_molecular = data.style_peri = data.style_sphere = 0;
 
       data.atom_style = read_char(fp);
       set_style(data.atom_style,data,1);
@@ -559,10 +561,10 @@ void set_style(char *name, Data &data, int flag)
   else if (strcmp(name,"dipole") == 0) data.style_dipole = flag;
   else if (strcmp(name,"ellipsoid") == 0) data.style_ellipsoid = flag;
   else if (strcmp(name,"full") == 0) data.style_full = flag;
-  else if (strcmp(name,"granular") == 0) data.style_granular = flag;
   else if (strcmp(name,"hybrid") == 0) data.style_hybrid = flag;
   else if (strcmp(name,"molecular") == 0) data.style_molecular = flag;
   else if (strcmp(name,"peri") == 0) data.style_peri = flag;
+  else if (strcmp(name,"sphere") == 0) data.style_sphere = flag;
   else {
     printf("ERROR: Unknown atom style %s\n",name);
     exit(1);
@@ -599,8 +601,6 @@ void groups(FILE *fp)
 void type_arrays(FILE *fp, Data &data)
 {
   data.mass = NULL;
-  data.shape = NULL;
-  data.dipole = NULL;
 
   int flag;
   flag = read_int(fp);
@@ -610,12 +610,6 @@ void type_arrays(FILE *fp, Data &data)
     if (flag == MASS) {
       data.mass = new double[data.ntypes+1];
       fread(&data.mass[1],sizeof(double),data.ntypes,fp);
-    } else if (flag == SHAPE) {
-      data.shape = new double[3*(data.ntypes+1)];
-      fread(&data.shape[3],sizeof(double),3*data.ntypes,fp);
-    } else if (flag == DIPOLE) {
-      data.dipole = new double[data.ntypes+1];
-      fread(&data.dipole[1],sizeof(double),data.ntypes,fp);
     } else {
       printf("ERROR: Invalid flag in type arrays section of restart file %d\n",
 	     flag);
@@ -732,9 +726,9 @@ int atom(double *buf, Data &data)
     if (data.style_dipole) allocate_dipole(data);
     if (data.style_ellipsoid) allocate_ellipsoid(data);
     if (data.style_full) allocate_full(data);
-    if (data.style_granular) allocate_granular(data);
     if (data.style_molecular) allocate_molecular(data);
     if (data.style_peri) allocate_peri(data);
+    if (data.style_sphere) allocate_sphere(data);
   }
 
   // read atom quantities from buf
@@ -754,9 +748,9 @@ int atom(double *buf, Data &data)
     if (k == data.style_dipole) m += atom_dipole(&buf[m],data,iatoms);
     if (k == data.style_ellipsoid) m += atom_ellipsoid(&buf[m],data,iatoms);
     if (k == data.style_full) m += atom_full(&buf[m],data,iatoms);
-    if (k == data.style_granular) m += atom_granular(&buf[m],data,iatoms);
     if (k == data.style_molecular) m += atom_molecular(&buf[m],data,iatoms);
     if (k == data.style_peri) m += atom_peri(&buf[m],data,iatoms);
+    if (k == data.style_sphere) m += atom_sphere(&buf[m],data,iatoms);
   }
 
   data.iatoms++;
@@ -922,6 +916,15 @@ int atom_ellipsoid(double *buf, Data &data, int iatoms)
   data.vy[iatoms] = buf[m++];
   data.vz[iatoms] = buf[m++];
 
+  data.shapex[iatoms] = buf[m++];
+  data.shapey[iatoms] = buf[m++];
+  data.shapez[iatoms] = buf[m++];
+  data.rmass[iatoms] = buf[m++];
+  if (data.shapex[iatoms] == 0.0) data.density[iatoms] = data.rmass[iatoms];
+  else 
+    data.density[iatoms] = data.rmass[iatoms] / 
+      (4.0*PI/3.0 * 
+       data.shapex[iatoms]*data.shapey[iatoms]*data.shapez[iatoms]);
   data.quatw[iatoms] = buf[m++];
   data.quati[iatoms] = buf[m++];
   data.quatj[iatoms] = buf[m++];
@@ -933,7 +936,7 @@ int atom_ellipsoid(double *buf, Data &data, int iatoms)
   return m;
 }
 
-int atom_granular(double *buf, Data &data, int iatoms)
+int atom_sphere(double *buf, Data &data, int iatoms)
 {
   int m = 1;
   data.x[iatoms] = buf[m++];
@@ -948,7 +951,12 @@ int atom_granular(double *buf, Data &data, int iatoms)
   data.vz[iatoms] = buf[m++];
 
   data.radius[iatoms] = buf[m++];
-  data.density[iatoms] = buf[m++];
+  data.rmass[iatoms] = buf[m++];
+  if (data.radius[iatoms] == 0.0) data.density[iatoms] = data.rmass[iatoms];
+  else 
+    data.density[iatoms] = data.rmass[iatoms] / 
+      (4.0*PI/3.0 * 
+       data.radius[iatoms]*data.radius[iatoms]*data.radius[iatoms]);
   data.omegax[iatoms] = buf[m++];
   data.omegay[iatoms] = buf[m++];
   data.omegaz[iatoms] = buf[m++];
@@ -1136,7 +1144,6 @@ int atom_peri(double *buf, Data &data, int iatoms)
   data.vz[iatoms] = buf[m++];
 
   data.vfrac[iatoms] = buf[m++];
-  data.density[iatoms] = buf[m++];
   data.rmass[iatoms] = buf[m++];
   data.s0[iatoms] = buf[m++];
   data.x0x[iatoms] = buf[m++];
@@ -1211,6 +1218,11 @@ void allocate_full(Data &data)
 
 void allocate_ellipsoid(Data &data)
 {
+  data.shapex = new double[data.natoms];
+  data.shapey = new double[data.natoms];
+  data.shapez = new double[data.natoms];
+  data.rmass = new double[data.natoms];
+  data.density = new double[data.natoms];
   data.quatw = new double[data.natoms];
   data.quati = new double[data.natoms];
   data.quatj = new double[data.natoms];
@@ -1220,9 +1232,10 @@ void allocate_ellipsoid(Data &data)
   data.angmomz = new double[data.natoms];
 }
 
-void allocate_granular(Data &data)
+void allocate_sphere(Data &data)
 {
   data.radius = new double[data.natoms];
+  data.rmass = new double[data.natoms];
   data.density = new double[data.natoms];
   data.omegax = new double[data.natoms];
   data.omegay = new double[data.natoms];
@@ -1254,7 +1267,6 @@ void allocate_molecular(Data &data)
 void allocate_peri(Data &data)
 {
   data.vfrac = new double[data.natoms];
-  data.density = new double[data.natoms];
   data.rmass = new double[data.natoms];
   data.s0 = new double[data.natoms];
   data.x0x = new double[data.natoms];
@@ -2708,21 +2720,6 @@ void Data::write(FILE *fp, FILE *fp2)
     }
   }
 
-  // shape and dipole to data file
-  // convert shape from radius to diameter
-
-  if (shape) {
-    fprintf(fp,"\nShapes\n\n");
-    for (int i = 1; i <= ntypes; i++)
-      fprintf(fp,"%d %g %g %g\n",i,
-	      2.0*shape[3*i+0],2.0*shape[3*i+1],2.0*shape[3*i+2]);
-  }
-
-  if (dipole) {
-    fprintf(fp,"\nDipoles\n\n");
-    for (int i = 1; i <= ntypes; i++) fprintf(fp,"%d %g\n",i,dipole[i]);
-  }
-
   // pair coeffs to data file
 
   if (pair_style && fp2 == NULL) {
@@ -2962,8 +2959,6 @@ void Data::write(FILE *fp, FILE *fp2)
   // angle coeffs to data file
 
   if (angle_style && fp2 == NULL) {
-    double PI = 3.1415926;           // convert back to degrees
-
     if ((strcmp(angle_style,"none") != 0) &&
 	(strcmp(angle_style,"table") != 0) &&
 	(strcmp(angle_style,"hybrid") != 0))
@@ -3022,8 +3017,6 @@ void Data::write(FILE *fp, FILE *fp2)
   // only supported styles = cosine/squared, harmonic, cg/cmm
 
   if (angle_style && fp2) {
-    double PI = 3.1415926;           // convert back to degrees
-
     if ((strcmp(angle_style,"cosine/squared") == 0) ||
         (strcmp(angle_style,"cosine/delta") == 0)) {
       for (int i = 1; i <= nangletypes; i++)
@@ -3051,8 +3044,6 @@ void Data::write(FILE *fp, FILE *fp2)
   }
 
   if (dihedral_style) {
-    double PI = 3.1415926;           // convert back to degrees
-
     if ((strcmp(dihedral_style,"none") != 0) &&
 	(strcmp(dihedral_style,"table") != 0) &&
 	(strcmp(dihedral_style,"hybrid") != 0))
@@ -3140,8 +3131,6 @@ void Data::write(FILE *fp, FILE *fp2)
   }
 
   if (improper_style) {
-    double PI = 3.1415926;           // convert back to degrees
-
     if ((strcmp(improper_style,"none") != 0) &&
 	(strcmp(improper_style,"hybrid") != 0))
       fprintf(fp,"\nImproper Coeffs\n\n");
@@ -3191,7 +3180,7 @@ void Data::write(FILE *fp, FILE *fp2)
 	if (style_dipole) write_atom_dipole(fp,i,ix,iy,iz);
 	if (style_ellipsoid) write_atom_ellipsoid(fp,i,ix,iy,iz);
 	if (style_full) write_atom_full(fp,i,ix,iy,iz);
-	if (style_granular) write_atom_granular(fp,i,ix,iy,iz);
+	if (style_sphere) write_atom_sphere(fp,i,ix,iy,iz);
 	if (style_molecular) write_atom_molecular(fp,i,ix,iy,iz);
 	if (style_peri) write_atom_peri(fp,i,ix,iy,iz);
 	fprintf(fp,"\n");
@@ -3207,7 +3196,7 @@ void Data::write(FILE *fp, FILE *fp2)
 	  if (k == style_dipole) write_atom_dipole_extra(fp,i);
 	  if (k == style_ellipsoid) write_atom_ellipsoid_extra(fp,i);
 	  if (k == style_full) write_atom_full_extra(fp,i);
-	  if (k == style_granular) write_atom_granular_extra(fp,i);
+	  if (k == style_sphere) write_atom_sphere_extra(fp,i);
 	  if (k == style_molecular) write_atom_molecular_extra(fp,i);
 	  if (k == style_peri) write_atom_peri_extra(fp,i);
 	}
@@ -3228,7 +3217,7 @@ void Data::write(FILE *fp, FILE *fp2)
 	if (style_dipole) write_vel_dipole(fp,i);
 	if (style_ellipsoid) write_vel_ellipsoid(fp,i);
 	if (style_full) write_vel_full(fp,i);
-	if (style_granular) write_vel_granular(fp,i);
+	if (style_sphere) write_vel_sphere(fp,i);
 	if (style_molecular) write_vel_molecular(fp,i);
 	if (style_peri) write_vel_peri(fp,i);
 	fprintf(fp,"\n");
@@ -3243,7 +3232,7 @@ void Data::write(FILE *fp, FILE *fp2)
 	  if (k == style_dipole) write_vel_dipole_extra(fp,i);
 	  if (k == style_ellipsoid) write_vel_ellipsoid_extra(fp,i);
 	  if (k == style_full) write_vel_full_extra(fp,i);
-	  if (k == style_granular) write_vel_granular_extra(fp,i);
+	  if (k == style_sphere) write_vel_sphere_extra(fp,i);
 	  if (k == style_molecular) write_vel_molecular_extra(fp,i);
 	  if (k == style_peri) write_vel_peri_extra(fp,i);
 	}
@@ -3314,14 +3303,15 @@ void Data::write_atom_charge(FILE *fp, int i, int ix, int iy, int iz)
 void Data::write_atom_dipole(FILE *fp, int i, int ix, int iy, int iz)
 {
   fprintf(fp,"%d %d %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %d %d %d",
-	  tag[i],type[i],q[i],x[i],y[i],z[i],mux[i],muy[i],muz[i],ix,iy,iz);
+	  tag[i],type[i],q[i],x[i],y[i],z[i],
+	  mux[i],muy[i],muz[i],ix,iy,iz);
 }
 
 void Data::write_atom_ellipsoid(FILE *fp, int i, int ix, int iy, int iz)
 {
-  fprintf(fp,"%d %d %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %d %d %d",
-	  tag[i],type[i],x[i],y[i],z[i],
-	  quatw[i],quati[i],quatj[i],quatk[i],ix,iy,iz);
+  fprintf(fp,"%d %d %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %d %d %d",
+	  tag[i],type[i],shapex[i],shapey[i],shapez[i],density[i],
+	  x[i],y[i],z[i],quatw[i],quati[i],quatj[i],quatk[i],ix,iy,iz);
 }
 
 void Data::write_atom_full(FILE *fp, int i, int ix, int iy, int iz)
@@ -3330,7 +3320,7 @@ void Data::write_atom_full(FILE *fp, int i, int ix, int iy, int iz)
 	  tag[i],molecule[i],type[i],q[i],x[i],y[i],z[i],ix,iy,iz);
 }
 
-void Data::write_atom_granular(FILE *fp, int i, int ix, int iy, int iz)
+void Data::write_atom_sphere(FILE *fp, int i, int ix, int iy, int iz)
 {
   fprintf(fp,"%d %d %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %d %d %d",
 	  tag[i],type[i],2.0*radius[i],density[i],x[i],y[i],z[i],ix,iy,iz);
@@ -3345,7 +3335,7 @@ void Data::write_atom_molecular(FILE *fp, int i, int ix, int iy, int iz)
 void Data::write_atom_peri(FILE *fp, int i, int ix, int iy, int iz)
 {
   fprintf(fp,"%d %d %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %d %d %d",
-	  tag[i],type[i],vfrac[i],density[i],rmass[i],x[i],y[i],z[i],ix,iy,iz);
+	  tag[i],type[i],vfrac[i],rmass[i],x[i],y[i],z[i],ix,iy,iz);
 }
 
 // ---------------------------------------------------------------------
@@ -3377,7 +3367,9 @@ void Data::write_atom_dipole_extra(FILE *fp, int i)
 
 void Data::write_atom_ellipsoid_extra(FILE *fp, int i)
 {
-  fprintf(fp," %-1.16e %-1.16e %-1.16e %-1.16e",quatw[i],quati[i],quatj[i],quatk[i]);
+  fprintf(fp," %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e",
+	  shapex[i],shapey[i],shapez[i],density[i],
+	  quatw[i],quati[i],quatj[i],quatk[i]);
 }
 
 void Data::write_atom_full_extra(FILE *fp, int i)
@@ -3385,7 +3377,7 @@ void Data::write_atom_full_extra(FILE *fp, int i)
   fprintf(fp," %d %-1.16e",molecule[i],q[i]);
 }
 
-void Data::write_atom_granular_extra(FILE *fp, int i)
+void Data::write_atom_sphere_extra(FILE *fp, int i)
 {
   fprintf(fp," %-1.16e %-1.16e",2.0*radius[i],density[i]);
 }
@@ -3397,7 +3389,7 @@ void Data::write_atom_molecular_extra(FILE *fp, int i)
 
 void Data::write_atom_peri_extra(FILE *fp, int i)
 {
-  fprintf(fp," %-1.16e %-1.16e %-1.16e",vfrac[i],density[i],rmass[i]);
+  fprintf(fp," %-1.16e %-1.16e %-1.16e",vfrac[i],rmass[i]);
 }
 
 // ---------------------------------------------------------------------
@@ -3441,7 +3433,7 @@ void Data::write_vel_full(FILE *fp, int i)
   fprintf(fp,"%d %-1.16e %-1.16e %-1.16e",tag[i],vx[i],vy[i],vz[i]);
 }
 
-void Data::write_vel_granular(FILE *fp, int i)
+void Data::write_vel_sphere(FILE *fp, int i)
 {
   fprintf(fp,"%d %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e",
 	  tag[i],vx[i],vy[i],vz[i],omegax[i],omegay[i],omegaz[i]);
@@ -3475,7 +3467,7 @@ void Data::write_vel_ellipsoid_extra(FILE *fp, int i)
 
 void Data::write_vel_full_extra(FILE *fp, int i) {}
 
-void Data::write_vel_granular_extra(FILE *fp, int i)
+void Data::write_vel_sphere_extra(FILE *fp, int i)
 {
   fprintf(fp," %-1.16e %-1.16e %-1.16e",omegax[i],omegay[i],omegaz[i]);
 }

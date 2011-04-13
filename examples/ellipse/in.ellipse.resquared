@@ -12,10 +12,10 @@ create_atoms 1 box
 set	     group all type/fraction 2 0.1 95392
 set	     group all quat/random 18238
 
-mass	     1 1.0
-mass	     2 1.5
-shape	     1 1 1 1
-shape	     2 3 1 1
+set 	     type 1 mass 1.0
+set 	     type 2 mass 1.5
+set 	     type 1 shape 1 1 1
+set 	     type 2 shape 3 1 1
 
 compute	     rot all temp/asphere
 group	     spheroid type 1

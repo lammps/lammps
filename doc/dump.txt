@@ -152,29 +152,33 @@ zlo zhi :pre
 where xlo,xhi are the maximum extents of the simulation box in the
 x-dimension, and similarly for y and z.  The "xx yy zz" represent 6
 characters that encode the style of boundary for each of the 6
-simulation box boundaries (xlo,xhi and ylo,yhi and zlo,zhi).  Each
-flag is either p = periodic, f = fixed, s = shrink wrap, or m = shrink
-wrapped with a minimum value.  See the "boundary"_doc/boundary.html
-command for details.
+simulation box boundaries (xlo,xhi and ylo,yhi and zlo,zhi).  Each of
+the 6 characters is either p = periodic, f = fixed, s = shrink wrap,
+or m = shrink wrapped with a minimum value.  See the
+"boundary"_doc/boundary.html command for details.
 
 For triclinic simulation boxes (non-orthogonal), an orthogonal
 bounding box which encloses the triclinic simulation box is output,
 along with the 3 tilt factors (xy, xz, yz) of the triclinic box,
 formatted as follows:
 
-ITEM: BOX BOUNDS xx yy zz xy xz yz
+ITEM: BOX BOUNDS xy xz yz xx yy zz 
 xlo_bound xhi_bound xy
 ylo_bound yhi_bound xz
 zlo_bound zhi_bound yz :pre
 
-This bounding box is convenient for many visualization programs.
+The presence of the text "xy xz yz" in the ITEM line indicates that
+the 3 tilt factors will be included on each of the 3 following lines.
+This bounding box is convenient for many visualization programs.  The
+meaning of the 6 character flags for "xx yy zz" is the same as above.
 
-See "this section"_Section_howto.html#4_12 of the doc pages for a
-geometric description of triclinic boxes, as defined by LAMMPS, simple
-formulas for how the 6 bounding box extents (xlo_bound,xhi_bound,etc)
-are calculated from the triclinic parameters, and how to transform
-those parameters to and from other commonly used triclinic
-representations.
+Note that the first two numbers on each line are now xlo_bound instead
+of xlo, etc, since they repesent a bounding box.  See "this
+section"_Section_howto.html#4_12 of the doc pages for a geometric
+description of triclinic boxes, as defined by LAMMPS, simple formulas
+for how the 6 bounding box extents (xlo_bound,xhi_bound,etc) are
+calculated from the triclinic parameters, and how to transform those
+parameters to and from other commonly used triclinic representations.
 
 The "ITEM: ATOMS" line in each snapshot lists column descriptors for
 the per-atom lines that follow.  For example, the descriptors would be

@@ -21,7 +21,7 @@ namespace LAMMPS_NS {
 class FixNHAsphere : public FixNH {
  public:
   FixNHAsphere(class LAMMPS *, int, char **);
-  virtual ~FixNHAsphere();
+  virtual ~FixNHAsphere() {}
   void init();
 
  protected:

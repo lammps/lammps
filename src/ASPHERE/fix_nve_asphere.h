@@ -27,18 +27,15 @@ namespace LAMMPS_NS {
 class FixNVEAsphere : public FixNVE {
  public:
   FixNVEAsphere(class LAMMPS *, int, char **);
-  ~FixNVEAsphere();
   void init();
   void initial_integrate(int);
   void final_integrate();
 
  private:
   double dtq;
-  double **inertia;
 
   void richardson(double *, double *, double *);
   void omega_from_mq(double *, double *, double *, double *);
-  void calculate_inertia();
 };
 
 }

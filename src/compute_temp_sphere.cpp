@@ -55,11 +55,8 @@ ComputeTempSphere::ComputeTempSphere(LAMMPS *lmp, int narg, char **arg) :
 
   // error checks
 
-  if (!atom->omega_flag)
-    error->all("Compute temp/sphere requires atom attribute omega");
-  if (!atom->radius_flag && !atom->avec->shape_type)
-    error->all("Compute temp/sphere requires atom attribute "
-	       "radius or shape");
+  if (!atom->sphere_flag) 
+    error->all("Compute temp/sphere requires atom style sphere");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -74,29 +71,8 @@ ComputeTempSphere::~ComputeTempSphere()
 
 void ComputeTempSphere::init()
 {
-  int i,itype;
-
-  // if shape used, check that all particles are spherical
-  // point particles are allowed
-
-  if (atom->radius == NULL) {
-    double **shape = atom->shape;
-    int *type = atom->type;
-    int *mask = atom->mask;
-    int nlocal = atom->nlocal;
-
-    for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
-	itype = type[i];
-	if (shape[itype][0] != shape[itype][1] || 
-	    shape[itype][0] != shape[itype][2])
-	  error->one("Compute temp/sphere requires "
-		     "spherical particle shapes");
-      }
-  }
-
   if (tempbias) {
-    i = modify->find_compute(id_bias);
+    int i = modify->find_compute(id_bias);
     if (i < 0) error->all("Could not find compute ID for temperature bias");
     tbias = modify->compute[i];
     if (tbias->tempflag == 0)
@@ -111,7 +87,7 @@ void ComputeTempSphere::init()
   }
 
   fix_dof = 0;
-  for (i = 0; i < modify->nfix; i++)
+  for (int i = 0; i < modify->nfix; i++)
     fix_dof += modify->fix[i]->dof(igroup);
   dof_compute();
 }
@@ -130,44 +106,22 @@ void ComputeTempSphere::dof_compute()
   int dimension = domain->dimension;
 
   double *radius = atom->radius;
-  double **shape = atom->shape;
-  int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
   count = 0;
   if (dimension == 3) {
-    if (radius) {
-      for (int i = 0; i < nlocal; i++) {
-	if (mask[i] & groupbit) {
-	  if (radius[i] == 0.0) count += 3;
-	  else count += 6;
-	}
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+	if (radius[i] == 0.0) count += 3;
+	else count += 6;
       }
-    } else {
-      for (int i = 0; i < nlocal; i++) {
-	if (mask[i] & groupbit) {
-	  if (shape[type[i]][0] == 0.0) count += 3;
-	  else count += 6;
-	}
-      }
-    }
   } else {
-    if (radius) {
-      for (int i = 0; i < nlocal; i++) {
-	if (mask[i] & groupbit) {
-	  if (radius[i] == 0.0) count += 2;
-	  else count += 3;
-	}
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+	if (radius[i] == 0.0) count += 2;
+	else count += 3;
       }
-    } else {
-      for (int i = 0; i < nlocal; i++) {
-	if (mask[i] & groupbit) {
-	  if (shape[type[i]][0] == 0.0) count += 2;
-	  else count += 3;
-	}
-      }
-    }
   }
 
   MPI_Allreduce(&count,&count_all,1,MPI_INT,MPI_SUM,world);
@@ -185,41 +139,21 @@ void ComputeTempSphere::dof_compute()
 
     count = 0;
     if (dimension == 3) {
-      if (radius) {
-	for (int i = 0; i < nlocal; i++)
-	  if (mask[i] & groupbit) {
-	    if (tbias->dof_remove(i)) {
-	      if (radius[i] == 0.0) count += 3;
-	      else count += 6;
-	    }
+      for (int i = 0; i < nlocal; i++)
+	if (mask[i] & groupbit) {
+	  if (tbias->dof_remove(i)) {
+	    if (radius[i] == 0.0) count += 3;
+	    else count += 6;
 	  }
-      } else {
-	for (int i = 0; i < nlocal; i++)
-	  if (mask[i] & groupbit) {
-	    if (tbias->dof_remove(i)) {
-	      if (shape[type[i]][0] == 0.0) count += 3;
-	      else count += 6;
-	    }
-	  }
-      }
+	}
     } else {
-      if (radius) {
-	for (int i = 0; i < nlocal; i++)
-	  if (mask[i] & groupbit) {
-	    if (tbias->dof_remove(i)) {
-	      if (radius[i] == 0.0) count += 2;
-	      else count += 3;
-	    }
+      for (int i = 0; i < nlocal; i++)
+	if (mask[i] & groupbit) {
+	  if (tbias->dof_remove(i)) {
+	    if (radius[i] == 0.0) count += 2;
+	    else count += 3;
 	  }
-      } else {
-	for (int i = 0; i < nlocal; i++)
-	  if (mask[i] & groupbit) {
-	    if (tbias->dof_remove(i)) {
-	      if (shape[type[i]][0] == 0.0) count += 2;
-	      else count += 3;
-	    }
-	  }
-      }
+	}
     }
 
     MPI_Allreduce(&count,&count_all,1,MPI_INT,MPI_SUM,world);
@@ -235,8 +169,6 @@ void ComputeTempSphere::dof_compute()
 
 double ComputeTempSphere::compute_scalar()
 {
-  int i,itype;
-
   invoked_scalar = update->ntimestep;
 
   if (tempbias) {
@@ -248,64 +180,19 @@ double ComputeTempSphere::compute_scalar()
   double **omega = atom->omega;
   double *radius = atom->radius;
   double *rmass = atom->rmass;
-  double *mass = atom->mass;
-  double **shape = atom->shape;
-  int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  // 4 cases depending on radius vs shape and rmass vs mass
-  // point particles will not contribute rotation due to radius or shape = 0
+  // point particles will not contribute rotation due to radius = 0
 
   double t = 0.0;
 
-  if (radius) {
-    if (rmass) {
-      for (i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit) {
-	  t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * 
-	    rmass[i];
-	  t += (omega[i][0]*omega[i][0] + omega[i][1]*omega[i][1] + 
-		omega[i][2]*omega[i][2]) * 
-	    INERTIA*radius[i]*radius[i]*rmass[i];
-	}
-
-    } else {
-      for (i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit) {
-	  itype = type[i];
-	  t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * 
-	    mass[itype];
-	  t += (omega[i][0]*omega[i][0] + omega[i][1]*omega[i][1] + 
-		omega[i][2]*omega[i][2]) * 
-	    INERTIA*radius[i]*radius[i]*mass[itype];
-	}
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit) {
+      t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * rmass[i];
+      t += (omega[i][0]*omega[i][0] + omega[i][1]*omega[i][1] + 
+	    omega[i][2]*omega[i][2]) * INERTIA*radius[i]*radius[i]*rmass[i];
     }
-
-  } else {
-    if (rmass) {
-      for (i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit) {
-	  itype = type[i];
-	  t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * 
-	    rmass[i];
-	  t += (omega[i][0]*omega[i][0] + omega[i][1]*omega[i][1] + 
-		omega[i][2]*omega[i][2]) *
-	    INERTIA*shape[itype][0]*shape[itype][0]*rmass[i];
-	}
-      
-    } else {
-      for (i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit) {
-	  itype = type[i];
-	  t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * 
-	    mass[itype];
-	  t += (omega[i][0]*omega[i][0] + omega[i][1]*omega[i][1] + 
-		omega[i][2]*omega[i][2]) *
-	    INERTIA*shape[itype][0]*shape[itype][0]*mass[itype];
-	}
-    }
-  }
 
   if (tempbias) tbias->restore_bias_all();
 
@@ -319,8 +206,6 @@ double ComputeTempSphere::compute_scalar()
 
 void ComputeTempSphere::compute_vector()
 {
-  int i,itype;
-
   invoked_vector = update->ntimestep;
 
   if (tempbias) {
@@ -330,112 +215,39 @@ void ComputeTempSphere::compute_vector()
 
   double **v = atom->v;
   double **omega = atom->omega;
-  double *mass = atom->mass;
   double *rmass = atom->rmass;
   double *radius = atom->radius;
-  double **shape = atom->shape;
-  int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  // 4 cases depending on radius vs shape and rmass vs mass
-  // point particles will not contribute rotation due to radius or shape = 0
+  // point particles will not contribute rotation due to radius = 0
 
   double massone,inertiaone,t[6];
-  for (i = 0; i < 6; i++) t[i] = 0.0;
+  for (int i = 0; i < 6; i++) t[i] = 0.0;
 
-  if (radius) {
-    if (rmass) {
-      for (i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit) {
-	  massone = rmass[i];
-	  t[0] += massone * v[i][0]*v[i][0];
-	  t[1] += massone * v[i][1]*v[i][1];
-	  t[2] += massone * v[i][2]*v[i][2];
-	  t[3] += massone * v[i][0]*v[i][1];
-	  t[4] += massone * v[i][0]*v[i][2];
-	  t[5] += massone * v[i][1]*v[i][2];
-	  
-	  inertiaone = INERTIA*radius[i]*radius[i]*rmass[i];
-	  t[0] += inertiaone * omega[i][0]*omega[i][0];
-	  t[1] += inertiaone * omega[i][1]*omega[i][1];
-	  t[2] += inertiaone * omega[i][2]*omega[i][2];
-	  t[3] += inertiaone * omega[i][0]*omega[i][1];
-	  t[4] += inertiaone * omega[i][0]*omega[i][2];
-	  t[5] += inertiaone * omega[i][1]*omega[i][2];
-	}
-
-    } else {
-      for (i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit) {
-	  itype = type[i];
-	  massone = mass[itype];
-	  t[0] += massone * v[i][0]*v[i][0];
-	  t[1] += massone * v[i][1]*v[i][1];
-	  t[2] += massone * v[i][2]*v[i][2];
-	  t[3] += massone * v[i][0]*v[i][1];
-	  t[4] += massone * v[i][0]*v[i][2];
-	  t[5] += massone * v[i][1]*v[i][2];
-	  
-	  inertiaone = INERTIA*radius[i]*radius[i]*mass[itype];
-	  t[0] += inertiaone * omega[i][0]*omega[i][0];
-	  t[1] += inertiaone * omega[i][1]*omega[i][1];
-	  t[2] += inertiaone * omega[i][2]*omega[i][2];
-	  t[3] += inertiaone * omega[i][0]*omega[i][1];
-	  t[4] += inertiaone * omega[i][0]*omega[i][2];
-	  t[5] += inertiaone * omega[i][1]*omega[i][2];
-	}
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit) {
+      massone = rmass[i];
+      t[0] += massone * v[i][0]*v[i][0];
+      t[1] += massone * v[i][1]*v[i][1];
+      t[2] += massone * v[i][2]*v[i][2];
+      t[3] += massone * v[i][0]*v[i][1];
+      t[4] += massone * v[i][0]*v[i][2];
+      t[5] += massone * v[i][1]*v[i][2];
+      
+      inertiaone = INERTIA*radius[i]*radius[i]*rmass[i];
+      t[0] += inertiaone * omega[i][0]*omega[i][0];
+      t[1] += inertiaone * omega[i][1]*omega[i][1];
+      t[2] += inertiaone * omega[i][2]*omega[i][2];
+      t[3] += inertiaone * omega[i][0]*omega[i][1];
+      t[4] += inertiaone * omega[i][0]*omega[i][2];
+      t[5] += inertiaone * omega[i][1]*omega[i][2];
     }
-
-  } else {
-    if (rmass) {
-      for (i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit) {
-	  itype = type[i];
-	  massone = rmass[i];
-	  t[0] += massone * v[i][0]*v[i][0];
-	  t[1] += massone * v[i][1]*v[i][1];
-	  t[2] += massone * v[i][2]*v[i][2];
-	  t[3] += massone * v[i][0]*v[i][1];
-	  t[4] += massone * v[i][0]*v[i][2];
-	  t[5] += massone * v[i][1]*v[i][2];
-	  
-	  inertiaone = INERTIA*shape[itype][0]*shape[itype][0]*rmass[i];
-	  t[0] += inertiaone * omega[i][0]*omega[i][0];
-	  t[1] += inertiaone * omega[i][1]*omega[i][1];
-	  t[2] += inertiaone * omega[i][2]*omega[i][2];
-	  t[3] += inertiaone * omega[i][0]*omega[i][1];
-	  t[4] += inertiaone * omega[i][0]*omega[i][2];
-	  t[5] += inertiaone * omega[i][1]*omega[i][2];
-	}
-
-    } else {
-      for (i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit) {
-	  itype = type[i];
-	  massone = mass[itype];
-	  t[0] += massone * v[i][0]*v[i][0];
-	  t[1] += massone * v[i][1]*v[i][1];
-	  t[2] += massone * v[i][2]*v[i][2];
-	  t[3] += massone * v[i][0]*v[i][1];
-	  t[4] += massone * v[i][0]*v[i][2];
-	  t[5] += massone * v[i][1]*v[i][2];
-	  
-	  inertiaone = INERTIA*shape[itype][0]*shape[itype][0]*mass[itype];
-	  t[0] += inertiaone * omega[i][0]*omega[i][0];
-	  t[1] += inertiaone * omega[i][1]*omega[i][1];
-	  t[2] += inertiaone * omega[i][2]*omega[i][2];
-	  t[3] += inertiaone * omega[i][0]*omega[i][1];
-	  t[4] += inertiaone * omega[i][0]*omega[i][2];
-	  t[5] += inertiaone * omega[i][1]*omega[i][2];
-	}
-    }
-  }
 
   if (tempbias) tbias->restore_bias_all();
 
   MPI_Allreduce(t,vector,6,MPI_DOUBLE,MPI_SUM,world);
-  for (i = 0; i < 6; i++) vector[i] *= force->mvv2e;
+  for (int i = 0; i < 6; i++) vector[i] *= force->mvv2e;
 }
 
 /* ----------------------------------------------------------------------

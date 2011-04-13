@@ -34,24 +34,10 @@ using namespace LAMMPS_NS;
 FixNVEAsphere::FixNVEAsphere(LAMMPS *lmp, int narg, char **arg) : 
   FixNVE(lmp, narg, arg)
 {
-  memory->create(inertia,atom->ntypes+1,3,"fix_nve_asphere:inertia");
-
   // error checks
 
-  if (!atom->angmom_flag || !atom->quat_flag || !atom->torque_flag ||
-      !atom->avec->shape_type)
-    error->all("Fix nve/asphere requires atom attributes "
-	       "angmom, quat, torque, shape");
-  if (atom->radius_flag || atom->rmass_flag)
-    error->all("Fix nve/asphere cannot be used with atom attributes "
-	       "diameter or rmass");
-}
-
-/* ---------------------------------------------------------------------- */
-
-FixNVEAsphere::~FixNVEAsphere()
-{
-  memory->destroy(inertia);
+  if (!atom->ellipsoid_flag)
+    error->all("Fix nve/asphere requires atom style ellipsoid");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -62,17 +48,15 @@ void FixNVEAsphere::init()
   // no point particles allowed, spherical is OK
 
   double **shape = atom->shape;
-  int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
-      if (shape[type[i]][0] == 0.0)
+      if (shape[i][0] == 0.0)
 	error->one("Fix nve/asphere requires extended particles");
 
   FixNVE::init();
-  calculate_inertia();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -80,6 +64,7 @@ void FixNVEAsphere::init()
 void FixNVEAsphere::initial_integrate(int vflag)
 {
   double dtfm;
+  double inertia[3];
 
   double **x = atom->x;
   double **v = atom->v;
@@ -87,8 +72,8 @@ void FixNVEAsphere::initial_integrate(int vflag)
   double **quat = atom->quat;
   double **angmom = atom->angmom;
   double **torque = atom->torque;
-  double *mass = atom->mass;
-  int *type = atom->type;
+  double **shape = atom->shape;
+  double *rmass = atom->rmass;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
@@ -99,7 +84,7 @@ void FixNVEAsphere::initial_integrate(int vflag)
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      dtfm = dtf / mass[type[i]];
+      dtfm = dtf / rmass[i];
       v[i][0] += dtfm * f[i][0];
       v[i][1] += dtfm * f[i][1];
       v[i][2] += dtfm * f[i][2];
@@ -115,7 +100,16 @@ void FixNVEAsphere::initial_integrate(int vflag)
       angmom[i][1] += dtf * torque[i][1];
       angmom[i][2] += dtf * torque[i][2];
 
-      richardson(quat[i],angmom[i],inertia[type[i]]);
+      // principal moments of inertia
+
+      inertia[0] = rmass[i] * 
+	(shape[i][1]*shape[i][1]+shape[i][2]*shape[i][2]) / 5.0;
+      inertia[1] = rmass[i] * 
+	(shape[i][0]*shape[i][0]+shape[i][2]*shape[i][2]) / 5.0;
+      inertia[2] = rmass[i] * 
+	(shape[i][0]*shape[i][0]+shape[i][1]*shape[i][1]) / 5.0;
+
+      richardson(quat[i],angmom[i],inertia);
     }
 }
 
@@ -129,15 +123,14 @@ void FixNVEAsphere::final_integrate()
   double **f = atom->f;
   double **angmom = atom->angmom;
   double **torque = atom->torque;
-  double *mass = atom->mass;
-  int *type = atom->type;
+  double *rmass = atom->rmass;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      dtfm = dtf / mass[type[i]];
+      dtfm = dtf / rmass[i];
       v[i][0] += dtfm * f[i][0];
       v[i][1] += dtfm * f[i][1];
       v[i][2] += dtfm * f[i][2];
@@ -223,23 +216,4 @@ void FixNVEAsphere::omega_from_mq(double *q, double *m, double *moments,
   wbody[1] /= moments[1];
   wbody[2] /= moments[2];
   MathExtra::times_column3(rot,wbody,w);
-}
-
-/* ----------------------------------------------------------------------
-   principal moments of inertia for ellipsoids
-------------------------------------------------------------------------- */
-
-void FixNVEAsphere::calculate_inertia()
-{
-  double *mass = atom->mass;
-  double **shape = atom->shape;
-  
-  for (int i = 1; i <= atom->ntypes; i++) {
-    inertia[i][0] = 0.2*mass[i] *
-      (shape[i][1]*shape[i][1]+shape[i][2]*shape[i][2]);
-    inertia[i][1] = 0.2*mass[i] *
-      (shape[i][0]*shape[i][0]+shape[i][2]*shape[i][2]);
-    inertia[i][2] = 0.2*mass[i] * 
-      (shape[i][0]*shape[i][0]+shape[i][1]*shape[i][1]);
-  }
 }

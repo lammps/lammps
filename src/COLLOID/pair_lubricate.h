@@ -43,7 +43,7 @@ class PairLubricate : public Pair {
   double cut_inner_global,cut_global;
   double t_target,mu;
   int flag1,flag2,flag3,flag4;
-  int seed,omega_flag;
+  int seed;
   double **cut_inner,**cut;
 
   class RanMars *random;

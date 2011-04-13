@@ -39,8 +39,8 @@ ComputeKEEff::ComputeKEEff(LAMMPS *lmp, int narg, char **arg) :
 
   // error check
 
-  if (!atom->ervel_flag) 
-    error->all("Compute ke/eff requires atom attribute ervel");
+  if (!atom->electron_flag) 
+    error->all("Compute ke/eff requires atom style electron");
 }
 
 /* ---------------------------------------------------------------------- */

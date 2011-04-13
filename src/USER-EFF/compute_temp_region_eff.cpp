@@ -35,8 +35,8 @@ using namespace LAMMPS_NS;
 ComputeTempRegionEff::ComputeTempRegionEff(LAMMPS *lmp, int narg, char **arg) : 
   Compute(lmp, narg, arg)
 {
-  if (!atom->spin_flag || !atom->ervel_flag) 
-    error->all("Compute temp/region/eff requires atom attributes spin, ervel");
+  if (!atom->electron_flag) 
+    error->all("Compute temp/region/eff requires atom style electron");
 
   if (narg != 4) error->all("Illegal compute temp/region/eff command");
 

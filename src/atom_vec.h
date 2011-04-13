@@ -24,7 +24,6 @@ class AtomVec : protected Pointers {
   int bonds_allow,angles_allow;        // 1 if bonds, angles are used
   int dihedrals_allow,impropers_allow; // 1 if dihedrals, impropers used
   int mass_type;                       // 1 if per-type masses
-  int shape_type;                      // 1 if per-type shape array
   int dipole_type;                     // 1 if per-type dipole moments
 
   int comm_x_only;                     // 1 if only exchange x in forward comm

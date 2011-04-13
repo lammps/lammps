@@ -60,8 +60,10 @@ class AtomVecEllipsoid : public AtomVec {
   bigint memory_usage();
 
  private:
+  double PI;
   int *tag,*type,*mask,*image;
   double **x,**v,**f;
+  double **shape,*density,*rmass;
   double **angmom,**torque,**quat;
 };
 

@@ -352,8 +352,8 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 
   // bitmasks for properties of extended particles
 
-  INERTIA_SPHERE_RADIUS = 1;
-  INERTIA_SPHERE_SHAPE = 2;
+  INERTIA_POINT = 1;
+  INERTIA_SPHERE = 2;
   INERTIA_ELLIPSOID = 4;
   ORIENT_DIPOLE = 8;
   ORIENT_QUAT = 16;
@@ -462,30 +462,32 @@ void FixRigid::init()
     step_respa = ((Respa *) update->integrate)->step;
 
   // extended = 1 if any particle in a rigid body is finite size
+  //              or has a dipole moment
 
   extended = dorientflag = qorientflag = 0;
 
+  double **shape = atom->shape;
+  double **mu = atom->mu;
   double *radius = atom->radius;
   double *rmass = atom->rmass;
   double *mass = atom->mass;
-  double **shape = atom->shape;
-  double *dipole = atom->dipole;
   int *type = atom->type;
   int nlocal = atom->nlocal;
 
-  if (atom->radius_flag || atom->avec->shape_type) {
+  if (atom->radius_flag || atom->shape_flag) {
     int flag = 0;
     for (i = 0; i < nlocal; i++) {
       if (body[i] < 0) continue;
       if (radius && radius[i] > 0.0) flag = 1;
-      else if (shape && shape[type[i]][0] > 0.0) flag = 1;
+      if (shape && shape[i][0] > 0.0) flag = 1;
+      if (mu && mu[i][3] > 0.0) flag = 1;
     }
 
     MPI_Allreduce(&flag,&extended,1,MPI_INT,MPI_MAX,world);
   }
 
   // grow extended arrays and set extended flags for each particle
-  // vorientflag = 1 if any particles store dipole orientation
+  // dorientflag = 1 if any particles store dipole orientation
   // qorientflag = 1 if any particles store quat orientation
 
   if (extended) {
@@ -497,39 +499,23 @@ void FixRigid::init()
       eflags[i] = 0;
       if (body[i] < 0) continue;
 
-      // set INERTIA if radius or shape > 0.0
+      // set INERTIA to POINT or SPHERE or ELLIPSOID
 
-      if (radius) {
-	if (radius[i] > 0.0) eflags[i] |= INERTIA_SPHERE_RADIUS;
-      } else if (shape) {
-	if (shape[type[i]][0] > 0.0) {
-	  if (shape[type[i]][0] == shape[type[i]][1] &&
-	      shape[type[i]][0] == shape[type[i]][2])
-	    eflags[i] |= INERTIA_SPHERE_SHAPE;
-	  else eflags[i] |= INERTIA_ELLIPSOID;
-	}
-      }
+      if (radius && radius[i] > 0.0) {
+	eflags[i] |= INERTIA_SPHERE;
+	eflags[i] |= OMEGA;
+	eflags[i] |= TORQUE;
+      } else if (shape && shape[i][0] > 0.0) {
+	eflags[i] |= INERTIA_ELLIPSOID;
+	eflags[i] |= ORIENT_QUAT;
+	eflags[i] |= ANGMOM;
+	eflags[i] |= TORQUE;
+      } else eflags[i] |= INERTIA_POINT;
 
-      // other flags only set if particle is finite size
-      // set DIPOLE if atom->mu and atom->dipole exist and dipole[itype] > 0.0
-      // set QUAT if atom->quat exists (could be ellipsoid or sphere)
-      // set TORQUE if atom->torque exists
-      // set exactly one of OMEGA and ANGMOM so particle contributes once
-      // set OMEGA if either radius or rmass exists
-      // set ANGMOM if shape and mass exist
-      // set OMEGA if atom->angmom doesn't exist
+      // set DIPOLE if atom->mu and mu[3] > 0.0
 
-      if (eflags[i] == 0) continue;
-
-      if (atom->mu_flag && dipole && dipole[type[i]] > 0.0)
+      if (atom->mu_flag && mu[i][3] > 0.0)
 	eflags[i] |= ORIENT_DIPOLE;
-      if (atom->quat_flag) eflags[i] |= ORIENT_QUAT;
-      if (atom->torque_flag) eflags[i] |= TORQUE;
-      if ((radius || rmass) && atom->omega_flag) eflags[i] |= OMEGA;
-      else if (shape && mass && atom->angmom_flag) eflags[i] |= ANGMOM;
-      else if (atom->omega_flag) eflags[i] |= OMEGA;
-      else error->one("Could not set finite-size particle attribute "
-		      "in fix rigid");
     }
   }
 
@@ -638,7 +624,7 @@ void FixRigid::init()
     sum[ibody][5] -= massone * dx*dz;
   }
 
-  // extended particles contribute extra terms to moments of inertia
+  // extended particles may contribute extra terms to moments of inertia
 
   if (extended) {
     double ex[3],ey[3],ez[3],idiag[3];
@@ -655,26 +641,20 @@ void FixRigid::init()
       if (rmass) massone = rmass[i];
       else massone = mass[itype];
 
-      if (eflags[i] & INERTIA_SPHERE_RADIUS) {
+      if (eflags[i] & INERTIA_SPHERE) {
 	sum[ibody][0] += 0.4 * massone * radius[i]*radius[i];
 	sum[ibody][1] += 0.4 * massone * radius[i]*radius[i];
 	sum[ibody][2] += 0.4 * massone * radius[i]*radius[i];
-      }
-      if (eflags[i] & INERTIA_SPHERE_SHAPE) {
-	rad = shape[type[i]][0];
-	sum[ibody][0] += 0.4 * massone * rad*rad;
-	sum[ibody][1] += 0.4 * massone * rad*rad;
-	sum[ibody][2] += 0.4 * massone * rad*rad;
       }
       if (eflags[i] & INERTIA_ELLIPSOID) {
 	MathExtra::quat_to_mat(atom->quat[i],p);
 	MathExtra::quat_to_mat_trans(atom->quat[i],ptrans);
 	idiag[0] = 0.2*massone *
-	  (shape[itype][1]*shape[itype][1]+shape[itype][2]*shape[itype][2]);
+	  (shape[i][1]*shape[i][1]+shape[itype][2]*shape[i][2]);
 	idiag[1] = 0.2*massone *
-	  (shape[itype][0]*shape[itype][0]+shape[itype][2]*shape[itype][2]);
+	  (shape[i][0]*shape[i][0]+shape[i][2]*shape[i][2]);
 	idiag[2] = 0.2*massone *
-	  (shape[itype][0]*shape[itype][0]+shape[itype][1]*shape[itype][1]);
+	  (shape[i][0]*shape[i][0]+shape[i][1]*shape[i][1]);
 	MathExtra::diag_times3(idiag,ptrans,itemp);
 	MathExtra::times3(p,itemp,ispace);
 	sum[ibody][0] += ispace[0][0];
@@ -800,7 +780,6 @@ void FixRigid::init()
     
     if (extended) {
       double **mu = atom->mu;
-      double *dipole = atom->dipole;
       int *type = atom->type;
 
       if (eflags[i] & ORIENT_DIPOLE) {
@@ -810,7 +789,7 @@ void FixRigid::init()
 	  mu[i][1]*ey_space[ibody][1] + mu[i][2]*ey_space[ibody][2];
 	dorient[i][2] = mu[i][0]*ez_space[ibody][0] + 
 	  mu[i][1]*ez_space[ibody][1] + mu[i][2]*ez_space[ibody][2];
-	MathExtra::snormalize3(dipole[type[i]],dorient[i],dorient[i]);
+	MathExtra::snormalize3(mu[i][3],dorient[i],dorient[i]);
       } else if (dorientflag)
 	dorient[i][0] = dorient[i][1] = dorient[i][2] = 0.0;
 
@@ -827,7 +806,7 @@ void FixRigid::init()
   // recompute moments of inertia around new axes
   // 3 diagonal moments should equal principal moments
   // 3 off-diagonal moments should be 0.0
-  // extended particles contribute extra terms to moments of inertia
+  // extended particles may contribute extra terms to moments of inertia
   
   for (ibody = 0; ibody < nbody; ibody++)
     for (i = 0; i < 6; i++) sum[ibody][i] = 0.0;
@@ -864,26 +843,20 @@ void FixRigid::init()
       if (rmass) massone = rmass[i];
       else massone = mass[itype];
 
-      if (eflags[i] & INERTIA_SPHERE_RADIUS) {
+      if (eflags[i] & INERTIA_SPHERE) {
 	sum[ibody][0] += 0.4 * massone * radius[i]*radius[i];
 	sum[ibody][1] += 0.4 * massone * radius[i]*radius[i];
 	sum[ibody][2] += 0.4 * massone * radius[i]*radius[i];
-      }
-      if (eflags[i] & INERTIA_SPHERE_SHAPE) {
-	rad = shape[type[i]][0];
-	sum[ibody][0] += 0.4 * massone * rad*rad;
-	sum[ibody][1] += 0.4 * massone * rad*rad;
-	sum[ibody][2] += 0.4 * massone * rad*rad;
       }
       if (eflags[i] & INERTIA_ELLIPSOID) {
 	MathExtra::quat_to_mat(qorient[i],p);
 	MathExtra::quat_to_mat_trans(qorient[i],ptrans);
 	idiag[0] = 0.2*massone *
-	  (shape[itype][1]*shape[itype][1]+shape[itype][2]*shape[itype][2]);
+	  (shape[i][1]*shape[i][1]+shape[i][2]*shape[i][2]);
 	idiag[1] = 0.2*massone *
-	  (shape[itype][0]*shape[itype][0]+shape[itype][2]*shape[itype][2]);
+	  (shape[i][0]*shape[i][0]+shape[i][2]*shape[i][2]);
 	idiag[2] = 0.2*massone *
-	  (shape[itype][0]*shape[itype][0]+shape[itype][1]*shape[itype][1]);
+	  (shape[i][0]*shape[i][0]+shape[i][1]*shape[i][1]);
 	MathExtra::diag_times3(idiag,ptrans,itemp);
 	MathExtra::times3(p,itemp,ispace);
 	sum[ibody][0] += ispace[0][0];
@@ -1032,7 +1005,6 @@ void FixRigid::setup(int vflag)
     double **angmom_one = atom->angmom;
     double **torque_one = atom->torque;
     double *radius = atom->radius;
-    double **shape = atom->shape;
 
     for (i = 0; i < nlocal; i++) {
       if (body[i] < 0) continue;
@@ -1041,8 +1013,7 @@ void FixRigid::setup(int vflag)
       if (eflags[i] & OMEGA) {
 	if (rmass) massone = rmass[i];
 	else massone = mass[type[i]];
-	if (radius) radone = radius[i];
-	else radone = shape[type[i]][0];
+	radone = radius[i];
 	sum[ibody][0] += 0.4 * massone * radone*radone * omega_one[i][0];
 	sum[ibody][1] += 0.4 * massone * radone*radone * omega_one[i][1];
 	sum[ibody][2] += 0.4 * massone * radone*radone * omega_one[i][2];
@@ -1965,8 +1936,8 @@ void FixRigid::set_xv()
   if (extended) {
     double **omega_one = atom->omega;
     double **angmom_one = atom->angmom;
-    double *dipole = atom->dipole;
     double **shape = atom->shape;
+    double **mu = atom->mu;
 
     for (int i = 0; i < nlocal; i++) {
       if (body[i] < 0) continue;
@@ -1974,8 +1945,8 @@ void FixRigid::set_xv()
       
       if (eflags[i] & ORIENT_DIPOLE) {
 	MathExtra::quat_to_mat(quat[ibody],p);
-	MathExtra::times_column3(p,dorient[i],atom->mu[i]);
-	MathExtra::snormalize3(dipole[type[i]],atom->mu[i],atom->mu[i]);
+	MathExtra::times_column3(p,dorient[i],mu[i]);
+	MathExtra::snormalize3(mu[i][3],mu[i],mu[i]);
       }
       if (eflags[i] & ORIENT_QUAT) {
 	quatquat(quat[ibody],qorient[i],atom->quat[i]);
@@ -1987,13 +1958,12 @@ void FixRigid::set_xv()
 	omega_one[i][2] = omega[ibody][2];
       }
       if (eflags[i] & ANGMOM) {
-	itype = type[i];
-	ione[0] = 0.2*mass[itype] *
-	  (shape[itype][1]*shape[itype][1] + shape[itype][2]*shape[itype][2]);
-	ione[1] = 0.2*mass[itype] *
-	  (shape[itype][0]*shape[itype][0] + shape[itype][2]*shape[itype][2]);
-	ione[2] = 0.2*mass[itype] * 
-	  (shape[itype][0]*shape[itype][0] + shape[itype][1]*shape[itype][1]);
+	ione[0] = 0.2*rmass[i] *
+	  (shape[i][1]*shape[i][1] + shape[i][2]*shape[i][2]);
+	ione[1] = 0.2*rmass[i] *
+	  (shape[i][0]*shape[i][0] + shape[i][2]*shape[i][2]);
+	ione[2] = 0.2*rmass[i] * 
+	  (shape[i][0]*shape[i][0] + shape[i][1]*shape[i][1]);
 	exyz_from_q(atom->quat[i],exone,eyone,ezone);
 	angmom_from_omega(omega[ibody],exone,eyone,ezone,ione,angmom_one[i]);
       }
@@ -2117,13 +2087,12 @@ void FixRigid::set_v()
 	omega_one[i][2] = omega[ibody][2];
       }
       if (eflags[i] & ANGMOM) {
-	itype = type[i];
-	ione[0] = 0.2*mass[itype] *
-	  (shape[itype][1]*shape[itype][1] + shape[itype][2]*shape[itype][2]);
-	ione[1] = 0.2*mass[itype] *
-	  (shape[itype][0]*shape[itype][0] + shape[itype][2]*shape[itype][2]);
-	ione[2] = 0.2*mass[itype] * 
-	  (shape[itype][0]*shape[itype][0] + shape[itype][1]*shape[itype][1]);
+	ione[0] = 0.2*rmass[i] *
+	  (shape[i][1]*shape[i][1] + shape[i][2]*shape[i][2]);
+	ione[1] = 0.2*rmass[i] *
+	  (shape[i][0]*shape[i][0] + shape[i][2]*shape[i][2]);
+	ione[2] = 0.2*rmass[i] * 
+	  (shape[i][0]*shape[i][0] + shape[i][1]*shape[i][1]);
 	exyz_from_q(atom->quat[i],exone,eyone,ezone);
 	angmom_from_omega(omega[ibody],exone,eyone,ezone,ione,angmom_one[i]);
       }

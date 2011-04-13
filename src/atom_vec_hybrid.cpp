@@ -75,7 +75,6 @@ AtomVecHybrid::AtomVecHybrid(LAMMPS *lmp, int narg, char **arg) :
     dihedrals_allow = MAX(dihedrals_allow,styles[k]->dihedrals_allow);
     impropers_allow = MAX(impropers_allow,styles[k]->impropers_allow);
     mass_type = MAX(mass_type,styles[k]->mass_type);
-    shape_type = MAX(shape_type,styles[k]->shape_type);
     dipole_type = MAX(dipole_type,styles[k]->dipole_type);
 
     comm_x_only = MIN(comm_x_only,styles[k]->comm_x_only);

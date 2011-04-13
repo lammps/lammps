@@ -33,22 +33,8 @@ using namespace LAMMPS_NS;
 FixNHAsphere::FixNHAsphere(LAMMPS *lmp, int narg, char **arg) :
   FixNH(lmp, narg, arg)
 {
-  memory->create(inertia,atom->ntypes+1,3,"fix_nvt_asphere:inertia");
-
-  if (!atom->quat_flag || !atom->angmom_flag || !atom->torque_flag ||
-      !atom->avec->shape_type)
-    error->all("Fix nvt/nph/npt asphere requires atom attributes "
-	       "quat, angmom, torque, shape");
-  if (atom->radius_flag || atom->rmass_flag)
-    error->all("Fix nvt/nph/npt asphere cannot be used with atom attributes "
-	       "diameter or rmass");
-}
-
-/* ---------------------------------------------------------------------- */
-
-FixNHAsphere::~FixNHAsphere()
-{
-  memory->destroy(inertia);
+  if (!atom->ellipsoid_flag)
+    error->all("Fix nvt/nph/npt asphere requires atom style ellipsoid");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -59,17 +45,15 @@ void FixNHAsphere::init()
   // no point particles allowed, spherical is OK
 
   double **shape = atom->shape;
-  int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
-      if (shape[type[i]][0] == 0.0)
+      if (shape[i][0] == 0.0)
 	error->one("Fix nvt/nph/npt asphere requires extended particles");
 
   FixNH::init();
-  calculate_inertia();
 }
 
 /* ----------------------------------------------------------------------
@@ -150,25 +134,6 @@ void FixNHAsphere::omega_from_mq(double *q, double *m, double *inertia,
 }
 
 /* ----------------------------------------------------------------------
-   principal moments of inertia for ellipsoids
-------------------------------------------------------------------------- */
-
-void FixNHAsphere::calculate_inertia()
-{
-  double *mass = atom->mass;
-  double **shape = atom->shape;
-  
-  for (int i = 1; i <= atom->ntypes; i++) {
-    inertia[i][0] = 0.2*mass[i] *
-      (shape[i][1]*shape[i][1]+shape[i][2]*shape[i][2]);
-    inertia[i][1] = 0.2*mass[i] *
-      (shape[i][0]*shape[i][0]+shape[i][2]*shape[i][2]);
-    inertia[i][2] = 0.2*mass[i] * 
-      (shape[i][0]*shape[i][0]+shape[i][1]*shape[i][1]);
-  }
-}
-
-/* ----------------------------------------------------------------------
    perform half-step update of angular momentum
 -----------------------------------------------------------------------*/
 
@@ -207,7 +172,8 @@ void FixNHAsphere::nve_x()
 
   double **quat = atom->quat;
   double **angmom = atom->angmom;
-  int *type = atom->type;
+  double **shape = atom->shape;
+  double *rmass = atom->rmass;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
@@ -218,11 +184,21 @@ void FixNHAsphere::nve_x()
 
   // update quaternion a full step via Richardson iteration
   // returns new normalized quaternion
+  // principal moments of inertia
 
-  for (int i = 0; i < nlocal; i++) {    
-    if (mask[i] & groupbit)
-      richardson(quat[i],angmom[i],inertia[type[i]]);
-  }
+  double inertia[3];
+
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit) {
+      inertia[0] = rmass[i] * 
+	(shape[i][1]*shape[i][1]+shape[i][2]*shape[i][2]) / 5.0;
+      inertia[1] = rmass[i] * 
+	(shape[i][0]*shape[i][0]+shape[i][2]*shape[i][2]) / 5.0;
+      inertia[2] = rmass[i] * 
+	(shape[i][0]*shape[i][0]+shape[i][1]*shape[i][1]) / 5.0;
+      
+      richardson(quat[i],angmom[i],inertia);
+    }
 }
 
 /* ----------------------------------------------------------------------

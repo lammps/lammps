@@ -431,7 +431,6 @@ int Input::execute_command()
   else if (!strcmp(command,"dihedral_coeff")) dihedral_coeff();
   else if (!strcmp(command,"dihedral_style")) dihedral_style();
   else if (!strcmp(command,"dimension")) dimension();
-  else if (!strcmp(command,"dipole")) dipole();
   else if (!strcmp(command,"dump")) dump();
   else if (!strcmp(command,"dump_modify")) dump_modify();
   else if (!strcmp(command,"fix")) fix();
@@ -457,7 +456,6 @@ int Input::execute_command()
   else if (!strcmp(command,"reset_timestep")) reset_timestep();
   else if (!strcmp(command,"restart")) restart();
   else if (!strcmp(command,"run_style")) run_style();
-  else if (!strcmp(command,"shape")) shape();
   else if (!strcmp(command,"special_bonds")) special_bonds();
   else if (!strcmp(command,"thermo")) thermo();
   else if (!strcmp(command,"thermo_modify")) thermo_modify();
@@ -948,16 +946,6 @@ void Input::dimension()
 
 /* ---------------------------------------------------------------------- */
 
-void Input::dipole()
-{
-  if (narg != 2) error->all("Illegal dipole command");
-  if (domain->box_exist == 0)
-    error->all("Dipole command before simulation box is defined");
-  atom->set_dipole(narg,arg);
-}
-
-/* ---------------------------------------------------------------------- */
-
 void Input::dump()
 {
   output->add_dump(narg,arg);
@@ -1204,16 +1192,6 @@ void Input::run_style()
   if (domain->box_exist == 0)
     error->all("Run_style command before simulation box is defined");
   update->create_integrate(narg,arg);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Input::shape()
-{
-  if (narg != 4) error->all("Illegal shape command");
-  if (domain->box_exist == 0)
-    error->all("Shape command before simulation box is defined");
-  atom->set_shape(narg,arg);
 }
 
 /* ---------------------------------------------------------------------- */

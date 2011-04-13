@@ -37,19 +37,21 @@ AtomVecEllipsoid::AtomVecEllipsoid(LAMMPS *lmp, int narg, char **arg) :
   AtomVec(lmp, narg, arg)
 {
   molecular = 0;
-  mass_type = 1;
-  shape_type = 1;
 
   comm_x_only = comm_f_only = 0;
   size_forward = 7;
   size_reverse = 6;
-  size_border = 10;
+  size_border = 13;
   size_velocity = 6;
-  size_data_atom = 9;
+  size_data_atom = 13;
   size_data_vel = 7;
-  xcol_data = 3;
+  xcol_data = 7;
 
-  atom->angmom_flag = atom->torque_flag = atom->quat_flag = 1;
+  atom->ellipsoid_flag = 1;
+  atom->shape_flag = atom->rmass_flag = atom->quat_flag = 
+    atom->angmom_flag = atom->torque_flag = 1;
+
+  PI = 4.0*atan(1.0);
 }
 
 /* ----------------------------------------------------------------------
@@ -74,6 +76,8 @@ void AtomVecEllipsoid::grow(int n)
   v = memory->grow(atom->v,nmax,3,"atom:v");
   f = memory->grow(atom->f,nmax,3,"atom:f");
 
+  shape = memory->grow(atom->shape,nmax,3,"atom:shape");
+  rmass = memory->grow(atom->rmass,nmax,"atom:rmass");
   quat = memory->grow(atom->quat,nmax,4,"atom:quat");
   angmom = memory->grow(atom->angmom,nmax,3,"atom:angmom");
   torque = memory->grow(atom->torque,nmax,3,"atom:torque");
@@ -92,6 +96,7 @@ void AtomVecEllipsoid::grow_reset()
   tag = atom->tag; type = atom->type;
   mask = atom->mask; image = atom->image;
   x = atom->x; v = atom->v; f = atom->f;
+  shape = atom->shape; rmass = atom->rmass;
   quat = atom->quat; angmom = atom->angmom; torque = atom->torque;
 }
 
@@ -110,6 +115,10 @@ void AtomVecEllipsoid::copy(int i, int j)
   v[j][1] = v[i][1];
   v[j][2] = v[i][2];
 
+  shape[j][0] = shape[i][0];
+  shape[j][1] = shape[i][1];
+  shape[j][2] = shape[i][2];
+  rmass[j] = rmass[i];
   quat[j][0] = quat[i][0];
   quat[j][1] = quat[i][1];
   quat[j][2] = quat[i][2];
@@ -392,6 +401,9 @@ int AtomVecEllipsoid::pack_border(int n, int *list, double *buf,
       buf[m++] = tag[j];
       buf[m++] = type[j];
       buf[m++] = mask[j];
+      buf[m++] = shape[j][0];
+      buf[m++] = shape[j][1];
+      buf[m++] = shape[j][2];
       buf[m++] = quat[j][0];
       buf[m++] = quat[j][1];
       buf[m++] = quat[j][2];
@@ -415,6 +427,9 @@ int AtomVecEllipsoid::pack_border(int n, int *list, double *buf,
       buf[m++] = tag[j];
       buf[m++] = type[j];
       buf[m++] = mask[j];
+      buf[m++] = shape[j][0];
+      buf[m++] = shape[j][1];
+      buf[m++] = shape[j][2];
       buf[m++] = quat[j][0];
       buf[m++] = quat[j][1];
       buf[m++] = quat[j][2];
@@ -442,6 +457,9 @@ int AtomVecEllipsoid::pack_border_vel(int n, int *list, double *buf,
       buf[m++] = tag[j];
       buf[m++] = type[j];
       buf[m++] = mask[j];
+      buf[m++] = shape[j][0];
+      buf[m++] = shape[j][1];
+      buf[m++] = shape[j][2];
       buf[m++] = quat[j][0];
       buf[m++] = quat[j][1];
       buf[m++] = quat[j][2];
@@ -472,6 +490,9 @@ int AtomVecEllipsoid::pack_border_vel(int n, int *list, double *buf,
 	buf[m++] = tag[j];
 	buf[m++] = type[j];
 	buf[m++] = mask[j];
+	buf[m++] = shape[j][0];
+	buf[m++] = shape[j][1];
+	buf[m++] = shape[j][2];
 	buf[m++] = quat[j][0];
 	buf[m++] = quat[j][1];
 	buf[m++] = quat[j][2];
@@ -495,6 +516,9 @@ int AtomVecEllipsoid::pack_border_vel(int n, int *list, double *buf,
 	buf[m++] = tag[j];
 	buf[m++] = type[j];
 	buf[m++] = mask[j];
+	buf[m++] = shape[j][0];
+	buf[m++] = shape[j][1];
+	buf[m++] = shape[j][2];
 	buf[m++] = quat[j][0];
 	buf[m++] = quat[j][1];
 	buf[m++] = quat[j][2];
@@ -521,11 +545,14 @@ int AtomVecEllipsoid::pack_border_vel(int n, int *list, double *buf,
 
 int AtomVecEllipsoid::pack_border_one(int i, double *buf)
 {
-  buf[0] = quat[i][0];
-  buf[1] = quat[i][1];
-  buf[2] = quat[i][2];
-  buf[3] = quat[i][3];
-  return 4;
+  buf[0] = shape[i][0];
+  buf[1] = shape[i][1];
+  buf[2] = shape[i][2];
+  buf[3] = quat[i][0];
+  buf[4] = quat[i][1];
+  buf[5] = quat[i][2];
+  buf[6] = quat[i][3];
+  return 7;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -544,6 +571,9 @@ void AtomVecEllipsoid::unpack_border(int n, int first, double *buf)
     tag[i] = static_cast<int> (buf[m++]);
     type[i] = static_cast<int> (buf[m++]);
     mask[i] = static_cast<int> (buf[m++]);
+    shape[i][0] = buf[m++];
+    shape[i][1] = buf[m++];
+    shape[i][2] = buf[m++];
     quat[i][0] = buf[m++];
     quat[i][1] = buf[m++];
     quat[i][2] = buf[m++];
@@ -567,6 +597,9 @@ void AtomVecEllipsoid::unpack_border_vel(int n, int first, double *buf)
     tag[i] = static_cast<int> (buf[m++]);
     type[i] = static_cast<int> (buf[m++]);
     mask[i] = static_cast<int> (buf[m++]);
+    shape[i][0] = buf[m++];
+    shape[i][1] = buf[m++];
+    shape[i][2] = buf[m++];
     quat[i][0] = buf[m++];
     quat[i][1] = buf[m++];
     quat[i][2] = buf[m++];
@@ -584,11 +617,14 @@ void AtomVecEllipsoid::unpack_border_vel(int n, int first, double *buf)
 
 int AtomVecEllipsoid::unpack_border_one(int i, double *buf)
 {
-  quat[i][0] = buf[0];
-  quat[i][1] = buf[1];
-  quat[i][2] = buf[2];
-  quat[i][3] = buf[3];
-  return 4;
+  shape[i][0] = buf[0];
+  shape[i][1] = buf[1];
+  shape[i][2] = buf[2];
+  quat[i][0] = buf[3];
+  quat[i][1] = buf[4];
+  quat[i][2] = buf[5];
+  quat[i][3] = buf[6];
+  return 7;
 }
 
 /* ----------------------------------------------------------------------
@@ -610,6 +646,10 @@ int AtomVecEllipsoid::pack_exchange(int i, double *buf)
   buf[m++] = mask[i];
   buf[m++] = image[i];
 
+  buf[m++] = shape[i][0];
+  buf[m++] = shape[i][1];
+  buf[m++] = shape[i][2];
+  buf[m++] = rmass[i];
   buf[m++] = quat[i][0];
   buf[m++] = quat[i][1];
   buf[m++] = quat[i][2];
@@ -645,6 +685,10 @@ int AtomVecEllipsoid::unpack_exchange(double *buf)
   mask[nlocal] = static_cast<int> (buf[m++]);
   image[nlocal] = static_cast<int> (buf[m++]);
 
+  shape[nlocal][0] = buf[m++];
+  shape[nlocal][1] = buf[m++];
+  shape[nlocal][2] = buf[m++];
+  rmass[nlocal] = buf[m++];
   quat[nlocal][0] = buf[m++];
   quat[nlocal][1] = buf[m++];
   quat[nlocal][2] = buf[m++];
@@ -672,7 +716,7 @@ int AtomVecEllipsoid::size_restart()
   int i;
 
   int nlocal = atom->nlocal;
-  int n = 18 * nlocal;
+  int n = 22 * nlocal;
 
   if (atom->nextra_restart)
     for (int iextra = 0; iextra < atom->nextra_restart; iextra++)
@@ -702,6 +746,10 @@ int AtomVecEllipsoid::pack_restart(int i, double *buf)
   buf[m++] = v[i][1];
   buf[m++] = v[i][2];
 
+  buf[m++] = shape[i][0];
+  buf[m++] = shape[i][1];
+  buf[m++] = shape[i][2];
+  buf[m++] = rmass[i];
   buf[m++] = quat[i][0];
   buf[m++] = quat[i][1];
   buf[m++] = quat[i][2];
@@ -743,6 +791,10 @@ int AtomVecEllipsoid::unpack_restart(double *buf)
   v[nlocal][1] = buf[m++];
   v[nlocal][2] = buf[m++];
 
+  shape[nlocal][0] = buf[m++];
+  shape[nlocal][1] = buf[m++];
+  shape[nlocal][2] = buf[m++];
+  rmass[nlocal] = buf[m++];
   quat[nlocal][0] = buf[m++];
   quat[nlocal][1] = buf[m++];
   quat[nlocal][2] = buf[m++];
@@ -781,6 +833,12 @@ void AtomVecEllipsoid::create_atom(int itype, double *coord)
   v[nlocal][0] = 0.0;
   v[nlocal][1] = 0.0;
   v[nlocal][2] = 0.0;
+  
+  shape[nlocal][0] = 0.5;
+  shape[nlocal][1] = 0.5;
+  shape[nlocal][2] = 0.5;
+  rmass[nlocal] = 4.0*PI/3.0 *
+    shape[nlocal][0]*shape[nlocal][1]*shape[nlocal][2];
 
   quat[nlocal][0] = 1.0;
   quat[nlocal][1] = 0.0;
@@ -811,14 +869,36 @@ void AtomVecEllipsoid::data_atom(double *coord, int imagetmp, char **values)
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
     error->one("Invalid atom type in Atoms section of data file");
 
+  shape[nlocal][0] = 0.5 * atof(values[2]);
+  shape[nlocal][1] = 0.5 * atof(values[3]);
+  shape[nlocal][2] = 0.5 * atof(values[4]);
+  if (shape[nlocal][0] < 0.0 || shape[nlocal][1] < 0.0 || 
+      shape[nlocal][2] < 0.0)
+    error->one("Invalid shape in Atoms section of data file");
+  if (shape[nlocal][0] > 0.0 || shape[nlocal][1] > 0.0 || 
+      shape[nlocal][2] > 0.0) {
+    if (shape[nlocal][0] == 0.0 || shape[nlocal][1] == 0.0 || 
+	shape[nlocal][2] == 0.0)
+      error->one("Invalid shape in Atoms section of data file");
+  }
+
+  double density = atof(values[5]);
+  if (density <= 0.0)
+    error->one("Invalid density in Atoms section of data file");
+
+  if (shape[nlocal][0] == 0.0) rmass[nlocal] = density;
+  else 
+    rmass[nlocal] = 4.0*PI/3.0 *
+      shape[nlocal][0]*shape[nlocal][1]*shape[nlocal][2] * density;
+
   x[nlocal][0] = coord[0];
   x[nlocal][1] = coord[1];
   x[nlocal][2] = coord[2];
 
-  quat[nlocal][0] = atof(values[5]);
-  quat[nlocal][1] = atof(values[6]);
-  quat[nlocal][2] = atof(values[7]);
-  quat[nlocal][3] = atof(values[8]);
+  quat[nlocal][0] = atof(values[9]);
+  quat[nlocal][1] = atof(values[10]);
+  quat[nlocal][2] = atof(values[11]);
+  quat[nlocal][3] = atof(values[12]);
   MathExtra::normalize4(quat[nlocal]);
 
   image[nlocal] = imagetmp;
@@ -841,13 +921,35 @@ void AtomVecEllipsoid::data_atom(double *coord, int imagetmp, char **values)
 
 int AtomVecEllipsoid::data_atom_hybrid(int nlocal, char **values)
 {
-  quat[nlocal][0] = atof(values[0]);
-  quat[nlocal][1] = atof(values[1]);
-  quat[nlocal][2] = atof(values[2]);
-  quat[nlocal][3] = atof(values[3]);
+  shape[nlocal][0] = 0.5 * atof(values[0]);
+  shape[nlocal][1] = 0.5 * atof(values[1]);
+  shape[nlocal][2] = 0.5 * atof(values[2]);
+  if (shape[nlocal][0] < 0.0 || shape[nlocal][1] < 0.0 || 
+      shape[nlocal][2] < 0.0)
+    error->one("Invalid shape in Atoms section of data file");
+  if (shape[nlocal][0] > 0.0 || shape[nlocal][1] > 0.0 || 
+      shape[nlocal][2] > 0.0) {
+    if (shape[nlocal][0] == 0.0 || shape[nlocal][1] == 0.0 || 
+	shape[nlocal][2] == 0.0)
+      error->one("Invalid shape in Atoms section of data file");
+  }
+
+  double density = atof(values[3]);
+  if (density <= 0.0)
+    error->one("Invalid density in Atoms section of data file");
+
+  if (shape[nlocal][0] == 0.0) rmass[nlocal] = density;
+  else 
+    rmass[nlocal] = 4.0*PI/3.0 *
+      shape[nlocal][0]*shape[nlocal][1]*shape[nlocal][2] * density;
+
+  quat[nlocal][0] = atof(values[4]);
+  quat[nlocal][1] = atof(values[5]);
+  quat[nlocal][2] = atof(values[6]);
+  quat[nlocal][3] = atof(values[7]);
   MathExtra::normalize4(quat[nlocal]);
 
-  return 4;
+  return 8;
 }
 
 /* ----------------------------------------------------------------------
@@ -892,6 +994,8 @@ bigint AtomVecEllipsoid::memory_usage()
   if (atom->memcheck("v")) bytes += memory->usage(v,nmax,3);
   if (atom->memcheck("f")) bytes += memory->usage(f,nmax,3);
 
+  if (atom->memcheck("shape")) bytes += memory->usage(shape,nmax,3);
+  if (atom->memcheck("rmass")) bytes += memory->usage(rmass,nmax);
   if (atom->memcheck("quat")) bytes += memory->usage(quat,nmax,4);
   if (atom->memcheck("angmom")) bytes += memory->usage(angmom,nmax,3);
   if (atom->memcheck("torque")) bytes += memory->usage(torque,nmax,3);

@@ -91,8 +91,6 @@ class FixSRD : public Fix {
   struct Big {
     int index;                 // local index of particle/wall
     int type;                  // SPHERE or ELLIPSOID or WALL
-    int typesphere;            // SPHERE_SHAPE or SPHERE_RADIUS
-    int typeangular;           // ANGULAR_OMEGA or ANGULAR_ANGMOM
     double radius,radsq;       // radius of sphere
     double aradsqinv;          // 3 ellipsoid radii
     double bradsqinv;

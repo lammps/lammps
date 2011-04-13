@@ -124,6 +124,11 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
 	error->all("Compute property/atom for "
 		   "atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_muz;
+    } else if (strcmp(arg[iarg],"mu") == 0) {
+      if (!atom->mu_flag)
+	error->all("Compute property/atom for "
+		   "atom property that isn't allocated");
+      pack_choice[i] = &ComputePropertyAtom::pack_mu;
 
     } else if (strcmp(arg[iarg],"radius") == 0) {
       if (!atom->radius_flag)
@@ -161,6 +166,21 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
 		   "atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_angmomz;
 
+    } else if (strcmp(arg[iarg],"shapex") == 0) {
+      if (!atom->shape_flag)
+	error->all("Compute property/atom for "
+		   "atom property that isn't allocated");
+      pack_choice[i] = &ComputePropertyAtom::pack_shapex;
+    } else if (strcmp(arg[iarg],"shapey") == 0) {
+      if (!atom->shape_flag)
+	error->all("Compute property/atom for "
+		   "atom property that isn't allocated");
+      pack_choice[i] = &ComputePropertyAtom::pack_shapey;
+    } else if (strcmp(arg[iarg],"shapez") == 0) {
+      if (!atom->shape_flag)
+	error->all("Compute property/atom for "
+		   "atom property that isn't allocated");
+      pack_choice[i] = &ComputePropertyAtom::pack_shapez;
     } else if (strcmp(arg[iarg],"quatw") == 0) {
       if (!atom->quat_flag)
 	error->all("Compute property/atom for "
@@ -831,6 +851,21 @@ void ComputePropertyAtom::pack_muz(int n)
 
 /* ---------------------------------------------------------------------- */
 
+void ComputePropertyAtom::pack_mu(int n)
+{
+  double **mu = atom->mu;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) buf[n] = mu[i][3];
+    else buf[n] = 0.0;
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
 void ComputePropertyAtom::pack_radius(int n)
 {
   double *radius = atom->radius;
@@ -929,6 +964,51 @@ void ComputePropertyAtom::pack_angmomz(int n)
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) buf[n] = angmom[i][2];
+    else buf[n] = 0.0;
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyAtom::pack_shapex(int n)
+{
+  double **shape = atom->shape;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) buf[n] = shape[i][0];
+    else buf[n] = 0.0;
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyAtom::pack_shapey(int n)
+{
+  double **shape = atom->shape;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) buf[n] = shape[i][1];
+    else buf[n] = 0.0;
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyAtom::pack_shapez(int n)
+{
+  double **shape = atom->shape;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) buf[n] = shape[i][2];
     else buf[n] = 0.0;
     n += nvalues;
   }

@@ -364,8 +364,8 @@ void PairGranHookeHistory::init_style()
 
   // error and warning checks
 
-  if (!atom->radius_flag || !atom->omega_flag || !atom->torque_flag)
-    error->all("Pair granular requires atom attributes radius, omega, torque");
+  if (!atom->sphere_flag)
+    error->all("Pair granular requires atom style sphere");
   if (comm->ghost_velocity == 0)
     error->all("Pair granular requires ghost atoms store velocity");
 

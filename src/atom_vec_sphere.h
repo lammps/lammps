@@ -13,36 +13,41 @@
 
 #ifdef ATOM_CLASS
 
-AtomStyle(colloid,AtomVecColloid)
+AtomStyle(sphere,AtomVecSphere)
 
 #else
 
-#ifndef LMP_ATOM_VEC_COLLOID_H
-#define LMP_ATOM_VEC_COLLOID_H
+#ifndef LMP_ATOM_VEC_SPHERE_H
+#define LMP_ATOM_VEC_SPHERE_H
 
 #include "atom_vec.h"
 
 namespace LAMMPS_NS {
 
-class AtomVecColloid : public AtomVec {
+class AtomVecSphere : public AtomVec {
  public:
-  AtomVecColloid(class LAMMPS *, int, char **);
-  virtual ~AtomVecColloid() {}
+  AtomVecSphere(class LAMMPS *, int, char **);
+  ~AtomVecSphere() {}
+  void init();
   void grow(int);
   void grow_reset();
   void copy(int, int);
   int pack_comm(int, int *, double *, int, int *);
   int pack_comm_vel(int, int *, double *, int, int *);
+  int pack_comm_one(int, double *);
   void unpack_comm(int, int, double *);
   void unpack_comm_vel(int, int, double *);
+  int unpack_comm_one(int, double *);
   int pack_reverse(int, int, double *);
   int pack_reverse_one(int, double *);
   void unpack_reverse(int, int *, double *);
   int unpack_reverse_one(int, double *);
   int pack_border(int, int *, double *, int, int *);
   int pack_border_vel(int, int *, double *, int, int *);
+  int pack_border_one(int, double *);
   void unpack_border(int, int, double *);
   void unpack_border_vel(int, int, double *);
+  int unpack_border_one(int, double *);
   int pack_exchange(int, double *);
   int unpack_exchange(double *);
   int size_restart();
@@ -50,14 +55,18 @@ class AtomVecColloid : public AtomVec {
   int unpack_restart(double *);
   void create_atom(int, double *);
   void data_atom(double *, int, char **);
+  int data_atom_hybrid(int, char **);
   void data_vel(int, char **);
   int data_vel_hybrid(int, char **);
   bigint memory_usage();
 
  private:
+  double PI;
   int *tag,*type,*mask,*image;
   double **x,**v,**f;
+  double *radius,*density,*rmass;
   double **omega,**torque;
+  int radvary;
 };
 
 }

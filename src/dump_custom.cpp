@@ -35,11 +35,12 @@ using namespace LAMMPS_NS;
 // same list as in compute_property.cpp, also customize that command
 
 enum{ID,MOL,TYPE,MASS,
-       X,Y,Z,XS,YS,ZS,XSTRI,YSTRI,ZSTRI,XU,YU,ZU,XUTRI,YUTRI,ZUTRI,IX,IY,IZ,
-       VX,VY,VZ,FX,FY,FZ,
-       Q,MUX,MUY,MUZ,RADIUS,OMEGAX,OMEGAY,OMEGAZ,ANGMOMX,ANGMOMY,ANGMOMZ,
-       QUATW,QUATI,QUATJ,QUATK,TQX,TQY,TQZ,SPIN,ERADIUS,ERVEL,ERFORCE,
-       COMPUTE,FIX,VARIABLE};
+     X,Y,Z,XS,YS,ZS,XSTRI,YSTRI,ZSTRI,XU,YU,ZU,XUTRI,YUTRI,ZUTRI,IX,IY,IZ,
+     VX,VY,VZ,FX,FY,FZ,
+     Q,MUX,MUY,MUZ,MU,RADIUS,OMEGAX,OMEGAY,OMEGAZ,ANGMOMX,ANGMOMY,ANGMOMZ,
+     SHAPEX,SHAPEY,SHAPEZ,
+     QUATW,QUATI,QUATJ,QUATK,TQX,TQY,TQZ,SPIN,ERADIUS,ERVEL,ERFORCE,
+     COMPUTE,FIX,VARIABLE};
 enum{LT,LE,GT,GE,EQ,NEQ};
 enum{INT,DOUBLE};
 
@@ -610,17 +611,22 @@ int DumpCustom::count()
 	if (!atom->mu_flag)
 	  error->all("Threshhold for an atom property that isn't allocated");
 	ptr = &atom->mu[0][0];
-	nstride = 3;
+	nstride = 4;
       } else if (thresh_array[ithresh] == MUY) {
 	if (!atom->mu_flag)
 	  error->all("Threshhold for an atom property that isn't allocated");
 	ptr = &atom->mu[0][1];
-	nstride = 3;
+	nstride = 4;
       } else if (thresh_array[ithresh] == MUZ) {
 	if (!atom->mu_flag)
 	  error->all("Threshhold for an atom property that isn't allocated");
 	ptr = &atom->mu[0][2];
-	nstride = 3;
+	nstride = 4;
+      } else if (thresh_array[ithresh] == MU) {
+	if (!atom->mu_flag)
+	  error->all("Threshhold for an atom property that isn't allocated");
+	ptr = &atom->mu[0][3];
+	nstride = 4;
 
       } else if (thresh_array[ithresh] == RADIUS) {
 	if (!atom->radius_flag)
@@ -658,6 +664,21 @@ int DumpCustom::count()
 	ptr = &atom->angmom[0][2];
 	nstride = 3;
 
+      } else if (thresh_array[ithresh] == SHAPEX) {
+	if (!atom->shape_flag)
+	  error->all("Threshhold for an atom property that isn't allocated");
+	ptr = &atom->shape[0][0];
+	nstride = 3;
+      } else if (thresh_array[ithresh] == SHAPEY) {
+	if (!atom->shape_flag)
+	  error->all("Threshhold for an atom property that isn't allocated");
+	ptr = &atom->shape[0][1];
+	nstride = 3;
+      } else if (thresh_array[ithresh] == SHAPEZ) {
+	if (!atom->shape_flag)
+	  error->all("Threshhold for an atom property that isn't allocated");
+	ptr = &atom->shape[0][2];
+	nstride = 3;
       } else if (thresh_array[ithresh] == QUATW) {
 	if (!atom->quat_flag)
 	  error->all("Threshhold for an atom property that isn't allocated");
@@ -944,6 +965,11 @@ void DumpCustom::parse_fields(int narg, char **arg)
 	error->all("Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_muz;
       vtype[i] = DOUBLE;
+    } else if (strcmp(arg[iarg],"mu") == 0) {
+      if (!atom->mu_flag)
+	error->all("Dumping an atom property that isn't allocated");
+      pack_choice[i] = &DumpCustom::pack_mu;
+      vtype[i] = DOUBLE;
 
     } else if (strcmp(arg[iarg],"radius") == 0) {
       if (!atom->radius_flag)
@@ -981,6 +1007,21 @@ void DumpCustom::parse_fields(int narg, char **arg)
       pack_choice[i] = &DumpCustom::pack_angmomz;
       vtype[i] = DOUBLE;
 
+    } else if (strcmp(arg[iarg],"shapex") == 0) {
+      if (!atom->shape_flag)
+	error->all("Dumping an atom property that isn't allocated");
+      pack_choice[i] = &DumpCustom::pack_shapex;
+      vtype[i] = DOUBLE;
+    } else if (strcmp(arg[iarg],"shapey") == 0) {
+      if (!atom->shape_flag)
+	error->all("Dumping an atom property that isn't allocated");
+      pack_choice[i] = &DumpCustom::pack_shapey;
+      vtype[i] = DOUBLE;
+    } else if (strcmp(arg[iarg],"shapez") == 0) {
+      if (!atom->shape_flag)
+	error->all("Dumping an atom property that isn't allocated");
+      pack_choice[i] = &DumpCustom::pack_shapez;
+      vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"quatw") == 0) {
       if (!atom->quat_flag)
 	error->all("Dumping an atom property that isn't allocated");
@@ -1300,6 +1341,7 @@ int DumpCustom::modify_param(int narg, char **arg)
     else if (strcmp(arg[1],"mux") == 0) thresh_array[nthresh] = MUX;
     else if (strcmp(arg[1],"muy") == 0) thresh_array[nthresh] = MUY;
     else if (strcmp(arg[1],"muz") == 0) thresh_array[nthresh] = MUZ;
+    else if (strcmp(arg[1],"mu") == 0) thresh_array[nthresh] = MU;
 
     else if (strcmp(arg[1],"radius") == 0) thresh_array[nthresh] = RADIUS;
     else if (strcmp(arg[1],"omegax") == 0) thresh_array[nthresh] = OMEGAX;
@@ -1309,6 +1351,9 @@ int DumpCustom::modify_param(int narg, char **arg)
     else if (strcmp(arg[1],"angmomy") == 0) thresh_array[nthresh] = ANGMOMY;
     else if (strcmp(arg[1],"angmomz") == 0) thresh_array[nthresh] = ANGMOMZ;
 
+    else if (strcmp(arg[1],"shapex") == 0) thresh_array[nthresh] = SHAPEX;
+    else if (strcmp(arg[1],"shapey") == 0) thresh_array[nthresh] = SHAPEY;
+    else if (strcmp(arg[1],"shapez") == 0) thresh_array[nthresh] = SHAPEZ;
     else if (strcmp(arg[1],"quatw") == 0) thresh_array[nthresh] = QUATW;
     else if (strcmp(arg[1],"quati") == 0) thresh_array[nthresh] = QUATI;
     else if (strcmp(arg[1],"quatj") == 0) thresh_array[nthresh] = QUATJ;
@@ -2039,6 +2084,20 @@ void DumpCustom::pack_muz(int n)
 
 /* ---------------------------------------------------------------------- */
 
+void DumpCustom::pack_mu(int n)
+{
+  double **mu = atom->mu;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++)
+    if (choose[i]) {
+      buf[n] = mu[i][3];
+      n += size_one;
+    }
+}
+
+/* ---------------------------------------------------------------------- */
+
 void DumpCustom::pack_radius(int n)
 {
   double *radius = atom->radius;
@@ -2131,6 +2190,48 @@ void DumpCustom::pack_angmomz(int n)
   for (int i = 0; i < nlocal; i++)
     if (choose[i]) {
       buf[n] = angmom[i][2];
+      n += size_one;
+    }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_shapex(int n)
+{
+  double **shape = atom->shape;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++)
+    if (choose[i]) {
+      buf[n] = shape[i][0];
+      n += size_one;
+    }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_shapey(int n)
+{
+  double **shape = atom->shape;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++)
+    if (choose[i]) {
+      buf[n] = shape[i][1];
+      n += size_one;
+    }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_shapez(int n)
+{
+  double **shape = atom->shape;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++)
+    if (choose[i]) {
+      buf[n] = shape[i][2];
       n += size_one;
     }
 }

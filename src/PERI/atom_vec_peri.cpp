@@ -47,7 +47,8 @@ AtomVecPeri::AtomVecPeri(LAMMPS *lmp, int narg, char **arg) :
   size_data_vel = 4;
   xcol_data = 5;
 
-  atom->vfrac_flag = atom->density_flag = atom->rmass_flag = 1;
+  atom->peri_flag = 1;
+  atom->vfrac_flag = atom->rmass_flag = 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -73,7 +74,6 @@ void AtomVecPeri::grow(int n)
   f = memory->grow(atom->f,nmax,3,"atom:f");
 
   vfrac = memory->grow(atom->vfrac,nmax,"atom:vfrac");
-  density = memory->grow(atom->density,nmax,"atom:density");
   rmass = memory->grow(atom->rmass,nmax,"atom:rmass");
   s0 = memory->grow(atom->s0,nmax,"atom:s0");
   x0 = memory->grow(atom->x0,nmax,3,"atom:x0");
@@ -92,7 +92,7 @@ void AtomVecPeri::grow_reset()
   tag = atom->tag; type = atom->type;
   mask = atom->mask; image = atom->image;
   x = atom->x; v = atom->v; f = atom->f;
-  vfrac = atom->vfrac; density = atom->density; rmass = atom->rmass;
+  vfrac = atom->vfrac; rmass = atom->rmass;
   s0 = atom->s0; x0 = atom->x0;
 }
 
@@ -112,7 +112,6 @@ void AtomVecPeri::copy(int i, int j)
   v[j][2] = v[i][2];
 
   vfrac[j] = vfrac[i];
-  density[j] = density[i];
   rmass[j] = rmass[i];
   s0[j] = s0[i];
   x0[j][0] = x0[i][0];
@@ -546,7 +545,6 @@ int AtomVecPeri::pack_exchange(int i, double *buf)
   buf[m++] = image[i];
 
   buf[m++] = vfrac[i];
-  buf[m++] = density[i];
   buf[m++] = rmass[i];
   buf[m++] = s0[i];
   buf[m++] = x0[i][0];
@@ -581,7 +579,6 @@ int AtomVecPeri::unpack_exchange(double *buf)
   image[nlocal] = static_cast<int> (buf[m++]);
 
   vfrac[nlocal] = buf[m++];
-  density[nlocal] = buf[m++];
   rmass[nlocal] = buf[m++];
   s0[nlocal] = buf[m++];
   x0[nlocal][0] = buf[m++];
@@ -608,7 +605,7 @@ int AtomVecPeri::size_restart()
   int i;
  
   int nlocal = atom->nlocal;
-  int n = 18 * nlocal;
+  int n = 17 * nlocal;
  
   if (atom->nextra_restart)
     for (int iextra = 0; iextra < atom->nextra_restart; iextra++)
@@ -639,7 +636,6 @@ int AtomVecPeri::pack_restart(int i, double *buf)
   buf[m++] = v[i][2];
  
   buf[m++] = vfrac[i];
-  buf[m++] = density[i];
   buf[m++] = rmass[i];
   buf[m++] = s0[i];
   buf[m++] = x0[i][0];
@@ -680,7 +676,6 @@ int AtomVecPeri::unpack_restart(double *buf)
   v[nlocal][2] = buf[m++];
  
   vfrac[nlocal] = buf[m++];
-  density[nlocal] = buf[m++];
   rmass[nlocal] = buf[m++];
   s0[nlocal] = buf[m++];
   x0[nlocal][0] = buf[m++];
@@ -719,8 +714,7 @@ void AtomVecPeri::create_atom(int itype, double *coord)
   v[nlocal][2] = 0.0;
  
   vfrac[nlocal] = 1.0;
-  density[nlocal] = 1.0;
-  rmass[nlocal] = density[nlocal];
+  rmass[nlocal] = 1.0;
   s0[nlocal] = DBL_MAX;
   x0[nlocal][0] = coord[0];
   x0[nlocal][1] = coord[1];
@@ -748,8 +742,7 @@ void AtomVecPeri::data_atom(double *coord, int imagetmp, char **values)
     error->one("Invalid atom type in Atoms section of data file");
 
   vfrac[nlocal] = atof(values[2]);
-  density[nlocal] = atof(values[3]);
-  rmass[nlocal] = density[nlocal];
+  rmass[nlocal] = atof(values[3]);
   if (rmass[nlocal] <= 0.0) error->one("Invalid mass value");
 
   x[nlocal][0] = coord[0];
@@ -780,8 +773,7 @@ void AtomVecPeri::data_atom(double *coord, int imagetmp, char **values)
 int AtomVecPeri::data_atom_hybrid(int nlocal, char **values)
 {
   vfrac[nlocal] = atof(values[0]);
-  density[nlocal] = atof(values[1]);
-  rmass[nlocal] = density[nlocal];
+  rmass[nlocal] = atof(values[1]);
   if (rmass[nlocal] <= 0.0) error->one("Invalid mass value");
 
   s0[nlocal] = DBL_MAX;
@@ -809,7 +801,6 @@ bigint AtomVecPeri::memory_usage()
   if (atom->memcheck("f")) bytes += memory->usage(f,nmax,3);
 
   if (atom->memcheck("vfrac")) bytes += memory->usage(vfrac,nmax);
-  if (atom->memcheck("density")) bytes += memory->usage(density,nmax);
   if (atom->memcheck("rmass")) bytes += memory->usage(rmass,nmax);
   if (atom->memcheck("s0")) bytes += memory->usage(s0,nmax);
   if (atom->memcheck("x0")) bytes += memory->usage(x0,nmax,3);

@@ -208,25 +208,6 @@ void Replicate::command(int narg, char **arg)
     }
   }
 
-  if (atom->shape) {
-    for (int itype = 1; itype <= atom->ntypes; itype++) {
-      atom->shape_setflag[itype] = old->shape_setflag[itype];
-      if (atom->shape_setflag[itype]) {
-	atom->shape[itype][0] = old->shape[itype][0];
-	atom->shape[itype][1] = old->shape[itype][1];
-	atom->shape[itype][2] = old->shape[itype][2];
-      }
-    }
-  }
-
-  if (atom->dipole) {
-    for (int itype = 1; itype <= atom->ntypes; itype++) {
-      atom->dipole_setflag[itype] = old->dipole_setflag[itype];
-      if (atom->dipole_setflag[itype]) 
-	atom->dipole[itype] = old->dipole[itype];
-    }
-  }
-
   // set bounds for my proc
   // if periodic and I am lo/hi proc, adjust bounds by EPSILON
   // insures all replicated atoms will be owned even with round-off

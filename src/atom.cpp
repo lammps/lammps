@@ -70,8 +70,8 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   molecule = NULL;
   q = NULL;
   mu = NULL;
-  quat = omega = angmom = torque = NULL;
-  radius = density = rmass = NULL;
+  quat = omega = angmom = torque = shape = NULL;
+  radius = rmass = NULL;
   vfrac = s0 = NULL;
   x0 = NULL;
 
@@ -96,23 +96,20 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   improper_type = improper_atom1 = improper_atom2 = NULL;
   improper_atom3 = improper_atom4 = NULL;
 
-  // initialize atom array existence flags
+  // initialize atom style and array existence flags
   // customize by adding new flag
 
-  molecule_flag = 0;
-  q_flag = mu_flag = 0;
-  quat_flag = omega_flag = angmom_flag = torque_flag = 0;
-  radius_flag = density_flag = rmass_flag = vfrac_flag = 0;
-  spin_flag = eradius_flag = ervel_flag = erforce_flag = 0;
+  sphere_flag = ellipsoid_flag = peri_flag = dipole_flag = electron_flag = 0;
+
+  molecule_flag = q_flag = mu_flag = 0;
+  rmass_flag = radius_flag = omega_flag = torque_flag = 0;
+  quat_flag = shape_flag = angmom_flag = 0;
+  vfrac_flag = spin_flag = eradius_flag = ervel_flag = erforce_flag = 0;
 
   // ntype-length arrays
 
   mass = NULL;
   mass_setflag = NULL;
-  shape = NULL;
-  shape_setflag = NULL;
-  dipole = NULL;
-  dipole_setflag = NULL;
 
   // callback lists & extra restart info
 
@@ -171,12 +168,12 @@ Atom::~Atom()
   memory->destroy(q);
   memory->destroy(mu);
   memory->destroy(quat);
+  memory->destroy(shape);
   memory->destroy(omega);
   memory->destroy(angmom);
   memory->destroy(torque);
 
   memory->destroy(radius);
-  memory->destroy(density);
   memory->destroy(rmass);
   memory->destroy(vfrac);
   memory->destroy(s0);
@@ -220,10 +217,6 @@ Atom::~Atom()
 
   delete [] mass;
   delete [] mass_setflag;
-  memory->destroy(shape);
-  delete [] shape_setflag;
-  delete [] dipole;
-  delete [] dipole_setflag;
 
   // delete extra arrays
 
@@ -256,14 +249,16 @@ void Atom::create_avec(const char *style, int narg, char **arg)
   delete [] atom_style;
   if (avec) delete avec;
 
-  // unset atom array existence flags that may have been set by old avec
+  // unset atom style and array existence flags
+  // may have been set by old avec
   // customize by adding new flag
 
-  molecule_flag = 0;
-  q_flag = mu_flag = 0;
-  quat_flag = omega_flag = angmom_flag = torque_flag = 0;
-  radius_flag = density_flag = rmass_flag = vfrac_flag = 0;
-  spin_flag = eradius_flag = ervel_flag = erforce_flag = 0;
+  sphere_flag = ellipsoid_flag = peri_flag = dipole_flag = electron_flag = 0;
+
+  molecule_flag = q_flag = mu_flag = 0;
+  rmass_flag = radius_flag = omega_flag = torque_flag = 0;
+  quat_flag = shape_flag = angmom_flag = 0;
+  vfrac_flag = spin_flag = eradius_flag = ervel_flag = erforce_flag = 0;
 
   avec = new_avec(style,narg,arg);
   int n = strlen(style) + 1;
@@ -309,8 +304,6 @@ void Atom::init()
   // check arrays that are atom type in length
 
   check_mass();
-  check_shape();
-  check_dipole();
 
   // setup of firstgroup
 
@@ -1066,16 +1059,6 @@ void Atom::allocate_type_arrays()
     mass_setflag = new int[ntypes+1];
     for (int itype = 1; itype <= ntypes; itype++) mass_setflag[itype] = 0;
   }
-  if (avec->shape_type) {
-    memory->create(shape,ntypes+1,3,"atom:shape");
-    shape_setflag = new int[ntypes+1];
-    for (int itype = 1; itype <= ntypes; itype++) shape_setflag[itype] = 0;
-  }    
-  if (avec->dipole_type) {
-    dipole = new double[ntypes+1];
-    dipole_setflag = new int[ntypes+1];
-    for (int itype = 1; itype <= ntypes; itype++) dipole_setflag[itype] = 0;
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1161,161 +1144,61 @@ void Atom::check_mass()
 }
 
 /* ----------------------------------------------------------------------
-   set particle shape and flag it as set
-   called from reading of data file
+   check that radii of all particles of itype are the same
+   return 1 if true, else return 0
+   also return the radius value for that type
 ------------------------------------------------------------------------- */
 
-void Atom::set_shape(const char *str)
+int Atom::radius_consistency(int itype, double &rad)
 {
-  if (shape == NULL) error->all("Cannot set shape for this atom style");
-
-  int itype;
-  double a,b,c;
-  int n = sscanf(str,"%d %lg %lg %lg",&itype,&a,&b,&c);
-  if (n != 4) error->all("Invalid shape line in data file");
-
-  if (itype < 1 || itype > ntypes) error->all("Invalid type for shape set");
-
-  // store shape as radius, though specified as diameter
-
-  shape[itype][0] = 0.5*a;
-  shape[itype][1] = 0.5*b;
-  shape[itype][2] = 0.5*c;
-  shape_setflag[itype] = 1;
-
-  if (shape[itype][0] < 0.0 || shape[itype][1] < 0.0 || 
-      shape[itype][2] < 0.0)
-    error->all("Invalid shape value");
-  if (shape[itype][0] > 0.0 || shape[itype][1] > 0.0 || 
-      shape[itype][2] > 0.0) {
-    if (shape[itype][0] == 0.0 || shape[itype][1] == 0.0 || 
-	shape[itype][2] == 0.0)
-      error->all("Invalid shape value");
+  double value = -1.0;
+  int flag = 0;
+  for (int i = 0; i < nlocal; i++) {
+    if (type[i] != itype) continue;
+    if (value < 0.0) value = radius[i];
+    else if (value != radius[i]) flag = 1;
   }
+
+  int flagall;
+  MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
+  if (flagall) return 0;
+
+  MPI_Allreduce(&value,&rad,1,MPI_DOUBLE,MPI_MAX,world);
+  return 1;
 }
 
 /* ----------------------------------------------------------------------
-   set one or more particle shapes and flag them as set
-   called from reading of input script
+   check that shape of all particles of itype are the same
+   return 1 if true, else return 0
+   also return the radius value for that type
 ------------------------------------------------------------------------- */
 
-void Atom::set_shape(int narg, char **arg)
+int Atom::shape_consistency(int itype,
+			    double &shapex, double &shapey, double &shapez)
 {
-  if (shape == NULL) error->all("Cannot set shape for this atom style");
-
-  int lo,hi;
-  force->bounds(arg[0],ntypes,lo,hi);
-  if (lo < 1 || hi > ntypes) 
-	error->all("Invalid type for shape set");
-
-  // store shape as radius, though specified as diameter
-
-  for (int itype = lo; itype <= hi; itype++) {
-    shape[itype][0] = 0.5*atof(arg[1]);
-    shape[itype][1] = 0.5*atof(arg[2]);
-    shape[itype][2] = 0.5*atof(arg[3]);
-    shape_setflag[itype] = 1;
-
-    if (shape[itype][0] < 0.0 || shape[itype][1] < 0.0 || 
-	shape[itype][2] < 0.0)
-      error->all("Invalid shape value");
-    if (shape[itype][0] > 0.0 || shape[itype][1] > 0.0 || 
-	shape[itype][2] > 0.0) {
-      if (shape[itype][0] == 0.0 || shape[itype][1] == 0.0 || 
-	  shape[itype][2] == 0.0)
-	error->all("Invalid shape value");
-    }
+  double one[3];
+  one[0] = one[1] = one[2] = -1.0;
+  int flag = 0;
+  for (int i = 0; i < nlocal; i++) {
+    if (type[i] != itype) continue;
+    if (one[0] < 0.0) {
+      one[0] = shape[i][0];
+      one[1] = shape[i][1];
+      one[2] = shape[i][2];
+    } else if (one[0] != shape[i][0] || one[1] != shape[i][1] || 
+	       one[2] != shape[i][2]) flag = 1;
   }
-}
 
-/* ----------------------------------------------------------------------
-   set all particle shapes as read in from restart file
-------------------------------------------------------------------------- */
+  int flagall;
+  MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
+  if (flagall) return 0;
 
-void Atom::set_shape(double **values)
-{
-  for (int itype = 1; itype <= ntypes; itype++) {
-    shape[itype][0] = values[itype][0];
-    shape[itype][1] = values[itype][1];
-    shape[itype][2] = values[itype][2];
-    shape_setflag[itype] = 1;
-  }
-}
-
-/* ----------------------------------------------------------------------
-   check that all particle shapes have been set
-------------------------------------------------------------------------- */
-
-void Atom::check_shape()
-{
-  if (shape == NULL) return;
-  for (int itype = 1; itype <= ntypes; itype++)
-    if (shape_setflag[itype] == 0) error->all("All shapes are not set");
-}
-
-/* ----------------------------------------------------------------------
-   set a dipole moment and flag it as set
-   called from reading of data file
-------------------------------------------------------------------------- */
-
-void Atom::set_dipole(const char *str)
-{
-  if (dipole == NULL) error->all("Cannot set dipole for this atom style");
-
-  int itype;
-  double dipole_one;
-  int n = sscanf(str,"%d %lg",&itype,&dipole_one);
-  if (n != 2) error->all("Invalid dipole line in data file");
-
-  dipole[itype] = dipole_one;
-  dipole_setflag[itype] = 1;
-
-  if (dipole[itype] < 0.0) error->all("Invalid dipole value");
-}
-
-/* ----------------------------------------------------------------------
-   set one or more dipole moments and flag them as set
-   called from reading of input script
-------------------------------------------------------------------------- */
-
-void Atom::set_dipole(int narg, char **arg)
-{
-  if (dipole == NULL) error->all("Cannot set dipole for this atom style");
-
-  int lo,hi;
-  force->bounds(arg[0],ntypes,lo,hi);
-  if (lo < 1 || hi > ntypes) error->all("Invalid type for dipole set");
-
-  for (int itype = lo; itype <= hi; itype++) {
-    dipole[itype] = atof(arg[1]);
-    dipole_setflag[itype] = 1;
-
-    if (dipole[itype] < 0.0) error->all("Invalid dipole value");
-  }
-}
-
-/* ----------------------------------------------------------------------
-   set all dipole moments as read in from restart file
-------------------------------------------------------------------------- */
-
-void Atom::set_dipole(double *values)
-{
-  for (int itype = 1; itype <= ntypes; itype++) {
-    dipole[itype] = values[itype];
-    dipole_setflag[itype] = 1;
-  }
-}
-
-/* ----------------------------------------------------------------------
-   check that all dipole moments have been set
-------------------------------------------------------------------------- */
-
-void Atom::check_dipole()
-{
-  if (dipole == NULL) return;
-  for (int itype = 1; itype <= ntypes; itype++)
-    if (dipole_setflag[itype] == 0)
-      error->all("All dipole moments are not set");
+  double oneall[3];
+  MPI_Allreduce(one,oneall,3,MPI_DOUBLE,MPI_MAX,world);
+  shapex = oneall[0];
+  shapey = oneall[1];
+  shapez = oneall[2];
+  return 1;
 }
 
 /* ----------------------------------------------------------------------

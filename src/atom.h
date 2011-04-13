@@ -48,8 +48,8 @@ class Atom : protected Pointers {
 
   int *molecule;
   double *q,**mu;
-  double **quat,**omega,**angmom,**torque;
-  double *radius,*density,*rmass,*vfrac,*s0;
+  double **quat,**omega,**angmom,**torque,**shape;
+  double *radius,*rmass,*vfrac,*s0;
   double **x0;
 
   int *spin;
@@ -75,15 +75,15 @@ class Atom : protected Pointers {
   int **improper_type;
   int **improper_atom1,**improper_atom2,**improper_atom3,**improper_atom4;
 
-  // per-atom array existence flags
-  // these can be checked before array is allocated
+  // atom style and per-atom array existence flags
   // customize by adding new flag
 
-  int molecule_flag;
-  int q_flag,mu_flag;
-  int quat_flag,omega_flag,angmom_flag,torque_flag;
-  int radius_flag,density_flag,rmass_flag,vfrac_flag;
-  int spin_flag,eradius_flag,ervel_flag,erforce_flag;
+  int sphere_flag,ellipsoid_flag,peri_flag,dipole_flag,electron_flag;
+
+  int molecule_flag,q_flag,mu_flag;
+  int rmass_flag,radius_flag,omega_flag,torque_flag;
+  int quat_flag,shape_flag,angmom_flag;
+  int vfrac_flag,spin_flag,eradius_flag,ervel_flag,erforce_flag;
 
   // extra peratom info in restart file destined for fix & diag 
 
@@ -91,8 +91,8 @@ class Atom : protected Pointers {
 
   // per-type arrays
 
-  double *mass,**shape,*dipole;
-  int *mass_setflag,*shape_setflag,*dipole_setflag;
+  double *mass;
+  int *mass_setflag;
 
   // callback ptrs for atom arrays managed by fix classes
 
@@ -141,14 +141,9 @@ class Atom : protected Pointers {
   void set_mass(int, char **);
   void set_mass(double *);
   void check_mass();
-  void set_shape(const char *);
-  void set_shape(int, char **);
-  void set_shape(double **);
-  void check_shape();
-  void set_dipole(const char *);
-  void set_dipole(int, char **);
-  void set_dipole(double *);
-  void check_dipole();
+
+  int radius_consistency(int, double &);
+  int shape_consistency(int, double &, double &, double &);
 
   void first_reorder();
   void sort();

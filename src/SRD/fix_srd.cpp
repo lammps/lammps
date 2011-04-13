@@ -40,8 +40,6 @@ using namespace LAMMPS_NS;
 
 enum{SLIP,NOSLIP};
 enum{SPHERE,ELLIPSOID,WALL};
-enum{SPHERE_SHAPE,SPHERE_RADIUS};
-enum{ANGULAR_OMEGA,ANGULAR_ANGMOM};
 enum{INSIDE_ERROR,INSIDE_WARN,INSIDE_IGNORE};
 enum{BIG_MOVE,SRD_MOVE,SRD_ROTATE};
 enum{CUBIC_ERROR,CUBIC_WARN};
@@ -291,10 +289,8 @@ void FixSRD::init()
   if (bigexist && comm->ghost_velocity == 0)
     error->all("Fix srd requires ghost atoms store velocity");
 
-  if (bigexist && !atom->radius_flag && !atom->avec->shape_type)
-    error->all("Fix SRD requires atom attribute radius or shape");
-  if (bigexist && !atom->angmom_flag && !atom->omega_flag)
-    error->all("Fix SRD requires atom attribute angmom or omega");
+  if (bigexist && !atom->sphere_flag && !atom->ellipsoid_flag)
+    error->all("Fix SRD requires atom style sphere or ellipsoid");
   if (bigexist && atom->angmom_flag && atom->omega_flag)
     error->all("Fix SRD cannot have both atom attributes angmom and omega");
   if (bigexist && collidestyle == NOSLIP && !atom->torque_flag)
@@ -896,15 +892,6 @@ void FixSRD::reset_velocities()
     vold[0] /= n;
     vold[1] /= n;
     vold[2] /= n;
-
-    // if (triclinic && streamflag) {
-    // xlamda = vbin[i].xctr;
-    // vstream[0] = h_rate[0]*xlamda[0] + h_rate[5]*xlamda[1] + 
-    //	h_rate[4]*xlamda[2] + h_ratelo[0];
-    // vstream[1] = h_rate[1]*xlamda[1] + h_rate[3]*xlamda[2] + h_ratelo[1];
-    //  vstream[2] = h_rate[2]*xlamda[2] + h_ratelo[2];
-    // vnew = vstream;
-    //} else vnew = vold;
 
     vnew = vold;
 
@@ -2109,7 +2096,6 @@ void FixSRD::parameterize()
 
   double *radius = atom->radius;
   double **shape = atom->shape;
-  int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -2119,24 +2105,20 @@ void FixSRD::parameterize()
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & biggroupbit) {
-      if (radius) {
-	if (radius[i] == 0.0)
-	  error->one("Big particle in fix srd cannot be point particle");
+      if (radius && radius[i] > 0.0) {
 	maxbigdiam = MAX(maxbigdiam,2.0*radius[i]);
 	minbigdiam = MIN(minbigdiam,2.0*radius[i]);
-      } else {
-	if (shape[type[i]][0] == 0.0)
-	  error->one("Big particle in fix srd cannot be point particle");
-	maxbigdiam = MAX(maxbigdiam,2.0*shape[type[i]][0]);
-	maxbigdiam = MAX(maxbigdiam,2.0*shape[type[i]][1]);
-	maxbigdiam = MAX(maxbigdiam,2.0*shape[type[i]][2]);
-	minbigdiam = MIN(minbigdiam,2.0*shape[type[i]][0]);
-	minbigdiam = MIN(minbigdiam,2.0*shape[type[i]][1]);
-	minbigdiam = MIN(minbigdiam,2.0*shape[type[i]][2]);
-	if (shape[type[i]][0] != shape[type[i]][1] ||
-	    shape[type[i]][0] != shape[type[i]][2])
+      } else if (shape && shape[i][0] > 0.0) {
+	maxbigdiam = MAX(maxbigdiam,2.0*shape[i][0]);
+	maxbigdiam = MAX(maxbigdiam,2.0*shape[i][1]);
+	maxbigdiam = MAX(maxbigdiam,2.0*shape[i][2]);
+	minbigdiam = MIN(minbigdiam,2.0*shape[i][0]);
+	minbigdiam = MIN(minbigdiam,2.0*shape[i][1]);
+	minbigdiam = MIN(minbigdiam,2.0*shape[i][2]);
+	if (shape[i][0] != shape[i][1] || shape[i][0] != shape[i][2])
 	  any_ellipsoids = 1;
-      }
+      } else 
+	error->one("Big particle in fix srd cannot be point particle");
     }
 
   double tmp = maxbigdiam;
@@ -2159,6 +2141,7 @@ void FixSRD::parameterize()
 
   double *rmass = atom->rmass;
   double *mass = atom->mass;
+  int *type = atom->type;
 
   int flag = 0;
   mass_srd = 0.0;
@@ -2166,8 +2149,10 @@ void FixSRD::parameterize()
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       if (rmass) {
-	if (mass_srd == 0.0) mass_srd = rmass[i];
-	else if (rmass[i] != mass_srd) flag = 1;
+	if (mass_srd == 0.0) {
+	  mass_srd = rmass[i];
+	  printf("MASS SRD %g\n",rmass[i]);
+	} else if (rmass[i] != mass_srd) flag = 1;
       } else {
 	if (mass_srd == 0.0) mass_srd = mass[type[i]];
 	else if (mass[type[i]] != mass_srd) flag = 1;
@@ -2188,6 +2173,8 @@ void FixSRD::parameterize()
     temperature_srd = force->mvv2e * 
       (lamda/dt_srd)*(lamda/dt_srd) * mass_srd/force->boltz;
 
+  printf("AAA %g %g\n",mass_srd,lamda);
+
   // vmax = maximum velocity of an SRD particle
   // dmax = maximum distance an SRD can move = 4*lamda = vmax * dt_srd
 
@@ -2204,19 +2191,18 @@ void FixSRD::parameterize()
   if (dimension == 3) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & biggroupbit) {
-	if (radius)
+	if (radius && radius[i] > 0.0)
 	  volbig += 4.0/3.0*PI*radius[i]*radius[i]*radius[i];
-	else
-	  volbig += 4.0/3.0*PI *
-	    shape[type[i]][0]*shape[type[i]][1]*shape[type[i]][2];
+	else if (shape && shape[i][0] > 0.0)
+	  volbig += 4.0/3.0*PI * shape[i][0]*shape[i][1]*shape[i][2];
       }
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & biggroupbit) {
-	if (radius)
+	if (radius && radius[i] > 0.0)
 	  volbig += PI*radius[i]*radius[i];
-	else
-	  volbig += PI*shape[type[i]][0]*shape[type[i]][1];
+	else if (shape && shape[i][0] > 0.0)
+	  volbig += PI*shape[i][0]*shape[i][1];
       }
   }
 
@@ -2236,10 +2222,7 @@ void FixSRD::parameterize()
 
   mass_big = 0.0;
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & biggroupbit) {
-      if (rmass) mass_big += rmass[i];
-      else mass_big += mass[type[i]];
-    }
+    if (mask[i] & biggroupbit) mass_big += rmass[i];
 
   tmp = mass_big;
   MPI_Allreduce(&tmp,&mass_big,1,MPI_DOUBLE,MPI_SUM,world);
@@ -2425,40 +2408,21 @@ void FixSRD::big_static()
   double **shape = atom->shape;
   int *type = atom->type;
 
-  int omega_flag = atom->omega_flag;
-
   double skinhalf = 0.5 * neighbor->skin;
 
   for (int k = 0; k < nbig; k++) {
     i = biglist[k].index;
-    if (radius) {
+    if (radius && radius[i] > 0.0) {
       biglist[k].type = SPHERE;
-      biglist[k].typesphere = SPHERE_RADIUS;
-      biglist[k].typeangular = ANGULAR_OMEGA;
       rad = radfactor*radius[i];
       biglist[k].radius = rad;
       biglist[k].radsq = rad*rad;
       biglist[k].cutbinsq = (rad+skinhalf) * (rad+skinhalf);
-    } else if (shape[type[i]][0] == shape[type[i]][1] && 
-	       shape[type[i]][0] == shape[type[i]][2]) {
-      biglist[k].type = SPHERE;
-      biglist[k].typesphere = SPHERE_SHAPE;
-
-      // either atom->omega is defined or atom->angmom, cannot both be defined
-
-      if (omega_flag) biglist[k].typeangular = ANGULAR_OMEGA;
-      else biglist[k].typeangular = ANGULAR_ANGMOM;
-
-      rad = radfactor*shape[type[i]][0];
-      biglist[k].radius = rad;
-      biglist[k].radsq = rad*rad;
-      biglist[k].cutbinsq = (rad+skinhalf) * (rad+skinhalf);
-    } else {
+    } else if (shape && shape[i][0] > 0.0) {
       biglist[k].type = ELLIPSOID;
-      biglist[k].typeangular = ANGULAR_ANGMOM;
-      arad = radfactor*shape[type[i]][0];
-      brad = radfactor*shape[type[i]][1];
-      crad = radfactor*shape[type[i]][2];
+      arad = radfactor*shape[i][0];
+      brad = radfactor*shape[i][1];
+      crad = radfactor*shape[i][2];
       biglist[k].aradsqinv = 1.0/(arad*arad);
       biglist[k].bradsqinv = 1.0/(brad*brad);
       biglist[k].cradsqinv = 1.0/(crad*crad);
@@ -2478,44 +2442,32 @@ void FixSRD::big_static()
 
 void FixSRD::big_dynamic()
 {
-  int i,itype;
-  double inertia;
+  int i;
 
   double **omega = atom->omega;
   double **angmom = atom->angmom;
   double **quat = atom->quat;
   double **shape = atom->shape;
-  double *mass = atom->mass;
-  int *type = atom->type;
+  double *rmass = atom->rmass;
 
   for (int k = 0; k < nbig; k++) {
     i = biglist[k].index;
 
-    // ellipsoid with angmom
-    // calculate ex,ey,ez and omega from quaternion and angmom
-
-    if (biglist[k].type == ELLIPSOID) {
-      exyz_from_q(quat[i],biglist[k].ex,biglist[k].ey,biglist[k].ez);
-      omega_from_mq(angmom[i],biglist[k].ex,biglist[k].ey,biglist[k].ez,
-		    mass[type[i]],shape[type[i]],biglist[k].omega);
-
-    // sphere with omega and shape or radius
+    // sphere with omega
     // set omega from atom->omega directly
 
-    } else if (biglist[k].typeangular == ANGULAR_OMEGA) {
+    if (biglist[k].type == SPHERE) {
       biglist[k].omega[0] = omega[i][0];
       biglist[k].omega[1] = omega[i][1];
       biglist[k].omega[2] = omega[i][2];
 
-    // sphere with angmom and shape
-    // calculate omega from angmom
+    // ellipsoid with angmom
+    // calculate ex,ey,ez and omega from quaternion and angmom
 
-    } else if (biglist[k].typeangular == ANGULAR_ANGMOM) {
-      itype = type[i];
-      inertia = INERTIA * mass[itype]*shape[itype][0]*shape[itype][0];
-      biglist[k].omega[0] = angmom[i][0] / inertia;
-      biglist[k].omega[1] = angmom[i][1] / inertia;
-      biglist[k].omega[2] = angmom[i][2] / inertia;
+    } else if (biglist[k].type == ELLIPSOID) {
+      exyz_from_q(quat[i],biglist[k].ex,biglist[k].ey,biglist[k].ez);
+      omega_from_mq(angmom[i],biglist[k].ex,biglist[k].ey,biglist[k].ez,
+		    rmass[i],shape[i],biglist[k].omega);
     }
   }
 }

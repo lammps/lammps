@@ -134,19 +134,21 @@ void PairGayBerneGPU::init_style()
 {
   if (force->pair_match("gpu",0) == NULL)
     error->all("Cannot use pair hybrid with multiple GPU pair styles");
-  if (!atom->quat_flag || !atom->torque_flag || !atom->avec->shape_type)
-    error->all("Pair gayberne requires atom attributes quat, torque, shape");
-  if (atom->radius_flag)
-    error->all("Pair gayberne cannot be used with atom attribute diameter");
+  if (!atom->ellipsoid_flag)
+    error->all("Pair gayberne requires atom style ellipsoid");
 
   // per-type shape precalculations
+  // require that atom shapes are identical within each type
+
   for (int i = 1; i <= atom->ntypes; i++) {
+    if (!atom->shape_consistency(i,shape1[i][0],shape1[i][1],shape1[i][2]))
+      error->all("Pair gayberne requires atoms with same type have same shape");
     if (setwell[i]) {
-      double *one = atom->shape[i];
-      shape[i][0] = one[0]*one[0];
-      shape[i][1] = one[1]*one[1];
-      shape[i][2] = one[2]*one[2];
-      lshape[i] = (one[0]*one[1]+one[2]*one[2])*sqrt(one[0]*one[1]);
+      shape2[i][0] = shape1[i][0]*shape1[i][0];
+      shape2[i][1] = shape1[i][1]*shape1[i][1];
+      shape2[i][2] = shape1[i][2]*shape1[i][2];
+      lshape[i] = (shape1[i][0]*shape1[i][1]+shape1[i][2]*shape1[i][2]) * 
+	sqrt(shape1[i][0]*shape1[i][1]);
     }
   }
 
@@ -169,7 +171,7 @@ void PairGayBerneGPU::init_style()
   double cell_size = sqrt(maxcut) + neighbor->skin;
 
   bool init_ok = gb_gpu_init(atom->ntypes+1, gamma, upsilon, mu, 
-                             shape, well, cutsq, sigma, epsilon, lshape, form,
+                             shape1, well, cutsq, sigma, epsilon, lshape, form,
                              lj1, lj2, lj3, lj4, offset, force->special_lj, 
                              atom->nlocal, atom->nlocal+atom->nghost, 300, 
                              cell_size, gpu_mode, screen);
@@ -227,7 +229,7 @@ void PairGayBerneGPU::cpu_compute(int start, int eflag, int vflag)
       MathExtra::quat_to_mat_trans(quat[i],a1);
       MathExtra::diag_times3(well[itype],a1,temp);
       MathExtra::transpose_times3(a1,temp,b1);
-      MathExtra::diag_times3(shape[itype],a1,temp);
+      MathExtra::diag_times3(shape2[itype],a1,temp);
       MathExtra::transpose_times3(a1,temp,g1);
     }
 
@@ -271,7 +273,7 @@ void PairGayBerneGPU::cpu_compute(int start, int eflag, int vflag)
 	  MathExtra::quat_to_mat_trans(quat[j],a2);
 	  MathExtra::diag_times3(well[jtype],a2,temp);
 	  MathExtra::transpose_times3(a2,temp,b2);
-	  MathExtra::diag_times3(shape[jtype],a2,temp);
+	  MathExtra::diag_times3(shape2[jtype],a2,temp);
 	  MathExtra::transpose_times3(a2,temp,g2);
 	  one_eng = gayberne_lj(j,i,a2,b2,g2,r12,rsq,fforce,rtor);
 	  ttor[0] = ttor[1] = ttor[2] = 0.0;
@@ -286,7 +288,7 @@ void PairGayBerneGPU::cpu_compute(int start, int eflag, int vflag)
 	  MathExtra::quat_to_mat_trans(quat[j],a2);
 	  MathExtra::diag_times3(well[jtype],a2,temp);
 	  MathExtra::transpose_times3(a2,temp,b2);
-	  MathExtra::diag_times3(shape[jtype],a2,temp);
+	  MathExtra::diag_times3(shape2[jtype],a2,temp);
 	  MathExtra::transpose_times3(a2,temp,g2);
 	  one_eng = gayberne_analytic(i,j,a1,a2,b1,b2,g1,g2,r12,rsq,
 				      fforce,ttor,rtor);
@@ -343,7 +345,7 @@ void PairGayBerneGPU::cpu_compute(int *nbors, int start, int eflag, int vflag)
       MathExtra::quat_to_mat_trans(quat[i],a1);
       MathExtra::diag_times3(well[itype],a1,temp);
       MathExtra::transpose_times3(a1,temp,b1);
-      MathExtra::diag_times3(shape[itype],a1,temp);
+      MathExtra::diag_times3(shape2[itype],a1,temp);
       MathExtra::transpose_times3(a1,temp,g1);
     }
 
@@ -389,7 +391,7 @@ void PairGayBerneGPU::cpu_compute(int *nbors, int start, int eflag, int vflag)
 	  MathExtra::quat_to_mat_trans(quat[j],a2);
 	  MathExtra::diag_times3(well[jtype],a2,temp);
 	  MathExtra::transpose_times3(a2,temp,b2);
-	  MathExtra::diag_times3(shape[jtype],a2,temp);
+	  MathExtra::diag_times3(shape2[jtype],a2,temp);
 	  MathExtra::transpose_times3(a2,temp,g2);
 	  one_eng = gayberne_lj(j,i,a2,b2,g2,r12,rsq,fforce,rtor);
 	  ttor[0] = ttor[1] = ttor[2] = 0.0;
@@ -404,7 +406,7 @@ void PairGayBerneGPU::cpu_compute(int *nbors, int start, int eflag, int vflag)
 	  MathExtra::quat_to_mat_trans(quat[j],a2);
 	  MathExtra::diag_times3(well[jtype],a2,temp);
 	  MathExtra::transpose_times3(a2,temp,b2);
-	  MathExtra::diag_times3(shape[jtype],a2,temp);
+	  MathExtra::diag_times3(shape2[jtype],a2,temp);
 	  MathExtra::transpose_times3(a2,temp,g2);
 	  one_eng = gayberne_analytic(i,j,a1,a2,b1,b2,g1,g2,r12,rsq,
 				      fforce,ttor,rtor);

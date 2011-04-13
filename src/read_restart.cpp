@@ -56,7 +56,7 @@ enum{VERSION,SMALLINT,TAGINT,BIGINT,
        SPECIAL_LJ_1,SPECIAL_LJ_2,SPECIAL_LJ_3,
        SPECIAL_COUL_1,SPECIAL_COUL_2,SPECIAL_COUL_3,
        XY,XZ,YZ};
-enum{MASS,SHAPE,DIPOLE};
+enum{MASS};
 enum{PAIR,BOND,ANGLE,DIHEDRAL,IMPROPER};
 
 #define LB_FACTOR 1.1
@@ -699,21 +699,6 @@ void ReadRestart::type_arrays()
       MPI_Bcast(&mass[1],atom->ntypes,MPI_DOUBLE,0,world);
       atom->set_mass(mass);
       delete [] mass;
-
-    } else if (flag == SHAPE) {
-      double **shape;
-      memory->create(shape,atom->ntypes+1,3,"restart:shape");
-      if (me == 0) fread(&shape[1][0],sizeof(double),atom->ntypes*3,fp);
-      MPI_Bcast(&shape[1][0],atom->ntypes*3,MPI_DOUBLE,0,world);
-      atom->set_shape(shape);
-      memory->destroy(shape);
-
-    } else if (flag == DIPOLE) {
-      double *dipole = new double[atom->ntypes+1];
-      if (me == 0) fread(&dipole[1],sizeof(double),atom->ntypes,fp);
-      MPI_Bcast(&dipole[1],atom->ntypes,MPI_DOUBLE,0,world);
-      atom->set_dipole(dipole);
-      delete [] dipole;
 
     } else error->all("Invalid flag in type arrays section of restart file");
 

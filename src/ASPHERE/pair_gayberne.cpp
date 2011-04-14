@@ -339,17 +339,18 @@ void PairGayBerne::init_style()
 
   // per-type shape precalculations
   // require that atom shapes are identical within each type
+  // if shape = 0 for point particle, set shape = 1 as required by Gay-Berne
 
   for (int i = 1; i <= atom->ntypes; i++) {
     if (!atom->shape_consistency(i,shape1[i][0],shape1[i][1],shape1[i][2]))
       error->all("Pair gayberne requires atoms with same type have same shape");
-    if (setwell[i]) {
-      shape2[i][0] = shape1[i][0]*shape1[i][0];
-      shape2[i][1] = shape1[i][1]*shape1[i][1];
-      shape2[i][2] = shape1[i][2]*shape1[i][2];
-      lshape[i] = (shape1[i][0]*shape1[i][1]+shape1[i][2]*shape1[i][2]) * 
-	sqrt(shape1[i][0]*shape1[i][1]);
-    }
+    if (shape1[i][0] == 0.0)
+      shape1[i][0] = shape1[i][1] = shape1[i][2] = 1.0;
+    shape2[i][0] = shape1[i][0]*shape1[i][0];
+    shape2[i][1] = shape1[i][1]*shape1[i][1];
+    shape2[i][2] = shape1[i][2]*shape1[i][2];
+    lshape[i] = (shape1[i][0]*shape1[i][1]+shape1[i][2]*shape1[i][2]) * 
+      sqrt(shape1[i][0]*shape1[i][1]);
   }
 }
 

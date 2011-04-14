@@ -57,30 +57,19 @@ commands:
 <LI>epsilon_j_c = relative well depth of type J for end-to-end interactions
 <LI>cutoff (distance units) 
 </UL>
-<P>The last coefficient is optional.  If not specified, the global
-cutoff specified in the pair_style command is used.
-</P>
-<P>As described above, <I>sigma</I> is the size of the small spheres which are
-integrated over to create the potential.  Note that this is a
-different meaning for <I>sigma</I> than the <A HREF = "pair_gayberne.html">pair_style
-gayberne</A> potential uses.
-</P>
 <P>The parameters used depend on the type of the interacting particles,
 i.e. ellipsoids or LJ spheres.  The type of a particle is determined
-by the diameters specified for its 3 shape paramters.  LJ spheres have
-all 3 diameters equal to zero and thus represent a simple point
-particle with size sigma.  The epsilon_i_* or epsilon_j_* parameters
-are ignored for LJ spheres.  The interactions between two LJ spheres
-are computed using the standard Lennard-Jones formula, which is much
-cheaper to compute than the ellipsoidal formulas.
+by the diameters specified for its 3 shape paramters.  If all 3 shape
+parameters = 0.0, then the particle is treated as an LJ sphere.  The
+epsilon_i_* or epsilon_j_* parameters are ignored for LJ spheres.  If
+the 3 shape paraemters are > 0.0, then the particle is treated as an
+ellipsoid (even if the 3 parameters are equal to each other).
 </P>
-<P>For ellipsoid/LJ sphere interactions, a correction to the distance-
-of-closest approach equation has been implemented to reduce the error
-from disparate sizes; see <A HREF = "PDF/pair_resquared_extra.pdf">this supplementary
-document</A>.
+<P>A12 specifies the energy prefactor which depends on the types of the
+two interacting particles.
 </P>
-<P>A12 specifies the energy prefactor which depends on the type of
-particles interacting.  For ellipsoid/ellipsoid interactions, A12 is
+<P>For ellipsoid/ellipsoid interactions, the interaction is computed by
+the formulas in the supplementary docuement referenced above.  A12 is
 the Hamaker constant as described in <A HREF = "#Everaers">(Everaers)</A>. In LJ
 units:
 </P>
@@ -90,33 +79,37 @@ units:
 composing the ellipsoids and epsilon_LJ determines the interaction
 strength of the spherical particles.
 </P>
-<P>For ellipsoid/LJ sphere interactions, A12 gives the energy prefactor
-(see <A HREF = "PDF/pair_resquared_extra.pdf">here</A> for details:
+<P>For ellipsoid/LJ sphere interactions, the interaction is also computed
+by the formulas in the supplementary docuement referenced above.  A12
+has a modifed form (see <A HREF = "PDF/pair_resquared_extra.pdf">here</A> for
+details):
 </P>
 <CENTER><IMG SRC = "Eqs/pair_resquared2.jpg">
 </CENTER>
-<P>For LJ sphere/LJ sphere interactions, A12 is used as the standard
-epsilon used in Lennard-Jones pair styles:
+<P>For ellipsoid/LJ sphere interactions, a correction to the distance-
+of-closest approach equation has been implemented to reduce the error
+from two particles of disparate sizes; see <A HREF = "PDF/pair_resquared_extra.pdf">this supplementary
+document</A>.
+</P>
+<P>For LJ sphere/LJ sphere interactions, the interaction is computed
+using the standard Lennard-Jones formula, which is much cheaper to
+compute than the ellipsoidal formulas.  A12 is used as epsilon in the
+standard LJ formula:
 </P>
 <CENTER><IMG SRC = "Eqs/pair_resquared3.jpg">
 </CENTER>
-<P>Sigma specifies the diameter of the continuous distribution of
+<P>and the specified <I>sigma</I> is used as the sigma in the standard LJ
+formula.
+</P>
+<P>When one of both of the interacting particles are ellipsoids, then
+<I>sigma</I> specifies the diameter of the continuous distribution of
 constituent particles within each ellipsoid used to model the
-RE-squared potential. 
+RE-squared potential.  Note that this is a different meaning for
+<I>sigma</I> than the <A HREF = "pair_gayberne.html">pair_style gayberne</A> potential
+uses.
 </P>
-<P>For large uniform molecules it has been shown that the epsilon_*_*
-energy parameters are approximately representable in terms of local
-contact curvatures <A HREF = "#Everaers">(Everaers)</A>:
-</P>
-<CENTER><IMG SRC = "Eqs/pair_resquared4.jpg">
-</CENTER>
-<P>where a, b, and c give the particle diameters.
-</P>
-<P>The last coefficient is optional.  If not specified, the global cutoff
-specified in the pair_style command is used.
-</P>
-<P>The epsilon_i and epsilon_j coefficients are actually defined for atom
-types, not for pairs of atom types.  Thus, in a series of pair_coeff
+<P>The epsilon_i and epsilon_j coefficients are defined for atom types,
+not for pairs of atom types.  Thus, in a series of pair_coeff
 commands, they only need to be specified once for each atom type.
 </P>
 <P>Specifically, if any of epsilon_i_a, epsilon_i_b, epsilon_i_c are
@@ -136,6 +129,17 @@ setting made for RE-squared for a particular type I (because I-I
 interactions are computed by another hybrid pair potential), then you
 still need to insure the epsilon a,b,c coefficients are assigned to
 that type in a "pair_coeff I J" command.
+</P>
+<P>For large uniform molecules it has been shown that the epsilon_*_*
+energy parameters are approximately representable in terms of local
+contact curvatures <A HREF = "#Everaers">(Everaers)</A>:
+</P>
+<CENTER><IMG SRC = "Eqs/pair_resquared4.jpg">
+</CENTER>
+<P>where a, b, and c give the particle diameters.
+</P>
+<P>The last coefficient is optional.  If not specified, the global cutoff
+specified in the pair_style command is used.
 </P>
 <HR>
 

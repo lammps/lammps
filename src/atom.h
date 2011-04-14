@@ -78,7 +78,7 @@ class Atom : protected Pointers {
   // atom style and per-atom array existence flags
   // customize by adding new flag
 
-  int sphere_flag,ellipsoid_flag,peri_flag,dipole_flag,electron_flag;
+  int sphere_flag,ellipsoid_flag,peri_flag,electron_flag;
 
   int molecule_flag,q_flag,mu_flag;
   int rmass_flag,radius_flag,omega_flag,torque_flag;

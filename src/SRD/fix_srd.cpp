@@ -291,8 +291,6 @@ void FixSRD::init()
 
   if (bigexist && !atom->sphere_flag && !atom->ellipsoid_flag)
     error->all("Fix SRD requires atom style sphere or ellipsoid");
-  if (bigexist && atom->angmom_flag && atom->omega_flag)
-    error->all("Fix SRD cannot have both atom attributes angmom and omega");
   if (bigexist && collidestyle == NOSLIP && !atom->torque_flag)
     error->all("Fix SRD no-slip requires atom attribute torque");
 

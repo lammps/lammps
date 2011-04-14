@@ -506,11 +506,17 @@ int AtomVecFull::pack_border_vel(int n, int *list, double *buf,
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecFull::pack_border_one(int i, double *buf)
+int AtomVecFull::pack_border_hybrid(int n, int *list, double *buf)
 {
-  buf[0] = q[i];
-  buf[1] = molecule[i];
-  return 2;
+  int i,j,m;
+
+  m = 0;
+  for (i = 0; i < n; i++) {
+    j = list[i];
+    buf[m++] = q[j];
+    buf[m++] = molecule[j];
+  }
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -560,11 +566,17 @@ void AtomVecFull::unpack_border_vel(int n, int first, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecFull::unpack_border_one(int i, double *buf)
+int AtomVecFull::unpack_border_hybrid(int n, int first, double *buf)
 {
-  q[i] = buf[0];
-  molecule[i] = static_cast<int> (buf[1]);
-  return 2;
+  int i,m,last;
+
+  m = 0;
+  last = first + n;
+  for (i = first; i < last; i++) {
+    q[i] = buf[m++];
+    molecule[i] = static_cast<int> (buf[m++]);
+  }
+  return m;
 }
 
 /* ----------------------------------------------------------------------

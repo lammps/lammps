@@ -363,13 +363,19 @@ int AtomVecSphere::pack_comm_vel(int n, int *list, double *buf,
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecSphere::pack_comm_one(int i, double *buf)
+int AtomVecSphere::pack_comm_hybrid(int n, int *list, double *buf)
 {
+  int i,j,m;
+
   if (radvary == 0) return 0;
 
-  buf[0] = radius[i];
-  buf[1] = rmass[i];
-  return 2;
+  m = 0;
+  for (i = 0; i < n; i++) {
+    j = list[i];
+    buf[m++] = radius[i];
+    buf[m++] = rmass[i];
+  }
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -440,13 +446,19 @@ void AtomVecSphere::unpack_comm_vel(int n, int first, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecSphere::unpack_comm_one(int i, double *buf)
+int AtomVecSphere::unpack_comm_hybrid(int n, int first, double *buf)
 {
+  int i,m,last;
+
   if (radvary == 0) return 0;
 
-  radius[i] = buf[0];
-  rmass[i] = buf[1];
-  return 2;
+  m = 0;
+  last = first + n;
+  for (i = first; i < last; i++) {
+    radius[i] = buf[m++];
+    rmass[i] = buf[m++];
+  }
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -470,12 +482,18 @@ int AtomVecSphere::pack_reverse(int n, int first, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecSphere::pack_reverse_one(int i, double *buf)
+int AtomVecSphere::pack_reverse_hybrid(int n, int first, double *buf)
 {
-  buf[0] = torque[i][0];
-  buf[1] = torque[i][1];
-  buf[2] = torque[i][2];
-  return 3;
+  int i,m,last;
+
+  m = 0;
+  last = first + n;
+  for (i = first; i < last; i++) {
+    buf[m++] = torque[i][0];
+    buf[m++] = torque[i][1];
+    buf[m++] = torque[i][2];
+  }
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -498,12 +516,18 @@ void AtomVecSphere::unpack_reverse(int n, int *list, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecSphere::unpack_reverse_one(int i, double *buf)
+int AtomVecSphere::unpack_reverse_hybrid(int n, int *list, double *buf)
 {
-  torque[i][0] += buf[0];
-  torque[i][1] += buf[1];
-  torque[i][2] += buf[2];
-  return 3;
+  int i,j,m;
+
+  m = 0;
+  for (i = 0; i < n; i++) {
+    j = list[i];
+    torque[j][0] += buf[m++];
+    torque[j][1] += buf[m++];
+    torque[j][2] += buf[m++];
+  }
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -641,11 +665,17 @@ int AtomVecSphere::pack_border_vel(int n, int *list, double *buf,
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecSphere::pack_border_one(int i, double *buf)
+int AtomVecSphere::pack_border_hybrid(int n, int *list, double *buf)
 {
-  buf[0] = radius[i];
-  buf[1] = rmass[i];
-  return 2;
+  int i,j,m;
+
+  m = 0;
+  for (i = 0; i < n; i++) {
+    j = list[i];
+    buf[m++] = radius[j];
+    buf[m++] = rmass[j];
+  }
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -699,11 +729,17 @@ void AtomVecSphere::unpack_border_vel(int n, int first, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecSphere::unpack_border_one(int i, double *buf)
+int AtomVecSphere::unpack_border_hybrid(int n, int first, double *buf)
 {
-  radius[i] = buf[0];
-  rmass[i] = buf[1];
-  return 2;
+  int i,m,last;
+
+  m = 0;
+  last = first + n;
+  for (i = first; i < last; i++) {
+    radius[i] = buf[m++];
+    rmass[i] = buf[m++];
+  }
+  return m;
 }
 
 /* ----------------------------------------------------------------------

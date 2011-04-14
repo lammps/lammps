@@ -99,7 +99,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   // initialize atom style and array existence flags
   // customize by adding new flag
 
-  sphere_flag = ellipsoid_flag = peri_flag = dipole_flag = electron_flag = 0;
+  sphere_flag = ellipsoid_flag = peri_flag = electron_flag = 0;
 
   molecule_flag = q_flag = mu_flag = 0;
   rmass_flag = radius_flag = omega_flag = torque_flag = 0;
@@ -253,7 +253,7 @@ void Atom::create_avec(const char *style, int narg, char **arg)
   // may have been set by old avec
   // customize by adding new flag
 
-  sphere_flag = ellipsoid_flag = peri_flag = dipole_flag = electron_flag = 0;
+  sphere_flag = ellipsoid_flag = peri_flag = electron_flag = 0;
 
   molecule_flag = q_flag = mu_flag = 0;
   rmass_flag = radius_flag = omega_flag = torque_flag = 0;

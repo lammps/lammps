@@ -231,10 +231,16 @@ int AtomVecPeri::pack_comm_vel(int n, int *list, double *buf,
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecPeri::pack_comm_one(int i, double *buf)
+int AtomVecPeri::pack_comm_hybrid(int n, int *list, double *buf)
 {
-  buf[0] = s0[i];
-  return 1;
+  int i,j,m;
+
+  m = 0;
+  for (i = 0; i < n; i++) {
+    j = list[i];
+    buf[m++] = s0[i];
+  }
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -274,10 +280,15 @@ void AtomVecPeri::unpack_comm_vel(int n, int first, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecPeri::unpack_comm_one(int i, double *buf)
+int AtomVecPeri::unpack_comm_hybrid(int n, int first, double *buf)
 {
-  s0[i] = buf[0];
-  return 1;
+  int i,m,last;
+
+  m = 0;
+  last = first + n;
+  for (i = first; i < last; i++)
+    s0[i] = buf[m++];
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -452,14 +463,20 @@ int AtomVecPeri::pack_border_vel(int n, int *list, double *buf,
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecPeri::pack_border_one(int i, double *buf)
+int AtomVecPeri::pack_border_hybrid(int n, int *list, double *buf)
 {
-  buf[0] = vfrac[i];
-  buf[1] = s0[i];
-  buf[2] = x0[i][0];
-  buf[3] = x0[i][1];
-  buf[4] = x0[i][2];
-  return 5;
+  int i,j,m;
+
+  m = 0;
+  for (i = 0; i < n; i++) {
+    j = list[i];
+    buf[m++] = vfrac[j];
+    buf[m++] = s0[j];
+    buf[m++] = x0[j][0];
+    buf[m++] = x0[j][1];
+    buf[m++] = x0[j][2];
+  }
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -515,14 +532,20 @@ void AtomVecPeri::unpack_border_vel(int n, int first, double *buf)
 
 /* ---------------------------------------------------------------------- */
  
-int AtomVecPeri::unpack_border_one(int i, double *buf)
+int AtomVecPeri::unpack_border_hybrid(int n, int first, double *buf)
 {
-  vfrac[i] = buf[0];
-  s0[i] = buf[1];
-  x0[i][0] = buf[2];
-  x0[i][1] = buf[3];
-  x0[i][2] = buf[4];
-  return 5;
+  int i,m,last;
+
+  m = 0;
+  last = first + n;
+  for (i = first; i < last; i++) {
+    vfrac[i] = buf[m++];
+    s0[i] = buf[m++];
+    x0[i][0] = buf[m++];
+    x0[i][1] = buf[m++];
+    x0[i][2] = buf[m++];
+  }
+  return m;
 }
 
 /* ----------------------------------------------------------------------

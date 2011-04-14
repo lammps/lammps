@@ -392,10 +392,16 @@ int AtomVecCharge::pack_border_vel(int n, int *list, double *buf,
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecCharge::pack_border_one(int i, double *buf)
+int AtomVecCharge::pack_border_hybrid(int n, int *list, double *buf)
 {
-  buf[0] = q[i];
-  return 1;
+  int i,j,m;
+
+  m = 0;
+  for (i = 0; i < n; i++) {
+    j = list[i];
+    buf[m++] = q[j];
+  }
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -443,10 +449,15 @@ void AtomVecCharge::unpack_border_vel(int n, int first, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecCharge::unpack_border_one(int i, double *buf)
+int AtomVecCharge::unpack_border_hybrid(int n, int first, double *buf)
 {
-  q[i] = buf[0];
-  return 1;
+  int i,m,last;
+
+  m = 0;
+  last = first + n;
+  for (i = first; i < last; i++)
+    q[i] = buf[m++];
+  return m;
 }
 
 /* ----------------------------------------------------------------------

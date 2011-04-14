@@ -56,7 +56,7 @@ void PairDPDTstat::compute(int eflag, int vflag)
     temperature = t_start + delta * (t_stop-t_start);
     double boltz = force->boltz;
     for (i = 1; i <= atom->ntypes; i++)
-      for (j = i+1; j <= atom->ntypes; j++)
+      for (j = i; j <= atom->ntypes; j++)
 	sigma[i][j] = sigma[j][i] = sqrt(2.0*boltz*temperature*gamma[i][j]);
   }
 

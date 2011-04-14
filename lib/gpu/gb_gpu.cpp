@@ -214,7 +214,8 @@ void _gb_gpu_gayberne(GBMT &gbm, const bool _eflag, const bool _vflag) {
   else
     vflag=0;
   
-  int GX=static_cast<int>(ceil(static_cast<double>(gbm.ans->inum())/BX));
+  int GX=static_cast<int>(ceil(static_cast<double>(gbm.ans->inum())/
+                               (BX/gbm._threads_per_atom)));
   int stride=gbm.nbor->nbor_pitch();
   int ainum=gbm.ans->inum();
   int anall=gbm.atom->nall();
@@ -224,7 +225,7 @@ void _gb_gpu_gayberne(GBMT &gbm, const bool _eflag, const bool _vflag) {
     if (gbm.last_ellipse>0) {
       // ------------ ELLIPSE_ELLIPSE and ELLIPSE_SPHERE ---------------
       GX=static_cast<int>(ceil(static_cast<double>(gbm.last_ellipse)/
-                               static_cast<double>(BX)));
+                               (BX/gbm._threads_per_atom)));
       gb_gpu_pack_nbors(gbm,GX,BX, 0, gbm.last_ellipse,ELLIPSE_SPHERE,
 			ELLIPSE_ELLIPSE);
       gbm.time_kernel.stop();
@@ -236,7 +237,8 @@ void _gb_gpu_gayberne(GBMT &gbm, const bool _eflag, const bool _vflag) {
            &gbm.gamma_upsilon_mu.begin(), &gbm.sigma_epsilon.begin(), 
            &gbm._lj_types, &gbm.lshape.begin(), &gbm.nbor->dev_nbor.begin(),
            &stride, &gbm.ans->dev_ans.begin(),&ainum,&gbm.ans->dev_engv.begin(),
-           &gbm.dev_error.begin(), &eflag, &vflag, &gbm.last_ellipse, &anall);
+           &gbm.dev_error.begin(), &eflag, &vflag, &gbm.last_ellipse, &anall,
+           &gbm._threads_per_atom);
       gbm.time_gayberne.stop();
 
       if (gbm.last_ellipse==gbm.ans->inum()) {
@@ -253,7 +255,8 @@ void _gb_gpu_gayberne(GBMT &gbm, const bool _eflag, const bool _vflag) {
 
       gbm.time_kernel2.start();
       GX=static_cast<int>(ceil(static_cast<double>(gbm.ans->inum()-
-                               gbm.last_ellipse)/BX));
+                               gbm.last_ellipse)/
+                               (BX/gbm._threads_per_atom)));
       gb_gpu_pack_nbors(gbm,GX,BX,gbm.last_ellipse,gbm.ans->inum(),
 			SPHERE_ELLIPSE,SPHERE_ELLIPSE);
       gbm.time_kernel2.stop();
@@ -266,7 +269,8 @@ void _gb_gpu_gayberne(GBMT &gbm, const bool _eflag, const bool _vflag) {
               &gbm._lj_types, &gbm.lshape.begin(), 
               &gbm.nbor->dev_nbor.begin(), &stride, &gbm.ans->dev_ans.begin(),
               &gbm.ans->dev_engv.begin(), &gbm.dev_error.begin(), &eflag,
-              &vflag, &gbm.last_ellipse, &ainum, &anall);
+              &vflag, &gbm.last_ellipse, &ainum, &anall,
+              &gbm._threads_per_atom);
       gbm.time_gayberne2.stop();
    } else {
       gbm.ans->dev_ans.zero();
@@ -290,7 +294,8 @@ void _gb_gpu_gayberne(GBMT &gbm, const bool _eflag, const bool _vflag) {
                            &stride, &gbm.nbor->dev_packed.begin(),
                            &gbm.ans->dev_ans.begin(),
                            &gbm.ans->dev_engv.begin(), &gbm.dev_error.begin(),
-                           &eflag, &vflag, &gbm.last_ellipse, &ainum, &anall);
+                           &eflag, &vflag, &gbm.last_ellipse, &ainum, &anall,
+                           &gbm._threads_per_atom);
       } else {
         GBMF.k_lj.set_size(GX,BX);
         GBMF.k_lj.run(&gbm.atom->dev_x.begin(), &gbm.lj1.begin(),
@@ -298,7 +303,8 @@ void _gb_gpu_gayberne(GBMT &gbm, const bool _eflag, const bool _vflag) {
                       &gbm.gamma_upsilon_mu.begin(), &stride, 
                       &gbm.nbor->dev_packed.begin(), &gbm.ans->dev_ans.begin(),
                       &gbm.ans->dev_engv.begin(), &gbm.dev_error.begin(),
-                      &eflag, &vflag, &gbm.last_ellipse, &ainum, &anall);
+                      &eflag, &vflag, &gbm.last_ellipse, &ainum, &anall,
+                      &gbm._threads_per_atom);
       }
     }
     gbm.time_pair.stop();
@@ -315,7 +321,7 @@ void _gb_gpu_gayberne(GBMT &gbm, const bool _eflag, const bool _vflag) {
             &gbm._lj_types, &gbm.lshape.begin(), &gbm.nbor->dev_nbor.begin(),
             &stride, &gbm.ans->dev_ans.begin(), &ainum,
             &gbm.ans->dev_engv.begin(), &gbm.dev_error.begin(),
-            &eflag, &vflag, &ainum, &anall);
+            &eflag, &vflag, &ainum, &anall, &gbm._threads_per_atom);
     gbm.time_gayberne.stop();
   }
 }

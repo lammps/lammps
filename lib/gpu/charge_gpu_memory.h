@@ -187,9 +187,10 @@ class ChargeGPUMemory {
 
  protected:
   bool _compiled;
-  int _block_size, _block_bio_size;
+  int _block_size, _block_bio_size, _threads_per_atom;
   double  _max_bytes, _max_an_bytes;
   double _gpu_overhead, _driver_overhead;
+  UCL_D_Vec<int> *_nbor_data;
 
   void compile_kernels(UCL_Device &dev, const char *pair_string);
 

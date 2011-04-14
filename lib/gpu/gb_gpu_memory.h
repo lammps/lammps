@@ -198,6 +198,7 @@ class GB_GPU_Memory {
   UCL_Kernel k_gayberne, k_sphere_gb, k_lj_fast, k_lj;
   inline int block_size() { return _block_size; }
 
+  int _threads_per_atom;
  private:
   bool _allocated, _compiled;
   int _block_size;

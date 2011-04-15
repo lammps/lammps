@@ -1006,8 +1006,11 @@ void ReadData::scan(int &bond_per_atom, int &angle_per_atom,
   if (atom->natoms > MAXSMALLINT)
     error->all("Molecular data file has too many atoms");
 
+  // customize for new sections
+
   int natoms = static_cast<int> (atom->natoms);
   bond_per_atom = angle_per_atom = dihedral_per_atom = improper_per_atom = 0;
+  int ellipsoid_flag = 0;
 
   // customize for new sections
   // allocate topology counting vector
@@ -1027,6 +1030,7 @@ void ReadData::scan(int &bond_per_atom, int &angle_per_atom,
     else if (strcmp(keyword,"Ellipsoids") == 0) {
       if (!avec_ellipsoid) 
 	error->all("Invalid data file section: Ellipsoids");
+      ellipsoid_flag = 1;
       skip_lines(nellipsoids);
 
     } else if (strcmp(keyword,"Pair Coeffs") == 0) {
@@ -1108,7 +1112,6 @@ void ReadData::scan(int &bond_per_atom, int &angle_per_atom,
       skip_lines(atom->nimpropertypes);
 
     } else if (strcmp(keyword,"Bonds") == 0) {
-
       for (i = 1; i < cmax; i++) count[i] = 0;
       if (force->newton_bond)
 	for (i = 0; i < atom->nbonds; i++) {
@@ -1133,7 +1136,6 @@ void ReadData::scan(int &bond_per_atom, int &angle_per_atom,
       if (logfile) fprintf(logfile,"  %d = max bonds/atom\n",bond_per_atom);
 
     } else if (strcmp(keyword,"Angles") == 0) {
-
       for (i = 1; i < cmax; i++) count[i] = 0;
       if (force->newton_bond)
 	for (i = 0; i < atom->nangles; i++) {
@@ -1160,7 +1162,6 @@ void ReadData::scan(int &bond_per_atom, int &angle_per_atom,
       if (logfile) fprintf(logfile,"  %d = max angles/atom\n",angle_per_atom);
 
     } else if (strcmp(keyword,"Dihedrals") == 0) {
-
       for (i = 1; i < cmax; i++) count[i] = 0;
       if (force->newton_bond)
 	for (i = 0; i < atom->ndihedrals; i++) {
@@ -1246,6 +1247,12 @@ void ReadData::scan(int &bond_per_atom, int &angle_per_atom,
       (atom->ndihedrals && !dihedral_per_atom) ||
       (atom->nimpropers && !improper_per_atom)) 
     error->one("Needed topology not in data file");
+
+  // customize for new sections
+  // error check that Bonus sections were speficied in file
+
+  if (nellipsoids && !ellipsoid_flag)
+    error->one("Needed Bonus data not in data file");
 }
 
 /* ----------------------------------------------------------------------

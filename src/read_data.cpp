@@ -148,6 +148,7 @@ void ReadData::command(int narg, char **arg)
     } else if (strcmp(keyword,"Velocities") == 0) {
       if (atomflag == 0) error->all("Must read Atoms before Velocities");
       velocities();
+
     } else if (strcmp(keyword,"Ellipsoids") == 0) {
       if (!avec_ellipsoid) 
 	error->all("Invalid data file section: Ellipsoids");
@@ -1252,7 +1253,7 @@ void ReadData::scan(int &bond_per_atom, int &angle_per_atom,
   // error check that Bonus sections were speficied in file
 
   if (nellipsoids && !ellipsoid_flag)
-    error->one("Needed Bonus data not in data file");
+    error->one("Needed bonus data not in data file");
 }
 
 /* ----------------------------------------------------------------------

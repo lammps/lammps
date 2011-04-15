@@ -445,11 +445,11 @@ __kernel void kernel_lj(__global numtyp4 *x_, __global numtyp4 *lj1,
 
 __kernel void kernel_lj_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in, 
                              __global numtyp4* lj3_in, __global numtyp *gum, 
-                             const int stride, 
-                             __global int *dev_ij, __global acctyp4 *ans, 
-                             __global acctyp *engv, __global int *err_flag,
-                             const int eflag,const int vflag, const int start,
-                             const int inum, const int nall) {
+                             const int stride, __global int *dev_ij,
+                             __global acctyp4 *ans, __global acctyp *engv,
+                             __global int *err_flag, const int eflag,
+                             const int vflag, const int start, const int inum,
+                             const int nall, const int t_per_atom) {
   int tid=THREAD_ID_X;
   int ii=mul24((int)BLOCK_ID_X,(int)(BLOCK_SIZE_X)/t_per_atom);
   ii+=tid/t_per_atom+start;

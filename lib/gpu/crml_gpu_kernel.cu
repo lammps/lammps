@@ -54,7 +54,7 @@
 
 #ifdef NV_KERNEL
 
-#include "geryon/ucl_nv_kernel.h"
+#include "nv_kernel_def.h"
 texture<float4> pos_tex;
 texture<float> q_tex;
 
@@ -298,14 +298,14 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *lj1,
 
 __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp2 *ljd_in,
                                __global numtyp* sp_lj_in, __global int *dev_nbor, 
-                               __global acctyp4 *ans, __global acctyp *engv, 
-                               const int eflag, const int vflag, const int inum, 
-                               const int nall, const int nbor_pitch,
-                               __global numtyp *q_, const numtyp cut_coulsq, 
-                               const numtyp qqrd2e, const numtyp g_ewald,
-                               const numtyp denom_lj, const numtyp cut_bothsq, 
-                               const numtyp cut_ljsq, 
-                               const numtyp cut_lj_innersq, 
+                               __global int *dev_packed, __global acctyp4 *ans,
+                               __global acctyp *engv, const int eflag,
+                               const int vflag, const int inum, const int nall,
+                               const int nbor_pitch, __global numtyp *q_,
+                               const numtyp cut_coulsq, const numtyp qqrd2e,
+                               const numtyp g_ewald, const numtyp denom_lj,
+                               const numtyp cut_bothsq, const numtyp cut_ljsq, 
+                               const numtyp cut_lj_innersq,
                                const int t_per_atom) {
   int tid=THREAD_ID_X;
   int ii=mul24((int)BLOCK_ID_X,(int)(BLOCK_SIZE_X)/t_per_atom);

@@ -73,6 +73,7 @@ int GB_GPU_MemoryT::init(const int ntypes, const double gamma,
   if (host_nlocal>0)
     _gpu_host=1;
   
+  _threads_per_atom=device->threads_per_atom();
   int success=device->init(*ans,false,true,nlocal,host_nlocal,nall,nbor,0,
                            _gpu_host,max_nbors,cell_size,true);
   if (success!=0)

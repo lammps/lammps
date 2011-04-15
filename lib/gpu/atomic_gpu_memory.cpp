@@ -57,6 +57,13 @@ int AtomicGPUMemoryT::init_atomic(const int nlocal, const int nall,
   if (host_nlocal>0)
     _gpu_host=1;
 
+  _threads_per_atom=device->threads_per_atom();
+  if (_threads_per_atom>1 && gpu_nbor==false) {
+    nbor->packing(true);
+    _nbor_data=&(nbor->dev_packed);
+  } else
+    _nbor_data=&(nbor->dev_nbor);
+    
   int success=device->init(*ans,false,false,nlocal,host_nlocal,nall,nbor,
                            maxspecial,_gpu_host,max_nbors,cell_size,false);
   if (success!=0)

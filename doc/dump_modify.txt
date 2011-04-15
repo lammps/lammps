@@ -8,8 +8,8 @@
 
 dump_modify command :h3
 
-NOTE: This options relevant for the dump image command have not yet
-been released as part of LAMMPS.
+NOTE: This keywords below which are only relevant for the dump image
+command have not yet been released as part of LAMMPS.
 
 [Syntax:]
 

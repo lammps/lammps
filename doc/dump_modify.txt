@@ -8,6 +8,9 @@
 
 dump_modify command :h3
 
+NOTE: This options relevant for the dump image command have not yet
+been released as part of LAMMPS.
+
 [Syntax:]
 
 dump_modify dump-ID keyword values ... :pre
@@ -91,8 +94,6 @@ dump_modify 1 region mySphere thresh x < 0.0 thresh epair >= 3.2
 dump_modify xtcdump precision 10000
 dump_modify 1 every 1000
 dump_modify 1 every v_myVar :pre
-
-NOTE: add some image examples
 
 [Description:]
 

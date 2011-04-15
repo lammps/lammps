@@ -28,8 +28,7 @@
 		        vx, vy, vz, fx, fy, fz,
                         q, mux, muy, muz,
                         radius, omegax, omegay, omegaz,
-                        angmomx, angmomy, angmomz,
-		        quatw, quati, quatj, quatk, tqx, tqy, tqz
+                        angmomx, angmomy, angmomz, tqx, tqy, tqz
 			c_ID, c_ID[N], f_ID, f_ID[N], v_name 
 </PRE>
 <PRE>      id = atom ID
@@ -47,7 +46,6 @@
       radius = radius of extended spherical particle
       omegax,omegay,omegaz = angular velocity of extended particle
       angmomx,angmomy,angmomz = angular momentum of extended particle
-      quatw,quati,quatj,quatk = quaternion components for aspherical particles
       tqx,tqy,tqz = torque on extended particles
       c_ID = per-atom vector calculated by a compute with ID
       c_ID[I] = Ith column of per-atom array calculated by a compute with ID

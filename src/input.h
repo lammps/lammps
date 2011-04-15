@@ -75,7 +75,6 @@ class Input : protected Pointers {
   void dihedral_coeff();
   void dihedral_style();
   void dimension();
-  void dipole();
   void dump();
   void dump_modify();
   void fix();
@@ -101,7 +100,6 @@ class Input : protected Pointers {
   void reset_timestep();
   void restart();
   void run_style();
-  void shape();
   void special_bonds();
   void thermo();
   void thermo_modify();

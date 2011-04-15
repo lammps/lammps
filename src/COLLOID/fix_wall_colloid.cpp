@@ -35,31 +35,19 @@ FixWallColloid::FixWallColloid(LAMMPS *lmp, int narg, char **arg) :
 
 void FixWallColloid::init()
 {
-  if (!atom->avec->shape_type)
-    error->all("Fix wall/colloid requires atom attribute shape");
-  if (atom->radius_flag)
-    error->all("Fix wall/colloid cannot be used with atom attribute diameter");
-
-  // insure all particle shapes are spherical
-  // can be polydisperse
-
-  for (int i = 1; i <= atom->ntypes; i++)
-    if ((atom->shape[i][0] != atom->shape[i][1]) || 
-	(atom->shape[i][0] != atom->shape[i][2]) ||
-	(atom->shape[i][1] != atom->shape[i][2]))
-      error->all("Fix wall/colloid requires spherical particles");
+  if (!atom->sphere_flag) 
+    error->all("Fix wall/colloid requires atom style sphere");
 
   // insure all particles in group are extended particles
 
-  double **shape = atom->shape;
-  int *type = atom->type;
+  double *radius = atom->radius;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
   int flag = 0;
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
-      if (atom->shape[type[i]][0] == 0.0) flag = 1;
+      if (radius[i] == 0.0) flag = 1;
 
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
@@ -95,9 +83,8 @@ void FixWallColloid::wall_particle(int m, int which, double coord)
 
   double **x = atom->x;
   double **f = atom->f;
-  double **shape = atom->shape;
+  double *radius = atom->radius;
   int *mask = atom->mask;
-  int *type = atom->type;
   int nlocal = atom->nlocal;
 
   int dim = which  / 2;
@@ -111,7 +98,7 @@ void FixWallColloid::wall_particle(int m, int which, double coord)
       if (side < 0) delta = x[i][dim] - coord;
       else delta = coord - x[i][dim];
       if (delta >= cutoff[m]) continue;
-      rad = shape[type[i]][0];
+      rad = radius[i];
       if (rad >= delta) {
 	onflag = 1;
 	continue;

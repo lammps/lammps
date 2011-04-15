@@ -33,6 +33,9 @@ main(int narg, char **arg)
   bigint ntimestep,natoms;
   int size_one,nchunk,triclinic;
   double xlo,xhi,ylo,yhi,zlo,zhi,xy,xz,yz;
+  int boundary[3][2];
+  char boundstr[9];
+
   int maxbuf = 0;
   double *buf = NULL;
 
@@ -75,6 +78,7 @@ main(int narg, char **arg)
 
       fread(&natoms,sizeof(bigint),1,fp);
       fread(&triclinic,sizeof(int),1,fp);
+      fread(&boundary[0][0],6*sizeof(int),1,fp);
       fread(&xlo,sizeof(double),1,fp);
       fread(&xhi,sizeof(double),1,fp);
       fread(&ylo,sizeof(double),1,fp);
@@ -100,18 +104,33 @@ main(int narg, char **arg)
 	fprintf(fptxt,"ITEM: NUMBER OF ATOMS\n");
 	fprintf(fptxt,"%d\n",natoms);
       }
+
+      m = 0;
+      for (int idim = 0; idim < 3; idim++) {
+	for (int iside = 0; iside < 2; iside++) {
+	  if (boundary[idim][iside] == 0) boundstr[m++] = 'p';
+	  else if (boundary[idim][iside] == 1) boundstr[m++] = 'f';
+	  else if (boundary[idim][iside] == 2) boundstr[m++] = 's';
+	  else if (boundary[idim][iside] == 3) boundstr[m++] = 'm';
+	}
+	boundstr[m++] = ' ';
+      }
+      boundstr[8] = '\0';
+      
       if (!triclinic) {
-	fprintf(fptxt,"ITEM: BOX BOUNDS\n");
+	fprintf(fptxt,"ITEM: BOX BOUNDS %s\n",boundstr);
 	fprintf(fptxt,"%g %g\n",xlo,xhi);
 	fprintf(fptxt,"%g %g\n",ylo,yhi);
 	fprintf(fptxt,"%g %g\n",zlo,zhi);
       } else {
-	fprintf(fptxt,"ITEM: BOX BOUNDS xy xz yz\n");
+	fprintf(fptxt,"ITEM: BOX BOUNDS %s xy xz yz\n",boundstr);
 	fprintf(fptxt,"%g %g %g\n",xlo,xhi,xy);
 	fprintf(fptxt,"%g %g %g\n",ylo,yhi,xz);
 	fprintf(fptxt,"%g %g %g\n",zlo,zhi,yz);
       }
       fprintf(fptxt,"ITEM: ATOMS\n");
+
+
 
       // loop over processor chunks in file
 

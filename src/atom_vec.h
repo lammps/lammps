@@ -24,7 +24,6 @@ class AtomVec : protected Pointers {
   int bonds_allow,angles_allow;        // 1 if bonds, angles are used
   int dihedrals_allow,impropers_allow; // 1 if dihedrals, impropers used
   int mass_type;                       // 1 if per-type masses
-  int shape_type;                      // 1 if per-type shape array
   int dipole_type;                     // 1 if per-type dipole moments
 
   int comm_x_only;                     // 1 if only exchange x in forward comm
@@ -48,22 +47,22 @@ class AtomVec : protected Pointers {
 
   virtual int pack_comm(int, int *, double *, int, int *) = 0;
   virtual int pack_comm_vel(int, int *, double *, int, int *) = 0;
-  virtual int pack_comm_one(int, double *) {return 0;}
+  virtual int pack_comm_hybrid(int, int *, double *) {return 0;}
   virtual void unpack_comm(int, int, double *) = 0;
   virtual void unpack_comm_vel(int, int, double *) = 0;
-  virtual int unpack_comm_one(int, double *) {return 0;}
+  virtual int unpack_comm_hybrid(int, int, double *) {return 0;}
 
   virtual int pack_reverse(int, int, double *) = 0;
-  virtual int pack_reverse_one(int, double *) {return 0;}
+  virtual int pack_reverse_hybrid(int, int, double *) {return 0;}
   virtual void unpack_reverse(int, int *, double *) = 0;
-  virtual int unpack_reverse_one(int, double *) {return 0;}
+  virtual int unpack_reverse_hybrid(int, int *, double *) {return 0;}
 
   virtual int pack_border(int, int *, double *, int, int *) = 0;
   virtual int pack_border_vel(int, int *, double *, int, int *) = 0;
-  virtual int pack_border_one(int, double *) {return 0;}
+  virtual int pack_border_hybrid(int, int *, double *) {return 0;}
   virtual void unpack_border(int, int, double *) = 0;
   virtual void unpack_border_vel(int, int, double *) = 0;
-  virtual int unpack_border_one(int, double *) {return 0;}
+  virtual int unpack_border_hybrid(int, int, double *) {return 0;}
 
   virtual int pack_exchange(int, double *) = 0;
   virtual int unpack_exchange(double *) = 0;

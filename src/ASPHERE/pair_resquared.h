@@ -42,7 +42,8 @@ class PairRESquared : public Pair {
   double cut_global;
   double **cut;
 
-  double **shape2;           // radii in x, y and z SQUARED
+  double **shape1;           // per-type radii in x, y and z
+  double **shape2;           // per-type radii in x, y and z SQUARED
   double *lshape;            // product of the radii
   double **well;             // well depth scaling along each axis
   double **epsilon,**sigma;  // epsilon and sigma values for atom-type pairs

@@ -38,12 +38,10 @@ class ComputeTempAsphere : public Compute {
  private:
   int fix_dof;
   double tfactor;
-  double **inertia;
   char *id_bias;
   Compute *tbias;     // ptr to additional bias compute
 
   void dof_compute();
-  void calculate_inertia();
 };
 
 }

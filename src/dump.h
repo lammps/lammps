@@ -58,6 +58,7 @@ class Dump : protected Pointers {
   int sortcolm1;             // sortcol - 1
   int sortorder;             // ASCEND or DESCEND
 
+  char boundstr[9];          // encoding of boundary flags
   char *format_default;      // default format string
   char *format_user;         // format string set by user
   char *format;              // format string for the file write

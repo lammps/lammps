@@ -43,8 +43,8 @@ ComputeTempDeformEff::ComputeTempDeformEff(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 3) error->all("Illegal compute temp/deform/eff command");
 
-  if (!atom->spin_flag || !atom->ervel_flag) 
-    error->all("Compute temp/deform/eff requires atom attributes spin, ervel");
+  if (!atom->electron_flag) 
+    error->all("Compute temp/deform/eff requires atom style electron");
 
   scalar_flag = vector_flag = 1;
   size_vector = 6;

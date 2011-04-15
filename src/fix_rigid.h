@@ -96,7 +96,7 @@ class FixRigid : public Fix {
   int p_chain;
 
                             // bitmasks for eflags
-  int INERTIA_SPHERE_RADIUS,INERTIA_SPHERE_SHAPE,INERTIA_ELLIPSOID;
+  int INERTIA_POINT,INERTIA_SPHERE,INERTIA_ELLIPSOID;
   int ORIENT_DIPOLE,ORIENT_QUAT;
   int OMEGA,ANGMOM,TORQUE;
 

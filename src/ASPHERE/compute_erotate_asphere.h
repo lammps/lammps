@@ -27,15 +27,11 @@ namespace LAMMPS_NS {
 class ComputeERotateAsphere : public Compute {
  public:
   ComputeERotateAsphere(class LAMMPS *, int, char **);
-  ~ComputeERotateAsphere();
   void init();
   double compute_scalar();
 
  private:
   double pfactor;
-  double **inertia;
-
-  void calculate_inertia();
 };
 
 }

@@ -59,6 +59,8 @@ __inline float4 fetch_pos(const int& i, const float4 *pos)
 
 #define SBBITS 30
 
+#define SBBITS 30
+
 __kernel void transpose(int *out, int *in, int columns_in, int rows_in)
 {
 	__local float block[BLOCK_CELL_2D][BLOCK_CELL_2D+1];

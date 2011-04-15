@@ -64,6 +64,7 @@ PairRESquared::~PairRESquared()
     memory->destroy(form);
     memory->destroy(epsilon);
     memory->destroy(sigma);
+    memory->destroy(shape1);
     memory->destroy(shape2);
     memory->destroy(well);
     memory->destroy(cut);
@@ -224,6 +225,7 @@ void PairRESquared::allocate()
   memory->create(form,n+1,n+1,"pair:form");
   memory->create(epsilon,n+1,n+1,"pair:epsilon");
   memory->create(sigma,n+1,n+1,"pair:sigma");
+  memory->create(shape1,n+1,3,"pair:shape1");
   memory->create(shape2,n+1,3,"pair:shape2");
   memory->create(well,n+1,3,"pair:well");
   memory->create(cut,n+1,n+1,"pair:cut");
@@ -319,22 +321,22 @@ void PairRESquared::coeff(int narg, char **arg)
 
 void PairRESquared::init_style()
 {
-  if (!atom->quat_flag || !atom->torque_flag || !atom->avec->shape_type)
-    error->all("Pair resquared requires atom attributes quat, torque, shape");
-  if (atom->radius_flag)
-    error->all("Pair resquared cannot be used with atom attribute diameter");
+  if (!atom->ellipsoid_flag)
+    error->all("Pair resquared requires atom style ellipsoid");
 
   int irequest = neighbor->request(this);
 
   // per-type shape precalculations
+  // require that atom shapes are identical within each type
 
   for (int i = 1; i <= atom->ntypes; i++) {
+    if (!atom->shape_consistency(i,shape1[i][0],shape1[i][1],shape1[i][2]))
+      error->all("Pair gayberne requires atoms with same type have same shape");
     if (setwell[i]) {
-      double *one = atom->shape[i];
-      shape2[i][0] = one[0]*one[0];
-      shape2[i][1] = one[1]*one[1];
-      shape2[i][2] = one[2]*one[2];
-      lshape[i] = one[0]*one[1]*one[2];
+      shape2[i][0] = shape1[i][0]*shape1[i][0];
+      shape2[i][1] = shape1[i][1]*shape1[i][1];
+      shape2[i][2] = shape1[i][2]*shape1[i][2];
+      lshape[i] = shape1[i][0]*shape1[i][1]*shape1[i][2];
     }
   }
 }
@@ -345,16 +347,14 @@ void PairRESquared::init_style()
 
 double PairRESquared::init_one(int i, int j)
 {
-  double **shape = atom->shape;
-  
   if (setwell[i] == 0 || setwell[j] == 0)
     error->all("Pair resquared epsilon a,b,c coeffs are not all set");
 
   int ishape = 0;
-  if (shape[i][0] != 0.0 && shape[i][1] != 0.0 && shape[i][2] != 0.0) 
+  if (shape1[i][0] != 0.0 && shape1[i][1] != 0.0 && shape1[i][2] != 0.0) 
     ishape = 1;
   int jshape = 0;
-  if (shape[j][0] != 0.0 && shape[j][1] != 0.0 && shape[j][2] != 0.0) 
+  if (shape1[j][0] != 0.0 && shape1[j][1] != 0.0 && shape1[j][2] != 0.0) 
     jshape = 1;
   
   if (ishape == 0 && jshape == 0) {
@@ -546,7 +546,6 @@ double PairRESquared::resquared_analytic(const int i, const int j,
                                          double *rtor)
 {
   int *type = atom->type;
-  double **shape = atom->shape;
     
   // pair computations for energy, force, torque
 
@@ -649,16 +648,16 @@ double PairRESquared::resquared_analytic(const int i, const int j,
   tprod = eta*chi*sigh;
 
   double stemp = h12/2.0;
-  Ua = (shape[type[i]][0]+stemp)*(shape[type[i]][1]+stemp)*
-       (shape[type[i]][2]+stemp)*(shape[type[j]][0]+stemp)*
-       (shape[type[j]][1]+stemp)*(shape[type[j]][2]+stemp);
+  Ua = (shape1[type[i]][0]+stemp)*(shape1[type[i]][1]+stemp)*
+       (shape1[type[i]][2]+stemp)*(shape1[type[j]][0]+stemp)*
+       (shape1[type[j]][1]+stemp)*(shape1[type[j]][2]+stemp);
   Ua = (1.0+3.0*tprod)*sprod/Ua;
   Ua = epsilon[type[i]][type[j]]*Ua/-36.0;
 
   stemp = h12/cr60;
-  Ur = (shape[type[i]][0]+stemp)*(shape[type[i]][1]+stemp)*
-       (shape[type[i]][2]+stemp)*(shape[type[j]][0]+stemp)*
-       (shape[type[j]][1]+stemp)*(shape[type[j]][2]+stemp);
+  Ur = (shape1[type[i]][0]+stemp)*(shape1[type[i]][1]+stemp)*
+       (shape1[type[i]][2]+stemp)*(shape1[type[j]][0]+stemp)*
+       (shape1[type[j]][1]+stemp)*(shape1[type[j]][2]+stemp);
   Ur = (1.0+b_alpha*tprod)*sprod/Ur;
   Ur = epsilon[type[i]][type[j]]*Ur*pow(sigh,6.0)/2025.0;
 
@@ -704,22 +703,22 @@ double PairRESquared::resquared_analytic(const int i, const int j,
   spr[1] = 0.5*sigma12p3*s[1];
   spr[2] = 0.5*sigma12p3*s[2];
 
-  stemp = 1.0/(shape[type[i]][0]*2.0+h12)+
-          1.0/(shape[type[i]][1]*2.0+h12)+
-          1.0/(shape[type[i]][2]*2.0+h12)+
-          1.0/(shape[type[j]][0]*2.0+h12)+
-          1.0/(shape[type[j]][1]*2.0+h12)+
-          1.0/(shape[type[j]][2]*2.0+h12);
+  stemp = 1.0/(shape1[type[i]][0]*2.0+h12)+
+          1.0/(shape1[type[i]][1]*2.0+h12)+
+          1.0/(shape1[type[i]][2]*2.0+h12)+
+          1.0/(shape1[type[j]][0]*2.0+h12)+
+          1.0/(shape1[type[j]][1]*2.0+h12)+
+          1.0/(shape1[type[j]][2]*2.0+h12);
   hsec = h12+3.0*sec;
   dspu = 1.0/h12-1.0/hsec+stemp;
   pbsu = 3.0*sigma[type[i]][type[j]]/hsec;
   
-  stemp = 1.0/(shape[type[i]][0]*cr60+h12)+
-          1.0/(shape[type[i]][1]*cr60+h12)+
-          1.0/(shape[type[i]][2]*cr60+h12)+
-          1.0/(shape[type[j]][0]*cr60+h12)+
-          1.0/(shape[type[j]][1]*cr60+h12)+
-          1.0/(shape[type[j]][2]*cr60+h12);
+  stemp = 1.0/(shape1[type[i]][0]*cr60+h12)+
+          1.0/(shape1[type[i]][1]*cr60+h12)+
+          1.0/(shape1[type[i]][2]*cr60+h12)+
+          1.0/(shape1[type[j]][0]*cr60+h12)+
+          1.0/(shape1[type[j]][1]*cr60+h12)+
+          1.0/(shape1[type[j]][2]*cr60+h12);
   hsec = h12+b_alpha*sec;
   dspr = 7.0/h12-1.0/hsec+stemp;
   pbsr = b_alpha*sigma[type[i]][type[j]]/hsec;
@@ -832,7 +831,6 @@ double PairRESquared::resquared_lj(const int i, const int j,
                                    double *ttor, bool calc_torque)
 {
   int *type = atom->type;
-  double **shape = atom->shape;
     
   // pair computations for energy, force, torque
 
@@ -875,9 +873,9 @@ double PairRESquared::resquared_lj(const int i, const int j,
   double lAtwo[3][3][3];  // A1'*S1^2*wi.lA
   double scorrect[3];
   double half_sigma=sigma[type[i]][type[j]] / 2.0;
-  scorrect[0] = shape[type[i]][0]+half_sigma;
-  scorrect[1] = shape[type[i]][1]+half_sigma;
-  scorrect[2] = shape[type[i]][2]+half_sigma;
+  scorrect[0] = shape1[type[i]][0]+half_sigma;
+  scorrect[1] = shape1[type[i]][1]+half_sigma;
+  scorrect[2] = shape1[type[i]][2]+half_sigma;
   scorrect[0] = scorrect[0] * scorrect[0] / 2.0;
   scorrect[1] = scorrect[1] * scorrect[1] / 2.0;
   scorrect[2] = scorrect[2] * scorrect[2] / 2.0;
@@ -909,14 +907,14 @@ double PairRESquared::resquared_lj(const int i, const int j,
   h12p3 = pow(h12,3.0);
   double sigmap3 = pow(sigma[type[i]][type[j]],3.0);
   double stemp = h12/2.0;
-  Ua = (shape[type[i]][0]+stemp)*(shape[type[i]][1]+stemp)*
-       (shape[type[i]][2]+stemp)*h12p3/8.0;
+  Ua = (shape1[type[i]][0]+stemp)*(shape1[type[i]][1]+stemp)*
+       (shape1[type[i]][2]+stemp)*h12p3/8.0;
   Ua = (1.0+3.0*tprod)*lshape[type[i]]/Ua;
   Ua = epsilon[type[i]][type[j]]*Ua*sigmap3*solv_f_a;
 
   stemp = h12/cr60;
-  Ur = (shape[type[i]][0]+stemp)*(shape[type[i]][1]+stemp)*
-       (shape[type[i]][2]+stemp)*h12p3/60.0;
+  Ur = (shape1[type[i]][0]+stemp)*(shape1[type[i]][1]+stemp)*
+       (shape1[type[i]][2]+stemp)*h12p3/60.0;
   Ur = (1.0+b_alpha*tprod)*lshape[type[i]]/Ur;
   Ur = epsilon[type[i]][type[j]]*Ur*sigmap3*pow(sigh,6.0)*solv_f_r;
 
@@ -931,17 +929,17 @@ double PairRESquared::resquared_lj(const int i, const int j,
   spr[1] = 0.5*sigma12p3*s[1];
   spr[2] = 0.5*sigma12p3*s[2];
 
-  stemp = 1.0/(shape[type[i]][0]*2.0+h12)+
-          1.0/(shape[type[i]][1]*2.0+h12)+
-          1.0/(shape[type[i]][2]*2.0+h12)+
+  stemp = 1.0/(shape1[type[i]][0]*2.0+h12)+
+          1.0/(shape1[type[i]][1]*2.0+h12)+
+          1.0/(shape1[type[i]][2]*2.0+h12)+
           3.0/h12;
   hsec = h12+3.0*sec;
   dspu = 1.0/h12-1.0/hsec+stemp;
   pbsu = 3.0*sigma[type[i]][type[j]]/hsec;
   
-  stemp = 1.0/(shape[type[i]][0]*cr60+h12)+
-          1.0/(shape[type[i]][1]*cr60+h12)+
-          1.0/(shape[type[i]][2]*cr60+h12)+
+  stemp = 1.0/(shape1[type[i]][0]*cr60+h12)+
+          1.0/(shape1[type[i]][1]*cr60+h12)+
+          1.0/(shape1[type[i]][2]*cr60+h12)+
           3.0/h12;
   hsec = h12+b_alpha*sec;
   dspr = 7.0/h12-1.0/hsec+stemp;

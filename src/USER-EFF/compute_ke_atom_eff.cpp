@@ -43,8 +43,8 @@ ComputeKEAtomEff::ComputeKEAtomEff(LAMMPS *lmp, int narg, char **arg) :
 
   // error check
 
-  if (!atom->ervel_flag) 
-    error->all("Compute ke/atom/eff requires atom attribute ervel");
+  if (!atom->electron_flag) 
+    error->all("Compute ke/atom/eff requires atom style electron");
 }
 
 /* ---------------------------------------------------------------------- */

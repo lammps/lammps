@@ -1,7 +1,7 @@
 # Pour 2d granular particles into container
 
 dimension	2
-atom_style	granular
+atom_style	sphere
 boundary	f fm p
 newton		off
 communicate	single vel yes

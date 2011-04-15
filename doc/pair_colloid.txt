@@ -156,6 +156,18 @@ This style is part of the "colloid" package.  It is only enabled if
 LAMMPS was built with that package.  See the "Making
 LAMMPS"_Section_start.html#2_3 section for more info.
 
+Normally, this pair style should be used with finite-size particles
+which have a diameter, e.g. see the "atom_style
+sphere"_atom_style.html command.  However, this is not a requirement,
+since the only definition of particle size is via the pair_coeff
+parameters for each type.  In other words, the physical radius of the
+particle is ignored.  Thus you should insure that the d1,d2 parameters
+you specify are consistent with the physical size of the particles of
+that type.
+
+Per-particle polydispersity is not yet supported by this pair style;
+only per-type polydispersity is enabled via the pair_coeff parameters.
+
 [Related commands:]
 
 "pair_coeff"_pair_coeff.html

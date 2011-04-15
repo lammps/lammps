@@ -108,17 +108,22 @@ This fix is not invoked during "energy minimization"_minimize.html.
 
 [Restrictions:]
 
-This fix requires that atoms store torque and angular velocity (omega)
-as defined by the "atom_style"_atom_style.html.  It also require they
-store either a per-particle diameter or per-type "shape"_shape.html.
+This fix is part of the "asphere" package.  It is only enabled if
+LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#2_3 section for more info.
+
+This fix requires that atoms store torque and angular momementum and a
+quaternion as defined by the "atom_style ellipsoid"_atom_style.html
+command.
 
 All particles in the group must be finite-size.  They cannot be point
-particles, but they can be aspherical or spherical.
+particles, but they can be aspherical or spherical as defined by their
+shape attribute.
 
 [Related commands:]
 
 "fix nph"_fix_nh.html, "fix nve_asphere"_fix_nve_asphere.html, "fix
-nvt_asphere"_fix_nvt_asphere.html, "fix npt_asphere"_fix_npt_asphere.html,
-"fix_modify"_fix_modify.html
+nvt_asphere"_fix_nvt_asphere.html, "fix
+npt_asphere"_fix_npt_asphere.html, "fix_modify"_fix_modify.html
 
 [Default:] none

@@ -30,10 +30,8 @@ enum{NOBIAS,BIAS};
 
 FixNHEff::FixNHEff(LAMMPS *lmp, int narg, char **arg) : FixNH(lmp, narg, arg)
 {
-  if (!atom->spin_flag || !atom->eradius_flag || 
-      !atom->ervel_flag || !atom->erforce_flag) 
-    error->all("Fix nvt/nph/npt/eff requires atom attributes "
-	       "spin, eradius, ervel, erforce");
+  if (!atom->electron_flag) 
+    error->all("Fix nvt/nph/npt/eff requires atom style electron");
 }
 
 /* ----------------------------------------------------------------------

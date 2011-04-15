@@ -33,10 +33,10 @@ usual <A HREF = "compute_temp.html">compute temp</A> command, which assumes poin
 particles with only translational kinetic energy.
 </P>
 <P>Both point and finite-size particles can be included in the group.
-Point particles do not rotate, so they have only translational degrees
-of freedom.  For 3d spherical particles, each has 6 degrees of freedom
-(3 translational, 3 rotational).  For 2d spherical particles, each has
-3 degrees of freedom (2 translational, 1 rotational).
+Point particles do not rotate, so they have only 3 translational
+degrees of freedom.  For 3d spherical particles, each has 6 degrees of
+freedom (3 translational, 3 rotational).  For 2d spherical particles,
+each has 3 degrees of freedom (2 translational, 1 rotational).
 </P>
 <P>IMPORTANT NOTE: This choice for degrees of freedom (dof) assumes that
 all finite-size spherical particles in your model will freely rotate,
@@ -104,11 +104,12 @@ vector values will be in energy <A HREF = "units.html">units</A>.
 </P>
 <P><B>Restrictions:</B>
 </P>
-<P>This compute requires that particles be represented as extended
-spheres and not point particles.  This means they will have an angular
-velocity and a diameter which is determined either by the
-<A HREF = "shape.html">shape</A> command or by each particle being assigned an
-individual radius, e.g. for <A HREF = "atom_style.html">atom_style granular</A>.
+<P>This fix requires that atoms store torque and angular velocity (omega)
+and a radius as defined by the <A HREF = "atom_style.html">atom_style sphere</A>
+command.  
+</P>
+<P>All particles in the group must be finite-size spheres, or point
+particles with radius = 0.0.
 </P>
 <P><B>Related commands:</B>
 </P>

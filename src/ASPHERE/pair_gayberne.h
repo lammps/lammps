@@ -43,7 +43,8 @@ class PairGayBerne : public Pair {
   double **cut;
 
   double gamma,upsilon,mu;   // Gay-Berne parameters
-  double **shape;            // radii in x, y and z SQUARED
+  double **shape1;           // per-type radii in x, y and z
+  double **shape2;           // per-type radii in x, y and z SQUARED
   double *lshape;            // precalculation based on the shape
   double **well;             // well depth scaling along each axis ^ -1.0/mu
   double **epsilon,**sigma;  // epsilon and sigma values for atom-type pairs

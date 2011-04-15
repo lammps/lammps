@@ -5,7 +5,7 @@ variable	x index 1
 variable	y index 1
 
 units		lj
-atom_style	granular
+atom_style	sphere
 boundary	p p fs
 newton		off
 communicate	single vel yes

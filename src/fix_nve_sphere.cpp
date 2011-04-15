@@ -53,10 +53,8 @@ FixNVESphere::FixNVESphere(LAMMPS *lmp, int narg, char **arg) :
 
   // error checks
 
-  if (!atom->omega_flag || !atom->torque_flag)
-    error->all("Fix nve/sphere requires atom attributes omega, torque");
-  if (!atom->radius_flag && !atom->avec->shape_type)
-    error->all("Fix nve/sphere requires atom attribute diameter or shape");
+  if (!atom->sphere_flag)
+    error->all("Fix nve/sphere requires atom style sphere");
   if (extra == DIPOLE && !atom->mu_flag)
     error->all("Fix nve/sphere requires atom attribute mu");
 }
@@ -77,38 +75,17 @@ int FixNVESphere::setmask()
 
 void FixNVESphere::init()
 {
-  int i,itype;
-
-  // check that all particles are finite-size and spherical
+  // check that all particles are finite-size
   // no point particles allowed
 
-  if (atom->radius_flag) {
-    double *radius = atom->radius;
-    int *mask = atom->mask;
-    int nlocal = atom->nlocal;
+  double *radius = atom->radius;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
 
-    for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
-	if (radius[i] == 0.0)
-	  error->one("Fix nve/sphere requires extended particles");
-      }
-
-  } else {
-    double **shape = atom->shape;
-    int *type = atom->type;
-    int *mask = atom->mask;
-    int nlocal = atom->nlocal;
-
-    for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
-	itype = type[i];
-	if (shape[itype][0] == 0.0)
-	  error->one("Fix nve/sphere requires extended particles");
-	if (shape[itype][0] != shape[itype][1] || 
-	    shape[itype][0] != shape[itype][2])
-	  error->one("Fix nve/sphere requires spherical particle shapes");
-      }
-  }
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit)
+      if (radius[i] == 0.0)
+	error->one("Fix nve/sphere requires extended particles");
 
   FixNVE::init();
 }
@@ -128,8 +105,6 @@ void FixNVESphere::initial_integrate(int vflag)
   double **torque = atom->torque;
   double *radius = atom->radius;
   double *rmass = atom->rmass;
-  double *mass = atom->mass;
-  double **shape = atom->shape;
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -141,86 +116,21 @@ void FixNVESphere::initial_integrate(int vflag)
 
   // update v,x,omega for all particles
   // d_omega/dt = torque / inertia
-  // 4 cases depending on radius vs shape and rmass vs mass
 
-  if (radius) {
-    if (rmass) {
-      for (int i = 0; i < nlocal; i++) {
-	if (mask[i] & groupbit) {
-	  dtfm = dtf / rmass[i];
-	  v[i][0] += dtfm * f[i][0];
-	  v[i][1] += dtfm * f[i][1];
-	  v[i][2] += dtfm * f[i][2];
-	  x[i][0] += dtv * v[i][0];
-	  x[i][1] += dtv * v[i][1];
-	  x[i][2] += dtv * v[i][2];
-	  
-	  dtirotate = dtfrotate / (radius[i]*radius[i]*rmass[i]);
-	  omega[i][0] += dtirotate * torque[i][0];
-	  omega[i][1] += dtirotate * torque[i][1];
-	  omega[i][2] += dtirotate * torque[i][2];
-	}
-      }
-
-    } else {
-      for (int i = 0; i < nlocal; i++) {
-	if (mask[i] & groupbit) {
-	  itype = type[i];
-	  dtfm = dtf / mass[itype];
-	  v[i][0] += dtfm * f[i][0];
-	  v[i][1] += dtfm * f[i][1];
-	  v[i][2] += dtfm * f[i][2];
-	  x[i][0] += dtv * v[i][0];
-	  x[i][1] += dtv * v[i][1];
-	  x[i][2] += dtv * v[i][2];
-	  
-	  dtirotate = dtfrotate / (radius[i]*radius[i]*mass[itype]);
-	  omega[i][0] += dtirotate * torque[i][0];
-	  omega[i][1] += dtirotate * torque[i][1];
-	  omega[i][2] += dtirotate * torque[i][2];
-	}
-      }
-    }
-
-  } else {
-    if (rmass) {
-      for (int i = 0; i < nlocal; i++) {
-	if (mask[i] & groupbit) {
-	  itype = type[i];
-	  dtfm = dtf / rmass[i];
-	  v[i][0] += dtfm * f[i][0];
-	  v[i][1] += dtfm * f[i][1];
-	  v[i][2] += dtfm * f[i][2];
-	  x[i][0] += dtv * v[i][0];
-	  x[i][1] += dtv * v[i][1];
-	  x[i][2] += dtv * v[i][2];
-	  
-	  dtirotate = dtfrotate / (shape[itype][0]*shape[itype][0]*rmass[i]);
-	  omega[i][0] += dtirotate * torque[i][0];
-	  omega[i][1] += dtirotate * torque[i][1];
-	  omega[i][2] += dtirotate * torque[i][2];
-	}
-      }
-
-    } else {
-      for (int i = 0; i < nlocal; i++) {
-	if (mask[i] & groupbit) {
-	  itype = type[i];
-	  dtfm = dtf / mass[itype];
-	  v[i][0] += dtfm * f[i][0];
-	  v[i][1] += dtfm * f[i][1];
-	  v[i][2] += dtfm * f[i][2];
-	  x[i][0] += dtv * v[i][0];
-	  x[i][1] += dtv * v[i][1];
-	  x[i][2] += dtv * v[i][2];
-	  
-	  dtirotate = dtfrotate / 
-	    (shape[itype][0]*shape[itype][0]*mass[itype]);
-	  omega[i][0] += dtirotate * torque[i][0];
-	  omega[i][1] += dtirotate * torque[i][1];
-	  omega[i][2] += dtirotate * torque[i][2];
-	}
-      }
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) {
+      dtfm = dtf / rmass[i];
+      v[i][0] += dtfm * f[i][0];
+      v[i][1] += dtfm * f[i][1];
+      v[i][2] += dtfm * f[i][2];
+      x[i][0] += dtv * v[i][0];
+      x[i][1] += dtv * v[i][1];
+      x[i][2] += dtv * v[i][2];
+      
+      dtirotate = dtfrotate / (radius[i]*radius[i]*rmass[i]);
+      omega[i][0] += dtirotate * torque[i][0];
+      omega[i][1] += dtirotate * torque[i][1];
+      omega[i][2] += dtirotate * torque[i][2];
     }
   }
 
@@ -230,21 +140,18 @@ void FixNVESphere::initial_integrate(int vflag)
 
   if (extra == DIPOLE) {
     double **mu = atom->mu;
-    double *dipole = atom->dipole;
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-	if (dipole[type[i]] > 0.0) {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit)
+	if (mu[i][3] > 0.0) {
 	  g[0] = mu[i][0] + dtv * (omega[i][1]*mu[i][2]-omega[i][2]*mu[i][1]);
 	  g[1] = mu[i][1] + dtv * (omega[i][2]*mu[i][0]-omega[i][0]*mu[i][2]);
 	  g[2] = mu[i][2] + dtv * (omega[i][0]*mu[i][1]-omega[i][1]*mu[i][0]);
 	  msq = g[0]*g[0] + g[1]*g[1] + g[2]*g[2];
-	  scale = dipole[type[i]]/sqrt(msq);
+	  scale = mu[i][3]/sqrt(msq);
 	  mu[i][0] = g[0]*scale;
 	  mu[i][1] = g[1]*scale;
 	  mu[i][2] = g[2]*scale;
 	}
-      }
-    }
   }
 }
 
@@ -252,18 +159,14 @@ void FixNVESphere::initial_integrate(int vflag)
 
 void FixNVESphere::final_integrate()
 {
-  int itype;
   double dtfm,dtirotate;
 
   double **v = atom->v;
   double **f = atom->f;
   double **omega = atom->omega;
   double **torque = atom->torque;
-  double *mass = atom->mass;
   double *rmass = atom->rmass;
   double *radius = atom->radius;
-  double **shape = atom->shape;
-  int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
@@ -274,74 +177,17 @@ void FixNVESphere::final_integrate()
 
   // update v,omega for all particles
   // d_omega/dt = torque / inertia
-  // 4 cases depending on radius vs shape and rmass vs mass
 
-  if (radius) {
-    if (rmass) {
-      for (int i = 0; i < nlocal; i++) {
-	if (mask[i] & groupbit) {
-	  dtfm = dtf / rmass[i];
-	  v[i][0] += dtfm * f[i][0];
-	  v[i][1] += dtfm * f[i][1];
-	  v[i][2] += dtfm * f[i][2];
-	  
-	  dtirotate = dtfrotate / (radius[i]*radius[i]*rmass[i]);
-	  omega[i][0] += dtirotate * torque[i][0];
-	  omega[i][1] += dtirotate * torque[i][1];
-	  omega[i][2] += dtirotate * torque[i][2];
-	}
-      }
-
-    } else {
-      for (int i = 0; i < nlocal; i++) {
-	if (mask[i] & groupbit) {
-	  itype = type[i];
-	  dtfm = dtf / mass[itype];
-	  v[i][0] += dtfm * f[i][0];
-	  v[i][1] += dtfm * f[i][1];
-	  v[i][2] += dtfm * f[i][2];
-	  
-	  dtirotate = dtfrotate / (radius[i]*radius[i]*mass[itype]);
-	  omega[i][0] += dtirotate * torque[i][0];
-	  omega[i][1] += dtirotate * torque[i][1];
-	  omega[i][2] += dtirotate * torque[i][2];
-	}
-      }
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit) {
+      dtfm = dtf / rmass[i];
+      v[i][0] += dtfm * f[i][0];
+      v[i][1] += dtfm * f[i][1];
+      v[i][2] += dtfm * f[i][2];
+      
+      dtirotate = dtfrotate / (radius[i]*radius[i]*rmass[i]);
+      omega[i][0] += dtirotate * torque[i][0];
+      omega[i][1] += dtirotate * torque[i][1];
+      omega[i][2] += dtirotate * torque[i][2];
     }
-
-  } else {
-    if (rmass) {
-      for (int i = 0; i < nlocal; i++) {
-	if (mask[i] & groupbit) {
-	  itype = type[i];
-	  dtfm = dtf / rmass[i];
-	  v[i][0] += dtfm * f[i][0];
-	  v[i][1] += dtfm * f[i][1];
-	  v[i][2] += dtfm * f[i][2];
-	  
-	  dtirotate = dtfrotate / (shape[itype][0]*shape[itype][0]*rmass[i]);
-	  omega[i][0] += dtirotate * torque[i][0];
-	  omega[i][1] += dtirotate * torque[i][1];
-	  omega[i][2] += dtirotate * torque[i][2];
-	}
-      }
-
-    } else {
-      for (int i = 0; i < nlocal; i++) {
-	if (mask[i] & groupbit) {
-	  itype = type[i];
-	  dtfm = dtf / mass[itype];
-	  v[i][0] += dtfm * f[i][0];
-	  v[i][1] += dtfm * f[i][1];
-	  v[i][2] += dtfm * f[i][2];
-	  
-	  dtirotate = dtfrotate / 
-	    (shape[itype][0]*shape[itype][0]*mass[itype]);
-	  omega[i][0] += dtirotate * torque[i][0];
-	  omega[i][1] += dtirotate * torque[i][1];
-	  omega[i][2] += dtirotate * torque[i][2];
-	}
-      }
-    }
-  }
 }

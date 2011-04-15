@@ -38,10 +38,10 @@ class AtomVecMolecular : public AtomVec {
   void unpack_reverse(int, int *, double *);
   int pack_border(int, int *, double *, int, int *);
   int pack_border_vel(int, int *, double *, int, int *);
-  int pack_border_one(int, double *);
+  int pack_border_hybrid(int, int *, double *);
   void unpack_border(int, int, double *);
   void unpack_border_vel(int, int, double *);
-  int unpack_border_one(int, double *);
+  int unpack_border_hybrid(int, int, double *);
   int pack_exchange(int, double *);
   int unpack_exchange(double *);
   int size_restart();

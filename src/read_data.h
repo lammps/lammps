@@ -54,7 +54,6 @@ class ReadData : protected Pointers {
   void impropers();
 
   void mass();
-  void shape();
   void dipole();
 
   void paircoeffs();

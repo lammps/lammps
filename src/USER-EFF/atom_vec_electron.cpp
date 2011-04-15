@@ -48,6 +48,7 @@ AtomVecElectron::AtomVecElectron(LAMMPS *lmp, int narg, char **arg) :
   size_data_vel = 5;
   xcol_data = 6;
   
+  atom->electron_flag = 1;
   atom->q_flag = atom->spin_flag = atom->eradius_flag = 
     atom->ervel_flag = atom->erforce_flag = 1;
 }
@@ -227,6 +228,20 @@ int AtomVecElectron::pack_comm_vel(int n, int *list, double *buf,
 
 /* ---------------------------------------------------------------------- */
 
+int AtomVecElectron::pack_comm_hybrid(int n, int *list, double *buf)
+{
+  int i,j,m;
+
+  m = 0;
+  for (i = 0; i < n; i++) {
+    j = list[i];
+    buf[m++] = eradius[i];
+  }
+  return m;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void AtomVecElectron::unpack_comm(int n, int first, double *buf)
 {
   int i,m,last;
@@ -262,18 +277,15 @@ void AtomVecElectron::unpack_comm_vel(int n, int first, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecElectron::pack_comm_one(int i, double *buf)
+int AtomVecElectron::unpack_comm_hybrid(int n, int first, double *buf)
 {
-  buf[0] = eradius[i];
-  return 1;
-}
+  int i,m,last;
 
-/* ---------------------------------------------------------------------- */
-
-int AtomVecElectron::unpack_comm_one(int i, double *buf)
-{
-  eradius[i] = buf[0];
-  return 1;
+  m = 0;
+  last = first + n;
+  for (i = first; i < last; i++)
+    eradius[i] = buf[m++];
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -295,10 +307,15 @@ int AtomVecElectron::pack_reverse(int n, int first, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecElectron::pack_reverse_one(int i, double *buf)
+int AtomVecElectron::pack_reverse_hybrid(int n, int first, double *buf)
 {
-  buf[0] = erforce[i];
-  return 1;
+  int i,m,last;
+
+  m = 0;
+  last = first + n;
+  for (i = first; i < last; i++)
+    buf[m++] = erforce[i];
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -319,10 +336,16 @@ void AtomVecElectron::unpack_reverse(int n, int *list, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecElectron::unpack_reverse_one(int i, double *buf)
+int AtomVecElectron::unpack_reverse_hybrid(int n, int *list, double *buf)
 {
-  erforce[i] += buf[0];
-  return 1;
+  int i,j,m;
+
+  m = 0;
+  for (i = 0; i < n; i++) {
+    j = list[i];
+    erforce[j] += buf[m++];
+  }
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -456,12 +479,18 @@ int AtomVecElectron::pack_border_vel(int n, int *list, double *buf,
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecElectron::pack_border_one(int i, double *buf)
+int AtomVecElectron::pack_border_hybrid(int n, int *list, double *buf)
 {
-  buf[0] = q[i];
-  buf[1] = spin[i];
-  buf[2] = eradius[i];
-  return 3;
+  int i,j,m;
+
+  m = 0;
+  for (i = 0; i < n; i++) {
+    j = list[i];
+    buf[m++] = q[j];
+    buf[m++] = spin[j];
+    buf[m++] = eradius[j];
+  }
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -513,12 +542,18 @@ void AtomVecElectron::unpack_border_vel(int n, int first, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecElectron::unpack_border_one(int i, double *buf)
+int AtomVecElectron::unpack_border_hybrid(int n, int first, double *buf)
 {
-  q[i] = buf[0];
-  spin[i] = static_cast<int> (buf[1]);
-  eradius[i] = buf[2];
-  return 3;
+  int i,m,last;
+
+  m = 0;
+  last = first + n;
+  for (i = first; i < last; i++) {
+    q[i] = buf[m++];
+    spin[i] = static_cast<int> (buf[m++]);
+    eradius[i] = buf[m++];
+  }
+  return m;
 }
 
 /* ----------------------------------------------------------------------

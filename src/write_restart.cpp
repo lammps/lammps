@@ -56,7 +56,7 @@ enum{VERSION,SMALLINT,TAGINT,BIGINT,
        SPECIAL_LJ_1,SPECIAL_LJ_2,SPECIAL_LJ_3,
        SPECIAL_COUL_1,SPECIAL_COUL_2,SPECIAL_COUL_3,
        XY,XZ,YZ};
-enum{MASS,SHAPE,DIPOLE};
+enum{MASS};
 enum{PAIR,BOND,ANGLE,DIHEDRAL,IMPROPER};
 
 enum{IGNORE,WARN,ERROR};                    // same as thermo.cpp
@@ -393,16 +393,6 @@ void WriteRestart::type_arrays()
     int flag = MASS;
     fwrite(&flag,sizeof(int),1,fp);
     fwrite(&atom->mass[1],sizeof(double),atom->ntypes,fp);
-  }
-  if (atom->shape) {
-    int flag = SHAPE;
-    fwrite(&flag,sizeof(int),1,fp);
-    fwrite(&atom->shape[1][0],sizeof(double),atom->ntypes*3,fp);
-  }
-  if (atom->dipole) {
-    int flag = DIPOLE;
-    fwrite(&flag,sizeof(int),1,fp);
-    fwrite(&atom->dipole[1],sizeof(double),atom->ntypes,fp);
   }
 
   // -1 flag signals end of type arrays

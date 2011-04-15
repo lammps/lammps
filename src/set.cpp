@@ -31,12 +31,12 @@
 
 using namespace LAMMPS_NS;
 
-enum{ATOM,GROUP,REGION};
-enum{TYPE,TYPE_FRACTION,MOLECULE,
-       X,Y,Z,CHARGE,
-       DIPOLE,DIPOLE_RANDOM,QUAT,QUAT_RANDOM,
-       DIAMETER,DENSITY,VOLUME,IMAGE,
-       BOND,ANGLE,DIHEDRAL,IMPROPER};
+enum{ATOM_SELECT,MOL_SELECT,TYPE_SELECT,GROUP_SELECT,REGION_SELECT};
+enum{TYPE,TYPE_FRACTION,MOLECULE,X,Y,Z,CHARGE,MASS,SHAPE,
+     DIPOLE,DIPOLE_RANDOM,QUAT,QUAT_RANDOM,
+     DIAMETER,DENSITY,VOLUME,IMAGE,BOND,ANGLE,DIHEDRAL,IMPROPER};
+
+#define BIG INT_MAX
 
 /* ---------------------------------------------------------------------- */
 
@@ -55,11 +55,13 @@ void Set::command(int narg, char **arg)
     error->all("Set command with no atoms existing");
   if (narg < 3) error->all("Illegal set command");
 
-  // style and ID
+  // style and ID info
 
-  if (strcmp(arg[0],"atom") == 0) style = ATOM;
-  else if (strcmp(arg[0],"group") == 0) style = GROUP;
-  else if (strcmp(arg[0],"region") == 0) style = REGION;
+  if (strcmp(arg[0],"atom") == 0) style = ATOM_SELECT;
+  else if (strcmp(arg[0],"mol") == 0) style = MOL_SELECT;
+  else if (strcmp(arg[0],"type") == 0) style = TYPE_SELECT;
+  else if (strcmp(arg[0],"group") == 0) style = GROUP_SELECT;
+  else if (strcmp(arg[0],"region") == 0) style = REGION_SELECT;
   else error->all("Illegal set command");
 
   int n = strlen(arg[1]) + 1;
@@ -91,6 +93,8 @@ void Set::command(int narg, char **arg)
       newtype = atoi(arg[iarg+1]);
       fraction = atof(arg[iarg+2]);
       ivalue = atoi(arg[iarg+3]);
+      if (newtype <= 0 || newtype > atom->ntypes)
+	error->all("Invalid value in set command");
       if (fraction < 0.0 || fraction > 1.0) 
 	error->all("Invalid value in set command");
       if (ivalue <= 0) error->all("Invalid random number seed in set command");
@@ -125,23 +129,48 @@ void Set::command(int narg, char **arg)
 	error->all("Cannot set this attribute for this atom style");
       set(CHARGE);
       iarg += 2;
+    } else if (strcmp(arg[iarg],"mass") == 0) {
+      if (iarg+2 > narg) error->all("Illegal set command");
+      dvalue = atof(arg[iarg+1]);
+      if (!atom->rmass_flag)
+	error->all("Cannot set this attribute for this atom style");
+      if (dvalue <= 0.0) error->all("Invalid mass in set command");
+      set(MASS);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"shape") == 0) {
+      if (iarg+4 > narg) error->all("Illegal set command");
+      xvalue = atof(arg[iarg+1]);
+      yvalue = atof(arg[iarg+2]);
+      zvalue = atof(arg[iarg+3]);
+      if (!atom->shape_flag)
+	error->all("Cannot set this attribute for this atom style");
+      if (xvalue < 0.0 || yvalue < 0.0 || zvalue < 0.0)
+	error->all("Invalid shape in set command");
+      if (xvalue > 0.0 || yvalue > 0.0 || zvalue > 0.0) {
+	if (xvalue == 0.0 || yvalue == 0.0 || zvalue == 0.0)
+	  error->one("Invalid shape in set command");
+      }
+      set(SHAPE);
+      iarg += 4;
     } else if (strcmp(arg[iarg],"dipole") == 0) {
       if (iarg+4 > narg) error->all("Illegal set command");
       xvalue = atof(arg[iarg+1]);
       yvalue = atof(arg[iarg+2]);
       zvalue = atof(arg[iarg+3]);
-      if (!atom->mu_flag || atom->dipole == NULL)
+      if (!atom->mu_flag)
 	error->all("Cannot set this attribute for this atom style");
       set(DIPOLE);
       iarg += 4;
     } else if (strcmp(arg[iarg],"dipole/random") == 0) {
-      if (iarg+2 > narg) error->all("Illegal set command");
+      if (iarg+3 > narg) error->all("Illegal set command");
       ivalue = atoi(arg[iarg+1]);
-      if (!atom->mu_flag || atom->shape == NULL)
+      dvalue = atof(arg[iarg+2]);
+      if (!atom->mu_flag)
 	error->all("Cannot set this attribute for this atom style");
       if (ivalue <= 0) error->all("Invalid random number seed in set command");
+      if (dvalue <= 0.0) error->all("Invalid dipole length in set command");
       setrandom(DIPOLE_RANDOM);
-      iarg += 2;
+      iarg += 3;
     } else if (strcmp(arg[iarg],"quat") == 0) {
       if (iarg+5 > narg) error->all("Illegal set command");
       xvalue = atof(arg[iarg+1]);
@@ -165,12 +194,13 @@ void Set::command(int narg, char **arg)
       dvalue = atof(arg[iarg+1]);
       if (!atom->radius_flag)
         error->all("Cannot set this attribute for this atom style");
+      if (dvalue < 0.0) error->all("Invalid diameter in set command");
       set(DIAMETER);
       iarg += 2;
     } else if (strcmp(arg[iarg],"density") == 0) {
       if (iarg+2 > narg) error->all("Illegal set command");
       dvalue = atof(arg[iarg+1]);
-      if (!atom->density_flag)
+      if (!atom->rmass_flag)
         error->all("Cannot set this attribute for this atom style");
       set(DENSITY);
       iarg += 2;
@@ -261,7 +291,7 @@ void Set::command(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   select atoms according to ATOM, GROUP, REGION style
+   select atoms according to ATOM, MOLECULE, TYPE, GROUP, REGION style
    n = nlocal or nlocal+nghost depending on keyword
 ------------------------------------------------------------------------- */
 
@@ -269,18 +299,38 @@ void Set::selection(int n)
 {
   delete [] select;
   select = new int[n];
+  int nlo,nhi;
 
-  if (style == ATOM) {
+  if (style == ATOM_SELECT) {
     if (atom->tag_enable == 0)
       error->all("Cannot use set atom with no atom IDs defined");
-    int idatom = atoi(id);
+    force->bounds(id,BIG,nlo,nhi);
 
     int *tag = atom->tag;
     for (int i = 0; i < n; i++)
-      if (idatom == tag[i]) select[i] = 1;
+      if (tag[i] >= nlo && tag[i] <= nhi) select[i] = 1;
       else select[i] = 0;
 
-  } else if (style == GROUP) {
+  } else if (style == MOL_SELECT) {
+    if (atom->molecule_flag == 0)
+      error->all("Cannot use set mol with no molecule IDs defined");
+    if (strcmp(id,"0") == 0) nlo = nhi = 0;
+    else force->bounds(id,BIG,nlo,nhi);
+
+    int *molecule = atom->molecule;
+    for (int i = 0; i < n; i++)
+      if (molecule[i] >= nlo && molecule[i] <= nhi) select[i] = 1;
+      else select[i] = 0;
+
+  } else if (style == TYPE_SELECT) {
+    force->bounds(id,atom->ntypes,nlo,nhi);
+
+    int *type = atom->type;
+    for (int i = 0; i < n; i++)
+      if (type[i] >= nlo && type[i] <= nhi) select[i] = 1;
+      else select[i] = 0;
+
+  } else if (style == GROUP_SELECT) {
     int igroup = group->find(id);
     if (igroup == -1) error->all("Could not find set group ID");
     int groupbit = group->bitmask[igroup];
@@ -290,7 +340,7 @@ void Set::selection(int n)
       if (mask[i] & groupbit) select[i] = 1;
       else select[i] = 0;
 
-  } else {
+  } else if (style == REGION_SELECT) {
     int iregion = domain->find_region(id);
     if (iregion == -1) error->all("Set region ID does not exist");
 
@@ -308,83 +358,81 @@ void Set::selection(int n)
 
 void Set::set(int keyword)
 {
-  if (keyword == DIPOLE) atom->check_dipole();
-
   selection(atom->nlocal);
 
   int nlocal = atom->nlocal;
-  for (int i = 0; i < nlocal; i++)
-    if (select[i]) {
-      if (keyword == TYPE) atom->type[i] = ivalue;
-      else if (keyword == MOLECULE) atom->molecule[i] = ivalue;
-      else if (keyword == X) atom->x[i][0] = dvalue;
-      else if (keyword == Y) atom->x[i][1] = dvalue;
-      else if (keyword == Z) atom->x[i][2] = dvalue;
-      else if (keyword == CHARGE) atom->q[i] = dvalue;
+  for (int i = 0; i < nlocal; i++) {
+    if (!select[i]) continue;
 
-      // set radius from diameter
-      // set rmass if both rmass and density are defined
+    if (keyword == TYPE) atom->type[i] = ivalue;
+    else if (keyword == MOLECULE) atom->molecule[i] = ivalue;
+    else if (keyword == X) atom->x[i][0] = dvalue;
+    else if (keyword == Y) atom->x[i][1] = dvalue;
+    else if (keyword == Z) atom->x[i][2] = dvalue;
+    else if (keyword == CHARGE) atom->q[i] = dvalue;
+    else if (keyword == MASS) atom->rmass[i] = dvalue;
+    else if (keyword == DIAMETER) atom->radius[i] = 0.5 * dvalue;
+    else if (keyword == VOLUME) atom->vfrac[i] = dvalue;
+    
+    // set shape
 
-      else if (keyword == DIAMETER) {
-	atom->radius[i] = 0.5 * dvalue;
-	if (atom->rmass_flag && atom->density_flag) 
-	  atom->rmass[i] = 4.0*PI/3.0 * 
-	    atom->radius[i]*atom->radius[i]*atom->radius[i] * atom->density[i];
+    else if (keyword == SHAPE) {
+      double **shape = atom->shape;
+      shape[i][0] = 0.5 * xvalue;
+      shape[i][1] = 0.5 * yvalue;
+      shape[i][2] = 0.5 * zvalue;
+      
+    // set rmass via density
+    // if radius > 0.0, assume sphere
+    // if shape > 0.0, assume ellipsoid
+    // else set rmass to density directly
 
-      // set density
-      // set rmass (granular) if both rmass and radius are defined
-      // set rmass (peri) if both rmass and vfrac are defined
-	
-      } else if (keyword == DENSITY) {
-	atom->density[i] = dvalue;
-	if (atom->rmass_flag && atom->radius_flag) 
-	  atom->rmass[i] = 4.0*PI/3.0 * 
-	    atom->radius[i]*atom->radius[i]*atom->radius[i] * 
-	    atom->density[i];
-	else if (atom->rmass_flag && atom->vfrac_flag)
-	  atom->rmass[i] = dvalue;
+    } else if (keyword == DENSITY) {
+      if (atom->radius_flag && atom->radius[i] > 0.0)
+	atom->rmass[i] = 4.0*PI/3.0 * 
+	  atom->radius[i]*atom->radius[i]*atom->radius[i] * dvalue;
+      else if (atom->shape_flag && atom->shape[i][0] > 0.0)
+	atom->rmass[i] = 4.0*PI/3.0 * 
+	  atom->shape[i][0]*atom->shape[i][1]*atom->shape[i][2] * dvalue;
+      else atom->rmass[i] = dvalue;
 
-      } else if (keyword == VOLUME) atom->vfrac[i] = dvalue;
-
-      // reset any or all of 3 image flags
-
-      else if (keyword == IMAGE) {
-	int xbox = (atom->image[i] & 1023) - 512;
-	int ybox = (atom->image[i] >> 10 & 1023) - 512;
-	int zbox = (atom->image[i] >> 20) - 512;
-	if (ximageflag) xbox = ximage;
-	if (yimageflag) ybox = yimage;
-	if (zimageflag) zbox = zimage;
-	atom->image[i] = ((zbox + 512 & 1023) << 20) |
-	  ((ybox + 512 & 1023) << 10) |	(xbox + 512 & 1023);
-
-      } else if (keyword == DIPOLE) {
-	if (atom->dipole[atom->type[i]] > 0.0) {
-	  double **mu = atom->mu;
-	  mu[i][0] = xvalue;
-	  mu[i][1] = yvalue;
-	  mu[i][2] = zvalue;
-	  double lensq = 
-	    mu[i][0]*mu[i][0] + mu[i][1]*mu[i][1] + mu[i][2]*mu[i][2];
-	  double scale = atom->dipole[atom->type[i]]/sqrt(lensq);
-	  mu[i][0] *= scale;
-	  mu[i][1] *= scale;
-	  mu[i][2] *= scale;
-	}
-
-      } else if (keyword == QUAT) {
-	double PI = 4.0*atan(1.0);
-	double theta2 = 0.5 * PI * wvalue/180.0;
-	double sintheta2 = sin(theta2);
-	double **quat = atom->quat;
-	quat[i][0] = cos(theta2);
-	quat[i][1] = xvalue * sintheta2;
-	quat[i][2] = yvalue * sintheta2;
-	quat[i][3] = zvalue * sintheta2;
-	MathExtra::normalize4(quat[i]);
-      }
-      count++;
+    // reset any or all of 3 image flags
+      
+    } else if (keyword == IMAGE) {
+      int xbox = (atom->image[i] & 1023) - 512;
+      int ybox = (atom->image[i] >> 10 & 1023) - 512;
+      int zbox = (atom->image[i] >> 20) - 512;
+      if (ximageflag) xbox = ximage;
+      if (yimageflag) ybox = yimage;
+      if (zimageflag) zbox = zimage;
+      atom->image[i] = ((zbox + 512 & 1023) << 20) |
+	((ybox + 512 & 1023) << 10) |	(xbox + 512 & 1023);
+      
+    // set dipole moment
+      
+    } else if (keyword == DIPOLE) {
+      double **mu = atom->mu;
+      mu[i][0] = xvalue;
+      mu[i][1] = yvalue;
+      mu[i][2] = zvalue;
+      mu[i][3] = sqrt(mu[i][0]*mu[i][0] + mu[i][1]*mu[i][1] + 
+		      mu[i][2]*mu[i][2]);
+      
+    // set quaternion orientation
+      
+    } else if (keyword == QUAT) {
+      double PI = 4.0*atan(1.0);
+      double theta2 = 0.5 * PI * wvalue/180.0;
+      double sintheta2 = sin(theta2);
+      double **quat = atom->quat;
+      quat[i][0] = cos(theta2);
+      quat[i][1] = xvalue * sintheta2;
+      quat[i][2] = yvalue * sintheta2;
+      quat[i][3] = zvalue * sintheta2;
+      MathExtra::normalize4(quat[i]);
     }
+    count++;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -396,8 +444,6 @@ void Set::set(int keyword)
 void Set::setrandom(int keyword)
 {
   int i;
-
-  if (keyword == DIPOLE_RANDOM) atom->check_dipole();
 
   selection(atom->nlocal);
   RanPark *random = new RanPark(lmp,1);
@@ -422,7 +468,6 @@ void Set::setrandom(int keyword)
 
   } else if (keyword == DIPOLE_RANDOM) {
     int *type = atom->type;
-    double *dipole = atom->dipole;
     double **mu = atom->mu;
     int nlocal = atom->nlocal;
 
@@ -431,34 +476,32 @@ void Set::setrandom(int keyword)
     if (domain->dimension == 3) {
       for (i = 0; i < nlocal; i++)
 	if (select[i]) {
-	  if (dipole[type[i]] > 0.0) {
-	    random->reset(seed,x[i]);
-	    mu[i][0] = random->uniform() - 0.5;
-	    mu[i][1] = random->uniform() - 0.5;
-	    mu[i][2] = random->uniform() - 0.5;
-	    msq = mu[i][0]*mu[i][0] + mu[i][1]*mu[i][1] + mu[i][2]*mu[i][2];
-	    scale = dipole[type[i]]/sqrt(msq);
-	    mu[i][0] *= scale;
-	    mu[i][1] *= scale;
-	    mu[i][2] *= scale;
-	    count++;
-	  }
+	  random->reset(seed,x[i]);
+	  mu[i][0] = random->uniform() - 0.5;
+	  mu[i][1] = random->uniform() - 0.5;
+	  mu[i][2] = random->uniform() - 0.5;
+	  msq = mu[i][0]*mu[i][0] + mu[i][1]*mu[i][1] + mu[i][2]*mu[i][2];
+	  scale = dvalue/sqrt(msq);
+	  mu[i][0] *= scale;
+	  mu[i][1] *= scale;
+	  mu[i][2] *= scale;
+	  mu[i][3] = dvalue;
+	  count++;
 	}
 
     } else {
       for (i = 0; i < nlocal; i++)
 	if (select[i]) {
-	  if (dipole[type[i]] > 0.0) {
-	    random->reset(seed,x[i]);
-	    mu[i][0] = random->uniform() - 0.5;
-	    mu[i][1] = random->uniform() - 0.5;
-	    mu[i][2] = 0.0;
-	    msq = mu[i][0]*mu[i][0] + mu[i][1]*mu[i][1];
-	    scale = dipole[type[i]]/sqrt(msq);
-	    mu[i][0] *= scale;
-	    mu[i][1] *= scale;
-	    count++;
-	  }
+	  random->reset(seed,x[i]);
+	  mu[i][0] = random->uniform() - 0.5;
+	  mu[i][1] = random->uniform() - 0.5;
+	  mu[i][2] = 0.0;
+	  msq = mu[i][0]*mu[i][0] + mu[i][1]*mu[i][1];
+	  scale = dvalue/sqrt(msq);
+	  mu[i][0] *= scale;
+	  mu[i][1] *= scale;
+	  mu[i][3] = dvalue;
+	  count++;
 	}
     }
 

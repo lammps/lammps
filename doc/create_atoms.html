@@ -146,20 +146,22 @@ style</A> command for more details.  See the
 to change these values.
 </P>
 <UL><LI>charge = 0.0
-<LI>dipole moment = 0.0
+<LI>dipole moment magnitude = 0.0
 <LI>diameter = 1.0
-<LI>volume = 1.0
+<LI>shape = 1.0 1.0 1.0
 <LI>density = 1.0
-<LI>velocity = 0.0
-<LI>angular velocity = 0.0
-<LI>angular momentum = 0.0
+<LI>volume = 1.0
+<LI>velocity = 0.0 0.0 0.0
+<LI>angular velocity = 0.0 0.0 0.0
+<LI>angular momentum = 0.0 0.0 0.0
 <LI>quaternion = (1,0,0,0)
 <LI>bonds, angles, dihedrals, impropers = none 
 </UL>
-<P>The <I>granular</I> style sets the diameter and density to 1.0 and
-calculates a mass for the particle, which is PI/6 * diameter^3 =
-0.5236.  The <I>peri</I> style sets the volume and density to 1.0 and
-calculates a mass for the particle, which is also 1.0.
+<P>Note that this means the <I>sphere</I> and <I>ellipsoid</I> atom styles set the
+diameter/shape and density to 1.0 and thus calculates a mass for the
+particle, which is PI/6 * diameter^3 = 0.5236.  The <I>peri</I> style sets
+the volume and density to 1.0 and thus also set the mass for the
+particle to 1.0.
 </P>
 <P><B>Restrictions:</B>
 </P>

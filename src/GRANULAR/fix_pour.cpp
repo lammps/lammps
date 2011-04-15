@@ -472,7 +472,6 @@ void FixPour::pre_exchange()
       m = atom->nlocal - 1;
       atom->type[m] = ntype;
       atom->radius[m] = radtmp;
-      atom->density[m] = denstmp;
       atom->rmass[m] = 4.0*PI/3.0 * radtmp*radtmp*radtmp * denstmp;
       atom->mask[m] = 1 | groupbit;
       atom->v[m][0] = vxtmp;

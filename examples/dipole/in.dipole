@@ -1,7 +1,7 @@
 # Point dipoles in a 2d box
 
 units		lj
-atom_style	dipole
+atom_style	hybrid sphere dipole
 dimension	2
 
 lattice		sq2 0.7
@@ -9,10 +9,8 @@ region		box block 0 10 0 10 -0.5 0.5
 create_box	1 box
 create_atoms	1 box
 
-mass		1 1.0
-shape		1 1 1 1
-dipole		1 0.75
-set		group all dipole/random 98934
+set		group all mass 1.0
+set		group all dipole/random 98934 0.75
 
 velocity	all create 0.0 87287 mom no
 

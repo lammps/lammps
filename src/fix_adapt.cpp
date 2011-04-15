@@ -307,25 +307,31 @@ void FixAdapt::change_settings()
     } else if (ad->which == ATOM) {
 
       // set radius from diameter
-      // also set rmass if both rmass and density are defined
+      // also scale rmass to new value
 
       if (ad->aparam == DIAMETER) {
 	int mflag = 0;
-	if (atom->rmass_flag && atom->density_flag) mflag = 1;
+	if (atom->rmass_flag) mflag = 1;
 	double PI = 4.0*atan(1.0);
+	double density;
 
 	double *radius = atom->radius;
 	double *rmass = atom->rmass;
-	double *density = atom->density;
 	int *mask = atom->mask;
 	int nlocal = atom->nlocal;
 
-	for (i = 0; i < nlocal; i++)
-	  if (mask[i] & groupbit) {
-	    radius[i] = 0.5*value;
-	    if (mflag) rmass[i] = 4.0*PI/3.0 * 
-			 radius[i]*radius[i]*radius[i] * density[i];
-	  }
+	if (mflag == 0) {
+	  for (i = 0; i < nlocal; i++)
+	    if (mask[i] & groupbit)
+	      radius[i] = 0.5*value;
+	} else {
+	  for (i = 0; i < nlocal; i++)
+	    if (mask[i] & groupbit) {
+	      density = rmass[i] / (4.0*PI/3.0 * radius[i]*radius[i]*radius[i]);
+	      radius[i] = 0.5*value;
+	      rmass[i] = 4.0*PI/3.0 * radius[i]*radius[i]*radius[i] * density;
+	    }
+	}
       }
     }
   }

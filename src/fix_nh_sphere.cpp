@@ -31,12 +31,8 @@ using namespace LAMMPS_NS;
 FixNHSphere::FixNHSphere(LAMMPS *lmp, int narg, char **arg) :
   FixNH(lmp, narg, arg)
 {
-  if (!atom->omega_flag || !atom->torque_flag)
-    error->all("Fix nvt/nph/npt sphere requires "
-	       "atom attributes omega, torque");
-  if (!atom->radius_flag && !atom->avec->shape_type)
-    error->all("Fix nvt/nph/npt sphere requires "
-	       "atom attribute diameter or shape");
+  if (!atom->sphere_flag)
+    error->all("Fix nvt/nph/npt sphere requires atom style sphere");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -45,36 +41,17 @@ void FixNHSphere::init()
 {
   int i,itype;
 
-  // check that all particles are finite-size and spherical
+  // check that all particles are finite-size
   // no point particles allowed
 
-  if (atom->radius_flag) {
-    double *radius = atom->radius;
-    int *mask = atom->mask;
-    int nlocal = atom->nlocal;
+  double *radius = atom->radius;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
 
-    for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
-	if (radius[i] == 0.0)
-	  error->one("Fix nvt/sphere requires extended particles");
-      }
-
-  } else {
-    double **shape = atom->shape;
-    int *type = atom->type;
-    int *mask = atom->mask;
-    int nlocal = atom->nlocal;
-
-    for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
-	itype = type[i];
-	if (shape[itype][0] == 0.0)
-	  error->one("Fix nvt/sphere requires extended particles");
-	if (shape[itype][0] != shape[itype][1] || 
-	    shape[itype][0] != shape[itype][2])
-	  error->one("Fix nvt/sphere requires spherical particle shapes");
-      }
-  }
+  for (i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit)
+      if (radius[i] == 0.0)
+	error->one("Fix nvt/sphere requires extended particles");
 
   FixNH::init();
 }
@@ -93,9 +70,6 @@ void FixNHSphere::nve_v()
   double **torque = atom->torque;
   double *radius = atom->radius;
   double *rmass = atom->rmass;
-  double *mass = atom->mass;
-  double **shape = atom->shape;
-  int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
@@ -104,57 +78,18 @@ void FixNHSphere::nve_v()
 
   double dtfrotate = dtf / INERTIA;
   double dtirotate;
-  int itype;
 
   // update omega for all particles
   // d_omega/dt = torque / inertia
   // 4 cases depending on radius vs shape and rmass vs mass
 
-  if (radius) {
-    if (rmass) {
-      for (int i = 0; i < nlocal; i++) {    
-	if (mask[i] & groupbit) {
-	  dtirotate = dtfrotate / (radius[i]*radius[i]*rmass[i]);
-	  omega[i][0] += dtirotate*torque[i][0];
-	  omega[i][1] += dtirotate*torque[i][1];
-	  omega[i][2] += dtirotate*torque[i][2];
-	}
-      }
-    } else {
-      for (int i = 0; i < nlocal; i++) {    
-	if (mask[i] & groupbit) {
-	  dtirotate = dtfrotate / (radius[i]*radius[i]*mass[type[i]]);
-	  omega[i][0] += dtirotate*torque[i][0];
-	  omega[i][1] += dtirotate*torque[i][1];
-	  omega[i][2] += dtirotate*torque[i][2];
-	}
-      }
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit) {
+      dtirotate = dtfrotate / (radius[i]*radius[i]*rmass[i]);
+      omega[i][0] += dtirotate*torque[i][0];
+      omega[i][1] += dtirotate*torque[i][1];
+      omega[i][2] += dtirotate*torque[i][2];
     }
-
-  } else {
-    if (rmass) {
-      for (int i = 0; i < nlocal; i++) {    
-	if (mask[i] & groupbit) {
-	  itype = type[i];
-	  dtirotate = dtfrotate / (shape[itype][0]*shape[itype][0]*rmass[i]);
-	  omega[i][0] += dtirotate*torque[i][0];
-	  omega[i][1] += dtirotate*torque[i][1];
-	  omega[i][2] += dtirotate*torque[i][2];
-	}
-      }
-    } else {
-      for (int i = 0; i < nlocal; i++) {    
-	if (mask[i] & groupbit) {
-	  itype = type[i];
-	  dtirotate = dtfrotate / 
-	    (shape[itype][0]*shape[itype][0]*mass[itype]);
-	  omega[i][0] += dtirotate*torque[i][0];
-	  omega[i][1] += dtirotate*torque[i][1];
-	  omega[i][2] += dtirotate*torque[i][2];
-	}
-      }
-    }
-  }
 }
 
 /* ----------------------------------------------------------------------

@@ -2,7 +2,6 @@
 
 if (test $1 = 1) then
 
-  cp atom_vec_granular.cpp ..
   cp fix_freeze.cpp ..
   cp fix_pour.cpp ..
   cp fix_wall_gran.cpp ..
@@ -10,7 +9,6 @@ if (test $1 = 1) then
   cp pair_gran_hooke.cpp ..
   cp pair_gran_hooke_history.cpp ..
 
-  cp atom_vec_granular.h ..
   cp fix_freeze.h ..
   cp fix_pour.h ..
   cp fix_wall_gran.h ..
@@ -20,7 +18,6 @@ if (test $1 = 1) then
 
 elif (test $1 = 0) then
 
-  rm ../atom_vec_granular.cpp
   rm ../fix_freeze.cpp
   rm ../fix_pour.cpp
   rm ../fix_wall_gran.cpp
@@ -28,7 +25,6 @@ elif (test $1 = 0) then
   rm ../pair_gran_hooke.cpp
   rm ../pair_gran_hooke_history.cpp
 
-  rm ../atom_vec_granular.h
   rm ../fix_freeze.h
   rm ../fix_pour.h
   rm ../fix_wall_gran.h

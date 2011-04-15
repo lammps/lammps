@@ -55,17 +55,11 @@ ComputeTempAsphere::ComputeTempAsphere(LAMMPS *lmp, int narg, char **arg) :
   }
 
   vector = new double[6];
-  memory->create(inertia,atom->ntypes+1,3,"fix_temp_sphere:inertia");
 
   // error checks
 
-  if (!atom->angmom_flag || !atom->quat_flag ||
-      !atom->avec->shape_type)
-    error->all("Compute temp/asphere requires atom attributes "
-	       "angmom, quat, shape");
-  if (atom->radius_flag || atom->rmass_flag)
-    error->all("Compute temp/asphere cannot be used with atom attributes "
-	       "diameter or rmass");
+  if (!atom->ellipsoid_flag) 
+    error->all("Compute temp/asphere requires atom style ellipsoid");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -74,7 +68,6 @@ ComputeTempAsphere::~ComputeTempAsphere()
 {
   delete [] id_bias;
   delete [] vector;
-  memory->destroy(inertia);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -85,13 +78,12 @@ void ComputeTempAsphere::init()
   // no point particles allowed, spherical is OK
 
   double **shape = atom->shape;
-  int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
-      if (shape[type[i]][0] == 0.0)
+      if (shape[i][0] == 0.0)
 	error->one("Compute temp/asphere requires extended particles");
 
   if (tempbias) {
@@ -113,8 +105,6 @@ void ComputeTempAsphere::init()
   for (int i = 0; i < modify->nfix; i++)
     fix_dof += modify->fix[i]->dof(igroup);
   dof_compute();
-
-  calculate_inertia();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -164,13 +154,12 @@ double ComputeTempAsphere::compute_scalar()
   double **v = atom->v;
   double **quat = atom->quat;
   double **angmom = atom->angmom;
-  double *mass = atom->mass;
-  int *type = atom->type;
+  double **shape = atom->shape;
+  double *rmass = atom->rmass;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  int itype;
-  double wbody[3];
+  double wbody[3],inertia[3];
   double rot[3][3];
   double t = 0.0;
   
@@ -180,20 +169,27 @@ double ComputeTempAsphere::compute_scalar()
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
 
-      itype = type[i];
-      t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * mass[itype];
+      t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * rmass[i];
+
+      // principal moments of inertia
+
+      inertia[0] = rmass[i] * 
+	(shape[i][1]*shape[i][1]+shape[i][2]*shape[i][2]) / 5.0;
+      inertia[1] = rmass[i] * 
+	(shape[i][0]*shape[i][0]+shape[i][2]*shape[i][2]) / 5.0;
+      inertia[2] = rmass[i] * 
+	(shape[i][0]*shape[i][0]+shape[i][1]*shape[i][1]) / 5.0;
 
       // wbody = angular velocity in body frame
       
       MathExtra::quat_to_mat(quat[i],rot);
       MathExtra::transpose_times_column3(rot,angmom[i],wbody);
-      wbody[0] /= inertia[itype][0];
-      wbody[1] /= inertia[itype][1];
-      wbody[2] /= inertia[itype][2];
+      wbody[0] /= inertia[0];
+      wbody[1] /= inertia[1];
+      wbody[2] /= inertia[2];
 
-      t += inertia[itype][0]*wbody[0]*wbody[0] +
-	inertia[itype][1]*wbody[1]*wbody[1] +
-	inertia[itype][2]*wbody[2]*wbody[2];
+      t += inertia[0]*wbody[0]*wbody[0] +
+	inertia[1]*wbody[1]*wbody[1] + inertia[2]*wbody[2]*wbody[2];
     }
 
   if (tempbias) tbias->restore_bias_all();
@@ -220,13 +216,12 @@ void ComputeTempAsphere::compute_vector()
   double **v = atom->v;
   double **quat = atom->quat;
   double **angmom = atom->angmom;
-  double *mass = atom->mass;
-  int *type = atom->type;
+  double **shape = atom->shape;
+  double *rmass = atom->rmass;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  int itype;
-  double wbody[3];
+  double wbody[3],inertia[3];
   double rot[3][3];
   double massone,t[6];
   for (i = 0; i < 6; i++) t[i] = 0.0;
@@ -236,8 +231,7 @@ void ComputeTempAsphere::compute_vector()
 
       // translational kinetic energy
 
-      itype = type[i];
-      massone = mass[itype];
+      massone = rmass[i];
       t[0] += massone * v[i][0]*v[i][0];
       t[1] += massone * v[i][1]*v[i][1];
       t[2] += massone * v[i][2]*v[i][2];
@@ -245,47 +239,37 @@ void ComputeTempAsphere::compute_vector()
       t[4] += massone * v[i][0]*v[i][2];
       t[5] += massone * v[i][1]*v[i][2];
 
+      // principal moments of inertia
+
+      inertia[0] = rmass[i] * 
+	(shape[i][1]*shape[i][1]+shape[i][2]*shape[i][2]) / 5.0;
+      inertia[1] = rmass[i] * 
+	(shape[i][0]*shape[i][0]+shape[i][2]*shape[i][2]) / 5.0;
+      inertia[2] = rmass[i] * 
+	(shape[i][0]*shape[i][0]+shape[i][1]*shape[i][1]) / 5.0;
+
       // wbody = angular velocity in body frame
 
       MathExtra::quat_to_mat(quat[i],rot);
       MathExtra::transpose_times_column3(rot,angmom[i],wbody);
-      wbody[0] /= inertia[itype][0];
-      wbody[1] /= inertia[itype][1];
-      wbody[2] /= inertia[itype][2];
+      wbody[0] /= inertia[0];
+      wbody[1] /= inertia[1];
+      wbody[2] /= inertia[2];
 
       // rotational kinetic energy
 
-      t[0] += inertia[itype][0]*wbody[0]*wbody[0];
-      t[1] += inertia[itype][1]*wbody[1]*wbody[1];
-      t[2] += inertia[itype][2]*wbody[2]*wbody[2];
-      t[3] += inertia[itype][0]*wbody[0]*wbody[1];
-      t[4] += inertia[itype][1]*wbody[0]*wbody[2];
-      t[5] += inertia[itype][2]*wbody[1]*wbody[2];
+      t[0] += inertia[0]*wbody[0]*wbody[0];
+      t[1] += inertia[1]*wbody[1]*wbody[1];
+      t[2] += inertia[2]*wbody[2]*wbody[2];
+      t[3] += inertia[0]*wbody[0]*wbody[1];
+      t[4] += inertia[1]*wbody[0]*wbody[2];
+      t[5] += inertia[2]*wbody[1]*wbody[2];
     }
 
   if (tempbias) tbias->restore_bias_all();
 
   MPI_Allreduce(t,vector,6,MPI_DOUBLE,MPI_SUM,world);
   for (i = 0; i < 6; i++) vector[i] *= force->mvv2e;
-}
-
-/* ----------------------------------------------------------------------
-   principal moments of inertia for ellipsoids
-------------------------------------------------------------------------- */
-
-void ComputeTempAsphere::calculate_inertia()
-{
-  double *mass = atom->mass;
-  double **shape = atom->shape;
-
-  for (int i = 1; i <= atom->ntypes; i++) {
-    inertia[i][0] = mass[i] * 
-      (shape[i][1]*shape[i][1]+shape[i][2]*shape[i][2]) / 5.0;
-    inertia[i][1] = mass[i] * 
-      (shape[i][0]*shape[i][0]+shape[i][2]*shape[i][2]) / 5.0;
-    inertia[i][2] = mass[i] * 
-      (shape[i][0]*shape[i][0]+shape[i][1]*shape[i][1]) / 5.0;
-  }
 }
 
 /* ----------------------------------------------------------------------

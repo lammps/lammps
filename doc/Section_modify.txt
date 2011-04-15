@@ -445,12 +445,11 @@ Thermodynamic output options :link(thermo),h4
 There is one class that computes and prints thermodynamic information
 to the screen and log file; see the file thermo.cpp.
 
-There are several styles defined in thermo.cpp: "one", "multi",
-"granular", etc.  There is also a flexible "custom" style which allows
-the user to explicitly list keywords for quantities to print when
-thermodynamic info is output.  See the
-"thermo_style"_thermo_style.html command for a list of defined
-quantities.
+There are two styles defined in thermo.cpp: "one" and "multi".  There
+is also a flexible "custom" style which allows the user to explicitly
+list keywords for quantities to print when thermodynamic info is
+output.  See the "thermo_style"_thermo_style.html command for a list
+of defined quantities.
 
 The thermo styles (one, multi, etc) are simply lists of keywords.
 Adding a new style thus only requires defining a new list of keywords.

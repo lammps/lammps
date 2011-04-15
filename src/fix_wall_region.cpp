@@ -98,32 +98,20 @@ void FixWallRegion::init()
     error->all("Region ID for fix wall/region does not exist");
 
   // error checks for style COLLOID
-  // insure all particle shapes are spherical
-  // can be polydisperse
   // insure all particles in group are extended particles
 
   if (style == COLLOID) {
-    if (!atom->avec->shape_type)
-      error->all("Fix wall/region colloid requires atom attribute shape");
-    if (atom->radius_flag)
-      error->all("Fix wall/region colloid cannot be used with "
-		 "atom attribute diameter");
+    if (!atom->sphere_flag) 
+      error->all("Fix wall/region colloid requires atom style sphere");
 
-    for (int i = 1; i <= atom->ntypes; i++)
-      if ((atom->shape[i][0] != atom->shape[i][1]) || 
-	  (atom->shape[i][0] != atom->shape[i][2]) ||
-	  (atom->shape[i][1] != atom->shape[i][2]))
-	error->all("Fix wall/region colloid requires spherical particles");
-
-    double **shape = atom->shape;
-    int *type = atom->type;
+    double *radius = atom->radius;
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
     
     int flag = 0;
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
-	if (atom->shape[type[i]][0] == 0.0) flag = 1;
+	if (radius[i] == 0.0) flag = 1;
     
     int flagall;
     MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
@@ -197,7 +185,7 @@ void FixWallRegion::post_force(int vflag)
 
   double **x = atom->x;
   double **f = atom->f;
-  double **shape = atom->shape;
+  double *radius = atom->radius;
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -207,7 +195,7 @@ void FixWallRegion::post_force(int vflag)
 
   // region->match() insures particle is in region or on surface, else error
   // if returned contact dist r = 0, is on surface, also an error
-  // in COLLOID case, r <= shape radius is an error
+  // in COLLOID case, r <= radius is an error
   
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
@@ -215,7 +203,7 @@ void FixWallRegion::post_force(int vflag)
 	onflag = 1;
 	continue;
       }
-      if (style == COLLOID) tooclose = shape[type[i]][0];
+      if (style == COLLOID) tooclose = radius[i];
       else tooclose = 0.0;
 
       n = region->surface(x[i][0],x[i][1],x[i][2],cutoff);
@@ -228,8 +216,7 @@ void FixWallRegion::post_force(int vflag)
 
 	if (style == LJ93) lj93(region->contact[m].r);
 	else if (style == LJ126) lj126(region->contact[m].r);
-	else if (style == COLLOID) 
-	  colloid(region->contact[m].r,shape[type[i]][0]);
+	else if (style == COLLOID) colloid(region->contact[m].r,radius[i]);
 	else harmonic(region->contact[m].r);
 
 	ewall[0] += eng;

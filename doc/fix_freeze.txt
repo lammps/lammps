@@ -56,6 +56,6 @@ this fix is applied.
 
 [Related commands:] none
 
-"atom_style granular"_atom_style.html
+"atom_style sphere"_atom_style.html
 
 [Default:] none

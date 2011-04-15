@@ -125,16 +125,12 @@ This style is part of the "colloid" package.  It is only enabled if
 LAMMPS was built with that package.  See the "Making
 LAMMPS"_Section_start.html#2_3 section for more info.
 
-This pair style requires that atoms store torque and a quaternion to
-represent their orientation, as defined by the
-"atom_style"_atom_style.html.  It also require they store a per-type
-"shape"_shape.html.  The particles cannot store a per-particle
-diameter or per-particle mass.
+This pair style requires that atoms be finite-size spheres with a
+diameter, as defined by the "atom_style sphere"_atom_style.html
+command.
 
-All the shape settings must be for finite-size spheres.  They cannot
-be point particles, nor can they be aspherical.  Additionally all the
-shape types must specify particles of the same size, i.e. a
-monodisperse system.
+Per-particle or per-type polydispersity is not yet supported by this
+pair style; all particles must have the same diameter.
 
 This pair style requires you to use the "communicate vel
 yes"_communicate.html option so that velocites are stored by ghost

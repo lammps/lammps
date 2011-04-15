@@ -11,6 +11,8 @@
 
 <H3>dump command 
 </H3>
+<H3><A HREF = "dump_image.html">dump image</A> command 
+</H3>
 <P><B>Syntax:</B>
 </P>
 <PRE>dump ID group-ID style N file args 
@@ -19,7 +21,7 @@
 
 <LI>group-ID = ID of the group of atoms to be dumped 
 
-<LI>style = <I>atom</I> or <I>cfg</I> or <I>dcd</I> or <I>xtc</I> or <I>xyz</I> or <I>local</I> or <I>custom</I> 
+<LI>style = <I>atom</I> or <I>cfg</I> or <I>dcd</I> or <I>xtc</I> or <I>xyz</I> or <I>image</I> or <I>local</I> or <I>custom</I> 
 
 <LI>N = dump every this many timesteps 
 
@@ -33,6 +35,8 @@
   <I>xtc</I> args = none
   <I>xyz</I> args = none 
 </PRE>
+<PRE>  <I>image</I> args = discussed on <A HREF = "dump_image.html">dump image</A> doc page 
+</PRE>
 <PRE>  <I>local</I> args = list of local attributes
     possible attributes = index, c_ID, c_ID[N], f_ID, f_ID[N]
       index = enumeration of local values
@@ -45,9 +49,10 @@
     possible attributes = id, mol, type, mass,
 			  x, y, z, xs, ys, zs, xu, yu, zu, ix, iy, iz,
 			  vx, vy, vz, fx, fy, fz,
-                          q, mux, muy, muz,
+                          q, mux, muy, muz, mu,
                           radius, omegax, omegay, omegaz,
-                          angmomx, angmomy, angmomz,
+			  angmomx, angmomy, angmomz,
+			  shapex,shapey, shapez,
 			  quatw, quati, quatj, quatk, tqx, tqy, tqz,
 			  spin, eradius, ervel, erforce,
 			  c_ID, c_ID[N], f_ID, f_ID[N], v_name 
@@ -63,10 +68,12 @@
       vx,vy,vz = atom velocities
       fx,fy,fz = forces on atoms
       q = atom charge
-      mux,muy,muz = orientation of dipolar atom
-      radius = radius of extended spherical particle
+      mux,muy,muz = orientation of dipole moment of atom
+      mu = magnitude of dipole moment of atom
+      radius = radius of spherical particle
       omegax,omegay,omegaz = angular velocity of extended particle
       angmomx,angmomy,angmomz = angular momentum of extended particle
+      shapex,shapey,shapez = 3 diameters of ellipsoidal particle
       quatw,quati,quatj,quatk = quaternion components for aspherical particles
       tqx,tqy,tqz = torque on extended particles
       spin = electron spin
@@ -95,13 +102,19 @@ dump e_data all custom 100 dump.eff id type x y z spin eradius fx fy fz eforce
 <P><B>Description:</B>
 </P>
 <P>Dump a snapshot of atom quantities to one or more files every N
-timesteps in one of several styles.  As described below, the filename
-determines the kind of output (text or binary or gzipped, one big file
-or one per timestep, one big file or one per processor).  Only
-information for atoms in the specified group is dumped.  The
-<A HREF = "dump_modify.html">dump_modify</A> command can also alter what atoms are
-included.  Not all styles support all these options; see details
-below.
+timesteps in one of several styles.  The <I>image</I> style is the
+exception; it creates a JPG or PPM image file of the atom
+configuration every N timesteps, as discussed on the <A HREF = "dump_image.html">dump
+image</A> doc page.
+</P>
+<P>Only information for atoms in the specified group is dumped.  The
+<A HREF = "dump_modify.html">dump_modify thresh and region</A> commands can also
+alter what atoms are included.  Not all styles support all these
+options; see details below.
+</P>
+<P>As described below, the filename determines the kind of output (text
+or binary or gzipped, one big file or one per timestep, one big file
+or one per processor).
 </P>
 <P>IMPORTANT NOTE: Because periodic boundary conditions are enforced only
 on timesteps when neighbor lists are rebuilt, the coordinates of an
@@ -142,32 +155,41 @@ self-describing in the following sense.
 <P>The dimensions of the simulation box are included in each snapshot.
 For an orthogonal simulation box this information is is formatted as:
 </P>
-<PRE>ITEM: BOX BOUNDS
+<PRE>ITEM: BOX BOUNDS xx yy zz
 xlo xhi
 ylo yhi
 zlo zhi 
 </PRE>
 <P>where xlo,xhi are the maximum extents of the simulation box in the
-x-dimension, and similarly for y and z.
+x-dimension, and similarly for y and z.  The "xx yy zz" represent 6
+characters that encode the style of boundary for each of the 6
+simulation box boundaries (xlo,xhi and ylo,yhi and zlo,zhi).  Each of
+the 6 characters is either p = periodic, f = fixed, s = shrink wrap,
+or m = shrink wrapped with a minimum value.  See the
+<A HREF = "doc/boundary.html">boundary</A> command for details.
 </P>
 <P>For triclinic simulation boxes (non-orthogonal), an orthogonal
 bounding box which encloses the triclinic simulation box is output,
 along with the 3 tilt factors (xy, xz, yz) of the triclinic box,
 formatted as follows:
 </P>
-<PRE>ITEM: BOX BOUNDS xy xz yz
+<PRE>ITEM: BOX BOUNDS xy xz yz xx yy zz 
 xlo_bound xhi_bound xy
 ylo_bound yhi_bound xz
 zlo_bound zhi_bound yz 
 </PRE>
-<P>This bounding box is convenient for many visualization programs.
+<P>The presence of the text "xy xz yz" in the ITEM line indicates that
+the 3 tilt factors will be included on each of the 3 following lines.
+This bounding box is convenient for many visualization programs.  The
+meaning of the 6 character flags for "xx yy zz" is the same as above.
 </P>
-<P>See <A HREF = "Section_howto.html#4_12">this section</A> of the doc pages for a
-geometric description of triclinic boxes, as defined by LAMMPS, simple
-formulas for how the 6 bounding box extents (xlo_bound,xhi_bound,etc)
-are calculated from the triclinic parameters, and how to transform
-those parameters to and from other commonly used triclinic
-representations.
+<P>Note that the first two numbers on each line are now xlo_bound instead
+of xlo, etc, since they repesent a bounding box.  See <A HREF = "Section_howto.html#4_12">this
+section</A> of the doc pages for a geometric
+description of triclinic boxes, as defined by LAMMPS, simple formulas
+for how the 6 bounding box extents (xlo_bound,xhi_bound,etc) are
+calculated from the triclinic parameters, and how to transform those
+parameters to and from other commonly used triclinic representations.
 </P>
 <P>The "ITEM: ATOMS" line in each snapshot lists column descriptors for
 the per-atom lines that follow.  For example, the descriptors would be
@@ -281,7 +303,10 @@ character appears in the filename, then one file per snapshot is
 written and the "*" character is replaced with the timestep value.
 For example, tmp.dump.* becomes tmp.dump.0, tmp.dump.10000,
 tmp.dump.20000, etc.  This option is not available for the <I>dcd</I> and
-<I>xtc</I> styles.
+<I>xtc</I> styles.  Note that the <A HREF = "dump_modify.html">dump_modify pad</A>
+command can be used to insure all timestep numbers are the same length
+(e.g. 00010), which can make it easier to read a series of dump files
+in order by some post-processing tools.
 </P>
 <P>If a "%" character appears in the filename, then one file is written
 for each processor and the "%" character is replaced with the
@@ -385,20 +410,25 @@ coordinates and the image flags.
 </P>
 <P>The <I>mux</I>, <I>muy</I>, <I>muz</I> attributes are specific to dipolar systems
 defined with an atom style of <I>dipole</I>.  They give the orientation of
-the atom's point dipole moment.
+the atom's point dipole moment.  The <I>mu</I> attribute gives the
+magnitude of the atom's dipole moment.
 </P>
 <P>The <I>radius</I> attribute is specific to extended spherical particles
-that have a finite size, such as granular particles defined with
-an atom style of <I>granular</I>.
+that have a finite size, such as those defined with an atom style of
+<I>sphere</I>.
 </P>
-<P>The <I>omegax</I>, <I>omegay</I>, and <I>omegaz</I> attributes are specific to extended
-spherical or aspherical particles that have an angular velocity.  Only
-certain atom styles, such as <I>granular</I> or <I>dipole</I> define this
+<P>The <I>omegax</I>, <I>omegay</I>, and <I>omegaz</I> attributes are specific to
+extended spherical or aspherical particles that have an angular
+velocity.  Only certain atom styles, such as <I>sphere</I> define this
 quantity.
 </P>
 <P>The <I>angmomx</I>, <I>angmomy</I>, and <I>angmomz</I> attributes are specific to
 extended aspherical particles that have an angular momentum.  Only
 the <I>ellipsoid</I> atom style defines this quantity.
+</P>
+<P>The <I>shapex</I>, <I>shapey</I>, and <I>shapez</I> attributes are specific to
+extended ellipsoidal particles that have a finite size and shape, such
+those defined with an atom style of <I>ellipsoidal</I>.
 </P>
 <P>The <I>quatw</I>, <I>quati</I>, <I>quatj</I>, <I>quatk</I> attributes are for aspherical
 particles defined with an atom style of <I>ellipsoid</I>.  They are the
@@ -490,8 +520,12 @@ should also work on IBM BG/P, and Windows XP/Vista/7 machines.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "dump_modify.html">dump_modify</A>, <A HREF = "undump.html">undump</A>
+<P><A HREF = "dump_image.html">dump image</A>, <A HREF = "dump_modify.html">dump_modify</A>,
+<A HREF = "undump.html">undump</A>
 </P>
-<P><B>Default:</B> none
+<P><B>Default:</B>
+</P>
+<P>The defaults for the image style are listed on the <A HREF = "dump_image.html">dump
+image</A> doc page.
 </P>
 </HTML>

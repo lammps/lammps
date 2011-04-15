@@ -2,7 +2,7 @@
 # chute flow of 32000 atoms with frozen base at 26 degrees
 
 units		lj
-atom_style	granular
+atom_style	sphere
 boundary	p p fs
 newton		off
 communicate	single vel yes

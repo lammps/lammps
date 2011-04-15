@@ -137,14 +137,13 @@ This fix is part of the "asphere" package.  It is only enabled if
 LAMMPS was built with that package.  See the "Making
 LAMMPS"_Section_start.html#2_3 section for more info.
 
-This fix requires that atoms store torque and angular momentum and a
-quaternion to represent their orientation, as defined by the
-"atom_style"_atom_style.html.  It also require they store a per-type
-"shape"_shape.html.  The particles cannot store a per-particle
-diameter or per-particle mass.
+This fix requires that atoms store torque and angular momementum and a
+quaternion as defined by the "atom_style ellipsoid"_atom_style.html
+command.
 
 All particles in the group must be finite-size.  They cannot be point
-particles, but they can be aspherical or spherical.
+particles, but they can be aspherical or spherical as defined by their
+shape attribute.
 
 [Related commands:]
 

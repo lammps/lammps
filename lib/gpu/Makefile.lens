@@ -21,7 +21,7 @@ CUDA_HOME = /sw/analysis-x64/cuda/3.2/centos5.5_binary/
 NVCC = nvcc
 
 CUDA_ARCH = -arch=sm_13
-CUDA_PRECISION = -D_SINGLE_SINGLE
+CUDA_PRECISION = -D_SINGLE_DOUBLE
 CUDA_INCLUDE = -I$(CUDA_HOME)/include
 CUDA_LIB = -L$(CUDA_HOME)/lib64
 CUDA_OPTS = -DUNIX -O3 -Xptxas -v --use_fast_math

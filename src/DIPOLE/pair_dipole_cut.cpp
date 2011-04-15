@@ -79,7 +79,6 @@ void PairDipoleCut::compute(int eflag, int vflag)
   double **mu = atom->mu;
   double **torque = atom->torque;
   int *type = atom->type;
-  double *dipole = atom->dipole;
   int nlocal = atom->nlocal;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
@@ -137,7 +136,7 @@ void PairDipoleCut::compute(int eflag, int vflag)
 	    forcecoulz += pre1*delz;
 	  }
 
-	  if (dipole[itype] > 0.0 && dipole[jtype] > 0.0) { 
+	  if (mu[i][3] > 0.0 && mu[j][3] > 0.0) { 
             r3inv = r2inv*rinv;
             r5inv = r3inv*r2inv;
 	    r7inv = r5inv*r2inv;
@@ -167,7 +166,7 @@ void PairDipoleCut::compute(int eflag, int vflag)
 	    tjzcoul += -crossz + pre3 * (mu[j][0]*dely - mu[j][1]*delx);
 	  }
 
-	  if (dipole[itype] > 0.0 && q[j] != 0.0) { 
+	  if (mu[i][3] > 0.0 && q[j] != 0.0) { 
             r3inv = r2inv*rinv;
             r5inv = r3inv*r2inv;
             pidotr = mu[i][0]*delx + mu[i][1]*dely + mu[i][2]*delz;
@@ -182,7 +181,7 @@ void PairDipoleCut::compute(int eflag, int vflag)
 	    tizcoul += pre2 * (mu[i][0]*dely - mu[i][1]*delx);
 	  }
 
-	  if (dipole[jtype] > 0.0 && qtmp != 0.0) { 
+	  if (mu[j][3] > 0.0 && qtmp != 0.0) { 
             r3inv = r2inv*rinv;
             r5inv = r3inv*r2inv;
             pjdotr = mu[j][0]*delx + mu[j][1]*dely + mu[j][2]*delz;
@@ -234,11 +233,11 @@ void PairDipoleCut::compute(int eflag, int vflag)
 	if (eflag) {
 	  if (rsq < cut_coulsq[itype][jtype]) {
 	    ecoul = qtmp*q[j]*rinv;
-	    if (dipole[itype] > 0.0 && dipole[jtype] > 0.0)
+	    if (mu[i][3] > 0.0 && mu[j][3] > 0.0)
 	      ecoul += r3inv*pdotp - 3.0*r5inv*pidotr*pjdotr;
-	    if (dipole[itype] > 0.0 && q[j] != 0.0) 
+	    if (mu[i][3] > 0.0 && q[j] != 0.0) 
 	      ecoul += -q[j]*r3inv*pidotr;
-	    if (dipole[jtype] > 0.0 && qtmp != 0.0)
+	    if (mu[j][3] > 0.0 && qtmp != 0.0)
 	      ecoul += qtmp*r3inv*pjdotr;
 	    ecoul *= factor_coul*qqrd2e;
 	  } else ecoul = 0.0;
@@ -357,10 +356,8 @@ void PairDipoleCut::coeff(int narg, char **arg)
 
 void PairDipoleCut::init_style()
 {
-  if (!atom->q_flag || !atom->mu_flag || 
-      !atom->torque_flag || atom->dipole == NULL)
-    error->all("Pair dipole/cut requires atom attributes "
-	       "q, mu, torque, dipole");
+  if (!atom->q_flag || !atom->mu_flag || !atom->torque_flag)
+    error->all("Pair dipole/cut requires atom attributes q, mu, torque");
 
   int irequest = neighbor->request(this);
 }

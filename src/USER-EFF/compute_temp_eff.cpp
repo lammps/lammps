@@ -35,10 +35,8 @@ using namespace LAMMPS_NS;
 ComputeTempEff::ComputeTempEff(LAMMPS *lmp, int narg, char **arg) : 
   Compute(lmp, narg, arg)
 {
-  // error check
-
-  if (!atom->spin_flag || !atom->ervel_flag) 
-    error->all("Compute temp/eff requires atom attributes spin, ervel");
+  if (!atom->electron_flag) 
+    error->all("Compute temp/eff requires atom style electron");
 
   scalar_flag = vector_flag = 1;
   size_vector = 6;

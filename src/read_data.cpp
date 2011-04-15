@@ -163,10 +163,6 @@ void ReadData::command(int narg, char **arg)
 
     } else if (strcmp(keyword,"Masses") == 0) {
       mass();
-    } else if (strcmp(keyword,"Shapes") == 0) {
-      shape();
-    } else if (strcmp(keyword,"Dipoles") == 0) {
-      dipole();
     } else if (strcmp(keyword,"Pair Coeffs") == 0) {
       if (force->pair == NULL) 
 	error->all("Must define pair_style before Pair Coeffs");
@@ -292,8 +288,7 @@ void ReadData::header(int flag)
   char *ptr;
 
   char *section_keywords[NSECTIONS] = 
-    {"Atoms","Velocities","Bonds","Angles","Dihedrals","Impropers",
-     "Masses","Shapes","Dipoles",
+    {"Atoms","Velocities","Bonds","Angles","Dihedrals","Impropers","Masses",
      "Pair Coeffs","Bond Coeffs","Angle Coeffs",
      "Dihedral Coeffs","Improper Coeffs",
      "BondBond Coeffs","BondAngle Coeffs","MiddleBondTorsion Coeffs",
@@ -761,64 +756,6 @@ void ReadData::mass()
 
 /* ---------------------------------------------------------------------- */
 
-void ReadData::shape()
-{
-  int i,m;
-  char *buf = new char[atom->ntypes*MAXLINE];
-  char *original = buf;
-
-  if (me == 0) {
-    char *eof;
-    m = 0;
-    for (i = 0; i < atom->ntypes; i++) {
-      eof = fgets(&buf[m],MAXLINE,fp);
-      if (eof == NULL) error->one("Unexpected end of data file");
-      m += strlen(&buf[m]);
-      buf[m-1] = '\0';
-    }
-  }
-
-  MPI_Bcast(&m,1,MPI_INT,0,world);
-  MPI_Bcast(buf,m,MPI_CHAR,0,world);
-
-  for (i = 0; i < atom->ntypes; i++) {
-    atom->set_shape(buf);
-    buf += strlen(buf) + 1;
-  }
-  delete [] original;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void ReadData::dipole()
-{
-  int i,m;
-  char *buf = new char[atom->ntypes*MAXLINE];
-  char *original = buf;
-
-  if (me == 0) {
-    char *eof;
-    m = 0;
-    for (i = 0; i < atom->ntypes; i++) {
-      eof = fgets(&buf[m],MAXLINE,fp);
-      if (eof == NULL) error->one("Unexpected end of data file");
-      m += strlen(&buf[m]);
-      buf[m-1] = '\0';
-    }
-  }
-
-  MPI_Bcast(&m,1,MPI_INT,0,world);
-  MPI_Bcast(buf,m,MPI_CHAR,0,world);
-
-  for (i = 0; i < atom->ntypes; i++) {
-    atom->set_dipole(buf);
-    buf += strlen(buf) + 1;
-  }
-  delete [] original;
-}
-
-/* ---------------------------------------------------------------------- */
-
 void ReadData::paircoeffs()
 {
   int i,m;
@@ -1007,7 +944,6 @@ void ReadData::scan(int &bond_per_atom, int &angle_per_atom,
   while (strlen(keyword)) {
 
     if (strcmp(keyword,"Masses") == 0) skip_lines(atom->ntypes);
-    else if (strcmp(keyword,"Dipoles") == 0) skip_lines(atom->ntypes);
     else if (strcmp(keyword,"Atoms") == 0) skip_lines(natoms);
     else if (strcmp(keyword,"Velocities") == 0) skip_lines(natoms);
 

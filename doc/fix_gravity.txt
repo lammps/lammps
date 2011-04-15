@@ -91,6 +91,6 @@ This fix is not invoked during "energy minimization"_minimize.html.
 
 [Related commands:]
 
-"atom_style granular"_atom_style.html, "fix addforce"_fix_addforce.html
+"atom_style sphere"_atom_style.html, "fix addforce"_fix_addforce.html
 
 [Default:] none

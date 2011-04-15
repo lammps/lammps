@@ -46,8 +46,8 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 10) error->all("Illegal fix wall/gran command");
 
-  if (!atom->radius_flag || !atom->omega_flag || !atom->torque_flag)
-    error->all("Fix wall/gran requires atom attributes radius, omega, torque");
+  if (!atom->sphere_flag)
+    error->all("Fix wall/gran requires atom style sphere");
 
   restart_peratom = 1;
   create_attribute = 1;
@@ -614,18 +614,22 @@ void FixWallGran::hertz_history(double rsq, double dx, double dy, double dz,
 
   // shear history effects
 
-  shear[0] += vtr1*dt;
-  shear[1] += vtr2*dt;
-  shear[2] += vtr3*dt;
+  if (shearupdate) {
+    shear[0] += vtr1*dt;
+    shear[1] += vtr2*dt;
+    shear[2] += vtr3*dt;
+  }
   shrmag = sqrt(shear[0]*shear[0] + shear[1]*shear[1] + shear[2]*shear[2]);
 
   // rotate shear displacements
 
   rsht = shear[0]*dx + shear[1]*dy + shear[2]*dz;
   rsht = rsht*rsqinv;
-  shear[0] -= rsht*dx;
-  shear[1] -= rsht*dy;
-  shear[2] -= rsht*dz;
+  if (shearupdate) {
+    shear[0] -= rsht*dx;
+    shear[1] -= rsht*dy;
+    shear[2] -= rsht*dz;
+  }
 
   // tangential forces = shear + tangential velocity damping
 

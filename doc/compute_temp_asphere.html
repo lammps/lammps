@@ -47,13 +47,12 @@ this is not the case.  Then there are less dof and you should use the
 <A HREF = "compute_modify.html">compute_modify extra</A> command to adjust the dof
 accordingly.
 </P>
-<P>For example, an aspherical particle with all three of its
-<A HREF = "shape.html">shape</A> parameters the same is a sphere.  If it does not
-rotate, then it should have 3 dof instead of 6 in 3d (or 2 instead of
-3 in 2d).  A uniaxial aspherical particle has two of its three shape
-parameters the same.  If it does not rotate around the axis
-perpendicular to its circular cross section, then it should have 5 dof
-instead of 6 in 3d.
+<P>For example, an aspherical particle with all three of its shape
+parameters the same is a sphere.  If it does not rotate, then it
+should have 3 dof instead of 6 in 3d (or 2 instead of 3 in 2d).  A
+uniaxial aspherical particle has two of its three shape parameters the
+same.  If it does not rotate around the axis perpendicular to its
+circular cross section, then it should have 5 dof instead of 6 in 3d.
 </P>
 <P>The translational kinetic energy is computed the same as is described
 by the <A HREF = "compute_temp.html">compute temp</A> command.  The rotational
@@ -114,10 +113,17 @@ vector values will be in energy <A HREF = "units.html">units</A>.
 </P>
 <P><B>Restrictions:</B>
 </P>
-<P>This compute requires that particles be represented as extended
-ellipsoids and not point particles.  This means they will have an
-angular momentum and a shape which is determined by the
-<A HREF = "shape.html">shape</A> command.
+<P>This compute is part of the "asphere" package.  It is only enabled if
+LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>This compute requires that atoms store angular momementum and a
+quaternion as defined by the <A HREF = "atom_style.html">atom_style ellipsoid</A>
+command.
+</P>
+<P>All particles in the group must be finite-size.  They cannot be point
+particles, but they can be aspherical or spherical as defined by their
+shape attribute.
 </P>
 <P><B>Related commands:</B>
 </P>

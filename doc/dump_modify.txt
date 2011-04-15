@@ -14,8 +14,47 @@ dump_modify dump-ID keyword values ... :pre
 
 dump-ID = ID of dump to modify :ulb,l
 one or more keyword/value pairs may be appended :l
-keyword = {append} or {every} or {flush} or {format} or {image} or {label} or {precision} or {region} or {scale} or {sort} or {thresh} or {unwrap} :l
+keyword = {acolor} or {adiam} or {amap} or {append} or {bcolor} or {bdiam} or {bgcolor} or {boxcolor} or {color} or {every} or {flush} or {format} or {image} or {label} or {precision} or {region} or {scale} or {sort} or {thresh} or {unwrap} :l
+  {acolor} args = type color
+    type = atom type or range of types (see below)
+    color = name of color or color1/color2/...
+  {adiam} args = type diam
+    type = atom type or range of types (see below)
+    diam = diameter of atoms of that type (distance units)
+  {amap} args = lo hi style N delta entry1 entry2 ... entryN
+    lo = number or {min} = lower bound of range of color map
+    hi = number or {max} = upper bound of range of color map
+    style = 2 letters = "b" or "c" or "s" plus "a" or "f"
+      "c" for continuous
+      "d" for discrete
+      "s" for sequential
+      "a" for absolute
+      "f" for fractional
+    delta = binsize (only used for style "s" = sequential)
+      binsize = range is divided into bins of this width
+    N = # of subsequent entries
+    entry = value color (for continuous style)
+      value = number or {min} or {max} = single value within range
+      color = name of color used for that value
+    entry = lo hi color (for discrete style)
+      lo/hi = number or {min} or {max} = lower/upper bound of subset of range
+      color = name of color used for that value
+    entry = color (for sequential style)
+      color = name of color used for a bin within range
   {append} arg = {yes} or {no}
+  {bcolor} args = type color
+    type = bond type or range of types (see below)
+    color = name of color or color1/color2/...
+  {bdiam} args = type diam
+    type = bond type or range of types (see below)
+    diam = diameter of bonds of that type (distance units)
+  {bgcolor} arg = color
+    color = name of color for background
+  {boxcolor} arg = color
+    color = name of color for box lines
+  {color} args = name R G B
+    name = name of color
+    R,G,B = red/green/blue numeric values from 0.0 to 1.0
   {element} args = E1 E2 ... EN, where N = # of atom types
     E1,...,EN = element name, e.g. C or Fe or Ga
   {every} arg = N
@@ -53,10 +92,161 @@ dump_modify xtcdump precision 10000
 dump_modify 1 every 1000
 dump_modify 1 every v_myVar :pre
 
+NOTE: add some image examples
+
 [Description:]
 
 Modify the parameters of a previously defined dump command.  Not all
 parameters are relevant to all dump styles.
+
+:line
+
+The {acolor} keyword applies only to the dump {image} style.  It can
+be used with the "dump image"_dump_image.html command, with its {atom}
+keyword, when its color setting is {type}, to set the color that atoms
+of each type will be drawn in the image.
+
+The specified {type} should be an integer from 1 to Ntypes = the
+number of atom types.  A wildcard asterisk can be used in place of or
+in conjunction with the {type} argument to specify a range of atom
+types.  This takes the form "*" or "*n" or "n*" or "m*n".  If N = the
+number of atom types, then an asterisk with no numeric values means
+all types from 1 to N.  A leading asterisk means all types from 1 to n
+(inclusive).  A trailing asterisk means all types from n to N
+(inclusive).  A middle asterisk means all types from m to n
+(inclusive).
+
+The specified {color} can be a single color which is any of the 140
+pre-defined colors (see below) or a colorname defined by the
+dump_modify color option.  Or it can be two or more colors separated
+by a "/" character, e.g. red/green/blue.  In the former case, that
+color is assigned to all the specified atom types.  In the latter
+case, the list of colors are assigned in a round-robin fashion
+to each of the specified atom types.
+
+:line
+
+The {adiam} keyword applies only to the dump {image} style.  It can be
+used with the "dump image"_dump_image.html command, with its {atom}
+keyword, when its diam setting is {type}, to set the size that atoms
+of each type will be drawn in the image.  The specified {type} should
+be an integer from 1 to Ntypes.  As with the {acolor} keyword, a
+wildcard asterisk can be used as part of the {type} argument to
+specify a range of atomt types.  The specified {diam} is the size in
+whatever distance "units"_units.html you are using, e.g. Angstroms.
+
+:line
+
+The {amap} keyword applies only to the dump {image} style.  It can be
+used with the "dump image"_dump_image.html command, with its {atom}
+keyword, when its atom setting is an atom-attribute, to setup a color
+map.  The color map is used to assign a specific RGB (red/green/blue)
+color value to an individual atom when it is drawn, based on the
+atom's attribute, which is a numeric value, e.g. its x-component of
+velocity if the atom-attribute "vx" was specified.
+
+The basic idea of a color map is that the atom-attribute will be
+within a range of values, and that range is associated with a a series
+of colors (e.g. red, blue, green).  An atom's specific value (vx =
+-3.2) can then mapped to the series of colors (e.g. halfway between
+red and blue), and a specific color is determined via an interpolation
+procedure.  There are other options for the mapping mechanism, all of
+which are explained on the "dump_modify"_dump_modify.html doc page.
+
+There are many possible options for the color map, enabled by the
+{amap} keyword.  Here are the details.
+
+The {lo} and {hi} settings determine the range of values allowed for
+the atom attribute.  If numeric values are used for {lo} and/or {hi},
+then values that are lower/higher than that value are set to the
+value.  I.e. the range is static.  If {lo} is specified as {min} or
+{hi} as {max} then the range is dynamic, and will the lower and/or
+upper bound will be calculated each time an image is drawn.
+
+The {style} setting is two letters, such as "ca".  The first letter is
+either "c" for continuous, "d" for discrete, or "s" for sequential.
+The second letter is either "a" for absolute, or "f" for fractional.
+
+A continuous color map is one in which the color changes continuously
+from value to value within the range.  A discrete color map is one in
+which discrete colors are assigned to sub-ranges of values within the
+range.  A sequential color map is one in which discrete colors are
+assigned to a sequence of sub-ranges of values covering the entire
+range.
+
+An absolute color map is one in which the values to which colors are
+assigned are specified explicitly as values within the range.  A
+fractional color map is one in which the values to which colors are
+assigned are specified as a fractional portion of the range.  For
+example if the range is from -10.0 to 10.0, and the color red is to be
+assigned to atoms with a value of 5.0, then for an absolute color map
+the number 5.0 would be used.  But for a fractional map, the number
+0.75 would be used since 5.0 is 3/4 of the way from -10.0 to 10.0.
+
+The {delta} setting is only specified if the style is sequential.  It
+specifies the bin size to use within the range for assigning
+consecutive colors to.  For example, if the range is from -10.0 to
+10.0 and a {delta} of 1.0 is used, then 20 colors will be assigned to
+the range.  The first will be from -10.0 <= color1 < -9.0, then 2nd
+from -9.0 <= color2 < -8.0, etc.
+
+The {N} setting is how many entries follow.  The format of the entries
+depends on whether the color map style is continuous, discrete or
+sequential.  In all cases the {color} setting can be any of the 140
+pre-defined colors (see below) or a colorname defined by the
+dump_modify color option.
+
+For continuous color maps, each entry has a {value} and a {color}.
+The {value} is either a number within the range of values or {min} or
+{max}.  The {value} of the first entry must be {min} and the {value}
+of hte last entry must be {max}.  Any entries in between must have
+increasing values.  Note that numeric values can be specified either
+as absolute numbers or as fractions (0.0 to 1.0) of the range,
+depending on the "a" or "f" in the style setting for the color map.
+
+Here is how the entries are used to determine the color of an
+individual atom, given the value X of its atom attribute.  X will fall
+between 2 of the entry values.  The color of the atom is linearly
+interpolated (in each of the RGB values) between the 2 colors
+associated with those entries.  For example, if X = -5.0 and the 2
+surrounding entries are "red" at -10.0 and "blue" at 0.0, then the
+atom's color will be halfway between "red" and "blue", which happens
+to be "purple".
+
+For discrete color maps, each entry has a {lo} and {hi} value and a
+{color}.  The {lo} and {hi} settings are either numbers within the
+range of values or {lo} can be {min} or {hi} can be {max}.  The {lo}
+and {hi} settings of the last entry must be {min} and {max}.  Other
+entries can have any {lo} and {hi} values, including sub-ranges of
+values that overlap.  Note that numeric {lo} and {hi} values can be
+specified either as absolute numbers or as fractions (0.0 to 1.0) of
+the range, depending on the "a" or "f" in the style setting for the
+color map.
+
+Here is how the entries are used to determine the color of an
+individual atom, given the value X of its atom attribute.  The entries
+are scanned from first to last.  The first time that {lo} <= X <=
+{hi}, X is assigned the color associated with that entry.  You can
+think of the last entry as assigning a default color (since it will
+always be matched by X), and the earlier entries as colors that
+override the default.  Also note that no interpolation of a color RGB
+is done.  All atoms will be drawn with one of the colors in the list
+of entries.
+
+For sequential color maps, each entry has only a {color}.  Here is how
+the entries are used to determine the color of an individual atom,
+given the value X of its atom attribute.  The range is partitioned
+into N bins of width {binsize}.  Thus X will fall in a specific bin
+from 1 to N, say the Mth bin.  If it falls on a boundary between 2
+bins, it is considered to be in the higher of the 2 bins.  Each bin is
+assigned a color from the E entries.  If E < N, then the colors are
+repeated.  For example if 2 entries with colors red and green are
+specified, then the odd numbered bins will be red and the even bins
+green.  The color of the atom is the color of its bin.  Note that the
+sequential color map is really a shorthand way of defining a discrete
+color map without having to specify where all the bin boundaries are.
+
+:line
 
 The {append} keyword applies to all dump styles except {cfg} and {xtc}
 and {dcd}.  It also applies only to text output files, not to binary
@@ -69,13 +259,72 @@ before the first command that causes dump snapshots to be output,
 e.g. a "run"_run.html or "minimize"_minimize.html command.  Once the
 dump file has been opened, this keyword has no further effect.
 
-The {element} keyword applies only to the the dump {cfg} style.  It
-associates element names (e.g. H, C, Fe) with LAMMPS atom types, so
-that the "AtomEye"_http://mt.seas.upenn.edu/Archive/Graphics/A
-visualization package can render atoms with the appropriate size and
-color.  An element name is specified for each atom type (1 to Ntype)
-in the simulation.  The same element name can be given to multiple
-atom types.
+:line
+
+The {bcolor} keyword applies only to the dump {image} style.  It can
+be used with the "dump image"_dump_image.html command, with its {bond}
+keyword, when its color setting is {type}, to set the color that bonds
+of each type will be drawn in the image.
+
+The specified {type} should be an integer from 1 to Nbondtypes = the
+number of bond types.  A wildcard asterisk can be used in place of or
+in conjunction with the {type} argument to specify a range of bond
+types.  This takes the form "*" or "*n" or "n*" or "m*n".  If N = the
+number of bond types, then an asterisk with no numeric values means
+all types from 1 to N.  A leading asterisk means all types from 1 to n
+(inclusive).  A trailing asterisk means all types from n to N
+(inclusive).  A middle asterisk means all types from m to n
+(inclusive).
+
+The specified {color} can be a single color which is any of the 140
+pre-defined colors (see below) or a colorname defined by the
+dump_modify color option.  Or it can be two or more colors separated
+by a "/" character, e.g. red/green/blue.  In the former case, that
+color is assigned to all the specified bond types.  In the latter
+case, the list of colors are assigned in a round-robin fashion to each
+of the specified bond types.
+
+:line
+
+The {bdiam} keyword applies only to the dump {image} style.  It can be
+used with the "dump image"_dump_image.html command, with its {bond}
+keyword, when its diam setting is {type}, to set the diameter that
+bonds of each type will be drawn in the image.  The specified {type}
+should be an integer from 1 to Nbondtypes.  As with the {bcolor}
+keyword, a wildcard asterisk can be used as part of the {type}
+argument to specify a range of bond types.  The specified {diam} is
+the size in whatever distance "units"_units.html you are using,
+e.g. Angstroms.
+
+:line
+
+The {bgcolor} keyword applies only to the dump {image} style.  It sets
+the background color of each image.  The color name can be any of the
+140 pre-defined colors (see below) or a colorname defined by the
+dump_modify color option.
+
+:line
+
+The {boxcolor} keyword applies only to the dump {image} style.  It
+sets the color of the simulation box drawn around the atoms in each
+image.  See the "dump image box" command for how to specify that a box
+be drawn.  The color name can be any of the 140 pre-defined colors
+(see below) or a colorname defined by the dump_modify color option.
+
+:line
+
+The {element} keyword applies only to the the dump {cfg} and {image}
+styles.  It associates element names (e.g. H, C, Fe) with LAMMPS atom
+types.  In the case of dump {cfg}, it allows the "AtomEye"_atomeye
+visualization package to read the dump file and render atoms with the
+appropriate size and color.  In the case of dump {image}, the output
+images will follow the same "AtomEye"_atomeye convention.  An element
+name is specified for each atom type (1 to Ntype) in the simulation.
+The same element name can be given to multiple atom types.
+
+:link(atomeye,http://mt.seas.upenn.edu/Archive/Graphics/A)
+
+:line
 
 The {every} keyword changes the dump frequency originally specified by
 the "dump"_dump.html command to a new value.  The every keyword can be
@@ -102,6 +351,8 @@ variable	s equal logfreq(10,3,10)
 dump		1 all atom 100 tmp.dump
 dump_modify	1 every v_s first yes :pre
 
+:line
+
 The {first} keyword determines whether a dump snapshot is written on
 the very first timestep after the dump command is invoked.  This will
 always occur if the current timestep is a multiple of N, the frequency
@@ -109,6 +360,8 @@ specified in the "dump"_dump.html command, including timestep 0.  But
 if this is not the case, a dump snapshot will only be written if the
 setting of this keyword is {yes}.  If it is {no}, which is the
 default, then it will not be written.
+
+:line
 
 The {flush} keyword determines whether a flush operation is invoked
 after a dump snapshot is written to the dump file.  A flush insures
@@ -126,6 +379,8 @@ the first two fields (atom id and type) are not actually written into
 the CFG file, though you must include formats for them in the format
 string.
 
+:line
+
 The {image} keyword applies only to the dump {atom} style.  If the
 image value is {yes}, 3 flags are appended to each atom's coords which
 are the absolute box image of the atom in each dimension.  For
@@ -135,6 +390,8 @@ boundary 2 times and is really 2 box lengths to the left of its
 current coordinate.  Note that for dump style {custom} these various
 values can be printed in the dump file by using the appropriate atom
 attributes in the dump command itself.
+
+:line
 
 The {label} keyword applies only to the dump {local} style.  When
 it writes local informatoin, such as bond or angle topology
@@ -147,6 +404,8 @@ ITEM: ENTRIES ... :pre
 The word "ENTRIES" will be replaced with the string specified,
 e.g. BONDS or ANGLES.
 
+:line
+
 The {pad} keyword only applies when the dump filename is specified
 with a wildcard "*" character which becomes the timestep.  If {pad} is
 0, which is the default, the timestep is converted into a string of
@@ -157,18 +416,24 @@ yield 0000100, 0012000, 2000000.  This can be useful so that
 post-processing programs can easily read the files in ascending
 timestep order.
 
+:line
+
 The {precision} keyword only applies to the dump {xtc} style.  A
 specified value of N means that coordinates are stored to 1/N
 nanometer accuracy, e.g. for N = 1000, the coordinates are written to
 1/1000 nanometer accuracy.
 
-The {region} keyword only applies to the dump {custom} and {cfg}
-styles.  If specified, only atoms in the region will be written to the
-dump file.  Only one region can be applied as a filter (the last one
-specified).  See the "region"_region.html command for more details.
-Note that a region can be defined as the "inside" or "outside" of a
-geometric shape, and it can be the "union" or "intersection" of a
-series of simpler regions.
+:line
+
+The {region} keyword only applies to the dump {custom} and {cfg} and
+{image} styles.  If specified, only atoms in the region will be
+written to the dump file or included in the image.  Only one region
+can be applied as a filter (the last one specified).  See the
+"region"_region.html command for more details.  Note that a region can
+be defined as the "inside" or "outside" of a geometric shape, and it
+can be the "union" or "intersection" of a series of simpler regions.
+
+:line
 
 The {scale} keyword applies only to the dump {atom} style.  A scale
 value of {yes} means atom coords are written in normalized units from
@@ -176,6 +441,8 @@ value of {yes} means atom coords are written in normalized units from
 (tilted), then all atom coords will still be between 0.0 and 1.0.  A
 value of {no} means they are written in absolute distance units
 (e.g. Angstroms or sigma).
+
+:line
 
 The {sort} keyword determines whether lines of per-atom output in a
 snapshot are sorted or not.  A sort value of {off} means they will
@@ -194,16 +461,21 @@ IMPORTANT NOTE: Unless it is required by the dump style, sorting dump
 file output requires extra overhead in terms of CPU and communication
 cost, as well as memory, versus unsorted output.
 
-The {thresh} keyword only applies to the dump {custom} and {cfg}
-styles.  Multiple thresholds can be specified.  Specifying "none"
-turns off all threshold criteria.  If thresholds are specified, only
-atoms whose attributes meet all the threshold criteria are written to
-the dump file.  The possible attributes that can be tested for are the
-same as those that can be specified in the "dump custom"_dump.html
-command.  Note that different attributes can be output by the dump
-custom command than are used as threshold criteria by the dump_modify
-command.  E.g. you can output the coordinates and stress of atoms
-whose energy is above some threshold.
+:line
+
+The {thresh} keyword only applies to the dump {custom} and {cfg} and
+{image} styles.  Multiple thresholds can be specified.  Specifying
+"none" turns off all threshold criteria.  If thresholds are specified,
+only atoms whose attributes meet all the threshold criteria are
+written to the dump file or included in the image.  The possible
+attributes that can be tested for are the same as those that can be
+specified in the "dump custom"_dump.html command.  Note that different
+attributes can be output by the dump custom command than are used as
+threshold criteria by the dump_modify command.  E.g. you can output
+the coordinates and stress of atoms whose energy is above some
+threshold.
+
+:line
 
 The {unwrap} keyword only applies to the dump {dcd} and {xtc} styles.
 If set to {yes}, coordinates will be written "unwrapped" by the image
@@ -213,21 +485,29 @@ the coordinate would be if it had not been wrapped back into the
 periodic box.  Note that these coordinates may thus be far outside the
 box size stored with the snapshot.
 
+:line
+
 [Restrictions:] none
 
 [Related commands:]
 
-"dump"_dump.html, "undump"_undump.html
+"dump"_dump.html, "dump image"_dump_image.html, "undump"_undump.html
 
 [Default:]
 
 The option defaults are
 
+acolor = * red/green/blue/yellow/aqua/cyan
+adiam = * 1.0
+amap = min max cf 2 0.0 blue 1.0 red
 append = no
+bgcolor = black
+boxcolor = yellow
+color = 140 color names are pre-defined as listed below
 element = "C" for every atom type
 every = whatever it was set to via the "dump"_dump.html command
 first = no
-flush = yes (except for the dump {xtc} style)
+flush = yes
 format = %d and %g for each integer or floating point value
 image = no
 label = ENTRIES
@@ -239,3 +519,152 @@ sort = off for dump styles {atom}, {custom}, {cfg}, and {local}
 sort = id for dump styles {dcd}, {xtc}, and {xyz}
 thresh = none
 unwrap = no :ul
+
+:line
+
+These are the 140 colors that LAMMPS pre-defines for use with the
+"dump image"_dump_image.html and dump_modify commands.  Additional
+colors can be defined with the dump_modify color command.  The 3
+numbers listed for each name are the RGB (red/green/blue) values.
+Divide each value by 255 to get the equivalent 0.0 to 1.0 value.
+
+aliceblue = 240, 248, 255 |
+antiquewhite = 250, 235, 215 |
+aqua = 0, 255, 255 |
+aquamarine = 127, 255, 212 |
+azure = 240, 255, 255 |
+beige = 245, 245, 220 |
+bisque = 255, 228, 196 |
+black = 0, 0, 0 |
+blanchedalmond = 255, 255, 205 |
+blue = 0, 0, 255 |
+blueviolet = 138, 43, 226 |
+brown = 165, 42, 42 |
+burlywood = 222, 184, 135 |
+cadetblue = 95, 158, 160 |
+chartreuse = 127, 255, 0 |
+chocolate = 210, 105, 30 |
+coral = 255, 127, 80 |
+cornflowerblue = 100, 149, 237 |
+cornsilk = 255, 248, 220 |
+crimson = 220, 20, 60 |
+cyan = 0, 255, 255 |
+darkblue = 0, 0, 139 |
+darkcyan = 0, 139, 139 |
+darkgoldenrod = 184, 134, 11 |
+darkgray = 169, 169, 169 |
+darkgreen = 0, 100, 0 |
+darkkhaki = 189, 183, 107 |
+darkmagenta = 139, 0, 139 |
+darkolivegreen = 85, 107, 47 |
+darkorange = 255, 140, 0 |
+darkorchid = 153, 50, 204 |
+darkred = 139, 0, 0 |
+darksalmon = 233, 150, 122 |
+darkseagreen = 143, 188, 143 |
+darkslateblue = 72, 61, 139 |
+darkslategray = 47, 79, 79 |
+darkturquoise = 0, 206, 209 |
+darkviolet = 148, 0, 211 |
+deeppink = 255, 20, 147 |
+deepskyblue = 0, 191, 255 |
+dimgray = 105, 105, 105 |
+dodgerblue = 30, 144, 255 |
+firebrick = 178, 34, 34 |
+floralwhite = 255, 250, 240 |
+forestgreen = 34, 139, 34 |
+fuchsia = 255, 0, 255 |
+gainsboro = 220, 220, 220 |
+ghostwhite = 248, 248, 255 |
+gold = 255, 215, 0 |
+goldenrod = 218, 165, 32 |
+gray = 128, 128, 128 |
+green = 0, 128, 0 |
+greenyellow = 173, 255, 47 |
+honeydew = 240, 255, 240 |
+hotpink = 255, 105, 180 |
+indianred = 205, 92, 92 |
+indigo = 75, 0, 130 |
+ivory = 255, 240, 240 |
+khaki = 240, 230, 140 |
+lavender = 230, 230, 250 |
+lavenderblush = 255, 240, 245 |
+lawngreen = 124, 252, 0 |
+lemonchiffon = 255, 250, 205 |
+lightblue = 173, 216, 230 |
+lightcoral = 240, 128, 128 |
+lightcyan = 224, 255, 255 |
+lightgoldenrodyellow = 250, 250, 210 |
+lightgreen = 144, 238, 144 |
+lightgrey = 211, 211, 211 |
+lightpink = 255, 182, 193 |
+lightsalmon = 255, 160, 122 |
+lightseagreen = 32, 178, 170 |
+lightskyblue = 135, 206, 250 |
+lightslategray = 119, 136, 153 |
+lightsteelblue = 176, 196, 222 |
+lightyellow = 255, 255, 224 |
+lime = 0, 255, 0 |
+limegreen = 50, 205, 50 |
+linen = 250, 240, 230 |
+magenta = 255, 0, 255 |
+maroon = 128, 0, 0 |
+mediumaquamarine = 102, 205, 170 |
+mediumblue = 0, 0, 205 |
+mediumorchid = 186, 85, 211 |
+mediumpurple = 147, 112, 219 |
+mediumseagreen = 60, 179, 113 |
+mediumslateblue = 123, 104, 238 |
+mediumspringgreen = 0, 250, 154 |
+mediumturquoise = 72, 209, 204 |
+mediumvioletred = 199, 21, 133 |
+midnightblue = 25, 25, 112 |
+mintcream = 245, 255, 250 |
+mistyrose = 255, 228, 225 |
+moccasin = 255, 228, 181 |
+navajowhite = 255, 222, 173 |
+navy = 0, 0, 128 |
+oldlace = 253, 245, 230 |
+olive = 128, 128, 0 |
+olivedrab = 107, 142, 35 |
+orange = 255, 165, 0 |
+orangered = 255, 69, 0 |
+orchid = 218, 112, 214 |
+palegoldenrod = 238, 232, 170 |
+palegreen = 152, 251, 152 |
+paleturquoise = 175, 238, 238 |
+palevioletred = 219, 112, 147 |
+papayawhip = 255, 239, 213 |
+peachpuff = 255, 239, 213 |
+peru = 205, 133, 63 |
+pink = 255, 192, 203 |
+plum = 221, 160, 221 |
+powderblue = 176, 224, 230 |
+purple = 128, 0, 128 |
+red = 255, 0, 0 |
+rosybrown = 188, 143, 143 |
+royalblue = 65, 105, 225 |
+saddlebrown = 139, 69, 19 |
+salmon = 250, 128, 114 |
+sandybrown = 244, 164, 96 |
+seagreen = 46, 139, 87 |
+seashell = 255, 245, 238 |
+sienna = 160, 82, 45 |
+silver = 192, 192, 192 |
+skyblue = 135, 206, 235 |
+slateblue = 106, 90, 205 |
+slategray = 112, 128, 144 |
+snow = 255, 250, 250 |
+springgreen = 0, 255, 127 |
+steelblue = 70, 130, 180 |
+tan = 210, 180, 140 |
+teal = 0, 128, 128 |
+thistle = 216, 191, 216 |
+tomato = 253, 99, 71 |
+turquoise = 64, 224, 208 |
+violet = 238, 130, 238 |
+wheat = 245, 222, 179 |
+white = 255, 255, 255 |
+whitesmoke = 245, 245, 245 |
+yellow = 255, 255, 0 |
+yellowgreen = 154, 205, 50 :tb(c=5,s=|)

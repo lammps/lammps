@@ -167,23 +167,6 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
       if (!atom->angmom_flag)
 	error->all("Fix store/state for atom property that isn't allocated");
       pack_choice[nvalues++] = &FixStoreState::pack_angmomz;
-
-    } else if (strcmp(arg[iarg],"quatw") == 0) {
-      if (!atom->quat_flag)
-	error->all("Fix store/state for atom property that isn't allocated");
-      pack_choice[nvalues++] = &FixStoreState::pack_quatw;
-    } else if (strcmp(arg[iarg],"quati") == 0) {
-      if (!atom->quat_flag)
-	error->all("Fix store/state for atom property that isn't allocated");
-      pack_choice[nvalues++] = &FixStoreState::pack_quati;
-    } else if (strcmp(arg[iarg],"quatj") == 0) {
-      if (!atom->quat_flag)
-	error->all("Fix store/state for atom property that isn't allocated");
-      pack_choice[nvalues++] = &FixStoreState::pack_quatj;
-    } else if (strcmp(arg[iarg],"quatk") == 0) {
-      if (!atom->quat_flag)
-	error->all("Fix store/state for atom property that isn't allocated");
-      pack_choice[nvalues++] = &FixStoreState::pack_quatk;
     } else if (strcmp(arg[iarg],"tqx") == 0) {
       if (!atom->torque_flag)
 	error->all("Fix store/state for atom property that isn't allocated");
@@ -1224,66 +1207,6 @@ void FixStoreState::pack_angmomz(int n)
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) vbuf[n] = angmom[i][2];
-    else vbuf[n] = 0.0;
-    n += nvalues;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixStoreState::pack_quatw(int n)
-{
-  double **quat = atom->quat;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) vbuf[n] = quat[i][0];
-    else vbuf[n] = 0.0;
-    n += nvalues;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixStoreState::pack_quati(int n)
-{
-  double **quat = atom->quat;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) vbuf[n] = quat[i][1];
-    else vbuf[n] = 0.0;
-    n += nvalues;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixStoreState::pack_quatj(int n)
-{
-  double **quat = atom->quat;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) vbuf[n] = quat[i][2];
-    else vbuf[n] = 0.0;
-    n += nvalues;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixStoreState::pack_quatk(int n)
-{
-  double **quat = atom->quat;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) vbuf[n] = quat[i][3];
     else vbuf[n] = 0.0;
     n += nvalues;
   }

@@ -360,11 +360,9 @@ void PairPeriPMB::init_style()
 {
   // error checks
 
+  if (!atom->peri_flag) error->all("Pair style peri requires atom style peri");
   if (atom->map_style == 0) 
     error->all("Pair peri requires an atom map, see atom_modify");
-
-  if (atom->style_match("peri") == 0)
-    error->all("Pair style peri_pmb requires atom style peri");
 
   if (domain->lattice == NULL)
     error->all("Pair peri requires a lattice be defined");

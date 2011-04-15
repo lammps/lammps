@@ -27,6 +27,7 @@ class FixNHAsphere : public FixNH {
  protected:
   double dtq;
   double **inertia;
+  class AtomVecEllipsoid *avec;
 
   void richardson(double *, double *, double *);
   void omega_from_mq(double *, double *, double *, double *);

@@ -26,11 +26,18 @@ namespace LAMMPS_NS {
 
 class AtomVecEllipsoid : public AtomVec {
  public:
+  struct Bonus {
+    double shape[3];
+    double quat[4];
+    int ilocal;
+  };
+  struct Bonus *bonus;
+
   AtomVecEllipsoid(class LAMMPS *, int, char **);
-  virtual ~AtomVecEllipsoid() {}
+  virtual ~AtomVecEllipsoid();
   void grow(int);
   void grow_reset();
-  void copy(int, int);
+  void copy(int, int, int);
   int pack_comm(int, int *, double *, int, int *);
   int pack_comm_vel(int, int *, double *, int, int *);
   int pack_comm_hybrid(int, int *, double *);
@@ -59,12 +66,23 @@ class AtomVecEllipsoid : public AtomVec {
   int data_vel_hybrid(int, char **);
   bigint memory_usage();
 
+  // manipulate Bonus data structure for extra atom info
+
+  void grow_bonus();
+  void copy_bonus(int, int);
+  void set_bonus(int, double, double, double);
+  void clear_bonus();
+  void data_atom_bonus(int, char **);
+
  private:
   double PI;
   int *tag,*type,*mask,*image;
   double **x,**v,**f;
-  double **shape,*density,*rmass;
-  double **angmom,**torque,**quat;
+  double *density,*rmass;
+  double **angmom,**torque;
+  int *ellipsoid;
+
+  int nlocal_bonus,nghost_bonus,nmax_bonus;
 };
 
 }

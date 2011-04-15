@@ -19,6 +19,7 @@
 #include "read_data.h"
 #include "atom.h"
 #include "atom_vec.h"
+#include "atom_vec_ellipsoid.h"
 #include "comm.h"
 #include "update.h"
 #include "force.h"
@@ -39,7 +40,8 @@ using namespace LAMMPS_NS;
 #define CHUNK 1024
 #define DELTA 4            // must be 2 or larger
 
-#define NSECTIONS 22       // change when add to header::section_keywords
+                           // customize for new sections
+#define NSECTIONS 23       // change when add to header::section_keywords
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
@@ -54,6 +56,12 @@ ReadData::ReadData(LAMMPS *lmp) : Pointers(lmp)
   buffer = new char[CHUNK*MAXLINE];
   narg = maxarg = 0;
   arg = NULL;
+
+  // customize for new sections
+  // pointers to atom styles that store extra info
+
+  nellipsoids = 0;
+  avec_ellipsoid = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -128,8 +136,8 @@ void ReadData::command(int narg, char **arg)
   comm->set_procs();
   domain->set_local_box();
 
+  // customize for new sections
   // read rest of file in free format
-  // if add a section keyword, add to header::section_keywords and NSECTIONS
 
   int atomflag = 0;
 
@@ -140,6 +148,12 @@ void ReadData::command(int narg, char **arg)
     } else if (strcmp(keyword,"Velocities") == 0) {
       if (atomflag == 0) error->all("Must read Atoms before Velocities");
       velocities();
+    } else if (strcmp(keyword,"Ellipsoids") == 0) {
+      if (!avec_ellipsoid) 
+	error->all("Invalid data file section: Ellipsoids");
+      if (atomflag == 0) error->all("Must read Atoms before Ellipsoids");
+      ellipsoids();
+
     } else if (strcmp(keyword,"Bonds") == 0) {
       if (atom->avec->bonds_allow == 0) 
 	error->all("Invalid data file section: Bonds");
@@ -287,20 +301,25 @@ void ReadData::header(int flag)
   int n;
   char *ptr;
 
+  // customize for new sections
+
   char *section_keywords[NSECTIONS] = 
-    {"Atoms","Velocities","Bonds","Angles","Dihedrals","Impropers","Masses",
-     "Pair Coeffs","Bond Coeffs","Angle Coeffs",
+    {"Atoms","Velocities","Ellipsoids",
+     "Bonds","Angles","Dihedrals","Impropers",
+     "Masses","Pair Coeffs","Bond Coeffs","Angle Coeffs",
      "Dihedral Coeffs","Improper Coeffs",
      "BondBond Coeffs","BondAngle Coeffs","MiddleBondTorsion Coeffs",
      "EndBondTorsion Coeffs","AngleTorsion Coeffs",
      "AngleAngleTorsion Coeffs","BondBond13 Coeffs","AngleAngle Coeffs"};
-  
+
   // skip 1st line of file
 
   if (me == 0) {
     char *eof = fgets(line,MAXLINE,fp);
     if (eof == NULL) error->one("Unexpected end of data file");
   }
+
+  // customize for new header lines
 
   while (1) {
 
@@ -350,6 +369,12 @@ void ReadData::header(int flag)
 
     else if (strstr(line,"extra bond per atom"))
       sscanf(line,"%d",&atom->extra_bond_per_atom);
+
+    else if (strstr(line,"ellipsoids")) {
+      if (!avec_ellipsoid)
+	error->all("No ellipsoids allowed with this atom style");
+      sscanf(line,BIGINT_FORMAT,&nellipsoids);
+    }
 
     else if (strstr(line,"xlo xhi")) 
       sscanf(line,"%lg %lg",&domain->boxlo[0],&domain->boxhi[0]);
@@ -540,6 +565,57 @@ void ReadData::velocities()
   if (me == 0) {
     if (screen) fprintf(screen,"  " BIGINT_FORMAT " velocities\n",natoms);
     if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " velocities\n",natoms);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   read all ellipsoids
+   to find atoms, must build atom map if not a molecular system 
+------------------------------------------------------------------------- */
+
+void ReadData::ellipsoids()
+{
+  int i,m,nchunk;
+
+  int mapflag = 0;
+  if (atom->map_style == 0) {
+    mapflag = 1;
+    atom->map_style = 1;
+    atom->map_init();
+    atom->map_set();
+  }
+
+  bigint nread = 0;
+  bigint natoms = nellipsoids;
+
+  while (nread < natoms) {
+    if (natoms-nread > CHUNK) nchunk = CHUNK;
+    else nchunk = natoms-nread;
+    if (me == 0) {
+      char *eof;
+      m = 0;
+      for (i = 0; i < nchunk; i++) {
+	eof = fgets(&buffer[m],MAXLINE,fp);
+	if (eof == NULL) error->one("Unexpected end of data file");
+	m += strlen(&buffer[m]);
+      }
+      buffer[m++] = '\n';
+    }
+    MPI_Bcast(&m,1,MPI_INT,0,world);
+    MPI_Bcast(buffer,m,MPI_CHAR,0,world);
+
+    atom->data_bonus(nchunk,buffer,avec_ellipsoid);
+    nread += nchunk;
+  }
+
+  if (mapflag) {
+    atom->map_delete();
+    atom->map_style = 0;
+  }
+
+  if (me == 0) {
+    if (screen) fprintf(screen,"  " BIGINT_FORMAT " ellipsoids\n",natoms);
+    if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " ellipsoids\n",natoms);
   }
 }
 
@@ -933,6 +1009,7 @@ void ReadData::scan(int &bond_per_atom, int &angle_per_atom,
   int natoms = static_cast<int> (atom->natoms);
   bond_per_atom = angle_per_atom = dihedral_per_atom = improper_per_atom = 0;
 
+  // customize for new sections
   // allocate topology counting vector
   // initially, array length = 1 to natoms
   // will grow via reallocate() if atom IDs > natoms
@@ -947,32 +1024,33 @@ void ReadData::scan(int &bond_per_atom, int &angle_per_atom,
     else if (strcmp(keyword,"Atoms") == 0) skip_lines(natoms);
     else if (strcmp(keyword,"Velocities") == 0) skip_lines(natoms);
 
-    else if (strcmp(keyword,"Pair Coeffs") == 0) {
+    else if (strcmp(keyword,"Ellipsoids") == 0) {
+      if (!avec_ellipsoid) 
+	error->all("Invalid data file section: Ellipsoids");
+      skip_lines(nellipsoids);
+
+    } else if (strcmp(keyword,"Pair Coeffs") == 0) {
       if (force->pair == NULL) 
 	error->all("Must define pair_style before Pair Coeffs");
       skip_lines(atom->ntypes);
-
     } else if (strcmp(keyword,"Bond Coeffs") == 0) {
       if (atom->avec->bonds_allow == 0) 
 	error->all("Invalid data file section: Bond Coeffs");
       if (force->bond == NULL) 
 	error->all("Must define bond_style before Bond Coeffs");
       skip_lines(atom->nbondtypes);
-
     } else if (strcmp(keyword,"Angle Coeffs") == 0) {
       if (atom->avec->angles_allow == 0) 
 	error->all("Invalid data file section: Angle Coeffs");
       if (force->angle == NULL) 
 	error->all("Must define angle_style before Angle Coeffs");
       skip_lines(atom->nangletypes);
-
     } else if (strcmp(keyword,"Dihedral Coeffs") == 0) {
       skip_lines(atom->ndihedraltypes);
       if (atom->avec->dihedrals_allow == 0) 
 	error->all("Invalid data file section: Dihedral Coeffs");
       if (force->dihedral == NULL) 
 	error->all("Must define dihedral_style before Dihedral Coeffs");
-
     }  else if (strcmp(keyword,"Improper Coeffs") == 0) {
       if (atom->avec->impropers_allow == 0) 
 	error->all("Invalid data file section: Improper Coeffs");
@@ -986,49 +1064,42 @@ void ReadData::scan(int &bond_per_atom, int &angle_per_atom,
       if (force->angle == NULL) 
 	error->all("Must define angle_style before BondBond Coeffs");
       skip_lines(atom->nangletypes);
-
     } else if (strcmp(keyword,"BondAngle Coeffs") == 0) {
       if (atom->avec->angles_allow == 0) 
 	error->all("Invalid data file section: BondAngle Coeffs");
       if (force->angle == NULL) 
 	error->all("Must define angle_style before BondAngle Coeffs");
       skip_lines(atom->nangletypes);
-
     } else if (strcmp(keyword,"MiddleBondTorsion Coeffs") == 0) {
       if (atom->avec->dihedrals_allow == 0) 
 	error->all("Invalid data file section: MiddleBondTorsion Coeffs");
       if (force->dihedral == NULL) 
 	error->all("Must define dihedral_style before MiddleBondTorsion Coeffs");
       skip_lines(atom->ndihedraltypes);
-
     } else if (strcmp(keyword,"EndBondTorsion Coeffs") == 0) {
       if (atom->avec->dihedrals_allow == 0) 
 	error->all("Invalid data file section: EndBondTorsion Coeffs");
       if (force->dihedral == NULL) 
 	error->all("Must define dihedral_style before EndBondTorsion Coeffs");
       skip_lines(atom->ndihedraltypes);
-
     } else if (strcmp(keyword,"AngleTorsion Coeffs") == 0) {
       if (atom->avec->dihedrals_allow == 0) 
 	error->all("Invalid data file section: AngleTorsion Coeffs");
       if (force->dihedral == NULL) 
 	error->all("Must define dihedral_style before AngleTorsion Coeffs");
       skip_lines(atom->ndihedraltypes);
-
     } else if (strcmp(keyword,"AngleAngleTorsion Coeffs") == 0) {
       if (atom->avec->dihedrals_allow == 0) 
 	error->all("Invalid data file section: AngleAngleTorsion Coeffs");
       if (force->dihedral == NULL) 
 	error->all("Must define dihedral_style before AngleAngleTorsion Coeffs");
       skip_lines(atom->ndihedraltypes);
-
     } else if (strcmp(keyword,"BondBond13 Coeffs") == 0) {
       if (atom->avec->dihedrals_allow == 0) 
 	error->all("Invalid data file section: BondBond13 Coeffs");
       if (force->dihedral == NULL) 
 	error->all("Must define dihedral_style before BondBond13 Coeffs");
       skip_lines(atom->ndihedraltypes);
-
     } else if (strcmp(keyword,"AngleAngle Coeffs") == 0) {
       if (atom->avec->impropers_allow == 0) 
 	error->all("Invalid data file section: AngleAngle Coeffs");

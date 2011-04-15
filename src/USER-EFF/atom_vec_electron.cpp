@@ -97,9 +97,11 @@ void AtomVecElectron::grow_reset()
   eradius = atom->eradius; ervel = atom->ervel; erforce = atom->erforce;
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   copy atom I info to atom J
+------------------------------------------------------------------------- */
 
-void AtomVecElectron::copy(int i, int j)
+void AtomVecElectron::copy(int i, int j, int delflag)
 {
   tag[j] = tag[i];
   type[j] = type[i];

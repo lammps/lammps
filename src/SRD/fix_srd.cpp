@@ -20,7 +20,7 @@
 #include "stdlib.h"
 #include "fix_srd.h"
 #include "atom.h"
-#include "atom_vec.h"
+#include "atom_vec_ellipsoid.h"
 #include "group.h"
 #include "update.h"
 #include "force.h"
@@ -233,6 +233,10 @@ FixSRD::FixSRD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   srd_bin_temp = 0.0;
   srd_bin_count = 0;
 
+  // atom style pointers to particles that store extra info
+
+  avec_ellipsoid = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
+
   // fix parameters
 
   if (collidestyle == SLIP) comm_reverse = 3;
@@ -288,12 +292,8 @@ void FixSRD::init()
   if (force->newton_pair == 0) error->all("Fix srd requires newton pair on");
   if (bigexist && comm->ghost_velocity == 0)
     error->all("Fix srd requires ghost atoms store velocity");
-
-  if (bigexist && !atom->sphere_flag && !atom->ellipsoid_flag)
-    error->all("Fix SRD requires atom style sphere or ellipsoid");
   if (bigexist && collidestyle == NOSLIP && !atom->torque_flag)
     error->all("Fix SRD no-slip requires atom attribute torque");
-
   if (initflag && update->dt != dt_big)
     error->all("Cannot change timestep once fix srd is setup");
 
@@ -2092,8 +2092,9 @@ void FixSRD::parameterize()
   // big particle must either have radius > 0 or shape > 0 defined
   // apply radfactor at end
 
+  AtomVecEllipsoid::Bonus *ebonus = avec_ellipsoid->bonus;
   double *radius = atom->radius;
-  double **shape = atom->shape;
+  int *ellipsoid = atom->ellipsoid;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -2106,15 +2107,15 @@ void FixSRD::parameterize()
       if (radius && radius[i] > 0.0) {
 	maxbigdiam = MAX(maxbigdiam,2.0*radius[i]);
 	minbigdiam = MIN(minbigdiam,2.0*radius[i]);
-      } else if (shape && shape[i][0] > 0.0) {
-	maxbigdiam = MAX(maxbigdiam,2.0*shape[i][0]);
-	maxbigdiam = MAX(maxbigdiam,2.0*shape[i][1]);
-	maxbigdiam = MAX(maxbigdiam,2.0*shape[i][2]);
-	minbigdiam = MIN(minbigdiam,2.0*shape[i][0]);
-	minbigdiam = MIN(minbigdiam,2.0*shape[i][1]);
-	minbigdiam = MIN(minbigdiam,2.0*shape[i][2]);
-	if (shape[i][0] != shape[i][1] || shape[i][0] != shape[i][2])
-	  any_ellipsoids = 1;
+      } else if (ellipsoid && ellipsoid[i] >= 0) {
+	any_ellipsoids = 1;
+	double *shape = ebonus[ellipsoid[i]].shape;
+	maxbigdiam = MAX(maxbigdiam,2.0*shape[0]);
+	maxbigdiam = MAX(maxbigdiam,2.0*shape[1]);
+	maxbigdiam = MAX(maxbigdiam,2.0*shape[2]);
+	minbigdiam = MIN(minbigdiam,2.0*shape[0]);
+	minbigdiam = MIN(minbigdiam,2.0*shape[1]);
+	minbigdiam = MIN(minbigdiam,2.0*shape[2]);
       } else 
 	error->one("Big particle in fix srd cannot be point particle");
     }
@@ -2171,8 +2172,6 @@ void FixSRD::parameterize()
     temperature_srd = force->mvv2e * 
       (lamda/dt_srd)*(lamda/dt_srd) * mass_srd/force->boltz;
 
-  printf("AAA %g %g\n",mass_srd,lamda);
-
   // vmax = maximum velocity of an SRD particle
   // dmax = maximum distance an SRD can move = 4*lamda = vmax * dt_srd
 
@@ -2191,16 +2190,20 @@ void FixSRD::parameterize()
       if (mask[i] & biggroupbit) {
 	if (radius && radius[i] > 0.0)
 	  volbig += 4.0/3.0*PI*radius[i]*radius[i]*radius[i];
-	else if (shape && shape[i][0] > 0.0)
-	  volbig += 4.0/3.0*PI * shape[i][0]*shape[i][1]*shape[i][2];
+	else if (ellipsoid && ellipsoid[i] >= 0) {
+	  double *shape = ebonus[ellipsoid[i]].shape;
+	  volbig += 4.0/3.0*PI * shape[0]*shape[1]*shape[2];
+	}
       }
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & biggroupbit) {
 	if (radius && radius[i] > 0.0)
 	  volbig += PI*radius[i]*radius[i];
-	else if (shape && shape[i][0] > 0.0)
-	  volbig += PI*shape[i][0]*shape[i][1];
+	else if (ellipsoid && ellipsoid[i] >= 0) {
+	  double *shape = ebonus[ellipsoid[i]].shape;
+	  volbig += PI*shape[0]*shape[1];
+	}
       }
   }
 
@@ -2401,9 +2404,11 @@ void FixSRD::big_static()
 {
   int i;
   double rad,arad,brad,crad;
+  double *shape;
 
+  AtomVecEllipsoid::Bonus *ebonus = avec_ellipsoid->bonus;
   double *radius = atom->radius;
-  double **shape = atom->shape;
+  int *ellipsoid = atom->ellipsoid;
   int *type = atom->type;
 
   double skinhalf = 0.5 * neighbor->skin;
@@ -2416,11 +2421,12 @@ void FixSRD::big_static()
       biglist[k].radius = rad;
       biglist[k].radsq = rad*rad;
       biglist[k].cutbinsq = (rad+skinhalf) * (rad+skinhalf);
-    } else if (shape && shape[i][0] > 0.0) {
+    } else if (ellipsoid && ellipsoid[i] >= 0) {
+      shape = ebonus[ellipsoid[i]].shape;
       biglist[k].type = ELLIPSOID;
-      arad = radfactor*shape[i][0];
-      brad = radfactor*shape[i][1];
-      crad = radfactor*shape[i][2];
+      arad = radfactor*shape[0];
+      brad = radfactor*shape[1];
+      crad = radfactor*shape[2];
       biglist[k].aradsqinv = 1.0/(arad*arad);
       biglist[k].bradsqinv = 1.0/(brad*brad);
       biglist[k].cradsqinv = 1.0/(crad*crad);
@@ -2441,12 +2447,13 @@ void FixSRD::big_static()
 void FixSRD::big_dynamic()
 {
   int i;
+  double *shape,*quat;
 
+  AtomVecEllipsoid::Bonus *ebonus = avec_ellipsoid->bonus;
   double **omega = atom->omega;
   double **angmom = atom->angmom;
-  double **quat = atom->quat;
-  double **shape = atom->shape;
   double *rmass = atom->rmass;
+  int *ellipsoid = atom->ellipsoid;
 
   for (int k = 0; k < nbig; k++) {
     i = biglist[k].index;
@@ -2463,9 +2470,11 @@ void FixSRD::big_dynamic()
     // calculate ex,ey,ez and omega from quaternion and angmom
 
     } else if (biglist[k].type == ELLIPSOID) {
-      exyz_from_q(quat[i],biglist[k].ex,biglist[k].ey,biglist[k].ez);
+      shape = ebonus[ellipsoid[i]].shape;
+      quat = ebonus[ellipsoid[i]].quat;
+      exyz_from_q(quat,biglist[k].ex,biglist[k].ey,biglist[k].ez);
       omega_from_mq(angmom[i],biglist[k].ex,biglist[k].ey,biglist[k].ez,
-		    rmass[i],shape[i],biglist[k].omega);
+		    rmass[i],shape,biglist[k].omega);
     }
   }
 }

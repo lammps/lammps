@@ -21,7 +21,7 @@
 #include "fix_nve_asphere.h"
 #include "math_extra.h"
 #include "atom.h"
-#include "atom_vec.h"
+#include "atom_vec_ellipsoid.h"
 #include "force.h"
 #include "update.h"
 #include "memory.h"
@@ -34,10 +34,9 @@ using namespace LAMMPS_NS;
 FixNVEAsphere::FixNVEAsphere(LAMMPS *lmp, int narg, char **arg) : 
   FixNVE(lmp, narg, arg)
 {
-  // error checks
-
-  if (!atom->ellipsoid_flag)
-    error->all("Fix nve/asphere requires atom style ellipsoid");
+  avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
+  if (!avec) 
+    error->all("Compute nve/asphere requires atom style ellipsoid");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -47,13 +46,13 @@ void FixNVEAsphere::init()
   // check that all particles are finite-size
   // no point particles allowed, spherical is OK
 
-  double **shape = atom->shape;
+  int *ellipsoid = atom->ellipsoid;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
-      if (shape[i][0] == 0.0)
+      if (ellipsoid[i] < 0)
 	error->one("Fix nve/asphere requires extended particles");
 
   FixNVE::init();
@@ -65,14 +64,15 @@ void FixNVEAsphere::initial_integrate(int vflag)
 {
   double dtfm;
   double inertia[3];
+  double *shape,*quat;
 
+  AtomVecEllipsoid::Bonus *bonus = avec->bonus;
+  int *ellipsoid = atom->ellipsoid;
   double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;
-  double **quat = atom->quat;
   double **angmom = atom->angmom;
   double **torque = atom->torque;
-  double **shape = atom->shape;
   double *rmass = atom->rmass;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -102,14 +102,14 @@ void FixNVEAsphere::initial_integrate(int vflag)
 
       // principal moments of inertia
 
-      inertia[0] = rmass[i] * 
-	(shape[i][1]*shape[i][1]+shape[i][2]*shape[i][2]) / 5.0;
-      inertia[1] = rmass[i] * 
-	(shape[i][0]*shape[i][0]+shape[i][2]*shape[i][2]) / 5.0;
-      inertia[2] = rmass[i] * 
-	(shape[i][0]*shape[i][0]+shape[i][1]*shape[i][1]) / 5.0;
+      shape = bonus[ellipsoid[i]].shape;
+      quat = bonus[ellipsoid[i]].quat;
 
-      richardson(quat[i],angmom[i],inertia);
+      inertia[0] = rmass[i] * (shape[1]*shape[1]+shape[2]*shape[2]) / 5.0;
+      inertia[1] = rmass[i] * (shape[0]*shape[0]+shape[2]*shape[2]) / 5.0;
+      inertia[2] = rmass[i] * (shape[0]*shape[0]+shape[1]*shape[1]) / 5.0;
+
+      richardson(quat,angmom[i],inertia);
     }
 }
 

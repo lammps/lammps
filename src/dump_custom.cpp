@@ -38,8 +38,7 @@ enum{ID,MOL,TYPE,MASS,
      X,Y,Z,XS,YS,ZS,XSTRI,YSTRI,ZSTRI,XU,YU,ZU,XUTRI,YUTRI,ZUTRI,IX,IY,IZ,
      VX,VY,VZ,FX,FY,FZ,
      Q,MUX,MUY,MUZ,MU,RADIUS,OMEGAX,OMEGAY,OMEGAZ,ANGMOMX,ANGMOMY,ANGMOMZ,
-     SHAPEX,SHAPEY,SHAPEZ,
-     QUATW,QUATI,QUATJ,QUATK,TQX,TQY,TQZ,SPIN,ERADIUS,ERVEL,ERFORCE,
+     TQX,TQY,TQZ,SPIN,ERADIUS,ERVEL,ERFORCE,
      COMPUTE,FIX,VARIABLE};
 enum{LT,LE,GT,GE,EQ,NEQ};
 enum{INT,DOUBLE};
@@ -663,42 +662,6 @@ int DumpCustom::count()
 	  error->all("Threshhold for an atom property that isn't allocated");
 	ptr = &atom->angmom[0][2];
 	nstride = 3;
-
-      } else if (thresh_array[ithresh] == SHAPEX) {
-	if (!atom->shape_flag)
-	  error->all("Threshhold for an atom property that isn't allocated");
-	ptr = &atom->shape[0][0];
-	nstride = 3;
-      } else if (thresh_array[ithresh] == SHAPEY) {
-	if (!atom->shape_flag)
-	  error->all("Threshhold for an atom property that isn't allocated");
-	ptr = &atom->shape[0][1];
-	nstride = 3;
-      } else if (thresh_array[ithresh] == SHAPEZ) {
-	if (!atom->shape_flag)
-	  error->all("Threshhold for an atom property that isn't allocated");
-	ptr = &atom->shape[0][2];
-	nstride = 3;
-      } else if (thresh_array[ithresh] == QUATW) {
-	if (!atom->quat_flag)
-	  error->all("Threshhold for an atom property that isn't allocated");
-	ptr = &atom->quat[0][0];
-	nstride = 4;
-      } else if (thresh_array[ithresh] == QUATI) {
-	if (!atom->quat_flag)
-	  error->all("Threshhold for an atom property that isn't allocated");
-	ptr = &atom->quat[0][1];
-	nstride = 4;
-      } else if (thresh_array[ithresh] == QUATJ) {
-	if (!atom->quat_flag)
-	  error->all("Threshhold for an atom property that isn't allocated");
-	ptr = &atom->quat[0][2];
-	nstride = 4;
-      } else if (thresh_array[ithresh] == QUATK) {
-	if (!atom->quat_flag)
-	  error->all("Threshhold for an atom property that isn't allocated");
-	ptr = &atom->quat[0][3];
-	nstride = 4;
       } else if (thresh_array[ithresh] == TQX) {
 	if (!atom->torque_flag)
 	  error->all("Threshhold for an atom property that isn't allocated");
@@ -1005,42 +968,6 @@ void DumpCustom::parse_fields(int narg, char **arg)
       if (!atom->angmom_flag)
 	error->all("Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_angmomz;
-      vtype[i] = DOUBLE;
-
-    } else if (strcmp(arg[iarg],"shapex") == 0) {
-      if (!atom->shape_flag)
-	error->all("Dumping an atom property that isn't allocated");
-      pack_choice[i] = &DumpCustom::pack_shapex;
-      vtype[i] = DOUBLE;
-    } else if (strcmp(arg[iarg],"shapey") == 0) {
-      if (!atom->shape_flag)
-	error->all("Dumping an atom property that isn't allocated");
-      pack_choice[i] = &DumpCustom::pack_shapey;
-      vtype[i] = DOUBLE;
-    } else if (strcmp(arg[iarg],"shapez") == 0) {
-      if (!atom->shape_flag)
-	error->all("Dumping an atom property that isn't allocated");
-      pack_choice[i] = &DumpCustom::pack_shapez;
-      vtype[i] = DOUBLE;
-    } else if (strcmp(arg[iarg],"quatw") == 0) {
-      if (!atom->quat_flag)
-	error->all("Dumping an atom property that isn't allocated");
-      pack_choice[i] = &DumpCustom::pack_quatw;
-      vtype[i] = DOUBLE;
-    } else if (strcmp(arg[iarg],"quati") == 0) {
-      if (!atom->quat_flag)
-	error->all("Dumping an atom property that isn't allocated");
-      pack_choice[i] = &DumpCustom::pack_quati;
-      vtype[i] = DOUBLE;
-    } else if (strcmp(arg[iarg],"quatj") == 0) {
-      if (!atom->quat_flag)
-	error->all("Dumping an atom property that isn't allocated");
-      pack_choice[i] = &DumpCustom::pack_quatj;
-      vtype[i] = DOUBLE;
-    } else if (strcmp(arg[iarg],"quatk") == 0) {
-      if (!atom->quat_flag)
-	error->all("Dumping an atom property that isn't allocated");
-      pack_choice[i] = &DumpCustom::pack_quatk;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"tqx") == 0) {
       if (!atom->torque_flag)
@@ -1350,14 +1277,6 @@ int DumpCustom::modify_param(int narg, char **arg)
     else if (strcmp(arg[1],"angmomx") == 0) thresh_array[nthresh] = ANGMOMX;
     else if (strcmp(arg[1],"angmomy") == 0) thresh_array[nthresh] = ANGMOMY;
     else if (strcmp(arg[1],"angmomz") == 0) thresh_array[nthresh] = ANGMOMZ;
-
-    else if (strcmp(arg[1],"shapex") == 0) thresh_array[nthresh] = SHAPEX;
-    else if (strcmp(arg[1],"shapey") == 0) thresh_array[nthresh] = SHAPEY;
-    else if (strcmp(arg[1],"shapez") == 0) thresh_array[nthresh] = SHAPEZ;
-    else if (strcmp(arg[1],"quatw") == 0) thresh_array[nthresh] = QUATW;
-    else if (strcmp(arg[1],"quati") == 0) thresh_array[nthresh] = QUATI;
-    else if (strcmp(arg[1],"quatj") == 0) thresh_array[nthresh] = QUATJ;
-    else if (strcmp(arg[1],"quatk") == 0) thresh_array[nthresh] = QUATK;
     else if (strcmp(arg[1],"tqx") == 0) thresh_array[nthresh] = TQX;
     else if (strcmp(arg[1],"tqy") == 0) thresh_array[nthresh] = TQY;
     else if (strcmp(arg[1],"tqz") == 0) thresh_array[nthresh] = TQZ;
@@ -2190,104 +2109,6 @@ void DumpCustom::pack_angmomz(int n)
   for (int i = 0; i < nlocal; i++)
     if (choose[i]) {
       buf[n] = angmom[i][2];
-      n += size_one;
-    }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void DumpCustom::pack_shapex(int n)
-{
-  double **shape = atom->shape;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = shape[i][0];
-      n += size_one;
-    }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void DumpCustom::pack_shapey(int n)
-{
-  double **shape = atom->shape;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = shape[i][1];
-      n += size_one;
-    }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void DumpCustom::pack_shapez(int n)
-{
-  double **shape = atom->shape;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = shape[i][2];
-      n += size_one;
-    }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void DumpCustom::pack_quatw(int n)
-{
-  double **quat = atom->quat;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = quat[i][0];
-      n += size_one;
-    }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void DumpCustom::pack_quati(int n)
-{
-  double **quat = atom->quat;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = quat[i][1];
-      n += size_one;
-    }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void DumpCustom::pack_quatj(int n)
-{
-  double **quat = atom->quat;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = quat[i][2];
-      n += size_one;
-    }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void DumpCustom::pack_quatk(int n)
-{
-  double **quat = atom->quat;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = quat[i][3];
       n += size_one;
     }
 }

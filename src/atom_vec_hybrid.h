@@ -35,7 +35,8 @@ class AtomVecHybrid : public AtomVec {
   void init();
   void grow(int);
   void grow_reset();
-  void copy(int, int);
+  void copy(int, int, int);
+  void clear_bonus();
   int pack_comm(int, int *, double *, int, int *);
   int pack_comm_vel(int, int *, double *, int, int *);
   void unpack_comm(int, int, double *);

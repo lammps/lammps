@@ -69,7 +69,7 @@ void DeleteAtoms::command(int narg, char **arg)
   int i = 0;
   while (i < nlocal) {
     if (dlist[i]) {
-      avec->copy(nlocal-1,i);
+      avec->copy(nlocal-1,i,1);
       dlist[i] = dlist[nlocal-1];
       nlocal--;
     } else i++;

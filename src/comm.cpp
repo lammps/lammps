@@ -566,7 +566,7 @@ void Comm::exchange()
       if (x[i][dim] < lo || x[i][dim] >= hi) {
 	if (nsend > maxsend) grow_send(nsend,1);
 	nsend += avec->pack_exchange(i,&buf_send[nsend]);
-	avec->copy(nlocal-1,i);
+	avec->copy(nlocal-1,i,1);
 	nlocal--;
       } else i++;
     }
@@ -643,9 +643,10 @@ void Comm::borders()
   MPI_Status status;
   AtomVec *avec = atom->avec;
 
-  // clear old ghosts
+  // clear old ghosts and any ghost bonus data internal to AtomVec
 
   atom->nghost = 0;
+  atom->avec->clear_bonus();
 
   // do swaps over all 3 dimensions
 

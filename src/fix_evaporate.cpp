@@ -287,7 +287,7 @@ void FixEvaporate::pre_exchange()
   
   for (i = nlocal-1; i >= 0; i--) {
     if (mark[i]) {
-      avec->copy(atom->nlocal-1,i);
+      avec->copy(atom->nlocal-1,i,1);
       atom->nlocal--;
     }
   }

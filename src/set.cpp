@@ -18,6 +18,7 @@
 #include "set.h"
 #include "atom.h"
 #include "atom_vec.h"
+#include "atom_vec_ellipsoid.h"
 #include "domain.h"
 #include "region.h"
 #include "group.h"
@@ -142,7 +143,7 @@ void Set::command(int narg, char **arg)
       xvalue = atof(arg[iarg+1]);
       yvalue = atof(arg[iarg+2]);
       zvalue = atof(arg[iarg+3]);
-      if (!atom->shape_flag)
+      if (!atom->ellipsoid_flag)
 	error->all("Cannot set this attribute for this atom style");
       if (xvalue < 0.0 || yvalue < 0.0 || zvalue < 0.0)
 	error->all("Invalid shape in set command");
@@ -177,14 +178,14 @@ void Set::command(int narg, char **arg)
       yvalue = atof(arg[iarg+2]);
       zvalue = atof(arg[iarg+3]);
       wvalue = atof(arg[iarg+4]);
-      if (!atom->quat_flag)
+      if (!atom->ellipsoid_flag)
 	error->all("Cannot set this attribute for this atom style");
       set(QUAT);
       iarg += 5;
     } else if (strcmp(arg[iarg],"quat/random") == 0) {
       if (iarg+2 > narg) error->all("Illegal set command");
       ivalue = atoi(arg[iarg+1]);
-      if (!atom->quat_flag)
+      if (!atom->ellipsoid_flag)
 	error->all("Cannot set this attribute for this atom style");
       if (ivalue <= 0) error->all("Invalid random number seed in set command");
       setrandom(QUAT_RANDOM);
@@ -358,6 +359,9 @@ void Set::selection(int n)
 
 void Set::set(int keyword)
 {
+  AtomVecEllipsoid *avec_ellipsoid = 
+    (AtomVecEllipsoid *) atom->style_match("ellipsoid");
+
   selection(atom->nlocal);
 
   int nlocal = atom->nlocal;
@@ -376,25 +380,22 @@ void Set::set(int keyword)
     
     // set shape
 
-    else if (keyword == SHAPE) {
-      double **shape = atom->shape;
-      shape[i][0] = 0.5 * xvalue;
-      shape[i][1] = 0.5 * yvalue;
-      shape[i][2] = 0.5 * zvalue;
-      
+    else if (keyword == SHAPE)
+      avec_ellipsoid->set_bonus(i,0.5*xvalue,0.5*yvalue,0.5*zvalue);
+
     // set rmass via density
     // if radius > 0.0, assume sphere
     // if shape > 0.0, assume ellipsoid
     // else set rmass to density directly
 
-    } else if (keyword == DENSITY) {
+    else if (keyword == DENSITY) {
       if (atom->radius_flag && atom->radius[i] > 0.0)
 	atom->rmass[i] = 4.0*PI/3.0 * 
 	  atom->radius[i]*atom->radius[i]*atom->radius[i] * dvalue;
-      else if (atom->shape_flag && atom->shape[i][0] > 0.0)
-	atom->rmass[i] = 4.0*PI/3.0 * 
-	  atom->shape[i][0]*atom->shape[i][1]*atom->shape[i][2] * dvalue;
-      else atom->rmass[i] = dvalue;
+      else if (atom->ellipsoid_flag && atom->ellipsoid[i] >= 0) {
+	double *shape = avec_ellipsoid->bonus[atom->ellipsoid[i]].shape;
+	atom->rmass[i] = 4.0*PI/3.0 * shape[0]*shape[1]*shape[2] * dvalue;
+      } else atom->rmass[i] = dvalue;
 
     // reset any or all of 3 image flags
       
@@ -419,17 +420,18 @@ void Set::set(int keyword)
 		      mu[i][2]*mu[i][2]);
       
     // set quaternion orientation
-      
+
     } else if (keyword == QUAT) {
-      double PI = 4.0*atan(1.0);
+      if (atom->ellipsoid[i] < 0)
+	error->one("Cannot set quaternion for atom that is not an ellipsoid");
+      double *quat = avec_ellipsoid->bonus[atom->ellipsoid[i]].quat;
       double theta2 = 0.5 * PI * wvalue/180.0;
       double sintheta2 = sin(theta2);
-      double **quat = atom->quat;
-      quat[i][0] = cos(theta2);
-      quat[i][1] = xvalue * sintheta2;
-      quat[i][2] = yvalue * sintheta2;
-      quat[i][3] = zvalue * sintheta2;
-      MathExtra::normalize4(quat[i]);
+      quat[0] = cos(theta2);
+      quat[1] = xvalue * sintheta2;
+      quat[2] = yvalue * sintheta2;
+      quat[3] = zvalue * sintheta2;
+      MathExtra::normalize4(quat);
     }
     count++;
   }
@@ -509,38 +511,48 @@ void Set::setrandom(int keyword)
   // no need to normalize quats since creations algorithms already do
 
   } else if (keyword == QUAT_RANDOM) {
-    double **quat = atom->quat;
+    AtomVecEllipsoid *avec_ellipsoid = 
+      (AtomVecEllipsoid *) atom->style_match("ellipsoid");
+    AtomVecEllipsoid::Bonus *bonus = avec_ellipsoid->bonus;
+    int *ellipsoid = atom->ellipsoid;
     int nlocal = atom->nlocal;
+    double *quat;
 
     if (domain->dimension == 3) {
       double s,t1,t2,theta1,theta2;
-      double PI = 4.0*atan(1.0);
       for (i = 0; i < nlocal; i++)
 	if (select[i]) {
+	  if (ellipsoid[i] < 0)
+	    error->one("Cannot set quaternion for atom "
+		       "that is not an ellipsoid");
+	  quat = bonus[ellipsoid[i]].quat;
 	  random->reset(seed,x[i]);
 	  s = random->uniform();
 	  t1 = sqrt(1.0-s);
 	  t2 = sqrt(s);
 	  theta1 = 2.0*PI*random->uniform();
 	  theta2 = 2.0*PI*random->uniform();
-	  quat[i][0] = cos(theta2)*t2;
-	  quat[i][1] = sin(theta1)*t1;
-	  quat[i][2] = cos(theta1)*t1;
-	  quat[i][3] = sin(theta2)*t2;
+	  quat[0] = cos(theta2)*t2;
+	  quat[1] = sin(theta1)*t1;
+	  quat[2] = cos(theta1)*t1;
+	  quat[3] = sin(theta2)*t2;
 	  count++;
 	}
 
     } else {
       double theta2;
-      double PI = 4.0*atan(1.0);
       for (i = 0; i < nlocal; i++)
 	if (select[i]) {
+	  if (ellipsoid[i] < 0)
+	    error->one("Cannot set quaternion for atom "
+		       "that is not an ellipsoid");
+	  quat = bonus[ellipsoid[i]].quat;
 	  random->reset(seed,x[i]);
 	  theta2 = PI*random->uniform();
-	  quat[i][0] = cos(theta2);
-	  quat[i][1] = 0.0;
-	  quat[i][2] = 0.0;
-	  quat[i][3] = sin(theta2);
+	  quat[0] = cos(theta2);
+	  quat[1] = 0.0;
+	  quat[2] = 0.0;
+	  quat[3] = sin(theta2);
 	  count++;
 	}
     }

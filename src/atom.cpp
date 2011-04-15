@@ -19,6 +19,7 @@
 #include "atom.h"
 #include "style_atom.h"
 #include "atom_vec.h"
+#include "atom_vec_ellipsoid.h"
 #include "comm.h"
 #include "neighbor.h"
 #include "force.h"
@@ -70,11 +71,11 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   molecule = NULL;
   q = NULL;
   mu = NULL;
-  quat = omega = angmom = torque = shape = NULL;
+  omega = angmom = torque = NULL;
   radius = rmass = NULL;
   vfrac = s0 = NULL;
   x0 = NULL;
-
+  ellipsoid = NULL;
   spin = NULL;
   eradius = ervel = erforce = NULL;
 
@@ -102,8 +103,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   sphere_flag = ellipsoid_flag = peri_flag = electron_flag = 0;
 
   molecule_flag = q_flag = mu_flag = 0;
-  rmass_flag = radius_flag = omega_flag = torque_flag = 0;
-  quat_flag = shape_flag = angmom_flag = 0;
+  rmass_flag = radius_flag = omega_flag = torque_flag = angmom_flag = 0;
   vfrac_flag = spin_flag = eradius_flag = ervel_flag = erforce_flag = 0;
 
   // ntype-length arrays
@@ -167,18 +167,15 @@ Atom::~Atom()
 
   memory->destroy(q);
   memory->destroy(mu);
-  memory->destroy(quat);
-  memory->destroy(shape);
   memory->destroy(omega);
   memory->destroy(angmom);
   memory->destroy(torque);
-
   memory->destroy(radius);
   memory->destroy(rmass);
   memory->destroy(vfrac);
   memory->destroy(s0);
   memory->destroy(x0);
-
+  memory->destroy(ellipsoid);
   memory->destroy(spin);
   memory->destroy(eradius);
   memory->destroy(ervel);
@@ -256,8 +253,7 @@ void Atom::create_avec(const char *style, int narg, char **arg)
   sphere_flag = ellipsoid_flag = peri_flag = electron_flag = 0;
 
   molecule_flag = q_flag = mu_flag = 0;
-  rmass_flag = radius_flag = omega_flag = torque_flag = 0;
-  quat_flag = shape_flag = angmom_flag = 0;
+  rmass_flag = radius_flag = omega_flag = torque_flag = angmom_flag = 0;
   vfrac_flag = spin_flag = eradius_flag = ervel_flag = erforce_flag = 0;
 
   avec = new_avec(style,narg,arg);
@@ -329,19 +325,20 @@ void Atom::setup()
 }
 
 /* ----------------------------------------------------------------------
-   return 1 if style matches atom style or hybrid sub-style
-   else return 0
+   return ptr to AtomVec class if matches style or to matching hybrid sub-class
+   return NULL if no match
 ------------------------------------------------------------------------- */
 
-int Atom::style_match(const char *style)
+AtomVec *Atom::style_match(const char *style)
 {
-  if (strcmp(atom_style,style) == 0) return 1;
+  if (strcmp(atom_style,style) == 0) return avec;
   else if (strcmp(atom_style,"hybrid") == 0) {
     AtomVecHybrid *avec_hybrid = (AtomVecHybrid *) avec;
     for (int i = 0; i < avec_hybrid->nstyles; i++)
-      if (strcmp(avec_hybrid->keywords[i],style) == 0) return 1;
+      if (strcmp(avec_hybrid->keywords[i],style) == 0)
+	return avec_hybrid->styles[i];
   }
-  return 0;
+  return NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -848,6 +845,53 @@ void Atom::data_vels(int n, char *buf)
 }
 
 /* ----------------------------------------------------------------------
+   unpack n lines from atom-style specific section of data file
+   check that atom IDs are > 0 and <= map_tag_max
+   call style-specific routine to parse line
+------------------------------------------------------------------------- */
+
+void Atom::data_bonus(int n, char *buf, AtomVec *avec_bonus)
+{
+  int j,m,tagdata;
+  char *next;
+
+  next = strchr(buf,'\n');
+  *next = '\0';
+  int nwords = count_words(buf);
+  *next = '\n';
+
+  if (nwords != avec_bonus->size_data_bonus)
+    error->all("Incorrect bonus data format in data file");
+
+  char **values = new char*[nwords];
+
+  // loop over lines of bonus atom data
+  // tokenize the line into values
+  // if I own atom tag, unpack its values
+
+  for (int i = 0; i < n; i++) {
+    next = strchr(buf,'\n');
+
+    values[0] = strtok(buf," \t\n\r\f");
+    for (j = 1; j < nwords; j++)
+      values[j] = strtok(NULL," \t\n\r\f");
+
+    tagdata = atoi(values[0]);
+    if (tagdata <= 0 || tagdata > map_tag_max)
+      error->one("Invalid atom ID in Bonus section of data file");
+
+    // ok to call child's data_atom_bonus() method thru parent avec_bonus,
+    // since data_bonus() was called with child ptr, and method is virtual
+
+    if ((m = map(tagdata)) >= 0) avec_bonus->data_atom_bonus(m,&values[1]);
+
+    buf = next + 1;
+  }
+
+  delete [] values;
+}
+
+/* ----------------------------------------------------------------------
    check that atom IDs are > 0 and <= map_tag_max
 ------------------------------------------------------------------------- */
 
@@ -1170,23 +1214,32 @@ int Atom::radius_consistency(int itype, double &rad)
 /* ----------------------------------------------------------------------
    check that shape of all particles of itype are the same
    return 1 if true, else return 0
-   also return the radius value for that type
+   also return the 3 shape params for itype
 ------------------------------------------------------------------------- */
 
 int Atom::shape_consistency(int itype,
 			    double &shapex, double &shapey, double &shapez)
 {
-  double one[3];
-  one[0] = one[1] = one[2] = -1.0;
+  double zero[3] = {0.0, 0.0, 0.0};
+  double one[3] = {-1.0, -1.0, -1.0};
+  double *shape;
+
+  AtomVecEllipsoid *avec_ellipsoid =
+    (AtomVecEllipsoid *) style_match("ellipsoid");
+  AtomVecEllipsoid::Bonus *bonus = avec_ellipsoid->bonus;
+
   int flag = 0;
   for (int i = 0; i < nlocal; i++) {
     if (type[i] != itype) continue;
+    if (ellipsoid[i] < 0) shape = zero;
+    else shape = bonus[ellipsoid[i]].shape;
+
     if (one[0] < 0.0) {
-      one[0] = shape[i][0];
-      one[1] = shape[i][1];
-      one[2] = shape[i][2];
-    } else if (one[0] != shape[i][0] || one[1] != shape[i][1] || 
-	       one[2] != shape[i][2]) flag = 1;
+      one[0] = shape[0];
+      one[1] = shape[1];
+      one[2] = shape[2];
+    } else if (one[0] != shape[0] || one[1] != shape[1] || one[2] != shape[2])
+      flag = 1;
   }
 
   int flagall;
@@ -1223,9 +1276,9 @@ void Atom::first_reorder()
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & bitmask && i > nfirst) {
-      avec->copy(i,nlocal);
-      avec->copy(nfirst,i);
-      avec->copy(nlocal,nfirst);
+      avec->copy(i,nlocal,0);
+      avec->copy(nfirst,i,0);
+      avec->copy(nlocal,nfirst,0);
       while (nfirst < nlocal && mask[nfirst] & bitmask) nfirst++;
     }
   }
@@ -1310,13 +1363,13 @@ void Atom::sort()
 
   for (i = 0; i < nlocal; i++) {
     if (current[i] == permute[i]) continue;
-    avec->copy(i,nlocal);
+    avec->copy(i,nlocal,0);
     empty = i;
     while (permute[empty] != i) {
-      avec->copy(permute[empty],empty);
+      avec->copy(permute[empty],empty,0);
       empty = current[empty] = permute[empty];
     }      
-    avec->copy(nlocal,empty);
+    avec->copy(nlocal,empty,0);
     current[empty] = permute[empty];
   }
 

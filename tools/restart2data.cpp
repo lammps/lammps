@@ -92,6 +92,7 @@ class Data {
   int style_hybrid,style_molecular,style_peri,style_sphere;
 
   bigint natoms;
+  bigint nellipsoids;
   bigint nbonds,nangles,ndihedrals,nimpropers;
   int ntypes,nbondtypes,nangletypes,ndihedraltypes,nimpropertypes;
   int bond_per_atom,angle_per_atom,dihedral_per_atom,improper_per_atom;
@@ -202,6 +203,7 @@ class Data {
   double *s0,*x0x,*x0y,*x0z;
   double *shapex,*shapey,*shapez;
   double *quatw,*quati,*quatj,*quatk,*angmomx,*angmomy,*angmomz;
+  int *ellipsoid;
   int *bond_type,*angle_type,*dihedral_type,*improper_type;
   int *bond_atom1,*bond_atom2;
   int *angle_atom1,*angle_atom2,*angle_atom3;
@@ -916,22 +918,25 @@ int atom_ellipsoid(double *buf, Data &data, int iatoms)
   data.vy[iatoms] = buf[m++];
   data.vz[iatoms] = buf[m++];
 
-  data.shapex[iatoms] = buf[m++];
-  data.shapey[iatoms] = buf[m++];
-  data.shapez[iatoms] = buf[m++];
   data.rmass[iatoms] = buf[m++];
-  if (data.shapex[iatoms] == 0.0) data.density[iatoms] = data.rmass[iatoms];
-  else 
-    data.density[iatoms] = data.rmass[iatoms] / 
-      (4.0*PI/3.0 * 
-       data.shapex[iatoms]*data.shapey[iatoms]*data.shapez[iatoms]);
-  data.quatw[iatoms] = buf[m++];
-  data.quati[iatoms] = buf[m++];
-  data.quatj[iatoms] = buf[m++];
-  data.quatk[iatoms] = buf[m++];
   data.angmomx[iatoms] = buf[m++];
   data.angmomy[iatoms] = buf[m++];
   data.angmomz[iatoms] = buf[m++];
+  data.ellipsoid[iatoms] = static_cast<int> (buf[m++]);
+
+  if (data.ellipsoid[iatoms]) {
+    data.nellipsoids++;
+    data.shapex[iatoms] = buf[m++];
+    data.shapey[iatoms] = buf[m++];
+    data.shapez[iatoms] = buf[m++];
+    data.quatw[iatoms] = buf[m++];
+    data.quati[iatoms] = buf[m++];
+    data.quatj[iatoms] = buf[m++];
+    data.quatk[iatoms] = buf[m++];
+    data.density[iatoms] = data.rmass[iatoms] / 
+      (4.0*PI/3.0 * 
+       data.shapex[iatoms]*data.shapey[iatoms]*data.shapez[iatoms]);
+  } else data.density[iatoms] = data.rmass[iatoms];
 
   return m;
 }
@@ -1218,18 +1223,19 @@ void allocate_full(Data &data)
 
 void allocate_ellipsoid(Data &data)
 {
-  data.shapex = new double[data.natoms];
-  data.shapey = new double[data.natoms];
-  data.shapez = new double[data.natoms];
   data.rmass = new double[data.natoms];
   data.density = new double[data.natoms];
-  data.quatw = new double[data.natoms];
-  data.quati = new double[data.natoms];
-  data.quatj = new double[data.natoms];
-  data.quatk = new double[data.natoms];
   data.angmomx = new double[data.natoms];
   data.angmomy = new double[data.natoms];
   data.angmomz = new double[data.natoms];
+  data.ellipsoid = new int[data.natoms];
+  data.quatw = new double[data.natoms];
+  data.shapex = new double[data.natoms];
+  data.shapey = new double[data.natoms];
+  data.shapez = new double[data.natoms];
+  data.quati = new double[data.natoms];
+  data.quatj = new double[data.natoms];
+  data.quatk = new double[data.natoms];
 }
 
 void allocate_sphere(Data &data)
@@ -2625,7 +2631,10 @@ void improper(FILE *fp, Data &data)
 // initialize Data
 // ---------------------------------------------------------------------
 
-Data::Data() {}
+Data::Data()
+{
+  nellipsoids = 0;
+}
 
 // ---------------------------------------------------------------------
 // print out stats on problem
@@ -2639,6 +2648,9 @@ void Data::stats()
   printf("  Ntimestep = " BIGINT_FORMAT "\n",ntimestep);
   printf("  Nprocs = %d\n",nprocs);
   printf("  Natoms = " BIGINT_FORMAT "\n",natoms);
+
+  if (nellipsoids) printf("  Nellipsoids = " BIGINT_FORMAT "\n",nellipsoids);
+
   printf("  Nbonds = " BIGINT_FORMAT "\n",nbonds);
   printf("  Nangles = " BIGINT_FORMAT "\n",nangles);
   printf("  Ndihedrals = " BIGINT_FORMAT "\n",ndihedrals);
@@ -2651,6 +2663,7 @@ void Data::stats()
   printf("  Angle style = %s\n",angle_style);
   printf("  Dihedral style = %s\n",dihedral_style);
   printf("  Improper style = %s\n",improper_style);
+
   printf("  Xlo xhi = %g %g\n",xlo,xhi);
   printf("  Ylo yhi = %g %g\n",ylo,yhi);
   printf("  Zlo zhi = %g %g\n",zlo,zhi);
@@ -2670,6 +2683,7 @@ void Data::write(FILE *fp, FILE *fp2)
 	  BIGINT_FORMAT ", procs = %d\n\n",ntimestep,nprocs);
 
   fprintf(fp,BIGINT_FORMAT " atoms\n",natoms);
+  if (nellipsoids) fprintf(fp,BIGINT_FORMAT " ellipsoids\n",nellipsoids);
   if (nbonds) fprintf(fp,BIGINT_FORMAT " bonds\n",nbonds);
   if (nangles) fprintf(fp,BIGINT_FORMAT " angles\n",nangles);
   if (ndihedrals) fprintf(fp,BIGINT_FORMAT " dihedrals\n",ndihedrals);
@@ -3239,6 +3253,17 @@ void Data::write(FILE *fp, FILE *fp2)
 	fprintf(fp,"\n");
       }
   }
+ 
+  if (nellipsoids) {
+    fprintf(fp,"\nEllipsoids\n\n");
+    for (uint64_t i = 0; i < natoms; i++) {
+      if (ellipsoid[i])
+	fprintf(fp,"%d %-1.16e %-1.16e %-1.16e "
+		"%-1.16e %-1.16e %-1.16e %-1.16e \n",
+		tag[i],2.0*shapex[i],2.0*shapey[i],2.0*shapez[i],
+		quatw[i],quati[i],quatj[i],quatk[i]);
+    }
+  }
 
   if (nbonds) {
     fprintf(fp,"\nBonds\n\n");
@@ -3302,16 +3327,16 @@ void Data::write_atom_charge(FILE *fp, int i, int ix, int iy, int iz)
 
 void Data::write_atom_dipole(FILE *fp, int i, int ix, int iy, int iz)
 {
-  fprintf(fp,"%d %d %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %d %d %d",
+  fprintf(fp,"%d %d %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e "
+	  "%-1.16e %-1.16e %d %d %d",
 	  tag[i],type[i],q[i],x[i],y[i],z[i],
 	  mux[i],muy[i],muz[i],ix,iy,iz);
 }
 
 void Data::write_atom_ellipsoid(FILE *fp, int i, int ix, int iy, int iz)
 {
-  fprintf(fp,"%d %d %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %d %d %d",
-	  tag[i],type[i],shapex[i],shapey[i],shapez[i],density[i],
-	  x[i],y[i],z[i],quatw[i],quati[i],quatj[i],quatk[i],ix,iy,iz);
+  fprintf(fp,"%d %d %d %-1.16e %-1.16e %-1.16e %-1.16e %d %d %d",
+	  tag[i],type[i],ellipsoid[i],density[i],x[i],y[i],z[i],ix,iy,iz);
 }
 
 void Data::write_atom_full(FILE *fp, int i, int ix, int iy, int iz)
@@ -3367,9 +3392,7 @@ void Data::write_atom_dipole_extra(FILE *fp, int i)
 
 void Data::write_atom_ellipsoid_extra(FILE *fp, int i)
 {
-  fprintf(fp," %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e",
-	  shapex[i],shapey[i],shapez[i],density[i],
-	  quatw[i],quati[i],quatj[i],quatk[i]);
+  fprintf(fp," %d %-1.16e",ellipsoid[i],density[i]);
 }
 
 void Data::write_atom_full_extra(FILE *fp, int i)

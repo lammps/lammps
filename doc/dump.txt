@@ -41,9 +41,7 @@ args = list of arguments for a particular style :l
 			  vx, vy, vz, fx, fy, fz,
                           q, mux, muy, muz, mu,
                           radius, omegax, omegay, omegaz,
-			  angmomx, angmomy, angmomz,
-			  shapex,shapey, shapez,
-			  quatw, quati, quatj, quatk, tqx, tqy, tqz,
+			  angmomx, angmomy, angmomz, tqx, tqy, tqz,
 			  spin, eradius, ervel, erforce,
 			  c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_name :pre
 
@@ -63,8 +61,6 @@ args = list of arguments for a particular style :l
       radius = radius of spherical particle
       omegax,omegay,omegaz = angular velocity of extended particle
       angmomx,angmomy,angmomz = angular momentum of extended particle
-      shapex,shapey,shapez = 3 diameters of ellipsoidal particle
-      quatw,quati,quatj,quatk = quaternion components for aspherical particles
       tqx,tqy,tqz = torque on extended particles
       spin = electron spin
       eradius = electron radius
@@ -414,15 +410,6 @@ quantity.
 The {angmomx}, {angmomy}, and {angmomz} attributes are specific to
 extended aspherical particles that have an angular momentum.  Only
 the {ellipsoid} atom style defines this quantity.
-
-The {shapex}, {shapey}, and {shapez} attributes are specific to
-extended ellipsoidal particles that have a finite size and shape, such
-those defined with an atom style of {ellipsoidal}.
-
-The {quatw}, {quati}, {quatj}, {quatk} attributes are for aspherical
-particles defined with an atom style of {ellipsoid}.  They are the
-components of the quaternion that defines the orientation of the
-particle.
 
 The {tqx}, {tqy}, {tqz} attributes are for extended spherical or
 aspherical particles that can sustain a rotational torque due

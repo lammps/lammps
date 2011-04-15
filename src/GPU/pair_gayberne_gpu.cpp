@@ -23,6 +23,7 @@
 #include "math_extra.h"
 #include "atom.h"
 #include "atom_vec.h"
+#include "atom_vec_ellipsoid.h"
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
@@ -73,6 +74,9 @@ enum{SPHERE_SPHERE,SPHERE_ELLIPSE,ELLIPSE_SPHERE,ELLIPSE_ELLIPSE};
 PairGayBerneGPU::PairGayBerneGPU(LAMMPS *lmp) : PairGayBerne(lmp),
                                                 gpu_mode(GPU_PAIR)
 {
+  avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
+  if (!avec) 
+    error->all("Pair gayberne requires atom style ellipsoid");
 }
 
 /* ----------------------------------------------------------------------
@@ -101,17 +105,21 @@ void PairGayBerneGPU::compute(int eflag, int vflag)
 
   if (gpu_mode == GPU_NEIGH) {
     inum = atom->nlocal;
+    /* MIKE: this arg of atom->quat needs to be modified
     gpulist = gb_gpu_compute_n(ntimestep, neighbor->ago, inum, nall,
 			       atom->x, atom->type, domain->sublo, domain->subhi,
 			       eflag, vflag, eflag_atom, vflag_atom, host_start,
                                cpu_time, success, atom->quat);
+    */
   } else {
     inum = list->inum;
+    /* MIKE: this arg of atom->quat needs to be modified
     olist = gb_gpu_compute(ntimestep, neighbor->ago, inum, nall, atom->x,
 			   atom->type, list->ilist, list->numneigh,
 			   list->firstneigh, eflag, vflag, eflag_atom,
                            vflag_atom, host_start, cpu_time, success,
                            atom->quat);
+    */
   }
   if (!success)
     error->one("Out of memory on GPGPU");
@@ -206,10 +214,12 @@ void PairGayBerneGPU::cpu_compute(int start, int eflag, int vflag)
   double fforce[3],ttor[3],rtor[3],r12[3];
   double a1[3][3],b1[3][3],g1[3][3],a2[3][3],b2[3][3],g2[3][3],temp[3][3];
   int *ilist,*jlist,*numneigh,**firstneigh;
+  double *iquat,*jquat;
 
+  AtomVecEllipsoid::Bonus *bonus = avec->bonus;
+  int *ellipsoid = atom->ellipsoid;
   double **x = atom->x;
   double **f = atom->f;
-  double **quat = atom->quat;
   double **tor = atom->torque;
   int *type = atom->type;
   int nlocal = atom->nlocal;
@@ -227,7 +237,8 @@ void PairGayBerneGPU::cpu_compute(int start, int eflag, int vflag)
     itype = type[i];
 
     if (form[itype][itype] == ELLIPSE_ELLIPSE) {
-      MathExtra::quat_to_mat_trans(quat[i],a1);
+      iquat = bonus[ellipsoid[i]].quat;
+      MathExtra::quat_to_mat_trans(iquat,a1);
       MathExtra::diag_times3(well[itype],a1,temp);
       MathExtra::transpose_times3(a1,temp,b1);
       MathExtra::diag_times3(shape2[itype],a1,temp);
@@ -271,7 +282,8 @@ void PairGayBerneGPU::cpu_compute(int start, int eflag, int vflag)
 	  break;
 
         case SPHERE_ELLIPSE:
-	  MathExtra::quat_to_mat_trans(quat[j],a2);
+	  jquat = bonus[ellipsoid[j]].quat;
+	  MathExtra::quat_to_mat_trans(jquat,a2);
 	  MathExtra::diag_times3(well[jtype],a2,temp);
 	  MathExtra::transpose_times3(a2,temp,b2);
 	  MathExtra::diag_times3(shape2[jtype],a2,temp);
@@ -286,7 +298,8 @@ void PairGayBerneGPU::cpu_compute(int start, int eflag, int vflag)
 	  break;
 
 	default:
-	  MathExtra::quat_to_mat_trans(quat[j],a2);
+	  jquat = bonus[ellipsoid[j]].quat;
+	  MathExtra::quat_to_mat_trans(jquat,a2);
 	  MathExtra::diag_times3(well[jtype],a2,temp);
 	  MathExtra::transpose_times3(a2,temp,b2);
 	  MathExtra::diag_times3(shape2[jtype],a2,temp);
@@ -327,10 +340,12 @@ void PairGayBerneGPU::cpu_compute(int *nbors, int start, int eflag, int vflag)
   double evdwl,one_eng,rsq,r2inv,r6inv,forcelj,factor_lj;
   double fforce[3],ttor[3],rtor[3],r12[3];
   double a1[3][3],b1[3][3],g1[3][3],a2[3][3],b2[3][3],g2[3][3],temp[3][3];
+  double *iquat,*jquat;
 
+  AtomVecEllipsoid::Bonus *bonus = avec->bonus;
+  int *ellipsoid = atom->ellipsoid;
   double **x = atom->x;
   double **f = atom->f;
-  double **quat = atom->quat;
   double **tor = atom->torque;
   int *type = atom->type;
   int nlocal = atom->nlocal;
@@ -343,7 +358,8 @@ void PairGayBerneGPU::cpu_compute(int *nbors, int start, int eflag, int vflag)
     itype = type[i];
 
     if (form[itype][itype] == ELLIPSE_ELLIPSE) {
-      MathExtra::quat_to_mat_trans(quat[i],a1);
+      iquat = bonus[ellipsoid[j]].quat;
+      MathExtra::quat_to_mat_trans(iquat,a1);
       MathExtra::diag_times3(well[itype],a1,temp);
       MathExtra::transpose_times3(a1,temp,b1);
       MathExtra::diag_times3(shape2[itype],a1,temp);
@@ -389,7 +405,8 @@ void PairGayBerneGPU::cpu_compute(int *nbors, int start, int eflag, int vflag)
 	  break;
 
         case SPHERE_ELLIPSE:
-	  MathExtra::quat_to_mat_trans(quat[j],a2);
+	  jquat = bonus[ellipsoid[j]].quat;
+	  MathExtra::quat_to_mat_trans(jquat,a2);
 	  MathExtra::diag_times3(well[jtype],a2,temp);
 	  MathExtra::transpose_times3(a2,temp,b2);
 	  MathExtra::diag_times3(shape2[jtype],a2,temp);
@@ -404,7 +421,8 @@ void PairGayBerneGPU::cpu_compute(int *nbors, int start, int eflag, int vflag)
 	  break;
 
 	default:
-	  MathExtra::quat_to_mat_trans(quat[j],a2);
+	  jquat = bonus[ellipsoid[j]].quat;
+	  MathExtra::quat_to_mat_trans(jquat,a2);
 	  MathExtra::diag_times3(well[jtype],a2,temp);
 	  MathExtra::transpose_times3(a2,temp,b2);
 	  MathExtra::diag_times3(shape2[jtype],a2,temp);

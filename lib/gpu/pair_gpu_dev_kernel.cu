@@ -30,6 +30,11 @@
      Definition:   Number of threads guaranteed to be on the same instruction
   THREADS_PER_ATOM
      Definition:   Default number of threads assigned per atom for pair styles
+     Restructions: Must be power of 2; THREADS_PER_ATOM<=WARP_SIZE
+  THREADS_PER_CHARGE
+     Definition:   Default number of threads assigned per atom for pair styles
+                   with charge
+     Restructions: Must be power of 2; THREADS_PER_ATOM<=WARP_SIZE
   PPPM_MAX_SPLINE
      Definition:   Maximum order for splines in PPPM
   PPPM_BLOCK_1D    
@@ -73,6 +78,7 @@
 #define MEM_THREADS 16
 #define WARP_SIZE 1
 #define THREADS_PER_ATOM 1
+#define THREADS_PER_CHARGE 1
 #define BLOCK_PAIR 64
 #define MAX_SHARED_TYPES 8
 #define BLOCK_NBOR_BUILD 64
@@ -107,6 +113,8 @@ __kernel void kernel_info(__global int *info) {
   info[10]=BLOCK_NBOR_BUILD;
   info[11]=BLOCK_BIO_PAIR;
   info[12]=MAX_BIO_SHARED_TYPES;
+  info[13]=THREADS_PER_CHARGE;
 }
 
 #endif
+

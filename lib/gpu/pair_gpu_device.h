@@ -112,7 +112,8 @@ class PairGPUDevice {
   void output_times(UCL_Timer &time_pair, PairGPUAns<numtyp,acctyp> &ans, 
                     PairGPUNbor &nbor, const double avg_split, 
                     const double max_bytes, const double gpu_overhead,
-                    const double driver_overhead, FILE *screen);
+                    const double driver_overhead, 
+                    const int threads_per_atom, FILE *screen);
 
   /// Output a message with timing information
   void output_kspace_times(UCL_Timer &time_in, UCL_Timer &time_out,
@@ -203,6 +204,8 @@ class PairGPUDevice {
   inline int num_mem_threads() const { return _num_mem_threads; }
   /// Return the number of threads per atom for pair styles
   inline int threads_per_atom() const { return _threads_per_atom; }
+  /// Return the number of threads per atom for pair styles using charge
+  inline int threads_per_charge() const { return _threads_per_charge; }
   /// Return the min of the pair block size or the device max block size
   inline int pair_block_size() const { return _block_pair; }
   /// Return the maximum number of atom types that can be used with shared mem
@@ -277,7 +280,7 @@ class PairGPUDevice {
   double _particle_split;
   double _cpu_full;
 
-  int _num_mem_threads, _warp_size, _threads_per_atom;
+  int _num_mem_threads, _warp_size, _threads_per_atom, _threads_per_charge;
   int _pppm_max_spline, _pppm_block;
   int _block_pair, _max_shared_types;
   int _block_cell_2d, _block_cell_id, _block_nbor_build;

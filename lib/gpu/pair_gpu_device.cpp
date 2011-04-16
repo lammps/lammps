@@ -52,6 +52,7 @@ int PairGPUDeviceT::init_device(MPI_Comm world, MPI_Comm replica,
   omp_set_num_threads(nthreads);
   #endif
   _threads_per_atom=t_per_atom;
+  _threads_per_charge=t_per_atom;
 
   if (_device_init)
     return 0;
@@ -381,7 +382,8 @@ void PairGPUDeviceT::output_times(UCL_Timer &time_pair,
                                   PairGPUNbor &nbor, const double avg_split, 
                                   const double max_bytes, 
                                   const double gpu_overhead,
-                                  const double driver_overhead, FILE *screen) {
+                                  const double driver_overhead, 
+                                  const int threads_per_atom, FILE *screen) {
   double single[8], times[8];
 
   single[0]=atom.transfer_time()+ans.transfer_time();
@@ -420,7 +422,7 @@ void PairGPUDeviceT::output_times(UCL_Timer &time_pair,
       }
       fprintf(screen,"GPU Overhead:    %.4f s.\n",times[5]/_replica_size);
       fprintf(screen,"Average split:   %.4f.\n",avg_split);
-      fprintf(screen,"Threads / atom:  %d.\n",_threads_per_atom);
+      fprintf(screen,"Threads / atom:  %d.\n",threads_per_atom);
       fprintf(screen,"Max Mem / Proc:  %.2f MB.\n",max_mb);
       fprintf(screen,"CPU Driver_Time: %.4f s.\n",times[6]/_replica_size);
       fprintf(screen,"CPU Idle_Time:   %.4f s.\n",times[7]/_replica_size);
@@ -534,8 +536,8 @@ int PairGPUDeviceT::compile_kernels() {
   k_info.set_function(*dev_program,"kernel_info");
   _compiled=true;
 
-  UCL_H_Vec<int> h_gpu_lib_data(13,*gpu,UCL_NOT_PINNED);
-  UCL_D_Vec<int> d_gpu_lib_data(13,*gpu);
+  UCL_H_Vec<int> h_gpu_lib_data(14,*gpu,UCL_NOT_PINNED);
+  UCL_D_Vec<int> d_gpu_lib_data(14,*gpu);
   k_info.set_size(1,1);
   k_info.run(&d_gpu_lib_data.begin());
   ucl_copy(h_gpu_lib_data,d_gpu_lib_data,false);
@@ -549,6 +551,8 @@ int PairGPUDeviceT::compile_kernels() {
   _warp_size=h_gpu_lib_data[2];
   if (_threads_per_atom<1)
     _threads_per_atom=h_gpu_lib_data[3];
+  if (_threads_per_charge<1)
+    _threads_per_charge=h_gpu_lib_data[13];
   _pppm_max_spline=h_gpu_lib_data[4];
   _pppm_block=h_gpu_lib_data[5];
   _block_pair=h_gpu_lib_data[6];
@@ -567,6 +571,10 @@ int PairGPUDeviceT::compile_kernels() {
     _threads_per_atom=_warp_size;
   if (_warp_size%_threads_per_atom!=0)
     _threads_per_atom=1;
+  if (_threads_per_charge>_warp_size)
+    _threads_per_charge=_warp_size;
+  if (_warp_size%_threads_per_charge!=0)
+    _threads_per_charge=1;
 
   return flag;    
 }

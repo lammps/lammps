@@ -176,7 +176,7 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *mor1,
   
   // Reduce answers
   if (t_per_atom>1) {
-    __local acctyp red_acc[6][BLOCK_BIO_PAIR];
+    __local acctyp red_acc[6][BLOCK_PAIR];
     
     red_acc[0][tid]=f.x;
     red_acc[1][tid]=f.y;
@@ -333,7 +333,7 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp4 *mor1_in,
   
   // Reduce answers
   if (t_per_atom>1) {
-    __local acctyp red_acc[6][BLOCK_BIO_PAIR];
+    __local acctyp red_acc[6][BLOCK_PAIR];
     
     red_acc[0][tid]=f.x;
     red_acc[1][tid]=f.y;

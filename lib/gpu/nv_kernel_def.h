@@ -32,7 +32,8 @@
 
 #if (ARCH < 200)
 
-#define THREADS_PER_ATOM 8
+#define THREADS_PER_ATOM 1
+#define THREADS_PER_CHARGE 8
 #define BLOCK_NBOR_BUILD 64
 #define BLOCK_PAIR 64
 #define BLOCK_BIO_PAIR 64
@@ -40,7 +41,8 @@
 
 #else
 
-#define THREADS_PER_ATOM 8
+#define THREADS_PER_ATOM 1
+#define THREADS_PER_CHARGE 8
 #define BLOCK_NBOR_BUILD 128
 #define BLOCK_PAIR 128
 #define BLOCK_BIO_PAIR 128

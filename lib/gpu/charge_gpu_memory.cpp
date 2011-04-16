@@ -57,7 +57,7 @@ int ChargeGPUMemoryT::init_atomic(const int nlocal, const int nall,
   if (host_nlocal>0)
     _gpu_host=1;
 
-  _threads_per_atom=device->threads_per_atom();
+  _threads_per_atom=device->threads_per_charge();
   if (_threads_per_atom>1 && gpu_nbor==false) {
     nbor->packing(true);
     _nbor_data=&(nbor->dev_packed);
@@ -104,7 +104,7 @@ void ChargeGPUMemoryT::clear_atomic() {
   _gpu_overhead*=hd_balancer.timestep();
   _driver_overhead*=hd_balancer.timestep();
   device->output_times(time_pair,*ans,*nbor,avg_split,_max_bytes+_max_an_bytes,
-                       _gpu_overhead,_driver_overhead,screen);
+                       _gpu_overhead,_driver_overhead,_threads_per_atom,screen);
 
   if (_compiled) {
     k_pair_fast.clear();

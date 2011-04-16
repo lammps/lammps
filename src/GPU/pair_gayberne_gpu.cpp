@@ -170,7 +170,7 @@ void PairGayBerneGPU::init_style()
   double cell_size = sqrt(maxcut) + neighbor->skin;
 
   int success = gb_gpu_init(atom->ntypes+1, gamma, upsilon, mu, 
-			    shape1, well, cutsq, sigma, epsilon, lshape, form,
+			    shape2, well, cutsq, sigma, epsilon, lshape, form,
 			    lj1, lj2, lj3, lj4, offset, force->special_lj, 
 			    atom->nlocal, atom->nlocal+atom->nghost, 300, 
 			    cell_size, gpu_mode, screen);

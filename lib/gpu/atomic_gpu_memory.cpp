@@ -102,7 +102,7 @@ void AtomicGPUMemoryT::clear_atomic() {
   _gpu_overhead*=hd_balancer.timestep();
   _driver_overhead*=hd_balancer.timestep();
   device->output_times(time_pair,*ans,*nbor,avg_split,_max_bytes+_max_an_bytes,
-                       _gpu_overhead,_driver_overhead,screen);
+                       _gpu_overhead,_driver_overhead,_threads_per_atom,screen);
 
   if (_compiled) {
     k_pair_fast.clear();

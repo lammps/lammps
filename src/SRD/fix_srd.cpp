@@ -233,7 +233,7 @@ FixSRD::FixSRD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   srd_bin_temp = 0.0;
   srd_bin_count = 0;
 
-  // atom style pointers to particles that store extra info
+  // atom style pointers to particles that store bonus info
 
   avec_ellipsoid = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
 
@@ -710,7 +710,7 @@ void FixSRD::post_force(int vflag)
   // detect collision of SRDs with BIG particles or walls
 
   if (bigexist || wallexist) {
-    if (bigexist && (collidestyle == NOSLIP || any_ellipsoids)) big_dynamic();
+    if (bigexist) big_dynamic();
     if (wallexist) wallfix->wall_params(0);
     if (overlap) collisions_multi();
     else collisions_single();

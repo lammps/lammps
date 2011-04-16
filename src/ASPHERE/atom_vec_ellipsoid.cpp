@@ -110,7 +110,7 @@ void AtomVecEllipsoid::grow_reset()
 }
 
 /* ----------------------------------------------------------------------
-   grow Bonus data for style-specific atom data
+   grow bonus data structure
 ------------------------------------------------------------------------- */
 
 void AtomVecEllipsoid::grow_bonus()
@@ -125,7 +125,7 @@ void AtomVecEllipsoid::grow_bonus()
 
 /* ----------------------------------------------------------------------
    copy atom I info to atom J
-   if delflag and atom J has style-specific data, then delete it
+   if delflag and atom J has bonus data, then delete it
 ------------------------------------------------------------------------- */
 
 void AtomVecEllipsoid::copy(int i, int j, int delflag)
@@ -159,7 +159,7 @@ void AtomVecEllipsoid::copy(int i, int j, int delflag)
 }
 
 /* ----------------------------------------------------------------------
-   copy Bonus for I to J, effectively deleting the J entry
+   copy bonus data from I to J, effectively deleting the J entry
    insure index pointers between per-atom and bonus data are updated
 ------------------------------------------------------------------------- */
 
@@ -182,8 +182,8 @@ void AtomVecEllipsoid::copy_bonus(int i, int j)
 }
 
 /* ----------------------------------------------------------------------
-   set shape values in Bonus data for particle I
-   this may create or delete entry in Bonus data
+   set shape values in bonus data for particle I
+   this may create or delete entry in bonus data
 ------------------------------------------------------------------------- */
 
 void AtomVecEllipsoid::set_bonus(int i, 
@@ -216,7 +216,7 @@ void AtomVecEllipsoid::set_bonus(int i,
 }
 
 /* ----------------------------------------------------------------------
-   clear ghost info in Bonus data
+   clear ghost info in bonus data
    called before ghosts are recommunicated in comm and irregular
 ------------------------------------------------------------------------- */
 
@@ -981,7 +981,7 @@ int AtomVecEllipsoid::size_restart()
 }
 
 /* ----------------------------------------------------------------------
-   pack atom I's data for restart file including Bonus data
+   pack atom I's data for restart file including bonus data
    xyz must be 1st 3 values, so that read_restart can test on them
    molecular types may be negative, but write as positive
 ------------------------------------------------------------------------- */
@@ -1027,7 +1027,7 @@ int AtomVecEllipsoid::pack_restart(int i, double *buf)
 }
 
 /* ----------------------------------------------------------------------
-   unpack data for one atom from restart file including Bonus data
+   unpack data for one atom from restart file including bonus data
 ------------------------------------------------------------------------- */
 
 int AtomVecEllipsoid::unpack_restart(double *buf)
@@ -1103,10 +1103,11 @@ void AtomVecEllipsoid::create_atom(int itype, double *coord)
   v[nlocal][1] = 0.0;
   v[nlocal][2] = 0.0;
   
-  ellipsoid[nlocal] = -1;
+  rmass[nlocal] = 1.0;
   angmom[nlocal][0] = 0.0;
   angmom[nlocal][1] = 0.0;
   angmom[nlocal][2] = 0.0;
+  ellipsoid[nlocal] = -1;
 
   atom->nlocal++;
 }
@@ -1184,15 +1185,15 @@ void AtomVecEllipsoid::data_atom_bonus(int m, char **values)
     error->one("Assigning ellipsoid parameters to non-ellipsoid atom");
 
   if (nlocal_bonus == nmax_bonus) grow_bonus();
-  double *shape = bonus[nlocal_bonus].shape;
-  double *quat = bonus[nlocal_bonus].quat;
 
+  double *shape = bonus[nlocal_bonus].shape;
   shape[0] = 0.5 * atof(values[0]);
   shape[1] = 0.5 * atof(values[1]);
   shape[2] = 0.5 * atof(values[2]);
   if (shape[0] <= 0.0 || shape[1] <= 0.0 || shape[2] <= 0.0)
     error->one("Invalid shape in Ellipsoids section of data file");
 
+  double *quat = bonus[nlocal_bonus].quat;
   quat[0] = atof(values[3]);
   quat[1] = atof(values[4]);
   quat[2] = atof(values[5]);
@@ -1253,6 +1254,7 @@ bigint AtomVecEllipsoid::memory_usage()
   if (atom->memcheck("rmass")) bytes += memory->usage(rmass,nmax);
   if (atom->memcheck("angmom")) bytes += memory->usage(angmom,nmax,3);
   if (atom->memcheck("torque")) bytes += memory->usage(torque,nmax,3);
+  if (atom->memcheck("ellipsoid")) bytes += memory->usage(ellipsoid,nmax);
   
   bytes += nmax_bonus*sizeof(Bonus);
 

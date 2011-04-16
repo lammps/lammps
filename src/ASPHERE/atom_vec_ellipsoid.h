@@ -34,7 +34,7 @@ class AtomVecEllipsoid : public AtomVec {
   struct Bonus *bonus;
 
   AtomVecEllipsoid(class LAMMPS *, int, char **);
-  virtual ~AtomVecEllipsoid();
+  ~AtomVecEllipsoid();
   void grow(int);
   void grow_reset();
   void copy(int, int, int);
@@ -78,7 +78,7 @@ class AtomVecEllipsoid : public AtomVec {
   double PI;
   int *tag,*type,*mask,*image;
   double **x,**v,**f;
-  double *density,*rmass;
+  double *rmass;
   double **angmom,**torque;
   int *ellipsoid;
 

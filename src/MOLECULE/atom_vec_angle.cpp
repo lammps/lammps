@@ -114,9 +114,11 @@ void AtomVecAngle::grow_reset()
   angle_atom3 = atom->angle_atom3;
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   copy atom I info to atom J
+------------------------------------------------------------------------- */
 
-void AtomVecAngle::copy(int i, int j)
+void AtomVecAngle::copy(int i, int j, int delflag)
 {
   int k;
 

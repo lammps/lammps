@@ -63,6 +63,8 @@ class FixSRD : public Fix {
   double **fwall;
   double walltrigger;
 
+  class AtomVecEllipsoid *avec_ellipsoid;
+
   // for orthogonal box, these are in box units
   // for triclinic box, these are in lamda units
 

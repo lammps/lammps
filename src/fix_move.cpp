@@ -181,7 +181,7 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
 
   if (atom->angmom_flag && comm->me == 0)
     error->warning("Fix move does not update angular momentum");
-  if (atom->quat_flag && comm->me == 0)
+  if (atom->ellipsoid_flag && comm->me == 0)
     error->warning("Fix move does not update quaternions");
 
   // setup scaling and apply scaling factors to velocity & amplitude

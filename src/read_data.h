@@ -38,6 +38,9 @@ class ReadData : protected Pointers {
   int narg,maxarg,compressed;
   char **arg;
 
+  bigint nellipsoids;
+  class AtomVecEllipsoid *avec_ellipsoid;
+
   void open(char *);
   void scan(int &, int &, int &, int &);
   int reallocate(int **, int, int);
@@ -48,14 +51,14 @@ class ReadData : protected Pointers {
 
   void atoms();
   void velocities();
+  void ellipsoids();
+
   void bonds();
   void angles();
   void dihedrals();
   void impropers();
 
   void mass();
-  void dipole();
-
   void paircoeffs();
   void bondcoeffs();
   void anglecoeffs(int);

@@ -86,9 +86,11 @@ void AtomVecCharge::grow_reset()
   q = atom->q;
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   copy atom I info to atom J
+------------------------------------------------------------------------- */
 
-void AtomVecCharge::copy(int i, int j)
+void AtomVecCharge::copy(int i, int j, int delflag)
 {
   tag[j] = tag[i];
   type[j] = type[i];

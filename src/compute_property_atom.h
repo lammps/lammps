@@ -38,6 +38,7 @@ class ComputePropertyAtom : public Compute {
   double *vector;
   double **array;
   double *buf;
+  class AtomVecEllipsoid *avec;
 
   typedef void (ComputePropertyAtom::*FnPtrPack)(int);
   FnPtrPack *pack_choice;              // ptrs to pack functions

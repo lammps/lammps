@@ -142,13 +142,6 @@ class DumpCustom : public Dump {
   void pack_angmomx(int);
   void pack_angmomy(int);
   void pack_angmomz(int);
-  void pack_shapex(int);
-  void pack_shapey(int);
-  void pack_shapez(int);
-  void pack_quatw(int);
-  void pack_quati(int);
-  void pack_quatj(int);
-  void pack_quatk(int);
   void pack_tqx(int);
   void pack_tqy(int);
   void pack_tqz(int);

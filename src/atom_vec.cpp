@@ -25,6 +25,7 @@ AtomVec::AtomVec(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   nmax = 0;
   bonds_allow = angles_allow = dihedrals_allow = impropers_allow = 0;
   mass_type = dipole_type = 0;
+  size_data_bonus = 0;
 }
 
 /* ----------------------------------------------------------------------

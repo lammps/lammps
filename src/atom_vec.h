@@ -35,6 +35,7 @@ class AtomVec : protected Pointers {
   int size_velocity;                   // # of velocity based quantities
   int size_data_atom;                  // number of values in Atom line
   int size_data_vel;                   // number of values in Velocity line
+  int size_data_bonus;                 // number of values in Bonus line
   int xcol_data;                       // column (1-N) where x is in Atom line
 
   AtomVec(class LAMMPS *, int, char **);
@@ -43,7 +44,8 @@ class AtomVec : protected Pointers {
 
   virtual void grow(int) = 0;
   virtual void grow_reset() = 0;
-  virtual void copy(int, int) = 0;
+  virtual void copy(int, int, int) = 0;
+  virtual void clear_bonus() {}
 
   virtual int pack_comm(int, int *, double *, int, int *) = 0;
   virtual int pack_comm_vel(int, int *, double *, int, int *) = 0;
@@ -73,6 +75,7 @@ class AtomVec : protected Pointers {
 
   virtual void create_atom(int, double *) = 0;
   virtual void data_atom(double *, int, char **) = 0;
+  virtual void data_atom_bonus(int, char **) {}
   virtual int data_atom_hybrid(int, char **) {return 0;}
   virtual void data_vel(int, char **);
   virtual int data_vel_hybrid(int, char **) {return 0;}

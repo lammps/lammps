@@ -157,19 +157,26 @@ void AtomVecHybrid::grow_reset()
 }
 
 /* ----------------------------------------------------------------------
-   copy array values for all sub-styles
+   copy atom I info to atom J for all sub-styles
 ------------------------------------------------------------------------- */
 
-void AtomVecHybrid::copy(int i, int j)
+void AtomVecHybrid::copy(int i, int j, int delflag)
 {
   int tmp = atom->nextra_grow;
   atom->nextra_grow = 0;
-  for (int k = 0; k < nstyles; k++) styles[k]->copy(i,j);
+  for (int k = 0; k < nstyles; k++) styles[k]->copy(i,j,delflag);
   atom->nextra_grow = tmp;
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++) 
       modify->fix[atom->extra_grow[iextra]]->copy_arrays(i,j);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AtomVecHybrid::clear_bonus()
+{
+  for (int k = 0; k < nstyles; k++) styles[k]->clear_bonus();
 }
 
 /* ---------------------------------------------------------------------- */

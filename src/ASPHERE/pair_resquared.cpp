@@ -22,7 +22,7 @@
 #include "pair_resquared.h"
 #include "math_extra.h"
 #include "atom.h"
-#include "atom_vec.h"
+#include "atom_vec_ellipsoid.h"
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
@@ -44,7 +44,12 @@ PairRESquared::PairRESquared(LAMMPS *lmp) : Pair(lmp),
 					    b_alpha(45.0/56.0),
                                             cr60(pow(60.0,1.0/3.0))
 {
+  avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
+  if (!avec) 
+    error->all("Pair gayberne requires atom style ellipsoid");
+
   single_enable = 0;
+
   cr60 = pow(60.0,1.0/3.0);
   b_alpha = 45.0/56.0;
   solv_f_a = 3.0/(16.0*atan(1.0)*-36.0);
@@ -314,16 +319,12 @@ void PairRESquared::coeff(int narg, char **arg)
   if (count == 0) error->all("Incorrect args for pair coefficients");
 }
 
-
 /* ----------------------------------------------------------------------
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
 void PairRESquared::init_style()
 {
-  if (!atom->ellipsoid_flag)
-    error->all("Pair resquared requires atom style ellipsoid");
-
   int irequest = neighbor->request(this);
 
   // per-type shape precalculations
@@ -497,10 +498,12 @@ void PairRESquared::read_restart_settings(FILE *fp)
    Precompute per-particle temporaries for RE-squared calculation
 ------------------------------------------------------------------------- */
 
-void PairRESquared::precompute_i(const int i,RE2Vars &ws) {
+void PairRESquared::precompute_i(const int i,RE2Vars &ws)
+{
   double aTs[3][3];       // A1'*S1^2
-
-  MathExtra::quat_to_mat_trans(atom->quat[i],ws.A);
+  int *ellipsoid = atom->ellipsoid;
+  AtomVecEllipsoid::Bonus *bonus = avec->bonus;
+  MathExtra::quat_to_mat_trans(bonus[ellipsoid[i]].quat,ws.A);
   MathExtra::transpose_times_diag3(ws.A,well[atom->type[i]],ws.aTe);
   MathExtra::transpose_times_diag3(ws.A,shape2[atom->type[i]],aTs);
   MathExtra::diag_times3(shape2[atom->type[i]],ws.A,ws.sa);

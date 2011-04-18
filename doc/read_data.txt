@@ -76,6 +76,7 @@ is different than the default.
 {dihedral types} = # of dihedral types in system
 {improper types} = # of improper types in system
 {extra bond per atom} = leave space for this many new bonds per atom
+{ellipsoids} = # of ellipsoids in system
 {xlo xhi} = simulation box boundaries in x dimension
 {ylo yhi} = simulation box boundaries in y dimension
 {zlo zhi} = simulation box boundaries in z dimension
@@ -152,11 +153,16 @@ added to the system when a simulation runs, e.g. by using the "fix
 bond/create"_fix_bond_create.html command.  This will pre-allocate
 space in LAMMPS data structures for storing the new bonds.
 
+The "ellipsoids" setting is only used with atom_style
+ellipsoid"_atom_style.html and specifies how many of the atoms are
+finite-size ellipsoids; the remainder are point particles.  See the
+discussion of ellipseflag and the {Ellipsoids} section below.
+
 :line
 
 These are the section keywords for the body of the file.
 
-{Atoms, Velocities, Masses} = atom-property sections 
+{Atoms, Velocities, Ellipsoids, Masses} = atom-property sections 
 {Bonds, Angles, Dihedrals, Impropers} = molecular topology sections 
 {Pair Coeffs, Bond Coeffs, Angle Coeffs, Dihedral Coeffs, \
    Improper Coeffs} = force field sections
@@ -262,7 +268,7 @@ bond: atom-ID molecule-ID atom-type x y z
 charge: atom-ID atom-type q x y z
 dipole: atom-ID atom-type q x y z mux muy muz
 electron: atom-ID atom-type q spin eradius x y z
-ellipsoid: atom-ID atom-type shapex shapey shapez density x y z quatw quati quatj quatk
+ellipsoid: atom-ID atom-type ellipsoidflag density x y z
 full: atom-ID molecule-ID atom-type q x y z
 molecular: atom-ID molecule-ID atom-type x y z
 peri: atom-ID atom-type volume density x y z
@@ -276,12 +282,11 @@ molecule-ID = integer ID of molecule the atom belongs to
 atom-type = type of atom (1-Ntype)
 q = charge on atom (charge units)
 diameter = diameter of spherical atom (distance units)
-shapex,shapey,shapez = 3 diameters of ellipsoidal atom (distance units)
+ellipsoidflag = 1 for ellipsoidal particles, 0 for point particles
 density = density of atom (mass/distance^3 units)
 volume = volume of atom (distance^3 units)
 x,y,z = coordinates of atom
 mux,muy,muz = components of dipole moment of atom (dipole units)
-quatw,quati,quatj,quatk = quaternion components for orientation of atom
 spin = electron spin (+1/-1), 0 = nuclei, 2 = fixed-core, 3 = pseudo-cores (i.e. ECP)
 eradius = electron radius (or fixed-core radius) :ul
 
@@ -309,10 +314,9 @@ keep track of molecule assignments.
 The diameter specifies the size of a finite-size spherical particle.
 It can be set to 0.0, which means that atom is a point particle.
 
-The 3 shape values specify the 3 diameters or aspect ratios of a
-finite-size ellipsoidal particle, when it is oriented along the 3
-coordinate axes.  They can all be set to 0.0, which means that atom is
-a point particle.
+The ellipseflag determines whether the particle is a finite-size
+ellipsoid of finite size, or a point particle.  Additional attributes
+must be defined for each ellipsoid in the {Ellipsoids} section.
 
 Some pair styles and fixes and computes that operate on finite-size
 particles allow for a mixture of finite-size and point particles.  See
@@ -323,18 +327,6 @@ finite-size particles to set the mass of the particle as mass =
 density * volume.  If the volume is 0.0, meaning a point particle,
 then the density value is used as the mass.
 
-The values {quatw}, {quati}, {quatj}, and {quatk} set the orientation
-of the atom as a quaternion (4-vector).  Note that the shape
-attributes specify the aspect ratios of an ellipsoidal particle, which
-is oriented by default with its x-axis along the simulation box's
-x-axis, and similarly for y and z.  If this body is rotated (via the
-right-hand rule) by an angle theta around a unit vector (a,b,c), then
-the quaternion that represents its new orientation is given by
-(cos(theta/2), a*sin(theta/2), b*sin(theta/2), c*sin(theta/2)).  These
-4 components are quatw, quati, quatj, and quatk as specified above.
-LAMMPS normalizes each atom's quaternion in case (a,b,c) was not
-specified as a unit vector.
-
 For atom_style hybrid, following the 5 initial values (ID,type,x,y,z),
 specific values for each sub-style must be listed.  The order of the
 sub-styles is the same as they were listed in the
@@ -342,9 +334,7 @@ sub-styles is the same as they were listed in the
 are those that are not the 5 standard ones (ID,type,x,y,z).  For
 example, for the "charge" sub-style, a "q" value would appear.  For
 the "full" sub-style, a "molecule-ID" and "q" would appear.  These are
-listed in the same order they appear as listed above.
-
-Thus if
+listed in the same order they appear as listed above.  Thus if
 
 atom_style hybrid charge sphere :pre
 
@@ -474,6 +464,45 @@ example: :l
 The 4 atoms are ordered linearly within the dihedral.  The {Dihedrals}
 section must appear after the {Atoms} section.  All values in this
 section must be integers (1, not 1.0).
+
+:line
+
+{Ellipsoids} section:
+
+one line per ellipsoid :ulb,l
+line syntax: atom-ID shapex shapey shapez quatw quati quatj quatk :l
+  atom-ID = ID of atom which is an ellipsoid
+  shapex,shapey,shapez = 3 diameters of ellipsoid (distance units)
+  quatw,quati,quatj,quatk = quaternion components for orientation of atom
+type = bond type (1-Nbondtype)
+  atom1,atom2 = IDs of 1st,2nd atoms in bond :pre
+example: :l
+  12 3 17 29 :pre
+:ule
+
+The {Ellipsoids} section must appear if "atom_style
+ellipsoid"_atom_style.html is used and any atoms are listed in the
+{Atoms} section with an ellipsoidflag = 1.  The number of ellipsoids
+should be specified in the header section via the "ellipsoids"
+keyword.
+
+The 3 shape values specify the 3 diameters or aspect ratios of a
+finite-size ellipsoidal particle, when it is oriented along the 3
+coordinate axes.  They must all be non-zero values.
+
+The values {quatw}, {quati}, {quatj}, and {quatk} set the orientation
+of the atom as a quaternion (4-vector).  Note that the shape
+attributes specify the aspect ratios of an ellipsoidal particle, which
+is oriented by default with its x-axis along the simulation box's
+x-axis, and similarly for y and z.  If this body is rotated (via the
+right-hand rule) by an angle theta around a unit vector (a,b,c), then
+the quaternion that represents its new orientation is given by
+(cos(theta/2), a*sin(theta/2), b*sin(theta/2), c*sin(theta/2)).  These
+4 components are quatw, quati, quatj, and quatk as specified above.
+LAMMPS normalizes each atom's quaternion in case (a,b,c) is not
+specified as a unit vector.
+
+The {Ellipsoids} section must appear after the {Atoms} section.
 
 :line
 

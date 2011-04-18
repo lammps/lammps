@@ -10,12 +10,11 @@ create_box   2 box
 create_atoms 1 box
 
 set	     group all type/fraction 2 0.1 95392
-set	     group all quat/random 18238
-
 set 	     type 1 mass 1.0
 set 	     type 2 mass 1.5
 set 	     type 1 shape 1 1 1
 set 	     type 2 shape 3 1 1
+set	     group all quat/random 18238
 
 compute	     rot all temp/asphere
 group	     spheroid type 1
@@ -41,11 +40,13 @@ thermo	     100
 
 timestep     0.002
 
+compute	     q all property/atom quatw quati quatj quatk
+
 dump	     1 all custom 100 dump.ellipse.gayberne &
-	     id type x y z quatw quati quatj quatk
+	     id type x y z c_q[1] c_q[2] c_q[3] c_q[4]
 
 #dump	     1 all custom 100 dump.ellipse.resquared &
-#	     id type x y z quatw quati quatj quatk
+#	     id type x y z c_q[1] c_q[2] c_q[3] c_q[4]
 
 fix	     1 all npt/asphere temp 2.0 2.0 0.1 iso 0.0 1.0 1.0 &
 	       mtk no pchain 0 tchain 1

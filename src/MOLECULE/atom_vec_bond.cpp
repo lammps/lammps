@@ -102,9 +102,11 @@ void AtomVecBond::grow_reset()
   bond_atom = atom->bond_atom;
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   copy atom I info to atom J
+------------------------------------------------------------------------- */
 
-void AtomVecBond::copy(int i, int j)
+void AtomVecBond::copy(int i, int j, int delflag)
 {
   int k;
 

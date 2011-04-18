@@ -53,6 +53,7 @@ class PairGayBerne : public Pair {
   double **lj1,**lj2,**lj3,**lj4;
   double **offset;
   int *setwell;
+  class AtomVecEllipsoid *avec;
 
   void allocate();
   double gayberne_analytic(const int i, const int j, double a1[3][3],

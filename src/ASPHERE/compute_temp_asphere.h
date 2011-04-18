@@ -39,7 +39,8 @@ class ComputeTempAsphere : public Compute {
   int fix_dof;
   double tfactor;
   char *id_bias;
-  Compute *tbias;     // ptr to additional bias compute
+  class Compute *tbias;              // ptr to additional bias compute
+  class AtomVecEllipsoid *avec;
 
   void dof_compute();
 };

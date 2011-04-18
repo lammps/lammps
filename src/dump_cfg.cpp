@@ -191,7 +191,7 @@ void DumpCFG::write_header(bigint n)
   // scale box dimension to sc lattice for C with sigma = 1.44 Angstroms  
  
   double scale;
-  if (atom->style_match("peri")) {
+  if (atom->peri_flag) {
     int nlocal = atom->nlocal;
     double vone = 0.0;
     for (int i = 0; i < nlocal; i++) vone += atom->vfrac[i];

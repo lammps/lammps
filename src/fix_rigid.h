@@ -95,6 +95,8 @@ class FixRigid : public Fix {
   double p_period,p_freq;
   int p_chain;
 
+  class AtomVecEllipsoid *avec_ellipsoid;
+
                             // bitmasks for eflags
   int INERTIA_POINT,INERTIA_SPHERE,INERTIA_ELLIPSOID;
   int ORIENT_DIPOLE,ORIENT_QUAT;

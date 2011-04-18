@@ -96,9 +96,11 @@ void AtomVecPeri::grow_reset()
   s0 = atom->s0; x0 = atom->x0;
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   copy atom I info to atom J
+------------------------------------------------------------------------- */
 
-void AtomVecPeri::copy(int i, int j)
+void AtomVecPeri::copy(int i, int j, int delflag)
 {
   tag[j] = tag[i];
   type[j] = type[i];

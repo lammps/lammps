@@ -19,7 +19,7 @@
 #include "compute_temp_asphere.h"
 #include "math_extra.h"
 #include "atom.h"
-#include "atom_vec.h"
+#include "atom_vec_ellipsoid.h"
 #include "update.h"
 #include "force.h"
 #include "domain.h"
@@ -56,9 +56,10 @@ ComputeTempAsphere::ComputeTempAsphere(LAMMPS *lmp, int narg, char **arg) :
 
   vector = new double[6];
 
-  // error checks
+  // error check
 
-  if (!atom->ellipsoid_flag) 
+  avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
+  if (!avec) 
     error->all("Compute temp/asphere requires atom style ellipsoid");
 }
 
@@ -77,13 +78,13 @@ void ComputeTempAsphere::init()
   // check that all particles are finite-size
   // no point particles allowed, spherical is OK
 
-  double **shape = atom->shape;
+  int *ellipsoid = atom->ellipsoid;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
-      if (shape[i][0] == 0.0)
+      if (ellipsoid[i] < 0)
 	error->one("Compute temp/asphere requires extended particles");
 
   if (tempbias) {
@@ -151,14 +152,15 @@ double ComputeTempAsphere::compute_scalar()
     tbias->remove_bias_all();
   }
 
+  AtomVecEllipsoid::Bonus *bonus = avec->bonus;
+  int *ellipsoid = atom->ellipsoid;
   double **v = atom->v;
-  double **quat = atom->quat;
   double **angmom = atom->angmom;
-  double **shape = atom->shape;
   double *rmass = atom->rmass;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
+  double *shape,*quat;
   double wbody[3],inertia[3];
   double rot[3][3];
   double t = 0.0;
@@ -169,20 +171,20 @@ double ComputeTempAsphere::compute_scalar()
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
 
+      shape = bonus[ellipsoid[i]].shape;
+      quat = bonus[ellipsoid[i]].quat;
+
       t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * rmass[i];
 
       // principal moments of inertia
 
-      inertia[0] = rmass[i] * 
-	(shape[i][1]*shape[i][1]+shape[i][2]*shape[i][2]) / 5.0;
-      inertia[1] = rmass[i] * 
-	(shape[i][0]*shape[i][0]+shape[i][2]*shape[i][2]) / 5.0;
-      inertia[2] = rmass[i] * 
-	(shape[i][0]*shape[i][0]+shape[i][1]*shape[i][1]) / 5.0;
+      inertia[0] = rmass[i] * (shape[1]*shape[1]+shape[2]*shape[2]) / 5.0;
+      inertia[1] = rmass[i] * (shape[0]*shape[0]+shape[2]*shape[2]) / 5.0;
+      inertia[2] = rmass[i] * (shape[0]*shape[0]+shape[1]*shape[1]) / 5.0;
 
       // wbody = angular velocity in body frame
       
-      MathExtra::quat_to_mat(quat[i],rot);
+      MathExtra::quat_to_mat(quat,rot);
       MathExtra::transpose_times_column3(rot,angmom[i],wbody);
       wbody[0] /= inertia[0];
       wbody[1] /= inertia[1];
@@ -213,14 +215,15 @@ void ComputeTempAsphere::compute_vector()
     tbias->remove_bias_all();
   }
 
+  AtomVecEllipsoid::Bonus *bonus = avec->bonus;
+  int *ellipsoid = atom->ellipsoid;
   double **v = atom->v;
-  double **quat = atom->quat;
   double **angmom = atom->angmom;
-  double **shape = atom->shape;
   double *rmass = atom->rmass;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
+  double *shape,*quat;
   double wbody[3],inertia[3];
   double rot[3][3];
   double massone,t[6];
@@ -228,6 +231,9 @@ void ComputeTempAsphere::compute_vector()
 
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
+
+      shape = bonus[ellipsoid[i]].shape;
+      quat = bonus[ellipsoid[i]].quat;
 
       // translational kinetic energy
 
@@ -241,16 +247,13 @@ void ComputeTempAsphere::compute_vector()
 
       // principal moments of inertia
 
-      inertia[0] = rmass[i] * 
-	(shape[i][1]*shape[i][1]+shape[i][2]*shape[i][2]) / 5.0;
-      inertia[1] = rmass[i] * 
-	(shape[i][0]*shape[i][0]+shape[i][2]*shape[i][2]) / 5.0;
-      inertia[2] = rmass[i] * 
-	(shape[i][0]*shape[i][0]+shape[i][1]*shape[i][1]) / 5.0;
+      inertia[0] = rmass[i] * (shape[1]*shape[1]+shape[2]*shape[2]) / 5.0;
+      inertia[1] = rmass[i] * (shape[0]*shape[0]+shape[2]*shape[2]) / 5.0;
+      inertia[2] = rmass[i] * (shape[0]*shape[0]+shape[1]*shape[1]) / 5.0;
 
       // wbody = angular velocity in body frame
 
-      MathExtra::quat_to_mat(quat[i],rot);
+      MathExtra::quat_to_mat(quat,rot);
       MathExtra::transpose_times_column3(rot,angmom[i],wbody);
       wbody[0] /= inertia[0];
       wbody[1] /= inertia[1];

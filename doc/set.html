@@ -141,23 +141,25 @@ many processors are being used.
 <P>Keyword <I>quat</I> uses the specified values to create a quaternion
 (4-vector) that represents the orientation of the selected atoms.
 Note that particles defined by <A HREF = "atom_style.html">atom_style ellipsoid</A>
-have 3 shape paraeters whicha are used to specify the aspect ratios of
-an ellipsoidal particle, which is oriented by default with its x-axis
-along the simulation box's x-axis, and similarly for y and z.  If this
-body is rotated (via the right-hand rule) by an angle theta around a
-unit rotation vector (a,b,c), then the quaternion that represents its
-new orientation is given by (cos(theta/2), a*sin(theta/2),
-b*sin(theta/2), c*sin(theta/2)).  The theta and a,b,c values are the
-arguments to the <I>quat</I> keyword.  LAMMPS normalizes the quaternion in
-case (a,b,c) was not specified as a unit vector.  For 2d systems, the
-a,b,c values are ignored, since a rotation vector of (0,0,1) is the
-only valid choice.
+have 3 shape parameters.  The 3 values must be non-zero for each
+particle set by this command.  They are used to specify the aspect
+ratios of an ellipsoidal particle, which is oriented by default with
+its x-axis along the simulation box's x-axis, and similarly for y and
+z.  If this body is rotated (via the right-hand rule) by an angle
+theta around a unit rotation vector (a,b,c), then the quaternion that
+represents its new orientation is given by (cos(theta/2),
+a*sin(theta/2), b*sin(theta/2), c*sin(theta/2)).  The theta and a,b,c
+values are the arguments to the <I>quat</I> keyword.  LAMMPS normalizes the
+quaternion in case (a,b,c) was not specified as a unit vector.  For 2d
+systems, the a,b,c values are ignored, since a rotation vector of
+(0,0,1) is the only valid choice.
 </P>
 <P>Keyword <I>quat/random</I> randomizes the orientation of the quaternion of
 the selected atoms.  Random numbers are used in such a way that the
 orientation of a particular atom is the same, regardless of how many
 processors are being used.  For 2d systems, only orientations in the
-xy plane are generated.
+xy plane are generated.  As with keyword <I>quat</I>, the 3 shape values
+must be non-zero for each particle set by this command.
 </P>
 <P>Keyword <I>diameter</I> sets the size of the selected atoms.  The particles
 must be finite-size spheres as defined by the <A HREF = "atom_style.html">atom_style
@@ -172,13 +174,13 @@ particles must be aspherical ellipsoids as defined by the <A HREF = "atom_style.
 ellipsoid</A> command.  The <I>Sx</I>, <I>Sy</I>, <I>Sz</I> settings are
 the 3 diameters of the ellipsoid in each direction.  All 3 can be set
 to the same value, which means the ellipsoid is effectively a sphere.
-Or then can all be set to 0.0 which means the particle will be treated
-as a point particle.  Note that this command does not adjust the
-particle mass, even if it was defined with a density, e.g. via the
+They can also all be set to 0.0 which means the particle will be
+treated as a point particle.  Note that this command does not adjust
+the particle mass, even if it was defined with a density, e.g. via the
 <A HREF = "read_data.html">read_data</A> command.
 </P>
-<P>Keyword <I>mas</I> sets the mass of all selected particles.  The
-particles must have a per-atom mass attribute, as defined by the
+<P>Keyword <I>mass</I> sets the mass of all selected particles.  The particles
+must have a per-atom mass attribute, as defined by the
 <A HREF = "atom_style.html">atom_style</A> command.  See the "mass" command for how
 to set mass values on a per-type basis.
 </P>
@@ -189,7 +191,7 @@ to set mass values on a per-type basis.  If the atom has a radius
 attribute (see <A HREF = "atom_style.html">atom_style sphere</A>) and its radius is
 non-zero, its mass is set from the density and particle volume.  The
 same is true if the atom has a shape attribute (see <A HREF = "atom_style.html">atom_style
-ellipsoid</A>) and its shape parameters are non-zero.
+ellipsoid</A>) and its 3 shape parameters are non-zero.
 Otherwise the mass is set to the density value directly.
 </P>
 <P>Keyword <I>volume</I> sets the volume of all selected particles.

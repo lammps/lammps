@@ -147,7 +147,7 @@ Pair *Force::new_pair(const char *style)
 }
 
 /* ----------------------------------------------------------------------
-   return ptr to current pair class or hybrid sub-class
+   return ptr to Pair class if matches word or to matching hybrid sub-class
    if exact, then style name must be exact match to word
    if not exact, style name must contain word
    return NULL if no match

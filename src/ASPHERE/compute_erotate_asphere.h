@@ -32,6 +32,7 @@ class ComputeERotateAsphere : public Compute {
 
  private:
   double pfactor;
+  class AtomVecEllipsoid *avec;
 };
 
 }

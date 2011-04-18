@@ -71,14 +71,22 @@ All of the styles define point particles, except the {sphere},
 particles.
 
 For the {sphere} style, the particles are spheres and each stores a
-per-particle diameter and mass.  For the {ellipsoid} style, the
-particles are ellipsoids and each stores a per-particle shape vector
-with the 3 diamters of the ellipsoid.  For the {electron} style, the
-particles representing electrons are 3d Gaussians with a specified
-position and bandwidth or uncertainty in position, which is
-represented by the eradius = electron size.  For the {peri} style, the
-particles are spherical and each stores a per-particle mass and
-volume.
+per-particle diameter and mass.  If the diameter > 0.0, the particle
+is a finite-size sphere.  If the diameter = 0.0, it is a point
+particle.
+
+For the {ellipsoid} style, the particles are ellipsoids and each
+stores a flag which indicates whether it is a finite-size ellipsoid or
+a point particle.  If it is an ellipsoid, it also stores a shape
+vector with the 3 diamters of the ellipsoid and a quaternion 4-vector
+with its orientation.
+
+For the {electron} style, the particles representing electrons are 3d
+Gaussians with a specified position and bandwidth or uncertainty in
+position, which is represented by the eradius = electron size.
+
+For the {peri} style, the particles are spherical and each stores a
+per-particle mass and volume.
 
 :line
 

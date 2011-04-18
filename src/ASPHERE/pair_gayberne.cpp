@@ -22,7 +22,7 @@
 #include "pair_gayberne.h"
 #include "math_extra.h"
 #include "atom.h"
-#include "atom_vec.h"
+#include "atom_vec_ellipsoid.h"
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
@@ -42,6 +42,10 @@ enum{SPHERE_SPHERE,SPHERE_ELLIPSE,ELLIPSE_SPHERE,ELLIPSE_ELLIPSE};
 
 PairGayBerne::PairGayBerne(LAMMPS *lmp) : Pair(lmp)
 {
+  avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
+  if (!avec) 
+    error->all("Pair gayberne requires atom style ellipsoid");
+
   single_enable = 0;
 }
 
@@ -81,14 +85,16 @@ void PairGayBerne::compute(int eflag, int vflag)
   double fforce[3],ttor[3],rtor[3],r12[3];
   double a1[3][3],b1[3][3],g1[3][3],a2[3][3],b2[3][3],g2[3][3],temp[3][3];
   int *ilist,*jlist,*numneigh,**firstneigh;
+  double *iquat,*jquat;
 
   evdwl = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
 
+  AtomVecEllipsoid::Bonus *bonus = avec->bonus;
+  int *ellipsoid = atom->ellipsoid;
   double **x = atom->x;
   double **f = atom->f;
-  double **quat = atom->quat;
   double **tor = atom->torque;
   int *type = atom->type;
   int nlocal = atom->nlocal;
@@ -107,7 +113,8 @@ void PairGayBerne::compute(int eflag, int vflag)
     itype = type[i];
 
     if (form[itype][itype] == ELLIPSE_ELLIPSE) {
-      MathExtra::quat_to_mat_trans(quat[i],a1);
+      iquat = bonus[ellipsoid[i]].quat;
+      MathExtra::quat_to_mat_trans(iquat,a1);
       MathExtra::diag_times3(well[itype],a1,temp);
       MathExtra::transpose_times3(a1,temp,b1);
       MathExtra::diag_times3(shape2[itype],a1,temp);
@@ -151,7 +158,8 @@ void PairGayBerne::compute(int eflag, int vflag)
 	  break;
 
         case SPHERE_ELLIPSE:
-	  MathExtra::quat_to_mat_trans(quat[j],a2);
+	  jquat = bonus[ellipsoid[j]].quat;
+	  MathExtra::quat_to_mat_trans(jquat,a2);
 	  MathExtra::diag_times3(well[jtype],a2,temp);
 	  MathExtra::transpose_times3(a2,temp,b2);
 	  MathExtra::diag_times3(shape2[jtype],a2,temp);
@@ -166,7 +174,8 @@ void PairGayBerne::compute(int eflag, int vflag)
 	  break;
 
 	default:
-	  MathExtra::quat_to_mat_trans(quat[j],a2);
+	  jquat = bonus[ellipsoid[j]].quat;
+	  MathExtra::quat_to_mat_trans(jquat,a2);
 	  MathExtra::diag_times3(well[jtype],a2,temp);
 	  MathExtra::transpose_times3(a2,temp,b2);
 	  MathExtra::diag_times3(shape2[jtype],a2,temp);
@@ -332,9 +341,6 @@ void PairGayBerne::coeff(int narg, char **arg)
 
 void PairGayBerne::init_style()
 {
-  if (!atom->ellipsoid_flag)
-    error->all("Pair gayberne requires atom style ellipsoid");
-
   int irequest = neighbor->request(this);
 
   // per-type shape precalculations

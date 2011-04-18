@@ -48,10 +48,10 @@ class Atom : protected Pointers {
 
   int *molecule;
   double *q,**mu;
-  double **quat,**omega,**angmom,**torque,**shape;
+  double **omega,**angmom,**torque;
   double *radius,*rmass,*vfrac,*s0;
   double **x0;
-
+  int *ellipsoid;
   int *spin;
   double *eradius,*ervel,*erforce;
 
@@ -81,8 +81,7 @@ class Atom : protected Pointers {
   int sphere_flag,ellipsoid_flag,peri_flag,electron_flag;
 
   int molecule_flag,q_flag,mu_flag;
-  int rmass_flag,radius_flag,omega_flag,torque_flag;
-  int quat_flag,shape_flag,angmom_flag;
+  int rmass_flag,radius_flag,omega_flag,torque_flag,angmom_flag;
   int vfrac_flag,spin_flag,eradius_flag,ervel_flag,erforce_flag;
 
   // extra peratom info in restart file destined for fix & diag 
@@ -120,7 +119,7 @@ class Atom : protected Pointers {
   void init();
   void setup();
 
-  int style_match(const char *);
+  class AtomVec *style_match(const char *);
   void modify_params(int, char **);
   void tag_extend();
   int tag_consecutive();
@@ -130,6 +129,8 @@ class Atom : protected Pointers {
 
   void data_atoms(int, char *);
   void data_vels(int, char *);
+  void data_bonus(int, char *, class AtomVec *);
+
   void data_bonds(int, char *);
   void data_angles(int, char *);
   void data_dihedrals(int, char *);

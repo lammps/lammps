@@ -81,9 +81,11 @@ void AtomVecAtomic::grow_reset()
   x = atom->x; v = atom->v; f = atom->f;
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   copy atom I info to atom J
+------------------------------------------------------------------------- */
 
-void AtomVecAtomic::copy(int i, int j)
+void AtomVecAtomic::copy(int i, int j, int delflag)
 {
   tag[j] = tag[i];
   type[j] = type[i];

@@ -61,7 +61,10 @@ thermo_style	custom step temp etotal press pe c_pe
 <P>IMPORTANT NOTE: The per-atom energy does NOT include contributions due
 to long-range Coulombic interactions (via the
 <A HREF = "kspace_style.html">kspace_style</A> command).  It's not clear this
-contribution can easily be computed.
+contribution can easily be computed.  It also does not include any
+Lennard-Jones tail corrections invoked by the <A HREF = "pair_modify.html">pair_modify tail
+yes</A> command, since those are global contributions to
+the system energy.
 </P>
 <P><B>Output info:</B>
 </P>

@@ -154,9 +154,11 @@ void AtomVecMolecular::grow_reset()
   improper_atom3 = atom->improper_atom3; improper_atom4 = atom->improper_atom4;
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   copy atom I info to atom J
+------------------------------------------------------------------------- */
 
-void AtomVecMolecular::copy(int i, int j)
+void AtomVecMolecular::copy(int i, int j, int delflag)
 {
   int k;
 

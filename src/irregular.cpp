@@ -78,12 +78,13 @@ Irregular::~Irregular()
 void Irregular::migrate_atoms()
 {
   // clear global->local map since atoms move to new procs
-  // zero out ghosts so map_set() at end will operate only on local atoms
-  // exchange() doesn't need to zero ghosts b/c borders()
-  //   is called right after and it zeroes ghosts and calls map_set()
+  // clear old ghosts so map_set() at end will operate only on local atoms
+  // exchange() doesn't need to clear ghosts b/c borders()
+  //   is called right after and it clears ghosts and calls map_set()
 
   if (map_style) atom->map_clear();
   atom->nghost = 0;
+  atom->avec->clear_bonus();
 
   // subbox bounds for orthogonal or triclinic
 
@@ -123,7 +124,7 @@ void Irregular::migrate_atoms()
 	sizes[nsendatom] = avec->pack_exchange(i,&buf_send[nsend]);
 	nsend += sizes[nsendatom];
 	nsendatom++;
-	avec->copy(nlocal-1,i);
+	avec->copy(nlocal-1,i,1);
 	nlocal--;
       } else i++;
     } else i++;

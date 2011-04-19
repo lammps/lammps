@@ -4601,10 +4601,6 @@ contain the same atom. :dd
 Any rigid body defined by the fix rigid command must contain 2 or more
 atoms. :dd
 
-{Out of memory on GPGPU} :dt
-
-You are attempting to run with too many atoms on the GPU. :dd
-
 {Out of range atoms - cannot compute PPPM} :dt
 
 One or more atoms are attempting to map their charge to a PPPM grid

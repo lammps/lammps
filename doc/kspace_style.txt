@@ -21,11 +21,11 @@ style = {none} or {ewald} or {pppm} or {pppm/tip4p} or {ewald/n} or {pppm/gpu/si
   {pppm/tip4p} value = precision
     precision = desired accuracy
   {ewald/n} value = precision
-    precision = desired accuracy :pre
+    precision = desired accuracy
   {pppm/gpu/single} value = precision
     precision = desired accuracy
   {pppm/gpu/double} value = precision
-    precision = desired accuracy
+    precision = desired accuracy :pre
 :ule
 
 [Examples:]
@@ -127,6 +127,11 @@ LAMMPS"_Section_start.html#2_3 section for more info.
 The {ewald/n} style is part of the "user-ewaldn" package.  It is only
 enabled if LAMMPS was built with that package.  See the "Making
 LAMMPS"_Section_start.html#2_3 section for more info.
+
+The {pppm/gpu/single} and {pppm/gpu/double} styles are part of the
+"gpu" package.  They are only enabled if LAMMPS was built with that
+package.  See the "Making LAMMPS"_Section_start.html#2_3 section for
+more info.
 
 When using a long-range pairwise TIP4P potential, you must use kspace
 style {pppm/tip4p} and vice versa.

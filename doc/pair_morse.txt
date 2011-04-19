@@ -7,11 +7,14 @@
 :line
 
 pair_style morse command :h3
+pair_style morse/gpu command :h3
 pair_style morse/opt command :h3
 
 [Syntax:]
 
 pair_style morse cutoff :pre
+pair_style morse/gpu cutoff :pre
+pair_style morse/opt cutoff :pre
 
 cutoff = global cutoff for Morse interactions (distance units) :ul
 
@@ -49,6 +52,29 @@ give identical answers.  Depending on system size and the processor
 you are running on, it may be 5-25% faster (for the pairwise portion
 of the run time).
 
+Style {morse/gpu} is a GPU-enabled version of style {morse}.
+See more details below.
+
+:line
+
+The {morse/gpu} style is identical to the {morse} style,
+except that each processor off-loads its pairwise calculations to a 
+GPU chip. Depending on the hardware available on your system this can provide a
+speed-up.  See the "Running on GPUs"_Section_start.html#2_8 section of
+the manual for more details about hardware and software requirements
+for using GPUs.
+
+More details about these settings and various possible hardware
+configuration are in "this section"_Section_start.html#2_8 of the
+manual.
+
+Additional requirements in your input script to run with GPU-enabled styles
+are as follows:
+
+The "newton pair"_newton.html setting must be {off} and
+"fix gpu"_fix_gpu.html must be used. The fix controls
+the essential GPU selection and initialization steps.
+
 :line
 
 [Mixing, shift, table, tail correction, restart, rRESPA info]:
@@ -78,8 +104,9 @@ These pair styles can only be used via the {pair} keyword of the
 
 [Restrictions:]
 
-The {morse/opt} style is part of the "opt" package.  It is only
-enabled if LAMMPS was built with that package.  See the "Making
+The {morse/opt} style is part of the "opt" package.  The {morse/gpu}
+style is part of the "gpu" package. They are only
+enabled if LAMMPS was built with those packages.  See the "Making
 LAMMPS"_Section_start.html#2_3 section for more info.
 
 [Related commands:]

@@ -102,7 +102,11 @@ This pair style can only be used via the {pair} keyword of the
 
 :line
 
-[Restrictions:] none
+[Restrictions:]
+
+The {lj/expand/gpu} style is part of the "gpu" package. It is only
+enabled if LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#2_3 section for more info.
 
 [Related commands:]
 

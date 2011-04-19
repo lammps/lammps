@@ -77,6 +77,8 @@ PairGayBerneGPU::PairGayBerneGPU(LAMMPS *lmp) : PairGayBerne(lmp),
   avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
   if (!avec) 
     error->all("Pair gayberne requires atom style ellipsoid");
+  quat_nmax = 0;
+  quat = NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -87,6 +89,7 @@ PairGayBerneGPU::~PairGayBerneGPU()
 {
   gb_gpu_clear();
   cpu_time = 0.0;
+  memory->destroy(quat);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -101,13 +104,30 @@ void PairGayBerneGPU::compute(int eflag, int vflag)
 
   bool success = true;
   int *ilist, *numneigh, **firstneigh;  
+
+  if (nall > quat_nmax) {
+    quat_nmax = static_cast<int>(1.1 * nall);
+    memory->grow(quat, quat_nmax, 4, "pair:quat");
+  }
+  AtomVecEllipsoid::Bonus *bonus = avec->bonus;
+  int *ellipsoid = atom->ellipsoid;
+  for (int i=0; i<nall; i++) {
+    int qi = ellipsoid[i];
+    if (qi > -1) {
+      quat[i][0] = bonus[qi].quat[0];
+      quat[i][1] = bonus[qi].quat[1];
+      quat[i][2] = bonus[qi].quat[2];
+      quat[i][3] = bonus[qi].quat[3];
+    }
+  }
+
   if (gpu_mode == GPU_NEIGH) {
     inum = atom->nlocal;
     firstneigh = gb_gpu_compute_n(neighbor->ago, inum, nall, atom->x,
 				  atom->type, domain->sublo, domain->subhi,
 				  eflag, vflag, eflag_atom, vflag_atom,
 				  host_start, &ilist, &numneigh, cpu_time,
-				  success, atom->quat);
+				  success, quat);
   } else {
     inum = list->inum;
     ilist = list->ilist;
@@ -116,7 +136,7 @@ void PairGayBerneGPU::compute(int eflag, int vflag)
     olist = gb_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type,
 			   ilist, numneigh, firstneigh, eflag, vflag,
 			   eflag_atom, vflag_atom, host_start,
-			   cpu_time, success, atom->quat);
+			   cpu_time, success, quat);
   }
   if (!success)
     error->one("Out of memory on GPGPU");
@@ -185,6 +205,8 @@ void PairGayBerneGPU::init_style()
     neighbor->requests[irequest]->half = 0;
     neighbor->requests[irequest]->full = 1;
   }
+  quat_nmax = static_cast<int>(1.1 * (atom->nlocal + atom->nghost));
+  memory->grow(quat, quat_nmax, 4, "pair:quat");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -192,7 +214,7 @@ void PairGayBerneGPU::init_style()
 double PairGayBerneGPU::memory_usage()
 {
   double bytes = Pair::memory_usage();
-  return bytes + gb_gpu_bytes();
+  return bytes + memory->usage(quat,quat_nmax)+gb_gpu_bytes();
 }
 
 /* ---------------------------------------------------------------------- */

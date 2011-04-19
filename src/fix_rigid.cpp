@@ -1070,13 +1070,17 @@ void FixRigid::initial_integrate(int vflag)
     angmom[ibody][1] += dtf * torque[ibody][1] * tflag[ibody][1];
     angmom[ibody][2] += dtf * torque[ibody][2] * tflag[ibody][2];
 
-    // update quaternion a full step
-    // returns new normalized quat
-    // returns ex_space,ey_space,ez_space for new quat
-    // returns omega at 1/2 step (depends on angmom and quat)
+    // compute omega at 1/2 step from angmom at 1/2 step and current q
+    // update quaternion a full step via Richardson iteration
+    // returns new normalized quaternion, also updated omega at 1/2 step
+    // update ex,ey,ez to reflect new quaternion
 
-    richardson(quat[ibody],omega[ibody],angmom[ibody],inertia[ibody],
-	       ex_space[ibody],ey_space[ibody],ez_space[ibody]);
+    MathExtra::angmom_to_omega(angmom[ibody],ex_space[ibody],ey_space[ibody],
+			       ez_space[ibody],inertia[ibody],omega[ibody]);
+    MathExtra::richardson(quat[ibody],angmom[ibody],omega[ibody],
+			  inertia[ibody],dtq);
+    MathExtra::q_to_exyz(quat[ibody],
+			 ex_space[ibody],ey_space[ibody],ez_space[ibody]);
   }
 
   // virial setup before call to set_xv
@@ -1197,67 +1201,6 @@ void FixRigid::final_integrate()
   // virial is already setup from initial_integrate
 
   set_v();
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixRigid::richardson(double *q, double *w,
-			  double *m, double *moments,
-			  double *ex, double *ey, double *ez)
-{
-  // compute omega at 1/2 step from m at 1/2 step and q at 0
-  
-  MathExtra::angmom_to_omega(m,ex,ey,ez,moments,w);
-
-  // full update from dq/dt = 1/2 w q
-
-  double wq[4];
-  MathExtra::vecquat(w,q,wq);
-
-  double qfull[4];
-  qfull[0] = q[0] + dtq * wq[0];
-  qfull[1] = q[1] + dtq * wq[1];
-  qfull[2] = q[2] + dtq * wq[2];
-  qfull[3] = q[3] + dtq * wq[3];
-
-  MathExtra::qnormalize(qfull);
-
-  // 1st half update from dq/dt = 1/2 w q
-
-  double qhalf[4];
-  qhalf[0] = q[0] + 0.5*dtq * wq[0];
-  qhalf[1] = q[1] + 0.5*dtq * wq[1];
-  qhalf[2] = q[2] + 0.5*dtq * wq[2];
-  qhalf[3] = q[3] + 0.5*dtq * wq[3];
-
-  MathExtra::qnormalize(qhalf);
-
-  // udpate ex,ey,ez from qhalf
-  // re-compute omega at 1/2 step from m at 1/2 step and q at 1/2 step
-  // recompute wq
-
-  MathExtra::q_to_exyz(qhalf,ex,ey,ez);
-  MathExtra::angmom_to_omega(m,ex,ey,ez,moments,w);
-  MathExtra::vecquat(w,qhalf,wq);
-
-  // 2nd half update from dq/dt = 1/2 w q
-
-  qhalf[0] += 0.5*dtq * wq[0];
-  qhalf[1] += 0.5*dtq * wq[1];
-  qhalf[2] += 0.5*dtq * wq[2];
-  qhalf[3] += 0.5*dtq * wq[3];
-
-  MathExtra::qnormalize(qhalf);
-
-  // corrected Richardson update
-
-  q[0] = 2.0*qhalf[0] - qfull[0];
-  q[1] = 2.0*qhalf[1] - qfull[1];
-  q[2] = 2.0*qhalf[2] - qfull[2];
-  q[3] = 2.0*qhalf[3] - qfull[3];
-
-  MathExtra::qnormalize(q);
-  MathExtra::q_to_exyz(q,ex,ey,ez);
 }
 
 /* ----------------------------------------------------------------------

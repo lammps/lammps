@@ -612,7 +612,7 @@ double PairRESquared::resquared_analytic(const int i, const int j,
   double temp[3][3];
   MathExtra::plus3(wi.gamma,wj.gamma,temp);
   int ierror = MathExtra::mldivide3(temp,rhat,s);
-  if (error) error->all("Bad matrix inversion in mldivide3");
+  if (ierror) error->all("Bad matrix inversion in mldivide3");
 
   sigma12 = 1.0/sqrt(0.5*MathExtra::dot3(s,rhat));
   MathExtra::times_column3(wi.A,rhat,z1);
@@ -644,7 +644,7 @@ double PairRESquared::resquared_analytic(const int i, const int j,
   MathExtra::times3(wj.aTe,wj.A,temp2);
   MathExtra::plus3(temp,temp2,temp);
   ierror = MathExtra::mldivide3(temp,rhat,w);
-  if (error) error->all("Bad matrix inversion in mldivide3");
+  if (ierror) error->all("Bad matrix inversion in mldivide3");
 
   h12 = rnorm-sigma12;
   eta = lambda/nu;
@@ -898,7 +898,7 @@ double PairRESquared::resquared_lj(const int i, const int j,
   // energy
 
   int ierror = MathExtra::mldivide3(gamma,rhat,s);
-  if (error) error->all("Bad matrix inversion in mldivide3");
+  if (ierror) error->all("Bad matrix inversion in mldivide3");
 
   sigma12 = 1.0/sqrt(0.5*MathExtra::dot3(s,rhat));
   double temp[3][3];
@@ -907,7 +907,7 @@ double PairRESquared::resquared_lj(const int i, const int j,
   temp[1][1] += 1.0;
   temp[2][2] += 1.0;
   ierror = MathExtra::mldivide3(temp,rhat,w);
-  if (error) error->all("Bad matrix inversion in mldivide3");
+  if (ierror) error->all("Bad matrix inversion in mldivide3");
 
   h12 = rnorm-sigma12;
   chi = 2.0*MathExtra::dot3(rhat,w);

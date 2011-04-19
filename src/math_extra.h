@@ -68,6 +68,7 @@ namespace MathExtra {
   int jacobi(double matrix[3][3], double *evalues, double evectors[3][3]);
   void rotate(double matrix[3][3], int i, int j, int k, int l,
 	      double s, double tau);
+  void richardson(double *q, double *m, double *w, double *moments, double dtq);
 
   // shape matrix operations
   // upper-triangular 3x3 matrix stored in Voigt notation as 6-vector
@@ -94,6 +95,7 @@ namespace MathExtra {
 		       double *idiag, double *w);
   void omega_to_angmom(double *w, double *ex, double *ey, double *ez,
 		       double *idiag, double *m);
+  void mq_to_omega(double *m, double *q, double *moments, double *w);
   void exyz_to_q(double *ex, double *ey, double *ez, double *q);
   void q_to_exyz(double *q, double *ex, double *ey, double *ez);
   void quat_to_mat(const double *quat, double mat[3][3]);

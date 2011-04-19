@@ -58,83 +58,6 @@ void FixNHAsphere::init()
 }
 
 /* ----------------------------------------------------------------------
-   Richardson iteration to update quaternion accurately
-------------------------------------------------------------------------- */
-
-void FixNHAsphere::richardson(double *q, double *m, double *moments)
-{
-  // compute omega at 1/2 step from m at 1/2 step and q at 0
-
-  double w[3];
-  omega_from_mq(q,m,moments,w);
-
-  // full update from dq/dt = 1/2 w q
-
-  double wq[4];
-  MathExtra::vecquat(w,q,wq);
-
-  double qfull[4];
-  qfull[0] = q[0] + dtq * wq[0];
-  qfull[1] = q[1] + dtq * wq[1];
-  qfull[2] = q[2] + dtq * wq[2];
-  qfull[3] = q[3] + dtq * wq[3];
-  MathExtra::qnormalize(qfull);
-
-  // 1st half of update from dq/dt = 1/2 w q
-
-  double qhalf[4];
-  qhalf[0] = q[0] + 0.5*dtq * wq[0];
-  qhalf[1] = q[1] + 0.5*dtq * wq[1];
-  qhalf[2] = q[2] + 0.5*dtq * wq[2];
-  qhalf[3] = q[3] + 0.5*dtq * wq[3];
-  MathExtra::qnormalize(qhalf);
-
-  // re-compute omega at 1/2 step from m at 1/2 step and q at 1/2 step
-  // recompute wq
-
-  omega_from_mq(qhalf,m,moments,w);
-  MathExtra::vecquat(w,qhalf,wq);
-
-  // 2nd half of update from dq/dt = 1/2 w q
-
-  qhalf[0] += 0.5*dtq * wq[0];
-  qhalf[1] += 0.5*dtq * wq[1];
-  qhalf[2] += 0.5*dtq * wq[2];
-  qhalf[3] += 0.5*dtq * wq[3];
-  MathExtra::qnormalize(qhalf);
-
-  // corrected Richardson update
-
-  q[0] = 2.0*qhalf[0] - qfull[0];
-  q[1] = 2.0*qhalf[1] - qfull[1];
-  q[2] = 2.0*qhalf[2] - qfull[2];
-  q[3] = 2.0*qhalf[3] - qfull[3];
-  MathExtra::qnormalize(q);
-}
-
-/* ----------------------------------------------------------------------
-   compute omega from angular momentum
-   w = omega = angular velocity in space frame
-   wbody = angular velocity in body frame
-   project space-frame angular momentum onto body axes
-     and divide by principal moments
-------------------------------------------------------------------------- */
-
-void FixNHAsphere::omega_from_mq(double *q, double *m, double *inertia,
-				  double *w)
-{
-  double rot[3][3];
-  MathExtra::quat_to_mat(q,rot);
-  
-  double wbody[3];
-  MathExtra::transpose_times_column3(rot,m,wbody);
-  wbody[0] /= inertia[0];
-  wbody[1] /= inertia[1];
-  wbody[2] /= inertia[2];
-  MathExtra::times_column3(rot,wbody,w);
-}
-
-/* ----------------------------------------------------------------------
    perform half-step update of angular momentum
 -----------------------------------------------------------------------*/
 
@@ -167,6 +90,8 @@ void FixNHAsphere::nve_v()
 
 void FixNHAsphere::nve_x()
 {
+  double omega[3];
+
   // standard nve_x position update
 
   FixNH::nve_x();
@@ -192,6 +117,9 @@ void FixNHAsphere::nve_x()
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
+
+      // principal moments of inertia
+
       shape = bonus[ellipsoid[i]].shape;
       quat = bonus[ellipsoid[i]].quat;
 
@@ -199,7 +127,12 @@ void FixNHAsphere::nve_x()
       inertia[1] = rmass[i] * (shape[0]*shape[0]+shape[2]*shape[2]) / 5.0;
       inertia[2] = rmass[i] * (shape[0]*shape[0]+shape[1]*shape[1]) / 5.0;
       
-      richardson(quat,angmom[i],inertia);
+      // compute omega at 1/2 step from angmom at 1/2 step and current q
+      // update quaternion a full step via Richardson iteration
+      // returns new normalized quaternion
+
+      MathExtra::mq_to_omega(angmom[i],quat,inertia,omega);
+      MathExtra::richardson(quat,angmom[i],omega,inertia,dtq);
     }
 }
 

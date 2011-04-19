@@ -545,7 +545,7 @@ double PairGayBerne::gayberne_analytic(const int i,const int j,double a1[3][3],
   MathExtra::plus3(g1,g2,g12);
   double kappa[3];
   int ierror = MathExtra::mldivide3(g12,r12,kappa);
-  if (error) error->all("Bad matrix inversion in mldivide3");
+  if (ierror) error->all("Bad matrix inversion in mldivide3");
 
   // tempv = G12^-1*r12hat
 
@@ -576,7 +576,7 @@ double PairGayBerne::gayberne_analytic(const int i,const int j,double a1[3][3],
   double iota[3];
   MathExtra::plus3(b1,b2,b12);
   ierror = MathExtra::mldivide3(b12,r12,iota);
-  if (error) error->all("Bad matrix inversion in mldivide3");
+  if (ierror) error->all("Bad matrix inversion in mldivide3");
 
   // tempv = G12^-1*r12hat
 
@@ -726,7 +726,7 @@ double PairGayBerne::gayberne_lj(const int i,const int j,double a1[3][3],
   g12[1][2] = g1[1][2]; g12[2][1] = g1[2][1];
   double kappa[3];
   int ierror = MathExtra::mldivide3(g12,r12,kappa);
-  if (error) error->all("Bad matrix inversion in mldivide3");
+  if (ierror) error->all("Bad matrix inversion in mldivide3");
 
   // tempv = G12^-1*r12hat
 
@@ -762,7 +762,7 @@ double PairGayBerne::gayberne_lj(const int i,const int j,double a1[3][3],
   b12[0][2] = b1[0][2]; b12[2][0] = b1[2][0];
   b12[1][2] = b1[1][2]; b12[2][1] = b1[2][1];
   ierror = MathExtra::mldivide3(b12,r12,iota);
-  if (error) error->all("Bad matrix inversion in mldivide3");
+  if (ierror) error->all("Bad matrix inversion in mldivide3");
 
   // tempv = G12^-1*r12hat
 

@@ -102,8 +102,6 @@ class FixRigid : public Fix {
   int ORIENT_DIPOLE,ORIENT_QUAT;
   int OMEGA,ANGMOM,TORQUE;
 
-  void richardson(double *, double *, double *, double *,
-		  double *, double *, double *);
   void no_squish_rotate(int, double *, double *, double *, double);
   void set_xv();
   void set_v();

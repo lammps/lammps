@@ -431,7 +431,7 @@ void Set::set(int keyword)
       quat[1] = xvalue * sintheta2;
       quat[2] = yvalue * sintheta2;
       quat[3] = zvalue * sintheta2;
-      MathExtra::normalize4(quat);
+      MathExtra::qnormalize(quat);
     }
     count++;
   }

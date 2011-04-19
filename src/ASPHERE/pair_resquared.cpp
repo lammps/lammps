@@ -45,8 +45,7 @@ PairRESquared::PairRESquared(LAMMPS *lmp) : Pair(lmp),
                                             cr60(pow(60.0,1.0/3.0))
 {
   avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-  if (!avec) 
-    error->all("Pair gayberne requires atom style ellipsoid");
+  if (!avec) error->all("Pair resquared requires atom style ellipsoid");
 
   single_enable = 0;
 

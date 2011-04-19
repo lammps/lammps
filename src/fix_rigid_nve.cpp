@@ -21,6 +21,7 @@
 #include "stdio.h"
 #include "string.h"
 #include "fix_rigid_nve.h"
+#include "math_extra.h"
 #include "atom.h"
 #include "domain.h"
 #include "update.h"
@@ -57,9 +58,9 @@ void FixRigidNVE::setup(int vflag)
   
   double mbody[3];
   for (int ibody = 0; ibody < nbody; ibody++) {
-    matvec_rows(ex_space[ibody],ey_space[ibody],ez_space[ibody],
-		angmom[ibody],mbody);
-    quatvec(quat[ibody],mbody,conjqm[ibody]);
+    MathExtra::matvec_rows(ex_space[ibody],ey_space[ibody],ez_space[ibody],
+			   angmom[ibody],mbody);
+    MathExtra::quatvec(quat[ibody],mbody,conjqm[ibody]);
     conjqm[ibody][0] *= 2.0;
     conjqm[ibody][1] *= 2.0;
     conjqm[ibody][2] *= 2.0;
@@ -98,9 +99,9 @@ void FixRigidNVE::initial_integrate(int vflag)
     torque[ibody][1] *= tflag[ibody][1];
     torque[ibody][2] *= tflag[ibody][2];
     
-    matvec_rows(ex_space[ibody],ey_space[ibody],ez_space[ibody],
-		torque[ibody],tbody);
-    quatvec(quat[ibody],tbody,fquat);
+    MathExtra::matvec_rows(ex_space[ibody],ey_space[ibody],ez_space[ibody],
+			   torque[ibody],tbody);
+    MathExtra::quatvec(quat[ibody],tbody,fquat);
     
     conjqm[ibody][0] += dtf2 * fquat[0];
     conjqm[ibody][1] += dtf2 * fquat[1];
@@ -119,18 +120,18 @@ void FixRigidNVE::initial_integrate(int vflag)
     // transform p back to angmom
     // update angular velocity
     
-    exyz_from_q(quat[ibody],ex_space[ibody],ey_space[ibody],
-      ez_space[ibody]);
-    invquatvec(quat[ibody],conjqm[ibody],mbody);
-    matvec_cols(ex_space[ibody],ey_space[ibody],ez_space[ibody],
-		mbody,angmom[ibody]);
+    MathExtra::q_to_exyz(quat[ibody],ex_space[ibody],ey_space[ibody],
+			 ez_space[ibody]);
+    MathExtra::invquatvec(quat[ibody],conjqm[ibody],mbody);
+    MathExtra::matvec_cols(ex_space[ibody],ey_space[ibody],ez_space[ibody],
+			   mbody,angmom[ibody]);
     
     angmom[ibody][0] *= 0.5;
     angmom[ibody][1] *= 0.5;
     angmom[ibody][2] *= 0.5;
     
-    omega_from_angmom(angmom[ibody],ex_space[ibody],ey_space[ibody],
-      ez_space[ibody],inertia[ibody],omega[ibody]);
+    MathExtra::angmom_to_omega(angmom[ibody],ex_space[ibody],ey_space[ibody],
+			       ez_space[ibody],inertia[ibody],omega[ibody]);
   }
   
   // virial setup before call to set_xv
@@ -247,25 +248,25 @@ void FixRigidNVE::final_integrate()
     torque[ibody][1] *= tflag[ibody][1];
     torque[ibody][2] *= tflag[ibody][2];
     
-    matvec_rows(ex_space[ibody],ey_space[ibody],ez_space[ibody],
-		torque[ibody],tbody);
-    quatvec(quat[ibody],tbody,fquat);
+    MathExtra::matvec_rows(ex_space[ibody],ey_space[ibody],ez_space[ibody],
+			   torque[ibody],tbody);
+    MathExtra::quatvec(quat[ibody],tbody,fquat);
     
     conjqm[ibody][0] += dtf2 * fquat[0];
     conjqm[ibody][1] += dtf2 * fquat[1];
     conjqm[ibody][2] += dtf2 * fquat[2];
     conjqm[ibody][3] += dtf2 * fquat[3];
     
-    invquatvec(quat[ibody],conjqm[ibody],mbody);
-    matvec_cols(ex_space[ibody],ey_space[ibody],ez_space[ibody],
-		mbody,angmom[ibody]);
-      
+    MathExtra::invquatvec(quat[ibody],conjqm[ibody],mbody);
+    MathExtra::matvec_cols(ex_space[ibody],ey_space[ibody],ez_space[ibody],
+			   mbody,angmom[ibody]);
+    
     angmom[ibody][0] *= 0.5;
     angmom[ibody][1] *= 0.5;
     angmom[ibody][2] *= 0.5;  
     
-    omega_from_angmom(angmom[ibody],ex_space[ibody],ey_space[ibody],
-		  ez_space[ibody],inertia[ibody],omega[ibody]);
+    MathExtra::angmom_to_omega(angmom[ibody],ex_space[ibody],ey_space[ibody],
+			       ez_space[ibody],inertia[ibody],omega[ibody]);
   }
   
   // set velocity/rotation of atoms in rigid bodies

@@ -43,8 +43,7 @@ enum{SPHERE_SPHERE,SPHERE_ELLIPSE,ELLIPSE_SPHERE,ELLIPSE_ELLIPSE};
 PairGayBerne::PairGayBerne(LAMMPS *lmp) : Pair(lmp)
 {
   avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-  if (!avec) 
-    error->all("Pair gayberne requires atom style ellipsoid");
+  if (!avec) error->all("Pair gayberne requires atom style ellipsoid");
 
   single_enable = 0;
 }

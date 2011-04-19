@@ -155,14 +155,14 @@ void FixNVEAsphere::richardson(double *q, double *m, double *moments)
   // full update from dq/dt = 1/2 w q
 
   double wq[4];
-  MathExtra::multiply_vec_quat(w,q,wq);
+  MathExtra::vecquat(w,q,wq);
 
   double qfull[4];
   qfull[0] = q[0] + dtq * wq[0];
   qfull[1] = q[1] + dtq * wq[1];
   qfull[2] = q[2] + dtq * wq[2];
   qfull[3] = q[3] + dtq * wq[3];
-  MathExtra::normalize4(qfull);
+  MathExtra::qnormalize(qfull);
 
   // 1st half of update from dq/dt = 1/2 w q
 
@@ -171,13 +171,13 @@ void FixNVEAsphere::richardson(double *q, double *m, double *moments)
   qhalf[1] = q[1] + 0.5*dtq * wq[1];
   qhalf[2] = q[2] + 0.5*dtq * wq[2];
   qhalf[3] = q[3] + 0.5*dtq * wq[3];
-  MathExtra::normalize4(qhalf);
+  MathExtra::qnormalize(qhalf);
 
   // re-compute omega at 1/2 step from m at 1/2 step and q at 1/2 step
   // recompute wq
 
   omega_from_mq(qhalf,m,moments,w);
-  MathExtra::multiply_vec_quat(w,qhalf,wq);
+  MathExtra::vecquat(w,qhalf,wq);
 
   // 2nd half of update from dq/dt = 1/2 w q
 
@@ -185,7 +185,7 @@ void FixNVEAsphere::richardson(double *q, double *m, double *moments)
   qhalf[1] += 0.5*dtq * wq[1];
   qhalf[2] += 0.5*dtq * wq[2];
   qhalf[3] += 0.5*dtq * wq[3];
-  MathExtra::normalize4(qhalf);
+  MathExtra::qnormalize(qhalf);
 
   // corrected Richardson update
 
@@ -193,7 +193,7 @@ void FixNVEAsphere::richardson(double *q, double *m, double *moments)
   q[1] = 2.0*qhalf[1] - qfull[1];
   q[2] = 2.0*qhalf[2] - qfull[2];
   q[3] = 2.0*qhalf[3] - qfull[3];
-  MathExtra::normalize4(q);
+  MathExtra::qnormalize(q);
 }
 
 /* ----------------------------------------------------------------------

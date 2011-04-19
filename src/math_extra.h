@@ -64,8 +64,8 @@ namespace MathExtra {
 
   void write3(const double mat[3][3]);
   int mldivide3(const double mat[3][3], const double *vec, double *ans);
-  int jacobi(double **matrix, double *evalues, double **evectors);
-  void rotate(double **matrix, int i, int j, int k, int l,
+  int jacobi(double matrix[3][3], double *evalues, double evectors[3][3]);
+  void rotate(double matrix[3][3], int i, int j, int k, int l,
 	      double s, double tau);
   
   // shape matrix operations
@@ -75,13 +75,8 @@ namespace MathExtra {
                                    double *ans);
   // quaternion operations
   
-  inline void normalize4(double *quat);
   inline void axisangle_to_quat(const double *v, const double angle,
                                 double *quat);
-  inline void multiply_quat_quat(const double *one, const double *two,
-                                 double *ans);
-  inline void multiply_vec_quat(const double *one, const double *two,
-                                double *ans);
   inline void vecquat(double *a, double *b, double *c);
   inline void quatvec(double *a, double *b, double *c);
   inline void quatquat(double *a, double *b, double *c);
@@ -93,10 +88,10 @@ namespace MathExtra {
   inline void matvec_cols(double *x, double *y, double *z,
 			  double *b, double *c);
 
-  void omega_from_angmom(double *m, double *ex, double *ey, double *ez,
-			 double *idiag, double *w);
-  void angmom_from_omega(double *w, double *ex, double *ey, double *ez,
-			 double *idiag, double *m);
+  void angmom_to_omega(double *m, double *ex, double *ey, double *ez,
+		       double *idiag, double *w);
+  void omega_to_angmom(double *w, double *ex, double *ey, double *ez,
+		       double *idiag, double *m);
   void exyz_to_q(double *ex, double *ey, double *ez, double *q);
   void q_to_exyz(double *q, double *ex, double *ey, double *ez);
   void quat_to_mat(const double *quat, double mat[3][3]);
@@ -425,20 +420,6 @@ void MathExtra::multiply_shape_shape(const double *one, const double *two,
 }
 
 /* ----------------------------------------------------------------------
-   normalize a quaternion
-------------------------------------------------------------------------- */
-
-void MathExtra::normalize4(double *quat)
-{
-  double scale = 1.0/sqrt(quat[0]*quat[0]+quat[1]*quat[1] +
-			  quat[2]*quat[2]+quat[3]*quat[3]);
-  quat[0] *= scale;
-  quat[1] *= scale;
-  quat[2] *= scale;
-  quat[3] *= scale;
-}
-
-/* ----------------------------------------------------------------------
    compute quaternion from axis-angle rotation
    v MUST be a unit vector
 ------------------------------------------------------------------------- */
@@ -452,35 +433,6 @@ void MathExtra::axisangle_to_quat(const double *v, const double angle,
   quat[1] = v[0]*sina;
   quat[2] = v[1]*sina;
   quat[3] = v[2]*sina;
-}
-
-/* ----------------------------------------------------------------------
-   multiply 2 quaternions
-   effectively concatenates rotations
-   NOT a commutative operation
-------------------------------------------------------------------------- */
-
-void MathExtra::multiply_quat_quat(const double *one, const double *two,
-				   double *ans)
-{
-  ans[0] = one[0]*two[0]-one[1]*two[1]-one[2]*two[2]-one[3]*two[3];
-  ans[1] = one[0]*two[1]+one[1]*two[0]+one[2]*two[3]-one[3]*two[2];
-  ans[2] = one[0]*two[2]-one[1]*two[3]+one[2]*two[0]+one[3]*two[1];
-  ans[3] = one[0]*two[3]+one[1]*two[2]-one[2]*two[1]+one[3]*two[0];
-}
-
-/* ----------------------------------------------------------------------
-   multiply 3 vector times quaternion
-   3 vector one is treated as quaternion (0,one)
-------------------------------------------------------------------------- */
-
-void MathExtra::multiply_vec_quat(const double *one, const double *two,
-				  double *ans)
-{
-  ans[0] = -one[0]*two[1]-one[1]*two[2]-one[2]*two[3];
-  ans[1] =  one[0]*two[0]+one[1]*two[3]-one[2]*two[2];
-  ans[2] = -one[0]*two[3]+one[1]*two[0]+one[2]*two[1];
-  ans[3] =  one[0]*two[2]-one[1]*two[1]+one[2]*two[0];
 }
 
 /* ----------------------------------------------------------------------
@@ -509,6 +461,7 @@ void MathExtra::quatvec(double *a, double *b, double *c)
 
 /* ----------------------------------------------------------------------
    quaternion-quaternion multiply: c = a*b
+   NOT a commutative operation
 ------------------------------------------------------------------------- */
 
 void MathExtra::quatquat(double *a, double *b, double *c)

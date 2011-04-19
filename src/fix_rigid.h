@@ -102,27 +102,9 @@ class FixRigid : public Fix {
   int ORIENT_DIPOLE,ORIENT_QUAT;
   int OMEGA,ANGMOM,TORQUE;
 
-  int jacobi(double **, double *, double **);
-  void rotate(double **, int, int, int, int, double, double);
-  void q_from_exyz(double *, double *, double *, double *);
-  void exyz_from_q(double *, double *, double *, double *);
-
-  void vecquat(double *, double *, double *);
-  void quatvec(double *, double *, double *);
-  void quatquat(double *, double *, double *);
-  void invquatvec(double *, double *, double *); 
-  void qconjugate(double *, double *);
-  void qnormalize(double *);
-  void matvec_rows(double *, double *, double *, double *, double *);
-  void matvec_cols(double *, double *, double *, double *, double *);
-
   void richardson(double *, double *, double *, double *,
 		  double *, double *, double *);
   void no_squish_rotate(int, double *, double *, double *, double);
-  void omega_from_angmom(double *, double *, double *,
-			 double *, double *, double *);
-  void angmom_from_omega(double *, double *, double *,
-			 double *, double *, double *);
   void set_xv();
   void set_v();
 };

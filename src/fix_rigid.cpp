@@ -590,7 +590,8 @@ void FixRigid::init()
 
   // compute 6 moments of inertia of each body
   // dx,dy,dz = coords relative to center-of-mass
-  
+  // symmetric 3x3 inertia tensor stored in Voigt notation as 6-vector
+
   double dx,dy,dz,rad;
 
   for (ibody = 0; ibody < nbody; ibody++)
@@ -624,16 +625,15 @@ void FixRigid::init()
     sum[ibody][0] += massone * (dy*dy + dz*dz);
     sum[ibody][1] += massone * (dx*dx + dz*dz);
     sum[ibody][2] += massone * (dx*dx + dy*dy);
-    sum[ibody][3] -= massone * dx*dy;
-    sum[ibody][4] -= massone * dy*dz;
-    sum[ibody][5] -= massone * dx*dz;
+    sum[ibody][3] -= massone * dy*dz;
+    sum[ibody][4] -= massone * dx*dz;
+    sum[ibody][5] -= massone * dx*dy;
   }
 
   // extended particles may contribute extra terms to moments of inertia
 
   if (extended) {
-    double ex[3],ey[3],ez[3],idiag[3];
-    double p[3][3],ptrans[3][3],ispace[3][3],itemp[3][3];
+    double ivec[6];
     double *shape,*quatatom;
 
     for (i = 0; i < nlocal; i++) {
@@ -652,19 +652,13 @@ void FixRigid::init()
       if (eflags[i] & INERTIA_ELLIPSOID) {
 	shape = ebonus[ellipsoid[i]].shape;
 	quatatom = ebonus[ellipsoid[i]].quat;
-	MathExtra::quat_to_mat(quatatom,p);
-	MathExtra::quat_to_mat_trans(quatatom,ptrans);
-	idiag[0] = 0.2*massone * (shape[1]*shape[1]+shape[2]*shape[2]);
-	idiag[1] = 0.2*massone * (shape[0]*shape[0]+shape[2]*shape[2]);
-	idiag[2] = 0.2*massone * (shape[0]*shape[0]+shape[1]*shape[1]);
-	MathExtra::diag_times3(idiag,ptrans,itemp);
-	MathExtra::times3(p,itemp,ispace);
-	sum[ibody][0] += ispace[0][0];
-	sum[ibody][1] += ispace[1][1];
-	sum[ibody][2] += ispace[2][2];
-	sum[ibody][3] += ispace[0][1];
-	sum[ibody][4] += ispace[1][2];
-	sum[ibody][5] += ispace[0][2];
+	MathExtra::inertia_ellipsoid(shape,quatatom,massone,ivec);
+	sum[ibody][0] += ivec[0];
+	sum[ibody][1] += ivec[1];
+	sum[ibody][2] += ivec[2];
+	sum[ibody][3] += ivec[3];
+	sum[ibody][4] += ivec[4];
+	sum[ibody][5] += ivec[5];
       }
     }
   }
@@ -674,18 +668,17 @@ void FixRigid::init()
   // inertia = 3 eigenvalues = principal moments of inertia
   // ex_space,ey_space,ez_space = 3 eigenvectors = principal axes of rigid body
   
-  double tensor[3][3],evectors[3][3];
-
   int ierror;
   double ez0,ez1,ez2;
+  double tensor[3][3],evectors[3][3];
 
   for (ibody = 0; ibody < nbody; ibody++) {
     tensor[0][0] = all[ibody][0];
     tensor[1][1] = all[ibody][1];
     tensor[2][2] = all[ibody][2];
-    tensor[0][1] = tensor[1][0] = all[ibody][3];
-    tensor[1][2] = tensor[2][1] = all[ibody][4];
-    tensor[0][2] = tensor[2][0] = all[ibody][5];
+    tensor[1][2] = tensor[2][1] = all[ibody][3];
+    tensor[0][2] = tensor[2][0] = all[ibody][4];
+    tensor[0][1] = tensor[1][0] = all[ibody][5];
 
     ierror = MathExtra::jacobi(tensor,inertia[ibody],evectors);
     if (ierror) error->all("Insufficient Jacobi rotations for rigid body");
@@ -818,14 +811,13 @@ void FixRigid::init()
       (displace[i][0]*displace[i][0] + displace[i][2]*displace[i][2]);
     sum[ibody][2] += massone * 
       (displace[i][0]*displace[i][0] + displace[i][1]*displace[i][1]);
-    sum[ibody][3] -= massone * displace[i][0]*displace[i][1];
-    sum[ibody][4] -= massone * displace[i][1]*displace[i][2];
-    sum[ibody][5] -= massone * displace[i][0]*displace[i][2];
+    sum[ibody][3] -= massone * displace[i][1]*displace[i][2];
+    sum[ibody][4] -= massone * displace[i][0]*displace[i][2];
+    sum[ibody][5] -= massone * displace[i][0]*displace[i][1];
   }
 
   if (extended) {
-    double ex[3],ey[3],ez[3],idiag[3];
-    double p[3][3],ptrans[3][3],ispace[3][3],itemp[3][3];
+    double ivec[6];
     double *shape;
 
     for (i = 0; i < nlocal; i++) {
@@ -843,19 +835,13 @@ void FixRigid::init()
       }
       if (eflags[i] & INERTIA_ELLIPSOID) {
 	shape = ebonus[ellipsoid[i]].shape;
-	MathExtra::quat_to_mat(qorient[i],p);
-	MathExtra::quat_to_mat_trans(qorient[i],ptrans);
-	idiag[0] = 0.2*massone * (shape[1]*shape[1]+shape[2]*shape[2]);
-	idiag[1] = 0.2*massone * (shape[0]*shape[0]+shape[2]*shape[2]);
-	idiag[2] = 0.2*massone * (shape[0]*shape[0]+shape[1]*shape[1]);
-	MathExtra::diag_times3(idiag,ptrans,itemp);
-	MathExtra::times3(p,itemp,ispace);
-	sum[ibody][0] += ispace[0][0];
-	sum[ibody][1] += ispace[1][1];
-	sum[ibody][2] += ispace[2][2];
-	sum[ibody][3] += ispace[0][1];
-	sum[ibody][4] += ispace[1][2];
-	sum[ibody][5] += ispace[0][2];
+	MathExtra::inertia_ellipsoid(shape,qorient[i],massone,ivec);
+	sum[ibody][0] += ivec[0];
+	sum[ibody][1] += ivec[1];
+	sum[ibody][2] += ivec[2];
+	sum[ibody][3] += ivec[3];
+	sum[ibody][4] += ivec[4];
+	sum[ibody][5] += ivec[5];
       }
     }
   }

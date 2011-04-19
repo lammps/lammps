@@ -353,10 +353,10 @@ void EwaldN::init_coeff_sums()				// sums based on atoms
     }
   }
   if (function[3]) {					// dipole
-    int *type = atom->type, *ntype = type+atom->nlocal;
-    double *dipole = atom->dipole;
-    for (int *i=type; i<ntype; ++i)
-      sum_local[9].x2 += dipole[i[0]]*dipole[i[0]];
+    double **mu = atom->mu;
+    int nlocal = atom->nlocal;
+    for (int i = 0; i < nlocal; i++)
+      sum_local[9].x2 += mu[i][3]*mu[i][3];
   }
   MPI_Allreduce(sum_local, sum, 2*EWALD_MAX_NSUMS, MPI_DOUBLE, MPI_SUM, world);
 }
@@ -413,7 +413,7 @@ void EwaldN::compute_ek()
   complex *cek, zxyz, zxy, cx;
   vector mui;
   double *x = atom->x[0], *xn = x+3*atom->nlocal, *q = atom->q, qi, bi, ci[7];
-  double *dipole = atom->dipole, *mu = atom->mu ? atom->mu[0] : NULL;
+  double *mu = atom->mu ? atom->mu[0] : NULL;
   int i, kx, ky, n = nkvec*nsums, *type = atom->type, tri = domain->triclinic;
   int func[EWALD_NFUNCS];
 
@@ -444,7 +444,8 @@ void EwaldN::compute_ek()
     if (func[2]) memcpy(ci, B+7*type[0], 7*sizeof(double));
     if (func[3]) { 
       memcpy(mui, mu, sizeof(vector)); mu += 3;
-      vec_scalar_mult(mui, dipole[*type]);
+      vec_scalar_mult(mui, mu[3]);
+      mu += 4;
       h = hvec;
     }
     for (k=kvec; k<nk; ++k) {				// compute rho(k)
@@ -482,7 +483,7 @@ void EwaldN::compute_force()
   vector sum[EWALD_MAX_NSUMS], mui;
   complex *cek, zc, zx, zxy;
   double *f = atom->f[0], *fn = f+3*atom->nlocal, *q = atom->q, *t = NULL;
-  double *dipole = atom->dipole, *mu = atom->mu ? atom->mu[0] : NULL;
+  double *mu = atom->mu ? atom->mu[0] : NULL;
   double *ke, c[EWALD_NFUNCS] = {
     8.0*M_PI*qqrd2e*scale/volume, 2.0*M_PI*sqrt(M_PI)/(12.0*volume),
     2.0*M_PI*sqrt(M_PI)/(192.0*volume), 8.0*M_PI*mumurd2e/volume};
@@ -500,8 +501,9 @@ void EwaldN::compute_force()
     cek = cek_global;
     memset(sum, 0, EWALD_MAX_NSUMS*sizeof(vector));
     if (func[3]) { 
-      register double di = dipole[*type]*c[3];
+      register double di = mu[3] * c[3];
       mui[0] = di*(mu++)[0]; mui[1] = di*(mu++)[1]; mui[2] = di*(mu++)[2];
+      mu++;
     }
     for (nh = (h = hvec)+nkvec; h<nh; ++h, ++k) {
       if (ky!=k->y) {					// based on order in
@@ -556,20 +558,19 @@ void EwaldN::compute_force()
   }
 }
 
-
 void EwaldN::compute_surface()
 {
   if (!function[3]) return;
 
   vector sum_local = VECTOR_NULL, sum_total;
-  double *mu = atom->mu ? atom->mu[0] : NULL, *dipole = atom->dipole;
-  int *type = atom->type, *ntype = type+atom->nlocal;
+  double **mu = atom->mu;
+  int nlocal = atom->nlocal;
 
-  for (int *i=type; i<ntype; ++i) {
-    register double di = dipole[i[0]];
-    sum_local[0] += di*(mu++)[0];
-    sum_local[1] += di*(mu++)[1];
-    sum_local[2] += di*(mu++)[2];
+  for (int i=0; i < nlocal; i++) {
+    register double di = mu[i][3];
+    sum_local[0] += di*mu[i][0];
+    sum_local[1] += di*mu[i][1];
+    sum_local[2] += di*mu[i][2];
   }
   MPI_Allreduce(sum_local, sum_total, 3, MPI_DOUBLE, MPI_SUM, world);
 
@@ -578,7 +579,6 @@ void EwaldN::compute_surface()
     mumurd2e*(2.0*M_PI*vec_dot(sum_total,sum_total)/(2.0*dielectric+1)/volume);
   energy_self[3] -= virial_self[3];
 }
-
 
 void EwaldN::compute_energy(int eflag)
 {

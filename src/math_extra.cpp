@@ -421,9 +421,9 @@ void inertia_triangle(double *v0, double *v1, double *v2,
 
   // NOTE: use mass
 
-  inertia[0] = inv24*a * (sum-vtsv[0][0]);
-  inertia[1] = inv24*a * (sum-vtsv[1][1]);
-  inertia[2] = inv24*a * (sum-vtsv[2][2]);
+  inertia[0] = inv24*a*(sum-vtsv[0][0]);
+  inertia[1] = inv24*a*(sum-vtsv[1][1]);
+  inertia[2] = inv24*a*(sum-vtsv[2][2]);
   inertia[3] = -inv24*a*vtsv[1][2];
   inertia[4] = -inv24*a*vtsv[0][2];
   inertia[5] = -inv24*a*vtsv[0][1];

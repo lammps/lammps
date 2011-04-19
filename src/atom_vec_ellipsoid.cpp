@@ -186,7 +186,7 @@ void AtomVecEllipsoid::copy_bonus(int i, int j)
    this may create or delete entry in bonus data
 ------------------------------------------------------------------------- */
 
-void AtomVecEllipsoid::set_bonus(int i, 
+void AtomVecEllipsoid::set_shape(int i, 
 				 double shapex, double shapey, double shapez)
 {
   if (ellipsoid[i] < 0) {

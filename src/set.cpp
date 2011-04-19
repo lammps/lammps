@@ -381,7 +381,7 @@ void Set::set(int keyword)
     // set shape
 
     else if (keyword == SHAPE)
-      avec_ellipsoid->set_bonus(i,0.5*xvalue,0.5*yvalue,0.5*zvalue);
+      avec_ellipsoid->set_shape(i,0.5*xvalue,0.5*yvalue,0.5*zvalue);
 
     // set rmass via density
     // if radius > 0.0, treat as sphere

@@ -27,7 +27,7 @@ namespace MathExtra {
    output a matrix
 ------------------------------------------------------------------------- */
 
-void MathExtra::write3(const double mat[3][3])
+void write3(const double mat[3][3])
 {
   for (unsigned i = 0; i < 3; i++) {
     for (unsigned j = 0; j < 3; j++) printf("%g ",mat[i][j]);
@@ -40,7 +40,7 @@ void MathExtra::write3(const double mat[3][3])
    use gaussian elimination & partial pivoting on matrix
 ------------------------------------------------------------------------- */
 
-int MathExtra::mldivide3(const double m[3][3], const double *v, double *ans)
+int mldivide3(const double m[3][3], const double *v, double *ans)
 {
   // create augmented matrix for pivoting
 
@@ -98,8 +98,7 @@ int MathExtra::mldivide3(const double m[3][3], const double *v, double *ans)
    adapted from Numerical Recipes jacobi() function
 ------------------------------------------------------------------------- */
 
-int MathExtra::jacobi(double matrix[3][3], double *evalues,
-		      double evectors[3][3])
+int jacobi(double matrix[3][3], double *evalues, double evectors[3][3])
 {
   int i,j,k;
   double tresh,theta,tau,t,sm,s,h,g,c,b[3],z[3];
@@ -166,8 +165,8 @@ int MathExtra::jacobi(double matrix[3][3], double *evalues,
    perform a single Jacobi rotation
 ------------------------------------------------------------------------- */
 
-void MathExtra::rotate(double matrix[3][3], int i, int j, int k, int l,
-		       double s, double tau)
+void rotate(double matrix[3][3], int i, int j, int k, int l,
+	    double s, double tau)
 {
   double g = matrix[i][j];
   double h = matrix[k][l];
@@ -180,7 +179,7 @@ void MathExtra::rotate(double matrix[3][3], int i, int j, int k, int l,
    quat = [w i j k]
 ------------------------------------------------------------------------- */
 
-void MathExtra::quat_to_mat(const double *quat, double mat[3][3])
+void quat_to_mat(const double *quat, double mat[3][3])
 {
   double w2 = quat[0]*quat[0];
   double i2 = quat[1]*quat[1];
@@ -211,7 +210,7 @@ void MathExtra::quat_to_mat(const double *quat, double mat[3][3])
    quat = [w i j k]
 ------------------------------------------------------------------------- */
 
-void MathExtra::quat_to_mat_trans(const double *quat, double mat[3][3])
+void quat_to_mat_trans(const double *quat, double mat[3][3])
 {
   double w2 = quat[0]*quat[0];
   double i2 = quat[1]*quat[1];
@@ -248,8 +247,8 @@ void MathExtra::quat_to_mat_trans(const double *quat, double mat[3][3])
      otherwise body can spin easily around that axis
 ------------------------------------------------------------------------- */
 
-void MathExtra::angmom_to_omega(double *m, double *ex, double *ey, double *ez,
-				double *idiag, double *w)
+void angmom_to_omega(double *m, double *ex, double *ey, double *ez,
+		     double *idiag, double *w)
 {
   double wbody[3];
 
@@ -274,9 +273,8 @@ void MathExtra::angmom_to_omega(double *m, double *ex, double *ey, double *ez,
    Mspace = P Mbody
 ------------------------------------------------------------------------- */
 
-void MathExtra::omega_to_angmom(double *w, 
-				double *ex, double *ey, double *ez,
-				double *idiag, double *m)
+void omega_to_angmom(double *w, double *ex, double *ey, double *ez,
+		     double *idiag, double *m)
 {
   double mbody[3];
 
@@ -294,7 +292,7 @@ void MathExtra::omega_to_angmom(double *w,
    ex,ey,ez are columns of a rotation matrix
 ------------------------------------------------------------------------- */
 
-void MathExtra::exyz_to_q(double *ex, double *ey, double *ez, double *q)
+void exyz_to_q(double *ex, double *ey, double *ez, double *q)
 {
   // squares of quaternion components
   
@@ -337,7 +335,7 @@ void MathExtra::exyz_to_q(double *ex, double *ey, double *ez, double *q)
    operation is ex = q' d q = Q d, where d is (1,0,0) = 1st axis in body frame
 ------------------------------------------------------------------------- */
 
-void MathExtra::q_to_exyz(double *q, double *ex, double *ey, double *ez)
+void q_to_exyz(double *q, double *ex, double *ey, double *ez)
 {
   ex[0] = q[0]*q[0] + q[1]*q[1] - q[2]*q[2] - q[3]*q[3];
   ex[1] = 2.0 * (q[1]*q[2] + q[0]*q[3]);
@@ -359,7 +357,7 @@ void MathExtra::q_to_exyz(double *q, double *ex, double *ey, double *ez)
    return symmetric inertia tensor as 6-vector in Voigt notation
 ------------------------------------------------------------------------- */
 
-void MathExtra::inertia_ellipsoid(double *radii, double *quat, double mass,
+void inertia_ellipsoid(double *radii, double *quat, double mass,
 		       double *inertia)
 {
   double p[3][3],ptrans[3][3],itemp[3][3],tensor[3][3];
@@ -395,7 +393,7 @@ void MathExtra::inertia_ellipsoid(double *radii, double *quat, double mass,
    return symmetric inertia tensor as 6-vector in Voigt notation
 ------------------------------------------------------------------------- */
 
-void MathExtra::inertia_triangle(double *v0, double *v1, double *v2,
+void inertia_triangle(double *v0, double *v1, double *v2,
 		      double mass, double *inertia)
 {
   double s[3][3] = {{2.0, 1.0, 1.0}, {1.0, 2.0, 1.0}, {1.0, 1.0, 2.0}};

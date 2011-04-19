@@ -589,7 +589,6 @@ void FixRigid::init()
   pre_neighbor();
 
   // compute 6 moments of inertia of each body
-  // stored as 6-vector in Voigt ordering
   // dx,dy,dz = coords relative to center-of-mass
   
   double dx,dy,dz,rad;
@@ -633,7 +632,8 @@ void FixRigid::init()
   // extended particles may contribute extra terms to moments of inertia
 
   if (extended) {
-    double ivec[6];
+    double ex[3],ey[3],ez[3],idiag[3];
+    double p[3][3],ptrans[3][3],ispace[3][3],itemp[3][3];
     double *shape,*quatatom;
 
     for (i = 0; i < nlocal; i++) {
@@ -652,13 +652,19 @@ void FixRigid::init()
       if (eflags[i] & INERTIA_ELLIPSOID) {
 	shape = ebonus[ellipsoid[i]].shape;
 	quatatom = ebonus[ellipsoid[i]].quat;
-	MathExtra::inertia_ellipsoid(shape,quatatom,massone,ivec);
-	sum[ibody][0] += ivec[0];
-	sum[ibody][1] += ivec[1];
-	sum[ibody][2] += ivec[2];
-	sum[ibody][3] += ivec[3];
-	sum[ibody][4] += ivec[4];
-	sum[ibody][5] += ivec[5];
+	MathExtra::quat_to_mat(quatatom,p);
+	MathExtra::quat_to_mat_trans(quatatom,ptrans);
+	idiag[0] = 0.2*massone * (shape[1]*shape[1]+shape[2]*shape[2]);
+	idiag[1] = 0.2*massone * (shape[0]*shape[0]+shape[2]*shape[2]);
+	idiag[2] = 0.2*massone * (shape[0]*shape[0]+shape[1]*shape[1]);
+	MathExtra::diag_times3(idiag,ptrans,itemp);
+	MathExtra::times3(p,itemp,ispace);
+	sum[ibody][0] += ispace[0][0];
+	sum[ibody][1] += ispace[1][1];
+	sum[ibody][2] += ispace[2][2];
+	sum[ibody][3] += ispace[0][1];
+	sum[ibody][4] += ispace[1][2];
+	sum[ibody][5] += ispace[0][2];
       }
     }
   }
@@ -669,8 +675,9 @@ void FixRigid::init()
   // ex_space,ey_space,ez_space = 3 eigenvectors = principal axes of rigid body
   
   double tensor[3][3],evectors[3][3];
-  double ez0,ez1,ez2;
+
   int ierror;
+  double ez0,ez1,ez2;
 
   for (ibody = 0; ibody < nbody; ibody++) {
     tensor[0][0] = all[ibody][0];
@@ -792,11 +799,10 @@ void FixRigid::init()
   
   // test for valid principal moments & axes
   // recompute moments of inertia around new axes
-  // stored as 6-vector in Voigt ordering
   // 3 diagonal moments should equal principal moments
   // 3 off-diagonal moments should be 0.0
   // extended particles may contribute extra terms to moments of inertia
-
+  
   for (ibody = 0; ibody < nbody; ibody++)
     for (i = 0; i < 6; i++) sum[ibody][i] = 0.0;
   
@@ -818,7 +824,8 @@ void FixRigid::init()
   }
 
   if (extended) {
-    double ivec[6];
+    double ex[3],ey[3],ez[3],idiag[3];
+    double p[3][3],ptrans[3][3],ispace[3][3],itemp[3][3];
     double *shape;
 
     for (i = 0; i < nlocal; i++) {
@@ -836,13 +843,19 @@ void FixRigid::init()
       }
       if (eflags[i] & INERTIA_ELLIPSOID) {
 	shape = ebonus[ellipsoid[i]].shape;
-	MathExtra::inertia_ellipsoid(shape,qorient[i],massone,ivec);
-	sum[ibody][0] += ivec[0];
-	sum[ibody][1] += ivec[1];
-	sum[ibody][2] += ivec[2];
-	sum[ibody][3] += ivec[3];
-	sum[ibody][4] += ivec[4];
-	sum[ibody][5] += ivec[5];
+	MathExtra::quat_to_mat(qorient[i],p);
+	MathExtra::quat_to_mat_trans(qorient[i],ptrans);
+	idiag[0] = 0.2*massone * (shape[1]*shape[1]+shape[2]*shape[2]);
+	idiag[1] = 0.2*massone * (shape[0]*shape[0]+shape[2]*shape[2]);
+	idiag[2] = 0.2*massone * (shape[0]*shape[0]+shape[1]*shape[1]);
+	MathExtra::diag_times3(idiag,ptrans,itemp);
+	MathExtra::times3(p,itemp,ispace);
+	sum[ibody][0] += ispace[0][0];
+	sum[ibody][1] += ispace[1][1];
+	sum[ibody][2] += ispace[2][2];
+	sum[ibody][3] += ispace[0][1];
+	sum[ibody][4] += ispace[1][2];
+	sum[ibody][5] += ispace[0][2];
       }
     }
   }
@@ -1220,6 +1233,7 @@ void FixRigid::richardson(double *q, double *w,
   qfull[1] = q[1] + dtq * wq[1];
   qfull[2] = q[2] + dtq * wq[2];
   qfull[3] = q[3] + dtq * wq[3];
+
   MathExtra::qnormalize(qfull);
 
   // 1st half update from dq/dt = 1/2 w q
@@ -1229,6 +1243,7 @@ void FixRigid::richardson(double *q, double *w,
   qhalf[1] = q[1] + 0.5*dtq * wq[1];
   qhalf[2] = q[2] + 0.5*dtq * wq[2];
   qhalf[3] = q[3] + 0.5*dtq * wq[3];
+
   MathExtra::qnormalize(qhalf);
 
   // udpate ex,ey,ez from qhalf
@@ -1245,6 +1260,7 @@ void FixRigid::richardson(double *q, double *w,
   qhalf[1] += 0.5*dtq * wq[1];
   qhalf[2] += 0.5*dtq * wq[2];
   qhalf[3] += 0.5*dtq * wq[3];
+
   MathExtra::qnormalize(qhalf);
 
   // corrected Richardson update
@@ -1253,8 +1269,8 @@ void FixRigid::richardson(double *q, double *w,
   q[1] = 2.0*qhalf[1] - qfull[1];
   q[2] = 2.0*qhalf[2] - qfull[2];
   q[3] = 2.0*qhalf[3] - qfull[3];
-  MathExtra::qnormalize(q);
 
+  MathExtra::qnormalize(q);
   MathExtra::q_to_exyz(q,ex,ey,ez);
 }
 

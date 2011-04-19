@@ -150,7 +150,7 @@ void FixNVEAsphere::richardson(double *q, double *m, double *moments)
   // compute omega at 1/2 step from m at 1/2 step and q at 0
 
   double w[3];
-  omega_from_mq(q,m,moments,w);
+  omega_from_mq(m,q,moments,w);
 
   // full update from dq/dt = 1/2 w q
 
@@ -176,7 +176,7 @@ void FixNVEAsphere::richardson(double *q, double *m, double *moments)
   // re-compute omega at 1/2 step from m at 1/2 step and q at 1/2 step
   // recompute wq
 
-  omega_from_mq(qhalf,m,moments,w);
+  omega_from_mq(m,qhalf,moments,w);
   MathExtra::vecquat(w,qhalf,wq);
 
   // 2nd half of update from dq/dt = 1/2 w q
@@ -204,7 +204,7 @@ void FixNVEAsphere::richardson(double *q, double *m, double *moments)
      and divide by principal moments
 ------------------------------------------------------------------------- */
 
-void FixNVEAsphere::omega_from_mq(double *q, double *m, double *moments,
+void FixNVEAsphere::omega_from_mq(double *m, double *q, double *moments,
 				  double *w)
 {
   double rot[3][3];

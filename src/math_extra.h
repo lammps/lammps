@@ -19,8 +19,9 @@
 #define LMP_MATH_EXTRA_H
 
 #include "math.h"
-
-// short methods are inlined, others are in math_extra.cpp
+#include "stdio.h"
+#include "string.h"
+#include "error.h"
 
 namespace MathExtra {
 
@@ -67,22 +68,23 @@ namespace MathExtra {
   int jacobi(double matrix[3][3], double *evalues, double evectors[3][3]);
   void rotate(double matrix[3][3], int i, int j, int k, int l,
 	      double s, double tau);
-  
+
   // shape matrix operations
   // upper-triangular 3x3 matrix stored in Voigt notation as 6-vector
 
   inline void multiply_shape_shape(const double *one, const double *two,
                                    double *ans);
+
   // quaternion operations
-  
-  inline void axisangle_to_quat(const double *v, const double angle,
-                                double *quat);
+
+  inline void qnormalize(double *q);
+  inline void qconjugate(double *q, double *qc);
   inline void vecquat(double *a, double *b, double *c);
   inline void quatvec(double *a, double *b, double *c);
   inline void quatquat(double *a, double *b, double *c);
   inline void invquatvec(double *a, double *b, double *c);
-  inline void qconjugate(double *q, double *qc);
-  inline void qnormalize(double *q);
+  inline void axisangle_to_quat(const double *v, const double angle,
+                                double *quat);
   inline void matvec_rows(double *x, double *y, double *z, 
 			  double *b, double *c);
   inline void matvec_cols(double *x, double *y, double *z,
@@ -94,6 +96,8 @@ namespace MathExtra {
 		       double *idiag, double *m);
   void exyz_to_q(double *ex, double *ey, double *ez, double *q);
   void q_to_exyz(double *q, double *ex, double *ey, double *ez);
+  void quat_to_mat(const double *quat, double mat[3][3]);
+  void quat_to_mat_trans(const double *quat, double mat[3][3]);
   void quat_to_mat(const double *quat, double mat[3][3]);
   void quat_to_mat_trans(const double *quat, double mat[3][3]);
 
@@ -109,6 +113,7 @@ namespace MathExtra {
 			 double *inertia);
   void inertia_triangle(double *v0, double *v1, double *v2, 
 			double mass, double *inertia);
+
 }
 
 /* ----------------------------------------------------------------------
@@ -193,7 +198,7 @@ double MathExtra::lensq3(const double *v)
 
 double MathExtra::dot3(const double *v1, const double *v2)
 {
-  return v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2];
+  return v1[0]*v2[0]+v1[1]*v2[1]+v1[2]*v2[2];
 }
 
 /* ----------------------------------------------------------------------
@@ -202,9 +207,9 @@ double MathExtra::dot3(const double *v1, const double *v2)
 
 void MathExtra::cross3(const double *v1, const double *v2, double *ans)
 {
-  ans[0] = v1[1]*v2[2] - v1[2]*v2[1];
-  ans[1] = v1[2]*v2[0] - v1[0]*v2[2];
-  ans[2] = v1[0]*v2[1] - v1[1]*v2[0];
+  ans[0] = v1[1]*v2[2]-v1[2]*v2[1];
+  ans[1] = v1[2]*v2[0]-v1[0]*v2[2];
+  ans[2] = v1[0]*v2[1]-v1[1]*v2[0];
 }
 
 /* ----------------------------------------------------------------------
@@ -213,8 +218,7 @@ void MathExtra::cross3(const double *v1, const double *v2, double *ans)
 
 double MathExtra::det3(const double m[3][3])
 {
-  double ans = 
-    m[0][0]*m[1][1]*m[2][2] - m[0][0]*m[1][2]*m[2][1] - 
+  double ans = m[0][0]*m[1][1]*m[2][2] - m[0][0]*m[1][2]*m[2][1] - 
     m[1][0]*m[0][1]*m[2][2] + m[1][0]*m[0][2]*m[2][1] + 
     m[2][0]*m[0][1]*m[1][2] - m[2][0]*m[0][2]*m[1][1];
   return ans;
@@ -245,15 +249,15 @@ void MathExtra::diag_times3(const double *d, const double m[3][3],
 void MathExtra::plus3(const double m[3][3], const double m2[3][3],
 		      double ans[3][3])
 {
-  ans[0][0] = m[0][0] + m2[0][0];
-  ans[0][1] = m[0][1] + m2[0][1];
-  ans[0][2] = m[0][2] + m2[0][2];
-  ans[1][0] = m[1][0] + m2[1][0];
-  ans[1][1] = m[1][1] + m2[1][1];
-  ans[1][2] = m[1][2] + m2[1][2];
-  ans[2][0] = m[2][0] + m2[2][0];
-  ans[2][1] = m[2][1] + m2[2][1];
-  ans[2][2] = m[2][2] + m2[2][2];
+  ans[0][0] = m[0][0]+m2[0][0];
+  ans[0][1] = m[0][1]+m2[0][1];
+  ans[0][2] = m[0][2]+m2[0][2];
+  ans[1][0] = m[1][0]+m2[1][0];
+  ans[1][1] = m[1][1]+m2[1][1];
+  ans[1][2] = m[1][2]+m2[1][2];
+  ans[2][0] = m[2][0]+m2[2][0];
+  ans[2][1] = m[2][1]+m2[2][1];
+  ans[2][2] = m[2][2]+m2[2][2];
 }
 
 /* ----------------------------------------------------------------------
@@ -263,15 +267,15 @@ void MathExtra::plus3(const double m[3][3], const double m2[3][3],
 void MathExtra::times3(const double m[3][3], const double m2[3][3],
                        double ans[3][3])
 {
-  ans[0][0] = m[0][0]*m2[0][0] + m[0][1]*m2[1][0] + m[0][2]*m2[2][0];
-  ans[0][1] = m[0][0]*m2[0][1] + m[0][1]*m2[1][1] + m[0][2]*m2[2][1];
-  ans[0][2] = m[0][0]*m2[0][2] + m[0][1]*m2[1][2] + m[0][2]*m2[2][2];
-  ans[1][0] = m[1][0]*m2[0][0] + m[1][1]*m2[1][0] + m[1][2]*m2[2][0];
-  ans[1][1] = m[1][0]*m2[0][1] + m[1][1]*m2[1][1] + m[1][2]*m2[2][1];
-  ans[1][2] = m[1][0]*m2[0][2] + m[1][1]*m2[1][2] + m[1][2]*m2[2][2];
-  ans[2][0] = m[2][0]*m2[0][0] + m[2][1]*m2[1][0] + m[2][2]*m2[2][0];
-  ans[2][1] = m[2][0]*m2[0][1] + m[2][1]*m2[1][1] + m[2][2]*m2[2][1];
-  ans[2][2] = m[2][0]*m2[0][2] + m[2][1]*m2[1][2] + m[2][2]*m2[2][2];
+  ans[0][0] = m[0][0]*m2[0][0]+m[0][1]*m2[1][0]+m[0][2]*m2[2][0];
+  ans[0][1] = m[0][0]*m2[0][1]+m[0][1]*m2[1][1]+m[0][2]*m2[2][1];
+  ans[0][2] = m[0][0]*m2[0][2]+m[0][1]*m2[1][2]+m[0][2]*m2[2][2];
+  ans[1][0] = m[1][0]*m2[0][0]+m[1][1]*m2[1][0]+m[1][2]*m2[2][0];
+  ans[1][1] = m[1][0]*m2[0][1]+m[1][1]*m2[1][1]+m[1][2]*m2[2][1];
+  ans[1][2] = m[1][0]*m2[0][2]+m[1][1]*m2[1][2]+m[1][2]*m2[2][2];
+  ans[2][0] = m[2][0]*m2[0][0]+m[2][1]*m2[1][0]+m[2][2]*m2[2][0];
+  ans[2][1] = m[2][0]*m2[0][1]+m[2][1]*m2[1][1]+m[2][2]*m2[2][1];
+  ans[2][2] = m[2][0]*m2[0][2]+m[2][1]*m2[1][2]+m[2][2]*m2[2][2];
 }
 
 /* ----------------------------------------------------------------------
@@ -281,15 +285,15 @@ void MathExtra::times3(const double m[3][3], const double m2[3][3],
 void MathExtra::transpose_times3(const double m[3][3], const double m2[3][3],
                                  double ans[3][3])
 {
-  ans[0][0] = m[0][0]*m2[0][0] + m[1][0]*m2[1][0] + m[2][0]*m2[2][0];
-  ans[0][1] = m[0][0]*m2[0][1] + m[1][0]*m2[1][1] + m[2][0]*m2[2][1];
-  ans[0][2] = m[0][0]*m2[0][2] + m[1][0]*m2[1][2] + m[2][0]*m2[2][2];
-  ans[1][0] = m[0][1]*m2[0][0] + m[1][1]*m2[1][0] + m[2][1]*m2[2][0];
-  ans[1][1] = m[0][1]*m2[0][1] + m[1][1]*m2[1][1] + m[2][1]*m2[2][1];
-  ans[1][2] = m[0][1]*m2[0][2] + m[1][1]*m2[1][2] + m[2][1]*m2[2][2];
-  ans[2][0] = m[0][2]*m2[0][0] + m[1][2]*m2[1][0] + m[2][2]*m2[2][0];
-  ans[2][1] = m[0][2]*m2[0][1] + m[1][2]*m2[1][1] + m[2][2]*m2[2][1];
-  ans[2][2] = m[0][2]*m2[0][2] + m[1][2]*m2[1][2] + m[2][2]*m2[2][2];
+  ans[0][0] = m[0][0]*m2[0][0]+m[1][0]*m2[1][0]+m[2][0]*m2[2][0];
+  ans[0][1] = m[0][0]*m2[0][1]+m[1][0]*m2[1][1]+m[2][0]*m2[2][1];
+  ans[0][2] = m[0][0]*m2[0][2]+m[1][0]*m2[1][2]+m[2][0]*m2[2][2];
+  ans[1][0] = m[0][1]*m2[0][0]+m[1][1]*m2[1][0]+m[2][1]*m2[2][0];
+  ans[1][1] = m[0][1]*m2[0][1]+m[1][1]*m2[1][1]+m[2][1]*m2[2][1];
+  ans[1][2] = m[0][1]*m2[0][2]+m[1][1]*m2[1][2]+m[2][1]*m2[2][2];
+  ans[2][0] = m[0][2]*m2[0][0]+m[1][2]*m2[1][0]+m[2][2]*m2[2][0];
+  ans[2][1] = m[0][2]*m2[0][1]+m[1][2]*m2[1][1]+m[2][2]*m2[2][1];
+  ans[2][2] = m[0][2]*m2[0][2]+m[1][2]*m2[1][2]+m[2][2]*m2[2][2];
 }
 
 /* ----------------------------------------------------------------------
@@ -299,20 +303,20 @@ void MathExtra::transpose_times3(const double m[3][3], const double m2[3][3],
 void MathExtra::times3_transpose(const double m[3][3], const double m2[3][3],
                                  double ans[3][3])
 {
-  ans[0][0] = m[0][0]*m2[0][0] + m[0][1]*m2[0][1] + m[0][2]*m2[0][2];
-  ans[0][1] = m[0][0]*m2[1][0] + m[0][1]*m2[1][1] + m[0][2]*m2[1][2];
-  ans[0][2] = m[0][0]*m2[2][0] + m[0][1]*m2[2][1] + m[0][2]*m2[2][2];
-  ans[1][0] = m[1][0]*m2[0][0] + m[1][1]*m2[0][1] + m[1][2]*m2[0][2];
-  ans[1][1] = m[1][0]*m2[1][0] + m[1][1]*m2[1][1] + m[1][2]*m2[1][2];
-  ans[1][2] = m[1][0]*m2[2][0] + m[1][1]*m2[2][1] + m[1][2]*m2[2][2];
-  ans[2][0] = m[2][0]*m2[0][0] + m[2][1]*m2[0][1] + m[2][2]*m2[0][2];
-  ans[2][1] = m[2][0]*m2[1][0] + m[2][1]*m2[1][1] + m[2][2]*m2[1][2];
-  ans[2][2] = m[2][0]*m2[2][0] + m[2][1]*m2[2][1] + m[2][2]*m2[2][2];
+  ans[0][0] = m[0][0]*m2[0][0]+m[0][1]*m2[0][1]+m[0][2]*m2[0][2];
+  ans[0][1] = m[0][0]*m2[1][0]+m[0][1]*m2[1][1]+m[0][2]*m2[1][2];
+  ans[0][2] = m[0][0]*m2[2][0]+m[0][1]*m2[2][1]+m[0][2]*m2[2][2];
+  ans[1][0] = m[1][0]*m2[0][0]+m[1][1]*m2[0][1]+m[1][2]*m2[0][2];
+  ans[1][1] = m[1][0]*m2[1][0]+m[1][1]*m2[1][1]+m[1][2]*m2[1][2];
+  ans[1][2] = m[1][0]*m2[2][0]+m[1][1]*m2[2][1]+m[1][2]*m2[2][2];
+  ans[2][0] = m[2][0]*m2[0][0]+m[2][1]*m2[0][1]+m[2][2]*m2[0][2];
+  ans[2][1] = m[2][0]*m2[1][0]+m[2][1]*m2[1][1]+m[2][2]*m2[1][2];
+  ans[2][2] = m[2][0]*m2[2][0]+m[2][1]*m2[2][1]+m[2][2]*m2[2][2];
 }
 
 /* ----------------------------------------------------------------------
    invert a matrix
-   does NOT check for singular or badly scaled matrix
+   does NOT checks for singular or badly scaled matrix
 ------------------------------------------------------------------------- */
 
 void MathExtra::invert3(const double m[3][3], double ans[3][3])
@@ -339,9 +343,9 @@ void MathExtra::invert3(const double m[3][3], double ans[3][3])
 void MathExtra::times_column3(const double m[3][3], const double *v,
 			      double *ans) 
 {
-  ans[0] = m[0][0]*v[0] + m[0][1]*v[1] + m[0][2]*v[2];
-  ans[1] = m[1][0]*v[0] + m[1][1]*v[1] + m[1][2]*v[2];
-  ans[2] = m[2][0]*v[0] + m[2][1]*v[1] + m[2][2]*v[2];
+  ans[0] = m[0][0]*v[0]+m[0][1]*v[1]+m[0][2]*v[2];
+  ans[1] = m[1][0]*v[0]+m[1][1]*v[1]+m[1][2]*v[2];
+  ans[2] = m[2][0]*v[0]+m[2][1]*v[1]+m[2][2]*v[2];
 }
 
 /* ----------------------------------------------------------------------
@@ -351,9 +355,9 @@ void MathExtra::times_column3(const double m[3][3], const double *v,
 void MathExtra::transpose_times_column3(const double m[3][3], const double *v,
 					double *ans)
 {
-  ans[0] = m[0][0]*v[0] + m[1][0]*v[1] + m[2][0]*v[2];
-  ans[1] = m[0][1]*v[0] + m[1][1]*v[1] + m[2][1]*v[2];
-  ans[2] = m[0][2]*v[0] + m[1][2]*v[1] + m[2][2]*v[2];
+  ans[0] = m[0][0]*v[0]+m[1][0]*v[1]+m[2][0]*v[2];
+  ans[1] = m[0][1]*v[0]+m[1][1]*v[1]+m[2][1]*v[2];
+  ans[2] = m[0][2]*v[0]+m[1][2]*v[1]+m[2][2]*v[2];
 }
 
 /* ----------------------------------------------------------------------
@@ -381,9 +385,9 @@ void MathExtra::transpose_times_diag3(const double m[3][3],
 void MathExtra::row_times3(const double *v, const double m[3][3],
 			   double *ans)
 {
-  ans[0] = m[0][0]*v[0] + v[1]*m[1][0] + v[2]*m[2][0];
-  ans[1] = v[0]*m[0][1] + m[1][1]*v[1] + v[2]*m[2][1];
-  ans[2] = v[0]*m[0][2] + v[1]*m[1][2] + m[2][2]*v[2];
+  ans[0] = m[0][0]*v[0]+v[1]*m[1][0]+v[2]*m[2][0];
+  ans[1] = v[0]*m[0][1]+m[1][1]*v[1]+v[2]*m[2][1];
+  ans[2] = v[0]*m[0][2]+v[1]*m[1][2]+m[2][2]*v[2];
 }
 
 /* ----------------------------------------------------------------------
@@ -392,20 +396,14 @@ void MathExtra::row_times3(const double *v, const double m[3][3],
 
 inline void MathExtra::scalar_times3(const double f, double m[3][3]) 
 {
-  m[0][0] *= f; 
-  m[0][1] *= f;
-  m[0][2] *= f;
-  m[1][0] *= f;
-  m[1][1] *= f;
-  m[1][2] *= f;
-  m[2][0] *= f;
-  m[2][1] *= f;
-  m[2][2] *= f;
+  m[0][0] *= f; m[0][1] *= f; m[0][2] *= f;
+  m[1][0] *= f; m[1][1] *= f; m[1][2] *= f;
+  m[2][0] *= f; m[2][1] *= f; m[2][2] *= f;
 }
 
 /* ----------------------------------------------------------------------
-   multiply 2 shape matrices to yield a 3rd shape matrix
-   upper-triangular 3x3 matrices stored in Voigt notation as 6-vectors
+   multiply 2 shape matrices
+   upper-triangular 3x3, stored as 6-vector in Voigt notation
 ------------------------------------------------------------------------- */
 
 void MathExtra::multiply_shape_shape(const double *one, const double *two,
@@ -420,19 +418,29 @@ void MathExtra::multiply_shape_shape(const double *one, const double *two,
 }
 
 /* ----------------------------------------------------------------------
-   compute quaternion from axis-angle rotation
-   v MUST be a unit vector
+   normalize a quaternion
 ------------------------------------------------------------------------- */
 
-void MathExtra::axisangle_to_quat(const double *v, const double angle,
-				  double *quat)
+void MathExtra::qnormalize(double *q)
 {
-  double halfa = 0.5*angle;
-  double sina = sin(halfa);
-  quat[0] = cos(halfa);
-  quat[1] = v[0]*sina;
-  quat[2] = v[1]*sina;
-  quat[3] = v[2]*sina;
+  double norm = 1.0 / sqrt(q[0]*q[0] + q[1]*q[1] + q[2]*q[2] + q[3]*q[3]);
+  q[0] *= norm;
+  q[1] *= norm;
+  q[2] *= norm;
+  q[3] *= norm;
+}
+
+/* ----------------------------------------------------------------------
+   conjugate of a quaternion: qc = conjugate of q
+   assume q is of unit length
+------------------------------------------------------------------------- */
+
+void MathExtra::qconjugate(double *q, double *qc)
+{
+  qc[0] = q[0];
+  qc[1] = -q[1];
+  qc[2] = -q[2];
+  qc[3] = -q[3];
 }
 
 /* ----------------------------------------------------------------------
@@ -461,7 +469,6 @@ void MathExtra::quatvec(double *a, double *b, double *c)
 
 /* ----------------------------------------------------------------------
    quaternion-quaternion multiply: c = a*b
-   NOT a commutative operation
 ------------------------------------------------------------------------- */
 
 void MathExtra::quatquat(double *a, double *b, double *c)
@@ -487,29 +494,19 @@ void MathExtra::invquatvec(double *a, double *b, double *c)
 }
 
 /* ----------------------------------------------------------------------
-   conjugate of a quaternion: qc = conjugate of q
-   assume q is of unit length
+   compute quaternion from axis-angle rotation
+   v MUST be a unit vector
 ------------------------------------------------------------------------- */
 
-void MathExtra::qconjugate(double *q, double *qc)
+void MathExtra::axisangle_to_quat(const double *v, const double angle,
+				  double *quat)
 {
-  qc[0] = q[0];
-  qc[1] = -q[1];
-  qc[2] = -q[2];
-  qc[3] = -q[3];
-}
-
-/* ----------------------------------------------------------------------
-   normalize a quaternion
-------------------------------------------------------------------------- */
-
-void MathExtra::qnormalize(double *q)
-{
-  double norm = 1.0 / sqrt(q[0]*q[0] + q[1]*q[1] + q[2]*q[2] + q[3]*q[3]);
-  q[0] *= norm;
-  q[1] *= norm;
-  q[2] *= norm;
-  q[3] *= norm;
+  double halfa = 0.5*angle;
+  double sina = sin(halfa);
+  quat[0] = cos(halfa);
+  quat[1] = v[0]*sina;
+  quat[2] = v[1]*sina;
+  quat[3] = v[2]*sina;
 }
 
 /* ----------------------------------------------------------------------
@@ -537,54 +534,54 @@ void MathExtra::matvec_cols(double *x, double *y, double *z,
 }
 
 /* ----------------------------------------------------------------------
-   apply principal rotation generator about x to rotation matrix m
+   Apply principal rotation generator about x to rotation matrix m
 ------------------------------------------------------------------------- */
 
 void MathExtra::rotation_generator_x(const double m[3][3], double ans[3][3])
 {
-  ans[0][0] = 0.0;
+  ans[0][0] = 0;
   ans[0][1] = -m[0][2];
   ans[0][2] = m[0][1];
-  ans[1][0] = 0.0;
+  ans[1][0] = 0;
   ans[1][1] = -m[1][2];
   ans[1][2] = m[1][1];
-  ans[2][0] = 0.0;
+  ans[2][0] = 0;
   ans[2][1] = -m[2][2];
   ans[2][2] = m[2][1];
 }
 
 /* ----------------------------------------------------------------------
-   apply principal rotation generator about y to rotation matrix m
+   Apply principal rotation generator about y to rotation matrix m
 ------------------------------------------------------------------------- */
 
 void MathExtra::rotation_generator_y(const double m[3][3], double ans[3][3])
 {
   ans[0][0] = m[0][2];
-  ans[0][1] = 0.0;
+  ans[0][1] = 0;
   ans[0][2] = -m[0][0];
   ans[1][0] = m[1][2];
-  ans[1][1] = 0.0;
+  ans[1][1] = 0;
   ans[1][2] = -m[1][0];
   ans[2][0] = m[2][2];
-  ans[2][1] = 0.0;
+  ans[2][1] = 0;
   ans[2][2] = -m[2][0];
 }
 
 /* ----------------------------------------------------------------------
-   apply principal rotation generator about z to rotation matrix m
+   Apply principal rotation generator about z to rotation matrix m
 ------------------------------------------------------------------------- */
 
 void MathExtra::rotation_generator_z(const double m[3][3], double ans[3][3])
 {
   ans[0][0] = -m[0][1];
   ans[0][1] = m[0][0];
-  ans[0][2] = 0.0;
+  ans[0][2] = 0;
   ans[1][0] = -m[1][1];
   ans[1][1] = m[1][0];
-  ans[1][2] = 0.0;
+  ans[1][2] = 0;
   ans[2][0] = -m[2][1];
   ans[2][1] = m[2][0];
-  ans[2][2] = 0.0;
+  ans[2][2] = 0;
 }
- 
+
 #endif

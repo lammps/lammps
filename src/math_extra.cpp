@@ -227,68 +227,6 @@ void richardson(double *q, double *m, double *w, double *moments, double dtq)
 }
 
 /* ----------------------------------------------------------------------
-   compute rotation matrix from quaternion
-   quat = [w i j k]
-------------------------------------------------------------------------- */
-
-void quat_to_mat(const double *quat, double mat[3][3])
-{
-  double w2 = quat[0]*quat[0];
-  double i2 = quat[1]*quat[1];
-  double j2 = quat[2]*quat[2];
-  double k2 = quat[3]*quat[3];
-  double twoij = 2.0*quat[1]*quat[2];
-  double twoik = 2.0*quat[1]*quat[3];
-  double twojk = 2.0*quat[2]*quat[3];
-  double twoiw = 2.0*quat[1]*quat[0];
-  double twojw = 2.0*quat[2]*quat[0];
-  double twokw = 2.0*quat[3]*quat[0];
-
-  mat[0][0] = w2+i2-j2-k2;
-  mat[0][1] = twoij-twokw;
-  mat[0][2] = twojw+twoik;
-
-  mat[1][0] = twoij+twokw;
-  mat[1][1] = w2-i2+j2-k2;
-  mat[1][2] = twojk-twoiw;
-	
-  mat[2][0] = twoik-twojw;
-  mat[2][1] = twojk+twoiw;
-  mat[2][2] = w2-i2-j2+k2;
-}
-
-/* ----------------------------------------------------------------------
-   compute rotation matrix from quaternion conjugate
-   quat = [w i j k]
-------------------------------------------------------------------------- */
-
-void quat_to_mat_trans(const double *quat, double mat[3][3])
-{
-  double w2 = quat[0]*quat[0];
-  double i2 = quat[1]*quat[1];
-  double j2 = quat[2]*quat[2];
-  double k2 = quat[3]*quat[3];
-  double twoij = 2.0*quat[1]*quat[2];
-  double twoik = 2.0*quat[1]*quat[3];
-  double twojk = 2.0*quat[2]*quat[3];
-  double twoiw = 2.0*quat[1]*quat[0];
-  double twojw = 2.0*quat[2]*quat[0];
-  double twokw = 2.0*quat[3]*quat[0];
-
-  mat[0][0] = w2+i2-j2-k2;
-  mat[1][0] = twoij-twokw;
-  mat[2][0] = twojw+twoik;
-
-  mat[0][1] = twoij+twokw;
-  mat[1][1] = w2-i2+j2-k2;
-  mat[2][1] = twojk-twoiw;
-	
-  mat[0][2] = twoik-twojw;
-  mat[1][2] = twojk+twoiw;
-  mat[2][2] = w2-i2-j2+k2;
-}
-
-/* ----------------------------------------------------------------------
    compute omega from angular momentum, both in space frame
    only know Idiag so need to do M = Iw in body frame
    ex,ey,ez are column vectors of rotation matrix P
@@ -330,14 +268,14 @@ void mq_to_omega(double *m, double *q, double *moments, double *w)
   double rot[3][3];
 
   MathExtra::quat_to_mat(q,rot);
-  MathExtra::transpose_times_column3(rot,m,wbody);
+  MathExtra::transpose_matvec(rot,m,wbody);
   if (moments[0] == 0.0) wbody[0] = 0.0;
   else wbody[0] /= moments[0];
   if (moments[1] == 0.0) wbody[1] = 0.0;
   else wbody[1] /= moments[1];
   if (moments[2] == 0.0) wbody[2] = 0.0;
   else wbody[2] /= moments[2];
-  MathExtra::times_column3(rot,wbody,w);
+  MathExtra::matvec(rot,wbody,w);
 }
 
 /* ----------------------------------------------------------------------
@@ -424,6 +362,68 @@ void q_to_exyz(double *q, double *ex, double *ey, double *ez)
   ez[0] = 2.0 * (q[1]*q[3] + q[0]*q[2]);
   ez[1] = 2.0 * (q[2]*q[3] - q[0]*q[1]);
   ez[2] = q[0]*q[0] - q[1]*q[1] - q[2]*q[2] + q[3]*q[3];
+}
+
+/* ----------------------------------------------------------------------
+   compute rotation matrix from quaternion
+   quat = [w i j k]
+------------------------------------------------------------------------- */
+
+void quat_to_mat(const double *quat, double mat[3][3])
+{
+  double w2 = quat[0]*quat[0];
+  double i2 = quat[1]*quat[1];
+  double j2 = quat[2]*quat[2];
+  double k2 = quat[3]*quat[3];
+  double twoij = 2.0*quat[1]*quat[2];
+  double twoik = 2.0*quat[1]*quat[3];
+  double twojk = 2.0*quat[2]*quat[3];
+  double twoiw = 2.0*quat[1]*quat[0];
+  double twojw = 2.0*quat[2]*quat[0];
+  double twokw = 2.0*quat[3]*quat[0];
+
+  mat[0][0] = w2+i2-j2-k2;
+  mat[0][1] = twoij-twokw;
+  mat[0][2] = twojw+twoik;
+
+  mat[1][0] = twoij+twokw;
+  mat[1][1] = w2-i2+j2-k2;
+  mat[1][2] = twojk-twoiw;
+	
+  mat[2][0] = twoik-twojw;
+  mat[2][1] = twojk+twoiw;
+  mat[2][2] = w2-i2-j2+k2;
+}
+
+/* ----------------------------------------------------------------------
+   compute rotation matrix from quaternion conjugate
+   quat = [w i j k]
+------------------------------------------------------------------------- */
+
+void quat_to_mat_trans(const double *quat, double mat[3][3])
+{
+  double w2 = quat[0]*quat[0];
+  double i2 = quat[1]*quat[1];
+  double j2 = quat[2]*quat[2];
+  double k2 = quat[3]*quat[3];
+  double twoij = 2.0*quat[1]*quat[2];
+  double twoik = 2.0*quat[1]*quat[3];
+  double twojk = 2.0*quat[2]*quat[3];
+  double twoiw = 2.0*quat[1]*quat[0];
+  double twojw = 2.0*quat[2]*quat[0];
+  double twokw = 2.0*quat[3]*quat[0];
+
+  mat[0][0] = w2+i2-j2-k2;
+  mat[1][0] = twoij-twokw;
+  mat[2][0] = twojw+twoik;
+
+  mat[0][1] = twoij+twokw;
+  mat[1][1] = w2-i2+j2-k2;
+  mat[2][1] = twojk-twoiw;
+	
+  mat[0][2] = twoik-twojw;
+  mat[1][2] = twojk+twoiw;
+  mat[2][2] = w2-i2-j2+k2;
 }
 
 /* ----------------------------------------------------------------------

@@ -615,8 +615,8 @@ double PairRESquared::resquared_analytic(const int i, const int j,
   if (ierror) error->all("Bad matrix inversion in mldivide3");
 
   sigma12 = 1.0/sqrt(0.5*MathExtra::dot3(s,rhat));
-  MathExtra::times_column3(wi.A,rhat,z1);
-  MathExtra::times_column3(wj.A,rhat,z2);
+  MathExtra::matvec(wi.A,rhat,z1);
+  MathExtra::matvec(wj.A,rhat,z2);
   v1[0] = z1[0]/shape2[type[i]][0];
   v1[1] = z1[1]/shape2[type[i]][1];
   v1[2] = z1[2]/shape2[type[i]][2];
@@ -737,8 +737,8 @@ double PairRESquared::resquared_analytic(const int i, const int j,
     u[0] /= rnorm;
     u[1] /= rnorm;
     u[2] /= rnorm;
-    MathExtra::times_column3(wi.A,u,u1);
-    MathExtra::times_column3(wj.A,u,u2);
+    MathExtra::matvec(wi.A,u,u1);
+    MathExtra::matvec(wj.A,u,u2);
     dsigma1=MathExtra::dot3(u1,vsigma1);
     dsigma2=MathExtra::dot3(u2,vsigma2);
     dH12[0][0] = dsigma1*gsigma1[0][0]+dsigma2*gsigma2[0][0];
@@ -763,10 +763,10 @@ double PairRESquared::resquared_analytic(const int i, const int j,
     
   // torque on i
 
-  MathExtra::row_times3(fourw,wi.aTe,fwae);
+  MathExtra::vecmat(fourw,wi.aTe,fwae);
 
   for (int i=0; i<3; i++) {
-    MathExtra::times_column3(wi.lA[i],rhat,p);
+    MathExtra::matvec(wi.lA[i],rhat,p);
     dsigma1 = MathExtra::dot3(p,vsigma1);
     dH12[0][0] = wi.lAsa[i][0][0]/sigma1+dsigma1*gsigma1[0][0];
     dH12[0][1] = wi.lAsa[i][0][1]/sigma1+dsigma1*gsigma1[0][1];
@@ -781,9 +781,9 @@ double PairRESquared::resquared_analytic(const int i, const int j,
     deta = tsig1sig2*dsigma1-tdH*ddH;
     deta -= teta1*dsigma1;
     double tempv[3];
-    MathExtra::times_column3(wi.lA[i],w,tempv);
+    MathExtra::matvec(wi.lA[i],w,tempv);
     dchi = -MathExtra::dot3(fwae,tempv);
-    MathExtra::times_column3(wi.lAtwo[i],spr,tempv);
+    MathExtra::matvec(wi.lAtwo[i],spr,tempv);
     dh12 = -MathExtra::dot3(s,tempv);
 
     dUa = pbsu*(eta*dchi + deta*chi)-dh12*dspu;
@@ -796,10 +796,10 @@ double PairRESquared::resquared_analytic(const int i, const int j,
   if (!(force->newton_pair || j < atom->nlocal))
     return Ua+Ur;
 
-  MathExtra::row_times3(fourw,wj.aTe,fwae);
+  MathExtra::vecmat(fourw,wj.aTe,fwae);
 
   for (int i=0; i<3; i++) {
-    MathExtra::times_column3(wj.lA[i],rhat,p);
+    MathExtra::matvec(wj.lA[i],rhat,p);
     dsigma2 = MathExtra::dot3(p,vsigma2);
     dH12[0][0] = wj.lAsa[i][0][0]/sigma2+dsigma2*gsigma2[0][0];
     dH12[0][1] = wj.lAsa[i][0][1]/sigma2+dsigma2*gsigma2[0][1];
@@ -814,9 +814,9 @@ double PairRESquared::resquared_analytic(const int i, const int j,
     deta = tsig1sig2*dsigma2-tdH*ddH;
     deta -= teta2*dsigma2;
     double tempv[3];
-    MathExtra::times_column3(wj.lA[i],w,tempv);
+    MathExtra::matvec(wj.lA[i],w,tempv);
     dchi = -MathExtra::dot3(fwae,tempv);
-    MathExtra::times_column3(wj.lAtwo[i],spr,tempv);
+    MathExtra::matvec(wj.lAtwo[i],spr,tempv);
     dh12 = -MathExtra::dot3(s,tempv);
 
     dUa = pbsu*(eta*dchi + deta*chi)-dh12*dspu;
@@ -973,14 +973,14 @@ double PairRESquared::resquared_lj(const int i, const int j,
   // torque on i
 
   if (calc_torque) {
-    MathExtra::row_times3(fourw,wi.aTe,fwae);
+    MathExtra::vecmat(fourw,wi.aTe,fwae);
 
     for (int i=0; i<3; i++) {
-      MathExtra::times_column3(wi.lA[i],rhat,p);
+      MathExtra::matvec(wi.lA[i],rhat,p);
       double tempv[3];
-      MathExtra::times_column3(wi.lA[i],w,tempv);
+      MathExtra::matvec(wi.lA[i],w,tempv);
       dchi = -MathExtra::dot3(fwae,tempv);
-      MathExtra::times_column3(lAtwo[i],spr,tempv);
+      MathExtra::matvec(lAtwo[i],spr,tempv);
       dh12 = -MathExtra::dot3(s,tempv);
 
       dUa = pbsu*dchi-dh12*dspu;

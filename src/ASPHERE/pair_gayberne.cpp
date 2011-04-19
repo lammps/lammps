@@ -620,18 +620,18 @@ double PairGayBerne::gayberne_analytic(const int i,const int j,double a1[3][3],
   tempv[0] = -uslj_rsq*kappa[0];
   tempv[1] = -uslj_rsq*kappa[1];
   tempv[2] = -uslj_rsq*kappa[2];
-  MathExtra::row_times3(kappa,g1,tempv2);
+  MathExtra::vecmat(kappa,g1,tempv2);
   MathExtra::cross3(tempv,tempv2,dUr);
   double dUr2[3];
 
   if (newton_pair || j < nlocal) {
-    MathExtra::row_times3(kappa,g2,tempv2);
+    MathExtra::vecmat(kappa,g2,tempv2);
     MathExtra::cross3(tempv,tempv2,dUr2);
   }
 
   // compute d_chi
 
-  MathExtra::row_times3(iota,b1,tempv);
+  MathExtra::vecmat(iota,b1,tempv);
   MathExtra::cross3(tempv,iota,dchi);
   temp1 = -4.0/rsq;
   dchi[0] *= temp1;
@@ -640,7 +640,7 @@ double PairGayBerne::gayberne_analytic(const int i,const int j,double a1[3][3],
   double dchi2[3];
 
   if (newton_pair || j < nlocal) {
-    MathExtra::row_times3(iota,b2,tempv);
+    MathExtra::vecmat(iota,b2,tempv);
     MathExtra::cross3(tempv,iota,dchi2);
     dchi2[0] *= temp1;
     dchi2[1] *= temp1;
@@ -806,12 +806,12 @@ double PairGayBerne::gayberne_lj(const int i,const int j,double a1[3][3],
   tempv[0] = -uslj_rsq*kappa[0];
   tempv[1] = -uslj_rsq*kappa[1];
   tempv[2] = -uslj_rsq*kappa[2];
-  MathExtra::row_times3(kappa,g1,tempv2);
+  MathExtra::vecmat(kappa,g1,tempv2);
   MathExtra::cross3(tempv,tempv2,dUr);
 
   // compute d_chi
 
-  MathExtra::row_times3(iota,b1,tempv);
+  MathExtra::vecmat(iota,b1,tempv);
   MathExtra::cross3(tempv,iota,dchi);
   temp1 = -4.0/rsq;
   dchi[0] *= temp1;

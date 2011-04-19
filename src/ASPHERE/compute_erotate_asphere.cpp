@@ -96,7 +96,7 @@ double ComputeERotateAsphere::compute_scalar()
       // wbody = angular velocity in body frame
 
       MathExtra::quat_to_mat(quat,rot);
-      MathExtra::transpose_times_column3(rot,angmom[i],wbody);
+      MathExtra::transpose_matvec(rot,angmom[i],wbody);
       wbody[0] /= inertia[0];
       wbody[1] /= inertia[1];
       wbody[2] /= inertia[2];

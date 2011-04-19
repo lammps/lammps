@@ -732,7 +732,7 @@ void FixRigid::init()
   // set displace = 0.0 for atoms not in any rigid body
   // for extended particles, set their orientation wrt to rigid body
 
-  double qc[4];
+  double qc[4],delta[3];
   double *quatatom;
 
   for (i = 0; i < nlocal; i++) {
@@ -757,25 +757,16 @@ void FixRigid::init()
       zunwrap = x[i][2] + zbox*zprd;
     }
     
-    dx = xunwrap - xcm[ibody][0];
-    dy = yunwrap - xcm[ibody][1];
-    dz = zunwrap - xcm[ibody][2];
-    
-    displace[i][0] = dx*ex_space[ibody][0] + dy*ex_space[ibody][1] +
-      dz*ex_space[ibody][2];
-    displace[i][1] = dx*ey_space[ibody][0] + dy*ey_space[ibody][1] +
-      dz*ey_space[ibody][2];
-    displace[i][2] = dx*ez_space[ibody][0] + dy*ez_space[ibody][1] +
-      dz*ez_space[ibody][2];
-    
+    delta[0] = xunwrap - xcm[ibody][0];
+    delta[1] = yunwrap - xcm[ibody][1];
+    delta[2] = zunwrap - xcm[ibody][2];
+    MathExtra::transpose_matvec(ex_space[ibody],ey_space[ibody],
+				ez_space[ibody],delta,displace[i]);
+
     if (extended) {
       if (eflags[i] & ORIENT_DIPOLE) {
-	dorient[i][0] = mu[i][0]*ex_space[ibody][0] + 
-	  mu[i][1]*ex_space[ibody][1] + mu[i][2]*ex_space[ibody][2];
-	dorient[i][1] = mu[i][0]*ey_space[ibody][0] + 
-	  mu[i][1]*ey_space[ibody][1] + mu[i][2]*ey_space[ibody][2];
-	dorient[i][2] = mu[i][0]*ez_space[ibody][0] + 
-	  mu[i][1]*ez_space[ibody][1] + mu[i][2]*ez_space[ibody][2];
+	MathExtra::transpose_matvec(ex_space[ibody],ey_space[ibody],
+				    ez_space[ibody],mu[i],dorient[i]);
 	MathExtra::snormalize3(mu[i][3],dorient[i],dorient[i]);
       } else if (dorientflag)
 	dorient[i][0] = dorient[i][1] = dorient[i][2] = 0.0;
@@ -1498,15 +1489,8 @@ void FixRigid::set_xv()
     // x = displacement from center-of-mass, based on body orientation
     // v = vcm + omega around center-of-mass
 
-    x[i][0] = ex_space[ibody][0]*displace[i][0] +
-      ey_space[ibody][0]*displace[i][1] + 
-      ez_space[ibody][0]*displace[i][2];
-    x[i][1] = ex_space[ibody][1]*displace[i][0] +
-      ey_space[ibody][1]*displace[i][1] + 
-      ez_space[ibody][1]*displace[i][2];
-    x[i][2] = ex_space[ibody][2]*displace[i][0] +
-      ey_space[ibody][2]*displace[i][1] + 
-      ez_space[ibody][2]*displace[i][2];
+    MathExtra::matvec(ex_space[ibody],ey_space[ibody],
+		      ez_space[ibody],displace[i],x[i]);
 
     v[i][0] = omega[ibody][1]*x[i][2] - omega[ibody][2]*x[i][1] +
       vcm[ibody][0];
@@ -1571,7 +1555,7 @@ void FixRigid::set_xv()
       
       if (eflags[i] & ORIENT_DIPOLE) {
 	MathExtra::quat_to_mat(quat[ibody],p);
-	MathExtra::times_column3(p,dorient[i],mu[i]);
+	MathExtra::matvec(p,dorient[i],mu[i]);
 	MathExtra::snormalize3(mu[i][3],mu[i],mu[i]);
       }
       if (eflags[i] & ORIENT_QUAT) {
@@ -1611,7 +1595,7 @@ void FixRigid::set_v()
   double dx,dy,dz;
   double x0,x1,x2,v0,v1,v2,fc0,fc1,fc2,massone;
   double xy,xz,yz;
-  double ione[3],exone[3],eyone[3],ezone[3],vr[6];
+  double ione[3],exone[3],eyone[3],ezone[3],delta[3],vr[6];
 
   double **x = atom->x;
   double **v = atom->v;
@@ -1637,15 +1621,8 @@ void FixRigid::set_v()
     if (body[i] < 0) continue;
     ibody = body[i];
 
-    dx = ex_space[ibody][0]*displace[i][0] +
-      ey_space[ibody][0]*displace[i][1] + 
-      ez_space[ibody][0]*displace[i][2];
-    dy = ex_space[ibody][1]*displace[i][0] +
-      ey_space[ibody][1]*displace[i][1] + 
-      ez_space[ibody][1]*displace[i][2];
-    dz = ex_space[ibody][2]*displace[i][0] +
-      ey_space[ibody][2]*displace[i][1] + 
-      ez_space[ibody][2]*displace[i][2];
+    MathExtra::matvec(ex_space[ibody],ey_space[ibody],
+		      ez_space[ibody],displace[i],delta);
 
     // save old velocities for virial
 
@@ -1655,9 +1632,12 @@ void FixRigid::set_v()
       v2 = v[i][2];
     }
 
-    v[i][0] = omega[ibody][1]*dz - omega[ibody][2]*dy + vcm[ibody][0];
-    v[i][1] = omega[ibody][2]*dx - omega[ibody][0]*dz + vcm[ibody][1];
-    v[i][2] = omega[ibody][0]*dy - omega[ibody][1]*dx + vcm[ibody][2];
+    v[i][0] = omega[ibody][1]*delta[2] - omega[ibody][2]*delta[1] + 
+      vcm[ibody][0];
+    v[i][1] = omega[ibody][2]*delta[0] - omega[ibody][0]*delta[2] + 
+      vcm[ibody][1];
+    v[i][2] = omega[ibody][0]*delta[1] - omega[ibody][1]*delta[0] + 
+      vcm[ibody][2];
 
     // virial = unwrapped coords dotted into body constraint force
     // body constraint force = implied force due to v change minus f external

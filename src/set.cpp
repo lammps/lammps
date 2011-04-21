@@ -381,7 +381,7 @@ void Set::set(int keyword)
     // set shape
 
     else if (keyword == SHAPE)
-      avec_ellipsoid->set_bonus(i,0.5*xvalue,0.5*yvalue,0.5*zvalue);
+      avec_ellipsoid->set_shape(i,0.5*xvalue,0.5*yvalue,0.5*zvalue);
 
     // set rmass via density
     // if radius > 0.0, treat as sphere
@@ -431,7 +431,7 @@ void Set::set(int keyword)
       quat[1] = xvalue * sintheta2;
       quat[2] = yvalue * sintheta2;
       quat[3] = zvalue * sintheta2;
-      MathExtra::normalize4(quat);
+      MathExtra::qnormalize(quat);
     }
     count++;
   }

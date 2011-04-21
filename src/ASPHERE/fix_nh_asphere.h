@@ -28,9 +28,6 @@ class FixNHAsphere : public FixNH {
   double dtq;
   class AtomVecEllipsoid *avec;
 
-  void richardson(double *, double *, double *);
-  void omega_from_mq(double *, double *, double *, double *);
-  void calculate_inertia();
   void nve_v();
   void nve_x();
   void nh_v_temp();

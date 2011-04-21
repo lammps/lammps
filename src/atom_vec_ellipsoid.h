@@ -68,11 +68,12 @@ class AtomVecEllipsoid : public AtomVec {
 
   // manipulate Bonus data structure for extra atom info
 
-  void grow_bonus();
-  void copy_bonus(int, int);
-  void set_bonus(int, double, double, double);
   void clear_bonus();
   void data_atom_bonus(int, char **);
+
+  // unique to AtomVecEllipsoid
+
+  void set_shape(int, double, double, double);
 
  private:
   double PI;
@@ -83,6 +84,9 @@ class AtomVecEllipsoid : public AtomVec {
   int *ellipsoid;
 
   int nlocal_bonus,nghost_bonus,nmax_bonus;
+
+  void grow_bonus();
+  void copy_bonus(int, int);
 };
 
 }

@@ -662,7 +662,7 @@ void Atom::tag_extend()
 
 int Atom::tag_consecutive()
 {
-  int idmin = static_cast<int> (natoms);
+  int idmin = MAXTAGINT;
   int idmax = 0;
   
   for (int i = 0; i < nlocal; i++) {

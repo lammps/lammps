@@ -16,8 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #include "math.h"
-#include "math_extra.h"
+#include "string.h"
 #include "fix_nvt_sllod.h"
+#include "math_extra.h"
 #include "atom.h"
 #include "domain.h"
 #include "group.h"

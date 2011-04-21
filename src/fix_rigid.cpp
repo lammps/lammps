@@ -34,7 +34,6 @@ using namespace LAMMPS_NS;
 
 #define TOLERANCE 1.0e-6
 #define EPSILON 1.0e-7
-#define MAXJACOBI 50
 
 #define MIN(A,B) ((A) < (B)) ? (A) : (B)
 #define MAX(A,B) ((A) > (B)) ? (A) : (B)
@@ -470,7 +469,8 @@ void FixRigid::init()
 
   extended = dorientflag = qorientflag = 0;
 
-  AtomVecEllipsoid::Bonus *ebonus = avec_ellipsoid->bonus;
+  AtomVecEllipsoid::Bonus *ebonus;
+  if (avec_ellipsoid) ebonus = avec_ellipsoid->bonus;
   double **mu = atom->mu;
   double *radius = atom->radius;
   double *rmass = atom->rmass;
@@ -590,7 +590,8 @@ void FixRigid::init()
 
   // compute 6 moments of inertia of each body
   // dx,dy,dz = coords relative to center-of-mass
-  
+  // symmetric 3x3 inertia tensor stored in Voigt notation as 6-vector
+
   double dx,dy,dz,rad;
 
   for (ibody = 0; ibody < nbody; ibody++)
@@ -624,16 +625,15 @@ void FixRigid::init()
     sum[ibody][0] += massone * (dy*dy + dz*dz);
     sum[ibody][1] += massone * (dx*dx + dz*dz);
     sum[ibody][2] += massone * (dx*dx + dy*dy);
-    sum[ibody][3] -= massone * dx*dy;
-    sum[ibody][4] -= massone * dy*dz;
-    sum[ibody][5] -= massone * dx*dz;
+    sum[ibody][3] -= massone * dy*dz;
+    sum[ibody][4] -= massone * dx*dz;
+    sum[ibody][5] -= massone * dx*dy;
   }
 
   // extended particles may contribute extra terms to moments of inertia
 
   if (extended) {
-    double ex[3],ey[3],ez[3],idiag[3];
-    double p[3][3],ptrans[3][3],ispace[3][3],itemp[3][3];
+    double ivec[6];
     double *shape,*quatatom;
 
     for (i = 0; i < nlocal; i++) {
@@ -652,19 +652,13 @@ void FixRigid::init()
       if (eflags[i] & INERTIA_ELLIPSOID) {
 	shape = ebonus[ellipsoid[i]].shape;
 	quatatom = ebonus[ellipsoid[i]].quat;
-	MathExtra::quat_to_mat(quatatom,p);
-	MathExtra::quat_to_mat_trans(quatatom,ptrans);
-	idiag[0] = 0.2*massone * (shape[1]*shape[1]+shape[2]*shape[2]);
-	idiag[1] = 0.2*massone * (shape[0]*shape[0]+shape[2]*shape[2]);
-	idiag[2] = 0.2*massone * (shape[0]*shape[0]+shape[1]*shape[1]);
-	MathExtra::diag_times3(idiag,ptrans,itemp);
-	MathExtra::times3(p,itemp,ispace);
-	sum[ibody][0] += ispace[0][0];
-	sum[ibody][1] += ispace[1][1];
-	sum[ibody][2] += ispace[2][2];
-	sum[ibody][3] += ispace[0][1];
-	sum[ibody][4] += ispace[1][2];
-	sum[ibody][5] += ispace[0][2];
+	MathExtra::inertia_ellipsoid(shape,quatatom,massone,ivec);
+	sum[ibody][0] += ivec[0];
+	sum[ibody][1] += ivec[1];
+	sum[ibody][2] += ivec[2];
+	sum[ibody][3] += ivec[3];
+	sum[ibody][4] += ivec[4];
+	sum[ibody][5] += ivec[5];
       }
     }
   }
@@ -674,22 +668,19 @@ void FixRigid::init()
   // inertia = 3 eigenvalues = principal moments of inertia
   // ex_space,ey_space,ez_space = 3 eigenvectors = principal axes of rigid body
   
-  double **tensor,**evectors;
-  memory->create(tensor,3,3,"fix_rigid:tensor");
-  memory->create(evectors,3,3,"fix_rigid:evectors");
-
   int ierror;
   double ez0,ez1,ez2;
+  double tensor[3][3],evectors[3][3];
 
   for (ibody = 0; ibody < nbody; ibody++) {
     tensor[0][0] = all[ibody][0];
     tensor[1][1] = all[ibody][1];
     tensor[2][2] = all[ibody][2];
-    tensor[0][1] = tensor[1][0] = all[ibody][3];
-    tensor[1][2] = tensor[2][1] = all[ibody][4];
-    tensor[0][2] = tensor[2][0] = all[ibody][5];
+    tensor[1][2] = tensor[2][1] = all[ibody][3];
+    tensor[0][2] = tensor[2][0] = all[ibody][4];
+    tensor[0][1] = tensor[1][0] = all[ibody][5];
 
-    ierror = jacobi(tensor,inertia[ibody],evectors);
+    ierror = MathExtra::jacobi(tensor,inertia[ibody],evectors);
     if (ierror) error->all("Insufficient Jacobi rotations for rigid body");
 
     ex_space[ibody][0] = evectors[0][0];
@@ -733,19 +724,15 @@ void FixRigid::init()
 
     // create initial quaternion
   
-    q_from_exyz(ex_space[ibody],ey_space[ibody],ez_space[ibody],quat[ibody]);
+    MathExtra::exyz_to_q(ex_space[ibody],ey_space[ibody],ez_space[ibody],
+			 quat[ibody]);
   }
 
-  // free temporary memory
-  
-  memory->destroy(tensor);
-  memory->destroy(evectors);
-  
   // displace = initial atom coords in basis of principal axes
   // set displace = 0.0 for atoms not in any rigid body
   // for extended particles, set their orientation wrt to rigid body
 
-  double qc[4];
+  double qc[4],delta[3];
   double *quatatom;
 
   for (i = 0; i < nlocal; i++) {
@@ -770,34 +757,25 @@ void FixRigid::init()
       zunwrap = x[i][2] + zbox*zprd;
     }
     
-    dx = xunwrap - xcm[ibody][0];
-    dy = yunwrap - xcm[ibody][1];
-    dz = zunwrap - xcm[ibody][2];
-    
-    displace[i][0] = dx*ex_space[ibody][0] + dy*ex_space[ibody][1] +
-      dz*ex_space[ibody][2];
-    displace[i][1] = dx*ey_space[ibody][0] + dy*ey_space[ibody][1] +
-      dz*ey_space[ibody][2];
-    displace[i][2] = dx*ez_space[ibody][0] + dy*ez_space[ibody][1] +
-      dz*ez_space[ibody][2];
-    
+    delta[0] = xunwrap - xcm[ibody][0];
+    delta[1] = yunwrap - xcm[ibody][1];
+    delta[2] = zunwrap - xcm[ibody][2];
+    MathExtra::transpose_matvec(ex_space[ibody],ey_space[ibody],
+				ez_space[ibody],delta,displace[i]);
+
     if (extended) {
       if (eflags[i] & ORIENT_DIPOLE) {
-	dorient[i][0] = mu[i][0]*ex_space[ibody][0] + 
-	  mu[i][1]*ex_space[ibody][1] + mu[i][2]*ex_space[ibody][2];
-	dorient[i][1] = mu[i][0]*ey_space[ibody][0] + 
-	  mu[i][1]*ey_space[ibody][1] + mu[i][2]*ey_space[ibody][2];
-	dorient[i][2] = mu[i][0]*ez_space[ibody][0] + 
-	  mu[i][1]*ez_space[ibody][1] + mu[i][2]*ez_space[ibody][2];
+	MathExtra::transpose_matvec(ex_space[ibody],ey_space[ibody],
+				    ez_space[ibody],mu[i],dorient[i]);
 	MathExtra::snormalize3(mu[i][3],dorient[i],dorient[i]);
       } else if (dorientflag)
 	dorient[i][0] = dorient[i][1] = dorient[i][2] = 0.0;
 
       if (eflags[i] & ORIENT_QUAT) {
 	quatatom = ebonus[ellipsoid[i]].quat;
-	qconjugate(quat[ibody],qc);
-	quatquat(qc,quatatom,qorient[i]);
-	qnormalize(qorient[i]);
+	MathExtra::qconjugate(quat[ibody],qc);
+	MathExtra::quatquat(qc,quatatom,qorient[i]);
+	MathExtra::qnormalize(qorient[i]);
       } else if (qorientflag)
 	qorient[i][0] = qorient[i][1] = qorient[i][2] = qorient[i][3] = 0.0;
     }
@@ -824,14 +802,13 @@ void FixRigid::init()
       (displace[i][0]*displace[i][0] + displace[i][2]*displace[i][2]);
     sum[ibody][2] += massone * 
       (displace[i][0]*displace[i][0] + displace[i][1]*displace[i][1]);
-    sum[ibody][3] -= massone * displace[i][0]*displace[i][1];
-    sum[ibody][4] -= massone * displace[i][1]*displace[i][2];
-    sum[ibody][5] -= massone * displace[i][0]*displace[i][2];
+    sum[ibody][3] -= massone * displace[i][1]*displace[i][2];
+    sum[ibody][4] -= massone * displace[i][0]*displace[i][2];
+    sum[ibody][5] -= massone * displace[i][0]*displace[i][1];
   }
 
   if (extended) {
-    double ex[3],ey[3],ez[3],idiag[3];
-    double p[3][3],ptrans[3][3],ispace[3][3],itemp[3][3];
+    double ivec[6];
     double *shape;
 
     for (i = 0; i < nlocal; i++) {
@@ -849,19 +826,13 @@ void FixRigid::init()
       }
       if (eflags[i] & INERTIA_ELLIPSOID) {
 	shape = ebonus[ellipsoid[i]].shape;
-	MathExtra::quat_to_mat(qorient[i],p);
-	MathExtra::quat_to_mat_trans(qorient[i],ptrans);
-	idiag[0] = 0.2*massone * (shape[1]*shape[1]+shape[2]*shape[2]);
-	idiag[1] = 0.2*massone * (shape[0]*shape[0]+shape[2]*shape[2]);
-	idiag[2] = 0.2*massone * (shape[0]*shape[0]+shape[1]*shape[1]);
-	MathExtra::diag_times3(idiag,ptrans,itemp);
-	MathExtra::times3(p,itemp,ispace);
-	sum[ibody][0] += ispace[0][0];
-	sum[ibody][1] += ispace[1][1];
-	sum[ibody][2] += ispace[2][2];
-	sum[ibody][3] += ispace[0][1];
-	sum[ibody][4] += ispace[1][2];
-	sum[ibody][5] += ispace[0][2];
+	MathExtra::inertia_ellipsoid(shape,qorient[i],massone,ivec);
+	sum[ibody][0] += ivec[0];
+	sum[ibody][1] += ivec[1];
+	sum[ibody][2] += ivec[2];
+	sum[ibody][3] += ivec[3];
+	sum[ibody][4] += ivec[4];
+	sum[ibody][5] += ivec[5];
       }
     }
   }
@@ -1048,8 +1019,8 @@ void FixRigid::setup(int vflag)
   // set velocities from angmom & omega
 
   for (ibody = 0; ibody < nbody; ibody++)
-    omega_from_angmom(angmom[ibody],ex_space[ibody],ey_space[ibody],
-		      ez_space[ibody],inertia[ibody],omega[ibody]);
+    MathExtra::angmom_to_omega(angmom[ibody],ex_space[ibody],ey_space[ibody],
+			       ez_space[ibody],inertia[ibody],omega[ibody]);
   set_v();
 
   // guesstimate virial as 2x the set_v contribution
@@ -1090,13 +1061,17 @@ void FixRigid::initial_integrate(int vflag)
     angmom[ibody][1] += dtf * torque[ibody][1] * tflag[ibody][1];
     angmom[ibody][2] += dtf * torque[ibody][2] * tflag[ibody][2];
 
-    // update quaternion a full step
-    // returns new normalized quat
-    // returns ex_space,ey_space,ez_space for new quat
-    // returns omega at 1/2 step (depends on angmom and quat)
+    // compute omega at 1/2 step from angmom at 1/2 step and current q
+    // update quaternion a full step via Richardson iteration
+    // returns new normalized quaternion, also updated omega at 1/2 step
+    // update ex,ey,ez to reflect new quaternion
 
-    richardson(quat[ibody],omega[ibody],angmom[ibody],inertia[ibody],
-	       ex_space[ibody],ey_space[ibody],ez_space[ibody]);
+    MathExtra::angmom_to_omega(angmom[ibody],ex_space[ibody],ey_space[ibody],
+			       ez_space[ibody],inertia[ibody],omega[ibody]);
+    MathExtra::richardson(quat[ibody],angmom[ibody],omega[ibody],
+			  inertia[ibody],dtq);
+    MathExtra::q_to_exyz(quat[ibody],
+			 ex_space[ibody],ey_space[ibody],ez_space[ibody]);
   }
 
   // virial setup before call to set_xv
@@ -1209,75 +1184,14 @@ void FixRigid::final_integrate()
     angmom[ibody][1] += dtf * torque[ibody][1] * tflag[ibody][1];
     angmom[ibody][2] += dtf * torque[ibody][2] * tflag[ibody][2];
 
-    omega_from_angmom(angmom[ibody],ex_space[ibody],ey_space[ibody],
-		      ez_space[ibody],inertia[ibody],omega[ibody]);
+    MathExtra::angmom_to_omega(angmom[ibody],ex_space[ibody],ey_space[ibody],
+			       ez_space[ibody],inertia[ibody],omega[ibody]);
   }
 
   // set velocity/rotation of atoms in rigid bodies
   // virial is already setup from initial_integrate
 
   set_v();
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixRigid::richardson(double *q, double *w,
-			  double *m, double *moments,
-			  double *ex, double *ey, double *ez)
-{
-  // compute omega at 1/2 step from m at 1/2 step and q at 0
-  
-  omega_from_angmom(m,ex,ey,ez,moments,w);
-
-  // full update from dq/dt = 1/2 w q
-
-  double wq[4];
-  vecquat(w,q,wq);
-
-  double qfull[4];
-  qfull[0] = q[0] + dtq * wq[0];
-  qfull[1] = q[1] + dtq * wq[1];
-  qfull[2] = q[2] + dtq * wq[2];
-  qfull[3] = q[3] + dtq * wq[3];
-
-  qnormalize(qfull);
-
-  // 1st half update from dq/dt = 1/2 w q
-
-  double qhalf[4];
-  qhalf[0] = q[0] + 0.5*dtq * wq[0];
-  qhalf[1] = q[1] + 0.5*dtq * wq[1];
-  qhalf[2] = q[2] + 0.5*dtq * wq[2];
-  qhalf[3] = q[3] + 0.5*dtq * wq[3];
-
-  qnormalize(qhalf);
-
-  // udpate ex,ey,ez from qhalf
-  // re-compute omega at 1/2 step from m at 1/2 step and q at 1/2 step
-  // recompute wq
-
-  exyz_from_q(qhalf,ex,ey,ez);
-  omega_from_angmom(m,ex,ey,ez,moments,w);
-  vecquat(w,qhalf,wq);
-
-  // 2nd half update from dq/dt = 1/2 w q
-
-  qhalf[0] += 0.5*dtq * wq[0];
-  qhalf[1] += 0.5*dtq * wq[1];
-  qhalf[2] += 0.5*dtq * wq[2];
-  qhalf[3] += 0.5*dtq * wq[3];
-
-  qnormalize(qhalf);
-
-  // corrected Richardson update
-
-  q[0] = 2.0*qhalf[0] - qfull[0];
-  q[1] = 2.0*qhalf[1] - qfull[1];
-  q[2] = 2.0*qhalf[2] - qfull[2];
-  q[3] = 2.0*qhalf[3] - qfull[3];
-
-  qnormalize(q);
-  exyz_from_q(q,ex,ey,ez);
 }
 
 /* ----------------------------------------------------------------------
@@ -1512,304 +1426,6 @@ void FixRigid::deform(int flag)
 }
 
 /* ----------------------------------------------------------------------
-   compute evalues and evectors of 3x3 real symmetric matrix
-   based on Jacobi rotations
-   adapted from Numerical Recipes jacobi() function
-------------------------------------------------------------------------- */
-
-int FixRigid::jacobi(double **matrix, double *evalues, double **evectors)
-{
-  int i,j,k;
-  double tresh,theta,tau,t,sm,s,h,g,c,b[3],z[3];
-  
-  for (i = 0; i < 3; i++) {
-    for (j = 0; j < 3; j++) evectors[i][j] = 0.0;
-    evectors[i][i] = 1.0;
-  }
-  for (i = 0; i < 3; i++) {
-    b[i] = evalues[i] = matrix[i][i];
-    z[i] = 0.0;
-  }
-  
-  for (int iter = 1; iter <= MAXJACOBI; iter++) {
-    sm = 0.0;
-    for (i = 0; i < 2; i++)
-      for (j = i+1; j < 3; j++)
-	sm += fabs(matrix[i][j]);
-    if (sm == 0.0) return 0;
-    
-    if (iter < 4) tresh = 0.2*sm/(3*3);
-    else tresh = 0.0;
-    
-    for (i = 0; i < 2; i++) {
-      for (j = i+1; j < 3; j++) {
-	g = 100.0*fabs(matrix[i][j]);
-	if (iter > 4 && fabs(evalues[i])+g == fabs(evalues[i])
-	    && fabs(evalues[j])+g == fabs(evalues[j]))
-	  matrix[i][j] = 0.0;
-	else if (fabs(matrix[i][j]) > tresh) {
-	  h = evalues[j]-evalues[i];
-	  if (fabs(h)+g == fabs(h)) t = (matrix[i][j])/h;
-	  else {
-	    theta = 0.5*h/(matrix[i][j]);
-	    t = 1.0/(fabs(theta)+sqrt(1.0+theta*theta));
-	    if (theta < 0.0) t = -t;
-	  }
-	  c = 1.0/sqrt(1.0+t*t);
-	  s = t*c;
-	  tau = s/(1.0+c);
-	  h = t*matrix[i][j];
-	  z[i] -= h;
-	  z[j] += h;
-	  evalues[i] -= h;
-	  evalues[j] += h;
-	  matrix[i][j] = 0.0;
-	  for (k = 0; k < i; k++) rotate(matrix,k,i,k,j,s,tau);
-	  for (k = i+1; k < j; k++) rotate(matrix,i,k,k,j,s,tau);
-	  for (k = j+1; k < 3; k++) rotate(matrix,i,k,j,k,s,tau);
-	  for (k = 0; k < 3; k++) rotate(evectors,k,i,k,j,s,tau);
-	}
-      }
-    }
-    
-    for (i = 0; i < 3; i++) {
-      evalues[i] = b[i] += z[i];
-      z[i] = 0.0;
-    }
-  }
-  return 1;
-}
-
-/* ----------------------------------------------------------------------
-   perform a single Jacobi rotation
-------------------------------------------------------------------------- */
-
-void FixRigid::rotate(double **matrix, int i, int j, int k, int l,
-		      double s, double tau)
-{
-  double g = matrix[i][j];
-  double h = matrix[k][l];
-  matrix[i][j] = g-s*(h+g*tau);
-  matrix[k][l] = h+s*(g-h*tau);
-}
-
-/* ----------------------------------------------------------------------
-   create unit quaternion from space-frame ex,ey,ez
-   ex,ey,ez are columns of a rotation matrix
-------------------------------------------------------------------------- */
-
-void FixRigid::q_from_exyz(double *ex, double *ey, double *ez, double *q)
-{
-  // squares of quaternion components
-  
-  double q0sq = 0.25 * (ex[0] + ey[1] + ez[2] + 1.0);
-  double q1sq = q0sq - 0.5 * (ey[1] + ez[2]);
-  double q2sq = q0sq - 0.5 * (ex[0] + ez[2]);
-  double q3sq = q0sq - 0.5 * (ex[0] + ey[1]);
-  
-  // some component must be greater than 1/4 since they sum to 1
-  // compute other components from it
-  
-  if (q0sq >= 0.25) {
-    q[0] = sqrt(q0sq);
-    q[1] = (ey[2] - ez[1]) / (4.0*q[0]);
-    q[2] = (ez[0] - ex[2]) / (4.0*q[0]);
-    q[3] = (ex[1] - ey[0]) / (4.0*q[0]);
-  } else if (q1sq >= 0.25) {
-    q[1] = sqrt(q1sq);
-    q[0] = (ey[2] - ez[1]) / (4.0*q[1]);
-    q[2] = (ey[0] + ex[1]) / (4.0*q[1]);
-    q[3] = (ex[2] + ez[0]) / (4.0*q[1]);
-  } else if (q2sq >= 0.25) {
-    q[2] = sqrt(q2sq);
-    q[0] = (ez[0] - ex[2]) / (4.0*q[2]);
-    q[1] = (ey[0] + ex[1]) / (4.0*q[2]);
-    q[3] = (ez[1] + ey[2]) / (4.0*q[2]);
-  } else if (q3sq >= 0.25) {
-    q[3] = sqrt(q3sq);
-    q[0] = (ex[1] - ey[0]) / (4.0*q[3]);
-    q[1] = (ez[0] + ex[2]) / (4.0*q[3]);
-    q[2] = (ez[1] + ey[2]) / (4.0*q[3]);
-  } else
-    error->all("Quaternion creation numeric error");
-
-  qnormalize(q);
-}
-
-/* ----------------------------------------------------------------------
-   compute space-frame ex,ey,ez from current quaternion q
-   ex,ey,ez = space-frame coords of 1st,2nd,3rd principal axis
-   operation is ex = q' d q = Q d, where d is (1,0,0) = 1st axis in body frame
-------------------------------------------------------------------------- */
-
-void FixRigid::exyz_from_q(double *q, double *ex, double *ey, double *ez)
-{
-  ex[0] = q[0]*q[0] + q[1]*q[1] - q[2]*q[2] - q[3]*q[3];
-  ex[1] = 2.0 * (q[1]*q[2] + q[0]*q[3]);
-  ex[2] = 2.0 * (q[1]*q[3] - q[0]*q[2]);
-  
-  ey[0] = 2.0 * (q[1]*q[2] - q[0]*q[3]);
-  ey[1] = q[0]*q[0] - q[1]*q[1] + q[2]*q[2] - q[3]*q[3];
-  ey[2] = 2.0 * (q[2]*q[3] + q[0]*q[1]);
-  
-  ez[0] = 2.0 * (q[1]*q[3] + q[0]*q[2]);
-  ez[1] = 2.0 * (q[2]*q[3] - q[0]*q[1]);
-  ez[2] = q[0]*q[0] - q[1]*q[1] - q[2]*q[2] + q[3]*q[3];
-}
-
-/* ----------------------------------------------------------------------
-   vector-quaternion multiply: c = a*b, where a = (0,a)
-------------------------------------------------------------------------- */
-
-void FixRigid::vecquat(double *a, double *b, double *c)
-{
-  c[0] = -a[0]*b[1] - a[1]*b[2] - a[2]*b[3];
-  c[1] = b[0]*a[0] + a[1]*b[3] - a[2]*b[2];
-  c[2] = b[0]*a[1] + a[2]*b[1] - a[0]*b[3];
-  c[3] = b[0]*a[2] + a[0]*b[2] - a[1]*b[1];
-}
-
-/* ----------------------------------------------------------------------
-   quaternion-vector multiply: c = a*b, where b = (0,b)
-------------------------------------------------------------------------- */
-
-void FixRigid::quatvec(double *a, double *b, double *c)
-{
-  c[0] = -a[1]*b[0] - a[2]*b[1] - a[3]*b[2];
-  c[1] = a[0]*b[0] + a[2]*b[2] - a[3]*b[1];
-  c[2] = a[0]*b[1] + a[3]*b[0] - a[1]*b[2];
-  c[3] = a[0]*b[2] + a[1]*b[1] - a[2]*b[0];
-}
-
-/* ----------------------------------------------------------------------
-   quaternion-quaternion multiply: c = a*b
-------------------------------------------------------------------------- */
-
-void FixRigid::quatquat(double *a, double *b, double *c)
-{
-  c[0] = a[0]*b[0] - a[1]*b[1] - a[2]*b[2] - a[3]*b[3];
-  c[1] = a[0]*b[1] + b[0]*a[1] + a[2]*b[3] - a[3]*b[2];
-  c[2] = a[0]*b[2] + b[0]*a[2] + a[3]*b[1] - a[1]*b[3];
-  c[3] = a[0]*b[3] + b[0]*a[3] + a[1]*b[2] - a[2]*b[1];
-}
-
-/* ----------------------------------------------------------------------
-   quaternion multiply: c = inv(a)*b
-   a is a quaternion
-   b is a four component vector
-   c is a three component vector
-------------------------------------------------------------------------- */
-
-void FixRigid::invquatvec(double *a, double *b, double *c)
-{ 
-  c[0] = -a[1]*b[0] + a[0]*b[1] + a[3]*b[2] - a[2]*b[3];
-  c[1] = -a[2]*b[0] - a[3]*b[1] + a[0]*b[2] + a[1]*b[3];
-  c[2] = -a[3]*b[0] + a[2]*b[1] - a[1]*b[2] + a[0]*b[3];
-}
-
-/* ----------------------------------------------------------------------
-   conjugate of a quaternion: qc = conjugate of q
-   assume q is of unit length
-------------------------------------------------------------------------- */
-
-void FixRigid::qconjugate(double *q, double *qc)
-{
-  qc[0] = q[0];
-  qc[1] = -q[1];
-  qc[2] = -q[2];
-  qc[3] = -q[3];
-}
-
-/* ----------------------------------------------------------------------
-   normalize a quaternion
-------------------------------------------------------------------------- */
-
-void FixRigid::qnormalize(double *q)
-{
-  double norm = 1.0 / sqrt(q[0]*q[0] + q[1]*q[1] + q[2]*q[2] + q[3]*q[3]);
-  q[0] *= norm;
-  q[1] *= norm;
-  q[2] *= norm;
-  q[3] *= norm;
-}
-
-/* ----------------------------------------------------------------------
-  matvec_rows: c = Ab, where rows of A are x, y, z
-------------------------------------------------------------------------- */
-
-void FixRigid::matvec_rows(double *x, double *y, double *z, 
-			   double *b, double *c)
-{
-  c[0] = x[0]*b[0] + x[1]*b[1] + x[2]*b[2];
-  c[1] = y[0]*b[0] + y[1]*b[1] + y[2]*b[2];
-  c[2] = z[0]*b[0] + z[1]*b[1] + z[2]*b[2];
-}
-
-/* ----------------------------------------------------------------------
-  matvec_cols: c = Ab, where columns of A are x, y, z
-------------------------------------------------------------------------- */
-
-void FixRigid::matvec_cols(double *x, double *y, double *z,
-			   double *b, double *c)
-{
-  c[0] = x[0]*b[0] + y[0]*b[1] + z[0]*b[2];
-  c[1] = x[1]*b[0] + y[1]*b[1] + z[1]*b[2];
-  c[2] = x[2]*b[0] + y[2]*b[1] + z[2]*b[2];
-}
-
-/* ----------------------------------------------------------------------
-   compute omega from angular momentum, both in space frame
-   only know Idiag so need to do M = Iw in body frame
-   ex,ey,ez are column vectors of rotation matrix P
-   Mbody = P_transpose Mspace
-   wbody = Mbody / Idiag
-   wspace = P wbody
-   set wbody component to 0.0 if inertia component is 0.0
-     otherwise body can spin easily around that axis
-------------------------------------------------------------------------- */
-
-void FixRigid::omega_from_angmom(double *m, double *ex, double *ey, double *ez,
-				 double *idiag, double *w)
-{
-  double wbody[3];
-
-  if (idiag[0] == 0.0) wbody[0] = 0.0;
-  else wbody[0] = (m[0]*ex[0] + m[1]*ex[1] + m[2]*ex[2]) / idiag[0];
-  if (idiag[1] == 0.0) wbody[1] = 0.0;
-  else wbody[1] = (m[0]*ey[0] + m[1]*ey[1] + m[2]*ey[2]) / idiag[1];
-  if (idiag[2] == 0.0) wbody[2] = 0.0;
-  else wbody[2] = (m[0]*ez[0] + m[1]*ez[1] + m[2]*ez[2]) / idiag[2];
-
-  w[0] = wbody[0]*ex[0] + wbody[1]*ey[0] + wbody[2]*ez[0];
-  w[1] = wbody[0]*ex[1] + wbody[1]*ey[1] + wbody[2]*ez[1];
-  w[2] = wbody[0]*ex[2] + wbody[1]*ey[2] + wbody[2]*ez[2];
-}
-
-/* ----------------------------------------------------------------------
-   compute angular momentum from omega, both in space frame
-   only know Idiag so need to do M = Iw in body frame
-   ex,ey,ez are column vectors of rotation matrix P
-   wbody = P_transpose wspace
-   Mbody = Idiag wbody
-   Mspace = P Mbody
-------------------------------------------------------------------------- */
-
-void FixRigid::angmom_from_omega(double *w, 
-				  double *ex, double *ey, double *ez,
-				  double *idiag, double *m)
-{
-  double mbody[3];
-
-  mbody[0] = (w[0]*ex[0] + w[1]*ex[1] + w[2]*ex[2]) * idiag[0];
-  mbody[1] = (w[0]*ey[0] + w[1]*ey[1] + w[2]*ey[2]) * idiag[1];
-  mbody[2] = (w[0]*ez[0] + w[1]*ez[1] + w[2]*ez[2]) * idiag[2];
-
-  m[0] = mbody[0]*ex[0] + mbody[1]*ey[0] + mbody[2]*ez[0];
-  m[1] = mbody[0]*ex[1] + mbody[1]*ey[1] + mbody[2]*ez[1];
-  m[2] = mbody[0]*ex[2] + mbody[1]*ey[2] + mbody[2]*ez[2];
-}
-
-/* ----------------------------------------------------------------------
    set space-frame coords and velocity of each atom in each rigid body
    set orientation and rotation of extended particles
    x = Q displace + Xcm, mapped back to periodic box
@@ -1873,15 +1489,8 @@ void FixRigid::set_xv()
     // x = displacement from center-of-mass, based on body orientation
     // v = vcm + omega around center-of-mass
 
-    x[i][0] = ex_space[ibody][0]*displace[i][0] +
-      ey_space[ibody][0]*displace[i][1] + 
-      ez_space[ibody][0]*displace[i][2];
-    x[i][1] = ex_space[ibody][1]*displace[i][0] +
-      ey_space[ibody][1]*displace[i][1] + 
-      ez_space[ibody][1]*displace[i][2];
-    x[i][2] = ex_space[ibody][2]*displace[i][0] +
-      ey_space[ibody][2]*displace[i][1] + 
-      ez_space[ibody][2]*displace[i][2];
+    MathExtra::matvec(ex_space[ibody],ey_space[ibody],
+		      ez_space[ibody],displace[i],x[i]);
 
     v[i][0] = omega[ibody][1]*x[i][2] - omega[ibody][2]*x[i][1] +
       vcm[ibody][0];
@@ -1933,7 +1542,8 @@ void FixRigid::set_xv()
   if (extended) {
     double *shape,*quatatom;
 
-    AtomVecEllipsoid::Bonus *ebonus = avec_ellipsoid->bonus;
+    AtomVecEllipsoid::Bonus *ebonus;
+    if (avec_ellipsoid) ebonus = avec_ellipsoid->bonus;
     double **omega_one = atom->omega;
     double **angmom_one = atom->angmom;
     double **mu = atom->mu;
@@ -1945,13 +1555,13 @@ void FixRigid::set_xv()
       
       if (eflags[i] & ORIENT_DIPOLE) {
 	MathExtra::quat_to_mat(quat[ibody],p);
-	MathExtra::times_column3(p,dorient[i],mu[i]);
+	MathExtra::matvec(p,dorient[i],mu[i]);
 	MathExtra::snormalize3(mu[i][3],mu[i],mu[i]);
       }
       if (eflags[i] & ORIENT_QUAT) {
 	quatatom = ebonus[ellipsoid[i]].quat;
-	quatquat(quat[ibody],qorient[i],quatatom);
-	qnormalize(quatatom);
+	MathExtra::quatquat(quat[ibody],qorient[i],quatatom);
+	MathExtra::qnormalize(quatatom);
       }
       if (eflags[i] & OMEGA) {
 	omega_one[i][0] = omega[ibody][0];
@@ -1964,8 +1574,9 @@ void FixRigid::set_xv()
 	ione[0] = 0.2*rmass[i] * (shape[1]*shape[1] + shape[2]*shape[2]);
 	ione[1] = 0.2*rmass[i] * (shape[0]*shape[0] + shape[2]*shape[2]);
 	ione[2] = 0.2*rmass[i] * (shape[0]*shape[0] + shape[1]*shape[1]);
-	exyz_from_q(quatatom,exone,eyone,ezone);
-	angmom_from_omega(omega[ibody],exone,eyone,ezone,ione,angmom_one[i]);
+	MathExtra::q_to_exyz(quatatom,exone,eyone,ezone);
+	MathExtra::omega_to_angmom(omega[ibody],exone,eyone,ezone,ione,
+				   angmom_one[i]);
       }
     }
   }
@@ -1984,7 +1595,7 @@ void FixRigid::set_v()
   double dx,dy,dz;
   double x0,x1,x2,v0,v1,v2,fc0,fc1,fc2,massone;
   double xy,xz,yz;
-  double ione[3],exone[3],eyone[3],ezone[3],vr[6];
+  double ione[3],exone[3],eyone[3],ezone[3],delta[3],vr[6];
 
   double **x = atom->x;
   double **v = atom->v;
@@ -2010,15 +1621,8 @@ void FixRigid::set_v()
     if (body[i] < 0) continue;
     ibody = body[i];
 
-    dx = ex_space[ibody][0]*displace[i][0] +
-      ey_space[ibody][0]*displace[i][1] + 
-      ez_space[ibody][0]*displace[i][2];
-    dy = ex_space[ibody][1]*displace[i][0] +
-      ey_space[ibody][1]*displace[i][1] + 
-      ez_space[ibody][1]*displace[i][2];
-    dz = ex_space[ibody][2]*displace[i][0] +
-      ey_space[ibody][2]*displace[i][1] + 
-      ez_space[ibody][2]*displace[i][2];
+    MathExtra::matvec(ex_space[ibody],ey_space[ibody],
+		      ez_space[ibody],displace[i],delta);
 
     // save old velocities for virial
 
@@ -2028,9 +1632,12 @@ void FixRigid::set_v()
       v2 = v[i][2];
     }
 
-    v[i][0] = omega[ibody][1]*dz - omega[ibody][2]*dy + vcm[ibody][0];
-    v[i][1] = omega[ibody][2]*dx - omega[ibody][0]*dz + vcm[ibody][1];
-    v[i][2] = omega[ibody][0]*dy - omega[ibody][1]*dx + vcm[ibody][2];
+    v[i][0] = omega[ibody][1]*delta[2] - omega[ibody][2]*delta[1] + 
+      vcm[ibody][0];
+    v[i][1] = omega[ibody][2]*delta[0] - omega[ibody][0]*delta[2] + 
+      vcm[ibody][1];
+    v[i][2] = omega[ibody][0]*delta[1] - omega[ibody][1]*delta[0] + 
+      vcm[ibody][2];
 
     // virial = unwrapped coords dotted into body constraint force
     // body constraint force = implied force due to v change minus f external
@@ -2075,7 +1682,8 @@ void FixRigid::set_v()
   if (extended) {
     double *shape,*quatatom;
 
-    AtomVecEllipsoid::Bonus *ebonus = avec_ellipsoid->bonus;
+    AtomVecEllipsoid::Bonus *ebonus;
+    if (avec_ellipsoid) ebonus = avec_ellipsoid->bonus;
     double **omega_one = atom->omega;
     double **angmom_one = atom->angmom;
     int *ellipsoid = atom->ellipsoid;
@@ -2095,8 +1703,9 @@ void FixRigid::set_v()
 	ione[0] = 0.2*rmass[i] * (shape[1]*shape[1] + shape[2]*shape[2]);
 	ione[1] = 0.2*rmass[i] * (shape[0]*shape[0] + shape[2]*shape[2]);
 	ione[2] = 0.2*rmass[i] * (shape[0]*shape[0] + shape[1]*shape[1]);
-	exyz_from_q(quatatom,exone,eyone,ezone);
-	angmom_from_omega(omega[ibody],exone,eyone,ezone,ione,angmom_one[i]);
+	MathExtra::q_to_exyz(quatatom,exone,eyone,ezone);
+	MathExtra::omega_to_angmom(omega[ibody],exone,eyone,ezone,ione,
+				   angmom_one[i]);
       }
     }
   }

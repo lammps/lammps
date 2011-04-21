@@ -2092,7 +2092,8 @@ void FixSRD::parameterize()
   // big particle must either have radius > 0 or shape > 0 defined
   // apply radfactor at end
 
-  AtomVecEllipsoid::Bonus *ebonus = avec_ellipsoid->bonus;
+  AtomVecEllipsoid::Bonus *ebonus;
+  if (avec_ellipsoid) ebonus = avec_ellipsoid->bonus;
   double *radius = atom->radius;
   int *ellipsoid = atom->ellipsoid;
   int *mask = atom->mask;
@@ -2406,7 +2407,8 @@ void FixSRD::big_static()
   double rad,arad,brad,crad;
   double *shape;
 
-  AtomVecEllipsoid::Bonus *ebonus = avec_ellipsoid->bonus;
+  AtomVecEllipsoid::Bonus *ebonus;
+  if (avec_ellipsoid) ebonus = avec_ellipsoid->bonus;
   double *radius = atom->radius;
   int *ellipsoid = atom->ellipsoid;
   int *type = atom->type;
@@ -2449,7 +2451,8 @@ void FixSRD::big_dynamic()
   int i;
   double *shape,*quat;
 
-  AtomVecEllipsoid::Bonus *ebonus = avec_ellipsoid->bonus;
+  AtomVecEllipsoid::Bonus *ebonus;
+  if (avec_ellipsoid) ebonus = avec_ellipsoid->bonus;
   double **omega = atom->omega;
   double **angmom = atom->angmom;
   double *rmass = atom->rmass;

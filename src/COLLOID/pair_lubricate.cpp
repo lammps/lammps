@@ -385,15 +385,15 @@ void PairLubricate::init_style()
 
   int irequest = neighbor->request(this);
 
-  // require that atom radii are identical within each type require
-  // monodisperse system with same radii for all types
+  // require that atom radii are identical within each type
+  // require monodisperse system with same radii for all types
 
   double rad,radtype;
   for (int i = 1; i <= atom->ntypes; i++) {
     if (!atom->radius_consistency(i,radtype))
-      error->all("Pair colloid requires atoms with same type have same radius");
+      error->all("Pair lubricate requires monodisperse particles");
     if (i > 1 && radtype != rad)
-      error->all("Pair colloid requires mono-disperse particles");
+      error->all("Pair lubricate requires monodisperse particles");
     rad = radtype;
   }
 }

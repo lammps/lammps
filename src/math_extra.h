@@ -114,6 +114,8 @@ namespace MathExtra {
 
   void inertia_ellipsoid(double *shape, double *quat, double mass,
 			 double *inertia);
+  void inertia_line(double length, double theta, double mass,
+		    double *inertia);
   void inertia_triangle(double *v0, double *v1, double *v2, 
 			double mass, double *inertia);
 }

@@ -767,7 +767,7 @@ void AtomVecEllipsoid::unpack_border(int n, int first, double *buf)
     type[i] = static_cast<int> (buf[m++]);
     mask[i] = static_cast<int> (buf[m++]);
     ellipsoid[i] = static_cast<int> (buf[m++]);
-    if (ellipsoid[i] < 0) ellipsoid[i] = 0;
+    if (ellipsoid[i] == 0) ellipsoid[i] = -1;
     else {
       j = nlocal_bonus + nghost_bonus;
       if (j == nmax_bonus) grow_bonus();
@@ -805,9 +805,8 @@ void AtomVecEllipsoid::unpack_border_vel(int n, int first, double *buf)
     type[i] = static_cast<int> (buf[m++]);
     mask[i] = static_cast<int> (buf[m++]);
     ellipsoid[i] = static_cast<int> (buf[m++]);
-    if (ellipsoid[i] < 0) ellipsoid[i] = 0;
+    if (ellipsoid[i] == 0) ellipsoid[i] = -1;
     else {
-      j = nlocal_bonus + nghost_bonus;
       if (j == nmax_bonus) grow_bonus();
       shape = bonus[j].shape;
       quat = bonus[j].quat;
@@ -842,7 +841,7 @@ int AtomVecEllipsoid::unpack_border_hybrid(int n, int first, double *buf)
   last = first + n;
   for (i = first; i < last; i++) {
     ellipsoid[i] = static_cast<int> (buf[m++]);
-    if (ellipsoid[i] < 0) ellipsoid[i] = 0;
+    if (ellipsoid[i] == 0) ellipsoid[i] = -1;
     else {
       j = nlocal_bonus + nghost_bonus;
       if (j == nmax_bonus) grow_bonus();
@@ -933,7 +932,8 @@ int AtomVecEllipsoid::unpack_exchange(double *buf)
   angmom[nlocal][2] = buf[m++];
 
   ellipsoid[nlocal] = static_cast<int> (buf[m++]);
-  if (ellipsoid[nlocal]) {
+  if (ellipsoid[nlocal] == 0) ellipsoid[nlocal] = -1;
+  else {
     if (nlocal_bonus == nmax_bonus) grow_bonus();
     double *shape = bonus[nlocal_bonus].shape;
     double *quat = bonus[nlocal_bonus].quat;
@@ -1057,7 +1057,8 @@ int AtomVecEllipsoid::unpack_restart(double *buf)
   angmom[nlocal][2] = buf[m++];
 
   ellipsoid[nlocal] = static_cast<int> (buf[m++]);
-  if (ellipsoid[nlocal]) {
+  if (ellipsoid[nlocal] == 0) ellipsoid[nlocal] = -1;
+  else {
     if (nlocal_bonus == nmax_bonus) grow_bonus();
     double *shape = bonus[nlocal_bonus].shape;
     double *quat = bonus[nlocal_bonus].quat;

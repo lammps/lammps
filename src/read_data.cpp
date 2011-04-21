@@ -41,7 +41,7 @@ using namespace LAMMPS_NS;
 #define DELTA 4            // must be 2 or larger
 
                            // customize for new sections
-#define NSECTIONS 23       // change when add to header::section_keywords
+#define NSECTIONS 21       // change when add to header::section_keywords
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))

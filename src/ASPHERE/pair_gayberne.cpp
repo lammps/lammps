@@ -43,8 +43,7 @@ enum{SPHERE_SPHERE,SPHERE_ELLIPSE,ELLIPSE_SPHERE,ELLIPSE_ELLIPSE};
 PairGayBerne::PairGayBerne(LAMMPS *lmp) : Pair(lmp)
 {
   avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-  if (!avec) 
-    error->all("Pair gayberne requires atom style ellipsoid");
+  if (!avec) error->all("Pair gayberne requires atom style ellipsoid");
 
   single_enable = 0;
 }
@@ -545,7 +544,8 @@ double PairGayBerne::gayberne_analytic(const int i,const int j,double a1[3][3],
   double g12[3][3];
   MathExtra::plus3(g1,g2,g12);
   double kappa[3];
-  MathExtra::mldivide3(g12,r12,kappa,error);
+  int ierror = MathExtra::mldivide3(g12,r12,kappa);
+  if (ierror) error->all("Bad matrix inversion in mldivide3");
 
   // tempv = G12^-1*r12hat
 
@@ -575,7 +575,8 @@ double PairGayBerne::gayberne_analytic(const int i,const int j,double a1[3][3],
   double b12[3][3];
   double iota[3];
   MathExtra::plus3(b1,b2,b12);
-  MathExtra::mldivide3(b12,r12,iota,error);
+  ierror = MathExtra::mldivide3(b12,r12,iota);
+  if (ierror) error->all("Bad matrix inversion in mldivide3");
 
   // tempv = G12^-1*r12hat
 
@@ -619,18 +620,18 @@ double PairGayBerne::gayberne_analytic(const int i,const int j,double a1[3][3],
   tempv[0] = -uslj_rsq*kappa[0];
   tempv[1] = -uslj_rsq*kappa[1];
   tempv[2] = -uslj_rsq*kappa[2];
-  MathExtra::row_times3(kappa,g1,tempv2);
+  MathExtra::vecmat(kappa,g1,tempv2);
   MathExtra::cross3(tempv,tempv2,dUr);
   double dUr2[3];
 
   if (newton_pair || j < nlocal) {
-    MathExtra::row_times3(kappa,g2,tempv2);
+    MathExtra::vecmat(kappa,g2,tempv2);
     MathExtra::cross3(tempv,tempv2,dUr2);
   }
 
   // compute d_chi
 
-  MathExtra::row_times3(iota,b1,tempv);
+  MathExtra::vecmat(iota,b1,tempv);
   MathExtra::cross3(tempv,iota,dchi);
   temp1 = -4.0/rsq;
   dchi[0] *= temp1;
@@ -639,7 +640,7 @@ double PairGayBerne::gayberne_analytic(const int i,const int j,double a1[3][3],
   double dchi2[3];
 
   if (newton_pair || j < nlocal) {
-    MathExtra::row_times3(iota,b2,tempv);
+    MathExtra::vecmat(iota,b2,tempv);
     MathExtra::cross3(tempv,iota,dchi2);
     dchi2[0] *= temp1;
     dchi2[1] *= temp1;
@@ -724,7 +725,8 @@ double PairGayBerne::gayberne_lj(const int i,const int j,double a1[3][3],
   g12[0][2] = g1[0][2]; g12[2][0] = g1[2][0];
   g12[1][2] = g1[1][2]; g12[2][1] = g1[2][1];
   double kappa[3];
-  MathExtra::mldivide3(g12,r12,kappa,error);
+  int ierror = MathExtra::mldivide3(g12,r12,kappa);
+  if (ierror) error->all("Bad matrix inversion in mldivide3");
 
   // tempv = G12^-1*r12hat
 
@@ -759,7 +761,8 @@ double PairGayBerne::gayberne_lj(const int i,const int j,double a1[3][3],
   b12[0][1] = b1[0][1]; b12[1][0] = b1[1][0];
   b12[0][2] = b1[0][2]; b12[2][0] = b1[2][0];
   b12[1][2] = b1[1][2]; b12[2][1] = b1[2][1];
-  MathExtra::mldivide3(b12,r12,iota,error);
+  ierror = MathExtra::mldivide3(b12,r12,iota);
+  if (ierror) error->all("Bad matrix inversion in mldivide3");
 
   // tempv = G12^-1*r12hat
 
@@ -803,12 +806,12 @@ double PairGayBerne::gayberne_lj(const int i,const int j,double a1[3][3],
   tempv[0] = -uslj_rsq*kappa[0];
   tempv[1] = -uslj_rsq*kappa[1];
   tempv[2] = -uslj_rsq*kappa[2];
-  MathExtra::row_times3(kappa,g1,tempv2);
+  MathExtra::vecmat(kappa,g1,tempv2);
   MathExtra::cross3(tempv,tempv2,dUr);
 
   // compute d_chi
 
-  MathExtra::row_times3(iota,b1,tempv);
+  MathExtra::vecmat(iota,b1,tempv);
   MathExtra::cross3(tempv,iota,dchi);
   temp1 = -4.0/rsq;
   dchi[0] *= temp1;

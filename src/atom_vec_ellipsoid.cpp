@@ -186,7 +186,7 @@ void AtomVecEllipsoid::copy_bonus(int i, int j)
    this may create or delete entry in bonus data
 ------------------------------------------------------------------------- */
 
-void AtomVecEllipsoid::set_bonus(int i, 
+void AtomVecEllipsoid::set_shape(int i, 
 				 double shapex, double shapey, double shapez)
 {
   if (ellipsoid[i] < 0) {
@@ -1198,7 +1198,7 @@ void AtomVecEllipsoid::data_atom_bonus(int m, char **values)
   quat[1] = atof(values[4]);
   quat[2] = atof(values[5]);
   quat[3] = atof(values[6]);
-  MathExtra::normalize4(quat);
+  MathExtra::qnormalize(quat);
 
   // reset ellipsoid mass
   // previously stored density in rmass

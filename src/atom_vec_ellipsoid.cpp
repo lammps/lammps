@@ -125,7 +125,6 @@ void AtomVecEllipsoid::grow_bonus()
 
 /* ----------------------------------------------------------------------
    copy atom I info to atom J
-   if delflag and atom J has bonus data, then delete it
 ------------------------------------------------------------------------- */
 
 void AtomVecEllipsoid::copy(int i, int j, int delflag)
@@ -146,12 +145,17 @@ void AtomVecEllipsoid::copy(int i, int j, int delflag)
   angmom[j][1] = angmom[i][1];
   angmom[j][2] = angmom[i][2];
 
+  // if delflag and atom J has bonus data, then delete it
+
   if (delflag && ellipsoid[j] >= 0) {
     copy_bonus(nlocal_bonus-1,ellipsoid[j]);
     nlocal_bonus--;
   }
+
+  // if atom I has bonus data and not deleting I, repoint I's bonus to J
+
+  if (ellipsoid[i] >= 0 && i != j) bonus[ellipsoid[i]].ilocal = j;
   ellipsoid[j] = ellipsoid[i];
-  if (ellipsoid[j] >= 0) bonus[ellipsoid[j]].ilocal = j;
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)

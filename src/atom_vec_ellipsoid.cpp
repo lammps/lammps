@@ -169,20 +169,18 @@ void AtomVecEllipsoid::copy(int i, int j, int delflag)
 
 void AtomVecEllipsoid::copy_bonus(int i, int j)
 {
-  double *ishape = bonus[i].shape;
-  double *iquat = bonus[i].quat;
-  double *jshape = bonus[j].shape;
-  double *jquat = bonus[j].quat;
-  jshape[0] = ishape[0];
-  jshape[1] = ishape[1];
-  jshape[2] = ishape[2];
-  jquat[0] = iquat[0];
-  jquat[1] = iquat[1];
-  jquat[2] = iquat[2];
-  jquat[3] = iquat[3];
-  int m = bonus[i].ilocal;
-  bonus[j].ilocal = m;
-  ellipsoid[m] = j;
+  memcpy(&bonus[j],&bonus[i],sizeof(Bonus));
+  ellipsoid[bonus[j].ilocal] = j;
+}
+
+/* ----------------------------------------------------------------------
+   clear ghost info in bonus data
+   called before ghosts are recommunicated in comm and irregular
+------------------------------------------------------------------------- */
+
+void AtomVecEllipsoid::clear_bonus()
+{
+  nghost_bonus = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -219,20 +217,10 @@ void AtomVecEllipsoid::set_shape(int i,
   }
 }
 
-/* ----------------------------------------------------------------------
-   clear ghost info in bonus data
-   called before ghosts are recommunicated in comm and irregular
-------------------------------------------------------------------------- */
-
-void AtomVecEllipsoid::clear_bonus()
-{
-  nghost_bonus = 0;
-}
-
 /* ---------------------------------------------------------------------- */
 
 int AtomVecEllipsoid::pack_comm(int n, int *list, double *buf,
-			     int pbc_flag, int *pbc)
+				int pbc_flag, int *pbc)
 {
   int i,j,m;
   double dx,dy,dz;
@@ -894,13 +882,15 @@ int AtomVecEllipsoid::pack_exchange(int i, double *buf)
   else {
     buf[m++] = 1;
     int j = ellipsoid[i];
-    buf[m++] = bonus[j].shape[0];
-    buf[m++] = bonus[j].shape[1];
-    buf[m++] = bonus[j].shape[2];
-    buf[m++] = bonus[j].quat[0];
-    buf[m++] = bonus[j].quat[1];
-    buf[m++] = bonus[j].quat[2];
-    buf[m++] = bonus[j].quat[3];
+    double *shape = bonus[j].shape;
+    double *quat = bonus[j].quat;
+    buf[m++] = shape[0];
+    buf[m++] = shape[1];
+    buf[m++] = shape[2];
+    buf[m++] = quat[0];
+    buf[m++] = quat[1];
+    buf[m++] = quat[2];
+    buf[m++] = quat[3];
   }
   
   if (atom->nextra_grow)

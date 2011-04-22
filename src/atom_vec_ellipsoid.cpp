@@ -185,6 +185,7 @@ void AtomVecEllipsoid::clear_bonus()
 
 /* ----------------------------------------------------------------------
    set shape values in bonus data for particle I
+   oriented aligned with xyz axes
    this may create or delete entry in bonus data
 ------------------------------------------------------------------------- */
 

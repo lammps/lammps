@@ -1,5 +1,7 @@
 # Compute elastic constant tensor for a crystal
 #
+# Written by Aidan Thompson (Sandia, athomps@sandia.gov)
+#
 #  This script uses the following three include files.
 #
 #   init.mod      (must be modified for different crystal structures)

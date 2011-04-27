@@ -199,9 +199,6 @@ void ChargeGPUMemoryT::compute(const int f_ago, const int inum_full,
   ans->inum(inum);
   host_start=inum;
 
-  device->precompute(f_ago,nlocal,nall,host_x,host_type,success,host_q,
-                     boxlo, prd);
-
   if (ago==0) {
     reset_nbors(nall, inum, ilist, numj, firstneigh, success);
     if (!success)
@@ -213,6 +210,9 @@ void ChargeGPUMemoryT::compute(const int f_ago, const int inum_full,
   hd_balancer.start_timer();
   atom->add_x_data(host_x,host_type);
   atom->add_q_data();
+
+  device->precompute(f_ago,nlocal,nall,host_x,host_type,success,host_q,
+                     boxlo, prd);
 
   loop(eflag,vflag);
   ans->copy_answers(eflag,vflag,eatom,vatom,ilist);

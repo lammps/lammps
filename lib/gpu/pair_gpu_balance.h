@@ -196,7 +196,6 @@ void PairGPUBalanceT::balance(const double cpu_time) {
       else
         _actual_split=_max_split;
     }
-//std::cout << gpu_time << " " << max_gpu_time << " " << cpu_other_time << " " << cpu_time_per_atom << " " << cpu_time << " " << _desired_split << " " << host_inum << std::endl;
   }
   _avg_split+=_desired_split;
   _avg_count++;

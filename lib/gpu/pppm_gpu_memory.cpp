@@ -225,6 +225,7 @@ void PPPMGPUMemoryT::_precompute(const int ago, const int nlocal, const int nall
     return;
   }
   
+  double t=MPI_Wtime();
   ans->inum(nlocal);
 
   if (ago==0) {
@@ -288,9 +289,22 @@ void PPPMGPUMemoryT::_precompute(const int ago, const int nlocal, const int nall
 
   time_out.start();
   ucl_copy(h_brick,d_brick,_npts_yx*_npts_z,true);
-  ucl_copy(h_error_flag,d_error_flag,true);
+  ucl_copy(h_error_flag,d_error_flag,false);
   time_out.stop();
 
+  if (h_error_flag[0]==2) {
+    // Not enough storage for atoms on the brick
+    _max_brick_atoms*=2;
+    d_error_flag.zero();
+    d_brick_atoms.clear();
+    d_brick_atoms.alloc(_atom_stride*_max_brick_atoms,*ucl_device);
+    _max_bytes+=d_brick_atoms.row_bytes();
+    _precompute(ago,nlocal,nall,host_x,host_type,success,host_q,boxlo, 
+                delxinv,delyinv,delzinv);
+    return;
+  }
+
+  _cpu_idle_time+=MPI_Wtime()-t;
   _precompute_done=true;
 }
 
@@ -306,33 +320,15 @@ int PPPMGPUMemoryT::spread(const int ago, const int nlocal, const int nall,
   _precompute(ago,nlocal,nall,host_x,host_type,success,host_q,boxlo,delxinv,
               delyinv,delzinv);
 
-  device->stop_host_timer();
-  
   if (!success || nlocal==0)
     return 0;
-    
-  double t=MPI_Wtime();
-  time_out.sync_stop();
-  _cpu_idle_time+=MPI_Wtime()-t;
-
   _precompute_done=false;
 
-  if (h_error_flag[0]==2) {
-    // Not enough storage for atoms on the brick
-    _max_brick_atoms*=2;
-    d_error_flag.zero();
-    d_brick_atoms.clear();
-    d_brick_atoms.alloc(_atom_stride*_max_brick_atoms,*ucl_device);
-    _max_bytes+=d_brick_atoms.row_bytes();
-    return spread(ago,nlocal,nall,host_x,host_type,success,host_q,boxlo, 
-                  delxinv,delyinv,delzinv);
-  }
-  
   return h_error_flag[0];
 }
 
 // ---------------------------------------------------------------------------
-// Charge spreading stuff
+// Force interpolation
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp, class grdtyp, class grdtyp4>
 void PPPMGPUMemoryT::interp(const grdtyp qqrd2e_scale) {

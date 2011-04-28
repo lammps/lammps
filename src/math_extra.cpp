@@ -487,7 +487,7 @@ void inertia_line(double length, double theta, double mass, double *inertia)
 /* ----------------------------------------------------------------------
    compute space-frame inertia tensor of a triangle
    v0,v1,v2 = 3 vertices of triangle
-   from http://en.wikipedia.org/wiki/Inertia_tensor_of_triangle:
+   from http://en.wikipedia.org/wiki/Inertia_tensor_of_triangle
    inertia tensor = a/24 (v0^2 + v1^2 + v2^2 + (v0+v1+v2)^2) I - a Vt S V
    a = 2*area of tri = |(v1-v0) x (v2-v0)|
    I = 3x3 identity matrix
@@ -523,9 +523,7 @@ void inertia_triangle(double *v0, double *v1, double *v2,
   sub3(v2,v0,v2mv0);
   cross3(v1mv0,v2mv0,normal);
   double a = len3(normal);
-  double inv24 = 1.0/24.0;
-
-  // NOTE: use mass
+  double inv24 = mass/24.0;
 
   inertia[0] = inv24*a*(sum-vtsv[0][0]);
   inertia[1] = inv24*a*(sum-vtsv[1][1]);

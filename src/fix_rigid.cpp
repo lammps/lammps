@@ -648,8 +648,7 @@ void FixRigid::init()
 	sum[ibody][0] += 0.4 * massone * radius[i]*radius[i];
 	sum[ibody][1] += 0.4 * massone * radius[i]*radius[i];
 	sum[ibody][2] += 0.4 * massone * radius[i]*radius[i];
-      }
-      if (eflags[i] & INERTIA_ELLIPSOID) {
+      } else if (eflags[i] & INERTIA_ELLIPSOID) {
 	shape = ebonus[ellipsoid[i]].shape;
 	quatatom = ebonus[ellipsoid[i]].quat;
 	MathExtra::inertia_ellipsoid(shape,quatatom,massone,ivec);
@@ -665,11 +664,12 @@ void FixRigid::init()
   
   MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);
   
+  // diagonalize inertia tensor for each body via Jacobi rotations
   // inertia = 3 eigenvalues = principal moments of inertia
-  // ex_space,ey_space,ez_space = 3 eigenvectors = principal axes of rigid body
-  
+  // evectors and exzy_space = 3 evectors = principal axes of rigid body
+
   int ierror;
-  double ez0,ez1,ez2;
+  double cross[3];
   double tensor[3][3],evectors[3][3];
 
   for (ibody = 0; ibody < nbody; ibody++) {
@@ -686,11 +686,9 @@ void FixRigid::init()
     ex_space[ibody][0] = evectors[0][0];
     ex_space[ibody][1] = evectors[1][0];
     ex_space[ibody][2] = evectors[2][0];
-    
     ey_space[ibody][0] = evectors[0][1];
     ey_space[ibody][1] = evectors[1][1];
     ey_space[ibody][2] = evectors[2][1];
-    
     ez_space[ibody][0] = evectors[0][2];
     ez_space[ibody][1] = evectors[1][2];
     ez_space[ibody][2] = evectors[2][2];
@@ -706,21 +704,11 @@ void FixRigid::init()
     if (inertia[ibody][2] < EPSILON*max) inertia[ibody][2] = 0.0;
 
     // enforce 3 evectors as a right-handed coordinate system
-    // flip 3rd evector if needed
-  
-    ez0 = ex_space[ibody][1]*ey_space[ibody][2] -
-      ex_space[ibody][2]*ey_space[ibody][1];
-    ez1 = ex_space[ibody][2]*ey_space[ibody][0] -
-      ex_space[ibody][0]*ey_space[ibody][2];
-    ez2 = ex_space[ibody][0]*ey_space[ibody][1] -
-      ex_space[ibody][1]*ey_space[ibody][0];
-  
-    if (ez0*ez_space[ibody][0] + ez1*ez_space[ibody][1] + 
-	ez2*ez_space[ibody][2] < 0.0) {
-      ez_space[ibody][0] = -ez_space[ibody][0];
-      ez_space[ibody][1] = -ez_space[ibody][1];
-      ez_space[ibody][2] = -ez_space[ibody][2];
-    }
+    // flip 3rd vector if needed
+
+    MathExtra::cross3(ex_space[ibody],ey_space[ibody],cross);
+    if (MathExtra::dot3(cross,ez_space[ibody]) < 0.0)
+      MathExtra::negate3(ez_space[ibody]);
 
     // create initial quaternion
   
@@ -823,8 +811,7 @@ void FixRigid::init()
 	sum[ibody][0] += 0.4 * massone * radius[i]*radius[i];
 	sum[ibody][1] += 0.4 * massone * radius[i]*radius[i];
 	sum[ibody][2] += 0.4 * massone * radius[i]*radius[i];
-      }
-      if (eflags[i] & INERTIA_ELLIPSOID) {
+      } else if (eflags[i] & INERTIA_ELLIPSOID) {
 	shape = ebonus[ellipsoid[i]].shape;
 	MathExtra::inertia_ellipsoid(shape,qorient[i],massone,ivec);
 	sum[ibody][0] += ivec[0];

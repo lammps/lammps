@@ -100,20 +100,22 @@ class GB_GPU_Memory {
 
   /// Accumulate timers
   inline void acc_timers() {
-    if (nbor_time_avail) {
-      nbor->time_nbor.add_to_total();
-      nbor->time_kernel.add_to_total();
-      nbor_time_avail=false;
+    if (device->time_device()) {
+      if (nbor_time_avail) {
+        nbor->time_nbor.add_to_total();
+        nbor->time_kernel.add_to_total();
+        nbor_time_avail=false;
+      }
+      time_kernel.add_to_total();
+      time_gayberne.add_to_total();
+      if (multiple_forms) {
+        time_kernel2.add_to_total();
+        time_gayberne2.add_to_total();
+        time_pair.add_to_total();
+      }
+      atom->acc_timers();
+      ans->acc_timers();
     }
-    time_kernel.add_to_total();
-    time_gayberne.add_to_total();
-    if (multiple_forms) {
-      time_kernel2.add_to_total();
-      time_gayberne2.add_to_total();
-      time_pair.add_to_total();
-    }
-    atom->acc_timers();
-    ans->acc_timers();
   }
   
   /// Accumulate timers

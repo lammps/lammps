@@ -111,6 +111,11 @@ int PairGPUDeviceT::init_device(MPI_Comm world, MPI_Comm replica,
   _procs_per_gpu=static_cast<int>(ceil(static_cast<double>(procs_per_node)/
                                        (last_gpu-first_gpu+1)));
   int my_gpu=node_rank/_procs_per_gpu+first_gpu;
+
+  // Time on the device only if 1 proc per gpu
+  _time_device=true;
+  if (_procs_per_gpu>1)
+    _time_device=false;
   
   // Set up a per device communicator
   MPI_Comm_split(node_comm,my_gpu,0,&_comm_gpu);
@@ -342,13 +347,15 @@ void PairGPUDeviceT::estimate_gpu_overhead(const int kernel_calls,
     double time=over_timer.seconds();
     driver_time=MPI_Wtime()-driver_time;
      
-    for (int i=0; i<_data_in_estimate; i++)
-      timers_in[i].add_to_total();
-    for (int i=0; i<kernel_calls; i++)
-      timers_kernel[i].add_to_total();
-    for (int i=0; i<_data_out_estimate; i++)
-      timers_out[i].add_to_total();
-
+    if (time_device()) {
+      for (int i=0; i<_data_in_estimate; i++)
+        timers_in[i].add_to_total();
+      for (int i=0; i<kernel_calls; i++)
+        timers_kernel[i].add_to_total();
+      for (int i=0; i<_data_out_estimate; i++)
+        timers_out[i].add_to_total();
+    }
+    
     double mpi_time, mpi_driver_time;
     MPI_Allreduce(&time,&mpi_time,1,MPI_DOUBLE,MPI_MAX,gpu_comm());
     MPI_Allreduce(&driver_time,&mpi_driver_time,1,MPI_DOUBLE,MPI_MAX,gpu_comm());
@@ -403,14 +410,14 @@ void PairGPUDeviceT::output_times(UCL_Timer &time_pair,
   double max_mb=mpi_max_bytes/(1024.0*1024.0);
 
   if (replica_me()==0)
-    if (screen && times[3]>0.0) {
+    if (screen && times[5]>0.0) {
       fprintf(screen,"\n\n-------------------------------------");
       fprintf(screen,"--------------------------------\n");
       fprintf(screen,"      GPU Time Info (average): ");
       fprintf(screen,"\n-------------------------------------");
       fprintf(screen,"--------------------------------\n");
 
-      if (procs_per_gpu()==1) {
+      if (time_device()) {
         fprintf(screen,"Data Transfer:   %.4f s.\n",times[0]/_replica_size);
         fprintf(screen,"Data Cast/Pack:  %.4f s.\n",times[4]/_replica_size);
         fprintf(screen,"Neighbor copy:   %.4f s.\n",times[1]/_replica_size);
@@ -461,14 +468,14 @@ void PairGPUDeviceT::output_kspace_times(UCL_Timer &time_in,
   double max_mb=mpi_max_bytes/(1024.0*1024.0);
 
   if (replica_me()==0)
-    if (screen && times[3]>0.0) {
+    if (screen && times[6]>0.0) {
       fprintf(screen,"\n\n-------------------------------------");
       fprintf(screen,"--------------------------------\n");
       fprintf(screen,"      GPU Time Info (average): ");
       fprintf(screen,"\n-------------------------------------");
       fprintf(screen,"--------------------------------\n");
 
-      if (procs_per_gpu()==1) {
+      if (time_device()) {
         fprintf(screen,"Data Out:        %.4f s.\n",times[0]/_replica_size);
         fprintf(screen,"Data In:         %.4f s.\n",times[1]/_replica_size);
         fprintf(screen,"Kernel (map):    %.4f s.\n",times[2]/_replica_size);

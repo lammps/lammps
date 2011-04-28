@@ -199,6 +199,8 @@ class PairGPUDevice {
   inline double particle_split() const { return _particle_split; }
   /// Return the initialization count for the device
   inline int init_count() const { return _init_count; }
+  /// True if device is being timed
+  inline bool time_device() const { return _time_device; }
 
   /// Return the number of threads accessing memory simulatenously
   inline int num_mem_threads() const { return _num_mem_threads; }
@@ -272,7 +274,7 @@ class PairGPUDevice {
  private:
   std::queue<PairGPUAns<numtyp,acctyp> *> ans_queue;
   int _init_count;
-  bool _device_init, _host_timer_started;
+  bool _device_init, _host_timer_started, _time_device;
   MPI_Comm _comm_world, _comm_replica, _comm_gpu;
   int _procs_per_gpu, _gpu_rank, _world_me, _world_size, _replica_me, 
       _replica_size;

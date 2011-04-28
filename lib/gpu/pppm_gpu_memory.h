@@ -76,13 +76,14 @@ class PPPMGPUMemory {
 
   /// Accumulate timers
   inline void acc_timers() {
-    atom->acc_timers();
-    ans->acc_timers();
-    time_in.add_to_total();
-    time_out.add_to_total();
-    time_map.add_to_total();
-    time_rho.add_to_total();
-    time_interp.add_to_total();
+    if (device->time_device()) {
+      ans->acc_timers();
+      time_in.add_to_total();
+      time_out.add_to_total();
+      time_map.add_to_total();
+      time_rho.add_to_total();
+      time_interp.add_to_total();
+    }
   }
 
   /// Zero timers

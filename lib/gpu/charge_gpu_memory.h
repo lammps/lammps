@@ -96,14 +96,16 @@ class ChargeGPUMemory {
 
   /// Accumulate timers
   inline void acc_timers() {
-    if (nbor_time_avail) {
-      nbor->time_nbor.add_to_total();
-      nbor->time_kernel.add_to_total();
-      nbor_time_avail=false;
+    if (device->time_device()) {
+      if (nbor_time_avail) {
+        nbor->time_nbor.add_to_total();
+        nbor->time_kernel.add_to_total();
+        nbor_time_avail=false;
+      }
+      time_pair.add_to_total();
+      atom->acc_timers();
+      ans->acc_timers();
     }
-    time_pair.add_to_total();
-    atom->acc_timers();
-    ans->acc_timers();
   }
 
   /// Zero timers

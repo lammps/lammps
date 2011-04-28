@@ -216,9 +216,6 @@ void PPPMGPUMemoryT::_precompute(const int ago, const int nlocal, const int nall
                                  double *host_q, double *boxlo, 
                                  const double delxinv, const double delyinv,
                                  const double delzinv) {
-  if (_precompute_done)
-    return;
-
   acc_timers();
   if (nlocal==0) {
     zero_timers();
@@ -303,8 +300,11 @@ int PPPMGPUMemoryT::spread(const int ago, const int nlocal, const int nall,
                            double *host_q, double *boxlo, 
                            const double delxinv, const double delyinv,
                            const double delzinv) {
-  _precompute(ago,nlocal,nall,host_x,host_type,success,host_q,boxlo,delxinv,
-              delyinv,delzinv);
+  if (_precompute_done==false) {
+    atom->acc_timers();
+    _precompute(ago,nlocal,nall,host_x,host_type,success,host_q,boxlo,delxinv,
+                delyinv,delzinv);
+  }
 
   device->stop_host_timer();
   

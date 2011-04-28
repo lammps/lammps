@@ -428,8 +428,8 @@ void quat_to_mat_trans(const double *quat, double mat[3][3])
 
 /* ----------------------------------------------------------------------
    compute space-frame inertia tensor of an ellipsoid
-   quat = orientiation quaternion of ellipsoid
    radii = 3 radii of ellipsoid
+   quat = orientiation quaternion of ellipsoid
    return symmetric inertia tensor as 6-vector in Voigt notation
 ------------------------------------------------------------------------- */
 
@@ -446,6 +446,36 @@ void inertia_ellipsoid(double *radii, double *quat, double mass,
   idiag[2] = 0.2*mass * (radii[0]*radii[0] + radii[1]*radii[1]);
   diag_times3(idiag,ptrans,itemp);
   times3(p,itemp,tensor);
+  inertia[0] = tensor[0][0];
+  inertia[1] = tensor[1][1];
+  inertia[2] = tensor[2][2];
+  inertia[3] = tensor[1][2];
+  inertia[4] = tensor[0][2];
+  inertia[5] = tensor[0][1];
+}
+
+/* ----------------------------------------------------------------------
+   compute space-frame inertia tensor of a line segment in 2d
+   length = length of line
+   theta = orientiation of line
+   return symmetric inertia tensor as 6-vector in Voigt notation
+------------------------------------------------------------------------- */
+
+void inertia_line(double length, double theta, double mass, double *inertia)
+{
+  double p[3][3],ptrans[3][3],itemp[3][3],tensor[3][3];
+  double q[4],idiag[3];
+
+  q[0] = cos(0.5*theta);
+  q[1] = q[2] = 0.0;
+  q[3] = sin(0.5*theta);
+  MathExtra::quat_to_mat(q,p);
+  MathExtra::quat_to_mat_trans(q,ptrans);
+  idiag[0] = 0.0;
+  idiag[1] = 1.0/12.0 * mass * length*length;
+  idiag[2] = 1.0/12.0 * mass * length*length;
+  MathExtra::diag_times3(idiag,ptrans,itemp);
+  MathExtra::times3(p,itemp,tensor);
   inertia[0] = tensor[0][0];
   inertia[1] = tensor[1][1];
   inertia[2] = tensor[2][2];

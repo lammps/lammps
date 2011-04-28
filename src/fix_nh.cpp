@@ -19,6 +19,7 @@
 #include "stdlib.h"
 #include "math.h"
 #include "fix_nh.h"
+#include "math_extra.h"
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
@@ -31,7 +32,6 @@
 #include "domain.h"
 #include "memory.h"
 #include "error.h"
-#include "math_extra.h"
 
 using namespace LAMMPS_NS;
 

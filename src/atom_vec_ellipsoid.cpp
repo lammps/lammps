@@ -125,7 +125,6 @@ void AtomVecEllipsoid::grow_bonus()
 
 /* ----------------------------------------------------------------------
    copy atom I info to atom J
-   if delflag and atom J has bonus data, then delete it
 ------------------------------------------------------------------------- */
 
 void AtomVecEllipsoid::copy(int i, int j, int delflag)
@@ -146,12 +145,17 @@ void AtomVecEllipsoid::copy(int i, int j, int delflag)
   angmom[j][1] = angmom[i][1];
   angmom[j][2] = angmom[i][2];
 
+  // if delflag and atom J has bonus data, then delete it
+
   if (delflag && ellipsoid[j] >= 0) {
     copy_bonus(nlocal_bonus-1,ellipsoid[j]);
     nlocal_bonus--;
   }
+
+  // if atom I has bonus data and not deleting I, repoint I's bonus to J
+
+  if (ellipsoid[i] >= 0 && i != j) bonus[ellipsoid[i]].ilocal = j;
   ellipsoid[j] = ellipsoid[i];
-  if (ellipsoid[j] >= 0) bonus[ellipsoid[j]].ilocal = j;
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
@@ -165,24 +169,23 @@ void AtomVecEllipsoid::copy(int i, int j, int delflag)
 
 void AtomVecEllipsoid::copy_bonus(int i, int j)
 {
-  double *ishape = bonus[i].shape;
-  double *iquat = bonus[i].quat;
-  double *jshape = bonus[j].shape;
-  double *jquat = bonus[j].quat;
-  jshape[0] = ishape[0];
-  jshape[1] = ishape[1];
-  jshape[2] = ishape[2];
-  jquat[0] = iquat[0];
-  jquat[1] = iquat[1];
-  jquat[2] = iquat[2];
-  jquat[3] = iquat[3];
-  int m = bonus[i].ilocal;
-  bonus[j].ilocal = m;
-  ellipsoid[m] = j;
+  memcpy(&bonus[j],&bonus[i],sizeof(Bonus));
+  ellipsoid[bonus[j].ilocal] = j;
+}
+
+/* ----------------------------------------------------------------------
+   clear ghost info in bonus data
+   called before ghosts are recommunicated in comm and irregular
+------------------------------------------------------------------------- */
+
+void AtomVecEllipsoid::clear_bonus()
+{
+  nghost_bonus = 0;
 }
 
 /* ----------------------------------------------------------------------
    set shape values in bonus data for particle I
+   oriented aligned with xyz axes
    this may create or delete entry in bonus data
 ------------------------------------------------------------------------- */
 
@@ -215,20 +218,10 @@ void AtomVecEllipsoid::set_shape(int i,
   }
 }
 
-/* ----------------------------------------------------------------------
-   clear ghost info in bonus data
-   called before ghosts are recommunicated in comm and irregular
-------------------------------------------------------------------------- */
-
-void AtomVecEllipsoid::clear_bonus()
-{
-  nghost_bonus = 0;
-}
-
 /* ---------------------------------------------------------------------- */
 
 int AtomVecEllipsoid::pack_comm(int n, int *list, double *buf,
-			     int pbc_flag, int *pbc)
+				int pbc_flag, int *pbc)
 {
   int i,j,m;
   double dx,dy,dz;
@@ -767,7 +760,7 @@ void AtomVecEllipsoid::unpack_border(int n, int first, double *buf)
     type[i] = static_cast<int> (buf[m++]);
     mask[i] = static_cast<int> (buf[m++]);
     ellipsoid[i] = static_cast<int> (buf[m++]);
-    if (ellipsoid[i] < 0) ellipsoid[i] = 0;
+    if (ellipsoid[i] == 0) ellipsoid[i] = -1;
     else {
       j = nlocal_bonus + nghost_bonus;
       if (j == nmax_bonus) grow_bonus();
@@ -805,9 +798,8 @@ void AtomVecEllipsoid::unpack_border_vel(int n, int first, double *buf)
     type[i] = static_cast<int> (buf[m++]);
     mask[i] = static_cast<int> (buf[m++]);
     ellipsoid[i] = static_cast<int> (buf[m++]);
-    if (ellipsoid[i] < 0) ellipsoid[i] = 0;
+    if (ellipsoid[i] == 0) ellipsoid[i] = -1;
     else {
-      j = nlocal_bonus + nghost_bonus;
       if (j == nmax_bonus) grow_bonus();
       shape = bonus[j].shape;
       quat = bonus[j].quat;
@@ -842,7 +834,7 @@ int AtomVecEllipsoid::unpack_border_hybrid(int n, int first, double *buf)
   last = first + n;
   for (i = first; i < last; i++) {
     ellipsoid[i] = static_cast<int> (buf[m++]);
-    if (ellipsoid[i] < 0) ellipsoid[i] = 0;
+    if (ellipsoid[i] == 0) ellipsoid[i] = -1;
     else {
       j = nlocal_bonus + nghost_bonus;
       if (j == nmax_bonus) grow_bonus();
@@ -891,13 +883,15 @@ int AtomVecEllipsoid::pack_exchange(int i, double *buf)
   else {
     buf[m++] = 1;
     int j = ellipsoid[i];
-    buf[m++] = bonus[j].shape[0];
-    buf[m++] = bonus[j].shape[1];
-    buf[m++] = bonus[j].shape[2];
-    buf[m++] = bonus[j].quat[0];
-    buf[m++] = bonus[j].quat[1];
-    buf[m++] = bonus[j].quat[2];
-    buf[m++] = bonus[j].quat[3];
+    double *shape = bonus[j].shape;
+    double *quat = bonus[j].quat;
+    buf[m++] = shape[0];
+    buf[m++] = shape[1];
+    buf[m++] = shape[2];
+    buf[m++] = quat[0];
+    buf[m++] = quat[1];
+    buf[m++] = quat[2];
+    buf[m++] = quat[3];
   }
   
   if (atom->nextra_grow)
@@ -933,7 +927,8 @@ int AtomVecEllipsoid::unpack_exchange(double *buf)
   angmom[nlocal][2] = buf[m++];
 
   ellipsoid[nlocal] = static_cast<int> (buf[m++]);
-  if (ellipsoid[nlocal]) {
+  if (ellipsoid[nlocal] == 0) ellipsoid[nlocal] = -1;
+  else {
     if (nlocal_bonus == nmax_bonus) grow_bonus();
     double *shape = bonus[nlocal_bonus].shape;
     double *quat = bonus[nlocal_bonus].quat;
@@ -1057,7 +1052,8 @@ int AtomVecEllipsoid::unpack_restart(double *buf)
   angmom[nlocal][2] = buf[m++];
 
   ellipsoid[nlocal] = static_cast<int> (buf[m++]);
-  if (ellipsoid[nlocal]) {
+  if (ellipsoid[nlocal] == 0) ellipsoid[nlocal] = -1;
+  else {
     if (nlocal_bonus == nmax_bonus) grow_bonus();
     double *shape = bonus[nlocal_bonus].shape;
     double *quat = bonus[nlocal_bonus].quat;

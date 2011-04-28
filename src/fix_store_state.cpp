@@ -468,7 +468,7 @@ double FixStoreState::memory_usage()
 
 void FixStoreState::grow_arrays(int nmax)
 {
-  memory->grow(values,nmax,nvalues,"fix_store:values");
+ memory->grow(values,nmax,nvalues,"store/state:values");
   if (nvalues == 1) {
     if (nmax) vector_atom = &values[0][0];
     else vector_atom = NULL;

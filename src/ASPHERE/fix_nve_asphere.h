@@ -34,9 +34,6 @@ class FixNVEAsphere : public FixNVE {
  private:
   double dtq;
   class AtomVecEllipsoid *avec;
-
-  void richardson(double *, double *, double *);
-  void omega_from_mq(double *, double *, double *, double *);
 };
 
 }

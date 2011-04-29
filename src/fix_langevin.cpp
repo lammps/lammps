@@ -40,8 +40,8 @@ using namespace LAMMPS_NS;
 
 enum{NOBIAS,BIAS};
 
-#define SINERTIA 0.4          // moment of inertia for sphere
-#define EINERTIA 0.2          // moment of inertia for ellipsoid
+#define SINERTIA 0.4          // moment of inertia prefactor for sphere
+#define EINERTIA 0.2          // moment of inertia prefactor for ellipsoid
 
 /* ---------------------------------------------------------------------- */
 

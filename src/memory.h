@@ -45,7 +45,7 @@ class Memory : protected Pointers {
       bigint nbytes = sizeof(TYPE) * n;
       array = (TYPE *) smalloc(nbytes,name);
       return array;
-    };
+    }
 
   template <typename TYPE>
     TYPE **create(TYPE **&array, int n, const char *name) {fail(name);}
@@ -62,7 +62,7 @@ class Memory : protected Pointers {
       bigint nbytes = sizeof(TYPE) * n;
       array = (TYPE *) srealloc(array,nbytes,name);
       return array;
-    };
+    }
 
   template <typename TYPE>
     TYPE **grow(TYPE **&array, int n, const char *name) {fail(name);}
@@ -75,7 +75,7 @@ class Memory : protected Pointers {
     void destroy(TYPE *array) 
     {
       sfree(array);
-    };
+    }
 
 /* ----------------------------------------------------------------------
    create a 1d array with index from nlo to nhi inclusive 

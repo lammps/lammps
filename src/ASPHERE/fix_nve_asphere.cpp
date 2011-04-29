@@ -29,7 +29,7 @@
 
 using namespace LAMMPS_NS;
 
-#define INERTIA 0.2          // moment of inertia for ellipsoid
+#define INERTIA 0.2          // moment of inertia prefactor for ellipsoid
 
 /* ---------------------------------------------------------------------- */
 

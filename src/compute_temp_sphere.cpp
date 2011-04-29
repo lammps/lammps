@@ -28,7 +28,7 @@ using namespace LAMMPS_NS;
 
 enum{ROTATE,ALL};
 
-#define INERTIA 0.4          // moment of inertia for sphere
+#define INERTIA 0.4          // moment of inertia prefactor for sphere
 
 /* ---------------------------------------------------------------------- */
 

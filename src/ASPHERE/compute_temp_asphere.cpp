@@ -34,7 +34,7 @@ using namespace LAMMPS_NS;
 
 enum{ROTATE,ALL};
 
-#define INERTIA 0.2          // moment of inertia for ellipsoid
+#define INERTIA 0.2          // moment of inertia prefactor for ellipsoid
 
 /* ---------------------------------------------------------------------- */
 

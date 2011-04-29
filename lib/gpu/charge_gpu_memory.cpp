@@ -116,6 +116,7 @@ void ChargeGPUMemoryT::clear_atomic() {
   time_pair.clear();
   hd_balancer.clear();
 
+  ans->clear();
   device->clear();
 }
 

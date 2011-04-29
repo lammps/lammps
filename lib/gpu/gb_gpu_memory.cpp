@@ -318,7 +318,8 @@ void GB_GPU_MemoryT::clear() {
     delete gb_lj_program;
     _compiled=false;
   }
-
+ 
+  ans->clear();
   device->clear();
 }
 

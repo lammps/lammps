@@ -35,7 +35,9 @@ using namespace LAMMPS_NS;
 // same list as in compute_property.cpp, also customize that command
 
 enum{ID,MOL,TYPE,MASS,
-     X,Y,Z,XS,YS,ZS,XSTRI,YSTRI,ZSTRI,XU,YU,ZU,XUTRI,YUTRI,ZUTRI,IX,IY,IZ,
+     X,Y,Z,XS,YS,ZS,XSTRI,YSTRI,ZSTRI,XU,YU,ZU,XUTRI,YUTRI,ZUTRI,
+     XSU,YSU,ZSU,XSUTRI,YSUTRI,ZSUTRI,
+     IX,IY,IZ,
      VX,VY,VZ,FX,FY,FZ,
      Q,MUX,MUY,MUZ,MU,RADIUS,OMEGAX,OMEGAY,OMEGAZ,ANGMOMX,ANGMOMY,ANGMOMZ,
      TQX,TQY,TQZ,SPIN,ERADIUS,ERVEL,ERFORCE,
@@ -563,6 +565,70 @@ int DumpCustom::count()
 	ptr = dchoose;
 	nstride = 1;
 
+      } else if (thresh_array[ithresh] == XSU) {
+        double **x = atom->x;
+	int *image = atom->image;
+	double boxxlo = domain->boxlo[0];
+	double invxprd = 1.0/domain->xprd;
+	for (i = 0; i < nlocal; i++) 
+	  dchoose[i] = (x[i][0] - boxxlo) * invxprd + (image[i] & 1023) - 512;
+	ptr = dchoose;
+	nstride = 1;
+
+      } else if (thresh_array[ithresh] == YSU) {
+        double **x = atom->x;
+	int *image = atom->image;
+	double boxylo = domain->boxlo[1];
+	double invyprd = 1.0/domain->yprd;
+	for (i = 0; i < nlocal; i++) 
+	  dchoose[i] = (x[i][1] - boxylo) * invyprd + (image[i] >> 10 & 1023) - 512;
+	ptr = dchoose;
+	nstride = 1;
+
+      } else if (thresh_array[ithresh] == ZSU) {
+        double **x = atom->x;
+	int *image = atom->image;
+	double boxzlo = domain->boxlo[2];
+	double invzprd = 1.0/domain->zprd;
+	for (i = 0; i < nlocal; i++) 
+	  dchoose[i] = (x[i][2] - boxzlo) * invzprd + (image[i] >> 20) - 512;
+	ptr = dchoose;
+	nstride = 1;
+
+      } else if (thresh_array[ithresh] == XSUTRI) {
+        double **x = atom->x;
+	int *image = atom->image;
+	double *boxlo = domain->boxlo;
+	double *h_inv = domain->h_inv;
+	for (i = 0; i < nlocal; i++) 
+	  dchoose[i] = h_inv[0]*(x[i][0]-boxlo[0]) + 
+	    h_inv[5]*(x[i][1]-boxlo[1]) + 
+	    h_inv[4]*(x[i][2]-boxlo[2]) + 
+	    (image[i] & 1023) - 512;
+	ptr = dchoose;
+	nstride = 1;
+      } else if (thresh_array[ithresh] == YSUTRI) {
+        double **x = atom->x;
+	int *image = atom->image;
+	double *boxlo = domain->boxlo;
+	double *h_inv = domain->h_inv;
+	for (i = 0; i < nlocal; i++) 
+	  dchoose[i] = h_inv[1]*(x[i][1]-boxlo[1]) + 
+	    h_inv[3]*(x[i][2]-boxlo[2]) + 
+	    (image[i] >> 10 & 1023) - 512;
+	ptr = dchoose;
+	nstride = 1;
+      } else if (thresh_array[ithresh] == ZSUTRI) {
+        double **x = atom->x;
+	int *image = atom->image;
+	double *boxlo = domain->boxlo;
+	double *h_inv = domain->h_inv;
+	for (i = 0; i < nlocal; i++) 
+	  dchoose[i] = h_inv[2]*(x[i][2]-boxlo[2]) +
+	    (image[i] >> 20) - 512;
+	ptr = dchoose;
+	nstride = 1;
+
       } else if (thresh_array[ithresh] == IX) {
 	int *image = atom->image;
 	for (i = 0; i < nlocal; i++)
@@ -878,6 +944,18 @@ void DumpCustom::parse_fields(int narg, char **arg)
     } else if (strcmp(arg[iarg],"zu") == 0) {
       if (domain->triclinic) pack_choice[i] = &DumpCustom::pack_zu_triclinic;
       else pack_choice[i] = &DumpCustom::pack_zu;
+      vtype[i] = DOUBLE;
+    } else if (strcmp(arg[iarg],"xsu") == 0) {
+      if (domain->triclinic) pack_choice[i] = &DumpCustom::pack_xsu_triclinic;
+      else pack_choice[i] = &DumpCustom::pack_xsu;
+      vtype[i] = DOUBLE;
+    } else if (strcmp(arg[iarg],"ysu") == 0) {
+      if (domain->triclinic) pack_choice[i] = &DumpCustom::pack_ysu_triclinic;
+      else pack_choice[i] = &DumpCustom::pack_ysu;
+      vtype[i] = DOUBLE;
+    } else if (strcmp(arg[iarg],"zsu") == 0) {
+      if (domain->triclinic) pack_choice[i] = &DumpCustom::pack_zsu_triclinic;
+      else pack_choice[i] = &DumpCustom::pack_zsu;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"ix") == 0) {
       pack_choice[i] = &DumpCustom::pack_ix;
@@ -1253,6 +1331,19 @@ int DumpCustom::modify_param(int narg, char **arg)
       thresh_array[nthresh] = ZU;
     else if (strcmp(arg[1],"zu") == 0 && domain->triclinic == 1)
       thresh_array[nthresh] = ZUTRI;
+
+    else if (strcmp(arg[1],"xsu") == 0 && domain->triclinic == 0)
+      thresh_array[nthresh] = XSU;
+    else if (strcmp(arg[1],"xsu") == 0 && domain->triclinic == 1)
+      thresh_array[nthresh] = XSUTRI;
+    else if (strcmp(arg[1],"ysu") == 0 && domain->triclinic == 0)
+      thresh_array[nthresh] = YSU;
+    else if (strcmp(arg[1],"ysu") == 0 && domain->triclinic == 1)
+      thresh_array[nthresh] = YSUTRI;
+    else if (strcmp(arg[1],"zsu") == 0 && domain->triclinic == 0)
+      thresh_array[nthresh] = ZSU;
+    else if (strcmp(arg[1],"zsu") == 0 && domain->triclinic == 1)
+      thresh_array[nthresh] = ZSUTRI;
 
     else if (strcmp(arg[1],"ix") == 0) thresh_array[nthresh] = IX;
     else if (strcmp(arg[1],"iy") == 0) thresh_array[nthresh] = IY;
@@ -1815,6 +1906,120 @@ void DumpCustom::pack_zu_triclinic(int n)
     if (choose[i]) {
       zbox = (image[i] >> 20) - 512;
       buf[n] = x[i][2] + h[2]*zbox;
+      n += size_one;
+    }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_xsu(int n)
+{
+  double **x = atom->x;
+  int *image = atom->image;
+  int nlocal = atom->nlocal;
+
+  double boxxlo = domain->boxlo[0];
+  double invxprd = 1.0/domain->xprd;
+
+  for (int i = 0; i < nlocal; i++)
+    if (choose[i]) {
+      buf[n] = (x[i][0] - boxxlo) * invxprd + (image[i] & 1023) - 512;
+      n += size_one;
+    }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_ysu(int n)
+{
+  double **x = atom->x;
+  int *image = atom->image;
+  int nlocal = atom->nlocal;
+
+  double boxylo = domain->boxlo[1];
+  double invyprd = 1.0/domain->yprd;
+
+  for (int i = 0; i < nlocal; i++)
+    if (choose[i]) {
+      buf[n] = (x[i][1] - boxylo) * invyprd + (image[i] >> 10 & 1023) - 512;
+      n += size_one;
+    }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_zsu(int n)
+{
+  double **x = atom->x;
+  int *image = atom->image;
+  int nlocal = atom->nlocal;
+
+  double boxzlo = domain->boxlo[2];
+  double invzprd = 1.0/domain->zprd;
+
+  for (int i = 0; i < nlocal; i++)
+    if (choose[i]) {
+      buf[n] = (x[i][2] - boxzlo) * invzprd + (image[i] >> 20) - 512;
+      n += size_one;
+    }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_xsu_triclinic(int n)
+{
+  double **x = atom->x;
+  int *image = atom->image;
+  int nlocal = atom->nlocal;
+
+  double *boxlo = domain->boxlo;
+  double *h_inv = domain->h_inv;
+
+  for (int i = 0; i < nlocal; i++)
+    if (choose[i]) {
+      buf[n] = h_inv[0]*(x[i][0]-boxlo[0]) + 
+	h_inv[5]*(x[i][1]-boxlo[1]) + 
+	h_inv[4]*(x[i][2]-boxlo[2]) +
+	(image[i] & 1023) - 512;
+      n += size_one;
+    }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_ysu_triclinic(int n)
+{
+  double **x = atom->x;
+  int *image = atom->image;
+  int nlocal = atom->nlocal;
+
+  double *boxlo = domain->boxlo;
+  double *h_inv = domain->h_inv;
+
+  for (int i = 0; i < nlocal; i++)
+    if (choose[i]) {
+      buf[n] = h_inv[1]*(x[i][1]-boxlo[1]) + 
+	h_inv[3]*(x[i][2]-boxlo[2]) +
+	(image[i] >> 10 & 1023) - 512;
+      n += size_one;
+    }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_zsu_triclinic(int n)
+{
+  double **x = atom->x;
+  int *image = atom->image;
+  int nlocal = atom->nlocal;
+
+  double *boxlo = domain->boxlo;
+  double *h_inv = domain->h_inv;
+
+  for (int i = 0; i < nlocal; i++)
+    if (choose[i]) {
+      buf[n] = h_inv[2]*(x[i][2]-boxlo[2]) + 
+	(image[i] >> 20) - 512;
       n += size_one;
     }
 }

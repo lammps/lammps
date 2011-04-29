@@ -532,8 +532,8 @@ void FixRigid::init()
   }
 
   // grow extended arrays and set extended flags for each particle
-  // dorientflag = 1 if any particles store dipole orientation
-  // qorientflag = 1 if any particles store quat orientation
+  // qorientflag = 1 if any particle stores quat orientation
+  // dorientflag = 1 if any particle stores dipole orientation
 
   if (extended) {
     if (atom->mu_flag) dorientflag = 1;

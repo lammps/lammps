@@ -13,16 +13,29 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>compute ID group-ID temp/sphere bias-ID 
+<PRE>compute ID group-ID temp/sphere keyword value ... 
 </PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
-<LI>temp/sphere = style name of this compute command
-<LI>bias-ID = ID of a temperature compute that removes a velocity bias (optional) 
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command 
+
+<LI>temp/sphere = style name of this compute command 
+
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>bias</I> or <I>dof</I> 
+
+<PRE>  <I>bias</I> value = bias-ID<I>uniform</I> or <I>gaussian</I>
+    bias-ID = ID of a temperature compute that removes a velocity bias
+  <I>dof</I> value = <I>all</I> or <I>rotate</I>
+    all = compute temperature of translational and rotational degrees of freedom
+    rotate = compute temperature of just rotational degrees of freedom 
+</PRE>
+
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>compute 1 all temp/sphere
-compute myTemp mobile temp/sphere tempCOM 
+compute myTemp mobile temp/sphere bias tempCOM
+compute myTemp mobile temp/sphere dof rotate 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -66,15 +79,6 @@ the vector are ordered xx, yy, zz, xy, xz, yz.
 constant for the duration of the run; use the <I>dynamic</I> option of the
 <A HREF = "compute_modify.html">compute_modify</A> command if this is not the case.
 </P>
-<P>If a <I>bias-ID</I> is specified it must be the ID of a temperature compute
-that removes a "bias" velocity from each atom.  This allows compute
-temp/sphere to compute its thermal temperature after the translational
-kinetic energy components have been altered in a prescribed way,
-e.g. to remove a velocity profile.  Thermostats that use this compute
-will work with this bias term.  See the doc pages for individual
-computes that calculate a temperature and the doc pages for fixes that
-perform thermostatting for more details.
-</P>
 <P>This compute subtracts out translational degrees-of-freedom due to
 fixes that constrain molecular motion, such as <A HREF = "fix_shake.html">fix
 shake</A> and <A HREF = "fix_rigid.html">fix rigid</A>.  This means the
@@ -87,6 +91,26 @@ be altered using the <I>extra</I> option of the
 discussion of different ways to compute temperature and perform
 thermostatting.
 </P>
+<HR>
+
+<P>The keyword/value option pairs are used in the following ways.
+</P>
+<P>For the <I>bias</I> keyword, <I>bias-ID</I> refers to the ID of a temperature
+compute that removes a "bias" velocity from each atom.  This allows
+compute temp/sphere to compute its thermal temperature after the
+translational kinetic energy components have been altered in a
+prescribed way, e.g. to remove a velocity profile.  Thermostats that
+use this compute will work with this bias term.  See the doc pages for
+individual computes that calculate a temperature and the doc pages for
+fixes that perform thermostatting for more details.
+</P>
+<P>For the <I>dof</I> keyword, a setting of <I>all</I> calculates a temperature
+that includes both translational and rotational degrees of freedom.  A
+setting of <I>rotate</I> calculates a temperature that includes only
+rotational degrees of freedom.
+</P>
+<HR>
+
 <P><B>Output info:</B>
 </P>
 <P>This compute calculates a global scalar (the temperature) and a global
@@ -116,6 +140,8 @@ particles with radius = 0.0.
 <P><A HREF = "compute_temp.html">compute temp</A>, <A HREF = "compute_temp.html">compute
 temp/asphere</A>
 </P>
-<P><B>Default:</B> none
+<P><B>Default:</B>
+</P>
+<P>The option defaults are no bias and dof = all.
 </P>
 </HTML>

@@ -24,8 +24,12 @@ bodystyle = {single} or {molecule} or {group} :l
     groupID1, groupID2, ... = list of N group IDs :pre
 
 zero or more keyword/value pairs may be appended :l
-keyword = {temp} or {press} or {tparam} or {pparam} or {force} or {torque} :l
-  {temp} values = Tstart Tstop Tperiod
+keyword = {langevin} or {temp} or {tparam} or {force} or {torque} :l
+  {langevin} values = Tstart Tstop Tperiod seed
+    Tstart,Tstop = desired temperature at start/stop of run (temperature units)
+    Tdamp = temperature damping parameter (time units)
+    seed = random number seed to use for white noise (positive integer)
+  {temp} values = Tstart Tstop Tdamp
     Tstart,Tstop = desired temperature at start/stop of run (temperature units)
     Tdamp = temperature damping parameter (time units)
   {tparam} values = Tchain Titer Torder
@@ -43,7 +47,7 @@ keyword = {temp} or {press} or {tparam} or {pparam} or {force} or {torque} :l
 [Examples:]
 
 fix 1 clump rigid single
-fix 1 clump rigid single force 1 off off on
+fix 1 clump rigid single force 1 off off on langevin 1.0 1.0 1.0 428984
 fix 1 polychains rigid/nvt molecule temp 1.0 1.0 5.0
 fix 1 polychains rigid molecule force 1*5 off off off force 6*10 off off on
 fix 2 fluid rigid group 3 clump1 clump2 clump3 torque * off off off :pre
@@ -189,19 +193,35 @@ multiple rigid fixes to be defined, but it is more expensive.
 
 :line
 
-As stated above, the {rigid} and {rigid/nve} styles perform constant
-NVE time integration.  Thus the {temp}, {press}, and {tparam} keywords
-cannot be used with these styles.
+The keyword/value option pairs are used in the following ways.
 
-The {rigid/nvt} style performs constant NVT time integration, using a
-temperature it computes for the rigid bodies which includes their
-translational and rotational motion.  The {temp} keyword must be used
-with this style.  The desired temperature at each timestep is a ramped
-value during the run from {Tstart} to {Tstop}.  The {Tdamp} parameter
-is specified in time units and determines how rapidly the temperature
-is relaxed.  For example, a value of 100.0 means to relax the
-temperature in a timespan of (roughly) 100 time units (tau or fmsec or
-psec - see the "units"_units.html command).
+The {langevin} and {temp} and {tparam} keywords perform thermostatting
+of the rigid bodies, altering both their translational and rotational
+degrees of freedom.  What is meant by "temperature" of a collection of
+rigid bodies and how it can be monitored via the fix output is
+discussed below.
+
+The {langevin} keyword applies a Langevin thermostat to the constant
+NVE time integration performed by either the {rigid} or {rigid/nve}
+styles.  It cannot be used with the {rigid/nvt} style.  The desired
+temperature at each timestep is a ramped value during the run from
+{Tstart} to {Tstop}.  The {Tdamp} parameter is specified in time units
+and determines how rapidly the temperature is relaxed.  For example, a
+value of 100.0 means to relax the temperature in a timespan of
+(roughly) 100 time units (tau or fmsec or psec - see the
+"units"_units.html command).  The random # {seed} must be a positive
+integer.  The way the Langevin thermostatting operates is explained on
+the "fix langevin"_fix_langevin.html doc page.
+
+The {temp} and {tparam} keywords apply a Nose/Hoover thermostat to the
+NVT time integration performed by the {rigid/nvt} style.  They cannot
+be used with the {rigid} or {rigid/nve} styles.  The desired
+temperature at each timestep is a ramped value during the run from
+{Tstart} to {Tstop}.  The {Tdamp} parameter is specified in time units
+and determines how rapidly the temperature is relaxed.  For example, a
+value of 100.0 means to relax the temperature in a timespan of
+(roughly) 100 time units (tau or fmsec or psec - see the
+"units"_units.html command).
 
 Nose/Hoover chains are used in conjunction with this thermostat.  The
 {tparam} keyword can optionally be used to change the chain settings
@@ -211,17 +231,21 @@ oscillations in temperature that can occur in a simulation.  As a rule
 of thumb, increasing the chain length should lead to smaller
 oscillations.
 
-There are alternate ways to thermostat a system of rigid bodies.  You
-can use "fix langevin"_fix_langevin.html to treat the system as
-effectively immersed in an implicit solvent, e.g. a Brownian dynamics
-model.  For hybrid systems with both rigid bodies and solvent
-particles, you can thermostat only the solvent particles that surround
-one or more rigid bodies by appropriate choice of groups in the
-compute and fix commands for temperature and thermostatting.  The
-solvent interactions with the rigid bodies should then effectively
-thermostat the rigid body temperature as well.
+IMPORTANT NOTE: There are alternate ways to thermostat a system of
+rigid bodies.  You can use "fix langevin"_fix_langevin.html to treat
+the individual particles in the rigid bodies as effectively immersed
+in an implicit solvent, e.g. a Brownian dynamics model.  For hybrid
+systems with both rigid bodies and solvent particles, you can
+thermostat only the solvent particles that surround one or more rigid
+bodies by appropriate choice of groups in the compute and fix commands
+for temperature and thermostatting.  The solvent interactions with the
+rigid bodies should then effectively thermostat the rigid body
+temperature as well without use of the Langevin or Nose/Hoover options
+associated with the fix rigid commands.
 
 :line
+
+The keyword/value option pairs are used in the following ways.
 
 If you use a "temperature compute"_compute.html with a group that
 includes particles in rigid bodies, the degrees-of-freedom removed by
@@ -277,6 +301,18 @@ The "fix_modify"_fix_modify.html {energy} option is supported by the
 rigid/nvt fix to add the energy change induced by the thermostatting
 to the system's potential energy as part of "thermodynamic
 output"_thermo_style.html.
+
+The rigid and rigid/nve fixes computes a global scalar which can be
+accessed by various "output commands"_Section_howto.html#4_15.  The
+scalar value calculated by these fixes is "intensive".  The scalar is
+the current temperature of the collection of rigid bodies.  This is
+averaged over all rigid bodies and their translational and rotational
+degrees of freedom.  The translational energy of a rigid body is 1/2 m
+v^2, where m = total mass of the body and v = the velocity of its
+center of mass.  The rotational energy of a rigid body is 1/2 I w^2,
+where I = the moment of inertia tensor of the body and w = its angular
+velocity.  Degrees of freedom constrained by the {force} and {torque}
+keywords are removed from this calculation.
 
 The rigid/nvt fix computes a global scalar which can be accessed by
 various "output commands"_Section_howto.html#4_15.  The scalar value

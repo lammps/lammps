@@ -31,6 +31,7 @@ namespace MathExtra {
   inline void normalize3(const double *v, double *ans);
   inline void snormalize3(const double, const double *v, double *ans);
   inline void negate3(double *v);
+  inline void scale3(double s, double *v);
   inline void add3(const double *v1, const double *v2, double *ans);
   inline void sub3(const double *v1, const double *v2, double *ans);
   inline double len3(const double *v);
@@ -119,6 +120,8 @@ namespace MathExtra {
 		    double *inertia);
   void inertia_triangle(double *v0, double *v1, double *v2, 
 			double mass, double *inertia);
+  void inertia_triangle(double *idiag, double *quat, double mass, 
+			double *inertia); 
 }
 
 /* ----------------------------------------------------------------------
@@ -166,6 +169,17 @@ void MathExtra::negate3(double *v)
   v[0] = -v[0];
   v[1] = -v[1];
   v[2] = -v[2];
+}
+
+/* ----------------------------------------------------------------------
+   scale vector v by s
+------------------------------------------------------------------------- */
+
+void MathExtra::scale3(double s, double *v)
+{
+  v[0] *= s;
+  v[1] *= s;
+  v[2] *= s;
 }
 
 /* ----------------------------------------------------------------------

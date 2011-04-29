@@ -177,7 +177,7 @@ void rotate(double matrix[3][3], int i, int j, int k, int l,
 /* ----------------------------------------------------------------------
    Richardson iteration to update quaternion from angular momentum
    return new normalized quaternion q
-   also returns
+   also returns updated omega at 1/2 step
 ------------------------------------------------------------------------- */
 
 void richardson(double *q, double *m, double *w, double *moments, double dtq)
@@ -506,9 +506,9 @@ void inertia_triangle(double *v0, double *v1, double *v2,
   double v[3][3],sv[3][3],vtsv[3][3];
   double vvv[3],v1mv0[3],v2mv0[3],normal[3];
 
-  v[0][0] = v0[0]; v[0][1] = v0[2]; v[0][2] = v0[3];
-  v[1][0] = v1[0]; v[1][1] = v1[2]; v[1][2] = v1[3];
-  v[2][0] = v2[0]; v[2][1] = v2[2]; v[2][2] = v2[3];
+  v[0][0] = v0[0]; v[0][1] = v0[1]; v[0][2] = v0[2];
+  v[1][0] = v1[0]; v[1][1] = v1[1]; v[1][2] = v1[2];
+  v[2][0] = v2[0]; v[2][1] = v2[1]; v[2][2] = v2[2];
 
   times3(s,v,sv);
   transpose_times3(v,sv,vtsv);
@@ -531,6 +531,30 @@ void inertia_triangle(double *v0, double *v1, double *v2,
   inertia[3] = -inv24*a*vtsv[1][2];
   inertia[4] = -inv24*a*vtsv[0][2];
   inertia[5] = -inv24*a*vtsv[0][1];
+}
+
+/* ----------------------------------------------------------------------
+   compute space-frame inertia tensor of a triangle
+   idiag = previously computed diagonal inertia tensor
+   quat = orientiation quaternion of triangle
+   return symmetric inertia tensor as 6-vector in Voigt notation
+------------------------------------------------------------------------- */
+
+void inertia_triangle(double *idiag, double *quat, double mass,
+		      double *inertia)
+{
+  double p[3][3],ptrans[3][3],itemp[3][3],tensor[3][3];
+
+  quat_to_mat(quat,p);
+  quat_to_mat_trans(quat,ptrans);
+  diag_times3(idiag,ptrans,itemp);
+  times3(p,itemp,tensor);
+  inertia[0] = tensor[0][0];
+  inertia[1] = tensor[1][1];
+  inertia[2] = tensor[2][2];
+  inertia[3] = tensor[1][2];
+  inertia[4] = tensor[0][2];
+  inertia[5] = tensor[0][1];
 }
 
 /* ---------------------------------------------------------------------- */

@@ -782,7 +782,9 @@ one-letter abbreviation can be used:
 -in or -i
 -log or -l
 -screen or -s
--var or -v :ul
+-var or -v
+-plog or -pl
+-pscreen or -ps :ul
 
 For example, lmp_ibm might be launched as follows:
 
@@ -846,6 +848,7 @@ logfile is named "file" and each partition also logs information to a
 file.N.  For both one-partition and multi-partition mode, if the
 specified file is "none", then no log files are created.  Using a
 "log"_log.html command in the input script will override this setting.
+Option -plog will override the name of the partition log files file.N.
 
 -screen file :pre
 
@@ -859,7 +862,8 @@ the partition ID.  If the switch is specified in multi-partition mode,
 the hi-level screen dump is named "file" and each partition also
 writes screen information to a file.N.  For both one-partition and
 multi-partition mode, if the specified file is "none", then no screen
-output is performed.
+output is performed. Option -pscreen will override the name of the 
+partition screen files file.N.
 
 -var name value1 value2 ... :pre
 
@@ -877,6 +881,27 @@ re-defined.  See the "variable"_variable.html command for more info on
 defining index and other kinds of variables and "this
 section"_Section_commands.html#3_2 for more info on using variables in
 input scripts.
+
+-plog file:pre 
+Specify the base name for the partition log files, 
+so partition N writes log information to file.N. If file is 
+none, then no partition log files are created. 
+This overrides the
+filename specified in the -log command-line option
+If this option is not used
+the log file for partition N is log.lammps.N or whatever is specified by
+the -log command-line option.
+
+-pscreen file:pre 
+specify the base name for the 
+partition screen file, so partition N writes 
+screen information to file.N. If file is 
+none, then no partition screen files are created. 
+This overrides the
+filename specified in the -screen command-line option.
+If this option is not used
+the screen file for partition N is screen.N or whatever is specified by
+the -screen command-line option. 
 
 :line
 

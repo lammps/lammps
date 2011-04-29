@@ -223,16 +223,20 @@ void FixRigidNVE::final_integrate()
 
   MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);
   
+  // update vcm and angmom
+  // include Langevin thermostat forces
+  // fflag,tflag = 0 for some dimensions in 2d
+
   double mbody[3],tbody[3],fquat[4];
   double dtf2 = dtf * 2.0;
-  
+
   for (ibody = 0; ibody < nbody; ibody++) {
-    fcm[ibody][0] = all[ibody][0];
-    fcm[ibody][1] = all[ibody][1];
-    fcm[ibody][2] = all[ibody][2];
-    torque[ibody][0] = all[ibody][3];
-    torque[ibody][1] = all[ibody][4];
-    torque[ibody][2] = all[ibody][5];
+    fcm[ibody][0] = all[ibody][0] + langextra[ibody][0];
+    fcm[ibody][1] = all[ibody][1] + langextra[ibody][1];
+    fcm[ibody][2] = all[ibody][2] + langextra[ibody][2];
+    torque[ibody][0] = all[ibody][3] + langextra[ibody][3];
+    torque[ibody][1] = all[ibody][4] + langextra[ibody][4];
+    torque[ibody][2] = all[ibody][5] + langextra[ibody][5];
 
     // update vcm by 1/2 step
   

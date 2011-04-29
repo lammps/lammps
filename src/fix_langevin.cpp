@@ -82,7 +82,19 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
 
   int iarg = 7;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"scale") == 0) {
+    if (strcmp(arg[iarg],"angmom") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix langevin command");
+      if (strcmp(arg[iarg+1],"no") == 0) aflag = 0;
+      else if (strcmp(arg[iarg+1],"yes") == 0) aflag = 1;
+      else error->all("Illegal fix langevin command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"omega") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix langevin command");
+      if (strcmp(arg[iarg+1],"no") == 0) oflag = 0;
+      else if (strcmp(arg[iarg+1],"yes") == 0) oflag = 1;
+      else error->all("Illegal fix langevin command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"scale") == 0) {
       if (iarg+3 > narg) error->all("Illegal fix langevin command");
       int itype = atoi(arg[iarg+1]);
       double scale = atof(arg[iarg+2]);
@@ -100,18 +112,6 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg) error->all("Illegal fix langevin command");
       if (strcmp(arg[iarg+1],"no") == 0) zeroflag = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) zeroflag = 1;
-      else error->all("Illegal fix langevin command");
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"omega") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix langevin command");
-      if (strcmp(arg[iarg+1],"no") == 0) oflag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) oflag = 1;
-      else error->all("Illegal fix langevin command");
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"angmom") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix langevin command");
-      if (strcmp(arg[iarg+1],"no") == 0) aflag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) aflag = 1;
       else error->all("Illegal fix langevin command");
       iarg += 2;
     } else error->all("Illegal fix langevin command");

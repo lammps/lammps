@@ -32,9 +32,11 @@ class FixRigid : public Fix {
   virtual void init();
   virtual void setup(int);
   virtual void initial_integrate(int);
+  void post_force(int);
   virtual void final_integrate();
   void initial_integrate_respa(int, int, int);
   void final_integrate_respa(int, int);
+  virtual double compute_scalar();
 
   double memory_usage();
   void grow_arrays(int);
@@ -50,6 +52,7 @@ class FixRigid : public Fix {
   double compute_array(int, int);
 
  protected:
+  int me,nprocs;
   double dtv,dtf,dtq;
   double *step_respa;
   int triclinic;
@@ -70,6 +73,7 @@ class FixRigid : public Fix {
   int *imagebody;           // image flags of xcm of each rigid body
   double **fflag;           // flag for on/off of center-of-mass force
   double **tflag;           // flag for on/off of center-of-mass torque
+  double **langextra;       // Langevin thermostat forces and torques
 
   int *body;                // which body each atom is part of (-1 if none)
   double **displace;        // displacement of each atom in body coords
@@ -85,6 +89,9 @@ class FixRigid : public Fix {
   double **qorient;         // rotation state of ext particle wrt rigid body
   double **dorient;         // orientation of dipole mu wrt rigid body
 
+  double tfactor;           // scale factor on temperature of rigid bodies
+  int langflag;             // 0/1 = no/yes Langevin thermostat
+
   int tempflag;             // NVT settings
   double t_start,t_stop;
   double t_period,t_freq;
@@ -95,6 +102,7 @@ class FixRigid : public Fix {
   double p_period,p_freq;
   int p_chain;
 
+  class RanMars *random;
   class AtomVecEllipsoid *avec_ellipsoid;
 
                             // bitmasks for eflags

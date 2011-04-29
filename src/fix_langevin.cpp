@@ -20,7 +20,9 @@
 #include "string.h"
 #include "stdlib.h"
 #include "fix_langevin.h"
+#include "math_extra.h"
 #include "atom.h"
+#include "atom_vec_ellipsoid.h"
 #include "force.h"
 #include "update.h"
 #include "modify.h"
@@ -37,6 +39,9 @@
 using namespace LAMMPS_NS;
 
 enum{NOBIAS,BIAS};
+
+#define SINERTIA 0.4          // moment of inertia for sphere
+#define EINERTIA 0.2          // moment of inertia for ellipsoid
 
 /* ---------------------------------------------------------------------- */
 
@@ -71,6 +76,7 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
   // optional args
 
   for (int i = 1; i <= atom->ntypes; i++) ratio[i] = 1.0;
+  oflag = aflag = 0;
   tally = 0;
   zeroflag = 0;
 
@@ -96,7 +102,27 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[iarg+1],"yes") == 0) zeroflag = 1;
       else error->all("Illegal fix langevin command");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"omega") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix langevin command");
+      if (strcmp(arg[iarg+1],"no") == 0) oflag = 0;
+      else if (strcmp(arg[iarg+1],"yes") == 0) oflag = 1;
+      else error->all("Illegal fix langevin command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"angmom") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix langevin command");
+      if (strcmp(arg[iarg+1],"no") == 0) aflag = 0;
+      else if (strcmp(arg[iarg+1],"yes") == 0) aflag = 1;
+      else error->all("Illegal fix langevin command");
+      iarg += 2;
     } else error->all("Illegal fix langevin command");
+  }
+
+  // error check
+
+  if (aflag) {
+    avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
+    if (!avec) 
+      error->all("Fix langevin angmom requires atom style ellipsoid");
   }
 
   // set temperature = NULL, user can override via fix_modify if wants bias
@@ -140,6 +166,35 @@ int FixLangevin::setmask()
 
 void FixLangevin::init()
 {
+  if (oflag && !atom->sphere_flag)
+    error->all("Fix langevin omega require atom style sphere");
+  if (aflag && !atom->ellipsoid_flag)
+    error->all("Fix langevin angmom require atom style ellipsoid");
+
+  // if oflag or aflag set, check that all group particles are finite-size
+
+  if (oflag) {
+    double *radius = atom->radius;
+    int *mask = atom->mask;
+    int nlocal = atom->nlocal;
+
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit)
+	if (radius[i] == 0.0)
+	  error->one("Fix langevin omega requires extended particles");
+  }
+
+  if (aflag) {
+    int *ellipsoid = atom->ellipsoid;
+    int *mask = atom->mask;
+    int nlocal = atom->nlocal;
+
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit)
+	if (ellipsoid[i] < 0)
+	  error->one("Fix langevin angmom requires extended particles");
+  }
+
   // set force prefactors
 
   if (!atom->rmass) {
@@ -219,6 +274,11 @@ void FixLangevin::post_force_no_tally()
   double fran[3],fsum[3],fsumall[3];
   fsum[0] = fsum[1] = fsum[2] = 0.0;
   bigint count;
+
+  double boltz = force->boltz;
+  double dt = update->dt;
+  double mvv2e = force->mvv2e;
+  double ftm2v = force->ftm2v;
   
   if (zeroflag) {
     count = group->count(igroup);
@@ -227,11 +287,6 @@ void FixLangevin::post_force_no_tally()
   }
   
   if (rmass) {
-    double boltz = force->boltz;
-    double dt = update->dt;
-    double mvv2e = force->mvv2e;
-    double ftm2v = force->ftm2v;
-
     if (which == NOBIAS) {
       for (int i = 0; i < nlocal; i++) {
 	if (mask[i] & groupbit) {
@@ -280,7 +335,6 @@ void FixLangevin::post_force_no_tally()
   } else {
     
     if (which == NOBIAS) {
-
       for (int i = 0; i < nlocal; i++) {
 	if (mask[i] & groupbit) {
 	  gamma1 = gfactor1[type[i]];
@@ -295,7 +349,6 @@ void FixLangevin::post_force_no_tally()
 	  fsum[1] += fran[1];
 	  fsum[2] += fran[2];
 	}
-
       }
 
     } else if (which == BIAS) {
@@ -338,6 +391,11 @@ void FixLangevin::post_force_no_tally()
       }
     }
   }
+
+  // thermostat omega and angmom
+
+  if (oflag) omega_thermostat(tsqrt);
+  if (aflag) angmom_thermostat(tsqrt);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -373,12 +431,12 @@ void FixLangevin::post_force_tally()
   //   test v = 0 since some computes mask non-participating atoms via v = 0
   //   and added force has extra term not multiplied by v = 0
 
-  if (rmass) {
-    double boltz = force->boltz;
-    double dt = update->dt;
-    double mvv2e = force->mvv2e;
-    double ftm2v = force->ftm2v;
+  double boltz = force->boltz;
+  double dt = update->dt;
+  double mvv2e = force->mvv2e;
+  double ftm2v = force->ftm2v;
 
+  if (rmass) {
     if (which == NOBIAS) {
       for (int i = 0; i < nlocal; i++) {
 	if (mask[i] & groupbit) {
@@ -452,6 +510,100 @@ void FixLangevin::post_force_tally()
 	  temperature->restore_bias(i,v[i]);
 	}
       }
+    }
+  }
+
+  // thermostat omega and angmom
+
+  if (oflag) omega_thermostat(tsqrt);
+  if (aflag) angmom_thermostat(tsqrt);
+}
+
+/* ----------------------------------------------------------------------
+   thermostat rotational dof via omega
+------------------------------------------------------------------------- */
+
+void FixLangevin::omega_thermostat(double tsqrt)
+{
+  double gamma1,gamma2;
+
+  double boltz = force->boltz;
+  double dt = update->dt;
+  double mvv2e = force->mvv2e;
+  double ftm2v = force->ftm2v;
+
+  double **torque = atom->torque;
+  double **omega = atom->omega;
+  double *radius = atom->radius;
+  double *rmass = atom->rmass;
+  int *mask = atom->mask;
+  int *type = atom->type;
+  int nlocal = atom->nlocal;
+
+  double tran[3];
+  double inertiaone;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) {
+      inertiaone = SINERTIA*radius[i]*radius[i]*rmass[i];
+      gamma1 = -inertiaone / t_period / ftm2v;
+      gamma2 = sqrt(inertiaone) * sqrt(24.0*boltz/t_period/dt/mvv2e) / ftm2v;
+      gamma1 *= 1.0/ratio[type[i]];
+      gamma2 *= 1.0/sqrt(ratio[type[i]]) * tsqrt;
+      tran[0] = gamma2*(random->uniform()-0.5);
+      tran[1] = gamma2*(random->uniform()-0.5);
+      tran[2] = gamma2*(random->uniform()-0.5);
+      torque[i][0] += gamma1*omega[i][0] + tran[0];
+      torque[i][1] += gamma1*omega[i][1] + tran[1];
+      torque[i][2] += gamma1*omega[i][2] + tran[2];
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   thermostat rotational dof via angmom
+------------------------------------------------------------------------- */
+
+void FixLangevin::angmom_thermostat(double tsqrt)
+{
+  double gamma1,gamma2;
+
+  double boltz = force->boltz;
+  double dt = update->dt;
+  double mvv2e = force->mvv2e;
+  double ftm2v = force->ftm2v;
+
+  AtomVecEllipsoid::Bonus *bonus = avec->bonus;
+  double **torque = atom->torque;
+  double **angmom = atom->angmom;
+  double *rmass = atom->rmass;
+  int *ellipsoid = atom->ellipsoid;
+  int *mask = atom->mask;
+  int *type = atom->type;
+  int nlocal = atom->nlocal;
+
+  double inertia[3],wbody[3],omega[3],tran[3],rot[3][3];
+  double *shape,*quat;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) {
+      shape = bonus[ellipsoid[i]].shape;
+      inertia[0] = EINERTIA*rmass[i] * (shape[1]*shape[1]+shape[2]*shape[2]);
+      inertia[1] = EINERTIA*rmass[i] * (shape[0]*shape[0]+shape[2]*shape[2]);
+      inertia[2] = EINERTIA*rmass[i] * (shape[0]*shape[0]+shape[1]*shape[1]);
+      quat = bonus[ellipsoid[i]].quat;
+      MathExtra::mq_to_omega(angmom[i],quat,inertia,omega);
+      
+      gamma1 = -1.0 / t_period / ftm2v;
+      gamma2 = sqrt(24.0*boltz/t_period/dt/mvv2e) / ftm2v;
+      gamma1 *= 1.0/ratio[type[i]];
+      gamma2 *= 1.0/sqrt(ratio[type[i]]) * tsqrt;
+      tran[0] = sqrt(inertia[0])*gamma2*(random->uniform()-0.5);
+      tran[1] = sqrt(inertia[1])*gamma2*(random->uniform()-0.5);
+      tran[2] = sqrt(inertia[2])*gamma2*(random->uniform()-0.5);
+      torque[i][0] += inertia[0]*gamma1*omega[0] + tran[0];
+      torque[i][1] += inertia[1]*gamma1*omega[1] + tran[1];
+      torque[i][2] += inertia[2]*gamma1*omega[2] + tran[2];
     }
   }
 }

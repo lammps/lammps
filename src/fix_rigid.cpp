@@ -25,6 +25,7 @@
 #include "modify.h"
 #include "group.h"
 #include "comm.h"
+#include "random_mars.h"
 #include "force.h"
 #include "output.h"
 #include "memory.h"
@@ -45,10 +46,15 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 {
   int i,ibody;
 
+  scalar_flag = 1;
+  extscalar = 0;
   time_integrate = 1;
   rigid_flag = 1;
   virial_flag = 1;
   create_attribute = 1;
+
+  MPI_Comm_rank(world,&me);
+  MPI_Comm_size(world,&nprocs);
 
   // perform initial allocation of atom-based arrays
   // register with Atom class
@@ -193,12 +199,14 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   memory->create(imagebody,nbody,"rigid:imagebody");
   memory->create(fflag,nbody,3,"rigid:fflag");
   memory->create(tflag,nbody,3,"rigid:tflag");
+  memory->create(langextra,nbody,6,"rigid:langextra");
 
   memory->create(sum,nbody,6,"rigid:sum");
   memory->create(all,nbody,6,"rigid:all");
   memory->create(remapflag,nbody,4,"rigid:remapflag");
 
   // initialize force/torque flags to default = 1.0
+  // for 2d: fz, tx, ty = 0.0
 
   array_flag = 1;
   size_array_rows = nbody;
@@ -209,10 +217,13 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   for (i = 0; i < nbody; i++) {
     fflag[i][0] = fflag[i][1] = fflag[i][2] = 1.0;
     tflag[i][0] = tflag[i][1] = tflag[i][2] = 1.0;
+    if (domain->dimension == 2) fflag[i][2] = tflag[i][0] = tflag[i][1] = 0.0;
   }
 
   // parse optional args
 
+  int seed;
+  langflag = 0;
   tempflag = 0;
   pressflag = 0;
   t_chain = 10;
@@ -237,6 +248,9 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
       if (strcmp(arg[iarg+4],"off") == 0) zflag = 0.0;
       else if (strcmp(arg[iarg+4],"on") == 0) zflag = 1.0;
       else error->all("Illegal fix rigid command");
+
+      if (domain->dimension == 2 && zflag == 1.0)
+	error->all("Fix rigid z force cannot be on for 2d simulation");
 
       int count = 0;
       for (int m = mlo; m <= mhi; m++) {
@@ -266,6 +280,9 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[iarg+4],"on") == 0) zflag = 1.0;
       else error->all("Illegal fix rigid command");
 
+      if (domain->dimension == 2 && (xflag == 1.0 || yflag == 1.0))
+	  error->all("Fix rigid xy torque cannot be on for 2d simulation");
+
       int count = 0;
       for (int m = mlo; m <= mhi; m++) {
 	tflag[m-1][0] = xflag;
@@ -277,10 +294,24 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 
       iarg += 5;
 
+    } else if (strcmp(arg[iarg],"langevin") == 0) {
+      if (iarg+5 > narg) error->all("Illegal fix rigid command");
+      if (strcmp(style,"rigid") != 0 && strcmp(style,"rigid/nve") != 0)
+	error->all("Illegal fix rigid command");
+      langflag = 1;
+      t_start = atof(arg[iarg+1]);
+      t_stop = atof(arg[iarg+2]);
+      t_period = atof(arg[iarg+3]);
+      seed = atoi(arg[iarg+4]);
+      if (t_period <= 0.0) 
+	error->all("Fix rigid langevin period must be > 0.0");
+      if (seed <= 0) error->all("Illegal fix rigid command");
+      iarg += 5;
+
     } else if (strcmp(arg[iarg],"temp") == 0) {
       if (iarg+4 > narg) error->all("Illegal fix rigid command");
       if (strcmp(style,"rigid/nvt") != 0 && strcmp(style,"rigid/npt") != 0)
-	error->all("Illegal fix/rigid command");
+	error->all("Illegal fix rigid command");
       tempflag = 1;
       t_start = atof(arg[iarg+1]);
       t_stop = atof(arg[iarg+2]);
@@ -290,7 +321,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"press") == 0) {
       if (iarg+4 > narg) error->all("Illegal fix rigid command");
       if (strcmp(style,"rigid/npt") != 0)
-	error->all("Illegal fix/rigid command");
+	error->all("Illegal fix rigid command");
       pressflag = 1;
       p_start = atof(arg[iarg+1]);
       p_stop = atof(arg[iarg+2]);
@@ -300,7 +331,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"tparam") == 0) {
       if (iarg+4 > narg) error->all("Illegal fix rigid command");
       if (strcmp(style,"rigid/nvt") != 0)
-	error->all("Illegal fix/rigid command");
+	error->all("Illegal fix rigid command");
       t_chain = atoi(arg[iarg+1]);
       t_iter = atoi(arg[iarg+2]);
       t_order = atoi(arg[iarg+3]);
@@ -309,12 +340,17 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"pparam") == 0) {
       if (iarg+2 > narg) error->all("Illegal fix rigid command");
       if (strcmp(style,"rigid/npt") != 0)
-	error->all("Illegal fix/rigid command");
+	error->all("Illegal fix rigid command");
       p_chain = atoi(arg[iarg+1]);
       iarg += 2;
 
     } else error->all("Illegal fix rigid command");
   }
+
+  // initialize Marsaglia RNG with processor-unique seed
+
+  if (langflag) random = new RanMars(lmp,seed + me);
+  else random = NULL;
 
   // initialize vector output quantities in case accessed before run
 
@@ -369,7 +405,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   int nsum = 0;
   for (ibody = 0; ibody < nbody; ibody++) nsum += nrigid[ibody];
   
-  if (comm->me == 0) {
+  if (me == 0) {
     if (screen) fprintf(screen,"%d rigid bodies with %d atoms\n",nbody,nsum);
     if (logfile) fprintf(logfile,"%d rigid bodies with %d atoms\n",nbody,nsum);
   }
@@ -383,6 +419,8 @@ FixRigid::~FixRigid()
 
   atom->delete_callback(id,0);
   
+  delete random;
+
   // delete locally stored arrays
   
   memory->destroy(body);
@@ -409,6 +447,7 @@ FixRigid::~FixRigid()
   memory->destroy(imagebody);
   memory->destroy(fflag);
   memory->destroy(tflag);
+  memory->destroy(langextra);
 
   memory->destroy(sum);
   memory->destroy(all);
@@ -422,6 +461,7 @@ int FixRigid::setmask()
   int mask = 0;
   mask |= INITIAL_INTEGRATE;
   mask |= FINAL_INTEGRATE;
+  if (langflag) mask |= POST_FORCE;
   mask |= PRE_NEIGHBOR;
   mask |= INITIAL_INTEGRATE_RESPA;
   mask |= FINAL_INTEGRATE_RESPA;
@@ -441,7 +481,7 @@ void FixRigid::init()
   int count = 0;
   for (int i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"rigid") == 0) count++;
-  if (count > 1 && comm->me == 0) error->warning("More than one fix rigid");
+  if (count > 1 && me == 0) error->warning("More than one fix rigid");
 
   // error if npt,nph fix comes before rigid fix
 
@@ -855,6 +895,15 @@ void FixRigid::init()
 	fabs(all[ibody][5]/norm) > TOLERANCE)
       error->all("Fix rigid: Bad principal moments");
   }
+
+  // temperature scale factor
+
+  double ndof = 0.0;
+  for (ibody = 0; ibody < nbody; ibody++) {
+    ndof += fflag[ibody][0] + fflag[ibody][1] + fflag[ibody][2];
+    ndof += tflag[ibody][0] + tflag[ibody][1] + tflag[ibody][2];
+  }
+  tfactor = force->mvv2e / (ndof * force->boltz);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -998,6 +1047,13 @@ void FixRigid::setup(int vflag)
     torque[ibody][2] = all[ibody][5];
   }
 
+  // zero langextra in case Langevin thermostat not used
+  // no point to calling post_force() here since langextra
+  //   is only added to fcm/torque in final_integrate()
+
+  for (ibody = 0; ibody < nbody; ibody++)
+    for (i = 0; i < 6; i++) langextra[ibody][i] = 0.0;
+
   // virial setup before call to set_v
 
   if (vflag) v_setup(vflag);
@@ -1070,6 +1126,50 @@ void FixRigid::initial_integrate(int vflag)
   // from quarternion and omega
   
   set_xv();
+}
+
+/* ----------------------------------------------------------------------
+   apply Langevin thermostat to all 6 DOF of rigid bodies
+   computed by proc 0, broadcast to other procs
+   unlike fix langevin, this stores extra force in extra arrays,
+     which are added in when final_integrate() calculates a new fcm/torque
+------------------------------------------------------------------------- */
+
+void FixRigid::post_force(int vflag)
+{
+  if (me == 0) {
+    double gamma1,gamma2;
+
+    double delta = update->ntimestep - update->beginstep;
+    delta /= update->endstep - update->beginstep;
+    double t_target = t_start + delta * (t_stop-t_start);
+    double tsqrt = sqrt(t_target);
+
+    double boltz = force->boltz;
+    double dt = update->dt;
+    double mvv2e = force->mvv2e;
+    double ftm2v = force->ftm2v;
+    
+    for (int i = 0; i < nbody; i++) {
+      gamma1 = -masstotal[i] / t_period / ftm2v;
+      gamma2 = sqrt(masstotal[i]) * tsqrt * 
+	sqrt(24.0*boltz/t_period/dt/mvv2e) / ftm2v;
+      langextra[i][0] = gamma1*vcm[i][0] + gamma2*(random->uniform()-0.5);
+      langextra[i][1] = gamma1*vcm[i][1] + gamma2*(random->uniform()-0.5);
+      langextra[i][2] = gamma1*vcm[i][2] + gamma2*(random->uniform()-0.5);
+
+      gamma1 = -1.0 / t_period / ftm2v;
+      gamma2 = tsqrt * sqrt(24.0*boltz/t_period/dt/mvv2e) / ftm2v;
+      langextra[i][3] = inertia[i][0]*gamma1*omega[i][0] + 
+	sqrt(inertia[i][0])*gamma2*(random->uniform()-0.5);
+      langextra[i][4] = inertia[i][1]*gamma1*omega[i][1] + 
+	sqrt(inertia[i][1])*gamma2*(random->uniform()-0.5);
+      langextra[i][5] = inertia[i][2]*gamma1*omega[i][2] + 
+	sqrt(inertia[i][2])*gamma2*(random->uniform()-0.5);
+    }
+  }
+
+  MPI_Bcast(&langextra[0][0],6*nbody,MPI_DOUBLE,0,world);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1150,13 +1250,17 @@ void FixRigid::final_integrate()
 
   MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);
   
+  // update vcm and angmom
+  // include Langevin thermostat forces
+  // fflag,tflag = 0 for some dimensions in 2d
+
   for (ibody = 0; ibody < nbody; ibody++) {
-    fcm[ibody][0] = all[ibody][0];
-    fcm[ibody][1] = all[ibody][1];
-    fcm[ibody][2] = all[ibody][2];
-    torque[ibody][0] = all[ibody][3];
-    torque[ibody][1] = all[ibody][4];
-    torque[ibody][2] = all[ibody][5];
+    fcm[ibody][0] = all[ibody][0] + langextra[ibody][0];
+    fcm[ibody][1] = all[ibody][1] + langextra[ibody][1];
+    fcm[ibody][2] = all[ibody][2] + langextra[ibody][2];
+    torque[ibody][0] = all[ibody][3] + langextra[ibody][3];
+    torque[ibody][1] = all[ibody][4] + langextra[ibody][4];
+    torque[ibody][2] = all[ibody][5] + langextra[ibody][5];
 
     // update vcm by 1/2 step
   
@@ -1360,7 +1464,7 @@ int FixRigid::dof(int igroup)
     if (nall[ibody]+mall[ibody] > 0 && 
 	nall[ibody]+mall[ibody] != nrigid[ibody]) flag = 1;
   }
-  if (flag && comm->me == 0)
+  if (flag && me == 0)
     error->warning("Computing temperature of portions of rigid bodies");
 
   // remove appropriate DOFs for each rigid body wholly in temperature group
@@ -1832,6 +1936,42 @@ void FixRigid::reset_dt()
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
   dtq = 0.5 * update->dt;
+}
+
+/* ----------------------------------------------------------------------
+   return temperature of collection of rigid bodies
+   non-active DOF are removed by fflag/tflag and in tfactor
+------------------------------------------------------------------------- */
+
+double FixRigid::compute_scalar()
+{
+  double wbody[3],rot[3][3];
+
+  double t = 0.0;
+
+  for (int i = 0; i < nbody; i++) {
+    t += masstotal[i] * (fflag[i][0]*vcm[i][0]*vcm[i][0] + 
+    			 fflag[i][1]*vcm[i][1]*vcm[i][1] +	\
+    			 fflag[i][2]*vcm[i][2]*vcm[i][2]);
+    
+    // wbody = angular velocity in body frame
+      
+    MathExtra::quat_to_mat(quat[i],rot);
+    MathExtra::transpose_matvec(rot,angmom[i],wbody);
+    if (inertia[i][0] == 0.0) wbody[0] = 0.0;
+    else wbody[0] /= inertia[i][0];
+    if (inertia[i][1] == 0.0) wbody[1] = 0.0;
+    else wbody[1] /= inertia[i][1];
+    if (inertia[i][2] == 0.0) wbody[2] = 0.0;
+    else wbody[2] /= inertia[i][2];
+    
+    t += tflag[i][0]*inertia[i][0]*wbody[0]*wbody[0] +
+      tflag[i][1]*inertia[i][1]*wbody[1]*wbody[1] + 
+      tflag[i][2]*inertia[i][2]*wbody[2]*wbody[2];
+  }
+
+  t *= tfactor;
+  return t;
 }
 
 /* ----------------------------------------------------------------------

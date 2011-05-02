@@ -1860,7 +1860,8 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 	}
       }
 
-  } else if (strcmp(style,"lj/expand") == 0) {
+  } else if ((strcmp(style,"lj/expand") == 0) ||
+	     (strcmp(style,"lj/expand/gpu") == 0)) {
 
     double cut_global = read_double(fp);
     int offset_flag = read_int(fp);
@@ -1981,6 +1982,7 @@ void pair(FILE *fp, Data &data, char *style, int flag)
   } else if (strcmp(style,"meam") == 0) {
 
   } else if ((strcmp(style,"morse") == 0) ||
+	     (strcmp(style,"morse/gpu") == 0) ||
 	     (strcmp(style,"morse/opt") == 0)) {
 
     double cut_global = read_double(fp);
@@ -2837,7 +2839,8 @@ void Data::write(FILE *fp, FILE *fp2)
 	fprintf(fp,"%d %g %g\n",i,
 		pair_lj_epsilon[i],pair_lj_sigma[i]);
 
-    } else if (strcmp(pair_style,"lj/expand") == 0) {
+    } else if ((strcmp(pair_style,"lj/expand") == 0) ||
+	       (strcmp(pair_style,"lj/expand/gpu")==0)) {
       for (int i = 1; i <= ntypes; i++)
 	fprintf(fp,"%d %g %g %g\n",i,
 		pair_ljexpand_epsilon[i],pair_ljexpand_sigma[i],
@@ -2855,6 +2858,7 @@ void Data::write(FILE *fp, FILE *fp2)
 		pair_ljsmooth_epsilon[i],pair_ljsmooth_sigma[i]);
 
     } else if ((strcmp(pair_style,"morse") == 0) ||
+	       (strcmp(pair_style,"morse/gpu") == 0) ||
 	       (strcmp(pair_style,"morse/opt") == 0)) {
       for (int i = 1; i <= ntypes; i++)
 	fprintf(fp,"%d %g %g %g\n",i,

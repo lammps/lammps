@@ -60,7 +60,7 @@ JPG_LIB =
 # SYSLIB = names of libraries
 # SYSPATH = paths of libraries
 
-gpu_SYSLIB =       -lcudart
+gpu_SYSLIB =       -lcudart -lcuda
 meam_SYSLIB =      -lgfortran
 reax_SYSLIB =      -lgfortran
 user-atc_SYSLIB =  -lblas -llapack

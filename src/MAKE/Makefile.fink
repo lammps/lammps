@@ -57,7 +57,7 @@ JPG_LIB =
 # SYSLIB = names of libraries
 # SYSPATH = paths of libraries
 
-gpu_SYSLIB =       -lcudart
+gpu_SYSLIB =       -lcudart -lcuda
 meam_SYSLIB =      -lifcore -lsvml -lompstub -limf
 reax_SYSLIB =      -lifcore -lsvml -lompstub -limf
 user-atc_SYSLIB =  -lblas -llapack

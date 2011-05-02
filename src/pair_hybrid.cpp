@@ -199,7 +199,6 @@ void PairHybrid::settings(int narg, char **arg)
   // exception is 1st arg of style "table", which is non-numeric word
   // exception is 1st two args of style "lj/coul", which are non-numeric
   // exception is 1st two args of style "buck/coul", which are non-numeric
-  // exception is 1st arg of any "gpu" style, which is non-numeric
   // exception is 1st arg of reax/c style, which is non-numeric
   // need a better way to skip these exceptions
 
@@ -209,7 +208,6 @@ void PairHybrid::settings(int narg, char **arg)
     if (strcmp(arg[i],"table") == 0) i++;
     if (strcmp(arg[i],"lj/coul") == 0) i += 2;
     if (strcmp(arg[i],"buck/coul") == 0) i += 2;
-    if (strstr(arg[i],"gpu")) i++;
     if (strcmp(arg[i],"reax/c") == 0) i++;
     i++;
     while (i < narg && !isalpha(arg[i][0])) i++;
@@ -226,7 +224,6 @@ void PairHybrid::settings(int narg, char **arg)
   // exception is 1st arg of style "table", which is non-numeric
   // exception is 1st two args of style "lj/coul", which are non-numeric
   // exception is 1st two args of style "buck/coul", which are non-numeric
-  // exception is 1st arg of any "gpu" style, which is non-numeric
   // exception is 1st arg of reax/c style, which is non-numeric
   // need a better way to skip these exceptions
 
@@ -247,7 +244,6 @@ void PairHybrid::settings(int narg, char **arg)
     if (strcmp(arg[i],"table") == 0) i++;
     if (strcmp(arg[i],"lj/coul") == 0) i += 2;
     if (strcmp(arg[i],"buck/coul") == 0) i += 2;
-    if (strstr(arg[i],"gpu")) i++;
     if (strcmp(arg[i],"reax/c") == 0) i++;
     i++;
     while (i < narg && !isalpha(arg[i][0])) i++;

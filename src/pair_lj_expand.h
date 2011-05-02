@@ -38,7 +38,7 @@ class PairLJExpand : public Pair {
   void read_restart_settings(FILE *);
   double single(int, int, int, int, double, double, double, double &);
 
- private:
+ protected:
   double cut_global;
   double **cut;
   double **epsilon,**sigma,**shift;

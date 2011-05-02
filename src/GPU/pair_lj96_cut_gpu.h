@@ -28,8 +28,7 @@ class PairLJ96CutGPU : public PairLJ96Cut {
  public:
   PairLJ96CutGPU(LAMMPS *lmp);
   ~PairLJ96CutGPU();
-  void cpu_compute(int, int, int);
-  void cpu_compute(int *, int, int, int);
+  void cpu_compute(int, int, int, int, int *, int *, int **);
   void compute(int, int);
   void init_style();
   double memory_usage();

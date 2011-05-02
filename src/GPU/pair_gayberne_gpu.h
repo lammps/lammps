@@ -29,8 +29,7 @@ class PairGayBerneGPU : public PairGayBerne {
  public:
   PairGayBerneGPU(LAMMPS *lmp);
   ~PairGayBerneGPU();
-  void cpu_compute(int, int, int);
-  void cpu_compute(int *, int, int, int);
+  void cpu_compute(int, int, int, int, int *, int *, int **);
   void compute(int, int);
   void init_style();
   double memory_usage();
@@ -42,6 +41,8 @@ class PairGayBerneGPU : public PairGayBerne {
   int gpu_mode;
   double cpu_time;
   int *gpulist;
+  int quat_nmax;
+  double **quat;
 };
 
 }

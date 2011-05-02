@@ -28,8 +28,7 @@ class PairLJCutCoulLongGPU : public PairLJCutCoulLong {
  public:
   PairLJCutCoulLongGPU(LAMMPS *lmp);
   ~PairLJCutCoulLongGPU();
-  void cpu_compute(int, int, int);
-  void cpu_compute(int *, int, int, int);
+  void cpu_compute(int, int, int, int, int *, int *, int **);
   void compute(int, int);
   void init_style();
   double memory_usage();

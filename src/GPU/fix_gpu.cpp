@@ -24,15 +24,16 @@
 #include "modify.h"
 #include "domain.h"
 #include "universe.h"
+#include "gpu_extra.h"
 
 using namespace LAMMPS_NS;
 
 enum{GPU_FORCE, GPU_NEIGH};
 
-extern bool lmp_init_device(MPI_Comm world, MPI_Comm replica,
-                            const int first_gpu, const int last_gpu,
-                            const int gpu_mode, const double particle_split,
-                            const int nthreads);
+extern int lmp_init_device(MPI_Comm world, MPI_Comm replica,
+                           const int first_gpu, const int last_gpu,
+                           const int gpu_mode, const double particle_split,
+                           const int nthreads, const int t_per_atom);
 extern void lmp_clear_device();
 extern double lmp_gpu_forces(double **f, double **tor, double *eatom,
                              double **vatom, double *virial, double &ecoul);
@@ -42,18 +43,17 @@ extern double lmp_gpu_forces(double **f, double **tor, double *eatom,
 FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg != 7) error->all("Illegal fix gpu command");
+  if (narg < 7) error->all("Illegal fix gpu command");
 
   if (strcmp(arg[1],"all") != 0)
     error->all("Illegal fix gpu command");
 
-  int gpu_mode, first_gpu, last_gpu;
-  double particle_split;
+  int first_gpu, last_gpu;
 
   if (strcmp(arg[3],"force") == 0)
-    gpu_mode = GPU_FORCE;
+    _gpu_mode = GPU_FORCE;
   else if (strcmp(arg[3],"force/neigh") == 0) {
-    gpu_mode = GPU_NEIGH;
+    _gpu_mode = GPU_NEIGH;
     if (domain->triclinic)
       error->all("Cannot use force/neigh with triclinic box.");
   } else
@@ -62,13 +62,24 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   first_gpu = atoi(arg[4]);
   last_gpu = atoi(arg[5]);
 
-  particle_split = force->numeric(arg[6]);
-  if (particle_split==0 || particle_split>1)
+  _particle_split = force->numeric(arg[6]);
+  if (_particle_split==0 || _particle_split>1)
     error->all("Illegal fix gpu command.");
     
-  if (!lmp_init_device(universe->uworld,world,first_gpu,last_gpu,gpu_mode,
-                       particle_split,1))
-    error->one("Could not find or initialize a specified accelerator device.");
+  int nthreads = 1;
+  int threads_per_atom = -1;
+  if (narg == 9) {
+    if (strcmp(arg[7],"threads_per_atom") == 0)
+      threads_per_atom = atoi(arg[8]);
+    else
+      error->all("Illegal fix gpu command.");
+  } else if (narg != 7)
+    error->all("Illegal fix gpu command.");
+
+  int gpu_flag = lmp_init_device(universe->uworld, world, first_gpu, last_gpu,
+				 _gpu_mode, _particle_split, nthreads,
+				 threads_per_atom);
+  GPU_EXTRA::check_flag(gpu_flag,error,world);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -95,6 +106,15 @@ void FixGPU::init()
   // Can only have 1 gpu fix that must be the first fix for a run
   if ((void*)modify->fix[0] != (void*)this)
     error->all("GPU is not the first fix for this run.");
+  // Hybrid cannot be used with force/neigh option
+  if (_gpu_mode == GPU_NEIGH)
+    if (force->pair_match("hybrid",1) != NULL ||
+	force->pair_match("hybrid/overlay",1) != NULL)
+      error->all("Cannot use pair hybrid with GPU neighbor builds.");
+  if (_particle_split < 0)
+    if (force->pair_match("hybrid",1) != NULL ||
+	force->pair_match("hybrid/overlay",1) != NULL)
+      error->all("Fix gpu split must be positive for hybrid pair styles.");
 }
 
 /* ---------------------------------------------------------------------- */

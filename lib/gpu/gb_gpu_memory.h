@@ -18,8 +18,6 @@
 #ifndef GB_GPU_MEMORY_H
 #define GB_GPU_MEMORY_H
 
-#define BLOCK_1D 64
-
 #include "pair_gpu_device.h"
 #include "pair_gpu_balance.h"
 #include "mpi.h"
@@ -35,23 +33,34 @@ class GB_GPU_Memory {
     * \param max_nbors initial number of rows in the neighbor matrix
     * \param cell_size cutoff + skin
     * \param gpu_split fraction of particles handled by device 
-    * \return false if there is not sufficient memory or device init prob **/
-  bool init(const int ntypes, const double gamma,
-            const double upsilon, const double mu, double **host_shape,
-            double **host_well, double **host_cutsq, double **host_sigma, 
-            double **host_epsilon, double *host_lshape, int **h_form,
-            double **host_lj1, double **host_lj2, double **host_lj3, 
-            double **host_lj4, double **host_offset, 
-            const double *host_special_lj, const int nlocal, const int nall, 
-            const int max_nbors, const double cell_size,
-            const double gpu_split, FILE *screen);
+    * \return false if there is not sufficient memory or device init prob
+    * 
+    * Returns:
+    * -  0 if successfull
+    * - -1 if fix gpu not found
+    * - -3 if there is an out of memory error
+    * - -4 if the GPU library was not compiled for GPU
+    * - -5 Double precision is not supported on card **/
+  int init(const int ntypes, const double gamma,
+           const double upsilon, const double mu, double **host_shape,
+           double **host_well, double **host_cutsq, double **host_sigma, 
+           double **host_epsilon, double *host_lshape, int **h_form,
+           double **host_lj1, double **host_lj2, double **host_lj3, 
+           double **host_lj4, double **host_offset, 
+           const double *host_special_lj, const int nlocal, const int nall, 
+           const int max_nbors, const double cell_size,
+           const double gpu_split, FILE *screen);
+
+  /// Estimate the overhead for GPU context changes and CPU driver
+  void estimate_gpu_overhead();
 
   /// Check if there is enough storage for atom arrays and realloc if not
   /** \param success set to false if insufficient memory **/
   inline void resize_atom(const int inum, const int nall, bool &success) {
-    atom->resize(inum, nall, success);
-    if (multiple_forms) atom->dev_ans.zero();
-    double bytes=atom->gpu_bytes()+nbor->gpu_bytes();
+    atom->resize(nall, success);
+    ans->resize(inum, success);
+    if (multiple_forms) ans->dev_ans.zero();
+    double bytes=ans->gpu_bytes()+nbor->gpu_bytes();
     if (bytes>_max_bytes)
       _max_bytes=bytes;
   }
@@ -74,7 +83,7 @@ class GB_GPU_Memory {
       success=success && (host_olist.alloc(new_size,*ucl_device)==UCL_SUCCESS);
     }
     nbor->resize(nlocal,host_inum,max_nbors,success);
-    double bytes=atom->gpu_bytes()+nbor->gpu_bytes();
+    double bytes=ans->gpu_bytes()+nbor->gpu_bytes();
     if (bytes>_max_bytes)
       _max_bytes=bytes;
   }
@@ -91,19 +100,22 @@ class GB_GPU_Memory {
 
   /// Accumulate timers
   inline void acc_timers() {
-    if (nbor_time_avail) {
-      nbor->time_nbor.add_to_total();
-      nbor->time_kernel.add_to_total();
-      nbor_time_avail=false;
+    if (device->time_device()) {
+      if (nbor_time_avail) {
+        nbor->time_nbor.add_to_total();
+        nbor->time_kernel.add_to_total();
+        nbor_time_avail=false;
+      }
+      time_kernel.add_to_total();
+      time_gayberne.add_to_total();
+      if (multiple_forms) {
+        time_kernel2.add_to_total();
+        time_gayberne2.add_to_total();
+        time_pair.add_to_total();
+      }
+      atom->acc_timers();
+      ans->acc_timers();
     }
-    time_kernel.add_to_total();
-    time_gayberne.add_to_total();
-    if (multiple_forms) {
-      time_kernel2.add_to_total();
-      time_gayberne2.add_to_total();
-      time_pair.add_to_total();
-    }
-    atom->acc_timers();
   }
   
   /// Accumulate timers
@@ -117,6 +129,7 @@ class GB_GPU_Memory {
       time_pair.zero();
     }
     atom->zero_timers();
+    ans->zero_timers();
   }
 
   // -------------------------- DEVICE DATA ------------------------- 
@@ -168,6 +181,10 @@ class GB_GPU_Memory {
 
   int last_ellipse, max_last_ellipse;
 
+  // ------------------------ FORCE/ENERGY DATA -----------------------
+
+  PairGPUAns<numtyp,acctyp> *ans;
+
   // --------------------------- NBOR DATA ----------------------------
 
   /// Neighbor data
@@ -183,10 +200,12 @@ class GB_GPU_Memory {
   UCL_Kernel k_gayberne, k_sphere_gb, k_lj_fast, k_lj;
   inline int block_size() { return _block_size; }
 
+  int _threads_per_atom;
  private:
   bool _allocated, _compiled;
   int _block_size;
   double _max_bytes;
+  double _gpu_overhead, _driver_overhead;
   
   void compile_kernels(UCL_Device &dev);
 };

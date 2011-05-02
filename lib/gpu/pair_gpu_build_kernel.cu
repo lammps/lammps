@@ -18,7 +18,7 @@
 
 #ifdef NV_KERNEL
 
-#include "geryon/ucl_nv_kernel.h"
+#include "nv_kernel_def.h"
 texture<float4> neigh_tex;
 
 #ifdef _DOUBLE_DOUBLE
@@ -36,6 +36,7 @@ __inline float4 fetch_pos(const int& i, const float4 *pos)
 #else
 
 #define fetch_pos(i,y) x_[i]
+#define BLOCK_NBOR_BUILD 64
 
 #endif
 
@@ -54,29 +55,30 @@ __inline float4 fetch_pos(const int& i, const float4 *pos)
 #define numtyp4 float4
 #endif
 
-#define CELL_BLOCK_SIZE 64
-#define BLOCK_2D 8
+#define BLOCK_CELL_2D 8
+
+#define SBBITS 30
 
 #define SBBITS 30
 
 __kernel void transpose(int *out, int *in, int columns_in, int rows_in)
 {
-	__local float block[BLOCK_2D][BLOCK_2D+1];
+	__local float block[BLOCK_CELL_2D][BLOCK_CELL_2D+1];
 	
 	unsigned ti=THREAD_ID_X;
 	unsigned tj=THREAD_ID_Y;
 	unsigned bi=BLOCK_ID_X;
 	unsigned bj=BLOCK_ID_Y;
 	
-	unsigned i=bi*BLOCK_2D+ti;
-	unsigned j=bj*BLOCK_2D+tj;
+	unsigned i=bi*BLOCK_CELL_2D+ti;
+	unsigned j=bj*BLOCK_CELL_2D+tj;
 	if ((i<columns_in) && (j<rows_in))
 		block[tj][ti]=in[j*columns_in+i];
 
 	__syncthreads();
 
-	i=bj*BLOCK_2D+ti;
-	j=bi*BLOCK_2D+tj;
+	i=bj*BLOCK_CELL_2D+ti;
+	j=bi*BLOCK_CELL_2D+tj;
 	if ((i<rows_in) && (j<columns_in))
 		out[j*rows_in+i] = block[ti][tj];
 }
@@ -141,7 +143,8 @@ __kernel void calc_neigh_list_cell(numtyp4 *pos,
 				     int *cell_particle_id, 
 				     int *cell_counts,
 				     int *nbor_list,
-				     int *host_nbor_list, 
+				     int *host_nbor_list,
+				     int *host_numj, 
 				     int neigh_bin_size, 
 				     numtyp cell_size,
 				     int ncellx, int ncelly, int ncellz,
@@ -154,8 +157,8 @@ __kernel void calc_neigh_list_cell(numtyp4 *pos,
 	  
   int icell = ix + iy*ncellx + iz*ncellx*ncelly;
 
-  __shared__ int cell_list_sh[CELL_BLOCK_SIZE];
-  __shared__ numtyp4 pos_sh[CELL_BLOCK_SIZE];
+  __shared__ int cell_list_sh[BLOCK_NBOR_BUILD];
+  __shared__ numtyp4 pos_sh[BLOCK_NBOR_BUILD];
 
   int icell_begin = cell_counts[icell];
   int icell_end = cell_counts[icell+1];
@@ -185,9 +188,9 @@ __kernel void calc_neigh_list_cell(numtyp4 *pos,
       neigh_list=neigh_counts+stride;
       nbor_list[pid_i]=pid_i;
     } else {
-      stride=nt-inum;
-    	neigh_counts=host_nbor_list+pid_i-inum;
-      neigh_list=neigh_counts+stride;
+      stride=1;
+    	neigh_counts=host_numj+pid_i-inum;
+      neigh_list=host_nbor_list+(pid_i-inum)*neigh_bin_size;
     }
     
     // loop through neighbors
@@ -203,13 +206,13 @@ __kernel void calc_neigh_list_cell(numtyp4 *pos,
           int num_atom_cell = jcell_end - jcell_begin;
 	  
           // load jcell to shared memory
-          int num_iter = (int)ceil((numtyp)num_atom_cell/CELL_BLOCK_SIZE);
+          int num_iter = (int)ceil((numtyp)num_atom_cell/BLOCK_NBOR_BUILD);
 
           for (int k = 0; k < num_iter; k++) {
-            int end_idx = min(CELL_BLOCK_SIZE, num_atom_cell-k*CELL_BLOCK_SIZE);
+            int end_idx = min(BLOCK_NBOR_BUILD, num_atom_cell-k*BLOCK_NBOR_BUILD);
 	    
             if (tid < end_idx) {
-              pid_j =  cell_particle_id[tid+k*CELL_BLOCK_SIZE+jcell_begin];
+              pid_j =  cell_particle_id[tid+k*BLOCK_NBOR_BUILD+jcell_begin];
               cell_list_sh[tid] = pid_j;
               atom_j = fetch_pos(pid_j,pos); //[pid_j];
               pos_sh[tid].x = atom_j.x;
@@ -222,20 +225,18 @@ __kernel void calc_neigh_list_cell(numtyp4 *pos,
 	    
               for (int j = 0; j < end_idx; j++) {
                 int pid_j = cell_list_sh[j]; // gather from shared memory
-                if (pid_i<inum || pid_j<inum || pid_j>pid_i) {
-                  diff.x = atom_i.x - pos_sh[j].x;
-                  diff.y = atom_i.y - pos_sh[j].y;
-                  diff.z = atom_i.z - pos_sh[j].z;
+                diff.x = atom_i.x - pos_sh[j].x;
+                diff.y = atom_i.y - pos_sh[j].y;
+                diff.z = atom_i.z - pos_sh[j].z;
 		
-                  r2 = diff.x*diff.x + diff.y*diff.y + diff.z*diff.z;
-                  if (r2 < cell_size*cell_size && r2 > 1e-5) {
-                    if (cnt < neigh_bin_size) {
-                      *neigh_list = pid_j;
-                      neigh_list+=stride;
-                    }
-                    cnt++;
-                  }		
-                }
+                r2 = diff.x*diff.x + diff.y*diff.y + diff.z*diff.z;
+                if (r2 < cell_size*cell_size && r2 > 1e-5) {
+                  if (cnt < neigh_bin_size) {
+                    *neigh_list = pid_j;
+                    neigh_list+=stride;
+                  }
+                  cnt++;
+                }		
               }
             }
 	          __syncthreads();
@@ -249,9 +250,10 @@ __kernel void calc_neigh_list_cell(numtyp4 *pos,
 }
 
 __kernel void kernel_special(__global int *dev_nbor, 
-                             __global int *host_nbor_list, __global int *tag,
+                             __global int *host_nbor_list, 
+                             __global int *host_numj, __global int *tag,
                              __global int *nspecial, __global int *special,
-                             int inum, int nt, int nall) {
+                             int inum, int nt, int nall, int max_nbors) {
   // ii indexes the two interacting particles in gi
   int ii=GLOBAL_ID_X;
 
@@ -263,15 +265,17 @@ __kernel void kernel_special(__global int *dev_nbor,
     int n2=nspecial[ii*3+1];
     int n3=nspecial[ii*3+2];
 
+    int numj;
     if (ii < inum) {
       stride=inum;
       list=dev_nbor+stride+ii;
+      numj=*list;
+      list+=stride;
     } else {
-      stride=nt-inum;
-      list=host_nbor_list+ii-inum;
+      stride=1;
+      list=host_nbor_list+(ii-inum)*max_nbors;
+      numj=host_numj[ii-inum];
     }
-    int numj=*list;
-    list+=stride;
     list_end=list+numj*stride;
   
     for ( ; list<list_end; list+=stride) {
@@ -294,4 +298,3 @@ __kernel void kernel_special(__global int *dev_nbor,
     }
   } // if ii
 }
-

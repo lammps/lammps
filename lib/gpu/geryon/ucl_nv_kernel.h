@@ -13,7 +13,7 @@
     copyright            : (C) 2010 by W. Michael Brown
     email                : brownw@ornl.gov
  ***************************************************************************/
- 
+
 /* -----------------------------------------------------------------------
    Copyright (2010) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -25,8 +25,18 @@
 #ifndef UCL_NV_KERNEL_H
 #define UCL_NV_KERNEL_H
 
-#define GLOBAL_ID_X threadIdx.x+__mul24(blockIdx.x,blockDim.x)
-#define GLOBAL_ID_Y threadIdx.y+__mul24(blockIdx.y,blockDim.y)
+#if (__CUDA_ARCH__ < 200)
+#define mul24 __mul24
+#define MEM_THREADS 16
+#else
+#define mul24(X,Y) (X)*(Y)
+#define MEM_THREADS 32
+#endif
+
+#define GLOBAL_ID_X threadIdx.x+mul24(blockIdx.x,blockDim.x)
+#define GLOBAL_ID_Y threadIdx.y+mul24(blockIdx.y,blockDim.y)
+#define GLOBAL_SIZE_X mul24(gridDim.x,blockDim.x);
+#define GLOBAL_SIZE_Y mul24(gridDim.y,blockDim.y);
 #define THREAD_ID_X threadIdx.x
 #define THREAD_ID_Y threadIdx.y
 #define BLOCK_ID_X blockIdx.x
@@ -35,8 +45,9 @@
 #define BLOCK_SIZE_Y blockDim.y
 #define __kernel extern "C" __global__
 #define __local __shared__
-#define mul24 __mul24
 #define __global  
 #define __inline static __inline__ __device__ 
+#define atom_add atomicAdd
 
 #endif
+

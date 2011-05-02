@@ -43,7 +43,7 @@ int CRML_GPU_MemoryT::bytes_per_atom(const int max_nbors) const {
 }
 
 template <class numtyp, class acctyp>
-bool CRML_GPU_MemoryT::init(const int ntypes,
+int CRML_GPU_MemoryT::init(const int ntypes,
                            double host_cut_bothsq, double **host_lj1, 
                            double **host_lj2, double **host_lj3, 
                            double **host_lj4, double **host_offset, 
@@ -56,20 +56,24 @@ bool CRML_GPU_MemoryT::init(const int ntypes,
                            const double g_ewald, const double cut_lj_innersq,
                            const double denom_lj, double **epsilon,
                            double **sigma, const bool mix_arithmetic) {
-  this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
-                    _screen,crml_gpu_kernel);
+  int success;
+  success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
+                            _screen,crml_gpu_kernel);
+  if (success!=0)
+    return success;
 
   // If atom type constants fit in shared memory use fast kernel
   int lj_types=ntypes;
   shared_types=false;
-  if (this->_block_size>=64 && mix_arithmetic)
+  if (this->_block_bio_size>=64 && mix_arithmetic)
     shared_types=true;
   _lj_types=lj_types;
 
   // Allocate a host write buffer for data initialization
   int h_size=lj_types*lj_types;
-  if (h_size<MAX_BIO_SHARED_TYPES)
-    h_size=MAX_BIO_SHARED_TYPES;
+  int max_bio_shared_types=this->device->max_bio_shared_types();
+  if (h_size<max_bio_shared_types)
+    h_size=max_bio_shared_types;
   UCL_H_Vec<numtyp> host_write(h_size*32,*(this->ucl_device),
                                UCL_WRITE_OPTIMIZED);
   for (int i=0; i<h_size*32; i++)
@@ -79,7 +83,7 @@ bool CRML_GPU_MemoryT::init(const int ntypes,
   this->atom->type_pack4(ntypes,lj_types,lj1,host_write,host_lj1,host_lj2,
                          host_lj3,host_lj4);
 
-  ljd.alloc(MAX_BIO_SHARED_TYPES,*(this->ucl_device),UCL_READ_ONLY);
+  ljd.alloc(max_bio_shared_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->self_pack2(ntypes,ljd,host_write,epsilon,sigma);
 
   sp_lj.alloc(8,*(this->ucl_device),UCL_READ_ONLY);
@@ -99,7 +103,7 @@ bool CRML_GPU_MemoryT::init(const int ntypes,
 
   _allocated=true;
   this->_max_bytes=lj1.row_bytes()+ljd.row_bytes()+sp_lj.row_bytes();
-  return true;
+  return 0;
 }
 
 template <class numtyp, class acctyp>
@@ -125,7 +129,7 @@ double CRML_GPU_MemoryT::host_memory_usage() const {
 template <class numtyp, class acctyp>
 void CRML_GPU_MemoryT::loop(const bool _eflag, const bool _vflag) {
   // Compute the block size and grid size to keep all cores busy
-  const int BX=this->block_size();
+  const int BX=this->_block_bio_size;
   int eflag, vflag;
   if (_eflag)
     eflag=1;
@@ -137,9 +141,10 @@ void CRML_GPU_MemoryT::loop(const bool _eflag, const bool _vflag) {
   else
     vflag=0;
   
-  int GX=static_cast<int>(ceil(static_cast<double>(this->atom->inum())/BX));
+  int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
+                               (BX/this->_threads_per_atom)));
 
-  int ainum=this->atom->inum();
+  int ainum=this->ans->inum();
   int anall=this->atom->nall();
   int nbor_pitch=this->nbor->nbor_pitch();
   this->time_pair.start();
@@ -147,21 +152,24 @@ void CRML_GPU_MemoryT::loop(const bool _eflag, const bool _vflag) {
     this->k_pair_fast.set_size(GX,BX);
     this->k_pair_fast.run(&this->atom->dev_x.begin(), &ljd.begin(),
                           &sp_lj.begin(), &this->nbor->dev_nbor.begin(),
-                          &this->atom->dev_ans.begin(),
-                          &this->atom->dev_engv.begin(), &eflag, &vflag,
+                          &this->_nbor_data->begin(),
+                          &this->ans->dev_ans.begin(),
+                          &this->ans->dev_engv.begin(), &eflag, &vflag,
                           &ainum, &anall, &nbor_pitch,
                           &this->atom->dev_q.begin(), &_cut_coulsq,
                           &_qqrd2e, &_g_ewald, &_denom_lj, &_cut_bothsq,
-                          &_cut_ljsq, &_cut_lj_innersq);
+                          &_cut_ljsq, &_cut_lj_innersq, 
+                          &this->_threads_per_atom);
   } else {
     this->k_pair.set_size(GX,BX);
     this->k_pair.run(&this->atom->dev_x.begin(), &lj1.begin(),
                      &_lj_types, &sp_lj.begin(), &this->nbor->dev_nbor.begin(),
-                     &this->atom->dev_ans.begin(),
-                     &this->atom->dev_engv.begin(), &eflag, &vflag, &ainum,
+                     &this->_nbor_data->begin(), &this->ans->dev_ans.begin(),
+                     &this->ans->dev_engv.begin(), &eflag, &vflag, &ainum,
                      &anall, &nbor_pitch, &this->atom->dev_q.begin(),
                      &_cut_coulsq, &_qqrd2e, &_g_ewald, &_denom_lj,
-                     &_cut_bothsq, &_cut_ljsq, &_cut_lj_innersq);
+                     &_cut_bothsq, &_cut_ljsq, &_cut_lj_innersq,
+                     &this->_threads_per_atom);
   }
   this->time_pair.stop();
 }

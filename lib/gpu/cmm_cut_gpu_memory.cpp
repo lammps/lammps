@@ -42,22 +42,26 @@ int CMM_GPU_MemoryT::bytes_per_atom(const int max_nbors) const {
 }
 
 template <class numtyp, class acctyp>
-bool CMM_GPU_MemoryT::init(const int ntypes, double **host_cutsq, 
-                           int **host_cg_type, double **host_lj1, 
-                           double **host_lj2, double **host_lj3, 
-                           double **host_lj4, double **host_offset, 
-                           double *host_special_lj, const int nlocal,
-                           const int nall, const int max_nbors,
-                           const int maxspecial, const double cell_size, 
-                           const double gpu_split, FILE *_screen) {
-  this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
-                    _screen,cmm_cut_gpu_kernel);
+int CMM_GPU_MemoryT::init(const int ntypes, double **host_cutsq, 
+                          int **host_cg_type, double **host_lj1, 
+                          double **host_lj2, double **host_lj3, 
+                          double **host_lj4, double **host_offset, 
+                          double *host_special_lj, const int nlocal,
+                          const int nall, const int max_nbors,
+                          const int maxspecial, const double cell_size, 
+                          const double gpu_split, FILE *_screen) {
+  int success;
+  success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
+                            _screen,cmm_cut_gpu_kernel);
+  if (success!=0)
+    return success;
 
   // If atom type constants fit in shared memory use fast kernel
   int cmm_types=ntypes;
   shared_types=false;
-  if (cmm_types<=MAX_SHARED_TYPES && this->_block_size>=MAX_SHARED_TYPES) {
-    cmm_types=MAX_SHARED_TYPES;
+  int max_shared_types=this->device->max_shared_types();
+  if (cmm_types<=max_shared_types && this->_block_size>=max_shared_types) {
+    cmm_types=max_shared_types;
     shared_types=true;
   }
   _cmm_types=cmm_types;
@@ -84,7 +88,7 @@ bool CMM_GPU_MemoryT::init(const int ntypes, double **host_cutsq,
 
   _allocated=true;
   this->_max_bytes=lj1.row_bytes()+lj3.row_bytes()+sp_lj.row_bytes();
-  return true;
+  return 0;
 }
 
 template <class numtyp, class acctyp>
@@ -122,9 +126,10 @@ void CMM_GPU_MemoryT::loop(const bool _eflag, const bool _vflag) {
   else
     vflag=0;
   
-  int GX=static_cast<int>(ceil(static_cast<double>(this->atom->inum())/BX));
+  int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
+                               (BX/this->_threads_per_atom)));
 
-  int ainum=this->atom->inum();
+  int ainum=this->ans->inum();
   int anall=this->atom->nall();
   int nbor_pitch=this->nbor->nbor_pitch();
   this->time_pair.start();
@@ -133,16 +138,18 @@ void CMM_GPU_MemoryT::loop(const bool _eflag, const bool _vflag) {
     this->k_pair_fast.run(&this->atom->dev_x.begin(), &lj1.begin(),
                           &lj3.begin(), &sp_lj.begin(),
                           &this->nbor->dev_nbor.begin(),
-                          &this->atom->dev_ans.begin(),
-                          &this->atom->dev_engv.begin(), &eflag, &vflag,
-                          &ainum, &anall, &nbor_pitch);
+                          &this->_nbor_data->begin(),
+                          &this->ans->dev_ans.begin(),
+                          &this->ans->dev_engv.begin(), &eflag, &vflag,
+                          &ainum, &anall, &nbor_pitch, 
+                          &this->_threads_per_atom);
   } else {
     this->k_pair.set_size(GX,BX);
     this->k_pair.run(&this->atom->dev_x.begin(), &lj1.begin(), &lj3.begin(),
                      &_cmm_types, &sp_lj.begin(), &this->nbor->dev_nbor.begin(),
-                     &this->atom->dev_ans.begin(),
-                     &this->atom->dev_engv.begin(), &eflag, &vflag, &ainum,
-                     &anall, &nbor_pitch);
+                     &this->_nbor_data->begin(), &this->ans->dev_ans.begin(),
+                     &this->ans->dev_engv.begin(), &eflag, &vflag, &ainum,
+                     &anall, &nbor_pitch, &this->_threads_per_atom);
   }
   this->time_pair.stop();
 }

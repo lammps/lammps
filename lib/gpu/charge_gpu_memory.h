@@ -18,8 +18,6 @@
 #ifndef CHARGE_GPU_MEMORY_H
 #define CHARGE_GPU_MEMORY_H
 
-#define BLOCK_1D 64
-
 #include "pair_gpu_device.h"
 #include "pair_gpu_balance.h"
 #include "mpi.h"
@@ -39,19 +37,30 @@ class ChargeGPUMemory {
   /// Clear any previous data and set up for a new LAMMPS run
   /** \param max_nbors initial number of rows in the neighbor matrix
     * \param cell_size cutoff + skin
-    * \param gpu_split fraction of particles handled by device **/
-  bool init_atomic(const int nlocal, const int nall, const int max_nbors,
-                   const int maxspecial, const double cell_size,
-                   const double gpu_split, FILE *screen,
-                   const char *pair_program);
+    * \param gpu_split fraction of particles handled by device
+    * 
+    * Returns:
+    * -  0 if successfull
+    * - -1 if fix gpu not found
+    * - -3 if there is an out of memory error
+    * - -4 if the GPU library was not compiled for GPU
+    * - -5 Double precision is not supported on card **/
+  int init_atomic(const int nlocal, const int nall, const int max_nbors,
+                  const int maxspecial, const double cell_size,
+                  const double gpu_split, FILE *screen,
+                  const char *pair_program);
+
+  /// Estimate the overhead for GPU context changes and CPU driver
+  void estimate_gpu_overhead();
 
   /// Check if there is enough storage for atom arrays and realloc if not
   /** \param success set to false if insufficient memory **/
   inline void resize_atom(const int inum, const int nall, bool &success) {
-    if (atom->resize(inum, nall, success)) {
+    if (atom->resize(nall, success)) {
       pos_tex.bind_float(atom->dev_x,4);
       q_tex.bind_float(atom->dev_q,1);
     }
+    ans->resize(inum,success);
   }
 
   /// Check if there is enough storage for neighbors and realloc if not
@@ -87,13 +96,16 @@ class ChargeGPUMemory {
 
   /// Accumulate timers
   inline void acc_timers() {
-    if (nbor_time_avail) {
-      nbor->time_nbor.add_to_total();
-      nbor->time_kernel.add_to_total();
-      nbor_time_avail=false;
+    if (device->time_device()) {
+      if (nbor_time_avail) {
+        nbor->time_nbor.add_to_total();
+        nbor->time_kernel.add_to_total();
+        nbor_time_avail=false;
+      }
+      time_pair.add_to_total();
+      atom->acc_timers();
+      ans->acc_timers();
     }
-    time_pair.add_to_total();
-    atom->acc_timers();
   }
 
   /// Zero timers
@@ -101,6 +113,7 @@ class ChargeGPUMemory {
     nbor_time_avail=false;
     time_pair.zero();
     atom->zero_timers();
+    ans->zero_timers();
   }
 
   /// Copy neighbor list from host
@@ -110,24 +123,25 @@ class ChargeGPUMemory {
   /// Build neighbor list on device
   void build_nbor_list(const int inum, const int host_inum,
                        const int nall, double **host_x, int *host_type,
-                       double *boxlo, double *boxhi, int *tag, int **nspecial,
+                       double *sublo, double *subhi, int *tag, int **nspecial,
                        int **special, bool &success);
 
   /// Pair loop with host neighboring
-  void compute(const int timestep, const int f_ago, const int inum_full,
-               const int nall, double **host_x, int *host_type,
-               int *ilist, int *numj, int **firstneigh, const bool eflag,
-               const bool vflag, const bool eatom, const bool vatom,
-               int &host_start, const double cpu_time, bool &success,
-               double *charge);
+  void compute(const int f_ago, const int inum_full, const int nall,
+               double **host_x, int *host_type, int *ilist, int *numj,
+               int **firstneigh, const bool eflag, const bool vflag,
+               const bool eatom, const bool vatom, int &host_start,
+               const double cpu_time, bool &success, double *charge,
+               const int nlocal, double *boxlo, double *prd);
 
   /// Pair loop with device neighboring
-  int * compute(const int timestep, const int ago, const int inum_full,
-                const int nall, double **host_x, int *host_type, double *boxlo,
-                double *boxhi, int *tag, int **nspecial,
+  int** compute(const int ago, const int inum_full, const int nall,
+                double **host_x, int *host_type, double *sublo,
+                double *subhi, int *tag, int **nspecial,
                 int **special, const bool eflag, const bool vflag, 
                 const bool eatom, const bool vatom, int &host_start, 
-                const double cpu_time, bool &success, double *charge);
+                int **ilist, int **numj, const double cpu_time, bool &success,
+                double *charge, double *boxlo, double *prd);
 
   // -------------------------- DEVICE DATA ------------------------- 
 
@@ -152,6 +166,10 @@ class ChargeGPUMemory {
   PairGPUAtom<numtyp,acctyp> *atom;
 
 
+  // ------------------------ FORCE/ENERGY DATA -----------------------
+
+  PairGPUAns<numtyp,acctyp> *ans;
+
   // --------------------------- NBOR DATA ----------------------------
 
   /// Neighbor data
@@ -171,8 +189,10 @@ class ChargeGPUMemory {
 
  protected:
   bool _compiled;
-  int _block_size;
+  int _block_size, _block_bio_size, _threads_per_atom;
   double  _max_bytes, _max_an_bytes;
+  double _gpu_overhead, _driver_overhead;
+  UCL_D_Vec<int> *_nbor_data;
 
   void compile_kernels(UCL_Device &dev, const char *pair_string);
 

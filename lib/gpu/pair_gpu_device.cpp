@@ -19,13 +19,22 @@
 #include "pair_gpu_precision.h"
 #include <map>
 #include <math.h>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
+#ifdef USE_OPENCL
+#include "pair_gpu_dev_cl.h"
+#else
+#include "pair_gpu_dev_ptx.h"
+#endif
 
 #define PairGPUDeviceT PairGPUDevice<numtyp, acctyp>
 
 template <class numtyp, class acctyp>
 PairGPUDeviceT::PairGPUDevice() : _init_count(0), _device_init(false),
                                   _gpu_mode(GPU_FORCE), _first_device(0),
-                                  _last_device(0) {
+                                  _last_device(0), _compiled(false) {
 }
 
 template <class numtyp, class acctyp>
@@ -34,14 +43,19 @@ PairGPUDeviceT::~PairGPUDevice() {
 }
 
 template <class numtyp, class acctyp>
-bool PairGPUDeviceT::init_device(MPI_Comm world, MPI_Comm replica, 
-                                 const int first_gpu, const int last_gpu,
-                                 const int gpu_mode, const double p_split,
-                                 const int nthreads) {
+int PairGPUDeviceT::init_device(MPI_Comm world, MPI_Comm replica, 
+                                const int first_gpu, const int last_gpu,
+                                const int gpu_mode, const double p_split,
+                                const int nthreads, const int t_per_atom) {
   _nthreads=nthreads;
+  #ifdef _OPENMP
+  omp_set_num_threads(nthreads);
+  #endif
+  _threads_per_atom=t_per_atom;
+  _threads_per_charge=t_per_atom;
 
   if (_device_init)
-    return true;
+    return 0;
   _device_init=true;
   _comm_world=world;
   _comm_replica=replica;
@@ -96,7 +110,12 @@ bool PairGPUDeviceT::init_device(MPI_Comm world, MPI_Comm replica,
   // set the device ID
   _procs_per_gpu=static_cast<int>(ceil(static_cast<double>(procs_per_node)/
                                        (last_gpu-first_gpu+1)));
-  int my_gpu=node_rank/_procs_per_gpu;
+  int my_gpu=node_rank/_procs_per_gpu+first_gpu;
+
+  // Time on the device only if 1 proc per gpu
+  _time_device=true;
+  if (_procs_per_gpu>1)
+    _time_device=false;
   
   // Set up a per device communicator
   MPI_Comm_split(node_comm,my_gpu,0,&_comm_gpu);
@@ -104,39 +123,109 @@ bool PairGPUDeviceT::init_device(MPI_Comm world, MPI_Comm replica,
 
   gpu=new UCL_Device();
   if (my_gpu>=gpu->num_devices())
-    return false;
+    return -2;
   
   gpu->set(my_gpu);
-  return true;
+
+  _long_range_precompute=0;
+
+  int flag=compile_kernels();
+
+  return flag;
 }
 
 template <class numtyp, class acctyp>
-bool PairGPUDeviceT::init(const bool charge, const bool rot, const int nlocal, 
-                          const int host_nlocal, const int nall,
-                          const int maxspecial, const bool gpu_nbor, 
-                          const int gpu_host, const int max_nbors, 
-                          const double cell_size, const bool pre_cut) {
+int PairGPUDeviceT::init(PairGPUAns<numtyp,acctyp> &ans, const bool charge,
+                         const bool rot, const int nlocal, 
+                         const int host_nlocal, const int nall,
+                         PairGPUNbor *nbor, const int maxspecial,
+                         const int gpu_host, const int max_nbors, 
+                         const double cell_size, const bool pre_cut) {
   if (!_device_init)
-    return false;                          
+    return -1;
+  if (sizeof(acctyp)==sizeof(double) && gpu->double_precision()==false)
+    return -5;
+
+  // Counts of data transfers for timing overhead estimates
+  _data_in_estimate=0;
+  _data_out_estimate=1;
+
+  // Initial number of local particles
+  int ef_nlocal=nlocal;
+  if (_particle_split<1.0 && _particle_split>0.0)
+    ef_nlocal=static_cast<int>(_particle_split*nlocal);
+
+  bool gpu_nbor=false;
+  if (_gpu_mode==GPU_NEIGH)
+    gpu_nbor=true;
+    
   if (_init_count==0) {
     // Initialize atom and nbor data
-    int ef_nlocal=nlocal;
-    if (_particle_split<1.0 && _particle_split>0.0)
-      ef_nlocal=static_cast<int>(_particle_split*nlocal);
-    if (!atom.init(ef_nlocal,nall,charge,rot,*gpu,gpu_nbor,
-                   gpu_nbor && maxspecial>0))
-      return false;
-    if (!nbor.init(ef_nlocal,host_nlocal,max_nbors,maxspecial,*gpu,gpu_nbor,
-                   gpu_host,pre_cut))
-      return false;
-    nbor.cell_size(cell_size);
+    if (!atom.init(nall,charge,rot,*gpu,gpu_nbor,gpu_nbor && maxspecial>0))
+      return -3;
+      
+    _data_in_estimate++;
+    if (charge)
+      _data_in_estimate++;
+    if (rot)
+      _data_in_estimate++;
   } else {
-    if (cell_size>nbor.cell_size())
-      nbor.cell_size(cell_size);
+    if (atom.charge()==false && charge)
+      _data_in_estimate++;
+    if (atom.quat()==false && rot)
+      _data_in_estimate++;
+    if (!atom.add_fields(charge,rot,gpu_nbor,gpu_nbor && maxspecial))
+      return -3;
   }
+  
+  if (!ans.init(ef_nlocal,charge,rot,*gpu))
+    return -3;
+
+  if (!nbor->init(&_nbor_shared,ef_nlocal,host_nlocal,max_nbors,maxspecial,
+                  *gpu,gpu_nbor,gpu_host,pre_cut, _block_cell_2d, 
+                  _block_cell_id, _block_nbor_build))
+    return -3;
+  nbor->cell_size(cell_size);
 
   _init_count++;
-  return true;
+  return 0;
+}
+
+template <class numtyp, class acctyp>
+int PairGPUDeviceT::init(PairGPUAns<numtyp,acctyp> &ans, const int nlocal,
+                         const int nall) {
+  if (!_device_init)
+    return -1;                          
+  if (sizeof(acctyp)==sizeof(double) && gpu->double_precision()==false)
+    return -5;
+
+  if (_init_count==0) {
+    // Initialize atom and nbor data
+    if (!atom.init(nall,true,false,*gpu,false,false))
+      return -3;
+  } else
+    if (!atom.add_fields(true,false,false,false))
+      return -3;
+
+  if (!ans.init(nlocal,true,false,*gpu))
+    return -3;
+
+  _init_count++;
+  return 0;
+}
+
+template <class numtyp, class acctyp>
+void PairGPUDeviceT::set_single_precompute
+                     (PPPMGPUMemory<numtyp,acctyp,float,_lgpu_float4> *pppm) {
+  _long_range_precompute=1;
+  pppm_single=pppm;
+}
+
+template <class numtyp, class acctyp>
+void PairGPUDeviceT::set_double_precompute
+                     (PPPMGPUMemory<numtyp,acctyp,double,_lgpu_double4> *pppm) {
+  _long_range_precompute=2;
+  pppm_double=pppm;
 }
 
 template <class numtyp, class acctyp>
@@ -152,11 +241,17 @@ void PairGPUDeviceT::init_message(FILE *screen, const char *name,
     fprintf(screen,"\n-------------------------------------");
     fprintf(screen,"-------------------------------------\n");
     fprintf(screen,"- Using GPGPU acceleration for %s:\n",name);
-    fprintf(screen,"-  with %d procs per device.\n",_procs_per_gpu);
+    fprintf(screen,"-  with %d proc(s) per device.\n",_procs_per_gpu);
+    #ifdef _OPENMP
+    fprintf(screen,"-  with %d thread(s) per proc.\n",_nthreads);
+    #endif
     fprintf(screen,"-------------------------------------");
     fprintf(screen,"-------------------------------------\n");
 
-    for (int i=first_gpu; i<=last_gpu; i++) {
+    int last=last_gpu+1;
+    if (last>gpu->num_devices())
+      last=gpu->num_devices();
+    for (int i=first_gpu; i<last; i++) {
       std::string sname=gpu->name(i)+", "+toa(gpu->cores(i))+" cores, "+fs+
                         toa(gpu->gigabytes(i))+" GB, "+toa(gpu->clock_rate(i))+
                         " GHZ (";
@@ -177,32 +272,152 @@ void PairGPUDeviceT::init_message(FILE *screen, const char *name,
 }
 
 template <class numtyp, class acctyp>
-void PairGPUDeviceT::output_times(UCL_Timer &time_pair, const double avg_split,
-                                  const double max_bytes, FILE *screen) {
-  double single[5], times[5];
+void PairGPUDeviceT::estimate_gpu_overhead(const int kernel_calls, 
+                                           double &gpu_overhead,
+                                           double &gpu_driver_overhead) {
+  UCL_H_Vec<int> *host_data_in=NULL, *host_data_out=NULL;
+  UCL_D_Vec<int> *dev_data_in=NULL, *dev_data_out=NULL, *kernel_data=NULL;
+  UCL_Timer *timers_in=NULL, *timers_out=NULL, *timers_kernel=NULL;
+  UCL_Timer over_timer(*gpu);
 
-  single[0]=atom.transfer_time();
+  if (_data_in_estimate>0) {
+    host_data_in=new UCL_H_Vec<int>[_data_in_estimate];
+    dev_data_in=new UCL_D_Vec<int>[_data_in_estimate];
+    timers_in=new UCL_Timer[_data_in_estimate];
+  }
+  
+  if (_data_out_estimate>0) {
+    host_data_out=new UCL_H_Vec<int>[_data_out_estimate];
+    dev_data_out=new UCL_D_Vec<int>[_data_out_estimate];
+    timers_out=new UCL_Timer[_data_out_estimate];
+  }
+  
+  if (kernel_calls>0) {
+    kernel_data=new UCL_D_Vec<int>[kernel_calls];
+    timers_kernel=new UCL_Timer[kernel_calls];
+  }
+  
+  for (int i=0; i<_data_in_estimate; i++) {
+    host_data_in[i].alloc(1,*gpu);
+    dev_data_in[i].alloc(1,*gpu);
+    timers_in[i].init(*gpu);
+  }  
+  
+  for (int i=0; i<_data_out_estimate; i++) {
+    host_data_out[i].alloc(1,*gpu);
+    dev_data_out[i].alloc(1,*gpu);
+    timers_out[i].init(*gpu);
+  }  
+  
+  for (int i=0; i<kernel_calls; i++) {
+    kernel_data[i].alloc(1,*gpu);
+    timers_kernel[i].init(*gpu);
+  }  
+  
+  gpu_overhead=0.0;
+  gpu_driver_overhead=0.0;
+  
+  for (int i=0; i<10; i++) {
+    gpu->sync();
+    gpu_barrier();
+    over_timer.start();
+    gpu->sync();
+    gpu_barrier();
+
+    double driver_time=MPI_Wtime();
+    for (int i=0; i<_data_in_estimate; i++) {
+      timers_in[i].start();
+      ucl_copy(dev_data_in[i],host_data_in[i],true);
+      timers_in[i].stop();
+    }
+    
+    for (int i=0; i<kernel_calls; i++) {
+      timers_kernel[i].start();
+      zero(kernel_data[i],1);
+      timers_kernel[i].stop();
+    }
+
+    for (int i=0; i<_data_out_estimate; i++) {
+      timers_out[i].start();
+      ucl_copy(host_data_out[i],dev_data_out[i],true);
+      timers_out[i].stop();
+    }
+    over_timer.stop();
+
+    double time=over_timer.seconds();
+    driver_time=MPI_Wtime()-driver_time;
+     
+    if (time_device()) {
+      for (int i=0; i<_data_in_estimate; i++)
+        timers_in[i].add_to_total();
+      for (int i=0; i<kernel_calls; i++)
+        timers_kernel[i].add_to_total();
+      for (int i=0; i<_data_out_estimate; i++)
+        timers_out[i].add_to_total();
+    }
+    
+    double mpi_time, mpi_driver_time;
+    MPI_Allreduce(&time,&mpi_time,1,MPI_DOUBLE,MPI_MAX,gpu_comm());
+    MPI_Allreduce(&driver_time,&mpi_driver_time,1,MPI_DOUBLE,MPI_MAX,gpu_comm());
+    gpu_overhead+=mpi_time;
+    gpu_driver_overhead+=mpi_driver_time;
+  }
+  gpu_overhead/=10.0;
+  gpu_driver_overhead/=10.0;
+
+  if (_data_in_estimate>0) {
+    delete [] host_data_in;
+    delete [] dev_data_in;
+    delete [] timers_in;
+  }
+  
+  if (_data_out_estimate>0) {
+    delete [] host_data_out;
+    delete [] dev_data_out;
+    delete [] timers_out;
+  }
+  
+  if (kernel_calls>0) {
+    delete [] kernel_data;
+    delete [] timers_kernel;
+  }
+}              
+
+template <class numtyp, class acctyp>
+void PairGPUDeviceT::output_times(UCL_Timer &time_pair, 
+                                  PairGPUAns<numtyp,acctyp> &ans, 
+                                  PairGPUNbor &nbor, const double avg_split, 
+                                  const double max_bytes, 
+                                  const double gpu_overhead,
+                                  const double driver_overhead, 
+                                  const int threads_per_atom, FILE *screen) {
+  double single[8], times[8];
+
+  single[0]=atom.transfer_time()+ans.transfer_time();
   single[1]=nbor.time_nbor.total_seconds();
   single[2]=nbor.time_kernel.total_seconds();
   single[3]=time_pair.total_seconds();
-  single[4]=atom.cast_time();
+  single[4]=atom.cast_time()+ans.cast_time();
+  single[5]=gpu_overhead;
+  single[6]=driver_overhead;
+  single[7]=ans.cpu_idle_time();
 
-  MPI_Reduce(single,times,5,MPI_DOUBLE,MPI_SUM,0,_comm_replica);
+  MPI_Reduce(single,times,8,MPI_DOUBLE,MPI_SUM,0,_comm_replica);
 
-  double my_max_bytes=max_bytes;
+  double my_max_bytes=max_bytes+atom.max_gpu_bytes();
   double mpi_max_bytes;
   MPI_Reduce(&my_max_bytes,&mpi_max_bytes,1,MPI_DOUBLE,MPI_MAX,0,_comm_replica);
   double max_mb=mpi_max_bytes/(1024.0*1024.0);
 
   if (replica_me()==0)
-    if (screen && times[3]>0.0) {
+    if (screen && times[5]>0.0) {
       fprintf(screen,"\n\n-------------------------------------");
       fprintf(screen,"--------------------------------\n");
       fprintf(screen,"      GPU Time Info (average): ");
       fprintf(screen,"\n-------------------------------------");
       fprintf(screen,"--------------------------------\n");
 
-      if (procs_per_gpu()==1) {
+      if (time_device()) {
         fprintf(screen,"Data Transfer:   %.4f s.\n",times[0]/_replica_size);
         fprintf(screen,"Data Cast/Pack:  %.4f s.\n",times[4]/_replica_size);
         fprintf(screen,"Neighbor copy:   %.4f s.\n",times[1]/_replica_size);
@@ -212,7 +427,71 @@ void PairGPUDeviceT::output_times(UCL_Timer &time_pair, const double avg_split,
           fprintf(screen,"Neighbor unpack: %.4f s.\n",times[2]/_replica_size);
         fprintf(screen,"Force calc:      %.4f s.\n",times[3]/_replica_size);
       }
+      fprintf(screen,"GPU Overhead:    %.4f s.\n",times[5]/_replica_size);
       fprintf(screen,"Average split:   %.4f.\n",avg_split);
+      fprintf(screen,"Threads / atom:  %d.\n",threads_per_atom);
+      fprintf(screen,"Max Mem / Proc:  %.2f MB.\n",max_mb);
+      fprintf(screen,"CPU Driver_Time: %.4f s.\n",times[6]/_replica_size);
+      fprintf(screen,"CPU Idle_Time:   %.4f s.\n",times[7]/_replica_size);
+
+      fprintf(screen,"-------------------------------------");
+      fprintf(screen,"--------------------------------\n\n");
+    }
+}
+
+template <class numtyp, class acctyp>
+void PairGPUDeviceT::output_kspace_times(UCL_Timer &time_in, 
+                                         UCL_Timer &time_out,
+                                         UCL_Timer &time_map,
+                                         UCL_Timer &time_rho,
+                                         UCL_Timer &time_interp,
+                                         PairGPUAns<numtyp,acctyp> &ans, 
+                                         const double max_bytes, 
+                                         const double cpu_time, 
+                                         const double idle_time, FILE *screen) {
+  double single[8], times[8];
+
+  single[0]=time_out.total_seconds();
+  single[1]=time_in.total_seconds()+atom.transfer_time()+atom.cast_time();
+  single[2]=time_map.total_seconds();
+  single[3]=time_rho.total_seconds();
+  single[4]=time_interp.total_seconds();
+  single[5]=ans.transfer_time()+ans.cast_time();
+  single[6]=cpu_time;
+  single[7]=idle_time;
+
+  MPI_Reduce(single,times,8,MPI_DOUBLE,MPI_SUM,0,_comm_replica);
+
+  double my_max_bytes=max_bytes+atom.max_gpu_bytes();
+  double mpi_max_bytes;
+  MPI_Reduce(&my_max_bytes,&mpi_max_bytes,1,MPI_DOUBLE,MPI_MAX,0,_comm_replica);
+  double max_mb=mpi_max_bytes/(1024.0*1024.0);
+
+  if (replica_me()==0)
+    if (screen && times[6]>0.0) {
+      fprintf(screen,"\n\n-------------------------------------");
+      fprintf(screen,"--------------------------------\n");
+      fprintf(screen,"      GPU Time Info (average): ");
+      fprintf(screen,"\n-------------------------------------");
+      fprintf(screen,"--------------------------------\n");
+
+      if (time_device()) {
+        fprintf(screen,"Data Out:        %.4f s.\n",times[0]/_replica_size);
+        fprintf(screen,"Data In:         %.4f s.\n",times[1]/_replica_size);
+        fprintf(screen,"Kernel (map):    %.4f s.\n",times[2]/_replica_size);
+        fprintf(screen,"Kernel (rho):    %.4f s.\n",times[3]/_replica_size);
+        fprintf(screen,"Force interp:    %.4f s.\n",times[4]/_replica_size);
+        fprintf(screen,"Total rho:       %.4f s.\n",
+                (times[0]+times[2]+times[3])/_replica_size);
+        fprintf(screen,"Total interp:    %.4f s.\n",
+                (times[1]+times[4])/_replica_size);
+        fprintf(screen,"Force copy/cast: %.4f s.\n",times[5]/_replica_size);
+        fprintf(screen,"Total:           %.4f s.\n",
+                (times[0]+times[1]+times[2]+times[3]+times[4]+times[5])/
+                _replica_size);
+      }
+      fprintf(screen,"CPU Poisson:     %.4f s.\n",times[6]/_replica_size);
+      fprintf(screen,"CPU Idle Time:   %.4f s.\n",times[7]/_replica_size);
       fprintf(screen,"Max Mem / Proc:  %.2f MB.\n",max_mb);
 
       fprintf(screen,"-------------------------------------");
@@ -223,10 +502,17 @@ void PairGPUDeviceT::output_times(UCL_Timer &time_pair, const double avg_split,
 template <class numtyp, class acctyp>
 void PairGPUDeviceT::clear() {
   if (_init_count>0) {
+    _long_range_precompute=0;
     _init_count--;
     if (_init_count==0) {
       atom.clear();
-      nbor.clear();
+      _nbor_shared.clear();
+      if (_compiled) {
+        k_zero.clear();
+        k_info.clear();
+        delete dev_program;
+        _compiled=false;
+      }
     }
   }
 }
@@ -242,20 +528,79 @@ void PairGPUDeviceT::clear_device() {
 }
 
 template <class numtyp, class acctyp>
+int PairGPUDeviceT::compile_kernels() {
+  int flag=0;
+
+  if (_compiled)
+  	return flag;
+  	
+  std::string flags="-cl-mad-enable";
+  dev_program=new UCL_Program(*gpu);
+  int success=dev_program->load_string(pair_gpu_dev_kernel,flags.c_str());
+  if (success!=UCL_SUCCESS)
+    return -4;
+  k_zero.set_function(*dev_program,"kernel_zero");
+  k_info.set_function(*dev_program,"kernel_info");
+  _compiled=true;
+
+  UCL_H_Vec<int> h_gpu_lib_data(14,*gpu,UCL_NOT_PINNED);
+  UCL_D_Vec<int> d_gpu_lib_data(14,*gpu);
+  k_info.set_size(1,1);
+  k_info.run(&d_gpu_lib_data.begin());
+  ucl_copy(h_gpu_lib_data,d_gpu_lib_data,false);
+  
+  #ifndef USE_OPENCL
+  if (static_cast<double>(h_gpu_lib_data[0])/100.0>gpu->arch())
+    return -4;
+  #endif
+
+  _num_mem_threads=h_gpu_lib_data[1];
+  _warp_size=h_gpu_lib_data[2];
+  if (_threads_per_atom<1)
+    _threads_per_atom=h_gpu_lib_data[3];
+  if (_threads_per_charge<1)
+    _threads_per_charge=h_gpu_lib_data[13];
+  _pppm_max_spline=h_gpu_lib_data[4];
+  _pppm_block=h_gpu_lib_data[5];
+  _block_pair=h_gpu_lib_data[6];
+  _max_shared_types=h_gpu_lib_data[7];
+  _block_cell_2d=h_gpu_lib_data[8];
+  _block_cell_id=h_gpu_lib_data[9];
+  _block_nbor_build=h_gpu_lib_data[10];
+  _block_bio_pair=h_gpu_lib_data[11];
+  _max_bio_shared_types=h_gpu_lib_data[12];
+
+  if (static_cast<size_t>(_block_pair)>gpu->group_size())
+    _block_pair=gpu->group_size();
+  if (static_cast<size_t>(_block_bio_pair)>gpu->group_size())
+    _block_bio_pair=gpu->group_size();
+  if (_threads_per_atom>_warp_size)
+    _threads_per_atom=_warp_size;
+  if (_warp_size%_threads_per_atom!=0)
+    _threads_per_atom=1;
+  if (_threads_per_charge>_warp_size)
+    _threads_per_charge=_warp_size;
+  if (_warp_size%_threads_per_charge!=0)
+    _threads_per_charge=1;
+
+  return flag;    
+}
+
+template <class numtyp, class acctyp>
 double PairGPUDeviceT::host_memory_usage() const {
-  return atom.host_memory_usage()+
-         nbor.host_memory_usage()+4*sizeof(numtyp)+
+  return atom.host_memory_usage()+4*sizeof(numtyp)+
          sizeof(PairGPUDevice<numtyp,acctyp>);
 }
 
 template class PairGPUDevice<PRECISION,ACC_PRECISION>;
 PairGPUDevice<PRECISION,ACC_PRECISION> pair_gpu_device;
 
-bool lmp_init_device(MPI_Comm world, MPI_Comm replica, const int first_gpu,
-                     const int last_gpu, const int gpu_mode, 
-                     const double particle_split, const int nthreads) {
+int lmp_init_device(MPI_Comm world, MPI_Comm replica, const int first_gpu,
+                    const int last_gpu, const int gpu_mode, 
+                    const double particle_split, const int nthreads,
+                    const int t_per_atom) {
   return pair_gpu_device.init_device(world,replica,first_gpu,last_gpu,gpu_mode,
-                                     particle_split,nthreads);
+                                     particle_split,nthreads,t_per_atom);
 }
 
 void lmp_clear_device() {
@@ -264,14 +609,5 @@ void lmp_clear_device() {
 
 double lmp_gpu_forces(double **f, double **tor, double *eatom,
                       double **vatom, double *virial, double &ecoul) {
-  if (pair_gpu_device.init_count()) {
-    pair_gpu_device.stop_host_timer();
-    pair_gpu_device.gpu->sync();
-    double evdw=pair_gpu_device.atom.energy_virial(eatom,vatom,virial,ecoul);
-    pair_gpu_device.atom.get_answers(f,tor);
-
-    return evdw;
-  }
-  return 0.0;
+  return pair_gpu_device.fix_gpu(f,tor,eatom,vatom,virial,ecoul);
 }
-

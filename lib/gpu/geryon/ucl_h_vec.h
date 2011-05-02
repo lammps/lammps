@@ -13,7 +13,7 @@
     copyright            : (C) 2009 by W. Michael Brown
     email                : brownw@ornl.gov
  ***************************************************************************/
- 
+
 /* -----------------------------------------------------------------------
    Copyright (2009) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -39,7 +39,11 @@ class UCL_H_Vec : public UCL_BaseMat {
    };
    typedef numtyp data_type; 
    
-  UCL_H_Vec() : _kind(UCL_VIEW), _cols(0) { }
+  UCL_H_Vec() : _kind(UCL_VIEW), _cols(0) {
+    #ifdef _OCL_MAT
+    _carray=(cl_mem)(0);
+    #endif
+  }
   ~UCL_H_Vec() { if (_kind!=UCL_VIEW) _host_free(*this,_kind); }
   
   /// Construct with n columns
@@ -59,18 +63,24 @@ class UCL_H_Vec : public UCL_BaseMat {
   inline int alloc(const size_t cols, mat_type &cq,
                    const enum UCL_MEMOPT kind=UCL_RW_OPTIMIZED) {
     clear();
-    _cols=cols;
+
     _row_bytes=cols*sizeof(numtyp);
-    _kind=kind;
     int err=_host_alloc(*this,cq,_row_bytes,kind);
-    _end=_array+cols;
-    #ifndef UCL_NO_EXIT
+
     if (err!=UCL_SUCCESS) {
+      #ifndef UCL_NO_EXIT
       std::cerr << "UCL Error: Could not allocate " << _row_bytes
                 << " bytes on host.\n";
+      _row_bytes=0;
       exit(1);
+      #endif
+      _row_bytes=0;
+      return err;
     }
-    #endif 
+
+    _cols=cols;
+    _kind=kind;
+    _end=_array+cols;
     return err;
   }    
 
@@ -84,18 +94,24 @@ class UCL_H_Vec : public UCL_BaseMat {
   inline int alloc(const size_t cols, UCL_Device &device,
                    const enum UCL_MEMOPT kind=UCL_RW_OPTIMIZED) {
     clear();
-    _cols=cols;
+
     _row_bytes=cols*sizeof(numtyp);
-    _kind=kind;
     int err=_host_alloc(*this,device,_row_bytes,kind);
-    _end=_array+cols;
-    #ifndef UCL_NO_EXIT
+
     if (err!=UCL_SUCCESS) {
+      #ifndef UCL_NO_EXIT
       std::cerr << "UCL Error: Could not allocate " << _row_bytes
                 << " bytes on host.\n";
+      _row_bytes=0;
       exit(1);
+      #endif 
+      _row_bytes=0;
+      return err;
     }
-    #endif 
+
+    _cols=cols;
+    _kind=kind;
+    _end=_array+cols;
     return err;
   }
   

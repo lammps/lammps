@@ -34,33 +34,36 @@ __kernel void kernel_sphere_gb(__global numtyp4 *x_,__global numtyp4 *q,
                                __global acctyp4 *ans, __global acctyp *engv, 
                                __global int *err_flag, const int eflag, 
                                const int vflag,const int start, const int inum, 
-                               const int nall) {
-  __local numtyp sp_lj[4];
+                               const int nall, const int t_per_atom) {
+  int tid=THREAD_ID_X;
+  int ii=mul24((int)BLOCK_ID_X,(int)(BLOCK_SIZE_X)/t_per_atom);
+  ii+=tid/t_per_atom+start;
+  int offset=tid%t_per_atom;
 
-  // ii indexes the two interacting particles in gi
-  int ii=THREAD_ID_X;
-  if (ii<4)
-    sp_lj[ii]=gum[ii+3];    
-  ii+=mul24((int)BLOCK_ID_X,(int)BLOCK_SIZE_X)+start;
-  __syncthreads();
+  __local numtyp sp_lj[4];
+  sp_lj[0]=gum[3];    
+  sp_lj[1]=gum[4];    
+  sp_lj[2]=gum[5];    
+  sp_lj[3]=gum[6];    
+
+  acctyp energy=(acctyp)0;
+  acctyp4 f;
+  f.x=(acctyp)0;
+  f.y=(acctyp)0;
+  f.z=(acctyp)0;
+  acctyp virial[6];
+  for (int i=0; i<6; i++)
+    virial[i]=(acctyp)0;
 
   if (ii<inum) {
-  
-    acctyp energy=(acctyp)0;
-    acctyp4 f;
-    f.x=(acctyp)0;
-    f.y=(acctyp)0;
-    f.z=(acctyp)0;
-    acctyp virial[6];
-    for (int i=0; i<6; i++)
-      virial[i]=(acctyp)0;
-  
     __global int *nbor=dev_nbor+ii;
     int i=*nbor;
     nbor+=stride;
     int numj=*nbor;
     nbor+=stride;
     __global int *nbor_end=nbor+stride*numj;
+    nbor+=mul24(offset,stride);
+    int n_stride=mul24(t_per_atom,stride);
   
     numtyp4 ix=x_[i];
     int itype=ix.w;
@@ -69,7 +72,7 @@ __kernel void kernel_sphere_gb(__global numtyp4 *x_,__global numtyp4 *q,
     numtyp one_well=well[itype].x;
   
     numtyp factor_lj;
-    for ( ; nbor<nbor_end; nbor+=stride) {
+    for ( ; nbor<nbor_end; nbor+=n_stride) {
   
       int j=*nbor;
       factor_lj = sp_lj[sbmask(j)];
@@ -241,8 +244,47 @@ __kernel void kernel_sphere_gb(__global numtyp4 *x_,__global numtyp4 *q,
         f.z+=temp1*dchi[2]-temp2*dUr[2];
       }
     } // for nbor
+  } // if ii
+  
+  // Reduce answers
+  if (t_per_atom>1) {
+    __local acctyp red_acc[6][BLOCK_PAIR];
+    
+    red_acc[0][tid]=f.x;
+    red_acc[1][tid]=f.y;
+    red_acc[2][tid]=f.z;
+    red_acc[3][tid]=energy;
 
-    // Store answers
+    for (unsigned int s=t_per_atom/2; s>0; s>>=1) {
+      if (offset < s) {
+        for (int r=0; r<4; r++)
+          red_acc[r][tid] += red_acc[r][tid+s];
+      }
+    }
+    
+    f.x=red_acc[0][tid];
+    f.y=red_acc[1][tid];
+    f.z=red_acc[2][tid];
+    energy=red_acc[3][tid];
+
+    if (vflag>0) {
+      for (int r=0; r<6; r++)
+        red_acc[r][tid]=virial[r];
+
+      for (unsigned int s=t_per_atom/2; s>0; s>>=1) {
+        if (offset < s) {
+          for (int r=0; r<6; r++)
+            red_acc[r][tid] += red_acc[r][tid+s];
+        }
+      }
+    
+      for (int r=0; r<6; r++)
+        virial[r]=red_acc[r][tid];
+    }
+  }
+
+  // Store answers
+  if (ii<inum && offset==0) {
     __global acctyp *ap1=engv+ii;
     if (eflag>0) {
       *ap1=energy;
@@ -265,39 +307,42 @@ __kernel void kernel_lj(__global numtyp4 *x_, __global numtyp4 *lj1,
                         __global acctyp4 *ans, __global acctyp *engv, 
                         __global int *err_flag, const int eflag, 
                         const int vflag, const int start, const int inum, 
-                        const int nall) {
-  __local numtyp sp_lj[4];                              
-  
-  // ii indexes the two interacting particles in gi
-  int ii=THREAD_ID_X;
-  if (ii<4)
-    sp_lj[ii]=gum[ii+3];    
-  ii+=mul24((int)BLOCK_ID_X,(int)BLOCK_SIZE_X)+start;
-  __syncthreads();
+                        const int nall, const int t_per_atom) {
+  int tid=THREAD_ID_X;
+  int ii=mul24((int)BLOCK_ID_X,(int)(BLOCK_SIZE_X)/t_per_atom);
+  ii+=tid/t_per_atom+start;
+  int offset=tid%t_per_atom;
 
+  __local numtyp sp_lj[4];
+  sp_lj[0]=gum[3];    
+  sp_lj[1]=gum[4];    
+  sp_lj[2]=gum[5];    
+  sp_lj[3]=gum[6];    
+
+  acctyp energy=(acctyp)0;
+  acctyp4 f;
+  f.x=(acctyp)0;
+  f.y=(acctyp)0;
+  f.z=(acctyp)0;
+  acctyp virial[6];
+  for (int i=0; i<6; i++)
+    virial[i]=(acctyp)0;
+  
   if (ii<inum) {
-  
-    acctyp energy=(acctyp)0;
-    acctyp4 f;
-    f.x=(acctyp)0;
-    f.y=(acctyp)0;
-    f.z=(acctyp)0;
-    acctyp virial[6];
-    for (int i=0; i<6; i++)
-      virial[i]=(acctyp)0;
-  
     __global int *nbor=dev_ij+ii;
     int i=*nbor;
     nbor+=stride;
     int numj=*nbor;
     nbor+=stride;
     __global int *list_end=nbor+mul24(stride,numj);
+    nbor+=mul24(offset,stride);
+    int n_stride=mul24(t_per_atom,stride);
   
     numtyp4 ix=x_[i];
     int itype=ix.w;
 
     numtyp factor_lj;
-    for ( ; nbor<list_end; nbor+=stride) {
+    for ( ; nbor<list_end; nbor+=n_stride) {
   
       int j=*nbor;
       factor_lj = sp_lj[sbmask(j)];
@@ -338,8 +383,47 @@ __kernel void kernel_lj(__global numtyp4 *x_, __global numtyp4 *lj1,
       }
 
     } // for nbor
+  } // if ii
+  
+  // Reduce answers
+  if (t_per_atom>1) {
+    __local acctyp red_acc[6][BLOCK_PAIR];
+    
+    red_acc[0][tid]=f.x;
+    red_acc[1][tid]=f.y;
+    red_acc[2][tid]=f.z;
+    red_acc[3][tid]=energy;
 
-    // Store answers
+    for (unsigned int s=t_per_atom/2; s>0; s>>=1) {
+      if (offset < s) {
+        for (int r=0; r<4; r++)
+          red_acc[r][tid] += red_acc[r][tid+s];
+      }
+    }
+    
+    f.x=red_acc[0][tid];
+    f.y=red_acc[1][tid];
+    f.z=red_acc[2][tid];
+    energy=red_acc[3][tid];
+
+    if (vflag>0) {
+      for (int r=0; r<6; r++)
+        red_acc[r][tid]=virial[r];
+
+      for (unsigned int s=t_per_atom/2; s>0; s>>=1) {
+        if (offset < s) {
+          for (int r=0; r<6; r++)
+            red_acc[r][tid] += red_acc[r][tid+s];
+        }
+      }
+    
+      for (int r=0; r<6; r++)
+        virial[r]=red_acc[r][tid];
+    }
+  }
+
+  // Store answers
+  if (ii<inum && offset==0) {
     __global acctyp *ap1=engv+ii;
     if (eflag>0) {
       *ap1+=energy;
@@ -361,50 +445,54 @@ __kernel void kernel_lj(__global numtyp4 *x_, __global numtyp4 *lj1,
 
 __kernel void kernel_lj_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in, 
                              __global numtyp4* lj3_in, __global numtyp *gum, 
-                             const int stride, 
-                             __global int *dev_ij, __global acctyp4 *ans, 
-                             __global acctyp *engv, __global int *err_flag,
-                             const int eflag,const int vflag, const int start,
-                             const int inum, const int nall) {
-  // ii indexes the two interacting particles in gi
-  int ii=THREAD_ID_X;
+                             const int stride, __global int *dev_ij,
+                             __global acctyp4 *ans, __global acctyp *engv,
+                             __global int *err_flag, const int eflag,
+                             const int vflag, const int start, const int inum,
+                             const int nall, const int t_per_atom) {
+  int tid=THREAD_ID_X;
+  int ii=mul24((int)BLOCK_ID_X,(int)(BLOCK_SIZE_X)/t_per_atom);
+  ii+=tid/t_per_atom+start;
+  int offset=tid%t_per_atom;
+
   __local numtyp sp_lj[4];                              
   __local numtyp4 lj1[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   __local numtyp4 lj3[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
-  if (ii<4)
-    sp_lj[ii]=gum[ii+3];    
-  if (ii<MAX_SHARED_TYPES*MAX_SHARED_TYPES) {
-    lj1[ii]=lj1_in[ii];
+  if (tid<4)
+    sp_lj[tid]=gum[tid+3];    
+  if (tid<MAX_SHARED_TYPES*MAX_SHARED_TYPES) {
+    lj1[tid]=lj1_in[tid];
     if (eflag>0)
-      lj3[ii]=lj3_in[ii];
+      lj3[tid]=lj3_in[tid];
   }
-  ii+=mul24((int)BLOCK_ID_X,(int)BLOCK_SIZE_X)+start;
+  
+  acctyp energy=(acctyp)0;
+  acctyp4 f;
+  f.x=(acctyp)0;
+  f.y=(acctyp)0;
+  f.z=(acctyp)0;
+  acctyp virial[6];
+  for (int i=0; i<6; i++)
+    virial[i]=(acctyp)0;
+  
   __syncthreads();
   
   if (ii<inum) {
-  
-    acctyp energy=(acctyp)0;
-    acctyp4 f;
-    f.x=(acctyp)0;
-    f.y=(acctyp)0;
-    f.z=(acctyp)0;
-    acctyp virial[6];
-    for (int i=0; i<6; i++)
-      virial[i]=(acctyp)0;
-  
     __global int *nbor=dev_ij+ii;
     int i=*nbor;
     nbor+=stride;
     int numj=*nbor;
     nbor+=stride;
     __global int *list_end=nbor+mul24(stride,numj);
-  
+    nbor+=mul24(offset,stride);
+    int n_stride=mul24(t_per_atom,stride);
+
     numtyp4 ix=x_[i];
     int iw=ix.w;
     int itype=mul24((int)MAX_SHARED_TYPES,iw);
 
     numtyp factor_lj;
-    for ( ; nbor<list_end; nbor+=stride) {
+    for ( ; nbor<list_end; nbor+=n_stride) {
   
       int j=*nbor;
       factor_lj = sp_lj[sbmask(j)];
@@ -443,8 +531,47 @@ __kernel void kernel_lj_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
       }
 
     } // for nbor
+  } // if ii
+  
+  // Reduce answers
+  if (t_per_atom>1) {
+    __local acctyp red_acc[6][BLOCK_PAIR];
+    
+    red_acc[0][tid]=f.x;
+    red_acc[1][tid]=f.y;
+    red_acc[2][tid]=f.z;
+    red_acc[3][tid]=energy;
 
-    // Store answers
+    for (unsigned int s=t_per_atom/2; s>0; s>>=1) {
+      if (offset < s) {
+        for (int r=0; r<4; r++)
+          red_acc[r][tid] += red_acc[r][tid+s];
+      }
+    }
+    
+    f.x=red_acc[0][tid];
+    f.y=red_acc[1][tid];
+    f.z=red_acc[2][tid];
+    energy=red_acc[3][tid];
+
+    if (vflag>0) {
+      for (int r=0; r<6; r++)
+        red_acc[r][tid]=virial[r];
+
+      for (unsigned int s=t_per_atom/2; s>0; s>>=1) {
+        if (offset < s) {
+          for (int r=0; r<6; r++)
+            red_acc[r][tid] += red_acc[r][tid+s];
+        }
+      }
+    
+      for (int r=0; r<6; r++)
+        virial[r]=red_acc[r][tid];
+    }
+  }
+
+  // Store answers
+  if (ii<inum && offset==0) {
     __global acctyp *ap1=engv+ii;
     if (eflag>0) {
       *ap1+=energy;

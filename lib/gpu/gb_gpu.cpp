@@ -49,14 +49,14 @@ void gb_gpu_pack_nbors(GBMT &gbm, const int GX, const int BX, const int start,
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
-bool gb_gpu_init(const int ntypes, const double gamma,
-                 const double upsilon, const double mu, double **shape,
-                 double **well, double **cutsq, double **sigma,
-                 double **epsilon, double *host_lshape, int **form,
-                 double **host_lj1, double **host_lj2, double **host_lj3,
-                 double **host_lj4, double **offset, double *special_lj,
-                 const int inum, const int nall, const int max_nbors, 
-                 const double cell_size, int &gpu_mode, FILE *screen) {
+int gb_gpu_init(const int ntypes, const double gamma,
+                const double upsilon, const double mu, double **shape,
+                double **well, double **cutsq, double **sigma,
+                double **epsilon, double *host_lshape, int **form,
+                double **host_lj1, double **host_lj2, double **host_lj3,
+                double **host_lj4, double **offset, double *special_lj,
+                const int inum, const int nall, const int max_nbors, 
+                const double cell_size, int &gpu_mode, FILE *screen) {
   GBMF.clear();
   gpu_mode=GBMF.device->gpu_mode();
   double gpu_split=GBMF.device->particle_split();
@@ -77,14 +77,12 @@ bool gb_gpu_init(const int ntypes, const double gamma,
     fflush(screen);
   }
 
-  if (world_me==0) {
-    bool init_ok=GBMF.init(ntypes, gamma, upsilon, mu, shape, well, cutsq, 
-                           sigma, epsilon, host_lshape, form, host_lj1, 
-                           host_lj2, host_lj3, host_lj4, offset, special_lj, 
-                           inum, nall, max_nbors, cell_size, gpu_split, screen);
-    if (!init_ok)
-      return false;
-  }
+  int init_ok=0;
+  if (world_me==0)
+    init_ok=GBMF.init(ntypes, gamma, upsilon, mu, shape, well, cutsq, 
+                      sigma, epsilon, host_lshape, form, host_lj1, 
+                      host_lj2, host_lj3, host_lj4, offset, special_lj, 
+                      inum, nall, max_nbors, cell_size, gpu_split, screen);
 
   GBMF.device->world_barrier();
   if (message)
@@ -99,22 +97,22 @@ bool gb_gpu_init(const int ntypes, const double gamma,
                 last_gpu,i);
       fflush(screen);
     }
-    if (gpu_rank==i && world_me!=0) {
-      bool init_ok=GBMF.init(ntypes, gamma, upsilon, mu, shape, well, cutsq, 
-                             sigma, epsilon, host_lshape, form, host_lj1, 
-                             host_lj2, host_lj3, host_lj4, offset, special_lj, 
-                             inum, nall, max_nbors, cell_size, gpu_split, 
-                             screen);
-      if (!init_ok)
-        return false;
-    }
+    if (gpu_rank==i && world_me!=0)
+      init_ok=GBMF.init(ntypes, gamma, upsilon, mu, shape, well, cutsq,  sigma,
+                        epsilon, host_lshape, form, host_lj1, host_lj2,
+                        host_lj3, host_lj4, offset, special_lj,  inum, nall,
+                        max_nbors, cell_size, gpu_split,  screen);
+
     GBMF.device->gpu_barrier();
     if (message) 
       fprintf(screen,"Done.\n");
   }
   if (message)
     fprintf(screen,"\n");
-  return true;
+
+  if (init_ok==0)
+    GBMF.estimate_gpu_overhead();
+  return init_ok;
 }
 
 // ---------------------------------------------------------------------------
@@ -131,8 +129,8 @@ template <class gbmtyp>
 inline void _gb_gpu_build_nbor_list(gbmtyp &gbm, const int inum,
                                     const int host_inum, const int nall, 
                                     double **host_x, double **host_quat,
-                                    int *host_type, double *boxlo,
-                                    double *boxhi, bool &success) {
+                                    int *host_type, double *sublo,
+                                    double *subhi, bool &success) {
   gbm.nbor_time_avail=true;
 
   success=true;
@@ -144,7 +142,7 @@ inline void _gb_gpu_build_nbor_list(gbmtyp &gbm, const int inum,
   gbm.atom->cast_copy_x(host_x,host_type);
   int mn;
   gbm.nbor->build_nbor_list(inum, host_inum, nall, *gbm.atom,
-                            boxlo, boxhi, NULL, NULL, NULL, success, mn);
+                            sublo, subhi, NULL, NULL, NULL, success, mn);
   gbm.nbor->copy_unpacked(inum,mn);
   gbm.last_ellipse=inum;
   gbm.max_last_ellipse=inum;
@@ -163,7 +161,7 @@ void _gb_gpu_reset_nbors(gbmtyp &gbm, const int nall,
     
   gbm.nbor_time_avail=true;
 
-  int mn=gbm.nbor->max_nbor_loop(inum,numj);
+  int mn=gbm.nbor->max_nbor_loop(inum,numj,ilist);
   gbm.resize_atom(inum,nall,success);
   gbm.resize_local(inum,0,mn,osize,success);
   if (!success)
@@ -216,9 +214,10 @@ void _gb_gpu_gayberne(GBMT &gbm, const bool _eflag, const bool _vflag) {
   else
     vflag=0;
   
-  int GX=static_cast<int>(ceil(static_cast<double>(gbm.atom->inum())/BX));
+  int GX=static_cast<int>(ceil(static_cast<double>(gbm.ans->inum())/
+                               (BX/gbm._threads_per_atom)));
   int stride=gbm.nbor->nbor_pitch();
-  int ainum=gbm.atom->inum();
+  int ainum=gbm.ans->inum();
   int anall=gbm.atom->nall();
 
   if (gbm.multiple_forms) {
@@ -226,7 +225,7 @@ void _gb_gpu_gayberne(GBMT &gbm, const bool _eflag, const bool _vflag) {
     if (gbm.last_ellipse>0) {
       // ------------ ELLIPSE_ELLIPSE and ELLIPSE_SPHERE ---------------
       GX=static_cast<int>(ceil(static_cast<double>(gbm.last_ellipse)/
-                               static_cast<double>(BX)));
+                               (BX/gbm._threads_per_atom)));
       gb_gpu_pack_nbors(gbm,GX,BX, 0, gbm.last_ellipse,ELLIPSE_SPHERE,
 			ELLIPSE_ELLIPSE);
       gbm.time_kernel.stop();
@@ -237,11 +236,12 @@ void _gb_gpu_gayberne(GBMT &gbm, const bool _eflag, const bool _vflag) {
            &gbm.atom->dev_quat.begin(), &gbm.shape.begin(), &gbm.well.begin(),
            &gbm.gamma_upsilon_mu.begin(), &gbm.sigma_epsilon.begin(), 
            &gbm._lj_types, &gbm.lshape.begin(), &gbm.nbor->dev_nbor.begin(),
-           &stride, &gbm.atom->dev_ans.begin(),&ainum,&gbm.atom->dev_engv.begin(),
-           &gbm.dev_error.begin(), &eflag, &vflag, &gbm.last_ellipse, &anall);
+           &stride, &gbm.ans->dev_ans.begin(),&ainum,&gbm.ans->dev_engv.begin(),
+           &gbm.dev_error.begin(), &eflag, &vflag, &gbm.last_ellipse, &anall,
+           &gbm._threads_per_atom);
       gbm.time_gayberne.stop();
 
-      if (gbm.last_ellipse==gbm.atom->inum()) {
+      if (gbm.last_ellipse==gbm.ans->inum()) {
         gbm.time_kernel2.start();
         gbm.time_kernel2.stop();
         gbm.time_gayberne2.start();
@@ -254,9 +254,10 @@ void _gb_gpu_gayberne(GBMT &gbm, const bool _eflag, const bool _vflag) {
       // ------------ SPHERE_ELLIPSE ---------------
 
       gbm.time_kernel2.start();
-      GX=static_cast<int>(ceil(static_cast<double>(gbm.atom->inum()-
-                               gbm.last_ellipse)/BX));
-      gb_gpu_pack_nbors(gbm,GX,BX,gbm.last_ellipse,gbm.atom->inum(),
+      GX=static_cast<int>(ceil(static_cast<double>(gbm.ans->inum()-
+                               gbm.last_ellipse)/
+                               (BX/gbm._threads_per_atom)));
+      gb_gpu_pack_nbors(gbm,GX,BX,gbm.last_ellipse,gbm.ans->inum(),
 			SPHERE_ELLIPSE,SPHERE_ELLIPSE);
       gbm.time_kernel2.stop();
 
@@ -266,13 +267,14 @@ void _gb_gpu_gayberne(GBMT &gbm, const bool _eflag, const bool _vflag) {
               &gbm.shape.begin(), &gbm.well.begin(), 
               &gbm.gamma_upsilon_mu.begin(), &gbm.sigma_epsilon.begin(), 
               &gbm._lj_types, &gbm.lshape.begin(), 
-              &gbm.nbor->dev_nbor.begin(), &stride, &gbm.atom->dev_ans.begin(),
-              &gbm.atom->dev_engv.begin(), &gbm.dev_error.begin(), &eflag,
-              &vflag, &gbm.last_ellipse, &ainum, &anall);
+              &gbm.nbor->dev_nbor.begin(), &stride, &gbm.ans->dev_ans.begin(),
+              &gbm.ans->dev_engv.begin(), &gbm.dev_error.begin(), &eflag,
+              &vflag, &gbm.last_ellipse, &ainum, &anall,
+              &gbm._threads_per_atom);
       gbm.time_gayberne2.stop();
    } else {
-      gbm.atom->dev_ans.zero();
-      gbm.atom->dev_engv.zero();
+      gbm.ans->dev_ans.zero();
+      gbm.ans->dev_engv.zero();
       gbm.time_kernel.stop();
       gbm.time_gayberne.start();                                 
       gbm.time_gayberne.stop();
@@ -284,29 +286,31 @@ void _gb_gpu_gayberne(GBMT &gbm, const bool _eflag, const bool _vflag) {
     
     // ------------         LJ      ---------------
     gbm.time_pair.start();
-    if (gbm.last_ellipse<gbm.atom->inum()) {
+    if (gbm.last_ellipse<gbm.ans->inum()) {
       if (gbm.shared_types) {
         GBMF.k_lj_fast.set_size(GX,BX);
         GBMF.k_lj_fast.run(&gbm.atom->dev_x.begin(), &gbm.lj1.begin(),
                            &gbm.lj3.begin(), &gbm.gamma_upsilon_mu.begin(),
                            &stride, &gbm.nbor->dev_packed.begin(),
-                           &gbm.atom->dev_ans.begin(),
-                           &gbm.atom->dev_engv.begin(), &gbm.dev_error.begin(),
-                           &eflag, &vflag, &gbm.last_ellipse, &ainum, &anall);
+                           &gbm.ans->dev_ans.begin(),
+                           &gbm.ans->dev_engv.begin(), &gbm.dev_error.begin(),
+                           &eflag, &vflag, &gbm.last_ellipse, &ainum, &anall,
+                           &gbm._threads_per_atom);
       } else {
         GBMF.k_lj.set_size(GX,BX);
         GBMF.k_lj.run(&gbm.atom->dev_x.begin(), &gbm.lj1.begin(),
                       &gbm.lj3.begin(), &gbm._lj_types, 
                       &gbm.gamma_upsilon_mu.begin(), &stride, 
-                      &gbm.nbor->dev_packed.begin(), &gbm.atom->dev_ans.begin(),
-                      &gbm.atom->dev_engv.begin(), &gbm.dev_error.begin(),
-                      &eflag, &vflag, &gbm.last_ellipse, &ainum, &anall);
+                      &gbm.nbor->dev_packed.begin(), &gbm.ans->dev_ans.begin(),
+                      &gbm.ans->dev_engv.begin(), &gbm.dev_error.begin(),
+                      &eflag, &vflag, &gbm.last_ellipse, &ainum, &anall,
+                      &gbm._threads_per_atom);
       }
     }
     gbm.time_pair.stop();
   } else {
     gbm.time_kernel.start();
-    gb_gpu_pack_nbors(gbm, GX, BX, 0, gbm.atom->inum(),SPHERE_SPHERE,
+    gb_gpu_pack_nbors(gbm, GX, BX, 0, gbm.ans->inum(),SPHERE_SPHERE,
 		      ELLIPSE_ELLIPSE);
     gbm.time_kernel.stop();
     gbm.time_gayberne.start(); 
@@ -315,9 +319,9 @@ void _gb_gpu_gayberne(GBMT &gbm, const bool _eflag, const bool _vflag) {
             &gbm.shape.begin(), &gbm.well.begin(), 
             &gbm.gamma_upsilon_mu.begin(), &gbm.sigma_epsilon.begin(), 
             &gbm._lj_types, &gbm.lshape.begin(), &gbm.nbor->dev_nbor.begin(),
-            &stride, &gbm.atom->dev_ans.begin(), &ainum,
-            &gbm.atom->dev_engv.begin(), &gbm.dev_error.begin(),
-            &eflag, &vflag, &ainum, &anall);
+            &stride, &gbm.ans->dev_ans.begin(), &ainum,
+            &gbm.ans->dev_engv.begin(), &gbm.dev_error.begin(),
+            &eflag, &vflag, &ainum, &anall, &gbm._threads_per_atom);
     gbm.time_gayberne.stop();
   }
 }
@@ -326,30 +330,31 @@ void _gb_gpu_gayberne(GBMT &gbm, const bool _eflag, const bool _vflag) {
 // Reneighbor on GPU if necessary and then compute forces, torques, energies
 // ---------------------------------------------------------------------------
 template <class gbmtyp>
-inline int * _gb_gpu_compute_n(gbmtyp &gbm, const int timestep, const int ago,
-		               const int inum_full, const int nall,
-			       double **host_x, int *host_type,
-			       double *boxlo, double *boxhi, const bool eflag,
-			       const bool vflag, const bool eatom,
+inline int** _gb_gpu_compute_n(gbmtyp &gbm, const int ago,
+                               const int inum_full, const int nall,
+                               double **host_x, int *host_type,
+                               double *sublo, double *subhi, const bool eflag,
+                               const bool vflag, const bool eatom,
                                const bool vatom, int &host_start,
-		               const double cpu_time, bool &success,
-			       double **host_quat) {
+                               int **ilist, int **jnum, const double cpu_time,
+                               bool &success, double **host_quat) {
   gbm.acc_timers();
   if (inum_full==0) {
+    host_start=0;
     gbm.zero_timers();
     return NULL;
   }
 
-  gbm.hd_balancer.balance(cpu_time,gbm.nbor->gpu_nbor());
-  int inum=gbm.hd_balancer.get_gpu_count(timestep,ago,inum_full);
-  gbm.atom->inum(inum);
+  gbm.hd_balancer.balance(cpu_time);
+  int inum=gbm.hd_balancer.get_gpu_count(ago,inum_full);
+  gbm.ans->inum(inum);
   gbm.last_ellipse=std::min(inum,gbm.max_last_ellipse);
   host_start=inum;
   
   // Build neighbor list on GPU if necessary
   if (ago==0) {
     _gb_gpu_build_nbor_list(gbm, inum, inum_full-inum, nall, host_x,
-                            host_quat, host_type, boxlo, boxhi, success);
+                            host_quat, host_type, sublo, subhi, success);
     if (!success)
       return NULL;
     gbm.atom->cast_quat_data(host_quat[0]);
@@ -361,47 +366,49 @@ inline int * _gb_gpu_compute_n(gbmtyp &gbm, const int timestep, const int ago,
     gbm.atom->add_x_data(host_x,host_type);
   }
 
-  gbm.atom->add_other_data();
+  gbm.atom->add_quat_data();
+  *ilist=gbm.nbor->host_ilist.begin();
+  *jnum=gbm.nbor->host_acc.begin();
 
   _gb_gpu_gayberne<PRECISION,ACC_PRECISION>(gbm,eflag,vflag);
-  gbm.atom->copy_answers(eflag,vflag,eatom,vatom);
+  gbm.ans->copy_answers(eflag,vflag,eatom,vatom);
+  gbm.device->add_ans_object(gbm.ans);
   gbm.hd_balancer.stop_timer();
-  return gbm.device->nbor.host_nbor.begin();
+  return gbm.nbor->host_jlist.begin()-host_start;
 }
 
-int * gb_gpu_compute_n(const int timestep, const int ago, const int inum_full,
-	 	       const int nall, double **host_x, int *host_type,
-                       double *boxlo, double *boxhi, const bool eflag,
-		       const bool vflag, const bool eatom, const bool vatom,
-                       int &host_start, const double cpu_time, bool &success,
-		       double **host_quat) {
-  return _gb_gpu_compute_n(GBMF, timestep, ago, inum_full, nall, host_x,
-			   host_type, boxlo, boxhi, eflag, vflag, eatom, vatom,
-                           host_start, cpu_time, success, host_quat);
+int** gb_gpu_compute_n(const int ago, const int inum_full, const int nall,
+                       double **host_x, int *host_type, double *sublo,
+                       double *subhi, const bool eflag, const bool vflag,
+                       const bool eatom, const bool vatom, int &host_start,
+                       int **ilist, int **jnum, const double cpu_time,
+                       bool &success, double **host_quat) {
+  return _gb_gpu_compute_n(GBMF, ago, inum_full, nall, host_x, host_type, sublo,
+                           subhi, eflag, vflag, eatom, vatom, host_start, ilist,
+                           jnum, cpu_time, success, host_quat);
 }  
 
 // ---------------------------------------------------------------------------
 // Copy nbor list from host if necessary and then calculate forces, torques,..
 // ---------------------------------------------------------------------------
 template <class gbmtyp>
-inline int * _gb_gpu_compute(gbmtyp &gbm, const int timestep, const int f_ago,
-			     const int inum_full,const int nall,double **host_x,
-			     int *host_type, int *ilist, int *numj,
-			     int **firstneigh, const bool eflag,
-			     const bool vflag, const bool eatom,
-                             const bool vatom, int &host_start,
-			     const double cpu_time, bool &success,
-			     double **host_quat) {
+inline int * _gb_gpu_compute(gbmtyp &gbm, const int f_ago, const int inum_full,
+                             const int nall,double **host_x, int *host_type,
+                             int *ilist, int *numj, int **firstneigh,
+                             const bool eflag, const bool vflag,
+                             const bool eatom, const bool vatom,
+                             int &host_start, const double cpu_time,
+                             bool &success, double **host_quat) {
   gbm.acc_timers();
   if (inum_full==0) {
+    host_start=0;
     gbm.zero_timers();
     return NULL;
   }
   
   int ago=gbm.hd_balancer.ago_first(f_ago);
-  int inum=gbm.hd_balancer.balance(timestep,ago,inum_full,cpu_time,
-				   gbm.nbor->gpu_nbor());
-  gbm.atom->inum(inum);
+  int inum=gbm.hd_balancer.balance(ago,inum_full,cpu_time);
+  gbm.ans->inum(inum);
   gbm.last_ellipse=std::min(inum,gbm.max_last_ellipse);
   host_start=inum;
 
@@ -421,21 +428,21 @@ inline int * _gb_gpu_compute(gbmtyp &gbm, const int timestep, const int f_ago,
   gbm.atom->cast_quat_data(host_quat[0]);
   gbm.hd_balancer.start_timer();
   gbm.atom->add_x_data(host_x,host_type);
-  gbm.atom->add_other_data();
+  gbm.atom->add_quat_data();
 
   _gb_gpu_gayberne<PRECISION,ACC_PRECISION>(gbm,eflag,vflag);
-  gbm.atom->copy_answers(eflag,vflag,eatom,vatom,list);
+  gbm.ans->copy_answers(eflag,vflag,eatom,vatom,list);
+  gbm.device->add_ans_object(gbm.ans);
   gbm.hd_balancer.stop_timer();
   return list;
 }
 
-int * gb_gpu_compute(const int timestep, const int ago, const int inum_full,
-	 	     const int nall, double **host_x, int *host_type,
-                     int *ilist, int *numj, int **firstneigh,
-		     const bool eflag, const bool vflag, const bool eatom,
-                     const bool vatom, int &host_start, const double cpu_time,
-                     bool &success, double **host_quat) {
-  return _gb_gpu_compute(GBMF, timestep, ago, inum_full, nall, host_x,
+int * gb_gpu_compute(const int ago, const int inum_full, const int nall,
+                     double **host_x, int *host_type, int *ilist, int *numj,
+                     int **firstneigh, const bool eflag, const bool vflag,
+                     const bool eatom, const bool vatom, int &host_start,
+                     const double cpu_time, bool &success, double **host_quat) {
+  return _gb_gpu_compute(GBMF, ago, inum_full, nall, host_x,
 			 host_type, ilist, numj, firstneigh, eflag, vflag,
 			 eatom, vatom, host_start, cpu_time, success,
                          host_quat);

@@ -25,6 +25,7 @@
 #define NVD_TIMER_H
 
 #include "nvd_macros.h"
+#include "nvd_device.h"
 
 namespace ucl_cudadr {
 
@@ -66,11 +67,22 @@ class UCL_Timer {
   /// Stop timing on command queue
   inline void stop() { CU_SAFE_CALL(cuEventRecord(stop_event,_cq)); }
   
+  /// Block until the start event has been reached on device
+  inline void sync_start() 
+    { CU_SAFE_CALL(cuEventSynchronize(start_event)); }
+
+  /// Block until the stop event has been reached on device
+  inline void sync_stop() 
+    { CU_SAFE_CALL(cuEventSynchronize(stop_event)); }
+
   /// Set the time elapsed to zero (not the total_time)
   inline void zero() {
     CU_SAFE_CALL(cuEventRecord(start_event,_cq));
     CU_SAFE_CALL(cuEventRecord(stop_event,_cq));
   }
+  
+  /// Set the total time to zero
+  inline void zero_total() { _total_time=0.0; }
   
   /// Add time from previous start and stop to total
   /** Forces synchronization **/

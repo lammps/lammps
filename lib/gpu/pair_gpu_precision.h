@@ -84,8 +84,6 @@ inline std::ostream & operator<<(std::ostream &out, const _lgpu_double4 &v) {
 #define acctyp4 _lgpu_float4
 #endif
 
-#define MAX_SHARED_TYPES 8
-#define MAX_BIO_SHARED_TYPES 128
 enum{SPHERE_SPHERE,SPHERE_ELLIPSE,ELLIPSE_SPHERE,ELLIPSE_ELLIPSE};
 
 #endif

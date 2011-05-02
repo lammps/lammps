@@ -23,7 +23,7 @@
 
 #define _HD_BALANCE_EVERY 25
 #define _HD_BALANCE_WEIGHT 0.5
-#define _HD_BALANCE_GAP 1.05
+#define _HD_BALANCE_GAP 1.10
 
 /// Host/device load balancer
 template<class numtyp, class acctyp>
@@ -33,7 +33,8 @@ class PairGPUBalance {
   inline ~PairGPUBalance() { clear(); }
 
   /// Clear any old data and setup for new LAMMPS run
-  inline void init(PairGPUDevice<numtyp, acctyp> *gpu, const double split);
+  inline void init(PairGPUDevice<numtyp, acctyp> *gpu, const bool gpu_nbor,
+                   const double split);
 
   /// Clear all host and device data
   inline void clear() {
@@ -43,23 +44,25 @@ class PairGPUBalance {
       _init_done=false;
     }
   }
+  
+  /// Return the timestep since initialization
+  inline int timestep() { return _timestep; }
 
   /// Get a count of the number of particles host will handle for initial alloc
-  inline int first_host_count(const int nlocal,const bool gpu_nbor,
-                              const double gpu_split) const {
+  inline int first_host_count(const int nlocal, const double gpu_split,
+                              const bool gpu_nbor) const {
     int host_nlocal=0;
     if (gpu_nbor && gpu_split!=1.0) {
       if (gpu_split>0)
         host_nlocal=static_cast<int>(ceil((1.0-gpu_split)*nlocal));
       else
-        host_nlocal=static_cast<int>(ceil(0.1*nlocal));
+        host_nlocal=static_cast<int>(ceil(0.05*nlocal));
     }
     return host_nlocal;
   }
 
   /// Return the number of particles the device will handle this timestep
-  inline int get_gpu_count(const int timestep, const int ago,
-                           const int inum_full);
+  inline int get_gpu_count(const int ago, const int inum_full);
 
   /// Return the average fraction of particles handled by device on all procs
   inline double all_avg_split() {
@@ -82,10 +85,10 @@ class PairGPUBalance {
     if (_measure_this_step) {
       _device->gpu->sync();
       _device->gpu_barrier();
+      _device->start_host_timer();
       _device_time.start();
       _device->gpu->sync();
       _device->gpu_barrier();
-      _device->start_host_timer();
     }
   }
 
@@ -95,34 +98,34 @@ class PairGPUBalance {
   /// Calculate the new host/device split based on the cpu and device times
   /** \note Only does calculation every _HD_BALANCE_EVERY timesteps 
             (and first 10) **/
-  inline void balance(const double cpu_time, const bool gpu_nbor);
+  inline void balance(const double cpu_time);
 
   /// Calls balance() and then get_gpu_count()
-  inline int balance(const int timestep, const int ago, const int inum_full,
-                     const double cpu_time, const bool gpu_nbor) {
-    balance(cpu_time,gpu_nbor);
-    return get_gpu_count(timestep,ago,inum_full);
+  inline int balance(const int ago,const int inum_full,const double cpu_time) {
+    balance(cpu_time);
+    return get_gpu_count(ago,inum_full);
   }
   
  private:
   PairGPUDevice<numtyp,acctyp> *_device;
   UCL_Timer _device_time;
-  bool _init_done;
+  bool _init_done, _gpu_nbor;
   
   bool _load_balance;
   double _actual_split, _avg_split, _desired_split, _max_split;
   int _avg_count;
 
   bool _measure_this_step;
-  int _inum, _inum_full;
+  int _inum, _inum_full, _timestep;
 };
 
 #define PairGPUBalanceT PairGPUBalance<numtyp,acctyp>
 
 template <class numtyp, class acctyp>
-void PairGPUBalanceT::init(PairGPUDevice<numtyp, acctyp> *gpu,
-			   const double split) {
+void PairGPUBalanceT::init(PairGPUDevice<numtyp, acctyp> *gpu, 
+                           const bool gpu_nbor, const double split) {
   clear();
+  _gpu_nbor=gpu_nbor;
   _init_done=true;
   
   _device=gpu;
@@ -130,7 +133,7 @@ void PairGPUBalanceT::init(PairGPUDevice<numtyp, acctyp> *gpu,
   
   if (split<0.0) {
     _load_balance=true;
-    _desired_split=0.9;
+    _desired_split=0.90;
   } else {
     _load_balance=false;
     _desired_split=split;
@@ -138,14 +141,14 @@ void PairGPUBalanceT::init(PairGPUDevice<numtyp, acctyp> *gpu,
   _actual_split=_desired_split;
   _avg_split=0.0;
   _avg_count=0;
+  _timestep=0;
 }
 
 template <class numtyp, class acctyp>
-int PairGPUBalanceT::get_gpu_count(const int timestep, const int ago,
-			           const int inum_full) {
+int PairGPUBalanceT::get_gpu_count(const int ago, const int inum_full) {
   _measure_this_step=false;
   if (_load_balance) {
-    if (_avg_count<11 || timestep%_HD_BALANCE_EVERY==0) {
+    if (_avg_count<11 || _timestep%_HD_BALANCE_EVERY==0) {
       _measure_this_step=true;
       _inum_full=inum_full;
     }
@@ -156,44 +159,44 @@ int PairGPUBalanceT::get_gpu_count(const int timestep, const int ago,
   }
   _inum=static_cast<int>(floor(_actual_split*inum_full));
   if (_inum==0) _inum++;
+  _timestep++;
   return _inum;
 }
     
 template <class numtyp, class acctyp>
-void PairGPUBalanceT::balance(const double cpu_time, const bool gpu_nbor) {
+void PairGPUBalanceT::balance(const double cpu_time) {
   if (_measure_this_step) {
+    _measure_this_step=false;
+    double gpu_time=_device_time.seconds();
+
+    double max_gpu_time;
+    MPI_Allreduce(&gpu_time,&max_gpu_time,1,MPI_DOUBLE,MPI_MAX,
+                  _device->gpu_comm());
+
     if (_inum_full==_inum) {
       _desired_split=1.0;
       return;
     }
 
-    _measure_this_step=false;
-    double gpu_time=_device_time.seconds();
+    double cpu_time_per_atom=cpu_time/(_inum_full-_inum);
+    double cpu_other_time=_device->host_time()-cpu_time;
+    int host_inum=static_cast<int>((max_gpu_time-cpu_other_time)/
+                                   cpu_time_per_atom);
 
-    double cpu_gpu_time[3], max_times[3];
-    cpu_gpu_time[0]=cpu_time/(_inum_full-_inum);
-    cpu_gpu_time[1]=gpu_time/_inum;
-    cpu_gpu_time[2]=(_device->host_time()-cpu_time)/_inum_full;
+    double split=static_cast<double>(_inum_full-host_inum)/_inum_full;
+    _desired_split=split*_HD_BALANCE_GAP;
+    if (_desired_split>1.0)
+      _desired_split=1.0;
+    if (_desired_split<0.0)
+      _desired_split=0.0;
 
-    MPI_Allreduce(cpu_gpu_time,max_times,3,MPI_DOUBLE,MPI_MAX,
-                  _device->gpu_comm());
-    double split=(max_times[0]+max_times[2])/(max_times[0]+max_times[1]);
-    split*=_HD_BALANCE_GAP;
-
-    if (split>1.0)
-      split=1.0;
-    if (_avg_count<10)
-      _desired_split=(_desired_split*_avg_count+split)/(_avg_count+1);
-    else
-      _desired_split=_desired_split*(1.0-_HD_BALANCE_WEIGHT)+
-                     _HD_BALANCE_WEIGHT*split;
-
-    if (!gpu_nbor) {
+    if (!_gpu_nbor) {
       if (_desired_split<_max_split)
         _actual_split=_desired_split;
       else
         _actual_split=_max_split;
     }
+//std::cout << gpu_time << " " << max_gpu_time << " " << cpu_other_time << " " << cpu_time_per_atom << " " << cpu_time << " " << _desired_split << " " << host_inum << std::endl;
   }
   _avg_split+=_desired_split;
   _avg_count++;

@@ -13,7 +13,7 @@
     copyright            : (C) 2009 by W. Michael Brown
     email                : brownw@ornl.gov
  ***************************************************************************/
- 
+
 /* -----------------------------------------------------------------------
    Copyright (2009) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -61,20 +61,23 @@ class UCL_D_Mat : public UCL_BaseMat {
   inline int alloc(const size_t rows, const size_t cols, mat_type &cq,
                    const enum UCL_MEMOPT kind=UCL_READ_WRITE) {
     clear();
-    _kind=kind;
-    _rows=rows;
-    _cols=cols;
+
     int err=_device_alloc(*this,cq,rows,cols,_pitch,kind);
-    _row_size=_pitch/sizeof(numtyp);
-    #ifndef _UCL_DEVICE_PTR_MAT
-    _end=_array+_row_size*cols;
-    #endif
-    #ifndef UCL_NO_EXIT
     if (err!=UCL_SUCCESS) {
+      #ifndef UCL_NO_EXIT
       std::cerr << "UCL Error: Could not allocate " 
                 << rows*cols*sizeof(numtyp) << " bytes on device.\n";
       exit(1);
+      #endif
+      return err;
     }
+
+    _kind=kind;
+    _rows=rows;
+    _cols=cols;
+    _row_size=_pitch/sizeof(numtyp);
+    #ifndef _UCL_DEVICE_PTR_MAT
+    _end=_array+_row_size*cols;
     #endif
     #ifdef _OCL_MAT
     _offset=0;
@@ -94,20 +97,23 @@ class UCL_D_Mat : public UCL_BaseMat {
   inline int alloc(const size_t rows, const size_t cols, UCL_Device &device,
                    const enum UCL_MEMOPT kind=UCL_READ_WRITE) {
     clear();
-    _kind=kind;
-    _rows=rows;
-    _cols=cols;
+
     int err=_device_alloc(*this,device,rows,cols,_pitch,kind);
-    _row_size=_pitch/sizeof(numtyp);
-    #ifndef _UCL_DEVICE_PTR_MAT
-    _end=_array+_row_size*cols;
-    #endif
-    #ifndef UCL_NO_EXIT
     if (err!=UCL_SUCCESS) {
+      #ifndef UCL_NO_EXIT
       std::cerr << "UCL Error: Could not allocate "
                 << rows*cols*sizeof(numtyp) << " bytes on device.\n";
       exit(1);
+      #endif
+      return err;
     }
+
+    _kind=kind;
+    _rows=rows;
+    _cols=cols;
+    _row_size=_pitch/sizeof(numtyp);
+    #ifndef _UCL_DEVICE_PTR_MAT
+    _end=_array+_row_size*cols;
     #endif
     #ifdef _OCL_MAT
     _offset=0;

@@ -19,32 +19,27 @@
 #define PAIR_GPU_NBOR_H
 
 #include "pair_gpu_atom.h"
+#include "pair_gpu_nbor_shared.h"
 
 #define IJ_SIZE 131072
 
 #ifdef USE_OPENCL
 
-#include "geryon/ocl_device.h"
 #include "geryon/ocl_timer.h"
 #include "geryon/ocl_mat.h"
-#include "geryon/ocl_kernel.h"
-#include "geryon/ocl_texture.h"
 using namespace ucl_opencl;
 
 #else
 
-#include "geryon/nvd_device.h"
 #include "geryon/nvd_timer.h"
 #include "geryon/nvd_mat.h"
-#include "geryon/nvd_kernel.h"
-#include "geryon/nvd_texture.h"
 using namespace ucl_cudadr;
 
 #endif
 
 class PairGPUNbor {
  public:
-  PairGPUNbor() : _allocated(false), _use_packing(false), _compiled(false) {}
+  PairGPUNbor() : _allocated(false), _use_packing(false) {}
   ~PairGPUNbor() { clear(); }
  
   /// Determine whether neighbor unpacking should be used
@@ -62,9 +57,11 @@ class PairGPUNbor {
     *                 2 if gpu_nbor is true, and host needs a full nbor list
     * \param pre_cut True if cutoff test will be performed in separate kernel
     *                than the force kernel **/
-  bool init(const int inum, const int host_inum, const int max_nbors, 
-            const int maxspecial, UCL_Device &dev, const bool gpu_nbor,
-            const int gpu_host, const bool pre_cut);
+  bool init(PairGPUNborShared *shared, const int inum, const int host_inum,
+            const int max_nbors, const int maxspecial, UCL_Device &dev,
+            const bool gpu_nbor, const int gpu_host, const bool pre_cut,
+            const int block_cell_2d, const int block_cell_id, 
+            const int block_nbor_build);
 
   /// Set the size of the cutoff+skin
   inline void cell_size(const double size) { _cell_size=size; }
@@ -131,18 +128,18 @@ class PairGPUNbor {
   inline int max_nbors() const { return _max_nbors; }
 
   /// Loop through neighbor count array and return maximum nbors for a particle
-  inline int max_nbor_loop(const int inum, int *numj) const {
+  inline int max_nbor_loop(const int inum, int *numj, int *ilist) const {
     int mn=0;
     for (int i=0; i<inum; i++)
-      mn=std::max(mn,numj[i]);
+      mn=std::max(mn,numj[ilist[i]]);
     return mn;
   }
 
   /// Build nbor list on the device
   template <class numtyp, class acctyp>
   void build_nbor_list(const int inum, const int host_inum, const int nall,
-                       PairGPUAtom<numtyp,acctyp> &atom, double *boxlo,
-                       double *boxhi, int *tag, int **nspecial, int **special, 
+                       PairGPUAtom<numtyp,acctyp> &atom, double *sublo,
+                       double *subhi, int *tag, int **nspecial, int **special, 
                        bool &success, int &max_nbors);
 
   /// Return the number of bytes used on device
@@ -176,31 +173,31 @@ class PairGPUNbor {
   UCL_H_Vec<int> host_nbor;
   /// Device storage for neighbor list matrix that will be copied to host
   /** - 1st row is numj
-    * - Remaining rows are nbors **/
+    * - Remaining rows are by atom, columns are nbors **/
   UCL_D_Vec<int> dev_host_nbor;
+  UCL_D_Vec<int> dev_host_numj;
+  UCL_H_Vec<int> host_ilist;
+  UCL_H_Vec<int*> host_jlist;
   /// Device storage for special neighbor counts
   UCL_D_Vec<int> dev_nspecial;
   /// Device storage for special neighbors
   UCL_D_Vec<int> dev_special, dev_special_t;
-  /// Texture for cached position/type access with CUDA
-  UCL_Texture neigh_tex;
 
   /// Device timers
   UCL_Timer time_nbor, time_kernel;
   
  private:
+  PairGPUNborShared *_shared;
   UCL_Device *dev;
-  UCL_Program *nbor_program, *build_program;
-  UCL_Kernel k_nbor, k_cell_id, k_cell_counts, k_build_nbor;
-  UCL_Kernel k_transpose, k_special;
-  bool _allocated, _use_packing, _compiled;
-  void compile_kernels(UCL_Device &dev);
+  bool _allocated, _use_packing;
   int _max_atoms, _max_nbors, _max_host, _nbor_pitch, _maxspecial;
   bool _gpu_nbor, _gpu_host, _alloc_packed;
   double _cell_size;
 
   double _gpu_bytes, _c_bytes, _cell_bytes;
   void alloc(bool &success);
+  
+  int _block_cell_2d, _block_cell_id, _block_nbor_build;
 };
 
 #endif

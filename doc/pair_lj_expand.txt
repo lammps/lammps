@@ -7,10 +7,12 @@
 :line
 
 pair_style lj/expand command :h3
+pair_style lj/expand/gpu command :h3
 
 [Syntax:]
 
 pair_style lj/expand cutoff :pre
+pair_style lj/expand/gpu cutoff :pre
 
 cutoff = global cutoff for lj/expand interactions (distance units) :ul
 
@@ -46,6 +48,29 @@ cutoff (distance units) :ul
 The delta values can be positive or negative.  The last coefficient is
 optional.  If not specified, the global LJ cutoff is used.
 
+Style {lj/expand/gpu} is a GPU-enabled version of style {lj/expand}.
+See more details below.
+
+:line
+
+The {lj/expand/gpu} style is identical to the {lj/expand} style,
+except that each processor off-loads its pairwise calculations to a 
+GPU chip. Depending on the hardware available on your system this can provide a
+speed-up.  See the "Running on GPUs"_Section_start.html#2_8 section of
+the manual for more details about hardware and software requirements
+for using GPUs.
+
+More details about these settings and various possible hardware
+configuration are in "this section"_Section_start.html#2_8 of the
+manual.
+
+Additional requirements in your input script to run with GPU-enabled styles
+are as follows:
+
+The "newton pair"_newton.html setting must be {off} and
+"fix gpu"_fix_gpu.html must be used. The fix controls
+the essential GPU selection and initialization steps.
+
 :line
 
 [Mixing, shift, table, tail correction, restart, rRESPA info]:
@@ -77,7 +102,11 @@ This pair style can only be used via the {pair} keyword of the
 
 :line
 
-[Restrictions:] none
+[Restrictions:]
+
+The {lj/expand/gpu} style is part of the "gpu" package. It is only
+enabled if LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#2_3 section for more info.
 
 [Related commands:]
 

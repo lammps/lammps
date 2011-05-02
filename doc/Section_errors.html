@@ -173,6 +173,10 @@ the bond topologies you have defined.
 neighbors for each atom.  This likely means something is wrong with
 the bond topologies you have defined. 
 
+<DT><I>Accelerated style in input script but no fix gpu</I> 
+
+<DD>GPU acceleration requires fix gpu in the input script. 
+
 <DT><I>All angle coeffs are not set</I> 
 
 <DD>All angle coefficients must be set in the data file or by the
@@ -1240,9 +1244,9 @@ non-periodic z dimension.
 unless you use the kspace_modify command to define a 2d slab with a
 non-periodic z dimension. 
 
-<DT><I>Cannot use pair hybrid with multiple GPU pair styles</I> 
+<DT><I>Cannot use pair hybrid with GPU neighbor builds</I> 
 
-<DD>Self-explanatory. 
+<DD>See documentation for fix gpu. 
 
 <DT><I>Cannot use pair tail corrections with 2d simulations</I> 
 
@@ -1843,7 +1847,7 @@ does not exist.
 
 <DD>Self-explanatory. 
 
-<DT><I>Could not find or initialize a specified accelerator device</I> 
+<DT><I>Could not find/initialize a specified accelerator device</I> 
 
 <DD>Your GPU setup is invalid. 
 
@@ -2123,6 +2127,10 @@ model.
 used.  Most likely, one or more atoms have been blown out of the
 simulation box to a great distance. 
 
+<DT><I>Double precision is not supported on this accelerator.</I> 
+
+<DD>In this case, you must compile the GPU library for single precision. 
+
 <DT><I>Dump cfg and fix not computed at compatible times</I> 
 
 <DD>The fix must produce per-atom quantities on timesteps that dump cfg
@@ -2354,6 +2362,10 @@ smaller simulation or on more processors.
 <DT><I>Final box dimension due to fix deform is < 0.0</I> 
 
 <DD>Self-explanatory. 
+
+<DT><I>Fix gpu split must be positive for hybrid pair styles.</I> 
+
+<DD>See documentation for fix gpu. 
 
 <DT><I>Fix ID for compute atom/molecule does not exist</I> 
 
@@ -3227,6 +3239,11 @@ this fix.
 
 <DD>This is the way the fix must be defined in your input script. 
 
+<DT><I>GPU library not compiled for this accelerator</I> 
+
+<DD>The GPU library was not built for your accelerator. Check the arch flag in
+lib/gpu. 
+
 <DT><I>Gmask function in equal-style variable formula</I> 
 
 <DD>Gmask is per-atom operation. 
@@ -3509,7 +3526,7 @@ simulation box.
 
 <DD>Eigensolve for rigid body was not sufficiently accurate. 
 
-<DT><I>Insufficient memory on accelerator (or no fix gpu)</I> 
+<DT><I>Insufficient memory on accelerator. </I> 
 
 <DD>Self-explanatory. 
 
@@ -4586,10 +4603,6 @@ contain the same atom.
 
 <DD>Any rigid body defined by the fix rigid command must contain 2 or more
 atoms. 
-
-<DT><I>Out of memory on GPGPU</I> 
-
-<DD>You are attempting to run with too many atoms on the GPU. 
 
 <DT><I>Out of range atoms - cannot compute PPPM</I> 
 

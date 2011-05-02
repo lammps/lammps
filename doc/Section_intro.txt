@@ -490,6 +490,14 @@ the list.
 
 :link(sjp,http://www.sandia.gov/~sjplimp)
 
+pppm GPU single and double : Mike Brown (ORNL)
+pair_style lj/cut/expand : Inderaj Bains (NVIDIA)
+temperature accelerated dynamics (TAD) : Aidan Thompson (Sandia)
+pair reax/c and fix qeq/reax : Metin Aktulga (Purdue, now LBNL)
+DREIDING force field, pair_style hbond/dreiding, etc : Tod Pascal (CalTech)
+fix adapt and compute ti for thermodynamic integreation for free energies : Sai Jayaraman (Sandia)
+pair born and pair gauss : Sai Jayaraman (Sandia)
+stochastic rotation dynamics (SRD) via fix srd : Jemery Lechman (Sandia) and Pieter in 't Veld (BASF)
 ipp Perl script tool : Reese Jones (Sandia)
 eam_database and createatoms tools : Xiaowang Zhou (Sandia)
 electron force field (eFF) : Andres Jaramillo-Botero and Julius Su (Caltech)

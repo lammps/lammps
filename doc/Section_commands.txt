@@ -611,6 +611,7 @@ potentials.  Click on the style itself for a full description:
 "lj/cut/coul/long/gpu"_pair_lj.html,
 "lj/cut/coul/long/tip4p"_pair_lj.html,
 "lj/expand"_pair_lj_expand.html,
+"lj/expand/gpu"_pair_lj_expand.html,
 "lj/gromacs"_pair_gromacs.html,
 "lj/gromacs/coul/gromacs"_pair_gromacs.html,
 "lj/smooth"_pair_lj_smooth.html,
@@ -619,6 +620,7 @@ potentials.  Click on the style itself for a full description:
 "lubricate"_pair_lubricate.html,
 "meam"_pair_meam.html,
 "morse"_pair_morse.html,
+"morse/gpu"_pair_morse.html,
 "morse/opt"_pair_morse.html,
 "peri/lps"_pair_peri.html,
 "peri/pmb"_pair_peri.html,
@@ -728,6 +730,8 @@ Kspace solvers.  Click on the style itself for a full description:
 
 "ewald"_kspace_style.html,
 "pppm"_kspace_style.html,
+"pppm/gpu/single"_kspace_style.html,
+"pppm/gpu/double"_kspace_style.html,
 "pppm/tip4p"_kspace_style.html :tb(c=4,ea=c,w=100)
 
 These are Kspace solvers contributed by users, which can be used if

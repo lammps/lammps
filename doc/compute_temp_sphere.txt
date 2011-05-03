@@ -10,16 +10,24 @@ compute temp/sphere command :h3
 
 [Syntax:]
 
-compute ID group-ID temp/sphere bias-ID :pre
+compute ID group-ID temp/sphere keyword value ... :pre
 
-ID, group-ID are documented in "compute"_compute.html command
-temp/sphere = style name of this compute command
-bias-ID = ID of a temperature compute that removes a velocity bias (optional) :ul
+ID, group-ID are documented in "compute"_compute.html command :ulb,l
+temp/sphere = style name of this compute command :l
+zero or more keyword/value pairs may be appended :l
+keyword = {bias} or {dof} :l
+  {bias} value = bias-ID{uniform} or {gaussian}
+    bias-ID = ID of a temperature compute that removes a velocity bias
+  {dof} value = {all} or {rotate}
+    all = compute temperature of translational and rotational degrees of freedom
+    rotate = compute temperature of just rotational degrees of freedom :pre
+:ule
 
 [Examples:]
 
 compute 1 all temp/sphere
-compute myTemp mobile temp/sphere tempCOM :pre
+compute myTemp mobile temp/sphere bias tempCOM
+compute myTemp mobile temp/sphere dof rotate :pre
 
 [Description:]
 
@@ -63,15 +71,6 @@ The number of atoms contributing to the temperature is assumed to be
 constant for the duration of the run; use the {dynamic} option of the
 "compute_modify"_compute_modify.html command if this is not the case.
 
-If a {bias-ID} is specified it must be the ID of a temperature compute
-that removes a "bias" velocity from each atom.  This allows compute
-temp/sphere to compute its thermal temperature after the translational
-kinetic energy components have been altered in a prescribed way,
-e.g. to remove a velocity profile.  Thermostats that use this compute
-will work with this bias term.  See the doc pages for individual
-computes that calculate a temperature and the doc pages for fixes that
-perform thermostatting for more details.
-
 This compute subtracts out translational degrees-of-freedom due to
 fixes that constrain molecular motion, such as "fix
 shake"_fix_shake.html and "fix rigid"_fix_rigid.html.  This means the
@@ -83,6 +82,26 @@ be altered using the {extra} option of the
 See "this howto section"_Section_howto.html#4_16 of the manual for a
 discussion of different ways to compute temperature and perform
 thermostatting.
+
+:line
+
+The keyword/value option pairs are used in the following ways.
+
+For the {bias} keyword, {bias-ID} refers to the ID of a temperature
+compute that removes a "bias" velocity from each atom.  This allows
+compute temp/sphere to compute its thermal temperature after the
+translational kinetic energy components have been altered in a
+prescribed way, e.g. to remove a velocity profile.  Thermostats that
+use this compute will work with this bias term.  See the doc pages for
+individual computes that calculate a temperature and the doc pages for
+fixes that perform thermostatting for more details.
+
+For the {dof} keyword, a setting of {all} calculates a temperature
+that includes both translational and rotational degrees of freedom.  A
+setting of {rotate} calculates a temperature that includes only
+rotational degrees of freedom.
+
+:line
 
 [Output info:]
 
@@ -113,4 +132,6 @@ particles with radius = 0.0.
 "compute temp"_compute_temp.html, "compute
 temp/asphere"_compute_temp.html
 
-[Default:] none
+[Default:]
+
+The option defaults are no bias and dof = all.

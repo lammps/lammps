@@ -15,7 +15,7 @@
 </P>
 <PRE>kspace_style style value 
 </PRE>
-<UL><LI>style = <I>none</I> or <I>ewald</I> or <I>pppm</I> or <I>pppm/tip4p</I> or <I>ewald/n</I> 
+<UL><LI>style = <I>none</I> or <I>ewald</I> or <I>pppm</I> or <I>pppm/tip4p</I> or <I>ewald/n</I> or <I>pppm/gpu/single</I> or <I>pppm/gpu/double</I> 
 
 <PRE>  <I>none</I> value = none
   <I>ewald</I> value = precision
@@ -25,6 +25,10 @@
   <I>pppm/tip4p</I> value = precision
     precision = desired accuracy
   <I>ewald/n</I> value = precision
+    precision = desired accuracy
+  <I>pppm/gpu/single</I> value = precision
+    precision = desired accuracy
+  <I>pppm/gpu/double</I> value = precision
     precision = desired accuracy 
 </PRE>
 
@@ -72,6 +76,11 @@ long-range potentials.
 <P>Currently, only the <I>ewald/n</I> style can be used with non-orthogonal
 (triclinic symmetry) simulation boxes.
 </P>
+<P>The <I>pppm/gpu/single</I> and <I>pppm/gpu/double</I> styles are GPU-enabled
+version of <I>pppm</I>. See more details below.
+</P>
+<HR>
+
 <P>When a kspace style is used, a pair style that includes the
 short-range correction to the pairwise Coulombic or other 1/r^N forces
 must also be selected.  For Coulombic interactions, these styles are
@@ -88,6 +97,27 @@ of K-space vectors for style <I>ewald</I> or the FFT grid size for style
 <P>See the <A HREF = "kspace_modify.html">kspace_modify</A> command for additional
 options of the K-space solvers that can be set.
 </P>
+<HR>
+
+<P>The <I>pppm/gpu/single</I> style performs single precision
+charge assignment and force interpolation calculations on the GPU.
+The <I>pppm/gpu/double</I> style performs the mesh calculations on the GPU
+in double precision. FFT solves are calculated on the CPU in both
+cases. If either <I>pppm/gpu/single</I> or <I>pppm/gpu/double</I> are used with
+a GPU-enabled pair style, part of the PPPM calculation can be performed
+concurrently on the GPU while other calculations for non-bonded and
+bonded force calculation are performed on the CPU.
+</P>
+<P>More details about GPU settings and various possible hardware
+configurations are in <A HREF = "Section_start.html#2_8">this section</A> of the
+manual.
+</P>
+<P>Additional requirements in your input script to run with GPU-enabled 
+PPPM styles are as follows:
+</P>
+<P><A HREF = "fix_gpu.html">fix gpu</A> must be used. The fix controls
+the essential GPU selection and initialization steps.
+</P>
 <P><B>Restrictions:</B>
 </P>
 <P>A simulation must be 3d and periodic in all dimensions to use an Ewald
@@ -102,6 +132,11 @@ LAMMPS</A> section for more info.
 <P>The <I>ewald/n</I> style is part of the "user-ewaldn" package.  It is only
 enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_3">Making
 LAMMPS</A> section for more info.
+</P>
+<P>The <I>pppm/gpu/single</I> and <I>pppm/gpu/double</I> styles are part of the
+"gpu" package.  They are only enabled if LAMMPS was built with that
+package.  See the <A HREF = "Section_start.html#2_3">Making LAMMPS</A> section for
+more info.
 </P>
 <P>When using a long-range pairwise TIP4P potential, you must use kspace
 style <I>pppm/tip4p</I> and vice versa.

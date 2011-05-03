@@ -104,7 +104,7 @@ void ComputeClusterAtom::compute_peratom()
 
   // grow clusterID array if necessary
 
-  if (atom->nlocal > nmax) {
+  if (atom->nlocal+atom->nghost > nmax) {
     memory->destroy(clusterID);
     nmax = atom->nmax;
     memory->create(clusterID,nmax,"cluster/atom:clusterID");

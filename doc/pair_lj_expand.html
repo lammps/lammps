@@ -11,9 +11,13 @@
 
 <H3>pair_style lj/expand command 
 </H3>
+<H3>pair_style lj/expand/gpu command 
+</H3>
 <P><B>Syntax:</B>
 </P>
 <PRE>pair_style lj/expand cutoff 
+</PRE>
+<PRE>pair_style lj/expand/gpu cutoff 
 </PRE>
 <UL><LI>cutoff = global cutoff for lj/expand interactions (distance units) 
 </UL>
@@ -49,6 +53,29 @@ commands, or by mixing as described below:
 <P>The delta values can be positive or negative.  The last coefficient is
 optional.  If not specified, the global LJ cutoff is used.
 </P>
+<P>Style <I>lj/expand/gpu</I> is a GPU-enabled version of style <I>lj/expand</I>.
+See more details below.
+</P>
+<HR>
+
+<P>The <I>lj/expand/gpu</I> style is identical to the <I>lj/expand</I> style,
+except that each processor off-loads its pairwise calculations to a 
+GPU chip. Depending on the hardware available on your system this can provide a
+speed-up.  See the <A HREF = "Section_start.html#2_8">Running on GPUs</A> section of
+the manual for more details about hardware and software requirements
+for using GPUs.
+</P>
+<P>More details about these settings and various possible hardware
+configuration are in <A HREF = "Section_start.html#2_8">this section</A> of the
+manual.
+</P>
+<P>Additional requirements in your input script to run with GPU-enabled styles
+are as follows:
+</P>
+<P>The <A HREF = "newton.html">newton pair</A> setting must be <I>off</I> and
+<A HREF = "fix_gpu.html">fix gpu</A> must be used. The fix controls
+the essential GPU selection and initialization steps.
+</P>
 <HR>
 
 <P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
@@ -80,7 +107,11 @@ to be specified in an input script that reads a restart file.
 </P>
 <HR>
 
-<P><B>Restrictions:</B> none
+<P><B>Restrictions:</B>
+</P>
+<P>The <I>lj/expand/gpu</I> style is part of the "gpu" package. It is only
+enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_3">Making
+LAMMPS</A> section for more info.
 </P>
 <P><B>Related commands:</B>
 </P>

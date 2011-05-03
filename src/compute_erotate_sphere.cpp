@@ -23,7 +23,7 @@
 
 using namespace LAMMPS_NS;
 
-#define INERTIA 0.4          // moment of inertia for sphere
+#define INERTIA 0.4          // moment of inertia prefactor for sphere
 
 /* ---------------------------------------------------------------------- */
 

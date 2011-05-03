@@ -27,14 +27,21 @@
 
 <LI>zero or more keyword/value pairs may be appended 
 
-<PRE>keyword = <I>scale</I> or <I>tally</I>
+<LI>keyword = <I>angmom</I> or <I>omega</I> or <I>scale</I> or <I>tally</I> or <I>zero</I> 
+
+<PRE>  <I>angmom</I> value = <I>no</I> or <I>yes</I>
+    <I>no</I> = do not thermostat rotational degrees of freedom via the angular momentum
+    <I>yes</I> = do thermostat rotational degrees of freedom via the angular momentum
+  <I>omega</I> value = <I>no</I> or <I>yes</I>
+    <I>no</I> = do not thermostat rotational degrees of freedom via then angular velocity
+    <I>yes</I> = do thermostat rotational degrees of freedom via the angular velocity
   <I>scale</I> values = type ratio
     type = atom type (1-N)
     ratio = factor by which to scale the damping coefficient
-  <I>tally</I> values = <I>no</I> or <I>yes</I>
+  <I>tally</I> value = <I>no</I> or <I>yes</I>
     <I>no</I> = do not tally the energy added/subtracted to atoms
     <I>yes</I> = do tally the energy added/subtracted to atoms
-  <I>zero</I> values = <I>no</I> or <I>yes</I>
+  <I>zero</I> value = <I>no</I> or <I>yes</I>
     <I>no</I> = do not set total random force to zero
     <I>yes</I> = set total random force to zero 
 </PRE>
@@ -135,6 +142,25 @@ generate its own unique seed and its own stream of random numbers.
 Thus the dynamics of the system will not be identical on two runs on
 different numbers of processors.
 </P>
+<HR>
+
+<P>The keyword/value option pairs are used in the following ways.
+</P>
+<P>The keyword <I>angmom</I> and <I>omega</I> keywords enable thermostatting of
+rotational degrees of freedom in addition to the usual translational
+degrees of freedom.  This can only be done for finite-size particles.
+A simulation using atom_style sphere defines an omega for finite-size
+spheres.  A simulation using atom_style ellipsoid defines a finite
+size and shape for aspherical particles and an angular momentum.  The
+Langevin formulas for thermostatting the rotational degrees of freedom
+are the same as those above, where force is replaced by torque, m is
+replaced by the moment of inertia I, and v is replaced by omega (which
+is derived from the angular momentum in the case of aspherical
+particles).  The rotational temperature of the particles can be
+monitored by the <A HREF = "compute_temp_sphere.html">compute temp/sphere</A> and
+<A HREF = "compute_temp_asphere.html">compute temp/asphere</A> commands with their
+rotate options.
+</P>
 <P>The keyword <I>scale</I> allows the damp factor to be scaled up or down by
 the specified factor for atoms of that type.  This can be useful when
 different atom types have different sizes or masses.  It can be used
@@ -166,6 +192,8 @@ to zero by subtracting off an equal part of it from each atom in the
 group.  As a result, the center-of-mass of a system with zero initial
 momentum will not drift over time.
 </P>
+<HR>
+
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
 <P>No information about this fix is written to <A HREF = "restart.html">binary restart
@@ -209,8 +237,8 @@ dpd/tstat</A>
 </P>
 <P><B>Default:</B>
 </P>
-<P>The option defaults are scale = 1.0 for all types, tally = no, zero =
-no.
+<P>The option defaults are angmom = no, omega = no, scale = 1.0 for all
+types, tally = no, zero = no.
 </P>
 <HR>
 

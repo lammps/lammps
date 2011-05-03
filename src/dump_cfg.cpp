@@ -30,6 +30,8 @@
 #include "memory.h"
 #include "error.h"
 
+#define UNWRAPEXPAND 10.0
+
 using namespace LAMMPS_NS;
 
 enum{INT,DOUBLE};  // same as in dump_custom.cpp
@@ -41,10 +43,20 @@ DumpCFG::DumpCFG(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 10 ||
       strcmp(arg[5],"id") != 0 || strcmp(arg[6],"type") != 0 ||
-      strcmp(arg[7],"xs") != 0 || strcmp(arg[8],"ys") != 0 ||
-      strcmp(arg[9],"zs") != 0)
-    error->all("Dump cfg arguments must start with 'id type xs ys zs'");
+      (strcmp(arg[7],"xs") != 0 && strcmp(arg[7],"xsu") != 0) || 
+      (strcmp(arg[8],"ys") != 0 && strcmp(arg[8],"ysu") != 0) ||
+      (strcmp(arg[9],"zs") != 0 && strcmp(arg[9],"zsu") != 0)
+      )
+    error->all("Dump cfg arguments must start with 'id type xs ys zs' or 'id type xsu ysu zsu'");
 
+  if (strcmp(arg[7],"xs") == 0)
+    if (strcmp(arg[8],"ysu") == 0 || strcmp(arg[9],"zsu") == 0)
+      error->all("Dump cfg arguments can not mix xs|ys|zs with xsu|ysu|zsu");
+    else unwrapflag = 0;
+  else if (strcmp(arg[8],"ys") == 0 || strcmp(arg[9],"zs") == 0)
+    error->all("Dump cfg arguments can not mix xs|ys|zs with xsu|ysu|zsu");
+  else unwrapflag = 1;
+    
   ntypes = atom->ntypes;
   typenames = NULL;
 
@@ -189,7 +201,9 @@ void DumpCFG::write_header(bigint n)
   // special handling for atom style peri
   // use average volume of particles to scale particles to mimic C atoms
   // scale box dimension to sc lattice for C with sigma = 1.44 Angstroms  
- 
+
+  // Special handling for unwrapped coordinates
+
   double scale;
   if (atom->peri_flag) {
     int nlocal = atom->nlocal;
@@ -199,9 +213,9 @@ void DumpCFG::write_header(bigint n)
     MPI_Allreduce(&vone,&vave,1,MPI_DOUBLE,MPI_SUM,world); 
     if (atom->natoms) vave /= atom->natoms; 
     if (vave > 0.0) scale = 1.44 / pow(vave,1.0/3.0); 
-    else scale = 1.0;
-  } else scale = 1.0;
- 
+  } else if (unwrapflag == 1) scale = UNWRAPEXPAND;
+  else scale = 1.0;
+    
   if (me == 0 || multiproc) {
     char str[64];
     sprintf(str,"Number of particles = %s\n",BIGINT_FORMAT);
@@ -261,6 +275,8 @@ void DumpCFG::write_data(int n, double *mybuf)
 
   //  write data lines in rbuf to file after transfer is done
   
+  double unwrap_coord;
+
   if (nlines == nchosen) {
     for (itype = 1; itype <= ntypes; itype++) {
       for (i = 0; i < nchosen; i++)
@@ -271,11 +287,30 @@ void DumpCFG::write_data(int n, double *mybuf)
 	fprintf(fp,"%s\n",typenames[itype]);
 	for (; i < nchosen; i++) {
 	  if (rbuf[i][1] == itype) {
-	    for (j = 2; j < size_one; j++) {
-	      if (vtype[j] == INT)
-		fprintf(fp,vformat[j],static_cast<int> (rbuf[i][j]));
-	      else fprintf(fp,vformat[j],rbuf[i][j]);
-	    }
+	    if (unwrapflag == 0)
+	      for (j = 2; j < size_one; j++) {
+		if (vtype[j] == INT)
+		  fprintf(fp,vformat[j],static_cast<int> (rbuf[i][j]));
+		else fprintf(fp,vformat[j],rbuf[i][j]);
+	      }
+	    else
+
+	      // Unwrapped scaled coordinates are shifted to
+	      // center of expanded box, to prevent
+	      // rewrapping by AtomEye. Dividing by 
+	      // expansion factor restores correct
+	      // interatomic distances.
+
+	      for (j = 2; j < 5; j++) {
+		unwrap_coord = (rbuf[i][j] - 0.5)/UNWRAPEXPAND + 0.5;
+		fprintf(fp,vformat[j],unwrap_coord);
+	      }
+	      for (j = 5; j < size_one; j++) {
+		if (vtype[j] == INT)
+		  fprintf(fp,vformat[j],static_cast<int> (rbuf[i][j]));
+		else fprintf(fp,vformat[j],rbuf[i][j]);
+	      }
+
 	    fprintf(fp,"\n");
 	  }
 	}

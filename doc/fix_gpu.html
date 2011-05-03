@@ -48,14 +48,13 @@ should not be any problems with specifying this fix first in input scripts.
 <P><I>mode</I> specifies where neighbor list calculations will be performed.
 If <I>mode</I> is force, neighbor list calculation is performed on the
 CPU. If <I>mode</I> is force/neigh, neighbor list calculation is 
-performed on the GPU. GPU neighbor
-list calculation currently cannot be used with a triclinic box.
+performed on the GPU. GPU neighbor list calculation currently cannot be
+used with a triclinic box. GPU neighbor list calculation currently
+cannot be used with <A HREF = "pair_hybrid.html">hybrid</A> pair styles.
 GPU neighbor lists are not compatible with styles that are not GPU-enabled.
 When a non-GPU enabled style requires a neighbor list, it will also be
 built using CPU routines. In these cases, it will typically be more efficient
-to only use CPU neighbor list builds. For <A HREF = "pair_hybrid.html">hybrid</A> pair
-styles, GPU calculated neighbor lists might be less efficient because
-no particles will be skipped in a given neighbor list.
+to only use CPU neighbor list builds.
 </P>
 <P><I>first</I> and <I>last</I> specify the GPUs that will be used for simulation.
 On each node, the GPU IDs in the inclusive range from <I>first</I> to <I>last</I> will
@@ -77,7 +76,8 @@ style.
 </P>
 <P>In order to use GPU acceleration, a GPU enabled style must be
 selected in the input script in addition to this fix. Currently,
-this is limited to a few <A HREF = "pair_style.html">pair styles</A>.
+this is limited to a few <A HREF = "pair_style.html">pair styles</A> and
+the PPPM <A HREF = "kspace_style.html">kspace style</A>.
 </P>
 <P>More details about these settings and various possible hardware
 configuration are in <A HREF = "Section_start.html#2_8">this section</A> of the
@@ -95,8 +95,10 @@ the <A HREF = "run.html">run</A> command.
 <P><B>Restrictions:</B> 
 </P>
 <P>The fix must be the first fix specified for a given run. The force/neigh
-<I>mode</I> should not be used with a triclinic box or GPU-enabled pair styles
-that need <A HREF = "special_bonds.html">special_bonds</A> settings.
+<I>mode</I> should not be used with a triclinic box or <A HREF = "pair_hybrid.html">hybrid</A>
+pair styles.
+</P>
+<P><I>split</I> must be positive when using <A HREF = "pair_hybrid.html">hybrid</A> pair styles.
 </P>
 <P>Currently, group-ID must be all.
 </P>

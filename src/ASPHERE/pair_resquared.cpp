@@ -503,8 +503,8 @@ void PairRESquared::precompute_i(const int i,RE2Vars &ws)
   int *ellipsoid = atom->ellipsoid;
   AtomVecEllipsoid::Bonus *bonus = avec->bonus;
   MathExtra::quat_to_mat_trans(bonus[ellipsoid[i]].quat,ws.A);
-  MathExtra::transpose_times_diag3(ws.A,well[atom->type[i]],ws.aTe);
-  MathExtra::transpose_times_diag3(ws.A,shape2[atom->type[i]],aTs);
+  MathExtra::transpose_diag3(ws.A,well[atom->type[i]],ws.aTe);
+  MathExtra::transpose_diag3(ws.A,shape2[atom->type[i]],aTs);
   MathExtra::diag_times3(shape2[atom->type[i]],ws.A,ws.sa);
   MathExtra::times3(aTs,ws.A,ws.gamma);
   MathExtra::rotation_generator_x(ws.A,ws.lA[0]);
@@ -885,7 +885,7 @@ double PairRESquared::resquared_lj(const int i, const int j,
   scorrect[0] = scorrect[0] * scorrect[0] / 2.0;
   scorrect[1] = scorrect[1] * scorrect[1] / 2.0;
   scorrect[2] = scorrect[2] * scorrect[2] / 2.0;
-  MathExtra::transpose_times_diag3(wi.A,scorrect,aTs);
+  MathExtra::transpose_diag3(wi.A,scorrect,aTs);
   MathExtra::times3(aTs,wi.A,gamma);
   for (int ii=0; ii<3; ii++)
     MathExtra::times3(aTs,wi.lA[ii],lAtwo[ii]);

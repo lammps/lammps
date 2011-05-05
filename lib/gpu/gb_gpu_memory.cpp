@@ -319,6 +319,7 @@ void GB_GPU_MemoryT::clear() {
     _compiled=false;
   }
  
+  nbor->clear();
   ans->clear();
   device->clear();
 }

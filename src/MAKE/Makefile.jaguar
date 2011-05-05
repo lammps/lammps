@@ -44,8 +44,8 @@ MPI_LIB =	-lmpich -lpthread
 
 FFTWDIR = /opt/fftw/2.1.5/cnos
 
-FFT_INC =       -DFFT_FFTW -I$(FFTW_DIR)/include
-FFT_PATH =	 -L$(FFTW_DIR)/lib
+FFT_INC =       -DFFT_FFTW -I$(FFTWDIR)/include
+FFT_PATH =	 -L$(FFTWDIR)/lib
 FFT_LIB =	-ldfftw
 
 # JPEG library, only needed if -DLAMMPS_JPEG listed with LMP_INC

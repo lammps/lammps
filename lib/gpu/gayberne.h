@@ -20,10 +20,10 @@
 #include "mpi.h"
 
 template <class numtyp, class acctyp>
-class GB_GPU_Memory : public BaseEllipsoid<numtyp, acctyp> {
+class GayBerne : public BaseEllipsoid<numtyp, acctyp> {
  public:
-  GB_GPU_Memory();
-  ~GB_GPU_Memory(); 
+  GayBerne();
+  ~GayBerne(); 
 
   /// Clear any previous data and set up for a new LAMMPS run
   /** \param gpu_nbor true if neighboring performed on device

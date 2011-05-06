@@ -22,27 +22,27 @@
 
 #include "gayberne.h"
 #include <cassert>
-#define GB_GPU_MemoryT GB_GPU_Memory<numtyp, acctyp>
+#define GayBerneT GayBerne<numtyp, acctyp>
 
 extern PairGPUDevice<PRECISION,ACC_PRECISION> pair_gpu_device;
 
 template <class numtyp, class acctyp>
-GB_GPU_MemoryT::GB_GPU_Memory() : BaseEllipsoid<numtyp,acctyp>(),
+GayBerneT::GayBerne() : BaseEllipsoid<numtyp,acctyp>(),
                                   _allocated(false) {
 }
 
 template <class numtyp, class acctyp>
-GB_GPU_MemoryT::~GB_GPU_Memory() { 
+GayBerneT::~GayBerne() { 
   clear();
 }
  
 template <class numtyp, class acctyp>
-int GB_GPU_MemoryT::bytes_per_atom(const int max_nbors) const {
+int GayBerneT::bytes_per_atom(const int max_nbors) const {
   return this->bytes_per_atom(max_nbors);
 }
 
 template <class numtyp, class acctyp>
-int GB_GPU_MemoryT::init(const int ntypes, const double gamma, 
+int GayBerneT::init(const int ntypes, const double gamma, 
                          const double upsilon, const double mu, 
                          double **host_shape, double **host_well, 
                          double **host_cutsq, double **host_sigma, 
@@ -143,7 +143,7 @@ int GB_GPU_MemoryT::init(const int ntypes, const double gamma,
 }
 
 template <class numtyp, class acctyp>
-void GB_GPU_MemoryT::clear() {
+void GayBerneT::clear() {
   if (!_allocated)
     return;
 
@@ -170,8 +170,8 @@ void GB_GPU_MemoryT::clear() {
 }
 
 template <class numtyp, class acctyp>
-double GB_GPU_MemoryT::host_memory_usage() const {
-  return this->host_memory_usage_base()+sizeof(GB_GPU_MemoryT)+
+double GayBerneT::host_memory_usage() const {
+  return this->host_memory_usage_base()+sizeof(GayBerneT)+
          4*sizeof(numtyp);
 }
 
@@ -179,7 +179,7 @@ double GB_GPU_MemoryT::host_memory_usage() const {
 // Calculate energies, forces, and torques
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-void GB_GPU_MemoryT::loop(const bool _eflag, const bool _vflag) {
+void GayBerneT::loop(const bool _eflag, const bool _vflag) {
   const int BX=this->block_size();
   int eflag, vflag;
   if (_eflag)
@@ -199,70 +199,70 @@ void GB_GPU_MemoryT::loop(const bool _eflag, const bool _vflag) {
   int anall=this->atom->nall();
 
   if (this->_multiple_forms) {
-    this->time_kernel.start();
+    this->time_nbor1.start();
     if (this->_last_ellipse>0) {
       // ------------ ELLIPSE_ELLIPSE and ELLIPSE_SPHERE ---------------
       GX=static_cast<int>(ceil(static_cast<double>(this->_last_ellipse)/
                                (BX/this->_threads_per_atom)));
       this->pack_nbors(GX,BX, 0, this->_last_ellipse,ELLIPSE_SPHERE,
 			                 ELLIPSE_ELLIPSE,_shared_types,_lj_types);
-      this->time_kernel.stop();
+      this->time_nbor1.stop();
 
-      this->time_gayberne.start();
-      this->k_gayberne.set_size(GX,BX);
-      this->k_gayberne.run(&this->atom->dev_x.begin(),
+      this->time_ellipsoid.start();
+      this->k_ellipsoid.set_size(GX,BX);
+      this->k_ellipsoid.run(&this->atom->dev_x.begin(),
        &this->atom->dev_quat.begin(), &this->shape.begin(), &this->well.begin(),
        &this->gamma_upsilon_mu.begin(), &this->sigma_epsilon.begin(), 
        &this->_lj_types, &this->lshape.begin(), &this->nbor->dev_nbor.begin(),
        &stride, &this->ans->dev_ans.begin(),&ainum,&this->ans->dev_engv.begin(),
        &this->dev_error.begin(), &eflag, &vflag, &this->_last_ellipse, &anall,
        &this->_threads_per_atom);
-      this->time_gayberne.stop();
+      this->time_ellipsoid.stop();
 
       if (this->_last_ellipse==this->ans->inum()) {
-        this->time_kernel2.start();
-        this->time_kernel2.stop();
-        this->time_gayberne2.start();
-        this->time_gayberne2.stop();
-        this->time_pair.start();
-        this->time_pair.stop();
+        this->time_nbor2.start();
+        this->time_nbor2.stop();
+        this->time_ellipsoid2.start();
+        this->time_ellipsoid2.stop();
+        this->time_lj.start();
+        this->time_lj.stop();
         return;
       }
 
       // ------------ SPHERE_ELLIPSE ---------------
 
-      this->time_kernel2.start();
+      this->time_nbor2.start();
       GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum()-
                                this->_last_ellipse)/
                                (BX/this->_threads_per_atom)));
       this->pack_nbors(GX,BX,this->_last_ellipse,this->ans->inum(),
 			                 SPHERE_ELLIPSE,SPHERE_ELLIPSE,_shared_types,_lj_types);
-      this->time_kernel2.stop();
+      this->time_nbor2.stop();
 
-      this->time_gayberne2.start();
-      this->k_sphere_gb.set_size(GX,BX);
-      this->k_sphere_gb.run(&this->atom->dev_x.begin(),
+      this->time_ellipsoid2.start();
+      this->k_sphere_ellipsoid.set_size(GX,BX);
+      this->k_sphere_ellipsoid.run(&this->atom->dev_x.begin(),
         &this->atom->dev_quat.begin(), &this->shape.begin(), 
         &this->well.begin(), &this->gamma_upsilon_mu.begin(), 
         &this->sigma_epsilon.begin(), &this->_lj_types, &this->lshape.begin(), 
         &this->nbor->dev_nbor.begin(), &stride, &this->ans->dev_ans.begin(),
         &this->ans->dev_engv.begin(), &this->dev_error.begin(), &eflag,
         &vflag, &this->_last_ellipse, &ainum, &anall, &this->_threads_per_atom);
-      this->time_gayberne2.stop();
+      this->time_ellipsoid2.stop();
    } else {
       this->ans->dev_ans.zero();
       this->ans->dev_engv.zero();
-      this->time_kernel.stop();
-      this->time_gayberne.start();                                 
-      this->time_gayberne.stop();
-      this->time_kernel2.start();
-      this->time_kernel2.stop();
-      this->time_gayberne2.start();
-      this->time_gayberne2.stop();
+      this->time_nbor1.stop();
+      this->time_ellipsoid.start();                                 
+      this->time_ellipsoid.stop();
+      this->time_nbor2.start();
+      this->time_nbor2.stop();
+      this->time_ellipsoid2.start();
+      this->time_ellipsoid2.stop();
     }
     
     // ------------         LJ      ---------------
-    this->time_pair.start();
+    this->time_lj.start();
     if (this->_last_ellipse<this->ans->inum()) {
       if (this->_shared_types) {
         this->k_lj_fast.set_size(GX,BX);
@@ -282,24 +282,24 @@ void GB_GPU_MemoryT::loop(const bool _eflag, const bool _vflag) {
           &this->_threads_per_atom);
       }
     }
-    this->time_pair.stop();
+    this->time_lj.stop();
   } else {
-    this->time_kernel.start();
+    this->time_nbor1.start();
     this->pack_nbors(GX, BX, 0, this->ans->inum(),SPHERE_SPHERE,
 		                 ELLIPSE_ELLIPSE,_shared_types,_lj_types);
-    this->time_kernel.stop();
-    this->time_gayberne.start(); 
-    this->k_gayberne.set_size(GX,BX);
-    this->k_gayberne.run(&this->atom->dev_x.begin(), 
+    this->time_nbor1.stop();
+    this->time_ellipsoid.start(); 
+    this->k_ellipsoid.set_size(GX,BX);
+    this->k_ellipsoid.run(&this->atom->dev_x.begin(), 
       &this->atom->dev_quat.begin(), &this->shape.begin(), &this->well.begin(), 
       &this->gamma_upsilon_mu.begin(), &this->sigma_epsilon.begin(), 
       &this->_lj_types, &this->lshape.begin(), &this->nbor->dev_nbor.begin(),
       &stride, &this->ans->dev_ans.begin(), &ainum, 
       &this->ans->dev_engv.begin(), &this->dev_error.begin(),
       &eflag, &vflag, &ainum, &anall, &this->_threads_per_atom);
-    this->time_gayberne.stop();
+    this->time_ellipsoid.stop();
   }
 }
 
-template class GB_GPU_Memory<PRECISION,ACC_PRECISION>;
+template class GayBerne<PRECISION,ACC_PRECISION>;
 

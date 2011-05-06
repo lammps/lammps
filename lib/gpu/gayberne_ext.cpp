@@ -21,7 +21,7 @@
 
 using namespace std;
 
-static GB_GPU_Memory<PRECISION,ACC_PRECISION> GBMF;
+static GayBerne<PRECISION,ACC_PRECISION> GBMF;
 
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device

@@ -87,15 +87,15 @@ __inline void compute_eta_torque(numtyp m[9],numtyp m2[9], const numtyp4 shape,
 		    m[6]*m[1]*m2[7]-(numtyp)2.0*m2[8]*m[3]*m[1])*den;
 }
 
-__kernel void kernel_gayberne(__global numtyp4* x_,__global numtyp4 *q,
-                              __global numtyp4* shape, __global numtyp4* well, 
-                              __global numtyp *gum, __global numtyp2* sig_eps, 
-                              const int ntypes, __global numtyp *lshape, 
-                              __global int *dev_nbor, const int stride, 
-                              __global acctyp4 *ans, const int astride, 
-                              __global acctyp *engv, __global int *err_flag, 
-                              const int eflag, const int vflag, const int inum,
-                              const int nall, const int t_per_atom) {
+__kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
+                               __global numtyp4* shape, __global numtyp4* well, 
+                               __global numtyp *gum, __global numtyp2* sig_eps, 
+                               const int ntypes, __global numtyp *lshape, 
+                               __global int *dev_nbor, const int stride, 
+                               __global acctyp4 *ans, const int astride, 
+                               __global acctyp *engv, __global int *err_flag, 
+                               const int eflag, const int vflag, const int inum,
+                               const int nall, const int t_per_atom) {
   int tid=THREAD_ID_X;
   int ii=mul24((int)BLOCK_ID_X,(int)(BLOCK_SIZE_X)/t_per_atom);
   ii+=tid/t_per_atom;

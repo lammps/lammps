@@ -24,7 +24,7 @@
 #define NEIGHMASK 0x3FFFFFFF
 __inline int sbmask(int j) { return j >> SBBITS & 3; }
 
-__kernel void kernel_sphere_gb(__global numtyp4 *x_,__global numtyp4 *q,
+__kernel void kernel_sphere_ellipsoid(__global numtyp4 *x_,__global numtyp4 *q,
                                __global numtyp4* shape,__global numtyp4* well, 
                                __global numtyp *gum, __global numtyp2* sig_eps, 
                                const int ntypes, __global numtyp *lshape, 
@@ -210,7 +210,8 @@ __kernel void kernel_sphere_gb(__global numtyp4 *x_,__global numtyp4 *q,
         iota[2]*=r;
 
         numtyp temp1 = gpu_dot3(iota,r12hat);
-        numtyp temp2 = (numtyp)-4.0*ir*ir*gum[2]*pow(chi,(gum[2]-(numtyp)1.0)/gum[2]);
+        numtyp temp2 = (numtyp)-4.0*ir*ir*gum[2]*pow(chi,(gum[2]-(numtyp)1.0)/
+                                                     gum[2]);
         dchi[0] = temp2*(iota[0]-temp1*r12hat[0]);
         dchi[1] = temp2*(iota[1]-temp1*r12hat[1]);
         dchi[2] = temp2*(iota[2]-temp1*r12hat[2]);
@@ -590,3 +591,4 @@ __kernel void kernel_lj_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
 }
 
 #endif
+

@@ -33,8 +33,8 @@ ALL_H = $(OCL_H) $(PAIR_H)
 EXECS = $(BIN_DIR)/ocl_get_devices
 OBJS = $(OBJ_DIR)/pair_gpu_atom.o $(OBJ_DIR)/pair_gpu_ans.o \
        $(OBJ_DIR)/pair_gpu_nbor_shared.o $(OBJ_DIR)/pair_gpu_nbor.o \
-       $(OBJ_DIR)/pair_gpu_device.o \
-       $(OBJ_DIR)/atomic_gpu_memory.o $(OBJ_DIR)/charge_gpu_memory.o \
+       $(OBJ_DIR)/pair_gpu_device.o $(OBJ_DIR)/atomic_gpu_memory.o \
+       $(OBJ_DIR)/charge_gpu_memory.o $(OBJ_DIR)/base_ellipsoid.o \
        $(OBJ_DIR)/pppm_gpu_memory.o $(OBJ_DIR)/pppm_l_gpu.o \
        $(OBJ_DIR)/gb_gpu_memory.o $(OBJ_DIR)/gb_gpu.o \
        $(OBJ_DIR)/lj_cut_gpu_memory.o $(OBJ_DIR)/lj_cut_gpu.o \
@@ -89,6 +89,9 @@ $(OBJ_DIR)/atomic_gpu_memory.o: $(OCL_H) atomic_gpu_memory.h atomic_gpu_memory.c
 $(OBJ_DIR)/charge_gpu_memory.o: $(OCL_H) charge_gpu_memory.h charge_gpu_memory.cpp
 	$(OCL) -o $@ -c charge_gpu_memory.cpp
 
+$(OBJ_DIR)/base_ellipsoid.o: $(OCL_H) base_ellipsoid.h base_ellipsoid.cpp
+	$(OCL) -o $@ -c base_ellipsoid.cpp
+
 $(OBJ_DIR)/pppm_gpu_cl.h: pppm_gpu_kernel.cu
 	$(BSH) ./geryon/file_to_cstr.sh pppm_gpu_kernel.cu $(OBJ_DIR)/pppm_gpu_cl.h;
 
@@ -107,10 +110,10 @@ $(OBJ_DIR)/gb_gpu_cl.h: gb_gpu_kernel.cu gb_gpu_kernel_lj.cu gb_gpu_extra.h
 	$(BSH) ./geryon/file_to_cstr.sh $(OBJ_DIR)/gb_gpu_kernel.tar $(OBJ_DIR)/gb_gpu_kernel_lj.tar $(OBJ_DIR)/gb_gpu_cl.h; \
 	rm -f $(OBJ_DIR)/gb_gpu_kernel.tar $(OBJ_DIR)/gb_gpu_kernel_lj.tar
 
-$(OBJ_DIR)/gb_gpu_memory.o: $(ALL_H) gb_gpu_memory.h gb_gpu_memory.cpp $(OBJ_DIR)/gb_gpu_nbor_cl.h $(OBJ_DIR)/gb_gpu_cl.h
+$(OBJ_DIR)/gb_gpu_memory.o: $(ALL_H) gb_gpu_memory.h gb_gpu_memory.cpp $(OBJ_DIR)/gb_gpu_nbor_cl.h $(OBJ_DIR)/gb_gpu_cl.h $(OBJ_DIR)/base_ellipsoid.o
 	$(OCL) -o $@ -c gb_gpu_memory.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/gb_gpu.o: $(ALL_H) gb_gpu_memory.h gb_gpu.cpp
+$(OBJ_DIR)/gb_gpu.o: $(ALL_H) $(OBJ_DIR)/gb_gpu_memory.o gb_gpu.cpp
 	$(OCL) -o $@ -c gb_gpu.cpp -I$(OBJ_DIR)
 
 $(OBJ_DIR)/lj_cut_gpu_cl.h: lj_cut_gpu_kernel.cu

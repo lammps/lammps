@@ -24,27 +24,6 @@
 using namespace std;
 
 static GB_GPU_Memory<PRECISION,ACC_PRECISION> GBMF;
-#define GBMT GB_GPU_Memory<numtyp,acctyp>
-
-template<class numtyp, class acctyp>
-void gb_gpu_pack_nbors(GBMT &gbm, const int GX, const int BX, const int start, 
-                const int inum, const int form_low, const int form_high) {
-  int stride=gbm.nbor->nbor_pitch();
-  int anall=gbm.atom->nall();
-  if (gbm.shared_types) {
-    GBMF.k_gb_nbor_fast.set_size(GX,BX);
-    GBMF.k_gb_nbor_fast.run(&gbm.atom->dev_x.begin(),
-              &gbm.cut_form.begin(), &gbm.nbor->dev_nbor.begin(), &stride,
-              &start, &inum, &gbm.nbor->dev_packed.begin(), &form_low,
-              &form_high, &anall);
-  } else {
-    GBMF.k_gb_nbor.set_size(GX,BX);
-    GBMF.k_gb_nbor.run(&gbm.atom->dev_x.begin(), &gbm.cut_form.begin(),
-              &gbm._lj_types, &gbm.nbor->dev_nbor.begin(), &stride,
-              &start, &inum, &gbm.nbor->dev_packed.begin(), &form_low,
-              &form_high, &anall);
-  }
-}
 
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
@@ -56,7 +35,8 @@ int gb_gpu_init(const int ntypes, const double gamma,
                 double **host_lj1, double **host_lj2, double **host_lj3,
                 double **host_lj4, double **offset, double *special_lj,
                 const int inum, const int nall, const int max_nbors, 
-                const double cell_size, int &gpu_mode, FILE *screen) {
+                const int maxspecial, const double cell_size, int &gpu_mode,
+                FILE *screen) {
   GBMF.clear();
   gpu_mode=GBMF.device->gpu_mode();
   double gpu_split=GBMF.device->particle_split();
@@ -82,7 +62,8 @@ int gb_gpu_init(const int ntypes, const double gamma,
     init_ok=GBMF.init(ntypes, gamma, upsilon, mu, shape, well, cutsq, 
                       sigma, epsilon, host_lshape, form, host_lj1, 
                       host_lj2, host_lj3, host_lj4, offset, special_lj, 
-                      inum, nall, max_nbors, cell_size, gpu_split, screen);
+                      inum, nall, max_nbors, maxspecial, cell_size, gpu_split,
+                      screen);
 
   GBMF.device->world_barrier();
   if (message)
@@ -101,7 +82,7 @@ int gb_gpu_init(const int ntypes, const double gamma,
       init_ok=GBMF.init(ntypes, gamma, upsilon, mu, shape, well, cutsq,  sigma,
                         epsilon, host_lshape, form, host_lj1, host_lj2,
                         host_lj3, host_lj4, offset, special_lj,  inum, nall,
-                        max_nbors, cell_size, gpu_split,  screen);
+                        max_nbors, maxspecial, cell_size, gpu_split,  screen);
 
     GBMF.device->gpu_barrier();
     if (message) 
@@ -122,319 +103,24 @@ void gb_gpu_clear() {
   GBMF.clear();
 }
 
-// ---------------------------------------------------------------------------
-// Build neighbor list on device
-// ---------------------------------------------------------------------------
-template <class gbmtyp>
-inline void _gb_gpu_build_nbor_list(gbmtyp &gbm, const int inum,
-                                    const int host_inum, const int nall, 
-                                    double **host_x, double **host_quat,
-                                    int *host_type, double *sublo,
-                                    double *subhi, bool &success) {
-  gbm.nbor_time_avail=true;
-
-  success=true;
-  gbm.resize_atom(inum,nall,success);
-  gbm.resize_local(inum,host_inum,gbm.nbor->max_nbors(),0,success);
-  if (!success)
-    return;
-    
-  gbm.atom->cast_copy_x(host_x,host_type);
-  int mn;
-  gbm.nbor->build_nbor_list(inum, host_inum, nall, *gbm.atom,
-                            sublo, subhi, NULL, NULL, NULL, success, mn);
-  gbm.nbor->copy_unpacked(inum,mn);
-  gbm.last_ellipse=inum;
-  gbm.max_last_ellipse=inum;
-}
-
-// ---------------------------------------------------------------------------
-// Copy neighbor list from host and (if spheres) reorder so ellipses first
-// ---------------------------------------------------------------------------
-template <class gbmtyp>
-void _gb_gpu_reset_nbors(gbmtyp &gbm, const int nall,
-                          const int inum, const int osize,
-                          int *ilist, int *numj,
-                          int *type, int **firstneigh,
-                          bool &success) {
-  success=true;
-    
-  gbm.nbor_time_avail=true;
-
-  int mn=gbm.nbor->max_nbor_loop(inum,numj,ilist);
-  gbm.resize_atom(inum,nall,success);
-  gbm.resize_local(inum,0,mn,osize,success);
-  if (!success)
-    return;
-    
-  if (gbm.multiple_forms) {
-    int p=0;
-    for (int i=0; i<osize; i++) {
-      int itype=type[ilist[i]];
-      if (gbm.host_form[itype][itype]==ELLIPSE_ELLIPSE) {
-        gbm.host_olist[p]=ilist[i];
-        p++;
-      }
-    }
-    gbm.max_last_ellipse=p;
-    gbm.last_ellipse=std::min(inum,gbm.max_last_ellipse);
-    for (int i=0; i<osize; i++) {
-      int itype=type[ilist[i]];
-      if (gbm.host_form[itype][itype]!=ELLIPSE_ELLIPSE) {
-        gbm.host_olist[p]=ilist[i];
-        p++;
-      }
-    }
-    gbm.nbor->get_host(inum,gbm.host_olist.begin(),numj,firstneigh,
-                      gbm.block_size());
-    gbm.nbor->copy_unpacked(inum,mn);
-    return;
-  }
-  gbm.last_ellipse=inum;
-  gbm.max_last_ellipse=inum;
-  gbm.nbor->get_host(inum,ilist,numj,firstneigh,gbm.block_size());
-  gbm.nbor->copy_unpacked(inum,mn);
-}
-
-// ---------------------------------------------------------------------------
-// Calculate energies, forces, and torques
-// ---------------------------------------------------------------------------
-template <class numtyp, class acctyp>
-void _gb_gpu_gayberne(GBMT &gbm, const bool _eflag, const bool _vflag) {
-  // Compute the block size and grid size to keep all cores busy
-  const int BX=gbm.block_size();
-  int eflag, vflag;
-  if (_eflag)
-    eflag=1;
-  else
-    eflag=0;
-
-  if (_vflag)
-    vflag=1;
-  else
-    vflag=0;
-  
-  int GX=static_cast<int>(ceil(static_cast<double>(gbm.ans->inum())/
-                               (BX/gbm._threads_per_atom)));
-  int stride=gbm.nbor->nbor_pitch();
-  int ainum=gbm.ans->inum();
-  int anall=gbm.atom->nall();
-
-  if (gbm.multiple_forms) {
-    gbm.time_kernel.start();
-    if (gbm.last_ellipse>0) {
-      // ------------ ELLIPSE_ELLIPSE and ELLIPSE_SPHERE ---------------
-      GX=static_cast<int>(ceil(static_cast<double>(gbm.last_ellipse)/
-                               (BX/gbm._threads_per_atom)));
-      gb_gpu_pack_nbors(gbm,GX,BX, 0, gbm.last_ellipse,ELLIPSE_SPHERE,
-			ELLIPSE_ELLIPSE);
-      gbm.time_kernel.stop();
-
-      gbm.time_gayberne.start();
-      GBMF.k_gayberne.set_size(GX,BX);
-      GBMF.k_gayberne.run(&gbm.atom->dev_x.begin(),
-           &gbm.atom->dev_quat.begin(), &gbm.shape.begin(), &gbm.well.begin(),
-           &gbm.gamma_upsilon_mu.begin(), &gbm.sigma_epsilon.begin(), 
-           &gbm._lj_types, &gbm.lshape.begin(), &gbm.nbor->dev_nbor.begin(),
-           &stride, &gbm.ans->dev_ans.begin(),&ainum,&gbm.ans->dev_engv.begin(),
-           &gbm.dev_error.begin(), &eflag, &vflag, &gbm.last_ellipse, &anall,
-           &gbm._threads_per_atom);
-      gbm.time_gayberne.stop();
-
-      if (gbm.last_ellipse==gbm.ans->inum()) {
-        gbm.time_kernel2.start();
-        gbm.time_kernel2.stop();
-        gbm.time_gayberne2.start();
-        gbm.time_gayberne2.stop();
-        gbm.time_pair.start();
-        gbm.time_pair.stop();
-        return;
-      }
-
-      // ------------ SPHERE_ELLIPSE ---------------
-
-      gbm.time_kernel2.start();
-      GX=static_cast<int>(ceil(static_cast<double>(gbm.ans->inum()-
-                               gbm.last_ellipse)/
-                               (BX/gbm._threads_per_atom)));
-      gb_gpu_pack_nbors(gbm,GX,BX,gbm.last_ellipse,gbm.ans->inum(),
-			SPHERE_ELLIPSE,SPHERE_ELLIPSE);
-      gbm.time_kernel2.stop();
-
-      gbm.time_gayberne2.start();
-      GBMF.k_sphere_gb.set_size(GX,BX);
-      GBMF.k_sphere_gb.run(&gbm.atom->dev_x.begin(),&gbm.atom->dev_quat.begin(),
-              &gbm.shape.begin(), &gbm.well.begin(), 
-              &gbm.gamma_upsilon_mu.begin(), &gbm.sigma_epsilon.begin(), 
-              &gbm._lj_types, &gbm.lshape.begin(), 
-              &gbm.nbor->dev_nbor.begin(), &stride, &gbm.ans->dev_ans.begin(),
-              &gbm.ans->dev_engv.begin(), &gbm.dev_error.begin(), &eflag,
-              &vflag, &gbm.last_ellipse, &ainum, &anall,
-              &gbm._threads_per_atom);
-      gbm.time_gayberne2.stop();
-   } else {
-      gbm.ans->dev_ans.zero();
-      gbm.ans->dev_engv.zero();
-      gbm.time_kernel.stop();
-      gbm.time_gayberne.start();                                 
-      gbm.time_gayberne.stop();
-      gbm.time_kernel2.start();
-      gbm.time_kernel2.stop();
-      gbm.time_gayberne2.start();
-      gbm.time_gayberne2.stop();
-    }
-    
-    // ------------         LJ      ---------------
-    gbm.time_pair.start();
-    if (gbm.last_ellipse<gbm.ans->inum()) {
-      if (gbm.shared_types) {
-        GBMF.k_lj_fast.set_size(GX,BX);
-        GBMF.k_lj_fast.run(&gbm.atom->dev_x.begin(), &gbm.lj1.begin(),
-                           &gbm.lj3.begin(), &gbm.gamma_upsilon_mu.begin(),
-                           &stride, &gbm.nbor->dev_packed.begin(),
-                           &gbm.ans->dev_ans.begin(),
-                           &gbm.ans->dev_engv.begin(), &gbm.dev_error.begin(),
-                           &eflag, &vflag, &gbm.last_ellipse, &ainum, &anall,
-                           &gbm._threads_per_atom);
-      } else {
-        GBMF.k_lj.set_size(GX,BX);
-        GBMF.k_lj.run(&gbm.atom->dev_x.begin(), &gbm.lj1.begin(),
-                      &gbm.lj3.begin(), &gbm._lj_types, 
-                      &gbm.gamma_upsilon_mu.begin(), &stride, 
-                      &gbm.nbor->dev_packed.begin(), &gbm.ans->dev_ans.begin(),
-                      &gbm.ans->dev_engv.begin(), &gbm.dev_error.begin(),
-                      &eflag, &vflag, &gbm.last_ellipse, &ainum, &anall,
-                      &gbm._threads_per_atom);
-      }
-    }
-    gbm.time_pair.stop();
-  } else {
-    gbm.time_kernel.start();
-    gb_gpu_pack_nbors(gbm, GX, BX, 0, gbm.ans->inum(),SPHERE_SPHERE,
-		      ELLIPSE_ELLIPSE);
-    gbm.time_kernel.stop();
-    gbm.time_gayberne.start(); 
-    GBMF.k_gayberne.set_size(GX,BX);
-    GBMF.k_gayberne.run(&gbm.atom->dev_x.begin(), &gbm.atom->dev_quat.begin(),
-            &gbm.shape.begin(), &gbm.well.begin(), 
-            &gbm.gamma_upsilon_mu.begin(), &gbm.sigma_epsilon.begin(), 
-            &gbm._lj_types, &gbm.lshape.begin(), &gbm.nbor->dev_nbor.begin(),
-            &stride, &gbm.ans->dev_ans.begin(), &ainum,
-            &gbm.ans->dev_engv.begin(), &gbm.dev_error.begin(),
-            &eflag, &vflag, &ainum, &anall, &gbm._threads_per_atom);
-    gbm.time_gayberne.stop();
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Reneighbor on GPU if necessary and then compute forces, torques, energies
-// ---------------------------------------------------------------------------
-template <class gbmtyp>
-inline int** _gb_gpu_compute_n(gbmtyp &gbm, const int ago,
-                               const int inum_full, const int nall,
-                               double **host_x, int *host_type,
-                               double *sublo, double *subhi, const bool eflag,
-                               const bool vflag, const bool eatom,
-                               const bool vatom, int &host_start,
-                               int **ilist, int **jnum, const double cpu_time,
-                               bool &success, double **host_quat) {
-  gbm.acc_timers();
-  if (inum_full==0) {
-    host_start=0;
-    gbm.zero_timers();
-    return NULL;
-  }
-
-  gbm.hd_balancer.balance(cpu_time);
-  int inum=gbm.hd_balancer.get_gpu_count(ago,inum_full);
-  gbm.ans->inum(inum);
-  gbm.last_ellipse=std::min(inum,gbm.max_last_ellipse);
-  host_start=inum;
-  
-  // Build neighbor list on GPU if necessary
-  if (ago==0) {
-    _gb_gpu_build_nbor_list(gbm, inum, inum_full-inum, nall, host_x,
-                            host_quat, host_type, sublo, subhi, success);
-    if (!success)
-      return NULL;
-    gbm.atom->cast_quat_data(host_quat[0]);
-    gbm.hd_balancer.start_timer();
-  } else {    
-    gbm.atom->cast_x_data(host_x,host_type);
-    gbm.atom->cast_quat_data(host_quat[0]);
-    gbm.hd_balancer.start_timer();
-    gbm.atom->add_x_data(host_x,host_type);
-  }
-
-  gbm.atom->add_quat_data();
-  *ilist=gbm.nbor->host_ilist.begin();
-  *jnum=gbm.nbor->host_acc.begin();
-
-  _gb_gpu_gayberne<PRECISION,ACC_PRECISION>(gbm,eflag,vflag);
-  gbm.ans->copy_answers(eflag,vflag,eatom,vatom);
-  gbm.device->add_ans_object(gbm.ans);
-  gbm.hd_balancer.stop_timer();
-  return gbm.nbor->host_jlist.begin()-host_start;
-}
+  int** compute(const int ago, const int inum_full, const int nall,
+                double **host_x, int *host_type, double *sublo,
+                double *subhi, int *tag, int **nspecial,
+                int **special, const bool eflag, const bool vflag, 
+                const bool eatom, const bool vatom, int &host_start, 
+                int **ilist, int **numj, const double cpu_time, bool &success,
+                double **host_quat);
 
 int** gb_gpu_compute_n(const int ago, const int inum_full, const int nall,
                        double **host_x, int *host_type, double *sublo,
-                       double *subhi, const bool eflag, const bool vflag,
-                       const bool eatom, const bool vatom, int &host_start,
-                       int **ilist, int **jnum, const double cpu_time,
-                       bool &success, double **host_quat) {
-  return _gb_gpu_compute_n(GBMF, ago, inum_full, nall, host_x, host_type, sublo,
-                           subhi, eflag, vflag, eatom, vatom, host_start, ilist,
-                           jnum, cpu_time, success, host_quat);
-}  
-
-// ---------------------------------------------------------------------------
-// Copy nbor list from host if necessary and then calculate forces, torques,..
-// ---------------------------------------------------------------------------
-template <class gbmtyp>
-inline int * _gb_gpu_compute(gbmtyp &gbm, const int f_ago, const int inum_full,
-                             const int nall,double **host_x, int *host_type,
-                             int *ilist, int *numj, int **firstneigh,
-                             const bool eflag, const bool vflag,
-                             const bool eatom, const bool vatom,
-                             int &host_start, const double cpu_time,
-                             bool &success, double **host_quat) {
-  gbm.acc_timers();
-  if (inum_full==0) {
-    host_start=0;
-    gbm.zero_timers();
-    return NULL;
-  }
-  
-  int ago=gbm.hd_balancer.ago_first(f_ago);
-  int inum=gbm.hd_balancer.balance(ago,inum_full,cpu_time);
-  gbm.ans->inum(inum);
-  gbm.last_ellipse=std::min(inum,gbm.max_last_ellipse);
-  host_start=inum;
-
-  if (ago==0) {
-    _gb_gpu_reset_nbors(gbm, nall, inum, inum_full, ilist, numj, host_type,
-		        firstneigh, success);
-    if (!success)
-      return NULL;
-  }
-  int *list;
-  if (gbm.multiple_forms)
-    list=gbm.host_olist.begin();
-  else
-    list=ilist;
-
-  gbm.atom->cast_x_data(host_x,host_type);
-  gbm.atom->cast_quat_data(host_quat[0]);
-  gbm.hd_balancer.start_timer();
-  gbm.atom->add_x_data(host_x,host_type);
-  gbm.atom->add_quat_data();
-
-  _gb_gpu_gayberne<PRECISION,ACC_PRECISION>(gbm,eflag,vflag);
-  gbm.ans->copy_answers(eflag,vflag,eatom,vatom,list);
-  gbm.device->add_ans_object(gbm.ans);
-  gbm.hd_balancer.stop_timer();
-  return list;
+                       double *subhi, int *tag, int **nspecial, int **special,
+                       const bool eflag, const bool vflag, const bool eatom,
+                       const bool vatom, int &host_start, int **ilist,
+                       int **jnum, const double cpu_time, bool &success,
+                       double **host_quat) {
+  return GBMF.compute(ago, inum_full, nall, host_x, host_type, sublo, subhi, 
+                      tag, nspecial, special, eflag, vflag, eatom, vatom, 
+                      host_start, ilist, jnum, cpu_time, success, host_quat);
 }
 
 int * gb_gpu_compute(const int ago, const int inum_full, const int nall,
@@ -442,10 +128,9 @@ int * gb_gpu_compute(const int ago, const int inum_full, const int nall,
                      int **firstneigh, const bool eflag, const bool vflag,
                      const bool eatom, const bool vatom, int &host_start,
                      const double cpu_time, bool &success, double **host_quat) {
-  return _gb_gpu_compute(GBMF, ago, inum_full, nall, host_x,
-			 host_type, ilist, numj, firstneigh, eflag, vflag,
-			 eatom, vatom, host_start, cpu_time, success,
-                         host_quat);
+  return GBMF.compute(ago, inum_full, nall, host_x, host_type, ilist,
+                      numj, firstneigh, eflag, vflag, eatom, vatom, host_start,
+                      cpu_time, success, host_quat);
 }
 
 // ---------------------------------------------------------------------------
@@ -454,3 +139,4 @@ int * gb_gpu_compute(const int ago, const int inum_full, const int nall,
 double gb_gpu_bytes() {
   return GBMF.host_memory_usage();
 }
+

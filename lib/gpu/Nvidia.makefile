@@ -43,8 +43,8 @@ CUDPP = $(OBJ_DIR)/cudpp.o $(OBJ_DIR)/cudpp_plan.o \
         $(OBJ_DIR)/radixsort_app.cu_o $(OBJ_DIR)/scan_app.cu_o
 OBJS = $(OBJ_DIR)/pair_gpu_atom.o $(OBJ_DIR)/pair_gpu_ans.o \
        $(OBJ_DIR)/pair_gpu_nbor.o $(OBJ_DIR)/pair_gpu_nbor_shared.o \
-       $(OBJ_DIR)/pair_gpu_device.o \
-       $(OBJ_DIR)/atomic_gpu_memory.o $(OBJ_DIR)/charge_gpu_memory.o \
+       $(OBJ_DIR)/pair_gpu_device.o $(OBJ_DIR)/atomic_gpu_memory.o \
+       $(OBJ_DIR)/charge_gpu_memory.o $(OBJ_DIR)/base_ellipsoid.o \
        $(OBJ_DIR)/pppm_gpu_memory.o $(OBJ_DIR)/pppm_l_gpu.o \
        $(OBJ_DIR)/gb_gpu_memory.o $(OBJ_DIR)/gb_gpu.o \
        $(OBJ_DIR)/lj_cut_gpu_memory.o $(OBJ_DIR)/lj_cut_gpu.o \
@@ -142,6 +142,9 @@ $(OBJ_DIR)/atomic_gpu_memory.o: $(ALL_H) atomic_gpu_memory.h atomic_gpu_memory.c
 $(OBJ_DIR)/charge_gpu_memory.o: $(ALL_H) charge_gpu_memory.h charge_gpu_memory.cpp
 	$(CUDR) -o $@ -c charge_gpu_memory.cpp
 
+$(OBJ_DIR)/base_ellipsoid.o: $(ALL_H) base_ellipsoid.h base_ellipsoid.cpp
+	$(CUDR) -o $@ -c base_ellipsoid.cpp
+
 $(OBJ_DIR)/pppm_f_gpu_kernel.ptx: pppm_gpu_kernel.cu pair_gpu_precision.h
 	$(CUDA) --ptx -DNV_KERNEL -Dgrdtyp=float -Dgrdtyp4=float4 -o $@ pppm_gpu_kernel.cu
 
@@ -172,10 +175,10 @@ $(OBJ_DIR)/gb_gpu_kernel_nbor.ptx: gb_gpu_kernel_nbor.cu pair_gpu_precision.h
 $(OBJ_DIR)/gb_gpu_ptx.h: $(OBJ_DIR)/gb_gpu_kernel_nbor.ptx $(OBJ_DIR)/gb_gpu_kernel.ptx $(OBJ_DIR)/gb_gpu_kernel_lj.ptx
 	$(BSH) ./geryon/file_to_cstr.sh $(OBJ_DIR)/gb_gpu_kernel_nbor.ptx $(OBJ_DIR)/gb_gpu_kernel.ptx $(OBJ_DIR)/gb_gpu_kernel_lj.ptx $(OBJ_DIR)/gb_gpu_ptx.h
 
-$(OBJ_DIR)/gb_gpu_memory.o: $(ALL_H) gb_gpu_memory.h gb_gpu_memory.cpp $(OBJ_DIR)/gb_gpu_ptx.h
+$(OBJ_DIR)/gb_gpu_memory.o: $(ALL_H) gb_gpu_memory.h gb_gpu_memory.cpp $(OBJ_DIR)/gb_gpu_ptx.h $(OBJ_DIR)/base_ellipsoid.o
 	$(CUDR) -o $@ -c gb_gpu_memory.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/gb_gpu.o: $(ALL_H) gb_gpu_memory.h gb_gpu.cpp
+$(OBJ_DIR)/gb_gpu.o: $(ALL_H) $(OBJ_DIR)/gb_gpu_memory.o gb_gpu.cpp
 	$(CUDR) -o $@ -c gb_gpu.cpp -I$(OBJ_DIR)
 
 $(OBJ_DIR)/lj_cut_gpu_kernel.ptx: lj_cut_gpu_kernel.cu pair_gpu_precision.h

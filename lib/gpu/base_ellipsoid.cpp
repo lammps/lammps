@@ -176,7 +176,7 @@ void BaseEllipsoidT::output_times() {
   double max_mb=mpi_max_bytes/(1024*1024);
 
   if (device->replica_me()==0)
-    if (screen && times[3]>0.0) {
+    if (screen && times[5]>0.0) {
       int replica_size=device->replica_size();
 
       fprintf(screen,"\n\n-------------------------------------");
@@ -247,7 +247,7 @@ void BaseEllipsoidT::reset_nbors(const int nall, const int inum,
   nbor_time_avail=true;
 
   int mn=nbor->max_nbor_loop(inum,numj,ilist);
-  resize_atom(inum,success);
+  resize_atom(nall,success);
   resize_local(inum,0,mn,osize,success);
   if (!success)
     return;
@@ -297,7 +297,7 @@ inline void BaseEllipsoidT::build_nbor_list(const int inum, const int host_inum,
   nbor_time_avail=true;
 
   success=true;
-  resize_atom(inum,success);
+  resize_atom(nall,success);
   resize_local(inum,host_inum,nbor->max_nbors(),0,success);
   if (!success)
     return;

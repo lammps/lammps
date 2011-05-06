@@ -47,12 +47,11 @@
 // -- Only unpack neighbors matching the specified inclusive range of forms
 // -- Only unpack neighbors within cutoff
 // ---------------------------------------------------------------------------
-__kernel void kernel_gb_nbor(__global numtyp4 *x_, __global numtyp2 *cut_form, 
-                             const int ntypes, __global int *dev_nbor,
-                             const int nbor_pitch, 
-                             const int start, const int inum, 
-                             __global int *dev_ij, const int form_low, 
-                             const int form_high, const int nall) {
+__kernel void kernel_nbor(__global numtyp4 *x_, __global numtyp2 *cut_form, 
+                          const int ntypes, __global int *dev_nbor,
+                          const int nbor_pitch, const int start, const int inum, 
+                          __global int *dev_ij, const int form_low, 
+                          const int form_high, const int nall) {
                                 
   // ii indexes the two interacting particles in gi
   int ii=GLOBAL_ID_X+start;
@@ -104,13 +103,11 @@ __kernel void kernel_gb_nbor(__global numtyp4 *x_, __global numtyp2 *cut_form,
 // -- Only unpack neighbors within cutoff
 // -- Fast version of routine that uses shared memory for LJ constants
 // ---------------------------------------------------------------------------
-__kernel void kernel_gb_nbor_fast(__global numtyp4 *x_, 
-                                  __global numtyp2 *cut_form,
-                                  __global int *dev_nbor, 
-                                  const int nbor_pitch, 
-                                  const int start, const int inum, 
-                                  __global int *dev_ij, const int form_low, 
-                                  const int form_high, const int nall) {
+__kernel void kernel_nbor_fast(__global numtyp4 *x_, __global numtyp2 *cut_form,
+                               __global int *dev_nbor, const int nbor_pitch, 
+                               const int start, const int inum, 
+                               __global int *dev_ij, const int form_low, 
+                               const int form_high, const int nall) {
                                 
   int ii=THREAD_ID_X;
   __local int form[MAX_SHARED_TYPES*MAX_SHARED_TYPES];

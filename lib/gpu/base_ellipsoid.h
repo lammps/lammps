@@ -26,6 +26,8 @@
 #include "geryon/nvd_texture.h"
 #endif
 
+namespace LAMMPS_AL {
+
 template <class numtyp, class acctyp>
 class BaseEllipsoid {
  public:
@@ -236,6 +238,8 @@ class BaseEllipsoid {
 
   virtual void loop(const bool _eflag, const bool _vflag) = 0;
 };
+
+}
 
 #endif
 

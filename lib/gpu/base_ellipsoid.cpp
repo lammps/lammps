@@ -14,8 +14,9 @@
  ***************************************************************************/
 
 #include "base_ellipsoid.h"
-#define BaseEllipsoidT BaseEllipsoid<numtyp, acctyp>
+using namespace LAMMPS_AL;
 
+#define BaseEllipsoidT BaseEllipsoid<numtyp, acctyp>
 extern PairGPUDevice<PRECISION,ACC_PRECISION> pair_gpu_device;
 
 template <class numtyp, class acctyp>

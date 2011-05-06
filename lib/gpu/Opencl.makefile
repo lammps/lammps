@@ -37,6 +37,7 @@ OBJS = $(OBJ_DIR)/pair_gpu_atom.o $(OBJ_DIR)/pair_gpu_ans.o \
        $(OBJ_DIR)/charge_gpu_memory.o $(OBJ_DIR)/base_ellipsoid.o \
        $(OBJ_DIR)/pppm_gpu_memory.o $(OBJ_DIR)/pppm_l_gpu.o \
        $(OBJ_DIR)/gayberne.o $(OBJ_DIR)/gayberne_ext.o \
+       $(OBJ_DIR)/re_squared.o $(OBJ_DIR)/re_squared_ext.o \
        $(OBJ_DIR)/lj_cut_gpu_memory.o $(OBJ_DIR)/lj_cut_gpu.o \
        $(OBJ_DIR)/lj96_cut_gpu_memory.o $(OBJ_DIR)/lj96_cut_gpu.o \
        $(OBJ_DIR)/lj_expand_gpu_memory.o $(OBJ_DIR)/lj_expand_gpu.o \
@@ -49,6 +50,7 @@ OBJS = $(OBJ_DIR)/pair_gpu_atom.o $(OBJ_DIR)/pair_gpu_ans.o \
 KERS = $(OBJ_DIR)/pair_gpu_dev_cl.h $(OBJ_DIR)/pair_gpu_atom_cl.h \
        $(OBJ_DIR)/pair_gpu_nbor_cl.h $(OBJ_DIR)/pppm_gpu_cl.h \
        $(OBJ_DIR)/ellipsoid_nbor_cl.h $(OBJ_DIR)/gayberne_cl.h \
+       $(OBJ_DIR)/re_squared_cl.h \
        $(OBJ_DIR)/lj_cut_gpu_cl.h $(OBJ_DIR)/lj96_cut_gpu_cl.h \
        $(OBJ_DIR)/lj_expand_gpu_cl.h $(OBJ_DIR)/ljc_cut_gpu_cl.h \
        $(OBJ_DIR)/ljcl_cut_gpu_cl.h $(OBJ_DIR)/morse_gpu_cl.h \
@@ -115,6 +117,18 @@ $(OBJ_DIR)/gayberne.o: $(ALL_H) gayberne.h gayberne.cpp $(OBJ_DIR)/ellipsoid_nbo
 
 $(OBJ_DIR)/gayberne_ext.o: $(ALL_H) $(OBJ_DIR)/gayberne.o gayberne_ext.cpp
 	$(OCL) -o $@ -c gayberne_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/re_squared_cl.h: re_squared.cu re_squared_lj.cu ellipsoid_extra.h
+	cat ellipsoid_extra.h re_squared.cu > $(OBJ_DIR)/re_squared.tar; \
+	cat ellipsoid_extra.h re_squared_lj.cu > $(OBJ_DIR)/re_squared_lj.tar; \
+	$(BSH) ./geryon/file_to_cstr.sh $(OBJ_DIR)/re_squared.tar $(OBJ_DIR)/re_squared_lj.tar $(OBJ_DIR)/re_squared_cl.h; \
+	rm -f $(OBJ_DIR)/re_squared.tar $(OBJ_DIR)/re_squared_lj.tar
+
+$(OBJ_DIR)/re_squared.o: $(ALL_H) re_squared.h re_squared.cpp $(OBJ_DIR)/ellipsoid_nbor_cl.h $(OBJ_DIR)/re_squared_cl.h $(OBJ_DIR)/base_ellipsoid.o
+	$(OCL) -o $@ -c re_squared.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/re_squared_ext.o: $(ALL_H) $(OBJ_DIR)/re_squared.o re_squared_ext.cpp
+	$(OCL) -o $@ -c re_squared_ext.cpp -I$(OBJ_DIR)
 
 $(OBJ_DIR)/lj_cut_gpu_cl.h: lj_cut_gpu_kernel.cu
 	$(BSH) ./geryon/file_to_cstr.sh lj_cut_gpu_kernel.cu $(OBJ_DIR)/lj_cut_gpu_cl.h;

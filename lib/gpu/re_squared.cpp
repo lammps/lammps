@@ -1,49 +1,49 @@
 /***************************************************************************
-                                gayberne.cpp
+                                re_squared.cpp
                              -------------------
                                W. Michael Brown
 
-  Host code for Gay-Berne potential acceleration
+  Host code for RE-Squared potential acceleration
 
  __________________________________________________________________________
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                :
+    begin                : Fri May 06 2011
     email                : brownw@ornl.gov
  ***************************************************************************/
 
 #ifdef USE_OPENCL
-#include "gayberne_cl.h"
+#include "re_squared_cl.h"
 #include "ellipsoid_nbor_cl.h"
 #else
-#include "gayberne_ptx.h"
+#include "re_squared_ptx.h"
 #endif
 
-#include "gayberne.h"
+#include "re_squared.h"
 #include <cassert>
 using namespace LAMMPS_AL;
 
-#define GayBerneT GayBerne<numtyp, acctyp>
+#define RESquaredT RESquared<numtyp, acctyp>
 extern PairGPUDevice<PRECISION,ACC_PRECISION> pair_gpu_device;
 
 template <class numtyp, class acctyp>
-GayBerneT::GayBerne() : BaseEllipsoid<numtyp,acctyp>(),
+RESquaredT::RESquared() : BaseEllipsoid<numtyp,acctyp>(),
                                   _allocated(false) {
 }
 
 template <class numtyp, class acctyp>
-GayBerneT::~GayBerne() { 
+RESquaredT::~RESquared() { 
   clear();
 }
  
 template <class numtyp, class acctyp>
-int GayBerneT::bytes_per_atom(const int max_nbors) const {
+int RESquaredT::bytes_per_atom(const int max_nbors) const {
   return this->bytes_per_atom(max_nbors);
 }
 
 template <class numtyp, class acctyp>
-int GayBerneT::init(const int ntypes, const double gamma, 
+int RESquaredT::init(const int ntypes, const double gamma, 
                          const double upsilon, const double mu, 
                          double **host_shape, double **host_well, 
                          double **host_cutsq, double **host_sigma, 
@@ -57,7 +57,7 @@ int GayBerneT::init(const int ntypes, const double gamma,
   int success;
   success=this->init_base(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
                           _screen,ntypes,h_form,ellipsoid_nbor,
-                          gayberne,gayberne_lj);
+                          re_squared,re_squared_lj);
   if (success!=0)
     return success;
 
@@ -144,7 +144,7 @@ int GayBerneT::init(const int ntypes, const double gamma,
 }
 
 template <class numtyp, class acctyp>
-void GayBerneT::clear() {
+void RESquaredT::clear() {
   if (!_allocated)
     return;
 
@@ -171,8 +171,8 @@ void GayBerneT::clear() {
 }
 
 template <class numtyp, class acctyp>
-double GayBerneT::host_memory_usage() const {
-  return this->host_memory_usage_base()+sizeof(GayBerneT)+
+double RESquaredT::host_memory_usage() const {
+  return this->host_memory_usage_base()+sizeof(RESquaredT)+
          4*sizeof(numtyp);
 }
 
@@ -180,7 +180,7 @@ double GayBerneT::host_memory_usage() const {
 // Calculate energies, forces, and torques
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-void GayBerneT::loop(const bool _eflag, const bool _vflag) {
+void RESquaredT::loop(const bool _eflag, const bool _vflag) {
   const int BX=this->block_size();
   int eflag, vflag;
   if (_eflag)
@@ -302,5 +302,5 @@ void GayBerneT::loop(const bool _eflag, const bool _vflag) {
   }
 }
 
-template class GayBerne<PRECISION,ACC_PRECISION>;
+template class RESquared<PRECISION,ACC_PRECISION>;
 

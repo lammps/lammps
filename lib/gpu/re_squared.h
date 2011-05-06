@@ -1,20 +1,20 @@
 /***************************************************************************
-                                 gayberne.h
+                                 re_squared.h
                              -------------------
                                W. Michael Brown
 
-  Host code for Gay-Berne potential acceleration
+  Host code for RE-Squared potential acceleration
 
  __________________________________________________________________________
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                :
+    begin                : Fri May 06 2011
     email                : brownw@ornl.gov
  ***************************************************************************/
 
-#ifndef GAYBERNE_H
-#define GAYBERNE_H
+#ifndef RE_SQUARED_H
+#define RE_SQUARED_H
 
 #include "base_ellipsoid.h"
 #include "mpi.h"
@@ -22,10 +22,10 @@
 namespace LAMMPS_AL {
 
 template <class numtyp, class acctyp>
-class GayBerne : public BaseEllipsoid<numtyp, acctyp> {
+class RESquared : public BaseEllipsoid<numtyp, acctyp> {
  public:
-  GayBerne();
-  ~GayBerne(); 
+  RESquared();
+  ~RESquared(); 
 
   /// Clear any previous data and set up for a new LAMMPS run
   /** \param gpu_nbor true if neighboring performed on device

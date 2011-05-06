@@ -47,6 +47,7 @@ OBJS = $(OBJ_DIR)/pair_gpu_atom.o $(OBJ_DIR)/pair_gpu_ans.o \
        $(OBJ_DIR)/charge_gpu_memory.o $(OBJ_DIR)/base_ellipsoid.o \
        $(OBJ_DIR)/pppm_gpu_memory.o $(OBJ_DIR)/pppm_l_gpu.o \
        $(OBJ_DIR)/gayberne.o $(OBJ_DIR)/gayberne_ext.o \
+       $(OBJ_DIR)/re_squared.o $(OBJ_DIR)/re_squared_ext.o \
        $(OBJ_DIR)/lj_cut_gpu_memory.o $(OBJ_DIR)/lj_cut_gpu.o \
        $(OBJ_DIR)/lj96_cut_gpu_memory.o $(OBJ_DIR)/lj96_cut_gpu.o \
        $(OBJ_DIR)/lj_expand_gpu_memory.o $(OBJ_DIR)/lj_expand_gpu.o \
@@ -66,6 +67,8 @@ PTXS = $(OBJ_DIR)/pair_gpu_dev_kernel.ptx \
        $(OBJ_DIR)/pppm_d_gpu_kernel.ptx $(OBJ_DIR)/pppm_d_gpu_ptx.h \
        $(OBJ_DIR)/ellipsoid_nbor.ptx $(OBJ_DIR)/gayberne.ptx \
        $(OBJ_DIR)/gayberne_lj.ptx $(OBJ_DIR)/gayberne_ptx.h \
+       $(OBJ_DIR)/re_squared.ptx $(OBJ_DIR)/re_squared_lj.ptx \
+       $(OBJ_DIR)/re_squared_ptx.h \
        $(OBJ_DIR)/lj_cut_gpu_kernel.ptx $(OBJ_DIR)/lj_cut_gpu_ptx.h \
        $(OBJ_DIR)/lj96_cut_gpu_kernel.ptx $(OBJ_DIR)/lj96_cut_gpu_ptx.h \
        $(OBJ_DIR)/lj_expand_gpu_kernel.ptx $(OBJ_DIR)/lj_expand_gpu_ptx.h \
@@ -180,6 +183,24 @@ $(OBJ_DIR)/gayberne.o: $(ALL_H) gayberne.h gayberne.cpp $(OBJ_DIR)/gayberne_ptx.
 
 $(OBJ_DIR)/gayberne_ext.o: $(ALL_H) $(OBJ_DIR)/gayberne.o gayberne_ext.cpp
 	$(CUDR) -o $@ -c gayberne_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/re_squared.ptx: re_squared.cu pair_gpu_precision.h ellipsoid_extra.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ re_squared.cu
+
+$(OBJ_DIR)/re_squared_lj.ptx: re_squared_lj.cu pair_gpu_precision.h ellipsoid_extra.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ re_squared_lj.cu
+
+$(OBJ_DIR)/ellipsoid_nbor.ptx: ellipsoid_nbor.cu pair_gpu_precision.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ ellipsoid_nbor.cu
+
+$(OBJ_DIR)/re_squared_ptx.h: $(OBJ_DIR)/ellipsoid_nbor.ptx $(OBJ_DIR)/re_squared.ptx $(OBJ_DIR)/re_squared_lj.ptx
+	$(BSH) ./geryon/file_to_cstr.sh $(OBJ_DIR)/ellipsoid_nbor.ptx $(OBJ_DIR)/re_squared.ptx $(OBJ_DIR)/re_squared_lj.ptx $(OBJ_DIR)/re_squared_ptx.h
+
+$(OBJ_DIR)/re_squared.o: $(ALL_H) re_squared.h re_squared.cpp $(OBJ_DIR)/re_squared_ptx.h $(OBJ_DIR)/base_ellipsoid.o
+	$(CUDR) -o $@ -c re_squared.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/re_squared_ext.o: $(ALL_H) $(OBJ_DIR)/re_squared.o re_squared_ext.cpp
+	$(CUDR) -o $@ -c re_squared_ext.cpp -I$(OBJ_DIR)
 
 $(OBJ_DIR)/lj_cut_gpu_kernel.ptx: lj_cut_gpu_kernel.cu pair_gpu_precision.h
 	$(CUDA) --ptx -DNV_KERNEL -o $@ lj_cut_gpu_kernel.cu

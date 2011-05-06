@@ -46,7 +46,7 @@ OBJS = $(OBJ_DIR)/pair_gpu_atom.o $(OBJ_DIR)/pair_gpu_ans.o \
        $(OBJ_DIR)/pair_gpu_device.o $(OBJ_DIR)/atomic_gpu_memory.o \
        $(OBJ_DIR)/charge_gpu_memory.o $(OBJ_DIR)/base_ellipsoid.o \
        $(OBJ_DIR)/pppm_gpu_memory.o $(OBJ_DIR)/pppm_l_gpu.o \
-       $(OBJ_DIR)/gb_gpu_memory.o $(OBJ_DIR)/gb_gpu.o \
+       $(OBJ_DIR)/gayberne.o $(OBJ_DIR)/gayberne_ext.o \
        $(OBJ_DIR)/lj_cut_gpu_memory.o $(OBJ_DIR)/lj_cut_gpu.o \
        $(OBJ_DIR)/lj96_cut_gpu_memory.o $(OBJ_DIR)/lj96_cut_gpu.o \
        $(OBJ_DIR)/lj_expand_gpu_memory.o $(OBJ_DIR)/lj_expand_gpu.o \
@@ -64,8 +64,8 @@ PTXS = $(OBJ_DIR)/pair_gpu_dev_kernel.ptx \
        $(OBJ_DIR)/pair_gpu_build_kernel.ptx $(OBJ_DIR)/pair_gpu_build_ptx.h \
        $(OBJ_DIR)/pppm_f_gpu_kernel.ptx $(OBJ_DIR)/pppm_f_gpu_ptx.h \
        $(OBJ_DIR)/pppm_d_gpu_kernel.ptx $(OBJ_DIR)/pppm_d_gpu_ptx.h \
-       $(OBJ_DIR)/gb_gpu_kernel_nbor.ptx $(OBJ_DIR)/gb_gpu_kernel.ptx \
-       $(OBJ_DIR)/gb_gpu_kernel_lj.ptx $(OBJ_DIR)/gb_gpu_ptx.h \
+       $(OBJ_DIR)/ellipsoid_nbor.ptx $(OBJ_DIR)/gayberne.ptx \
+       $(OBJ_DIR)/gayberne_lj.ptx $(OBJ_DIR)/gayberne_ptx.h \
        $(OBJ_DIR)/lj_cut_gpu_kernel.ptx $(OBJ_DIR)/lj_cut_gpu_ptx.h \
        $(OBJ_DIR)/lj96_cut_gpu_kernel.ptx $(OBJ_DIR)/lj96_cut_gpu_ptx.h \
        $(OBJ_DIR)/lj_expand_gpu_kernel.ptx $(OBJ_DIR)/lj_expand_gpu_ptx.h \
@@ -163,23 +163,23 @@ $(OBJ_DIR)/pppm_gpu_memory.o: $(ALL_H) pppm_gpu_memory.h pppm_gpu_memory.cpp $(O
 $(OBJ_DIR)/pppm_l_gpu.o: $(ALL_H) pppm_gpu_memory.h pppm_l_gpu.cpp
 	$(CUDR) -o $@ -c pppm_l_gpu.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/gb_gpu_kernel.ptx: gb_gpu_kernel.cu pair_gpu_precision.h gb_gpu_extra.h
-	$(CUDA) --ptx -DNV_KERNEL -o $@ gb_gpu_kernel.cu
+$(OBJ_DIR)/gayberne.ptx: gayberne.cu pair_gpu_precision.h ellipsoid_extra.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ gayberne.cu
 
-$(OBJ_DIR)/gb_gpu_kernel_lj.ptx: gb_gpu_kernel_lj.cu pair_gpu_precision.h gb_gpu_extra.h
-	$(CUDA) --ptx -DNV_KERNEL -o $@ gb_gpu_kernel_lj.cu
+$(OBJ_DIR)/gayberne_lj.ptx: gayberne_lj.cu pair_gpu_precision.h ellipsoid_extra.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ gayberne_lj.cu
 
-$(OBJ_DIR)/gb_gpu_kernel_nbor.ptx: gb_gpu_kernel_nbor.cu pair_gpu_precision.h
-	$(CUDA) --ptx -DNV_KERNEL -o $@ gb_gpu_kernel_nbor.cu
+$(OBJ_DIR)/ellipsoid_nbor.ptx: ellipsoid_nbor.cu pair_gpu_precision.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ ellipsoid_nbor.cu
 
-$(OBJ_DIR)/gb_gpu_ptx.h: $(OBJ_DIR)/gb_gpu_kernel_nbor.ptx $(OBJ_DIR)/gb_gpu_kernel.ptx $(OBJ_DIR)/gb_gpu_kernel_lj.ptx
-	$(BSH) ./geryon/file_to_cstr.sh $(OBJ_DIR)/gb_gpu_kernel_nbor.ptx $(OBJ_DIR)/gb_gpu_kernel.ptx $(OBJ_DIR)/gb_gpu_kernel_lj.ptx $(OBJ_DIR)/gb_gpu_ptx.h
+$(OBJ_DIR)/gayberne_ptx.h: $(OBJ_DIR)/ellipsoid_nbor.ptx $(OBJ_DIR)/gayberne.ptx $(OBJ_DIR)/gayberne_lj.ptx
+	$(BSH) ./geryon/file_to_cstr.sh $(OBJ_DIR)/ellipsoid_nbor.ptx $(OBJ_DIR)/gayberne.ptx $(OBJ_DIR)/gayberne_lj.ptx $(OBJ_DIR)/gayberne_ptx.h
 
-$(OBJ_DIR)/gb_gpu_memory.o: $(ALL_H) gb_gpu_memory.h gb_gpu_memory.cpp $(OBJ_DIR)/gb_gpu_ptx.h $(OBJ_DIR)/base_ellipsoid.o
-	$(CUDR) -o $@ -c gb_gpu_memory.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/gayberne.o: $(ALL_H) gayberne.h gayberne.cpp $(OBJ_DIR)/gayberne_ptx.h $(OBJ_DIR)/base_ellipsoid.o
+	$(CUDR) -o $@ -c gayberne.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/gb_gpu.o: $(ALL_H) $(OBJ_DIR)/gb_gpu_memory.o gb_gpu.cpp
-	$(CUDR) -o $@ -c gb_gpu.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/gayberne_ext.o: $(ALL_H) $(OBJ_DIR)/gayberne.o gayberne_ext.cpp
+	$(CUDR) -o $@ -c gayberne_ext.cpp -I$(OBJ_DIR)
 
 $(OBJ_DIR)/lj_cut_gpu_kernel.ptx: lj_cut_gpu_kernel.cu pair_gpu_precision.h
 	$(CUDA) --ptx -DNV_KERNEL -o $@ lj_cut_gpu_kernel.cu

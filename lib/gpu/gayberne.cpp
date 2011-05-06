@@ -1,28 +1,26 @@
-/* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+/***************************************************************************
+                                gayberne.cpp
+                             -------------------
+                               W. Michael Brown
 
-   Copyright (2003) Sandia Corporation.  Under the terms of Contract
-   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
-   the GNU General Public License.
+  Host code for Gay-Berne potential acceleration
 
-   See the README file in the top-level LAMMPS directory.
-------------------------------------------------------------------------- */
- 
-/* ----------------------------------------------------------------------
-   Contributing authors: Mike Brown (ORNL), brownw@ornl.gov
-------------------------------------------------------------------------- */
+ __________________________________________________________________________
+    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
+ __________________________________________________________________________
+
+    begin                :
+    email                : brownw@ornl.gov
+ ***************************************************************************/
 
 #ifdef USE_OPENCL
-#include "gb_gpu_cl.h"
-#include "gb_gpu_nbor_cl.h"
+#include "gayberne_cl.h"
+#include "ellipsoid_nbor_cl.h"
 #else
-#include "gb_gpu_ptx.h"
+#include "gayberne_ptx.h"
 #endif
 
-#include "gb_gpu_memory.h"
+#include "gayberne.h"
 #include <cassert>
 #define GB_GPU_MemoryT GB_GPU_Memory<numtyp, acctyp>
 
@@ -57,8 +55,8 @@ int GB_GPU_MemoryT::init(const int ntypes, const double gamma,
                          const double gpu_split, FILE *_screen) {
   int success;
   success=this->init_base(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
-                          _screen,ntypes,h_form,gb_gpu_kernel_nbor,
-                          gb_gpu_kernel,gb_gpu_kernel_lj);
+                          _screen,ntypes,h_form,ellipsoid_nbor,
+                          gayberne,gayberne_lj);
   if (success!=0)
     return success;
 

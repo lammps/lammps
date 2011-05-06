@@ -1,22 +1,20 @@
-/* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+/***************************************************************************
+                                 gayberne.h
+                             -------------------
+                               W. Michael Brown
 
-   Copyright (2003) Sandia Corporation.  Under the terms of Contract
-   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
-   the GNU General Public License.
+  Host code for Gay-Berne potential acceleration
 
-   See the README file in the top-level LAMMPS directory.
-------------------------------------------------------------------------- */
+ __________________________________________________________________________
+    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
+ __________________________________________________________________________
 
-/* ----------------------------------------------------------------------
-   Contributing authors: Mike Brown (ORNL), brownw@ornl.gov
-------------------------------------------------------------------------- */
+    begin                :
+    email                : brownw@ornl.gov
+ ***************************************************************************/
 
-#ifndef GB_GPU_MEMORY_H
-#define GB_GPU_MEMORY_H
+#ifndef GAYBERNE_H
+#define GAYBERNE_H
 
 #include "base_ellipsoid.h"
 #include "mpi.h"

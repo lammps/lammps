@@ -33,7 +33,6 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
                                __global acctyp *engv, __global int *err_flag, 
                                const int eflag, const int vflag, const int inum,
                                const int nall, const int t_per_atom) {
-/*
   int tid=THREAD_ID_X;
   int ii=mul24((int)BLOCK_ID_X,(int)(BLOCK_SIZE_X)/t_per_atom);
   ii+=tid/t_per_atom;
@@ -111,12 +110,231 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
       int jtype=jx.w;
 
       // Compute r12
-      numtyp r12[3];
-      r12[0] = jx.x-ix.x;
-      r12[1] = jx.y-ix.y;
-      r12[2] = jx.z-ix.z;
-      numtyp ir = gpu_dot3(r12,r12);
-*/
+      numtyp r[3], rhat[3];
+      r[0] = jx.x-ix.x;
+      r[1] = jx.y-ix.y;
+      r[2] = jx.z-ix.z;
+      numtyp rnorm = gpu_dot3(r12,r12);
+      rnorm = sqrt(rnorm);
+      rhat[0] = r[0]/rnorm;
+      rhat[1] = r[1]/rnorm;
+      rhat[2] = r[2]/rnorm;
+
+      numtyp temp[9], s[3], z1[3], z2[3], v1[3], v2[3];
+      numtyp sigma12, sigma1, sigma2;
+      gpu_plus3(gamma1,gamma2,temp);
+      gpu_mldivide3(temp,rhat,s,error);
+      sigma12 = 1.0/sqrt(0.5*gpu_dot3(s,rhat));
+      gpu_times_column3(A1,rhat,z1);
+      gpu_times_column3(A2,rhat,z2);
+      v1[0] = z1[0]/shape2[type[i]].x;
+      v1[1] = z1[1]/shape2[type[i]].y;
+      v1[2] = z1[2]/shape2[type[i]].z;
+      v2[0] = z2[0]/shape2[type[j]].x;
+      v2[1] = z2[1]/shape2[type[j]].y;
+      v2[2] = z2[2]/shape2[type[j]].z;
+      sigma1 = 1.0/sqrt(gpu_dot3(z1,v1));
+      sigma2 = 1.0/sqrt(gpu_dot3(z2,v2));
+  H12[0][0] = wi.gamma[0][0]/sigma1+wj.gamma[0][0]/sigma2;
+  H12[0][1] = wi.gamma[0][1]/sigma1+wj.gamma[0][1]/sigma2;
+  H12[0][2] = wi.gamma[0][2]/sigma1+wj.gamma[0][2]/sigma2;
+  H12[1][0] = wi.gamma[1][0]/sigma1+wj.gamma[1][0]/sigma2;
+  H12[1][1] = wi.gamma[1][1]/sigma1+wj.gamma[1][1]/sigma2;
+  H12[1][2] = wi.gamma[1][2]/sigma1+wj.gamma[1][2]/sigma2;
+  H12[2][0] = wi.gamma[2][0]/sigma1+wj.gamma[2][0]/sigma2;
+  H12[2][1] = wi.gamma[2][1]/sigma1+wj.gamma[2][1]/sigma2;
+  H12[2][2] = wi.gamma[2][2]/sigma1+wj.gamma[2][2]/sigma2;
+  dH=MathExtra::det3(H12);
+  sigma1p2 = sigma1*sigma1;
+  sigma2p2 = sigma2*sigma2;
+  lambda = lshape[type[i]]/sigma1p2 + lshape[type[j]]/sigma2p2;
+  nu = sqrt(dH/(sigma1+sigma2));
+  MathExtra::times3(wi.aTe,wi.A,temp);
+  double temp2[3][3];
+  MathExtra::times3(wj.aTe,wj.A,temp2);
+  MathExtra::plus3(temp,temp2,temp);
+  MathExtra::mldivide3(temp,rhat,w,error);
+  h12 = rnorm-sigma12;
+  eta = lambda/nu;
+  chi = 2.0*MathExtra::dot3(rhat,w);
+  sprod = lshape[type[i]] * lshape[type[j]];
+  sigh = sigma[type[i]][type[j]]/h12;
+  tprod = eta*chi*sigh;
+
+  double stemp = h12/2.0;
+  Ua = (shape1[type[i]][0]+stemp)*(shape1[type[i]][1]+stemp)*
+       (shape1[type[i]][2]+stemp)*(shape1[type[j]][0]+stemp)*
+       (shape1[type[j]][1]+stemp)*(shape1[type[j]][2]+stemp);
+  Ua = (1.0+3.0*tprod)*sprod/Ua;
+  Ua = epsilon[type[i]][type[j]]*Ua/-36.0;
+
+  stemp = h12/cr60;
+  Ur = (shape1[type[i]][0]+stemp)*(shape1[type[i]][1]+stemp)*
+       (shape1[type[i]][2]+stemp)*(shape1[type[j]][0]+stemp)*
+       (shape1[type[j]][1]+stemp)*(shape1[type[j]][2]+stemp);
+  Ur = (1.0+b_alpha*tprod)*sprod/Ur;
+  Ur = epsilon[type[i]][type[j]]*Ur*pow(sigh,6.0)/2025.0;
+
+  // force
+
+  sec = sigma[type[i]][type[j]]*eta*chi;
+  sigma12p3 = pow(sigma12,3.0);
+  sigma1p3 = sigma1p2*sigma1;
+  sigma2p3 = sigma2p2*sigma2;
+  vsigma1[0] = -sigma1p3*v1[0];
+  vsigma1[1] = -sigma1p3*v1[1];
+  vsigma1[2] = -sigma1p3*v1[2];
+  vsigma2[0] = -sigma2p3*v2[0];
+  vsigma2[1] = -sigma2p3*v2[1];
+  vsigma2[2] = -sigma2p3*v2[2];
+  gsigma1[0][0] = -wi.gamma[0][0]/sigma1p2;
+  gsigma1[0][1] = -wi.gamma[0][1]/sigma1p2;
+  gsigma1[0][2] = -wi.gamma[0][2]/sigma1p2;
+  gsigma1[1][0] = -wi.gamma[1][0]/sigma1p2;
+  gsigma1[1][1] = -wi.gamma[1][1]/sigma1p2;
+  gsigma1[1][2] = -wi.gamma[1][2]/sigma1p2;
+  gsigma1[2][0] = -wi.gamma[2][0]/sigma1p2;
+  gsigma1[2][1] = -wi.gamma[2][1]/sigma1p2;
+  gsigma1[2][2] = -wi.gamma[2][2]/sigma1p2;
+  gsigma2[0][0] = -wj.gamma[0][0]/sigma2p2;
+  gsigma2[0][1] = -wj.gamma[0][1]/sigma2p2;
+  gsigma2[0][2] = -wj.gamma[0][2]/sigma2p2;
+  gsigma2[1][0] = -wj.gamma[1][0]/sigma2p2;
+  gsigma2[1][1] = -wj.gamma[1][1]/sigma2p2;
+  gsigma2[1][2] = -wj.gamma[1][2]/sigma2p2;
+  gsigma2[2][0] = -wj.gamma[2][0]/sigma2p2;
+  gsigma2[2][1] = -wj.gamma[2][1]/sigma2p2;
+  gsigma2[2][2] = -wj.gamma[2][2]/sigma2p2;
+  tsig1sig2 = eta/(2.0*(sigma1+sigma2));
+  tdH = eta/(2.0*dH);
+  teta1 = 2.0*eta/lambda;
+  teta2 = teta1*lshape[type[j]]/sigma2p3;
+  teta1 = teta1*lshape[type[i]]/sigma1p3;
+  fourw[0] = 4.0*w[0];
+  fourw[1] = 4.0*w[1];
+  fourw[2] = 4.0*w[2];
+  spr[0] = 0.5*sigma12p3*s[0];
+  spr[1] = 0.5*sigma12p3*s[1];
+  spr[2] = 0.5*sigma12p3*s[2];
+
+  stemp = 1.0/(shape1[type[i]][0]*2.0+h12)+
+          1.0/(shape1[type[i]][1]*2.0+h12)+
+          1.0/(shape1[type[i]][2]*2.0+h12)+
+          1.0/(shape1[type[j]][0]*2.0+h12)+
+          1.0/(shape1[type[j]][1]*2.0+h12)+
+          1.0/(shape1[type[j]][2]*2.0+h12);
+  hsec = h12+3.0*sec;
+  dspu = 1.0/h12-1.0/hsec+stemp;
+  pbsu = 3.0*sigma[type[i]][type[j]]/hsec;
+  
+  stemp = 1.0/(shape1[type[i]][0]*cr60+h12)+
+          1.0/(shape1[type[i]][1]*cr60+h12)+
+          1.0/(shape1[type[i]][2]*cr60+h12)+
+          1.0/(shape1[type[j]][0]*cr60+h12)+
+          1.0/(shape1[type[j]][1]*cr60+h12)+
+          1.0/(shape1[type[j]][2]*cr60+h12);
+  hsec = h12+b_alpha*sec;
+  dspr = 7.0/h12-1.0/hsec+stemp;
+  pbsr = b_alpha*sigma[type[i]][type[j]]/hsec;
+  
+  for (int i=0; i<3; i++) {
+    u[0] = -rhat[i]*rhat[0];
+    u[1] = -rhat[i]*rhat[1];
+    u[2] = -rhat[i]*rhat[2];
+    u[i] += 1.0;
+    u[0] /= rnorm;
+    u[1] /= rnorm;
+    u[2] /= rnorm;
+    MathExtra::times_column3(wi.A,u,u1);
+    MathExtra::times_column3(wj.A,u,u2);
+    dsigma1=MathExtra::dot3(u1,vsigma1);
+    dsigma2=MathExtra::dot3(u2,vsigma2);
+    dH12[0][0] = dsigma1*gsigma1[0][0]+dsigma2*gsigma2[0][0];
+    dH12[0][1] = dsigma1*gsigma1[0][1]+dsigma2*gsigma2[0][1];
+    dH12[0][2] = dsigma1*gsigma1[0][2]+dsigma2*gsigma2[0][2];
+    dH12[1][0] = dsigma1*gsigma1[1][0]+dsigma2*gsigma2[1][0];
+    dH12[1][1] = dsigma1*gsigma1[1][1]+dsigma2*gsigma2[1][1];
+    dH12[1][2] = dsigma1*gsigma1[1][2]+dsigma2*gsigma2[1][2];
+    dH12[2][0] = dsigma1*gsigma1[2][0]+dsigma2*gsigma2[2][0];
+    dH12[2][1] = dsigma1*gsigma1[2][1]+dsigma2*gsigma2[2][1];
+    dH12[2][2] = dsigma1*gsigma1[2][2]+dsigma2*gsigma2[2][2];
+    ddH = det_prime(H12,dH12);
+    deta = (dsigma1+dsigma2)*tsig1sig2;
+    deta -= ddH*tdH;
+    deta -= dsigma1*teta1+dsigma2*teta2;
+    dchi = MathExtra::dot3(u,fourw);
+    dh12 = rhat[i]+MathExtra::dot3(u,spr);
+    dUa = pbsu*(eta*dchi+deta*chi)-dh12*dspu;
+    dUr = pbsr*(eta*dchi+deta*chi)-dh12*dspr;
+    fforce[i]=dUr*Ur+dUa*Ua;
+  }
+    
+  // torque on i
+
+  MathExtra::row_times3(fourw,wi.aTe,fwae);
+
+  for (int i=0; i<3; i++) {
+    MathExtra::times_column3(wi.lA[i],rhat,p);
+    dsigma1 = MathExtra::dot3(p,vsigma1);
+    dH12[0][0] = wi.lAsa[i][0][0]/sigma1+dsigma1*gsigma1[0][0];
+    dH12[0][1] = wi.lAsa[i][0][1]/sigma1+dsigma1*gsigma1[0][1];
+    dH12[0][2] = wi.lAsa[i][0][2]/sigma1+dsigma1*gsigma1[0][2];
+    dH12[1][0] = wi.lAsa[i][1][0]/sigma1+dsigma1*gsigma1[1][0];
+    dH12[1][1] = wi.lAsa[i][1][1]/sigma1+dsigma1*gsigma1[1][1];
+    dH12[1][2] = wi.lAsa[i][1][2]/sigma1+dsigma1*gsigma1[1][2];
+    dH12[2][0] = wi.lAsa[i][2][0]/sigma1+dsigma1*gsigma1[2][0];
+    dH12[2][1] = wi.lAsa[i][2][1]/sigma1+dsigma1*gsigma1[2][1];
+    dH12[2][2] = wi.lAsa[i][2][2]/sigma1+dsigma1*gsigma1[2][2];
+    ddH = det_prime(H12,dH12);
+    deta = tsig1sig2*dsigma1-tdH*ddH;
+    deta -= teta1*dsigma1;
+    double tempv[3];
+    MathExtra::times_column3(wi.lA[i],w,tempv);
+    dchi = -MathExtra::dot3(fwae,tempv);
+    MathExtra::times_column3(wi.lAtwo[i],spr,tempv);
+    dh12 = -MathExtra::dot3(s,tempv);
+
+    dUa = pbsu*(eta*dchi + deta*chi)-dh12*dspu;
+    dUr = pbsr*(eta*dchi + deta*chi)-dh12*dspr;
+    ttor[i] = -(dUa*Ua+dUr*Ur);
+  }
+  
+  // torque on j
+
+  if (!(force->newton_pair || j < atom->nlocal))
+    return Ua+Ur;
+
+  MathExtra::row_times3(fourw,wj.aTe,fwae);
+
+  for (int i=0; i<3; i++) {
+    MathExtra::times_column3(wj.lA[i],rhat,p);
+    dsigma2 = MathExtra::dot3(p,vsigma2);
+    dH12[0][0] = wj.lAsa[i][0][0]/sigma2+dsigma2*gsigma2[0][0];
+    dH12[0][1] = wj.lAsa[i][0][1]/sigma2+dsigma2*gsigma2[0][1];
+    dH12[0][2] = wj.lAsa[i][0][2]/sigma2+dsigma2*gsigma2[0][2];
+    dH12[1][0] = wj.lAsa[i][1][0]/sigma2+dsigma2*gsigma2[1][0];
+    dH12[1][1] = wj.lAsa[i][1][1]/sigma2+dsigma2*gsigma2[1][1];
+    dH12[1][2] = wj.lAsa[i][1][2]/sigma2+dsigma2*gsigma2[1][2];
+    dH12[2][0] = wj.lAsa[i][2][0]/sigma2+dsigma2*gsigma2[2][0];
+    dH12[2][1] = wj.lAsa[i][2][1]/sigma2+dsigma2*gsigma2[2][1];
+    dH12[2][2] = wj.lAsa[i][2][2]/sigma2+dsigma2*gsigma2[2][2];
+    ddH = det_prime(H12,dH12);
+    deta = tsig1sig2*dsigma2-tdH*ddH;
+    deta -= teta2*dsigma2;
+    double tempv[3];
+    MathExtra::times_column3(wj.lA[i],w,tempv);
+    dchi = -MathExtra::dot3(fwae,tempv);
+    MathExtra::times_column3(wj.lAtwo[i],spr,tempv);
+    dh12 = -MathExtra::dot3(s,tempv);
+
+    dUa = pbsu*(eta*dchi + deta*chi)-dh12*dspu;
+    dUr = pbsr*(eta*dchi + deta*chi)-dh12*dspr;
+    rtor[i] = -(dUa*Ua+dUr*Ur);
+  }
+
+  return Ua+Ur;
+}
+
 /*
       if (eflag>0)
         energy+=u_r*temp2;
@@ -151,7 +369,7 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
       tor.y+=temp1*tchi[1]+temp2*teta[1]+temp3*tUr[1];
       tor.z+=temp1*tchi[2]+temp2*teta[2]+temp3*tUr[2];
 */ 
-/*
+
     } // for nbor
   } // if ii
   
@@ -214,7 +432,7 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
     ans[ii]=f;
     ans[ii+astride]=tor;
   } // if ii
-*/
+
 }
 
 #endif

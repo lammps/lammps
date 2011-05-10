@@ -96,8 +96,8 @@ __inline numtyp gpu_det3(const numtyp m[9])
    diagonal matrix times a full matrix
 ------------------------------------------------------------------------- */
 
-__inline void gpu_times3(const numtyp4 shape, const numtyp m[9], 
-                         numtyp ans[9])
+__inline void gpu_diag_times3(const numtyp4 shape, const numtyp m[9], 
+                              numtyp ans[9])
 {
   ans[0] = shape.x*m[0];
   ans[1] = shape.x*m[1];
@@ -309,5 +309,116 @@ __inline void gpu_quat_to_mat_trans(__global const numtyp4 *qif, const int qi,
   mat[5] = twojk+twoiw;
   mat[8] = w2-i2-j2+k2;
 }
+
+/* ----------------------------------------------------------------------
+   transposed matrix times diagonal matrix
+------------------------------------------------------------------------- */
+
+__inline void gpu_transpose_times_diag3(const numtyp m[9],
+                                        const numtyp4 d, numtyp ans[9])
+{
+  ans[0] = m[0]*d.x;
+  ans[1] = m[3]*d.y;
+  ans[2] = m[6]*d.z;
+  ans[3] = m[1]*d.x;
+  ans[4] = m[4]*d.y;
+  ans[5] = m[7]*d.z;
+  ans[6] = m[2]*d.x;
+  ans[7] = m[5]*d.y;
+  ans[8] = m[8]*d.z;
+}
+
+/* ----------------------------------------------------------------------
+   multiply mat1 times mat2
+------------------------------------------------------------------------- */
+
+__inline void gpu_times3(const numtyp m[9], const numtyp m2[9],
+                         numtyp ans[9])
+{
+  ans[0] = m[0]*m2[0] + m[1]*m2[3] + m[2]*m2[6];
+  ans[1] = m[0]*m2[1] + m[1]*m2[4] + m[2]*m2[7];
+  ans[2] = m[0]*m2[2] + m[1]*m2[5] + m[2]*m2[8];
+  ans[3] = m[3]*m2[0] + m[4]*m2[3] + m[5]*m2[6];
+  ans[4] = m[3]*m2[1] + m[4]*m2[4] + m[5]*m2[7];
+  ans[5] = m[3]*m2[2] + m[4]*m2[5] + m[5]*m2[8];
+  ans[6] = m[6]*m2[0] + m[7]*m2[3] + m[8]*m2[6];
+  ans[7] = m[6]*m2[1] + m[7]*m2[4] + m[8]*m2[7];
+  ans[8] = m[6]*m2[2] + m[7]*m2[5] + m[8]*m2[8];
+}
+
+/* ----------------------------------------------------------------------
+   Apply principal rotation generator about x to rotation matrix m
+------------------------------------------------------------------------- */
+
+__inline void gpu_rotation_generator_x(const numtyp m[9], numtyp ans[9])
+{
+  ans[0] = 0;
+  ans[1] = -m[2];
+  ans[2] = m[1];
+  ans[3] = 0;
+  ans[4] = -m[5];
+  ans[5] = m[4];
+  ans[6] = 0;
+  ans[7] = -m[8];
+  ans[8] = m[7];
+}
+
+/* ----------------------------------------------------------------------
+   Apply principal rotation generator about y to rotation matrix m
+------------------------------------------------------------------------- */
+
+__inline void gpu_rotation_generator_y(const numtyp m[9], numtyp ans[9])
+{
+  ans[0] = m[2];
+  ans[1] = 0;
+  ans[2] = -m[0];
+  ans[3] = m[5];
+  ans[4] = 0;
+  ans[5] = -m[3];
+  ans[6] = m[8];
+  ans[7] = 0;
+  ans[8] = -m[6];
+}
+
+/* ----------------------------------------------------------------------
+   Apply principal rotation generator about z to rotation matrix m
+------------------------------------------------------------------------- */
+
+__inline void gpu_rotation_generator_z(const numtyp m[9], numtyp ans[9])
+{
+  ans[0] = -m[1];
+  ans[1] = m[0];
+  ans[2] = 0;
+  ans[3] = -m[4];
+  ans[4] = m[3];
+  ans[5] = 0;
+  ans[6] = -m[7];
+  ans[7] = m[6];
+  ans[8] = 0;
+}
+
+/* ----------------------------------------------------------------------
+   matrix times vector
+------------------------------------------------------------------------- */
+
+__inline void gpu_times_column3(const numtyp m[9], const numtyp v[3],
+                                numtyp ans[3]) 
+{
+  ans[0] = m[0]*v[0] + m[1]*v[1] + m[2]*v[2];
+  ans[1] = m[3]*v[0] + m[4]*v[1] + m[5]*v[2];
+  ans[2] = m[6]*v[0] + m[7]*v[1] + m[8]*v[2];
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 #endif

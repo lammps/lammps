@@ -104,7 +104,7 @@ __kernel void kernel_sphere_ellipsoid(__global numtyp4 *x_,__global numtyp4 *q,
         {
           {
             numtyp g2[9];
-            gpu_times3(shape[jtype],a2,g12);
+            gpu_diag_times3(shape[jtype],a2,g12);
             gpu_transpose_times3(a2,g12,g2);
             g12[0]=g2[0]+oner;
             g12[4]=g2[4]+oner;
@@ -181,7 +181,7 @@ __kernel void kernel_sphere_ellipsoid(__global numtyp4 *x_,__global numtyp4 *q,
         numtyp b12[9];
         {
           numtyp b2[9];
-          gpu_times3(well[jtype],a2,b12);
+          gpu_diag_times3(well[jtype],a2,b12);
           gpu_transpose_times3(a2,b12,b2);
           b12[0]=b2[0]+one_well;
           b12[4]=b2[4]+one_well;

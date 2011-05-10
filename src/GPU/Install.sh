@@ -26,6 +26,8 @@ if (test $1 = 1) then
   if (test -e ../pair_gayberne.cpp) then
     cp pair_gayberne_gpu.cpp ..
     cp pair_gayberne_gpu.h ..
+    cp pair_resquared_gpu.cpp ..
+    cp pair_resquared_gpu.h ..
   fi
   
   if (test -e ../pair_lj_cut_coul_long.cpp) then
@@ -83,6 +85,7 @@ elif (test $1 = 0) then
   rm ../pppm_gpu_single.cpp
   rm ../pppm_gpu_double.cpp
   rm ../pair_gayberne_gpu.cpp
+  rm ../pair_resquared_gpu.cpp
   rm ../pair_lj_cut_gpu.cpp
   rm ../pair_morse_gpu.cpp
   rm ../pair_lj96_cut_gpu.cpp
@@ -102,6 +105,7 @@ elif (test $1 = 0) then
   rm ../pppm_gpu_single.h
   rm ../pppm_gpu_double.h
   rm ../pair_gayberne_gpu.h
+  rm ../pair_resquared_gpu.h
   rm ../pair_lj_cut_gpu.h
   rm ../pair_morse_gpu.h
   rm ../pair_lj96_cut_gpu.h

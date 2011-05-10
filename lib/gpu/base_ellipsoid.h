@@ -48,8 +48,8 @@ class BaseEllipsoid {
   int init_base(const int nlocal, const int nall, const int max_nbors,
                 const int maxspecial, const double cell_size,
                 const double gpu_split, FILE *screen, const int ntypes,
-                int **h_form, const char *nbor_program, 
-                const char *ellipsoid_program, const char *lj_program);
+                int **h_form, const char *ellipsoid_program,
+                const char *lj_program);
 
   /// Estimate the overhead for GPU context changes and CPU driver
   void estimate_gpu_overhead();
@@ -233,8 +233,8 @@ class BaseEllipsoid {
   int **_host_form;
   int _last_ellipse, _max_last_ellipse;
 
-  void compile_kernels(UCL_Device &dev, const char *nbor_string,
-                       const char *ellipsoid_string, const char *lj_string);
+  void compile_kernels(UCL_Device &dev, const char *ellipsoid_string,
+                       const char *lj_string);
 
   virtual void loop(const bool _eflag, const bool _vflag) = 0;
 };

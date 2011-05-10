@@ -13,21 +13,21 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(gayberne/gpu,PairGayBerneGPU)
+PairStyle(resquared/gpu,PairRESquaredGPU)
 
 #else
 
-#ifndef LMP_PAIR_GAYBERNE_GPU_H
-#define LMP_PAIR_GAYBERNE_GPU_H
+#ifndef LMP_PAIR_RESQUARED_GPU_H
+#define LMP_PAIR_RESQUARED_GPU_H
 
-#include "pair_gayberne.h"
+#include "pair_resquared.h"
 
 namespace LAMMPS_NS {
 
-class PairGayBerneGPU : public PairGayBerne {
+class PairRESquaredGPU : public PairRESquared {
  public:
-  PairGayBerneGPU(LAMMPS *lmp);
-  ~PairGayBerneGPU();
+  PairRESquaredGPU(LAMMPS *lmp);
+  ~PairRESquaredGPU();
   void cpu_compute(int, int, int, int, int *, int *, int **);
   void compute(int, int);
   void init_style();

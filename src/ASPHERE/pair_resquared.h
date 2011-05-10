@@ -38,7 +38,7 @@ class PairRESquared : public Pair {
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
 
- private:
+ protected:
   double cut_global;
   double **cut;
 

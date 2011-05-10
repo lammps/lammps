@@ -27,15 +27,13 @@ static RESquared<PRECISION,ACC_PRECISION> REMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
-int re_gpu_init(const int ntypes, const double gamma,
-                const double upsilon, const double mu, double **shape,
-                double **well, double **cutsq, double **sigma,
-                double **epsilon, double *host_lshape, int **form,
-                double **host_lj1, double **host_lj2, double **host_lj3,
-                double **host_lj4, double **offset, double *special_lj,
-                const int inum, const int nall, const int max_nbors, 
-                const int maxspecial, const double cell_size, int &gpu_mode,
-                FILE *screen) {
+int re_gpu_init(const int ntypes, double **shape, double **well, double **cutsq,
+                double **sigma, double **epsilon, double *host_lshape,
+                int **form, double **host_lj1, double **host_lj2, 
+                double **host_lj3, double **host_lj4, double **offset,
+                double *special_lj, const int inum, const int nall,
+                const int max_nbors, const int maxspecial,
+                const double cell_size, int &gpu_mode, FILE *screen) {
   REMF.clear();
   gpu_mode=REMF.device->gpu_mode();
   double gpu_split=REMF.device->particle_split();
@@ -45,7 +43,7 @@ int re_gpu_init(const int ntypes, const double gamma,
   int gpu_rank=REMF.device->gpu_rank();
   int procs_per_gpu=REMF.device->procs_per_gpu();
 
-  REMF.device->init_message(screen,"gayberne",first_gpu,last_gpu);
+  REMF.device->init_message(screen,"resquared",first_gpu,last_gpu);
 
   bool message=false;
   if (REMF.device->replica_me()==0 && screen)
@@ -58,11 +56,10 @@ int re_gpu_init(const int ntypes, const double gamma,
 
   int init_ok=0;
   if (world_me==0)
-    init_ok=REMF.init(ntypes, gamma, upsilon, mu, shape, well, cutsq, 
-                      sigma, epsilon, host_lshape, form, host_lj1, 
-                      host_lj2, host_lj3, host_lj4, offset, special_lj, 
-                      inum, nall, max_nbors, maxspecial, cell_size, gpu_split,
-                      screen);
+    init_ok=REMF.init(ntypes, shape, well, cutsq, sigma, epsilon, host_lshape,
+                      form, host_lj1, host_lj2, host_lj3, host_lj4, offset,
+                      special_lj, inum, nall, max_nbors, maxspecial, cell_size,
+                      gpu_split, screen);
 
   REMF.device->world_barrier();
   if (message)
@@ -78,10 +75,10 @@ int re_gpu_init(const int ntypes, const double gamma,
       fflush(screen);
     }
     if (gpu_rank==i && world_me!=0)
-      init_ok=REMF.init(ntypes, gamma, upsilon, mu, shape, well, cutsq,  sigma,
-                        epsilon, host_lshape, form, host_lj1, host_lj2,
-                        host_lj3, host_lj4, offset, special_lj,  inum, nall,
-                        max_nbors, maxspecial, cell_size, gpu_split,  screen);
+      init_ok=REMF.init(ntypes, shape, well, cutsq,  sigma, epsilon, 
+                        host_lshape, form, host_lj1, host_lj2, host_lj3,
+                        host_lj4, offset, special_lj,  inum, nall,
+                        max_nbors, maxspecial, cell_size, gpu_split, screen);
 
     REMF.device->gpu_barrier();
     if (message) 

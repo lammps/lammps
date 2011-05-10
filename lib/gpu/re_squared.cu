@@ -101,15 +101,15 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
     ishape=shape[itype];
     numtyp4 ishape2;
     ishape2.x=ishape.x*ishape.x;
-    ishape2.y=ishape.x*ishape.y;
-    ishape2.z=ishape.x*ishape.z;
+    ishape2.y=ishape.y*ishape.y;
+    ishape2.z=ishape.z*ishape.z;
     
     {
       numtyp aTs[9];    // A1'*S1^2
       gpu_quat_to_mat_trans(q,i,a1);
       gpu_transpose_times_diag3(a1,well[itype],aTe1);
-      gpu_transpose_times_diag3(a1,ishape,aTs);
-      gpu_diag_times3(ishape,a1,sa1);
+      gpu_transpose_times_diag3(a1,ishape2,aTs);
+      gpu_diag_times3(ishape2,a1,sa1);
       gpu_times3(aTs,a1,gamma1);
       gpu_rotation_generator_x(a1,lA1_0);
       gpu_rotation_generator_y(a1,lA1_1);
@@ -159,14 +159,14 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
       jshape=shape[jtype];
       numtyp4 jshape2;
       jshape2.x=jshape.x*jshape.x;
-      jshape2.y=jshape.x*jshape.y;
-      jshape2.z=jshape.x*jshape.z;
+      jshape2.y=jshape.y*jshape.y;
+      jshape2.z=jshape.z*jshape.z;
       {
         numtyp aTs[9];    // A1'*S1^2
         gpu_quat_to_mat_trans(q,j,a2);
         gpu_transpose_times_diag3(a2,well[jtype],aTe2);
-        gpu_transpose_times_diag3(a2,jshape,aTs);
-        gpu_diag_times3(jshape,a2,sa2);
+        gpu_transpose_times_diag3(a2,jshape2,aTs);
+        gpu_diag_times3(jshape2,a2,sa2);
         gpu_times3(aTs,a2,gamma2);
         gpu_rotation_generator_x(a2,lA2_0);
         gpu_rotation_generator_y(a2,lA2_1);
@@ -357,19 +357,19 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
         if (i==0) {
           f.x+=force;
           if (vflag>0)
-            virial[0]+=r[0]*force;
+            virial[0]+=-r[0]*force;
         } else if (i==1) {
           f.y+=force;
           if (vflag>0) {
-            virial[1]+=r[1]*force;
-            virial[3]+=r[0]*force;
+            virial[1]+=-r[1]*force;
+            virial[3]+=-r[0]*force;
           }
         } else {
           f.z+=force;
           if (vflag>0) {
-            virial[2]+=r[2]*force;
-            virial[4]+=r[0]*force;
-            virial[5]+=r[1]*force;
+            virial[2]+=-r[2]*force;
+            virial[4]+=-r[0]*force;
+            virial[5]+=-r[1]*force;
           }
         }
       }

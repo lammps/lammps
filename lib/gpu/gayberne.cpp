@@ -15,7 +15,6 @@
 
 #ifdef USE_OPENCL
 #include "gayberne_cl.h"
-#include "ellipsoid_nbor_cl.h"
 #else
 #include "gayberne_ptx.h"
 #endif
@@ -56,8 +55,7 @@ int GayBerneT::init(const int ntypes, const double gamma,
                          const double gpu_split, FILE *_screen) {
   int success;
   success=this->init_base(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
-                          _screen,ntypes,h_form,ellipsoid_nbor,
-                          gayberne,gayberne_lj);
+                          _screen,ntypes,h_form,gayberne,gayberne_lj);
   if (success!=0)
     return success;
 

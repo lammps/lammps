@@ -16,6 +16,12 @@
 #include "base_ellipsoid.h"
 using namespace LAMMPS_AL;
 
+#ifdef USE_OPENCL
+#include "ellipsoid_nbor_cl.h"
+#else
+#include "ellipsoid_nbor_ptx.h"
+#endif
+
 #define BaseEllipsoidT BaseEllipsoid<numtyp, acctyp>
 extern PairGPUDevice<PRECISION,ACC_PRECISION> pair_gpu_device;
 
@@ -43,7 +49,6 @@ int BaseEllipsoidT::init_base(const int nlocal, const int nall,
                               const int max_nbors, const int maxspecial,
                               const double cell_size, const double gpu_split,
                               FILE *_screen, const int ntypes, int **h_form,
-                              const char *nbor_program, 
                               const char *ellipsoid_program,
                               const char *lj_program) {
   nbor_time_avail=false;
@@ -69,7 +74,7 @@ int BaseEllipsoidT::init_base(const int nlocal, const int nall,
   atom=&device->atom;
 
   _block_size=device->pair_block_size();
-  compile_kernels(*ucl_device,nbor_program,ellipsoid_program,lj_program);
+  compile_kernels(*ucl_device,ellipsoid_program,lj_program);
 
   // Initialize host-device load balancer
   hd_balancer.init(device,gpu_nbor,gpu_split);
@@ -423,7 +428,7 @@ double BaseEllipsoidT::host_memory_usage_base() const {
 }
 
 template <class numtyp, class acctyp>
-void BaseEllipsoidT::compile_kernels(UCL_Device &dev, const char *nbor_string,
+void BaseEllipsoidT::compile_kernels(UCL_Device &dev, 
                                      const char *ellipsoid_string,
                                      const char *lj_string) {
   if (_compiled)
@@ -433,7 +438,7 @@ void BaseEllipsoidT::compile_kernels(UCL_Device &dev, const char *nbor_string,
                     std::string(OCL_PRECISION_COMPILE);
 
   nbor_program=new UCL_Program(dev);
-  nbor_program->load_string(nbor_string,flags.c_str());
+  nbor_program->load_string(ellipsoid_nbor,flags.c_str());
   k_nbor_fast.set_function(*nbor_program,"kernel_nbor_fast");
   k_nbor.set_function(*nbor_program,"kernel_nbor");
 

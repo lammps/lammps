@@ -15,7 +15,6 @@
 
 #ifdef USE_OPENCL
 #include "re_squared_cl.h"
-#include "ellipsoid_nbor_cl.h"
 #else
 #include "re_squared_ptx.h"
 #endif
@@ -43,20 +42,18 @@ int RESquaredT::bytes_per_atom(const int max_nbors) const {
 }
 
 template <class numtyp, class acctyp>
-int RESquaredT::init(const int ntypes, const double gamma, 
-                         const double upsilon, const double mu, 
-                         double **host_shape, double **host_well, 
-                         double **host_cutsq, double **host_sigma, 
-                         double **host_epsilon, double *host_lshape, 
-                         int **h_form, double **host_lj1, double **host_lj2,
-                         double **host_lj3, double **host_lj4,
-                         double **host_offset, const double *host_special_lj,
-                         const int nlocal, const int nall, const int max_nbors,
-                         const int maxspecial, const double cell_size,
-                         const double gpu_split, FILE *_screen) {
+int RESquaredT::init(const int ntypes, double **host_shape, double **host_well, 
+                     double **host_cutsq, double **host_sigma, 
+                     double **host_epsilon, double *host_lshape, int **h_form,
+                     double **host_lj1, double **host_lj2, double **host_lj3,
+                     double **host_lj4, double **host_offset,
+                     const double *host_special_lj, const int nlocal,
+                     const int nall, const int max_nbors, const int maxspecial,
+                     const double cell_size, const double gpu_split,
+                     FILE *_screen) {
   int success;
   success=this->init_base(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
-                          _screen,ntypes,h_form,ellipsoid_nbor,
+                          _screen,ntypes,h_form,
                           re_squared,re_squared_lj);
   if (success!=0)
     return success;
@@ -99,15 +96,12 @@ int RESquaredT::init(const int ntypes, const double gamma,
     
   // Allocate, cast and asynchronous memcpy of constant data
   // Copy data for bonded interactions
-  gamma_upsilon_mu.alloc(7,*(this->ucl_device),UCL_READ_ONLY);
-  host_write[0]=static_cast<numtyp>(gamma); 
-  host_write[1]=static_cast<numtyp>(upsilon);
-  host_write[2]=static_cast<numtyp>(mu);
-  host_write[3]=static_cast<numtyp>(host_special_lj[0]);
-  host_write[4]=static_cast<numtyp>(host_special_lj[1]);
-  host_write[5]=static_cast<numtyp>(host_special_lj[2]);
-  host_write[6]=static_cast<numtyp>(host_special_lj[3]);
-  ucl_copy(gamma_upsilon_mu,host_write,7,false);
+  gamma_upsilon_mu.alloc(4,*(this->ucl_device),UCL_READ_ONLY);
+  host_write[0]=static_cast<numtyp>(host_special_lj[0]);
+  host_write[1]=static_cast<numtyp>(host_special_lj[1]);
+  host_write[2]=static_cast<numtyp>(host_special_lj[2]);
+  host_write[3]=static_cast<numtyp>(host_special_lj[3]);
+  ucl_copy(gamma_upsilon_mu,host_write,4,false);
 
   lshape.alloc(ntypes,*(this->ucl_device),UCL_READ_ONLY);
   UCL_H_Vec<double> d_view;

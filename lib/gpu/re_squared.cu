@@ -124,6 +124,9 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
       gpu_transpose_times3(lA1_2,sa1,lAsa1_2);
       gpu_plus3(lAsa1_2,lAtwo1_2,lAsa1_2);
     }
+    ishape2.x=(numtyp)1.0/ishape2.x;
+    ishape2.y=(numtyp)1.0/ishape2.y;
+    ishape2.z=(numtyp)1.0/ishape2.z;
 
     numtyp factor_lj;
     for ( ; nbor<nbor_end; nbor+=n_stride) {
@@ -141,19 +144,14 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
       r[1] = jx.y-ix.y;
       r[2] = jx.z-ix.z;
       rnorm = gpu_dot3(r,r);
-      rnorm = sqrt(rnorm);
-      rhat[0] = r[0]/rnorm;
-      rhat[1] = r[1]/rnorm;
-      rhat[2] = r[2]/rnorm;
+      rnorm = rsqrt(rnorm);
+      rhat[0] = r[0]*rnorm;
+      rhat[1] = r[1]*rnorm;
+      rhat[2] = r[2]*rnorm;
 
 
       numtyp a2[9];       // Rotation matrix (lab->body)
-      numtyp aTe2[9];     // A'*E
       numtyp gamma2[9];   // A'*S^2*A
-      numtyp sa2[9];      // S^2*A;
-      numtyp lA2_0[9], lA2_1[9], lA2_2[9]; // -A*rotation generator (x,y, or z)
-      numtyp lAtwo2_0[9], lAtwo2_1[9], lAtwo2_2[9];  // A'*S^2*lA
-      numtyp lAsa2_0[9], lAsa2_1[9], lAsa2_2[9];   // lAtwo+lA'*sa
       numtyp4 jshape;
     
       jshape=shape[jtype];
@@ -164,57 +162,48 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
       {
         numtyp aTs[9];    // A1'*S1^2
         gpu_quat_to_mat_trans(q,j,a2);
-        gpu_transpose_times_diag3(a2,well[jtype],aTe2);
         gpu_transpose_times_diag3(a2,jshape2,aTs);
-        gpu_diag_times3(jshape2,a2,sa2);
         gpu_times3(aTs,a2,gamma2);
-        gpu_rotation_generator_x(a2,lA2_0);
-        gpu_rotation_generator_y(a2,lA2_1);
-        gpu_rotation_generator_z(a2,lA2_2);
-        gpu_times3(aTs,lA2_0,lAtwo2_0);
-        gpu_transpose_times3(lA2_0,sa2,lAsa2_0);
-        gpu_plus3(lAsa2_0,lAtwo2_0,lAsa2_0);
-        gpu_times3(aTs,lA2_1,lAtwo2_1);
-        gpu_transpose_times3(lA2_1,sa2,lAsa2_1);
-        gpu_plus3(lAsa2_1,lAtwo2_1,lAsa2_1);
-        gpu_times3(aTs,lA2_2,lAtwo2_2);
-        gpu_transpose_times3(lA2_2,sa2,lAsa2_2);
-        gpu_plus3(lAsa2_2,lAtwo2_2,lAsa2_2);
       }
 
       numtyp temp[9], s[3], z1[3], z2[3], v1[3], v2[3];
       numtyp sigma12, sigma1, sigma2;
       gpu_plus3(gamma1,gamma2,temp);
       gpu_mldivide3(temp,rhat,s,err_flag);
-      sigma12 = (numtyp)1.0/sqrt((numtyp)0.5*gpu_dot3(s,rhat));
+      sigma12 = rsqrt((numtyp)0.5*gpu_dot3(s,rhat));
       gpu_times_column3(a1,rhat,z1);
       gpu_times_column3(a2,rhat,z2);
-      v1[0] = z1[0]/ishape2.x;
-      v1[1] = z1[1]/ishape2.y;
-      v1[2] = z1[2]/ishape2.z;
+      v1[0] = z1[0]*ishape2.x;
+      v1[1] = z1[1]*ishape2.y;
+      v1[2] = z1[2]*ishape2.z;
       v2[0] = z2[0]/jshape2.x;
       v2[1] = z2[1]/jshape2.y;
       v2[2] = z2[2]/jshape2.z;
-      sigma1 = (numtyp)1.0/sqrt(gpu_dot3(z1,v1));
-      sigma2 = (numtyp)1.0/sqrt(gpu_dot3(z2,v2));
+      sigma1 = sqrt(gpu_dot3(z1,v1));
+      sigma2 = sqrt(gpu_dot3(z2,v2));
 
       numtyp H12[9];
       numtyp dH;
-      H12[0] = gamma1[0]/sigma1+gamma2[0]/sigma2;
-      H12[1] = gamma1[1]/sigma1+gamma2[1]/sigma2;
-      H12[2] = gamma1[2]/sigma1+gamma2[2]/sigma2;
-      H12[3] = gamma1[3]/sigma1+gamma2[3]/sigma2;
-      H12[4] = gamma1[4]/sigma1+gamma2[4]/sigma2;
-      H12[5] = gamma1[5]/sigma1+gamma2[5]/sigma2;
-      H12[6] = gamma1[6]/sigma1+gamma2[6]/sigma2;
-      H12[7] = gamma1[7]/sigma1+gamma2[7]/sigma2;
-      H12[8] = gamma1[8]/sigma1+gamma2[8]/sigma2;
+      H12[0] = gamma1[0]*sigma1+gamma2[0]*sigma2;
+      H12[1] = gamma1[1]*sigma1+gamma2[1]*sigma2;
+      H12[2] = gamma1[2]*sigma1+gamma2[2]*sigma2;
+      H12[3] = gamma1[3]*sigma1+gamma2[3]*sigma2;
+      H12[4] = gamma1[4]*sigma1+gamma2[4]*sigma2;
+      H12[5] = gamma1[5]*sigma1+gamma2[5]*sigma2;
+      H12[6] = gamma1[6]*sigma1+gamma2[6]*sigma2;
+      H12[7] = gamma1[7]*sigma1+gamma2[7]*sigma2;
+      H12[8] = gamma1[8]*sigma1+gamma2[8]*sigma2;
       dH=gpu_det3(H12);
       
       numtyp sigma1p2, sigma2p2, lambda, nu;
       sigma1p2 = sigma1*sigma1;
       sigma2p2 = sigma2*sigma2;
-      lambda = lshape[itype]/sigma1p2 + lshape[jtype]/sigma2p2;
+      lambda = lshape[itype]*sigma1p2 + lshape[jtype]*sigma2p2;
+
+
+      sigma1=(numtyp)1.0/sigma1;
+      sigma2=(numtyp)1.0/sigma2;
+
       nu = sqrt(dH/(sigma1+sigma2));
       gpu_times3(aTe1,a1,temp);
 
@@ -225,10 +214,12 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
 
       numtyp w[3], temp2[9];
       numtyp h12,eta,chi,sprod,sigh,tprod;
+      numtyp aTe2[9];     // A'*E
+      gpu_transpose_times_diag3(a2,well[jtype],aTe2);
       gpu_times3(aTe2,a2,temp2);
       gpu_plus3(temp,temp2,temp);
       gpu_mldivide3(temp,rhat,w,err_flag);
-      h12 = rnorm-sigma12;
+      h12 = (numtyp)1.0/rnorm-sigma12;
       eta = lambda/nu;
       chi = (numtyp)2.0*gpu_dot3(rhat,w);
       sprod = lshape[itype] * lshape[jtype];
@@ -236,7 +227,7 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
       tprod = eta*chi*sigh;
 
       numtyp stemp, Ua;
-      stemp = h12/(numtyp)2.0;
+      stemp = h12*(numtyp)0.5;
       Ua = (ishape.x+stemp)*(ishape.y+stemp)*
            (ishape.z+stemp)*(jshape.x+stemp)*
            (jshape.y+stemp)*(jshape.z+stemp);
@@ -251,38 +242,41 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
       Ur = ((numtyp)1.0+b_alpha*tprod)*sprod/Ur;
       Ur = epsilon*Ur*pow(sigh,(numtyp)6.0)/(numtyp)2025.0;
 
+      if (eflag>0)
+        energy+=Ua+Ur;
+
       // force
 
       numtyp vsigma1[3], vsigma2[3], gsigma1[9], gsigma2[9];
       numtyp sec, sigma12p3, sigma1p3, sigma2p3;
       sec = sigma*eta*chi;
       sigma12p3 = pow(sigma12,(numtyp)3.0);
-      sigma1p3 = sigma1p2*sigma1;
-      sigma2p3 = sigma2p2*sigma2;
+      sigma1p3 = sigma1/sigma1p2;
+      sigma2p3 = sigma2/sigma2p2;
       vsigma1[0] = -sigma1p3*v1[0];
       vsigma1[1] = -sigma1p3*v1[1];
       vsigma1[2] = -sigma1p3*v1[2];
       vsigma2[0] = -sigma2p3*v2[0];
       vsigma2[1] = -sigma2p3*v2[1];
       vsigma2[2] = -sigma2p3*v2[2];
-      gsigma1[0] = -gamma1[0]/sigma1p2;
-      gsigma1[1] = -gamma1[1]/sigma1p2;
-      gsigma1[2] = -gamma1[2]/sigma1p2;
-      gsigma1[3] = -gamma1[3]/sigma1p2;
-      gsigma1[4] = -gamma1[4]/sigma1p2;
-      gsigma1[5] = -gamma1[5]/sigma1p2;
-      gsigma1[6] = -gamma1[6]/sigma1p2;
-      gsigma1[7] = -gamma1[7]/sigma1p2;
-      gsigma1[8] = -gamma1[8]/sigma1p2;
-      gsigma2[0] = -gamma2[0]/sigma2p2;
-      gsigma2[1] = -gamma2[1]/sigma2p2;
-      gsigma2[2] = -gamma2[2]/sigma2p2;
-      gsigma2[3] = -gamma2[3]/sigma2p2;
-      gsigma2[4] = -gamma2[4]/sigma2p2;
-      gsigma2[5] = -gamma2[5]/sigma2p2;
-      gsigma2[6] = -gamma2[6]/sigma2p2;
-      gsigma2[7] = -gamma2[7]/sigma2p2;
-      gsigma2[8] = -gamma2[8]/sigma2p2;
+      gsigma1[0] = -gamma1[0]*sigma1p2;
+      gsigma1[1] = -gamma1[1]*sigma1p2;
+      gsigma1[2] = -gamma1[2]*sigma1p2;
+      gsigma1[3] = -gamma1[3]*sigma1p2;
+      gsigma1[4] = -gamma1[4]*sigma1p2;
+      gsigma1[5] = -gamma1[5]*sigma1p2;
+      gsigma1[6] = -gamma1[6]*sigma1p2;
+      gsigma1[7] = -gamma1[7]*sigma1p2;
+      gsigma1[8] = -gamma1[8]*sigma1p2;
+      gsigma2[0] = -gamma2[0]*sigma2p2;
+      gsigma2[1] = -gamma2[1]*sigma2p2;
+      gsigma2[2] = -gamma2[2]*sigma2p2;
+      gsigma2[3] = -gamma2[3]*sigma2p2;
+      gsigma2[4] = -gamma2[4]*sigma2p2;
+      gsigma2[5] = -gamma2[5]*sigma2p2;
+      gsigma2[6] = -gamma2[6]*sigma2p2;
+      gsigma2[7] = -gamma2[7]*sigma2p2;
+      gsigma2[8] = -gamma2[8]*sigma2p2;
 
       numtyp tsig1sig2, tdH, teta1, teta2;
       numtyp fourw[3], spr[3];
@@ -305,9 +299,9 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
               (numtyp)1.0/(jshape.x*(numtyp)2.0+h12)+
               (numtyp)1.0/(jshape.y*(numtyp)2.0+h12)+
               (numtyp)1.0/(jshape.z*(numtyp)2.0+h12);
-      hsec = h12+(numtyp)3.0*sec;
-      dspu = (numtyp)1.0/h12-(numtyp)1.0/hsec+stemp;
-      pbsu = (numtyp)3.0*sigma/hsec;
+      hsec = (numtyp)1.0/(h12+(numtyp)3.0*sec);
+      dspu = (numtyp)1.0/h12-hsec+stemp;
+      pbsu = (numtyp)3.0*sigma*hsec;
   
       numtyp dspr, pbsr;
       stemp = (numtyp)1.0/(ishape.x*cr60+h12)+
@@ -316,22 +310,24 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
               (numtyp)1.0/(jshape.x*cr60+h12)+
               (numtyp)1.0/(jshape.y*cr60+h12)+
               (numtyp)1.0/(jshape.z*cr60+h12);
-      hsec = h12+b_alpha*sec;
-      dspr = (numtyp)7.0/h12-(numtyp)1.0/hsec+stemp;
-      pbsr = b_alpha*sigma/hsec;
+      hsec = (numtyp)1.0/(h12+b_alpha*sec);
+      dspr = (numtyp)7.0/h12-hsec+stemp;
+      pbsr = b_alpha*sigma*hsec;
   
       numtyp dH12[9];
       numtyp dUa, dUr, deta, dchi, ddH, dh12;
       numtyp dsigma1, dsigma2;
+
+      #pragma unroll
       for (int i=0; i<3; i++) {
         numtyp u[3], u1[3], u2[3];
         u[0] = -rhat[i]*rhat[0];
         u[1] = -rhat[i]*rhat[1];
         u[2] = -rhat[i]*rhat[2];
         u[i] += (numtyp)1.0;
-        u[0] /= rnorm;
-        u[1] /= rnorm;
-        u[2] /= rnorm;
+        u[0] *= rnorm;
+        u[1] *= rnorm;
+        u[2] *= rnorm;
         gpu_times_column3(a1,u,u1);
         gpu_times_column3(a2,u,u2);
         dsigma1=gpu_dot3(u1,vsigma1);
@@ -375,21 +371,23 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
       }
 
       // torque on i
+      sigma1=(numtyp)1.0/sigma1;
+
       numtyp fwae[3], p[3];
       gpu_row_times3(fourw,aTe1,fwae);
 
       {
         gpu_times_column3(lA1_0,rhat,p);
         dsigma1 = gpu_dot3(p,vsigma1);
-        dH12[0] = lAsa1_0[0]/sigma1+dsigma1*gsigma1[0];
-        dH12[1] = lAsa1_0[1]/sigma1+dsigma1*gsigma1[1];
-        dH12[2] = lAsa1_0[2]/sigma1+dsigma1*gsigma1[2];
-        dH12[3] = lAsa1_0[3]/sigma1+dsigma1*gsigma1[3];
-        dH12[4] = lAsa1_0[4]/sigma1+dsigma1*gsigma1[4];
-        dH12[5] = lAsa1_0[5]/sigma1+dsigma1*gsigma1[5];
-        dH12[6] = lAsa1_0[6]/sigma1+dsigma1*gsigma1[6];
-        dH12[7] = lAsa1_0[7]/sigma1+dsigma1*gsigma1[7];
-        dH12[8] = lAsa1_0[8]/sigma1+dsigma1*gsigma1[8];
+        dH12[0] = lAsa1_0[0]*sigma1+dsigma1*gsigma1[0];
+        dH12[1] = lAsa1_0[1]*sigma1+dsigma1*gsigma1[1];
+        dH12[2] = lAsa1_0[2]*sigma1+dsigma1*gsigma1[2];
+        dH12[3] = lAsa1_0[3]*sigma1+dsigma1*gsigma1[3];
+        dH12[4] = lAsa1_0[4]*sigma1+dsigma1*gsigma1[4];
+        dH12[5] = lAsa1_0[5]*sigma1+dsigma1*gsigma1[5];
+        dH12[6] = lAsa1_0[6]*sigma1+dsigma1*gsigma1[6];
+        dH12[7] = lAsa1_0[7]*sigma1+dsigma1*gsigma1[7];
+        dH12[8] = lAsa1_0[8]*sigma1+dsigma1*gsigma1[8];
         ddH = det_prime(H12,dH12);
         deta = tsig1sig2*dsigma1-tdH*ddH;
         deta -= teta1*dsigma1;
@@ -407,15 +405,15 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
       {
         gpu_times_column3(lA1_1,rhat,p);
         dsigma1 = gpu_dot3(p,vsigma1);
-        dH12[0] = lAsa1_1[0]/sigma1+dsigma1*gsigma1[0];
-        dH12[1] = lAsa1_1[1]/sigma1+dsigma1*gsigma1[1];
-        dH12[2] = lAsa1_1[2]/sigma1+dsigma1*gsigma1[2];
-        dH12[3] = lAsa1_1[3]/sigma1+dsigma1*gsigma1[3];
-        dH12[4] = lAsa1_1[4]/sigma1+dsigma1*gsigma1[4];
-        dH12[5] = lAsa1_1[5]/sigma1+dsigma1*gsigma1[5];
-        dH12[6] = lAsa1_1[6]/sigma1+dsigma1*gsigma1[6];
-        dH12[7] = lAsa1_1[7]/sigma1+dsigma1*gsigma1[7];
-        dH12[8] = lAsa1_1[8]/sigma1+dsigma1*gsigma1[8];
+        dH12[0] = lAsa1_1[0]*sigma1+dsigma1*gsigma1[0];
+        dH12[1] = lAsa1_1[1]*sigma1+dsigma1*gsigma1[1];
+        dH12[2] = lAsa1_1[2]*sigma1+dsigma1*gsigma1[2];
+        dH12[3] = lAsa1_1[3]*sigma1+dsigma1*gsigma1[3];
+        dH12[4] = lAsa1_1[4]*sigma1+dsigma1*gsigma1[4];
+        dH12[5] = lAsa1_1[5]*sigma1+dsigma1*gsigma1[5];
+        dH12[6] = lAsa1_1[6]*sigma1+dsigma1*gsigma1[6];
+        dH12[7] = lAsa1_1[7]*sigma1+dsigma1*gsigma1[7];
+        dH12[8] = lAsa1_1[8]*sigma1+dsigma1*gsigma1[8];
         ddH = det_prime(H12,dH12);
         deta = tsig1sig2*dsigma1-tdH*ddH;
         deta -= teta1*dsigma1;
@@ -433,15 +431,15 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
       {
         gpu_times_column3(lA1_2,rhat,p);
         dsigma1 = gpu_dot3(p,vsigma1);
-        dH12[0] = lAsa1_2[0]/sigma1+dsigma1*gsigma1[0];
-        dH12[1] = lAsa1_2[1]/sigma1+dsigma1*gsigma1[1];
-        dH12[2] = lAsa1_2[2]/sigma1+dsigma1*gsigma1[2];
-        dH12[3] = lAsa1_2[3]/sigma1+dsigma1*gsigma1[3];
-        dH12[4] = lAsa1_2[4]/sigma1+dsigma1*gsigma1[4];
-        dH12[5] = lAsa1_2[5]/sigma1+dsigma1*gsigma1[5];
-        dH12[6] = lAsa1_2[6]/sigma1+dsigma1*gsigma1[6];
-        dH12[7] = lAsa1_2[7]/sigma1+dsigma1*gsigma1[7];
-        dH12[8] = lAsa1_2[8]/sigma1+dsigma1*gsigma1[8];
+        dH12[0] = lAsa1_2[0]*sigma1+dsigma1*gsigma1[0];
+        dH12[1] = lAsa1_2[1]*sigma1+dsigma1*gsigma1[1];
+        dH12[2] = lAsa1_2[2]*sigma1+dsigma1*gsigma1[2];
+        dH12[3] = lAsa1_2[3]*sigma1+dsigma1*gsigma1[3];
+        dH12[4] = lAsa1_2[4]*sigma1+dsigma1*gsigma1[4];
+        dH12[5] = lAsa1_2[5]*sigma1+dsigma1*gsigma1[5];
+        dH12[6] = lAsa1_2[6]*sigma1+dsigma1*gsigma1[6];
+        dH12[7] = lAsa1_2[7]*sigma1+dsigma1*gsigma1[7];
+        dH12[8] = lAsa1_2[8]*sigma1+dsigma1*gsigma1[8];
         ddH = det_prime(H12,dH12);
         deta = tsig1sig2*dsigma1-tdH*ddH;
         deta -= teta1*dsigma1;
@@ -456,8 +454,6 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
         tor.z += -(dUa*Ua+dUr*Ur);
       }
 
-      if (eflag>0)
-        energy+=Ua+Ur;
     } // for nbor
   } // if ii
   

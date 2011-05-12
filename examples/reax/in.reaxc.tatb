@@ -38,8 +38,7 @@ thermo_style custom step temp epair etotal press v_eb v_ea v_elp v_emol v_ev v_e
 
 timestep	0.0625
 
-dump		1 all custom 25 dump.reax.tatb id type q x y z
-dump_modify     1 format "%d %d %8.3f %g %g %g"
+dump		1 all custom 100 dump.reax.tatb id type q x y z
 
 run		25
 

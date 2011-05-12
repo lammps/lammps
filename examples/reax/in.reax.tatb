@@ -8,8 +8,8 @@ read_data	data.tatb
 
 # N.B. to match reax/c, set hbnewflag = 1
 #     reax args: hbcut hbnewflag tripflag precision
-#pair_style	reax 10.0 1 1 1.0e-6
-pair_style	reax 10.0 0 1 1.0e-6
+pair_style	reax 10.0 1 1 1.0e-6
+#pair_style	reax 10.0 0 1 1.0e-6
 pair_coeff	* * ffield.reax 1 2 3 4
 
 compute reax all pair reax
@@ -39,7 +39,8 @@ thermo_style custom step temp epair etotal press v_eb v_ea v_elp v_emol v_ev v_e
 
 timestep	0.0625
 
-dump		1 all custom 100 dump.reax.tatb id type q x y z
+dump		1 all custom 25 dump.reax.tatb id type q x y z
+dump_modify     1 format "%d %d %8.3f %g %g %g"
 
 fix 		2 all reax/bonds 25 bonds.reax.tatb
 

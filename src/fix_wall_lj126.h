@@ -34,6 +34,7 @@ class FixWallLJ126 : public FixWall {
   double coeff1[6],coeff2[6],coeff3[6],coeff4[6],offset[6];
 };
 
-#endif
 }
+
+#endif
 #endif

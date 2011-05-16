@@ -41,7 +41,7 @@ __inline numtyp det_prime(const numtyp m[9], const numtyp m2[9])
 
 __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
                                __global numtyp4* shape, __global numtyp4* well, 
-                               __global numtyp *gum, __global numtyp2* sig_eps, 
+                               __global numtyp *splj, __global numtyp2* sig_eps, 
                                const int ntypes, __global numtyp *lshape, 
                                __global int *dev_nbor, const int stride, 
                                __global acctyp4 *ans, const int astride, 
@@ -54,10 +54,10 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
   int offset=tid%t_per_atom;
 
   __local numtyp sp_lj[4];
-  sp_lj[0]=gum[0];    
-  sp_lj[1]=gum[1];    
-  sp_lj[2]=gum[2];    
-  sp_lj[3]=gum[3];
+  sp_lj[0]=splj[0];    
+  sp_lj[1]=splj[1];    
+  sp_lj[2]=splj[2];    
+  sp_lj[3]=splj[3];
   
   __local numtyp b_alpha, cr60;
   b_alpha=(numtyp)45.0/(numtyp)56.0;
@@ -242,8 +242,7 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
       Ur = ((numtyp)1.0+b_alpha*tprod)*sprod/Ur;
       Ur = epsilon*Ur*pow(sigh,(numtyp)6.0)/(numtyp)2025.0;
 
-      if (eflag>0)
-        energy+=Ua+Ur;
+      energy+=Ua+Ur;
 
       // force
 
@@ -399,7 +398,7 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
 
         dUa = pbsu*(eta*dchi + deta*chi)-dh12*dspu;
         dUr = pbsr*(eta*dchi + deta*chi)-dh12*dspr;
-        tor.x += -(dUa*Ua+dUr*Ur);
+        tor.x -= (dUa*Ua+dUr*Ur);
       }
 
       {
@@ -425,7 +424,7 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
 
         dUa = pbsu*(eta*dchi + deta*chi)-dh12*dspu;
         dUr = pbsr*(eta*dchi + deta*chi)-dh12*dspr;
-        tor.y += -(dUa*Ua+dUr*Ur);
+        tor.y -= (dUa*Ua+dUr*Ur);
       }
 
       {
@@ -451,7 +450,7 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
 
         dUa = pbsu*(eta*dchi + deta*chi)-dh12*dspu;
         dUr = pbsr*(eta*dchi + deta*chi)-dh12*dspr;
-        tor.z += -(dUa*Ua+dUr*Ur);
+        tor.z -= (dUa*Ua+dUr*Ur);
       }
 
     } // for nbor

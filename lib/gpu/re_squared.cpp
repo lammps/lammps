@@ -96,12 +96,12 @@ int RESquaredT::init(const int ntypes, double **host_shape, double **host_well,
     
   // Allocate, cast and asynchronous memcpy of constant data
   // Copy data for bonded interactions
-  gamma_upsilon_mu.alloc(4,*(this->ucl_device),UCL_READ_ONLY);
+  special_lj.alloc(4,*(this->ucl_device),UCL_READ_ONLY);
   host_write[0]=static_cast<numtyp>(host_special_lj[0]);
   host_write[1]=static_cast<numtyp>(host_special_lj[1]);
   host_write[2]=static_cast<numtyp>(host_special_lj[2]);
   host_write[3]=static_cast<numtyp>(host_special_lj[3]);
-  ucl_copy(gamma_upsilon_mu,host_write,4,false);
+  ucl_copy(special_lj,host_write,4,false);
 
   lshape.alloc(ntypes,*(this->ucl_device),UCL_READ_ONLY);
   UCL_H_Vec<double> d_view;
@@ -131,7 +131,7 @@ int RESquaredT::init(const int ntypes, double **host_shape, double **host_well,
   
   _allocated=true;
   this->_max_bytes=sigma_epsilon.row_bytes()+this->cut_form.row_bytes()+
-                   lj1.row_bytes()+lj3.row_bytes()+gamma_upsilon_mu.row_bytes()+
+                   lj1.row_bytes()+lj3.row_bytes()+special_lj.row_bytes()+
                    lshape.row_bytes()+shape.row_bytes()+well.row_bytes();
 
   return 0;
@@ -159,7 +159,7 @@ void RESquaredT::clear() {
   shape.clear();
   well.clear();
   lshape.clear();
-  gamma_upsilon_mu.clear();
+  special_lj.clear();
   
   this->clear_base();
 }
@@ -207,7 +207,7 @@ void RESquaredT::loop(const bool _eflag, const bool _vflag) {
       this->k_ellipsoid.set_size(GX,BX);
       this->k_ellipsoid.run(&this->atom->dev_x.begin(),
        &this->atom->dev_quat.begin(), &this->shape.begin(), &this->well.begin(),
-       &this->gamma_upsilon_mu.begin(), &this->sigma_epsilon.begin(), 
+       &this->special_lj.begin(), &this->sigma_epsilon.begin(), 
        &this->_lj_types, &this->lshape.begin(), &this->nbor->dev_nbor.begin(),
        &stride, &this->ans->dev_ans.begin(),&ainum,&this->ans->dev_engv.begin(),
        &this->dev_error.begin(), &eflag, &vflag, &this->_last_ellipse, &anall,
@@ -238,7 +238,7 @@ void RESquaredT::loop(const bool _eflag, const bool _vflag) {
       this->k_sphere_ellipsoid.set_size(GX,BX);
       this->k_sphere_ellipsoid.run(&this->atom->dev_x.begin(),
         &this->atom->dev_quat.begin(), &this->shape.begin(), 
-        &this->well.begin(), &this->gamma_upsilon_mu.begin(), 
+        &this->well.begin(), &this->special_lj.begin(), 
         &this->sigma_epsilon.begin(), &this->_lj_types, &this->lshape.begin(), 
         &this->nbor->dev_nbor.begin(), &stride, &this->ans->dev_ans.begin(),
         &this->ans->dev_engv.begin(), &this->dev_error.begin(), &eflag,
@@ -262,7 +262,7 @@ void RESquaredT::loop(const bool _eflag, const bool _vflag) {
       if (this->_shared_types) {
         this->k_lj_fast.set_size(GX,BX);
         this->k_lj_fast.run(&this->atom->dev_x.begin(), &this->lj1.begin(),
-          &this->lj3.begin(), &this->gamma_upsilon_mu.begin(), &stride,
+          &this->lj3.begin(), &this->special_lj.begin(), &stride,
           &this->nbor->dev_packed.begin(), &this->ans->dev_ans.begin(),
           &this->ans->dev_engv.begin(), &this->dev_error.begin(),
           &eflag, &vflag, &this->_last_ellipse, &ainum, &anall,
@@ -270,7 +270,7 @@ void RESquaredT::loop(const bool _eflag, const bool _vflag) {
       } else {
         this->k_lj.set_size(GX,BX);
         this->k_lj.run(&this->atom->dev_x.begin(), &this->lj1.begin(),
-          &this->lj3.begin(), &this->_lj_types, &this->gamma_upsilon_mu.begin(),
+          &this->lj3.begin(), &this->_lj_types, &this->special_lj.begin(),
           &stride, &this->nbor->dev_packed.begin(), &this->ans->dev_ans.begin(),
           &this->ans->dev_engv.begin(), &this->dev_error.begin(), &eflag,
           &vflag, &this->_last_ellipse, &ainum, &anall, 
@@ -287,7 +287,7 @@ void RESquaredT::loop(const bool _eflag, const bool _vflag) {
     this->k_ellipsoid.set_size(GX,BX);
     this->k_ellipsoid.run(&this->atom->dev_x.begin(), 
       &this->atom->dev_quat.begin(), &this->shape.begin(), &this->well.begin(), 
-      &this->gamma_upsilon_mu.begin(), &this->sigma_epsilon.begin(), 
+      &this->special_lj.begin(), &this->sigma_epsilon.begin(), 
       &this->_lj_types, &this->lshape.begin(), &this->nbor->dev_nbor.begin(),
       &stride, &this->ans->dev_ans.begin(), &ainum, 
       &this->ans->dev_engv.begin(), &this->dev_error.begin(),

@@ -70,8 +70,8 @@ class RESquared : public BaseEllipsoid<numtyp, acctyp> {
   UCL_D_Vec<numtyp4> lj3;
   /// sigma_epsilon.x = sigma, sigma_epsilon.y = epsilon
   UCL_D_Vec<numtyp2> sigma_epsilon;
-  // 0 - gamma, 1-upsilon, 2-mu, 3-special_lj[0], 4-special_lj[1], ...
-  UCL_D_Vec<numtyp> gamma_upsilon_mu;
+  /// special lj 0-4
+  UCL_D_Vec<numtyp> special_lj;
   
   /// If atom type constants fit in shared memory, use fast kernels
   bool _shared_types;

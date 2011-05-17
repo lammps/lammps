@@ -41,7 +41,7 @@ keyword = {scale} or {reset} :l
 
 fix 1 all adapt 1 pair soft a 1 1 v_prefactor
 fix 1 all adapt 1 pair soft a 2* 3 v_prefactor
-fix 1 all adapt 1 pair lj/cut epsilon * * v_scale1 coul/cut pre 3 3 v_scale2 scale yes reset yes
+fix 1 all adapt 1 pair lj/cut epsilon * * v_scale1 coul/cut scale 3 3 v_scale2 scale yes reset yes
 fix 1 all adapt 10 atom diameter v_size :pre
 
 [Description:]

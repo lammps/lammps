@@ -33,6 +33,14 @@
 #define MEM_THREADS 32
 #endif
 
+#ifdef CUDA_PRE_THREE
+struct __builtin_align__(16) _double4
+{
+  double x, y, z, w;
+};
+typedef struct _double4 double4;
+#endif
+
 #define GLOBAL_ID_X threadIdx.x+mul24(blockIdx.x,blockDim.x)
 #define GLOBAL_ID_Y threadIdx.y+mul24(blockIdx.y,blockDim.y)
 #define GLOBAL_SIZE_X mul24(gridDim.x,blockDim.x);

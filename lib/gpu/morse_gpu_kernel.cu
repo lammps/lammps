@@ -18,30 +18,6 @@
 #ifndef MORSE_GPU_KERNEL
 #define MORSE_GPU_KERNEL
 
-#ifdef _DOUBLE_DOUBLE
-#define numtyp double
-#define numtyp2 double2
-#define numtyp4 double4
-#define acctyp double
-#define acctyp4 double4
-#endif
-
-#ifdef _SINGLE_DOUBLE
-#define numtyp float
-#define numtyp2 float2
-#define numtyp4 float4
-#define acctyp double
-#define acctyp4 double4
-#endif
-
-#ifndef numtyp
-#define numtyp float
-#define numtyp2 float2
-#define numtyp4 float4
-#define acctyp float
-#define acctyp4 float4
-#endif
-
 #ifdef NV_KERNEL
 
 #include "nv_kernel_def.h"
@@ -73,6 +49,30 @@ __inline float4 fetch_pos(const int& i, const float4 *pos)
 #define BLOCK_PAIR 64
 #define MAX_SHARED_TYPES 8
 
+#endif
+
+#ifdef _DOUBLE_DOUBLE
+#define numtyp double
+#define numtyp2 double2
+#define numtyp4 double4
+#define acctyp double
+#define acctyp4 double4
+#endif
+
+#ifdef _SINGLE_DOUBLE
+#define numtyp float
+#define numtyp2 float2
+#define numtyp4 float4
+#define acctyp double
+#define acctyp4 double4
+#endif
+
+#ifndef numtyp
+#define numtyp float
+#define numtyp2 float2
+#define numtyp4 float4
+#define acctyp float
+#define acctyp4 float4
 #endif
 
 #define SBBITS 30

@@ -329,8 +329,17 @@ __kernel void kernel_ellipsoid_sphere(__global numtyp4* x_,__global numtyp4 *q,
         ap1+=astride;
       }
     }
-    ans[ii]=f;
-    ans[ii+astride]=tor;
+    acctyp4 old=ans[ii];
+    old.x+=f.x;
+    old.y+=f.y;
+    old.z+=f.z;
+    ans[ii]=old;
+    
+    old=ans[ii+astride];
+    old.x+=tor.x;
+    old.y+=tor.y;
+    old.z+=tor.z;
+    ans[ii+astride]=old;
   } // if ii
 
 }

@@ -50,7 +50,7 @@ int BaseEllipsoidT::init_base(const int nlocal, const int nall,
                               const double cell_size, const double gpu_split,
                               FILE *_screen, const int ntypes, int **h_form,
                               const char *ellipsoid_program,
-                              const char *lj_program) {
+                              const char *lj_program, const bool ellip_sphere) {
   nbor_time_avail=false;
   screen=_screen;
 
@@ -74,7 +74,7 @@ int BaseEllipsoidT::init_base(const int nlocal, const int nall,
   atom=&device->atom;
 
   _block_size=device->pair_block_size();
-  compile_kernels(*ucl_device,ellipsoid_program,lj_program);
+  compile_kernels(*ucl_device,ellipsoid_program,lj_program,ellip_sphere);
 
   // Initialize host-device load balancer
   hd_balancer.init(device,gpu_nbor,gpu_split);
@@ -131,6 +131,7 @@ void BaseEllipsoidT::clear_base() {
     k_nbor_fast.clear();
     k_nbor.clear();
     k_ellipsoid.clear();
+    k_ellipsoid_sphere.clear();
     k_sphere_ellipsoid.clear();
     k_lj_fast.clear();
     k_lj.clear();
@@ -430,7 +431,7 @@ double BaseEllipsoidT::host_memory_usage_base() const {
 template <class numtyp, class acctyp>
 void BaseEllipsoidT::compile_kernels(UCL_Device &dev, 
                                      const char *ellipsoid_string,
-                                     const char *lj_string) {
+                                     const char *lj_string, const bool e_s) {
   if (_compiled)
     return;
 
@@ -451,6 +452,8 @@ void BaseEllipsoidT::compile_kernels(UCL_Device &dev,
   k_sphere_ellipsoid.set_function(*lj_program,"kernel_sphere_ellipsoid");
   k_lj_fast.set_function(*lj_program,"kernel_lj_fast");
   k_lj.set_function(*lj_program,"kernel_lj");
+  if (e_s)
+    k_ellipsoid_sphere.set_function(*lj_program,"kernel_ellipsoid_sphere");
 
   _compiled=true;
 }

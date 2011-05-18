@@ -194,12 +194,12 @@ void RESquaredT::loop(const bool _eflag, const bool _vflag) {
   int anall=this->atom->nall();
 
   if (this->_multiple_forms) {
-    this->time_nbor1.start();
     if (this->_last_ellipse>0) {
-      // ------------ ELLIPSE_ELLIPSE and ELLIPSE_SPHERE ---------------
+      // ------------ ELLIPSE_ELLIPSE ---------------
+      this->time_nbor1.start();
       GX=static_cast<int>(ceil(static_cast<double>(this->_last_ellipse)/
                                (BX/this->_threads_per_atom)));
-      this->pack_nbors(GX,BX, 0, this->_last_ellipse,ELLIPSE_SPHERE,
+      this->pack_nbors(GX,BX, 0, this->_last_ellipse,ELLIPSE_ELLIPSE,
 			                 ELLIPSE_ELLIPSE,_shared_types,_lj_types);
       this->time_nbor1.stop();
 
@@ -212,9 +212,9 @@ void RESquaredT::loop(const bool _eflag, const bool _vflag) {
        &stride, &this->ans->dev_ans.begin(),&ainum,&this->ans->dev_engv.begin(),
        &this->dev_error.begin(), &eflag, &vflag, &this->_last_ellipse, &anall,
        &this->_threads_per_atom);
-      this->time_ellipsoid.stop();
 
       if (this->_last_ellipse==this->ans->inum()) {
+        this->time_ellipsoid.stop();
         this->time_nbor2.start();
         this->time_nbor2.stop();
         this->time_ellipsoid2.start();
@@ -223,6 +223,26 @@ void RESquaredT::loop(const bool _eflag, const bool _vflag) {
         this->time_lj.stop();
         return;
       }
+
+      // ------------ ELLIPSE_SPHERE ---------------
+//      this->time_nbor2.start();
+      GX=static_cast<int>(ceil(static_cast<double>(this->_last_ellipse)/
+                               (BX/this->_threads_per_atom)));
+      this->pack_nbors(GX,BX, 0, this->_last_ellipse,ELLIPSE_SPHERE,
+			                 ELLIPSE_SPHERE,_shared_types,_lj_types);
+//      this->time_nbor2.stop();
+
+      this->k_ellipsoid_sphere.set_size(GX,BX);
+      this->k_ellipsoid_sphere.run(&this->atom->dev_x.begin(),
+       &this->atom->dev_quat.begin(), &this->shape.begin(), &this->well.begin(),
+       &this->special_lj.begin(), &this->sigma_epsilon.begin(), 
+       &this->_lj_types, &this->lshape.begin(), &this->nbor->dev_nbor.begin(),
+       &stride, &this->ans->dev_ans.begin(),&ainum,&this->ans->dev_engv.begin(),
+       &this->dev_error.begin(), &eflag, &vflag, &this->_last_ellipse, &anall,
+       &this->_threads_per_atom);
+      this->time_ellipsoid.stop();
+
+
 
       // ------------ SPHERE_ELLIPSE ---------------
 
@@ -247,6 +267,7 @@ void RESquaredT::loop(const bool _eflag, const bool _vflag) {
    } else {
       this->ans->dev_ans.zero();
       this->ans->dev_engv.zero();
+      this->time_nbor1.start();
       this->time_nbor1.stop();
       this->time_ellipsoid.start();                                 
       this->time_ellipsoid.stop();

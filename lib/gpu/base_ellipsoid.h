@@ -38,6 +38,7 @@ class BaseEllipsoid {
   /** \param max_nbors initial number of rows in the neighbor matrix
     * \param cell_size cutoff + skin
     * \param gpu_split fraction of particles handled by device
+    * \param ellipsoid_sphere true if ellipsoid-sphere case handled separately
     * 
     * Returns:
     * -  0 if successfull
@@ -49,11 +50,10 @@ class BaseEllipsoid {
                 const int maxspecial, const double cell_size,
                 const double gpu_split, FILE *screen, const int ntypes,
                 int **h_form, const char *ellipsoid_program,
-                const char *lj_program);
+                const char *lj_program, const bool ellipsoid_sphere=false);
 
   /// Estimate the overhead for GPU context changes and CPU driver
   void estimate_gpu_overhead();
-
 
   /// Check if there is enough storage for atom arrays and realloc if not
   /** \param success set to false if insufficient memory **/
@@ -214,7 +214,8 @@ class BaseEllipsoid {
   // ------------------------- DEVICE KERNELS -------------------------
   UCL_Program *nbor_program, *ellipsoid_program, *lj_program;
   UCL_Kernel k_nbor_fast, k_nbor;
-  UCL_Kernel k_ellipsoid, k_sphere_ellipsoid, k_lj_fast, k_lj;
+  UCL_Kernel k_ellipsoid, k_ellipsoid_sphere, k_sphere_ellipsoid;
+  UCL_Kernel k_lj_fast, k_lj;
   inline int block_size() { return _block_size; }
 
   // --------------------------- TEXTURES -----------------------------
@@ -234,7 +235,7 @@ class BaseEllipsoid {
   int _last_ellipse, _max_last_ellipse;
 
   void compile_kernels(UCL_Device &dev, const char *ellipsoid_string,
-                       const char *lj_string);
+                       const char *lj_string, const bool e_s);
 
   virtual void loop(const bool _eflag, const bool _vflag) = 0;
 };

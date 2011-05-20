@@ -115,7 +115,7 @@ class Atom : protected Pointers {
 
   void settings(class Atom *);
   void create_avec(const char *, int, char **, char *suffix = NULL);
-  class AtomVec *new_avec(const char *, int, char **, char *suffix = NULL);
+  class AtomVec *new_avec(const char *, int, char **, char *, int &);
   void init();
   void setup();
 

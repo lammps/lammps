@@ -261,10 +261,20 @@ void Atom::create_avec(const char *style, int narg, char **arg, char *suffix)
   rmass_flag = radius_flag = omega_flag = torque_flag = angmom_flag = 0;
   vfrac_flag = spin_flag = eradius_flag = ervel_flag = erforce_flag = 0;
 
-  avec = new_avec(style,narg,arg,suffix);
-  int n = strlen(style) + 1;
-  atom_style = new char[n];
-  strcpy(atom_style,style);
+  int sflag;
+  avec = new_avec(style,narg,arg,suffix,sflag);
+
+  if (sflag) {
+    char estyle[256];
+    sprintf(estyle,"%s/%s",style,suffix);
+    int n = strlen(estyle) + 1;
+    atom_style = new char[n];
+    strcpy(atom_style,estyle);
+  } else {
+    int n = strlen(style) + 1;
+    atom_style = new char[n];
+    strcpy(atom_style,style);
+  }
 
   // if molecular system, default is to have array map
 
@@ -276,14 +286,13 @@ void Atom::create_avec(const char *style, int narg, char **arg, char *suffix)
    generate an AtomVec class, first with suffix appended
 ------------------------------------------------------------------------- */
 
-AtomVec *Atom::new_avec(const char *style, int narg, char **arg, char *suffix)
+AtomVec *Atom::new_avec(const char *style, int narg, char **arg,
+			char *suffix, int &sflag)
 {
-  int success = 0;
-
   if (suffix) {
+    sflag = 1;
     char estyle[256];
     sprintf(estyle,"%s/%s",style,suffix);
-    success = 1;
 
     if (0) return NULL;
 
@@ -294,20 +303,19 @@ AtomVec *Atom::new_avec(const char *style, int narg, char **arg, char *suffix)
 #undef AtomStyle
 #undef ATOM_CLASS
 
-    else success = 0;
   }
 
-  if (!success) {
-    if (0) return NULL;
+  sflag = 0;
+
+  if (0) return NULL;
 
 #define ATOM_CLASS
 #define AtomStyle(key,Class) \
-    else if (strcmp(style,#key) == 0) return new Class(lmp,narg,arg);
+  else if (strcmp(style,#key) == 0) return new Class(lmp,narg,arg);
 #include "style_atom.h"
 #undef ATOM_CLASS
 
-    else error->all("Invalid atom style");
-  }
+  else error->all("Invalid atom style");
 
   return NULL;
 }

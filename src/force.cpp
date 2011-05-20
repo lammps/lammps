@@ -122,24 +122,32 @@ void Force::create_pair(const char *style, char *suffix)
   delete [] pair_style;
   if (pair) delete pair;
 
-  pair = new_pair(style,suffix);
-  int n = strlen(style) + 1;
-  pair_style = new char[n];
-  strcpy(pair_style,style);
+  int sflag;
+  pair = new_pair(style,suffix,sflag);
+
+  if (sflag) {
+    char estyle[256];
+    sprintf(estyle,"%s/%s",style,suffix);
+    int n = strlen(estyle) + 1;
+    pair_style = new char[n];
+    strcpy(pair_style,estyle);
+  } else {
+    int n = strlen(style) + 1;
+    pair_style = new char[n];
+    strcpy(pair_style,style);
+  }
 }
 
 /* ----------------------------------------------------------------------
    generate a pair class, first with suffix appended
 ------------------------------------------------------------------------- */
 
-Pair *Force::new_pair(const char *style, char *suffix)
+Pair *Force::new_pair(const char *style, char *suffix, int &sflag)
 {
-  int success = 0;
-
   if (suffix) {
+    sflag = 1;
     char estyle[256];
     sprintf(estyle,"%s/%s",style,suffix);
-    success = 1;
 
     if (0) return NULL;
 
@@ -150,20 +158,19 @@ Pair *Force::new_pair(const char *style, char *suffix)
 #undef PairStyle
 #undef PAIR_CLASS
 
-    else success = 0;
   }
 
-  if (!success) {
-    if (strcmp(style,"none") == 0) return NULL;
+  sflag = 0;
+
+  if (strcmp(style,"none") == 0) return NULL;
 
 #define PAIR_CLASS
 #define PairStyle(key,Class) \
-    else if (strcmp(style,#key) == 0) return new Class(lmp);
+  else if (strcmp(style,#key) == 0) return new Class(lmp);
 #include "style_pair.h"
 #undef PAIR_CLASS
 
-    else error->all("Invalid pair style");
-  }
+  else error->all("Invalid pair style");
 
   return NULL;
 }

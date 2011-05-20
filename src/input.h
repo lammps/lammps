@@ -61,7 +61,8 @@ class Input : protected Pointers {
   void shell();
   void variable_command();
 
-  void angle_coeff();          // LAMMPS commands
+  void accelerator();          // LAMMPS commands
+  void angle_coeff();
   void angle_style();
   void atom_modify();
   void atom_style();

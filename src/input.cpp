@@ -42,6 +42,7 @@
 #include "neighbor.h"
 #include "special.h"
 #include "variable.h"
+#include "accelerator.h"
 #include "error.h"
 #include "memory.h"
 
@@ -417,6 +418,7 @@ int Input::execute_command()
   else if (!strcmp(command,"shell")) shell();
   else if (!strcmp(command,"variable")) variable_command();
 
+  else if (!strcmp(command,"accelerator")) accelerator();
   else if (!strcmp(command,"angle_coeff")) angle_coeff();
   else if (!strcmp(command,"angle_style")) angle_style();
   else if (!strcmp(command,"atom_modify")) atom_modify();
@@ -801,6 +803,20 @@ void Input::variable_command()
    one function for each LAMMPS-specific input script command
 ------------------------------------------------------------------------- */
 
+void Input::accelerator()
+{
+  if (domain->box_exist) 
+    error->all("Accelerator command after simulation box is defined");
+  if (narg < 1) error->all("Illegal accelerator command");
+  if (strcmp(lmp->asuffix,arg[0]) != 0)
+    error->all("Accelerator command requires matching command-line -a switch");
+
+  if (strcmp(arg[0],"cuda") == 0) lmp->cuda->accelerator(narg-1,&arg[1]);
+  else error->all("Illegal accelerator command");
+}
+
+/* ---------------------------------------------------------------------- */
+
 void Input::angle_coeff()
 {
   if (domain->box_exist == 0)
@@ -837,7 +853,7 @@ void Input::atom_style()
   if (narg < 1) error->all("Illegal atom_style command");
   if (domain->box_exist) 
     error->all("Atom_style command after simulation box is defined");
-  atom->create_avec(arg[0],narg-1,&arg[1]);
+  atom->create_avec(arg[0],narg-1,&arg[1],lmp->asuffix);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -884,7 +900,7 @@ void Input::communicate()
 
 void Input::compute()
 {
-  modify->add_compute(narg,arg);
+  modify->add_compute(narg,arg,lmp->asuffix);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -962,7 +978,7 @@ void Input::dump_modify()
 
 void Input::fix()
 {
-  modify->add_fix(narg,arg);
+  modify->add_fix(narg,arg,lmp->asuffix);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1132,7 +1148,7 @@ void Input::pair_style()
     force->pair->settings(narg-1,&arg[1]);
     return;
   }
-  force->create_pair(arg[0]);
+  force->create_pair(arg[0],lmp->asuffix);
   if (force->pair) force->pair->settings(narg-1,&arg[1]);
 }
 

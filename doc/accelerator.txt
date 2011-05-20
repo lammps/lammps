@@ -43,21 +43,22 @@ See "this section"_Section_start.html#2_3 of the manual for
 instructions on how to build LAMMPS with any of these packages.
 
 These styles can be specified explicitly in your input script,
-e.g. pair_style lj/cut/gpu.  If the -accelerator command-line switch
-is used, you do not need to modify your input script, as discussed in
-"this section"_Section_start.html#2_6 of the manual.  The command-line
-suffix (opt,gpu,cuda) is automatically appended when the style is
-created for atom, pair, fix, compute, and integrate styles.  If an
-accelerated version does not exist, the standard version is created.
+e.g. "pair_style lj/cut/gpu"_pair_lj.html.  If the -accelerator
+command-line switch is used, you do not need to modify your input
+script, as discussed in "this section"_Section_start.html#2_6 of the
+manual.  The command-line suffix (opt,gpu,cuda) is automatically
+appended when the style is created for atom, pair, fix, compute, and
+integrate styles.  If an accelerated version does not exist, the
+standard version is created.
 
 If the -accelerator command-line switch is used, you may wish to
-disable it for one or more input script commands, so that the
-accelerated version of the style is not used, but rather the standard
-version.  This can be useful for performance testing or debugging.
+disable it for one or more input script commands, so that the standard
+version of the style is used instead of the accelerated one.  This can
+be useful for performance testing or debugging.
 
 The {off} style allows you to do this.  The effect of the -accelerator
 command-line switch is effectively turned off until another
-accelerator command with the {on} style is used.  The {on} style can
+accelerator command is used with the {on} style.  The {on} style can
 only be used if the -accelerator command-line switch was used.
 
 The {cuda} style invokes options associated with the use of the

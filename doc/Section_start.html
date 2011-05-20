@@ -806,19 +806,21 @@ one-letter abbreviation can be used:
 <P>Use accelerated variants of various styles if they exist.  The style
 can be <I>opt</I> or <I>gpu</I> or <I>cuda</I>.  The variant styles are part of
 optional packages that LAMMPS can be built with, as described above in
-<A HREF = "#2_3">Section 2.3</A>.  The "opt" style corrsponds to the OPT package,
-the "gpu" style to the GPU package, and the "cuda" style to the
-USER-CUDA package.  For example, all of the packages provide a
-<A HREF = "pair_lj.html">pair_style lj/cut</A> variant, with styles lj/cut/opt or
-lj/cut/gpu or lj/cut/cuda.  These styles can be specified explicitly
-in your input script, e.g. pair_style lj/cut/gpu.  But if the
--accelerator switch is used, you do not need to modify your input
-script.  The accelerator suffix (opt,gpu,cuda) is automatically
-appended when the style is created.  The suffix is applied to atom,
-pair, fix, compute, and integrate styles.  If an accelerated version
-does not exist, the standard version is created.  See the
-<A HREF = "accelerator.html">accelerator</A> command for info on how to turn off
-this option.
+<A HREF = "#2_3">Section 2.3</A>.  Also see the <A HREF = "accelerator.html">acclerator</A>
+command doc page.  The "opt" style corrsponds to the OPT package, the
+"gpu" style to the GPU package, and the "cuda" style to the USER-CUDA
+package.  For example, all of the packages provide a <A HREF = "pair_lj.html">pair_style
+lj/cut</A> variant, with style names lj/cut/opt or
+lj/cut/gpu or lj/cut/cuda.
+</P>
+<P>These accelerated styles can be specified explicitly in your input
+script, e.g. pair_style lj/cut/gpu.  If the -accelerator switch is
+used, you do not need to modify your input script.  The accelerator
+suffix (opt,gpu,cuda) is automatically appended when the style is
+created for atom, pair, fix, compute, and integrate styles.  If an
+accelerated version does not exist, the standard version is created.
+See the <A HREF = "accelerator.html">accelerator</A> command for info on how to
+temporarily turn off this option.
 </P>
 <PRE>-echo style 
 </PRE>

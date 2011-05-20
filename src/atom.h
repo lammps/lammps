@@ -114,8 +114,8 @@ class Atom : protected Pointers {
   ~Atom();
 
   void settings(class Atom *);
-  void create_avec(const char *, int, char **);
-  class AtomVec *new_avec(const char *, int, char **);
+  void create_avec(const char *, int, char **, char *suffix = NULL);
+  class AtomVec *new_avec(const char *, int, char **, char *suffix = NULL);
   void init();
   void setup();
 
@@ -154,6 +154,9 @@ class Atom : protected Pointers {
   void update_callback(int);
 
   void *extract(char *);
+
+  inline int* get_map_array() {return map_array;};
+  inline int get_map_size() {return map_tag_max+1;};
 
   bigint memory_usage();
   int memcheck(const char *);

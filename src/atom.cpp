@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "mpi.h"
+#include "math.h"
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
@@ -30,6 +31,7 @@
 #include "update.h"
 #include "domain.h"
 #include "group.h"
+#include "accelerator.h"
 #include "memory.h"
 #include "error.h"
 
@@ -38,6 +40,9 @@ using namespace LAMMPS_NS;
 #define DELTA 1
 #define DELTA_MEMSTR 1024
 #define EPSILON 1.0e-6
+#define CUDA_CHUNK 3000
+
+enum{NOACCEL,OPT,GPU,USERCUDA};     // same as lammps.cpp
 
 #define MIN(A,B) ((A) < (B)) ? (A) : (B)
 #define MAX(A,B) ((A) > (B)) ? (A) : (B)
@@ -241,7 +246,7 @@ void Atom::settings(Atom *old)
    called from input script, restart file, replicate
 ------------------------------------------------------------------------- */
 
-void Atom::create_avec(const char *style, int narg, char **arg)
+void Atom::create_avec(const char *style, int narg, char **arg, char *suffix)
 {
   delete [] atom_style;
   if (avec) delete avec;
@@ -256,7 +261,7 @@ void Atom::create_avec(const char *style, int narg, char **arg)
   rmass_flag = radius_flag = omega_flag = torque_flag = angmom_flag = 0;
   vfrac_flag = spin_flag = eradius_flag = ervel_flag = erforce_flag = 0;
 
-  avec = new_avec(style,narg,arg);
+  avec = new_avec(style,narg,arg,suffix);
   int n = strlen(style) + 1;
   atom_style = new char[n];
   strcpy(atom_style,style);
@@ -268,20 +273,42 @@ void Atom::create_avec(const char *style, int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   generate an AtomVec class
+   generate an AtomVec class, first with suffix appended
 ------------------------------------------------------------------------- */
 
-AtomVec *Atom::new_avec(const char *style, int narg, char **arg)
+AtomVec *Atom::new_avec(const char *style, int narg, char **arg, char *suffix)
 {
-  if (0) return NULL;
+  int success = 0;
+
+  if (suffix) {
+    char estyle[256];
+    sprintf(estyle,"%s/%s",style,suffix);
+    success = 1;
+
+    if (0) return NULL;
 
 #define ATOM_CLASS
 #define AtomStyle(key,Class) \
-  else if (strcmp(style,#key) == 0) return new Class(lmp,narg,arg);
+    else if (strcmp(estyle,#key) == 0) return new Class(lmp,narg,arg);
+#include "style_atom.h"
+#undef AtomStyle
+#undef ATOM_CLASS
+
+    else success = 0;
+  }
+
+  if (!success) {
+    if (0) return NULL;
+
+#define ATOM_CLASS
+#define AtomStyle(key,Class) \
+    else if (strcmp(style,#key) == 0) return new Class(lmp,narg,arg);
 #include "style_atom.h"
 #undef ATOM_CLASS
 
-  else error->all("Invalid atom style");
+    else error->all("Invalid atom style");
+  }
+
   return NULL;
 }
 
@@ -1298,6 +1325,11 @@ void Atom::sort()
 
   nextsort = (update->ntimestep/sortfreq)*sortfreq + sortfreq;
 
+  // download data from GPU if necessary
+
+  if (lmp->accelerator == USERCUDA && !lmp->cuda->oncpu) 
+    lmp->cuda->downloadAll();
+
   // re-setup sort bins if needed
 
   if (domain->box_change) setup_sort_bins();
@@ -1373,6 +1405,11 @@ void Atom::sort()
     current[empty] = permute[empty];
   }
 
+  // upload data back to GPU if necessary
+
+  if (lmp->accelerator == USERCUDA && !lmp->cuda->oncpu)
+    lmp->cuda->uploadAll();
+
   // sanity check that current = permute
 
   //int flag = 0;
@@ -1389,12 +1426,25 @@ void Atom::sort()
 
 void Atom::setup_sort_bins()
 {
-  // binsize = user setting or 1/2 of neighbor cutoff
-  // neighbor cutoff can be 0.0
+  // binsize = user setting or default
+  // default = 1/2 of neighbor cutoff for non-CUDA
+  //           CUDA_CHUNK atoms/proc for CUDA
+  // check if neighbor cutoff = 0.0
 
   double binsize;
   if (userbinsize > 0.0) binsize = userbinsize;
-  else binsize = 0.5 * neighbor->cutneighmax;
+  else if (lmp->accelerator == USERCUDA) {
+    if (domain->dimension == 3) {
+      double vol = (domain->boxhi[0]-domain->boxlo[0]) * 
+	(domain->boxhi[1]-domain->boxlo[1]) * 
+	(domain->boxhi[2]-domain->boxlo[2]);
+      binsize = pow(CUDA_CHUNK/natoms*vol,1.0/3.0);
+    } else {
+      double area = (domain->boxhi[0]-domain->boxlo[0]) * 
+	(domain->boxhi[1]-domain->boxlo[1]);
+      binsize = pow(CUDA_CHUNK/natoms*area,1.0/2.0);
+    }
+  } else binsize = 0.5 * neighbor->cutneighmax;
   if (binsize == 0.0) error->all("Atom sorting has bin size = 0.0");
 
   double bininv = 1.0/binsize;

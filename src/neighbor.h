@@ -60,7 +60,7 @@ class Neighbor : protected Pointers {
   int **improperlist;
 
   Neighbor(class LAMMPS *);
-  ~Neighbor();
+  virtual ~Neighbor();
   void init();
   int request(void *);         // another class requests a neighbor list
   void print_lists_of_lists(); // debug print out
@@ -73,7 +73,7 @@ class Neighbor : protected Pointers {
   void modify_params(int, char**);  // modify parameters that control builds
   bigint memory_usage();
   
- private:
+ protected:
   int me,nprocs;
 
   int maxatom;                     // size of atom-based NeighList arrays
@@ -162,7 +162,7 @@ class Neighbor : protected Pointers {
   int coord2bin(double *, int &, int &, int&); // ditto
 
   int exclusion(int, int, int, int, int *, int *);  // test for pair exclusion
-  void choose_build(int, class NeighRequest *);
+  virtual void choose_build(int, class NeighRequest *);
   void choose_stencil(int, class NeighRequest *);
 
   // pairwise build functions

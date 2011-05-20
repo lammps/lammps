@@ -32,7 +32,7 @@
 
 using namespace LAMMPS_NS;
 
-enum{NONE,OPT,GPU,USERCUDA};
+enum{NOACCEL,OPT,GPU,USERCUDA};
 
 /* ----------------------------------------------------------------------
    start up LAMMPS

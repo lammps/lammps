@@ -41,6 +41,7 @@ class Fix : protected Pointers {
                                  //      setting when a new atom is created
   int restart_pbc;               // 1 if fix moves atoms (except integrate)
                                  //      so write_restart must remap to PBC
+  int cudable_comm;              // 1 if fix has CUDA-enabled communication
 
   int scalar_flag;               // 0/1 if compute_scalar() function exists
   int vector_flag;               // 0/1 if compute_vector() function exists

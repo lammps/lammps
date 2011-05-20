@@ -1,0 +1,88 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>accelerator command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>accelerator style args 
+</PRE>
+<UL><LI>style = <I>off</I> or <I>on</I> or <I>cuda</I> 
+
+<LI>args = 0 or more args specific to the style 
+
+<PRE>  <I>off</I> args = none
+  <I>on</I> args = none
+  <I>cuda</I> args = to be determined 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>accelerator off
+accelerator on
+accelerator cuda blah 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Alter settings for use of accelerated versions of various styles.
+LAMMPS can be built with optional packages which provide accelerated
+versions of specific <A HREF = "atom_style.html">atom</A>, <A HREF = "pair_style.html">pair</A>,
+<A HREF = "fix.html">fix</A>, <A HREF = "compute.html">compute</A>, and <A HREF = "run_style.html">integrate</A>
+styles.
+</P>
+<P>These are the relevant packages:
+</P>
+<UL><LI>OPT = a handful of pair styles, cache-optimized for faster CPU performance
+<LI>GPU = a handful of pair styles and the PPPM kspace_style, optimized to run on one or more GPUs or multicore CPU/GPU nodes
+<LI>USER-CUDA = a collection of atom, pair, fix, compute, and intergrate styles, optimized to run on one or more NVIDIA GPUs 
+</UL>
+<P>See <A HREF = "Section_start.html#2_3">this section</A> of the manual for
+instructions on how to build LAMMPS with any of these packages.
+</P>
+<P>These styles can be specified explicitly in your input script,
+e.g. pair_style lj/cut/gpu.  If the -accelerator command-line switch
+is used, you do not need to modify your input script, as discussed in
+<A HREF = "Section_start.html#2_6">this section</A> of the manual.  The command-line
+suffix (opt,gpu,cuda) is automatically appended when the style is
+created for atom, pair, fix, compute, and integrate styles.  If an
+accelerated version does not exist, the standard version is created.
+</P>
+<P>If the -accelerator command-line switch is used, you may wish to
+disable it for one or more input script commands, so that the
+accelerated version of the style is not used, but rather the standard
+version.  This can be useful for performance testing or debugging.
+</P>
+<P>The <I>off</I> style allows you to do this.  The effect of the -accelerator
+command-line switch is effectively turned off until another
+accelerator command with the <I>on</I> style is used.  The <I>on</I> style can
+only be used if the -accelerator command-line switch was used.
+</P>
+<P>The <I>cuda</I> style invokes options associated with the use of the
+USER-CUDA package.  These will be described when the USER-CUDA package
+is released with LAMMPS.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This cuda style can only be invoked if LAMMPS was built with the
+USER-CUDA package.  See the <A HREF = "Section_start.html#2_3">Making LAMMPS</A>
+section for more info.
+</P>
+<P>Obviously, you must have GPU hardware and associated software to
+build LAMMPS with GPU support.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_gpu.html">fix gpu</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

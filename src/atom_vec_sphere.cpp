@@ -374,8 +374,8 @@ int AtomVecSphere::pack_comm_hybrid(int n, int *list, double *buf)
   m = 0;
   for (i = 0; i < n; i++) {
     j = list[i];
-    buf[m++] = radius[i];
-    buf[m++] = rmass[i];
+    buf[m++] = radius[j];
+    buf[m++] = rmass[j];
   }
   return m;
 }

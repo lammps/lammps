@@ -40,7 +40,7 @@ class Modify : protected Pointers {
   class Compute **compute;
 
   Modify(class LAMMPS *);
-  ~Modify();
+  virtual ~Modify();
   void init();
   void setup(int);
   void setup_pre_exchange();
@@ -79,12 +79,12 @@ class Modify : protected Pointers {
   double max_alpha(double *);
   int min_dof();
 
-  void add_fix(int, char **);
+  void add_fix(int, char **, char *suffix = NULL);
   void modify_fix(int, char **);
   void delete_fix(const char *);
   int find_fix(const char *);
 
-  void add_compute(int, char **);
+  void add_compute(int, char **, char *suffix = NULL);
   void modify_compute(int, char **);
   void delete_compute(char *);
   int find_compute(char *);
@@ -98,7 +98,7 @@ class Modify : protected Pointers {
 
   bigint memory_usage();
 
- private:
+ protected:
 
   // lists of fixes to apply at different stages of timestep
 

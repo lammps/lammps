@@ -591,7 +591,7 @@ int Modify::min_reset_ref()
    add a new fix or replace one with same ID
 ------------------------------------------------------------------------- */
 
-void Modify::add_fix(int narg, char **arg)
+void Modify::add_fix(int narg, char **arg, char *suffix)
 {
   if (domain->box_exist == 0) 
     error->all("Fix command before simulation box is defined");
@@ -636,17 +636,39 @@ void Modify::add_fix(int narg, char **arg)
     }
   }
 
-  // create the Fix
+  // create the Fix, first with suffix appended
 
-  if (0) return;         // dummy line to enable else-if macro expansion
+  int success = 0;
+
+  if (suffix) {
+    char estyle[256];
+    sprintf(estyle,"%s/%s",arg[2],suffix);
+    success = 1;
+
+    if (0) return;
 
 #define FIX_CLASS
 #define FixStyle(key,Class) \
-  else if (strcmp(arg[2],#key) == 0) fix[ifix] = new Class(lmp,narg,arg);
+    else if (strcmp(estyle,#key) == 0) fix[ifix] = new Class(lmp,narg,arg);
 #include "style_fix.h"
+#undef FixStyle
 #undef FIX_CLASS
 
-  else error->all("Invalid fix style");
+    else success = 0;
+  }
+
+  if (!success) {
+    if (0) return;
+
+#define FIX_CLASS
+#define FixStyle(key,Class) \
+    else if (strcmp(arg[2],#key) == 0) fix[ifix] = new Class(lmp,narg,arg);
+#include "style_fix.h"
+#undef FixStyle
+#undef FIX_CLASS
+
+    else error->all("Invalid fix style");
+  }
 
   // set fix mask values and increment nfix (if new)
 
@@ -740,7 +762,7 @@ int Modify::find_fix(const char *id)
    add a new compute
 ------------------------------------------------------------------------- */
 
-void Modify::add_compute(int narg, char **arg)
+void Modify::add_compute(int narg, char **arg, char *suffix)
 {
   if (narg < 3) error->all("Illegal compute command");
 
@@ -758,18 +780,41 @@ void Modify::add_compute(int narg, char **arg)
       memory->srealloc(compute,maxcompute*sizeof(Compute *),"modify:compute");
   }
 
-  // create the Compute
+  // create the Compute, first with suffix appended
 
-  if (0) return;         // dummy line to enable else-if macro expansion
+  int success = 0;
+
+  if (suffix) {
+    char estyle[256];
+    sprintf(estyle,"%s/%s",arg[2],suffix);
+    success = 1;
+
+    if (0) return;
 
 #define COMPUTE_CLASS
 #define ComputeStyle(key,Class) \
-  else if (strcmp(arg[2],#key) == 0) \
-    compute[ncompute] = new Class(lmp,narg,arg);
+    else if (strcmp(estyle,#key) == 0) \
+      compute[ncompute] = new Class(lmp,narg,arg);
 #include "style_compute.h"
+#undef ComputeStyle
 #undef COMPUTE_CLASS
 
-  else error->all("Invalid compute style");
+    else success = 0;
+  }
+
+  if (!success) {
+    if (0) return;
+
+#define COMPUTE_CLASS
+#define ComputeStyle(key,Class) \
+    else if (strcmp(arg[2],#key) == 0) \
+      compute[ncompute] = new Class(lmp,narg,arg);
+#include "style_compute.h"
+#undef ComputeStyle
+#undef COMPUTE_CLASS
+
+    else error->all("Invalid compute style");
+  }
 
   ncompute++;
 }

@@ -334,7 +334,9 @@ LAMMPS::~LAMMPS()
 void LAMMPS::create()
 {
   atom = new Atom(this);
-  neighbor = new Neighbor(this);
+
+  if (accelerator == USERCUDA) neighbor = new NeighborCuda(this);
+  else neighbor = new Neighbor(this);
 
   if (accelerator == USERCUDA) comm = new CommCuda(this);
   else comm = new Comm(this);

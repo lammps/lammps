@@ -817,7 +817,12 @@ void Input::accelerator()
     return;
   }
 
-  lmp->offaccel = 0;
+  if (strcmp(arg[0],"on") == 0) {
+    if (narg != 1) error->all("Illegal accelerator command");
+    lmp->offaccel = 0;
+    return;
+  }
+
   if (strcmp(arg[0],"cuda") == 0) lmp->cuda->accelerator(narg-1,&arg[1]);
   else error->all("Illegal accelerator command");
 }

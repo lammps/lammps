@@ -165,7 +165,7 @@ __kernel void kernel_ellipsoid_sphere(__global numtyp4* x_,__global numtyp4 *q,
       energy+=Ua+Ur;
 
       // force
-
+/*
       numtyp fourw[3], spr[3];
       numtyp sec = sigma*chi;
       numtyp sigma12p3 = pow(sigma12,(numtyp)3.0);
@@ -269,7 +269,7 @@ __kernel void kernel_ellipsoid_sphere(__global numtyp4* x_,__global numtyp4 *q,
         numtyp dUr = pbsr*dchi-dh12*dspr;
         tor.z -= (dUa*Ua+dUr*Ur);
       }
-
+*/
     } // for nbor
   } // if ii
   
@@ -320,12 +320,12 @@ __kernel void kernel_ellipsoid_sphere(__global numtyp4* x_,__global numtyp4 *q,
   if (ii<inum && offset==0) {
     __global acctyp *ap1=engv+ii;
     if (eflag>0) {
-      *ap1=energy;
+      *ap1+=energy;
       ap1+=astride;
     }
     if (vflag>0) {
       for (int i=0; i<6; i++) {
-        *ap1=virial[i];
+        *ap1+=virial[i];
         ap1+=astride;
       }
     }

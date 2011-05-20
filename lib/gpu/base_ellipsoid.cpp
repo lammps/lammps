@@ -95,7 +95,7 @@ int BaseEllipsoidT::init_base(const int nlocal, const int nall,
   _host_form=h_form;
   _multiple_forms=false;
   for (int i=1; i<ntypes; i++)
-    for (int j=i; j<ntypes; j++) 
+    for (int j=i; j<ntypes; j++)
       if (_host_form[i][j]!=ELLIPSE_ELLIPSE)
         _multiple_forms=true;
   if (_multiple_forms && host_nlocal>0) {

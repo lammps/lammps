@@ -53,8 +53,7 @@ int RESquaredT::init(const int ntypes, double **host_shape, double **host_well,
                      FILE *_screen) {
   int success;
   success=this->init_base(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
-                          _screen,ntypes,h_form,
-                          re_squared,re_squared_lj);
+                          _screen,ntypes,h_form,re_squared,re_squared_lj,true);
   if (success!=0)
     return success;
 
@@ -193,6 +192,13 @@ void RESquaredT::loop(const bool _eflag, const bool _vflag) {
   int ainum=this->ans->inum();
   int anall=this->atom->nall();
 
+// *******************************************
+// *******************************************
+this->ans->dev_ans.zero();
+this->ans->dev_engv.zero();
+// *******************************************
+// *******************************************
+
   if (this->_multiple_forms) {
     if (this->_last_ellipse>0) {
       // ------------ ELLIPSE_ELLIPSE ---------------
@@ -250,19 +256,19 @@ void RESquaredT::loop(const bool _eflag, const bool _vflag) {
       GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum()-
                                this->_last_ellipse)/
                                (BX/this->_threads_per_atom)));
-      this->pack_nbors(GX,BX,this->_last_ellipse,this->ans->inum(),
-			                 SPHERE_ELLIPSE,SPHERE_ELLIPSE,_shared_types,_lj_types);
+//      this->pack_nbors(GX,BX,this->_last_ellipse,this->ans->inum(),
+//			                 SPHERE_ELLIPSE,SPHERE_ELLIPSE,_shared_types,_lj_types);
       this->time_nbor2.stop();
 
       this->time_ellipsoid2.start();
       this->k_sphere_ellipsoid.set_size(GX,BX);
-      this->k_sphere_ellipsoid.run(&this->atom->dev_x.begin(),
-        &this->atom->dev_quat.begin(), &this->shape.begin(), 
-        &this->well.begin(), &this->special_lj.begin(), 
-        &this->sigma_epsilon.begin(), &this->_lj_types, &this->lshape.begin(), 
-        &this->nbor->dev_nbor.begin(), &stride, &this->ans->dev_ans.begin(),
-        &this->ans->dev_engv.begin(), &this->dev_error.begin(), &eflag,
-        &vflag, &this->_last_ellipse, &ainum, &anall, &this->_threads_per_atom);
+//      this->k_sphere_ellipsoid.run(&this->atom->dev_x.begin(),
+//        &this->atom->dev_quat.begin(), &this->shape.begin(), 
+//        &this->well.begin(), &this->special_lj.begin(), 
+//        &this->sigma_epsilon.begin(), &this->_lj_types, &this->lshape.begin(), 
+//        &this->nbor->dev_nbor.begin(), &stride, &this->ans->dev_ans.begin(),
+//        &this->ans->dev_engv.begin(), &this->dev_error.begin(), &eflag,
+//        &vflag, &this->_last_ellipse, &ainum, &anall, &this->_threads_per_atom);
       this->time_ellipsoid2.stop();
    } else {
       this->ans->dev_ans.zero();

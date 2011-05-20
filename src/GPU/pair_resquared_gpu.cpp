@@ -166,13 +166,13 @@ void PairRESquaredGPU::init_style()
 
   for (int i = 1; i <= atom->ntypes; i++) {
     if (!atom->shape_consistency(i,shape1[i][0],shape1[i][1],shape1[i][2]))
-      error->all("Pair resquared requires atoms with same type have same shape");
-    if (shape1[i][0] == 0.0)
-      shape1[i][0] = shape1[i][1] = shape1[i][2] = 1.0;
-    shape2[i][0] = shape1[i][0]*shape1[i][0];
-    shape2[i][1] = shape1[i][1]*shape1[i][1];
-    shape2[i][2] = shape1[i][2]*shape1[i][2];
-    lshape[i] = shape1[i][0]*shape1[i][1]*shape1[i][2];
+      error->all("Pair gayberne requires atoms with same type have same shape");
+    if (setwell[i]) {
+      shape2[i][0] = shape1[i][0]*shape1[i][0];
+      shape2[i][1] = shape1[i][1]*shape1[i][1];
+      shape2[i][2] = shape1[i][2]*shape1[i][2];
+      lshape[i] = shape1[i][0]*shape1[i][1]*shape1[i][2];
+    }
   }
 
   // Repeat cutsq calculation because done after call to init_style

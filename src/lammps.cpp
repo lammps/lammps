@@ -57,7 +57,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   int inflag = 0;
   int screenflag = 0;
   int logflag = 0;
-  accelerator = NONE;
+  accelerator = NOACCEL;
   cuda = NULL;
   asuffix = NULL;
 

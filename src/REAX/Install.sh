@@ -9,8 +9,9 @@ if (test $1 = 1) then
     sed -i -e 's|^PKG_INC =[ \t]*|&-I../../lib/reax |' ../Makefile.package
     sed -i -e 's|^PKG_PATH =[ \t]*|&-L../../lib/reax |' ../Makefile.package
     sed -i -e 's|^PKG_LIB =[ \t]*|&-lreax |' ../Makefile.package
-    sed -i -e 's|^PKG_SYSPATH =[ \t]*|&$(reax_SYSPATH) |' ../Makefile.package
+    sed -i -e 's|^PKG_SYSINC =[ \t]*|&$(reax_SYSINC) |' ../Makefile.package
     sed -i -e 's|^PKG_SYSLIB =[ \t]*|&$(reax_SYSLIB) |' ../Makefile.package
+    sed -i -e 's|^PKG_SYSPATH =[ \t]*|&$(reax_SYSPATH) |' ../Makefile.package
   fi
 
   cp pair_reax.cpp ..

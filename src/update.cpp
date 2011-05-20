@@ -202,22 +202,46 @@ void Update::set_units(const char *style)
 
 /* ---------------------------------------------------------------------- */
 
-void Update::create_integrate(int narg, char **arg)
+void Update::create_integrate(int narg, char **arg, char *suffix)
 {
   if (narg < 1) error->all("Illegal run_style command");
 
   delete [] integrate_style;
   delete integrate;
 
-  if (0) return;      // dummy line to enable else-if macro expansion
+  // create the Integrate, first with suffix appended
+
+  int success = 0;
+
+  if (suffix) {
+    char estyle[256];
+    sprintf(estyle,"%s/%s",arg[0],suffix);
+    success = 1;
+
+    if (0) return;
 
 #define INTEGRATE_CLASS
 #define IntegrateStyle(key,Class) \
-  else if (strcmp(arg[0],#key) == 0) integrate = new Class(lmp,narg-1,&arg[1]);
+    else if (strcmp(estyle,#key) == 0) \
+      integrate = new Class(lmp,narg-1,&arg[1]);
 #include "style_integrate.h"
 #undef INTEGRATE_CLASS
 
-  else error->all("Illegal run_style command");
+    else success = 0;
+  }
+
+  if (!success) {
+    if (0) return;
+
+#define INTEGRATE_CLASS
+#define IntegrateStyle(key,Class) \
+    else if (strcmp(arg[0],#key) == 0) \
+      integrate = new Class(lmp,narg-1,&arg[1]);
+#include "style_integrate.h"
+#undef INTEGRATE_CLASS
+
+    else error->all("Illegal run_style command");
+  }
 
   int n = strlen(arg[0]) + 1;
   integrate_style = new char[n];

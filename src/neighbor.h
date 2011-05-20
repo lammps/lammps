@@ -19,6 +19,8 @@
 namespace LAMMPS_NS {
 
 class Neighbor : protected Pointers {
+  friend class Cuda;
+
  public:
   int style;                       // 0,1,2 = nsq, bin, multi
   int every;                       // build every this many steps
@@ -29,6 +31,7 @@ class Neighbor : protected Pointers {
   int oneatom;                     // max # of neighbors for one atom
   int includegroup;                // only build pairwise lists for this group
   int build_once;                  // 1 if only build lists once per run
+  int cudable;                     // GPU <-> CPU communication flag for CUDA
 
   double skin;                     // skin distance
   double cutneighmin;              // min neighbor cutoff for all type pairs
@@ -61,15 +64,15 @@ class Neighbor : protected Pointers {
 
   Neighbor(class LAMMPS *);
   virtual ~Neighbor();
-  void init();
-  int request(void *);         // another class requests a neighbor list
-  void print_lists_of_lists(); // debug print out
-  int decide();                // decide whether to build or not
-  int check_distance();        // check max distance moved since last build
-  void setup_bins();           // setup bins based on box and cutoff
-  void build();                // create all neighbor lists (pair,bond)
-  void build_one(int);         // create a single neighbor list
-  void set(int, char **);      // set neighbor style and skin distance
+  virtual void init();
+  int request(void *);              // another class requests a neighbor list
+  void print_lists_of_lists();      // debug print out
+  int decide();                     // decide whether to build or not
+  virtual int check_distance();     // check max distance moved since last build
+  void setup_bins();                // setup bins based on box and cutoff
+  virtual void build();             // create all neighbor lists (pair,bond)
+  void build_one(int);              // create a single neighbor list
+  void set(int, char **);           // set neighbor style and skin distance
   void modify_params(int, char**);  // modify parameters that control builds
   bigint memory_usage();
   

@@ -38,7 +38,7 @@ MPI_LIB =	-lmpich -lpthread
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC =       -DFFT_FFTW
+FFT_INC =       -DFFT_FFTW 
 FFT_PATH = 
 FFT_LIB =	-lfftw
 
@@ -51,21 +51,30 @@ JPG_INC =
 JPG_PATH = 	
 JPG_LIB =	
 
-# additional system libraries needed by LAMMPS package libraries
+# additional system settings needed by LAMMPS package libraries
 # these settings are IGNORED if the corresponding LAMMPS package
 #   (e.g. gpu, meam) is NOT included in the LAMMPS build
-# SYSLIB = names of libraries
-# SYSPATH = paths of libraries
+# SYSINC = settings to compile with
+# SYSLIB = libraries to link with
+# SYSPATH = paths to libraries
+
+gpu_SYSINC =
+meam_SYSINC =
+reax_SYSINC =
+user-atc_SYSINC =
+user-cuda_SYSINC = -I/usr/local/cuda/include -DCUDA -DCUDA_ARCH=20 -DFFT_CUFFT
 
 gpu_SYSLIB =       -lcudart -lcuda
 meam_SYSLIB =      -lgfortran
 reax_SYSLIB =      -lgfortran
 user-atc_SYSLIB =  -lblas -llapack
+user-cuda_SYSLIB = -lcudart -lcuda
 
 gpu_SYSPATH =      -L/usr/local/cuda/lib64
 meam_SYSPATH =
 reax_SYSPATH =
 user-atc_SYSPATH = 	
+user-cuda_SYSPATH = 	
 
 # ---------------------------------------------------------------------
 # build rules and dependencies
@@ -73,7 +82,7 @@ user-atc_SYSPATH =
 
 include	Makefile.package
 
-EXTRA_INC = $(LMP_INC) $(PKG_INC) $(MPI_INC) $(FFT_INC) $(JPG_INC)
+EXTRA_INC = $(LMP_INC) $(PKG_INC) $(MPI_INC) $(FFT_INC) $(JPG_INC) $(PKG_SYSINC)
 EXTRA_PATH = $(PKG_PATH) $(MPI_PATH) $(FFT_PATH) $(JPG_PATH) $(PKG_SYSPATH)
 EXTRA_LIB = $(PKG_LIB) $(MPI_LIB) $(FFT_LIB) $(JPG_LIB) $(PKG_SYSLIB)
 

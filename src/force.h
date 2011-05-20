@@ -64,8 +64,8 @@ class Force : protected Pointers {
   ~Force();
   void init();
 
-  void create_pair(const char *);
-  class Pair *new_pair(const char *);
+  void create_pair(const char *, char *suffix = NULL);
+  class Pair *new_pair(const char *, char *suffix = NULL);
   class Pair *pair_match(const char *, int);
 
   void create_bond(const char *);

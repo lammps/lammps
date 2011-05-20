@@ -777,6 +777,7 @@ At run time, LAMMPS recognizes several optional command-line switches
 which may be used in any order.  Either the full word or the
 one-letter abbreviation can be used:
 
+-accelerator or -a
 -echo or -e
 -partition or -p
 -in or -i
@@ -789,6 +790,25 @@ For example, lmp_ibm might be launched as follows:
 mpirun -np 16 lmp_ibm -var f tmp.out -log my.log -screen none < in.alloy :pre
 
 Here are the details on the options:
+
+-accelerator style :pre
+
+Use accelerated variants of various styles if they exist.  The style
+can be {opt} or {gpu} or {cuda}.  The variant styles are part of
+optional packages that LAMMPS can be built with, as described above in
+"Section 2.3"_#2_3.  The "opt" style corrsponds to the OPT package,
+the "gpu" style to the GPU package, and the "cuda" style to the
+USER-CUDA package.  For example, all of the packages provide a
+"pair_style lj/cut"_pair_lj.html variant, with styles lj/cut/opt or
+lj/cut/gpu or lj/cut/cuda.  These styles can be specified explicitly
+in your input script, e.g. pair_style lj/cut/gpu.  But if the
+-accelerator switch is used, you do not need to modify your input
+script.  The accelerator suffix (opt,gpu,cuda) is automatically
+appended when the style is created.  The suffix is applied to atom,
+pair, fix, compute, and integrate styles.  If an accelerated version
+does not exist, the standard version is created.  See the
+"accelerator"_accelerator.html command for info on how to turn off
+this option.
 
 -echo style :pre
 

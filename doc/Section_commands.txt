@@ -307,6 +307,7 @@ included when LAMMPS was built.  Not all packages are included in a
 default LAMMPS build.  These dependencies are listed as Restrictions
 in the command's documentation.
 
+"accelerator"_accelerator.html,
 "angle_coeff"_angle_coeff.html,
 "angle_style"_angle_style.html,
 "atom_modify"_atom_modify.html,
@@ -414,6 +415,7 @@ of each style or click on the style itself for a full description:
 "evaporate"_fix_evaporate.html,
 "external"_fix_external.html,
 "freeze"_fix_freeze.html,
+"gpu"_fix_gpu.html,
 "gravity"_fix_gravity.html,
 "heat"_fix_heat.html,
 "indent"_fix_indent.html,

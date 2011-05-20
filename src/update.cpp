@@ -225,6 +225,7 @@ void Update::create_integrate(int narg, char **arg, char *suffix)
     else if (strcmp(estyle,#key) == 0) \
       integrate = new Class(lmp,narg-1,&arg[1]);
 #include "style_integrate.h"
+#undef IntegrateStyle
 #undef INTEGRATE_CLASS
 
     else success = 0;
@@ -238,6 +239,7 @@ void Update::create_integrate(int narg, char **arg, char *suffix)
     else if (strcmp(arg[0],#key) == 0) \
       integrate = new Class(lmp,narg-1,&arg[1]);
 #include "style_integrate.h"
+#undef IntegrateStyle
 #undef INTEGRATE_CLASS
 
     else error->all("Illegal run_style command");

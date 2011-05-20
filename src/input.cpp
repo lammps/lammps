@@ -1207,7 +1207,7 @@ void Input::run_style()
 {
   if (domain->box_exist == 0)
     error->all("Run_style command before simulation box is defined");
-  update->create_integrate(narg,arg);
+  update->create_integrate(narg,arg,lmp->asuffix);
 }
 
 /* ---------------------------------------------------------------------- */

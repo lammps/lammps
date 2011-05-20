@@ -811,6 +811,13 @@ void Input::accelerator()
   if (strcmp(lmp->asuffix,arg[0]) != 0)
     error->all("Accelerator command requires matching command-line -a switch");
 
+  if (strcmp(arg[0],"off") == 0) {
+    if (narg != 1) error->all("Illegal accelerator command");
+    lmp->offaccel = 1;
+    return;
+  }
+
+  lmp->offaccel = 0;
   if (strcmp(arg[0],"cuda") == 0) lmp->cuda->accelerator(narg-1,&arg[1]);
   else error->all("Illegal accelerator command");
 }

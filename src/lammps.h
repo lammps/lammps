@@ -44,6 +44,7 @@ class LAMMPS {
 
   int accelerator;               // accelerator flag
   char *asuffix;                 // accelerator suffix
+  int offaccel;                  // 1 if accelerator flag currently disabled
   class Cuda *cuda;              // CUDA accelerator class
 
   LAMMPS(int, char **, MPI_Comm);

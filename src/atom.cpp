@@ -289,7 +289,7 @@ void Atom::create_avec(const char *style, int narg, char **arg, char *suffix)
 AtomVec *Atom::new_avec(const char *style, int narg, char **arg,
 			char *suffix, int &sflag)
 {
-  if (suffix) {
+  if (suffix && lmp->offaccel == 0) {
     sflag = 1;
     char estyle[256];
     sprintf(estyle,"%s/%s",style,suffix);

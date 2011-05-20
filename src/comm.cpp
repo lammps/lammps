@@ -400,7 +400,7 @@ void Comm::setup()
    other per-atom attributes may also be sent via pack/unpack routines
 ------------------------------------------------------------------------- */
 
-void Comm::forward_comm()
+void Comm::forward_comm(int dummy)
 {
   int n;
   MPI_Request request;

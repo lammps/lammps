@@ -35,12 +35,12 @@ class Comm : protected Pointers {
   int ***grid2proc;                 // which proc owns i,j,k loc in 3d grid
 
   Comm(class LAMMPS *);
-  ~Comm();
+  virtual ~Comm();
 
   void init();
   void set_procs();                 // setup 3d grid of procs
   void setup();                     // setup 3d communication pattern
-  void forward_comm();              // forward communication of atom coords
+  void forward_comm(int dummy = 0); // forward communication of atom coords
   void reverse_comm();              // reverse communication of forces
   void exchange();                  // move atoms to new procs
   void borders();                   // setup list of atoms to communicate
@@ -55,7 +55,7 @@ class Comm : protected Pointers {
   void set(int, char **);           // set communication style
   bigint memory_usage();
 
- private:
+ protected:
   int style;                        // single vs multi-type comm
   int nswap;                        // # of swaps to perform
   int need[3];                      // procs I need atoms from in each dim

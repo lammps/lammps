@@ -27,9 +27,12 @@
 #include "modify.h"
 #include "group.h"
 #include "output.h"
+#include "accelerator.h"
 #include "timer.h"
 
 using namespace LAMMPS_NS;
+
+enum{NONE,OPT,GPU,USERCUDA};
 
 /* ----------------------------------------------------------------------
    start up LAMMPS
@@ -54,14 +57,17 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   int inflag = 0;
   int screenflag = 0;
   int logflag = 0;
+  accelerator = NONE;
+  cuda = NULL;
+  asuffix = NULL;
+
   int iarg = 1;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"-partition") == 0 || 
 	strcmp(arg[iarg],"-p") == 0) {
       universe->existflag = 1;
-      if (iarg+2 > narg) 
-	error->universe_all("Invalid command-line argument");
+      if (iarg+2 > narg) error->universe_all("Invalid command-line argument");
       iarg++;
       while (iarg < narg && arg[iarg][0] != '-') {
 	universe->add_world(arg[iarg]);
@@ -69,33 +75,37 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
       }
     } else if (strcmp(arg[iarg],"-in") == 0 || 
 	       strcmp(arg[iarg],"-i") == 0) {
-      if (iarg+2 > narg) 
-	error->universe_all("Invalid command-line argument");
+      if (iarg+2 > narg) error->universe_all("Invalid command-line argument");
       inflag = iarg + 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"-screen") == 0 || 
 	       strcmp(arg[iarg],"-s") == 0) {
-      if (iarg+2 > narg) 
-	error->universe_all("Invalid command-line argument");
+      if (iarg+2 > narg) error->universe_all("Invalid command-line argument");
       screenflag = iarg + 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"-log") == 0 || 
 	       strcmp(arg[iarg],"-l") == 0) {
-      if (iarg+2 > narg) 
-	error->universe_all("Invalid command-line argument");
+      if (iarg+2 > narg) error->universe_all("Invalid command-line argument");
       logflag = iarg + 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"-var") == 0 || 
 	       strcmp(arg[iarg],"-v") == 0) {
-      if (iarg+3 > narg) 
-	error->universe_all("Invalid command-line argument");
+      if (iarg+3 > narg) error->universe_all("Invalid command-line argument");
       iarg += 2;
       while (iarg < narg && arg[iarg][0] != '-') iarg++;
     } else if (strcmp(arg[iarg],"-echo") == 0 || 
 	       strcmp(arg[iarg],"-e") == 0) {
-      if (iarg+2 > narg) 
-	error->universe_all("Invalid command-line argument");
+      if (iarg+2 > narg) error->universe_all("Invalid command-line argument");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"-accel") == 0 || 
+	       strcmp(arg[iarg],"-a") == 0) {
+      if (iarg+2 > narg) error->universe_all("Invalid command-line argument");
+      if (strcmp(arg[iarg+1],"opt") == 0) accelerator = OPT;
+      else if (strcmp(arg[iarg+1],"gpu") == 0) accelerator = GPU;
+      else if (strcmp(arg[iarg+1],"cuda") == 0) accelerator = USERCUDA;
+      else error->universe_all("Invalid command-line argument");
+      asuffix = new char[8];
+      strcpy(asuffix,arg[iarg+1]);
     } else error->universe_all("Invalid command-line argument");
   }
 
@@ -265,6 +275,16 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   if (mpisize != sizeof(bigint))
       error->all("MPI_LMP_BIGINT and bigint in lmptype.h are not compatible");
 
+  // check consistency of -a switch with installed packages
+  // for OPT and GPU, no problem if not installed
+  // for USER-CUDA, throw error if not installed
+
+  if (accelerator == USERCUDA) {
+    cuda = new Cuda(this);
+    if (!cuda->cuda_exists)
+      error->all("Command-line switch requires USER-CUDA package be installed");
+  }
+
   // allocate input class now that MPI is fully setup
 
   input = new Input(this,narg,arg);
@@ -285,6 +305,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
 LAMMPS::~LAMMPS()
 {
   destroy();
+  if (accelerator == USERCUDA) delete cuda;
 
   if (universe->nworlds == 1) {
     if (logfile) fclose(logfile);
@@ -296,6 +317,8 @@ LAMMPS::~LAMMPS()
 
   if (world != universe->uworld) MPI_Comm_free(&world);
 
+  delete [] asuffix;
+
   delete input;
   delete universe;
   delete error;
@@ -305,17 +328,26 @@ LAMMPS::~LAMMPS()
 /* ----------------------------------------------------------------------
    allocate single instance of top-level classes
    fundamental classes are allocated in constructor
+   some classes have accelerator variants
 ------------------------------------------------------------------------- */
 
 void LAMMPS::create()
 {
   atom = new Atom(this);
   neighbor = new Neighbor(this);
-  comm = new Comm(this);
-  domain = new Domain(this);
+
+  if (accelerator == USERCUDA) comm = new CommCuda(this);
+  else comm = new Comm(this);
+
+  if (accelerator == USERCUDA) domain = new DomainCuda(this);
+  else domain = new Domain(this);
+
   group = new Group(this);
   force = new Force(this);    // must be after group, to create temperature
-  modify = new Modify(this);
+
+  if (accelerator == USERCUDA) modify = new ModifyCuda(this);
+  else modify = new Modify(this);
+
   output = new Output(this);  // must be after group, so "all" exists
                               // must be after modify so can create Computes
   update = new Update(this);  // must be after output, force, neighbor
@@ -328,6 +360,8 @@ void LAMMPS::create()
 
 void LAMMPS::init()
 {
+  if (accelerator == USERCUDA) cuda->setDevice(this);
+ 
   update->init();
   force->init();         // pair must come after update due to minimizer
   domain->init();

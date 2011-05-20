@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class PairBuckCoulLong : public Pair {
  public:
   PairBuckCoulLong(class LAMMPS *);
-  ~PairBuckCoulLong();
+  virtual ~PairBuckCoulLong();
   void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
@@ -40,7 +40,7 @@ class PairBuckCoulLong : public Pair {
   double single(int, int, int, int, double, double, double, double &);
   void *extract(char *, int &);
 
- private:
+ protected:
   double cut_lj_global;
   double **cut_lj,**cut_ljsq;
   double cut_coul,cut_coulsq;

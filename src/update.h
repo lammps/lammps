@@ -52,6 +52,10 @@ class Update : protected Pointers {
   void create_minimize(int, char **);
   void reset_timestep(int, char **);
   bigint memory_usage();
+
+ private:
+  void new_integrate(char *, int, char **, char *, int &);
+
 };
 
 }

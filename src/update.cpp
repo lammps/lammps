@@ -56,25 +56,16 @@ Update::Update(LAMMPS *lmp) : Pointers(lmp)
   unit_style = NULL;
   set_units("lj");
 
-  if (lmp->accelerator == USERCUDA) {
-    str = (char *) "verlet/cuda";
-    n = strlen(str) + 1;
-    integrate_style = new char[n];
-    strcpy(integrate_style,str);
-    integrate = new VerletCuda(lmp,0,NULL);
-  } else {
-    str = (char *) "verlet";
-    n = strlen(str) + 1;
-    integrate_style = new char[n];
-    strcpy(integrate_style,str);
-    integrate = new Verlet(lmp,0,NULL);
-  }
+  integrate_style = NULL;
+  integrate = NULL;
+  minimize_style = NULL;
+  minimize = NULL;
+
+  str = (char *) "verlet";
+  create_integrate(1,&str,lmp->asuffix);
 
   str = (char *) "cg";
-  n = strlen(str) + 1;
-  minimize_style = new char[n];
-  strcpy(minimize_style,str);
-  minimize = new MinCG(lmp);
+  create_minimize(1,&str);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -209,45 +200,55 @@ void Update::create_integrate(int narg, char **arg, char *suffix)
   delete [] integrate_style;
   delete integrate;
 
-  // create the Integrate, first with suffix appended
+  int sflag;
+  new_integrate(arg[0],narg-1,&arg[1],suffix,sflag);
 
-  int success = 0;
-
-  if (suffix) {
+  if (sflag) {
     char estyle[256];
     sprintf(estyle,"%s/%s",arg[0],suffix);
-    success = 1;
+    int n = strlen(estyle) + 1;
+    integrate_style = new char[n];
+    strcpy(integrate_style,estyle);
+  } else {
+    int n = strlen(arg[0]) + 1;
+    integrate_style = new char[n];
+    strcpy(integrate_style,arg[0]);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Update::new_integrate(char *style, int narg, char **arg,
+			   char *suffix, int &sflag)
+{
+  if (suffix) {
+    sflag = 1;
+    char estyle[256];
+    sprintf(estyle,"%s/%s",style,suffix);
 
     if (0) return;
 
 #define INTEGRATE_CLASS
 #define IntegrateStyle(key,Class) \
-    else if (strcmp(estyle,#key) == 0) \
-      integrate = new Class(lmp,narg-1,&arg[1]);
+    else if (strcmp(estyle,#key) == 0) integrate = new Class(lmp,narg,arg);
 #include "style_integrate.h"
 #undef IntegrateStyle
 #undef INTEGRATE_CLASS
 
-    else success = 0;
   }
 
-  if (!success) {
-    if (0) return;
+  sflag = 0;
+
+  if (0) return;
 
 #define INTEGRATE_CLASS
 #define IntegrateStyle(key,Class) \
-    else if (strcmp(arg[0],#key) == 0) \
-      integrate = new Class(lmp,narg-1,&arg[1]);
+  else if (strcmp(style,#key) == 0) integrate = new Class(lmp,narg,arg);
 #include "style_integrate.h"
 #undef IntegrateStyle
 #undef INTEGRATE_CLASS
 
-    else error->all("Illegal run_style command");
-  }
-
-  int n = strlen(arg[0]) + 1;
-  integrate_style = new char[n];
-  strcpy(integrate_style,arg[0]);
+  else error->all("Illegal integrate style");
 }
 
 /* ---------------------------------------------------------------------- */

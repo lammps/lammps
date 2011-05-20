@@ -27,6 +27,7 @@ namespace LAMMPS_NS {
 class AtomVecFull : public AtomVec {
  public:
   AtomVecFull(class LAMMPS *, int, char **);
+  virtual ~AtomVecFull() {}
   void grow(int);
   void grow_reset();
   void copy(int, int, int);
@@ -52,7 +53,7 @@ class AtomVecFull : public AtomVec {
   int data_atom_hybrid(int, char **);
   bigint memory_usage();
 
- private:
+ protected:
   int *tag,*type,*mask,*image;
   double **x,**v,**f;
   double *q;

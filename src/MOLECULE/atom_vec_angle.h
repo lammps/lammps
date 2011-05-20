@@ -27,6 +27,7 @@ namespace LAMMPS_NS {
 class AtomVecAngle : public AtomVec {
  public:
   AtomVecAngle(class LAMMPS *, int, char **);
+  virtual ~AtomVecAngle() {}
   void grow(int);
   void grow_reset();
   void copy(int, int, int);
@@ -52,7 +53,7 @@ class AtomVecAngle : public AtomVec {
   int data_atom_hybrid(int, char **);
   bigint memory_usage();
 
- private:
+ protected:
   int *tag,*type,*mask,*image;
   double **x,**v,**f;
   int *molecule;

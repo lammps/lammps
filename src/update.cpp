@@ -25,10 +25,13 @@
 #include "region.h"
 #include "compute.h"
 #include "output.h"
+#include "accelerator.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+
+enum{NOACCEL,OPT,GPU,USERCUDA};     // same as lammps.cpp
 
 /* ---------------------------------------------------------------------- */
 
@@ -53,11 +56,19 @@ Update::Update(LAMMPS *lmp) : Pointers(lmp)
   unit_style = NULL;
   set_units("lj");
 
-  str = (char *) "verlet";
-  n = strlen(str) + 1;
-  integrate_style = new char[n];
-  strcpy(integrate_style,str);
-  integrate = new Verlet(lmp,0,NULL);
+  if (lmp->accelerator == USERCUDA) {
+    str = (char *) "verlet/cuda";
+    n = strlen(str) + 1;
+    integrate_style = new char[n];
+    strcpy(integrate_style,str);
+    integrate = new VerletCuda(lmp,0,NULL);
+  } else {
+    str = (char *) "verlet";
+    n = strlen(str) + 1;
+    integrate_style = new char[n];
+    strcpy(integrate_style,str);
+    integrate = new Verlet(lmp,0,NULL);
+  }
 
   str = (char *) "cg";
   n = strlen(str) + 1;

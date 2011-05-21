@@ -1,6 +1,6 @@
-# Depend.sh = Install/unInstall dependent package files
+# Depend.sh = Install/unInstall files from dependent packages
 # only Install/unInstall if dependent package is already installed
-# install dependent child files when new parent files installed
+# install dependent child files when parent files installed
 # uninstall dependent child files when parent files uninstalled
 
 if (test $1 = 1) then
@@ -10,6 +10,9 @@ if (test $1 = 1) then
   fi
   if (test -e pair_lj_cut_gpu.h) then
     cd GPU; /bin/sh Install.sh 1; cd ..
+  fi
+  if (test -e cg_cmm_params.h) then
+    cd USER-CG-CMM; /bin/sh Install.sh 1; cd ..
   fi
   if (test -e pair_lj_cut_cuda.h) then
     cd USER-CUDA; /bin/sh Install.sh 1; cd ..
@@ -22,6 +25,9 @@ elif (test $1 = 0) then
   fi
   if (test -e pair_lj_cut_gpu.h) then
     cd GPU; /bin/sh Install.sh 0; /bin/sh Install.sh 1; cd ..
+  fi
+  if (test -e cg_cmm_params.h) then
+    cd USER-CG-CMM; /bin/sh Install.sh 0; /bin/sh Install.sh 1; cd ..
   fi
   if (test -e pair_lj_cut_cuda.h) then
     cd USER-CUDA; /bin/sh Install.sh 0; /bin/sh Install.sh 1; cd ..

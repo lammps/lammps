@@ -1,5 +1,5 @@
 # Install/unInstall package files in LAMMPS
-# edit Makefile.package to include/exclude POEMS library
+# edit Makefile.package to include/exclude POEMS info
 
 if (test $1 = 1) then
 

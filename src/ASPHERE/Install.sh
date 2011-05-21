@@ -1,7 +1,4 @@
 # Install/unInstall package files in LAMMPS
-# for unInstall, also unInstall/Install GPU package if installed
-#   so it will remove GPU files that depend on ASPHERE files,
-#   then replace others
 
 if (test $1 = 1) then
 
@@ -25,10 +22,6 @@ if (test $1 = 1) then
   cp pair_gayberne.h ..
   cp pair_resquared.h ..
 
-  if (test -e ../pair_lj_cut_gpu.h) then
-    cd ../GPU; /bin/sh Install.sh 1
-  fi
-
 elif (test $1 = 0) then
 
   rm ../compute_erotate_asphere.cpp
@@ -50,9 +43,5 @@ elif (test $1 = 0) then
   rm ../fix_nvt_asphere.h
   rm ../pair_gayberne.h
   rm ../pair_resquared.h
-
-  if (test -e ../pair_gayberne_gpu.h) then
-    cd ../GPU; /bin/sh Install.sh 0; /bin/sh Install.sh 1
-  fi
 
 fi

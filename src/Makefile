@@ -149,7 +149,7 @@ yes-%:
 	  echo "Package $(@:yes-%=%) does not exist"; \
 	else \
 	  echo "Installing package $(@:yes-%=%)"; \
-	  cd $(YESDIR); $(SHELL) Install.sh 1; \
+	  cd $(YESDIR); $(SHELL) Install.sh 1; cd ..; $(SHELL) Depend.sh 1; \
 	fi;
 
 no-%:
@@ -157,7 +157,7 @@ no-%:
 	  echo "Package $(@:no-%=%) does not exist"; \
 	else \
 	  echo "Uninstalling package $(@:no-%=%), ignore errors"; \
-	  cd $(NODIR); $(SHELL) Install.sh 0; cd ..; \
+	  cd $(NODIR); $(SHELL) Install.sh 0; cd ..; $(SHELL) Depend.sh 0; \
         fi;
 
 # status = list differences between src and package files

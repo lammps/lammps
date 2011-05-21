@@ -1,5 +1,5 @@
 # Install/unInstall package files in LAMMPS
-# do not copy eam and charmm files if non-OPT versions do not exist
+# do not install child files if parent does not exist
 
 if (test $1 = 1) then
 

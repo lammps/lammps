@@ -1,7 +1,6 @@
 # Install/unInstall package files in LAMMPS
-# edit Makefile.package to include/exclude GPU library
-# do not copy gayberne files if non-GPU version does not exist
-# do not copy charmm files if non-GPU version does not exist
+# edit Makefile.package to include/exclude GPU info
+# do not install child files if parent does not exist
 
 if (test $1 = 1) then
 
@@ -13,15 +12,6 @@ if (test $1 = 1) then
     sed -i -e 's|^PKG_SYSINC =[ \t]*|&$(gpu_SYSINC) |' ../Makefile.package
     sed -i -e 's|^PKG_SYSLIB =[ \t]*|&$(gpu_SYSLIB) |' ../Makefile.package
     sed -i -e 's|^PKG_SYSPATH =[ \t]*|&$(gpu_SYSPATH) |' ../Makefile.package
-  fi
-  
-  if (test -e ../pppm.cpp) then
-    cp pppm_gpu.cpp ..
-    cp pppm_gpu_single.cpp ..
-    cp pppm_gpu_double.cpp ..
-    cp pppm_gpu.h ..
-    cp pppm_gpu_single.h ..
-    cp pppm_gpu_double.h ..
   fi
   
   if (test -e ../pair_gayberne.cpp) then
@@ -47,6 +37,15 @@ if (test $1 = 1) then
   if (test -e ../pair_cg_cmm_coul_long.cpp) then
     cp pair_cg_cmm_coul_long_gpu.cpp ..
     cp pair_cg_cmm_coul_long_gpu.h ..
+  fi
+
+  if (test -e ../pppm.cpp) then
+    cp pppm_gpu.cpp ..
+    cp pppm_gpu_single.cpp ..
+    cp pppm_gpu_double.cpp ..
+    cp pppm_gpu.h ..
+    cp pppm_gpu_single.h ..
+    cp pppm_gpu_double.h ..
   fi
 
   cp pair_lj_cut_gpu.cpp ..

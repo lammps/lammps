@@ -1,5 +1,5 @@
 # Install/unInstall package files in LAMMPS
-# edit Makefile.package to include/exclude ATC library
+# edit Makefile.package to include/exclude ATC info
 
 if (test $1 = 1) then
 

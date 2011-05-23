@@ -44,13 +44,12 @@ int RESquaredT::bytes_per_atom(const int max_nbors) const {
 template <class numtyp, class acctyp>
 int RESquaredT::init(const int ntypes, double **host_shape, double **host_well, 
                      double **host_cutsq, double **host_sigma, 
-                     double **host_epsilon, double *host_lshape, int **h_form,
-                     double **host_lj1, double **host_lj2, double **host_lj3,
-                     double **host_lj4, double **host_offset,
-                     const double *host_special_lj, const int nlocal,
-                     const int nall, const int max_nbors, const int maxspecial,
-                     const double cell_size, const double gpu_split,
-                     FILE *_screen) {
+                     double **host_epsilon, int **h_form, double **host_lj1,
+                     double **host_lj2, double **host_lj3, double **host_lj4,
+                     double **host_offset, const double *host_special_lj,
+                     const int nlocal, const int nall, const int max_nbors,
+                     const int maxspecial, const double cell_size,
+                     const double gpu_split, FILE *_screen) {
   int success;
   success=this->init_base(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
                           _screen,ntypes,h_form,re_squared,re_squared_lj,true);
@@ -102,11 +101,6 @@ int RESquaredT::init(const int ntypes, double **host_shape, double **host_well,
   host_write[3]=static_cast<numtyp>(host_special_lj[3]);
   ucl_copy(special_lj,host_write,4,false);
 
-  lshape.alloc(ntypes,*(this->ucl_device),UCL_READ_ONLY);
-  UCL_H_Vec<double> d_view;
-  d_view.view(host_lshape,lshape.numel(),*(this->ucl_device));
-  ucl_copy(lshape,d_view,false);
-    
   // Copy shape, well, sigma, epsilon, and cutsq onto GPU
   // - cast if necessary
   shape.alloc(ntypes,*(this->ucl_device),UCL_READ_ONLY);
@@ -131,7 +125,7 @@ int RESquaredT::init(const int ntypes, double **host_shape, double **host_well,
   _allocated=true;
   this->_max_bytes=sigma_epsilon.row_bytes()+this->cut_form.row_bytes()+
                    lj1.row_bytes()+lj3.row_bytes()+special_lj.row_bytes()+
-                   lshape.row_bytes()+shape.row_bytes()+well.row_bytes();
+                   shape.row_bytes()+well.row_bytes();
 
   return 0;
 }
@@ -157,7 +151,6 @@ void RESquaredT::clear() {
 
   shape.clear();
   well.clear();
-  lshape.clear();
   special_lj.clear();
   
   this->clear_base();
@@ -207,20 +200,11 @@ void RESquaredT::loop(const bool _eflag, const bool _vflag) {
       this->k_ellipsoid.run(&this->atom->dev_x.begin(),
        &this->atom->dev_quat.begin(), &this->shape.begin(), &this->well.begin(),
        &this->special_lj.begin(), &this->sigma_epsilon.begin(), 
-       &this->_lj_types, &this->lshape.begin(), &this->nbor->dev_nbor.begin(),
-       &stride, &this->ans->dev_ans.begin(),&ainum,&this->ans->dev_engv.begin(),
+       &this->_lj_types, &this->nbor->dev_nbor.begin(), &stride,
+       &this->ans->dev_ans.begin(),&ainum,&this->ans->dev_engv.begin(),
        &this->dev_error.begin(), &eflag, &vflag, &this->_last_ellipse, &anall,
        &this->_threads_per_atom);
       this->time_ellipsoid.stop();
-
-      if (this->_last_ellipse==this->ans->inum()) {
-        this->time_nbor2.zero();
-        this->time_ellipsoid2.zero();
-        this->time_nbor3.zero();
-        this->time_ellipsoid3.zero();
-        this->time_lj.zero();
-        return;
-      }
 
       // ------------ ELLIPSE_SPHERE ---------------
       this->time_nbor2.start();
@@ -233,13 +217,18 @@ void RESquaredT::loop(const bool _eflag, const bool _vflag) {
       this->k_ellipsoid_sphere.run(&this->atom->dev_x.begin(),
        &this->atom->dev_quat.begin(), &this->shape.begin(), &this->well.begin(),
        &this->special_lj.begin(), &this->sigma_epsilon.begin(), 
-       &this->_lj_types, &this->lshape.begin(), &this->nbor->dev_nbor.begin(),
-       &stride, &this->ans->dev_ans.begin(),&ainum,&this->ans->dev_engv.begin(),
+       &this->_lj_types, &this->nbor->dev_nbor.begin(), &stride,
+       &this->ans->dev_ans.begin(),&ainum,&this->ans->dev_engv.begin(),
        &this->dev_error.begin(), &eflag, &vflag, &this->_last_ellipse, &anall,
        &this->_threads_per_atom);
       this->time_ellipsoid2.stop();
 
-
+      if (this->_last_ellipse==this->ans->inum()) {
+        this->time_nbor3.zero();
+        this->time_ellipsoid3.zero();
+        this->time_lj.zero();
+        return;
+      }
 
       // ------------ SPHERE_ELLIPSE ---------------
 
@@ -256,7 +245,7 @@ void RESquaredT::loop(const bool _eflag, const bool _vflag) {
       this->k_sphere_ellipsoid.run(&this->atom->dev_x.begin(),
         &this->atom->dev_quat.begin(), &this->shape.begin(), 
         &this->well.begin(), &this->special_lj.begin(), 
-        &this->sigma_epsilon.begin(), &this->_lj_types, &this->lshape.begin(), 
+        &this->sigma_epsilon.begin(), &this->_lj_types,
         &this->nbor->dev_nbor.begin(), &stride, &this->ans->dev_ans.begin(),
         &this->ans->dev_engv.begin(), &this->dev_error.begin(), &eflag,
         &vflag, &this->_last_ellipse, &ainum, &anall, &this->_threads_per_atom);
@@ -304,10 +293,10 @@ void RESquaredT::loop(const bool _eflag, const bool _vflag) {
     this->k_ellipsoid.run(&this->atom->dev_x.begin(), 
       &this->atom->dev_quat.begin(), &this->shape.begin(), &this->well.begin(), 
       &this->special_lj.begin(), &this->sigma_epsilon.begin(), 
-      &this->_lj_types, &this->lshape.begin(), &this->nbor->dev_nbor.begin(),
-      &stride, &this->ans->dev_ans.begin(), &ainum, 
-      &this->ans->dev_engv.begin(), &this->dev_error.begin(),
-      &eflag, &vflag, &ainum, &anall, &this->_threads_per_atom);
+      &this->_lj_types, &this->nbor->dev_nbor.begin(), &stride,
+      &this->ans->dev_ans.begin(), &ainum,  &this->ans->dev_engv.begin(),
+      &this->dev_error.begin(), &eflag, &vflag, &ainum, &anall,
+      &this->_threads_per_atom);
     this->time_ellipsoid.stop();
   }
 }

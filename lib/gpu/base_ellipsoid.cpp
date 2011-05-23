@@ -213,6 +213,7 @@ void BaseEllipsoidT::output_times() {
       }
       fprintf(screen,"GPU Overhead:    %.4f s.\n",times[6]/replica_size);
       fprintf(screen,"Average split:   %.4f.\n",avg_split);
+      fprintf(screen,"Threads / atom:  %d.\n",_threads_per_atom);      
       fprintf(screen,"Max Mem / Proc:  %.2f MB.\n",max_mb);
       fprintf(screen,"CPU Driver_Time: %.4f s.\n",times[7]/replica_size);
       fprintf(screen,"CPU Idle_Time:   %.4f s.\n",times[8]/replica_size);

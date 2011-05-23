@@ -132,11 +132,10 @@ void PairGayBerneGPU::compute(int eflag, int vflag)
 				  success, quat);
   } else {
     inum = list->inum;
-    ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
-    olist = gb_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type,
-			   ilist, numneigh, firstneigh, eflag, vflag,
+    ilist = gb_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type,
+			   list->ilist, numneigh, firstneigh, eflag, vflag,
 			   eflag_atom, vflag_atom, host_start,
 			   cpu_time, success, quat);
   }

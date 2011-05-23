@@ -28,8 +28,7 @@ __inline int sbmask(int j) { return j >> SBBITS & 3; }
 __kernel void kernel_ellipsoid_sphere(__global numtyp4* x_,__global numtyp4 *q,
                    __global numtyp4* shape, __global numtyp4* well, 
                    __global numtyp *splj, __global numtyp2* sig_eps,
-                   const int ntypes, __global numtyp *lshape, 
-                   __global int *dev_nbor, const int stride, 
+                   const int ntypes, __global int *dev_nbor, const int stride, 
                    __global acctyp4 *ans, const int astride, 
                    __global acctyp *engv, __global int *err_flag, 
                    const int eflag, const int vflag, const int inum,
@@ -80,9 +79,10 @@ __kernel void kernel_ellipsoid_sphere(__global numtyp4* x_,__global numtyp4 *q,
     numtyp a[9];       // Rotation matrix (lab->body)
     numtyp aTe[9];     // A'*E
     numtyp lA_0[9], lA_1[9], lA_2[9]; // -A*rotation generator (x,y, or z)
+
     numtyp4 ishape;
-    
     ishape=shape[itype];
+    numtyp ilshape=ishape.x*ishape.y*ishape.z;
 
     {
       gpu_quat_to_mat_trans(q,i,a);
@@ -108,10 +108,10 @@ __kernel void kernel_ellipsoid_sphere(__global numtyp4* x_,__global numtyp4 *q,
       r[1] = jx.y-ix.y;
       r[2] = jx.z-ix.z;
       rnorm = gpu_dot3(r,r);
-      rnorm = sqrt(rnorm);
-      rhat[0] = r[0]/rnorm;
-      rhat[1] = r[1]/rnorm;
-      rhat[2] = r[2]/rnorm;
+      rnorm = rsqrt(rnorm);
+      rhat[0] = r[0]*rnorm;
+      rhat[1] = r[1]*rnorm;
+      rhat[2] = r[2]*rnorm;
 
       numtyp sigma, epsilon;
       int mtype=mul24(ntypes,itype)+jtype;
@@ -120,13 +120,13 @@ __kernel void kernel_ellipsoid_sphere(__global numtyp4* x_,__global numtyp4 *q,
 
       numtyp aTs[9]; 
       numtyp4 scorrect;
-      numtyp half_sigma=sigma / (numtyp)2.0;
+      numtyp half_sigma=sigma*(numtyp)0.5;
       scorrect.x = ishape.x+half_sigma;
       scorrect.y = ishape.y+half_sigma;
       scorrect.z = ishape.z+half_sigma;
-      scorrect.x = scorrect.x * scorrect.x / (numtyp)2.0;
-      scorrect.y = scorrect.y * scorrect.y / (numtyp)2.0;
-      scorrect.z = scorrect.z * scorrect.z / (numtyp)2.0;
+      scorrect.x = scorrect.x * scorrect.x * (numtyp)0.5;
+      scorrect.y = scorrect.y * scorrect.y * (numtyp)0.5;
+      scorrect.z = scorrect.z * scorrect.z * (numtyp)0.5;
       gpu_transpose_times_diag3(a,scorrect,aTs);
 
       // energy
@@ -135,7 +135,7 @@ __kernel void kernel_ellipsoid_sphere(__global numtyp4* x_,__global numtyp4 *q,
       gpu_times3(aTs,a,gamma);
       gpu_mldivide3(gamma,rhat,s,err_flag);
 
-      numtyp sigma12 = (numtyp)1.0/sqrt((numtyp)0.5*gpu_dot3(s,rhat));
+      numtyp sigma12 = rsqrt((numtyp)0.5*gpu_dot3(s,rhat));
       numtyp temp[9], w[3];
       gpu_times3(aTe,a,temp);
       temp[0] += (numtyp)1.0;
@@ -143,23 +143,23 @@ __kernel void kernel_ellipsoid_sphere(__global numtyp4* x_,__global numtyp4 *q,
       temp[8] += (numtyp)1.0;
       gpu_mldivide3(temp,rhat,w,err_flag);
 
-      numtyp h12 = rnorm-sigma12;
+      numtyp h12 = (numtyp)1.0/rnorm-sigma12;
       numtyp chi = (numtyp)2.0*gpu_dot3(rhat,w);
       numtyp sigh = sigma/h12;
       numtyp tprod = chi*sigh;
 
       numtyp Ua, Ur;
       numtyp h12p3 = h12*h12*h12;
-      numtyp sigmap3 = pow(sigma,(numtyp)3.0);
-      numtyp stemp = h12/(numtyp)2.0;
+      numtyp sigmap3 = sigma*sigma*sigma;
+      numtyp stemp = h12*(numtyp)0.5;
       Ua = (ishape.x+stemp)*(ishape.y+stemp)*(ishape.z+stemp)*h12p3/(numtyp)8.0;
-      Ua = ((numtyp)1.0+(numtyp)3.0*tprod)*lshape[itype]/Ua;
+      Ua = ((numtyp)1.0+(numtyp)3.0*tprod)*ilshape/Ua;
       Ua = epsilon*Ua*sigmap3*solv_f_a;
     
       stemp = h12/cr60;
       Ur = (ishape.x+stemp)*(ishape.y+stemp)*(ishape.z+stemp)*h12p3/
            (numtyp)60.0;
-      Ur = ((numtyp)1.0+b_alpha*tprod)*lshape[itype]/Ur;
+      Ur = ((numtyp)1.0+b_alpha*tprod)*ilshape/Ur;
       numtyp sigh6=sigh*sigh*sigh;
       sigh6*=sigh6;
       Ur = epsilon*Ur*sigmap3*sigh6*solv_f_r;
@@ -170,7 +170,7 @@ __kernel void kernel_ellipsoid_sphere(__global numtyp4* x_,__global numtyp4 *q,
 
       numtyp fourw[3], spr[3];
       numtyp sec = sigma*chi;
-      numtyp sigma12p3 = pow(sigma12,(numtyp)3.0);
+      numtyp sigma12p3 = sigma12*sigma12*sigma12;
       fourw[0] = (numtyp)4.0*w[0];
       fourw[1] = (numtyp)4.0*w[1];
       fourw[2] = (numtyp)4.0*w[2];
@@ -182,17 +182,17 @@ __kernel void kernel_ellipsoid_sphere(__global numtyp4* x_,__global numtyp4 *q,
               (numtyp)1.0/(ishape.y*(numtyp)2.0+h12)+
               (numtyp)1.0/(ishape.z*(numtyp)2.0+h12)+
               (numtyp)3.0/h12;
-      numtyp hsec = h12+(numtyp)3.0*sec;
-      numtyp dspu = (numtyp)1.0/h12-(numtyp)1.0/hsec+stemp;
-      numtyp pbsu = (numtyp)3.0*sigma/hsec;
+      numtyp hsec = (numtyp)1.0/(h12+(numtyp)3.0*sec);
+      numtyp dspu = (numtyp)1.0/h12-hsec+stemp;
+      numtyp pbsu = (numtyp)3.0*sigma*hsec;
   
       stemp = (numtyp)1.0/(ishape.x*cr60+h12)+
               (numtyp)1.0/(ishape.y*cr60+h12)+
               (numtyp)1.0/(ishape.z*cr60+h12)+
               (numtyp)3.0/h12;
-      hsec = h12+b_alpha*sec;
-      numtyp dspr = (numtyp)7.0/h12-(numtyp)1.0/hsec+stemp;
-      numtyp pbsr = b_alpha*sigma/hsec;
+      hsec = (numtyp)1.0/(h12+b_alpha*sec);
+      numtyp dspr = (numtyp)7.0/h12-hsec+stemp;
+      numtyp pbsr = b_alpha*sigma*hsec;
   
       #pragma unroll
       for (int i=0; i<3; i++) {
@@ -201,9 +201,9 @@ __kernel void kernel_ellipsoid_sphere(__global numtyp4* x_,__global numtyp4 *q,
         u[1] = -rhat[i]*rhat[1];
         u[2] = -rhat[i]*rhat[2];
         u[i] += (numtyp)1.0;
-        u[0] /= rnorm;
-        u[1] /= rnorm;
-        u[2] /= rnorm;
+        u[0] *= rnorm;
+        u[1] *= rnorm;
+        u[2] *= rnorm;
         numtyp dchi = gpu_dot3(u,fourw);
         numtyp dh12 = rhat[i]+gpu_dot3(u,spr);
         numtyp dUa = pbsu*dchi-dh12*dspu;
@@ -349,12 +349,12 @@ __kernel void kernel_ellipsoid_sphere(__global numtyp4* x_,__global numtyp4 *q,
 __kernel void kernel_sphere_ellipsoid(__global numtyp4 *x_,__global numtyp4 *q,
                                __global numtyp4* shape,__global numtyp4* well, 
                                __global numtyp *splj, __global numtyp2* sig_eps, 
-                               const int ntypes, __global numtyp *lshape, 
-                               __global int *dev_nbor, const int stride, 
-                               __global acctyp4 *ans, __global acctyp *engv, 
-                               __global int *err_flag, const int eflag, 
-                               const int vflag,const int start, const int inum, 
-                               const int nall, const int t_per_atom) {
+                               const int ntypes, __global int *dev_nbor,
+                               const int stride, __global acctyp4 *ans,
+                               __global acctyp *engv, __global int *err_flag,
+                               const int eflag, const int vflag,const int start,
+                               const int inum, const int nall,
+                               const int t_per_atom) {
   int tid=THREAD_ID_X;
   int ii=mul24((int)BLOCK_ID_X,(int)(BLOCK_SIZE_X)/t_per_atom);
   ii+=tid/t_per_atom+start;
@@ -418,10 +418,10 @@ __kernel void kernel_sphere_ellipsoid(__global numtyp4 *x_,__global numtyp4 *q,
       r[1] = ix.y-jx.y;
       r[2] = ix.z-jx.z;
       rnorm = gpu_dot3(r,r);
-      rnorm = sqrt(rnorm);
-      rhat[0] = r[0]/rnorm;
-      rhat[1] = r[1]/rnorm;
-      rhat[2] = r[2]/rnorm;
+      rnorm = rsqrt(rnorm);
+      rhat[0] = r[0]*rnorm;
+      rhat[1] = r[1]*rnorm;
+      rhat[2] = r[2]*rnorm;
 
       numtyp sigma, epsilon;
       int mtype=mul24(ntypes,itype)+jtype;
@@ -430,13 +430,13 @@ __kernel void kernel_sphere_ellipsoid(__global numtyp4 *x_,__global numtyp4 *q,
 
       numtyp aTs[9]; 
       numtyp4 scorrect;
-      numtyp half_sigma=sigma / (numtyp)2.0;
+      numtyp half_sigma=sigma * (numtyp)0.5;
       scorrect.x = ishape.x+half_sigma;
       scorrect.y = ishape.y+half_sigma;
       scorrect.z = ishape.z+half_sigma;
-      scorrect.x = scorrect.x * scorrect.x / (numtyp)2.0;
-      scorrect.y = scorrect.y * scorrect.y / (numtyp)2.0;
-      scorrect.z = scorrect.z * scorrect.z / (numtyp)2.0;
+      scorrect.x = scorrect.x * scorrect.x * (numtyp)0.5;
+      scorrect.y = scorrect.y * scorrect.y * (numtyp)0.5;
+      scorrect.z = scorrect.z * scorrect.z * (numtyp)0.5;
       gpu_transpose_times_diag3(a,scorrect,aTs);
       
       // energy
@@ -445,7 +445,7 @@ __kernel void kernel_sphere_ellipsoid(__global numtyp4 *x_,__global numtyp4 *q,
       gpu_times3(aTs,a,gamma);
       gpu_mldivide3(gamma,rhat,s,err_flag);
 
-      numtyp sigma12 = (numtyp)1.0/sqrt((numtyp)0.5*gpu_dot3(s,rhat));
+      numtyp sigma12 = rsqrt((numtyp)0.5*gpu_dot3(s,rhat));
       numtyp temp[9], w[3];
       gpu_times3(aTe,a,temp);
       temp[0] += (numtyp)1.0;
@@ -453,24 +453,27 @@ __kernel void kernel_sphere_ellipsoid(__global numtyp4 *x_,__global numtyp4 *q,
       temp[8] += (numtyp)1.0;
       gpu_mldivide3(temp,rhat,w,err_flag);
 
-      numtyp h12 = rnorm-sigma12;
+      numtyp h12 = (numtyp)1.0/rnorm-sigma12;
       numtyp chi = (numtyp)2.0*gpu_dot3(rhat,w);
       numtyp sigh = sigma/h12;
       numtyp tprod = chi*sigh;
 
       numtyp Ua, Ur;
-      numtyp h12p3 = pow(h12,(numtyp)3.0);
-      numtyp sigmap3 = pow(sigma,(numtyp)3.0);
+      numtyp h12p3 = h12*h12*h12;
+      numtyp sigmap3 = sigma*sigma*sigma;
       numtyp stemp = h12/(numtyp)2.0;
       Ua = (ishape.x+stemp)*(ishape.y+stemp)*(ishape.z+stemp)*h12p3/(numtyp)8.0;
-      Ua = ((numtyp)1.0+(numtyp)3.0*tprod)*lshape[itype]/Ua;
+      numtyp ilshape=ishape.x*ishape.y*ishape.z;
+      Ua = ((numtyp)1.0+(numtyp)3.0*tprod)*ilshape/Ua;
       Ua = epsilon*Ua*sigmap3*solv_f_a;
     
       stemp = h12/cr60;
       Ur = (ishape.x+stemp)*(ishape.y+stemp)*(ishape.z+stemp)*h12p3/
            (numtyp)60.0;
-      Ur = ((numtyp)1.0+b_alpha*tprod)*lshape[itype]/Ur;
-      Ur = epsilon*Ur*sigmap3*pow(sigh,(numtyp)6.0)*solv_f_r;
+      Ur = ((numtyp)1.0+b_alpha*tprod)*ilshape/Ur;
+      numtyp sigh6=sigh*sigh*sigh;
+      sigh6*=sigh6;
+      Ur = epsilon*Ur*sigmap3*sigh6*solv_f_r;
 
       energy+=Ua+Ur;
 
@@ -478,7 +481,7 @@ __kernel void kernel_sphere_ellipsoid(__global numtyp4 *x_,__global numtyp4 *q,
 
       numtyp fourw[3], spr[3];
       numtyp sec = sigma*chi;
-      numtyp sigma12p3 = pow(sigma12,(numtyp)3.0);
+      numtyp sigma12p3 = sigma12*sigma12*sigma12;
       fourw[0] = (numtyp)4.0*w[0];
       fourw[1] = (numtyp)4.0*w[1];
       fourw[2] = (numtyp)4.0*w[2];
@@ -490,17 +493,17 @@ __kernel void kernel_sphere_ellipsoid(__global numtyp4 *x_,__global numtyp4 *q,
               (numtyp)1.0/(ishape.y*(numtyp)2.0+h12)+
               (numtyp)1.0/(ishape.z*(numtyp)2.0+h12)+
               (numtyp)3.0/h12;
-      numtyp hsec = h12+(numtyp)3.0*sec;
-      numtyp dspu = (numtyp)1.0/h12-(numtyp)1.0/hsec+stemp;
-      numtyp pbsu = (numtyp)3.0*sigma/hsec;
+      numtyp hsec = (numtyp)1.0/(h12+(numtyp)3.0*sec);
+      numtyp dspu = (numtyp)1.0/h12-hsec+stemp;
+      numtyp pbsu = (numtyp)3.0*sigma*hsec;
   
       stemp = (numtyp)1.0/(ishape.x*cr60+h12)+
               (numtyp)1.0/(ishape.y*cr60+h12)+
               (numtyp)1.0/(ishape.z*cr60+h12)+
               (numtyp)3.0/h12;
-      hsec = h12+b_alpha*sec;
-      numtyp dspr = (numtyp)7.0/h12-(numtyp)1.0/hsec+stemp;
-      numtyp pbsr = b_alpha*sigma/hsec;
+      hsec = (numtyp)1.0/(h12+b_alpha*sec);
+      numtyp dspr = (numtyp)7.0/h12-hsec+stemp;
+      numtyp pbsr = b_alpha*sigma*hsec;
   
       #pragma unroll
       for (int i=0; i<3; i++) {
@@ -509,9 +512,9 @@ __kernel void kernel_sphere_ellipsoid(__global numtyp4 *x_,__global numtyp4 *q,
         u[1] = -rhat[i]*rhat[1];
         u[2] = -rhat[i]*rhat[2];
         u[i] += (numtyp)1.0;
-        u[0] /= rnorm;
-        u[1] /= rnorm;
-        u[2] /= rnorm;
+        u[0] *= rnorm;
+        u[1] *= rnorm;
+        u[2] *= rnorm;
         numtyp dchi = gpu_dot3(u,fourw);
         numtyp dh12 = rhat[i]+gpu_dot3(u,spr);
         numtyp dUa = pbsu*dchi-dh12*dspu;

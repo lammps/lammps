@@ -28,7 +28,7 @@ static RESquared<PRECISION,ACC_PRECISION> REMF;
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
 int re_gpu_init(const int ntypes, double **shape, double **well, double **cutsq,
-                double **sigma, double **epsilon, double *host_lshape,
+                double **sigma, double **epsilon, 
                 int **form, double **host_lj1, double **host_lj2, 
                 double **host_lj3, double **host_lj4, double **offset,
                 double *special_lj, const int inum, const int nall,
@@ -56,7 +56,7 @@ int re_gpu_init(const int ntypes, double **shape, double **well, double **cutsq,
 
   int init_ok=0;
   if (world_me==0)
-    init_ok=REMF.init(ntypes, shape, well, cutsq, sigma, epsilon, host_lshape,
+    init_ok=REMF.init(ntypes, shape, well, cutsq, sigma, epsilon, 
                       form, host_lj1, host_lj2, host_lj3, host_lj4, offset,
                       special_lj, inum, nall, max_nbors, maxspecial, cell_size,
                       gpu_split, screen);
@@ -76,7 +76,7 @@ int re_gpu_init(const int ntypes, double **shape, double **well, double **cutsq,
     }
     if (gpu_rank==i && world_me!=0)
       init_ok=REMF.init(ntypes, shape, well, cutsq,  sigma, epsilon, 
-                        host_lshape, form, host_lj1, host_lj2, host_lj3,
+                        form, host_lj1, host_lj2, host_lj3,
                         host_lj4, offset, special_lj,  inum, nall,
                         max_nbors, maxspecial, cell_size, gpu_split, screen);
 

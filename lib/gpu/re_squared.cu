@@ -42,11 +42,11 @@ __inline numtyp det_prime(const numtyp m[9], const numtyp m2[9])
 __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
                                __global numtyp4* shape, __global numtyp4* well, 
                                __global numtyp *splj, __global numtyp2* sig_eps, 
-                               const int ntypes, __global numtyp *lshape, 
-                               __global int *dev_nbor, const int stride, 
-                               __global acctyp4 *ans, const int astride, 
-                               __global acctyp *engv, __global int *err_flag, 
-                               const int eflag, const int vflag, const int inum,
+                               const int ntypes, __global int *dev_nbor,
+                               const int stride,  __global acctyp4 *ans,
+                               const int astride, __global acctyp *engv,
+                               __global int *err_flag, const int eflag,
+                               const int vflag, const int inum,
                                const int nall, const int t_per_atom) {
   int tid=THREAD_ID_X;
   int ii=mul24((int)BLOCK_ID_X,(int)(BLOCK_SIZE_X)/t_per_atom);
@@ -103,6 +103,7 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
     ishape2.x=ishape.x*ishape.x;
     ishape2.y=ishape.y*ishape.y;
     ishape2.z=ishape.z*ishape.z;
+    numtyp ilshape = ishape.x*ishape.y*ishape.z;
     
     {
       numtyp aTs[9];    // A1'*S1^2
@@ -198,7 +199,8 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
       numtyp sigma1p2, sigma2p2, lambda, nu;
       sigma1p2 = sigma1*sigma1;
       sigma2p2 = sigma2*sigma2;
-      lambda = lshape[itype]*sigma1p2 + lshape[jtype]*sigma2p2;
+      numtyp jlshape = jshape.x*jshape.y*jshape.z;
+      lambda = ilshape*sigma1p2 + jlshape*sigma2p2;
 
 
       sigma1=(numtyp)1.0/sigma1;
@@ -222,7 +224,7 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
       h12 = (numtyp)1.0/rnorm-sigma12;
       eta = lambda/nu;
       chi = (numtyp)2.0*gpu_dot3(rhat,w);
-      sprod = lshape[itype] * lshape[jtype];
+      sprod = ilshape * jlshape;
       sigh = sigma/h12;
       tprod = eta*chi*sigh;
 
@@ -240,7 +242,9 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
            (ishape.z+stemp)*(jshape.x+stemp)*
            (jshape.y+stemp)*(jshape.z+stemp);
       Ur = ((numtyp)1.0+b_alpha*tprod)*sprod/Ur;
-      Ur = epsilon*Ur*pow(sigh,(numtyp)6.0)/(numtyp)2025.0;
+      numtyp sigh6=sigh*sigh*sigh;
+      sigh6*=sigh6;
+      Ur = epsilon*Ur*sigh6/(numtyp)2025.0;
 
       energy+=Ua+Ur;
 
@@ -249,7 +253,7 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
       numtyp vsigma1[3], vsigma2[3], gsigma1[9], gsigma2[9];
       numtyp sec, sigma12p3, sigma1p3, sigma2p3;
       sec = sigma*eta*chi;
-      sigma12p3 = pow(sigma12,(numtyp)3.0);
+      sigma12p3 = sigma12*sigma12*sigma12;
       sigma1p3 = sigma1/sigma1p2;
       sigma2p3 = sigma2/sigma2p2;
       vsigma1[0] = -sigma1p3*v1[0];
@@ -282,8 +286,8 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
       tsig1sig2 = eta/((numtyp)2.0*(sigma1+sigma2));
       tdH = eta/((numtyp)2.0*dH);
       teta1 = (numtyp)2.0*eta/lambda;
-      teta2 = teta1*lshape[jtype]/sigma2p3;
-      teta1 = teta1*lshape[itype]/sigma1p3;
+      teta2 = teta1*jlshape/sigma2p3;
+      teta1 = teta1*ilshape/sigma1p3;
       fourw[0] = (numtyp)4.0*w[0];
       fourw[1] = (numtyp)4.0*w[1];
       fourw[2] = (numtyp)4.0*w[2];

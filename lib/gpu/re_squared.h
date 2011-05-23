@@ -42,11 +42,10 @@ class RESquared : public BaseEllipsoid<numtyp, acctyp> {
     * - -5 Double precision is not supported on card **/
   int init(const int ntypes, double **host_shape, double **host_well,
            double **host_cutsq, double **host_sigma,  double **host_epsilon,
-           double *host_lshape, int **h_form, double **host_lj1,
-           double **host_lj2, double **host_lj3, double **host_lj4,
-           double **host_offset, const double *host_special_lj,
-           const int nlocal, const int nall, const int max_nbors,
-           const int maxspecial, const double cell_size,
+           int **h_form, double **host_lj1, double **host_lj2, 
+           double **host_lj3, double **host_lj4, double **host_offset,
+           const double *host_special_lj, const int nlocal, const int nall,
+           const int max_nbors, const int maxspecial, const double cell_size,
            const double gpu_split, FILE *screen);
 
   /// Clear all host and device data
@@ -81,8 +80,6 @@ class RESquared : public BaseEllipsoid<numtyp, acctyp> {
 
   /// Aspherical Const Data for Atoms
   UCL_D_Vec<numtyp4> shape, well;
-  /// Aspherical Const Data for Atoms
-  UCL_D_Vec<numtyp> lshape;
 
  private:
   bool _allocated;

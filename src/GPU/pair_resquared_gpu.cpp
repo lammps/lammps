@@ -45,7 +45,7 @@
 
 int re_gpu_init(const int ntypes, double **shape, double **well,
 		double **cutsq, double **sigma, double **epsilon,
-		double *host_lshape, int **form, double **host_lj1,
+		int **form, double **host_lj1,
 		double **host_lj2, double **host_lj3, double **host_lj4,
 		double **offset, double *special_lj, const int nlocal,
 		const int nall,	const int max_nbors, const int maxspecial,
@@ -131,11 +131,10 @@ void PairRESquaredGPU::compute(int eflag, int vflag)
 				  success, quat);
   } else {
     inum = list->inum;
-    ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
-    olist = re_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type,
-			   ilist, numneigh, firstneigh, eflag, vflag,
+    ilist = re_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type,
+			   list->ilist, numneigh, firstneigh, eflag, vflag,
 			   eflag_atom, vflag_atom, host_start,
 			   cpu_time, success, quat);
   }
@@ -197,7 +196,7 @@ void PairRESquaredGPU::init_style()
   if (atom->molecular)
     maxspecial=atom->maxspecial;
   int success = re_gpu_init(atom->ntypes+1, shape1, well, cutsq, sigma,
-			    epsilon, lshape, form, lj1, lj2, lj3, lj4, offset,
+			    epsilon, form, lj1, lj2, lj3, lj4, offset,
 			    force->special_lj, atom->nlocal, 
 			    atom->nlocal+atom->nghost, 300, maxspecial,
 			    cell_size, gpu_mode, screen);
@@ -230,10 +229,6 @@ void PairRESquaredGPU::cpu_compute(int start, int inum, int eflag, int vflag,
   double fforce[3],ttor[3],rtor[3],r12[3];
   int *jlist;
   RE2Vars wi,wj;
-
-  evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
 
   double **x = atom->x;
   double **f = atom->f;

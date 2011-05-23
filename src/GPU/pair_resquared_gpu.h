@@ -36,7 +36,6 @@ class PairRESquaredGPU : public PairRESquared {
   enum { GPU_PAIR, GPU_NEIGH };
 
  private:
-  int *olist;
   int gpu_mode;
   double cpu_time;
   int *gpulist;

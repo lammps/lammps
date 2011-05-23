@@ -210,7 +210,7 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
       numtyp sigma, epsilon;
       int mtype=mul24(ntypes,itype)+jtype;
       sigma = sig_eps[mtype].x;
-      epsilon = sig_eps[mtype].y;
+      epsilon = sig_eps[mtype].y*factor_lj;
 
       numtyp w[3], temp2[9];
       numtyp h12,eta,chi,sprod,sigh,tprod;

@@ -83,7 +83,7 @@ __kernel void kernel_ellipsoid_sphere(__global numtyp4* x_,__global numtyp4 *q,
     numtyp4 ishape;
     
     ishape=shape[itype];
-    
+
     {
       gpu_quat_to_mat_trans(q,i,a);
       gpu_transpose_times_diag3(a,well[itype],aTe);
@@ -108,15 +108,15 @@ __kernel void kernel_ellipsoid_sphere(__global numtyp4* x_,__global numtyp4 *q,
       r[1] = jx.y-ix.y;
       r[2] = jx.z-ix.z;
       rnorm = gpu_dot3(r,r);
-      rnorm = rsqrt(rnorm);
-      rhat[0] = r[0]*rnorm;
-      rhat[1] = r[1]*rnorm;
-      rhat[2] = r[2]*rnorm;
+      rnorm = sqrt(rnorm);
+      rhat[0] = r[0]/rnorm;
+      rhat[1] = r[1]/rnorm;
+      rhat[2] = r[2]/rnorm;
 
       numtyp sigma, epsilon;
       int mtype=mul24(ntypes,itype)+jtype;
       sigma = sig_eps[mtype].x;
-      epsilon = sig_eps[mtype].y;
+      epsilon = sig_eps[mtype].y*factor_lj;
 
       numtyp aTs[9]; 
       numtyp4 scorrect;
@@ -128,7 +128,7 @@ __kernel void kernel_ellipsoid_sphere(__global numtyp4* x_,__global numtyp4 *q,
       scorrect.y = scorrect.y * scorrect.y / (numtyp)2.0;
       scorrect.z = scorrect.z * scorrect.z / (numtyp)2.0;
       gpu_transpose_times_diag3(a,scorrect,aTs);
-      
+
       // energy
 
       numtyp gamma[9], s[3];
@@ -149,7 +149,7 @@ __kernel void kernel_ellipsoid_sphere(__global numtyp4* x_,__global numtyp4 *q,
       numtyp tprod = chi*sigh;
 
       numtyp Ua, Ur;
-      numtyp h12p3 = pow(h12,(numtyp)3.0);
+      numtyp h12p3 = h12*h12*h12;
       numtyp sigmap3 = pow(sigma,(numtyp)3.0);
       numtyp stemp = h12/(numtyp)2.0;
       Ua = (ishape.x+stemp)*(ishape.y+stemp)*(ishape.z+stemp)*h12p3/(numtyp)8.0;
@@ -160,12 +160,14 @@ __kernel void kernel_ellipsoid_sphere(__global numtyp4* x_,__global numtyp4 *q,
       Ur = (ishape.x+stemp)*(ishape.y+stemp)*(ishape.z+stemp)*h12p3/
            (numtyp)60.0;
       Ur = ((numtyp)1.0+b_alpha*tprod)*lshape[itype]/Ur;
-      Ur = epsilon*Ur*sigmap3*pow(sigh,(numtyp)6.0)*solv_f_r;
+      numtyp sigh6=sigh*sigh*sigh;
+      sigh6*=sigh6;
+      Ur = epsilon*Ur*sigmap3*sigh6*solv_f_r;
 
       energy+=Ua+Ur;
 
       // force
-/*
+
       numtyp fourw[3], spr[3];
       numtyp sec = sigma*chi;
       numtyp sigma12p3 = pow(sigma12,(numtyp)3.0);
@@ -269,7 +271,7 @@ __kernel void kernel_ellipsoid_sphere(__global numtyp4* x_,__global numtyp4 *q,
         numtyp dUr = pbsr*dchi-dh12*dspr;
         tor.z -= (dUa*Ua+dUr*Ur);
       }
-*/
+
     } // for nbor
   } // if ii
   
@@ -412,19 +414,19 @@ __kernel void kernel_sphere_ellipsoid(__global numtyp4 *x_,__global numtyp4 *q,
       // Compute r12
       numtyp r[3], rhat[3];
       numtyp rnorm;
-      r[0] = jx.x-ix.x;
-      r[1] = jx.y-ix.y;
-      r[2] = jx.z-ix.z;
+      r[0] = ix.x-jx.x;
+      r[1] = ix.y-jx.y;
+      r[2] = ix.z-jx.z;
       rnorm = gpu_dot3(r,r);
-      rnorm = rsqrt(rnorm);
-      rhat[0] = r[0]*rnorm;
-      rhat[1] = r[1]*rnorm;
-      rhat[2] = r[2]*rnorm;
+      rnorm = sqrt(rnorm);
+      rhat[0] = r[0]/rnorm;
+      rhat[1] = r[1]/rnorm;
+      rhat[2] = r[2]/rnorm;
 
       numtyp sigma, epsilon;
       int mtype=mul24(ntypes,itype)+jtype;
       sigma = sig_eps[mtype].x;
-      epsilon = sig_eps[mtype].y;
+      epsilon = sig_eps[mtype].y*factor_lj;
 
       numtyp aTs[9]; 
       numtyp4 scorrect;
@@ -607,10 +609,10 @@ __kernel void kernel_lj(__global numtyp4 *x_, __global numtyp4 *lj1,
   int offset=tid%t_per_atom;
 
   __local numtyp sp_lj[4];
-  sp_lj[0]=gum[3];    
-  sp_lj[1]=gum[4];    
-  sp_lj[2]=gum[5];    
-  sp_lj[3]=gum[6];    
+  sp_lj[0]=gum[0];    
+  sp_lj[1]=gum[1];    
+  sp_lj[2]=gum[2];    
+  sp_lj[3]=gum[3];    
 
   acctyp energy=(acctyp)0;
   acctyp4 f;
@@ -752,7 +754,7 @@ __kernel void kernel_lj_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
   __local numtyp4 lj1[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   __local numtyp4 lj3[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   if (tid<4)
-    sp_lj[tid]=gum[tid+3];    
+    sp_lj[tid]=gum[tid];    
   if (tid<MAX_SHARED_TYPES*MAX_SHARED_TYPES) {
     lj1[tid]=lj1_in[tid];
     if (eflag>0)

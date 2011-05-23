@@ -192,13 +192,6 @@ void RESquaredT::loop(const bool _eflag, const bool _vflag) {
   int ainum=this->ans->inum();
   int anall=this->atom->nall();
 
-// *******************************************
-// *******************************************
-this->ans->dev_ans.zero();
-this->ans->dev_engv.zero();
-// *******************************************
-// *******************************************
-
   if (this->_multiple_forms) {
     if (this->_last_ellipse>0) {
       // ------------ ELLIPSE_ELLIPSE ---------------
@@ -218,26 +211,24 @@ this->ans->dev_engv.zero();
        &stride, &this->ans->dev_ans.begin(),&ainum,&this->ans->dev_engv.begin(),
        &this->dev_error.begin(), &eflag, &vflag, &this->_last_ellipse, &anall,
        &this->_threads_per_atom);
+      this->time_ellipsoid.stop();
 
       if (this->_last_ellipse==this->ans->inum()) {
-        this->time_ellipsoid.stop();
-        this->time_nbor2.start();
-        this->time_nbor2.stop();
-        this->time_ellipsoid2.start();
-        this->time_ellipsoid2.stop();
-        this->time_lj.start();
-        this->time_lj.stop();
+        this->time_nbor2.zero();
+        this->time_ellipsoid2.zero();
+        this->time_nbor3.zero();
+        this->time_ellipsoid3.zero();
+        this->time_lj.zero();
         return;
       }
 
       // ------------ ELLIPSE_SPHERE ---------------
-//      this->time_nbor2.start();
-      GX=static_cast<int>(ceil(static_cast<double>(this->_last_ellipse)/
-                               (BX/this->_threads_per_atom)));
+      this->time_nbor2.start();
       this->pack_nbors(GX,BX, 0, this->_last_ellipse,ELLIPSE_SPHERE,
 			                 ELLIPSE_SPHERE,_shared_types,_lj_types);
-//      this->time_nbor2.stop();
+      this->time_nbor2.stop();
 
+      this->time_ellipsoid2.start();
       this->k_ellipsoid_sphere.set_size(GX,BX);
       this->k_ellipsoid_sphere.run(&this->atom->dev_x.begin(),
        &this->atom->dev_quat.begin(), &this->shape.begin(), &this->well.begin(),
@@ -246,41 +237,39 @@ this->ans->dev_engv.zero();
        &stride, &this->ans->dev_ans.begin(),&ainum,&this->ans->dev_engv.begin(),
        &this->dev_error.begin(), &eflag, &vflag, &this->_last_ellipse, &anall,
        &this->_threads_per_atom);
-      this->time_ellipsoid.stop();
+      this->time_ellipsoid2.stop();
 
 
 
       // ------------ SPHERE_ELLIPSE ---------------
 
-      this->time_nbor2.start();
+      this->time_nbor3.start();
       GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum()-
                                this->_last_ellipse)/
                                (BX/this->_threads_per_atom)));
-//      this->pack_nbors(GX,BX,this->_last_ellipse,this->ans->inum(),
-//			                 SPHERE_ELLIPSE,SPHERE_ELLIPSE,_shared_types,_lj_types);
-      this->time_nbor2.stop();
+      this->pack_nbors(GX,BX,this->_last_ellipse,this->ans->inum(),
+			                 SPHERE_ELLIPSE,SPHERE_ELLIPSE,_shared_types,_lj_types);
+      this->time_nbor3.stop();
 
-      this->time_ellipsoid2.start();
+      this->time_ellipsoid3.start();
       this->k_sphere_ellipsoid.set_size(GX,BX);
-//      this->k_sphere_ellipsoid.run(&this->atom->dev_x.begin(),
-//        &this->atom->dev_quat.begin(), &this->shape.begin(), 
-//        &this->well.begin(), &this->special_lj.begin(), 
-//        &this->sigma_epsilon.begin(), &this->_lj_types, &this->lshape.begin(), 
-//        &this->nbor->dev_nbor.begin(), &stride, &this->ans->dev_ans.begin(),
-//        &this->ans->dev_engv.begin(), &this->dev_error.begin(), &eflag,
-//        &vflag, &this->_last_ellipse, &ainum, &anall, &this->_threads_per_atom);
-      this->time_ellipsoid2.stop();
+      this->k_sphere_ellipsoid.run(&this->atom->dev_x.begin(),
+        &this->atom->dev_quat.begin(), &this->shape.begin(), 
+        &this->well.begin(), &this->special_lj.begin(), 
+        &this->sigma_epsilon.begin(), &this->_lj_types, &this->lshape.begin(), 
+        &this->nbor->dev_nbor.begin(), &stride, &this->ans->dev_ans.begin(),
+        &this->ans->dev_engv.begin(), &this->dev_error.begin(), &eflag,
+        &vflag, &this->_last_ellipse, &ainum, &anall, &this->_threads_per_atom);
+      this->time_ellipsoid3.stop();
    } else {
       this->ans->dev_ans.zero();
       this->ans->dev_engv.zero();
-      this->time_nbor1.start();
-      this->time_nbor1.stop();
-      this->time_ellipsoid.start();                                 
-      this->time_ellipsoid.stop();
-      this->time_nbor2.start();
-      this->time_nbor2.stop();
-      this->time_ellipsoid2.start();
-      this->time_ellipsoid2.stop();
+      this->time_nbor1.zero();
+      this->time_ellipsoid.zero();                                 
+      this->time_nbor2.zero();
+      this->time_ellipsoid2.zero();
+      this->time_nbor3.zero();
+      this->time_ellipsoid3.zero();
     }
     
     // ------------         LJ      ---------------

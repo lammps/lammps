@@ -114,6 +114,10 @@ class BaseEllipsoid {
       if (_multiple_forms) {
         time_nbor2.add_to_total();
         time_ellipsoid2.add_to_total();
+        if (_ellipsoid_sphere) {
+          time_nbor3.add_to_total();
+          time_ellipsoid3.add_to_total();
+        }
         time_lj.add_to_total();
       }
       atom->acc_timers();
@@ -129,6 +133,10 @@ class BaseEllipsoid {
     if (_multiple_forms) {
       time_nbor2.zero();
       time_ellipsoid2.zero();
+      if (_ellipsoid_sphere) {
+        time_nbor3.zero();
+        time_ellipsoid3.zero();
+      }
       time_lj.zero();
     }
     atom->zero_timers();
@@ -181,6 +189,7 @@ class BaseEllipsoid {
 
   /// Device Timers
   UCL_Timer time_nbor1, time_ellipsoid, time_nbor2, time_ellipsoid2, time_lj;
+  UCL_Timer time_nbor3, time_ellipsoid3;
 
   /// Host device load balancer
   PairGPUBalance<numtyp,acctyp> hd_balancer;
@@ -223,7 +232,7 @@ class BaseEllipsoid {
   UCL_Texture q_tex;
 
  protected:
-  bool _compiled;
+  bool _compiled, _ellipsoid_sphere;
   int _block_size, _threads_per_atom;
   double  _max_bytes, _max_an_bytes;
   double _gpu_overhead, _driver_overhead;

@@ -53,6 +53,7 @@ int BaseEllipsoidT::init_base(const int nlocal, const int nall,
                               const char *lj_program, const bool ellip_sphere) {
   nbor_time_avail=false;
   screen=_screen;
+  _ellipsoid_sphere=ellip_sphere;
 
   bool gpu_nbor=false;
   if (device->gpu_mode()==PairGPUDevice<numtyp,acctyp>::GPU_NEIGH)
@@ -85,11 +86,15 @@ int BaseEllipsoidT::init_base(const int nlocal, const int nall,
   time_ellipsoid.init(*ucl_device);
   time_nbor2.init(*ucl_device);
   time_ellipsoid2.init(*ucl_device);
+  time_nbor3.init(*ucl_device);
+  time_ellipsoid3.init(*ucl_device);
   time_lj.zero();
   time_nbor1.zero();
   time_ellipsoid.zero();
   time_nbor2.zero();
   time_ellipsoid2.zero();
+  time_nbor3.zero();
+  time_ellipsoid3.zero();
 
   // See if we want fast GB-sphere or sphere-sphere calculations
   _host_form=h_form;
@@ -145,6 +150,8 @@ void BaseEllipsoidT::clear_base() {
   time_ellipsoid.clear();
   time_nbor2.clear();
   time_ellipsoid2.clear();
+  time_nbor3.clear();
+  time_ellipsoid3.clear();
   time_lj.clear();
   hd_balancer.clear();
 
@@ -162,8 +169,9 @@ void BaseEllipsoidT::output_times() {
   single[0]=atom->transfer_time()+ans->transfer_time();
   single[1]=nbor->time_nbor.total_seconds();
   single[2]=time_nbor1.total_seconds()+time_nbor2.total_seconds()+
-            nbor->time_nbor.total_seconds();
-  single[3]=time_ellipsoid.total_seconds()+time_ellipsoid2.total_seconds();
+            time_nbor3.total_seconds()+nbor->time_nbor.total_seconds();
+  single[3]=time_ellipsoid.total_seconds()+time_ellipsoid2.total_seconds()+
+            time_ellipsoid3.total_seconds();
   if (_multiple_forms)
     single[4]=time_lj.total_seconds();
   else

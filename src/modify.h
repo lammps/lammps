@@ -41,21 +41,21 @@ class Modify : protected Pointers {
 
   Modify(class LAMMPS *);
   virtual ~Modify();
-  void init();
-  void setup(int);
-  void setup_pre_exchange();
-  void setup_pre_force(int);
-  void initial_integrate(int);
-  void post_integrate();
+  virtual void init();
+  virtual void setup(int);
+  virtual void setup_pre_exchange();
+  virtual void setup_pre_force(int);
+  virtual void initial_integrate(int);
+  virtual void post_integrate();
   void pre_decide();
-  void pre_exchange();
-  void pre_neighbor();
-  void pre_force(int);
-  void post_force(int);
-  void final_integrate();
-  void end_of_step();
-  double thermo_energy();
-  void post_run();
+  virtual void pre_exchange();
+  virtual void pre_neighbor();
+  virtual void pre_force(int);
+  virtual void post_force(int);
+  virtual void final_integrate();
+  virtual void end_of_step();
+  virtual double thermo_energy();
+  virtual void post_run();
 
   void setup_pre_force_respa(int, int);
   void initial_integrate_respa(int, int, int);

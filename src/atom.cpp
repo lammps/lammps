@@ -1446,11 +1446,11 @@ void Atom::setup_sort_bins()
       double vol = (domain->boxhi[0]-domain->boxlo[0]) * 
 	(domain->boxhi[1]-domain->boxlo[1]) * 
 	(domain->boxhi[2]-domain->boxlo[2]);
-      binsize = pow(CUDA_CHUNK/natoms*vol,1.0/3.0);
+      binsize = pow(1.0*CUDA_CHUNK/natoms*vol,1.0/3.0);
     } else {
       double area = (domain->boxhi[0]-domain->boxlo[0]) * 
 	(domain->boxhi[1]-domain->boxlo[1]);
-      binsize = pow(CUDA_CHUNK/natoms*area,1.0/2.0);
+      binsize = pow(1.0*CUDA_CHUNK/natoms*area,1.0/2.0);
     }
   } else binsize = 0.5 * neighbor->cutneighmax;
   if (binsize == 0.0) error->all("Atom sorting has bin size = 0.0");

@@ -32,8 +32,11 @@
 #include "write_restart.h"
 #include "memory.h"
 #include "error.h"
+#include "accelerator.h"
 
 using namespace LAMMPS_NS;
+
+enum{NOACCEL,OPT,GPU,USERCUDA};     // same as lammps.cpp
 
 #define DELTA 1
 
@@ -243,8 +246,13 @@ void Output::write(bigint ntimestep)
 {
   // next_dump does not force output on last step of run
   // wrap dumps that invoke computes with clear/add
+  // download data from GPU if necessary
 
   if (next_dump_any == ntimestep) {
+
+    if (lmp->accelerator == USERCUDA && !lmp->cuda->oncpu)
+      lmp->cuda->downloadAll();    
+    
     for (int idump = 0; idump < ndump; idump++) {
       if (next_dump[idump] == ntimestep && last_dump[idump] != ntimestep) {
         if (dump[idump]->clearstep) modify->clearstep_compute();
@@ -267,8 +275,13 @@ void Output::write(bigint ntimestep)
 
   // next_restart does not force output on last step of run
   // for toggle = 0, replace "*" with current timestep in restart filename
+  // download data from GPU if necessary
 
   if (next_restart == ntimestep && last_restart != ntimestep) {
+
+    if (lmp->accelerator == USERCUDA && !lmp->cuda->oncpu) 
+      lmp->cuda->downloadAll();    
+    
     if (restart_toggle == 0) {
       char *file = new char[strlen(restart1) + 16];
       char *ptr = strchr(restart1,'*');

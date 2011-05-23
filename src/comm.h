@@ -37,23 +37,23 @@ class Comm : protected Pointers {
   Comm(class LAMMPS *);
   virtual ~Comm();
 
-  void init();
-  void set_procs();                 // setup 3d grid of procs
-  void setup();                     // setup 3d communication pattern
-  void forward_comm(int dummy = 0); // forward communication of atom coords
-  void reverse_comm();              // reverse communication of forces
-  void exchange();                  // move atoms to new procs
-  void borders();                   // setup list of atoms to communicate
+  virtual void init();
+  virtual void set_procs();                 // setup 3d grid of procs
+  virtual void setup();                     // setup 3d communication pattern
+  virtual void forward_comm(int dummy = 0); // forward communication of atom coords
+  virtual void reverse_comm();              // reverse communication of forces
+  virtual void exchange();                  // move atoms to new procs
+  virtual void borders();                   // setup list of atoms to communicate
 
-  void forward_comm_pair(class Pair *);        // forward comm from a Pair
-  void reverse_comm_pair(class Pair *);        // reverse comm from a Pair
-  void forward_comm_fix(class Fix *);          // forward comm from a Fix
-  void reverse_comm_fix(class Fix *);          // reverse comm from a Fix
-  void forward_comm_compute(class Compute *);  // forward comm from a Compute
-  void reverse_comm_compute(class Compute *);  // reverse comm from a Compute
+  virtual void forward_comm_pair(class Pair *);        // forward comm from a Pair
+  virtual void reverse_comm_pair(class Pair *);        // reverse comm from a Pair
+  virtual void forward_comm_fix(class Fix *);          // forward comm from a Fix
+  virtual void reverse_comm_fix(class Fix *);          // reverse comm from a Fix
+  virtual void forward_comm_compute(class Compute *);  // forward comm from a Compute
+  virtual void reverse_comm_compute(class Compute *);  // reverse comm from a Compute
 
-  void set(int, char **);           // set communication style
-  bigint memory_usage();
+  virtual void set(int, char **);           // set communication style
+  virtual bigint memory_usage();
 
  protected:
   int style;                        // single vs multi-type comm
@@ -87,18 +87,18 @@ class Comm : protected Pointers {
   int maxsend,maxrecv;              // current size of send/recv buffer
   int maxforward,maxreverse;        // max # of datums in forward/reverse comm
 
-  void procs2box();                 // map procs to 3d box
-  void cross(double, double, double,
+  virtual void procs2box();                 // map procs to 3d box
+  virtual void cross(double, double, double,
 	     double, double, double,
 	     double &, double &, double &);    // cross product
-  void grow_send(int,int);          // reallocate send buffer
-  void grow_recv(int);              // free/allocate recv buffer
-  void grow_list(int, int);         // reallocate one sendlist
-  void grow_swap(int);              // grow swap and multi arrays
-  void allocate_swap(int);          // allocate swap arrays
-  void allocate_multi(int);         // allocate multi arrays
-  void free_swap();                 // free swap arrays
-  void free_multi();                // free multi arrays
+  virtual void grow_send(int,int);          // reallocate send buffer
+  virtual void grow_recv(int);              // free/allocate recv buffer
+  virtual void grow_list(int, int);         // reallocate one sendlist
+  virtual void grow_swap(int);              // grow swap and multi arrays
+  virtual void allocate_swap(int);          // allocate swap arrays
+  virtual void allocate_multi(int);         // allocate multi arrays
+  virtual void free_swap();                 // free swap arrays
+  virtual void free_multi();                // free multi arrays
 };
 
 }

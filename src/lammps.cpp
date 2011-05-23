@@ -107,6 +107,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
       else error->universe_all("Invalid command-line argument");
       asuffix = new char[8];
       strcpy(asuffix,arg[iarg+1]);
+      iarg += 2;
     } else error->universe_all("Invalid command-line argument");
   }
 
@@ -363,7 +364,7 @@ void LAMMPS::create()
 
 void LAMMPS::init()
 {
-  if (accelerator == USERCUDA) cuda->setDevice(this);
+  if (accelerator == USERCUDA) cuda->accelerator(0,NULL);
  
   update->init();
   force->init();         // pair must come after update due to minimizer

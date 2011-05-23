@@ -27,24 +27,24 @@ namespace LAMMPS_NS {
 class AtomVecCharge : public AtomVec {
  public:
   AtomVecCharge(class LAMMPS *, int, char **);
-  virtual ~AtomVecCharge() {}
+  ~AtomVecCharge() {}
   void grow(int);
   void grow_reset();
   void copy(int, int, int);
-  int pack_comm(int, int *, double *, int, int *);
-  int pack_comm_vel(int, int *, double *, int, int *);
-  void unpack_comm(int, int, double *);
-  void unpack_comm_vel(int, int, double *);
+  virtual int pack_comm(int, int *, double *, int, int *);
+  virtual int pack_comm_vel(int, int *, double *, int, int *);
+  virtual void unpack_comm(int, int, double *);
+  virtual void unpack_comm_vel(int, int, double *);
   int pack_reverse(int, int, double *);
   void unpack_reverse(int, int *, double *);
-  int pack_border(int, int *, double *, int, int *);
-  int pack_border_vel(int, int *, double *, int, int *);
+  virtual int pack_border(int, int *, double *, int, int *);
+  virtual int pack_border_vel(int, int *, double *, int, int *);
   int pack_border_hybrid(int, int *, double *);
-  void unpack_border(int, int, double *);
-  void unpack_border_vel(int, int, double *);
+  virtual void unpack_border(int, int, double *);
+  virtual void unpack_border_vel(int, int, double *);
   int unpack_border_hybrid(int, int, double *);
-  int pack_exchange(int, double *);
-  int unpack_exchange(double *);
+  virtual int pack_exchange(int, double *);
+  virtual int unpack_exchange(double *);
   int size_restart();
   int pack_restart(int, double *);
   int unpack_restart(double *);

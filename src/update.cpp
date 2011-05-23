@@ -216,15 +216,20 @@ void Update::create_integrate(int narg, char **arg, char *suffix)
   }
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   create the Integrate style, first with suffix appended
+------------------------------------------------------------------------- */
 
 void Update::new_integrate(char *style, int narg, char **arg,
 			   char *suffix, int &sflag)
 {
+  int success = 0;
+
   if (suffix && lmp->offaccel == 0) {
     sflag = 1;
     char estyle[256];
     sprintf(estyle,"%s/%s",style,suffix);
+    success = 1;
 
     if (0) return;
 
@@ -235,20 +240,23 @@ void Update::new_integrate(char *style, int narg, char **arg,
 #undef IntegrateStyle
 #undef INTEGRATE_CLASS
 
+    else success = 0;
   }
 
   sflag = 0;
 
-  if (0) return;
+  if (!success) {
+    if (0) return;
 
 #define INTEGRATE_CLASS
 #define IntegrateStyle(key,Class) \
-  else if (strcmp(style,#key) == 0) integrate = new Class(lmp,narg,arg);
+    else if (strcmp(style,#key) == 0) integrate = new Class(lmp,narg,arg);
 #include "style_integrate.h"
 #undef IntegrateStyle
 #undef INTEGRATE_CLASS
 
-  else error->all("Illegal integrate style");
+    else error->all("Illegal integrate style");
+  }
 }
 
 /* ---------------------------------------------------------------------- */

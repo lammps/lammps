@@ -157,6 +157,8 @@ elif (test $1 = 0) then
   rm -f ../dihedral_charmm_omp.cpp
   rm -f ../dihedral_harmonic_omp.h
   rm -f ../dihedral_harmonic_omp.cpp
+  rm -f ../dihedral_multi_harmonic_omp.h
+  rm -f ../dihedral_multi_harmonic_omp.cpp
   rm -f ../dihedral_helix_omp.h
   rm -f ../dihedral_helix_omp.cpp
   rm -f ../dihedral_opls_omp.h

@@ -45,45 +45,48 @@ specified for a run or an error will be generated. The fix will not have an
 effect on any LAMMPS computations that do not use GPU acceleration, so there 
 should not be any problems with specifying this fix first in input scripts.
 </P>
-<P><I>mode</I> specifies where neighbor list calculations will be performed.
-If <I>mode</I> is force, neighbor list calculation is performed on the
-CPU. If <I>mode</I> is force/neigh, neighbor list calculation is 
-performed on the GPU. GPU neighbor list calculation currently cannot be
-used with a triclinic box. GPU neighbor list calculation currently
-cannot be used with <A HREF = "pair_hybrid.html">hybrid</A> pair styles.
-GPU neighbor lists are not compatible with styles that are not GPU-enabled.
-When a non-GPU enabled style requires a neighbor list, it will also be
-built using CPU routines. In these cases, it will typically be more efficient
-to only use CPU neighbor list builds.
+<P>The <I>mode</I> setting specifies where neighbor list calculations will be
+performed.  If <I>mode</I> is force, neighbor list calculation is performed
+on the CPU. If <I>mode</I> is force/neigh, neighbor list calculation is
+performed on the GPU. GPU neighbor list calculation currently cannot
+be used with a triclinic box. GPU neighbor list calculation currently
+cannot be used with <A HREF = "pair_hybrid.html">hybrid</A> pair styles.  GPU
+neighbor lists are not compatible with styles that are not
+GPU-enabled.  When a non-GPU enabled style requires a neighbor list,
+it will also be built using CPU routines. In these cases, it will
+typically be more efficient to only use CPU neighbor list builds.
 </P>
-<P><I>first</I> and <I>last</I> specify the GPUs that will be used for simulation.
-On each node, the GPU IDs in the inclusive range from <I>first</I> to <I>last</I> will
-be used.
+<P>The <I>first</I> and <I>last</I> settings specify the GPUs that will be used for
+simulation.  On each node, the GPU IDs in the inclusive range from
+<I>first</I> to <I>last</I> will be used.
 </P>
-<P><I>split</I> can be used for load balancing force calculation work between
-CPU and GPU cores in GPU-enabled pair styles. If 0<<I>split</I><1.0, 
-a fixed fraction of particles is offloaded to the GPU while force calculation
-for the other particles occurs simulataneously on the CPU. If <I>split</I><0,
-the optimal fraction (based on CPU and GPU timings) is calculated
-every 25 timesteps. If <I>split</I>=1.0, all force calculations for 
-GPU accelerated pair styles are performed
-on the GPU. In this case, <A HREF = "pair_hybrid.html">hybrid</A>, 
-<A HREF = "bond_style.html">bond</A>, <A HREF = "angle_style.html">angle</A>, 
-<A HREF = "dihedral_style.html">dihedral</A>, <A HREF = "improper_style.html">improper</A>, 
-and <A HREF = "kspace_style.html">long-range</A> calculations can be performed on the CPU 
-while the GPU is performing force calculations for the GPU-enabled pair
-style.
+<P>The <I>split</I> setting can be used for load balancing force calculation
+work between CPU and GPU cores in GPU-enabled pair styles. If
+0<<I>split</I><1.0, a fixed fraction of particles is offloaded to the GPU
+while force calculation for the other particles occurs simulataneously
+on the CPU. If <I>split</I><0, the optimal fraction (based on CPU and GPU
+timings) is calculated every 25 timesteps. If <I>split</I>=1.0, all force
+calculations for GPU accelerated pair styles are performed on the
+GPU. In this case, <A HREF = "pair_hybrid.html">hybrid</A>, <A HREF = "bond_style.html">bond</A>,
+<A HREF = "angle_style.html">angle</A>, <A HREF = "dihedral_style.html">dihedral</A>,
+<A HREF = "improper_style.html">improper</A>, and <A HREF = "kspace_style.html">long-range</A>
+calculations can be performed on the CPU while the GPU is performing
+force calculations for the GPU-enabled pair style.
 </P>
-<P>In order to use GPU acceleration, a GPU enabled style must be
-selected in the input script in addition to this fix. Currently,
-this is limited to a few <A HREF = "pair_style.html">pair styles</A> and
-the PPPM <A HREF = "kspace_style.html">kspace style</A>.
+<P>In order to use GPU acceleration, a GPU enabled style must be selected
+in the input script in addition to this fix. Currently, this is
+limited to a few <A HREF = "pair_style.html">pair styles</A> and the PPPM <A HREF = "kspace_style.html">kspace
+style</A>.
 </P>
 <P>More details about these settings and various possible hardware
 configuration are in <A HREF = "Section_start.html#2_8">this section</A> of the
 manual.
 </P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>This fix is part of the "gpu" package.  It is only enabled if LAMMPS
+was built with that package.  See the <A HREF = "Section_start.html#2_3">Making
+LAMMPS</A> section for more info.
 </P>
 <P>No information about this fix is written to <A HREF = "restart.html">binary restart
 files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
@@ -98,7 +101,8 @@ the <A HREF = "run.html">run</A> command.
 <I>mode</I> should not be used with a triclinic box or <A HREF = "pair_hybrid.html">hybrid</A>
 pair styles.
 </P>
-<P><I>split</I> must be positive when using <A HREF = "pair_hybrid.html">hybrid</A> pair styles.
+<P>The <I>split</I> setting must be positive when using
+<A HREF = "pair_hybrid.html">hybrid</A> pair styles.
 </P>
 <P>Currently, group-ID must be all.
 </P>

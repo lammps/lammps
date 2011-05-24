@@ -50,6 +50,7 @@ NeighRequest::NeighRequest(LAMMPS *lmp) : Pointers(lmp)
   special = 1;
   dnum = 0;
   ghost = 0;
+  cudable = 0;
 
   // default is no copy or skip
 
@@ -99,6 +100,7 @@ int NeighRequest::identical(NeighRequest *other)
   if (special != other->special) same = 0;
   if (dnum != other->dnum) same = 0;
   if (ghost != other->ghost) same = 0;
+  if (cudable != other->cudable) same = 0;
 
   if (copy != other->copy) same = 0;
   if (same_skip(other) == 0) same = 0;
@@ -126,6 +128,7 @@ int NeighRequest::same_kind(NeighRequest *other)
   if (half_from_full != other->half_from_full) same = 0;
   if (newton != other->newton) same = 0;
   if (ghost != other->ghost) same = 0;
+  if (cudable != other->cudable) same = 0;
 
   return same;
 }
@@ -174,4 +177,5 @@ void NeighRequest::copy_request(NeighRequest *other)
   newton = other->newton;
   dnum = other->dnum;
   ghost = other->ghost;
+  cudable = other->cudable;
 }

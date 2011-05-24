@@ -27,14 +27,14 @@ namespace LAMMPS_NS {
 class Verlet : public Integrate {
  public:
   Verlet(class LAMMPS *, int, char **);
-  ~Verlet() {}
+  virtual ~Verlet() {}
   void init();
   void setup();
   void setup_minimal(int);
   void run(int);
   void cleanup();
 
- private:
+ protected:
   int triclinic;                    // 0 if domain is orthog, 1 if triclinic
   int torqueflag;                   // zero out arrays every step
   int erforceflag;

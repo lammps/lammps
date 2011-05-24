@@ -66,7 +66,7 @@ void PairLJCharmmCoulLongOpt::eval()
     double _pad[2];
   } fast_alpha_t;
   
-  int i,j,ii,jj,inum,jnum,itype,jtype,itable;
+  int i,j,ii,jj,inum,jnum,itype,jtype,itable,sbindex;
   double fraction,table;
   double r,r2inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
   double grij,expm2,prefactor,t,erfc;
@@ -132,8 +132,9 @@ void PairLJCharmmCoulLongOpt::eval()
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      
-      if (j <= NEIGHMASK) {
+      sbindex = sbmask(j);
+
+      if (sbindex == 0) {
 	double delx = xtmp - xx[j].x;
 	double dely = ytmp - xx[j].y;
 	double delz = ztmp - xx[j].z;
@@ -219,8 +220,8 @@ void PairLJCharmmCoulLongOpt::eval()
 	}
 
       } else {
-	factor_lj = special_lj[sbmask(j)];
-	factor_coul = special_coul[sbmask(j)];
+	factor_lj = special_lj[sbindex];
+	factor_coul = special_coul[sbindex];
 	j &= NEIGHMASK;
 
 	double delx = xtmp - xx[j].x;

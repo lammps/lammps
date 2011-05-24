@@ -27,13 +27,14 @@ namespace LAMMPS_NS {
 class PairLJCutCoulDebye : public PairLJCutCoulCut {
  public:
   PairLJCutCoulDebye(class LAMMPS *);
+  virtual ~PairLJCutCoulDebye() {}
   void compute(int, int);
   void settings(int, char **);
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
   double single(int, int, int, int, double, double, double, double &);
 
- private:
+ protected:
   double kappa;
 };
 

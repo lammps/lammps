@@ -164,8 +164,8 @@ void FixRigidNVT::setup(int vflag)
   
   double mbody[3];
   for (int ibody = 0; ibody < nbody; ibody++) {
-    MathExtra::matvec_rows(ex_space[ibody],ey_space[ibody],ez_space[ibody],
-			   angmom[ibody],mbody);
+    MathExtra::transpose_matvec(ex_space[ibody],ey_space[ibody],ez_space[ibody],
+				angmom[ibody],mbody);
     MathExtra::quatvec(quat[ibody],mbody,conjqm[ibody]);
     conjqm[ibody][0] *= 2.0;
     conjqm[ibody][1] *= 2.0;
@@ -225,8 +225,8 @@ void FixRigidNVT::initial_integrate(int vflag)
     
     // step 1.3 - apply torque (body coords) to quaternion momentum
 
-    MathExtra::matvec_rows(ex_space[ibody],ey_space[ibody],ez_space[ibody],
-			   torque[ibody],tbody);
+    MathExtra::transpose_matvec(ex_space[ibody],ey_space[ibody],ez_space[ibody],
+				torque[ibody],tbody);
     MathExtra::quatvec(quat[ibody],tbody,fquat);
     
     conjqm[ibody][0] += dtf2 * fquat[0];
@@ -253,8 +253,8 @@ void FixRigidNVT::initial_integrate(int vflag)
     MathExtra::q_to_exyz(quat[ibody],ex_space[ibody],ey_space[ibody],
 			 ez_space[ibody]);
     MathExtra::invquatvec(quat[ibody],conjqm[ibody],mbody);
-    MathExtra::matvec_cols(ex_space[ibody],ey_space[ibody],ez_space[ibody],
-			   mbody,angmom[ibody]);
+    MathExtra::matvec(ex_space[ibody],ey_space[ibody],ez_space[ibody],
+		      mbody,angmom[ibody]);
     
     angmom[ibody][0] *= 0.5;
     angmom[ibody][1] *= 0.5;
@@ -398,8 +398,8 @@ void FixRigidNVT::final_integrate()
     
     // convert torque to the body frame 
     
-    MathExtra::matvec_rows(ex_space[ibody],ey_space[ibody],ez_space[ibody],
-			   torque[ibody],tbody);
+    MathExtra::transpose_matvec(ex_space[ibody],ey_space[ibody],ez_space[ibody],
+				torque[ibody],tbody);
     
     // compute "force" for quaternion
     
@@ -416,8 +416,8 @@ void FixRigidNVT::final_integrate()
     // then convert to the space-fixed frame
     
     MathExtra::invquatvec(quat[ibody],conjqm[ibody],mbody);
-    MathExtra::matvec_cols(ex_space[ibody],ey_space[ibody],ez_space[ibody],
-			   mbody,angmom[ibody]);
+    MathExtra::matvec(ex_space[ibody],ey_space[ibody],ez_space[ibody],
+		      mbody,angmom[ibody]);
     
     angmom[ibody][0] *= 0.5;
     angmom[ibody][1] *= 0.5;

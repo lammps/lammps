@@ -72,6 +72,10 @@ class NeighRequest : protected Pointers {
 
   int ghost;
 
+  // 1 if neighbor list build will be done on GPU
+
+  int cudable;
+
   // set by neighbor and pair_hybrid after all requests are made
   // these settings do not change kind value
 

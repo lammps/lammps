@@ -77,6 +77,8 @@ class Compute : protected Pointers {
   int comm_forward;   // size of forward communication (0 if none)
   int comm_reverse;   // size of reverse communication (0 if none)
 
+  int cudable;        // 1 if compute is CUDA-enabled
+
   Compute(class LAMMPS *, int, char **);
   virtual ~Compute();
   void modify_params(int, char **);

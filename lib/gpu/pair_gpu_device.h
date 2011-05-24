@@ -226,6 +226,8 @@ class PairGPUDevice {
   inline int block_bio_pair() const { return _block_bio_pair; }
   /// Return the maximum number of atom types for shared mem with "bio" styles
   inline int max_bio_shared_types() const { return _max_bio_shared_types; }
+  /// Architecture gpu code compiled for (returns 0 for OpenCL)
+  inline double ptx_arch() const { return _ptx_arch; }
 
   // -------------------- SHARED DEVICE ROUTINES -------------------- 
   // Perform asynchronous zero of integer array 
@@ -281,6 +283,7 @@ class PairGPUDevice {
   int _gpu_mode, _first_device, _last_device, _nthreads;
   double _particle_split;
   double _cpu_full;
+  double _ptx_arch;
 
   int _num_mem_threads, _warp_size, _threads_per_atom, _threads_per_charge;
   int _pppm_max_spline, _pppm_block;

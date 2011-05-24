@@ -34,7 +34,7 @@ using namespace LAMMPS_NS;
 AtomVecHybrid::AtomVecHybrid(LAMMPS *lmp, int narg, char **arg) :
   AtomVec(lmp, narg, arg)
 {
-  int i,k;
+  int i,k,dummy;
 
   if (narg < 1) error->all("Illegal atom_style command");
 
@@ -50,7 +50,7 @@ AtomVecHybrid::AtomVecHybrid(LAMMPS *lmp, int narg, char **arg) :
 	error->all("Atom style hybrid cannot use same atom style twice");
     if (strcmp(arg[i],"hybrid") == 0) 
       error->all("Atom style hybrid cannot have hybrid as an argument");
-    styles[i] = atom->new_avec(arg[i],0,NULL);
+    styles[i] = atom->new_avec(arg[i],0,NULL,NULL,dummy);
     keywords[i] = new char[strlen(arg[i])+1];
     strcpy(keywords[i],arg[i]);
   }

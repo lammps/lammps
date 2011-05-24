@@ -193,6 +193,7 @@ void PairEAMOpt::eval()
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
+      j &= NEIGHMASK;
 
       double delx = xtmp - xx[j].x;
       double dely = ytmp - xx[j].y;
@@ -269,7 +270,8 @@ void PairEAMOpt::eval()
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      
+      j &= NEIGHMASK;
+
       double delx = xtmp - xx[j].x;
       double dely = ytmp - xx[j].y;
       double delz = ztmp - xx[j].z;

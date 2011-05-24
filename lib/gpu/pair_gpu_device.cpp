@@ -549,8 +549,9 @@ int PairGPUDeviceT::compile_kernels() {
   k_info.run(&d_gpu_lib_data.begin());
   ucl_copy(h_gpu_lib_data,d_gpu_lib_data,false);
   
+  _ptx_arch=static_cast<double>(h_gpu_lib_data[0])/100.0;
   #ifndef USE_OPENCL
-  if (static_cast<double>(h_gpu_lib_data[0])/100.0>gpu->arch())
+  if (_ptx_arch>gpu->arch())
     return -4;
   #endif
 

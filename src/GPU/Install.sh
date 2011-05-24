@@ -1,7 +1,6 @@
 # Install/unInstall package files in LAMMPS
-# edit Makefile.package to include/exclude GPU library
-# do not copy gayberne files if non-GPU version does not exist
-# do not copy charmm files if non-GPU version does not exist
+# edit Makefile.package to include/exclude GPU info
+# do not install child files if parent does not exist
 
 if (test $1 = 1) then
 
@@ -10,17 +9,9 @@ if (test $1 = 1) then
     sed -i -e 's/[^ \t]*gpu_[^ \t]*) //' ../Makefile.package
     sed -i -e 's|^PKG_PATH =[ \t]*|&-L../../lib/gpu |' ../Makefile.package
     sed -i -e 's|^PKG_LIB =[ \t]*|&-lgpu |' ../Makefile.package
-    sed -i -e 's|^PKG_SYSPATH =[ \t]*|&$(gpu_SYSPATH) |' ../Makefile.package
+    sed -i -e 's|^PKG_SYSINC =[ \t]*|&$(gpu_SYSINC) |' ../Makefile.package
     sed -i -e 's|^PKG_SYSLIB =[ \t]*|&$(gpu_SYSLIB) |' ../Makefile.package
-  fi
-  
-  if (test -e ../pppm.cpp) then
-    cp pppm_gpu.cpp ..
-    cp pppm_gpu_single.cpp ..
-    cp pppm_gpu_double.cpp ..
-    cp pppm_gpu.h ..
-    cp pppm_gpu_single.h ..
-    cp pppm_gpu_double.h ..
+    sed -i -e 's|^PKG_SYSPATH =[ \t]*|&$(gpu_SYSPATH) |' ../Makefile.package
   fi
   
   if (test -e ../pair_gayberne.cpp) then
@@ -54,12 +45,24 @@ if (test $1 = 1) then
     cp pair_cg_cmm_coul_msm_gpu.h ..
   fi
 
+  if (test -e ../pppm.cpp) then
+    cp pppm_gpu.cpp ..
+    cp pppm_gpu_single.cpp ..
+    cp pppm_gpu_double.cpp ..
+    cp pppm_gpu.h ..
+    cp pppm_gpu_single.h ..
+    cp pppm_gpu_double.h ..
+  fi
+
   cp pair_lj_cut_gpu.cpp ..
   cp pair_morse_gpu.cpp ..
   cp pair_lj96_cut_gpu.cpp ..
   cp pair_lj_expand_gpu.cpp ..
   cp pair_lj_cut_coul_cut_gpu.cpp ..
   cp pair_lj_cut_tgpu.cpp ..
+
+  cp fix_gpu.cpp ..
+
   cp pair_lj_cut_gpu.h ..
   cp pair_morse_gpu.h ..
   cp pair_lj96_cut_gpu.h ..
@@ -67,7 +70,6 @@ if (test $1 = 1) then
   cp pair_lj_cut_coul_cut_gpu.h ..
   cp pair_lj_cut_tgpu.h ..
   
-  cp fix_gpu.cpp ..
   cp fix_gpu.h ..
   cp gpu_extra.h ..
 
@@ -98,6 +100,7 @@ elif (test $1 = 0) then
   rm ../pair_cg_cmm_coul_long_gpu.cpp
   rm ../pair_cg_cmm_coul_msm.cpp
   rm ../pair_cg_cmm_coul_msm_gpu.cpp
+
   rm ../fix_gpu.cpp
   rm ../pair_omp_gpu.cpp
 
@@ -118,6 +121,7 @@ elif (test $1 = 0) then
   rm ../pair_cg_cmm_coul_long_gpu.h
   rm ../pair_cg_cmm_coul_msm.h
   rm ../pair_cg_cmm_coul_msm_gpu.h
+
   rm ../fix_gpu.h
   rm ../gpu_extra.h
   rm ../pair_omp_gpu.h

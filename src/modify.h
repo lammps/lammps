@@ -40,22 +40,22 @@ class Modify : protected Pointers {
   class Compute **compute;
 
   Modify(class LAMMPS *);
-  ~Modify();
-  void init();
-  void setup(int);
-  void setup_pre_exchange();
-  void setup_pre_force(int);
-  void initial_integrate(int);
-  void post_integrate();
+  virtual ~Modify();
+  virtual void init();
+  virtual void setup(int);
+  virtual void setup_pre_exchange();
+  virtual void setup_pre_force(int);
+  virtual void initial_integrate(int);
+  virtual void post_integrate();
   void pre_decide();
-  void pre_exchange();
-  void pre_neighbor();
-  void pre_force(int);
-  void post_force(int);
-  void final_integrate();
-  void end_of_step();
-  double thermo_energy();
-  void post_run();
+  virtual void pre_exchange();
+  virtual void pre_neighbor();
+  virtual void pre_force(int);
+  virtual void post_force(int);
+  virtual void final_integrate();
+  virtual void end_of_step();
+  virtual double thermo_energy();
+  virtual void post_run();
 
   void setup_pre_force_respa(int, int);
   void initial_integrate_respa(int, int, int);
@@ -79,12 +79,12 @@ class Modify : protected Pointers {
   double max_alpha(double *);
   int min_dof();
 
-  void add_fix(int, char **);
+  void add_fix(int, char **, char *suffix = NULL);
   void modify_fix(int, char **);
   void delete_fix(const char *);
   int find_fix(const char *);
 
-  void add_compute(int, char **);
+  void add_compute(int, char **, char *suffix = NULL);
   void modify_compute(int, char **);
   void delete_compute(char *);
   int find_compute(char *);
@@ -98,7 +98,7 @@ class Modify : protected Pointers {
 
   bigint memory_usage();
 
- private:
+ protected:
 
   // lists of fixes to apply at different stages of timestep
 

@@ -26,6 +26,7 @@ class Thermo : protected Pointers {
   char *style;
   int normflag;          // 0 if do not normalize by atoms, 1 if normalize
   int modified;          // 1 if thermo_modify has been used, else 0
+  int cudable;           // 1 if all computes used are cudable
 
   Thermo(class LAMMPS *, int, char **);
   ~Thermo();
@@ -73,6 +74,7 @@ class Thermo : protected Pointers {
   int *field2index;      // which compute,fix,variable calcs this field
   int *argindex1;        // indices into compute,fix scalar,vector
   int *argindex2;
+
                          // data for keyword-specific Compute objects
                          // index = where they are in computes list
                          // id = ID of Compute objects

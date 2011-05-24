@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class ComputeTempPartial : public Compute {
  public:
   ComputeTempPartial(class LAMMPS *, int, char **);
-  ~ComputeTempPartial();
+  virtual ~ComputeTempPartial();
   void init();
   double compute_scalar();
   void compute_vector();
@@ -39,7 +39,7 @@ class ComputeTempPartial : public Compute {
   void restore_bias_all();
   double memory_usage();
 
- private:
+ protected:
   int xflag,yflag,zflag;
   int fix_dof;
   double tfactor;

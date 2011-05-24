@@ -1,7 +1,4 @@
 # Install/unInstall package files in LAMMPS
-# for unInstall, also unInstall/Install OPT package if installed
-#   so it will remove OPT files that depend on KSPACE files,
-#   then replace others
 
 if (test $1 = 1) then
 
@@ -62,9 +59,5 @@ elif (test $1 = 0) then
   rm ../fft3d_wrap.h
   rm ../remap.h
   rm ../remap_wrap.h
-
-  if (test -e ../pair_lj_charmm_coul_long_opt.h) then
-    cd ../OPT; sh Install.sh 0; sh Install.sh 1
-  fi
 
 fi

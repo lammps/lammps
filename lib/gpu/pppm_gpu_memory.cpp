@@ -66,7 +66,11 @@ grdtyp * PPPMGPUMemoryT::init(const int nlocal, const int nall, FILE *_screen,
     flag=-5;
     return 0;
   }
-  
+  if (device->ptx_arch()>0.0 && device->ptx_arch()<1.1) {
+    flag=-4;
+    return 0;
+  }
+
   ucl_device=device->gpu;
   atom=&device->atom;
 

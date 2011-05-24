@@ -16,16 +16,6 @@
 #ifndef ELLIPSOID_NBOR_H
 #define ELLIPSOID_NBOR_H
 
-#ifdef _DOUBLE_DOUBLE
-#define numtyp double
-#define numtyp2 double2
-#define numtyp4 double4
-#else
-#define numtyp float
-#define numtyp2 float2
-#define numtyp4 float4
-#endif
-
 #ifdef NV_KERNEL
 
 #include "nv_kernel_def.h"
@@ -40,6 +30,16 @@
 #define __syncthreads() barrier(CLK_LOCAL_MEM_FENCE)
 #define MAX_SHARED_TYPES 8
 
+#endif
+
+#ifdef _DOUBLE_DOUBLE
+#define numtyp double
+#define numtyp2 double2
+#define numtyp4 double4
+#else
+#define numtyp float
+#define numtyp2 float2
+#define numtyp4 float4
 #endif
 
 // ---------------------------------------------------------------------------

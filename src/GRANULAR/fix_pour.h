@@ -28,6 +28,7 @@ class FixPour : public Fix {
   friend class PairGranHertzHistory;
   friend class PairGranHooke;
   friend class PairGranHookeHistory;
+  friend class PairGranHookeCuda;
 
  public:
   FixPour(class LAMMPS *, int, char **);

@@ -18,27 +18,6 @@
 #ifndef PPPM_GPU_KERNEL
 #define PPPM_GPU_KERNEL
 
-#ifdef _DOUBLE_DOUBLE
-#define numtyp double
-#define numtyp4 double4
-#define acctyp double
-#define acctyp4 double4
-#endif
-
-#ifdef _SINGLE_DOUBLE
-#define numtyp float
-#define numtyp4 float4
-#define acctyp double
-#define acctyp4 double4
-#endif
-
-#ifndef numtyp
-#define numtyp float
-#define numtyp4 float4
-#define acctyp float
-#define acctyp4 float4
-#endif
-
 #ifdef NV_KERNEL
 
 #include "geryon/ucl_nv_kernel.h"
@@ -67,6 +46,12 @@ __inline float fetch_q(const int& i, const float *q)
 
 #endif
 
+// Allow PPPM to compile without atomics for NVIDIA 1.0 cards, error
+// generated at runtime with use of pppm/gpu
+#if (__CUDA_ARCH__ < 110)
+#define atom_add(x,y) 0
+#endif
+
 #else
 
 #pragma OPENCL EXTENSION cl_khr_fp64: enable
@@ -83,6 +68,27 @@ __inline float fetch_q(const int& i, const float *q)
 #define fetch_q(i,y) q_[i]
 #define MEM_THREADS 16
 
+#endif
+
+#ifdef _DOUBLE_DOUBLE
+#define numtyp double
+#define numtyp4 double4
+#define acctyp double
+#define acctyp4 double4
+#endif
+
+#ifdef _SINGLE_DOUBLE
+#define numtyp float
+#define numtyp4 float4
+#define acctyp double
+#define acctyp4 double4
+#endif
+
+#ifndef numtyp
+#define numtyp float
+#define numtyp4 float4
+#define acctyp float
+#define acctyp4 float4
 #endif
 
 // Maximum order for spline

@@ -15,19 +15,19 @@
    Contributing authors: Mike Brown (ORNL), brownw@ornl.gov
 ------------------------------------------------------------------------- */
 
+#ifdef NV_KERNEL
+#include "geryon/ucl_nv_kernel.h"
+#else
+#pragma OPENCL EXTENSION cl_khr_fp64: enable
+#define GLOBAL_ID_X get_global_id(0)
+#endif
+
 #ifdef _DOUBLE_DOUBLE
 #define numtyp double
 #define numtyp4 double4
 #else
 #define numtyp float
 #define numtyp4 float4
-#endif
-
-#ifdef NV_KERNEL
-#include "geryon/ucl_nv_kernel.h"
-#else
-#pragma OPENCL EXTENSION cl_khr_fp64: enable
-#define GLOBAL_ID_X get_global_id(0)
 #endif
 
 __kernel void kernel_cast_x(__global numtyp4 *x_type, __global double *x,

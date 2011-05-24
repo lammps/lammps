@@ -117,23 +117,51 @@ void Force::init()
    create a pair style, called from input script or restart file
 ------------------------------------------------------------------------- */
 
-void Force::create_pair(const char *style)
+void Force::create_pair(const char *style, char *suffix)
 {
   delete [] pair_style;
   if (pair) delete pair;
 
-  pair = new_pair(style);
-  int n = strlen(style) + 1;
-  pair_style = new char[n];
-  strcpy(pair_style,style);
+  int sflag;
+  pair = new_pair(style,suffix,sflag);
+
+  if (sflag) {
+    char estyle[256];
+    sprintf(estyle,"%s/%s",style,suffix);
+    int n = strlen(estyle) + 1;
+    pair_style = new char[n];
+    strcpy(pair_style,estyle);
+  } else {
+    int n = strlen(style) + 1;
+    pair_style = new char[n];
+    strcpy(pair_style,style);
+  }
 }
 
 /* ----------------------------------------------------------------------
-   generate a pair class
+   generate a pair class, first with suffix appended
 ------------------------------------------------------------------------- */
 
-Pair *Force::new_pair(const char *style)
+Pair *Force::new_pair(const char *style, char *suffix, int &sflag)
 {
+  if (suffix && lmp->offaccel == 0) {
+    sflag = 1;
+    char estyle[256];
+    sprintf(estyle,"%s/%s",style,suffix);
+
+    if (0) return NULL;
+
+#define PAIR_CLASS
+#define PairStyle(key,Class) \
+    else if (strcmp(estyle,#key) == 0) return new Class(lmp);
+#include "style_pair.h"
+#undef PairStyle
+#undef PAIR_CLASS
+
+  }
+
+  sflag = 0;
+
   if (strcmp(style,"none") == 0) return NULL;
 
 #define PAIR_CLASS
@@ -143,6 +171,7 @@ Pair *Force::new_pair(const char *style)
 #undef PAIR_CLASS
 
   else error->all("Invalid pair style");
+
   return NULL;
 }
 

@@ -48,10 +48,14 @@ class Update : protected Pointers {
   ~Update();
   void init();
   void set_units(const char *);
-  void create_integrate(int, char **);
+  void create_integrate(int, char **, char *);
   void create_minimize(int, char **);
   void reset_timestep(int, char **);
   bigint memory_usage();
+
+ private:
+  void new_integrate(char *, int, char **, char *, int &);
+
 };
 
 }

@@ -20,7 +20,11 @@
 CUDA_HOME = /usr/local/cuda
 NVCC = nvcc
 
+# newer CUDA
 CUDA_ARCH = -arch=sm_13
+# older CUDA
+#CUDA_ARCH = -arch=sm_10 -DCUDA_PRE_THREE
+
 CUDA_PRECISION = -D_SINGLE_SINGLE
 CUDA_INCLUDE = -I$(CUDA_HOME)/include
 CUDA_LIB = -L$(CUDA_HOME)/lib64

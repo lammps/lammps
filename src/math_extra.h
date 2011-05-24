@@ -63,8 +63,8 @@ namespace MathExtra {
   inline void transpose_matvec(const double *ex, const double *ey, 
 			       const double *ez, const double *v,
 			       double *ans);
-  inline void transpose_times_diag3(const double mat[3][3], const double*vec,
-                                    double ans[3][3]);
+  inline void transpose_diag3(const double mat[3][3], const double*vec,
+			      double ans[3][3]);
   inline void vecmat(const double *v, const double m[3][3], double *ans);
   inline void scalar_times3(const double f, double m[3][3]); 
 
@@ -91,10 +91,6 @@ namespace MathExtra {
   inline void invquatvec(double *a, double *b, double *c);
   inline void axisangle_to_quat(const double *v, const double angle,
                                 double *quat);
-  inline void matvec_rows(double *x, double *y, double *z, 
-			  double *b, double *c);
-  inline void matvec_cols(double *x, double *y, double *z,
-			  double *b, double *c);
 
   void angmom_to_omega(double *m, double *ex, double *ey, double *ez,
 		       double *idiag, double *w);
@@ -418,8 +414,8 @@ void MathExtra::transpose_matvec(const double *ex, const double *ey,
    transposed matrix times diagonal matrix
 ------------------------------------------------------------------------- */
 
-void MathExtra::transpose_times_diag3(const double m[3][3],
-                                      const double *d, double ans[3][3])
+void MathExtra::transpose_diag3(const double m[3][3], const double *d, 
+				double ans[3][3])
 {
   ans[0][0] = m[0][0]*d[0];
   ans[0][1] = m[1][0]*d[1];
@@ -560,30 +556,6 @@ void MathExtra::axisangle_to_quat(const double *v, const double angle,
   quat[1] = v[0]*sina;
   quat[2] = v[1]*sina;
   quat[3] = v[2]*sina;
-}
-
-/* ----------------------------------------------------------------------
-  matvec_rows: c = Ab, where rows of A are x, y, z
-------------------------------------------------------------------------- */
-
-void MathExtra::matvec_rows(double *x, double *y, double *z, 
-			    double *b, double *c)
-{
-  c[0] = x[0]*b[0] + x[1]*b[1] + x[2]*b[2];
-  c[1] = y[0]*b[0] + y[1]*b[1] + y[2]*b[2];
-  c[2] = z[0]*b[0] + z[1]*b[1] + z[2]*b[2];
-}
-
-/* ----------------------------------------------------------------------
-  matvec_cols: c = Ab, where columns of A are x, y, z
-------------------------------------------------------------------------- */
-
-void MathExtra::matvec_cols(double *x, double *y, double *z,
-			    double *b, double *c)
-{
-  c[0] = x[0]*b[0] + y[0]*b[1] + z[0]*b[2];
-  c[1] = x[1]*b[0] + y[1]*b[1] + z[1]*b[2];
-  c[2] = x[2]*b[0] + y[2]*b[1] + z[2]*b[2];
 }
 
 /* ----------------------------------------------------------------------

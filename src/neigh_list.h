@@ -73,6 +73,8 @@ class NeighList : protected Pointers {
   int **stencil_multi;             // list of bin offsets in each stencil
   double **distsq_multi;           // sq distances to bins in each stencil
 
+  class CudaNeighList *cuda_list;  // CUDA neighbor list
+
   NeighList(class LAMMPS *, int);
   ~NeighList();
   void grow(int);                       // grow maxlocal
@@ -80,6 +82,7 @@ class NeighList : protected Pointers {
   int **add_pages();                    // add pages to neigh list
   void copy_skip_info(int *, int **);   // copy skip info from a neigh request
   void print_attributes();              // debug routine
+  int get_maxlocal() {return maxatoms;}
   bigint memory_usage();
 
  private:

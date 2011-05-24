@@ -54,7 +54,7 @@ FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       nadapt++;
       iarg += 6;
     } else if (strcmp(arg[iarg],"kspace") == 0) {
-      if (iarg+6 > narg) error->all("Illegal fix adapt command");
+      if (iarg+2 > narg) error->all("Illegal fix adapt command");
       nadapt++;
       iarg += 2;
     } else if (strcmp(arg[iarg],"atom") == 0) {

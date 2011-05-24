@@ -1,7 +1,4 @@
 # Install/unInstall package files in LAMMPS
-# for unInstall, also unInstall/Install OPT package if installed
-#   so it will remove OPT files that depend on MANYBODY files,
-#   then replace others
 
 if (test $1 = 1) then
 
@@ -27,10 +24,6 @@ if (test $1 = 1) then
   cp pair_tersoff.h ..
   cp pair_tersoff_zbl.h ..
 
-  if (test -e ../pair_lj_cut_opt.h) then
-    cd ../OPT; sh Install.sh 1
-  fi
-
 elif (test $1 = 0) then
 
   rm ../fix_qeq_comb.cpp
@@ -54,9 +47,5 @@ elif (test $1 = 0) then
   rm ../pair_sw.h
   rm ../pair_tersoff.h
   rm ../pair_tersoff_zbl.h
-
-  if (test -e ../pair_eam_opt.h) then
-    cd ../OPT; sh Install.sh 0; sh Install.sh 1
-  fi
 
 fi

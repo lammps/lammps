@@ -240,7 +240,7 @@ int AtomVecPeri::pack_comm_hybrid(int n, int *list, double *buf)
   m = 0;
   for (i = 0; i < n; i++) {
     j = list[i];
-    buf[m++] = s0[i];
+    buf[m++] = s0[j];
   }
   return m;
 }

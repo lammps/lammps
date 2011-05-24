@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class PairLJClass2CoulCut : public Pair {
  public:
   PairLJClass2CoulCut(class LAMMPS *);
-  ~PairLJClass2CoulCut();
+  virtual ~PairLJClass2CoulCut();
   void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
@@ -39,7 +39,7 @@ class PairLJClass2CoulCut : public Pair {
   void read_restart_settings(FILE *);
   double single(int, int, int, int, double, double, double, double &);
 
- private:
+ protected:
   double cut_lj_global,cut_coul_global;
   double **cut_lj,**cut_ljsq;
   double **cut_coul,**cut_coulsq;

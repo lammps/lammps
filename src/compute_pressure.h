@@ -27,13 +27,13 @@ namespace LAMMPS_NS {
 class ComputePressure : public Compute {
  public:
   ComputePressure(class LAMMPS *, int, char **);
-  ~ComputePressure();
+  virtual ~ComputePressure();
   void init();
   double compute_scalar();
   void compute_vector();
   void reset_extra_compute_fix(char *);
 
- private:
+ protected:
   double boltz,nktv2p,inv_volume;
   int nvirial,dimension;
   double **vptr;

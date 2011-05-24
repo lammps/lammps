@@ -237,7 +237,7 @@ int AtomVecElectron::pack_comm_hybrid(int n, int *list, double *buf)
   m = 0;
   for (i = 0; i < n; i++) {
     j = list[i];
-    buf[m++] = eradius[i];
+    buf[m++] = eradius[j];
   }
   return m;
 }

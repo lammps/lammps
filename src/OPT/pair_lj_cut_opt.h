@@ -54,7 +54,8 @@ void PairLJCutOpt::eval()
     double _pad[2];
   } fast_alpha_t;
   
-  int i,j,ii,jj,inum,jnum,itype,jtype;
+  int i,j,ii,jj,inum,jnum,itype,jtype,sbindex;
+  double factor_lj;
   double evdwl = 0.0;
   
   double** __restrict__ x = atom->x;
@@ -106,9 +107,9 @@ void PairLJCutOpt::eval()
     
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      double factor_lj;
+      sbindex = sbmask(j);
 
-      if (j <= NEIGHMASK) {
+      if (sbindex == 0) {
 	double delx = xtmp - xx[j].x;
 	double dely = ytmp - xx[j].y;
 	double delz = ztmp - xx[j].z;
@@ -141,7 +142,7 @@ void PairLJCutOpt::eval()
 	}
 
       } else {
-	factor_lj = special_lj[sbmask(j)];
+	factor_lj = special_lj[sbindex];
 	j &= NEIGHMASK;
 
 	double delx = xtmp - xx[j].x;

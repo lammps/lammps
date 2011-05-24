@@ -18,38 +18,6 @@
 #ifndef CMML_GPU_KERNEL
 #define CMML_GPU_KERNEL
 
-#ifdef _DOUBLE_DOUBLE
-#define numtyp double
-#define numtyp2 double2
-#define numtyp4 double4
-#define acctyp double
-#define acctyp4 double4
-#endif
-
-#ifdef _SINGLE_DOUBLE
-#define numtyp float
-#define numtyp2 float2
-#define numtyp4 float4
-#define acctyp double
-#define acctyp4 double4
-#endif
-
-#ifndef numtyp
-#define numtyp float
-#define numtyp2 float2
-#define numtyp4 float4
-#define acctyp float
-#define acctyp4 float4
-#endif
-
-#define EWALD_F (numtyp)1.12837917
-#define EWALD_P (numtyp)0.3275911
-#define A1 (numtyp)0.254829592
-#define A2 (numtyp)-0.284496736
-#define A3 (numtyp)1.421413741
-#define A4 (numtyp)-1.453152027
-#define A5 (numtyp)1.061405429
-
 #ifdef NV_KERNEL
 
 #include "nv_kernel_def.h"
@@ -92,6 +60,38 @@ __inline float fetch_q(const int& i, const float *q)
 #define MAX_SHARED_TYPES 8
 
 #endif
+
+#ifdef _DOUBLE_DOUBLE
+#define numtyp double
+#define numtyp2 double2
+#define numtyp4 double4
+#define acctyp double
+#define acctyp4 double4
+#endif
+
+#ifdef _SINGLE_DOUBLE
+#define numtyp float
+#define numtyp2 float2
+#define numtyp4 float4
+#define acctyp double
+#define acctyp4 double4
+#endif
+
+#ifndef numtyp
+#define numtyp float
+#define numtyp2 float2
+#define numtyp4 float4
+#define acctyp float
+#define acctyp4 float4
+#endif
+
+#define EWALD_F (numtyp)1.12837917
+#define EWALD_P (numtyp)0.3275911
+#define A1 (numtyp)0.254829592
+#define A2 (numtyp)-0.284496736
+#define A3 (numtyp)1.421413741
+#define A4 (numtyp)-1.453152027
+#define A5 (numtyp)1.061405429
 
 #define SBBITS 30
 #define NEIGHMASK 0x3FFFFFFF

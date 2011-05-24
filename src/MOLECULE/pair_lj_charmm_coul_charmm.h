@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class PairLJCharmmCoulCharmm : public Pair {
  public:
   PairLJCharmmCoulCharmm(class LAMMPS *);
-  ~PairLJCharmmCoulCharmm();
+  virtual ~PairLJCharmmCoulCharmm();
   virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);

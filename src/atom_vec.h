@@ -38,6 +38,9 @@ class AtomVec : protected Pointers {
   int size_data_bonus;                 // number of values in Bonus line
   int xcol_data;                       // column (1-N) where x is in Atom line
 
+  int cudable;                         // 1 if atom style is CUDA-enabled
+  int *maxsend;                        // CUDA-specific variable
+
   AtomVec(class LAMMPS *, int, char **);
   virtual ~AtomVec() {}
   virtual void init();

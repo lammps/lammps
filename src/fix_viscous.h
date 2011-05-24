@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class FixViscous : public Fix {
  public:
   FixViscous(class LAMMPS *, int, char **);
-  ~FixViscous();
+  virtual ~FixViscous();
   int setmask();
   void init();
   void setup(int);
@@ -36,7 +36,7 @@ class FixViscous : public Fix {
   void post_force_respa(int, int, int);
   void min_post_force(int);
 
- private:
+ protected:
   double *gamma;
   int nlevels_respa;
 };

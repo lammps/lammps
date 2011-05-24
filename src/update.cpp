@@ -25,10 +25,13 @@
 #include "region.h"
 #include "compute.h"
 #include "output.h"
+#include "accelerator.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+
+enum{NOACCEL,OPT,GPU,USERCUDA};     // same as lammps.cpp
 
 /* ---------------------------------------------------------------------- */
 
@@ -53,17 +56,16 @@ Update::Update(LAMMPS *lmp) : Pointers(lmp)
   unit_style = NULL;
   set_units("lj");
 
+  integrate_style = NULL;
+  integrate = NULL;
+  minimize_style = NULL;
+  minimize = NULL;
+
   str = (char *) "verlet";
-  n = strlen(str) + 1;
-  integrate_style = new char[n];
-  strcpy(integrate_style,str);
-  integrate = new Verlet(lmp,0,NULL);
+  create_integrate(1,&str,lmp->asuffix);
 
   str = (char *) "cg";
-  n = strlen(str) + 1;
-  minimize_style = new char[n];
-  strcpy(minimize_style,str);
-  minimize = new MinCG(lmp);
+  create_minimize(1,&str);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -191,26 +193,70 @@ void Update::set_units(const char *style)
 
 /* ---------------------------------------------------------------------- */
 
-void Update::create_integrate(int narg, char **arg)
+void Update::create_integrate(int narg, char **arg, char *suffix)
 {
   if (narg < 1) error->all("Illegal run_style command");
 
   delete [] integrate_style;
   delete integrate;
 
-  if (0) return;      // dummy line to enable else-if macro expansion
+  int sflag;
+  new_integrate(arg[0],narg-1,&arg[1],suffix,sflag);
+
+  if (sflag) {
+    char estyle[256];
+    sprintf(estyle,"%s/%s",arg[0],suffix);
+    int n = strlen(estyle) + 1;
+    integrate_style = new char[n];
+    strcpy(integrate_style,estyle);
+  } else {
+    int n = strlen(arg[0]) + 1;
+    integrate_style = new char[n];
+    strcpy(integrate_style,arg[0]);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   create the Integrate style, first with suffix appended
+------------------------------------------------------------------------- */
+
+void Update::new_integrate(char *style, int narg, char **arg,
+			   char *suffix, int &sflag)
+{
+  int success = 0;
+
+  if (suffix && lmp->offaccel == 0) {
+    sflag = 1;
+    char estyle[256];
+    sprintf(estyle,"%s/%s",style,suffix);
+    success = 1;
+
+    if (0) return;
 
 #define INTEGRATE_CLASS
 #define IntegrateStyle(key,Class) \
-  else if (strcmp(arg[0],#key) == 0) integrate = new Class(lmp,narg-1,&arg[1]);
+    else if (strcmp(estyle,#key) == 0) integrate = new Class(lmp,narg,arg);
 #include "style_integrate.h"
+#undef IntegrateStyle
 #undef INTEGRATE_CLASS
 
-  else error->all("Illegal run_style command");
+    else success = 0;
+  }
 
-  int n = strlen(arg[0]) + 1;
-  integrate_style = new char[n];
-  strcpy(integrate_style,arg[0]);
+  sflag = 0;
+
+  if (!success) {
+    if (0) return;
+
+#define INTEGRATE_CLASS
+#define IntegrateStyle(key,Class) \
+    else if (strcmp(style,#key) == 0) integrate = new Class(lmp,narg,arg);
+#include "style_integrate.h"
+#undef IntegrateStyle
+#undef INTEGRATE_CLASS
+
+    else error->all("Illegal integrate style");
+  }
 }
 
 /* ---------------------------------------------------------------------- */

@@ -47,7 +47,7 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
                                const int astride, __global acctyp *engv,
                                __global int *err_flag, const int eflag,
                                const int vflag, const int inum,
-                               const int nall, const int t_per_atom) {
+                               const int t_per_atom) {
   int tid=THREAD_ID_X;
   int ii=mul24((int)BLOCK_ID_X,(int)(BLOCK_SIZE_X)/t_per_atom);
   ii+=tid/t_per_atom;

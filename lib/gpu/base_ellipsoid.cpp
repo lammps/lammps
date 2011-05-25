@@ -236,17 +236,16 @@ void BaseEllipsoidT::pack_nbors(const int GX, const int BX, const int start,
                                 const int form_high, const bool shared_types,
                                 int ntypes) {
   int stride=nbor->nbor_pitch();
-  int anall=atom->nall();
   if (shared_types) {
     k_nbor_fast.set_size(GX,BX);
     k_nbor_fast.run(&atom->dev_x.begin(), &cut_form.begin(), 
                     &nbor->dev_nbor.begin(), &stride, &start, &inum,
-                    &nbor->dev_packed.begin(), &form_low, &form_high, &anall);
+                    &nbor->dev_packed.begin(), &form_low, &form_high);
   } else {
     k_nbor.set_size(GX,BX);
     k_nbor.run(&atom->dev_x.begin(), &cut_form.begin(), &ntypes,
                &nbor->dev_nbor.begin(), &stride, &start, &inum, 
-               &nbor->dev_packed.begin(), &form_low, &form_high, &anall);
+               &nbor->dev_packed.begin(), &form_low, &form_high);
   }
 }
 

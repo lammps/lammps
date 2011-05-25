@@ -389,7 +389,7 @@ void PairGPUNbor::build_nbor_list(const int inum, const int host_inum,
     _shared->k_special.run(&dev_nbor.begin(), &dev_host_nbor.begin(), 
                            &dev_host_numj.begin(), &atom.dev_tag.begin(), 
                            &dev_nspecial.begin(), &dev_special.begin(), 
-                           &inum, &nt, &nall, &_max_nbors);
+                           &inum, &nt, &_max_nbors);
   }
   time_kernel.stop();
 

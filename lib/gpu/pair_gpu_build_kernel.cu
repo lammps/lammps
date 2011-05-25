@@ -253,7 +253,7 @@ __kernel void kernel_special(__global int *dev_nbor,
                              __global int *host_nbor_list, 
                              __global int *host_numj, __global int *tag,
                              __global int *nspecial, __global int *special,
-                             int inum, int nt, int nall, int max_nbors) {
+                             int inum, int nt, int max_nbors) {
   // ii indexes the two interacting particles in gi
   int ii=GLOBAL_ID_X;
 

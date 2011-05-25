@@ -94,7 +94,7 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *lj1,
                           __global numtyp *sp_lj_in, __global int *dev_nbor, 
                           __global int *dev_packed, __global acctyp4 *ans,
                           __global acctyp *engv, const int eflag,
-                          const int vflag, const int inum, const int nall,
+                          const int vflag, const int inum,
                           const int nbor_pitch, __global numtyp *q_ ,
                           __global numtyp *cutsq, const numtyp qqrd2e,
                           const int t_per_atom) {
@@ -270,9 +270,9 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
                                __global int *dev_nbor, __global int *dev_packed,
                                __global acctyp4 *ans, __global acctyp *engv, 
                                const int eflag, const int vflag, const int inum, 
-                               const int nall, const int nbor_pitch,
-                               __global numtyp *q_ , __global numtyp *_cutsq,
-                               const numtyp qqrd2e, const int t_per_atom) {
+                               const int nbor_pitch, __global numtyp *q_,
+                               __global numtyp *_cutsq, const numtyp qqrd2e,
+                               const int t_per_atom) {
   int tid=THREAD_ID_X;
   int ii=mul24((int)BLOCK_ID_X,(int)(BLOCK_SIZE_X)/t_per_atom);
   ii+=tid/t_per_atom;

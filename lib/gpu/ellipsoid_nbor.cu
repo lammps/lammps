@@ -42,6 +42,10 @@
 #define numtyp4 float4
 #endif
 
+#define SBBITS 30
+#define NEIGHMASK 0x3FFFFFFF
+__inline int sbmask(int j) { return j >> SBBITS & 3; }
+
 // ---------------------------------------------------------------------------
 // Unpack neighbors from dev_ij array into dev_nbor matrix for coalesced access
 // -- Only unpack neighbors matching the specified inclusive range of forms
@@ -51,7 +55,7 @@ __kernel void kernel_nbor(__global numtyp4 *x_, __global numtyp2 *cut_form,
                           const int ntypes, __global int *dev_nbor,
                           const int nbor_pitch, const int start, const int inum, 
                           __global int *dev_ij, const int form_low, 
-                          const int form_high, const int nall) {
+                          const int form_high) {
                                 
   // ii indexes the two interacting particles in gi
   int ii=GLOBAL_ID_X+start;
@@ -71,8 +75,7 @@ __kernel void kernel_nbor(__global numtyp4 *x_, __global numtyp2 *cut_form,
     int newj=0;  
     for ( ; nbor<list_end; nbor+=nbor_pitch) {
       int j=*nbor;
-      if (j>=nall)
-        j%=nall;
+      j &= NEIGHMASK;
       numtyp4 jx=x_[j];
       int jtype=jx.w;
       int mtype=itype+jtype;
@@ -107,7 +110,7 @@ __kernel void kernel_nbor_fast(__global numtyp4 *x_, __global numtyp2 *cut_form,
                                __global int *dev_nbor, const int nbor_pitch, 
                                const int start, const int inum, 
                                __global int *dev_ij, const int form_low, 
-                               const int form_high, const int nall) {
+                               const int form_high) {
                                 
   int ii=THREAD_ID_X;
   __local int form[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
@@ -135,8 +138,7 @@ __kernel void kernel_nbor_fast(__global numtyp4 *x_, __global numtyp2 *cut_form,
     int newj=0;  
     for ( ; nbor<list_end; nbor+=nbor_pitch) {
       int j=*nbor;
-      if (j>=nall)
-        j%=nall;
+      j &= NEIGHMASK;
       numtyp4 jx=x_[j];
       int jtype=jx.w;
       int mtype=itype+jtype;

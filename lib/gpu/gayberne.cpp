@@ -191,11 +191,9 @@ void GayBerneT::loop(const bool _eflag, const bool _vflag) {
   else
     vflag=0;
   
-  int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
-                               (BX/this->_threads_per_atom)));
+  int GX, NGX;
   int stride=this->nbor->nbor_pitch();
   int ainum=this->ans->inum();
-  int anall=this->atom->nall();
 
   if (this->_multiple_forms) {
     this->time_nbor1.start();
@@ -203,7 +201,8 @@ void GayBerneT::loop(const bool _eflag, const bool _vflag) {
       // ------------ ELLIPSE_ELLIPSE and ELLIPSE_SPHERE ---------------
       GX=static_cast<int>(ceil(static_cast<double>(this->_last_ellipse)/
                                (BX/this->_threads_per_atom)));
-      this->pack_nbors(GX,BX, 0, this->_last_ellipse,ELLIPSE_SPHERE,
+      NGX=static_cast<int>(ceil(static_cast<double>(this->_last_ellipse)/BX));
+      this->pack_nbors(NGX,BX, 0, this->_last_ellipse,ELLIPSE_SPHERE,
 			                 ELLIPSE_ELLIPSE,_shared_types,_lj_types);
       this->time_nbor1.stop();
 
@@ -214,7 +213,7 @@ void GayBerneT::loop(const bool _eflag, const bool _vflag) {
        &this->gamma_upsilon_mu.begin(), &this->sigma_epsilon.begin(), 
        &this->_lj_types, &this->lshape.begin(), &this->nbor->dev_nbor.begin(),
        &stride, &this->ans->dev_ans.begin(),&ainum,&this->ans->dev_engv.begin(),
-       &this->dev_error.begin(), &eflag, &vflag, &this->_last_ellipse, &anall,
+       &this->dev_error.begin(), &eflag, &vflag, &this->_last_ellipse,
        &this->_threads_per_atom);
       this->time_ellipsoid.stop();
 
@@ -234,7 +233,9 @@ void GayBerneT::loop(const bool _eflag, const bool _vflag) {
       GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum()-
                                this->_last_ellipse)/
                                (BX/this->_threads_per_atom)));
-      this->pack_nbors(GX,BX,this->_last_ellipse,this->ans->inum(),
+      NGX=static_cast<int>(ceil(static_cast<double>(this->ans->inum()-
+                                this->_last_ellipse)/BX));
+      this->pack_nbors(NGX,BX,this->_last_ellipse,this->ans->inum(),
 			                 SPHERE_ELLIPSE,SPHERE_ELLIPSE,_shared_types,_lj_types);
       this->time_nbor2.stop();
 
@@ -246,7 +247,7 @@ void GayBerneT::loop(const bool _eflag, const bool _vflag) {
         &this->sigma_epsilon.begin(), &this->_lj_types, &this->lshape.begin(), 
         &this->nbor->dev_nbor.begin(), &stride, &this->ans->dev_ans.begin(),
         &this->ans->dev_engv.begin(), &this->dev_error.begin(), &eflag,
-        &vflag, &this->_last_ellipse, &ainum, &anall, &this->_threads_per_atom);
+        &vflag, &this->_last_ellipse, &ainum, &this->_threads_per_atom);
       this->time_ellipsoid2.stop();
    } else {
       this->ans->dev_ans.zero();
@@ -269,7 +270,7 @@ void GayBerneT::loop(const bool _eflag, const bool _vflag) {
           &this->lj3.begin(), &this->gamma_upsilon_mu.begin(), &stride,
           &this->nbor->dev_packed.begin(), &this->ans->dev_ans.begin(),
           &this->ans->dev_engv.begin(), &this->dev_error.begin(),
-          &eflag, &vflag, &this->_last_ellipse, &ainum, &anall,
+          &eflag, &vflag, &this->_last_ellipse, &ainum,
           &this->_threads_per_atom);
       } else {
         this->k_lj.set_size(GX,BX);
@@ -277,14 +278,16 @@ void GayBerneT::loop(const bool _eflag, const bool _vflag) {
           &this->lj3.begin(), &this->_lj_types, &this->gamma_upsilon_mu.begin(),
           &stride, &this->nbor->dev_packed.begin(), &this->ans->dev_ans.begin(),
           &this->ans->dev_engv.begin(), &this->dev_error.begin(), &eflag,
-          &vflag, &this->_last_ellipse, &ainum, &anall, 
-          &this->_threads_per_atom);
+          &vflag, &this->_last_ellipse, &ainum, &this->_threads_per_atom);
       }
     }
     this->time_lj.stop();
   } else {
+    GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
+                             (BX/this->_threads_per_atom)));
+    NGX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/BX));
     this->time_nbor1.start();
-    this->pack_nbors(GX, BX, 0, this->ans->inum(),SPHERE_SPHERE,
+    this->pack_nbors(NGX, BX, 0, this->ans->inum(),SPHERE_SPHERE,
 		                 ELLIPSE_ELLIPSE,_shared_types,_lj_types);
     this->time_nbor1.stop();
     this->time_ellipsoid.start(); 
@@ -295,7 +298,7 @@ void GayBerneT::loop(const bool _eflag, const bool _vflag) {
       &this->_lj_types, &this->lshape.begin(), &this->nbor->dev_nbor.begin(),
       &stride, &this->ans->dev_ans.begin(), &ainum, 
       &this->ans->dev_engv.begin(), &this->dev_error.begin(),
-      &eflag, &vflag, &ainum, &anall, &this->_threads_per_atom);
+      &eflag, &vflag, &ainum, &this->_threads_per_atom);
     this->time_ellipsoid.stop();
   }
 }

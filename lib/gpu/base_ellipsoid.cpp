@@ -261,7 +261,7 @@ void BaseEllipsoidT::reset_nbors(const int nall, const int inum,
     
   nbor_time_avail=true;
 
-  int mn=nbor->max_nbor_loop(inum,numj,ilist);
+  int mn=nbor->max_nbor_loop(osize,numj,ilist);
   resize_atom(nall,success);
   resize_local(inum,0,mn,osize,success);
   if (!success)

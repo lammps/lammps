@@ -44,7 +44,6 @@
 
 #define SBBITS 30
 #define NEIGHMASK 0x3FFFFFFF
-__inline int sbmask(int j) { return j >> SBBITS & 3; }
 
 // ---------------------------------------------------------------------------
 // Unpack neighbors from dev_ij array into dev_nbor matrix for coalesced access

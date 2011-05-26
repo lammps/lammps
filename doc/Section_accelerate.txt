@@ -1,0 +1,210 @@
+"Previous Section"_Section_python.html - "LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next Section"_Section_errors.html :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+10. Using accelerated CPU and GPU styles :h3
+
+Accelerated versions of various "pair_style"_pair_style.html,
+"fix"_fix.html, "compute"_compute.html, and other command have been
+added to LAMMPS, which will typically run faster than the standard
+non-accelerated version, if you have the appropriate hardware on your
+system.
+
+The accelerated styles have the same name as the standard version,
+except that a suffix is appended.  Otherwise, the syntax
+for the command is identical, and the numerical results it produces
+should also be identical, except for precision and round-off issues.
+
+For example, all of these variants of the basic Lennard-Jones pair
+style exist in LAMMPS:
+
+"pair_style lj/cut"_pair_lj.html
+"pair_style lj/cut/opt"_pair_lj.html
+"pair_style lj/cut/gpu"_pair_lj.html
+"pair_style lj/cut/cuda"_pair_lj.html :ul
+
+Assuming you have built LAMMPS with the appropriate package, these
+styles can be invoked by specifying them explicitly in your input
+script.  Or you can use the "-accelerator command-line
+switch"_Section_start.html#2_6 to invoke the accelerated versions
+automatically.  See the "acclerator"_accelerator.html command for info
+on how to turn off/on the suffix associated with this switch within
+your input script.
+
+Styles with an "opt" suffix are part of the OPT package and typically
+run 5% to 25% faster on modern cache-based CPUs.
+
+Styles with a "gpu" or "cuda" suffix are part of the GPU or USER-CUDA
+packages, and can be run on NVIDIA GPUs associated with your CPUs.
+The speed-up due to GPU usage depends on a variety of factors, as
+discussed below.
+
+To see what styles are currently available in each of the accelerated
+packages, see "this section"_Section_commands.html#3_5 of the manual.
+A list of accelerated styles is included in the pair, fix, compute,
+and kspace sections.
+
+The following sections explain:
+
+how to install the accelerated packages
+what hardware and software they require
+what kind of problems they run best on
+tips for how to use the accelerated packages to best advantage
+the kinds of speed-ups you can expect :ul
+
+The final section compares and contrasts the GPU and USER-CUDA
+packages, since they are both designed to use NVIDIA GPU hardware.
+
+10.1 "OPT package"_#10_1
+10.2 "GPU package"_#10_2
+10.3 "USER-CUDA package"_#10_3
+10.4 "Comparison of GPU and USER-CUDA packages"_#10_4 :all(b)
+
+:line
+
+10.1 OPT package :h4,link(10_1)
+
+:line
+
+10.2 GPU package :h4,link(10_2)
+
+A few LAMMPS "pair styles"_pair_style.html can be run on graphical
+processing units (GPUs).  We plan to add more over time.  Currently,
+they only support NVIDIA GPU cards.  To use them you need to install
+certain NVIDIA CUDA software on your system:
+
+Check if you have an NVIDIA card: cat /proc/driver/nvidia/cards/0
+Go to http://www.nvidia.com/object/cuda_get.html
+Install a driver and toolkit appropriate for your system (SDK is not necessary)
+Follow the instructions in README in lammps/lib/gpu to build the library
+Run lammps/lib/gpu/nvc_get_devices to list supported devices and properties :ul
+
+GPU configuration :h4
+
+When using GPUs, you are restricted to one physical GPU per LAMMPS
+process. Multiple processes can share a single GPU and in many cases
+it will be more efficient to run with multiple processes per GPU. Any
+GPU accelerated style requires that "fix gpu"_fix_gpu.html be used in
+the input script to select and initialize the GPUs. The format for the
+fix is:
+
+fix {name} all gpu {mode} {first} {last} {split} :pre
+
+where {name} is the name for the fix. The gpu fix must be the first
+fix specified for a given run, otherwise the program will exit with an
+error. The gpu fix will not have any effect on runs that do not use
+GPU acceleration; there should be no problem with specifying the fix
+first in any input script.
+
+{mode} can be either "force" or "force/neigh". In the former, neighbor
+list calculation is performed on the CPU using the standard LAMMPS
+routines. In the latter, the neighbor list calculation is performed on
+the GPU. The GPU neighbor list can be used for better performance,
+however, it cannot not be used with a triclinic box or with
+"hybrid"_pair_hybrid.html pair styles.
+
+There are cases when it might be more efficient to select the CPU for
+neighbor list builds. If a non-GPU enabled style requires a neighbor
+list, it will also be built using CPU routines. Redundant CPU and GPU
+neighbor list calculations will typically be less efficient.
+
+{first} is the ID (as reported by lammps/lib/gpu/nvc_get_devices) of
+the first GPU that will be used on each node. {last} is the ID of the
+last GPU that will be used on each node. If you have only one GPU per
+node, {first} and {last} will typically both be 0. Selecting a
+non-sequential set of GPU IDs (e.g. 0,1,3) is not currently supported.
+
+{split} is the fraction of particles whose forces, torques, energies,
+and/or virials will be calculated on the GPU. This can be used to
+perform CPU and GPU force calculations simultaneously. If {split} is
+negative, the software will attempt to calculate the optimal fraction
+automatically every 25 timesteps based on CPU and GPU timings. Because
+the GPU speedups are dependent on the number of particles, automatic
+calculation of the split can be less efficient, but typically results
+in loop times within 20% of an optimal fixed split.
+
+If you have two GPUs per node, 8 CPU cores per node, and would like to
+run on 4 nodes with dynamic balancing of force calculation across CPU
+and GPU cores, the fix might be
+
+fix 0 all gpu force/neigh 0 1 -1 :pre
+
+with LAMMPS run on 32 processes. In this case, all CPU cores and GPU
+devices on the nodes would be utilized.  Each GPU device would be
+shared by 4 CPU cores. The CPU cores would perform force calculations
+for some fraction of the particles at the same time the GPUs performed
+force calculation for the other particles.
+
+Because of the large number of cores on each GPU device, it might be
+more efficient to run on fewer processes per GPU when the number of
+particles per process is small (100's of particles); this can be
+necessary to keep the GPU cores busy.
+
+GPU input script :h4
+
+In order to use GPU acceleration in LAMMPS, "fix_gpu"_fix_gpu.html
+should be used in order to initialize and configure the GPUs for
+use. Additionally, GPU enabled styles must be selected in the input
+script. Currently, this is limited to a few "pair
+styles"_pair_style.html and PPPM.  Some GPU-enabled styles have
+additional restrictions listed in their documentation.
+
+GPU asynchronous pair computation :h4
+
+The GPU accelerated pair styles can be used to perform pair style
+force calculation on the GPU while other calculations are performed on
+the CPU. One method to do this is to specify a {split} in the gpu fix
+as described above.  In this case, force calculation for the pair
+style will also be performed on the CPU.
+
+When the CPU work in a GPU pair style has finished, the next force
+computation will begin, possibly before the GPU has finished. If
+{split} is 1.0 in the gpu fix, the next force computation will begin
+almost immediately. This can be used to run a
+"hybrid"_pair_hybrid.html GPU pair style at the same time as a hybrid
+CPU pair style. In this case, the GPU pair style should be first in
+the hybrid command in order to perform simultaneous calculations. This
+also allows "bond"_bond_style.html, "angle"_angle_style.html,
+"dihedral"_dihedral_style.html, "improper"_improper_style.html, and
+"long-range"_kspace_style.html force computations to be run
+simultaneously with the GPU pair style.  Once all CPU force
+computations have completed, the gpu fix will block until the GPU has
+finished all work before continuing the run.
+
+GPU timing :h4
+
+GPU accelerated pair styles can perform computations asynchronously
+with CPU computations. The "Pair" time reported by LAMMPS will be the
+maximum of the time required to complete the CPU pair style
+computations and the time required to complete the GPU pair style
+computations. Any time spent for GPU-enabled pair styles for
+computations that run simultaneously with "bond"_bond_style.html,
+"angle"_angle_style.html, "dihedral"_dihedral_style.html,
+"improper"_improper_style.html, and "long-range"_kspace_style.html
+calculations will not be included in the "Pair" time.
+
+When {mode} for the gpu fix is force/neigh, the time for neighbor list
+calculations on the GPU will be added into the "Pair" time, not the
+"Neigh" time. A breakdown of the times required for various tasks on
+the GPU (data copy, neighbor calculations, force computations, etc.)
+are output only with the LAMMPS screen output at the end of each
+run. These timings represent total time spent on the GPU for each
+routine, regardless of asynchronous CPU calculations.
+
+GPU single vs double precision :h4
+
+See the lammps/lib/gpu/README file for instructions on how to build
+the LAMMPS gpu library for single, mixed, and double precision.  The
+latter requires that your GPU card supports double precision.
+
+:line
+
+10.3 USER-CUDA package :h4,link(10_3)
+
+:line
+
+10.4 Comparison of GPU and USER-CUDA packages :h4,link(10_4)

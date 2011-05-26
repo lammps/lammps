@@ -58,8 +58,7 @@ be useful for performance testing or debugging.
 
 The {off} style allows you to do this.  The effect of the -accelerator
 command-line switch is effectively turned off until another
-accelerator command is used with the {on} style.  The {on} style can
-only be used if the -accelerator command-line switch was used.
+accelerator command is used with the {on} style.
 
 The {cuda} style invokes options associated with the use of the
 USER-CUDA package.  These will be described when the USER-CUDA package
@@ -71,8 +70,8 @@ This cuda style can only be invoked if LAMMPS was built with the
 USER-CUDA package.  See the "Making LAMMPS"_Section_start.html#2_3
 section for more info.
 
-Obviously, you must have GPU hardware and associated software to
-build LAMMPS with GPU support.
+Obviously, you must have GPU hardware and associated software to build
+and use LAMMPS with either the GPU or USER_CUDA packages.
 
 [Related commands:]
 

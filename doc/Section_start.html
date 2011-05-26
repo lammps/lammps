@@ -784,43 +784,50 @@ more processors or setup a smaller problem.
 <H4><A NAME = "2_6"></A>2.6 Command-line options 
 </H4>
 <P>At run time, LAMMPS recognizes several optional command-line switches
-which may be used in any order.  Either the full word or the
-one-letter abbreviation can be used:
+which may be used in any order.  Either the full word or a one-letter
+abbreviation can be used:
 </P>
-<UL><LI>-accelerator or -a
-<LI>-echo or -e
-<LI>-partition or -p
-<LI>-in or -i
-<LI>-log or -l
-<LI>-screen or -s
-<LI>-var or -v 
+<UL><LI>-a or -accelerator
+<LI>-e or -echo
+<LI>-i or -in
+<LI>-l or -log
+<LI>-p or -partition
+<LI>-s or -screen
+<LI>-v or -var 
 </UL>
 <P>For example, lmp_ibm might be launched as follows:
 </P>
-<PRE>mpirun -np 16 lmp_ibm -var f tmp.out -log my.log -screen none < in.alloy 
+<PRE>mpirun -np 16 lmp_ibm -v f tmp.out -l my.log -s none < in.alloy
+mpirun -np 16 lmp_ibm -var f tmp.out -log my.log -screen none < in.alloy 
 </PRE>
 <P>Here are the details on the options:
 </P>
 <PRE>-accelerator style 
 </PRE>
-<P>Use accelerated variants of various styles if they exist.  The style
-can be <I>opt</I> or <I>gpu</I> or <I>cuda</I>.  The variant styles are part of
-optional packages that LAMMPS can be built with, as described above in
-<A HREF = "#2_3">Section 2.3</A>.  Also see the <A HREF = "accelerator.html">acclerator</A>
-command doc page.  The "opt" style corrsponds to the OPT package, the
-"gpu" style to the GPU package, and the "cuda" style to the USER-CUDA
-package.  For example, all of the packages provide a <A HREF = "pair_lj.html">pair_style
-lj/cut</A> variant, with style names lj/cut/opt or
-lj/cut/gpu or lj/cut/cuda.
+<P>Use accelerated variants of various styles if they exist.  The
+specified style can be <I>none</I> or <I>opt</I> or <I>gpu</I> or <I>cuda</I>.  <I>None</I>
+means do not attempt to use an accelerated style, unless it is
+explicitly specified in the input script.  <I>Opt</I>, <I>gpu</I>, and <I>cuda</I>
+refer to optional packages that LAMMPS can be built with, as described
+above in <A HREF = "#2_3">Section 2.3</A>.  The "opt" style corrsponds to the OPT
+package, the "gpu" style to the GPU package, and the "cuda" style to
+the USER-CUDA package.
 </P>
-<P>These accelerated styles can be specified explicitly in your input
-script, e.g. pair_style lj/cut/gpu.  If the -accelerator switch is
-used, you do not need to modify your input script.  The accelerator
-suffix (opt,gpu,cuda) is automatically appended when the style is
-created for atom, pair, fix, compute, and integrate styles.  If an
-accelerated version does not exist, the standard version is created.
-See the <A HREF = "accelerator.html">accelerator</A> command for info on how to
-temporarily turn off this option.
+<P>As an example, all of the packages provide a <A HREF = "pair_lj.html">pair_style
+lj/cut</A> variant, with style names lj/cut/opt or
+lj/cut/gpu or lj/cut/cuda.  Any accelerated styles can be specified
+explicitly in your input script, e.g. pair_style lj/cut/gpu.  If the
+-accelerator switch is used, you do not need to modify your input
+script.  The accelerator suffix (opt,gpu,cuda) is automatically
+appended when the style is created for atom, pair, fix, compute, and
+integrate styles.  If an accelerated version does not exist, the
+standard version is created.
+</P>
+<P>The default value of this switch is "none", unless LAMMPS was built
+with the USER-CUDA package, in which case the default value is "cuda".
+See the <A HREF = "accelerator.html">acclerator</A> command doc page for info on how
+to turn off/on the suffix associated with this switch within your
+input script.
 </P>
 <PRE>-echo style 
 </PRE>
@@ -830,6 +837,28 @@ the input script will be echoed to the screen and/or logfile.  This
 can be useful to figure out which line of your script is causing an
 input error.  The default value is <I>log</I>.  The echo style can also be
 set by using the <A HREF = "echo.html">echo</A> command in the input script itself.
+</P>
+<PRE>-in file 
+</PRE>
+<P>Specify a file to use as an input script.  This is an optional switch
+when running LAMMPS in one-partition mode.  If it is not specified,
+LAMMPS reads its input script from stdin - e.g. lmp_linux < in.run.
+This is a required switch when running LAMMPS in multi-partition mode,
+since multiple processors cannot all read from stdin.
+</P>
+<PRE>-log file 
+</PRE>
+<P>Specify a log file for LAMMPS to write status information to.  In
+one-partition mode, if the switch is not used, LAMMPS writes to the
+file log.lammps.  If this switch is used, LAMMPS writes to the
+specified file.  In multi-partition mode, if the switch is not used, a
+log.lammps file is created with hi-level status information.  Each
+partition also writes to a log.lammps.N file where N is the partition
+ID.  If the switch is specified in multi-partition mode, the hi-level
+logfile is named "file" and each partition also logs information to a
+file.N.  For both one-partition and multi-partition mode, if the
+specified file is "none", then no log files are created.  Using a
+<A HREF = "log.html">log</A> command in the input script will override this setting.
 </P>
 <PRE>-partition 8x2 4 5 ... 
 </PRE>
@@ -856,28 +885,6 @@ see the <A HREF = "variable.html">variable</A> and <A HREF = "next.html">next</A
 these commands in this way.  Simulations running on different
 partitions can also communicate with each other; see the
 <A HREF = "temper.html">temper</A> command.
-</P>
-<PRE>-in file 
-</PRE>
-<P>Specify a file to use as an input script.  This is an optional switch
-when running LAMMPS in one-partition mode.  If it is not specified,
-LAMMPS reads its input script from stdin - e.g. lmp_linux < in.run.
-This is a required switch when running LAMMPS in multi-partition mode,
-since multiple processors cannot all read from stdin.
-</P>
-<PRE>-log file 
-</PRE>
-<P>Specify a log file for LAMMPS to write status information to.  In
-one-partition mode, if the switch is not used, LAMMPS writes to the
-file log.lammps.  If this switch is used, LAMMPS writes to the
-specified file.  In multi-partition mode, if the switch is not used, a
-log.lammps file is created with hi-level status information.  Each
-partition also writes to a log.lammps.N file where N is the partition
-ID.  If the switch is specified in multi-partition mode, the hi-level
-logfile is named "file" and each partition also logs information to a
-file.N.  For both one-partition and multi-partition mode, if the
-specified file is "none", then no log files are created.  Using a
-<A HREF = "log.html">log</A> command in the input script will override this setting.
 </P>
 <PRE>-screen file 
 </PRE>

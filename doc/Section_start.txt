@@ -774,43 +774,50 @@ more processors or setup a smaller problem.
 2.6 Command-line options :h4,link(2_6)
 
 At run time, LAMMPS recognizes several optional command-line switches
-which may be used in any order.  Either the full word or the
-one-letter abbreviation can be used:
+which may be used in any order.  Either the full word or a one-letter
+abbreviation can be used:
 
--accelerator or -a
--echo or -e
--partition or -p
--in or -i
--log or -l
--screen or -s
--var or -v :ul
+-a or -accelerator
+-e or -echo
+-i or -in
+-l or -log
+-p or -partition
+-s or -screen
+-v or -var :ul
 
 For example, lmp_ibm might be launched as follows:
 
+mpirun -np 16 lmp_ibm -v f tmp.out -l my.log -s none < in.alloy
 mpirun -np 16 lmp_ibm -var f tmp.out -log my.log -screen none < in.alloy :pre
 
 Here are the details on the options:
 
 -accelerator style :pre
 
-Use accelerated variants of various styles if they exist.  The style
-can be {opt} or {gpu} or {cuda}.  The variant styles are part of
-optional packages that LAMMPS can be built with, as described above in
-"Section 2.3"_#2_3.  Also see the "acclerator"_accelerator.html
-command doc page.  The "opt" style corrsponds to the OPT package, the
-"gpu" style to the GPU package, and the "cuda" style to the USER-CUDA
-package.  For example, all of the packages provide a "pair_style
-lj/cut"_pair_lj.html variant, with style names lj/cut/opt or
-lj/cut/gpu or lj/cut/cuda.
+Use accelerated variants of various styles if they exist.  The
+specified style can be {none} or {opt} or {gpu} or {cuda}.  {None}
+means do not attempt to use an accelerated style, unless it is
+explicitly specified in the input script.  {Opt}, {gpu}, and {cuda}
+refer to optional packages that LAMMPS can be built with, as described
+above in "Section 2.3"_#2_3.  The "opt" style corrsponds to the OPT
+package, the "gpu" style to the GPU package, and the "cuda" style to
+the USER-CUDA package.
 
-These accelerated styles can be specified explicitly in your input
-script, e.g. pair_style lj/cut/gpu.  If the -accelerator switch is
-used, you do not need to modify your input script.  The accelerator
-suffix (opt,gpu,cuda) is automatically appended when the style is
-created for atom, pair, fix, compute, and integrate styles.  If an
-accelerated version does not exist, the standard version is created.
-See the "accelerator"_accelerator.html command for info on how to
-temporarily turn off this option.
+As an example, all of the packages provide a "pair_style
+lj/cut"_pair_lj.html variant, with style names lj/cut/opt or
+lj/cut/gpu or lj/cut/cuda.  Any accelerated styles can be specified
+explicitly in your input script, e.g. pair_style lj/cut/gpu.  If the
+-accelerator switch is used, you do not need to modify your input
+script.  The accelerator suffix (opt,gpu,cuda) is automatically
+appended when the style is created for atom, pair, fix, compute, and
+integrate styles.  If an accelerated version does not exist, the
+standard version is created.
+
+The default value of this switch is "none", unless LAMMPS was built
+with the USER-CUDA package, in which case the default value is "cuda".
+See the "acclerator"_accelerator.html command doc page for info on how
+to turn off/on the suffix associated with this switch within your
+input script.
 
 -echo style :pre
 
@@ -820,6 +827,28 @@ the input script will be echoed to the screen and/or logfile.  This
 can be useful to figure out which line of your script is causing an
 input error.  The default value is {log}.  The echo style can also be
 set by using the "echo"_echo.html command in the input script itself.
+
+-in file :pre
+
+Specify a file to use as an input script.  This is an optional switch
+when running LAMMPS in one-partition mode.  If it is not specified,
+LAMMPS reads its input script from stdin - e.g. lmp_linux < in.run.
+This is a required switch when running LAMMPS in multi-partition mode,
+since multiple processors cannot all read from stdin.
+
+-log file :pre
+
+Specify a log file for LAMMPS to write status information to.  In
+one-partition mode, if the switch is not used, LAMMPS writes to the
+file log.lammps.  If this switch is used, LAMMPS writes to the
+specified file.  In multi-partition mode, if the switch is not used, a
+log.lammps file is created with hi-level status information.  Each
+partition also writes to a log.lammps.N file where N is the partition
+ID.  If the switch is specified in multi-partition mode, the hi-level
+logfile is named "file" and each partition also logs information to a
+file.N.  For both one-partition and multi-partition mode, if the
+specified file is "none", then no log files are created.  Using a
+"log"_log.html command in the input script will override this setting.
 
 -partition 8x2 4 5 ... :pre
 
@@ -846,28 +875,6 @@ see the "variable"_variable.html and "next"_next.html commands.  This
 these commands in this way.  Simulations running on different
 partitions can also communicate with each other; see the
 "temper"_temper.html command.
-
--in file :pre
-
-Specify a file to use as an input script.  This is an optional switch
-when running LAMMPS in one-partition mode.  If it is not specified,
-LAMMPS reads its input script from stdin - e.g. lmp_linux < in.run.
-This is a required switch when running LAMMPS in multi-partition mode,
-since multiple processors cannot all read from stdin.
-
--log file :pre
-
-Specify a log file for LAMMPS to write status information to.  In
-one-partition mode, if the switch is not used, LAMMPS writes to the
-file log.lammps.  If this switch is used, LAMMPS writes to the
-specified file.  In multi-partition mode, if the switch is not used, a
-log.lammps file is created with hi-level status information.  Each
-partition also writes to a log.lammps.N file where N is the partition
-ID.  If the switch is specified in multi-partition mode, the hi-level
-logfile is named "file" and each partition also logs information to a
-file.N.  For both one-partition and multi-partition mode, if the
-specified file is "none", then no log files are created.  Using a
-"log"_log.html command in the input script will override this setting.
 
 -screen file :pre
 

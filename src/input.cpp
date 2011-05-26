@@ -42,7 +42,7 @@
 #include "neighbor.h"
 #include "special.h"
 #include "variable.h"
-#include "accelerator.h"
+#include "accelerator_cuda.h"
 #include "error.h"
 #include "memory.h"
 
@@ -813,13 +813,13 @@ void Input::accelerator()
 
   if (strcmp(arg[0],"off") == 0) {
     if (narg != 1) error->all("Illegal accelerator command");
-    lmp->offaccel = 1;
+    lmp->accelerator = 0;
     return;
   }
 
   if (strcmp(arg[0],"on") == 0) {
     if (narg != 1) error->all("Illegal accelerator command");
-    lmp->offaccel = 0;
+    lmp->accelerator = 1;
     return;
   }
 

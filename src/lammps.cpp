@@ -27,12 +27,10 @@
 #include "modify.h"
 #include "group.h"
 #include "output.h"
-#include "accelerator.h"
+#include "accelerator_cuda.h"
 #include "timer.h"
 
 using namespace LAMMPS_NS;
-
-enum{NOACCEL,OPT,GPU,USERCUDA};
 
 /* ----------------------------------------------------------------------
    start up LAMMPS
@@ -52,15 +50,30 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   screen = NULL;
   logfile = NULL;
 
+  // create CUDA class
+  // cuda = true version if USER-CUDA installed, else dummy
+
+  cuda = new Cuda(this);
+  if (!cuda->cuda_exists) {
+    delete cuda;
+    cuda = NULL;
+  }
+
   // parse input switches
 
   int inflag = 0;
   int screenflag = 0;
   int logflag = 0;
-  accelerator = NOACCEL;
-  asuffix = NULL;
-  offaccel = 0;
-  cuda = NULL;
+
+  if (cuda) {
+    int n = strlen("cuda") + 1;
+    asuffix = new char[n];
+    strcpy(asuffix,"cuda");
+    accelerator = 1;
+  } else {
+    asuffix = NULL;
+    accelerator = 0;
+  }
 
   int iarg = 1;
 
@@ -101,12 +114,20 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
     } else if (strcmp(arg[iarg],"-accel") == 0 || 
 	       strcmp(arg[iarg],"-a") == 0) {
       if (iarg+2 > narg) error->universe_all("Invalid command-line argument");
-      if (strcmp(arg[iarg+1],"opt") == 0) accelerator = OPT;
-      else if (strcmp(arg[iarg+1],"gpu") == 0) accelerator = GPU;
-      else if (strcmp(arg[iarg+1],"cuda") == 0) accelerator = USERCUDA;
-      else error->universe_all("Invalid command-line argument");
-      asuffix = new char[8];
-      strcpy(asuffix,arg[iarg+1]);
+      if (strcmp(arg[iarg+1],"none") == 0) {
+	delete [] asuffix;
+	asuffix = NULL;
+	accelerator = 0;
+      } else if (strcmp(arg[iarg+1],"opt") == 0 ||
+		 strcmp(arg[iarg+1],"gpu") == 0 ||
+		 strcmp(arg[iarg+1],"cuda") == 0) {
+	int n = strlen(arg[iarg+1]) + 1;
+	asuffix = new char[n];
+	strcpy(asuffix,arg[iarg+1]);
+	accelerator = 1;
+      }
+      if (strcmp(asuffix,"cuda") == 0 && !cuda)
+	error->all("Cannot use -a cuda without USER-CUDA package installed");
       iarg += 2;
     } else error->universe_all("Invalid command-line argument");
   }
@@ -277,16 +298,6 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   if (mpisize != sizeof(bigint))
       error->all("MPI_LMP_BIGINT and bigint in lmptype.h are not compatible");
 
-  // check consistency of -a switch with installed packages
-  // for OPT and GPU, no problem if not installed
-  // for USER-CUDA, throw error if not installed
-
-  if (accelerator == USERCUDA) {
-    cuda = new Cuda(this);
-    if (!cuda->cuda_exists)
-      error->all("Command-line switch requires USER-CUDA package be installed");
-  }
-
   // allocate input class now that MPI is fully setup
 
   input = new Input(this,narg,arg);
@@ -307,7 +318,6 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
 LAMMPS::~LAMMPS()
 {
   destroy();
-  if (accelerator == USERCUDA) delete cuda;
 
   if (universe->nworlds == 1) {
     if (logfile) fclose(logfile);
@@ -320,6 +330,7 @@ LAMMPS::~LAMMPS()
   if (world != universe->uworld) MPI_Comm_free(&world);
 
   delete [] asuffix;
+  delete cuda;
 
   delete input;
   delete universe;
@@ -337,19 +348,19 @@ void LAMMPS::create()
 {
   atom = new Atom(this);
 
-  if (accelerator == USERCUDA) neighbor = new NeighborCuda(this);
+  if (cuda) neighbor = new NeighborCuda(this);
   else neighbor = new Neighbor(this);
 
-  if (accelerator == USERCUDA) comm = new CommCuda(this);
+  if (cuda) comm = new CommCuda(this);
   else comm = new Comm(this);
 
-  if (accelerator == USERCUDA) domain = new DomainCuda(this);
+  if (cuda) domain = new DomainCuda(this);
   else domain = new Domain(this);
 
   group = new Group(this);
   force = new Force(this);    // must be after group, to create temperature
 
-  if (accelerator == USERCUDA) modify = new ModifyCuda(this);
+  if (cuda) modify = new ModifyCuda(this);
   else modify = new Modify(this);
 
   output = new Output(this);  // must be after group, so "all" exists
@@ -364,7 +375,7 @@ void LAMMPS::create()
 
 void LAMMPS::init()
 {
-  if (accelerator == USERCUDA) cuda->accelerator(0,NULL);
+  if (cuda) cuda->accelerator(0,NULL);
  
   update->init();
   force->init();         // pair must come after update due to minimizer

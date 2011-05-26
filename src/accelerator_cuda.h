@@ -11,11 +11,25 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#ifndef LMP_ACCELERATOR_CUDA_H
+#define LMP_ACCELERATOR_CUDA_H
+
+// true interface to USER-CUDA
+// used when USER-CUDA is installed
+
+#ifdef LMP_USER_CUDA
+
+#include "cuda.h"
+#include "comm_cuda.h"
+#include "domain_cuda.h"
+#include "neighbor_cuda.h"
+#include "modify_cuda.h"
+#include "verlet_cuda.h"
+
+#else
+
 // dummy interface to USER-CUDA
 // used when USER-CUDA is not installed
-
-#ifndef LMP_ACCELERATOR_H
-#define LMP_ACCELERATOR_H
 
 #include "comm.h"
 #include "modify.h"
@@ -70,4 +84,5 @@ class VerletCuda : public Verlet {
 
 }
 
+#endif
 #endif

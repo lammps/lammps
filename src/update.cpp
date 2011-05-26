@@ -25,13 +25,10 @@
 #include "region.h"
 #include "compute.h"
 #include "output.h"
-#include "accelerator.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
-
-enum{NOACCEL,OPT,GPU,USERCUDA};     // same as lammps.cpp
 
 /* ---------------------------------------------------------------------- */
 
@@ -225,7 +222,7 @@ void Update::new_integrate(char *style, int narg, char **arg,
 {
   int success = 0;
 
-  if (suffix && lmp->offaccel == 0) {
+  if (suffix && lmp->accelerator) {
     sflag = 1;
     char estyle[256];
     sprintf(estyle,"%s/%s",style,suffix);

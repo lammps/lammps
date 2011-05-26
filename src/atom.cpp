@@ -31,7 +31,7 @@
 #include "update.h"
 #include "domain.h"
 #include "group.h"
-#include "accelerator.h"
+#include "accelerator_cuda.h"
 #include "memory.h"
 #include "error.h"
 
@@ -41,8 +41,6 @@ using namespace LAMMPS_NS;
 #define DELTA_MEMSTR 1024
 #define EPSILON 1.0e-6
 #define CUDA_CHUNK 3000
-
-enum{NOACCEL,OPT,GPU,USERCUDA};     // same as lammps.cpp
 
 #define MIN(A,B) ((A) < (B)) ? (A) : (B)
 #define MAX(A,B) ((A) > (B)) ? (A) : (B)
@@ -289,7 +287,7 @@ void Atom::create_avec(const char *style, int narg, char **arg, char *suffix)
 AtomVec *Atom::new_avec(const char *style, int narg, char **arg,
 			char *suffix, int &sflag)
 {
-  if (suffix && lmp->offaccel == 0) {
+  if (suffix && lmp->accelerator) {
     sflag = 1;
     char estyle[256];
     sprintf(estyle,"%s/%s",style,suffix);
@@ -1335,8 +1333,7 @@ void Atom::sort()
 
   // download data from GPU if necessary
 
-  if (lmp->accelerator == USERCUDA && !lmp->cuda->oncpu) 
-    lmp->cuda->downloadAll();
+  if (lmp->cuda && !lmp->cuda->oncpu) lmp->cuda->downloadAll();
 
   // re-setup sort bins if needed
 
@@ -1415,8 +1412,7 @@ void Atom::sort()
 
   // upload data back to GPU if necessary
 
-  if (lmp->accelerator == USERCUDA && !lmp->cuda->oncpu)
-    lmp->cuda->uploadAll();
+  if (lmp->cuda && !lmp->cuda->oncpu) lmp->cuda->uploadAll();
 
   // sanity check that current = permute
 
@@ -1434,14 +1430,16 @@ void Atom::sort()
 
 void Atom::setup_sort_bins()
 {
-  // binsize = user setting or default
-  // default = 1/2 of neighbor cutoff for non-CUDA
-  //           CUDA_CHUNK atoms/proc for CUDA
+  // binsize:
+  // user setting if explicitly set
+  // 1/2 of neighbor cutoff for non-CUDA
+  // CUDA_CHUNK atoms/proc for CUDA
   // check if neighbor cutoff = 0.0
 
   double binsize;
   if (userbinsize > 0.0) binsize = userbinsize;
-  else if (lmp->accelerator == USERCUDA) {
+  else if (!lmp->cuda) binsize = 0.5 * neighbor->cutneighmax;
+  else {
     if (domain->dimension == 3) {
       double vol = (domain->boxhi[0]-domain->boxlo[0]) * 
 	(domain->boxhi[1]-domain->boxlo[1]) * 
@@ -1452,7 +1450,7 @@ void Atom::setup_sort_bins()
 	(domain->boxhi[1]-domain->boxlo[1]);
       binsize = pow(1.0*CUDA_CHUNK/natoms*area,1.0/2.0);
     }
-  } else binsize = 0.5 * neighbor->cutneighmax;
+  }
   if (binsize == 0.0) error->all("Atom sorting has bin size = 0.0");
 
   double bininv = 1.0/binsize;

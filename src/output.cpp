@@ -30,13 +30,11 @@
 #include "force.h"
 #include "dump.h"
 #include "write_restart.h"
+#include "accelerator_cuda.h"
 #include "memory.h"
 #include "error.h"
-#include "accelerator.h"
 
 using namespace LAMMPS_NS;
-
-enum{NOACCEL,OPT,GPU,USERCUDA};     // same as lammps.cpp
 
 #define DELTA 1
 
@@ -250,8 +248,7 @@ void Output::write(bigint ntimestep)
 
   if (next_dump_any == ntimestep) {
 
-    if (lmp->accelerator == USERCUDA && !lmp->cuda->oncpu)
-      lmp->cuda->downloadAll();    
+    if (lmp->cuda && !lmp->cuda->oncpu) lmp->cuda->downloadAll();    
     
     for (int idump = 0; idump < ndump; idump++) {
       if (next_dump[idump] == ntimestep && last_dump[idump] != ntimestep) {
@@ -279,8 +276,7 @@ void Output::write(bigint ntimestep)
 
   if (next_restart == ntimestep && last_restart != ntimestep) {
 
-    if (lmp->accelerator == USERCUDA && !lmp->cuda->oncpu) 
-      lmp->cuda->downloadAll();    
+    if (lmp->cuda && !lmp->cuda->oncpu) lmp->cuda->downloadAll();    
     
     if (restart_toggle == 0) {
       char *file = new char[strlen(restart1) + 16];

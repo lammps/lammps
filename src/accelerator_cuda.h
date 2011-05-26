@@ -29,7 +29,7 @@
 #else
 
 // dummy interface to USER-CUDA
-// used when USER-CUDA is not installed
+// needed for compiling when USER-CUDA is not installed
 
 #include "comm.h"
 #include "modify.h"
@@ -41,11 +41,9 @@ class Cuda {
  public:
   int cuda_exists;
   int oncpu;
-  int neighbor_decide_by_integrator;
   
   Cuda(class LAMMPS *) {cuda_exists = 0;}
   ~Cuda() {}
-  void setDevice(class LAMMPS *) {}
   void accelerator(int, char **) {}
   void evsetup_eatom_vatom(int, int) {}
   void downloadAll() {}

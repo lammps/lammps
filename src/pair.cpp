@@ -30,7 +30,7 @@
 #include "comm.h"
 #include "force.h"
 #include "update.h"
-#include "accelerator.h"
+#include "accelerator_cuda.h"
 #include "memory.h"
 #include "error.h"
 
@@ -41,7 +41,6 @@ using namespace LAMMPS_NS;
 
 enum{GEOMETRIC,ARITHMETIC,SIXTHPOWER};
 enum{R,RSQ,BMP};
-enum{NOACCEL,OPT,GPU,USERCUDA};     // same as lammps.cpp
 
 /* ---------------------------------------------------------------------- */
 
@@ -328,8 +327,7 @@ void Pair::ev_setup(int eflag, int vflag)
     if (vflag_either == 0 && eflag_either == 0) evflag = 0;
   } else vflag_fdotr = 0;
 
-  if (lmp->accelerator == USERCUDA)
-    lmp->cuda->evsetup_eatom_vatom(eflag_atom,vflag_atom);
+  if (lmp->cuda) lmp->cuda->evsetup_eatom_vatom(eflag_atom,vflag_atom);
 }
 
 /* ----------------------------------------------------------------------

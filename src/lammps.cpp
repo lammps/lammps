@@ -50,8 +50,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   screen = NULL;
   logfile = NULL;
 
-  // create CUDA class
-  // cuda = true version if USER-CUDA installed, else dummy
+  // create CUDA class if USER-CUDA installed, else dummy
 
   cuda = new Cuda(this);
   if (!cuda->cuda_exists) {

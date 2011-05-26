@@ -808,23 +808,20 @@ void Input::accelerator()
   if (domain->box_exist) 
     error->all("Accelerator command after simulation box is defined");
   if (narg < 1) error->all("Illegal accelerator command");
-  if (!lmp->asuffix || (strcmp(lmp->asuffix,arg[0]) != 0))
-    error->all("Accelerator command requires matching command-line -a switch");
 
   if (strcmp(arg[0],"off") == 0) {
     if (narg != 1) error->all("Illegal accelerator command");
     lmp->accelerator = 0;
     return;
-  }
-
-  if (strcmp(arg[0],"on") == 0) {
+  } else if (strcmp(arg[0],"on") == 0) {
     if (narg != 1) error->all("Illegal accelerator command");
     lmp->accelerator = 1;
     return;
-  }
-
-  if (strcmp(arg[0],"cuda") == 0) lmp->cuda->accelerator(narg-1,&arg[1]);
-  else error->all("Illegal accelerator command");
+  } else if (strcmp(arg[0],"cuda") == 0) {
+    if (!lmp->cuda) error->all("Accelerator cuda command without "
+			       "USER-CUDA package installed");
+    lmp->cuda->accelerator(narg-1,&arg[1]);
+  } else error->all("Illegal accelerator command");
 }
 
 /* ---------------------------------------------------------------------- */

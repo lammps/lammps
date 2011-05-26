@@ -86,8 +86,7 @@ it gives quick access to documentation for all LAMMPS commands.
   2.5 "Running LAMMPS"_2_5 :b
   2.6 "Command-line options"_2_6 :b
   2.7 "Screen output"_2_7 :b
-  2.8 "Running on GPUs"_2_8 :b
-  2.9 "Tips for users of previous versions"_2_9 :ule,b
+  2.8 "Tips for users of previous versions"_2_8 :ule,b
 "Commands"_Section_commands.html :l
   3.1 "LAMMPS input script"_3_1 :ulb,b
   3.2 "Parsing rules"_3_2 :b
@@ -119,7 +118,7 @@ it gives quick access to documentation for all LAMMPS commands.
 "Example problems"_Section_example.html :l
 "Performance & scalability"_Section_perf.html :l
 "Additional tools"_Section_tools.html :l
-"Modifying & Extending LAMMPS"_Section_modify.html :l
+"Modifying & extending LAMMPS"_Section_modify.html :l
 "Python interface"_Section_python.html :l
   9.1 "Extending Python with a serial version of LAMMPS"_9_1 :ulb,b
   9.2 "Creating a shared MPI library"_9_2 :b
@@ -128,13 +127,18 @@ it gives quick access to documentation for all LAMMPS commands.
   9.5 "Testing the Python-LAMMPS interface"_9_5 :b
   9.6 "Using LAMMPS from Python"_9_6 :b
   9.7 "Example Python scripts that use LAMMPS"_9_7 :ule,b
+"Using accelelerated CPU and GPU styles"_Section_accelerate.html :l
+  10.1 "OPT package"_10_1 :ulb,b
+  10.2 "GPU package"_10_2 :b
+  10.3 "USER-CUDA package"_10_3 :b
+  10.4 "Comparison of GPU and USER-CUDA packages"_10_4 :ule,b
 "Errors"_Section_errors.html :l
-  10.1 "Common problems"_10_1 :ulb,b
-  10.2 "Reporting bugs"_10_2 :b
-  10.3 "Error & warning messages"_10_3 :ule,b
+  11.1 "Common problems"_11_1 :ulb,b
+  11.2 "Reporting bugs"_11_2 :b
+  11.3 "Error & warning messages"_11_3 :ule,b
 "Future and history"_Section_history.html :l
-  11.1 "Coming attractions"_11_1 :ulb,b
-  11.2 "Past versions"_11_2 :ule,b
+  12.1 "Coming attractions"_12_1 :ulb,b
+  12.2 "Past versions"_12_2 :ule,b
 :ole
 
 :link(1_1,Section_intro.html#1_1)
@@ -151,7 +155,6 @@ it gives quick access to documentation for all LAMMPS commands.
 :link(2_6,Section_start.html#2_6)
 :link(2_7,Section_start.html#2_7)
 :link(2_8,Section_start.html#2_8)
-:link(2_9,Section_start.html#2_9)
 
 :link(3_1,Section_commands.html#3_1)
 :link(3_2,Section_commands.html#3_2)
@@ -192,8 +195,13 @@ it gives quick access to documentation for all LAMMPS commands.
 :link(10_1,Section_errors.html#10_1)
 :link(10_2,Section_errors.html#10_2)
 :link(10_3,Section_errors.html#10_3)
+:link(10_4,Section_errors.html#10_4)
 
-:link(11_1,Section_history.html#11_1)
-:link(11_2,Section_history.html#11_2)
+:link(11_1,Section_errors.html#11_1)
+:link(11_2,Section_errors.html#11_2)
+:link(11_3,Section_errors.html#11_3)
+
+:link(12_1,Section_history.html#12_1)
+:link(12_2,Section_history.html#12_2)
 
 </BODY>

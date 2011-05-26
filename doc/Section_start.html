@@ -21,8 +21,7 @@ experienced users.
 2.5 <A HREF = "#2_5">Running LAMMPS</A><BR>
 2.6 <A HREF = "#2_6">Command-line options</A><BR>
 2.7 <A HREF = "#2_7">Screen output</A><BR>
-2.8 <A HREF = "#2_8">Running on GPUs</A><BR>
-2.9 <A HREF = "#2_9">Tips for users of previous versions</A> <BR>
+2.8 <A HREF = "#2_8">Tips for users of previous versions</A> <BR>
 
 <HR>
 
@@ -467,21 +466,19 @@ documentation.
 
 <A NAME = "2_3_2"></A><B><I>Including/excluding packages:</I></B> 
 
-<P>Any or all packages can be included or excluded independently BEFORE
+<P>To use or not use a package you must be include or exclude it before
 LAMMPS is built.
 </P>
-<P>The two exceptions to this are the "gpu" and "opt" packages.  Some of
-the files in these packages require other packages to also be
-included.  If this is not the case, then those subsidiary files in
-"gpu" and "opt" will not be installed either.  To install all the
-files in package "gpu", the "asphere" and "kspace" packages must also be 
-installed. To install all the files in package "opt", the "kspace" and 
-"manybody" packages must also be installed.
+<P>Some packages have individual files that depend on other packages
+being included, but LAMMPS checks for this and does the right thing.
+I.e. individual files are only included if their dependencies are
+already included.  Likewise, if a package is excluded, other files
+dependent on that package are also excluded.
 </P>
-<P>You may wish to exclude certain packages if you will never run certain
-kinds of simulations.  This will keep you from having to build
-auxiliary libraries (see below) and will produce a smaller executable
-which may run a bit faster.
+<P>The reason to exclude packages is if you will never run certain kinds
+of simulations.  This will keep you from having to build auxiliary
+libraries (see below) and will produce a smaller executable which may
+run a bit faster.
 </P>
 <P>By default, LAMMPS includes only the "kspace", "manybody", and
 "molecule" packages.
@@ -531,15 +528,24 @@ link with the library file.
 </P>
 <P>The "atc" library in lib/atc is used by the user-atc package.  It
 provides continuum field estimation and molecular dynamics-finite
-element coupling methods.  It was written primarily by Reese Jones,
-Jeremy Templeton and Jonathan Zimmerman at Sandia.
+element coupling methods.
 </P>
-<P>The "gpu" library in lib/gpu is used by the gpu package.  It
-contains code to enable portions of LAMMPS to run on a GPU chip
-associated with your CPU.  Currently, only NVIDIA GPUs are supported.
+<P>The "cuda" library in lib/cuda is used by the user-cuda package.  It
+contains code to enable portions of LAMMPS to run on NVIDIA GPUs
+associated with your CPUs.  Currently, only NVIDIA GPUs are supported.
 Building this library requires NVIDIA Cuda tools to be installed on
-your system.  See the <A HREF = "#2_8">Running on GPUs</A> section below for more
-info about installing and using Cuda.
+your system.  See <A HREF = "Section_accelerate.html#10_3">this section</A> of the
+manual for more information about using this package effectively and
+how it differs from the gpu package.
+</P>
+<P>The "gpu" library in lib/gpu is used by the gpu package.  It contains
+code to enable portions of LAMMPS to run on GPUs associated with your
+CPUs.  Currently, only NVIDIA GPUs are supported, but eventually this
+may be extended to OpenCL.  Building this library requires NVIDIA Cuda
+tools to be installed on your system.  See <A HREF = "Section_accelerate.html#10_2">this
+section</A> of the manual for more
+information about using this package effectively and how it differs
+from the user-cuda package.
 </P>
 <P>The "meam" library in lib/meam is used by the meam package.
 computes the modified embedded atom method potential, which is a
@@ -573,8 +579,8 @@ obtained by adding a machine-specific macro definition to the CCFLAGS
 variable in your Makefile e.g. -D_IBM. See pair_reax_fortran.h for
 more info.
 </P>
-<P>As described in its README file, each library is built by typing
-something like
+<P>As described in the README file in each lib directory, each library is
+typically built by typing something like
 </P>
 <PRE>make -f Makefile.g++ 
 </PRE>
@@ -585,6 +591,11 @@ the provided Makefiles is not appropriate for your system you will
 need to edit or add one.  For example, in the case of Fotran-based
 libraries, your system must have a Fortran compiler, the settings for
 which will be in the Makefile.
+</P>
+<P>Note that the cuda library, used by the user-cuda package is an
+exception.  See its README file and <A HREF = "Section_accelerate.html#10_3">this
+section</A> of the manual for instructions
+on how to build it.
 </P>
 <HR>
 
@@ -604,10 +615,10 @@ make g++
 from LAMMPS.  As in this example, you must also include the package
 that uses and wraps the library before you build LAMMPS itself.
 </P>
-<P>As discussed in point (2.4) of <A HREF = "#2_2_4">this section</A> above, there are
+<P>As discussed in point (3.e) of <A HREF = "#2_2_4">this section</A> above, there are
 settings in the low-level Makefile that specify additional system
-libraries needed by individual LAMMPS add-on libraries.  These are the
-settings you must specify correctly in your low-level Makefile in
+libraries needed by some of the LAMMPS add-on libraries.  These are
+the settings you must specify correctly in your low-level Makefile in
 lammps/src/MAKE, such as Makefile.foo:
 </P>
 <P>To use the gpu package and library, the settings for gpu_SYSLIB and
@@ -620,7 +631,7 @@ reax_SYSPATH must be correct.  This is so that the C++ compiler can
 perform a cross-language link using the appropriate system Fortran
 libraries.
 </P>
-<P>To use the user-atc package and library, the settings for
+<P>To use the user-atc package and atc library, the settings for
 user-atc_SYSLIB and user-atc_SYSPATH must be correct.  This is so that
 the appropriate BLAS and LAPACK libs, used by the user-atc library,
 can be found.
@@ -825,9 +836,9 @@ standard version is created.
 </P>
 <P>The default value of this switch is "none", unless LAMMPS was built
 with the USER-CUDA package, in which case the default value is "cuda".
-See the <A HREF = "accelerator.html">acclerator</A> command doc page for info on how
-to turn off/on the suffix associated with this switch within your
-input script.
+See the <A HREF = "accelerator.html">acclerator</A> command for info on how to turn
+off/on the suffix associated with this switch within your input
+script.
 </P>
 <PRE>-echo style 
 </PRE>
@@ -1016,140 +1027,7 @@ communication, roughly 75% in the example above.
 </P>
 <HR>
 
-<H4><A NAME = "2_8"></A>2.8 Running on GPUs 
-</H4>
-<P>A few LAMMPS <A HREF = "pair_style.html">pair styles</A> can be run on graphical
-processing units (GPUs).  We plan to add more over time.  Currently,
-they only support NVIDIA GPU cards.  To use them you need to install
-certain NVIDIA CUDA software on your system:
-</P>
-<UL><LI>Check if you have an NVIDIA card: cat /proc/driver/nvidia/cards/0
-<LI>Go to http://www.nvidia.com/object/cuda_get.html
-<LI>Install a driver and toolkit appropriate for your system (SDK is not necessary)
-<LI>Follow the instructions in README in lammps/lib/gpu to build the library
-<LI>Run lammps/lib/gpu/nvc_get_devices to list supported devices and properties 
-</UL>
-<H4>GPU configuration 
-</H4>
-<P>When using GPUs, you are restricted to one physical GPU per LAMMPS
-process. Multiple processes can share a single GPU and in many cases
-it will be more efficient to run with multiple processes per GPU. Any
-GPU accelerated style requires that <A HREF = "fix_gpu.html">fix gpu</A> be used in
-the input script to select and initialize the GPUs. The format for the
-fix is:
-</P>
-<PRE>fix <I>name</I> all gpu <I>mode</I> <I>first</I> <I>last</I> <I>split</I> 
-</PRE>
-<P>where <I>name</I> is the name for the fix. The gpu fix must be the first
-fix specified for a given run, otherwise the program will exit with an
-error. The gpu fix will not have any effect on runs that do not use
-GPU acceleration; there should be no problem with specifying the fix
-first in any input script.
-</P>
-<P><I>mode</I> can be either "force" or "force/neigh". In the former, neighbor
-list calculation is performed on the CPU using the standard LAMMPS
-routines. In the latter, the neighbor list calculation is performed on
-the GPU. The GPU neighbor list can be used for better performance,
-however, it cannot not be used with a triclinic box or with
-<A HREF = "pair_hybrid.html">hybrid</A> pair styles.
-</P>
-<P>There are cases when it might be more efficient to select the CPU for
-neighbor list builds. If a non-GPU enabled style requires a neighbor
-list, it will also be built using CPU routines. Redundant CPU and GPU
-neighbor list calculations will typically be less efficient.
-</P>
-<P><I>first</I> is the ID (as reported by lammps/lib/gpu/nvc_get_devices) of
-the first GPU that will be used on each node. <I>last</I> is the ID of the
-last GPU that will be used on each node. If you have only one GPU per
-node, <I>first</I> and <I>last</I> will typically both be 0. Selecting a
-non-sequential set of GPU IDs (e.g. 0,1,3) is not currently supported.
-</P>
-<P><I>split</I> is the fraction of particles whose forces, torques, energies,
-and/or virials will be calculated on the GPU. This can be used to
-perform CPU and GPU force calculations simultaneously. If <I>split</I> is
-negative, the software will attempt to calculate the optimal fraction
-automatically every 25 timesteps based on CPU and GPU timings. Because
-the GPU speedups are dependent on the number of particles, automatic
-calculation of the split can be less efficient, but typically results
-in loop times within 20% of an optimal fixed split.
-</P>
-<P>If you have two GPUs per node, 8 CPU cores per node, and would like to
-run on 4 nodes with dynamic balancing of force calculation across CPU
-and GPU cores, the fix might be
-</P>
-<PRE>fix 0 all gpu force/neigh 0 1 -1 
-</PRE>
-<P>with LAMMPS run on 32 processes. In this case, all CPU cores and GPU
-devices on the nodes would be utilized.  Each GPU device would be
-shared by 4 CPU cores. The CPU cores would perform force calculations
-for some fraction of the particles at the same time the GPUs performed
-force calculation for the other particles.
-</P>
-<P>Because of the large number of cores on each GPU device, it might be
-more efficient to run on fewer processes per GPU when the number of
-particles per process is small (100's of particles); this can be
-necessary to keep the GPU cores busy.
-</P>
-<H4>GPU input script 
-</H4>
-<P>In order to use GPU acceleration in LAMMPS, <A HREF = "fix_gpu.html">fix_gpu</A>
-should be used in order to initialize and configure the GPUs for
-use. Additionally, GPU enabled styles must be selected in the input
-script. Currently, this is limited to a few <A HREF = "pair_style.html">pair
-styles</A> and PPPM.  Some GPU-enabled styles have
-additional restrictions listed in their documentation.
-</P>
-<H4>GPU asynchronous pair computation 
-</H4>
-<P>The GPU accelerated pair styles can be used to perform pair style
-force calculation on the GPU while other calculations are performed on
-the CPU. One method to do this is to specify a <I>split</I> in the gpu fix
-as described above.  In this case, force calculation for the pair
-style will also be performed on the CPU.
-</P>
-<P>When the CPU work in a GPU pair style has finished, the next force
-computation will begin, possibly before the GPU has finished. If
-<I>split</I> is 1.0 in the gpu fix, the next force computation will begin
-almost immediately. This can be used to run a
-<A HREF = "pair_hybrid.html">hybrid</A> GPU pair style at the same time as a hybrid
-CPU pair style. In this case, the GPU pair style should be first in
-the hybrid command in order to perform simultaneous calculations. This
-also allows <A HREF = "bond_style.html">bond</A>, <A HREF = "angle_style.html">angle</A>,
-<A HREF = "dihedral_style.html">dihedral</A>, <A HREF = "improper_style.html">improper</A>, and
-<A HREF = "kspace_style.html">long-range</A> force computations to be run
-simultaneously with the GPU pair style.  Once all CPU force
-computations have completed, the gpu fix will block until the GPU has
-finished all work before continuing the run.
-</P>
-<H4>GPU timing 
-</H4>
-<P>GPU accelerated pair styles can perform computations asynchronously
-with CPU computations. The "Pair" time reported by LAMMPS will be the
-maximum of the time required to complete the CPU pair style
-computations and the time required to complete the GPU pair style
-computations. Any time spent for GPU-enabled pair styles for
-computations that run simultaneously with <A HREF = "bond_style.html">bond</A>,
-<A HREF = "angle_style.html">angle</A>, <A HREF = "dihedral_style.html">dihedral</A>,
-<A HREF = "improper_style.html">improper</A>, and <A HREF = "kspace_style.html">long-range</A>
-calculations will not be included in the "Pair" time.
-</P>
-<P>When <I>mode</I> for the gpu fix is force/neigh, the time for neighbor list
-calculations on the GPU will be added into the "Pair" time, not the
-"Neigh" time. A breakdown of the times required for various tasks on
-the GPU (data copy, neighbor calculations, force computations, etc.)
-are output only with the LAMMPS screen output at the end of each
-run. These timings represent total time spent on the GPU for each
-routine, regardless of asynchronous CPU calculations.
-</P>
-<H4>GPU single vs double precision 
-</H4>
-<P>See the lammps/lib/gpu/README file for instructions on how to build
-the LAMMPS gpu library for single, mixed, and double precision.  The
-latter requires that your GPU card supports double precision.
-</P>
-<HR>
-
-<H4><A NAME = "2_9"></A>2.9 Tips for users of previous LAMMPS versions 
+<H4><A NAME = "2_8"></A>2.8 Tips for users of previous LAMMPS versions 
 </H4>
 <P>The current C++ began with a complete rewrite of LAMMPS 2001, which
 was written in F90.  Features of earlier versions of LAMMPS are listed

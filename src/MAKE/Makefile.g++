@@ -62,19 +62,16 @@ gpu_SYSINC =
 meam_SYSINC =
 reax_SYSINC =
 user-atc_SYSINC =
-user-cuda_SYSINC = -I/usr/local/cuda/include -DCUDA -DCUDA_ARCH=20 -DFFT_CUFFT
 
 gpu_SYSLIB =       -lcudart -lcuda
 meam_SYSLIB =      -lgfortran
 reax_SYSLIB =      -lgfortran
 user-atc_SYSLIB =  -lblas -llapack
-user-cuda_SYSLIB = -lcudart -lcuda
 
 gpu_SYSPATH =      -L/usr/local/cuda/lib64
 meam_SYSPATH =
 reax_SYSPATH =
 user-atc_SYSPATH = 	
-user-cuda_SYSPATH = 	
 
 # ---------------------------------------------------------------------
 # build rules and dependencies

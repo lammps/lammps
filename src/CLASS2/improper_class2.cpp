@@ -702,8 +702,8 @@ void ImproperClass2::angleangle(int eflag, int vflag)
     thetaCBD = acos(costhCBD);
 
     dthABC = thetaABC - aa_theta0_1[type];
-    dthCBD = thetaCBD - aa_theta0_2[type];
-    dthABD = thetaABD - aa_theta0_3[type];
+    dthABD = thetaABD - aa_theta0_2[type];
+    dthCBD = thetaCBD - aa_theta0_3[type];
 
     // energy
 

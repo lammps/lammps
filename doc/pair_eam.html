@@ -62,10 +62,8 @@ nature of the EAM potential is a result of the embedding energy term.
 Both summations in the formula are over all neighbors J of atom I
 within the cutoff distance.
 </P>
-<P>Style <I>eam/opt</I> is an optimized version of style <I>eam</I> that should
-give identical answers.  Depending on system size and the processor
-you are running on, it may be 5-25% faster (for the pairwise portion
-of the run time).
+<P>Style (eam/opt</I> is an optimized version of style <I>eam</I>.  See
+more details below.
 </P>
 <P>The cutoff distance and the tabulated values of the functionals F,
 rho, and phi are listed in one or more files which are specified by
@@ -185,10 +183,8 @@ above, <I>setfl</I> files contain explicit tabulated values for alloy
 interactions.  Thus they allow more generality than <I>funcfl</I> files for
 modeling alloys.
 </P>
-<P>Style <I>eam/alloy/opt</I> is an optimized version of style <I>eam/alloy</I>
-that should give identical answers.  Depending on system size and the
-processor you are running on, it may be 5-25% faster (for the pairwise
-portion of the run time).
+<P>Style (eam/alloy/opt</I> is an optimized version of style <I>eam/alloy</I>.
+See more details below.
 </P>
 <P>For style <I>eam/alloy</I>, potential values are read from a file that is
 in the DYNAMO multi-element <I>setfl</I> format, except that element names
@@ -310,10 +306,8 @@ so that different elements can contribute differently to the total
 electron density at an atomic site depending on the identity of the
 element at that atomic site.
 </P>
-<P>Style <I>eam/fs/opt</I> is an optimized version of style <I>eam/fs</I> that
-should give identical answers.  Depending on system size and the
-processor you are running on, it may be 5-25% faster (for the pairwise
-portion of the run time).
+<P>Style (eam/fs/opt</I> is an optimized version of style <I>eam/fs</I>.  See
+more details below.
 </P>
 <P>The associated <A HREF = "pair_coeff.html">pair_coeff</A> command for style <I>eam/fs</I>
 reads a DYNAMO <I>setfl</I> file that has been extended to include
@@ -374,6 +368,13 @@ phi(r) array are listed in the same manner (r*phi, units of
 eV-Angstroms) as in EAM <I>setfl</I> files.  Note that in Finnis/Sinclair,
 the phi(r) arrays are still symmetric, so only phi arrays for i >= j
 are listed.
+</P>
+<HR>
+
+<P>The <I>eam/opt</I>, <I>eam/alloy/opt</I>, and <I>eam/fs/opt</I> styles are identical
+to the <I>eam</I>, <I>eam/alloy</I>, and <I>eam/fs</I> styles, except that they are
+written in an optimized fashion for faster CPU execution.  See <A HREF = "doc/Section_accerate.html">this
+section</A> of the manual for more details.
 </P>
 <HR>
 

@@ -39,7 +39,7 @@ on how to turn off/on the suffix associated with this switch within
 your input script.
 </P>
 <P>Styles with an "opt" suffix are part of the OPT package and typically
-run 5% to 25% faster on modern cache-based CPUs.
+speed-up the pairwise portion of your simulation by 5-25%.
 </P>
 <P>Styles with a "gpu" or "cuda" suffix are part of the GPU or USER-CUDA
 packages, and can be run on NVIDIA GPUs associated with your CPUs.
@@ -71,20 +71,27 @@ packages, since they are both designed to use NVIDIA GPU hardware.
 
 <H4><A NAME = "10_1"></A>10.1 OPT package 
 </H4>
+<P>The OPT package was developed by James Fischer (High Performance
+Technologies), David Richie and Vincent Natoli (Stone Ridge
+Technologies).
+</P>
 <HR>
 
 <H4><A NAME = "10_2"></A>10.2 GPU package 
 </H4>
+<P>The GPU package was developed by Mike Brown at ORNL.
+</P>
 <P>A few LAMMPS <A HREF = "pair_style.html">pair styles</A> can be run on graphical
 processing units (GPUs).  We plan to add more over time.  Currently,
 they only support NVIDIA GPU cards.  To use them you need to install
 certain NVIDIA CUDA software on your system:
 </P>
-<UL><LI>Check if you have an NVIDIA card: cat /proc/driver/nvidia/cards/0
-<LI>Go to http://www.nvidia.com/object/cuda_get.html
-<LI>Install a driver and toolkit appropriate for your system (SDK is not necessary)
-<LI>Follow the instructions in README in lammps/lib/gpu to build the library
-<LI>Run lammps/lib/gpu/nvc_get_devices to list supported devices and properties 
+<UL><LI>Check if you have an NVIDIA card: cat /proc/driver/nvidia/cards/0 Go
+<LI>to http://www.nvidia.com/object/cuda_get.html Install a driver and
+<LI>toolkit appropriate for your system (SDK is not necessary) Follow the
+<LI>instructions in README in lammps/lib/gpu to build the library Run
+<LI>lammps/lib/gpu/nvc_get_devices to list supported devices and
+<LI>properties 
 </UL>
 <H4>GPU configuration 
 </H4>
@@ -208,6 +215,9 @@ latter requires that your GPU card supports double precision.
 
 <H4><A NAME = "10_3"></A>10.3 USER-CUDA package 
 </H4>
+<P>The USER-CUDA package was developed by Christian Trott at U Technology
+Ilmenau in Germany.
+</P>
 <HR>
 
 <H4><A NAME = "10_4"></A>10.4 Comparison of GPU and USER-CUDA packages 

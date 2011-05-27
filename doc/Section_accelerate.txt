@@ -36,7 +36,7 @@ on how to turn off/on the suffix associated with this switch within
 your input script.
 
 Styles with an "opt" suffix are part of the OPT package and typically
-run 5% to 25% faster on modern cache-based CPUs.
+speed-up the pairwise portion of your simulation by 5-25%.
 
 Styles with a "gpu" or "cuda" suffix are part of the GPU or USER-CUDA
 packages, and can be run on NVIDIA GPUs associated with your CPUs.
@@ -68,20 +68,27 @@ packages, since they are both designed to use NVIDIA GPU hardware.
 
 10.1 OPT package :h4,link(10_1)
 
+The OPT package was developed by James Fischer (High Performance
+Technologies), David Richie and Vincent Natoli (Stone Ridge
+Technologies).
+
 :line
 
 10.2 GPU package :h4,link(10_2)
+
+The GPU package was developed by Mike Brown at ORNL.
 
 A few LAMMPS "pair styles"_pair_style.html can be run on graphical
 processing units (GPUs).  We plan to add more over time.  Currently,
 they only support NVIDIA GPU cards.  To use them you need to install
 certain NVIDIA CUDA software on your system:
 
-Check if you have an NVIDIA card: cat /proc/driver/nvidia/cards/0
-Go to http://www.nvidia.com/object/cuda_get.html
-Install a driver and toolkit appropriate for your system (SDK is not necessary)
-Follow the instructions in README in lammps/lib/gpu to build the library
-Run lammps/lib/gpu/nvc_get_devices to list supported devices and properties :ul
+Check if you have an NVIDIA card: cat /proc/driver/nvidia/cards/0 Go
+to http://www.nvidia.com/object/cuda_get.html Install a driver and
+toolkit appropriate for your system (SDK is not necessary) Follow the
+instructions in README in lammps/lib/gpu to build the library Run
+lammps/lib/gpu/nvc_get_devices to list supported devices and
+properties :ul
 
 GPU configuration :h4
 
@@ -204,6 +211,9 @@ latter requires that your GPU card supports double precision.
 :line
 
 10.3 USER-CUDA package :h4,link(10_3)
+
+The USER-CUDA package was developed by Christian Trott at U Technology
+Ilmenau in Germany.
 
 :line
 

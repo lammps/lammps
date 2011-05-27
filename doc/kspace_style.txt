@@ -72,7 +72,7 @@ Currently, only the {ewald/n} style can be used with non-orthogonal
 (triclinic symmetry) simulation boxes.
 
 The {pppm/gpu/single} and {pppm/gpu/double} styles are GPU-enabled
-version of {pppm}. See more details below.
+version of {pppm}.  See more details below.
 
 :line
 
@@ -94,24 +94,23 @@ options of the K-space solvers that can be set.
 
 :line
 
-The {pppm/gpu/single} style performs single precision
-charge assignment and force interpolation calculations on the GPU.
-The {pppm/gpu/double} style performs the mesh calculations on the GPU
-in double precision. FFT solves are calculated on the CPU in both
-cases. If either {pppm/gpu/single} or {pppm/gpu/double} are used with
-a GPU-enabled pair style, part of the PPPM calculation can be performed
+The {pppm/gpu/single} style performs single precision charge
+assignment and force interpolation calculations on the GPU.  The
+{pppm/gpu/double} style performs the mesh calculations on the GPU in
+double precision. In both cases, FFT solves are calculated on the CPU.
+If either {pppm/gpu/single} or {pppm/gpu/double} are used with a
+GPU-enabled pair style, part of the PPPM calculation can be performed
 concurrently on the GPU while other calculations for non-bonded and
 bonded force calculation are performed on the CPU.
 
-More details about GPU settings and various possible hardware
-configurations are in "this section"_Section_start.html#2_8 of the
-manual.
+See "this section"_doc/Section_accerate.html of the manual for more
+details.
 
-Additional requirements in your input script to run with GPU-enabled 
+Additional requirements in your input script to run with GPU-enabled
 PPPM styles are as follows:
 
-"fix gpu"_fix_gpu.html must be used. The fix controls
-the essential GPU selection and initialization steps.
+The "fix gpu"_fix_gpu.html command must be used. The fix controls the
+GPU selection and initialization steps.
 
 [Restrictions:]
 

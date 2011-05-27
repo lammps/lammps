@@ -52,6 +52,7 @@ pair_coeff * * 100.0 2.0
 pair_coeff 1 1 100.0 2.0 150.0 3.5 
 </PRE>
 <PRE>pair_style lj/charmm/coul/long 8.0 10.0
+pair_style lj/charmm/coul/long/gpu 8.0 10.0
 pair_style lj/charmm/coul/long/opt 8.0 10.0
 pair_style lj/charmm/coul/long 8.0 10.0 9.0
 pair_coeff * * 100.0 2.0
@@ -91,13 +92,11 @@ applied to the Coulombic term, as in the discussion for pair style
 command, then the outer LJ cutoff is used as the single Coulombic
 cutoff.
 </P>
-<P>Style <I>lj/charmm/coul/long/gpu</I> is a GPU-enabled version of style <I>lj/charmm/coul/long</I>.
-See more details below.
+<P>Style <I>lj/charmm/coul/long/gpu</I> is a GPU-enabled version of style
+<I>lj/charmm/coul/long</I>.  See more details below.
 </P>
 <P>Style <I>lj/charmm/coul/long/opt</I> is an optimized version of style
-<I>lj/charmm/coul/long</I> that should give identical answers.  Depending
-on system size and the processor you are running on, it may be 5-25%
-faster (for the pairwise portion of the run time).
+<I>lj/charmm/coul/long</I>.  See more details below.
 </P>
 <P>The following coefficients must be defined for each pair of atoms
 types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
@@ -123,23 +122,23 @@ the pair_style command.
 </P>
 <HR>
 
-<P>The <I>lj/charmm/coul/long/gpu</I> style is identical to the <I>lj/charmm/coul/long</I>
-style, except that each processor off-loads its pairwise calculations to 
-a GPU chip. Depending on the hardware available on your system this can 
-provide a significant speed-up.  See the <A HREF = "Section_start.html#2_8">Running on
-GPUs</A> section of the manual for more details
-about hardware and software requirements for using GPUs.
+<P>The <I>lj/charmm/coul/long/opt</I> style is identical to the
+<I>lj/charmm/coul/long</I> style, except that it is written in an optimized
+fashion for faster CPU execution.  See <A HREF = "doc/Section_accerate.html">this
+section</A> of the manual for more details.
 </P>
-<P>More details about these settings and various possible hardware
-configuration are in <A HREF = "Section_start.html#2_8">this section</A> of the
-manual.
+<P>The <I>lj/charmm/coul/long/gpu</I> style is identical to the
+<I>lj/charmm/coul/long</I> style, except that each processor off-loads its
+pairwise calculations to a GPU.  Depending on the hardware available
+on your system this can provide a significant speed-up.  See <A HREF = "doc/Section_accerate.html">this
+section</A> of the manual for more details.
 </P>
 <P>Additional requirements in your input script to run with style
 <I>lj/charmm/coul/long/gpu</I> are as follows:
 </P>
-<P>The <A HREF = "newton.html">newton pair</A> setting must be <I>off</I> and
-<A HREF = "fix_gpu.html">fix gpu</A> must be used. The fix controls the
-essential GPU selection and initialization steps.
+<P>The <A HREF = "newton.html">newton pair</A> setting must be <I>off</I> and the <A HREF = "fix_gpu.html">fix
+gpu</A> command must be used.  The fix controls the GPU
+selection and initialization steps.
 </P>
 <HR>
 

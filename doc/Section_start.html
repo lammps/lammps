@@ -513,9 +513,9 @@ the various options.
 
 <A NAME = "2_3_3"></A><B><I>Packages that require extra LAMMPS libraries:</I></B> 
 
-<P>A few packages (standard or user) require that additional libraries be
+<P>A few standard or user packages require that additional libraries be
 compiled first, which LAMMPS will link to when it builds.  The source
-code for these libraries are included in the LAMMPS distribution under
+code for these libraries is included in the LAMMPS distribution under
 the "lib" directory.  Look at the README files in the lib directories
 (e.g. lib/reax/README) for instructions on how to build each library.
 </P>
@@ -528,56 +528,60 @@ link with the library file.
 </P>
 <P>The "atc" library in lib/atc is used by the user-atc package.  It
 provides continuum field estimation and molecular dynamics-finite
-element coupling methods.
+element coupling methods.  It was written by Reese Jones, Jeremy
+Templeton and Jonathan Zimmerman at Sandia.
 </P>
 <P>The "cuda" library in lib/cuda is used by the user-cuda package.  It
-contains code to enable portions of LAMMPS to run on NVIDIA GPUs
+was written by Christian Trott at U of Technology Ilmenau in Germany.
+It contains code to enable portions of LAMMPS to run on NVIDIA GPUs
 associated with your CPUs.  Currently, only NVIDIA GPUs are supported.
 Building this library requires NVIDIA Cuda tools to be installed on
 your system.  See <A HREF = "Section_accelerate.html#10_3">this section</A> of the
 manual for more information about using this package effectively and
 how it differs from the gpu package.
 </P>
-<P>The "gpu" library in lib/gpu is used by the gpu package.  It contains
-code to enable portions of LAMMPS to run on GPUs associated with your
-CPUs.  Currently, only NVIDIA GPUs are supported, but eventually this
-may be extended to OpenCL.  Building this library requires NVIDIA Cuda
-tools to be installed on your system.  See <A HREF = "Section_accelerate.html#10_2">this
+<P>The "gpu" library in lib/gpu is used by the gpu package.  It was
+written by Mike Brown at ORNL.  It contains code to enable portions of
+LAMMPS to run on GPUs associated with your CPUs.  Currently, only
+NVIDIA GPUs are supported, but eventually this may be extended to
+OpenCL.  Building this library requires NVIDIA Cuda tools to be
+installed on your system.  See <A HREF = "Section_accelerate.html#10_2">this
 section</A> of the manual for more
 information about using this package effectively and how it differs
 from the user-cuda package.
 </P>
-<P>The "meam" library in lib/meam is used by the meam package.
-computes the modified embedded atom method potential, which is a
-generalization of EAM potentials that can be used to model a wider
-variety of materials.  This MEAM implementation was written by Greg
-Wagner at Sandia.  It requires a F90 compiler to build.  The C++ to
-FORTRAN function calls in pair_meam.cpp assumes that FORTRAN object
-names are converted to C object names by appending an underscore
-character. This is generally the case, but on machines that do not
-conform to this convention, you will need to modify either the C++
-code or your compiler settings.
+<P>The "meam" library in lib/meam is used by the meam package.  It was
+written by Greg Wagner at Sandia.  It computes the modified embedded
+atom method potential, which is a generalization of EAM potentials
+that can be used to model a wider variety of materials.  This MEAM
+implementation was written by Greg Wagner at Sandia.  It requires a
+F90 compiler to build.  The C++ to FORTRAN function calls in
+pair_meam.cpp assumes that FORTRAN object names are converted to C
+object names by appending an underscore character. This is generally
+the case, but on machines that do not conform to this convention, you
+will need to modify either the C++ code or your compiler settings.
 </P>
-<P>The "poems" library in lib/poems is used by the poems package.
-computes the constrained rigid-body motion of articulated (jointed)
-multibody systems.  POEMS was written and is distributed by Prof Kurt
-Anderson's group at Rensselaer Polytechnic Institute (RPI).
+<P>The "poems" library in lib/poems is used by the poems package.  It was
+written by Rudra Mukherjee at JPL.  It computes the constrained
+rigid-body motion of articulated (jointed) multibody systems.  POEMS
+is distributed by Prof Kurt Anderson's group at Rensselaer Polytechnic
+Institute (RPI).
 </P>
-<P>The "reax" library in lib/reax is used by the reax package.  It
-computes the Reactive Force Field (ReaxFF) potential, developed by
-Adri van Duin in Bill Goddard's group at CalTech.  This implementation
-in LAMMPS uses many of Adri's files and was developed by Aidan
-Thompson at Sandia and Hansohl Cho at MIT.  It requires a F77 or F90
-compiler to build.  The C++ to FORTRAN function calls in pair_reax.cpp
-assume that FORTRAN object names are converted to C object names by
-appending an underscore character. This is generally the case, but on
-machines that do not conform to this convention, you will need to
-modify either the C++ code or your compiler settings. The name
-conversion is handled by the preprocessor macro called FORTRAN in
-pair_reax_fortran.h.  Different definitions of this macro can be
-obtained by adding a machine-specific macro definition to the CCFLAGS
-variable in your Makefile e.g. -D_IBM. See pair_reax_fortran.h for
-more info.
+<P>The "reax" library in lib/reax is used by the reax package.  It was
+written by Aidan Thompson at Sandia.  It computes the Reactive Force
+Field (ReaxFF) potential, developed by Adri van Duin in Bill Goddard's
+group at CalTech.  This implementation in LAMMPS uses many of Adri's
+files and was developed by Aidan Thompson at Sandia and Hansohl Cho at
+MIT.  It requires a F77 or F90 compiler to build.  The C++ to FORTRAN
+function calls in pair_reax.cpp assume that FORTRAN object names are
+converted to C object names by appending an underscore character. This
+is generally the case, but on machines that do not conform to this
+convention, you will need to modify either the C++ code or your
+compiler settings. The name conversion is handled by the preprocessor
+macro called FORTRAN in pair_reax_fortran.h.  Different definitions of
+this macro can be obtained by adding a machine-specific macro
+definition to the CCFLAGS variable in your Makefile e.g. -D_IBM. See
+pair_reax_fortran.h for more info.
 </P>
 <P>As described in the README file in each lib directory, each library is
 typically built by typing something like

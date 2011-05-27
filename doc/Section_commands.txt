@@ -639,10 +639,8 @@ These are pair styles contributed by users, which can be used if
 
 "buck/coul"_pair_buck_coul.html,
 "cg/cmm"_pair_cmm.html,
-"cg/cmm/gpu"_pair_cmm.html,
 "cg/cmm/coul/cut"_pair_cmm.html,
 "cg/cmm/coul/long"_pair_cmm.html,
-"cg/cmm/coul/long/gpu"_pair_cmm.html,
 "eam/cd"_pair_eam.html,
 "eff/cut"_pair_eff.html,
 "lj/coul"_pair_lj_coul.html,
@@ -653,6 +651,8 @@ built with the "appropriate accelerated
 package"_Section_accelerate.html.
 
 "gayberne/gpu"_pair_gayberne.html,
+"cg/cmm/gpu"_pair_cmm.html,
+"cg/cmm/coul/long/gpu"_pair_cmm.html,
 "lj/charmm/coul/long/gpu"_pair_charmm.html,
 "lj/cut/coul/cut/gpu"_pair_lj.html,
 "lj/cut/coul/long/gpu"_pair_lj.html,
@@ -762,6 +762,5 @@ These are accelerated Kspace solvers, which can be used if LAMMPS is
 built with the "appropriate accelerated
 package"_Section_accelerate.html.
 
-"pppm/cuda"_kspace_style.html
+"pppm/cuda"_kspace_style.html,
 "pppm/gpu"_kspace_style.html :tb(c=4,ea=c,w=100)
-

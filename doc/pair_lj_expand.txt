@@ -54,22 +54,17 @@ See more details below.
 :line
 
 The {lj/expand/gpu} style is identical to the {lj/expand} style,
-except that each processor off-loads its pairwise calculations to a 
-GPU chip. Depending on the hardware available on your system this can provide a
-speed-up.  See the "Running on GPUs"_Section_start.html#2_8 section of
-the manual for more details about hardware and software requirements
-for using GPUs.
+except that each processor off-loads its pairwise calculations to a
+GPU.  Depending on the hardware available on your system this can
+provide a speed-up.  See "this section"_doc/Section_accerate.html of
+the manual for more details.
 
-More details about these settings and various possible hardware
-configuration are in "this section"_Section_start.html#2_8 of the
-manual.
+Additional requirements in your input script to run with GPU-enabled
+styles are as follows:
 
-Additional requirements in your input script to run with GPU-enabled styles
-are as follows:
-
-The "newton pair"_newton.html setting must be {off} and
-"fix gpu"_fix_gpu.html must be used. The fix controls
-the essential GPU selection and initialization steps.
+The "newton pair"_newton.html setting must be {off} and the "fix
+gpu"_fix_gpu.html command must be used. The fix controls the GPU
+selection and initialization steps.
 
 :line
 

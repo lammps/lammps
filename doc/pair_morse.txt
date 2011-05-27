@@ -47,33 +47,31 @@ cutoff (distance units) :ul
 The last coefficient is optional.  If not specified, the global morse
 cutoff is used.
 
-Style {morse/opt} is an optimized version of style {morse} that should
-give identical answers.  Depending on system size and the processor
-you are running on, it may be 5-25% faster (for the pairwise portion
-of the run time).
+Style (morse/opt} is an optimized version of style {eam}.  See
+more details below.
 
 Style {morse/gpu} is a GPU-enabled version of style {morse}.
 See more details below.
 
 :line
 
-The {morse/gpu} style is identical to the {morse} style,
-except that each processor off-loads its pairwise calculations to a 
-GPU chip. Depending on the hardware available on your system this can provide a
-speed-up.  See the "Running on GPUs"_Section_start.html#2_8 section of
-the manual for more details about hardware and software requirements
-for using GPUs.
+The {morse/opt} style is identical to the {morse/cut} style, except
+that it is written in an optimized fashion for faster CPU execution.
+See "this section"_doc/Section_accerate.html of the manual for more
+details.
 
-More details about these settings and various possible hardware
-configuration are in "this section"_Section_start.html#2_8 of the
-manual.
+The {morse/gpu} style is identical to the {morse} style, except that
+each processor off-loads its pairwise calculations to a GPU.
+Depending on the hardware available on your system this can provide a
+speed-up.  See "this section"_doc/Section_accerate.html of the manual
+for more details.
 
-Additional requirements in your input script to run with GPU-enabled styles
-are as follows:
+Additional requirements in your input script to run with GPU-enabled
+styles are as follows:
 
-The "newton pair"_newton.html setting must be {off} and
-"fix gpu"_fix_gpu.html must be used. The fix controls
-the essential GPU selection and initialization steps.
+The "newton pair"_newton.html setting must be {off} and the "fix
+gpu"_fix_gpu.html command must be used.  The fix controls the GPU
+selection and initialization steps.
 
 :line
 
@@ -105,8 +103,8 @@ These pair styles can only be used via the {pair} keyword of the
 [Restrictions:]
 
 The {morse/opt} style is part of the "opt" package.  The {morse/gpu}
-style is part of the "gpu" package. They are only
-enabled if LAMMPS was built with those packages.  See the "Making
+style is part of the "gpu" package. They are only enabled if LAMMPS
+was built with those packages.  See the "Making
 LAMMPS"_Section_start.html#2_3 section for more info.
 
 [Related commands:]

@@ -149,8 +149,9 @@ void LJClass2LongT::loop(const bool _eflag, const bool _vflag) {
                           &this->_nbor_data->begin(),
                           &this->ans->dev_ans.begin(),
                           &this->ans->dev_engv.begin(), &eflag, &vflag,
-                          &nbor_pitch, &this->atom->dev_q.begin(), &_cut_coulsq,
-                          &_qqrd2e, &_g_ewald, &this->_threads_per_atom);
+                          &ainum, &nbor_pitch, &this->atom->dev_q.begin(),
+                          &_cut_coulsq, &_qqrd2e, &_g_ewald, 
+                          &this->_threads_per_atom);
   } else {
     this->k_pair.set_size(GX,BX);
     this->k_pair.run(&this->atom->dev_x.begin(), &lj1.begin(), &lj3.begin(),

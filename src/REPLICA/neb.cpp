@@ -42,7 +42,7 @@ using namespace LAMMPS_NS;
 NEB::NEB(LAMMPS *lmp) : Pointers(lmp) {}
 
 /* ----------------------------------------------------------------------
-   internal NEB constructor 
+   internal NEB constructor, called from TAD
 ------------------------------------------------------------------------- */
 
 NEB::NEB(LAMMPS *lmp, double etol_in, double ftol_in, int n1steps_in,
@@ -128,6 +128,16 @@ void NEB::command(int narg, char **arg)
   uworld = universe->uworld;
   MPI_Comm_rank(world,&me);
 
+  // error checks
+
+  if (nreplica == 1) error->all("Cannot use NEB with a single replica");
+  if (nreplica != universe->nprocs)
+    error->all("Can only use NEB with 1-processor replicas");
+  if (atom->sortfreq > 0)
+    error->all("Cannot use NEB with atom_modify sort enabled");
+  if (atom->map_style == 0) 
+    error->all("Cannot use NEB unless atom map exists");
+
   // read in file of final state atom coords and reset my coords
 
   readfile(infile);
@@ -149,16 +159,6 @@ void NEB::run()
   if (me == 0) color = 0;
   else color = 1;
   MPI_Comm_split(uworld,color,0,&roots);
-
-  // error checks
-
-  if (nreplica == 1) error->all("Cannot use NEB with a single replica");
-  if (nreplica != universe->nprocs)
-    error->all("Can only use NEB with 1-processor replicas");
-  if (atom->sortfreq > 0)
-    error->all("Cannot use NEB with atom_modify sort enabled");
-  if (atom->map_style == 0) 
-    error->all("Cannot use NEB unless atom map exists");
 
   int ineb,idamp;
   for (ineb = 0; ineb < modify->nfix; ineb++)

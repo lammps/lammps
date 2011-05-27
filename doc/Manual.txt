@@ -37,7 +37,7 @@ If you browse the HTML doc pages included in your tarball, they
 describe the version you have. :l
 
 The "PDF file"_Manual.pdf on the WWW site or in the tarball is updated
-about once per month. This is because it is large, and we don't want
+about once per month.  This is because it is large, and we don't want
 it to be part of very patch. :ule,l
 
 LAMMPS stands for Large-scale Atomic/Molecular Massively Parallel

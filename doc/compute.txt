@@ -214,6 +214,11 @@ included in the LAMMPS distribution.  The list of these with links to
 the individual styles are given in the compute section of "this
 page"_Section_commands.html#3_5.
 
+There are also additional accelerated compute styles included in the
+LAMMPS distribution for faster performance on CPUs and GPUs.  The list
+of these with links to the individual styles are given in the pair
+section of "this page"_Section_commands.html#3_5.
+
 [Restrictions:] none
 
 [Related commands:]

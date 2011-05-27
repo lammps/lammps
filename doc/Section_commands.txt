@@ -491,6 +491,12 @@ These are fix styles contributed by users, which can be used if
 "smd"_fix_smd.html,
 "temp/rescale/eff"_fix_temp_rescale_eff.html :tb(c=6,ea=c)
 
+These are accelerated fix styles, which can be used if LAMMPS is
+built with the "appropriate accelerated
+package"_Section_accelerate.html.
+
+:tb(c=6,ea=c)
+
 :line
 
 Compute styles :h4
@@ -555,6 +561,12 @@ These are compute styles contributed by users, which can be used if
 "temp/deform/eff"_compute_temp_deform_eff.html,
 "temp/region/eff"_compute_temp_region_eff.html :tb(c=6,ea=c)
 
+These are accelerated compute styles, which can be used if LAMMPS is
+built with the "appropriate accelerated
+package"_Section_accelerate.html.
+
+:tb(c=6,ea=c)
+
 :line
 
 Pair_style potentials :h4
@@ -581,15 +593,11 @@ potentials.  Click on the style itself for a full description:
 "dpd/tstat"_pair_dpd.html,
 "dsmc"_pair_dsmc.html,
 "eam"_pair_eam.html,
-"eam/opt"_pair_eam.html,
 "eam/alloy"_pair_eam.html,
-"eam/alloy/opt"_pair_eam.html,
 "eam/fs"_pair_eam.html,
-"eam/fs/opt"_pair_eam.html,
 "eim"_pair_eim.html,
 "gauss"_pair_gauss.html,
 "gayberne"_pair_gayberne.html,
-"gayberne/gpu"_pair_gayberne.html,
 "gran/hertz/history"_pair_gran.html,
 "gran/hooke"_pair_gran.html,
 "gran/hooke/history"_pair_gran.html,
@@ -598,32 +606,22 @@ potentials.  Click on the style itself for a full description:
 "lj/charmm/coul/charmm"_pair_charmm.html,
 "lj/charmm/coul/charmm/implicit"_pair_charmm.html,
 "lj/charmm/coul/long"_pair_charmm.html,
-"lj/charmm/coul/long/gpu"_pair_charmm.html,
-"lj/charmm/coul/long/opt"_pair_charmm.html,
 "lj/class2"_pair_class2.html,
 "lj/class2/coul/cut"_pair_class2.html,
 "lj/class2/coul/long"_pair_class2.html,
 "lj/cut"_pair_lj.html,
-"lj/cut/gpu"_pair_lj.html,
-"lj/cut/opt"_pair_lj.html,
 "lj/cut/coul/cut"_pair_lj.html,
-"lj/cut/coul/cut/gpu"_pair_lj.html,
 "lj/cut/coul/debye"_pair_lj.html,
 "lj/cut/coul/long"_pair_lj.html,
-"lj/cut/coul/long/gpu"_pair_lj.html,
 "lj/cut/coul/long/tip4p"_pair_lj.html,
 "lj/expand"_pair_lj_expand.html,
-"lj/expand/gpu"_pair_lj_expand.html,
 "lj/gromacs"_pair_gromacs.html,
 "lj/gromacs/coul/gromacs"_pair_gromacs.html,
 "lj/smooth"_pair_lj_smooth.html,
 "lj96/cut"_pair_lj96_cut.html,
-"lj96/cut/gpu"_pair_lj96_cut.html,
 "lubricate"_pair_lubricate.html,
 "meam"_pair_meam.html,
 "morse"_pair_morse.html,
-"morse/gpu"_pair_morse.html,
-"morse/opt"_pair_morse.html,
 "peri/lps"_pair_peri.html,
 "peri/pmb"_pair_peri.html,
 "reax"_pair_reax.html,
@@ -649,6 +647,25 @@ These are pair styles contributed by users, which can be used if
 "eff/cut"_pair_eff.html,
 "lj/coul"_pair_lj_coul.html,
 "reax/c"_pair_reax_c.html :tb(c=4,ea=c)
+
+These are accelerated pair styles, which can be used if LAMMPS is
+built with the "appropriate accelerated
+package"_Section_accelerate.html.
+
+"gayberne/gpu"_pair_gayberne.html,
+"lj/charmm/coul/long/gpu"_pair_charmm.html,
+"lj/cut/coul/cut/gpu"_pair_lj.html,
+"lj/cut/coul/long/gpu"_pair_lj.html,
+"lj/cut/gpu"_pair_lj.html,
+"lj/expand/gpu"_pair_lj_expand.html,
+"lj96/cut/gpu"_pair_lj96_cut.html,
+"morse/gpu"_pair_morse.html,
+"eam/opt"_pair_eam.html,
+"eam/alloy/opt"_pair_eam.html,
+"eam/fs/opt"_pair_eam.html,
+"lj/charmm/coul/long/opt"_pair_charmm.html,
+"lj/cut/opt"_pair_lj.html,
+"morse/opt"_pair_morse.html :tb(c=4,ea=c)
 
 :line
 
@@ -740,3 +757,11 @@ These are Kspace solvers contributed by users, which can be used if
 "LAMMPS is built with the appropriate package"_Section_start.html#2_3.
 
 "ewald/n"_kspace_style.html :tb(c=4,ea=c,w=100)
+
+These are accelerated Kspace solvers, which can be used if LAMMPS is
+built with the "appropriate accelerated
+package"_Section_accelerate.html.
+
+"pppm/cuda"_kspace_style.html
+"pppm/gpu"_kspace_style.html :tb(c=4,ea=c,w=100)
+

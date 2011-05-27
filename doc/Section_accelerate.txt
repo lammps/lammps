@@ -53,7 +53,7 @@ The following sections explain:
 how to install the accelerated packages
 what hardware and software they require
 what kind of problems they run best on
-tips for how to use the accelerated packages to best advantage
+guidelines for how to use the accelerated packages to best advantage
 the kinds of speed-ups you can expect :ul
 
 The final section compares and contrasts the GPU and USER-CUDA

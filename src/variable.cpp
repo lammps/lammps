@@ -2146,10 +2146,10 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
   char *arg1,*arg2,*arg3;
   char *ptr1,*ptr2;
 
-  ptr1 = strchr(contents,',');
+  ptr1 = find_next_comma(contents);
   if (ptr1) {
     *ptr1 = '\0';
-    ptr2 = strchr(ptr1+1,',');
+    ptr2 = find_next_comma(ptr1+1);
     if (ptr2) *ptr2 = '\0';
   } else ptr2 = NULL;
 
@@ -2448,10 +2448,10 @@ int Variable::group_function(char *word, char *contents, Tree **tree,
   char *arg1,*arg2,*arg3;
   char *ptr1,*ptr2;
 
-  ptr1 = strchr(contents,',');
+  ptr1 = find_next_comma(contents);
   if (ptr1) {
     *ptr1 = '\0';
-    ptr2 = strchr(ptr1+1,',');
+    ptr2 = find_next_comma(ptr1+1);
     if (ptr2) *ptr2 = '\0';
   } else ptr2 = NULL;
 
@@ -2705,10 +2705,10 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
   char *arg1,*arg2,*arg3;
   char *ptr1,*ptr2;
 
-  ptr1 = strchr(contents,',');
+  ptr1 = find_next_comma(contents);
   if (ptr1) {
     *ptr1 = '\0';
-    ptr2 = strchr(ptr1+1,',');
+    ptr2 = find_next_comma(ptr1+1);
     if (ptr2) *ptr2 = '\0';
   } else ptr2 = NULL;
 
@@ -3096,6 +3096,23 @@ int Variable::inumeric(char *str)
   }
 
   return atoi(str);
+}
+
+/* ----------------------------------------------------------------------
+   find next comma in str
+   skip commas inside one or more nested parenthesis
+   only return ptr to comma at level 0, else NULL if not found
+------------------------------------------------------------------------- */
+
+char *Variable::find_next_comma(char *str)
+{
+  int level = 0;
+  for (char *p = str; *p; ++p) {
+    if ('(' == *p) level++; 
+    else if (')' == *p) level--;
+    else if (',' == *p && !level) return p;
+  }
+  return NULL;
 }
 
 /* ----------------------------------------------------------------------

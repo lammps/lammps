@@ -55,7 +55,7 @@ int LJClass2LongT::init(const int ntypes, double **host_cutsq,
                         const double g_ewald) {
   int success;
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
-                            _screen,ljcl_cut_gpu_kernel);
+                            _screen,lj_class2_long);
   if (success!=0)
     return success;
 

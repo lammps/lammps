@@ -173,11 +173,13 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *lj1,
       int mtype=itype*lj_types+jtype;
       if (rsq<lj1[mtype].z) {
         numtyp r2inv=(numtyp)1.0/rsq;
-        numtyp forcecoul, force_lj, force, r6inv, prefactor, _erfc;
+        numtyp forcecoul, force_lj, force, r6inv, r3inv, prefactor, _erfc;
 
         if (rsq < lj1[mtype].w) {
-          r6inv = r2inv*r2inv*r2inv;
-          force_lj = factor_lj*r6inv*(lj1[mtype].x*r6inv-lj1[mtype].y);
+          numtyp rinv=sqrt(r2inv);
+          r3inv=r2inv*rinv;
+          r6inv = r3inv*r3inv;
+          force_lj = factor_lj*r6inv*(lj1[mtype].x*r3inv-lj1[mtype].y);
         } else
           force_lj = (numtyp)0.0;
 
@@ -203,7 +205,7 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *lj1,
         if (eflag>0) {
           e_coul += prefactor*(_erfc-factor_coul);
           if (rsq < lj1[mtype].w) {
-            numtyp e=r6inv*(lj3[mtype].x*r6inv-lj3[mtype].y);
+            numtyp e=r6inv*(lj3[mtype].x*r3inv-lj3[mtype].y);
             energy+=factor_lj*(e-lj3[mtype].z);
           } 
         }
@@ -359,11 +361,13 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
 
       if (rsq<lj1[mtype].z) {
         numtyp r2inv=(numtyp)1.0/rsq;
-        numtyp forcecoul, force_lj, force, r6inv, prefactor, _erfc;
+        numtyp forcecoul, force_lj, force, r6inv, r3inv, prefactor, _erfc;
 
         if (rsq < lj1[mtype].w) {
-          r6inv = r2inv*r2inv*r2inv;
-          force_lj = factor_lj*r6inv*(lj1[mtype].x*r6inv-lj1[mtype].y);
+          numtyp rinv=sqrt(r2inv);
+          r3inv=r2inv*rinv;
+          r6inv = r3inv*r3inv;
+          force_lj = factor_lj*r6inv*(lj1[mtype].x*r3inv-lj1[mtype].y);
         } else
           force_lj = (numtyp)0.0;
 
@@ -389,7 +393,7 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
         if (eflag>0) {
           e_coul += prefactor*(_erfc-factor_coul);
           if (rsq < lj1[mtype].w) {
-            numtyp e=r6inv*(lj3[mtype].x*r6inv-lj3[mtype].y);
+            numtyp e=r6inv*(lj3[mtype].x*r3inv-lj3[mtype].y);
             energy+=factor_lj*(e-lj3[mtype].z);
           }
         }

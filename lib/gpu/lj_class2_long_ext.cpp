@@ -22,7 +22,7 @@
 using namespace std;
 using namespace LAMMPS_AL;
 
-static C2CL_GPU_Memory<PRECISION,ACC_PRECISION> C2CLMF;
+static LJClass2Long<PRECISION,ACC_PRECISION> C2CLMF;
 
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device

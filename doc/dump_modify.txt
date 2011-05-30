@@ -8,9 +8,6 @@
 
 dump_modify command :h3
 
-NOTE: This keywords below which are only relevant for the dump image
-command have not yet been released as part of LAMMPS.
-
 [Syntax:]
 
 dump_modify dump-ID keyword values ... :pre
@@ -33,7 +30,7 @@ keyword = {acolor} or {adiam} or {amap} or {append} or {bcolor} or {bdiam} or {b
       "s" for sequential
       "a" for absolute
       "f" for fractional
-    delta = binsize (only used for style "s" = sequential)
+    delta = binsize (only used for style "s", otherwise ignored)
       binsize = range is divided into bins of this width
     N = # of subsequent entries
     entry = value color (for continuous style)
@@ -41,9 +38,9 @@ keyword = {acolor} or {adiam} or {amap} or {append} or {bcolor} or {bdiam} or {b
       color = name of color used for that value
     entry = lo hi color (for discrete style)
       lo/hi = number or {min} or {max} = lower/upper bound of subset of range
-      color = name of color used for that value
+      color = name of color used for that subset of values
     entry = color (for sequential style)
-      color = name of color used for a bin within range
+      color = name of color used for a bin of values
   {append} arg = {yes} or {no}
   {bcolor} args = type color
     type = bond type or range of types (see below)
@@ -94,6 +91,8 @@ dump_modify 1 region mySphere thresh x < 0.0 thresh epair >= 3.2
 dump_modify xtcdump precision 10000
 dump_modify 1 every 1000
 dump_modify 1 every v_myVar :pre
+
+NOTE: add some image examples
 
 [Description:]
 
@@ -470,11 +469,12 @@ The {thresh} keyword only applies to the dump {custom} and {cfg} and
 only atoms whose attributes meet all the threshold criteria are
 written to the dump file or included in the image.  The possible
 attributes that can be tested for are the same as those that can be
-specified in the "dump custom"_dump.html command.  Note that different
-attributes can be output by the dump custom command than are used as
-threshold criteria by the dump_modify command.  E.g. you can output
-the coordinates and stress of atoms whose energy is above some
-threshold.
+specified in the "dump custom"_dump.html command, with the exception
+of the {element} attribute, since it is not a numeric value.  Note
+that different attributes can be output by the dump custom command
+than are used as threshold criteria by the dump_modify command.
+E.g. you can output the coordinates and stress of atoms whose energy
+is above some threshold.
 
 :line
 
@@ -502,6 +502,8 @@ acolor = * red/green/blue/yellow/aqua/cyan
 adiam = * 1.0
 amap = min max cf 2 0.0 blue 1.0 red
 append = no
+bcolor = * red/green/blue/yellow/aqua/cyan
+bdiam = * 0.5
 bgcolor = black
 boxcolor = yellow
 color = 140 color names are pre-defined as listed below

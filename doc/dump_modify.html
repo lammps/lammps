@@ -11,9 +11,6 @@
 
 <H3>dump_modify command 
 </H3>
-<P>NOTE: This keywords below which are only relevant for the dump image
-command have not yet been released as part of LAMMPS.
-</P>
 <P><B>Syntax:</B>
 </P>
 <PRE>dump_modify dump-ID keyword values ... 
@@ -39,7 +36,7 @@ command have not yet been released as part of LAMMPS.
       "s" for sequential
       "a" for absolute
       "f" for fractional
-    delta = binsize (only used for style "s" = sequential)
+    delta = binsize (only used for style "s", otherwise ignored)
       binsize = range is divided into bins of this width
     N = # of subsequent entries
     entry = value color (for continuous style)
@@ -47,9 +44,9 @@ command have not yet been released as part of LAMMPS.
       color = name of color used for that value
     entry = lo hi color (for discrete style)
       lo/hi = number or <I>min</I> or <I>max</I> = lower/upper bound of subset of range
-      color = name of color used for that value
+      color = name of color used for that subset of values
     entry = color (for sequential style)
-      color = name of color used for a bin within range
+      color = name of color used for a bin of values
   <I>append</I> arg = <I>yes</I> or <I>no</I>
   <I>bcolor</I> args = type color
     type = bond type or range of types (see below)
@@ -102,6 +99,8 @@ dump_modify xtcdump precision 10000
 dump_modify 1 every 1000
 dump_modify 1 every v_myVar 
 </PRE>
+<P>NOTE: add some image examples
+</P>
 <P><B>Description:</B>
 </P>
 <P>Modify the parameters of a previously defined dump command.  Not all
@@ -477,11 +476,12 @@ cost, as well as memory, versus unsorted output.
 only atoms whose attributes meet all the threshold criteria are
 written to the dump file or included in the image.  The possible
 attributes that can be tested for are the same as those that can be
-specified in the <A HREF = "dump.html">dump custom</A> command.  Note that different
-attributes can be output by the dump custom command than are used as
-threshold criteria by the dump_modify command.  E.g. you can output
-the coordinates and stress of atoms whose energy is above some
-threshold.
+specified in the <A HREF = "dump.html">dump custom</A> command, with the exception
+of the <I>element</I> attribute, since it is not a numeric value.  Note
+that different attributes can be output by the dump custom command
+than are used as threshold criteria by the dump_modify command.
+E.g. you can output the coordinates and stress of atoms whose energy
+is above some threshold.
 </P>
 <HR>
 
@@ -509,6 +509,8 @@ box size stored with the snapshot.
 <LI>adiam = * 1.0
 <LI>amap = min max cf 2 0.0 blue 1.0 red
 <LI>append = no
+<LI>bcolor = * red/green/blue/yellow/aqua/cyan
+<LI>bdiam = * 0.5
 <LI>bgcolor = black
 <LI>boxcolor = yellow
 <LI>color = 140 color names are pre-defined as listed below

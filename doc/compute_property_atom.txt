@@ -19,7 +19,7 @@ input = one or more atom attributes :l
  	                x, y, z, xs, ys, zs, xu, yu, zu, ix, iy, iz,
 		        vx, vy, vz, fx, fy, fz,
                         q, mux, muy, muz, mu,
-                        radius, omegax, omegay, omegaz,
+                        radius, diameter, omegax, omegay, omegaz,
 			angmomx, angmomy, angmomz,
 			shapex,shapey, shapez,
 		        quatw, quati, quatj, quatk, tqx, tqy, tqz,
@@ -38,16 +38,16 @@ input = one or more atom attributes :l
       q = atom charge
       mux,muy,muz = orientation of dipole moment of atom
       mu = magnitude of dipole moment of atom
-      radius = radius of spherical particle
+      radius,diameter = radius,diameter of spherical particle
       omegax,omegay,omegaz = angular velocity of extended particle
       angmomx,angmomy,angmomz = angular momentum of extended particle
-      shapex,shapey,shapez = 3 diameters of ellipsoidal particle
-      quatw,quati,quatj,quatk = quaternion components for aspherical particles
       tqx,tqy,tqz = torque on extended particles
       spin = electron spin
       eradius = electron radius
       ervel = electron radial velocity
-      erforce = electron radial force :pre
+      erforce = electron radial force
+      shapex,shapey,shapez = 3 diameters of aspherical particle
+      quatw,quati,quatj,quatk = quaternion components for aspherical particles :pre
 :ule
 
 [Examples:]
@@ -67,13 +67,24 @@ inputs.  See for example, the "compute reduce"_compute_reduce.html,
 variable"_variable.html commands.
 
 The list of possible attributes is the same as that used by the "dump
-custom"_dump.html command, which describes their meaning.  Basically,
-this list gives your input script access to any per-atom quantity
-stored by LAMMPS.
+custom"_dump.html command, which describes their meaning, with some
+additional quantities that are only defined for certain "atom
+styles"_atom_style.html.  Basically, this list gives your input script
+access to any per-atom quantity stored by LAMMPS.
 
 The values are stored in a per-atom vector or array as
 discussed below.  Zeroes are stored for atoms not in the specified
 group.
+
+The additional quantities only accessible via this command (and not
+directly via the "dump custom"_dump.html command are as follows.
+
+{Shapex}, {shapey}, and {shapez} are defined for ellipsoidal particles
+and define the 3d shape of each particle.  {Quatw}, {quati}, {quatj},
+and {quatk} are also defined for ellipsoidal particles and store the
+4-vector quaternion representing the orientation of each particle.
+See the "set"_set.html command for an explanation of the quaternion
+vector.
 
 [Output info:]
 

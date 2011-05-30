@@ -11,12 +11,9 @@
 
 <H3>dump image command 
 </H3>
-<P>NOTE: The dump image command has not yet been released as part of
-LAMMPS.
-</P>
 <P><B>Syntax:</B>
 </P>
-<PRE>dump ID group-ID image N file keyword value ... 
+<PRE>dump ID group-ID image N file x y z type type keyword value ... 
 </PRE>
 <UL><LI>ID = user-assigned name for the dump 
 
@@ -30,43 +27,47 @@ LAMMPS.
 
 <LI>zero or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>atom</I> or <I>bond</I> or <I>size</I> or <I>view</I> or <I>center</I> or <I>up</I> or <I>zoom</I> or <I>persp</I> or <I>box</I> or <I>dynamic</I> or <I>box</I> or <I>axes</I> or <I>shiny</I> or <I>ssao</I> 
+<LI>keyword = <I>atom</I> or <I>bond</I> or <I>size</I> or <I>view</I> or <I>center</I> or <I>up</I> or <I>zoom</I> or <I>persp</I> or <I>box</I> or <I>axes</I> or <I>shiny</I> or <I>ssao</I> 
 
-<PRE> <I>atom</I> values = color diam
-   color = <I>none</I> or <I>type</I> or <I>element</I> or atom-attribute
-   diam = D or <I>type</I> or <I>element</I> or <I>radius</I> or <I>shape</I> or atom-attribute
-     D = numeric value for atom diameter (distance units)
- <I>bond</I> values = color diam
-   color = <I>none</I> or <I>atom</I> or <I>type</I>
-   diam = D or <I>type</I>
-     D = numeric value for bond diameter (distance units)
- <I>size</I> values = width height
-   width = width of image in # of pixels
-   height = height of image in # of pixels
- <I>view</I> values = theta phi
-   theta = view angle from +z axis (degrees)
-   phi = azimuthal view angle (degrees)
-   theta or phi can be a variable (see below)
- <I>center</I> values = flag Cx Cy Cz = center point of image (distance units)
-   flag = "s" for static, "d" for dynamic
-   Cx,Cy,Cz can be variables (see below)
- <I>up</I> values = Ux Uy Uz = components of up vector
-   Ux,Uy,Uz can be variables (see below)
- <I>zoom</I> value = factor = scale image size by this factor
-   factor can be a variable (see below)
- <I>persp</I> value = factor = perspective setting
-   factor can be a variable (see below)
- <I>box</I> values = yes/no diam
-   yes/no = do or do not draw simulation box lines
-   diam = diameter of box lines as fraction of shortest box length
- <I>axes</I> values = yes/no length diam
-   yes/no = do or do not draw xyz axes lines next to simulation box
-   length = length of axes lines as fraction of respective box lengths
-   diam = diameter of axes lines as fraction of shortest box length
- <I>shiny</I> value = factor
-   factor = shinyness of spheres and cylinders from 0.0 to 1.0
- <I>ssao</I> value = yes/no
-   yes/no = turn on/off SSAO depth shading 
+<PRE>  <I>atom</I> values = color diam = color and size of atoms
+    color = <I>none</I> or <I>type</I> or <I>element</I> or atom-attribute
+    diam = number or <I>type</I> or <I>element</I> or atom-attribute
+      number = numeric value for atom diameter (distance units)
+  <I>bond</I> values = color diam = color and width of bonds
+    color = <I>none</I> or <I>atom</I> or <I>type</I>
+    diam = number or <I>type</I>
+      numer = numeric value for bond diameter (distance units)
+  <I>size</I> values = width height = size of images
+    width = width of image in # of pixels
+    height = height of image in # of pixels
+  <I>view</I> values = theta phi = view of simulation box
+    theta = view angle from +z axis (degrees)
+    phi = azimuthal view angle (degrees)
+    theta or phi can be a variable (see below)
+  <I>center</I> values = flag Cx Cy Cz = center point of image
+    flag = "s" for static, "d" for dynamic
+    Cx,Cy,Cz = center point of image as fraction of box dimension (0.5 = center   of box)
+    Cx,Cy,Cz can be variables (see below)
+  <I>up</I> values = Ux Uy Uz = direction that is "up" in image
+    Ux,Uy,Uz = components of up vector
+    Ux,Uy,Uz can be variables (see below)
+  <I>zoom</I> value = factor = size that simulation box appears in image
+    factor = scale image size by factor > 1 to enlarge, factor < 1 to shrink
+    factor can be a variable (see below)
+  <I>persp</I> value = factor = amount of "perspective" in image
+    factor = amount of perspective (0 = none, < 1 = some, > 1 = highly skewed)
+    factor can be a variable (see below)
+  <I>box</I> values = yes/no diam = draw outline of simulation box
+    yes/no = do or do not draw simulation box lines
+    diam = diameter of box lines as fraction of shortest box length
+  <I>axes</I> values = yes/no length diam = draw xyz axes
+    yes/no = do or do not draw xyz axes lines next to simulation box
+    length = length of axes lines as fraction of respective box lengths
+    diam = diameter of axes lines as fraction of shortest box length
+  <I>shiny</I> value = factor = shinyness of spheres and cylinders
+    factor = shinyness of spheres and cylinders from 0.0 to 1.0
+  <I>ssao</I> value = yes/no = SSAO depth shading
+    yes/no = turn depth shading on/off 
 </PRE>
 
 </UL>
@@ -79,8 +80,9 @@ LAMMPS.
 <P>Dump an image (picture) of the atom configuration every N timesteps as
 either a JPG or PPM file.  A series of such images can easily be
 converted into an animated movie of your simulation; see further
-details below.  Other dump styles store snapshots of atom quantities
-in various formats, as discussed on the <A HREF = "dump.html">dump</A> doc page.
+details below.  Other dump styles store snapshots of numerical data
+asociated with atoms in various formats, as discussed on the
+<A HREF = "dump.html">dump</A> doc page.
 </P>
 <P>Only atoms in the specified group are rendered in the image.  The
 <A HREF = "dump_modify.html">dump_modify region and thresh</A> commands can also
@@ -88,13 +90,14 @@ alter what atoms are included in the image.
 </P>
 <P>The filename suffix determines whether a JPG or PPM file is created.
 If the suffix is ".jpg" or ".jpeg", then a JPG file is created, else a
-PPM file is created.  To write out JPG files, you must build LAMMPS
-with a JPEG library.  See <A HREF = "Section_start.html#2_2_4">this section</A> of
-the manual for instructions on how to do this.
+PPM file is created, which is a text-based format.  To write out JPG
+files, you must build LAMMPS with a JPEG library.  See <A HREF = "Section_start.html#2_2_4">this
+section</A> of the manual for instructions on
+how to do this.
 </P>
 <P>IMPORTANT NOTE: Because periodic boundary conditions are enforced only
 on timesteps when neighbor lists are rebuilt, the coordinates of an
-atom image may be slightly outside the simulation box.
+atom in the image may be slightly outside the simulation box.
 </P>
 <HR>
 
@@ -106,18 +109,16 @@ if the current timestep is not a multiple of N.  This behavior can be
 changed via the <A HREF = "dump_modify.html">dump_modify first</A> command, which
 can be useful if the dump command is invoked after a minimization
 ended on an arbitrary timestep.  N can be changed between runs by
-using the <A HREF = "dump_modify.html">dump_modify every</A> command (not allowed
-for <I>dcd</I> style).
+using the <A HREF = "dump_modify.html">dump_modify every</A> command.
 </P>
-<P>Dump image filenames must contain a wildcard character "*".  If a "*"
-character appears in the filename, then one file per snapshot is
-written and the "*" character is replaced with the timestep value.
-For example, tmp.dump.*.jpg becomes tmp.dump.0.jpg,
-tmp.dump.10000.jpg, tmp.dump.20000.jpg, etc.  Note that the
-<A HREF = "dump_modify.html">dump_modify pad</A> command can be used to insure all
-timestep numbers are the same length (e.g. 00010), which can make it
-easier to convert a series of images into a movie in the correct
-ordering.
+<P>Dump image filenames must contain a wildcard character "*", so that
+one image file per snapshot is written.  The "*" character is replaced
+with the timestep value.  For example, tmp.dump.*.jpg becomes
+tmp.dump.0.jpg, tmp.dump.10000.jpg, tmp.dump.20000.jpg, etc.  Note
+that the <A HREF = "dump_modify.html">dump_modify pad</A> command can be used to
+insure all timestep numbers are the same length (e.g. 00010), which
+can make it easier to convert a series of images into a movie in the
+correct ordering.
 </P>
 <HR>
 
@@ -130,14 +131,14 @@ assigning colors to atoms, bonds, and other image features.
 <HR>
 
 <P>The <I>atom</I> keyword determines the color and size of atoms rendered in
-the image.  If <I>none</I> is specified for the color value (with any diam
-value), then no atoms are drawn.
+the image.  If <I>none</I> is specified for the <I>color</I> value (with any
+<I>diam</I> value), then no atoms are drawn.
 </P>
-<P>The color value can be <I>type</I> or <I>element</I> or an atom-attribute.
+<P>The <I>color</I> value can be <I>type</I> or <I>element</I> or an atom-attribute.
 </P>
-<P>If <I>type</I> is specified for the color
-value, then the color of each atom is determined by its atom type.
-By default the mapping of types to colors is as follows:
+<P>If <I>type</I> is specified for the <I>color</I> value, then the color of each
+atom is determined by its atom type.  By default the mapping of types
+to colors is as follows:
 </P>
 <UL><LI>type 1 = red
 <LI>type 2 = green
@@ -149,21 +150,22 @@ By default the mapping of types to colors is as follows:
 <P>and repeats itself for types > 6.  This mapping can be changed by the
 <A HREF = "dump_modify.html">dump_modify acolor</A> command.
 </P>
-<P>If <I>element</I> is specified for the color value, then the color of each
-atom is determined by which element it is, which in turn is specified
-by the element-to-type mapping specified by the "dump_modify element"
-command.  By default every atom type is C (carbon).  Every element has
-a color associated with it, which is the same as used by the
-<A HREF = "http://mt.seas.upenn.edu/Archive/Graphics/A">AtomEye</A> visualization package.
+<P>If <I>element</I> is specified for the <I>color</I> value, then the color of
+each atom is determined by which element it is, which in turn is
+specified by the element-to-type mapping specified by the "dump_modify
+element" command.  By default every atom type is C (carbon).  Every
+element has a color associated with it, which is the same as the
+colors used by the <A HREF = "http://mt.seas.upenn.edu/Archive/Graphics/A">AtomEye</A> visualization package.
 </P>
 
 
-<P>An atom-attribute can also be used for the color value.  Any attribute
-listed on the <A HREF = "dump.html">dump custom</A> doc page can be used, e.g. vx,
-fy, q, spin, etc.  This includes per-atom quantities calculated by a
-<A HREF = "compute.html">compute</A>, <A HREF = "fix.html">fix</A>, or <A HREF = "variable.html">variable</A>.
-For example, if "vx" is used as the per-atom attribute, then the color
-of the atom will depend on the x-component of its velocity.
+<P>An atom-attribute can also be used for the <I>color</I> value.  Any
+attribute listed on the <A HREF = "dump.html">dump custom</A> doc page can be used,
+e.g. vx, fy, q, spin, etc.  This includes per-atom quantities
+calculated by a <A HREF = "compute.html">compute</A>, <A HREF = "fix.html">fix</A>, or
+<A HREF = "variable.html">variable</A>.  For example, if "vx" is used as the
+per-atom attribute, then the color of the atom will depend on the
+x-component of its velocity.
 </P>
 <P>The association of a per-atom value with a specific color is
 determined by a "color map", which can be specified via the
@@ -174,52 +176,49 @@ color map is defined, that mapping can take place via interpolation so
 that a value of -3.2 is halfway between "red" and "blue", or
 discretely so that the value of -3.2 is "orange".
 </P>
-<P>The diam value can be a numeric value <I>D</I> or <I>type</I> or <I>element</I> or
-<I>radius</I> or <I>shape</I> or an atom-attribute.
+<P>The <I>diam</I> value can be a numeric value or <I>type</I> or <I>element</I> or an
+atom-attribute.
 </P>
-<P>If a numeric value <I>D</I> is specified, then all atoms will be drawn with
+<P>If a numeric value is specified, then all atoms will be drawn with
 that diameter, e.g. 1.5, which is in distance units in whatever
-<A HREF = "units.html">units</A> you are using, e.g. Angstroms.
+<A HREF = "units.html">units</A> the input scripts uses, e.g. Angstroms.
 </P>
-<P>If <I>type</I> is specified for the diam value then the color of each atom
-is determined by its atom type.  By default all types have diameter
-1.0.  This mapping can be changed by the <A HREF = "dump_modify.html">dump_modify
+<P>If <I>type</I> is specified for the diam value then the diamter of each
+atom is determined by its atom type.  By default all types have
+diameter 1.0.  This mapping can be changed by the <A HREF = "dump_modify.html">dump_modify
 adiam</A> command.
 </P>
-<P>If <I>element</I> is specified for the diam value, then the diamater of
+<P>If <I>element</I> is specified for the <I>diam</I> value, then the diamater of
 each atom is determined by which element it is, which in turn is
 specified by the element-to-type mapping specified by the "dump_modify
 element" command.  By default every atom type is C (carbon).  Every
-element has a diamtere associated with it, which is the same as used
-by the <A HREF = "http://mt.seas.upenn.edu/Archive/Graphics/A">AtomEye</A> visualization package.
+element has a diameter associated with it, which is the same as the
+diameters used by the <A HREF = "http://mt.seas.upenn.edu/Archive/Graphics/A">AtomEye</A> visualization package.
 </P>
-<P>If <I>radius</I> or <I>shape</I> is specified for the diam value then those the
-atom style you are using must define those attributes.  The radius or
-shape of the individual atom is then used to draw it.  Currently, only
-spherical shapes are allowed.  Support for ellipsoids will be added
-later.
-</P>
-<P>An atom-attribute can also be used for the diam value.  Any attribute
-listed on the <A HREF = "dump.html">dump custom</A> doc page can be used, e.g. vx,
-fy, q, spin, etc.  This includes per-atom quantities calculated by a
-<A HREF = "compute.html">compute</A>, <A HREF = "fix.html">fix</A>, or <A HREF = "variable.html">variable</A>.
-For example, if "vx" is used as the per-atom attribute, then the
-diameter of the atom will depend on the x-component of its velocity,
-which will assumed to be >= 0.0, else the atom will not be drawn.
+<P>An atom-attribute can also be used for the <I>diam</I> value.  Any
+attribute listed on the <A HREF = "dump.html">dump custom</A> doc page can be used,
+e.g. vx, fy, q, spin, radius, etc.  This includes per-atom quantities
+calculated by a <A HREF = "compute.html">compute</A>, <A HREF = "fix.html">fix</A>, or
+<A HREF = "variable.html">variable</A>.  For example, if "vx" is used as the
+per-atom attribute, then the diameter of the atom will depend on the
+x-component of its velocity, which must be >= 0.0, else the atom will
+not be drawn.  Note that finite-size spherical particles, as defined
+by <A HREF = "atom_style.html">atom_style sphere</A> define a per-particle radius,
+which can be used as an atom-attribute.
 </P>
 <HR>
 
 <P>The <I>bond</I> keyword determines the color and thickness or diameter of
-bonds rendered in the image.  If <I>none</I> is specified for the color
+bonds rendered in the image.  If <I>none</I> is specified for the <I>color</I>
 value (with any diam value), then no bonds are drawn.
 </P>
-<P>If <I>atom</I> is specified for the color value, then the each bond is
-drawn in 2 halves, with the color of each half being the color of the
-atom at that end of the bond.
+<P>If <I>atom</I> is specified for the <I>color</I> value, then each bond is drawn
+in 2 halves, with the color of each half being the color of the atom
+at that end of the bond.
 </P>
-<P>If <I>type</I> is specified for the color value, then the color of each
-bond is determined by its bond type.  By default the mapping of types
-to colors is as follows:
+<P>If <I>type</I> is specified for the <I>color</I> value, then the color of each
+bond is determined by its bond type.  By default the mapping of bond
+types to colors is as follows:
 </P>
 <UL><LI>type 1 = red
 <LI>type 2 = green
@@ -228,57 +227,58 @@ to colors is as follows:
 <LI>type 5 = aqua
 <LI>type 6 = cyan 
 </UL>
-<P>and repeats itself for types > 6.  This mapping can be changed by the
-<A HREF = "dump_modify.html">dump_modify bcolor</A> command.
+<P>and repeats itself for bond types > 6.  This mapping can be changed by
+the <A HREF = "dump_modify.html">dump_modify bcolor</A> command.
 </P>
-<P>The diam value can be a numeric value <I>D</I> or <I>type</I>.
+<P>The <I>diam</I> value can be a numeric value or <I>type</I>.
 </P>
-<P>If a numeric value <I>D</I> is specified, then all bond will be drawn with
-that diameter, e.g. 1.0, which is in distance units in whatever
-<A HREF = "units.html">units</A> you are using, e.g. Angstroms.
+<P>If a numeric value is specified, then all bond will be drawn with that
+diameter, e.g. 1.0, which is in distance units in whatever
+<A HREF = "units.html">units</A> the input script uses, e.g. Angstroms.
 </P>
-<P>If <I>type</I> is specified for the diam value then the color of each bond
-is determined by its bond type.  By default all types have diameter
-0.5.  This mapping can be changed by the <A HREF = "dump_modify.html">dump_modify
+<P>If <I>type</I> is specified for the <I>diam</I> value then the color of each
+bond is determined by its bond type.  By default all types have
+diameter 0.5.  This mapping can be changed by the <A HREF = "dump_modify.html">dump_modify
 bdiam</A> command.
 </P>
 <HR>
 
-<P>The <I>size</I> keyword determines the width and height of the created
-image files, in numbers of pixels in each direction.
+<P>The <I>size</I> keyword sets the width and height of the created images,
+i.e. the number of pixels in each direction.
 </P>
 <HR>
 
-<P>The <I>view</I>, <I>center</I>, <I>up</I>, <I>zoom</I>, and <I>persp</I> settings determine how
+<P>The <I>view</I>, <I>center</I>, <I>up</I>, <I>zoom</I>, and <I>persp</I> values determine how
 3d simulation space is mapped to the 2d plane of the image.  Basically
 they control how the simulation box appears in the image.
 </P>
-<P>All of the <I>view</I>, <I>center</I>, <I>up</I>, <I>zoom</I>, and <I>persp</I> settings can be
-specified as numeric values, whose meaning is explained below.  But
-any of them can also be specified as an equal-style variable, by using
-v_name as the setting, where "name" is the variable name.  In this
-case the variable will be evaluated on the timestep each image is
-created to create a new setting.  If the equal-style variable is
-time-dependent, this is a means of changing the way the simulation box
-appears from image to image, effectively doing a pan or fly-by view of
-your simulation.
+<P>All of the <I>view</I>, <I>center</I>, <I>up</I>, <I>zoom</I>, and <I>persp</I> values can be
+specified as numeric quantities, whose meaning is explained below.
+Any of them can also be specified as an <A HREF = "variable.html">equal-style
+variable</A>, by using v_name as the value, where "name" is
+the variable name.  In this case the variable will be evaluated on the
+timestep each image is created to create a new value.  If the
+equal-style variable is time-dependent, this is a means of changing
+the way the simulation box appears from image to image, effectively
+doing a pan or fly-by view of your simulation.
 </P>
 <P>The <I>view</I> keyword determines the viewpoint from which the simulation
-box is viewed.  The <I>theta</I> setting is the vertical angle from the +z
-axis, and must be an angle from 0 to 180 degrees.  The <I>phi</I> setting
-is an azimuthal angle around the z axis and can be positive or
-negative.
+box is viewed, looking towards the <I>center</I> point.  The <I>theta</I> value
+is the vertical angle from the +z axis, and must be an angle from 0 to
+180 degrees.  The <I>phi</I> value is an azimuthal angle around the z axis
+and can be positive or negative.  A value of 0.0 is a view along the
++x axis, towards the <I>center</I> point.
 </P>
 <P>The <I>center</I> keyword determines the point in simulation space that
 will be at the center of the image.  <I>Cx</I>, <I>Cy</I>, and <I>Cz</I> are
 speficied as fractions of the box dimensions, so that (0.5,0.5,0.5) is
 the center of the simulation box.  These values do not have to be
 between 0.0 and 1.0, if you want the simulation box to be offset from
-the center of the image.  Note, however, that if you choose odd values
-for <I>Cx</I>, <I>Cy</I>, or <I>Cz</I> you may get a blank image.  Internally, <I>Cx</I>,
-<I>Cy</I>, and <I>Cz</I> are converted into a point in simulation space.  If
-<I>flag</I> is set to "s" for static, then this conversion is done once, at
-the time the dump command is issued.  If <I>flag</I> is set to "d" for
+the center of the image.  Note, however, that if you choose strange
+values for <I>Cx</I>, <I>Cy</I>, or <I>Cz</I> you may get a blank image.  Internally,
+<I>Cx</I>, <I>Cy</I>, and <I>Cz</I> are converted into a point in simulation space.
+If <I>flag</I> is set to "s" for static, then this conversion is done once,
+at the time the dump command is issued.  If <I>flag</I> is set to "d" for
 dynamic then the conversion is performed every time a new image is
 created.  If the box size or shape is changing, this will adjust the
 center point in simulation space.
@@ -286,33 +286,30 @@ center point in simulation space.
 <P>The <I>up</I> keyword determines what direction in simulation space will be
 "up" in the image.  Internally it is stored as a vector that is in the
 plane perpendicular to the view vector implied by the <I>theta</I> and
-<I>pni</I> settings, and which is in the plane defined by the view vector
-and user-specified up vector.  Thus this internal vector is computed
-from the user-specified <I>up</I> vector as
+<I>pni</I> values, and which is also in the plane defined by the view
+vector and user-specified up vector.  Thus this internal vector is
+computed from the user-specified <I>up</I> vector as
 </P>
 <PRE>up_internal = view cross (up cross view) 
 </PRE>
 <P>This means the only restriction on the specified <I>up</I> vector is that
 it cannot be parallel to the <I>view</I> vector, implied by the <I>theta</I> and
-<I>phi</I> settings.
+<I>phi</I> values.
 </P>
 <P>The <I>zoom</I> keyword scales the size of the simulation box as it appears
-in the image.  The default <I>factor</I> setting of 1 should display an
+in the image.  The default <I>factor</I> value of 1 should display an
 image mostly filled by the atoms in the simulation box.  A <I>factor</I> >
 1 will make the simulation box larger; a <I>factor</I> < 1 will make it
-smaller.
+smaller.  <I>Factor</I> must be a value > 0.0.
 </P>
-<P>The <I>persp</I> keyword how much depth perspective is present in the
-image.  Depth persepctive makes lines that are parallel in simulation
-space appear non-parallel in the image.  A <I>factor</I> setting of 0.0
-means that parallel lines will meet at infininty (1.0/factor), which
-is an orthographic rendering with no persepctive.  A <I>factor</I> setting
-between 0.0 and 1.0 will introduce more perspective.  A <I>factor</I> > 1
-will create a highly skewed image with a large amount of perspective.
-</P>
-<P>The <I>dynamic</I> keyword 
-determines the color and thickness of bonds
-rendered in the image.
+<P>The <I>persp</I> keyword determines how much depth perspective is present
+in the image.  Depth perspective makes lines that are parallel in
+simulation space appear non-parallel in the image.  A <I>factor</I> value
+of 0.0 means that parallel lines will meet at infininty (1.0/factor),
+which is an orthographic rendering with no persepctive.  A <I>factor</I>
+value between 0.0 and 1.0 will introduce more perspective.  A <I>factor</I>
+value > 1 will create a highly skewed image with a large amount of
+perspective.
 </P>
 <HR>
 
@@ -320,31 +317,32 @@ rendered in the image.
 rendered as thin cylinders in the image.  If <I>no</I> is set, then the box
 boundaries are not drawn and the <I>diam</I> setting is ignored.  If <I>yes</I>
 is set, the 12 edges of the box are drawn, with a diameter that is a
-fraction of the shortest box lenght in x, y, or z.  The color of the
-box boundaires can be set with the <A HREF = "dump_modify.html">dump_modify
+fraction of the shortest box length in x,y,z (for 3d) or x,y (for 2d).
+The color of the box boundaries can be set with the <A HREF = "dump_modify.html">dump_modify
 boxcolor</A> command.
 </P>
 <P>The <I>axes</I> keyword determines how the coordinate axes are rendered as
 thin cylinders in the image.  If <I>no</I> is set, then the axes are not
 drawn and the <I>length</I> and <I>diam</I> settings are ignored.  If <I>yes</I> is
 set, 3 thin cylinders are drawn to represent the x,y,z axes in colors
-red,green/blue.  The origin of these cylinders will be offset
-from the lower left corner of the box by 10%.  The <I>length</I> setting
-determines how long the cylinders will be.  The <I>diam</I> setting
-determines their thickness.
+red,green,blue.  The origin of these cylinders will be offset from the
+lower left corner of the box by 10%.  The <I>length</I> setting determines
+how long the cylinders will be as a fraction of the respective box
+lengths.  The <I>diam</I> setting determines their thickness as a fraction
+of the shortest box length in x,y,z (for 3d) or x,y (for 2d).
 </P>
 <HR>
 
 <P>The <I>shiny</I> keyword determines how shiny the objects rendered in the
-image will appear.  This must be a value 0.0 <= S <= 1.0, where S = 1
-is a highly-reflective surface and S = 0 is a rough non-shiny surface.
+image will appear.  The factor value must be a value 0.0 <= factor <=
+1.0, where factor = 1 is a highly reflective surface and factor = 0 is
+a rough non-shiny surface.
 </P>
 <P>The <I>ssao</I> keyword turns on/off a screen space ambient occlusion
 (SSAO) model for depth shading.  If <I>yes</I> is set, then atoms further
-away from the viewer are darkened, which is perceived as depth by the
-viewer.  The calculation of this effect can increase the cost of
-computing the image by roughly 2x.  If <I>no</I> is set, the depth shading
-is not performed.
+away from the viewer are darkened, which is perceived as depth.  The
+calculation of this effect can increase the cost of computing the
+image by roughly 2x.  If <I>no</I> is set, no depth shading is performed.
 </P>
 <HR>
 
@@ -424,7 +422,6 @@ documentation for details.
 <LI>up = 0 1 0 (for 2d)
 <LI>zoom = 1.0
 <LI>persp = 0.0
-<LI>dynamic = no
 <LI>box = yes 0.01
 <LI>axes = no 0.0 0.0
 <LI>shiny = 1.0

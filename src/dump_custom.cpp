@@ -32,18 +32,19 @@
 using namespace LAMMPS_NS;
 
 // customize by adding keyword
-// same list as in compute_property.cpp, also customize that command
+// also customize compute_atom_property.cpp
 
-enum{ID,MOL,TYPE,MASS,
+enum{ID,MOL,TYPE,ELEMENT,MASS,
      X,Y,Z,XS,YS,ZS,XSTRI,YSTRI,ZSTRI,XU,YU,ZU,XUTRI,YUTRI,ZUTRI,
      XSU,YSU,ZSU,XSUTRI,YSUTRI,ZSUTRI,
      IX,IY,IZ,
      VX,VY,VZ,FX,FY,FZ,
-     Q,MUX,MUY,MUZ,MU,RADIUS,OMEGAX,OMEGAY,OMEGAZ,ANGMOMX,ANGMOMY,ANGMOMZ,
+     Q,MUX,MUY,MUZ,MU,RADIUS,DIAMETER,
+     OMEGAX,OMEGAY,OMEGAZ,ANGMOMX,ANGMOMY,ANGMOMZ,
      TQX,TQY,TQZ,SPIN,ERADIUS,ERVEL,ERFORCE,
      COMPUTE,FIX,VARIABLE};
 enum{LT,LE,GT,GE,EQ,NEQ};
-enum{INT,DOUBLE};
+enum{INT,DOUBLE,STRING};
 
 #define INVOKED_PERATOM 8
 
@@ -97,6 +98,11 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
   choose = NULL;
   dchoose = NULL;
 
+  // element names
+
+  ntypes = atom->ntypes;
+  typenames = NULL;
+
   // setup format strings
 
   vformat = new char*[size_one];
@@ -106,7 +112,8 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
 
   for (int i = 0; i < size_one; i++) {
     if (vtype[i] == INT) format_default = strcat(format_default,"%d ");
-    else format_default = strcat(format_default,"%g ");
+    else if (vtype[i] == DOUBLE) format_default = strcat(format_default,"%g ");
+    else if (vtype[i] == STRING) strcat(format_default,"%s ");
     vformat[i] = NULL;
   }
 
@@ -153,6 +160,11 @@ DumpCustom::~DumpCustom()
   memory->destroy(choose);
   memory->destroy(dchoose);
 
+  if (typenames) {
+    for (int i = 1; i <= ntypes; i++) delete [] typenames[i];
+    delete [] typenames;
+  }
+
   for (int i = 0; i < size_one; i++) delete [] vformat[i];
   delete [] vformat;
 
@@ -171,6 +183,16 @@ void DumpCustom::init_style()
   int n = strlen(str) + 1;
   format = new char[n];
   strcpy(format,str);
+
+  // default for element names = C
+
+  if (typenames == NULL) {
+    typenames = new char*[ntypes+1];
+    for (int itype = 1; itype <= ntypes; itype++) {
+      typenames[itype] = new char[2];
+      strcpy(typenames[itype],"C");
+    }
+  }
 
   // tokenize the format string and add space at end of each format element
 
@@ -429,6 +451,11 @@ int DumpCustom::count()
 	for (i = 0; i < nlocal; i++) dchoose[i] = type[i];
 	ptr = dchoose;
 	nstride = 1;
+      } else if (thresh_array[ithresh] == ELEMENT) {
+	int *type = atom->type;
+	for (i = 0; i < nlocal; i++) dchoose[i] = type[i];
+	ptr = dchoose;
+	nstride = 1;
       } else if (thresh_array[ithresh] == MASS) {
 	if (atom->rmass) {
 	  ptr = atom->rmass;
@@ -581,7 +608,8 @@ int DumpCustom::count()
 	double boxylo = domain->boxlo[1];
 	double invyprd = 1.0/domain->yprd;
 	for (i = 0; i < nlocal; i++) 
-	  dchoose[i] = (x[i][1] - boxylo) * invyprd + (image[i] >> 10 & 1023) - 512;
+	  dchoose[i] = 
+	    (x[i][1] - boxylo) * invyprd + (image[i] >> 10 & 1023) - 512;
 	ptr = dchoose;
 	nstride = 1;
 
@@ -697,6 +725,13 @@ int DumpCustom::count()
 	if (!atom->radius_flag)
 	  error->all("Threshhold for an atom property that isn't allocated");
 	ptr = atom->radius;
+	nstride = 1;
+      } else if (thresh_array[ithresh] == DIAMETER) {
+	if (!atom->radius_flag)
+	  error->all("Threshhold for an atom property that isn't allocated");
+	double *radius = atom->radius;
+	for (i = 0; i < nlocal; i++) dchoose[i] = 2.0*radius[i];
+	ptr = dchoose;
 	nstride = 1;
       } else if (thresh_array[ithresh] == OMEGAX) {
 	if (!atom->omega_flag)
@@ -880,7 +915,9 @@ void DumpCustom::write_text(int n, double *mybuf)
   for (i = 0; i < n; i++) {
     for (j = 0; j < size_one; j++) {
       if (vtype[j] == INT) fprintf(fp,vformat[j],static_cast<int> (mybuf[m]));
-      else fprintf(fp,vformat[j],mybuf[m]);
+      else if (vtype[j] == DOUBLE) fprintf(fp,vformat[j],mybuf[m]);
+      else if (vtype[j] == STRING) 
+	fprintf(fp,vformat[j],typenames[(int) mybuf[m]]);
       m++;
     }
     fprintf(fp,"\n");
@@ -908,6 +945,9 @@ void DumpCustom::parse_fields(int narg, char **arg)
     } else if (strcmp(arg[iarg],"type") == 0) {
       pack_choice[i] = &DumpCustom::pack_type;
       vtype[i] = INT;
+    } else if (strcmp(arg[iarg],"element") == 0) {
+      pack_choice[i] = &DumpCustom::pack_type;
+      vtype[i] = STRING;
     } else if (strcmp(arg[iarg],"mass") == 0) {
       pack_choice[i] = &DumpCustom::pack_mass;
       vtype[i] = DOUBLE;
@@ -1016,6 +1056,11 @@ void DumpCustom::parse_fields(int narg, char **arg)
       if (!atom->radius_flag)
 	error->all("Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_radius;
+      vtype[i] = DOUBLE;
+    } else if (strcmp(arg[iarg],"diameter") == 0) {
+      if (!atom->radius_flag)
+	error->all("Dumping an atom property that isn't allocated");
+      pack_choice[i] = &DumpCustom::pack_diameter;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"omegax") == 0) {
       if (!atom->omega_flag)
@@ -1271,6 +1316,24 @@ int DumpCustom::modify_param(int narg, char **arg)
     }
     return 2;
     
+  } else if (strcmp(arg[0],"element") == 0) {
+    if (narg != ntypes+1)
+      error->all("Dump modify element names do not match atom types");
+
+    if (typenames) {
+      for (int i = 1; i <= ntypes; i++) delete [] typenames[i];
+      delete [] typenames;
+      typenames = NULL;
+    }
+
+    typenames = new char*[ntypes+1];
+    for (int itype = 1; itype <= ntypes; itype++) {
+      int n = strlen(arg[itype]) + 1;
+      typenames[itype] = new char[n];
+      strcpy(typenames[itype],arg[itype]);
+    }
+    return ntypes+1;
+
   } else if (strcmp(arg[0],"thresh") == 0) {
     if (narg < 2) error->all("Illegal dump_modify command");
     if (strcmp(arg[1],"none") == 0) {
@@ -1362,6 +1425,7 @@ int DumpCustom::modify_param(int narg, char **arg)
     else if (strcmp(arg[1],"mu") == 0) thresh_array[nthresh] = MU;
 
     else if (strcmp(arg[1],"radius") == 0) thresh_array[nthresh] = RADIUS;
+    else if (strcmp(arg[1],"diameter") == 0) thresh_array[nthresh] = DIAMETER;
     else if (strcmp(arg[1],"omegax") == 0) thresh_array[nthresh] = OMEGAX;
     else if (strcmp(arg[1],"omegay") == 0) thresh_array[nthresh] = OMEGAY;
     else if (strcmp(arg[1],"omegaz") == 0) thresh_array[nthresh] = OMEGAZ;
@@ -2230,6 +2294,20 @@ void DumpCustom::pack_radius(int n)
   for (int i = 0; i < nlocal; i++)
     if (choose[i]) {
       buf[n] = radius[i];
+      n += size_one;
+    }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_diameter(int n)
+{
+  double *radius = atom->radius;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++)
+    if (choose[i]) {
+      buf[n] = 2.0*radius[i];
       n += size_one;
     }
 }

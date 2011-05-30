@@ -47,7 +47,8 @@ DumpCFG::DumpCFG(LAMMPS *lmp, int narg, char **arg) :
       (strcmp(arg[8],"ys") != 0 && strcmp(arg[8],"ysu") != 0) ||
       (strcmp(arg[9],"zs") != 0 && strcmp(arg[9],"zsu") != 0)
       )
-    error->all("Dump cfg arguments must start with 'id type xs ys zs' or 'id type xsu ysu zsu'");
+    error->all("Dump cfg arguments must start with "
+	       "'id type xs ys zs' or 'id type xsu ysu zsu'");
 
   if (strcmp(arg[7],"xs") == 0)
     if (strcmp(arg[8],"ysu") == 0 || strcmp(arg[9],"zsu") == 0)
@@ -57,9 +58,6 @@ DumpCFG::DumpCFG(LAMMPS *lmp, int narg, char **arg) :
     error->all("Dump cfg arguments can not mix xs|ys|zs with xsu|ysu|zsu");
   else unwrapflag = 1;
     
-  ntypes = atom->ntypes;
-  typenames = NULL;
-
   // arrays for data rearrangement
 
   rbuf = NULL;
@@ -108,11 +106,6 @@ DumpCFG::DumpCFG(LAMMPS *lmp, int narg, char **arg) :
 
 DumpCFG::~DumpCFG()
 {
-  if (typenames) {
-    for (int i = 1; i <= ntypes; i++) delete [] typenames[i];
-    delete [] typenames;
-  }
-
   if (rbuf) memory->destroy(rbuf);
 
   if (auxname) {
@@ -127,16 +120,6 @@ void DumpCFG::init_style()
 {
   if (multifile == 0) error->all("Dump cfg requires one snapshot per file");
 
-  if (typenames == NULL) {
-    typenames = new char*[ntypes+1];
-    for (int itype = 1; itype <= ntypes; itype++) {
-      typenames[itype] = new char[3];
-      strcpy(typenames[itype],"C");
-    }
-    if (comm->me == 0)
-      error->warning("All element names have been set to 'C' for dump cfg");
-  }
-
   // setup format strings
 
   delete [] format;
@@ -147,6 +130,16 @@ void DumpCFG::init_style()
   int n = strlen(str) + 1;
   format = new char[n];
   strcpy(format,str);
+
+  // default for element names = C
+
+  if (typenames == NULL) {
+    typenames = new char*[ntypes+1];
+    for (int itype = 1; itype <= ntypes; itype++) {
+      typenames[itype] = new char[2];
+      strcpy(typenames[itype],"C");
+    }
+  }
 
   // tokenize the format string and add space at end of each format element
 
@@ -318,30 +311,4 @@ void DumpCFG::write_data(int n, double *mybuf)
     }
     nlines = 0;
   }
-}
-
-/* ---------------------------------------------------------------------- */
-
-int DumpCFG::modify_param2(int narg, char **arg)
-{
-  if (strcmp(arg[0],"element") == 0) {
-    if (narg != ntypes+1)
-      error->all("Dump modify element names do not match atom types");
-
-    if (typenames) {
-      for (int i = 1; i <= ntypes; i++) delete [] typenames[i];
-      delete [] typenames;
-      typenames = NULL;
-    }
-
-    typenames = new char*[ntypes+1];
-    for (int itype = 1; itype <= ntypes; itype++) {
-      typenames[itype] = new char[3];
-      if (strlen(arg[itype]) >= 3)
-	error->all("Illegal chemical element names");
-      strcpy(typenames[itype],arg[itype]);
-    }
-    return ntypes+1;
-
-  } else return 0;
 }

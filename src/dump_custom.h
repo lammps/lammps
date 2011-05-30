@@ -67,6 +67,9 @@ class DumpCustom : public Dump {
   int *variable;             // list of indices for the Variables
   double **vbuf;             // local storage for variable evaluation
 
+  int ntypes;                // # of atom types
+  char **typenames;	     // array of element names for each type
+
   // private methods
 
   virtual void init_style();
@@ -142,6 +145,8 @@ class DumpCustom : public Dump {
   void pack_muz(int);
   void pack_mu(int);
   void pack_radius(int);
+  void pack_diameter(int);
+
   void pack_omegax(int);
   void pack_omegay(int);
   void pack_omegaz(int);

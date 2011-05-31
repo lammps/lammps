@@ -496,7 +496,21 @@ These are accelerated fix styles, which can be used if LAMMPS is
 built with the "appropriate accelerated
 package"_Section_accelerate.html.
 
-:tb(c=6,ea=c)
+"freeze/cuda"_fix_freeze.html,
+"addforce/cuda,"_fix_addforce.html,
+"aveforce/cuda,"_fix_aveforce.html,
+"enforce2d/cuda,"_fix_enforce2d.html,
+"gravity/cuda,"_fix_gravity.html,
+"nh/cuda,"_fix_nh.html,
+"npt/cuda,"_fix_nh.html,
+"nve/cuda,"_fix_nh.html,
+"nvt/cuda,"_fix_nh.html,
+"setforce/cuda,"_fix_setforce.html,
+"shake/cuda,"_fix_shake.html,
+"temp/berendsen/cuda"_fix_temp_berendsen.html,
+"temp/rescale/cuda"_fix_temp_rescale.html,
+"temp/rescale/limit/cuda"_fix_temp_rescale.html,
+"viscous/cuda"_fix_viscous.html :tb(c=6,ea=c)
 
 :line
 
@@ -566,7 +580,10 @@ These are accelerated compute styles, which can be used if LAMMPS is
 built with the "appropriate accelerated
 package"_Section_accelerate.html.
 
-:tb(c=6,ea=c)
+"pe/cuda,"_compute_pe.html,
+"pressure/cuda,"_compute_pressure.html,
+"temp/cuda,"_compute_temp.html,
+"temp/partial/cuda"_compute_temp_partial.html :tb(c=6,ea=c)
 
 :line
 
@@ -619,7 +636,7 @@ potentials.  Click on the style itself for a full description:
 "lj/gromacs"_pair_gromacs.html,
 "lj/gromacs/coul/gromacs"_pair_gromacs.html,
 "lj/smooth"_pair_lj_smooth.html,
-"lj96/cut"_pair_lj96_cut.html,
+"lj96/cut"_pair_lj96.html,
 "lubricate"_pair_lubricate.html,
 "meam"_pair_meam.html,
 "morse"_pair_morse.html,
@@ -651,6 +668,35 @@ These are accelerated pair styles, which can be used if LAMMPS is
 built with the "appropriate accelerated
 package"_Section_accelerate.html.
 
+"born/coul/long/cuda"_pair_born.html,
+"buck/coul/cut/cuda"_pair_buck.html,
+"buck/coul/long/cuda"_pair_buck.html,
+"buck/cuda"_pair_buck.html,
+"cg/cmm/cuda"_pair_cmm.html,
+"cg/cmm/coul/cut/cuda"_pair_cmm.html,
+"cg/cmm/coul/debye/cuda"_pair_cmm.html,
+"cg/cmm/coul/long/cuda"_pair_cmm.html,
+"lj/cut/coul/long/cuda"_pair_lj.html,
+"eam/alloy/cuda"_pair_eam.html,
+"eam/cuda"_pair_eam.html,
+"eam/fs/cuda"_pair_eam.html,
+"gran/hooke/cuda"_pair_gran.html,
+"lj/charmm/coul/charmm/cuda"_pair_charmm.html,
+"lj/charmm/coul/charmm/implicit/cuda"_pair_charmm.html,
+"lj/charmm/coul/long/cuda"_pair_charmm.html,
+"lj/class2/coul/cut/cuda"_pair_class2.html,
+"lj/class2/cuda"_pair_class2.html,
+"lj/class2/coul/long/cuda"_pair_class2.html,
+"lj/cut/coul/cut/cuda"_pair_lj.html,
+"lj/cut/coul/debye/cuda"_pair_lj.html,
+"lj/cut/cuda"_pair_lj.html,
+"lj/cut/experimental/cuda"_pair_lj.html,
+"lj/expand/cuda"_pair_lj_expand.html,
+"lj/gromacs/coul/gromacs/cuda"_pair_gromacs.html,
+"lj/gromacs/cuda"_pair_gromacs.html,
+"lj/smooth/cuda"_pair_lj_smooth.html,
+"lj96/cut/cuda"_pair_lj96.html,
+"morse/cuda"_pair_morse.html,
 "gayberne/gpu"_pair_gayberne.html,
 "cg/cmm/gpu"_pair_cmm.html,
 "cg/cmm/coul/long/gpu"_pair_cmm.html,
@@ -659,7 +705,7 @@ package"_Section_accelerate.html.
 "lj/cut/coul/long/gpu"_pair_lj.html,
 "lj/cut/gpu"_pair_lj.html,
 "lj/expand/gpu"_pair_lj_expand.html,
-"lj96/cut/gpu"_pair_lj96_cut.html,
+"lj96/cut/gpu"_pair_lj96.html,
 "morse/gpu"_pair_morse.html,
 "eam/opt"_pair_eam.html,
 "eam/alloy/opt"_pair_eam.html,

@@ -33,7 +33,7 @@ section of the manual"_Section_start.html#2_3.  The "opt" style
 corrsponds to the OPT package, the "gpu" style to the GPU package, and
 the "cuda" style to the USER-CUDA package.
 
-These are the relevant packages and the variants they provide:
+These are the variants these packages provide:
 
 OPT = a handful of pair styles, cache-optimized for faster CPU performance
 GPU = a handful of pair styles and the PPPM kspace_style, optimized to run on one or more GPUs or multicore CPU/GPU nodes
@@ -41,24 +41,24 @@ USER-CUDA = a collection of atom, pair, fix, compute, and intergrate styles, opt
 
 As an example, all of the packages provide a "pair_style
 lj/cut"_pair_lj.html variant, with style names lj/cut/opt or
-lj/cut/gpu or lj/cut/cuda.  Any variant styles can be specified
+lj/cut/gpu or lj/cut/cuda.  A variant styles can be specified
 explicitly in your input script, e.g. pair_style lj/cut/gpu.  If the
 suffix command is used with the appropriate style, you do not need to
 modify your input script.  The specified suffix (opt,gpu,cuda) is
-automatically appended whenever an input script command creates a new
-"atom"_atom_style.html, "pair"_pair_style.html, "fix"_fix.html,
+automatically appended whenever your input script command creates a
+new "atom"_atom_style.html, "pair"_pair_style.html, "fix"_fix.html,
 "compute"_compute.html, or "integrate"_run_style.html style.  If the
 variant version does not exist, the standard version is created.
 
 If the specified style is {off}, then any previously specified suffix
 is temporarily disabled, whether it was specified by a command-line
 switch or a previous suffix command.  If the specified style is {on},
-a previously specified suffix is turned back on.  The use of these 2
-commands lets your input script use a standard LAMMPS style (i.e. a
-non-accelerated variant), which can be useful for testing or
-benchmarking purposes.  Of course this is also possible by not using
-the suffix command, and explictly appending or non appending the
-suffix to the relevant commands in your input script.
+a disabled suffix is turned back on.  The use of these 2 commands lets
+your input script use a standard LAMMPS style (i.e. a non-accelerated
+variant), which can be useful for testing or benchmarking purposes.
+Of course this is also possible by not using any suffix commands, and
+explictly appending or not appending the suffix to the relevant
+commands in your input script.
 
 [Restrictions:] none
 

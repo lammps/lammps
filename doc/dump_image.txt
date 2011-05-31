@@ -391,9 +391,10 @@ per-atom quantities which could then be output into dump files.
 
 [Restrictions:]
 
-To write JPG images, you must link LAMMPS with a JPEG library - see
-the "Making LAMMPS"_Section_start.html#2_2_4 section of the
-documentation for details.
+To write JPG images, you must use a -DLAMMPS_JPEG switch when building
+LAMMPS and link with a JPEG library.  See the "Making
+LAMMPS"_Section_start.html#2_2_4 section of the documentation for
+details.
 
 [Related commands:]
 

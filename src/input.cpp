@@ -418,7 +418,6 @@ int Input::execute_command()
   else if (!strcmp(command,"shell")) shell();
   else if (!strcmp(command,"variable")) variable_command();
 
-  else if (!strcmp(command,"accelerator")) accelerator();
   else if (!strcmp(command,"angle_coeff")) angle_coeff();
   else if (!strcmp(command,"angle_style")) angle_style();
   else if (!strcmp(command,"atom_modify")) atom_modify();
@@ -449,6 +448,7 @@ int Input::execute_command()
   else if (!strcmp(command,"neigh_modify")) neigh_modify();
   else if (!strcmp(command,"neighbor")) neighbor_command();
   else if (!strcmp(command,"newton")) newton();
+  else if (!strcmp(command,"package")) package();
   else if (!strcmp(command,"pair_coeff")) pair_coeff();
   else if (!strcmp(command,"pair_modify")) pair_modify();
   else if (!strcmp(command,"pair_style")) pair_style();
@@ -459,6 +459,7 @@ int Input::execute_command()
   else if (!strcmp(command,"restart")) restart();
   else if (!strcmp(command,"run_style")) run_style();
   else if (!strcmp(command,"special_bonds")) special_bonds();
+  else if (!strcmp(command,"suffix")) suffix();
   else if (!strcmp(command,"thermo")) thermo();
   else if (!strcmp(command,"thermo_modify")) thermo_modify();
   else if (!strcmp(command,"thermo_style")) thermo_style();
@@ -803,27 +804,6 @@ void Input::variable_command()
    one function for each LAMMPS-specific input script command
 ------------------------------------------------------------------------- */
 
-void Input::accelerator()
-{
-  if (domain->box_exist) 
-    error->all("Accelerator command after simulation box is defined");
-  if (narg < 1) error->all("Illegal accelerator command");
-
-  if (strcmp(arg[0],"off") == 0) {
-    if (narg != 1) error->all("Illegal accelerator command");
-    lmp->accelerator = 0;
-    return;
-  } else if (strcmp(arg[0],"on") == 0) {
-    if (narg != 1) error->all("Illegal accelerator command");
-    lmp->accelerator = 1;
-    return;
-  } else if (strcmp(arg[0],"cuda") == 0) {
-    if (!lmp->cuda) error->all("Accelerator cuda command without "
-			       "USER-CUDA package installed");
-    lmp->cuda->accelerator(narg-1,&arg[1]);
-  } else error->all("Illegal accelerator command");
-}
-
 /* ---------------------------------------------------------------------- */
 
 void Input::angle_coeff()
@@ -862,7 +842,7 @@ void Input::atom_style()
   if (narg < 1) error->all("Illegal atom_style command");
   if (domain->box_exist) 
     error->all("Atom_style command after simulation box is defined");
-  atom->create_avec(arg[0],narg-1,&arg[1],lmp->asuffix);
+  atom->create_avec(arg[0],narg-1,&arg[1],lmp->suffix);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -909,7 +889,7 @@ void Input::communicate()
 
 void Input::compute()
 {
-  modify->add_compute(narg,arg,lmp->asuffix);
+  modify->add_compute(narg,arg,lmp->suffix);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -987,7 +967,7 @@ void Input::dump_modify()
 
 void Input::fix()
 {
-  modify->add_fix(narg,arg,lmp->asuffix);
+  modify->add_fix(narg,arg,lmp->suffix);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1127,6 +1107,21 @@ void Input::newton()
 
 /* ---------------------------------------------------------------------- */
 
+void Input::package()
+{
+  if (domain->box_exist) 
+    error->all("Package command after simulation box is defined");
+  if (narg < 1) error->all("Illegal package command");
+
+  if (strcmp(arg[0],"cuda") == 0) {
+    if (!lmp->cuda)
+      error->all("Package cuda command without USER-CUDA installed");
+    lmp->cuda->accelerator(narg-1,&arg[1]);
+  } else error->all("Illegal package command");
+}
+
+/* ---------------------------------------------------------------------- */
+
 void Input::pair_coeff()
 {
   if (domain->box_exist == 0)
@@ -1157,7 +1152,7 @@ void Input::pair_style()
     force->pair->settings(narg-1,&arg[1]);
     return;
   }
-  force->create_pair(arg[0],lmp->asuffix);
+  force->create_pair(arg[0],lmp->suffix);
   if (force->pair) force->pair->settings(narg-1,&arg[1]);
 }
 
@@ -1216,7 +1211,7 @@ void Input::run_style()
 {
   if (domain->box_exist == 0)
     error->all("Run_style command before simulation box is defined");
-  update->create_integrate(narg,arg,lmp->asuffix);
+  update->create_integrate(narg,arg,lmp->suffix);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1248,6 +1243,30 @@ void Input::special_bonds()
       special.build();
     }
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::suffix()
+{
+  if (narg != 1) error->all("Illegal package command");
+
+  if (strcmp(arg[0],"off") == 0) lmp->suffix_enable = 0;
+  else if (strcmp(arg[0],"on") == 0) lmp->suffix_enable = 1;
+  else if (strcmp(arg[0],"opt") == 0 || strcmp(arg[0],"gpu") == 0 ||
+	   strcmp(arg[0],"cuda") == 0) {
+    delete [] lmp->suffix;
+    int n = strlen(arg[0]) + 1;
+    lmp->suffix = new char[n];
+    strcpy(lmp->suffix,arg[0]);
+    lmp->suffix_enable = 1;
+
+    if (!lmp->cuda && strcmp(lmp->suffix,"cuda") == 0)
+      error->all("Cannot use suffix cuda without USER-CUDA installed");
+    if (lmp->cuda && strcmp(lmp->suffix,"cuda") != 0 && me == 0)
+      error->warning("Non-cuda suffix used with USER-CUDA mode enabled");
+
+  } else error->all("Illegal suffix command");
 }
 
 /* ---------------------------------------------------------------------- */

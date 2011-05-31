@@ -53,18 +53,18 @@ Output::Output(LAMMPS *lmp) : Pointers(lmp)
   newarg[0] = (char *) "thermo_temp";
   newarg[1] = (char *) "all";
   newarg[2] = (char *) "temp";
-  modify->add_compute(3,newarg,lmp->asuffix);
+  modify->add_compute(3,newarg,lmp->suffix);
 
   newarg[0] = (char *) "thermo_press";
   newarg[1] = (char *) "all";
   newarg[2] = (char *) "pressure";
   newarg[3] = (char *) "thermo_temp";
-  modify->add_compute(4,newarg,lmp->asuffix);
+  modify->add_compute(4,newarg,lmp->suffix);
 
   newarg[0] = (char *) "thermo_pe";
   newarg[1] = (char *) "all";
   newarg[2] = (char *) "pe";
-  modify->add_compute(3,newarg,lmp->asuffix);
+  modify->add_compute(3,newarg,lmp->suffix);
 
   delete [] newarg;
 

@@ -50,32 +50,16 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   screen = NULL;
   logfile = NULL;
 
-  // create CUDA class if USER-CUDA installed, else dummy
-
-  cuda = new Cuda(this);
-  if (!cuda->cuda_exists) {
-    delete cuda;
-    cuda = NULL;
-  }
-
   // parse input switches
 
   int inflag = 0;
   int screenflag = 0;
   int logflag = 0;
-
-  if (cuda) {
-    int n = strlen("cuda") + 1;
-    asuffix = new char[n];
-    strcpy(asuffix,"cuda");
-    accelerator = 1;
-  } else {
-    asuffix = NULL;
-    accelerator = 0;
-  }
+  int cudaflag = -1;
+  suffix = NULL;
+  suffix_enable = 0;
 
   int iarg = 1;
-
   while (iarg < narg) {
     if (strcmp(arg[iarg],"-partition") == 0 || 
 	strcmp(arg[iarg],"-p") == 0) {
@@ -92,7 +76,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
       inflag = iarg + 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"-screen") == 0 || 
-	       strcmp(arg[iarg],"-s") == 0) {
+	       strcmp(arg[iarg],"-sc") == 0) {
       if (iarg+2 > narg) error->universe_all("Invalid command-line argument");
       screenflag = iarg + 1;
       iarg += 2;
@@ -110,23 +94,25 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
 	       strcmp(arg[iarg],"-e") == 0) {
       if (iarg+2 > narg) error->universe_all("Invalid command-line argument");
       iarg += 2;
-    } else if (strcmp(arg[iarg],"-accel") == 0 || 
-	       strcmp(arg[iarg],"-a") == 0) {
+    } else if (strcmp(arg[iarg],"-cuda") == 0 || 
+	       strcmp(arg[iarg],"-c") == 0) {
       if (iarg+2 > narg) error->universe_all("Invalid command-line argument");
-      if (strcmp(arg[iarg+1],"none") == 0) {
-	delete [] asuffix;
-	asuffix = NULL;
-	accelerator = 0;
-      } else if (strcmp(arg[iarg+1],"opt") == 0 ||
-		 strcmp(arg[iarg+1],"gpu") == 0 ||
-		 strcmp(arg[iarg+1],"cuda") == 0) {
+      if (strcmp(arg[iarg+1],"on") == 0) cudaflag = 1;
+      else if (strcmp(arg[iarg+1],"off") == 0) cudaflag = 0;
+      else error->universe_all("Invalid command-line argument");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"-suffix") == 0 || 
+	       strcmp(arg[iarg],"-sf") == 0) {
+      if (iarg+2 > narg) error->universe_all("Invalid command-line argument");
+      if (strcmp(arg[iarg+1],"opt") == 0 ||
+	  strcmp(arg[iarg+1],"gpu") == 0 ||
+	  strcmp(arg[iarg+1],"cuda") == 0) {
+	delete [] suffix;
 	int n = strlen(arg[iarg+1]) + 1;
-	asuffix = new char[n];
-	strcpy(asuffix,arg[iarg+1]);
-	accelerator = 1;
+	suffix = new char[n];
+	strcpy(suffix,arg[iarg+1]);
+	suffix_enable = 1;
       }
-      if (strcmp(asuffix,"cuda") == 0 && !cuda)
-	error->all("Cannot use -a cuda without USER-CUDA package installed");
       iarg += 2;
     } else error->universe_all("Invalid command-line argument");
   }
@@ -297,6 +283,31 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   if (mpisize != sizeof(bigint))
       error->all("MPI_LMP_BIGINT and bigint in lmptype.h are not compatible");
 
+  // create CUDA class if USER-CUDA installed, unless explicitly switched off
+  // instantiation creates dummy CUDA class if USER-CUDA is not installed
+
+  if (cudaflag == 0) {
+    cuda = NULL;
+    if (suffix && strcmp(suffix,"cuda") == 0)
+      error->all("Cannot use -suffix cuda without USER-CUDA installed");
+  } else if (cudaflag == 1) {
+    cuda = new Cuda(this);
+    if (!cuda->cuda_exists)
+      error->all("Cannot use -cuda on without USER-CUDA installed");
+  } else {
+    cuda = new Cuda(this);
+    if (!cuda->cuda_exists) {
+      delete cuda;
+      cuda = NULL;
+    }
+  }
+  
+  int me;
+  MPI_Comm_rank(world,&me);
+  if (cuda && me == 0) error->message("USER-CUDA mode is enabled");
+  if (cuda && suffix && strcmp(suffix,"cuda") != 0 && me == 0)
+    error->warning("Non-cuda suffix used with USER-CUDA mode enabled");
+
   // allocate input class now that MPI is fully setup
 
   input = new Input(this,narg,arg);
@@ -328,8 +339,8 @@ LAMMPS::~LAMMPS()
 
   if (world != universe->uworld) MPI_Comm_free(&world);
 
-  delete [] asuffix;
   delete cuda;
+  delete [] suffix;
 
   delete input;
   delete universe;
@@ -340,7 +351,7 @@ LAMMPS::~LAMMPS()
 /* ----------------------------------------------------------------------
    allocate single instance of top-level classes
    fundamental classes are allocated in constructor
-   some classes have accelerator variants
+   some classes have package variants
 ------------------------------------------------------------------------- */
 
 void LAMMPS::create()

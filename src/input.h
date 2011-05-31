@@ -61,8 +61,7 @@ class Input : protected Pointers {
   void shell();
   void variable_command();
 
-  void accelerator();          // LAMMPS commands
-  void angle_coeff();
+  void angle_coeff();          // LAMMPS commands
   void angle_style();
   void atom_modify();
   void atom_style();
@@ -92,6 +91,7 @@ class Input : protected Pointers {
   void neigh_modify();
   void neighbor_command();
   void newton();
+  void package();
   void pair_coeff();
   void pair_modify();
   void pair_style();
@@ -102,6 +102,7 @@ class Input : protected Pointers {
   void restart();
   void run_style();
   void special_bonds();
+  void suffix();
   void thermo();
   void thermo_modify();
   void thermo_style();

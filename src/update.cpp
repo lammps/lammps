@@ -59,7 +59,7 @@ Update::Update(LAMMPS *lmp) : Pointers(lmp)
   minimize = NULL;
 
   str = (char *) "verlet";
-  create_integrate(1,&str,lmp->asuffix);
+  create_integrate(1,&str,lmp->suffix);
 
   str = (char *) "cg";
   create_minimize(1,&str);
@@ -222,7 +222,7 @@ void Update::new_integrate(char *style, int narg, char **arg,
 {
   int success = 0;
 
-  if (suffix && lmp->accelerator) {
+  if (suffix && lmp->suffix_enable) {
     sflag = 1;
     char estyle[256];
     sprintf(estyle,"%s/%s",style,suffix);

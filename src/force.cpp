@@ -144,7 +144,7 @@ void Force::create_pair(const char *style, char *suffix)
 
 Pair *Force::new_pair(const char *style, char *suffix, int &sflag)
 {
-  if (suffix && lmp->accelerator) {
+  if (suffix && lmp->suffix_enable) {
     sflag = 1;
     char estyle[256];
     sprintf(estyle,"%s/%s",style,suffix);

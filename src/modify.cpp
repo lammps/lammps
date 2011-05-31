@@ -640,7 +640,7 @@ void Modify::add_fix(int narg, char **arg, char *suffix)
 
   int success = 0;
 
-  if (suffix && lmp->accelerator) {
+  if (suffix && lmp->suffix_enable) {
     char estyle[256];
     sprintf(estyle,"%s/%s",arg[2],suffix);
     success = 1;
@@ -784,7 +784,7 @@ void Modify::add_compute(int narg, char **arg, char *suffix)
 
   int success = 0;
 
-  if (suffix && lmp->accelerator) {
+  if (suffix && lmp->suffix_enable) {
     char estyle[256];
     sprintf(estyle,"%s/%s",arg[2],suffix);
     success = 1;

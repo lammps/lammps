@@ -22,7 +22,7 @@ SIZE =		size
 
 # LAMMPS ifdef options, see doc/Section_start.html
 
-LMP_INC =	-DLAMMPS_GZIP
+LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_JPEG
 
 # MPI library, can be src/STUBS dummy lib
 # INC = path for mpi.h, MPI compiler settings
@@ -49,7 +49,7 @@ FFT_LIB =	-lfftw
 
 JPG_INC =       
 JPG_PATH = 	
-JPG_LIB =
+JPG_LIB =	/usr/local/lib/libjpeg.a
 
 # additional system settings needed by LAMMPS package libraries
 # these settings are IGNORED if the corresponding LAMMPS package

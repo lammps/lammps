@@ -497,16 +497,15 @@ built with the "appropriate accelerated
 package"_Section_accelerate.html.
 
 "freeze/cuda"_fix_freeze.html,
-"addforce/cuda,"_fix_addforce.html,
-"aveforce/cuda,"_fix_aveforce.html,
-"enforce2d/cuda,"_fix_enforce2d.html,
-"gravity/cuda,"_fix_gravity.html,
-"nh/cuda,"_fix_nh.html,
-"npt/cuda,"_fix_nh.html,
-"nve/cuda,"_fix_nh.html,
-"nvt/cuda,"_fix_nh.html,
-"setforce/cuda,"_fix_setforce.html,
-"shake/cuda,"_fix_shake.html,
+"addforce/cuda"_fix_addforce.html,
+"aveforce/cuda"_fix_aveforce.html,
+"enforce2d/cuda"_fix_enforce2d.html,
+"gravity/cuda"_fix_gravity.html,
+"npt/cuda"_fix_nh.html,
+"nve/cuda"_fix_nh.html,
+"nvt/cuda"_fix_nh.html,
+"setforce/cuda"_fix_setforce.html,
+"shake/cuda"_fix_shake.html,
 "temp/berendsen/cuda"_fix_temp_berendsen.html,
 "temp/rescale/cuda"_fix_temp_rescale.html,
 "temp/rescale/limit/cuda"_fix_temp_rescale.html,
@@ -580,9 +579,9 @@ These are accelerated compute styles, which can be used if LAMMPS is
 built with the "appropriate accelerated
 package"_Section_accelerate.html.
 
-"pe/cuda,"_compute_pe.html,
-"pressure/cuda,"_compute_pressure.html,
-"temp/cuda,"_compute_temp.html,
+"pe/cuda"_compute_pe.html,
+"pressure/cuda"_compute_pressure.html,
+"temp/cuda"_compute_temp.html,
 "temp/partial/cuda"_compute_temp_partial.html :tb(c=6,ea=c)
 
 :line
@@ -796,8 +795,6 @@ Kspace solvers.  Click on the style itself for a full description:
 
 "ewald"_kspace_style.html,
 "pppm"_kspace_style.html,
-"pppm/gpu/single"_kspace_style.html,
-"pppm/gpu/double"_kspace_style.html,
 "pppm/tip4p"_kspace_style.html :tb(c=4,ea=c,w=100)
 
 These are Kspace solvers contributed by users, which can be used if
@@ -810,4 +807,6 @@ built with the "appropriate accelerated
 package"_Section_accelerate.html.
 
 "pppm/cuda"_kspace_style.html,
-"pppm/gpu"_kspace_style.html :tb(c=4,ea=c,w=100)
+"pppm/gpu/single"_kspace_style.html,
+"pppm/gpu/double"_kspace_style.html :tb(c=4,ea=c)
+

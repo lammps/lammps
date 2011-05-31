@@ -18,18 +18,18 @@ if (test $1 = 1) then
 
 elif (test $1 = 0) then
 
-  rm ../fix_freeze.cpp
-  rm ../fix_pour.cpp
-  rm ../fix_wall_gran.cpp
-  rm ../pair_gran_hertz_history.cpp
-  rm ../pair_gran_hooke.cpp
-  rm ../pair_gran_hooke_history.cpp
+  rm -f ../fix_freeze.cpp
+  rm -f ../fix_pour.cpp
+  rm -f ../fix_wall_gran.cpp
+  rm -f ../pair_gran_hertz_history.cpp
+  rm -f ../pair_gran_hooke.cpp
+  rm -f ../pair_gran_hooke_history.cpp
 
-  rm ../fix_freeze.h
-  rm ../fix_pour.h
-  rm ../fix_wall_gran.h
-  rm ../pair_gran_hertz_history.h
-  rm ../pair_gran_hooke.h
-  rm ../pair_gran_hooke_history.h
+  rm -f ../fix_freeze.h
+  rm -f ../fix_pour.h
+  rm -f ../fix_wall_gran.h
+  rm -f ../pair_gran_hertz_history.h
+  rm -f ../pair_gran_hooke.h
+  rm -f ../pair_gran_hooke_history.h
 
 fi

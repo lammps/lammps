@@ -78,78 +78,78 @@ if (test $1 = 1) then
 
 elif (test $1 = 0) then
 
-  rm ../angle_charmm.cpp
-  rm ../angle_cosine.cpp
-  rm ../angle_cosine_delta.cpp
-  rm ../angle_cosine_periodic.cpp
-  rm ../angle_cosine_squared.cpp
-  rm ../angle_harmonic.cpp
-  rm ../angle_hybrid.cpp
-  rm ../angle_table.cpp
-  rm ../atom_vec_angle.cpp
-  rm ../atom_vec_bond.cpp
-  rm ../atom_vec_full.cpp
-  rm ../atom_vec_molecular.cpp
-  rm ../bond_fene.cpp
-  rm ../bond_fene_expand.cpp
-  rm ../bond_harmonic.cpp
-  rm ../bond_morse.cpp
-  rm ../bond_nonlinear.cpp
-  rm ../bond_quartic.cpp
-  rm ../bond_table.cpp
-  rm ../dihedral_charmm.cpp
-  rm ../dihedral_harmonic.cpp
-  rm ../dihedral_helix.cpp
-  rm ../dihedral_hybrid.cpp
-  rm ../dihedral_multi_harmonic.cpp
-  rm ../dihedral_opls.cpp
-  rm ../fix_bond_break.cpp
-  rm ../fix_bond_create.cpp
-  rm ../fix_bond_swap.cpp
-  rm ../improper_cvff.cpp
-  rm ../improper_harmonic.cpp
-  rm ../improper_hybrid.cpp
-  rm ../improper_umbrella.cpp
-  rm ../pair_hbond_dreiding_lj.cpp
-  rm ../pair_hbond_dreiding_morse.cpp
-  rm ../pair_lj_charmm_coul_charmm.cpp
-  rm ../pair_lj_charmm_coul_charmm_implicit.cpp
+  rm -f ../angle_charmm.cpp
+  rm -f ../angle_cosine.cpp
+  rm -f ../angle_cosine_delta.cpp
+  rm -f ../angle_cosine_periodic.cpp
+  rm -f ../angle_cosine_squared.cpp
+  rm -f ../angle_harmonic.cpp
+  rm -f ../angle_hybrid.cpp
+  rm -f ../angle_table.cpp
+  rm -f ../atom_vec_angle.cpp
+  rm -f ../atom_vec_bond.cpp
+  rm -f ../atom_vec_full.cpp
+  rm -f ../atom_vec_molecular.cpp
+  rm -f ../bond_fene.cpp
+  rm -f ../bond_fene_expand.cpp
+  rm -f ../bond_harmonic.cpp
+  rm -f ../bond_morse.cpp
+  rm -f ../bond_nonlinear.cpp
+  rm -f ../bond_quartic.cpp
+  rm -f ../bond_table.cpp
+  rm -f ../dihedral_charmm.cpp
+  rm -f ../dihedral_harmonic.cpp
+  rm -f ../dihedral_helix.cpp
+  rm -f ../dihedral_hybrid.cpp
+  rm -f ../dihedral_multi_harmonic.cpp
+  rm -f ../dihedral_opls.cpp
+  rm -f ../fix_bond_break.cpp
+  rm -f ../fix_bond_create.cpp
+  rm -f ../fix_bond_swap.cpp
+  rm -f ../improper_cvff.cpp
+  rm -f ../improper_harmonic.cpp
+  rm -f ../improper_hybrid.cpp
+  rm -f ../improper_umbrella.cpp
+  rm -f ../pair_hbond_dreiding_lj.cpp
+  rm -f ../pair_hbond_dreiding_morse.cpp
+  rm -f ../pair_lj_charmm_coul_charmm.cpp
+  rm -f ../pair_lj_charmm_coul_charmm_implicit.cpp
 
-  rm ../angle_charmm.h
-  rm ../angle_cosine.h
-  rm ../angle_cosine_delta.h
-  rm ../angle_cosine_periodic.h
-  rm ../angle_cosine_squared.h
-  rm ../angle_harmonic.h
-  rm ../angle_hybrid.h
-  rm ../angle_table.h
-  rm ../atom_vec_angle.h
-  rm ../atom_vec_bond.h
-  rm ../atom_vec_full.h
-  rm ../atom_vec_molecular.h
-  rm ../bond_fene.h
-  rm ../bond_fene_expand.h
-  rm ../bond_harmonic.h
-  rm ../bond_morse.h
-  rm ../bond_nonlinear.h
-  rm ../bond_quartic.h
-  rm ../bond_table.h
-  rm ../dihedral_charmm.h
-  rm ../dihedral_harmonic.h
-  rm ../dihedral_helix.h
-  rm ../dihedral_hybrid.h
-  rm ../dihedral_multi_harmonic.h
-  rm ../dihedral_opls.h
-  rm ../fix_bond_break.h
-  rm ../fix_bond_create.h
-  rm ../fix_bond_swap.h
-  rm ../improper_cvff.h
-  rm ../improper_harmonic.h
-  rm ../improper_hybrid.h
-  rm ../improper_umbrella.h
-  rm ../pair_hbond_dreiding_lj.h
-  rm ../pair_hbond_dreiding_morse.h
-  rm ../pair_lj_charmm_coul_charmm.h
-  rm ../pair_lj_charmm_coul_charmm_implicit.h
+  rm -f ../angle_charmm.h
+  rm -f ../angle_cosine.h
+  rm -f ../angle_cosine_delta.h
+  rm -f ../angle_cosine_periodic.h
+  rm -f ../angle_cosine_squared.h
+  rm -f ../angle_harmonic.h
+  rm -f ../angle_hybrid.h
+  rm -f ../angle_table.h
+  rm -f ../atom_vec_angle.h
+  rm -f ../atom_vec_bond.h
+  rm -f ../atom_vec_full.h
+  rm -f ../atom_vec_molecular.h
+  rm -f ../bond_fene.h
+  rm -f ../bond_fene_expand.h
+  rm -f ../bond_harmonic.h
+  rm -f ../bond_morse.h
+  rm -f ../bond_nonlinear.h
+  rm -f ../bond_quartic.h
+  rm -f ../bond_table.h
+  rm -f ../dihedral_charmm.h
+  rm -f ../dihedral_harmonic.h
+  rm -f ../dihedral_helix.h
+  rm -f ../dihedral_hybrid.h
+  rm -f ../dihedral_multi_harmonic.h
+  rm -f ../dihedral_opls.h
+  rm -f ../fix_bond_break.h
+  rm -f ../fix_bond_create.h
+  rm -f ../fix_bond_swap.h
+  rm -f ../improper_cvff.h
+  rm -f ../improper_harmonic.h
+  rm -f ../improper_hybrid.h
+  rm -f ../improper_umbrella.h
+  rm -f ../pair_hbond_dreiding_lj.h
+  rm -f ../pair_hbond_dreiding_morse.h
+  rm -f ../pair_lj_charmm_coul_charmm.h
+  rm -f ../pair_lj_charmm_coul_charmm_implicit.h
 
 fi

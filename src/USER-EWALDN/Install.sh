@@ -15,15 +15,15 @@ if (test $1 = 1) then
 
 elif (test $1 = 0) then
 
-  rm ../ewald_n.cpp
-  rm ../pair_buck_coul.cpp
-  rm ../pair_lj_coul.cpp
+  rm -f ../ewald_n.cpp
+  rm -f ../pair_buck_coul.cpp
+  rm -f ../pair_lj_coul.cpp
 
-  rm ../ewald_n.h
-  rm ../pair_buck_coul.h
-  rm ../pair_lj_coul.h
+  rm -f ../ewald_n.h
+  rm -f ../pair_buck_coul.h
+  rm -f ../pair_lj_coul.h
 
-  rm ../math_vector.h
-  rm ../math_complex.h
+  rm -f ../math_vector.h
+  rm -f ../math_complex.h
 
 fi

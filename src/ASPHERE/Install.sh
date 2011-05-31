@@ -24,24 +24,24 @@ if (test $1 = 1) then
 
 elif (test $1 = 0) then
 
-  rm ../compute_erotate_asphere.cpp
-  rm ../compute_temp_asphere.cpp
-  rm ../fix_nh_asphere.cpp
-  rm ../fix_nph_asphere.cpp
-  rm ../fix_npt_asphere.cpp
-  rm ../fix_nve_asphere.cpp
-  rm ../fix_nvt_asphere.cpp
-  rm ../pair_gayberne.cpp
-  rm ../pair_resquared.cpp
+  rm -f ../compute_erotate_asphere.cpp
+  rm -f ../compute_temp_asphere.cpp
+  rm -f ../fix_nh_asphere.cpp
+  rm -f ../fix_nph_asphere.cpp
+  rm -f ../fix_npt_asphere.cpp
+  rm -f ../fix_nve_asphere.cpp
+  rm -f ../fix_nvt_asphere.cpp
+  rm -f ../pair_gayberne.cpp
+  rm -f ../pair_resquared.cpp
 
-  rm ../compute_erotate_asphere.h
-  rm ../compute_temp_asphere.h
-  rm ../fix_nh_asphere.h
-  rm ../fix_nph_asphere.h
-  rm ../fix_npt_asphere.h
-  rm ../fix_nve_asphere.h
-  rm ../fix_nvt_asphere.h
-  rm ../pair_gayberne.h
-  rm ../pair_resquared.h
+  rm -f ../compute_erotate_asphere.h
+  rm -f ../compute_temp_asphere.h
+  rm -f ../fix_nh_asphere.h
+  rm -f ../fix_nph_asphere.h
+  rm -f ../fix_npt_asphere.h
+  rm -f ../fix_nve_asphere.h
+  rm -f ../fix_nvt_asphere.h
+  rm -f ../pair_gayberne.h
+  rm -f ../pair_resquared.h
 
 fi

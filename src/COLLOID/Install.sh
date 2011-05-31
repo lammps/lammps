@@ -14,15 +14,15 @@ if (test $1 = 1) then
 
 elif (test $1 = 0) then
 
-  rm ../fix_wall_colloid.cpp
-  rm ../pair_colloid.cpp
-  rm ../pair_lubricate.cpp
-  rm ../pair_yukawa_colloid.cpp
+  rm -f ../fix_wall_colloid.cpp
+  rm -f ../pair_colloid.cpp
+  rm -f ../pair_lubricate.cpp
+  rm -f ../pair_yukawa_colloid.cpp
 
-  rm ../fix_wall_colloid.h
-  rm ../pair_colloid.h
-  rm ../pair_lubricate.h
-  rm ../pair_yukawa_colloid.h
+  rm -f ../fix_wall_colloid.h
+  rm -f ../pair_colloid.h
+  rm -f ../pair_lubricate.h
+  rm -f ../pair_yukawa_colloid.h
 
 fi
 

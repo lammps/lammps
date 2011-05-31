@@ -26,26 +26,26 @@ if (test $1 = 1) then
 
 elif (test $1 = 0) then
 
-  rm ../fix_qeq_comb.cpp
-  rm ../pair_airebo.cpp
-  rm ../pair_comb.cpp
-  rm ../pair_eam.cpp
-  rm ../pair_eam_alloy.cpp
-  rm ../pair_eam_fs.cpp
-  rm ../pair_eim.cpp
-  rm ../pair_sw.cpp
-  rm ../pair_tersoff.cpp
-  rm ../pair_tersoff_zbl.cpp
+  rm -f ../fix_qeq_comb.cpp
+  rm -f ../pair_airebo.cpp
+  rm -f ../pair_comb.cpp
+  rm -f ../pair_eam.cpp
+  rm -f ../pair_eam_alloy.cpp
+  rm -f ../pair_eam_fs.cpp
+  rm -f ../pair_eim.cpp
+  rm -f ../pair_sw.cpp
+  rm -f ../pair_tersoff.cpp
+  rm -f ../pair_tersoff_zbl.cpp
 
-  rm ../fix_qeq_comb.h
-  rm ../pair_airebo.h
-  rm ../pair_comb.h
-  rm ../pair_eam.h
-  rm ../pair_eam_alloy.h
-  rm ../pair_eam_fs.h
-  rm ../pair_eim.h
-  rm ../pair_sw.h
-  rm ../pair_tersoff.h
-  rm ../pair_tersoff_zbl.h
+  rm -f ../fix_qeq_comb.h
+  rm -f ../pair_airebo.h
+  rm -f ../pair_comb.h
+  rm -f ../pair_eam.h
+  rm -f ../pair_eam_alloy.h
+  rm -f ../pair_eam_fs.h
+  rm -f ../pair_eim.h
+  rm -f ../pair_sw.h
+  rm -f ../pair_tersoff.h
+  rm -f ../pair_tersoff_zbl.h
 
 fi

@@ -24,8 +24,8 @@ elif (test $1 = 0) then
     sed -i -e 's/[^ \t]*atc_[^ \t]*) //' ../Makefile.package
   fi
 
-  rm ../fix_atc.h
-  rm ../fix_atc.cpp
+  rm -f ../fix_atc.h
+  rm -f ../fix_atc.cpp
 
 fi
 

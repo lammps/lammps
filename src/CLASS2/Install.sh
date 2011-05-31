@@ -22,22 +22,22 @@ if (test $1 = 1) then
 
 elif (test $1 = 0) then
 
-  rm ../bond_class2.cpp
-  rm ../angle_class2.cpp
-  rm ../dihedral_class2.cpp
-  rm ../improper_class2.cpp
+  rm -f ../bond_class2.cpp
+  rm -f ../angle_class2.cpp
+  rm -f ../dihedral_class2.cpp
+  rm -f ../improper_class2.cpp
 
-  rm ../pair_lj_class2.cpp
-  rm ../pair_lj_class2_coul_cut.cpp
-  rm ../pair_lj_class2_coul_long.cpp
+  rm -f ../pair_lj_class2.cpp
+  rm -f ../pair_lj_class2_coul_cut.cpp
+  rm -f ../pair_lj_class2_coul_long.cpp
 
-  rm ../bond_class2.h
-  rm ../angle_class2.h
-  rm ../dihedral_class2.h
-  rm ../improper_class2.h
+  rm -f ../bond_class2.h
+  rm -f ../angle_class2.h
+  rm -f ../dihedral_class2.h
+  rm -f ../improper_class2.h
 
-  rm ../pair_lj_class2.h
-  rm ../pair_lj_class2_coul_cut.h
-  rm ../pair_lj_class2_coul_long.h
+  rm -f ../pair_lj_class2.h
+  rm -f ../pair_lj_class2_coul_cut.h
+  rm -f ../pair_lj_class2_coul_long.h
 
 fi

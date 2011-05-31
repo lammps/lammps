@@ -8,8 +8,8 @@ if (test $1 = 1) then
 
 elif (test $1 = 0) then
 
-  rm ../pair_dsmc.cpp
+  rm -f ../pair_dsmc.cpp
 
-  rm ../pair_dsmc.h
+  rm -f ../pair_dsmc.h
 
 fi

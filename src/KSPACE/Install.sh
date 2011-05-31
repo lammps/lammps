@@ -32,32 +32,32 @@ if (test $1 = 1) then
 
 elif (test $1 = 0) then
 
-  rm ../ewald.cpp
-  rm ../pppm.cpp
-  rm ../pppm_tip4p.cpp
-  rm ../pair_born_coul_long.cpp
-  rm ../pair_buck_coul_long.cpp
-  rm ../pair_coul_long.cpp
-  rm ../pair_lj_cut_coul_long.cpp
-  rm ../pair_lj_cut_coul_long_tip4p.cpp
-  rm ../pair_lj_charmm_coul_long.cpp
-  rm ../fft3d.cpp
-  rm ../fft3d_wrap.cpp
-  rm ../remap.cpp
-  rm ../remap_wrap.cpp
+  rm -f ../ewald.cpp
+  rm -f ../pppm.cpp
+  rm -f ../pppm_tip4p.cpp
+  rm -f ../pair_born_coul_long.cpp
+  rm -f ../pair_buck_coul_long.cpp
+  rm -f ../pair_coul_long.cpp
+  rm -f ../pair_lj_cut_coul_long.cpp
+  rm -f ../pair_lj_cut_coul_long_tip4p.cpp
+  rm -f ../pair_lj_charmm_coul_long.cpp
+  rm -f ../fft3d.cpp
+  rm -f ../fft3d_wrap.cpp
+  rm -f ../remap.cpp
+  rm -f ../remap_wrap.cpp
 
-  rm ../ewald.h
-  rm ../pppm.h
-  rm ../pppm_tip4p.h
-  rm ../pair_born_coul_long.h
-  rm ../pair_buck_coul_long.h
-  rm ../pair_coul_long.h
-  rm ../pair_lj_cut_coul_long.h
-  rm ../pair_lj_cut_coul_long_tip4p.h
-  rm ../pair_lj_charmm_coul_long.h
-  rm ../fft3d.h
-  rm ../fft3d_wrap.h
-  rm ../remap.h
-  rm ../remap_wrap.h
+  rm -f ../ewald.h
+  rm -f ../pppm.h
+  rm -f ../pppm_tip4p.h
+  rm -f ../pair_born_coul_long.h
+  rm -f ../pair_buck_coul_long.h
+  rm -f ../pair_coul_long.h
+  rm -f ../pair_lj_cut_coul_long.h
+  rm -f ../pair_lj_cut_coul_long_tip4p.h
+  rm -f ../pair_lj_charmm_coul_long.h
+  rm -f ../fft3d.h
+  rm -f ../fft3d_wrap.h
+  rm -f ../remap.h
+  rm -f ../remap_wrap.h
 
 fi

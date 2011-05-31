@@ -11,11 +11,11 @@ if (test $1 = 1) then
 
 elif (test $1 = 0) then
 
-  rm ../dump_xtc.cpp
+  rm -f ../dump_xtc.cpp
 
-  rm ../dump_xtc.h
+  rm -f ../dump_xtc.h
 
-  rm ../xdr_compat.cpp
-  rm ../xdr_compat.h
+  rm -f ../xdr_compat.cpp
+  rm -f ../xdr_compat.h
 
 fi

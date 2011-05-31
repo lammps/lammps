@@ -10,10 +10,10 @@ if (test $1 == 1) then
 
 elif (test $1 == 0) then
 
-  rm ../fix_srd.cpp
-  rm ../fix_wall_srd.cpp
+  rm -f ../fix_srd.cpp
+  rm -f ../fix_wall_srd.cpp
 
-  rm ../fix_srd.h
-  rm ../fix_wall_srd.h
+  rm -f ../fix_srd.h
+  rm -f ../fix_wall_srd.h
 
 fi

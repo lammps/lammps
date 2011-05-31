@@ -214,137 +214,138 @@ elif (test $1 = 0) then
 
   touch ../accelerator_cuda.h
 
-  rm ../atom_vec_angle_cuda.cpp
-  rm ../atom_vec_atomic_cuda.cpp
-  rm ../atom_vec_charge_cuda.cpp
-  rm ../atom_vec_full_cuda.cpp
-  rm ../comm_cuda.cpp
-  rm ../compute_pe_cuda.cpp
-  rm ../compute_pressure_cuda.cpp
-  rm ../compute_temp_cuda.cpp
-  rm ../compute_temp_partial_cuda.cpp
-  rm ../domain_cuda.cpp
-  rm ../fft3d_cuda.cpp
-  rm ../fft3d_wrap_cuda.cpp
-  rm ../fix_addforce_cuda.cpp
-  rm ../fix_aveforce_cuda.cpp
-  rm ../fix_enforce2d_cuda.cpp
-  rm ../fix_freeze_cuda.cpp
-  rm ../fix_gravity_cuda.cpp
-  rm ../fix_nh_cuda.cpp
-  rm ../fix_npt_cuda.cpp
-  rm ../fix_nve_cuda.cpp
-  rm ../fix_nvt_cuda.cpp
-  rm ../fix_set_force_cuda.cpp
-  rm ../fix_shake_cuda.cpp
-  rm ../fix_temp_berendsen_cuda.cpp
-  rm ../fix_temp_rescale_cuda.cpp
-  rm ../fix_temp_rescale_limit_cuda.cpp
-  rm ../fix_viscous_cuda.cpp
-  rm ../modify_cuda.cpp
-  rm ../neighbor_cuda.cpp
-  rm ../neigh_full_cuda.cpp
-  rm ../pair_born_coul_long_cuda.cpp
-  rm ../pair_buck_coul_cut_cuda.cpp
-  rm ../pair_buck_coul_long_cuda.cpp
-  rm ../pair_buck_cuda.cpp
-  rm ../pair_cg_cmm_coul_cut_cuda.cpp
-  rm ../pair_cg_cmm_coul_debye_cuda.cpp
-  rm ../pair_cg_cmm_coul_long_cuda.cpp
-  rm ../pair_cg_cmm_cuda.cpp
-  rm ../pair_eam_alloy_cuda.cpp
-  rm ../pair_eam_cuda.cpp
-  rm ../pair_eam_fs_cuda.cpp
-  rm ../pair_gran_hooke_cuda.cpp
-  rm ../pair_lj96_cut_cuda.cpp
-  rm ../pair_lj_charmm_coul_charmm_cuda.cpp
-  rm ../pair_lj_charmm_coul_charmm_implicit_cuda.cpp
-  rm ../pair_lj_charmm_coul_long_cuda.cpp
-  rm ../pair_lj_class2_coul_cut_cuda.cpp
-  rm ../pair_lj_class2_coul_long_cuda.cpp
-  rm ../pair_lj_class2_cuda.cpp
-  rm ../pair_lj_cut_coul_cut_cuda.cpp
-  rm ../pair_lj_cut_coul_debye_cuda.cpp
-  rm ../pair_lj_cut_coul_long_cuda.cpp
-  rm ../pair_lj_cut_cuda.cpp
-  rm ../pair_lj_cut_experimental_cuda.cpp
-  rm ../pair_lj_expand_cuda.cpp
-  rm ../pair_lj_gromacs_coul_gromacs_cuda.cpp
-  rm ../pair_lj_gromacs_cuda.cpp
-  rm ../pair_lj_smooth_cuda.cpp
-  rm ../pair_morse_cuda.cpp
-  rm ../pppm_cuda.cpp
-  rm ../verlet_cuda.cpp
+  rm -f ../atom_vec_angle_cuda.cpp
+  rm -f ../atom_vec_atomic_cuda.cpp
+  rm -f ../atom_vec_charge_cuda.cpp
+  rm -f ../atom_vec_full_cuda.cpp
+  rm -f ../comm_cuda.cpp
+  rm -f ../compute_pe_cuda.cpp
+  rm -f ../compute_pressure_cuda.cpp
+  rm -f ../compute_temp_cuda.cpp
+  rm -f ../compute_temp_partial_cuda.cpp
+  rm -f ../domain_cuda.cpp
+  rm -f ../fft3d_cuda.cpp
+  rm -f ../fft3d_wrap_cuda.cpp
+  rm -f ../fix_addforce_cuda.cpp
+  rm -f ../fix_aveforce_cuda.cpp
+  rm -f ../fix_enforce2d_cuda.cpp
+  rm -f ../fix_freeze_cuda.cpp
+  rm -f ../fix_gravity_cuda.cpp
+  rm -f ../fix_nh_cuda.cpp
+  rm -f ../fix_npt_cuda.cpp
+  rm -f ../fix_nve_cuda.cpp
+  rm -f ../fix_nvt_cuda.cpp
+  rm -f ../fix_set_force_cuda.cpp
+  rm -f ../fix_shake_cuda.cpp
+  rm -f ../fix_temp_berendsen_cuda.cpp
+  rm -f ../fix_temp_rescale_cuda.cpp
+  rm -f ../fix_temp_rescale_limit_cuda.cpp
+  rm -f ../fix_viscous_cuda.cpp
+  rm -f ../modify_cuda.cpp
+  rm -f ../neighbor_cuda.cpp
+  rm -f ../neigh_full_cuda.cpp
+  rm -f ../pair_born_coul_long_cuda.cpp
+  rm -f ../pair_buck_coul_cut_cuda.cpp
+  rm -f ../pair_buck_coul_long_cuda.cpp
+  rm -f ../pair_buck_cuda.cpp
+  rm -f ../pair_cg_cmm_coul_cut_cuda.cpp
+  rm -f ../pair_cg_cmm_coul_debye_cuda.cpp
+  rm -f ../pair_cg_cmm_coul_long_cuda.cpp
+  rm -f ../pair_cg_cmm_cuda.cpp
+  rm -f ../pair_eam_alloy_cuda.cpp
+  rm -f ../pair_eam_cuda.cpp
+  rm -f ../pair_eam_fs_cuda.cpp
+  rm -f ../pair_gran_hooke_cuda.cpp
+  rm -f ../pair_lj96_cut_cuda.cpp
+  rm -f ../pair_lj_charmm_coul_charmm_cuda.cpp
+  rm -f ../pair_lj_charmm_coul_charmm_implicit_cuda.cpp
+  rm -f ../pair_lj_charmm_coul_long_cuda.cpp
+  rm -f ../pair_lj_class2_coul_cut_cuda.cpp
+  rm -f ../pair_lj_class2_coul_long_cuda.cpp
+  rm -f ../pair_lj_class2_cuda.cpp
+  rm -f ../pair_lj_cut_coul_cut_cuda.cpp
+  rm -f ../pair_lj_cut_coul_debye_cuda.cpp
+  rm -f ../pair_lj_cut_coul_long_cuda.cpp
+  rm -f ../pair_lj_cut_cuda.cpp
+  rm -f ../pair_lj_cut_experimental_cuda.cpp
+  rm -f ../pair_lj_expand_cuda.cpp
+  rm -f ../pair_lj_gromacs_coul_gromacs_cuda.cpp
+  rm -f ../pair_lj_gromacs_cuda.cpp
+  rm -f ../pair_lj_smooth_cuda.cpp
+  rm -f ../pair_morse_cuda.cpp
+  rm -f ../pppm_cuda.cpp
+  rm -f ../verlet_cuda.cpp
 
-  rm ../cuda.cpp
-  rm ../cuda_neigh_list.cpp
+  rm -f ../cuda.cpp
+  rm -f ../cuda_neigh_list.cpp
 
-  rm ../atom_vec_angle_cuda.h
-  rm ../atom_vec_atomic_cuda.h
-  rm ../atom_vec_charge_cuda.h
-  rm ../atom_vec_full_cuda.h
-  rm ../comm_cuda.h
-  rm ../compute_pe_cuda.h
-  rm ../compute_pressure_cuda.h
-  rm ../compute_temp_cuda.h
-  rm ../compute_temp_partial_cuda.h
-  rm ../domain_cuda.h
-  rm ../fft3d_cuda.h
-  rm ../fft3d_wrap_cuda.h
-  rm ../fix_addforce_cuda.h
-  rm ../fix_aveforce_cuda.h
-  rm ../fix_enforce2d_cuda.h
-  rm ../fix_freeze_cuda.h
-  rm ../fix_gravity_cuda.h
-  rm ../fix_nh_cuda.h
-  rm ../fix_npt_cuda.h
-  rm ../fix_nve_cuda.h
-  rm ../fix_nvt_cuda.h
-  rm ../fix_set_force_cuda.h
-  rm ../fix_shake_cuda.h
-  rm ../fix_temp_berendsen_cuda.h
-  rm ../fix_temp_rescale_cuda.h
-  rm ../fix_temp_rescale_limit_cuda.h
-  rm ../fix_viscous_cuda.h
-  rm ../modify_cuda.h
-  rm ../neighbor_cuda.h
-  rm ../pair_born_coul_long_cuda.h
-  rm ../pair_buck_coul_cut_cuda.h
-  rm ../pair_buck_coul_long_cuda.h
-  rm ../pair_buck_cuda.h
-  rm ../pair_cg_cmm_coul_cut_cuda.h
-  rm ../pair_cg_cmm_coul_debye_cuda.h
-  rm ../pair_cg_cmm_coul_long_cuda.h
-  rm ../pair_cg_cmm_cuda.h
-  rm ../pair_eam_alloy_cuda.h
-  rm ../pair_eam_cuda.h
-  rm ../pair_eam_fs_cuda.h
-  rm ../pair_gran_hooke_cuda.h
-  rm ../pair_lj96_cut_cuda.h
-  rm ../pair_lj_charmm_coul_charmm_cuda.h
-  rm ../pair_lj_charmm_coul_charmm_implicit_cuda.h
-  rm ../pair_lj_charmm_coul_long_cuda.h
-  rm ../pair_lj_class2_coul_cut_cuda.h
-  rm ../pair_lj_class2_coul_long_cuda.h
-  rm ../pair_lj_class2_cuda.h
-  rm ../pair_lj_cut_coul_cut_cuda.h
-  rm ../pair_lj_cut_coul_debye_cuda.h
-  rm ../pair_lj_cut_coul_long_cuda.h
-  rm ../pair_lj_cut_cuda.h
-  rm ../pair_lj_cut_experimental_cuda.h
-  rm ../pair_lj_expand_cuda.h
-  rm ../pair_lj_gromacs_coul_gromacs_cuda.h
-  rm ../pair_lj_gromacs_cuda.h
-  rm ../pair_lj_smooth_cuda.h
-  rm ../pair_morse_cuda.h
-  rm ../pppm_cuda.h
-  rm ../verlet_cuda.h
+  rm -f ../atom_vec_angle_cuda.h
+  rm -f ../atom_vec_atomic_cuda.h
+  rm -f ../atom_vec_charge_cuda.h
+  rm -f ../atom_vec_full_cuda.h
+  rm -f ../comm_cuda.h
+  rm -f ../compute_pe_cuda.h
+  rm -f ../compute_pressure_cuda.h
+  rm -f ../compute_temp_cuda.h
+  rm -f ../compute_temp_partial_cuda.h
+  rm -f ../domain_cuda.h
+  rm -f ../fft3d_cuda.h
+  rm -f ../fft3d_wrap_cuda.h
+  rm -f ../fix_addforce_cuda.h
+  rm -f ../fix_aveforce_cuda.h
+  rm -f ../fix_enforce2d_cuda.h
+  rm -f ../fix_freeze_cuda.h
+  rm -f ../fix_gravity_cuda.h
+  rm -f ../fix_nh_cuda.h
+  rm -f ../fix_npt_cuda.h
+  rm -f ../fix_nve_cuda.h
+  rm -f ../fix_nvt_cuda.h
+  rm -f ../fix_set_force_cuda.h
+  rm -f ../fix_shake_cuda.h
+  rm -f ../fix_temp_berendsen_cuda.h
+  rm -f ../fix_temp_rescale_cuda.h
+  rm -f ../fix_temp_rescale_limit_cuda.h
+  rm -f ../fix_viscous_cuda.h
+  rm -f ../modify_cuda.h
+  rm -f ../neighbor_cuda.h
+  rm -f ../pair_born_coul_long_cuda.h
+  rm -f ../pair_buck_coul_cut_cuda.h
+  rm -f ../pair_buck_coul_long_cuda.h
+  rm -f ../pair_buck_cuda.h
+  rm -f ../pair_cg_cmm_coul_cut_cuda.h
+  rm -f ../pair_cg_cmm_coul_debye_cuda.h
+  rm -f ../pair_cg_cmm_coul_long_cuda.h
+  rm -f ../pair_cg_cmm_cuda.h
+  rm -f ../pair_eam_alloy_cuda.h
+  rm -f ../pair_eam_cuda.h
+  rm -f ../pair_eam_fs_cuda.h
+  rm -f ../pair_gran_hooke_cuda.h
+  rm -f ../pair_lj96_cut_cuda.h
+  rm -f ../pair_lj_charmm_coul_charmm_cuda.h
+  rm -f ../pair_lj_charmm_coul_charmm_implicit_cuda.h
+  rm -f ../pair_lj_charmm_coul_long_cuda.h
+  rm -f ../pair_lj_class2_coul_cut_cuda.h
+  rm -f ../pair_lj_class2_coul_long_cuda.h
+  rm -f ../pair_lj_class2_cuda.h
+  rm -f ../pair_lj_cut_coul_cut_cuda.h
+  rm -f ../pair_lj_cut_coul_debye_cuda.h
+  rm -f ../pair_lj_cut_coul_long_cuda.h
+  rm -f ../pair_lj_cut_cuda.h
+  rm -f ../pair_lj_cut_experimental_cuda.h
+  rm -f ../pair_lj_expand_cuda.h
+  rm -f ../pair_lj_gromacs_coul_gromacs_cuda.h
+  rm -f ../pair_lj_gromacs_cuda.h
+  rm -f ../pair_lj_smooth_cuda.h
+  rm -f ../pair_morse_cuda.h
+  rm -f ../pppm_cuda.h
+  rm -f ../verlet_cuda.h
 
-  rm ../cuda.h
-  rm ../cuda_common.h
-  rm ../cuda_data.h
-  rm ../cuda_modify_flags.h
-  rm ../cuda_neigh_list.h
-  rm ../cuda_precision.h
-  rm ../cuda_shared.h
+  rm -f ../cuda.h
+  rm -f ../cuda_common.h
+  rm -f ../cuda_data.h
+  rm -f ../cuda_modify_flags.h
+  rm -f ../cuda_neigh_list.h
+  rm -f ../cuda_precision.h
+  rm -f ../cuda_shared.h
+
 fi

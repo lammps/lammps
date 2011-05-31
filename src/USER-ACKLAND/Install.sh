@@ -8,8 +8,8 @@ if (test $1 = 1) then
 
 elif (test $1 = 0) then
 
-  rm ../compute_ackland_atom.cpp
+  rm -f ../compute_ackland_atom.cpp
 
-  rm ../compute_ackland_atom.h
+  rm -f ../compute_ackland_atom.h
 
 fi

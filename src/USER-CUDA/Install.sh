@@ -20,6 +20,10 @@ if (test $1 = 1) then
   sed -i -e 's|^PKG_SYSPATH =[ \t]*|&-L$(CUDA_INSTALL_PATH)\/lib64 -L$(CUDA_INSTALL_PATH)\/lib $(CUDA_USRLIB_CONDITIONAL) |' ../Makefile.package
   sed -i -e 's|^PKG_SYSLIB =[ \t]*|&-lcuda -lcudart -lrt |' ../Makefile.package
  
+  # force rebuild of dependencies since adding -DLMP_USER_CUDA switch
+
+  touch ../accelerator_cuda.h
+
   if (test -e ../atom_vec_angle.cpp) then
     cp atom_vec_angle_cuda.cpp ..
     cp atom_vec_angle_cuda.h ..
@@ -205,6 +209,10 @@ elif (test $1 = 0) then
     sed -i -e 's/[^ \t]*CUDA[^ \t]* //g' ../Makefile.package
     sed -i -e 's/[^ \t]*lrt[^ \t]* //g' ../Makefile.package
   fi
+
+  # force rebuild of dependencies since removing -DLMP_USER_CUDA switch
+
+  touch ../accelerator_cuda.h
 
   rm ../atom_vec_angle_cuda.cpp
   rm ../atom_vec_atomic_cuda.cpp

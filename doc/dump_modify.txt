@@ -14,7 +14,7 @@ dump_modify dump-ID keyword values ... :pre
 
 dump-ID = ID of dump to modify :ulb,l
 one or more keyword/value pairs may be appended :l
-keyword = {acolor} or {adiam} or {amap} or {append} or {bcolor} or {bdiam} or {bgcolor} or {boxcolor} or {color} or {every} or {flush} or {format} or {image} or {label} or {precision} or {region} or {scale} or {sort} or {thresh} or {unwrap} :l
+keyword = {acolor} or {adiam} or {amap} or {append} or {bcolor} or {bdiam} or {backcolor} or {boxcolor} or {color} or {every} or {flush} or {format} or {image} or {label} or {precision} or {region} or {scale} or {sort} or {thresh} or {unwrap} :l
   {acolor} args = type color
     type = atom type or range of types (see below)
     color = name of color or color1/color2/...
@@ -24,7 +24,7 @@ keyword = {acolor} or {adiam} or {amap} or {append} or {bcolor} or {bdiam} or {b
   {amap} args = lo hi style N delta entry1 entry2 ... entryN
     lo = number or {min} = lower bound of range of color map
     hi = number or {max} = upper bound of range of color map
-    style = 2 letters = "b" or "c" or "s" plus "a" or "f"
+    style = 2 letters = "c" or "d" or "s" plus "a" or "f"
       "c" for continuous
       "d" for discrete
       "s" for sequential
@@ -48,7 +48,7 @@ keyword = {acolor} or {adiam} or {amap} or {append} or {bcolor} or {bdiam} or {b
   {bdiam} args = type diam
     type = bond type or range of types (see below)
     diam = diameter of bonds of that type (distance units)
-  {bgcolor} arg = color
+  {backcolor} arg = color
     color = name of color for background
   {boxcolor} arg = color
     color = name of color for box lines
@@ -102,9 +102,9 @@ parameters are relevant to all dump styles.
 :line
 
 The {acolor} keyword applies only to the dump {image} style.  It can
-be used with the "dump image"_dump_image.html command, with its {atom}
-keyword, when its color setting is {type}, to set the color that atoms
-of each type will be drawn in the image.
+be used with the "dump image"_dump_image.html command, when its atom
+color setting is {type}, to set the color that atoms of each type will
+be drawn in the image.
 
 The specified {type} should be an integer from 1 to Ntypes = the
 number of atom types.  A wildcard asterisk can be used in place of or
@@ -117,23 +117,23 @@ all types from 1 to N.  A leading asterisk means all types from 1 to n
 (inclusive).
 
 The specified {color} can be a single color which is any of the 140
-pre-defined colors (see below) or a colorname defined by the
+pre-defined colors (see below) or a color name defined by the
 dump_modify color option.  Or it can be two or more colors separated
 by a "/" character, e.g. red/green/blue.  In the former case, that
 color is assigned to all the specified atom types.  In the latter
-case, the list of colors are assigned in a round-robin fashion
-to each of the specified atom types.
+case, the list of colors are assigned in a round-robin fashion to each
+of the specified atom types.
 
 :line
 
 The {adiam} keyword applies only to the dump {image} style.  It can be
-used with the "dump image"_dump_image.html command, with its {atom}
-keyword, when its diam setting is {type}, to set the size that atoms
-of each type will be drawn in the image.  The specified {type} should
-be an integer from 1 to Ntypes.  As with the {acolor} keyword, a
-wildcard asterisk can be used as part of the {type} argument to
-specify a range of atomt types.  The specified {diam} is the size in
-whatever distance "units"_units.html you are using, e.g. Angstroms.
+used with the "dump image"_dump_image.html command, when its atom
+diameter setting is {type}, to set the size that atoms of each type
+will be drawn in the image.  The specified {type} should be an integer
+from 1 to Ntypes.  As with the {acolor} keyword, a wildcard asterisk
+can be used as part of the {type} argument to specify a range of atomt
+types.  The specified {diam} is the size in whatever distance
+"units"_units.html the input script is using, e.g. Angstroms.
 
 :line
 
@@ -150,8 +150,7 @@ within a range of values, and that range is associated with a a series
 of colors (e.g. red, blue, green).  An atom's specific value (vx =
 -3.2) can then mapped to the series of colors (e.g. halfway between
 red and blue), and a specific color is determined via an interpolation
-procedure.  There are other options for the mapping mechanism, all of
-which are explained on the "dump_modify"_dump_modify.html doc page.
+procedure.
 
 There are many possible options for the color map, enabled by the
 {amap} keyword.  Here are the details.
@@ -160,8 +159,9 @@ The {lo} and {hi} settings determine the range of values allowed for
 the atom attribute.  If numeric values are used for {lo} and/or {hi},
 then values that are lower/higher than that value are set to the
 value.  I.e. the range is static.  If {lo} is specified as {min} or
-{hi} as {max} then the range is dynamic, and will the lower and/or
-upper bound will be calculated each time an image is drawn.
+{hi} as {max} then the range is dynamic, and the lower and/or
+upper bound will be calculated each time an image is drawn, based
+on the set of atoms being visualized.
 
 The {style} setting is two letters, such as "ca".  The first letter is
 either "c" for continuous, "d" for discrete, or "s" for sequential.
@@ -193,13 +193,13 @@ from -9.0 <= color2 < -8.0, etc.
 The {N} setting is how many entries follow.  The format of the entries
 depends on whether the color map style is continuous, discrete or
 sequential.  In all cases the {color} setting can be any of the 140
-pre-defined colors (see below) or a colorname defined by the
+pre-defined colors (see below) or a color name defined by the
 dump_modify color option.
 
 For continuous color maps, each entry has a {value} and a {color}.
 The {value} is either a number within the range of values or {min} or
 {max}.  The {value} of the first entry must be {min} and the {value}
-of hte last entry must be {max}.  Any entries in between must have
+of the last entry must be {max}.  Any entries in between must have
 increasing values.  Note that numeric values can be specified either
 as absolute numbers or as fractions (0.0 to 1.0) of the range,
 depending on the "a" or "f" in the style setting for the color map.
@@ -217,11 +217,11 @@ For discrete color maps, each entry has a {lo} and {hi} value and a
 {color}.  The {lo} and {hi} settings are either numbers within the
 range of values or {lo} can be {min} or {hi} can be {max}.  The {lo}
 and {hi} settings of the last entry must be {min} and {max}.  Other
-entries can have any {lo} and {hi} values, including sub-ranges of
-values that overlap.  Note that numeric {lo} and {hi} values can be
-specified either as absolute numbers or as fractions (0.0 to 1.0) of
-the range, depending on the "a" or "f" in the style setting for the
-color map.
+entries can have any {lo} and {hi} values and the sub-ranges of
+different values can overlap.  Note that numeric {lo} and {hi} values
+can be specified either as absolute numbers or as fractions (0.0 to
+1.0) of the range, depending on the "a" or "f" in the style setting
+for the color map.
 
 Here is how the entries are used to determine the color of an
 individual atom, given the value X of its atom attribute.  The entries
@@ -277,7 +277,7 @@ all types from 1 to N.  A leading asterisk means all types from 1 to n
 (inclusive).
 
 The specified {color} can be a single color which is any of the 140
-pre-defined colors (see below) or a colorname defined by the
+pre-defined colors (see below) or a color name defined by the
 dump_modify color option.  Or it can be two or more colors separated
 by a "/" character, e.g. red/green/blue.  In the former case, that
 color is assigned to all the specified bond types.  In the latter
@@ -298,9 +298,9 @@ e.g. Angstroms.
 
 :line
 
-The {bgcolor} keyword applies only to the dump {image} style.  It sets
-the background color of each image.  The color name can be any of the
-140 pre-defined colors (see below) or a colorname defined by the
+The {backcolor} keyword applies only to the dump {image} style.  It
+sets the background color of the images.  The color name can be any of
+the 140 pre-defined colors (see below) or a color name defined by the
 dump_modify color option.
 
 :line
@@ -309,7 +309,22 @@ The {boxcolor} keyword applies only to the dump {image} style.  It
 sets the color of the simulation box drawn around the atoms in each
 image.  See the "dump image box" command for how to specify that a box
 be drawn.  The color name can be any of the 140 pre-defined colors
-(see below) or a colorname defined by the dump_modify color option.
+(see below) or a color name defined by the dump_modify color option.
+
+:line
+
+The {color} keyword applies only to the dump {image} style.  It allows
+definition of a new color name, in addition to the 140-predefined
+colors (see below), and associates 3 red/green/blue RGB values with
+that color name.  The color name can then be used with any other
+dump_modify keyword that takes a color name as a value.  The RGB
+values should each be floating point values between 0.0 and 1.0
+inclusive.
+
+When a color name is converted to RGB values, the user-defined color
+names are searched first, then the 140 pre-defined color names.  This
+means you can also use the {color} keyword to overwrite one of the
+pre-defined color names with new RBG values.
 
 :line
 
@@ -504,7 +519,7 @@ amap = min max cf 2 0.0 blue 1.0 red
 append = no
 bcolor = * red/green/blue/yellow/aqua/cyan
 bdiam = * 0.5
-bgcolor = black
+backcolor = black
 boxcolor = yellow
 color = 140 color names are pre-defined as listed below
 element = "C" for every atom type

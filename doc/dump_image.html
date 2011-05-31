@@ -13,7 +13,7 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>dump ID group-ID image N file x y z type type keyword value ... 
+<PRE>dump ID group-ID image N file color diameter keyword value ... 
 </PRE>
 <UL><LI>ID = user-assigned name for the dump 
 
@@ -25,18 +25,20 @@
 
 <LI>file = name of file to write image to 
 
+<LI>color = atom attribute that determines color of each atom 
+
+<LI>diameter = atom attribute that determines size of each atom 
+
 <LI>zero or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>atom</I> or <I>bond</I> or <I>size</I> or <I>view</I> or <I>center</I> or <I>up</I> or <I>zoom</I> or <I>persp</I> or <I>box</I> or <I>axes</I> or <I>shiny</I> or <I>ssao</I> 
+<LI>keyword = <I>adiam</I> or <I>atom</I> or <I>bond</I> or <I>size</I> or <I>view</I> or <I>center</I> or <I>up</I> or <I>zoom</I> or <I>persp</I> or <I>box</I> or <I>axes</I> or <I>shiny</I> or <I>ssao</I> 
 
-<PRE>  <I>atom</I> values = color diam = color and size of atoms
-    color = <I>none</I> or <I>type</I> or <I>element</I> or atom-attribute
-    diam = number or <I>type</I> or <I>element</I> or atom-attribute
-      number = numeric value for atom diameter (distance units)
-  <I>bond</I> values = color diam = color and width of bonds
-    color = <I>none</I> or <I>atom</I> or <I>type</I>
-    diam = number or <I>type</I>
-      numer = numeric value for bond diameter (distance units)
+<PRE>  <I>adiam</I> value = number = numeric value for atom diameter (distance units)
+  <I>atom</I> = yes/no = do or do not draw atoms
+  <I>bond</I> values = color width = color and width of bonds
+    color = <I>atom</I> or <I>type</I>
+    width = number or <I>atom</I> or <I>type</I>
+      number = numeric value for bond width (distance units)
   <I>size</I> values = width height = size of images
     width = width of image in # of pixels
     height = height of image in # of pixels
@@ -46,7 +48,7 @@
     theta or phi can be a variable (see below)
   <I>center</I> values = flag Cx Cy Cz = center point of image
     flag = "s" for static, "d" for dynamic
-    Cx,Cy,Cz = center point of image as fraction of box dimension (0.5 = center   of box)
+    Cx,Cy,Cz = center point of image as fraction of box dimension (0.5 = center of box)
     Cx,Cy,Cz can be variables (see below)
   <I>up</I> values = Ux Uy Uz = direction that is "up" in image
     Ux,Uy,Uz = components of up vector
@@ -66,14 +68,15 @@
     diam = diameter of axes lines as fraction of shortest box length
   <I>shiny</I> value = factor = shinyness of spheres and cylinders
     factor = shinyness of spheres and cylinders from 0.0 to 1.0
-  <I>ssao</I> value = yes/no = SSAO depth shading
-    yes/no = turn depth shading on/off 
+  <I>ssao</I> value = yes/no seed = SSAO depth shading
+    yes/no = turn depth shading on/off
+    seed = random # seed (positive integer) 
 </PRE>
 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>dump myDump all image 100 dump.*.jpg 
+<PRE>dump myDump all image 100 dump.*.jpg type type 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -122,21 +125,17 @@ correct ordering.
 </P>
 <HR>
 
-<P>The kewords listed above control how the image is rendered.  As listed
-below, all of the keywords have defaults, most of which you will
-likely not need to change.  The <A HREF = "dump_modify.html">dump modify</A> also
-has options specific to the dump image style, particularly for
-assigning colors to atoms, bonds, and other image features.
+<P>The <I>color</I> and <I>diameter</I> settings determine the color and size of
+atoms rendered in the image.  They can be any atom attribute defined
+for the <A HREF = "dump.html">dump custom</A> command, including <I>type</I> and
+<I>element</I>.  This includes per-atom quantities calculated by a
+<A HREF = "compute.html">compute</A>, <A HREF = "fix.html">fix</A>, or <A HREF = "variable.html">variable</A>,
+which are prefixed by "c_", "f_", or "v_" respectively.  Note that the
+<I>diameter</I> setting can be overridden with a numeric value by the
+optional <I>adiam</I> keyword, in which case you can specify the <I>diameter</I>
+setting with any valid atom attribute.
 </P>
-<HR>
-
-<P>The <I>atom</I> keyword determines the color and size of atoms rendered in
-the image.  If <I>none</I> is specified for the <I>color</I> value (with any
-<I>diam</I> value), then no atoms are drawn.
-</P>
-<P>The <I>color</I> value can be <I>type</I> or <I>element</I> or an atom-attribute.
-</P>
-<P>If <I>type</I> is specified for the <I>color</I> value, then the color of each
+<P>If <I>type</I> is specified for the <I>color</I> setting, then the color of each
 atom is determined by its atom type.  By default the mapping of types
 to colors is as follows:
 </P>
@@ -150,25 +149,28 @@ to colors is as follows:
 <P>and repeats itself for types > 6.  This mapping can be changed by the
 <A HREF = "dump_modify.html">dump_modify acolor</A> command.
 </P>
-<P>If <I>element</I> is specified for the <I>color</I> value, then the color of
-each atom is determined by which element it is, which in turn is
-specified by the element-to-type mapping specified by the "dump_modify
-element" command.  By default every atom type is C (carbon).  Every
-element has a color associated with it, which is the same as the
-colors used by the <A HREF = "http://mt.seas.upenn.edu/Archive/Graphics/A">AtomEye</A> visualization package.
+<P>If <I>type</I> is specified for the <I>diameter</I> setting then the diamter of
+each atom is determined by its atom type.  By default all types have
+diameter 1.0.  This mapping can be changed by the <A HREF = "dump_modify.html">dump_modify
+adiam</A> command.
+</P>
+<P>If <I>element</I> is specified for the <I>color</I> and/or <I>diameter</I> setting,
+then the color and/or diameter of each atom is determined by which
+element it is, which in turn is specified by the element-to-type
+mapping specified by the "dump_modify element" command.  By default
+every atom type is C (carbon).  Every element has a color and diameter
+associated with it, which is the same as the colors used by the
+<A HREF = "http://mt.seas.upenn.edu/Archive/Graphics/A">AtomEye</A> visualization package.
 </P>
 
 
-<P>An atom-attribute can also be used for the <I>color</I> value.  Any
-attribute listed on the <A HREF = "dump.html">dump custom</A> doc page can be used,
-e.g. vx, fy, q, spin, etc.  This includes per-atom quantities
-calculated by a <A HREF = "compute.html">compute</A>, <A HREF = "fix.html">fix</A>, or
-<A HREF = "variable.html">variable</A>.  For example, if "vx" is used as the
-per-atom attribute, then the color of the atom will depend on the
-x-component of its velocity.
+<P>If other atom attributes are used for the <I>color</I> or <I>diameter</I>
+settings, they are interpreted in the following way.
 </P>
-<P>The association of a per-atom value with a specific color is
-determined by a "color map", which can be specified via the
+<P>If "vx", for example, is used as the <I>color</I> setting, then the color
+of the atom will depend on the x-component of its velocity.  The
+association of a per-atom value with a specific color is determined by
+a "color map", which can be specified via the
 <A HREF = "dump_modify.html">dump_modify</A> command.  The basic idea is that the
 atom-attribute will be within a range of values, and every value
 within the range is mapped to a specific color.  Depending on how the
@@ -176,45 +178,41 @@ color map is defined, that mapping can take place via interpolation so
 that a value of -3.2 is halfway between "red" and "blue", or
 discretely so that the value of -3.2 is "orange".
 </P>
-<P>The <I>diam</I> value can be a numeric value or <I>type</I> or <I>element</I> or an
-atom-attribute.
-</P>
-<P>If a numeric value is specified, then all atoms will be drawn with
-that diameter, e.g. 1.5, which is in distance units in whatever
-<A HREF = "units.html">units</A> the input scripts uses, e.g. Angstroms.
-</P>
-<P>If <I>type</I> is specified for the diam value then the diamter of each
-atom is determined by its atom type.  By default all types have
-diameter 1.0.  This mapping can be changed by the <A HREF = "dump_modify.html">dump_modify
-adiam</A> command.
-</P>
-<P>If <I>element</I> is specified for the <I>diam</I> value, then the diamater of
-each atom is determined by which element it is, which in turn is
-specified by the element-to-type mapping specified by the "dump_modify
-element" command.  By default every atom type is C (carbon).  Every
-element has a diameter associated with it, which is the same as the
-diameters used by the <A HREF = "http://mt.seas.upenn.edu/Archive/Graphics/A">AtomEye</A> visualization package.
-</P>
-<P>An atom-attribute can also be used for the <I>diam</I> value.  Any
-attribute listed on the <A HREF = "dump.html">dump custom</A> doc page can be used,
-e.g. vx, fy, q, spin, radius, etc.  This includes per-atom quantities
-calculated by a <A HREF = "compute.html">compute</A>, <A HREF = "fix.html">fix</A>, or
-<A HREF = "variable.html">variable</A>.  For example, if "vx" is used as the
-per-atom attribute, then the diameter of the atom will depend on the
-x-component of its velocity, which must be >= 0.0, else the atom will
-not be drawn.  Note that finite-size spherical particles, as defined
-by <A HREF = "atom_style.html">atom_style sphere</A> define a per-particle radius,
-which can be used as an atom-attribute.
+<P>If "vx", for example, is used as the <I>diameter</I> setting, then the atom
+will be rendered using the x-component of its velocity as the
+diameter.  If the per-atom value <= 0.0, them the atom will not be
+drawn.  Note that finite-size spherical particles, as defined by
+<A HREF = "atom_style.html">atom_style sphere</A> define a per-particle radius or
+diameter, which can be used as the <I>diameter</I> setting.
 </P>
 <HR>
 
-<P>The <I>bond</I> keyword determines the color and thickness or diameter of
-bonds rendered in the image.  If <I>none</I> is specified for the <I>color</I>
-value (with any diam value), then no bonds are drawn.
+<P>The various kewords listed above control how the image is rendered.
+As listed below, all of the keywords have defaults, most of which you
+will likely not need to change.  The <A HREF = "dump_modify.html">dump modify</A>
+also has options specific to the dump image style, particularly for
+assigning colors to atoms, bonds, and other image features.
 </P>
-<P>If <I>atom</I> is specified for the <I>color</I> value, then each bond is drawn
-in 2 halves, with the color of each half being the color of the atom
-at that end of the bond.
+<HR>
+
+<P>The <I>adiam</I> keyword allows you to override the <I>diameter</I> setting to a
+per-atom attribute with a specified numeric value.  All atoms will be
+drawn with that diameter, e.g. 1.5, which is in whatever distance
+<A HREF = "units.html">units</A> the input script defines, e.g. Angstroms.
+</P>
+<P>The <I>atom</I> keyword allow you to turn off the drawing of all atoms,
+if the specified value is <I>no</I>.
+</P>
+<P>By default, no bonds between atoms are drawn in the renedered image.
+The <I>bond</I> keyword cause bonds between pairs of atoms (as defined in
+the data file read by the <A HREF = "read_data.html">read_data</A> command) to be
+drawn with the specified color and width.  A bond is only drawn if
+both atoms in the bond are part of the group specified with the dump
+image command.
+</P>
+<P>If <I>atom</I> is specified for the bond <I>color</I> value, then each bond is
+drawn in 2 halves, with the color of each half being the color of the
+atom at that end of the bond.
 </P>
 <P>If <I>type</I> is specified for the <I>color</I> value, then the color of each
 bond is determined by its bond type.  By default the mapping of bond
@@ -230,13 +228,17 @@ types to colors is as follows:
 <P>and repeats itself for bond types > 6.  This mapping can be changed by
 the <A HREF = "dump_modify.html">dump_modify bcolor</A> command.
 </P>
-<P>The <I>diam</I> value can be a numeric value or <I>type</I>.
+<P>The bond <I>width</I> value can be a numeric value or <I>atom</I> or <I>type</I>.
 </P>
-<P>If a numeric value is specified, then all bond will be drawn with that
-diameter, e.g. 1.0, which is in distance units in whatever
-<A HREF = "units.html">units</A> the input script uses, e.g. Angstroms.
+<P>If a numeric value is specified, then all bonds will be drawn as
+cylinders with that diameter, e.g. 1.0, which is in whatever distance
+<A HREF = "units.html">units</A> the input script defines, e.g. Angstroms.
 </P>
-<P>If <I>type</I> is specified for the <I>diam</I> value then the color of each
+<P>If <I>atom</I> is specified for the <I>width</I> value, then each bond
+will be drawn with a width corresponding to the minimum diameter
+of the 2 atoms in the bond.
+</P>
+<P>If <I>type</I> is specified for the <I>width</I> value then the diameter of each
 bond is determined by its bond type.  By default all types have
 diameter 0.5.  This mapping can be changed by the <A HREF = "dump_modify.html">dump_modify
 bdiam</A> command.
@@ -340,9 +342,10 @@ a rough non-shiny surface.
 </P>
 <P>The <I>ssao</I> keyword turns on/off a screen space ambient occlusion
 (SSAO) model for depth shading.  If <I>yes</I> is set, then atoms further
-away from the viewer are darkened, which is perceived as depth.  The
-calculation of this effect can increase the cost of computing the
-image by roughly 2x.  If <I>no</I> is set, no depth shading is performed.
+away from the viewer are darkened via a randomized process, which is
+perceived as depth.  The calculation of this effect can increase the
+cost of computing the image by roughly 2x.  If <I>no</I> is set, no depth
+shading is performed.
 </P>
 <HR>
 

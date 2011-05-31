@@ -230,7 +230,7 @@ void Cuda::accelerator(int narg, char** arg)
 	  {
 	  	if(++i==narg) 
 	  	  error->all("Invalid Options for 'accelerator' command. Expecting a string after 'suffix' option."); 
-	  	strcpy(lmp->asuffix,arg[i]);
+	  	strcpy(lmp->suffix,arg[i]);
 	  }
 	  if(strcmp(arg[i],"overlap_comm")==0) 
 	  {

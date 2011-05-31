@@ -36,6 +36,8 @@ enum{NSQ,BIN,MULTI};     // also in neigh_list.cpp
 NeighborCuda::NeighborCuda(LAMMPS *lmp) : Neighbor(lmp)
 {
   cuda = lmp->cuda;
+   if(cuda == NULL)
+        error->all("You cannot use a /cuda class, without activating 'cuda' acceleration. Use no '-a' command line argument, or '-a cuda'.");
 }
 
 /* ---------------------------------------------------------------------- */

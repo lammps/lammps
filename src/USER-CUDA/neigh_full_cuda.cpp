@@ -21,7 +21,6 @@
    This software is distributed under the GNU General Public License.
 ------------------------------------------------------------------------- */
 
-#ifdef CUDA
 #include "neighbor_cuda.h"
 #include "neigh_list.h"
 #include "atom.h"
@@ -313,5 +312,4 @@ return;
   MYDBG(printf(" # CUDA::NeighFullNSQCuda ... end\n");)
   */
 }
-#endif
 

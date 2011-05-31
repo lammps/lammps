@@ -61,6 +61,8 @@ using namespace LAMMPS_NS;
 
 VerletCuda::VerletCuda(LAMMPS *lmp, int narg, char **arg) : Verlet(lmp, narg, arg) {	
   cuda = lmp->cuda;
+   if(cuda == NULL)
+        error->all("You cannot use a /cuda class, without activating 'cuda' acceleration. Use no '-a' command line argument, or '-a cuda'.");
 
 	modify_cuda=(ModifyCuda*) modify;
 }

@@ -29,12 +29,16 @@
 #include <algorithm>
 #include "cuda.h"
 #include "atom.h"
+#include "error.h"
 
 using namespace LAMMPS_NS;
 
 CudaNeighList::CudaNeighList(LAMMPS *lmp, class NeighList* neigh_list) : Pointers(lmp)
 {
         cuda = lmp->cuda;
+   if(cuda == NULL)
+        error->all("You cannot use a /cuda class, without activating 'cuda' acceleration. Use no '-a' command line argument, or '-a cuda'.");
+
 	MYDBG(printf("# CUDA: CudaNeighList::cudaNeighList() ... start\n");)
 	this->neigh_list = neigh_list;
 	neigh_list->cuda_list=this;

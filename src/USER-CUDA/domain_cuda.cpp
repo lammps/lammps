@@ -54,6 +54,8 @@ enum{NO_REMAP,X_REMAP,V_REMAP};                   // same as fix_deform.cpp
 DomainCuda::DomainCuda(LAMMPS *lmp) : Domain(lmp)
 {
   cuda = lmp->cuda;
+   if(cuda == NULL)
+        error->all("You cannot use a /cuda class, without activating 'cuda' acceleration. Use no '-a' command line argument, or '-a cuda'.");
 }
 
 /* ---------------------------------------------------------------------- */

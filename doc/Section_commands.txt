@@ -307,7 +307,6 @@ included when LAMMPS was built.  Not all packages are included in a
 default LAMMPS build.  These dependencies are listed as Restrictions
 in the command's documentation.
 
-"accelerator"_accelerator.html,
 "angle_coeff"_angle_coeff.html,
 "angle_style"_angle_style.html,
 "atom_modify"_atom_modify.html,
@@ -355,6 +354,7 @@ in the command's documentation.
 "neighbor"_neighbor.html,
 "newton"_newton.html,
 "next"_next.html,
+"package"_package.html,
 "pair_coeff"_pair_coeff.html,
 "pair_modify"_pair_modify.html,
 "pair_style"_pair_style.html,
@@ -373,6 +373,7 @@ in the command's documentation.
 "set"_set.html,
 "shell"_shell.html,
 "special_bonds"_special_bonds.html,
+"suffix"_suffix.html,
 "tad"_tad.html,
 "temper"_temper.html,
 "thermo"_thermo.html,

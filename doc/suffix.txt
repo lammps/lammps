@@ -6,26 +6,45 @@
 
 :line
 
-accelerator command :h3
+suffix command :h3
 
 [Syntax:]
 
-accelerator style args :pre
+suffix style :pre
 
-style = {off} or {on} or {cuda} :ulb,l
-args = 0 or more args specific to the style :l
-  {off} args = none
-  {on} args = none
-  {cuda} args = to be determined :pre
-:ule
+style = {off} or {on} or {opt} or {gpu} or {cuda} :ul
 
 [Examples:]
 
-accelerator off
-accelerator on
-accelerator cuda blah :pre
+suffix off
+suffix on
+suffix gpu :pre
 
 [Description:]
+
+This command allows you to set a suffix which will
+be added 
+
+Use variants of various styles if they exist.  The specified style can
+be {opt} or {gpu} or {cuda}.  These refer to optional packages that
+LAMMPS can be built with, as described above in "Section 2.3"_#2_3.
+The "opt" style corrsponds to the OPT package, the "gpu" style to the
+GPU package, and the "cuda" style to the USER-CUDA package.
+
+As an example, all of the packages provide a "pair_style
+lj/cut"_pair_lj.html variant, with style names lj/cut/opt or
+lj/cut/gpu or lj/cut/cuda.  Any variant styles can be specified
+explicitly in your input script, e.g. pair_style lj/cut/gpu.  If the
+-suffix switch is used, you do not need to modify your input script.
+The specified suffix (opt,gpu,cuda) is automatically appended whenever
+an input script command creates a new atom, pair, fix, compute, or
+integrate style.  If the variant version does not exist, the standard
+version is created.
+
+The "suffix"_suffix.html command can also set the suffix.  It can also
+turn off/on the suffix associated with this command-line switch.
+
+
 
 Alter settings for use of accelerated versions of various styles.
 LAMMPS can be built with optional packages which provide accelerated
@@ -60,21 +79,10 @@ The {off} style allows you to do this.  The effect of the -accelerator
 command-line switch is effectively turned off until another
 accelerator command is used with the {on} style.
 
-The {cuda} style invokes options associated with the use of the
-USER-CUDA package.  These will be described when the USER-CUDA package
-is released with LAMMPS.
-
-[Restrictions:]
-
-This cuda style can only be invoked if LAMMPS was built with the
-USER-CUDA package.  See the "Making LAMMPS"_Section_start.html#2_3
-section for more info.
-
-Obviously, you must have GPU hardware and associated software to build
-and use LAMMPS with either the GPU or USER_CUDA packages.
+[Restrictions:] none
 
 [Related commands:]
 
-"fix gpu"_fix_gpu.html
+"Command-line switch -suffix"_Section_start.html_2_6
 
 [Default:] none

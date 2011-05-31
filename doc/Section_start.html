@@ -802,47 +802,33 @@ more processors or setup a smaller problem.
 which may be used in any order.  Either the full word or a one-letter
 abbreviation can be used:
 </P>
-<UL><LI>-a or -accelerator
+<UL><LI>-c or -cuda
 <LI>-e or -echo
 <LI>-i or -in
 <LI>-l or -log
 <LI>-p or -partition
-<LI>-s or -screen
+<LI>-sc or -screen
+<LI>-sf or -suffix
 <LI>-v or -var 
 </UL>
 <P>For example, lmp_ibm might be launched as follows:
 </P>
-<PRE>mpirun -np 16 lmp_ibm -v f tmp.out -l my.log -s none < in.alloy
+<PRE>mpirun -np 16 lmp_ibm -v f tmp.out -l my.log -sc none < in.alloy
 mpirun -np 16 lmp_ibm -var f tmp.out -log my.log -screen none < in.alloy 
 </PRE>
 <P>Here are the details on the options:
 </P>
-<PRE>-accelerator style 
+<PRE>-cuda on/off 
 </PRE>
-<P>Use accelerated variants of various styles if they exist.  The
-specified style can be <I>none</I> or <I>opt</I> or <I>gpu</I> or <I>cuda</I>.  <I>None</I>
-means do not attempt to use an accelerated style, unless it is
-explicitly specified in the input script.  <I>Opt</I>, <I>gpu</I>, and <I>cuda</I>
-refer to optional packages that LAMMPS can be built with, as described
-above in <A HREF = "#2_3">Section 2.3</A>.  The "opt" style corrsponds to the OPT
-package, the "gpu" style to the GPU package, and the "cuda" style to
-the USER-CUDA package.
-</P>
-<P>As an example, all of the packages provide a <A HREF = "pair_lj.html">pair_style
-lj/cut</A> variant, with style names lj/cut/opt or
-lj/cut/gpu or lj/cut/cuda.  Any accelerated styles can be specified
-explicitly in your input script, e.g. pair_style lj/cut/gpu.  If the
--accelerator switch is used, you do not need to modify your input
-script.  The accelerator suffix (opt,gpu,cuda) is automatically
-appended when the style is created for atom, pair, fix, compute, and
-integrate styles.  If an accelerated version does not exist, the
-standard version is created.
-</P>
-<P>The default value of this switch is "none", unless LAMMPS was built
-with the USER-CUDA package, in which case the default value is "cuda".
-See the <A HREF = "accelerator.html">acclerator</A> command for info on how to turn
-off/on the suffix associated with this switch within your input
-script.
+<P>Explicitly enable or disable CUDA support, as provided by the
+USER-CUDA package.  If LAMMPS is built with this package, as described
+above in <A HREF = "#2_3">Section 2.3</A>, then by default LAMMPS will run in CUDA
+mode.  If this switch is set to "off", then it will not, even if it
+was built with the USER-CUDA package, which means you can run standard
+LAMMPS or with the GPU package for testing or benchmarking purposes.
+The only reason to set the switch to "on", is to check if LAMMPS was
+built with the USER-CUDA package, since an error will be generated if
+it was not.
 </P>
 <PRE>-echo style 
 </PRE>
@@ -914,6 +900,27 @@ the hi-level screen dump is named "file" and each partition also
 writes screen information to a file.N.  For both one-partition and
 multi-partition mode, if the specified file is "none", then no screen
 output is performed.
+</P>
+<PRE>-suffix style 
+</PRE>
+<P>Use variants of various styles if they exist.  The specified style can
+be <I>opt</I> or <I>gpu</I> or <I>cuda</I>.  These refer to optional packages that
+LAMMPS can be built with, as described above in <A HREF = "#2_3">Section 2.3</A>.
+The "opt" style corrsponds to the OPT package, the "gpu" style to the
+GPU package, and the "cuda" style to the USER-CUDA package.
+</P>
+<P>As an example, all of the packages provide a <A HREF = "pair_lj.html">pair_style
+lj/cut</A> variant, with style names lj/cut/opt or
+lj/cut/gpu or lj/cut/cuda.  Any variant styles can be specified
+explicitly in your input script, e.g. pair_style lj/cut/gpu.  If the
+-suffix switch is used, you do not need to modify your input script.
+The specified suffix (opt,gpu,cuda) is automatically appended whenever
+an input script command creates a new atom, pair, fix, compute, or
+integrate style.  If the variant version does not exist, the standard
+version is created.
+</P>
+<P>The <A HREF = "suffix.html">suffix</A> command can also set the suffix and it can
+also turn off/on the suffix associated with this command-line switch.
 </P>
 <PRE>-var name value1 value2 ... 
 </PRE>

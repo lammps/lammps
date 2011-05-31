@@ -9,29 +9,43 @@
 
 <HR>
 
-<H3>accelerator command 
+<H3>suffix command 
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>accelerator style args 
+<PRE>suffix style 
 </PRE>
-<UL><LI>style = <I>off</I> or <I>on</I> or <I>cuda</I> 
-
-<LI>args = 0 or more args specific to the style 
-
-<PRE>  <I>off</I> args = none
-  <I>on</I> args = none
-  <I>cuda</I> args = to be determined 
-</PRE>
-
+<UL><LI>style = <I>off</I> or <I>on</I> or <I>opt</I> or <I>gpu</I> or <I>cuda</I> 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>accelerator off
-accelerator on
-accelerator cuda blah 
+<PRE>suffix off
+suffix on
+suffix gpu 
 </PRE>
 <P><B>Description:</B>
+</P>
+<P>This command allows you to set a suffix which will
+be added 
+</P>
+<P>Use variants of various styles if they exist.  The specified style can
+be <I>opt</I> or <I>gpu</I> or <I>cuda</I>.  These refer to optional packages that
+LAMMPS can be built with, as described above in <A HREF = "#2_3">Section 2.3</A>.
+The "opt" style corrsponds to the OPT package, the "gpu" style to the
+GPU package, and the "cuda" style to the USER-CUDA package.
+</P>
+<P>As an example, all of the packages provide a <A HREF = "pair_lj.html">pair_style
+lj/cut</A> variant, with style names lj/cut/opt or
+lj/cut/gpu or lj/cut/cuda.  Any variant styles can be specified
+explicitly in your input script, e.g. pair_style lj/cut/gpu.  If the
+-suffix switch is used, you do not need to modify your input script.
+The specified suffix (opt,gpu,cuda) is automatically appended whenever
+an input script command creates a new atom, pair, fix, compute, or
+integrate style.  If the variant version does not exist, the standard
+version is created.
+</P>
+<P>The <A HREF = "suffix.html">suffix</A> command can also set the suffix.  It can also
+turn off/on the suffix associated with this command-line switch.
 </P>
 <P>Alter settings for use of accelerated versions of various styles.
 LAMMPS can be built with optional packages which provide accelerated
@@ -66,22 +80,11 @@ be useful for performance testing or debugging.
 command-line switch is effectively turned off until another
 accelerator command is used with the <I>on</I> style.
 </P>
-<P>The <I>cuda</I> style invokes options associated with the use of the
-USER-CUDA package.  These will be described when the USER-CUDA package
-is released with LAMMPS.
-</P>
-<P><B>Restrictions:</B>
-</P>
-<P>This cuda style can only be invoked if LAMMPS was built with the
-USER-CUDA package.  See the <A HREF = "Section_start.html#2_3">Making LAMMPS</A>
-section for more info.
-</P>
-<P>Obviously, you must have GPU hardware and associated software to build
-and use LAMMPS with either the GPU or USER_CUDA packages.
+<P><B>Restrictions:</B> none
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "fix_gpu.html">fix gpu</A>
+<P><A HREF = "Section_start.html_2_6">Command-line switch -suffix</A>
 </P>
 <P><B>Default:</B> none
 </P>

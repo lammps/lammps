@@ -911,16 +911,18 @@ GPU package, and the "cuda" style to the USER-CUDA package.
 </P>
 <P>As an example, all of the packages provide a <A HREF = "pair_lj.html">pair_style
 lj/cut</A> variant, with style names lj/cut/opt or
-lj/cut/gpu or lj/cut/cuda.  Any variant styles can be specified
+lj/cut/gpu or lj/cut/cuda.  A variant styles can be specified
 explicitly in your input script, e.g. pair_style lj/cut/gpu.  If the
 -suffix switch is used, you do not need to modify your input script.
 The specified suffix (opt,gpu,cuda) is automatically appended whenever
-an input script command creates a new atom, pair, fix, compute, or
+your input script command creates a new <A HREF = "atom_style.html">atom</A>,
+<A HREF = "pair_style.html">pair</A>, <A HREF = "fix.html">fix</A>, <A HREF = "compute.html">compute</A>, or
+<A HREF = "run_style.html">integrate</A> style.  atom, pair, fix, compute, or
 integrate style.  If the variant version does not exist, the standard
 version is created.
 </P>
-<P>The <A HREF = "suffix.html">suffix</A> command can also set the suffix and it can
-also turn off/on the suffix associated with this command-line switch.
+<P>The <A HREF = "suffix.html">suffix</A> command can also set a suffix and it can also
+turn off/on any suffix setting made via the command line.
 </P>
 <PRE>-var name value1 value2 ... 
 </PRE>

@@ -8,6 +8,8 @@
 
 dump image command :h3
 
+NOTE: The dump image command has not yet been released as part of LAMMPS. 
+
 [Syntax:]
 
 dump ID group-ID image N file color diameter keyword value ... :pre

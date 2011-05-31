@@ -49,7 +49,7 @@ FFT_LIB =	-lfftw
 
 JPG_INC =       
 JPG_PATH = 	
-JPG_LIB =	
+JPG_LIB =
 
 # additional system settings needed by LAMMPS package libraries
 # these settings are IGNORED if the corresponding LAMMPS package

@@ -22,67 +22,48 @@ suffix gpu :pre
 
 [Description:]
 
-This command allows you to set a suffix which will
-be added 
+This command allows you to use variants of various styles if they
+exist.  In that respect it operates the same as the "-suffix
+command-line switch"_Section_start.html#2_6.  It also has options to
+turn off/on any suffix setting made via the command line.
 
-Use variants of various styles if they exist.  The specified style can
-be {opt} or {gpu} or {cuda}.  These refer to optional packages that
-LAMMPS can be built with, as described above in "Section 2.3"_#2_3.
-The "opt" style corrsponds to the OPT package, the "gpu" style to the
-GPU package, and the "cuda" style to the USER-CUDA package.
+The specified style can be {opt} or {gpu} or {cuda}.  These refer to
+optional packages that LAMMPS can be built with, as described in "this
+section of the manual"_Section_start.html#2_3.  The "opt" style
+corrsponds to the OPT package, the "gpu" style to the GPU package, and
+the "cuda" style to the USER-CUDA package.
 
-As an example, all of the packages provide a "pair_style
-lj/cut"_pair_lj.html variant, with style names lj/cut/opt or
-lj/cut/gpu or lj/cut/cuda.  Any variant styles can be specified
-explicitly in your input script, e.g. pair_style lj/cut/gpu.  If the
--suffix switch is used, you do not need to modify your input script.
-The specified suffix (opt,gpu,cuda) is automatically appended whenever
-an input script command creates a new atom, pair, fix, compute, or
-integrate style.  If the variant version does not exist, the standard
-version is created.
-
-The "suffix"_suffix.html command can also set the suffix.  It can also
-turn off/on the suffix associated with this command-line switch.
-
-
-
-Alter settings for use of accelerated versions of various styles.
-LAMMPS can be built with optional packages which provide accelerated
-versions of specific "atom"_atom_style.html, "pair"_pair_style.html,
-"fix"_fix.html, "compute"_compute.html, and "integrate"_run_style.html
-styles.
-
-These are the relevant packages:
+These are the relevant packages and the variants they provide:
 
 OPT = a handful of pair styles, cache-optimized for faster CPU performance
 GPU = a handful of pair styles and the PPPM kspace_style, optimized to run on one or more GPUs or multicore CPU/GPU nodes
 USER-CUDA = a collection of atom, pair, fix, compute, and intergrate styles, optimized to run on one or more NVIDIA GPUs :ul
 
-See "this section"_Section_start.html#2_3 of the manual for
-instructions on how to build LAMMPS with any of these packages.
+As an example, all of the packages provide a "pair_style
+lj/cut"_pair_lj.html variant, with style names lj/cut/opt or
+lj/cut/gpu or lj/cut/cuda.  Any variant styles can be specified
+explicitly in your input script, e.g. pair_style lj/cut/gpu.  If the
+suffix command is used with the appropriate style, you do not need to
+modify your input script.  The specified suffix (opt,gpu,cuda) is
+automatically appended whenever an input script command creates a new
+"atom"_atom_style.html, "pair"_pair_style.html, "fix"_fix.html,
+"compute"_compute.html, or "integrate"_run_style.html style.  If the
+variant version does not exist, the standard version is created.
 
-These styles can be specified explicitly in your input script,
-e.g. "pair_style lj/cut/gpu"_pair_lj.html.  If the -accelerator
-command-line switch is used, you do not need to modify your input
-script, as discussed in "this section"_Section_start.html#2_6 of the
-manual.  The command-line suffix (opt,gpu,cuda) is automatically
-appended when the style is created for atom, pair, fix, compute, and
-integrate styles.  If an accelerated version does not exist, the
-standard version is created.
-
-If the -accelerator command-line switch is used, you may wish to
-disable it for one or more input script commands, so that the standard
-version of the style is used instead of the accelerated one.  This can
-be useful for performance testing or debugging.
-
-The {off} style allows you to do this.  The effect of the -accelerator
-command-line switch is effectively turned off until another
-accelerator command is used with the {on} style.
+If the specified style is {off}, then any previously specified suffix
+is temporarily disabled, whether it was specified by a command-line
+switch or a previous suffix command.  If the specified style is {on},
+a previously specified suffix is turned back on.  The use of these 2
+commands lets your input script use a standard LAMMPS style (i.e. a
+non-accelerated variant), which can be useful for testing or
+benchmarking purposes.  Of course this is also possible by not using
+the suffix command, and explictly appending or non appending the
+suffix to the relevant commands in your input script.
 
 [Restrictions:] none
 
 [Related commands:]
 
-"Command-line switch -suffix"_Section_start.html_2_6
+"Command-line switch -suffix"_Section_start.html#2_6
 
 [Default:] none

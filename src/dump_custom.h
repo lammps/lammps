@@ -44,11 +44,13 @@ class DumpCustom : public Dump {
 
   char *columns;             // column labels
 
+  int nchoose;               // # of selected atoms
   int maxlocal;              // size of atom selection and variable arrays
-  int *choose;               // 1 if output this atom, 0 if no
+  int *choose;               // local indices of selected atoms
   double *dchoose;           // value for each atom to threshhold against
 
   int nfield;                // # of keywords listed by user
+  int ioptional;             // index of start of optional args
 
   int *field2index;          // which compute,fix,variable calcs this field
   int *argindex;             // index into compute,fix scalar_atom,vector_atom
@@ -79,12 +81,11 @@ class DumpCustom : public Dump {
   virtual void write_data(int, double *);
   bigint memory_usage();
 
-  void parse_fields(int, char **);
+  int parse_fields(int, char **);
   int add_compute(char *);
   int add_fix(char *);
   int add_variable(char *);
-  int modify_param(int, char **);
-  virtual int modify_param2(int, char **) {return 0;}
+  virtual int modify_param(int, char **);
 
   typedef void (DumpCustom::*FnPtrHeader)(bigint);
   FnPtrHeader header_choice;           // ptr to write header functions

@@ -45,8 +45,7 @@ DumpCFG::DumpCFG(LAMMPS *lmp, int narg, char **arg) :
       strcmp(arg[5],"id") != 0 || strcmp(arg[6],"type") != 0 ||
       (strcmp(arg[7],"xs") != 0 && strcmp(arg[7],"xsu") != 0) || 
       (strcmp(arg[8],"ys") != 0 && strcmp(arg[8],"ysu") != 0) ||
-      (strcmp(arg[9],"zs") != 0 && strcmp(arg[9],"zsu") != 0)
-      )
+      (strcmp(arg[9],"zs") != 0 && strcmp(arg[9],"zsu") != 0))
     error->all("Dump cfg arguments must start with "
 	       "'id type xs ys zs' or 'id type xsu ysu zsu'");
 
@@ -120,71 +119,7 @@ void DumpCFG::init_style()
 {
   if (multifile == 0) error->all("Dump cfg requires one snapshot per file");
 
-  // setup format strings
-
-  delete [] format;
-  char *str;
-  if (format_user) str = format_user;
-  else str = format_default;
-
-  int n = strlen(str) + 1;
-  format = new char[n];
-  strcpy(format,str);
-
-  // default for element names = C
-
-  if (typenames == NULL) {
-    typenames = new char*[ntypes+1];
-    for (int itype = 1; itype <= ntypes; itype++) {
-      typenames[itype] = new char[2];
-      strcpy(typenames[itype],"C");
-    }
-  }
-
-  // tokenize the format string and add space at end of each format element
-
-  char *ptr;
-  for (int i = 0; i < size_one; i++) {
-    if (i == 0) ptr = strtok(format," \0");
-    else ptr = strtok(NULL," \0");
-    delete [] vformat[i];
-    vformat[i] = new char[strlen(ptr) + 2];
-    strcpy(vformat[i],ptr);
-    vformat[i] = strcat(vformat[i]," ");
-  }
-
-  // find current ptr for each compute,fix,variable
-  // check that fix frequency is acceptable
-
-  int icompute;
-  for (int i = 0; i < ncompute; i++) {
-    icompute = modify->find_compute(id_compute[i]);
-    if (icompute < 0) error->all("Could not find dump cfg compute ID");
-    compute[i] = modify->compute[icompute];
-  }
-
-  int ifix;
-  for (int i = 0; i < nfix; i++) {
-    ifix = modify->find_fix(id_fix[i]);
-    if (ifix < 0) error->all("Could not find dump cfg fix ID");
-    fix[i] = modify->fix[ifix];
-    if (nevery % modify->fix[ifix]->peratom_freq)
-      error->all("Dump cfg and fix not computed at compatible times");
-  }
-
-  int ivariable;
-  for (int i = 0; i < nvariable; i++) {
-    ivariable = input->variable->find(id_variable[i]);
-    if (ivariable < 0) error->all("Could not find dump cfg variable name");
-    variable[i] = ivariable;
-  }
-
-  // set index and check validity of region
-
-  if (iregion >= 0) {
-    iregion = domain->find_region(idregion);
-    if (iregion == -1) error->all("Region ID for dump cfg does not exist");
-  }
+  DumpCustom::init_style();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -192,10 +127,9 @@ void DumpCFG::init_style()
 void DumpCFG::write_header(bigint n)
 {
   // special handling for atom style peri
-  // use average volume of particles to scale particles to mimic C atoms
-  // scale box dimension to sc lattice for C with sigma = 1.44 Angstroms  
-
-  // Special handling for unwrapped coordinates
+  //   use average volume of particles to scale particles to mimic C atoms
+  //   scale box dimension to sc lattice for C with sigma = 1.44 Angstroms  
+  // special handling for unwrapped coordinates
 
   double scale;
   if (atom->peri_flag) {
@@ -254,8 +188,6 @@ void DumpCFG::write_data(int n, double *mybuf)
 
   double *rmass = atom->rmass;
   double *mass = atom->mass;
-  int *type = atom->type;
-  int nlocal = atom->nlocal;
 
   // transfer data from buf to rbuf
   // if write by proc 0, transfer chunk by chunk
@@ -266,7 +198,7 @@ void DumpCFG::write_data(int n, double *mybuf)
     nlines++;
   }
 
-  //  write data lines in rbuf to file after transfer is done
+  // write data lines in rbuf to file after transfer is done
   
   double unwrap_coord;
 

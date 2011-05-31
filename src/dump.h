@@ -87,7 +87,6 @@ class Dump : protected Pointers {
   double *bufsort;
   int *idsort,*index,*proclist;
 
-
   class Irregular *irregular;
 
   virtual void init_style() = 0;

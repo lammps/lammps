@@ -156,7 +156,7 @@ no-%:
 	@if [ ! -e $(NODIR) ]; then \
 	  echo "Package $(@:no-%=%) does not exist"; \
 	else \
-	  echo "Uninstalling package $(@:no-%=%); \
+	  echo "Uninstalling package $(@:no-%=%)"; \
 	  cd $(NODIR); $(SHELL) Install.sh 0; cd ..; $(SHELL) Depend.sh 0; \
         fi;
 

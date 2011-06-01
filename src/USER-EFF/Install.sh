@@ -44,7 +44,7 @@ elif (test $1 = 0) then
   rm -f ../compute_temp_deform_eff.cpp
   rm -f ../compute_temp_eff.cpp
   rm -f ../compute_temp_region_eff.cpp
-  rm -f ../fix_langevin_eff.cpp ..
+  rm -f ../fix_langevin_eff.cpp
   rm -f ../fix_nh_eff.cpp
   rm -f ../fix_nve_eff.cpp
   rm -f ../fix_nvt_eff.cpp
@@ -61,7 +61,7 @@ elif (test $1 = 0) then
   rm -f ../compute_temp_deform_eff.h
   rm -f ../compute_temp_eff.h
   rm -f ../compute_temp_region_eff.h
-  rm -f ../fix_langevin_eff.h ..
+  rm -f ../fix_langevin_eff.h
   rm -f ../fix_nh_eff.h
   rm -f ../fix_nve_eff.h
   rm -f ../fix_nvt_eff.h

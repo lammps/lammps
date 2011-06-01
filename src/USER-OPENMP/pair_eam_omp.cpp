@@ -35,6 +35,7 @@ using namespace LAMMPS_NS;
 
 #define MAXLINE 1024
 
+
 /* ---------------------------------------------------------------------- */
 
 PairEAMOMP::PairEAMOMP(LAMMPS *lmp) : PairOMP(lmp)
@@ -236,8 +237,9 @@ void PairEAMOMP::eval()
 
     if (NEWTON_PAIR) { 
       rho_reduce_thr(rho,nmax,nall,nthreads,tid);
-#if defined(_OPENMP)
+
       // only the master thread may do MPI communication
+#if defined(_OPENMP)
 #pragma omp master
 #endif
       { comm->reverse_comm_pair(this); }
@@ -247,12 +249,13 @@ void PairEAMOMP::eval()
 
     // fp = derivative of embedding energy at each atom
     // phi = embedding energy at each atom
-#if defined(_OPENMP)
-    {
+
     // wait until master thread has completed MPI communication
+#if defined(_OPENMP)
 #pragma omp barrier
-    }
+    {;}
 #endif
+
     for (ii = iifrom; ii < iito; ++ii) {
       i = ilist[ii];
       p = rho[i]*rdrho + 1.0;
@@ -269,24 +272,24 @@ void PairEAMOMP::eval()
       }
     }
 
+    // wait until all thread are done with this loop
+#if defined(_OPENMP)
+#pragma omp barrier
+    {;}
+#endif
+
     // communicate derivative of embedding function
 #if defined(_OPENMP)
-    {
-    // only the master thread may do MPI communication
-#pragma omp barrier
-    }
 #pragma omp master
 #endif
     { comm->forward_comm_pair(this); }
 
     // compute forces on each atom
     // loop over neighbors of my atoms
-
+    // wait until master thread has completed MPI communication
 #if defined(_OPENMP)
-    {
-    // wait for master thread to complete MPI communication.
 #pragma omp barrier
-    }
+    {;}
 #endif
     for (ii = iifrom; ii < iito; ++ii) {
       i = ilist[ii];

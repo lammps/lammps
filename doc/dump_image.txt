@@ -138,7 +138,7 @@ type 6 = cyan :ul
 and repeats itself for types > 6.  This mapping can be changed by the
 "dump_modify acolor"_dump_modify.html command.
 
-If {type} is specified for the {diameter} setting then the diamter of
+If {type} is specified for the {diameter} setting then the diameter of
 each atom is determined by its atom type.  By default all types have
 diameter 1.0.  This mapping can be changed by the "dump_modify
 adiam"_dump_modify.html command.

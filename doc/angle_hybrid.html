@@ -35,21 +35,27 @@ command or in the data file.
 </P>
 <P>In the angle_coeff command, the first coefficient sets the angle style
 and the remaining coefficients are those appropriate to that style.
-In the example above, the 2 angle_coeff commands would set angles of
-angle type 1 to be computed with a <I>harmonic</I> potential with
-coefficients 80.0, 1.2 for K, r0.  All other angle types (2-N) would
-be computed with a <I>cosine</I> potential with coefficient 50.0 for K.
+In the example above, the 2 angle_coeff commands set angles of angle
+type 1 to be computed with a <I>harmonic</I> potential with coefficients
+80.0, 1.2 for K, r0.  All other angle types (2-N) would be computed
+with a <I>cosine</I> potential with coefficient 50.0 for K.
 </P>
-<P>If the angle <I>class2</I> potential is one of the hybrid styles, it
-requires additional BondBond and BondAngle coefficients be specified
-in the data file.  These lines must also have an additional "class2"
-argument added after the angle type.  For angle types which are
-assigned to other hybrid styles, use the style name (e.g. "harmonic")
-appropriate to that style.  The BondBond and BondAngle coeffs for that
-angle type will then be ignored.
+<P>If angle coefficients are specified in the data file read via the
+<A HREF = "read_data.html">read_data</A> command, then the same string,
+e.g. "harmonic" or "cosine", must be listed as the 1st argument of
+each line in the "Angle Coeffs" section, e.g.
+</P>
+<PRE>1 harmonic 80.0 1.2 
+</PRE>
+<P>If the angle <I>class2</I> potential is one of the hybrid styles, the same
+rules hold for specifying the additional BondBond and BondAngle
+coefficients either via the input script or in the data file.
+I.e. "class2" must be added in both cases before the "bb" or "ba"
+argument.
 </P>
 <P>An angle style of <I>none</I> can be specified as the 2nd argument to the
-angle_coeff command, if you desire to turn off certain angle types.
+angle_coeff command or the 1st argument in the data file, if you desire
+to turn off certain angle types.
 </P>
 <P><B>Restrictions:</B>
 </P>

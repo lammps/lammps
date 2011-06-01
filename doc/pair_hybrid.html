@@ -74,6 +74,13 @@ pair_coeff * * eam/alloy nialhjea Ni Ni NULL
 pair_coeff 3 3 lj/cut/coul/cut 1.0 1.0
 pair_coeff 1*2 3 lj/cut 0.8 1.3 
 </PRE>
+<P>If pair coefficients are specified in the data file read via the
+<A HREF = "read_data.html">read_data</A> command, then the same string,
+e.g. "eam/alloy" or "lj/cut", must be listed as the 1st argument of
+each line in the "Pair Coeffs" section, e.g.
+</P>
+<PRE>3 lj/cut/coul/cut 1.0 1.0 
+</PRE>
 <P>Note that the pair_coeff command for <I>eam/alloy</I> includes a mapping
 specification of elements to all atom types, even those not assigned
 to the <I>eam/alloy</I> potential.  The NULL keyword is used by many such
@@ -122,9 +129,13 @@ sub-style and use the <A HREF = "neigh_modify.html">neigh_modify exclude type</A
 command.  You can assign it to some sub-style and set the coefficients
 so that there is effectively no interaction (e.g. epsilon = 0.0 in a
 LJ potential).  Or, for <I>hybrid</I> and <I>hybrid/overlay</I> simulations, you
-can use this form of the pair_coeff command:
+can use this form of the pair_coeff command in your input script:
 </P>
 <PRE>pair_coeff	2 3 none 
+</PRE>
+<P>or this form in the "Pair Coeffs" section of the data file:
+</P>
+<PRE>3 none 
 </PRE>
 <P>If an assignment to <I>none</I> is made in a simulation with the
 <I>hybrid/overlay</I> pair style, it wipes out all previous assignments of

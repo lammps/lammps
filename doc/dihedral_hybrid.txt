@@ -32,24 +32,29 @@ potential.  The assignment of dihedral type to style is made via the
 
 In the dihedral_coeff command, the first coefficient sets the dihedral
 style and the remaining coefficients are those appropriate to that
-style.  In the example above, the 2 dihedral_coeff commands would set
+style.  In the example above, the 2 dihedral_coeff commands set
 dihedrals of dihedral type 1 to be computed with a {harmonic}
 potential with coefficients 80.0, 1.2 for K, d, n.  Dihedral type 2
 would be computed with a {helix} potential with coefficients 10.0,
 10.0, 10.0 for A, B, C.
 
-If the dihedral {class2} potential is one of the hybrid styles, it
-requires additional MiddleBondTorsion, EndBondTorsion, AngleTorsion,
-AngleAngleTorsion, and BondBond13 coefficients be specified in the
-data file.  These lines must also have an additional "class2" argument
-added after the dihedral type.  For dihedral types which are assigned
-to other hybrid styles, use the style name (e.g. "harmonic")
-appropriate to that style.  The MiddleBondTorsion, etc coeffs for that
-dihedral type will then be ignored.
+If dihdral coefficients are specified in the data file read via the
+"read_data"_read_data.html command, then the same string,
+e.g. "harmonic" or "helix", must be listed as the 1st argument of each
+line in the "Dihedral Coeffs" section, e.g.
+
+1 harmonic 6.0 1 3 :pre
+
+If the dihedral {class2} potential is one of the hybrid styles, the
+same rules hold for specifying the additional MiddleBondTorsion,
+EndBondTorsion, AngleTorsion, AngleAngleTorsion, and BondBond13
+coefficients either via the input script or in the data file.
+I.e. "class2" must be added in both cases before the "mbt" or "ebt" or
+"at" or "aat" or "bb13" argument.
 
 A dihedral style of {none} can be specified as the 2nd argument to the
-dihedral_coeff command, if you desire to turn off certain dihedral
-types.
+dihedral_coeff command or the 1st argument in the data file, if you
+desire to turn off certain dihedral types.
 
 [Restrictions:]
 

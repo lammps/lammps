@@ -41,8 +41,16 @@ coefficients 80.0, 1.2 for K, r0.  All other bond types (2-N) would be
 computed with a <I>fene</I> potential with coefficients 30.0, 1.5, 1.0, 1.0
 for K, R0, epsilon, sigma.
 </P>
+<P>If bond coefficients are specified in the data file read via
+the <A HREF = "read_data.html">read_data</A> command, then the same string,
+e.g. "harmonic" or "fene", must be listed as the 1st argument
+of each line in the "Bond Coeffs" section, e.g.
+</P>
+<PRE>1 harmonic 80.0 1.2 
+</PRE>
 <P>A bond style of <I>none</I> can be specified as the 2nd argument to the
-bond_coeff command, if you desire to turn off certain bond types.
+bond_coeff command or the 1st argument in the data file, if you desire
+to turn off certain bond types.
 </P>
 <P><B>Restrictions:</B>
 </P>

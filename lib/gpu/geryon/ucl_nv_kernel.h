@@ -54,8 +54,11 @@ typedef struct _double4 double4;
 #define __kernel extern "C" __global__
 #define __local __shared__
 #define __global  
-#define __inline static __inline__ __device__ 
 #define atom_add atomicAdd
+
+#ifndef __inline
+#define __inline static __inline__ __device__ 
+#endif
 
 #endif
 

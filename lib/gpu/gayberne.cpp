@@ -191,7 +191,7 @@ void GayBerneT::loop(const bool _eflag, const bool _vflag) {
   else
     vflag=0;
   
-  int GX, NGX;
+  int GX=0, NGX;
   int stride=this->nbor->nbor_pitch();
   int ainum=this->ans->inum();
 

@@ -33,6 +33,7 @@ eim:      NaCl using the EIM potential
 ellipse:  ellipsoidal particles in spherical solvent, 2d system
 flow:	  Couette and Poiseuille flow in a 2d channel
 friction: frictional contact of spherical asperities between 2d surfaces
+gpu:      use of the GPU package for GPU acceleration
 indent:	  spherical indenter into a 2d solid
 meam:	  MEAM test for SiC and shear (same as shear examples)
 melt:	  rapid melt of 3d LJ system

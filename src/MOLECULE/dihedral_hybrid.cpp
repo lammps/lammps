@@ -168,7 +168,8 @@ void DihedralHybrid::settings(int narg, char **arg)
   for (int m = 0; m < nstyles; m++) {
     for (int i = 0; i < m; i++)
       if (strcmp(arg[m],arg[i]) == 0) 
-	error->all("Dihedral style hybrid cannot use same dihedral style twice");
+	error->all("Dihedral style hybrid cannot use "
+		   "same dihedral style twice");
     if (strcmp(arg[m],"hybrid") == 0) 
       error->all("Dihedral style hybrid cannot have hybrid as an argument");
     if (strcmp(arg[m],"none") == 0) 
@@ -191,15 +192,17 @@ void DihedralHybrid::coeff(int narg, char **arg)
   force->bounds(arg[0],atom->ndihedraltypes,ilo,ihi);
 
   // 2nd arg = dihedral sub-style name
-  // allow for "none" as valid sub-style name
+  // allow for "none" or "skip" as valid sub-style name
 
   int m;
   for (m = 0; m < nstyles; m++)
     if (strcmp(arg[1],keywords[m]) == 0) break;
 
   int none = 0;
+  int skip = 0;
   if (m == nstyles) {
     if (strcmp(arg[1],"none") == 0) none = 1;
+    else if (strcmp(arg[1],"skip") == 0) none = skip = 1;
     else error->all("Dihedral coeff for hybrid has invalid style");
   }
 
@@ -213,10 +216,12 @@ void DihedralHybrid::coeff(int narg, char **arg)
   if (!none) styles[m]->coeff(narg-1,&arg[1]);
 
   // set setflag and which type maps to which sub-style
-  // if sub-style is none: set hybrid setflag, wipe out map
+  // if sub-style is skip: auxiliary class2 setting in data file so ignore
+  // if sub-style is none and not skip: set hybrid setflag, wipe out map
 
   for (int i = ilo; i <= ihi; i++) {
-    if (none) {
+    if (skip) continue;
+    else if (none) {
       setflag[i] = 1;
       map[i] = -1;
     } else {

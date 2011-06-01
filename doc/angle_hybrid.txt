@@ -30,7 +30,7 @@ type 2) could be computed with a {cosine} potential.  The assignment
 of angle type to style is made via the "angle_coeff"_angle_coeff.html
 command or in the data file.
 
-In the angle_coeff command, the name of an angle style must be added
+In the angle_coeff commands, the name of an angle style must be added
 after the angle type, with the remaining coefficients being those
 appropriate to that style.  In the example above, the 2 angle_coeff
 commands set angles of angle type 1 to be computed with a {harmonic}

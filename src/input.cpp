@@ -1249,24 +1249,20 @@ void Input::special_bonds()
 
 void Input::suffix()
 {
-  if (narg != 1) error->all("Illegal package command");
-
+  if (narg != 1) error->all("Illegal suffix command");
+  
   if (strcmp(arg[0],"off") == 0) lmp->suffix_enable = 0;
   else if (strcmp(arg[0],"on") == 0) lmp->suffix_enable = 1;
-  else if (strcmp(arg[0],"opt") == 0 || strcmp(arg[0],"gpu") == 0 ||
-	   strcmp(arg[0],"cuda") == 0) {
+  else {
     delete [] lmp->suffix;
     int n = strlen(arg[0]) + 1;
     lmp->suffix = new char[n];
     strcpy(lmp->suffix,arg[0]);
     lmp->suffix_enable = 1;
-
+    
     if (!lmp->cuda && strcmp(lmp->suffix,"cuda") == 0)
       error->all("Cannot use suffix cuda without USER-CUDA installed");
-    if (lmp->cuda && strcmp(lmp->suffix,"cuda") != 0 && me == 0)
-      error->warning("Non-cuda suffix used with USER-CUDA mode enabled");
-
-  } else error->all("Illegal suffix command");
+  }
 }
 
 /* ---------------------------------------------------------------------- */

@@ -104,15 +104,11 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
     } else if (strcmp(arg[iarg],"-suffix") == 0 || 
 	       strcmp(arg[iarg],"-sf") == 0) {
       if (iarg+2 > narg) error->universe_all("Invalid command-line argument");
-      if (strcmp(arg[iarg+1],"opt") == 0 ||
-	  strcmp(arg[iarg+1],"gpu") == 0 ||
-	  strcmp(arg[iarg+1],"cuda") == 0) {
-	delete [] suffix;
-	int n = strlen(arg[iarg+1]) + 1;
-	suffix = new char[n];
-	strcpy(suffix,arg[iarg+1]);
-	suffix_enable = 1;
-      }
+      delete [] suffix;
+      int n = strlen(arg[iarg+1]) + 1;
+      suffix = new char[n];
+      strcpy(suffix,arg[iarg+1]);
+      suffix_enable = 1;
       iarg += 2;
     } else error->universe_all("Invalid command-line argument");
   }
@@ -305,8 +301,6 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   int me;
   MPI_Comm_rank(world,&me);
   if (cuda && me == 0) error->message("USER-CUDA mode is enabled");
-  if (cuda && suffix && strcmp(suffix,"cuda") != 0 && me == 0)
-    error->warning("Non-cuda suffix used with USER-CUDA mode enabled");
 
   // allocate input class now that MPI is fully setup
 

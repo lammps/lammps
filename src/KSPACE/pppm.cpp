@@ -169,7 +169,7 @@ void PPPM::init()
     if (typeA < 1 || typeA > atom->nangletypes || 
 	force->angle->setflag[typeA] == 0)
       error->all("Bad TIP4P angle type for PPPM/TIP4P");
-    if (typeB < 1 || typeA > atom->nbondtypes || 
+    if (typeB < 1 || typeB > atom->nbondtypes || 
 	force->bond->setflag[typeB] == 0)
       error->all("Bad TIP4P bond type for PPPM/TIP4P");
     double theta = force->angle->equilibrium_angle(typeA);

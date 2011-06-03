@@ -25,8 +25,8 @@ elif (test $1 = 0) then
     sed -i -e 's/[^ \t]*meam_[^ \t]*) //' ../Makefile.package
   fi
 
-  rm ../pair_meam.cpp
+  rm -f ../pair_meam.cpp
 
-  rm ../pair_meam.h
+  rm -f ../pair_meam.h
 
 fi

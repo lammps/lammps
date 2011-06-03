@@ -736,8 +736,8 @@ void GetParameters(int Forcefield)
 		    ooptypes[i].types[3]);
 
       ooptypes[i].angleangle_params[3] = tabc;
-      ooptypes[i].angleangle_params[4] = tcbd;
-      ooptypes[i].angleangle_params[5] = tabd;
+      ooptypes[i].angleangle_params[4] = tabd;
+      ooptypes[i].angleangle_params[5] = tcbd;
 
       k = find_angleangle_data(potential_types,ff_angang,kloc);
       if (k < 0) {

@@ -8,8 +8,8 @@ if (test $1 = 1) then
 
 elif (test $1 = 0) then
 
-  rm ../fix_msst.cpp
+  rm -f ../fix_msst.cpp
 
-  rm ../fix_msst.h
+  rm -f ../fix_msst.h
 
 fi

@@ -241,15 +241,17 @@ void AngleHybrid::coeff(int narg, char **arg)
   force->bounds(arg[0],atom->nangletypes,ilo,ihi);
 
   // 2nd arg = angle sub-style name
-  // allow for "none" as valid sub-style name
+  // allow for "none" or "skip" as valid sub-style name
 
   int m;
   for (m = 0; m < nstyles; m++)
     if (strcmp(arg[1],keywords[m]) == 0) break;
 
   int none = 0;
+  int skip = 0;
   if (m == nstyles) {
     if (strcmp(arg[1],"none") == 0) none = 1;
+    else if (strcmp(arg[1],"skip") == 0) none = skip = 1;
     else error->all("Angle coeff for hybrid has invalid style");
   }
 
@@ -263,10 +265,12 @@ void AngleHybrid::coeff(int narg, char **arg)
   if (!none) styles[m]->coeff(narg-1,&arg[1]);
 
   // set setflag and which type maps to which sub-style
+  // if sub-style is skip: auxiliary class2 setting in data file so ignore
   // if sub-style is none: set hybrid setflag, wipe out map
 
   for (int i = ilo; i <= ihi; i++) {
-    if (none) {
+    if (skip) continue;
+    else if (none) {
       setflag[i] = 1;
       map[i] = -1;
     } else {

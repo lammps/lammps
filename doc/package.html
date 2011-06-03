@@ -1,0 +1,54 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>package command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>package style args 
+</PRE>
+<UL><LI>style = <I>cuda</I> 
+
+<LI>args = 0 or more args specific to the style 
+
+<PRE>  <I>cuda</I> args = to be determined 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>package cuda blah 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This command is to set package-specific settings.  Currently only
+the USER-CUDA package uses it.
+</P>
+<P>The <I>cuda</I> style invokes options associated with the use of the
+USER-CUDA package.  These will be described when the USER-CUDA package
+is released with LAMMPS.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>The cuda style of this command can only be invoked if LAMMPS was built
+with the USER-CUDA package.  See the <A HREF = "Section_start.html#2_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>Obviously, you must have GPU hardware and associated software to build
+and use LAMMPS with either the GPU or USER-CUDA packages.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_gpu.html">fix gpu</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

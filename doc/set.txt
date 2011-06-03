@@ -78,8 +78,8 @@ when they are output in "dump"_dump.html files.  It can be useful for
 debugging purposes; i.e. positioning an atom at a precise location to
 compute subsequent forces or energy.
 
-The style {atom} selects one or more atoms in a range of atom IDs.
-The style {type} selects all the atoms in a range of types.  The style
+The style {atom} selects all the atoms in a range of atom IDs.  The
+style {type} selects all the atoms in a range of types.  The style
 {mol} selects all the atoms in a range of molecule IDs.
 
 In each of the range cases, a single value can be specified, or a

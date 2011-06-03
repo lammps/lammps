@@ -65,8 +65,8 @@ given by
 <P>as required for the CMM Coarse-grained MD parametrization discussed in
 <A HREF = "#Shinoda">(Shinoda)</A> and <A HREF = "#DeVane">(DeVane)</A>.  Rc is the cutoff.
 </P>
-<P>Style <I>cg/cmm/gpu</I> is a GPU-enabled version of style <I>cg/cmm</I>.
-See more details below.
+<P>Style <I>cg/cmm/gpu</I> is a GPU-enabled version of style <I>cg/cmm</I>.  See
+more details below.
 </P>
 <P>Style <I>cg/cmm/coul/cut</I> adds a Coulombic pairwise interaction given by
 </P>
@@ -96,8 +96,8 @@ option.  The Coulombic cutoff specified for this style means that
 pairwise interactions within this distance are computed directly;
 interactions outside that distance are computed in reciprocal space.
 </P>
-<P>Style <I>cg/cmm/coul/long/gpu</I> is a GPU-enabled version of style <I>cg/cmm/coul/long</I>.
-See more details below.
+<P>Style <I>cg/cmm/coul/long/gpu</I> is a GPU-enabled version of style
+<I>cg/cmm/coul/long</I>.  See more details below.
 </P>
 <P>The following coefficients must be defined for each pair of atoms
 types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
@@ -129,24 +129,19 @@ pair_style command.
 </P>
 <HR>
 
-<P>The <I>cg/cmm/gpu</I> and <I>cg/cmm/coul/long/gpu</I> styles 
-are identical to the <I>cg/cmm</I> and <I>cg/cmm/coul/long</I>
-styles, except that each processor off-loads its pairwise calculations to a 
-GPU chip. Depending on the hardware available on your system this can provide a
-speed-up.  See the <A HREF = "Section_start.html#2_8">Running on GPUs</A> section of
-the manual for more details about hardware and software requirements
-for using GPUs.
+<P>The <I>cg/cmm/gpu</I> and <I>cg/cmm/coul/long/gpu</I> styles are identical to
+the <I>cg/cmm</I> and <I>cg/cmm/coul/long</I> styles, except that each processor
+off-loads its pairwise calculations to a GPU.  Depending on the
+hardware available on your system this can provide a speed-up.  See
+<A HREF = "doc/Section_accerate.html">this section</A> of the manual for more
+details.
 </P>
-<P>More details about these settings and various possible hardware
-configuration are in <A HREF = "Section_start.html#2_8">this section</A> of the
-manual.
+<P>Additional requirements in your input script to run with GPU-enabled
+styles are as follows:
 </P>
-<P>Additional requirements in your input script to run with GPU-enabled styles
-are as follows:
-</P>
-<P>The <A HREF = "newton.html">newton pair</A> setting must be <I>off</I> and
-<A HREF = "fix_gpu.html">fix gpu</A> must be used. The fix controls the
-essential GPU selection and initialization steps.
+<P>The <A HREF = "newton.html">newton pair</A> setting must be <I>off</I> and the <A HREF = "fix_gpu.html">fix
+gpu</A> command must be used.  The fix controls the GPU
+selection and initialization steps.
 </P>
 <HR>
 

@@ -11,23 +11,24 @@ pair_style hbond/dreiding/morse command :h3
 
 [Syntax:]
 
-pair_style style distance_cutoff angle_cutof N :pre
+pair_style style N inner_distance_cutoff outer_distance_cutoff angle_cutof :pre
 
 style = {hbond/dreiding/lj} or {hbond/dreiding/morse} 
 n = cosine angle periodicity
-distance_cutoff = global cutoff for Donor-Acceptor interactions (distance units)
+inner_distance_cutoff = global inner spline cutoff for Donor-Acceptor interactions (distance units)
+outer_distance_cutoff = global cutoff for Donor-Acceptor interactions (distance units)
 angle_cutoff = global angle cutoff for Acceptor-Hydrogen-Donor
 interactions (degrees) :ul
 
 [Examples:]
 
-pair_style hbond/dreiding/lj 4 5.0 90
+pair_style hbond/dreiding/lj 4 4.5 5.0 90
 pair_coeff * * 3 i 100.0 3.1
-pair_coeff * * 2*5 i 100.0 3.1 2 200.0 :pre
+pair_coeff * * 2*5 i 100.0 3.1 2 15.0 20.0 135.0 :pre
 
-pair_style hbond/dreiding/morse 2 4.6 75.0 
+pair_style hbond/dreiding/morse 2 3.0 4.6 75.0 
 pair_coeff * * 3 j 100.0 1.0 2.0
-pair_coeff * * 2*5 j 100.0 1.0 2.0 4 :pre
+pair_coeff * * 2*5 j 100.0 1.0 2.0 4.0 6.0 :pre
 
 [Description:]
 
@@ -37,8 +38,9 @@ The {hbond/dreiding} styles compute the Acceptor-Hydrogen-Donor (AHD)
 
 :c,image(Eqs/pair_hbond_dreiding.jpg)
 
-where Rc is the distance cutoff, theta_c is the angle cutoff, and n is
-the cosine periodicity.
+where Rin is the inner spline distance cutoff, Rout is the outer
+distance cutoff, theta_c is the angle cutoff, and n is the cosine
+periodicity.
 
 Here, {r} is the radial distance between the donor (D) and acceptor
 (A) atoms and {theta} is the bond angle between the acceptor, the
@@ -165,17 +167,18 @@ These pair styles can only be used via the {pair} keyword of the
 "run_style respa"_run_style.html command.  They do not support the
 {inner}, {middle}, {outer} keywords.
 
-These pair style tally a count of how many hydrogen bonding
-interactions they calculate each timestep.  This quantity can be
-accessed via the "compute pair"_compute_pair.html command as a vector
-of values of length 1.
+These pair styles tally a count of how many hydrogen bonding
+interactions they calculate each timestep and the hbond energy.  These
+quantities can be accessed via the "compute pair"_compute_pair.html
+command as a vector of values of length 2.
 
-To print this quantity to the log file (with a descriptive column
+To print these quantities to the log file (with a descriptive column
 heading) the following commands could be included in an input script:
 
 compute hb all pair hbond/dreiding/lj
-variable hb equal c_hb\[1\]
-thermo_style custom step temp epair v_hb :pre
+variable n_hbond equal c_hb\[1\] #number hbonds
+variable E_hbond equal c_hb\[2\] #hbond energy
+thermo_style custom step temp epair v_E_hbond :pre
 
 :line
 

@@ -17,8 +17,8 @@ PACKAGE = asphere class2 colloid dipole dsmc gpu granular \
 	  kspace manybody meam molecule opt peri poems reax replica \
 	  shock srd xtc
 
-PACKUSER = user-ackland user-atc user-cd-eam user-cg-cmm user-eff \
-	   user-ewaldn user-imd user-reaxc user-smd
+PACKUSER = user-ackland user-atc user-cd-eam user-cg-cmm user-cuda \
+	   user-eff user-ewaldn user-imd user-reaxc user-smd
 
 PACKALL = $(PACKAGE) $(PACKUSER)
 
@@ -156,7 +156,7 @@ no-%:
 	@if [ ! -e $(NODIR) ]; then \
 	  echo "Package $(@:no-%=%) does not exist"; \
 	else \
-	  echo "Uninstalling package $(@:no-%=%), ignore errors"; \
+	  echo "Uninstalling package $(@:no-%=%)"; \
 	  cd $(NODIR); $(SHELL) Install.sh 0; cd ..; $(SHELL) Depend.sh 0; \
         fi;
 

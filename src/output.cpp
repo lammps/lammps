@@ -30,13 +30,11 @@
 #include "force.h"
 #include "dump.h"
 #include "write_restart.h"
+#include "accelerator_cuda.h"
 #include "memory.h"
 #include "error.h"
-#include "accelerator.h"
 
 using namespace LAMMPS_NS;
-
-enum{NOACCEL,OPT,GPU,USERCUDA};     // same as lammps.cpp
 
 #define DELTA 1
 
@@ -55,18 +53,18 @@ Output::Output(LAMMPS *lmp) : Pointers(lmp)
   newarg[0] = (char *) "thermo_temp";
   newarg[1] = (char *) "all";
   newarg[2] = (char *) "temp";
-  modify->add_compute(3,newarg,lmp->asuffix);
+  modify->add_compute(3,newarg,lmp->suffix);
 
   newarg[0] = (char *) "thermo_press";
   newarg[1] = (char *) "all";
   newarg[2] = (char *) "pressure";
   newarg[3] = (char *) "thermo_temp";
-  modify->add_compute(4,newarg,lmp->asuffix);
+  modify->add_compute(4,newarg,lmp->suffix);
 
   newarg[0] = (char *) "thermo_pe";
   newarg[1] = (char *) "all";
   newarg[2] = (char *) "pe";
-  modify->add_compute(3,newarg,lmp->asuffix);
+  modify->add_compute(3,newarg,lmp->suffix);
 
   delete [] newarg;
 
@@ -250,8 +248,7 @@ void Output::write(bigint ntimestep)
 
   if (next_dump_any == ntimestep) {
 
-    if (lmp->accelerator == USERCUDA && !lmp->cuda->oncpu)
-      lmp->cuda->downloadAll();    
+    if (lmp->cuda && !lmp->cuda->oncpu) lmp->cuda->downloadAll();    
     
     for (int idump = 0; idump < ndump; idump++) {
       if (next_dump[idump] == ntimestep && last_dump[idump] != ntimestep) {
@@ -279,8 +276,7 @@ void Output::write(bigint ntimestep)
 
   if (next_restart == ntimestep && last_restart != ntimestep) {
 
-    if (lmp->accelerator == USERCUDA && !lmp->cuda->oncpu) 
-      lmp->cuda->downloadAll();    
+    if (lmp->cuda && !lmp->cuda->oncpu) lmp->cuda->downloadAll();    
     
     if (restart_toggle == 0) {
       char *file = new char[strlen(restart1) + 16];

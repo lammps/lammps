@@ -20,8 +20,8 @@ elif (test $1 = 0) then
     sed -i -e 's/[^ \t]*poems //' ../Makefile.package
   fi
 
-  rm ../fix_poems.cpp
+  rm -f ../fix_poems.cpp
 
-  rm ../fix_poems.h
+  rm -f ../fix_poems.h
 
 fi

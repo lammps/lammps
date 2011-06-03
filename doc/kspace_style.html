@@ -77,7 +77,7 @@ long-range potentials.
 (triclinic symmetry) simulation boxes.
 </P>
 <P>The <I>pppm/gpu/single</I> and <I>pppm/gpu/double</I> styles are GPU-enabled
-version of <I>pppm</I>. See more details below.
+version of <I>pppm</I>.  See more details below.
 </P>
 <HR>
 
@@ -99,24 +99,23 @@ options of the K-space solvers that can be set.
 </P>
 <HR>
 
-<P>The <I>pppm/gpu/single</I> style performs single precision
-charge assignment and force interpolation calculations on the GPU.
-The <I>pppm/gpu/double</I> style performs the mesh calculations on the GPU
-in double precision. FFT solves are calculated on the CPU in both
-cases. If either <I>pppm/gpu/single</I> or <I>pppm/gpu/double</I> are used with
-a GPU-enabled pair style, part of the PPPM calculation can be performed
+<P>The <I>pppm/gpu/single</I> style performs single precision charge
+assignment and force interpolation calculations on the GPU.  The
+<I>pppm/gpu/double</I> style performs the mesh calculations on the GPU in
+double precision. In both cases, FFT solves are calculated on the CPU.
+If either <I>pppm/gpu/single</I> or <I>pppm/gpu/double</I> are used with a
+GPU-enabled pair style, part of the PPPM calculation can be performed
 concurrently on the GPU while other calculations for non-bonded and
 bonded force calculation are performed on the CPU.
 </P>
-<P>More details about GPU settings and various possible hardware
-configurations are in <A HREF = "Section_start.html#2_8">this section</A> of the
-manual.
+<P>See <A HREF = "doc/Section_accerate.html">this section</A> of the manual for more
+details.
 </P>
-<P>Additional requirements in your input script to run with GPU-enabled 
+<P>Additional requirements in your input script to run with GPU-enabled
 PPPM styles are as follows:
 </P>
-<P><A HREF = "fix_gpu.html">fix gpu</A> must be used. The fix controls
-the essential GPU selection and initialization steps.
+<P>The <A HREF = "fix_gpu.html">fix gpu</A> command must be used. The fix controls the
+GPU selection and initialization steps.
 </P>
 <P><B>Restrictions:</B>
 </P>

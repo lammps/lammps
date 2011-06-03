@@ -25,20 +25,20 @@ if (test $1 = 1) then
 
 elif (test $1 = 0) then
 
-  rm ../angle_cg_cmm.h
-  rm ../angle_cg_cmm.cpp
+  rm -f ../angle_cg_cmm.h
+  rm -f ../angle_cg_cmm.cpp
 
-  rm ../cg_cmm_parms.h
-  rm ../cg_cmm_parms.cpp
+  rm -f ../cg_cmm_parms.h
+  rm -f ../cg_cmm_parms.cpp
 
-  rm ../pair_cmm_common.h
-  rm ../pair_cmm_common.cpp
-  rm ../pair_cg_cmm.cpp
-  rm ../pair_cg_cmm.h
-  rm ../pair_cg_cmm_coul_cut.cpp
-  rm ../pair_cg_cmm_coul_cut.h
+  rm -f ../pair_cmm_common.h
+  rm -f ../pair_cmm_common.cpp
+  rm -f ../pair_cg_cmm.cpp
+  rm -f ../pair_cg_cmm.h
+  rm -f ../pair_cg_cmm_coul_cut.cpp
+  rm -f ../pair_cg_cmm_coul_cut.h
 
-  rm ../pair_cg_cmm_coul_long.cpp
-  rm ../pair_cg_cmm_coul_long.h
+  rm -f ../pair_cg_cmm_coul_long.cpp
+  rm -f ../pair_cg_cmm_coul_long.h
 
 fi

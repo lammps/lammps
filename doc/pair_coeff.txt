@@ -99,15 +99,11 @@ the pair_style command, and coefficients specified by the associated
 "pair_style dpd/tstat"_pair_dpd.html - DPD thermostatting
 "pair_style dsmc"_pair_dsmc.html - Direct Simulation Monte Carlo (DSMC)
 "pair_style eam"_pair_eam.html - embedded atom method (EAM)
-"pair_style eam/opt"_pair_eam.html - optimized version of EAM
 "pair_style eam/alloy"_pair_eam.html - alloy EAM
-"pair_style eam/alloy/opt"_pair_eam.html - optimized version of alloy EAM
 "pair_style eam/fs"_pair_eam.html - Finnis-Sinclair EAM
-"pair_style eam/fs/opt"_pair_eam.html - optimized version of Finnis-Sinclair EAM
 "pair_style eim"_pair_eim.html - embedded ion method (EIM)
 "pair_style gauss"_pair_gauss.html - Gaussian potential
 "pair_style gayberne"_pair_gayberne.html - Gay-Berne ellipsoidal potential
-"pair_style gayberne/gpu"_pair_gayberne.html - GPU-enabled Gay-Berne ellipsoidal potential
 "pair_style gran/hertz/history"_pair_gran.html - granular potential with Hertzian interactions
 "pair_style gran/hooke"_pair_gran.html - granular potential with history effects
 "pair_style gran/hooke/history"_pair_gran.html - granular potential without history effects
@@ -116,32 +112,22 @@ the pair_style command, and coefficients specified by the associated
 "pair_style lj/charmm/coul/charmm"_pair_charmm.html - CHARMM potential with cutoff Coulomb
 "pair_style lj/charmm/coul/charmm/implicit"_pair_charmm.html - CHARMM for implicit solvent
 "pair_style lj/charmm/coul/long"_pair_charmm.html - CHARMM with long-range Coulomb
-"pair_style lj/charmm/coul/long/gpu"_pair_charmm.html - GPU-enabled version of CHARMM with long-range Coulomb
-"pair_style lj/charmm/coul/long/opt"_pair_charmm.html - optimized version of CHARMM with long-range Coulomb
 "pair_style lj/class2"_pair_class2.html - COMPASS (class 2) force field with no Coulomb
 "pair_style lj/class2/coul/cut"_pair_class2.html - COMPASS with cutoff Coulomb
 "pair_style lj/class2/coul/long"_pair_class2.html - COMPASS with long-range Coulomb
 "pair_style lj/cut"_pair_lj.html - cutoff Lennard-Jones potential with no Coulomb
-"pair_style lj/cut/gpu"_pair_lj.html - GPU-enabled version of cutoff LJ
-"pair_style lj/cut/opt"_pair_lj.html - optimized version of cutoff LJ
 "pair_style lj/cut/coul/cut"_pair_lj.html - LJ with cutoff Coulomb
-"pair_style lj/cut/coul/cut/gpu"_pair_lj.html - GPU-enabled version of LJ with cutoff Coulomb
 "pair_style lj/cut/coul/debye"_pair_lj.html - LJ with Debye screening added to Coulomb
 "pair_style lj/cut/coul/long"_pair_lj.html - LJ with long-range Coulomb
-"pair_style lj/cut/coul/long/gpu"_pair_lj.html - GPU-enabled version of LJ with long-range Coulomb
 "pair_style lj/cut/coul/long/tip4p"_pair_lj.html - LJ with long-range Coulomb for TIP4P water
 "pair_style lj/expand"_pair_lj_expand.html - Lennard-Jones for variable size particles
-"pair_style lj/expand/gpu"_pair_lj_expand.html - GPU-enabled version of lj/expand
 "pair_style lj/gromacs"_pair_gromacs.html - GROMACS-style Lennard-Jones potential
 "pair_style lj/gromacs/coul/gromacs"_pair_gromacs.html - GROMACS-style LJ and Coulombic potential
 "pair_style lj/smooth"_pair_lj_smooth.html - smoothed Lennard-Jones potential
 "pair_style lj96/cut"_pair_lj96_cut.html - Lennard-Jones 9/6 potential
-"pair_style lj96/cut/gpu"_pair_lj96_cut.html - GPU-enabled version of Lennard-Jones 9/6
 "pair_style lubricate"_pair_lubricate.html - hydrodynamic lubrication forces
 "pair_style meam"_pair_meam.html - modified embedded atom method (MEAM)
 "pair_style morse"_pair_morse.html - Morse potential
-"pair_style morse/gpu"_pair_morse.html - GPU-enabled version of Morse potential
-"pair_style morse/opt"_pair_morse.html - optimized version of Morse potential
 "pair_style peri/lps"_pair_peri.html - peridynamic LPS potential
 "pair_style peri/pmb"_pair_peri.html - peridynamic PMB potential
 "pair_style reax"_pair_reax.html - ReaxFF potential
@@ -158,6 +144,11 @@ There are also additional pair styles submitted by users which are
 included in the LAMMPS distribution.  The list of these with links to
 the individual styles are given in the pair section of "this
 page"_Section_commands.html#3_5.
+
+There are also additional accelerated pair styles included in the
+LAMMPS distribution for faster performance on CPUs and GPUs.  The list
+of these with links to the individual styles are given in the pair
+section of "this page"_Section_commands.html#3_5.
 
 :line
 

@@ -24,24 +24,24 @@ if (test $1 = 1) then
 
 elif (test $1 = 0) then
 
-  rm ../compute_event_displace.cpp
-  rm ../fix_event.cpp
-  rm ../fix_event_prd.cpp
-  rm ../fix_event_tad.cpp
-  rm ../fix_neb.cpp
-  rm ../neb.cpp
-  rm ../prd.cpp
-  rm ../tad.cpp
-  rm ../temper.cpp
+  rm -f ../compute_event_displace.cpp
+  rm -f ../fix_event.cpp
+  rm -f ../fix_event_prd.cpp
+  rm -f ../fix_event_tad.cpp
+  rm -f ../fix_neb.cpp
+  rm -f ../neb.cpp
+  rm -f ../prd.cpp
+  rm -f ../tad.cpp
+  rm -f ../temper.cpp
 
-  rm ../compute_event_displace.h
-  rm ../fix_event.h
-  rm ../fix_event_prd.h
-  rm ../fix_event_tad.h
-  rm ../fix_neb.h
-  rm ../neb.h
-  rm ../prd.h
-  rm ../tad.h
-  rm ../temper.h
+  rm -f ../compute_event_displace.h
+  rm -f ../fix_event.h
+  rm -f ../fix_event_prd.h
+  rm -f ../fix_event_tad.h
+  rm -f ../fix_neb.h
+  rm -f ../neb.h
+  rm -f ../prd.h
+  rm -f ../tad.h
+  rm -f ../temper.h
 
 fi

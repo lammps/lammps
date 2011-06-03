@@ -74,13 +74,12 @@ calculations can be performed on the CPU while the GPU is performing
 force calculations for the GPU-enabled pair style.
 </P>
 <P>In order to use GPU acceleration, a GPU enabled style must be selected
-in the input script in addition to this fix. Currently, this is
+in the input script in addition to this fix.  Currently, this is
 limited to a few <A HREF = "pair_style.html">pair styles</A> and the PPPM <A HREF = "kspace_style.html">kspace
 style</A>.
 </P>
-<P>More details about these settings and various possible hardware
-configuration are in <A HREF = "Section_start.html#2_8">this section</A> of the
-manual.
+<P>See <A HREF = "doc/Section_accerate.html">this section</A> of the manual for more
+details about using the GPU package.
 </P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
@@ -97,9 +96,9 @@ the <A HREF = "run.html">run</A> command.
 </P>
 <P><B>Restrictions:</B> 
 </P>
-<P>The fix must be the first fix specified for a given run. The force/neigh
-<I>mode</I> should not be used with a triclinic box or <A HREF = "pair_hybrid.html">hybrid</A>
-pair styles.
+<P>The fix must be the first fix specified for a given run. The
+force/neigh <I>mode</I> should not be used with a triclinic box or
+<A HREF = "pair_hybrid.html">hybrid</A> pair styles.
 </P>
 <P>The <I>split</I> setting must be positive when using
 <A HREF = "pair_hybrid.html">hybrid</A> pair styles.

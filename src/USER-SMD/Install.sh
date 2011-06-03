@@ -8,8 +8,8 @@ if (test $1 = 1) then
 
 elif (test $1 = 0) then
 
-  rm ../fix_smd.cpp
+  rm -f ../fix_smd.cpp
 
-  rm ../fix_smd.h
+  rm -f ../fix_smd.h
 
 fi

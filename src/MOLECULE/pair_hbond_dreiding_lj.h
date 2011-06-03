@@ -33,9 +33,10 @@ class PairHbondDreidingLJ : public Pair {
   virtual void coeff(int, char **);
   virtual void init_style();
   double init_one(int, int);
+  virtual double single(int, int, int, int, double, double, double, double &);
 
  protected:
-  double cut_global,cut_angle_global;
+  double cut_inner_global,cut_outer_global,cut_angle_global;
   int ap_global;
   double PI;
 
@@ -44,7 +45,8 @@ class PairHbondDreidingLJ : public Pair {
     double lj1,lj2,lj3,lj4;
     double d0,alpha,r0;
     double morse1;
-    double cut,cut_angle,cutsq,offset;
+    double denom_vdw;
+    double cut_inner,cut_outer,cut_innersq,cut_outersq,cut_angle,offset;
     int ap;
   };
 

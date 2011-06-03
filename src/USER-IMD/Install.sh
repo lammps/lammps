@@ -8,8 +8,8 @@ if (test $1 = 1) then
 
 elif (test $1 = 0) then
 
-  rm ../fix_imd.cpp
+  rm -f ../fix_imd.cpp
 
-  rm ../fix_imd.h
+  rm -f ../fix_imd.h
 
 fi

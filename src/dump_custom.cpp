@@ -32,18 +32,19 @@
 using namespace LAMMPS_NS;
 
 // customize by adding keyword
-// same list as in compute_property.cpp, also customize that command
+// also customize compute_atom_property.cpp
 
-enum{ID,MOL,TYPE,MASS,
+enum{ID,MOL,TYPE,ELEMENT,MASS,
      X,Y,Z,XS,YS,ZS,XSTRI,YSTRI,ZSTRI,XU,YU,ZU,XUTRI,YUTRI,ZUTRI,
      XSU,YSU,ZSU,XSUTRI,YSUTRI,ZSUTRI,
      IX,IY,IZ,
      VX,VY,VZ,FX,FY,FZ,
-     Q,MUX,MUY,MUZ,MU,RADIUS,OMEGAX,OMEGAY,OMEGAZ,ANGMOMX,ANGMOMY,ANGMOMZ,
+     Q,MUX,MUY,MUZ,MU,RADIUS,DIAMETER,
+     OMEGAX,OMEGAY,OMEGAZ,ANGMOMX,ANGMOMY,ANGMOMZ,
      TQX,TQY,TQZ,SPIN,ERADIUS,ERVEL,ERFORCE,
      COMPUTE,FIX,VARIABLE};
 enum{LT,LE,GT,GE,EQ,NEQ};
-enum{INT,DOUBLE};
+enum{INT,DOUBLE,STRING};
 
 #define INVOKED_PERATOM 8
 
@@ -58,7 +59,9 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
 
   nevery = atoi(arg[3]);
 
-  size_one = nfield = narg-5;
+  // size_one may be shrunk below if additional optional args exist
+
+  size_one = nfield = narg - 5;
   pack_choice = new FnPtrPack[nfield];
   vtype = new int[nfield];
 
@@ -88,14 +91,25 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
   vbuf = NULL;
 
   // process attributes
+  // ioptional = start of additional optional args
+  // only dump image style processes optional args
 
-  parse_fields(narg,arg);
+  ioptional = parse_fields(narg,arg);
+
+  if (ioptional < narg && strcmp(style,"image") != 0)
+    error->all("Invalid attribute in dump custom command");
+  size_one = nfield = ioptional - 5;
 
   // atom selection arrays
 
   maxlocal = 0;
   choose = NULL;
   dchoose = NULL;
+
+  // element names
+
+  ntypes = atom->ntypes;
+  typenames = NULL;
 
   // setup format strings
 
@@ -106,7 +120,8 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
 
   for (int i = 0; i < size_one; i++) {
     if (vtype[i] == INT) format_default = strcat(format_default,"%d ");
-    else format_default = strcat(format_default,"%g ");
+    else if (vtype[i] == DOUBLE) format_default = strcat(format_default,"%g ");
+    else if (vtype[i] == STRING) strcat(format_default,"%s ");
     vformat[i] = NULL;
   }
 
@@ -153,6 +168,11 @@ DumpCustom::~DumpCustom()
   memory->destroy(choose);
   memory->destroy(dchoose);
 
+  if (typenames) {
+    for (int i = 1; i <= ntypes; i++) delete [] typenames[i];
+    delete [] typenames;
+  }
+
   for (int i = 0; i < size_one; i++) delete [] vformat[i];
   delete [] vformat;
 
@@ -171,6 +191,16 @@ void DumpCustom::init_style()
   int n = strlen(str) + 1;
   format = new char[n];
   strcpy(format,str);
+
+  // default for element names = C
+
+  if (typenames == NULL) {
+    typenames = new char*[ntypes+1];
+    for (int itype = 1; itype <= ntypes; itype++) {
+      typenames[itype] = new char[2];
+      strcpy(typenames[itype],"C");
+    }
+  }
 
   // tokenize the format string and add space at end of each format element
 
@@ -375,17 +405,14 @@ int DumpCustom::count()
   // choose all local atoms for output
 
   for (i = 0; i < nlocal; i++) choose[i] = 1;
-  nmine = nlocal;
 
   // un-choose if not in group
 
   if (igroup) {
     int *mask = atom->mask;
     for (i = 0; i < nlocal; i++)
-      if (!(mask[i] & groupbit)) {
+      if (!(mask[i] & groupbit))
 	choose[i] = 0;
-	nmine--;
-      }
   }
 
   // un-choose if not in region
@@ -394,10 +421,8 @@ int DumpCustom::count()
     Region *region = domain->regions[iregion];
     double **x = atom->x;
     for (i = 0; i < nlocal; i++)
-      if (choose[i] && region->match(x[i][0],x[i][1],x[i][2]) == 0) {
+      if (choose[i] && region->match(x[i][0],x[i][1],x[i][2]) == 0) 
 	choose[i] = 0;
-	nmine--;
-      }
   }
 
   // un-choose if any threshhold criterion isn't met
@@ -425,6 +450,11 @@ int DumpCustom::count()
 	ptr = dchoose;
 	nstride = 1;
       } else if (thresh_array[ithresh] == TYPE) {
+	int *type = atom->type;
+	for (i = 0; i < nlocal; i++) dchoose[i] = type[i];
+	ptr = dchoose;
+	nstride = 1;
+      } else if (thresh_array[ithresh] == ELEMENT) {
 	int *type = atom->type;
 	for (i = 0; i < nlocal; i++) dchoose[i] = type[i];
 	ptr = dchoose;
@@ -581,7 +611,8 @@ int DumpCustom::count()
 	double boxylo = domain->boxlo[1];
 	double invyprd = 1.0/domain->yprd;
 	for (i = 0; i < nlocal; i++) 
-	  dchoose[i] = (x[i][1] - boxylo) * invyprd + (image[i] >> 10 & 1023) - 512;
+	  dchoose[i] = 
+	    (x[i][1] - boxylo) * invyprd + (image[i] >> 10 & 1023) - 512;
 	ptr = dchoose;
 	nstride = 1;
 
@@ -698,6 +729,13 @@ int DumpCustom::count()
 	  error->all("Threshhold for an atom property that isn't allocated");
 	ptr = atom->radius;
 	nstride = 1;
+      } else if (thresh_array[ithresh] == DIAMETER) {
+	if (!atom->radius_flag)
+	  error->all("Threshhold for an atom property that isn't allocated");
+	double *radius = atom->radius;
+	for (i = 0; i < nlocal; i++) dchoose[i] = 2.0*radius[i];
+	ptr = dchoose;
+	nstride = 1;
       } else if (thresh_array[ithresh] == OMEGAX) {
 	if (!atom->omega_flag)
 	  error->all("Threshhold for an atom property that isn't allocated");
@@ -799,45 +837,35 @@ int DumpCustom::count()
 
       if (thresh_op[ithresh] == LT) {
 	for (i = 0; i < nlocal; i++, ptr += nstride)
-	  if (choose[i] && *ptr >= value) {
-	    choose[i] = 0;
-	    nmine--;
-	  }
+	  if (choose[i] && *ptr >= value) choose[i] = 0;
       } else if (thresh_op[ithresh] == LE) {
 	for (i = 0; i < nlocal; i++, ptr += nstride)
-	  if (choose[i] && *ptr > value) {
-	    choose[i] = 0;
-	    nmine--;
-	  }
+	  if (choose[i] && *ptr > value) choose[i] = 0;
       } else if (thresh_op[ithresh] == GT) {
 	for (i = 0; i < nlocal; i++, ptr += nstride)
-	  if (choose[i] && *ptr <= value) {
-	    choose[i] = 0;
-	    nmine--;
-	  }
+	  if (choose[i] && *ptr <= value) choose[i] = 0;
       } else if (thresh_op[ithresh] == GE) {
 	for (i = 0; i < nlocal; i++, ptr += nstride)
-	  if (choose[i] && *ptr < value) {
-	    choose[i] = 0;
-	    nmine--;
-	  }
+	  if (choose[i] && *ptr < value) choose[i] = 0;
       } else if (thresh_op[ithresh] == EQ) {
 	for (i = 0; i < nlocal; i++, ptr += nstride)
-	  if (choose[i] && *ptr != value) {
-	    choose[i] = 0;
-	    nmine--;
-	  }
+	  if (choose[i] && *ptr != value) choose[i] = 0;
       } else if (thresh_op[ithresh] == NEQ) {
 	for (i = 0; i < nlocal; i++, ptr += nstride)
-	  if (choose[i] && *ptr == value) {
-	    choose[i] = 0;
-	    nmine--;
-	  }
+	  if (choose[i] && *ptr == value) choose[i] = 0;
       }
     }
   }
 
-  return nmine;
+  // compress choose list
+  // nchoose = # of selected atoms
+  // choose[i] = local index of each selected atom
+
+  nchoose = 0;
+  for (i = 0; i < nlocal; i++)
+    if (choose[i]) choose[nchoose++] = i;
+
+  return nchoose;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -847,10 +875,8 @@ void DumpCustom::pack(int *ids)
   for (int n = 0; n < size_one; n++) (this->*pack_choice[n])(n);
   if (ids) {
     int *tag = atom->tag;
-    int nlocal = atom->nlocal;
-    int n = 0;
-    for (int i = 0; i < nlocal; i++)
-      if (choose[i]) ids[n++] = tag[i];
+    for (int i = 0; i < nchoose; i++)
+      ids[i] = tag[choose[i]];
   }
 }
 
@@ -880,7 +906,9 @@ void DumpCustom::write_text(int n, double *mybuf)
   for (i = 0; i < n; i++) {
     for (j = 0; j < size_one; j++) {
       if (vtype[j] == INT) fprintf(fp,vformat[j],static_cast<int> (mybuf[m]));
-      else fprintf(fp,vformat[j],mybuf[m]);
+      else if (vtype[j] == DOUBLE) fprintf(fp,vformat[j],mybuf[m]);
+      else if (vtype[j] == STRING) 
+	fprintf(fp,vformat[j],typenames[(int) mybuf[m]]);
       m++;
     }
     fprintf(fp,"\n");
@@ -889,7 +917,7 @@ void DumpCustom::write_text(int n, double *mybuf)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCustom::parse_fields(int narg, char **arg)
+int DumpCustom::parse_fields(int narg, char **arg)
 {
   // customize by adding to if statement
 
@@ -908,6 +936,9 @@ void DumpCustom::parse_fields(int narg, char **arg)
     } else if (strcmp(arg[iarg],"type") == 0) {
       pack_choice[i] = &DumpCustom::pack_type;
       vtype[i] = INT;
+    } else if (strcmp(arg[iarg],"element") == 0) {
+      pack_choice[i] = &DumpCustom::pack_type;
+      vtype[i] = STRING;
     } else if (strcmp(arg[iarg],"mass") == 0) {
       pack_choice[i] = &DumpCustom::pack_mass;
       vtype[i] = DOUBLE;
@@ -1016,6 +1047,11 @@ void DumpCustom::parse_fields(int narg, char **arg)
       if (!atom->radius_flag)
 	error->all("Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_radius;
+      vtype[i] = DOUBLE;
+    } else if (strcmp(arg[iarg],"diameter") == 0) {
+      if (!atom->radius_flag)
+	error->all("Dumping an atom property that isn't allocated");
+      pack_choice[i] = &DumpCustom::pack_diameter;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"omegax") == 0) {
       if (!atom->omega_flag)
@@ -1172,8 +1208,10 @@ void DumpCustom::parse_fields(int narg, char **arg)
       field2index[i] = add_variable(suffix);
       delete [] suffix;
 
-    } else error->all("Invalid attribute in dump custom command");
+    } else return iarg;
   }
+
+  return narg;
 }
 
 /* ----------------------------------------------------------------------
@@ -1271,6 +1309,24 @@ int DumpCustom::modify_param(int narg, char **arg)
     }
     return 2;
     
+  } else if (strcmp(arg[0],"element") == 0) {
+    if (narg < ntypes+1)
+      error->all("Dump modify element names do not match atom types");
+
+    if (typenames) {
+      for (int i = 1; i <= ntypes; i++) delete [] typenames[i];
+      delete [] typenames;
+      typenames = NULL;
+    }
+
+    typenames = new char*[ntypes+1];
+    for (int itype = 1; itype <= ntypes; itype++) {
+      int n = strlen(arg[itype]) + 1;
+      typenames[itype] = new char[n];
+      strcpy(typenames[itype],arg[itype]);
+    }
+    return ntypes+1;
+
   } else if (strcmp(arg[0],"thresh") == 0) {
     if (narg < 2) error->all("Illegal dump_modify command");
     if (strcmp(arg[1],"none") == 0) {
@@ -1362,6 +1418,7 @@ int DumpCustom::modify_param(int narg, char **arg)
     else if (strcmp(arg[1],"mu") == 0) thresh_array[nthresh] = MU;
 
     else if (strcmp(arg[1],"radius") == 0) thresh_array[nthresh] = RADIUS;
+    else if (strcmp(arg[1],"diameter") == 0) thresh_array[nthresh] = DIAMETER;
     else if (strcmp(arg[1],"omegax") == 0) thresh_array[nthresh] = OMEGAX;
     else if (strcmp(arg[1],"omegay") == 0) thresh_array[nthresh] = OMEGAY;
     else if (strcmp(arg[1],"omegaz") == 0) thresh_array[nthresh] = OMEGAZ;
@@ -1492,12 +1549,6 @@ int DumpCustom::modify_param(int narg, char **arg)
 
     nthresh++;
     return 4;
-
-  // pass along unknown params to child class
-
-  } else {
-    int n = modify_param2(narg,arg);
-    return n;
   }
 
   return 0;
@@ -1525,21 +1576,18 @@ void DumpCustom::pack_compute(int n)
   double *vector = compute[field2index[n]]->vector_atom;
   double **array = compute[field2index[n]]->array_atom;
   int index = argindex[n];
-  int nlocal = atom->nlocal;
 
   if (index == 0) {
-    for (int i = 0; i < nlocal; i++)
-      if (choose[i]) {
-	buf[n] = vector[i];
-	n += size_one;
-      }
+    for (int i = 0; i < nchoose; i++) {
+      buf[n] = vector[choose[i]];
+      n += size_one;
+    }
   } else {
     index--;
-    for (int i = 0; i < nlocal; i++)
-      if (choose[i]) {
-	buf[n] = array[i][index];
-	n += size_one;
-      }
+    for (int i = 0; i < nchoose; i++) {
+      buf[n] = array[choose[i]][index];
+      n += size_one;
+    }
   }
 }
 
@@ -1550,21 +1598,18 @@ void DumpCustom::pack_fix(int n)
   double *vector = fix[field2index[n]]->vector_atom;
   double **array = fix[field2index[n]]->array_atom;
   int index = argindex[n];
-  int nlocal = atom->nlocal;
 
   if (index == 0) {
-    for (int i = 0; i < nlocal; i++)
-      if (choose[i]) {
-	buf[n] = vector[i];
-	n += size_one;
-      }
+    for (int i = 0; i < nchoose; i++) {
+      buf[n] = vector[choose[i]];
+      n += size_one;
+    }
   } else {
     index--;
-    for (int i = 0; i < nlocal; i++)
-      if (choose[i]) {
-	buf[n] = array[i][index];
-	n += size_one;
-      }
+    for (int i = 0; i < nchoose; i++) {
+      buf[n] = array[choose[i]][index];
+      n += size_one;
+    }
   }
 }
 
@@ -1573,13 +1618,11 @@ void DumpCustom::pack_fix(int n)
 void DumpCustom::pack_variable(int n)
 {
   double *vector = vbuf[field2index[n]];
-  int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = vector[i];
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = vector[choose[i]];
+    n += size_one;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1593,13 +1636,11 @@ void DumpCustom::pack_variable(int n)
 void DumpCustom::pack_id(int n)
 {
   int *tag = atom->tag;
-  int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = tag[i];
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = tag[choose[i]];
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1607,13 +1648,11 @@ void DumpCustom::pack_id(int n)
 void DumpCustom::pack_molecule(int n)
 {
   int *molecule = atom->molecule;
-  int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = molecule[i];
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = molecule[choose[i]];
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1621,13 +1660,11 @@ void DumpCustom::pack_molecule(int n)
 void DumpCustom::pack_type(int n)
 {
   int *type = atom->type;
-  int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = type[i];
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = type[choose[i]];
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1637,20 +1674,17 @@ void DumpCustom::pack_mass(int n)
   int *type = atom->type;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
-  int nlocal = atom->nlocal;
 
   if (rmass) {
-    for (int i = 0; i < nlocal; i++)
-      if (choose[i]) {
-	buf[n] = rmass[i];
-	n += size_one;
-      }
+    for (int i = 0; i < nchoose; i++) {
+      buf[n] = rmass[choose[i]];
+      n += size_one;
+    }
   } else {
-    for (int i = 0; i < nlocal; i++)
-      if (choose[i]) {
-	buf[n] = mass[type[i]];
-	n += size_one;
-      }
+    for (int i = 0; i < nchoose; i++) {
+      buf[n] = mass[type[choose[i]]];
+      n += size_one;
+    }
   }
 }
 
@@ -1659,13 +1693,11 @@ void DumpCustom::pack_mass(int n)
 void DumpCustom::pack_x(int n)
 {
   double **x = atom->x;
-  int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = x[i][0];
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = x[choose[i]][0];
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1673,13 +1705,11 @@ void DumpCustom::pack_x(int n)
 void DumpCustom::pack_y(int n)
 {
   double **x = atom->x;
-  int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = x[i][1];
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = x[choose[i]][1];
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1687,13 +1717,11 @@ void DumpCustom::pack_y(int n)
 void DumpCustom::pack_z(int n)
 {
   double **x = atom->x;
-  int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = x[i][2];
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = x[choose[i]][2];
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1701,16 +1729,14 @@ void DumpCustom::pack_z(int n)
 void DumpCustom::pack_xs(int n)
 {
   double **x = atom->x;
-  int nlocal = atom->nlocal;
 
   double boxxlo = domain->boxlo[0];
   double invxprd = 1.0/domain->xprd;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = (x[i][0] - boxxlo) * invxprd;
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = (x[choose[i]][0] - boxxlo) * invxprd;
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1718,16 +1744,14 @@ void DumpCustom::pack_xs(int n)
 void DumpCustom::pack_ys(int n)
 {
   double **x = atom->x;
-  int nlocal = atom->nlocal;
 
   double boxylo = domain->boxlo[1];
   double invyprd = 1.0/domain->yprd;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = (x[i][1] - boxylo) * invyprd;
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = (x[choose[i]][1] - boxylo) * invyprd;
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1735,51 +1759,49 @@ void DumpCustom::pack_ys(int n)
 void DumpCustom::pack_zs(int n)
 {
   double **x = atom->x;
-  int nlocal = atom->nlocal;
 
   double boxzlo = domain->boxlo[2];
   double invzprd = 1.0/domain->zprd;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = (x[i][2] - boxzlo) * invzprd;
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = (x[choose[i]][2] - boxzlo) * invzprd;
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
 void DumpCustom::pack_xs_triclinic(int n)
 {
+  int j;
   double **x = atom->x;
-  int nlocal = atom->nlocal;
 
   double *boxlo = domain->boxlo;
   double *h_inv = domain->h_inv;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = h_inv[0]*(x[i][0]-boxlo[0]) + 
-	h_inv[5]*(x[i][1]-boxlo[1]) + h_inv[4]*(x[i][2]-boxlo[2]);
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    j = choose[i];
+    buf[n] = h_inv[0]*(x[j][0]-boxlo[0]) + h_inv[5]*(x[j][1]-boxlo[1]) + 
+      h_inv[4]*(x[j][2]-boxlo[2]);
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
 void DumpCustom::pack_ys_triclinic(int n)
 {
+  int j;
   double **x = atom->x;
-  int nlocal = atom->nlocal;
 
   double *boxlo = domain->boxlo;
   double *h_inv = domain->h_inv;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = h_inv[1]*(x[i][1]-boxlo[1]) + h_inv[3]*(x[i][2]-boxlo[2]);
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    j = choose[i];
+    buf[n] = h_inv[1]*(x[j][1]-boxlo[1]) + h_inv[3]*(x[j][2]-boxlo[2]);
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1787,241 +1809,235 @@ void DumpCustom::pack_ys_triclinic(int n)
 void DumpCustom::pack_zs_triclinic(int n)
 {
   double **x = atom->x;
-  int nlocal = atom->nlocal;
 
   double *boxlo = domain->boxlo;
   double *h_inv = domain->h_inv;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = h_inv[2]*(x[i][2]-boxlo[2]);
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = h_inv[2]*(x[choose[i]][2]-boxlo[2]);
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
 void DumpCustom::pack_xu(int n)
 {
+  int j;
   double **x = atom->x;
   int *image = atom->image;
-  int nlocal = atom->nlocal;
 
   double xprd = domain->xprd;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = x[i][0] + ((image[i] & 1023) - 512) * xprd;
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    j = choose[i];
+    buf[n] = x[j][0] + ((image[j] & 1023) - 512) * xprd;
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
 void DumpCustom::pack_yu(int n)
 {
+  int j;
   double **x = atom->x;
   int *image = atom->image;
-  int nlocal = atom->nlocal;
 
   double yprd = domain->yprd;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = x[i][1] + ((image[i] >> 10 & 1023) - 512) * yprd;
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    j = choose[i];
+    buf[n] = x[j][1] + ((image[j] >> 10 & 1023) - 512) * yprd;
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
 void DumpCustom::pack_zu(int n)
 {
+  int j;
   double **x = atom->x;
   int *image = atom->image;
-  int nlocal = atom->nlocal;
 
   double zprd = domain->zprd;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = x[i][2] + ((image[i] >> 20) - 512) * zprd;
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    j = choose[i];
+    buf[n] = x[j][2] + ((image[j] >> 20) - 512) * zprd;
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
 void DumpCustom::pack_xu_triclinic(int n)
 {
+  int j;
   double **x = atom->x;
   int *image = atom->image;
-  int nlocal = atom->nlocal;
 
   double *h = domain->h;
   int xbox,ybox,zbox;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      xbox = (image[i] & 1023) - 512;
-      ybox = (image[i] >> 10 & 1023) - 512;
-      zbox = (image[i] >> 20) - 512;
-      buf[n] = x[i][0] + h[0]*xbox + h[5]*ybox + h[4]*zbox;
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    j = choose[i];
+    xbox = (image[j] & 1023) - 512;
+    ybox = (image[j] >> 10 & 1023) - 512;
+    zbox = (image[j] >> 20) - 512;
+    buf[n] = x[j][0] + h[0]*xbox + h[5]*ybox + h[4]*zbox;
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
 void DumpCustom::pack_yu_triclinic(int n)
 {
+  int j;
   double **x = atom->x;
   int *image = atom->image;
-  int nlocal = atom->nlocal;
 
   double *h = domain->h;
   int ybox,zbox;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      ybox = (image[i] >> 10 & 1023) - 512;
-      zbox = (image[i] >> 20) - 512;
-      buf[n] = x[i][1] + h[1]*ybox + h[3]*zbox;
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    j = choose[i];
+    ybox = (image[j] >> 10 & 1023) - 512;
+    zbox = (image[j] >> 20) - 512;
+    buf[n] = x[j][1] + h[1]*ybox + h[3]*zbox;
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
 void DumpCustom::pack_zu_triclinic(int n)
 {
+  int j;
   double **x = atom->x;
   int *image = atom->image;
-  int nlocal = atom->nlocal;
 
   double *h = domain->h;
   int zbox;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      zbox = (image[i] >> 20) - 512;
-      buf[n] = x[i][2] + h[2]*zbox;
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    j = choose[i];
+    zbox = (image[j] >> 20) - 512;
+    buf[n] = x[j][2] + h[2]*zbox;
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
 void DumpCustom::pack_xsu(int n)
 {
+  int j;
   double **x = atom->x;
   int *image = atom->image;
-  int nlocal = atom->nlocal;
 
   double boxxlo = domain->boxlo[0];
   double invxprd = 1.0/domain->xprd;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = (x[i][0] - boxxlo) * invxprd + (image[i] & 1023) - 512;
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    j = choose[i];
+    buf[n] = (x[j][0] - boxxlo) * invxprd + (image[j] & 1023) - 512;
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
 void DumpCustom::pack_ysu(int n)
 {
+  int j;
   double **x = atom->x;
   int *image = atom->image;
-  int nlocal = atom->nlocal;
 
   double boxylo = domain->boxlo[1];
   double invyprd = 1.0/domain->yprd;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = (x[i][1] - boxylo) * invyprd + (image[i] >> 10 & 1023) - 512;
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    j = choose[i];
+    buf[n] = (x[j][1] - boxylo) * invyprd + (image[j] >> 10 & 1023) - 512;
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
 void DumpCustom::pack_zsu(int n)
 {
+  int j;
   double **x = atom->x;
   int *image = atom->image;
-  int nlocal = atom->nlocal;
 
   double boxzlo = domain->boxlo[2];
   double invzprd = 1.0/domain->zprd;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = (x[i][2] - boxzlo) * invzprd + (image[i] >> 20) - 512;
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    j = choose[i];
+    buf[n] = (x[j][2] - boxzlo) * invzprd + (image[j] >> 20) - 512;
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
 void DumpCustom::pack_xsu_triclinic(int n)
 {
+  int j;
   double **x = atom->x;
   int *image = atom->image;
-  int nlocal = atom->nlocal;
 
   double *boxlo = domain->boxlo;
   double *h_inv = domain->h_inv;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = h_inv[0]*(x[i][0]-boxlo[0]) + 
-	h_inv[5]*(x[i][1]-boxlo[1]) + 
-	h_inv[4]*(x[i][2]-boxlo[2]) +
-	(image[i] & 1023) - 512;
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    j = choose[i];
+    buf[n] = h_inv[0]*(x[j][0]-boxlo[0]) + h_inv[5]*(x[j][1]-boxlo[1]) + 
+      h_inv[4]*(x[j][2]-boxlo[2]) + (image[j] & 1023) - 512;
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
 void DumpCustom::pack_ysu_triclinic(int n)
 {
+  int j;
   double **x = atom->x;
   int *image = atom->image;
-  int nlocal = atom->nlocal;
 
   double *boxlo = domain->boxlo;
   double *h_inv = domain->h_inv;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = h_inv[1]*(x[i][1]-boxlo[1]) + 
-	h_inv[3]*(x[i][2]-boxlo[2]) +
-	(image[i] >> 10 & 1023) - 512;
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    j = choose[i];
+    buf[n] = h_inv[1]*(x[j][1]-boxlo[1]) + h_inv[3]*(x[j][2]-boxlo[2]) +
+      (image[j] >> 10 & 1023) - 512;
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
 void DumpCustom::pack_zsu_triclinic(int n)
 {
+  int j;
   double **x = atom->x;
   int *image = atom->image;
-  int nlocal = atom->nlocal;
 
   double *boxlo = domain->boxlo;
   double *h_inv = domain->h_inv;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = h_inv[2]*(x[i][2]-boxlo[2]) + 
-	(image[i] >> 20) - 512;
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    j = choose[i];
+    buf[n] = h_inv[2]*(x[j][2]-boxlo[2]) + (image[j] >> 20) - 512;
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2029,13 +2045,11 @@ void DumpCustom::pack_zsu_triclinic(int n)
 void DumpCustom::pack_ix(int n)
 {
   int *image = atom->image;
-  int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = (image[i] & 1023) - 512;
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = (image[choose[i]] & 1023) - 512;
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2043,13 +2057,11 @@ void DumpCustom::pack_ix(int n)
 void DumpCustom::pack_iy(int n)
 {
   int *image = atom->image;
-  int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = (image[i] >> 10 & 1023) - 512;
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = (image[choose[i]] >> 10 & 1023) - 512;
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2057,13 +2069,11 @@ void DumpCustom::pack_iy(int n)
 void DumpCustom::pack_iz(int n)
 {
   int *image = atom->image;
-  int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = (image[i] >> 20) - 512;
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = (image[choose[i]] >> 20) - 512;
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2071,13 +2081,11 @@ void DumpCustom::pack_iz(int n)
 void DumpCustom::pack_vx(int n)
 {
   double **v = atom->v;
-  int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = v[i][0];
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = v[choose[i]][0];
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2085,13 +2093,11 @@ void DumpCustom::pack_vx(int n)
 void DumpCustom::pack_vy(int n)
 {
   double **v = atom->v;
-  int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = v[i][1];
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = v[choose[i]][1];
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2099,13 +2105,11 @@ void DumpCustom::pack_vy(int n)
 void DumpCustom::pack_vz(int n)
 {
   double **v = atom->v;
-  int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = v[i][2];
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = v[choose[i]][2];
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2113,13 +2117,11 @@ void DumpCustom::pack_vz(int n)
 void DumpCustom::pack_fx(int n)
 {
   double **f = atom->f;
-  int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = f[i][0];
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = f[choose[i]][0];
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2127,13 +2129,11 @@ void DumpCustom::pack_fx(int n)
 void DumpCustom::pack_fy(int n)
 {
   double **f = atom->f;
-  int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = f[i][1];
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = f[choose[i]][1];
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2141,13 +2141,11 @@ void DumpCustom::pack_fy(int n)
 void DumpCustom::pack_fz(int n)
 {
   double **f = atom->f;
-  int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = f[i][2];
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = f[choose[i]][2];
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2155,13 +2153,11 @@ void DumpCustom::pack_fz(int n)
 void DumpCustom::pack_q(int n)
 {
   double *q = atom->q;
-  int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = q[i];
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = q[choose[i]];
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2169,13 +2165,11 @@ void DumpCustom::pack_q(int n)
 void DumpCustom::pack_mux(int n)
 {
   double **mu = atom->mu;
-  int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = mu[i][0];
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = mu[choose[i]][0];
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2183,13 +2177,11 @@ void DumpCustom::pack_mux(int n)
 void DumpCustom::pack_muy(int n)
 {
   double **mu = atom->mu;
-  int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = mu[i][1];
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = mu[choose[i]][1];
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2197,13 +2189,11 @@ void DumpCustom::pack_muy(int n)
 void DumpCustom::pack_muz(int n)
 {
   double **mu = atom->mu;
-  int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = mu[i][2];
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = mu[choose[i]][2];
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2211,13 +2201,11 @@ void DumpCustom::pack_muz(int n)
 void DumpCustom::pack_mu(int n)
 {
   double **mu = atom->mu;
-  int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = mu[i][3];
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = mu[choose[i]][3];
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2225,13 +2213,23 @@ void DumpCustom::pack_mu(int n)
 void DumpCustom::pack_radius(int n)
 {
   double *radius = atom->radius;
-  int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = radius[i];
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = radius[choose[i]];
+    n += size_one;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_diameter(int n)
+{
+  double *radius = atom->radius;
+
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = 2.0*radius[choose[i]];
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2239,13 +2237,11 @@ void DumpCustom::pack_radius(int n)
 void DumpCustom::pack_omegax(int n)
 {
   double **omega = atom->omega;
-  int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = omega[i][0];
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = omega[choose[i]][0];
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2253,13 +2249,11 @@ void DumpCustom::pack_omegax(int n)
 void DumpCustom::pack_omegay(int n)
 {
   double **omega = atom->omega;
-  int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = omega[i][1];
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = omega[choose[i]][1];
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2267,13 +2261,11 @@ void DumpCustom::pack_omegay(int n)
 void DumpCustom::pack_omegaz(int n)
 {
   double **omega = atom->omega;
-  int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = omega[i][2];
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = omega[choose[i]][2];
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2281,13 +2273,11 @@ void DumpCustom::pack_omegaz(int n)
 void DumpCustom::pack_angmomx(int n)
 {
   double **angmom = atom->angmom;
-  int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = angmom[i][0];
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = angmom[choose[i]][0];
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2295,13 +2285,11 @@ void DumpCustom::pack_angmomx(int n)
 void DumpCustom::pack_angmomy(int n)
 {
   double **angmom = atom->angmom;
-  int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = angmom[i][1];
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = angmom[choose[i]][1];
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2309,13 +2297,11 @@ void DumpCustom::pack_angmomy(int n)
 void DumpCustom::pack_angmomz(int n)
 {
   double **angmom = atom->angmom;
-  int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = angmom[i][2];
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = angmom[choose[i]][2];
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2323,13 +2309,11 @@ void DumpCustom::pack_angmomz(int n)
 void DumpCustom::pack_tqx(int n)
 {
   double **torque = atom->torque;
-  int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = torque[i][0];
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = torque[choose[i]][0];
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2337,13 +2321,11 @@ void DumpCustom::pack_tqx(int n)
 void DumpCustom::pack_tqy(int n)
 {
   double **torque = atom->torque;
-  int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = torque[i][1];
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = torque[choose[i]][1];
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2351,13 +2333,11 @@ void DumpCustom::pack_tqy(int n)
 void DumpCustom::pack_tqz(int n)
 {
   double **torque = atom->torque;
-  int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = torque[i][2];
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = torque[choose[i]][2];
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2365,13 +2345,11 @@ void DumpCustom::pack_tqz(int n)
 void DumpCustom::pack_spin(int n)
 {
   int *spin = atom->spin;
-  int nlocal = atom->nlocal;
   
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = spin[i];
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = spin[choose[i]];
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2379,13 +2357,11 @@ void DumpCustom::pack_spin(int n)
 void DumpCustom::pack_eradius(int n)
 {
   double *eradius = atom->eradius;
-  int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = eradius[i];
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = eradius[choose[i]];
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2393,13 +2369,11 @@ void DumpCustom::pack_eradius(int n)
 void DumpCustom::pack_ervel(int n)
 {
   double *ervel = atom->ervel;
-  int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = ervel[i];
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = ervel[choose[i]];
+    n += size_one;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2407,11 +2381,9 @@ void DumpCustom::pack_ervel(int n)
 void DumpCustom::pack_erforce(int n)
 {
   double *erforce = atom->erforce;
-  int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = erforce[i];
-      n += size_one;
-    }
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = erforce[choose[i]];
+    n += size_one;
+  }
 }

@@ -58,58 +58,58 @@ if (test $1 = 1) then
 
 elif (test $1 = 0) then
 
-    rm ../pair_reax_c.cpp
-    rm ../fix_qeq_reax.cpp
-    rm ../fix_reax_c.cpp
+    rm -f ../pair_reax_c.cpp
+    rm -f ../fix_qeq_reax.cpp
+    rm -f ../fix_reax_c.cpp
 
-    rm ../pair_reax_c.h
-    rm ../fix_qeq_reax.h
-    rm ../fix_reax_c.h
+    rm -f ../pair_reax_c.h
+    rm -f ../fix_qeq_reax.h
+    rm -f ../fix_reax_c.h
 
-    rm ../reaxc_allocate.cpp
-    rm ../reaxc_basic_comm.cpp
-    rm ../reaxc_bond_orders.cpp
-    rm ../reaxc_bonds.cpp
-    rm ../reaxc_control.cpp
-    rm ../reaxc_ffield.cpp
-    rm ../reaxc_forces.cpp
-    rm ../reaxc_hydrogen_bonds.cpp
-    rm ../reaxc_init_md.cpp
-    rm ../reaxc_io_tools.cpp
-    rm ../reaxc_list.cpp
-    rm ../reaxc_lookup.cpp
-    rm ../reaxc_multi_body.cpp
-    rm ../reaxc_nonbonded.cpp
-    rm ../reaxc_reset_tools.cpp
-    rm ../reaxc_system_props.cpp
-    rm ../reaxc_tool_box.cpp
-    rm ../reaxc_torsion_angles.cpp
-    rm ../reaxc_traj.cpp
-    rm ../reaxc_valence_angles.cpp
-    rm ../reaxc_vector.cpp
+    rm -f ../reaxc_allocate.cpp
+    rm -f ../reaxc_basic_comm.cpp
+    rm -f ../reaxc_bond_orders.cpp
+    rm -f ../reaxc_bonds.cpp
+    rm -f ../reaxc_control.cpp
+    rm -f ../reaxc_ffield.cpp
+    rm -f ../reaxc_forces.cpp
+    rm -f ../reaxc_hydrogen_bonds.cpp
+    rm -f ../reaxc_init_md.cpp
+    rm -f ../reaxc_io_tools.cpp
+    rm -f ../reaxc_list.cpp
+    rm -f ../reaxc_lookup.cpp
+    rm -f ../reaxc_multi_body.cpp
+    rm -f ../reaxc_nonbonded.cpp
+    rm -f ../reaxc_reset_tools.cpp
+    rm -f ../reaxc_system_props.cpp
+    rm -f ../reaxc_tool_box.cpp
+    rm -f ../reaxc_torsion_angles.cpp
+    rm -f ../reaxc_traj.cpp
+    rm -f ../reaxc_valence_angles.cpp
+    rm -f ../reaxc_vector.cpp
 
-    rm ../reaxc_allocate.h
-    rm ../reaxc_basic_comm.h
-    rm ../reaxc_bond_orders.h
-    rm ../reaxc_bonds.h
-    rm ../reaxc_control.h
-    rm ../reaxc_defs.h
-    rm ../reaxc_ffield.h
-    rm ../reaxc_forces.h
-    rm ../reaxc_hydrogen_bonds.h
-    rm ../reaxc_init_md.h
-    rm ../reaxc_io_tools.h
-    rm ../reaxc_list.h
-    rm ../reaxc_lookup.h
-    rm ../reaxc_multi_body.h
-    rm ../reaxc_nonbonded.h
-    rm ../reaxc_reset_tools.h
-    rm ../reaxc_system_props.h
-    rm ../reaxc_tool_box.h
-    rm ../reaxc_torsion_angles.h
-    rm ../reaxc_traj.h
-    rm ../reaxc_types.h
-    rm ../reaxc_valence_angles.h
-    rm ../reaxc_vector.h
+    rm -f ../reaxc_allocate.h
+    rm -f ../reaxc_basic_comm.h
+    rm -f ../reaxc_bond_orders.h
+    rm -f ../reaxc_bonds.h
+    rm -f ../reaxc_control.h
+    rm -f ../reaxc_defs.h
+    rm -f ../reaxc_ffield.h
+    rm -f ../reaxc_forces.h
+    rm -f ../reaxc_hydrogen_bonds.h
+    rm -f ../reaxc_init_md.h
+    rm -f ../reaxc_io_tools.h
+    rm -f ../reaxc_list.h
+    rm -f ../reaxc_lookup.h
+    rm -f ../reaxc_multi_body.h
+    rm -f ../reaxc_nonbonded.h
+    rm -f ../reaxc_reset_tools.h
+    rm -f ../reaxc_system_props.h
+    rm -f ../reaxc_tool_box.h
+    rm -f ../reaxc_torsion_angles.h
+    rm -f ../reaxc_traj.h
+    rm -f ../reaxc_types.h
+    rm -f ../reaxc_valence_angles.h
+    rm -f ../reaxc_vector.h
 
 fi

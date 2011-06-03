@@ -79,6 +79,8 @@ class ComputePropertyAtom : public Compute {
   void pack_muz(int);
   void pack_mu(int);
   void pack_radius(int);
+  void pack_diameter(int);
+
   void pack_omegax(int);
   void pack_omegay(int);
   void pack_omegaz(int);

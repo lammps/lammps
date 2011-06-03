@@ -56,8 +56,8 @@ given by
 as required for the CMM Coarse-grained MD parametrization discussed in
 "(Shinoda)"_#Shinoda and "(DeVane)"_#DeVane.  Rc is the cutoff.
 
-Style {cg/cmm/gpu} is a GPU-enabled version of style {cg/cmm}.
-See more details below.
+Style {cg/cmm/gpu} is a GPU-enabled version of style {cg/cmm}.  See
+more details below.
 
 Style {cg/cmm/coul/cut} adds a Coulombic pairwise interaction given by
 
@@ -87,8 +87,8 @@ option.  The Coulombic cutoff specified for this style means that
 pairwise interactions within this distance are computed directly;
 interactions outside that distance are computed in reciprocal space.
 
-Style {cg/cmm/coul/long/gpu} is a GPU-enabled version of style {cg/cmm/coul/long}.
-See more details below.
+Style {cg/cmm/coul/long/gpu} is a GPU-enabled version of style
+{cg/cmm/coul/long}.  See more details below.
 
 The following coefficients must be defined for each pair of atoms
 types via the "pair_coeff"_pair_coeff.html command as in the examples
@@ -120,24 +120,19 @@ pair_style command.
 
 :line
 
-The {cg/cmm/gpu} and {cg/cmm/coul/long/gpu} styles 
-are identical to the {cg/cmm} and {cg/cmm/coul/long}
-styles, except that each processor off-loads its pairwise calculations to a 
-GPU chip. Depending on the hardware available on your system this can provide a
-speed-up.  See the "Running on GPUs"_Section_start.html#2_8 section of
-the manual for more details about hardware and software requirements
-for using GPUs.
+The {cg/cmm/gpu} and {cg/cmm/coul/long/gpu} styles are identical to
+the {cg/cmm} and {cg/cmm/coul/long} styles, except that each processor
+off-loads its pairwise calculations to a GPU.  Depending on the
+hardware available on your system this can provide a speed-up.  See
+"this section"_doc/Section_accerate.html of the manual for more
+details.
 
-More details about these settings and various possible hardware
-configuration are in "this section"_Section_start.html#2_8 of the
-manual.
+Additional requirements in your input script to run with GPU-enabled
+styles are as follows:
 
-Additional requirements in your input script to run with GPU-enabled styles
-are as follows:
-
-The "newton pair"_newton.html setting must be {off} and
-"fix gpu"_fix_gpu.html must be used. The fix controls the
-essential GPU selection and initialization steps.
+The "newton pair"_newton.html setting must be {off} and the "fix
+gpu"_fix_gpu.html command must be used.  The fix controls the GPU
+selection and initialization steps.
 
 :line
 

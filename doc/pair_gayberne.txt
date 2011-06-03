@@ -135,23 +135,18 @@ pair_coeff sigma to 1.0 as well.
 :line
 
 The {gayberne/gpu} style is identical to the {gayberne} style, except
-that each processor off-loads its pairwise calculations to a GPU chip.
+that each processor off-loads its pairwise calculations to a GPU.
 Depending on the hardware available on your system this can provide a
 significant speed-up, especially for the relatively expensive
-computations inherent in Gay-Berne interactions.  See the "Running on
-GPUs"_Section_start.html#2_8 section of the manual for more details
-about hardware and software requirements for using GPUs.
-
-More details about these settings and various possible hardware
-configuration are in "this section"_Section_start.html#2_8 of the
-manual.
+computations inherent in Gay-Berne interactions.  See "this
+section"_doc/Section_accerate.html of the manual for more details.
 
 Additional requirements in your input script to run with style
 {gayberne/gpu} are as follows:
 
-The "newton pair"_newton.html setting must be {off} and
-"fix gpu"_fix_gpu.html must be used. The fix controls the
-essential GPU selection and initialization steps.
+The "newton pair"_newton.html setting must be {off} and the "fix
+gpu"_fix_gpu.html command must be used.  The fix controls the GPU
+selection and initialization steps.
 
 :line
 

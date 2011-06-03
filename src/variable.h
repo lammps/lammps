@@ -83,6 +83,7 @@ class Variable : protected Pointers {
   double constant(char *);
   double numeric(char *);
   int inumeric(char *);
+  char *find_next_comma(char *);
   void print_tree(Tree *, int);
 };
 

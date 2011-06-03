@@ -25,18 +25,18 @@ if (test $1 = 1) then
 
 elif (test $1 = 0) then
 
-  rm ../pair_eam_opt.cpp
-  rm ../pair_eam_alloy_opt.cpp
-  rm ../pair_eam_fs_opt.cpp
-  rm ../pair_lj_charmm_coul_long_opt.cpp
-  rm ../pair_lj_cut_opt.cpp
-  rm ../pair_morse_opt.cpp
+  rm -f ../pair_eam_opt.cpp
+  rm -f ../pair_eam_alloy_opt.cpp
+  rm -f ../pair_eam_fs_opt.cpp
+  rm -f ../pair_lj_charmm_coul_long_opt.cpp
+  rm -f ../pair_lj_cut_opt.cpp
+  rm -f ../pair_morse_opt.cpp
 
-  rm ../pair_eam_opt.h
-  rm ../pair_eam_alloy_opt.h
-  rm ../pair_eam_fs_opt.h
-  rm ../pair_lj_charmm_coul_long_opt.h
-  rm ../pair_lj_cut_opt.h
-  rm ../pair_morse_opt.h
+  rm -f ../pair_eam_opt.h
+  rm -f ../pair_eam_alloy_opt.h
+  rm -f ../pair_eam_fs_opt.h
+  rm -f ../pair_lj_charmm_coul_long_opt.h
+  rm -f ../pair_lj_cut_opt.h
+  rm -f ../pair_morse_opt.h
 
 fi

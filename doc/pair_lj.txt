@@ -96,10 +96,8 @@ Rc is the cutoff.
 Style {lj/cut/gpu} is a GPU-enabled version of style {lj/cut}.
 See more details below.
 
-Style {lj/cut/opt} is an optimized version of style {lj/cut} that
-should give identical answers.  Depending on system size and the
-processor you are running on, it may be 5-25% faster (for the pairwise
-portion of the run time).
+Style {lj/cut/opt} is an optimized version of style {lj/cut}.  See
+more details below.
 
 Style {lj/cut/coul/cut} adds a Coulombic pairwise interaction given by
 
@@ -112,8 +110,8 @@ specified in the pair_style command, it is used for both the LJ and
 Coulombic terms.  If two cutoffs are specified, they are used as
 cutoffs for the LJ and Coulombic terms respectively.
 
-Style {lj/cut/coul/cut/gpu} is a GPU-enabled version of style {lj/cut/coul/cut}.
-See more details below.
+Style {lj/cut/coul/cut/gpu} is a GPU-enabled version of style
+{lj/cut/coul/cut}.  See more details below.
 
 Style {lj/cut/coul/debye} adds an additional exp() damping factor
 to the Coulombic term, given by
@@ -131,8 +129,8 @@ option.  The Coulombic cutoff specified for this style means that
 pairwise interactions within this distance are computed directly;
 interactions outside that distance are computed in reciprocal space.
 
-Style {lj/cut/coul/long/gpu} is a GPU-enabled version of style {lj/cut/coul/long}.
-See more details below.
+Style {lj/cut/coul/long/gpu} is a GPU-enabled version of style
+{lj/cut/coul/long}.  See more details below.
 
 Style {lj/cut/coul/long/tip4p} implements the TIP4P water model of
 "(Jorgensen)"_#Jorgensen, which introduces a massless site located a
@@ -180,24 +178,24 @@ Coulombic cutoff specified in the pair_style command.
 
 :line
 
-The {lj/cut/gpu}, {lj/cut/coul/cut/gpu}, and {lj/cut/coul/long/gpu} styles 
-are identical to the {lj/cut}, {lj/cut/coul/cut}, and {lj/cut/coul/long}
-styles, except that each processor off-loads its pairwise calculations to a 
-GPU chip. Depending on the hardware available on your system this can provide a
-speed-up.  See the "Running on GPUs"_Section_start.html#2_8 section of
-the manual for more details about hardware and software requirements
-for using GPUs.
+The {lj/cut/opt} style is identical to the {lj/cut} style, except that
+it is written in an optimized fashion for faster CPU execution.  See
+"this section"_doc/Section_accerate.html of the manual for more
+details.
 
-More details about these settings and various possible hardware
-configuration are in "this section"_Section_start.html#2_8 of the
-manual.
+The {lj/cut/gpu}, {lj/cut/coul/cut/gpu}, and {lj/cut/coul/long/gpu}
+styles are identical to the {lj/cut}, {lj/cut/coul/cut}, and
+{lj/cut/coul/long} styles, except that each processor off-loads its
+pairwise calculations to a GPU.  Depending on the hardware available
+on your system this can provide a speed-up.  See "this
+section"_doc/Section_accerate.html of the manual for more details.
 
-Additional requirements in your input script to run with GPU-enabled styles
-are as follows:
+Additional requirements in your input script to run with GPU-enabled
+styles are as follows:
 
-The "newton pair"_newton.html setting must be {off} and
-"fix gpu"_fix_gpu.html must be used. The fix controls
-the essential GPU selection and initialization steps.
+The "newton pair"_newton.html setting must be {off} and the "fix
+gpu"_fix_gpu.html command must be used.  The fix controls the GPU
+selection and initialization steps.
 
 :line
 

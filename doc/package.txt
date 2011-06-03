@@ -1,0 +1,46 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+package command :h3
+
+[Syntax:]
+
+package style args :pre
+
+style = {cuda} :ulb,l
+args = 0 or more args specific to the style :l
+  {cuda} args = to be determined :pre
+:ule
+
+[Examples:]
+
+package cuda blah :pre
+
+[Description:]
+
+This command is to set package-specific settings.  Currently only
+the USER-CUDA package uses it.
+
+The {cuda} style invokes options associated with the use of the
+USER-CUDA package.  These will be described when the USER-CUDA package
+is released with LAMMPS.
+
+[Restrictions:]
+
+The cuda style of this command can only be invoked if LAMMPS was built
+with the USER-CUDA package.  See the "Making
+LAMMPS"_Section_start.html#2_3 section for more info.
+
+Obviously, you must have GPU hardware and associated software to build
+and use LAMMPS with either the GPU or USER-CUDA packages.
+
+[Related commands:]
+
+"fix gpu"_fix_gpu.html
+
+[Default:] none

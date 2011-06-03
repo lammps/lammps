@@ -30,8 +30,6 @@ class DumpCFG : public DumpCustom {
   ~DumpCFG();
 
  private:
-  int ntypes;                // # of atom types
-  char **typenames;	     // array of element names for each type
   char **auxname;            // name strings of auxiliary properties
   int nchosen;               // # of lines to be written on a writing proc
   int nlines;                // # of lines transferred from buf to rbuf
@@ -41,8 +39,6 @@ class DumpCFG : public DumpCustom {
   void init_style();
   void write_header(bigint);
   void write_data(int, double *);
-
-  int modify_param2(int, char **);
 };
 
 }

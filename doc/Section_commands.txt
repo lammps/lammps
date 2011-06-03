@@ -307,7 +307,6 @@ included when LAMMPS was built.  Not all packages are included in a
 default LAMMPS build.  These dependencies are listed as Restrictions
 in the command's documentation.
 
-"accelerator"_accelerator.html,
 "angle_coeff"_angle_coeff.html,
 "angle_style"_angle_style.html,
 "atom_modify"_atom_modify.html,
@@ -355,6 +354,7 @@ in the command's documentation.
 "neighbor"_neighbor.html,
 "newton"_newton.html,
 "next"_next.html,
+"package"_package.html,
 "pair_coeff"_pair_coeff.html,
 "pair_modify"_pair_modify.html,
 "pair_style"_pair_style.html,
@@ -373,6 +373,7 @@ in the command's documentation.
 "set"_set.html,
 "shell"_shell.html,
 "special_bonds"_special_bonds.html,
+"suffix"_suffix.html,
 "tad"_tad.html,
 "temper"_temper.html,
 "thermo"_thermo.html,
@@ -491,6 +492,25 @@ These are fix styles contributed by users, which can be used if
 "smd"_fix_smd.html,
 "temp/rescale/eff"_fix_temp_rescale_eff.html :tb(c=6,ea=c)
 
+These are accelerated fix styles, which can be used if LAMMPS is
+built with the "appropriate accelerated
+package"_Section_accelerate.html.
+
+"freeze/cuda"_fix_freeze.html,
+"addforce/cuda"_fix_addforce.html,
+"aveforce/cuda"_fix_aveforce.html,
+"enforce2d/cuda"_fix_enforce2d.html,
+"gravity/cuda"_fix_gravity.html,
+"npt/cuda"_fix_nh.html,
+"nve/cuda"_fix_nh.html,
+"nvt/cuda"_fix_nh.html,
+"setforce/cuda"_fix_setforce.html,
+"shake/cuda"_fix_shake.html,
+"temp/berendsen/cuda"_fix_temp_berendsen.html,
+"temp/rescale/cuda"_fix_temp_rescale.html,
+"temp/rescale/limit/cuda"_fix_temp_rescale.html,
+"viscous/cuda"_fix_viscous.html :tb(c=6,ea=c)
+
 :line
 
 Compute styles :h4
@@ -555,6 +575,15 @@ These are compute styles contributed by users, which can be used if
 "temp/deform/eff"_compute_temp_deform_eff.html,
 "temp/region/eff"_compute_temp_region_eff.html :tb(c=6,ea=c)
 
+These are accelerated compute styles, which can be used if LAMMPS is
+built with the "appropriate accelerated
+package"_Section_accelerate.html.
+
+"pe/cuda"_compute_pe.html,
+"pressure/cuda"_compute_pressure.html,
+"temp/cuda"_compute_temp.html,
+"temp/partial/cuda"_compute_temp_partial.html :tb(c=6,ea=c)
+
 :line
 
 Pair_style potentials :h4
@@ -581,15 +610,11 @@ potentials.  Click on the style itself for a full description:
 "dpd/tstat"_pair_dpd.html,
 "dsmc"_pair_dsmc.html,
 "eam"_pair_eam.html,
-"eam/opt"_pair_eam.html,
 "eam/alloy"_pair_eam.html,
-"eam/alloy/opt"_pair_eam.html,
 "eam/fs"_pair_eam.html,
-"eam/fs/opt"_pair_eam.html,
 "eim"_pair_eim.html,
 "gauss"_pair_gauss.html,
 "gayberne"_pair_gayberne.html,
-"gayberne/gpu"_pair_gayberne.html,
 "gran/hertz/history"_pair_gran.html,
 "gran/hooke"_pair_gran.html,
 "gran/hooke/history"_pair_gran.html,
@@ -598,32 +623,22 @@ potentials.  Click on the style itself for a full description:
 "lj/charmm/coul/charmm"_pair_charmm.html,
 "lj/charmm/coul/charmm/implicit"_pair_charmm.html,
 "lj/charmm/coul/long"_pair_charmm.html,
-"lj/charmm/coul/long/gpu"_pair_charmm.html,
-"lj/charmm/coul/long/opt"_pair_charmm.html,
 "lj/class2"_pair_class2.html,
 "lj/class2/coul/cut"_pair_class2.html,
 "lj/class2/coul/long"_pair_class2.html,
 "lj/cut"_pair_lj.html,
-"lj/cut/gpu"_pair_lj.html,
-"lj/cut/opt"_pair_lj.html,
 "lj/cut/coul/cut"_pair_lj.html,
-"lj/cut/coul/cut/gpu"_pair_lj.html,
 "lj/cut/coul/debye"_pair_lj.html,
 "lj/cut/coul/long"_pair_lj.html,
-"lj/cut/coul/long/gpu"_pair_lj.html,
 "lj/cut/coul/long/tip4p"_pair_lj.html,
 "lj/expand"_pair_lj_expand.html,
-"lj/expand/gpu"_pair_lj_expand.html,
 "lj/gromacs"_pair_gromacs.html,
 "lj/gromacs/coul/gromacs"_pair_gromacs.html,
 "lj/smooth"_pair_lj_smooth.html,
-"lj96/cut"_pair_lj96_cut.html,
-"lj96/cut/gpu"_pair_lj96_cut.html,
+"lj96/cut"_pair_lj96.html,
 "lubricate"_pair_lubricate.html,
 "meam"_pair_meam.html,
 "morse"_pair_morse.html,
-"morse/gpu"_pair_morse.html,
-"morse/opt"_pair_morse.html,
 "peri/lps"_pair_peri.html,
 "peri/pmb"_pair_peri.html,
 "reax"_pair_reax.html,
@@ -641,14 +656,62 @@ These are pair styles contributed by users, which can be used if
 
 "buck/coul"_pair_buck_coul.html,
 "cg/cmm"_pair_cmm.html,
-"cg/cmm/gpu"_pair_cmm.html,
 "cg/cmm/coul/cut"_pair_cmm.html,
 "cg/cmm/coul/long"_pair_cmm.html,
-"cg/cmm/coul/long/gpu"_pair_cmm.html,
 "eam/cd"_pair_eam.html,
 "eff/cut"_pair_eff.html,
 "lj/coul"_pair_lj_coul.html,
 "reax/c"_pair_reax_c.html :tb(c=4,ea=c)
+
+These are accelerated pair styles, which can be used if LAMMPS is
+built with the "appropriate accelerated
+package"_Section_accelerate.html.
+
+"born/coul/long/cuda"_pair_born.html,
+"buck/coul/cut/cuda"_pair_buck.html,
+"buck/coul/long/cuda"_pair_buck.html,
+"buck/cuda"_pair_buck.html,
+"cg/cmm/cuda"_pair_cmm.html,
+"cg/cmm/coul/cut/cuda"_pair_cmm.html,
+"cg/cmm/coul/debye/cuda"_pair_cmm.html,
+"cg/cmm/coul/long/cuda"_pair_cmm.html,
+"lj/cut/coul/long/cuda"_pair_lj.html,
+"eam/alloy/cuda"_pair_eam.html,
+"eam/cuda"_pair_eam.html,
+"eam/fs/cuda"_pair_eam.html,
+"gran/hooke/cuda"_pair_gran.html,
+"lj/charmm/coul/charmm/cuda"_pair_charmm.html,
+"lj/charmm/coul/charmm/implicit/cuda"_pair_charmm.html,
+"lj/charmm/coul/long/cuda"_pair_charmm.html,
+"lj/class2/coul/cut/cuda"_pair_class2.html,
+"lj/class2/cuda"_pair_class2.html,
+"lj/class2/coul/long/cuda"_pair_class2.html,
+"lj/cut/coul/cut/cuda"_pair_lj.html,
+"lj/cut/coul/debye/cuda"_pair_lj.html,
+"lj/cut/cuda"_pair_lj.html,
+"lj/cut/experimental/cuda"_pair_lj.html,
+"lj/expand/cuda"_pair_lj_expand.html,
+"lj/gromacs/coul/gromacs/cuda"_pair_gromacs.html,
+"lj/gromacs/cuda"_pair_gromacs.html,
+"lj/smooth/cuda"_pair_lj_smooth.html,
+"lj96/cut/cuda"_pair_lj96.html,
+"morse/cuda"_pair_morse.html,
+"gayberne/gpu"_pair_gayberne.html,
+"cg/cmm/gpu"_pair_cmm.html,
+"cg/cmm/coul/long/gpu"_pair_cmm.html,
+"lj/charmm/coul/long/gpu"_pair_charmm.html,
+"lj/cut/coul/cut/gpu"_pair_lj.html,
+"lj/cut/coul/long/gpu"_pair_lj.html,
+"lj/cut/gpu"_pair_lj.html,
+"lj/expand/gpu"_pair_lj_expand.html,
+"lj96/cut/gpu"_pair_lj96.html,
+"morse/gpu"_pair_morse.html,
+"eam/opt"_pair_eam.html,
+"eam/alloy/opt"_pair_eam.html,
+"eam/fs/opt"_pair_eam.html,
+"lj/charmm/coul/long/opt"_pair_charmm.html,
+"lj/cut/opt"_pair_lj.html,
+"morse/opt"_pair_morse.html :tb(c=4,ea=c)
 
 :line
 
@@ -732,11 +795,18 @@ Kspace solvers.  Click on the style itself for a full description:
 
 "ewald"_kspace_style.html,
 "pppm"_kspace_style.html,
-"pppm/gpu/single"_kspace_style.html,
-"pppm/gpu/double"_kspace_style.html,
 "pppm/tip4p"_kspace_style.html :tb(c=4,ea=c,w=100)
 
 These are Kspace solvers contributed by users, which can be used if
 "LAMMPS is built with the appropriate package"_Section_start.html#2_3.
 
 "ewald/n"_kspace_style.html :tb(c=4,ea=c,w=100)
+
+These are accelerated Kspace solvers, which can be used if LAMMPS is
+built with the "appropriate accelerated
+package"_Section_accelerate.html.
+
+"pppm/cuda"_kspace_style.html,
+"pppm/gpu/single"_kspace_style.html,
+"pppm/gpu/double"_kspace_style.html :tb(c=4,ea=c)
+

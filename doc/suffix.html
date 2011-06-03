@@ -1,0 +1,74 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>suffix command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>suffix style 
+</PRE>
+<UL><LI>style = <I>off</I> or <I>on</I> or <I>opt</I> or <I>gpu</I> or <I>cuda</I> 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>suffix off
+suffix on
+suffix gpu 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This command allows you to use variants of various styles if they
+exist.  In that respect it operates the same as the <A HREF = "Section_start.html#2_6">-suffix
+command-line switch</A>.  It also has options to
+turn off/on any suffix setting made via the command line.
+</P>
+<P>The specified style can be <I>opt</I> or <I>gpu</I> or <I>cuda</I>.  These refer to
+optional packages that LAMMPS can be built with, as described in <A HREF = "Section_start.html#2_3">this
+section of the manual</A>.  The "opt" style
+corrsponds to the OPT package, the "gpu" style to the GPU package, and
+the "cuda" style to the USER-CUDA package.
+</P>
+<P>These are the variants these packages provide:
+</P>
+<UL><LI>OPT = a handful of pair styles, cache-optimized for faster CPU performance
+<LI>GPU = a handful of pair styles and the PPPM kspace_style, optimized to run on one or more GPUs or multicore CPU/GPU nodes
+<LI>USER-CUDA = a collection of atom, pair, fix, compute, and intergrate styles, optimized to run on one or more NVIDIA GPUs 
+</UL>
+<P>As an example, all of the packages provide a <A HREF = "pair_lj.html">pair_style
+lj/cut</A> variant, with style names lj/cut/opt or
+lj/cut/gpu or lj/cut/cuda.  A variant styles can be specified
+explicitly in your input script, e.g. pair_style lj/cut/gpu.  If the
+suffix command is used with the appropriate style, you do not need to
+modify your input script.  The specified suffix (opt,gpu,cuda) is
+automatically appended whenever your input script command creates a
+new <A HREF = "atom_style.html">atom</A>, <A HREF = "pair_style.html">pair</A>, <A HREF = "fix.html">fix</A>,
+<A HREF = "compute.html">compute</A>, or <A HREF = "run_style.html">integrate</A> style.  If the
+variant version does not exist, the standard version is created.
+</P>
+<P>If the specified style is <I>off</I>, then any previously specified suffix
+is temporarily disabled, whether it was specified by a command-line
+switch or a previous suffix command.  If the specified style is <I>on</I>,
+a disabled suffix is turned back on.  The use of these 2 commands lets
+your input script use a standard LAMMPS style (i.e. a non-accelerated
+variant), which can be useful for testing or benchmarking purposes.
+Of course this is also possible by not using any suffix commands, and
+explictly appending or not appending the suffix to the relevant
+commands in your input script.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "Section_start.html#2_6">Command-line switch -suffix</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

@@ -28,11 +28,11 @@ elif (test $1 = 0) then
     sed -i -e 's/[^ \t]*reax_[^ \t]*) //' ../Makefile.package
   fi
 
-  rm ../pair_reax.cpp
-  rm ../pair_reax.h
-  rm ../pair_reax_fortran.h
+  rm -f ../pair_reax.cpp
+  rm -f ../pair_reax.h
+  rm -f ../pair_reax_fortran.h
 
-  rm ../fix_reax_bonds.h
-  rm ../fix_reax_bonds.cpp
+  rm -f ../fix_reax_bonds.h
+  rm -f ../fix_reax_bonds.cpp
 
 fi

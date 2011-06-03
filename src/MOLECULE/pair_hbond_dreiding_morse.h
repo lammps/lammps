@@ -31,6 +31,7 @@ class PairHbondDreidingMorse : public PairHbondDreidingLJ {
   void compute(int, int);
   void coeff(int, char **);
   void init_style();
+  double single(int, int, int, int, double, double, double, double &);
 };
 
 }

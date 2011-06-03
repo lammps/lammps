@@ -93,52 +93,52 @@ elif (test $1 = 0) then
     sed -i -e 's/[^ \t]*gpu_[^ \t]*) //' ../Makefile.package
   fi
   
-  rm ../pppm_gpu.cpp
-  rm ../pppm_gpu_single.cpp
-  rm ../pppm_gpu_double.cpp
-  rm ../pair_gayberne_gpu.cpp
-  rm ../pair_resquared_gpu.cpp
-  rm ../pair_lj_cut_gpu.cpp
-  rm ../pair_morse_gpu.cpp
-  rm ../pair_lj96_cut_gpu.cpp
-  rm ../pair_lj_expand_gpu.cpp
-  rm ../pair_lj_cut_coul_cut_gpu.cpp
-  rm ../pair_lj_cut_coul_long_gpu.cpp
-  rm ../pair_lj_class2_gpu.cpp
-  rm ../pair_lj_class2_coul_long_gpu.cpp
-  rm ../pair_lj_charmm_coul_long_gpu.cpp
-  rm ../pair_lj_cut_tgpu.cpp
-  rm ../pair_cg_cmm_gpu.cpp
-  rm ../pair_cg_cmm_coul_long_gpu.cpp
-  rm ../pair_cg_cmm_coul_msm.cpp
-  rm ../pair_cg_cmm_coul_msm_gpu.cpp
+  rm -f ../pppm_gpu.cpp
+  rm -f ../pppm_gpu_single.cpp
+  rm -f ../pppm_gpu_double.cpp
+  rm -f ../pair_gayberne_gpu.cpp
+  rm -f ../pair_resquared_gpu.cpp
+  rm -f ../pair_lj_cut_gpu.cpp
+  rm -f ../pair_morse_gpu.cpp
+  rm -f ../pair_lj96_cut_gpu.cpp
+  rm -f ../pair_lj_expand_gpu.cpp
+  rm -f ../pair_lj_cut_coul_cut_gpu.cpp
+  rm -f ../pair_lj_cut_coul_long_gpu.cpp
+  rm -f ../pair_lj_class2_gpu.cpp
+  rm -f ../pair_lj_class2_coul_long_gpu.cpp
+  rm -f ../pair_lj_charmm_coul_long_gpu.cpp
+  rm -f ../pair_lj_cut_tgpu.cpp
+  rm -f ../pair_cg_cmm_gpu.cpp
+  rm -f ../pair_cg_cmm_coul_long_gpu.cpp
+  rm -f ../pair_cg_cmm_coul_msm.cpp
+  rm -f ../pair_cg_cmm_coul_msm_gpu.cpp
 
-  rm ../fix_gpu.cpp
-  rm ../pair_omp_gpu.cpp
+  rm -f ../fix_gpu.cpp
+  rm -f ../pair_omp_gpu.cpp
 
-  rm ../pppm_gpu.h
-  rm ../pppm_gpu_single.h
-  rm ../pppm_gpu_double.h
-  rm ../pair_gayberne_gpu.h
-  rm ../pair_resquared_gpu.h
-  rm ../pair_lj_cut_gpu.h
-  rm ../pair_morse_gpu.h
-  rm ../pair_lj96_cut_gpu.h
-  rm ../pair_lj_expand_gpu.h
-  rm ../pair_lj_cut_coul_cut_gpu.h
-  rm ../pair_lj_cut_coul_long_gpu.h
-  rm ../pair_lj_class2_gpu.h
-  rm ../pair_lj_class2_coul_long_gpu.h
-  rm ../pair_lj_charmm_coul_long_gpu.h
-  rm ../pair_lj_cut_tgpu.cpp
-  rm ../pair_cg_cmm_gpu.h
-  rm ../pair_cg_cmm_coul_long_gpu.h
-  rm ../pair_cg_cmm_coul_msm.h
-  rm ../pair_cg_cmm_coul_msm_gpu.h
+  rm -f ../pppm_gpu.h
+  rm -f ../pppm_gpu_single.h
+  rm -f ../pppm_gpu_double.h
+  rm -f ../pair_gayberne_gpu.h
+  rm -f ../pair_resquared_gpu.h
+  rm -f ../pair_lj_cut_gpu.h
+  rm -f ../pair_morse_gpu.h
+  rm -f ../pair_lj96_cut_gpu.h
+  rm -f ../pair_lj_expand_gpu.h
+  rm -f ../pair_lj_cut_coul_cut_gpu.h
+  rm -f ../pair_lj_cut_coul_long_gpu.h
+  rm -f ../pair_lj_class2_gpu.h
+  rm -f ../pair_lj_class2_coul_long_gpu.h
+  rm -f ../pair_lj_charmm_coul_long_gpu.h
+  rm -f ../pair_lj_cut_tgpu.cpp
+  rm -f ../pair_cg_cmm_gpu.h
+  rm -f ../pair_cg_cmm_coul_long_gpu.h
+  rm -f ../pair_cg_cmm_coul_msm.h
+  rm -f ../pair_cg_cmm_coul_msm_gpu.h
 
-  rm ../fix_gpu.h
-  rm ../gpu_extra.h
-  rm ../pair_omp_gpu.h
+  rm -f ../fix_gpu.h
+  rm -f ../gpu_extra.h
+  rm -f ../pair_omp_gpu.h
   
 fi
 

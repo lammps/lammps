@@ -16,6 +16,7 @@
 #include "mpi.h"
 #include "string.h"
 #include "stdlib.h"
+#include "ctype.h"
 #include "read_data.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -1368,7 +1369,9 @@ void ReadData::skip_lines(int n)
    parse a line of coeffs into words, storing them in narg,arg
    trim anything from '#' onward
    word strings remain in line, are not copied
-   if addstr != NULL, add addstr as 2nd arg for class2 angle/dihedral/improper
+   if addstr != NULL, add addstr as extra arg for class2 angle/dihedral/improper
+     if 2nd word starts with letter, then is hybrid style, add addstr after it
+     else add addstr before 2nd word
    if dupflag, duplicate 1st word, so pair_coeff "2" becomes "2 2"
 ------------------------------------------------------------------------- */
 
@@ -1385,8 +1388,9 @@ void ReadData::parse_coeffs(char *line, char *addstr, int dupflag)
       arg = (char **) 
 	memory->srealloc(arg,maxarg*sizeof(char *),"read_data:arg");
     }
+    if (addstr && narg == 1 && !islower(word[0])) arg[narg++] = addstr;
     arg[narg++] = word;
-    if (addstr && narg == 1) arg[narg++] = addstr;
+    if (addstr && narg == 2 && islower(word[0])) arg[narg++] = addstr;
     if (dupflag && narg == 1) arg[narg++] = word;
     word = strtok(NULL," \t\n\r\f");
   }

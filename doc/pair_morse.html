@@ -54,33 +54,31 @@ commands:
 <P>The last coefficient is optional.  If not specified, the global morse
 cutoff is used.
 </P>
-<P>Style <I>morse/opt</I> is an optimized version of style <I>morse</I> that should
-give identical answers.  Depending on system size and the processor
-you are running on, it may be 5-25% faster (for the pairwise portion
-of the run time).
+<P>Style (morse/opt</I> is an optimized version of style <I>eam</I>.  See
+more details below.
 </P>
 <P>Style <I>morse/gpu</I> is a GPU-enabled version of style <I>morse</I>.
 See more details below.
 </P>
 <HR>
 
-<P>The <I>morse/gpu</I> style is identical to the <I>morse</I> style,
-except that each processor off-loads its pairwise calculations to a 
-GPU chip. Depending on the hardware available on your system this can provide a
-speed-up.  See the <A HREF = "Section_start.html#2_8">Running on GPUs</A> section of
-the manual for more details about hardware and software requirements
-for using GPUs.
+<P>The <I>morse/opt</I> style is identical to the <I>morse/cut</I> style, except
+that it is written in an optimized fashion for faster CPU execution.
+See <A HREF = "doc/Section_accerate.html">this section</A> of the manual for more
+details.
 </P>
-<P>More details about these settings and various possible hardware
-configuration are in <A HREF = "Section_start.html#2_8">this section</A> of the
-manual.
+<P>The <I>morse/gpu</I> style is identical to the <I>morse</I> style, except that
+each processor off-loads its pairwise calculations to a GPU.
+Depending on the hardware available on your system this can provide a
+speed-up.  See <A HREF = "doc/Section_accerate.html">this section</A> of the manual
+for more details.
 </P>
-<P>Additional requirements in your input script to run with GPU-enabled styles
-are as follows:
+<P>Additional requirements in your input script to run with GPU-enabled
+styles are as follows:
 </P>
-<P>The <A HREF = "newton.html">newton pair</A> setting must be <I>off</I> and
-<A HREF = "fix_gpu.html">fix gpu</A> must be used. The fix controls
-the essential GPU selection and initialization steps.
+<P>The <A HREF = "newton.html">newton pair</A> setting must be <I>off</I> and the <A HREF = "fix_gpu.html">fix
+gpu</A> command must be used.  The fix controls the GPU
+selection and initialization steps.
 </P>
 <HR>
 
@@ -112,8 +110,8 @@ to be specified in an input script that reads a restart file.
 <P><B>Restrictions:</B>
 </P>
 <P>The <I>morse/opt</I> style is part of the "opt" package.  The <I>morse/gpu</I>
-style is part of the "gpu" package. They are only
-enabled if LAMMPS was built with those packages.  See the <A HREF = "Section_start.html#2_3">Making
+style is part of the "gpu" package. They are only enabled if LAMMPS
+was built with those packages.  See the <A HREF = "Section_start.html#2_3">Making
 LAMMPS</A> section for more info.
 </P>
 <P><B>Related commands:</B>

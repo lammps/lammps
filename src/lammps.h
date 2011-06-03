@@ -42,9 +42,8 @@ class LAMMPS {
   FILE *screen;                  // screen output
   FILE *logfile;                 // logfile
 
-  int accelerator;               // accelerator flag
-  char *asuffix;                 // accelerator suffix
-  int offaccel;                  // 1 if accelerator flag currently disabled
+  char *suffix;                  // suffix to add to input script style names
+  int suffix_enable;             // 1 if suffix enabled, 0 if disabled
   class Cuda *cuda;              // CUDA accelerator class
 
   LAMMPS(int, char **, MPI_Comm);

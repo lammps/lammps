@@ -825,10 +825,6 @@ factors (xy,xz,yz) is as follows:
 </P>
 <CENTER><IMG SRC = "Eqs/box.jpg">
 </CENTER>
-<P>The inverse relationship can be written as follows:
-</P>
-<CENTER><IMG SRC = "Eqs/box_inverse.jpg">
-</CENTER>
 <P>As discussed on the <A HREF = "dump.html">dump</A> command doc page, when the BOX
 BOUNDS for a snapshot is written to a dump file for a triclinic box,
 an orthogonal bounding box which encloses the triclinic simulation box
@@ -1162,7 +1158,7 @@ discussed below, it can be referenced via the following bracket
 notation, where ID in this case is the ID of a compute.  The leading
 "c_" would be replaced by "f_" for a fix, or "v_" for a variable:
 </P>
-<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
+<DIV ALIGN=center><TABLE  BORDER=1 >
 <TR><TD >c_ID </TD><TD > entire scalar, vector, or array</TD></TR>
 <TR><TD >c_ID[I] </TD><TD > one element of vector, one column of array</TD></TR>
 <TR><TD >c_ID[I][J] </TD><TD > one element of array 
@@ -1356,7 +1352,7 @@ data and scalar/vector/array data.
 input, that could be an element of a vector or array.  Likewise a
 vector input could be a column of an array.
 </P>
-<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
+<DIV ALIGN=center><TABLE  BORDER=1 >
 <TR><TD >Command</TD><TD > Input</TD><TD > Output</TD><TD ></TD></TR>
 <TR><TD ><A HREF = "thermo_style.html">thermo_style custom</A></TD><TD > global scalars</TD><TD > screen, log file</TD><TD ></TD></TR>
 <TR><TD ><A HREF = "dump.html">dump custom</A></TD><TD > per-atom vectors</TD><TD > dump file</TD><TD ></TD></TR>

@@ -9,6 +9,7 @@ if (test $1 = 1) then
   cp pair_eam_alloy.cpp ..
   cp pair_eam_fs.cpp ..
   cp pair_eim.cpp ..
+  cp pair_rebo.cpp ..
   cp pair_sw.cpp ..
   cp pair_tersoff.cpp ..
   cp pair_tersoff_zbl.cpp ..
@@ -20,6 +21,7 @@ if (test $1 = 1) then
   cp pair_eam_alloy.h ..
   cp pair_eam_fs.h ..
   cp pair_eim.h ..
+  cp pair_rebo.h ..
   cp pair_sw.h ..
   cp pair_tersoff.h ..
   cp pair_tersoff_zbl.h ..
@@ -33,6 +35,7 @@ elif (test $1 = 0) then
   rm -f ../pair_eam_alloy.cpp
   rm -f ../pair_eam_fs.cpp
   rm -f ../pair_eim.cpp
+  rm -f ../pair_rebo.cpp
   rm -f ../pair_sw.cpp
   rm -f ../pair_tersoff.cpp
   rm -f ../pair_tersoff_zbl.cpp
@@ -44,6 +47,7 @@ elif (test $1 = 0) then
   rm -f ../pair_eam_alloy.h
   rm -f ../pair_eam_fs.h
   rm -f ../pair_eim.h
+  rm -f ../pair_rebo.h
   rm -f ../pair_sw.h
   rm -f ../pair_tersoff.h
   rm -f ../pair_tersoff_zbl.h

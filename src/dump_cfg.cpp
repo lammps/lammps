@@ -165,8 +165,8 @@ void DumpCFG::write_header(bigint n)
 
   // calculate total # of data lines to be written on a writing proc
 
-  if (multiproc) nchosen = nmine;
-  else MPI_Reduce(&nmine,&nchosen,1,MPI_INT,MPI_SUM,0,world);
+  if (multiproc) nchosen = nme;
+  else MPI_Reduce(&nme,&nchosen,1,MPI_INT,MPI_SUM,0,world);
 
   // allocate memory needed for data rearrangement on writing proc(s)
 

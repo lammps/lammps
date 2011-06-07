@@ -284,8 +284,6 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
 
   if (cudaflag == 0) {
     cuda = NULL;
-    if (suffix && strcmp(suffix,"cuda") == 0)
-      error->all("Cannot use -suffix cuda without USER-CUDA installed");
   } else if (cudaflag == 1) {
     cuda = new Cuda(this);
     if (!cuda->cuda_exists)

@@ -358,13 +358,13 @@ class Memory : protected Pointers {
 		    const char *name)
     {
       bigint nbytes = sizeof(TYPE) * n1*n2*n3*n4;
-      TYPE *data = (double *) smalloc(nbytes,name);
+      TYPE *data = (TYPE *) smalloc(nbytes,name);
       nbytes = sizeof(TYPE *) * n1*n2*n3;
-      TYPE **cube = (double **) smalloc(nbytes,name);
+      TYPE **cube = (TYPE **) smalloc(nbytes,name);
       nbytes = sizeof(TYPE **) * n1*n2;
-      TYPE ***plane = (double ***) smalloc(nbytes,name);
+      TYPE ***plane = (TYPE ***) smalloc(nbytes,name);
       nbytes = sizeof(TYPE ***) * n1;
-      array = (double ****) smalloc(nbytes,name);
+      array = (TYPE ****) smalloc(nbytes,name);
       
       int i,j,k;
       int n = 0;

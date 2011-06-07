@@ -64,7 +64,7 @@ ModifyCuda::ModifyCuda(LAMMPS *lmp) : Modify(lmp)
 {
   cuda = lmp->cuda;
    if(cuda == NULL)
-        error->all("You cannot use a /cuda class, without activating 'cuda' acceleration. Use no '-a' command line argument, or '-a cuda'.");
+        error->all("You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
 
   n_initial_integrate_cuda = 0;
   n_post_integrate_cuda = 0;

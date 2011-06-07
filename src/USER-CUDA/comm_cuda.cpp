@@ -56,7 +56,7 @@ CommCuda::CommCuda(LAMMPS *lmp):Comm(lmp)
 {
   cuda = lmp->cuda;
    if(cuda == NULL)
-        error->all("You cannot use a /cuda class, without activating 'cuda' acceleration. Use no '-a' command line argument, or '-a cuda'.");
+        error->all("You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
 
   cu_pbc=NULL;
   cu_slablo=NULL;

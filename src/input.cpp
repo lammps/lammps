@@ -1259,9 +1259,6 @@ void Input::suffix()
     lmp->suffix = new char[n];
     strcpy(lmp->suffix,arg[0]);
     lmp->suffix_enable = 1;
-    
-    if (!lmp->cuda && strcmp(lmp->suffix,"cuda") == 0)
-      error->all("Cannot use suffix cuda without USER-CUDA installed");
   }
 }
 

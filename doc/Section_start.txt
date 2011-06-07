@@ -907,9 +907,9 @@ explicitly in your input script, e.g. pair_style lj/cut/gpu.  If the
 The specified suffix (opt,gpu,cuda) is automatically appended whenever
 your input script command creates a new "atom"_atom_style.html,
 "pair"_pair_style.html, "fix"_fix.html, "compute"_compute.html, or
-"integrate"_run_style.html style.  atom, pair, fix, compute, or
-integrate style.  If the variant version does not exist, the standard
-version is created.
+"run"_run_style.html style.  atom, pair, fix, compute, or integrate
+style.  If the variant version does not exist, the standard version is
+created.
 
 The "suffix"_suffix.html command can also set a suffix and it can also
 turn off/on any suffix setting made via the command line.

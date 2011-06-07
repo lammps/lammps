@@ -86,7 +86,7 @@ the pair_style command, and coefficients specified by the associated
 "pair_style hybrid"_pair_hybrid.html - multiple styles of pairwise interactions
 "pair_style hybrid/overlay"_pair_hybrid.html - multiple styles of superposed pairwise interactions :ul
 
-"pair_style airebo"_pair_airebo.html - AI-REBO potential
+"pair_style airebo"_pair_airebo.html - AIREBO potential of Stuart
 "pair_style born"_pair_born.html - Born-Mayer-Huggins potential
 "pair_style born/coul/long"_pair_born.html - Born-Mayer-Huggins with long-range Coulomb
 "pair_style buck"_pair_buck.html - Buckingham potential
@@ -133,6 +133,7 @@ the pair_style command, and coefficients specified by the associated
 "pair_style peri/lps"_pair_peri.html - peridynamic LPS potential
 "pair_style peri/pmb"_pair_peri.html - peridynamic PMB potential
 "pair_style reax"_pair_reax.html - ReaxFF potential
+"pair_style rebo"_pair_airebo.html - 2nd generation REBO potential of Brenner
 "pair_style resquared"_pair_resquared.html - Everaers RE-Squared ellipsoidal potential
 "pair_style soft"_pair_soft.html - Soft (cosine) potential
 "pair_style sw"_pair_sw.html - Stillinger-Weber 3-body potential

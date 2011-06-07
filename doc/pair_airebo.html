@@ -11,13 +11,16 @@
 
 <H3>pair_style airebo command 
 </H3>
+<H3>pair_style rebo command 
+</H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>pair_style airebo cutoff LJ_flag TORSION_flag 
+<PRE>pair_style style cutoff LJ_flag TORSION_flag 
 </PRE>
-<UL><LI>cutoff = LJ cutoff (sigma scale factor)
-<LI>LJ_flag = 0/1 to turn off/on the LJ term in AIREBO (optional)
-<LI>TORSION_flag = 0/1 to turn off/on the torsion term in AIREBO (optional) 
+<UL><LI>style = <I>airebo</I> or <I>rebo</I>
+<LI>cutoff = LJ cutoff (sigma scale factor)
+<LI>LJ_flag = 0/1 to turn off/on the LJ term (AIREBO only, optional)
+<LI>TORSION_flag = 0/1 to turn off/on the torsion term (AIREBO only, optional) 
 </UL>
 <P><B>Examples:</B>
 </P>
@@ -25,19 +28,33 @@
 pair_style airebo 2.5 1 0
 pair_coeff * * ../potentials/CH.airebo H C 
 </PRE>
+<PRE>pair_style rebo 3.0
+pair_coeff * * ../potentials/CH.airebo H C 
+</PRE>
 <P><B>Description:</B>
 </P>
 <P>The <I>airebo</I> pair style computes the Adaptive Intermolecular Reactive
 Empirical Bond Order (AIREBO) Potential of <A HREF = "#Stuart">(Stuart)</A> for a
-system of carbon and/or hydrogen atoms.  The potential
-consists of three terms:
+system of carbon and/or hydrogen atoms.  Note that this is the initial
+formulation of AIREBO from 2000, not the later formulation.  The
+<I>rebo</I> pair style computes the Reactive Empirical Bond Order (REBO)
+Potential of <A HREF = "#Brenner">(Brenner)</A>.  Note that this is the so-called
+2nd generation REBO from 2002, not the original REBO from 1990.  As
+discussed below, 2nd generation REBO is closely related to the intial
+AIREBO; it is just a subset of the potential energy terms.
+</P>
+<P>The AIREBO potential consists of three terms:
 </P>
 <CENTER><IMG SRC = "Eqs/pair_airebo.jpg">
 </CENTER>
-<P>By default, all three terms are included.  If the two optional flag
-arguments to the pair_style command are included, the LJ and torsional
-terms can be turned off.  Note that both or neither of the flags must
-be included.
+<P>By default, all three terms are included.  For the <I>airebo</I> style, if
+the two optional flag arguments to the pair_style command are
+included, the LJ and torsional terms can be turned off.  Note that
+both or neither of the flags must be included.  If both of the LJ an
+torsional terms are turned off, it becomes the 2nd-generation REBO
+potential, with a small caveat on the spline fitting procedure
+mentioned below.  This can be specified directly as pair_style rebo
+with just a cutoff argument.
 </P>
 <P>The detailed formulas for this potential are given in
 <A HREF = "#Stuart">(Stuart)</A>; here we provide only a brief description.
@@ -71,11 +88,12 @@ would be 10.2 Angstroms.
 <P>The E_TORSION term is an explicit 4-body potential that describes
 various dihedral angle preferences in hydrocarbon configurations.
 </P>
-<P>Only a single pair_coeff command is used with the <I>airebo</I> style which
-specifies an AIREBO potential file with parameters for C and H.  These
-are mapped to LAMMPS atom types by specifying N additional arguments
-after the filename in the pair_coeff command, where N is the number of
-LAMMPS atom types:
+<P>Only a single pair_coeff command is used with the <I>airebo</I> or <I>rebo</I>
+style which specifies an AIREBO potential file with parameters for C
+and H.  Note that the <I>rebo</I> style in LAMMPS uses the same
+AIREBO-formatted potential file.  These are mapped to LAMMPS atom
+types by specifying N additional arguments after the filename in the
+pair_coeff command, where N is the number of LAMMPS atom types:
 </P>
 <UL><LI>filename
 <LI>N element names = mapping of AIREBO elements to atom types 
@@ -108,32 +126,33 @@ off.
 
 <P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
 </P>
-<P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A>
+<P>These pair styles do not support the <A HREF = "pair_modify.html">pair_modify</A>
 mix, shift, table, and tail options.
 </P>
-<P>This pair style does not write its information to <A HREF = "restart.html">binary restart
+<P>These pair styles do not write their information to <A HREF = "restart.html">binary restart
 files</A>, since it is stored in potential files.  Thus, you
 need to re-specify the pair_style and pair_coeff commands in an input
 script that reads a restart file.
 </P>
-<P>This pair style can only be used via the <I>pair</I> keyword of the
-<A HREF = "run_style.html">run_style respa</A> command.  It does not support the
+<P>These pair styles can only be used via the <I>pair</I> keyword of the
+<A HREF = "run_style.html">run_style respa</A> command.  They do not support the
 <I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
 </P>
 <P><B>Restrictions:</B>
 </P>
-<P>This pair style is part of the "manybody" package.  It is only enabled
-if LAMMPS was built with that package (which it is by default).  See
-the <A HREF = "Section_start.html#2_3">Making LAMMPS</A> section for more info.
+<P>These pair styles are part of the "manybody" package.  They are only
+enabled if LAMMPS was built with that package (which it is by
+default).  See the <A HREF = "Section_start.html#2_3">Making LAMMPS</A> section for
+more info.
 </P>
-<P>This pair potential requires the <A HREF = "newton.html">newton</A> setting to be
+<P>These pair potentials require the <A HREF = "newton.html">newton</A> setting to be
 "on" for pair interactions.
 </P>
 <P>The CH.airebo potential file provided with LAMMPS (see the potentials
 directory) is parameterized for metal <A HREF = "units.html">units</A>.  You can use
-the AIREBO potential with any LAMMPS units, but you would need to
-create your own AIREBO potential file with coefficients listed in the
-appropriate units if your simulation doesn't use "metal" units.
+the AIREBO or REBO potential with any LAMMPS units, but you would need
+to create your own AIREBO potential file with coefficients listed in
+the appropriate units if your simulation doesn't use "metal" units.
 </P>
 <P><B>Related commands:</B>
 </P>

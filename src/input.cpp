@@ -777,16 +777,24 @@ void Input::shell()
   } else if (strcmp(arg[0],"rm") == 0) {
     if (narg < 2) error->all("Illegal shell command");
     if (me == 0)
-      for (int i = 1; i < narg; i++)
-	unlink(arg[i]);
+      for (int i = 1; i < narg; i++) unlink(arg[i]);
 
   } else if (strcmp(arg[0],"rmdir") == 0) {
     if (narg < 2) error->all("Illegal shell command");
     if (me == 0)
-      for (int i = 1; i < narg; i++)
-	rmdir(arg[i]);
+      for (int i = 1; i < narg; i++) rmdir(arg[i]);
 
-  } else error->all("Illegal shell command");
+  // use work to concat args back into one string separated by spaces
+  // invoke string in shell via system()
+
+  } else {
+    strcpy(work,arg[0]);
+    for (int i = 1; i < narg; i++) {
+      strcat(work," ");
+      strcat(work,arg[i]);
+    }
+    if (me == 0) system(work);
+  }
 }
 
 /* ---------------------------------------------------------------------- */

@@ -112,11 +112,7 @@ other potentials.
 The parameters/coefficients for the AIREBO potentials are listed in
 the CH.airebo file to agree with the original "(Stuart)"_#Stuart
 paper.  Thus the parameters are specific to this potential and the way
-it was fit, so modifying the file should be done cautiously.  Also
-note that the E_LJ and E_TORSION terms in AIREBO are intended to be
-used with the E_REBO term and not as stand-alone potentials.  Thus we
-don't suggest you use pair_style airebo with the E_REBO term turned
-off.
+it was fit, so modifying the file should be done cautiously.
 
 :line
 

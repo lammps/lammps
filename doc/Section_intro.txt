@@ -136,7 +136,7 @@ commands)
     Yukawa, soft, class 2 (COMPASS), hydrogen bond, tabulated
   charged pairwise potentials: Coulombic, point-dipole
   manybody potentials: EAM, Finnis/Sinclair EAM, modified EAM (MEAM), \
-    embedded ion method (EIM), Stillinger-Weber, Tersoff, AI-REBO, ReaxFF, COMB
+    embedded ion method (EIM), Stillinger-Weber, Tersoff, REBO, AIREBO, ReaxFF, COMB
   electron force field (eFF)
   coarse-grained potentials: DPD, GayBerne, REsquared, colloidal, DLVO
   mesoscopic potentials: granular, Peridynamics
@@ -545,7 +545,7 @@ pair lubricate : Randy Schunk (Sandia)
 compute ackland/atom : Gerolf Zeigenhain
 kspace_style ewald/n, pair_style lj/coul, pair_style buck/coul : \
   Pieter in 't Veld (Sandia)
-AI-REBO bond-order potential : Ase Henry (MIT)
+AIREBO bond-order potential : Ase Henry (MIT)
 making LAMMPS a true "object" that can be instantiated multiple times, \
   e.g. as a library : Ben FrantzDale (RPI)
 pymol_asphere viz tool : Mike Brown (Sandia)

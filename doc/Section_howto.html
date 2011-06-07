@@ -1270,6 +1270,11 @@ or local vector quantities as inputs and "reduce" them (sum, min, max,
 ave) to scalar quantities.  These are produced as output values which
 can be used as input to other output commands.
 </P>
+<P>The <A HREF = "compute_slice.html">compute slice</A> command take one or more global
+vector or array quantities as inputs and extracts a subset of their
+values to create a new vector or array.  These are produced as output
+values which can be used as input to other output commands.
+</P>
 <P>The <A HREF = "compute_property_atom.html">compute property/atom</A> command takes a
 list of one or more pre-defined atom attributes (id, x, fx, etc) and
 stores the values in a per-atom vector or array.  These are produced
@@ -1363,6 +1368,7 @@ vector input could be a column of an array.
 <TR><TD ><A HREF = "fix.html">fixes</A></TD><TD > N/A</TD><TD > global/per-atom/local scalar/vector/array</TD><TD ></TD></TR>
 <TR><TD ><A HREF = "variable.html">variables</A></TD><TD > global scalars, per-atom vectors</TD><TD > global scalar, per-atom vector</TD><TD ></TD></TR>
 <TR><TD ><A HREF = "compute_reduce.html">compute reduce</A></TD><TD > per-atom/local vectors</TD><TD > global scalar/vector</TD><TD ></TD></TR>
+<TR><TD ><A HREF = "compute_slice.html">compute slice</A></TD><TD > global vectors/arrays</TD><TD > global vector/array</TD><TD ></TD></TR>
 <TR><TD ><A HREF = "compute_property_atom.html">compute property/atom</A></TD><TD > per-atom vectors</TD><TD > per-atom vector/array</TD><TD ></TD></TR>
 <TR><TD ><A HREF = "compute_property_local.html">compute property/local</A></TD><TD > local vectors</TD><TD > local vector/array</TD><TD ></TD></TR>
 <TR><TD ><A HREF = "compute_atom_molecule.html">compute atom/molecule</A></TD><TD > per-atom vectors</TD><TD > global vector/array</TD><TD ></TD></TR>

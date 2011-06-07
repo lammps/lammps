@@ -1260,6 +1260,11 @@ or local vector quantities as inputs and "reduce" them (sum, min, max,
 ave) to scalar quantities.  These are produced as output values which
 can be used as input to other output commands.
 
+The "compute slice"_compute_slice.html command take one or more global
+vector or array quantities as inputs and extracts a subset of their
+values to create a new vector or array.  These are produced as output
+values which can be used as input to other output commands.
+
 The "compute property/atom"_compute_property_atom.html command takes a
 list of one or more pre-defined atom attributes (id, x, fx, etc) and
 stores the values in a per-atom vector or array.  These are produced
@@ -1352,6 +1357,7 @@ Command: Input: Output:
 "fixes"_fix.html: N/A: global/per-atom/local scalar/vector/array:
 "variables"_variable.html: global scalars, per-atom vectors: global scalar, per-atom vector:
 "compute reduce"_compute_reduce.html: per-atom/local vectors: global scalar/vector:
+"compute slice"_compute_slice.html: global vectors/arrays: global vector/array:
 "compute property/atom"_compute_property_atom.html: per-atom vectors: per-atom vector/array:
 "compute property/local"_compute_property_local.html: local vectors: local vector/array:
 "compute atom/molecule"_compute_atom_molecule.html: per-atom vectors: global vector/array:

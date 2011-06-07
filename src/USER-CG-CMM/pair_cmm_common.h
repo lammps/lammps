@@ -304,7 +304,7 @@ namespace LAMMPS_NS {
         }
       }
     }
-    if (vflag_fdotr) virial_compute();
+    if (vflag_fdotr) virial_fdotr_compute();
   }
 
 /* ---------------------------------------------------------------------- */

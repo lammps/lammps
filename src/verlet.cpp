@@ -53,7 +53,7 @@ void Verlet::init()
 
   // virial_style:
   // 1 if computed explicitly by pair->compute via sum over pair interactions
-  // 2 if computed implicitly by pair->virial_compute via sum over ghost atoms
+  // 2 if computed implicitly by pair->virial_fdotr_compute via sum over ghosts
 
   if (force->newton_pair) virial_style = 2;
   else virial_style = 1;

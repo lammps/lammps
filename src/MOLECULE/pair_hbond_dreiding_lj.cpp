@@ -45,7 +45,7 @@ PairHbondDreidingLJ::PairHbondDreidingLJ(LAMMPS *lmp) : Pair(lmp)
   // hbond cannot compute virial as F dot r
   // due to using map() to find bonded H atoms which are not near donor atom
 
-  no_virial_compute = 1;
+  no_virial_fdotr_compute = 1;
 
   PI = 4.0*atan(1.0);
 

@@ -32,7 +32,7 @@ using namespace LAMMPS_NS;
 
 PairGranHooke::PairGranHooke(LAMMPS *lmp) : PairGranHookeHistory(lmp)
 {
-  no_virial_compute = 0;
+  no_virial_fdotr_compute = 0;
   history = 0;
 }
 
@@ -192,5 +192,5 @@ void PairGranHooke::compute(int eflag, int vflag)
     }
   }
 
-  if (vflag_fdotr) virial_compute();
+  if (vflag_fdotr) virial_fdotr_compute();
 }

@@ -58,7 +58,7 @@ PairLJCutCoulLongTIP4P::PairLJCutCoulLongTIP4P(LAMMPS *lmp) :
   // TIP4P cannot compute virial as F dot r
   // due to find_M() finding bonded H atoms which are not near O atom
 
-  no_virial_compute = 1;
+  no_virial_fdotr_compute = 1;
 }
 
 /* ---------------------------------------------------------------------- */

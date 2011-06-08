@@ -16,7 +16,7 @@ pair_style lj/class2/coul/long/gpu command :h3
 
 pair_style style args :pre
 
-style = {lj/class2} or {lj/class2/gpu} or {lj/class2/coul/cut} or {lj/class2/coul/long} or {lj/class2/coul/long/gpu}
+style = {lj/class2} or {lj/class2/coul/cut} or {lj/class2/coul/long}
 args = list of arguments for a particular style :ul
   {lj/class2} args = cutoff
     cutoff = global cutoff for class 2 interactions (distance units)
@@ -30,7 +30,6 @@ args = list of arguments for a particular style :ul
 [Examples:]
 
 pair_style lj/class2 10.0
-pair_style lj/class2/gpu 10.0
 pair_coeff * * 100.0 2.5
 pair_coeff 1 2* 100.0 2.5 9.0 :pre
 
@@ -41,7 +40,6 @@ pair_coeff 1 1 100.0 3.5 9.0
 pair_coeff 1 1 100.0 3.5 9.0 9.0 :pre
 
 pair_style lj/class2/coul/long 10.0
-pair_style lj/class2/coul/long/gpu 10.0
 pair_style lj/class2/coul/long 10.0 8.0
 pair_coeff * * 100.0 3.0
 pair_coeff 1 1 100.0 3.5 9.0 :pre
@@ -54,15 +52,9 @@ The {lj/class2} styles compute a 6/9 Lennard-Jones potential given by
 
 Rc is the cutoff.
 
-Style {lj/class2/gpu} is a GPU-enabled version of style {lj/class2}.
-See more details below.
-
 The {lj/class2/coul/cut} and {lj/class2/coul/long} styles add a
 Coulombic term as described for the "lj/cut"_pair_lj.html pair
 styles.
-
-Style {lj/class2/coul/long/gpu} is a GPU-enabled version of style
-{lj/class2/coul/long}.  See more details below.
 
 See "(Sun)"_#Sun for a description of the COMPASS class2 force field.
 
@@ -102,18 +94,25 @@ cutoff distance.
 
 :line
 
-The styles with a {gpu} suffix are identical to the corresponding
-styles without the suffix, except that each processor off-loads its
-pairwise calculations to a GPU.  Depending on the hardware available
-on your system this can provide a speed-up.  See "this
-section"_doc/Section_accerate.html of the manual for more details.
+Styles with a {cuda}, {gpu}, or {opt} suffix are functionally the same
+as the corresponding style without the suffix.  They have been
+optimized to run faster, depending on your available hardware, as
+discussed in "this section"_Section_accelerate.html of the manual.
+The accelerated styles take the same arguments and should produce the
+same results, except for round-off and precision issues.
 
-Additional requirements in your input script to run the styles with a
-{gpu} suffix are as follows:
+These accelerated styles are part of the "user-cuda", "gpu", and "opt"
+packages respectively.  They are only enabled if LAMMPS was built with
+those packages.  See the "Making LAMMPS"_Section_start.html#2_3
+section for more info.
 
-The "newton pair"_newton.html setting must be {off} and the "fix
-gpu"_fix_gpu.html command must be used.  The fix controls the GPU
-selection and initialization steps.
+You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the "-suffix command-line
+switch"_Section_start.html#2_6 when you invoke LAMMPS, or you can use
+the "suffix"_suffix.html command in your input script.
+
+See "this section"_Section_accelerate.html of the manual for more
+instructions on how to use the accelerated styles effectively.
 
 [Mixing, shift, table, tail correction, restart, rRESPA info]:
 
@@ -147,11 +146,9 @@ support the {inner}, {middle}, {outer} keywords.
 
 [Restrictions:]
 
-All of these pair styles, except those ending in "gpu", are part of
-the "class2" package.  They are only enabled if LAMMPS was built with
-that package.  The styles with a {gpu} suffix are part of the "gpu"
-package.  They are only enabled if LAMMPS was built with that package.
-See the "Making LAMMPS"_Section_start.html#2_3 section for more info.
+These styles are part of the "class2" package.  They are only enabled
+if LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#2_3 section for more info.
 
 [Related commands:]
 

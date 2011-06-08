@@ -102,6 +102,15 @@ to 20% savings.
 
 10.2 GPU package :h4,link(10_2)
 
+Additional requirements in your input script to run the styles with a
+{gpu} suffix are as follows:
+
+The "newton pair"_newton.html setting must be {off} and the "fix
+gpu"_fix_gpu.html command must be used.  The fix controls the GPU
+selection and initialization steps.
+
+
+
 The GPU package was developed by Mike Brown at ORNL.
 
 A few LAMMPS "pair styles"_pair_style.html can be run on graphical

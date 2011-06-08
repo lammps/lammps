@@ -23,22 +23,16 @@
 </P>
 <PRE>pair_style style args 
 </PRE>
-<UL><LI>style = <I>cg/cmm</I> or <I>cg/cmm/gpu</I> or <I>cg/cmm/coul/cut</I> or <I>cg/cmm/coul/long</I> or <I>cg/cmm/coul/long/gpu</I>
+<UL><LI>style = <I>cg/cmm</I> or <I>cg/cmm/coul/cut</I> or <I>cg/cmm/coul/long</I>
 <LI>args = list of arguments for a particular style 
 </UL>
 <PRE>  <I>cg/cmm</I> args = cutoff
-    cutoff = global cutoff for Lennard Jones interactions (distance units)
-  <I>cg/cmm/gpu</I> args = cutoff
     cutoff = global cutoff for Lennard Jones interactions (distance units)
   <I>cg/cmm/coul/cut</I> args = cutoff (cutoff2) (kappa)
     cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (optional) (distance units)
     kappa = Debye length (optional, defaults to 0.0 = disabled) (inverse distance units)
   <I>cg/cmm/coul/long</I> args = cutoff (cutoff2)
-    cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
-    cutoff2 = global cutoff for Coulombic (optional) (distance units) 
-</PRE>
-<PRE>  <I>cg/cmm/coul/long/gpu</I> args = cutoff (cutoff2)
     cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (optional) (distance units) 
 </PRE>
@@ -64,9 +58,6 @@ given by
 </CENTER>
 <P>as required for the CMM Coarse-grained MD parametrization discussed in
 <A HREF = "#Shinoda">(Shinoda)</A> and <A HREF = "#DeVane">(DeVane)</A>.  Rc is the cutoff.
-</P>
-<P>Style <I>cg/cmm/gpu</I> is a GPU-enabled version of style <I>cg/cmm</I>.  See
-more details below.
 </P>
 <P>Style <I>cg/cmm/coul/cut</I> adds a Coulombic pairwise interaction given by
 </P>
@@ -95,9 +86,6 @@ the <A HREF = "kspace_style.html">kspace_style</A> command and its <I>ewald</I> 
 option.  The Coulombic cutoff specified for this style means that
 pairwise interactions within this distance are computed directly;
 interactions outside that distance are computed in reciprocal space.
-</P>
-<P>Style <I>cg/cmm/coul/long/gpu</I> is a GPU-enabled version of style
-<I>cg/cmm/coul/long</I>.  See more details below.
 </P>
 <P>The following coefficients must be defined for each pair of atoms
 types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
@@ -129,18 +117,25 @@ pair_style command.
 </P>
 <HR>
 
-<P>The styles with a <I>gpu</I> suffix are identical to the corresponding
-styles without the suffix, except that each processor off-loads its
-pairwise calculations to a GPU.  Depending on the hardware available
-on your system this can provide a speed-up.  See <A HREF = "doc/Section_accerate.html">this
-section</A> of the manual for more details.
+<P>Styles with a <I>cuda</I>, <I>gpu</I>, or <I>opt</I> suffix are functionally the same
+as the corresponding style without the suffix.  They have been
+optimized to run faster, depending on your available hardware, as
+discussed in <A HREF = "Section_accelerate.html">this section</A> of the manual.
+The accelerated styles take the same arguments and should produce the
+same results, except for round-off and precision issues.
 </P>
-<P>Additional requirements in your input script to run the styles with a
-<I>gpu</I> suffix are as follows:
+<P>These accelerated styles are part of the "user-cuda", "gpu", and "opt"
+packages respectively.  They are only enabled if LAMMPS was built with
+those packages.  See the <A HREF = "Section_start.html#2_3">Making LAMMPS</A>
+section for more info.
 </P>
-<P>The <A HREF = "newton.html">newton pair</A> setting must be <I>off</I> and the <A HREF = "fix_gpu.html">fix
-gpu</A> command must be used.  The fix controls the GPU
-selection and initialization steps.
+<P>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <A HREF = "Section_start.html#2_6">-suffix command-line
+switch</A> when you invoke LAMMPS, or you can use
+the <A HREF = "suffix.html">suffix</A> command in your input script.
+</P>
+<P>See <A HREF = "Section_accelerate.html">this section</A> of the manual for more
+instructions on how to use the accelerated styles effectively.
 </P>
 <HR>
 
@@ -175,12 +170,10 @@ See the <A HREF = "run_style.html">run_style</A> command for details.
 
 <P><B>Restrictions:</B>
 </P>
-<P>All of the cg/cmm pair styles are part of the "user-cg-cmm"
-package. They are only enabled if LAMMPS was built with that package.
+<P>All of the cg/cmm pair styles are part of the "user-cg-cmm" package.
 The <I>cg/cmm/coul/long</I> style also requires the "kspace" package to be
-built (which is enabled by default).  The styles with a <I>gpu</I> suffix
-are part of the "gpu" package.  They are only enabled if LAMMPS was
-built with that package.  See the <A HREF = "Section_start.html#2_3">Making
+built (which is enabled by default).  They are only enabled if LAMMPS
+was built with that package.  See the <A HREF = "Section_start.html#2_3">Making
 LAMMPS</A> section for more info.
 </P>
 <P><B>Related commands:</B>

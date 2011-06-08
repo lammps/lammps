@@ -27,24 +27,21 @@
 </P>
 <PRE>pair_style style 
 </PRE>
-<UL><LI>style = <I>eam</I> or <I>eam/alloy</I> or <I>eam/cd</I> or <I>eam/fs</I> or <I>eam/opt</I> or <I>eam/alloy/opt</I> or <I>eam/fs/opt</I> 
+<UL><LI>style = <I>eam</I> or <I>eam/alloy</I> or <I>eam/cd</I> or <I>eam/fs</I> 
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>pair_style eam
-pair_style eam/opt
 pair_coeff * * cuu3
 pair_coeff 1*3 1*3 niu3.eam 
 </PRE>
 <PRE>pair_style eam/alloy
-pair_style eam/alloy/opt
 pair_coeff * * ../potentials/NiAlH_jea.eam.alloy Ni Al Ni Ni 
 </PRE>
 <PRE>pair_style eam/cd
 pair_coeff * * ../potentials/FeCr.cdeam Fe Cr 
 </PRE>
 <PRE>pair_style eam/fs
-pair_style eam/fs/opt
 pair_coeff * * NiAlH_jea.eam.fs Ni Al Ni Ni 
 </PRE>
 <P><B>Description:</B>
@@ -61,9 +58,6 @@ and beta are the element types of atoms I and J.  The multi-body
 nature of the EAM potential is a result of the embedding energy term.
 Both summations in the formula are over all neighbors J of atom I
 within the cutoff distance.
-</P>
-<P>Style (eam/opt</I> is an optimized version of style <I>eam</I>.  See
-more details below.
 </P>
 <P>The cutoff distance and the tabulated values of the functionals F,
 rho, and phi are listed in one or more files which are specified by
@@ -182,9 +176,6 @@ single-element or alloy system.  In the alloy case, as explained
 above, <I>setfl</I> files contain explicit tabulated values for alloy
 interactions.  Thus they allow more generality than <I>funcfl</I> files for
 modeling alloys.
-</P>
-<P>Style (eam/alloy/opt</I> is an optimized version of style <I>eam/alloy</I>.
-See more details below.
 </P>
 <P>For style <I>eam/alloy</I>, potential values are read from a file that is
 in the DYNAMO multi-element <I>setfl</I> format, except that element names
@@ -306,9 +297,6 @@ so that different elements can contribute differently to the total
 electron density at an atomic site depending on the identity of the
 element at that atomic site.
 </P>
-<P>Style (eam/fs/opt</I> is an optimized version of style <I>eam/fs</I>.  See
-more details below.
-</P>
 <P>The associated <A HREF = "pair_coeff.html">pair_coeff</A> command for style <I>eam/fs</I>
 reads a DYNAMO <I>setfl</I> file that has been extended to include
 additional rho_alpha_beta arrays of tabulated values.  A discussion of
@@ -371,10 +359,25 @@ are listed.
 </P>
 <HR>
 
-<P>The styles with an <I>opt</I> suffix are identical to the corresponding
-styles without the suffix, except that it is written in an optimized
-fashion for faster CPU execution.  See <A HREF = "doc/Section_accerate.html">this
-section</A> of the manual for more details.
+<P>Styles with a <I>cuda</I>, <I>gpu</I>, or <I>opt</I> suffix are functionally the same
+as the corresponding style without the suffix.  They have been
+optimized to run faster, depending on your available hardware, as
+discussed in <A HREF = "Section_accelerate.html">this section</A> of the manual.
+The accelerated styles take the same arguments and should produce the
+same results, except for round-off and precision issues.
+</P>
+<P>These accelerated styles are part of the "user-cuda", "gpu", and "opt"
+packages respectively.  They are only enabled if LAMMPS was built with
+those packages.  See the <A HREF = "Section_start.html#2_3">Making LAMMPS</A>
+section for more info.
+</P>
+<P>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <A HREF = "Section_start.html#2_6">-suffix command-line
+switch</A> when you invoke LAMMPS, or you can use
+the <A HREF = "suffix.html">suffix</A> command in your input script.
+</P>
+<P>See <A HREF = "Section_accelerate.html">this section</A> of the manual for more
+instructions on how to use the accelerated styles effectively.
 </P>
 <HR>
 
@@ -401,11 +404,9 @@ an input script that reads a restart file.
 
 <P><B>Restrictions:</B>
 </P>
-<P>All of these styles except those ending in <I>opt</I> and the <I>eam/cd</I>
-style are part of the "manybody" package.  They are only enabled if
-LAMMPS was built with that package (which it is by default).  The
-styles with an <I>opt</I> suffix are part of the "opt" package.  They are
-only enabled if LAMMPS was built with that packages.  See the <A HREF = "Section_start.html#2_3">Making
+<P>All of these styles except the <I>eam/cd</I> style are part of the
+"manybody" package.  They are only enabled if LAMMPS was built with
+that package (which it is by default).  See the <A HREF = "Section_start.html#2_3">Making
 LAMMPS</A> section for more info.
 </P>
 <P>The <I>eam/cd</I> style is part of the "user-cd-eam" package and also

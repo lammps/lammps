@@ -71,9 +71,6 @@ long-range potentials.
 Currently, only the {ewald/n} style can be used with non-orthogonal
 (triclinic symmetry) simulation boxes.
 
-The {pppm/gpu/single} and {pppm/gpu/double} styles are GPU-enabled
-version of {pppm}.  See more details below.
-
 :line
 
 When a kspace style is used, a pair style that includes the
@@ -94,23 +91,30 @@ options of the K-space solvers that can be set.
 
 :line
 
-The {pppm/gpu/single} style performs single precision charge
-assignment and force interpolation calculations on the GPU.  The
-{pppm/gpu/double} style performs the mesh calculations on the GPU in
-double precision. In both cases, FFT solves are calculated on the CPU.
-If either {pppm/gpu/single} or {pppm/gpu/double} are used with a
-GPU-enabled pair style, part of the PPPM calculation can be performed
-concurrently on the GPU while other calculations for non-bonded and
-bonded force calculation are performed on the CPU.
+Styles with a {cuda}, {gpu/single}, {gpu/double}, or {opt} suffix are
+functionally the same as the corresponding style without the suffix.
+They have been optimized to run faster, depending on your available
+hardware, as discussed in "this section"_Section_accelerate.html of
+the manual.  The accelerated styles take the same arguments and should
+produce the same results, except for round-off and precision issues.
 
-See "this section"_doc/Section_accerate.html of the manual for more
-details.
+More specifically, the {pppm/gpu/single} style performs single
+precision charge assignment and force interpolation calculations on
+the GPU.  The {pppm/gpu/double} style performs the mesh calculations
+on the GPU in double precision. In both cases, FFT solves are
+calculated on the CPU.  If either {pppm/gpu/single} or
+{pppm/gpu/double} are used with a GPU-enabled pair style, part of the
+PPPM calculation can be performed concurrently on the GPU while other
+calculations for non-bonded and bonded force calculation are performed
+on the CPU.
 
-Additional requirements in your input script to run with GPU-enabled
-PPPM styles are as follows:
+These accelerated styles are part of the "user-cuda", "gpu", and "opt"
+packages respectively.  They are only enabled if LAMMPS was built with
+those packages.  See the "Making LAMMPS"_Section_start.html#2_3
+section for more info.
 
-The "fix gpu"_fix_gpu.html command must be used. The fix controls the
-GPU selection and initialization steps.
+See "this section"_Section_accelerate.html of the manual for more
+instructions on how to use the accelerated styles effectively.
 
 [Restrictions:]
 
@@ -126,11 +130,6 @@ LAMMPS"_Section_start.html#2_3 section for more info.
 The {ewald/n} style is part of the "user-ewaldn" package.  It is only
 enabled if LAMMPS was built with that package.  See the "Making
 LAMMPS"_Section_start.html#2_3 section for more info.
-
-The {pppm/gpu/single} and {pppm/gpu/double} styles are part of the
-"gpu" package.  They are only enabled if LAMMPS was built with that
-package.  See the "Making LAMMPS"_Section_start.html#2_3 section for
-more info.
 
 When using a long-range pairwise TIP4P potential, you must use kspace
 style {pppm/tip4p} and vice versa.

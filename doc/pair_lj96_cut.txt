@@ -11,15 +11,13 @@ pair_style lj96/cut/gpu command :h3
 
 [Syntax:]
 
-pair_style style cutoff :pre
+pair_style lj96/cut cutoff :pre
 
-style = {lj96/cut} or {lj96/cut/gpu}
 cutoff = global cutoff for lj96/cut interactions (distance units) :ul
 
 [Examples:]
 
 pair_style lj96/cut 2.5
-pair_style lj96/cut/gpu 2.5
 pair_coeff * * 1.0 1.0 4.0
 pair_coeff 1 1 1.0 1.0 :pre
 
@@ -31,9 +29,6 @@ of the standard 12/6 potential, given by
 :c,image(Eqs/pair_lj96.jpg)
 
 Rc is the cutoff.
-
-Style {lj96/cut/gpu} is a GPU-enabled version of style {lj96/cut}.
-See more details below.
 
 The following coefficients must be defined for each pair of atoms
 types via the "pair_coeff"_pair_coeff.html command as in the examples
@@ -50,18 +45,25 @@ cutoff specified in the pair_style command is used.
 
 :line
 
-The styles with a {gpu} suffix are identical to the corresponding
-styles without the suffix, except that each processor off-loads its
-pairwise calculations to a GPU.  Depending on the hardware available
-on your system this can provide a speed-up.  See "this
-section"_doc/Section_accerate.html of the manual for more details.
+Styles with a {cuda}, {gpu}, or {opt} suffix are functionally the same
+as the corresponding style without the suffix.  They have been
+optimized to run faster, depending on your available hardware, as
+discussed in "this section"_Section_accelerate.html of the manual.
+The accelerated styles take the same arguments and should produce the
+same results, except for round-off and precision issues.
 
-Additional requirements in your input script to run the styles with a
-{gpu} suffix are as follows:
+These accelerated styles are part of the "user-cuda", "gpu", and "opt"
+packages respectively.  They are only enabled if LAMMPS was built with
+those packages.  See the "Making LAMMPS"_Section_start.html#2_3
+section for more info.
 
-The "newton pair"_newton.html setting must be {off} and the "fix
-gpu"_fix_gpu.html command must be used.  The fix controls the GPU
-selection and initialization steps.
+You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the "-suffix command-line
+switch"_Section_start.html#2_6 when you invoke LAMMPS, or you can use
+the "suffix"_suffix.html command in your input script.
+
+See "this section"_Section_accelerate.html of the manual for more
+instructions on how to use the accelerated styles effectively.
 
 :line
 
@@ -94,11 +96,7 @@ details.
 
 :line
 
-[Restrictions:]
-
-The styles with a {gpu} suffix are part of the "gpu" package.  They
-are only enabled if LAMMPS was built with those packages.  See the
-"Making LAMMPS"_Section_start.html#2_3 section for more info.
+[Restrictions:] none
 
 [Related commands:]
 

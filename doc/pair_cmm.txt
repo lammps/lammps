@@ -16,20 +16,15 @@ pair_style cg/cmm/coul/long/gpu command :h3
 
 pair_style style args :pre
 
-style = {cg/cmm} or {cg/cmm/gpu} or {cg/cmm/coul/cut} or {cg/cmm/coul/long} or {cg/cmm/coul/long/gpu}
+style = {cg/cmm} or {cg/cmm/coul/cut} or {cg/cmm/coul/long}
 args = list of arguments for a particular style :ul
   {cg/cmm} args = cutoff
-    cutoff = global cutoff for Lennard Jones interactions (distance units)
-  {cg/cmm/gpu} args = cutoff
     cutoff = global cutoff for Lennard Jones interactions (distance units)
   {cg/cmm/coul/cut} args = cutoff (cutoff2) (kappa)
     cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (optional) (distance units)
     kappa = Debye length (optional, defaults to 0.0 = disabled) (inverse distance units)
   {cg/cmm/coul/long} args = cutoff (cutoff2)
-    cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
-    cutoff2 = global cutoff for Coulombic (optional) (distance units) :pre
-  {cg/cmm/coul/long/gpu} args = cutoff (cutoff2)
     cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (optional) (distance units) :pre
 
@@ -55,9 +50,6 @@ given by
 
 as required for the CMM Coarse-grained MD parametrization discussed in
 "(Shinoda)"_#Shinoda and "(DeVane)"_#DeVane.  Rc is the cutoff.
-
-Style {cg/cmm/gpu} is a GPU-enabled version of style {cg/cmm}.  See
-more details below.
 
 Style {cg/cmm/coul/cut} adds a Coulombic pairwise interaction given by
 
@@ -86,9 +78,6 @@ the "kspace_style"_kspace_style.html command and its {ewald} or {pppm}
 option.  The Coulombic cutoff specified for this style means that
 pairwise interactions within this distance are computed directly;
 interactions outside that distance are computed in reciprocal space.
-
-Style {cg/cmm/coul/long/gpu} is a GPU-enabled version of style
-{cg/cmm/coul/long}.  See more details below.
 
 The following coefficients must be defined for each pair of atoms
 types via the "pair_coeff"_pair_coeff.html command as in the examples
@@ -120,18 +109,25 @@ pair_style command.
 
 :line
 
-The styles with a {gpu} suffix are identical to the corresponding
-styles without the suffix, except that each processor off-loads its
-pairwise calculations to a GPU.  Depending on the hardware available
-on your system this can provide a speed-up.  See "this
-section"_doc/Section_accerate.html of the manual for more details.
+Styles with a {cuda}, {gpu}, or {opt} suffix are functionally the same
+as the corresponding style without the suffix.  They have been
+optimized to run faster, depending on your available hardware, as
+discussed in "this section"_Section_accelerate.html of the manual.
+The accelerated styles take the same arguments and should produce the
+same results, except for round-off and precision issues.
 
-Additional requirements in your input script to run the styles with a
-{gpu} suffix are as follows:
+These accelerated styles are part of the "user-cuda", "gpu", and "opt"
+packages respectively.  They are only enabled if LAMMPS was built with
+those packages.  See the "Making LAMMPS"_Section_start.html#2_3
+section for more info.
 
-The "newton pair"_newton.html setting must be {off} and the "fix
-gpu"_fix_gpu.html command must be used.  The fix controls the GPU
-selection and initialization steps.
+You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the "-suffix command-line
+switch"_Section_start.html#2_6 when you invoke LAMMPS, or you can use
+the "suffix"_suffix.html command in your input script.
+
+See "this section"_Section_accelerate.html of the manual for more
+instructions on how to use the accelerated styles effectively.
 
 :line
 
@@ -166,12 +162,10 @@ See the "run_style"_run_style.html command for details.
 
 [Restrictions:]
 
-All of the cg/cmm pair styles are part of the "user-cg-cmm"
-package. They are only enabled if LAMMPS was built with that package.
+All of the cg/cmm pair styles are part of the "user-cg-cmm" package.
 The {cg/cmm/coul/long} style also requires the "kspace" package to be
-built (which is enabled by default).  The styles with a {gpu} suffix
-are part of the "gpu" package.  They are only enabled if LAMMPS was
-built with that package.  See the "Making
+built (which is enabled by default).  They are only enabled if LAMMPS
+was built with that package.  See the "Making
 LAMMPS"_Section_start.html#2_3 section for more info.
 
 [Related commands:]

@@ -56,9 +56,10 @@ keyword = {adiam} or {atom} or {bond} or {size} or {view} or {center} or {up} or
     diam = diameter of axes lines as fraction of shortest box length
   {shiny} value = sfactor = shinyness of spheres and cylinders
     sfactor = shinyness of spheres and cylinders from 0.0 to 1.0
-  {ssao} value = yes/no seed = SSAO depth shading
+  {ssao} value = yes/no seed dfactor = SSAO depth shading
     yes/no = turn depth shading on/off
-    seed = random # seed (positive integer) :pre
+    seed = random # seed (positive integer)
+    dfactor = strength of shading from 0.0 to 1.0 :pre
 :ule
 
 [Examples:]
@@ -67,12 +68,17 @@ dump myDump all image 100 dump.*.jpg type type :pre
 
 [Description:]
 
-Dump an image (picture) of the atom configuration every N timesteps as
-either a JPG or PPM file.  A series of such images can easily be
-converted into an animated movie of your simulation; see further
-details below.  Other dump styles store snapshots of numerical data
-asociated with atoms in various formats, as discussed on the
-"dump"_dump.html doc page.
+Dump a high-quality ray-traced image (picture) of the atom
+configuration every N timesteps as either a JPG or PPM file.  A series
+of such images can easily be converted into an animated movie of your
+simulation; see further details below.  Other dump styles store
+snapshots of numerical data asociated with atoms in various formats,
+as discussed on the "dump"_dump.html doc page.
+
+Here are two sample images, produced as 1024x1024 pixel JPG files:
+
+:image(JPG/dump1_small.jpg/JPG/dump1.jpg)
+:image(JPG/dump2_small.jpg/JPG/dump2.jpg)
 
 Only atoms in the specified group are rendered in the image.  The
 "dump_modify region and thresh"_dump_modify.html commands can also
@@ -338,7 +344,8 @@ The {ssao} keyword turns on/off a screen space ambient occlusion
 (SSAO) model for depth shading.  If {yes} is set, then atoms further
 away from the viewer are darkened via a randomized process, which is
 perceived as depth.  The calculation of this effect can increase the
-cost of computing the image by roughly 2x.  If {no} is set, no depth
+cost of computing the image by roughly 2x.  The strength of the effect
+can be scaled by the {dfactor} parameter.  If {no} is set, no depth
 shading is performed.
 
 :line
@@ -352,19 +359,19 @@ file:
 a) Use the ImageMagick convert program. :ulb,l
 
 % convert *.jpg foo.gif
-% convert *.jpg foo.mpg :pre
+% convert *.ppm foo.mpg :pre
 
 b) Use QuickTime. :l
 
 Select "Open Image Sequence" under the File menu
-Load the images into QuickTime
+Load the images into QuickTime to animate them
 Select "Export" under the File menu
 Save the movie as a QuickTime movie (*.mov) or in another format
 
 c) Windows-based tool. :ule,l
 
-If someone tells us how to do this a common Windows-based tool, we'll
-post the instructions here.
+If someone tells us how to do this via a common Windows-based tool,
+we'll post the instructions here.
 
 Play the movie:
 

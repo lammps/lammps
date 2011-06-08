@@ -85,7 +85,6 @@ void VerletCuda::setup()
 	cuda->oncpu = true;
 	cuda->begin_setup = true;
 	cuda->finished_run = false;
-	strcpy(update->integrate_style,"verlet");
 	
 	time_pair=0;
 	time_kspace=0;
@@ -345,7 +344,6 @@ void VerletCuda::setup_minimal(int flag)
 	cuda->begin_setup = true;
 	cuda->finished_run = false;
 	MYDBG(printf("# CUDA VerletCuda::setup start\n"); )
-	    strcpy(update->integrate_style,"verlet");
 	    time_pair=0;
 	    time_kspace=0;
 	    time_comm=0;

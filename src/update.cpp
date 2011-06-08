@@ -255,9 +255,9 @@ void Update::new_integrate(char *style, int narg, char **arg,
     else success = 0;
   }
 
-  sflag = 0;
-
   if (!success) {
+    sflag = 0;
+
     if (0) return;
 
 #define INTEGRATE_CLASS

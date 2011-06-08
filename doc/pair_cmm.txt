@@ -7,10 +7,14 @@
 :line
 
 pair_style cg/cmm command :h3
+pair_style cg/cmm/cuda command :h3
 pair_style cg/cmm/gpu command :h3
 pair_style cg/cmm/coul/cut command :h3
+pair_style cg/cmm/coul/cut/cuda command :h3
+pair_style cg/cmm/coul/debye/cuda command :h3
 pair_style cg/cmm/coul/long command :h3
 pair_style cg/cmm/coul/long/gpu command :h3
+pair_style cg/cmm/coul/long/cuda command :h3
 
 [Syntax:]
 

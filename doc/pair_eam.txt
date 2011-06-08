@@ -7,11 +7,14 @@
 :line
 
 pair_style eam command :h3
+pair_style eam/cuda command :h3
 pair_style eam/opt command :h3
 pair_style eam/alloy command :h3
+pair_style eam/alloy/cuda command :h3
 pair_style eam/alloy/opt command :h3
 pair_style eam/cd command :h3
 pair_style eam/fs command :h3
+pair_style eam/fs/cuda command :h3
 pair_style eam/fs/opt command :h3
 
 [Syntax:]

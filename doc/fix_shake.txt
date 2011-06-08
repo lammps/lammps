@@ -7,6 +7,7 @@
 :line
 
 fix shake command :h3
+fix shake/cuda command :h3
 
 [Syntax:]
 
@@ -74,6 +75,29 @@ The degrees-of-freedom removed by SHAKE bonds and angles are accounted
 for in temperature and pressure computations.  Similarly, the SHAKE
 contribution to the pressure of the system (virial) is also accounted
 for.
+
+:line
+
+Styles with a {cuda} suffix are functionally the same as the
+corresponding style without the suffix.  They have been optimized to
+run faster, depending on your available hardware, as discussed in
+"this section"_Section_accelerate.html of the manual.  The accelerated
+styles take the same arguments and should produce the same results,
+except for round-off and precision issues.
+
+These accelerated styles are part of the "user-cuda" package.  They
+are only enabled if LAMMPS was built with that package.  See the
+"Making LAMMPS"_Section_start.html#2_3 section for more info.
+
+You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the "-suffix command-line
+switch"_Section_start.html#2_6 when you invoke LAMMPS, or you can use
+the "suffix"_suffix.html command in your input script.
+
+See "this section"_Section_accelerate.html of the manual for more
+instructions on how to use the accelerated styles effectively.
+
+:line
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 

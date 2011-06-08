@@ -11,11 +11,17 @@
 
 <H3>pair_style lj/class2 command 
 </H3>
+<H3>pair_style lj/class2/cuda command 
+</H3>
 <H3>pair_style lj/class2/gpu command 
 </H3>
 <H3>pair_style lj/class2/coul/cut command 
 </H3>
+<H3>pair_style lj/class2/coul/cut/cuda command 
+</H3>
 <H3>pair_style lj/class2/coul/long command 
+</H3>
+<H3>pair_style lj/class2/coul/long/cuda command 
 </H3>
 <H3>pair_style lj/class2/coul/long/gpu command 
 </H3>
@@ -90,8 +96,8 @@ since a Coulombic cutoff cannot be specified for an individual I,J
 type pair.  All type pairs use the same global Coulombic cutoff
 specified in the pair_style command.
 </P>
-<P>: line
-</P>
+<HR>
+
 <P>If the pair_coeff command is not used to define coefficients for a
 particular I != J type pair, the mixing rule for epsilon and sigma for
 all class2 potentials is to use the <I>sixthpower</I> formulas documented

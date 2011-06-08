@@ -7,6 +7,7 @@
 :line
 
 pair_style lj/expand command :h3
+pair_style lj/expand/cuda command :h3
 pair_style lj/expand/gpu command :h3
 
 [Syntax:]

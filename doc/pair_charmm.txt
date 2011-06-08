@@ -7,8 +7,11 @@
 :line
 
 pair_style lj/charmm/coul/charmm command :h3
+pair_style lj/charmm/coul/charmm/cuda command :h3
 pair_style lj/charmm/coul/charmm/implicit command :h3
+pair_style lj/charmm/coul/charmm/implicit/cuda command :h3
 pair_style lj/charmm/coul/long command :h3
+pair_style lj/charmm/coul/long/cuda command :h3
 pair_style lj/charmm/coul/long/gpu command :h3
 pair_style lj/charmm/coul/long/opt command :h3
 

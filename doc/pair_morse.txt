@@ -7,6 +7,7 @@
 :line
 
 pair_style morse command :h3
+pair_style morse/cuda command :h3
 pair_style morse/gpu command :h3
 pair_style morse/opt command :h3
 

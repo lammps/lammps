@@ -7,6 +7,7 @@
 :line
 
 pair_style lj96/cut command :h3
+pair_style lj96/cut/cuda command :h3
 pair_style lj96/cut/gpu command :h3
 
 [Syntax:]

@@ -7,12 +7,17 @@
 :line
 
 pair_style lj/cut command :h3
+pair_style lj/cut/cuda command :h3
+pair_style lj/cut/experimental/cuda command :h3
 pair_style lj/cut/gpu command :h3
 pair_style lj/cut/opt command :h3
 pair_style lj/cut/coul/cut command :h3
+pair_style lj/cut/coul/cut/cuda command :h3
 pair_style lj/cut/coul/cut/gpu command :h3
 pair_style lj/cut/coul/debye command :h3
+pair_style lj/cut/coul/debye/cuda command :h3
 pair_style lj/cut/coul/long command :h3
+pair_style lj/cut/coul/long/cuda command :h3
 pair_style lj/cut/coul/long/gpu command :h3
 pair_style lj/cut/coul/long/tip4p command :h3
 

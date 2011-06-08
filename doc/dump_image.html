@@ -81,18 +81,23 @@
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Dump a high-quality ray-traced image (picture) of the atom
-configuration every N timesteps as either a JPG or PPM file.  A series
-of such images can easily be converted into an animated movie of your
-simulation; see further details below.  Other dump styles store
-snapshots of numerical data asociated with atoms in various formats,
-as discussed on the <A HREF = "dump.html">dump</A> doc page.
+<P>Dump a high-quality ray-traced image of the atom configuration every N
+timesteps as either a JPG or PPM file.  A series of such images can
+easily be converted into an animated movie of your simulation; see
+further details below.  Other dump styles store snapshots of numerical
+data asociated with atoms in various formats, as discussed on the
+<A HREF = "dump.html">dump</A> doc page.
 </P>
-<P>Here are two sample images, produced as 1024x1024 pixel JPG files:
+<P>Here are two sample images, rendered as 1024x1024 JPG files.  Click to
+see the full-size images:
 </P>
-<IMG SRC = "JPG/dump1_small.jpg/JPG/dump1.jpg">
+<DIV ALIGN=center>
 
-<IMG SRC = "JPG/dump2_small.jpg/JPG/dump2.jpg">
+<A HREF = "JPG/dump1.jpg"><IMG SRC = "JPG/dump1_small.jpg"></A>
+
+<A HREF = "JPG/dump2.jpg"><IMG SRC = "JPG/dump2_small.jpg"></A>
+
+</DIV>
 
 <P>Only atoms in the specified group are rendered in the image.  The
 <A HREF = "dump_modify.html">dump_modify region and thresh</A> commands can also

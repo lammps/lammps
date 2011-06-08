@@ -68,17 +68,22 @@ dump myDump all image 100 dump.*.jpg type type :pre
 
 [Description:]
 
-Dump a high-quality ray-traced image (picture) of the atom
-configuration every N timesteps as either a JPG or PPM file.  A series
-of such images can easily be converted into an animated movie of your
-simulation; see further details below.  Other dump styles store
-snapshots of numerical data asociated with atoms in various formats,
-as discussed on the "dump"_dump.html doc page.
+Dump a high-quality ray-traced image of the atom configuration every N
+timesteps as either a JPG or PPM file.  A series of such images can
+easily be converted into an animated movie of your simulation; see
+further details below.  Other dump styles store snapshots of numerical
+data asociated with atoms in various formats, as discussed on the
+"dump"_dump.html doc page.
 
-Here are two sample images, produced as 1024x1024 pixel JPG files:
+Here are two sample images, rendered as 1024x1024 JPG files.  Click to
+see the full-size images:
 
-:image(JPG/dump1_small.jpg/JPG/dump1.jpg)
-:image(JPG/dump2_small.jpg/JPG/dump2.jpg)
+<DIV ALIGN=center>
+
+:image(JPG/dump1_small.jpg,JPG/dump1.jpg)
+:image(JPG/dump2_small.jpg,JPG/dump2.jpg)
+
+</DIV>
 
 Only atoms in the specified group are rendered in the image.  The
 "dump_modify region and thresh"_dump_modify.html commands can also

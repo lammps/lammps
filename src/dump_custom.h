@@ -47,6 +47,7 @@ class DumpCustom : public Dump {
   int maxlocal;              // size of atom selection and variable arrays
   int *choose;               // local indices of selected atoms
   double *dchoose;           // value for each atom to threshhold against
+  int *clist;                // compressed list of indices of selected atoms
 
   int nfield;                // # of keywords listed by user
   int ioptional;             // index of start of optional args

@@ -103,8 +103,6 @@ void Force::init()
 {
   qqrd2e = qqr2e/dielectric;
 
-  comm->maxforward_pair = comm->maxreverse_pair = 0;
-
   if (kspace) kspace->init();         // kspace must come before pair
   if (pair) pair->init();             // so g_ewald is defined
   if (bond) bond->init();

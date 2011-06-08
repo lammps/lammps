@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Nathan Fabian (Sandia)
+------------------------------------------------------------------------- */
+
 #include "mpi.h"
 #include "math.h"
 #include "ctype.h"

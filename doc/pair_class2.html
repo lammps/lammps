@@ -11,15 +11,19 @@
 
 <H3>pair_style lj/class2 command 
 </H3>
+<H3>pair_style lj/class2/gpu command 
+</H3>
 <H3>pair_style lj/class2/coul/cut command 
 </H3>
 <H3>pair_style lj/class2/coul/long command 
+</H3>
+<H3>pair_style lj/class2/coul/long/gpu command 
 </H3>
 <P><B>Syntax:</B>
 </P>
 <PRE>pair_style style args 
 </PRE>
-<UL><LI>style = <I>lj/class2</I> or <I>lj/class2/coul/cut</I> or <I>lj/class2/coul/long</I>
+<UL><LI>style = <I>lj/class2</I> or <I>lj/class2/gpu</I> or <I>lj/class2/coul/cut</I> or <I>lj/class2/coul/long</I> or <I>lj/class2/coul/long/gpu</I>
 <LI>args = list of arguments for a particular style 
 </UL>
 <PRE>  <I>lj/class2</I> args = cutoff
@@ -34,6 +38,7 @@
 <P><B>Examples:</B>
 </P>
 <PRE>pair_style lj/class2 10.0
+pair_style lj/class2/gpu 10.0
 pair_coeff * * 100.0 2.5
 pair_coeff 1 2* 100.0 2.5 9.0 
 </PRE>
@@ -44,6 +49,7 @@ pair_coeff 1 1 100.0 3.5 9.0
 pair_coeff 1 1 100.0 3.5 9.0 9.0 
 </PRE>
 <PRE>pair_style lj/class2/coul/long 10.0
+pair_style lj/class2/coul/long/gpu 10.0
 pair_style lj/class2/coul/long 10.0 8.0
 pair_coeff * * 100.0 3.0
 pair_coeff 1 1 100.0 3.5 9.0 
@@ -56,9 +62,15 @@ pair_coeff 1 1 100.0 3.5 9.0
 </CENTER>
 <P>Rc is the cutoff.
 </P>
+<P>Style <I>lj/class2/gpu</I> is a GPU-enabled version of style <I>lj/class2</I>.
+See more details below.
+</P>
 <P>The <I>lj/class2/coul/cut</I> and <I>lj/class2/coul/long</I> styles add a
 Coulombic term as described for the <A HREF = "pair_lj.html">lj/cut</A> pair
 styles.
+</P>
+<P>Style <I>lj/class2/coul/long/gpu</I> is a GPU-enabled version of style
+<I>lj/class2/coul/long</I>.  See more details below.
 </P>
 <P>See <A HREF = "#Sun">(Sun)</A> for a description of the COMPASS class2 force field.
 </P>
@@ -96,6 +108,21 @@ mix</A> setting is thus ignored for class2 potentials
 for epsilon and sigma.  However it is still followed for mixing the
 cutoff distance.
 </P>
+<HR>
+
+<P>The styles with a <I>gpu</I> suffix are identical to the corresponding
+styles without the suffix, except that each processor off-loads its
+pairwise calculations to a GPU.  Depending on the hardware available
+on your system this can provide a speed-up.  See <A HREF = "doc/Section_accerate.html">this
+section</A> of the manual for more details.
+</P>
+<P>Additional requirements in your input script to run the styles with a
+<I>gpu</I> suffix are as follows:
+</P>
+<P>The <A HREF = "newton.html">newton pair</A> setting must be <I>off</I> and the <A HREF = "fix_gpu.html">fix
+gpu</A> command must be used.  The fix controls the GPU
+selection and initialization steps.
+</P>
 <P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
 </P>
 <P>For atom type pairs I,J and I != J, the epsilon and sigma coefficients
@@ -128,9 +155,11 @@ support the <I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
 </P>
 <P><B>Restrictions:</B>
 </P>
-<P>All of these pair styles are part of the "class2" package.  They are
-only enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_3">Making
-LAMMPS</A> section for more info.
+<P>All of these pair styles, except those ending in "gpu", are part of
+the "class2" package.  They are only enabled if LAMMPS was built with
+that package.  The styles with a <I>gpu</I> suffix are part of the "gpu"
+package.  They are only enabled if LAMMPS was built with that package.
+See the <A HREF = "Section_start.html#2_3">Making LAMMPS</A> section for more info.
 </P>
 <P><B>Related commands:</B>
 </P>

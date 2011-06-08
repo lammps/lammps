@@ -29,14 +29,14 @@ pair_coeff 1*3 1*3 niu3.eam :pre
 
 pair_style eam/alloy
 pair_style eam/alloy/opt
-pair_coeff * * ../potentials/nialhjea.eam.alloy Ni Al Ni Ni :pre
+pair_coeff * * ../potentials/NiAlH_jea.eam.alloy Ni Al Ni Ni :pre
 
 pair_style eam/cd
 pair_coeff * * ../potentials/FeCr.cdeam Fe Cr :pre
 
 pair_style eam/fs
 pair_style eam/fs/opt
-pair_coeff * * nialhjea.eam.fs Ni Al Ni Ni :pre
+pair_coeff * * NiAlH_jea.eam.fs Ni Al Ni Ni :pre
 
 [Description:]
 
@@ -193,13 +193,13 @@ where N is the number of LAMMPS atom types:
 filename
 N element names = mapping of {setfl} elements to atom types :ul
 
-As an example, the potentials/nialhjea {setfl} file has tabulated EAM
-values for 3 elements and their alloy interactions: Ni, Al, and H.  If
-your LAMMPS simulation has 4 atoms types and you want the 1st 3 to be
-Ni, and the 4th to be Al, you would use the following pair_coeff
-command:
+As an example, the potentials/NiAlH_jea.eam.alloy file is a {setfl}
+file which has tabulated EAM values for 3 elements and their alloy
+interactions: Ni, Al, and H.  If your LAMMPS simulation has 4 atoms
+types and you want the 1st 3 to be Ni, and the 4th to be Al, you would
+use the following pair_coeff command:
 
-pair_coeff * * nialhjea.eam.alloy Ni Ni Ni Al :pre
+pair_coeff * * NiAlH_jea.eam.alloy Ni Ni Ni Al :pre
 
 The 1st 2 arguments must be * * so as to span all LAMMPS atom types.
 The first three Ni arguments map LAMMPS atom types 1,2,3 to the Ni
@@ -314,7 +314,7 @@ FS potential files.
 For style {eam/fs}, the form of the pair_coeff command is exactly the
 same as for style {eam/alloy}, e.g.
 
-pair_coeff * * nialhjea.eam.fs Ni Ni Ni Al :pre
+pair_coeff * * NiAlH_jea.eam.fs Ni Ni Ni Al :pre
 
 where there are N additional arguments after the filename, where N is
 the number of LAMMPS atom types.  The N values determine the mapping
@@ -362,9 +362,9 @@ are listed.
 
 :line
 
-The {eam/opt}, {eam/alloy/opt}, and {eam/fs/opt} styles are identical
-to the {eam}, {eam/alloy}, and {eam/fs} styles, except that they are
-written in an optimized fashion for faster CPU execution.  See "this
+The styles with an {opt} suffix are identical to the corresponding
+styles without the suffix, except that it is written in an optimized
+fashion for faster CPU execution.  See "this
 section"_doc/Section_accerate.html of the manual for more details.
 
 :line
@@ -394,11 +394,9 @@ The eam pair styles can only be used via the {pair} keyword of the
 
 All of these styles except those ending in {opt} and the {eam/cd}
 style are part of the "manybody" package.  They are only enabled if
-LAMMPS was built with that package (which it is by default).
-
-The styles ending in {opt} are part of the "opt" package and also
-require the "manybody" package.  They are only enabled if LAMMPS was
-built with those packages.  See the "Making
+LAMMPS was built with that package (which it is by default).  The
+styles with an {opt} suffix are part of the "opt" package.  They are
+only enabled if LAMMPS was built with that packages.  See the "Making
 LAMMPS"_Section_start.html#2_3 section for more info.
 
 The {eam/cd} style is part of the "user-cd-eam" package and also

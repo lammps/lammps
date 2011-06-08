@@ -114,19 +114,19 @@ the pair_style command.
 
 :line
 
-The {lj/charmm/coul/long/opt} style is identical to the
-{lj/charmm/coul/long} style, except that it is written in an optimized
+The styles with an {opt} suffix are identical to the corresponding
+styles without the suffix, except that it is written in an optimized
 fashion for faster CPU execution.  See "this
 section"_doc/Section_accerate.html of the manual for more details.
 
-The {lj/charmm/coul/long/gpu} style is identical to the
-{lj/charmm/coul/long} style, except that each processor off-loads its
+The styles with a {gpu} suffix are identical to the corresponding
+styles without the suffix, except that each processor off-loads its
 pairwise calculations to a GPU.  Depending on the hardware available
-on your system this can provide a significant speed-up.  See "this
+on your system this can provide a speed-up.  See "this
 section"_doc/Section_accerate.html of the manual for more details.
 
-Additional requirements in your input script to run with style
-{lj/charmm/coul/long/gpu} are as follows:
+Additional requirements in your input script to run the styles with a
+{gpu} suffix are as follows:
 
 The "newton pair"_newton.html setting must be {off} and the "fix
 gpu"_fix_gpu.html command must be used.  The fix controls the GPU
@@ -173,18 +173,11 @@ support the {pair} keyword of run_style respa.  See the
 
 The {lj/charmm/coul/charmm} and {lj/charmm/coul/charmm/implicit}
 styles are part of the "molecule" package.  The {lj/charmm/coul/long}
-style is part of the "kspace" package.  The {lj/charmm/coul/long/gpu}
-style is part of the "gpu" package and also requires the "kspace"
-package. The {lj/charmm/coul/long/opt}
-style is part of the "opt" package and also requires the "kspace"
-package.  They are only enabled if LAMMPS was built with those
-package(s) (molecule and kspace are by default).  See the "Making
-LAMMPS"_Section_start.html#2_3 section for more info.
-
-On some 64-bit machines, compiling with -O3 appears to break the
-Coulombic tabling option used by the {lj/charmm/coul/long} style.  See
-the "Additional build tips" section of the Making LAMMPS documentation
-pages for workarounds on this issue.
+style is part of the "kspace" package.  The styles with an {opt} or
+{gpu} suffix are part of the "opt" or "gpu" packages.  They are only
+enabled if LAMMPS was built with those packages.  See the "Making
+LAMMPS"_Section_start.html#2_3 section for more info.  Note that the
+molecule and kspace packages are installed by default.
 
 [Related commands:]
 

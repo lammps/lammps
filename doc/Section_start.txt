@@ -218,9 +218,9 @@ Restrictions section of the "dump"_dump.html command for details.
 
 If you use -DLAMMPS_JPEG, the "dump image"_dump.html command will be
 able to write out JPEG image files.  If not, it will only be able to
-write out PPM image files.  For JPEG files, you must also link LAMMPS
-with a JPEG library.  See section (3.d) below for more details on
-this.
+write out text-based PPM image files.  For JPEG files, you must also
+link LAMMPS with a JPEG library.  See section (3.d) below for more
+details on this.
 
 (3.b) The 3 MPI variables are used to specify an MPI library to build
 LAMMPS with.

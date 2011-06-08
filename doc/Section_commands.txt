@@ -595,6 +595,7 @@ potentials.  Click on the style itself for a full description:
 "none"_pair_none.html,
 "hybrid"_pair_hybrid.html,
 "hybrid/overlay"_pair_hybrid.html,
+"adp"_pair_adp.html,
 "airebo"_pair_airebo.html,
 "born"_pair_born.html,
 "born/coul/long"_pair_born.html,
@@ -687,7 +688,9 @@ package"_Section_accelerate.html.
 "lj/charmm/coul/long/cuda"_pair_charmm.html,
 "lj/class2/coul/cut/cuda"_pair_class2.html,
 "lj/class2/cuda"_pair_class2.html,
+"lj/class2/gpu"_pair_class2.html,
 "lj/class2/coul/long/cuda"_pair_class2.html,
+"lj/class2/coul/long/gpu"_pair_class2.html,
 "lj/cut/coul/cut/cuda"_pair_lj.html,
 "lj/cut/coul/debye/cuda"_pair_lj.html,
 "lj/cut/cuda"_pair_lj.html,
@@ -713,7 +716,8 @@ package"_Section_accelerate.html.
 "eam/fs/opt"_pair_eam.html,
 "lj/charmm/coul/long/opt"_pair_charmm.html,
 "lj/cut/opt"_pair_lj.html,
-"morse/opt"_pair_morse.html :tb(c=4,ea=c)
+"morse/opt"_pair_morse.html,
+"resquared/gpu"_pair_resquared.html :tb(c=4,ea=c)
 
 :line
 

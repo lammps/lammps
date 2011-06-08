@@ -134,15 +134,14 @@ pair_coeff sigma to 1.0 as well.
 
 :line
 
-The {gayberne/gpu} style is identical to the {gayberne} style, except
-that each processor off-loads its pairwise calculations to a GPU.
-Depending on the hardware available on your system this can provide a
-significant speed-up, especially for the relatively expensive
-computations inherent in Gay-Berne interactions.  See "this
+The styles with a {gpu} suffix are identical to the corresponding
+styles without the suffix, except that each processor off-loads its
+pairwise calculations to a GPU.  Depending on the hardware available
+on your system this can provide a speed-up.  See "this
 section"_doc/Section_accerate.html of the manual for more details.
 
-Additional requirements in your input script to run with style
-{gayberne/gpu} are as follows:
+Additional requirements in your input script to run the styles with a
+{gpu} suffix are as follows:
 
 The "newton pair"_newton.html setting must be {off} and the "fix
 gpu"_fix_gpu.html command must be used.  The fix controls the GPU
@@ -181,9 +180,9 @@ This pair style can only be used via the {pair} keyword of the
 
 [Restrictions:]
 
-The {gayberne} style is part of the "asphere" package.  The
-{gayberne/gpu} style is part of the "gpu" package.  They are only
-enabled if LAMMPS was built with the those packages.  See the "Making
+The {gayberne} style is part of the "asphere" package.  The styles
+with a {gpu} suffix are part of the "gpu" package.  They are only
+enabled if LAMMPS was built with those packages.  See the "Making
 LAMMPS"_Section_start.html#2_3 section for more info.
 
 These pair style require that atoms store torque and a quaternion to

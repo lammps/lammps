@@ -11,10 +11,6 @@
 
 <H3>dump_modify command 
 </H3>
-<P>NOTE: The keywords below which are only relevant for the <A HREF = "dump_image.html">dump
-image</A> command have not yet been released as part of
-LAMMPS.
-</P>
 <P><B>Syntax:</B>
 </P>
 <PRE>dump_modify dump-ID keyword values ... 
@@ -103,7 +99,7 @@ dump_modify xtcdump precision 10000
 dump_modify 1 every 1000
 dump_modify 1 every v_myVar 
 </PRE>
-<PRE>NOTE: need to add some image examples 
+<PRE>dump_modify 1 amap min max cf 0.0 3 min green 0.5 yellow max blue boxcolor red 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -526,7 +522,7 @@ box size stored with the snapshot.
 </P>
 <UL><LI>acolor = * red/green/blue/yellow/aqua/cyan
 <LI>adiam = * 1.0
-<LI>amap = min max cf 2 0.0 blue 1.0 red
+<LI>amap = min max cf 2 min blue max red
 <LI>append = no
 <LI>bcolor = * red/green/blue/yellow/aqua/cyan
 <LI>bdiam = * 0.5

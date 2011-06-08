@@ -122,19 +122,19 @@ the pair_style command.
 </P>
 <HR>
 
-<P>The <I>lj/charmm/coul/long/opt</I> style is identical to the
-<I>lj/charmm/coul/long</I> style, except that it is written in an optimized
+<P>The styles with an <I>opt</I> suffix are identical to the corresponding
+styles without the suffix, except that it is written in an optimized
 fashion for faster CPU execution.  See <A HREF = "doc/Section_accerate.html">this
 section</A> of the manual for more details.
 </P>
-<P>The <I>lj/charmm/coul/long/gpu</I> style is identical to the
-<I>lj/charmm/coul/long</I> style, except that each processor off-loads its
+<P>The styles with a <I>gpu</I> suffix are identical to the corresponding
+styles without the suffix, except that each processor off-loads its
 pairwise calculations to a GPU.  Depending on the hardware available
-on your system this can provide a significant speed-up.  See <A HREF = "doc/Section_accerate.html">this
+on your system this can provide a speed-up.  See <A HREF = "doc/Section_accerate.html">this
 section</A> of the manual for more details.
 </P>
-<P>Additional requirements in your input script to run with style
-<I>lj/charmm/coul/long/gpu</I> are as follows:
+<P>Additional requirements in your input script to run the styles with a
+<I>gpu</I> suffix are as follows:
 </P>
 <P>The <A HREF = "newton.html">newton pair</A> setting must be <I>off</I> and the <A HREF = "fix_gpu.html">fix
 gpu</A> command must be used.  The fix controls the GPU
@@ -181,18 +181,11 @@ support the <I>pair</I> keyword of run_style respa.  See the
 </P>
 <P>The <I>lj/charmm/coul/charmm</I> and <I>lj/charmm/coul/charmm/implicit</I>
 styles are part of the "molecule" package.  The <I>lj/charmm/coul/long</I>
-style is part of the "kspace" package.  The <I>lj/charmm/coul/long/gpu</I>
-style is part of the "gpu" package and also requires the "kspace"
-package. The <I>lj/charmm/coul/long/opt</I>
-style is part of the "opt" package and also requires the "kspace"
-package.  They are only enabled if LAMMPS was built with those
-package(s) (molecule and kspace are by default).  See the <A HREF = "Section_start.html#2_3">Making
-LAMMPS</A> section for more info.
-</P>
-<P>On some 64-bit machines, compiling with -O3 appears to break the
-Coulombic tabling option used by the <I>lj/charmm/coul/long</I> style.  See
-the "Additional build tips" section of the Making LAMMPS documentation
-pages for workarounds on this issue.
+style is part of the "kspace" package.  The styles with an <I>opt</I> or
+<I>gpu</I> suffix are part of the "opt" or "gpu" packages.  They are only
+enabled if LAMMPS was built with those packages.  See the <A HREF = "Section_start.html#2_3">Making
+LAMMPS</A> section for more info.  Note that the
+molecule and kspace packages are installed by default.
 </P>
 <P><B>Related commands:</B>
 </P>

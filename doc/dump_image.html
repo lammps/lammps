@@ -11,8 +11,6 @@
 
 <H3>dump image command 
 </H3>
-<P>NOTE: The dump image command has not yet been released as part of LAMMPS. 
-</P>
 <P><B>Syntax:</B>
 </P>
 <PRE>dump ID group-ID image N file color diameter keyword value ... 
@@ -38,8 +36,8 @@
 <PRE>  <I>adiam</I> value = number = numeric value for atom diameter (distance units)
   <I>atom</I> = yes/no = do or do not draw atoms
   <I>bond</I> values = color width = color and width of bonds
-    color = <I>atom</I> or <I>type</I>
-    width = number or <I>atom</I> or <I>type</I>
+    color = <I>atom</I> or <I>type</I> or <I>none</I>
+    width = number or <I>atom</I> or <I>type</I> or <I>none</I>
       number = numeric value for bond width (distance units)
   <I>size</I> values = width height = size of images
     width = width of image in # of pixels
@@ -55,12 +53,12 @@
   <I>up</I> values = Ux Uy Uz = direction that is "up" in image
     Ux,Uy,Uz = components of up vector
     Ux,Uy,Uz can be variables (see below)
-  <I>zoom</I> value = factor = size that simulation box appears in image
-    factor = scale image size by factor > 1 to enlarge, factor < 1 to shrink
-    factor can be a variable (see below)
-  <I>persp</I> value = factor = amount of "perspective" in image
-    factor = amount of perspective (0 = none, < 1 = some, > 1 = highly skewed)
-    factor can be a variable (see below)
+  <I>zoom</I> value = zfactor = size that simulation box appears in image
+    zfactor = scale image size by factor > 1 to enlarge, factor < 1 to shrink
+    zfactor can be a variable (see below)
+  <I>persp</I> value = pfactor = amount of "perspective" in image
+    pfactor = amount of perspective (0 = none, < 1 = some, > 1 = highly skewed)
+    pfactor can be a variable (see below)
   <I>box</I> values = yes/no diam = draw outline of simulation box
     yes/no = do or do not draw simulation box lines
     diam = diameter of box lines as fraction of shortest box length
@@ -68,8 +66,8 @@
     yes/no = do or do not draw xyz axes lines next to simulation box
     length = length of axes lines as fraction of respective box lengths
     diam = diameter of axes lines as fraction of shortest box length
-  <I>shiny</I> value = factor = shinyness of spheres and cylinders
-    factor = shinyness of spheres and cylinders from 0.0 to 1.0
+  <I>shiny</I> value = sfactor = shinyness of spheres and cylinders
+    sfactor = shinyness of spheres and cylinders from 0.0 to 1.0
   <I>ssao</I> value = yes/no seed = SSAO depth shading
     yes/no = turn depth shading on/off
     seed = random # seed (positive integer) 
@@ -205,12 +203,14 @@ drawn with that diameter, e.g. 1.5, which is in whatever distance
 <P>The <I>atom</I> keyword allow you to turn off the drawing of all atoms,
 if the specified value is <I>no</I>.
 </P>
-<P>By default, no bonds between atoms are drawn in the renedered image.
-The <I>bond</I> keyword cause bonds between pairs of atoms (as defined in
-the data file read by the <A HREF = "read_data.html">read_data</A> command) to be
-drawn with the specified color and width.  A bond is only drawn if
-both atoms in the bond are part of the group specified with the dump
-image command.
+<P>The <I>bond</I> keyword allows to you to alter how bonds are drawn.  A bond
+is only drawn if both atoms in the bond are being drawn due to being
+in the specified group and due to other selection criteria
+(e.g. region, threshhold settings of the
+<A HREF = "dump_modify.html">dump_modify</A> command).  By default, bonds are drawn
+if they are defined in the input data file as read by the
+<A HREF = "read_data.html">read_data</A> command.  Using <I>none</I> for both the bond
+<I>color</I> and <I>width</I> value will turn off the drawing of all bonds.
 </P>
 <P>If <I>atom</I> is specified for the bond <I>color</I> value, then each bond is
 drawn in 2 halves, with the color of each half being the color of the
@@ -230,7 +230,8 @@ types to colors is as follows:
 <P>and repeats itself for bond types > 6.  This mapping can be changed by
 the <A HREF = "dump_modify.html">dump_modify bcolor</A> command.
 </P>
-<P>The bond <I>width</I> value can be a numeric value or <I>atom</I> or <I>type</I>.
+<P>The bond <I>width</I> value can be a numeric value or <I>atom</I> or <I>type</I> (or
+<I>none</I> as indicated above).
 </P>
 <P>If a numeric value is specified, then all bonds will be drawn as
 cylinders with that diameter, e.g. 1.0, which is in whatever distance
@@ -271,7 +272,9 @@ box is viewed, looking towards the <I>center</I> point.  The <I>theta</I> value
 is the vertical angle from the +z axis, and must be an angle from 0 to
 180 degrees.  The <I>phi</I> value is an azimuthal angle around the z axis
 and can be positive or negative.  A value of 0.0 is a view along the
-+x axis, towards the <I>center</I> point.
++x axis, towards the <I>center</I> point.  If <I>theta</I> or <I>phi</I> are
+specified via variables, then the variable values should be in
+degrees.
 </P>
 <P>The <I>center</I> keyword determines the point in simulation space that
 will be at the center of the image.  <I>Cx</I>, <I>Cy</I>, and <I>Cz</I> are
@@ -301,19 +304,21 @@ it cannot be parallel to the <I>view</I> vector, implied by the <I>theta</I> and
 <I>phi</I> values.
 </P>
 <P>The <I>zoom</I> keyword scales the size of the simulation box as it appears
-in the image.  The default <I>factor</I> value of 1 should display an
-image mostly filled by the atoms in the simulation box.  A <I>factor</I> >
-1 will make the simulation box larger; a <I>factor</I> < 1 will make it
-smaller.  <I>Factor</I> must be a value > 0.0.
+in the image.  The default <I>zfactor</I> value of 1 should display an
+image mostly filled by the atoms in the simulation box.  A <I>zfactor</I> >
+1 will make the simulation box larger; a <I>zfactor</I> < 1 will make it
+smaller.  <I>Zfactor</I> must be a value > 0.0.
 </P>
 <P>The <I>persp</I> keyword determines how much depth perspective is present
 in the image.  Depth perspective makes lines that are parallel in
-simulation space appear non-parallel in the image.  A <I>factor</I> value
-of 0.0 means that parallel lines will meet at infininty (1.0/factor),
-which is an orthographic rendering with no persepctive.  A <I>factor</I>
-value between 0.0 and 1.0 will introduce more perspective.  A <I>factor</I>
+simulation space appear non-parallel in the image.  A <I>pfactor</I> value
+of 0.0 means that parallel lines will meet at infininty (1.0/pfactor),
+which is an orthographic rendering with no persepctive.  A <I>pfactor</I>
+value between 0.0 and 1.0 will introduce more perspective.  A <I>pfactor</I>
 value > 1 will create a highly skewed image with a large amount of
 perspective.
+</P>
+<P>IMPORTANT NOTE: The <I>persp</I> keyword is not yet supported as an option.
 </P>
 <HR>
 
@@ -338,9 +343,9 @@ of the shortest box length in x,y,z (for 3d) or x,y (for 2d).
 <HR>
 
 <P>The <I>shiny</I> keyword determines how shiny the objects rendered in the
-image will appear.  The factor value must be a value 0.0 <= factor <=
-1.0, where factor = 1 is a highly reflective surface and factor = 0 is
-a rough non-shiny surface.
+image will appear.  The <I>sfactor</I> value must be a value 0.0 <=
+<I>sfactor</I> <= 1.0, where <I>sfactor</I> = 1 is a highly reflective surface
+and <I>sfactor</I> = 0 is a rough non-shiny surface.
 </P>
 <P>The <I>ssao</I> keyword turns on/off a screen space ambient occlusion
 (SSAO) model for depth shading.  If <I>yes</I> is set, then atoms further
@@ -418,7 +423,7 @@ details.
 <P>The defaults for the keywords are as follows:
 </P>
 <UL><LI>atom = type 1.0
-<LI>bond = none 0.0 (if no bonds in system)
+<LI>bond = none none (if no bonds in system)
 <LI>bond = atom 0.5 (if bonds in system)
 <LI>size = 512 512
 <LI>view = 60 30 (for 3d)
@@ -428,7 +433,7 @@ details.
 <LI>up = 0 1 0 (for 2d)
 <LI>zoom = 1.0
 <LI>persp = 0.0
-<LI>box = yes 0.01
+<LI>box = yes 0.02
 <LI>axes = no 0.0 0.0
 <LI>shiny = 1.0
 <LI>ssao = no 

@@ -120,15 +120,14 @@ pair_style command.
 
 :line
 
-The {cg/cmm/gpu} and {cg/cmm/coul/long/gpu} styles are identical to
-the {cg/cmm} and {cg/cmm/coul/long} styles, except that each processor
-off-loads its pairwise calculations to a GPU.  Depending on the
-hardware available on your system this can provide a speed-up.  See
-"this section"_doc/Section_accerate.html of the manual for more
-details.
+The styles with a {gpu} suffix are identical to the corresponding
+styles without the suffix, except that each processor off-loads its
+pairwise calculations to a GPU.  Depending on the hardware available
+on your system this can provide a speed-up.  See "this
+section"_doc/Section_accerate.html of the manual for more details.
 
-Additional requirements in your input script to run with GPU-enabled
-styles are as follows:
+Additional requirements in your input script to run the styles with a
+{gpu} suffix are as follows:
 
 The "newton pair"_newton.html setting must be {off} and the "fix
 gpu"_fix_gpu.html command must be used.  The fix controls the GPU
@@ -168,15 +167,12 @@ See the "run_style"_run_style.html command for details.
 [Restrictions:]
 
 All of the cg/cmm pair styles are part of the "user-cg-cmm"
-package. They are only enabled if LAMMPS was built with that
-package. The {cg/cmm/coul/long} style also requires the "kspace"
-package to be built (which is enabled by default).  See the "Making
+package. They are only enabled if LAMMPS was built with that package.
+The {cg/cmm/coul/long} style also requires the "kspace" package to be
+built (which is enabled by default).  The styles with a {gpu} suffix
+are part of the "gpu" package.  They are only enabled if LAMMPS was
+built with that package.  See the "Making
 LAMMPS"_Section_start.html#2_3 section for more info.
-
-On some 64-bit machines, compiling with -O3 appears to break the
-Coulombic tabling option used by the {cg/cmm/coul/long} style.  See
-the "Additional build tips" section of the Making LAMMPS documentation
-pages for workarounds on this issue.
 
 [Related commands:]
 

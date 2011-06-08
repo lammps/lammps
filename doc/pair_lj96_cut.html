@@ -54,18 +54,18 @@ cutoff specified in the pair_style command is used.
 </P>
 <HR>
 
-<P>The <I>lj96/cut/gpu</I> style is identical to the <I>lj96/cut</I> style, except
-that each processor off-loads its pairwise calculations to a GPU.
-Depending on the hardware available on your system this can provide a
-speed-up.  See <A HREF = "doc/Section_accerate.html">this section</A> of the manual
-for more details.
+<P>The styles with a <I>gpu</I> suffix are identical to the corresponding
+styles without the suffix, except that each processor off-loads its
+pairwise calculations to a GPU.  Depending on the hardware available
+on your system this can provide a speed-up.  See <A HREF = "doc/Section_accerate.html">this
+section</A> of the manual for more details.
 </P>
-<P>Additional requirements in your input script to run with the
-<I>lj96/cut/gpu</I> style are as follows:
+<P>Additional requirements in your input script to run the styles with a
+<I>gpu</I> suffix are as follows:
 </P>
 <P>The <A HREF = "newton.html">newton pair</A> setting must be <I>off</I> and the <A HREF = "fix_gpu.html">fix
 gpu</A> command must be used.  The fix controls the GPU
-selection and initialization steps
+selection and initialization steps.
 </P>
 <HR>
 
@@ -100,8 +100,8 @@ details.
 
 <P><B>Restrictions:</B>
 </P>
-<P>The <I>lj96/cut/gpu</I> style is part of the "gpu" package. It
-is only enabled if LAMMPS is built with this packages.  See the
+<P>The styles with a <I>gpu</I> suffix are part of the "gpu" package.  They
+are only enabled if LAMMPS was built with those packages.  See the
 <A HREF = "Section_start.html#2_3">Making LAMMPS</A> section for more info.
 </P>
 <P><B>Related commands:</B>

@@ -14,15 +14,16 @@ NOTE: The USER-CUDA package discussed below has not yet been
 officially released in LAMMPS.
 
 Accelerated versions of various "pair_style"_pair_style.html,
-"fix"_fix.html, "compute"_compute.html, and other command have been
-added to LAMMPS, which will typically run faster than the standard
-non-accelerated version, if you have the appropriate hardware on your
-system.
+"fixes"_fix.html, "computes"_compute.html, and other commands have
+been added to LAMMPS, which will typically run faster than the
+standard non-accelerated versions, if you have the appropriate
+hardware on your system.
 
-The accelerated styles have the same name as the standard version,
-except that a suffix is appended.  Otherwise, the syntax
-for the command is identical, and the numerical results it produces
-should also be identical, except for precision and round-off issues.
+The accelerated styles have the same name as the standard styles,
+except that a suffix is appended.  Otherwise, the syntax for the
+command is identical, their functionality is the same, and the
+numerical results it produces should also be identical, except for
+precision and round-off issues.
 
 For example, all of these variants of the basic Lennard-Jones pair
 style exist in LAMMPS:
@@ -36,12 +37,12 @@ Assuming you have built LAMMPS with the appropriate package, these
 styles can be invoked by specifying them explicitly in your input
 script.  Or you can use the "-suffix command-line
 switch"_Section_start.html#2_6 to invoke the accelerated versions
-automatically.  See the "suffix"_suffix.html command for info on how
-to turn off/on the suffix associated with this switch within your
-input script.
+automatically, without changing your input script.  The
+"suffix"_suffix.html command also allows you to set a suffix and to
+turn off/on the comand-line switch setting within your input script.
 
 Styles with an "opt" suffix are part of the OPT package and typically
-speed-up the pairwise portion of your simulation by 5-25%.
+speed-up the pairwise calculations of your simulation by 5-25%.
 
 Styles with a "gpu" or "cuda" suffix are part of the GPU or USER-CUDA
 packages, and can be run on NVIDIA GPUs associated with your CPUs.
@@ -55,10 +56,10 @@ and kspace sections.
 
 The following sections explain:
 
+what hardware and software the accelerated styles require
 how to install the accelerated packages
-what hardware and software they require
 what kind of problems they run best on
-guidelines for how to use the accelerated packages to best advantage
+guidelines for how to use them to best advantage
 the kinds of speed-ups you can expect :ul
 
 The final section compares and contrasts the GPU and USER-CUDA
@@ -70,12 +71,32 @@ packages, since they are both designed to use NVIDIA GPU hardware.
 10.4 "Comparison of GPU and USER-CUDA packages"_#10_4 :all(b)
 
 :line
+:line
 
 10.1 OPT package :h4,link(10_1)
 
 The OPT package was developed by James Fischer (High Performance
 Technologies), David Richie and Vincent Natoli (Stone Ridge
-Technologies).
+Technologies).  It contains a handful of pair styles whose compute()
+methods were rewritten in C++ templated form to reduce the overhead
+due to if tests and other conditional code.
+
+The procedure for building LAMMPS with the OPT package is simple.  It
+is the same as for any other package which has no additional library
+dependencies:
+
+make yes-opt
+make machine :pre
+
+If your input script uses one of the OPT pair styles,
+you can run it as follows:
+
+lmp_machine -sf opt < in.script
+mpirun -np 4 lmp_machine -sf opt < in.script :pre
+
+You should see a reduction in the "Pair time" printed out at the end
+of the run.  On most machines and problems, this will typically be a 5
+to 20% savings.
 
 :line
 

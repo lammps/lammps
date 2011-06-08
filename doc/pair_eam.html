@@ -38,14 +38,14 @@ pair_coeff 1*3 1*3 niu3.eam
 </PRE>
 <PRE>pair_style eam/alloy
 pair_style eam/alloy/opt
-pair_coeff * * ../potentials/nialhjea.eam.alloy Ni Al Ni Ni 
+pair_coeff * * ../potentials/NiAlH_jea.eam.alloy Ni Al Ni Ni 
 </PRE>
 <PRE>pair_style eam/cd
 pair_coeff * * ../potentials/FeCr.cdeam Fe Cr 
 </PRE>
 <PRE>pair_style eam/fs
 pair_style eam/fs/opt
-pair_coeff * * nialhjea.eam.fs Ni Al Ni Ni 
+pair_coeff * * NiAlH_jea.eam.fs Ni Al Ni Ni 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -202,13 +202,13 @@ where N is the number of LAMMPS atom types:
 <UL><LI>filename
 <LI>N element names = mapping of <I>setfl</I> elements to atom types 
 </UL>
-<P>As an example, the potentials/nialhjea <I>setfl</I> file has tabulated EAM
-values for 3 elements and their alloy interactions: Ni, Al, and H.  If
-your LAMMPS simulation has 4 atoms types and you want the 1st 3 to be
-Ni, and the 4th to be Al, you would use the following pair_coeff
-command:
+<P>As an example, the potentials/NiAlH_jea.eam.alloy file is a <I>setfl</I>
+file which has tabulated EAM values for 3 elements and their alloy
+interactions: Ni, Al, and H.  If your LAMMPS simulation has 4 atoms
+types and you want the 1st 3 to be Ni, and the 4th to be Al, you would
+use the following pair_coeff command:
 </P>
-<PRE>pair_coeff * * nialhjea.eam.alloy Ni Ni Ni Al 
+<PRE>pair_coeff * * NiAlH_jea.eam.alloy Ni Ni Ni Al 
 </PRE>
 <P>The 1st 2 arguments must be * * so as to span all LAMMPS atom types.
 The first three Ni arguments map LAMMPS atom types 1,2,3 to the Ni
@@ -323,7 +323,7 @@ FS potential files.
 <P>For style <I>eam/fs</I>, the form of the pair_coeff command is exactly the
 same as for style <I>eam/alloy</I>, e.g.
 </P>
-<PRE>pair_coeff * * nialhjea.eam.fs Ni Ni Ni Al 
+<PRE>pair_coeff * * NiAlH_jea.eam.fs Ni Ni Ni Al 
 </PRE>
 <P>where there are N additional arguments after the filename, where N is
 the number of LAMMPS atom types.  The N values determine the mapping
@@ -371,9 +371,9 @@ are listed.
 </P>
 <HR>
 
-<P>The <I>eam/opt</I>, <I>eam/alloy/opt</I>, and <I>eam/fs/opt</I> styles are identical
-to the <I>eam</I>, <I>eam/alloy</I>, and <I>eam/fs</I> styles, except that they are
-written in an optimized fashion for faster CPU execution.  See <A HREF = "doc/Section_accerate.html">this
+<P>The styles with an <I>opt</I> suffix are identical to the corresponding
+styles without the suffix, except that it is written in an optimized
+fashion for faster CPU execution.  See <A HREF = "doc/Section_accerate.html">this
 section</A> of the manual for more details.
 </P>
 <HR>
@@ -403,11 +403,9 @@ an input script that reads a restart file.
 </P>
 <P>All of these styles except those ending in <I>opt</I> and the <I>eam/cd</I>
 style are part of the "manybody" package.  They are only enabled if
-LAMMPS was built with that package (which it is by default).
-</P>
-<P>The styles ending in <I>opt</I> are part of the "opt" package and also
-require the "manybody" package.  They are only enabled if LAMMPS was
-built with those packages.  See the <A HREF = "Section_start.html#2_3">Making
+LAMMPS was built with that package (which it is by default).  The
+styles with an <I>opt</I> suffix are part of the "opt" package.  They are
+only enabled if LAMMPS was built with that packages.  See the <A HREF = "Section_start.html#2_3">Making
 LAMMPS</A> section for more info.
 </P>
 <P>The <I>eam/cd</I> style is part of the "user-cd-eam" package and also

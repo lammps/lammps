@@ -178,20 +178,19 @@ Coulombic cutoff specified in the pair_style command.
 
 :line
 
-The {lj/cut/opt} style is identical to the {lj/cut} style, except that
-it is written in an optimized fashion for faster CPU execution.  See
-"this section"_doc/Section_accerate.html of the manual for more
-details.
+The styles with an {opt} suffix are identical to the corresponding
+styles without the suffix, except that it is written in an optimized
+fashion for faster CPU execution.  See "this
+section"_doc/Section_accerate.html of the manual for more details.
 
-The {lj/cut/gpu}, {lj/cut/coul/cut/gpu}, and {lj/cut/coul/long/gpu}
-styles are identical to the {lj/cut}, {lj/cut/coul/cut}, and
-{lj/cut/coul/long} styles, except that each processor off-loads its
+The styles with a {gpu} suffix are identical to the corresponding
+styles without the suffix, except that each processor off-loads its
 pairwise calculations to a GPU.  Depending on the hardware available
 on your system this can provide a speed-up.  See "this
 section"_doc/Section_accerate.html of the manual for more details.
 
-Additional requirements in your input script to run with GPU-enabled
-styles are as follows:
+Additional requirements in your input script to run the styles with a
+{gpu} suffix are as follows:
 
 The "newton pair"_newton.html setting must be {off} and the "fix
 gpu"_fix_gpu.html command must be used.  The fix controls the GPU
@@ -236,17 +235,11 @@ See the "run_style"_run_style.html command for details.
 [Restrictions:]
 
 The {lj/cut/coul/long} and {lj/cut/coul/long/tip4p} styles are part of
-the "kspace" package.  The {lj/cut/gpu}, {lj/cut/coul/cut/gpu}, and
-{lj/cut/coul/long/gpu} styles are part of the "gpu"
-package.  The {lj/cut/opt} style is part of the "opt" package.  They
-are only enabled if LAMMPS was built with those packages.  See the
-"Making LAMMPS"_Section_start.html#2_3 section for more info.  Note
-that the "kspace" package is installed by default.
-
-On some 64-bit machines, compiling with -O3 appears to break the
-Coulombic tabling option used by the {lj/cut/coul/long} style.  See
-the "Additional build tips" section of the Making LAMMPS documentation
-pages for workarounds on this issue.
+the "kspace" package.  The styles with an {opt} or {gpu} suffix are
+part of the "opt" or "gpu" packages.  They are only enabled if LAMMPS
+was built with those packages.  See the "Making
+LAMMPS"_Section_start.html#2_3 section for more info.  Note that the
+kspace package is installed by default.
 
 [Related commands:]
 

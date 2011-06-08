@@ -129,15 +129,14 @@ pair_style command.
 </P>
 <HR>
 
-<P>The <I>cg/cmm/gpu</I> and <I>cg/cmm/coul/long/gpu</I> styles are identical to
-the <I>cg/cmm</I> and <I>cg/cmm/coul/long</I> styles, except that each processor
-off-loads its pairwise calculations to a GPU.  Depending on the
-hardware available on your system this can provide a speed-up.  See
-<A HREF = "doc/Section_accerate.html">this section</A> of the manual for more
-details.
+<P>The styles with a <I>gpu</I> suffix are identical to the corresponding
+styles without the suffix, except that each processor off-loads its
+pairwise calculations to a GPU.  Depending on the hardware available
+on your system this can provide a speed-up.  See <A HREF = "doc/Section_accerate.html">this
+section</A> of the manual for more details.
 </P>
-<P>Additional requirements in your input script to run with GPU-enabled
-styles are as follows:
+<P>Additional requirements in your input script to run the styles with a
+<I>gpu</I> suffix are as follows:
 </P>
 <P>The <A HREF = "newton.html">newton pair</A> setting must be <I>off</I> and the <A HREF = "fix_gpu.html">fix
 gpu</A> command must be used.  The fix controls the GPU
@@ -177,15 +176,12 @@ See the <A HREF = "run_style.html">run_style</A> command for details.
 <P><B>Restrictions:</B>
 </P>
 <P>All of the cg/cmm pair styles are part of the "user-cg-cmm"
-package. They are only enabled if LAMMPS was built with that
-package. The <I>cg/cmm/coul/long</I> style also requires the "kspace"
-package to be built (which is enabled by default).  See the <A HREF = "Section_start.html#2_3">Making
+package. They are only enabled if LAMMPS was built with that package.
+The <I>cg/cmm/coul/long</I> style also requires the "kspace" package to be
+built (which is enabled by default).  The styles with a <I>gpu</I> suffix
+are part of the "gpu" package.  They are only enabled if LAMMPS was
+built with that package.  See the <A HREF = "Section_start.html#2_3">Making
 LAMMPS</A> section for more info.
-</P>
-<P>On some 64-bit machines, compiling with -O3 appears to break the
-Coulombic tabling option used by the <I>cg/cmm/coul/long</I> style.  See
-the "Additional build tips" section of the Making LAMMPS documentation
-pages for workarounds on this issue.
 </P>
 <P><B>Related commands:</B>
 </P>

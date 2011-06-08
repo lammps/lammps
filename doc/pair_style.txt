@@ -86,6 +86,7 @@ the pair_style command, and coefficients specified by the associated
 "pair_style hybrid"_pair_hybrid.html - multiple styles of pairwise interactions
 "pair_style hybrid/overlay"_pair_hybrid.html - multiple styles of superposed pairwise interactions :ul
 
+"pair_style adp"_pair_adp.html - angular dependent potential (ADP) of Mishin
 "pair_style airebo"_pair_airebo.html - AIREBO potential of Stuart
 "pair_style born"_pair_born.html - Born-Mayer-Huggins potential
 "pair_style born/coul/long"_pair_born.html - Born-Mayer-Huggins with long-range Coulomb

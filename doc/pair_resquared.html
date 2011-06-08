@@ -11,15 +11,19 @@
 
 <H3>pair_style resquared command 
 </H3>
+<H3>pair_style resquared/gpu command 
+</H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>pair_style resquared cutoff 
+<PRE>pair_style style cutoff 
 </PRE>
-<UL><LI>cutoff = global cutoff for interactions (distance units) 
+<UL><LI>style = <I>resquared</I> or <I>resquared/gpu</I>
+<LI>cutoff = global cutoff for interactions (distance units) 
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>pair_style resquared 10.0
+pair_style resquared/gpu 10.0
 pair_coeff * * 1.0 1.0 1.7 3.4 3.4 1.0 1.0 1.0 
 </PRE>
 <P><B>Description:</B>
@@ -31,6 +35,9 @@ interactions, the potential considers the ellipsoid as being comprised
 of small spheres of size sigma.  LJ particles are a single sphere of
 size sigma.  The distinction is made to allow the pair style to make
 efficient calculations of ellipsoid/solvent interactions.
+</P>
+<P>Style <I>resquared/gpu</I> is a GPU-enabled version of style <I>resquared</I>.
+See more details below.
 </P>
 <P>Details for the equations used are given in the references below and
 in <A HREF = "PDF/pair_resquared_extra.pdf">this supplementary document</A>.
@@ -143,6 +150,21 @@ specified in the pair_style command is used.
 </P>
 <HR>
 
+<P>The styles with a <I>gpu</I> suffix are identical to the corresponding
+styles without the suffix, except that each processor off-loads its
+pairwise calculations to a GPU.  Depending on the hardware available
+on your system this can provide a speed-up.  See <A HREF = "doc/Section_accerate.html">this
+section</A> of the manual for more details.
+</P>
+<P>Additional requirements in your input script to run the styles with a
+<I>gpu</I> suffix are as follows:
+</P>
+<P>The <A HREF = "newton.html">newton pair</A> setting must be <I>off</I> and the <A HREF = "fix_gpu.html">fix
+gpu</A> command must be used.  The fix controls the GPU
+selection and initialization steps.
+</P>
+<HR>
+
 <P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
 </P>
 <P>For atom type pairs I,J and I != J, the epsilon and sigma coefficients
@@ -181,8 +203,9 @@ command</A>.
 
 <P><B>Restrictions:</B>
 </P>
-<P>This style is part of the "asphere" package.  It is only enabled if
-LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_3">Making
+<P>This style is part of the "asphere" package.  The styles with a <I>gpu</I>
+suffix are part of the "gpu" package.  They are only enabled if LAMMPS
+was built with those packages.  See the <A HREF = "Section_start.html#2_3">Making
 LAMMPS</A> section for more info.
 </P>
 <P>This pair style requires that atoms be ellipsoids as defined by the

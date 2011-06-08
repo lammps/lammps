@@ -7,16 +7,19 @@
 :line
 
 pair_style resquared command :h3
+pair_style resquared/gpu command :h3
 
 [Syntax:]
 
-pair_style resquared cutoff :pre
+pair_style style cutoff :pre
 
+style = {resquared} or {resquared/gpu}
 cutoff = global cutoff for interactions (distance units) :ul
 
 [Examples:]
 
 pair_style resquared 10.0
+pair_style resquared/gpu 10.0
 pair_coeff * * 1.0 1.0 1.7 3.4 3.4 1.0 1.0 1.0 :pre
 
 [Description:]
@@ -28,6 +31,9 @@ interactions, the potential considers the ellipsoid as being comprised
 of small spheres of size sigma.  LJ particles are a single sphere of
 size sigma.  The distinction is made to allow the pair style to make
 efficient calculations of ellipsoid/solvent interactions.
+
+Style {resquared/gpu} is a GPU-enabled version of style {resquared}.
+See more details below.
 
 Details for the equations used are given in the references below and
 in "this supplementary document"_PDF/pair_resquared_extra.pdf.
@@ -140,6 +146,21 @@ specified in the pair_style command is used.
 
 :line
 
+The styles with a {gpu} suffix are identical to the corresponding
+styles without the suffix, except that each processor off-loads its
+pairwise calculations to a GPU.  Depending on the hardware available
+on your system this can provide a speed-up.  See "this
+section"_doc/Section_accerate.html of the manual for more details.
+
+Additional requirements in your input script to run the styles with a
+{gpu} suffix are as follows:
+
+The "newton pair"_newton.html setting must be {off} and the "fix
+gpu"_fix_gpu.html command must be used.  The fix controls the GPU
+selection and initialization steps.
+
+:line
+
 [Mixing, shift, table, tail correction, restart, rRESPA info]:
 
 For atom type pairs I,J and I != J, the epsilon and sigma coefficients
@@ -178,8 +199,9 @@ command"_run_style.html.
 
 [Restrictions:]
 
-This style is part of the "asphere" package.  It is only enabled if
-LAMMPS was built with that package.  See the "Making
+This style is part of the "asphere" package.  The styles with a {gpu}
+suffix are part of the "gpu" package.  They are only enabled if LAMMPS
+was built with those packages.  See the "Making
 LAMMPS"_Section_start.html#2_3 section for more info.
 
 This pair style requires that atoms be ellipsoids as defined by the

@@ -53,17 +53,17 @@ See more details below.
 
 :line
 
-The {lj/expand/gpu} style is identical to the {lj/expand} style,
-except that each processor off-loads its pairwise calculations to a
-GPU.  Depending on the hardware available on your system this can
-provide a speed-up.  See "this section"_doc/Section_accerate.html of
-the manual for more details.
+The styles with a {gpu} suffix are identical to the corresponding
+styles without the suffix, except that each processor off-loads its
+pairwise calculations to a GPU.  Depending on the hardware available
+on your system this can provide a speed-up.  See "this
+section"_doc/Section_accerate.html of the manual for more details.
 
-Additional requirements in your input script to run with GPU-enabled
-styles are as follows:
+Additional requirements in your input script to run the styles with a
+{gpu} suffix are as follows:
 
 The "newton pair"_newton.html setting must be {off} and the "fix
-gpu"_fix_gpu.html command must be used. The fix controls the GPU
+gpu"_fix_gpu.html command must be used.  The fix controls the GPU
 selection and initialization steps.
 
 :line
@@ -99,9 +99,9 @@ This pair style can only be used via the {pair} keyword of the
 
 [Restrictions:]
 
-The {lj/expand/gpu} style is part of the "gpu" package. It is only
-enabled if LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#2_3 section for more info.
+The styles with a {gpu} suffix are part of the "gpu" package.  They
+are only enabled if LAMMPS was built with those packages.  See the
+"Making LAMMPS"_Section_start.html#2_3 section for more info.
 
 [Related commands:]
 

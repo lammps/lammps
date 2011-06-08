@@ -98,6 +98,7 @@ class Domain : protected Pointers {
   void remap_near(double *, double *);
   void unmap(double *, int);
   void unmap(double *, int, double *);
+  int minimum_image_check(double, double, double);
   void minimum_image(double &, double &, double &);
   void minimum_image(double *);
   void set_lattice(int, char **);

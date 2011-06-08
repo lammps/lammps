@@ -105,6 +105,7 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
   maxlocal = 0;
   choose = NULL;
   dchoose = NULL;
+  clist = NULL;
 
   // element names
 
@@ -167,6 +168,7 @@ DumpCustom::~DumpCustom()
 
   memory->destroy(choose);
   memory->destroy(dchoose);
+  memory->destroy(clist);
 
   if (typenames) {
     for (int i = 1; i <= ntypes; i++) delete [] typenames[i];
@@ -377,8 +379,10 @@ int DumpCustom::count()
 
     memory->destroy(choose);
     memory->destroy(dchoose);
+    memory->destroy(clist);
     memory->create(choose,maxlocal,"dump:choose");
     memory->create(dchoose,maxlocal,"dump:dchoose");
+    memory->create(clist,maxlocal,"dump:clist");
 
     for (i = 0; i < nvariable; i++) {
       memory->destroy(vbuf[i]);
@@ -857,13 +861,13 @@ int DumpCustom::count()
     }
   }
 
-  // compress choose list
+  // compress choose flags into clist
   // nchoose = # of selected atoms
-  // choose[i] = local index of each selected atom
+  // clist[i] = local index of each selected atom
 
   nchoose = 0;
   for (i = 0; i < nlocal; i++)
-    if (choose[i]) choose[nchoose++] = i;
+    if (choose[i]) clist[nchoose++] = i;
 
   return nchoose;
 }
@@ -876,7 +880,7 @@ void DumpCustom::pack(int *ids)
   if (ids) {
     int *tag = atom->tag;
     for (int i = 0; i < nchoose; i++)
-      ids[i] = tag[choose[i]];
+      ids[i] = tag[clist[i]];
   }
 }
 
@@ -1563,6 +1567,7 @@ bigint DumpCustom::memory_usage()
   bigint bytes = Dump::memory_usage();
   bytes += memory->usage(choose,maxlocal);
   bytes += memory->usage(dchoose,maxlocal);
+  bytes += memory->usage(clist,maxlocal);
   bytes += memory->usage(vbuf,nvariable,maxlocal);
   return bytes;
 }
@@ -1579,13 +1584,13 @@ void DumpCustom::pack_compute(int n)
 
   if (index == 0) {
     for (int i = 0; i < nchoose; i++) {
-      buf[n] = vector[choose[i]];
+      buf[n] = vector[clist[i]];
       n += size_one;
     }
   } else {
     index--;
     for (int i = 0; i < nchoose; i++) {
-      buf[n] = array[choose[i]][index];
+      buf[n] = array[clist[i]][index];
       n += size_one;
     }
   }
@@ -1601,13 +1606,13 @@ void DumpCustom::pack_fix(int n)
 
   if (index == 0) {
     for (int i = 0; i < nchoose; i++) {
-      buf[n] = vector[choose[i]];
+      buf[n] = vector[clist[i]];
       n += size_one;
     }
   } else {
     index--;
     for (int i = 0; i < nchoose; i++) {
-      buf[n] = array[choose[i]][index];
+      buf[n] = array[clist[i]][index];
       n += size_one;
     }
   }
@@ -1620,7 +1625,7 @@ void DumpCustom::pack_variable(int n)
   double *vector = vbuf[field2index[n]];
 
   for (int i = 0; i < nchoose; i++) {
-    buf[n] = vector[choose[i]];
+    buf[n] = vector[clist[i]];
     n += size_one;
   }
 }
@@ -1638,7 +1643,7 @@ void DumpCustom::pack_id(int n)
   int *tag = atom->tag;
 
   for (int i = 0; i < nchoose; i++) {
-    buf[n] = tag[choose[i]];
+    buf[n] = tag[clist[i]];
     n += size_one;
   }
 }
@@ -1650,7 +1655,7 @@ void DumpCustom::pack_molecule(int n)
   int *molecule = atom->molecule;
 
   for (int i = 0; i < nchoose; i++) {
-    buf[n] = molecule[choose[i]];
+    buf[n] = molecule[clist[i]];
     n += size_one;
   }
 }
@@ -1662,7 +1667,7 @@ void DumpCustom::pack_type(int n)
   int *type = atom->type;
 
   for (int i = 0; i < nchoose; i++) {
-    buf[n] = type[choose[i]];
+    buf[n] = type[clist[i]];
     n += size_one;
   }
 }
@@ -1677,12 +1682,12 @@ void DumpCustom::pack_mass(int n)
 
   if (rmass) {
     for (int i = 0; i < nchoose; i++) {
-      buf[n] = rmass[choose[i]];
+      buf[n] = rmass[clist[i]];
       n += size_one;
     }
   } else {
     for (int i = 0; i < nchoose; i++) {
-      buf[n] = mass[type[choose[i]]];
+      buf[n] = mass[type[clist[i]]];
       n += size_one;
     }
   }
@@ -1695,7 +1700,7 @@ void DumpCustom::pack_x(int n)
   double **x = atom->x;
 
   for (int i = 0; i < nchoose; i++) {
-    buf[n] = x[choose[i]][0];
+    buf[n] = x[clist[i]][0];
     n += size_one;
   }
 }
@@ -1707,7 +1712,7 @@ void DumpCustom::pack_y(int n)
   double **x = atom->x;
 
   for (int i = 0; i < nchoose; i++) {
-    buf[n] = x[choose[i]][1];
+    buf[n] = x[clist[i]][1];
     n += size_one;
   }
 }
@@ -1719,7 +1724,7 @@ void DumpCustom::pack_z(int n)
   double **x = atom->x;
 
   for (int i = 0; i < nchoose; i++) {
-    buf[n] = x[choose[i]][2];
+    buf[n] = x[clist[i]][2];
     n += size_one;
   }
 }
@@ -1734,7 +1739,7 @@ void DumpCustom::pack_xs(int n)
   double invxprd = 1.0/domain->xprd;
 
   for (int i = 0; i < nchoose; i++) {
-    buf[n] = (x[choose[i]][0] - boxxlo) * invxprd;
+    buf[n] = (x[clist[i]][0] - boxxlo) * invxprd;
     n += size_one;
   }
 }
@@ -1749,7 +1754,7 @@ void DumpCustom::pack_ys(int n)
   double invyprd = 1.0/domain->yprd;
 
   for (int i = 0; i < nchoose; i++) {
-    buf[n] = (x[choose[i]][1] - boxylo) * invyprd;
+    buf[n] = (x[clist[i]][1] - boxylo) * invyprd;
     n += size_one;
   }
 }
@@ -1764,7 +1769,7 @@ void DumpCustom::pack_zs(int n)
   double invzprd = 1.0/domain->zprd;
 
   for (int i = 0; i < nchoose; i++) {
-    buf[n] = (x[choose[i]][2] - boxzlo) * invzprd;
+    buf[n] = (x[clist[i]][2] - boxzlo) * invzprd;
     n += size_one;
   }
 }
@@ -1780,7 +1785,7 @@ void DumpCustom::pack_xs_triclinic(int n)
   double *h_inv = domain->h_inv;
 
   for (int i = 0; i < nchoose; i++) {
-    j = choose[i];
+    j = clist[i];
     buf[n] = h_inv[0]*(x[j][0]-boxlo[0]) + h_inv[5]*(x[j][1]-boxlo[1]) + 
       h_inv[4]*(x[j][2]-boxlo[2]);
     n += size_one;
@@ -1798,7 +1803,7 @@ void DumpCustom::pack_ys_triclinic(int n)
   double *h_inv = domain->h_inv;
 
   for (int i = 0; i < nchoose; i++) {
-    j = choose[i];
+    j = clist[i];
     buf[n] = h_inv[1]*(x[j][1]-boxlo[1]) + h_inv[3]*(x[j][2]-boxlo[2]);
     n += size_one;
   }
@@ -1814,7 +1819,7 @@ void DumpCustom::pack_zs_triclinic(int n)
   double *h_inv = domain->h_inv;
 
   for (int i = 0; i < nchoose; i++) {
-    buf[n] = h_inv[2]*(x[choose[i]][2]-boxlo[2]);
+    buf[n] = h_inv[2]*(x[clist[i]][2]-boxlo[2]);
     n += size_one;
   }
 }
@@ -1830,7 +1835,7 @@ void DumpCustom::pack_xu(int n)
   double xprd = domain->xprd;
 
   for (int i = 0; i < nchoose; i++) {
-    j = choose[i];
+    j = clist[i];
     buf[n] = x[j][0] + ((image[j] & 1023) - 512) * xprd;
     n += size_one;
   }
@@ -1847,7 +1852,7 @@ void DumpCustom::pack_yu(int n)
   double yprd = domain->yprd;
 
   for (int i = 0; i < nchoose; i++) {
-    j = choose[i];
+    j = clist[i];
     buf[n] = x[j][1] + ((image[j] >> 10 & 1023) - 512) * yprd;
     n += size_one;
   }
@@ -1864,7 +1869,7 @@ void DumpCustom::pack_zu(int n)
   double zprd = domain->zprd;
 
   for (int i = 0; i < nchoose; i++) {
-    j = choose[i];
+    j = clist[i];
     buf[n] = x[j][2] + ((image[j] >> 20) - 512) * zprd;
     n += size_one;
   }
@@ -1882,7 +1887,7 @@ void DumpCustom::pack_xu_triclinic(int n)
   int xbox,ybox,zbox;
 
   for (int i = 0; i < nchoose; i++) {
-    j = choose[i];
+    j = clist[i];
     xbox = (image[j] & 1023) - 512;
     ybox = (image[j] >> 10 & 1023) - 512;
     zbox = (image[j] >> 20) - 512;
@@ -1903,7 +1908,7 @@ void DumpCustom::pack_yu_triclinic(int n)
   int ybox,zbox;
 
   for (int i = 0; i < nchoose; i++) {
-    j = choose[i];
+    j = clist[i];
     ybox = (image[j] >> 10 & 1023) - 512;
     zbox = (image[j] >> 20) - 512;
     buf[n] = x[j][1] + h[1]*ybox + h[3]*zbox;
@@ -1923,7 +1928,7 @@ void DumpCustom::pack_zu_triclinic(int n)
   int zbox;
 
   for (int i = 0; i < nchoose; i++) {
-    j = choose[i];
+    j = clist[i];
     zbox = (image[j] >> 20) - 512;
     buf[n] = x[j][2] + h[2]*zbox;
     n += size_one;
@@ -1942,7 +1947,7 @@ void DumpCustom::pack_xsu(int n)
   double invxprd = 1.0/domain->xprd;
 
   for (int i = 0; i < nchoose; i++) {
-    j = choose[i];
+    j = clist[i];
     buf[n] = (x[j][0] - boxxlo) * invxprd + (image[j] & 1023) - 512;
     n += size_one;
   }
@@ -1960,7 +1965,7 @@ void DumpCustom::pack_ysu(int n)
   double invyprd = 1.0/domain->yprd;
 
   for (int i = 0; i < nchoose; i++) {
-    j = choose[i];
+    j = clist[i];
     buf[n] = (x[j][1] - boxylo) * invyprd + (image[j] >> 10 & 1023) - 512;
     n += size_one;
   }
@@ -1978,7 +1983,7 @@ void DumpCustom::pack_zsu(int n)
   double invzprd = 1.0/domain->zprd;
 
   for (int i = 0; i < nchoose; i++) {
-    j = choose[i];
+    j = clist[i];
     buf[n] = (x[j][2] - boxzlo) * invzprd + (image[j] >> 20) - 512;
     n += size_one;
   }
@@ -1996,7 +2001,7 @@ void DumpCustom::pack_xsu_triclinic(int n)
   double *h_inv = domain->h_inv;
 
   for (int i = 0; i < nchoose; i++) {
-    j = choose[i];
+    j = clist[i];
     buf[n] = h_inv[0]*(x[j][0]-boxlo[0]) + h_inv[5]*(x[j][1]-boxlo[1]) + 
       h_inv[4]*(x[j][2]-boxlo[2]) + (image[j] & 1023) - 512;
     n += size_one;
@@ -2015,7 +2020,7 @@ void DumpCustom::pack_ysu_triclinic(int n)
   double *h_inv = domain->h_inv;
 
   for (int i = 0; i < nchoose; i++) {
-    j = choose[i];
+    j = clist[i];
     buf[n] = h_inv[1]*(x[j][1]-boxlo[1]) + h_inv[3]*(x[j][2]-boxlo[2]) +
       (image[j] >> 10 & 1023) - 512;
     n += size_one;
@@ -2034,7 +2039,7 @@ void DumpCustom::pack_zsu_triclinic(int n)
   double *h_inv = domain->h_inv;
 
   for (int i = 0; i < nchoose; i++) {
-    j = choose[i];
+    j = clist[i];
     buf[n] = h_inv[2]*(x[j][2]-boxlo[2]) + (image[j] >> 20) - 512;
     n += size_one;
   }
@@ -2047,7 +2052,7 @@ void DumpCustom::pack_ix(int n)
   int *image = atom->image;
 
   for (int i = 0; i < nchoose; i++) {
-    buf[n] = (image[choose[i]] & 1023) - 512;
+    buf[n] = (image[clist[i]] & 1023) - 512;
     n += size_one;
   }
 }
@@ -2059,7 +2064,7 @@ void DumpCustom::pack_iy(int n)
   int *image = atom->image;
 
   for (int i = 0; i < nchoose; i++) {
-    buf[n] = (image[choose[i]] >> 10 & 1023) - 512;
+    buf[n] = (image[clist[i]] >> 10 & 1023) - 512;
     n += size_one;
   }
 }
@@ -2071,7 +2076,7 @@ void DumpCustom::pack_iz(int n)
   int *image = atom->image;
 
   for (int i = 0; i < nchoose; i++) {
-    buf[n] = (image[choose[i]] >> 20) - 512;
+    buf[n] = (image[clist[i]] >> 20) - 512;
     n += size_one;
   }
 }
@@ -2083,7 +2088,7 @@ void DumpCustom::pack_vx(int n)
   double **v = atom->v;
 
   for (int i = 0; i < nchoose; i++) {
-    buf[n] = v[choose[i]][0];
+    buf[n] = v[clist[i]][0];
     n += size_one;
   }
 }
@@ -2095,7 +2100,7 @@ void DumpCustom::pack_vy(int n)
   double **v = atom->v;
 
   for (int i = 0; i < nchoose; i++) {
-    buf[n] = v[choose[i]][1];
+    buf[n] = v[clist[i]][1];
     n += size_one;
   }
 }
@@ -2107,7 +2112,7 @@ void DumpCustom::pack_vz(int n)
   double **v = atom->v;
 
   for (int i = 0; i < nchoose; i++) {
-    buf[n] = v[choose[i]][2];
+    buf[n] = v[clist[i]][2];
     n += size_one;
   }
 }
@@ -2119,7 +2124,7 @@ void DumpCustom::pack_fx(int n)
   double **f = atom->f;
 
   for (int i = 0; i < nchoose; i++) {
-    buf[n] = f[choose[i]][0];
+    buf[n] = f[clist[i]][0];
     n += size_one;
   }
 }
@@ -2131,7 +2136,7 @@ void DumpCustom::pack_fy(int n)
   double **f = atom->f;
 
   for (int i = 0; i < nchoose; i++) {
-    buf[n] = f[choose[i]][1];
+    buf[n] = f[clist[i]][1];
     n += size_one;
   }
 }
@@ -2143,7 +2148,7 @@ void DumpCustom::pack_fz(int n)
   double **f = atom->f;
 
   for (int i = 0; i < nchoose; i++) {
-    buf[n] = f[choose[i]][2];
+    buf[n] = f[clist[i]][2];
     n += size_one;
   }
 }
@@ -2155,7 +2160,7 @@ void DumpCustom::pack_q(int n)
   double *q = atom->q;
 
   for (int i = 0; i < nchoose; i++) {
-    buf[n] = q[choose[i]];
+    buf[n] = q[clist[i]];
     n += size_one;
   }
 }
@@ -2167,7 +2172,7 @@ void DumpCustom::pack_mux(int n)
   double **mu = atom->mu;
 
   for (int i = 0; i < nchoose; i++) {
-    buf[n] = mu[choose[i]][0];
+    buf[n] = mu[clist[i]][0];
     n += size_one;
   }
 }
@@ -2179,7 +2184,7 @@ void DumpCustom::pack_muy(int n)
   double **mu = atom->mu;
 
   for (int i = 0; i < nchoose; i++) {
-    buf[n] = mu[choose[i]][1];
+    buf[n] = mu[clist[i]][1];
     n += size_one;
   }
 }
@@ -2191,7 +2196,7 @@ void DumpCustom::pack_muz(int n)
   double **mu = atom->mu;
 
   for (int i = 0; i < nchoose; i++) {
-    buf[n] = mu[choose[i]][2];
+    buf[n] = mu[clist[i]][2];
     n += size_one;
   }
 }
@@ -2203,7 +2208,7 @@ void DumpCustom::pack_mu(int n)
   double **mu = atom->mu;
 
   for (int i = 0; i < nchoose; i++) {
-    buf[n] = mu[choose[i]][3];
+    buf[n] = mu[clist[i]][3];
     n += size_one;
   }
 }
@@ -2215,7 +2220,7 @@ void DumpCustom::pack_radius(int n)
   double *radius = atom->radius;
 
   for (int i = 0; i < nchoose; i++) {
-    buf[n] = radius[choose[i]];
+    buf[n] = radius[clist[i]];
     n += size_one;
   }
 }
@@ -2227,7 +2232,7 @@ void DumpCustom::pack_diameter(int n)
   double *radius = atom->radius;
 
   for (int i = 0; i < nchoose; i++) {
-    buf[n] = 2.0*radius[choose[i]];
+    buf[n] = 2.0*radius[clist[i]];
     n += size_one;
   }
 }
@@ -2239,7 +2244,7 @@ void DumpCustom::pack_omegax(int n)
   double **omega = atom->omega;
 
   for (int i = 0; i < nchoose; i++) {
-    buf[n] = omega[choose[i]][0];
+    buf[n] = omega[clist[i]][0];
     n += size_one;
   }
 }
@@ -2251,7 +2256,7 @@ void DumpCustom::pack_omegay(int n)
   double **omega = atom->omega;
 
   for (int i = 0; i < nchoose; i++) {
-    buf[n] = omega[choose[i]][1];
+    buf[n] = omega[clist[i]][1];
     n += size_one;
   }
 }
@@ -2263,7 +2268,7 @@ void DumpCustom::pack_omegaz(int n)
   double **omega = atom->omega;
 
   for (int i = 0; i < nchoose; i++) {
-    buf[n] = omega[choose[i]][2];
+    buf[n] = omega[clist[i]][2];
     n += size_one;
   }
 }
@@ -2275,7 +2280,7 @@ void DumpCustom::pack_angmomx(int n)
   double **angmom = atom->angmom;
 
   for (int i = 0; i < nchoose; i++) {
-    buf[n] = angmom[choose[i]][0];
+    buf[n] = angmom[clist[i]][0];
     n += size_one;
   }
 }
@@ -2287,7 +2292,7 @@ void DumpCustom::pack_angmomy(int n)
   double **angmom = atom->angmom;
 
   for (int i = 0; i < nchoose; i++) {
-    buf[n] = angmom[choose[i]][1];
+    buf[n] = angmom[clist[i]][1];
     n += size_one;
   }
 }
@@ -2299,7 +2304,7 @@ void DumpCustom::pack_angmomz(int n)
   double **angmom = atom->angmom;
 
   for (int i = 0; i < nchoose; i++) {
-    buf[n] = angmom[choose[i]][2];
+    buf[n] = angmom[clist[i]][2];
     n += size_one;
   }
 }
@@ -2311,7 +2316,7 @@ void DumpCustom::pack_tqx(int n)
   double **torque = atom->torque;
 
   for (int i = 0; i < nchoose; i++) {
-    buf[n] = torque[choose[i]][0];
+    buf[n] = torque[clist[i]][0];
     n += size_one;
   }
 }
@@ -2323,7 +2328,7 @@ void DumpCustom::pack_tqy(int n)
   double **torque = atom->torque;
 
   for (int i = 0; i < nchoose; i++) {
-    buf[n] = torque[choose[i]][1];
+    buf[n] = torque[clist[i]][1];
     n += size_one;
   }
 }
@@ -2335,7 +2340,7 @@ void DumpCustom::pack_tqz(int n)
   double **torque = atom->torque;
 
   for (int i = 0; i < nchoose; i++) {
-    buf[n] = torque[choose[i]][2];
+    buf[n] = torque[clist[i]][2];
     n += size_one;
   }
 }
@@ -2347,7 +2352,7 @@ void DumpCustom::pack_spin(int n)
   int *spin = atom->spin;
   
   for (int i = 0; i < nchoose; i++) {
-    buf[n] = spin[choose[i]];
+    buf[n] = spin[clist[i]];
     n += size_one;
   }
 }
@@ -2359,7 +2364,7 @@ void DumpCustom::pack_eradius(int n)
   double *eradius = atom->eradius;
 
   for (int i = 0; i < nchoose; i++) {
-    buf[n] = eradius[choose[i]];
+    buf[n] = eradius[clist[i]];
     n += size_one;
   }
 }
@@ -2371,7 +2376,7 @@ void DumpCustom::pack_ervel(int n)
   double *ervel = atom->ervel;
 
   for (int i = 0; i < nchoose; i++) {
-    buf[n] = ervel[choose[i]];
+    buf[n] = ervel[clist[i]];
     n += size_one;
   }
 }
@@ -2383,7 +2388,7 @@ void DumpCustom::pack_erforce(int n)
   double *erforce = atom->erforce;
 
   for (int i = 0; i < nchoose; i++) {
-    buf[n] = erforce[choose[i]];
+    buf[n] = erforce[clist[i]];
     n += size_one;
   }
 }

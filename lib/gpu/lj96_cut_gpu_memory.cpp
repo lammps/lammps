@@ -130,7 +130,6 @@ void LJ96_GPU_MemoryT::loop(const bool _eflag, const bool _vflag) {
                                (BX/this->_threads_per_atom)));
 
   int ainum=this->ans->inum();
-  int anall=this->atom->nall();
   int nbor_pitch=this->nbor->nbor_pitch();
   this->time_pair.start();
   if (shared_types) {
@@ -141,15 +140,14 @@ void LJ96_GPU_MemoryT::loop(const bool _eflag, const bool _vflag) {
                           &this->_nbor_data->begin(),
                           &this->ans->dev_ans.begin(),
                           &this->ans->dev_engv.begin(), &eflag, &vflag,
-                          &ainum, &anall, &nbor_pitch, 
-                          &this->_threads_per_atom);
+                          &ainum, &nbor_pitch, &this->_threads_per_atom);
   } else {
     this->k_pair.set_size(GX,BX);
     this->k_pair.run(&this->atom->dev_x.begin(), &lj1.begin(), &lj3.begin(),
                      &_lj_types, &sp_lj.begin(), &this->nbor->dev_nbor.begin(),
                      &this->_nbor_data->begin(), &this->ans->dev_ans.begin(),
                      &this->ans->dev_engv.begin(), &eflag, &vflag, &ainum,
-                     &anall, &nbor_pitch, &this->_threads_per_atom);
+                     &nbor_pitch, &this->_threads_per_atom);
   }
   this->time_pair.stop();
 }

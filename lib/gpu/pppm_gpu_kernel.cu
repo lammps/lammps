@@ -49,7 +49,7 @@ __inline float fetch_q(const int& i, const float *q)
 // Allow PPPM to compile without atomics for NVIDIA 1.0 cards, error
 // generated at runtime with use of pppm/gpu
 #if (__CUDA_ARCH__ < 110)
-#define atom_add(x,y) 0
+#define atomicAdd(x,y) *(x)+=0
 #endif
 
 #else

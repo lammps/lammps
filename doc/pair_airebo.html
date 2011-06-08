@@ -18,7 +18,7 @@
 <PRE>pair_style style cutoff LJ_flag TORSION_flag 
 </PRE>
 <UL><LI>style = <I>airebo</I> or <I>rebo</I>
-<LI>cutoff = LJ cutoff (sigma scale factor)
+<LI>cutoff = LJ cutoff (sigma scale factor) (AIREBO only)
 <LI>LJ_flag = 0/1 to turn off/on the LJ term (AIREBO only, optional)
 <LI>TORSION_flag = 0/1 to turn off/on the torsion term (AIREBO only, optional) 
 </UL>
@@ -28,7 +28,7 @@
 pair_style airebo 2.5 1 0
 pair_coeff * * ../potentials/CH.airebo H C 
 </PRE>
-<PRE>pair_style rebo 3.0
+<PRE>pair_style rebo
 pair_coeff * * ../potentials/CH.airebo H C 
 </PRE>
 <P><B>Description:</B>
@@ -54,7 +54,7 @@ both or neither of the flags must be included.  If both of the LJ an
 torsional terms are turned off, it becomes the 2nd-generation REBO
 potential, with a small caveat on the spline fitting procedure
 mentioned below.  This can be specified directly as pair_style rebo
-with just a cutoff argument.
+with no additional arguments.
 </P>
 <P>The detailed formulas for this potential are given in
 <A HREF = "#Stuart">(Stuart)</A>; here we provide only a brief description.

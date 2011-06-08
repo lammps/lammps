@@ -382,10 +382,6 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
   backLightColor[1] = 0.9;
   backLightColor[2] = 0.9;
 
-  SSAORadius = 0.2;
-  SSAOSamples = 16;
-  SSAOJitter = 3.14159 / 12;
-
   // viewflag = DYNAMIC if any view parameter is dynamic
 
   viewflag = STATIC;
@@ -761,9 +757,10 @@ void DumpImage::view_params()
 
   // adjust strength of the SSAO
 
-  SSAORadius = maxdel * 0.05 * ssaoint;
-  SSAOSamples = static_cast<int> (8.0 + 32.0*ssaoint);
   if (ssao) {
+    SSAORadius = maxdel * 0.05 * ssaoint;
+    SSAOSamples = static_cast<int> (8.0 + 32.0*ssaoint);
+    SSAOJitter = PI / 12;
     ambientColor[0] = 0.5;
     ambientColor[1] = 0.5;
     ambientColor[2] = 0.5;

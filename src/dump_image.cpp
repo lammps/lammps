@@ -115,7 +115,6 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
   axesflag = NO;
   shiny = 1.0;
   ssao = NO;
-  ssaoint = 0.0;
 
   // parse optional args
 

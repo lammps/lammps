@@ -43,10 +43,10 @@ extern double lmp_gpu_forces(double **f, double **tor, double *eatom,
 FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (lmp->cuda) error->all("Cannot use fix gpu with USER-CUDA mode enabled");
-
   if (narg < 7) error->all("Illegal fix gpu command");
-  if (strcmp(arg[1],"all") != 0) error->all("Illegal fix gpu command");
+
+  if (strcmp(arg[1],"all") != 0)
+    error->all("Illegal fix gpu command");
 
   int first_gpu, last_gpu;
 
@@ -71,10 +71,20 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   if (narg == 9) {
     if (strcmp(arg[7],"threads_per_atom") == 0)
       threads_per_atom = atoi(arg[8]);
+    else if (strcmp(arg[7],"nthreads") == 0)
+      nthreads = atoi(arg[8]);
     else
       error->all("Illegal fix gpu command.");
   } else if (narg != 7)
     error->all("Illegal fix gpu command.");
+
+  if (nthreads < 1)
+    error->all("Illegal fix gpu command.");
+    
+  #ifndef _OPENMP
+  if (nthreads > 1)
+    error->all("No OpenMP support compiled in.");
+  #endif
 
   int gpu_flag = lmp_init_device(universe->uworld, world, first_gpu, last_gpu,
 				 _gpu_mode, _particle_split, nthreads,

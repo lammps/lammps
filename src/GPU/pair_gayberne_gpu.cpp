@@ -49,12 +49,13 @@ int gb_gpu_init(const int ntypes, const double gamma, const double upsilon,
 		int **form, double **host_lj1, double **host_lj2,
 		double **host_lj3, double **host_lj4, double **offset,
 		double *special_lj, const int nlocal, const int nall,
-		const int max_nbors, const double cell_size,
-		int &gpu_mode, FILE *screen);
+		const int max_nbors, const int maxspecial,
+		const double cell_size,	int &gpu_mode, FILE *screen);
 void gb_gpu_clear();
 int ** gb_gpu_compute_n(const int ago, const int inum, const int nall,
 			double **host_x, int *host_type, double *sublo,
-			double *subhi, const bool eflag, const bool vflag,
+			double *subhi, int *tag, int **nspecial, int **special,
+			const bool eflag, const bool vflag,
 			const bool eatom, const bool vatom, int &host_start,
 			int **ilist, int **jnum, const double cpu_time,
 			bool &success, double **host_quat);
@@ -125,16 +126,16 @@ void PairGayBerneGPU::compute(int eflag, int vflag)
     inum = atom->nlocal;
     firstneigh = gb_gpu_compute_n(neighbor->ago, inum, nall, atom->x,
 				  atom->type, domain->sublo, domain->subhi,
+				  atom->tag, atom->nspecial, atom->special,
 				  eflag, vflag, eflag_atom, vflag_atom,
 				  host_start, &ilist, &numneigh, cpu_time,
 				  success, quat);
   } else {
     inum = list->inum;
-    ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
-    olist = gb_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type,
-			   ilist, numneigh, firstneigh, eflag, vflag,
+    ilist = gb_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type,
+			   list->ilist, numneigh, firstneigh, eflag, vflag,
 			   eflag_atom, vflag_atom, host_start,
 			   cpu_time, success, quat);
   }
@@ -193,11 +194,14 @@ void PairGayBerneGPU::init_style()
 
   double cell_size = sqrt(maxcut) + neighbor->skin;
 
+  int maxspecial=0;
+  if (atom->molecular)
+    maxspecial=atom->maxspecial;
   int success = gb_gpu_init(atom->ntypes+1, gamma, upsilon, mu, 
 			    shape2, well, cutsq, sigma, epsilon, lshape, form,
 			    lj1, lj2, lj3, lj4, offset, force->special_lj, 
 			    atom->nlocal, atom->nlocal+atom->nghost, 300, 
-			    cell_size, gpu_mode, screen);
+			    maxspecial, cell_size, gpu_mode, screen);
   GPU_EXTRA::check_flag(success,error,world);
 
   if (gpu_mode != GPU_NEIGH) {

@@ -19,7 +19,7 @@
 #include <cassert>
 #include <math.h>
 
-#include "lj_expand_gpu_memory.h"
+#include "lj_expand.h"
 
 using namespace std;
 

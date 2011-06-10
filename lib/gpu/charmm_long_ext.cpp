@@ -19,7 +19,7 @@
 #include <cassert>
 #include <math.h>
 
-#include "crml_gpu_memory.h"
+#include "charmm_long.h"
 
 using namespace std;
 
@@ -28,7 +28,7 @@ static CRML_GPU_Memory<PRECISION,ACC_PRECISION> CRMLMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
-int crml_gpu_init(const int ntypes, double cut_bothsq, double **host_lj1,
+int charmm_long_ext_init(const int ntypes, double cut_bothsq, double **host_lj1,
                   double **host_lj2, double **host_lj3, double **host_lj4,
                   double **offset, double *special_lj, const int inum,
                   const int nall, const int max_nbors, const int maxspecial,
@@ -99,11 +99,11 @@ int crml_gpu_init(const int ntypes, double cut_bothsq, double **host_lj1,
   return init_ok;
 }
 
-void crml_gpu_clear() {
+void charmm_long_ext_clear() {
   CRMLMF.clear();
 }
 
-int** crml_gpu_compute_n(const int ago, const int inum_full,
+int** charmm_long_ext_compute_n(const int ago, const int inum_full,
                          const int nall, double **host_x, int *host_type,
                          double *sublo, double *subhi, int *tag, int **nspecial, 
                          int **special, const bool eflag, const bool vflag,
@@ -117,7 +117,7 @@ int** crml_gpu_compute_n(const int ago, const int inum_full,
                         host_q, boxlo, prd);
 }  
 			
-void crml_gpu_compute(const int ago, const int inum_full,
+void charmm_long_ext_compute(const int ago, const int inum_full,
 	 	                  const int nall, double **host_x, int *host_type,
                       int *ilist, int *numj, int **firstneigh,
 		                  const bool eflag, const bool vflag, const bool eatom,
@@ -129,7 +129,7 @@ void crml_gpu_compute(const int ago, const int inum_full,
                  nlocal,boxlo,prd);
 }
 
-double crml_gpu_bytes() {
+double charmm_long_ext_bytes() {
   return CRMLMF.host_memory_usage();
 }
 

@@ -19,34 +19,34 @@
 #include <cassert>
 #include <math.h>
 
-#include "cmm_cut_gpu_memory.h"
+#include "morse.h"
 
 using namespace std;
 
-static CMM_GPU_Memory<PRECISION,ACC_PRECISION> CMMMF;
+static MOR_GPU_Memory<PRECISION,ACC_PRECISION> MORMF;
 
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
-int cmm_gpu_init(const int ntypes, double **cutsq, int **cg_types,
+int mor_gpu_init(const int ntypes, double **cutsq,
                  double **host_lj1, double **host_lj2, double **host_lj3, 
                  double **host_lj4, double **offset, double *special_lj,
                  const int inum, const int nall, const int max_nbors, 
                  const int maxspecial, const double cell_size, int &gpu_mode,
                  FILE *screen) {
-  CMMMF.clear();
-  gpu_mode=CMMMF.device->gpu_mode();
-  double gpu_split=CMMMF.device->particle_split();
-  int first_gpu=CMMMF.device->first_device();
-  int last_gpu=CMMMF.device->last_device();
-  int world_me=CMMMF.device->world_me();
-  int gpu_rank=CMMMF.device->gpu_rank();
-  int procs_per_gpu=CMMMF.device->procs_per_gpu();
+  MORMF.clear();
+  gpu_mode=MORMF.device->gpu_mode();
+  double gpu_split=MORMF.device->particle_split();
+  int first_gpu=MORMF.device->first_device();
+  int last_gpu=MORMF.device->last_device();
+  int world_me=MORMF.device->world_me();
+  int gpu_rank=MORMF.device->gpu_rank();
+  int procs_per_gpu=MORMF.device->procs_per_gpu();
 
-  CMMMF.device->init_message(screen,"cg/cmm",first_gpu,last_gpu);
+  MORMF.device->init_message(screen,"morse",first_gpu,last_gpu);
 
   bool message=false;
-  if (CMMMF.device->replica_me()==0 && screen)
+  if (MORMF.device->replica_me()==0 && screen)
     message=true;
 
   if (message) {
@@ -56,11 +56,11 @@ int cmm_gpu_init(const int ntypes, double **cutsq, int **cg_types,
 
   int init_ok=0;
   if (world_me==0)
-    init_ok=CMMMF.init(ntypes,cutsq,cg_types,host_lj1,host_lj2,host_lj3, 
+    init_ok=MORMF.init(ntypes, cutsq, host_lj1, host_lj2, host_lj3, 
                        host_lj4, offset, special_lj, inum, nall, 300,
                        maxspecial, cell_size, gpu_split, screen);
 
-  CMMMF.device->world_barrier();
+  MORMF.device->world_barrier();
   if (message)
     fprintf(screen,"Done.\n");
 
@@ -74,11 +74,11 @@ int cmm_gpu_init(const int ntypes, double **cutsq, int **cg_types,
       fflush(screen);
     }
     if (gpu_rank==i && world_me!=0)
-      init_ok=CMMMF.init(ntypes,cutsq,cg_types,host_lj1,host_lj2,host_lj3,
-                         host_lj4, offset, special_lj, inum, nall, 300,
-                         maxspecial, cell_size, gpu_split, screen);
+      init_ok=MORMF.init(ntypes, cutsq, host_lj1, host_lj2, host_lj3, host_lj4,
+                         offset, special_lj, inum, nall, 300, maxspecial,
+                         cell_size, gpu_split, screen);
 
-    CMMMF.device->gpu_barrier();
+    MORMF.device->gpu_barrier();
     if (message) 
       fprintf(screen,"Done.\n");
   }
@@ -86,37 +86,37 @@ int cmm_gpu_init(const int ntypes, double **cutsq, int **cg_types,
     fprintf(screen,"\n");
 
   if (init_ok==0)
-    CMMMF.estimate_gpu_overhead();
+    MORMF.estimate_gpu_overhead();
   return init_ok;
 }
 
-void cmm_gpu_clear() {
-  CMMMF.clear();
+void mor_gpu_clear() {
+  MORMF.clear();
 }
 
-int** cmm_gpu_compute_n(const int ago, const int inum_full,
+int** mor_gpu_compute_n(const int ago, const int inum_full,
                         const int nall, double **host_x, int *host_type,
                         double *sublo, double *subhi, int *tag, int **nspecial,
                         int **special, const bool eflag, const bool vflag,
                         const bool eatom, const bool vatom, int &host_start,
                         int **ilist, int **jnum, const double cpu_time,
                         bool &success) {
-  return CMMMF.compute(ago, inum_full, nall, host_x, host_type, sublo,
+  return MORMF.compute(ago, inum_full, nall, host_x, host_type, sublo,
                        subhi, tag, nspecial, special, eflag, vflag, eatom,
                        vatom, host_start, ilist, jnum, cpu_time, success);
 }  
 			
-void cmm_gpu_compute(const int ago, const int inum_full, const int nall,
+void mor_gpu_compute(const int ago, const int inum_full, const int nall,
                      double **host_x, int *host_type, int *ilist, int *numj,
                      int **firstneigh, const bool eflag, const bool vflag,
                      const bool eatom, const bool vatom, int &host_start,
                      const double cpu_time, bool &success) {
-  CMMMF.compute(ago,inum_full,nall,host_x,host_type,ilist,numj,
+  MORMF.compute(ago,inum_full,nall,host_x,host_type,ilist,numj,
                 firstneigh,eflag,vflag,eatom,vatom,host_start,cpu_time,success);
 }
 
-double cmm_gpu_bytes() {
-  return CMMMF.host_memory_usage();
+double mor_gpu_bytes() {
+  return MORMF.host_memory_usage();
 }
 
 

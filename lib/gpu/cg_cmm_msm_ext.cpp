@@ -19,7 +19,7 @@
 #include <cassert>
 #include <math.h>
 
-#include "cmmc_msm_gpu_memory.h"
+#include "cg_cmm_msm.h"
 
 using namespace std;
 

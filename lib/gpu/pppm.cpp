@@ -21,7 +21,7 @@
 #include "pppm_f_gpu_ptx.h"
 #include "pppm_d_gpu_ptx.h"
 #endif
-#include "pppm_gpu_memory.h"
+#include "pppm.h"
 #include <cassert>
 
 #define PPPMGPUMemoryT PPPMGPUMemory<numtyp, acctyp, grdtyp, grdtyp4>
@@ -387,7 +387,7 @@ void PPPMGPUMemoryT::compile_kernels(UCL_Device &dev) {
   pppm_program=new UCL_Program(dev);
   
   #ifdef USE_OPENCL
-  pppm_program->load_string(pppm_gpu_kernel,flags.c_str());
+  pppm_program->load_string(pppm,flags.c_str());
   #else
   if (sizeof(grdtyp)==sizeof(float))
     pppm_program->load_string(pppm_f_gpu_kernel,flags.c_str());

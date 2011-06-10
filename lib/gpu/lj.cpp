@@ -16,46 +16,43 @@
 ------------------------------------------------------------------------- */
 
 #ifdef USE_OPENCL
-#include "ljc_cut_gpu_cl.h"
+#include "lj_ext_cl.h"
 #else
-#include "ljc_cut_gpu_ptx.h"
+#include "lj_ext_ptx.h"
 #endif
 
-#include "ljc_cut_gpu_memory.h"
+#include "lj.h"
 #include <cassert>
-#define LJC_GPU_MemoryT LJC_GPU_Memory<numtyp, acctyp>
+#define LJL_GPU_MemoryT LJL_GPU_Memory<numtyp, acctyp>
 
 extern PairGPUDevice<PRECISION,ACC_PRECISION> pair_gpu_device;
 
 template <class numtyp, class acctyp>
-LJC_GPU_MemoryT::LJC_GPU_Memory() : ChargeGPUMemory<numtyp,acctyp>(),
-                                    _allocated(false) {
+LJL_GPU_MemoryT::LJL_GPU_Memory() : AtomicGPUMemory<numtyp,acctyp>(), _allocated(false) {
 }
 
 template <class numtyp, class acctyp>
-LJC_GPU_MemoryT::~LJC_GPU_Memory() {
+LJL_GPU_MemoryT::~LJL_GPU_Memory() { 
   clear();
 }
  
 template <class numtyp, class acctyp>
-int LJC_GPU_MemoryT::bytes_per_atom(const int max_nbors) const {
+int LJL_GPU_MemoryT::bytes_per_atom(const int max_nbors) const {
   return this->bytes_per_atom_atomic(max_nbors);
 }
 
 template <class numtyp, class acctyp>
-int LJC_GPU_MemoryT::init(const int ntypes,
+int LJL_GPU_MemoryT::init(const int ntypes, 
                           double **host_cutsq, double **host_lj1, 
                           double **host_lj2, double **host_lj3, 
                           double **host_lj4, double **host_offset, 
                           double *host_special_lj, const int nlocal,
                           const int nall, const int max_nbors,
                           const int maxspecial, const double cell_size,
-                          const double gpu_split, FILE *_screen,
-                          double **host_cut_ljsq, double **host_cut_coulsq,
-                          double *host_special_coul, const double qqrd2e) {
+                          const double gpu_split, FILE *_screen) {
   int success;
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
-                            _screen,ljc_cut_gpu_kernel);
+                            _screen,lj);
   if (success!=0)
     return success;
 
@@ -78,53 +75,44 @@ int LJC_GPU_MemoryT::init(const int ntypes,
 
   lj1.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,lj1,host_write,host_lj1,host_lj2,
-			 host_cut_ljsq, host_cut_coulsq);
+			 host_cutsq);
 
   lj3.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,lj3,host_write,host_lj3,host_lj4,
 		         host_offset);
 
-  cutsq.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
-  this->atom->type_pack1(ntypes,lj_types,cutsq,host_write,host_cutsq);
-
-  sp_lj.alloc(8,*(this->ucl_device),UCL_READ_ONLY);
-  for (int i=0; i<4; i++) {
-    host_write[i]=host_special_lj[i];
-    host_write[i+4]=host_special_coul[i];
-  }
-  ucl_copy(sp_lj,host_write,8,false);
-
-  _qqrd2e=qqrd2e;
+  UCL_H_Vec<double> dview;
+  sp_lj.alloc(4,*(this->ucl_device),UCL_READ_ONLY);
+  dview.view(host_special_lj,4,*(this->ucl_device));
+  ucl_copy(sp_lj,dview,false);
 
   _allocated=true;
-  this->_max_bytes=lj1.row_bytes()+lj3.row_bytes()+cutsq.row_bytes()+
-                   sp_lj.row_bytes();
+  this->_max_bytes=lj1.row_bytes()+lj3.row_bytes()+sp_lj.row_bytes();
   return 0;
 }
 
 template <class numtyp, class acctyp>
-void LJC_GPU_MemoryT::clear() {
+void LJL_GPU_MemoryT::clear() {
   if (!_allocated)
     return;
   _allocated=false;
 
   lj1.clear();
   lj3.clear();
-  cutsq.clear();
   sp_lj.clear();
   this->clear_atomic();
 }
 
 template <class numtyp, class acctyp>
-double LJC_GPU_MemoryT::host_memory_usage() const {
-  return this->host_memory_usage_atomic()+sizeof(LJC_GPU_Memory<numtyp,acctyp>);
+double LJL_GPU_MemoryT::host_memory_usage() const {
+  return this->host_memory_usage_atomic()+sizeof(LJL_GPU_Memory<numtyp,acctyp>);
 }
 
 // ---------------------------------------------------------------------------
 // Calculate energies, forces, and torques
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-void LJC_GPU_MemoryT::loop(const bool _eflag, const bool _vflag) {
+void LJL_GPU_MemoryT::loop(const bool _eflag, const bool _vflag) {
   // Compute the block size and grid size to keep all cores busy
   const int BX=this->block_size();
   int eflag, vflag;
@@ -152,19 +140,16 @@ void LJC_GPU_MemoryT::loop(const bool _eflag, const bool _vflag) {
                           &this->_nbor_data->begin(),
                           &this->ans->dev_ans.begin(),
                           &this->ans->dev_engv.begin(), &eflag, &vflag,
-                          &ainum, &nbor_pitch,
-                          &this->atom->dev_q.begin(), &cutsq.begin(),
-                          &_qqrd2e, &this->_threads_per_atom);
+                          &ainum, &nbor_pitch, &this->_threads_per_atom);
   } else {
     this->k_pair.set_size(GX,BX);
     this->k_pair.run(&this->atom->dev_x.begin(), &lj1.begin(), &lj3.begin(),
                      &_lj_types, &sp_lj.begin(), &this->nbor->dev_nbor.begin(),
                      &this->_nbor_data->begin(), &this->ans->dev_ans.begin(),
                      &this->ans->dev_engv.begin(), &eflag, &vflag, &ainum,
-                     &nbor_pitch, &this->atom->dev_q.begin(),
-                     &cutsq.begin(), &_qqrd2e, &this->_threads_per_atom);
+                     &nbor_pitch, &this->_threads_per_atom);
   }
   this->time_pair.stop();
 }
 
-template class LJC_GPU_Memory<PRECISION,ACC_PRECISION>;
+template class LJL_GPU_Memory<PRECISION,ACC_PRECISION>;

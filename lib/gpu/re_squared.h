@@ -1,7 +1,7 @@
 /***************************************************************************
                                  re_squared.h
                              -------------------
-                               W. Michael Brown
+                            W. Michael Brown (ORNL)
 
   Host code for RE-Squared potential acceleration
 

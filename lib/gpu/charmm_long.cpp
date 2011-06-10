@@ -16,12 +16,12 @@
 ------------------------------------------------------------------------- */
 
 #ifdef USE_OPENCL
-#include "crml_gpu_cl.h"
+#include "charmm_long_ext_cl.h"
 #else
-#include "crml_gpu_ptx.h"
+#include "charmm_long_ext_ptx.h"
 #endif
 
-#include "crml_gpu_memory.h"
+#include "charmm_long.h"
 #include <cassert>
 #define CRML_GPU_MemoryT CRML_GPU_Memory<numtyp, acctyp>
 
@@ -58,7 +58,7 @@ int CRML_GPU_MemoryT::init(const int ntypes,
                            double **sigma, const bool mix_arithmetic) {
   int success;
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
-                            _screen,crml_gpu_kernel);
+                            _screen,charmm_long);
   if (success!=0)
     return success;
 

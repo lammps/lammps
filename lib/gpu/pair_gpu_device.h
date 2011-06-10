@@ -21,7 +21,7 @@
 #include "pair_gpu_atom.h"
 #include "pair_gpu_ans.h"
 #include "pair_gpu_nbor.h"
-#include "pppm_gpu_memory.h"
+#include "pppm.h"
 #include "mpi.h"
 #include <sstream>
 #include "stdio.h"

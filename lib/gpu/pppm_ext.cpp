@@ -19,7 +19,7 @@
 #include <cassert>
 #include <math.h>
 
-#include "pppm_gpu_memory.h"
+#include "pppm.h"
 
 using namespace std;
 

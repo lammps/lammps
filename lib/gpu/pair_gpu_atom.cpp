@@ -19,15 +19,6 @@
 
 #define PairGPUAtomT PairGPUAtom<numtyp,acctyp>
 
-#ifdef WINDLL
-#include <windows.h>
-typedef bool (*__win_sort_alloc)(const int max_atoms);
-typedef void (*__win_sort)(const int max_atoms, unsigned *cell_begin,
-                           int *particle_begin);
-__win_sort_alloc _win_sort_alloc;
-__win_sort _win_sort;
-#endif
-
 template <class numtyp, class acctyp>
 PairGPUAtomT::PairGPUAtom() : _compiled(false),_allocated(false),
                               _max_gpu_bytes(0) {
@@ -36,17 +27,6 @@ PairGPUAtomT::PairGPUAtom() : _compiled(false),_allocated(false),
   sort_config.datatype = CUDPP_UINT;
   sort_config.algorithm = CUDPP_SORT_RADIX;
   sort_config.options = CUDPP_OPTION_KEY_VALUE_PAIRS;
-
-  #ifdef WINDLL
-  HINSTANCE hinstLib = LoadLibrary(TEXT("gpu.dll"));
-  if (hinstLib == NULL) {
-    printf("\nUnable to load gpu.dll\n");
-    exit(1);
-  }
-  _win_sort_alloc=(__win_sort_alloc)GetProcAddress(hinstLib,"_win_sort_alloc");
-  _win_sort=(__win_sort)GetProcAddress(hinstLib,"_win_sort");
-  #endif
-
   #endif
 }
 
@@ -76,15 +56,11 @@ bool PairGPUAtomT::alloc(const int nall) {
     
   // Allocate storage for CUDPP sort
   #ifndef USE_OPENCL
-  #ifdef WINDLL
-  _win_sort_alloc(_max_atoms);
-  #else
   if (_gpu_nbor) {
     CUDPPResult result = cudppPlan(&sort_plan, sort_config, _max_atoms, 1, 0);  
     if (CUDPP_SUCCESS != result)
       return false;
   }
-  #endif
   #endif
 
   // --------------------------   Host allocations
@@ -259,9 +235,7 @@ void PairGPUAtomT::clear_resize() {
   #endif
 
   #ifndef USE_OPENCL
-  #ifndef WINDLL
   if (_gpu_nbor) cudppDestroyPlan(sort_plan);
-  #endif
   #endif
 }
 
@@ -300,10 +274,6 @@ double PairGPUAtomT::host_memory_usage() const {
 template <class numtyp, class acctyp>
 void PairGPUAtomT::sort_neighbor(const int num_atoms) {
   #ifndef USE_OPENCL
-  #ifdef WINDLL
-  _win_sort(num_atoms,(unsigned *)dev_cell_id.begin(),
-            (int *)dev_particle_id.begin());
-  #else
   CUDPPResult result = cudppSort(sort_plan, (unsigned *)dev_cell_id.begin(), 
                                  (int *)dev_particle_id.begin(), 
                                  8*sizeof(unsigned), num_atoms);
@@ -311,7 +281,6 @@ void PairGPUAtomT::sort_neighbor(const int num_atoms) {
     printf("Error in cudppSort\n");
     NVD_GERYON_EXIT;
   }
-  #endif
   #endif
 }
 

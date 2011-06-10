@@ -10,40 +10,40 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
-
+ 
 /* ----------------------------------------------------------------------
    Contributing authors: Mike Brown (ORNL), brownw@ornl.gov
 ------------------------------------------------------------------------- */
 
 #ifdef USE_OPENCL
-#include "cmmc_msm_gpu_cl.h"
+#include "cg_cmm_long_ext_cl.h"
 #else
-#include "cmmc_msm_gpu_ptx.h"
+#include "cg_cmm_long_ext_ptx.h"
 #endif
 
-#include "cmmc_msm_gpu_memory.h"
+#include "cg_cmm_long.h"
 #include <cassert>
-#define CMMM_GPU_MemoryT CMMM_GPU_Memory<numtyp, acctyp>
+#define CMML_GPU_MemoryT CMML_GPU_Memory<numtyp, acctyp>
 
 extern PairGPUDevice<PRECISION,ACC_PRECISION> pair_gpu_device;
 
 template <class numtyp, class acctyp>
-CMMM_GPU_MemoryT::CMMM_GPU_Memory() : ChargeGPUMemory<numtyp,acctyp>(),
+CMML_GPU_MemoryT::CMML_GPU_Memory() : ChargeGPUMemory<numtyp,acctyp>(),
                                     _allocated(false) {
 }
 
 template <class numtyp, class acctyp>
-CMMM_GPU_MemoryT::~CMMM_GPU_Memory() {
+CMML_GPU_MemoryT::~CMML_GPU_Memory() {
   clear();
 }
  
 template <class numtyp, class acctyp>
-int CMMM_GPU_MemoryT::bytes_per_atom(const int max_nbors) const {
+int CMML_GPU_MemoryT::bytes_per_atom(const int max_nbors) const {
   return this->bytes_per_atom_atomic(max_nbors);
 }
 
 template <class numtyp, class acctyp>
-int CMMM_GPU_MemoryT::init(const int ntypes, double **host_cutsq, 
+int CMML_GPU_MemoryT::init(const int ntypes, double **host_cutsq, 
                            int **host_cg_type, double **host_lj1, 
                            double **host_lj2, double **host_lj3, 
                            double **host_lj4, double **host_offset, 
@@ -54,10 +54,10 @@ int CMMM_GPU_MemoryT::init(const int ntypes, double **host_cutsq,
                            double **host_cut_ljsq, 
                            const double host_cut_coulsq,
                            double *host_special_coul, const double qqrd2e,
-                           const int smooth) {
+                           const double g_ewald) {
   int success;
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
-                            _screen,cmmc_msm_gpu_kernel);
+                            _screen,cg_cmm_long);
   if (success!=0)
     return success;
 
@@ -95,7 +95,7 @@ int CMMM_GPU_MemoryT::init(const int ntypes, double **host_cutsq,
 
   _cut_coulsq=host_cut_coulsq;
   _qqrd2e=qqrd2e;
-  _smooth=smooth;
+  _g_ewald=g_ewald;
 
   _allocated=true;
   this->_max_bytes=lj1.row_bytes()+lj3.row_bytes()+sp_lj.row_bytes();
@@ -103,7 +103,7 @@ int CMMM_GPU_MemoryT::init(const int ntypes, double **host_cutsq,
 }
 
 template <class numtyp, class acctyp>
-void CMMM_GPU_MemoryT::clear() {
+void CMML_GPU_MemoryT::clear() {
   if (!_allocated)
     return;
   _allocated=false;
@@ -115,15 +115,15 @@ void CMMM_GPU_MemoryT::clear() {
 }
 
 template <class numtyp, class acctyp>
-double CMMM_GPU_MemoryT::host_memory_usage() const {
-  return this->host_memory_usage_atomic()+sizeof(CMMM_GPU_Memory<numtyp,acctyp>);
+double CMML_GPU_MemoryT::host_memory_usage() const {
+  return this->host_memory_usage_atomic()+sizeof(CMML_GPU_Memory<numtyp,acctyp>);
 }
 
 // ---------------------------------------------------------------------------
 // Calculate energies, forces, and torques
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-void CMMM_GPU_MemoryT::loop(const bool _eflag, const bool _vflag) {
+void CMML_GPU_MemoryT::loop(const bool _eflag, const bool _vflag) {
   // Compute the block size and grid size to keep all cores busy
   const int BX=this->block_size();
   int eflag, vflag;
@@ -153,17 +153,18 @@ void CMMM_GPU_MemoryT::loop(const bool _eflag, const bool _vflag) {
                           &this->ans->dev_engv.begin(), &eflag, &vflag,
                           &ainum, &nbor_pitch,
                           &this->atom->dev_q.begin(), &_cut_coulsq,
-                          &_qqrd2e, &_smooth, &this->_threads_per_atom);
+                          &_qqrd2e, &_g_ewald, &this->_threads_per_atom);
   } else {
     this->k_pair.set_size(GX,BX);
     this->k_pair.run(&this->atom->dev_x.begin(), &lj1.begin(), &lj3.begin(),
                      &_lj_types, &sp_lj.begin(), &this->nbor->dev_nbor.begin(),
                      &this->_nbor_data->begin(), &this->ans->dev_ans.begin(),
                      &this->ans->dev_engv.begin(), &eflag, &vflag, &ainum,
-                     &nbor_pitch, &this->atom->dev_q.begin(), &_cut_coulsq,
-                     &_qqrd2e, &_smooth, &this->_threads_per_atom);
+                     &nbor_pitch, &this->atom->dev_q.begin(),
+                     &_cut_coulsq, &_qqrd2e, &_g_ewald, 
+                     &this->_threads_per_atom);
   }
   this->time_pair.stop();
 }
 
-template class CMMM_GPU_Memory<PRECISION,ACC_PRECISION>;
+template class CMML_GPU_Memory<PRECISION,ACC_PRECISION>;

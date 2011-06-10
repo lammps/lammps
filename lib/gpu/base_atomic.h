@@ -18,8 +18,8 @@
 #ifndef ATOMIC_GPU_MEMORY_H
 #define ATOMIC_GPU_MEMORY_H
 
-#include "pair_gpu_device.h"
-#include "pair_gpu_balance.h"
+#include "device.h"
+#include "balance.h"
 #include "mpi.h"
 
 #ifdef USE_OPENCL

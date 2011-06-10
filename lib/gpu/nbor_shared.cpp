@@ -15,12 +15,12 @@
    Contributing authors: Mike Brown (ORNL), brownw@ornl.gov
 ------------------------------------------------------------------------- */
 
-#include "pair_gpu_nbor_shared.h"
+#include "nbor_shared.h"
 
 #ifdef USE_OPENCL
-#include "pair_gpu_nbor_cl.h"
+#include "nbor_cl.h"
 #else
-#include "pair_gpu_nbor_ptx.h"
+#include "nbor_ptx.h"
 #include "pair_gpu_build_ptx.h"
 #endif
   
@@ -50,7 +50,7 @@ void PairGPUNborShared::compile_kernels(UCL_Device &dev, const bool gpu_nbor) {
 
   if (gpu_nbor==false) {
     nbor_program=new UCL_Program(dev);
-    nbor_program->load_string(pair_gpu_nbor_kernel,flags.c_str());
+    nbor_program->load_string(nbor_cpu,flags.c_str());
     k_nbor.set_function(*nbor_program,"kernel_unpack");
   } else {
     build_program=new UCL_Program(dev);
@@ -58,7 +58,7 @@ void PairGPUNborShared::compile_kernels(UCL_Device &dev, const bool gpu_nbor) {
     std::cerr << "CANNOT CURRENTLY USE GPU NEIGHBORING WITH OPENCL\n";
     exit(1);
     #else
-    build_program->load_string(pair_gpu_build_kernel,flags.c_str());
+    build_program->load_string(nbor_gpu,flags.c_str());
     #endif
     k_cell_id.set_function(*build_program,"calc_cell_id");
     k_cell_counts.set_function(*build_program,"kernel_calc_cell_counts");

@@ -15,7 +15,7 @@
    Contributing authors: Mike Brown (ORNL), brownw@ornl.gov
 ------------------------------------------------------------------------- */
 
-#include "charge_gpu_memory.h"
+#include "base_charge.h"
 #define ChargeGPUMemoryT ChargeGPUMemory<numtyp, acctyp>
 
 extern PairGPUDevice<PRECISION,ACC_PRECISION> pair_gpu_device;

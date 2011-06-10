@@ -18,7 +18,7 @@
 #ifndef LJ96_GPU_MEMORY_H
 #define LJ96_GPU_MEMORY_H
 
-#include "atomic_gpu_memory.h"
+#include "base_atomic.h"
 
 template <class numtyp, class acctyp>
 class LJ96_GPU_Memory : public AtomicGPUMemory<numtyp, acctyp> {

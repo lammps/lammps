@@ -18,7 +18,7 @@
 #ifndef PAIR_GPU_BALANCE_H
 #define PAIR_GPU_BALANCE_H
 
-#include "pair_gpu_device.h"
+#include "device.h"
 #include <math.h>
 
 #define _HD_BALANCE_EVERY 25

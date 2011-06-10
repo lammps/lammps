@@ -25,7 +25,7 @@
 #include <cassert>
 #define CRML_GPU_MemoryT CRML_GPU_Memory<numtyp, acctyp>
 
-extern PairGPUDevice<PRECISION,ACC_PRECISION> pair_gpu_device;
+extern PairGPUDevice<PRECISION,ACC_PRECISION> device;
 
 template <class numtyp, class acctyp>
 CRML_GPU_MemoryT::CRML_GPU_Memory() : ChargeGPUMemory<numtyp,acctyp>(),

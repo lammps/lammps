@@ -18,9 +18,9 @@
 #ifndef PAIR_GPU_DEVICE_H
 #define PAIR_GPU_DEVICE_H
 
-#include "pair_gpu_atom.h"
-#include "pair_gpu_ans.h"
-#include "pair_gpu_nbor.h"
+#include "atom.h"
+#include "ans.h"
+#include "nbor.h"
 #include "pppm.h"
 #include "mpi.h"
 #include <sstream>

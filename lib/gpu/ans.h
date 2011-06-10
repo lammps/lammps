@@ -35,7 +35,7 @@ using namespace ucl_cudadr;
 
 #endif
 
-#include "pair_gpu_precision.h"
+#include "precision.h"
 
 template <class numtyp, class acctyp>
 class PairGPUAns {

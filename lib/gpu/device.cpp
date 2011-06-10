@@ -15,8 +15,8 @@
    Contributing authors: Mike Brown (ORNL), brownw@ornl.gov
 ------------------------------------------------------------------------- */
 
-#include "pair_gpu_device.h"
-#include "pair_gpu_precision.h"
+#include "device.h"
+#include "precision.h"
 #include <map>
 #include <math.h>
 #ifdef _OPENMP
@@ -536,7 +536,7 @@ int PairGPUDeviceT::compile_kernels() {
   	
   std::string flags="-cl-mad-enable";
   dev_program=new UCL_Program(*gpu);
-  int success=dev_program->load_string(pair_gpu_dev_kernel,flags.c_str());
+  int success=dev_program->load_string(device,flags.c_str());
   if (success!=UCL_SUCCESS)
     return -4;
   k_zero.set_function(*dev_program,"kernel_zero");

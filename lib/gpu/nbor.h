@@ -18,8 +18,8 @@
 #ifndef PAIR_GPU_NBOR_H
 #define PAIR_GPU_NBOR_H
 
-#include "pair_gpu_atom.h"
-#include "pair_gpu_nbor_shared.h"
+#include "atom.h"
+#include "nbor_shared.h"
 
 #define IJ_SIZE 131072
 

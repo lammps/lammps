@@ -16,9 +16,9 @@
                          Peng Wang (Nvidia), penwang@nvidia.com
 ------------------------------------------------------------------------- */
 
-#include "pair_gpu_precision.h"
-#include "pair_gpu_nbor.h"
-#include "pair_gpu_device.h"
+#include "precision.h"
+#include "nbor.h"
+#include "device.h"
 #include "math.h"
 
 int PairGPUNbor::bytes_per_atom(const int max_nbors) const {

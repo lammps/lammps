@@ -16,8 +16,8 @@
 #ifndef BASE_ELLIPSOID_H
 #define BASE_ELLIPSOID_H
 
-#include "pair_gpu_device.h"
-#include "pair_gpu_balance.h"
+#include "device.h"
+#include "balance.h"
 #include "mpi.h"
 
 #ifdef USE_OPENCL

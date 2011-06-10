@@ -15,7 +15,7 @@
    Contributing authors: Mike Brown (ORNL), brownw@ornl.gov
 ------------------------------------------------------------------------- */
 
-#include "pair_gpu_atom.h"
+#include "atom.h"
 
 #define PairGPUAtomT PairGPUAtom<numtyp,acctyp>
 
@@ -286,15 +286,15 @@ void PairGPUAtomT::sort_neighbor(const int num_atoms) {
 
 #ifdef GPU_CAST
 #ifdef USE_OPENCL
-#include "pair_gpu_atom_cl.h"
+#include "atom_cl.h"
 #else
-#include "pair_gpu_atom_ptx.h"
+#include "atom_ptx.h"
 #endif
 
 template <class numtyp, class acctyp>
 void PairGPUAtomT::compile_kernels(UCL_Device &dev) {
   atom_program=new UCL_Program(dev);
-  atom_program->load_string(pair_gpu_atom_kernel,"");
+  atom_program->load_string(atom,"");
   k_cast_x.set_function(*atom_program,"kernel_cast_x");
   _compiled=true;
 }

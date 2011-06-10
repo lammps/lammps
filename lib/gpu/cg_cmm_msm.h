@@ -18,7 +18,7 @@
 #ifndef CMMM_GPU_MEMORY_H
 #define CMMM_GPU_MEMORY_H
 
-#include "charge_gpu_memory.h"
+#include "base_charge.h"
 
 template <class numtyp, class acctyp>
 class CMMM_GPU_Memory : public ChargeGPUMemory<numtyp, acctyp> {

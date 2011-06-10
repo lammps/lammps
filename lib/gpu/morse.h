@@ -18,7 +18,7 @@
 #ifndef MOR_GPU_MEMORY_H
 #define MOR_GPU_MEMORY_H
 
-#include "atomic_gpu_memory.h"
+#include "base_atomic.h"
 
 template <class numtyp, class acctyp>
 class MOR_GPU_Memory : public AtomicGPUMemory<numtyp, acctyp> {

@@ -25,7 +25,7 @@
 #include <cassert>
 #define LJL_GPU_MemoryT LJL_GPU_Memory<numtyp, acctyp>
 
-extern PairGPUDevice<PRECISION,ACC_PRECISION> pair_gpu_device;
+extern PairGPUDevice<PRECISION,ACC_PRECISION> device;
 
 template <class numtyp, class acctyp>
 LJL_GPU_MemoryT::LJL_GPU_Memory() : AtomicGPUMemory<numtyp,acctyp>(), _allocated(false) {

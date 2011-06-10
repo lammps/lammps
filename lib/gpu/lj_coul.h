@@ -18,7 +18,7 @@
 #ifndef LJC_GPU_MEMORY_H
 #define LJC_GPU_MEMORY_H
 
-#include "charge_gpu_memory.h"
+#include "base_charge.h"
 
 template <class numtyp, class acctyp>
 class LJC_GPU_Memory : public ChargeGPUMemory<numtyp, acctyp> {

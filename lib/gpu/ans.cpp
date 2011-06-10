@@ -15,7 +15,7 @@
    Contributing authors: Mike Brown (ORNL), brownw@ornl.gov
 ------------------------------------------------------------------------- */
 
-#include "pair_gpu_ans.h"
+#include "ans.h"
 
 #define PairGPUAnsT PairGPUAns<numtyp,acctyp>
 

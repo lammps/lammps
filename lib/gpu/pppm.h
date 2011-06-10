@@ -19,7 +19,7 @@
 #define PPPM_GPU_MEMORY_H
 
 #include "mpi.h"
-#include "pair_gpu_device.h"
+#include "device.h"
 
 #ifdef USE_OPENCL
 #include "geryon/ocl_texture.h"

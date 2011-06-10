@@ -16,7 +16,7 @@
 #ifndef LJ_CLASS2_LONG_H
 #define LJ_CLASS2_LONG_H
 
-#include "charge_gpu_memory.h"
+#include "base_charge.h"
 
 namespace LAMMPS_AL {
 

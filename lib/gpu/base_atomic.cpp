@@ -15,7 +15,7 @@
    Contributing authors: Mike Brown (ORNL), brownw@ornl.gov
 ------------------------------------------------------------------------- */
  
-#include "atomic_gpu_memory.h"
+#include "base_atomic.h"
 #define AtomicGPUMemoryT AtomicGPUMemory<numtyp, acctyp>
 
 extern PairGPUDevice<PRECISION,ACC_PRECISION> pair_gpu_device;

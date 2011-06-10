@@ -26,13 +26,13 @@
 
 #define PPPMGPUMemoryT PPPMGPUMemory<numtyp, acctyp, grdtyp, grdtyp4>
 
-extern PairGPUDevice<PRECISION,ACC_PRECISION> pair_gpu_device;
+extern Device<PRECISION,ACC_PRECISION> global_device;
 
 template <class numtyp, class acctyp, class grdtyp, class grdtyp4>
 PPPMGPUMemoryT::PPPMGPUMemory() : _allocated(false), _compiled(false),
                                   _max_bytes(0) {
-  device=&pair_gpu_device;
-  ans=new PairGPUAns<numtyp,acctyp>();
+  device=&global_device;
+  ans=new Answer<numtyp,acctyp>();
 }
 
 template <class numtyp, class acctyp, class grdtyp, class grdtyp4>

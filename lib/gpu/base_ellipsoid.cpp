@@ -1,7 +1,7 @@
 /***************************************************************************
                               base_ellipsoid.cpp
                              -------------------
-                               W. Michael Brown
+                            W. Michael Brown (ORNL)
 
   Base class for acceleration of ellipsoid potentials
 
@@ -23,13 +23,13 @@ using namespace LAMMPS_AL;
 #endif
 
 #define BaseEllipsoidT BaseEllipsoid<numtyp, acctyp>
-extern PairGPUDevice<PRECISION,ACC_PRECISION> pair_gpu_device;
+extern Device<PRECISION,ACC_PRECISION> global_device;
 
 template <class numtyp, class acctyp>
 BaseEllipsoidT::BaseEllipsoid() : _compiled(false), _max_bytes(0) {
-  device=&pair_gpu_device;
-  ans=new PairGPUAns<numtyp,acctyp>();
-  nbor=new PairGPUNbor();
+  device=&global_device;
+  ans=new Answer<numtyp,acctyp>();
+  nbor=new Neighbor();
 }
 
 template <class numtyp, class acctyp>
@@ -56,7 +56,7 @@ int BaseEllipsoidT::init_base(const int nlocal, const int nall,
   _ellipsoid_sphere=ellip_sphere;
 
   bool gpu_nbor=false;
-  if (device->gpu_mode()==PairGPUDevice<numtyp,acctyp>::GPU_NEIGH)
+  if (device->gpu_mode()==Device<numtyp,acctyp>::GPU_NEIGH)
     gpu_nbor=true;
 
   int _gpu_host=0;

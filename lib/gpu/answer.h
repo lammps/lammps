@@ -1,22 +1,20 @@
-/* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+/***************************************************************************
+                                  answer.h
+                             -------------------
+                            W. Michael Brown (ORNL)
 
-   Copyright (2003) Sandia Corporation.  Under the terms of Contract
-   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
-   the GNU General Public License.
+  Class for data management of forces, torques, energies, and virials
 
-   See the README file in the top-level LAMMPS directory.
-------------------------------------------------------------------------- */
+ __________________________________________________________________________
+    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
+ __________________________________________________________________________
 
-/* ----------------------------------------------------------------------
-   Contributing authors: Mike Brown (ORNL), brownw@ornl.gov
-------------------------------------------------------------------------- */
+    begin                : 
+    email                : brownw@ornl.gov
+ ***************************************************************************/
 
-#ifndef PAIR_GPU_ANS_H
-#define PAIR_GPU_ANS_H
+#ifndef LAL_ANSWER_H
+#define LAL_ANSWER_H
 
 #include <math.h>
 #include "mpi.h"
@@ -38,10 +36,10 @@ using namespace ucl_cudadr;
 #include "precision.h"
 
 template <class numtyp, class acctyp>
-class PairGPUAns {
+class Answer {
  public:
-  PairGPUAns();
-  ~PairGPUAns() { clear(); }
+  Answer();
+  ~Answer() { clear(); }
 
   /// Current number of local atoms stored
   inline int inum() const { return _inum; }

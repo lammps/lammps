@@ -25,10 +25,10 @@ using namespace LAMMPS_AL;
 
 #define LJClass2LongT LJClass2Long<numtyp, acctyp>
 
-extern PairGPUDevice<PRECISION,ACC_PRECISION> device;
+extern Device<PRECISION,ACC_PRECISION> device;
 
 template <class numtyp, class acctyp>
-LJClass2LongT::LJClass2Long() : ChargeGPUMemory<numtyp,acctyp>(),
+LJClass2LongT::LJClass2Long() : BaseCharge<numtyp,acctyp>(),
                                 _allocated(false) {
 }
 

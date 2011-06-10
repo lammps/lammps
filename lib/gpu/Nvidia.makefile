@@ -31,8 +31,8 @@ UCL_H  = $(wildcard ./geryon/ucl*.h)
 NVC_H  = $(wildcard ./geryon/nvc*.h) $(UCL_H)
 NVD_H  = $(wildcard ./geryon/nvd*.h) $(UCL_H) nv_kernel_def.h
 # Headers for Pair Stuff
-PAIR_H  = atom.h ans.h nbor_shared.h \
-          nbor.h precision.h device.h \
+PAIR_H  = atom.h answer.h neighbor_shared.h \
+          neighbor.h precision.h device.h \
           balance.h pppm.h
 
 ALL_H = $(NVD_H) $(PAIR_H)
@@ -42,7 +42,7 @@ CUDPP = $(OBJ_DIR)/cudpp.o $(OBJ_DIR)/cudpp_plan.o \
         $(OBJ_DIR)/cudpp_maximal_launch.o $(OBJ_DIR)/cudpp_plan_manager.o \
         $(OBJ_DIR)/radixsort_app.cu_o $(OBJ_DIR)/scan_app.cu_o
 OBJS = $(OBJ_DIR)/atom.o $(OBJ_DIR)/ans.o \
-       $(OBJ_DIR)/nbor.o $(OBJ_DIR)/nbor_shared.o \
+       $(OBJ_DIR)/nbor.o $(OBJ_DIR)/neighbor_shared.o \
        $(OBJ_DIR)/device.o $(OBJ_DIR)/base_atomic.o \
        $(OBJ_DIR)/base_charge.o $(OBJ_DIR)/base_ellipsoid.o \
        $(OBJ_DIR)/pppm.o $(OBJ_DIR)/pppm_ext.o \
@@ -62,8 +62,8 @@ OBJS = $(OBJ_DIR)/atom.o $(OBJ_DIR)/ans.o \
        $(CUDPP)
 PTXS = $(OBJ_DIR)/device.ptx \
        $(OBJ_DIR)/atom.ptx $(OBJ_DIR)/atom_ptx.h \
-       $(OBJ_DIR)/nbor_cpu.ptx $(OBJ_DIR)/nbor_ptx.h \
-       $(OBJ_DIR)/nbor_gpu.ptx $(OBJ_DIR)/pair_gpu_build_ptx.h \
+       $(OBJ_DIR)/neighbor_cpu.ptx $(OBJ_DIR)/nbor_ptx.h \
+       $(OBJ_DIR)/neighbor_gpu.ptx $(OBJ_DIR)/pair_gpu_build_ptx.h \
        $(OBJ_DIR)/pppm_f_gpu_kernel.ptx $(OBJ_DIR)/pppm_f_gpu_ptx.h \
        $(OBJ_DIR)/pppm_d_gpu_kernel.ptx $(OBJ_DIR)/pppm_d_gpu_ptx.h \
        $(OBJ_DIR)/ellipsoid_nbor.ptx $(OBJ_DIR)/ellipsoid_nbor_ptx.h \
@@ -111,26 +111,26 @@ $(OBJ_DIR)/atom_ptx.h: $(OBJ_DIR)/atom.ptx
 $(OBJ_DIR)/atom.o: atom.cpp atom.h $(NVD_H) $(OBJ_DIR)/atom_ptx.h
 	$(CUDR) -o $@ -c atom.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/ans.o: ans.cpp ans.h $(NVD_H)
-	$(CUDR) -o $@ -c ans.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/ans.o: answer.cpp answer.h $(NVD_H)
+	$(CUDR) -o $@ -c answer.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/nbor_cpu.ptx: nbor_cpu.cu
-	$(CUDA) --ptx -DNV_KERNEL -o $@ nbor_cpu.cu
+$(OBJ_DIR)/neighbor_cpu.ptx: neighbor_cpu.cu
+	$(CUDA) --ptx -DNV_KERNEL -o $@ neighbor_cpu.cu
 
-$(OBJ_DIR)/nbor_ptx.h: $(OBJ_DIR)/nbor_cpu.ptx
-	$(BSH) ./geryon/file_to_cstr.sh $(OBJ_DIR)/nbor_cpu.ptx $(OBJ_DIR)/nbor_ptx.h
+$(OBJ_DIR)/nbor_ptx.h: $(OBJ_DIR)/neighbor_cpu.ptx
+	$(BSH) ./geryon/file_to_cstr.sh $(OBJ_DIR)/neighbor_cpu.ptx $(OBJ_DIR)/nbor_ptx.h
 
-$(OBJ_DIR)/nbor_gpu.ptx: nbor_gpu.cu
-	$(CUDA) --ptx -DNV_KERNEL -o $@ nbor_gpu.cu
+$(OBJ_DIR)/neighbor_gpu.ptx: neighbor_gpu.cu
+	$(CUDA) --ptx -DNV_KERNEL -o $@ neighbor_gpu.cu
 
-$(OBJ_DIR)/pair_gpu_build_ptx.h: $(OBJ_DIR)/nbor_gpu.ptx
-	$(BSH) ./geryon/file_to_cstr.sh $(OBJ_DIR)/nbor_gpu.ptx $(OBJ_DIR)/pair_gpu_build_ptx.h
+$(OBJ_DIR)/pair_gpu_build_ptx.h: $(OBJ_DIR)/neighbor_gpu.ptx
+	$(BSH) ./geryon/file_to_cstr.sh $(OBJ_DIR)/neighbor_gpu.ptx $(OBJ_DIR)/pair_gpu_build_ptx.h
 
-$(OBJ_DIR)/nbor_shared.o: nbor_shared.cpp nbor_shared.h $(OBJ_DIR)/nbor_ptx.h $(OBJ_DIR)/pair_gpu_build_ptx.h $(NVD_H)
-	$(CUDR) -o $@ -c nbor_shared.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/neighbor_shared.o: neighbor_shared.cpp neighbor_shared.h $(OBJ_DIR)/nbor_ptx.h $(OBJ_DIR)/pair_gpu_build_ptx.h $(NVD_H)
+	$(CUDR) -o $@ -c neighbor_shared.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/nbor.o: nbor.cpp nbor.h nbor_shared.h $(NVD_H)
-	$(CUDR) -o $@ -c nbor.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/nbor.o: neighbor.cpp neighbor.h neighbor_shared.h $(NVD_H)
+	$(CUDR) -o $@ -c neighbor.cpp -I$(OBJ_DIR)
 
 $(OBJ_DIR)/device.ptx: device.cu
 	$(CUDA) --ptx -DNV_KERNEL -o $@ device.cu

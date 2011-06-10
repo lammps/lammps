@@ -1,22 +1,20 @@
-/* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+/***************************************************************************
+                                  balance.h
+                             -------------------
+                            W. Michael Brown (ORNL)
 
-   Copyright (2003) Sandia Corporation.  Under the terms of Contract
-   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
-   the GNU General Public License.
+  Class for host-device load balancing
 
-   See the README file in the top-level LAMMPS directory.
-------------------------------------------------------------------------- */
- 
-/* ----------------------------------------------------------------------
-   Contributing authors: Mike Brown (ORNL), brownw@ornl.gov
-------------------------------------------------------------------------- */
+ __________________________________________________________________________
+    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
+ __________________________________________________________________________
 
-#ifndef PAIR_GPU_BALANCE_H
-#define PAIR_GPU_BALANCE_H
+    begin                : 
+    email                : brownw@ornl.gov
+ ***************************************************************************/
+
+#ifndef LAL_BALANCE_H
+#define LAL_BALANCE_H
 
 #include "device.h"
 #include <math.h>
@@ -27,13 +25,13 @@
 
 /// Host/device load balancer
 template<class numtyp, class acctyp>
-class PairGPUBalance {
+class Balance {
  public:
-  inline PairGPUBalance() : _init_done(false), _measure_this_step(false) {}
-  inline ~PairGPUBalance() { clear(); }
+  inline Balance() : _init_done(false), _measure_this_step(false) {}
+  inline ~Balance() { clear(); }
 
   /// Clear any old data and setup for new LAMMPS run
-  inline void init(PairGPUDevice<numtyp, acctyp> *gpu, const bool gpu_nbor,
+  inline void init(Device<numtyp, acctyp> *gpu, const bool gpu_nbor,
                    const double split);
 
   /// Clear all host and device data
@@ -107,7 +105,7 @@ class PairGPUBalance {
   }
   
  private:
-  PairGPUDevice<numtyp,acctyp> *_device;
+  Device<numtyp,acctyp> *_device;
   UCL_Timer _device_time;
   bool _init_done, _gpu_nbor;
   
@@ -119,10 +117,10 @@ class PairGPUBalance {
   int _inum, _inum_full, _timestep;
 };
 
-#define PairGPUBalanceT PairGPUBalance<numtyp,acctyp>
+#define BalanceT Balance<numtyp,acctyp>
 
 template <class numtyp, class acctyp>
-void PairGPUBalanceT::init(PairGPUDevice<numtyp, acctyp> *gpu, 
+void BalanceT::init(Device<numtyp, acctyp> *gpu, 
                            const bool gpu_nbor, const double split) {
   clear();
   _gpu_nbor=gpu_nbor;
@@ -145,7 +143,7 @@ void PairGPUBalanceT::init(PairGPUDevice<numtyp, acctyp> *gpu,
 }
 
 template <class numtyp, class acctyp>
-int PairGPUBalanceT::get_gpu_count(const int ago, const int inum_full) {
+int BalanceT::get_gpu_count(const int ago, const int inum_full) {
   _measure_this_step=false;
   if (_load_balance) {
     if (_avg_count<11 || _timestep%_HD_BALANCE_EVERY==0) {
@@ -164,7 +162,7 @@ int PairGPUBalanceT::get_gpu_count(const int ago, const int inum_full) {
 }
     
 template <class numtyp, class acctyp>
-void PairGPUBalanceT::balance(const double cpu_time) {
+void BalanceT::balance(const double cpu_time) {
   if (_measure_this_step) {
     _measure_this_step=false;
     double gpu_time=_device_time.seconds();

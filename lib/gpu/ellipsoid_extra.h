@@ -1,7 +1,7 @@
 // **************************************************************************
 //                              ellipsoid_extra.h
 //                             -------------------
-//                               W. Michael Brown
+//                           W. Michael Brown (ORNL)
 //
 //  Device code for Ellipsoid math routines
 //
@@ -13,8 +13,8 @@
 //    email                : brownw@ornl.gov
 // ***************************************************************************/
 
-#ifndef ELLIPSOID_EXTRA_H
-#define ELLIPSOID_EXTRA_H
+#ifndef LAL_ELLIPSOID_EXTRA_H
+#define LAL_ELLIPSOID_EXTRA_H
 
 enum{SPHERE_SPHERE,SPHERE_ELLIPSE,ELLIPSE_SPHERE,ELLIPSE_ELLIPSE};
 
@@ -408,17 +408,5 @@ __inline void gpu_times_column3(const numtyp m[9], const numtyp v[3],
   ans[1] = m[3]*v[0] + m[4]*v[1] + m[5]*v[2];
   ans[2] = m[6]*v[0] + m[7]*v[1] + m[8]*v[2];
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 #endif

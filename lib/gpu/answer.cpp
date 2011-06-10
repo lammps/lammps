@@ -1,31 +1,29 @@
-/* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+/***************************************************************************
+                                 answer.cpp
+                             -------------------
+                            W. Michael Brown (ORNL)
 
-   Copyright (2003) Sandia Corporation.  Under the terms of Contract
-   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
-   the GNU General Public License.
+  Class for data management of forces, torques, energies, and virials
 
-   See the README file in the top-level LAMMPS directory.
-------------------------------------------------------------------------- */
- 
-/* ----------------------------------------------------------------------
-   Contributing authors: Mike Brown (ORNL), brownw@ornl.gov
-------------------------------------------------------------------------- */
+ __________________________________________________________________________
+    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
+ __________________________________________________________________________
 
-#include "ans.h"
+    begin                : 
+    email                : brownw@ornl.gov
+ ***************************************************************************/
 
-#define PairGPUAnsT PairGPUAns<numtyp,acctyp>
+#include "answer.h"
+
+#define AnswerT Answer<numtyp,acctyp>
 
 template <class numtyp, class acctyp>
-PairGPUAnsT::PairGPUAns() : _allocated(false),_eflag(false),_vflag(false),
+AnswerT::Answer() : _allocated(false),_eflag(false),_vflag(false),
                             _inum(0),_ilist(NULL),_newton(false) {
 }
 
 template <class numtyp, class acctyp>
-int PairGPUAnsT::bytes_per_atom() const { 
+int AnswerT::bytes_per_atom() const { 
   int bytes=11*sizeof(acctyp);
   if (_rot)
     bytes+=4*sizeof(acctyp);
@@ -35,7 +33,7 @@ int PairGPUAnsT::bytes_per_atom() const {
 }
 
 template <class numtyp, class acctyp>
-bool PairGPUAnsT::alloc(const int inum) {
+bool AnswerT::alloc(const int inum) {
   _max_local=static_cast<int>(static_cast<double>(inum)*1.10);
 
   bool success=true;
@@ -70,7 +68,7 @@ bool PairGPUAnsT::alloc(const int inum) {
 }
 
 template <class numtyp, class acctyp>
-bool PairGPUAnsT::init(const int inum, const bool charge, const bool rot,
+bool AnswerT::init(const int inum, const bool charge, const bool rot,
                        UCL_Device &devi) {
   clear();
 
@@ -100,7 +98,7 @@ bool PairGPUAnsT::init(const int inum, const bool charge, const bool rot,
 }
   
 template <class numtyp, class acctyp>
-bool PairGPUAnsT::add_fields(const bool charge, const bool rot) {
+bool AnswerT::add_fields(const bool charge, const bool rot) {
   bool realloc=false;
   if (charge && _charge==false) {
     _charge=true;
@@ -122,7 +120,7 @@ bool PairGPUAnsT::add_fields(const bool charge, const bool rot) {
 }
 
 template <class numtyp, class acctyp>
-void PairGPUAnsT::clear_resize() {
+void AnswerT::clear_resize() {
   if (!_allocated)
     return;
   _allocated=false;
@@ -134,7 +132,7 @@ void PairGPUAnsT::clear_resize() {
 }
 
 template <class numtyp, class acctyp>
-void PairGPUAnsT::clear() {
+void AnswerT::clear() {
   _gpu_bytes=0;
   if (!_allocated)
     return;
@@ -148,7 +146,7 @@ void PairGPUAnsT::clear() {
 }
 
 template <class numtyp, class acctyp>
-double PairGPUAnsT::host_memory_usage() const {
+double AnswerT::host_memory_usage() const {
   int atom_bytes=4;
   if (_charge) 
     atom_bytes+=1;
@@ -156,11 +154,11 @@ double PairGPUAnsT::host_memory_usage() const {
     atom_bytes+=4;
   int ans_bytes=atom_bytes+_ev_fields;
   return ans_bytes*(_max_local)*sizeof(acctyp)+
-         sizeof(PairGPUAns<numtyp,acctyp>);
+         sizeof(Answer<numtyp,acctyp>);
 }
   
 template <class numtyp, class acctyp>
-void PairGPUAnsT::copy_answers(const bool eflag, const bool vflag,
+void AnswerT::copy_answers(const bool eflag, const bool vflag,
                                const bool ef_atom, const bool vf_atom) {
   time_answer.start();
   _eflag=eflag;
@@ -184,7 +182,7 @@ void PairGPUAnsT::copy_answers(const bool eflag, const bool vflag,
 }
 
 template <class numtyp, class acctyp>
-void PairGPUAnsT::copy_answers(const bool eflag, const bool vflag,
+void AnswerT::copy_answers(const bool eflag, const bool vflag,
                                const bool ef_atom, const bool vf_atom,
                                int *ilist) {
   _ilist=ilist;
@@ -192,7 +190,7 @@ void PairGPUAnsT::copy_answers(const bool eflag, const bool vflag,
 }
 
 template <class numtyp, class acctyp>
-double PairGPUAnsT::energy_virial(double *eatom, double **vatom,
+double AnswerT::energy_virial(double *eatom, double **vatom,
                                   double *virial) {
   if (_eflag==false && _vflag==false)
     return 0.0;
@@ -268,7 +266,7 @@ double PairGPUAnsT::energy_virial(double *eatom, double **vatom,
 }
 
 template <class numtyp, class acctyp>
-double PairGPUAnsT::energy_virial(double *eatom, double **vatom,
+double AnswerT::energy_virial(double *eatom, double **vatom,
                                    double *virial, double &ecoul) {
   if (_eflag==false && _vflag==false)
     return 0.0;
@@ -359,7 +357,7 @@ double PairGPUAnsT::energy_virial(double *eatom, double **vatom,
 }
 
 template <class numtyp, class acctyp>
-void PairGPUAnsT::get_answers(double **f, double **tor) {
+void AnswerT::get_answers(double **f, double **tor) {
   acctyp *ap=host_ans.begin();
   if (_ilist==NULL) {
     for (int i=0; i<_inum; i++) {
@@ -404,4 +402,4 @@ void PairGPUAnsT::get_answers(double **f, double **tor) {
   }
 }
 
-template class PairGPUAns<PRECISION,ACC_PRECISION>;
+template class Answer<PRECISION,ACC_PRECISION>;

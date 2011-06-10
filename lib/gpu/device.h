@@ -1,26 +1,24 @@
-/* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+/***************************************************************************
+                                  device.h
+                             -------------------
+                            W. Michael Brown (ORNL)
 
-   Copyright (2003) Sandia Corporation.  Under the terms of Contract
-   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
-   the GNU General Public License.
+  Class for management of the device where the computations are performed
 
-   See the README file in the top-level LAMMPS directory.
-------------------------------------------------------------------------- */
+ __________________________________________________________________________
+    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
+ __________________________________________________________________________
 
-/* ----------------------------------------------------------------------
-   Contributing authors: Mike Brown (ORNL), brownw@ornl.gov
-------------------------------------------------------------------------- */
+    begin                : 
+    email                : brownw@ornl.gov
+ ***************************************************************************/
 
-#ifndef PAIR_GPU_DEVICE_H
-#define PAIR_GPU_DEVICE_H
+#ifndef LAL_DEVICE_H
+#define LAL_DEVICE_H
 
 #include "atom.h"
-#include "ans.h"
-#include "nbor.h"
+#include "answer.h"
+#include "neighbor.h"
 #include "pppm.h"
 #include "mpi.h"
 #include <sstream>
@@ -32,10 +30,10 @@ template <class numtyp, class acctyp,
           class grdtyp, class grdtyp4> class PPPMGPUMemory;
 
 template <class numtyp, class acctyp>
-class PairGPUDevice {
+class Device {
  public:
-  PairGPUDevice();
-  ~PairGPUDevice(); 
+  Device();
+  ~Device(); 
  
   /// Initialize the device for use by this process
   /** Sets up a per-device MPI communicator for load balancing and initializes
@@ -68,9 +66,9 @@ class PairGPUDevice {
     * - -3 if there is an out of memory error
     * - -4 if the GPU library was not compiled for GPU
     * - -5 Double precision is not supported on card **/
-  int init(PairGPUAns<numtyp,acctyp> &a, const bool charge, const bool rot,
+  int init(Answer<numtyp,acctyp> &a, const bool charge, const bool rot,
            const int nlocal, const int host_nlocal, const int nall,
-           PairGPUNbor *nbor, const int maxspecial, const int gpu_host,
+           Neighbor *nbor, const int maxspecial, const int gpu_host,
            const int max_nbors, const double cell_size, const bool pre_cut);
 
   /// Initialize the device for Atom storage only
@@ -83,7 +81,7 @@ class PairGPUDevice {
     * - -3 if there is an out of memory error
     * - -4 if the GPU library was not compiled for GPU
     * - -5 Double precision is not supported on card **/
-  int init(PairGPUAns<numtyp,acctyp> &ans, const int nlocal, const int nall);
+  int init(Answer<numtyp,acctyp> &ans, const int nlocal, const int nall);
 
   /// Output a message for pair_style acceleration with device stats
   void init_message(FILE *screen, const char *name,
@@ -109,8 +107,8 @@ class PairGPUDevice {
   inline bool double_precision() { return gpu->double_precision(); }
   
   /// Output a message with timing information
-  void output_times(UCL_Timer &time_pair, PairGPUAns<numtyp,acctyp> &ans, 
-                    PairGPUNbor &nbor, const double avg_split, 
+  void output_times(UCL_Timer &time_pair, Answer<numtyp,acctyp> &ans, 
+                    Neighbor &nbor, const double avg_split, 
                     const double max_bytes, const double gpu_overhead,
                     const double driver_overhead, 
                     const int threads_per_atom, FILE *screen);
@@ -119,7 +117,7 @@ class PairGPUDevice {
   void output_kspace_times(UCL_Timer &time_in, UCL_Timer &time_out,
                            UCL_Timer & time_map, UCL_Timer & time_rho,
                            UCL_Timer &time_interp, 
-                           PairGPUAns<numtyp,acctyp> &ans, 
+                           Answer<numtyp,acctyp> &ans, 
                            const double max_bytes, const double cpu_time,
                            const double cpu_idle_time, FILE *screen);
 
@@ -130,7 +128,7 @@ class PairGPUDevice {
   void clear_device();
 
   /// Add an answer object for putting forces, energies, etc from GPU to LAMMPS
-  inline void add_ans_object(PairGPUAns<numtyp,acctyp> *ans)
+  inline void add_ans_object(Answer<numtyp,acctyp> *ans)
     { ans_queue.push(ans); }
 
   /// Add "answers" (force,energies,etc.) into LAMMPS structures
@@ -248,12 +246,12 @@ class PairGPUDevice {
   // --------------------------- ATOM DATA -------------------------- 
 
   /// Atom Data
-  PairGPUAtom<numtyp,acctyp> atom;
+  Atom<numtyp,acctyp> atom;
 
   // --------------------------- NBOR DATA ----------------------------
   
   /// Neighbor Data
-  PairGPUNborShared _nbor_shared;
+  NeighborShared _neighbor_shared;
 
   // ------------------------ LONG RANGE DATA -------------------------
   
@@ -274,7 +272,7 @@ class PairGPUDevice {
   }
 
  private:
-  std::queue<PairGPUAns<numtyp,acctyp> *> ans_queue;
+  std::queue<Answer<numtyp,acctyp> *> ans_queue;
   int _init_count;
   bool _device_init, _host_timer_started, _time_device;
   MPI_Comm _comm_world, _comm_replica, _comm_gpu;

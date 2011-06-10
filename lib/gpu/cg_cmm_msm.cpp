@@ -25,10 +25,10 @@
 #include <cassert>
 #define CMMM_GPU_MemoryT CMMM_GPU_Memory<numtyp, acctyp>
 
-extern PairGPUDevice<PRECISION,ACC_PRECISION> device;
+extern Device<PRECISION,ACC_PRECISION> device;
 
 template <class numtyp, class acctyp>
-CMMM_GPU_MemoryT::CMMM_GPU_Memory() : ChargeGPUMemory<numtyp,acctyp>(),
+CMMM_GPU_MemoryT::CMMM_GPU_Memory() : BaseCharge<numtyp,acctyp>(),
                                     _allocated(false) {
 }
 

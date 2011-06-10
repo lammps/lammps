@@ -1,22 +1,21 @@
-/* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Charge/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+/***************************************************************************
+                                base_charge.h
+                             -------------------
+                            W. Michael Brown (ORNL)
 
-   Copyright (2003) Sandia Corporation.  Under the terms of Contract
-   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
-   the GNU General Public License.
+  Base class for pair styles needing per-particle data for position,
+  charge, and type.
 
-   See the README file in the top-level LAMMPS directory.
-------------------------------------------------------------------------- */
- 
-/* ----------------------------------------------------------------------
-   Contributing authors: Mike Brown (ORNL), brownw@ornl.gov
-------------------------------------------------------------------------- */
+ __________________________________________________________________________
+    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
+ __________________________________________________________________________
 
-#ifndef CHARGE_GPU_MEMORY_H
-#define CHARGE_GPU_MEMORY_H
+    begin                : 
+    email                : brownw@ornl.gov
+ ***************************************************************************/
+
+#ifndef LAL_BASE_CHARGE_H
+#define LAL_BASE_CHARGE_H
 
 #include "device.h"
 #include "balance.h"
@@ -29,10 +28,10 @@
 #endif
 
 template <class numtyp, class acctyp>
-class ChargeGPUMemory {
+class BaseCharge {
  public:
-  ChargeGPUMemory();
-  virtual ~ChargeGPUMemory();
+  BaseCharge();
+  virtual ~BaseCharge();
 
   /// Clear any previous data and set up for a new LAMMPS run
   /** \param max_nbors initial number of rows in the neighbor matrix
@@ -146,7 +145,7 @@ class ChargeGPUMemory {
   // -------------------------- DEVICE DATA ------------------------- 
 
   /// Device Properties and Atom and Neighbor storage
-  PairGPUDevice<numtyp,acctyp> *device;
+  Device<numtyp,acctyp> *device;
 
   /// Geryon device
   UCL_Device *ucl_device;
@@ -155,7 +154,7 @@ class ChargeGPUMemory {
   UCL_Timer time_pair;
 
   /// Host device load balancer
-  PairGPUBalance<numtyp,acctyp> hd_balancer;
+  Balance<numtyp,acctyp> hd_balancer;
 
   /// LAMMPS pointer for screen output
   FILE *screen;
@@ -163,17 +162,17 @@ class ChargeGPUMemory {
   // --------------------------- ATOM DATA --------------------------
 
   /// Atom Data
-  PairGPUAtom<numtyp,acctyp> *atom;
+  Atom<numtyp,acctyp> *atom;
 
 
   // ------------------------ FORCE/ENERGY DATA -----------------------
 
-  PairGPUAns<numtyp,acctyp> *ans;
+  Answer<numtyp,acctyp> *ans;
 
   // --------------------------- NBOR DATA ----------------------------
 
   /// Neighbor data
-  PairGPUNbor *nbor;
+  Neighbor *nbor;
 
   /// True if we need to accumulate time for neighboring
   bool nbor_time_avail;

@@ -21,7 +21,7 @@
 #include "base_charge.h"
 
 template <class numtyp, class acctyp>
-class CRML_GPU_Memory : public ChargeGPUMemory<numtyp, acctyp> {
+class CRML_GPU_Memory : public BaseCharge<numtyp, acctyp> {
  public:
   CRML_GPU_Memory();
   ~CRML_GPU_Memory();

@@ -1,7 +1,7 @@
 /***************************************************************************
                                base_ellipsoid.h
                              -------------------
-                               W. Michael Brown
+                            W. Michael Brown (ORNL)
 
   Base class for acceleration of ellipsoid potentials
 
@@ -13,8 +13,8 @@
     email                : brownw@ornl.gov
  ***************************************************************************/
 
-#ifndef BASE_ELLIPSOID_H
-#define BASE_ELLIPSOID_H
+#ifndef LAL_BASE_ELLIPSOID_H
+#define LAL_BASE_ELLIPSOID_H
 
 #include "device.h"
 #include "balance.h"
@@ -182,7 +182,7 @@ class BaseEllipsoid {
   // -------------------------- DEVICE DATA ------------------------- 
 
   /// Device Properties and Atom and Neighbor storage
-  PairGPUDevice<numtyp,acctyp> *device;
+  Device<numtyp,acctyp> *device;
 
   /// Geryon device
   UCL_Device *ucl_device;
@@ -192,7 +192,7 @@ class BaseEllipsoid {
   UCL_Timer time_nbor3, time_ellipsoid3;
 
   /// Host device load balancer
-  PairGPUBalance<numtyp,acctyp> hd_balancer;
+  Balance<numtyp,acctyp> hd_balancer;
 
   /// LAMMPS pointer for screen output
   FILE *screen;
@@ -200,7 +200,7 @@ class BaseEllipsoid {
   // --------------------------- ATOM DATA --------------------------
 
   /// Atom Data
-  PairGPUAtom<numtyp,acctyp> *atom;
+  Atom<numtyp,acctyp> *atom;
 
   // --------------------------- TYPE DATA -------------------------- 
 
@@ -209,12 +209,12 @@ class BaseEllipsoid {
 
   // ------------------------ FORCE/ENERGY DATA -----------------------
 
-  PairGPUAns<numtyp,acctyp> *ans;
+  Answer<numtyp,acctyp> *ans;
 
   // --------------------------- NBOR DATA ----------------------------
 
   /// Neighbor data
-  PairGPUNbor *nbor;
+  Neighbor *nbor;
   /// ilist with particles sorted by type
   UCL_H_Vec<int> host_olist;
   /// True if we need to accumulate time for neighboring

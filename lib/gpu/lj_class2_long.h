@@ -21,7 +21,7 @@
 namespace LAMMPS_AL {
 
 template <class numtyp, class acctyp>
-class LJClass2Long : public ChargeGPUMemory<numtyp, acctyp> {
+class LJClass2Long : public BaseCharge<numtyp, acctyp> {
  public:
   LJClass2Long();
   ~LJClass2Long();

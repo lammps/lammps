@@ -24,15 +24,15 @@ OCL_LIB = $(LIB_DIR)/libgpu.a
 UCL_H  = $(wildcard ./geryon/ucl*.h)
 OCL_H  = $(wildcard ./geryon/ocl*.h) $(UCL_H)
 # Headers for Pair Stuff
-PAIR_H  = atom.h ans.h nbor_shared.h \
-          nbor.h precision.h device.h \
+PAIR_H  = atom.h answer.h neighbor_shared.h \
+          neighbor.h precision.h device.h \
           balance.h pppm.h
 
 ALL_H = $(OCL_H) $(PAIR_H)
 
 EXECS = $(BIN_DIR)/ocl_get_devices
 OBJS = $(OBJ_DIR)/atom.o $(OBJ_DIR)/ans.o \
-       $(OBJ_DIR)/nbor_shared.o $(OBJ_DIR)/nbor.o \
+       $(OBJ_DIR)/neighbor_shared.o $(OBJ_DIR)/nbor.o \
        $(OBJ_DIR)/device.o $(OBJ_DIR)/base_atomic.o \
        $(OBJ_DIR)/base_charge.o $(OBJ_DIR)/base_ellipsoid.o \
        $(OBJ_DIR)/pppm.o $(OBJ_DIR)/pppm_ext.o \
@@ -69,17 +69,17 @@ $(OBJ_DIR)/atom_cl.h: atom.cu
 $(OBJ_DIR)/atom.o: atom.cpp atom.h $(OCL_H) $(OBJ_DIR)/atom_cl.h
 	$(OCL) -o $@ -c atom.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/ans.o: ans.cpp ans.h $(OCL_H)
-	$(OCL) -o $@ -c ans.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/ans.o: answer.cpp answer.h $(OCL_H)
+	$(OCL) -o $@ -c answer.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/nbor_cl.h: nbor_cpu.cu
-	$(BSH) ./geryon/file_to_cstr.sh nbor_cpu.cu $(OBJ_DIR)/nbor_cl.h
+$(OBJ_DIR)/nbor_cl.h: neighbor_cpu.cu
+	$(BSH) ./geryon/file_to_cstr.sh neighbor_cpu.cu $(OBJ_DIR)/nbor_cl.h
 
-$(OBJ_DIR)/nbor_shared.o: nbor_shared.cpp nbor_shared.h $(OCL_H) $(OBJ_DIR)/nbor_cl.h
-	$(OCL) -o $@ -c nbor_shared.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/neighbor_shared.o: neighbor_shared.cpp neighbor_shared.h $(OCL_H) $(OBJ_DIR)/nbor_cl.h
+	$(OCL) -o $@ -c neighbor_shared.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/nbor.o: nbor.cpp nbor.h $(OCL_H) nbor_shared.h
-	$(OCL) -o $@ -c nbor.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/nbor.o: neighbor.cpp neighbor.h $(OCL_H) neighbor_shared.h
+	$(OCL) -o $@ -c neighbor.cpp -I$(OBJ_DIR)
 
 $(OBJ_DIR)/pair_gpu_dev_cl.h: device.cu
 	$(BSH) ./geryon/file_to_cstr.sh device.cu $(OBJ_DIR)/pair_gpu_dev_cl.h

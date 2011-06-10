@@ -24,7 +24,7 @@
 using namespace LAMMPS_AL;
 
 #define GayBerneT GayBerne<numtyp, acctyp>
-extern PairGPUDevice<PRECISION,ACC_PRECISION> device;
+extern Device<PRECISION,ACC_PRECISION> device;
 
 template <class numtyp, class acctyp>
 GayBerneT::GayBerne() : BaseEllipsoid<numtyp,acctyp>(),

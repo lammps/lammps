@@ -25,10 +25,10 @@
 #include <cassert>
 #define MOR_GPU_MemoryT MOR_GPU_Memory<numtyp, acctyp>
 
-extern PairGPUDevice<PRECISION,ACC_PRECISION> device;
+extern Device<PRECISION,ACC_PRECISION> device;
 
 template <class numtyp, class acctyp>
-MOR_GPU_MemoryT::MOR_GPU_Memory() : AtomicGPUMemory<numtyp,acctyp>(), _allocated(false) {
+MOR_GPU_MemoryT::MOR_GPU_Memory() : BaseAtomic<numtyp,acctyp>(), _allocated(false) {
 }
 
 template <class numtyp, class acctyp>

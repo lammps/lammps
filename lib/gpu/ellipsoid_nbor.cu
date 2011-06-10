@@ -1,7 +1,7 @@
 // **************************************************************************
 //                              ellipsoid_nbor.cu
 //                             -------------------
-//                               W. Michael Brown
+//                           W. Michael Brown (ORNL)
 //
 //  Device code for Ellipsoid neighbor routines
 //
@@ -12,9 +12,6 @@
 //    begin                :
 //    email                : brownw@ornl.gov
 // ***************************************************************************/
-
-#ifndef ELLIPSOID_NBOR_H
-#define ELLIPSOID_NBOR_H
 
 #ifdef NV_KERNEL
 
@@ -161,5 +158,3 @@ __kernel void kernel_nbor_fast(__global numtyp4 *x_, __global numtyp2 *cut_form,
     dev_nbor[ii+nbor_pitch]=newj;
   }
 }
-
-#endif

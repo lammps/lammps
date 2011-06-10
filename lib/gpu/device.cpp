@@ -1,19 +1,17 @@
-/* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+/***************************************************************************
+                                  device.cpp
+                             -------------------
+                            W. Michael Brown (ORNL)
 
-   Copyright (2003) Sandia Corporation.  Under the terms of Contract
-   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
-   the GNU General Public License.
+  Class for management of the device where the computations are performed
 
-   See the README file in the top-level LAMMPS directory.
-------------------------------------------------------------------------- */
+ __________________________________________________________________________
+    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
+ __________________________________________________________________________
 
-/* ----------------------------------------------------------------------
-   Contributing authors: Mike Brown (ORNL), brownw@ornl.gov
-------------------------------------------------------------------------- */
+    begin                : 
+    email                : brownw@ornl.gov
+ ***************************************************************************/
 
 #include "device.h"
 #include "precision.h"
@@ -29,21 +27,21 @@
 #include "pair_gpu_dev_ptx.h"
 #endif
 
-#define PairGPUDeviceT PairGPUDevice<numtyp, acctyp>
+#define DeviceT Device<numtyp, acctyp>
 
 template <class numtyp, class acctyp>
-PairGPUDeviceT::PairGPUDevice() : _init_count(0), _device_init(false),
+DeviceT::Device() : _init_count(0), _device_init(false),
                                   _gpu_mode(GPU_FORCE), _first_device(0),
                                   _last_device(0), _compiled(false) {
 }
 
 template <class numtyp, class acctyp>
-PairGPUDeviceT::~PairGPUDevice() {
+DeviceT::~Device() {
   clear_device();
 }
 
 template <class numtyp, class acctyp>
-int PairGPUDeviceT::init_device(MPI_Comm world, MPI_Comm replica, 
+int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, 
                                 const int first_gpu, const int last_gpu,
                                 const int gpu_mode, const double p_split,
                                 const int nthreads, const int t_per_atom) {
@@ -135,10 +133,10 @@ int PairGPUDeviceT::init_device(MPI_Comm world, MPI_Comm replica,
 }
 
 template <class numtyp, class acctyp>
-int PairGPUDeviceT::init(PairGPUAns<numtyp,acctyp> &ans, const bool charge,
+int DeviceT::init(Answer<numtyp,acctyp> &ans, const bool charge,
                          const bool rot, const int nlocal, 
                          const int host_nlocal, const int nall,
-                         PairGPUNbor *nbor, const int maxspecial,
+                         Neighbor *nbor, const int maxspecial,
                          const int gpu_host, const int max_nbors, 
                          const double cell_size, const bool pre_cut) {
   if (!_device_init)
@@ -181,7 +179,7 @@ int PairGPUDeviceT::init(PairGPUAns<numtyp,acctyp> &ans, const bool charge,
   if (!ans.init(ef_nlocal,charge,rot,*gpu))
     return -3;
 
-  if (!nbor->init(&_nbor_shared,ef_nlocal,host_nlocal,max_nbors,maxspecial,
+  if (!nbor->init(&_neighbor_shared,ef_nlocal,host_nlocal,max_nbors,maxspecial,
                   *gpu,gpu_nbor,gpu_host,pre_cut, _block_cell_2d, 
                   _block_cell_id, _block_nbor_build))
     return -3;
@@ -192,7 +190,7 @@ int PairGPUDeviceT::init(PairGPUAns<numtyp,acctyp> &ans, const bool charge,
 }
 
 template <class numtyp, class acctyp>
-int PairGPUDeviceT::init(PairGPUAns<numtyp,acctyp> &ans, const int nlocal,
+int DeviceT::init(Answer<numtyp,acctyp> &ans, const int nlocal,
                          const int nall) {
   if (!_device_init)
     return -1;                          
@@ -215,21 +213,21 @@ int PairGPUDeviceT::init(PairGPUAns<numtyp,acctyp> &ans, const int nlocal,
 }
 
 template <class numtyp, class acctyp>
-void PairGPUDeviceT::set_single_precompute
+void DeviceT::set_single_precompute
                      (PPPMGPUMemory<numtyp,acctyp,float,_lgpu_float4> *pppm) {
   _long_range_precompute=1;
   pppm_single=pppm;
 }
 
 template <class numtyp, class acctyp>
-void PairGPUDeviceT::set_double_precompute
+void DeviceT::set_double_precompute
                      (PPPMGPUMemory<numtyp,acctyp,double,_lgpu_double4> *pppm) {
   _long_range_precompute=2;
   pppm_double=pppm;
 }
 
 template <class numtyp, class acctyp>
-void PairGPUDeviceT::init_message(FILE *screen, const char *name,
+void DeviceT::init_message(FILE *screen, const char *name,
                                   const int first_gpu, const int last_gpu) {
   #ifdef USE_OPENCL
   std::string fs="";
@@ -272,7 +270,7 @@ void PairGPUDeviceT::init_message(FILE *screen, const char *name,
 }
 
 template <class numtyp, class acctyp>
-void PairGPUDeviceT::estimate_gpu_overhead(const int kernel_calls, 
+void DeviceT::estimate_gpu_overhead(const int kernel_calls, 
                                            double &gpu_overhead,
                                            double &gpu_driver_overhead) {
   UCL_H_Vec<int> *host_data_in=NULL, *host_data_out=NULL;
@@ -384,9 +382,9 @@ void PairGPUDeviceT::estimate_gpu_overhead(const int kernel_calls,
 }              
 
 template <class numtyp, class acctyp>
-void PairGPUDeviceT::output_times(UCL_Timer &time_pair, 
-                                  PairGPUAns<numtyp,acctyp> &ans, 
-                                  PairGPUNbor &nbor, const double avg_split, 
+void DeviceT::output_times(UCL_Timer &time_pair, 
+                                  Answer<numtyp,acctyp> &ans, 
+                                  Neighbor &nbor, const double avg_split, 
                                   const double max_bytes, 
                                   const double gpu_overhead,
                                   const double driver_overhead, 
@@ -440,12 +438,12 @@ void PairGPUDeviceT::output_times(UCL_Timer &time_pair,
 }
 
 template <class numtyp, class acctyp>
-void PairGPUDeviceT::output_kspace_times(UCL_Timer &time_in, 
+void DeviceT::output_kspace_times(UCL_Timer &time_in, 
                                          UCL_Timer &time_out,
                                          UCL_Timer &time_map,
                                          UCL_Timer &time_rho,
                                          UCL_Timer &time_interp,
-                                         PairGPUAns<numtyp,acctyp> &ans, 
+                                         Answer<numtyp,acctyp> &ans, 
                                          const double max_bytes, 
                                          const double cpu_time, 
                                          const double idle_time, FILE *screen) {
@@ -500,13 +498,13 @@ void PairGPUDeviceT::output_kspace_times(UCL_Timer &time_in,
 }
 
 template <class numtyp, class acctyp>
-void PairGPUDeviceT::clear() {
+void DeviceT::clear() {
   if (_init_count>0) {
     _long_range_precompute=0;
     _init_count--;
     if (_init_count==0) {
       atom.clear();
-      _nbor_shared.clear();
+      _neighbor_shared.clear();
       if (_compiled) {
         k_zero.clear();
         k_info.clear();
@@ -518,7 +516,7 @@ void PairGPUDeviceT::clear() {
 }
 
 template <class numtyp, class acctyp>
-void PairGPUDeviceT::clear_device() {
+void DeviceT::clear_device() {
   while (_init_count>0)
     clear();
   if (_device_init) {
@@ -528,7 +526,7 @@ void PairGPUDeviceT::clear_device() {
 }
 
 template <class numtyp, class acctyp>
-int PairGPUDeviceT::compile_kernels() {
+int DeviceT::compile_kernels() {
   int flag=0;
 
   if (_compiled)
@@ -588,27 +586,27 @@ int PairGPUDeviceT::compile_kernels() {
 }
 
 template <class numtyp, class acctyp>
-double PairGPUDeviceT::host_memory_usage() const {
+double DeviceT::host_memory_usage() const {
   return atom.host_memory_usage()+4*sizeof(numtyp)+
-         sizeof(PairGPUDevice<numtyp,acctyp>);
+         sizeof(Device<numtyp,acctyp>);
 }
 
-template class PairGPUDevice<PRECISION,ACC_PRECISION>;
-PairGPUDevice<PRECISION,ACC_PRECISION> pair_gpu_device;
+template class Device<PRECISION,ACC_PRECISION>;
+Device<PRECISION,ACC_PRECISION> global_device;
 
 int lmp_init_device(MPI_Comm world, MPI_Comm replica, const int first_gpu,
                     const int last_gpu, const int gpu_mode, 
                     const double particle_split, const int nthreads,
                     const int t_per_atom) {
-  return pair_gpu_device.init_device(world,replica,first_gpu,last_gpu,gpu_mode,
+  return global_device.init_device(world,replica,first_gpu,last_gpu,gpu_mode,
                                      particle_split,nthreads,t_per_atom);
 }
 
 void lmp_clear_device() {
-  pair_gpu_device.clear_device();
+  global_device.clear_device();
 }
 
 double lmp_gpu_forces(double **f, double **tor, double *eatom,
                       double **vatom, double *virial, double &ecoul) {
-  return pair_gpu_device.fix_gpu(f,tor,eatom,vatom,virial,ecoul);
+  return global_device.fix_gpu(f,tor,eatom,vatom,virial,ecoul);
 }

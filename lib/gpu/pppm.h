@@ -27,7 +27,7 @@
 #include "geryon/nvd_texture.h"
 #endif
 
-template <class numtyp, class acctyp> class PairGPUDevice;
+template <class numtyp, class acctyp> class Device;
 
 template <class numtyp, class acctyp, class grdtyp, class grdtyp4>
 class PPPMGPUMemory {
@@ -118,7 +118,7 @@ class PPPMGPUMemory {
   // -------------------------- DEVICE DATA ------------------------- 
 
   /// Device Properties and Atom and Neighbor storage
-  PairGPUDevice<numtyp,acctyp> *device;
+  Device<numtyp,acctyp> *device;
 
   /// Geryon device
   UCL_Device *ucl_device;
@@ -132,7 +132,7 @@ class PPPMGPUMemory {
   // --------------------------- ATOM DATA --------------------------
 
   /// Atom Data
-  PairGPUAtom<numtyp,acctyp> *atom;
+  Atom<numtyp,acctyp> *atom;
 
 
   // --------------------------- GRID DATA --------------------------
@@ -162,7 +162,7 @@ class PPPMGPUMemory {
 
   // ------------------------ FORCE/ENERGY DATA -----------------------
 
-  PairGPUAns<numtyp,acctyp> *ans;
+  Answer<numtyp,acctyp> *ans;
 
   // ------------------------- DEVICE KERNELS -------------------------
   UCL_Program *pppm_program;

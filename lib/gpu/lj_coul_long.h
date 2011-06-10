@@ -21,7 +21,7 @@
 #include "base_charge.h"
 
 template <class numtyp, class acctyp>
-class LJCL_GPU_Memory : public ChargeGPUMemory<numtyp, acctyp> {
+class LJCL_GPU_Memory : public BaseCharge<numtyp, acctyp> {
  public:
   LJCL_GPU_Memory();
   ~LJCL_GPU_Memory();

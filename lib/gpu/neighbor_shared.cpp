@@ -1,21 +1,19 @@
-/* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+/***************************************************************************
+                             neighbor_shared.cpp
+                             -------------------
+                            W. Michael Brown (ORNL)
 
-   Copyright (2003) Sandia Corporation.  Under the terms of Contract
-   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
-   the GNU General Public License.
+  Class for management of data shared by all neighbor lists
 
-   See the README file in the top-level LAMMPS directory.
-------------------------------------------------------------------------- */
- 
-/* ----------------------------------------------------------------------
-   Contributing authors: Mike Brown (ORNL), brownw@ornl.gov
-------------------------------------------------------------------------- */
+ __________________________________________________________________________
+    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
+ __________________________________________________________________________
 
-#include "nbor_shared.h"
+    begin                : 
+    email                : brownw@ornl.gov
+ ***************************************************************************/
+
+#include "neighbor_shared.h"
 
 #ifdef USE_OPENCL
 #include "nbor_cl.h"
@@ -24,7 +22,7 @@
 #include "pair_gpu_build_ptx.h"
 #endif
   
-void PairGPUNborShared::clear() {
+void NeighborShared::clear() {
   if (_compiled) {
     if (_gpu_nbor) {
       k_cell_id.clear();
@@ -41,7 +39,7 @@ void PairGPUNborShared::clear() {
   }
 }
 
-void PairGPUNborShared::compile_kernels(UCL_Device &dev, const bool gpu_nbor) {
+void NeighborShared::compile_kernels(UCL_Device &dev, const bool gpu_nbor) {
   if (_compiled)
   	return;
   	
@@ -50,7 +48,7 @@ void PairGPUNborShared::compile_kernels(UCL_Device &dev, const bool gpu_nbor) {
 
   if (gpu_nbor==false) {
     nbor_program=new UCL_Program(dev);
-    nbor_program->load_string(nbor_cpu,flags.c_str());
+    nbor_program->load_string(neighbor_cpu,flags.c_str());
     k_nbor.set_function(*nbor_program,"kernel_unpack");
   } else {
     build_program=new UCL_Program(dev);
@@ -58,7 +56,7 @@ void PairGPUNborShared::compile_kernels(UCL_Device &dev, const bool gpu_nbor) {
     std::cerr << "CANNOT CURRENTLY USE GPU NEIGHBORING WITH OPENCL\n";
     exit(1);
     #else
-    build_program->load_string(nbor_gpu,flags.c_str());
+    build_program->load_string(neighbor_gpu,flags.c_str());
     #endif
     k_cell_id.set_function(*build_program,"calc_cell_id");
     k_cell_counts.set_function(*build_program,"kernel_calc_cell_counts");

@@ -1,46 +1,44 @@
-/* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+/***************************************************************************
+                                base_atomic.h
+                             -------------------
+                            W. Michael Brown (ORNL)
 
-   Copyright (2003) Sandia Corporation.  Under the terms of Contract
-   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
-   the GNU General Public License.
+  Base class for pair styles with per-particle data for position and type
 
-   See the README file in the top-level LAMMPS directory.
-------------------------------------------------------------------------- */
- 
-/* ----------------------------------------------------------------------
-   Contributing authors: Mike Brown (ORNL), brownw@ornl.gov
-------------------------------------------------------------------------- */
+ __________________________________________________________________________
+    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
+ __________________________________________________________________________
+
+    begin                : 
+    email                : brownw@ornl.gov
+ ***************************************************************************/
  
 #include "base_atomic.h"
-#define AtomicGPUMemoryT AtomicGPUMemory<numtyp, acctyp>
+#define BaseAtomicT BaseAtomic<numtyp, acctyp>
 
-extern PairGPUDevice<PRECISION,ACC_PRECISION> pair_gpu_device;
+extern Device<PRECISION,ACC_PRECISION> global_device;
 
 template <class numtyp, class acctyp>
-AtomicGPUMemoryT::AtomicGPUMemory() : _compiled(false), _max_bytes(0)  {
-  device=&pair_gpu_device;
-  ans=new PairGPUAns<numtyp,acctyp>();
-  nbor=new PairGPUNbor();
+BaseAtomicT::BaseAtomic() : _compiled(false), _max_bytes(0)  {
+  device=&global_device;
+  ans=new Answer<numtyp,acctyp>();
+  nbor=new Neighbor();
 }
 
 template <class numtyp, class acctyp>
-AtomicGPUMemoryT::~AtomicGPUMemory() {
+BaseAtomicT::~BaseAtomic() {
   delete ans;
   delete nbor;
 }
 
 template <class numtyp, class acctyp>
-int AtomicGPUMemoryT::bytes_per_atom_atomic(const int max_nbors) const {
+int BaseAtomicT::bytes_per_atom_atomic(const int max_nbors) const {
   return device->atom.bytes_per_atom()+ans->bytes_per_atom()+
          nbor->bytes_per_atom(max_nbors);
 }
 
 template <class numtyp, class acctyp>
-int AtomicGPUMemoryT::init_atomic(const int nlocal, const int nall,
+int BaseAtomicT::init_atomic(const int nlocal, const int nall,
                                   const int max_nbors, const int maxspecial,
                                   const double cell_size,
                                   const double gpu_split, FILE *_screen,
@@ -49,7 +47,7 @@ int AtomicGPUMemoryT::init_atomic(const int nlocal, const int nall,
   screen=_screen;
 
   bool gpu_nbor=false;
-  if (device->gpu_mode()==PairGPUDevice<numtyp,acctyp>::GPU_NEIGH)
+  if (device->gpu_mode()==Device<numtyp,acctyp>::GPU_NEIGH)
     gpu_nbor=true;
 
   int _gpu_host=0;
@@ -90,12 +88,12 @@ int AtomicGPUMemoryT::init_atomic(const int nlocal, const int nall,
 }
 
 template <class numtyp, class acctyp>
-void AtomicGPUMemoryT::estimate_gpu_overhead() {
+void BaseAtomicT::estimate_gpu_overhead() {
   device->estimate_gpu_overhead(1,_gpu_overhead,_driver_overhead);
 }
 
 template <class numtyp, class acctyp>
-void AtomicGPUMemoryT::clear_atomic() {
+void BaseAtomicT::clear_atomic() {
   // Output any timing information
   acc_timers();
   double avg_split=hd_balancer.all_avg_split();
@@ -123,7 +121,7 @@ void AtomicGPUMemoryT::clear_atomic() {
 // Copy neighbor list from host
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-int * AtomicGPUMemoryT::reset_nbors(const int nall, const int inum, int *ilist,
+int * BaseAtomicT::reset_nbors(const int nall, const int inum, int *ilist,
                                    int *numj, int **firstneigh, bool &success) {
   success=true;
 
@@ -147,7 +145,7 @@ int * AtomicGPUMemoryT::reset_nbors(const int nall, const int inum, int *ilist,
 // Build neighbor list on device
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-inline void AtomicGPUMemoryT::build_nbor_list(const int inum,
+inline void BaseAtomicT::build_nbor_list(const int inum,
                                               const int host_inum,
                                               const int nall, double **host_x,
                                               int *host_type, double *sublo,
@@ -176,7 +174,7 @@ inline void AtomicGPUMemoryT::build_nbor_list(const int inum,
 // Copy nbor list from host if necessary and then calculate forces, virials,..
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-void AtomicGPUMemoryT::compute(const int f_ago, const int inum_full,
+void BaseAtomicT::compute(const int f_ago, const int inum_full,
                                const int nall, double **host_x, int *host_type,
                                int *ilist, int *numj, int **firstneigh,
                                const bool eflag, const bool vflag,
@@ -217,7 +215,7 @@ void AtomicGPUMemoryT::compute(const int f_ago, const int inum_full,
 // Reneighbor on GPU if necessary and then compute forces, virials, energies
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-int ** AtomicGPUMemoryT::compute(const int ago, const int inum_full,
+int ** BaseAtomicT::compute(const int ago, const int inum_full,
                                  const int nall, double **host_x, int *host_type,
                                  double *sublo, double *subhi, int *tag,
                                  int **nspecial, int **special, const bool eflag, 
@@ -263,13 +261,13 @@ int ** AtomicGPUMemoryT::compute(const int ago, const int inum_full,
 }
 
 template <class numtyp, class acctyp>
-double AtomicGPUMemoryT::host_memory_usage_atomic() const {
+double BaseAtomicT::host_memory_usage_atomic() const {
   return device->atom.host_memory_usage()+nbor->host_memory_usage()+
-         4*sizeof(numtyp)+sizeof(AtomicGPUMemory<numtyp,acctyp>);
+         4*sizeof(numtyp)+sizeof(BaseAtomic<numtyp,acctyp>);
 }
 
 template <class numtyp, class acctyp>
-void AtomicGPUMemoryT::compile_kernels(UCL_Device &dev, const char *pair_str) {
+void BaseAtomicT::compile_kernels(UCL_Device &dev, const char *pair_str) {
   if (_compiled)
     return;
 
@@ -285,5 +283,5 @@ void AtomicGPUMemoryT::compile_kernels(UCL_Device &dev, const char *pair_str) {
   _compiled=true;
 }
 
-template class AtomicGPUMemory<PRECISION,ACC_PRECISION>;
+template class BaseAtomic<PRECISION,ACC_PRECISION>;
 

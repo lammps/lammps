@@ -1,26 +1,24 @@
-/* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+/***************************************************************************
+                                  atom.cpp
+                             -------------------
+                            W. Michael Brown (ORNL)
 
-   Copyright (2003) Sandia Corporation.  Under the terms of Contract
-   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
-   the GNU General Public License.
+  Class for particle data management
 
-   See the README file in the top-level LAMMPS directory.
-------------------------------------------------------------------------- */
- 
-/* ----------------------------------------------------------------------
-   Contributing authors: Mike Brown (ORNL), brownw@ornl.gov
-------------------------------------------------------------------------- */
+ __________________________________________________________________________
+    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
+ __________________________________________________________________________
+
+    begin                : 
+    email                : brownw@ornl.gov
+ ***************************************************************************/
 
 #include "atom.h"
 
-#define PairGPUAtomT PairGPUAtom<numtyp,acctyp>
+#define AtomT Atom<numtyp,acctyp>
 
 template <class numtyp, class acctyp>
-PairGPUAtomT::PairGPUAtom() : _compiled(false),_allocated(false),
+AtomT::Atom() : _compiled(false),_allocated(false),
                               _max_gpu_bytes(0) {
   #ifndef USE_OPENCL
   sort_config.op = CUDPP_ADD;
@@ -31,7 +29,7 @@ PairGPUAtomT::PairGPUAtom() : _compiled(false),_allocated(false),
 }
 
 template <class numtyp, class acctyp>
-int PairGPUAtomT::bytes_per_atom() const { 
+int AtomT::bytes_per_atom() const { 
   int id_space=0;
   if (_gpu_nbor)
     id_space=2;
@@ -44,7 +42,7 @@ int PairGPUAtomT::bytes_per_atom() const {
 }
 
 template <class numtyp, class acctyp>
-bool PairGPUAtomT::alloc(const int nall) {
+bool AtomT::alloc(const int nall) {
   _max_atoms=static_cast<int>(static_cast<double>(nall)*1.10);
 
   bool success=true;
@@ -138,7 +136,7 @@ bool PairGPUAtomT::alloc(const int nall) {
 }
 
 template <class numtyp, class acctyp>
-bool PairGPUAtomT::add_fields(const bool charge, const bool rot,
+bool AtomT::add_fields(const bool charge, const bool rot,
                               const bool gpu_nbor, const bool bonds) {
   bool realloc=false;
   if (charge && _charge==false) {
@@ -167,7 +165,7 @@ bool PairGPUAtomT::add_fields(const bool charge, const bool rot,
 }
 
 template <class numtyp, class acctyp>
-bool PairGPUAtomT::init(const int nall, const bool charge, const bool rot,
+bool AtomT::init(const int nall, const bool charge, const bool rot,
                         UCL_Device &devi, const bool gpu_nbor,
                         const bool bonds) {
   clear();
@@ -206,7 +204,7 @@ bool PairGPUAtomT::init(const int nall, const bool charge, const bool rot,
 }
   
 template <class numtyp, class acctyp>
-void PairGPUAtomT::clear_resize() {
+void AtomT::clear_resize() {
   if (!_allocated)
     return;
   _allocated=false;
@@ -240,7 +238,7 @@ void PairGPUAtomT::clear_resize() {
 }
 
 template <class numtyp, class acctyp>
-void PairGPUAtomT::clear() {
+void AtomT::clear() {
   _max_gpu_bytes=0;
   if (!_allocated)
     return;
@@ -260,19 +258,19 @@ void PairGPUAtomT::clear() {
 }
 
 template <class numtyp, class acctyp>
-double PairGPUAtomT::host_memory_usage() const {
+double AtomT::host_memory_usage() const {
   int atom_bytes=4;
   if (_charge) 
     atom_bytes+=1;
   if (_rot) 
     atom_bytes+=4;
   return _max_atoms*atom_bytes*sizeof(numtyp)+
-         sizeof(PairGPUAtom<numtyp,acctyp>);
+         sizeof(Atom<numtyp,acctyp>);
 }
   
 // Sort arrays for neighbor list calculation
 template <class numtyp, class acctyp>
-void PairGPUAtomT::sort_neighbor(const int num_atoms) {
+void AtomT::sort_neighbor(const int num_atoms) {
   #ifndef USE_OPENCL
   CUDPPResult result = cudppSort(sort_plan, (unsigned *)dev_cell_id.begin(), 
                                  (int *)dev_particle_id.begin(), 
@@ -292,7 +290,7 @@ void PairGPUAtomT::sort_neighbor(const int num_atoms) {
 #endif
 
 template <class numtyp, class acctyp>
-void PairGPUAtomT::compile_kernels(UCL_Device &dev) {
+void AtomT::compile_kernels(UCL_Device &dev) {
   atom_program=new UCL_Program(dev);
   atom_program->load_string(atom,"");
   k_cast_x.set_function(*atom_program,"kernel_cast_x");
@@ -301,4 +299,4 @@ void PairGPUAtomT::compile_kernels(UCL_Device &dev) {
 
 #endif
 
-template class PairGPUAtom<PRECISION,ACC_PRECISION>;
+template class Atom<PRECISION,ACC_PRECISION>;

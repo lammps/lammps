@@ -24,7 +24,7 @@
 using namespace LAMMPS_AL;
 
 #define RESquaredT RESquared<numtyp, acctyp>
-extern PairGPUDevice<PRECISION,ACC_PRECISION> device;
+extern Device<PRECISION,ACC_PRECISION> device;
 
 template <class numtyp, class acctyp>
 RESquaredT::RESquared() : BaseEllipsoid<numtyp,acctyp>(),

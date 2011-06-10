@@ -1,25 +1,24 @@
-/* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+/***************************************************************************
+                                  neighbor.h
+                             -------------------
+                            W. Michael Brown (ORNL)
+                              Peng Wang (Nvidia)
 
-   Copyright (2003) Sandia Corporation.  Under the terms of Contract
-   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
-   the GNU General Public License.
+  Class for handling neighbor lists
 
-   See the README file in the top-level LAMMPS directory.
-------------------------------------------------------------------------- */
+ __________________________________________________________________________
+    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
+ __________________________________________________________________________
 
-/* ----------------------------------------------------------------------
-   Contributing authors: Mike Brown (ORNL), brownw@ornl.gov
-------------------------------------------------------------------------- */
+    begin                : 
+    email                : brownw@ornl.gov, penwang@nvidia.com
+ ***************************************************************************/
 
-#ifndef PAIR_GPU_NBOR_H
-#define PAIR_GPU_NBOR_H
+#ifndef LAL_NEIGHBOR_H
+#define LAL_NEIGHBOR_H
 
 #include "atom.h"
-#include "nbor_shared.h"
+#include "neighbor_shared.h"
 
 #define IJ_SIZE 131072
 
@@ -37,10 +36,10 @@ using namespace ucl_cudadr;
 
 #endif
 
-class PairGPUNbor {
+class Neighbor {
  public:
-  PairGPUNbor() : _allocated(false), _use_packing(false) {}
-  ~PairGPUNbor() { clear(); }
+  Neighbor() : _allocated(false), _use_packing(false) {}
+  ~Neighbor() { clear(); }
  
   /// Determine whether neighbor unpacking should be used
   /** If false, twice as much memory is reserved to allow unpacking neighbors by 
@@ -57,7 +56,7 @@ class PairGPUNbor {
     *                 2 if gpu_nbor is true, and host needs a full nbor list
     * \param pre_cut True if cutoff test will be performed in separate kernel
     *                than the force kernel **/
-  bool init(PairGPUNborShared *shared, const int inum, const int host_inum,
+  bool init(NeighborShared *shared, const int inum, const int host_inum,
             const int max_nbors, const int maxspecial, UCL_Device &dev,
             const bool gpu_nbor, const int gpu_host, const bool pre_cut,
             const int block_cell_2d, const int block_cell_id, 
@@ -138,7 +137,7 @@ class PairGPUNbor {
   /// Build nbor list on the device
   template <class numtyp, class acctyp>
   void build_nbor_list(const int inum, const int host_inum, const int nall,
-                       PairGPUAtom<numtyp,acctyp> &atom, double *sublo,
+                       Atom<numtyp,acctyp> &atom, double *sublo,
                        double *subhi, int *tag, int **nspecial, int **special, 
                        bool &success, int &max_nbors);
 
@@ -187,7 +186,7 @@ class PairGPUNbor {
   UCL_Timer time_nbor, time_kernel;
   
  private:
-  PairGPUNborShared *_shared;
+  NeighborShared *_shared;
   UCL_Device *dev;
   bool _allocated, _use_packing;
   int _max_atoms, _max_nbors, _max_host, _nbor_pitch, _maxspecial;

@@ -25,10 +25,10 @@
 #include <cassert>
 #define LJC_GPU_MemoryT LJC_GPU_Memory<numtyp, acctyp>
 
-extern PairGPUDevice<PRECISION,ACC_PRECISION> device;
+extern Device<PRECISION,ACC_PRECISION> device;
 
 template <class numtyp, class acctyp>
-LJC_GPU_MemoryT::LJC_GPU_Memory() : ChargeGPUMemory<numtyp,acctyp>(),
+LJC_GPU_MemoryT::LJC_GPU_Memory() : BaseCharge<numtyp,acctyp>(),
                                     _allocated(false) {
 }
 

@@ -21,7 +21,7 @@
 #include "base_atomic.h"
 
 template <class numtyp, class acctyp>
-class MOR_GPU_Memory : public AtomicGPUMemory<numtyp, acctyp> {
+class MOR_GPU_Memory : public BaseAtomic<numtyp, acctyp> {
  public:
   MOR_GPU_Memory();
   ~MOR_GPU_Memory(); 

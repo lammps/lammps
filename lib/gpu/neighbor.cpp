@@ -1,27 +1,25 @@
-/* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+/***************************************************************************
+                                 neighbor.cpp
+                             -------------------
+                            W. Michael Brown (ORNL)
+                              Peng Wang (Nvidia)
 
-   Copyright (2003) Sandia Corporation.  Under the terms of Contract
-   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
-   the GNU General Public License.
+  Class for handling neighbor lists
 
-   See the README file in the top-level LAMMPS directory.
-------------------------------------------------------------------------- */
- 
-/* ----------------------------------------------------------------------
-   Contributing authors: Mike Brown (ORNL), brownw@ornl.gov
-                         Peng Wang (Nvidia), penwang@nvidia.com
-------------------------------------------------------------------------- */
+ __________________________________________________________________________
+    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
+ __________________________________________________________________________
+
+    begin                : 
+    email                : brownw@ornl.gov, penwang@nvidia.com
+ ***************************************************************************/
 
 #include "precision.h"
-#include "nbor.h"
+#include "neighbor.h"
 #include "device.h"
 #include "math.h"
 
-int PairGPUNbor::bytes_per_atom(const int max_nbors) const {
+int Neighbor::bytes_per_atom(const int max_nbors) const {
   if (_gpu_nbor)
     return (max_nbors+2)*sizeof(int);
   else if (_use_packing)
@@ -30,7 +28,7 @@ int PairGPUNbor::bytes_per_atom(const int max_nbors) const {
     return (max_nbors+3)*sizeof(int);
 }
 
-bool PairGPUNbor::init(PairGPUNborShared *shared, const int inum,
+bool Neighbor::init(NeighborShared *shared, const int inum,
                        const int host_inum, const int max_nbors, 
                        const int maxspecial, UCL_Device &devi, 
                        const bool gpu_nbor, const int gpu_host, 
@@ -89,7 +87,7 @@ bool PairGPUNbor::init(PairGPUNborShared *shared, const int inum,
   return success;
 }
 
-void PairGPUNbor::alloc(bool &success) { 
+void Neighbor::alloc(bool &success) { 
   dev_nbor.clear();
   host_acc.clear();
   int nt=_max_atoms+_max_host;
@@ -156,7 +154,7 @@ void PairGPUNbor::alloc(bool &success) {
   _allocated=true;
 }
   
-void PairGPUNbor::clear() {
+void Neighbor::clear() {
   _gpu_bytes=0.0;
   _cell_bytes=0.0;
   _c_bytes=0.0;
@@ -181,7 +179,7 @@ void PairGPUNbor::clear() {
   }
 }
 
-double PairGPUNbor::host_memory_usage() const {
+double Neighbor::host_memory_usage() const {
   if (_gpu_nbor) {
     if (_gpu_host)
       return host_nbor.row_bytes()*host_nbor.rows()+host_ilist.row_bytes()+
@@ -190,10 +188,10 @@ double PairGPUNbor::host_memory_usage() const {
       return 0;
   } else 
     return host_packed.row_bytes()*host_packed.rows()+host_acc.row_bytes()+
-           sizeof(PairGPUNbor);
+           sizeof(Neighbor);
 }
 
-void PairGPUNbor::get_host(const int inum, int *ilist, int *numj,
+void Neighbor::get_host(const int inum, int *ilist, int *numj,
                            int **firstneigh, const int block_size) {  
   time_nbor.start();
 
@@ -258,9 +256,9 @@ void PairGPUNbor::get_host(const int inum, int *ilist, int *numj,
 }
 
 template <class numtyp, class acctyp>
-void PairGPUNbor::build_nbor_list(const int inum, const int host_inum,
+void Neighbor::build_nbor_list(const int inum, const int host_inum,
                                   const int nall, 
-                                  PairGPUAtom<numtyp,acctyp> &atom, 
+                                  Atom<numtyp,acctyp> &atom, 
                                   double *sublo, double *subhi, int *tag, 
                                   int **nspecial, int **special, bool &success,
                                   int &mn) {
@@ -399,8 +397,8 @@ void PairGPUNbor::build_nbor_list(const int inum, const int host_inum,
   time_nbor.stop();
 }
 
-template void PairGPUNbor::build_nbor_list<PRECISION,ACC_PRECISION>
+template void Neighbor::build_nbor_list<PRECISION,ACC_PRECISION>
      (const int inum, const int host_inum, const int nall,
-      PairGPUAtom<PRECISION,ACC_PRECISION> &atom, double *sublo, double *subhi,
+      Atom<PRECISION,ACC_PRECISION> &atom, double *sublo, double *subhi,
       int *, int **, int **, bool &success, int &mn);
 

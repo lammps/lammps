@@ -24,7 +24,7 @@ PairStyle(eam/fs,PairEAMFS)
 
 namespace LAMMPS_NS {
 
-// use virtual public since this class is parent in multiple inheritance
+// need virtual public b/c of how eam/fs/opt inherits from it
 
 class PairEAMFS : virtual public PairEAM {
  public:

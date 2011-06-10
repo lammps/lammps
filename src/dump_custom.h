@@ -38,7 +38,6 @@ class DumpCustom : public Dump {
   int *thresh_op;            // threshhold operation for each nthresh
   double *thresh_value;      // threshhold value for each nthresh
 
-  int nmine;                 // # of lines I am dumping
   int *vtype;                // type of each vector (INT, DOUBLE)
   char **vformat;            // format string for each vector element
 
@@ -48,6 +47,7 @@ class DumpCustom : public Dump {
   int maxlocal;              // size of atom selection and variable arrays
   int *choose;               // local indices of selected atoms
   double *dchoose;           // value for each atom to threshhold against
+  int *clist;                // compressed list of indices of selected atoms
 
   int nfield;                // # of keywords listed by user
   int ioptional;             // index of start of optional args

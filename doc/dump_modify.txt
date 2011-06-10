@@ -8,10 +8,6 @@
 
 dump_modify command :h3
 
-NOTE: The keywords below which are only relevant for the "dump
-image"_dump_image.html command have not yet been released as part of
-LAMMPS.
-
 [Syntax:]
 
 dump_modify dump-ID keyword values ... :pre
@@ -95,8 +91,7 @@ dump_modify 1 region mySphere thresh x < 0.0 thresh epair >= 3.2
 dump_modify xtcdump precision 10000
 dump_modify 1 every 1000
 dump_modify 1 every v_myVar :pre
-
-NOTE: need to add some image examples :pre
+dump_modify 1 amap min max cf 0.0 3 min green 0.5 yellow max blue boxcolor red :pre
 
 [Description:]
 
@@ -519,7 +514,7 @@ The option defaults are
 
 acolor = * red/green/blue/yellow/aqua/cyan
 adiam = * 1.0
-amap = min max cf 2 0.0 blue 1.0 red
+amap = min max cf 2 min blue max red
 append = no
 bcolor = * red/green/blue/yellow/aqua/cyan
 bdiam = * 0.5

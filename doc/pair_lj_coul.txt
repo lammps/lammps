@@ -134,11 +134,6 @@ This style is part of the "user-ewaldn" package.  It is only enabled
 if LAMMPS was built with that package.  See the "Making
 LAMMPS"_Section_start.html#2_3 section for more info.
 
-On some 64-bit machines, compiling with -O3 appears to break the
-Coulombic tabling option used by the {lj/coul} style.  See the
-"Additional build tips" section of the Making LAMMPS documentation
-pages for workarounds on this issue.
-
 [Related commands:]
 
 "pair_coeff"_pair_coeff.html

@@ -28,10 +28,12 @@
 #include "pair.h"
 #include "domain.h"
 #include "neighbor.h"
+#include "group.h"
 #include "modify.h"
 #include "fix.h"
-#include "group.h"
 #include "compute.h"
+#include "output.h"
+#include "dump.h"
 #include "error.h"
 #include "memory.h"
 
@@ -82,9 +84,6 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
     maxsendlist[i] = BUFMIN;
     memory->create(sendlist[i],BUFMIN,"comm:sendlist[i]");
   }
-
-  maxforward_fix = maxreverse_fix = 0;
-  maxforward_pair = maxreverse_pair = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -188,7 +187,7 @@ void Comm::init()
 
   // maxforward = # of datums in largest forward communication
   // maxreverse = # of datums in largest reverse communication
-  // query pair,fix,compute for their requirements
+  // query pair,fix,compute,dump for their requirements
 
   maxforward = MAX(size_forward,size_border);
   maxreverse = size_reverse;
@@ -204,6 +203,11 @@ void Comm::init()
   for (int i = 0; i < modify->ncompute; i++) {
     maxforward = MAX(maxforward,modify->compute[i]->comm_forward);
     maxreverse = MAX(maxreverse,modify->compute[i]->comm_reverse);
+  }
+
+  for (int i = 0; i < output->ndump; i++) {
+    maxforward = MAX(maxforward,output->dump[i]->comm_forward);
+    maxreverse = MAX(maxreverse,output->dump[i]->comm_reverse);
   }
 
   if (force->newton == 0) maxreverse = 0;
@@ -1002,6 +1006,75 @@ void Comm::reverse_comm_compute(Compute *compute)
     // unpack buffer
 
     compute->unpack_reverse_comm(sendnum[iswap],sendlist[iswap],buf);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   forward communication invoked by a Dump
+------------------------------------------------------------------------- */
+
+void Comm::forward_comm_dump(Dump *dump)
+{
+  int iswap,n;
+  double *buf;
+  MPI_Request request;
+  MPI_Status status;
+
+  for (iswap = 0; iswap < nswap; iswap++) {
+
+    // pack buffer
+
+    n = dump->pack_comm(sendnum[iswap],sendlist[iswap],
+			buf_send,pbc_flag[iswap],pbc[iswap]);
+
+    // exchange with another proc
+    // if self, set recv buffer to send buffer
+
+    if (sendproc[iswap] != me) {
+      MPI_Irecv(buf_recv,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,
+		world,&request);
+      MPI_Send(buf_send,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,world);
+      MPI_Wait(&request,&status);
+      buf = buf_recv;
+    } else buf = buf_send;
+
+    // unpack buffer
+
+    dump->unpack_comm(recvnum[iswap],firstrecv[iswap],buf);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   reverse communication invoked by a Dump
+------------------------------------------------------------------------- */
+
+void Comm::reverse_comm_dump(Dump *dump)
+{
+  int iswap,n;
+  double *buf;
+  MPI_Request request;
+  MPI_Status status;
+
+  for (iswap = nswap-1; iswap >= 0; iswap--) {
+
+    // pack buffer
+
+    n = dump->pack_reverse_comm(recvnum[iswap],firstrecv[iswap],buf_send);
+
+    // exchange with another proc 
+    // if self, set recv buffer to send buffer
+
+    if (sendproc[iswap] != me) {
+      MPI_Irecv(buf_recv,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,
+		world,&request);
+      MPI_Send(buf_send,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,world);
+      MPI_Wait(&request,&status);
+      buf = buf_recv;
+    } else buf = buf_send;
+
+    // unpack buffer
+
+    dump->unpack_reverse_comm(sendnum[iswap],sendlist[iswap],buf);
   }
 }
 

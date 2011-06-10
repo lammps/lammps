@@ -64,19 +64,21 @@ PairHybrid::~PairHybrid()
     each sub-style computes own virial[6]
     sum sub-style virial[6] to hybrid's virial[6]
   for global vflag = 2:
-    call sub-style with adjusted vflag to prevent it calling virial_compute()
-    hybrid calls virial_compute() on final accumulated f
+    call sub-style with adjusted vflag to prevent it calling
+      virial_fdotr_compute()
+    hybrid calls virial_fdotr_compute() on final accumulated f
 ------------------------------------------------------------------------- */
 
 void PairHybrid::compute(int eflag, int vflag)
 {
   int i,j,m,n;
 
-  // if no_virial_compute is set and global component of incoming vflag = 2
+  // if no_virial_fdotr_compute is set and global component of
+  //   incoming vflag = 2, then
   // reset vflag as if global component were 1
   // necessary since one or more sub-styles cannot compute virial as F dot r
   
-  if (no_virial_compute && vflag % 4 == 2) vflag = 1 + vflag/4 * 4;
+  if (no_virial_fdotr_compute && vflag % 4 == 2) vflag = 1 + vflag/4 * 4;
 
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = eflag_global = vflag_global = 
@@ -84,7 +86,7 @@ void PairHybrid::compute(int eflag, int vflag)
 
   // check if global component of incoming vflag = 2
   // if so, reset vflag passed to substyle as if it were 0
-  // necessary so substyle will not invoke virial_compute()
+  // necessary so substyle will not invoke virial_fdotr_compute()
 
   int vflag_substyle;
   if (vflag % 4 == 2) vflag_substyle = vflag/4 * 4;
@@ -116,7 +118,7 @@ void PairHybrid::compute(int eflag, int vflag)
     }
   }
 
-  if (vflag_fdotr) virial_compute();
+  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -262,7 +264,7 @@ void PairHybrid::settings(int narg, char **arg)
 
   // single_enable = 0 if any sub-style = 0
   // respa_enable = 1 if any sub-style is set
-  // no_virial_compute = 1 if any sub-style is set
+  // no_virial_fdotr_compute = 1 if any sub-style is set
   // ghostneigh = 1 if any sub-style is set
 
   for (m = 0; m < nstyles; m++)
@@ -270,7 +272,7 @@ void PairHybrid::settings(int narg, char **arg)
   for (m = 0; m < nstyles; m++)
     if (styles[m]->respa_enable) respa_enable = 1;
   for (m = 0; m < nstyles; m++)
-    if (styles[m]->no_virial_compute) no_virial_compute = 1;
+    if (styles[m]->no_virial_fdotr_compute) no_virial_fdotr_compute = 1;
   for (m = 0; m < nstyles; m++)
     if (styles[m]->ghostneigh) ghostneigh = 1;
 }

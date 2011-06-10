@@ -38,7 +38,7 @@ class Pair : protected Pointers {
   int single_enable;             // 1 if single() routine exists
   int respa_enable;              // 1 if inner/middle/outer rRESPA routines
   int one_coeff;                 // 1 if allows only one coeff * * call
-  int no_virial_compute;         // 1 if does not invoke virial_compute()
+  int no_virial_fdotr_compute;   // 1 if does not invoke virial_fdotr_compute()
   int ghostneigh;                // 1 if pair style needs neighbors of ghosts
   double **cutghost;             // cutoff for each ghost pair
 
@@ -146,7 +146,7 @@ class Pair : protected Pointers {
 		double *, double *, double *);
   void v_tally_tensor(int, int, int, int,
 		      double, double, double, double, double, double);
-  void virial_compute();
+  void virial_fdotr_compute();
 
   inline int sbmask(int j) {
     return j >> SBBITS & 3;

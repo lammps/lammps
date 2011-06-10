@@ -197,6 +197,7 @@ available in LAMMPS:
 "rdf"_compute_rdf.html - radial distribution function g(r) histogram of group of atoms
 "reduce"_compute_reduce.html - combine per-atom quantities into a single global value
 "reduce/region"_compute_reduce.html - same as compute reduce, within a region
+"slice"_compute_slice.html - extract values from global vector or array
 "stress/atom"_compute_stress_atom.html - stress tensor for each atom
 "temp"_compute_temp.html - temperature of group of atoms
 "temp/asphere"_compute_temp_asphere.html - temperature of aspherical particles

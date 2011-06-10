@@ -328,7 +328,7 @@ void PairLJCharmmCoulLongOpt::eval()
 
   free(fast_alpha); fast_alpha = 0;
 
-  if (vflag_fdotr) virial_compute();
+  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 #undef EWALD_F

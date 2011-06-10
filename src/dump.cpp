@@ -63,6 +63,8 @@ Dump::Dump(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   filename = new char[n];
   strcpy(filename,arg[4]);
 
+  comm_forward = comm_reverse = 0;
+
   first_flag = 0;
   flush_flag = 1;
   format = NULL;

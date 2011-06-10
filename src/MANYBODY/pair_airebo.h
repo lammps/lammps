@@ -27,15 +27,15 @@ namespace LAMMPS_NS {
 class PairAIREBO : public Pair {
  public:
   PairAIREBO(class LAMMPS *);
-  ~PairAIREBO();
+  virtual ~PairAIREBO();
   void compute(int, int);
-  void settings(int, char **);
+  virtual void settings(int, char **);
   void coeff(int, char **);
   void init_style();
   double init_one(int, int);
   double memory_usage();
 
- private:
+ protected:
   int me;
   int ljflag,torflag;              // 0/1 if LJ,torsion terms included
   int maxlocal;                    // size of numneigh, firstneigh arrays

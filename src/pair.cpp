@@ -55,7 +55,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   single_enable = 1;
   respa_enable = 0;
   one_coeff = 0;
-  no_virial_compute = 0;
+  no_virial_fdotr_compute = 0;
   ghostneigh = 0;
 
   nextra = 0;
@@ -316,11 +316,11 @@ void Pair::ev_setup(int eflag, int vflag)
     }
   }
 
-  // if vflag_global = 2 and pair::compute() calls virial_compute()
+  // if vflag_global = 2 and pair::compute() calls virial_fdotr_compute()
   // compute global virial via (F dot r) instead of via pairwise summation
   // unset other flags as appropriate
 
-  if (vflag_global == 2 && no_virial_compute == 0) {
+  if (vflag_global == 2 && no_virial_fdotr_compute == 0) {
     vflag_fdotr = 1;
     vflag_global = 0;
     if (vflag_atom == 0) vflag_either = 0;
@@ -909,7 +909,7 @@ void Pair::v_tally_tensor(int i, int j, int nlocal, int newton_pair,
    at this point, only pairwise forces have been accumulated in atom->f
 ------------------------------------------------------------------------- */
 
-void Pair::virial_compute()
+void Pair::virial_fdotr_compute()
 {
   double **x = atom->x;
   double **f = atom->f;

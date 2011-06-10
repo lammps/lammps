@@ -26,10 +26,6 @@ class Comm : protected Pointers {
   int myloc[3];                     // which proc I am in each dim
   int procneigh[3][2];              // my 6 neighboring procs
   int ghost_velocity;               // 1 if ghost atoms have velocity, 0 if not
-  int maxforward_fix;               // comm sizes called from Fix,Pair
-  int maxreverse_fix;
-  int maxforward_pair;
-  int maxreverse_pair;
   double cutghost[3];               // cutoffs used for acquiring ghost atoms
   double cutghostuser;              // user-specified ghost cutoff
   int ***grid2proc;                 // which proc owns i,j,k loc in 3d grid
@@ -45,12 +41,14 @@ class Comm : protected Pointers {
   virtual void exchange();                  // move atoms to new procs
   virtual void borders();                   // setup list of atoms to communicate
 
-  virtual void forward_comm_pair(class Pair *);        // forward comm from a Pair
-  virtual void reverse_comm_pair(class Pair *);        // reverse comm from a Pair
-  virtual void forward_comm_fix(class Fix *);          // forward comm from a Fix
-  virtual void reverse_comm_fix(class Fix *);          // reverse comm from a Fix
-  virtual void forward_comm_compute(class Compute *);  // forward comm from a Compute
-  virtual void reverse_comm_compute(class Compute *);  // reverse comm from a Compute
+  virtual void forward_comm_pair(class Pair *);    // forward comm from a Pair
+  virtual void reverse_comm_pair(class Pair *);    // reverse comm from a Pair
+  virtual void forward_comm_fix(class Fix *);      // forward comm from a Fix
+  virtual void reverse_comm_fix(class Fix *);      // reverse comm from a Fix
+  virtual void forward_comm_compute(class Compute *);  // forward from a Compute
+  virtual void reverse_comm_compute(class Compute *);  // reverse from a Compute
+  virtual void forward_comm_dump(class Dump *);    // forward comm from a Dump
+  virtual void reverse_comm_dump(class Dump *);    // reverse comm from a Dump
 
   virtual void set(int, char **);           // set communication style
   virtual bigint memory_usage();

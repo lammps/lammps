@@ -44,7 +44,7 @@ using namespace LAMMPS_NS;
 PairPeriLPS::PairPeriLPS(LAMMPS *lmp) : Pair(lmp)			
 {
   for (int i = 0; i < 6; i++) virial[i] = 0.0;
-  no_virial_compute=1;
+  no_virial_fdotr_compute=1;
 
   ifix_peri = -1;
 

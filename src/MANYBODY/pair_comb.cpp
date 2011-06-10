@@ -396,7 +396,7 @@ void PairComb::compute(int eflag, int vflag)
 
   cuo_flag = 0;
 
-  if (vflag_fdotr) virial_compute();
+  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 /* ---------------------------------------------------------------------- */

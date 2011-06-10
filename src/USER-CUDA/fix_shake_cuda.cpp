@@ -49,7 +49,7 @@ FixShakeCuda::FixShakeCuda(LAMMPS *lmp, int narg, char **arg) :
 {
   cuda = lmp->cuda;
    if(cuda == NULL)
-        error->all("You cannot use a /cuda class, without activating 'cuda' acceleration. Use no '-a' command line argument, or '-a cuda'.");
+        error->all("You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
 
   cuda->accelerator(0,NULL);
   MPI_Comm_rank(world,&me);

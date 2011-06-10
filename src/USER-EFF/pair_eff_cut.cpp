@@ -550,7 +550,7 @@ void PairEffCut::compute(int eflag, int vflag)
 
   }
   if (vflag_fdotr) {
-    virial_compute();
+    virial_fdotr_compute();
     if (flexible_pressure_flag) virial_eff_compute();
   }
 }	

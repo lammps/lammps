@@ -293,14 +293,13 @@ void PairEAM::compute(int eflag, int vflag)
 	}
 
 	if (eflag) evdwl = phi;
-
 	if (evflag) ev_tally(i,j,nlocal,newton_pair,
 			     evdwl,0.0,fpair,delx,dely,delz);
       }
     }
   }
 
-  if (vflag_fdotr) virial_compute();
+  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 /* ----------------------------------------------------------------------

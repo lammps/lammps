@@ -49,7 +49,7 @@ PairREAX::PairREAX(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
   one_coeff = 1;
-  no_virial_compute = 1;
+  no_virial_fdotr_compute = 1;
   
   nextra = 14;
   pvector = new double[nextra];

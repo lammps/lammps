@@ -464,6 +464,19 @@ void Domain::pbc()
 }
 
 /* ----------------------------------------------------------------------
+   minimum image convention check
+   return 1 if any distance > 1/2 of box size
+------------------------------------------------------------------------- */
+
+int Domain::minimum_image_check(double dx, double dy, double dz)
+{
+  if (xperiodic && fabs(dx) > xprd_half) return 1;
+  if (yperiodic && fabs(dy) > yprd_half) return 1;
+  if (zperiodic && fabs(dz) > zprd_half) return 1;
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
    minimum image convention
    use 1/2 of box size as test 
    for triclinic, also add/subtract tilt factors in other dims as needed

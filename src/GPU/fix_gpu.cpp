@@ -42,11 +42,11 @@ extern double lmp_gpu_forces(double **f, double **tor, double *eatom,
 
 FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
-{
-  if (narg < 7) error->all("Illegal fix gpu command");
 
-  if (strcmp(arg[1],"all") != 0)
-    error->all("Illegal fix gpu command");
+  if (lmp->cuda) error->all("Cannot use fix gpu with USER-CUDA mode enabled");
+
+  if (narg < 7) error->all("Illegal fix gpu command");
+  if (strcmp(arg[1],"all") != 0) error->all("Illegal fix gpu command");
 
   int first_gpu, last_gpu;
 

@@ -302,7 +302,7 @@ void PairMEAM::compute(int eflag, int vflag)
   neigh_f2c(inum_half,ilist_half,numneigh_half,firstneigh_half);
   neigh_f2c(inum_half,ilist_half,numneigh_full,firstneigh_full);
 
-  if (vflag_fdotr) virial_compute();
+  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 /* ---------------------------------------------------------------------- */

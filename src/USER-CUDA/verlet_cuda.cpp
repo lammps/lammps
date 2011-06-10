@@ -62,7 +62,7 @@ using namespace LAMMPS_NS;
 VerletCuda::VerletCuda(LAMMPS *lmp, int narg, char **arg) : Verlet(lmp, narg, arg) {	
   cuda = lmp->cuda;
    if(cuda == NULL)
-        error->all("You cannot use a /cuda class, without activating 'cuda' acceleration. Use no '-a' command line argument, or '-a cuda'.");
+        error->all("You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
 
 	modify_cuda=(ModifyCuda*) modify;
 }
@@ -85,7 +85,6 @@ void VerletCuda::setup()
 	cuda->oncpu = true;
 	cuda->begin_setup = true;
 	cuda->finished_run = false;
-	strcpy(update->integrate_style,"verlet");
 	
 	time_pair=0;
 	time_kspace=0;
@@ -345,7 +344,6 @@ void VerletCuda::setup_minimal(int flag)
 	cuda->begin_setup = true;
 	cuda->finished_run = false;
 	MYDBG(printf("# CUDA VerletCuda::setup start\n"); )
-	    strcpy(update->integrate_style,"verlet");
 	    time_pair=0;
 	    time_kspace=0;
 	    time_comm=0;

@@ -13,11 +13,14 @@
 
 // Convert a LAMMPS binary restart file into an ASCII text data file
 //
-// Syntax: restart2data restart-file data-file (input-file)
+// Syntax: restart2data switch arg ... restart-file data-file (input-file)
+//         optional switch = -s
+//           arg = suffix to remove from style names
+//         restart-file and data-file are mandatory
 //         input-file is optional
-//         if specified it will contain LAMMPS input script commands
-//           for mass and force field info
-//         only a few force field styles support this option
+//           if specified it will contain LAMMPS input script commands
+//             for mass and force field info
+//           only a few force field styles support this option
 //
 // this serial code must be compiled on a platform that can read the binary
 //   restart file since binary formats are not compatible across all platforms
@@ -77,6 +80,7 @@ class Data {
 
   char *version;
   int size_smallint,size_tagint,size_bigint;
+  char *suffix;
   bigint ntimestep;
   int nprocs;
   char *unit_style;
@@ -85,7 +89,7 @@ class Data {
   int newton_pair,newton_bond;
   int xperiodic,yperiodic,zperiodic;
   int boundary[3][2];
-
+  
   char *atom_style;
   int style_angle,style_atomic,style_bond,style_charge,style_dipole;
   int style_ellipsoid,style_full;
@@ -300,6 +304,8 @@ int atom_molecular(double *, Data &, int);
 int atom_peri(double *, Data &, int);
 int atom_sphere(double *, Data &, int);
 
+void strip_suffix(char *, char *);
+
 int read_int(FILE *fp);
 double read_double(FILE *fp);
 char *read_char(FILE *fp);
@@ -309,43 +315,73 @@ bigint read_bigint(FILE *fp);
 // main program
 // ---------------------------------------------------------------------
 
-int main (int argc, char **argv)
+int main (int narg, char **arg)
 {
-  // syntax error check
+  // process command-line args
 
-    if ((argc != 3) && (argc !=4)) {
-    printf("Syntax: restart2data restart-file data-file (input-file)\n");
+  char *suffix = NULL;
+
+  int iarg = 1;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"-s") == 0) {
+      if (iarg+2 > narg) {
+	printf("Syntax: restart2data switch arg ... "
+	       "restart-file data-file (input-file)\n");
+	return 1;
+      }
+      suffix = arg[iarg+1];
+      iarg += 2;
+    } else break;
+  }
+
+  if ((narg-iarg != 2) && (narg-iarg != 3)) {
+    printf("Syntax: restart2data switch arg ... "
+	   "restart-file data-file (input-file)\n");
     return 1;
   }
+
+  char *restartfile = arg[iarg];
+  char *datafile = arg[iarg+1];
+  char *inputfile = NULL;
+  if (narg-iarg == 3) inputfile = arg[iarg+2];
 
   // if restart file contains '%', file = filename with % replaced by "base"
   // else file = single file
-
-  int multiproc;
-  char *file,*ptr;
-
-  if (ptr = strchr(argv[1],'%')) {
-    multiproc = 1;
-    file = new char[strlen(argv[1]) + 16];
-    *ptr = '\0';
-    sprintf(file,"%s%s%s",argv[1],"base",ptr+1);
-  } else {
-    multiproc = 0;
-    file = argv[1];
-  }
-
   // open single restart file or base file for multiproc case
 
   printf("Reading restart file ...\n");
-  FILE *fp = fopen(file,"rb");
-  if (fp == NULL) {
-    printf("ERROR: Cannot open restart file %s\n",file);
-    return 1;
+
+  char *ptr;
+  FILE *fp;
+
+  int multiproc = 0;
+  if (ptr = strchr(restartfile,'%')) {
+    multiproc = 1;
+    char *basefile = new char[strlen(restartfile) + 16];
+    *ptr = '\0';
+    sprintf(basefile,"%s%s%s",restartfile,"base",ptr+1);
+    fp = fopen(basefile,"rb");
+    if (fp == NULL) {
+      printf("ERROR: Cannot open restart file %s\n",basefile);
+      return 1;
+    }
+  } else {
+    fp = fopen(restartfile,"rb");
+    if (fp == NULL) {
+      printf("ERROR: Cannot open restart file %s\n",restartfile);
+      return 1;
+    }
   }
 
   // read beginning of restart file
 
   Data data;
+
+  if (suffix) {
+    int n = strlen(suffix) + 1;
+    data.suffix = new char[n];
+    strcpy(data.suffix,suffix);
+  } else data.suffix = NULL;
 
   header(fp,data);
   if (data.size_smallint != sizeof(int) || 
@@ -372,10 +408,11 @@ int main (int argc, char **argv)
   for (int iproc = 0; iproc < data.nprocs; iproc++) {
     if (multiproc) {
       fclose(fp);
-      sprintf(file,"%s%d%s",argv[1],iproc,ptr+1);
-      fp = fopen(file,"rb");
+      char *procfile;
+      sprintf(procfile,"%s%d%s",restartfile,iproc,ptr+1);
+      fp = fopen(procfile,"rb");
       if (fp == NULL) {
-        printf("ERROR: Cannot open restart file %s\n",file);
+        printf("ERROR: Cannot open restart file %s\n",procfile);
         return 1;
       }
     }
@@ -401,11 +438,11 @@ int main (int argc, char **argv)
 
   // write out data file and no input file
 
-  if (argc == 3) {
+  if (!inputfile) {
     printf("Writing data file ...\n");
-    fp = fopen(argv[2],"w");
+    fp = fopen(datafile,"w");
     if (fp == NULL) {
-      printf("ERROR: Cannot open data file %s\n",argv[2]);
+      printf("ERROR: Cannot open data file %s\n",datafile);
       return 1;
     }
     data.write(fp);
@@ -415,15 +452,15 @@ int main (int argc, char **argv)
 
   } else {
     printf("Writing data file ...\n");
-    fp = fopen(argv[2],"w");
+    fp = fopen(datafile,"w");
     if (fp == NULL) {
-      printf("ERROR: Cannot open data file %s\n",argv[2]);
+      printf("ERROR: Cannot open data file %s\n",datafile);
       return 1;
     }
     printf("Writing input file ...\n");
-    FILE *fp2 = fopen(argv[3],"w");
+    FILE *fp2 = fopen(inputfile,"w");
     if (fp2 == NULL) {
-      printf("ERROR: Cannot open input file %s\n",argv[3]);
+      printf("ERROR: Cannot open input file %s\n",inputfile);
       return 1;
     }
 
@@ -492,6 +529,7 @@ void header(FILE *fp, Data &data)
 	data.style_molecular = data.style_peri = data.style_sphere = 0;
 
       data.atom_style = read_char(fp);
+      strip_suffix(data.atom_style,data.suffix);
       set_style(data.atom_style,data,1);
 
       if (strcmp(data.atom_style,"hybrid") == 0) {
@@ -638,18 +676,23 @@ void force_fields(FILE *fp, Data &data)
 
     if (flag == PAIR) {
       data.pair_style = read_char(fp);
+      strip_suffix(data.pair_style,data.suffix);
       pair(fp,data,data.pair_style,1);
     } else if (flag == BOND) {
       data.bond_style = read_char(fp);
+      strip_suffix(data.bond_style,data.suffix);
       bond(fp,data);
     } else if (flag == ANGLE) {
       data.angle_style = read_char(fp);
+      strip_suffix(data.angle_style,data.suffix);
       angle(fp,data);
     } else if (flag == DIHEDRAL) {
       data.dihedral_style = read_char(fp);
+      strip_suffix(data.dihedral_style,data.suffix);
       dihedral(fp,data);
     } else if (flag == IMPROPER) {
       data.improper_style = read_char(fp);
+      strip_suffix(data.improper_style,data.suffix);
       improper(fp,data);
     } else {
       printf("ERROR: Invalid flag in force fields section of restart file %d\n",
@@ -1338,9 +1381,9 @@ void pair(FILE *fp, Data &data, char *style, int flag)
       }
 
   } else if ((strcmp(style,"buck") == 0)  ||
-	   (strcmp(style,"buck/coul/cut") == 0) ||
-	   (strcmp(style,"buck/coul/long") == 0) ||
-	   (strcmp(style,"buck/coul") == 0)) {
+	     (strcmp(style,"buck/coul/cut") == 0) ||
+	     (strcmp(style,"buck/coul/long") == 0) ||
+	     (strcmp(style,"buck/coul") == 0)) {
 
     if (strcmp(style,"buck") == 0) {
       m = 0;
@@ -1573,11 +1616,8 @@ void pair(FILE *fp, Data &data, char *style, int flag)
       }
 
   } else if (strcmp(style,"eam") == 0) {
-  } else if (strcmp(style,"eam/opt") == 0) {
   } else if (strcmp(style,"eam/alloy") == 0) {
-  } else if (strcmp(style,"eam/alloy/opt") == 0) {
   } else if (strcmp(style,"eam/fs") == 0) {
-  } else if (strcmp(style,"eam/fs/opt") == 0) {
   } else if (strcmp(style,"eim") == 0) {
 
   } else if (strcmp(style,"eff/cut") == 0) {
@@ -1666,11 +1706,9 @@ void pair(FILE *fp, Data &data, char *style, int flag)
     int dampflag = read_int(fp);
 
   } else if ((strcmp(style,"lj/charmm/coul/charmm") == 0) ||
-	   (strcmp(style,"lj/charmm/coul/charmm/implicit") == 0) ||
-	   (strcmp(style,"lj/charmm/coul/long") == 0) ||
-	   (strcmp(style,"lj/charmm/coul/long/gpu") == 0) ||
-	   (strcmp(style,"lj/charmm/coul/long/opt") == 0)) {
-
+	     (strcmp(style,"lj/charmm/coul/charmm/implicit") == 0) ||
+	     (strcmp(style,"lj/charmm/coul/long") == 0)) {
+      
     if (strcmp(style,"lj/charmm/coul/charmm") == 0) {
       double cut_lj_inner = read_double(fp);
       double cut_lj = read_double(fp);
@@ -1685,9 +1723,7 @@ void pair(FILE *fp, Data &data, char *style, int flag)
       double cut_coul = read_double(fp);
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
-    } else if ((strcmp(style,"lj/charmm/coul/long") == 0) ||
-	       (strcmp(style,"lj/charmm/coul/long/gpu") == 0) ||
-	       (strcmp(style,"lj/charmm/coul/long/opt") == 0)) {
+    } else if (strcmp(style,"lj/charmm/coul/long") == 0) {
       double cut_lj_inner = read_double(fp);
       double cut_lj = read_double(fp);
       double cut_coul = read_double(fp);
@@ -1726,7 +1762,7 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 
   } else if ((strcmp(style,"lj/class2") == 0) ||
 	   (strcmp(style,"lj/class2/coul/cut") == 0) ||
-	   (strcmp(style,"lj/class2/coul/long") == 0)) {
+	     (strcmp(style,"lj/class2/coul/long") == 0)) {
 
     if (strcmp(style,"lj/class2") == 0) {
       m = 0;
@@ -1775,25 +1811,18 @@ void pair(FILE *fp, Data &data, char *style, int flag)
       }
 
   } else if ((strcmp(style,"lj/cut") == 0) ||
-	   (strcmp(style,"lj/cut/gpu") == 0) ||
-	   (strcmp(style,"lj/cut/opt") == 0) ||
-	   (strcmp(style,"lj/cut/coul/cut") == 0) ||
-	   (strcmp(style,"lj/cut/coul/cut/gpu") == 0) ||
-	   (strcmp(style,"lj/cut/coul/debye") == 0) ||
-	   (strcmp(style,"lj/cut/coul/long") == 0) ||
-	   (strcmp(style,"lj/cut/coul/long/gpu") == 0) ||
-	   (strcmp(style,"lj/cut/coul/long/tip4p") == 0) ||
-	   (strcmp(style,"lj/coul") == 0)) {
+	     (strcmp(style,"lj/cut/coul/cut") == 0) ||
+	     (strcmp(style,"lj/cut/coul/debye") == 0) ||
+	     (strcmp(style,"lj/cut/coul/long") == 0) ||
+	     (strcmp(style,"lj/cut/coul/long/tip4p") == 0) ||
+	     (strcmp(style,"lj/coul") == 0)) {
 
-    if ((strcmp(style,"lj/cut") == 0) ||
-	(strcmp(style,"lj/cut/gpu") == 0) ||
-	(strcmp(style,"lj/cut/opt") == 0)) {
+    if (strcmp(style,"lj/cut") == 0) {
       m = 0;
       double cut_lj_global = read_double(fp);
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
-    } else if ((strcmp(style,"lj/cut/coul/cut") == 0) ||
-	       (strcmp(style,"lj/cut/coul/cut/gpu") == 0)) {
+    } else if (strcmp(style,"lj/cut/coul/cut") == 0) {
       m = 1;
       double cut_lj_global = read_double(fp);
       double cut_lj_coul = read_double(fp);
@@ -1806,8 +1835,7 @@ void pair(FILE *fp, Data &data, char *style, int flag)
       double kappa = read_double(fp);
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
-    } else if ((strcmp(style,"lj/cut/coul/long") == 0) ||
-	       (strcmp(style,"lj/cut/coul/long/gpu") == 0)) {
+    } else if (strcmp(style,"lj/cut/coul/long") == 0) {
       m = 0;
       double cut_lj_global = read_double(fp);
       double cut_lj_coul = read_double(fp);
@@ -1860,8 +1888,7 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 	}
       }
 
-  } else if ((strcmp(style,"lj/expand") == 0) ||
-	     (strcmp(style,"lj/expand/gpu") == 0)) {
+  } else if (strcmp(style,"lj/expand") == 0) {
 
     double cut_global = read_double(fp);
     int offset_flag = read_int(fp);
@@ -1897,7 +1924,7 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 
   } else if ((strcmp(style,"lj/gromacs") == 0) ||
 	     (strcmp(style,"lj/gromacs/coul/gromacs") == 0)) {
-
+    
     if (strcmp(style,"lj/gromacs") == 0) {
       m = 1;
       double cut_inner_global = read_double(fp);
@@ -1981,9 +2008,7 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 
   } else if (strcmp(style,"meam") == 0) {
 
-  } else if ((strcmp(style,"morse") == 0) ||
-	     (strcmp(style,"morse/gpu") == 0) ||
-	     (strcmp(style,"morse/opt") == 0)) {
+  } else if (strcmp(style,"morse") == 0) {
 
     double cut_global = read_double(fp);
     int offset_flag = read_int(fp);
@@ -2087,10 +2112,8 @@ void pair(FILE *fp, Data &data, char *style, int flag)
       }
 
   } else if ((strcmp(style,"cg/cmm") == 0) ||
-             (strcmp(style,"cg/cmm/gpu") == 0) ||
              (strcmp(style,"cg/cmm/coul/cut") == 0) ||
-             (strcmp(style,"cg/cmm/coul/long") == 0) ||
-             (strcmp(style,"cg/cmm/coul/long/gpu") == 0)) {
+             (strcmp(style,"cg/cmm/coul/long") == 0)) {
     m = 0;
     data.cut_lj_global = read_double(fp);
     data.cut_coul_global = read_double(fp);
@@ -2106,9 +2129,8 @@ void pair(FILE *fp, Data &data, char *style, int flag)
     data.pair_cg_epsilon = new double*[numtyp];
     data.pair_cg_sigma = new double*[numtyp];
     data.pair_cut_lj = new double*[numtyp];
-    if  ((strcmp(style,"cg/cmm/coul/cut") == 0) ||
-	 (strcmp(style,"cg/cmm/coul/long") == 0) ||
-	 (strcmp(style,"cg/cmm/coul/long/gpu") == 0)) {
+    if ((strcmp(style,"cg/cmm/coul/cut") == 0) ||
+	(strcmp(style,"cg/cmm/coul/long") == 0)) {
       data.pair_cut_coul = new double*[numtyp];
       m=1;
     } else {
@@ -2123,8 +2145,7 @@ void pair(FILE *fp, Data &data, char *style, int flag)
       data.pair_cg_sigma[i] = new double[numtyp];
       data.pair_cut_lj[i] = new double[numtyp];
       if ((strcmp(style,"cg/cmm/coul/cut") == 0) ||
-          (strcmp(style,"cg/cmm/coul/long") == 0) ||
-          (strcmp(style,"cg/cmm/coul/long/gpu") == 0)) {
+          (strcmp(style,"cg/cmm/coul/long") == 0)) {
         data.pair_cut_coul[i] = new double[numtyp];
       }
 
@@ -2745,11 +2766,8 @@ void Data::write(FILE *fp, FILE *fp2)
 	(strcmp(pair_style,"coul/debye") != 0) &&
 	(strcmp(pair_style,"coul/long") != 0) &&
 	(strcmp(pair_style,"eam") != 0) &&
-	(strcmp(pair_style,"eam/opt") != 0) &&
 	(strcmp(pair_style,"eam/alloy") != 0) &&
-	(strcmp(pair_style,"eam/alloy/opt") != 0) &&
 	(strcmp(pair_style,"eam/fs") != 0) &&
-	(strcmp(pair_style,"eam/fs/opt") != 0) &&
 	(strcmp(pair_style,"eim") != 0) &&
 	(strcmp(pair_style,"eff/cut") != 0) &&
 	(strcmp(pair_style,"gran/history") != 0) &&
@@ -2773,9 +2791,9 @@ void Data::write(FILE *fp, FILE *fp2)
 		pair_born_C[i],pair_born_D[i]);
 
     } else if ((strcmp(pair_style,"buck") == 0) ||
-	(strcmp(pair_style,"buck/coul/cut") == 0) ||
-	(strcmp(pair_style,"buck/coul/long") == 0) ||
-	(strcmp(pair_style,"buck/long") == 0)) {
+	       (strcmp(pair_style,"buck/coul/cut") == 0) ||
+	       (strcmp(pair_style,"buck/coul/long") == 0) ||
+	       (strcmp(pair_style,"buck/long") == 0)) {
       for (int i = 1; i <= ntypes; i++)
 	fprintf(fp,"%d %g %g %g\n",i,
 		pair_buck_A[i],pair_buck_rho[i],pair_buck_C[i]);
@@ -2801,8 +2819,7 @@ void Data::write(FILE *fp, FILE *fp2)
 	fprintf(fp,"%d %g\n",i,
 		pair_dpd_gamma[i]);
 
-    } else if ((strcmp(pair_style,"gayberne") == 0) ||
-	       (strcmp(pair_style,"gayberne/gpu") == 0)) {
+    } else if (strcmp(pair_style,"gayberne") == 0) {
       for (int i = 1; i <= ntypes; i++)
 	fprintf(fp,"%d %g %g %g %g %g %g %g %g\n",i,
 		pair_gb_epsilon[i],pair_gb_sigma[i],
@@ -2811,7 +2828,6 @@ void Data::write(FILE *fp, FILE *fp2)
 
     } else if ((strcmp(pair_style,"lj/charmm/coul/charmm") == 0) ||
 	       (strcmp(pair_style,"lj/charmm/coul/charmm/implicit") == 0) ||
-	       (strcmp(pair_style,"lj/charmm/coul/long") == 0) ||
 	       (strcmp(pair_style,"lj/charmm/coul/long") == 0)) {
       for (int i = 1; i <= ntypes; i++)
 	fprintf(fp,"%d %g %g %g %g\n",i,
@@ -2824,23 +2840,18 @@ void Data::write(FILE *fp, FILE *fp2)
       for (int i = 1; i <= ntypes; i++)
 	fprintf(fp,"%d %g %g\n",i,
 		pair_class2_epsilon[i],pair_class2_sigma[i]);
-
+      
     } else if ((strcmp(pair_style,"lj/cut") == 0) ||
-	       (strcmp(pair_style,"lj/cut/gpu") == 0) ||
-	       (strcmp(pair_style,"lj/cut/opt") == 0) ||
 	       (strcmp(pair_style,"lj/cut/coul/cut") == 0) ||
-	       (strcmp(pair_style,"lj/cut/coul/cut/gpu") == 0) ||
 	       (strcmp(pair_style,"lj/cut/coul/debye") == 0) ||
 	       (strcmp(pair_style,"lj/cut/coul/long") == 0) ||
-	       (strcmp(pair_style,"lj/cut/coul/long/gpu") == 0) ||
 	       (strcmp(pair_style,"lj/cut/coul/long/tip4p") == 0) ||
 	       (strcmp(pair_style,"lj/coul") == 0)) {
       for (int i = 1; i <= ntypes; i++)
 	fprintf(fp,"%d %g %g\n",i,
 		pair_lj_epsilon[i],pair_lj_sigma[i]);
 
-    } else if ((strcmp(pair_style,"lj/expand") == 0) ||
-	       (strcmp(pair_style,"lj/expand/gpu")==0)) {
+    } else if (strcmp(pair_style,"lj/expand") == 0) {
       for (int i = 1; i <= ntypes; i++)
 	fprintf(fp,"%d %g %g %g\n",i,
 		pair_ljexpand_epsilon[i],pair_ljexpand_sigma[i],
@@ -2857,9 +2868,7 @@ void Data::write(FILE *fp, FILE *fp2)
 	fprintf(fp,"%d %g %g\n",i,
 		pair_ljsmooth_epsilon[i],pair_ljsmooth_sigma[i]);
 
-    } else if ((strcmp(pair_style,"morse") == 0) ||
-	       (strcmp(pair_style,"morse/gpu") == 0) ||
-	       (strcmp(pair_style,"morse/opt") == 0)) {
+    } else if (strcmp(pair_style,"morse") == 0) {
       for (int i = 1; i <= ntypes; i++)
 	fprintf(fp,"%d %g %g %g\n",i,
 		pair_morse_d0[i],pair_morse_alpha[i],pair_morse_r0[i]);
@@ -2888,10 +2897,8 @@ void Data::write(FILE *fp, FILE *fp2)
 
   if (pair_style && fp2) {
     if ((strcmp(pair_style,"cg/cmm") == 0) ||
-	(strcmp(pair_style,"cg/cmm/gpu") == 0) ||
 	(strcmp(pair_style,"cg/cmm/coul/cut") == 0) ||
-	(strcmp(pair_style,"cg/cmm/coul/long") == 0) ||
-	(strcmp(pair_style,"cg/cmm/coul/long/gpu") == 0)) {
+	(strcmp(pair_style,"cg/cmm/coul/long") == 0)) {
       for (int i = 1; i <= ntypes; i++) {
 	for (int j = i; j <= ntypes; j++) {
 	  fprintf(fp2,"pair_coeff %d %d %s %g %g\n",i,j,
@@ -3501,6 +3508,20 @@ void Data::write_vel_sphere_extra(FILE *fp, int i)
 
 void Data::write_vel_molecular_extra(FILE *fp, int i) {}
 void Data::write_vel_peri_extra(FILE *fp, int i) {}
+
+// ---------------------------------------------------------------------
+// strip suffix from style name if suffix is defined
+// ---------------------------------------------------------------------
+
+void strip_suffix(char *style, char *suffix)
+{
+  if (!suffix) return;
+  int n = strlen(suffix) + 2;
+  char *esuffix = new char[n];
+  sprintf(esuffix,"/%s",suffix);
+  char *ptr = strstr(style,esuffix);
+  if (ptr && ptr-style+1+strlen(suffix) == strlen(style)) *ptr = '\0';
+}
 
 // ---------------------------------------------------------------------
 // binary reads from restart file

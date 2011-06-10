@@ -471,7 +471,7 @@ void PairReaxC::compute(int eflag, int vflag)
     pvector[13] = data->my_en.e_pol;
   }
 
-  if (vflag_fdotr) virial_compute();
+  if (vflag_fdotr) virial_fdotr_compute();
 
 // #if defined(LOG_PERFORMANCE)
 //   if( comm->me == 0 && fix_qeq != NULL ) {

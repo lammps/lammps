@@ -27,18 +27,18 @@ namespace LAMMPS_NS {
 class PairRESquared : public Pair {
  public:
   PairRESquared(LAMMPS *lmp);
-  ~PairRESquared();
-  void compute(int, int);
+  virtual ~PairRESquared();
+  virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
-  void init_style();
+  virtual void init_style();
   double init_one(int, int);
   void write_restart(FILE *);
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
 
- private:
+ protected:
   double cut_global;
   double **cut;
 

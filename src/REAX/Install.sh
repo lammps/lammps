@@ -4,8 +4,7 @@
 if (test $1 = 1) then
 
   if (test -e ../Makefile.package) then
-    sed -i -e 's/[^ \t]*reax //' ../Makefile.package
-    sed -i -e 's/[^ \t]*reax_[^ \t]*) //' ../Makefile.package
+    sed -i -e 's/[^ \t]*reax[^ \t]* //' ../Makefile.package
     sed -i -e 's|^PKG_INC =[ \t]*|&-I../../lib/reax |' ../Makefile.package
     sed -i -e 's|^PKG_PATH =[ \t]*|&-L../../lib/reax |' ../Makefile.package
     sed -i -e 's|^PKG_LIB =[ \t]*|&-lreax |' ../Makefile.package
@@ -24,8 +23,7 @@ if (test $1 = 1) then
 elif (test $1 = 0) then
 
   if (test -e ../Makefile.package) then
-    sed -i -e 's/[^ \t]*reax //' ../Makefile.package
-    sed -i -e 's/[^ \t]*reax_[^ \t]*) //' ../Makefile.package
+    sed -i -e 's/[^ \t]*reax[^ \t]* //' ../Makefile.package
   fi
 
   rm -f ../pair_reax.cpp

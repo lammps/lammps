@@ -11,7 +11,9 @@ The libraries included in the LAMMPS distribution are the following:
 
 atc           atomistic-to-continuum methods
                 from Reese Jones, Jeremy Templeton, Jon Zimmerman (Sandia)
-gpu	      graphical processor (GPU) routines, currently NVIDIA specific,
+awpmd         antisymmetrized wave packet molecular dynamics
+                from Ilya Valuev (JIHT RAS)
+gpu	      graphical processor (GPU) routines, currently NVIDIA specific
 	        from Mike Brown (Sandia)
 poems	      POEMS rigid-body integration package
                 from RPI

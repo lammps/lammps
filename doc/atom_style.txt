@@ -60,15 +60,16 @@ quantities.
 {full} | molecular + charge | bio-molecules |
 {molecular} | bonds, angles, dihedrals, impropers | uncharged molecules |
 {peri} | mass, volume | mesocopic Peridynamic models |
-{sphere} | diameter, mass, angular velocity | granular models :tb(c=3,s=|)
+{sphere} | diameter, mass, angular velocity | granular models |
+{wavepacket} | charge, spin, eradius, etag, cs_re, cs_im | AWPMD :tb(c=3,s=|)
 
 All of the styles assign mass to particles on a per-type basis, using
 the "mass"_mass.html command, except for the finite-size particle
 styles discussed below.  They assign mass on a per-atom basis.
 
 All of the styles define point particles, except the {sphere},
-{ellipsoid}, {electron}, and {peri} styles, which define finite-size
-particles.
+{ellipsoid}, {electron}, {peri}, and {wavepacket} styles, which define
+finite-size particles.
 
 For the {sphere} style, the particles are spheres and each stores a
 per-particle diameter and mass.  If the diameter > 0.0, the particle
@@ -87,6 +88,12 @@ position, which is represented by the eradius = electron size.
 
 For the {peri} style, the particles are spherical and each stores a
 per-particle mass and volume.
+
+The {wavepacket} style is similar to {electron}, but the electrons may
+consist of several Gaussian wave packets, summed up with coefficients
+cs= (cs_re,cs_im).  Each of the wave packets is treated as a separate
+particle in LAMMPS, wave packets belonging to the same electron must
+have identical {etag} values.
 
 :line
 
@@ -117,9 +124,11 @@ The {angle}, {bond}, {full}, and {molecular} styles are part of the
 package.  The {ellipsoid} style is part of the "asphere" package.  The
 {peri} style is part of the "peri" package for Peridynamics.  The
 {electron} style is part of the "user-eff" package for "electronic
-force fields"_pair_eff.html.  They are only enabled if LAMMPS was
-built with that package.  See the "Making
-LAMMPS"_Section_start.html#2_3 section for more info.
+force fields"_pair_eff.html.  The {wavepacket} style is part of the
+"user-awpmd" package for the "antisymmetrized wave packet MD
+method"_pair_awpmd.html.  They are only enabled if LAMMPS was built
+with that package.  See the "Making LAMMPS"_Section_start.html#2_3
+section for more info.
 
 [Related commands:]
 

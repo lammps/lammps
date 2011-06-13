@@ -1,0 +1,130 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_style awpmd/cut command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_style awpmd/cut Rc keyword value ... 
+</PRE>
+<UL><LI>Rc = global cutoff, -1 means cutoff of half the shortest box length 
+
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>hartree</I> or <I>dproduct</I> or <I>uhf</I> or <I>free</I> or <I>pbc</I> or <I>fix</I> or <I>harm</I> or <I>ermscale</I> or <I>flex_press</I> 
+
+<PRE>  <I>hartree</I> value = none
+  <I>dproduct</I> value = none
+  <I>uhf</I> value = none
+  <I>free</I> value = none
+  <I>pbc</I> value = Plen
+    Plen = periodic width of electron = -1 or positive value (distance units)
+  <I>fix</I> value = Flen
+    Flen = fixed width of electron = -1 or positive value (distance units)
+  <I>harm</I> value = width
+    width = harmonic width constraint
+  <I>ermscale</I> value = factor
+    factor = scaling between electron mass and width variable mass
+  <I>flex_press</I> value = none 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_style awpmd/cut -1
+pair_style awpmd/cut 40.0 uhf free
+pair_coeff * *
+pair_coeff 2 2 20.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This pair style contains an implementation of the Antisymmetrized Wave
+Packet Molecular Dynamics (AWPMD) method.  Need citation here.  Need
+basic formulas here.  Could be links to other documents.
+</P>
+<P>Rc is the cutoff.
+</P>
+<P>The pair_style command allows for several optional keywords
+to be specified.
+</P>
+<P>The <I>hartree</I>, <I>dproduct</I>, and <I>uhf</I> keywords specify the form of the
+initial trial wave function for the system.  If the <I>hartree</I> keyword
+is used, then a Hartree multielectron trial wave function is used.  If
+the <I>dproduct</I> keyword is used, then a trial function which is a
+product of two determinants for each spin type is used.  If the <I>uhf</I>
+keyword is used, then an unrestricted Hartree-Fock trial wave function
+is used.
+</P>
+<P>The <I>free</I>, <I>pbc</I>, and <I>fix</I> keywords specify a width constraint on
+the electron wavepackets.  If the <I>free</I> keyword is specified, then there is no
+constraint.  If the <I>pbc</I> keyword is used and <I>Plen</I> is specified as
+-1, then the maximum width is half the shortest box length.  If <I>Plen</I>
+is a positive value, then the value is the maximum width.  If the
+<I>fix</I> keyword is used and <I>Flen</I> is specified as -1, then electrons
+have a constant width that is read from the data file.  If <I>Flen</I> is a
+positive value, then the constant width for all electrons is set to
+<I>Flen</I>.
+</P>
+<P>The <I>harm</I> keyword allow oscillations in the width of the
+electron wavepackets.  More details are needed.
+</P>
+<P>The <I>ermscale</I> keyword specifies a unitless scaling factor
+between the electron masses and the width variable mass.  More
+details needed.
+</P>
+<P>If the <I>flex_press</I> keyword is used, then a contribution from the
+electrons is added to the total virial and pressure of the system.
+</P>
+<P>This potential is designed to be used with <A HREF = "atom_style.html">atom_style
+wavepacket</A> definitions, in order to handle the
+description of systems with interacting nuclei and explicit electrons.
+</P>
+<P>The following coefficients must be defined for each pair of atoms
+types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
+above, or in the data file or restart files read by the
+<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
+commands, or by mixing as described below:
+</P>
+<UL><LI>cutoff (distance units) 
+</UL>
+<P>For <I>awpmd/cut</I>, the cutoff coefficient is optional.  If it is not
+used (as in some of the examples above), the default global value
+specified in the pair_style command is used.
+</P>
+<HR>
+
+<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
+</P>
+<P>The <A HREF = "pair_modify.html">pair_modify</A> mix, shift, table, and tail options
+are not relevant for this pair style.
+</P>
+<P>This pair style writes its information to <A HREF = "restart.html">binary restart
+files</A>, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.
+</P>
+<P>This pair style can only be used via the <I>pair</I> keyword of the
+<A HREF = "run_style.html">run_style respa</A> command.  It does not support the
+<I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
+</P>
+<HR>
+
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>These are the defaults for the pair_style keywords: <I>hartree</I> for the
+initial wavefunction, <I>free</I> for the wavepacket width.
+</P>
+</HTML>

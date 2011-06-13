@@ -73,8 +73,8 @@ user-awpmd_SYSLIB =  -lblas -llapack
 gpu_SYSPATH =      -L/usr/local/cuda/lib64
 meam_SYSPATH =
 reax_SYSPATH =
-user-atc_SYSPATH = 	
-user-awpmd_SYSPATH = 	
+user-atc_SYSPATH =
+user-awpmd_SYSPATH =
 
 # ---------------------------------------------------------------------
 # build rules and dependencies

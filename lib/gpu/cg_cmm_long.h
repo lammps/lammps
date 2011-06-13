@@ -1,30 +1,28 @@
-/* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+/***************************************************************************
+                                cg_cmm_long.h
+                             -------------------
+                            W. Michael Brown (ORNL)
 
-   Copyright (2003) Sandia Corporation.  Under the terms of Contract
-   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
-   the GNU General Public License.
+  Class for acceleration of the cg/cmm/coul/long pair style
 
-   See the README file in the top-level LAMMPS directory.
-------------------------------------------------------------------------- */
- 
-/* ----------------------------------------------------------------------
-   Contributing authors: Mike Brown (ORNL), brownw@ornl.gov
-------------------------------------------------------------------------- */
+ __________________________________________________________________________
+    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
+ __________________________________________________________________________
 
-#ifndef CMML_GPU_MEMORY_H
-#define CMML_GPU_MEMORY_H
+    begin                : 
+    email                : brownw@ornl.gov
+ ***************************************************************************/
+
+#ifndef LAL_CG_CMM_LONG_H
+#define LAL_CG_CMM_LONG_H
 
 #include "base_charge.h"
 
 template <class numtyp, class acctyp>
-class CMML_GPU_Memory : public BaseCharge<numtyp, acctyp> {
+class CGCMMLong : public BaseCharge<numtyp, acctyp> {
  public:
-  CMML_GPU_Memory();
-  ~CMML_GPU_Memory();
+  CGCMMLong();
+  ~CGCMMLong();
 
   /// Clear any previous data and set up for a new LAMMPS run
   /** \param max_nbors initial number of rows in the neighbor matrix

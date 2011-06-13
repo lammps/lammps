@@ -1,22 +1,17 @@
-/* ----------------------------------------------------------------------
-   LAMMPS-Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
-
-   Copyright (2003) Sandia Corporation.  Under the terms of Contract
-   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
-   the GNU General Public License.
-
-   See the README file in the top-level LAMMPS directory.
-------------------------------------------------------------------------- */
-
-/* ----------------------------------------------------------------------
-   Contributing authors: Mike Brown (ORNL), brownw@ornl.gov
-------------------------------------------------------------------------- */
-
-#ifndef PPPM_GPU_KERNEL
-#define PPPM_GPU_KERNEL
+// **************************************************************************
+//                                  pppm.cu
+//                             -------------------
+//                           W. Michael Brown (ORNL)
+//
+//  Device code for PPPM acceleration
+//
+// __________________________________________________________________________
+//    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
+// __________________________________________________________________________
+//
+//    begin                : 
+//    email                : brownw@ornl.gov
+// ***************************************************************************/
 
 #ifdef NV_KERNEL
 
@@ -327,6 +322,4 @@ __kernel void interp(__global numtyp4 *x_, __global numtyp *q_,
     ans[ii]=ek;
 	}
 }
-
-#endif
 

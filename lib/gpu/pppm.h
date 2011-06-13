@@ -1,22 +1,20 @@
-/* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Charge/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+/***************************************************************************
+                                   pppm.h
+                             -------------------
+                            W. Michael Brown (ORNL)
 
-   Copyright (2003) Sandia Corporation.  Under the terms of Contract
-   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
-   the GNU General Public License.
+  Class for PPPM acceleration
 
-   See the README file in the top-level LAMMPS directory.
-------------------------------------------------------------------------- */
- 
-/* ----------------------------------------------------------------------
-   Contributing authors: Mike Brown (ORNL), brownw@ornl.gov
-------------------------------------------------------------------------- */
+ __________________________________________________________________________
+    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
+ __________________________________________________________________________
 
-#ifndef PPPM_GPU_MEMORY_H
-#define PPPM_GPU_MEMORY_H
+    begin                : 
+    email                : brownw@ornl.gov
+ ***************************************************************************/
+
+#ifndef LAL_PPPM_H
+#define LAL_PPPM_H
 
 #include "mpi.h"
 #include "device.h"
@@ -30,10 +28,10 @@
 template <class numtyp, class acctyp> class Device;
 
 template <class numtyp, class acctyp, class grdtyp, class grdtyp4>
-class PPPMGPUMemory {
+class PPPM {
  public:
-  PPPMGPUMemory();
-  virtual ~PPPMGPUMemory();
+  PPPM();
+  virtual ~PPPM();
 
   /// Clear any previous data and set up for a new LAMMPS run
   /** Success will be:

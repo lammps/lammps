@@ -1,19 +1,17 @@
-/* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+/***************************************************************************
+                             cg_cmm_msm_ext.cpp
+                             -------------------
+                            W. Michael Brown (ORNL)
 
-   Copyright (2003) Sandia Corporation.  Under the terms of Contract
-   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
-   the GNU General Public License.
+  Function for LAMMPS access to cg/cmm/coul/msm pair acceleration routines.
 
-   See the README file in the top-level LAMMPS directory.
-------------------------------------------------------------------------- */
+ __________________________________________________________________________
+    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
+ __________________________________________________________________________
 
-/* ----------------------------------------------------------------------
-   Contributing authors: Mike Brown (ORNL), brownw@ornl.gov
-------------------------------------------------------------------------- */
+    begin                : 
+    email                : brownw@ornl.gov
+ ***************************************************************************/
 
 #include <iostream>
 #include <cassert>
@@ -23,7 +21,7 @@
 
 using namespace std;
 
-static CMMM_GPU_Memory<PRECISION,ACC_PRECISION> CMMMMF;
+static CGCMMMSM<PRECISION,ACC_PRECISION> CMMMMF;
 
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device

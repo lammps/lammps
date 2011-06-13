@@ -214,14 +214,14 @@ int DeviceT::init(Answer<numtyp,acctyp> &ans, const int nlocal,
 
 template <class numtyp, class acctyp>
 void DeviceT::set_single_precompute
-                     (PPPMGPUMemory<numtyp,acctyp,float,_lgpu_float4> *pppm) {
+                     (PPPM<numtyp,acctyp,float,_lgpu_float4> *pppm) {
   _long_range_precompute=1;
   pppm_single=pppm;
 }
 
 template <class numtyp, class acctyp>
 void DeviceT::set_double_precompute
-                     (PPPMGPUMemory<numtyp,acctyp,double,_lgpu_double4> *pppm) {
+                     (PPPM<numtyp,acctyp,double,_lgpu_double4> *pppm) {
   _long_range_precompute=2;
   pppm_double=pppm;
 }

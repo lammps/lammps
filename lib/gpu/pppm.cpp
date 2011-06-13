@@ -1,19 +1,17 @@
-/* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Charge/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+/***************************************************************************
+                                  pppm.cpp
+                             -------------------
+                            W. Michael Brown (ORNL)
 
-   Copyright (2003) Sandia Corporation.  Under the terms of Contract
-   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
-   the GNU General Public License.
+  Class for PPPM acceleration
 
-   See the README file in the top-level LAMMPS directory.
-------------------------------------------------------------------------- */
- 
-/* ----------------------------------------------------------------------
-   Contributing authors: Mike Brown (ORNL), brownw@ornl.gov
-------------------------------------------------------------------------- */
+ __________________________________________________________________________
+    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
+ __________________________________________________________________________
+
+    begin                : 
+    email                : brownw@ornl.gov
+ ***************************************************************************/
 
 #ifdef USE_OPENCL
 #include "pppm_gpu_cl.h"
@@ -24,30 +22,30 @@
 #include "pppm.h"
 #include <cassert>
 
-#define PPPMGPUMemoryT PPPMGPUMemory<numtyp, acctyp, grdtyp, grdtyp4>
+#define PPPMT PPPM<numtyp, acctyp, grdtyp, grdtyp4>
 
 extern Device<PRECISION,ACC_PRECISION> global_device;
 
 template <class numtyp, class acctyp, class grdtyp, class grdtyp4>
-PPPMGPUMemoryT::PPPMGPUMemory() : _allocated(false), _compiled(false),
+PPPMT::PPPM() : _allocated(false), _compiled(false),
                                   _max_bytes(0) {
   device=&global_device;
   ans=new Answer<numtyp,acctyp>();
 }
 
 template <class numtyp, class acctyp, class grdtyp, class grdtyp4>
-PPPMGPUMemoryT::~PPPMGPUMemory() {
+PPPMT::~PPPM() {
   clear(0.0);
   delete ans;
 }
 
 template <class numtyp, class acctyp, class grdtyp, class grdtyp4>
-int PPPMGPUMemoryT::bytes_per_atom() const {
+int PPPMT::bytes_per_atom() const {
   return device->atom.bytes_per_atom()+ans->bytes_per_atom()+1;
 }
 
 template <class numtyp, class acctyp, class grdtyp, class grdtyp4>
-grdtyp * PPPMGPUMemoryT::init(const int nlocal, const int nall, FILE *_screen,
+grdtyp * PPPMT::init(const int nlocal, const int nall, FILE *_screen,
                               const int order, const int nxlo_out,
                               const int nylo_out, const int nzlo_out,
                               const int nxhi_out, const int nyhi_out,
@@ -175,7 +173,7 @@ grdtyp * PPPMGPUMemoryT::init(const int nlocal, const int nall, FILE *_screen,
 }
 
 template <class numtyp, class acctyp, class grdtyp, class grdtyp4>
-void PPPMGPUMemoryT::clear(const double cpu_time) {
+void PPPMT::clear(const double cpu_time) {
   if (!_allocated)
     return;
   _allocated=false;
@@ -215,7 +213,7 @@ void PPPMGPUMemoryT::clear(const double cpu_time) {
 // Charge assignment that can be performed asynchronously
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp, class grdtyp, class grdtyp4>
-void PPPMGPUMemoryT::_precompute(const int ago, const int nlocal, const int nall,
+void PPPMT::_precompute(const int ago, const int nlocal, const int nall,
                                  double **host_x, int *host_type, bool &success,
                                  double *host_q, double *boxlo, 
                                  const double delxinv, const double delyinv,
@@ -299,7 +297,7 @@ void PPPMGPUMemoryT::_precompute(const int ago, const int nlocal, const int nall
 // Charge spreading stuff
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp, class grdtyp, class grdtyp4>
-int PPPMGPUMemoryT::spread(const int ago, const int nlocal, const int nall,
+int PPPMT::spread(const int ago, const int nlocal, const int nall,
                            double **host_x, int *host_type, bool &success,
                            double *host_q, double *boxlo, 
                            const double delxinv, const double delyinv,
@@ -339,7 +337,7 @@ int PPPMGPUMemoryT::spread(const int ago, const int nlocal, const int nall,
 // Charge spreading stuff
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp, class grdtyp, class grdtyp4>
-void PPPMGPUMemoryT::interp(const grdtyp qqrd2e_scale) {
+void PPPMT::interp(const grdtyp qqrd2e_scale) {
   time_in.start();
   ucl_copy(d_brick,h_vd_brick,true);
   time_in.stop();
@@ -364,13 +362,13 @@ void PPPMGPUMemoryT::interp(const grdtyp qqrd2e_scale) {
 
 
 template <class numtyp, class acctyp, class grdtyp, class grdtyp4>
-double PPPMGPUMemoryT::host_memory_usage() const {
+double PPPMT::host_memory_usage() const {
   return device->atom.host_memory_usage()+
-         sizeof(PPPMGPUMemory<numtyp,acctyp,grdtyp,grdtyp4>);
+         sizeof(PPPM<numtyp,acctyp,grdtyp,grdtyp4>);
 }
 
 template <class numtyp, class acctyp, class grdtyp, class grdtyp4>
-void PPPMGPUMemoryT::compile_kernels(UCL_Device &dev) {
+void PPPMT::compile_kernels(UCL_Device &dev) {
   if (_compiled)
     return;
 
@@ -404,6 +402,6 @@ void PPPMGPUMemoryT::compile_kernels(UCL_Device &dev) {
   _compiled=true;
 }
 
-template class PPPMGPUMemory<PRECISION,ACC_PRECISION,float,_lgpu_float4>;
-template class PPPMGPUMemory<PRECISION,ACC_PRECISION,double,_lgpu_double4>;
+template class PPPM<PRECISION,ACC_PRECISION,float,_lgpu_float4>;
+template class PPPM<PRECISION,ACC_PRECISION,double,_lgpu_double4>;
 

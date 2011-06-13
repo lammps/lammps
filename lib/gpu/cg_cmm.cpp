@@ -1,19 +1,17 @@
-/* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+/***************************************************************************
+                                 cg_cmm.cpp
+                             -------------------
+                            W. Michael Brown (ORNL)
 
-   Copyright (2003) Sandia Corporation.  Under the terms of Contract
-   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
-   the GNU General Public License.
+  Class for acceleration of the cg/cmm/cut pair style
 
-   See the README file in the top-level LAMMPS directory.
-------------------------------------------------------------------------- */
- 
-/* ----------------------------------------------------------------------
-   Contributing authors: Mike Brown (ORNL), brownw@ornl.gov
-------------------------------------------------------------------------- */
+ __________________________________________________________________________
+    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
+ __________________________________________________________________________
+
+    begin                : 
+    email                : brownw@ornl.gov
+ ***************************************************************************/
 
 #ifdef USE_OPENCL
 #include "cg_cmm_ext_cl.h"
@@ -23,26 +21,26 @@
 
 #include "cg_cmm.h"
 #include <cassert>
-#define CMM_GPU_MemoryT CMM_GPU_Memory<numtyp, acctyp>
+#define CGCMMT CGCMM<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
 
 template <class numtyp, class acctyp>
-CMM_GPU_MemoryT::CMM_GPU_Memory() : BaseAtomic<numtyp,acctyp>(), _allocated(false) {
+CGCMMT::CGCMM() : BaseAtomic<numtyp,acctyp>(), _allocated(false) {
 }
 
 template <class numtyp, class acctyp>
-CMM_GPU_MemoryT::~CMM_GPU_Memory() { 
+CGCMMT::~CGCMM() { 
   clear();
 }
  
 template <class numtyp, class acctyp>
-int CMM_GPU_MemoryT::bytes_per_atom(const int max_nbors) const {
+int CGCMMT::bytes_per_atom(const int max_nbors) const {
   return this->bytes_per_atom_atomic(max_nbors);
 }
 
 template <class numtyp, class acctyp>
-int CMM_GPU_MemoryT::init(const int ntypes, double **host_cutsq, 
+int CGCMMT::init(const int ntypes, double **host_cutsq, 
                           int **host_cg_type, double **host_lj1, 
                           double **host_lj2, double **host_lj3, 
                           double **host_lj4, double **host_offset, 
@@ -92,7 +90,7 @@ int CMM_GPU_MemoryT::init(const int ntypes, double **host_cutsq,
 }
 
 template <class numtyp, class acctyp>
-void CMM_GPU_MemoryT::clear() {
+void CGCMMT::clear() {
   if (!_allocated)
     return;
   _allocated=false;
@@ -104,15 +102,15 @@ void CMM_GPU_MemoryT::clear() {
 }
 
 template <class numtyp, class acctyp>
-double CMM_GPU_MemoryT::host_memory_usage() const {
-  return this->host_memory_usage_atomic()+sizeof(CMM_GPU_Memory<numtyp,acctyp>);
+double CGCMMT::host_memory_usage() const {
+  return this->host_memory_usage_atomic()+sizeof(CGCMM<numtyp,acctyp>);
 }
 
 // ---------------------------------------------------------------------------
 // Calculate energies, forces, and torques
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-void CMM_GPU_MemoryT::loop(const bool _eflag, const bool _vflag) {
+void CGCMMT::loop(const bool _eflag, const bool _vflag) {
   // Compute the block size and grid size to keep all cores busy
   const int BX=this->block_size();
   int eflag, vflag;
@@ -152,4 +150,4 @@ void CMM_GPU_MemoryT::loop(const bool _eflag, const bool _vflag) {
   this->time_pair.stop();
 }
 
-template class CMM_GPU_Memory<PRECISION,ACC_PRECISION>;
+template class CGCMM<PRECISION,ACC_PRECISION>;

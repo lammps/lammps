@@ -27,7 +27,7 @@
 #include <queue>
 
 template <class numtyp, class acctyp, 
-          class grdtyp, class grdtyp4> class PPPMGPUMemory;
+          class grdtyp, class grdtyp4> class PPPM;
 
 template <class numtyp, class acctyp>
 class Device {
@@ -88,11 +88,11 @@ class Device {
                     const int first_gpu, const int last_gpu);
 
   /// Perform charge assignment asynchronously for PPPM
-	void set_single_precompute(PPPMGPUMemory<numtyp,acctyp,
+	void set_single_precompute(PPPM<numtyp,acctyp,
 	                                         float,_lgpu_float4> *pppm);
 
   /// Perform charge assignment asynchronously for PPPM
-	void set_double_precompute(PPPMGPUMemory<numtyp,acctyp,
+	void set_double_precompute(PPPM<numtyp,acctyp,
 	                                         double,_lgpu_double4> *pppm);
 
   /// Esimate the overhead from GPU calls from multiple procs
@@ -257,8 +257,8 @@ class Device {
   
   // Long Range Data
   int _long_range_precompute;
-  PPPMGPUMemory<numtyp,acctyp,float,_lgpu_float4> *pppm_single;
-  PPPMGPUMemory<numtyp,acctyp,double,_lgpu_double4> *pppm_double;
+  PPPM<numtyp,acctyp,float,_lgpu_float4> *pppm_single;
+  PPPM<numtyp,acctyp,double,_lgpu_double4> *pppm_double;
   /// Precomputations for long range charge assignment (asynchronously)
   inline void precompute(const int ago, const int nlocal, const int nall,
                          double **host_x, int *host_type, bool &success,

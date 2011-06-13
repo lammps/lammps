@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef USE_OPENCL
-#include "lj_ext_cl.h"
+#include "lj_cl.h"
 #else
-#include "lj_ext_ptx.h"
+#include "lj_ptx.h"
 #endif
 
 #include "lj.h"

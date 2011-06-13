@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef USE_OPENCL
-#include "morse_ext_cl.h"
+#include "morse_cl.h"
 #else
-#include "morse_ext_ptx.h"
+#include "morse_ptx.h"
 #endif
 
 #include "morse.h"

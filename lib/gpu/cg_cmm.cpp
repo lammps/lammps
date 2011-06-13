@@ -14,9 +14,9 @@
  ***************************************************************************/
 
 #ifdef USE_OPENCL
-#include "cg_cmm_ext_cl.h"
+#include "cg_cmm_cl.h"
 #else
-#include "cg_cmm_ext_ptx.h"
+#include "cg_cmm_ptx.h"
 #endif
 
 #include "cg_cmm.h"

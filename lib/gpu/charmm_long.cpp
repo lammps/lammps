@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef USE_OPENCL
-#include "charmm_long_ext_cl.h"
+#include "charmm_long_cl.h"
 #else
-#include "charmm_long_ext_ptx.h"
+#include "charmm_long_ptx.h"
 #endif
 
 #include "charmm_long.h"

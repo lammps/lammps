@@ -31,6 +31,10 @@ class Force : protected Pointers {
   double xxt2kmu;                    // conversion of xx/t to kinematic-visc
   double dielectric;                 // dielectric constant
   double qqrd2e;                     // q^2/r to energy w/ dielectric constant
+  double e_mass;                     // electron mass
+  double hhmrr2e;                    // conversion of (hbar)^2/(mr^2) to energy
+  double mvh2r;                      // conversion of mv/hbar to distance 
+                                     // hbar = h/(2*pi)
 
   int newton,newton_pair,newton_bond;   // Newton's 3rd law settings
 

@@ -805,8 +805,11 @@ void Atom::data_atoms(int n, char *buf)
     next = strchr(buf,'\n');
 
     values[0] = strtok(buf," \t\n\r\f");
-    for (m = 1; m < nwords; m++)
+    if (values[0] == NULL) error->all("Incorrect atom format in data file");
+    for (m = 1; m < nwords; m++) {
       values[m] = strtok(NULL," \t\n\r\f");
+      if (values[m] == NULL) error->all("Incorrect atom format in data file");
+    }
 
     if (imageflag)
       imagedata = ((atoi(values[iptr+2]) + 512 & 1023) << 20) |

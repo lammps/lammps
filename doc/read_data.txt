@@ -273,6 +273,7 @@ full: atom-ID molecule-ID atom-type q x y z
 molecular: atom-ID molecule-ID atom-type x y z
 peri: atom-ID atom-type volume density x y z
 sphere: atom-ID atom-type diameter density x y z
+wavepacket: atom-ID atom-type charge spin eradius etag cs_re cs_im x y z
 hybrid: atom-ID atom-type x y z sub-style1 sub-style2 ...  :tb(s=:)
 
 The keywords have these meanings:
@@ -288,7 +289,9 @@ volume = volume of atom (distance^3 units)
 x,y,z = coordinates of atom
 mux,muy,muz = components of dipole moment of atom (dipole units)
 spin = electron spin (+1/-1), 0 = nuclei, 2 = fixed-core, 3 = pseudo-cores (i.e. ECP)
-eradius = electron radius (or fixed-core radius) :ul
+eradius = electron radius (or fixed-core radius)
+etag = integer ID of electron that each wavepacket belongs to
+cs_re,cs_im = real/imaginary parts of wavepacket coefficients :ul
 
 The units for these quantities depend on the unit style; see the
 "units"_units.html command for details.

@@ -84,7 +84,10 @@ if (test $1 = 1) then
   cp gpu_extra.h ..
 
   cp pair_omp_gpu.cpp ..
+  cp pair_lj_cut_tgpu.cpp ..
+
   cp pair_omp_gpu.h ..
+  cp pair_lj_cut_tgpu.h ..
   
 elif (test $1 = 0) then
 
@@ -115,6 +118,7 @@ elif (test $1 = 0) then
 
   rm -f ../fix_gpu.cpp
   rm -f ../pair_omp_gpu.cpp
+  rm -f ../pair_lj_cut_tgpu.cpp
 
   rm -f ../pppm_gpu.h
   rm -f ../pppm_gpu_single.h
@@ -139,6 +143,7 @@ elif (test $1 = 0) then
   rm -f ../fix_gpu.h
   rm -f ../gpu_extra.h
   rm -f ../pair_omp_gpu.h
+  rm -f ../pair_lj_cut_tgpu.h
   
 fi
 

@@ -410,17 +410,17 @@ void PairAWPMDCut::allocate()
 // [ermscale <number>]  -- scaling factor between electron mass and effective width mass (used for equations of motion only) (default is 1)
 // [flex_press]  -- set flexible pressure flag
 // -1 for length means default setting (L/2 for cutoff and L for width PBC)
+
 void PairAWPMDCut::settings(int narg, char **arg){ 
-  cut_global=-1.;
+  if (narg < 1) error->all("Illegal pair_style command");
+
+  cut_global = force->numeric(arg[0]);
+  
   ermscale=1.;
   width_pbc=0.;
-  for(int i=0;i<narg;i++){
+
+  for(int i=1;i<narg;i++){
     // reading commands
-    // first is cutoff value
-    if(i==0){
-      cut_global = force->numeric(arg[0]);
-      continue;
-    }
     if(!strcmp(arg[i],"hartree"))
       wpmd->approx=AWPMD::HARTREE;
     else if(!strcmp(arg[i],"dproduct"))

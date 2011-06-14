@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Ilya Valuev
+   Contributing author: Ilya Valuev (JIHT, Moscow, Russia)
 ------------------------------------------------------------------------- */
 
 #include "math.h"
@@ -33,7 +33,6 @@
 #include "error.h"
 
 #include "TCP/wpmd_split.h"
-
 
 using namespace LAMMPS_NS;
 

@@ -49,20 +49,21 @@ sub-directories:
 <TR><TD >tools</TD><TD > pre- and post-processing tools 
 </TD></TR></TABLE></DIV>
 
-<P>If you download the Windows executable from the download page,
+<P>If you download one of the Windows executables from the download page,
 then you just get a single file:
 </P>
 <PRE>lmp_windows.exe 
 </PRE>
-<P>Skip to the <A HREF = "#2_5">Running LAMMPS</A> section, to learn how to launch this
-executable on a Windows box.
+<P>Skip to the <A HREF = "#2_5">Running LAMMPS</A> sections for info on how to launch
+these executables on a Windows box.
 </P>
-<P>The Windows executable also only includes certain packages and
-bug-fixes/upgrades listed on <A HREF = "http://lammps.sandia.gov/bug.html">this
+<P>The Windows executables for serial or parallel only include certain
+packages and bug-fixes/upgrades listed on <A HREF = "http://lammps.sandia.gov/bug.html">this
 page</A> up to a certain date, as
 stated on the download page.  If you want something with more packages
 or that is more current, you'll have to download the source tarball
-and build it yourself, as described in the next section.
+and build it yourself from source code using Microsoft Visual Studio,
+as described in the next section.
 </P>
 <HR>
 
@@ -344,19 +345,31 @@ particular machine.
 </P>
 <P>(4) Building for MicroSoft Windows.
 </P>
-<P>The LAMMPS download page has an option to download a pre-built Windows
-exeutable.  See below for instructions for running this executable on
-a Windows box.
+<P>The LAMMPS download page has an option to download both a serial and
+parallel pre-built Windows exeutable.  See the <A HREF = "#2_5">Running LAMMPS</A>
+section for instructions for running these executables on a Windows
+box.
 </P>
 <P>If the pre-built executable doesn't have the options you want, then
-you should be able to build LAMMPS from source files on a Windows box.
-I've never done this, but LAMMPS is just standard C++ with MPI and FFT
-calls.  You can use cygwin to build LAMMPS with a Unix make; see
-Makefile.cygwin.  Or you should be able to pull all the source files
-into Visual C++ (ugh) or some similar development environment and
-build it.  In the src/MAKE/Windows directory are some notes from users
-on how they built LAMMPS under Windows, so you can look at their
-instructions for tips.  Good luck - we can't help you on this one.
+you can build LAMMPS from its source files on a Windows box.  One way
+to do this is install and use cygwin to build LAMMPS with a standard
+Linus make, just as you would on any Linux box; see
+src/MAKE/Makefile.cygwin.
+</P>
+<P>There is a also a src/WINDOWS directory that contains project files
+for Microsoft Visual Studio 2005, which should also work with later
+versions of VS.  That directory contains a README.txt file which
+provides instructions for building LAMMPS from source code using
+Visual Studio that are hopefully easy to follow for Windows and VS
+users.
+</P>
+<P>Four VS project options are provided.  The first includes the default
+packages (MANYBODY, MOLECULE, and KSPACE).  The second includes all
+standard packages (except GPU, MEAM, and REAX which are not yet
+included because they require NVIDIA or Fortran compilation).  The
+third includes all standard packages (with the exceptions) and some
+user packages.  The included user packages are USER-EFF, USER-CG-CMM,
+and USER-REAXC.  The fourth project includes the USER-AWPMD package.
 </P>
 <P>(5) Changing the size limits in src/lmptype.h
 </P>

@@ -70,7 +70,9 @@ This section has the following sub-sections:
 "Building a LAMMPS executable"_#2_2_2
 "Common errors that can occur when making LAMMPS"_#2_2_3
 "Editing a new low-level Makefile"_#2_2_4
-"Additional build tips"_#2_2_5 :ul
+"Additional build tips"_#2_2_5
+"Building for a Mac"_#2_2_6
+"Building for Windows"_#2_2_7 :ul
 
 :line
 
@@ -334,11 +336,15 @@ Typing "make clean-all" or "make clean-foo" will delete *.o object
 files created when LAMMPS is built, for either all builds or for a
 particular machine.
 
-(3) Building for a Mac.
+:line
+
+[{Building for a Mac:}] :link(2_2_6)
 
 OS X is BSD Unix, so it should just work.  See the Makefile.mac file.
 
-(4) Building for MicroSoft Windows.
+:line
+
+[{Building for Windows:}] :link(2_2_7)
 
 The LAMMPS download page has an option to download both a serial and
 parallel pre-built Windows exeutable.  See the "Running LAMMPS"_#2_5

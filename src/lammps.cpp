@@ -55,6 +55,8 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   int inflag = 0;
   int screenflag = 0;
   int logflag = 0;
+  int partscreenflag = 0;
+  int partlogflag = 0;
   int cudaflag = -1;
   suffix = NULL;
   suffix_enable = 0;
@@ -94,6 +96,18 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
 	       strcmp(arg[iarg],"-e") == 0) {
       if (iarg+2 > narg) error->universe_all("Invalid command-line argument");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"-pscreen") == 0 || 
+	       strcmp(arg[iarg],"-ps") == 0) {
+      if (iarg+2 > narg) 
+       error->universe_all("Invalid command-line argument");
+      partscreenflag = iarg + 1;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"-plog") == 0 || 
+	       strcmp(arg[iarg],"-pl") == 0) {
+      if (iarg+2 > narg) 
+       error->universe_all("Invalid command-line argument");
+      partlogflag = iarg + 1;
+      iarg += 2;
     } else if (strcmp(arg[iarg],"-cuda") == 0 || 
 	       strcmp(arg[iarg],"-c") == 0) {
       if (iarg+2 > narg) error->universe_all("Invalid command-line argument");
@@ -126,6 +140,16 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
 
   if (universe->existflag && inflag == 0)
     error->universe_all("Must use -in switch with multiple partitions");
+
+  // if no partition command-line switch, cannot use -pscreen option
+
+  if (universe->existflag == 0 && partscreenflag)
+    error->universe_all("Can only use -pscreen with multiple partitions");
+
+  // if no partition command-line switch, cannot use -plog option
+
+  if (universe->existflag == 0 && partlogflag)
+    error->universe_all("Can only use -plog with multiple partitions");
 
   // set universe screen and logfile
 
@@ -194,37 +218,53 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
     MPI_Comm_split(universe->uworld,universe->iworld,0,&world);
     MPI_Comm_rank(world,&me);
 
-    if (me == 0) {
-      if (screenflag == 0) {
-	char str[32];
-	sprintf(str,"screen.%d",universe->iworld);
-	screen = fopen(str,"w");
-	if (screen == NULL) error->one("Cannot open screen file");
-      } else if (strcmp(arg[screenflag],"none") == 0)
+    if (me == 0)
+      if (partscreenflag == 0)
+       if (screenflag == 0) {
+         char str[32];
+         sprintf(str,"screen.%d",universe->iworld);
+         screen = fopen(str,"w");
+         if (screen == NULL) error->one("Cannot open screen file");
+       } else if (strcmp(arg[screenflag],"none") == 0)
+         screen = NULL;
+       else {
+         char str[128];
+         sprintf(str,"%s.%d",arg[screenflag],universe->iworld);
+         screen = fopen(str,"w");
+         if (screen == NULL) error->one("Cannot open screen file");
+       }
+      else if (strcmp(arg[partscreenflag],"none") == 0)
 	screen = NULL;
       else {
 	char str[128];
-	sprintf(str,"%s.%d",arg[screenflag],universe->iworld);
+	sprintf(str,"%s.%d",arg[partscreenflag],universe->iworld);
 	screen = fopen(str,"w");
 	if (screen == NULL) error->one("Cannot open screen file");
-      }
-    } else screen = NULL;
+      } else screen = NULL;
     
-    if (me == 0) {
-      if (logflag == 0) {
-	char str[32];
-	sprintf(str,"log.lammps.%d",universe->iworld);
-	logfile = fopen(str,"w");
-	if (logfile == NULL) error->one("Cannot open logfile");
-      } else if (strcmp(arg[logflag],"none") == 0)
+    if (me == 0)
+      if (partlogflag == 0)
+       if (logflag == 0) {
+         char str[32];
+         sprintf(str,"log.lammps.%d",universe->iworld);
+         logfile = fopen(str,"w");
+         if (logfile == NULL) error->one("Cannot open logfile");
+       } else if (strcmp(arg[logflag],"none") == 0)
+         logfile = NULL;
+       else {
+         char str[128];
+         sprintf(str,"%s.%d",arg[logflag],universe->iworld);
+         logfile = fopen(str,"w");
+         if (logfile == NULL) error->one("Cannot open logfile");
+       }
+      else if (strcmp(arg[partlogflag],"none") == 0)
 	logfile = NULL;
       else {
 	char str[128];
-	sprintf(str,"%s.%d",arg[logflag],universe->iworld);
+	sprintf(str,"%s.%d",arg[partlogflag],universe->iworld);
 	logfile = fopen(str,"w");
 	if (logfile == NULL) error->one("Cannot open logfile");
-      }
-    } else logfile = NULL;
+      } else logfile = NULL;
     
     if (me == 0) {
       infile = fopen(arg[inflag],"r");

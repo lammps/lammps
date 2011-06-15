@@ -1,5 +1,5 @@
 # Package.sh = package management, called from Makefile
-# Syntax: sh Package.sh DIR status/update/overwrite/regenerate
+# Syntax: sh Package.sh DIR status/update/overwrite/regenerate/diff
 
 # style used to translate dir name to package name
 
@@ -79,7 +79,7 @@ elif (test $2 = "overwrite") then
     echo "  $1 package is not installed, no action"
   fi
 
-# regenernate Makefile.package from Makefile.package.empty
+# regenenate Makefile.package from Makefile.package.empty
 # if installed:
 # re-install so Install.sh will edit Makefile.pacakge
 
@@ -87,4 +87,28 @@ elif (test $2 = "regenerate") then
   if (test $installed = 1) then
     /bin/sh Install.sh 1
   fi
+
+# diff
+# if installed:
+# show any differences between src files and package files
+
+elif (test $2 = "diff") then
+  if (test $installed = 1) then
+    echo "Installed YES: package $1"
+    for file in *.cpp *.h; do
+      if (test ! -e ../$file) then
+        echo "************************************************************************"
+        echo "  src/$file does not exist"
+        echo "************************************************************************"
+      elif (test "`diff --brief $file ../$file`" != "") then
+        echo "************************************************************************"
+        echo "diff $1/$file src/$file "
+        echo "************************************************************************"
+	diff $file  ../$file 
+      fi
+    done
+  fi
 fi
+
+
+

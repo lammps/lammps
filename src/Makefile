@@ -18,7 +18,7 @@ PACKAGE = asphere class2 colloid dipole dsmc gpu granular \
 	  shock srd xtc
 
 PACKUSER = user-ackland user-atc user-awpmd user-cd-eam user-cg-cmm \
-	   user-eff user-ewaldn user-imd user-reaxc user-smd
+          user-eff user-ewaldn user-imd user-reaxc user-smd
 #	   user-cuda user-eff user-ewaldn user-imd user-reaxc user-smd
 
 PACKALL = $(PACKAGE) $(PACKUSER)
@@ -52,6 +52,7 @@ help:
 	@echo ''
 	@echo 'make package-update      replace src files with package files'
 	@echo 'make package-overwrite   replace package files with src files'
+	@echo 'make package-diff        diff src files against package files'
 	@echo ''
 	@echo 'make machine             build LAMMPS where machine is one of:'
 	@echo ''
@@ -126,6 +127,7 @@ package:
 	@echo ''
 	@echo 'make package-update      replace src files with package files'
 	@echo 'make package-overwrite   replace package files with src files'
+	@echo 'make package-diff        diff src files against package file'
 
 yes-all:
 	@for p in $(PACKALL); do $(MAKE) yes-$$p; done
@@ -161,10 +163,11 @@ no-%:
 	  cd $(NODIR); $(SHELL) Install.sh 0; cd ..; $(SHELL) Depend.sh 0; \
         fi;
 
-# status = list differences between src and package files
+# status = list src files that differ from package files
 # update = replace src files with newer package files
 # overwrite = overwrite package files with newer src files
 # regenerate = regenerate Makefile.package from Makefile.package.empty
+# diff = show differences between src and package files
 
 package-status:
 	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p status; done
@@ -185,3 +188,9 @@ package-regenerate:
 	@cp Makefile.package.empty Makefile.package
 	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p regenerate; done
 	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p regenerate; done
+
+package-diff:
+	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p diff; done
+	@echo ''
+	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p diff; done
+

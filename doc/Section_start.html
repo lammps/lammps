@@ -37,7 +37,7 @@ tar xvf lammps*.tar
 <P>This will create a LAMMPS directory containing two files and several
 sub-directories:
 </P>
-<DIV ALIGN=center><TABLE  BORDER=1 >
+<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
 <TR><TD >README</TD><TD > text file</TD></TR>
 <TR><TD >LICENSE</TD><TD > the GNU General Public License (GPL)</TD></TR>
 <TR><TD >bench</TD><TD > benchmark problems</TD></TR>
@@ -440,7 +440,7 @@ package".
 </P>
 <P>The current list of standard packages is as follows:
 </P>
-<DIV ALIGN=center><TABLE  BORDER=1 >
+<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
 <TR><TD >asphere </TD><TD > aspherical particles and force fields</TD></TR>
 <TR><TD >class2 </TD><TD > class 2 force fields</TD></TR>
 <TR><TD >colloid </TD><TD > colloidal particle force fields</TD></TR>
@@ -506,7 +506,8 @@ run a bit faster.
 no-name", where "name" is the name of the package.  You can also type
 "make yes-standard", "make no-standard", "make yes-user", "make
 no-user", "make yes-all" or "make no-all" to include/exclude various
-sets of packages.  Type "make package" to see the various options.
+sets of packages.  Type "make package" to see the all of the
+package-related make options.
 </P>
 <P>IMPORTANT NOTE: These make commands work by simply moving files back
 and forth between the main src directory and sub-directories with the
@@ -514,19 +515,25 @@ package name, so that the files are seen or not seen when LAMMPS is
 built.  After you have included or excluded a package, you must
 re-build LAMMPS.
 </P>
-<P>Additional make options exist to help manage LAMMPS files that exist
+<P>Additional package-related make options exist to help manage LAMMPS 
+files that exist
 in both the src directory and in package sub-directories.  You do not
 normally need to use these commands unless you are editing LAMMPS
 files or have downloaded a patch from the LAMMPS WWW site.
 </P>
 <P>Typing "make package-update" will overwrite src files with files from
-the package directories if the package has been included.  It should
+the package sub-directories if the package has been included.  It should
 be used after a patch is installed, since patches only update the
-master package version of a file.  Typing "make package-overwrite"
-will overwrite files in the package directories with src files.
-Typing "make package-check" will list differences between src and
-package versions of the same files.  Again, type "make package" to see
-the various options.
+files in the package sub-directory, but not the src files.  
+Typing "make package-overwrite"
+will overwrite files in the package sub-directories with src files.
+</P>
+<P>Typing "make package-status" will show which packages are currently
+included. Of those that are included, it will list files that
+are different in the src directory and package sub-directory.
+Typing "make package-diff" lists all differences between these files. 
+Again, type "make package" to see all of the
+package-related make options.
 </P>
 <HR>
 
@@ -824,6 +831,8 @@ abbreviation can be used:
 <LI>-i or -in
 <LI>-l or -log
 <LI>-p or -partition
+<LI>-pl or -plog
+<LI>-ps or -pscreen
 <LI>-sc or -screen
 <LI>-sf or -suffix
 <LI>-v or -var 
@@ -877,6 +886,7 @@ logfile is named "file" and each partition also logs information to a
 file.N.  For both one-partition and multi-partition mode, if the
 specified file is "none", then no log files are created.  Using a
 <A HREF = "log.html">log</A> command in the input script will override this setting.
+Option -plog will override the name of the partition log files file.N.
 </P>
 <PRE>-partition 8x2 4 5 ... 
 </PRE>
@@ -904,6 +914,35 @@ these commands in this way.  Simulations running on different
 partitions can also communicate with each other; see the
 <A HREF = "temper.html">temper</A> command.
 </P>
+<PRE>-plog file 
+</PRE>
+<P>Specify the base name for the partition log files, 
+so partition N writes log information to file.N. If file is 
+none, then no partition log files are created. 
+This overrides the
+filename specified in the -log command-line option.
+This option is useful when working with large numbers of partitions,
+allowing the partition log files to be suppressed (-plog none) or
+placed in a sub-directory (-plog replica_files/log.lammps)
+If this option is not used
+the log file for partition N is log.lammps.N or whatever is specified by
+the -log command-line option. 
+</P>
+<PRE>-pscreen file 
+</PRE>
+<P>Specify the base name for the 
+partition screen file, so partition N writes 
+screen information to file.N. If file is 
+none, then no partition screen files are created. 
+This overrides the
+filename specified in the -screen command-line option.
+This option is useful when working with large numbers of partitions,
+allowing the partition screen files to be suppressed (-pscreen none) or
+placed in a sub-directory (-pscreen replica_files/screen)
+If this option is not used
+the screen file for partition N is screen.N or whatever is specified by
+the -screen command-line option. 
+</P>
 <PRE>-screen file 
 </PRE>
 <P>Specify a file for LAMMPS to write its screen information to.  In
@@ -916,7 +955,8 @@ the partition ID.  If the switch is specified in multi-partition mode,
 the hi-level screen dump is named "file" and each partition also
 writes screen information to a file.N.  For both one-partition and
 multi-partition mode, if the specified file is "none", then no screen
-output is performed.
+output is performed. Option -pscreen will override the name of the 
+partition screen files file.N.
 </P>
 <PRE>-suffix style 
 </PRE>

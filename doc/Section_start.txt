@@ -499,7 +499,8 @@ Packages are included or excluded by typing "make yes-name" or "make
 no-name", where "name" is the name of the package.  You can also type
 "make yes-standard", "make no-standard", "make yes-user", "make
 no-user", "make yes-all" or "make no-all" to include/exclude various
-sets of packages.  Type "make package" to see the various options.
+sets of packages.  Type "make package" to see the all of the
+package-related make options.
 
 IMPORTANT NOTE: These make commands work by simply moving files back
 and forth between the main src directory and sub-directories with the
@@ -507,19 +508,25 @@ package name, so that the files are seen or not seen when LAMMPS is
 built.  After you have included or excluded a package, you must
 re-build LAMMPS.
 
-Additional make options exist to help manage LAMMPS files that exist
+Additional package-related make options exist to help manage LAMMPS 
+files that exist
 in both the src directory and in package sub-directories.  You do not
 normally need to use these commands unless you are editing LAMMPS
 files or have downloaded a patch from the LAMMPS WWW site.
 
 Typing "make package-update" will overwrite src files with files from
-the package directories if the package has been included.  It should
+the package sub-directories if the package has been included.  It should
 be used after a patch is installed, since patches only update the
-master package version of a file.  Typing "make package-overwrite"
-will overwrite files in the package directories with src files.
-Typing "make package-check" will list differences between src and
-package versions of the same files.  Again, type "make package" to see
-the various options.
+files in the package sub-directory, but not the src files.  
+Typing "make package-overwrite"
+will overwrite files in the package sub-directories with src files.
+
+Typing "make package-status" will show which packages are currently
+included. Of those that are included, it will list files that
+are different in the src directory and package sub-directory.
+Typing "make package-diff" lists all differences between these files. 
+Again, type "make package" to see all of the
+package-related make options.
 
 :line
 
@@ -814,6 +821,8 @@ abbreviation can be used:
 -i or -in
 -l or -log
 -p or -partition
+-pl or -plog
+-ps or -pscreen
 -sc or -screen
 -sf or -suffix
 -v or -var :ul
@@ -867,6 +876,7 @@ logfile is named "file" and each partition also logs information to a
 file.N.  For both one-partition and multi-partition mode, if the
 specified file is "none", then no log files are created.  Using a
 "log"_log.html command in the input script will override this setting.
+Option -plog will override the name of the partition log files file.N.
 
 -partition 8x2 4 5 ... :pre
 
@@ -894,6 +904,35 @@ these commands in this way.  Simulations running on different
 partitions can also communicate with each other; see the
 "temper"_temper.html command.
 
+-plog file :pre
+ 
+Specify the base name for the partition log files, 
+so partition N writes log information to file.N. If file is 
+none, then no partition log files are created. 
+This overrides the
+filename specified in the -log command-line option.
+This option is useful when working with large numbers of partitions,
+allowing the partition log files to be suppressed (-plog none) or
+placed in a sub-directory (-plog replica_files/log.lammps)
+If this option is not used
+the log file for partition N is log.lammps.N or whatever is specified by
+the -log command-line option. 
+
+-pscreen file :pre 
+
+Specify the base name for the 
+partition screen file, so partition N writes 
+screen information to file.N. If file is 
+none, then no partition screen files are created. 
+This overrides the
+filename specified in the -screen command-line option.
+This option is useful when working with large numbers of partitions,
+allowing the partition screen files to be suppressed (-pscreen none) or
+placed in a sub-directory (-pscreen replica_files/screen)
+If this option is not used
+the screen file for partition N is screen.N or whatever is specified by
+the -screen command-line option. 
+
 -screen file :pre
 
 Specify a file for LAMMPS to write its screen information to.  In
@@ -906,7 +945,8 @@ the partition ID.  If the switch is specified in multi-partition mode,
 the hi-level screen dump is named "file" and each partition also
 writes screen information to a file.N.  For both one-partition and
 multi-partition mode, if the specified file is "none", then no screen
-output is performed.
+output is performed. Option -pscreen will override the name of the 
+partition screen files file.N.
 
 -suffix style :pre
 

@@ -23,6 +23,7 @@
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
+#include "irregular.h"
 #include "modify.h"
 #include "fix_deform.h"
 #include "compute.h"
@@ -34,6 +35,9 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
+
+#define DELTAFLIP 0.1
+#define TILTMAX 1.5
 
 #define MIN(A,B) ((A) < (B)) ? (A) : (B)
 #define MAX(A,B) ((A) > (B)) ? (A) : (B)
@@ -69,6 +73,17 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   deviatoric_flag = 0;
   nreset_h0 = 0;
 
+  // turn on tilt factor scaling, whenever applicable
+
+  dimension = domain->dimension;
+
+  scaleyz = scalexz = scalexy = 0;
+  if (domain->yperiodic && domain->xy != 0.0) scalexy = 1;
+  if (domain->zperiodic && dimension == 3) {
+    if (domain->yz != 0.0) scaleyz = 1;
+    if (domain->xz != 0.0) scalexz = 1;
+  }
+
   // Used by FixNVTSllod to preserve non-default value  
 
   mtchain_default_flag = 1;
@@ -83,8 +98,6 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   }
 
   // process keywords
-
-  dimension = domain->dimension;
 
   int iarg = 3;
 
@@ -126,6 +139,7 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
     } else if (strcmp(arg[iarg],"tri") == 0) {
       if (iarg+4 > narg) error->all("Illegal fix nvt/npt/nph command");
       pcouple = NONE;
+      scalexy = scalexz = scaleyz = 0;
       p_start[0] = p_start[1] = p_start[2] = atof(arg[iarg+1]);
       p_stop[0] = p_stop[1] = p_stop[2] = atof(arg[iarg+2]);
       p_period[0] = p_period[1] = p_period[2] = atof(arg[iarg+3]);
@@ -143,7 +157,6 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 	p_flag[4] = 0;
       }
       iarg += 4;
-
     } else if (strcmp(arg[iarg],"x") == 0) {
       if (iarg+4 > narg) error->all("Illegal fix nvt/npt/nph command");
       p_start[0] = atof(arg[iarg+1]);
@@ -173,6 +186,7 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
     } else if (strcmp(arg[iarg],"yz") == 0) {
       if (iarg+4 > narg) error->all("Illegal fix nvt/npt/nph command");
+      scaleyz = 0;
       p_start[3] = atof(arg[iarg+1]);
       p_stop[3] = atof(arg[iarg+2]);
       p_period[3] = atof(arg[iarg+3]);
@@ -183,6 +197,7 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 	error->all("Invalid fix nvt/npt/nph command for a 2d simulation");
     } else if (strcmp(arg[iarg],"xz") == 0) {
       if (iarg+4 > narg) error->all("Illegal fix nvt/npt/nph command");
+      scalexz = 0;
       p_start[4] = atof(arg[iarg+1]);
       p_stop[4] = atof(arg[iarg+2]);
       p_period[4] = atof(arg[iarg+3]);
@@ -192,6 +207,7 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       if (dimension == 2)
 	error->all("Invalid fix nvt/npt/nph command for a 2d simulation");
     } else if (strcmp(arg[iarg],"xy") == 0) {
+      scalexy = 0;
       if (iarg+4 > narg) error->all("Illegal fix nvt/npt/nph command");
       p_start[5] = atof(arg[iarg+1]);
       p_stop[5] = atof(arg[iarg+2]);
@@ -224,7 +240,7 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
     } else if (strcmp(arg[iarg],"tchain") == 0) {
       if (iarg+2 > narg) error->all("Illegal fix nvt/npt/nph command");
       mtchain = atoi(arg[iarg+1]);
-      // Used by FixNVTSllod to preserve non-default value  
+      // used by FixNVTSllod to preserve non-default value  
       mtchain_default_flag = 0;
       if (mtchain < 1) error->all("Illegal fix nvt/npt/nph command");
       iarg += 2;
@@ -254,6 +270,24 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       nreset_h0 = atoi(arg[iarg+1]);
       if (nreset_h0 < 0) error->all("Illegal fix nvt/npt/nph command");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"scalexy") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix nvt/npt/nph command");
+      if (strcmp(arg[iarg+1],"yes") == 0) scalexy = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) scalexy = 0;
+      else error->all("Illegal fix nvt/npt/nph command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"scalexz") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix nvt/npt/nph command");
+      if (strcmp(arg[iarg+1],"yes") == 0) scalexz = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) scalexz = 0;
+      else error->all("Illegal fix nvt/npt/nph command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"scaleyz") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix nvt/npt/nph command");
+      if (strcmp(arg[iarg+1],"yes") == 0) scaleyz = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) scaleyz = 0;
+      else error->all("Illegal fix nvt/npt/nph command");
+      iarg += 2;
     } else error->all("Illegal fix nvt/npt/nph command");
   }
 
@@ -262,6 +296,8 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   if (dimension == 2 && (p_flag[2] || p_flag[3] || p_flag[4]))
     error->all("Invalid fix nvt/npt/nph command for a 2d simulation");
   if (dimension == 2 && (pcouple == YZ || pcouple == XZ))
+    error->all("Invalid fix nvt/npt/nph command for a 2d simulation");
+  if (dimension == 2 && (scalexz == 1 || scaleyz == 1 ))
     error->all("Invalid fix nvt/npt/nph command for a 2d simulation");
 
   if (pcouple == XYZ && (p_flag[0] == 0 || p_flag[1] == 0))
@@ -287,6 +323,26 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
     error->all("Cannot use fix nvt/npt/nph on a 2nd non-periodic dimension");
   if (p_flag[5] && domain->yperiodic == 0)
     error->all("Cannot use fix nvt/npt/nph on a 2nd non-periodic dimension");
+
+  if (scaleyz == 1 && domain->zperiodic == 0)
+    error->all("Cannot use fix nvt/npt/nph "
+	       "with yz dynamics when z is non-periodic dimension");
+  if (scalexz == 1 && domain->zperiodic == 0)
+    error->all("Cannot use fix nvt/npt/nph "
+	       "with xz dynamics when z is non-periodic dimension");
+  if (scalexy == 1 && domain->yperiodic == 0)
+    error->all("Cannot use fix nvt/npt/nph "
+	       "with xy dynamics when y is non-periodic dimension");
+
+  if (p_flag[3] && scaleyz == 1)
+    error->all("Cannot use fix nvt/npt/nph with"
+	       "both yz dynamics and yz scaling");
+  if (p_flag[4] && scalexz == 1)
+    error->all("Cannot use fix nvt/npt/nph with "
+	       "both xz dynamics and xz scaling");
+  if (p_flag[5] && scalexy == 1)
+    error->all("Cannot use fix nvt/npt/nph with "
+	       "both xy dynamics and xy scaling");
 
   if (!domain->triclinic && (p_flag[3] || p_flag[4] || p_flag[5])) 
     error->all("Can not specify Pxy/Pxz/Pyz in "
@@ -344,6 +400,11 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   if (p_flag[3] || p_flag[4] || p_flag[5]) pstyle = TRICLINIC;
   else if (pcouple == XYZ || (dimension == 2 && pcouple == XY)) pstyle = ISO;
   else pstyle = ANISO;
+
+  // reneighboring only forced if flips will occur due to shape changes
+
+  if (p_flag[3] || p_flag[4] || p_flag[5]) force_reneighbor = 1;
+  if (scaleyz || scalexz || scalexy) force_reneighbor = 1;
 
   // convert input periods to frequencies
 
@@ -412,6 +473,9 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   nrigid = 0;
   rfix = NULL;
 
+  if (force_reneighbor) irregular = new Irregular(lmp);
+  else irregular = NULL;
+
   // initialize vol0,t0 to zero to signal uninitialized
   // values then assigned in init(), if necessary
 
@@ -423,6 +487,8 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 FixNH::~FixNH()
 {
   delete [] rfix;
+
+  delete irregular;
 
   // delete temperature and pressure if fix created them
 
@@ -458,6 +524,7 @@ int FixNH::setmask()
   mask |= THERMO_ENERGY;
   mask |= INITIAL_INTEGRATE_RESPA;
   mask |= FINAL_INTEGRATE_RESPA;
+  if (force_reneighbor) mask |= PRE_EXCHANGE;
   return mask;
 }
 
@@ -465,7 +532,7 @@ int FixNH::setmask()
 
 void FixNH::init()
 {
-  // insure no conflict with fix deform
+  // ensure no conflict with fix deform
 
   if (pstat_flag)
     for (int i = 0; i < modify->nfix; i++)
@@ -519,7 +586,6 @@ void FixNH::init()
     tdrag_factor = 1.0 - (update->dt * t_freq * drag / nc_tchain);
 
   // tally the number of dimensions that are barostatted
-  // also compute the initial volume and reference cell  
   // set initial volume and reference cell, if not already done
 
   if (pstat_flag) {
@@ -877,6 +943,9 @@ void FixNH::remap()
 {
   int i;
   double oldlo,oldhi,ctr;
+  double cosalpha, cosbeta, cosgamma;
+  double ly, lz, singamma, yzc, lzc, clen, blen;
+  double expfac;
 
   double **x = atom->x;
   int *mask = atom->mask;
@@ -902,7 +971,7 @@ void FixNH::remap()
 
   // reset global and local box to new size/shape
 
-  // This operation corresponds to applying the
+  // this operation corresponds to applying the
   // translate and scale operations 
   // corresponding to the solution of the following ODE:
   //
@@ -919,64 +988,118 @@ void FixNH::remap()
   double dto4 = dto/4.0;
   double dto8 = dto/8.0;
 
+  // off-diagonal components, first half
+
   if (pstyle == TRICLINIC) {
 
-    h[4] *= exp(dto8*omega_dot[0]);
-    h[4] += dto4*(omega_dot[5]*h[3]+omega_dot[4]*h[2]); 
-    h[4] *= exp(dto8*omega_dot[0]);
+    if (p_flag[4]) {
+      expfac = exp(dto8*omega_dot[0]);
+      h[4] *= expfac;
+      h[4] += dto4*(omega_dot[5]*h[3]+omega_dot[4]*h[2]); 
+      h[4] *= expfac;
+    }
 
-    h[3] *= exp(dto4*omega_dot[1]);
-    h[3] += dto2*(omega_dot[3]*h[2]); 
-    h[3] *= exp(dto4*omega_dot[1]);
+    if (p_flag[3]) {
+      expfac = exp(dto4*omega_dot[1]);
+      h[3] *= expfac;
+      h[3] += dto2*(omega_dot[3]*h[2]); 
+      h[3] *= expfac;
+    }
 
-    h[5] *= exp(dto4*omega_dot[0]);
-    h[5] += dto2*(omega_dot[5]*h[1]); 
-    h[5] *= exp(dto4*omega_dot[0]);
+    if (p_flag[5]) {
+      expfac = exp(dto4*omega_dot[0]);
+      h[5] *= expfac;
+      h[5] += dto2*(omega_dot[5]*h[1]); 
+      h[5] *= expfac;
+    }
 
-    h[4] *= exp(dto8*omega_dot[0]);
-    h[4] += dto4*(omega_dot[5]*h[3]+omega_dot[4]*h[2]); 
-    h[4] *= exp(dto8*omega_dot[0]);
-
-  }
-
-  for (i = 0; i < 3; i++) {
-    if (p_flag[i]) {
-      oldlo = domain->boxlo[i];
-      oldhi = domain->boxhi[i];
-      ctr = 0.5 * (oldlo + oldhi);
-      domain->boxlo[i] = (oldlo-ctr)*exp(dto*omega_dot[i]) + ctr;
-      domain->boxhi[i] = (oldhi-ctr)*exp(dto*omega_dot[i]) + ctr;
+    if (p_flag[4]) {
+      expfac = exp(dto8*omega_dot[0]);
+      h[4] *= expfac;
+      h[4] += dto4*(omega_dot[5]*h[3]+omega_dot[4]*h[2]); 
+      h[4] *= expfac;
     }
   }
 
+  // scale diagonal components
+  // scale tilt factors with cell, if set
+
+  if (p_flag[0]) {
+    oldlo = domain->boxlo[0];
+    oldhi = domain->boxhi[0];
+    ctr = 0.5 * (oldlo + oldhi);
+    expfac = exp(dto*omega_dot[0]);
+    domain->boxlo[0] = (oldlo-ctr)*expfac + ctr;
+    domain->boxhi[0] = (oldhi-ctr)*expfac + ctr;
+  }
+
+  if (p_flag[1]) {
+    oldlo = domain->boxlo[1];
+    oldhi = domain->boxhi[1];
+    ctr = 0.5 * (oldlo + oldhi);
+    expfac = exp(dto*omega_dot[1]);
+    domain->boxlo[1] = (oldlo-ctr)*expfac + ctr;
+    domain->boxhi[1] = (oldhi-ctr)*expfac + ctr;
+    if (scalexy) h[5] *= expfac;
+  }
+
+  if (p_flag[2]) {
+    oldlo = domain->boxlo[2];
+    oldhi = domain->boxhi[2];
+    ctr = 0.5 * (oldlo + oldhi);
+    expfac = exp(dto*omega_dot[2]);
+    domain->boxlo[2] = (oldlo-ctr)*expfac + ctr;
+    domain->boxhi[2] = (oldhi-ctr)*expfac + ctr;
+    if (scalexz) h[4] *= expfac;
+    if (scaleyz) h[3] *= expfac;
+  }
+
+  // off-diagonal components, second half
+
   if (pstyle == TRICLINIC) {
 
-    h[4] *= exp(dto8*omega_dot[0]);
-    h[4] += dto4*(omega_dot[5]*h[3]+omega_dot[4]*h[2]); 
-    h[4] *= exp(dto8*omega_dot[0]);
+    if (p_flag[4]) {
+      expfac = exp(dto8*omega_dot[0]);
+      h[4] *= expfac;
+      h[4] += dto4*(omega_dot[5]*h[3]+omega_dot[4]*h[2]); 
+      h[4] *= expfac;
+    }
 
-    h[3] *= exp(dto4*omega_dot[1]);
-    h[3] += dto2*(omega_dot[3]*h[2]); 
-    h[3] *= exp(dto4*omega_dot[1]);
+    if (p_flag[3]) {
+      expfac = exp(dto4*omega_dot[1]);
+      h[3] *= expfac;
+      h[3] += dto2*(omega_dot[3]*h[2]); 
+      h[3] *= expfac;
+    }
 
-    h[5] *= exp(dto4*omega_dot[0]);
-    h[5] += dto2*(omega_dot[5]*h[1]); 
-    h[5] *= exp(dto4*omega_dot[0]);
+    if (p_flag[5]) {
+      expfac = exp(dto4*omega_dot[0]);
+      h[5] *= expfac;
+      h[5] += dto2*(omega_dot[5]*h[1]); 
+      h[5] *= expfac;
+    }
 
-    h[4] *= exp(dto8*omega_dot[0]);
-    h[4] += dto4*(omega_dot[5]*h[3]+omega_dot[4]*h[2]); 
-    h[4] *= exp(dto8*omega_dot[0]);
+    if (p_flag[4]) {
+      expfac = exp(dto8*omega_dot[0]);
+      h[4] *= expfac;
+      h[4] += dto4*(omega_dot[5]*h[3]+omega_dot[4]*h[2]); 
+      h[4] *= expfac;
+    }
 
-    domain->yz = h[3];
-    domain->xz = h[4];
-    domain->xy = h[5];
-
-    if (domain->yz < -0.5*domain->yprd || domain->yz > 0.5*domain->yprd ||
-	domain->xz < -0.5*domain->xprd || domain->xz > 0.5*domain->xprd ||
-	domain->xy < -0.5*domain->xprd || domain->xy > 0.5*domain->xprd)
-      error->all("Fix npt/nph has tilted box too far - "
-		 "box flips are not yet implemented");
   }
+
+  domain->yz = h[3];
+  domain->xz = h[4];
+  domain->xy = h[5];
+
+  // tilt factor to cell length ratio can not exceed TILTMAX
+  // in one step
+
+  if (domain->yz < -TILTMAX*domain->yprd || domain->yz > TILTMAX*domain->yprd ||
+      domain->xz < -TILTMAX*domain->xprd || domain->xz > TILTMAX*domain->xprd ||
+      domain->xy < -TILTMAX*domain->xprd || domain->xy > TILTMAX*domain->xprd)
+    error->all("Fix npt/nph has tilted box too far in one step - "
+	       "periodic cell is too far from equilibrium state");
 
   domain->set_global_box();
   domain->set_local_box();
@@ -1940,3 +2063,66 @@ void FixNH::nh_omega_dot()
     } 
   }
 }
+
+/* ----------------------------------------------------------------------
+  if box tilt exceeds limits,
+    create new box in domain
+    remap to put far-away atoms back into new box
+    perform irregular on atoms in lamda coords to get atoms to new procs
+    force reneighboring on next timestep
+------------------------------------------------------------------------- */
+
+void FixNH::pre_exchange()
+{
+  double xprd = domain->xprd;
+  double yprd = domain->yprd;
+
+  // flip is triggered when tilt exceeds 0.5 by 
+  // an amount DELTAFLIP that is somewhat arbitrary
+
+  double xtiltmax = (0.5+DELTAFLIP)*xprd;
+  double ytiltmax = (0.5+DELTAFLIP)*yprd;
+
+  int flip = 0;
+
+  if (domain->yz < -ytiltmax) {
+    flip = 1;
+    domain->yz += yprd;
+    domain->xz += domain->xy;
+  } else if (domain->yz >= ytiltmax) {
+    flip = 1;
+    domain->yz -= yprd;
+    domain->xz -= domain->xy;
+  }
+
+  if (domain->xz < -xtiltmax) {
+    flip = 1;
+    domain->xz += xprd;
+  } else if (domain->xz >= xtiltmax) {
+    flip = 1;
+    domain->xz -= xprd;
+  }
+
+  if (domain->xy < -xtiltmax) {
+    flip = 1;
+    domain->xy += xprd;
+  } else if (domain->xy >= xtiltmax) {
+    flip = 1;
+    domain->xy -= xprd;
+  }
+
+  if (flip) {
+    domain->set_global_box();
+    domain->set_local_box();
+
+    double **x = atom->x;
+    int *image = atom->image;
+    int nlocal = atom->nlocal;
+    for (int i = 0; i < nlocal; i++) domain->remap(x[i],image[i]);
+    
+    domain->x2lamda(atom->nlocal);
+    irregular->migrate_atoms();
+    domain->lamda2x(atom->nlocal);
+  }
+}
+

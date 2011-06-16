@@ -49,6 +49,7 @@ using namespace LAMMPS_NS;
 // vol, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi, xy, xz, yz, xlat, ylat, zlat
 // pxx, pyy, pzz, pxy, pxz, pyz
 // fmax, fnorm
+// cella, cellb, cellc, cellalpha, cellbeta, cellgamma
 
 // customize a new thermo style by adding a DEFINE to this list
 
@@ -149,6 +150,8 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   format_float_user = NULL;
   format_int_user = NULL;
   format_bigint_user = NULL;
+
+  PI = 4.0*atan(1.0);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -768,6 +771,19 @@ void Thermo::parse_fields(char *str)
     } else if (strcmp(word,"fnorm") == 0) {
       addfield("Fnorm",&Thermo::compute_fnorm,FLOAT);
 
+    } else if (strcmp(word,"cella") == 0) {
+      addfield("Cella",&Thermo::compute_cella,FLOAT);
+    } else if (strcmp(word,"cellb") == 0) {
+      addfield("Cellb",&Thermo::compute_cellb,FLOAT);
+    } else if (strcmp(word,"cellc") == 0) {
+      addfield("Cellc",&Thermo::compute_cellc,FLOAT);
+    } else if (strcmp(word,"cellalpha") == 0) {
+      addfield("CellAlpha",&Thermo::compute_cellalpha,FLOAT);
+    } else if (strcmp(word,"cellbeta") == 0) {
+      addfield("CellBeta",&Thermo::compute_cellbeta,FLOAT);
+    } else if (strcmp(word,"cellgamma") == 0) {
+      addfield("CellGamma",&Thermo::compute_cellgamma,FLOAT);
+
     // compute value = c_ID, fix value = f_ID, variable value = v_ID
     // count trailing [] and store int arguments
     // copy = at most 8 chars of ID to pass to addfield
@@ -1291,6 +1307,13 @@ int Thermo::evaluate_keyword(char *word, double *answer)
 
   } else if (strcmp(word,"fmax") == 0) compute_fmax();
   else if (strcmp(word,"fnorm") == 0) compute_fnorm();
+
+  else if (strcmp(word,"cella") == 0) compute_cella();
+  else if (strcmp(word,"cellb") == 0) compute_cellb();
+  else if (strcmp(word,"cellc") == 0) compute_cellc();
+  else if (strcmp(word,"cellalpha") == 0) compute_cellalpha();
+  else if (strcmp(word,"cellbeta") == 0) compute_cellbeta();
+  else if (strcmp(word,"cellgamma") == 0) compute_cellgamma();
 
   else return 1;
 
@@ -1821,3 +1844,84 @@ void Thermo::compute_fnorm()
   MPI_Allreduce(&dot,&dotall,1,MPI_DOUBLE,MPI_SUM,world);
   dvalue = sqrt(dotall);
 }
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_cella()
+{
+  dvalue = domain->xprd;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_cellb()
+{
+  if (!domain->triclinic)
+    dvalue = domain->yprd;
+  else {
+    double* h = domain->h;
+    dvalue = sqrt(h[1]*h[1]+h[5]*h[5]);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_cellc()
+{
+  if (!domain->triclinic)
+    dvalue = domain->zprd;
+  else {
+    double* h = domain->h;
+    dvalue = sqrt(h[2]*h[2]+h[3]*h[3]+h[4]*h[4]);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_cellalpha()
+{
+  if (!domain->triclinic)
+    dvalue = 90.0;
+  else {
+
+    // Cos(alpha) = (xy.xz + ly.yz)/(b.c)
+
+    double* h = domain->h;
+    double cosalpha = (h[5]*h[4]+h[1]*h[3])/
+      sqrt((h[1]*h[1]+h[5]*h[5])*(h[2]*h[2]+h[3]*h[3]+h[4]*h[4]));
+    dvalue = acos(cosalpha)*180.0/PI;
+  }    
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_cellbeta()
+{
+  if (!domain->triclinic)
+    dvalue = 90.0;
+  else {
+
+    // Cos(beta) = xz/c
+
+    double* h = domain->h;
+    double cosbeta = h[4]/sqrt(h[2]*h[2]+h[3]*h[3]+h[4]*h[4]);
+    dvalue = acos(cosbeta)*180.0/PI;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_cellgamma()
+{
+  if (!domain->triclinic)
+    dvalue = 90.0;
+  else {
+
+    // Cos(gamma) = xy/b
+
+    double* h = domain->h;
+    double cosgamma = h[5]/sqrt(h[1]*h[1]+h[5]*h[5]);
+    dvalue = acos(cosgamma)*180.0/PI;
+  }
+}
+

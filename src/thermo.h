@@ -96,6 +96,8 @@ class Thermo : protected Pointers {
   char **id_variable;          // list of variable names
   int *variables;              // list of Variable indices
 
+  double PI;
+
   // private methods
 
   void allocate();
@@ -173,6 +175,13 @@ class Thermo : protected Pointers {
 
   void compute_fmax();
   void compute_fnorm();
+
+  void compute_cella();
+  void compute_cellb();
+  void compute_cellc();
+  void compute_cellalpha();
+  void compute_cellbeta();
+  void compute_cellgamma();
 };
 
 }

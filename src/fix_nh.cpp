@@ -943,8 +943,6 @@ void FixNH::remap()
 {
   int i;
   double oldlo,oldhi,ctr;
-  double cosalpha, cosbeta, cosgamma;
-  double ly, lz, singamma, yzc, lzc, clen, blen;
   double expfac;
 
   double **x = atom->x;

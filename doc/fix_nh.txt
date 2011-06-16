@@ -280,16 +280,24 @@ situations.
 IMPORTANT NOTE: Using a barostat coupled to tilt dimensions {xy},
 {xz}, {yz} can sometimes result in arbitrarily large values of the
 tilt dimensions, i.e. a dramatically deformed simulation box.  LAMMPS
-imposes reasonable limits on how large the tilt values can be, and
-exits with an error if these are exceeded.  This error typically
+allows the tilt factors to grow a little beyond the normal limit
+of half the box length (0.6 times the box length), and then performs
+flipping or re-shaping to an equivalent periodic cell. The re-shaping
+operation is described in more detail in the doc page for 
+"fix deform"_fix_deform.html. Both the barostat dynamics and
+the atom trajectories are unaffected by this operation. However,
+if a tilt factor is incremented by a large amount (1.5 times the 
+box length) on a single timestep, LAMMPS can not accomodate 
+this event and will terminate the simulation
+with an error. This error typically
 indicates that there is something badly wrong with how the simulation
-was constructed.  The three most common sources of this error are
-using keyword {tri} on a liquid system, specifying an external shear
-stress tensor that exceeds the yield stress of the solid, and
-specifying values of {Pstart} that are too far from the current stress
-value. In other words, triclinic barostatting should be used with
-care.  This also is true for other barostat styles, although they tend
-to be more forgiving of insults.
+was constructed, such as specifying values of {Pstart} that are 
+too far from the current stress value, or specifying a timestep that
+is too large. Triclinic barostatting should be used with
+care. This also is true for other barostat styles, although they tend
+to be more forgiving of insults. In particular, it is important to
+recognize that equilibrium liquids can not support a shear stress and 
+that equilibrium solids can not support shear stresses that exceed the yield stress.
 
 IMPORTANT NOTE: Unlike the "fix
 temp/berendsen"_fix_temp_berendsen.html command which performs

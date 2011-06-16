@@ -273,7 +273,9 @@ The default values {yes} will turn on scaling, which corresponds to
 adjusting the linear dimensions of the cell while preserving its shape.
 Choosing {no} ensures that the tilt factors are not scaled with the
 box dimensions. See below for restrictions and default values in different
-situations.
+situations. In older versions of LAMMPS, scaling of tilt factors was not
+performed. The old behavior can be recovered by setting all three 
+scale keywords to {no}.
 
 :line
 

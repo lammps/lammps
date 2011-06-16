@@ -37,7 +37,10 @@ keyword = {temp} or {iso} or {aniso} or {tri} or {x} or {y} or {z} or {xy} or {y
   {ploop} value = number of sub-cycles to perform on barostat thermostat
   {nreset} value = reset reference cell every this many timesteps
   {drag} value = drag factor added to barostat/thermostat (0.0 = no drag)
-  {dilate} value = {all} or {partial} :pre
+  {dilate} value = {all} or {partial}
+  {scaleyz} value = {yes} or {no} = scale yz with lz
+  {scalexz} value = {yes} or {no} = scale xz with lz
+  {scalexy} value = {yes} or {no} = scale xy with ly :pre
 :ule
 
 [Examples:]
@@ -262,6 +265,16 @@ specified values of the external stress tensor.  A value of {nstep}
 means that every {nstep} timesteps, the reference dimensions are set
 to those of the current simulation domain.
 
+The {scaleyz}, {scalexz}, and {scalexy} keywords control whether or 
+not the corresponding tilt factors are scaled with the
+associated box dimensions
+when barostatting triclinic periodic cells.
+The default values {yes} will turn on scaling, which corresponds to
+adjusting the linear dimensions of the cell while preserving its shape.
+Choosing {no} ensures that the tilt factors are not scaled with the
+box dimensions. See below for restrictions and default values in different
+situations.
+
 :line
 
 IMPORTANT NOTE: Using a barostat coupled to tilt dimensions {xy},
@@ -473,6 +486,12 @@ For the {temp} keyword, the final Tstop cannot be 0.0 since it would
 make the external T = 0.0 at some timestep during the simulation which
 is not allowed in the Nose/Hoover formulation.
 
+The {scaleyz yes} and {scalexz yes} keyword/value pairs can not be used
+for 2D simulations. {scaleyz yes}, {scalexz yes}, and {scalexy yes} options
+can only be used if the 2nd dimension in the keyword is periodic,
+and if the tilt factor is not coupled to the barostat via keywords
+{tri}, {yz}, {xz}, and {xy}.
+  
 [Related commands:]
 
 "fix nve"_fix_nve.html, "fix_modify"_fix_modify.html, "run_style"_run_style.html
@@ -480,7 +499,9 @@ is not allowed in the Nose/Hoover formulation.
 [Default:]
 
 The keyword defaults are tchain = 3, pchain = 3, mtk = yes, tloop =
-ploop = 1, nreset = 0, drag = 0.0, dilate = all, and couple = none.
+ploop = 1, nreset = 0, drag = 0.0, dilate = all, couple = none,
+scaleyz = scalexz = scalexy = yes if periodic in 2nd dimension and 
+not coupled to barostat, otherwise no.
 
 :line
 

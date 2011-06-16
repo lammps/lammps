@@ -46,7 +46,10 @@ keyword = <I>temp</I> or <I>iso</I> or <I>aniso</I> or <I>tri</I> or <I>x</I> or
   <I>ploop</I> value = number of sub-cycles to perform on barostat thermostat
   <I>nreset</I> value = reset reference cell every this many timesteps
   <I>drag</I> value = drag factor added to barostat/thermostat (0.0 = no drag)
-  <I>dilate</I> value = <I>all</I> or <I>partial</I> 
+  <I>dilate</I> value = <I>all</I> or <I>partial</I>
+  <I>scaleyz</I> value = <I>yes</I> or <I>no</I> = scale yz with lz
+  <I>scalexz</I> value = <I>yes</I> or <I>no</I> = scale xz with lz
+  <I>scalexy</I> value = <I>yes</I> or <I>no</I> = scale xy with ly 
 </PRE>
 
 </UL>
@@ -272,6 +275,16 @@ specified values of the external stress tensor.  A value of <I>nstep</I>
 means that every <I>nstep</I> timesteps, the reference dimensions are set
 to those of the current simulation domain.
 </P>
+<P>The <I>scaleyz</I>, <I>scalexz</I>, and <I>scalexy</I> keywords control whether or 
+not the corresponding tilt factors are scaled with the
+associated box dimensions
+when barostatting triclinic periodic cells.
+The default values <I>yes</I> will turn on scaling, which corresponds to
+adjusting the linear dimensions of the cell while preserving its shape.
+Choosing <I>no</I> ensures that the tilt factors are not scaled with the
+box dimensions. See below for restrictions and default values in different
+situations.
+</P>
 <HR>
 
 <P>IMPORTANT NOTE: Using a barostat coupled to tilt dimensions <I>xy</I>,
@@ -483,6 +496,12 @@ the meaning of the xy,xz,yz tilt factors.
 make the external T = 0.0 at some timestep during the simulation which
 is not allowed in the Nose/Hoover formulation.
 </P>
+<P>The <I>scaleyz yes</I> and <I>scalexz yes</I> keyword/value pairs can not be used
+for 2D simulations. <I>scaleyz yes</I>, <I>scalexz yes</I>, and <I>scalexy yes</I> options
+can only be used if the 2nd dimension in the keyword is periodic,
+and if the tilt factor is not coupled to the barostat via keywords
+<I>tri</I>, <I>yz</I>, <I>xz</I>, and <I>xy</I>.
+</P>
 <P><B>Related commands:</B>
 </P>
 <P><A HREF = "fix_nve.html">fix nve</A>, <A HREF = "fix_modify.html">fix_modify</A>, <A HREF = "run_style.html">run_style</A>
@@ -490,7 +509,9 @@ is not allowed in the Nose/Hoover formulation.
 <P><B>Default:</B>
 </P>
 <P>The keyword defaults are tchain = 3, pchain = 3, mtk = yes, tloop =
-ploop = 1, nreset = 0, drag = 0.0, dilate = all, and couple = none.
+ploop = 1, nreset = 0, drag = 0.0, dilate = all, couple = none,
+scaleyz = scalexz = scalexy = yes if periodic in 2nd dimension and 
+not coupled to barostat, otherwise no.
 </P>
 <HR>
 

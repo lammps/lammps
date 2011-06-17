@@ -1,7 +1,7 @@
 /***************************************************************************
                                  gayberne.h
                              -------------------
-                               W. Michael Brown
+                            W. Michael Brown (ORNL)
 
   Host code for Gay-Berne potential acceleration
 
@@ -13,8 +13,8 @@
     email                : brownw@ornl.gov
  ***************************************************************************/
 
-#ifndef GAYBERNE_H
-#define GAYBERNE_H
+#ifndef LAL_GAYBERNE_H
+#define LAL_GAYBERNE_H
 
 #include "base_ellipsoid.h"
 #include "mpi.h"

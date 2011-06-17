@@ -1,30 +1,28 @@
-/* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+/***************************************************************************
+                                charmm_long.h
+                             -------------------
+                            W. Michael Brown (ORNL)
 
-   Copyright (2003) Sandia Corporation.  Under the terms of Contract
-   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
-   the GNU General Public License.
+  Class for acceleration of the charmm/coul/long pair style.
 
-   See the README file in the top-level LAMMPS directory.
-------------------------------------------------------------------------- */
- 
-/* ----------------------------------------------------------------------
-   Contributing authors: Mike Brown (ORNL), brownw@ornl.gov
-------------------------------------------------------------------------- */
+ __________________________________________________________________________
+    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
+ __________________________________________________________________________
 
-#ifndef CRML_GPU_MEMORY_H
-#define CRML_GPU_MEMORY_H
+    begin                : 
+    email                : brownw@ornl.gov
+ ***************************************************************************/
+
+#ifndef LAL_CHARMM_LONG_H
+#define LAL_CHARMM_LONG_H
 
 #include "base_charge.h"
 
 template <class numtyp, class acctyp>
-class CRML_GPU_Memory : public BaseCharge<numtyp, acctyp> {
+class CHARMMLong : public BaseCharge<numtyp, acctyp> {
  public:
-  CRML_GPU_Memory();
-  ~CRML_GPU_Memory();
+  CHARMMLong();
+  ~CHARMMLong();
 
   /// Clear any previous data and set up for a new LAMMPS run
   /** \param max_nbors initial number of rows in the neighbor matrix

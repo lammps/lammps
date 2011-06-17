@@ -1,7 +1,7 @@
 /***************************************************************************
                                 gayberne.cpp
                              -------------------
-                               W. Michael Brown
+                            W. Michael Brown (ORNL)
 
   Host code for Gay-Berne potential acceleration
 

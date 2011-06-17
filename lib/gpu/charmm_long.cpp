@@ -1,19 +1,17 @@
-/* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+/***************************************************************************
+                               charmm_long.cpp
+                             -------------------
+                            W. Michael Brown (ORNL)
 
-   Copyright (2003) Sandia Corporation.  Under the terms of Contract
-   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
-   the GNU General Public License.
+  Class for acceleration of the charmm/coul/long pair style.
 
-   See the README file in the top-level LAMMPS directory.
-------------------------------------------------------------------------- */
- 
-/* ----------------------------------------------------------------------
-   Contributing authors: Mike Brown (ORNL), brownw@ornl.gov
-------------------------------------------------------------------------- */
+ __________________________________________________________________________
+    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
+ __________________________________________________________________________
+
+    begin                : 
+    email                : brownw@ornl.gov
+ ***************************************************************************/
 
 #ifdef USE_OPENCL
 #include "charmm_long_cl.h"
@@ -23,27 +21,27 @@
 
 #include "charmm_long.h"
 #include <cassert>
-#define CRML_GPU_MemoryT CRML_GPU_Memory<numtyp, acctyp>
+#define CHARMMLongT CHARMMLong<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
 
 template <class numtyp, class acctyp>
-CRML_GPU_MemoryT::CRML_GPU_Memory() : BaseCharge<numtyp,acctyp>(),
+CHARMMLongT::CHARMMLong() : BaseCharge<numtyp,acctyp>(),
                                     _allocated(false) {
 }
 
 template <class numtyp, class acctyp>
-CRML_GPU_MemoryT::~CRML_GPU_Memory() {
+CHARMMLongT::~CHARMMLong() {
   clear();
 }
  
 template <class numtyp, class acctyp>
-int CRML_GPU_MemoryT::bytes_per_atom(const int max_nbors) const {
+int CHARMMLongT::bytes_per_atom(const int max_nbors) const {
   return this->bytes_per_atom_atomic(max_nbors);
 }
 
 template <class numtyp, class acctyp>
-int CRML_GPU_MemoryT::init(const int ntypes,
+int CHARMMLongT::init(const int ntypes,
                            double host_cut_bothsq, double **host_lj1, 
                            double **host_lj2, double **host_lj3, 
                            double **host_lj4, double **host_offset, 
@@ -107,7 +105,7 @@ int CRML_GPU_MemoryT::init(const int ntypes,
 }
 
 template <class numtyp, class acctyp>
-void CRML_GPU_MemoryT::clear() {
+void CHARMMLongT::clear() {
   if (!_allocated)
     return;
   _allocated=false;
@@ -119,15 +117,15 @@ void CRML_GPU_MemoryT::clear() {
 }
 
 template <class numtyp, class acctyp>
-double CRML_GPU_MemoryT::host_memory_usage() const {
-  return this->host_memory_usage_atomic()+sizeof(CRML_GPU_Memory<numtyp,acctyp>);
+double CHARMMLongT::host_memory_usage() const {
+  return this->host_memory_usage_atomic()+sizeof(CHARMMLong<numtyp,acctyp>);
 }
 
 // ---------------------------------------------------------------------------
 // Calculate energies, forces, and torques
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-void CRML_GPU_MemoryT::loop(const bool _eflag, const bool _vflag) {
+void CHARMMLongT::loop(const bool _eflag, const bool _vflag) {
   // Compute the block size and grid size to keep all cores busy
   const int BX=this->_block_bio_size;
   int eflag, vflag;
@@ -172,4 +170,4 @@ void CRML_GPU_MemoryT::loop(const bool _eflag, const bool _vflag) {
   this->time_pair.stop();
 }
 
-template class CRML_GPU_Memory<PRECISION,ACC_PRECISION>;
+template class CHARMMLong<PRECISION,ACC_PRECISION>;

@@ -1,7 +1,7 @@
 // **************************************************************************
 //                                 gayberne.cu
 //                             -------------------
-//                               W. Michael Brown
+//                           W. Michael Brown (ORNL)
 //
 //  Device code for Gay-Berne potential acceleration
 //

@@ -1924,4 +1924,3 @@ void Thermo::compute_cellgamma()
     dvalue = acos(cosgamma)*180.0/PI;
   }
 }
-

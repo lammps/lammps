@@ -80,8 +80,15 @@ void ReadRestart::command(int narg, char **arg)
   // if filename contains "*", search dir for latest restart file
 
   char *file = new char[strlen(arg[0]) + 16];
-  if (strchr(arg[0],'*')) file_search(arg[0],file);
-  else strcpy(file,arg[0]);
+  if (strchr(arg[0],'*')) {
+    int n;
+    if (me == 0) {
+      file_search(arg[0],file);
+      n = strlen(file) + 1;
+    }
+    MPI_Bcast(&n,1,MPI_INT,0,world);
+    MPI_Bcast(file,n,MPI_CHAR,0,world);
+  } else strcpy(file,arg[0]);
 
   // check if filename contains "%"
 
@@ -348,10 +355,12 @@ void ReadRestart::command(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   search for all files matching infile which contains a "*"
+   infile contains a "*"
+   search for all files which match the infile pattern
    replace "*" with latest timestep value to create outfile name
    search dir referenced by initial pathname of file
-   if infile also contains "%", need to use "base" when search directory
+   if infile also contains "%", use "base" when searching directory
+   only called by proc 0
 ------------------------------------------------------------------------- */
 
 void ReadRestart::file_search(char *infile, char *outfile)
@@ -399,24 +408,22 @@ void ReadRestart::file_search(char *infile, char *outfile)
   int nbegin = strlen(begin);
   int maxnum = -1;
 
-  if (me == 0) {
-    struct dirent *ep;
-    DIR *dp = opendir(dirname);
-    if (dp == NULL) 
-      error->one("Cannot open dir to search for restart file");
-    while (ep = readdir(dp)) {
-      if (strstr(ep->d_name,begin) != ep->d_name) continue;
-      if ((ptr = strstr(&ep->d_name[nbegin],end)) == NULL) continue;
-      if (strlen(end) == 0) ptr = ep->d_name + strlen(ep->d_name);
-      *ptr = '\0';
-      if (strlen(&ep->d_name[nbegin]) < n) {
-	strcpy(middle,&ep->d_name[nbegin]);
-	if (atoi(middle) > maxnum) maxnum = atoi(middle);
-      }
+  struct dirent *ep;
+  DIR *dp = opendir(dirname);
+  if (dp == NULL) 
+    error->one("Cannot open dir to search for restart file");
+  while (ep = readdir(dp)) {
+    if (strstr(ep->d_name,begin) != ep->d_name) continue;
+    if ((ptr = strstr(&ep->d_name[nbegin],end)) == NULL) continue;
+    if (strlen(end) == 0) ptr = ep->d_name + strlen(ep->d_name);
+    *ptr = '\0';
+    if (strlen(&ep->d_name[nbegin]) < n) {
+      strcpy(middle,&ep->d_name[nbegin]);
+      if (atoi(middle) > maxnum) maxnum = atoi(middle);
     }
-    closedir(dp);
-    if (maxnum < 0) error->one("Found no restart file matching pattern");
   }
+  closedir(dp);
+  if (maxnum < 0) error->one("Found no restart file matching pattern");
 
   // create outfile with maxint substituted for "*"
   // use original infile, not pattern, since need to retain "%" in filename

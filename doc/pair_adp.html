@@ -26,8 +26,8 @@ pair_coeff * * ../potentials/AlCu.adp Al Al Cu
 <P>Style <I>adp</I> computes pairwise interactions for metals and metal alloys
 using the angular dependent potential (ADP) of <A HREF = "#Mishin">(Mishin)</A>,
 which is a generalization of the <A HREF = "pair_eam.html">embedded atom method (EAM)
-potential</A>.  The total energy Ei of an atom I is given
-by
+potential</A>.  The LAMMPS implementation is discussed in
+<A HREF = "#Singh">(Singh)</A>.  The total energy Ei of an atom I is given by
 </P>
 <CENTER><IMG SRC = "Eqs/pair_adp.jpg">
 </CENTER>
@@ -66,7 +66,8 @@ where N is the number of LAMMPS atom types:
 <UL><LI>filename
 <LI>N element names = mapping of extended <I>setfl</I> elements to atom types 
 </UL>
-<P>As an example, the potentials/AlCu.adp file is an extended <I>setfl</I>
+<P>As an example, the potentials/AlCu.adp file, included in the
+potentials directory of the LAMMPS distrbution, is an extended <I>setfl</I>
 file which has tabulated ADP values for w elements and their alloy
 interactions: Cu and Al.  If your LAMMPS simulation has 4 atoms types
 and you want the 1st 3 to be Al, and the 4th to be Cu, you would use
@@ -150,7 +151,13 @@ if LAMMPS was built with that package (which it is by default).
 </P>
 <HR>
 
-<P>:link(Mishin) <B>(Mishin)</B> Mishin, Mehl, and Papaconstantopoulos, Acta
-Mater, 53, 4029 (2005).
+<A NAME = "Mishin"></A>
+
+<P><B>(Mishin)</B> Mishin, Mehl, and Papaconstantopoulos, Acta Mater, 53, 4029
+(2005).
+</P>
+<A NAME = "Singh"></A>
+
+<P><B>(Singh)</B> Singh and Warner, Acta Mater, 58, 5797-5805 (2010),
 </P>
 </HTML>

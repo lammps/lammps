@@ -63,7 +63,8 @@ where N is the number of LAMMPS atom types:
 filename
 N element names = mapping of extended {setfl} elements to atom types :ul
 
-As an example, the potentials/AlCu.adp file is an extended {setfl}
+As an example, the potentials/AlCu.adp file, included in the
+potentials directory of the LAMMPS distrbution, is an extended {setfl}
 file which has tabulated ADP values for w elements and their alloy
 interactions: Cu and Al.  If your LAMMPS simulation has 4 atoms types
 and you want the 1st 3 to be Al, and the 4th to be Cu, you would use

@@ -23,8 +23,8 @@ pair_coeff * * ../potentials/AlCu.adp Al Al Cu :pre
 Style {adp} computes pairwise interactions for metals and metal alloys
 using the angular dependent potential (ADP) of "(Mishin)"_#Mishin,
 which is a generalization of the "embedded atom method (EAM)
-potential"_pair_eam.html.  The total energy Ei of an atom I is given
-by
+potential"_pair_eam.html.  The LAMMPS implementation is discussed in
+"(Singh)"_#Singh.  The total energy Ei of an atom I is given by
 
 :c,image(Eqs/pair_adp.jpg)
 
@@ -147,5 +147,9 @@ if LAMMPS was built with that package (which it is by default).
 
 :line
 
-:link(Mishin) [(Mishin)] Mishin, Mehl, and Papaconstantopoulos, Acta
-Mater, 53, 4029 (2005).
+:link(Mishin)
+[(Mishin)] Mishin, Mehl, and Papaconstantopoulos, Acta Mater, 53, 4029
+(2005).
+
+:link(Singh)
+[(Singh)] Singh and Warner, Acta Mater, 58, 5797-5805 (2010),

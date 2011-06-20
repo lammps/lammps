@@ -304,7 +304,7 @@ void FixShake::init()
   // could have changed locations in fix list since created
   // set ptrs to rRESPA variables
 
-  if (strcmp(update->integrate_style,"respa") == 0) {
+  if (strstr(update->integrate_style,"respa")) {
     for (i = 0; i < modify->nfix; i++)
       if (strcmp(modify->fix[i]->style,"RESPA") == 0) ifix_respa = i;
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
@@ -399,7 +399,7 @@ void FixShake::setup(int vflag)
 
   // half timestep constraint on pre-step, full timestep thereafter
 
-  if (strcmp(update->integrate_style,"verlet") == 0) {
+  if (strstr(update->integrate_style,"verlet")) {
     dtv = update->dt;
     dtfsq = 0.5 * update->dt * update->dt * force->ftm2v;
     post_force(vflag);
@@ -2417,7 +2417,7 @@ void FixShake::unpack_comm(int n, int first, double *buf)
 
 void FixShake::reset_dt()
 {
-  if (strcmp(update->integrate_style,"verlet") == 0) {
+  if (strstr(update->integrate_style,"verlet")) {
     dtv = update->dt;
     dtfsq = update->dt * update->dt * force->ftm2v;
   } else {

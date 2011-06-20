@@ -109,7 +109,7 @@ void FixDtReset::init()
   // set rRESPA flag
 
   respaflag = 0;
-  if (strcmp(update->integrate_style,"respa") == 0) respaflag = 1;
+  if (strstr(update->integrate_style,"respa")) respaflag = 1;
 
   // check for DCD or XTC dumps
 

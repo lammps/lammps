@@ -149,7 +149,7 @@ void PairGranHookeCuda::init_style()
 
   int irequest;
  
-  if (update->whichflag == 0 && strcmp(update->integrate_style,"respa") == 0) {
+  if (update->whichflag == 0 && strstr(update->integrate_style,"respa")) {
 
   } 
   else 

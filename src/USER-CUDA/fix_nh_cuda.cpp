@@ -547,7 +547,7 @@ void FixNHCuda::init()
   if (force->kspace) kspace_flag = 1;
   else kspace_flag = 0;
 
-  if (strcmp(update->integrate_style,"respa") == 0) {
+  if (strstr(update->integrate_style,"respa")) {
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
     step_respa = ((Respa *) update->integrate)->step;
     dto = 0.5*step_respa[0];
@@ -1550,7 +1550,7 @@ void FixNHCuda::reset_dt()
 
   // If using respa, then remap is performed in innermost level
   
-  if (strcmp(update->integrate_style,"respa") == 0)
+  if (strstr(update->integrate_style,"respa"))
     dto = 0.5*step_respa[0];
   
   p_freq_max = 0.0;

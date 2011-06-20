@@ -90,7 +90,7 @@ void FixEnforce2DCuda::init()
 
 void FixEnforce2DCuda::setup(int vflag)
 {
-  if (strcmp(update->integrate_style,"verlet") == 0)
+  if (strstr(update->integrate_style,"verlet"))
   {
     Cuda_FixEnforce2dCuda_Init(&cuda->shared_data);
     cuda->cu_f->upload();

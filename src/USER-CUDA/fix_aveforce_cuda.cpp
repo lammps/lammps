@@ -101,7 +101,7 @@ void FixAveForceCuda::init()
 {
   if(not cu_foriginal)
   cu_foriginal = new cCudaData<double, F_FLOAT, x> (foriginal,4);    
-  if (strcmp(update->integrate_style,"respa") == 0)
+  if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
   // ncount = total # of atoms in group
@@ -114,7 +114,7 @@ void FixAveForceCuda::init()
 
 void FixAveForceCuda::setup(int vflag)
 {
-  if (strcmp(update->integrate_style,"verlet") == 0)
+  if (strstr(update->integrate_style,"verlet"))
   {
     Cuda_FixAveForceCuda_Init(&cuda->shared_data);
     cuda->cu_f->upload();

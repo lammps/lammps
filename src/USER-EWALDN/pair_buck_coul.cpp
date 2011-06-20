@@ -237,7 +237,7 @@ void PairBuckCoul::init_style()
 
   int irequest;
 
-  if (update->whichflag == 0 && strcmp(update->integrate_style,"respa") == 0) {
+  if (update->whichflag == 0 && strstr(update->integrate_style,"respa")) {
     int respa = 0;
     if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
     if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
@@ -273,7 +273,7 @@ void PairBuckCoul::init_style()
 
   // set rRESPA cutoffs
 
-  if (strcmp(update->integrate_style,"respa") == 0 &&
+  if (strstr(update->integrate_style,"respa") &&
       ((Respa *) update->integrate)->level_inner >= 0)
     cut_respa = ((Respa *) update->integrate)->cutoff;
   else cut_respa = NULL;

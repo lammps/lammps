@@ -154,7 +154,7 @@ void FixAveForce::init()
   if (xstyle == EQUAL || ystyle == EQUAL || zstyle == EQUAL) varflag = EQUAL;
   else varflag = CONSTANT;
 
-  if (strcmp(update->integrate_style,"respa") == 0)
+  if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
 
@@ -162,7 +162,7 @@ void FixAveForce::init()
 
 void FixAveForce::setup(int vflag)
 {
-  if (strcmp(update->integrate_style,"verlet") == 0)
+  if (strstr(update->integrate_style,"verlet"))
     post_force(vflag);
   else
     for (int ilevel = 0; ilevel < nlevels_respa; ilevel++) {

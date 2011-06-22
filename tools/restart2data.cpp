@@ -36,7 +36,7 @@
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 #define MAX_GROUP 32
-#define PI 4.0*atan(1.0)
+#define PI (4.0*atan(1.0))
 
 // these should match settings in src/lmptype.h
 

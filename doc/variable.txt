@@ -299,7 +299,12 @@ element-by-element and produce a per-atom vector.
 A formula for equal-style variables cannot use any formula element
 that produces a per-atom vector.  A formula for an atom-style variable
 can use formula elements that produce either a scalar value or a
-per-atom vector.
+per-atom vector.  Atom-style variables are evaluated by other commands
+that define a "group"_group.html on which they operate, e.g. a
+"dump"_dump.html or "compute"_compute.html or "fix"_fix.html command.
+When they invoke the atom-style variable, only atoms in the group are
+inlcuded in the formula evaluation.  The variable evaluates to 0.0 for
+atoms not in the group.
 
 The thermo keywords allowed in a formula are those defined by the
 "thermo_style custom"_thermo_style.html command.  Thermo keywords that

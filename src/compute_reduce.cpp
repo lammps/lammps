@@ -350,7 +350,8 @@ double ComputeReduce::compute_scalar()
     MPI_Allreduce(&one,&scalar,1,MPI_DOUBLE,MPI_MAX,world);
   } else if (mode == AVE) {
     MPI_Allreduce(&one,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
-    scalar /= count(0);
+    bigint n = count(0);
+    if (n) scalar /= n;
   }
 
   return scalar;
@@ -419,7 +420,8 @@ void ComputeReduce::compute_vector()
   } else if (mode == AVE) {
     for (int m = 0; m < nvalues; m++) {
       MPI_Allreduce(&onevec[m],&vector[m],1,MPI_DOUBLE,MPI_SUM,world);
-      vector[m] /= count(m);
+      bigint n = count(m);
+      if (n) vector[m] /= n;
     }
   }
 }

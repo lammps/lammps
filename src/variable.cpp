@@ -210,6 +210,7 @@ void Variable::set(int narg, char **arg)
       if (nvar == maxvar) extend();
       style[nvar] = UNIVERSE;
       num[nvar] = narg - 2;
+      pad[nvar] = 0;
       data[nvar] = new char*[num[nvar]];
       copy(num[nvar],&arg[2],data[nvar]);
     } else if (strcmp(arg[1],"uloop") == 0) {
@@ -500,7 +501,7 @@ void Variable::compute_atom(int ivar, int igroup,
   if (sumflag == 0) {
     int m = 0;
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] && groupbit) result[m] = eval_tree(tree,i);
+      if (mask[i] & groupbit) result[m] = eval_tree(tree,i);
       else result[m] = 0.0;
       m += stride;
     }

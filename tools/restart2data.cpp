@@ -1338,6 +1338,7 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 
   if (strcmp(style,"none") == 0) {
 
+  } else if (strcmp(style,"adp") == 0) {
   } else if (strcmp(style,"airebo") == 0) {
 
   } else if (strcmp(style,"born/coul/long") == 0) {
@@ -1811,6 +1812,7 @@ void pair(FILE *fp, Data &data, char *style, int flag)
       }
 
   } else if ((strcmp(style,"lj/cut") == 0) ||
+	     (strcmp(style,"lj96/cut") == 0) ||
 	     (strcmp(style,"lj/cut/coul/cut") == 0) ||
 	     (strcmp(style,"lj/cut/coul/debye") == 0) ||
 	     (strcmp(style,"lj/cut/coul/long") == 0) ||
@@ -1818,6 +1820,11 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 	     (strcmp(style,"lj/coul") == 0)) {
 
     if (strcmp(style,"lj/cut") == 0) {
+      m = 0;
+      double cut_lj_global = read_double(fp);
+      int offset_flag = read_int(fp);
+      int mix_flag = read_int(fp);
+    } else if (strcmp(style,"lj96/cut") == 0) {
       m = 0;
       double cut_lj_global = read_double(fp);
       int offset_flag = read_int(fp);
@@ -2761,6 +2768,7 @@ void Data::write(FILE *fp, FILE *fp2)
 
   if (pair_style && fp2 == NULL) {
     if ((strcmp(pair_style,"none") != 0) &&
+	(strcmp(pair_style,"adp") != 0) &&
 	(strcmp(pair_style,"airebo") != 0) &&
 	(strcmp(pair_style,"coul/cut") != 0) &&
 	(strcmp(pair_style,"coul/debye") != 0) &&
@@ -2842,6 +2850,7 @@ void Data::write(FILE *fp, FILE *fp2)
 		pair_class2_epsilon[i],pair_class2_sigma[i]);
       
     } else if ((strcmp(pair_style,"lj/cut") == 0) ||
+	       (strcmp(pair_style,"lj96/cut") == 0) ||
 	       (strcmp(pair_style,"lj/cut/coul/cut") == 0) ||
 	       (strcmp(pair_style,"lj/cut/coul/debye") == 0) ||
 	       (strcmp(pair_style,"lj/cut/coul/long") == 0) ||

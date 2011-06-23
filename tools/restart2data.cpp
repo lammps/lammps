@@ -478,7 +478,7 @@ int main (int narg, char **arg)
 
 void header(FILE *fp, Data &data)
 {
-  char *version = "6 Jan 2011";
+  char *version = "25 Jun 2011";
 
   data.triclinic = 0;
 
@@ -1705,6 +1705,18 @@ void pair(FILE *fp, Data &data, char *style, int flag)
     double gammat = read_double(fp);
     double xmu = read_double(fp);
     int dampflag = read_int(fp);
+
+    if (!flag) return;
+
+    for (i = 1; i <= data.ntypes; i++) { 
+      for (j = i; j <= data.ntypes; j++) {
+	itmp = read_int(fp);
+	if (i == j && itmp == 0) {
+	  printf("ERROR: Pair coeff %d,%d is not in restart file\n",i,j);
+	  exit(1);
+	}
+      }
+    }
 
   } else if ((strcmp(style,"lj/charmm/coul/charmm") == 0) ||
 	     (strcmp(style,"lj/charmm/coul/charmm/implicit") == 0) ||

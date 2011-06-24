@@ -211,7 +211,7 @@ void FixLangevin::init()
   if (temperature && temperature->tempbias) which = BIAS;
   else which = NOBIAS;
 
-  if (strcmp(update->integrate_style,"respa") == 0)
+  if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
 
@@ -219,7 +219,7 @@ void FixLangevin::init()
 
 void FixLangevin::setup(int vflag)
 {
-  if (strcmp(update->integrate_style,"verlet") == 0)
+  if (strstr(update->integrate_style,"verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);

@@ -49,20 +49,21 @@ sub-directories:
 <TR><TD >tools</TD><TD > pre- and post-processing tools 
 </TD></TR></TABLE></DIV>
 
-<P>If you download the Windows executable from the download page,
+<P>If you download one of the Windows executables from the download page,
 then you just get a single file:
 </P>
 <PRE>lmp_windows.exe 
 </PRE>
-<P>Skip to the <A HREF = "#2_5">Running LAMMPS</A> section, to learn how to launch this
-executable on a Windows box.
+<P>Skip to the <A HREF = "#2_5">Running LAMMPS</A> sections for info on how to launch
+these executables on a Windows box.
 </P>
-<P>The Windows executable also only includes certain packages and
-bug-fixes/upgrades listed on <A HREF = "http://lammps.sandia.gov/bug.html">this
+<P>The Windows executables for serial or parallel only include certain
+packages and bug-fixes/upgrades listed on <A HREF = "http://lammps.sandia.gov/bug.html">this
 page</A> up to a certain date, as
 stated on the download page.  If you want something with more packages
 or that is more current, you'll have to download the source tarball
-and build it yourself, as described in the next section.
+and build it yourself from source code using Microsoft Visual Studio,
+as described in the next section.
 </P>
 <HR>
 
@@ -74,7 +75,9 @@ and build it yourself, as described in the next section.
 <LI><A HREF = "#2_2_2">Building a LAMMPS executable</A>
 <LI><A HREF = "#2_2_3">Common errors that can occur when making LAMMPS</A>
 <LI><A HREF = "#2_2_4">Editing a new low-level Makefile</A>
-<LI><A HREF = "#2_2_5">Additional build tips</A> 
+<LI><A HREF = "#2_2_5">Additional build tips</A>
+<LI><A HREF = "#2_2_6">Building for a Mac</A>
+<LI><A HREF = "#2_2_7">Building for Windows</A> 
 </UL>
 <HR>
 
@@ -338,25 +341,41 @@ Obj_name where it stores the system-specific *.o files.
 files created when LAMMPS is built, for either all builds or for a
 particular machine.
 </P>
-<P>(3) Building for a Mac.
-</P>
+<HR>
+
+<A NAME = "2_2_6"></A><B><I>Building for a Mac:</I></B> 
+
 <P>OS X is BSD Unix, so it should just work.  See the Makefile.mac file.
 </P>
-<P>(4) Building for MicroSoft Windows.
-</P>
-<P>The LAMMPS download page has an option to download a pre-built Windows
-exeutable.  See below for instructions for running this executable on
-a Windows box.
+<HR>
+
+<A NAME = "2_2_7"></A><B><I>Building for Windows:</I></B> 
+
+<P>The LAMMPS download page has an option to download both a serial and
+parallel pre-built Windows exeutable.  See the <A HREF = "#2_5">Running LAMMPS</A>
+section for instructions for running these executables on a Windows
+box.
 </P>
 <P>If the pre-built executable doesn't have the options you want, then
-you should be able to build LAMMPS from source files on a Windows box.
-I've never done this, but LAMMPS is just standard C++ with MPI and FFT
-calls.  You can use cygwin to build LAMMPS with a Unix make; see
-Makefile.cygwin.  Or you should be able to pull all the source files
-into Visual C++ (ugh) or some similar development environment and
-build it.  In the src/MAKE/Windows directory are some notes from users
-on how they built LAMMPS under Windows, so you can look at their
-instructions for tips.  Good luck - we can't help you on this one.
+you can build LAMMPS from its source files on a Windows box.  One way
+to do this is install and use cygwin to build LAMMPS with a standard
+Linus make, just as you would on any Linux box; see
+src/MAKE/Makefile.cygwin.
+</P>
+<P>There is a also a src/WINDOWS directory that contains project files
+for Microsoft Visual Studio 2005, which should also work with later
+versions of VS.  That directory contains a README.txt file which
+provides instructions for building LAMMPS from source code using
+Visual Studio that are hopefully easy to follow for Windows and VS
+users.
+</P>
+<P>Four VS project options are provided.  The first includes the default
+packages (MANYBODY, MOLECULE, and KSPACE).  The second includes all
+standard packages (except GPU, MEAM, and REAX which are not yet
+included because they require NVIDIA or Fortran compilation).  The
+third includes all standard packages (with the exceptions) and some
+user packages.  The included user packages are USER-EFF, USER-CG-CMM,
+and USER-REAXC.  The fourth project includes the USER-AWPMD package.
 </P>
 <P>(5) Changing the size limits in src/lmptype.h
 </P>
@@ -487,7 +506,8 @@ run a bit faster.
 no-name", where "name" is the name of the package.  You can also type
 "make yes-standard", "make no-standard", "make yes-user", "make
 no-user", "make yes-all" or "make no-all" to include/exclude various
-sets of packages.  Type "make package" to see the various options.
+sets of packages.  Type "make package" to see the all of the
+package-related make options.
 </P>
 <P>IMPORTANT NOTE: These make commands work by simply moving files back
 and forth between the main src directory and sub-directories with the
@@ -495,19 +515,25 @@ package name, so that the files are seen or not seen when LAMMPS is
 built.  After you have included or excluded a package, you must
 re-build LAMMPS.
 </P>
-<P>Additional make options exist to help manage LAMMPS files that exist
+<P>Additional package-related make options exist to help manage LAMMPS 
+files that exist
 in both the src directory and in package sub-directories.  You do not
 normally need to use these commands unless you are editing LAMMPS
 files or have downloaded a patch from the LAMMPS WWW site.
 </P>
 <P>Typing "make package-update" will overwrite src files with files from
-the package directories if the package has been included.  It should
+the package sub-directories if the package has been included.  It should
 be used after a patch is installed, since patches only update the
-master package version of a file.  Typing "make package-overwrite"
-will overwrite files in the package directories with src files.
-Typing "make package-check" will list differences between src and
-package versions of the same files.  Again, type "make package" to see
-the various options.
+files in the package sub-directory, but not the src files.  
+Typing "make package-overwrite"
+will overwrite files in the package sub-directories with src files.
+</P>
+<P>Typing "make package-status" will show which packages are currently
+included. Of those that are included, it will list files that
+are different in the src directory and package sub-directory.
+Typing "make package-diff" lists all differences between these files. 
+Again, type "make package" to see all of the
+package-related make options.
 </P>
 <HR>
 
@@ -713,16 +739,14 @@ on various platforms.
 
 <HR>
 
-<P>On a Windows machine, you can skip making LAMMPS and simply download
-an executable. But note that not all packages are available.
-The following packages are available: asphere, class2, colloid, dipole,
-dsmc, granular, kspace, manybody, molecule, peri, poems, replica, shock,
-user-ackland, user-cd-eam, user-cg-cmm, user-ewaldn, user-smd. But these 
-packages are not available: gpu, meam, opt, reax, xtc, user-atc, user-imd.
+<P>On a Windows box, you can skip making LAMMPS and simply download an
+executable, as described above. though the pre-packaged executables
+make only certain packages available.
 </P>
-<P>To run the LAMMPS executable on a Windows machine, first decide whether 
-you want to download the non-MPI (serial) or the MPI (parallel) version 
-of the executable. Download and save the version you have chosen.
+<P>To run a LAMMPS executable on a Windows machine, first decide whether
+you want to download the non-MPI (serial) or the MPI (parallel)
+version of the executable. Download and save the version you have
+chosen.
 </P>
 <P>For the non-MPI version, follow these steps:
 </P>
@@ -807,6 +831,8 @@ abbreviation can be used:
 <LI>-i or -in
 <LI>-l or -log
 <LI>-p or -partition
+<LI>-pl or -plog
+<LI>-ps or -pscreen
 <LI>-sc or -screen
 <LI>-sf or -suffix
 <LI>-v or -var 
@@ -860,6 +886,7 @@ logfile is named "file" and each partition also logs information to a
 file.N.  For both one-partition and multi-partition mode, if the
 specified file is "none", then no log files are created.  Using a
 <A HREF = "log.html">log</A> command in the input script will override this setting.
+Option -plog will override the name of the partition log files file.N.
 </P>
 <PRE>-partition 8x2 4 5 ... 
 </PRE>
@@ -887,6 +914,35 @@ these commands in this way.  Simulations running on different
 partitions can also communicate with each other; see the
 <A HREF = "temper.html">temper</A> command.
 </P>
+<PRE>-plog file 
+</PRE>
+<P>Specify the base name for the partition log files, 
+so partition N writes log information to file.N. If file is 
+none, then no partition log files are created. 
+This overrides the
+filename specified in the -log command-line option.
+This option is useful when working with large numbers of partitions,
+allowing the partition log files to be suppressed (-plog none) or
+placed in a sub-directory (-plog replica_files/log.lammps)
+If this option is not used
+the log file for partition N is log.lammps.N or whatever is specified by
+the -log command-line option. 
+</P>
+<PRE>-pscreen file 
+</PRE>
+<P>Specify the base name for the 
+partition screen file, so partition N writes 
+screen information to file.N. If file is 
+none, then no partition screen files are created. 
+This overrides the
+filename specified in the -screen command-line option.
+This option is useful when working with large numbers of partitions,
+allowing the partition screen files to be suppressed (-pscreen none) or
+placed in a sub-directory (-pscreen replica_files/screen)
+If this option is not used
+the screen file for partition N is screen.N or whatever is specified by
+the -screen command-line option. 
+</P>
 <PRE>-screen file 
 </PRE>
 <P>Specify a file for LAMMPS to write its screen information to.  In
@@ -899,7 +955,8 @@ the partition ID.  If the switch is specified in multi-partition mode,
 the hi-level screen dump is named "file" and each partition also
 writes screen information to a file.N.  For both one-partition and
 multi-partition mode, if the specified file is "none", then no screen
-output is performed.
+output is performed. Option -pscreen will override the name of the 
+partition screen files file.N.
 </P>
 <PRE>-suffix style 
 </PRE>

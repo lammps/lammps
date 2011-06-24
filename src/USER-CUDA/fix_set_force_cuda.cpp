@@ -82,7 +82,7 @@ void FixSetForceCuda::init()
 {
   if(not cu_foriginal)
   cu_foriginal = new cCudaData<double, F_FLOAT, x> (foriginal,3);    
-  if (strcmp(update->integrate_style,"respa") == 0)
+  if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
 
@@ -92,7 +92,7 @@ void FixSetForceCuda::setup(int vflag)
 {
   MYDBG( printf("# CUDA: FixSetForceCuda::setup\n"); )
 	
-  if (strcmp(update->integrate_style,"verlet") == 0)
+  if (strstr(update->integrate_style,"verlet"))
   {
     Cuda_FixSetForceCuda_Init(&cuda->shared_data);
     cuda->cu_f->upload();

@@ -42,7 +42,7 @@ extern double lmp_gpu_forces(double **f, double **tor, double *eatom,
 
 FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
-
+{
   if (lmp->cuda) error->all("Cannot use fix gpu with USER-CUDA mode enabled");
 
   if (narg < 7) error->all("Illegal fix gpu command");
@@ -160,7 +160,7 @@ void FixGPU::post_force(int vflag)
   force->pair->virial[4] += lvirial[4];
   force->pair->virial[5] += lvirial[5];
 
-  if (force->pair->vflag_fdotr) force->pair->virial_compute();
+  if (force->pair->vflag_fdotr) force->pair->virial_fdotr_compute();
   timer->stamp(TIME_PAIR);
 }
 

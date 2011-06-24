@@ -195,7 +195,7 @@ void FixWall::init()
 
   for (int m = 0; m < nwall; m++) precompute(m);
 
-  if (strcmp(update->integrate_style,"respa") == 0)
+  if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
 
@@ -203,7 +203,7 @@ void FixWall::init()
 
 void FixWall::setup(int vflag)
 {
-  if (strcmp(update->integrate_style,"verlet") == 0)
+  if (strstr(update->integrate_style,"verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);

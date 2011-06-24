@@ -29,6 +29,7 @@ class FixNH : public Fix {
   virtual void final_integrate();
   void initial_integrate_respa(int, int, int);
   void final_integrate_respa(int, int);
+  void pre_exchange();
   double compute_scalar();
   double compute_vector(int);
   void write_restart(FILE *);
@@ -62,6 +63,7 @@ class FixNH : public Fix {
   int kspace_flag;                 // 1 if KSpace invoked, 0 if not
   int nrigid;                      // number of rigid fixes
   int *rfix;                       // indices of rigid fixes
+  class Irregular *irregular;      // for migrating atoms after box flips
 
   int nlevels_respa;
   double *step_respa;
@@ -95,7 +97,12 @@ class FixNH : public Fix {
   int deviatoric_flag;             // 0 if target stress tensor is hydrostatic
   double h0_inv[6];                // h_inv of reference (zero strain) box
   int nreset_h0;                   // interval for resetting h0
+
   double mtk_term1,mtk_term2;      // Martyna-Tobias-Klein corrections
+
+  int scaleyz;                     // 1 if yz scaled with lz 
+  int scalexz;                     // 1 if xz scaled with lz 
+  int scalexy;                     // 1 if xy scaled with ly 
 
   void couple();
   void remap();

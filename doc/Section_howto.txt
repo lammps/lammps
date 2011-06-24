@@ -747,8 +747,8 @@ By default, LAMMPS uses an orthogonal simulation box to encompass the
 particles.  The "boundary"_boundary.html command sets the boundary
 conditions of the box (periodic, non-periodic, etc).  The orthogonal
 box has its "origin" at (xlo,ylo,zlo) and is defined by 3 edge vectors
-starting from the origin given by A = (xhi-xlo,0,0); B =
-(0,yhi-ylo,0); C = (0,0,zhi-zlo).  The 6 parameters
+starting from the origin given by [a] = (xhi-xlo,0,0); [b] =
+(0,yhi-ylo,0); [c] = (0,0,zhi-zlo).  The 6 parameters
 (xlo,xhi,ylo,yhi,zlo,zhi) are defined at the time the simluation box
 is created, e.g. by the "create_box"_create_box.html or
 "read_data"_read_data.html or "read_restart"_read_restart.html
@@ -760,14 +760,14 @@ custom"_thermo_style.html command.
 LAMMPS also allows simulations to be perfored in non-orthogonal
 simulation boxes shaped as a parallelepiped with triclinic symmetry.
 The parallelepiped has its "origin" at (xlo,ylo,zlo) and is defined by
-3 edge vectors starting from the origin given by A = (xhi-xlo,0,0); B
-= (xy,yhi-ylo,0); C = (xz,yz,zhi-zlo).  {Xy,xz,yz} can be 0.0 or
+3 edge vectors starting from the origin given by [a] = (xhi-xlo,0,0); [b]
+= (xy,yhi-ylo,0); [c] = (xz,yz,zhi-zlo).  {Xy,xz,yz} can be 0.0 or
 positive or negative values and are called "tilt factors" because they
 are the amount of displacement applied to faces of an originally
 orthogonal box to transform it into the parallelepiped.  Note that in
-LAMMPS the triclinic simulation box edge vectors A,B,C cannot be
-arbitrary vectors.  As indicated, A must be aligned with the x axis, B
-must be in the xy plane, and C is arbitrary.  However, this is not a
+LAMMPS the triclinic simulation box edge vectors [a], [b], and [c] cannot be
+arbitrary vectors.  As indicated, [a] must be aligned with the x axis, [b]
+must be in the xy plane, and [c] is arbitrary.  However, this is not a
 restriction since it is possible to rotate any set of 3 crystal basis
 vectors so that they meet this restriction.
 
@@ -809,13 +809,24 @@ equivalent.
 
 Triclinic crystal structures are often defined using three lattice
 constants {a}, {b}, and {c}, and three angles {alpha}, {beta} and
-{gamma}.  Note that in this nomenclature, the a,b,c lattice constants
-are the scalar lengths of the 3 A,B,C edge vectors defined above.  The
+{gamma}. Note that in this nomenclature, the a, b, and c lattice constants
+are the scalar lengths of the edge vectors [a], [b], and [c] defined 
+above.  The
 relationship between these 6 quantities (a,b,c,alpha,beta,gamma) and
 the LAMMPS box sizes (lx,ly,lz) = (xhi-xlo,yhi-ylo,zhi-zlo) and tilt
 factors (xy,xz,yz) is as follows:
 
 :c,image(Eqs/box.jpg) 
+
+The inverse relationship can be written as follows:
+
+:c,image(Eqs/box_inverse.jpg) 
+
+The values of {a}, {b}, {c} , {alpha}, {beta} , and {gamma} can be printed 
+out or accessed by computes using the 
+"thermo_style custom"_thermo_style.html keywords 
+{cella}, {cellb}, {cellc}, {cellalpha}, {cellbeta}, {cellgamma},
+respectively. 
 
 As discussed on the "dump"_dump.html command doc page, when the BOX
 BOUNDS for a snapshot is written to a dump file for a triclinic box,

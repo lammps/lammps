@@ -206,7 +206,7 @@ void FixBondCreate::init()
   neighbor->requests[irequest]->pair = 0;
   neighbor->requests[irequest]->fix = 1;
 
-  if (strcmp(update->integrate_style,"respa") == 0)
+  if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
 

@@ -657,6 +657,7 @@ potentials.  Click on the style itself for a full description:
 These are pair styles contributed by users, which can be used if
 "LAMMPS is built with the appropriate package"_Section_start.html#2_3.
 
+"awpmd/cut"_pair_awpmd.html,
 "buck/coul"_pair_buck_coul.html,
 "cg/cmm"_pair_cmm.html,
 "cg/cmm/coul/cut"_pair_cmm.html,

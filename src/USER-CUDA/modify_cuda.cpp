@@ -188,7 +188,6 @@ void ModifyCuda::init()
   // this is b/c some computes call fix->dof()
   // FixRigid::dof() depends on its own init having been called
 
-  comm->maxforward_fix = comm->maxreverse_fix = 0;
   for (i = 0; i < nfix; i++) fix[i]->init();
 
   // set global flag if any fix has its restart_pbc flag set

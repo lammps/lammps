@@ -193,7 +193,7 @@ int FixOrientFCC::setmask()
 
 void FixOrientFCC::init()
 {
-  if (strcmp(update->integrate_style,"respa") == 0)
+  if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
   // need a full neighbor list, built whenever re-neighboring occurs
@@ -216,7 +216,7 @@ void FixOrientFCC::init_list(int id, NeighList *ptr)
 
 void FixOrientFCC::setup(int vflag)
 {
-  if (strcmp(update->integrate_style,"verlet") == 0)
+  if (strstr(update->integrate_style,"verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);

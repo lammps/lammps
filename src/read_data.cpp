@@ -461,6 +461,7 @@ void ReadData::atoms()
       }
       buffer[m++] = '\n';
     }
+    buffer[m] = '\0';
     MPI_Bcast(&m,1,MPI_INT,0,world);
     MPI_Bcast(buffer,m,MPI_CHAR,0,world);
 
@@ -552,6 +553,7 @@ void ReadData::velocities()
       }
       buffer[m++] = '\n';
     }
+    buffer[m] = '\0';
     MPI_Bcast(&m,1,MPI_INT,0,world);
     MPI_Bcast(buffer,m,MPI_CHAR,0,world);
 
@@ -603,6 +605,7 @@ void ReadData::ellipsoids()
       }
       buffer[m++] = '\n';
     }
+    buffer[m] = '\0';
     MPI_Bcast(&m,1,MPI_INT,0,world);
     MPI_Bcast(buffer,m,MPI_CHAR,0,world);
 
@@ -642,6 +645,7 @@ void ReadData::bonds()
       }
       buffer[m++] = '\n';
     }
+    buffer[m] = '\0';
     MPI_Bcast(&m,1,MPI_INT,0,world);
     MPI_Bcast(buffer,m,MPI_CHAR,0,world);
 
@@ -687,6 +691,7 @@ void ReadData::angles()
       }
       buffer[m++] = '\n';
     }
+    buffer[m] = '\0';
     MPI_Bcast(&m,1,MPI_INT,0,world);
     MPI_Bcast(buffer,m,MPI_CHAR,0,world);
 
@@ -732,6 +737,7 @@ void ReadData::dihedrals()
       }
       buffer[m++] = '\n';
     }
+    buffer[m] = '\0';
     MPI_Bcast(&m,1,MPI_INT,0,world);
     MPI_Bcast(buffer,m,MPI_CHAR,0,world);
 
@@ -778,6 +784,7 @@ void ReadData::impropers()
       }
       buffer[m++] = '\n';
     }
+    buffer[m] = '\0';
     MPI_Bcast(&m,1,MPI_INT,0,world);
     MPI_Bcast(buffer,m,MPI_CHAR,0,world);
 

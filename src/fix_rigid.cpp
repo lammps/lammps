@@ -501,7 +501,7 @@ void FixRigid::init()
   dtf = 0.5 * update->dt * force->ftm2v;
   dtq = 0.5 * update->dt;
 
-  if (strcmp(update->integrate_style,"respa") == 0)
+  if (strstr(update->integrate_style,"respa"))
     step_respa = ((Respa *) update->integrate)->step;
 
   // extended = 1 if any particle in a rigid body is finite size

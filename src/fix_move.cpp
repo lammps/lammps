@@ -360,7 +360,7 @@ void FixMove::init()
     if (vzvarstr && vzvarstyle == ATOM) velocityflag = 1;
   }
 
-  if (strcmp(update->integrate_style,"respa") == 0)
+  if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
 

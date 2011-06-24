@@ -293,6 +293,7 @@ of analysis.
 <TR><TD >molecular</TD><TD > atom-ID molecule-ID atom-type x y z</TD></TR>
 <TR><TD >peri</TD><TD > atom-ID atom-type volume density x y z</TD></TR>
 <TR><TD >sphere</TD><TD > atom-ID atom-type diameter density x y z</TD></TR>
+<TR><TD >wavepacket</TD><TD > atom-ID atom-type charge spin eradius etag cs_re cs_im x y z</TD></TR>
 <TR><TD >hybrid</TD><TD > atom-ID atom-type x y z sub-style1 sub-style2 ...  
 </TD></TR></TABLE></DIV>
 
@@ -309,7 +310,9 @@ of analysis.
 <LI>x,y,z = coordinates of atom
 <LI>mux,muy,muz = components of dipole moment of atom (dipole units)
 <LI>spin = electron spin (+1/-1), 0 = nuclei, 2 = fixed-core, 3 = pseudo-cores (i.e. ECP)
-<LI>eradius = electron radius (or fixed-core radius) 
+<LI>eradius = electron radius (or fixed-core radius)
+<LI>etag = integer ID of electron that each wavepacket belongs to
+<LI>cs_re,cs_im = real/imaginary parts of wavepacket coefficients 
 </UL>
 <P>The units for these quantities depend on the unit style; see the
 <A HREF = "units.html">units</A> command for details.

@@ -213,7 +213,7 @@ void FixTTM::init()
       for (int iznode = 0; iznode < nznodes; iznode++)
         net_energy_transfer_all[ixnode][iynode][iznode] = 0;
 
-  if (strcmp(update->integrate_style,"respa") == 0)
+  if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
 
@@ -221,7 +221,7 @@ void FixTTM::init()
 
 void FixTTM::setup(int vflag)
 {
-  if (strcmp(update->integrate_style,"verlet") == 0)
+  if (strstr(update->integrate_style,"verlet"))
     post_force_setup(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);

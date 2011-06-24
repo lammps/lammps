@@ -55,7 +55,7 @@ int FixPlaneForce::setmask()
 
 void FixPlaneForce::setup(int vflag)
 {
-  if (strcmp(update->integrate_style,"verlet") == 0)
+  if (strstr(update->integrate_style,"verlet"))
     post_force(vflag);
   else {
     int nlevels_respa = ((Respa *) update->integrate)->nlevels;

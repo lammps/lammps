@@ -135,7 +135,7 @@ void FixGravityCuda::setup(int vflag)
 {
   MYDBG( printf("# CUDA: FixGravityCuda::setup\n"); )
 	
-  if (strcmp(update->integrate_style,"verlet") == 0)
+  if (strstr(update->integrate_style,"verlet"))
   {
     Cuda_FixGravityCuda_Init(&cuda->shared_data);
     cuda->cu_f->upload();

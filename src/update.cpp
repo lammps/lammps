@@ -127,6 +127,10 @@ void Update::set_units(const char *style)
     force->qe2f = 1.0;
     force->vxmu2f = 1.0;
     force->xxt2kmu = 1.0;
+    force->e_mass = 0.0;    // not yet set
+    force->hhmrr2e = 0.0;
+    force->mvh2r = 0.0;
+
     dt = 0.005;
     neighbor->skin = 0.3;
     
@@ -140,6 +144,10 @@ void Update::set_units(const char *style)
     force->qe2f = 23.060549; 
     force->vxmu2f = 1.4393264316e4;
     force->xxt2kmu = 0.1;
+    force->e_mass = 1.0/1836.1527556560675;
+    force->hhmrr2e = 0.0957018663603261;
+    force->mvh2r = 1.5339009481951;
+
     dt = 1.0;
     neighbor->skin = 2.0;
 
@@ -153,6 +161,10 @@ void Update::set_units(const char *style)
     force->qe2f = 1.0;
     force->vxmu2f = 0.6241509647;
     force->xxt2kmu = 1.0e-4;
+    force->e_mass = 0.0;    // not yet set
+    force->hhmrr2e = 0.0;
+    force->mvh2r = 0.0;
+
     dt = 0.001;
     neighbor->skin = 2.0;
 
@@ -166,6 +178,10 @@ void Update::set_units(const char *style)
     force->qe2f = 1.0;
     force->vxmu2f = 1.0;
     force->xxt2kmu = 1.0;
+    force->e_mass = 0.0;    // not yet set
+    force->hhmrr2e = 0.0;
+    force->mvh2r = 0.0;
+
     dt = 1.0e-8;
     neighbor->skin = 0.001;
 
@@ -179,6 +195,10 @@ void Update::set_units(const char *style)
     force->qe2f = 1.0;
     force->vxmu2f = 1.0;
     force->xxt2kmu = 1.0;
+    force->e_mass = 0.0;    // not yet set
+    force->hhmrr2e = 0.0;
+    force->mvh2r = 0.0;
+
     dt = 1.0e-8;
     neighbor->skin = 0.1;
 
@@ -192,6 +212,10 @@ void Update::set_units(const char *style)
     force->qe2f = 1.94469051e-10;  
     force->vxmu2f = 3.39893149e1;  
     force->xxt2kmu = 3.13796367e-2;
+    force->e_mass = 0.0;    // not yet set
+    force->hhmrr2e = 0.0;
+    force->mvh2r = 0.0;
+
     dt = 0.001;
     neighbor->skin = 2.0;
     

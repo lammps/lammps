@@ -183,7 +183,7 @@ void FixAddForce::init()
       update->whichflag == 2 && estyle == NONE)
     error->all("Must use variable energy with fix addforce");
 
-  if (strcmp(update->integrate_style,"respa") == 0)
+  if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
 
@@ -191,7 +191,7 @@ void FixAddForce::init()
 
 void FixAddForce::setup(int vflag)
 {
-  if (strcmp(update->integrate_style,"verlet") == 0)
+  if (strstr(update->integrate_style,"verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);

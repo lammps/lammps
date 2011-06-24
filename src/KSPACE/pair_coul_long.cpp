@@ -246,7 +246,7 @@ void PairCoulLong::init_style()
 
   // set & error check interior rRESPA cutoffs
 
-  if (strcmp(update->integrate_style,"respa") == 0 &&
+  if (strstr(update->integrate_style,"respa") &&
       ((Respa *) update->integrate)->level_inner >= 0) {
     cut_respa = ((Respa *) update->integrate)->cutoff;
     if (cut_coul < cut_respa[3])

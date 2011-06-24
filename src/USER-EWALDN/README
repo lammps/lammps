@@ -1,7 +1,8 @@
 The files in this directory are a user-contributed package for LAMMPS.
 
-The person who created these files is Pieter in' t Veld at Sandia
-(pjintve@sandia.gov).  Contact him directly if you have questions.
+The person who created these files is Pieter in' t Veld while at
+Sandia.  He is now at BASF (pieter.intveld@basf.com).  Contact him
+directly if you have questions.
 
 This package implements 3 commands which can be used in a LAMMPS input
 script: pair_style lj/coul, pair_style buck/coul, and kspace_style

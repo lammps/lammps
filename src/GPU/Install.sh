@@ -5,8 +5,7 @@
 if (test $1 = 1) then
 
   if (test -e ../Makefile.package) then
-    sed -i -e 's/[^ \t]*gpu //' ../Makefile.package
-    sed -i -e 's/[^ \t]*gpu_[^ \t]*) //' ../Makefile.package
+    sed -i -e 's/[^ \t]*gpu[^ \t]* //' ../Makefile.package
     sed -i -e 's|^PKG_PATH =[ \t]*|&-L../../lib/gpu |' ../Makefile.package
     sed -i -e 's|^PKG_LIB =[ \t]*|&-lgpu |' ../Makefile.package
     sed -i -e 's|^PKG_SYSINC =[ \t]*|&$(gpu_SYSINC) |' ../Makefile.package
@@ -84,13 +83,15 @@ if (test $1 = 1) then
   cp gpu_extra.h ..
 
   cp pair_omp_gpu.cpp ..
+  cp pair_lj_cut_tgpu.cpp ..
+
   cp pair_omp_gpu.h ..
+  cp pair_lj_cut_tgpu.h ..
   
 elif (test $1 = 0) then
 
   if (test -e ../Makefile.package) then
-    sed -i -e 's/[^ \t]*gpu //' ../Makefile.package
-    sed -i -e 's/[^ \t]*gpu_[^ \t]*) //' ../Makefile.package
+    sed -i -e 's/[^ \t]*gpu[^ \t]* //' ../Makefile.package
   fi
   
   rm -f ../pppm_gpu.cpp
@@ -115,6 +116,7 @@ elif (test $1 = 0) then
 
   rm -f ../fix_gpu.cpp
   rm -f ../pair_omp_gpu.cpp
+  rm -f ../pair_lj_cut_tgpu.cpp
 
   rm -f ../pppm_gpu.h
   rm -f ../pppm_gpu_single.h
@@ -130,7 +132,7 @@ elif (test $1 = 0) then
   rm -f ../pair_lj_class2_gpu.h
   rm -f ../pair_lj_class2_coul_long_gpu.h
   rm -f ../pair_lj_charmm_coul_long_gpu.h
-  rm -f ../pair_lj_cut_tgpu.cpp
+  rm -f ../pair_lj_cut_tgpu.h
   rm -f ../pair_cg_cmm_gpu.h
   rm -f ../pair_cg_cmm_coul_long_gpu.h
   rm -f ../pair_cg_cmm_coul_msm.h
@@ -139,6 +141,7 @@ elif (test $1 = 0) then
   rm -f ../fix_gpu.h
   rm -f ../gpu_extra.h
   rm -f ../pair_omp_gpu.h
+  rm -f ../pair_lj_cut_tgpu.h
   
 fi
 

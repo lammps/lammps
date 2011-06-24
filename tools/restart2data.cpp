@@ -36,7 +36,7 @@
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 #define MAX_GROUP 32
-#define PI 4.0*atan(1.0)
+#define PI (4.0*atan(1.0))
 
 // these should match settings in src/lmptype.h
 
@@ -478,7 +478,7 @@ int main (int narg, char **arg)
 
 void header(FILE *fp, Data &data)
 {
-  char *version = "6 Jan 2011";
+  char *version = "25 Jun 2011";
 
   data.triclinic = 0;
 
@@ -1338,6 +1338,7 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 
   if (strcmp(style,"none") == 0) {
 
+  } else if (strcmp(style,"adp") == 0) {
   } else if (strcmp(style,"airebo") == 0) {
 
   } else if (strcmp(style,"born/coul/long") == 0) {
@@ -1705,6 +1706,18 @@ void pair(FILE *fp, Data &data, char *style, int flag)
     double xmu = read_double(fp);
     int dampflag = read_int(fp);
 
+    if (!flag) return;
+
+    for (i = 1; i <= data.ntypes; i++) { 
+      for (j = i; j <= data.ntypes; j++) {
+	itmp = read_int(fp);
+	if (i == j && itmp == 0) {
+	  printf("ERROR: Pair coeff %d,%d is not in restart file\n",i,j);
+	  exit(1);
+	}
+      }
+    }
+
   } else if ((strcmp(style,"lj/charmm/coul/charmm") == 0) ||
 	     (strcmp(style,"lj/charmm/coul/charmm/implicit") == 0) ||
 	     (strcmp(style,"lj/charmm/coul/long") == 0)) {
@@ -1811,6 +1824,7 @@ void pair(FILE *fp, Data &data, char *style, int flag)
       }
 
   } else if ((strcmp(style,"lj/cut") == 0) ||
+	     (strcmp(style,"lj96/cut") == 0) ||
 	     (strcmp(style,"lj/cut/coul/cut") == 0) ||
 	     (strcmp(style,"lj/cut/coul/debye") == 0) ||
 	     (strcmp(style,"lj/cut/coul/long") == 0) ||
@@ -1818,6 +1832,11 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 	     (strcmp(style,"lj/coul") == 0)) {
 
     if (strcmp(style,"lj/cut") == 0) {
+      m = 0;
+      double cut_lj_global = read_double(fp);
+      int offset_flag = read_int(fp);
+      int mix_flag = read_int(fp);
+    } else if (strcmp(style,"lj96/cut") == 0) {
       m = 0;
       double cut_lj_global = read_double(fp);
       int offset_flag = read_int(fp);
@@ -2761,6 +2780,7 @@ void Data::write(FILE *fp, FILE *fp2)
 
   if (pair_style && fp2 == NULL) {
     if ((strcmp(pair_style,"none") != 0) &&
+	(strcmp(pair_style,"adp") != 0) &&
 	(strcmp(pair_style,"airebo") != 0) &&
 	(strcmp(pair_style,"coul/cut") != 0) &&
 	(strcmp(pair_style,"coul/debye") != 0) &&
@@ -2842,6 +2862,7 @@ void Data::write(FILE *fp, FILE *fp2)
 		pair_class2_epsilon[i],pair_class2_sigma[i]);
       
     } else if ((strcmp(pair_style,"lj/cut") == 0) ||
+	       (strcmp(pair_style,"lj96/cut") == 0) ||
 	       (strcmp(pair_style,"lj/cut/coul/cut") == 0) ||
 	       (strcmp(pair_style,"lj/cut/coul/debye") == 0) ||
 	       (strcmp(pair_style,"lj/cut/coul/long") == 0) ||

@@ -90,7 +90,7 @@ void FixFreezeCuda::setup(int vflag)
 {
   MYDBG( printf("# CUDA: FixFreezeCuda::setup\n"); )
 	
-  if (strcmp(update->integrate_style,"verlet") == 0)
+  if (strstr(update->integrate_style,"verlet"))
   {
     Cuda_FixFreezeCuda_Init(&cuda->shared_data);
     cuda->cu_f->upload();

@@ -25,6 +25,7 @@ args = list of arguments for a particular style :l
 			  xy, xz, yz, xlat, ylat, zlat,
 			  pxx, pyy, pzz, pxy, pxz, pyz,
 			  fmax, fnorm,
+			  cella, cellb, cellc, cellalpha, cellbeta, cellgamma,
 			  c_ID, c_ID\[I\], c_ID\[I\]\[J\],
                           f_ID, f_ID\[I\], f_ID\[I\]\[J\],
                           v_name
@@ -60,6 +61,8 @@ args = list of arguments for a particular style :l
       pxx,pyy,pzz,pxy,pxz,pyz = 6 components of pressure tensor
       fmax = max component of force on any atom in any dimension
       fnorm = length of force vector for all atoms
+      cella,cellb,cellc = periodic cell lattice constants a,b,c 
+      cellalpha, cellbeta, cellgamma = periodic cell angles alpha,beta,gamma
       c_ID = global scalar value calculated by a compute with ID
       c_ID\[I\] = Ith component of global vector calculated by a compute with ID
       c_ID\[I\]\[J\] = I,J component of global array calculated by a compute with ID
@@ -223,6 +226,14 @@ of an "energy minimization"_minimize.html.  The {fmax} keyword
 calculates the maximum force in any dimension on any atom in the
 system, or the infinity-norm of the force vector for the system.  The
 {fnorm} keyword calculates the 2-norm or length of the force vector.
+
+The keywords {cella}, {cellb}, {cellc}, {cellalpha}, {cellbeta}, {cellgamma},
+correspond to the usual crystallographic quantities that define
+the periodic unit cell of a crystal. 
+See "this section"_Section_howto.html#4_12 of the doc pages for a
+geometric description of triclinic periodic cells, including 
+a precise defintion of these quantities in terms of the internal 
+LAMMPS cell dimensions {lx}, {ly}, {lz}, {yz}, {xz}, {xy}, 
 
 :line
 

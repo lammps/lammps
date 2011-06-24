@@ -116,7 +116,7 @@ void FixQEQComb::init()
   comb = (PairComb *) force->pair_match("comb",1);
   if (comb == NULL) error->all("Must use pair_style comb with fix qeq/comb");
 
-  if (strcmp(update->integrate_style,"respa") == 0)
+  if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
   ngroup = group->count(igroup);
@@ -128,7 +128,7 @@ void FixQEQComb::init()
 void FixQEQComb::setup(int vflag)
 {
   firstflag = 1;
-  if (strcmp(update->integrate_style,"verlet") == 0)
+  if (strstr(update->integrate_style,"verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);

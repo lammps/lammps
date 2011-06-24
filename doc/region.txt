@@ -81,6 +81,15 @@ deleted via the "delete_atoms"_delete_atoms.html command.  Or the
 surface of the region can be used as a boundary wall via the "fix
 wall/region"_fix_wall_region.html command.
 
+Commands which use regions typically test whether an atom's position
+is contained in the region or not.  For this purpose, coordinates
+exactly on the region boundary are considered to be interior to the
+region.  This means, for example, for a spherical region, an atom on
+the sphere surface would be part of the region if the sphere were
+defined with the {side in} keyword, but would not be part of the
+region if it were defined using the {side out} keyword.  See more
+details on the {side} keyword below.
+
 Normally, regions in LAMMPS are "static", meaning their geometric
 extent does not change with time.  If the {move} or {rotate} keyword
 is used, as described below, the region becomes "dynamic", meaning

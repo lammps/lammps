@@ -163,7 +163,7 @@ void FixSetForce::init()
     varflag = EQUAL;
   else varflag = CONSTANT;
 
-  if (strcmp(update->integrate_style,"respa") == 0)
+  if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
   // cannot use non-zero forces for a minimization since no energy is integrated
@@ -186,7 +186,7 @@ void FixSetForce::init()
 
 void FixSetForce::setup(int vflag)
 {
-  if (strcmp(update->integrate_style,"verlet") == 0)
+  if (strstr(update->integrate_style,"verlet"))
     post_force(vflag);
   else
     for (int ilevel = 0; ilevel < nlevels_respa; ilevel++) {

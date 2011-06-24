@@ -106,14 +106,14 @@ to 20% savings.
 
 <H4><A NAME = "10_2"></A>10.2 GPU package 
 </H4>
+<P>The GPU package was developed by Mike Brown at ORNL.
+</P>
 <P>Additional requirements in your input script to run the styles with a
 <I>gpu</I> suffix are as follows:
 </P>
 <P>The <A HREF = "newton.html">newton pair</A> setting must be <I>off</I> and the <A HREF = "fix_gpu.html">fix
 gpu</A> command must be used.  The fix controls the GPU
 selection and initialization steps.
-</P>
-<P>The GPU package was developed by Mike Brown at ORNL.
 </P>
 <P>A few LAMMPS <A HREF = "pair_style.html">pair styles</A> can be run on graphical
 processing units (GPUs).  We plan to add more over time.  Currently,
@@ -130,7 +130,7 @@ certain NVIDIA CUDA software on your system:
 <H4>GPU configuration 
 </H4>
 <P>When using GPUs, you are restricted to one physical GPU per LAMMPS
-process. Multiple processes can share a single GPU and in many cases
+process.  Multiple processes can share a single GPU and in many cases
 it will be more efficient to run with multiple processes per GPU. Any
 GPU accelerated style requires that <A HREF = "fix_gpu.html">fix gpu</A> be used in
 the input script to select and initialize the GPUs. The format for the
@@ -252,8 +252,195 @@ latter requires that your GPU card supports double precision.
 <P>The USER-CUDA package was developed by Christian Trott at U Technology
 Ilmenau in Germany.
 </P>
+<P>This package will only be of any use to you, if you have an NVIDIA(tm)
+graphics card being CUDA(tm) enabled. Your GPU needs to support
+Compute Capability 1.3. This list may help
+you to find out the Compute Capability of your card:
+</P>
+<P>http://en.wikipedia.org/wiki/Comparison_of_Nvidia_graphics_processing_units
+</P>
+<P>Install the Nvidia Cuda Toolkit in version 3.2 or higher and the
+corresponding GPU drivers. The Nvidia Cuda SDK is not required for
+LAMMPSCUDA but we recommend to install it and
+</P>
+<P>make sure that the sample projects can be compiled without problems.
+</P>
+<P>You should also be able to compile LAMMPS by typing
+</P>
+<P><I>make YourMachine</I>
+</P>
+<P>inside the src directory of LAMMPS root path. If not, you should
+consult the LAMMPS documentation.
+</P>
+<H4>Compilation 
+</H4>
+<P>If your <I>CUDA</I> toolkit is not installed in the default directoy
+<I>/usr/local/cuda</I> edit the file <I>lib/cuda/Makefile.common</I>
+accordingly.
+</P>
+<P>Go to  <I>lib/cuda/</I> and type 
+</P>
+<P><I>make OPTIONS</I>
+</P>
+<P>where <I>OPTIONS</I> are one or more of the following:
+</P>
+<UL><LI><I>precision = 2</I> set precision level: 1 .. single precision, 2
+.. double precision, 3 .. positions in double precision, 4
+.. positions and velocities in double precision 
+
+<LI><I>arch = 20</I> set GPU compute capability: 20 .. CC2.0 (GF100/110
+e.g. C2050,GTX580,GTX470), 21 .. CC2.1 (GF104/114 e.g. GTX560, GTX460,
+GTX450), 13 .. CC1.3 (GF200 e.g. C1060, GTX285) 
+
+<LI><I>prec_timer = 1</I> do not use precision timers if set to 0. This is
+usually only usefull for compiling on Mac machines. 
+
+<LI><I>dbg = 0</I> activate debug mode when setting to 1. Only usefull for
+developers. 
+
+<LI><I>cufft = 1</I> set CUDA FFT library. Can currently only be used to not
+compile with cufft support (set to 0). In the future other CUDA
+enabled FFT libraries might be supported. 
+</UL>
+<P>The settings will be written to the <I>lib/cuda/Makefile.defaults</I>. When
+compiling with <I>make</I> only those settings will be used.
+</P>
+<P>Go to <I>src</I>, install the USER-CUDA package with <I>make yes-USER-CUDA</I>
+and compile the binary with <I>make YourMachine</I>. You might need to
+delete old object files if you compiled without the USER-CUDA package
+before, using the same Machine file (<I>rm Obj_YourMachine/*</I>).
+</P>
+<P>CUDA versions of classes are only installed if the corresponding CPU
+versions are installed as well. E.g. you need to install the KSPACE
+package to use <I>pppm/cuda</I>.
+</P>
+<H4>Usage 
+</H4>
+<P>In order to make use of the GPU acceleration provided by the USER-CUDA
+package, you only have to add
+</P>
+<P><I>accelerator cuda</I>
+</P>
+<P>at the top of your input script. See the <A HREF = "accelerator.html">accelerator</A> command for details of additional options.
+</P>
+<P>When compiling with USER-CUDA support the <A HREF = "Section_start.html#2_6">-accelerator command-line
+switch</A> is effectively set to "cuda" by default
+and does not have to be given.
+</P>
+<P>If you want to run simulations without using the "cuda" styles with
+the same binary, you need to turn it explicitely off by giving "-a
+none", "-a opt" or "-a gpu" as a command-
+</P>
+<P>line argument.
+</P>
+<P>The kspace style <I>pppm/cuda</I> has to be requested explicitely.
+</P>
 <HR>
 
 <H4><A NAME = "10_4"></A>10.4 Comparison of GPU and USER-CUDA packages 
 </H4>
+<P>The USER-CUDA package is an alternative package for GPU acceleration 
+that runs as much of the simulation as possible on the GPU. Depending on 
+the simulation, this can provide a significant speedup when the number 
+of atoms per GPU is large.
+</P>
+<P>The styles available for GPU acceleration 
+will be different in each package.
+</P>
+<P>The main difference between the "GPU" and the "USER-CUDA" package is
+that while the latter aims at calculating everything on the device the
+GPU package uses it as an accelerator for the pair force, neighbor
+list and pppm calculations only. As a consequence in different
+scenarios either package can be faster. Generally the GPU package is
+faster than the USER-CUDA package, if the number of atoms per device
+is small. Also the GPU package profits from oversubscribing
+devices. Hence one usually wants to launch two (or more) MPI processes
+per device.
+</P>
+<P>The exact crossover where the USER-CUDA package becomes faster depends
+strongly on the pair-style. For example for a simple Lennard Jones
+system the crossover (in single precision) can often be found between
+50,000 - 100,000 atoms per device. When performing double precision
+calculations this threshold can be significantly smaller. As a result
+the GPU package can show better "strong scaling" behaviour in
+comparison with the USER-CUDA package as long as this limit of atoms
+per GPU is not reached.
+</P>
+<P>Another scenario where the GPU package can be faster is, when a lot of
+bonded interactions are calculated. Those are handled by both packages
+by the host while the device simultaniously calculates the
+pair-forces. Since, when using the GPU package, one launches several
+MPI processes per device, this work is spread over more CPU cores as
+compared to running the same simulation with the USER-CUDA package.
+</P>
+<P>As a side note: the GPU package performance depends to some extent on
+optimal bandwidth between host and device. Hence its performance is
+affected if no full 16 PCIe lanes are available for each device. In
+HPC environments this can be the case if S2050/70 servers are used,
+where two devices generally share one PCIe 2.0 16x slot. Also many
+multi GPU mainboards do not provide full 16 lanes to each of the PCIe
+2.0 16x slots.
+</P>
+<P>While the GPU package uses considerable more device memory than the
+USER-CUDA package, this is generally not much of a problem. Typically
+run times are larger than desired, before the memory is exhausted.
+</P>
+<P>Currently the USER-CUDA package supports a wider range of
+force-fields. On the other hand its performance is considerably
+reduced if one has to use a fix at every timestep, which is not yet
+available as a "CUDA"-accelerated version.
+</P>
+<P>In the end for each simulations its best to just try both packages and
+see which one is performing better in the particular situation.
+</P>
+<H4>Benchmark 
+</H4>
+<P>In the following 4 benchmark systems which are supported by both the
+GPu and the CUDA package are shown:
+</P>
+<P>1. Lennard Jones, 2.5A
+256,000 atoms
+2.5 A cutoff
+0.844 density
+</P>
+<P>2. Lennard Jones, 5.0A
+256,000 atoms
+5.0 A cutoff
+0.844 density
+</P>
+<P>3. Rhodopsin model
+256,000 atoms
+10A cutoff
+Coulomb via PPPM
+</P>
+<P>4. Lihtium-Phosphate
+295650 atoms
+15A cutoff
+Coulomb via PPPM
+</P>
+<P>Hardware:
+Workstation:
+2x GTX470
+i7 950@3GHz
+24Gb DDR3 @ 1066Mhz
+CentOS 5.5
+CUDA 3.2
+Driver 260.19.12
+</P>
+<P>eStella:
+6 Nodes
+2xC2050
+2xQDR Infiniband interconnect(aggregate bandwidth 80GBps)
+Intel X5650 HexCore @ 2.67GHz
+SL 5.5
+CUDA 3.2
+Driver 260.19.26 
+</P>
+<P>Keeneland:
+HP SL-390 (Ariston) cluster
+120 nodes
+2x Intel Westmere hex-core CPUs
+3xC2070s
+QDR InfiniBand interconnec
+</P>
 </HTML>

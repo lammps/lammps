@@ -4,8 +4,7 @@
 if (test $1 = 1) then
 
   if (test -e ../Makefile.package) then
-    sed -i -e 's/[^ \t]*meam //' ../Makefile.package
-    sed -i -e 's/[^ \t]*meam_[^ \t]*) //' ../Makefile.package
+    sed -i -e 's/[^ \t]*meam[^ \t]* //' ../Makefile.package
     sed -i -e 's|^PKG_INC =[ \t]*|&-I../../lib/meam |' ../Makefile.package
     sed -i -e 's|^PKG_PATH =[ \t]*|&-L../../lib/meam |' ../Makefile.package
     sed -i -e 's|^PKG_LIB =[ \t]*|&-lmeam |' ../Makefile.package
@@ -21,8 +20,7 @@ if (test $1 = 1) then
 elif (test $1 = 0) then
 
   if (test -e ../Makefile.package) then
-    sed -i -e 's/[^ \t]*meam //' ../Makefile.package
-    sed -i -e 's/[^ \t]*meam_[^ \t]*) //' ../Makefile.package
+    sed -i -e 's/[^ \t]*meam[^ \t]* //' ../Makefile.package
   fi
 
   rm -f ../pair_meam.cpp

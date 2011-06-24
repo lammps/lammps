@@ -34,7 +34,7 @@ delete_atoms group edge
 delete_atoms region sphere compress no
 delete_atoms overlap 0.3 all all
 delete_atoms overlap 0.5 solvent colloid
-delete_atoms porosity cube 0.1 :pre
+delete_atoms porosity cube 0.1 482793 :pre
 
 [Description:]
 

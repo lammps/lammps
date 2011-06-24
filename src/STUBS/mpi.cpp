@@ -117,6 +117,8 @@ int MPI_Type_size(MPI_Datatype datatype, int *size)
   else if (datatype == MPI_BYTE) *size = sizeof(char);
   else if (datatype == MPI_LONG_LONG) *size = sizeof(uint64_t);
   else if (datatype == MPI_DOUBLE_INT) *size = sizeof(double_int);
+
+  return 0;
 }
 
 /* ---------------------------------------------------------------------- */

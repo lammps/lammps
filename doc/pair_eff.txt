@@ -25,10 +25,10 @@ pair_coeff 2 2 20.0 :pre
 
 [Description:]
 
-Contains a LAMMPS implementation of the electron Force Field (eFF)
-potential currently under development at Caltech, as described in
-"(Jaramillo-Botero)"_#Jaramillo-Botero.  The eFF was first introduced
-by "(Su)"_#Su in 2007.
+This pair style contains a LAMMPS implementation of the electron Force
+Field (eFF) potential currently under development at Caltech, as
+described in "(Jaramillo-Botero)"_#Jaramillo-Botero.  The eFF was
+first introduced by "(Su)"_#Su in 2007.
 
 eFF can be viewed as an approximation to QM wave packet dynamics and
 Fermionic molecular dynamics, combining the ability of electronic
@@ -114,8 +114,8 @@ option.  The Coulombic cutoff specified for this style means that
 pairwise interactions within this distance are computed directly;
 interactions outside that distance are computed in reciprocal space.
 
-These potentials are designed to be used with "atom_style
-electron"_atom_electron.html definitions, in order to handle the
+This potential is designed to be used with "atom_style
+electron"_atom_style.html definitions, in order to handle the
 description of systems with interacting nuclei and explicit electrons.
 
 The following coefficients must be defined for each pair of atoms

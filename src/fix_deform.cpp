@@ -483,7 +483,7 @@ void FixDeform::init()
   // test for WIGGLE is on min/max oscillation limit, not tilt_stop
   // this is b/c the flips would induce continuous changes in xz
   //   in order to keep the edge vectors of the flipped shape matrix
-  //   a linear combination of the edge vectors of the unflipped shape matrix
+  //   an integer combination of the edge vectors of the unflipped shape matrix
 
   if (set[3].style && set[5].style) {
     int flag = 0;
@@ -729,7 +729,7 @@ void FixDeform::end_of_step()
   // flip will be performed on next timestep before reneighboring
   // when yz flips and xy is non-zero, xz must also change
   // this is to keep the edge vectors of the flipped shape matrix
-  //   a linear combination of the edge vectors of the unflipped shape matrix
+  //   an integer combination of the edge vectors of the unflipped shape matrix
 
   if (triclinic) {
     double xprd = set[0].hi_target - set[0].lo_target;

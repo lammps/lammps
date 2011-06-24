@@ -145,7 +145,7 @@ ComputeSlice::ComputeSlice(LAMMPS *lmp, int narg, char **arg) :
 	    extlist[j++] = modify->compute[icompute]->extlist[i-1];
 	}
       } else extvector = modify->compute[icompute]->extarray;
-    } else if (which[0] = FIX) {
+    } else if (which[0] == FIX) {
       int ifix = modify->find_fix(ids[0]);
       if (argindex[0] == 0) {
 	extvector = modify->fix[ifix]->extvector;

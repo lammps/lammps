@@ -27,6 +27,23 @@ namespace LAMMPS_NS {
 
 class PairEAM : public Pair {
  public:
+
+  // public variables so UESR-ATC package can access them
+
+  double cutmax;
+
+  // potentials as array data
+
+  int nrho,nr;
+  int nfrho,nrhor,nz2r;
+  double **frho,**rhor,**z2r;
+  int *type2frho,**type2rhor,**type2z2r;
+
+  // potentials in spline form used for force computation
+
+  double dr,rdr,drho,rdrho;
+  double ***rhor_spline,***frho_spline,***z2r_spline;
+
   PairEAM(class LAMMPS *);
   virtual ~PairEAM();
   void compute(int, int);
@@ -45,23 +62,11 @@ class PairEAM : public Pair {
 
  protected:
   int nmax;                   // allocated size of per-atom arrays
-  double cutforcesq,cutmax;
+  double cutforcesq;
 
   // per-atom arrays
 
   double *rho,*fp;
-
-  // potentials as array data
-
-  int nrho,nr;
-  int nfrho,nrhor,nz2r;
-  double **frho,**rhor,**z2r;
-  int *type2frho,**type2rhor,**type2z2r;
-  
-  // potentials in spline form used for force computation
-
-  double dr,rdr,drho,rdrho;
-  double ***rhor_spline,***frho_spline,***z2r_spline;
 
   // potentials as file data
 

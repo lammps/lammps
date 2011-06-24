@@ -114,4 +114,10 @@ typedef int bigint;
 
 }
 
+// settings to enable LAMMPS build under Windows
+
+#ifdef _WIN32
+#include "lmpwindows.h"
+#endif
+
 #endif

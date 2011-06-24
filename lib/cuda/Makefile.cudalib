@@ -60,7 +60,7 @@ endif
 
 
 NVCC := $(CUDA_INSTALL_PATH)/bin/nvcc
-CUDA_INCLUDES = -I$(CUDA_INSTALL_PATH)/include -I../../src/USER-CUDA
+CUDA_INCLUDES =  -I./ -I$(CUDA_INSTALL_PATH)/include -I../../src/USER-CUDA
 CUDA_USRLIB = 
 
 # Link target

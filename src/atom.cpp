@@ -81,6 +81,8 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   ellipsoid = NULL;
   spin = NULL;
   eradius = ervel = erforce = NULL;
+  cs = csforce = vforce = ervelforce = NULL;
+  etag = NULL;
 
   maxspecial = 1;
   nspecial = NULL;
@@ -104,10 +106,12 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   // customize by adding new flag
 
   sphere_flag = ellipsoid_flag = peri_flag = electron_flag = 0;
+  wavepacket_flag = 0;
 
   molecule_flag = q_flag = mu_flag = 0;
   rmass_flag = radius_flag = omega_flag = torque_flag = angmom_flag = 0;
   vfrac_flag = spin_flag = eradius_flag = ervel_flag = erforce_flag = 0;
+  cs_flag = csforce_flag = vforce_flag = ervelforce_flag= etag_flag = 0;
 
   // ntype-length arrays
 
@@ -805,8 +809,11 @@ void Atom::data_atoms(int n, char *buf)
     next = strchr(buf,'\n');
 
     values[0] = strtok(buf," \t\n\r\f");
-    for (m = 1; m < nwords; m++)
+    if (values[0] == NULL) error->all("Incorrect atom format in data file");
+    for (m = 1; m < nwords; m++) {
       values[m] = strtok(NULL," \t\n\r\f");
+      if (values[m] == NULL) error->all("Incorrect atom format in data file");
+    }
 
     if (imageflag)
       imagedata = ((atoi(values[iptr+2]) + 512 & 1023) << 20) |

@@ -39,6 +39,7 @@ void Cuda_FixNHCuda_UpdateNmax(cuda_shared_data* sdata)
 		cudaMemcpyToSymbol(MY_CONST(nlocal)  , & sdata->atom.nlocal        , sizeof(int)      );
 		cudaMemcpyToSymbol(MY_CONST(nmax)    , & sdata->atom.nmax          , sizeof(int)      );
 		cudaMemcpyToSymbol(MY_CONST(rmass)   , & sdata->atom.rmass.dev_data, sizeof(V_FLOAT*) );
+		cudaMemcpyToSymbol(MY_CONST(mass)    , & sdata->atom.mass.dev_data, sizeof(V_FLOAT*) );
 		cudaMemcpyToSymbol(MY_CONST(type)    , & sdata->atom.type .dev_data, sizeof(int*)     );
 		cudaMemcpyToSymbol(MY_CONST(v)       , & sdata->atom.v    .dev_data, sizeof(V_FLOAT*) );
 		cudaMemcpyToSymbol(MY_CONST(x)       , & sdata->atom.x    .dev_data, sizeof(X_FLOAT*) );
@@ -67,7 +68,6 @@ void Cuda_FixNHCuda_UpdateBuffer(cuda_shared_data* sdata)
 
 void Cuda_FixNHCuda_Init(cuda_shared_data* sdata, X_FLOAT dtv, V_FLOAT dtf)
 {
-		if(sdata->atom.mass_host)
 		cudaMemcpyToSymbol(MY_CONST(mass)    , & sdata->atom.mass.dev_data , sizeof(V_FLOAT*) );
 		cudaMemcpyToSymbol(MY_CONST(dtf)     , & dtf                       		, sizeof(V_FLOAT)  );
 		cudaMemcpyToSymbol(MY_CONST(dtv)     , & dtv                            , sizeof(X_FLOAT)  );
@@ -119,6 +119,7 @@ void Cuda_FixNHCuda_nh_v_press_and_nve_v_NoBias(cuda_shared_data* sdata, int gro
 	int3 layout=getgrid(mynlocal);
 	dim3 threads(layout.z, 1, 1);
 	dim3 grid(layout.x, layout.y, 1);
+	CUT_CHECK_ERROR("FixNHCuda: fix nh v_press pre Kernel execution failed");
 	FixNHCuda_nh_v_press_and_nve_v_NoBias_Kernel<<<grid, threads>>> (groupbit,factor,p_triclinic,factor2);
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("FixNHCuda: fix nh v_press Kernel execution failed");

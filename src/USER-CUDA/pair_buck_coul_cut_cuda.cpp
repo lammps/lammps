@@ -132,7 +132,7 @@ void PairBuckCoulCutCuda::init_style()
 
   int irequest;
  
-  if (strcmp(update->integrate_style,"respa") == 0) error->all("Integrate Style Respa is not supported by pair style buck/coul/long/cuda");
+  if (strstr(update->integrate_style,"respa")) error->all("Integrate Style Respa is not supported by pair style buck/coul/long/cuda");
   	
   	irequest = neighbor->request(this);
     neighbor->requests[irequest]->full = 1;

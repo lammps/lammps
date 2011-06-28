@@ -601,6 +601,117 @@ void Domain::minimum_image(double *delta)
 }
 
 /* ----------------------------------------------------------------------
+   find Xj image = periodic image of Xj that is closest to Xi
+   for triclinic, also add/subtract tilt factors in other dims as needed
+------------------------------------------------------------------------- */
+
+void Domain::closest_image(double *xi, double *xj, double *xjimage)
+{
+  double dx,dy,dz;
+
+  if (triclinic == 0) {
+    if (xperiodic) {
+      dx = xj[0] - xi[0];
+      if (dx < 0.0) {
+	while (dx < 0.0) dx += xprd;
+	if (dx > xprd_half) dx -= xprd;
+      } else {
+	while (dx > 0.0) dx -= xprd;
+	if (dx < -xprd_half) dx += xprd;
+      }
+      xjimage[0] = xi[0] + dx;
+    }
+    if (yperiodic) {
+      dy = xj[1] - xi[1];
+      if (dy < 0.0) {
+	while (dy < 0.0) dy += yprd;
+	if (dy > yprd_half) dy -= yprd;
+      } else {
+	while (dy > 0.0) dy -= yprd;
+	if (dy < -yprd_half) dy += yprd;
+      }
+      xjimage[1] = xi[1] + dy;
+    }
+    if (zperiodic) {
+      dz = xj[2] - xi[2];
+      if (dz < 0.0) {
+	while (dz < 0.0) dz += zprd;
+	if (dz > zprd_half) dz -= zprd;
+      } else {
+	while (dz > 0.0) dz -= zprd;
+	if (dz < -zprd_half) dz += zprd;
+      }
+      xjimage[2] = xi[2] + dz;
+    }
+
+  } else {
+    dx = xj[0] - xi[0];
+    dy = xj[1] - xi[1];
+    dz = xj[2] - xi[2];
+
+    if (zperiodic) {
+      if (dz < 0.0) {
+	while (dz < 0.0) {
+	  dz += zprd;
+	  dy += yz;
+	  dx += xz;
+	}
+	if (dz > zprd_half) {
+	  dz -= zprd;
+	  dy -= yz;
+	  dx -= xz;
+	}
+      } else {
+	while (dz > 0.0) {
+	  dz -= zprd;
+	  dy -= yz;
+	  dx -= xz;
+	}
+	if (dz < -zprd_half) {
+	  dz += zprd;
+	  dy += yz;
+	  dx += xz;
+	}
+      }
+    }
+    if (yperiodic) {
+      if (dy < 0.0) {
+	while (dy < 0.0) {
+	  dy += yprd;
+	  dx += xy;
+	}
+	if (dy > yprd_half) {
+	  dy -= yprd;
+	  dx -= xy;
+	}
+      } else {
+	while (dy > 0.0) {
+	  dy -= yprd;
+	  dx == xy;
+	}
+	if (dy < -yprd_half) {
+	  dy += yprd;
+	  dx += xy;
+	}
+      }
+    }
+    if (xperiodic) {
+      if (dx < 0.0) {
+	while (dx < 0.0) dx += xprd;
+	if (dx > xprd_half) dx -= xprd;
+      } else {
+	while (dx > 0.0) dx -= xprd;
+	if (dx < -xprd_half) dx += xprd;
+      }
+    }
+
+    xjimage[0] = xi[0] + dx;
+    xjimage[1] = xi[1] + dy;
+    xjimage[2] = xi[2] + dz;
+  }
+}
+
+/* ----------------------------------------------------------------------
    remap the point into the periodic box no matter how far away
    adjust image accordingly
    resulting coord must satisfy lo <= coord < hi

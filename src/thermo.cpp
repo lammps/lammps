@@ -370,6 +370,7 @@ bigint Thermo::lost_check()
   if (ntotal == atom->natoms) return ntotal;
 
   // if not checking or already warned, just return
+  // reset total atom count
 
   if (lostflag == IGNORE) return ntotal;
   if (lostflag == WARN && lostbefore == 1) {
@@ -394,6 +395,8 @@ bigint Thermo::lost_check()
 	  "Lost atoms: original " BIGINT_FORMAT " current " BIGINT_FORMAT,
 	  atom->natoms,ntotal);
   if (me == 0) error->warning(str,0);
+
+  // reset total atom count
 
   atom->natoms = ntotal;
   lostbefore = 1;

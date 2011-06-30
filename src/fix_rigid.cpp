@@ -1981,6 +1981,6 @@ double FixRigid::compute_array(int i, int j)
   if (j < 9) return fcm[i][j-6];
   if (j < 12) return torque[i][j-9];
   if (j == 12) return (imagebody[i] & 1023) - 512;
-  if (j == 13) (imagebody[i] >> 10 & 1023) - 512;
+  if (j == 13) return (imagebody[i] >> 10 & 1023) - 512;
   return (imagebody[i] >> 20) - 512;
 }

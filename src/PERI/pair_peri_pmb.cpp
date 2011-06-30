@@ -389,7 +389,7 @@ void PairPeriPMB::init_style()
     if (strcmp(modify->fix[i]->style,"PERI_NEIGH") == 0) ifix_peri = i;
   if (ifix_peri == -1) error->all("Fix peri neigh does not exist");
 
-  int irequest = neighbor->request(this);
+  neighbor->request(this);
 }
 
 /* ----------------------------------------------------------------------

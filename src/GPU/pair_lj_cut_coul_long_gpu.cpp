@@ -223,7 +223,6 @@ void PairLJCutCoulLongGPU::cpu_compute(int start, int inum, int eflag,
   double **f = atom->f;
   double *q = atom->q;
   int *type = atom->type;
-  int nlocal = atom->nlocal;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
   double qqrd2e = force->qqrd2e;

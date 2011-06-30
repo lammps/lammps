@@ -257,8 +257,6 @@ void DumpXTC::pack(int *ids)
 
 void DumpXTC::write_data(int n, double *mybuf)
 {
-  int j;
-
   // copy buf atom coords into global array
 
   int m = 0;

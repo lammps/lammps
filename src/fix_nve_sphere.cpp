@@ -94,7 +94,6 @@ void FixNVESphere::init()
 
 void FixNVESphere::initial_integrate(int vflag)
 {
-  int itype;
   double dtfm,dtirotate,msq,scale;
   double g[3];
 
@@ -105,7 +104,6 @@ void FixNVESphere::initial_integrate(int vflag)
   double **torque = atom->torque;
   double *radius = atom->radius;
   double *rmass = atom->rmass;
-  int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;

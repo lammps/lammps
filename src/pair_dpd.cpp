@@ -258,7 +258,7 @@ void PairDPD::init_style()
   if (force->newton_pair == 0 && comm->me == 0) error->warning(
       "Pair dpd needs newton pair on for momentum conservation");
 
-  int irequest = neighbor->request(this);
+  neighbor->request(this);
 }
 
 /* ----------------------------------------------------------------------

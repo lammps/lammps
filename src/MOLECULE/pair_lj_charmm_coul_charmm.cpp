@@ -287,7 +287,7 @@ void PairLJCharmmCoulCharmm::init_style()
   if (!atom->q_flag)
     error->all("Pair style lj/charmm/coul/charmm requires atom attribute q");
 
-  int irequest = neighbor->request(this);
+  neighbor->request(this);
 
   // require cut_lj_inner < cut_lj, cut_coul_inner < cut_coul
 

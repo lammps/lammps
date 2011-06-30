@@ -66,7 +66,7 @@ void PairGauss::compute(int eflag, int vflag)
 {   
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double r,rsq,r2inv,r6inv,forcelj,rexp;
+  double r,rsq,r2inv,forcelj;
   int *ilist,*jlist,*numneigh,**firstneigh;
   
   evdwl = 0.0;
@@ -316,7 +316,7 @@ double PairGauss::single(int i, int j, int itype, int jtype, double rsq,
 			 double factor_coul, double factor_lj,
 			 double &fforce)
 {
-  double r2inv,r6inv,forcelj,philj,r;
+  double r2inv,forcelj,philj,r;
 
   r = sqrt(rsq);
   

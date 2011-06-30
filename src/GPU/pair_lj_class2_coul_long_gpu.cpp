@@ -202,7 +202,7 @@ void PairLJClass2CoulLongGPU::cpu_compute(int start, int inum, int eflag,
 				       int vflag, int *ilist, int *numneigh,
 				       int **firstneigh)
 {
-  int i,j,ii,jj,jnum,itype,jtype,itable;
+  int i,j,ii,jj,jnum,itype,jtype;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
   double rsq,r,rinv,r2inv,r3inv,r6inv,forcecoul,forcelj;
   double grij,expm2,prefactor,t,erfc;
@@ -215,7 +215,6 @@ void PairLJClass2CoulLongGPU::cpu_compute(int start, int inum, int eflag,
   double **f = atom->f;
   double *q = atom->q;
   int *type = atom->type;
-  int nlocal = atom->nlocal;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
   double qqrd2e = force->qqrd2e;

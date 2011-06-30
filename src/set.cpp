@@ -469,7 +469,6 @@ void Set::setrandom(int keyword)
   // dipole length is determined by dipole type array
 
   } else if (keyword == DIPOLE_RANDOM) {
-    int *type = atom->type;
     double **mu = atom->mu;
     int nlocal = atom->nlocal;
 

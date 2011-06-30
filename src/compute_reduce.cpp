@@ -594,7 +594,6 @@ double ComputeReduce::compute_one(int m, int flag)
 bigint ComputeReduce::count(int m)
 {
   int vidx = value2index[m];
-  int aidx = argindex[m];
 
   if (which[m] == X || which[m] == V || which[m] == F)
     return group->count(igroup);

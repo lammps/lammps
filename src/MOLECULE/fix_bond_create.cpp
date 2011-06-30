@@ -420,7 +420,7 @@ void FixBondCreate::post_integrate()
     // add a 1-2 neighbor to special bond list for atom I
     // atom J will also do this
 
-    slist = atom->special[i];
+    slist = special[i];
     n1 = nspecial[i][0];
     n3 = nspecial[i][2];
     if (n3 == atom->maxspecial)

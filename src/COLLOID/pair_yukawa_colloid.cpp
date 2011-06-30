@@ -124,7 +124,7 @@ void PairYukawaColloid::init_style()
   if (!atom->sphere_flag)
     error->all("Pair yukawa/colloid requires atom style sphere");
   
-  int irequest = neighbor->request(this);
+  neighbor->request(this);
 
   // require that atom radii are identical within each type
 

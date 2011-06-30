@@ -114,7 +114,6 @@ void PairComb::compute(int eflag, int vflag)
   double rsq,rsq1,rsq2;
   double delr1[3],delr2[3],fi[3],fj[3],fk[3];
   double zeta_ij,prefactor;
-  double fqi,fqij;
   int *ilist,*jlist,*numneigh,**firstneigh;
   int mr1,mr2,mr3;
   int rsc,inty;
@@ -143,7 +142,6 @@ void PairComb::compute(int eflag, int vflag)
   int *type = atom->type;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
-  int ntype = atom->ntypes;
 
   inum = list->inum;
   ilist = list->ilist;
@@ -429,7 +427,6 @@ void PairComb::settings(int narg, char **arg)
 void PairComb::coeff(int narg, char **arg)
 {
   int i,j,n;
-  double r;
 
   if (!allocated) allocate();
 
@@ -1224,7 +1221,7 @@ double PairComb::comb_gijk(double costheta, Param *param)
 
   return (1.0 + pow(comb_c/comb_d,2.0) -
     pow(comb_c,2.0) / (pow(comb_d,2.0) + pow(param->h - costheta,2.0)));
-};
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -1346,7 +1343,6 @@ void PairComb::sm_table()
   double exp2ear,exp2ebr,exp2earsh,exp2ebrsh,fafbsh,dfafbsh;
 
   int n = atom->ntypes;
-  int *type = atom->type;
   
   dra  = 0.001;  // lookup table step size
   drin = 0.1;    // starting distance of 1/r 
@@ -1498,7 +1494,7 @@ void PairComb::sm_table()
 
 void PairComb::potal_calc(double &calc1, double &calc2, double &calc3)
 {
-  double potal,alf,rcoul,fac11,fac11e,esucon;
+  double alf,rcoul,esucon;
   int m;
   
   rcoul = 0.0;
@@ -1521,7 +1517,6 @@ void PairComb::tri_point(double rsq, int &mr1, int &mr2,
 			 double &sr3, int &itype)
 {
  double r, rin, dr, dd, rr1, rridr, rridr2;
- int m = itype;
 
  rin = 0.10; dr = 0.0010;
  r = sqrt(rsq);
@@ -1552,7 +1547,7 @@ void PairComb::direct(int inty, int mr1, int mr2, int mr3, double rsq,
 		      double potal, double fac11, double fac11e, 
 		      double &pot_tmp, double &pot_d)
 {
- double r,erfcc,fafbn1,potij,sme2,chrij,esucon;
+ double r,erfcc,fafbn1,potij,sme2,esucon;
  double r3,erfcd,dfafbn1,smf2,dvdrr,alf,alfdpi;
 
  r = sqrt(rsq);
@@ -1620,20 +1615,17 @@ void PairComb::field(Param *param, double rsq, double iq,double jq,
 double PairComb::yasu_char(double *qf_fix, int &igroup)
 {
   int i,j,k,ii,jj,kk,jnum;
-  int itag,jtag,itype,jtype,ktype,iparam_i,iparam_ij,iparam_ijk;
-  double xtmp,ytmp,ztmp,evdwl,fpair;
-  double rsq,rsq1,rsq2,delr1[3],delr2[3],zeta_ij;
+  int itype,jtype,ktype,iparam_i,iparam_ij,iparam_ijk;
+  double xtmp,ytmp,ztmp;
+  double rsq1,rsq2,delr1[3],delr2[3],zeta_ij;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  double iq,jq,fqi,fqj,fqij,fqjj,ecoul,yaself,yaself_d;
+  double iq,jq,fqi,fqj,fqij,fqjj;
   double potal,fac11,fac11e,sr1,sr2,sr3;
   int mr1,mr2,mr3,inty;
-  int zeta_flag;
   
   double **x = atom->x;
   double *q = atom->q;
-  int *tag = atom->tag;
   int *type = atom->type;
-  int nlocal = atom->nlocal;
   
   int inum = list->inum;
   ilist = list->ilist;
@@ -1931,10 +1923,10 @@ void PairComb::qfo_short(Param *param, double rsq, double zeta_ij,
       10.0*QOchj*param->bB2*pow(fabs(QOchj),(10.0-2.0));
 
   if (Asi > 0.0 && Asj > 0.0) caj = 1.0/(2.0*sqrt(Asi*Asj)) * romie;
-  else caj == 0.0;
+  else caj = 0.0;
 
   if (Bsi > 0.0 && Bsj > 0.0) cbj = 1.0/(2.0*sqrt(Bsi*Bsj)) * romib ;
-  else cbj == 0.0;
+  else cbj = 0.0;
   
   cfqr =  0.50 * tmp_fc * (1.0 + vrcs); // 0.5 b/c full atom loop
   cfqs = -0.50 * tmp_fc *  bij;

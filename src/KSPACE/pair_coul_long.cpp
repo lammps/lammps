@@ -235,12 +235,10 @@ void PairCoulLong::coeff(int narg, char **arg)
 
 void PairCoulLong::init_style()
 {
-  int i,j;
-
   if (!atom->q_flag)
     error->all("Pair style lj/cut/coul/long requires atom attribute q");
 
-  int irequest = neighbor->request(this);
+  neighbor->request(this);
 
   cut_coulsq = cut_coul * cut_coul;
 

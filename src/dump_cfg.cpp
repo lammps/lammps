@@ -184,7 +184,6 @@ void DumpCFG::write_header(bigint n)
 void DumpCFG::write_data(int n, double *mybuf)
 {
   int i,j,m,itype;
-  int tag_i,index;
 
   double *rmass = atom->rmass;
   double *mass = atom->mass;

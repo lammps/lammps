@@ -244,7 +244,6 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
   int *tag = atom->tag;
   int *mask = atom->mask;
   double **x = atom->x;
-  int nall = atom->nlocal + atom->nghost;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
 

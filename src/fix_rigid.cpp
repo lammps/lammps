@@ -472,14 +472,14 @@ int FixRigid::setmask()
 
 void FixRigid::init()
 {
-  int i,itype,ibody;
+  int i,ibody;
 
   triclinic = domain->triclinic;
 
   // warn if more than one rigid fix
 
   int count = 0;
-  for (int i = 0; i < modify->nfix; i++)
+  for (i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"rigid") == 0) count++;
   if (count > 1 && me == 0) error->warning("More than one fix rigid");
 
@@ -632,7 +632,7 @@ void FixRigid::init()
   // dx,dy,dz = coords relative to center-of-mass
   // symmetric 3x3 inertia tensor stored in Voigt notation as 6-vector
 
-  double dx,dy,dz,rad;
+  double dx,dy,dz;
 
   for (ibody = 0; ibody < nbody; ibody++)
     for (i = 0; i < 6; i++) sum[ibody][i] = 0.0;
@@ -1519,7 +1519,7 @@ void FixRigid::deform(int flag)
 
 void FixRigid::set_xv()
 {
-  int ibody,itype;
+  int ibody;
   int xbox,ybox,zbox;
   double x0,x1,x2,v0,v1,v2,fc0,fc1,fc2,massone;
   double xy,xz,yz;
@@ -1675,9 +1675,8 @@ void FixRigid::set_xv()
 
 void FixRigid::set_v()
 {
-  int ibody,itype;
+  int ibody;
   int xbox,ybox,zbox;
-  double dx,dy,dz;
   double x0,x1,x2,v0,v1,v2,fc0,fc1,fc2,massone;
   double xy,xz,yz;
   double ione[3],exone[3],eyone[3],ezone[3],delta[3],vr[6];

@@ -184,8 +184,6 @@ void PairLJExpandGPU::cpu_compute(int start, int inum, int eflag, int vflag,
   double **x = atom->x;
   double **f = atom->f;
   int *type = atom->type;
-  int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
   double *special_lj = force->special_lj;
 
   // loop over neighbors of my atoms

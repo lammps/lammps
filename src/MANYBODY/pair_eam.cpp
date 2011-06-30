@@ -398,7 +398,7 @@ void PairEAM::init_style()
   file2array();
   array2spline();
 
-  int irequest = neighbor->request(this);
+  neighbor->request(this);
 }
 
 /* ----------------------------------------------------------------------

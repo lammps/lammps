@@ -332,7 +332,7 @@ void PairBuckCoulLong::init_style()
     error->all("Pair style is incompatible with KSpace style");
   g_ewald = force->kspace->g_ewald;
 
-  int irequest = neighbor->request(this);
+  neighbor->request(this);
 }
 
 /* ----------------------------------------------------------------------

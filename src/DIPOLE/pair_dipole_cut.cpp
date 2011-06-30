@@ -359,7 +359,7 @@ void PairDipoleCut::init_style()
   if (!atom->q_flag || !atom->mu_flag || !atom->torque_flag)
     error->all("Pair dipole/cut requires atom attributes q, mu, torque");
 
-  int irequest = neighbor->request(this);
+  neighbor->request(this);
 }
 
 /* ----------------------------------------------------------------------

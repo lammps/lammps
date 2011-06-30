@@ -296,7 +296,7 @@ double PairAIREBO::init_one(int i, int j)
 
 void PairAIREBO::REBO_neigh()
 {
-  int i,j,ii,jj,m,n,allnum,jnum,itype,jtype;
+  int i,j,ii,jj,n,allnum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq,dS;
   int *ilist,*jlist,*numneigh,**firstneigh;
   int *neighptr;

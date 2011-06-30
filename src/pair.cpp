@@ -214,7 +214,7 @@ void Pair::reinit()
 
 void Pair::init_style()
 {
-  int irequest = neighbor->request(this);
+  neighbor->request(this);
 }
 
 /* ----------------------------------------------------------------------

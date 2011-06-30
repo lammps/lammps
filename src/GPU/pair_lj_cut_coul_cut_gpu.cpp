@@ -197,10 +197,8 @@ void PairLJCutCoulCutGPU::cpu_compute(int start, int inum, int eflag, int vflag,
   double **f = atom->f;
   double *q = atom->q;
   int *type = atom->type;
-  int nlocal = atom->nlocal;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
-  int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
 
   // loop over neighbors of my atoms

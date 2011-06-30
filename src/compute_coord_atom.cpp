@@ -118,7 +118,6 @@ void ComputeCoordAtom::compute_peratom()
 
   double **x = atom->x;
   int *mask = atom->mask;
-  int nall = atom->nlocal + atom->nghost;
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];

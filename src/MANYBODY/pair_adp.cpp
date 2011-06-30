@@ -127,8 +127,7 @@ void PairADP::compute(int eflag, int vflag)
   double *coeff;
   int *ilist,*jlist,*numneigh,**firstneigh;
   double delmux,delmuy,delmuz,trdelmu,tradellam;
-  double adpx,adpy,adpz,adpx2,adpy2,adpz2;
-  double fx,fy,fz;
+  double adpx,adpy,adpz,fx,fy,fz;
   double sumlamxx,sumlamyy,sumlamzz,sumlamyz,sumlamxz,sumlamxy;
 
   evdwl = 0.0;
@@ -512,7 +511,7 @@ void PairADP::init_style()
   file2array();
   array2spline();
 
-  int irequest = neighbor->request(this);
+  neighbor->request(this);
 }
 
 /* ----------------------------------------------------------------------
@@ -575,7 +574,7 @@ void PairADP::read_file(char *filename)
   
   char **words = new char*[file->nelements+1];
   nwords = 0;
-  char *first = strtok(line," \t\n\r\f");
+  strtok(line," \t\n\r\f");
   while (words[nwords++] = strtok(NULL," \t\n\r\f")) continue;
 
   file->elements = new char*[file->nelements];

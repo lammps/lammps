@@ -687,7 +687,7 @@ void Domain::closest_image(double *xi, double *xj, double *xjimage)
       } else {
 	while (dy > 0.0) {
 	  dy -= yprd;
-	  dx == xy;
+	  dx -= xy;
 	}
 	if (dy < -yprd_half) {
 	  dy += yprd;

@@ -317,7 +317,6 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
   colortype = new double*[ntypes+1];
   colorelement = new double*[ntypes+1];
 
-  int *icolor;
   for (int i = 1; i <= ntypes; i++) {
     diamtype[i] = 1.0;
     if (i % 6 == 1) colortype[i] = color2rgb("red");
@@ -856,7 +855,7 @@ void DumpImage::color_minmax()
 
 void DumpImage::create_image()
 {
-  int i,j,k,m,itype,atom1,atom2;
+  int i,j,m,itype,atom1,atom2;
   double diameter,delx,dely,delz;
   double *color,*color1,*color2;
   double xmid[3];
@@ -1125,7 +1124,6 @@ void DumpImage::draw_sphere(double *x, double *surfaceColor, double diameter)
   double dist = MathExtra::dot3(camPos,camDir) - MathExtra::dot3(xlocal,camDir);
 
   double radius = 0.5*diameter;
-  double radsq = radius*radius;
   double pixelWidth = (tanPerPixel > 0) ? tanPerPixel * dist : 
     -tanPerPixel / zoom;
   double pixelRadiusFull = radius / pixelWidth;
@@ -1396,7 +1394,7 @@ void DumpImage::compute_SSAO()
 
   // typical neighborhood value for shading
 
-  int x, y, s, r;
+  int x,y,s;
   int hPart = height / nprocs;
   for (y = me * hPart; y < (me + 1) * hPart; y ++) {
     for (x = 0; x < width; x ++) {
@@ -1691,7 +1689,6 @@ int DumpImage::modify_param(int narg, char **arg)
     nentry = atoi(arg[5]);
     mentry = new MapEntry[nentry];
     int n = 6;
-    int i = 0;
     for (int i = 0; i < nentry; i++) {
       if (mstyle == CONTINUOUS) {
 	if (n+2 > narg) error->all("Illegal dump_modify command");
@@ -1732,7 +1729,6 @@ int DumpImage::modify_param(int narg, char **arg)
       if (nentry < 2) error->all("Invalid color map in dump_modify command");
       if (mentry[0].single != MINVALUE || mentry[nentry-1].single != MAXVALUE)
 	error->all("Invalid color map in dump_modify command");
-      if (nentry > 2) double value = mentry[1].svalue;
       for (int i = 2; i < nentry-1; i++)
 	if (mentry[i].svalue <= mentry[i-1].svalue)
 	  error->all("Invalid color map in dump_modify command");

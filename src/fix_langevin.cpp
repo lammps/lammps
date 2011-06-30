@@ -307,7 +307,7 @@ void FixLangevin::post_force_no_tally()
       }
 
     } else if (which == BIAS) {
-      double tmp = temperature->compute_scalar();
+      temperature->compute_scalar();
       for (int i = 0; i < nlocal; i++) {
 	if (mask[i] & groupbit) {
 	  gamma1 = -rmass[i] / t_period / ftm2v;
@@ -352,7 +352,7 @@ void FixLangevin::post_force_no_tally()
       }
 
     } else if (which == BIAS) {
-      double tmp = temperature->compute_scalar();
+      temperature->compute_scalar();
       for (int i = 0; i < nlocal; i++) {
 	if (mask[i] & groupbit) {
 	  gamma1 = gfactor1[type[i]];
@@ -454,7 +454,7 @@ void FixLangevin::post_force_tally()
       }
 
     } else if (which == BIAS) {
-      double tmp = temperature->compute_scalar();
+      temperature->compute_scalar();
       for (int i = 0; i < nlocal; i++) {
 	if (mask[i] & groupbit) {
 	  gamma1 = -rmass[i] / t_period / ftm2v;
@@ -492,7 +492,7 @@ void FixLangevin::post_force_tally()
       }
 
     } else if (which == BIAS) {
-      double tmp = temperature->compute_scalar();
+      temperature->compute_scalar();
       for (int i = 0; i < nlocal; i++) {
 	if (mask[i] & groupbit) {
 	  gamma1 = gfactor1[type[i]];
@@ -582,7 +582,7 @@ void FixLangevin::angmom_thermostat(double tsqrt)
   int *type = atom->type;
   int nlocal = atom->nlocal;
 
-  double inertia[3],wbody[3],omega[3],tran[3],rot[3][3];
+  double inertia[3],omega[3],tran[3];
   double *shape,*quat;
 
   for (int i = 0; i < nlocal; i++) {

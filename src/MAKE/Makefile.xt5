@@ -100,9 +100,13 @@ lib:	$(OBJ)
 
 # Compilation rules
 
-.cpp.o:
+%.o:%.cpp
 	$(CC) $(CCFLAGS) $(EXTRA_INC) -c $<
+
+%.d:%.cpp
+	$(CC) $(CCFLAGS) $(EXTRA_INC) $(DEPFLAGS) $< > $@
 
 # Individual dependencies
 
-$(OBJ):	     $(INC)
+DEPENDS = $(OBJ:.o=.d)
+include $(DEPENDS)

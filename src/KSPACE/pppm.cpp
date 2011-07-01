@@ -174,7 +174,7 @@ void PPPM::init()
       error->all("Bad TIP4P bond type for PPPM/TIP4P");
     double theta = force->angle->equilibrium_angle(typeA);
     double blen = force->bond->equilibrium_distance(typeB);
-    alpha = qdist / (2.0 * cos(0.5*theta) * blen);
+    alpha = qdist / (cos(0.5*theta) * blen);
   }
 
   // compute qsum & qsqsum and warn if not charge-neutral

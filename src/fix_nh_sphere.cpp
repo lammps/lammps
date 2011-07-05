@@ -39,8 +39,6 @@ FixNHSphere::FixNHSphere(LAMMPS *lmp, int narg, char **arg) :
 
 void FixNHSphere::init()
 {
-  int i,itype;
-
   // check that all particles are finite-size
   // no point particles allowed
 
@@ -48,7 +46,7 @@ void FixNHSphere::init()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  for (i = 0; i < nlocal; i++)
+  for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
       if (radius[i] == 0.0)
 	error->one("Fix nvt/sphere requires extended particles");

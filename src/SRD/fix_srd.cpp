@@ -413,7 +413,6 @@ void FixSRD::pre_neighbor()
 {
   int i,j,m,ix,iy,iz,jx,jy,jz,ibin,jbin,lo,hi;
   double rsq,cutbinsq;
-  double xlamda[3];
 
   // grow SRD per-atom bin arrays if necessary
 
@@ -643,7 +642,6 @@ void FixSRD::pre_neighbor()
 void FixSRD::post_force(int vflag)
 {
   int i,m,ix,iy,iz;
-  double xlamda[3];
 
   // zero per-timestep stats
 
@@ -775,7 +773,6 @@ void FixSRD::reset_velocities()
   double u[3],vave[3];
   double vx,vy,vz,vsq;
   double *vold,*vnew,*xlamda;
-  double vstream[3];
 
   // if requested, perform a dynamic shift
 
@@ -2018,9 +2015,8 @@ void FixSRD::force_torque(double *vsold, double *vsnew,
 ------------------------------------------------------------------------- */
 
 void FixSRD::force_wall(double *vsold, double *vsnew, int iwall)
-
 {
-  double dpdt[3],xs_xb[3];
+  double dpdt[3];
 
   double factor = mass_srd / dt_big / force->ftm2v;
   dpdt[0] = factor * (vsnew[0] - vsold[0]);
@@ -2411,7 +2407,6 @@ void FixSRD::big_static()
   if (avec_ellipsoid) ebonus = avec_ellipsoid->bonus;
   double *radius = atom->radius;
   int *ellipsoid = atom->ellipsoid;
-  int *type = atom->type;
 
   double skinhalf = 0.5 * neighbor->skin;
 

@@ -234,7 +234,6 @@ void PairRESquaredGPU::cpu_compute(int start, int inum, int eflag, int vflag,
   double **f = atom->f;
   double **tor = atom->torque;
   int *type = atom->type;
-  int nlocal = atom->nlocal;
   double *special_lj = force->special_lj;
 
   // loop over neighbors of my atoms

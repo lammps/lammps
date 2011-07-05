@@ -155,7 +155,7 @@ void FixBondBreak::init()
 
 void FixBondBreak::post_integrate()
 {
-  int i,j,k,m,n,i1,i2,n1,n3,possible,type;
+  int i,j,k,m,n,i1,i2,n1,n3,type;
   double delx,dely,delz,rsq,min,max;
   int *slist;
 
@@ -277,7 +277,7 @@ void FixBondBreak::post_integrate()
     // remove J from special bond list for atom I
     // atom J will also do this
 
-    slist = atom->special[i];
+    slist = special[i];
     n1 = nspecial[i][0];
     n3 = nspecial[i][2];
     for (m = 0; m < n1; m++)

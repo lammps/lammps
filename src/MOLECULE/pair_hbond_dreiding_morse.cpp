@@ -65,7 +65,6 @@ void PairHbondDreidingMorse::compute(int eflag, int vflag)
   int **special = atom->special;
   int *type = atom->type;
   int **nspecial = atom->nspecial;
-  int nlocal = atom->nlocal;
   double *special_lj = force->special_lj;
   
   inum = list->inum;
@@ -352,7 +351,7 @@ double PairHbondDreidingMorse::single(int i, int j, int itype, int jtype,
 {
   int k,kk,ktype,knum,m;
   double eng,eng_morse,force_kernel,force_angle;
-  double rsq1,rsq2,r1,r2,c,a,s,ac,r,dr,dexp,factor_hb;
+  double rsq1,rsq2,r1,r2,c,s,ac,r,dr,dexp,factor_hb;
   double switch1,switch2;
   double delr1[3],delr2[3];
   int *klist;

@@ -225,7 +225,7 @@ int FixMinimize::unpack_exchange(int nlocal, double *buf)
 
   int n = 0;
   for (m = 0; m < nvector; m++) {
-    int nper = peratom[m];
+    nper = peratom[m];
     ni = nper*nlocal;
     for (iper = 0; iper < nper; iper++) vectors[m][ni++] = buf[n++];
   }

@@ -265,7 +265,6 @@ void PairREAX::compute(int eflag, int vflag)
 
 void PairREAX::write_reax_positions()
 {
-  double xtmp, ytmp, ztmp;
   int j, jx, jy, jz, jia;
 
   double **x = atom->x;
@@ -312,7 +311,6 @@ void PairREAX::write_reax_vlist()
   int *ilist,*jlist,*numneigh,**firstneigh;
   double delr2;
   double delx, dely, delz;
-  double rtmp[3];
 
   double **x = atom->x;
   int *tag = atom->tag;
@@ -669,7 +667,7 @@ void PairREAX::unpack_comm(int n, int first, double *buf)
 
 int PairREAX::pack_reverse_comm(int n, int first, double *buf)
 {
-  int i,k,m,last,size;
+  int i,m,last;
 
   m = 0;
   last = first + n;
@@ -683,7 +681,7 @@ int PairREAX::pack_reverse_comm(int n, int first, double *buf)
 
 void PairREAX::unpack_reverse_comm(int n, int *list, double *buf)
 {
-  int i,j,k,m;
+  int i,j,m;
 
   m = 0;
   for (i = 0; i < n; i++) {
@@ -753,7 +751,6 @@ void PairREAX::compute_charge(double &energy_charge_equilibration)
   double qsum,qi;
   int nmatentries;
   double sw;
-  double rtmp[3];
   int inum,jnum;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
@@ -929,9 +926,6 @@ void PairREAX::charge_reax(const int & nlocal, const int & nghost,
 			   double ch[], double aval[], int acol_ind[],
 			   int arow_ptr[], double elcvec[])
 {
-  double chpottmp, suma;
-  double sumtmp;
-
   cg_solve(nlocal,nghost,aval,acol_ind,arow_ptr,ch,elcvec);
 }
 

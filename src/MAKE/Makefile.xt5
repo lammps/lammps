@@ -1,17 +1,18 @@
-# g++ = RedHat Linux box, g++4, gfortran, MPICH2, FFTW
+# xt5 = Cray XT5, Cray CC, native MPI, FFTW
 
 SHELL = /bin/sh
+.SUFFIXES: .cpp .d
 
 # ---------------------------------------------------------------------
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-CC =		g++4
-CCFLAGS =	-g -O # -Wunused
+CC =		CC
+CCFLAGS =	-fastsse
 DEPFLAGS =	-M
-LINK =		g++4
-LINKFLAGS =	-g -O
-LIB =           
+LINK =		CC
+LINKFLAGS =	-O
+LIB =           -lstdc++
 ARCHIVE =	ar
 ARFLAGS =	-rc
 SIZE =		size
@@ -22,24 +23,24 @@ SIZE =		size
 
 # LAMMPS ifdef options, see doc/Section_start.html
 
-LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_JPEG
+LMP_INC =	-DLAMMPS_GZIP
 
 # MPI library, can be src/STUBS dummy lib
 # INC = path for mpi.h, MPI compiler settings
 # PATH = path for MPI library
 # LIB = name of MPI library
 
-MPI_INC =       -DMPICH_SKIP_MPICXX
+MPI_INC =       -DMPICH_SKIP_MPICXX 
 MPI_PATH = 
-MPI_LIB =	-lmpich -lpthread
+MPI_LIB =	
 
 # FFT library, can be -DFFT_NONE if not using PPPM from KSPACE package
 # INC = -DFFT_FFTW, -DFFT_INTEL, -DFFT_NONE, etc, FFT compiler settings
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC =       -DFFT_FFTW 
-FFT_PATH = 
+FFT_INC =       -DFFT_FFTW -I/home/sjplimp/fftw/fftw
+FFT_PATH = 	-L/home/sjplimp/fftw/fftw/.libs
 FFT_LIB =	-lfftw
 
 # JPEG library, only needed if -DLAMMPS_JPEG listed with LMP_INC
@@ -49,9 +50,9 @@ FFT_LIB =	-lfftw
 
 JPG_INC =       
 JPG_PATH = 	
-JPG_LIB =	/usr/local/lib/libjpeg.a
+JPG_LIB =	
 
-# additional system settings needed by LAMMPS package libraries
+# additional system libraries needed by LAMMPS package libraries
 # these settings are IGNORED if the corresponding LAMMPS package
 #   (e.g. gpu, meam) is NOT included in the LAMMPS build
 # SYSINC = settings to compile with
@@ -65,16 +66,16 @@ user-atc_SYSINC =
 user-awpmd_SYSINC =
 
 gpu_SYSLIB =       -lcudart -lcuda
-meam_SYSLIB =      -lgfortran
-reax_SYSLIB =      -lgfortran
+meam_SYSLIB =      -lifcore -lsvml -lompstub -limf
+reax_SYSLIB =      -lifcore -lsvml -lompstub -limf
 user-atc_SYSLIB =  -lblas -llapack
 user-awpmd_SYSLIB =  -lblas -llapack
 
 gpu_SYSPATH =      -L/usr/local/cuda/lib64
-meam_SYSPATH =
-reax_SYSPATH =
-user-atc_SYSPATH =
-user-awpmd_SYSPATH =
+meam_SYSPATH =     -L/opt/intel/fce/10.0.023/lib
+reax_SYSPATH =     -L/opt/intel/fce/10.0.023/lib
+user-atc_SYSPATH = 	
+user-awpmd_SYSPATH = 	
 
 # ---------------------------------------------------------------------
 # build rules and dependencies

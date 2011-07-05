@@ -287,7 +287,7 @@ void FixRigidNVT::initial_integrate(int vflag)
 void FixRigidNVT::final_integrate()
 {
   int i,ibody;
-  double tmp,scale_t,scale_r,akin_t,akin_r;
+  double tmp,scale_t,scale_r;
   double dtfm,xy,xz,yz;
   
   // compute velocity scales for translation and rotation

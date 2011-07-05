@@ -328,7 +328,7 @@ int MinLineSearch::linemin_quadratic(double eoriginal, double &alpha)
   int i,m,n;
   double fdothall,fdothme,hme,hmax,hmaxall;
   double de_ideal,de;
-  double delfh,engprev,relerr,alphaprev,fhprev,ff,fh,alpha0,fh0,ff0;
+  double delfh,engprev,relerr,alphaprev,fhprev,ff,fh,alpha0;
   double dot[2],dotall[2];	
   double *xatom,*x0atom,*fatom,*hatom;
   double alphamax;

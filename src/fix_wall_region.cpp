@@ -186,7 +186,6 @@ void FixWallRegion::post_force(int vflag)
   double **x = atom->x;
   double **f = atom->f;
   double *radius = atom->radius;
-  int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -335,12 +334,10 @@ void FixWallRegion::colloid(double r, double rad)
   double rinv2 = 1.0/r2;
   double r2inv2 = rinv2*rinv2;
   double r4inv2 = r2inv2*r2inv2;
-  double r6inv2 = r4inv2*r2inv2;
   double r3 = r + 0.5*diam;
   double rinv3 = 1.0/r3;
   double r2inv3 = rinv3*rinv3;
   double r4inv3 = r2inv3*r2inv3;
-  double r6inv3 = r4inv3*r2inv3;
   eng = coeff3*((-3.5*diam+r)*r4inv2*r2inv2*rinv2
 		+ (3.5*diam+r)*r4inv3*r2inv3*rinv3) -
     coeff4*((-diam*r+r2*r3*(log(-r2)-log(r3)))*

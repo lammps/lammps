@@ -220,14 +220,12 @@ int DumpLocal::count()
 
   nmine = -1;
 
-  int icompute;
   for (int i = 0; i < ncompute; i++) {
     if (nmine < 0) nmine = compute[i]->size_local_rows;
     else if (nmine != compute[i]->size_local_rows)
       error->one("Dump local count is not consistent across input fields");
   }
 
-  int ifix;
   for (int i = 0; i < nfix; i++) {
     if (nmine < 0) nmine = fix[i]->size_local_rows;
     else if (nmine != fix[i]->size_local_rows)

@@ -139,7 +139,6 @@ void ComputeClusterAtom::compute_peratom()
   // then check if any proc made changes
 
   double **x = atom->x;
-  int nall = atom->nlocal + atom->nghost;
 
   int change,done,anychange;
 

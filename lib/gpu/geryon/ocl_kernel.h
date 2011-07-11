@@ -85,6 +85,8 @@ class UCL_Program {
     _program=clCreateProgramWithSource(_context,1,&prog,NULL,&error_flag);
     CL_CHECK_ERR(error_flag);
     error_flag = clBuildProgram(_program,1,&_device,flags,NULL,NULL);
+    if (error_flag!=-11)
+      CL_CHECK_ERR(error_flag);
     cl_build_status build_status;
     CL_SAFE_CALL(clGetProgramBuildInfo(_program,_device,
                                        CL_PROGRAM_BUILD_STATUS, 
@@ -106,7 +108,8 @@ class UCL_Program {
         #ifndef UCL_NO_EXIT                                                 
         std::cerr << std::endl
                   << "----------------------------------------------------------\n"
-                  << " UCL Error: Error compiling OpenCL Program...\n"
+                  << " UCL Error: Error compiling OpenCL Program ("
+                  << build_status << ") ...\n"
                   << "----------------------------------------------------------\n";
         std::cerr << build_log << std::endl;
         #endif

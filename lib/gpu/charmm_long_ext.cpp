@@ -26,7 +26,7 @@ static CHARMMLong<PRECISION,ACC_PRECISION> CRMLMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
-int charmm_long_ext_init(const int ntypes, double cut_bothsq, double **host_lj1,
+int crml_gpu_init(const int ntypes, double cut_bothsq, double **host_lj1,
                   double **host_lj2, double **host_lj3, double **host_lj4,
                   double **offset, double *special_lj, const int inum,
                   const int nall, const int max_nbors, const int maxspecial,
@@ -97,11 +97,11 @@ int charmm_long_ext_init(const int ntypes, double cut_bothsq, double **host_lj1,
   return init_ok;
 }
 
-void charmm_long_ext_clear() {
+void crml_gpu_clear() {
   CRMLMF.clear();
 }
 
-int** charmm_long_ext_compute_n(const int ago, const int inum_full,
+int** crml_gpu_compute_n(const int ago, const int inum_full,
                          const int nall, double **host_x, int *host_type,
                          double *sublo, double *subhi, int *tag, int **nspecial, 
                          int **special, const bool eflag, const bool vflag,
@@ -115,7 +115,7 @@ int** charmm_long_ext_compute_n(const int ago, const int inum_full,
                         host_q, boxlo, prd);
 }  
 			
-void charmm_long_ext_compute(const int ago, const int inum_full,
+void crml_gpu_compute(const int ago, const int inum_full,
 	 	                  const int nall, double **host_x, int *host_type,
                       int *ilist, int *numj, int **firstneigh,
 		                  const bool eflag, const bool vflag, const bool eatom,
@@ -127,7 +127,7 @@ void charmm_long_ext_compute(const int ago, const int inum_full,
                  nlocal,boxlo,prd);
 }
 
-double charmm_long_ext_bytes() {
+double crml_gpu_bytes() {
   return CRMLMF.host_memory_usage();
 }
 

@@ -143,11 +143,13 @@ class DumpImage : public DumpCustom {
   void color_minmax();
 
   void create_image();
+
+  // rasterizing methods
+
   void draw_sphere(double *, double *, double);
   void draw_cylinder(double *, double *, double *, double, int);
   void draw_pixel(int, int, float, double *, double*);
   void compute_SSAO();
-
   void write_JPG();
   void write_PPM();
 

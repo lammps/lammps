@@ -589,8 +589,10 @@ void DumpImage::write()
   while (nhalf) {
     if (me < nhalf && me+nhalf < nprocs) {
       MPI_Irecv(rgbcopy,npixels*3,MPI_BYTE,me+nhalf,0,world,&requests[0]);
-      MPI_Irecv(surfacecopy,npixels*2,MPI_FLOAT,me+nhalf,0,world,&requests[1]);
       MPI_Irecv(depthcopy,npixels,MPI_FLOAT,me+nhalf,0,world,&requests[2]);
+      if (ssao) 
+	MPI_Irecv(surfacecopy,npixels*2,MPI_FLOAT,
+		  me+nhalf,0,world,&requests[1]);
       MPI_Waitall(3,requests,statuses);
 
       for (int i = 0; i < npixels; i++) {
@@ -600,15 +602,17 @@ void DumpImage::write()
           imageBuffer[i*3+0] = rgbcopy[i*3+0];
           imageBuffer[i*3+1] = rgbcopy[i*3+1];
           imageBuffer[i*3+2] = rgbcopy[i*3+2];
-          surfaceBuffer[i*2+0] = surfacecopy[i*2+0];
-          surfaceBuffer[i*2+1] = surfacecopy[i*2+1];
+          if (ssao) {
+            surfaceBuffer[i*2+0] = surfacecopy[i*2+0];
+            surfaceBuffer[i*2+1] = surfacecopy[i*2+1];
+          }
         }
       }
 
     } else if (me >= nhalf && me < 2*nhalf) {
       MPI_Send(imageBuffer,npixels*3,MPI_BYTE,me-nhalf,0,world);
-      MPI_Send(surfaceBuffer,npixels*2,MPI_FLOAT,me-nhalf,0,world);
       MPI_Send(depthBuffer,npixels,MPI_FLOAT,me-nhalf,0,world);
+      if (ssao) MPI_Send(surfaceBuffer,npixels*2,MPI_FLOAT,me-nhalf,0,world);
     }
 
     nhalf /= 2;
@@ -906,7 +910,6 @@ void DumpImage::create_image()
       } else if (adiam == ATTRIBUTE) {
 	diameter = buf[m+1];
       }
-
       draw_sphere(x[j],color,diameter);
       m += size_one;
     }
@@ -1111,7 +1114,7 @@ void DumpImage::create_image()
 void DumpImage::draw_sphere(double *x, double *surfaceColor, double diameter)
 {
   int ix,iy;
-  double projRad,diffuseKey,diffuseFill,diffuseBack,specularKey;
+  double projRad;
   double xlocal[3],surface[3];
   float depth;
 
@@ -1126,6 +1129,7 @@ void DumpImage::draw_sphere(double *x, double *surfaceColor, double diameter)
   double radius = 0.5*diameter;
   double pixelWidth = (tanPerPixel > 0) ? tanPerPixel * dist : 
     -tanPerPixel / zoom;
+  double pixelNorm = pixelWidth / radius;
   double pixelRadiusFull = radius / pixelWidth;
   int pixelRadius = static_cast<int> (pixelRadiusFull + 0.5);
   double half_error = (pixelRadiusFull - pixelRadius) * .5;
@@ -1134,8 +1138,6 @@ void DumpImage::draw_sphere(double *x, double *surfaceColor, double diameter)
   int hh = height / 2;
   int xc = static_cast<int> (xmap / pixelWidth) + hw;
   int yc = static_cast<int> (ymap / pixelWidth) + hh;
-
-  double pixelNorm = pixelWidth / radius;
 
   for (iy = yc - pixelRadius, surface[1] = -1 + half_error * pixelNorm; 
        iy <= yc + pixelRadius; iy++, surface[1] += pixelNorm) {
@@ -1150,50 +1152,8 @@ void DumpImage::draw_sphere(double *x, double *surfaceColor, double diameter)
       if (projRad > 1.0) continue;
       surface[2] = sqrt(1 - projRad);
       depth = dist - surface[2] * radius;
-      if (depth < 0 || (depthBuffer[ix + iy*width] >= 0 && 
-			depth > depthBuffer[ix + iy*width])) 
-	continue;
-      depthBuffer[ix + iy*width] = depth;
-      
-      // store only the tangent relative to the camera normal (0,0,-1)
 
-      surfaceBuffer[0 + ix * 2 + iy*width * 2] = surface[1];
-      surfaceBuffer[1 + ix * 2 + iy*width * 2] = -surface[0];
-      
-      diffuseKey = saturate(MathExtra::dot3(surface, keyLightDir));
-      diffuseFill = saturate(MathExtra::dot3(surface, fillLightDir));
-      diffuseBack = saturate(MathExtra::dot3(surface, backLightDir));
-      specularKey = pow(saturate(MathExtra::dot3(surface, keyHalfDir)),
-			specularHardness) * specularIntensity;
-      
-      double c[3];
-      c[0] = surfaceColor[0] * ambientColor[0];
-      c[1] = surfaceColor[1] * ambientColor[1];
-      c[2] = surfaceColor[2] * ambientColor[2];
-      
-      c[0] += surfaceColor[0] * keyLightColor[0] * diffuseKey;
-      c[1] += surfaceColor[1] * keyLightColor[1] * diffuseKey;
-      c[2] += surfaceColor[2] * keyLightColor[2] * diffuseKey;
-      
-      c[0] += keyLightColor[0] * specularKey;
-      c[1] += keyLightColor[1] * specularKey;
-      c[2] += keyLightColor[2] * specularKey;
-      
-      c[0] += surfaceColor[0] * fillLightColor[0] * diffuseFill;
-      c[1] += surfaceColor[1] * fillLightColor[1] * diffuseFill;
-      c[2] += surfaceColor[2] * fillLightColor[2] * diffuseFill;
-      
-      c[0] += surfaceColor[0] * backLightColor[0] * diffuseBack;
-      c[1] += surfaceColor[1] * backLightColor[1] * diffuseBack;
-      c[2] += surfaceColor[2] * backLightColor[2] * diffuseBack;
-      
-      c[0] = saturate(c[0]);
-      c[1] = saturate(c[1]);
-      c[2] = saturate(c[2]);
-      
-      imageBuffer[0 + ix*3 + iy*width*3] = static_cast<int>(c[0] * 255.0);
-      imageBuffer[1 + ix*3 + iy*width*3] = static_cast<int>(c[1] * 255.0);
-      imageBuffer[2 + ix*3 + iy*width*3] = static_cast<int>(c[2] * 255.0);
+      draw_pixel (ix, iy, depth, surface, surfaceColor);
     }
   }
 }
@@ -1210,10 +1170,9 @@ void DumpImage::draw_sphere(double *x, double *surfaceColor, double diameter)
 void DumpImage::draw_cylinder(double *x, double *y,
 			      double *surfaceColor, double diameter, int sflag)
 {
-  double xlocal[3],ylocal[3],surface[3], worldSurface[3];
+  double surface[3], normal[3];
   double mid[3],xaxis[3],yaxis[3],zaxis[3];
   double camLDir[3], camLRight[3], camLUp[3];
-  double diffuseKey,diffuseFill,diffuseBack,specularKey;
   double zmin, zmax;
 
   if (sflag % 2) draw_sphere(x,surfaceColor,diameter);
@@ -1222,24 +1181,16 @@ void DumpImage::draw_cylinder(double *x, double *y,
   double radius = 0.5*diameter;
   double radsq = radius*radius;
 
-  xlocal[0] = x[0] - xctr;
-  xlocal[1] = x[1] - yctr;
-  xlocal[2] = x[2] - zctr;
-
-  ylocal[0] = y[0] - xctr;
-  ylocal[1] = y[1] - yctr;
-  ylocal[2] = y[2] - zctr;
-
-  zaxis[0] = ylocal[0] - xlocal[0];
-  zaxis[1] = ylocal[1] - xlocal[1];
-  zaxis[2] = ylocal[2] - xlocal[2];
+  zaxis[0] = y[0] - x[0];
+  zaxis[1] = y[1] - x[1];
+  zaxis[2] = y[2] - x[2];
 
   double rasterWidth = fabs(MathExtra::dot3(zaxis, camRight)) + diameter;
   double rasterHeight = fabs(MathExtra::dot3(zaxis, camUp)) + diameter;
 
-  mid[0] = (ylocal[0] + xlocal[0]) * 0.5;
-  mid[1] = (ylocal[1] + xlocal[1]) * 0.5;
-  mid[2] = (ylocal[2] + xlocal[2]) * 0.5;
+  mid[0] = (y[0] + x[0]) * 0.5 - xctr;
+  mid[1] = (y[1] + x[1]) * 0.5 - yctr;
+  mid[2] = (y[2] + x[2]) * 0.5 - zctr;
 
   double len = MathExtra::len3(zaxis);
   MathExtra::scale3(1.0/len,zaxis);
@@ -1275,30 +1226,32 @@ void DumpImage::draw_cylinder(double *x, double *y,
   MathExtra::norm3(xaxis);
 
   camLDir[0] = MathExtra::dot3(camDir,xaxis);
-  camLDir[1] = MathExtra::dot3(camDir,yaxis);
+  camLDir[1] = 0.0;
   camLDir[2] = MathExtra::dot3(camDir,zaxis);
 
   camLRight[0] = MathExtra::dot3(camRight,xaxis);
   camLRight[1] = MathExtra::dot3(camRight,yaxis);
   camLRight[2] = MathExtra::dot3(camRight,zaxis);
+  MathExtra::norm3(camLRight);
 
   camLUp[0] = MathExtra::dot3(camUp,xaxis);
   camLUp[1] = MathExtra::dot3(camUp,yaxis);
   camLUp[2] = MathExtra::dot3(camUp,zaxis);
+  MathExtra::norm3(camLUp);
 
-  double a = camLDir[0] * camLDir[0] + camLDir[1] * camLDir[1];
+  double a = camLDir[0] * camLDir[0];
 
   for (int iy = yc - pixelHalfHeight; iy <= yc + pixelHalfHeight; iy ++) {
     for (int ix = xc - pixelHalfWidth; ix <= xc + pixelHalfWidth; ix ++) {
       if (iy < 0 || iy >= height || ix < 0 || ix >= width) continue;
       
-      double sx = ((ix - xc) + half_width_error) * pixelWidth;
       double sy = ((iy - yc) + half_height_error) * pixelWidth;
+      double sx = ((ix - xc) + half_width_error) * pixelWidth;
       surface[0] = camLRight[0] * sx + camLUp[0] * sy;
       surface[1] = camLRight[1] * sx + camLUp[1] * sy;
       surface[2] = camLRight[2] * sx + camLUp[2] * sy;
 
-      double b = 2 * camLDir[0] * surface[0] + 2 * camLDir[1] * surface[1];
+      double b = 2 * camLDir[0] * surface[0];
       double c = surface[0] * surface[0] + surface[1] * surface[1] - radsq;
 
       double partial = b*b - 4*a*c;
@@ -1315,70 +1268,75 @@ void DumpImage::draw_cylinder(double *x, double *y,
 
       if (surface[2] > zmax || surface[2] < zmin) continue;
 
-      float depth = dist - t;
-      if (depth < 0 || (depthBuffer[ix + iy*width] >= 0 && 
-			depth >= depthBuffer[ix + iy*width])) 
-	continue;
-      depthBuffer[ix + iy*width] = depth;
-
       // convert surface into the surface normal
 
-      surface[2] = 0;
-      MathExtra::norm3(surface);
+      normal[0] = surface[0] / radius;
+      normal[1] = surface[1] / radius;
+      normal[2] = 0.0;
 
-      // convert surface to world space
+      // in camera space 
 
-      worldSurface[0] = surface[0] * xaxis[0] + surface[1] * yaxis[0];
-      worldSurface[1] = surface[0] * xaxis[1] + surface[1] * yaxis[1];
-      worldSurface[2] = surface[0] * xaxis[2] + surface[1] * yaxis[2];
+      surface[0] = MathExtra::dot3 (normal, camLRight);
+      surface[1] = MathExtra::dot3 (normal, camLUp);
+      surface[2] = MathExtra::dot3 (normal, camLDir);
 
-      // then back to camera space (could probably precompute this)
-
-      surface[0] = MathExtra::dot3 (worldSurface, camRight);
-      surface[1] = MathExtra::dot3 (worldSurface, camUp);
-      surface[2] = MathExtra::dot3 (worldSurface, camDir);
-
-      // store only the tangent relative to the camera normal (0,0,-1)
-
-      surfaceBuffer[0 + ix * 2 + iy*width * 2] = surface[1];
-      surfaceBuffer[1 + ix * 2 + iy*width * 2] = -surface[0];
-      
-      diffuseKey = saturate(MathExtra::dot3(surface, keyLightDir));
-      diffuseFill = saturate(MathExtra::dot3(surface, fillLightDir));
-      diffuseBack = saturate(MathExtra::dot3(surface, backLightDir));
-      specularKey = pow(saturate(MathExtra::dot3(surface, keyHalfDir)),
-			specularHardness) * specularIntensity;
-      
-      double col[3];
-      col[0] = surfaceColor[0] * ambientColor[0];
-      col[1] = surfaceColor[1] * ambientColor[1];
-      col[2] = surfaceColor[2] * ambientColor[2];
-      
-      col[0] += surfaceColor[0] * keyLightColor[0] * diffuseKey;
-      col[1] += surfaceColor[1] * keyLightColor[1] * diffuseKey;
-      col[2] += surfaceColor[2] * keyLightColor[2] * diffuseKey;
-      
-      col[0] += keyLightColor[0] * specularKey;
-      col[1] += keyLightColor[1] * specularKey;
-      col[2] += keyLightColor[2] * specularKey;
-      
-      col[0] += surfaceColor[0] * fillLightColor[0] * diffuseFill;
-      col[1] += surfaceColor[1] * fillLightColor[1] * diffuseFill;
-      col[2] += surfaceColor[2] * fillLightColor[2] * diffuseFill;
-      
-      col[0] += surfaceColor[0] * backLightColor[0] * diffuseBack;
-      col[1] += surfaceColor[1] * backLightColor[1] * diffuseBack;
-      col[2] += surfaceColor[2] * backLightColor[2] * diffuseBack;
-      
-      col[0] = saturate(col[0]);
-      col[1] = saturate(col[1]);
-      col[2] = saturate(col[2]);
-
-      imageBuffer[0 + ix*3 + iy*width*3] = static_cast<int>(col[0] * 255.0);
-      imageBuffer[1 + ix*3 + iy*width*3] = static_cast<int>(col[1] * 255.0);
-      imageBuffer[2 + ix*3 + iy*width*3] = static_cast<int>(col[2] * 255.0);
+      float depth = dist - t;
+      draw_pixel (ix, iy, depth, surface, surfaceColor);
     }
   }
+}
+
+/* ----------------------------------------------------------------------
+   draw an individual pixel
+------------------------------------------------------------------------- */
+
+void DumpImage::draw_pixel(int ix, int iy, float depth, 
+			   double *surface, double *surfaceColor)
+{
+  double diffuseKey,diffuseFill,diffuseBack,specularKey;
+  if (depth < 0 || (depthBuffer[ix + iy*width] >= 0 && 
+		    depth > depthBuffer[ix + iy*width])) return;
+  depthBuffer[ix + iy*width] = depth;
+      
+  // store only the tangent relative to the camera normal (0,0,-1)
+
+  surfaceBuffer[0 + ix * 2 + iy*width * 2] = surface[1];
+  surfaceBuffer[1 + ix * 2 + iy*width * 2] = -surface[0];
+      
+  diffuseKey = saturate(MathExtra::dot3(surface, keyLightDir));
+  diffuseFill = saturate(MathExtra::dot3(surface, fillLightDir));
+  diffuseBack = saturate(MathExtra::dot3(surface, backLightDir));
+  specularKey = pow(saturate(MathExtra::dot3(surface, keyHalfDir)),
+		    specularHardness) * specularIntensity;
+      
+  double c[3];
+  c[0] = surfaceColor[0] * ambientColor[0];
+  c[1] = surfaceColor[1] * ambientColor[1];
+  c[2] = surfaceColor[2] * ambientColor[2];
+      
+  c[0] += surfaceColor[0] * keyLightColor[0] * diffuseKey;
+  c[1] += surfaceColor[1] * keyLightColor[1] * diffuseKey;
+  c[2] += surfaceColor[2] * keyLightColor[2] * diffuseKey;
+  
+  c[0] += keyLightColor[0] * specularKey;
+  c[1] += keyLightColor[1] * specularKey;
+  c[2] += keyLightColor[2] * specularKey;
+      
+  c[0] += surfaceColor[0] * fillLightColor[0] * diffuseFill;
+  c[1] += surfaceColor[1] * fillLightColor[1] * diffuseFill;
+  c[2] += surfaceColor[2] * fillLightColor[2] * diffuseFill;
+      
+  c[0] += surfaceColor[0] * backLightColor[0] * diffuseBack;
+  c[1] += surfaceColor[1] * backLightColor[1] * diffuseBack;
+  c[2] += surfaceColor[2] * backLightColor[2] * diffuseBack;
+      
+  c[0] = saturate(c[0]);
+  c[1] = saturate(c[1]);
+  c[2] = saturate(c[2]);
+      
+  imageBuffer[0 + ix*3 + iy*width*3] = static_cast<int>(c[0] * 255.0);
+  imageBuffer[1 + ix*3 + iy*width*3] = static_cast<int>(c[1] * 255.0);
+  imageBuffer[2 + ix*3 + iy*width*3] = static_cast<int>(c[2] * 255.0);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1387,27 +1345,25 @@ void DumpImage::compute_SSAO()
 {
   // used for rasterizing the spheres
 
-  double anglePerPixel = FOV / (double) height;
-  double tanPerPixel = tan (anglePerPixel);
-
   float delTheta = 2.0*PI / SSAOSamples;
 
   // typical neighborhood value for shading
 
+  double pixelWidth = (tanPerPixel > 0) ? tanPerPixel : 
+	-tanPerPixel / zoom;
+  int pixelRadius = (int) trunc (SSAORadius / pixelWidth + 0.5);
+
   int x,y,s;
   int hPart = height / nprocs;
+  int index = me * hPart * width;
   for (y = me * hPart; y < (me + 1) * hPart; y ++) {
-    for (x = 0; x < width; x ++) {
-      float sx = surfaceBuffer[0 + x * 2 + y * width * 2];
-      float sy = surfaceBuffer[1 + x * 2 + y * width * 2];
-      float sin_t = -sqrt(sx*sx + sy*sy);
-
-      float cdepth = depthBuffer[x + y * width];
+    for (x = 0; x < width; x ++, index ++) {
+      float cdepth = depthBuffer[index];
       if (cdepth < 0) { continue; }
 
-      double pixelWidth = (tanPerPixel > 0) ? tanPerPixel * cdepth : 
-	-tanPerPixel / zoom;
-      int pixelRadius = (int) trunc (SSAORadius / pixelWidth + 0.5);
+      float sx = surfaceBuffer[index * 2 + 0];
+      float sy = surfaceBuffer[index * 2 + 1];
+      float sin_t = -sqrt(sx*sx + sy*sy);
 
       float theta = random->uniform() * SSAOJitter;
       float ao = 0.0;
@@ -1415,12 +1371,12 @@ void DumpImage::compute_SSAO()
       for (s = 0; s < SSAOSamples; s ++) {
         float hx = cos(theta);
         float hy = sin(theta);
+        theta += delTheta;
 
 	// multiply by z cross surface tangent
 	// so that dot (aka cos) works here
 
         float scaled_sin_t = sin_t * (hx*sy + hy*sx);
-        theta += delTheta;
 
         // Bresenham's line algorithm to march over depthBuffer
 
@@ -1448,7 +1404,7 @@ void DumpImage::compute_SSAO()
 	// because the center point doesn't need testing
 
         int end = ex + ey * width;
-        int ind = x + y * width + small;
+        int ind = index + small;
         float len = lenIncr;
         float err = delta;
         if (err >= 1.0) {
@@ -1502,18 +1458,15 @@ void DumpImage::compute_SSAO()
       ao /= (float)SSAOSamples;
       
       float c[3];
-      c[0] = (float) (*(unsigned char *) &imageBuffer[0 + x*3 + y*width*3]);
-      c[1] = (float) (*(unsigned char *) &imageBuffer[1 + x*3 + y*width*3]);
-      c[2] = (float) (*(unsigned char *) &imageBuffer[2 + x*3 + y*width*3]);
+      c[0] = (float) (*(unsigned char *) &imageBuffer[index * 3 + 0]);
+      c[1] = (float) (*(unsigned char *) &imageBuffer[index * 3 + 1]);
+      c[2] = (float) (*(unsigned char *) &imageBuffer[index * 3 + 2]);
       c[0] *= (1.0 - ao);
       c[1] *= (1.0 - ao);
       c[2] *= (1.0 - ao);
-      c[0] = (c[0] > 255) ? 255 : c[0];
-      c[1] = (c[1] > 255) ? 255 : c[1];
-      c[2] = (c[2] > 255) ? 255 : c[2];
-      imageBuffer[0 + x*3 + y*width*3] = (int) c[0];
-      imageBuffer[1 + x*3 + y*width*3] = (int) c[1];
-      imageBuffer[2 + x*3 + y*width*3] = (int) c[2];
+      imageBuffer[index * 3 + 0] = (int) c[0];
+      imageBuffer[index * 3 + 1] = (int) c[1];
+      imageBuffer[index * 3 + 2] = (int) c[2];
     }
   }
 }

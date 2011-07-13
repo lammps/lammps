@@ -145,6 +145,7 @@ class DumpImage : public DumpCustom {
   void create_image();
   void draw_sphere(double *, double *, double);
   void draw_cylinder(double *, double *, double *, double, int);
+  void draw_pixel(int, int, float, double *, double*);
   void compute_SSAO();
 
   void write_JPG();

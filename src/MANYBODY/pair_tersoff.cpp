@@ -488,7 +488,7 @@ void PairTersoff::read_file(char *file)
 	params[nparams].bigb < 0.0 || params[nparams].bigr < 0.0 ||
 	params[nparams].bigd < 0.0 ||
 	params[nparams].bigd > params[nparams].bigr ||
-	params[nparams].lam3 < 0.0 || params[nparams].biga < 0.0 ||
+	params[nparams].lam1 < 0.0 || params[nparams].biga < 0.0 ||
 	params[nparams].powerm - params[nparams].powermint != 0.0 ||
         (params[nparams].powermint != 3 && params[nparams].powermint != 1) ||
 	params[nparams].gamma < 0.0)
@@ -709,7 +709,7 @@ double PairTersoff::ters_gijk(double costheta, Param *param)
 
   return param->gamma*(1.0 + pow(ters_c/ters_d,2.0) -
     pow(ters_c,2.0) / (pow(ters_d,2.0) + pow(param->h - costheta,2.0)));
-}
+};
 
 /* ---------------------------------------------------------------------- */
 
@@ -796,4 +796,4 @@ void PairTersoff::costheta_d(double *rij_hat, double rij,
   vec3_scale(1.0/rik,drk,drk);
   vec3_add(drj,drk,dri);
   vec3_scale(-1.0,dri,dri);
-}
+};

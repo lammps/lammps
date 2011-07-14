@@ -275,10 +275,11 @@ Computes:
 
 Output:
 
-"dump"_dump.html, "dump_modify"_dump_modify.html,
-"restart"_restart.html, "thermo"_thermo.html,
-"thermo_modify"_thermo_modify.html, "thermo_style"_thermo_style.html,
-"undump"_undump.html, "write_restart"_write_restart.html
+"dump"_dump.html, "dump image"_dump_image.html,
+"dump_modify"_dump_modify.html, "restart"_restart.html,
+"thermo"_thermo.html, "thermo_modify"_thermo_modify.html,
+"thermo_style"_thermo_style.html, "undump"_undump.html,
+"write_restart"_write_restart.html
 
 Actions:
 
@@ -330,6 +331,7 @@ in the command's documentation.
 "displace_atoms"_displace_atoms.html,
 "displace_box"_displace_box.html,
 "dump"_dump.html,
+"dump image"_dump_image.html,
 "dump_modify"_dump_modify.html,
 "echo"_echo.html,
 "fix"_fix.html,

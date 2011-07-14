@@ -167,7 +167,7 @@ section, and the "system-specific settings" section.
 the "#", and whatever other options you set.  This is the line you
 will see if you just type "make".
 
-(3) The "compiler/linker settings" section lists compiler and linker
+(2) The "compiler/linker settings" section lists compiler and linker
 settings for your C++ compiler, including optimization flags.  You can
 use g++, the open-source GNU compiler, which is available on all Unix
 systems.  You can also use mpicc which will typically be available if
@@ -190,7 +190,7 @@ dependency files (a long list of errors involving *.d files), then
 you'll need to create a Makefile.foo patterned after Makefile.storm,
 which uses different rules that do not involve dependency files.
 
-(3) The "system-specific settings" section has 4 parts.
+(3) The "system-specific settings" section has 5 parts.
 
 (3.a) The LMP_INC variable is used to include options that turn on
 system-dependent ifdefs within the LAMMPS code.  The settings

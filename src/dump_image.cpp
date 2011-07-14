@@ -395,16 +395,16 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
 
   // image and depth buffers
 
-  depthBuffer = (float *) memory->smalloc(npixels*sizeof(float),
-					  "dump:depthBuffer");
-  surfaceBuffer = (float *) memory->smalloc(2*npixels*sizeof(float),
-					    "dump:surfaceBuffer");
+  depthBuffer = (double *) memory->smalloc(npixels*sizeof(double),
+					   "dump:depthBuffer");
+  surfaceBuffer = (double *) memory->smalloc(2*npixels*sizeof(double),
+					     "dump:surfaceBuffer");
   imageBuffer = (char *) memory->smalloc(3*npixels*sizeof(char),
 					 "dump:imageBuffer");
-  depthcopy = (float *) memory->smalloc(npixels*sizeof(float),
-					"dump:depthcopy");
-  surfacecopy = (float *) memory->smalloc(npixels*2*sizeof(float),
-					  "dump:surfacecopy");
+  depthcopy = (double *) memory->smalloc(npixels*sizeof(double),
+					 "dump:depthcopy");
+  surfacecopy = (double *) memory->smalloc(npixels*2*sizeof(double),
+					   "dump:surfacecopy");
   rgbcopy = (char *) memory->smalloc(3*npixels*sizeof(char),
 				     "dump:rgbcopy");
 
@@ -589,9 +589,9 @@ void DumpImage::write()
   while (nhalf) {
     if (me < nhalf && me+nhalf < nprocs) {
       MPI_Irecv(rgbcopy,npixels*3,MPI_BYTE,me+nhalf,0,world,&requests[0]);
-      MPI_Irecv(depthcopy,npixels,MPI_FLOAT,me+nhalf,0,world,&requests[2]);
+      MPI_Irecv(depthcopy,npixels,MPI_DOUBLE,me+nhalf,0,world,&requests[2]);
       if (ssao) 
-	MPI_Irecv(surfacecopy,npixels*2,MPI_FLOAT,
+	MPI_Irecv(surfacecopy,npixels*2,MPI_DOUBLE,
 		  me+nhalf,0,world,&requests[1]);
       MPI_Waitall(3,requests,statuses);
 
@@ -611,8 +611,8 @@ void DumpImage::write()
 
     } else if (me >= nhalf && me < 2*nhalf) {
       MPI_Send(imageBuffer,npixels*3,MPI_BYTE,me-nhalf,0,world);
-      MPI_Send(depthBuffer,npixels,MPI_FLOAT,me-nhalf,0,world);
-      if (ssao) MPI_Send(surfaceBuffer,npixels*2,MPI_FLOAT,me-nhalf,0,world);
+      MPI_Send(depthBuffer,npixels,MPI_DOUBLE,me-nhalf,0,world);
+      if (ssao) MPI_Send(surfaceBuffer,npixels*2,MPI_DOUBLE,me-nhalf,0,world);
     }
 
     nhalf /= 2;
@@ -625,8 +625,8 @@ void DumpImage::write()
 
   if (ssao) {
     MPI_Bcast(imageBuffer,npixels*3,MPI_BYTE,0,world);
-    MPI_Bcast(surfaceBuffer,npixels*2,MPI_FLOAT,0,world);
-    MPI_Bcast(depthBuffer,npixels,MPI_FLOAT,0,world);
+    MPI_Bcast(surfaceBuffer,npixels*2,MPI_DOUBLE,0,world);
+    MPI_Bcast(depthBuffer,npixels,MPI_DOUBLE,0,world);
     compute_SSAO();
     int pixelPart = height/nprocs * width*3;
     MPI_Gather(imageBuffer+me*pixelPart,pixelPart,MPI_BYTE,
@@ -1116,7 +1116,7 @@ void DumpImage::draw_sphere(double *x, double *surfaceColor, double diameter)
   int ix,iy;
   double projRad;
   double xlocal[3],surface[3];
-  float depth;
+  double depth;
 
   xlocal[0] = x[0] - xctr;
   xlocal[1] = x[1] - yctr;
@@ -1127,31 +1127,41 @@ void DumpImage::draw_sphere(double *x, double *surfaceColor, double diameter)
   double dist = MathExtra::dot3(camPos,camDir) - MathExtra::dot3(xlocal,camDir);
 
   double radius = 0.5*diameter;
+  double radsq = radius*radius;
   double pixelWidth = (tanPerPixel > 0) ? tanPerPixel * dist : 
     -tanPerPixel / zoom;
-  double pixelNorm = pixelWidth / radius;
   double pixelRadiusFull = radius / pixelWidth;
-  int pixelRadius = static_cast<int> (pixelRadiusFull + 0.5);
-  double half_error = (pixelRadiusFull - pixelRadius) * .5;
+  int pixelRadius = static_cast<int> (pixelRadiusFull + 0.5) + 1;
 
-  int hw = width / 2;
-  int hh = height / 2;
-  int xc = static_cast<int> (xmap / pixelWidth) + hw;
-  int yc = static_cast<int> (ymap / pixelWidth) + hh;
+  double xf = xmap / pixelWidth;
+  double yf = ymap / pixelWidth;
+  int xc = static_cast<int> (xf);
+  int yc = static_cast<int> (yf);
+  double width_error = xf - xc;
+  double height_error = yf - yc;
 
-  for (iy = yc - pixelRadius, surface[1] = -1 + half_error * pixelNorm; 
-       iy <= yc + pixelRadius; iy++, surface[1] += pixelNorm) {
-    for (ix = xc - pixelRadius, surface[0] = -1 + half_error * pixelNorm; 
-	 ix <= xc + pixelRadius; ix++, surface[0] += pixelNorm) {
+  // shift 0,0 to screen center (vs lower left)
+
+  xc += width / 2;
+  yc += height / 2;
+
+  for (iy = yc - pixelRadius; iy <= yc + pixelRadius; iy++) {
+    for (ix = xc - pixelRadius; ix <= xc + pixelRadius; ix++) {
       if (iy < 0 || iy >= height || ix < 0 || ix >= width) continue;
 
+      surface[1] = ((iy - yc) - height_error) * pixelWidth;
+      surface[0] = ((ix - xc) - width_error) * pixelWidth;
       projRad = surface[0]*surface[0] + surface[1]*surface[1];
       
       // outside the sphere in the projected image
       
-      if (projRad > 1.0) continue;
-      surface[2] = sqrt(1 - projRad);
-      depth = dist - surface[2] * radius;
+      if (projRad > radsq) continue;
+      surface[2] = sqrt(radsq - projRad);
+      depth = dist - surface[2];
+
+      surface[0] /= radius;
+      surface[1] /= radius;
+      surface[2] /= radius;
 
       draw_pixel (ix, iy, depth, surface, surfaceColor);
     }
@@ -1205,17 +1215,22 @@ void DumpImage::draw_cylinder(double *x, double *y,
   double pixelWidth = (tanPerPixel > 0) ? tanPerPixel * dist : 
     -tanPerPixel / zoom;
 
-  int hw = width / 2;
-  int hh = height / 2;
-  int xc = static_cast<int> (xmap / pixelWidth) + hw;
-  int yc = static_cast<int> (ymap / pixelWidth) + hh;
+  double xf = xmap / pixelWidth;
+  double yf = ymap / pixelWidth;
+  int xc = static_cast<int> (xf);
+  int yc = static_cast<int> (yf);
+  double width_error = xf - xc;
+  double height_error = yf - yc;
+
+  // shift 0,0 to screen center (vs lower left)
+
+  xc += width / 2;
+  yc += height / 2;
 
   double pixelHalfWidthFull = (rasterWidth * 0.5) / pixelWidth;
   double pixelHalfHeightFull = (rasterHeight * 0.5) / pixelWidth;
   int pixelHalfWidth = static_cast<int> (pixelHalfWidthFull + 0.5);
   int pixelHalfHeight = static_cast<int> (pixelHalfHeightFull + 0.5);
-  double half_width_error = (pixelHalfWidthFull - pixelHalfWidth) * .5;
-  double half_height_error = (pixelHalfHeightFull - pixelHalfHeight) * .5;
 
   if (zaxis[0] == camDir[0] && zaxis[1] == camDir[1] && zaxis[2] == camDir[2])
     return;
@@ -1245,8 +1260,8 @@ void DumpImage::draw_cylinder(double *x, double *y,
     for (int ix = xc - pixelHalfWidth; ix <= xc + pixelHalfWidth; ix ++) {
       if (iy < 0 || iy >= height || ix < 0 || ix >= width) continue;
       
-      double sy = ((iy - yc) + half_height_error) * pixelWidth;
-      double sx = ((ix - xc) + half_width_error) * pixelWidth;
+      double sy = ((iy - yc) - height_error) * pixelWidth;
+      double sx = ((ix - xc) - width_error) * pixelWidth;
       surface[0] = camLRight[0] * sx + camLUp[0] * sy;
       surface[1] = camLRight[1] * sx + camLUp[1] * sy;
       surface[2] = camLRight[2] * sx + camLUp[2] * sy;
@@ -1280,22 +1295,20 @@ void DumpImage::draw_cylinder(double *x, double *y,
       surface[1] = MathExtra::dot3 (normal, camLUp);
       surface[2] = MathExtra::dot3 (normal, camLDir);
 
-      float depth = dist - t;
+      double depth = dist - t;
       draw_pixel (ix, iy, depth, surface, surfaceColor);
     }
   }
 }
 
-/* ----------------------------------------------------------------------
-   draw an individual pixel
-------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
-void DumpImage::draw_pixel(int ix, int iy, float depth, 
+void DumpImage::draw_pixel(int ix, int iy, double depth, 
 			   double *surface, double *surfaceColor)
 {
   double diffuseKey,diffuseFill,diffuseBack,specularKey;
   if (depth < 0 || (depthBuffer[ix + iy*width] >= 0 && 
-		    depth > depthBuffer[ix + iy*width])) return;
+		    depth >= depthBuffer[ix + iy*width])) return;
   depthBuffer[ix + iy*width] = depth;
       
   // store only the tangent relative to the camera normal (0,0,-1)
@@ -1308,7 +1321,7 @@ void DumpImage::draw_pixel(int ix, int iy, float depth,
   diffuseBack = saturate(MathExtra::dot3(surface, backLightDir));
   specularKey = pow(saturate(MathExtra::dot3(surface, keyHalfDir)),
 		    specularHardness) * specularIntensity;
-      
+  
   double c[3];
   c[0] = surfaceColor[0] * ambientColor[0];
   c[1] = surfaceColor[1] * ambientColor[1];
@@ -1345,7 +1358,7 @@ void DumpImage::compute_SSAO()
 {
   // used for rasterizing the spheres
 
-  float delTheta = 2.0*PI / SSAOSamples;
+  double delTheta = 2.0*PI / SSAOSamples;
 
   // typical neighborhood value for shading
 
@@ -1358,25 +1371,25 @@ void DumpImage::compute_SSAO()
   int index = me * hPart * width;
   for (y = me * hPart; y < (me + 1) * hPart; y ++) {
     for (x = 0; x < width; x ++, index ++) {
-      float cdepth = depthBuffer[index];
+      double cdepth = depthBuffer[index];
       if (cdepth < 0) { continue; }
 
-      float sx = surfaceBuffer[index * 2 + 0];
-      float sy = surfaceBuffer[index * 2 + 1];
-      float sin_t = -sqrt(sx*sx + sy*sy);
+      double sx = surfaceBuffer[index * 2 + 0];
+      double sy = surfaceBuffer[index * 2 + 1];
+      double sin_t = -sqrt(sx*sx + sy*sy);
 
-      float theta = random->uniform() * SSAOJitter;
-      float ao = 0.0;
+      double theta = random->uniform() * SSAOJitter;
+      double ao = 0.0;
 
       for (s = 0; s < SSAOSamples; s ++) {
-        float hx = cos(theta);
-        float hy = sin(theta);
+        double hx = cos(theta);
+        double hy = sin(theta);
         theta += delTheta;
 
 	// multiply by z cross surface tangent
 	// so that dot (aka cos) works here
 
-        float scaled_sin_t = sin_t * (hx*sy + hy*sx);
+        double scaled_sin_t = sin_t * (hx*sy + hy*sx);
 
         // Bresenham's line algorithm to march over depthBuffer
 
@@ -1386,9 +1399,9 @@ void DumpImage::compute_SSAO()
         if (ex < 0) { ex = 0; } if (ex >= width) { ex = width - 1; }
         int ey = y + dy;
         if (ey < 0) { ey = 0; } if (ey >= height) { ey = height - 1; }
-        float delta; 
+        double delta; 
         int small, large;
-        float lenIncr;
+        double lenIncr;
         if (fabs(hx) > fabs(hy)) {
           small = (hx > 0) ? 1 : -1;
           large = (hy > 0) ? width : -width;
@@ -1405,15 +1418,15 @@ void DumpImage::compute_SSAO()
 
         int end = ex + ey * width;
         int ind = index + small;
-        float len = lenIncr;
-        float err = delta;
+        double len = lenIncr;
+        double err = delta;
         if (err >= 1.0) {
           ind += large;
           err -= 1.0;
         }
 
-        float minPeak = -1;
-        float peakLen = 0.0;
+        double minPeak = -1;
+        double peakLen = 0.0;
         int stepsTaken = 1;
         while ((small > 0 && ind <= end) || (small < 0 && ind >= end)) {
           if (ind < 0 || ind >= (width*height)) {
@@ -1437,30 +1450,19 @@ void DumpImage::compute_SSAO()
           stepsTaken ++;
         }
 
-        /*
-        if (stepsTaken > (2 * pixelRadius) || stepsTaken < (pixelRadius / 2)) {
-          fprintf (stderr, "*******************************************\n");
-          fprintf (stderr, "dx %d, dy %d\n", dx, dy);
-          fprintf (stderr, "small %d, large %d, delta %f\n", small, large, delta);
-          fprintf (stderr, "start (%d, %d), end (%d, %d)\n", x, y, ex, ey);
-          fprintf (stderr, "ind %d, end %d\n", ind, end);
-          fprintf (stderr, "stepsTaken %d, pixelRadius %d\n", stepsTaken, pixelRadius);
-        }
-        */
-
         if (peakLen > 0) {
-          float h = atan ((cdepth - minPeak) / peakLen);
+          double h = atan ((cdepth - minPeak) / peakLen);
           ao += saturate(sin (h) - scaled_sin_t);
         } else {
           ao += saturate(-scaled_sin_t);
         }
       }
-      ao /= (float)SSAOSamples;
+      ao /= (double)SSAOSamples;
       
-      float c[3];
-      c[0] = (float) (*(unsigned char *) &imageBuffer[index * 3 + 0]);
-      c[1] = (float) (*(unsigned char *) &imageBuffer[index * 3 + 1]);
-      c[2] = (float) (*(unsigned char *) &imageBuffer[index * 3 + 2]);
+      double c[3];
+      c[0] = (double) (*(unsigned char *) &imageBuffer[index * 3 + 0]);
+      c[1] = (double) (*(unsigned char *) &imageBuffer[index * 3 + 1]);
+      c[2] = (double) (*(unsigned char *) &imageBuffer[index * 3 + 2]);
       c[0] *= (1.0 - ao);
       c[1] *= (1.0 - ao);
       c[2] *= (1.0 - ao);

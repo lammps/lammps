@@ -124,8 +124,10 @@ bonds will still be broken when the restart file is read.
 IMPORTANT NOTE: No other information is stored in the restart file.
 This means that an input script that reads a restart file should
 specify settings for quantities like "timestep size"_timestep.html,
-"thermodynamic"_thermo_style.html and "dump"_dump.html output,
-"geometric regions"_region.html, etc.
+"thermodynamic"_thermo_style.html, "neighbor list"_doc/neighbor.html
+criteria including settings made via the
+"neigh_modify"_doc/neigh_modify.html comand, "dump"_dump.html file
+output, "geometric regions"_region.html, etc.
 
 [Restrictions:] none
 

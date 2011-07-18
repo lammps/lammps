@@ -341,6 +341,45 @@ Obj_name where it stores the system-specific *.o files.
 files created when LAMMPS is built, for either all builds or for a
 particular machine.
 </P>
+<P>(3) Changing the size limits in src/lmptype.h
+</P>
+<P>If you are running a very large problem (billions of atoms or more)
+and get a run-time error about the system being too big, either on a
+per-processor basis or in total size, then you may need to change one
+or more settings in src/lmptype.h and re-compile LAMMPS.
+</P>
+<P>As the documentation in that file explains, you have basically
+two choices to make:
+</P>
+<UL><LI>set the data type size of integer atom IDs to 4 or 8 bytes
+<LI>set the data type size of integers that store the total system size to 4 or 8 bytes 
+</UL>
+<P>The default for atom IDs is 4-byte integers since there is a memory
+and communication cost for 8-byte integers.  Non-molecular problems do
+not need atom IDs so this does not restrict their size.  Molecular
+problems (which use IDs to define molecular topology), are limited to
+about 2 billion atoms (2^31) with 4-byte IDs.  With 8-byte IDs they
+are effectively unlimited in size (2^63).
+</P>
+<P>The default for total system size quantities (like the number of atoms
+or timesteps) is 8-byte integers by default which is effectively
+unlimited in size (2^63).  If your system or MPI implementation does
+not support 8-byte integers, an error will be generated, and you will
+need to set "bigint" to 4-byte integers.  This restricts your total
+system size to about 2 billion atoms or timesteps (2^31).
+</P>
+<P>Note that in src/lmptype.h there are also settings for the MPI data
+types associated with the integers that store atom IDs and total
+system sizes, which need to be set consistent with the associated C
+data types.
+</P>
+<P>In all cases, the size of problem that can be run on a per-processor
+basis is limited by 4-byte integer storage to about 2 billion atoms
+per processor (2^31), which should not normally be a restriction since
+such a problem would have a huge per-processor memory footprint due to
+neighbor lists and would run very slowly in terms of CPU
+secs/timestep.
+</P>
 <HR>
 
 <A NAME = "2_2_6"></A><B><I>Building for a Mac:</I></B> 
@@ -376,45 +415,6 @@ included because they require NVIDIA or Fortran compilation).  The
 third includes all standard packages (with the exceptions) and some
 user packages.  The included user packages are USER-EFF, USER-CG-CMM,
 and USER-REAXC.  The fourth project includes the USER-AWPMD package.
-</P>
-<P>(5) Changing the size limits in src/lmptype.h
-</P>
-<P>If you are running a very large problem (billions of atoms or more)
-and get a run-time error about the system being too big, either on a
-per-processor basis or in total size, then you may need to change one
-or more settings in src/lmptype.h and re-compile LAMMPS.
-</P>
-<P>As the documentation in that file explains, you have basically
-two choices to make:
-</P>
-<UL><LI>set the data type size of integer atom IDs to 4 or 8 bytes
-<LI>set the data type size of integers that store the total system size to 4 or 8 bytes 
-</UL>
-<P>The default for atom IDs is 4-byte integers since there is a memory
-and communication cost for 8-byte integers.  Non-molecular problems do
-not need atom IDs so this does not restrict their size.  Molecular
-problems (which use IDs to define molecular topology), are limited to
-about 2 billion atoms (2^31) with 4-byte IDs.  With 8-byte IDs they
-are effectively unlimited in size (2^63).
-</P>
-<P>The default for total system size quantities (like the number of atoms
-or timesteps) is 8-byte integers by default which is effectively
-unlimited in size (2^63).  If your system does not support 8-byte
-integers, an error will be generated, and you will need to set
-"bigint" to 4-byte integers.  This restricts your total system size to
-about 2 billion atoms or timesteps (2^31).
-</P>
-<P>Note that in src/lmptype.h there are also settings for the MPI data
-types associated with the integers that store atom IDs and total
-system sizes, which need to be set consistent with the associated C
-data types.
-</P>
-<P>In all cases, the size of problem that can be run on a per-processor
-basis is limited by 4-byte integer storage to about 2 billion atoms
-per processor (2^31), which should not normally be a restriction since
-such a problem would have a huge per-processor memory footprint due to
-neighbor lists and would run very slowly in terms of CPU
-secs/timestep.
 </P>
 <HR>
 

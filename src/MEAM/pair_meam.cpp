@@ -38,11 +38,11 @@ using namespace LAMMPS_NS;
 #define MAXLINE 1024
 
 enum{FCC,BCC,HCP,DIM,DIAMOND,B1,C11,L12,B2};
-int nkeywords = 19;
+int nkeywords = 21;
 char *keywords[] = {"Ec","alpha","rho0","delta","lattce",
 		    "attrac","repuls","nn2","Cmin","Cmax","rc","delr",
 		    "augt1","gsmooth_factor","re","ialloy","mixture_ref_t",
-                    "erose_form","zbl"};
+                    "erose_form","zbl","emb_lin_neg","bkgd_dyn"};
 
 /* ---------------------------------------------------------------------- */
 

@@ -36,7 +36,7 @@ void *Memory::smalloc(bigint nbytes, const char *name)
   void *ptr = malloc(nbytes);
   if (ptr == NULL) {
     char str[128];
-    sprintf(str,"Failed to allocate " BIGINT_FORMAT "bytes for array %s",
+    sprintf(str,"Failed to allocate " BIGINT_FORMAT " bytes for array %s",
 	    nbytes,name);
     error->one(str);
   }
@@ -57,7 +57,7 @@ void *Memory::srealloc(void *ptr, bigint nbytes, const char *name)
   ptr = realloc(ptr,nbytes);
   if (ptr == NULL) {
     char str[128];
-    sprintf(str,"Failed to reallocate " BIGINT_FORMAT "bytes for array %s",
+    sprintf(str,"Failed to reallocate " BIGINT_FORMAT " bytes for array %s",
 	    nbytes,name);
     error->one(str);
   }

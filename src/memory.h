@@ -42,7 +42,7 @@ class Memory : protected Pointers {
   template <typename TYPE>
     TYPE *create(TYPE *&array, int n, const char *name)
     {
-      bigint nbytes = sizeof(TYPE) * n;
+      bigint nbytes = ((bigint) sizeof(TYPE)) * n;
       array = (TYPE *) smalloc(nbytes,name);
       return array;
     }
@@ -59,7 +59,7 @@ class Memory : protected Pointers {
     {
       if (array == NULL) return create(array,n,name);
       
-      bigint nbytes = sizeof(TYPE) * n;
+      bigint nbytes = ((bigint) sizeof(TYPE)) * n;
       array = (TYPE *) srealloc(array,nbytes,name);
       return array;
     }
@@ -85,7 +85,7 @@ class Memory : protected Pointers {
   template <typename TYPE>
     TYPE *create1d_offset(TYPE *&array, int nlo, int nhi, const char *name) 
     {
-      bigint nbytes = sizeof(TYPE) * (nhi-nlo+1);
+      bigint nbytes = ((bigint) sizeof(TYPE)) * (nhi-nlo+1);
       array = (TYPE *) smalloc(nbytes,name);
       array -= nlo;
       return array;
@@ -112,12 +112,12 @@ class Memory : protected Pointers {
   template <typename TYPE>
     TYPE **create(TYPE **&array, int n1, int n2, const char *name) 
     {
-      bigint nbytes = sizeof(TYPE) * n1*n2;
+      bigint nbytes = ((bigint) sizeof(TYPE)) * n1*n2;
       TYPE *data = (TYPE *) smalloc(nbytes,name);
-      nbytes = sizeof(TYPE *) * n1;
+      nbytes = ((bigint) sizeof(TYPE *)) * n1;
       array = (TYPE **) smalloc(nbytes,name);
       
-      int n = 0;
+      bigint n = 0;
       for (int i = 0; i < n1; i++) {
 	array[i] = &data[n];
 	n += n2;
@@ -139,12 +139,12 @@ class Memory : protected Pointers {
     {
       if (array == NULL) return create(array,n1,n2,name);
       
-      bigint nbytes = sizeof(TYPE) * n1*n2;
+      bigint nbytes = ((bigint) sizeof(TYPE)) * n1*n2;
       TYPE *data = (TYPE *) srealloc(array[0],nbytes,name);
-      nbytes = sizeof(TYPE *) * n1;
+      nbytes = ((bigint) sizeof(TYPE *)) * n1;
       array = (TYPE **) srealloc(array,nbytes,name);
       
-      int n = 0;
+      bigint n = 0;
       for (int i = 0; i < n1; i++) {
 	array[i] = &data[n];
 	n += n2;
@@ -167,6 +167,33 @@ class Memory : protected Pointers {
       sfree(array[0]);
       sfree(array);
     }
+
+/* ----------------------------------------------------------------------
+   create a 2d array with a ragged 2nd dimension
+------------------------------------------------------------------------- */
+
+  template <typename TYPE>
+    TYPE **create_ragged(TYPE **&array, int n1, int *n2, const char *name) 
+    {
+      bigint n2sum = 0;
+      for (int i = 0; i < n1; i++) n2sum += n2[i];
+
+      bigint nbytes = ((bigint) sizeof(TYPE)) * n2sum;
+      TYPE *data = (TYPE *) smalloc(nbytes,name);
+      nbytes = ((bigint) sizeof(TYPE *)) * n1;
+      array = (TYPE **) smalloc(nbytes,name);
+      
+      bigint n = 0;
+      for (int i = 0; i < n1; i++) {
+	array[i] = &data[n];
+	n += n2[i];
+      }
+      return array;
+    }
+
+  template <typename TYPE>
+    TYPE ***create_ragged(TYPE ***&array, int n1, int *n2, const char *name)
+    {fail(name);}
 
 /* ----------------------------------------------------------------------
    create a 2d array with 2nd index from n2lo to n2hi inclusive 
@@ -206,19 +233,21 @@ class Memory : protected Pointers {
   template <typename TYPE>
     TYPE ***create(TYPE ***&array, int n1, int n2, int n3, const char *name) 
     {
-      bigint nbytes = sizeof(TYPE) * n1*n2*n3;
+      bigint nbytes = ((bigint) sizeof(TYPE)) * n1*n2*n3;
       TYPE *data = (TYPE *) smalloc(nbytes,name);
-      nbytes = sizeof(TYPE *) * n1*n2;
+      nbytes = ((bigint) sizeof(TYPE *)) * n1*n2;
       TYPE **plane = (TYPE **) smalloc(nbytes,name);
-      nbytes = sizeof(TYPE **) * n1;
+      nbytes = ((bigint) sizeof(TYPE **)) * n1;
       array = (TYPE ***) smalloc(nbytes,name);
       
       int i,j;
-      int n = 0;
+      bigint m;
+      bigint n = 0;
       for (i = 0; i < n1; i++) {
-	array[i] = &plane[i*n2];
+	m = ((bigint) i) * n2;
+	array[i] = &plane[m];
 	for (j = 0; j < n2; j++) {
-	  plane[i*n2+j] = &data[n];
+	  plane[m+j] = &data[n];
 	  n += n3;
 	}
       }
@@ -239,19 +268,21 @@ class Memory : protected Pointers {
     {
       if (array == NULL) return create(array,n1,n2,n3,name);
       
-      bigint nbytes = sizeof(TYPE) * n1*n2*n3;
+      bigint nbytes = ((bigint) sizeof(TYPE)) * n1*n2*n3;
       TYPE *data = (TYPE *) srealloc(array[0][0],nbytes,name);
-      nbytes = sizeof(TYPE *) * n1*n2;
+      nbytes = ((bigint) sizeof(TYPE *)) * n1*n2;
       TYPE **plane = (TYPE **) srealloc(array[0],nbytes,name);
-      nbytes = sizeof(TYPE **) * n1;
+      nbytes = ((bigint) sizeof(TYPE **)) * n1;
       array = (TYPE ***) srealloc(array,nbytes,name);
       
       int i,j;
-      int n = 0;
+      bigint m;
+      bigint n = 0;
       for (i = 0; i < n1; i++) {
-	array[i] = &plane[i*n2];
+	m = ((bigint) i) * n2;
+	array[i] = &plane[m];
 	for (j = 0; j < n2; j++) {
-	  plane[i*n2+j] = &data[n];
+	  plane[m+j] = &data[n];
 	  n += n3;
 	}
       }
@@ -323,7 +354,8 @@ class Memory : protected Pointers {
       int n3 = n3hi - n3lo + 1;
       create(array,n1,n2,n3,name);
       
-      for (int i = 0; i < n1*n2; i++) array[0][i] -= n3lo;
+      bigint m = ((bigint) n1) * n2;
+      for (bigint i = 0; i < m; i++) array[0][i] -= n3lo;
       for (int i = 0; i < n1; i++) array[i] -= n2lo;
       array -= n1lo;
       return array;
@@ -357,23 +389,28 @@ class Memory : protected Pointers {
     TYPE ****create(TYPE ****&array, int n1, int n2, int n3, int n4,
 		    const char *name)
     {
-      bigint nbytes = sizeof(TYPE) * n1*n2*n3*n4;
+      bigint nbytes = ((bigint) sizeof(TYPE)) * n1*n2*n3*n4;
       TYPE *data = (TYPE *) smalloc(nbytes,name);
-      nbytes = sizeof(TYPE *) * n1*n2*n3;
+      nbytes = ((bigint) sizeof(TYPE *)) * n1*n2*n3;
       TYPE **cube = (TYPE **) smalloc(nbytes,name);
-      nbytes = sizeof(TYPE **) * n1*n2;
+      nbytes = ((bigint) sizeof(TYPE **)) * n1*n2;
       TYPE ***plane = (TYPE ***) smalloc(nbytes,name);
-      nbytes = sizeof(TYPE ***) * n1;
+      nbytes = ((bigint) sizeof(TYPE ***)) * n1;
       array = (TYPE ****) smalloc(nbytes,name);
       
       int i,j,k;
-      int n = 0;
+      bigint m1,m2,m3;
+      bigint n = 0;
       for (i = 0; i < n1; i++) {
-	array[i] = &plane[i*n2];
+	m2 = ((bigint) i) * n2;
+	array[i] = &plane[m2];
 	for (j = 0; j < n2; j++) {
-	  plane[i*n2+j] = &cube[i*n2*n3+j*n3];
+	  m1 = ((bigint) i) * n2 + j;
+	  m2 = ((bigint) i) * n2*n3 + j*n3;
+	  plane[m1] = &cube[m2];
 	  for (k = 0; k < n3; k++) {
-	    cube[i*n2*n3+j*n3+k] = &data[n];
+	    m1 = ((bigint) i) * n2*n3 + j*n3 + k;
+	    cube[m1] = &data[n];
 	    n += n4;
 	  }
 	}
@@ -407,34 +444,34 @@ class Memory : protected Pointers {
   template <typename TYPE>
     bigint usage(TYPE *array, int n)
     {
-      bigint bytes = sizeof(TYPE) * n;
+      bigint bytes = ((bigint) sizeof(TYPE)) * n;
       return bytes;
     }
 
   template <typename TYPE>
     bigint usage(TYPE **array, int n1, int n2)
     {
-      bigint bytes = sizeof(TYPE) * n1*n2;
-      bytes += sizeof(TYPE *) * n1;
+      bigint bytes = ((bigint) sizeof(TYPE)) * n1*n2;
+      bytes += ((bigint) sizeof(TYPE *)) * n1;
       return bytes;
     }
 
   template <typename TYPE>
     bigint usage(TYPE ***array, int n1, int n2, int n3)
     {
-      bigint bytes = sizeof(TYPE) * n1*n2*n3;
-      bytes += sizeof(TYPE *) * n1*n2;
-      bytes += sizeof(TYPE **) * n1;
+      bigint bytes = ((bigint) sizeof(TYPE)) * n1*n2*n3;
+      bytes += ((bigint) sizeof(TYPE *)) * n1*n2;
+      bytes += ((bigint) sizeof(TYPE **)) * n1;
       return bytes;
     }
 
   template <typename TYPE>
     bigint usage(TYPE ****array, int n1, int n2, int n3, int n4)
     {
-      bigint bytes = sizeof(TYPE) * n1*n2*n3*n4;
-      bytes += sizeof(TYPE *) * n1*n2*n3;
-      bytes += sizeof(TYPE **) * n1*n2;
-      bytes += sizeof(TYPE ***) * n1;
+      bigint bytes = ((bigint) sizeof(TYPE)) * n1*n2*n3*n4;
+      bytes += ((bigint) sizeof(TYPE *)) * n1*n2*n3;
+      bytes += ((bigint) sizeof(TYPE **)) * n1*n2;
+      bytes += ((bigint) sizeof(TYPE ***)) * n1;
       return bytes;
     }
 };

@@ -1,19 +1,17 @@
-/* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+/***************************************************************************
+                                lj_expand.cpp
+                             -------------------
+                            Inderaj Bains (NVIDIA)
 
-   Copyright (2003) Sandia Corporation.  Under the terms of Contract
-   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
-   the GNU General Public License.
+  Class for acceleration of the lj/expand pair style.
 
-   See the README file in the top-level LAMMPS directory.
-------------------------------------------------------------------------- */
+ __________________________________________________________________________
+    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
+ __________________________________________________________________________
 
-/* ----------------------------------------------------------------------
-   Contributing author: Inderaj Bains (NVIDIA), ibains@nvidia.com
-------------------------------------------------------------------------- */
+    begin                : 
+    email                : ibains@nvidia.com
+ ***************************************************************************/
 
 #ifdef USE_OPENCL
 #include "lj_expand_cl.h"
@@ -23,26 +21,27 @@
 
 #include "lj_expand.h"
 #include <cassert>
-#define LJE_GPU_MemoryT LJE_GPU_Memory<numtyp, acctyp>
+using namespace LAMMPS_AL;
+#define LJExpandT LJExpand<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
 
 template <class numtyp, class acctyp>
-LJE_GPU_MemoryT::LJE_GPU_Memory() : BaseAtomic<numtyp,acctyp>(), _allocated(false) {
+LJExpandT::LJExpand() : BaseAtomic<numtyp,acctyp>(), _allocated(false) {
 }
 
 template <class numtyp, class acctyp>
-LJE_GPU_MemoryT::~LJE_GPU_Memory() {
+LJExpandT::~LJExpand() {
   clear();
 }
  
 template <class numtyp, class acctyp>
-int LJE_GPU_MemoryT::bytes_per_atom(const int max_nbors) const {
+int LJExpandT::bytes_per_atom(const int max_nbors) const {
   return this->bytes_per_atom_atomic(max_nbors);
 }
 
 template <class numtyp, class acctyp>
-int LJE_GPU_MemoryT::init(const int ntypes, double **host_cutsq,
+int LJExpandT::init(const int ntypes, double **host_cutsq,
                           double **host_lj1, double **host_lj2,
                           double **host_lj3, double **host_lj4,
                           double **host_offset, double **host_shift,
@@ -92,7 +91,7 @@ int LJE_GPU_MemoryT::init(const int ntypes, double **host_cutsq,
 }
 
 template <class numtyp, class acctyp>
-void LJE_GPU_MemoryT::clear() {
+void LJExpandT::clear() {
   if (!_allocated)
     return;
   _allocated=false;
@@ -104,15 +103,15 @@ void LJE_GPU_MemoryT::clear() {
 }
 
 template <class numtyp, class acctyp>
-double LJE_GPU_MemoryT::host_memory_usage() const {
-  return this->host_memory_usage_atomic()+sizeof(LJE_GPU_Memory<numtyp,acctyp>);
+double LJExpandT::host_memory_usage() const {
+  return this->host_memory_usage_atomic()+sizeof(LJExpand<numtyp,acctyp>);
 }
 
 // ---------------------------------------------------------------------------
 // Calculate energies, forces, and torques
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-void LJE_GPU_MemoryT::loop(const bool _eflag, const bool _vflag) {
+void LJExpandT::loop(const bool _eflag, const bool _vflag) {
   // Compute the block size and grid size to keep all cores busy
   const int BX=this->block_size();
   int eflag, vflag;
@@ -152,4 +151,4 @@ void LJE_GPU_MemoryT::loop(const bool _eflag, const bool _vflag) {
   this->time_pair.stop();
 }
 
-template class LJE_GPU_Memory<PRECISION,ACC_PRECISION>;
+template class LJExpand<PRECISION,ACC_PRECISION>;

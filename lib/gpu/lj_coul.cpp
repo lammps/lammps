@@ -1,19 +1,17 @@
-/* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+/***************************************************************************
+                                 lj_coul.cpp
+                             -------------------
+                            W. Michael Brown (ORNL)
 
-   Copyright (2003) Sandia Corporation.  Under the terms of Contract
-   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
-   the GNU General Public License.
+  Class for acceleration of the lj/cut/coul/cut pair style.
 
-   See the README file in the top-level LAMMPS directory.
-------------------------------------------------------------------------- */
- 
-/* ----------------------------------------------------------------------
-   Contributing authors: Mike Brown (ORNL), brownw@ornl.gov
-------------------------------------------------------------------------- */
+ __________________________________________________________________________
+    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
+ __________________________________________________________________________
+
+    begin                : 
+    email                : brownw@ornl.gov
+ ***************************************************************************/
 
 #ifdef USE_OPENCL
 #include "lj_coul_cl.h"
@@ -23,27 +21,28 @@
 
 #include "lj_coul.h"
 #include <cassert>
-#define LJC_GPU_MemoryT LJC_GPU_Memory<numtyp, acctyp>
+using namespace LAMMPS_AL;
+#define LJCoulT LJCoul<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
 
 template <class numtyp, class acctyp>
-LJC_GPU_MemoryT::LJC_GPU_Memory() : BaseCharge<numtyp,acctyp>(),
+LJCoulT::LJCoul() : BaseCharge<numtyp,acctyp>(),
                                     _allocated(false) {
 }
 
 template <class numtyp, class acctyp>
-LJC_GPU_MemoryT::~LJC_GPU_Memory() {
+LJCoulT::~LJCoul() {
   clear();
 }
  
 template <class numtyp, class acctyp>
-int LJC_GPU_MemoryT::bytes_per_atom(const int max_nbors) const {
+int LJCoulT::bytes_per_atom(const int max_nbors) const {
   return this->bytes_per_atom_atomic(max_nbors);
 }
 
 template <class numtyp, class acctyp>
-int LJC_GPU_MemoryT::init(const int ntypes,
+int LJCoulT::init(const int ntypes,
                           double **host_cutsq, double **host_lj1, 
                           double **host_lj2, double **host_lj3, 
                           double **host_lj4, double **host_offset, 
@@ -103,7 +102,7 @@ int LJC_GPU_MemoryT::init(const int ntypes,
 }
 
 template <class numtyp, class acctyp>
-void LJC_GPU_MemoryT::clear() {
+void LJCoulT::clear() {
   if (!_allocated)
     return;
   _allocated=false;
@@ -116,15 +115,15 @@ void LJC_GPU_MemoryT::clear() {
 }
 
 template <class numtyp, class acctyp>
-double LJC_GPU_MemoryT::host_memory_usage() const {
-  return this->host_memory_usage_atomic()+sizeof(LJC_GPU_Memory<numtyp,acctyp>);
+double LJCoulT::host_memory_usage() const {
+  return this->host_memory_usage_atomic()+sizeof(LJCoul<numtyp,acctyp>);
 }
 
 // ---------------------------------------------------------------------------
 // Calculate energies, forces, and torques
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-void LJC_GPU_MemoryT::loop(const bool _eflag, const bool _vflag) {
+void LJCoulT::loop(const bool _eflag, const bool _vflag) {
   // Compute the block size and grid size to keep all cores busy
   const int BX=this->block_size();
   int eflag, vflag;
@@ -167,4 +166,4 @@ void LJC_GPU_MemoryT::loop(const bool _eflag, const bool _vflag) {
   this->time_pair.stop();
 }
 
-template class LJC_GPU_Memory<PRECISION,ACC_PRECISION>;
+template class LJCoul<PRECISION,ACC_PRECISION>;

@@ -30,6 +30,8 @@ using namespace ucl_cudadr;
 
 #endif
 
+namespace LAMMPS_AL {
+
 class NeighborShared {
  public:
   NeighborShared() : _compiled(false) {}
@@ -52,5 +54,7 @@ class NeighborShared {
  private:
   bool _compiled, _gpu_nbor;
 };
+
+}
 
 #endif

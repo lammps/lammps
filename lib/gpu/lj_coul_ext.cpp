@@ -1,19 +1,17 @@
-/* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+/***************************************************************************
+                               lj_coul_ext.cpp
+                             -------------------
+                            W. Michael Brown (ORNL)
 
-   Copyright (2003) Sandia Corporation.  Under the terms of Contract
-   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
-   the GNU General Public License.
+  Functions for LAMMPS access to lj/cut/coul acceleration routines.
 
-   See the README file in the top-level LAMMPS directory.
-------------------------------------------------------------------------- */
- 
-/* ----------------------------------------------------------------------
-   Contributing authors: Mike Brown (ORNL), brownw@ornl.gov
-------------------------------------------------------------------------- */
+ __________________________________________________________________________
+    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
+ __________________________________________________________________________
+
+    begin                : 
+    email                : brownw@ornl.gov
+ ***************************************************************************/
 
 #include <iostream>
 #include <cassert>
@@ -22,8 +20,9 @@
 #include "lj_coul.h"
 
 using namespace std;
+using namespace LAMMPS_AL;
 
-static LJC_GPU_Memory<PRECISION,ACC_PRECISION> LJCMF;
+static LJCoul<PRECISION,ACC_PRECISION> LJCMF;
 
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device

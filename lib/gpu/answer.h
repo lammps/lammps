@@ -35,6 +35,8 @@ using namespace ucl_cudadr;
 
 #include "precision.h"
 
+namespace LAMMPS_AL {
+
 template <class numtyp, class acctyp>
 class Answer {
  public:
@@ -164,5 +166,6 @@ class Answer {
   bool _newton;
 };
 
-#endif
+}
 
+#endif

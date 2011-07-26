@@ -15,6 +15,7 @@
 
 #include "answer.h"
 
+using namespace LAMMPS_AL;
 #define AnswerT Answer<numtyp,acctyp>
 
 template <class numtyp, class acctyp>

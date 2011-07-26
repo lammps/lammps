@@ -38,6 +38,8 @@ using namespace ucl_cudadr;
 
 #include "precision.h"
 
+namespace LAMMPS_AL {
+
 template <class numtyp, class acctyp>
 class Atom {
  public:
@@ -411,5 +413,6 @@ class Atom {
   #endif
 };
 
-#endif
+}
 
+#endif

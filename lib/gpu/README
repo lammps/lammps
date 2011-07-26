@@ -1,51 +1,55 @@
-/* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+                  --------------------------------
+                     LAMMPS ACCELERATOR LIBRARY
+                  --------------------------------
+                     
+                       W. Michael Brown (ORNL)
+                          Peng Wang (NVIDIA)
+                       Axel Kohlmeyer (Temple)
+                         Steve Plimpton (SNL)
+                        Inderaj Bains (NVIDIA)
 
-   Copyright (2003) Sandia Corporation.  Under the terms of Contract
-   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
-   the GNU General Public License.
 
-   See the README file in the top-level LAMMPS directory.
-------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
-   Contributing authors: Mike Brown (ORNL), brownw@ornl.gov
-                         Peng Wang (Nvidia), penwang@nvidia.com
-                         Inderaj Bains (NVIDIA), ibains@nvidia.com
-                         Paul Crozier (SNL), pscrozi@sandia.gov
-------------------------------------------------------------------------- */
 
                           GENERAL NOTES
+                  --------------------------------
                           
 This library, libgpu.a, provides routines for GPU acceleration
-of LAMMPS pair styles. Compilation of this library requires 
-installing the CUDA GPU driver and CUDA toolkit for your operating 
-system. In addition to the LAMMPS library, the binary nvc_get_devices 
-will also be built. This can be used to query the names and 
-properties of GPU devices on your system. A Makefile for OpenCL 
-compilation is provided, but support for OpenCL use is not currently
-provided by the developers.
+of certain LAMMPS styles and neighbor list builds. Compilation of this 
+library requires installing the CUDA GPU driver and CUDA toolkit for
+your operating system. Installation of the CUDA SDK is not necessary.
+In addition to the LAMMPS library, the binary nvc_get_devices will also
+be built. This can be used to query the names and properties of GPU 
+devices on your system. A Makefile for OpenCL compilation is provided,
+but support for OpenCL use is not currently provided by the developers.
+Details of the implementation are provided in:
+
+Brown, W.M., Wang, P. Plimpton, S.J., Tharrington, A.N. Implementing 
+Molecular Dynamics on Hybrid High Performance Computers - Short Range 
+Forces. Computer Physics Communications. 2011. 182: p. 898-911. 
 
 NOTE: Installation of the CUDA SDK is not required.
 
-Current pair styles supporting GPU acceleration:
+Current styles supporting GPU acceleration:
 
-  1. lj/cut
-  2. lj96/cut
-  3. lj/expand
-  4. lj/cut/coul/cut
-  5. lj/cut/coul/long
-  6. lj/charmm/coul/long
-  7. morse
-  8. cg/cmm
-  9. cg/cmm/coul/long
- 10. gayberne
- 11. pppm
+   1. lj/cut
+   2. lj96/cut
+   3. lj/expand
+   4. lj/cut/coul/cut
+   5. lj/cut/coul/long
+   6. lj/charmm/coul/long
+   7. lj/class2
+   8. lj/class2/coul/long
+   9. morse
+  10. cg/cmm
+  11. cg/cmm/coul/long
+  12. gayberne
+  13. resquared
+  14. pppm
+
 
                      MULTIPLE LAMMPS PROCESSES
+                  --------------------------------
                      
 Multiple LAMMPS MPI processes can share GPUs on the system, but multiple
 GPUs cannot be utilized by a single MPI process. In many cases, the
@@ -54,7 +58,9 @@ CPU cores available with the condition that the number of MPI processes
 is an integer multiple of the number of GPUs being used. See the 
 LAMMPS user manual for details on running with GPU acceleration.
 
+
                     BUILDING AND PRECISION MODES
+                  --------------------------------
 
 To build, edit the CUDA_ARCH, CUDA_PRECISION, CUDA_HOME variables in one of 
 the Makefiles. CUDA_ARCH should be set based on the compute capability of 
@@ -103,7 +109,9 @@ NOTE: The lj/cut/coul/long/gpu, cg/cmm/coul/long/gpu, pppm/gpu/single, and
 NOTE: The lj/charmm/coul/long will only be installed if the MOLECULE package
       has been installed.
 
+
                       EXAMPLE BUILD PROCESS
+                  --------------------------------
                     
 cd ~/lammps/lib/gpu
 emacs Makefile.linux

@@ -14,6 +14,7 @@
  ***************************************************************************/
  
 #include "base_atomic.h"
+using namespace LAMMPS_AL;
 #define BaseAtomicT BaseAtomic<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> global_device;

@@ -21,6 +21,7 @@
 
 #include "cg_cmm_msm.h"
 #include <cassert>
+using namespace LAMMPS_AL;
 #define CGCMMMSMT CGCMMMSM<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;

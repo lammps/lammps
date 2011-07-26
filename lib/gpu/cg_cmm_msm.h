@@ -18,6 +18,8 @@
 
 #include "base_charge.h"
 
+namespace LAMMPS_AL {
+
 template <class numtyp, class acctyp>
 class CGCMMMSM : public BaseCharge<numtyp, acctyp> {
  public:
@@ -77,5 +79,6 @@ class CGCMMMSM : public BaseCharge<numtyp, acctyp> {
   void loop(const bool _eflag, const bool _vflag);
 };
 
-#endif
+}
 
+#endif

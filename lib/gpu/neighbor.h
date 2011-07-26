@@ -36,6 +36,8 @@ using namespace ucl_cudadr;
 
 #endif
 
+namespace LAMMPS_AL {
+
 class Neighbor {
  public:
   Neighbor() : _allocated(false), _use_packing(false) {}
@@ -199,5 +201,6 @@ class Neighbor {
   int _block_cell_2d, _block_cell_id, _block_nbor_build;
 };
 
-#endif
+}
 
+#endif

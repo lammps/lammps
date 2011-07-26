@@ -20,6 +20,7 @@
 #include "pppm.h"
 
 using namespace std;
+using namespace LAMMPS_AL;
 
 static PPPM<PRECISION,ACC_PRECISION,float,_lgpu_float4> PPPMF;
 static PPPM<PRECISION,ACC_PRECISION,double,_lgpu_double4> PPPMD;

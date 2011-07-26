@@ -25,6 +25,8 @@
 #include "geryon/nvd_texture.h"
 #endif
 
+namespace LAMMPS_AL {
+
 template <class numtyp, class acctyp> class Device;
 
 template <class numtyp, class acctyp, class grdtyp, class grdtyp4>
@@ -189,5 +191,6 @@ class PPPM {
                    const double delyinv, const double delzinv);
 };
 
-#endif
+}
 
+#endif

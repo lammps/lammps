@@ -1,5 +1,5 @@
 /***************************************************************************
-                                charmm_long.h
+                             charmm_long_ext.cpp
                              -------------------
                             W. Michael Brown (ORNL)
 
@@ -20,6 +20,7 @@
 #include "charmm_long.h"
 
 using namespace std;
+using namespace LAMMPS_AL;
 
 static CHARMMLong<PRECISION,ACC_PRECISION> CRMLMF;
 

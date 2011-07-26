@@ -1,19 +1,17 @@
-/* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+/***************************************************************************
+                                  morse.cpp
+                             -------------------
+                            W. Michael Brown (ORNL)
 
-   Copyright (2003) Sandia Corporation.  Under the terms of Contract
-   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
-   the GNU General Public License.
+  Class for acceleration of the morse pair style.
 
-   See the README file in the top-level LAMMPS directory.
-------------------------------------------------------------------------- */
- 
-/* ----------------------------------------------------------------------
-   Contributing authors: Mike Brown (ORNL), brownw@ornl.gov
-------------------------------------------------------------------------- */
+ __________________________________________________________________________
+    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
+ __________________________________________________________________________
+
+    begin                : 
+    email                : brownw@ornl.gov
+ ***************************************************************************/
 
 #ifdef USE_OPENCL
 #include "morse_cl.h"
@@ -23,26 +21,27 @@
 
 #include "morse.h"
 #include <cassert>
-#define MOR_GPU_MemoryT MOR_GPU_Memory<numtyp, acctyp>
+using namespace LAMMPS_AL;
+#define MorseT Morse<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
 
 template <class numtyp, class acctyp>
-MOR_GPU_MemoryT::MOR_GPU_Memory() : BaseAtomic<numtyp,acctyp>(), _allocated(false) {
+MorseT::Morse() : BaseAtomic<numtyp,acctyp>(), _allocated(false) {
 }
 
 template <class numtyp, class acctyp>
-MOR_GPU_MemoryT::~MOR_GPU_Memory() { 
+MorseT::~Morse() { 
   clear();
 }
  
 template <class numtyp, class acctyp>
-int MOR_GPU_MemoryT::bytes_per_atom(const int max_nbors) const {
+int MorseT::bytes_per_atom(const int max_nbors) const {
   return this->bytes_per_atom_atomic(max_nbors);
 }
 
 template <class numtyp, class acctyp>
-int MOR_GPU_MemoryT::init(const int ntypes, 
+int MorseT::init(const int ntypes, 
                           double **host_cutsq, double **host_morse1, 
                           double **host_r0, double **host_alpha, 
                           double **host_d0, double **host_offset, 
@@ -91,7 +90,7 @@ int MOR_GPU_MemoryT::init(const int ntypes,
 }
 
 template <class numtyp, class acctyp>
-void MOR_GPU_MemoryT::clear() {
+void MorseT::clear() {
   if (!_allocated)
     return;
   _allocated=false;
@@ -103,15 +102,15 @@ void MOR_GPU_MemoryT::clear() {
 }
 
 template <class numtyp, class acctyp>
-double MOR_GPU_MemoryT::host_memory_usage() const {
-  return this->host_memory_usage_atomic()+sizeof(MOR_GPU_Memory<numtyp,acctyp>);
+double MorseT::host_memory_usage() const {
+  return this->host_memory_usage_atomic()+sizeof(Morse<numtyp,acctyp>);
 }
 
 // ---------------------------------------------------------------------------
 // Calculate energies, forces, and torques
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-void MOR_GPU_MemoryT::loop(const bool _eflag, const bool _vflag) {
+void MorseT::loop(const bool _eflag, const bool _vflag) {
   // Compute the block size and grid size to keep all cores busy
   const int BX=this->block_size();
   int eflag, vflag;
@@ -151,5 +150,5 @@ void MOR_GPU_MemoryT::loop(const bool _eflag, const bool _vflag) {
   this->time_pair.stop();
 }
 
-template class MOR_GPU_Memory<PRECISION,ACC_PRECISION>;
+template class Morse<PRECISION,ACC_PRECISION>;
 

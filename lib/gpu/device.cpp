@@ -27,6 +27,7 @@
 #include "pair_gpu_dev_ptx.h"
 #endif
 
+using namespace LAMMPS_AL;
 #define DeviceT Device<numtyp, acctyp>
 
 template <class numtyp, class acctyp>

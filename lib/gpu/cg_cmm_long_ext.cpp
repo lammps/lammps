@@ -20,6 +20,7 @@
 #include "cg_cmm_long.h"
 
 using namespace std;
+using namespace LAMMPS_AL;
 
 static CGCMMLong<PRECISION,ACC_PRECISION> CMMLMF;
 

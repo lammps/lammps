@@ -22,6 +22,7 @@
 #include "pppm.h"
 #include <cassert>
 
+using namespace LAMMPS_AL;
 #define PPPMT PPPM<numtyp, acctyp, grdtyp, grdtyp4>
 
 extern Device<PRECISION,ACC_PRECISION> global_device;

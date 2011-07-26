@@ -15,6 +15,7 @@
  ***************************************************************************/
 
 #include "base_charge.h"
+using namespace LAMMPS_AL;
 #define BaseChargeT BaseCharge<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> global_device;

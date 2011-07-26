@@ -23,6 +23,8 @@
 #define _HD_BALANCE_WEIGHT 0.5
 #define _HD_BALANCE_GAP 1.10
 
+namespace LAMMPS_AL {
+
 /// Host/device load balancer
 template<class numtyp, class acctyp>
 class Balance {
@@ -200,5 +202,6 @@ void BalanceT::balance(const double cpu_time) {
   _avg_count++;
 }
 
-#endif
+}
 
+#endif

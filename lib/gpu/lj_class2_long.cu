@@ -13,9 +13,6 @@
 //    email                : brownw@ornl.gov
 // ***************************************************************************/
 
-#ifndef LJCL_GPU_KERNEL
-#define LJCL_GPU_KERNEL
-
 #ifdef NV_KERNEL
 
 #include "nv_kernel_def.h"
@@ -467,6 +464,3 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
     ans[ii]=f;
   } // if ii*/
 }
-
-#endif
-

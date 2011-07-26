@@ -1,30 +1,30 @@
-/* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+/***************************************************************************
+                                   lj96.h
+                             -------------------
+                            W. Michael Brown (ORNL)
 
-   Copyright (2003) Sandia Corporation.  Under the terms of Contract
-   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
-   the GNU General Public License.
+  Class for acceleration of the lj96/cut pair style.
 
-   See the README file in the top-level LAMMPS directory.
-------------------------------------------------------------------------- */
- 
-/* ----------------------------------------------------------------------
-   Contributing authors: Mike Brown (ORNL), brownw@ornl.gov
-------------------------------------------------------------------------- */
+ __________________________________________________________________________
+    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
+ __________________________________________________________________________
 
-#ifndef LJ96_GPU_MEMORY_H
-#define LJ96_GPU_MEMORY_H
+    begin                : 
+    email                : brownw@ornl.gov
+ ***************************************************************************/
+
+#ifndef LAL_LJ96_H
+#define LAL_LJ96_H
 
 #include "base_atomic.h"
 
+namespace LAMMPS_AL {
+
 template <class numtyp, class acctyp>
-class LJ96_GPU_Memory : public BaseAtomic<numtyp, acctyp> {
+class LJ96 : public BaseAtomic<numtyp, acctyp> {
  public:
-  LJ96_GPU_Memory();
-  ~LJ96_GPU_Memory();
+  LJ96();
+  ~LJ96();
 
   /// Clear any previous data and set up for a new LAMMPS run
   /** \param max_nbors initial number of rows in the neighbor matrix
@@ -74,5 +74,6 @@ class LJ96_GPU_Memory : public BaseAtomic<numtyp, acctyp> {
   void loop(const bool _eflag, const bool _vflag);
 };
 
-#endif
+}
 
+#endif

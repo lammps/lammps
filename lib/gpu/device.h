@@ -26,6 +26,8 @@
 #include <string>
 #include <queue>
 
+namespace LAMMPS_AL {
+
 template <class numtyp, class acctyp, 
           class grdtyp, class grdtyp4> class PPPM;
 
@@ -305,5 +307,7 @@ class Device {
   }
 
 };
+
+}
 
 #endif

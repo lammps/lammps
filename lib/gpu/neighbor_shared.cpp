@@ -22,6 +22,8 @@
 #include "pair_gpu_build_ptx.h"
 #endif
   
+using namespace LAMMPS_AL;
+
 void NeighborShared::clear() {
   if (_compiled) {
     if (_gpu_nbor) {

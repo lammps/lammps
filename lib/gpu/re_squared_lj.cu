@@ -13,9 +13,6 @@
 //    email                : brownw@ornl.gov
 // ***************************************************************************/
 
-#ifndef RE_SQUARED_LJ_CU
-#define RE_SQUARED_LJ_CU
-
 #ifdef NV_KERNEL
 #include "ellipsoid_extra.h"
 #endif
@@ -887,6 +884,3 @@ __kernel void kernel_lj_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
     ans[ii]=old;
   } // if ii
 }
-
-#endif
-

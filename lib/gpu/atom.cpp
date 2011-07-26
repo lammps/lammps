@@ -15,6 +15,7 @@
 
 #include "atom.h"
 
+using namespace LAMMPS_AL;
 #define AtomT Atom<numtyp,acctyp>
 
 template <class numtyp, class acctyp>

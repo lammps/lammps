@@ -20,6 +20,7 @@
 #include "cg_cmm.h"
 
 using namespace std;
+using namespace LAMMPS_AL;
 
 static CGCMM<PRECISION,ACC_PRECISION> CMMMF;
 

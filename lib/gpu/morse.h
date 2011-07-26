@@ -1,30 +1,30 @@
-/* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+/***************************************************************************
+                                   morse.h
+                             -------------------
+                            W. Michael Brown (ORNL)
 
-   Copyright (2003) Sandia Corporation.  Under the terms of Contract
-   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
-   the GNU General Public License.
+  Class for acceleration of the morse pair style.
 
-   See the README file in the top-level LAMMPS directory.
-------------------------------------------------------------------------- */
- 
-/* ----------------------------------------------------------------------
-   Contributing authors: Mike Brown (ORNL), brownw@ornl.gov
-------------------------------------------------------------------------- */
+ __________________________________________________________________________
+    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
+ __________________________________________________________________________
+
+    begin                : 
+    email                : brownw@ornl.gov
+ ***************************************************************************/
 
 #ifndef MOR_GPU_MEMORY_H
 #define MOR_GPU_MEMORY_H
 
 #include "base_atomic.h"
 
+namespace LAMMPS_AL {
+
 template <class numtyp, class acctyp>
-class MOR_GPU_Memory : public BaseAtomic<numtyp, acctyp> {
+class Morse : public BaseAtomic<numtyp, acctyp> {
  public:
-  MOR_GPU_Memory();
-  ~MOR_GPU_Memory(); 
+  Morse();
+  ~Morse(); 
 
   /// Clear any previous data and set up for a new LAMMPS run
   /** \param max_nbors initial number of rows in the neighbor matrix
@@ -74,5 +74,6 @@ class MOR_GPU_Memory : public BaseAtomic<numtyp, acctyp> {
   void loop(const bool _eflag, const bool _vflag);
 };
 
-#endif
+}
 
+#endif

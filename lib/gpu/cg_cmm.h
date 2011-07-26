@@ -18,6 +18,8 @@
 
 #include "base_atomic.h"
 
+namespace LAMMPS_AL {
+
 template <class numtyp, class acctyp>
 class CGCMM : public BaseAtomic<numtyp, acctyp> {
  public:
@@ -72,5 +74,6 @@ class CGCMM : public BaseAtomic<numtyp, acctyp> {
   void loop(const bool _eflag, const bool _vflag);
 };
 
-#endif
+}
 
+#endif

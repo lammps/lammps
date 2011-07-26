@@ -1,22 +1,17 @@
-/* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
-
-   Copyright (2003) Sandia Corporation.  Under the terms of Contract
-   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
-   the GNU General Public License.
-
-   See the README file in the top-level LAMMPS directory.
-------------------------------------------------------------------------- */
-
-/* ----------------------------------------------------------------------
-   Contributing authors: Mike Brown (ORNL), brownw@ornl.gov
-------------------------------------------------------------------------- */
-
-#ifndef LJCL_GPU_KERNEL
-#define LJCL_GPU_KERNEL
+// **************************************************************************
+//                               lj_coul_long.cu
+//                             -------------------
+//                           W. Michael Brown (ORNL)
+//
+//  Device code for acceleration of the lj/cut/coul/long pair style
+//
+// __________________________________________________________________________
+//    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
+// __________________________________________________________________________
+//
+//    begin                : 
+//    email                : brownw@ornl.gov
+// ***************************************************************************/
 
 #ifdef NV_KERNEL
 
@@ -465,6 +460,3 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
     ans[ii]=f;
   } // if ii*/
 }
-
-#endif
-

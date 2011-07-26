@@ -1,19 +1,17 @@
-/* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+/***************************************************************************
+                                   lj96.cpp
+                             -------------------
+                            W. Michael Brown (ORNL)
 
-   Copyright (2003) Sandia Corporation.  Under the terms of Contract
-   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
-   the GNU General Public License.
+  Class for acceleration of the lj96/cut pair style.
 
-   See the README file in the top-level LAMMPS directory.
-------------------------------------------------------------------------- */
- 
-/* ----------------------------------------------------------------------
-   Contributing authors: Mike Brown (ORNL), brownw@ornl.gov
-------------------------------------------------------------------------- */
+ __________________________________________________________________________
+    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
+ __________________________________________________________________________
+
+    begin                : 
+    email                : brownw@ornl.gov
+ ***************************************************************************/
 
 #ifdef USE_OPENCL
 #include "lj96_cl.h"
@@ -23,26 +21,27 @@
 
 #include "lj96.h"
 #include <cassert>
-#define LJ96_GPU_MemoryT LJ96_GPU_Memory<numtyp, acctyp>
+using namespace LAMMPS_AL;
+#define LJ96T LJ96<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
 
 template <class numtyp, class acctyp>
-LJ96_GPU_MemoryT::LJ96_GPU_Memory() : BaseAtomic<numtyp,acctyp>(), _allocated(false) {
+LJ96T::LJ96() : BaseAtomic<numtyp,acctyp>(), _allocated(false) {
 }
 
 template <class numtyp, class acctyp>
-LJ96_GPU_MemoryT::~LJ96_GPU_Memory() {
+LJ96T::~LJ96() {
   clear();
 }
  
 template <class numtyp, class acctyp>
-int LJ96_GPU_MemoryT::bytes_per_atom(const int max_nbors) const {
+int LJ96T::bytes_per_atom(const int max_nbors) const {
   return this->bytes_per_atom_atomic(max_nbors);
 }
 
 template <class numtyp, class acctyp>
-int LJ96_GPU_MemoryT::init(const int ntypes,
+int LJ96T::init(const int ntypes,
                            double **host_cutsq, double **host_lj1, 
                            double **host_lj2, double **host_lj3, 
                            double **host_lj4, double **host_offset, 
@@ -92,7 +91,7 @@ int LJ96_GPU_MemoryT::init(const int ntypes,
 }
 
 template <class numtyp, class acctyp>
-void LJ96_GPU_MemoryT::clear() {
+void LJ96T::clear() {
   if (!_allocated)
     return;
   _allocated=false;
@@ -104,15 +103,15 @@ void LJ96_GPU_MemoryT::clear() {
 }
 
 template <class numtyp, class acctyp>
-double LJ96_GPU_MemoryT::host_memory_usage() const {
-  return this->host_memory_usage_atomic()+sizeof(LJ96_GPU_Memory<numtyp,acctyp>);
+double LJ96T::host_memory_usage() const {
+  return this->host_memory_usage_atomic()+sizeof(LJ96<numtyp,acctyp>);
 }
 
 // ---------------------------------------------------------------------------
 // Calculate energies, forces, and torques
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-void LJ96_GPU_MemoryT::loop(const bool _eflag, const bool _vflag) {
+void LJ96T::loop(const bool _eflag, const bool _vflag) {
   // Compute the block size and grid size to keep all cores busy
   const int BX=this->block_size();
   int eflag, vflag;
@@ -152,4 +151,4 @@ void LJ96_GPU_MemoryT::loop(const bool _eflag, const bool _vflag) {
   this->time_pair.stop();
 }
 
-template class LJ96_GPU_Memory<PRECISION,ACC_PRECISION>;
+template class LJ96<PRECISION,ACC_PRECISION>;

@@ -18,6 +18,7 @@
 #include "neighbor.h"
 #include "device.h"
 #include "math.h"
+using namespace LAMMPS_AL;
 
 int Neighbor::bytes_per_atom(const int max_nbors) const {
   if (_gpu_nbor)

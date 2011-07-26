@@ -1,19 +1,17 @@
-/* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+/***************************************************************************
+                              lj_expand_ext.cpp
+                             -------------------
+                            Inderaj Bains (NVIDIA)
 
-   Copyright (2003) Sandia Corporation.  Under the terms of Contract
-   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
-   the GNU General Public License.
+  Functions for LAMMPS access to lj/expand acceleration routines.
 
-   See the README file in the top-level LAMMPS directory.
-------------------------------------------------------------------------- */
+ __________________________________________________________________________
+    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
+ __________________________________________________________________________
 
-/* ----------------------------------------------------------------------
-   Contributing author: Inderaj Bains (NVIDIA), ibains@nvidia.com
-------------------------------------------------------------------------- */
+    begin                : 
+    email                : ibains@nvidia.com
+ ***************************************************************************/
 
 #include <iostream>
 #include <cassert>
@@ -22,8 +20,9 @@
 #include "lj_expand.h"
 
 using namespace std;
+using namespace LAMMPS_AL;
 
-static LJE_GPU_Memory<PRECISION,ACC_PRECISION> LJEMF;
+static LJExpand<PRECISION,ACC_PRECISION> LJEMF;
 
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device

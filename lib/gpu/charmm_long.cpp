@@ -21,6 +21,7 @@
 
 #include "charmm_long.h"
 #include <cassert>
+using namespace LAMMPS_AL;
 #define CHARMMLongT CHARMMLong<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;

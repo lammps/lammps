@@ -40,6 +40,11 @@ if (test $1 = 1) then
     cp pair_lj_charmm_coul_long_gpu.h ..
   fi
 
+  if (test -e ../pair_coul_long.cpp) then
+    cp pair_coul_long_gpu.cpp ..
+    cp pair_coul_long_gpu.h ..
+  fi
+
   if (test -e ../pair_cg_cmm.cpp) then
     cp pair_cg_cmm_gpu.cpp ..
     cp pair_cg_cmm_gpu.h ..
@@ -109,6 +114,7 @@ elif (test $1 = 0) then
   rm -f ../pair_lj_class2_coul_long_gpu.cpp
   rm -f ../pair_lj_charmm_coul_long_gpu.cpp
   rm -f ../pair_lj_cut_tgpu.cpp
+  rm -f ../pair_coul_long_gpu.cpp
   rm -f ../pair_cg_cmm_gpu.cpp
   rm -f ../pair_cg_cmm_coul_long_gpu.cpp
   rm -f ../pair_cg_cmm_coul_msm.cpp
@@ -133,6 +139,7 @@ elif (test $1 = 0) then
   rm -f ../pair_lj_class2_coul_long_gpu.h
   rm -f ../pair_lj_charmm_coul_long_gpu.h
   rm -f ../pair_lj_cut_tgpu.h
+  rm -f ../pair_coul_long_gpu.h
   rm -f ../pair_cg_cmm_gpu.h
   rm -f ../pair_cg_cmm_coul_long_gpu.h
   rm -f ../pair_cg_cmm_coul_msm.h

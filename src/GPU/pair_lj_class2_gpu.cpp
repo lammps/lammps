@@ -125,7 +125,7 @@ void PairLJClass2GPU::compute(int eflag, int vflag)
 void PairLJClass2GPU::init_style()
 {
   if (force->newton_pair) 
-    error->all("Cannot use newton pair with GPU LJ96 pair style");
+    error->all("Cannot use newton pair with lj/class2/gpu pair style");
 
   // Repeat cutsq calculation because done after call to init_style
   double maxcut = -1.0;
@@ -181,7 +181,6 @@ void PairLJClass2GPU::cpu_compute(int start, int inum, int eflag, int vflag,
   double **x = atom->x;
   double **f = atom->f;
   int *type = atom->type;
-  int nlocal = atom->nlocal;
   double *special_lj = force->special_lj;
 
   // loop over neighbors of my atoms

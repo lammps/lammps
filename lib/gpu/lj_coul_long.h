@@ -13,8 +13,8 @@
     email                : brownw@ornl.gov
  ***************************************************************************/
 
-#ifndef LJCL_GPU_MEMORY_H
-#define LJCL_GPU_MEMORY_H
+#ifndef LAL_LJ_COUL_LONG_H
+#define LAL_LJ_COUL_LONG_H
 
 #include "base_charge.h"
 

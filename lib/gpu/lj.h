@@ -13,8 +13,8 @@
     email                : brownw@ornl.gov
  ***************************************************************************/
 
-#ifndef LJL_GPU_MEMORY_H
-#define LJL_GPU_MEMORY_H
+#ifndef LAL_LJ_H
+#define LAL_LJ_H
 
 #include "base_atomic.h"
 

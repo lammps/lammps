@@ -34,6 +34,7 @@ OBJS = $(OBJ_DIR)/atom.o $(OBJ_DIR)/ans.o \
        $(OBJ_DIR)/lj_coul.o $(OBJ_DIR)/lj_coul_ext.o \
        $(OBJ_DIR)/lj_coul_long.o $(OBJ_DIR)/lj_coul_long_ext.o \
        $(OBJ_DIR)/lj_class2_long.o $(OBJ_DIR)/lj_class2_long_ext.o \
+       $(OBJ_DIR)/coul_long.o $(OBJ_DIR)/coul_long_ext.o \
        $(OBJ_DIR)/morse.o $(OBJ_DIR)/morse_ext.o \
        $(OBJ_DIR)/charmm_long.o $(OBJ_DIR)/charmm_long_ext.o \
        $(OBJ_DIR)/cg_cmm.o $(OBJ_DIR)/cg_cmm_ext.o \
@@ -56,6 +57,7 @@ PTXS = $(OBJ_DIR)/device.ptx \
        $(OBJ_DIR)/lj_coul.ptx $(OBJ_DIR)/lj_coul_ptx.h \
        $(OBJ_DIR)/lj_coul_long.ptx $(OBJ_DIR)/lj_coul_long_ptx.h \
        $(OBJ_DIR)/lj_class2_long.ptx $(OBJ_DIR)/lj_class2_long_ptx.h \
+       $(OBJ_DIR)/coul_long.ptx $(OBJ_DIR)/coul_long_ptx.h \
        $(OBJ_DIR)/morse.ptx $(OBJ_DIR)/morse_ptx.h \
        $(OBJ_DIR)/charmm_long.ptx $(OBJ_DIR)/charmm_long_ptx.h \
        $(OBJ_DIR)/cg_cmm.ptx $(OBJ_DIR)/cg_cmm_ptx.h \
@@ -219,6 +221,18 @@ $(OBJ_DIR)/lj_class2_long.o: $(ALL_H) lj_class2_long.h lj_class2_long.cpp $(OBJ_
 
 $(OBJ_DIR)/lj_class2_long_ext.o: $(ALL_H) lj_class2_long.h lj_class2_long_ext.cpp base_charge.h
 	$(CUDR) -o $@ -c lj_class2_long_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/coul_long.ptx: coul_long.cu precision.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ coul_long.cu
+
+$(OBJ_DIR)/coul_long_ptx.h: $(OBJ_DIR)/coul_long.ptx $(OBJ_DIR)/coul_long.ptx
+	$(BSH) ./geryon/file_to_cstr.sh $(OBJ_DIR)/coul_long.ptx $(OBJ_DIR)/coul_long_ptx.h
+
+$(OBJ_DIR)/coul_long.o: $(ALL_H) coul_long.h coul_long.cpp $(OBJ_DIR)/coul_long_ptx.h $(OBJ_DIR)/base_charge.o
+	$(CUDR) -o $@ -c coul_long.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/coul_long_ext.o: $(ALL_H) coul_long.h coul_long_ext.cpp base_charge.h
+	$(CUDR) -o $@ -c coul_long_ext.cpp -I$(OBJ_DIR)
 
 $(OBJ_DIR)/lj_coul_long.ptx: lj_coul_long.cu precision.h
 	$(CUDA) --ptx -DNV_KERNEL -o $@ lj_coul_long.cu

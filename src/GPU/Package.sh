@@ -15,6 +15,12 @@ for file in *.cpp *.h; do
   if (test $file = pair_lj_cut_coul_long_gpu.h -a ! -e ../pair_lj_cut_coul_long.cpp) then
     continue
   fi
+  if (test $file = pair_coul_long_gpu.cpp -a ! -e ../pair_coul_long.cpp) then
+    continue
+  fi
+  if (test $file = pair_coul_long_gpu.h -a ! -e ../pair_coul_long.cpp) then
+    continue
+  fi
   if (test $file = pair_cg_cmm_gpu.cpp -a ! -e ../pair_cg_cmm.cpp) then
     continue
   fi

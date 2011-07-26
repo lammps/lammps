@@ -43,9 +43,10 @@ Current styles supporting GPU acceleration:
    9. morse
   10. cg/cmm
   11. cg/cmm/coul/long
-  12. gayberne
-  13. resquared
-  14. pppm
+  12. coul/long
+  13. gayberne
+  14. resquared
+  15. pppm
 
 
                      MULTIPLE LAMMPS PROCESSES
@@ -102,9 +103,9 @@ NOTE: The gayberne/gpu pair style will only be installed if the ASPHERE
 NOTE: The cg/cmm/gpu and cg/cmm/coul/long/gpu pair styles will only be
       installed if the USER-CG-CMM package has been installed.
 
-NOTE: The lj/cut/coul/long/gpu, cg/cmm/coul/long/gpu, pppm/gpu/single, and
-      pppm/gpu/double styles will only be installed if the KSPACE package has
-      been installed.
+NOTE: The lj/cut/coul/long/gpu, cg/cmm/coul/long/gpu, coul/long/gpu, 
+      pppm/gpu/single, and pppm/gpu/double styles will only be installed if 
+      the KSPACE package has been installed.
 
 NOTE: The lj/charmm/coul/long will only be installed if the MOLECULE package
       has been installed.

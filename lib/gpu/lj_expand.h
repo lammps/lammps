@@ -13,8 +13,8 @@
     email                : ibains@nvidia.com
  ***************************************************************************/
 
-#ifndef LJE_GPU_MEMORY_H
-#define LJE_GPU_MEMORY_H
+#ifndef LAL_LJ_EXPAND_H
+#define LAL_LJ_EXPAND_H
 
 #include "base_atomic.h"
 

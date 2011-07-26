@@ -133,10 +133,10 @@ void PairLJCutCoulCutGPU::compute(int eflag, int vflag)
 void PairLJCutCoulCutGPU::init_style()
 {
   if (!atom->q_flag)
-    error->all("Pair style lj/cut/coul/cut requires atom attribute q");
+    error->all("Pair style lj/cut/coul/cut/gpu requires atom attribute q");
 
   if (force->newton_pair) 
-    error->all("Cannot use newton pair with GPU LJ pair style");
+    error->all("Cannot use newton pair with lj/cut/coul/cut/gpu pair style");
 
   // Repeat cutsq calculation because done after call to init_style
   double maxcut = -1.0;
@@ -197,10 +197,8 @@ void PairLJCutCoulCutGPU::cpu_compute(int start, int inum, int eflag, int vflag,
   double **f = atom->f;
   double *q = atom->q;
   int *type = atom->type;
-  int nlocal = atom->nlocal;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
-  int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
 
   // loop over neighbors of my atoms

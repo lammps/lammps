@@ -24,6 +24,7 @@ OBJS = $(OBJ_DIR)/atom.o $(OBJ_DIR)/ans.o \
        $(OBJ_DIR)/lj_coul.o $(OBJ_DIR)/lj_coul_ext.o \
        $(OBJ_DIR)/lj_coul_long.o $(OBJ_DIR)/lj_coul_long_ext.o \
        $(OBJ_DIR)/lj_class2_long.o $(OBJ_DIR)/lj_class2_long_ext.o \
+       $(OBJ_DIR)/coul_long.o $(OBJ_DIR)/coul_long_ext.o \
        $(OBJ_DIR)/morse.o $(OBJ_DIR)/morse_ext.o \
        $(OBJ_DIR)/charmm_long.o $(OBJ_DIR)/charmm_long_ext.o \
        $(OBJ_DIR)/cg_cmm.o $(OBJ_DIR)/cg_cmm_ext.o \
@@ -35,7 +36,7 @@ KERS = $(OBJ_DIR)/pair_gpu_dev_cl.h $(OBJ_DIR)/atom_cl.h \
        $(OBJ_DIR)/lj_cl.h $(OBJ_DIR)/lj96_cl.h \
        $(OBJ_DIR)/lj_expand_cl.h $(OBJ_DIR)/lj_coul_cl.h \
        $(OBJ_DIR)/lj_coul_long_cl.h $(OBJ_DIR)/lj_class2_long_cl.h \
-       $(OBJ_DIR)/morse_cl.h \
+       $(OBJ_DIR)/coul_long_cl.h $(OBJ_DIR)/morse_cl.h \
        $(OBJ_DIR)/charmm_long_cl.h $(OBJ_DIR)/cg_cmm_cl.h \
        $(OBJ_DIR)/cg_cmm_long_cl.h 
 
@@ -147,6 +148,15 @@ $(OBJ_DIR)/lj_class2_long.o: $(ALL_H) lj_class2_long.h lj_class2_long.cpp  $(OBJ
 
 $(OBJ_DIR)/lj_class2_long_ext.o: $(ALL_H) lj_class2_long.h lj_class2_long_ext.cpp base_charge.h
 	$(OCL) -o $@ -c lj_class2_long_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/coul_long_cl.h: coul_long.cu
+	$(BSH) ./geryon/file_to_cstr.sh coul_long.cu $(OBJ_DIR)/coul_long_cl.h;
+
+$(OBJ_DIR)/coul_long.o: $(ALL_H) coul_long.h coul_long.cpp  $(OBJ_DIR)/coul_long_cl.h $(OBJ_DIR)/nbor_cl.h $(OBJ_DIR)/base_charge.o
+	$(OCL) -o $@ -c coul_long.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/coul_long_ext.o: $(ALL_H) coul_long.h coul_long_ext.cpp base_charge.h
+	$(OCL) -o $@ -c coul_long_ext.cpp -I$(OBJ_DIR)
 
 $(OBJ_DIR)/morse_cl.h: morse.cu
 	$(BSH) ./geryon/file_to_cstr.sh morse.cu $(OBJ_DIR)/morse_cl.h;

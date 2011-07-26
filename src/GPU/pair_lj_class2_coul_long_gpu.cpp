@@ -142,9 +142,9 @@ void PairLJClass2CoulLongGPU::compute(int eflag, int vflag)
 void PairLJClass2CoulLongGPU::init_style()
 {
   if (!atom->q_flag)
-    error->all("Pair style lj/class2/coul/long requires atom attribute q");
+    error->all("Pair style lj/class2/coul/long/gpu requires atom attribute q");
   if (force->newton_pair) 
-    error->all("Cannot use newton pair with GPU LJ pair style");
+    error->all("Cannot use newton pair with lj/class2/coul/long/gpu pair style");
 
   // Repeat cutsq calculation because done after call to init_style
   double maxcut = -1.0;
@@ -202,7 +202,7 @@ void PairLJClass2CoulLongGPU::cpu_compute(int start, int inum, int eflag,
 				       int vflag, int *ilist, int *numneigh,
 				       int **firstneigh)
 {
-  int i,j,ii,jj,jnum,itype,jtype,itable;
+  int i,j,ii,jj,jnum,itype,jtype;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
   double rsq,r,rinv,r2inv,r3inv,r6inv,forcecoul,forcelj;
   double grij,expm2,prefactor,t,erfc;
@@ -215,7 +215,6 @@ void PairLJClass2CoulLongGPU::cpu_compute(int start, int inum, int eflag,
   double **f = atom->f;
   double *q = atom->q;
   int *type = atom->type;
-  int nlocal = atom->nlocal;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
   double qqrd2e = force->qqrd2e;

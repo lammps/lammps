@@ -1,30 +1,30 @@
 /***************************************************************************
-                                  lj_coul.h
+                                 coul_long.h
                              -------------------
-                            W. Michael Brown (ORNL)
+                           Axel Kohlmeyer (Temple)
 
-  Class for acceleration of the lj/cut/coul/cut pair style.
+  Class for acceleration of the coul/long pair style.
 
  __________________________________________________________________________
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
-    email                : brownw@ornl.gov
+    begin                : July 2011
+    email                : a.kohlmeyer@temple.edu
  ***************************************************************************/
 
-#ifndef LAL_LJ_COUL_H
-#define LAL_LJ_COUL_H
+#ifndef LAL_Coul_Long_H
+#define LAL_Coul_Long_H
 
 #include "base_charge.h"
 
 namespace LAMMPS_AL {
 
 template <class numtyp, class acctyp>
-class LJCoul : public BaseCharge<numtyp, acctyp> {
+class CoulLong : public BaseCharge<numtyp, acctyp> {
  public:
-  LJCoul();
-  ~LJCoul();
+  CoulLong();
+  ~CoulLong();
 
   /// Clear any previous data and set up for a new LAMMPS run
   /** \param max_nbors initial number of rows in the neighbor matrix
@@ -37,14 +37,11 @@ class LJCoul : public BaseCharge<numtyp, acctyp> {
     * - -3 if there is an out of memory error
     * - -4 if the GPU library was not compiled for GPU
     * - -5 Double precision is not supported on card **/
-  int init(const int ntypes, double **host_cutsq, double **host_lj1,
-           double **host_lj2, double **host_lj3, double **host_lj4,
-           double **host_offset, double *host_special_lj,
-           const int nlocal, const int nall, const int max_nbors, 
+  int init(const int nlocal, const int nall, const int max_nbors,
            const int maxspecial, const double cell_size,
-           const double gpu_split, FILE *screen, double **host_cut_ljsq,
-           double **host_cut_coulsq, double *host_special_coul,
-           const double qqrd2e);
+	   const double gpu_split, FILE *screen, 
+	   const double host_cut_coulsq, double *host_special_coul,
+	   const double qqrd2e, const double g_ewald);
 
   /// Clear all host and device data
   /** \note This is called at the beginning of the init() routine **/
@@ -58,22 +55,20 @@ class LJCoul : public BaseCharge<numtyp, acctyp> {
 
   // --------------------------- TYPE DATA --------------------------
 
-  /// lj1.x = lj1, lj1.y = lj2, lj1.z = cutsq_vdw, lj1.w = cutsq_coul
+  /// lj1 dummy
   UCL_D_Vec<numtyp4> lj1;
-  /// lj3.x = lj3, lj3.y = lj4, lj3.z = offset
+  /// lj3 dummy
   UCL_D_Vec<numtyp4> lj3;
-  /// cutsq
-  UCL_D_Vec<numtyp> cutsq;
-  /// Special LJ values [0-3] and Special Coul values [4-7]
-  UCL_D_Vec<numtyp> sp_lj;
+  /// Special Coul values [0-3]
+  UCL_D_Vec<numtyp> sp_cl;
 
   /// If atom type constants fit in shared memory, use fast kernels
   bool shared_types;
 
-  /// Number of atom types 
+  /// Number of atom types
   int _lj_types;
 
-  numtyp _qqrd2e;
+  numtyp _cut_coulsq, _qqrd2e, _g_ewald;
 
  private:
   bool _allocated;

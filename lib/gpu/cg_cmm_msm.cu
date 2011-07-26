@@ -203,10 +203,8 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *lj1,
                                          (numtyp)2.1875*r6_ia6)-ir/rsq-
                                          factor_coul*ir);
           }
-        } else {
+        } else
           forcecoul = (numtyp)0.0;
-          prefactor = (numtyp)0.0;
-        }
 
         force = forcecoul + force_lj * r2inv;
 
@@ -423,10 +421,8 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
                                          (numtyp)2.1875*r6_ia6)-ir/rsq-
                                          factor_coul*ir);
           }
-        } else {
+        } else
           forcecoul = (numtyp)0.0;
-          prefactor = (numtyp)0.0;
-        }
 
         force = forcecoul + force_lj * r2inv;
 

@@ -280,8 +280,7 @@ void ComputePropertyLocal::compute_local()
 int ComputePropertyLocal::count_pairs(int allflag, int forceflag)
 {
   int i,j,m,n,ii,jj,inum,jnum,itype,jtype;
-  double xtmp,ytmp,ztmp,delx,dely,delz;
-  double rsq,factor_coul,factor_lj;
+  double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   double **x = atom->x;
@@ -321,8 +320,6 @@ int ComputePropertyLocal::count_pairs(int allflag, int forceflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      factor_lj = special_lj[sbmask(j)];
-      factor_coul = special_coul[sbmask(j)];
       j &= NEIGHMASK;
 
       if (!(mask[j] & groupbit)) continue;

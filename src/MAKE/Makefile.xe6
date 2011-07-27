@@ -1,4 +1,4 @@
-# xt5 = Cray XT5, Cray CC, native MPI, FFTW
+# xe6 = Cray XE6, Cray CC, native MPI, FFTW
 
 SHELL = /bin/sh
 .SUFFIXES: .cpp .d

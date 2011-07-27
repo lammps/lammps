@@ -31,6 +31,8 @@ c attrac_meam = attraction parameter in Rose energy
 c repuls_meam = repulsion parameter in Rose energy
 c nn2_meam = 1 if second nearest neighbors are to be computed, else 0
 c zbl_meam = 1 if zbl potential for small r to be use, else 0
+c emb_lin_neg = 1 if linear embedding function for rhob to be used, else 0
+c bkgd_dyn = 1 if reference densities follows Dynamo, else 0
 c Cmin_meam, Cmax_meam = min and max values in screening cutoff
 c rc_meam = cutoff distance for meam
 c delr_meam = cutoff region for meam
@@ -73,6 +75,7 @@ c nrar,rdrar = spline coeff array parameters
       real*8 Cmax_meam(maxelt,maxelt,maxelt)
       real*8 rc_meam,delr_meam,ebound_meam(maxelt,maxelt)
       integer augt1, ialloy, mix_ref_t, erose_form
+      integer emb_lin_neg, bkgd_dyn
       real*8  gsmooth_factor
       integer vind2D(3,3),vind3D(3,3,3)
       integer v2D(6),v3D(10)

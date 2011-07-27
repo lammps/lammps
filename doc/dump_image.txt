@@ -421,7 +421,8 @@ details.
 
 The defaults for the keywords are as follows:
 
-atom = type 1.0
+adiam = not specified (use diameter setting)
+atom = yes
 bond = none none (if no bonds in system)
 bond = atom 0.5 (if bonds in system)
 size = 512 512

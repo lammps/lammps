@@ -1344,7 +1344,7 @@ void Comm::set(int narg, char **arg)
     } else if (strcmp(arg[iarg],"vel") == 0) {
       if (iarg+2 > narg) error->all("Illegal communicate command");
       if (strcmp(arg[iarg+1],"yes") == 0) ghost_velocity = 1;
-      else if (strcmp(arg[iarg+1],"yes") == 0) ghost_velocity = 0;
+      else if (strcmp(arg[iarg+1],"no") == 0) ghost_velocity = 0;
       else error->all("Illegal communicate command");
       iarg += 2;
     } else error->all("Illegal communicate command");

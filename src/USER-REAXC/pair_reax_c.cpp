@@ -480,9 +480,12 @@ void PairReaxC::compute(int eflag, int vflag)
 //   }
 // #endif
 
+// Set internal timestep counter to that of LAMMPS
+
+  data->step = update->ntimestep;
+
   Output_Results( system, control, data, &lists, out_control, mpi_data );
 
-  ++data->step;
 }
 
 /* ---------------------------------------------------------------------- */

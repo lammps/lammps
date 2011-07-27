@@ -19,7 +19,7 @@
 enum{SPHERE_SPHERE,SPHERE_ELLIPSE,ELLIPSE_SPHERE,ELLIPSE_ELLIPSE};
 
 #ifdef NV_KERNEL
-#include "nv_kernel_def.h"
+#include "preprocessor.h"
 #endif
 
 /* ----------------------------------------------------------------------

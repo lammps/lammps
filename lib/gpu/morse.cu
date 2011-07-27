@@ -14,7 +14,7 @@
 // ***************************************************************************/
 
 #ifdef NV_KERNEL
-#include "nv_kernel_def.h"
+#include "preprocessor.h"
 texture<float4> pos_tex;
 #ifndef _DOUBLE_DOUBLE
 __inline float4 fetch_pos(const int& i, const float4 *pos) 

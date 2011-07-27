@@ -14,7 +14,7 @@
 // ***************************************************************************/
 
 #ifdef NV_KERNEL
-#include "nv_kernel_def.h"
+#include "preprocessor.h"
 #endif
 
 __kernel void kernel_cast_x(__global numtyp4 *x_type, __global double *x,

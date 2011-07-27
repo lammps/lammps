@@ -14,7 +14,7 @@
 // ***************************************************************************/
 
 #ifdef NV_KERNEL
-#include "nv_kernel_def.h"
+#include "preprocessor.h"
 #endif
 
 __kernel void kernel_unpack(__global int *dev_nbor, __global int *dev_ij,

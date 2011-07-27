@@ -14,7 +14,7 @@
 // ***************************************************************************/
 
 #ifdef NV_KERNEL
-#include "nv_kernel_def.h"
+#include "preprocessor.h"
 #endif
 
 __kernel void kernel_zero(__global int *mem, int numel) {

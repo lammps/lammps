@@ -9,7 +9,7 @@ GPU_LIB = $(LIB_DIR)/libgpu.a
 # Headers for Geryon
 UCL_H  = $(wildcard ./geryon/ucl*.h)
 NVC_H  = $(wildcard ./geryon/nvc*.h) $(UCL_H)
-NVD_H  = $(wildcard ./geryon/nvd*.h) $(UCL_H) nv_kernel_def.h
+NVD_H  = $(wildcard ./geryon/nvd*.h) $(UCL_H) preprocessor.h
 # Headers for Pair Stuff
 PAIR_H  = atom.h answer.h neighbor_shared.h \
           neighbor.h precision.h device.h \

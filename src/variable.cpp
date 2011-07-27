@@ -666,7 +666,7 @@ double Variable::evaluate(char *str, Tree **tree)
 
       if (tree) {
 	Tree *newtree;
-	double tmp = evaluate(contents,&newtree);
+	evaluate(contents,&newtree);
 	treestack[ntreestack++] = newtree;
       } else argstack[nargstack++] = evaluate(contents,NULL);
 
@@ -1135,7 +1135,7 @@ double Variable::evaluate(char *str, Tree **tree)
 	  if (tree == NULL)
 	    error->all("Atom-style variable in equal-style variable formula");
 	  Tree *newtree;
-	  double tmp = evaluate(data[ivar][0],&newtree);
+	  evaluate(data[ivar][0],&newtree);
 	  treestack[ntreestack++] = newtree;
 
         // v_name[N] = scalar from atom-style per-atom vector
@@ -1408,7 +1408,7 @@ double Variable::evaluate(char *str, Tree **tree)
 
 double Variable::collapse_tree(Tree *tree)
 {
-  double arg1,arg2,arg3;
+  double arg1,arg2;
 
   if (tree->type == VALUE) return tree->value;
   if (tree->type == ATOMARRAY) return 0.0;
@@ -1660,8 +1660,8 @@ double Variable::collapse_tree(Tree *tree)
   // random() or normal() do not become a single collapsed value
 
   if (tree->type == RANDOM) {
-    double lower = collapse_tree(tree->left);
-    double upper = collapse_tree(tree->middle);
+    collapse_tree(tree->left);
+    collapse_tree(tree->middle);
     if (randomatom == NULL) {
       int seed = static_cast<int> (collapse_tree(tree->right));
       if (seed <= 0) error->one("Invalid math function in variable formula");
@@ -1671,7 +1671,7 @@ double Variable::collapse_tree(Tree *tree)
   }
 
   if (tree->type == NORMAL) {
-    double mu = collapse_tree(tree->left);
+    collapse_tree(tree->left);
     double sigma = collapse_tree(tree->middle);
     if (sigma < 0.0) error->one("Invalid math function in variable formula");
     if (randomatom == NULL) {
@@ -3142,7 +3142,6 @@ double Variable::evaluate_boolean(char *str)
   int op,opprevious;
   double value1,value2;
   char onechar;
-  char *ptr;
 
   double argstack[MAXLEVEL];
   int opstack[MAXLEVEL];

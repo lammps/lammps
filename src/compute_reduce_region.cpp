@@ -170,7 +170,6 @@ double ComputeReduceRegion::compute_one(int m, int flag)
 	} else one = fix_vector[flag];
       } else {
 	double **fix_array = fix->array_atom;
-	int n = nlocal;
 	int jm1 = j - 1;
 	if (flag < 0) {
 	  for (i = 0; i < nlocal; i++)
@@ -223,10 +222,6 @@ double ComputeReduceRegion::compute_one(int m, int flag)
 bigint ComputeReduceRegion::count(int m)
 {
   int n = value2index[m];
-  int j = argindex[m];
-
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
 
   if (which[m] == X || which[m] == V || which[m] == F)
     return group->count(igroup,iregion);

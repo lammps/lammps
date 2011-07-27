@@ -34,7 +34,6 @@ using namespace LAMMPS_NS;
 
 Update::Update(LAMMPS *lmp) : Pointers(lmp)
 {
-  int n;
   char *str;
 
   ntimestep = 0;

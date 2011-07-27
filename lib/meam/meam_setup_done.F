@@ -105,6 +105,7 @@ c here or in the input file)
             Ec_meam(i,j) = Ec_meam(j,i)
             alpha_meam(i,j) = alpha_meam(j,i)
             lattce_meam(i,j) = lattce_meam(j,i)
+            nn2_meam(i,j) = nn2_meam(j,i)
 c If i<j and term is unset, use default values (e.g. mean of i-i and j-j)
           else if (j.gt.i) then
             if (Ec_meam(i,j).eq.0.d0) then
@@ -446,8 +447,13 @@ c     use precomputed values
           rho_bkgd1 = rho0_1
           rho_bkgd2 = rho0_2
         else
-          rho_bkgd1 = rho_ref_meam(a)
-          rho_bkgd2 = rho_ref_meam(b)
+          if (bkgd_dyn.eq.1) then
+            rho_bkgd1 = rho0_meam(a)*Z_meam(a)
+            rho_bkgd2 = rho0_meam(b)*Z_meam(b)
+          else
+            rho_bkgd1 = rho_ref_meam(a)
+            rho_bkgd2 = rho_ref_meam(b)
+          endif
         endif
         rhobar1 = rho01/rho_bkgd1*G1
         rhobar2 = rho02/rho_bkgd2*G2
@@ -458,12 +464,20 @@ c compute embedding functions, eqn I.5
       if (rhobar1.eq.0.d0) then
         F1 = 0.d0
       else
-        F1 = A_meam(a)*Ec_meam(a,a)*rhobar1*log(rhobar1)
+        if (emb_lin_neg.eq.1 .and. rhobar1.le.0) then
+          F1 = -A_meam(a)*Ec_meam(a,a)*rhobar1
+        else
+          F1 = A_meam(a)*Ec_meam(a,a)*rhobar1*log(rhobar1)
+        endif
       endif
       if (rhobar2.eq.0.d0) then
         F2 = 0.d0
       else
-        F2 = A_meam(b)*Ec_meam(b,b)*rhobar2*log(rhobar2)
+        if (emb_lin_neg.eq.1 .and. rhobar2.le.0) then
+          F2 = -A_meam(b)*Ec_meam(b,b)*rhobar2
+        else
+          F2 = A_meam(b)*Ec_meam(b,b)*rhobar2*log(rhobar2)
+       endif
       endif
 
 c compute Rose function, I.16

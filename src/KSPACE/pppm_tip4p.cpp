@@ -149,6 +149,7 @@ void PPPMTIP4P::fieldforce()
   int iH1,iH2;
   double xM[3];
   double fx,fy,fz;
+  double ddotf, rOM[3], f1[3];
 
   // loop over my charges, interpolate electric field from nearby grid points
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
@@ -207,17 +208,27 @@ void PPPMTIP4P::fieldforce()
       fz = qqrd2e * q[i] * ek[2];
       find_M(i,iH1,iH2,xM);
 
-      f[i][0] += fx*(1.0-2.0*alpha);
-      f[i][1] += fy*(1.0-2.0*alpha);
-      f[i][2] += fz*(1.0-2.0*alpha);
+      rOM[0] = xM[0] - x[i][0];
+      rOM[1] = xM[1] - x[i][1];
+      rOM[2] = xM[2] - x[i][2];
+  
+      ddotf = (rOM[0] * fx + rOM[1] * fy + rOM[2] * fz) / (qdist * qdist);
 
-      f[iH1][0] += alpha*(fx); 
-      f[iH1][1] += alpha*(fy); 
-      f[iH1][2] += alpha*(fz); 
+      f1[0] = ddotf * rOM[0];
+      f1[1] = ddotf * rOM[1];
+      f1[2] = ddotf * rOM[2];
 
-      f[iH2][0] += alpha*(fx); 
-      f[iH2][1] += alpha*(fy); 
-      f[iH2][2] += alpha*(fz); 
+      f[i][0] += fx - alpha * (fx - f1[0]);
+      f[i][1] += fy - alpha * (fy - f1[1]);
+      f[i][2] += fz - alpha * (fz - f1[2]);
+
+      f[iH1][0] += 0.5*alpha*(fx - f1[0]); 
+      f[iH1][1] += 0.5*alpha*(fy - f1[1]); 
+      f[iH1][2] += 0.5*alpha*(fz - f1[2]); 
+
+      f[iH2][0] += 0.5*alpha*(fx - f1[0]); 
+      f[iH2][1] += 0.5*alpha*(fy - f1[1]); 
+      f[iH2][2] += 0.5*alpha*(fz - f1[2]); 
     }
   }
 }
@@ -249,7 +260,7 @@ void PPPMTIP4P::find_M(int i, int &iH1, int &iH2, double *xM)
   double delz2 = x[iH2][2] - x[i][2];
   domain->minimum_image(delx2,dely2,delz2);
 
-  xM[0] = x[i][0] + alpha * (delx1 + delx2);
-  xM[1] = x[i][1] + alpha * (dely1 + dely2);
-  xM[2] = x[i][2] + alpha * (delz1 + delz2);
+  xM[0] = x[i][0] + alpha * 0.5 * (delx1 + delx2);
+  xM[1] = x[i][1] + alpha * 0.5 * (dely1 + dely2);
+  xM[2] = x[i][2] + alpha * 0.5 * (delz1 + delz2);
 }

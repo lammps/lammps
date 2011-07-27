@@ -174,7 +174,7 @@ void PPPM::init()
       error->all("Bad TIP4P bond type for PPPM/TIP4P");
     double theta = force->angle->equilibrium_angle(typeA);
     double blen = force->bond->equilibrium_distance(typeB);
-    alpha = qdist / (2.0 * cos(0.5*theta) * blen);
+    alpha = qdist / (cos(0.5*theta) * blen);
   }
 
   // compute qsum & qsqsum and warn if not charge-neutral
@@ -1481,12 +1481,10 @@ void PPPM::particle_map()
 
     if (nx+nlower < nxlo_out || nx+nupper > nxhi_out ||
 	ny+nlower < nylo_out || ny+nupper > nyhi_out ||
-	nz+nlower < nzlo_out || nz+nupper > nzhi_out) flag++;
+	nz+nlower < nzlo_out || nz+nupper > nzhi_out) flag = 1;
   }
 
-  int flag_all;
-  MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
-  if (flag_all) error->all("Out of range atoms - cannot compute PPPM");
+  if (flag) error->one("Out of range atoms - cannot compute PPPM");
 }
 
 /* ----------------------------------------------------------------------

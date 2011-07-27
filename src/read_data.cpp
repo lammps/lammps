@@ -459,9 +459,8 @@ void ReadData::atoms()
 	if (eof == NULL) error->one("Unexpected end of data file");
 	m += strlen(&buffer[m]);
       }
-      buffer[m++] = '\n';
+      m++;
     }
-    buffer[m] = '\0';
     MPI_Bcast(&m,1,MPI_INT,0,world);
     MPI_Bcast(buffer,m,MPI_CHAR,0,world);
 
@@ -551,9 +550,8 @@ void ReadData::velocities()
 	if (eof == NULL) error->one("Unexpected end of data file");
 	m += strlen(&buffer[m]);
       }
-      buffer[m++] = '\n';
+      m++;
     }
-    buffer[m] = '\0';
     MPI_Bcast(&m,1,MPI_INT,0,world);
     MPI_Bcast(buffer,m,MPI_CHAR,0,world);
 
@@ -603,9 +601,8 @@ void ReadData::ellipsoids()
 	if (eof == NULL) error->one("Unexpected end of data file");
 	m += strlen(&buffer[m]);
       }
-      buffer[m++] = '\n';
+      m++;
     }
-    buffer[m] = '\0';
     MPI_Bcast(&m,1,MPI_INT,0,world);
     MPI_Bcast(buffer,m,MPI_CHAR,0,world);
 
@@ -643,9 +640,8 @@ void ReadData::bonds()
 	if (eof == NULL) error->one("Unexpected end of data file");
 	m += strlen(&buffer[m]);
       }
-      buffer[m++] = '\n';
+      m++;
     }
-    buffer[m] = '\0';
     MPI_Bcast(&m,1,MPI_INT,0,world);
     MPI_Bcast(buffer,m,MPI_CHAR,0,world);
 
@@ -689,9 +685,8 @@ void ReadData::angles()
 	if (eof == NULL) error->one("Unexpected end of data file");
 	m += strlen(&buffer[m]);
       }
-      buffer[m++] = '\n';
+      m++;
     }
-    buffer[m] = '\0';
     MPI_Bcast(&m,1,MPI_INT,0,world);
     MPI_Bcast(buffer,m,MPI_CHAR,0,world);
 
@@ -735,9 +730,8 @@ void ReadData::dihedrals()
 	if (eof == NULL) error->one("Unexpected end of data file");
 	m += strlen(&buffer[m]);
       }
-      buffer[m++] = '\n';
+      m++;
     }
-    buffer[m] = '\0';
     MPI_Bcast(&m,1,MPI_INT,0,world);
     MPI_Bcast(buffer,m,MPI_CHAR,0,world);
 
@@ -782,9 +776,8 @@ void ReadData::impropers()
 	if (eof == NULL) error->one("Unexpected end of data file");
 	m += strlen(&buffer[m]);
       }
-      buffer[m++] = '\n';
+      m++;
     }
-    buffer[m] = '\0';
     MPI_Bcast(&m,1,MPI_INT,0,world);
     MPI_Bcast(buffer,m,MPI_CHAR,0,world);
 

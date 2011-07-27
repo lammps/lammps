@@ -364,8 +364,8 @@ double FixBoxRelax::min_energy(double *fextra)
 {
   double eng,scale,scalex,scaley,scalez,scalevol;
 
-  double t_current = temperature->compute_scalar();
-  if (pstyle == ISO) double tmp = pressure->compute_scalar();
+  temperature->compute_scalar();
+  if (pstyle == ISO) pressure->compute_scalar();
   else {
     temperature->compute_vector();
     pressure->compute_vector();
@@ -735,7 +735,7 @@ int FixBoxRelax::modify_param(int narg, char **arg)
 
 void FixBoxRelax::compute_sigma()
 {
-  double pdevmod[3][3],pdeviatoric[3][3],htmp[3][3];
+  double pdeviatoric[3][3],htmp[3][3];
   double tmp1[3][3],sigma_tensor[3][3],h_invtmp[3][3];
 
   // reset reference box dimensions

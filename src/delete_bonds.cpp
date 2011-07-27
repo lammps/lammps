@@ -446,7 +446,6 @@ void DeleteBonds::command(int narg, char **arg)
 
   if (comm->me == 0) {
     if (atom->avec->bonds_allow) {
-      char str[128];
       if (screen) fprintf(screen,
 			  "  " BIGINT_FORMAT " total bonds, " BIGINT_FORMAT 
 			  " turned on, " BIGINT_FORMAT " turned off\n",

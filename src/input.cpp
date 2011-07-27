@@ -575,8 +575,7 @@ void Input::ifthenelse()
       ncommands++;
     }
     
-    for (int i = 0; i < ncommands; i++)
-      char *command = input->one(commands[i]);
+    for (int i = 0; i < ncommands; i++) input->one(commands[i]);
     
     for (int i = 0; i < ncommands; i++) delete [] commands[i];
     delete [] commands;
@@ -632,8 +631,7 @@ void Input::ifthenelse()
     
     // execute the list of commands
     
-    for (int i = 0; i < ncommands; i++)
-      char *command = input->one(commands[i]);
+    for (int i = 0; i < ncommands; i++) input->one(commands[i]);
     
     // clean up
 

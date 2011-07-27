@@ -737,10 +737,8 @@ void FixMove::final_integrate()
   else if (mstyle == ROTATE) zflag = 0;
   else if (mstyle == VARIABLE && (zvarstr || vzvarstr)) zflag = 0;
 
-  double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;
-  double **omega = atom->omega;
   double *rmass = atom->rmass;
   double *mass = atom->mass;
   int *type = atom->type;
@@ -897,7 +895,6 @@ void FixMove::set_arrays(int i)
   } else if (mstyle == WIGGLE) {
     double arg = omega_rotate * delta;
     double sine = sin(arg);
-    double cosine = cos(arg);
     if (axflag) xoriginal[i][0] -= ax*sine;
     if (ayflag) xoriginal[i][1] -= ay*sine;
     if (azflag) xoriginal[i][2] -= az*sine;

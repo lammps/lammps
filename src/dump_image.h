@@ -60,8 +60,8 @@ class DumpImage : public DumpCustom {
   double ssaoint;
 
   int npixels,viewflag;
-  float *depthBuffer,*surfaceBuffer;
-  float *depthcopy,*surfacecopy;
+  double *depthBuffer,*surfaceBuffer;
+  double *depthcopy,*surfacecopy;
   char *imageBuffer,*rgbcopy,*writeBuffer;
 
   double **bufcopy;
@@ -89,9 +89,9 @@ class DumpImage : public DumpCustom {
   double specularHardness;
   double specularIntensity;
 
-  float SSAORadius;
+  double SSAORadius;
   int SSAOSamples;
-  float SSAOJitter;
+  double SSAOJitter;
 
   // dynamic view params
 
@@ -143,10 +143,13 @@ class DumpImage : public DumpCustom {
   void color_minmax();
 
   void create_image();
+
+  // rasterizing methods
+
   void draw_sphere(double *, double *, double);
   void draw_cylinder(double *, double *, double *, double, int);
+  void draw_pixel(int, int, double, double *, double*);
   void compute_SSAO();
-
   void write_JPG();
   void write_PPM();
 

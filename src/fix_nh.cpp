@@ -666,7 +666,7 @@ void FixNH::setup(int vflag)
 
   t_current = temperature->compute_scalar();
   if (pstat_flag) {
-    if (pstyle == ISO) double tmp = pressure->compute_scalar();
+    if (pstyle == ISO) pressure->compute_scalar();
     else pressure->compute_vector();
     couple();
     pressure->addstep(update->ntimestep+1);
@@ -741,7 +741,7 @@ void FixNH::initial_integrate(int vflag)
   if (pstat_flag) {
     if (pstyle == ISO) {
       temperature->compute_scalar();
-      double tmp = pressure->compute_scalar();
+      pressure->compute_scalar();
     } else {
       temperature->compute_vector();
       pressure->compute_vector();
@@ -788,7 +788,7 @@ void FixNH::final_integrate()
 
   t_current = temperature->compute_scalar();
   if (pstat_flag) {
-    if (pstyle == ISO) double tmp = pressure->compute_scalar();
+    if (pstyle == ISO) pressure->compute_scalar();
     else pressure->compute_vector();
     couple();
     pressure->addstep(update->ntimestep+1);
@@ -807,8 +807,6 @@ void FixNH::final_integrate()
 
 void FixNH::initial_integrate_respa(int vflag, int ilevel, int iloop)
 {
-  int i;
-
   // set timesteps by level
 
   dtv = step_respa[ilevel];
@@ -844,7 +842,7 @@ void FixNH::initial_integrate_respa(int vflag, int ilevel, int iloop)
     if (pstat_flag) {
       if (pstyle == ISO) {
 	temperature->compute_scalar();
-	double tmp = pressure->compute_scalar();
+	pressure->compute_scalar();
       } else {
        	temperature->compute_vector();
 	pressure->compute_vector();
@@ -1430,7 +1428,6 @@ double FixNH::compute_vector(int n)
     }
   }
 
-  int i;
   double volume;
   double kt = boltz * t_target;
   double lkt = tdof * kt;
@@ -1641,7 +1638,7 @@ void FixNH::nhc_temp_integrate()
 void FixNH::nhc_press_integrate()
 {
   int ich,i;
-  double expfac,factor_etap,wmass,kecurrent;
+  double expfac,factor_etap,kecurrent;
   double kt = boltz * t_target;
   double lkt_press = kt;
 

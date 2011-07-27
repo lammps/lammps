@@ -76,7 +76,7 @@ void FixWallColloid::precompute(int m)
 void FixWallColloid::wall_particle(int m, int which, double coord)
 {
   double delta,delta2,rinv,r2inv,r4inv,r8inv,fwall;
-  double r2,rinv2,r2inv2,r4inv2,r6inv2;
+  double r2,rinv2,r2inv2,r4inv2;
   double r3,rinv3,r2inv3,r4inv3,r6inv3;
   double rad,rad2,rad4,rad8,diam,new_coeff2;
   double eoffset;
@@ -124,7 +124,6 @@ void FixWallColloid::wall_particle(int m, int which, double coord)
       rinv2 = 1.0/r2;
       r2inv2 = rinv2*rinv2;
       r4inv2 = r2inv2*r2inv2;
-      r6inv2 = r4inv2*r2inv2;
       r3 = delta + rad;
       rinv3 = 1.0/r3;
       r2inv3 = rinv3*rinv3;
@@ -141,7 +140,6 @@ void FixWallColloid::wall_particle(int m, int which, double coord)
       rinv2 = 1.0/r2;
       r2inv2 = rinv2*rinv2;
       r4inv2 = r2inv2*r2inv2;
-      r6inv2 = r4inv2*r2inv2;
       r3 = cutoff[m] + rad;
       rinv3 = 1.0/r3;
       r2inv3 = rinv3*rinv3;

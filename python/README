@@ -12,7 +12,7 @@ python setup_serial.py build           # for serial LAMMPS and Python
 sudo python setup_serial.py install
 
 python setup.py build                  # for parallel LAMMPS and Python
-sudo python setuppy install
+sudo python setup.py install
 
 but there are several issues to be aware of, as discussed in the doc
 pages.

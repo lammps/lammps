@@ -38,11 +38,11 @@ using namespace LAMMPS_NS;
 #define MAXLINE 1024
 
 enum{FCC,BCC,HCP,DIM,DIAMOND,B1,C11,L12,B2};
-int nkeywords = 19;
+int nkeywords = 21;
 char *keywords[] = {"Ec","alpha","rho0","delta","lattce",
 		    "attrac","repuls","nn2","Cmin","Cmax","rc","delr",
 		    "augt1","gsmooth_factor","re","ialloy","mixture_ref_t",
-                    "erose_form","zbl"};
+                    "erose_form","zbl","emb_lin_neg","bkgd_dyn"};
 
 /* ---------------------------------------------------------------------- */
 
@@ -117,17 +117,15 @@ PairMEAM::~PairMEAM()
 
 void PairMEAM::compute(int eflag, int vflag)
 {
-  int i,j,ii,n,inum_half,itype,jtype,errorflag;
+  int i,j,ii,n,inum_half,errorflag;
   double evdwl;
-  int *ilist_half,*jlist_half,*numneigh_half,**firstneigh_half;
+  int *ilist_half,*numneigh_half,**firstneigh_half;
   int *numneigh_full,**firstneigh_full;
 
   evdwl = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = eflag_global = vflag_global =
 	 eflag_atom = vflag_atom = 0;
-
-  int newton_pair = force->newton_pair;
 
   // grow local arrays if necessary
 
@@ -819,7 +817,7 @@ void PairMEAM::unpack_comm(int n, int first, double *buf)
 
 int PairMEAM::pack_reverse_comm(int n, int first, double *buf)
 {
-  int i,k,m,last,size;
+  int i,k,m,last;
 
   m = 0;
   last = first + n;

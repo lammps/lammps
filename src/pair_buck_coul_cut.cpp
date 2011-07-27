@@ -259,7 +259,7 @@ void PairBuckCoulCut::init_style()
   if (!atom->q_flag)
     error->all("Pair style buck/coul/cut requires atom attribute q");
 
-  int irequest = neighbor->request(this);
+  neighbor->request(this);
 }
 
 /* ----------------------------------------------------------------------

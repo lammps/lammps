@@ -160,7 +160,7 @@ void NEB::run()
   else color = 1;
   MPI_Comm_split(uworld,color,0,&roots);
 
-  int ineb,idamp;
+  int ineb;
   for (ineb = 0; ineb < modify->nfix; ineb++)
     if (strcmp(modify->fix[ineb]->style,"neb") == 0) break;
   if (ineb == modify->nfix) error->all("NEB requires use of fix neb");
@@ -214,8 +214,6 @@ void NEB::run()
   // retrieve PE values from fix NEB and print every nevery iterations
   // break induced if converged
   // damped dynamic min styles insure all replicas converge together
-
-  int flag,flagall;
 
   timer->barrier_start(TIME_LOOP);
   
@@ -321,7 +319,6 @@ void NEB::readfile(char *file)
   double fraction = ireplica/(nreplica-1.0);
 
   double **x = atom->x;
-  int *image = atom->image;
   int nlocal = atom->nlocal;
 
   char *buffer = new char[CHUNK*MAXLINE];

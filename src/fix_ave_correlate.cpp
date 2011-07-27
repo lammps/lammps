@@ -374,7 +374,7 @@ void FixAveCorrelate::setup(int vflag)
 
 void FixAveCorrelate::end_of_step()
 {
-  int i,j,k,m;
+  int i,j,m;
   double scalar;
 
   // skip if not step which requires doing something

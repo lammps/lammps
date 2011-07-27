@@ -258,7 +258,7 @@ void PairDPD::init_style()
   if (force->newton_pair == 0 && comm->me == 0) error->warning(
       "Pair dpd needs newton pair on for momentum conservation");
 
-  int irequest = neighbor->request(this);
+  neighbor->request(this);
 }
 
 /* ----------------------------------------------------------------------
@@ -380,7 +380,7 @@ double PairDPD::single(int i, int j, int itype, int jtype, double rsq,
   rinv = 1.0/r;
   wd = 1.0 - r/cut[itype][jtype];
   fforce = a0[itype][jtype]*wd * factor_dpd*rinv;
-  
-  phi = -a0[itype][jtype] * r * (1.0 - 0.5*r/cut[itype][jtype]);
+
+  phi = 0.5*a0[itype][jtype]*cut[itype][jtype] * wd*wd;
   return factor_dpd*phi;
 }

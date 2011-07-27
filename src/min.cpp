@@ -354,7 +354,6 @@ void Min::run(int n)
 {
   // minimizer iterations
 
-  int iter_start = niter;
   stop_condition = iterate(n);
   stopstr = stopstrings(stop_condition);
 

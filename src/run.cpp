@@ -231,8 +231,7 @@ void Run::command(int narg, char **arg)
 
       if (ncommands) {
 	modify->clearstep_compute();
-	for (int i = 0; i < ncommands; i++)
-	  char *command = input->one(commands[i]);
+	for (int i = 0; i < ncommands; i++) input->one(commands[i]);
 	modify->addstep_compute(update->ntimestep + nevery);
       }
 

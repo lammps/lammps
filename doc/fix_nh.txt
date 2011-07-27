@@ -440,19 +440,19 @@ The order of values in the global vector and their meaning is as
 follows.  The notation means there are tchain values for eta, followed
 by tchain for eta_dot, followed by ndof for omega, etc:
 
-eta\[tchain\] = particle thermostat displacements
-eta_dot\[tchain\] = particle thermostat velocities
-omega\[ndof\] = barostat displacements
-omega_dot\[ndof\] = barostat velocities
-etap\[pchain\] = barostat thermostat displacements
-etap_dot\[pchain\] = barostat thermostat velocities
-PE_eta\[tchain\] = potential energy of each particle thermostat displacement
-KE_eta_dot\[tchain\] = kinetic energy of each particle thermostat velocity
-PE_omega\[ndof\] = potential energy of each barostat displacement
-KE_omega_dot\[ndof\] = kinetic energy of each barostat velocity
-PE_etap\[pchain\] = potential energy of each barostat thermostat displacement
-KE_etap_dot\[pchain\] = kinetic energy of each barostat thermostat velocity
-PE_strain\[1\] = scalar strain energy :ul
+eta\[tchain\] = particle thermostat displacements (unitless)
+eta_dot\[tchain\] = particle thermostat velocities (1/time units)
+omega\[ndof\] = barostat displacements (unitless)
+omega_dot\[ndof\] = barostat velocities (1/time units)
+etap\[pchain\] = barostat thermostat displacements (unitless)
+etap_dot\[pchain\] = barostat thermostat velocities (1/time units)
+PE_eta\[tchain\] = potential energy of each particle thermostat displacement (energy units)
+KE_eta_dot\[tchain\] = kinetic energy of each particle thermostat velocity (energy units)
+PE_omega\[ndof\] = potential energy of each barostat displacement (energy units)
+KE_omega_dot\[ndof\] = kinetic energy of each barostat velocity (energy units)
+PE_etap\[pchain\] = potential energy of each barostat thermostat displacement (energy units)
+KE_etap_dot\[pchain\] = kinetic energy of each barostat thermostat velocity (energy units)
+PE_strain\[1\] = scalar strain energy (energy units) :ul
 
 These fixes can ramp their external temperature and pressure over
 multiple runs, using the {start} and {stop} keywords of the

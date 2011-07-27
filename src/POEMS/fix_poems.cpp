@@ -324,7 +324,7 @@ int FixPOEMS::setmask()
 
 void FixPOEMS::init()
 {
-  int i,j,ibody;
+  int i,ibody;
 
   // warn if more than one POEMS fix
 
@@ -591,7 +591,7 @@ void FixPOEMS::init()
 
 void FixPOEMS::setup(int vflag)
 {
-  int i,j,n,ibody;
+  int i,n,ibody;
 
   // vcm = velocity of center-of-mass of each rigid body
   // angmom = angular momentum of each rigid body
@@ -708,7 +708,7 @@ void FixPOEMS::initial_integrate(int vflag)
 
 void FixPOEMS::post_force(int vflag)
 {
-  int i,j,ibody;
+  int i,ibody;
   int xbox,ybox,zbox;
   double dx,dy,dz;
 
@@ -823,8 +823,6 @@ void FixPOEMS::pre_neighbor() {}
 
 int FixPOEMS::dof(int igroup)
 {
-  int i,j;
-
   int groupbit = group->bitmask[igroup];
 
   // ncount = # of atoms in each rigid body that are also in group
@@ -836,7 +834,7 @@ int FixPOEMS::dof(int igroup)
   int *ncount = new int[nbody];
   for (int ibody = 0; ibody < nbody; ibody++) ncount[ibody] = 0;
 
-  for (i = 0; i < nlocal; i++)
+  for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
       if (natom2body[i]) ncount[atom2body[i][0]]++;
 
@@ -852,7 +850,7 @@ int FixPOEMS::dof(int igroup)
   // subtract 3 additional dof for each joint if atom is also in igroup
 
   int m = 0;
-  for (i = 0; i < nlocal; i++)
+  for (int i = 0; i < nlocal; i++)
     if (natom2body[i] > 1 && (mask[i] & groupbit)) m += 3*(natom2body[i]-1);
   int mall;
   MPI_Allreduce(&m,&mall,1,MPI_INT,MPI_SUM,world);

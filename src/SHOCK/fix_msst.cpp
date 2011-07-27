@@ -375,7 +375,6 @@ void FixMSST::setup(int vflag)
     // to bias initial compression 
 
     double **v = atom->v;
-    double *mass = atom->mass;
     int *mask = atom->mask;
     double sqrt_initial_temperature_scaling = sqrt(1.0-tscale);
 
@@ -658,9 +657,7 @@ void FixMSST::remap(int flag)
   int i,n;
   double oldlo,oldhi,ctr;
 
-  double **x = atom->x;
   double **v = atom->v;
-  int *mask = atom->mask;
   if (flag) n = atom->nlocal + atom->nghost;
   else n = atom->nlocal;
 

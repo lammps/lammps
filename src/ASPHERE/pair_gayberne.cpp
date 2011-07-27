@@ -340,7 +340,7 @@ void PairGayBerne::coeff(int narg, char **arg)
 
 void PairGayBerne::init_style()
 {
-  int irequest = neighbor->request(this);
+  neighbor->request(this);
 
   // per-type shape precalculations
   // require that atom shapes are identical within each type

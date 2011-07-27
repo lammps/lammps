@@ -72,7 +72,7 @@ void PairLubricate::compute(int eflag, int vflag)
   double vt1,vt2,vt3,w1,w2,w3,v_shear1,v_shear2,v_shear3;
   double omega_t_1,omega_t_2,omega_t_3;
   double n_cross_omega_t_1,n_cross_omega_t_2,n_cross_omega_t_3;
-  double wr1,wr2,wr3,wnnr,wn1,wn2,wn3,inv_inertia;
+  double wr1,wr2,wr3,wnnr,wn1,wn2,wn3;
   double P_dot_wrel_1,P_dot_wrel_2,P_dot_wrel_3;
   double a_squeeze,a_shear,a_pump,a_twist;
   int *ilist,*jlist,*numneigh,**firstneigh;
@@ -87,7 +87,6 @@ void PairLubricate::compute(int eflag, int vflag)
   double **omega = atom->omega;
   double **torque = atom->torque;
   double *radius = atom->radius;
-  double *rmass = atom->rmass;
   int *type = atom->type;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
@@ -383,7 +382,7 @@ void PairLubricate::init_style()
   if (comm->ghost_velocity == 0)
     error->all("Pair lubricate requires ghost atoms store velocity");
 
-  int irequest = neighbor->request(this);
+  neighbor->request(this);
 
   // require that atom radii are identical within each type
   // require monodisperse system with same radii for all types

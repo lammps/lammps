@@ -144,7 +144,8 @@ density; options are
    1 => G = exp(Gamma/2)
    2 => not implemented 
    3 => G = 2/(1+exp(-Gamma))
-   4 => G = sqrt(1+Gamma) 
+   4 => G = sqrt(1+Gamma)
+  -5 => G = +-sqrt(abs(1+Gamma)) 
 </PRE>
 <P>If used, the MEAM parameter file contains settings that override or
 complement the library file settings.  Examples of such parameter
@@ -227,6 +228,14 @@ mixture_ref_t   = integer flag to use mixture average of t to compute the backgr
                     default = 0 
 erose_form      = integer value to select the form of the Rose energy function 
                   (see description below).
+                    default = 0
+emb_lin_neg     = integer value to select embedding function for negative densities
+                    0 = F(rho)=0
+                    1 = F(rho)=-asub*esub*rho (linear in rho, matches DYNAMO)
+                    default = 0
+bkg_dyn         = integer value to select background density formula
+                    0 = rho_bkgd=rho_ref_meam(a) (as in the reference structure)
+                    1 = rho_bkgd=rho0_meam(a)*Z_meam(a) (matches DYNAMO)
                     default = 0 
 </PRE>
 <P>Rc, delr, re are in distance units (Angstroms in the case of metal

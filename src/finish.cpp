@@ -46,7 +46,6 @@ void Finish::end(int flag)
   int loopflag,minflag,prdflag,tadflag,timeflag,fftflag,histoflag,neighflag;
   double time,tmp,ave,max,min;
   double time_loop,time_other;
-  bigint natoms;
 
   int me,nprocs;
   MPI_Comm_rank(world,&me);
@@ -83,20 +82,16 @@ void Finish::end(int flag)
     time_loop = tmp/nprocs;
 
     // overall loop time
-    // use actual natoms, in case atoms were lost
-
-    bigint nblocal = atom->nlocal;
-    MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
     
     if (me == 0) {
       if (screen) fprintf(screen,
 			  "Loop time of %g on %d procs for %d steps with " 
 			  BIGINT_FORMAT " atoms\n",
-			  time_loop,nprocs,update->nsteps,natoms);
+			  time_loop,nprocs,update->nsteps,atom->natoms);
       if (logfile) fprintf(logfile,
 			   "Loop time of %g on %d procs for %d steps with " 
 			   BIGINT_FORMAT " atoms\n",
-			   time_loop,nprocs,update->nsteps,natoms);
+			   time_loop,nprocs,update->nsteps,atom->natoms);
   }
 
     if (time_loop == 0.0) time_loop = 1.0;
@@ -585,9 +580,11 @@ void Finish::end(int flag)
 	  fprintf(screen,
 		  "Total # of neighbors = %d\n",static_cast<int> (nall));
 	else fprintf(screen,"Total # of neighbors = %g\n",nall);
-	if (natoms > 0) fprintf(screen,"Ave neighs/atom = %g\n",nall/natoms);
-	if (atom->molecular && natoms > 0) 
-	  fprintf(screen,"Ave special neighs/atom = %g\n",nspec_all/natoms);
+	if (atom->natoms > 0) 
+	  fprintf(screen,"Ave neighs/atom = %g\n",nall/atom->natoms);
+	if (atom->molecular && atom->natoms > 0) 
+	  fprintf(screen,"Ave special neighs/atom = %g\n",
+		  nspec_all/atom->natoms);
 	fprintf(screen,"Neighbor list builds = %d\n",neighbor->ncalls);
 	fprintf(screen,"Dangerous builds = %d\n",neighbor->ndanger);
       }
@@ -596,9 +593,11 @@ void Finish::end(int flag)
 	  fprintf(logfile,
 		  "Total # of neighbors = %d\n",static_cast<int> (nall));
 	else fprintf(logfile,"Total # of neighbors = %g\n",nall);
-	if (natoms > 0) fprintf(logfile,"Ave neighs/atom = %g\n",nall/natoms);
-	if (atom->molecular && natoms > 0) 
-	  fprintf(logfile,"Ave special neighs/atom = %g\n",nspec_all/natoms);
+	if (atom->natoms > 0) 
+	  fprintf(logfile,"Ave neighs/atom = %g\n",nall/atom->natoms);
+	if (atom->molecular && atom->natoms > 0) 
+	  fprintf(logfile,"Ave special neighs/atom = %g\n",
+		  nspec_all/atom->natoms);
 	fprintf(logfile,"Neighbor list builds = %d\n",neighbor->ncalls);
 	fprintf(logfile,"Dangerous builds = %d\n",neighbor->ndanger);
       }

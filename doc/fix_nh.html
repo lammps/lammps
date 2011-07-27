@@ -450,19 +450,19 @@ simulation, otherwise its value is 3.
 follows.  The notation means there are tchain values for eta, followed
 by tchain for eta_dot, followed by ndof for omega, etc:
 </P>
-<UL><LI>eta[tchain] = particle thermostat displacements
-<LI>eta_dot[tchain] = particle thermostat velocities
-<LI>omega[ndof] = barostat displacements
-<LI>omega_dot[ndof] = barostat velocities
-<LI>etap[pchain] = barostat thermostat displacements
-<LI>etap_dot[pchain] = barostat thermostat velocities
-<LI>PE_eta[tchain] = potential energy of each particle thermostat displacement
-<LI>KE_eta_dot[tchain] = kinetic energy of each particle thermostat velocity
-<LI>PE_omega[ndof] = potential energy of each barostat displacement
-<LI>KE_omega_dot[ndof] = kinetic energy of each barostat velocity
-<LI>PE_etap[pchain] = potential energy of each barostat thermostat displacement
-<LI>KE_etap_dot[pchain] = kinetic energy of each barostat thermostat velocity
-<LI>PE_strain[1] = scalar strain energy 
+<UL><LI>eta[tchain] = particle thermostat displacements (unitless)
+<LI>eta_dot[tchain] = particle thermostat velocities (1/time units)
+<LI>omega[ndof] = barostat displacements (unitless)
+<LI>omega_dot[ndof] = barostat velocities (1/time units)
+<LI>etap[pchain] = barostat thermostat displacements (unitless)
+<LI>etap_dot[pchain] = barostat thermostat velocities (1/time units)
+<LI>PE_eta[tchain] = potential energy of each particle thermostat displacement (energy units)
+<LI>KE_eta_dot[tchain] = kinetic energy of each particle thermostat velocity (energy units)
+<LI>PE_omega[ndof] = potential energy of each barostat displacement (energy units)
+<LI>KE_omega_dot[ndof] = kinetic energy of each barostat velocity (energy units)
+<LI>PE_etap[pchain] = potential energy of each barostat thermostat displacement (energy units)
+<LI>KE_etap_dot[pchain] = kinetic energy of each barostat thermostat velocity (energy units)
+<LI>PE_strain[1] = scalar strain energy (energy units) 
 </UL>
 <P>These fixes can ramp their external temperature and pressure over
 multiple runs, using the <I>start</I> and <I>stop</I> keywords of the

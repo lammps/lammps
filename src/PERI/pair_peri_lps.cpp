@@ -127,8 +127,6 @@ void PairPeriLPS::compute(int eflag, int vflag)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  double dt = update->dt;                   
-
   // loop over neighbors of my atoms
   // need minimg() for x0 difference since not ghosted
 
@@ -452,7 +450,7 @@ void PairPeriLPS::init_style()
     if (strcmp(modify->fix[i]->style,"PERI_NEIGH") == 0) ifix_peri = i;
   if (ifix_peri == -1) error->all("Fix peri neigh does not exist");
 
-  int irequest = neighbor->request(this);
+  neighbor->request(this);
 }
 
 /* ----------------------------------------------------------------------

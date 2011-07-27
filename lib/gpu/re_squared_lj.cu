@@ -17,11 +17,6 @@
 #include "ellipsoid_extra.h"
 #endif
 
-#define SBBITS 30
-#define NEIGHMASK 0x3FFFFFFF
-__inline int sbmask(int j) { return j >> SBBITS & 3; }
-
-
 __kernel void kernel_ellipsoid_sphere(__global numtyp4* x_,__global numtyp4 *q,
                    __global numtyp4* shape, __global numtyp4* well, 
                    __global numtyp *splj, __global numtyp2* sig_eps,

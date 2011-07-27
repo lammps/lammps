@@ -13,16 +13,9 @@
 //    email                : brownw@ornl.gov
 // ***************************************************************************/
 
-#ifndef GAYBERNE_CU
-#define GAYBERNE_CU
-
 #ifdef NV_KERNEL
 #include "ellipsoid_extra.h"
 #endif
-
-#define SBBITS 30
-#define NEIGHMASK 0x3FFFFFFF
-__inline int sbmask(int j) { return j >> SBBITS & 3; }
 
 __inline void compute_eta_torque(numtyp m[9],numtyp m2[9], const numtyp4 shape, 
                                  numtyp ans[9])
@@ -424,6 +417,3 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
     ans[ii+astride]=tor;
   } // if ii
 }
-
-#endif
-

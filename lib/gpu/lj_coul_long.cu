@@ -14,83 +14,16 @@
 // ***************************************************************************/
 
 #ifdef NV_KERNEL
-
 #include "nv_kernel_def.h"
 texture<float4> pos_tex;
 texture<float> q_tex;
-
-#ifdef _DOUBLE_DOUBLE
-__inline double4 fetch_pos(const int& i, const double4 *pos)
-{
-  return pos[i];
-}
-__inline double fetch_q(const int& i, const double *q)
-{
-  return q[i];
-}
-#else
-__inline float4 fetch_pos(const int& i, const float4 *pos)
-{
-  return tex1Dfetch(pos_tex, i);
-}
-__inline float fetch_q(const int& i, const float *q)
-{
-  return tex1Dfetch(q_tex, i);
-}
+#ifndef _DOUBLE_DOUBLE
+__inline float4 fetch_pos(const int& i, const float4 *pos) 
+  { return tex1Dfetch(pos_tex, i); }
+__inline float fetch_q(const int& i, const float *q) 
+  { return tex1Dfetch(q_tex, i); }
 #endif
-
-#else
-
-#pragma OPENCL EXTENSION cl_khr_fp64: enable
-#define GLOBAL_ID_X get_global_id(0)
-#define THREAD_ID_X get_local_id(0)
-#define BLOCK_ID_X get_group_id(0)
-#define BLOCK_SIZE_X get_local_size(0)
-#define __syncthreads() barrier(CLK_LOCAL_MEM_FENCE)
-#define __inline inline
-
-#define fetch_pos(i,y) x_[i]
-#define fetch_q(i,y) q_[i]
-#define BLOCK_PAIR 64
-#define MAX_SHARED_TYPES 8
-
 #endif
-
-#ifdef _DOUBLE_DOUBLE
-#define numtyp double
-#define numtyp2 double2
-#define numtyp4 double4
-#define acctyp double
-#define acctyp4 double4
-#endif
-
-#ifdef _SINGLE_DOUBLE
-#define numtyp float
-#define numtyp2 float2
-#define numtyp4 float4
-#define acctyp double
-#define acctyp4 double4
-#endif
-
-#ifndef numtyp
-#define numtyp float
-#define numtyp2 float2
-#define numtyp4 float4
-#define acctyp float
-#define acctyp4 float4
-#endif
-
-#define EWALD_F (numtyp)1.12837917
-#define EWALD_P (numtyp)0.3275911
-#define A1 (numtyp)0.254829592
-#define A2 (numtyp)-0.284496736
-#define A3 (numtyp)1.421413741
-#define A4 (numtyp)-1.453152027
-#define A5 (numtyp)1.061405429
-
-#define SBBITS 30
-#define NEIGHMASK 0x3FFFFFFF
-__inline int sbmask(int j) { return j >> SBBITS & 3; }
 
 __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *lj1,
                           __global numtyp4* lj3, const int lj_types, 

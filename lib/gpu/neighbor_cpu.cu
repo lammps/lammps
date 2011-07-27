@@ -14,13 +14,7 @@
 // ***************************************************************************/
 
 #ifdef NV_KERNEL
-
-#include "geryon/ucl_nv_kernel.h"
-
-#else
-
-#define GLOBAL_ID_X get_global_id(0)
-
+#include "nv_kernel_def.h"
 #endif
 
 __kernel void kernel_unpack(__global int *dev_nbor, __global int *dev_ij,

@@ -15,49 +15,13 @@
 // ***************************************************************************/
 
 #ifdef NV_KERNEL
-
 #include "nv_kernel_def.h"
 texture<float4> neigh_tex;
-
-#ifdef _DOUBLE_DOUBLE
-__inline double4 fetch_pos(const int i, const double4 *pos)
-{
-  return pos[i];
-}
-#else
-__inline float4 fetch_pos(const int& i, const float4 *pos)
-{
-  return tex1Dfetch(neigh_tex, i);
-}
+#ifndef _DOUBLE_DOUBLE
+__inline float4 fetch_pos(const int& i, const float4 *pos) 
+  { return tex1Dfetch(neigh_tex, i); }
 #endif
-
-#else
-
-#define fetch_pos(i,y) x_[i]
-#define BLOCK_NBOR_BUILD 64
-
 #endif
-
-#ifdef _DOUBLE_DOUBLE
-#define numtyp double
-#define numtyp4 double4
-#endif
-
-#ifdef _SINGLE_DOUBLE
-#define numtyp float
-#define numtyp4 float4
-#endif
-
-#ifndef numtyp
-#define numtyp float
-#define numtyp4 float4
-#endif
-
-#define BLOCK_CELL_2D 8
-
-#define SBBITS 30
-
-#define SBBITS 30
 
 __kernel void transpose(int *out, int *in, int columns_in, int rows_in)
 {

@@ -14,33 +14,8 @@
 // ***************************************************************************/
 
 #ifdef NV_KERNEL
-
 #include "nv_kernel_def.h"
-
-#else
-
-#pragma OPENCL EXTENSION cl_khr_fp64: enable
-#define GLOBAL_ID_X get_global_id(0)
-#define THREAD_ID_X get_local_id(0)
-#define BLOCK_ID_X get_group_id(0)
-#define BLOCK_SIZE_X get_local_size(0)
-#define __syncthreads() barrier(CLK_LOCAL_MEM_FENCE)
-#define MAX_SHARED_TYPES 8
-
 #endif
-
-#ifdef _DOUBLE_DOUBLE
-#define numtyp double
-#define numtyp2 double2
-#define numtyp4 double4
-#else
-#define numtyp float
-#define numtyp2 float2
-#define numtyp4 float4
-#endif
-
-#define SBBITS 30
-#define NEIGHMASK 0x3FFFFFFF
 
 // ---------------------------------------------------------------------------
 // Unpack neighbors from dev_ij array into dev_nbor matrix for coalesced access

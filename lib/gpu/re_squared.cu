@@ -13,16 +13,9 @@
 //    email                : brownw@ornl.gov
 // ***************************************************************************/
 
-#ifndef RE_SQUARED_CU
-#define RE_SQUARED_CU
-
 #ifdef NV_KERNEL
 #include "ellipsoid_extra.h"
 #endif
-
-#define SBBITS 30
-#define NEIGHMASK 0x3FFFFFFF
-__inline int sbmask(int j) { return j >> SBBITS & 3; }
 
 __inline numtyp det_prime(const numtyp m[9], const numtyp m2[9])
 {
@@ -521,6 +514,3 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
   } // if ii
 
 }
-
-#endif
-

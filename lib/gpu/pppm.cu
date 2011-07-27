@@ -14,31 +14,14 @@
 // ***************************************************************************/
 
 #ifdef NV_KERNEL
-
-#include "geryon/ucl_nv_kernel.h"
+#include "nv_kernel_def.h"
 texture<float4> pos_tex;
 texture<float> q_tex;
-
-#ifdef _DOUBLE_DOUBLE
-__inline double4 fetch_pos(const int& i, const double4 *pos)
-{
-  return pos[i];
-}
-__inline double fetch_q(const int& i, const double *q)
-{
-  return q[i];
-}
-
-#else
-__inline float4 fetch_pos(const int& i, const float4 *pos)
-{
-  return tex1Dfetch(pos_tex, i);
-}
-__inline float fetch_q(const int& i, const float *q)
-{
-  return tex1Dfetch(q_tex, i);
-}
-
+#ifndef _DOUBLE_DOUBLE
+__inline float4 fetch_pos(const int& i, const float4 *pos) 
+  { return tex1Dfetch(pos_tex, i); }
+__inline float fetch_q(const int& i, const float *q) 
+  { return tex1Dfetch(q_tex, i); }
 #endif
 
 // Allow PPPM to compile without atomics for NVIDIA 1.0 cards, error
@@ -48,50 +31,9 @@ __inline float fetch_q(const int& i, const float *q)
 #endif
 
 #else
-
-#pragma OPENCL EXTENSION cl_khr_fp64: enable
 #pragma OPENCL EXTENSION cl_khr_global_int32_base_atomics: enable
-#define GLOBAL_ID_X get_global_id(0)
-#define THREAD_ID_X get_local_id(0)
-#define BLOCK_ID_X get_group_id(0)
-#define BLOCK_SIZE_X get_local_size(0)
-#define GLOBAL_SIZE_X get_global_size(0)
-#define __syncthreads() barrier(CLK_LOCAL_MEM_FENCE)
-#define __inline inline
-
-#define fetch_pos(i,y) x_[i]
-#define fetch_q(i,y) q_[i]
-#define MEM_THREADS 16
-
 #endif
 
-#ifdef _DOUBLE_DOUBLE
-#define numtyp double
-#define numtyp4 double4
-#define acctyp double
-#define acctyp4 double4
-#endif
-
-#ifdef _SINGLE_DOUBLE
-#define numtyp float
-#define numtyp4 float4
-#define acctyp double
-#define acctyp4 double4
-#endif
-
-#ifndef numtyp
-#define numtyp float
-#define numtyp4 float4
-#define acctyp float
-#define acctyp4 float4
-#endif
-
-// Maximum order for spline
-#define PPPM_MAX_SPLINE 8
-// Thread block size for PPPM kernels
-// - Must be >=PPPM_MAX_SPLINE^2
-// - Must be a multiple of 32
-#define PPPM_BLOCK_1D 64
 // Number of threads per pencil for charge spread
 #define PENCIL_SIZE MEM_THREADS
 // Number of pencils per block for charge spread

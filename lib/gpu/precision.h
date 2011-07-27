@@ -84,5 +84,8 @@ inline std::ostream & operator<<(std::ostream &out, const _lgpu_double4 &v) {
 
 enum{SPHERE_SPHERE,SPHERE_ELLIPSE,ELLIPSE_SPHERE,ELLIPSE_ELLIPSE};
 
+#ifndef OCL_VENDOR
+#define OCL_VENDOR "GENERIC_OCL"
 #endif
 
+#endif

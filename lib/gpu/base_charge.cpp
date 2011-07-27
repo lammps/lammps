@@ -290,7 +290,8 @@ void BaseChargeT::compile_kernels(UCL_Device &dev, const char *pair_str) {
     return;
 
   std::string flags="-cl-fast-relaxed-math -cl-mad-enable "+
-                    std::string(OCL_PRECISION_COMPILE);
+                    std::string(OCL_PRECISION_COMPILE)+" -D"+
+                    std::string(OCL_VENDOR);
 
   pair_program=new UCL_Program(dev);
   pair_program->load_string(pair_str,flags.c_str());

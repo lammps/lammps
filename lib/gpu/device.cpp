@@ -533,7 +533,7 @@ int DeviceT::compile_kernels() {
   if (_compiled)
   	return flag;
   	
-  std::string flags="-cl-mad-enable";
+  std::string flags="-cl-mad-enable -D"+std::string(OCL_VENDOR);
   dev_program=new UCL_Program(*gpu);
   int success=dev_program->load_string(device,flags.c_str());
   if (success!=UCL_SUCCESS)

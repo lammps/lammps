@@ -377,7 +377,8 @@ void PPPMT::compile_kernels(UCL_Device &dev) {
     return;
 
   std::string flags="-cl-fast-relaxed-math -cl-mad-enable "+
-                    std::string(OCL_PRECISION_COMPILE);
+                    std::string(OCL_PRECISION_COMPILE)+" -D"+
+                    std::string(OCL_VENDOR);
   #ifdef USE_OPENCL
   flags+=std::string(" -Dgrdtyp=")+ucl_template_name<grdtyp>()+" -Dgrdtyp4="+
          ucl_template_name<grdtyp>()+"4";

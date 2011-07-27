@@ -13,6 +13,7 @@
     email                : brownw@ornl.gov
  ***************************************************************************/
 
+#include "precision.h"
 #include "neighbor_shared.h"
 
 #ifdef USE_OPENCL
@@ -46,7 +47,8 @@ void NeighborShared::compile_kernels(UCL_Device &dev, const bool gpu_nbor) {
   	return;
   	
   _gpu_nbor=gpu_nbor;
-  std::string flags="-cl-fast-relaxed-math -cl-mad-enable";
+  std::string flags="-cl-fast-relaxed-math -cl-mad-enable -D"+
+                    std::string(OCL_VENDOR);
 
   if (gpu_nbor==false) {
     nbor_program=new UCL_Program(dev);

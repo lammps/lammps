@@ -41,7 +41,7 @@ do \
   src=$1
   krn=${src##*/}
   krn=${krn%.*}
-  echo "Converting kernel $krn from $src to a c-style string"
+  echo "Converting $src to a c-style string"
   sed -e 's/\\/\\\\/g'   \
       -e 's/"/\\"/g'     \
       -e 's/ *\/\/.*$//' \

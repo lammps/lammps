@@ -14,10 +14,10 @@
  ***************************************************************************/
 
 #ifdef USE_OPENCL
-#include "pppm_gpu_cl.h"
+#include "pppm_cl.h"
 #else
-#include "pppm_f_gpu_ptx.h"
-#include "pppm_d_gpu_ptx.h"
+#include "pppm_f_ptx.h"
+#include "pppm_d_ptx.h"
 #endif
 #include "pppm.h"
 #include <cassert>
@@ -389,9 +389,9 @@ void PPPMT::compile_kernels(UCL_Device &dev) {
   pppm_program->load_string(pppm,flags.c_str());
   #else
   if (sizeof(grdtyp)==sizeof(float))
-    pppm_program->load_string(pppm_f_gpu_kernel,flags.c_str());
+    pppm_program->load_string(pppm_f,flags.c_str());
   else
-    pppm_program->load_string(pppm_d_gpu_kernel,flags.c_str());
+    pppm_program->load_string(pppm_d,flags.c_str());
   #endif
 
   k_particle_map.set_function(*pppm_program,"particle_map");

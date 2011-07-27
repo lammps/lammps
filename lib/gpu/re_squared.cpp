@@ -15,8 +15,10 @@
 
 #ifdef USE_OPENCL
 #include "re_squared_cl.h"
+#include "re_squared_lj_cl.h"
 #else
 #include "re_squared_ptx.h"
+#include "re_squared_lj_ptx.h"
 #endif
 
 #include "re_squared.h"

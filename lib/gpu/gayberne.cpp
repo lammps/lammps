@@ -15,8 +15,10 @@
 
 #ifdef USE_OPENCL
 #include "gayberne_cl.h"
+#include "gayberne_lj_cl.h"
 #else
 #include "gayberne_ptx.h"
+#include "gayberne_lj_ptx.h"
 #endif
 
 #include "gayberne.h"

@@ -16,12 +16,12 @@
 #include "neighbor_shared.h"
 
 #ifdef USE_OPENCL
-#include "nbor_cl.h"
+#include "neighbor_cpu_cl.h"
 #else
-#include "nbor_ptx.h"
-#include "pair_gpu_build_ptx.h"
+#include "neighbor_cpu_ptx.h"
+#include "neighbor_gpu_ptx.h"
 #endif
-  
+
 using namespace LAMMPS_AL;
 
 void NeighborShared::clear() {

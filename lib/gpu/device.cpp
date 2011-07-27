@@ -22,9 +22,9 @@
 #endif
 
 #ifdef USE_OPENCL
-#include "pair_gpu_dev_cl.h"
+#include "device_cl.h"
 #else
-#include "pair_gpu_dev_ptx.h"
+#include "device_ptx.h"
 #endif
 
 using namespace LAMMPS_AL;

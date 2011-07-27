@@ -26,7 +26,7 @@ enum{SPHERE_SPHERE,SPHERE_ELLIPSE,ELLIPSE_SPHERE,ELLIPSE_ELLIPSE};
    dot product of 2 vectors
 ------------------------------------------------------------------------- */
 
-__inline numtyp gpu_dot3(const numtyp *v1, const numtyp *v2)
+ucl_inline numtyp gpu_dot3(const numtyp *v1, const numtyp *v2)
 {
   return v1[0]*v2[0]+v1[1]*v2[1]+v1[2]*v2[2];
 }
@@ -35,7 +35,7 @@ __inline numtyp gpu_dot3(const numtyp *v1, const numtyp *v2)
    cross product of 2 vectors
 ------------------------------------------------------------------------- */
 
-__inline void gpu_cross3(const numtyp *v1, const numtyp *v2, numtyp *ans)
+ucl_inline void gpu_cross3(const numtyp *v1, const numtyp *v2, numtyp *ans)
 {
   ans[0] = v1[1]*v2[2]-v1[2]*v2[1];
   ans[1] = v1[2]*v2[0]-v1[0]*v2[2];
@@ -46,7 +46,7 @@ __inline void gpu_cross3(const numtyp *v1, const numtyp *v2, numtyp *ans)
    determinant of a matrix
 ------------------------------------------------------------------------- */
 
-__inline numtyp gpu_det3(const numtyp m[9])
+ucl_inline numtyp gpu_det3(const numtyp m[9])
 {
   numtyp ans = m[0]*m[4]*m[8] - m[0]*m[5]*m[7] - 
     m[3]*m[1]*m[8] + m[3]*m[2]*m[7] + 
@@ -58,7 +58,7 @@ __inline numtyp gpu_det3(const numtyp m[9])
    diagonal matrix times a full matrix
 ------------------------------------------------------------------------- */
 
-__inline void gpu_diag_times3(const numtyp4 shape, const numtyp m[9], 
+ucl_inline void gpu_diag_times3(const numtyp4 shape, const numtyp m[9], 
                               numtyp ans[9])
 {
   ans[0] = shape.x*m[0];
@@ -76,7 +76,7 @@ __inline void gpu_diag_times3(const numtyp4 shape, const numtyp m[9],
    add two matrices
 ------------------------------------------------------------------------- */
 
-__inline void gpu_plus3(const numtyp m[9], const numtyp m2[9], numtyp ans[9])
+ucl_inline void gpu_plus3(const numtyp m[9], const numtyp m2[9], numtyp ans[9])
 {
   ans[0] = m[0]+m2[0];
   ans[1] = m[1]+m2[1];
@@ -93,7 +93,7 @@ __inline void gpu_plus3(const numtyp m[9], const numtyp m2[9], numtyp ans[9])
    multiply the transpose of mat1 times mat2
 ------------------------------------------------------------------------- */
 
-__inline void gpu_transpose_times3(const numtyp m[9], const numtyp m2[9],
+ucl_inline void gpu_transpose_times3(const numtyp m[9], const numtyp m2[9],
                                    numtyp ans[9])
 {
   ans[0] = m[0]*m2[0]+m[3]*m2[3]+m[6]*m2[6];
@@ -111,7 +111,7 @@ __inline void gpu_transpose_times3(const numtyp m[9], const numtyp m2[9],
    row vector times matrix
 ------------------------------------------------------------------------- */
 
-__inline void gpu_row_times3(const numtyp *v, const numtyp m[9], numtyp *ans)
+ucl_inline void gpu_row_times3(const numtyp *v, const numtyp m[9], numtyp *ans)
 {
   ans[0] = m[0]*v[0]+v[1]*m[3]+v[2]*m[6];
   ans[1] = v[0]*m[1]+m[4]*v[1]+v[2]*m[7];
@@ -124,7 +124,7 @@ __inline void gpu_row_times3(const numtyp *v, const numtyp m[9], numtyp *ans)
    error_flag set to 2 if bad matrix inversion attempted
 ------------------------------------------------------------------------- */
 
-__inline void gpu_mldivide3(const numtyp m[9], const numtyp *v, numtyp *ans,
+ucl_inline void gpu_mldivide3(const numtyp m[9], const numtyp *v, numtyp *ans,
                             __global int *error_flag)
 {
   // create augmented matrix for pivoting
@@ -243,7 +243,7 @@ __inline void gpu_mldivide3(const numtyp m[9], const numtyp *v, numtyp *ans,
    quat = [w i j k]
 ------------------------------------------------------------------------- */
 
-__inline void gpu_quat_to_mat_trans(__global const numtyp4 *qif, const int qi, 
+ucl_inline void gpu_quat_to_mat_trans(__global const numtyp4 *qif, const int qi, 
                                     numtyp mat[9])
 {
   numtyp4 q=qif[qi];
@@ -276,7 +276,7 @@ __inline void gpu_quat_to_mat_trans(__global const numtyp4 *qif, const int qi,
    transposed matrix times diagonal matrix
 ------------------------------------------------------------------------- */
 
-__inline void gpu_transpose_times_diag3(const numtyp m[9],
+ucl_inline void gpu_transpose_times_diag3(const numtyp m[9],
                                         const numtyp4 d, numtyp ans[9])
 {
   ans[0] = m[0]*d.x;
@@ -294,7 +294,7 @@ __inline void gpu_transpose_times_diag3(const numtyp m[9],
    multiply mat1 times mat2
 ------------------------------------------------------------------------- */
 
-__inline void gpu_times3(const numtyp m[9], const numtyp m2[9],
+ucl_inline void gpu_times3(const numtyp m[9], const numtyp m2[9],
                          numtyp ans[9])
 {
   ans[0] = m[0]*m2[0] + m[1]*m2[3] + m[2]*m2[6];
@@ -312,7 +312,7 @@ __inline void gpu_times3(const numtyp m[9], const numtyp m2[9],
    Apply principal rotation generator about x to rotation matrix m
 ------------------------------------------------------------------------- */
 
-__inline void gpu_rotation_generator_x(const numtyp m[9], numtyp ans[9])
+ucl_inline void gpu_rotation_generator_x(const numtyp m[9], numtyp ans[9])
 {
   ans[0] = 0;
   ans[1] = -m[2];
@@ -329,7 +329,7 @@ __inline void gpu_rotation_generator_x(const numtyp m[9], numtyp ans[9])
    Apply principal rotation generator about y to rotation matrix m
 ------------------------------------------------------------------------- */
 
-__inline void gpu_rotation_generator_y(const numtyp m[9], numtyp ans[9])
+ucl_inline void gpu_rotation_generator_y(const numtyp m[9], numtyp ans[9])
 {
   ans[0] = m[2];
   ans[1] = 0;
@@ -346,7 +346,7 @@ __inline void gpu_rotation_generator_y(const numtyp m[9], numtyp ans[9])
    Apply principal rotation generator about z to rotation matrix m
 ------------------------------------------------------------------------- */
 
-__inline void gpu_rotation_generator_z(const numtyp m[9], numtyp ans[9])
+ucl_inline void gpu_rotation_generator_z(const numtyp m[9], numtyp ans[9])
 {
   ans[0] = -m[1];
   ans[1] = m[0];
@@ -363,7 +363,7 @@ __inline void gpu_rotation_generator_z(const numtyp m[9], numtyp ans[9])
    matrix times vector
 ------------------------------------------------------------------------- */
 
-__inline void gpu_times_column3(const numtyp m[9], const numtyp v[3],
+ucl_inline void gpu_times_column3(const numtyp m[9], const numtyp v[3],
                                 numtyp ans[3]) 
 {
   ans[0] = m[0]*v[0] + m[1]*v[1] + m[2]*v[2];

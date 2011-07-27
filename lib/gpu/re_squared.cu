@@ -17,7 +17,7 @@
 #include "ellipsoid_extra.h"
 #endif
 
-__inline numtyp det_prime(const numtyp m[9], const numtyp m2[9])
+ucl_inline numtyp det_prime(const numtyp m[9], const numtyp m2[9])
 {
   numtyp ans;
   ans = m2[0]*m[4]*m[8] - m2[0]*m[5]*m[7] -

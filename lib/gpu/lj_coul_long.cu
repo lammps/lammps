@@ -18,9 +18,9 @@
 texture<float4> pos_tex;
 texture<float> q_tex;
 #ifndef _DOUBLE_DOUBLE
-__inline float4 fetch_pos(const int& i, const float4 *pos) 
+ucl_inline float4 fetch_pos(const int& i, const float4 *pos) 
   { return tex1Dfetch(pos_tex, i); }
-__inline float fetch_q(const int& i, const float *q) 
+ucl_inline float fetch_q(const int& i, const float *q) 
   { return tex1Dfetch(q_tex, i); }
 #endif
 #endif

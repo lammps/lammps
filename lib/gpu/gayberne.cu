@@ -17,7 +17,7 @@
 #include "ellipsoid_extra.h"
 #endif
 
-__inline void compute_eta_torque(numtyp m[9],numtyp m2[9], const numtyp4 shape, 
+ucl_inline void compute_eta_torque(numtyp m[9],numtyp m2[9], const numtyp4 shape, 
                                  numtyp ans[9])
 {
   numtyp den = m[3]*m[2]*m[7]-m[0]*m[5]*m[7]-

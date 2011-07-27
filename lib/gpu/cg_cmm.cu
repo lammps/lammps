@@ -17,7 +17,7 @@
 #include "preprocessor.h"
 texture<float4> pos_tex;
 #ifndef _DOUBLE_DOUBLE
-__inline float4 fetch_pos(const int& i, const float4 *pos) 
+ucl_inline float4 fetch_pos(const int& i, const float4 *pos) 
   { return tex1Dfetch(pos_tex, i); }
 #endif
 #endif

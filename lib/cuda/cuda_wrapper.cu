@@ -78,8 +78,11 @@ void CudaWrapper_Init(int argc, char** argv,int me,int ppn,int* devicelist)
     }
 
     for(int i=0;i<deviceCount;i++)
+    {
       if((deviceProp[dev_list[i]].computeMode==0)) sharedmode=true;
-    
+      cudaSetDevice(i);
+      cudaSetDeviceFlags(cudaDeviceMapHost);
+    }
     if(sharedmode)
     {
       if(ppn&&(me%ppn+1)>deviceCount) {printf("Asking for more GPUs per node when there are. Reduce gpu/node setting.\n"); exit(0);}
@@ -97,7 +100,6 @@ void CudaWrapper_Init(int argc, char** argv,int me,int ppn,int* devicelist)
     {
       CUDA_SAFE_CALL( cudaSetValidDevices(dev_list,deviceCount) );
     }
-    cudaSetDeviceFlags(cudaDeviceMapHost);
     cudaThreadSynchronize();
     
     int dev;

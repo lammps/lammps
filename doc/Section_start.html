@@ -142,13 +142,19 @@ gmake -f Makefile.list mac
 the file names in your src dir.  The 2nd "make" command (make or
 gmake) will use it to build LAMMPS.
 </P>
-<P>(2) Other errors typically occur because the low-level Makefile isn't
+<P>(2) If you get an error that says something like 'identifier "atoll"
+is undefined', then your machine does not support "long long"
+integers, and you need to edit the src/lmptype.h file.  There is a
+comment in the file about what to do.  Basically you replace
+MPI_LONG_LONG with MPI_LONG and atoll with atol.
+</P>
+<P>(3) Other errors typically occur because the low-level Makefile isn't
 setup correctly for your machine.  If your platform is named "foo",
 you will need to create a Makefile.foo in the MAKE sub-directory.  Use
 whatever existing file is closest to your platform as a starting
 point.  See the next section for more instructions.
 </P>
-<P>(3) If you get a link-time error about missing libraries or missing
+<P>(4) If you get a link-time error about missing libraries or missing
 dependencies, then it can be because:
 </P>
 <UL><LI>you are including a package that needs an extra library, but have not pre-built the necessary <A HREF = "#2_3_3">package library</A>
@@ -191,9 +197,12 @@ dependency list for a source file.  This speeds re-compilation when
 source (*.cpp) or header (*.h) files are edited.  Some compilers do
 not support dependency file creation, or may use a different switch
 than -D.  GNU g++ works with -D.  If your compiler can't create
-dependency files (a long list of errors involving *.d files), then
-you'll need to create a Makefile.foo patterned after Makefile.storm,
-which uses different rules that do not involve dependency files.
+dependency files, then you'll need to create a Makefile.foo patterned
+after Makefile.storm, which uses different rules that do not involve
+dependency files.  Note that when you build LAMMPS for the first time
+on a new platform, a long list of *.d files will be printed out
+rapidly.  This is not an error; it is the Makefile doing its normal
+creation of dependencies.
 </P>
 <P>(3) The "system-specific settings" section has 5 parts.
 </P>

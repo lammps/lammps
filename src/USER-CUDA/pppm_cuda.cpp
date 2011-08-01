@@ -876,7 +876,7 @@ void PPPMCuda::compute(int eflag, int vflag)
     nmax = atom->nmax;
     memory->create(part2grid,nmax,3,"pppm:part2grid");
  	delete cu_part2grid;
- 	delete adev_data_array;
+ 	delete [] adev_data_array;
  	adev_data_array=new dev_array[1];
  	cu_part2grid = new cCudaData<int  , int   , yx > ((int*)part2grid,adev_data_array, nmax,3);
 

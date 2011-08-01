@@ -62,6 +62,7 @@ DomainCuda::DomainCuda(LAMMPS *lmp) : Domain(lmp)
 
 void DomainCuda::init()
 {
+  cuda->accelerator(0,NULL);
   Domain::init();
 
   if(not cuda->finished_run)

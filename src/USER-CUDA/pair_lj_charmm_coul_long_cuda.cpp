@@ -79,6 +79,7 @@ void PairLJCharmmCoulLongCuda::allocate()
 	if(! allocated) PairLJCharmmCoulLong::allocate();
 	if(! allocated2)
 	{
+		cuda->accelerator(0,NULL);
 		allocated2 = true;
 		//cuda->shared_data.pair.cut     = cut_lj;
 		cuda->shared_data.pair.coeff1  = lj1;
@@ -193,8 +194,8 @@ void PairLJCharmmCoulLongCuda::ev_setup(int eflag, int vflag)
   if (eflag_atom && atom->nmax > maxeatomold) 
 	{delete cuda->cu_eatom; cuda->cu_eatom = new cCudaData<double, ENERGY_FLOAT, x > ((double*)eatom, & cuda->shared_data.atom.eatom , atom->nmax  );}
 
-  if (eflag_atom && atom->nmax > maxeatomold) 
-	{delete cuda->cu_vatom; cuda->cu_vatom = new cCudaData<double, ENERGY_FLOAT, yx > ((double*)vatom, & cuda->shared_data.atom.eatom , atom->nmax, 6  );}
+  if (vflag_atom && atom->nmax > maxeatomold) 
+	{delete cuda->cu_vatom; cuda->cu_vatom = new cCudaData<double, ENERGY_FLOAT, yx > ((double*)vatom, & cuda->shared_data.atom.vatom , atom->nmax, 6  );}
 	
 }
 

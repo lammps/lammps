@@ -176,7 +176,7 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
 	  error->all("Invalid dump image theta value");
 	theta *= PI/180.0;
       }
-      if (strstr(arg[iarg+1],"v_") == arg[iarg+2]) {
+      if (strstr(arg[iarg+2],"v_") == arg[iarg+2]) {
 	int n = strlen(&arg[iarg+2][2]) + 1;
 	phistr = new char[n];
 	strcpy(phistr,&arg[iarg+2][2]);

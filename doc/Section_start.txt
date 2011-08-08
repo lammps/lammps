@@ -290,8 +290,9 @@ simulations it is almost as fast as vendor optimized libraries.
 Other open-source or vendor-supplied FFT libaries can be specified as
 part of the FFT_INC setting by a switch of the form -DFFT_XXX where
 recommended values for XXX are: MKL, SCSL, FFTW2, FFTW3 or NONE.
-Legacy options are: INTEL, SGI, ACML, and T3E.  Using -DFFT_NONE will
-use the KISS library described above.
+Legacy options are: INTEL, SGI, ACML, and T3E.  For backward
+compatability, using -DFFT_FFTW will use the FFTW2 library.  Using
+-DFFT_NONE will use the KISS library described above.
 
 FFTW is a fast, portable library that should also work on any
 platform.  You can download it from

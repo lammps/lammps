@@ -38,7 +38,7 @@ MPI_LIB =	-lmpich -lpthread
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC =       -DFFT_FFTW 
+FFT_INC =    	-DFFT_FFTW
 FFT_PATH = 
 FFT_LIB =	-lfftw
 

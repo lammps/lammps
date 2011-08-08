@@ -1,0 +1,54 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>angle_style cosine/shift command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>angle_style cosine/shift 
+</PRE>
+<P><B>Examples:</B>
+</P>
+<PRE>angle_style cosine/shift
+angle_coeff * 10.0 45.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>The <I>cosine/shift</I> angle style uses the potential
+</P>
+<CENTER><IMG SRC = "Eqs/angle_cosine_shift.jpg">
+</CENTER>
+<P>where theta0 is the equilibrium angle. The potential is bounded
+between -Umin and zero. In the neighborhood of the minimum E=- Umin +
+Umin/4(theta-theta0)^2 hence the spring constant is umin/2.
+</P>
+<P>The following coefficients must be defined for each angle type via the
+<A HREF = "angle_coeff.html">angle_coeff</A> command as in the example above, or in
+the data file or restart files read by the <A HREF = "read_data.html">read_data</A>
+or <A HREF = "read_restart.html">read_restart</A> commands:
+</P>
+<UL><LI>umin (energy)
+<LI>theta (angle) 
+</UL>
+<P><B>Restrictions:</B>
+</P>
+<P>This angle style can only be used if LAMMPS was built with the
+"user-misc" package.  See the <A HREF = "Section_start.html#2_3">Making LAMMPS</A>
+section for more info on packages.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "angle_coeff.html">angle_coeff</A>,
+<A HREF = "angle_cosineshiftexp.html">angle_cosineshiftexp</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

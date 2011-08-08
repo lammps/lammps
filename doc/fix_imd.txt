@@ -101,10 +101,12 @@ forces to whole residues or fragments. Your mouse can now be used to
 apply forces to your simulation. Click on an atom, residue, or
 fragment and drag to apply a force. Click quickly without moving the
 mouse to turn the force off. You can also use a variety of 3D position
-trackers to apply forces to your simulation. Trackers with
-force-feedback such as the Sensable PHANTOM allow you to feel the
-forces you are applying to your molecules, as if they were real
-objects. See the "VMD IMD Homepage"_imdvmd for more details.
+trackers to apply forces to your simulation. Game controllers or haptic
+devices with force-feedback such as the Novint Falcon or Sensable 
+PHANTOM allow you to feel the resistance due to inertia or interactions
+with neighbors that the atoms experience you are trying to move, as if 
+they were real objects. See the "VMD IMD Homepage"_imdvmd and the 
+"VRPN-ICMS Homepage"_vrpnicms for more details.
 
 If IMD control messages are received, a line of text describing the
 message and its effect will be printed to the LAMMPS output screen, if
@@ -112,6 +114,7 @@ screen output is active.
 
 :link(VMD,http://www.ks.uiuc.edu/Research/vmd)x
 :link(imdvmd,http://www.ks.uiuc.edu/Research/vmd/imd/) 
+:link(vrpnicms,http://sites.google.com/site/akohlmey/software/vrpn-icms) 
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
@@ -128,6 +131,12 @@ This fix is not invoked during "energy minimization"_minimize.html.
 This fix is part of the "user-imd" package.  It is only enabled if
 LAMMPS was built with that package.  See the "Making
 LAMMPS"_Section_start.html#2_3 section for more info.
+This on platforms that support multi-threading, this fix can be 
+compiled in a way that the coordinate transfers to the IMD client
+can be handled from a separate thread, when LAMMPS is compiled with
+the -DLAMMPS_ASYNC_IMD preprocessor flag. This should to keep 
+MD loop times low and transfer rates high, especially for systems
+with many atoms and for slow connections.
 
 When used in combination with VMD, a topology or coordinate file has
 to be loaded, which matches (in number and ordering of atoms) the

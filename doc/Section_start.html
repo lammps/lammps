@@ -204,7 +204,7 @@ on a new platform, a long list of *.d files will be printed out
 rapidly.  This is not an error; it is the Makefile doing its normal
 creation of dependencies.
 </P>
-<P>(3) The "system-specific settings" section has 5 parts.
+<P>(3) The "system-specific settings" section has 6 parts.
 </P>
 <P>(3.a) The LMP_INC variable is used to include options that turn on
 system-dependent ifdefs within the LAMMPS code.  The settings
@@ -282,29 +282,49 @@ LAMMPS uses when using the particle-particle particle-mesh (PPPM)
 option in LAMMPS for long-range Coulombics via the
 <A HREF = "kspace_style.html">kspace_style</A> command.
 </P>
-<P>To use this option, you must have a 1d FFT library installed on your
-platform.  This is specified by a switch of the form -DFFT_XXX where
-XXX = INTEL, DEC, SGI, SCSL, or FFTW.  All but the last one are native
-vendor-provided libraries.  FFTW is a fast, portable library that
-should work on any platform.  You can download it from
-<A HREF = "http://www.fftw.org">www.fftw.org</A>.  Use version 2.1.X, not the newer
-3.0.X.  Building FFTW for your box should be as simple as ./configure;
-make.  Whichever FFT library you have on your platform, you'll need to
-set the appropriate FFT_INC, FFT_PATH, and FFT_LIB variables in
-Makefile.foo, so the compiler and linker can find it.
+<P>LAMMPS supports various open-source or vendor-supplied libraries for
+this purpose.  You need to set the appropriate FFT_INC, FFT_PATH, and
+FFT_LIB variables, so the compiler and linker can find the needed
+files.
 </P>
-<P>If you examine src/fft3d.c and src.fft3d.h you'll see it's possible to
-add other vendor FFT libraries via #ifdef statements in the
-appropriate places.  If you successfully add a new FFT option, like
--DFFT_IBM, please send the LAMMPS developers an email; we'd like to
-add it to LAMMPS.
+<P>If nothing is specified for these 3 variables, LAMMPS uses an internal
+FFT library which is derived from <A HREF = "http://kissfft.sf.net">KISSFFT</A>.
+This library is portable to all platforms and for typical LAMMPS
+simulations it is almost as fast as vendor optimized libraries.
 </P>
-<P>If you don't plan to use PPPM, you don't need an FFT library.  In this
-case you can set FFT_INC to -DFFT_NONE and leave the other 2 FFT
-variables blank.  Or you can exclude the KSPACE package when you build
-LAMMPS (see below).
+<P>Other open-source or vendor-supplied FFT libaries can be specified as
+part of the FFT_INC setting by a switch of the form -DFFT_XXX where
+recommended values for XXX are: MKL, SCSL, FFTW2, FFTW3 or NONE.
+Legacy options are: INTEL, SGI, ACML, and T3E.  Using -DFFT_NONE will
+use the KISS library described above.
 </P>
-<P>(3.d) The 3 JPG variables are used to specify a JPEG library which
+<P>FFTW is a fast, portable library that should also work on any
+platform.  You can download it from
+<A HREF = "http://www.fftw.org">www.fftw.org</A>.  Both, the legacy version 2.1.X
+and the newer 3.X versions are supported as -DFFT_FFTW2 or
+-DFFT_FFTW3.  Building FFTW for your box should be as simple as
+./configure; make.  Note that on some platforms FFTW2 has been
+pre-installed, and uses renamed files indicating the precision it was
+compiled with, e.g. sfftw.h, or dfftw.h instead of fftw.h.  In this
+case, you can specify an additional define variable for FFT_INC in
+your lo-level LAMMPS Makefile, called -DFFTW2_SIZE, which will select
+the correct include file.  In this case, For FFT_LIB you still must
+manually specify the correct -lsfftw or -ldfftw.
+</P>
+<P>(3.d) NOTE: this -DFFT_SINGLE option is not yet fully implemented.
+</P>
+<P>The FFT_INC variable also allows for a -DFFT_SINGLE setting that will
+use single-precision FFTs with PPPM, which can speed-up long-range
+calulations, particularly in parallel or on a GPU.  Fourier transform
+and related PPPM operations are somewhat insensitive to floating point
+truncation errors and thus do not always need to be performed in
+double precision.  Using the -DFFT_SINGLE setting trades off a little
+accuracy for reduced memory use and parallel communication costs for
+transposing 3d FFT data.  Note that single precision FFTs have only
+been tested with the FFTW3, FFTW2, MKL, and the internal KISS FFTs
+options.
+</P>
+<P>(3.e) The 3 JPG variables are used to specify a JPEG library which
 LAMMPS uses when writing a JPEG file via the <A HREF = "dump_image.html">dump
 image</A> command.  These can be left blank if you are
 not using the -DLAMMPS_JPEG switch discussed above in section (3.a).

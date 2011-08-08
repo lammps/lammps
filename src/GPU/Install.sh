@@ -56,11 +56,7 @@ if (test $1 = 1) then
 
   if (test -e ../pppm.cpp) then
     cp pppm_gpu.cpp ..
-    cp pppm_gpu_single.cpp ..
-    cp pppm_gpu_double.cpp ..
     cp pppm_gpu.h ..
-    cp pppm_gpu_single.h ..
-    cp pppm_gpu_double.h ..
   fi
 
   cp pair_lj_cut_gpu.cpp ..
@@ -95,8 +91,6 @@ elif (test $1 = 0) then
   fi
   
   rm -f ../pppm_gpu.cpp
-  rm -f ../pppm_gpu_single.cpp
-  rm -f ../pppm_gpu_double.cpp
   rm -f ../pair_gayberne_gpu.cpp
   rm -f ../pair_resquared_gpu.cpp
   rm -f ../pair_lj_cut_gpu.cpp
@@ -119,8 +113,6 @@ elif (test $1 = 0) then
   rm -f ../pair_lj_cut_tgpu.cpp
 
   rm -f ../pppm_gpu.h
-  rm -f ../pppm_gpu_single.h
-  rm -f ../pppm_gpu_double.h
   rm -f ../pair_gayberne_gpu.h
   rm -f ../pair_resquared_gpu.h
   rm -f ../pair_lj_cut_gpu.h

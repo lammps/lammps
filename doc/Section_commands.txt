@@ -500,6 +500,7 @@ package"_Section_accelerate.html.
 
 "freeze/cuda"_fix_freeze.html,
 "addforce/cuda"_fix_addforce.html,
+"addtorque"_fix_addtorque.html,
 "aveforce/cuda"_fix_aveforce.html,
 "enforce2d/cuda"_fix_enforce2d.html,
 "gravity/cuda"_fix_gravity.html,
@@ -576,7 +577,8 @@ These are compute styles contributed by users, which can be used if
 "ke/atom/eff"_compute_ke_atom_eff.html,
 "temp/eff"_compute_temp_eff.html,
 "temp/deform/eff"_compute_temp_deform_eff.html,
-"temp/region/eff"_compute_temp_region_eff.html :tb(c=6,ea=c)
+"temp/region/eff"_compute_temp_region_eff.html,
+"temp/rotate"_compute_temp_rotate.html :tb(c=6,ea=c)
 
 These are accelerated compute styles, which can be used if LAMMPS is
 built with the "appropriate accelerated
@@ -818,5 +820,3 @@ package"_Section_accelerate.html.
 
 "pppm/cuda"_kspace_style.html,
 "pppm/gpu"_kspace_style.html :tb(c=4,ea=c)
-
-

@@ -13,12 +13,12 @@
 
 #ifdef BOND_CLASS
 
-BondStyle(harmonicshift,BondHarmonicShift)
+BondStyle(harmonic/shift,BondHarmonicShift)
 
 #else
 
-#ifndef LMP_BOND_HARMONICSHIFT_H
-#define LMP_BOND_HARMONICSHIFT_H
+#ifndef LMP_BOND_HARMONIC_SHIFT_H
+#define LMP_BOND_HARMONIC_SHIFT_H
 
 #include "stdio.h"
 #include "bond.h"

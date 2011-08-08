@@ -11,9 +11,13 @@
 
 <H3>pair_style dipole/cut command 
 </H3>
+<H3>pair_style dipole/sf command 
+</H3>
 <P><B>Syntax:</B>
 </P>
 <PRE>pair_style dipole/cut cutoff (cutoff2) 
+</PRE>
+<PRE>pair_style dipole/sf cutoff (cutoff2) 
 </PRE>
 <UL><LI>cutoff = global cutoff LJ (and Coulombic if only 1 arg) (distance units)
 <LI>cutoff2 = global cutoff for Coulombic (optional) (distance units) 
@@ -21,6 +25,10 @@
 <P><B>Examples:</B>
 </P>
 <PRE>pair_style dipole/cut 10.0
+pair_coeff * * 1.0 1.0 
+pair_coeff 2 3 1.0 1.0 2.5 4.0 
+</PRE>
+<PRE>pair_style dipole/sf 9.0
 pair_coeff * * 1.0 1.0 
 pair_coeff 2 3 1.0 1.0 2.5 4.0 
 </PRE>
@@ -42,6 +50,34 @@ the two particles.  Note that Eqq and Fqq are simply Coulombic energy
 and force, Fij = -Fji as symmetric forces, and Tij != -Tji since the
 torques do not act symmetrically.  These formulas are discussed in
 <A HREF = "#Allen">(Allen)</A> and in <A HREF = "#Toukmaji">(Toukmaji)</A>.
+</P>
+<P>Style <I>dipole/sf</I> computes "shifted-force" interactions between pairs
+of particles that each have a charge and/or a point dipole moment. In
+general, a shifted-force potential is a (sligthly) modified potential
+containing extra terms that make both the energy and its derivative go
+to zero at the cutoff distance; this removes (cutoff-related) problems
+in energy conservation and any numerical instability in the equations
+of motion <A HREF = "#Allen">(Allen)</A>. Shifted-force interactions for the
+Lennard-Jones (E_LJ), charge-charge (Eqq), charge-dipole (Eqp),
+dipole-charge (Epq) and dipole-dipole (Epp) potentials are computed by
+these formulas for the energy (E), force (F), and torque (T) between
+particles I and J:
+</P>
+<CENTER><IMG SRC = "Eqs/pair_dipole_sf.jpg">
+</CENTER>
+<P>where qi and qj are the charges on the two particles, pi and pj are
+the dipole moment vectors of the two particles, r is their separation
+distance, and the vector r = Ri - Rj is the separation vector between
+the two particles.  Note that Eqq and Fqq are simply Coulombic energy
+and force, Fij = -Fji as symmetric forces, and Tij != -Tji since the
+torques do not act symmetrically.  The shifted-force formula for the
+Lennard-Jones potential is reported in <A HREF = "#Stoddard">(Stoddard)</A>.  The
+original (unshifted) formulas for the electrostatic potentials, forces
+and torques can be found in <A HREF = "#Price">(Price)</A>.  The shifted-force
+electrostatic potentials have been obtained by applying equation 5.13
+of <A HREF = "#Allen">(Allen)</A>. The formulas for the corresponding forces and
+torques have been obtained by applying the 'chain rule' as in appendix
+C.3 of <A HREF = "#Allen">(Allen)</A>.
 </P>
 <P>If one cutoff is specified in the pair_style command, it is used for
 both the LJ and Coulombic (q,p) terms.  If two cutoffs are specified,
@@ -93,9 +129,9 @@ is an energy value mixed like a LJ epsilon.  D1 and d2 are distance
 values and are mixed like sigma.  The default mix value is
 <I>geometric</I>.  See the "pair_modify" command for details.
 </P>
-<P>This pair style supports the <A HREF = "pair_modify.html">pair_modify</A> shift
-option for the energy of the Lennard-Jones portion of the pair
-interaction.
+<P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A> 
+shift option for the energy of the Lennard-Jones portion of the pair
+interaction; such energy goes to zero at the cutoff by construction.
 </P>
 <P>The <A HREF = "pair_modify.html">pair_modify</A> table option is not relevant
 for this pair style.
@@ -114,8 +150,12 @@ to be specified in an input script that reads a restart file.
 </P>
 <P><B>Restrictions:</B>
 </P>
-<P>This style is part of the "dipole" package.  It is only enabled if
-LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_3">Making
+<P>The <I>dipole/cut</I> style is part of the "dipole" package.  It is only
+enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>The <I>dipole/sf</I> style is part of the "user-misc" package.  It is only
+enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_3">Making
 LAMMPS</A> section for more info.
 </P>
 <P><B>Related commands:</B>
@@ -135,5 +175,13 @@ Clarendon Press, Oxford, 1987.
 
 <P><B>(Toukmaji)</B> Toukmaji, Sagui, Board, and Darden, J Chem Phys, 113,
 10913 (2000).
+</P>
+<A NAME = "Stoddard"></A>
+
+<P><B>(Stoddard)</B> Stoddard and Ford, Phys Rev A, 8, 1504 (1973).
+</P>
+<A NAME = "Price"></A>
+
+<P><B>(Price)</B> Price, Stone and Alderton, Mol Phys, 52, 987 (1984).
 </P>
 </HTML>

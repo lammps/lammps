@@ -666,6 +666,7 @@ These are pair styles contributed by users, which can be used if
 "cg/cmm"_pair_cmm.html,
 "cg/cmm/coul/cut"_pair_cmm.html,
 "cg/cmm/coul/long"_pair_cmm.html,
+"dipole/sf"_pair_dipole.html,
 "eam/cd"_pair_eam.html,
 "eff/cut"_pair_eff.html,
 "lj/coul"_pair_lj_coul.html,

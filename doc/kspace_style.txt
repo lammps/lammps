@@ -12,25 +12,27 @@ kspace_style command :h3
 
 kspace_style style value :pre
 
-style = {none} or {ewald} or {pppm} or {pppm/tip4p} or {ewald/n} or {pppm/gpu/single} or {pppm/gpu/double} :ulb,l
+style = {none} or {ewald} or {pppm} or {pppm/cg} or {pppm/tip4p} or {ewald/n} or {pppm/gpu} :ulb,l
   {none} value = none
   {ewald} value = precision
     precision = desired accuracy
   {pppm} value = precision
     precision = desired accuracy
+  {pppm/cg} value = precision (smallq)
+    precision = desired accuracy
+    smallq = cutoff for charges to be considered (optional) (charge units)
   {pppm/tip4p} value = precision
     precision = desired accuracy
   {ewald/n} value = precision
     precision = desired accuracy
-  {pppm/gpu/single} value = precision
-    precision = desired accuracy
-  {pppm/gpu/double} value = precision
+  {pppm/gpu} value = precision
     precision = desired accuracy :pre
 :ule
 
 [Examples:]
 
 kspace_style pppm 1.0e-4
+kspace_style pppm/cg 1.0e-5 1.0e-6
 kspace_style none :pre
 
 [Description:]
@@ -55,6 +57,12 @@ N^(3/2) where N is the number of atoms in the system.  The PPPM solver
 scales as Nlog(N) due to the FFTs, so it is almost always a faster
 choice "(Pollock)"_#Pollock.
 
+The {pppm/cg} style is identical to the {pppm} style except that it
+has an optimization for systems where most particles are uncharged.
+The optional {smallq} argument defines the cutoff for the absolute
+charge value which determines whether a particle is considered charged
+or not.  Its default value is 1.0e-5.
+
 The {pppm/tip4p} style is identical to the {pppm} style except that it
 adds a charge at the massless 4th site in each TIP4P water molecule.
 It should be used with "pair styles"_pair_style.html with a
@@ -70,6 +78,15 @@ long-range potentials.
 
 Currently, only the {ewald/n} style can be used with non-orthogonal
 (triclinic symmetry) simulation boxes.
+
+Note that the PPPM styles can be used with single-precision FFTs by
+using the compiler switch -DFFT_SINGLE for the FFT_INC setting in your
+lo-level Makefile.  This setting also changes some of the PPPM
+operations (e.g. mapping charge to mesh and interpolating electric
+fields to particles) to be performed in single precision.  This option
+can speed-up long-range calulations, particularly in parallel or on a
+GPU.  The use of the -DFFT_SINGLE flag is discussed in "this
+section"_Section_start.html#2_2_4 of the manual.
 
 :line
 
@@ -91,20 +108,20 @@ options of the K-space solvers that can be set.
 
 :line
 
-Styles with a {cuda}, {gpu/single}, {gpu/double}, or {opt} suffix are
+Styles with a {cuda}, {gpu}, or {opt} suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
 hardware, as discussed in "this section"_Section_accelerate.html of
 the manual.  The accelerated styles take the same arguments and should
 produce the same results, except for round-off and precision issues.
 
-More specifically, the {pppm/gpu/single} style performs single
-precision charge assignment and force interpolation calculations on
-the GPU.  The {pppm/gpu/double} style performs the mesh calculations
-on the GPU in double precision. In both cases, FFT solves are
-calculated on the CPU.  If either {pppm/gpu/single} or
-{pppm/gpu/double} are used with a GPU-enabled pair style, part of the
-PPPM calculation can be performed concurrently on the GPU while other
+More specifically, the {pppm/gpu} style performs charge assignment and
+force interpolation calculations on the GPU.  These processes are
+performed either in single or double precision, depending on whether
+the -DFFT_SINGLE setting was specified in your lo-level Makefile, as
+discussed above.  The FFTs themselves are still calculated on the CPU.
+If {pppm/gpu} is used with a GPU-enabled pair style, part of the PPPM
+calculation can be performed concurrently on the GPU while other
 calculations for non-bonded and bonded force calculation are performed
 on the CPU.
 

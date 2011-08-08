@@ -804,6 +804,7 @@ Kspace solvers.  Click on the style itself for a full description:
 
 "ewald"_kspace_style.html,
 "pppm"_kspace_style.html,
+"pppm/cg"_kspace_style.html,
 "pppm/tip4p"_kspace_style.html :tb(c=4,ea=c,w=100)
 
 These are Kspace solvers contributed by users, which can be used if
@@ -816,6 +817,6 @@ built with the "appropriate accelerated
 package"_Section_accelerate.html.
 
 "pppm/cuda"_kspace_style.html,
-"pppm/gpu/single"_kspace_style.html,
-"pppm/gpu/double"_kspace_style.html :tb(c=4,ea=c)
+"pppm/gpu"_kspace_style.html :tb(c=4,ea=c)
+
 

@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Laurent Joly (U Lyon), ljoly.ulyon at gmail.com
+   Contributing author: Laurent Joly (U Lyon), ljoly.ulyon@gmail.com
 ------------------------------------------------------------------------- */
 
 #include "math.h"

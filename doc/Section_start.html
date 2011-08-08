@@ -314,7 +314,7 @@ manually specify the correct -lsfftw or -ldfftw.
 </P>
 <P>(3.d) The FFT_INC variable also allows for a -DFFT_SINGLE setting that
 will use single-precision FFTs with PPPM, which can speed-up
-long-range calulations, particularly in parallel or on a GPU.  Fourier
+long-range calulations, particularly in parallel or on GPUs.  Fourier
 transform and related PPPM operations are somewhat insensitive to
 floating point truncation errors and thus do not always need to be
 performed in double precision.  Using the -DFFT_SINGLE setting trades
@@ -491,8 +491,8 @@ package".
 </TD></TR></TABLE></DIV>
 
 <P>There are also user-contributed packages which may be as simple as a
-single additional file or many files grouped together which add a
-specific functionality to the code.
+single additional file (see the src/USER-MISC directory) or many files
+grouped together which add a specific functionality to the code.
 </P>
 <P>The difference between a <I>standard</I> package versus a <I>user</I> package is
 as follows.

@@ -84,8 +84,8 @@ using the compiler switch -DFFT_SINGLE for the FFT_INC setting in your
 lo-level Makefile.  This setting also changes some of the PPPM
 operations (e.g. mapping charge to mesh and interpolating electric
 fields to particles) to be performed in single precision.  This option
-can speed-up long-range calulations, particularly in parallel or on a
-GPU.  The use of the -DFFT_SINGLE flag is discussed in "this
+can speed-up long-range calulations, particularly in parallel or on
+GPUs.  The use of the -DFFT_SINGLE flag is discussed in "this
 section"_Section_start.html#2_2_4 of the manual.
 
 :line

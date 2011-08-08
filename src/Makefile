@@ -17,7 +17,7 @@ PACKAGE = asphere class2 colloid dipole dsmc gpu granular \
 	  kspace manybody meam molecule opt peri poems reax replica \
 	  shock srd xtc
 
-PACKUSER = user-ackland user-atc user-awpmd user-cd-eam user-cg-cmm \
+PACKUSER = user-misc user-ackland user-atc user-awpmd user-cd-eam user-cg-cmm \
           user-eff user-ewaldn user-imd user-reaxc user-smd
 #	   user-cuda user-eff user-ewaldn user-imd user-reaxc user-smd
 

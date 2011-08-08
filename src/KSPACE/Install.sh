@@ -4,6 +4,7 @@ if (test $1 = 1) then
 
   cp ewald.cpp ..
   cp pppm.cpp ..
+  cp pppm_cg.cpp ..
   cp pppm_tip4p.cpp ..
   cp pair_born_coul_long.cpp ..
   cp pair_buck_coul_long.cpp ..
@@ -19,6 +20,7 @@ if (test $1 = 1) then
   cp ewald.h ..
   cp kissfft.h ..
   cp pppm.h ..
+  cp pppm_cg.h ..
   cp pppm_tip4p.h ..
   cp pair_born_coul_long.h ..
   cp pair_buck_coul_long.h ..
@@ -35,6 +37,7 @@ elif (test $1 = 0) then
 
   rm -f ../ewald.cpp
   rm -f ../pppm.cpp
+  rm -f ../pppm_cg.cpp
   rm -f ../pppm_tip4p.cpp
   rm -f ../pair_born_coul_long.cpp
   rm -f ../pair_buck_coul_long.cpp
@@ -50,6 +53,7 @@ elif (test $1 = 0) then
   rm -f ../ewald.h
   rm -f ../kissfft.h
   rm -f ../pppm.h
+  rm -f ../pppm_cg.h
   rm -f ../pppm_tip4p.h
   rm -f ../pair_born_coul_long.h
   rm -f ../pair_buck_coul_long.h

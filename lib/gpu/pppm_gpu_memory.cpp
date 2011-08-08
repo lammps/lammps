@@ -51,7 +51,7 @@ grdtyp * PPPMGPUMemoryT::init(const int nlocal, const int nall, FILE *_screen,
                               const int order, const int nxlo_out,
                               const int nylo_out, const int nzlo_out,
                               const int nxhi_out, const int nyhi_out,
-                              const int nzhi_out, double **rho_coeff,
+                              const int nzhi_out, grdtyp **rho_coeff,
                               grdtyp **vd_brick, const double slab_volfactor, 
                               const int nx_pppm, const int ny_pppm,
                               const int nz_pppm, int &flag) {
@@ -123,7 +123,7 @@ grdtyp * PPPMGPUMemoryT::init(const int nlocal, const int nall, FILE *_screen,
   int numel=order*( order/2 - n2lo + 1 );
   success=success && (d_rho_coeff.alloc(numel,*ucl_device,UCL_READ_ONLY)==
                       UCL_SUCCESS);
-  UCL_H_Vec<double> view;
+  UCL_H_Vec<grdtyp> view;
   view.view(rho_coeff[0]+n2lo,numel,*ucl_device);
   ucl_copy(d_rho_coeff,view,true);
   _max_bytes+=d_rho_coeff.row_bytes();

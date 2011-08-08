@@ -46,7 +46,7 @@ class PPPMGPUMemory {
   grdtyp * init(const int nlocal, const int nall, FILE *screen, const int order,
                 const int nxlo_out, const int nylo_out, const int nzlo_out,
                 const int nxhi_out, const int nyhi_out, const int nzhi_out,
-                double **rho_coeff, grdtyp **vd_brick, 
+                grdtyp **rho_coeff, grdtyp **vd_brick, 
                 const double slab_volfactor, const int nx_pppm, 
                 const int ny_pppm, const int nz_pppm, int &success);
 

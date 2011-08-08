@@ -144,7 +144,7 @@ __kernel void particle_map(__global numtyp4 *x_,  __global numtyp *q_,
       
         int i=nz*nlocal_y*nlocal_x+ny*nlocal_x+nx;
         int old=atom_add(counts+i, 1);
-        if (old==max_atoms) {
+        if (old>=max_atoms) {
           *error=2;
           atom_add(counts+i, -1);
         } else

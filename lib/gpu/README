@@ -83,7 +83,11 @@ NOTE: PPPM acceleration can only be run on GPUs with compute capability>=1.1.
       when attempting to run PPPM on a GPU with compute capability 1.0.
 
 NOTE: Double precision is only supported on certain GPUs (with
-      compute capability>=1.3).
+      compute capability>=1.3). If you compile the GPU library for
+      a GPU with compute capability 1.1 and 1.2, then only single
+      precistion FFTs are supported, i.e. LAMMPS has to be compiled
+      with -DFFT_SINGLE. For details on configuring FFT support in 
+      LAMMPS, see http://lammps.sandia.gov/doc/Section_start.html#2_2_4
       
 NOTE: For Tesla and other graphics cards with compute capability>=1.3,
       make sure that -arch=sm_13 is set on the CUDA_ARCH line.
@@ -96,9 +100,8 @@ NOTE: The gayberne/gpu pair style will only be installed if the ASPHERE
 NOTE: The cg/cmm/gpu and cg/cmm/coul/long/gpu pair styles will only be
       installed if the USER-CG-CMM package has been installed.
 
-NOTE: The lj/cut/coul/long/gpu, cg/cmm/coul/long/gpu, pppm/gpu/single, and
-      pppm/gpu/double styles will only be installed if the KSPACE package has
-      been installed.
+NOTE: The lj/cut/coul/long/gpu, cg/cmm/coul/long/gpu, and pppm/gpu styles
+      will only be installed if the KSPACE package has been installed.
 
 NOTE: The lj/charmm/coul/long will only be installed if the MOLECULE package
       has been installed.

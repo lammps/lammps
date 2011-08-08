@@ -191,10 +191,8 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *lj1,
           _erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
           prefactor = qqrd2e * qtmp*fetch_q(j,q_)/r;
           forcecoul = prefactor * (_erfc + EWALD_F*grij*expm2-factor_coul);
-        } else {
+        } else
           forcecoul = (numtyp)0.0;
-          prefactor = (numtyp)0.0;
-        }
 
         force = (force_lj + forcecoul) * r2inv;
 
@@ -203,7 +201,8 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *lj1,
         f.z+=delz*force;
 
         if (eflag>0) {
-          e_coul += prefactor*(_erfc-factor_coul);
+          if (rsq < cut_coulsq)
+            e_coul += prefactor*(_erfc-factor_coul);
           if (rsq < lj1[mtype].w) {
             numtyp e=r6inv*(lj3[mtype].x*r6inv-lj3[mtype].y);
             energy+=factor_lj*(e-lj3[mtype].z);
@@ -377,10 +376,8 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
           _erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
           prefactor = qqrd2e * qtmp*fetch_q(j,q_)/r;
           forcecoul = prefactor * (_erfc + EWALD_F*grij*expm2-factor_coul);
-        } else {
+        } else
           forcecoul = (numtyp)0.0;
-          prefactor = (numtyp)0.0;
-        }
 
         force = (force_lj + forcecoul) * r2inv;
 
@@ -389,7 +386,8 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
         f.z+=delz*force;
 
         if (eflag>0) {
-          e_coul += prefactor*(_erfc-factor_coul);
+          if (rsq < cut_coulsq)
+            e_coul += prefactor*(_erfc-factor_coul);
           if (rsq < lj1[mtype].w) {
             numtyp e=r6inv*(lj3[mtype].x*r6inv-lj3[mtype].y);
             energy+=factor_lj*(e-lj3[mtype].z);

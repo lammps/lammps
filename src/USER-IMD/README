@@ -1,13 +1,19 @@
 The files in this directory are a user-contributed package for LAMMPS.
 
 The person who created these files is Axel Kohlmeyer
-(axel.kohlmeyer@temple.edu).  Contact him directly if you 
+(akohlmey@gmail.com).  Contact him directly if you 
 have questions or for example scripts that use it.
 
 This package implements a "fix imd" command which can be used in a
 LAMMPS input script.  IMD stands for interactive molecular dynamics,
 and allows realtime visualization and manipulation of MD simulations
 through the IMD protocol, initially implemented in VMD and NAMD.
+
+If LAMMPS is compiled with the preprocessor flag -DLAMMPS_ASYNC_IMD
+then fix imd will use posix threads to spawn a thread on MPI rank 0
+in order to offload data reading and writing from the main execution
+thread and potentiall lower the inferred latencies for slow 
+communication links. This feature has only been tested under linux.
 
 There are example scripts for using this package with LAMMPS in
 examples/USER/imd. Additional examples and a driver for use with the 

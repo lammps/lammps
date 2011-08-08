@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -52,6 +52,13 @@ FixStyle(imd,FixIMD)
 
 #include "fix.h"
 
+#if defined(LAMMPS_ASYNC_IMD)
+#include <pthread.h>
+#endif
+
+/* prototype for c wrapper that calls the real worker */
+extern "C" void *fix_imd_ioworker(void *);
+
 namespace LAMMPS_NS {
 
 class FixIMD : public Fix {
@@ -65,7 +72,7 @@ class FixIMD : public Fix {
   void post_force_respa(int, int, int);
   double memory_usage();
 
- private:
+ protected:
   int    imd_port;
   void  *localsock;
   void  *clientsock;
@@ -92,6 +99,21 @@ class FixIMD : public Fix {
   int    me;                    // my MPI rank in this "world".
   int    nlevels_respa;         // flag to determine respa levels.
 
+  int    msglen;
+  char  *msgdata;
+
+#if defined(LAMMPS_ASYNC_IMD)
+  int    buf_has_data;          // flag to indicate to the i/o thread what to do.
+  pthread_mutex_t write_mutex;  // mutex for sending coordinates to i/o thread
+  pthread_cond_t  write_cond;   // conditional variable for coordinate i/o
+  pthread_mutex_t read_mutex;   // mutex for accessing data receieved by i/o thread
+  pthread_t       iothread;     // thread id for i/o thread.
+  pthread_attr_t  iot_attr;     // i/o thread attributes.
+public:
+  void  ioworker(void);
+#endif
+
+protected:
   int reconnect();
 };
 

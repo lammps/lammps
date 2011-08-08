@@ -16,6 +16,11 @@ feature or its code.
 
 ------------------------------------------------------------
 
-compute temp/rotate, Laurent Joly (U Lyon, France), ljoly.ulyon at gmail.com, 8Aug11
-fix addtorque, Laurent Joly (U Lyon, France), ljoly.ulyon at gmail.com, 8Aug11
-pair dipole/sf, Mario Orsi, orsimario at gmail.com, 8Aug11
+angle_style cosine/shift, Carsten Svaneborg, science at zqex.dk, 8 Aug 11
+angle_style cosine/shift/exp, Carsten Svaneborg, science at zqex.dk, 8 Aug 11
+bond_style harmonic/shift, Carsten Svaneborg, science at zqex.dk, 8 Aug 11
+bond_style harmonic/shift/cut, Carsten Svaneborg, science at zqex.dk, 8 Aug 11
+compute temp/rotate, Laurent Joly (U Lyon, France), ljoly.ulyon at gmail.com, 8 Aug 11
+dihedral_style cosine/shift/exp, Carsten Svaneborg, science at zqex.dk, 8 Aug 11
+fix addtorque, Laurent Joly (U Lyon, France), ljoly.ulyon at gmail.com, 8 Aug 11
+pair dipole/sf, Mario Orsi, orsimario at gmail.com, 8 Aug 11

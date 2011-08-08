@@ -743,6 +743,12 @@ potentials.  Click on the style itself for a full description:
 "quartic"_bond_quartic.html,
 "table"_bond_table.html :tb(c=4,ea=c,w=100)
 
+These are bond styles contributed by users, which can be used if
+"LAMMPS is built with the appropriate package"_Section_start.html#2_3.
+
+"harmonic/shift"_bond_harmonic_shift.html,
+"harmonic/shift/cut"_bond_harmonic_shift_cut.html :tb(c=4,ea=c)
+
 :line
 
 Angle_style potentials :h4
@@ -764,7 +770,9 @@ angle potentials.  Click on the style itself for a full description:
 These are angle styles contributed by users, which can be used if
 "LAMMPS is built with the appropriate package"_Section_start.html#2_3.
 
-"cg/cmm"_angle_cmm.html :tb(c=4,ea=c)
+"cg/cmm"_angle_cmm.html,
+"cosine/shift"_angle_cosine_shift.html,
+"cosine/shift/exp"_angle_cosine_shift_exp.html :tb(c=4,ea=c)
 
 :line
 
@@ -782,6 +790,11 @@ description:
 "helix"_dihedral_helix.html,
 "multi/harmonic"_dihedral_multi_harmonic.html,
 "opls"_dihedral_opls.html :tb(c=4,ea=c,w=100)
+
+These are dihedral styles contributed by users, which can be used if
+"LAMMPS is built with the appropriate package"_Section_start.html#2_3.
+
+"cosine/shift/exp"_dihedral_cosine_shift_exp.html :tb(c=4,ea=c)
 
 :line
 

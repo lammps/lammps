@@ -26,6 +26,14 @@ using namespace LAMMPS_NS;
 
 #define OFFSET 16384
 
+#ifdef FFT_SINGLE
+#define ZEROF 0.0f
+#define ONEF  1.0f
+#else
+#define ZEROF 0.0
+#define ONEF  1.0
+#endif
+
 /* ---------------------------------------------------------------------- */
 
 PPPMTIP4P::PPPMTIP4P(LAMMPS *lmp, int narg, char **arg) :
@@ -87,13 +95,13 @@ void PPPMTIP4P::particle_map()
 void PPPMTIP4P::make_rho()
 {
   int i,l,m,n,nx,ny,nz,mx,my,mz,iH1,iH2;
-  double dx,dy,dz,x0,y0,z0;
+  FFT_SCALAR dx,dy,dz,x0,y0,z0;
   double *xi,xM[3];
 
   // clear 3d density array
 
-  double *vec = &density_brick[nzlo_out][nylo_out][nxlo_out];
-  for (i = 0; i < ngrid; i++) vec[i] = 0.0;
+  FFT_SCALAR *vec = &density_brick[nzlo_out][nylo_out][nxlo_out];
+  for (i = 0; i < ngrid; i++) vec[i] = ZEROF;
 
   // loop over my charges, add their contribution to nearby grid points
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
@@ -143,13 +151,13 @@ void PPPMTIP4P::make_rho()
 void PPPMTIP4P::fieldforce()
 {
   int i,l,m,n,nx,ny,nz,mx,my,mz;
-  double dx,dy,dz,x0,y0,z0;
-  double ek[3];
+  FFT_SCALAR dx,dy,dz,x0,y0,z0;
+  FFT_SCALAR ekx,eky,ekz;
   double *xi;
   int iH1,iH2;
   double xM[3];
   double fx,fy,fz;
-  double ddotf, rOM[3], f1[3];
+  double ddotf, rOMx, rOMy, rOMz, f1x, f1y, f1z;
 
   // loop over my charges, interpolate electric field from nearby grid points
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
@@ -160,6 +168,7 @@ void PPPMTIP4P::fieldforce()
   double *q = atom->q;
   double **x = atom->x;
   double **f = atom->f;
+
   int *type = atom->type;
   int nlocal = atom->nlocal;
 
@@ -178,7 +187,7 @@ void PPPMTIP4P::fieldforce()
 
     compute_rho1d(dx,dy,dz);
 
-    ek[0] = ek[1] = ek[2] = 0.0;
+    ekx = eky = ekz = ZEROF;
     for (n = nlower; n <= nupper; n++) {
       mz = n+nz;
       z0 = rho1d[2][n];
@@ -188,47 +197,47 @@ void PPPMTIP4P::fieldforce()
 	for (l = nlower; l <= nupper; l++) {
 	  mx = l+nx;
 	  x0 = y0*rho1d[0][l];
-	  ek[0] -= x0*vdx_brick[mz][my][mx];
-	  ek[1] -= x0*vdy_brick[mz][my][mx];
-	  ek[2] -= x0*vdz_brick[mz][my][mx];
+	  ekx -= x0*vdx_brick[mz][my][mx];
+	  eky -= x0*vdy_brick[mz][my][mx];
+	  ekz -= x0*vdz_brick[mz][my][mx];
 	}
       }
     }
 
     // convert E-field to force
-
+    const double qfactor = qqrd2e*scale*q[i];
     if (type[i] != typeO) {
-      f[i][0] += qqrd2e*q[i]*ek[0];
-      f[i][1] += qqrd2e*q[i]*ek[1];
-      f[i][2] += qqrd2e*q[i]*ek[2];
+      f[i][0] += qfactor*ekx;
+      f[i][1] += qfactor*eky;
+      f[i][2] += qfactor*ekz;
     } else {
 
-      fx = qqrd2e * q[i] * ek[0];
-      fy = qqrd2e * q[i] * ek[1];
-      fz = qqrd2e * q[i] * ek[2];
+      fx = qfactor * ekx;
+      fy = qfactor * eky;
+      fz = qfactor * ekz;
       find_M(i,iH1,iH2,xM);
 
-      rOM[0] = xM[0] - x[i][0];
-      rOM[1] = xM[1] - x[i][1];
-      rOM[2] = xM[2] - x[i][2];
+      rOMx = xM[0] - x[i][0];
+      rOMy = xM[1] - x[i][1];
+      rOMz = xM[2] - x[i][2];
   
-      ddotf = (rOM[0] * fx + rOM[1] * fy + rOM[2] * fz) / (qdist * qdist);
+      ddotf = (rOMx * fx + rOMy * fy + rOMz * fz) / (qdist * qdist);
 
-      f1[0] = ddotf * rOM[0];
-      f1[1] = ddotf * rOM[1];
-      f1[2] = ddotf * rOM[2];
+      f1x = ddotf * rOMx;
+      f1y = ddotf * rOMy;
+      f1z = ddotf * rOMz;
 
-      f[i][0] += fx - alpha * (fx - f1[0]);
-      f[i][1] += fy - alpha * (fy - f1[1]);
-      f[i][2] += fz - alpha * (fz - f1[2]);
+      f[i][0] += fx - alpha * (fx - f1x);
+      f[i][1] += fy - alpha * (fy - f1y);
+      f[i][2] += fz - alpha * (fz - f1z);
 
-      f[iH1][0] += 0.5*alpha*(fx - f1[0]); 
-      f[iH1][1] += 0.5*alpha*(fy - f1[1]); 
-      f[iH1][2] += 0.5*alpha*(fz - f1[2]); 
+      f[iH1][0] += 0.5*alpha*(fx - f1x);
+      f[iH1][1] += 0.5*alpha*(fy - f1y);
+      f[iH1][2] += 0.5*alpha*(fz - f1z);
 
-      f[iH2][0] += 0.5*alpha*(fx - f1[0]); 
-      f[iH2][1] += 0.5*alpha*(fy - f1[1]); 
-      f[iH2][2] += 0.5*alpha*(fz - f1[2]); 
+      f[iH2][0] += 0.5*alpha*(fx - f1x);
+      f[iH2][1] += 0.5*alpha*(fy - f1y);
+      f[iH2][2] += 0.5*alpha*(fz - f1z);
     }
   }
 }

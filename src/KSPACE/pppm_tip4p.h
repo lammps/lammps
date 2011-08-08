@@ -27,12 +27,14 @@ namespace LAMMPS_NS {
 class PPPMTIP4P : public PPPM {
  public:
   PPPMTIP4P(class LAMMPS *, int, char **);
+  virtual ~PPPMTIP4P () {};
+
+ protected:
+  virtual void particle_map();
+  virtual void make_rho();
+  virtual void fieldforce();
 
  private:
-  void particle_map();
-  void make_rho();
-  void fieldforce();
-
   void find_M(int, int &, int &, double *); 
 };
 

@@ -43,6 +43,14 @@ using namespace LAMMPS_NS;
 #define LARGE 10000.0
 #define EPS_HOC 1.0e-7
 
+#ifdef FFT_SINGLE
+#define ZEROF 0.0f
+#define ONEF  1.0f
+#else
+#define ZEROF 0.0
+#define ONEF  1.0
+#endif
+
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
@@ -50,7 +58,7 @@ using namespace LAMMPS_NS;
 
 PPPM::PPPM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
 {
-  if (narg != 1) error->all("Illegal kspace_style pppm command");
+  if (narg < 1) error->all("Illegal kspace_style pppm command");
 
   precision = atof(arg[0]);
   PI = 4.0*atan(1.0);
@@ -754,7 +762,7 @@ void PPPM::allocate()
 
   // summation coeffs
 
-  gf_b = new double[order];
+  memory->create(gf_b,order,"pppm:gf_b");
   memory->create2d_offset(rho1d,3,-order/2,order/2,"pppm:rho1d");
   memory->create2d_offset(rho_coeff,order,(1-order)/2,order/2,"pppm:rho_coeff");
 
@@ -778,7 +786,7 @@ void PPPM::allocate()
   remap = new Remap(lmp,world,
 		    nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
 		    nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
-		    1,0,0,2);
+		    1,0,0,FFT_PRECISION);
 }
 
 /* ----------------------------------------------------------------------
@@ -805,7 +813,7 @@ void PPPM::deallocate()
   memory->destroy(buf1);
   memory->destroy(buf2);
 
-  delete [] gf_b;
+  memory->destroy(gf_b);
   memory->destroy2d_offset(rho1d,-order/2);
   memory->destroy2d_offset(rho_coeff,(1-order)/2);
 
@@ -967,17 +975,24 @@ void PPPM::set_grid()
   // print info
 
   if (me == 0) {
+#ifdef FFT_SINGLE
+    const char fft_prec[] = "single";
+#else
+    const char fft_prec[] = "double";
+#endif
     if (screen) {
       fprintf(screen,"  G vector = %g\n",g_ewald);
       fprintf(screen,"  grid = %d %d %d\n",nx_pppm,ny_pppm,nz_pppm);
       fprintf(screen,"  stencil order = %d\n",order);
       fprintf(screen,"  RMS precision = %g\n",MAX(lpr,spr));
+      fprintf(screen,"  using %s precision FFTs\n",fft_prec);
     }
     if (logfile) {
       fprintf(logfile,"  G vector = %g\n",g_ewald);
       fprintf(logfile,"  grid = %d %d %d\n",nx_pppm,ny_pppm,nz_pppm);
       fprintf(logfile,"  stencil order = %d\n",order);
       fprintf(logfile,"  RMS precision = %g\n",MAX(lpr,spr));
+      fprintf(logfile,"  using %s precision FFTs\n",fft_prec);
     }
   }
 }
@@ -1036,7 +1051,7 @@ double PPPM::diffpr(double hx, double hy, double hz, double q2, double **acons)
   lprz = rms(hz,zprd*slab_volfactor,natoms,q2,acons);
   kspace_prec = sqrt(lprx*lprx + lpry*lpry + lprz*lprz) / sqrt(3.0);
   real_prec = 2.0*q2 * exp(-g_ewald*g_ewald*cutoff*cutoff) / 
-   sqrt(natoms*cutoff*xprd*yprd*zprd);
+   sqrt(static_cast<double>(natoms)*cutoff*xprd*yprd*zprd);
   double value = kspace_prec - real_prec;
   return value;
 }
@@ -1113,8 +1128,8 @@ void PPPM::brick2fft()
   if (comm->procneigh[0][1] == me)
     for (i = 0; i < n; i++) buf2[i] = buf1[i];
   else {
-    MPI_Irecv(buf2,nbuf,MPI_DOUBLE,comm->procneigh[0][0],0,world,&request);
-    MPI_Send(buf1,n,MPI_DOUBLE,comm->procneigh[0][1],0,world);
+    MPI_Irecv(buf2,nbuf,MPI_FFT_SCALAR,comm->procneigh[0][0],0,world,&request);
+    MPI_Send(buf1,n,MPI_FFT_SCALAR,comm->procneigh[0][1],0,world);
     MPI_Wait(&request,&status);
   }
 
@@ -1137,8 +1152,8 @@ void PPPM::brick2fft()
   if (comm->procneigh[0][0] == me)
     for (i = 0; i < n; i++) buf2[i] = buf1[i];
   else {
-    MPI_Irecv(buf2,nbuf,MPI_DOUBLE,comm->procneigh[0][1],0,world,&request);
-    MPI_Send(buf1,n,MPI_DOUBLE,comm->procneigh[0][0],0,world);
+    MPI_Irecv(buf2,nbuf,MPI_FFT_SCALAR,comm->procneigh[0][1],0,world,&request);
+    MPI_Send(buf1,n,MPI_FFT_SCALAR,comm->procneigh[0][0],0,world);
     MPI_Wait(&request,&status);
   }
 
@@ -1161,8 +1176,8 @@ void PPPM::brick2fft()
   if (comm->procneigh[1][1] == me)
     for (i = 0; i < n; i++) buf2[i] = buf1[i];
   else {
-    MPI_Irecv(buf2,nbuf,MPI_DOUBLE,comm->procneigh[1][0],0,world,&request);
-    MPI_Send(buf1,n,MPI_DOUBLE,comm->procneigh[1][1],0,world);
+    MPI_Irecv(buf2,nbuf,MPI_FFT_SCALAR,comm->procneigh[1][0],0,world,&request);
+    MPI_Send(buf1,n,MPI_FFT_SCALAR,comm->procneigh[1][1],0,world);
     MPI_Wait(&request,&status);
   }
 
@@ -1185,8 +1200,8 @@ void PPPM::brick2fft()
   if (comm->procneigh[1][0] == me)
     for (i = 0; i < n; i++) buf2[i] = buf1[i];
   else {
-    MPI_Irecv(buf2,nbuf,MPI_DOUBLE,comm->procneigh[1][1],0,world,&request);
-    MPI_Send(buf1,n,MPI_DOUBLE,comm->procneigh[1][0],0,world);
+    MPI_Irecv(buf2,nbuf,MPI_FFT_SCALAR,comm->procneigh[1][1],0,world,&request);
+    MPI_Send(buf1,n,MPI_FFT_SCALAR,comm->procneigh[1][0],0,world);
     MPI_Wait(&request,&status);
   }
 
@@ -1209,8 +1224,8 @@ void PPPM::brick2fft()
   if (comm->procneigh[2][1] == me)
     for (i = 0; i < n; i++) buf2[i] = buf1[i];
   else {
-    MPI_Irecv(buf2,nbuf,MPI_DOUBLE,comm->procneigh[2][0],0,world,&request);
-    MPI_Send(buf1,n,MPI_DOUBLE,comm->procneigh[2][1],0,world);
+    MPI_Irecv(buf2,nbuf,MPI_FFT_SCALAR,comm->procneigh[2][0],0,world,&request);
+    MPI_Send(buf1,n,MPI_FFT_SCALAR,comm->procneigh[2][1],0,world);
     MPI_Wait(&request,&status);
   }
 
@@ -1233,8 +1248,8 @@ void PPPM::brick2fft()
   if (comm->procneigh[2][0] == me)
     for (i = 0; i < n; i++) buf2[i] = buf1[i];
   else {
-    MPI_Irecv(buf2,nbuf,MPI_DOUBLE,comm->procneigh[2][1],0,world,&request);
-    MPI_Send(buf1,n,MPI_DOUBLE,comm->procneigh[2][0],0,world);
+    MPI_Irecv(buf2,nbuf,MPI_FFT_SCALAR,comm->procneigh[2][1],0,world,&request);
+    MPI_Send(buf1,n,MPI_FFT_SCALAR,comm->procneigh[2][0],0,world);
     MPI_Wait(&request,&status);
   }
 
@@ -1284,8 +1299,8 @@ void PPPM::fillbrick()
   if (comm->procneigh[2][1] == me)
     for (i = 0; i < n; i++) buf2[i] = buf1[i];
   else {
-    MPI_Irecv(buf2,nbuf,MPI_DOUBLE,comm->procneigh[2][0],0,world,&request);
-    MPI_Send(buf1,n,MPI_DOUBLE,comm->procneigh[2][1],0,world);
+    MPI_Irecv(buf2,nbuf,MPI_FFT_SCALAR,comm->procneigh[2][0],0,world,&request);
+    MPI_Send(buf1,n,MPI_FFT_SCALAR,comm->procneigh[2][1],0,world);
     MPI_Wait(&request,&status);
   }
 
@@ -1314,8 +1329,8 @@ void PPPM::fillbrick()
   if (comm->procneigh[2][0] == me)
     for (i = 0; i < n; i++) buf2[i] = buf1[i];
   else {
-    MPI_Irecv(buf2,nbuf,MPI_DOUBLE,comm->procneigh[2][1],0,world,&request);
-    MPI_Send(buf1,n,MPI_DOUBLE,comm->procneigh[2][0],0,world);
+    MPI_Irecv(buf2,nbuf,MPI_FFT_SCALAR,comm->procneigh[2][1],0,world,&request);
+    MPI_Send(buf1,n,MPI_FFT_SCALAR,comm->procneigh[2][0],0,world);
     MPI_Wait(&request,&status);
   }
 
@@ -1344,8 +1359,8 @@ void PPPM::fillbrick()
   if (comm->procneigh[1][1] == me)
     for (i = 0; i < n; i++) buf2[i] = buf1[i];
   else {
-    MPI_Irecv(buf2,nbuf,MPI_DOUBLE,comm->procneigh[1][0],0,world,&request);
-    MPI_Send(buf1,n,MPI_DOUBLE,comm->procneigh[1][1],0,world);
+    MPI_Irecv(buf2,nbuf,MPI_FFT_SCALAR,comm->procneigh[1][0],0,world,&request);
+    MPI_Send(buf1,n,MPI_FFT_SCALAR,comm->procneigh[1][1],0,world);
     MPI_Wait(&request,&status);
   }
 
@@ -1374,8 +1389,8 @@ void PPPM::fillbrick()
   if (comm->procneigh[1][0] == me)
     for (i = 0; i < n; i++) buf2[i] = buf1[i];
   else {
-    MPI_Irecv(buf2,nbuf,MPI_DOUBLE,comm->procneigh[1][1],0,world,&request);
-    MPI_Send(buf1,n,MPI_DOUBLE,comm->procneigh[1][0],0,world);
+    MPI_Irecv(buf2,nbuf,MPI_FFT_SCALAR,comm->procneigh[1][1],0,world,&request);
+    MPI_Send(buf1,n,MPI_FFT_SCALAR,comm->procneigh[1][0],0,world);
     MPI_Wait(&request,&status);
   }
 
@@ -1404,8 +1419,8 @@ void PPPM::fillbrick()
   if (comm->procneigh[0][1] == me)
     for (i = 0; i < n; i++) buf2[i] = buf1[i];
   else {
-    MPI_Irecv(buf2,nbuf,MPI_DOUBLE,comm->procneigh[0][0],0,world,&request);
-    MPI_Send(buf1,n,MPI_DOUBLE,comm->procneigh[0][1],0,world);
+    MPI_Irecv(buf2,nbuf,MPI_FFT_SCALAR,comm->procneigh[0][0],0,world,&request);
+    MPI_Send(buf1,n,MPI_FFT_SCALAR,comm->procneigh[0][1],0,world);
     MPI_Wait(&request,&status);
   }
 
@@ -1434,8 +1449,8 @@ void PPPM::fillbrick()
   if (comm->procneigh[0][0] == me)
     for (i = 0; i < n; i++) buf2[i] = buf1[i];
   else {
-    MPI_Irecv(buf2,nbuf,MPI_DOUBLE,comm->procneigh[0][1],0,world,&request);
-    MPI_Send(buf1,n,MPI_DOUBLE,comm->procneigh[0][0],0,world);
+    MPI_Irecv(buf2,nbuf,MPI_FFT_SCALAR,comm->procneigh[0][1],0,world,&request);
+    MPI_Send(buf1,n,MPI_FFT_SCALAR,comm->procneigh[0][0],0,world);
     MPI_Wait(&request,&status);
   }
 
@@ -1497,12 +1512,12 @@ void PPPM::particle_map()
 void PPPM::make_rho()
 {
   int i,l,m,n,nx,ny,nz,mx,my,mz;
-  double dx,dy,dz,x0,y0,z0;
+  FFT_SCALAR dx,dy,dz,x0,y0,z0;
 
   // clear 3d density array
 
-  double *vec = &density_brick[nzlo_out][nylo_out][nxlo_out];
-  for (i = 0; i < ngrid; i++) vec[i] = 0.0;
+  FFT_SCALAR *vec = &density_brick[nzlo_out][nylo_out][nxlo_out];
+  for (i = 0; i < ngrid; i++) vec[i] = ZEROF;
 
   // loop over my charges, add their contribution to nearby grid points
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
@@ -1554,7 +1569,7 @@ void PPPM::poisson(int eflag, int vflag)
   n = 0;
   for (i = 0; i < nfft; i++) {
     work1[n++] = density_fft[i];
-    work1[n++] = 0.0;
+    work1[n++] = ZEROF;
   }
  
   fft1->compute(work1,work1,1);
@@ -1667,8 +1682,8 @@ void PPPM::poisson(int eflag, int vflag)
 void PPPM::fieldforce()
 {
   int i,l,m,n,nx,ny,nz,mx,my,mz;
-  double dx,dy,dz,x0,y0,z0;
-  double ek[3];
+  FFT_SCALAR dx,dy,dz,x0,y0,z0;
+  FFT_SCALAR ekx,eky,ekz;
 
   // loop over my charges, interpolate electric field from nearby grid points
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
@@ -1679,6 +1694,7 @@ void PPPM::fieldforce()
   double *q = atom->q;
   double **x = atom->x;
   double **f = atom->f;
+
   int nlocal = atom->nlocal;
 
   for (i = 0; i < nlocal; i++) {
@@ -1691,7 +1707,7 @@ void PPPM::fieldforce()
 
     compute_rho1d(dx,dy,dz);
 
-    ek[0] = ek[1] = ek[2] = 0.0;
+    ekx = eky = ekz = ZEROF;
     for (n = nlower; n <= nupper; n++) {
       mz = n+nz;
       z0 = rho1d[2][n];
@@ -1701,18 +1717,18 @@ void PPPM::fieldforce()
 	for (l = nlower; l <= nupper; l++) {
 	  mx = l+nx;
 	  x0 = y0*rho1d[0][l];
-	  ek[0] -= x0*vdx_brick[mz][my][mx];;
-	  ek[1] -= x0*vdy_brick[mz][my][mx];;
-	  ek[2] -= x0*vdz_brick[mz][my][mx];;
+	  ekx -= x0*vdx_brick[mz][my][mx];
+	  eky -= x0*vdy_brick[mz][my][mx];
+	  ekz -= x0*vdz_brick[mz][my][mx];
 	}
       }
     }
 
     // convert E-field to force
-
-    f[i][0] += qqrd2e*scale * q[i]*ek[0];
-    f[i][1] += qqrd2e*scale * q[i]*ek[1];
-    f[i][2] += qqrd2e*scale * q[i]*ek[2];
+    const double qfactor = qqrd2e*scale*q[i];
+    f[i][0] += qfactor*ekx;
+    f[i][1] += qfactor*eky;
+    f[i][2] += qfactor*ekz;
   }
 }
 
@@ -1758,15 +1774,16 @@ void PPPM::procs2grid2d(int nprocs, int nx, int ny, int *px, int *py)
    charge assignment into rho1d
    dx,dy,dz = distance of particle from "lower left" grid point 
 ------------------------------------------------------------------------- */
-
-void PPPM::compute_rho1d(double dx, double dy, double dz)
+void PPPM::compute_rho1d(const FFT_SCALAR &dx, const FFT_SCALAR &dy,
+			 const FFT_SCALAR &dz)
 {
   int k,l;
 
   for (k = (1-order)/2; k <= order/2; k++) {
-    rho1d[0][k] = 0.0;
-    rho1d[1][k] = 0.0;
-    rho1d[2][k] = 0.0;
+    rho1d[0][k] = ZEROF;
+    rho1d[1][k] = ZEROF;
+    rho1d[2][k] = ZEROF;
+
     for (l = order-1; l >= 0; l--) {
       rho1d[0][k] = rho_coeff[l][k] + rho1d[0][k]*dx;
       rho1d[1][k] = rho_coeff[l][k] + rho1d[1][k]*dy;
@@ -1797,9 +1814,9 @@ void PPPM::compute_rho1d(double dx, double dy, double dz)
 void PPPM::compute_rho_coeff()
 {
   int j,k,l,m;
-  double s;
+  FFT_SCALAR s;
 
-  double **a;
+  FFT_SCALAR **a;
   memory->create2d_offset(a,order,-order,order,"pppm:a");
 
   for (k = -order; k <= order; k++) 
@@ -1812,8 +1829,13 @@ void PPPM::compute_rho_coeff()
       s = 0.0;
       for (l = 0; l < j; l++) {
 	a[l+1][k] = (a[l][k+1]-a[l][k-1]) / (l+1);
+#ifdef FFT_SINGLE
+	s += powf(0.5,(float) l+1) *
+	  (a[l][k-1] + powf(-1.0,(float) l) * a[l][k+1]) / (l+1);
+#else
 	s += pow(0.5,(double) l+1) * 
 	  (a[l][k-1] + pow(-1.0,(double) l) * a[l][k+1]) / (l+1);
+#endif
       }
       a[0][k] = s;
     }
@@ -1874,7 +1896,7 @@ void PPPM::timing(int n, double &time3d, double &time1d)
 {
   double time1,time2;
 
-  for (int i = 0; i < 2*nfft_both; i++) work1[i] = 0.0;
+  for (int i = 0; i < 2*nfft_both; i++) work1[i] = ZEROF;
 
   MPI_Barrier(world);
   time1 = MPI_Wtime();
@@ -1914,9 +1936,10 @@ double PPPM::memory_usage()
   double bytes = nmax*3 * sizeof(double);
   int nbrick = (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) * 
     (nzhi_out-nzlo_out+1);
-  bytes += 4 * nbrick * sizeof(double);
+  bytes += 4 * nbrick * sizeof(FFT_SCALAR);
   bytes += 6 * nfft_both * sizeof(double);
-  bytes += nfft_both*6 * sizeof(double);
-  bytes += 2 * nbuf * sizeof(double);
+  bytes += nfft_both * sizeof(double);
+  bytes += nfft_both*5 * sizeof(FFT_SCALAR);
+  bytes += 2 * nbuf * sizeof(FFT_SCALAR);
   return bytes;
 }

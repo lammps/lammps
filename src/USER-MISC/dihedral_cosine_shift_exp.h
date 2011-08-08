@@ -13,7 +13,7 @@
 
 #ifdef DIHEDRAL_CLASS
 
-DihedralStyle(cosine/shift/exp,DihedralCosShiftExp)
+DihedralStyle(cosine/shift/exp,DihedralCosineShiftExp)
 
 #else
 

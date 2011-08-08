@@ -19,7 +19,7 @@
 #include "mpi.h"
 #include "math.h"
 #include "stdlib.h"
-#include "dihedral_cosineshiftexp.h"
+#include "dihedral_cosine_shift_exp.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
@@ -36,11 +36,11 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-DihedralCosShiftExp::DihedralCosShiftExp(LAMMPS *lmp) : Dihedral(lmp) {}
+DihedralCosineShiftExp::DihedralCosineShiftExp(LAMMPS *lmp) : Dihedral(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
-DihedralCosShiftExp::~DihedralCosShiftExp()
+DihedralCosineShiftExp::~DihedralCosineShiftExp()
 {
   if (allocated) {
     memory->destroy(setflag);
@@ -56,7 +56,7 @@ DihedralCosShiftExp::~DihedralCosShiftExp()
 
 /* ---------------------------------------------------------------------- */
 
-void DihedralCosShiftExp::compute(int eflag, int vflag)
+void DihedralCosineShiftExp::compute(int eflag, int vflag)
 {
   int i1,i2,i3,i4,i,m,n,type;
   double vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,vb2xm,vb2ym,vb2zm;
@@ -250,7 +250,7 @@ void DihedralCosShiftExp::compute(int eflag, int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void DihedralCosShiftExp::allocate()
+void DihedralCosineShiftExp::allocate()
 {
   allocated = 1;
   int n = atom->ndihedraltypes;
@@ -271,7 +271,7 @@ void DihedralCosShiftExp::allocate()
    set coeffs for one type
 ------------------------------------------------------------------------- */
 
-void DihedralCosShiftExp::coeff(int narg, char **arg)
+void DihedralCosineShiftExp::coeff(int narg, char **arg)
 {
   if (narg != 4) error->all("Incorrect args for dihedral coefficients");
   if (!allocated) allocate();
@@ -305,7 +305,7 @@ void DihedralCosShiftExp::coeff(int narg, char **arg)
    proc 0 writes out coeffs to restart file 
 ------------------------------------------------------------------------- */
 
-void DihedralCosShiftExp::write_restart(FILE *fp)
+void DihedralCosineShiftExp::write_restart(FILE *fp)
 {
   fwrite(&umin[1],sizeof(double),atom->ndihedraltypes,fp);
   fwrite(&a[1],sizeof(double),atom->ndihedraltypes,fp);
@@ -318,7 +318,7 @@ void DihedralCosShiftExp::write_restart(FILE *fp)
    proc 0 reads coeffs from restart file, bcasts them 
 ------------------------------------------------------------------------- */
 
-void DihedralCosShiftExp::read_restart(FILE *fp)
+void DihedralCosineShiftExp::read_restart(FILE *fp)
 {
   allocate();
 

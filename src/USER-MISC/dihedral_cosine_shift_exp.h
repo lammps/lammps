@@ -11,45 +11,24 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-/*
-  The torsion angle is defined such that a straight bond has costheta=180.
-
-  U(theta,theta0,umin,a) = -Umin[Exp(-a U)-1]/[[Exp(a)-1]]
-  with U = (-1-cos[theta-theta0])/2 = -Cos((theta-theta0)/2)^2
-
-  potential has minimum at theta=theta0 where U() = -Umin
-  potential has maximum at theta=theta0+180 where U() = 0
-
-  The spring constant around the minimum is controlled by a and
-  is given by  k = a exp(a) Umin/[ 2(Exp[a]-1) ]   for a=0
-  the spring constant is k=Umin/2 and the potential reduces to
-  the cosineshifted potential.
-  
-  The potential is implemented such that for a<0.001 a series
-  expansion to linear order is used instead of the expression
-  above. This ensures a precision of about 1e-5 or better for
-  energies and forces, and ensures the potential is well
-  behaved for a=0
-*/
-
 #ifdef DIHEDRAL_CLASS
 
-DihedralStyle(cosineshiftexp,DihedralCosShiftExp)
+DihedralStyle(cosine/shift/exp,DihedralCosShiftExp)
 
 #else
 
-#ifndef LMP_DIHEDRAL_COSINESHIFTEDEXP_H
-#define LMP_DIHEDRAL_COSINESHIFTEDEXP_H
+#ifndef LMP_DIHEDRAL_COSINE_SHIFT_EXP_H
+#define LMP_DIHEDRAL_COSINE_SHIFT_EXP_H
 
 #include "stdio.h"
 #include "dihedral.h"
 
 namespace LAMMPS_NS {
 
-class DihedralCosShiftExp : public Dihedral {
+class DihedralCosineShiftExp : public Dihedral {
  public:
-  DihedralCosShiftExp(class LAMMPS *);
-  ~DihedralCosShiftExp();
+  DihedralCosineShiftExp(class LAMMPS *);
+  ~DihedralCosineShiftExp();
   void compute(int, int);
   void coeff(int, char **);
   void write_restart(FILE *);

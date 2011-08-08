@@ -17,7 +17,7 @@
 
 #include "math.h"
 #include "stdlib.h"
-#include "angle_cosineshift.h"
+#include "angle_cosine_shift.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"

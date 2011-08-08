@@ -10,6 +10,7 @@ if (test $1 = 1) then
   cp dihedral_cosine_shift_exp.cpp ..
   cp fix_addtorque.cpp ..
   cp pair_dipole_sf.cpp ..
+  cp pair_lj_sf.cpp ..
 
   cp angle_cosine_shift.h ..
   cp angle_cosine_shift_exp.h ..
@@ -19,6 +20,7 @@ if (test $1 = 1) then
   cp dihedral_cosine_shift_exp.h ..
   cp fix_addtorque.h ..
   cp pair_dipole_sf.h ..
+  cp pair_lj_sf.h ..
 
 elif (test $1 = 0) then
 
@@ -30,6 +32,7 @@ elif (test $1 = 0) then
   rm -f ../dihedral_cosine_shift_exp.cpp
   rm -f ../fix_addtorque.cpp
   rm -f ../pair_dipole_sf.cpp
+  rm -f ../pair_lj_sf.cpp
 
   rm -f ../angle_cosine_shift.h
   rm -f ../angle_cosine_shift_exp.h
@@ -39,5 +42,6 @@ elif (test $1 = 0) then
   rm -f ../dihedral_cosine_shift_exp.h
   rm -f ../fix_addtorque.h
   rm -f ../pair_dipole_sf.h
+  rm -f ../pair_lj_sf.h
 
 fi

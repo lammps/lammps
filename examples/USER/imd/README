@@ -5,12 +5,17 @@ initialization it will stop and wait for an IMD client to
 connect. Then launch VMD on the same machine with the respective
 script to connect and visualize the running simulation.  For example:
 
-mpirun -np 4 lmp_linux -in in.melt_imd
+mpirun -np 4 lmp_linux -log none -in in.melt_imd &
 vmd -e melt_imd-demo.vmd
 
-When exiting VMD, the simulation will wait for a new connection.  To
-terminate the LAMMPS simulation, type "imd kill" into the VMD command
-line prompt.
+When exiting VMD, the simulation will either continue or wait
+for a new connection depending on whether the "nowait" flag was
+activated or not.  To terminate the LAMMPS simulation, 
+type "imd kill" into the VMD command line prompt.
+
+To combine interactive MD with force feedback using a
+Novint Falcon game controller, have a look at:
+http://sites.google.com/site/akohlmey/software/vrpn-icms
 
 Examples:
 
@@ -28,6 +33,15 @@ Examples:
        representation again to re-enable the rest of
        the atoms and watch the blue atom move.
 
+bucky-plus-cnt:
+       this is "the buckyball challenge". a demo that
+       is very popular to demonstrate the use of IMD
+       with force feedback. The system is a SWCNT with
+       some atoms fixed in space and five C60 fullerenes
+       in a reflecting wall box. The challenge is to
+       push all five buckyballs into the nanotube and
+       have them stay inside.
+
  deca-ala-solv:
        a solvated deca alanin helix. The mouse mode is
        preset to move residues instead of individual
@@ -37,8 +51,8 @@ Examples:
  deca-ala:
        this is the same system as the previous, but 
        the fix is only applied to the peptide and thus
-       the corresponding vmd script needs a different
+       the corresponding VMD script needs a different
        topology file with the matching number of atoms
        to visualize it and receive the IMD data.
 
-In case of problems, contact <axel.kohlmeyer@temple.edu>.
+In case of problems, contact <akohlmey@gmail.com>.

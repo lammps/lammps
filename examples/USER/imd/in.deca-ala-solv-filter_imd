@@ -23,10 +23,10 @@ thermo_style    multi
 timestep        2.0
 kspace_style    pppm 1e-5
 
-fix             ensemble all npt temp 300.0 300.0 100.0 iso 1.0 1.0 1000.0 drag 0.2
+fix             ensemble all npt temp 300.0 300.0 100.0 aniso 1.0 1.0 1000.0 drag 0.2
 
 # IMD setup.
-fix  comm       all imd 5678 unwrap on trate 10
+fix  comm       all imd 5678 unwrap on trate 10 filter 20 2
 
 run 5000000
 

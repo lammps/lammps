@@ -141,6 +141,10 @@ class Data {
   double *bond_feneexpand_epsilon,*bond_feneexpand_sigma;
   double *bond_feneexpand_shift;
   double *bond_harmonic_k,*bond_harmonic_r0;
+  double *bond_harmonicshift_umin,*bond_harmonicshift_r0,
+    *bond_harmonicshift_rc;
+  double *bond_harmonicshiftcut_umin,*bond_harmonicshiftcut_r0,
+    *bond_harmonicshiftcut_rc;
   double *bond_morse_d0,*bond_morse_alpha,*bond_morse_r0;
   double *bond_nonlinear_epsilon,*bond_nonlinear_r0,*bond_nonlinear_lamda;
   double *bond_quartic_k,*bond_quartic_b1,*bond_quartic_b2;
@@ -157,6 +161,11 @@ class Data {
   double *angle_cosine_squared_k,*angle_cosine_squared_theta0;
   double *angle_harmonic_k,*angle_harmonic_theta0;
   double *angle_cg_cmm_epsilon,*angle_cg_cmm_sigma;
+  double *angle_cosineshift_umin,*angle_cosineshift_sint,
+    *angle_cosineshift_cost,*angle_cosineshift_theta0;
+  double *angle_cosineshiftexp_umin,*angle_cosineshiftexp_a,
+    *angle_cosineshiftexp_sint,*angle_cosineshiftexp_cost,
+    *angle_cosineshiftexp_theta0;
   int *angle_cg_cmm_type;
 
   double *dihedral_charmm_k,*dihedral_charmm_weight;
@@ -184,6 +193,9 @@ class Data {
   double *dihedral_multi_a4,*dihedral_multi_a5;
   double *dihedral_opls_k1,*dihedral_opls_k2;
   double *dihedral_opls_k3,*dihedral_opls_k4;
+  double *dihedral_cosineshiftexp_umin, *dihedral_cosineshiftexp_a,
+    *dihedral_cosineshiftexp_sint,*dihedral_cosineshiftexp_cost,
+    *dihedral_cosineshiftexp_theta;
 
   double *improper_class2_k0,*improper_class2_chi0;
   double *improper_class2_aa_k1,*improper_class2_aa_k2,*improper_class2_aa_k3;
@@ -830,7 +842,7 @@ int atom_angle(double *buf, Data &data, int iatoms)
   for (int k = 0; k < n; k++) {
     type = static_cast<int> (buf[m++]);
     atom1 = static_cast<int> (buf[m++]);
-    if (data.newton_bond || data.tag[iatoms] < atom1) {
+    if (data.newton_bond || data.tag[iatoms] < atom1 ) {
       data.bond_type[data.ibonds] = type;
       data.bond_atom1[data.ibonds] = data.tag[iatoms];
       data.bond_atom2[data.ibonds] = atom1;
@@ -2258,6 +2270,25 @@ void bond(FILE *fp, Data &data)
     fread(&data.bond_harmonic_k[1],sizeof(double),data.nbondtypes,fp);
     fread(&data.bond_harmonic_r0[1],sizeof(double),data.nbondtypes,fp);
 
+  } else if (strcmp(data.bond_style,"harmonicshift") == 0) {
+
+    data.bond_harmonicshift_umin = new double[data.nbondtypes+1];
+    data.bond_harmonicshift_r0 = new double[data.nbondtypes+1];
+    data.bond_harmonicshift_rc = new double[data.nbondtypes+1];
+    fread(&data.bond_harmonicshift_umin[1],sizeof(double),data.nbondtypes,fp);
+    fread(&data.bond_harmonicshift_r0[1],sizeof(double),data.nbondtypes,fp);
+    fread(&data.bond_harmonicshift_rc[1],sizeof(double),data.nbondtypes,fp);
+
+  } else if (strcmp(data.bond_style,"harmonicshiftcut") == 0) {
+
+    data.bond_harmonicshiftcut_umin = new double[data.nbondtypes+1];
+    data.bond_harmonicshiftcut_r0 = new double[data.nbondtypes+1];
+    data.bond_harmonicshiftcut_rc = new double[data.nbondtypes+1];
+    fread(&data.bond_harmonicshiftcut_umin[1],sizeof(double),
+	  data.nbondtypes,fp);
+    fread(&data.bond_harmonicshiftcut_r0[1],sizeof(double),data.nbondtypes,fp);
+    fread(&data.bond_harmonicshiftcut_rc[1],sizeof(double),data.nbondtypes,fp);
+
   } else if (strcmp(data.bond_style,"morse") == 0) {
 
     data.bond_morse_d0 = new double[data.nbondtypes+1];
@@ -2371,6 +2402,34 @@ void angle(FILE *fp, Data &data)
     fread(&data.angle_class2_ba_k2[1],sizeof(double),data.nangletypes,fp);
     fread(&data.angle_class2_ba_r1[1],sizeof(double),data.nangletypes,fp);
     fread(&data.angle_class2_ba_r2[1],sizeof(double),data.nangletypes,fp);
+
+  } else if (strcmp(data.angle_style,"cosineshift") == 0) {
+
+    data.angle_cosineshift_umin = new double[data.nangletypes+1];
+    fread(&data.angle_cosineshift_umin[1],sizeof(double),data.nangletypes,fp);
+    data.angle_cosineshift_cost = new double[data.nangletypes+1];
+    fread(&data.angle_cosineshift_cost[1],sizeof(double),data.nangletypes,fp);
+    data.angle_cosineshift_sint = new double[data.nangletypes+1];
+    fread(&data.angle_cosineshift_sint[1],sizeof(double),data.nangletypes,fp);
+    data.angle_cosineshift_theta0 = new double[data.nangletypes+1];
+    fread(&data.angle_cosineshift_theta0[1],sizeof(double),data.nangletypes,fp);
+
+  } else if (strcmp(data.angle_style,"cosineshiftexp") == 0) {
+
+    data.angle_cosineshiftexp_umin = new double[data.nangletypes+1];
+    fread(&data.angle_cosineshiftexp_umin[1],sizeof(double),
+	  data.nangletypes,fp);
+    data.angle_cosineshiftexp_a = new double[data.nangletypes+1];
+    fread(&data.angle_cosineshiftexp_a[1],sizeof(double),data.nangletypes,fp);
+    data.angle_cosineshiftexp_cost = new double[data.nangletypes+1];
+    fread(&data.angle_cosineshiftexp_cost[1],sizeof(double),
+	  data.nangletypes,fp);
+    data.angle_cosineshiftexp_sint = new double[data.nangletypes+1];
+    fread(&data.angle_cosineshiftexp_sint[1],sizeof(double),
+	  data.nangletypes,fp);
+    data.angle_cosineshiftexp_theta0 = new double[data.nangletypes+1];
+    fread(&data.angle_cosineshiftexp_theta0[1],sizeof(double),
+	  data.nangletypes,fp);
 
   } else if (strcmp(data.angle_style,"cosine") == 0) {
 
@@ -2582,6 +2641,24 @@ void dihedral(FILE *fp, Data &data)
     fread(&data.dihedral_opls_k2[1],sizeof(double),data.ndihedraltypes,fp);
     fread(&data.dihedral_opls_k3[1],sizeof(double),data.ndihedraltypes,fp);
     fread(&data.dihedral_opls_k4[1],sizeof(double),data.ndihedraltypes,fp);
+  
+  } else if (strcmp(data.dihedral_style,"cosineshiftexp") == 0) {
+
+    data.dihedral_cosineshiftexp_umin = new double[data.ndihedraltypes+1];
+    fread(&data.dihedral_cosineshiftexp_umin[1],sizeof(double),
+	  data.ndihedraltypes,fp);
+    data.dihedral_cosineshiftexp_a = new double[data.ndihedraltypes+1];
+    fread(&data.dihedral_cosineshiftexp_a[1],sizeof(double),
+	  data.ndihedraltypes,fp);
+    data.dihedral_cosineshiftexp_cost = new double[data.ndihedraltypes+1];
+    fread(&data.dihedral_cosineshiftexp_cost[1],sizeof(double),
+	  data.ndihedraltypes,fp);
+    data.dihedral_cosineshiftexp_sint = new double[data.ndihedraltypes+1];
+    fread(&data.dihedral_cosineshiftexp_sint[1],sizeof(double),
+	  data.ndihedraltypes,fp);
+    data.dihedral_cosineshiftexp_theta = new double[data.ndihedraltypes+1];
+    fread(&data.dihedral_cosineshiftexp_theta[1],sizeof(double),
+	  data.ndihedraltypes,fp);
 
   } else if (strcmp(data.dihedral_style,"table") == 0) {
 
@@ -2967,6 +3044,18 @@ void Data::write(FILE *fp, FILE *fp2)
 	fprintf(fp,"%d %g %g\n",i,
 		bond_harmonic_k[i],bond_harmonic_r0[i]);
 
+    } else if (strcmp(bond_style,"harmonicshift") == 0) {
+      for (int i = 1; i <= nbondtypes; i++)
+	fprintf(fp,"%d %g %g %g\n",i,
+		bond_harmonicshift_umin[i],bond_harmonicshift_r0[i],
+		bond_harmonicshift_rc[i]);
+
+    } else if (strcmp(bond_style,"harmonicshiftcut") == 0) {
+      for (int i = 1; i <= nbondtypes; i++)
+	fprintf(fp,"%d %g %g %g\n",i,
+		bond_harmonicshiftcut_umin[i],bond_harmonicshiftcut_r0[i],
+		bond_harmonicshiftcut_rc[i]);
+
     } else if (strcmp(bond_style,"morse") == 0) {
       for (int i = 1; i <= nbondtypes; i++)
 	fprintf(fp,"%d %g %g %g\n",i,
@@ -3037,6 +3126,17 @@ void Data::write(FILE *fp, FILE *fp2)
     } else if (strcmp(angle_style,"cosine") == 0) {
       for (int i = 1; i <= nangletypes; i++)
 	fprintf(fp,"%d %g\n",i,angle_cosine_k[i]);
+
+    } else if (strcmp(angle_style,"cosineshift") == 0) {
+      for (int i = 1; i <= nangletypes; i++)
+	fprintf(fp,"%d %g %g\n",i,angle_cosineshift_umin[i], 
+		angle_cosineshift_theta0[i]/PI*180.0);
+
+    } else if (strcmp(angle_style,"cosineshiftexp") == 0) {
+      for (int i = 1; i <= nangletypes; i++)
+	fprintf(fp,"%d %g %g %g\n",i,angle_cosineshiftexp_umin[i], 
+		angle_cosineshiftexp_theta0[i]/PI*180.0, 
+		angle_cosineshiftexp_a[i]);
 
     } else if ((strcmp(angle_style,"cosine/squared") == 0) ||
                (strcmp(angle_style,"cosine/delta") == 0)) {
@@ -3155,6 +3255,14 @@ void Data::write(FILE *fp, FILE *fp2)
 	fprintf(fp,"%d %g %d %d\n",i,
 		dihedral_harmonic_k[i],dihedral_harmonic_multiplicity[i],
 		dihedral_harmonic_sign[i]);
+
+    } else if (strcmp(dihedral_style,"cosineshiftexp") == 0) {
+      for (int i = 1; i <= ndihedraltypes; i++)
+	fprintf(fp,"%d %g %g %g\n",i,
+		dihedral_cosineshiftexp_umin[i],
+		dihedral_cosineshiftexp_theta[i]*180.0/PI,
+		dihedral_cosineshiftexp_a[i]
+		);
 
     } else if (strcmp(dihedral_style,"helix") == 0) {
       for (int i = 1; i <= ndihedraltypes; i++)

@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -24,8 +24,8 @@ class FFT3d : protected Pointers {
   FFT3d(class LAMMPS *, MPI_Comm,int,int,int,int,int,int,int,int,int,
 	int,int,int,int,int,int,int,int,int *);
   ~FFT3d();
-  void compute(double *, double *, int);
-  void timing1d(double *, int, int);
+  void compute(FFT_SCALAR *, FFT_SCALAR *, int);
+  void timing1d(FFT_SCALAR *, int, int);
 
  private:
   struct fft_plan_3d *plan;

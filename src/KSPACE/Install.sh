@@ -17,6 +17,7 @@ if (test $1 = 1) then
   cp remap_wrap.cpp ..
 
   cp ewald.h ..
+  cp kissfft.h ..
   cp pppm.h ..
   cp pppm_tip4p.h ..
   cp pair_born_coul_long.h ..
@@ -47,6 +48,7 @@ elif (test $1 = 0) then
   rm -f ../remap_wrap.cpp
 
   rm -f ../ewald.h
+  rm -f ../kissfft.h
   rm -f ../pppm.h
   rm -f ../pppm_tip4p.h
   rm -f ../pair_born_coul_long.h

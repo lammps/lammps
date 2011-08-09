@@ -23,8 +23,8 @@ package cuda blah :pre
 
 [Description:]
 
-This command is to set package-specific settings.  Currently only
-the USER-CUDA package uses it.
+This command invokes package-specific settings.  Currently only the
+USER-CUDA package uses it.
 
 The {cuda} style invokes options associated with the use of the
 USER-CUDA package.  These will be described when the USER-CUDA package

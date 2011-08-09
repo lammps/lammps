@@ -1,5 +1,7 @@
 <HTML>
-<CENTER><A HREF = "Section_python.html">Previous Section</A> - <A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> - <A HREF = "Section_errors.html">Next Section</A> 
+<CENTER><A HREF = "Section_python.html">Previous Section</A> - <A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> -
+<A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> - <A HREF = "Section_errors.html">Next
+Section</A> 
 </CENTER>
 
 
@@ -11,11 +13,6 @@
 
 <H3>10. Using accelerated CPU and GPU styles 
 </H3>
-<P>NOTE: These doc pages are still incomplete as of 1Jun11.
-</P>
-<P>NOTE: The USER-CUDA package discussed below has not yet been
-officially released in LAMMPS.
-</P>
 <P>Accelerated versions of various <A HREF = "pair_style.html">pair_style</A>,
 <A HREF = "fix.html">fixes</A>, <A HREF = "compute.html">computes</A>, and other commands have
 been added to LAMMPS, which will typically run faster than the
@@ -41,8 +38,9 @@ styles can be invoked by specifying them explicitly in your input
 script.  Or you can use the <A HREF = "Section_start.html#2_6">-suffix command-line
 switch</A> to invoke the accelerated versions
 automatically, without changing your input script.  The
-<A HREF = "suffix.html">suffix</A> command also allows you to set a suffix and to
-turn off/on the comand-line switch setting within your input script.
+<A HREF = "suffix.html">suffix</A> command allows you to set a suffix explicitly and
+to turn off/on the comand-line switch setting, both from within your
+input script.
 </P>
 <P>Styles with an "opt" suffix are part of the OPT package and typically
 speed-up the pairwise calculations of your simulation by 5-25%.
@@ -60,10 +58,10 @@ and kspace sections.
 <P>The following sections explain:
 </P>
 <UL><LI>what hardware and software the accelerated styles require
-<LI>how to install the accelerated packages
-<LI>what kind of problems they run best on
-<LI>guidelines for how to use them to best advantage
-<LI>the kinds of speed-ups you can expect 
+<LI>how to build LAMMPS with the accelerated packages in place
+<LI>what changes (if any) are needed in your input scripts
+<LI>guidelines for best performance
+<LI>speed-ups you can expect 
 </UL>
 <P>The final section compares and contrasts the GPU and USER-CUDA
 packages, since they are both designed to use NVIDIA GPU hardware.
@@ -80,7 +78,7 @@ packages, since they are both designed to use NVIDIA GPU hardware.
 <H4><A NAME = "10_1"></A>10.1 OPT package 
 </H4>
 <P>The OPT package was developed by James Fischer (High Performance
-Technologies), David Richie and Vincent Natoli (Stone Ridge
+Technologies), David Richie, and Vincent Natoli (Stone Ridge
 Technologies).  It contains a handful of pair styles whose compute()
 methods were rewritten in C++ templated form to reduce the overhead
 due to if tests and other conditional code.
@@ -104,343 +102,473 @@ to 20% savings.
 </P>
 <HR>
 
+<HR>
+
 <H4><A NAME = "10_2"></A>10.2 GPU package 
 </H4>
-<P>The GPU package was developed by Mike Brown at ORNL.
+<P>The GPU package was developed by Mike Brown at ORNL.  It provides GPU
+versions of several pair styles and for long-range Coulombics via the
+PPPM command.  It has the following features:
 </P>
-<P>Additional requirements in your input script to run the styles with a
-<I>gpu</I> suffix are as follows:
+<UL><LI>The package is designed to exploit common GPU hardware configurations
+where one or more GPUs are coupled with one or more multi-core CPUs
+within a node of a parallel machine. 
+
+<LI>Atom-based data (e.g. coordinates, forces) moves back-and-forth
+between the CPU and GPU every timestep. 
+
+<LI>Neighbor lists can be constructed by on the CPU or on the GPU,
+controlled by the <A HREF = "fix_gpu.html">fix gpu</A> command. 
+
+<LI>The charge assignement and force interpolation portions of PPPM can be
+run on the GPU.  The FFT portion, which requires MPI communication
+between processors, runs on the CPU. 
+
+<LI>Asynchronous force computations can be performed simulataneously on
+the CPU and GPU. 
+
+<LI>LAMMPS-specific code is in the GPU package.  It makee calls to a more
+generic GPU library in the lib/gpu directory.  This library provides
+NVIDIA support as well as a more general OpenCL support, so that the
+same functionality can eventually be supported on other GPU
+hardware. 
+</UL>
+<P><B>Hardware and software requirements:</B>
+</P>
+<P>To use this package, you need to have specific NVIDIA hardware and
+install specific NVIDIA CUDA software on your system:
+</P>
+<UL><LI>Check if you have an NVIDIA card: cat /proc/driver/nvidia/cards/0
+<LI>Go to http://www.nvidia.com/object/cuda_get.html
+<LI>Install a driver and toolkit appropriate for your system (SDK is not necessary)
+<LI>Follow the instructions in lammps/lib/gpu/README to build the library (also see below)
+<LI>Run lammps/lib/gpu/nvc_get_devices to list supported devices and properties 
+</UL>
+<P><B>Building LAMMPS with the GPU package:</B>
+</P>
+<P>As with other packages that link with a separately complied library,
+you need to first build the GPU library, before building LAMMPS
+itself.  General instructions for doing this are in <A HREF = "doc/Section_start.html#2_3">this
+section</A> of the manual.  For this package,
+do the following, using a Makefile appropriate for your system:
+</P>
+<PRE>cd lammps/lib/gpu
+make -f Makefile.linux
+(see further instructions in lammps/lib/gpu/README) 
+</PRE>
+<P>If you are successful, you will produce the file lib/libgpu.a.
+</P>
+<P>Now you are ready to build LAMMPS with the GPU package installed:
+</P>
+<PRE>cd lammps/lib/src
+make yes-gpu
+make machine 
+</PRE>
+<P>Note that the lo-level Makefile (e.g. src/MAKE/Makefile.linux) has
+these settings: gpu_SYSINC, gpu_SYSLIB, gpu_SYSPATH.  These need to be
+set appropriately to include the paths and settings for the CUDA
+system software on your machine.  See src/MAKE/Makefile.g++ for an
+example.
+</P>
+<P><B>GPU configuration</B>
+</P>
+<P>When using GPUs, you are restricted to one physical GPU per LAMMPS
+process, which is an MPI process running (typically) on a single core
+or processor.  Multiple processes can share a single GPU and in many
+cases it will be more efficient to run with multiple processes per
+GPU.
+</P>
+<P><B>Input script requirements:</B>
+</P>
+<P>Additional input script requirements to run styles with a <I>gpu</I> suffix
+are as follows.
 </P>
 <P>The <A HREF = "newton.html">newton pair</A> setting must be <I>off</I> and the <A HREF = "fix_gpu.html">fix
-gpu</A> command must be used.  The fix controls the GPU
-selection and initialization steps.
+gpu</A> command must be used.  To invoke specific styles
+from the GPU package, you can either append "gpu" to the style name
+(e.g. pair_style lj/cut/gpu), or use the <A HREF = "Section_start.html#2_6">-suffix command-line
+switch</A>, or use the <A HREF = "suffix.html">suffix</A>
+command.
 </P>
-<P>A few LAMMPS <A HREF = "pair_style.html">pair styles</A> can be run on graphical
-processing units (GPUs).  We plan to add more over time.  Currently,
-they only support NVIDIA GPU cards.  To use them you need to install
-certain NVIDIA CUDA software on your system:
+<P>The <A HREF = "fix_gpu.html">fix gpu</A> command controls the GPU selection and
+initialization steps.
 </P>
-<UL><LI>Check if you have an NVIDIA card: cat /proc/driver/nvidia/cards/0 Go
-<LI>to http://www.nvidia.com/object/cuda_get.html Install a driver and
-<LI>toolkit appropriate for your system (SDK is not necessary) Follow the
-<LI>instructions in README in lammps/lib/gpu to build the library Run
-<LI>lammps/lib/gpu/nvc_get_devices to list supported devices and
-<LI>properties 
-</UL>
-<H4>GPU configuration 
-</H4>
-<P>When using GPUs, you are restricted to one physical GPU per LAMMPS
-process.  Multiple processes can share a single GPU and in many cases
-it will be more efficient to run with multiple processes per GPU. Any
-GPU accelerated style requires that <A HREF = "fix_gpu.html">fix gpu</A> be used in
-the input script to select and initialize the GPUs. The format for the
-fix is:
+<P>The format for the fix is:
 </P>
-<PRE>fix <I>name</I> all gpu <I>mode</I> <I>first</I> <I>last</I> <I>split</I> 
+<PRE>fix fix-ID all gpu <I>mode</I> <I>first</I> <I>last</I> <I>split</I> 
 </PRE>
-<P>where <I>name</I> is the name for the fix. The gpu fix must be the first
-fix specified for a given run, otherwise the program will exit with an
-error. The gpu fix will not have any effect on runs that do not use
-GPU acceleration; there should be no problem with specifying the fix
+<P>where fix-ID is the name for the fix. The gpu fix must be the first
+fix specified for a given run, otherwise LAMMPS will exit with an
+error. The gpu fix does not have any effect on runs that do not use
+GPU acceleration, so there should be no problem specifying the fix
 first in any input script.
 </P>
-<P><I>mode</I> can be either "force" or "force/neigh". In the former, neighbor
-list calculation is performed on the CPU using the standard LAMMPS
-routines. In the latter, the neighbor list calculation is performed on
-the GPU. The GPU neighbor list can be used for better performance,
-however, it cannot not be used with a triclinic box or with
-<A HREF = "pair_hybrid.html">hybrid</A> pair styles.
+<P>The <I>mode</I> setting can be either "force" or "force/neigh". In the
+former, neighbor list calculation is performed on the CPU using the
+standard LAMMPS routines. In the latter, the neighbor list calculation
+is performed on the GPU. The GPU neighbor list can be used for better
+performance, however, it cannot not be used with a triclinic box or
+with <A HREF = "pair_hybrid.html">hybrid</A> pair styles.
 </P>
-<P>There are cases when it might be more efficient to select the CPU for
-neighbor list builds. If a non-GPU enabled style requires a neighbor
-list, it will also be built using CPU routines. Redundant CPU and GPU
-neighbor list calculations will typically be less efficient.
+<P>There are cases when it may be more efficient to select the CPU for
+neighbor list builds. If a non-GPU enabled style (e.g. a fix or
+compute) requires a neighbor list, it will also be built using CPU
+routines.  Redundant CPU and GPU neighbor list calculations will
+typically be less efficient.
 </P>
-<P><I>first</I> is the ID (as reported by lammps/lib/gpu/nvc_get_devices) of
-the first GPU that will be used on each node. <I>last</I> is the ID of the
-last GPU that will be used on each node. If you have only one GPU per
-node, <I>first</I> and <I>last</I> will typically both be 0. Selecting a
-non-sequential set of GPU IDs (e.g. 0,1,3) is not currently supported.
+<P>The <I>first</I> setting is the ID (as reported by
+lammps/lib/gpu/nvc_get_devices) of the first GPU that will be used on
+each node. The <I>last</I> setting is the ID of the last GPU that will be
+used on each node. If you have only one GPU per node, <I>first</I> and
+<I>last</I> will typically both be 0. Selecting a non-sequential set of GPU
+IDs (e.g. 0,1,3) is not currently supported.
 </P>
-<P><I>split</I> is the fraction of particles whose forces, torques, energies,
-and/or virials will be calculated on the GPU. This can be used to
-perform CPU and GPU force calculations simultaneously. If <I>split</I> is
-negative, the software will attempt to calculate the optimal fraction
-automatically every 25 timesteps based on CPU and GPU timings. Because
-the GPU speedups are dependent on the number of particles, automatic
-calculation of the split can be less efficient, but typically results
-in loop times within 20% of an optimal fixed split.
+<P>The <I>split</I> setting is the fraction of particles whose forces,
+torques, energies, and/or virials will be calculated on the GPU. This
+can be used to perform CPU and GPU force calculations simultaneously,
+e.g. on a hybrid node with a multicore CPU and a GPU(s).  If <I>split</I>
+is negative, the software will attempt to calculate the optimal
+fraction automatically every 25 timesteps based on CPU and GPU
+timings. Because the GPU speedups are dependent on the number of
+particles, automatic calculation of the split can be less efficient,
+but typically results in loop times within 20% of an optimal fixed
+split.
 </P>
-<P>If you have two GPUs per node, 8 CPU cores per node, and would like to
-run on 4 nodes with dynamic balancing of force calculation across CPU
-and GPU cores, the fix might be
+<P>As an example, if you have two GPUs per node, 8 CPU cores per node,
+and would like to run on 4 nodes (32 cores) with dynamic balancing of
+force calculation across CPU and GPU cores, the fix might be
 </P>
 <PRE>fix 0 all gpu force/neigh 0 1 -1 
 </PRE>
-<P>with LAMMPS run on 32 processes. In this case, all CPU cores and GPU
-devices on the nodes would be utilized.  Each GPU device would be
-shared by 4 CPU cores. The CPU cores would perform force calculations
-for some fraction of the particles at the same time the GPUs performed
-force calculation for the other particles.
+<P>In this case, all CPU cores and GPU devices on the nodes would be
+utilized.  Each GPU device would be shared by 4 CPU cores. The CPU
+cores would perform force calculations for some fraction of the
+particles at the same time the GPUs performed force calculation for
+the other particles.
 </P>
-<P>Because of the large number of cores on each GPU device, it might be
-more efficient to run on fewer processes per GPU when the number of
-particles per process is small (100's of particles); this can be
-necessary to keep the GPU cores busy.
+<P><B>Asynchronous pair computation on GPU and CPU</B>
 </P>
-<H4>GPU input script 
-</H4>
-<P>In order to use GPU acceleration in LAMMPS, <A HREF = "fix_gpu.html">fix_gpu</A>
-should be used in order to initialize and configure the GPUs for
-use. Additionally, GPU enabled styles must be selected in the input
-script. Currently, this is limited to a few <A HREF = "pair_style.html">pair
-styles</A> and PPPM.  Some GPU-enabled styles have
-additional restrictions listed in their documentation.
+<P>The GPU accelerated pair styles can perform pair style force
+calculation on the GPU at the same time other force calculations
+within LAMMPS are being performed on the CPU.  These include pair,
+bond, angle, etc forces as well as long-range Coulombic forces.  This
+is enabled by the <I>split</I> setting in the gpu fix as described above.
 </P>
-<H4>GPU asynchronous pair computation 
-</H4>
-<P>The GPU accelerated pair styles can be used to perform pair style
-force calculation on the GPU while other calculations are performed on
-the CPU. One method to do this is to specify a <I>split</I> in the gpu fix
-as described above.  In this case, force calculation for the pair
-style will also be performed on the CPU.
+<P>With a <I>split</I> setting less than 1.0, a portion of the pair-wise force
+calculations will also be performed on the CPU.  When the CPU finishes
+its pair style computations (if any), the next LAMMPS force
+computation will begin (bond, angle, etc), possibly before the GPU has
+finished its pair style computations.
 </P>
-<P>When the CPU work in a GPU pair style has finished, the next force
-computation will begin, possibly before the GPU has finished. If
-<I>split</I> is 1.0 in the gpu fix, the next force computation will begin
-almost immediately. This can be used to run a
+<P>This means that if <I>split</I> is set to 1.0, the GPU will begin the
+LAMMPS force computation immediately. This can be used to run a
 <A HREF = "pair_hybrid.html">hybrid</A> GPU pair style at the same time as a hybrid
 CPU pair style. In this case, the GPU pair style should be first in
 the hybrid command in order to perform simultaneous calculations. This
 also allows <A HREF = "bond_style.html">bond</A>, <A HREF = "angle_style.html">angle</A>,
 <A HREF = "dihedral_style.html">dihedral</A>, <A HREF = "improper_style.html">improper</A>, and
-<A HREF = "kspace_style.html">long-range</A> force computations to be run
-simultaneously with the GPU pair style.  Once all CPU force
-computations have completed, the gpu fix will block until the GPU has
-finished all work before continuing the run.
+<A HREF = "kspace_style.html">long-range</A> force computations to run
+simultaneously with the GPU pair style.  If all CPU force computations
+complete before the GPU, LAMMPS will block until the GPU has finished
+before continuing the timestep.
 </P>
-<H4>GPU timing 
-</H4>
-<P>GPU accelerated pair styles can perform computations asynchronously
-with CPU computations. The "Pair" time reported by LAMMPS will be the
-maximum of the time required to complete the CPU pair style
-computations and the time required to complete the GPU pair style
-computations. Any time spent for GPU-enabled pair styles for
+<P><B>Timing output:</B>
+</P>
+<P>As noted above, GPU accelerated pair styles can perform computations
+asynchronously with CPU computations. The "Pair" time reported by
+LAMMPS will be the maximum of the time required to complete the CPU
+pair style computations and the time required to complete the GPU pair
+style computations. Any time spent for GPU-enabled pair styles for
 computations that run simultaneously with <A HREF = "bond_style.html">bond</A>,
 <A HREF = "angle_style.html">angle</A>, <A HREF = "dihedral_style.html">dihedral</A>,
 <A HREF = "improper_style.html">improper</A>, and <A HREF = "kspace_style.html">long-range</A>
 calculations will not be included in the "Pair" time.
 </P>
-<P>When <I>mode</I> for the gpu fix is force/neigh, the time for neighbor list
-calculations on the GPU will be added into the "Pair" time, not the
-"Neigh" time. A breakdown of the times required for various tasks on
-the GPU (data copy, neighbor calculations, force computations, etc.)
-are output only with the LAMMPS screen output at the end of each
-run. These timings represent total time spent on the GPU for each
-routine, regardless of asynchronous CPU calculations.
+<P>When the <I>mode</I> setting for the gpu fix is force/neigh, the time for
+neighbor list calculations on the GPU will be added into the "Pair"
+time, not the "Neigh" time.  An additional breakdown of the times
+required for various tasks on the GPU (data copy, neighbor
+calculations, force computations, etc) are output only with the LAMMPS
+screen output (not in the log file) at the end of each run.  These
+timings represent total time spent on the GPU for each routine,
+regardless of asynchronous CPU calculations.
 </P>
-<H4>GPU single vs double precision 
-</H4>
+<P><B>Performance tips:</B>
+</P>
+<P>Because of the large number of cores within each GPU device, it may be
+more efficient to run on fewer processes per GPU when the number of
+particles per MPI process is small (100's of particles); this can be
+necessary to keep the GPU cores busy.
+</P>
 <P>See the lammps/lib/gpu/README file for instructions on how to build
 the LAMMPS gpu library for single, mixed, and double precision.  The
-latter requires that your GPU card supports double precision.
+latter requires that your GPU card support double precision.
 </P>
+<HR>
+
 <HR>
 
 <H4><A NAME = "10_3"></A>10.3 USER-CUDA package 
 </H4>
 <P>The USER-CUDA package was developed by Christian Trott at U Technology
-Ilmenau in Germany.
+Ilmenau in Germany.  It provides NVIDIA GPU versions of many pair
+styles, many fixes, a few computes, and for long-range Coulombics via
+the PPPM command.  It has the following features:
 </P>
-<P>This package will only be of any use to you, if you have an NVIDIA(tm)
-graphics card being CUDA(tm) enabled. Your GPU needs to support
-Compute Capability 1.3. This list may help
-you to find out the Compute Capability of your card:
+<UL><LI>The package is designed to allow an entire LAMMPS calculation, for
+many timesteps, to run entirely on the GPU (except for inter-processor
+MPI communication), so that atom-based data (e.g. coordinates, forces)
+do not have to move back-and-forth between the CPU and GPU. 
+
+<LI>This will occur until a timestep where a non-GPU-ized fix or compute
+is invoked.  E.g. whenever a non-GPU operation occurs (fix, compute,
+output), data automatically moves back to the CPU as needed.  This may
+incur a performance penalty, but should otherwise just work
+transparently. 
+
+<LI>Neighbor lists for GPU-ized pair styles are constructed on the
+GPU. 
+</UL>
+<P><B>Hardware and software requirements:</B>
+</P>
+<P>To use this package, you need to have specific NVIDIA hardware and
+install specific NVIDIA CUDA software on your system:
+</P>
+<P>Your NVIDIA GPU needs to support Compute Capability 1.3. This list may
+help you to find out the Compute Capability of your card:
 </P>
 <P>http://en.wikipedia.org/wiki/Comparison_of_Nvidia_graphics_processing_units
 </P>
 <P>Install the Nvidia Cuda Toolkit in version 3.2 or higher and the
 corresponding GPU drivers. The Nvidia Cuda SDK is not required for
-LAMMPSCUDA but we recommend to install it and
+LAMMPSCUDA but we recommend it be installed.  You can then make sure
+that its sample projects can be compiled without problems.
 </P>
-<P>make sure that the sample projects can be compiled without problems.
+<P><B>Building LAMMPS with the USER-CUDA package:</B>
 </P>
-<P>You should also be able to compile LAMMPS by typing
+<P>As with other packages that link with a separately complied library,
+you need to first build the USER-CUDA library, before building LAMMPS
+itself.  General instructions for doing this are in <A HREF = "doc/Section_start.html#2_3">this
+section</A> of the manual.  For this package,
+do the following, using a Makefile appropriate for your system:
 </P>
-<P><I>make YourMachine</I>
-</P>
-<P>inside the src directory of LAMMPS root path. If not, you should
-consult the LAMMPS documentation.
-</P>
-<H4>Compilation 
-</H4>
-<P>If your <I>CUDA</I> toolkit is not installed in the default directoy
+<UL><LI>If your <I>CUDA</I> toolkit is not installed in the default system directoy
 <I>/usr/local/cuda</I> edit the file <I>lib/cuda/Makefile.common</I>
-accordingly.
-</P>
-<P>Go to  <I>lib/cuda/</I> and type 
-</P>
-<P><I>make OPTIONS</I>
-</P>
-<P>where <I>OPTIONS</I> are one or more of the following:
-</P>
-<UL><LI><I>precision = 2</I> set precision level: 1 .. single precision, 2
-.. double precision, 3 .. positions in double precision, 4
-.. positions and velocities in double precision 
+accordingly. 
 
-<LI><I>arch = 20</I> set GPU compute capability: 20 .. CC2.0 (GF100/110
-e.g. C2050,GTX580,GTX470), 21 .. CC2.1 (GF104/114 e.g. GTX560, GTX460,
-GTX450), 13 .. CC1.3 (GF200 e.g. C1060, GTX285) 
+<LI>Go to the lammps/lib/cuda directory 
 
-<LI><I>prec_timer = 1</I> do not use precision timers if set to 0. This is
-usually only usefull for compiling on Mac machines. 
+<LI>Type "make OPTIONS", where <I>OPTIONS</I> are one or more of the following
+options. The settings will be written to the
+<I>lib/cuda/Makefile.defaults</I> and used in the next step. 
 
-<LI><I>dbg = 0</I> activate debug mode when setting to 1. Only usefull for
-developers. 
-
-<LI><I>cufft = 1</I> set CUDA FFT library. Can currently only be used to not
-compile with cufft support (set to 0). In the future other CUDA
-enabled FFT libraries might be supported. 
+<PRE><I>precision=N</I> to set the precision level
+  N = 1 for single precision (default)
+  N = 2 for double precision
+  N = 3 for positions in double precision
+  N = 4 for positions and velocities in double precision
+<I>arch=M</I> to set GPU compute capability
+  M = 20 for CC2.0 (GF100/110, e.g. C2050,GTX580,GTX470) (default)
+  M = 21 for CC2.1 (GF104/114,  e.g. GTX560, GTX460, GTX450)
+  M = 13 for CC1.3 (GF200, e.g. C1060, GTX285)
+<I>prec_timer=0/1</I> to use hi-precision timers
+  0 = do not use them (default)
+  1 = use these timers
+  this is usually only useful for Mac machines 
+<I>dbg=0/1</I> to activate debug mode
+  0 = no debug mode (default)
+  1 = yes debug mode
+  this is only useful for developers
+<I>cufft=1</I> to determine usage of CUDA FFT library
+  0 = no CUFFT support (default)
+  in the future other CUDA-enabled FFT libraries might be supported 
+</PRE>
+<LI>Type "make" to build the library.  If you are successful, you will
+produce the file lib/libcuda.a. 
 </UL>
-<P>The settings will be written to the <I>lib/cuda/Makefile.defaults</I>. When
-compiling with <I>make</I> only those settings will be used.
+<P>Now you are ready to build LAMMPS with the USER-CUDA package installed:
 </P>
-<P>Go to <I>src</I>, install the USER-CUDA package with <I>make yes-USER-CUDA</I>
-and compile the binary with <I>make YourMachine</I>. You might need to
-delete old object files if you compiled without the USER-CUDA package
-before, using the same Machine file (<I>rm Obj_YourMachine/*</I>).
+<PRE>cd lammps/lib/src
+make yes-user-cuda
+make machine 
+</PRE>
+<P>Note that the lo-level Makefile (e.g. src/MAKE/Makefile.linux) has the
+following settings: cuda_SYSINC, cuda_SYSLIB, cuda_SYSPATH.  These
+need to be set to include the appropriate paths and settings for the
+CUDA system software on your machine.  See src/MAKE/Makefile.g++ for
+an example.  Take special note of the cuda_SYSINC settings since they
+incldue several -D switches which you should enable.
 </P>
-<P>CUDA versions of classes are only installed if the corresponding CPU
-versions are installed as well. E.g. you need to install the KSPACE
-package to use <I>pppm/cuda</I>.
+<P><B>Input script requirements:</B>
 </P>
-<H4>Usage 
-</H4>
-<P>In order to make use of the GPU acceleration provided by the USER-CUDA
-package, you only have to add
+<P>Additional input script requirements to run styles with a <I>cuda</I>
+suffix are as follows.
 </P>
-<P><I>accelerator cuda</I>
+<P>To invoke specific styles from the USER-CUDA package, you can either
+append "cuda" to the style name (e.g. pair_style lj/cut/cuda), or use
+the <A HREF = "Section_start.html#2_6">-suffix command-line switch</A>, or use the
+<A HREF = "suffix.html">suffix</A> command.  One exception is that the <A HREF = "kspace_style.html">kspace_style
+pppm/cuda</A> command has to be requested explicitly.
 </P>
-<P>at the top of your input script. See the <A HREF = "accelerator.html">accelerator</A> command for details of additional options.
+<P>To use the USER-CUDA package with its default settings, no additional
+command is needed in your input script.  This is because when LAMMPS
+starts up, it detects if it has been built with the USER-CUDA package.
+See the <A HREF = "Section_start.html#2_6">-cuda command-line switch</A> for more
+details.
 </P>
-<P>When compiling with USER-CUDA support the <A HREF = "Section_start.html#2_6">-accelerator command-line
-switch</A> is effectively set to "cuda" by default
-and does not have to be given.
+<P>To change settings for the USER-CUDA package at run-time, the <A HREF = "package.html">package
+cuda</A> command can be used at the beginning of your input
+script.  See the commands doc page for details.
 </P>
-<P>If you want to run simulations without using the "cuda" styles with
-the same binary, you need to turn it explicitely off by giving "-a
-none", "-a opt" or "-a gpu" as a command-
+<P><B>Performance tips:</B>
 </P>
-<P>line argument.
+<P>The USER-CUDA package offers more speed-up relative to CPU performance
+when the number of atoms per GPU is large, e.g. on the order of tens
+or hundreds of 1000s.
 </P>
-<P>The kspace style <I>pppm/cuda</I> has to be requested explicitely.
+<P>As noted above, this package will continue to run a simulation
+entirely on the GPU(s) (except for inter-processor MPI communication),
+for multiple timesteps, until a CPU calculation is required, either by
+a fix or compute that is non-GPU-ized, or until output is performed
+(thermo or dump snapshot or restart file).  The less often this
+occurs, the faster your simulation may run.
 </P>
+<HR>
+
 <HR>
 
 <H4><A NAME = "10_4"></A>10.4 Comparison of GPU and USER-CUDA packages 
 </H4>
-<P>The USER-CUDA package is an alternative package for GPU acceleration 
-that runs as much of the simulation as possible on the GPU. Depending on 
-the simulation, this can provide a significant speedup when the number 
-of atoms per GPU is large.
+<P>Both the GPU and USER-CUDA packages accelerate a LAMMPS calculation
+using NVIDIA hardware, but they do it in different ways.
 </P>
-<P>The styles available for GPU acceleration 
-will be different in each package.
+<P>As a consequence, for a specific simulation on particular hardware,
+one package may be faster than the other.  We give guidelines below,
+but the best way to determine which package is faster for your input
+script is to try both of them on your machine.  See the benchmarking
+section below for examples where this has been done.
 </P>
-<P>The main difference between the "GPU" and the "USER-CUDA" package is
-that while the latter aims at calculating everything on the device the
-GPU package uses it as an accelerator for the pair force, neighbor
-list and pppm calculations only. As a consequence in different
-scenarios either package can be faster. Generally the GPU package is
-faster than the USER-CUDA package, if the number of atoms per device
-is small. Also the GPU package profits from oversubscribing
-devices. Hence one usually wants to launch two (or more) MPI processes
-per device.
+<P><B>Guidelines for using each package optimally:</B>
 </P>
-<P>The exact crossover where the USER-CUDA package becomes faster depends
-strongly on the pair-style. For example for a simple Lennard Jones
-system the crossover (in single precision) can often be found between
-50,000 - 100,000 atoms per device. When performing double precision
-calculations this threshold can be significantly smaller. As a result
-the GPU package can show better "strong scaling" behaviour in
-comparison with the USER-CUDA package as long as this limit of atoms
-per GPU is not reached.
+<UL><LI>The GPU package moves per-atom data (coordinates, forces)
+back-and-forth between the CPU and GPU every timestep.  The USER-CUDA
+package only does this on timesteps when a CPU calculation is required
+(e.g. to invoke a fix or compute that is non-GPU-ized).  Hence, if you
+can formulate your input script to only use GPU-ized fixes and
+computes, and avoid doing I/O too often (thermo output, dump file
+snapshots, restart files), then the data transfer cost of the
+USER-CUDA package can be very low, causing it to run faster than the
+GPU package. 
+
+<LI>The GPU package is often faster than the USER-CUDA package, if the
+number of atoms per GPU is "small".  The crossover point, in terms of
+atoms/GPU at which the USER-CUDA package becomes faster depends
+strongly on the pair style.  For example, for a simple Lennard Jones
+system the crossover (in single precision) is often about 50K-100K
+atoms per GPU.  When performing double precision calculations the
+crossover point can be significantly smaller. 
+
+<LI>The GPU package allows you to assign multiple CPUs (cores) to a single
+GPU (a common configuration for "hybrid" nodes that contain multicore
+CPU(s) and GPU(s)) and works effectively in this mode.  The USER-CUDA
+package does not; it works best when there is one CPU per GPU. 
+
+<LI>Both packages compute bonded interactions (bonds, angles, etc) on the
+CPU.  This means a model with bonds will force the USER-CUDA package
+to transfer per-atom data back-and-forth between the CPU and GPU every
+timestep.  If the GPU package is running with several MPI processes
+assigned to one GPU, the cost of computing the bonded interactions is
+spread across more CPUs and hence the GPU package can run faster. 
+</UL>
+<P><B>Chief differences between the two packages:</B>
 </P>
-<P>Another scenario where the GPU package can be faster is, when a lot of
-bonded interactions are calculated. Those are handled by both packages
-by the host while the device simultaniously calculates the
-pair-forces. Since, when using the GPU package, one launches several
-MPI processes per device, this work is spread over more CPU cores as
-compared to running the same simulation with the USER-CUDA package.
+<UL><LI>The GPU package accelerates only pair force, neighbor list, and PPPM
+calculations.  The USER-CUDA package currently supports a wider range
+of pair styles and can also accelerate many fix styles and some
+compute styles, as well as neighbor list and PPPM calculations. 
+
+<LI>The GPU package uses more GPU memory than the USER-CUDA package.  This
+is generally not much of a problem since typical runs are
+computation-limited rather than memory-limited. 
+
+<LI>When using the GPU package with multiple CPUs assigned to one GPU, its
+performance depends to some extent on high bandwidth between the CPUs
+and the GPU.  Hence its performance is affected if full 16 PCIe lanes
+are not available for each GPU.  In HPC environments this can be the
+case if S2050/70 servers are used, where two devices generally share
+one PCIe 2.0 16x slot.  Also many multi-GPU mainboards do not provide
+full 16 lanes to each of the PCIe 2.0 16x slots. 
+</UL>
+<P><B>Examples:</B>
 </P>
-<P>As a side note: the GPU package performance depends to some extent on
-optimal bandwidth between host and device. Hence its performance is
-affected if no full 16 PCIe lanes are available for each device. In
-HPC environments this can be the case if S2050/70 servers are used,
-where two devices generally share one PCIe 2.0 16x slot. Also many
-multi GPU mainboards do not provide full 16 lanes to each of the PCIe
-2.0 16x slots.
+<P>The LAMMPS distribution has two directories with sample
+input scripts for the GPU and USER-CUDA packages.
 </P>
-<P>While the GPU package uses considerable more device memory than the
-USER-CUDA package, this is generally not much of a problem. Typically
-run times are larger than desired, before the memory is exhausted.
+<UL><LI>lammps/examples/gpu = GPU package files
+<LI>lammps/examples/USER/cuda = USER-CUDA package files 
+</UL>
+<P>These are files for identical systems, so they can be
+used to benchmark the performance of both packages
+on your system.
 </P>
-<P>Currently the USER-CUDA package supports a wider range of
-force-fields. On the other hand its performance is considerably
-reduced if one has to use a fix at every timestep, which is not yet
-available as a "CUDA"-accelerated version.
+<P><B>Benchmark data:</B>
 </P>
-<P>In the end for each simulations its best to just try both packages and
-see which one is performing better in the particular situation.
+<P>NOTE: We plan to add some benchmark results and plots here for the
+examples described in the previous section.
 </P>
-<H4>Benchmark 
-</H4>
-<P>In the following 4 benchmark systems which are supported by both the
-GPu and the CUDA package are shown:
+<P>Simulations:
 </P>
-<P>1. Lennard Jones, 2.5A
-256,000 atoms
-2.5 A cutoff
-0.844 density
+<P>1. Lennard Jones
 </P>
-<P>2. Lennard Jones, 5.0A
-256,000 atoms
-5.0 A cutoff
-0.844 density
+<UL><LI>256,000 atoms
+<LI>2.5 A cutoff
+<LI>0.844 density 
+</UL>
+<P>2. Lennard Jones
 </P>
+<UL><LI>256,000 atoms
+<LI>5.0 A cutoff
+<LI>0.844 density 
+</UL>
 <P>3. Rhodopsin model
-256,000 atoms
-10A cutoff
-Coulomb via PPPM
 </P>
+<UL><LI>256,000 atoms
+<LI>10A cutoff
+<LI>Coulomb via PPPM 
+</UL>
 <P>4. Lihtium-Phosphate
-295650 atoms
-15A cutoff
-Coulomb via PPPM
 </P>
+<UL><LI>295650 atoms
+<LI>15A cutoff
+<LI>Coulomb via PPPM 
+</UL>
 <P>Hardware:
-Workstation:
-2x GTX470
-i7 950@3GHz
-24Gb DDR3 @ 1066Mhz
-CentOS 5.5
-CUDA 3.2
-Driver 260.19.12
 </P>
+<P>Workstation:
+</P>
+<UL><LI>2x GTX470
+<LI>i7 950@3GHz
+<LI>24Gb DDR3 @ 1066Mhz
+<LI>CentOS 5.5
+<LI>CUDA 3.2
+<LI>Driver 260.19.12 
+</UL>
 <P>eStella:
-6 Nodes
-2xC2050
-2xQDR Infiniband interconnect(aggregate bandwidth 80GBps)
-Intel X5650 HexCore @ 2.67GHz
-SL 5.5
-CUDA 3.2
-Driver 260.19.26 
 </P>
+<UL><LI>6 Nodes
+<LI>2xC2050
+<LI>2xQDR Infiniband interconnect(aggregate bandwidth 80GBps)
+<LI>Intel X5650 HexCore @ 2.67GHz
+<LI>SL 5.5
+<LI>CUDA 3.2
+<LI>Driver 260.19.26 
+</UL>
 <P>Keeneland:
-HP SL-390 (Ariston) cluster
-120 nodes
-2x Intel Westmere hex-core CPUs
-3xC2070s
-QDR InfiniBand interconnec
 </P>
+<UL><LI>HP SL-390 (Ariston) cluster
+<LI>120 nodes
+<LI>2x Intel Westmere hex-core CPUs
+<LI>3xC2070s
+<LI>QDR InfiniBand interconnect 
+</UL>
 </HTML>

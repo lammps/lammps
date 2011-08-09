@@ -18,8 +18,7 @@ PACKAGE = asphere class2 colloid dipole dsmc gpu granular \
 	  shock srd xtc
 
 PACKUSER = user-misc user-ackland user-atc user-awpmd user-cd-eam user-cg-cmm \
-          user-eff user-ewaldn user-imd user-reaxc user-smd
-#	   user-cuda user-eff user-ewaldn user-imd user-reaxc user-smd
+	   user-cuda user-eff user-ewaldn user-imd user-reaxc user-smd
 
 PACKALL = $(PACKAGE) $(PACKUSER)
 

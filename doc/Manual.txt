@@ -127,7 +127,7 @@ it gives quick access to documentation for all LAMMPS commands.
   9.5 "Testing the Python-LAMMPS interface"_9_5 :b
   9.6 "Using LAMMPS from Python"_9_6 :b
   9.7 "Example Python scripts that use LAMMPS"_9_7 :ule,b
-"Using accelelerated CPU and GPU styles"_Section_accelerate.html :l
+"Using accelerated CPU and GPU styles"_Section_accelerate.html :l
   10.1 "OPT package"_10_1 :ulb,b
   10.2 "GPU package"_10_2 :b
   10.3 "USER-CUDA package"_10_3 :b
@@ -192,10 +192,10 @@ it gives quick access to documentation for all LAMMPS commands.
 :link(9_6,Section_python.html#9_6)
 :link(9_7,Section_python.html#9_7)
 
-:link(10_1,Section_errors.html#10_1)
-:link(10_2,Section_errors.html#10_2)
-:link(10_3,Section_errors.html#10_3)
-:link(10_4,Section_errors.html#10_4)
+:link(10_1,Section_accelerate.html#10_1)
+:link(10_2,Section_accelerate.html#10_2)
+:link(10_3,Section_accelerate.html#10_3)
+:link(10_4,Section_accelerate.html#10_4)
 
 :link(11_1,Section_errors.html#11_1)
 :link(11_2,Section_errors.html#11_2)

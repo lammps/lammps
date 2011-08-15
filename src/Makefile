@@ -96,6 +96,11 @@ tar:
 	@cd STUBS; make
 	@echo "Created $(ROOT)_src.tar.gz"
 
+# Make MPI STUBS lib
+
+stubs:
+	@cd STUBS; make clean; make
+
 # Update Makefile.lib and Makefile.list
 
 makelib:

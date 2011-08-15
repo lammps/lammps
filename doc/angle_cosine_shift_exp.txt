@@ -21,7 +21,7 @@ angle_coeff * 10.0 45.0 2.0 :pre
 
 The {cosine/shift/exp} angle style uses the potential
 
-:c,image(Eqs/angle_cosine/shift/exp.jpg)
+:c,image(Eqs/angle_cosine_shift_exp.jpg)
 
 where Umin, theta, and a are defined for each angle type.
 

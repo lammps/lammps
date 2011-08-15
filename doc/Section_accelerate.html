@@ -392,12 +392,10 @@ produce the file lib/libcuda.a.
 make yes-user-cuda
 make machine 
 </PRE>
-<P>Note that the lo-level Makefile (e.g. src/MAKE/Makefile.linux) has the
-following settings: cuda_SYSINC, cuda_SYSLIB, cuda_SYSPATH.  These
-need to be set to include the appropriate paths and settings for the
-CUDA system software on your machine.  See src/MAKE/Makefile.g++ for
-an example.  Take special note of the cuda_SYSINC settings since they
-incldue several -D switches which you should enable.
+<P>Note that the build will reference the lib/cuda/Makefile.common file
+to extract setting relevant to the LAMMPS build.  So it is important
+that you have first built the cuda library (in lib/cuda) using
+settings appropriate to your system.
 </P>
 <P><B>Input script requirements:</B>
 </P>

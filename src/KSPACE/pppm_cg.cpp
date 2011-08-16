@@ -115,12 +115,18 @@ void PPPMCG::compute(int eflag, int vflag)
                    / static_cast<double>(atom->natoms);
 
     if (me == 0) {
-      if (screen) fprintf(screen,"Using pppm/cg optimization. Cutoff: %g. \n"
-			"Total charged: %.1f%%.  Min./Max. charged / proc: %.1f%%/%.1f%%.\n",
-			smallq, charged_frac, charged_fmin, charged_fmax);
-      if (logfile) fprintf(logfile,"Using pppm/cg optimization. Cutoff: %g. \n"
-			"Total charged: %.1f%%.  Max. charged / proc: %.1f%%.\n",
-			smallq, charged_frac, charged_fmax);
+      if (screen) 
+	fprintf(screen,
+		"  PPPM/cg optimization cutoff: %g\n"
+		"  Total charged atoms: %.1f%%\n"
+		"  Min/max charged atoms/proc: %.1f%% %.1f%%\n",
+		smallq,charged_frac,charged_fmin,charged_fmax);
+      if (logfile)
+	fprintf(logfile,
+		"  PPPM/cg optimization cutoff: %g\n"
+		"  Total charged atoms: %.1f%%\n"
+		"  Min/max charged atoms/proc: %.1f%% %.1f%%\n",
+		smallq,charged_frac,charged_fmin,charged_fmax);
     }
   }
 

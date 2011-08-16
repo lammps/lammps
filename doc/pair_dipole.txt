@@ -59,8 +59,10 @@ these formulas for the energy (E), force (F), and torque (T) between
 particles I and J:
 
 :c,image(Eqs/pair_dipole_sf.jpg)
+:c,image(Eqs/pair_dipole_sf2.jpg)
 
-where qi and qj are the charges on the two particles, pi and pj are
+where epsilon and sigma are the standard LJ parameters, r_c is the
+cutoff, qi and qj are the charges on the two particles, pi and pj are
 the dipole moment vectors of the two particles, r is their separation
 distance, and the vector r = Ri - Rj is the separation vector between
 the two particles.  Note that Eqq and Fqq are simply Coulombic energy

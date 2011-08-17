@@ -185,55 +185,16 @@ from the GPU package, you can either append "gpu" to the style name
 switch"_Section_start.html#2_6, or use the "suffix"_suffix.html
 command.
 
-The "fix gpu"_fix_gpu.html command controls the GPU selection and
-initialization steps.
+The "package gpu"_package.html command must be used near the beginning
+of your script to control the GPU selection and initialization steps.
+It also enables asynchronous splitting of force computations between
+the CPUs and GPUs.
 
-The format for the fix is:
-
-fix fix-ID all gpu {mode} {first} {last} {split} :pre
-
-where fix-ID is the name for the fix. The gpu fix must be the first
-fix specified for a given run, otherwise LAMMPS will exit with an
-error. The gpu fix does not have any effect on runs that do not use
-GPU acceleration, so there should be no problem specifying the fix
-first in any input script.
-
-The {mode} setting can be either "force" or "force/neigh". In the
-former, neighbor list calculation is performed on the CPU using the
-standard LAMMPS routines. In the latter, the neighbor list calculation
-is performed on the GPU. The GPU neighbor list can be used for better
-performance, however, it cannot not be used with a triclinic box or
-with "hybrid"_pair_hybrid.html pair styles.
-
-There are cases when it may be more efficient to select the CPU for
-neighbor list builds. If a non-GPU enabled style (e.g. a fix or
-compute) requires a neighbor list, it will also be built using CPU
-routines.  Redundant CPU and GPU neighbor list calculations will
-typically be less efficient.
-
-The {first} setting is the ID (as reported by
-lammps/lib/gpu/nvc_get_devices) of the first GPU that will be used on
-each node. The {last} setting is the ID of the last GPU that will be
-used on each node. If you have only one GPU per node, {first} and
-{last} will typically both be 0. Selecting a non-sequential set of GPU
-IDs (e.g. 0,1,3) is not currently supported.
-
-The {split} setting is the fraction of particles whose forces,
-torques, energies, and/or virials will be calculated on the GPU. This
-can be used to perform CPU and GPU force calculations simultaneously,
-e.g. on a hybrid node with a multicore CPU and a GPU(s).  If {split}
-is negative, the software will attempt to calculate the optimal
-fraction automatically every 25 timesteps based on CPU and GPU
-timings. Because the GPU speedups are dependent on the number of
-particles, automatic calculation of the split can be less efficient,
-but typically results in loop times within 20% of an optimal fixed
-split.
-
-As an example, if you have two GPUs per node, 8 CPU cores per node,
+As an example, if you have two GPUs per node and 8 CPU cores per node,
 and would like to run on 4 nodes (32 cores) with dynamic balancing of
-force calculation across CPU and GPU cores, the fix might be
+force calculation across CPU and GPU cores, you could specify
 
-fix 0 all gpu force/neigh 0 1 -1 :pre
+package gpu force/neigh 0 1 -1 :pre
 
 In this case, all CPU cores and GPU devices on the nodes would be
 utilized.  Each GPU device would be shared by 4 CPU cores. The CPU
@@ -241,39 +202,14 @@ cores would perform force calculations for some fraction of the
 particles at the same time the GPUs performed force calculation for
 the other particles.
 
-[Asynchronous pair computation on GPU and CPU]
-
-The GPU accelerated pair styles can perform pair style force
-calculation on the GPU at the same time other force calculations
-within LAMMPS are being performed on the CPU.  These include pair,
-bond, angle, etc forces as well as long-range Coulombic forces.  This
-is enabled by the {split} setting in the gpu fix as described above.
-
-With a {split} setting less than 1.0, a portion of the pair-wise force
-calculations will also be performed on the CPU.  When the CPU finishes
-its pair style computations (if any), the next LAMMPS force
-computation will begin (bond, angle, etc), possibly before the GPU has
-finished its pair style computations.
-
-This means that if {split} is set to 1.0, the GPU will begin the
-LAMMPS force computation immediately. This can be used to run a
-"hybrid"_pair_hybrid.html GPU pair style at the same time as a hybrid
-CPU pair style. In this case, the GPU pair style should be first in
-the hybrid command in order to perform simultaneous calculations. This
-also allows "bond"_bond_style.html, "angle"_angle_style.html,
-"dihedral"_dihedral_style.html, "improper"_improper_style.html, and
-"long-range"_kspace_style.html force computations to run
-simultaneously with the GPU pair style.  If all CPU force computations
-complete before the GPU, LAMMPS will block until the GPU has finished
-before continuing the timestep.
-
 [Timing output:]
 
-As noted above, GPU accelerated pair styles can perform computations
-asynchronously with CPU computations. The "Pair" time reported by
-LAMMPS will be the maximum of the time required to complete the CPU
-pair style computations and the time required to complete the GPU pair
-style computations. Any time spent for GPU-enabled pair styles for
+As described by the "package gpu"_package.html command, GPU
+accelerated pair styles can perform computations asynchronously with
+CPU computations. The "Pair" time reported by LAMMPS will be the
+maximum of the time required to complete the CPU pair style
+computations and the time required to complete the GPU pair style
+computations. Any time spent for GPU-enabled pair styles for
 computations that run simultaneously with "bond"_bond_style.html,
 "angle"_angle_style.html, "dihedral"_dihedral_style.html,
 "improper"_improper_style.html, and "long-range"_kspace_style.html

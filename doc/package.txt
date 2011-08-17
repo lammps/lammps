@@ -12,35 +12,127 @@ package command :h3
 
 package style args :pre
 
-style = {cuda} :ulb,l
-args = 0 or more args specific to the style :l
-  {cuda} args = to be determined :pre
+style = {gpu} or {cuda} or {omp} :ulb,l
+args = arguments specific to the style :l
+  {gpu} args = mode first last split
+    mode = force or force/neigh :l
+    first = ID of first GPU to be used on each node :l
+    last = ID of last GPU to be used on each node :l
+    split = fraction of particles assigned to the GPU :l
+  {cuda} args = to be determined
+  {omp} args = Nthreads :pre
+    Nthreads = # of OpenMP threads to associate with each MPI process :pre
 :ule
 
 [Examples:]
 
-package cuda blah :pre
+package gpu force 0 0 1.0
+package gpu force 0 0 0.75
+package gpu force/neigh 0 0 1.0
+package gpu force/neigh 0 1 -1.0
+package cuda blah
+package omp 4 :pre
 
 [Description:]
 
-This command invokes package-specific settings.  Currently only the
-USER-CUDA package uses it.
+This command invokes package-specific settings.  Currently the
+following packages use it: GPU, USER-CUDA, and USER-OMP.
+
+See "this section"_doc/Section_accerate.html of the manual for more
+details about using these various packages for accelerating
+a LAMMPS calculation.
+
+:line
+
+The {gpu} style invokes options associated with the use of the GPU
+package.  It allows you to select and initialize GPUs to be used for
+acceleration via this package and configure how the GPU acceleration
+is performed.  These settings are required in order to use any style
+with GPU acceleration.
+
+The {mode} setting specifies where neighbor list calculations will be
+performed.  If {mode} is force, neighbor list calculation is performed
+on the CPU. If {mode} is force/neigh, neighbor list calculation is
+performed on the GPU. GPU neighbor list calculation currently cannot
+be used with a triclinic box. GPU neighbor list calculation currently
+cannot be used with "hybrid"_pair_hybrid.html pair styles.  GPU
+neighbor lists are not compatible with styles that are not
+GPU-enabled.  When a non-GPU enabled style requires a neighbor list,
+it will also be built using CPU routines. In these cases, it will
+typically be more efficient to only use CPU neighbor list builds.
+
+The {first} and {last} settings specify the GPUs that will be used for
+simulation.  On each node, the GPU IDs in the inclusive range from
+{first} to {last} will be used.
+
+The {split} setting can be used for load balancing force calculation
+work between CPU and GPU cores in GPU-enabled pair styles. If 0 <
+{split} < 1.0, a fixed fraction of particles is offloaded to the GPU
+while force calculation for the other particles occurs simulataneously
+on the CPU. If {split}<0, the optimal fraction (based on CPU and GPU
+timings) is calculated every 25 timesteps. If {split} = 1.0, all force
+calculations for GPU accelerated pair styles are performed on the
+GPU. In this case, "hybrid"_pair_hybrid.html, "bond"_bond_style.html,
+"angle"_angle_style.html, "dihedral"_dihedral_style.html,
+"improper"_improper_style.html, and "long-range"_kspace_style.html
+calculations can be performed on the CPU while the GPU is performing
+force calculations for the GPU-enabled pair style.  If all CPU force
+computations complete before the GPU, LAMMPS will block until the GPU
+has finished before continuing the timestep.
+
+As an example, if you have two GPUs per node and 8 CPU cores per node,
+and would like to run on 4 nodes (32 cores) with dynamic balancing of
+force calculation across CPU and GPU cores, you could specify
+
+package gpu force/neigh 0 1 -1 :pre
+
+In this case, all CPU cores and GPU devices on the nodes would be
+utilized.  Each GPU device would be shared by 4 CPU cores. The CPU
+cores would perform force calculations for some fraction of the
+particles at the same time the GPUs performed force calculation for
+the other particles.
+
+:line
 
 The {cuda} style invokes options associated with the use of the
-USER-CUDA package.  These will be described when the USER-CUDA package
-is released with LAMMPS.
+USER-CUDA package.  These need to be documented.
+
+:line
+
+The {omp} style invokes options associated with the use of the
+USER-OMP package.
+
+The only setting to make is the number of OpenMP threads to be
+allocated for each MPI process.  For example, if your system has nodes
+with dual quad-core processors, it has a total of 8 cores per node.
+You could run MPI on 2 cores on each node (e.g. using options for the
+mpirun command), and set the {Nthreads} setting to 4.  This would
+effectively use all 8 cores on each node.  Since each MPI process
+would spawn 4 threads (one of which runs as part of the MPI process
+itself).
+
+For performance reasons, you should not set {Nthreads} to more threads
+than there are physical cores, but LAMMPS does not check for this.
+
+:line
 
 [Restrictions:]
+
+This command cannot be used after the simulation box is defined by a
+"read_data"_read_data.html or "create_box"_create_box.html command.
 
 The cuda style of this command can only be invoked if LAMMPS was built
 with the USER-CUDA package.  See the "Making
 LAMMPS"_Section_start.html#2_3 section for more info.
 
-Obviously, you must have GPU hardware and associated software to build
-and use LAMMPS with either the GPU or USER-CUDA packages.
+The gpu style of this command can only be invoked if LAMMPS was built
+with the GPU package.  See the "Making LAMMPS"_Section_start.html#2_3
+section for more info.
 
-[Related commands:]
+The omp style of this command can only be invoked if LAMMPS was built
+with the USER-OMP package.  See the "Making
+LAMMPS"_Section_start.html#2_3 section for more info.
 
-"fix gpu"_fix_gpu.html
+[Related commands:] none
 
 [Default:] none

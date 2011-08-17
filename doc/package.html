@@ -15,39 +15,136 @@
 </P>
 <PRE>package style args 
 </PRE>
-<UL><LI>style = <I>cuda</I> 
+<UL><LI>style = <I>gpu</I> or <I>cuda</I> or <I>omp</I> 
 
-<LI>args = 0 or more args specific to the style 
+<LI>args = arguments specific to the style 
 
-<PRE>  <I>cuda</I> args = to be determined 
+<LI>  <I>gpu</I> args = mode first last split
+    mode = force or force/neigh 
+
+<LI>    first = ID of first GPU to be used on each node 
+
+<LI>    last = ID of last GPU to be used on each node 
+
+<LI>    split = fraction of particles assigned to the GPU 
+
+<PRE>  <I>cuda</I> args = to be determined
+  <I>omp</I> args = Nthreads 
+</PRE>
+<PRE>    Nthreads = # of OpenMP threads to associate with each MPI process 
 </PRE>
 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>package cuda blah 
+<PRE>package gpu force 0 0 1.0
+package gpu force 0 0 0.75
+package gpu force/neigh 0 0 1.0
+package gpu force/neigh 0 1 -1.0
+package cuda blah
+package omp 4 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>This command invokes package-specific settings.  Currently only the
-USER-CUDA package uses it.
+<P>This command invokes package-specific settings.  Currently the
+following packages use it: GPU, USER-CUDA, and USER-OMP.
 </P>
+<P>See <A HREF = "doc/Section_accerate.html">this section</A> of the manual for more
+details about using these various packages for accelerating
+a LAMMPS calculation.
+</P>
+<HR>
+
+<P>The <I>gpu</I> style invokes options associated with the use of the GPU
+package.  It allows you to select and initialize GPUs to be used for
+acceleration via this package and configure how the GPU acceleration
+is performed.  These settings are required in order to use any style
+with GPU acceleration.
+</P>
+<P>The <I>mode</I> setting specifies where neighbor list calculations will be
+performed.  If <I>mode</I> is force, neighbor list calculation is performed
+on the CPU. If <I>mode</I> is force/neigh, neighbor list calculation is
+performed on the GPU. GPU neighbor list calculation currently cannot
+be used with a triclinic box. GPU neighbor list calculation currently
+cannot be used with <A HREF = "pair_hybrid.html">hybrid</A> pair styles.  GPU
+neighbor lists are not compatible with styles that are not
+GPU-enabled.  When a non-GPU enabled style requires a neighbor list,
+it will also be built using CPU routines. In these cases, it will
+typically be more efficient to only use CPU neighbor list builds.
+</P>
+<P>The <I>first</I> and <I>last</I> settings specify the GPUs that will be used for
+simulation.  On each node, the GPU IDs in the inclusive range from
+<I>first</I> to <I>last</I> will be used.
+</P>
+<P>The <I>split</I> setting can be used for load balancing force calculation
+work between CPU and GPU cores in GPU-enabled pair styles. If 0 <
+<I>split</I> < 1.0, a fixed fraction of particles is offloaded to the GPU
+while force calculation for the other particles occurs simulataneously
+on the CPU. If <I>split</I><0, the optimal fraction (based on CPU and GPU
+timings) is calculated every 25 timesteps. If <I>split</I> = 1.0, all force
+calculations for GPU accelerated pair styles are performed on the
+GPU. In this case, <A HREF = "pair_hybrid.html">hybrid</A>, <A HREF = "bond_style.html">bond</A>,
+<A HREF = "angle_style.html">angle</A>, <A HREF = "dihedral_style.html">dihedral</A>,
+<A HREF = "improper_style.html">improper</A>, and <A HREF = "kspace_style.html">long-range</A>
+calculations can be performed on the CPU while the GPU is performing
+force calculations for the GPU-enabled pair style.  If all CPU force
+computations complete before the GPU, LAMMPS will block until the GPU
+has finished before continuing the timestep.
+</P>
+<P>As an example, if you have two GPUs per node and 8 CPU cores per node,
+and would like to run on 4 nodes (32 cores) with dynamic balancing of
+force calculation across CPU and GPU cores, you could specify
+</P>
+<PRE>package gpu force/neigh 0 1 -1 
+</PRE>
+<P>In this case, all CPU cores and GPU devices on the nodes would be
+utilized.  Each GPU device would be shared by 4 CPU cores. The CPU
+cores would perform force calculations for some fraction of the
+particles at the same time the GPUs performed force calculation for
+the other particles.
+</P>
+<HR>
+
 <P>The <I>cuda</I> style invokes options associated with the use of the
-USER-CUDA package.  These will be described when the USER-CUDA package
-is released with LAMMPS.
+USER-CUDA package.  These need to be documented.
 </P>
+<HR>
+
+<P>The <I>omp</I> style invokes options associated with the use of the
+USER-OMP package.
+</P>
+<P>The only setting to make is the number of OpenMP threads to be
+allocated for each MPI process.  For example, if your system has nodes
+with dual quad-core processors, it has a total of 8 cores per node.
+You could run MPI on 2 cores on each node (e.g. using options for the
+mpirun command), and set the <I>Nthreads</I> setting to 4.  This would
+effectively use all 8 cores on each node.  Since each MPI process
+would spawn 4 threads (one of which runs as part of the MPI process
+itself).
+</P>
+<P>For performance reasons, you should not set <I>Nthreads</I> to more threads
+than there are physical cores, but LAMMPS does not check for this.
+</P>
+<HR>
+
 <P><B>Restrictions:</B>
+</P>
+<P>This command cannot be used after the simulation box is defined by a
+<A HREF = "read_data.html">read_data</A> or <A HREF = "create_box.html">create_box</A> command.
 </P>
 <P>The cuda style of this command can only be invoked if LAMMPS was built
 with the USER-CUDA package.  See the <A HREF = "Section_start.html#2_3">Making
 LAMMPS</A> section for more info.
 </P>
-<P>Obviously, you must have GPU hardware and associated software to build
-and use LAMMPS with either the GPU or USER-CUDA packages.
+<P>The gpu style of this command can only be invoked if LAMMPS was built
+with the GPU package.  See the <A HREF = "Section_start.html#2_3">Making LAMMPS</A>
+section for more info.
 </P>
-<P><B>Related commands:</B>
+<P>The omp style of this command can only be invoked if LAMMPS was built
+with the USER-OMP package.  See the <A HREF = "Section_start.html#2_3">Making
+LAMMPS</A> section for more info.
 </P>
-<P><A HREF = "fix_gpu.html">fix gpu</A>
+<P><B>Related commands:</B> none
 </P>
 <P><B>Default:</B> none
 </P>

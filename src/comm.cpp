@@ -68,6 +68,8 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   cutghostuser = 0.0;
   ghost_velocity = 0;
 
+  nthreads = 1;
+
   // initialize comm buffers & exchange memory
 
   maxsend = BUFMIN;

@@ -13,7 +13,7 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(gpu,FixGPU)
+FixStyle(GPU,FixGPU)
 
 #else
 

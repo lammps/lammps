@@ -94,6 +94,8 @@ Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
   id_restart_peratom = style_restart_peratom = NULL;
   index_restart_peratom = NULL;
 
+  allow_early_fix = 0;
+
   ncompute = maxcompute = 0;
   compute = NULL;
 }

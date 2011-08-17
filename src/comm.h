@@ -29,6 +29,7 @@ class Comm : protected Pointers {
   double cutghost[3];               // cutoffs used for acquiring ghost atoms
   double cutghostuser;              // user-specified ghost cutoff
   int ***grid2proc;                 // which proc owns i,j,k loc in 3d grid
+  int nthreads;                     // OpenMP threads per MPI process
 
   Comm(class LAMMPS *);
   virtual ~Comm();

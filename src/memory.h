@@ -46,7 +46,7 @@ class Memory : protected Pointers {
       array = (TYPE *) smalloc(nbytes,name);
       return array;
     }
-
+  
   template <typename TYPE>
     TYPE **create(TYPE **&array, int n, const char *name) {fail(name);}
 

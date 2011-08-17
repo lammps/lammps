@@ -37,6 +37,10 @@
 #include "error.h"
 #include "memory.h"
 
+#ifdef LMP_OPENMP
+#include "omp.h"
+#endif
+
 using namespace LAMMPS_NS;
 
 #define BUFFACTOR 1.5
@@ -68,7 +72,24 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   cutghostuser = 0.0;
   ghost_velocity = 0;
 
+  // use of OpenMP threads
+  // query OpenMP for number of threads/process set by user at run-time
+  // need to be in a parallel area for this operation
+
   nthreads = 1;
+#ifdef LMP_OPENMP
+#pragma omp parallel default(shared)
+  {
+#pragma omp master
+    { nthreads = omp_get_num_threads(); }
+  }
+  if (me == 0) {
+    if (screen)
+      fprintf(screen,"  using %d OpenMP thread(s) per MPI task\n",nthreads);
+    if (logfile)
+      fprintf(logfile,"  using %d OpenMP thread(s) per MPI task\n",nthreads);
+  }
+#endif
 
   // initialize comm buffers & exchange memory
 

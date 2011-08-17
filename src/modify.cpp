@@ -594,7 +594,7 @@ int Modify::min_reset_ref()
 
 void Modify::add_fix(int narg, char **arg, char *suffix)
 {
-  if (domain->box_exist == 0) 
+  if (domain->box_exist == 0 && allow_early_fix == 0) 
     error->all("Fix command before simulation box is defined");
   if (narg < 3) error->all("Illegal fix command");
 

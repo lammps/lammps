@@ -15,12 +15,12 @@ package style args :pre
 style = {gpu} or {cuda} or {omp} :ulb,l
 args = arguments specific to the style :l
   {gpu} args = mode first last split
-    mode = force or force/neigh :l
-    first = ID of first GPU to be used on each node :l
-    last = ID of last GPU to be used on each node :l
-    split = fraction of particles assigned to the GPU :l
+    mode = force or force/neigh
+    first = ID of first GPU to be used on each node
+    last = ID of last GPU to be used on each node
+    split = fraction of particles assigned to the GPU
   {cuda} args = to be determined
-  {omp} args = Nthreads :pre
+  {omp} args = Nthreads
     Nthreads = # of OpenMP threads to associate with each MPI process :pre
 :ule
 
@@ -38,7 +38,7 @@ package omp 4 :pre
 This command invokes package-specific settings.  Currently the
 following packages use it: GPU, USER-CUDA, and USER-OMP.
 
-See "this section"_doc/Section_accerate.html of the manual for more
+See "this section"_Section_accelerate.html of the manual for more
 details about using these various packages for accelerating
 a LAMMPS calculation.
 

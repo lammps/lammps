@@ -19,19 +19,14 @@
 
 <LI>args = arguments specific to the style 
 
-<LI>  <I>gpu</I> args = mode first last split
-    mode = force or force/neigh 
-
-<LI>    first = ID of first GPU to be used on each node 
-
-<LI>    last = ID of last GPU to be used on each node 
-
-<LI>    split = fraction of particles assigned to the GPU 
-
-<PRE>  <I>cuda</I> args = to be determined
-  <I>omp</I> args = Nthreads 
-</PRE>
-<PRE>    Nthreads = # of OpenMP threads to associate with each MPI process 
+<PRE>  <I>gpu</I> args = mode first last split
+    mode = force or force/neigh
+    first = ID of first GPU to be used on each node
+    last = ID of last GPU to be used on each node
+    split = fraction of particles assigned to the GPU
+  <I>cuda</I> args = to be determined
+  <I>omp</I> args = Nthreads
+    Nthreads = # of OpenMP threads to associate with each MPI process 
 </PRE>
 
 </UL>
@@ -49,7 +44,7 @@ package omp 4
 <P>This command invokes package-specific settings.  Currently the
 following packages use it: GPU, USER-CUDA, and USER-OMP.
 </P>
-<P>See <A HREF = "doc/Section_accerate.html">this section</A> of the manual for more
+<P>See <A HREF = "Section_accelerate.html">this section</A> of the manual for more
 details about using these various packages for accelerating
 a LAMMPS calculation.
 </P>

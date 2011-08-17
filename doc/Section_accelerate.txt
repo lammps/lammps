@@ -178,12 +178,12 @@ GPU.
 Additional input script requirements to run styles with a {gpu} suffix
 are as follows.
 
-The "newton pair"_newton.html setting must be {off} and the "fix
-gpu"_fix_gpu.html command must be used.  To invoke specific styles
-from the GPU package, you can either append "gpu" to the style name
-(e.g. pair_style lj/cut/gpu), or use the "-suffix command-line
-switch"_Section_start.html#2_6, or use the "suffix"_suffix.html
-command.
+The "newton pair"_newton.html setting must be {off}.
+
+To invoke specific styles from the GPU package, you can either append
+"gpu" to the style name (e.g. pair_style lj/cut/gpu), or use the
+"-suffix command-line switch"_Section_start.html#2_6, or use the
+"suffix"_suffix.html command.
 
 The "package gpu"_package.html command must be used near the beginning
 of your script to control the GPU selection and initialization steps.

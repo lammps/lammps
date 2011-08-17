@@ -15,6 +15,7 @@
 #include "stdlib.h"
 #include "atom_vec_full.h"
 #include "atom.h"
+#include "comm.h"
 #include "domain.h"
 #include "modify.h"
 #include "fix.h"
@@ -68,8 +69,7 @@ void AtomVecFull::grow(int n)
   mask = memory->grow(atom->mask,nmax,"atom:mask");
   image = memory->grow(atom->image,nmax,"atom:image");
   x = memory->grow(atom->x,nmax,3,"atom:x");
-  v = memory->grow(atom->v,nmax,3,"atom:v");
-  f = memory->grow(atom->f,nmax,3,"atom:f");
+  f = memory->grow(atom->f,nmax,3*comm->nthreads,"atom:f");
 
   q = memory->grow(atom->q,nmax,"atom:q");
   molecule = memory->grow(atom->molecule,nmax,"atom:molecule");
@@ -985,7 +985,7 @@ bigint AtomVecFull::memory_usage()
   if (atom->memcheck("image")) bytes += memory->usage(image,nmax);
   if (atom->memcheck("x")) bytes += memory->usage(x,nmax,3);
   if (atom->memcheck("v")) bytes += memory->usage(v,nmax,3);
-  if (atom->memcheck("f")) bytes += memory->usage(f,nmax,3);
+  if (atom->memcheck("f")) bytes += memory->usage(f,nmax,3*comm->nthreads);
 
   if (atom->memcheck("q")) bytes += memory->usage(q,nmax);
   if (atom->memcheck("molecule")) bytes += memory->usage(molecule,nmax);

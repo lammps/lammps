@@ -15,6 +15,7 @@
 #include "stdlib.h"
 #include "atom_vec_atomic.h"
 #include "atom.h"
+#include "comm.h"
 #include "domain.h"
 #include "modify.h"
 #include "fix.h"
@@ -63,7 +64,7 @@ void AtomVecAtomic::grow(int n)
   image = memory->grow(atom->image,nmax,"atom:image");
   x = memory->grow(atom->x,nmax,3,"atom:x");
   v = memory->grow(atom->v,nmax,3,"atom:v");
-  f = memory->grow(atom->f,nmax,3,"atom:f");
+  f = memory->grow(atom->f,nmax,3*comm->nthreads,"atom:f");
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++) 

@@ -630,7 +630,7 @@ bigint AtomVecAtomic::memory_usage()
   if (atom->memcheck("image")) bytes += memory->usage(image,nmax);
   if (atom->memcheck("x")) bytes += memory->usage(x,nmax,3);
   if (atom->memcheck("v")) bytes += memory->usage(v,nmax,3);
-  if (atom->memcheck("f")) bytes += memory->usage(f,nmax,3);
+  if (atom->memcheck("f")) bytes += memory->usage(f,nmax,3*comm->nthreads);
 
   return bytes;
 }

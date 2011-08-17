@@ -403,7 +403,7 @@ All of these styles except the {eam/cd} style are part of the
 that package (which it is by default).  See the "Making
 LAMMPS"_Section_start.html#2_3 section for more info.
 
-The {eam/cd} style is part of the "user-cd-eam" package and also
+The {eam/cd} style is part of the "user-misc" package and also
 requires the "manybody" package.  It is only enabled if LAMMPS was
 built with those packages.  See the "Making
 LAMMPS"_Section_start.html#2_3 section for more info.

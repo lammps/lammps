@@ -95,7 +95,7 @@ the other particles.
 :line
 
 The {cuda} style invokes options associated with the use of the
-USER-CUDA package.  These need to be documented.
+USER-CUDA package.  These still need to be documented.
 
 :line
 

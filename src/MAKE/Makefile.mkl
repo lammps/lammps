@@ -28,12 +28,12 @@ SIZE =		size
 # if you change any -D setting, do full re-compile after "make clean"
 
 # LAMMPS ifdef settings, OPTIONAL
-# see possible settings in doc/Section_start.html#2_2 (step 9)
+# see possible settings in doc/Section_start.html#2_2 (step 4)
 
 LMP_INC =	-DLAMMPS_GZIP
 
 # MPI library, REQUIRED
-# see discussion in doc/Section_start.html#2_2 (step 10)
+# see discussion in doc/Section_start.html#2_2 (step 5)
 # can point to dummy MPI library in src/STUBS as in Makefile.serial
 # INC = path for mpi.h, MPI compiler settings
 # PATH = path for MPI library
@@ -44,7 +44,7 @@ MPI_PATH =
 MPI_LIB =	-mt_mpi
 
 # FFT library, OPTIONAL
-# see discussion in doc/Section_start.html#2_2 (step 11)
+# see discussion in doc/Section_start.html#2_2 (step 6)
 # can be left blank to use provided KISS FFT library
 # INC = -DFFT setting, e.g. -DFFT_FFTW, FFT compiler settings
 # PATH = path for FFT library
@@ -55,7 +55,7 @@ FFT_PATH =
 FFT_LIB =	/opt/intel/mkl/10.0.011/lib/em64t/libfftw2xc_intel.a
 
 # JPEG library, OPTIONAL
-# see discussion in doc/Section_start.html#2_2 (step 12)
+# see discussion in doc/Section_start.html#2_2 (step 7)
 # only needed if -DLAMMPS_JPEG listed with LMP_INC
 # INC = path for jpeglib.h
 # PATH = path for JPEG library

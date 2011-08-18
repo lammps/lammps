@@ -180,32 +180,48 @@ The LMP_INC variable is used to include options that turn on ifdefs
 within the LAMMPS code.  The options that are currently recogized are:
 
 -DLAMMPS_GZIP
+-DLAMMPS_JPEG
+-DLAMMPS_XDR
+-DLAMMPS_SMALLBIG
+-DLAMMPS_BIGBIG
+-DLAMMPS_SMALLSMALL
+-DLAMMPS_LONGLONG_TO_LONG
 -DPACK_ARRAY
 -DPACK_POINTER
--DPACK_MEMCPY
--DLAMMPS_XDR
--DLAMMPS_JPEG :ul
+-DPACK_MEMCPY :ul
 
 The read_data and dump commands will read/write gzipped files if you
 compile with -DLAMMPS_GZIP.  It requires that your Unix support the
 "popen" command.
 
-Using one of the -DPACK_ARRAY, -DPACK_POINTER, and -DPACK_MEMCPY
-options can make for faster parallel FFTs (in the PPPM solver) on some
-platforms.  The -DPACK_ARRAY setting is the default.  See the
-"kspace_style"_kspace_style.html command for info about PPPM.  See
-section (3.c) below for info about building LAMMPS with an FFT
-library.
+If you use -DLAMMPS_JPEG, the "dump image"_dump.html command will be
+able to write out JPEG image files.  If not, it will only be able to
+write out text-based PPM image files.  For JPEG files, you must also
+link LAMMPS with a JPEG library, as described below.
 
 If you use -DLAMMPS_XDR, the build will include XDR compatibility
 files for doing particle dumps in XTC format.  This is only necessary
 if your platform does have its own XDR files available.  See the
 Restrictions section of the "dump"_dump.html command for details.
 
-If you use -DLAMMPS_JPEG, the "dump image"_dump.html command will be
-able to write out JPEG image files.  If not, it will only be able to
-write out text-based PPM image files.  For JPEG files, you must also
-link LAMMPS with a JPEG library, as described below.
+Use at most one of the -DLAMMPS_SMALLBIG, -DLAMMPS_BIGBIG,
+-D-DLAMMPS_SMALLSMALL settings.  The default is -DLAMMPS_SMALLBIG.
+These refer to use of 4-byte (small) vs 8-byte (big) integers within
+LAMMPS, as described in src/lmptype.h.  The only reason to use the
+BIGBIG setting is to enable simulation of huge molecular systems with
+more than 2 billion atoms.  The only reason to use the SMALLSMALL
+setting is if your machine does not support 64-bit integers.
+
+The -DLAMMPS_LONGLONG_TO_LONG setting may be needed if your system or
+MPI version does not recognize "long long" data types.  In this case a
+"long" data type is likely already 64-bits, in which case this setting
+will convert to that data type.
+
+Using one of the -DPACK_ARRAY, -DPACK_POINTER, and -DPACK_MEMCPY
+options can make for faster parallel FFTs (in the PPPM solver) on some
+platforms.  The -DPACK_ARRAY setting is the default.  See the
+"kspace_style"_kspace_style.html command for info about PPPM.  See
+Step 6 below for info about building LAMMPS with an FFT library.
 
 [Step 5]
 
@@ -346,7 +362,6 @@ gmake foo :pre
 
 You should get the executable lmp_foo when the build is complete.
 
-
 :line
 
 [{Errors that can occur when making LAMMPS:}] :link(2_2_3)
@@ -382,9 +397,8 @@ makelist" command.
 
 (2) If you get an error that says something like 'identifier "atoll"
 is undefined', then your machine does not support "long long"
-integers, and you need to edit the src/lmptype.h file.  There is a
-comment in the file about what to do.  Basically you replace
-MPI_LONG_LONG with MPI_LONG and atoll with atol.
+integers.  Try using the -DLAMMPS_LONGLONG_TO_LONG setting described
+above in Step 4.
 
 :line
 

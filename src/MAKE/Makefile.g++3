@@ -1,4 +1,4 @@
-# g++3 = RedHat Linux box, g++ (v3), Intel ifort, MPICH2, FFTW
+# g++3 = RedHat Linux box, g++ (v3), MPICH2, FFTW
 
 SHELL = /bin/sh
 

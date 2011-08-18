@@ -1,4 +1,4 @@
-# g++ = RedHat Linux box, g++4, gfortran, MPICH2, FFTW
+# g++ = RedHat Linux box, g++4, MPICH2, FFTW
 
 SHELL = /bin/sh
 

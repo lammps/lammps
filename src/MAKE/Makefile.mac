@@ -1,4 +1,4 @@
-# mac = Apple PowerBook G4 laptop, c++, Intel ifort, no MPI, FFTW 2.1.5
+# mac = Apple PowerBook G4 laptop, c++, no MPI, FFTW 2.1.5
 
 SHELL = /bin/sh
 

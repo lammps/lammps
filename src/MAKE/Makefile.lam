@@ -1,4 +1,4 @@
-# lam = FreeBSD box, mpic++, Intel ifort, LAM/MPI, FFTW
+# lam = FreeBSD box, mpic++, LAM/MPI, FFTW
 
 SHELL = /bin/sh
 

@@ -1,4 +1,4 @@
-# serial = RedHat Linux box, g++4, gfortran, no MPI, no FFTs
+# serial = RedHat Linux box, g++4, no MPI, no FFTs
 
 SHELL = /bin/sh
 

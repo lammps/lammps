@@ -1,7 +1,9 @@
-# Depend.sh = Install/unInstall files from dependent packages
+# Depend.sh = Install/unInstall files for dependent packages
 # only Install/unInstall if dependent package is already installed
+# all packages with dependencies should be listed here
 # install dependent child files when parent files installed
 # uninstall dependent child files when parent files uninstalled
+# decisions on individual files are made by package Install.sh scripts
 
 if (test $1 = 1) then
 

@@ -1,5 +1,5 @@
 # Install/unInstall package files in LAMMPS
-# edit Makefile.package to include/exclude MEAM info
+# edit 2 Makefile.package files to include/exclude GPU info
 
 if (test $1 = 1) then
 
@@ -13,6 +13,11 @@ if (test $1 = 1) then
     sed -i -e 's|^PKG_SYSPATH =[ \t]*|&$(meam_SYSPATH) |' ../Makefile.package
   fi
 
+  if (test -e ../Makefile.package.settings) then
+    sed -i -e '/^include.*meam.*$/d' ../Makefile.package.settings
+    sed -i '4 i include ..\/..\/lib\/meam\/Makefile.lammps' ../Makefile.package.settings
+  fi
+
   cp pair_meam.cpp ..
 
   cp pair_meam.h ..
@@ -21,6 +26,10 @@ elif (test $1 = 0) then
 
   if (test -e ../Makefile.package) then
     sed -i -e 's/[^ \t]*meam[^ \t]* //' ../Makefile.package
+  fi
+
+  if (test -e ../Makefile.package.settings) then
+    sed -i -e '/^include.*meam.*$/d' ../Makefile.package.settings
   fi
 
   rm -f ../pair_meam.cpp

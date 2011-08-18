@@ -1,26 +1,26 @@
 # Install/unInstall package files in LAMMPS
 # edit Makefile.package to include/exclude CUDA library
-# do not copy child files if parent does not exist
+# do not install child files if parent does not exist
 
 if (test $1 = 1) then
 
-  if (test ! -e ../Makefile.package) then
-    cp ../Makefile.package.empty ../Makefile.package
+  if (test -e ../Makefile.package) then
+    sed -i -e 's/[^ \t]*cuda[^ \t]* //g' ../Makefile.package
+    sed -i -e 's/[^ \t]*CUDA[^ \t]* //g' ../Makefile.package
+    sed -i -e 's|^PKG_INC =[ \t]*|&-I..\/..\/lib\/cuda -DLMP_USER_CUDA |' ../Makefile.package
+    sed -i -e 's|^PKG_PATH =[ \t]*|&-L..\/..\/lib\/cuda |' ../Makefile.package
+    sed -i -e 's|^PKG_LIB =[ \t]*|&-llammpscuda |' ../Makefile.package
+    sed -i -e 's|^PKG_SYSINC =[ \t]*|&$(user-cuda_SYSINC) |' ../Makefile.package
+    sed -i -e 's|^PKG_SYSLIB =[ \t]*|&$(user-cuda_SYSLIB) |' ../Makefile.package
+    sed -i -e 's|^PKG_SYSPATH =[ \t]*|&$(user-cuda_SYSPATH) |' ../Makefile.package
   fi
 
-  sed -i -e '/^include.*cuda.*$/d' ../Makefile.package
-  sed -i -e 's/[^ \t]*cuda[^ \t]* //g' ../Makefile.package
-  sed -i -e 's/[^ \t]*CUDA[^ \t]* //g' ../Makefile.package
-  sed -i -e 's/[^ \t]*lrt[^ \t]* //g' ../Makefile.package
-  sed -i '4 i include ..\/..\/lib\/cuda\/Makefile.common' ../Makefile.package
-  sed -i -e 's|^PKG_INC =[ \t]*|&-I..\/..\/lib\/cuda -DLMP_USER_CUDA |' ../Makefile.package
-  sed -i -e 's|^PKG_PATH =[ \t]*|&-L..\/..\/lib\/cuda |' ../Makefile.package
-  sed -i -e 's|^PKG_LIB =[ \t]*|&-llammpscuda |' ../Makefile.package
-  sed -i -e 's|^PKG_SYSINC =[ \t]*|&-I$(CUDA_INSTALL_PATH)\/include |' ../Makefile.package
-  sed -i -e 's|^PKG_SYSPATH =[ \t]*|&-L$(CUDA_INSTALL_PATH)\/lib64 -L$(CUDA_INSTALL_PATH)\/lib $(CUDA_USRLIB_CONDITIONAL) |' ../Makefile.package
-  sed -i -e 's|^PKG_SYSLIB =[ \t]*|&-lcuda -lcudart -lrt |' ../Makefile.package
- 
-  # force rebuild of dependencies since adding -DLMP_USER_CUDA switch
+  if (test -e ../Makefile.package.include) then
+    sed -i -e '/^include.*cuda.*$/d' ../Makefile.package.settings
+    sed -i '4 i include ..\/..\/lib\/cuda\/Makefile.lammps' ../Makefile.package.settings
+  fi
+
+  # force rebuild of files with LMP_USER_CUDA switch
 
   touch ../accelerator_cuda.h
 
@@ -204,13 +204,15 @@ if (test $1 = 1) then
 elif (test $1 = 0) then
 
   if (test -e ../Makefile.package) then
-    sed -i -e '/^include.*cuda.*$/d' ../Makefile.package
     sed -i -e 's/[^ \t]*cuda[^ \t]* //g' ../Makefile.package
     sed -i -e 's/[^ \t]*CUDA[^ \t]* //g' ../Makefile.package
-    sed -i -e 's/[^ \t]*lrt[^ \t]* //g' ../Makefile.package
   fi
 
-  # force rebuild of dependencies since removing -DLMP_USER_CUDA switch
+  if (test -e ../Makefile.package.settings) then
+    sed -i -e '/^include.*cuda.*$/d' ../Makefile.package.settings
+  fi
+
+  # force rebuild of files with LMP_USER_CUDA switch
 
   touch ../accelerator_cuda.h
 

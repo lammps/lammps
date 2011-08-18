@@ -68,7 +68,7 @@ help:
 	@cp -p *.cpp *.h Obj_$@
 	@cp MAKE/Makefile.$@ Obj_$@/Makefile
 	@if [ ! -e Makefile.package ]; then make package-regenerate; fi
-	@cp Makefile.package Obj_$@
+	@cp Makefile.package Makefile.package.settings Obj_$@
 	@cd Obj_$@; \
 	$(MAKE) $(MFLAGS) "OBJ = $(OBJ)" "INC = $(INC)" "EXE = ../$(EXE)" ../$(EXE)
 	@if [ -d Obj_$@ ]; then cd Obj_$@; rm -f $(SRC) $(INC) Makefile*; fi
@@ -190,6 +190,7 @@ package-overwrite:
 
 package-regenerate:
 	@cp Makefile.package.empty Makefile.package
+	@cp Makefile.package.settings.empty Makefile.package.settings
 	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p regenerate; done
 	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p regenerate; done
 
@@ -197,4 +198,3 @@ package-diff:
 	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p diff; done
 	@echo ''
 	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p diff; done
-

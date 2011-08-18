@@ -1,5 +1,5 @@
 # Install/unInstall package files in LAMMPS
-# edit Makefile.package to include/exclude GPU info
+# edit 2 Makefile.package files to include/exclude GPU info
 # do not install child files if parent does not exist
 
 if (test $1 = 1) then
@@ -11,6 +11,11 @@ if (test $1 = 1) then
     sed -i -e 's|^PKG_SYSINC =[ \t]*|&$(gpu_SYSINC) |' ../Makefile.package
     sed -i -e 's|^PKG_SYSLIB =[ \t]*|&$(gpu_SYSLIB) |' ../Makefile.package
     sed -i -e 's|^PKG_SYSPATH =[ \t]*|&$(gpu_SYSPATH) |' ../Makefile.package
+  fi
+
+  if (test -e ../Makefile.package.settings) then
+    sed -i -e '/^include.*gpu.*$/d' ../Makefile.package.settings
+    sed -i '4 i include ..\/..\/lib\/gpu\/Makefile.lammps' ../Makefile.package.settings
   fi
   
   if (test -e ../pair_gayberne.cpp) then
@@ -90,6 +95,10 @@ elif (test $1 = 0) then
     sed -i -e 's/[^ \t]*gpu[^ \t]* //' ../Makefile.package
   fi
   
+  if (test -e ../Makefile.package.settings) then
+    sed -i -e '/^include.*gpu.*$/d' ../Makefile.package.settings
+  fi
+
   rm -f ../pppm_gpu.cpp
   rm -f ../pair_gayberne_gpu.cpp
   rm -f ../pair_resquared_gpu.cpp

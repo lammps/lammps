@@ -1,5 +1,5 @@
 # Install/unInstall package files in LAMMPS
-# edit Makefile.package to include/exclude CUDA library
+# edit 2 Makefile.package files to include/exclude CUDA info
 # do not install child files if parent does not exist
 
 if (test $1 = 1) then

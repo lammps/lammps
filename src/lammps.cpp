@@ -325,6 +325,19 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   if (mpisize != sizeof(bigint))
       error->all("MPI_LMP_BIGINT and bigint in lmptype.h are not compatible");
 
+#ifdef LAMMPS_SMALLBIG
+  if (sizeof(smallint) != 4 || sizeof(tagint) != 4 || sizeof(bigint) != 8)
+    error->all("Small, tag, big integers are not sized correctly");
+#endif
+#ifdef LAMMPS_BIGBIG
+  if (sizeof(smallint) != 4 || sizeof(tagint) != 8 || sizeof(bigint) != 8)
+    error->all("Small, tag, big integers are not sized correctly");
+#endif
+#ifdef LAMMPS_SMALLSMALL
+  if (sizeof(smallint) != 4 || sizeof(tagint) != 4 || sizeof(bigint) != 4)
+    error->all("Small, tag, big integers are not sized correctly");
+#endif
+
   if (sizeof(tagint) == 8) error->all("64-bit atom IDs are not yet supported");
 
   // create CUDA class if USER-CUDA installed, unless explicitly switched off

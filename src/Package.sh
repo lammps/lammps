@@ -81,7 +81,7 @@ elif (test $2 = "overwrite") then
 
 # regenenate Makefile.package from Makefile.package.empty
 # if installed:
-# re-install so Install.sh will edit Makefile.pacakge
+# re-install so Install.sh will edit Makefile.package
 
 elif (test $2 = "regenerate") then
   if (test $installed = 1) then

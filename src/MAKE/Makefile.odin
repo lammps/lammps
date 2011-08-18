@@ -19,12 +19,16 @@ SIZE =		size
 # ---------------------------------------------------------------------
 # LAMMPS-specific settings
 # specify settings for LAMMPS features you will use
+# if you change any -D setting, do full re-compile after "make clean"
 
-# LAMMPS ifdef options, see doc/Section_start.html
+# LAMMPS ifdef settings, OPTIONAL
+# see possible settings in doc/Section_start.html#2_2 (step 9)
 
 LMP_INC =	-DLAMMPS_GZIP
 
-# MPI library, can be src/STUBS dummy lib
+# MPI library, REQUIRED
+# see discussion in doc/Section_start.html#2_2 (step 10)
+# can point to dummy MPI library in src/STUBS as in Makefile.serial
 # INC = path for mpi.h, MPI compiler settings
 # PATH = path for MPI library
 # LIB = name of MPI library
@@ -33,8 +37,10 @@ MPI_INC =       -I/opt/mpich-mx/include
 MPI_PATH =	-L/opt/mpich-mx/lib -L/opt/mx/lib
 MPI_LIB =	-lmpich -lmyriexpress
 
-# FFT library, can be -DFFT_NONE if not using PPPM from KSPACE package
-# INC = -DFFT_FFTW, -DFFT_INTEL, -DFFT_NONE, etc, FFT compiler settings
+# FFT library, OPTIONAL
+# see discussion in doc/Section_start.html#2_2 (step 11)
+# can be left blank to use provided KISS FFT library
+# INC = -DFFT setting, e.g. -DFFT_FFTW, FFT compiler settings
 # PATH = path for FFT library
 # LIB = name of FFT library
 
@@ -42,7 +48,9 @@ FFT_INC =       -DFFT_NONE
 FFT_PATH = 
 FFT_LIB =	
 
-# JPEG library, only needed if -DLAMMPS_JPEG listed with LMP_INC
+# JPEG library, OPTIONAL
+# see discussion in doc/Section_start.html#2_2 (step 12)
+# only needed if -DLAMMPS_JPEG listed with LMP_INC
 # INC = path for jpeglib.h
 # PATH = path for JPEG library
 # LIB = name of JPEG library
@@ -51,35 +59,11 @@ JPG_INC =
 JPG_PATH = 	
 JPG_LIB =	
 
-# additional system libraries needed by LAMMPS package libraries
-# these settings are IGNORED if the corresponding LAMMPS package
-#   (e.g. gpu, meam) is NOT included in the LAMMPS build
-# SYSINC = settings to compile with
-# SYSLIB = libraries to link with
-# SYSPATH = paths to libraries
-
-gpu_SYSINC =
-meam_SYSINC =
-reax_SYSINC =
-user-atc_SYSINC =
-user-awpmd_SYSINC =
-
-gpu_SYSLIB =       -lcudart -lcuda
-meam_SYSLIB =      -lifcore -lsvml -lompstub -limf
-reax_SYSLIB =      -lifcore -lsvml -lompstub -limf
-user-atc_SYSLIB =  -lblas -llapack
-user-awpmd_SYSLIB =  -lblas -llapack
-
-gpu_SYSPATH =      -L/usr/local/cuda/lib64
-meam_SYSPATH =     -L/opt/intel/fce/10.0.023/lib
-reax_SYSPATH =     -L/opt/intel/fce/10.0.023/lib
-user-atc_SYSPATH = 	
-user-awpmd_SYSPATH = 	
-
 # ---------------------------------------------------------------------
 # build rules and dependencies
 # no need to edit this section
 
+include	Makefile.package.settings
 include	Makefile.package
 
 EXTRA_INC = $(LMP_INC) $(PKG_INC) $(MPI_INC) $(FFT_INC) $(JPG_INC) $(PKG_SYSINC)

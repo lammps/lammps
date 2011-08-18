@@ -1,22 +1,33 @@
-/* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+This directory has source files to build a library that LAMMPS
+links against when using the GPU package.
 
-   Copyright (2003) Sandia Corporation.  Under the terms of Contract
-   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
-   the GNU General Public License.
+When you are done building this library, two files should
+exist in this directory:
 
-   See the README file in the top-level LAMMPS directory.
-------------------------------------------------------------------------- */
+libgpu.a		the library LAMMPS will link against
+Makefile.lammps		settings the LAMMPS Makefile will import
 
-/* ----------------------------------------------------------------------
-   Contributing authors: Mike Brown (ORNL), brownw@ornl.gov
-                         Peng Wang (Nvidia), penwang@nvidia.com
-                         Inderaj Bains (NVIDIA), ibains@nvidia.com
-                         Paul Crozier (SNL), pscrozi@sandia.gov
-------------------------------------------------------------------------- */
+The latter file will have settings like this (can be omitted if blank):
+
+gpu_SYSINC =
+gpu_SYSLIB = -lcudart -lcuda
+gpu_SYSPATH = -L/usr/local/cuda/lib64
+
+SYSINC is for settings needed to compile LAMMPS source files
+SYSLIB is for additional system libraries needed by this package
+SYSPATH is the path(s) to where those libraries are
+
+You must insure these settings are correct for your system, else
+the LAMMPS build will likely fail.
+
+-------------------------------------------------------------------------
+
+Contributing authors: Mike Brown (ORNL), brownw@ornl.gov
+                      Peng Wang (Nvidia), penwang@nvidia.com
+                      Inderaj Bains (NVIDIA), ibains@nvidia.com
+                      Paul Crozier (SNL), pscrozi@sandia.gov
+
+-------------------------------------------------------------------------
 
                           GENERAL NOTES
                           

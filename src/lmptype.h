@@ -19,15 +19,10 @@
 
 // smallint must be an int, as defined by C compiler
 // tagint can be 32-bit or 64-bit int, must be >= smallint
-// NOTE: 64-bit tagint is not yet supported
 // bigint can be 32-bit or 64-bit int, must be >= tagint
 
 // MPI_LMP_TAGINT = MPI data type corresponding to a tagint
 // MPI_LMP_BIGINT = MPI data type corresponding to a bigint
-
-// NOTE: if your machine/MPI does not support "long long" ints,
-//       but only "long" ints, then you will need to change
-//       MPI_LONG_LONG to MPI_LONG, and atoll to atol
 
 #ifndef LMP_LMPTYPE_H
 #define LMP_LMPTYPE_H
@@ -39,6 +34,12 @@
 #include "stdint.h"
 #include "inttypes.h"
 
+// grrr - IBM Power6 does not provide this def in their system header files
+
+#ifndef PRId64
+#define PRId64 "ld"
+#endif
+
 namespace LAMMPS_NS {
 
 // reserve 2 hi bits in molecular system neigh list for special bonds flag
@@ -47,8 +48,26 @@ namespace LAMMPS_NS {
 #define SBBITS 30
 #define NEIGHMASK 0x3FFFFFFF
 
-// default settings
+// default to 32-bit smallint and tagint, 64-bit bigint
+
+#if !defined(LAMMPS_SMALLSMALL) && !defined(LAMMPS_BIGBIG)
+#define LAMMPS_SMALLBIG
+#endif
+
+// allow user override of LONGLONG to LONG, necessary for some machines/MPI
+
+#ifdef LAMMPS_LONGLONG_TO_LONG
+#define MPI_LL MPI_LONG
+#define ATOLL atoll
+#else
+#define MPI_LL MPI_LONG_LONG
+#define ATOLL atol
+#endif
+
+// for atomic problems that exceed 2 billion (2^31) atoms
 // 32-bit smallint and tagint, 64-bit bigint
+
+#ifdef LAMMPS_SMALLBIG
 
 typedef int smallint;
 typedef int tagint;
@@ -59,19 +78,21 @@ typedef int64_t bigint;
 #define MAXBIGINT INT64_MAX
 
 #define MPI_LMP_TAGINT MPI_INT
-#define MPI_LMP_BIGINT MPI_LONG_LONG
+#define MPI_LMP_BIGINT MPI_LL
 
 #define TAGINT_FORMAT "%d"
 #define BIGINT_FORMAT "%" PRId64
 
 #define ATOTAGINT atoi
-#define ATOBIGINT atoll
+#define ATOBIGINT ATOLL
+
+#endif
 
 // for molecular problems that exceed 2 billion (2^31) atoms
 // 32-bit smallint, 64-bit tagint and bigint
-// NOTE: 64-bit tagint is not yet supported
 
-/*
+#ifdef LAMMPS_BIGBIG
+
 typedef int smallint;
 typedef int64_t tagint;
 typedef int64_t bigint;
@@ -80,20 +101,22 @@ typedef int64_t bigint;
 #define MAXTAGINT INT64_MAX
 #define MAXBIGINT INT64_MAX
 
-#define MPI_LMP_TAGINT MPI_LONG_LONG
-#define MPI_LMP_BIGINT MPI_LONG_LONG
+#define MPI_LMP_TAGINT MPI_LL
+#define MPI_LMP_BIGINT MPI_LL
 
 #define TAGINT_FORMAT "%" PRId64
 #define BIGINT_FORMAT "%" PRId64
 
-#define ATOTAGINT atoll
-#define ATOBIGINT atoll
-*/
+#define ATOTAGINT ATOLL
+#define ATOBIGINT ATOLL
+
+#endif
 
 // for machines that do not support 64-bit ints
 // 32-bit smallint and tagint and bigint
 
-/*
+#ifdef LAMMPS_SMALLSMALL
+
 typedef int smallint;
 typedef int tagint;
 typedef int bigint;
@@ -110,11 +133,12 @@ typedef int bigint;
 
 #define ATOTAGINT atoi
 #define ATOBIGINT atoi
-*/
+
+#endif
 
 }
 
-// settings to enable LAMMPS build under Windows
+// settings to enable LAMMPS to build under Windows
 
 #ifdef _WIN32
 #include "lmpwindows.h"

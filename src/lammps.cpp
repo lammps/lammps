@@ -325,6 +325,8 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   if (mpisize != sizeof(bigint))
       error->all("MPI_LMP_BIGINT and bigint in lmptype.h are not compatible");
 
+  if (sizeof(tagint) == 8) error->all("64-bit atom IDs are not yet supported");
+
   // create CUDA class if USER-CUDA installed, unless explicitly switched off
   // instantiation creates dummy CUDA class if USER-CUDA is not installed
 

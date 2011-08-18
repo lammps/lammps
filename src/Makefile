@@ -1,6 +1,6 @@
 # LAMMPS multiple-machine Makefile
 
-SHELL = /bin/sh
+SHELL = /bin/bash
 #.IGNORE:
 
 # Definitions
@@ -68,6 +68,7 @@ help:
 	@cp -p *.cpp *.h Obj_$@
 	@cp MAKE/Makefile.$@ Obj_$@/Makefile
 	@if [ ! -e Makefile.package ]; then make package-regenerate; fi
+	@if [ ! -e Makefile.package.settings ]; then make package-regenerate; fi
 	@cp Makefile.package Makefile.package.settings Obj_$@
 	@cd Obj_$@; \
 	$(MAKE) $(MFLAGS) "OBJ = $(OBJ)" "INC = $(INC)" "EXE = ../$(EXE)" ../$(EXE)

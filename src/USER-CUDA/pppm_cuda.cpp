@@ -1305,7 +1305,7 @@ void PPPMCuda::set_grid()
   // fluid-occupied volume used to estimate real-space error
   // zprd used rather than zprd_slab
 
-  double hx,hy,hz;
+  double h_x,h_y,h_z;
 
   if (!gewaldflag)
     g_ewald = sqrt(-log(precision*sqrt(natoms*cutoff*xprd*yprd*zprd) / 
@@ -1318,31 +1318,31 @@ void PPPMCuda::set_grid()
 
   if (!gridflag) {
     double err;
-    hx = hy = hz = 1/g_ewald;  
+    h_x = h_y = h_z = 1/g_ewald;  
 
-    nx_pppm = static_cast<int> (xprd/hx + 1);
-    ny_pppm = static_cast<int> (yprd/hy + 1);
-    nz_pppm = static_cast<int> (zprd_slab/hz + 1);
+    nx_pppm = static_cast<int> (xprd/h_x + 1);
+    ny_pppm = static_cast<int> (yprd/h_y + 1);
+    nz_pppm = static_cast<int> (zprd_slab/h_z + 1);
 
-    err = rms(hx,xprd,natoms,q2,acons);
+    err = rms(h_x,xprd,natoms,q2,acons);
     while (err > precision) {
-      err = rms(hx,xprd,natoms,q2,acons);
+      err = rms(h_x,xprd,natoms,q2,acons);
       nx_pppm++;
-      hx = xprd/nx_pppm;
+      h_x = xprd/nx_pppm;
     }
 
-    err = rms(hy,yprd,natoms,q2,acons);
+    err = rms(h_y,yprd,natoms,q2,acons);
     while (err > precision) {
-      err = rms(hy,yprd,natoms,q2,acons);
+      err = rms(h_y,yprd,natoms,q2,acons);
       ny_pppm++;
-      hy = yprd/ny_pppm;
+      h_y = yprd/ny_pppm;
     }
 
-    err = rms(hz,zprd_slab,natoms,q2,acons);
+    err = rms(h_z,zprd_slab,natoms,q2,acons);
     while (err > precision) {
-      err = rms(hz,zprd_slab,natoms,q2,acons);
+      err = rms(h_z,zprd_slab,natoms,q2,acons);
       nz_pppm++;
-      hz = zprd_slab/nz_pppm;
+      h_z = zprd_slab/nz_pppm;
     }
   }
 
@@ -1378,9 +1378,9 @@ void PPPMCuda::set_grid()
   
   // adjust g_ewald for new grid size
 
-  hx = xprd/nx_pppm;
-  hy = yprd/ny_pppm;
-  hz = zprd_slab/nz_pppm;
+  h_x = xprd/nx_pppm;
+  h_y = yprd/ny_pppm;
+  h_z = zprd_slab/nz_pppm;
 
   if (!gewaldflag) {
     double gew1,gew2,dgew,f,fmid,hmin,rtb;
@@ -1388,12 +1388,12 @@ void PPPMCuda::set_grid()
 
     gew1 = 0.0;
     g_ewald = gew1;
-    f = diffpr(hx,hy,hz,q2,acons);
+    f = diffpr(h_x,h_y,h_z,q2,acons);
 
-    hmin = MIN(hx,MIN(hy,hz));
+    hmin = MIN(h_x,MIN(h_y,h_z));
     gew2 = 10/hmin;
     g_ewald = gew2;
-    fmid = diffpr(hx,hy,hz,q2,acons);
+    fmid = diffpr(h_x,h_y,h_z,q2,acons);
 
     if (f*fmid >= 0.0) error->all("Cannot compute PPPMCuda G");
     rtb = f < 0.0 ? (dgew=gew2-gew1,gew1) : (dgew=gew1-gew2,gew2);
@@ -1401,7 +1401,7 @@ void PPPMCuda::set_grid()
     while (fabs(dgew) > SMALL && fmid != 0.0) {
       dgew *= 0.5;
       g_ewald = rtb + dgew;
-      fmid = diffpr(hx,hy,hz,q2,acons);      
+      fmid = diffpr(h_x,h_y,h_z,q2,acons);      
       if (fmid <= 0.0) rtb = g_ewald;
       ncount++;
       if (ncount > LARGE) error->all("Cannot compute PPPMCuda G");
@@ -1410,9 +1410,9 @@ void PPPMCuda::set_grid()
 
   // final RMS precision
 
-  double lprx = rms(hx,xprd,natoms,q2,acons);
-  double lpry = rms(hy,yprd,natoms,q2,acons);
-  double lprz = rms(hz,zprd_slab,natoms,q2,acons);
+  double lprx = rms(h_x,xprd,natoms,q2,acons);
+  double lpry = rms(h_y,yprd,natoms,q2,acons);
+  double lprz = rms(h_z,zprd_slab,natoms,q2,acons);
   double lpr = sqrt(lprx*lprx + lpry*lpry + lprz*lprz) / sqrt(3.0);
   double spr = 2.0*q2 * exp(-g_ewald*g_ewald*cutoff*cutoff) / 
     sqrt(natoms*cutoff*xprd*yprd*zprd_slab);

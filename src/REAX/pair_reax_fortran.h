@@ -26,10 +26,12 @@
 
 #if  __STDC__ 
 #define CONS(a,b) a##b
+#elif defined(_IBM)
+#define CONS(a,b) a##b
 #else
 #define CONS(a,b) a/**/b
-#warning "The following declaration is a test of the CONS macro."
-#warning "If it fails with an error, pair_reax_fortran.h must be modified by hand."
+#warning "The following declaration is a test of the CONS macro"
+#warning "If it fails, pair_reax_fortran.h must be modified by hand"
 static int my_apples_my_oranges = 1;
 static int my_applesoroanges = CONS(my_apples,_my_oranges);
 #endif

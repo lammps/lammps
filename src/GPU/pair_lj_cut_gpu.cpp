@@ -128,7 +128,7 @@ void PairLJCutGPU::init_style()
   cut_respa = NULL;
 
   if (force->newton_pair) 
-    error->all("Cannot use newton pair with GPU LJ pair style");
+    error->all("Cannot use newton pair with lj/cut/gpu pair style");
 
   // Repeat cutsq calculation because done after call to init_style
   double maxcut = -1.0;

@@ -125,7 +125,7 @@ void PairMorseGPU::compute(int eflag, int vflag)
 void PairMorseGPU::init_style()
 {
   if (force->newton_pair) 
-    error->all("Cannot use newton pair with GPU Morse pair style");
+    error->all("Cannot use newton pair with morse/gpu pair style");
 
   // Repeat cutsq calculation because done after call to init_style
   double maxcut = -1.0;

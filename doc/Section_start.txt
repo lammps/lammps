@@ -831,6 +831,7 @@ letter abbreviation can be used:
 -c or -cuda
 -e or -echo
 -i or -in
+-h or -help
 -l or -log
 -p or -partition
 -pl or -plog
@@ -874,6 +875,14 @@ when running LAMMPS in one-partition mode.  If it is not specified,
 LAMMPS reads its input script from stdin - e.g. lmp_linux < in.run.
 This is a required switch when running LAMMPS in multi-partition mode,
 since multiple processors cannot all read from stdin.
+
+-help :pre
+
+Print a list of options compiled into this executable for each LAMMPS
+style (atom_style, fix, compute, pair_style, bond_style, etc).  This
+can help you know if the command you want to use was included via the
+appropriate package.  LAMMPS will print the info and immediately exit
+if this switch is used.
 
 -log file :pre
 

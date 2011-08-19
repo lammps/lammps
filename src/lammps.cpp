@@ -555,7 +555,7 @@ void LAMMPS::print_styles()
 #undef KSPACE_CLASS
   printf("\n\n");
 
-  printf("Fix styles (all caps are only for internal use):");
+  printf("Fix styles (upper case are only for internal use):");
 #define FIX_CLASS
 #define FixStyle(key,Class) printf(" %s",#key);
 #include "style_fix.h"

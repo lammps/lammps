@@ -27,6 +27,12 @@ for file in *.cpp *.h; do
   if (test $file = pair_lj_charmm_coul_long_opt.h -a ! -e ../pair_lj_charmm_coul_long.cpp) then
     continue
   fi
+  if (test $file = pair_lj_cut_coul_long_opt.cpp -a ! -e ../pair_lj_cut_coul_long.cpp) then
+    continue
+  fi
+  if (test $file = pair_lj_cut_coul_long_opt.h -a ! -e ../pair_lj_cut_coul_long.cpp) then
+    continue
+  fi
 
   if (test ! -e ../$file) then
     echo "  creating src/$file"

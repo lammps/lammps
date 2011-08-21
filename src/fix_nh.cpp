@@ -641,10 +641,13 @@ void FixNH::setup(int vflag)
 
   tdof = temperature->dof;
 
-  // t_target is used by compute_scalar(), even for NPH
+  // t_target is needed by NPH and NPT in compute_scalar()
+  // If no thermostat, 
+  // t_target must be defined by other means.
 
-  if (tstat_flag) t_target = t_start;                      
-  else if (pstat_flag) {
+  if (tstat_flag) {
+    compute_temp_target();
+  } else if (pstat_flag) {
 
     // t0 = initial value for piston mass and energy conservation
     // cannot be done in init() b/c temperature cannot be called there
@@ -680,7 +683,7 @@ void FixNH::setup(int vflag)
       eta_mass[ich] = boltz * t_target / (t_freq*t_freq);
     for (int ich = 1; ich < mtchain; ich++) {
       eta_dotdot[ich] = (eta_mass[ich-1]*eta_dot[ich-1]*eta_dot[ich-1] -
-			 boltz*t_target) / eta_mass[ich];
+			 boltz * t_target) / eta_mass[ich];
     }
   }
 
@@ -706,7 +709,7 @@ void FixNH::setup(int vflag)
       for (int ich = 1; ich < mpchain; ich++)
 	etap_dotdot[ich] = 
 	  (etap_mass[ich-1]*etap_dot[ich-1]*etap_dot[ich-1] -
-	   boltz*t_target) / etap_mass[ich];
+	   boltz * t_target) / etap_mass[ich];
     }
 
   }
@@ -725,9 +728,7 @@ void FixNH::initial_integrate(int vflag)
   // update eta_dot
 
   if (tstat_flag) {
-    double delta = update->ntimestep - update->beginstep;
-    delta /= update->endstep - update->beginstep;
-    t_target = t_start + delta * (t_stop-t_start);
+    compute_temp_target();
     eta_mass[0] = tdof * boltz * t_target / (t_freq*t_freq);
     for (int ich = 1; ich < mtchain; ich++)
       eta_mass[ich] = boltz * t_target / (t_freq*t_freq);
@@ -826,9 +827,7 @@ void FixNH::initial_integrate_respa(int vflag, int ilevel, int iloop)
     // update eta_dot
 
     if (tstat_flag) {
-      double delta = update->ntimestep - update->beginstep;
-      delta /= update->endstep - update->beginstep;
-      t_target = t_start + delta * (t_stop-t_start);
+      compute_temp_target();
       eta_mass[0] = tdof * boltz * t_target / (t_freq*t_freq);
       for (int ich = 1; ich < mtchain; ich++)
 	eta_mass[ich] = boltz * t_target / (t_freq*t_freq);
@@ -1305,7 +1304,6 @@ double FixNH::compute_scalar()
   double volume;
   double energy;
   double kt = boltz * t_target;
-  double lkt = tdof * kt;
   double lkt_press = kt;
   int ich;
   if (dimension == 3) volume = domain->xprd * domain->yprd * domain->zprd;
@@ -1323,7 +1321,7 @@ double FixNH::compute_scalar()
   //       Q_k = k*T/t_freq^2, k > 1 
 
   if (tstat_flag) {
-    energy += lkt * eta[0] + 0.5*eta_mass[0]*eta_dot[0]*eta_dot[0];
+    energy += ke_target * eta[0] + 0.5*eta_mass[0]*eta_dot[0]*eta_dot[0];
     for (ich = 1; ich < mtchain; ich++)
       energy += kt * eta[ich] + 0.5*eta_mass[ich]*eta_dot[ich]*eta_dot[ich];
   }
@@ -1430,7 +1428,6 @@ double FixNH::compute_vector(int n)
 
   double volume;
   double kt = boltz * t_target;
-  double lkt = tdof * kt;
   double lkt_press = kt;
   int ich;
   if (dimension == 3) volume = domain->xprd * domain->yprd * domain->zprd;
@@ -1441,7 +1438,7 @@ double FixNH::compute_vector(int n)
     if (n < ilen) { 
       ich = n;
       if (ich == 0)
-	return lkt * eta[0];
+	return ke_target * eta[0];
       else
 	return kt * eta[ich];
     }
@@ -1581,9 +1578,8 @@ void FixNH::nhc_temp_integrate()
   int ich;
   double expfac;
 
-  double lkt = tdof * boltz * t_target;
   double kecurrent = tdof * boltz * t_current;
-  eta_dotdot[0] = (kecurrent - lkt)/eta_mass[0];
+  eta_dotdot[0] = (kecurrent - ke_target)/eta_mass[0];
 
   double ncfac = 1.0/nc_tchain;
   for (int iloop = 0; iloop < nc_tchain; iloop++) {
@@ -1610,7 +1606,7 @@ void FixNH::nhc_temp_integrate()
 
     t_current *= factor_eta*factor_eta;
     kecurrent = tdof * boltz * t_current;
-    eta_dotdot[0] = (kecurrent - lkt)/eta_mass[0];
+    eta_dotdot[0] = (kecurrent - ke_target)/eta_mass[0];
     
     for (ich = 0; ich < mtchain; ich++)
       eta[ich] += ncfac*dthalf*eta_dot[ich];
@@ -1973,6 +1969,21 @@ void FixNH::compute_deviatoric()
     h[0]*(              sigma[5]*h[1]+sigma[4]*h[3]) +
     h[5]*(              sigma[1]*h[1]+sigma[3]*h[3]) +
     h[4]*(              sigma[3]*h[1]+sigma[2]*h[3]);
+}
+
+/* ----------------------------------------------------------------------
+   compute target temperature and kinetic energy
+-----------------------------------------------------------------------*/
+
+void FixNH::compute_temp_target()
+{
+  double delta = update->ntimestep - update->beginstep;
+  if (update->endstep > update->beginstep)
+    delta /= update->endstep - update->beginstep;
+  else delta = 0.0;
+      
+  t_target = t_start + delta * (t_stop-t_start);
+  ke_target = tdof * boltz * t_target;
 }
 
 /* ----------------------------------------------------------------------

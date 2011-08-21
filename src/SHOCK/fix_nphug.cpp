@@ -11,6 +11,54 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/*
+
+  This fix applies the NPHug Hugoniostat method of Ravelo et al.
+
+(Ravelo, Holian, Germann, and Lomdahl, PRB 70 014103 (2004))
+
+It uses the Nose-Hoover thermostat and barostat (fix_nh.html).
+The Nose-Hoover barostat is used to compress the system 
+to a specified final stress state. This is done either
+hydrostatically (using keyword iso, aniso, or tri) or uniaxially
+(using keywords x, y, or z).  In the hydrostatic case,
+the cell dimensions change dynamically so that the average axial stress
+in all three directions converges towards the specified target value. 
+In the uniaxial case, the chosen cell dimension changes dynamically 
+so that the average
+axial stress in that direction converges towards the target value. The
+other two cell dimensions are kept fixed (zero lateral strain).
+
+This leads to the following restrictions on the keywords:
+
+- The specified initial and
+final target pressures must be the same.
+
+- Only one of the following keywords may be used:
+iso, aniso, tri, x, y, z, 
+
+- The keywords xy, xz, yz may not be used.
+
+- The only admissible value for the couple keyword is xyz,
+which has the same effect as keyword iso
+
+- The drag parameter is proportional to the beta_H and beta_p
+damping coefficients in the Ravelo paper.
+
+- The temp keyword serves only to set the value of tdamp. The initial
+and final target temperatures are ignored. 
+
+- The values of tdamp and pdamp are inversely proportional to the
+coupling rate nu_H and nu_p in the Ravelo paper
+
+- All other keywords function in the same way. 
+
+*/
+
+
+
+
+
 #include "string.h"
 #include "fix_nphug.h"
 #include "modify.h"

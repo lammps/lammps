@@ -20,13 +20,20 @@
 
 #include "pointers.h"
 
+
 namespace LAMMPS_NS {
 
-class ThrOMP : protected Pointers {
+// forward declarations
+class Pair;
+class Dihedral;
+
+class ThrOMP {
 
  protected:
   const int thr_style;
   enum {PAIR=1, BOND, ANGLE, DIHEDRAL, IMPROPER, KSPACE, FIX, COMPUTE};
+
+  LAMMPS *lmp;           // reference to base lammps object.
 
   double *eng_vdwl_thr;  // per thread accumulated vdw energy
   double *eng_coul_thr;  // per thread accumulated coulomb energies
@@ -39,41 +46,29 @@ class ThrOMP : protected Pointers {
   int maxeatom_thr, maxvatom_thr;
   
  public:
-  ThrOMP(class LAMMPS *, int);
+  ThrOMP(LAMMPS *, int);
   virtual ~ThrOMP();
 
+  double memory_usage_thr();
+
  protected:
+  // threading adapted versions of the ev_tally infrastructure.
+  void ev_setup_thr(int, int, int, int);
+
+  // for regular pair styles
+  void ev_tally_thr(int, int, int, int, int, int, int, int, int, int, 
+		    double, double, double, double, double, double, int);
+
+  void ev_reduce_thr(Pair *);
+  void ev_reduce_thr(Dihedral *);
+
   // set loop range for, thread id, and force array offset for threaded runs.
   double **loop_setup_thr(double **f, int &ifrom, int &ito, int &tid,
                           const int inum, const int nall, const int nthreads);
-  
-#if 0
-  // threading adapted versions of the ev_tally infrastructure.
-  void ev_setup_thr(int, int);
-  void ev_reduce_thr();
-  void ev_tally_thr(int, int, int, int, double, double, double,
-		    double, double, double, int);
-  void ev_tally_xyz_thr(int, int, int, int, double, double,
-			double, double, double, double, double, double, int);
-  void ev_tally3_thr(int, int, int, double, double,
-		     double *, double *, double *, double *, int);
-  void ev_tally4_thr(int, int, int, int, double,
-		     double *, double *, double *, double *, double *, double *, int);
-  void ev_tally_list_thr(int, int *, double, double *, int);
-  void v_tally2_thr(int, int, double, double *, int);
-  void v_tally3_thr(int, int, int, double *, double *, double *, double *, int);
-  void v_tally4_thr(int, int, int, int, double *, double *, double *,
-                    double *, double *, double *, int);
-#endif
 
   // reduce per thread forces into the first part of the force array
   void force_reduce_thr(double **fall, const int nall,
 			const int nthreads, const int tid);
-#if 0
-  // reduce per thread density into the first part of the rho array
-  void rho_reduce_thr(double *rho, const int nmax, const int nrange, 
-		      const int nthreads, const int tid);
-#endif
 };
 
 }

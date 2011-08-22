@@ -1146,7 +1146,7 @@ void Input::package()
     comm->nthreads = atoi(arg[1]);
     if (comm->nthreads < 1) error->all("Illegal package command");
 
-    omp_set_num_threads(nthr);
+    omp_set_num_threads(comm->nthreads);
     if (me == 0) {
       if (screen)
 	fprintf(screen,"  reset %d OpenMP thread(s) per MPI task\n",

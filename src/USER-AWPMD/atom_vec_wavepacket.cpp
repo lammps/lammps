@@ -19,6 +19,7 @@
 #include "stdlib.h"
 #include "atom_vec_wavepacket.h"
 #include "atom.h"
+#include "comm.h"
 #include "domain.h"
 #include "modify.h"
 #include "force.h"
@@ -77,7 +78,7 @@ void AtomVecWavepacket::grow(int n)
   image = memory->grow(atom->image,nmax,"atom:image");
   x = memory->grow(atom->x,nmax,3,"atom:x");
   v = memory->grow(atom->v,nmax,3,"atom:v");
-  f = memory->grow(atom->f,nmax,3,"atom:f");
+  f = memory->grow(atom->f,nmax,3*comm->nthreads,"atom:f");
 
   q = memory->grow(atom->q,nmax,"atom:q");
   spin = memory->grow(atom->spin,nmax,"atom:spin");
@@ -990,7 +991,7 @@ bigint AtomVecWavepacket::memory_usage()
   if (atom->memcheck("image")) bytes += memory->usage(image,nmax);
   if (atom->memcheck("x")) bytes += memory->usage(x,nmax,3);
   if (atom->memcheck("v")) bytes += memory->usage(v,nmax,3);
-  if (atom->memcheck("f")) bytes += memory->usage(f,nmax,3);
+  if (atom->memcheck("f")) bytes += memory->usage(f,nmax,3*comm->nthreads);
   
   if (atom->memcheck("q")) bytes += memory->usage(q,nmax);
   if (atom->memcheck("spin")) bytes += memory->usage(spin,nmax);

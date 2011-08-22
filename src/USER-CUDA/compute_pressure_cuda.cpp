@@ -75,7 +75,7 @@ ComputePressureCuda::ComputePressureCuda(LAMMPS *lmp, int narg, char **arg) :
   strcpy(id_temp,arg[3]);
 
   int icompute = modify->find_compute(id_temp);
-  delete id_temp;
+  delete [] id_temp;
   if (modify->compute[icompute]->cudable == 0)
   {
     error->warning("Compute pressure/cuda temperature ID is not cudable! Try a temp/cuda style.");

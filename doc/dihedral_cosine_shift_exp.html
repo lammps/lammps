@@ -1,0 +1,65 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>dihedral_style cosine/shift/exp command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>dihedral_style cosine/shift/exp 
+</PRE>
+<P><B>Examples:</B>
+</P>
+<PRE>dihedral_style cosine/shift/exp
+dihedral_coeff 1 10.0 45.0 2.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>The <I>cosine/shift/exp</I> dihedral style uses the potential
+</P>
+<CENTER><IMG SRC = "Eqs/dihedral_cosine_shift_exp.jpg">
+</CENTER>
+<P>where Umin, theta, and a are defined for each dihedral type.
+</P>
+<P>The potential is bounded between [-Umin:0] and the minimum is located
+at the angle theta0. The a parameter can be both positive or negative
+and is used to control the spring constant at the equilibrium.
+</P>
+<P>The spring constant is given by k=a exp(a) Umin/ [2 (Exp(a)-1)].
+For a>3 k/Umin = a/2 to better than 5% relative error. For negative
+values of the a parameter, the spring constant is essentially zero,
+and anharmonic terms takes over. The potential is furthermore well
+behaved in the limit a->0, where it has been implemented to linear
+order in a for a < 0.001.
+</P>
+<P>The following coefficients must be defined for each dihedral type via
+the <A HREF = "dihedral_coeff.html">dihedral_coeff</A> command as in the example
+above, or in the data file or restart files read by the
+<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
+commands:
+</P>
+<UL><LI>umin (energy)
+<LI>theta (angle)
+<LI>A (real number) 
+</UL>
+<P><B>Restrictions:</B>
+</P>
+<P>This dihedral style can only be used if LAMMPS was built with the
+"user-misc" package.  See the <A HREF = "Section_start.html#2_3">Making LAMMPS</A>
+section for more info on packages.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "dihedral_coeff.html">dihedral_coeff</A>,
+<A HREF = "angle_cosineshiftexp.html">angle_cosineshiftexp</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

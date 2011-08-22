@@ -65,6 +65,7 @@ FixNHCuda::FixNHCuda(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   extscalar = 1;
   extvector = 0;
 
+  triggerneighsq = -1;
   // default values
 
   pcouple = NONE;
@@ -547,7 +548,7 @@ void FixNHCuda::init()
   if (force->kspace) kspace_flag = 1;
   else kspace_flag = 0;
 
-  if (strstr(update->integrate_style,"respa")) {
+  if (strcmp(update->integrate_style,"respa") == 0) {
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
     step_respa = ((Respa *) update->integrate)->step;
     dto = 0.5*step_respa[0];
@@ -1550,7 +1551,7 @@ void FixNHCuda::reset_dt()
 
   // If using respa, then remap is performed in innermost level
   
-  if (strstr(update->integrate_style,"respa"))
+  if (strcmp(update->integrate_style,"respa") == 0)
     dto = 0.5*step_respa[0];
   
   p_freq_max = 0.0;

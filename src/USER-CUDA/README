@@ -1,0 +1,16 @@
+The files in this directory are a user-contributed package for LAMMPS.
+
+The person who created these files is Christian Trott at the
+University of Technology Ilmenau, Germany
+(christian.trott@tu-ilmenau.de).  Contact him directly if you have
+questions.
+
+The USER-CUDA package provides acceleration of various LAMMPS pair
+styles, fix styles, compute styles, and long-range Coulombics via PPPM
+on NVIDIA GPUs.
+
+It's use is documented in this file:
+lammps/doc/Section_accelerate.html
+
+Examples input scripts that use the USER-CUDA package are provided in
+lammps/examples/USER/cuda.

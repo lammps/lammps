@@ -2,6 +2,8 @@
 
 units metal
 newton off
+package		gpu force/neigh 0 1 1
+
 atom_style      charge 
 read_data 	data.phosphate
 
@@ -24,8 +26,6 @@ neighbor	2.0 bin
 thermo 100
 
 timestep 0.001
-
-fix		0 all gpu force/neigh 0 1 1
 
 fix 		1 all npt temp 400 400 0.01 iso 1000.0 1000.0 1.0
 run 		1000

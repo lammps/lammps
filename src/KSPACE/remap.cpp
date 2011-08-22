@@ -11,10 +11,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
 #include "stdio.h"
 #include "stdlib.h"
 #include "remap.h"
+
+#define PACK_DATA FFT_SCALAR
+
 #include "pack.h"
 
 #define MIN(A,B) ((A) < (B)) ? (A) : (B)
@@ -57,13 +59,13 @@
    plan         plan returned by previous call to remap_3d_create_plan
 ------------------------------------------------------------------------- */
 
-void remap_3d(double *in, double *out, double *buf,
+void remap_3d(FFT_SCALAR *in, FFT_SCALAR *out, FFT_SCALAR *buf,
 	      struct remap_plan_3d *plan)
 
 {
   MPI_Status status;
   int i,isend,irecv;
-  double *scratch;
+  FFT_SCALAR *scratch;
 
   if (plan->memory == 0)
     scratch = buf;
@@ -74,7 +76,7 @@ void remap_3d(double *in, double *out, double *buf,
 
   for (irecv = 0; irecv < plan->nrecv; irecv++)
     MPI_Irecv(&scratch[plan->recv_bufloc[irecv]],plan->recv_size[irecv],
-	      MPI_DOUBLE,plan->recv_proc[irecv],0,
+	      MPI_FFT_SCALAR,plan->recv_proc[irecv],0,
 	      plan->comm,&plan->request[irecv]);
 
   // send all messages to other procs 
@@ -82,7 +84,7 @@ void remap_3d(double *in, double *out, double *buf,
   for (isend = 0; isend < plan->nsend; isend++) {
     plan->pack(&in[plan->send_offset[isend]],
 	       plan->sendbuf,&plan->packplan[isend]);
-    MPI_Send(plan->sendbuf,plan->send_size[isend],MPI_DOUBLE,
+    MPI_Send(plan->sendbuf,plan->send_size[isend],MPI_FFT_SCALAR,
 	     plan->send_proc[isend],0,plan->comm);
   }       
 
@@ -150,13 +152,6 @@ struct remap_plan_3d *remap_3d_create_plan(
   MPI_Comm_rank(comm,&me);
   MPI_Comm_size(comm,&nprocs);
 
-  // single precision not yet supported 
-
-  if (precision == 1) {
-    if (me == 0) printf("Single precision not supported\n");
-    return NULL;
-  }
-
   // allocate memory for plan data struct 
 
   plan = (struct remap_plan_3d *) malloc(sizeof(struct remap_plan_3d));
@@ -209,10 +204,7 @@ struct remap_plan_3d *remap_3d_create_plan(
   // malloc space for send info 
 
   if (nsend) {
-    if (precision == 1)
-      plan->pack = NULL;
-    else
-      plan->pack = pack_3d;
+    plan->pack = pack_3d;
 
     plan->send_offset = (int *) malloc(nsend*sizeof(int));
     plan->send_size = (int *) malloc(nsend*sizeof(int));
@@ -272,45 +264,23 @@ struct remap_plan_3d *remap_3d_create_plan(
   // malloc space for recv info 
 
   if (nrecv) {
-    if (precision == 1) {
-      if (permute == 0)
-	plan->unpack = NULL;
-      else if (permute == 1) {
-	if (nqty == 1)
-	  plan->unpack = NULL;
-	else if (nqty == 2)
-	  plan->unpack = NULL;
-	else
-	  plan->unpack = NULL;
-      }
-      else if (permute == 2) {
-	if (nqty == 1)
-	  plan->unpack = NULL;
-	else if (nqty == 2)
-	  plan->unpack = NULL;
-	else
-	  plan->unpack = NULL;
-      }
+    if (permute == 0)
+      plan->unpack = unpack_3d;
+    else if (permute == 1) {
+      if (nqty == 1)
+	plan->unpack = unpack_3d_permute1_1;
+      else if (nqty == 2)
+	plan->unpack = unpack_3d_permute1_2;
+      else
+	plan->unpack = unpack_3d_permute1_n;
     }
-    else if (precision == 2) {
-      if (permute == 0)
-	plan->unpack = unpack_3d;
-      else if (permute == 1) {
-	if (nqty == 1)
-	  plan->unpack = unpack_3d_permute1_1;
-	else if (nqty == 2)
-	  plan->unpack = unpack_3d_permute1_2;
-	else
-	  plan->unpack = unpack_3d_permute1_n;
-      }
-      else if (permute == 2) {
-	if (nqty == 1)
-	  plan->unpack = unpack_3d_permute2_1;
-	else if (nqty == 2)
-	  plan->unpack = unpack_3d_permute2_2;
-	else
-	  plan->unpack = unpack_3d_permute2_n;
-      }
+    else if (permute == 2) {
+      if (nqty == 1)
+	plan->unpack = unpack_3d_permute2_1;
+      else if (nqty == 2)
+	plan->unpack = unpack_3d_permute2_2;
+      else
+	plan->unpack = unpack_3d_permute2_n;
     }
 
     plan->recv_offset = (int *) malloc(nrecv*sizeof(int));
@@ -408,10 +378,7 @@ struct remap_plan_3d *remap_3d_create_plan(
     size = MAX(size,plan->send_size[nsend]);
 
   if (size) {
-    if (precision == 1)
-      plan->sendbuf = NULL;
-    else
-      plan->sendbuf = (double *) malloc(size*sizeof(double));
+    plan->sendbuf = (FFT_SCALAR *) malloc(size*sizeof(FFT_SCALAR));
     if (plan->sendbuf == NULL) return NULL;
   }
 
@@ -422,11 +389,8 @@ struct remap_plan_3d *remap_3d_create_plan(
 
   if (memory == 1) {
     if (nrecv > 0) {
-      if (precision == 1)
-	plan->scratch = NULL;
-      else
-	plan->scratch =
-	  (double *) malloc(nqty*out.isize*out.jsize*out.ksize*sizeof(double));
+      plan->scratch =
+	(FFT_SCALAR *) malloc(nqty*out.isize*out.jsize*out.ksize*sizeof(FFT_SCALAR));
       if (plan->scratch == NULL) return NULL;
     }
   }

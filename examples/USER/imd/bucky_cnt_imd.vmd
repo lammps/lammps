@@ -1,0 +1,43 @@
+#!/usr/local/bin/vmd
+# Display settings
+display projection Perspective
+
+mol new bucky-plus-cnt-mol.psf type psf first 0 last -1 step 1 filebonds 1 autobonds 1 waitfor all
+mol delrep 0 top
+mol representation Licorice 0.3 10.0 10.0
+mol color ColorID 7
+mol selection {index >= 300}
+mol addrep top
+mol selection {index < 300}
+mol color ColorID 23
+mol material Glossy
+mol representation VDW 0.600000 15.000000
+mol addrep top
+
+mol rename top {Put the balls into the tube}
+
+draw delete all
+draw material AOChalky
+draw color gray
+draw triangle {-36.0 -31.0  -7.0} { 46.0 -31.0  -7.0} { 46.0  31.0  -7.0}
+draw triangle {-36.0 -31.0  -7.0} {-36.0  31.0  -7.0} { 46.0  31.0  -7.0}
+draw color red
+draw triangle {-36.0 -31.0  -7.0} {-36.0 -31.0   7.0} {-36.0  31.0   7.0}
+draw triangle {-36.0 -31.0  -7.0} {-36.0  31.0  -7.0} {-36.0  31.0   7.0}
+draw triangle { 46.0 -31.0  -7.0} { 46.0 -31.0   7.0} { 46.0  31.0   7.0}
+draw triangle { 46.0 -31.0  -7.0} { 46.0  31.0  -7.0} { 46.0  31.0   7.0}
+draw triangle {-36.0 -31.0  -7.0} {-36.0 -31.0   7.0} { 46.0 -31.0   7.0}
+draw triangle {-36.0 -31.0  -7.0} { 46.0 -31.0  -7.0} { 46.0 -31.0   7.0}
+draw triangle {-36.0  31.0  -7.0} {-36.0  31.0   7.0} { 46.0  31.0   7.0}
+draw triangle {-36.0  31.0  -7.0} { 46.0  31.0  -7.0} { 46.0  31.0   7.0}
+
+
+imd connect localhost 6789
+after idle {
+ global env
+ set env(VMDFULLSCREEN) 1
+ display resize 1200 900
+ rotate x by -5
+ rotate y by -5
+ axes location off
+}

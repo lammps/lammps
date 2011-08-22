@@ -14,7 +14,7 @@ SHELL = /bin/sh
 
 # System-specific settings
 
-CUDA_INSTALL_PATH = /usr/local/cuda
+CUDA_INSTALL_PATH = /usr/local/cuda-3.2
 # e.g. in Gentoo
 # CUDA_INSTALL_PATH = /opt/cuda
 
@@ -27,11 +27,11 @@ CUDA_INSTALL_PATH = /usr/local/cuda
 FALLBACK_FFT = 1
 
 #default settings for compiler switches
-#ifdef COMPILELIB 
-#include Makefile.defaults
-#else
+ifdef COMPILELIB 
+include Makefile.defaults
+else
 include ../../lib/cuda/Makefile.defaults
-#endif
+endif
 
 #shell echo "Compiling with precision = " ${precision} ", arch = " ${arch} ", cufft = " ${cufft} ", dbg = " ${dbg} ", prec_timer = " ${prec_timer}
 
@@ -39,7 +39,7 @@ CUDA_FLAGS := -DUNIX
 CUDA_USRLIB_CONDITIONAL := 
 
 # debug setting
-ifeq ($(dbg), 1)
+ifeq ($(strip $(dbg)), 1)
 	CUDA_FLAGS += -D_DEBUG -g
 	NVCC_FLAGS += -g -G 
 else
@@ -47,12 +47,12 @@ else
 endif
 
 # skip timing on Mac and Windows manually
-ifeq ($(prec_timer), 0)
+ifeq ($(strip $(prec_timer)), 0)
 	CUDA_FLAGS += -DNO_PREC_TIMING
 endif
 
 # set fft routine
-ifeq ($(cufft), 0)
+ifeq ($(strip $(cufft)), 0)
 	ifneq ($(FALLBACK_FFT), 1)
 	    FFT_INC = -DFFT_NONE
 	    FFT_PATH = 
@@ -65,13 +65,14 @@ else
 endif
 
 # make global precision setting
-ifeq ($(precision), 1)
+
+ifeq ($(strip $(precision)), 1)
 	CUDA_FLAGS += -DCUDA_PRECISION=1
 else
-	ifeq ($(precision), 3)
+	ifeq ($(strip $(precision)), 3)
 		CUDA_FLAGS += -DCUDA_PRECISION=1 -DX_PRECISION=2
 	else
-		ifeq ($(precision), 4)
+		ifeq ($(strip $(precision)), 4)
 			CUDA_FLAGS += -DCUDA_PRECISION=1 -DX_PRECISION=2 -DV_PRECISION=2
 		else
 			CUDA_FLAGS += -DCUDA_PRECISION=2
@@ -80,17 +81,17 @@ else
 endif
 
 # make architecture settings
-ifeq ($(arch), 13)
+ifeq ($(strip $(arch)), 13)
 	CUDA_FLAGS += -DCUDA_ARCH=13
 	SMVERSIONFLAGS	:= -arch sm_13
 else
-  ifeq ($(arch), 20)
+  ifeq ($(strip $(arch)), 20)
 	 CUDA_FLAGS += -DCUDA_ARCH=20 
 	 #NVCC_FLAGS += -ftz=false -prec-div=true -prec-sqrt=true
 	 NVCC_FLAGS += -ftz=true -prec-div=false -prec-sqrt=false
 	 SMVERSIONFLAGS	:= -arch sm_20
   else
-     ifeq ($(arch), 21)
+     ifeq ($(strip $(arch)), 21)
 	   CUDA_FLAGS += -DCUDA_ARCH=20 
 	   #NVCC_FLAGS += -ftz=false -prec-div=true -prec-sqrt=true
 	   NVCC_FLAGS += -ftz=true -prec-div=false -prec-sqrt=false

@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -11,14 +11,24 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include <mpi.h>
+
+#ifdef FFT_SINGLE
+typedef float FFT_SCALAR;
+#define MPI_FFT_SCALAR MPI_FLOAT
+#else
+typedef double FFT_SCALAR;
+#define MPI_FFT_SCALAR MPI_DOUBLE
+#endif
+
 // details of how to do a 3d remap 
 
 struct remap_plan_3d {
-  double *sendbuf;                  // buffer for MPI sends 
-  double *scratch;                  // scratch buffer for MPI recvs 
-  void (*pack)(double *, double *, struct pack_plan_3d *);
+  FFT_SCALAR *sendbuf;                  // buffer for MPI sends 
+  FFT_SCALAR *scratch;                  // scratch buffer for MPI recvs 
+  void (*pack)(FFT_SCALAR *, FFT_SCALAR *, struct pack_plan_3d *);
                                     // which pack function to use 
-  void (*unpack)(double *, double *, struct pack_plan_3d *);
+  void (*unpack)(FFT_SCALAR *, FFT_SCALAR *, struct pack_plan_3d *);
                                     // which unpack function to use 
   int *send_offset;                 // extraction loc for each send 
   int *send_size;                   // size of each send message 
@@ -47,7 +57,7 @@ struct extent_3d {
 
 // function prototypes 
 
-void remap_3d(double *, double *, double *, struct remap_plan_3d *);
+void remap_3d(FFT_SCALAR *, FFT_SCALAR *, FFT_SCALAR *, struct remap_plan_3d *);
 struct remap_plan_3d *remap_3d_create_plan(MPI_Comm, 
   int, int, int, int, int, int,	int, int, int, int, int, int,
   int, int, int, int);

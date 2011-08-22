@@ -1,0 +1,33 @@
+# 
+units           real
+neighbor        2.5 bin
+neigh_modify    delay 1 every 1 
+
+atom_style      full
+bond_style      harmonic
+angle_style     charmm
+dihedral_style  charmm
+improper_style  harmonic
+
+pair_style      lj/charmm/coul/long 8 10
+pair_modify     mix arithmetic
+special_bonds   charmm
+read_data       data.deca-ala-solv
+
+
+group peptide   id <= 103
+fix             rigidh all shake 1e-6 100 1000 t 1 2 3 4 5 a 23
+
+thermo          100
+thermo_style    multi
+timestep        2.0
+kspace_style    pppm 1e-5
+
+fix             ensemble all npt temp 300.0 300.0 100.0 aniso 1.0 1.0 1000.0 drag 0.2
+
+# IMD setup.
+fix  comm       all imd 5678 unwrap on trate 10 filter 20 2
+
+run 5000000
+
+

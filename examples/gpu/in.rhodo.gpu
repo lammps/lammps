@@ -1,6 +1,7 @@
 # Rhodopsin model
 
 newton off
+package 	gpu force/neigh 0 1 1
 
 variable	x index 2
 variable	y index 2
@@ -23,7 +24,6 @@ read_data       data.rhodo
 
 replicate	$x $y $z
 
-fix 		0 all gpu force/neigh 0 1 1
 fix             1 all shake 0.0001 5 0 m 1.0 a 232
 fix             2 all npt temp 300.0 300.0 100.0 &
 		z 0.0 0.0 1000.0 mtk no pchain 0 tchain 1

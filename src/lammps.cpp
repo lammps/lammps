@@ -58,6 +58,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   int partscreenflag = 0;
   int partlogflag = 0;
   int cudaflag = -1;
+  int helpflag = 0;
   suffix = NULL;
   suffix_enable = 0;
 
@@ -124,6 +125,11 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
       strcpy(suffix,arg[iarg+1]);
       suffix_enable = 1;
       iarg += 2;
+    } else if (strcmp(arg[iarg],"-help") == 0 || 
+	       strcmp(arg[iarg],"-h") == 0) {
+      if (iarg+1 > narg) error->universe_all("Invalid command-line argument");
+      helpflag = 1;
+      iarg += 1;
     } else error->universe_all("Invalid command-line argument");
   }
 
@@ -319,6 +325,21 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   if (mpisize != sizeof(bigint))
       error->all("MPI_LMP_BIGINT and bigint in lmptype.h are not compatible");
 
+#ifdef LAMMPS_SMALLBIG
+  if (sizeof(smallint) != 4 || sizeof(tagint) != 4 || sizeof(bigint) != 8)
+    error->all("Small, tag, big integers are not sized correctly");
+#endif
+#ifdef LAMMPS_BIGBIG
+  if (sizeof(smallint) != 4 || sizeof(tagint) != 8 || sizeof(bigint) != 8)
+    error->all("Small, tag, big integers are not sized correctly");
+#endif
+#ifdef LAMMPS_SMALLSMALL
+  if (sizeof(smallint) != 4 || sizeof(tagint) != 4 || sizeof(bigint) != 4)
+    error->all("Small, tag, big integers are not sized correctly");
+#endif
+
+  if (sizeof(tagint) == 8) error->all("64-bit atom IDs are not yet supported");
+
   // create CUDA class if USER-CUDA installed, unless explicitly switched off
   // instantiation creates dummy CUDA class if USER-CUDA is not installed
 
@@ -347,6 +368,13 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   // allocate top-level classes
 
   create();
+
+  // if helpflag set, print help and exit
+
+  if (helpflag) {
+    if (universe->me == 0) print_styles();
+    error->done();
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -454,4 +482,111 @@ void LAMMPS::destroy()
   delete atom;            // atom must come after modify, neighbor
                           //   since fixes delete callbacks in atom
   delete timer;
+}
+
+/* ----------------------------------------------------------------------
+   for each style, print name of all child classes build into executable
+------------------------------------------------------------------------- */
+
+void LAMMPS::print_styles()
+{
+  printf("\nList of style options included in this executable:\n\n");
+
+  printf("Atom styles:");
+#define ATOM_CLASS
+#define AtomStyle(key,Class) printf(" %s",#key);
+#include "style_atom.h"
+#undef ATOM_CLASS
+  printf("\n\n");
+
+  printf("Integrate styles:");
+#define INTEGRATE_CLASS
+#define IntegrateStyle(key,Class) printf(" %s",#key);
+#include "style_integrate.h"
+#undef INTEGRATE_CLASS
+  printf("\n\n");
+
+  printf("Minimize styles:");
+#define MINIMIZE_CLASS
+#define MinimizeStyle(key,Class) printf(" %s",#key);
+#include "style_minimize.h"
+#undef MINIMIZE_CLASS
+  printf("\n\n");
+
+  printf("Pair styles:");
+#define PAIR_CLASS
+#define PairStyle(key,Class) printf(" %s",#key);
+#include "style_pair.h"
+#undef PAIR_CLASS
+  printf("\n\n");
+
+  printf("Bond styles:");
+#define BOND_CLASS
+#define BondStyle(key,Class) printf(" %s",#key);
+#include "style_bond.h"
+#undef BOND_CLASS
+  printf("\n\n");
+
+  printf("Angle styles:");
+#define ANGLE_CLASS
+#define AngleStyle(key,Class) printf(" %s",#key);
+#include "style_angle.h"
+#undef ANGLE_CLASS
+  printf("\n\n");
+
+  printf("Dihedral styles:");
+#define DIHEDRAL_CLASS
+#define DihedralStyle(key,Class) printf(" %s",#key);
+#include "style_dihedral.h"
+#undef DIHEDRAL_CLASS
+  printf("\n\n");
+
+  printf("Improper styles:");
+#define IMPROPER_CLASS
+#define ImproperStyle(key,Class) printf(" %s",#key);
+#include "style_improper.h"
+#undef IMPROPER_CLASS
+  printf("\n\n");
+
+  printf("KSpace styles:");
+#define KSPACE_CLASS
+#define KSpaceStyle(key,Class) printf(" %s",#key);
+#include "style_kspace.h"
+#undef KSPACE_CLASS
+  printf("\n\n");
+
+  printf("Fix styles (upper case are only for internal use):");
+#define FIX_CLASS
+#define FixStyle(key,Class) printf(" %s",#key);
+#include "style_fix.h"
+#undef FIX_CLASS
+  printf("\n\n");
+
+  printf("Compute styles:");
+#define COMPUTE_CLASS
+#define ComputeStyle(key,Class) printf(" %s",#key);
+#include "style_compute.h"
+#undef COMPUTE_CLASS
+  printf("\n\n");
+
+  printf("Region styles:");
+#define REGION_CLASS
+#define RegionStyle(key,Class) printf(" %s",#key);
+#include "style_region.h"
+#undef REGION_CLASS
+  printf("\n\n");
+
+  printf("Dump styles:");
+#define DUMP_CLASS
+#define DumpStyle(key,Class) printf(" %s",#key);
+#include "style_dump.h"
+#undef DUMP_CLASS
+  printf("\n\n");
+
+  printf("Command styles (add-on input script commands):");
+#define COMMAND_CLASS
+#define CommandStyle(key,Class) printf(" %s",#key);
+#include "style_command.h"
+#undef COMMAND_CLASS
+  printf("\n");
 }

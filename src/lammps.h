@@ -51,6 +51,8 @@ class LAMMPS {
   void create();
   void init();
   void destroy();
+
+  void print_styles();
 };
 
 }

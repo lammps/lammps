@@ -42,14 +42,14 @@ FFT3d::~FFT3d()
 
 /* ---------------------------------------------------------------------- */
 
-void FFT3d::compute(double *in, double *out, int flag)
+void FFT3d::compute(FFT_SCALAR *in, FFT_SCALAR *out, int flag)
 {
   fft_3d((FFT_DATA *) in,(FFT_DATA *) out,flag,plan);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FFT3d::timing1d(double *in, int nsize, int flag)
+void FFT3d::timing1d(FFT_SCALAR *in, int nsize, int flag)
 {
   fft_1d_only((FFT_DATA *) in,nsize,flag,plan);
 }

@@ -418,7 +418,6 @@ of each style or click on the style itself for a full description:
 "evaporate"_fix_evaporate.html,
 "external"_fix_external.html,
 "freeze"_fix_freeze.html,
-"gpu"_fix_gpu.html,
 "gravity"_fix_gravity.html,
 "heat"_fix_heat.html,
 "indent"_fix_indent.html,
@@ -500,6 +499,7 @@ package"_Section_accelerate.html.
 
 "freeze/cuda"_fix_freeze.html,
 "addforce/cuda"_fix_addforce.html,
+"addtorque"_fix_addtorque.html,
 "aveforce/cuda"_fix_aveforce.html,
 "enforce2d/cuda"_fix_enforce2d.html,
 "gravity/cuda"_fix_gravity.html,
@@ -576,7 +576,8 @@ These are compute styles contributed by users, which can be used if
 "ke/atom/eff"_compute_ke_atom_eff.html,
 "temp/eff"_compute_temp_eff.html,
 "temp/deform/eff"_compute_temp_deform_eff.html,
-"temp/region/eff"_compute_temp_region_eff.html :tb(c=6,ea=c)
+"temp/region/eff"_compute_temp_region_eff.html,
+"temp/rotate"_compute_temp_rotate.html :tb(c=6,ea=c)
 
 These are accelerated compute styles, which can be used if LAMMPS is
 built with the "appropriate accelerated
@@ -665,9 +666,11 @@ These are pair styles contributed by users, which can be used if
 "cg/cmm/coul/cut"_pair_cmm.html,
 "cg/cmm/coul/long"_pair_cmm.html,
 "coul/long/gpu"_pair_coul.html,
+"dipole/sf"_pair_dipole.html,
 "eam/cd"_pair_eam.html,
 "eff/cut"_pair_eff.html,
 "lj/coul"_pair_lj_coul.html,
+"lj/sf"_pair_lj_sf.html,
 "reax/c"_pair_reax_c.html :tb(c=4,ea=c)
 
 These are accelerated pair styles, which can be used if LAMMPS is
@@ -741,6 +744,12 @@ potentials.  Click on the style itself for a full description:
 "quartic"_bond_quartic.html,
 "table"_bond_table.html :tb(c=4,ea=c,w=100)
 
+These are bond styles contributed by users, which can be used if
+"LAMMPS is built with the appropriate package"_Section_start.html#2_3.
+
+"harmonic/shift"_bond_harmonic_shift.html,
+"harmonic/shift/cut"_bond_harmonic_shift_cut.html :tb(c=4,ea=c)
+
 :line
 
 Angle_style potentials :h4
@@ -762,7 +771,9 @@ angle potentials.  Click on the style itself for a full description:
 These are angle styles contributed by users, which can be used if
 "LAMMPS is built with the appropriate package"_Section_start.html#2_3.
 
-"cg/cmm"_angle_cmm.html :tb(c=4,ea=c)
+"cg/cmm"_angle_cmm.html,
+"cosine/shift"_angle_cosine_shift.html,
+"cosine/shift/exp"_angle_cosine_shift_exp.html :tb(c=4,ea=c)
 
 :line
 
@@ -780,6 +791,11 @@ description:
 "helix"_dihedral_helix.html,
 "multi/harmonic"_dihedral_multi_harmonic.html,
 "opls"_dihedral_opls.html :tb(c=4,ea=c,w=100)
+
+These are dihedral styles contributed by users, which can be used if
+"LAMMPS is built with the appropriate package"_Section_start.html#2_3.
+
+"cosine/shift/exp"_dihedral_cosine_shift_exp.html :tb(c=4,ea=c)
 
 :line
 
@@ -805,6 +821,7 @@ Kspace solvers.  Click on the style itself for a full description:
 
 "ewald"_kspace_style.html,
 "pppm"_kspace_style.html,
+"pppm/cg"_kspace_style.html,
 "pppm/tip4p"_kspace_style.html :tb(c=4,ea=c,w=100)
 
 These are Kspace solvers contributed by users, which can be used if
@@ -817,6 +834,4 @@ built with the "appropriate accelerated
 package"_Section_accelerate.html.
 
 "pppm/cuda"_kspace_style.html,
-"pppm/gpu/single"_kspace_style.html,
-"pppm/gpu/double"_kspace_style.html :tb(c=4,ea=c)
-
+"pppm/gpu"_kspace_style.html :tb(c=4,ea=c)

@@ -176,7 +176,7 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
 	  error->all("Invalid dump image theta value");
 	theta *= PI/180.0;
       }
-      if (strstr(arg[iarg+1],"v_") == arg[iarg+2]) {
+      if (strstr(arg[iarg+2],"v_") == arg[iarg+2]) {
 	int n = strlen(&arg[iarg+2][2]) + 1;
 	phistr = new char[n];
 	strcpy(phistr,&arg[iarg+2][2]);
@@ -589,11 +589,12 @@ void DumpImage::write()
   while (nhalf) {
     if (me < nhalf && me+nhalf < nprocs) {
       MPI_Irecv(rgbcopy,npixels*3,MPI_BYTE,me+nhalf,0,world,&requests[0]);
-      MPI_Irecv(depthcopy,npixels,MPI_DOUBLE,me+nhalf,0,world,&requests[2]);
-      if (ssao) 
+      MPI_Irecv(depthcopy,npixels,MPI_DOUBLE,me+nhalf,0,world,&requests[1]);
+      if (ssao)
 	MPI_Irecv(surfacecopy,npixels*2,MPI_DOUBLE,
-		  me+nhalf,0,world,&requests[1]);
-      MPI_Waitall(3,requests,statuses);
+		  me+nhalf,0,world,&requests[2]);
+      if (ssao) MPI_Waitall(3,requests,statuses);
+      else MPI_Waitall(2,requests,statuses);
 
       for (int i = 0; i < npixels; i++) {
         if (depthBuffer[i] < 0 || (depthcopy[i] >= 0 && 

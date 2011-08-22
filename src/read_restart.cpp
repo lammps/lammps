@@ -406,7 +406,7 @@ void ReadRestart::file_search(char *infile, char *outfile)
   strcpy(begin,pattern);
   strcpy(end,ptr+1);
   int nbegin = strlen(begin);
-  int maxnum = -1;
+  bigint maxnum = -1;
 
   struct dirent *ep;
   DIR *dp = opendir(dirname);
@@ -419,7 +419,7 @@ void ReadRestart::file_search(char *infile, char *outfile)
     *ptr = '\0';
     if (strlen(&ep->d_name[nbegin]) < n) {
       strcpy(middle,&ep->d_name[nbegin]);
-      if (atoi(middle) > maxnum) maxnum = atoi(middle);
+      if (ATOBIGINT(middle) > maxnum) maxnum = ATOBIGINT(middle);
     }
   }
   closedir(dp);
@@ -430,7 +430,7 @@ void ReadRestart::file_search(char *infile, char *outfile)
 
   ptr = strchr(infile,'*');
   *ptr = '\0';
-  sprintf(outfile,"%s%d%s",infile,maxnum,ptr+1);
+  sprintf(outfile,"%s" BIGINT_FORMAT "%s",infile,maxnum,ptr+1);
   *ptr = '*';
 
   // clean up

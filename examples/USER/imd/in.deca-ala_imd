@@ -23,11 +23,11 @@ thermo_style    multi
 timestep        2.0
 kspace_style    pppm 1e-5
 
-fix             ensemble all npt 300.0 300.0 100.0 xyz 1.0 1.0 1000.0 drag 0.2
+fix             ensemble all npt temp 300.0 300.0 100.0 iso 1.0 1.0 1000.0 drag 0.2
 
 # IMD setup.
-fix  comm       peptide imd 5678 unwrap on trate 5
+fix  comm       peptide imd 5678 unwrap on trate 10
 
-run 5000
+run 5000000
 
 

@@ -122,3 +122,20 @@ void Error::message(char *str, int logflag)
   if (screen) fprintf(screen,"%s\n",str);
   if (logflag && logfile) fprintf(logfile,"%s\n",str);
 }
+
+/* ----------------------------------------------------------------------
+   called by all procs in one world
+   close all output, screen, and log files in world
+------------------------------------------------------------------------- */
+
+void Error::done()
+{
+  MPI_Barrier(world);
+
+  if (output) delete output;
+  if (screen && screen != stdout) fclose(screen);
+  if (logfile) fclose(logfile);
+
+  MPI_Finalize();
+  exit(1);
+}

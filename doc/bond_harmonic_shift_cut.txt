@@ -1,0 +1,52 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+bond_style harmonic/shift/cut command :h3
+
+[Syntax:]
+
+bond_style harmonic/shift/cut :pre
+
+[Examples:]
+
+bond_style harmonic/shift/cut
+bond_coeff 5 10.0 0.5 1.0 :pre
+
+[Description:]
+
+The {harmonic/shift/cut} bond style is a shifted harmonic bond that
+uses the potential
+
+:c,image(Eqs/bond_harmonic_shift_cut.jpg)
+
+where r0 is the equilibrium bond distance, and rc the critical distance.
+The bond potential is zero for distances r > rc. The potential is -Umin
+at r0 and zero at rc. The spring constant is k = Umin / \[ 2 (r0-rc)^2\].
+
+The following coefficients must be defined for each bond type via the
+"bond_coeff"_bond_coeff.html command as in the example above, or in
+the data file or restart files read by the "read_data"_read_data.html
+or "read_restart"_read_restart.html commands:
+
+Umin (energy)
+r0 (distance)
+rc (distance) :ul
+
+[Restrictions:]
+
+This bond style can only be used if LAMMPS was built with the
+"user-misc" package.  See the "Making LAMMPS"_Section_start.html#2_3
+section for more info on packages.
+
+[Related commands:]
+
+"bond_coeff"_bond_coeff.html, "delete_bonds"_delete_bonds.html,
+"bond_harmonic"_bond_harmonic.html,
+"bond_harmonicshift"_bond_harmonicshift.html
+
+[Default:] none

@@ -1,6 +1,6 @@
 # LAMMPS multiple-machine Makefile
 
-SHELL = /bin/sh
+SHELL = /bin/bash
 #.IGNORE:
 
 # Definitions
@@ -17,9 +17,8 @@ PACKAGE = asphere class2 colloid dipole dsmc gpu granular \
 	  kspace manybody meam molecule opt peri poems reax replica \
 	  shock srd xtc
 
-PACKUSER = user-ackland user-atc user-awpmd user-cd-eam user-cg-cmm \
-          user-eff user-ewaldn user-imd user-reaxc user-smd
-#	   user-cuda user-eff user-ewaldn user-imd user-reaxc user-smd
+PACKUSER = user-misc user-atc user-awpmd user-cg-cmm \
+	   user-cuda user-eff user-ewaldn user-reaxc
 
 PACKALL = $(PACKAGE) $(PACKUSER)
 
@@ -69,7 +68,8 @@ help:
 	@cp -p *.cpp *.h Obj_$@
 	@cp MAKE/Makefile.$@ Obj_$@/Makefile
 	@if [ ! -e Makefile.package ]; then make package-regenerate; fi
-	@cp Makefile.package Obj_$@
+	@if [ ! -e Makefile.package.settings ]; then make package-regenerate; fi
+	@cp Makefile.package Makefile.package.settings Obj_$@
 	@cd Obj_$@; \
 	$(MAKE) $(MFLAGS) "OBJ = $(OBJ)" "INC = $(INC)" "EXE = ../$(EXE)" ../$(EXE)
 	@if [ -d Obj_$@ ]; then cd Obj_$@; rm -f $(SRC) $(INC) Makefile*; fi
@@ -96,6 +96,11 @@ tar:
           --exclude=*/.svn
 	@cd STUBS; make
 	@echo "Created $(ROOT)_src.tar.gz"
+
+# Make MPI STUBS lib
+
+stubs:
+	@cd STUBS; make clean; make
 
 # Update Makefile.lib and Makefile.list
 
@@ -186,6 +191,7 @@ package-overwrite:
 
 package-regenerate:
 	@cp Makefile.package.empty Makefile.package
+	@cp Makefile.package.settings.empty Makefile.package.settings
 	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p regenerate; done
 	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p regenerate; done
 
@@ -193,4 +199,3 @@ package-diff:
 	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p diff; done
 	@echo ''
 	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p diff; done
-

@@ -46,6 +46,10 @@
 #include "error.h"
 #include "memory.h"
 
+#ifdef LMP_OPENMP
+#include "omp.h"
+#endif
+
 using namespace LAMMPS_NS;
 
 #define MAXLINE 2048
@@ -1123,6 +1127,38 @@ void Input::package()
     if (!lmp->cuda)
       error->all("Package cuda command without USER-CUDA installed");
     lmp->cuda->accelerator(narg-1,&arg[1]);
+
+  } else if (strcmp(arg[0],"gpu") == 0) {
+    char **fixarg = new char*[2+narg];
+    fixarg[0] = "package_gpu";
+    fixarg[1] = "all";
+    fixarg[2] = "GPU";
+    for (int i = 1; i < narg; i++) fixarg[i+2] = arg[i];
+    modify->allow_early_fix = 1;
+    modify->add_fix(2+narg,fixarg,NULL);
+    modify->allow_early_fix = 0;
+    delete [] fixarg;
+
+  } else if (strcmp(arg[0],"omp") == 0) {
+
+#ifdef LMP_OPENMP
+    if (narg != 2) error->all("Illegal package command");
+    comm->nthreads = atoi(arg[1]);
+    if (comm->nthreads < 1) error->all("Illegal package command");
+
+    omp_set_num_threads(nthr);
+    if (me == 0) {
+      if (screen)
+	fprintf(screen,"  reset %d OpenMP thread(s) per MPI task\n",
+		comm->nthreads);
+      if (logfile)
+	fprintf(logfile,"  reset %d OpenMP thread(s) per MPI task\n",
+		comm->nthreads);
+    }
+#else
+    error->all("Cannot use package omp command with no OpenMP support");
+#endif
+
   } else error->all("Illegal package command");
 }
 

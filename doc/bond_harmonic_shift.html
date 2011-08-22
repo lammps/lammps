@@ -1,0 +1,58 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>bond_style harmonic/shift command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>bond_style harmonic/shift 
+</PRE>
+<P><B>Examples:</B>
+</P>
+<PRE>bond_style harmonic/shift
+bond_coeff 5 10.0 0.5 1.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>The <I>harmonic/shift</I> bond style is a shifted harmonic bond that uses
+the potential
+</P>
+<CENTER><IMG SRC = "Eqs/bond_harmonic_shift.jpg">
+</CENTER>
+<P>where r0 is the equilibrium bond distance, and rc the critical distance.
+The potential is -Umin at r0 and zero at rc. The spring constant is
+k = Umin / [ 2 (r0-rc)^2].
+</P>
+<P>The following coefficients must be defined for each bond type via the
+<A HREF = "bond_coeff.html">bond_coeff</A> command as in the example above, or in
+the data file or restart files read by the <A HREF = "read_data.html">read_data</A>
+or <A HREF = "read_restart.html">read_restart</A> commands:
+</P>
+<UL><LI>Umin (energy) 
+</UL>
+<UL><LI>r0 (distance) 
+</UL>
+<UL><LI>rc (distance) 
+</UL>
+<P><B>Restrictions:</B>
+</P>
+<P>This bond style can only be used if LAMMPS was built with the
+"user-misc" package.  See the <A HREF = "Section_start.html#2_3">Making LAMMPS</A>
+section for more info on packages.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "bond_coeff.html">bond_coeff</A>, <A HREF = "delete_bonds.html">delete_bonds</A>,
+<A HREF = "bond_harmonic.html">bond_harmonic</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

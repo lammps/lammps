@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -24,7 +24,7 @@ class Remap : protected Pointers {
   Remap(class LAMMPS *, MPI_Comm,int,int,int,int,int,int,
 	int,int,int,int,int,int,int,int,int,int);
   ~Remap();
-  void perform(double *, double *, double *);
+  void perform(FFT_SCALAR *, FFT_SCALAR *, FFT_SCALAR *);
 
  private:
   struct remap_plan_3d *plan;

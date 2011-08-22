@@ -322,8 +322,8 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
   // this fix produces a global array
 
   array_flag = 1;
-  size_local_rows = BIG;
-  size_local_cols = 1 + ndim + nvalues;
+  size_array_rows = BIG;
+  size_array_cols = 1 + ndim + nvalues;
   extarray = 0;
 
   // setup scaling

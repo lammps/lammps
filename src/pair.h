@@ -127,7 +127,7 @@ class Pair : protected Pointers {
   int vflag_fdotr;
   int maxeatom,maxvatom;
 
-  void ev_setup(int, int);
+  virtual void ev_setup(int, int);
   void ev_tally(int, int, int, int, double, double, double,
 		double, double, double);
   void ev_tally_full(int, double, double, double, double, double, double);

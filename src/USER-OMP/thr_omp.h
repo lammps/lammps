@@ -15,14 +15,14 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#ifndef LMP_OMP_THR_H
-#define LMP_OMP_THR_H
+#ifndef LMP_THR_OMP_H
+#define LMP_THR_OMP_H
 
 #include "pointers.h"
 
 namespace LAMMPS_NS {
 
-class OMPThr : protected Pointers {
+class ThrOMP : protected Pointers {
 
  protected:
   const int thr_style;
@@ -39,8 +39,8 @@ class OMPThr : protected Pointers {
   int maxeatom_thr, maxvatom_thr;
   
  public:
-  OMPThr(class LAMMPS *, int);
-  virtual ~OMPThr();
+  ThrOMP(class LAMMPS *, int);
+  virtual ~ThrOMP();
 
  protected:
   // set loop range for, thread id, and force array offset for threaded runs.

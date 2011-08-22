@@ -16,7 +16,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "omp_thr.h"
+#include "thr_omp.h"
 
 #include "memory.h"
 #include "comm.h"
@@ -29,7 +29,7 @@
 
 using namespace LAMMPS_NS;
 
-OMPThr::OMPThr(LAMMPS *lmp, int style) : Pointers (lmp), thr_style(style)
+ThrOMP::ThrOMP(LAMMPS *lmp, int style) : Pointers (lmp), thr_style(style)
 {
   maxeatom_thr = maxvatom_thr = 0;
   eng_vdwl_thr = eng_coul_thr = eng_bond_thr = NULL;
@@ -37,7 +37,7 @@ OMPThr::OMPThr(LAMMPS *lmp, int style) : Pointers (lmp), thr_style(style)
   vatom_thr = NULL;
 }
 
-OMPThr::~OMPThr() 
+ThrOMP::~ThrOMP() 
 {
   memory->destroy(eng_vdwl_thr);
   memory->destroy(eng_coul_thr);
@@ -48,7 +48,7 @@ OMPThr::~OMPThr()
 }
 
 // set loop range for, thread id, and force array offset for threaded runs.
-double **OMPThr::loop_setup_thr(double **f, int &ifrom, int &ito, int &tid,
+double **ThrOMP::loop_setup_thr(double **f, int &ifrom, int &ito, int &tid,
 				const int inum, const int nall, const int nthreads)
 {
 #if defined(_OPENMP)
@@ -102,7 +102,7 @@ double **OMPThr::loop_setup_thr(double **f, int &ifrom, int &ito, int &tid,
 // this is in the header to be inlined.
 // need to post a barrier to wait until all threads are done
 // with computing forces. the reduction can be threaded as well.
-void OMPThr::force_reduce_thr(double **fall, const int nall,
+void ThrOMP::force_reduce_thr(double **fall, const int nall,
 			      const int nthreads, const int tid)
 {
 #if defined(_OPENMP)

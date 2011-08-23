@@ -147,9 +147,9 @@ void PairLJCharmmCoulLongGPU::init_style()
   cut_respa = NULL;
 
   if (!atom->q_flag)
-    error->all("Pair style lj/charmm/coul/long requires atom attribute q");
+    error->all("Pair style lj/charmm/coul/long/gpu requires atom attribute q");
   if (force->newton_pair) 
-    error->all("Cannot use newton pair with GPU CHARMM pair style");
+    error->all("Cannot use newton pair with lj/charmm/coul/long/gpu pair style");
 
   // Repeat cutsq calculation because done after call to init_style
   double cut;

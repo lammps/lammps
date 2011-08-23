@@ -46,7 +46,7 @@
 #include "error.h"
 #include "memory.h"
 
-#ifdef LMP_OPENMP
+#ifdef _OPENMP
 #include "omp.h"
 #endif
 
@@ -1141,7 +1141,7 @@ void Input::package()
 
   } else if (strcmp(arg[0],"omp") == 0) {
 
-#ifdef LMP_OPENMP
+#ifdef _OPENMP
     if (narg != 2) error->all("Illegal package command");
     comm->nthreads = atoi(arg[1]);
     if (comm->nthreads < 1) error->all("Illegal package command");

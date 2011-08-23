@@ -41,22 +41,38 @@ void PairLJCutCoulLongOpt::compute(int eflag, int vflag)
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
 
-  if (evflag) {
-    if (eflag) {
-      if (force->newton_pair) return eval<1,1,1>();
-      else return eval<1,1,0>();
+  if (!ncoultablebits) {
+    if (evflag) {
+      if (eflag) {
+        if (force->newton_pair) return eval<1,1,1,0>();
+        else return eval<1,1,0,0>();
+      } else {
+        if (force->newton_pair) return eval<1,0,1,0>();
+        else return eval<1,0,0,0>();
+      }
     } else {
-      if (force->newton_pair) return eval<1,0,1>();
-      else return eval<1,0,0>();
+      if (force->newton_pair) return eval<0,0,1,0>();
+      else return eval<0,0,0,0>();
     }
   } else {
-    if (force->newton_pair) return eval<0,0,1>();
-    else return eval<0,0,0>();
+    if (evflag) {
+      if (eflag) {
+        if (force->newton_pair) return eval<1,1,1,1>();
+        else return eval<1,1,0,1>();
+      } else {
+        if (force->newton_pair) return eval<1,0,1,1>();
+        else return eval<1,0,0,1>();
+      }
+    } else {
+      if (force->newton_pair) return eval<0,0,1,1>();
+      else return eval<0,0,0,1>();
+    }
   }
 }
 
 
-template <const int EVFLAG, const int EFLAG, const int NEWTON_PAIR >
+template < const int EVFLAG, const int EFLAG,
+           const int NEWTON_PAIR, const int CTABLE >
 void PairLJCutCoulLongOpt::eval()
 {
   int i,ii,j,jj,inum,jnum,itype,jtype,itable;
@@ -111,7 +127,7 @@ void PairLJCutCoulLongOpt::eval()
 	r2inv = 1.0/rsq;
 
 	if (rsq < cut_coulsq) {
-	  if (!ncoultablebits || rsq <= tabinnersq) {
+	  if (!CTABLE || rsq <= tabinnersq) {
 	    r = sqrt(rsq);
 	    grij = g_ewald * r;
 	    expm2 = exp(-grij*grij);
@@ -154,7 +170,7 @@ void PairLJCutCoulLongOpt::eval()
 
 	if (EFLAG) {
 	  if (rsq < cut_coulsq) {
-	    if (!ncoultablebits || rsq <= tabinnersq)
+	    if (!CTABLE || rsq <= tabinnersq)
 	      ecoul = prefactor*erfc;
 	    else {
 	      table = etable[itable] + fraction*detable[itable];

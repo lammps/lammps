@@ -1,7 +1,7 @@
 # 3d Lennard-Jones melt
 
 newton          off
-package 	gpu force/neigh 0 1 1 threadsi_per_atom 8
+package 	gpu force/neigh 0 1 1 threads_per_atom 8
 
 variable	x index 2
 variable	y index 2

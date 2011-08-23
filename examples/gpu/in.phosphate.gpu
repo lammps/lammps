@@ -18,8 +18,7 @@ pair_coeff 2 2  0.0 0.29
 pair_coeff 2 3  0.004251 1.91988674
 pair_coeff 3 3  0.012185 2.91706967
 
-kspace_style    pppm/gpu/single 1e-5
-#kspace_style    pppm/gpu/double 1e-5
+kspace_style    pppm/gpu 1e-5
 
 neighbor	2.0 bin
 

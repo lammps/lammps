@@ -686,6 +686,7 @@ package"_Section_accelerate.html.
 "cg/cmm/coul/long/gpu"_pair_cmm.html,
 "cg/cmm/cuda"_pair_cmm.html,
 "cg/cmm/gpu"_pair_cmm.html,
+"coul/long/gpu"_pair_coul.html,
 "eam/alloy/cuda"_pair_eam.html,
 "eam/alloy/opt"_pair_eam.html,
 "eam/cuda"_pair_eam.html,

@@ -45,7 +45,7 @@ MPI_LIB =	../STUBS/libmpi.a
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC =       -DFFT_NONE
+FFT_INC = 
 FFT_PATH = 
 FFT_LIB =
 

@@ -13,7 +13,7 @@ if (test $1 = 1) then
   cp thr_omp.cpp ..
 
   cp pair_lj_cut_omp.h ..
-  
+
   cp thr_omp.h ..
 
 elif (test $1 = 0) then
@@ -27,6 +27,6 @@ elif (test $1 = 0) then
   rm -f ../pair_lj_cut_omp.h
 
   rm -f ../thr_omp.h
-  
+
 fi
 

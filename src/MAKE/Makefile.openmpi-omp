@@ -9,11 +9,12 @@ SHELL = /bin/sh
 OPENMP= -fopenmp -DLMP_OPENMP
 
 CC =		mpic++ $(OPENMP)
-CCFLAGS =	-O2 -g \
-		-funroll-loops -fstrict-aliasing -Wall -W -Wno-uninitialized
+CCFLAGS =	-O2 -fomit-frame-pointer -fno-rtti -fno-exceptions
+			-march=native -ffast-math -mpc64 \
+			-funroll-loops -fstrict-aliasing -Wall -W -Wno-uninitialized
 DEPFLAGS =	-M
 LINK =		mpic++ $(OPENMP)
-LINKFLAGS =	-O -g
+LINKFLAGS =	-O -g -fno-rtti -fno-exceptions -mpc64
 LIB =           -lstdc++
 ARCHIVE =	ar
 ARFLAGS =	-rcsv

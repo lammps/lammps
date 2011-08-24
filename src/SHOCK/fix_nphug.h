@@ -11,26 +11,39 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef PAIR_CLASS
+#ifdef FIX_CLASS
 
-PairStyle(lj/cut/opt,PairLJCutOpt)
+FixStyle(nphug,FixNPHug)
 
 #else
 
-#ifndef LMP_PAIR_LJ_CUT_OPT_H
-#define LMP_PAIR_LJ_CUT_OPT_H
+#ifndef LMP_FIX_NPHUG_H
+#define LMP_FIX_NPHUG_H
 
-#include "pair_lj_cut.h"
+#include "fix_nh.h"
 
 namespace LAMMPS_NS {
 
-class PairLJCutOpt : public PairLJCut {
+class FixNPHug : public FixNH {
  public:
-  PairLJCutOpt(class LAMMPS *);
-  void compute(int, int);
-
+  FixNPHug(class LAMMPS *, int, char **);
+  ~FixNPHug();
+  void init();
+  void setup(int);
+  
  private:
-  template < int EVFLAG, int EFLAG, int NEWTON_PAIR > void eval();
+  class Compute *pe;               // PE compute pointer
+
+  void compute_temp_target();
+  double compute_etotal();
+  double compute_vol();
+  double compute_hugoniot();
+
+  char *id_pe;
+  int peflag;
+  int v0_set,p0_set,e0_set;
+  double v0,p0,e0;
+  int direction;
 };
 
 }

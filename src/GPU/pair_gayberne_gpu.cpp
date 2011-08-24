@@ -156,9 +156,9 @@ void PairGayBerneGPU::compute(int eflag, int vflag)
 void PairGayBerneGPU::init_style()
 {
   if (force->newton_pair) 
-    error->all("Cannot use newton pair with GPU Gay-Berne pair style");
+    error->all("Cannot use newton pair with gayberne/gpu pair style");
   if (!atom->ellipsoid_flag)
-    error->all("Pair gayberne requires atom style ellipsoid");
+    error->all("Pair gayberne/gpu requires atom style ellipsoid");
 
   // per-type shape precalculations
   // require that atom shapes are identical within each type
@@ -166,7 +166,7 @@ void PairGayBerneGPU::init_style()
 
   for (int i = 1; i <= atom->ntypes; i++) {
     if (!atom->shape_consistency(i,shape1[i][0],shape1[i][1],shape1[i][2]))
-      error->all("Pair gayberne requires atoms with same type have same shape");
+      error->all("Pair gayberne/gpu requires atoms with same type have same shape");
     if (shape1[i][0] == 0.0)
       shape1[i][0] = shape1[i][1] = shape1[i][2] = 1.0;
     shape2[i][0] = shape1[i][0]*shape1[i][0];

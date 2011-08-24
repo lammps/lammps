@@ -46,7 +46,7 @@
 #include "error.h"
 #include "memory.h"
 
-#ifdef LMP_OPENMP
+#ifdef _OPENMP
 #include "omp.h"
 #endif
 
@@ -1141,12 +1141,12 @@ void Input::package()
 
   } else if (strcmp(arg[0],"omp") == 0) {
 
-#ifdef LMP_OPENMP
+#ifdef _OPENMP
     if (narg != 2) error->all("Illegal package command");
     comm->nthreads = atoi(arg[1]);
     if (comm->nthreads < 1) error->all("Illegal package command");
 
-    omp_set_num_threads(nthr);
+    omp_set_num_threads(comm->nthreads);
     if (me == 0) {
       if (screen)
 	fprintf(screen,"  reset %d OpenMP thread(s) per MPI task\n",

@@ -24,7 +24,7 @@ class FixNH : public Fix {
   virtual ~FixNH();
   int setmask();
   virtual void init();
-  void setup(int);
+  virtual void setup(int);
   virtual void initial_integrate(int);
   virtual void final_integrate();
   void initial_integrate_respa(int, int, int);
@@ -45,7 +45,7 @@ class FixNH : public Fix {
   double vol0,t0;
 
   double t_start,t_stop;
-  double t_current,t_target;
+  double t_current,t_target,ke_target;
   double t_freq;
 
   int tstat_flag;                   // 1 if control T
@@ -113,6 +113,7 @@ class FixNH : public Fix {
   virtual void nve_v();
   virtual void nh_v_press();
   virtual void nh_v_temp();
+  virtual void compute_temp_target();
 
   void compute_sigma();
   void compute_deviatoric();

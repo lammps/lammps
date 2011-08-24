@@ -19,7 +19,7 @@
 #include "math.h"
 #include "stdio.h"
 #include "stdlib.h"
-#include "pair_lj_cut_coul_long_gpu.h"
+#include "pair_coul_long_gpu.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "comm.h"
@@ -50,37 +50,33 @@
 
 // External functions from cuda library for atom decomposition
 
-int ljcl_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
-		  double **host_lj2, double **host_lj3, double **host_lj4, 
-		  double **offset, double *special_lj, const int nlocal, 
-		  const int nall, const int max_nbors, const int maxspecial,
-		  const double cell_size, int &gpu_mode, FILE *screen,
-		  double **host_cut_ljsq, double host_cut_coulsq,
-		  double *host_special_coul, const double qqrd2e,
-		  const double g_ewald);
-void ljcl_gpu_clear();
-int ** ljcl_gpu_compute_n(const int ago, const int inum,
-			  const int nall, double **host_x, int *host_type, 
-			  double *sublo, double *subhi, int *tag, 
-			  int **nspecial, int **special, const bool eflag,
-			  const bool vflag, const bool eatom, const bool vatom,
-			  int &host_start, int **ilist, int **jnum,
-			  const double cpu_time, bool &success, double *host_q,
-			  double *boxlo, double *prd);
-void ljcl_gpu_compute(const int ago, const int inum, const int nall,
-		      double **host_x, int *host_type, int *ilist, int *numj,
-		      int **firstneigh, const bool eflag, const bool vflag,
-		      const bool eatom, const bool vatom, int &host_start,
-		      const double cpu_time, bool &success, double *host_q,
-		      const int nlocal, double *boxlo, double *prd);
-double ljcl_gpu_bytes();
+int cl_gpu_init(const int nlocal, const int nall, const int max_nbors,
+		const int maxspecial, const double cell_size, int &gpu_mode,
+		FILE *screen, double host_cut_coulsq, double *host_special_coul, 
+		const double qqrd2e, const double g_ewald);
+void cl_gpu_clear();
+int ** cl_gpu_compute_n(const int ago, const int inum,
+			const int nall, double **host_x, int *host_type, 
+			double *sublo, double *subhi, int *tag, 
+			int **nspecial, int **special, const bool eflag,
+			const bool vflag, const bool eatom, const bool vatom,
+			int &host_start, int **ilist, int **jnum,
+			const double cpu_time, bool &success, double *host_q,
+			double *boxlo, double *prd);
+void cl_gpu_compute(const int ago, const int inum, const int nall,
+		    double **host_x, int *host_type, int *ilist, int *numj,
+		    int **firstneigh, const bool eflag, const bool vflag,
+		    const bool eatom, const bool vatom, int &host_start,
+		    const double cpu_time, bool &success, double *host_q,
+		    const int nlocal, double *boxlo, double *prd);
+double cl_gpu_bytes();
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutCoulLongGPU::PairLJCutCoulLongGPU(LAMMPS *lmp) : 
-  PairLJCutCoulLong(lmp), gpu_mode(GPU_PAIR)
+PairCoulLongGPU::PairCoulLongGPU(LAMMPS *lmp) : 
+  PairCoulLong(lmp), gpu_mode(GPU_PAIR)
 {
   respa_enable = 0;
   cpu_time = 0.0;
@@ -90,14 +86,14 @@ PairLJCutCoulLongGPU::PairLJCutCoulLongGPU(LAMMPS *lmp) :
    free all arrays
 ------------------------------------------------------------------------- */
 
-PairLJCutCoulLongGPU::~PairLJCutCoulLongGPU()
+PairCoulLongGPU::~PairCoulLongGPU()
 {
-  ljcl_gpu_clear();
+  cl_gpu_clear();
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJCutCoulLongGPU::compute(int eflag, int vflag)
+void PairCoulLongGPU::compute(int eflag, int vflag)
 {
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
@@ -109,22 +105,22 @@ void PairLJCutCoulLongGPU::compute(int eflag, int vflag)
   int *ilist, *numneigh, **firstneigh;    
   if (gpu_mode == GPU_NEIGH) {
     inum = atom->nlocal;
-    firstneigh = ljcl_gpu_compute_n(neighbor->ago, inum, nall, atom->x,
-				    atom->type, domain->sublo, domain->subhi,
-				    atom->tag, atom->nspecial, atom->special,
-				    eflag, vflag, eflag_atom, vflag_atom,
-				    host_start, &ilist, &numneigh, cpu_time,
-				    success, atom->q, domain->boxlo,
-				    domain->prd);
+    firstneigh = cl_gpu_compute_n(neighbor->ago, inum, nall, atom->x,
+				  atom->type, domain->sublo, domain->subhi,
+				  atom->tag, atom->nspecial, atom->special,
+				  eflag, vflag, eflag_atom, vflag_atom,
+				  host_start, &ilist, &numneigh, cpu_time,
+				  success, atom->q, domain->boxlo,
+				  domain->prd);
   } else {
     inum = list->inum;
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
-    ljcl_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type,
-		     ilist, numneigh, firstneigh, eflag, vflag, eflag_atom,
-		     vflag_atom, host_start, cpu_time, success, atom->q,
-		     atom->nlocal, domain->boxlo, domain->prd);
+    cl_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type,
+		   ilist, numneigh, firstneigh, eflag, vflag, eflag_atom,
+		   vflag_atom, host_start, cpu_time, success, atom->q,
+		   atom->nlocal, domain->boxlo, domain->prd);
   }
   if (!success)
     error->one("Out of memory on GPGPU");
@@ -140,31 +136,17 @@ void PairLJCutCoulLongGPU::compute(int eflag, int vflag)
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
-void PairLJCutCoulLongGPU::init_style()
+void PairCoulLongGPU::init_style()
 {
   cut_respa = NULL;
 
   if (!atom->q_flag)
-    error->all("Pair style lj/cut/coul/long/gpu requires atom attribute q");
+    error->all("Pair style coul/long/gpu requires atom attribute q");
   if (force->newton_pair) 
-    error->all("Cannot use newton pair with lj/cut/could/cut/gpu pair style");
+    error->all("Cannot use newton pair with coul/long/gpu pair style");
 
   // Repeat cutsq calculation because done after call to init_style
-  double maxcut = -1.0;
-  double cut;
-  for (int i = 1; i <= atom->ntypes; i++) {
-    for (int j = i; j <= atom->ntypes; j++) {
-      if (setflag[i][j] != 0 || (setflag[i][i] != 0 && setflag[j][j] != 0)) {
-        cut = init_one(i,j);
-        cut *= cut;
-        if (cut > maxcut)
-          maxcut = cut;
-        cutsq[i][j] = cutsq[j][i] = cut;
-      } else
-        cutsq[i][j] = cutsq[j][i] = 0.0;
-    }
-  }
-  double cell_size = sqrt(maxcut) + neighbor->skin;
+  double cell_size = sqrt(cut_coul) + neighbor->skin;
 
   cut_coulsq = cut_coul * cut_coul;
 
@@ -181,11 +163,10 @@ void PairLJCutCoulLongGPU::init_style()
   int maxspecial=0;
   if (atom->molecular)
     maxspecial=atom->maxspecial;
-  int success = ljcl_gpu_init(atom->ntypes+1, cutsq, lj1, lj2, lj3, lj4,
-                              offset, force->special_lj, atom->nlocal,
-                              atom->nlocal+atom->nghost, 300, maxspecial,
-                              cell_size, gpu_mode, screen, cut_ljsq, cut_coulsq,
-                              force->special_coul, force->qqrd2e, g_ewald);
+  int success = cl_gpu_init(atom->nlocal, atom->nlocal+atom->nghost, 300, 
+			    maxspecial, cell_size, gpu_mode, screen, cut_coulsq,
+			    force->special_coul, force->qqrd2e, g_ewald);
+
   GPU_EXTRA::check_flag(success,error,world);
 
   if (gpu_mode != GPU_NEIGH) {
@@ -197,17 +178,17 @@ void PairLJCutCoulLongGPU::init_style()
 
 /* ---------------------------------------------------------------------- */
 
-double PairLJCutCoulLongGPU::memory_usage()
+double PairCoulLongGPU::memory_usage()
 {
   double bytes = Pair::memory_usage();
-  return bytes + ljcl_gpu_bytes();
+  return bytes + cl_gpu_bytes();
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJCutCoulLongGPU::cpu_compute(int start, int inum, int eflag,
-				       int vflag, int *ilist, int *numneigh,
-				       int **firstneigh)
+void PairCoulLongGPU::cpu_compute(int start, int inum, int eflag,
+				  int vflag, int *ilist, int *numneigh,
+				  int **firstneigh)
 {
   int i,j,ii,jj,jnum,itype,jtype,itable;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
@@ -224,7 +205,6 @@ void PairLJCutCoulLongGPU::cpu_compute(int start, int inum, int eflag,
   double *q = atom->q;
   int *type = atom->type;
   double *special_coul = force->special_coul;
-  double *special_lj = force->special_lj;
   double qqrd2e = force->qqrd2e;
 
   // loop over neighbors of my atoms
@@ -241,7 +221,6 @@ void PairLJCutCoulLongGPU::cpu_compute(int start, int inum, int eflag,
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      factor_lj = special_lj[sbmask(j)];
       factor_coul = special_coul[sbmask(j)];
       j &= NEIGHMASK;
 
@@ -251,41 +230,34 @@ void PairLJCutCoulLongGPU::cpu_compute(int start, int inum, int eflag,
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
 
-      if (rsq < cutsq[itype][jtype]) {
-	r2inv = 1.0/rsq;
+      r2inv = 1.0/rsq;
 
-	if (rsq < cut_coulsq) {
-	  if (!ncoultablebits || rsq <= tabinnersq) {
-	    r = sqrt(rsq);
-	    grij = g_ewald * r;
-	    expm2 = exp(-grij*grij);
-	    t = 1.0 / (1.0 + EWALD_P*grij);
-	    erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
-	    prefactor = qqrd2e * qtmp*q[j]/r;
-	    forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
-	    if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
-	  } else {
-	    union_int_float_t rsq_lookup;
-	    rsq_lookup.f = rsq;
-	    itable = rsq_lookup.i & ncoulmask;
-	    itable >>= ncoulshiftbits;
-	    fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
-	    table = ftable[itable] + fraction*dftable[itable];
-	    forcecoul = qtmp*q[j] * table;
-	    if (factor_coul < 1.0) {
-	      table = ctable[itable] + fraction*dctable[itable];
-	      prefactor = qtmp*q[j] * table;
-	      forcecoul -= (1.0-factor_coul)*prefactor;
-	    }
+      if (rsq < cut_coulsq) {
+	if (!ncoultablebits || rsq <= tabinnersq) {
+	  r = sqrt(rsq);
+	  grij = g_ewald * r;
+	  expm2 = exp(-grij*grij);
+	  t = 1.0 / (1.0 + EWALD_P*grij);
+	  erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+	  prefactor = qqrd2e * qtmp*q[j]/r;
+	  forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+	  if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
+	} else {
+	  union_int_float_t rsq_lookup;
+	  rsq_lookup.f = rsq;
+	  itable = rsq_lookup.i & ncoulmask;
+	  itable >>= ncoulshiftbits;
+	  fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+	  table = ftable[itable] + fraction*dftable[itable];
+	  forcecoul = qtmp*q[j] * table;
+	  if (factor_coul < 1.0) {
+	    table = ctable[itable] + fraction*dctable[itable];
+	    prefactor = qtmp*q[j] * table;
+	    forcecoul -= (1.0-factor_coul)*prefactor;
 	  }
-	} else forcecoul = 0.0;
+	}
 
-	if (rsq < cut_ljsq[itype][jtype]) {
-	  r6inv = r2inv*r2inv*r2inv;
-	  forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-	} else forcelj = 0.0;
-
-	fpair = (forcecoul + factor_lj*forcelj) * r2inv;
+	fpair = forcecoul * r2inv;
 
 	f[i][0] += delx*fpair;
 	f[i][1] += dely*fpair;
@@ -301,15 +273,9 @@ void PairLJCutCoulLongGPU::cpu_compute(int start, int inum, int eflag,
 	    }
 	    if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
 	  } else ecoul = 0.0;
-
-	  if (rsq < cut_ljsq[itype][jtype]) {
-	    evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
-	      offset[itype][jtype];
-	    evdwl *= factor_lj;
-	  } else evdwl = 0.0;
 	}
 
-	if (evflag) ev_tally_full(i,evdwl,ecoul,fpair,delx,dely,delz);
+	if (evflag) ev_tally_full(i,0.0,ecoul,fpair,delx,dely,delz);
       }
     }
   }

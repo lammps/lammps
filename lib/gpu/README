@@ -53,8 +53,9 @@ Current pair styles supporting GPU acceleration:
   7. morse
   8. cg/cmm
   9. cg/cmm/coul/long
- 10. gayberne
- 11. pppm
+ 10. coul/long
+ 11. gayberne
+ 12. pppm
 
                      MULTIPLE LAMMPS PROCESSES
                      
@@ -68,7 +69,7 @@ LAMMPS user manual for details on running with GPU acceleration.
                     BUILDING AND PRECISION MODES
 
 To build, edit the CUDA_ARCH, CUDA_PRECISION, CUDA_HOME variables in one of 
-the Makefiles. CUDA_ARCH should be set based on the compute capability of 
+the Makefiles. CUDA_ARCH should be set based on the compute capability of
 your GPU. This can be verified by running the nvc_get_devices executable after
 the build is complete. Additionally, the GPU package must be installed and
 compiled for LAMMPS. This may require editing the gpu_SYSPATH variable in the
@@ -100,10 +101,11 @@ NOTE: Double precision is only supported on certain GPUs (with
       with -DFFT_SINGLE. For details on configuring FFT support in 
       LAMMPS, see http://lammps.sandia.gov/doc/Section_start.html#2_2_4
       
-NOTE: For Tesla and other graphics cards with compute capability>=1.3,
+NOTE: For graphics cards with compute capability>=1.3 (e.g. Tesla C1060),
       make sure that -arch=sm_13 is set on the CUDA_ARCH line.
 
-NOTE: For Fermi, make sure that -arch=sm_20 is set on the CUDA_ARCH line.
+NOTE: For newer graphics card (a.k.a. "Fermi", e.g. Tesla C2050), make 
+      sure that -arch=sm_20 is set on the CUDA_ARCH line.
 
 NOTE: The gayberne/gpu pair style will only be installed if the ASPHERE
       package has been installed.
@@ -111,8 +113,9 @@ NOTE: The gayberne/gpu pair style will only be installed if the ASPHERE
 NOTE: The cg/cmm/gpu and cg/cmm/coul/long/gpu pair styles will only be
       installed if the USER-CG-CMM package has been installed.
 
-NOTE: The lj/cut/coul/long/gpu, cg/cmm/coul/long/gpu, and pppm/gpu styles
-      will only be installed if the KSPACE package has been installed.
+NOTE: The lj/cut/coul/long/gpu, cg/cmm/coul/long/gpu, coul/long/gpu,
+      and pppm/gpu styles will only be installed if the KSPACE package
+      has been installed.
 
 NOTE: The lj/charmm/coul/long will only be installed if the MOLECULE package
       has been installed.

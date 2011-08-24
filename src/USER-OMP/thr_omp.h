@@ -20,7 +20,6 @@
 
 #include "pointers.h"
 
-
 namespace LAMMPS_NS {
 
 // forward declarations
@@ -67,7 +66,7 @@ class ThrOMP {
                           const int inum, const int nall, const int nthreads);
 
   // reduce per thread forces into the first part of the force array
-  void force_reduce_thr(double **fall, const int nall,
+  void force_reduce_thr(double *fall, const int nall,
 			const int nthreads, const int tid);
 };
 

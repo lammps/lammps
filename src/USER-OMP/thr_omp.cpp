@@ -336,7 +336,7 @@ double **ThrOMP::loop_setup_thr(double **f, int &ifrom, int &ito, int &tid,
 // this is in the header to be inlined.
 // need to post a barrier to wait until all threads are done
 // with computing forces. the reduction can be threaded as well.
-void ThrOMP::force_reduce_thr(double **fall, const int nall,
+void ThrOMP::force_reduce_thr(double *fall, const int nall,
 			      const int nthreads, const int tid)
 {
 #if defined(_OPENMP)
@@ -344,20 +344,17 @@ void ThrOMP::force_reduce_thr(double **fall, const int nall,
   if (nthreads == 1) return;
 #pragma omp barrier
   {
-    double **f;
+    double *f;
     const int idelta = 1 + nall/nthreads;
-    const int ifrom = tid*idelta;
-    const int ito   = ((ifrom + idelta) > nall) ? nall : (ifrom + idelta);
+    const int ifrom = 3*tid*idelta;
+    const int ito   = 3*(((ifrom + idelta) > nall) ? nall : (ifrom + idelta));
+
     for (int n = 1; n < nthreads; ++n) {
-      const int toffs = n*nall;
+      const int toffs = 3*n*nall;
       f = fall + toffs;
       for (int m = ifrom; m < ito; ++m) {
-	fall[m][0] += f[m][0];
-	f[m][0] = 0.0;
-	fall[m][1] += f[m][1];
-	f[m][1] = 0.0;
-	fall[m][2] += f[m][2];
-	f[m][2] = 0.0;
+	fall[m] += f[m];
+	f[m] = 0.0;
       }
     }
   }

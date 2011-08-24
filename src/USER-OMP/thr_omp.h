@@ -61,7 +61,7 @@ class ThrOMP {
   void ev_reduce_thr(Pair *);
   void ev_reduce_thr(Dihedral *);
 
-  // set loop range for, thread id, and force array offset for threaded runs.
+  // set loop range, thread id, and force array offset for threaded runs.
   double **loop_setup_thr(double **f, int &ifrom, int &ito, int &tid,
                           const int inum, const int nall, const int nthreads);
 

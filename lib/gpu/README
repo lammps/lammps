@@ -117,8 +117,8 @@ NOTE: The lj/cut/coul/long/gpu, cg/cmm/coul/long/gpu, coul/long/gpu,
       and pppm/gpu styles will only be installed if the KSPACE package
       has been installed.
 
-NOTE: The lj/charmm/coul/long will only be installed if the MOLECULE package
-      has been installed.
+NOTE: The lj/charmm/coul/long/gpu pair style will only be installed if
+      the MOLECULE package has been installed.
 
                       EXAMPLE BUILD PROCESS
                     

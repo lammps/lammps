@@ -61,7 +61,7 @@ OBJS = $(OBJ_DIR)/pair_gpu_atom.o $(OBJ_DIR)/pair_gpu_ans.o \
        $(OBJ_DIR)/cmmc_long_gpu_memory.o $(OBJ_DIR)/cmmc_long_gpu.o \
        $(OBJ_DIR)/cmmc_msm_gpu_memory.o $(OBJ_DIR)/cmmc_msm_gpu.o \
        $(CUDPP)
-PTXS = $(OBJ_DIR)/pair_gpu_dev_kernel.ptx \
+PTXS = $(OBJ_DIR)/pair_gpu_dev_kernel.ptx  $(OBJ_DIR)/pair_gpu_dev_ptx.h \
        $(OBJ_DIR)/pair_gpu_atom_kernel.ptx $(OBJ_DIR)/pair_gpu_atom_ptx.h \
        $(OBJ_DIR)/pair_gpu_nbor_kernel.ptx $(OBJ_DIR)/pair_gpu_nbor_ptx.h \
        $(OBJ_DIR)/pair_gpu_build_kernel.ptx $(OBJ_DIR)/pair_gpu_build_ptx.h \

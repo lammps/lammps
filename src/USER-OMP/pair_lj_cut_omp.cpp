@@ -69,7 +69,7 @@ void PairLJCutOMP::compute(int eflag, int vflag)
     }
 
     // reduce per thread forces into global force array.
-    force_reduce_thr(atom->f, nall, nthreads, tid);
+    force_reduce_thr(&(atom->f[0][0]), nall, nthreads, tid);
   } // end of omp parallel region
 
   // reduce per thread energy and virial, if requested.

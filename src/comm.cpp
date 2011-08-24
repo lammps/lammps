@@ -37,7 +37,7 @@
 #include "error.h"
 #include "memory.h"
 
-#ifdef LMP_OPENMP
+#ifdef _OPENMP
 #include "omp.h"
 #endif
 
@@ -77,7 +77,7 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   // need to be in a parallel area for this operation
 
   nthreads = 1;
-#ifdef LMP_OPENMP
+#ifdef _OPENMP
 #pragma omp parallel default(shared)
   {
 #pragma omp master

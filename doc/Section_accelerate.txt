@@ -71,10 +71,10 @@ The final section compares and contrasts the GPU and USER-CUDA
 packages, since they are both designed to use NVIDIA GPU hardware.
 
 10.1 "OPT package"_#10_1
-10.5 "USER-OMP package"_#10_2
-10.2 "GPU package"_#10_3
-10.3 "USER-CUDA package"_#10_4
-10.4 "Comparison of GPU and USER-CUDA packages"_#10_4 :all(b)
+10.2 "USER-OMP package"_#10_2
+10.3 "GPU package"_#10_3
+10.4 "USER-CUDA package"_#10_4
+10.5 "Comparison of GPU and USER-CUDA packages"_#10_4 :all(b)
 
 :line
 :line

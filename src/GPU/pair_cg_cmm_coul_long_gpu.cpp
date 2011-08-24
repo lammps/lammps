@@ -144,9 +144,9 @@ void PairCGCMMCoulLongGPU::init_style()
   cut_respa = NULL;
 
   if (!atom->q_flag)
-    error->all("Pair style cg/cmm/coul/long requires atom attribute q");
+    error->all("Pair style cg/cmm/coul/long/gpu requires atom attribute q");
   if (force->newton_pair) 
-    error->all("Cannot use newton pair with GPU cg/cmm pair style");
+    error->all("Cannot use newton pair with cg/cmm/coul/long/gpu pair style");
 
   // Repeat cutsq calculation because done after call to init_style
   double maxcut = -1.0;

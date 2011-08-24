@@ -25,10 +25,6 @@ PairStyle(eam/alloy/opt,PairEAMAlloyOpt)
 
 namespace LAMMPS_NS {
 
-// multiple inheritance from two parent classes
-// optimized compute() from PairEAMOpt
-// everything else from PairEAMAlloy
-
 class PairEAMAlloyOpt : public PairEAMAlloy, public PairEAMOpt {
  public:
   PairEAMAlloyOpt(class LAMMPS *);

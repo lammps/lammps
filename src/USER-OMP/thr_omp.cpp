@@ -27,9 +27,7 @@
 #include "pair.h"
 #include "dihedral.h"
 
-#include <stdio.h>
-
-#if defined(_OPENMP)      
+#if defined(_OPENMP)
 #include <omp.h>
 #endif
 
@@ -56,7 +54,7 @@ ThrOMP::ThrOMP(LAMMPS *ptr, int style) : thr_style(style), lmp(ptr)
 
 /* ---------------------------------------------------------------------- */
 
-ThrOMP::~ThrOMP() 
+ThrOMP::~ThrOMP()
 {
   lmp->memory->destroy(eng_vdwl_thr);
   lmp->memory->destroy(eng_coul_thr);
@@ -68,39 +66,11 @@ ThrOMP::~ThrOMP()
 
 /* ---------------------------------------------------------------------- */
 
-void ThrOMP::ev_setup_thr(int eflag_global, int vflag_global,
-			  int eflag_atom, int vflag_atom)
+void ThrOMP::ev_zero_acc_thr(int ntotal, int eflag_global, int vflag_global,
+			     int eflag_atom, int vflag_atom, int nthreads)
 {
-  int i,t;
-  const int nthreads = lmp->comm->nthreads;
-
-  // reallocate per-atom arrays if necessary
-  if (eflag_atom && lmp->atom->nmax > maxeatom_thr) {
-    maxeatom_thr = lmp->atom->nmax;
-    lmp->memory->grow(eatom_thr,nthreads,maxeatom_thr,"thr_omp:eatom_thr");
-  }
-  if (vflag_atom && lmp->atom->nmax > maxvatom_thr) {
-    maxvatom_thr = lmp->atom->nmax;
-    lmp->memory->grow(vatom_thr,nthreads,maxeatom_thr,6,"thr_omp:vatom_thr");
-  }
+  int t,i;
   
-  // zero per thread accumulators
-  int newton;
-  switch (thr_style) {
-
-  case PAIR:
-    newton = lmp->force->newton;
-    break;
-
-  case DIHEDRAL:
-    newton = lmp->force->newton_bond;
-    break;
-  }
-    
-  // zero per thread accumulators
-  const int ntotal = (newton) ? 
-    (lmp->atom->nlocal + lmp->atom->nghost) : lmp->atom->nlocal;
-
   for (t = 0; t < nthreads; ++t) {
 
     if (eflag_global) 
@@ -126,14 +96,61 @@ void ThrOMP::ev_setup_thr(int eflag_global, int vflag_global,
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
+void ThrOMP::ev_setup_thr(Dihedral *dihed)
+{
+  int nthreads = lmp->comm->nthreads;
+
+  // reallocate per-atom arrays if necessary
+  if (dihed->eflag_atom && lmp->atom->nmax > maxeatom_thr) {
+    maxeatom_thr = lmp->atom->nmax;
+    lmp->memory->grow(eatom_thr,nthreads,maxeatom_thr,"thr_omp:eatom_thr");
+  }
+  if (dihed->vflag_atom && lmp->atom->nmax > maxvatom_thr) {
+    maxvatom_thr = lmp->atom->nmax;
+    lmp->memory->grow(vatom_thr,nthreads,maxeatom_thr,6,"thr_omp:vatom_thr");
+  }
+
+  int ntotal = (lmp->force->newton_bond) ? 
+    (lmp->atom->nlocal + lmp->atom->nghost) : lmp->atom->nlocal;
+
+  // zero per thread accumulators
+  ev_zero_acc_thr(ntotal, dihed->eflag_global, dihed->vflag_global,
+		  dihed->eflag_atom, dihed->vflag_atom, nthreads);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ThrOMP::ev_setup_thr(Pair *pair)
+{
+  int nthreads = lmp->comm->nthreads;
+
+  // reallocate per-atom arrays if necessary
+  if (pair->eflag_atom && lmp->atom->nmax > maxeatom_thr) {
+    maxeatom_thr = lmp->atom->nmax;
+    lmp->memory->grow(eatom_thr,nthreads,maxeatom_thr,"thr_omp:eatom_thr");
+  }
+  if (pair->vflag_atom && lmp->atom->nmax > maxvatom_thr) {
+    maxvatom_thr = lmp->atom->nmax;
+    lmp->memory->grow(vatom_thr,nthreads,maxeatom_thr,6,"thr_omp:vatom_thr");
+  }
+
+  int ntotal = (lmp->force->newton) ?
+    (lmp->atom->nlocal + lmp->atom->nghost) : lmp->atom->nlocal;
+
+  // zero per thread accumulators
+  ev_zero_acc_thr(ntotal, pair->eflag_global, pair->vflag_global,
+		  pair->eflag_atom, pair->vflag_atom, nthreads);
+}
 
 /* ----------------------------------------------------------------------
    reduce the per thread accumulated E/V data into the canonical accumulators.
 ------------------------------------------------------------------------- */
 void ThrOMP::ev_reduce_thr(Dihedral *dihed)
 {
-  const int nthreads = lmp->comm->nthreads;
-  const int ntotal = (lmp->force->newton_bond) ? 
+  int nthreads = lmp->comm->nthreads;
+  int ntotal = (lmp->force->newton_bond) ?
     (lmp->atom->nlocal + lmp->atom->nghost) : lmp->atom->nlocal;
 
   for (int n = 0; n < nthreads; ++n) {
@@ -169,17 +186,15 @@ void ThrOMP::ev_reduce_thr(Dihedral *dihed)
    need i < nlocal test since called by bond_quartic and dihedral_charmm
 ------------------------------------------------------------------------- */
 
-void ThrOMP::ev_tally_thr(int i, int j, int nlocal, int newton_pair,
-			  int eflag_either, int eflag_global,
-			  int vflag_either, int vflag_global,
-			  int eflag_atom, int vflag_atom,
-			  double evdwl, double ecoul, double fpair,
-			  double delx, double dely, double delz, int tid)
+void ThrOMP::ev_tally_thr(Pair *pair, int i, int j, int nlocal,
+			  int newton_pair, double evdwl, double ecoul,
+			  double fpair, double delx, double dely,
+			  double delz, int tid)
 {
   double evdwlhalf,ecoulhalf,epairhalf,v[6];
 
-  if (eflag_either) {
-    if (eflag_global) {
+  if (pair->eflag_either) {
+    if (pair->eflag_global) {
       if (newton_pair) {
 	eng_vdwl_thr[tid] += evdwl;
 	eng_coul_thr[tid] += ecoul;
@@ -196,14 +211,14 @@ void ThrOMP::ev_tally_thr(int i, int j, int nlocal, int newton_pair,
 	}
       }
     }
-    if (eflag_atom) {
+    if (pair->eflag_atom) {
       epairhalf = 0.5 * (evdwl + ecoul);
       if (newton_pair || i < nlocal) eatom_thr[tid][i] += epairhalf;
       if (newton_pair || j < nlocal) eatom_thr[tid][j] += epairhalf;
     }
   }
 
-  if (vflag_either) {
+  if (pair->vflag_either) {
     v[0] = delx*delx*fpair;
     v[1] = dely*dely*fpair;
     v[2] = delz*delz*fpair;
@@ -211,7 +226,7 @@ void ThrOMP::ev_tally_thr(int i, int j, int nlocal, int newton_pair,
     v[4] = delx*delz*fpair;
     v[5] = dely*delz*fpair;
 
-    if (vflag_global) {
+    if (pair->vflag_global) {
       if (newton_pair) {
 	virial_thr[tid][0] += v[0];
 	virial_thr[tid][1] += v[1];
@@ -239,7 +254,7 @@ void ThrOMP::ev_tally_thr(int i, int j, int nlocal, int newton_pair,
       }
     }
 
-    if (vflag_atom) {
+    if (pair->vflag_atom) {
       if (newton_pair || i < nlocal) {
 	vatom_thr[tid][i][0] += 0.5*v[0];
 	vatom_thr[tid][i][1] += 0.5*v[1];
@@ -300,9 +315,9 @@ void ThrOMP::ev_reduce_thr(Pair *pair)
 
 /* ---------------------------------------------------------------------- */
 
-// set loop range for, thread id, and force array offset for threaded runs.
+// set loop range thread id, and force array offset for threaded runs.
 double **ThrOMP::loop_setup_thr(double **f, int &ifrom, int &ito, int &tid,
-				const int inum, const int nall, const int nthreads)
+				int inum, int nall, int nthreads)
 {
 #if defined(_OPENMP)
   if (nthreads > 1) {
@@ -332,12 +347,12 @@ double **ThrOMP::loop_setup_thr(double **f, int &ifrom, int &ito, int &tid,
 
 // reduce per thread forces into the first part of the force
 // array that is used for the non-threaded parts and reset
-// the temporary storage to 0.0.
-// this is in the header to be inlined.
-// need to post a barrier to wait until all threads are done
-// with computing forces. the reduction can be threaded as well.
-void ThrOMP::force_reduce_thr(double *fall, const int nall,
-			      const int nthreads, const int tid)
+// the temporary storage to 0.0. this routine depends on the
+// forces arrays stored in this order x1,y1,z1,x2,y2,z2,...
+// we need to post a barrier to wait until all threads are done
+// with computing forces.
+void ThrOMP::force_reduce_thr(double *fall, int nall,
+			      int nthreads, int tid)
 {
 #if defined(_OPENMP)
   // NOOP in non-threaded execution.
@@ -363,55 +378,6 @@ void ThrOMP::force_reduce_thr(double *fall, const int nall,
   return;
 #endif
 }
-
-/* ---------------------------------------------------------------------- */
-
-#if 0
-  void ev_tally_xyz_thr(int, int, int, int, double, double,
-			double, double, double, double, double, double, int);
-  void ev_tally3_thr(int, int, int, double, double,
-		     double *, double *, double *, double *, int);
-  void ev_tally4_thr(int, int, int, int, double,
-		     double *, double *, double *, double *, double *, double *, int);
-  void ev_tally_list_thr(int, int *, double, double *, int);
-  void v_tally2_thr(int, int, double, double *, int);
-  void v_tally3_thr(int, int, int, double *, double *, double *, double *, int);
-  void v_tally4_thr(int, int, int, int, double *, double *, double *,
-                    double *, double *, double *, int);
-#endif
-
-
-#if 0
-  // reduce per thread density into the first part of the rho
-  // array that is used for the non-threaded parts. for use with EAM.
-  // this is in the header to be inlined.
-  // we need to post a barrier to wait until all threads are done.
-  // the reduction can be threaded as well.
-  void rho_reduce_thr(double *rho, const int nmax, const int nrange, 
-		      const int nthreads, const int tid)
-    {
-#if defined(_OPENMP)
-      // NOOP in non-threaded execution.
-      if (nthreads == 1) return;
-#pragma omp barrier
-      {
-	double *rho_thr;
-	const int idelta = 1 + nrange/nthreads;
-	const int ifrom = tid*idelta;
-	const int ito   = ((ifrom + idelta) > nrange) ? nrange : (ifrom + idelta);
-	for (int n = 1; n < nthreads; ++n) {
-	  const int toffs = n*nmax;
-	  rho_thr = rho + toffs;
-	  for (int m = ifrom; m < ito; ++m)
-	    rho[m] += rho_thr[m];
-	}
-      }
-#else
-      // NOOP in non-threaded execution.
-      return;
-#endif
-    };
-#endif
 
 /* ---------------------------------------------------------------------- */
 

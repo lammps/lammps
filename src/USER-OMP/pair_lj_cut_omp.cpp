@@ -27,7 +27,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutOMP::PairLJCutOMP(LAMMPS *lmp) : 
+PairLJCutOMP::PairLJCutOMP(LAMMPS *lmp) :
   PairLJCut(lmp), ThrOMP(lmp, PAIR)
 {
   respa_enable = 0;
@@ -39,7 +39,7 @@ void PairLJCutOMP::compute(int eflag, int vflag)
 {
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
-    ev_setup_thr(eflag_global, vflag_global, eflag_atom, vflag_atom);
+    ev_setup_thr(this);
   } else evflag = vflag_fdotr = 0;
 
   const int nall = atom->nlocal + atom->nghost;
@@ -54,7 +54,7 @@ void PairLJCutOMP::compute(int eflag, int vflag)
     double **f;
 
     f = loop_setup_thr(atom->f, ifrom, ito, tid, inum, nall, nthreads);
-    
+
     if (evflag) {
       if (eflag) {
 	if (force->newton_pair) eval<1,1,1>(f, ifrom, ito, tid);
@@ -77,7 +77,7 @@ void PairLJCutOMP::compute(int eflag, int vflag)
   if (vflag_fdotr) virial_fdotr_compute();
 }
 
-template <int EVFLAG, int EFLAG, int NEWTON_PAIR> 
+template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
 void PairLJCutOMP::eval(double **f, int iifrom, int iito, int tid)
 {
   int i,j,ii,jj,jnum,itype,jtype;
@@ -96,7 +96,7 @@ void PairLJCutOMP::eval(double **f, int iifrom, int iito, int tid)
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  
+
   // loop over neighbors of my atoms
 
   for (ii = iifrom; ii < iito; ++ii) {
@@ -137,15 +137,12 @@ void PairLJCutOMP::eval(double **f, int iifrom, int iito, int tid)
 	}
 
 	if (EFLAG) {
-	  evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) 
+	  evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype])
 	    - offset[itype][jtype];
 	  evdwl *= factor_lj;
 	}
 
-	if (EVFLAG) ev_tally_thr(i,j,nlocal,NEWTON_PAIR,
-				 eflag_either, eflag_global,
-				 vflag_either, vflag_global,
-				 eflag_atom, vflag_atom,
+	if (EVFLAG) ev_tally_thr(this, i,j,nlocal,NEWTON_PAIR,
 				 evdwl,0.0,fpair,delx,dely,delz,tid);
       }
     }

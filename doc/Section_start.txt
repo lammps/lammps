@@ -324,7 +324,7 @@ truncation errors and thus do not always need to be performed in
 double precision.  Using the -DFFT_SINGLE setting trades off a little
 accuracy for reduced memory use and parallel communication costs for
 transposing 3d FFT data.  Note that single precision FFTs have only
-been tested with the FFTW3, FFTW2, MKL, and KISS FFT packages.
+been tested with the FFTW3, FFTW2, MKL, and KISS FFT options.
 
 [Step 7]
 
@@ -499,7 +499,7 @@ This section has the following sub-sections:
 
 "Package basics"_#start_3_1
 "Including/excluding packages"_#start_3_2
-"Packages that require extra LAMMPS libraries"_#start_3_3
+"Packages that require extra libraries"_#start_3_3
 "Additional Makefile settings for extra libraries"_#start_3_4 :ul
 
 :line
@@ -512,47 +512,39 @@ files that enable a specific set of features.  For example, force
 fields for molecular systems or granular systems are in packages.  You
 can see the list of all packages by typing "make package".
 
-The current list of standard packages is as follows:
+If you use a command in a LAMMPS input script that is specific to a
+particular package, you must have built LAMMPS with that package, else
+you will get an error that the style is invalid or the command is
+unknown.  Every command's doc page specfies if it is part of a
+package.  You can also type
 
-asphere : aspherical particles and force fields
-class2 : class 2 force fields
-colloid : colloidal particle force fields
-dipole : point dipole particles and force fields
-dsmc : Direct Simulation Monte Carlo (DMSC) pair style
-gpu : GPU-enabled force field styles
-granular : force fields and boundary conditions for granular systems
-kspace : long-range Ewald and particle-mesh (PPPM) solvers
-manybody : metal, 3-body, bond-order potentials
-meam : modified embedded atom method (MEAM) potential
-molecule : force fields for molecular systems
-opt : optimized versions of a few pair potentials
-peri : Peridynamics model and potential
-poems : coupled rigid body motion
-reax : ReaxFF potential
-replica : multi-replica methods
-shock : methods for MD simulations of shock loading
-srd : stochastic rotation dynamics (SRD)
-xtc : dump atom snapshots in XTC format :tb(s=:)
+lmp_machine -h :pre
 
-There are also several user-contributed packages which may be as
-simple as a single additional file (see the src/USER-MISC directory)
-or many files grouped together which add a specific functionality to
-the code.
+to run your executable with the optional "-h command-line
+switch"_#start_6 for "help", which will list the styles and commands
+known to your executable.
 
-The difference between a {standard} package versus a {user} package is
-as follows:
+There are two kinds of packages in LAMMPS, standard and user packages.
+More information about the contents of standard and user packages is
+given in "this section"_Section_packages.html of the manual.  The
+difference between standard and user packages is as follows:
 
 Standard packages are supported by the LAMMPS developers and are
 written in a syntax and style consistent with the rest of LAMMPS.
 This means we will answer questions about them, debug and fix them if
 necessary, and keep them compatible with future changes to LAMMPS.
 
-User packages don't necessarily meet these requirements.  If you have
-problems using a feature provided in a user package, you will likely
-need to contact the contributor directly to get help.  Information on
-how to submit additions you make to LAMMPS as a user-contributed
-package is given in "this section"_Section_modify.html#package of the
-documentation.
+User packages have been contributed by users, and always begin with
+the user prefix.  If they are a single command (single file), they are
+typically in the user-misc package.  Otherwise, they are a a set of
+files grouped together which add a specific functionality to the code.
+
+User packages don't necessarily meet the requirements of the standard
+packages.  If you have problems using a feature provided in a user
+package, you will likely need to contact the contributor directly to
+get help.  Information on how to submit additions you make to LAMMPS
+as a user-contributed package is given in "this
+section"_Section_modify.html#package of the documentation.
 
 :line
 
@@ -618,17 +610,18 @@ type "make package" to see all of the package-related make options.
 
 :line
 
-[{Packages that require extra LAMMPS libraries:}] :link(start_3_3)
+[{Packages that require extra libraries:}] :link(start_3_3)
 
 A few of the standard and user packages require additional auxiliary
-libraries be compiled first.  If you get a LAMMPS build error about a
-missing library, this is likely the reason.  The source code for these
-libraries is included in the LAMMPS distribution under the "lib"
-directory.  Look at the lib/README file for a list of these.
+libraries to be compiled first.  If you get a LAMMPS build error about
+a missing library, this is likely the reason.  The source code for
+these libraries is included in the LAMMPS distribution under the "lib"
+directory.  Look at the lib/README file for a list of these or see
+"this section"_Section_packages.html of the doc pages.
 
-Each lib directly has a README file (e.g. lib/reax/README) with
-instructions on how to build that library.  Typically this is done by
-typing something like:
+Each lib directory has a README file (e.g. lib/reax/README) with
+instructions on how to build that library.  Typically this is done 
+in this manner:
 
 make -f Makefile.g++ :pre
 

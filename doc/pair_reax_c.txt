@@ -34,7 +34,9 @@ energy. There is more than one version of ReaxFF.  The version
 implemented in LAMMPS uses the functional forms documented in the
 supplemental information of the following paper: "(Chenoweth et al.,
 2008)"_#Chenoweth_2008.  The version integrated into LAMMPS matches
-the most up-to-date version of ReaxFF as of summer 2010.
+the most up-to-date version of ReaxFF as of summer 2010.  For more
+technical details about the pair reax/c implementation of ReaxFF, see
+the "(Aktulga)" paper.
 
 The {reax/c} style differs from the "pair_style reax"_pair_reax.html
 command in the lo-level implementation details.  The {reax} style is a
@@ -266,3 +268,6 @@ The keyword default is checkqeq = yes.
 :link(Chenoweth_2008) 
 [(Chenoweth_2008)] Chenoweth, van Duin and Goddard, 
 Journal of Physical Chemistry A, 112, 1040-1053 (2008).
+
+:link(Aktulga) [(Aktulga)] Aktulga, Fogarty, Pandit, Grama, Parallel
+Computing, to appear (2011).

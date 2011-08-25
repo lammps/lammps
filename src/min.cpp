@@ -517,7 +517,7 @@ void Min::force_clear()
   else nall = atom->nlocal;
 
   double **f = atom->f;
-  for (i = 0; i < nall; i++) {
+  for (i = 0; i < nall*comm->nthreads; i++) {
     f[i][0] = 0.0;
     f[i][1] = 0.0;
     f[i][2] = 0.0;

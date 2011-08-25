@@ -601,9 +601,10 @@ void Respa::force_clear(int newtonflag)
   int nall;
   if (newtonflag) nall = atom->nlocal + atom->nghost;
   else nall = atom->nlocal;
+  int ntot = nall * comm->nthreads;
 
   double **f = atom->f;
-  for (i = 0; i < nall; i++) {
+  for (i = 0; i < ntot; i++) {
     f[i][0] = 0.0;
     f[i][1] = 0.0;
     f[i][2] = 0.0;
@@ -620,8 +621,7 @@ void Respa::force_clear(int newtonflag)
 
   if (erforceflag) {
     double *erforce = atom->erforce;
-    for (i = 0; i < nall; i++)
-      erforce[i] = 0.0;
+    for (i = 0; i < nall; i++) erforce[i] = 0.0;
   }
 }
 

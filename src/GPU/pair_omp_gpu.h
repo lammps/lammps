@@ -52,7 +52,7 @@ class PairOMPGPU : protected Pointers {
   PairOMPGPU(LAMMPS *);
   ~PairOMPGPU();
 
-  void mem_free();
+  void free_mem();
   void init_style();
   double memory_usage();
  

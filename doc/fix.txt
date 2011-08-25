@@ -176,6 +176,7 @@ list of fix styles available in LAMMPS:
 "external"_fix_external.html - callback to an external driver program
 "freeze"_fix_freeze.html - freeze atoms in a granular simulation
 "gravity"_fix_gravity.html - add gravity to atoms in a granular simulation
+"gcmc"_fix_gcmc.html - grand canonical insertions/deletions
 "heat"_fix_heat.html - add/subtract momentum-conserving heat
 "indent"_fix_indent.html - impose force due to an indenter
 "langevin"_fix_langevin.html - Langevin temperature control

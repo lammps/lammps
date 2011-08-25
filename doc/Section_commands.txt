@@ -418,6 +418,7 @@ of each style or click on the style itself for a full description:
 "evaporate"_fix_evaporate.html,
 "external"_fix_external.html,
 "freeze"_fix_freeze.html,
+"gcmc"_fix_gcmc.html,
 "gravity"_fix_gravity.html,
 "heat"_fix_heat.html,
 "indent"_fix_indent.html,

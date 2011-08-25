@@ -510,7 +510,8 @@ The source code for LAMMPS is structured as a set of core files which
 are always included, plus optional packages.  Packages are groups of
 files that enable a specific set of features.  For example, force
 fields for molecular systems or granular systems are in packages.  You
-can see the list of all packages by typing "make package".
+can see the list of all packages by typing "make package" from within
+the src directory of the LAMMPS distribution.
 
 If you use a command in a LAMMPS input script that is specific to a
 particular package, you must have built LAMMPS with that package, else
@@ -544,7 +545,7 @@ packages.  If you have problems using a feature provided in a user
 package, you will likely need to contact the contributor directly to
 get help.  Information on how to submit additions you make to LAMMPS
 as a user-contributed package is given in "this
-section"_Section_modify.html#package of the documentation.
+section"_Section_modify.html#mod_14 of the documentation.
 
 :line
 

@@ -1,4 +1,4 @@
-"Previous Section"_Section_modify.html - "LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next Section"_Section_accelerate.html :c
+"Previous Section"_Section_modify.html - "LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next Section"_Section_errors.html :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
@@ -6,7 +6,7 @@
 
 :line
 
-9. Python interface to LAMMPS :h3
+11. Python interface to LAMMPS :h3
 
 The LAMMPS distribution includes some Python code in its python
 directory which wraps the library interface to LAMMPS.  This makes it
@@ -85,13 +85,13 @@ setup discussion.  The next to last sub-section describes the Python
 syntax used to invoke LAMMPS.  The last sub-section describes example
 Python scripts included in the python directory.
 
-"Extending Python with a serial version of LAMMPS"_#9_1
-"Creating a shared MPI library"_#9_2
-"Extending Python with a parallel version of LAMMPS"_#9_3
-"Extending Python with MPI"_#9_4
-"Testing the Python-LAMMPS interface"_#9_5
-"Using LAMMPS from Python"_#9_6
-"Example Python scripts that use LAMMPS"_#9_7 :ul
+11.1 "Extending Python with a serial version of LAMMPS"_#11_1
+11.2 "Creating a shared MPI library"_#11_2
+11.3 "Extending Python with a parallel version of LAMMPS"_#11_3
+11.4 "Extending Python with MPI"_#11_4
+11.5 "Testing the Python-LAMMPS interface"_#11_5
+11.6 "Using LAMMPS from Python"_#11_6
+11.7 "Example Python scripts that use LAMMPS"_#11_7 :ul
 
 Before proceeding, there are 2 items to note.
 
@@ -130,7 +130,7 @@ LAMMPS wrapper.
 :line
 :line
 
-Extending Python with a serial version of LAMMPS :link(9_1),h4
+11.1 Extending Python with a serial version of LAMMPS :link(11_1),h4
 
 From the python directory in the LAMMPS distribution, type
 
@@ -160,7 +160,7 @@ If these commands are successful, a {lammps.py} and
 
 :line
 
-Creating a shared MPI library :link(9_2),h4
+11.2 Creating a shared MPI library :link(11_2),h4
 
 A shared library is one that is dynamically loadable, which is what
 Python requires.  On Linux this is a library file that ends in ".so",
@@ -191,7 +191,7 @@ stand-alone code.
 
 :line
 
-Extending Python with a parallel version of LAMMPS :link(9_3),h4
+11.3 Extending Python with a parallel version of LAMMPS :link(11_3),h4
 
 From the python directory, type
 
@@ -229,7 +229,7 @@ will be put in the appropriate directory.
 
 :line
 
-Extending Python with MPI :link(9_4),h4
+11.4 Extending Python with MPI :link(11_4),h4
 
 There are several Python packages available that purport to wrap MPI
 as a library and allow MPI functions to be called from Python.
@@ -304,7 +304,7 @@ and see one line of output for each processor you ran on.
 
 :line
 
-Testing the Python-LAMMPS interface :link(9_5),h4
+11.5 Testing the Python-LAMMPS interface :link(11_5),h4
 
 Before using LAMMPS in a Python program, one more step is needed.  The
 interface to LAMMPS is via the Python ctypes package, which loads the
@@ -397,7 +397,7 @@ Python on a single processor, not in parallel.
 :line
 :line
 
-Using LAMMPS from Python :link(9_6),h4
+11.6 Using LAMMPS from Python :link(11_6),h4
 
 The Python interface to LAMMPS consists of a Python "lammps" module,
 the source code for which is in python/lammps.py, which creates a
@@ -588,7 +588,7 @@ Python script.  Isn't ctypes amazing? :l,ule
 :line
 :line
 
-Example Python scripts that use LAMMPS :link(9_7),h4
+11.7 Example Python scripts that use LAMMPS :link(11_7),h4
 
 These are the Python scripts included as demos in the python/examples
 directory of the LAMMPS distribution, to illustrate the kinds of

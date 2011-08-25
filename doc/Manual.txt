@@ -97,52 +97,70 @@ it gives quick access to documentation for all LAMMPS commands.
   3.3 "Input script structure"_3_3 :b
   3.4 "Commands listed by category"_3_4 :b
   3.5 "Commands listed alphabetically"_3_5 :ule,b
+"Packages"_Section_packages.html :l
+  4.1 "Standard packages"_3_1 :ulb,b
+  4.2 "User packages"_3_2 :ule,b
+"Using accelerated CPU and GPU styles"_Section_accelerate.html :l
+  5.1 "OPT package"_10_1 :ulb,b
+  5.2 "USER-OMP package"_10_2 :b
+  5.3 "GPU package"_10_3 :b
+  5.4 "USER-CUDA package"_10_4 :b
+  5.5 "Comparison of GPU and USER-CUDA packages"_10_5 :ule,b
 "How-to discussions"_Section_howto.html :l
-  4.1 "Restarting a simulation"_4_1 :ulb,b
-  4.2 "2d simulations"_4_2 :b
-  4.3 "CHARMM and AMBER force fields"_4_3 :b
-  4.4 "Running multiple simulations from one input script"_4_4 :b
-  4.5 "Multi-replica simulations"_4_5 :b
-  4.6 "Granular models"_4_6 :b
-  4.7 "TIP3P water model"_4_7 :b
-  4.8 "TIP4P water model"_4_8 :b
-  4.9 "SPC water model"_4_9 :b
-  4.10 "Coupling LAMMPS to other codes"_4_10 :b
-  4.11 "Visualizing LAMMPS snapshots"_4_11 :b
-  4.12 "Triclinic (non-orthogonal) simulation boxes"_4_12 :b
-  4.13 "NEMD simulations"_4_13 :b
-  4.14 "Extended spherical and aspherical particles"_4_14 :b
-  4.15 "Output from LAMMPS (thermo, dumps, computes, fixes, variables)"_4_15 :b
-  4.16 "Thermostatting, barostatting, and compute temperature"_4_16 :b
-  4.17 "Walls"_4_17 :b
-  4.18 "Elastic constants"_4_18 :b
-  4.19 "Library interface to LAMMPS"_4_19 :b
-  4.20 "Calculating thermal conductivity"_4_20 :b
-  4.21 "Calculating viscosity"_4_21 :ule,b
+  6.1 "Restarting a simulation"_4_1 :ulb,b
+  6.2 "2d simulations"_4_2 :b
+  6.3 "CHARMM and AMBER force fields"_4_3 :b
+  6.4 "Running multiple simulations from one input script"_4_4 :b
+  6.5 "Multi-replica simulations"_4_5 :b
+  6.6 "Granular models"_4_6 :b
+  6.7 "TIP3P water model"_4_7 :b
+  6.8 "TIP4P water model"_4_8 :b
+  6.9 "SPC water model"_4_9 :b
+  6.10 "Coupling LAMMPS to other codes"_4_10 :b
+  6.11 "Visualizing LAMMPS snapshots"_4_11 :b
+  6.12 "Triclinic (non-orthogonal) simulation boxes"_4_12 :b
+  6.13 "NEMD simulations"_4_13 :b
+  6.14 "Extended spherical and aspherical particles"_4_14 :b
+  6.15 "Output from LAMMPS (thermo, dumps, computes, fixes, variables)"_4_15 :b
+  6.16 "Thermostatting, barostatting, and compute temperature"_4_16 :b
+  6.17 "Walls"_4_17 :b
+  6.18 "Elastic constants"_4_18 :b
+  6.19 "Library interface to LAMMPS"_4_19 :b
+  6.20 "Calculating thermal conductivity"_4_20 :b
+  6.21 "Calculating viscosity"_4_21 :ule,b
 "Example problems"_Section_example.html :l
 "Performance & scalability"_Section_perf.html :l
 "Additional tools"_Section_tools.html :l
 "Modifying & extending LAMMPS"_Section_modify.html :l
+  10.1 "Atom styles"_10_1 :ulb,b
+  10.2 "Bond, angle, dihedral, improper potentials"_10_2 :b
+  10.3 "Compute styles"_10_3 :b
+  10.4 "Dump styles"_10_4 :b
+  10.5 "Dump custom output options"_10_5 :b
+  10.6 "Fix styles"_10_6 :b
+  10.7 "Input script commands"_10_7 :b
+  10.8 "Kspace computations"_10_8 :b
+  10.9 "Minimization styles"_10_9 :b
+  10.10 "Pairwise potentials"_10_10 :b
+  10.11 "Region styles"_10_11 :b
+  10.12 "Thermodynamic output options"_10_12 :b
+  10.13 "Variable options"_10_13 :b
+  10.14 "Submitting new features for inclusion in LAMMPS"_10_14 :ule,b
 "Python interface"_Section_python.html :l
-  9.1 "Extending Python with a serial version of LAMMPS"_9_1 :ulb,b
-  9.2 "Creating a shared MPI library"_9_2 :b
-  9.3 "Extending Python with a parallel version of LAMMPS"_9_3 :b
-  9.4 "Extending Python with MPI"_9_4 :b
-  9.5 "Testing the Python-LAMMPS interface"_9_5 :b
-  9.6 "Using LAMMPS from Python"_9_6 :b
-  9.7 "Example Python scripts that use LAMMPS"_9_7 :ule,b
-"Using accelerated CPU and GPU styles"_Section_accelerate.html :l
-  10.1 "OPT package"_10_1 :ulb,b
-  10.2 "GPU package"_10_2 :b
-  10.3 "USER-CUDA package"_10_3 :b
-  10.4 "Comparison of GPU and USER-CUDA packages"_10_4 :ule,b
+  11.1 "Extending Python with a serial version of LAMMPS"_9_1 :ulb,b
+  11.2 "Creating a shared MPI library"_9_2 :b
+  11.3 "Extending Python with a parallel version of LAMMPS"_9_3 :b
+  11.4 "Extending Python with MPI"_9_4 :b
+  11.5 "Testing the Python-LAMMPS interface"_9_5 :b
+  11.6 "Using LAMMPS from Python"_9_6 :b
+  11.7 "Example Python scripts that use LAMMPS"_9_7 :ule,b
 "Errors"_Section_errors.html :l
-  11.1 "Common problems"_11_1 :ulb,b
-  11.2 "Reporting bugs"_11_2 :b
-  11.3 "Error & warning messages"_11_3 :ule,b
+  12.1 "Common problems"_11_1 :ulb,b
+  12.2 "Reporting bugs"_11_2 :b
+  12.3 "Error & warning messages"_11_3 :ule,b
 "Future and history"_Section_history.html :l
-  12.1 "Coming attractions"_12_1 :ulb,b
-  12.2 "Past versions"_12_2 :ule,b
+  13.1 "Coming attractions"_12_1 :ulb,b
+  13.2 "Past versions"_12_2 :ule,b
 :ole
 
 :link(1_1,Section_intro.html#1_1)
@@ -166,46 +184,65 @@ it gives quick access to documentation for all LAMMPS commands.
 :link(3_4,Section_commands.html#3_4)
 :link(3_5,Section_commands.html#3_5)
 
-:link(4_1,Section_howto.html#4_1)
-:link(4_2,Section_howto.html#4_2)
-:link(4_3,Section_howto.html#4_3)
-:link(4_4,Section_howto.html#4_4)
-:link(4_5,Section_howto.html#4_5)
-:link(4_6,Section_howto.html#4_6)
-:link(4_7,Section_howto.html#4_7)
-:link(4_8,Section_howto.html#4_8)
-:link(4_9,Section_howto.html#4_9)
-:link(4_10,Section_howto.html#4_10)
-:link(4_11,Section_howto.html#4_11)
-:link(4_12,Section_howto.html#4_12)
-:link(4_13,Section_howto.html#4_13)
-:link(4_14,Section_howto.html#4_14)
-:link(4_15,Section_howto.html#4_15)
-:link(4_16,Section_howto.html#4_16)
-:link(4_17,Section_howto.html#4_17)
-:link(4_18,Section_howto.html#4_18)
-:link(4_19,Section_howto.html#4_19)
-:link(4_20,Section_howto.html#4_20)
-:link(4_21,Section_howto.html#4_21)
+:link(4_1,Section_commands.html#4_1)
+:link(4_2,Section_commands.html#4_2)
 
-:link(9_1,Section_python.html#9_1)
-:link(9_2,Section_python.html#9_2)
-:link(9_3,Section_python.html#9_3)
-:link(9_4,Section_python.html#9_4)
-:link(9_5,Section_python.html#9_5)
-:link(9_6,Section_python.html#9_6)
-:link(9_7,Section_python.html#9_7)
+:link(5_1,Section_commands.html#4_1)
+:link(5_2,Section_commands.html#4_2)
+:link(5_3,Section_commands.html#4_2)
+:link(5_4,Section_commands.html#4_2)
+:link(5_5,Section_commands.html#4_2)
 
-:link(10_1,Section_accelerate.html#10_1)
-:link(10_2,Section_accelerate.html#10_2)
-:link(10_3,Section_accelerate.html#10_3)
-:link(10_4,Section_accelerate.html#10_4)
+:link(6_1,Section_howto.html#4_1)
+:link(6_2,Section_howto.html#4_2)
+:link(6_3,Section_howto.html#4_3)
+:link(6_4,Section_howto.html#4_4)
+:link(6_5,Section_howto.html#4_5)
+:link(6_6,Section_howto.html#4_6)
+:link(6_7,Section_howto.html#4_7)
+:link(6_8,Section_howto.html#4_8)
+:link(6_9,Section_howto.html#4_9)
+:link(6_10,Section_howto.html#6_10)
+:link(6_11,Section_howto.html#6_11)
+:link(6_12,Section_howto.html#4_12)
+:link(6_13,Section_howto.html#4_13)
+:link(6_14,Section_howto.html#4_14)
+:link(6_15,Section_howto.html#4_15)
+:link(6_16,Section_howto.html#4_16)
+:link(6_17,Section_howto.html#4_17)
+:link(6_18,Section_howto.html#4_18)
+:link(6_19,Section_howto.html#4_19)
+:link(6_20,Section_howto.html#4_20)
+:link(6_21,Section_howto.html#4_21)
 
-:link(11_1,Section_errors.html#11_1)
-:link(11_2,Section_errors.html#11_2)
-:link(11_3,Section_errors.html#11_3)
+:link(10_1,Section_howto.html#4_1)
+:link(10_2,Section_howto.html#4_2)
+:link(10_3,Section_howto.html#4_3)
+:link(10_4,Section_howto.html#4_4)
+:link(10_5,Section_howto.html#4_5)
+:link(10_6,Section_howto.html#4_6)
+:link(10_7,Section_howto.html#4_7)
+:link(10_8,Section_howto.html#4_8)
+:link(10_9,Section_howto.html#4_9)
+:link(10_10,Section_howto.html#10_10)
+:link(10_11,Section_howto.html#10_11)
+:link(10_12,Section_howto.html#4_12)
+:link(10_13,Section_howto.html#4_13)
+:link(10_14,Section_howto.html#4_14)
 
-:link(12_1,Section_history.html#12_1)
-:link(12_2,Section_history.html#12_2)
+:link(11_1,Section_python.html#9_1)
+:link(11_2,Section_python.html#9_2)
+:link(11_3,Section_python.html#9_3)
+:link(11_4,Section_python.html#9_4)
+:link(11_5,Section_python.html#9_5)
+:link(11_6,Section_python.html#9_6)
+:link(11_7,Section_python.html#9_7)
+
+:link(12_1,Section_errors.html#11_1)
+:link(12_2,Section_errors.html#11_2)
+:link(12_3,Section_errors.html#11_3)
+
+:link(13_1,Section_history.html#12_1)
+:link(13_2,Section_history.html#12_2)
 
 </BODY>

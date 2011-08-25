@@ -8,7 +8,7 @@ Section"_Section_python.html :c
 
 :line
 
-8. Modifying & extending LAMMPS :h3
+10. Modifying & extending LAMMPS :h3
 
 LAMMPS is designed in a modular fashion so as to be easy to modify and
 extend with new functionality.  In fact, about 75% of its source code
@@ -72,30 +72,9 @@ the executable and can be invoked with a pair_style command like the
 example above.  Arguments like 0.1 and 3.5 can be defined and
 processed by your new class.
 
-Here is a list of the new features that can be added in this way,
-along with information about how to submit your features for inclusion
-in the LAMMPS distribution.
-
-"Atom styles"_#atom
-"Bond, angle, dihedral, improper potentials"_#bond
-"Compute styles"_#compute
-"Dump styles"_#dump
-"Dump custom output options"_#dump
-"Fix styles"_#fix which include integrators, \
-     temperature and pressure control, force constraints, \
-     boundary conditions, diagnostic output, etc
-"Input script commands"_#command
-"Kspace computations"_#kspace
-"Minimization solvers"_#min
-"Pairwise potentials"_#pair
-"Region styles"_#region
-"Thermodynamic output options"_#thermo
-"Variable options"_#variable :ul
-
-"Submitting new features to the developers to include in LAMMPS"_#package :ul
-
-As illustrated by the pairwise example, these options are referred to
-in the LAMMPS documentation as the "style" of a particular command.
+As illustrated by this pairwise example, many kinds of options are
+referred to in the LAMMPS documentation as the "style" of a particular
+command.
 
 The instructions below give the header file for the base class that
 these styles are derived from.  Public variables in that file are ones
@@ -107,12 +86,8 @@ LAMMPS expects.  Virtual functions that are not set to 0 are functions
 you can optionally define.
 
 Additionally, new output options can be added directly to the
-thermo.cpp, dump_custom.cpp, and variable.cpp files as explained in
-these sections:
-
-"Dump custom output options"_#dump_custom
-"Thermodynamic output options"_#thermo
-"Variable options"_#variable :ul
+thermo.cpp, dump_custom.cpp, and variable.cpp files as explained
+below.
 
 :line
 
@@ -135,12 +110,35 @@ command. :l
 If you add something you think is truly useful and doesn't impact
 LAMMPS performance when it isn't used, send an email to the
 "developers"_http://lammps.sandia.gov/authors.html.  We might be
-interested in adding it to the LAMMPS distribution. :l,ule
+interested in adding it to the LAMMPS distribution.  See further
+details on this at the bottom of this page.  :l,ule
+
+:line
+
+Here are the subsequent topics discussed below, most of which are new
+features that can be added in the manner just described:
+
+10.1 "Atom styles"_#10_1
+10.2 "Bond, angle, dihedral, improper potentials"_#10_2
+10.3 "Compute styles"_#10_3
+10.4 "Dump styles"_#10_4
+10.5 "Dump custom output options"_#10_5
+10.6 "Fix styles"_#10_6 which include integrators, \
+     temperature and pressure control, force constraints, \
+     boundary conditions, diagnostic output, etc
+10.7 "Input script commands"_10_7
+10.8 "Kspace computations"_#10_8
+10.9 "Minimization styles"_#10_9
+10.10 "Pairwise potentials"_#10_10
+10.11 "Region styles"_#10_11
+10.12 "Thermodynamic output options"_#10_12
+10.13 "Variable options"_#10_13
+10.14 "Submitting new features for inclusion in LAMMPS"_#10_14 :all(b)
 
 :line
 :line
 
-Atom styles :link(atom),h4
+10.1 Atom styles :link(10_1),h4
 
 Classes that define an atom style are derived from the Atom class.
 The atom style determines what quantities are associated with an atom.
@@ -188,7 +186,7 @@ modify.
 
 :line
 
-Bond, angle, dihedral, improper potentials :link(bond),h4
+10.2 Bond, angle, dihedral, improper potentials :link(10_2),h4
 
 Classes that compute molecular interactions are derived from the Bond,
 Angle, Dihedral, and Improper classes.  New styles can be created to
@@ -210,7 +208,7 @@ single: force and energy of a single bond :tb(s=:)
 
 :line
 
-Compute styles :link(compute),h4
+10.3 Compute styles :link(10_3),h4
 
 Classes that compute scalar and vector quantities like temperature
 and the pressure tensor, as well as classes that compute per-atom
@@ -236,8 +234,8 @@ memory_usage: tally memory usage :tb(s=:)
 
 :line
 
-Dump styles :link(dump),h4
-Dump custom output options :link(dump_custom),h4
+10.4 Dump styles :link(10_4),h4
+10.5 Dump custom output options :link(10_5),h4
 
 Classes that dump per-atom info to files are derived from the Dump
 class.  To dump new quantities or in a new format, a new derived dump
@@ -266,7 +264,7 @@ half-dozen or so locations where code will need to be added.
 
 :line
 
-Fix styles :link(fix),h4
+10.6 Fix styles :link(10_6),h4
 
 In LAMMPS, a "fix" is any operation that is computed during
 timestepping that alters some property of the system.  Essentially
@@ -342,7 +340,7 @@ quantities and/or to be summed to the potential energy of the system.
 
 :line
 
-Input script commands :link(command),h4
+10.7 Input script commands :link(10_7),h4
 
 New commands can be added to LAMMPS input scripts by adding new
 classes that have a "command" method.  For example, the create_atoms,
@@ -362,7 +360,7 @@ needed.
 
 :line
 
-Kspace computations :link(kspace),h4
+10.8 Kspace computations :link(10_8),h4
 
 Classes that compute long-range Coulombic interactions via K-space
 representations (Ewald, PPPM) are derived from the KSpace class.  New
@@ -380,7 +378,7 @@ memory_usage: tally of memory usage :tb(s=:)
 
 :line
 
-Minimization solvers :link(min),h4
+10.9 Minimization styles :link(10_9),h4
 
 Classes that perform energy minimization derived from the Min class.
 New styles can be created to add new minimization algorithms to
@@ -397,7 +395,7 @@ memory_usage: tally of memory usage :tb(s=:)
 
 :line
 
-Pairwise potentials :link(pair),h4
+10.10 Pairwise potentials :link(10_10),h4
 
 Classes that compute pairwise interactions are derived from the Pair
 class.  In LAMMPS, pairwise calculation include manybody potentials
@@ -424,7 +422,7 @@ The inner/middle/outer routines are optional.
 
 :line
 
-Region styles :link(region),h4
+10.11 Region styles :link(10_11),h4
 
 Classes that define geometric regions are derived from the Region
 class.  Regions are used elsewhere in LAMMPS to group atoms, delete
@@ -440,7 +438,7 @@ match: determine whether a point is in the region :tb(s=:)
 
 :line
 
-Thermodynamic output options :link(thermo),h4
+10.12 Thermodynamic output options :link(10_12),h4
 
 There is one class that computes and prints thermodynamic information
 to the screen and log file; see the file thermo.cpp.
@@ -469,7 +467,7 @@ by adding a new keyword to the thermo command.
 
 :line
 
-Variable options :link(variable),h4
+10.13 Variable options :link(10_13),h4
 
 There is one class that computes and stores "variable"_variable.html
 information in LAMMPS; see the file variable.cpp.  The value
@@ -508,8 +506,9 @@ then be accessed by variables) was discussed
 "here"_Section_modify.html#compute on this page.
 
 :line
+:line
 
-Submitting new features to the developers to include in LAMMPS :link(package),h4
+10.14 Submitting new features for inclusion in LAMMPS :link(10_14),h4
 
 We encourage users to submit new features that they add to LAMMPS to
 "the developers"_http://lammps.sandia.gov/authors.html, especially if

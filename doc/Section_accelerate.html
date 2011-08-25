@@ -1,6 +1,6 @@
 <HTML>
-<CENTER><A HREF = "Section_python.html">Previous Section</A> - <A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> -
-<A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> - <A HREF = "Section_errors.html">Next
+<CENTER><A HREF = "Section_packages.html">Previous Section</A> - <A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> -
+<A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> - <A HREF = "Section_howto.html">Next
 Section</A> 
 </CENTER>
 
@@ -11,7 +11,7 @@ Section</A>
 
 <HR>
 
-<H3>10. Using accelerated CPU and GPU styles 
+<H3>5. Using accelerated CPU and GPU styles 
 </H3>
 <P>Accelerated versions of various <A HREF = "pair_style.html">pair_style</A>,
 <A HREF = "fix.html">fixes</A>, <A HREF = "compute.html">computes</A>, and other commands have
@@ -73,17 +73,17 @@ and kspace sections.
 <P>The final section compares and contrasts the GPU and USER-CUDA
 packages, since they are both designed to use NVIDIA GPU hardware.
 </P>
-10.1 <A HREF = "#10_1">OPT package</A><BR>
-10.2 <A HREF = "#10_2">USER-OMP package</A><BR>
-10.3 <A HREF = "#10_3">GPU package</A><BR>
-10.4 <A HREF = "#10_4">USER-CUDA package</A><BR>
-10.5 <A HREF = "#10_4">Comparison of GPU and USER-CUDA packages</A> <BR>
+5.1 <A HREF = "#5_1">OPT package</A><BR>
+5.2 <A HREF = "#5_2">USER-OMP package</A><BR>
+5.3 <A HREF = "#5_3">GPU package</A><BR>
+5.4 <A HREF = "#5_4">USER-CUDA package</A><BR>
+5.5 <A HREF = "#5_4">Comparison of GPU and USER-CUDA packages</A> <BR>
 
 <HR>
 
 <HR>
 
-<H4><A NAME = "10_1"></A>10.1 OPT package 
+<H4><A NAME = "5_1"></A>5.1 OPT package 
 </H4>
 <P>The OPT package was developed by James Fischer (High Performance
 Technologies), David Richie, and Vincent Natoli (Stone Ridge
@@ -112,7 +112,7 @@ to 20% savings.
 
 <HR>
 
-<H4><A NAME = "10_2"></A>10.2 USER-OMP package 
+<H4><A NAME = "5_2"></A>5.2 USER-OMP package 
 </H4>
 <P>This section will be written when the USER-OMP package is released
 in main LAMMPS.
@@ -121,7 +121,7 @@ in main LAMMPS.
 
 <HR>
 
-<H4><A NAME = "10_3"></A>10.3 GPU package 
+<H4><A NAME = "5_3"></A>5.3 GPU package 
 </H4>
 <P>The GPU package was developed by Mike Brown at ORNL.  It provides GPU
 versions of several pair styles and for long-range Coulombics via the
@@ -263,7 +263,7 @@ requires that your GPU card support double precision.
 
 <HR>
 
-<H4><A NAME = "10_4"></A>10.4 USER-CUDA package 
+<H4><A NAME = "5_4"></A>5.4 USER-CUDA package 
 </H4>
 <P>The USER-CUDA package was developed by Christian Trott at U Technology
 Ilmenau in Germany.  It provides NVIDIA GPU versions of many pair
@@ -396,7 +396,7 @@ occurs, the faster your simulation will run.
 
 <HR>
 
-<H4><A NAME = "10_5"></A>10.5 Comparison of GPU and USER-CUDA packages 
+<H4><A NAME = "5_5"></A>5.5 Comparison of GPU and USER-CUDA packages 
 </H4>
 <P>Both the GPU and USER-CUDA packages accelerate a LAMMPS calculation
 using NVIDIA hardware, but they do it in different ways.

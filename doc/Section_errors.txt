@@ -8,18 +8,18 @@ Section"_Section_history.html :c
 
 :line
 
-11. Errors :h3
+12. Errors :h3
 
 This section describes the various kinds of errors you can encounter
 when using LAMMPS.
 
-11.1 "Common problems"_#11_1
-11.2 "Reporting bugs"_#11_2
-11.3 "Error & warning messages"_#11_3 :all(b)
+12.1 "Common problems"_#12_1
+12.2 "Reporting bugs"_#12_2
+12.3 "Error & warning messages"_#12_3 :all(b)
 
 :line
 
-11.1 Common problems :link(11_1),h4
+12.1 Common problems :link(12_1),h4
 
 If two LAMMPS runs do not produce the same answer on different
 machines or different numbers of processors, this is typically not a
@@ -78,7 +78,7 @@ decide if the WARNING is important or not.  A WARNING message that is
 generated in the middle of a run is only printed to the screen, not to
 the logfile, to avoid cluttering up thermodynamic output.  If LAMMPS
 crashes or hangs without spitting out an error message first then it
-could be a bug (see "this section"_#11_2) or one of the following
+could be a bug (see "this section"_#12_2) or one of the following
 cases:
 
 LAMMPS runs in the available memory a processor allows to be
@@ -109,7 +109,7 @@ buffering or boost the sizes of messages that can be buffered.
 
 :line
 
-11.2 Reporting bugs :link(11_2),h4
+12.2 Reporting bugs :link(12_2),h4
 
 If you are confident that you have found a bug in LAMMPS, follow these
 steps.
@@ -139,7 +139,7 @@ As a last resort, you can send an email directly to the
 
 :line
 
-11.3 Error & warning messages :h4,link(11_3)
+12.3 Error & warning messages :h4,link(12_3)
 
 These are two alphabetic lists of the "ERROR"_#error and
 "WARNING"_#warn messages LAMMPS prints out and the reason why.  If the

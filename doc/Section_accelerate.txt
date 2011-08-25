@@ -1,6 +1,6 @@
-"Previous Section"_Section_python.html - "LAMMPS WWW Site"_lws -
+"Previous Section"_Section_packages.html - "LAMMPS WWW Site"_lws -
 "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next
-Section"_Section_errors.html :c
+Section"_Section_howto.html :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
@@ -8,7 +8,7 @@ Section"_Section_errors.html :c
 
 :line
 
-10. Using accelerated CPU and GPU styles :h3
+5. Using accelerated CPU and GPU styles :h3
 
 Accelerated versions of various "pair_style"_pair_style.html,
 "fixes"_fix.html, "computes"_compute.html, and other commands have
@@ -70,16 +70,16 @@ speed-ups you can expect :ul
 The final section compares and contrasts the GPU and USER-CUDA
 packages, since they are both designed to use NVIDIA GPU hardware.
 
-10.1 "OPT package"_#10_1
-10.2 "USER-OMP package"_#10_2
-10.3 "GPU package"_#10_3
-10.4 "USER-CUDA package"_#10_4
-10.5 "Comparison of GPU and USER-CUDA packages"_#10_4 :all(b)
+5.1 "OPT package"_#5_1
+5.2 "USER-OMP package"_#5_2
+5.3 "GPU package"_#5_3
+5.4 "USER-CUDA package"_#5_4
+5.5 "Comparison of GPU and USER-CUDA packages"_#5_4 :all(b)
 
 :line
 :line
 
-10.1 OPT package :h4,link(10_1)
+5.1 OPT package :h4,link(5_1)
 
 The OPT package was developed by James Fischer (High Performance
 Technologies), David Richie, and Vincent Natoli (Stone Ridge
@@ -107,7 +107,7 @@ to 20% savings.
 :line
 :line
 
-10.2 USER-OMP package :h4,link(10_2)
+5.2 USER-OMP package :h4,link(5_2)
 
 This section will be written when the USER-OMP package is released
 in main LAMMPS.
@@ -115,7 +115,7 @@ in main LAMMPS.
 :line
 :line
 
-10.3 GPU package :h4,link(10_3)
+5.3 GPU package :h4,link(5_3)
 
 The GPU package was developed by Mike Brown at ORNL.  It provides GPU
 versions of several pair styles and for long-range Coulombics via the
@@ -256,7 +256,7 @@ requires that your GPU card support double precision.
 :line
 :line
 
-10.4 USER-CUDA package :h4,link(10_4)
+5.4 USER-CUDA package :h4,link(5_4)
 
 The USER-CUDA package was developed by Christian Trott at U Technology
 Ilmenau in Germany.  It provides NVIDIA GPU versions of many pair
@@ -388,7 +388,7 @@ occurs, the faster your simulation will run.
 :line
 :line
 
-10.5 Comparison of GPU and USER-CUDA packages :h4,link(10_5)
+5.5 Comparison of GPU and USER-CUDA packages :h4,link(5_5)
 
 Both the GPU and USER-CUDA packages accelerate a LAMMPS calculation
 using NVIDIA hardware, but they do it in different ways.

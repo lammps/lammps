@@ -11,7 +11,7 @@ Section</A>
 
 <HR>
 
-<H3>8. Modifying & extending LAMMPS 
+<H3>10. Modifying & extending LAMMPS 
 </H3>
 <P>LAMMPS is designed in a modular fashion so as to be easy to modify and
 extend with new functionality.  In fact, about 75% of its source code
@@ -75,28 +75,9 @@ the executable and can be invoked with a pair_style command like the
 example above.  Arguments like 0.1 and 3.5 can be defined and
 processed by your new class.
 </P>
-<P>Here is a list of the new features that can be added in this way,
-along with information about how to submit your features for inclusion
-in the LAMMPS distribution.
-</P>
-<UL><LI><A HREF = "#atom">Atom styles</A>
-<LI><A HREF = "#bond">Bond, angle, dihedral, improper potentials</A>
-<LI><A HREF = "#compute">Compute styles</A>
-<LI><A HREF = "#dump">Dump styles</A>
-<LI><A HREF = "#dump">Dump custom output options</A>
-<LI><A HREF = "#fix">Fix styles</A> which include integrators,      temperature and pressure control, force constraints,      boundary conditions, diagnostic output, etc
-<LI><A HREF = "#command">Input script commands</A>
-<LI><A HREF = "#kspace">Kspace computations</A>
-<LI><A HREF = "#min">Minimization solvers</A>
-<LI><A HREF = "#pair">Pairwise potentials</A>
-<LI><A HREF = "#region">Region styles</A>
-<LI><A HREF = "#thermo">Thermodynamic output options</A>
-<LI><A HREF = "#variable">Variable options</A> 
-</UL>
-<UL><LI><A HREF = "#package">Submitting new features to the developers to include in LAMMPS</A> 
-</UL>
-<P>As illustrated by the pairwise example, these options are referred to
-in the LAMMPS documentation as the "style" of a particular command.
+<P>As illustrated by this pairwise example, many kinds of options are
+referred to in the LAMMPS documentation as the "style" of a particular
+command.
 </P>
 <P>The instructions below give the header file for the base class that
 these styles are derived from.  Public variables in that file are ones
@@ -108,13 +89,9 @@ LAMMPS expects.  Virtual functions that are not set to 0 are functions
 you can optionally define.
 </P>
 <P>Additionally, new output options can be added directly to the
-thermo.cpp, dump_custom.cpp, and variable.cpp files as explained in
-these sections:
+thermo.cpp, dump_custom.cpp, and variable.cpp files as explained
+below.
 </P>
-<UL><LI><A HREF = "#dump_custom">Dump custom output options</A>
-<LI><A HREF = "#thermo">Thermodynamic output options</A>
-<LI><A HREF = "#variable">Variable options</A> 
-</UL>
 <HR>
 
 <P>Here are additional guidelines for modifying LAMMPS and adding new
@@ -136,13 +113,34 @@ command.
 <LI>If you add something you think is truly useful and doesn't impact
 LAMMPS performance when it isn't used, send an email to the
 <A HREF = "http://lammps.sandia.gov/authors.html">developers</A>.  We might be
-interested in adding it to the LAMMPS distribution. 
+interested in adding it to the LAMMPS distribution.  See further
+details on this at the bottom of this page.  
 </UL>
 <HR>
 
+<P>Here are the subsequent topics discussed below, most of which are new
+features that can be added in the manner just described:
+</P>
+10.1 <A HREF = "#10_1">Atom styles</A><BR>
+10.2 <A HREF = "#10_2">Bond, angle, dihedral, improper potentials</A><BR>
+10.3 <A HREF = "#10_3">Compute styles</A><BR>
+10.4 <A HREF = "#10_4">Dump styles</A><BR>
+10.5 <A HREF = "#10_5">Dump custom output options</A><BR>
+10.6 <A HREF = "#10_6">Fix styles</A> which include integrators,      temperature and pressure control, force constraints,      boundary conditions, diagnostic output, etc<BR>
+10.7 <A HREF = "10_7">Input script commands</A><BR>
+10.8 <A HREF = "#10_8">Kspace computations</A><BR>
+10.9 <A HREF = "#10_9">Minimization styles</A><BR>
+10.10 <A HREF = "#10_10">Pairwise potentials</A><BR>
+10.11 <A HREF = "#10_11">Region styles</A><BR>
+10.12 <A HREF = "#10_12">Thermodynamic output options</A><BR>
+10.13 <A HREF = "#10_13">Variable options</A><BR>
+10.14 <A HREF = "#10_14">Submitting new features for inclusion in LAMMPS</A> <BR>
+
 <HR>
 
-<A NAME = "atom"></A><H4>Atom styles 
+<HR>
+
+<A NAME = "10_1"></A><H4>10.1 Atom styles 
 </H4>
 <P>Classes that define an atom style are derived from the Atom class.
 The atom style determines what quantities are associated with an atom.
@@ -192,7 +190,7 @@ modify.
 </P>
 <HR>
 
-<A NAME = "bond"></A><H4>Bond, angle, dihedral, improper potentials 
+<A NAME = "10_2"></A><H4>10.2 Bond, angle, dihedral, improper potentials 
 </H4>
 <P>Classes that compute molecular interactions are derived from the Bond,
 Angle, Dihedral, and Improper classes.  New styles can be created to
@@ -216,7 +214,7 @@ details.
 
 <HR>
 
-<A NAME = "compute"></A><H4>Compute styles 
+<A NAME = "10_3"></A><H4>10.3 Compute styles 
 </H4>
 <P>Classes that compute scalar and vector quantities like temperature
 and the pressure tensor, as well as classes that compute per-atom
@@ -244,9 +242,9 @@ class.  See compute.h for details.
 
 <HR>
 
-<A NAME = "dump"></A><H4>Dump styles 
+<A NAME = "10_4"></A><H4>10.4 Dump styles 
 </H4>
-<A NAME = "dump_custom"></A><H4>Dump custom output options 
+<A NAME = "10_5"></A><H4>10.5 Dump custom output options 
 </H4>
 <P>Classes that dump per-atom info to files are derived from the Dump
 class.  To dump new quantities or in a new format, a new derived dump
@@ -277,7 +275,7 @@ half-dozen or so locations where code will need to be added.
 </P>
 <HR>
 
-<A NAME = "fix"></A><H4>Fix styles 
+<A NAME = "10_6"></A><H4>10.6 Fix styles 
 </H4>
 <P>In LAMMPS, a "fix" is any operation that is computed during
 timestepping that alters some property of the system.  Essentially
@@ -355,7 +353,7 @@ quantities and/or to be summed to the potential energy of the system.
 </P>
 <HR>
 
-<A NAME = "command"></A><H4>Input script commands 
+<A NAME = "10_7"></A><H4>10.7 Input script commands 
 </H4>
 <P>New commands can be added to LAMMPS input scripts by adding new
 classes that have a "command" method.  For example, the create_atoms,
@@ -377,7 +375,7 @@ needed.
 </P>
 <HR>
 
-<A NAME = "kspace"></A><H4>Kspace computations 
+<A NAME = "10_8"></A><H4>10.8 Kspace computations 
 </H4>
 <P>Classes that compute long-range Coulombic interactions via K-space
 representations (Ewald, PPPM) are derived from the KSpace class.  New
@@ -397,7 +395,7 @@ class.  See kspace.h for details.
 
 <HR>
 
-<A NAME = "min"></A><H4>Minimization solvers 
+<A NAME = "10_9"></A><H4>10.9 Minimization styles 
 </H4>
 <P>Classes that perform energy minimization derived from the Min class.
 New styles can be created to add new minimization algorithms to
@@ -416,7 +414,7 @@ class.  See min.h for details.
 
 <HR>
 
-<A NAME = "pair"></A><H4>Pairwise potentials 
+<A NAME = "10_10"></A><H4>10.10 Pairwise potentials 
 </H4>
 <P>Classes that compute pairwise interactions are derived from the Pair
 class.  In LAMMPS, pairwise calculation include manybody potentials
@@ -445,7 +443,7 @@ includes some optional methods to enable its use with rRESPA.
 </P>
 <HR>
 
-<A NAME = "region"></A><H4>Region styles 
+<A NAME = "10_11"></A><H4>10.11 Region styles 
 </H4>
 <P>Classes that define geometric regions are derived from the Region
 class.  Regions are used elsewhere in LAMMPS to group atoms, delete
@@ -463,7 +461,7 @@ class.  See region.h for details.
 
 <HR>
 
-<A NAME = "thermo"></A><H4>Thermodynamic output options 
+<A NAME = "10_12"></A><H4>10.12 Thermodynamic output options 
 </H4>
 <P>There is one class that computes and prints thermodynamic information
 to the screen and log file; see the file thermo.cpp.
@@ -492,7 +490,7 @@ by adding a new keyword to the thermo command.
 </P>
 <HR>
 
-<A NAME = "variable"></A><H4>Variable options 
+<A NAME = "10_13"></A><H4>10.13 Variable options 
 </H4>
 <P>There is one class that computes and stores <A HREF = "variable.html">variable</A>
 information in LAMMPS; see the file variable.cpp.  The value
@@ -532,7 +530,9 @@ then be accessed by variables) was discussed
 </P>
 <HR>
 
-<A NAME = "package"></A><H4>Submitting new features to the developers to include in LAMMPS 
+<HR>
+
+<A NAME = "10_14"></A><H4>10.14 Submitting new features for inclusion in LAMMPS 
 </H4>
 <P>We encourage users to submit new features that they add to LAMMPS to
 <A HREF = "http://lammps.sandia.gov/authors.html">the developers</A>, especially if

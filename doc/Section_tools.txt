@@ -8,7 +8,7 @@ Section"_Section_modify.html :c
 
 :line
 
-7. Additional tools :h3
+9. Additional tools :h3
 
 LAMMPS is designed to be a computational kernel for performing
 molecular dynamics computations.  Additional pre- and post-processing

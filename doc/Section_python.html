@@ -1,5 +1,5 @@
 <HTML>
-<CENTER><A HREF = "Section_modify.html">Previous Section</A> - <A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> - <A HREF = "Section_accelerate.html">Next Section</A> 
+<CENTER><A HREF = "Section_modify.html">Previous Section</A> - <A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> - <A HREF = "Section_errors.html">Next Section</A> 
 </CENTER>
 
 
@@ -9,7 +9,7 @@
 
 <HR>
 
-<H3>9. Python interface to LAMMPS 
+<H3>11. Python interface to LAMMPS 
 </H3>
 <P>The LAMMPS distribution includes some Python code in its python
 directory which wraps the library interface to LAMMPS.  This makes it
@@ -88,13 +88,13 @@ setup discussion.  The next to last sub-section describes the Python
 syntax used to invoke LAMMPS.  The last sub-section describes example
 Python scripts included in the python directory.
 </P>
-<UL><LI><A HREF = "#9_1">Extending Python with a serial version of LAMMPS</A>
-<LI><A HREF = "#9_2">Creating a shared MPI library</A>
-<LI><A HREF = "#9_3">Extending Python with a parallel version of LAMMPS</A>
-<LI><A HREF = "#9_4">Extending Python with MPI</A>
-<LI><A HREF = "#9_5">Testing the Python-LAMMPS interface</A>
-<LI><A HREF = "#9_6">Using LAMMPS from Python</A>
-<LI><A HREF = "#9_7">Example Python scripts that use LAMMPS</A> 
+<UL><LI>11.1 <A HREF = "#11_1">Extending Python with a serial version of LAMMPS</A>
+<LI>11.2 <A HREF = "#11_2">Creating a shared MPI library</A>
+<LI>11.3 <A HREF = "#11_3">Extending Python with a parallel version of LAMMPS</A>
+<LI>11.4 <A HREF = "#11_4">Extending Python with MPI</A>
+<LI>11.5 <A HREF = "#11_5">Testing the Python-LAMMPS interface</A>
+<LI>11.6 <A HREF = "#11_6">Using LAMMPS from Python</A>
+<LI>11.7 <A HREF = "#11_7">Example Python scripts that use LAMMPS</A> 
 </UL>
 <P>Before proceeding, there are 2 items to note.
 </P>
@@ -134,7 +134,7 @@ LAMMPS wrapper.
 
 <HR>
 
-<A NAME = "9_1"></A><H4>Extending Python with a serial version of LAMMPS 
+<A NAME = "11_1"></A><H4>11.1 Extending Python with a serial version of LAMMPS 
 </H4>
 <P>From the python directory in the LAMMPS distribution, type
 </P>
@@ -164,7 +164,7 @@ this, where you should replace "foo" with your directory of choice.
 </P>
 <HR>
 
-<A NAME = "9_2"></A><H4>Creating a shared MPI library 
+<A NAME = "11_2"></A><H4>11.2 Creating a shared MPI library 
 </H4>
 <P>A shared library is one that is dynamically loadable, which is what
 Python requires.  On Linux this is a library file that ends in ".so",
@@ -195,7 +195,7 @@ stand-alone code.
 </P>
 <HR>
 
-<A NAME = "9_3"></A><H4>Extending Python with a parallel version of LAMMPS 
+<A NAME = "11_3"></A><H4>11.3 Extending Python with a parallel version of LAMMPS 
 </H4>
 <P>From the python directory, type
 </P>
@@ -233,7 +233,7 @@ will be put in the appropriate directory.
 </P>
 <HR>
 
-<A NAME = "9_4"></A><H4>Extending Python with MPI 
+<A NAME = "11_4"></A><H4>11.4 Extending Python with MPI 
 </H4>
 <P>There are several Python packages available that purport to wrap MPI
 as a library and allow MPI functions to be called from Python.
@@ -308,7 +308,7 @@ print "Proc %d out of %d procs" % (pypar.rank(),pypar.size())
 </P>
 <HR>
 
-<A NAME = "9_5"></A><H4>Testing the Python-LAMMPS interface 
+<A NAME = "11_5"></A><H4>11.5 Testing the Python-LAMMPS interface 
 </H4>
 <P>Before using LAMMPS in a Python program, one more step is needed.  The
 interface to LAMMPS is via the Python ctypes package, which loads the
@@ -402,7 +402,7 @@ Python on a single processor, not in parallel.
 
 <HR>
 
-<A NAME = "9_6"></A><H4>Using LAMMPS from Python 
+<A NAME = "11_6"></A><H4>11.6 Using LAMMPS from Python 
 </H4>
 <P>The Python interface to LAMMPS consists of a Python "lammps" module,
 the source code for which is in python/lammps.py, which creates a
@@ -594,7 +594,7 @@ Python script.  Isn't ctypes amazing?
 
 <HR>
 
-<A NAME = "9_7"></A><H4>Example Python scripts that use LAMMPS 
+<A NAME = "11_7"></A><H4>11.7 Example Python scripts that use LAMMPS 
 </H4>
 <P>These are the Python scripts included as demos in the python/examples
 directory of the LAMMPS distribution, to illustrate the kinds of

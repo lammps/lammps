@@ -98,9 +98,9 @@ to be defined.
 
 Most dihedral styles are part of the "molecular" package.  They are
 only enabled if LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#2_3 section for more info on packages.  The
-doc pages for individual dihedral potentials tell if it is part of a
-package.
+LAMMPS"_Section_start.html#start_3 section for more info on packages.
+The doc pages for individual dihedral potentials tell if it is part of
+a package.
 
 [Related commands:]
 

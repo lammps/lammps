@@ -11,18 +11,18 @@
 This section describes how to build and run LAMMPS, for both new and
 experienced users.
 
-2.1 "What's in the LAMMPS distribution"_#2_1
-2.2 "Making LAMMPS"_#2_2
-2.3 "Making LAMMPS with optional packages"_#2_3
-2.4 "Building LAMMPS as a library"_#2_4
-2.5 "Running LAMMPS"_#2_5
-2.6 "Command-line options"_#2_6
-2.7 "Screen output"_#2_7
-2.8 "Tips for users of previous versions"_#2_8 :all(b)
+2.1 "What's in the LAMMPS distribution"_#start_1
+2.2 "Making LAMMPS"_#start_2
+2.3 "Making LAMMPS with optional packages"_#start_3
+2.4 "Building LAMMPS as a library"_#start_4
+2.5 "Running LAMMPS"_#start_5
+2.6 "Command-line options"_#start_6
+2.7 "Screen output"_#start_7
+2.8 "Tips for users of previous versions"_#start_8 :all(b)
 
 :line
 
-2.1 What's in the LAMMPS distribution :h4,link(2_1)
+2.1 What's in the LAMMPS distribution :h4,link(start_1)
 
 When you download LAMMPS you will need to unzip and untar the
 downloaded file with the following commands, after placing the file in
@@ -49,8 +49,8 @@ then you just get a single file:
 
 lmp_windows.exe :pre
 
-Skip to the "Running LAMMPS"_#2_5 sections for info on how to launch
-these executables on a Windows box.
+Skip to the "Running LAMMPS"_#start_5 sections for info on how to
+launch these executables on a Windows box.
 
 The Windows executables for serial or parallel only include certain
 packages and bug-fixes/upgrades listed on "this
@@ -62,20 +62,20 @@ as described in the next section.
 
 :line
 
-2.2 Making LAMMPS :h4,link(2_2)
+2.2 Making LAMMPS :h4,link(start_2)
 
 This section has the following sub-sections:
 
-"Read this first"_#2_2_1
-"Steps to build a LAMMPS executable"_#2_2_2
-"Common errors that can occur when making LAMMPS"_#2_2_3
-"Additional build tips"_#2_2_4
-"Building for a Mac"_#2_2_5
-"Building for Windows"_#2_2_6 :ul
+"Read this first"_#start_2_1
+"Steps to build a LAMMPS executable"_#start_2_2
+"Common errors that can occur when making LAMMPS"_#start_2_3
+"Additional build tips"_#start_2_4
+"Building for a Mac"_#start_2_5
+"Building for Windows"_#start_2_6 :ul
 
 :line
 
-[{Read this first:}] :link(2_2_1)
+[{Read this first:}] :link(start_2_1)
 
 Building LAMMPS can be non-trivial.  You may need to edit a makefile,
 there are compiler options to consider, additional libraries can be
@@ -101,7 +101,7 @@ to the developers and we'll include it in future LAMMPS releases.
 
 :line
 
-[{Steps to build a LAMMPS executable:}] :link(2_2_2)
+[{Steps to build a LAMMPS executable:}] :link(start_2_2)
 
 [Step 0]
 
@@ -125,7 +125,7 @@ produced, you're done; it's your lucky day.
 
 Note that by default only a few of LAMMPS optional pacakges are
 installed.  To build LAMMPS with optional packages, see "this
-section"_#2_3 below.
+section"_#start_3 below.
 
 [Step 1]
 
@@ -346,7 +346,7 @@ your machine, you may not need to set these variables.
 
 Note that by default only a few of LAMMPS optional pacakges are
 installed.  To build LAMMPS with optional packages, see "this
-section"_#2_3 below, before proceeding to Step 9.
+section"_#start_3 below, before proceeding to Step 9.
 
 [Step 9]
 
@@ -364,7 +364,7 @@ You should get the executable lmp_foo when the build is complete.
 
 :line
 
-[{Errors that can occur when making LAMMPS:}] :link(2_2_3)
+[{Errors that can occur when making LAMMPS:}] :link(start_2_3)
 
 IMPORTANT NOTE: If an error occurs when building LAMMPS, the compiler
 or linker will state very explicitly what the problem is.  The error
@@ -402,7 +402,7 @@ above in Step 4.
 
 :line
 
-[{Additional build tips:}] :link(2_2_4)
+[{Additional build tips:}] :link(start_2_4)
 
 (1) Building LAMMPS for multiple platforms.
 
@@ -457,18 +457,18 @@ secs/timestep.
 
 :line
 
-[{Building for a Mac:}] :link(2_2_5)
+[{Building for a Mac:}] :link(start_2_5)
 
 OS X is BSD Unix, so it should just work.  See the Makefile.mac file.
 
 :line
 
-[{Building for Windows:}] :link(2_2_6)
+[{Building for Windows:}] :link(start_2_6)
 
 The LAMMPS download page has an option to download both a serial and
-parallel pre-built Windows exeutable.  See the "Running LAMMPS"_#2_5
-section for instructions for running these executables on a Windows
-box.
+parallel pre-built Windows exeutable.  See the "Running
+LAMMPS"_#start_5 section for instructions for running these
+executables on a Windows box.
 
 If the pre-built executable doesn't have the options you want, then
 you can build LAMMPS from its source files on a Windows box.  One way
@@ -493,18 +493,18 @@ and USER-REAXC.  The fourth project includes the USER-AWPMD package.
 
 :line
 
-2.3 Making LAMMPS with optional packages :h4,link(2_3)
+2.3 Making LAMMPS with optional packages :h4,link(start_3)
 
 This section has the following sub-sections:
 
-"Package basics"_#2_3_1
-"Including/excluding packages"_#2_3_2
-"Packages that require extra LAMMPS libraries"_#2_3_3
-"Additional Makefile settings for extra libraries"_#2_3_4 :ul
+"Package basics"_#start_3_1
+"Including/excluding packages"_#start_3_2
+"Packages that require extra LAMMPS libraries"_#start_3_3
+"Additional Makefile settings for extra libraries"_#start_3_4 :ul
 
 :line
 
-[{Package basics:}] :link(2_3_1)
+[{Package basics:}] :link(start_3_1)
 
 The source code for LAMMPS is structured as a set of core files which
 are always included, plus optional packages.  Packages are groups of
@@ -556,7 +556,7 @@ documentation.
 
 :line
 
-[{Including/excluding packages:}] :link(2_3_2)
+[{Including/excluding packages:}] :link(start_3_2)
 
 To use or not use a package you must include or exclude it before
 building LAMMPS.  From the src directory, this is typically as simple
@@ -618,7 +618,7 @@ type "make package" to see all of the package-related make options.
 
 :line
 
-[{Packages that require extra LAMMPS libraries:}] :link(2_3_3)
+[{Packages that require extra LAMMPS libraries:}] :link(start_3_3)
 
 A few of the standard and user packages require additional auxiliary
 libraries be compiled first.  If you get a LAMMPS build error about a
@@ -672,7 +672,7 @@ build will likely fail.
 
 :line
 
-2.4 Building LAMMPS as a library :h4,link(2_4)
+2.4 Building LAMMPS as a library :h4,link(start_4)
 
 LAMMPS itself can be built as a library, which can then be called from
 another application or a scripting language.  See "this
@@ -715,7 +715,7 @@ needs.
 
 :line
 
-2.5 Running LAMMPS :h4,link(2_5)
+2.5 Running LAMMPS :h4,link(start_5)
 
 By default, LAMMPS runs by reading commands from stdin; e.g. lmp_linux
 < in.file.  This means you first create an input script (e.g. in.file)
@@ -822,7 +822,7 @@ more processors or setup a smaller problem.
 
 :line
 
-2.6 Command-line options :h4,link(2_6)
+2.6 Command-line options :h4,link(start_6)
 
 At run time, LAMMPS recognizes several optional command-line switches
 which may be used in any order.  Either the full word or a one-or-two
@@ -851,13 +851,13 @@ Here are the details on the options:
 
 Explicitly enable or disable CUDA support, as provided by the
 USER-CUDA package.  If LAMMPS is built with this package, as described
-above in "Section 2.3"_#2_3, then by default LAMMPS will run in CUDA
-mode.  If this switch is set to "off", then it will not, even if it
-was built with the USER-CUDA package, which means you can run standard
-LAMMPS or with the GPU package for testing or benchmarking purposes.
-The only reason to set the switch to "on", is to check if LAMMPS was
-built with the USER-CUDA package, since an error will be generated if
-it was not.
+above in "Section 2.3"_#start_3, then by default LAMMPS will run in
+CUDA mode.  If this switch is set to "off", then it will not, even if
+it was built with the USER-CUDA package, which means you can run
+standard LAMMPS or with the GPU package for testing or benchmarking
+purposes.  The only reason to set the switch to "on", is to check if
+LAMMPS was built with the USER-CUDA package, since an error will be
+generated if it was not.
 
 -echo style :pre
 
@@ -973,9 +973,10 @@ partition screen files file.N.
 
 Use variants of various styles if they exist.  The specified style can
 be {opt} or {gpu} or {cuda}.  These refer to optional packages that
-LAMMPS can be built with, as described above in "Section 2.3"_#2_3.
-The "opt" style corrsponds to the OPT package, the "gpu" style to the
-GPU package, and the "cuda" style to the USER-CUDA package.
+LAMMPS can be built with, as described above in "Section
+2.3"_#start_3.  The "opt" style corrsponds to the OPT package, the
+"gpu" style to the GPU package, and the "cuda" style to the USER-CUDA
+package.
 
 As an example, all of the packages provide a "pair_style
 lj/cut"_pair_lj.html variant, with style names lj/cut/opt or
@@ -1011,7 +1012,7 @@ input scripts.
 
 :line
 
-2.7 LAMMPS screen output :h4,link(2_7)
+2.7 LAMMPS screen output :h4,link(start_7)
 
 As LAMMPS reads an input script, it prints information to both the
 screen and a log file about significant actions it takes to setup a
@@ -1108,7 +1109,7 @@ communication, roughly 75% in the example above.
 
 :line
 
-2.8 Tips for users of previous LAMMPS versions :h4,link(2_8)
+2.8 Tips for users of previous LAMMPS versions :h4,link(start_8)
 
 The current C++ began with a complete rewrite of LAMMPS 2001, which
 was written in F90.  Features of earlier versions of LAMMPS are listed

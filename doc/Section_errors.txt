@@ -150,7 +150,7 @@ not a bad idea!  Note that sometimes the same message can be printed
 from multiple places in the code.
 
 Also note that error messages from "user-contributed
-packages"_Section_start.html#2_3 are not listed here.  Is such an
+packages"_Section_start.html#start_3 are not listed here.  Is such an
 error occurs and is not self-explanatory, you'll need to look in the
 source code or contact the author of the package.
 

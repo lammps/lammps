@@ -58,13 +58,14 @@ event to occur.
 
 Each replica runs on a partition of one or more processors.  Processor
 partitions are defined at run-time using the -partition command-line
-switch; see "this section"_Section_start.html#2_6 of the manual.  Note
-that if you have MPI installed, you can run a multi-replica simulation
-with more replicas (partitions) than you have physical processors, e.g
-you can run a 10-replica simulation on one or two processors.  For
-PRD, this makes little sense, since this offers no effective parallel
-speed-up in searching for infrequent events. See "this
-section"_Section_howto.html#4_5 of the manual for further discussion.
+switch; see "this section"_Section_start.html#start_6 of the manual.
+Note that if you have MPI installed, you can run a multi-replica
+simulation with more replicas (partitions) than you have physical
+processors, e.g you can run a 10-replica simulation on one or two
+processors.  For PRD, this makes little sense, since this offers no
+effective parallel speed-up in searching for infrequent events. See
+"this section"_Section_howto.html#4_5 of the manual for further
+discussion.
 
 When a PRD simulation is performed, it is assumed that each replica is
 running the same model, though LAMMPS does not check for this.
@@ -257,8 +258,8 @@ value for the first event in the new run will be slightly off.
 [Restrictions:]
 
 This command can only be used if LAMMPS was built with the "replica"
-package.  See the "Making LAMMPS"_Section_start.html#2_3 section for
-more info on packages.
+package.  See the "Making LAMMPS"_Section_start.html#start_3 section
+for more info on packages.
 
 {N} and {t_correlate} settings must be integer multiples of
 {t_event}.

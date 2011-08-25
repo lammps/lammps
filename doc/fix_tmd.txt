@@ -111,8 +111,8 @@ are not multiple competing holonomic constraints applied to the same
 atoms.
 
 To read gzipped target files, you must compile LAMMPS with the
--DLAMMPS_GZIP option - see the "Making LAMMPS"_Section_start.html#2_2
-section of the documentation.
+-DLAMMPS_GZIP option - see the "Making
+LAMMPS"_Section_start.html#start_2 section of the documentation.
 
 [Related commands:] none
 

@@ -638,8 +638,8 @@ Translational velocities can also be set by the
 [Restrictions:]
 
 To read gzipped data files, you must compile LAMMPS with the
--DLAMMPS_GZIP option - see the "Making LAMMPS"_Section_start.html#2_2
-section of the documentation.
+-DLAMMPS_GZIP option - see the "Making
+LAMMPS"_Section_start.html#start_2 section of the documentation.
 
 [Related commands:]
 

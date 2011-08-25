@@ -318,7 +318,7 @@ jump in.polymer
 <P>All of the above examples work whether you are running on 1 or
 multiple processors, but assumed you are running LAMMPS on a single
 partition of processors.  LAMMPS can be run on multiple partitions via
-the "-partition" command-line switch as described in <A HREF = "Section_start.html#2_6">this
+the "-partition" command-line switch as described in <A HREF = "Section_start.html#start_6">this
 section</A> of the manual.
 </P>
 <P>In the last 2 examples, if LAMMPS were run on 3 partitions, the same
@@ -355,12 +355,12 @@ runs different replicas at a series of temperature to facilitate
 rare-event sampling.
 </P>
 <P>These command can only be used if LAMMPS was built with the "replica"
-package.  See the <A HREF = "Section_start.html#2_3">Making LAMMPS</A> section for
-more info on packages.
+package.  See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A> section
+for more info on packages.
 </P>
 <P>In all these cases, you must run with one or more processors per
 replica.  The processors assigned to each replica are determined at
-run-time by using the <A HREF = "Section_start.html#2_6">-partition command-line
+run-time by using the <A HREF = "Section_start.html#start_6">-partition command-line
 switch</A> to launch LAMMPS on multiple
 partitions, which in this context are the same as replicas.  E.g.
 these commands:
@@ -369,8 +369,8 @@ these commands:
 mpirun -np 8 lmp_linux -partition 8x1 -in in.neb 
 </PRE>
 <P>would each run 8 replicas, on either 16 or 8 processors.  Note the use
-of the <A HREF = "Section_start.html#2_6">-in command-line switch</A> to specify the
-input script which is required when running in multi-replica mode.
+of the <A HREF = "Section_start.html#start_6">-in command-line switch</A> to specify
+the input script which is required when running in multi-replica mode.
 </P>
 <P>Also note that with MPI installed on a machine (e.g. your desktop),
 you can run on more (virtual) processors than you have physical
@@ -660,10 +660,10 @@ strain induced across grain boundaries
 
 
 
-<P><A HREF = "Section_start.html#2_4">This section</A> of the documentation describes
-how to build LAMMPS as a library.  Once this is done, you can
-interface with LAMMPS either via C++, C, Fortran, or Python (or any
-other language that supports a vanilla C-like interface).  For
+<P><A HREF = "Section_start.html#start_4">This section</A> of the documentation
+describes how to build LAMMPS as a library.  Once this is done, you
+can interface with LAMMPS either via C++, C, Fortran, or Python (or
+any other language that supports a vanilla C-like interface).  For
 example, from C++ you could create one (or more) "instances" of
 LAMMPS, pass it an input script to process, or execute individual
 commands, all by invoking the correct class methods in LAMMPS.  From C
@@ -1657,10 +1657,10 @@ converge and requires careful post-processing <A HREF = "#Shinoda">(Shinoda)</A>
 
 <A NAME = "6_19"></A><H4>6.19 Library interface to LAMMPS 
 </H4>
-<P>As described in <A HREF = "Section_start.html#2_4">this section</A>, LAMMPS can be
-built as a library, so that it can be called by another code, used in
-a <A HREF = "Section_howto.html#6_10">coupled manner</A> with other codes, or driven
-through a <A HREF = "Section_python.html">Python interface</A>.
+<P>As described in <A HREF = "Section_start.html#start_4">this section</A>, LAMMPS can
+be built as a library, so that it can be called by another code, used
+in a <A HREF = "Section_howto.html#6_10">coupled manner</A> with other codes, or
+driven through a <A HREF = "Section_python.html">Python interface</A>.
 </P>
 <P>All of these methodologies use a C-style interface to LAMMPS that is
 provided in the files src/library.cpp and src/library.h.  The
@@ -1679,11 +1679,12 @@ void lammps_file(void *, char *);
 char *lammps_command(void *, char *); 
 </PRE>
 <P>The lammps_open() function is used to initialize LAMMPS, passing in a
-list of strings as if they were <A HREF = "#2_6">command-line arguments</A> when
-LAMMPS is run in stand-alone mode from the command line, and a MPI
-communicator for LAMMPS to run under.  It returns a ptr to the LAMMPS
-object that is created, and which is used in subsequent library calls.
-The lammps_open() function can be called multiple times, to create
+list of strings as if they were <A HREF = "Section_start.html#start_6">command-line
+arguments</A> when LAMMPS is run in
+stand-alone mode from the command line, and a MPI communicator for
+LAMMPS to run under.  It returns a ptr to the LAMMPS object that is
+created, and which is used in subsequent library calls.  The
+lammps_open() function can be called multiple times, to create
 multiple instances of LAMMPS.
 </P>
 <P>LAMMPS will run on the set of processors in the communicator.  This

@@ -23,13 +23,14 @@ packages.  It can be used to glue multiple pieces of software
 together, e.g. to run a coupled or multiscale model.  See <A HREF = "Section_howto.html#4_10">this
 section</A> of the manual and the couple
 directory of the distribution for more ideas about coupling LAMMPS to
-other codes.  See <A HREF = "Section_start.html#2_4">this section</A> about how to
-build LAMMPS as a library, and <A HREF = "Section_howto.html#4_19">this section</A>
-for a description of the library interface provided in src/library.cpp
-and src/library.h and how to extend it for your needs.  As described
-below, that interface is what is exposed to Python.  It is designed to
-be easy to add functions to.  This has the effect of extending the
-Python inteface as well.  See details below.
+other codes.  See <A HREF = "Section_start.html#start_4">this section</A> about how
+to build LAMMPS as a library, and <A HREF = "Section_howto.html#4_19">this
+section</A> for a description of the library
+interface provided in src/library.cpp and src/library.h and how to
+extend it for your needs.  As described below, that interface is what
+is exposed to Python.  It is designed to be easy to add functions to.
+This has the effect of extending the Python inteface as well.  See
+details below.
 </P>
 <P>By using the Python interface LAMMPS can also be coupled with a GUI or
 visualization tools that display graphs or animations in real time as
@@ -116,7 +117,7 @@ code, you are not building shared versions of these libraries.
 </P>
 <P>The discussion below describes how to create a shared MPI library.  I
 suggest you start by configuing LAMMPS without packages installed that
-require any libraries besides MPI.  See <A HREF = "Section_start.html#2_3">this
+require any libraries besides MPI.  See <A HREF = "Section_start.html#start_3">this
 section</A> of the manual for a discussion of
 LAMMPS pacakges.  E.g. do not use the KSPACE, GPU, MEAM, POEMS, or
 REAX packages.
@@ -578,7 +579,7 @@ following steps:
 src/library.h. 
 
 <LI>Verify the new function is syntactically correct by building LAMMPS as
-a library - see <A HREF = "Section_start.html#2_4">this section</A> of the
+a library - see <A HREF = "Section_start.html#start_4">this section</A> of the
 manual. 
 
 <LI>Add a wrapper method in the Python LAMMPS module to python/lammps.py

@@ -24,12 +24,12 @@ suffix gpu :pre
 
 This command allows you to use variants of various styles if they
 exist.  In that respect it operates the same as the "-suffix
-command-line switch"_Section_start.html#2_6.  It also has options to
-turn off/on any suffix setting made via the command line.
+command-line switch"_Section_start.html#start_6.  It also has options
+to turn off/on any suffix setting made via the command line.
 
 The specified style can be {opt} or {gpu} or {cuda}.  These refer to
 optional packages that LAMMPS can be built with, as described in "this
-section of the manual"_Section_start.html#2_3.  The "opt" style
+section of the manual"_Section_start.html#start_3.  The "opt" style
 corrsponds to the OPT package, the "gpu" style to the GPU package, and
 the "cuda" style to the USER-CUDA package.
 
@@ -64,6 +64,6 @@ commands in your input script.
 
 [Related commands:]
 
-"Command-line switch -suffix"_Section_start.html#2_6
+"Command-line switch -suffix"_Section_start.html#start_6
 
 [Default:] none

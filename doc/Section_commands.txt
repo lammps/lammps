@@ -481,7 +481,8 @@ of each style or click on the style itself for a full description:
 "wall/srd"_fix_wall_srd.html :tb(c=8,ea=c)
 
 These are fix styles contributed by users, which can be used if
-"LAMMPS is built with the appropriate package"_Section_start.html#2_3.
+"LAMMPS is built with the appropriate
+package"_Section_start.html#start_3.
 
 "atc"_fix_atc.html,
 "imd"_fix_imd.html,
@@ -571,7 +572,8 @@ each style or click on the style itself for a full description:
 "ti"_compute_ti.html :tb(c=6,ea=c)
 
 These are compute styles contributed by users, which can be used if
-"LAMMPS is built with the appropriate package"_Section_start.html#2_3.
+"LAMMPS is built with the appropriate
+package"_Section_start.html#start_3.
 
 "ackland/atom"_compute_ackland_atom.html,
 "ke/eff"_compute_ke_eff.html,
@@ -660,7 +662,8 @@ potentials.  Click on the style itself for a full description:
 "yukawa/colloid"_pair_yukawa_colloid.html :tb(c=4,ea=c)
 
 These are pair styles contributed by users, which can be used if
-"LAMMPS is built with the appropriate package"_Section_start.html#2_3.
+"LAMMPS is built with the appropriate
+package"_Section_start.html#start_3.
 
 "awpmd/cut"_pair_awpmd.html,
 "buck/coul"_pair_buck_coul.html,
@@ -747,7 +750,8 @@ potentials.  Click on the style itself for a full description:
 "table"_bond_table.html :tb(c=4,ea=c,w=100)
 
 These are bond styles contributed by users, which can be used if
-"LAMMPS is built with the appropriate package"_Section_start.html#2_3.
+"LAMMPS is built with the appropriate
+package"_Section_start.html#start_3.
 
 "harmonic/shift"_bond_harmonic_shift.html,
 "harmonic/shift/cut"_bond_harmonic_shift_cut.html :tb(c=4,ea=c)
@@ -771,7 +775,8 @@ angle potentials.  Click on the style itself for a full description:
 "table"_angle_table.html :tb(c=4,ea=c,w=100)
 
 These are angle styles contributed by users, which can be used if
-"LAMMPS is built with the appropriate package"_Section_start.html#2_3.
+"LAMMPS is built with the appropriate
+package"_Section_start.html#start_3.
 
 "cg/cmm"_angle_cmm.html,
 "cosine/shift"_angle_cosine_shift.html,
@@ -795,7 +800,8 @@ description:
 "opls"_dihedral_opls.html :tb(c=4,ea=c,w=100)
 
 These are dihedral styles contributed by users, which can be used if
-"LAMMPS is built with the appropriate package"_Section_start.html#2_3.
+"LAMMPS is built with the appropriate
+package"_Section_start.html#start_3.
 
 "cosine/shift/exp"_dihedral_cosine_shift_exp.html :tb(c=4,ea=c)
 
@@ -827,7 +833,8 @@ Kspace solvers.  Click on the style itself for a full description:
 "pppm/tip4p"_kspace_style.html :tb(c=4,ea=c,w=100)
 
 These are Kspace solvers contributed by users, which can be used if
-"LAMMPS is built with the appropriate package"_Section_start.html#2_3.
+"LAMMPS is built with the appropriate
+package"_Section_start.html#start_3.
 
 "ewald/n"_kspace_style.html :tb(c=4,ea=c,w=100)
 

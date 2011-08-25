@@ -35,12 +35,12 @@ replicas (ensembles) of a system.  Two or more replicas must be used.
 </P>
 <P>Each replica runs on a partition of one or more processors.  Processor
 partitions are defined at run-time using the -partition command-line
-switch; see <A HREF = "Section_start.html#2_6">this section</A> of the manual.  Note
-that if you have MPI installed, you can run a multi-replica simulation
-with more replicas (partitions) than you have physical processors, e.g
-you can run a 10-replica simulation on one or two processors.  You
-will simply not get the performance speed-up you would see with one or
-more physical processors per replica.  See <A HREF = "Section_howto.html#4_5">this
+switch; see <A HREF = "Section_start.html#start_6">this section</A> of the manual.
+Note that if you have MPI installed, you can run a multi-replica
+simulation with more replicas (partitions) than you have physical
+processors, e.g you can run a 10-replica simulation on one or two
+processors.  You will simply not get the performance speed-up you
+would see with one or more physical processors per replica.  See <A HREF = "Section_howto.html#4_5">this
 section</A> of the manual for further discussion.
 </P>
 <P>Each replica's temperature is controlled at a different value by a fix
@@ -71,7 +71,7 @@ rejected based on a Boltzmann-weighted Metropolis criterion which uses
 <P>As a tempering run proceeds, multiple log files and screen output
 files are created, one per replica.  By default these files are named
 log.lammps.M and screen.M where M is the replica number from 0 to N-1,
-with N = # of replicas.  See the <A HREF = "Section_start.html#2_6">section on command-line
+with N = # of replicas.  See the <A HREF = "Section_start.html#start_6">section on command-line
 switches</A> for info on how to change these
 names.
 </P>
@@ -124,8 +124,8 @@ example above with $w as the last argument.
 <P><B>Restrictions:</B>
 </P>
 <P>This command can only be used if LAMMPS was built with the "replica"
-package.  See the <A HREF = "Section_start.html#2_3">Making LAMMPS</A> section for
-more info on packages.
+package.  See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A> section
+for more info on packages.
 </P>
 <P><B>Related commands:</B>
 </P>

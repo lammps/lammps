@@ -496,24 +496,25 @@ per-atom quantities which could then be output into dump files.
 [Restrictions:]
 
 To write gzipped dump files, you must compile LAMMPS with the
--DLAMMPS_GZIP option - see the "Making LAMMPS"_Section_start.html#2_2
-section of the documentation.
+-DLAMMPS_GZIP option - see the "Making
+LAMMPS"_Section_start.html#start_2 section of the documentation.
 
 The {xtc} style is part of the "xtc" package.  It is only enabled if
 LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#2_3 section for more info.  This is because
-some machines may not support the low-level XDR data format that XTC
-files are written with, which will result in a compile-time error when
-a low-level include file is not found.  Putting this style in a package
-makes it easy to exclude from a LAMMPS build for those machines.
-However, the XTC package also includes two compatibility header files
-and associated functions, which should be a suitable substitute on
-machines that do not have the appropriate native header files.  This
-option can be invoked at build time by adding -DLAMMPS_XDR to the
-CCFLAGS variable in the appropriate low-level Makefile,
-e.g. src/MAKE/Makefile.foo.  This compatibility mode has been tested
-successfully on Cray XT3/XT4/XT5 and IBM BlueGene/L machines and 
-should also work on IBM BG/P, and Windows XP/Vista/7 machines.
+LAMMPS"_Section_start.html#start_3 section for more info.  This is
+because some machines may not support the low-level XDR data format
+that XTC files are written with, which will result in a compile-time
+error when a low-level include file is not found.  Putting this style
+in a package makes it easy to exclude from a LAMMPS build for those
+machines.  However, the XTC package also includes two compatibility
+header files and associated functions, which should be a suitable
+substitute on machines that do not have the appropriate native header
+files.  This option can be invoked at build time by adding
+-DLAMMPS_XDR to the CCFLAGS variable in the appropriate low-level
+Makefile, e.g. src/MAKE/Makefile.foo.  This compatibility mode has
+been tested successfully on Cray XT3/XT4/XT5 and IBM BlueGene/L
+machines and should also work on IBM BG/P, and Windows XP/Vista/7
+machines.
 
 [Related commands:]
 

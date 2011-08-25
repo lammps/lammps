@@ -36,7 +36,7 @@ style exist in LAMMPS:
 </UL>
 <P>Assuming you have built LAMMPS with the appropriate package, these
 styles can be invoked by specifying them explicitly in your input
-script.  Or you can use the <A HREF = "Section_start.html#2_6">-suffix command-line
+script.  Or you can use the <A HREF = "Section_start.html#start_6">-suffix command-line
 switch</A> to invoke the accelerated versions
 automatically, without changing your input script.  The
 <A HREF = "suffix.html">suffix</A> command allows you to set a suffix explicitly and
@@ -164,10 +164,10 @@ hardware and install specific NVIDIA CUDA software on your system:
 </P>
 <P>As with other packages that include a separately compiled library, you
 need to first build the GPU library, before building LAMMPS itself.
-General instructions for doing this are in <A HREF = "doc/Section_start.html#2_3">this
-section</A> of the manual.  For this package,
-do the following, using a Makefile in lib/gpu appropriate for your
-system:
+General instructions for doing this are in <A HREF = "doc/Section_start.html#start_3">this
+section</A> of the manual.  For this
+package, do the following, using a Makefile in lib/gpu appropriate for
+your system:
 </P>
 <PRE>cd lammps/lib/gpu
 make -f Makefile.linux
@@ -201,7 +201,7 @@ and in many cases it will be more efficient to run this way.
 </P>
 <UL><LI>To invoke specific styles from the GPU package, you can either append
 "gpu" to the style name (e.g. pair_style lj/cut/gpu), or use the
-<A HREF = "Section_start.html#2_6">-suffix command-line switch</A>, or use the
+<A HREF = "Section_start.html#start_6">-suffix command-line switch</A>, or use the
 <A HREF = "suffix.html">suffix</A> command. 
 
 <LI>The <A HREF = "newton.html">newton pair</A> setting must be <I>off</I>. 
@@ -306,10 +306,10 @@ that its sample projects can be compiled without problems.
 </P>
 <P>As with other packages that include a separately compiled library, you
 need to first build the USER-CUDA library, before building LAMMPS
-itself.  General instructions for doing this are in <A HREF = "doc/Section_start.html#2_3">this
-section</A> of the manual.  For this package,
-do the following, using settings in the lib/cuda Makefiles appropriate
-for your system:
+itself.  General instructions for doing this are in <A HREF = "doc/Section_start.html#start_3">this
+section</A> of the manual.  For this
+package, do the following, using settings in the lib/cuda Makefiles
+appropriate for your system:
 </P>
 <UL><LI>Go to the lammps/lib/cuda directory 
 
@@ -363,16 +363,16 @@ suffix are as follows:
 </P>
 <UL><LI>To invoke specific styles from the USER-CUDA package, you can either
 append "cuda" to the style name (e.g. pair_style lj/cut/cuda), or use
-the <A HREF = "Section_start.html#2_6">-suffix command-line switch</A>, or use the
-<A HREF = "suffix.html">suffix</A> command.  One exception is that the <A HREF = "kspace_style.html">kspace_style
-pppm/cuda</A> command has to be requested
+the <A HREF = "Section_start.html#start_6">-suffix command-line switch</A>, or use
+the <A HREF = "suffix.html">suffix</A> command.  One exception is that the
+<A HREF = "kspace_style.html">kspace_style pppm/cuda</A> command has to be requested
 explicitly. 
 
 <LI>To use the USER-CUDA package with its default settings, no additional
 command is needed in your input script.  This is because when LAMMPS
 starts up, it detects if it has been built with the USER-CUDA package.
-See the <A HREF = "Section_start.html#2_6">-cuda command-line switch</A> for more
-details. 
+See the <A HREF = "Section_start.html#start_6">-cuda command-line switch</A> for
+more details. 
 
 <LI>To change settings for the USER-CUDA package at run-time, the <A HREF = "package.html">package
 cuda</A> command can be used near the beginning of your

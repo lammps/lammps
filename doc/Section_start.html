@@ -14,18 +14,18 @@
 <P>This section describes how to build and run LAMMPS, for both new and
 experienced users.
 </P>
-2.1 <A HREF = "#2_1">What's in the LAMMPS distribution</A><BR>
-2.2 <A HREF = "#2_2">Making LAMMPS</A><BR>
-2.3 <A HREF = "#2_3">Making LAMMPS with optional packages</A><BR>
-2.4 <A HREF = "#2_4">Building LAMMPS as a library</A><BR>
-2.5 <A HREF = "#2_5">Running LAMMPS</A><BR>
-2.6 <A HREF = "#2_6">Command-line options</A><BR>
-2.7 <A HREF = "#2_7">Screen output</A><BR>
-2.8 <A HREF = "#2_8">Tips for users of previous versions</A> <BR>
+2.1 <A HREF = "#start_1">What's in the LAMMPS distribution</A><BR>
+2.2 <A HREF = "#start_2">Making LAMMPS</A><BR>
+2.3 <A HREF = "#start_3">Making LAMMPS with optional packages</A><BR>
+2.4 <A HREF = "#start_4">Building LAMMPS as a library</A><BR>
+2.5 <A HREF = "#start_5">Running LAMMPS</A><BR>
+2.6 <A HREF = "#start_6">Command-line options</A><BR>
+2.7 <A HREF = "#start_7">Screen output</A><BR>
+2.8 <A HREF = "#start_8">Tips for users of previous versions</A> <BR>
 
 <HR>
 
-<H4><A NAME = "2_1"></A>2.1 What's in the LAMMPS distribution 
+<H4><A NAME = "start_1"></A>2.1 What's in the LAMMPS distribution 
 </H4>
 <P>When you download LAMMPS you will need to unzip and untar the
 downloaded file with the following commands, after placing the file in
@@ -54,8 +54,8 @@ then you just get a single file:
 </P>
 <PRE>lmp_windows.exe 
 </PRE>
-<P>Skip to the <A HREF = "#2_5">Running LAMMPS</A> sections for info on how to launch
-these executables on a Windows box.
+<P>Skip to the <A HREF = "#start_5">Running LAMMPS</A> sections for info on how to
+launch these executables on a Windows box.
 </P>
 <P>The Windows executables for serial or parallel only include certain
 packages and bug-fixes/upgrades listed on <A HREF = "http://lammps.sandia.gov/bug.html">this
@@ -67,20 +67,20 @@ as described in the next section.
 </P>
 <HR>
 
-<H4><A NAME = "2_2"></A>2.2 Making LAMMPS 
+<H4><A NAME = "start_2"></A>2.2 Making LAMMPS 
 </H4>
 <P>This section has the following sub-sections:
 </P>
-<UL><LI><A HREF = "#2_2_1">Read this first</A>
-<LI><A HREF = "#2_2_2">Steps to build a LAMMPS executable</A>
-<LI><A HREF = "#2_2_3">Common errors that can occur when making LAMMPS</A>
-<LI><A HREF = "#2_2_4">Additional build tips</A>
-<LI><A HREF = "#2_2_5">Building for a Mac</A>
-<LI><A HREF = "#2_2_6">Building for Windows</A> 
+<UL><LI><A HREF = "#start_2_1">Read this first</A>
+<LI><A HREF = "#start_2_2">Steps to build a LAMMPS executable</A>
+<LI><A HREF = "#start_2_3">Common errors that can occur when making LAMMPS</A>
+<LI><A HREF = "#start_2_4">Additional build tips</A>
+<LI><A HREF = "#start_2_5">Building for a Mac</A>
+<LI><A HREF = "#start_2_6">Building for Windows</A> 
 </UL>
 <HR>
 
-<A NAME = "2_2_1"></A><B><I>Read this first:</I></B> 
+<A NAME = "start_2_1"></A><B><I>Read this first:</I></B> 
 
 <P>Building LAMMPS can be non-trivial.  You may need to edit a makefile,
 there are compiler options to consider, additional libraries can be
@@ -106,7 +106,7 @@ to the developers and we'll include it in future LAMMPS releases.
 </P>
 <HR>
 
-<A NAME = "2_2_2"></A><B><I>Steps to build a LAMMPS executable:</I></B> 
+<A NAME = "start_2_2"></A><B><I>Steps to build a LAMMPS executable:</I></B> 
 
 <P><B>Step 0</B>
 </P>
@@ -129,7 +129,7 @@ will build LAMMPS more quickly.
 produced, you're done; it's your lucky day.
 </P>
 <P>Note that by default only a few of LAMMPS optional pacakges are
-installed.  To build LAMMPS with optional packages, see <A HREF = "#2_3">this
+installed.  To build LAMMPS with optional packages, see <A HREF = "#start_3">this
 section</A> below.
 </P>
 <P><B>Step 1</B>
@@ -350,7 +350,7 @@ your machine, you may not need to set these variables.
 <P><B>Step 8</B>
 </P>
 <P>Note that by default only a few of LAMMPS optional pacakges are
-installed.  To build LAMMPS with optional packages, see <A HREF = "#2_3">this
+installed.  To build LAMMPS with optional packages, see <A HREF = "#start_3">this
 section</A> below, before proceeding to Step 9.
 </P>
 <P><B>Step 9</B>
@@ -369,7 +369,7 @@ gmake foo
 </P>
 <HR>
 
-<A NAME = "2_2_3"></A><B><I>Errors that can occur when making LAMMPS:</I></B> 
+<A NAME = "start_2_3"></A><B><I>Errors that can occur when making LAMMPS:</I></B> 
 
 <P>IMPORTANT NOTE: If an error occurs when building LAMMPS, the compiler
 or linker will state very explicitly what the problem is.  The error
@@ -407,7 +407,7 @@ above in Step 4.
 </P>
 <HR>
 
-<A NAME = "2_2_4"></A><B><I>Additional build tips:</I></B> 
+<A NAME = "start_2_4"></A><B><I>Additional build tips:</I></B> 
 
 <P>(1) Building LAMMPS for multiple platforms.
 </P>
@@ -462,18 +462,18 @@ secs/timestep.
 </P>
 <HR>
 
-<A NAME = "2_2_5"></A><B><I>Building for a Mac:</I></B> 
+<A NAME = "start_2_5"></A><B><I>Building for a Mac:</I></B> 
 
 <P>OS X is BSD Unix, so it should just work.  See the Makefile.mac file.
 </P>
 <HR>
 
-<A NAME = "2_2_6"></A><B><I>Building for Windows:</I></B> 
+<A NAME = "start_2_6"></A><B><I>Building for Windows:</I></B> 
 
 <P>The LAMMPS download page has an option to download both a serial and
-parallel pre-built Windows exeutable.  See the <A HREF = "#2_5">Running LAMMPS</A>
-section for instructions for running these executables on a Windows
-box.
+parallel pre-built Windows exeutable.  See the <A HREF = "#start_5">Running
+LAMMPS</A> section for instructions for running these
+executables on a Windows box.
 </P>
 <P>If the pre-built executable doesn't have the options you want, then
 you can build LAMMPS from its source files on a Windows box.  One way
@@ -498,18 +498,18 @@ and USER-REAXC.  The fourth project includes the USER-AWPMD package.
 </P>
 <HR>
 
-<H4><A NAME = "2_3"></A>2.3 Making LAMMPS with optional packages 
+<H4><A NAME = "start_3"></A>2.3 Making LAMMPS with optional packages 
 </H4>
 <P>This section has the following sub-sections:
 </P>
-<UL><LI><A HREF = "#2_3_1">Package basics</A>
-<LI><A HREF = "#2_3_2">Including/excluding packages</A>
-<LI><A HREF = "#2_3_3">Packages that require extra LAMMPS libraries</A>
-<LI><A HREF = "#2_3_4">Additional Makefile settings for extra libraries</A> 
+<UL><LI><A HREF = "#start_3_1">Package basics</A>
+<LI><A HREF = "#start_3_2">Including/excluding packages</A>
+<LI><A HREF = "#start_3_3">Packages that require extra LAMMPS libraries</A>
+<LI><A HREF = "#start_3_4">Additional Makefile settings for extra libraries</A> 
 </UL>
 <HR>
 
-<A NAME = "2_3_1"></A><B><I>Package basics:</I></B> 
+<A NAME = "start_3_1"></A><B><I>Package basics:</I></B> 
 
 <P>The source code for LAMMPS is structured as a set of core files which
 are always included, plus optional packages.  Packages are groups of
@@ -563,7 +563,7 @@ documentation.
 </P>
 <HR>
 
-<A NAME = "2_3_2"></A><B><I>Including/excluding packages:</I></B> 
+<A NAME = "start_3_2"></A><B><I>Including/excluding packages:</I></B> 
 
 <P>To use or not use a package you must include or exclude it before
 building LAMMPS.  From the src directory, this is typically as simple
@@ -625,7 +625,7 @@ type "make package" to see all of the package-related make options.
 </P>
 <HR>
 
-<A NAME = "2_3_3"></A><B><I>Packages that require extra LAMMPS libraries:</I></B> 
+<A NAME = "start_3_3"></A><B><I>Packages that require extra LAMMPS libraries:</I></B> 
 
 <P>A few of the standard and user packages require additional auxiliary
 libraries be compiled first.  If you get a LAMMPS build error about a
@@ -679,7 +679,7 @@ build will likely fail.
 </P>
 <HR>
 
-<H4><A NAME = "2_4"></A>2.4 Building LAMMPS as a library 
+<H4><A NAME = "start_4"></A>2.4 Building LAMMPS as a library 
 </H4>
 <P>LAMMPS itself can be built as a library, which can then be called from
 another application or a scripting language.  See <A HREF = "Section_howto.html#4_10">this
@@ -722,7 +722,7 @@ needs.
 </P>
 <HR>
 
-<H4><A NAME = "2_5"></A>2.5 Running LAMMPS 
+<H4><A NAME = "start_5"></A>2.5 Running LAMMPS 
 </H4>
 <P>By default, LAMMPS runs by reading commands from stdin; e.g. lmp_linux
 < in.file.  This means you first create an input script (e.g. in.file)
@@ -832,7 +832,7 @@ more processors or setup a smaller problem.
 </P>
 <HR>
 
-<H4><A NAME = "2_6"></A>2.6 Command-line options 
+<H4><A NAME = "start_6"></A>2.6 Command-line options 
 </H4>
 <P>At run time, LAMMPS recognizes several optional command-line switches
 which may be used in any order.  Either the full word or a one-or-two
@@ -861,13 +861,13 @@ mpirun -np 16 lmp_ibm -var f tmp.out -log my.log -screen none < in.alloy
 </PRE>
 <P>Explicitly enable or disable CUDA support, as provided by the
 USER-CUDA package.  If LAMMPS is built with this package, as described
-above in <A HREF = "#2_3">Section 2.3</A>, then by default LAMMPS will run in CUDA
-mode.  If this switch is set to "off", then it will not, even if it
-was built with the USER-CUDA package, which means you can run standard
-LAMMPS or with the GPU package for testing or benchmarking purposes.
-The only reason to set the switch to "on", is to check if LAMMPS was
-built with the USER-CUDA package, since an error will be generated if
-it was not.
+above in <A HREF = "#start_3">Section 2.3</A>, then by default LAMMPS will run in
+CUDA mode.  If this switch is set to "off", then it will not, even if
+it was built with the USER-CUDA package, which means you can run
+standard LAMMPS or with the GPU package for testing or benchmarking
+purposes.  The only reason to set the switch to "on", is to check if
+LAMMPS was built with the USER-CUDA package, since an error will be
+generated if it was not.
 </P>
 <PRE>-echo style 
 </PRE>
@@ -983,9 +983,10 @@ partition screen files file.N.
 </PRE>
 <P>Use variants of various styles if they exist.  The specified style can
 be <I>opt</I> or <I>gpu</I> or <I>cuda</I>.  These refer to optional packages that
-LAMMPS can be built with, as described above in <A HREF = "#2_3">Section 2.3</A>.
-The "opt" style corrsponds to the OPT package, the "gpu" style to the
-GPU package, and the "cuda" style to the USER-CUDA package.
+LAMMPS can be built with, as described above in <A HREF = "#start_3">Section
+2.3</A>.  The "opt" style corrsponds to the OPT package, the
+"gpu" style to the GPU package, and the "cuda" style to the USER-CUDA
+package.
 </P>
 <P>As an example, all of the packages provide a <A HREF = "pair_lj.html">pair_style
 lj/cut</A> variant, with style names lj/cut/opt or
@@ -1021,7 +1022,7 @@ input scripts.
 </P>
 <HR>
 
-<H4><A NAME = "2_7"></A>2.7 LAMMPS screen output 
+<H4><A NAME = "start_7"></A>2.7 LAMMPS screen output 
 </H4>
 <P>As LAMMPS reads an input script, it prints information to both the
 screen and a log file about significant actions it takes to setup a
@@ -1118,7 +1119,7 @@ communication, roughly 75% in the example above.
 </P>
 <HR>
 
-<H4><A NAME = "2_8"></A>2.8 Tips for users of previous LAMMPS versions 
+<H4><A NAME = "start_8"></A>2.8 Tips for users of previous LAMMPS versions 
 </H4>
 <P>The current C++ began with a complete rewrite of LAMMPS 2001, which
 was written in F90.  Features of earlier versions of LAMMPS are listed

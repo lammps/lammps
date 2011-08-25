@@ -135,7 +135,7 @@ minimization"_minimize.html.
 
 This fix is part of the "mc" package.  It is only enabled if LAMMPS
 was built with that package.  See the "Making
-LAMMPS"_Section_start.html#2_3 section for more info.
+LAMMPS"_Section_start.html#start_3 section for more info.
 
 Do not set "neigh_modify once yes" or else this fix will never be
 called.  Reneighboring is required.

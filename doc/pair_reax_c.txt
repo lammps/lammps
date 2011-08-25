@@ -241,7 +241,7 @@ This pair style can only be used via the {pair} keyword of the
 
 This pair style is part of the "user-reaxc" package.  It is only
 enabled if LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#2_3 section for more info.
+LAMMPS"_Section_start.html#start_3 section for more info.
 
 The ReaxFF potential files provided with LAMMPS in the potentials
 directory are parameterized for real "units"_units.html.  You can use

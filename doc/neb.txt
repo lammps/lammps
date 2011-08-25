@@ -39,12 +39,12 @@ follows the discussion in these 3 papers: "(Henkelman1)"_#Henkelman1,
 
 Each replica runs on a partition of one or more processors.  Processor
 partitions are defined at run-time using the -partition command-line
-switch; see "this section"_Section_start.html#2_6 of the manual.  Note
-that if you have MPI installed, you can run a multi-replica simulation
-with more replicas (partitions) than you have physical processors, e.g
-you can run a 10-replica simulation on one or two processors.  You
-will simply not get the performance speed-up you would see with one or
-more physical processors per replica.  See "this
+switch; see "this section"_Section_start.html#start_6 of the manual.
+Note that if you have MPI installed, you can run a multi-replica
+simulation with more replicas (partitions) than you have physical
+processors, e.g you can run a 10-replica simulation on one or two
+processors.  You will simply not get the performance speed-up you
+would see with one or more physical processors per replica.  See "this
 section"_Section_howto.html#4_5 of the manual for further discussion.
 
 NOTE: The current NEB implementation in LAMMPS restricts you to having
@@ -300,8 +300,8 @@ image.
 [Restrictions:]
 
 This command can only be used if LAMMPS was built with the "replica"
-package.  See the "Making LAMMPS"_Section_start.html#2_3 section for
-more info on packages.
+package.  See the "Making LAMMPS"_Section_start.html#start_3 section
+for more info on packages.
 
 [Related commands:]
 

@@ -118,7 +118,7 @@ This fix is not invoked during "energy minimization"_minimize.html.
 This fix is part of the "poems" package.  It is only enabled if LAMMPS
 was built with that package, which also requires the POEMS library be
 built and linked with LAMMPS.  See the "Making
-LAMMPS"_Section_start.html#2_3 section for more info.
+LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Related commands:]
 

@@ -123,8 +123,8 @@ is ignored.  This means variables can NOT be re-defined in an input
 script (with 2 exceptions, read further).  This is to allow an input
 script to be processed multiple times without resetting the variables;
 see the "jump"_jump.html or "include"_include.html commands.  It also
-means that using the "command-line switch"_Section_start.html#2_6 -var
-will override a corresponding index variable setting in the input
+means that using the "command-line switch"_Section_start.html#start_6
+-var will override a corresponding index variable setting in the input
 script.
 
 There are two exceptions to this rule.  First, variables of style
@@ -182,7 +182,7 @@ variable.
 
 {Index} style variables with a single string value can also be set by
 using the command-line switch -var; see "this
-section"_Section_start.html#2_6 for details.
+section"_Section_start.html#start_6 for details.
 
 The {loop} style is identical to the {index} style except that the
 strings are the integers from 1 to N inclusive, if only one argument N
@@ -197,7 +197,7 @@ inclusive, and the string N1 is initially assigned to the variable.
 
 For the {world} style, one or more strings are specified.  There must
 be one string for each processor partition or "world".  See "this
-section"_Section_start.html#2_6 of the manual for information on
+section"_Section_start.html#start_6 of the manual for information on
 running LAMMPS with multiple partitions via the "-partition"
 command-line switch.  This variable command assigns one string to each
 world.  All processors in the world are assigned the same string.  The
@@ -210,8 +210,8 @@ different partitions.
 
 For the {universe} style, one or more strings are specified.  There
 must be at least as many strings as there are processor partitions or
-"worlds".  See "this page"_Section_start.html#2_6 for information on
-running LAMMPS with multiple partitions via the "-partition"
+"worlds".  See "this page"_Section_start.html#start_6 for information
+on running LAMMPS with multiple partitions via the "-partition"
 command-line switch.  This variable command initially assigns one
 string to each world.  When a "next"_next.html command is encountered
 using this variable, the first processor partition to encounter it, is

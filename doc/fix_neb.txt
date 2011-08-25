@@ -89,8 +89,8 @@ as invoked by the "minimize"_minimize.html command via the
 [Restrictions:]
 
 This command can only be used if LAMMPS was built with the "replica"
-package.  See the "Making LAMMPS"_Section_start.html#2_3 section for
-more info on packages.
+package.  See the "Making LAMMPS"_Section_start.html#start_3 section
+for more info on packages.
 
 [Related commands:]
 

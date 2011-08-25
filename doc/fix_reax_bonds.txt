@@ -48,7 +48,7 @@ This fix requires that the "pair_style reax"_pair_reax.html be
 invoked.  This fix is part of the "reax" package.  It is only enabled
 if LAMMPS was built with that package, which also requires the REAX
 library be built and linked with LAMMPS.  See the "Making
-LAMMPS"_Section_start.html#2_3 section for more info.
+LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Related commands:]
 

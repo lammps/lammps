@@ -816,7 +816,7 @@ bigint AtomVecAngle::memory_usage()
   if (atom->memcheck("image")) bytes += memory->usage(image,nmax);
   if (atom->memcheck("x")) bytes += memory->usage(x,nmax,3);
   if (atom->memcheck("v")) bytes += memory->usage(v,nmax,3);
-  if (atom->memcheck("f")) bytes += memory->usage(f,nmax,3*comm->nthreads);
+  if (atom->memcheck("f")) bytes += memory->usage(f,nmax*comm->nthreads,3);
 
   if (atom->memcheck("molecule")) bytes += memory->usage(molecule,nmax);
   if (atom->memcheck("nspecial")) bytes += memory->usage(nspecial,nmax,3);

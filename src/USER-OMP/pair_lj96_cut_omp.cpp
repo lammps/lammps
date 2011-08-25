@@ -125,7 +125,7 @@ void PairLJ96CutOMP::eval(double **f, int iifrom, int iito, int tid)
 	r2inv = 1.0/rsq;
 	r6inv = r2inv*r2inv*r2inv;
 	r3inv = sqrt(r6inv);
-	
+
 	forcelj = r6inv * (lj1[itype][jtype]*r3inv - lj2[itype][jtype]);
 	fpair = factor_lj*forcelj*r2inv;
 

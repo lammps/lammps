@@ -5,6 +5,13 @@ at cs.purdue.edu, while at Purdue University.  Contact him directly,
 or Aidan Thompson (Sandia) at athomps at sandia.gov, if you have
 questions.
 
+For technical details about this implemention of ReaxFF, see
+this paper:
+
+Parallel and Scalable Reactive Molecular Dynamics: Numerical Methods
+and Algorithmic Techniques, H. M. Aktulga, J. C. Fogarty,
+S. A. Pandit, A. Y. Grama, Parallel Computing, to appear (2011).
+
 --------------------------------------
 
 Note that the files with names starting with "reaxc" in this package

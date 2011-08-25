@@ -61,8 +61,8 @@ See "compute temp/eff"_compute_temp_eff.html.
 
 This compute calculates a global scalar (the KE).  This value can be
 used by any command that uses a global scalar value from a compute as
-input.  See "this section"_Section_howto.html#4_15 for an overview of
-LAMMPS output options.
+input.  See "this section"_Section_howto.html#howto_15 for an overview
+of LAMMPS output options.
 
 The scalar value calculated by this compute is "extensive".  The
 scalar value will be in energy "units"_units.html.

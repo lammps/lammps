@@ -160,8 +160,8 @@ This compute calculates a global scalar if a single input value is
 specified or a global vector of length N where N is the number of
 inputs, and which can be accessed by indices 1 to N.  These values can
 be used by any command that uses global scalar or vector values from a
-compute as input.  See "this section"_Section_howto.html#4_15 for an
-overview of LAMMPS output options.
+compute as input.  See "this section"_Section_howto.html#howto_15 for
+an overview of LAMMPS output options.
 
 All the scalar or vector values calculated by this compute are
 "intensive", except when the {sum} mode is used on per-atom or local

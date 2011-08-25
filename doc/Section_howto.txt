@@ -11,27 +11,27 @@
 The following sections describe how to use various options within
 LAMMPS.
 
-6.1 "Restarting a simulation"_#6_1
-6.2 "2d simulations"_#6_2
-6.3 "CHARMM, AMBER, and DREIDING force fields"_#6_3
-6.4 "Running multiple simulations from one input script"_#6_4
-6.5 "Multi-replica simulations"_#6_5
-6.6 "Granular models"_#6_6
-6.7 "TIP3P water model"_#6_7
-6.8 "TIP4P water model"_#6_8
-6.9 "SPC water model"_#6_9
-6.10 "Coupling LAMMPS to other codes"_#6_10
-6.11 "Visualizing LAMMPS snapshots"_#6_11
-6.12 "Triclinic (non-orthogonal) simulation boxes"_#6_12
-6.13 "NEMD simulations"_#6_13
-6.14 "Extended spherical and aspherical particles"_#6_14
-6.15 "Output from LAMMPS (thermo, dumps, computes, fixes, variables)"_#6_15
-6.16 "Thermostatting, barostatting and computing temperature"_#6_16
-6.17 "Walls"_#6_17
-6.18 "Elastic constants"_#6_18
-6.19 "Library interface to LAMMPS"_#6_19
-6.20 "Calculating thermal conductivity"_#6_20
-6.21 "Calculating viscosity"_#6_21 :all(b)
+6.1 "Restarting a simulation"_#howto_1
+6.2 "2d simulations"_#howto_2
+6.3 "CHARMM, AMBER, and DREIDING force fields"_#howto_3
+6.4 "Running multiple simulations from one input script"_#howto_4
+6.5 "Multi-replica simulations"_#howto_5
+6.6 "Granular models"_#howto_6
+6.7 "TIP3P water model"_#howto_7
+6.8 "TIP4P water model"_#howto_8
+6.9 "SPC water model"_#howto_9
+6.10 "Coupling LAMMPS to other codes"_#howto_10
+6.11 "Visualizing LAMMPS snapshots"_#howto_11
+6.12 "Triclinic (non-orthogonal) simulation boxes"_#howto_12
+6.13 "NEMD simulations"_#howto_13
+6.14 "Extended spherical and aspherical particles"_#howto_14
+6.15 "Output from LAMMPS (thermo, dumps, computes, fixes, variables)"_#howto_15
+6.16 "Thermostatting, barostatting and computing temperature"_#howto_16
+6.17 "Walls"_#howto_17
+6.18 "Elastic constants"_#howto_18
+6.19 "Library interface to LAMMPS"_#howto_19
+6.20 "Calculating thermal conductivity"_#howto_20
+6.21 "Calculating viscosity"_#howto_21 :all(b)
 
 The example input scripts included in the LAMMPS distribution and
 highlighted in "this section"_Section_example.html also show how to
@@ -39,7 +39,7 @@ setup and run various kinds of simulations.
 
 :line
 
-6.1 Restarting a simulation :link(6_1),h4
+6.1 Restarting a simulation :link(howto_1),h4
 
 There are 3 ways to continue a long LAMMPS simulation.  Multiple
 "run"_run.html commands can be used in the same input script.  Each
@@ -131,7 +131,7 @@ but not in data files.
 
 :line
 
-6.2 2d simulations :link(6_2),h4
+6.2 2d simulations :link(howto_2),h4
 
 Use the "dimension"_dimension.html command to specify a 2d simulation.
 
@@ -166,7 +166,7 @@ the same as in 3d.
 
 :line
 
-6.3 CHARMM, AMBER, and DREIDING force fields :link(6_3),h4
+6.3 CHARMM, AMBER, and DREIDING force fields :link(howto_3),h4
 
 A force field has 2 parts: the formulas that define it and the
 coefficients used for a particular system.  Here we only discuss
@@ -242,7 +242,7 @@ documentation for the formula it computes.
 
 :line
 
-6.4 Running multiple simulations from one input script :link(6_4),h4
+6.4 Running multiple simulations from one input script :link(howto_4),h4
 
 This can be done in several ways.  See the documentation for
 individual commands for more details on how these examples work.
@@ -330,7 +330,7 @@ the 4th simulation, and so forth, until all 8 were completed.
 
 :line
 
-6.5 Multi-replica simulations :link(6_5),h4
+6.5 Multi-replica simulations :link(howto_5),h4
 
 Several commands in LAMMPS run mutli-replica simulations, meaning
 that multiple instances (replicas) of your simulation are run
@@ -377,7 +377,7 @@ physical processors.
 
 :line
 
-6.6 Granular models :link(6_6),h4
+6.6 Granular models :link(howto_6),h4
 
 Granular system are composed of spherical particles with a diameter,
 as opposed to point particles.  This means they have an angular
@@ -395,7 +395,7 @@ This compute
 "compute erotate/sphere"_compute_erotate_sphere.html :ul
 
 calculates rotational kinetic energy which can be "output with
-thermodynamic info"_Section_howto.html#6_15.
+thermodynamic info"_Section_howto.html#howto_15.
 
 Use one of these 3 pair potentials, which compute forces and torques
 between interacting pairs of particles:
@@ -422,7 +422,7 @@ computations between frozen atoms by using this command:
 
 :line
 
-6.7 TIP3P water model :link(6_7),h4
+6.7 TIP3P water model :link(howto_7),h4
 
 The TIP3P water model as implemented in CHARMM
 "(MacKerell)"_#MacKerell specifies a 3-site rigid water molecule with
@@ -482,7 +482,7 @@ models"_http://en.wikipedia.org/wiki/Water_model.
 
 :line
 
-6.8 TIP4P water model :link(6_8),h4
+6.8 TIP4P water model :link(howto_8),h4
 
 The four-point TIP4P rigid water model extends the traditional
 three-point TIP3P model by adding an additional site, usually
@@ -541,7 +541,7 @@ models"_http://en.wikipedia.org/wiki/Water_model.
 
 :line
 
-6.9 SPC water model :link(6_9),h4
+6.9 SPC water model :link(howto_9),h4
 
 The SPC water model specifies a 3-site rigid water molecule with
 charges and Lennard-Jones parameters assigned to each of the 3 atoms.
@@ -586,7 +586,7 @@ models"_http://en.wikipedia.org/wiki/Water_model.
 
 :line 
 
-6.10 Coupling LAMMPS to other codes :link(6_10),h4
+6.10 Coupling LAMMPS to other codes :link(howto_10),h4
 
 LAMMPS is designed to allow it to be coupled to other codes.  For
 example, a quantum mechanics code might compute forces on a subset of
@@ -668,7 +668,7 @@ the Python wrapper provided with LAMMPS that operates through the
 LAMMPS library interface.
 
 The files src/library.cpp and library.h contain the C-style interface
-to LAMMPS.  See "this section"_Section_howto.html#6_19 of the manual
+to LAMMPS.  See "this section"_Section_howto.html#howto_19 of the manual
 for a description of the interface and how to extend it for your
 needs.
 
@@ -685,7 +685,7 @@ instances of LAMMPS to perform different calculations.
 
 :line 
 
-6.11 Visualizing LAMMPS snapshots :link(6_11),h4
+6.11 Visualizing LAMMPS snapshots :link(howto_11),h4
 
 LAMMPS itself does not do visualization, but snapshots from LAMMPS
 simulations can be visualized (and analyzed) in a variety of ways.
@@ -741,7 +741,7 @@ See the "dump"_dump.html command for more information on XTC files.
 
 :line
 
-6.12 Triclinic (non-orthogonal) simulation boxes :link(6_12),h4
+6.12 Triclinic (non-orthogonal) simulation boxes :link(howto_12),h4
 
 By default, LAMMPS uses an orthogonal simulation box to encompass the
 particles.  The "boundary"_boundary.html command sets the boundary
@@ -874,7 +874,7 @@ on non-equilibrium MD (NEMD) simulations.
 
 :line
 
-6.13 NEMD simulations :link(6_13),h4
+6.13 NEMD simulations :link(howto_13),h4
 
 Non-equilibrium molecular dynamics or NEMD simulations are typically
 used to measure a fluid's rheological properties such as viscosity.
@@ -912,7 +912,7 @@ An alternative method for calculating viscosities is provided via the
 
 :line
 
-6.14 Extended spherical and aspherical particles :link(6_14),h4
+6.14 Extended spherical and aspherical particles :link(howto_14),h4
 
 Typical MD models treat atoms or particles as point masses.
 Sometimes, however, it is desirable to have a model with finite-size
@@ -1092,7 +1092,7 @@ particles are point masses.
 
 :line
 
-6.15 Output from LAMMPS (thermo, dumps, computes, fixes, variables) :link(6_15),h4
+6.15 Output from LAMMPS (thermo, dumps, computes, fixes, variables) :link(howto_15),h4
 
 There are four basic kinds of LAMMPS output:
 
@@ -1382,7 +1382,7 @@ Command: Input: Output:
 
 :line
 
-6.16 Thermostatting, barostatting, and computing temperature :link(6_16),h4
+6.16 Thermostatting, barostatting, and computing temperature :link(howto_16),h4
 
 Thermostatting means controlling the temperature of particles in an MD
 simulation.  Barostatting means controlling the pressure.  Since the
@@ -1444,7 +1444,7 @@ thermostatting can be invoked via the {dpd/tstat} pair style:
 particles.  "Fix nvt/sllod"_fix_nvt_sllod.html also does this, except
 that it subtracts out a velocity bias due to a deforming box and
 integrates the SLLOD equations of motion.  See the "NEMD
-simulations"_#6_13 section of this page for further details.  "Fix
+simulations"_#howto_13 section of this page for further details.  "Fix
 nvt/sphere"_fix_nvt_sphere.html and "fix
 nvt/asphere"_fix_nvt_asphere.html thermostat not only translation
 velocities but also rotational velocities for spherical and aspherical
@@ -1533,7 +1533,7 @@ thermodynamic output.
 
 :line
 
-6.17 Walls :link(6_17),h4
+6.17 Walls :link(howto_17),h4
 
 Walls in an MD simulation are typically used to bound particle motion,
 i.e. to serve as a boundary condition.
@@ -1607,7 +1607,7 @@ frictional walls, as well as triangulated surfaces.
 
 :line
 
-6.18 Elastic constants :link(6_18),h4
+6.18 Elastic constants :link(howto_18),h4
 
 Elastic constants characterize the stiffness of a material. The formal
 definition is provided by the linear relation that holds between the
@@ -1643,11 +1643,11 @@ converge and requires careful post-processing "(Shinoda)"_#Shinoda
 
 :line
 
-6.19 Library interface to LAMMPS :link(6_19),h4
+6.19 Library interface to LAMMPS :link(howto_19),h4
 
 As described in "this section"_Section_start.html#start_4, LAMMPS can
 be built as a library, so that it can be called by another code, used
-in a "coupled manner"_Section_howto.html#6_10 with other codes, or
+in a "coupled manner"_Section_howto.html#howto_10 with other codes, or
 driven through a "Python interface"_Section_python.html.
 
 All of these methodologies use a C-style interface to LAMMPS that is
@@ -1724,11 +1724,11 @@ grab data from LAMMPS, change it, and put it back into LAMMPS.
 
 :line
 
-6.20 Calculating thermal conductivity :link(6_20),h4
+6.20 Calculating thermal conductivity :link(howto_20),h4
 
 The thermal conductivity kappa of a material can be measured in at
 least 3 ways using various options in LAMMPS.  (See "this
-section"_Section_howto.html#6_21 of the manual for an analogous
+section"_Section_howto.html#howto_21 of the manual for an analogous
 discussion for viscosity).  The thermal conducitivity tensor kappa is
 a measure of the propensity of a material to transmit heat energy in a
 diffusive manner as given by Fourier's law
@@ -1744,7 +1744,7 @@ scalar.
 The first method is to setup two thermostatted regions at opposite
 ends of a simulation box, or one in the middle and one at the end of a
 periodic box.  By holding the two regions at different temperatures
-with a "thermostatting fix"_Section_howto.html#6_13, the energy added
+with a "thermostatting fix"_Section_howto.html#howto_13, the energy added
 to the hot region should equal the energy subtracted from the cold
 region and be proportional to the heat flux moving between the
 regions.  See the paper by "Ikeshoji and Hafskjold"_#Ikeshoji for
@@ -1789,11 +1789,11 @@ formalism.
 
 :line
 
-6.21 Calculating viscosity :link(6_21),h4
+6.21 Calculating viscosity :link(howto_21),h4
 
 The shear viscosity eta of a fluid can be measured in at least 3 ways
 using various options in LAMMPS.  (See "this
-section"_Section_howto.html#6_20 of the manual for an analogous
+section"_Section_howto.html#howto_20 of the manual for an analogous
 discussion for thermal conductivity).  Eta is a measure of the
 propensity of a fluid to transmit momentum in a direction
 perpendicular to the direction of velocity or momentum flow.
@@ -1819,7 +1819,7 @@ dVx/dy.  In this case, the Pxy off-diagonal component of the pressure
 or stress tensor, as calculated by the "compute
 pressure"_compute_pressure.html command, can also be monitored, which
 is the J term in the equation above.  See "this
-section"_Section_howto.html#6_13 of the manual for details on NEMD
+section"_Section_howto.html#howto_13 of the manual for details on NEMD
 simulations.
 
 The second method is to perform a reverse non-equilibrium MD

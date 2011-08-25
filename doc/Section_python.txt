@@ -18,11 +18,11 @@ either from a Python script or interactively from a Python prompt.
 language which can be used to wrap software like LAMMPS and other
 packages.  It can be used to glue multiple pieces of software
 together, e.g. to run a coupled or multiscale model.  See "this
-section"_Section_howto.html#4_10 of the manual and the couple
+section"_Section_howto.html#howto_10 of the manual and the couple
 directory of the distribution for more ideas about coupling LAMMPS to
 other codes.  See "this section"_Section_start.html#start_4 about how
 to build LAMMPS as a library, and "this
-section"_Section_howto.html#4_19 for a description of the library
+section"_Section_howto.html#howto_19 for a description of the library
 interface provided in src/library.cpp and src/library.h and how to
 extend it for your needs.  As described below, that interface is what
 is exposed to Python.  It is designed to be easy to add functions to.
@@ -86,13 +86,13 @@ setup discussion.  The next to last sub-section describes the Python
 syntax used to invoke LAMMPS.  The last sub-section describes example
 Python scripts included in the python directory.
 
-11.1 "Extending Python with a serial version of LAMMPS"_#11_1
-11.2 "Creating a shared MPI library"_#11_2
-11.3 "Extending Python with a parallel version of LAMMPS"_#11_3
-11.4 "Extending Python with MPI"_#11_4
-11.5 "Testing the Python-LAMMPS interface"_#11_5
-11.6 "Using LAMMPS from Python"_#11_6
-11.7 "Example Python scripts that use LAMMPS"_#11_7 :ul
+11.1 "Extending Python with a serial version of LAMMPS"_#py_1
+11.2 "Creating a shared MPI library"_#py_2
+11.3 "Extending Python with a parallel version of LAMMPS"_#py_3
+11.4 "Extending Python with MPI"_#py_4
+11.5 "Testing the Python-LAMMPS interface"_#py_5
+11.6 "Using LAMMPS from Python"_#py_6
+11.7 "Example Python scripts that use LAMMPS"_#py_7 :ul
 
 Before proceeding, there are 2 items to note.
 
@@ -131,7 +131,7 @@ LAMMPS wrapper.
 :line
 :line
 
-11.1 Extending Python with a serial version of LAMMPS :link(11_1),h4
+11.1 Extending Python with a serial version of LAMMPS :link(py_1),h4
 
 From the python directory in the LAMMPS distribution, type
 
@@ -161,7 +161,7 @@ If these commands are successful, a {lammps.py} and
 
 :line
 
-11.2 Creating a shared MPI library :link(11_2),h4
+11.2 Creating a shared MPI library :link(py_2),h4
 
 A shared library is one that is dynamically loadable, which is what
 Python requires.  On Linux this is a library file that ends in ".so",
@@ -192,7 +192,7 @@ stand-alone code.
 
 :line
 
-11.3 Extending Python with a parallel version of LAMMPS :link(11_3),h4
+11.3 Extending Python with a parallel version of LAMMPS :link(py_3),h4
 
 From the python directory, type
 
@@ -230,7 +230,7 @@ will be put in the appropriate directory.
 
 :line
 
-11.4 Extending Python with MPI :link(11_4),h4
+11.4 Extending Python with MPI :link(py_4),h4
 
 There are several Python packages available that purport to wrap MPI
 as a library and allow MPI functions to be called from Python.
@@ -305,7 +305,7 @@ and see one line of output for each processor you ran on.
 
 :line
 
-11.5 Testing the Python-LAMMPS interface :link(11_5),h4
+11.5 Testing the Python-LAMMPS interface :link(py_5),h4
 
 Before using LAMMPS in a Python program, one more step is needed.  The
 interface to LAMMPS is via the Python ctypes package, which loads the
@@ -398,7 +398,7 @@ Python on a single processor, not in parallel.
 :line
 :line
 
-11.6 Using LAMMPS from Python :link(11_6),h4
+11.6 Using LAMMPS from Python :link(py_6),h4
 
 The Python interface to LAMMPS consists of a Python "lammps" module,
 the source code for which is in python/lammps.py, which creates a
@@ -494,7 +494,7 @@ subscripting.  The one exception is that for a fix that calculates a
 global vector or array, a single double value from the vector or array
 is returned, indexed by I (vector) or I and J (array).  I,J are
 zero-based indices.  The I,J arguments can be left out if not needed.
-See "this section"_Section_howto.html#4_15 of the manual for a
+See "this section"_Section_howto.html#howto_15 of the manual for a
 discussion of global, per-atom, and local data, and of scalar, vector,
 and array data types.  See the doc pages for individual
 "computes"_compute.html and "fixes"_fix.html for a description of what
@@ -589,7 +589,7 @@ Python script.  Isn't ctypes amazing? :l,ule
 :line
 :line
 
-11.7 Example Python scripts that use LAMMPS :link(11_7),h4
+11.7 Example Python scripts that use LAMMPS :link(py_7),h4
 
 These are the Python scripts included as demos in the python/examples
 directory of the LAMMPS distribution, to illustrate the kinds of

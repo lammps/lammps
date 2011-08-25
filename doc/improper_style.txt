@@ -69,7 +69,7 @@ specified by the associated "improper_coeff"_improper_coeff.html command:
 There are also additional improper styles submitted by users which are
 included in the LAMMPS distribution.  The list of these with links to
 the individual styles are given in the improper section of "this
-page"_Section_commands.html#3_5.
+page"_Section_commands.html#cmd_5.
 
 :line
 

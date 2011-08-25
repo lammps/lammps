@@ -80,7 +80,7 @@ specified by the associated "bond_coeff"_bond_coeff.html command:
 There are also additional bond styles submitted by users which are
 included in the LAMMPS distribution.  The list of these with links to
 the individual styles are given in the bond section of "this
-page"_Section_commands.html#3_5.
+page"_Section_commands.html#cmd_5.
 
 :line
 

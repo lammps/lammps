@@ -60,8 +60,8 @@ normally be used on atoms that also have their temperature controlled
 by another fix - e.g. by "fix nvt"_fix_nh.html or "fix
 langevin"_fix_langevin.html commands.
 
-See "this howto section"_Section_howto.html#4_16 of the manual for a
-discussion of different ways to compute temperature and perform
+See "this howto section"_Section_howto.html#howto_16 of the manual for
+a discussion of different ways to compute temperature and perform
 thermostatting.
 
 This fix computes a temperature each timestep.  To do this, the fix
@@ -139,7 +139,7 @@ system's potential energy as part of "thermodynamic
 output"_thermo_style.html.
 
 This fix computes a global scalar which can be accessed by various
-"output commands"_Section_howto.html#4_15.  The scalar is the
+"output commands"_Section_howto.html#howto_15.  The scalar is the
 cummulative energy change due to this fix.  The scalar value
 calculated by this fix is "extensive".
 

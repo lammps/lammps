@@ -173,7 +173,7 @@ meaning of the 6 character flags for "xx yy zz" is the same as above.
 
 Note that the first two numbers on each line are now xlo_bound instead
 of xlo, etc, since they repesent a bounding box.  See "this
-section"_Section_howto.html#4_12 of the doc pages for a geometric
+section"_Section_howto.html#howto_12 of the doc pages for a geometric
 description of triclinic boxes, as defined by LAMMPS, simple formulas
 for how the 6 bounding box extents (xlo_bound,xhi_bound,etc) are
 calculated from the triclinic parameters, and how to transform those

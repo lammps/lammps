@@ -143,9 +143,9 @@ the Boltzmann criterion.
 
 This fix computes two statistical quantities as a global 2-vector of
 output, which can be accessed by various "output
-commands"_Section_howto.html#4_15.  The first component of the vector
-is the cummulative number of swaps performed by all processors.  The
-second component of the vector is the cummulative number of swaps
+commands"_Section_howto.html#howto_15.  The first component of the
+vector is the cummulative number of swaps performed by all processors.
+The second component of the vector is the cummulative number of swaps
 attempted (whether accepted or rejected).  Note that a swap "attempt"
 only occurs when swap partners meeting the criteria described above
 are found on a particular timestep.  The vector values calculated by

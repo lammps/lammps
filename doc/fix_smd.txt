@@ -105,12 +105,12 @@ None of the "fix_modify"_fix_modify.html options are relevant to this
 fix.
 
 This fix computes a vector list of 7 quantities, which can be accessed
-by various "output commands"_Section_howto.html#4_15.  The quantities
-in the vector are in this order: the x-, y-, and z-component of the
-pulling force, the total force in direction of the pull, the
-equilibrium distance of the spring, the distance between the two
-reference points, and finally the accumulated PMF (the sum of pulling
-forces times displacement).
+by various "output commands"_Section_howto.html#howto_15.  The
+quantities in the vector are in this order: the x-, y-, and
+z-component of the pulling force, the total force in direction of the
+pull, the equilibrium distance of the spring, the distance between the
+two reference points, and finally the accumulated PMF (the sum of
+pulling forces times displacement).
 
 The force is the total force on the group of atoms by the spring.  In
 the case of the {couple} style, it is the force on the fix group

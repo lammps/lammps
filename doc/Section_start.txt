@@ -676,8 +676,8 @@ build will likely fail.
 
 LAMMPS itself can be built as a library, which can then be called from
 another application or a scripting language.  See "this
-section"_Section_howto.html#4_10 for more info on coupling LAMMPS to
-other codes.  Building LAMMPS as a library is done by typing
+section"_Section_howto.html#howto_10 for more info on coupling LAMMPS
+to other codes.  Building LAMMPS as a library is done by typing
 
 make makelib
 make -f Makefile.lib foo :pre
@@ -703,15 +703,15 @@ src/library.cpp and src/library.h.
 See the sample codes couple/simple/simple.cpp and simple.c as examples
 of C++ and C codes that invoke LAMMPS thru its library interface.
 There are other examples as well in the couple directory which are
-discussed in "this section"_Section_howto.html#4_10 of the manual.
+discussed in "this section"_Section_howto.html#howto_10 of the manual.
 See "this section"_Section_python.html of the manual for a description
 of the Python wrapper provided with LAMMPS that operates through the
 LAMMPS library interface.
 
 The files src/library.cpp and library.h contain the C-style interface
-to LAMMPS.  See "this section"_Section_howto.html#4_19 of the manual
-for a description of the interface and how to extend it for your
-needs.
+to LAMMPS.  See "this section"_Section_howto.html#howto_19 of the
+manual for a description of the interface and how to extend it for
+your needs.
 
 :line
 
@@ -916,12 +916,12 @@ processors.
 Note that with MPI installed on a machine (e.g. your desktop), you can
 run on more (virtual) processors than you have physical processors.
 This can be useful for running "multi-replica
-simulations"_Section_howto.html#4_5, on one or a few processors.
+simulations"_Section_howto.html#howto_5, on one or a few processors.
 
 The input script specifies what simulation is run on which partition;
 see the "variable"_variable.html and "next"_next.html commands.  This
-"howto section"_Section_howto.html#4_4 gives examples of how to use
-these commands in this way.  Simulations running on different
+"howto section"_Section_howto.html#howto_4 gives examples of how to
+use these commands in this way.  Simulations running on different
 partitions can also communicate with each other; see the
 "temper"_temper.html command.
 
@@ -1007,8 +1007,8 @@ variable as a command-line argument overrides any setting for the same
 index variable in the input script, since index variables cannot be
 re-defined.  See the "variable"_variable.html command for more info on
 defining index and other kinds of variables and "this
-section"_Section_commands.html#3_2 for more info on using variables in
-input scripts.
+section"_Section_commands.html#cmd_2 for more info on using variables
+in input scripts.
 
 :line
 

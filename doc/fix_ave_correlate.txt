@@ -65,7 +65,7 @@ calculate time correlations bewteen them at varying time intervals,
 and average the correlation data over longer timescales.  The
 resulting correlation values can be time integrated by
 "variables"_variable.html or used by other "output
-commands"_Section_howto.html#4_15 such as "thermo_style
+commands"_Section_howto.html#howto_15 such as "thermo_style
 custom"_thermo_style.html, and can also be written to a file.
 
 The group specified with this command is ignored.  However, note that
@@ -274,7 +274,7 @@ files"_restart.html.  None of the "fix_modify"_fix_modify.html options
 are relevant to this fix.
 
 This fix computes a global array of values which can be accessed by
-various "output commands"_Section_howto.html#4_15.  The values can
+various "output commands"_Section_howto.html#howto_15.  The values can
 only be accessed on timesteps that are multiples of {Nfreq} since that
 is when averaging is performed.  The global array has # of rows =
 {Nrepeat} and # of columns = Npair+2.  The first column has the time

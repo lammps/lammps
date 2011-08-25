@@ -64,7 +64,7 @@ simulation with more replicas (partitions) than you have physical
 processors, e.g you can run a 10-replica simulation on one or two
 processors.  For PRD, this makes little sense, since this offers no
 effective parallel speed-up in searching for infrequent events. See
-"this section"_Section_howto.html#4_5 of the manual for further
+"this section"_Section_howto.html#howto_5 of the manual for further
 discussion.
 
 When a PRD simulation is performed, it is assumed that each replica is

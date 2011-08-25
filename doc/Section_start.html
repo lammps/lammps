@@ -682,9 +682,9 @@ build will likely fail.
 <H4><A NAME = "start_4"></A>2.4 Building LAMMPS as a library 
 </H4>
 <P>LAMMPS itself can be built as a library, which can then be called from
-another application or a scripting language.  See <A HREF = "Section_howto.html#4_10">this
-section</A> for more info on coupling LAMMPS to
-other codes.  Building LAMMPS as a library is done by typing
+another application or a scripting language.  See <A HREF = "Section_howto.html#howto_10">this
+section</A> for more info on coupling LAMMPS
+to other codes.  Building LAMMPS as a library is done by typing
 </P>
 <PRE>make makelib
 make -f Makefile.lib foo 
@@ -710,15 +710,15 @@ src/library.cpp and src/library.h.
 <P>See the sample codes couple/simple/simple.cpp and simple.c as examples
 of C++ and C codes that invoke LAMMPS thru its library interface.
 There are other examples as well in the couple directory which are
-discussed in <A HREF = "Section_howto.html#4_10">this section</A> of the manual.
+discussed in <A HREF = "Section_howto.html#howto_10">this section</A> of the manual.
 See <A HREF = "Section_python.html">this section</A> of the manual for a description
 of the Python wrapper provided with LAMMPS that operates through the
 LAMMPS library interface.
 </P>
 <P>The files src/library.cpp and library.h contain the C-style interface
-to LAMMPS.  See <A HREF = "Section_howto.html#4_19">this section</A> of the manual
-for a description of the interface and how to extend it for your
-needs.
+to LAMMPS.  See <A HREF = "Section_howto.html#howto_19">this section</A> of the
+manual for a description of the interface and how to extend it for
+your needs.
 </P>
 <HR>
 
@@ -925,13 +925,13 @@ processors.
 </P>
 <P>Note that with MPI installed on a machine (e.g. your desktop), you can
 run on more (virtual) processors than you have physical processors.
-This can be useful for running <A HREF = "Section_howto.html#4_5">multi-replica
+This can be useful for running <A HREF = "Section_howto.html#howto_5">multi-replica
 simulations</A>, on one or a few processors.
 </P>
 <P>The input script specifies what simulation is run on which partition;
 see the <A HREF = "variable.html">variable</A> and <A HREF = "next.html">next</A> commands.  This
-<A HREF = "Section_howto.html#4_4">howto section</A> gives examples of how to use
-these commands in this way.  Simulations running on different
+<A HREF = "Section_howto.html#howto_4">howto section</A> gives examples of how to
+use these commands in this way.  Simulations running on different
 partitions can also communicate with each other; see the
 <A HREF = "temper.html">temper</A> command.
 </P>
@@ -1016,9 +1016,9 @@ value2 ..."  at the beginning of the input script.  Defining an index
 variable as a command-line argument overrides any setting for the same
 index variable in the input script, since index variables cannot be
 re-defined.  See the <A HREF = "variable.html">variable</A> command for more info on
-defining index and other kinds of variables and <A HREF = "Section_commands.html#3_2">this
-section</A> for more info on using variables in
-input scripts.
+defining index and other kinds of variables and <A HREF = "Section_commands.html#cmd_2">this
+section</A> for more info on using variables
+in input scripts.
 </P>
 <HR>
 

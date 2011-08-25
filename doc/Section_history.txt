@@ -1,4 +1,6 @@
-"Previous Section"_Section_errors.html - "LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next Section"_Manual.html :c
+"Previous Section"_Section_errors.html - "LAMMPS WWW Site"_lws -
+"LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next
+Section"_Manual.html :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
@@ -12,12 +14,12 @@ This section lists features we are planning to add to LAMMPS, features
 of previous versions of LAMMPS, and features of other parallel
 molecular dynamics codes I've distributed.
 
-13.1 "Coming attractions"_#13_1
-13.2 "Past versions"_#13_2 :all(b)
+13.1 "Coming attractions"_#hist_1
+13.2 "Past versions"_#hist_2 :all(b)
 
 :line
 
-13.1 Coming attractions :h4,link(13_1)
+13.1 Coming attractions :h4,link(hist_1)
 
 The current version of LAMMPS incorporates nearly all the features
 from previous parallel MD codes developed at Sandia.  These include
@@ -46,7 +48,7 @@ Direct Simulation Monte Carlo - DSMC :ul
 
 :line
 
-13.2 Past versions :h4,link(13_2)
+13.2 Past versions :h4,link(hist_2)
 
 LAMMPS development began in the mid 1990s under a cooperative research
 & development agreement (CRADA) between two DOE labs (Sandia and LLNL)

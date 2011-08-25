@@ -14,15 +14,15 @@
 <P>This section describes how a LAMMPS input script is formatted and what
 commands are used to define a LAMMPS simulation.
 </P>
-3.1 <A HREF = "#3_1">LAMMPS input script</A><BR>
-3.2 <A HREF = "#3_2">Parsing rules</A><BR>
-3.3 <A HREF = "#3_3">Input script structure</A><BR>
-3.4 <A HREF = "#3_4">Commands listed by category</A><BR>
-3.5 <A HREF = "#3_5">Commands listed alphabetically</A> <BR>
+3.1 <A HREF = "#cmd_1">LAMMPS input script</A><BR>
+3.2 <A HREF = "#cmd_2">Parsing rules</A><BR>
+3.3 <A HREF = "#cmd_3">Input script structure</A><BR>
+3.4 <A HREF = "#cmd_4">Commands listed by category</A><BR>
+3.5 <A HREF = "#cmd_5">Commands listed alphabetically</A> <BR>
 
 <HR>
 
-<A NAME = "3_1"></A><H4>3.1 LAMMPS input script 
+<A NAME = "cmd_1"></A><H4>3.1 LAMMPS input script 
 </H4>
 <P>LAMMPS executes by reading commands from a input script (text file),
 one line at a time.  When the input script ends, LAMMPS exits.  Each
@@ -75,7 +75,7 @@ command lists restrictions on how the command can be used.
 </P>
 <HR>
 
-<A NAME = "3_2"></A><H4>3.2 Parsing rules 
+<A NAME = "cmd_2"></A><H4>3.2 Parsing rules 
 </H4>
 <P>Each non-blank line in the input script is treated as a command.
 LAMMPS commands are case sensitive.  Command names are lower-case, as
@@ -134,7 +134,7 @@ allowed, but that should be sufficient for most use cases.
 </P>
 <HR>
 
-<H4><A NAME = "3_3"></A>3.3 Input script structure 
+<H4><A NAME = "cmd_3"></A>3.3 Input script structure 
 </H4>
 <P>This section describes the structure of a typical LAMMPS input script.
 The "examples" directory in the LAMMPS distribution contains many
@@ -223,11 +223,11 @@ the <A HREF = "minimize.html">minimize</A> command.  A parallel tempering
 </P>
 <HR>
 
-<A NAME = "3_4"></A><H4>3.4 Commands listed by category 
+<A NAME = "cmd_4"></A><H4>3.4 Commands listed by category 
 </H4>
 <P>This section lists all LAMMPS commands, grouped by category.  The
-<A HREF = "#3_5">next section</A> lists the same commands alphabetically.  Note that
-some style options for some commands are part of specific LAMMPS
+<A HREF = "#cmd_5">next section</A> lists the same commands alphabetically.  Note
+that some style options for some commands are part of specific LAMMPS
 packages, which means they cannot be used unless the package was
 included when LAMMPS was built.  Not all packages are included in a
 default LAMMPS build.  These dependencies are listed as Restrictions
@@ -300,12 +300,12 @@ in the command's documentation.
 </P>
 <HR>
 
-<H4><A NAME = "3_5"></A><A NAME = "comm"></A>3.5 Individual commands 
+<H4><A NAME = "cmd_5"></A><A NAME = "comm"></A>3.5 Individual commands 
 </H4>
 <P>This section lists all LAMMPS commands alphabetically, with a separate
-listing below of styles within certain commands.  The <A HREF = "#3_4">previous
-section</A> lists the same commands, grouped by category.  Note that
-some style options for some commands are part of specific LAMMPS
+listing below of styles within certain commands.  The <A HREF = "#cmd_4">previous
+section</A> lists the same commands, grouped by category.  Note
+that some style options for some commands are part of specific LAMMPS
 packages, which means they cannot be used unless the package was
 included when LAMMPS was built.  Not all packages are included in a
 default LAMMPS build.  These dependencies are listed as Restrictions

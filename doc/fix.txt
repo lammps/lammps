@@ -133,7 +133,7 @@ Local values can be reduced by the "compute
 reduce"_compute_reduce.html command, or histogrammed by the "fix
 ave/histo"_fix_ave_histo.html command. :l,ule
 
-See this "howto section"_Section_howto.html#4_15 for a summary of
+See this "howto section"_Section_howto.html#howto_15 for a summary of
 various LAMMPS output options, many of which involve fixes.
 
 The results of fixes that calculate global quantities can be either
@@ -250,12 +250,12 @@ list of fix styles available in LAMMPS:
 There are also additional fix styles submitted by users which are
 included in the LAMMPS distribution.  The list of these with links to
 the individual styles are given in the fix section of "this
-page"_Section_commands.html#3_5.
+page"_Section_commands.html#cmd_5.
 
 There are also additional accelerated fix styles included in the
 LAMMPS distribution for faster performance on CPUs and GPUs.  The list
 of these with links to the individual styles are given in the pair
-section of "this page"_Section_commands.html#3_5.
+section of "this page"_Section_commands.html#cmd_5.
 
 [Restrictions:]
 

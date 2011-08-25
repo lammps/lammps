@@ -115,7 +115,7 @@ None of the "fix_modify"_fix_modify.html options are relevant to this
 fix.
 
 This fix computes a global vector of length 6, which can be accessed
-by various "output commands"_Section_howto.html#4_15.  The vector
+by various "output commands"_Section_howto.html#howto_15.  The vector
 values are the following global cummulative quantities:
 
 1 = displacement attempts

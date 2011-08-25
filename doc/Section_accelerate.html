@@ -58,9 +58,9 @@ The speed-up due to GPU usage depends on a variety of factors, as
 discussed below.
 </P>
 <P>To see what styles are currently available in each of the accelerated
-packages, see <A HREF = "Section_commands.html#3_5">this section</A> of the manual.
-A list of accelerated styles is included in the pair, fix, compute,
-and kspace sections.
+packages, see <A HREF = "Section_commands.html#cmd_5">this section</A> of the
+manual.  A list of accelerated styles is included in the pair, fix,
+compute, and kspace sections.
 </P>
 <P>The following sections explain:
 </P>
@@ -73,17 +73,17 @@ and kspace sections.
 <P>The final section compares and contrasts the GPU and USER-CUDA
 packages, since they are both designed to use NVIDIA GPU hardware.
 </P>
-5.1 <A HREF = "#5_1">OPT package</A><BR>
-5.2 <A HREF = "#5_2">USER-OMP package</A><BR>
-5.3 <A HREF = "#5_3">GPU package</A><BR>
-5.4 <A HREF = "#5_4">USER-CUDA package</A><BR>
-5.5 <A HREF = "#5_4">Comparison of GPU and USER-CUDA packages</A> <BR>
+5.1 <A HREF = "#acc_1">OPT package</A><BR>
+5.2 <A HREF = "#acc_2">USER-OMP package</A><BR>
+5.3 <A HREF = "#acc_3">GPU package</A><BR>
+5.4 <A HREF = "#acc_4">USER-CUDA package</A><BR>
+5.5 <A HREF = "#acc_5">Comparison of GPU and USER-CUDA packages</A> <BR>
 
 <HR>
 
 <HR>
 
-<H4><A NAME = "5_1"></A>5.1 OPT package 
+<H4><A NAME = "acc_1"></A>5.1 OPT package 
 </H4>
 <P>The OPT package was developed by James Fischer (High Performance
 Technologies), David Richie, and Vincent Natoli (Stone Ridge
@@ -112,7 +112,7 @@ to 20% savings.
 
 <HR>
 
-<H4><A NAME = "5_2"></A>5.2 USER-OMP package 
+<H4><A NAME = "acc_2"></A>5.2 USER-OMP package 
 </H4>
 <P>This section will be written when the USER-OMP package is released
 in main LAMMPS.
@@ -121,7 +121,7 @@ in main LAMMPS.
 
 <HR>
 
-<H4><A NAME = "5_3"></A>5.3 GPU package 
+<H4><A NAME = "acc_3"></A>5.3 GPU package 
 </H4>
 <P>The GPU package was developed by Mike Brown at ORNL.  It provides GPU
 versions of several pair styles and for long-range Coulombics via the
@@ -263,7 +263,7 @@ requires that your GPU card support double precision.
 
 <HR>
 
-<H4><A NAME = "5_4"></A>5.4 USER-CUDA package 
+<H4><A NAME = "acc_4"></A>5.4 USER-CUDA package 
 </H4>
 <P>The USER-CUDA package was developed by Christian Trott at U Technology
 Ilmenau in Germany.  It provides NVIDIA GPU versions of many pair
@@ -396,7 +396,7 @@ occurs, the faster your simulation will run.
 
 <HR>
 
-<H4><A NAME = "5_5"></A>5.5 Comparison of GPU and USER-CUDA packages 
+<H4><A NAME = "acc_5"></A>5.5 Comparison of GPU and USER-CUDA packages 
 </H4>
 <P>Both the GPU and USER-CUDA packages accelerate a LAMMPS calculation
 using NVIDIA hardware, but they do it in different ways.

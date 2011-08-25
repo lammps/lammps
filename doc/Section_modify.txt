@@ -118,27 +118,27 @@ details on this at the bottom of this page.  :l,ule
 Here are the subsequent topics discussed below, most of which are new
 features that can be added in the manner just described:
 
-10.1 "Atom styles"_#10_1
-10.2 "Bond, angle, dihedral, improper potentials"_#10_2
-10.3 "Compute styles"_#10_3
-10.4 "Dump styles"_#10_4
-10.5 "Dump custom output options"_#10_5
-10.6 "Fix styles"_#10_6 which include integrators, \
+10.1 "Atom styles"_#mod_1
+10.2 "Bond, angle, dihedral, improper potentials"_#mod_2
+10.3 "Compute styles"_#mod_3
+10.4 "Dump styles"_#mod_4
+10.5 "Dump custom output options"_#mod_5
+10.6 "Fix styles"_#mod_6 which include integrators, \
      temperature and pressure control, force constraints, \
      boundary conditions, diagnostic output, etc
-10.7 "Input script commands"_10_7
-10.8 "Kspace computations"_#10_8
-10.9 "Minimization styles"_#10_9
-10.10 "Pairwise potentials"_#10_10
-10.11 "Region styles"_#10_11
-10.12 "Thermodynamic output options"_#10_12
-10.13 "Variable options"_#10_13
-10.14 "Submitting new features for inclusion in LAMMPS"_#10_14 :all(b)
+10.7 "Input script commands"_mod_7
+10.8 "Kspace computations"_#mod_8
+10.9 "Minimization styles"_#mod_9
+10.10 "Pairwise potentials"_#mod_10
+10.11 "Region styles"_#mod_11
+10.12 "Thermodynamic output options"_#mod_12
+10.13 "Variable options"_#mod_13
+10.14 "Submitting new features for inclusion in LAMMPS"_#mod_14 :all(b)
 
 :line
 :line
 
-10.1 Atom styles :link(10_1),h4
+10.1 Atom styles :link(mod_1),h4
 
 Classes that define an atom style are derived from the Atom class.
 The atom style determines what quantities are associated with an atom.
@@ -186,7 +186,7 @@ modify.
 
 :line
 
-10.2 Bond, angle, dihedral, improper potentials :link(10_2),h4
+10.2 Bond, angle, dihedral, improper potentials :link(mod_2),h4
 
 Classes that compute molecular interactions are derived from the Bond,
 Angle, Dihedral, and Improper classes.  New styles can be created to
@@ -208,7 +208,7 @@ single: force and energy of a single bond :tb(s=:)
 
 :line
 
-10.3 Compute styles :link(10_3),h4
+10.3 Compute styles :link(mod_3),h4
 
 Classes that compute scalar and vector quantities like temperature
 and the pressure tensor, as well as classes that compute per-atom
@@ -234,8 +234,8 @@ memory_usage: tally memory usage :tb(s=:)
 
 :line
 
-10.4 Dump styles :link(10_4),h4
-10.5 Dump custom output options :link(10_5),h4
+10.4 Dump styles :link(mod_4),h4
+10.5 Dump custom output options :link(mod_5),h4
 
 Classes that dump per-atom info to files are derived from the Dump
 class.  To dump new quantities or in a new format, a new derived dump
@@ -264,7 +264,7 @@ half-dozen or so locations where code will need to be added.
 
 :line
 
-10.6 Fix styles :link(10_6),h4
+10.6 Fix styles :link(mod_6),h4
 
 In LAMMPS, a "fix" is any operation that is computed during
 timestepping that alters some property of the system.  Essentially
@@ -340,7 +340,7 @@ quantities and/or to be summed to the potential energy of the system.
 
 :line
 
-10.7 Input script commands :link(10_7),h4
+10.7 Input script commands :link(mod_7),h4
 
 New commands can be added to LAMMPS input scripts by adding new
 classes that have a "command" method.  For example, the create_atoms,
@@ -360,7 +360,7 @@ needed.
 
 :line
 
-10.8 Kspace computations :link(10_8),h4
+10.8 Kspace computations :link(mod_8),h4
 
 Classes that compute long-range Coulombic interactions via K-space
 representations (Ewald, PPPM) are derived from the KSpace class.  New
@@ -378,7 +378,7 @@ memory_usage: tally of memory usage :tb(s=:)
 
 :line
 
-10.9 Minimization styles :link(10_9),h4
+10.9 Minimization styles :link(mod_9),h4
 
 Classes that perform energy minimization derived from the Min class.
 New styles can be created to add new minimization algorithms to
@@ -395,7 +395,7 @@ memory_usage: tally of memory usage :tb(s=:)
 
 :line
 
-10.10 Pairwise potentials :link(10_10),h4
+10.10 Pairwise potentials :link(mod_10),h4
 
 Classes that compute pairwise interactions are derived from the Pair
 class.  In LAMMPS, pairwise calculation include manybody potentials
@@ -422,7 +422,7 @@ The inner/middle/outer routines are optional.
 
 :line
 
-10.11 Region styles :link(10_11),h4
+10.11 Region styles :link(mod_11),h4
 
 Classes that define geometric regions are derived from the Region
 class.  Regions are used elsewhere in LAMMPS to group atoms, delete
@@ -438,7 +438,7 @@ match: determine whether a point is in the region :tb(s=:)
 
 :line
 
-10.12 Thermodynamic output options :link(10_12),h4
+10.12 Thermodynamic output options :link(mod_12),h4
 
 There is one class that computes and prints thermodynamic information
 to the screen and log file; see the file thermo.cpp.
@@ -467,7 +467,7 @@ by adding a new keyword to the thermo command.
 
 :line
 
-10.13 Variable options :link(10_13),h4
+10.13 Variable options :link(mod_13),h4
 
 There is one class that computes and stores "variable"_variable.html
 information in LAMMPS; see the file variable.cpp.  The value
@@ -508,7 +508,7 @@ then be accessed by variables) was discussed
 :line
 :line
 
-10.14 Submitting new features for inclusion in LAMMPS :link(10_14),h4
+10.14 Submitting new features for inclusion in LAMMPS :link(mod_14),h4
 
 We encourage users to submit new features that they add to LAMMPS to
 "the developers"_http://lammps.sandia.gov/authors.html, especially if

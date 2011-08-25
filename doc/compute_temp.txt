@@ -58,8 +58,8 @@ compute thermo_temp all temp :pre
 
 See the "thermo_style" command for more details.
 
-See "this howto section"_Section_howto.html#4_16 of the manual for a
-discussion of different ways to compute temperature and perform
+See "this howto section"_Section_howto.html#howto_16 of the manual for
+a discussion of different ways to compute temperature and perform
 thermostatting.
 
 :line
@@ -91,7 +91,7 @@ This compute calculates a global scalar (the temperature) and a global
 vector of length 6 (KE tensor), which can be accessed by indices 1-6.
 These values can be used by any command that uses global scalar or
 vector values from a compute as input.  See "this
-section"_Section_howto.html#4_15 for an overview of LAMMPS output
+section"_Section_howto.html#howto_15 for an overview of LAMMPS output
 options.
 
 The scalar value calculated by this compute is "intensive".  The

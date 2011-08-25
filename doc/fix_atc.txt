@@ -137,8 +137,8 @@ No information about this fix is written to "binary restart
 files"_restart.html.  The "fix_modify"_fix_modify.html options
 relevant to this fix are listed below.  No global scalar or vector or
 per-atom quantities are stored by this fix for access by various
-"output commands"_Section_howto.html#4_15.  No parameter of this fix
-can be used with the {start/stop} keywords of the "run"_run.html
+"output commands"_Section_howto.html#howto_15.  No parameter of this
+fix can be used with the {start/stop} keywords of the "run"_run.html
 command.  This fix is not invoked during "energy
 minimization"_minimize.html.
 

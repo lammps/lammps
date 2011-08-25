@@ -147,12 +147,12 @@ the pair_style command, and coefficients specified by the associated
 There are also additional pair styles submitted by users which are
 included in the LAMMPS distribution.  The list of these with links to
 the individual styles are given in the pair section of "this
-page"_Section_commands.html#3_5.
+page"_Section_commands.html#cmd_5.
 
 There are also additional accelerated pair styles included in the
 LAMMPS distribution for faster performance on CPUs and GPUs.  The list
 of these with links to the individual styles are given in the pair
-section of "this page"_Section_commands.html#3_5.
+section of "this page"_Section_commands.html#cmd_5.
 
 :line
 

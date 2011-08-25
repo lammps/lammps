@@ -142,7 +142,7 @@ the same thing.
 
 :line
 
-"This section"_Section_commands.html#3_2 of the manual explains how
+"This section"_Section_commands.html#cmd_2 of the manual explains how
 occurrences of a variable name in an input script line are replaced by
 the variable's string.  The variable name can be referenced as $x if
 the name "x" is a single character, or as $\{LoopVar\} if the name
@@ -710,9 +710,9 @@ quotes if it contains variables preceeded by $ signs.  For example,
 variable vratio equal "$\{vfinal\}/$\{v0\}" :pre
 
 This is because the quotes prevent variable substitution (see "this
-section"_Section_commands.html#3_2 on parsing input script commands),
-and thus an error will occur when the formula for "vratio" is
-evaluated later.
+section"_Section_commands.html#cmd_2 on parsing input script
+commands), and thus an error will occur when the formula for "vratio"
+is evaluated later.
 
 :line
 

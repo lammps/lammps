@@ -21,6 +21,7 @@ namespace LAMMPS_NS {
 class Force : protected Pointers {
  public:
   double boltz;                      // Boltzmann constant (eng/degree-K)
+  double hplanck;                    // Planck's constant (energy-time)
   double mvv2e;                      // conversion of mv^2 to energy
   double ftm2v;                      // conversion of ft/m to velocity
   double mv2d;                       // conversion of mass/volume to density

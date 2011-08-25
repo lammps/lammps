@@ -117,6 +117,10 @@ minimization"_minimize.html.
 
 [Restrictions:]
 
+This fix is part of the "mc" package.  It is only enabled if LAMMPS
+was built with that package.  See the "Making
+LAMMPS"_Section_start.html#2_3 section for more info.
+
 Currently, there are 2 restrictions for using this fix.  We may relax
 these in the future if there are new models that would be enabled by
 it.

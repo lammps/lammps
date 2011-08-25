@@ -157,6 +157,10 @@ minimization"_minimize.html.
 
 [Restrictions:]
 
+This fix is part of the "mc" package.  It is only enabled if LAMMPS
+was built with that package.  See the "Making
+LAMMPS"_Section_start.html#2_3 section for more info.
+
 The setings of the "special_bond" command must be 0,1,1 in order to
 use this fix, which is typical of bead-spring chains with FENE or
 harmonic bonds.  This means that pairwise interactions between bonded

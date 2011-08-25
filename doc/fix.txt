@@ -210,6 +210,7 @@ list of fix styles available in LAMMPS:
 "reax/bonds"_fix_reax_bonds.html - write out ReaxFF bond information \
 "recenter"_fix_recenter.html - constrain the center-of-mass position \
   of a group of atoms
+"restrain"_fix_restrain.html - constrain a bond, angle, dihedral
 "rigid"_fix_rigid.html - constrain one or more clusters of atoms to \
      move as a rigid body with NVE integration
 "rigid/nve"_fix_rigid.html - constrain one or more clusters of atoms to \

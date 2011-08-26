@@ -20,6 +20,8 @@
 namespace LAMMPS_NS {
 
 class Dihedral : protected Pointers {
+ friend class ThrOMP;
+
  public:
   int allocated;
   int *setflag;

@@ -49,8 +49,8 @@ internally; hence the units of K are in energy/radian^2.
 [Restrictions:] 
 
 This angle style can only be used if LAMMPS was built with the
-"user-cg-cmm" package.  See the "Making LAMMPS"_Section_start.html#2_3 section 
-for more info on packages.
+"user-cg-cmm" package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info on packages.
 
 [Related commands:]
 

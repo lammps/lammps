@@ -77,7 +77,7 @@ fix 1 all ave/correlate 1 50 10000 &
 calculate time correlations bewteen them at varying time intervals,
 and average the correlation data over longer timescales.  The
 resulting correlation values can be time integrated by
-<A HREF = "variable.html">variables</A> or used by other <A HREF = "Section_howto.html#4_15">output
+<A HREF = "variable.html">variables</A> or used by other <A HREF = "Section_howto.html#howto_15">output
 commands</A> such as <A HREF = "thermo_style.html">thermo_style
 custom</A>, and can also be written to a file.
 </P>
@@ -287,7 +287,7 @@ files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
 are relevant to this fix.
 </P>
 <P>This fix computes a global array of values which can be accessed by
-various <A HREF = "Section_howto.html#4_15">output commands</A>.  The values can
+various <A HREF = "Section_howto.html#howto_15">output commands</A>.  The values can
 only be accessed on timesteps that are multiples of <I>Nfreq</I> since that
 is when averaging is performed.  The global array has # of rows =
 <I>Nrepeat</I> and # of columns = Npair+2.  The first column has the time

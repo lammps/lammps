@@ -28,8 +28,8 @@ compute 1 all property/molecule mol :pre
 
 Define a computation that stores the specified attributes as global
 data so it can be accessed by other "output
-commands"_Section_howto.html#4_15 and used in conjunction with other
-commands that generate per-molecule data, such as "compute
+commands"_Section_howto.html#howto_15 and used in conjunction with
+other commands that generate per-molecule data, such as "compute
 com/molecule"_compute_com_molecule.html and "compute
 msd/molecule"_compute_msd_molecule.html.
 
@@ -55,7 +55,7 @@ specified, a global vector is produced.  If two or more inputs are
 specified, a global array is produced where the number of columns =
 the number of inputs.  The vector or array can be accessed by any
 command that uses global values from a compute as input.  See "this
-section"_Section_howto.html#4_15 for an overview of LAMMPS output
+section"_Section_howto.html#howto_15 for an overview of LAMMPS output
 options.
 
 The vector or array values will be integers that correspond to the

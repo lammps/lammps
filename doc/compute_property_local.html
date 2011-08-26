@@ -49,9 +49,9 @@ compute 1 all property/local atype aatom2
 <P><B>Description:</B>
 </P>
 <P>Define a computation that stores the specified attributes as local
-data so it can be accessed by other <A HREF = "Section_howto.html#4_15">output
-commands</A>.  If the input attributes refer to
-bond information, then the number of datums generated, aggregated
+data so it can be accessed by other <A HREF = "Section_howto.html#howto_15">output
+commands</A>.  If the input attributes refer
+to bond information, then the number of datums generated, aggregated
 across all processors, equals the number of bonds in the system.
 Ditto for pairs, angles, etc.
 </P>
@@ -119,7 +119,7 @@ the array is the number of bonds, angles, etc.  If a single input is
 specified, a local vector is produced.  If two or more inputs are
 specified, a local array is produced where the number of columns = the
 number of inputs.  The vector or array can be accessed by any command
-that uses local values from a compute as input.  See <A HREF = "Section_howto.html#4_15">this
+that uses local values from a compute as input.  See <A HREF = "Section_howto.html#howto_15">this
 section</A> for an overview of LAMMPS output
 options.
 </P>

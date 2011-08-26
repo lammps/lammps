@@ -162,10 +162,10 @@ void PairLJGromacsCoulGromacs::compute(int eflag, int vflag)
 	  } else ecoul = 0.0;
 	  if (rsq < cut_ljsq) {
 	    evdwl = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]);
+	    evdwl += ljsw5[itype][jtype];
             if (rsq > cut_lj_innersq) {
               eswitch = tlj*tlj*tlj * 
-	      (ljsw3[itype][jtype] + ljsw4[itype][jtype]*tlj) +
-	      ljsw5[itype][jtype];
+		(ljsw3[itype][jtype] + ljsw4[itype][jtype]*tlj);
               evdwl += eswitch;
             }
 	    evdwl *= factor_lj;
@@ -474,10 +474,10 @@ double PairLJGromacsCoulGromacs::single(int i, int j, int itype, int jtype,
 
   if (rsq < cut_ljsq) {
     philj = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]);
+    philj += ljsw5[itype][jtype];
     if (rsq > cut_lj_innersq) {
       phiswitch = tlj*tlj*tlj * 
-	(ljsw3[itype][jtype] + ljsw4[itype][jtype]*tlj) +
-	ljsw5[itype][jtype];
+	(ljsw3[itype][jtype] + ljsw4[itype][jtype]*tlj);
       philj += phiswitch;
     }
     eng += factor_lj*philj;

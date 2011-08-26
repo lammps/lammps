@@ -105,7 +105,7 @@ This pair style can only be used via the {pair} keyword of the
 
 This style is part of the "colloid" package.  It is only enabled if
 LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#2_3 section for more info.
+LAMMPS"_Section_start.html#start_3 section for more info.
 
 This pair style requires that atoms be finite-size spheres with a
 diameter, as defined by the "atom_style sphere"_atom_style.html

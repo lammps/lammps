@@ -25,7 +25,7 @@ change_box triclinic :pre
 
 By default LAMMPS runs a simulation in an orthogonal, axis-aligned
 simulation box.  LAMMPS can also run simulations in "non-orthogonal
-(triclinic) simulation boxes"_Section_howto.html#4_12.  A box is
+(triclinic) simulation boxes"_Section_howto.html#howto_12.  A box is
 defined as either orthogonal or non-orthogonal when it is created via
 the "create_box"_create_box.html, "read_data"_read_data.html, or
 "read_restart"_read_restart.html commands.
@@ -34,8 +34,8 @@ This command allows you to toggle the existing simulation box from
 orthogonal to non-orthogonal and vice versa.  For example, an initial
 equilibration simulation can be run in an orthogonal box, the box can
 be toggled to non-orthogonal, and then a "non-equilibrium MD (NEMD)
-simulation"_Section_howto.html#4_13 can be run with deformation via
-the "fix deform"_fix_deform.html command.
+simulation"_Section_howto.html#howto_13 can be run with deformation
+via the "fix deform"_fix_deform.html command.
 
 Note that if the simulation box is currently non-orthogonal and has
 non-zero tilt in xy, yz, or xz, then it cannot be converted to an

@@ -40,51 +40,134 @@ packages, more details are provided.
 <P>The current list of standard packages is as follows:
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >
-<TR><TD >ASPHERE </TD><TD > aspherical particles and force fields</TD></TR>
-<TR><TD >CLASS2 </TD><TD > class 2 force fields</TD></TR>
-<TR><TD >COLLOID </TD><TD > colloidal particle force fields</TD></TR>
-<TR><TD >DIPOLE </TD><TD > point dipole particles and force fields</TD></TR>
-<TR><TD >GPU </TD><TD > GPU-enabled force field styles</TD></TR>
-<TR><TD >GRANULAR </TD><TD > force fields and boundary conditions for granular systems</TD></TR>
-<TR><TD >KSPACE </TD><TD > long-range Ewald and particle-mesh (PPPM) solvers</TD></TR>
-<TR><TD >MANYBODY </TD><TD > metal, 3-body, bond-order potentials</TD></TR>
-<TR><TD >MEAM </TD><TD > modified embedded atom method (MEAM) potential</TD></TR>
-<TR><TD >MC </TD><TD > Monte Carlo options</TD></TR>
-<TR><TD >MOLECULE </TD><TD > force fields for molecular systems</TD></TR>
-<TR><TD >OPT </TD><TD > optimized versions of a few pair potentials</TD></TR>
-<TR><TD >PERI </TD><TD > Peridynamics model and potential</TD></TR>
-<TR><TD >POEMS </TD><TD > coupled rigid body motion</TD></TR>
-<TR><TD >REAX </TD><TD > ReaxFF potential</TD></TR>
-<TR><TD >REPLICA </TD><TD > multi-replica methods</TD></TR>
-<TR><TD >SHOCK </TD><TD > methods for MD simulations of shock loading</TD></TR>
-<TR><TD >SRD </TD><TD > stochastic rotation dynamics (SRD)</TD></TR>
-<TR><TD >XTC </TD><TD > dump atom snapshots in XTC format</TD></TR>
-<TR><TD >
+<TR ALIGN="center"><TD >Package</TD><TD > Description</TD><TD > Author(s)</TD><TD > Doc page</TD><TD > Example</TD><TD > Library</TD></TR>
+<TR ALIGN="center"><TD >ASPHERE</TD><TD > aspherical particles</TD><TD > -</TD><TD > <A HREF = "Section_howto.html#howto_14">howto</A></TD><TD > ellipse</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >CLASS2</TD><TD > class 2 force fields</TD><TD > -</TD><TD > <A HREF = "pair_class2.html">pair_style lj/class2</A></TD><TD > -</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >COLLOID</TD><TD > colloidal particles</TD><TD > -</TD><TD > <A HREF = "atom_style.html">atom_style colloid</A></TD><TD > colloid</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >DIPOLE</TD><TD > point dipole particles</TD><TD > -</TD><TD > <A HREF = "pair_dipole.html">pair_style dipole/cut</A></TD><TD > dipole</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >GPU</TD><TD > GPU-enabled potentials</TD><TD > Mike Brown (ORNL)</TD><TD > <A HREF = "Section_accelerate.html#acc_3">accelerate</A></TD><TD > gpu</TD><TD > lib/gpu</TD></TR>
+<TR ALIGN="center"><TD >GRANULAR</TD><TD > granular systems</TD><TD > -</TD><TD > <A HREF = "Section_howto.html#howto_6">howto</A></TD><TD > pour</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >KSPACE</TD><TD > long-range Coulombic solvers</TD><TD > -</TD><TD > <A HREF = "kspace_style.html">kspace_style</A></TD><TD > peptide</TD><TD > fft</TD></TR>
+<TR ALIGN="center"><TD >MANYBODY</TD><TD > many-body potentials</TD><TD > -</TD><TD > <A HREF = "pair_tersoff.html">pair_style tersoff</A></TD><TD > shear</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >MEAM</TD><TD > modified EAM potential</TD><TD > Greg Wagner (Sandia)</TD><TD > <A HREF = "pair_meam.html">pair_style meam</A></TD><TD > meam</TD><TD > lib/meam</TD></TR>
+<TR ALIGN="center"><TD >MC</TD><TD > Monte Carlo options</TD><TD > -</TD><TD > <A HREF = "fix_gcmc.html">fix gcmc</A></TD><TD > -</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >MOLECULE</TD><TD > molecular system force fields</TD><TD > -</TD><TD > <A HREF = "Section_howto.html#howto_3">howto</A></TD><TD > peptide</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >OPT</TD><TD > optimized pair potentials</TD><TD > Fischer & Richie & Natoli (1)</TD><TD > <A HREF = "Section_accelerate.html#acc_1">howto</A></TD><TD > -</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >PERI</TD><TD > Peridynamics models</TD><TD > Mike Parks (Sandia)</TD><TD > <A HREF = "pair_peri.html">pair_style peri</A></TD><TD > peri</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >POEMS</TD><TD > coupled rigid body motion</TD><TD > Rudra Mukherjee (JPL)</TD><TD > <A HREF = "fix_poems.html">fix poems</A></TD><TD > rigid</TD><TD > lib/poems</TD></TR>
+<TR ALIGN="center"><TD >REAX</TD><TD > ReaxFF potential</TD><TD > Aidan Thompson (Sandia)</TD><TD > <A HREF = "pair_reax.html">pair_style reax</A></TD><TD > reax</TD><TD >  lib/reax</TD></TR>
+<TR ALIGN="center"><TD >REPLICA</TD><TD > multi-replica methods</TD><TD > -</TD><TD > <A HREF = "Section_howto.html#howto_5">howto</A></TD><TD > tad</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >SHOCK</TD><TD > shock loading methods</TD><TD > -</TD><TD > <A HREF = "fix_msst.html">fix msst</A></TD><TD > -</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >SRD</TD><TD > stochastic rotation dynamics</TD><TD > -</TD><TD > <A HREF = "fix_srd.html">fix srd</A></TD><TD > srd</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >XTC</TD><TD > dumps in XTC format</TD><TD > -</TD><TD > <A HREF = "dump.html">dump</A></TD><TD > -</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >
 </TD></TR></TABLE></DIV>
 
+<P>The "Authors" column lists a name(s) if a specific person is
+responible for creating and maintaining the package.
+</P>
+<P>(1) The OPT package was created by James Fischer (High Performance
+Technologies), David Richie, and Vincent Natoli (Stone Ridge
+Technolgy).
+</P>
+<P>The "Doc page" column links to either a portion of the
+<A HREF = "Section_howto.html">Section_howto</A> of the manual, or an input script
+command implemented as part of the package.
+</P>
+<P>The "Example" column is a sub-directory in the examples directory of
+the distribution which has an input script that uses the package.
+E.g. "peptide" refers to the examples/peptide directory.
+</P>
+<P>The "Library" column lists an external library which must be built
+first and which LAMMPS links to when it is built.  These are in the
+lib directory of the distribution, except for "fft" which means LAMMPS
+must be built with an external 1d FFT library, such as
+<A HREF = "http://www.fftw.org">FFTW</A>.  <A HREF = "Section_start.html#start_3_3">This
+section</A> of the manual gives details on
+the 2-step build process with external libraries.
+</P>
 <HR>
 
 <HR>
 
 <H4><A NAME = "pkg_2"></A>4.2 User packages 
 </H4>
-<P>NOTE: More details need to be added to this section
-</P>
-<P>brief paragraph description, author, email, links
-to pics/movies page
-</P>
 <P>The current list of user-contributed packages is as follows:
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >
-<TR><TD >USER-MISC </TD><TD > collection of individual style files</TD></TR>
-<TR><TD >USER-ATC </TD><TD > AtC atom-to-continuum package</TD></TR>
-<TR><TD >USER-AWPMD </TD><TD > wave-packet MD</TD></TR>
-<TR><TD >USER-CG-CMM </TD><TD > coarse-graining</TD></TR>
-<TR><TD >USER-CUDA </TD><TD > NVIDIA GPU styles</TD></TR>
-<TR><TD >USER-EFF </TD><TD > eFF electron force field</TD></TR>
-<TR><TD >USER-EWALDN </TD><TD > enhanced Ewald</TD></TR>
-<TR><TD >USER-REAXC </TD><TD > C-version of ReaxFF</TD></TR>
-<TR><TD >
+<TR ALIGN="center"><TD >Package</TD><TD > Description</TD><TD > Authors</TD><TD > Doc page</TD><TD > Example</TD><TD > Pic/movie</TD><TD > Library</TD></TR>
+<TR ALIGN="center"><TD >USER-MISC</TD><TD > single-file contributions</TD><TD > USER-MISC/README</TD><TD > -</TD><TD > -</TD><TD > -</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >USER-ATC</TD><TD > atom-to-continuum coupling</TD><TD > Jones & Zimmerman & Templeton (2)</TD><TD > <A HREF = "fix_atc.html">fix atc</A> & USER/atc</TD><TD > USER/atc</TD><TD > <A HREF = "http://lammps.sandia.gov/pictures.html#atc">atc</A></TD><TD > lib/atc</TD></TR>
+<TR ALIGN="center"><TD >USER-AWPMD</TD><TD > wave-packet MD</TD><TD > Ilya Valuev (JIHT)</TD><TD > <A HREF = "pair_awpmd.html">pair_style awpmd/cut</A></TD><TD > USER/awpmd</TD><TD > -</TD><TD > lib/awpmd</TD></TR>
+<TR ALIGN="center"><TD >USER-CG-CMM</TD><TD > coarse-graining model</TD><TD > Axel Kohlmeyer (Temple U)</TD><TD > <A HREF = "pair_cmm.html">pair_style cg/cmm</A></TD><TD > USER/cg-cmm</TD><TD > <A HREF = "http://lammps.sandia.gov/pictures.html#cg">cg</A></TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >USER-CUDA</TD><TD > NVIDIA GPU styles</TD><TD > Christian Trott (U Tech Ilmenau)</TD><TD > <A HREF = "Section_accelerate.html#acc_4">accelerate</A></TD><TD > USER/cuda</TD><TD > -</TD><TD > lib/cuda</TD></TR>
+<TR ALIGN="center"><TD >USER-EFF</TD><TD > electron force field</TD><TD > Andres Jaramillo-Botero (Caltech)</TD><TD > <A HREF = "pair_eff.html">pair_style eff/cut</A></TD><TD > USER/eff</TD><TD > <A HREF = "http://lammps.sandia.gov/movies.html#eff">eff</A></TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >USER-EWALDN</TD><TD > Ewald for 1/R^n</TD><TD > Pieter in' t Veld (BASF)</TD><TD > <A HREF = "kspace_style.html">kspace_style</A></TD><TD > -</TD><TD > -</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >USER-REAXC</TD><TD > C version of ReaxFF</TD><TD > Metin Aktulga (LBNL)</TD><TD > <A HREF = "pair_reax_c.html">pair_style reaxc</A></TD><TD > reax</TD><TD > -</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >
 </TD></TR></TABLE></DIV>
 
+
+
+
+
+
+
+<P>The "Authors" column lists a name(s) if a specific person is
+responible for creating and maintaining the package.
+</P>
+<P>(2) The ATC package was created by Reese Jones, Jon Zimmerman, and
+Jeremy Templeton (Sandia).
+</P>
+<P>The "Doc page" column links to either a portion of the
+<A HREF = "Section_howto.html">Section_howto</A> of the manual, or an input script
+command implemented as part of the package.  In some cases, additional
+documentation is in a sub-directory of doc/USER, e.g. doc/USER/atc.
+</P>
+<P>The "Example" column is a sub-directory in the examples directory of
+the distribution which has an input script that uses the package.
+E.g. "peptide" refers to the examples/peptide directory.  USER/cuda
+refers to the examples/USER/cuda directory.
+</P>
+<P>The "Library" column lists an external library which must be built
+first and which LAMMPS links to when it is built.  These are in the
+lib directory of the distribution.  <A HREF = "Section_start.html#start_3_3">This
+section</A> of the manual gives details on
+the 2-step build process with external libraries.
+</P>
+<P>More details on each package, from the USER-blah/README file
+is given below.
+</P>
+<HR>
+
+<H4>USER-MISC package 
+</H4>
+<HR>
+
+<H4>USER-ATC package 
+</H4>
+<HR>
+
+<H4>USER-AWPMD package 
+</H4>
+<HR>
+
+<H4>USER-CG-CMM package 
+</H4>
+<HR>
+
+<H4>USER-CUDA package 
+</H4>
+<HR>
+
+<H4>USER-EFF package 
+</H4>
+<HR>
+
+<H4>USER-EWALDN package 
+</H4>
+<HR>
+
+<H4>USER-REAXC package 
+</H4>
 </HTML>

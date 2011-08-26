@@ -35,45 +35,127 @@ packages, more details are provided.
 
 The current list of standard packages is as follows:
 
-ASPHERE : aspherical particles and force fields
-CLASS2 : class 2 force fields
-COLLOID : colloidal particle force fields
-DIPOLE : point dipole particles and force fields
-GPU : GPU-enabled force field styles
-GRANULAR : force fields and boundary conditions for granular systems
-KSPACE : long-range Ewald and particle-mesh (PPPM) solvers
-MANYBODY : metal, 3-body, bond-order potentials
-MEAM : modified embedded atom method (MEAM) potential
-MC : Monte Carlo options
-MOLECULE : force fields for molecular systems
-OPT : optimized versions of a few pair potentials
-PERI : Peridynamics model and potential
-POEMS : coupled rigid body motion
-REAX : ReaxFF potential
-REPLICA : multi-replica methods
-SHOCK : methods for MD simulations of shock loading
-SRD : stochastic rotation dynamics (SRD)
-XTC : dump atom snapshots in XTC format
-:tb(s=:)
+Package, Description, Author(s), Doc page, Example, Library
+ASPHERE, aspherical particles, -, "howto"_Section_howto.html#howto_14, ellipse, -
+CLASS2, class 2 force fields, -, "pair_style lj/class2"_pair_class2.html, -, -
+COLLOID, colloidal particles, -, "atom_style colloid"_atom_style.html, colloid, -
+DIPOLE, point dipole particles, -, "pair_style dipole/cut"_pair_dipole.html, dipole, -
+GPU, GPU-enabled potentials, Mike Brown (ORNL), "accelerate"_Section_accelerate.html#acc_3, gpu, lib/gpu
+GRANULAR, granular systems, -, "howto"_Section_howto.html#howto_6, pour, -
+KSPACE, long-range Coulombic solvers, -, "kspace_style"_kspace_style.html, peptide, fft
+MANYBODY, many-body potentials, -, "pair_style tersoff"_pair_tersoff.html, shear, -
+MEAM, modified EAM potential, Greg Wagner (Sandia), "pair_style meam"_pair_meam.html, meam, lib/meam
+MC, Monte Carlo options, -, "fix gcmc"_fix_gcmc.html, -, -
+MOLECULE, molecular system force fields, -, "howto"_Section_howto.html#howto_3, peptide, -
+OPT, optimized pair potentials, Fischer & Richie & Natoli (1), "howto"_Section_accelerate.html#acc_1, -, -
+PERI, Peridynamics models, Mike Parks (Sandia), "pair_style peri"_pair_peri.html, peri, -
+POEMS, coupled rigid body motion, Rudra Mukherjee (JPL), "fix poems"_fix_poems.html, rigid, lib/poems
+REAX, ReaxFF potential, Aidan Thompson (Sandia), "pair_style reax"_pair_reax.html, reax,  lib/reax
+REPLICA, multi-replica methods, -, "howto"_Section_howto.html#howto_5, tad, -
+SHOCK, shock loading methods, -, "fix msst"_fix_msst.html, -, -
+SRD, stochastic rotation dynamics, -, "fix srd"_fix_srd.html, srd, -
+XTC, dumps in XTC format, -, "dump"_dump.html, -, -
+:tb(ea=c)
+
+The "Authors" column lists a name(s) if a specific person is
+responible for creating and maintaining the package.
+
+(1) The OPT package was created by James Fischer (High Performance
+Technologies), David Richie, and Vincent Natoli (Stone Ridge
+Technolgy).
+
+The "Doc page" column links to either a portion of the
+"Section_howto"_Section_howto.html of the manual, or an input script
+command implemented as part of the package.
+
+The "Example" column is a sub-directory in the examples directory of
+the distribution which has an input script that uses the package.
+E.g. "peptide" refers to the examples/peptide directory.
+
+The "Library" column lists an external library which must be built
+first and which LAMMPS links to when it is built.  These are in the
+lib directory of the distribution, except for "fft" which means LAMMPS
+must be built with an external 1d FFT library, such as
+"FFTW"_http://www.fftw.org.  "This
+section"_Section_start.html#start_3_3 of the manual gives details on
+the 2-step build process with external libraries.
 
 :line
 :line
 
 4.2 User packages :h4,link(pkg_2)
 
-NOTE: More details need to be added to this section
-
-brief paragraph description, author, email, links
-to pics/movies page
-
 The current list of user-contributed packages is as follows:
 
-USER-MISC : collection of individual style files
-USER-ATC : AtC atom-to-continuum package
-USER-AWPMD : wave-packet MD
-USER-CG-CMM : coarse-graining
-USER-CUDA : NVIDIA GPU styles
-USER-EFF : eFF electron force field
-USER-EWALDN : enhanced Ewald
-USER-REAXC : C-version of ReaxFF
-:tb(s=:)
+Package, Description, Authors, Doc page, Example, Pic/movie, Library
+USER-MISC, single-file contributions, USER-MISC/README, -, -, -, -
+USER-ATC, atom-to-continuum coupling, Jones & Zimmerman & Templeton (2), "fix atc"_fix_atc.html & USER/atc, USER/atc, "atc"_atc, lib/atc
+USER-AWPMD, wave-packet MD, Ilya Valuev (JIHT), "pair_style awpmd/cut"_pair_awpmd.html, USER/awpmd, -, lib/awpmd
+USER-CG-CMM, coarse-graining model, Axel Kohlmeyer (Temple U), "pair_style cg/cmm"_pair_cmm.html, USER/cg-cmm, "cg"_cg, -
+USER-CUDA, NVIDIA GPU styles, Christian Trott (U Tech Ilmenau), "accelerate"_Section_accelerate.html#acc_4, USER/cuda, -, lib/cuda
+USER-EFF, electron force field, Andres Jaramillo-Botero (Caltech), "pair_style eff/cut"_pair_eff.html, USER/eff, "eff"_eff, -
+USER-EWALDN, Ewald for 1/R^n, Pieter in' t Veld (BASF), "kspace_style"_kspace_style.html, -, -, -
+USER-REAXC, C version of ReaxFF, Metin Aktulga (LBNL), "pair_style reaxc"_pair_reax_c.html, reax, -, -
+:tb(ea=c)
+
+:link(atc,http://lammps.sandia.gov/pictures.html#atc)
+:link(cg,http://lammps.sandia.gov/pictures.html#cg)
+:link(eff,http://lammps.sandia.gov/movies.html#eff)
+
+The "Authors" column lists a name(s) if a specific person is
+responible for creating and maintaining the package.
+
+(2) The ATC package was created by Reese Jones, Jon Zimmerman, and
+Jeremy Templeton (Sandia).
+
+The "Doc page" column links to either a portion of the
+"Section_howto"_Section_howto.html of the manual, or an input script
+command implemented as part of the package.  In some cases, additional
+documentation is in a sub-directory of doc/USER, e.g. doc/USER/atc.
+
+The "Example" column is a sub-directory in the examples directory of
+the distribution which has an input script that uses the package.
+E.g. "peptide" refers to the examples/peptide directory.  USER/cuda
+refers to the examples/USER/cuda directory.
+
+The "Library" column lists an external library which must be built
+first and which LAMMPS links to when it is built.  These are in the
+lib directory of the distribution.  "This
+section"_Section_start.html#start_3_3 of the manual gives details on
+the 2-step build process with external libraries.
+
+More details on each package, from the USER-blah/README file
+is given below.
+
+:line
+
+USER-MISC package :h4
+
+:line
+
+USER-ATC package :h4
+
+:line
+
+USER-AWPMD package :h4
+
+:line
+
+USER-CG-CMM package :h4
+
+:line
+
+USER-CUDA package :h4
+
+:line
+
+USER-EFF package :h4
+
+:line
+
+USER-EWALDN package :h4
+
+:line
+
+USER-REAXC package :h4
+

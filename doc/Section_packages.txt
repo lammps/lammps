@@ -1,0 +1,79 @@
+"Previous Section"_Section_commands.html - "LAMMPS WWW Site"_lws -
+"LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next
+Section"_Section_accelerate.html :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+4. Packages :h3
+
+LAMMPS includes many optional packages, which are groups of files that
+enable a specific set of features.  For example, force fields for
+molecular systems or granular systems are in packages.  You can see
+the list of all packages by typing "make package" from within the src
+directory of the LAMMPS distribution.
+
+See "this section"_Section_start.html#start_3 of the manual for
+details on how to include/exclude specific packages as part of the
+LAMMPS build process, and for more details about the differences
+between standard packages and user packages in LAMMPS.
+
+Below, the packages currently availabe in LAMMPS are listed.  For
+standard packages, just a one-line description is given.  For user
+packages, more details are provided.
+
+4.1 "Standard packages"_#pkg_1
+4.2 "User packages"_#pkg_2 :all(b)
+
+:line
+:line
+
+4.1 Standard packages :h4,link(pkg_1)
+
+The current list of standard packages is as follows:
+
+asphere : aspherical particles and force fields
+class2 : class 2 force fields
+colloid : colloidal particle force fields
+dipole : point dipole particles and force fields
+gpu : GPU-enabled force field styles
+granular : force fields and boundary conditions for granular systems
+kspace : long-range Ewald and particle-mesh (PPPM) solvers
+manybody : metal, 3-body, bond-order potentials
+meam : modified embedded atom method (MEAM) potential
+mc : Monte Carlo options
+molecule : force fields for molecular systems
+opt : optimized versions of a few pair potentials
+peri : Peridynamics model and potential
+poems : coupled rigid body motion
+reax : ReaxFF potential
+replica : multi-replica methods
+shock : methods for MD simulations of shock loading
+srd : stochastic rotation dynamics (SRD)
+xtc : dump atom snapshots in XTC format
+:tb(s=:)
+
+:line
+:line
+
+4.2 User packages :h4,link(pkg_2)
+
+NOTE: More details need to be added to this section
+
+brief paragraph description, author, email, links
+to pics/movies page
+
+The current list of user-contributed packages is as follows:
+
+USER-MISC : collection of individual style files
+USER-ATC : AtC atom-to-continuum package
+USER-AWPMD : wave-packet MD
+USER-CG-CMM : coarse-graining
+USER-CUDA : NVIDIA GPU styles
+USER-EFF : eFF electron force field
+USER-EWALDN : enhanced Ewald
+USER-REAXC : C-version of ReaxFF
+:tb(s=:)

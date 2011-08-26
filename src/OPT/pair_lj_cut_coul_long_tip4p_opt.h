@@ -37,6 +37,7 @@ class PairLJCutCoulLongTIP4POpt : public PairLJCutCoulLongTIP4P {
   int maxmpos;        // size of the following arrays
   int *h1idx, *h2idx; // local index of hydrogen atoms
   double **mpos;      // coordinates corrected for m-shift.
+  void find_M_permissive(int, int &, int &, double *);
 
   template < const int, const int, const int, const int, const int >
   void eval();

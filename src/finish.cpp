@@ -46,7 +46,7 @@ void Finish::end(int flag)
   int histo[10];
   int loopflag,minflag,prdflag,tadflag,timeflag,fftflag,histoflag,neighflag;
   double time,tmp,ave,max,min;
-  double time_loop,time_other;
+  double time_loop,time_other,time_cpu;
 
   int me,nprocs;
   MPI_Comm_rank(world,&me);
@@ -73,12 +73,13 @@ void Finish::end(int flag)
   // loop stats
 
   if (loopflag) {
-    time_other = timer->array[TIME_LOOP] -
-      (timer->array[TIME_PAIR] + timer->array[TIME_BOND] + 
-       timer->array[TIME_KSPACE] + timer->array[TIME_NEIGHBOR] +
-       timer->array[TIME_COMM] + timer->array[TIME_OUTPUT]);
+    time_other = timer->get_wall(Timer::LOOP) -
+      (timer->get_wall(Timer::PAIR) + timer->get_wall(Timer::BOND) + 
+       timer->get_wall(Timer::KSPACE) + timer->get_wall(Timer::NEIGHBOR) +
+       timer->get_wall(Timer::COMM) + timer->get_wall(Timer::OUTPUT) +
+       timer->get_wall(Timer::MODIFY));
     
-    time_loop = timer->array[TIME_LOOP];
+    time_loop = timer->get_wall(Timer::LOOP);
     MPI_Allreduce(&time_loop,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time_loop = tmp/nprocs;
 
@@ -177,7 +178,7 @@ void Finish::end(int flag)
     if (screen) fprintf(screen,"PRD stats:\n");
     if (logfile) fprintf(logfile,"PRD stats:\n");
 
-    time = timer->array[TIME_PAIR];
+    time = timer->get_wall(Timer::PAIR);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
     if (me == 0) {
@@ -189,7 +190,7 @@ void Finish::end(int flag)
 		time,time/time_loop*100.0);
     }
 
-    time = timer->array[TIME_BOND];
+    time = timer->get_wall(Timer::BOND);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
     if (me == 0) {
@@ -201,7 +202,7 @@ void Finish::end(int flag)
 		time,time/time_loop*100.0);
     }
 
-    time = timer->array[TIME_KSPACE];
+    time = timer->get_wall(Timer::KSPACE);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
     if (me == 0) {
@@ -237,7 +238,7 @@ void Finish::end(int flag)
     if (screen) fprintf(screen,"TAD stats:\n");
     if (logfile) fprintf(logfile,"TAD stats:\n");
 
-    time = timer->array[TIME_PAIR];
+    time = timer->get_wall(Timer::PAIR);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
     if (me == 0) {
@@ -249,7 +250,7 @@ void Finish::end(int flag)
 		time,time/time_loop*100.0);
     }
 
-    time = timer->array[TIME_BOND];
+    time = timer->get_wall(Timer::BOND);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
     if (me == 0) {
@@ -261,7 +262,7 @@ void Finish::end(int flag)
 		time,time/time_loop*100.0);
     }
 
-    time = timer->array[TIME_KSPACE];
+    time = timer->get_wall(Timer::KSPACE);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
     if (me == 0) {
@@ -274,7 +275,7 @@ void Finish::end(int flag)
     }
 
 
-    time = timer->array[TIME_COMM];
+    time = timer->get_wall(Timer::COMM);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
     if (me == 0) {
@@ -287,7 +288,7 @@ void Finish::end(int flag)
     }
 
 
-    time = timer->array[TIME_OUTPUT];
+    time = timer->get_wall(Timer::OUTPUT);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
     if (me == 0) {
@@ -320,9 +321,22 @@ void Finish::end(int flag)
       if (logfile) fprintf(logfile,"\n");
     }
 
-    time = timer->array[TIME_PAIR];
+    time = timer->get_wall(Timer::PAIR);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
+#if defined(_OPENMP)
+    time_cpu = timer->get_cpu(Timer::PAIR);
+    MPI_Allreduce(&time_cpu,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+    time_cpu = tmp/nprocs;
+    if (me == 0) {
+      if (screen) 
+	fprintf(screen,"Pair  time (%%) = %g (%g)  (%%CPU = %g)\n",
+		time,time/time_loop*100.0,time_cpu/time*100.0);
+      if (logfile) 
+	fprintf(logfile,"Pair  time (%%) = %g (%g)  (%%CPU = %g)\n",
+		time,time/time_loop*100.0,time_cpu/time*100.0);
+    }
+#else
     if (me == 0) {
       if (screen) 
 	fprintf(screen,"Pair  time (%%) = %g (%g)\n",
@@ -331,9 +345,10 @@ void Finish::end(int flag)
 	fprintf(logfile,"Pair  time (%%) = %g (%g)\n",
 		time,time/time_loop*100.0);
     }
+#endif
 
     if (atom->molecular) {
-      time = timer->array[TIME_BOND];
+      time = timer->get_wall(Timer::BOND);
       MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
       time = tmp/nprocs;
       if (me == 0) {
@@ -347,7 +362,7 @@ void Finish::end(int flag)
     }
     
     if (force->kspace) {
-      time = timer->array[TIME_KSPACE];
+      time = timer->get_wall(Timer::KSPACE);
       MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
       time = tmp/nprocs;
       if (me == 0) {
@@ -360,7 +375,7 @@ void Finish::end(int flag)
       }
     }
     
-    time = timer->array[TIME_NEIGHBOR];
+    time = timer->get_wall(Timer::NEIGHBOR);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
     if (me == 0) {
@@ -372,7 +387,7 @@ void Finish::end(int flag)
 		time,time/time_loop*100.0);
     }
     
-    time = timer->array[TIME_COMM];
+    time = timer->get_wall(Timer::COMM);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
     if (me == 0) {
@@ -384,7 +399,7 @@ void Finish::end(int flag)
 		time,time/time_loop*100.0);
     }
     
-    time = timer->array[TIME_OUTPUT];
+    time = timer->get_wall(Timer::OUTPUT);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
     if (me == 0) {
@@ -393,6 +408,18 @@ void Finish::end(int flag)
 		time,time/time_loop*100.0);
       if (logfile) 
 	fprintf(logfile,"Outpt time (%%) = %g (%g)\n",
+		time,time/time_loop*100.0);
+    }
+    
+    time = timer->get_wall(Timer::MODIFY);
+    MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+    time = tmp/nprocs;
+    if (me == 0) {
+      if (screen) 
+	fprintf(screen,"Modfy time (%%) = %g (%g)\n",
+		time,time/time_loop*100.0);
+      if (logfile) 
+	fprintf(logfile,"Modfy time (%%) = %g (%g)\n",
 		time,time/time_loop*100.0);
     }
     
@@ -432,7 +459,7 @@ void Finish::end(int flag)
     MPI_Allreduce(&time1d,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time1d = tmp/nprocs;
     
-    double time_kspace = timer->array[TIME_KSPACE];
+    double time_kspace = timer->get_wall(Timer::KSPACE);
     MPI_Allreduce(&time_kspace,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time_kspace = tmp/nprocs;
 

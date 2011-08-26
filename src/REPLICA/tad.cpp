@@ -379,7 +379,7 @@ void TAD::command(int narg, char **arg)
 
   // set total timers and counters so Finish() will process them
 
-  timer->set_wall(Timer::LOOP, time_start;
+  timer->set_wall(Timer::LOOP, time_start);
   timer->barrier_stop(Timer::LOOP);
 
   timer->set_wall(Timer::PAIR, time_neb);

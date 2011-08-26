@@ -145,7 +145,7 @@ void FixGPU::min_setup(int vflag)
 
 void FixGPU::post_force(int vflag)
 {
-  timer->stamp();
+  timer->stamp(Timer::MODIFY);
   double lvirial[6];
   for (int i = 0; i < 6; i++) lvirial[i] = 0.0;
   double my_eng = lmp_gpu_forces(atom->f, atom->torque, force->pair->eatom,
@@ -161,7 +161,7 @@ void FixGPU::post_force(int vflag)
   force->pair->virial[5] += lvirial[5];
 
   if (force->pair->vflag_fdotr) force->pair->virial_fdotr_compute();
-  timer->stamp(TIME_PAIR);
+  timer->stamp(Timer::PAIR);
 }
 
 /* ---------------------------------------------------------------------- */

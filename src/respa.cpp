@@ -455,13 +455,17 @@ void Respa::run(int n)
 
     recurse(nlevels-1);
 
-    if (modify->n_end_of_step) modify->end_of_step();
+    if (modify->n_end_of_step) {
+      timer->stamp();
+      modify->end_of_step();
+      timer->stamp(Timer::MODIFY);
+    }
 
     if (ntimestep == output->next) {
       timer->stamp();
       sum_flevel_f();
       output->write(update->ntimestep);
-      timer->stamp(TIME_OUTPUT);
+      timer->stamp(Timer::OUTPUT);
     }
   }
 }
@@ -493,9 +497,11 @@ void Respa::recurse(int ilevel)
 
   for (int iloop = 0; iloop < loop[ilevel]; iloop++) {
 
+	timer->stamp();
     modify->initial_integrate_respa(vflag,ilevel,iloop);
     if (modify->n_post_integrate_respa)
       modify->post_integrate_respa(ilevel,iloop);
+	timer->stamp(Timer::MODIFY);
 
     if (ilevel) recurse(ilevel-1);
 
@@ -506,7 +512,11 @@ void Respa::recurse(int ilevel)
     if (ilevel == nlevels-1) {
       int nflag = neighbor->decide();
       if (nflag) {
-	if (modify->n_pre_exchange) modify->pre_exchange();
+	if (modify->n_pre_exchange) {
+      timer->stamp();
+      modify->pre_exchange();
+	  timer->stamp(Timer::MODIFY);
+    }
 	if (triclinic) domain->x2lamda(atom->nlocal);
 	domain->pbc();
 	if (domain->box_change) {
@@ -520,68 +530,76 @@ void Respa::recurse(int ilevel)
 	    update->ntimestep >= atom->nextsort) atom->sort();
 	comm->borders();
 	if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
-	timer->stamp(TIME_COMM);
-	if (modify->n_pre_neighbor) modify->pre_neighbor();
+	timer->stamp(Timer::COMM);
+	if (modify->n_pre_neighbor) {
+      modify->pre_neighbor();
+	  timer->stamp(Timer::MODIFY);
+    }
 	neighbor->build();
-	timer->stamp(TIME_NEIGHBOR);
+	timer->stamp(Timer::NEIGHBOR);
       }
 
     } else if (ilevel == 0) {
       timer->stamp();
       comm->forward_comm();
-      timer->stamp(TIME_COMM);
+      timer->stamp(Timer::COMM);
     }
 
     force_clear(newton[ilevel]);
-    if (modify->n_pre_force_respa)
+    if (modify->n_pre_force_respa) {
+	  timer->stamp();
       modify->pre_force_respa(vflag,ilevel,iloop);
+	  timer->stamp(Timer::MODIFY);
+    }
 
     timer->stamp();
     if (level_bond == ilevel && force->bond) {
       force->bond->compute(eflag,vflag);
-      timer->stamp(TIME_BOND);
+      timer->stamp(Timer::BOND);
     }
     if (level_angle == ilevel && force->angle) {
       force->angle->compute(eflag,vflag);
-      timer->stamp(TIME_BOND);
+      timer->stamp(Timer::BOND);
     }
     if (level_dihedral == ilevel && force->dihedral) {
       force->dihedral->compute(eflag,vflag);
-      timer->stamp(TIME_BOND);
+      timer->stamp(Timer::BOND);
     }
     if (level_improper == ilevel && force->improper) {
       force->improper->compute(eflag,vflag);
-      timer->stamp(TIME_BOND);
+      timer->stamp(Timer::BOND);
     }
     if (level_pair == ilevel && force->pair) {
       force->pair->compute(eflag,vflag);
-      timer->stamp(TIME_PAIR);
+      timer->stamp(Timer::PAIR);
     }
     if (level_inner == ilevel && force->pair) {
       force->pair->compute_inner();
-      timer->stamp(TIME_PAIR);
+      timer->stamp(Timer::PAIR);
     }
     if (level_middle == ilevel && force->pair) {
       force->pair->compute_middle();
-      timer->stamp(TIME_PAIR);
+      timer->stamp(Timer::PAIR);
     }
     if (level_outer == ilevel && force->pair) {
       force->pair->compute_outer(eflag,vflag);
-      timer->stamp(TIME_PAIR);
+      timer->stamp(Timer::PAIR);
     }
     if (level_kspace == ilevel && force->kspace) {
       force->kspace->compute(eflag,vflag);
-      timer->stamp(TIME_KSPACE);
+      timer->stamp(Timer::KSPACE);
     }
 
     if (newton[ilevel]) {
       comm->reverse_comm();
-      timer->stamp(TIME_COMM);
+      timer->stamp(Timer::COMM);
     }
   
+    timer->stamp();
     if (modify->n_post_force_respa)
       modify->post_force_respa(vflag,ilevel,iloop);
     modify->final_integrate_respa(ilevel,iloop);
+    timer->stamp(Timer::MODIFY);
   }
 
   copy_f_flevel(ilevel);

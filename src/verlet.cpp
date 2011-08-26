@@ -322,7 +322,7 @@ void Verlet::force_clear()
     
     if (torqueflag) {
       double **torque = atom->torque;
-      for (i = 0; i < nall*comm->nthreads; i++) {
+      for (i = 0; i < nall; i++) {
 	torque[i][0] = 0.0;
 	torque[i][1] = 0.0;
 	torque[i][2] = 0.0;

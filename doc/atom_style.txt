@@ -120,12 +120,12 @@ This command cannot be used after the simulation box is defined by a
 "read_data"_read_data.html or "create_box"_create_box.html command.
 
 The {angle}, {bond}, {full}, and {molecular} styles are part of the
-"molecular" package.  The {dipole} style is part of the "dipole"
+MOLECULAR package.  The {dipole} style is part of the "dipole"
 package.  The {ellipsoid} style is part of the "asphere" package.  The
-{peri} style is part of the "peri" package for Peridynamics.  The
-{electron} style is part of the "user-eff" package for "electronic
-force fields"_pair_eff.html.  The {wavepacket} style is part of the
-"user-awpmd" package for the "antisymmetrized wave packet MD
+{peri} style is part of the PERI package for Peridynamics.  The
+{electron} style is part of the USER-EFF package for "electronic force
+fields"_pair_eff.html.  The {wavepacket} style is part of the
+USER-AWPMD package for the "antisymmetrized wave packet MD
 method"_pair_awpmd.html.  They are only enabled if LAMMPS was built
 with that package.  See the "Making LAMMPS"_Section_start.html#start_3
 section for more info.

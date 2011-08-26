@@ -574,15 +574,18 @@ of simulations.  For some packages, this will keep you from having to
 build auxiliary libraries (see below), and will also produce a smaller
 executable which may run a bit faster.
 
-By default, LAMMPS includes only the "kspace", "manybody", and
-"molecule" packages.
+When you download a LAMMPS tarball, these packages are pre-installed
+in the src directory: KSPACE, MANYBODY,MOLECULE.  When you download
+LAMMPS source files from the SVN or Git repositories, no packages are
+pre-installed.
 
 Packages are included or excluded by typing "make yes-name" or "make
-no-name", where "name" is the name of the package.  You can also type
-"make yes-standard", "make no-standard", "make yes-user", "make
-no-user", "make yes-all" or "make no-all" to include/exclude various
-sets of packages.  Type "make package" to see the all of the
-package-related make options.
+no-name", where "name" is the name of the package in lower-case, e.g.
+name = kspace for the KSPACE package or name = user-atc for the
+USER-ATC package.  You can also type "make yes-standard", "make
+no-standard", "make yes-user", "make no-user", "make yes-all" or "make
+no-all" to include/exclude various sets of packages.  Type "make
+package" to see the all of the package-related make options.
 
 IMPORTANT NOTE: Inclusion/exclusion of a package works by simply
 moving files back and forth between the main src directory and

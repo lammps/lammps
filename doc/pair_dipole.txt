@@ -147,11 +147,11 @@ This pair style can only be used via the {pair} keyword of the
 
 [Restrictions:]
 
-The {dipole/cut} style is part of the "dipole" package.  It is only
+The {dipole/cut} style is part of the DIPOLE package.  It is only
 enabled if LAMMPS was built with that package.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.
 
-The {dipole/sf} style is part of the "user-misc" package.  It is only
+The {dipole/sf} style is part of the USER-MISC package.  It is only
 enabled if LAMMPS was built with that package.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.
 

@@ -53,7 +53,7 @@ internally; hence the units of K are in energy/radian^2.
 [Restrictions:]
 
 This improper style can only be used if LAMMPS was built with the
-"molecular" package (which it is by default).  See the "Making
+MOLECULAR package (which it is by default).  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info on packages.
 
 [Related commands:]

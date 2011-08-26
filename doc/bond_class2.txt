@@ -39,7 +39,7 @@ K4 (energy/distance^4) :ul
 
 [Restrictions:]
 
-This bond style can only be used if LAMMPS was built with the "class2"
+This bond style can only be used if LAMMPS was built with the CLASS2
 package.  See the "Making LAMMPS"_Section_start.html#start_3 section
 for more info on packages.
 

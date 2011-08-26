@@ -328,9 +328,9 @@ This pair style can only be used via the {pair} keyword of the
 
 [Restrictions:]
 
-This style is part of the "meam" package.  It is only enabled if
-LAMMPS was built with that package, which also requires the MEAM
-library be built and linked with LAMMPS.  See the "Making
+This style is part of the MEAM package.  It is only enabled if LAMMPS
+was built with that package, which also requires the MEAM library be
+built and linked with LAMMPS.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Related commands:]

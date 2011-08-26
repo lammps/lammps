@@ -35,25 +35,25 @@ packages, more details are provided.
 
 The current list of standard packages is as follows:
 
-asphere : aspherical particles and force fields
-class2 : class 2 force fields
-colloid : colloidal particle force fields
-dipole : point dipole particles and force fields
-gpu : GPU-enabled force field styles
-granular : force fields and boundary conditions for granular systems
-kspace : long-range Ewald and particle-mesh (PPPM) solvers
-manybody : metal, 3-body, bond-order potentials
-meam : modified embedded atom method (MEAM) potential
-mc : Monte Carlo options
-molecule : force fields for molecular systems
-opt : optimized versions of a few pair potentials
-peri : Peridynamics model and potential
-poems : coupled rigid body motion
-reax : ReaxFF potential
-replica : multi-replica methods
-shock : methods for MD simulations of shock loading
-srd : stochastic rotation dynamics (SRD)
-xtc : dump atom snapshots in XTC format
+ASPHERE : aspherical particles and force fields
+CLASS2 : class 2 force fields
+COLLOID : colloidal particle force fields
+DIPOLE : point dipole particles and force fields
+GPU : GPU-enabled force field styles
+GRANULAR : force fields and boundary conditions for granular systems
+KSPACE : long-range Ewald and particle-mesh (PPPM) solvers
+MANYBODY : metal, 3-body, bond-order potentials
+MEAM : modified embedded atom method (MEAM) potential
+MC : Monte Carlo options
+MOLECULE : force fields for molecular systems
+OPT : optimized versions of a few pair potentials
+PERI : Peridynamics model and potential
+POEMS : coupled rigid body motion
+REAX : ReaxFF potential
+REPLICA : multi-replica methods
+SHOCK : methods for MD simulations of shock loading
+SRD : stochastic rotation dynamics (SRD)
+XTC : dump atom snapshots in XTC format
 :tb(s=:)
 
 :line

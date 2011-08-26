@@ -125,7 +125,7 @@ calculation can be performed concurrently on the GPU while other
 calculations for non-bonded and bonded force calculation are performed
 on the CPU.
 
-These accelerated styles are part of the "user-cuda", "gpu", and "opt"
+These accelerated styles are part of the USER-CUDA, GPU, and OPT
 packages respectively.  They are only enabled if LAMMPS was built with
 those packages.  See the "Making LAMMPS"_Section_start.html#start_3
 section for more info.
@@ -140,11 +140,11 @@ or PPPM solver.  The only exception is if the slab option is set with
 "kspace_modify"_kspace_modify.html, in which case the xy dimensions
 must be periodic and the z dimension must be non-periodic.
 
-Kspace styles are part of the "kspace" package.  They are only enabled
+Kspace styles are part of the KSPACE package.  They are only enabled
 if LAMMPS was built with that package.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.
 
-The {ewald/n} style is part of the "user-ewaldn" package.  It is only
+The {ewald/n} style is part of the USER-EWALDN package.  It is only
 enabled if LAMMPS was built with that package.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.
 

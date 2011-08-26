@@ -83,7 +83,7 @@ radians internally; hence the units of M are in energy/radian^2.
 [Restrictions:]
 
 This improper style can only be used if LAMMPS was built with the
-"class2" package.  See the "Making LAMMPS"_Section_start.html#start_3
+CLASS2 package.  See the "Making LAMMPS"_Section_start.html#start_3
 section for more info on packages.
 
 [Related commands:]

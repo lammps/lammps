@@ -133,8 +133,8 @@ This fix is not invoked during "energy minimization"_minimize.html.
 
 [Restrictions:]
 
-This fix is part of the "asphere" package.  It is only enabled if
-LAMMPS was built with that package.  See the "Making
+This fix is part of the ASPHERE package.  It is only enabled if LAMMPS
+was built with that package.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.
 
 This fix requires that atoms store torque and angular momementum and a

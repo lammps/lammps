@@ -93,7 +93,7 @@ discussed in "this section"_Section_accelerate.html of the manual.
 The accelerated styles take the same arguments and should produce the
 same results, except for round-off and precision issues.
 
-These accelerated styles are part of the "user-cuda", "gpu", and "opt"
+These accelerated styles are part of the USER-CUDA, GPU, and OPT
 packages respectively.  They are only enabled if LAMMPS was built with
 those packages.  See the "Making LAMMPS"_Section_start.html#start_3
 section for more info.
@@ -137,7 +137,7 @@ This pair style can only be used via the {pair} keyword of the
 
 [Restrictions:]
 
-The {coul/long} style is part of the "kspace" package.  It is only
+The {coul/long} style is part of the KSPACE package.  It is only
 enabled if LAMMPS was built with that package (which it is by
 default).  See the "Making LAMMPS"_Section_start.html#start_3 section
 for more info.

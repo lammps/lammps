@@ -539,7 +539,7 @@ fix smd for steered MD : Axel Kohlmeyer (U Penn)
 GROMACS pair potentials : Mark Stevens (Sandia)
 lmp2vmd tool : Axel Kohlmeyer (U Penn)
 compute group/group : Naveen Michaud-Agrawal (Johns Hopkins U)
-CG-CMM user package for coarse-graining : Axel Kohlmeyer (U Penn)
+USER-CG-CMM package for coarse-graining : Axel Kohlmeyer (U Penn)
 cosine/delta angle potential : Axel Kohlmeyer (U Penn)
 VIM editor add-ons for LAMMPS input scripts : Gerolf Ziegenhain
 pair lubricate : Randy Schunk (Sandia)

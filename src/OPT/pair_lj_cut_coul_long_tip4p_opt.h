@@ -27,9 +27,17 @@ namespace LAMMPS_NS {
 class PairLJCutCoulLongTIP4POpt : public PairLJCutCoulLongTIP4P {
  public:
   PairLJCutCoulLongTIP4POpt(class LAMMPS *);
+  virtual ~PairLJCutCoulLongTIP4POpt();
+
   virtual void compute(int, int);
+  virtual double memory_usage();
 
  protected:
+  // this is to cache m-shift corrected positions.
+  int maxmpos;        // size of the following arrays
+  int *h1idx, *h2idx; // local index of hydrogen atoms
+  double **mpos;      // coordinates corrected for m-shift.
+
   template < const int, const int, const int, const int, const int >
   void eval();
 

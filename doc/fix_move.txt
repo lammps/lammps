@@ -179,8 +179,8 @@ None of the "fix_modify"_fix_modify.html options are relevant to this
 fix.  
 
 This fix produces a per-atom array which can be accessed by various
-"output commands"_Section_howto.html#4_15.  The number of columns for
-each atom is 3, and the columns store the original unwrapped x,y,z
+"output commands"_Section_howto.html#howto_15.  The number of columns
+for each atom is 3, and the columns store the original unwrapped x,y,z
 coords of each atom.  The per-atom values can be accessed on any
 timestep.
 

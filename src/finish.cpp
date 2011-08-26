@@ -83,6 +83,7 @@ void Finish::end(int flag)
     time_loop = tmp/nprocs;
 
     // overall loop time
+
 #if defined(_OPENMP)    
     if (me == 0) {
       int ntasks = nprocs * comm->nthreads;

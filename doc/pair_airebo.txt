@@ -134,8 +134,8 @@ These pair styles can only be used via the {pair} keyword of the
 
 These pair styles are part of the "manybody" package.  They are only
 enabled if LAMMPS was built with that package (which it is by
-default).  See the "Making LAMMPS"_Section_start.html#2_3 section for
-more info.
+default).  See the "Making LAMMPS"_Section_start.html#start_3 section
+for more info.
 
 These pair potentials require the "newton"_newton.html setting to be
 "on" for pair interactions.

@@ -390,4 +390,3 @@ double ThrOMP::memory_usage_thr()
   bytes += nthreads * maxvatom_thr * 6 * sizeof(double);
   return bytes;
 }
-

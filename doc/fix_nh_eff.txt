@@ -104,7 +104,7 @@ for details.
 
 This fix is part of the "user-eff" package.  It is only enabled if
 LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#2_3 section for more info.
+LAMMPS"_Section_start.html#start_3 section for more info.
 
 Other restriction discussed on the doc page for the "fix nvt, npt, and
 nph"_fix_nh.html commands also apply.

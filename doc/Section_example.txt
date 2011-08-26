@@ -6,7 +6,7 @@
 
 :line
 
-5. Example problems :h3
+7. Example problems :h3
 
 The LAMMPS distribution includes an examples sub-directory with
 several sample problems.  Each problem is in a sub-directory of its

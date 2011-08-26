@@ -28,7 +28,7 @@ class PairBornCoulLong : public Pair {
  public:
   PairBornCoulLong(class LAMMPS *);
   virtual ~PairBornCoulLong();
-  void compute(int, int);
+  virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
   void init_style();

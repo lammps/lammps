@@ -943,7 +943,7 @@ void TAD::compute_tlo(int ievent)
 
   // first-replica output about each event
   
-  timer->get_wall(Timer::LOOP) = time_start;
+  timer->set_wall(Timer::LOOP, time_start);
   if (universe->me == 0) {
     double tfrac = 0.0;
     if (ievent > 0) tfrac = delthi/deltstop;

@@ -60,7 +60,7 @@ image"_set.html command.
 This compute calculates a global vector of Rg values where the length
 of the vector = Nmolecules.  These values can be used by any command
 that uses global vector values from a compute as input.  See "this
-section"_Section_howto.html#4_15 for an overview of LAMMPS output
+section"_Section_howto.html#howto_15 for an overview of LAMMPS output
 options.
 
 The vector values calculated by this compute are "intensive".  The

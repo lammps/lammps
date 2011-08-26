@@ -515,9 +515,10 @@ void Min::force_clear()
   int nall;
   if (force->newton) nall = atom->nlocal + atom->nghost;
   else nall = atom->nlocal;
+  int ntot = nall * comm->nthreads;
 
   double **f = atom->f;
-  for (i = 0; i < nall; i++) {
+  for (i = 0; i < ntot; i++) {
     f[i][0] = 0.0;
     f[i][1] = 0.0;
     f[i][2] = 0.0;
@@ -534,8 +535,7 @@ void Min::force_clear()
 
   if (erforceflag) {
     double *erforce = atom->erforce;
-    for (i = 0; i < nall; i++)
-      erforce[i] = 0.0;
+    for (i = 0; i < nall; i++) erforce[i] = 0.0;
   }
 }
 

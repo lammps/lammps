@@ -147,12 +147,12 @@ the pair_style command, and coefficients specified by the associated
 There are also additional pair styles submitted by users which are
 included in the LAMMPS distribution.  The list of these with links to
 the individual styles are given in the pair section of "this
-page"_Section_commands.html#3_5.
+page"_Section_commands.html#cmd_5.
 
 There are also additional accelerated pair styles included in the
 LAMMPS distribution for faster performance on CPUs and GPUs.  The list
 of these with links to the individual styles are given in the pair
-section of "this page"_Section_commands.html#3_5.
+section of "this page"_Section_commands.html#cmd_5.
 
 :line
 
@@ -164,8 +164,8 @@ This command must be used before any coefficients are set by the
 
 Some pair styles are part of specific packages.  They are only enabled
 if LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#2_3 section for more info on packages.  The
-doc pages for individual pair potentials tell if it is part of a
+LAMMPS"_Section_start.html#start_3 section for more info on packages.
+The doc pages for individual pair potentials tell if it is part of a
 package.
 
 [Related commands:]

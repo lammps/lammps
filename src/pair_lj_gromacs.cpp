@@ -134,9 +134,9 @@ void PairLJGromacs::compute(int eflag, int vflag)
 
 	if (eflag) {
 	  evdwl = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]); 
+	  evdwl += ljsw5[itype][jtype];
           if (rsq > cut_inner_sq[itype][jtype]) {
-            eswitch = t*t*t*(ljsw3[itype][jtype] + ljsw4[itype][jtype]*t) + 
-	      ljsw5[itype][jtype];
+            eswitch = t*t*t*(ljsw3[itype][jtype] + ljsw4[itype][jtype]*t);
             evdwl += eswitch;
           }
 	  evdwl *= factor_lj;
@@ -410,9 +410,9 @@ double PairLJGromacs::single(int i, int j, int itype, int jtype,
   fforce = factor_lj*forcelj*r2inv;
 
   philj = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]);
+  philj += ljsw5[itype][jtype];
   if (rsq > cut_inner_sq[itype][jtype]) {
-    phiswitch = t*t*t*(ljsw3[itype][jtype] + ljsw4[itype][jtype]*t) + 
-      ljsw5[itype][jtype];
+    phiswitch = t*t*t*(ljsw3[itype][jtype] + ljsw4[itype][jtype]*t);
     philj += phiswitch;
   }
 

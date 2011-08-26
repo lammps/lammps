@@ -79,7 +79,7 @@ specified by the associated "dihedral_coeff"_dihedral_coeff.html command:
 There are also additional dihedral styles submitted by users which are
 included in the LAMMPS distribution.  The list of these with links to
 the individual styles are given in the dihedral section of "this
-page"_Section_commands.html#3_5.
+page"_Section_commands.html#cmd_5.
 
 :line
 

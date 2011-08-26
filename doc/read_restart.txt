@@ -41,7 +41,7 @@ should provide statistically similar results.  These include "fix
 shake"_fix_shake.html and "fix langevin"_fix_langevin.html.  If a
 restarted run is immediately different than the run which produced the
 restart file, it could be a LAMMPS bug, so consider "reporting
-it"_Section_errors.html#10_2 if you think the behavior is wrong.
+it"_Section_errors.html#err_2 if you think the behavior is wrong.
 
 Because restart files are binary, they may not be portable to other
 machines.  They can be converted to ASCII data files using the

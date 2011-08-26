@@ -118,6 +118,7 @@ void Update::set_units(const char *style)
   
   if (strcmp(style,"lj") == 0) {
     force->boltz = 1.0;
+    force->hplanck = 0.18292026;  // using LJ parameters for argon
     force->mvv2e = 1.0;
     force->ftm2v = 1.0;
     force->mv2d = 1.0;
@@ -135,6 +136,7 @@ void Update::set_units(const char *style)
     
   } else if (strcmp(style,"real") == 0) {
     force->boltz = 0.0019872067;
+    force->hplanck = 95.306976368;
     force->mvv2e = 48.88821291 * 48.88821291;
     force->ftm2v = 1.0 / 48.88821291 / 48.88821291;
     force->mv2d = 1.0 / 0.602214179;
@@ -152,6 +154,7 @@ void Update::set_units(const char *style)
 
   } else if (strcmp(style,"metal") == 0) {
     force->boltz = 8.617343e-5;
+    force->hplanck = 4.135667403e-3;
     force->mvv2e = 1.0364269e-4;
     force->ftm2v = 1.0 / 1.0364269e-4;
     force->mv2d = 1.0 / 0.602214179;
@@ -169,6 +172,7 @@ void Update::set_units(const char *style)
 
   } else if (strcmp(style,"si") == 0) {
     force->boltz = 1.3806504e-23;
+    force->hplanck = 6.62606896e-34;
     force->mvv2e = 1.0;
     force->ftm2v = 1.0;
     force->mv2d = 1.0;
@@ -186,6 +190,7 @@ void Update::set_units(const char *style)
 
   } else if (strcmp(style,"cgs") == 0) {
     force->boltz = 1.3806504e-16;
+    force->hplanck = 6.62606896e-27;
     force->mvv2e = 1.0;
     force->ftm2v = 1.0;
     force->mv2d = 1.0;
@@ -203,6 +208,7 @@ void Update::set_units(const char *style)
 
   } else if (strcmp(style,"electron") == 0) {
     force->boltz = 3.16681534e-6;  
+    force->hplanck = 0.1519829846;
     force->mvv2e = 1.06657236;     
     force->ftm2v = 0.937582899;    
     force->mv2d = 1.0;             

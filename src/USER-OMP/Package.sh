@@ -1,7 +1,7 @@
 #/bin/sh
 # Update package files in LAMMPS
 # copy package file to src if it doesn't exists or is different
-# do not copy gayberne files if non-GPU version does not exist
+# do not copy OpenMP style files, if a non-OpenMP version does not exist
 for file in *_omp.cpp *_omp.h; do
   # let us see if the "rain man" can count the toothpicks...
   ofile=`echo $file | sed -e s,\\\\\\(.\\*\\\\\\)_omp\\\\.\\\\\\(h\\\\\\|cpp\\\\\\),\\\\1.\\\\2,`

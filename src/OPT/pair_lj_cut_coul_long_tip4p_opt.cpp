@@ -20,6 +20,7 @@
 #include "atom.h"
 #include "domain.h"
 #include "force.h"
+#include "error.h"
 #include "memory.h"
 #include "neigh_list.h"
 
@@ -64,7 +65,8 @@ void PairLJCutCoulLongTIP4POpt::compute(int eflag, int vflag)
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
 
-  const int nall = atom->nlocal + atom->nghost;
+  const int nlocal = atom->nlocal;
+  const int nall = nlocal + atom->nghost;
 
   // reallocate per-atom arrays, if necessary
   if (nall > maxmpos) {
@@ -77,9 +79,18 @@ void PairLJCutCoulLongTIP4POpt::compute(int eflag, int vflag)
   // cache corrected M positions in mpos[]
   double **x = atom->x;
   int *type = atom->type;
-  for (int i = 0; i < nall; i++) {
+  for (int i = 0; i < nlocal; i++) {
     if (type[i] == typeO) {
       find_M(i,h1idx[i],h2idx[i],mpos[i]);
+    } else {
+      mpos[i][0] = x[i][0];
+      mpos[i][1] = x[i][1];
+      mpos[i][2] = x[i][2];
+    }
+  }
+  for (int i = nlocal; i < nall; i++) {
+    if (type[i] == typeO) {
+      find_M_permissive(i,h1idx[i],h2idx[i],mpos[i]);
     } else {
       mpos[i][0] = x[i][0];
       mpos[i][1] = x[i][1];
@@ -232,10 +243,12 @@ void PairLJCutCoulLongTIP4POpt::eval()
 
 	// adjust rsq and delxyz for off-site O charge(s)
 
-	if (itype == typeO || jtype == typeO) { 
+	if (itype == typeO || jtype == typeO) {
 	  x2 = mpos[j];
 	  jH1 = h1idx[j];
 	  jH2 = h2idx[j];
+      if (jtype == typeO && ( jH1 < 0 || jH2 < 0))
+        error->one("TIP4P hydrogen is missing");
 	  delx = x1[0] - x2[0];
 	  dely = x1[1] - x2[1];
 	  delz = x1[2] - x2[2];
@@ -440,6 +453,21 @@ void PairLJCutCoulLongTIP4POpt::eval()
     f[i][1] += fytmp;
     f[i][2] += fztmp;
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairLJCutCoulLongTIP4POpt::find_M_permissive(int i, int &iH1, int &iH2, double *xM)
+{
+  // test that O is correctly bonded to 2 succesive H atoms
+
+   iH1 = atom->map(atom->tag[i] + 1);
+   iH2 = atom->map(atom->tag[i] + 2);
+
+   if (iH1 == -1 || iH2 == -1)
+      return;
+   else
+      find_M(i,iH1,iH2,xM);
 }
 
 /* ---------------------------------------------------------------------- */

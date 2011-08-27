@@ -80,7 +80,7 @@ template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
 void PairCoulCutOMP::eval(double **f, int iifrom, int iito, int tid)
 {
   int i,j,ii,jj,jnum,itype,jtype;
-  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
+  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,ecoul,fpair;
   double rsq,r2inv,rinv,forcecoul,factor_coul;
   int *ilist,*jlist,*numneigh,**firstneigh;
 

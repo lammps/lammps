@@ -90,7 +90,7 @@ USER-CUDA, NVIDIA GPU styles, Christian Trott (U Tech Ilmenau), "accelerate"_Sec
 USER-EFF, electron force field, Andres Jaramillo-Botero (Caltech), "pair_style eff/cut"_pair_eff.html, USER/eff, "eff"_eff, -
 USER-EWALDN, Ewald for 1/R^n, Pieter in' t Veld (BASF), "kspace_style"_kspace_style.html, -, -, -
 USER-REAXC, C version of ReaxFF, Metin Aktulga (LBNL), "pair_style reaxc"_pair_reax_c.html, reax, -, -
-USER-SPH, smoothed particle hydrodynamics, Georg Ganzenmuller (FIHSD, EMI), "doc/USER/sph/SPH_LAMMPS_userguide.pdf"_USER/sph/SPH_LAMMPS_userguide.pdf, USER/sph, "sph"_sph, -
+USER-SPH, smoothed particle hydrodynamics, Georg Ganzenmuller (EMI), "SPH_LAMMPS_userguide.pdf"_USER/sph/SPH_LAMMPS_userguide.pdf, USER/sph, "sph"_sph, -
 :tb(ea=c)
 
 :link(atc,http://lammps.sandia.gov/pictures.html#atc)

@@ -42,7 +42,7 @@ COLLOID, colloidal particles, -, "atom_style colloid"_atom_style.html, colloid, 
 DIPOLE, point dipole particles, -, "pair_style dipole/cut"_pair_dipole.html, dipole, -
 GPU, GPU-enabled potentials, Mike Brown (ORNL), "accelerate"_Section_accelerate.html#acc_3, gpu, lib/gpu
 GRANULAR, granular systems, -, "howto"_Section_howto.html#howto_6, pour, -
-KSPACE, long-range Coulombic solvers, -, "kspace_style"_kspace_style.html, peptide, fft
+KSPACE, long-range Coulombic solvers, -, "kspace_style"_kspace_style.html, peptide, -
 MANYBODY, many-body potentials, -, "pair_style tersoff"_pair_tersoff.html, shear, -
 MEAM, modified EAM potential, Greg Wagner (Sandia), "pair_style meam"_pair_meam.html, meam, lib/meam
 MC, Monte Carlo options, -, "fix gcmc"_fix_gcmc.html, -, -
@@ -72,13 +72,7 @@ The "Example" column is a sub-directory in the examples directory of
 the distribution which has an input script that uses the package.
 E.g. "peptide" refers to the examples/peptide directory.
 
-The "Library" column lists an external library which must be built
-first and which LAMMPS links to when it is built.  These are in the
-lib directory of the distribution, except for "fft" which means LAMMPS
-must be built with an external 1d FFT library, such as
-"FFTW"_http://www.fftw.org.  "This
-section"_Section_start.html#start_3_3 of the manual gives details on
-the 2-step build process with external libraries.
+The "Library" column lists an external library which must be built first and which LAMMPS links to when it is built.  These are in the lib directory of the distribution.  "This section"_Section_start.html#start_3_3 of the manual gives details on the 2-step build process with external libraries.
 
 :line
 :line
@@ -89,7 +83,7 @@ The current list of user-contributed packages is as follows:
 
 Package, Description, Authors, Doc page, Example, Pic/movie, Library
 USER-MISC, single-file contributions, USER-MISC/README, -, -, -, -
-USER-ATC, atom-to-continuum coupling, Jones & Zimmerman & Templeton (2), "fix atc"_fix_atc.html & USER/atc, USER/atc, "atc"_atc, lib/atc
+USER-ATC, atom-to-continuum coupling, Jones & Templeton & Zimmerman (2), "fix atc"_fix_atc.html, USER/atc, "atc"_atc, lib/atc
 USER-AWPMD, wave-packet MD, Ilya Valuev (JIHT), "pair_style awpmd/cut"_pair_awpmd.html, USER/awpmd, -, lib/awpmd
 USER-CG-CMM, coarse-graining model, Axel Kohlmeyer (Temple U), "pair_style cg/cmm"_pair_cmm.html, USER/cg-cmm, "cg"_cg, -
 USER-CUDA, NVIDIA GPU styles, Christian Trott (U Tech Ilmenau), "accelerate"_Section_accelerate.html#acc_4, USER/cuda, -, lib/cuda
@@ -105,13 +99,12 @@ USER-REAXC, C version of ReaxFF, Metin Aktulga (LBNL), "pair_style reaxc"_pair_r
 The "Authors" column lists a name(s) if a specific person is
 responible for creating and maintaining the package.
 
-(2) The ATC package was created by Reese Jones, Jon Zimmerman, and
-Jeremy Templeton (Sandia).
+(2) The ATC package was created by Reese Jones, Jeremy Templeton, and Jon Zimmerman (Sandia).
 
 The "Doc page" column links to either a portion of the
 "Section_howto"_Section_howto.html of the manual, or an input script
-command implemented as part of the package.  In some cases, additional
-documentation is in a sub-directory of doc/USER, e.g. doc/USER/atc.
+command implemented as part of the package, or to additional
+documentation provided witht he package.
 
 The "Example" column is a sub-directory in the examples directory of
 the distribution which has an input script that uses the package.
@@ -131,31 +124,224 @@ is given below.
 
 USER-MISC package :h4
 
+The files in this package are a potpourri of (mostly) unrelated
+features contributed to LAMMPS by users.  Each feature is a single
+pair of files (*.cpp and *.h).
+
+More information about each feature can be found by reading its doc
+page in the LAMMPS doc directory.  The doc page which lists all LAMMPS
+input script commands is as follows:
+
+"Section_commands"_Section_commands.html#cmd_5
+
+User-contributed features are listed at the bottom of the fix,
+compute, pair, etc sections.
+
+The list of features and author of each is given in the
+src/USER-MISC/README file.
+
+You should contact the author directly if you have specific questions
+about the feature or its coding.
+
 :line
 
 USER-ATC package :h4
+
+This package implements a "fix atc" command which can be used in a
+LAMMPS input script.  This fix can be employed to either do concurrent
+coupling of MD with FE-based physics surrogates or on-the-fly
+post-processing of atomic information to continuum fields.
+
+See the doc page for the fix atc command to get started.  At the
+bottom of the doc page are many links to additional documentation
+contained in the doc/USER/atc directory.
+
+There are example scripts for using this package in examples/USER/atc.
+
+This package uses an external library in lib/atc which must be
+compiled before making LAMMPS.  See the lib/atc/README file and the
+LAMMPS manual for information on building LAMMPS with external
+libraries.
+
+The primary people who created this package are Reese Jones (rjones at
+sandia.gov), Jeremy Templeton (jatempl at sandia.gov) and Jon
+Zimmerman (jzimmer at sandia.gov) at Sandia.  Contact them directly if
+you have questions.
 
 :line
 
 USER-AWPMD package :h4
 
+This package contains a LAMMPS implementation of the Antisymmetrized
+Wave Packet Molecular Dynamics (AWPMD) method.
+
+See the doc page for the pair_style awpmd/cut command to get started.
+
+There are example scripts for using this package in examples/USER/awpmd.
+
+This package uses an external library in lib/awpmd which must be
+compiled before making LAMMPS.  See the lib/awpmd/README file and the
+LAMMPS manual for information on building LAMMPS with external
+libraries.
+
+The person who created this package is Ilya Valuev at the JIHT in
+Russia (valuev at physik.hu-berlin.de).  Contact him directly if you
+have questions.
+
 :line
 
 USER-CG-CMM package :h4
+
+This package implements 4 commands which can be used in a LAMMPS input
+script:
+
+pair_style cg/cmm
+pair_style cg/cmm/coul/cut
+pair_style cg/cmm/coul/long
+angle_style cg/cmm :ul
+
+These styles allow coarse grained MD simulations with the
+parametrization of Shinoda, DeVane, Klein, Mol Sim, 33, 27 (2007)
+(cg/cmm), with extensions to simulate ionic liquids, electrolytes,
+lipids and charged amino acids (to be published soon).
+
+See the doc pages for these commands for details.
+
+There are example scripts for using this package in
+examples/USER/cg-cmm.
+
+The current version of this package should be considered beta
+quality. The CG potentials work correctly and well, but there will be
+optimizations, cleanups and additional tools to aid in setting up and
+analyzing simulations with this package added in the next months.
+
+The person who created this package is Axel Kohlmeyer at Temple U
+(akohlmey at gmail.com).  Contact him directly if you have questions.
 
 :line
 
 USER-CUDA package :h4
 
+This package provides acceleration of various LAMMPS pair styles, fix
+styles, compute styles, and long-range Coulombics via PPPM for NVIDIA
+GPUs.
+ 
+See this section of the manual to get started:
+
+"Section_accelerate"_Section_accelerate.html#acc_4
+
+There are example scripts for using this package in
+examples/USER/cuda.
+
+This package uses an external library in lib/cuda which must be
+compiled before making LAMMPS.  See the lib/cuda/README file and the
+LAMMPS manual for information on building LAMMPS with external
+libraries.
+
+The person who created this package is Christian Trott at the
+University of Technology Ilmenau, Germany (christian.trott at
+tu-ilmenau.de).  Contact him directly if you have questions.
+
 :line
 
 USER-EFF package :h4
+
+This package contains a LAMMPS implementation of the electron Force
+Field (eFF) currently under development at Caltech, as described in
+A. Jaramillo-Botero, J. Su, Q. An, and W.A. Goddard III, JCC,
+2010. The eFF potential was first introduced by Su and Goddard, in
+2007.
+
+eFF can be viewed as an approximation to QM wave packet dynamics and
+Fermionic molecular dynamics, combining the ability of electronic
+structure methods to describe atomic structure, bonding, and chemistry
+in materials, and of plasma methods to describe nonequilibrium
+dynamics of large systems with a large number of highly excited
+electrons. We classify it as a mixed QM-classical approach rather than
+a conventional force field method, which introduces QM-based terms (a
+spin-dependent repulsion term to account for the Pauli exclusion
+principle and the electron wavefunction kinetic energy associated with
+the Heisenberg principle) that reduce, along with classical
+electrostatic terms between nuclei and electrons, to the sum of a set
+of effective pairwise potentials.  This makes eFF uniquely suited to
+simulate materials over a wide range of temperatures and pressures
+where electronically excited and ionized states of matter can occur
+and coexist.
+
+The necessary customizations to the LAMMPS core are in place to
+enable the correct handling of explicit electron properties during
+minimization and dynamics.
+
+See the doc page for the pair_style eff/cut command to get started.
+
+There are example scripts for using this package in
+examples/USER/eff.
+
+There are auxiliary tools for using this package in tools/eff.
+
+The person who created this package is Andres Jaramillo-Botero at
+CalTech (ajaramil at wag.caltech.edu).  Contact him directly if you
+have questions.
 
 :line
 
 USER-EWALDN package :h4
 
+This package implements 3 commands which can be used in a LAMMPS input
+script: pair_style lj/coul, pair_style buck/coul, and kspace_style
+ewald/n.
+
+The "kspace_style ewald/n" command is similar to standard Ewald for
+charges, but also enables the Lennard-Jones interaction, or any 1/r^N
+interaction to be of infinite extent, instead of being cutoff.  LAMMPS
+pair potentials for long-range Coulombic interactions, such as
+lj/cut/coul/long can be used with ewald/n.  The two new pair_style
+commands provide the modifications for the short-range LJ and
+Buckingham interactions that can also be used with ewald/n.
+
+Another advantage of kspace_style ewald/n is that it can be used with
+non-orthogonal (triclinic symmetry) simulation boxes, either for just
+long-range Coulombic interactions, or for both Coulombic and 1/r^N LJ
+or Buckingham, which is not currently possible for other kspace styles
+such as PPPM and ewald.
+
+See the doc pages for these commands for details.
+
+The person who created these files is Pieter in' t Veld while at
+Sandia.  He is now at BASF (pieter.intveld at basf.com).  Contact him
+directly if you have questions.
+
 :line
 
 USER-REAXC package :h4
 
+This package contains a implementation for LAMMPS of the ReaxFF force
+field.  ReaxFF uses distance-dependent bond-order functions to
+represent the contributions of chemical bonding to the potential
+energy.  It was originally developed by Adri van Duin and the Goddard
+group at CalTech.
+
+The USER-REAXC version of ReaxFF (pair_style reax/c), implemented in
+C, should give identical or very similar results to pair_style reax,
+which is a ReaxFF implementation on top of a Fortran library, a
+version of which library was originally authored by Adri van Duin.
+
+The reax/c version should be somewhat faster and more scalable,
+particularly with respect to the charge equilibration calculation.  It
+should also be easier to build and use since there are no complicating
+issues with Fortran memory allocation or linking to a Fortran library.
+
+For technical details about this implemention of ReaxFF, see
+this paper:
+
+Parallel and Scalable Reactive Molecular Dynamics: Numerical Methods
+and Algorithmic Techniques, H. M. Aktulga, J. C. Fogarty,
+S. A. Pandit, A. Y. Grama, Parallel Computing, to appear (2011).
+
+See the doc page for the pair_style reax/c command for details
+of how to use it in LAMMPS.
+
+The person who created this package is Hasan Metin Aktulga (hmaktulga
+at lbl.gov), while at Purdue University.  Contact him directly, or
+Aidan Thompson at Sandia (athomps at sandia.gov), if you have
+questions.

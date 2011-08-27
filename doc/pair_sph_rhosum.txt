@@ -1,0 +1,59 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+pair_style sph/rhosum command :h3
+
+[Syntax:]
+
+pair_style sph/rhosum nstep :pre
+
+nstep = timestep interval
+
+[Examples:]
+
+pair_style sph/rhosum 10
+pair_coeff * * 2.4
+
+[Description:]
+
+The sph/rhosum style computes the local particle mass density rho by kernel function interpolation,
+see the SPH-USER documentation.
+
+The following coefficients must be defined for each pair of atoms
+types via the "pair_coeff"_pair_coeff.html command as in the examples
+above.
+
+h (distance units)
+
+:line
+
+[Mixing, shift, table, tail correction, restart, rRESPA info]:
+
+These pair styles do not support mixing.  Thus, coefficients for all
+I,J pairs must be specified explicitly.
+
+This style does not write information to "binary restart
+files"_restart.html, so pair_style and pair_coeff commands do need
+to be specified in an input script that reads a restart file.
+
+These styles can only be used via the {pair} keyword of the "run_style
+respa"_run_style.html command.  They do not support the {inner},
+{middle}, {outer} keywords.
+
+[Restrictions:]
+
+The {pair sph/rhosum} style is part of the "USER-SPH" package.  It is
+only enabled if LAMMPS was built with that package (which it is by
+default).  See the "Making LAMMPS"_Section_start.html#2_3 section for
+more info. 
+
+[Related commands:]
+
+"pair_coeff"_pair_coeff.html, pair_sph/taitwater
+
+[Default:] none

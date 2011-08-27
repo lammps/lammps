@@ -1,0 +1,72 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_style sph/taitwater/morris command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_style sph/taitwater/morris 
+</PRE>
+<P><B>Examples:</B>
+</P>
+<P>pair_style sph/taitwater/morris
+pair_coeff * * 1000.0 1430.0 1.0 2.4
+</P>
+<P><B>Description:</B>
+</P>
+<P>The sph/taitwater/morris style computes pressure forces between particles according to Tait's equation of state,
+\begin<I>equation</I>
+p = B <B>(\frac<I>\rho</I><I>\rho_0</I>)^<I>\gamma</I> - 1</B>,
+\end<I>equation</I>
+where $\gamma=7$ and $B=c_0^2 \rho_0 / \gamma$, with $\rho_0$ being the reference density and $c_0$ the reference speed of sound.
+This pair style also computes laminar viscosity (Morris1997).
+</P>
+<P>The following coefficients must be defined for each pair of atoms
+types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
+above.
+</P>
+<P>rho0 reference density (mass/volume units)
+c0 reference soundspeed (distance/time units)
+nu dynamic viscosity (mass*distance/time units)
+h kernel function cutoff (distance units)
+</P>
+<HR>
+
+<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
+</P>
+<P>These pair styles do not support mixing.  Thus, coefficients for all
+I,J pairs must be specified explicitly. Additionally, because rho0 and c0 are defined on a per-type basis,
+an I,I as well a J,J coefficients line must be specified prior to specifying an I,J interaction.
+</P>
+<P>This style does not write information to <A HREF = "restart.html">binary restart
+files</A>, so pair_style and pair_coeff commands do need
+to be specified in an input script that reads a restart file.
+</P>
+<P>These styles can only be used via the <I>pair</I> keyword of the <A HREF = "run_style.html">run_style
+respa</A> command.  They do not support the <I>inner</I>,
+<I>middle</I>, <I>outer</I> keywords.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>The <I>pair sph/taitwater/morris</I> style is part of the "USER-SPH" package.  It is
+only enabled if LAMMPS was built with that package (which it is by
+default).  See the <A HREF = "Section_start.html#2_3">Making LAMMPS</A> section for
+more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>, pair_sph/rhosum
+</P>
+<P><B>Default:</B> none
+</P>
+<P><B>(Morris1997)</B> J.P. Morris, P.J. Fox, and Y. Zhu. Modeling Low Reynolds Number Incompressible Flows Using SPH. Journal of Computational Physics, 136:214–226, 1997.
+</P>
+</HTML>

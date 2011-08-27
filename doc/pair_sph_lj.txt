@@ -1,0 +1,70 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+pair_style sph/lj command :h3
+
+[Syntax:]
+
+pair_style sph/lj :pre
+
+[Examples:]
+
+pair_style sph/lj
+pair_coeff * * 1.0 2.4
+
+[Description:]
+
+The sph/lj style computes pressure forces between particles according to
+the Lennard-Jones equation of state, which is computed according to
+Ree's 1980 polynomial fit (Ree1980). The Lennard-Jones parameters
+$\epsilon$ and $\sigma$ are set to unity. This pair style also computes
+Monaghan's artificial viscosity to prevent particles from
+interpentrating (Monaghan1983).
+
+
+The following coefficients must be defined for each pair of atoms
+types via the "pair_coeff"_pair_coeff.html command as in the examples
+above.
+
+nu artificial viscosity (no units)
+h kernel function cutoff (distance units)
+
+:line
+
+[Mixing, shift, table, tail correction, restart, rRESPA info]:
+
+These pair styles do not support mixing.  Thus, coefficients for all
+I,J pairs must be specified explicitly.
+
+This style does not write information to "binary restart
+files"_restart.html, so pair_style and pair_coeff commands do need
+to be specified in an input script that reads a restart file.
+
+These styles can only be used via the {pair} keyword of the "run_style
+respa"_run_style.html command.  They do not support the {inner},
+{middle}, {outer} keywords.
+
+[Restrictions:]
+The Lennard-Jones parameters $\epsilon$ and $\sigma$ are set to unity.
+The {pair sph/lj} style is part of the "USER-SPH" package.  It is
+only enabled if LAMMPS was built with that package (which it is by
+default).  See the "Making LAMMPS"_Section_start.html#2_3 section for
+more info.
+
+[Related commands:]
+
+"pair_coeff"_pair_coeff.html, pair_sph/rhosum
+
+[Default:] none
+
+[(Ree1980)] F. H. Ree. Analytic representation of thermodynamic data for the Lennard-Jones fluid.
+The Journal of Chemical Physics, 73(10):5401, 1980.
+
+[(Monaghan1983)] J. J. Monaghan and R. A. Gingold, “Shock simulation by the particle method SPH,” Journal of Computational Physics, vol. 52, no. 2, pp. 374-389, Nov. 1983.
+
+

@@ -81,7 +81,7 @@ The "Library" column lists an external library which must be built first and whi
 
 The current list of user-contributed packages is as follows:
 
-Package, Description, Authors, Doc page, Example, Pic/movie, Library
+Package, Description, Author(s), Doc page, Example, Pic/movie, Library
 USER-MISC, single-file contributions, USER-MISC/README, -, -, -, -
 USER-ATC, atom-to-continuum coupling, Jones & Templeton & Zimmerman (2), "fix atc"_fix_atc.html, USER/atc, "atc"_atc, lib/atc
 USER-AWPMD, wave-packet MD, Ilya Valuev (JIHT), "pair_style awpmd/cut"_pair_awpmd.html, USER/awpmd, -, lib/awpmd

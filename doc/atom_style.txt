@@ -130,8 +130,8 @@ package.  The {ellipsoid} style is part of the "asphere" package.  The
 {peri} style is part of the PERI package for Peridynamics.  The
 {electron} style is part of the USER-EFF package for "electronic force
 fields"_pair_eff.html.  The {meso} style is part of the USER-SPH
-package for "smoothed particle
-hydrodyanmics"_USER/sph/SPH_LAMMPS_userguide.pdf (SPH).  The
+package for smoothed particle hydrodyanmics (SPH).  See "this PDF
+guide"_USER/sph/SPH_LAMMPS_userguide.pdf to using SPH in LAMMPS.  The
 {wavepacket} style is part of the USER-AWPMD package for the
 "antisymmetrized wave packet MD method"_pair_awpmd.html.  They are
 only enabled if LAMMPS was built with that package.  See the "Making

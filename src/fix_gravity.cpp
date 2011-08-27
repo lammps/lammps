@@ -34,6 +34,9 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 5) error->all("Illegal fix gravity command");
 
   time_depend = 1;
+  scalar_flag = 1;
+  global_freq = 1;
+  extscalar = 1;
 
   magnitude = atof(arg[3]);
 
@@ -90,6 +93,9 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
   }
 
   time_origin = update->ntimestep;
+
+  eflag = 0;
+  egrav = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -98,6 +104,7 @@ int FixGravity::setmask()
 {
   int mask = 0;
   mask |= POST_FORCE;
+  mask |= THERMO_ENERGY;
   mask |= POST_FORCE_RESPA;
   return mask;
 }
@@ -155,6 +162,7 @@ void FixGravity::post_force(int vflag)
     zacc = magnitude*zgrav;
   }
 
+  double **x = atom->x;
   double **f = atom->f;
   double *rmass = atom->rmass;
   double *mass = atom->mass;
@@ -163,6 +171,9 @@ void FixGravity::post_force(int vflag)
   int nlocal = atom->nlocal;
   double massone;
 
+  eflag = 0;
+  egrav = 0.0;
+
   if (rmass) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
@@ -170,6 +181,7 @@ void FixGravity::post_force(int vflag)
 	f[i][0] += massone*xacc;
 	f[i][1] += massone*yacc;
 	f[i][2] += massone*zacc;
+	egrav -= massone * (xacc*x[i][0] + yacc*x[i][1] + zacc*x[i][2]);
       }
   } else {
     for (int i = 0; i < nlocal; i++)
@@ -178,6 +190,7 @@ void FixGravity::post_force(int vflag)
 	f[i][0] += massone*xacc;
 	f[i][1] += massone*yacc;
 	f[i][2] += massone*zacc;
+	egrav -= massone * (xacc*x[i][0] + yacc*x[i][1] + zacc*x[i][2]);
       }
   }
 }
@@ -187,4 +200,19 @@ void FixGravity::post_force(int vflag)
 void FixGravity::post_force_respa(int vflag, int ilevel, int iloop)
 {
   if (ilevel == nlevels_respa-1) post_force(vflag);
+}
+
+/* ----------------------------------------------------------------------
+   potential energy in gravity field
+------------------------------------------------------------------------- */
+
+double FixGravity::compute_scalar()
+{
+  // only sum across procs one time
+
+  if (eflag == 0) {
+    MPI_Allreduce(&egrav,&egrav_all,1,MPI_DOUBLE,MPI_SUM,world);
+    eflag = 1;
+  }
+  return egrav_all;
 }

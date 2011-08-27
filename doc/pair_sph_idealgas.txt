@@ -22,9 +22,7 @@ pair_coeff * * 1.0 2.4 :pre
 The sph/idealgas style computes pressure forces between particles
 according to the ideal gas equation of state:
 
-\begin{equation}
-p = (\gamma - 1) \rho e,
-\end{equation}
+:c,image(Eqs/pair_sph_ideal.jpg)
 
 where gamma = 1.4 is the heat capacity ratio, rho is the local
 density, and e is the internal energy per unit mass.  This pair style

@@ -96,6 +96,7 @@ USER-SPH, smoothed particle hydrodynamics, Georg Ganzenmuller (EMI), "SPH_LAMMPS
 :link(atc,http://lammps.sandia.gov/pictures.html#atc)
 :link(cg,http://lammps.sandia.gov/pictures.html#cg)
 :link(eff,http://lammps.sandia.gov/movies.html#eff)
+:link(sph,http://lammps.sandia.gov/movies.html#sph)
 
 The "Authors" column lists a name(s) if a specific person is
 responible for creating and maintaining the package.

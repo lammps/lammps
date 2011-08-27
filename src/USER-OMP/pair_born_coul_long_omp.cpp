@@ -128,6 +128,7 @@ void PairBornCoulLongOMP::eval(double **f, int iifrom, int iito, int tid)
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       factor_lj = special_lj[sbmask(j)];
+      factor_coul = special_coul[sbmask(j)];
       j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];

@@ -364,12 +364,11 @@ void ThrOMP::force_reduce_thr(double *fall, int nall,
     const int ifrom = 3*tid*idelta;
     const int ito   = 3*(((ifrom + idelta) > nall) ? nall : (ifrom + idelta));
 
-    for (int n = 1; n < nthreads; ++n) {
-      const int toffs = 3*n*nall;
-      f = fall + toffs;
-      for (int m = ifrom; m < ito; ++m) {
-	fall[m] += f[m];
-	f[m] = 0.0;
+    for (int m = ifrom; m < ito; ++m) {
+      const int toffs = 3*nall;
+      for (int n = 1; n < nthreads; ++n) {
+	fall[m] += fall[n*toffs + m];
+	fall[n*toffs + m] = 0.0;
       }
     }
   }

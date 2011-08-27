@@ -17,45 +17,56 @@
 </PRE>
 <P><B>Examples:</B>
 </P>
-<P>pair_style sph/idealgas
-pair_coeff * * 1.0 2.4
-</P>
+<PRE>pair_style sph/idealgas
+pair_coeff * * 1.0 2.4 
+</PRE>
 <P><B>Description:</B>
 </P>
-<P>The sph/idealgas style computes pressure forces between particles according to the ideal gas equation of state,
-\begin<I>equation</I>
+<P>The sph/idealgas style computes pressure forces between particles
+according to the ideal gas equation of state:
+</P>
+<P>\begin<I>equation</I>
 p = (\gamma - 1) \rho e,
 \end<I>equation</I>
-where $\gamma=1.4$ is the heat capacity ratio, $\rho$ is the local density, and $e$ is the internal energy per unit mass. This pair style also computes Monaghan's artificial viscosity to prevent particles from interpentrating (Monaghan1983).
+</P>
+<P>where gamma = 1.4 is the heat capacity ratio, rho is the local
+density, and e is the internal energy per unit mass.  This pair style
+also computes Monaghan's artificial viscosity to prevent particles
+from interpentrating <A HREF = "#Monoghan">(Monaghan)</A>.
+</P>
+<P>See <A HREF = "USER/sph/SPH_LAMMPS_userguide.pdf">this PDF guide</A> to using SPH in
+LAMMPS.
 </P>
 <P>The following coefficients must be defined for each pair of atoms
 types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
 above.
 </P>
-<P>nu artificial viscosity (no units)
-h kernel function cutoff (distance units)
-</P>
+<UL><LI>nu artificial viscosity (no units)
+<LI>h kernel function cutoff (distance units) 
+</UL>
 <HR>
 
 <P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
 </P>
-<P>These pair styles do not support mixing.  Thus, coefficients for all
+<P>This style does not support mixing.  Thus, coefficients for all
 I,J pairs must be specified explicitly.
 </P>
-<P>This style does not write information to <A HREF = "restart.html">binary restart
-files</A>, so pair_style and pair_coeff commands do need
-to be specified in an input script that reads a restart file.
+<P>This style does not support the <A HREF = "pair_modify.html">pair_modify</A>
+shift, table, and tail options.
 </P>
-<P>These styles can only be used via the <I>pair</I> keyword of the <A HREF = "run_style.html">run_style
-respa</A> command.  They do not support the <I>inner</I>,
+<P>This style does not write information to <A HREF = "restart.html">binary restart
+files</A>.  Thus, you need to re-specify the pair_style and
+pair_coeff commands in an input script that reads a restart file.
+</P>
+<P>This style can only be used via the <I>pair</I> keyword of the <A HREF = "run_style.html">run_style
+respa</A> command.  It does not support the <I>inner</I>,
 <I>middle</I>, <I>outer</I> keywords.
 </P>
 <P><B>Restrictions:</B>
 </P>
-<P>The <I>pair sph/idealgas</I> style is part of the "USER-SPH" package.  It is
-only enabled if LAMMPS was built with that package (which it is by
-default).  See the <A HREF = "Section_start.html#2_3">Making LAMMPS</A> section for
-more info.
+<P>This pair style is part of the USER-SPH package.  It is only enabled
+if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
 </P>
 <P><B>Related commands:</B>
 </P>
@@ -63,6 +74,11 @@ more info.
 </P>
 <P><B>Default:</B> none
 </P>
-<P><B>(Monaghan1983)</B> J. J. Monaghan and R. A. Gingold, “Shock simulation by the particle method SPH,” Journal of Computational Physics, vol. 52, no. 2, pp. 374-389, Nov. 1983.
+<HR>
+
+<A NAME = "Monoghan"></A>
+
+<P><B>(Monaghan)</B> Monaghan and Gingold, Journal of Computational Physics,
+52, 374-389 (1983).
 </P>
 </HTML>

@@ -21,10 +21,14 @@ fix 1 boundary meso/stationary :pre
 
 [Description:]
 
-Perform time integration to update internal energy and local density, but not
-position or velocity for atoms in the group each timestep.  This fix is needed
-for SPH simulations to correctly time-integrate fixed boundary particles which
-constrain a fluid to a given region in space.
+Perform time integration to update internal energy and local density,
+but not position or velocity for atoms in the group each timestep.
+This fix is needed for SPH simulations to correctly time-integrate
+fixed boundary particles which constrain a fluid to a given region in
+space.
+
+See "this PDF guide"_USER/sph/SPH_LAMMPS_userguide.pdf to using SPH in
+LAMMPS.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
@@ -36,7 +40,11 @@ commands"_Section_howto.html#4_15.  No parameter of this fix can be
 used with the {start/stop} keywords of the "run"_run.html command.
 This fix is not invoked during "energy minimization"_minimize.html.
 
-[Restrictions:] none
+[Restrictions:]
+
+This fix is part of the USER-SPH package.  It is only enabled if
+LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Related commands:]
 

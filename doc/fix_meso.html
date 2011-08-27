@@ -25,8 +25,12 @@
 <P><B>Description:</B>
 </P>
 <P>Perform time integration to update position, velocity, internal energy
-and local density for atoms in the group each timestep. This fix is needed to
-time-integrate mesoscopic systems where particles carry internal variables such as SPH or DPDE.
+and local density for atoms in the group each timestep. This fix is
+needed to time-integrate mesoscopic systems where particles carry
+internal variables such as SPH or DPDE.
+</P>
+<P>See <A HREF = "USER/sph/SPH_LAMMPS_userguide.pdf">this PDF guide</A> to using SPH in
+LAMMPS.
 </P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
@@ -38,7 +42,11 @@ commands</A>.  No parameter of this fix can be
 used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A> command.
 This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
 </P>
-<P><B>Restrictions:</B> none
+<P><B>Restrictions:</B>
+</P>
+<P>This fix is part of the USER-SPH package.  It is only enabled if
+LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
 </P>
 <P><B>Related commands:</B>
 </P>

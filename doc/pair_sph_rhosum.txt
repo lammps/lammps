@@ -10,47 +10,52 @@ pair_style sph/rhosum command :h3
 
 [Syntax:]
 
-pair_style sph/rhosum nstep :pre
+pair_style sph/rhosum Nstep :pre
 
-nstep = timestep interval
+Nstep = timestep interval :ul
 
 [Examples:]
 
 pair_style sph/rhosum 10
-pair_coeff * * 2.4
+pair_coeff * * 2.4 :pre
 
 [Description:]
 
-The sph/rhosum style computes the local particle mass density rho by kernel function interpolation,
-see the SPH-USER documentation.
+The sph/rhosum style computes the local particle mass density rho for
+SPH particles by kernel function interpolation, every Nstep timesteps.
+
+See "this PDF guide"_USER/sph/SPH_LAMMPS_userguide.pdf to using SPH in
+LAMMPS.
 
 The following coefficients must be defined for each pair of atoms
 types via the "pair_coeff"_pair_coeff.html command as in the examples
 above.
 
-h (distance units)
+h (distance units) :ul
 
 :line
 
 [Mixing, shift, table, tail correction, restart, rRESPA info]:
 
-These pair styles do not support mixing.  Thus, coefficients for all
+This style does not support mixing.  Thus, coefficients for all
 I,J pairs must be specified explicitly.
 
-This style does not write information to "binary restart
-files"_restart.html, so pair_style and pair_coeff commands do need
-to be specified in an input script that reads a restart file.
+This style does not support the "pair_modify"_pair_modify.html
+shift, table, and tail options.
 
-These styles can only be used via the {pair} keyword of the "run_style
-respa"_run_style.html command.  They do not support the {inner},
+This style does not write information to "binary restart
+files"_restart.html.  Thus, you need to re-specify the pair_style and
+pair_coeff commands in an input script that reads a restart file.
+
+This style can only be used via the {pair} keyword of the "run_style
+respa"_run_style.html command.  It does not support the {inner},
 {middle}, {outer} keywords.
 
 [Restrictions:]
 
-The {pair sph/rhosum} style is part of the "USER-SPH" package.  It is
-only enabled if LAMMPS was built with that package (which it is by
-default).  See the "Making LAMMPS"_Section_start.html#2_3 section for
-more info. 
+This pair style is part of the USER-SPH package.  It is only enabled
+if LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Related commands:]
 

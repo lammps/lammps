@@ -25,8 +25,11 @@ Define a computation that calculates the per-atom mesoscopic density
 for each atom in a group.
 
 The mesoscopic density is the mass density of a mesoscopic particle,
-calculated by kernel function interpolation using
-"pair style sph/rhosum". 
+calculated by kernel function interpolation using "pair style
+sph/rhosum".
+
+See "this PDF guide"_USER/sph/SPH_LAMMPS_userguide.pdf to using SPH in
+LAMMPS.
 
 The value of the mesoscopic density will be 0.0 for atoms not in the
 specified compute group.
@@ -38,9 +41,13 @@ any command that uses per-atom values from a compute as input.  See
 "this section"_Section_howto.html#4_15 for an overview of LAMMPS
 output options.
 
-The per-atom vector values will be in mass / volume "units"_units.html.
+The per-atom vector values will be in mass/volume "units"_units.html.
 
-[Restrictions:] none
+[Restrictions:]
+
+This compute is part of the USER-SPH package.  It is only enabled if
+LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Related commands:]
 

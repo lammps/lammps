@@ -363,6 +363,5 @@ This report may be accessed on-line via "this link"_sandreport.
 [(Wang)] Wang, Van Hove, Ross, Baskes, J. Chem. Phys., 121, 5410 (2004).
 
 :link(ZBL)
-[(ZBL)] J.F. Ziegler, J.P. Biersack, U. Littmark, 'Stopping and Ranges
-of Ions in Matter' Vol 1, 1985, Pergamon Press.
-
+[(ZBL)] J.F. Ziegler, J.P. Biersack, U. Littmark, "Stopping and Ranges
+of Ions in Matter", Vol 1, 1985, Pergamon Press.

@@ -359,7 +359,6 @@ void ThrOMP::force_reduce_thr(double *fall, int nall,
   if (nthreads == 1) return;
 #pragma omp barrier
   {
-    double *f;
     const int idelta = 1 + nall/nthreads;
     const int ifrom = 3*tid*idelta;
     const int ito   = 3*(((ifrom + idelta) > nall) ? nall : (ifrom + idelta));

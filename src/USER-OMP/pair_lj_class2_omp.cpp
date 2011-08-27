@@ -19,9 +19,6 @@
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
-#include "memory.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 

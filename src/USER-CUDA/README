@@ -1,16 +1,19 @@
-The files in this directory are a user-contributed package for LAMMPS.
+This package provides acceleration of various LAMMPS pair styles, fix
+styles, compute styles, and long-range Coulombics via PPPM for NVIDIA
+GPUs.
+ 
+See this section of the manual to get started:
 
-The person who created these files is Christian Trott at the
-University of Technology Ilmenau, Germany
-(christian.trott@tu-ilmenau.de).  Contact him directly if you have
-questions.
+doc/Section_accelerate.html, sub-section 5.4
 
-The USER-CUDA package provides acceleration of various LAMMPS pair
-styles, fix styles, compute styles, and long-range Coulombics via PPPM
-on NVIDIA GPUs.
+There are example scripts for using this package in
+examples/USER/cuda.
 
-It's use is documented in this file:
-lammps/doc/Section_accelerate.html
+This package uses an external library in lib/cuda which must be
+compiled before making LAMMPS.  See the lib/cuda/README file and the
+LAMMPS manual for information on building LAMMPS with external
+libraries.
 
-Examples input scripts that use the USER-CUDA package are provided in
-lammps/examples/USER/cuda.
+The person who created this package is Christian Trott at the
+University of Technology Ilmenau, Germany (christian.trott at
+tu-ilmenau.de).  Contact him directly if you have questions.

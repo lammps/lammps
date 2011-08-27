@@ -1,18 +1,20 @@
-The files in this directory are a potpourri of (mostly) unrelated
+The files in this package are a potpourri of (mostly) unrelated
 features contributed to LAMMPS by users.  Each feature is a single
-file (actually a *.cpp and *.h file).
+pair of files (*.cpp and *.h).
 
 More information about each feature can be found by reading its doc
-page in the LAMMPS doc directory.  This link points to the doc
-page for all LAMMPS input script commands:
+page in the LAMMPS doc directory.  The doc page which lists all LAMMPS
+input script commands is as follows:
 
-http://lammps.sandia.gov/doc/Section_commands.html#3_5\
+doc/Section_commands.html, subsection 3.5
 
 User-contributed features are listed at the bottom of the fix,
 compute, pair, etc sections.
 
-You should contact the author if you have specific questions about the
-feature or its code.
+The list of features and author of each is given below.
+
+You should contact the author directly if you have specific questions
+about the feature or its coding.
 
 ------------------------------------------------------------
 

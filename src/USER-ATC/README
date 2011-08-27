@@ -1,15 +1,20 @@
-The files in this directory are a user-contributed package for LAMMPS.
-
-The primary people who created these files are Reese Jones
-(rjones@sandia.gov), Jeremy Templeton (jatemple@sandia.gov) and Jon
-Zimmerman (jzimmer@sandia.gov).  Contact them directly if you have
-questions.
-
 This package implements a "fix atc" command which can be used in a
 LAMMPS input script.  This fix can be employed to either do concurrent
 coupling of MD with FE-based physics surrogates or on-the-fly
-post-processing of atomic information to continuum fields.  See the
-doc page for the fix atc command to get started.
+post-processing of atomic information to continuum fields.
 
-There are example scripts for using this package with LAMMPS in
-examples/USER/atc.
+See the doc page for the fix atc command to get started.  At the
+bottom of the doc page are many links to additional documentation
+contained in the doc/USER/atc directory.
+
+There are example scripts for using this package in examples/USER/atc.
+
+This package uses an external library in lib/atc which must be
+compiled before making LAMMPS.  See the lib/atc/README file and the
+LAMMPS manual for information on building LAMMPS with external
+libraries.
+
+The primary people who created this package are Reese Jones
+(rjones at sandia.gov), Jeremy Templeton (jatempl at sandia.gov) and Jon
+Zimmerman (jzimmer at sandia.gov) at Sandia.  Contact them directly if
+you have questions.

@@ -129,7 +129,7 @@ void PairBuckCoulCutOMP::eval(double **f, int iifrom, int iito, int tid)
 	r = sqrt(rsq);
 
 	if (rsq < cut_coulsq[itype][jtype])
-	  forcecoul = qqrd2e * qtmp*q[j]*sqrt(r2inv);
+	  forcecoul = qqrd2e * qtmp*q[j]/r;
 	else forcecoul = 0.0;
 
 	if (rsq < cut_ljsq[itype][jtype]) {
@@ -151,7 +151,7 @@ void PairBuckCoulCutOMP::eval(double **f, int iifrom, int iito, int tid)
 
 	if (EFLAG) {
 	  if (rsq < cut_coulsq[itype][jtype])
-	    ecoul = factor_coul * qqrd2e * qtmp*q[j]*sqrt(r2inv);
+	    ecoul = factor_coul * qqrd2e * qtmp*q[j]/r;
 	  else ecoul = 0.0;
 	  if (rsq < cut_ljsq[itype][jtype]) {
 	    evdwl = a[itype][jtype]*rexp - c[itype][jtype]*r6inv -

@@ -104,12 +104,23 @@ instructions on how to use the accelerated styles effectively.
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
 No information about this fix is written to "binary restart
-files"_restart.html.  None of the "fix_modify"_fix_modify.html options
-are relevant to this fix.  No global or per-atom quantities are stored
-by this fix for access by various "output
-commands"_Section_howto.html#howto_15.  No parameter of this fix can
-be used with the {start/stop} keywords of the "run"_run.html command.
-This fix is not invoked during "energy minimization"_minimize.html.
+files"_restart.html.  
+
+The "fix_modify"_fix_modify.html {energy} option is supported by this
+fix to add the gravitational potential energy of the system to the
+system's potential energy as part of "thermodynamic
+output"_thermo_style.html.
+
+This fix computes a global scalar which can be accessed by various
+"output commands"_Section_howto.html#howto_15.  This scalar is the
+gravitational potential energy of the particles in the defined field,
+namely mass * (g dot x) for each particles, where x and mass are the
+particles position and mass, and g is the gravitational field.  The
+scalar value calculated by this fix is "extensive".
+
+No parameter of this fix can be used with the {start/stop} keywords of
+the "run"_run.html command.  This fix is not invoked during "energy
+minimization"_minimize.html.
 
 [Restrictions:] none
 

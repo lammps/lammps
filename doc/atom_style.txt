@@ -13,7 +13,7 @@ atom_style command :h3
 atom_style style args :pre
 
 style = {angle} or {atomic} or {bond} or {charge} or {dipole} or \
-        {electron} or {ellipsoid} or {full} or {molecular} or \
+        {electron} or {ellipsoid} or {full} or {meso} or {molecular} or \
 	{peri} or {sphere} or {hybrid} :ul
   args = none for any style except {hybrid}
   {hybrid} args = list of one or more sub-styles :pre
@@ -58,6 +58,7 @@ quantities.
 {electron} | charge and spin and eradius | electronic force field |
 {ellipsoid} | shape, quaternion for particle orientation, angular momentum | extended aspherical particles |
 {full} | molecular + charge | bio-molecules |
+{meso} | rho, e, cv | SPH particles |
 {molecular} | bonds, angles, dihedrals, impropers | uncharged molecules |
 {peri} | mass, volume | mesocopic Peridynamic models |
 {sphere} | diameter, mass, angular velocity | granular models |
@@ -88,6 +89,10 @@ position, which is represented by the eradius = electron size.
 
 For the {peri} style, the particles are spherical and each stores a
 per-particle mass and volume.
+
+The {meso} style is for smoothed particle hydrodynamics (SPH)
+particles which store a density (rho), energy (e), and heat capacity
+(cv).
 
 The {wavepacket} style is similar to {electron}, but the electrons may
 consist of several Gaussian wave packets, summed up with coefficients
@@ -124,11 +129,13 @@ MOLECULAR package.  The {dipole} style is part of the "dipole"
 package.  The {ellipsoid} style is part of the "asphere" package.  The
 {peri} style is part of the PERI package for Peridynamics.  The
 {electron} style is part of the USER-EFF package for "electronic force
-fields"_pair_eff.html.  The {wavepacket} style is part of the
-USER-AWPMD package for the "antisymmetrized wave packet MD
-method"_pair_awpmd.html.  They are only enabled if LAMMPS was built
-with that package.  See the "Making LAMMPS"_Section_start.html#start_3
-section for more info.
+fields"_pair_eff.html.  The {meso} style is part of the USER-SPH
+package for "smoothed particle
+hydrodyanmics"_USER/sph/SPH_LAMMPS_userguide.pdf (SPH).  The
+{wavepacket} style is part of the USER-AWPMD package for the
+"antisymmetrized wave packet MD method"_pair_awpmd.html.  They are
+only enabled if LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Related commands:]
 

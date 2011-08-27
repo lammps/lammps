@@ -290,6 +290,7 @@ of analysis.
 <TR><TD >electron</TD><TD > atom-ID atom-type q spin eradius x y z</TD></TR>
 <TR><TD >ellipsoid</TD><TD > atom-ID atom-type ellipsoidflag density x y z</TD></TR>
 <TR><TD >full</TD><TD > atom-ID molecule-ID atom-type q x y z</TD></TR>
+<TR><TD >meso</TD><TD > atom-ID atom-type rho e cv x y z</TD></TR>
 <TR><TD >molecular</TD><TD > atom-ID molecule-ID atom-type x y z</TD></TR>
 <TR><TD >peri</TD><TD > atom-ID atom-type volume density x y z</TD></TR>
 <TR><TD >sphere</TD><TD > atom-ID atom-type diameter density x y z</TD></TR>
@@ -309,6 +310,9 @@ of analysis.
 <LI>volume = volume of atom (distance^3 units)
 <LI>x,y,z = coordinates of atom
 <LI>mux,muy,muz = components of dipole moment of atom (dipole units)
+<LI>rho = density (need units) for SPH particles
+<LI>e = energy (need units) for SPH particles
+<LI>cv = heat capacity (need units) for SPH particles
 <LI>spin = electron spin (+1/-1), 0 = nuclei, 2 = fixed-core, 3 = pseudo-cores (i.e. ECP)
 <LI>eradius = electron radius (or fixed-core radius)
 <LI>etag = integer ID of electron that each wavepacket belongs to

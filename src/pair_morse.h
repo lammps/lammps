@@ -28,7 +28,7 @@ class PairMorse : public Pair {
  public:
   PairMorse(class LAMMPS *);
   ~PairMorse();
-  void compute(int, int);
+  virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
   double init_one(int, int);

@@ -32,11 +32,6 @@ using namespace LAMMPS_NS;
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
-#define LOOKUP 0
-#define LINEAR 1
-#define SPLINE 2
-#define BITMAP 3
-
 #define R   1
 #define RSQ 2
 #define BMP 3

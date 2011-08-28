@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 #include "math.h"
-#include "pair_lj_cut_omp.h"
+#include "pair_born_omp.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -24,15 +24,15 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutOMP::PairLJCutOMP(LAMMPS *lmp) :
-  PairLJCut(lmp), ThrOMP(lmp, PAIR)
+PairBornOMP::PairBornOMP(LAMMPS *lmp) :
+  PairBorn(lmp), ThrOMP(lmp, PAIR)
 {
   respa_enable = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJCutOMP::compute(int eflag, int vflag)
+void PairBornOMP::compute(int eflag, int vflag)
 {
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
@@ -75,11 +75,11 @@ void PairLJCutOMP::compute(int eflag, int vflag)
 }
 
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-void PairLJCutOMP::eval(double **f, int iifrom, int iito, int tid)
+void PairBornOMP::eval(double **f, int iifrom, int iito, int tid)
 {
   int i,j,ii,jj,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double rsq,r2inv,r6inv,forcelj,factor_lj;
+  double rsq,r2inv,r6inv,r,rexp,forceborn,factor_lj;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
@@ -121,8 +121,11 @@ void PairLJCutOMP::eval(double **f, int iifrom, int iito, int tid)
       if (rsq < cutsq[itype][jtype]) {
 	r2inv = 1.0/rsq;
 	r6inv = r2inv*r2inv*r2inv;
-	forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-	fpair = factor_lj*forcelj*r2inv;
+	r = sqrt(rsq);
+	rexp = exp((sigma[itype][jtype]-r)*rhoinv[itype][jtype]);
+	forceborn = born1[itype][jtype]*r*rexp - born2[itype][jtype]*r6inv
+	  + born3[itype][jtype]*r2inv*r6inv;
+	fpair = factor_lj*forceborn*r2inv;
 
 	fxtmp += delx*fpair;
 	fytmp += dely*fpair;
@@ -134,8 +137,8 @@ void PairLJCutOMP::eval(double **f, int iifrom, int iito, int tid)
 	}
 
 	if (EFLAG) {
-	  evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype])
-	    - offset[itype][jtype];
+	  evdwl = a[itype][jtype]*rexp - c[itype][jtype]*r6inv 
+	    + d[itype][jtype]*r6inv*r2inv - offset[itype][jtype];
 	  evdwl *= factor_lj;
 	}
 
@@ -151,10 +154,10 @@ void PairLJCutOMP::eval(double **f, int iifrom, int iito, int tid)
 
 /* ---------------------------------------------------------------------- */
 
-double PairLJCutOMP::memory_usage()
+double PairBornOMP::memory_usage()
 {
   double bytes = memory_usage_thr();
-  bytes += PairLJCut::memory_usage();
+  bytes += PairBorn::memory_usage();
 
   return bytes;
 }

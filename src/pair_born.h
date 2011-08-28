@@ -28,7 +28,7 @@ class PairBorn : public Pair {
  public:
   PairBorn(class LAMMPS *);
   ~PairBorn();
-  void compute(int, int);
+  virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
   double init_one(int, int);
@@ -39,7 +39,7 @@ class PairBorn : public Pair {
   double single(int, int, int, int, double, double, double, double &);
   void *extract(char *, int &);
 
- private:
+ protected:
   double cut_global;
   double **cut;
   double **a,**rho,**sigma,**c, **d;

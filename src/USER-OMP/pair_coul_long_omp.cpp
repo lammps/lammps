@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 #include "math.h"
-#include "pair_lj_cut_omp.h"
+#include "pair_coul_long_omp.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -22,17 +22,25 @@
 
 using namespace LAMMPS_NS;
 
+#define EWALD_F   1.12837917
+#define EWALD_P   0.3275911
+#define A1        0.254829592
+#define A2       -0.284496736
+#define A3        1.421413741
+#define A4       -1.453152027
+#define A5        1.061405429
+
 /* ---------------------------------------------------------------------- */
 
-PairLJCutOMP::PairLJCutOMP(LAMMPS *lmp) :
-  PairLJCut(lmp), ThrOMP(lmp, PAIR)
+PairCoulLongOMP::PairCoulLongOMP(LAMMPS *lmp) :
+  PairCoulLong(lmp), ThrOMP(lmp, PAIR)
 {
   respa_enable = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJCutOMP::compute(int eflag, int vflag)
+void PairCoulLongOMP::compute(int eflag, int vflag)
 {
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
@@ -74,20 +82,26 @@ void PairLJCutOMP::compute(int eflag, int vflag)
   if (vflag_fdotr) virial_fdotr_compute();
 }
 
+/* ---------------------------------------------------------------------- */
+
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-void PairLJCutOMP::eval(double **f, int iifrom, int iito, int tid)
+void PairCoulLongOMP::eval(double **f, int iifrom, int iito, int tid)
 {
-  int i,j,ii,jj,jnum,itype,jtype;
-  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double rsq,r2inv,r6inv,forcelj,factor_lj;
+  int i,j,ii,jj,jnum,itable,itype,jtype;
+  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,ecoul,fpair;
+  double fraction,table;
+  double r,r2inv,rsq,forcecoul,factor_coul;
+  double grij,expm2,prefactor,t,erfc;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
-  evdwl = 0.0;
+  ecoul = 0.0;
 
   double **x = atom->x;
+  double *q = atom->q;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  double *special_lj = force->special_lj;
+  double *special_coul = force->special_coul;
+  double qqrd2e = force->qqrd2e;
   double fxtmp,fytmp,fztmp;
 
   ilist = list->ilist;
@@ -99,6 +113,7 @@ void PairLJCutOMP::eval(double **f, int iifrom, int iito, int tid)
   for (ii = iifrom; ii < iito; ++ii) {
 
     i = ilist[ii];
+    qtmp = q[i];
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
@@ -109,7 +124,7 @@ void PairLJCutOMP::eval(double **f, int iifrom, int iito, int tid)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      factor_lj = special_lj[sbmask(j)];
+      factor_coul = special_coul[sbmask(j)];
       j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];
@@ -118,11 +133,33 @@ void PairLJCutOMP::eval(double **f, int iifrom, int iito, int tid)
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
 
-      if (rsq < cutsq[itype][jtype]) {
+      if (rsq < cut_coulsq) {
 	r2inv = 1.0/rsq;
-	r6inv = r2inv*r2inv*r2inv;
-	forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-	fpair = factor_lj*forcelj*r2inv;
+	if (!ncoultablebits || rsq <= tabinnersq) {
+	  r = sqrt(rsq);
+	  grij = g_ewald * r;
+	  expm2 = exp(-grij*grij);
+	  t = 1.0 / (1.0 + EWALD_P*grij);
+	  erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+	  prefactor = qqrd2e * scale[itype][jtype] * qtmp*q[j]/r;
+	  forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+	  if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
+	} else {
+	  union_int_float_t rsq_lookup;
+	  rsq_lookup.f = rsq;
+	  itable = rsq_lookup.i & ncoulmask;
+	  itable >>= ncoulshiftbits;
+	  fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+	  table = ftable[itable] + fraction*dftable[itable];
+	  forcecoul = scale[itype][jtype] * qtmp*q[j] * table;
+	  if (factor_coul < 1.0) {
+	    table = ctable[itable] + fraction*dctable[itable];
+	    prefactor = scale[itype][jtype] * qtmp*q[j] * table;
+	    forcecoul -= (1.0-factor_coul)*prefactor;
+	  }
+	}
+
+	fpair = forcecoul * r2inv;
 
 	fxtmp += delx*fpair;
 	fytmp += dely*fpair;
@@ -134,13 +171,17 @@ void PairLJCutOMP::eval(double **f, int iifrom, int iito, int tid)
 	}
 
 	if (EFLAG) {
-	  evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype])
-	    - offset[itype][jtype];
-	  evdwl *= factor_lj;
+	  if (!ncoultablebits || rsq <= tabinnersq)
+	    ecoul = prefactor*erfc;
+	  else {
+	    table = etable[itable] + fraction*detable[itable];
+	    ecoul = scale[itype][jtype] * qtmp*q[j] * table;
+	  }
+	  if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
 	}
 
 	if (EVFLAG) ev_tally_thr(this, i,j,nlocal,NEWTON_PAIR,
-				 evdwl,0.0,fpair,delx,dely,delz,tid);
+				 0.0,ecoul,fpair,delx,dely,delz,tid);
       }
     }
     f[i][0] += fxtmp;
@@ -151,10 +192,10 @@ void PairLJCutOMP::eval(double **f, int iifrom, int iito, int tid)
 
 /* ---------------------------------------------------------------------- */
 
-double PairLJCutOMP::memory_usage()
+double PairCoulLongOMP::memory_usage()
 {
   double bytes = memory_usage_thr();
-  bytes += PairLJCut::memory_usage();
+  bytes += PairCoulLong::memory_usage();
 
   return bytes;
 }

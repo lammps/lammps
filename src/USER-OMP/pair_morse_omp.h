@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -11,30 +11,35 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Axel Kohlmeyer (Temple U)
+------------------------------------------------------------------------- */
+
 #ifdef PAIR_CLASS
 
-PairStyle(coul/debye,PairCoulDebye)
+PairStyle(morse/omp,PairMorseOMP)
 
 #else
 
-#ifndef LMP_PAIR_COUL_DEBYE_H
-#define LMP_PAIR_COUL_DEBYE_H
+#ifndef LMP_PAIR_MORSE_OMP_H
+#define LMP_PAIR_MORSE_OMP_H
 
-#include "pair_coul_cut.h"
+#include "pair_morse.h"
+#include "thr_omp.h"
 
 namespace LAMMPS_NS {
 
-class PairCoulDebye : public PairCoulCut {
- public:
-  PairCoulDebye(class LAMMPS *);
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
-  double single(int, int, int, int, double, double, double, double &);
+class PairMorseOMP : public PairMorse, public ThrOMP {
 
- protected:
-  double kappa;
+ public:
+  PairMorseOMP(class LAMMPS *);
+
+  virtual void compute(int, int);
+  virtual double memory_usage();
+
+ private:
+  template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
+  void eval(double **f, int ifrom, int ito, int tid);
 };
 
 }

@@ -82,7 +82,7 @@ the iteration count during the minimization.
 
 [Restrictions:]
 
-This fix is part of the "user-misc" package.  It is only enabled if
+This fix is part of the USER-MISC package.  It is only enabled if
 LAMMPS was built with that package.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.
 

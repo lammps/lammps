@@ -35,7 +35,8 @@ using namespace LAMMPS_NS;
 enum{ATOM_SELECT,MOL_SELECT,TYPE_SELECT,GROUP_SELECT,REGION_SELECT};
 enum{TYPE,TYPE_FRACTION,MOLECULE,X,Y,Z,CHARGE,MASS,SHAPE,
      DIPOLE,DIPOLE_RANDOM,QUAT,QUAT_RANDOM,
-     DIAMETER,DENSITY,VOLUME,IMAGE,BOND,ANGLE,DIHEDRAL,IMPROPER};
+     DIAMETER,DENSITY,VOLUME,IMAGE,BOND,ANGLE,DIHEDRAL,IMPROPER,
+     MESO_E,MESO_CV,MESO_RHO};
 
 #define BIG INT_MAX
 
@@ -271,6 +272,27 @@ void Set::command(int narg, char **arg)
 	error->all("Invalid value in set command");
       topology(IMPROPER);
       iarg += 2;
+    } else if (strcmp(arg[iarg],"meso_e") == 0) {
+      if (iarg+2 > narg) error->all("Illegal set command");
+      dvalue = atof(arg[iarg+1]);
+      if (!atom->e_flag)
+	error->all("Cannot set this attribute for this atom style");
+      set(MESO_E);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"meso_cv") == 0) {
+      if (iarg+2 > narg) error->all("Illegal set command");
+      dvalue = atof(arg[iarg+1]);
+      if (!atom->cv_flag)
+    	error->all("Cannot set this attribute for this atom style");
+      set(MESO_CV);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"meso_rho") == 0) {
+      if (iarg+2 > narg) error->all("Illegal set command");
+      dvalue = atof(arg[iarg+1]);
+      if (!atom->rho_flag)
+	error->all("Cannot set meso_rho for this atom style");
+      set(MESO_RHO);
+      iarg += 2;
     } else error->all("Illegal set command");    
 
     // statistics
@@ -377,7 +399,10 @@ void Set::set(int keyword)
     else if (keyword == MASS) atom->rmass[i] = dvalue;
     else if (keyword == DIAMETER) atom->radius[i] = 0.5 * dvalue;
     else if (keyword == VOLUME) atom->vfrac[i] = dvalue;
-    
+    else if (keyword == MESO_E) atom->e[i] = dvalue;
+    else if (keyword == MESO_CV) atom->cv[i] = dvalue;
+    else if (keyword == MESO_RHO) atom->rho[i] = dvalue;
+
     // set shape
 
     else if (keyword == SHAPE)

@@ -157,8 +157,8 @@ minimization"_minimize.html.
 
 [Restrictions:]
 
-This fix is part of the "mc" package.  It is only enabled if LAMMPS
-was built with that package.  See the "Making
+This fix is part of the MC package.  It is only enabled if LAMMPS was
+built with that package.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.
 
 The setings of the "special_bond" command must be 0,1,1 in order to

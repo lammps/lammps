@@ -487,6 +487,8 @@ package"_Section_start.html#start_3.
 "atc"_fix_atc.html,
 "imd"_fix_imd.html,
 "langevin/eff"_fix_langevin_eff.html,
+"meso"_fix_meso.html,
+"meso/stationary"_fix_meso_stationary.html,
 "nph/eff"_fix_nh_eff.html,
 "npt/eff"_fix_nh_eff.html,
 "nve/eff"_fix_nve_eff.html,
@@ -578,6 +580,9 @@ package"_Section_start.html#start_3.
 "ackland/atom"_compute_ackland_atom.html,
 "ke/eff"_compute_ke_eff.html,
 "ke/atom/eff"_compute_ke_atom_eff.html,
+"meso_e/atom"_compute_meso_e_atom.html,
+"meso_rho/atom"_compute_meso_rho_atom.html,
+"meso_t/atom"_compute_meso_t_atom.html,
 "temp/eff"_compute_temp_eff.html,
 "temp/deform/eff"_compute_temp_deform_eff.html,
 "temp/region/eff"_compute_temp_region_eff.html,
@@ -675,7 +680,13 @@ package"_Section_start.html#start_3.
 "eff/cut"_pair_eff.html,
 "lj/coul"_pair_lj_coul.html,
 "lj/sf"_pair_lj_sf.html,
-"reax/c"_pair_reax_c.html :tb(c=4,ea=c)
+"reax/c"_pair_reax_c.html
+"sph/heatconduction"_pair_heatconduction.html,
+"sph/idealgas"_pair_idealgas.html,
+"sph/lj"_pair_lj.html,
+"sph/rhosum"_pair_rhosum.html,
+"sph/taitwater"_pair_taitwater.html,
+"sph/taitwater/morris"_pair_taitwater_morris.html :tb(c=4,ea=c)
 
 These are accelerated pair styles, which can be used if LAMMPS is
 built with the "appropriate accelerated

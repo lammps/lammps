@@ -139,7 +139,7 @@ commands)
     embedded ion method (EIM), ADP, Stillinger-Weber, Tersoff, REBO, AIREBO, ReaxFF, COMB
   electron force field (eFF, AWPMD)
   coarse-grained potentials: DPD, GayBerne, REsquared, colloidal, DLVO
-  mesoscopic potentials: granular, Peridynamics
+  mesoscopic potentials: granular, Peridynamics, SPH
   bond potentials: harmonic, FENE, Morse, nonlinear, class 2, \
     quartic (breakable)
   angle potentials: harmonic, CHARMM, cosine, cosine/squared, cosine/periodic, \
@@ -539,7 +539,7 @@ fix smd for steered MD : Axel Kohlmeyer (U Penn)
 GROMACS pair potentials : Mark Stevens (Sandia)
 lmp2vmd tool : Axel Kohlmeyer (U Penn)
 compute group/group : Naveen Michaud-Agrawal (Johns Hopkins U)
-CG-CMM user package for coarse-graining : Axel Kohlmeyer (U Penn)
+USER-CG-CMM package for coarse-graining : Axel Kohlmeyer (U Penn)
 cosine/delta angle potential : Axel Kohlmeyer (U Penn)
 VIM editor add-ons for LAMMPS input scripts : Gerolf Ziegenhain
 pair lubricate : Randy Schunk (Sandia)

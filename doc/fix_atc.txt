@@ -144,7 +144,7 @@ minimization"_minimize.html.
 
 [Restrictions:]
 
-This fix is part of the "user-atc" package.  It is only enabled if
+This fix is part of the USER-ATC package.  It is only enabled if
 LAMMPS was built with that package, which also requires the ATC
 library be built and linked with LAMMPS.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.

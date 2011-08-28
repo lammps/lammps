@@ -249,7 +249,7 @@ These pair styles can only be used via the {pair} keyword of the
 [Restrictions:]
 
 These pair styles will only be enabled if LAMMPS is built with the
-"user-eff" package.  It will only be enabled if LAMMPS was built with
+USER-EFF package.  It will only be enabled if LAMMPS was built with
 that package.  See the "Making LAMMPS"_Section_start.html#start_3
 section for more info.
 

@@ -77,9 +77,9 @@ same value from the Ea formula.
 
 [Restrictions:]
 
-This angle style can only be used if LAMMPS was built with the
-"class2" package.  See the "Making LAMMPS"_Section_start.html#start_3
-section for more info on packages.
+This angle style can only be used if LAMMPS was built with the CLASS2
+package.  See the "Making LAMMPS"_Section_start.html#start_3 section
+for more info on packages.
 
 [Related commands:]
 

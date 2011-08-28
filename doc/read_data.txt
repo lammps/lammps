@@ -270,6 +270,7 @@ dipole: atom-ID atom-type q x y z mux muy muz
 electron: atom-ID atom-type q spin eradius x y z
 ellipsoid: atom-ID atom-type ellipsoidflag density x y z
 full: atom-ID molecule-ID atom-type q x y z
+meso: atom-ID atom-type rho e cv x y z
 molecular: atom-ID molecule-ID atom-type x y z
 peri: atom-ID atom-type volume density x y z
 sphere: atom-ID atom-type diameter density x y z
@@ -288,6 +289,9 @@ density = density of atom (mass/distance^3 units)
 volume = volume of atom (distance^3 units)
 x,y,z = coordinates of atom
 mux,muy,muz = components of dipole moment of atom (dipole units)
+rho = density (need units) for SPH particles
+e = energy (need units) for SPH particles
+cv = heat capacity (need units) for SPH particles
 spin = electron spin (+1/-1), 0 = nuclei, 2 = fixed-core, 3 = pseudo-cores (i.e. ECP)
 eradius = electron radius (or fixed-core radius)
 etag = integer ID of electron that each wavepacket belongs to

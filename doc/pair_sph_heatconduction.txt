@@ -1,0 +1,63 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+pair_style sph/heatconduction command :h3
+
+[Syntax:]
+
+pair_style sph/heatconduction :pre
+
+[Examples:]
+
+pair_style sph/heatconduction
+pair_coeff * * 1.0 2.4 :pre
+
+[Description:]
+
+The sph/heatconduction style computes heat transport between SPH particles.
+The transport model is the diffusion euqation for the internal energy.
+
+See "this PDF guide"_USER/sph/SPH_LAMMPS_userguide.pdf to using SPH in
+LAMMPS.
+
+The following coefficients must be defined for each pair of atoms
+types via the "pair_coeff"_pair_coeff.html command as in the examples
+above.
+
+D diffusion coefficient (length^2/time units)
+h kernel function cutoff (distance units) :ul
+
+:line
+
+[Mixing, shift, table, tail correction, restart, rRESPA info]:
+
+This style does not support mixing.  Thus, coefficients for all
+I,J pairs must be specified explicitly.
+
+This style does not support the "pair_modify"_pair_modify.html
+shift, table, and tail options.
+
+This style does not write information to "binary restart
+files"_restart.html.  Thus, you need to re-specify the pair_style and
+pair_coeff commands in an input script that reads a restart file.
+
+This style can only be used via the {pair} keyword of the "run_style
+respa"_run_style.html command.  It does not support the {inner},
+{middle}, {outer} keywords.
+
+[Restrictions:]
+
+This pair style is part of the USER-SPH package.  It is only enabled
+if LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
+
+[Related commands:]
+
+"pair_coeff"_pair_coeff.html, pair_sph/rhosum
+
+[Default:] none

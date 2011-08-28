@@ -19,7 +19,8 @@ keyword = {type} or {type/fraction} or {mol} or {x} or {y} or {z} or \
           {charge} or {dipole} or {dipole/random} or {quat} or \
 	  {quat/random} or {diameter} or {shape} or {mass} or \
 	  {density} or {volume} or {image} or
-	  {bond} or {angle} or {dihedral} or {improper} :l
+	  {bond} or {angle} or {dihedral} or {improper} or
+	  {meso_e} or {meso_cv} or {meso_rho} :l
   {type} value = atom type
   {type/fraction} values = type fraction seed
     type = new atom type
@@ -49,7 +50,10 @@ keyword = {type} or {type/fraction} or {mol} or {x} or {y} or {z} or \
   {bond} value = bond type for all bonds between selected atoms
   {angle} value = angle type for all angles between selected atoms
   {dihedral} value = dihedral type for all dihedrals between selected atoms
-  {improper} value = improper type for all impropers between selected atoms :pre
+  {improper} value = improper type for all impropers between selected atoms
+  {meso_e} value = energy of SPH particles (need units)
+  {meso_cv} value = heat capacity of SPH particles (need units)
+  {meso_rho} value = density of SPH particles (need units) :pre
 :ule
 
 [Examples:]
@@ -226,6 +230,11 @@ order for the change to be made.  The value of nbondtype (nangletypes,
 etc) was set by the {bond types} ({angle types}, etc) field in the
 header of the data file read by the "read_data"_read_data.html
 command.
+
+Keywords {meso_e}, {meso_cv}, and {meso_rho} set the energy, heat
+capacity, and density of smmothed particle hydrodynamics (SPH)
+particles.  See "this PDF guide"_USER/sph/SPH_LAMMPS_userguide.pdf to
+using SPH in LAMMPS.
 
 [Restrictions:]
 

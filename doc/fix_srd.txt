@@ -340,7 +340,7 @@ minimization"_minimize.html.
 
 [Restrictions:]
 
-This command can only be used if LAMMPS was built with the "srd"
+This command can only be used if LAMMPS was built with the SRD
 package.  See the "Making LAMMPS"_Section_start.html#start_3 section
 for more info on packages.
 

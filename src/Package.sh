@@ -1,5 +1,5 @@
 # Package.sh = package management, called from Makefile
-# Syntax: sh Package.sh DIR status/update/overwrite/regenerate/diff
+# Syntax: sh Package.sh DIR status/update/overwrite/diff
 
 # style used to translate dir name to package name
 
@@ -77,15 +77,6 @@ elif (test $2 = "overwrite") then
     done
   else
     echo "  $1 package is not installed, no action"
-  fi
-
-# regenenate Makefile.package from Makefile.package.empty
-# if installed:
-# re-install so Install.sh will edit Makefile.package
-
-elif (test $2 = "regenerate") then
-  if (test $installed = 1) then
-    /bin/sh Install.sh 1
   fi
 
 # diff

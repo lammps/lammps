@@ -163,7 +163,7 @@ discussed in "this section"_Section_accelerate.html of the manual.
 The accelerated styles take the same arguments and should produce the
 same results, except for round-off and precision issues.
 
-These accelerated styles are part of the "user-cuda", "gpu", and "opt"
+These accelerated styles are part of the USER-CUDA, GPU, and OPT
 packages respectively.  They are only enabled if LAMMPS was built with
 those packages.  See the "Making LAMMPS"_Section_start.html#start_3
 section for more info.
@@ -215,9 +215,9 @@ See the "run_style"_run_style.html command for details.
 [Restrictions:]
 
 The {lj/cut/coul/long} and {lj/cut/coul/long/tip4p} styles are part of
-the "kspace" package.  They are only enabled if LAMMPS was built with
+the KSPACE package.  They are only enabled if LAMMPS was built with
 those packages.  See the "Making LAMMPS"_Section_start.html#start_3
-section for more info.  Note that the kspace package is installed by
+section for more info.  Note that the KSPACE package is installed by
 default.
 
 [Related commands:]

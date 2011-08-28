@@ -113,7 +113,7 @@ discussed in "this section"_Section_accelerate.html of the manual.
 The accelerated styles take the same arguments and should produce the
 same results, except for round-off and precision issues.
 
-These accelerated styles are part of the "user-cuda", "gpu", and "opt"
+These accelerated styles are part of the USER-CUDA, GPU, and OPT
 packages respectively.  They are only enabled if LAMMPS was built with
 those packages.  See the "Making LAMMPS"_Section_start.html#start_3
 section for more info.
@@ -165,11 +165,11 @@ support the {pair} keyword of run_style respa.  See the
 [Restrictions:]
 
 The {lj/charmm/coul/charmm} and {lj/charmm/coul/charmm/implicit}
-styles are part of the "molecule" package.  The {lj/charmm/coul/long}
-style is part of the "kspace" package.  They are only enabled if
-LAMMPS was built with those packages.  See the "Making
+styles are part of the MOLECULE package.  The {lj/charmm/coul/long}
+style is part of the KSPACE package.  They are only enabled if LAMMPS
+was built with those packages.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.  Note that
-the molecule and kspace packages are installed by default.
+the MOLECULE and KSPACE packages are installed by default.
 
 [Related commands:]
 

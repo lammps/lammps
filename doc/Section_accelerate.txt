@@ -268,6 +268,9 @@ many timesteps, to run entirely on the GPU (except for inter-processor
 MPI communication), so that atom-based data (e.g. coordinates, forces)
 do not have to move back-and-forth between the CPU and GPU. :ulb,l
 
+The speed-up advantage of this approach is typically better when the
+number of atoms per GPU is large :l
+
 Data will stay on the GPU until a timestep where a non-GPU-ized fix or
 compute is invoked.  Whenever a non-GPU operation occurs (fix,
 compute, output), data automatically moves back to the CPU as needed.

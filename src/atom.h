@@ -56,6 +56,10 @@ class Atom : protected Pointers {
   double *eradius,*ervel,*erforce,*ervelforce;
   double *cs,*csforce,*vforce;
   int *etag;
+  double *rho, *drho;
+  double *e, *de;
+  double **vest;
+  double *cv;
 
   int **nspecial;               // 0,1,2 = cummulative # of 1-2,1-3,1-4 neighs
   int **special;                // IDs of 1-2,1-3,1-4 neighs of each atom
@@ -81,12 +85,13 @@ class Atom : protected Pointers {
   // customize by adding new flag
 
   int sphere_flag,ellipsoid_flag,peri_flag,electron_flag;
-  int wavepacket_flag;
+  int wavepacket_flag,sph_flag;
 
   int molecule_flag,q_flag,mu_flag;
   int rmass_flag,radius_flag,omega_flag,torque_flag,angmom_flag;
   int vfrac_flag,spin_flag,eradius_flag,ervel_flag,erforce_flag;
   int cs_flag,csforce_flag,vforce_flag,ervelforce_flag,etag_flag;
+  int rho_flag,e_flag,cv_flag,vest_flag;
 
   // extra peratom info in restart file destined for fix & diag 
 

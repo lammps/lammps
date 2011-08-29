@@ -310,7 +310,7 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
       if (ndim == 1) fprintf(fp,"# Bin Coord Ncount");
       else if (ndim == 2) fprintf(fp,"# Bin Coord1 Coord2 Ncount");
       else if (ndim == 3) fprintf(fp,"# Bin Coord1 Coord2 Coord3 Ncount");
-      for (int i = 0; i < nvalues; i++) fprintf(fp," %s",arg[9+i]);
+      for (int i = 0; i < nvalues; i++) fprintf(fp," %s",arg[6+3*ndim+i]);
       fprintf(fp,"\n");
     }
   }

@@ -24,7 +24,7 @@ energy and force are continuous everywhere.
 Inside the inflection point the interaction is identical to the 
 standard 12/6 "Lennard-Jones"_pair_lj.html potential.
 The LJ function outside the inflection point is replaced 
-with a cubic function of distance. The energy, force and second
+with a cubic function of distance. The energy, force, and second
 derivative are continuous at the inflection point. 
 The cubic coefficient A3 is chosen so
 that both energy and force go to zero at the cutoff distance. 
@@ -34,9 +34,10 @@ Outside the cutoff distance the energy and force are zero.
  
 The location of the inflection point rs is defined
 by the LJ diameter, rs/sigma = (26/7)^1/6. The cutoff distance 
-is defined by rc/rs = 67/48. The analytic expression for the 
+is defined by rc/rs = 67/48 or rc/sigma = 1.737.... 
+The analytic expression for the 
 the cubic coefficient 
-A3*rmin^3/epsilon = 27.93357 is given in the paper 
+A3*rmin^3/epsilon = 27.93... is given in the paper by
 Holian and Ravelo "(Holian)"_#Holian.
 
 This potential is commonly used to study the mechanical behavior

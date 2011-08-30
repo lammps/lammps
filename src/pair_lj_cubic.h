@@ -45,12 +45,12 @@ class PairLJCubic : public Pair {
 
   // LJ quantities scaled by epsilon and rmin = sigma*2^1/6
 
-  static const double rt6two = 1.1224621;  // 2^1/6
-  static const double s = 1.1086834;       // inflection point = (13/7)^1/6
-  static const double phis = -0.7869823;   // energy at s
-  static const double dphids = 2.6899009;  // gradient at s
-  static const double a3 = 27.93357;       // cubic coefficient
-  static const double sm = 1.5475375;      // cubic cutoff = s*67/48
+  static const double rt6two;  // 2^1/6
+  static const double s;       // inflection point = (13/7)^1/6
+  static const double phis;    // energy at s
+  static const double dphids;  // gradient at s
+  static const double a3;      // cubic coefficient
+  static const double sm;      // cubic cutoff = s*67/48
 
   void allocate();
 };

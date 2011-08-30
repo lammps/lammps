@@ -34,6 +34,15 @@ using namespace LAMMPS_NS;
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
+// LJ quantities scaled by epsilon and rmin = sigma*2^1/6
+
+const double PairLJCubic::rt6two = 1.1224621;  // 2^1/6
+const double PairLJCubic::s = 1.1086834;       // inflection point = (13/7)^1/6
+const double PairLJCubic::phis = -0.7869823;   // energy at s
+const double PairLJCubic::dphids = 2.6899009;  // gradient at s
+const double PairLJCubic::a3 = 27.93357;       // cubic coefficient
+const double PairLJCubic::sm = 1.5475375;      // cubic cutoff = s*67/48
+
 /* ---------------------------------------------------------------------- */
 
 PairLJCubic::PairLJCubic(LAMMPS *lmp) : Pair(lmp) {}

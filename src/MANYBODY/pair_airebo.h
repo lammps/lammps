@@ -78,9 +78,9 @@ class PairAIREBO : public Pair {
 
   double PCCf[5][5],PCCdfdx[5][5],PCCdfdy[5][5],PCHf[5][5];
   double PCHdfdx[5][5],PCHdfdy[5][5];
-  double piCCf[5][5][11],piCCdfdx[5][5][10];
+  double piCCf[5][5][10],piCCdfdx[5][5][10];
   double piCCdfdy[5][5][10],piCCdfdz[5][5][10];
-  double piCHf[5][5][11],piCHdfdx[5][5][10];
+  double piCHf[5][5][10],piCHdfdx[5][5][10];
   double piCHdfdy[5][5][10],piCHdfdz[5][5][10];
   double piHHf[5][5][10],piHHdfdx[5][5][10];
   double piHHdfdy[5][5][10],piHHdfdz[5][5][10];

@@ -27,18 +27,18 @@ namespace LAMMPS_NS {
 class PairLJCubic : public Pair {
  public:
   PairLJCubic(class LAMMPS *);
-  virtual ~PairLJCubic();
-  virtual void compute(int, int);
-  virtual void settings(int, char **);
+  ~PairLJCubic();
+  void compute(int, int);
+  void settings(int, char **);
   void coeff(int, char **);
   double init_one(int, int);
   void write_restart(FILE *);
   void read_restart(FILE *);
-  virtual void write_restart_settings(FILE *);
-  virtual void read_restart_settings(FILE *);
-  virtual double single(int, int, int, int, double, double, double, double &);
+  void write_restart_settings(FILE *);
+  void read_restart_settings(FILE *);
+  double single(int, int, int, int, double, double, double, double &);
 
- protected:
+ private:
   double **cut,**cut_inner,**cut_inner_sq;
   double **epsilon,**sigma;
   double **lj1,**lj2,**lj3,**lj4;

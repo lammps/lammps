@@ -31,17 +31,17 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 // LJ quantities scaled by epsilon and rmin = sigma*2^1/6
 
-const double PairLJCubic::rt6two = 1.1224621;  // 2^1/6
-const double PairLJCubic::s = 1.1086834;       // inflection point = (13/7)^1/6
-const double PairLJCubic::phis = -0.7869823;   // energy at s
-const double PairLJCubic::dphids = 2.6899009;  // gradient at s
-const double PairLJCubic::a3 = 27.93357;       // cubic coefficient
-const double PairLJCubic::sm = 1.5475375;      // cubic cutoff = s*67/48
+#define RT6TWO 1.1224621  // 2^1/6
+#define SS 1.1086834       // inflection point (13/7)^1/6
+#define PHIS -0.7869823   // energy at s
+#define DPHIDS 2.6899009  // gradient at s
+#define A3 27.93357       // cubic coefficient
+#define SM 1.5475375      // cubic cutoff = s*67/48
+
+#define MIN(a,b) ((a) < (b) ? (a) : (b))
+#define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 /* ---------------------------------------------------------------------- */
 
@@ -122,9 +122,9 @@ void PairLJCubic::compute(int eflag, int vflag)
 	  forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
 	} else {
 	  r = sqrt(rsq); 
-	  rmin = sigma[itype][jtype]*rt6two;
+	  rmin = sigma[itype][jtype]*RT6TWO;
 	  t = (r - cut_inner[itype][jtype])/rmin;
-	  forcelj = epsilon[itype][jtype]*(-dphids + a3*t*t/2.0)*r/rmin;
+	  forcelj = epsilon[itype][jtype]*(-DPHIDS + A3*t*t/2.0)*r/rmin;
         }
 	fpair = factor_lj*forcelj*r2inv;
 	  
@@ -142,7 +142,7 @@ void PairLJCubic::compute(int eflag, int vflag)
 	    evdwl = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]); 
 	  else
 	    evdwl = epsilon[itype][jtype]*
-	      (phis + dphids*t - a3*t*t*t/6.0);
+	      (PHIS + DPHIDS*t - A3*t*t*t/6.0);
 	  evdwl *= factor_lj;
 
 	  if (evflag) ev_tally(i,j,nlocal,newton_pair,
@@ -216,15 +216,15 @@ void PairLJCubic::coeff(int narg, char **arg)
 
   double epsilon_one = force->numeric(arg[2]);
   double sigma_one = force->numeric(arg[3]);
-  double rmin = sigma_one*rt6two;
+  double rmin = sigma_one*RT6TWO;
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
       epsilon[i][j] = epsilon_one;
       sigma[i][j] = sigma_one;
-      cut_inner[i][j] = rmin*s;
-      cut[i][j] = rmin*sm;
+      cut_inner[i][j] = rmin*SS;
+      cut[i][j] = rmin*SM;
       setflag[i][j] = 1;
       count++;
     }
@@ -353,9 +353,9 @@ double PairLJCubic::single(int i, int j, int itype, int jtype,
     forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
   } else {
     r = sqrt(rsq); 
-    rmin = sigma[itype][jtype]*rt6two;
+    rmin = sigma[itype][jtype]*RT6TWO;
     t = (r - cut_inner[itype][jtype])/rmin;
-    forcelj = epsilon[itype][jtype]*(-dphids + a3*t*t/2.0)*r/rmin;
+    forcelj = epsilon[itype][jtype]*(-DPHIDS + A3*t*t/2.0)*r/rmin;
   }
   fforce = factor_lj*forcelj*r2inv;
 
@@ -363,7 +363,7 @@ double PairLJCubic::single(int i, int j, int itype, int jtype,
     philj = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]);
   else
     philj = epsilon[itype][jtype]*
-      (phis + dphids*t - a3*t*t*t/6.0);
+      (PHIS + DPHIDS*t - A3*t*t*t/6.0);
 
   return factor_lj*philj;
 }

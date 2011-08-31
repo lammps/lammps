@@ -28,7 +28,7 @@ class PairLJCubic : public Pair {
  public:
   PairLJCubic(class LAMMPS *);
   ~PairLJCubic();
-  void compute(int, int);
+  virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
   double init_one(int, int);
@@ -38,7 +38,7 @@ class PairLJCubic : public Pair {
   void read_restart_settings(FILE *);
   double single(int, int, int, int, double, double, double, double &);
 
- private:
+ protected:
   double **cut,**cut_inner,**cut_inner_sq;
   double **epsilon,**sigma;
   double **lj1,**lj2,**lj3,**lj4;

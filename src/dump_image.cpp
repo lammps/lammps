@@ -1502,6 +1502,7 @@ void DumpImage::write_JPG()
   }
 
   jpeg_finish_compress(&cinfo);
+  jpeg_destroy_compress(&cinfo);
 #endif
 }
 

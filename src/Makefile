@@ -13,12 +13,12 @@ OBJ = 	$(SRC:.cpp=.o)
 
 # Package variables
 
-PACKAGE = asphere class2 colloid dipole dsmc gpu granular \
-	  kspace manybody meam molecule opt peri poems reax replica \
+PACKAGE = asphere class2 colloid dipole gpu granular \
+	  kspace manybody mc meam molecule opt peri poems reax replica \
 	  shock srd xtc
 
 PACKUSER = user-misc user-atc user-awpmd user-cg-cmm \
-	   user-cuda user-eff user-ewaldn user-reaxc
+	   user-cuda user-eff user-ewaldn user-omp user-reaxc user-sph
 
 PACKALL = $(PACKAGE) $(PACKUSER)
 
@@ -67,11 +67,14 @@ help:
 	@$(SHELL) Make.sh style
 	@cp -p *.cpp *.h Obj_$@
 	@cp MAKE/Makefile.$@ Obj_$@/Makefile
-	@if [ ! -e Makefile.package ]; then make package-regenerate; fi
-	@if [ ! -e Makefile.package.settings ]; then make package-regenerate; fi
+	@if [ ! -e Makefile.package ]; \
+	  then cp Makefile.package.empty Makefile.package; fi
+	@if [ ! -e Makefile.package.settings ]; \
+	  then cp Makefile.package.settings.empty Makefile.package.settings; fi
 	@cp Makefile.package Makefile.package.settings Obj_$@
 	@cd Obj_$@; \
-	$(MAKE) $(MFLAGS) "OBJ = $(OBJ)" "INC = $(INC)" "EXE = ../$(EXE)" ../$(EXE)
+	$(MAKE) $(MFLAGS) "OBJ = $(OBJ)" "INC = $(INC)" \
+	  "EXE = ../$(EXE)" ../$(EXE)
 	@if [ -d Obj_$@ ]; then cd Obj_$@; rm -f $(SRC) $(INC) Makefile*; fi
 
 # Remove machine-specific object files
@@ -171,7 +174,6 @@ no-%:
 # status = list src files that differ from package files
 # update = replace src files with newer package files
 # overwrite = overwrite package files with newer src files
-# regenerate = regenerate Makefile.package from Makefile.package.empty
 # diff = show differences between src and package files
 
 package-status:
@@ -188,12 +190,6 @@ package-overwrite:
 	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p overwrite; done
 	@echo ''
 	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p overwrite; done
-
-package-regenerate:
-	@cp Makefile.package.empty Makefile.package
-	@cp Makefile.package.settings.empty Makefile.package.settings
-	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p regenerate; done
-	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p regenerate; done
 
 package-diff:
 	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p diff; done

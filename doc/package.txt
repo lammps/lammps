@@ -123,15 +123,15 @@ This command cannot be used after the simulation box is defined by a
 
 The cuda style of this command can only be invoked if LAMMPS was built
 with the USER-CUDA package.  See the "Making
-LAMMPS"_Section_start.html#2_3 section for more info.
+LAMMPS"_Section_start.html#start_3 section for more info.
 
 The gpu style of this command can only be invoked if LAMMPS was built
-with the GPU package.  See the "Making LAMMPS"_Section_start.html#2_3
-section for more info.
+with the GPU package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
 
 The omp style of this command can only be invoked if LAMMPS was built
 with the USER-OMP package.  See the "Making
-LAMMPS"_Section_start.html#2_3 section for more info.
+LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Related commands:] none
 

@@ -6,7 +6,7 @@
 
 :line
 
-6. Performance & scalability :h3
+8. Performance & scalability :h3
 
 LAMMPS performance on several prototypical benchmarks and machines is
 discussed on the Benchmarks page of the "LAMMPS WWW Site"_lws where

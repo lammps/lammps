@@ -427,7 +427,7 @@ No information about this fix is written to "binary restart
 files"_restart.html.  None of the "fix_modify"_fix_modify.html options
 are relevant to this fix.  No global or per-atom quantities are stored
 by this fix for access by various "output
-commands"_Section_howto.html#4_15.
+commands"_Section_howto.html#howto_15.
 
 This fix can perform deformation over multiple runs, using the {start}
 and {stop} keywords of the "run"_run.html command.  See the

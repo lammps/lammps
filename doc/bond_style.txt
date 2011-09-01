@@ -80,7 +80,7 @@ specified by the associated "bond_coeff"_bond_coeff.html command:
 There are also additional bond styles submitted by users which are
 included in the LAMMPS distribution.  The list of these with links to
 the individual styles are given in the bond section of "this
-page"_Section_commands.html#3_5.
+page"_Section_commands.html#cmd_5.
 
 :line
 
@@ -89,10 +89,10 @@ page"_Section_commands.html#3_5.
 Bond styles can only be set for atom styles that allow bonds to be
 defined.
 
-Most bond styles are part of the "molecular" package.  They are only
+Most bond styles are part of the MOLECULAR package.  They are only
 enabled if LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#2_3 section for more info on packages.  The
-doc pages for individual bond potentials tell if it is part of a
+LAMMPS"_Section_start.html#start_3 section for more info on packages.
+The doc pages for individual bond potentials tell if it is part of a
 package.
 
 [Related commands:]

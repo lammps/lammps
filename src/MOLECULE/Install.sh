@@ -27,9 +27,6 @@ if (test $1 = 1) then
   cp dihedral_hybrid.cpp ..
   cp dihedral_multi_harmonic.cpp ..
   cp dihedral_opls.cpp ..
-  cp fix_bond_break.cpp ..
-  cp fix_bond_create.cpp ..
-  cp fix_bond_swap.cpp ..
   cp improper_cvff.cpp ..
   cp improper_harmonic.cpp ..
   cp improper_hybrid.cpp ..
@@ -64,9 +61,6 @@ if (test $1 = 1) then
   cp dihedral_hybrid.h ..
   cp dihedral_multi_harmonic.h ..
   cp dihedral_opls.h ..
-  cp fix_bond_break.h ..
-  cp fix_bond_create.h ..
-  cp fix_bond_swap.h ..
   cp improper_cvff.h ..
   cp improper_harmonic.h ..
   cp improper_hybrid.h ..
@@ -103,9 +97,6 @@ elif (test $1 = 0) then
   rm -f ../dihedral_hybrid.cpp
   rm -f ../dihedral_multi_harmonic.cpp
   rm -f ../dihedral_opls.cpp
-  rm -f ../fix_bond_break.cpp
-  rm -f ../fix_bond_create.cpp
-  rm -f ../fix_bond_swap.cpp
   rm -f ../improper_cvff.cpp
   rm -f ../improper_harmonic.cpp
   rm -f ../improper_hybrid.cpp
@@ -140,9 +131,6 @@ elif (test $1 = 0) then
   rm -f ../dihedral_hybrid.h
   rm -f ../dihedral_multi_harmonic.h
   rm -f ../dihedral_opls.h
-  rm -f ../fix_bond_break.h
-  rm -f ../fix_bond_create.h
-  rm -f ../fix_bond_swap.h
   rm -f ../improper_cvff.h
   rm -f ../improper_harmonic.h
   rm -f ../improper_hybrid.h

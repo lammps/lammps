@@ -1,6 +1,6 @@
 <HTML>
-<CENTER><A HREF = "Section_python.html">Previous Section</A> - <A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> -
-<A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> - <A HREF = "Section_errors.html">Next
+<CENTER><A HREF = "Section_packages.html">Previous Section</A> - <A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> -
+<A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> - <A HREF = "Section_howto.html">Next
 Section</A> 
 </CENTER>
 
@@ -11,7 +11,7 @@ Section</A>
 
 <HR>
 
-<H3>10. Using accelerated CPU and GPU styles 
+<H3>5. Using accelerated CPU and GPU styles 
 </H3>
 <P>Accelerated versions of various <A HREF = "pair_style.html">pair_style</A>,
 <A HREF = "fix.html">fixes</A>, <A HREF = "compute.html">computes</A>, and other commands have
@@ -36,7 +36,7 @@ style exist in LAMMPS:
 </UL>
 <P>Assuming you have built LAMMPS with the appropriate package, these
 styles can be invoked by specifying them explicitly in your input
-script.  Or you can use the <A HREF = "Section_start.html#2_6">-suffix command-line
+script.  Or you can use the <A HREF = "Section_start.html#start_6">-suffix command-line
 switch</A> to invoke the accelerated versions
 automatically, without changing your input script.  The
 <A HREF = "suffix.html">suffix</A> command allows you to set a suffix explicitly and
@@ -58,9 +58,9 @@ The speed-up due to GPU usage depends on a variety of factors, as
 discussed below.
 </P>
 <P>To see what styles are currently available in each of the accelerated
-packages, see <A HREF = "Section_commands.html#3_5">this section</A> of the manual.
-A list of accelerated styles is included in the pair, fix, compute,
-and kspace sections.
+packages, see <A HREF = "Section_commands.html#cmd_5">this section</A> of the
+manual.  A list of accelerated styles is included in the pair, fix,
+compute, and kspace sections.
 </P>
 <P>The following sections explain:
 </P>
@@ -73,17 +73,17 @@ and kspace sections.
 <P>The final section compares and contrasts the GPU and USER-CUDA
 packages, since they are both designed to use NVIDIA GPU hardware.
 </P>
-10.1 <A HREF = "#10_1">OPT package</A><BR>
-10.2 <A HREF = "#10_2">USER-OMP package</A><BR>
-10.3 <A HREF = "#10_3">GPU package</A><BR>
-10.4 <A HREF = "#10_4">USER-CUDA package</A><BR>
-10.5 <A HREF = "#10_4">Comparison of GPU and USER-CUDA packages</A> <BR>
+5.1 <A HREF = "#acc_1">OPT package</A><BR>
+5.2 <A HREF = "#acc_2">USER-OMP package</A><BR>
+5.3 <A HREF = "#acc_3">GPU package</A><BR>
+5.4 <A HREF = "#acc_4">USER-CUDA package</A><BR>
+5.5 <A HREF = "#acc_5">Comparison of GPU and USER-CUDA packages</A> <BR>
 
 <HR>
 
 <HR>
 
-<H4><A NAME = "10_1"></A>10.1 OPT package 
+<H4><A NAME = "acc_1"></A>5.1 OPT package 
 </H4>
 <P>The OPT package was developed by James Fischer (High Performance
 Technologies), David Richie, and Vincent Natoli (Stone Ridge
@@ -112,7 +112,7 @@ to 20% savings.
 
 <HR>
 
-<H4><A NAME = "10_2"></A>10.2 USER-OMP package 
+<H4><A NAME = "acc_2"></A>5.2 USER-OMP package 
 </H4>
 <P>This section will be written when the USER-OMP package is released
 in main LAMMPS.
@@ -121,7 +121,7 @@ in main LAMMPS.
 
 <HR>
 
-<H4><A NAME = "10_3"></A>10.3 GPU package 
+<H4><A NAME = "acc_3"></A>5.3 GPU package 
 </H4>
 <P>The GPU package was developed by Mike Brown at ORNL.  It provides GPU
 versions of several pair styles and for long-range Coulombics via the
@@ -164,10 +164,10 @@ hardware and install specific NVIDIA CUDA software on your system:
 </P>
 <P>As with other packages that include a separately compiled library, you
 need to first build the GPU library, before building LAMMPS itself.
-General instructions for doing this are in <A HREF = "doc/Section_start.html#2_3">this
-section</A> of the manual.  For this package,
-do the following, using a Makefile in lib/gpu appropriate for your
-system:
+General instructions for doing this are in <A HREF = "doc/Section_start.html#start_3">this
+section</A> of the manual.  For this
+package, do the following, using a Makefile in lib/gpu appropriate for
+your system:
 </P>
 <PRE>cd lammps/lib/gpu
 make -f Makefile.linux
@@ -201,7 +201,7 @@ and in many cases it will be more efficient to run this way.
 </P>
 <UL><LI>To invoke specific styles from the GPU package, you can either append
 "gpu" to the style name (e.g. pair_style lj/cut/gpu), or use the
-<A HREF = "Section_start.html#2_6">-suffix command-line switch</A>, or use the
+<A HREF = "Section_start.html#start_6">-suffix command-line switch</A>, or use the
 <A HREF = "suffix.html">suffix</A> command. 
 
 <LI>The <A HREF = "newton.html">newton pair</A> setting must be <I>off</I>. 
@@ -263,7 +263,7 @@ requires that your GPU card support double precision.
 
 <HR>
 
-<H4><A NAME = "10_4"></A>10.4 USER-CUDA package 
+<H4><A NAME = "acc_4"></A>5.4 USER-CUDA package 
 </H4>
 <P>The USER-CUDA package was developed by Christian Trott at U Technology
 Ilmenau in Germany.  It provides NVIDIA GPU versions of many pair
@@ -274,6 +274,9 @@ the PPPM command.  It has the following features:
 many timesteps, to run entirely on the GPU (except for inter-processor
 MPI communication), so that atom-based data (e.g. coordinates, forces)
 do not have to move back-and-forth between the CPU and GPU. 
+
+<LI>The speed-up advantage of this approach is typically better when the
+number of atoms per GPU is large 
 
 <LI>Data will stay on the GPU until a timestep where a non-GPU-ized fix or
 compute is invoked.  Whenever a non-GPU operation occurs (fix,
@@ -306,10 +309,10 @@ that its sample projects can be compiled without problems.
 </P>
 <P>As with other packages that include a separately compiled library, you
 need to first build the USER-CUDA library, before building LAMMPS
-itself.  General instructions for doing this are in <A HREF = "doc/Section_start.html#2_3">this
-section</A> of the manual.  For this package,
-do the following, using settings in the lib/cuda Makefiles appropriate
-for your system:
+itself.  General instructions for doing this are in <A HREF = "doc/Section_start.html#start_3">this
+section</A> of the manual.  For this
+package, do the following, using settings in the lib/cuda Makefiles
+appropriate for your system:
 </P>
 <UL><LI>Go to the lammps/lib/cuda directory 
 
@@ -363,16 +366,16 @@ suffix are as follows:
 </P>
 <UL><LI>To invoke specific styles from the USER-CUDA package, you can either
 append "cuda" to the style name (e.g. pair_style lj/cut/cuda), or use
-the <A HREF = "Section_start.html#2_6">-suffix command-line switch</A>, or use the
-<A HREF = "suffix.html">suffix</A> command.  One exception is that the <A HREF = "kspace_style.html">kspace_style
-pppm/cuda</A> command has to be requested
+the <A HREF = "Section_start.html#start_6">-suffix command-line switch</A>, or use
+the <A HREF = "suffix.html">suffix</A> command.  One exception is that the
+<A HREF = "kspace_style.html">kspace_style pppm/cuda</A> command has to be requested
 explicitly. 
 
 <LI>To use the USER-CUDA package with its default settings, no additional
 command is needed in your input script.  This is because when LAMMPS
 starts up, it detects if it has been built with the USER-CUDA package.
-See the <A HREF = "Section_start.html#2_6">-cuda command-line switch</A> for more
-details. 
+See the <A HREF = "Section_start.html#start_6">-cuda command-line switch</A> for
+more details. 
 
 <LI>To change settings for the USER-CUDA package at run-time, the <A HREF = "package.html">package
 cuda</A> command can be used near the beginning of your
@@ -396,7 +399,7 @@ occurs, the faster your simulation will run.
 
 <HR>
 
-<H4><A NAME = "10_5"></A>10.5 Comparison of GPU and USER-CUDA packages 
+<H4><A NAME = "acc_5"></A>5.5 Comparison of GPU and USER-CUDA packages 
 </H4>
 <P>Both the GPU and USER-CUDA packages accelerate a LAMMPS calculation
 using NVIDIA hardware, but they do it in different ways.

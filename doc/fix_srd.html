@@ -316,10 +316,10 @@ files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
 are relevant to this fix.
 </P>
 <P>This fix tabulates several SRD statistics which are stored in a vector
-of length 12, which can be accessed by various <A HREF = "Section_howto.html#4_15">output
-commands</A>.  The vector values calculated by
-this fix are "intensive", meaning they do not scale with the size of
-the simulation.  Technically, the first 8 do scale with the size of
+of length 12, which can be accessed by various <A HREF = "Section_howto.html#howto_15">output
+commands</A>.  The vector values calculated
+by this fix are "intensive", meaning they do not scale with the size
+of the simulation.  Technically, the first 8 do scale with the size of
 the simulation, but treating them as intensive means they are not
 scaled when printed as part of thermodyanmic output.
 </P>
@@ -346,9 +346,9 @@ minimization</A>.
 </P>
 <P><B>Restrictions:</B>
 </P>
-<P>This command can only be used if LAMMPS was built with the "srd"
-package.  See the <A HREF = "Section_start.html#2_3">Making LAMMPS</A> section for
-more info on packages.
+<P>This command can only be used if LAMMPS was built with the SRD
+package.  See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A> section
+for more info on packages.
 </P>
 <P><B>Related commands:</B>
 </P>

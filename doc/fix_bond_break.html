@@ -113,9 +113,9 @@ files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
 are relevant to this fix. 
 </P>
 <P>This fix computes two statistics which it stores in a global vector of
-length 2, which can be accessed by various <A HREF = "Section_howto.html#4_15">output
-commands</A>.  The vector values calculated by
-this fix are "intensive".
+length 2, which can be accessed by various <A HREF = "Section_howto.html#howto_15">output
+commands</A>.  The vector values calculated
+by this fix are "intensive".
 </P>
 <P>These are the 2 quantities:
 </P>
@@ -127,6 +127,10 @@ the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HRE
 minimization</A>.
 </P>
 <P><B>Restrictions:</B>
+</P>
+<P>This fix is part of the MC package.  It is only enabled if LAMMPS was
+built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
 </P>
 <P>Currently, there are 2 restrictions for using this fix.  We may relax
 these in the future if there are new models that would be enabled by

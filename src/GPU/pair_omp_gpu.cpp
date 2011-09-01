@@ -42,14 +42,14 @@ PairOMPGPU::PairOMPGPU(LAMMPS *lmp) : Pointers(lmp)
 
 PairOMPGPU::~PairOMPGPU()
 {
-  mem_free();
+  free_mem();
 }
 
 /* ----------------------------------------------------------------------
    free any allocated memory
 ------------------------------------------------------------------------- */
 
-void PairOMPGPU::mem_free() {
+void PairOMPGPU::free_mem() {
   memory->sfree(eng_vdwl_thr);
   memory->sfree(eng_coul_thr);
   memory->destroy(virial_thr);
@@ -71,7 +71,7 @@ void PairOMPGPU::mem_free() {
 
 void PairOMPGPU::init_style()
 {
-  mem_free();
+  free_mem();
   
   #pragma omp parallel
   {

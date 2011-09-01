@@ -145,19 +145,19 @@ atoms.  This fix should not normally be used on atoms that have their
 temperature controlled by another fix - e.g. <A HREF = "fix_nh.html">fix nvt</A> or
 <A HREF = "fix_langevin.html">fix langevin</A>.
 </P>
-<P>This fix computes 2 output quantities stored in a vector of
-length 2, which can be accessed by various <A HREF = "Section_howto.html#4_15">output
-commands</A>.  The first quantity is
-the total energy of the electronic subsystem. The second quantity
-is the energy transferred from the electronic to the atomic subsystem
-on that timestep. Note that the velocity verlet integrator applies the
-fix ttm forces to the atomic subsystem as two half-step velocity 
-updates: one on the current timestep and one on the subsequent timestep.
+<P>This fix computes 2 output quantities stored in a vector of length 2,
+which can be accessed by various <A HREF = "Section_howto.html#howto_15">output
+commands</A>.  The first quantity is the
+total energy of the electronic subsystem. The second quantity is the
+energy transferred from the electronic to the atomic subsystem on that
+timestep. Note that the velocity verlet integrator applies the fix ttm
+forces to the atomic subsystem as two half-step velocity updates: one
+on the current timestep and one on the subsequent timestep.
 Consequently, the change in the atomic subsystem energy is lagged by
-half a timestep relative to the change in the electronic subsystem 
+half a timestep relative to the change in the electronic subsystem
 energy. As a result of this, users may notice slight fluctuations in
-the sum of the atomic and electronic subsystem energies reported at 
-the end of the timestep. 
+the sum of the atomic and electronic subsystem energies reported at
+the end of the timestep.
 </P>
 <P>The vector values calculated by this fix are "extensive".
 </P>
@@ -184,7 +184,7 @@ should produce the same behavior.
 </P>
 <P>None of the <A HREF = "fix_modify.html">fix_modify</A> options are relevant to this
 fix.  No global or per-atom quantities are stored by this fix for
-access by various <A HREF = "Section_howto.html#4_15">output commands</A>.  No
+access by various <A HREF = "Section_howto.html#howto_15">output commands</A>.  No
 parameter of this fix can be used with the <I>start/stop</I> keywords of
 the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy
 minimization</A>.

@@ -1,5 +1,5 @@
 <HTML>
-<CENTER><A HREF = "Section_commands.html">Previous Section</A> - <A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> - <A HREF = "Section_example.html">Next Section</A> 
+<CENTER><A HREF = "Section_accelerate.html">Previous Section</A> - <A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> - <A HREF = "Section_example.html">Next Section</A> 
 </CENTER>
 
 
@@ -9,32 +9,32 @@
 
 <HR>
 
-<H3>4. How-to discussions 
+<H3>6. How-to discussions 
 </H3>
 <P>The following sections describe how to use various options within
 LAMMPS.
 </P>
-4.1 <A HREF = "#4_1">Restarting a simulation</A><BR>
-4.2 <A HREF = "#4_2">2d simulations</A><BR>
-4.3 <A HREF = "#4_3">CHARMM, AMBER, and DREIDING force fields</A><BR>
-4.4 <A HREF = "#4_4">Running multiple simulations from one input script</A><BR>
-4.5 <A HREF = "#4_5">Multi-replica simulations</A><BR>
-4.6 <A HREF = "#4_6">Granular models</A><BR>
-4.7 <A HREF = "#4_7">TIP3P water model</A><BR>
-4.8 <A HREF = "#4_8">TIP4P water model</A><BR>
-4.9 <A HREF = "#4_9">SPC water model</A><BR>
-4.10 <A HREF = "#4_10">Coupling LAMMPS to other codes</A><BR>
-4.11 <A HREF = "#4_11">Visualizing LAMMPS snapshots</A><BR>
-4.12 <A HREF = "#4_12">Triclinic (non-orthogonal) simulation boxes</A><BR>
-4.13 <A HREF = "#4_13">NEMD simulations</A><BR>
-4.14 <A HREF = "#4_14">Extended spherical and aspherical particles</A><BR>
-4.15 <A HREF = "#4_15">Output from LAMMPS (thermo, dumps, computes, fixes, variables)</A><BR>
-4.16 <A HREF = "#4_16">Thermostatting, barostatting and computing temperature</A><BR>
-4.17 <A HREF = "#4_17">Walls</A><BR>
-4.18 <A HREF = "#4_18">Elastic constants</A><BR>
-4.19 <A HREF = "#4_19">Library interface to LAMMPS</A><BR>
-4.20 <A HREF = "#4_20">Calculating thermal conductivity</A><BR>
-4.21 <A HREF = "#4_21">Calculating viscosity</A> <BR>
+6.1 <A HREF = "#howto_1">Restarting a simulation</A><BR>
+6.2 <A HREF = "#howto_2">2d simulations</A><BR>
+6.3 <A HREF = "#howto_3">CHARMM, AMBER, and DREIDING force fields</A><BR>
+6.4 <A HREF = "#howto_4">Running multiple simulations from one input script</A><BR>
+6.5 <A HREF = "#howto_5">Multi-replica simulations</A><BR>
+6.6 <A HREF = "#howto_6">Granular models</A><BR>
+6.7 <A HREF = "#howto_7">TIP3P water model</A><BR>
+6.8 <A HREF = "#howto_8">TIP4P water model</A><BR>
+6.9 <A HREF = "#howto_9">SPC water model</A><BR>
+6.10 <A HREF = "#howto_10">Coupling LAMMPS to other codes</A><BR>
+6.11 <A HREF = "#howto_11">Visualizing LAMMPS snapshots</A><BR>
+6.12 <A HREF = "#howto_12">Triclinic (non-orthogonal) simulation boxes</A><BR>
+6.13 <A HREF = "#howto_13">NEMD simulations</A><BR>
+6.14 <A HREF = "#howto_14">Extended spherical and aspherical particles</A><BR>
+6.15 <A HREF = "#howto_15">Output from LAMMPS (thermo, dumps, computes, fixes, variables)</A><BR>
+6.16 <A HREF = "#howto_16">Thermostatting, barostatting and computing temperature</A><BR>
+6.17 <A HREF = "#howto_17">Walls</A><BR>
+6.18 <A HREF = "#howto_18">Elastic constants</A><BR>
+6.19 <A HREF = "#howto_19">Library interface to LAMMPS</A><BR>
+6.20 <A HREF = "#howto_20">Calculating thermal conductivity</A><BR>
+6.21 <A HREF = "#howto_21">Calculating viscosity</A> <BR>
 
 <P>The example input scripts included in the LAMMPS distribution and
 highlighted in <A HREF = "Section_example.html">this section</A> also show how to
@@ -42,7 +42,7 @@ setup and run various kinds of simulations.
 </P>
 <HR>
 
-<A NAME = "4_1"></A><H4>4.1 Restarting a simulation 
+<A NAME = "howto_1"></A><H4>6.1 Restarting a simulation 
 </H4>
 <P>There are 3 ways to continue a long LAMMPS simulation.  Multiple
 <A HREF = "run.html">run</A> commands can be used in the same input script.  Each
@@ -134,7 +134,7 @@ but not in data files.
 </P>
 <HR>
 
-<A NAME = "4_2"></A><H4>4.2 2d simulations 
+<A NAME = "howto_2"></A><H4>6.2 2d simulations 
 </H4>
 <P>Use the <A HREF = "dimension.html">dimension</A> command to specify a 2d simulation.
 </P>
@@ -169,7 +169,7 @@ the same as in 3d.
 </P>
 <HR>
 
-<A NAME = "4_3"></A><H4>4.3 CHARMM, AMBER, and DREIDING force fields 
+<A NAME = "howto_3"></A><H4>6.3 CHARMM, AMBER, and DREIDING force fields 
 </H4>
 <P>A force field has 2 parts: the formulas that define it and the
 coefficients used for a particular system.  Here we only discuss
@@ -246,7 +246,7 @@ documentation for the formula it computes.
 </UL>
 <HR>
 
-<A NAME = "4_4"></A><H4>4.4 Running multiple simulations from one input script 
+<A NAME = "howto_4"></A><H4>6.4 Running multiple simulations from one input script 
 </H4>
 <P>This can be done in several ways.  See the documentation for
 individual commands for more details on how these examples work.
@@ -318,7 +318,7 @@ jump in.polymer
 <P>All of the above examples work whether you are running on 1 or
 multiple processors, but assumed you are running LAMMPS on a single
 partition of processors.  LAMMPS can be run on multiple partitions via
-the "-partition" command-line switch as described in <A HREF = "Section_start.html#2_6">this
+the "-partition" command-line switch as described in <A HREF = "Section_start.html#start_6">this
 section</A> of the manual.
 </P>
 <P>In the last 2 examples, if LAMMPS were run on 3 partitions, the same
@@ -334,7 +334,7 @@ the 4th simulation, and so forth, until all 8 were completed.
 </P>
 <HR>
 
-<A NAME = "4_5"></A><H4>4.5 Multi-replica simulations 
+<A NAME = "howto_5"></A><H4>6.5 Multi-replica simulations 
 </H4>
 <P>Several commands in LAMMPS run mutli-replica simulations, meaning
 that multiple instances (replicas) of your simulation are run
@@ -355,12 +355,12 @@ runs different replicas at a series of temperature to facilitate
 rare-event sampling.
 </P>
 <P>These command can only be used if LAMMPS was built with the "replica"
-package.  See the <A HREF = "Section_start.html#2_3">Making LAMMPS</A> section for
-more info on packages.
+package.  See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A> section
+for more info on packages.
 </P>
 <P>In all these cases, you must run with one or more processors per
 replica.  The processors assigned to each replica are determined at
-run-time by using the <A HREF = "Section_start.html#2_6">-partition command-line
+run-time by using the <A HREF = "Section_start.html#start_6">-partition command-line
 switch</A> to launch LAMMPS on multiple
 partitions, which in this context are the same as replicas.  E.g.
 these commands:
@@ -369,8 +369,8 @@ these commands:
 mpirun -np 8 lmp_linux -partition 8x1 -in in.neb 
 </PRE>
 <P>would each run 8 replicas, on either 16 or 8 processors.  Note the use
-of the <A HREF = "Section_start.html#2_6">-in command-line switch</A> to specify the
-input script which is required when running in multi-replica mode.
+of the <A HREF = "Section_start.html#start_6">-in command-line switch</A> to specify
+the input script which is required when running in multi-replica mode.
 </P>
 <P>Also note that with MPI installed on a machine (e.g. your desktop),
 you can run on more (virtual) processors than you have physical
@@ -381,7 +381,7 @@ physical processors.
 </P>
 <HR>
 
-<A NAME = "4_6"></A><H4>4.6 Granular models 
+<A NAME = "howto_6"></A><H4>6.6 Granular models 
 </H4>
 <P>Granular system are composed of spherical particles with a diameter,
 as opposed to point particles.  This means they have an angular
@@ -398,7 +398,7 @@ the following commands:
 </P>
 <UL><LI><A HREF = "compute_erotate_sphere.html">compute erotate/sphere</A> 
 </UL>
-<P>calculates rotational kinetic energy which can be <A HREF = "Section_howto.html#4_15">output with
+<P>calculates rotational kinetic energy which can be <A HREF = "Section_howto.html#howto_15">output with
 thermodynamic info</A>.
 </P>
 <P>Use one of these 3 pair potentials, which compute forces and torques
@@ -426,7 +426,7 @@ computations between frozen atoms by using this command:
 </UL>
 <HR>
 
-<A NAME = "4_7"></A><H4>4.7 TIP3P water model 
+<A NAME = "howto_7"></A><H4>6.7 TIP3P water model 
 </H4>
 <P>The TIP3P water model as implemented in CHARMM
 <A HREF = "#MacKerell">(MacKerell)</A> specifies a 3-site rigid water molecule with
@@ -486,7 +486,7 @@ models</A>.
 </P>
 <HR>
 
-<A NAME = "4_8"></A><H4>4.8 TIP4P water model 
+<A NAME = "howto_8"></A><H4>6.8 TIP4P water model 
 </H4>
 <P>The four-point TIP4P rigid water model extends the traditional
 three-point TIP3P model by adding an additional site, usually
@@ -545,7 +545,7 @@ models</A>.
 </P>
 <HR>
 
-<A NAME = "4_9"></A><H4>4.9 SPC water model 
+<A NAME = "howto_9"></A><H4>6.9 SPC water model 
 </H4>
 <P>The SPC water model specifies a 3-site rigid water molecule with
 charges and Lennard-Jones parameters assigned to each of the 3 atoms.
@@ -590,7 +590,7 @@ models</A>.
 </P>
 <HR>
 
-<A NAME = "4_10"></A><H4>4.10 Coupling LAMMPS to other codes 
+<A NAME = "howto_10"></A><H4>6.10 Coupling LAMMPS to other codes 
 </H4>
 <P>LAMMPS is designed to allow it to be coupled to other codes.  For
 example, a quantum mechanics code might compute forces on a subset of
@@ -660,10 +660,10 @@ strain induced across grain boundaries
 
 
 
-<P><A HREF = "Section_start.html#2_4">This section</A> of the documentation describes
-how to build LAMMPS as a library.  Once this is done, you can
-interface with LAMMPS either via C++, C, Fortran, or Python (or any
-other language that supports a vanilla C-like interface).  For
+<P><A HREF = "Section_start.html#start_4">This section</A> of the documentation
+describes how to build LAMMPS as a library.  Once this is done, you
+can interface with LAMMPS either via C++, C, Fortran, or Python (or
+any other language that supports a vanilla C-like interface).  For
 example, from C++ you could create one (or more) "instances" of
 LAMMPS, pass it an input script to process, or execute individual
 commands, all by invoking the correct class methods in LAMMPS.  From C
@@ -673,7 +673,7 @@ the Python wrapper provided with LAMMPS that operates through the
 LAMMPS library interface.
 </P>
 <P>The files src/library.cpp and library.h contain the C-style interface
-to LAMMPS.  See <A HREF = "Section_howto.html#4_19">this section</A> of the manual
+to LAMMPS.  See <A HREF = "Section_howto.html#howto_19">this section</A> of the manual
 for a description of the interface and how to extend it for your
 needs.
 </P>
@@ -690,7 +690,7 @@ instances of LAMMPS to perform different calculations.
 </P>
 <HR>
 
-<A NAME = "4_11"></A><H4>4.11 Visualizing LAMMPS snapshots 
+<A NAME = "howto_11"></A><H4>6.11 Visualizing LAMMPS snapshots 
 </H4>
 <P>LAMMPS itself does not do visualization, but snapshots from LAMMPS
 simulations can be visualized (and analyzed) in a variety of ways.
@@ -749,7 +749,7 @@ See the <A HREF = "dump.html">dump</A> command for more information on XTC files
 
 <HR>
 
-<A NAME = "4_12"></A><H4>4.12 Triclinic (non-orthogonal) simulation boxes 
+<A NAME = "howto_12"></A><H4>6.12 Triclinic (non-orthogonal) simulation boxes 
 </H4>
 <P>By default, LAMMPS uses an orthogonal simulation box to encompass the
 particles.  The <A HREF = "boundary.html">boundary</A> command sets the boundary
@@ -882,7 +882,7 @@ on non-equilibrium MD (NEMD) simulations.
 </P>
 <HR>
 
-<A NAME = "4_13"></A><H4>4.13 NEMD simulations 
+<A NAME = "howto_13"></A><H4>6.13 NEMD simulations 
 </H4>
 <P>Non-equilibrium molecular dynamics or NEMD simulations are typically
 used to measure a fluid's rheological properties such as viscosity.
@@ -920,7 +920,7 @@ profile consistent with the applied shear strain rate.
 </P>
 <HR>
 
-<A NAME = "4_14"></A><H4>4.14 Extended spherical and aspherical particles 
+<A NAME = "howto_14"></A><H4>6.14 Extended spherical and aspherical particles 
 </H4>
 <P>Typical MD models treat atoms or particles as point masses.
 Sometimes, however, it is desirable to have a model with finite-size
@@ -1100,7 +1100,7 @@ particles are point masses.
 </P>
 <HR>
 
-<A NAME = "4_15"></A><H4>4.15 Output from LAMMPS (thermo, dumps, computes, fixes, variables) 
+<A NAME = "howto_15"></A><H4>6.15 Output from LAMMPS (thermo, dumps, computes, fixes, variables) 
 </H4>
 <P>There are four basic kinds of LAMMPS output:
 </P>
@@ -1394,7 +1394,7 @@ vector input could be a column of an array.
 
 <HR>
 
-<A NAME = "4_16"></A><H4>4.16 Thermostatting, barostatting, and computing temperature 
+<A NAME = "howto_16"></A><H4>6.16 Thermostatting, barostatting, and computing temperature 
 </H4>
 <P>Thermostatting means controlling the temperature of particles in an MD
 simulation.  Barostatting means controlling the pressure.  Since the
@@ -1455,7 +1455,7 @@ thermostatting can be invoked via the <I>dpd/tstat</I> pair style:
 <P><A HREF = "fix_nh.html">Fix nvt</A> only thermostats the translational velocity of
 particles.  <A HREF = "fix_nvt_sllod.html">Fix nvt/sllod</A> also does this, except
 that it subtracts out a velocity bias due to a deforming box and
-integrates the SLLOD equations of motion.  See the <A HREF = "#4_13">NEMD
+integrates the SLLOD equations of motion.  See the <A HREF = "#howto_13">NEMD
 simulations</A> section of this page for further details.  <A HREF = "fix_nvt_sphere.html">Fix
 nvt/sphere</A> and <A HREF = "fix_nvt_asphere.html">fix
 nvt/asphere</A> thermostat not only translation
@@ -1545,7 +1545,7 @@ thermodynamic output.
 </P>
 <HR>
 
-<A NAME = "4_17"></A><H4>4.17 Walls 
+<A NAME = "howto_17"></A><H4>6.17 Walls 
 </H4>
 <P>Walls in an MD simulation are typically used to bound particle motion,
 i.e. to serve as a boundary condition.
@@ -1619,7 +1619,7 @@ frictional walls, as well as triangulated surfaces.
 </P>
 <HR>
 
-<A NAME = "4_18"></A><H4>4.18 Elastic constants 
+<A NAME = "howto_18"></A><H4>6.18 Elastic constants 
 </H4>
 <P>Elastic constants characterize the stiffness of a material. The formal
 definition is provided by the linear relation that holds between the
@@ -1655,12 +1655,12 @@ converge and requires careful post-processing <A HREF = "#Shinoda">(Shinoda)</A>
 </P>
 <HR>
 
-<A NAME = "4_19"></A><H4>4.19 Library interface to LAMMPS 
+<A NAME = "howto_19"></A><H4>6.19 Library interface to LAMMPS 
 </H4>
-<P>As described in <A HREF = "Section_start.html#2_4">this section</A>, LAMMPS can be
-built as a library, so that it can be called by another code, used in
-a <A HREF = "Section_howto.html#4_10">coupled manner</A> with other codes, or driven
-through a <A HREF = "Section_python.html">Python interface</A>.
+<P>As described in <A HREF = "Section_start.html#start_4">this section</A>, LAMMPS can
+be built as a library, so that it can be called by another code, used
+in a <A HREF = "Section_howto.html#howto_10">coupled manner</A> with other codes, or
+driven through a <A HREF = "Section_python.html">Python interface</A>.
 </P>
 <P>All of these methodologies use a C-style interface to LAMMPS that is
 provided in the files src/library.cpp and src/library.h.  The
@@ -1679,11 +1679,12 @@ void lammps_file(void *, char *);
 char *lammps_command(void *, char *); 
 </PRE>
 <P>The lammps_open() function is used to initialize LAMMPS, passing in a
-list of strings as if they were <A HREF = "#2_6">command-line arguments</A> when
-LAMMPS is run in stand-alone mode from the command line, and a MPI
-communicator for LAMMPS to run under.  It returns a ptr to the LAMMPS
-object that is created, and which is used in subsequent library calls.
-The lammps_open() function can be called multiple times, to create
+list of strings as if they were <A HREF = "Section_start.html#start_6">command-line
+arguments</A> when LAMMPS is run in
+stand-alone mode from the command line, and a MPI communicator for
+LAMMPS to run under.  It returns a ptr to the LAMMPS object that is
+created, and which is used in subsequent library calls.  The
+lammps_open() function can be called multiple times, to create
 multiple instances of LAMMPS.
 </P>
 <P>LAMMPS will run on the set of processors in the communicator.  This
@@ -1735,10 +1736,10 @@ grab data from LAMMPS, change it, and put it back into LAMMPS.
 </P>
 <HR>
 
-<A NAME = "4_20"></A><H4>4.20 Calculating thermal conductivity 
+<A NAME = "howto_20"></A><H4>6.20 Calculating thermal conductivity 
 </H4>
 <P>The thermal conductivity kappa of a material can be measured in at
-least 3 ways using various options in LAMMPS.  (See <A HREF = "Section_howto.html#4_21">this
+least 3 ways using various options in LAMMPS.  (See <A HREF = "Section_howto.html#howto_21">this
 section</A> of the manual for an analogous
 discussion for viscosity).  The thermal conducitivity tensor kappa is
 a measure of the propensity of a material to transmit heat energy in a
@@ -1755,7 +1756,7 @@ scalar.
 <P>The first method is to setup two thermostatted regions at opposite
 ends of a simulation box, or one in the middle and one at the end of a
 periodic box.  By holding the two regions at different temperatures
-with a <A HREF = "Section_howto.html#4_13">thermostatting fix</A>, the energy added
+with a <A HREF = "Section_howto.html#howto_13">thermostatting fix</A>, the energy added
 to the hot region should equal the energy subtracted from the cold
 region and be proportional to the heat flux moving between the
 regions.  See the paper by <A HREF = "#Ikeshoji">Ikeshoji and Hafskjold</A> for
@@ -1800,10 +1801,10 @@ formalism.
 </P>
 <HR>
 
-<A NAME = "4_21"></A><H4>4.21 Calculating viscosity 
+<A NAME = "howto_21"></A><H4>6.21 Calculating viscosity 
 </H4>
 <P>The shear viscosity eta of a fluid can be measured in at least 3 ways
-using various options in LAMMPS.  (See <A HREF = "Section_howto.html#4_20">this
+using various options in LAMMPS.  (See <A HREF = "Section_howto.html#howto_20">this
 section</A> of the manual for an analogous
 discussion for thermal conductivity).  Eta is a measure of the
 propensity of a fluid to transmit momentum in a direction
@@ -1829,7 +1830,7 @@ y-direction of the Vx component of fluid motion or grad(Vstream) =
 dVx/dy.  In this case, the Pxy off-diagonal component of the pressure
 or stress tensor, as calculated by the <A HREF = "compute_pressure.html">compute
 pressure</A> command, can also be monitored, which
-is the J term in the equation above.  See <A HREF = "Section_howto.html#4_13">this
+is the J term in the equation above.  See <A HREF = "Section_howto.html#howto_13">this
 section</A> of the manual for details on NEMD
 simulations.
 </P>

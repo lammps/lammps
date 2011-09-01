@@ -1,4 +1,4 @@
-"Previous Section"_Section_start.html - "LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next Section"_Section_howto.html :c
+"Previous Section"_Section_start.html - "LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next Section"_Section_packages.html :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
@@ -11,15 +11,15 @@
 This section describes how a LAMMPS input script is formatted and what
 commands are used to define a LAMMPS simulation.
 
-3.1 "LAMMPS input script"_#3_1
-3.2 "Parsing rules"_#3_2
-3.3 "Input script structure"_#3_3
-3.4 "Commands listed by category"_#3_4
-3.5 "Commands listed alphabetically"_#3_5 :all(b)
+3.1 "LAMMPS input script"_#cmd_1
+3.2 "Parsing rules"_#cmd_2
+3.3 "Input script structure"_#cmd_3
+3.4 "Commands listed by category"_#cmd_4
+3.5 "Commands listed alphabetically"_#cmd_5 :all(b)
 
 :line
 
-3.1 LAMMPS input script :link(3_1),h4
+3.1 LAMMPS input script :link(cmd_1),h4
 
 LAMMPS executes by reading commands from a input script (text file),
 one line at a time.  When the input script ends, LAMMPS exits.  Each
@@ -72,7 +72,7 @@ command lists restrictions on how the command can be used.
 
 :line
 
-3.2 Parsing rules :link(3_2),h4
+3.2 Parsing rules :link(cmd_2),h4
 
 Each non-blank line in the input script is treated as a command.
 LAMMPS commands are case sensitive.  Command names are lower-case, as
@@ -131,7 +131,7 @@ allowed, but that should be sufficient for most use cases.
 
 :line
 
-3.3 Input script structure :h4,link(3_3)
+3.3 Input script structure :h4,link(cmd_3)
 
 This section describes the structure of a typical LAMMPS input script.
 The "examples" directory in the LAMMPS distribution contains many
@@ -220,11 +220,11 @@ the "minimize"_minimize.html command.  A parallel tempering
 
 :line
 
-3.4 Commands listed by category :link(3_4),h4
+3.4 Commands listed by category :link(cmd_4),h4
 
 This section lists all LAMMPS commands, grouped by category.  The
-"next section"_#3_5 lists the same commands alphabetically.  Note that
-some style options for some commands are part of specific LAMMPS
+"next section"_#cmd_5 lists the same commands alphabetically.  Note
+that some style options for some commands are part of specific LAMMPS
 packages, which means they cannot be used unless the package was
 included when LAMMPS was built.  Not all packages are included in a
 default LAMMPS build.  These dependencies are listed as Restrictions
@@ -297,12 +297,12 @@ Miscellaneous:
 
 :line
 
-3.5 Individual commands :h4,link(3_5),link(comm)
+3.5 Individual commands :h4,link(cmd_5),link(comm)
 
 This section lists all LAMMPS commands alphabetically, with a separate
 listing below of styles within certain commands.  The "previous
-section"_#3_4 lists the same commands, grouped by category.  Note that
-some style options for some commands are part of specific LAMMPS
+section"_#cmd_4 lists the same commands, grouped by category.  Note
+that some style options for some commands are part of specific LAMMPS
 packages, which means they cannot be used unless the package was
 included when LAMMPS was built.  Not all packages are included in a
 default LAMMPS build.  These dependencies are listed as Restrictions
@@ -418,6 +418,7 @@ of each style or click on the style itself for a full description:
 "evaporate"_fix_evaporate.html,
 "external"_fix_external.html,
 "freeze"_fix_freeze.html,
+"gcmc"_fix_gcmc.html,
 "gravity"_fix_gravity.html,
 "heat"_fix_heat.html,
 "indent"_fix_indent.html,
@@ -451,6 +452,7 @@ of each style or click on the style itself for a full description:
 "qeq/comb"_fix_qeq_comb.html,
 "reax/bonds"_fix_reax_bonds.html,
 "recenter"_fix_recenter.html,
+"restrain"_fix_restrain.html,
 "rigid"_fix_rigid.html,
 "rigid/nve"_fix_rigid.html,
 "rigid/nvt"_fix_rigid.html,
@@ -479,11 +481,14 @@ of each style or click on the style itself for a full description:
 "wall/srd"_fix_wall_srd.html :tb(c=8,ea=c)
 
 These are fix styles contributed by users, which can be used if
-"LAMMPS is built with the appropriate package"_Section_start.html#2_3.
+"LAMMPS is built with the appropriate
+package"_Section_start.html#start_3.
 
 "atc"_fix_atc.html,
 "imd"_fix_imd.html,
 "langevin/eff"_fix_langevin_eff.html,
+"meso"_fix_meso.html,
+"meso/stationary"_fix_meso_stationary.html,
 "nph/eff"_fix_nh_eff.html,
 "npt/eff"_fix_nh_eff.html,
 "nve/eff"_fix_nve_eff.html,
@@ -569,11 +574,15 @@ each style or click on the style itself for a full description:
 "ti"_compute_ti.html :tb(c=6,ea=c)
 
 These are compute styles contributed by users, which can be used if
-"LAMMPS is built with the appropriate package"_Section_start.html#2_3.
+"LAMMPS is built with the appropriate
+package"_Section_start.html#start_3.
 
 "ackland/atom"_compute_ackland_atom.html,
 "ke/eff"_compute_ke_eff.html,
 "ke/atom/eff"_compute_ke_atom_eff.html,
+"meso_e/atom"_compute_meso_e_atom.html,
+"meso_rho/atom"_compute_meso_rho_atom.html,
+"meso_t/atom"_compute_meso_t_atom.html,
 "temp/eff"_compute_temp_eff.html,
 "temp/deform/eff"_compute_temp_deform_eff.html,
 "temp/region/eff"_compute_temp_region_eff.html,
@@ -658,7 +667,8 @@ potentials.  Click on the style itself for a full description:
 "yukawa/colloid"_pair_yukawa_colloid.html :tb(c=4,ea=c)
 
 These are pair styles contributed by users, which can be used if
-"LAMMPS is built with the appropriate package"_Section_start.html#2_3.
+"LAMMPS is built with the appropriate
+package"_Section_start.html#start_3.
 
 "awpmd/cut"_pair_awpmd.html,
 "buck/coul"_pair_buck_coul.html,
@@ -670,7 +680,13 @@ These are pair styles contributed by users, which can be used if
 "eff/cut"_pair_eff.html,
 "lj/coul"_pair_lj_coul.html,
 "lj/sf"_pair_lj_sf.html,
-"reax/c"_pair_reax_c.html :tb(c=4,ea=c)
+"reax/c"_pair_reax_c.html
+"sph/heatconduction"_pair_heatconduction.html,
+"sph/idealgas"_pair_idealgas.html,
+"sph/lj"_pair_lj.html,
+"sph/rhosum"_pair_rhosum.html,
+"sph/taitwater"_pair_taitwater.html,
+"sph/taitwater/morris"_pair_taitwater_morris.html :tb(c=4,ea=c)
 
 These are accelerated pair styles, which can be used if LAMMPS is
 built with the "appropriate accelerated
@@ -745,7 +761,8 @@ potentials.  Click on the style itself for a full description:
 "table"_bond_table.html :tb(c=4,ea=c,w=100)
 
 These are bond styles contributed by users, which can be used if
-"LAMMPS is built with the appropriate package"_Section_start.html#2_3.
+"LAMMPS is built with the appropriate
+package"_Section_start.html#start_3.
 
 "harmonic/shift"_bond_harmonic_shift.html,
 "harmonic/shift/cut"_bond_harmonic_shift_cut.html :tb(c=4,ea=c)
@@ -769,7 +786,8 @@ angle potentials.  Click on the style itself for a full description:
 "table"_angle_table.html :tb(c=4,ea=c,w=100)
 
 These are angle styles contributed by users, which can be used if
-"LAMMPS is built with the appropriate package"_Section_start.html#2_3.
+"LAMMPS is built with the appropriate
+package"_Section_start.html#start_3.
 
 "cg/cmm"_angle_cmm.html,
 "cosine/shift"_angle_cosine_shift.html,
@@ -793,7 +811,8 @@ description:
 "opls"_dihedral_opls.html :tb(c=4,ea=c,w=100)
 
 These are dihedral styles contributed by users, which can be used if
-"LAMMPS is built with the appropriate package"_Section_start.html#2_3.
+"LAMMPS is built with the appropriate
+package"_Section_start.html#start_3.
 
 "cosine/shift/exp"_dihedral_cosine_shift_exp.html :tb(c=4,ea=c)
 
@@ -825,7 +844,8 @@ Kspace solvers.  Click on the style itself for a full description:
 "pppm/tip4p"_kspace_style.html :tb(c=4,ea=c,w=100)
 
 These are Kspace solvers contributed by users, which can be used if
-"LAMMPS is built with the appropriate package"_Section_start.html#2_3.
+"LAMMPS is built with the appropriate
+package"_Section_start.html#start_3.
 
 "ewald/n"_kspace_style.html :tb(c=4,ea=c,w=100)
 

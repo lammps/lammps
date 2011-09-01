@@ -13,15 +13,15 @@ describe what it means for LAMMPS to be an open-source code, and
 acknowledge the funding and people who have contributed to LAMMPS over
 the years.
 
-1.1 "What is LAMMPS"_#1_1
-1.2 "LAMMPS features"_#1_2
-1.3 "LAMMPS non-features"_#1_3
-1.4 "Open source distribution"_#1_4
-1.5 "Acknowledgments and citations"_#1_5 :all(b)
+1.1 "What is LAMMPS"_#intro_1
+1.2 "LAMMPS features"_#intro_2
+1.3 "LAMMPS non-features"_#intro_3
+1.4 "Open source distribution"_#intro_4
+1.5 "Acknowledgments and citations"_#intro_5 :all(b)
 
 :line
 
-1.1 What is LAMMPS :link(1_1),h4
+1.1 What is LAMMPS :link(intro_1),h4
 
 LAMMPS is a classical molecular dynamics code that models an ensemble
 of particles in a liquid, solid, or gaseous state.  It can model
@@ -46,7 +46,7 @@ WWW Site"_lws.
 
 LAMMPS is a freely-available open-source code, distributed under the
 terms of the "GNU Public License"_gnu, which means you can use or
-modify the code however you wish.  See "this section"_#1_4 for a brief
+modify the code however you wish.  See "this section"_#intro_4 for a brief
 discussion of the open-source philosophy.
 
 :link(gnu,http://www.gnu.org/copyleft/gpl.html)
@@ -64,7 +64,7 @@ downloaded from the "LAMMPS WWW Site"_lws.
 LAMMPS was originally developed under a US Department of Energy CRADA
 (Cooperative Research and Development Agreement) between two DOE labs
 and 3 companies.  It is distributed by "Sandia National Labs"_snl.
-See "this section"_#1_5 for more information on LAMMPS funding and
+See "this section"_#intro_5 for more information on LAMMPS funding and
 individuals who have contributed to LAMMPS.
 
 :link(snl,http://www.sandia.gov)
@@ -83,11 +83,11 @@ communicate and store "ghost" atom information for atoms that border
 their sub-domain.  LAMMPS is most efficient (in a parallel sense) for
 systems whose particles fill a 3d rectangular box with roughly uniform
 density.  Papers with technical details of the algorithms used in
-LAMMPS are listed in "this section"_#1_5.
+LAMMPS are listed in "this section"_#intro_5.
 
 :line
 
-1.2 LAMMPS features :link(1_2),h4
+1.2 LAMMPS features :link(intro_2),h4
 
 This section highlights LAMMPS features, with pointers to specific
 commands which give more details.  If LAMMPS doesn't have your
@@ -139,7 +139,7 @@ commands)
     embedded ion method (EIM), ADP, Stillinger-Weber, Tersoff, REBO, AIREBO, ReaxFF, COMB
   electron force field (eFF, AWPMD)
   coarse-grained potentials: DPD, GayBerne, REsquared, colloidal, DLVO
-  mesoscopic potentials: granular, Peridynamics
+  mesoscopic potentials: granular, Peridynamics, SPH
   bond potentials: harmonic, FENE, Morse, nonlinear, class 2, \
     quartic (breakable)
   angle potentials: harmonic, CHARMM, cosine, cosine/squared, cosine/periodic, \
@@ -242,6 +242,7 @@ molecular dynamics options:
 "real-time visualization and interactive MD"_fix_imd.html
 "atom-to-continuum coupling"_fix_atc.html with finite elements
 coupled rigid body integration via the "POEMS"_fix_poems.html library
+"grand canonical Monte Carlo"_doc/fix_gcmc.html insertions/deletions
 "Direct Simulation Monte Carlo"_pair_dsmc.html for low-density fluids
 "Peridynamics mesoscale modeling"_pair_peri.html
 "targeted"_fix_tmd.html and "steered"_fix_smd.html molecular dynamics
@@ -249,7 +250,7 @@ coupled rigid body integration via the "POEMS"_fix_poems.html library
 
 :line
 
-1.3 LAMMPS non-features :link(1_3),h4
+1.3 LAMMPS non-features :link(intro_3),h4
 
 LAMMPS is designed to efficiently compute Newton's equations of motion
 for a system of interacting particles.  Many of the tools needed to
@@ -362,7 +363,7 @@ spatial-decomposition version exist.
 
 :line
 
-1.4 Open source distribution :link(1_4),h4
+1.4 Open source distribution :link(intro_4),h4
 
 LAMMPS comes with no warranty of any kind.  As each source file states
 in its header, it is a copyrighted code that is distributed free-of-
@@ -406,7 +407,7 @@ Site"_lws, or have a suggestion for something to clarify or include,
 send an email to the
 "developers"_http://lammps.sandia.gov/authors.html. :l
 
-If you find a bug, "this section"_Section_errors.html#10_2 describes
+If you find a bug, "this section"_Section_errors.html#err_2 describes
 how to report it. :l
 
 If you publish a paper using LAMMPS results, send the citation (and
@@ -444,7 +445,7 @@ encouraged. :ule,l
 
 :line
 
-1.5 Acknowledgments and citations :h4,link(1_5)
+1.5 Acknowledgments and citations :h4,link(intro_5)
 
 LAMMPS development has been funded by the "US Department of
 Energy"_doe (DOE), through its CRADA, LDRD, ASCI, and Genomes-to-Life
@@ -538,7 +539,7 @@ fix smd for steered MD : Axel Kohlmeyer (U Penn)
 GROMACS pair potentials : Mark Stevens (Sandia)
 lmp2vmd tool : Axel Kohlmeyer (U Penn)
 compute group/group : Naveen Michaud-Agrawal (Johns Hopkins U)
-CG-CMM user package for coarse-graining : Axel Kohlmeyer (U Penn)
+USER-CG-CMM package for coarse-graining : Axel Kohlmeyer (U Penn)
 cosine/delta angle potential : Axel Kohlmeyer (U Penn)
 VIM editor add-ons for LAMMPS input scripts : Gerolf Ziegenhain
 pair lubricate : Randy Schunk (Sandia)

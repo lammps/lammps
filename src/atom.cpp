@@ -83,6 +83,10 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   eradius = ervel = erforce = NULL;
   cs = csforce = vforce = ervelforce = NULL;
   etag = NULL;
+  rho = drho = NULL;
+  e = de = NULL;
+  cv = NULL;
+  vest = NULL;
 
   maxspecial = 1;
   nspecial = NULL;
@@ -106,12 +110,13 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   // customize by adding new flag
 
   sphere_flag = ellipsoid_flag = peri_flag = electron_flag = 0;
-  wavepacket_flag = 0;
+  wavepacket_flag = sph_flag = 0;
 
   molecule_flag = q_flag = mu_flag = 0;
   rmass_flag = radius_flag = omega_flag = torque_flag = angmom_flag = 0;
   vfrac_flag = spin_flag = eradius_flag = ervel_flag = erforce_flag = 0;
   cs_flag = csforce_flag = vforce_flag = ervelforce_flag= etag_flag = 0;
+  rho_flag = e_flag = cv_flag = vest_flag = 0;
 
   // ntype-length arrays
 

@@ -1,6 +1,6 @@
-"Previous Section"_Section_python.html - "LAMMPS WWW Site"_lws -
+"Previous Section"_Section_packages.html - "LAMMPS WWW Site"_lws -
 "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next
-Section"_Section_errors.html :c
+Section"_Section_howto.html :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
@@ -8,7 +8,7 @@ Section"_Section_errors.html :c
 
 :line
 
-10. Using accelerated CPU and GPU styles :h3
+5. Using accelerated CPU and GPU styles :h3
 
 Accelerated versions of various "pair_style"_pair_style.html,
 "fixes"_fix.html, "computes"_compute.html, and other commands have
@@ -34,7 +34,7 @@ style exist in LAMMPS:
 Assuming you have built LAMMPS with the appropriate package, these
 styles can be invoked by specifying them explicitly in your input
 script.  Or you can use the "-suffix command-line
-switch"_Section_start.html#2_6 to invoke the accelerated versions
+switch"_Section_start.html#start_6 to invoke the accelerated versions
 automatically, without changing your input script.  The
 "suffix"_suffix.html command allows you to set a suffix explicitly and
 to turn off/on the comand-line switch setting, both from within your
@@ -55,9 +55,9 @@ The speed-up due to GPU usage depends on a variety of factors, as
 discussed below.
 
 To see what styles are currently available in each of the accelerated
-packages, see "this section"_Section_commands.html#3_5 of the manual.
-A list of accelerated styles is included in the pair, fix, compute,
-and kspace sections.
+packages, see "this section"_Section_commands.html#cmd_5 of the
+manual.  A list of accelerated styles is included in the pair, fix,
+compute, and kspace sections.
 
 The following sections explain:
 
@@ -70,16 +70,16 @@ speed-ups you can expect :ul
 The final section compares and contrasts the GPU and USER-CUDA
 packages, since they are both designed to use NVIDIA GPU hardware.
 
-10.1 "OPT package"_#10_1
-10.2 "USER-OMP package"_#10_2
-10.3 "GPU package"_#10_3
-10.4 "USER-CUDA package"_#10_4
-10.5 "Comparison of GPU and USER-CUDA packages"_#10_4 :all(b)
+5.1 "OPT package"_#acc_1
+5.2 "USER-OMP package"_#acc_2
+5.3 "GPU package"_#acc_3
+5.4 "USER-CUDA package"_#acc_4
+5.5 "Comparison of GPU and USER-CUDA packages"_#acc_5 :all(b)
 
 :line
 :line
 
-10.1 OPT package :h4,link(10_1)
+5.1 OPT package :h4,link(acc_1)
 
 The OPT package was developed by James Fischer (High Performance
 Technologies), David Richie, and Vincent Natoli (Stone Ridge
@@ -107,7 +107,7 @@ to 20% savings.
 :line
 :line
 
-10.2 USER-OMP package :h4,link(10_2)
+5.2 USER-OMP package :h4,link(acc_2)
 
 This section will be written when the USER-OMP package is released
 in main LAMMPS.
@@ -115,7 +115,7 @@ in main LAMMPS.
 :line
 :line
 
-10.3 GPU package :h4,link(10_3)
+5.3 GPU package :h4,link(acc_3)
 
 The GPU package was developed by Mike Brown at ORNL.  It provides GPU
 versions of several pair styles and for long-range Coulombics via the
@@ -159,9 +159,9 @@ Run lammps/lib/gpu/nvc_get_devices to list supported devices and properties :ul
 As with other packages that include a separately compiled library, you
 need to first build the GPU library, before building LAMMPS itself.
 General instructions for doing this are in "this
-section"_doc/Section_start.html#2_3 of the manual.  For this package,
-do the following, using a Makefile in lib/gpu appropriate for your
-system:
+section"_doc/Section_start.html#start_3 of the manual.  For this
+package, do the following, using a Makefile in lib/gpu appropriate for
+your system:
 
 cd lammps/lib/gpu
 make -f Makefile.linux
@@ -195,7 +195,7 @@ Additional input script requirements to run pair or PPPM styles with a
 
 To invoke specific styles from the GPU package, you can either append
 "gpu" to the style name (e.g. pair_style lj/cut/gpu), or use the
-"-suffix command-line switch"_Section_start.html#2_6, or use the
+"-suffix command-line switch"_Section_start.html#start_6, or use the
 "suffix"_suffix.html command. :ulb,l
 
 The "newton pair"_newton.html setting must be {off}. :l
@@ -256,7 +256,7 @@ requires that your GPU card support double precision.
 :line
 :line
 
-10.4 USER-CUDA package :h4,link(10_4)
+5.4 USER-CUDA package :h4,link(acc_4)
 
 The USER-CUDA package was developed by Christian Trott at U Technology
 Ilmenau in Germany.  It provides NVIDIA GPU versions of many pair
@@ -267,6 +267,9 @@ The package is designed to allow an entire LAMMPS calculation, for
 many timesteps, to run entirely on the GPU (except for inter-processor
 MPI communication), so that atom-based data (e.g. coordinates, forces)
 do not have to move back-and-forth between the CPU and GPU. :ulb,l
+
+The speed-up advantage of this approach is typically better when the
+number of atoms per GPU is large :l
 
 Data will stay on the GPU until a timestep where a non-GPU-ized fix or
 compute is invoked.  Whenever a non-GPU operation occurs (fix,
@@ -300,9 +303,9 @@ that its sample projects can be compiled without problems.
 As with other packages that include a separately compiled library, you
 need to first build the USER-CUDA library, before building LAMMPS
 itself.  General instructions for doing this are in "this
-section"_doc/Section_start.html#2_3 of the manual.  For this package,
-do the following, using settings in the lib/cuda Makefiles appropriate
-for your system:
+section"_doc/Section_start.html#start_3 of the manual.  For this
+package, do the following, using settings in the lib/cuda Makefiles
+appropriate for your system:
 
 Go to the lammps/lib/cuda directory :ulb,l
 
@@ -356,16 +359,16 @@ suffix are as follows:
 
 To invoke specific styles from the USER-CUDA package, you can either
 append "cuda" to the style name (e.g. pair_style lj/cut/cuda), or use
-the "-suffix command-line switch"_Section_start.html#2_6, or use the
-"suffix"_suffix.html command.  One exception is that the "kspace_style
-pppm/cuda"_kspace_style.html command has to be requested
+the "-suffix command-line switch"_Section_start.html#start_6, or use
+the "suffix"_suffix.html command.  One exception is that the
+"kspace_style pppm/cuda"_kspace_style.html command has to be requested
 explicitly. :ulb,l
 
 To use the USER-CUDA package with its default settings, no additional
 command is needed in your input script.  This is because when LAMMPS
 starts up, it detects if it has been built with the USER-CUDA package.
-See the "-cuda command-line switch"_Section_start.html#2_6 for more
-details. :l
+See the "-cuda command-line switch"_Section_start.html#start_6 for
+more details. :l
 
 To change settings for the USER-CUDA package at run-time, the "package
 cuda"_package.html command can be used near the beginning of your
@@ -388,7 +391,7 @@ occurs, the faster your simulation will run.
 :line
 :line
 
-10.5 Comparison of GPU and USER-CUDA packages :h4,link(10_5)
+5.5 Comparison of GPU and USER-CUDA packages :h4,link(acc_5)
 
 Both the GPU and USER-CUDA packages accelerate a LAMMPS calculation
 using NVIDIA hardware, but they do it in different ways.

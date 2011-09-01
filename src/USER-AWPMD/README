@@ -1,22 +1,21 @@
-The files in this directory are a user-contributed package for LAMMPS.
+This package contains a LAMMPS implementation of the Antisymmetrized
+Wave Packet Molecular Dynamics (AWPMD) method.
 
-The person who created these files is Ilya Valuev
-(valuev@physik.hu-berlin.de).  Contact him directly if you have
-questions.
+See the doc page for the pair_style awpmd/cut command to get started.
 
-PACKAGE DESCRIPTION:
+There are example scripts for using this package in
+examples/USER/awpmd.
 
-Contains a LAMMPS implementation of the Antisymmetrized Wave Packet
-Molecular Dynamics (AWPMD) method.
+This package uses an external library in lib/awpmd which must be
+compiled before making LAMMPS.  See the lib/awpmd/README file and the
+LAMMPS manual for information on building LAMMPS with external
+libraries.
 
-INSTALLATION:
-
-- compile the awpmd library in lib/awpmd 
-- follow a normal LAMMPS package installation: make yes-user-awpmd
-
-OTHERS FILES INCLUDED:
-
-User examples are under examples/USER/awpmd
+The person who created this package is Ilya Valuev at the JIHT in
+Russia (valuev at physik.hu-berlin.de).  Contact him directly if you
+have questions.
+ 
+----------------------
 
 ACKNOWLEDGMENTS:
 

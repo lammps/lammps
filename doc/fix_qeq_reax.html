@@ -37,6 +37,8 @@ reax/c</A> command, but it can be used with any
 potential in LAMMPS, so long as it defines and uses charges on each
 atom.  The <A HREF = "fix_qeq_comb.html">fix qeq/comb</A> command should be used to
 perform charge equliibration with the <A HREF = "pair_comb.html">COMB potential</A>.
+For more technical details about the charge equilibration performed by
+fix qeq/reax, see the "(Aktulga)" paper.
 </P>
 <P>The QEq method minimizes the electrostatic energy of the system by
 adjusting the partial charge on individual atoms based on interactions
@@ -63,16 +65,16 @@ of this fix are hard-coded to be A, eV, and electronic charge.
 </P>
 <P>No information about this fix is written to <A HREF = "restart.html">binary restart
 files</A>.  No global scalar or vector or per-atom
-quantities are stored by this fix for access by various <A HREF = "Section_howto.html#4_15">output
-commands</A>.  No parameter of this fix can be
-used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A> command.
+quantities are stored by this fix for access by various <A HREF = "Section_howto.html#howto_15">output
+commands</A>.  No parameter of this fix can
+be used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A> command.
 </P>
 <P>This fix is invoked during <A HREF = "minimize.html">energy minimization</A>.
 </P>
 <P><B>Restrictions:</B>
 </P>
-<P>This fix is part of the "user-reaxc" package.  It is only enabled if
-LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_3">Making
+<P>This fix is part of the USER-REAXC package.  It is only enabled if
+LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
 LAMMPS</A> section for more info.
 </P>
 <P><B>Related commands:</B>
@@ -91,5 +93,8 @@ LAMMPS</A> section for more info.
 <A NAME = "Nakano_1997"></A>
 
 <P><B>(Nakano)</B> Nakano, Computer Physics Communications, 104, 59-69 (1997).
+</P>
+<P>:link(Aktulga) <B>(Aktulga)</B> Aktulga, Fogarty, Pandit, Grama, Parallel
+Computing, to appear (2011).
 </P>
 </HTML>

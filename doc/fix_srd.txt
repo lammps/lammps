@@ -311,9 +311,9 @@ are relevant to this fix.
 
 This fix tabulates several SRD statistics which are stored in a vector
 of length 12, which can be accessed by various "output
-commands"_Section_howto.html#4_15.  The vector values calculated by
-this fix are "intensive", meaning they do not scale with the size of
-the simulation.  Technically, the first 8 do scale with the size of
+commands"_Section_howto.html#howto_15.  The vector values calculated
+by this fix are "intensive", meaning they do not scale with the size
+of the simulation.  Technically, the first 8 do scale with the size of
 the simulation, but treating them as intensive means they are not
 scaled when printed as part of thermodyanmic output.
 
@@ -340,9 +340,9 @@ minimization"_minimize.html.
 
 [Restrictions:]
 
-This command can only be used if LAMMPS was built with the "srd"
-package.  See the "Making LAMMPS"_Section_start.html#2_3 section for
-more info on packages.
+This command can only be used if LAMMPS was built with the SRD
+package.  See the "Making LAMMPS"_Section_start.html#start_3 section
+for more info on packages.
 
 [Related commands:]
 

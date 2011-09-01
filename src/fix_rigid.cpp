@@ -1910,14 +1910,14 @@ int FixRigid::unpack_exchange(int nlocal, double *buf)
   eflags[nlocal] = static_cast<int> (buf[m++]);
   if (dorientflag) {
     dorient[nlocal][0] = buf[m++];
-    dorient[nlocal][0] = buf[m++];
-    dorient[nlocal][0] = buf[m++];
+    dorient[nlocal][1] = buf[m++];
+    dorient[nlocal][2] = buf[m++];
   }
   if (qorientflag) {
     qorient[nlocal][0] = buf[m++];
-    qorient[nlocal][0] = buf[m++];
-    qorient[nlocal][0] = buf[m++];
-    qorient[nlocal][0] = buf[m++];
+    qorient[nlocal][1] = buf[m++];
+    qorient[nlocal][2] = buf[m++];
+    qorient[nlocal][3] = buf[m++];
   }
   return m;
 }

@@ -79,7 +79,7 @@ void PairYukawaOMP::eval(double **f, int iifrom, int iito, int tid)
 {
   int i,j,ii,jj,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double rsq,r2inv,r,rinv,screening,forceyukawa,factor_lj;
+  double rsq,r2inv,r,rinv,screening,forceyukawa,factor;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
@@ -109,7 +109,7 @@ void PairYukawaOMP::eval(double **f, int iifrom, int iito, int tid)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      factor_lj = special_lj[sbmask(j)];
+      factor = special_lj[sbmask(j)];
       j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];
@@ -125,7 +125,7 @@ void PairYukawaOMP::eval(double **f, int iifrom, int iito, int tid)
 	screening = exp(-kappa*r);
 	forceyukawa = a[itype][jtype] * screening * (kappa + rinv);
 
-	fpair = factor_lj*forceyukawa * r2inv;
+	fpair = factor*forceyukawa * r2inv;
 
 	fxtmp += delx*fpair;
 	fytmp += dely*fpair;
@@ -138,7 +138,7 @@ void PairYukawaOMP::eval(double **f, int iifrom, int iito, int tid)
 
 	if (EFLAG) {
 	  evdwl = a[itype][jtype] * screening * rinv - offset[itype][jtype];
-	  evdwl *= factor_lj;
+	  evdwl *= factor;
 	}
 
 	if (EVFLAG) ev_tally_thr(this, i,j,nlocal,NEWTON_PAIR,

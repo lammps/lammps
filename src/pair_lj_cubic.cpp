@@ -30,15 +30,7 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
-
-// LJ quantities scaled by epsilon and rmin = sigma*2^1/6
-
-#define RT6TWO 1.1224621  // 2^1/6
-#define SS 1.1086834       // inflection point (13/7)^1/6
-#define PHIS -0.7869823   // energy at s
-#define DPHIDS 2.6899009  // gradient at s
-#define A3 27.93357       // cubic coefficient
-#define SM 1.5475375      // cubic cutoff = s*67/48
+using namespace PairLJCubicConstants;
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))

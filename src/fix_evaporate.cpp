@@ -21,6 +21,7 @@
 #include "domain.h"
 #include "region.h"
 #include "comm.h"
+#include "force.h"
 #include "group.h"
 #include "random_park.h"
 #include "random_mars.h"
@@ -162,7 +163,8 @@ void FixEvaporate::init()
 
 void FixEvaporate::pre_exchange()
 {
-  int i,iwhichglobal,iwhichlocal;
+  int i,j,m,iwhichglobal,iwhichlocal;
+  int ndel,ndeltopo[4];
 
   if (update->ntimestep != next_reneighbor) return;
 
@@ -197,9 +199,10 @@ void FixEvaporate::pre_exchange()
   nbefore -= ncount;
 
   // ndel = total # of atom deletions, in or out of region
+  // ndeltopo[1,2,3,4] = ditto for bonds, angles, dihedrals, impropers
   // mark[] = 1 if deleted
 
-  int ndel = 0;
+  ndel = 0;
   for (i = 0; i < nlocal; i++) mark[i] = 0;
 
   // atomic deletions
@@ -226,11 +229,13 @@ void FixEvaporate::pre_exchange()
   // bcast mol ID and delete all atoms in that molecule on any proc
   // update deletion count by total # of atoms in molecule
   // shrink list of eligible candidates as any of my atoms get marked
-  // keep ndel,ncount,nall,nbefore current after each molecule deletion
+  // keep ndel,ndeltopo,ncount,nall,nbefore current after each mol deletion
 
   } else {
     int me,proc,iatom,imolecule,ndelone,ndelall;
     int *molecule = atom->molecule;
+
+    ndeltopo[0] = ndeltopo[1] = ndeltopo[2] = ndeltopo[3] = 0;
 
     while (nall && ndel < nflux) {
 
@@ -245,7 +250,8 @@ void FixEvaporate::pre_exchange()
       } else me = -1;
 
       // bcast mol ID to delete all atoms from
-      // delete single iatom if mol ID = 0
+      // if mol ID > 0, delete any atom in molecule and decrement counters
+      // if mol ID == 0, delete single iatom
 
       MPI_Allreduce(&me,&proc,1,MPI_INT,MPI_MAX,world);
       MPI_Bcast(&imolecule,1,MPI_INT,proc,world);
@@ -254,6 +260,44 @@ void FixEvaporate::pre_exchange()
 	if (imolecule && molecule[i] == imolecule) {
 	  mark[i] = 1;
 	  ndelone++;
+
+	  if (atom->avec->bonds_allow) {
+	    if (force->newton_bond) ndeltopo[0] += atom->num_bond[i];
+	    else {
+	      for (j = 0; j < atom->num_bond[i]; j++) {
+		m = atom->map(atom->bond_atom[i][j]);
+		if (m >= 0 && m < nlocal) ndeltopo[0]++;
+	      }
+	    }
+	  }
+	  if (atom->avec->angles_allow) {
+	    if (force->newton_bond) ndeltopo[1] += atom->num_angle[i];
+	    else {
+	      for (j = 0; j < atom->num_angle[i]; j++) {
+		m = atom->map(atom->angle_atom2[i][j]);
+		if (m >= 0 && m < nlocal) ndeltopo[1]++;
+	      }
+	    }
+	  }
+	  if (atom->avec->dihedrals_allow) {
+	    if (force->newton_bond) ndeltopo[2] += atom->num_dihedral[i];
+	    else {
+	      for (j = 0; j < atom->num_dihedral[i]; j++) {
+		m = atom->map(atom->dihedral_atom2[i][j]);
+		if (m >= 0 && m < nlocal) ndeltopo[2]++;
+	      }
+	    }
+	  }
+	  if (atom->avec->impropers_allow) {
+	    if (force->newton_bond) ndeltopo[3] += atom->num_improper[i];
+	    else {
+	      for (j = 0; j < atom->num_improper[i]; j++) {
+		m = atom->map(atom->improper_atom2[i][j]);
+		if (m >= 0 && m < nlocal) ndeltopo[3]++;
+	      }
+	    }
+	  }
+
 	} else if (me == proc && i == iatom) {
 	  mark[i] = 1;
 	  ndelone++;
@@ -273,7 +317,6 @@ void FixEvaporate::pre_exchange()
       // update ndel,ncount,nall,nbefore
 
       MPI_Allreduce(&ndelone,&ndelall,1,MPI_INT,MPI_SUM,world);
-      ndel += ndelall;
       MPI_Allreduce(&ncount,&nall,1,MPI_INT,MPI_SUM,world);
       MPI_Scan(&ncount,&nbefore,1,MPI_INT,MPI_SUM,world);
       nbefore -= ncount;
@@ -292,11 +335,20 @@ void FixEvaporate::pre_exchange()
     }
   }
 
-  // reset global natoms
+  // reset global natoms and bonds, angles, etc
   // if global map exists, reset it now instead of waiting for comm
   // since deleting atoms messes up ghosts
 
   atom->natoms -= ndel;
+  if (molflag) {
+    int all[4];
+    MPI_Allreduce(ndeltopo,all,4,MPI_INT,MPI_SUM,world);
+    atom->nbonds -= all[0];
+    atom->nangles -= all[1];
+    atom->ndihedrals -= all[2];
+    atom->nimpropers -= all[3];
+  }
+
   if (ndel && atom->map_style) {
     atom->nghost = 0;
     atom->map_init();

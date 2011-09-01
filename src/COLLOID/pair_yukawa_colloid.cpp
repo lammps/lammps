@@ -38,11 +38,11 @@ PairYukawaColloid::PairYukawaColloid(LAMMPS *lmp) : PairYukawa(lmp) {}
 void PairYukawaColloid::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
-  double xtmp,ytmp,ztmp,delx,dely,delz,ecoul,fpair,radi,radj;
-  double rsq,r2inv,r,rinv,screening,forceyukawa,factor_coul;
+  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair,radi,radj;
+  double rsq,r2inv,r,rinv,screening,forceyukawa,factor;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
-  ecoul = 0.0;
+  evdwl = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
 
@@ -51,7 +51,7 @@ void PairYukawaColloid::compute(int eflag, int vflag)
   double *radius = atom->radius;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  double *special_coul = force->special_coul;
+  double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
 
   inum = list->inum;
@@ -73,7 +73,7 @@ void PairYukawaColloid::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      factor_coul = special_coul[sbmask(j)];
+      factor = special_lj[sbmask(j)];
       j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];
@@ -90,7 +90,7 @@ void PairYukawaColloid::compute(int eflag, int vflag)
 	screening = exp(-kappa*(r-(radi+radj)));
 	forceyukawa = a[itype][jtype] * screening;
 
-	fpair = factor_coul*forceyukawa * rinv;
+	fpair = factor*forceyukawa * rinv;
 
 	f[i][0] += delx*fpair;
 	f[i][1] += dely*fpair;
@@ -102,12 +102,12 @@ void PairYukawaColloid::compute(int eflag, int vflag)
 	}
 
 	if (eflag) {
-	  ecoul = a[itype][jtype]/kappa * screening - offset[itype][jtype];
-	  ecoul *= factor_coul;
+	  evdwl = a[itype][jtype]/kappa * screening - offset[itype][jtype];
+	  evdwl *= factor;
 	}
 
 	if (evflag) ev_tally(i,j,nlocal,newton_pair,
-			     0.0,ecoul,fpair,delx,dely,delz);
+			     evdwl,0.0,fpair,delx,dely,delz);
       }
     }
   }
@@ -170,8 +170,8 @@ double PairYukawaColloid::single(int i, int j, int itype, int jtype,
   rinv = 1.0/r;
   screening = exp(-kappa*(r-(rad[itype]+rad[jtype])));
   forceyukawa = a[itype][jtype] * screening;
-  fforce = factor_coul*forceyukawa * rinv;
+  fforce = factor_lj*forceyukawa * rinv;
 
   phi = a[itype][jtype]/kappa * screening  - offset[itype][jtype]; 
-  return factor_coul*phi;
+  return factor_lj*phi;
 }

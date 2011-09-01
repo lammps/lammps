@@ -91,7 +91,7 @@ FixAppendAtoms::FixAppendAtoms(LAMMPS *lmp, int narg, char **arg) :
       if (domain->boundary[2][1] != 3) error->all("Must shrink-wrap with minimum th append boundary");
     } else if (strcmp(arg[iarg],"freq") == 0) {
       if (iarg+2 > narg) error->all("Illegal fix append_atoms command");
-      freq = atof(arg[iarg+1]);
+      freq = atoi(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"spatial") == 0) {
       if (iarg+3 > narg) error->all("Illegal fix append_atoms command");
@@ -251,7 +251,7 @@ int FixAppendAtoms::get_spatial()
     double binsize = 2.0; 
     double min_energy=0.0;
     double max_energy=0.0;
-    int header = size / binsize;
+    int header = static_cast<int> (size / binsize);
     advance = 0;
 
     for (int loop=1; loop <= header; loop++) {

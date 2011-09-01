@@ -19,7 +19,7 @@ with minimal instructions.  If you add a new feature to LAMMPS and
 think it will be of interest to general users, we encourage you to
 submit it to the developers for inclusion in the released version of
 LAMMPS.  Information about how to do this is provided
-"below"_#package.
+"below"_#mod_14.
 
 The best way to add a new feature is to find a similar feature in
 LAMMPS and look at the corresponding source and header files to figure

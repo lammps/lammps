@@ -255,10 +255,12 @@ void FixWallPiston::post_integrate()
   if (update->ntimestep % 1000 == 0)
     if (comm->me == 0) {
       if (screen)
-	fprintf(screen,"SHOCK: step %d t %g zpos %g vz %g az %g zlo %g\n", 
+	fprintf(screen,"SHOCK: step " BIGINT_FORMAT
+		" t %g zpos %g vz %g az %g zlo %g\n", 
 		update->ntimestep, t, zlo, vz, paccelz, domain->boxlo[2]);
       if (logfile)
-	fprintf(logfile,"SHOCK: step %d t %g zpos %g vz %g az %g zlo %g\n", 
+	fprintf(logfile,"SHOCK: step " BIGINT_FORMAT
+		" t %g zpos %g vz %g az %g zlo %g\n", 
 		update->ntimestep, t, zlo, vz, paccelz, domain->boxlo[2]);
     }
 

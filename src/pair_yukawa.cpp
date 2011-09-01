@@ -51,7 +51,7 @@ void PairYukawa::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double rsq,r2inv,r,rinv,screening,forceyukawa,factor_lj;
+  double rsq,r2inv,r,rinv,screening,forceyukawa,factor;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
@@ -83,7 +83,7 @@ void PairYukawa::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      factor_lj = special_lj[sbmask(j)];
+      factor = special_lj[sbmask(j)];
       j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];
@@ -99,7 +99,7 @@ void PairYukawa::compute(int eflag, int vflag)
 	screening = exp(-kappa*r);
 	forceyukawa = a[itype][jtype] * screening * (kappa + rinv);
 
-	fpair = factor_lj*forceyukawa * r2inv;
+	fpair = factor*forceyukawa * r2inv;
 
 	f[i][0] += delx*fpair;
 	f[i][1] += dely*fpair;
@@ -112,7 +112,7 @@ void PairYukawa::compute(int eflag, int vflag)
 
 	if (eflag) {
 	  evdwl = a[itype][jtype] * screening * rinv - offset[itype][jtype];
-	  evdwl *= factor_lj;
+	  evdwl *= factor;
 	}
 
 	if (evflag) ev_tally(i,j,nlocal,newton_pair,
@@ -309,8 +309,8 @@ double PairYukawa::single(int i, int j, int itype, int jtype, double rsq,
   rinv = 1.0/r;
   screening = exp(-kappa*r);
   forceyukawa = a[itype][jtype] * screening * (kappa + rinv);
-  fforce = factor_coul*forceyukawa * r2inv;
+  fforce = factor_lj*forceyukawa * r2inv;
 
   phi = a[itype][jtype] * screening * rinv - offset[itype][jtype];
-  return factor_coul*phi;
+  return factor_lj*phi;
 }

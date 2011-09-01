@@ -19,6 +19,7 @@
 #include "string.h"
 #include "stdlib.h"
 #include "fix_srd.h"
+#include "math_extra.h"
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
 #include "group.h"
@@ -356,7 +357,10 @@ void FixSRD::init()
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       vsq = v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2];
-      if (vsq > vmaxsq) nrescale++;
+      if (vsq > vmaxsq) {
+	nrescale++;
+	MathExtra::scale3(vmax/sqrt(vsq),v[i]);
+      }
     }
 
   int all;
@@ -944,7 +948,10 @@ void FixSRD::reset_velocities()
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       vsq = v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2];
-      if (vsq > vmaxsq) nrescale++;
+      if (vsq > vmaxsq) {
+	nrescale++;
+	MathExtra::scale3(vmax/sqrt(vsq),v[i]);
+      }
     }
 }
 
@@ -1174,7 +1181,10 @@ void FixSRD::collisions_single()
 
 	  double vsq = vsnew[0]*vsnew[0] + vsnew[1]*vsnew[1] + 
 	    vsnew[2]*vsnew[2];
-	  if (vsq > vmaxsq) nrescale++;
+	  if (vsq > vmaxsq) {
+	    nrescale++;
+	    MathExtra::scale3(vmax/sqrt(vsq),vsnew);
+	  }
 
 	  // update BIG particle and WALL and SRD
 	  // BIG particle is not torqued if sphere and SLIP collision
@@ -1340,7 +1350,10 @@ void FixSRD::collisions_multi()
       // check on rescaling of vsnew
 
       double vsq = vsnew[0]*vsnew[0] + vsnew[1]*vsnew[1] + vsnew[2]*vsnew[2];
-      if (vsq > vmaxsq) nrescale++;
+      if (vsq > vmaxsq) {
+	nrescale++;
+	MathExtra::scale3(vmax/sqrt(vsq),vsnew);
+      }
 
       // update BIG particle and WALL and SRD
       // BIG particle is not torqued if sphere and SLIP collision
@@ -2145,10 +2158,8 @@ void FixSRD::parameterize()
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       if (rmass) {
-	if (mass_srd == 0.0) {
-	  mass_srd = rmass[i];
-	  printf("MASS SRD %g\n",rmass[i]);
-	} else if (rmass[i] != mass_srd) flag = 1;
+	if (mass_srd == 0.0) mass_srd = rmass[i];
+	else if (rmass[i] != mass_srd) flag = 1;
       } else {
 	if (mass_srd == 0.0) mass_srd = mass[type[i]];
 	else if (mass[type[i]] != mass_srd) flag = 1;
@@ -2387,8 +2398,6 @@ void FixSRD::parameterize()
     error->warning("Fix srd viscosity < 0.0 due to low SRD density");
   if (bigexist && dt_big*vmax > minbigdiam && me == 0)
     error->warning("Fix srd particles may move > big particle diameter");
-  if (wallexist && collidestyle == NOSLIP && shiftflag == 1)
-    error->warning("Fix srd no-slip wall collisions with bin shifting");
 }
 
 /* ----------------------------------------------------------------------
@@ -2812,9 +2821,11 @@ void FixSRD::setup_velocity_shift(int ishift, int dynamic)
       first->nsend = second->nrecv = 0;
     if ((myloc[0]+1)*nbin1x % procgrid[0] == 0)
       second->nsend = first->nrecv = 0;
-  } else if (dynamic == 0 && domain->xperiodic == 0) {
-    if (myloc[0] == 0) first->nsend = second->nrecv = 0;
-    if (myloc[0] == procgrid[0]-1) second->nsend = first->nrecv = 0;
+  } else {
+    if (domain->xperiodic == 0) {
+      if (myloc[0] == 0) first->nsend = second->nrecv = 0;
+      if (myloc[0] == procgrid[0]-1) second->nsend = first->nrecv = 0;
+    }
   }
 
   if (reallocflag) {
@@ -2854,9 +2865,11 @@ void FixSRD::setup_velocity_shift(int ishift, int dynamic)
       first->nsend = second->nrecv = 0;
     if ((myloc[1]+1)*nbin1y % procgrid[1] == 0)
       second->nsend = first->nrecv = 0;
-  } else if (dynamic == 0 && domain->yperiodic == 0) {
-    if (myloc[1] == 0) first->nsend = second->nrecv = 0;
-    if (myloc[1] == procgrid[1]-1) second->nsend = first->nrecv = 0;
+  } else {
+    if (domain->yperiodic == 0) {
+      if (myloc[1] == 0) first->nsend = second->nrecv = 0;
+      if (myloc[1] == procgrid[1]-1) second->nsend = first->nrecv = 0;
+    }
   }
   
   if (reallocflag) {
@@ -2897,9 +2910,11 @@ void FixSRD::setup_velocity_shift(int ishift, int dynamic)
 	first->nsend = second->nrecv = 0;
       if ((myloc[2]+1)*nbin1z % procgrid[2] == 0)
 	second->nsend = first->nrecv = 0;
-    } else if (dynamic == 0 && domain->zperiodic == 0) {
-      if (myloc[2] == 0) first->nsend = second->nrecv = 0;
-      if (myloc[2] == procgrid[2]-1) second->nsend = first->nrecv = 0;
+    } else {
+      if (domain->zperiodic == 0) {
+	if (myloc[2] == 0) first->nsend = second->nrecv = 0;
+	if (myloc[2] == procgrid[2]-1) second->nsend = first->nrecv = 0;
+      }
     }
     
     if (reallocflag) {

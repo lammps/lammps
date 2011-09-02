@@ -374,38 +374,37 @@ double FixNPHug::compute_vector(int n)
 }
 
 /* ----------------------------------------------------------------------
-   pack entire state of Fix into one write 
+   pack restart data 
 ------------------------------------------------------------------------- */
 
-void FixNPHug::write_restart(FILE *fp)
+int FixNPHug::pack_restart_data(double *list)
 {
-  int nsize = 3;
-
-  // Add on the base class size
-
-  int nsizetot = nsize + FixNH::size_restart();
-
-  double *list;
-  memory->create(list,nsize,"nphug:list");
-
   int n = 0;
 
   list[n++] = e0;
   list[n++] = v0;
   list[n++] = p0;
 
-  if (comm->me == 0) {
-    int sizetot = nsizetot * sizeof(double);
-    fwrite(&sizetot,sizeof(int),1,fp);
-    fwrite(list,sizeof(double),nsize,fp);
-  }
+  // call the base class function
 
-  memory->destroy(list);
+  n += FixNH::pack_restart_data(list+n);
 
-  // Write the base class data without size
+  return n;
+}
 
-  FixNH::write_restart_nosize(fp);
+/* ----------------------------------------------------------------------
+   calculate the number of data to be packed
+------------------------------------------------------------------------- */
 
+int FixNPHug::size_restart()
+{
+  int nsize = 3;
+
+  // call the base class function
+
+  nsize += FixNH::size_restart();
+
+  return nsize;
 }
 
 /* ----------------------------------------------------------------------
@@ -424,7 +423,7 @@ void FixNPHug::restart(char *buf)
   v0_set = 1;
   p0_set = 1;
 
-  // Call the base class function
+  // call the base class function
 
   buf += n*sizeof(double);
   FixNH::restart(buf);

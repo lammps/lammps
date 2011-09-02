@@ -30,20 +30,27 @@ class FixNPHug : public FixNH {
   ~FixNPHug();
   void init();
   void setup(int);
-  
+  int modify_param(int, char **);
+  void write_restart(FILE *);
+  void restart(char *);
+ 
  private:
   class Compute *pe;               // PE compute pointer
 
   void compute_temp_target();
+  double compute_vector(int);
   double compute_etotal();
   double compute_vol();
   double compute_hugoniot();
+  double compute_us();
+  double compute_up();
 
   char *id_pe;
   int peflag;
   int v0_set,p0_set,e0_set;
-  double v0,p0,e0;
-  int direction;
+  double v0,p0,e0,rho0;
+  int idir;
+  int uniaxial;
 };
 
 }

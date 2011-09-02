@@ -11,55 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-/*
-
-  This fix applies the NPHug Hugoniostat method of Ravelo et al.
-
-(Ravelo, Holian, Germann, and Lomdahl, PRB 70 014103 (2004))
-
-It uses the Nose-Hoover thermostat and barostat (fix_nh.html).
-The Nose-Hoover barostat is used to compress the system 
-to a specified final stress state. This is done either
-hydrostatically (using keyword iso, aniso, or tri) or uniaxially
-(using keywords x, y, or z).  In the hydrostatic case,
-the cell dimensions change dynamically so that the average axial stress
-in all three directions converges towards the specified target value. 
-In the uniaxial case, the chosen cell dimension changes dynamically 
-so that the average
-axial stress in that direction converges towards the target value. The
-other two cell dimensions are kept fixed (zero lateral strain).
-
-This leads to the following restrictions on the keywords:
-
-- The specified initial and
-final target pressures must be the same.
-
-- Only one of the following keywords may be used:
-iso, aniso, tri, x, y, z, 
-
-- The keywords xy, xz, yz may not be used.
-
-- The only admissible value for the couple keyword is xyz,
-which has the same effect as keyword iso
-
-- The drag parameter is proportional to the beta_H and beta_p
-damping coefficients in the Ravelo paper.
-
-- The temp keyword serves only to set the value of tdamp. The initial
-and final target temperatures are ignored. 
-
-- The values of tdamp and pdamp are inversely proportional to the
-coupling rate nu_H and nu_p in the Ravelo paper
-
-- All other keywords function in the same way. 
-
-*/
-
-
-
-
-
 #include "string.h"
+#include "stdlib.h"
 #include "fix_nphug.h"
 #include "modify.h"
 #include "error.h"
@@ -67,26 +20,91 @@ coupling rate nu_H and nu_p in the Ravelo paper
 #include "compute.h"
 #include "force.h"
 #include "domain.h"
+#include "group.h"
+#include "math.h"
+#include "memory.h"
+#include "comm.h"
+#include "math.h"
 
 using namespace LAMMPS_NS;
+
+enum{ISO,ANISO,TRICLINIC}; // same as fix_nh.cpp
 
 /* ---------------------------------------------------------------------- */
 
 FixNPHug::FixNPHug(LAMMPS *lmp, int narg, char **arg) :
   FixNH(lmp, narg, arg)
 {
-  // Hard-code to use initial state of system
+
+  // extend vector of base-class computes
+
+  size_vector += 3;
+
+  // turn off deviatoric flag and remove strain energy from vector
+
+  deviatoric_flag = 0;
+  size_vector -= 1;
+
+  // use initial state as reference state
 
   v0_set = p0_set = e0_set = 0;
 
-  // Hard-code to use z direction
+  // check pressure settings
 
-  direction = 2;
-  if (p_flag[0] == 1 || p_flag[1] == 1 ||
-      p_flag[3] == 1 || p_flag[4] == 1 || p_flag[5] == 1)
-    error->all("Only pressure control in z direction to be used with fix nphug");
-  if (p_flag[2] == 0)
-    error->all("Pressure control in z direction must be used with fix nphug");
+  if (p_start[0] != p_stop[0] ||
+      p_start[1] != p_stop[1] ||  
+      p_start[2] != p_stop[2])
+    error->all("Invalid argument for fix nphug");
+
+  // uniaxial = 0 means hydrostatic compression
+  // uniaxial = 1 means uniaxial compression
+  //      in x, y, or z (idir = 0, 1, or 2)
+
+  // isotropic hydrostatic compression
+
+  if (pstyle == ISO) {
+    uniaxial = 0;
+
+    // anisotropic compression
+
+  } else if (pstyle == ANISO) {
+
+    // anisotropic hydrostatic compression
+
+    if (p_start[0] == p_start[1] &&  
+	p_start[0] == p_start[2] )
+      uniaxial = 0;
+
+    // uniaxial compression
+
+    else if (p_flag[0] == 1 && p_flag[1] == 0 
+	&& p_flag[2] == 0) {
+      uniaxial = 1;
+      idir = 0;
+    } else if (p_flag[0] == 0 && p_flag[1] == 1 
+	   && p_flag[2] == 0) {
+      uniaxial = 1;
+      idir = 1;
+    } else if (p_flag[0] == 0 && p_flag[1] == 0 
+	       && p_flag[2] == 1) {
+      uniaxial = 1;
+      idir = 2;
+
+    } else error->all("Invalid argument for fix nphug");
+
+    // triclinic hydrostatic compression
+
+  } else if (pstyle == TRICLINIC) {
+
+    if (p_start[0] == p_start[1] &&  
+	p_start[0] == p_start[2] &&
+	p_start[3] == 0.0 &&  
+	p_start[4] == 0.0 &&  
+	p_start[5] == 0.0 )
+      uniaxial = 0;
+
+    else error->all("Invalid argument for fix nphug");
+  }
 
   if (!tstat_flag)
     error->all("Temperature control must be used with fix nphug");
@@ -190,8 +208,11 @@ void FixNPHug::setup(int vflag)
   } 
 
   if ( p0_set == 0 ) {
-    p0 = p_current[direction];
     p0_set = 1;
+    if (uniaxial == 1)
+      p0 = p_current[idir];
+    else
+      p0 = (p_current[0]+p_current[1]+p_current[2])/3.0;
   }
 
   if ( e0_set == 0 ) {
@@ -199,6 +220,12 @@ void FixNPHug::setup(int vflag)
     e0_set = 1;
   }
 
+  double masstot = group->mass(igroup);
+  rho0 = nktv2p*force->mvv2e*masstot/v0;
+
+  t_target = 0.01;
+
+  pe->addstep(update->ntimestep+1);
 }
 
 /* ----------------------------------------------------------------------
@@ -209,20 +236,8 @@ void FixNPHug::compute_temp_target()
 {
   t_target = t_current + compute_hugoniot();
   ke_target = tdof * boltz * t_target;
-  if (ke_target < 0.0) ke_target = 0.0;
-  
-  // If t_target is very small, need to choose 
-  // more reasonable value for use by barostat and 
-  // thermostat masses. ke_target is left as is.
-
-  if (t_target <= 1.0e-6) {
-    if (strcmp(update->unit_style,"lj") == 0) t0 = 1.0;
-    else t0 = 300.0;
-  }
-  pressure->addstep(update->ntimestep+1);
   pe->addstep(update->ntimestep+1);
 }
-
 
 /* ---------------------------------------------------------------------- */
 
@@ -232,7 +247,7 @@ double FixNPHug::compute_etotal()
   epot = pe->compute_scalar();
   if (thermo_energy) epot -= compute_scalar();
   ekin = temperature->compute_scalar();
-  ekin *= 0.5 * temperature->dof * force->boltz;
+  ekin *= 0.5 * tdof * force->boltz;
   etot = epot+ekin;
   return etot;
 }
@@ -249,24 +264,193 @@ double FixNPHug::compute_vol()
 
 /* ----------------------------------------------------------------------
    Computes the deviation of the current point 
-   from the Hugoniot in energy units.
+   from the Hugoniot in temperature units.
 ------------------------------------------------------------------------- */
 
 double FixNPHug::compute_hugoniot()
 {
-  double v, e, p;
+  double v,e,p;
   double dhugo;
   
   e = compute_etotal();
   
   temperature->compute_vector();
-  pressure->compute_vector();
-  p = pressure->vector[direction];
+
+
+  if (uniaxial == 1) {
+    pressure->compute_vector();
+    p = pressure->vector[idir];
+  } else 
+    p = pressure->compute_scalar();
   
   v = compute_vol();
   
   dhugo = (0.5 * (p + p0 ) * ( v0 - v)) / 
     force->nktv2p + e0 - e;
 
+  dhugo /= tdof * boltz;
+
   return dhugo;
+}
+
+/* ----------------------------------------------------------------------
+   Compute shock velocity is distance/time units
+------------------------------------------------------------------------- */
+
+double FixNPHug::compute_us()
+{
+  double v,p;
+  double eps,us;
+  
+  temperature->compute_vector();
+
+  if (uniaxial == 1) {
+    pressure->compute_vector();
+    p = pressure->vector[idir];
+  } else 
+    p = pressure->compute_scalar();
+  
+  v = compute_vol();
+  
+  // Us^2 = (p-p0)/(rho0*eps)
+
+  eps = 1.0 - v/v0;
+  if (eps < 1.0e-10) us = 0.0;
+  else if (p < p0) us = 0.0; 
+  else us = sqrt((p-p0)/(rho0*eps));
+  
+  return us;
+}
+
+/* ----------------------------------------------------------------------
+   Compute particle velocity is distance/time units
+------------------------------------------------------------------------- */
+
+double FixNPHug::compute_up()
+{
+  double v;
+  double eps,us,up;
+  
+  v = compute_vol();
+  us = compute_us();
+
+  // u = eps*Us
+
+  eps = 1.0 - v/v0;
+  up = us*eps;
+
+  return up;
+}
+
+// look for index in local class
+// if index not found, look in base class
+
+double FixNPHug::compute_vector(int n)
+{
+  int ilen;
+
+  // n = 0: Hugoniot energy difference (temperature units)
+
+  ilen = 1;
+  if (n < ilen) return compute_hugoniot();
+  n -= ilen;
+
+  // n = 1: Shock velocity
+
+  ilen = 1;
+  if (n < ilen) return compute_us();
+  n -= ilen;
+
+  // n = 2: Particle velocity
+
+  ilen = 1;
+  if (n < ilen) return compute_up();
+  n -= ilen;
+
+  // index not found, look in base class
+
+  FixNH::compute_vector(n);
+
+}
+
+/* ----------------------------------------------------------------------
+   pack entire state of Fix into one write 
+------------------------------------------------------------------------- */
+
+void FixNPHug::write_restart(FILE *fp)
+{
+  int nsize = 3;
+
+  // Add on the base class size
+
+  int nsizetot = nsize + FixNH::size_restart();
+
+  double *list;
+  memory->create(list,nsize,"nphug:list");
+
+  int n = 0;
+
+  list[n++] = e0;
+  list[n++] = v0;
+  list[n++] = p0;
+
+  if (comm->me == 0) {
+    int sizetot = nsizetot * sizeof(double);
+    fwrite(&sizetot,sizeof(int),1,fp);
+    fwrite(list,sizeof(double),nsize,fp);
+  }
+
+  memory->destroy(list);
+
+  // Write the base class data without size
+
+  FixNH::write_restart_nosize(fp);
+
+}
+
+/* ----------------------------------------------------------------------
+   use state info from restart file to restart the Fix 
+------------------------------------------------------------------------- */
+
+void FixNPHug::restart(char *buf)
+{
+  int n = 0;
+  double *list = (double *) buf;
+  e0 = list[n++];
+  v0 = list[n++];
+  p0 = list[n++];
+
+  e0_set = 1;
+  v0_set = 1;
+  p0_set = 1;
+
+  // Call the base class function
+
+  buf += n*sizeof(double);
+  FixNH::restart(buf);
+
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixNPHug::modify_param(int narg, char **arg)
+{
+  if (strcmp(arg[0],"e0") == 0) {
+    if (narg < 2) error->all("Illegal fix nphug command");
+    e0 = atof(arg[1]);
+    e0_set = 1;
+    return 2;
+  } else if (strcmp(arg[0],"v0") == 0) {
+    if (narg < 2) error->all("Illegal fix nphug command");
+    v0 = atof(arg[1]);
+    v0_set = 1;
+    return 2;
+  } else if (strcmp(arg[0],"p0") == 0) {
+    if (narg < 2) error->all("Illegal fix nphug command");
+    p0 = atof(arg[1]);
+    p0_set = 1;
+    return 2;
+  }
+
+  return 0;
 }

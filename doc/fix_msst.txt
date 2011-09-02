@@ -145,7 +145,7 @@ all.
   
 [Related commands:]
 
-"fix deform"_fix_deform.html
+"fix nphug"_fix_nphug.html, "fix deform"_fix_deform.html
 
 [Default:]
 

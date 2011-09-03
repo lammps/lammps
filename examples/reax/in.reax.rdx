@@ -32,11 +32,14 @@ neigh_modify	every 10 delay 0 check no
 
 fix		1 all nve
 
-thermo		10
+thermo		1
 thermo_style custom step temp epair etotal press v_eb v_ea v_elp v_emol v_ev v_epen v_ecoa v_ehb v_et v_eco v_ew v_ep v_efi v_eqeq
 
 timestep	1.0
 
-dump		1 all atom 10 dump.reax.rdx
+#dump		1 all atom 10 dump.reax.rdx
+dump            1 all custom 1 dump.reax.rdx id type q xs ys zs
+
+reset_timestep 1000
 
 run		100

@@ -3,6 +3,8 @@
 # run this on multiple partitions as
 #   mpirun -np 4 lmp_g++ -partition 4x1 -in in.prd
 
+#log             none
+
 units           metal
 
 atom_style      atomic
@@ -72,7 +74,7 @@ neigh_modify    every 1 delay 10 check yes
 
 # equilibrate
 
-run             1000
+run             100
 
 # only output atoms near vacancy
 

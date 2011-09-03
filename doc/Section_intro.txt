@@ -463,165 +463,59 @@ Hierarchical Modeling".
 :link(oascr,http://www.sc.doe.gov/ascr/home.html)
 :link(ober,http://www.er.doe.gov/production/ober/ober_top.html)
 
-The following papers describe the parallel algorithms used in LAMMPS.
+The following paper describe the basic parallel algorithms used in
+LAMMPS.  If you use LAMMPS results in your published work, please cite
+this paper and include a pointer to the "LAMMPS WWW Site"_lws
+(http://lammps.sandia.gov):
 
 S. J. Plimpton, [Fast Parallel Algorithms for Short-Range Molecular
 Dynamics], J Comp Phys, 117, 1-19 (1995).
 
-S. J. Plimpton, R. Pollock, M. Stevens, [Particle-Mesh Ewald and
-rRESPA for Parallel Molecular Dynamics Simulations], in Proc of the
-Eighth SIAM Conference on Parallel Processing for Scientific
-Computing, Minneapolis, MN (March 1997).
+Other papers describing specific algorithms used in LAMMPS are listed
+under the "Citing LAMMPS link"_http://lammps.sandia.gov/cite.html of
+the LAMMPS WWW page.
 
-If you use LAMMPS results in your published work, please cite the J
-Comp Phys reference and include a pointer to the "LAMMPS WWW Site"_lws
-(http://lammps.sandia.gov).
+The "Publications link"_http://lammps.sandia.gov/papers.html on the
+LAMMPS WWW page lists papers that have cited LAMMPS.  If your paper is
+not listed there for some reason, feel free to send us the info.  If
+the simulations in your paper produced cool pictures or animations,
+we'll be pleased to add them to the
+"Pictures"_http://lammps.sandia.gov/pictures.html or
+"Movies"_http://lammps.sandia.gov/movies.html pages of the LAMMPS WWW
+site.
 
-If you send is information about your publication, we'll be pleased to
-add it to the Publications page of the "LAMMPS WWW Site"_lws.  Ditto
-for a picture or movie for the Pictures or Movies pages.
+The core group of LAMMPS developers is at Sandia National Labs:
 
-The core group of LAMMPS developers is at Sandia National Labs.  They
-include "Steve Plimpton"_sjp, Paul Crozier, and Aidan Thompson and can
-be contacted via email: sjplimp, pscrozi, athomps at sandia.gov.
+Steve Plimpton, sjplimp at sandia.gov
+Aidan Thompson, athomps at sandia.gov
+Paul Crozier, pscrozi at sandia.gov :ul
 
-Here are various folks who have made significant contributions to
-features in LAMMPS.  The most recent contributions are at the top of
-the list.
+The following folks are responsible for significant contributions to
+the code, or other aspects of the LAMMPS development effort.  Many of
+the packages they have written are somewhat unique to LAMMPS and the
+code would not be as general-purpose as it is without their expertise
+and efforts.
 
-:link(sjp,http://www.sandia.gov/~sjplimp)
+Axel Kohlmeyer (Temple U), akohlmey at gmail.com, SVN and Git repositories, indefatigable mail list responder, USER-CG-CMM and USER-OMP packages
+Roy Pollock (LLNL), Ewald and PPPM solvers
+Mike Brown (ORNL), brownw at ornl.gov, GPU package
+Greg Wagner (Sandia), gjwagne at sandia.gov, MEAM package for MEAM potential
+Mike Parks (Sandia), mlparks at sandia.gov, PERI package for Peridynamics
+Rudra Mukherjee (JPL), Rudranarayan.M.Mukherjee at jpl.nasa.gov, POEMS package for articulated rigid body motion
+Reese Jones (Sandia) and collaborators, rjones at sandia.gov, USER-ATC package for atom/continuum coupling
+Ilya Valuev (JIHT), valuev at physik.hu-berlin.de, USER-AWPMD package for wave-packet MD
+Christian Trott (U Tech Ilmenau), christian.trott at tu-ilmenau.de, USER-CUDA package
+Andres Jaramillo-Botero (Caltech), ajaramil at wag.caltech.edu, USER-EFF package for electron force field
+Pieter in' t Veld (BASF), pieter.intveld at basf.com, USER-EWALDN package for 1/r^N long-range solvers
+Christoph Kloss (JKU), Christoph.Kloss at jku.at, USER-LIGGGHTS package for granular models and granular/fluid coupling
+Metin Aktulga (LBL), hmaktulga at lbl.gov, USER-REAXC package for C version of ReaxFF
+Georg Gunzenmuller (EMI), georg.ganzenmueller at emi.fhg.de, USER-SPH package :ul
 
-pppm GPU single and double : Mike Brown (ORNL)
-pair_style lj/cut/expand : Inderaj Bains (NVIDIA)
-temperature accelerated dynamics (TAD) : Aidan Thompson (Sandia)
-pair reax/c and fix qeq/reax : Metin Aktulga (Purdue, now LBNL)
-DREIDING force field, pair_style hbond/dreiding, etc : Tod Pascal (CalTech)
-fix adapt and compute ti for thermodynamic integreation for free energies : Sai Jayaraman (Sandia)
-pair born and pair gauss : Sai Jayaraman (Sandia)
-stochastic rotation dynamics (SRD) via fix srd : Jemery Lechman (Sandia) and Pieter in 't Veld (BASF)
-ipp Perl script tool : Reese Jones (Sandia)
-eam_database and createatoms tools : Xiaowang Zhou (Sandia)
-electron force field (eFF) : Andres Jaramillo-Botero and Julius Su (Caltech)
-embedded ion method (EIM) potential : Xiaowang Zhou (Sandia)
-COMB potential with charge equilibration : Tzu-Ray Shan (U Florida)
-fix ave/correlate :  Benoit Leblanc, Dave Rigby, Paul Saxe (Materials Design) and Reese Jones (Sandia)
-pair_style peri/lps : Mike Parks (Sandia)
-fix msst : Lawrence Fried (LLNL), Evan Reed (LLNL, Stanford)
-thermo_style custom tpcpu & spcpu keywords : Axel Kohlmeyer (Temple U) 
-fix rigid/nve, fix rigid/nvt : Tony Sheh and Trung Dac Nguyen (U Michigan)
-public SVN & Git repositories for LAMMPS : Axel Kohlmeyer (Temple U) and Bill Goldman (Sandia)
-fix nvt, fix nph, fix npt, Parinello/Rahman dynamics, fix box/relax : Aidan Thompson (Sandia)
-compute heat/flux : German Samolyuk (ORNL) and Mario Pinto (Computational Research Lab, Pune, India)
-pair yukawa/colloid : Randy Schunk (Sandia)
-fix wall/colloid : Jeremy Lechman (Sandia)
-pair_style dsmc for Direct Simulation Monte Carlo (DSMC) modeling : Paul Crozier (Sandia)
-fix imd for real-time viz and interactive MD : Axel Kohlmeyer (Temple Univ)
-concentration-dependent EAM potential : Alexander Stukowski (Technical University of Darmstadt)
-parallel replica dymamics (PRD) : Mike Brown (Sandia)
-min_style hftn : Todd Plantenga (Sandia)
-fix atc : Reese Jones, Jon Zimmerman, Jeremy Templeton (Sandia)
-dump cfg : Liang Wan (Chinese Academy of Sciences)
-fix nvt with Nose/Hoover chains : Andy Ballard (U Maryland)
-pair_style lj/cut/gpu, pair_style gayberne/gpu : Mike Brown (Sandia)
-pair_style lj96/cut, bond_style table, angle_style table : Chuanfu Luo
-fix langevin tally : Carolyn Phillips (U Michigan)
-compute heat/flux for Green-Kubo : Reese Jones (Sandia), Philip Howell (Siemens), Vikas Varsney (AFRL)
-region cone : Pim Schravendijk
-fix reax/bonds : Aidan Thompson (Sandia)
-pair born/coul/long : Ahmed Ismail (Sandia)
-fix ttm : Paul Crozier (Sandia) and Carolyn Phillips (U Michigan)
-fix box/relax : Aidan Thompson and David Olmsted (Sandia)
-ReaxFF potential : Aidan Thompson (Sandia) and Hansohl Cho (MIT)
-compute cna/atom : Wan Liang (Chinese Academy of Sciences)
-Tersoff/ZBL potential : Dave Farrell (Northwestern U)
-peridynamics : Mike Parks (Sandia)
-fix smd for steered MD : Axel Kohlmeyer (U Penn)
-GROMACS pair potentials : Mark Stevens (Sandia)
-lmp2vmd tool : Axel Kohlmeyer (U Penn)
-compute group/group : Naveen Michaud-Agrawal (Johns Hopkins U)
-USER-CG-CMM package for coarse-graining : Axel Kohlmeyer (U Penn)
-cosine/delta angle potential : Axel Kohlmeyer (U Penn)
-VIM editor add-ons for LAMMPS input scripts : Gerolf Ziegenhain
-pair lubricate : Randy Schunk (Sandia)
-compute ackland/atom : Gerolf Zeigenhain
-kspace_style ewald/n, pair_style lj/coul, pair_style buck/coul : \
-  Pieter in 't Veld (Sandia)
-AIREBO bond-order potential : Ase Henry (MIT)
-making LAMMPS a true "object" that can be instantiated multiple times, \
-  e.g. as a library : Ben FrantzDale (RPI)
-pymol_asphere viz tool : Mike Brown (Sandia)
-NEMD SLLOD integration : Pieter in 't Veld (Sandia)
-tensile and shear deformations : Pieter in 't Veld (Sandia)
-GayBerne potential : Mike Brown (Sandia)
-ellipsoidal particles : Mike Brown (Sandia)
-colloid potentials : Pieter in 't Veld (Sandia)
-fix heat : Paul Crozier and Ed Webb (Sandia)
-neighbor multi and communicate multi : Pieter in 't Veld (Sandia)
-MATLAB post-processing scripts : Arun Subramaniyan (Purdue)
-triclinic (non-orthogonal) simulation domains : Pieter in 't Veld (Sandia)
-thermo_extract tool: Vikas Varshney (Wright Patterson AFB)
-fix ave/time and fix ave/spatial : Pieter in 't Veld (Sandia)
-MEAM potential : Greg Wagner (Sandia)
-optimized pair potentials for lj/cut, charmm/long, eam, morse : \
-  James Fischer (High Performance Technologies), \
-  David Richie and Vincent Natoli (Stone Ridge Technologies)
-fix wall/lj126 : Mark Stevens (Sandia)
-Stillinger-Weber and Tersoff potentials : Aidan Thompson and Xiaowang Zhou (Sandia)
-region prism : Pieter in 't Veld (Sandia)
-LJ tail corrections for energy/pressure : Paul Crozier (Sandia)
-fix momentum and recenter : Naveen Michaud-Agrawal (Johns Hopkins U)
-multi-letter variable names : Naveen Michaud-Agrawal (Johns Hopkins U)
-OPLS dihedral potential: Mark Stevens (Sandia)
-POEMS coupled rigid body integrator: Rudranarayan Mukherjee (RPI)
-faster pair hybrid potential: James Fischer \
-  (High Performance Technologies, Inc), Vincent Natoli and \
-  David Richie (Stone Ridge Technology)
-breakable bond quartic potential: Chris Lorenz and Mark Stevens (Sandia)
-DCD and XTC dump styles: Naveen Michaud-Agrawal (Johns Hopkins U)
-grain boundary orientation fix : Koenraad Janssens and David Olmsted (Sandia)
-lj/smooth pair potential : Craig Maloney (UCSB) 
-radius-of-gyration spring fix : Naveen Michaud-Agrawal (Johns Hopkins U) and \
-  Paul Crozier (Sandia)
-self spring fix : Naveen Michaud-Agrawal (Johns Hopkins U)
-EAM CoAl and AlCu potentials : Kwang-Reoul Lee (KIST, Korea)
-cosine/squared angle potential : Naveen Michaud-Agrawal (Johns Hopkins U)
-helix dihedral potential : Naveen Michaud-Agrawal (Johns Hopkins U) and \
-  Mark Stevens (Sandia)
-Finnis/Sinclair EAM: Tim Lau (MIT)
-dissipative particle dynamics (DPD) potentials: Kurt Smith (U Pitt) and \
-  Frank van Swol (Sandia)
-TIP4P potential (4-site water): Ahmed Ismail and Amalie Frischknecht (Sandia)
-uniaxial strain fix: Carsten Svaneborg (Max Planck Institute)
-thermodynamics enhanced by fix quantities: Aidan Thompson (Sandia)
-compressed dump files: Erik Luijten (U Illinois)
-cylindrical indenter fix: Ravi Agrawal (Northwestern U)
-electric field fix: Christina Payne (Vanderbilt U)
-AMBER <-> LAMMPS tool: Keir Novik (Univ College London) and \
-  Vikas Varshney (U Akron)
-CHARMM <-> LAMMPS tool: Pieter in 't Veld and Paul Crozier (Sandia)
-Morse bond potential: Jeff Greathouse (Sandia)
-radial distribution functions: Paul Crozier & Jeff Greathouse (Sandia)
-force tables for long-range Coulombics: Paul Crozier (Sandia)
-targeted molecular dynamics (TMD): Paul Crozier (Sandia) and \
-  Christian Burisch (Bochum University, Germany)
-FFT support for SGI SCSL (Altix): Jim Shepherd (Ga Tech)
-lmp2cfg and lmp2traj tools: Ara Kooser, Jeff Greathouse, \
-  Andrey Kalinichev (Sandia)
-parallel tempering: Mark Sears (Sandia)
-embedded atom method (EAM) potential: Stephen Foiles (Sandia)
-multi-harmonic dihedral potential: Mathias Puetz (Sandia)
-granular force fields and BC: Leo Silbert & Gary Grest (Sandia)
-2d Ewald/PPPM: Paul Crozier (Sandia)
-CHARMM force fields: Paul Crozier (Sandia)
-msi2lmp tool: Steve Lustig (Dupont), Mike Peachey & John Carpenter (Cray)
-HTFN energy minimizer: Todd Plantenga (Sandia)
-class 2 force fields: Eric Simon (Cray)
-NVT/NPT integrators: Mark Stevens (Sandia)
-rRESPA: Mark Stevens & Paul Crozier (Sandia)
-Ewald and PPPM solvers: Roy Pollock (LLNL) : :tb(s=:)
+As discussed in "this section"_Section_history.html, LAMMPS originated
+as a cooperative project between DOE labs and industrial
+partners. Folks involved in the design and testing of the original
+version of LAMMPS were the following:
 
-Other CRADA partners involved in the design and testing of LAMMPS were
-    
 John Carpenter (Mayo Clinic, formerly at Cray Research)
 Terry Stouch (Lexicon Pharmaceuticals, formerly at Bristol Myers Squibb)
 Steve Lustig (Dupont)

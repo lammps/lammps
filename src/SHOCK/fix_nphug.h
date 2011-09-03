@@ -31,7 +31,8 @@ class FixNPHug : public FixNH {
   void init();
   void setup(int);
   int modify_param(int, char **);
-  void write_restart(FILE *);
+  int pack_restart_data(double *); // pack restart data
+  int size_restart();              // return size
   void restart(char *);
  
  private:

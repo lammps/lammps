@@ -28,7 +28,7 @@ class PairLJCharmmCoulLong : public Pair {
  public:
   PairLJCharmmCoulLong(class LAMMPS *);
   ~PairLJCharmmCoulLong();
-  void compute(int, int);
+  virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
   void init_style();

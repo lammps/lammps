@@ -276,6 +276,54 @@ void ThrOMP::ev_tally_thr(Pair *pair, int i, int j, int nlocal,
 }
 
 /* ----------------------------------------------------------------------
+   tally ecoul and virial into each of n atoms in list
+   called by TIP4P potential, newton_pair is always on
+   changes v values by dividing by n
+ ------------------------------------------------------------------------- */
+
+void ThrOMP::ev_tally_list_thr(Pair *pair, int n, int *list, double ecoul, double *v, int tid)
+{
+  int i,j;
+
+  if (pair->eflag_either) {
+    if (pair->eflag_global) eng_coul_thr[tid] += ecoul;
+    if (pair->eflag_atom) {
+      double epairatom = ecoul/n;
+      for (i = 0; i < n; i++) eatom_thr[tid][list[i]] += epairatom;
+    }
+  }
+
+  if (pair->vflag_either) {
+    if (pair->vflag_global) {
+      virial_thr[tid][0] += v[0];
+      virial_thr[tid][1] += v[1];
+      virial_thr[tid][2] += v[2];
+      virial_thr[tid][3] += v[3];
+      virial_thr[tid][4] += v[4];
+      virial_thr[tid][5] += v[5];
+    }
+
+    if (pair->vflag_atom) {
+      v[0] /= n;
+      v[1] /= n;
+      v[2] /= n;
+      v[3] /= n;
+      v[4] /= n;
+      v[5] /= n;
+      for (i = 0; i < n; i++) {
+	j = list[i];
+	vatom_thr[tid][j][0] += v[0];
+	vatom_thr[tid][j][1] += v[1];
+	vatom_thr[tid][j][2] += v[2];
+	vatom_thr[tid][j][3] += v[3];
+	vatom_thr[tid][j][4] += v[4];
+	vatom_thr[tid][j][5] += v[5];
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
    reduce the per thread accumulated E/V data into the canonical accumulators.
 ------------------------------------------------------------------------- */
 void ThrOMP::ev_reduce_thr(Pair *pair)

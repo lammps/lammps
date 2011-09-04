@@ -27,7 +27,8 @@ namespace LAMMPS_NS {
 class PairLJCubic : public Pair {
  public:
   PairLJCubic(class LAMMPS *);
-  ~PairLJCubic();
+  virtual ~PairLJCubic();
+
   virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);

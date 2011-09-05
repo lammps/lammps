@@ -66,6 +66,8 @@ class ThrOMP {
   // threading adapted versions of the ev_tally infrastructure
   void ev_tally_thr(Pair *, int, int, int, int, double, double,
 		    double, double, double, double, int);
+  void ev_tally3_thr(Pair *, int, int, int, double, double,
+		     double *, double *, double *, double *, int);
   void ev_tally_list_thr(Pair *, int, int *, double , double *, int);
 
  protected:

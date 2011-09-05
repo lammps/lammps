@@ -14,6 +14,7 @@
 #include "stdlib.h"
 #include "atom_vec_meso.h"
 #include "atom.h"
+#include "comm.h"
 #include "domain.h"
 #include "modify.h"
 #include "fix.h"
@@ -68,12 +69,12 @@ void AtomVecMeso::grow(int n) {
 	image = memory->grow(atom->image, nmax, "atom:image");
 	x = memory->grow(atom->x, nmax, 3, "atom:x");
 	v = memory->grow(atom->v, nmax, 3, "atom:v");
-	f = memory->grow(atom->f, nmax, 3, "atom:f");
+	f = memory->grow(atom->f, nmax*comm->nthreads, 3, "atom:f");
 
 	rho = memory->grow(atom->rho, nmax, "atom:rho");
-	drho = memory->grow(atom->drho, nmax, "atom:drho");
+	drho = memory->grow(atom->drho, nmax*comm->nthreads, "atom:drho");
 	e = memory->grow(atom->e, nmax, "atom:e");
-	de = memory->grow(atom->de, nmax, "atom:de");
+	de = memory->grow(atom->de, nmax*comm->nthreads, "atom:de");
 	vest = memory->grow(atom->vest, nmax, 3, "atom:vest");
 	cv = memory->grow(atom->cv, nmax, "atom:cv");
 
@@ -846,19 +847,19 @@ bigint AtomVecMeso::memory_usage() {
 	if (atom->memcheck("image"))
 		bytes += memory->usage(image, nmax);
 	if (atom->memcheck("x"))
-		bytes += memory->usage(x, nmax);
+		bytes += memory->usage(x, nmax, 3);
 	if (atom->memcheck("v"))
-		bytes += memory->usage(v, nmax);
+		bytes += memory->usage(v, nmax, 3);
 	if (atom->memcheck("f"))
-		bytes += memory->usage(f, nmax);
+		bytes += memory->usage(f, nmax*comm->nthreads, 3);
 	if (atom->memcheck("rho"))
 		bytes += memory->usage(rho, nmax);
 	if (atom->memcheck("drho"))
-		bytes += memory->usage(drho, nmax);
+		bytes += memory->usage(drho, nmax*comm->nthreads);
 	if (atom->memcheck("e"))
 		bytes += memory->usage(e, nmax);
 	if (atom->memcheck("de"))
-		bytes += memory->usage(de, nmax);
+		bytes += memory->usage(de, nmax*comm->nthreads);
 	if (atom->memcheck("cv"))
 		bytes += memory->usage(cv, nmax);
 	if (atom->memcheck("vest"))

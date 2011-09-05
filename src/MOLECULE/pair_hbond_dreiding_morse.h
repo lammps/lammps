@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class PairHbondDreidingMorse : public PairHbondDreidingLJ {
  public:
   PairHbondDreidingMorse(class LAMMPS *);
-  ~PairHbondDreidingMorse() {}
+  virtual ~PairHbondDreidingMorse() {};
   virtual void compute(int, int);
   void coeff(int, char **);
   void init_style();

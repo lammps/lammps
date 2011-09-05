@@ -15,10 +15,12 @@
 #include "math.h"
 #include "pair_lj_cut_coul_long_tip4p_omp.h"
 #include "atom.h"
+#include "domain.h"
 #include "comm.h"
 #include "force.h"
-#include "domain.h"
 #include "neighbor.h"
+#include "error.h"
+#include "memory.h"
 #include "neigh_list.h"
 
 using namespace LAMMPS_NS;
@@ -37,6 +39,20 @@ PairLJCutCoulLongTIP4POMP::PairLJCutCoulLongTIP4POMP(LAMMPS *lmp) :
   PairLJCutCoulLongTIP4P(lmp), ThrOMP(lmp, PAIR)
 {
   respa_enable = 0;
+
+  // for caching m-shift corrected positions
+  maxmpos = 0;
+  h1idx = h2idx = NULL;
+  mpos = NULL;
+}
+
+/* ---------------------------------------------------------------------- */
+
+PairLJCutCoulLongTIP4POMP::~PairLJCutCoulLongTIP4POMP()
+{
+  memory->destroy(h1idx);
+  memory->destroy(h2idx);
+  memory->destroy(mpos);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -48,7 +64,39 @@ void PairLJCutCoulLongTIP4POMP::compute(int eflag, int vflag)
     ev_setup_thr(this);
   } else evflag = vflag_fdotr = 0;
 
-  const int nall = atom->nlocal + atom->nghost;
+  const int nlocal = atom->nlocal;
+  const int nall = nlocal + atom->nghost;
+
+  // reallocate per-atom arrays, if necessary
+  if (nall > maxmpos) {
+    maxmpos = nall;
+    memory->grow(mpos,maxmpos,3,"pair:mpos");
+    memory->grow(h1idx,maxmpos,"pair:h1idx");
+    memory->grow(h2idx,maxmpos,"pair:h2idx");
+  }
+
+  // cache corrected M positions in mpos[]
+  double **x = atom->x;
+  int *type = atom->type;
+  for (int i = 0; i < nlocal; i++) {
+    if (type[i] == typeO) {
+      find_M(i,h1idx[i],h2idx[i],mpos[i]);
+    } else {
+      mpos[i][0] = x[i][0];
+      mpos[i][1] = x[i][1];
+      mpos[i][2] = x[i][2];
+    }
+  }
+  for (int i = nlocal; i < nall; i++) {
+    if (type[i] == typeO) {
+      find_M_permissive(i,h1idx[i],h2idx[i],mpos[i]);
+    } else {
+      mpos[i][0] = x[i][0];
+      mpos[i][1] = x[i][1];
+      mpos[i][2] = x[i][2];
+    }
+  }
+
   const int nthreads = comm->nthreads;
   const int inum = list->inum;
 
@@ -90,13 +138,14 @@ void PairLJCutCoulLongTIP4POMP::eval(double **f, int iifrom, int iito, int tid)
   int i,j,ii,jj,jnum,itype,jtype,itable;
   int n,vlist[6];
   int iH1,iH2,jH1,jH2;
-  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
+  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul;
   double fraction,table;
   double delxOM,delyOM,delzOM;
   double r,rsq,r2inv,r6inv,forcecoul,forcelj,cforce;
   double factor_coul,factor_lj;
   double grij,expm2,prefactor,t,erfc,ddotf;
-  double xiM[3],xjM[3],fO[3],fH[3],fd[3],f1[3],v[6],xH1[3],xH2[3];
+  double v[6],xH1[3],xH2[3];
+  double fdx,fdy,fdz,f1x,f1y,f1z,fOx,fOy,fOz,fHx,fHy,fHz;
   double *x1,*x2;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
@@ -125,13 +174,13 @@ void PairLJCutCoulLongTIP4POMP::eval(double **f, int iifrom, int iito, int tid)
     ytmp = x[i][1];
     ztmp = x[i][2];
     itype = type[i];
-    if (itype == typeO) {
-      find_M(i,iH1,iH2,xiM);
-      x1 = xiM;
-    } else x1 = x[i];
+
     jlist = firstneigh[i];
     jnum = numneigh[i];
     fxtmp=fytmp=fztmp=0.0;
+    x1 = mpos[i];
+    iH1 = h1idx[i];
+    iH2 = h2idx[i];
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -153,9 +202,9 @@ void PairLJCutCoulLongTIP4POMP::eval(double **f, int iifrom, int iito, int tid)
 	  forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
 	  forcelj *= factor_lj * r2inv;
 
-	  f[i][0] += delx*forcelj;
-	  f[i][1] += dely*forcelj;
-	  f[i][2] += delz*forcelj;
+	  fxtmp += delx*forcelj;
+	  fytmp += dely*forcelj;
+	  fztmp += delz*forcelj;
 	  f[j][0] -= delx*forcelj;
 	  f[j][1] -= dely*forcelj;
 	  f[j][2] -= delz*forcelj;
@@ -173,10 +222,11 @@ void PairLJCutCoulLongTIP4POMP::eval(double **f, int iifrom, int iito, int tid)
 	// adjust rsq and delxyz for off-site O charge(s)
 
 	if (itype == typeO || jtype == typeO) { 
-	  if (jtype == typeO) {
-	    find_M(j,jH1,jH2,xjM);
-	    x2 = xjM;
-	  } else x2 = x[j];
+	  x2 = mpos[j];
+	  jH1 = h1idx[j];
+	  jH2 = h2idx[j];
+	  if (jtype == typeO  && ( jH1 < 0 || jH2 < 0 ))
+	    error->one("TIP4P hydrogen is missing");
 	  delx = x1[0] - x2[0];
 	  dely = x1[1] - x2[1];
 	  delz = x1[2] - x2[2];
@@ -226,9 +276,9 @@ void PairLJCutCoulLongTIP4POMP::eval(double **f, int iifrom, int iito, int tid)
 	  n = 0;
 
 	  if (itype != typeO) {
-	    f[i][0] += delx * cforce;
-	    f[i][1] += dely * cforce;
-	    f[i][2] += delz * cforce;
+	    fxtmp += delx * cforce;
+	    fytmp += dely * cforce;
+	    fztmp += delz * cforce;
 
 	    if (VFLAG) {
 	      v[0] = x[i][0] * delx * cforce;
@@ -242,50 +292,51 @@ void PairLJCutCoulLongTIP4POMP::eval(double **f, int iifrom, int iito, int tid)
 
 	  } else {
 
-            fd[0] = delx*cforce;
-            fd[1] = dely*cforce;
-            fd[2] = delz*cforce;
+            fdx = delx*cforce;
+            fdy = dely*cforce;
+            fdz = delz*cforce;
 
             delxOM = x[i][0] - x1[0];
             delyOM = x[i][1] - x1[1];
             delzOM = x[i][2] - x1[2];
 
-            ddotf = (delxOM * fd[0] + delyOM * fd[1] + delzOM * fd[2]) /
-            (qdist*qdist);
+            ddotf = (delxOM * fdx + delyOM * fdy + delzOM * fdz) /
+	      (qdist*qdist);
 
-            f1[0] = ddotf * delxOM;
-            f1[1] = ddotf * delyOM;
-            f1[2] = ddotf * delzOM;
+	    f1x = alpha * (fdx - ddotf * delxOM);
+	    f1y = alpha * (fdy - ddotf * delyOM);
+	    f1z = alpha * (fdz - ddotf * delzOM);
 
-            fO[0] = fd[0] - alpha * (fd[0] - f1[0]);
-            fO[1] = fd[1] - alpha * (fd[1] - f1[1]);
-            fO[2] = fd[2] - alpha * (fd[2] - f1[2]);
+            fOx = fdx - f1x;
+            fOy = fdy - f1y;
+            fOz = fdz - f1z;
 
-            fH[0] = 0.5 * alpha * (fd[0] - f1[0]);
-            fH[1] = 0.5 * alpha * (fd[1] - f1[1]);
-            fH[2] = 0.5 * alpha * (fd[2] - f1[2]);
+            fHx = 0.5 * f1x;
+            fHy = 0.5 * f1y;
+            fHz = 0.5 * f1z;
 
-            f[i][0] += fO[0];
-            f[i][1] += fO[1];
-            f[i][2] += fO[2];
-            f[iH1][0] += fH[0];
-            f[iH1][1] += fH[1];
-            f[iH1][2] += fH[2];
+            fxtmp += fOx;
+            fytmp += fOy;
+            fztmp += fOz;
 
-            f[iH2][0] += fH[0];
-            f[iH2][1] += fH[1];
-            f[iH2][2] += fH[2];
+            f[iH1][0] += fHx;
+            f[iH1][1] += fHy;
+            f[iH1][2] += fHz;
+
+            f[iH2][0] += fHx;
+            f[iH2][1] += fHy;
+            f[iH2][2] += fHz;
 
 	    if (VFLAG) {
 	      domain->closest_image(x[i],x[iH1],xH1);
 	      domain->closest_image(x[i],x[iH2],xH2);
 
-	      v[0] = x[i][0]*fO[0] + xH1[0]*fH[0] + xH2[0]*fH[0];
-	      v[1] = x[i][1]*fO[1] + xH1[1]*fH[1] + xH2[1]*fH[1];
-	      v[2] = x[i][2]*fO[2] + xH1[2]*fH[2] + xH2[2]*fH[2];
-	      v[3] = x[i][0]*fO[1] + xH1[0]*fH[1] + xH2[0]*fH[1];
-	      v[4] = x[i][0]*fO[2] + xH1[0]*fH[2] + xH2[0]*fH[2];
-	      v[5] = x[i][1]*fO[2] + xH1[1]*fH[2] + xH2[1]*fH[2];
+	      v[0] = x[i][0]*fOx + xH1[0]*fHx + xH2[0]*fHx;
+	      v[1] = x[i][1]*fOy + xH1[1]*fHy + xH2[1]*fHy;
+	      v[2] = x[i][2]*fOz + xH1[2]*fHz + xH2[2]*fHz;
+	      v[3] = x[i][0]*fOy + xH1[0]*fHy + xH2[0]*fHy;
+	      v[4] = x[i][0]*fOz + xH1[0]*fHz + xH2[0]*fHz;
+	      v[5] = x[i][1]*fOz + xH1[1]*fHz + xH2[1]*fHz;
 
 	      vlist[n++] = i;
 	      vlist[n++] = iH1;
@@ -310,51 +361,51 @@ void PairLJCutCoulLongTIP4POMP::eval(double **f, int iifrom, int iito, int tid)
 
 	  } else {
 
-	    fd[0] = -delx*cforce;
-	    fd[1] = -dely*cforce;
-	    fd[2] = -delz*cforce;
+	    fdx = -delx*cforce;
+	    fdy = -dely*cforce;
+	    fdz = -delz*cforce;
 
 	    delxOM = x[j][0] - x2[0];
 	    delyOM = x[j][1] - x2[1];
 	    delzOM = x[j][2] - x2[2];
 
-	    ddotf = (delxOM * fd[0] + delyOM * fd[1] + delzOM * fd[2]) /
+            ddotf = (delxOM * fdx + delyOM * fdy + delzOM * fdz) /
 	      (qdist*qdist);
 
-	    f1[0] = ddotf * delxOM;
-	    f1[1] = ddotf * delyOM;
-	    f1[2] = ddotf * delzOM;
+	    f1x = alpha * (fdx - ddotf * delxOM);
+	    f1y = alpha * (fdy - ddotf * delyOM);
+	    f1z = alpha * (fdz - ddotf * delzOM);
 
-	    fO[0] = fd[0] - alpha * (fd[0] - f1[0]);
-	    fO[1] = fd[1] - alpha * (fd[1] - f1[1]);
-	    fO[2] = fd[2] - alpha * (fd[2] - f1[2]);
+            fOx = fdx - f1x;
+            fOy = fdy - f1y;
+            fOz = fdz - f1z;
 
-	    fH[0] = 0.5 * alpha * (fd[0] - f1[0]);
-	    fH[1] = 0.5 * alpha * (fd[1] - f1[1]);
-	    fH[2] = 0.5 * alpha * (fd[2] - f1[2]);
+            fHx = 0.5 * f1x;
+            fHy = 0.5 * f1y;
+            fHz = 0.5 * f1z;
 
-	    f[j][0] += fO[0];
-	    f[j][1] += fO[1];
-	    f[j][2] += fO[2];
+	    f[j][0] += fOx;
+	    f[j][1] += fOy;
+	    f[j][2] += fOz;
 
-	    f[jH1][0] += fH[0];
-	    f[jH1][1] += fH[1];
-	    f[jH1][2] += fH[2];
+            f[jH1][0] += fHx;
+            f[jH1][1] += fHy;
+            f[jH1][2] += fHz;
 
-	    f[jH2][0] += fH[0];
-	    f[jH2][1] += fH[1];
-	    f[jH2][2] += fH[2];
+            f[jH2][0] += fHx;
+            f[jH2][1] += fHy;
+            f[jH2][2] += fHz;
 
 	    if (VFLAG) {
 	      domain->closest_image(x[j],x[jH1],xH1);
 	      domain->closest_image(x[j],x[jH2],xH2);
 
-	      v[0] += x[j][0]*fO[0] + xH1[0]*fH[0] + xH2[0]*fH[0];
-	      v[1] += x[j][1]*fO[1] + xH1[1]*fH[1] + xH2[1]*fH[1];
-	      v[2] += x[j][2]*fO[2] + xH1[2]*fH[2] + xH2[2]*fH[2];
-	      v[3] += x[j][0]*fO[1] + xH1[0]*fH[1] + xH2[0]*fH[1];
-	      v[4] += x[j][0]*fO[2] + xH1[0]*fH[2] + xH2[0]*fH[2];
-	      v[5] += x[j][1]*fO[2] + xH1[1]*fH[2] + xH2[1]*fH[2];
+	      v[0] += x[j][0]*fOx + xH1[0]*fHx + xH2[0]*fHx;
+	      v[1] += x[j][1]*fOy + xH1[1]*fHy + xH2[1]*fHy;
+	      v[2] += x[j][2]*fOz + xH1[2]*fHz + xH2[2]*fHz;
+	      v[3] += x[j][0]*fOy + xH1[0]*fHy + xH2[0]*fHy;
+	      v[4] += x[j][0]*fOz + xH1[0]*fHz + xH2[0]*fHz;
+	      v[5] += x[j][1]*fOz + xH1[1]*fHz + xH2[1]*fHz;
 
 	      vlist[n++] = j;
 	      vlist[n++] = jH1;
@@ -376,7 +427,25 @@ void PairLJCutCoulLongTIP4POMP::eval(double **f, int iifrom, int iito, int tid)
 	}
       }
     }
+    f[i][0] += fxtmp;
+    f[i][1] += fytmp;
+    f[i][2] += fztmp;
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairLJCutCoulLongTIP4POMP::find_M_permissive(int i, int &iH1, int &iH2, double *xM)
+{
+  // test that O is correctly bonded to 2 succesive H atoms
+
+   iH1 = atom->map(atom->tag[i] + 1);
+   iH2 = atom->map(atom->tag[i] + 2);
+
+   if (iH1 == -1 || iH2 == -1)
+      return;
+   else
+      find_M(i,iH1,iH2,xM);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -385,6 +454,9 @@ double PairLJCutCoulLongTIP4POMP::memory_usage()
 {
   double bytes = memory_usage_thr();
   bytes += PairLJCutCoulLongTIP4P::memory_usage();
+  bytes += 2 * maxmpos * sizeof(int);
+  bytes += 3 * maxmpos * sizeof(double);
+  bytes += maxmpos * sizeof(double *);
 
   return bytes;
 }

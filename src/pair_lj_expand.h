@@ -27,7 +27,8 @@ namespace LAMMPS_NS {
 class PairLJExpand : public Pair {
  public:
   PairLJExpand(class LAMMPS *);
-  ~PairLJExpand();
+  virtual ~PairLJExpand();
+
   virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);

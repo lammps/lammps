@@ -27,7 +27,8 @@ namespace LAMMPS_NS {
 class PairBorn : public Pair {
  public:
   PairBorn(class LAMMPS *);
-  ~PairBorn();
+  virtual ~PairBorn();
+
   virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);

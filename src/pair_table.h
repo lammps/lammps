@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class PairTable : public Pair {
  public:
   PairTable(class LAMMPS *);
-  ~PairTable();
+  virtual ~PairTable();
 
   virtual void compute(int, int);
   void settings(int, char **);

@@ -34,7 +34,7 @@ class PairDPDTstat : public PairDPD {
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
 
- private:
+ protected:
   double t_start,t_stop;
 };
 

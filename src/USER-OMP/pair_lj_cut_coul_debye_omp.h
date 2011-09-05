@@ -17,37 +17,28 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(lj/cut/coul/long/tip4p/omp,PairLJCutCoulLongTIP4POMP)
+PairStyle(lj/cut/coul/debye/omp,PairLJCutCoulDebyeOMP)
 
 #else
 
-#ifndef LMP_PAIR_LJ_CUT_COUL_LONG_TIP4P_OMP_H
-#define LMP_PAIR_LJ_CUT_COUL_LONG_TIP4P_OMP_H
+#ifndef LMP_PAIR_LJ_CUT_COUL_DEBYE_OMP_H
+#define LMP_PAIR_LJ_CUT_COUL_DEBYE_OMP_H
 
-#include "pair_lj_cut_coul_long_tip4p.h"
+#include "pair_lj_cut_coul_debye.h"
 #include "thr_omp.h"
 
 namespace LAMMPS_NS {
 
-class PairLJCutCoulLongTIP4POMP : public PairLJCutCoulLongTIP4P, public ThrOMP {
+class PairLJCutCoulDebyeOMP : public PairLJCutCoulDebye, public ThrOMP {
 
  public:
-  PairLJCutCoulLongTIP4POMP(class LAMMPS *);
-  virtual ~PairLJCutCoulLongTIP4POMP();
+  PairLJCutCoulDebyeOMP(class LAMMPS *);
 
   virtual void compute(int, int);
   virtual double memory_usage();
 
- protected:
-
-  // this is to cache m-shift corrected positions.
-  int maxmpos;        // size of the following arrays
-  int *h1idx, *h2idx; // local index of hydrogen atoms
-  double **mpos;      // coordinates corrected for m-shift.
-  void find_M_permissive(int, int &, int &, double *);
-
  private:
-  template <int EVFLAG, int EFLAG, int VFLAG>
+  template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
   void eval(double **f, int ifrom, int ito, int tid);
 };
 

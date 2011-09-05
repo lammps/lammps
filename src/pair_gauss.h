@@ -27,8 +27,8 @@ namespace LAMMPS_NS {
 class PairGauss : public Pair {
  public:
   PairGauss(class LAMMPS *);
-  ~PairGauss();
-  void compute(int,int);
+  virtual ~PairGauss();
+  virtual void compute(int,int);
   void settings(int, char **);
   void coeff(int, char **);
   double init_one(int, int);  
@@ -39,7 +39,7 @@ class PairGauss : public Pair {
   double single(int, int, int, int, double, double, double, double &);
   void *extract(char *, int &);
  
- private: 
+ protected: 
   double cut_global;
   double **cut;
   double **a,**b;

@@ -28,7 +28,7 @@ class PairHbondDreidingMorse : public PairHbondDreidingLJ {
  public:
   PairHbondDreidingMorse(class LAMMPS *);
   ~PairHbondDreidingMorse() {}
-  void compute(int, int);
+  virtual void compute(int, int);
   void coeff(int, char **);
   void init_style();
   double single(int, int, int, int, double, double, double, double &);

@@ -22,6 +22,7 @@
 #include "neigh_list.h"
 
 using namespace LAMMPS_NS;
+using namespace ThrConst;
 
 #define SMALL 0.001
 
@@ -204,7 +205,7 @@ void PairHbondDreidingLJOMP::eval(double **f, int iifrom, int iito, int tid)
 	  if (c < -1.0) c = -1.0;
 	  ac = acos(c);
 
-	  if (ac > pm->cut_angle && ac < (2.0*PI - pm->cut_angle)) {
+	  if (ac > pm->cut_angle && ac < (2.0*MY_PI - pm->cut_angle)) {
 	    s = sqrt(1.0 - c*c);
 	    if (s < SMALL) s = SMALL;
 

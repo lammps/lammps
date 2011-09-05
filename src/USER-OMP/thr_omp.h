@@ -26,6 +26,11 @@ namespace LAMMPS_NS {
 class Pair;
 class Dihedral;
 
+namespace ThrConst {
+  static const double THIRD = 1.0/3.0;
+  static const double MY_PI = 3.14159265358979323846;
+}
+
 class ThrOMP {
 
  protected:

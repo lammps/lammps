@@ -32,6 +32,7 @@
 #endif
 
 using namespace LAMMPS_NS;
+using namespace ThrConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -281,8 +282,8 @@ void ThrOMP::ev_tally_thr(Pair *pair, int i, int j, int nlocal,
    virial = riFi + rjFj + rkFk = (rj-ri) Fj + (rk-ri) Fk = drji*fj + drki*fk
  ------------------------------------------------------------------------- */
 
-void ThrOMP::ev_tally3(Pair *pair, int i, int j, int k, double evdwl, double ecoul,
-		       double *fj, double *fk, double *drji, double *drki, int tid)
+void ThrOMP::ev_tally3_thr(Pair *pair, int i, int j, int k, double evdwl, double ecoul,
+			   double *fj, double *fk, double *drji, double *drki, int tid)
 {
   double epairthird,v[6];
 

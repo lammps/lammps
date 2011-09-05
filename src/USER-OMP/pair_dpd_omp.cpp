@@ -117,6 +117,7 @@ void PairDPDOMP::eval(double **f, int iifrom, int iito, int tid)
   double *special_lj = force->special_lj;
   double dtinvsqrt = 1.0/sqrt(update->dt);
   double fxtmp,fytmp,fztmp;
+  RanMars &rng = *random_thr[tid];
 
   ilist = list->ilist;
   numneigh = list->numneigh;
@@ -158,7 +159,7 @@ void PairDPDOMP::eval(double **f, int iifrom, int iito, int tid)
 	delvz = vztmp - v[j][2];
 	dot = delx*delvx + dely*delvy + delz*delvz;
 	wd = 1.0 - r/cut[itype][jtype];
-	randnum = random_thr[tid]->gaussian();
+	randnum = rng.gaussian();
 
 	// conservative force = a0 * wd
 	// drag force = -gamma * wd^2 * (delx dot delv) / r

@@ -17,33 +17,29 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(dpd/tstat/omp,PairDPDTstatOMP)
+PairStyle(dipole/cut/omp,PairDipoleCutOMP)
 
 #else
 
-#ifndef LMP_PAIR_DPD_TSTAT_OMP_H
-#define LMP_PAIR_DPD_TSTAT_OMP_H
+#ifndef LMP_PAIR_DIPOLE_CUT_OMP_H
+#define LMP_PAIR_DIPOLE_CUT_OMP_H
 
-#include "pair_dpd_tstat.h"
+#include "pair_dipole_cut.h"
 #include "thr_omp.h"
 
 namespace LAMMPS_NS {
 
-class PairDPDTstatOMP : public PairDPDTstat, public ThrOMP {
+class PairDipoleCutOMP : public PairDipoleCut, public ThrOMP {
 
  public:
-  PairDPDTstatOMP(class LAMMPS *);
-  virtual ~PairDPDTstatOMP();
+  PairDipoleCutOMP(class LAMMPS *);
 
   virtual void compute(int, int);
   virtual double memory_usage();
 
- protected:
-  class RanMars **random_thr;
-
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-  void eval(double **f, int ifrom, int ito, int tid);
+  void eval(double **f, double **torque, int ifrom, int ito, int tid);
 };
 
 }

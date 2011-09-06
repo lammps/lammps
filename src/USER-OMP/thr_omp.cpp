@@ -32,6 +32,7 @@
 #endif
 
 using namespace LAMMPS_NS;
+using namespace ThrConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -276,6 +277,151 @@ void ThrOMP::ev_tally_thr(Pair *pair, int i, int j, int nlocal,
 }
 
 /* ----------------------------------------------------------------------
+   tally eng_vdwl and virial into global and per-atom accumulators
+   for virial, have delx,dely,delz and fx,fy,fz
+------------------------------------------------------------------------- */
+
+void ThrOMP::ev_tally_xyz_thr(Pair *pair, int i, int j, int nlocal,
+			      int newton_pair, double evdwl, double ecoul,
+			      double fx, double fy, double fz,
+			      double delx, double dely, double delz, int tid)
+{
+  double evdwlhalf,ecoulhalf,epairhalf,v[6];
+
+  if (pair->eflag_either) {
+    if (pair->eflag_global) {
+      if (newton_pair) {
+	eng_vdwl_thr[tid] += evdwl;
+	eng_coul_thr[tid] += ecoul;
+      } else {
+	evdwlhalf = 0.5*evdwl;
+	ecoulhalf = 0.5*ecoul;
+	if (i < nlocal) {
+	  eng_vdwl_thr[tid] += evdwlhalf;
+	  eng_coul_thr[tid] += ecoulhalf;
+	}
+	if (j < nlocal) {
+	  eng_vdwl_thr[tid] += evdwlhalf;
+	  eng_coul_thr[tid] += ecoulhalf;
+	}
+      }
+    }
+    if (pair->eflag_atom) {
+      epairhalf = 0.5 * (evdwl + ecoul);
+      if (newton_pair || i < nlocal) eatom_thr[tid][i] += epairhalf;
+      if (newton_pair || j < nlocal) eatom_thr[tid][j] += epairhalf;
+    }
+  }
+
+  if (pair->vflag_either) {
+    v[0] = delx*fx;
+    v[1] = dely*fy;
+    v[2] = delz*fz;
+    v[3] = delx*fy;
+    v[4] = delx*fz;
+    v[5] = dely*fz;
+
+    if (pair->vflag_global) {
+      if (newton_pair) {
+	virial_thr[tid][0] += v[0];
+	virial_thr[tid][1] += v[1];
+	virial_thr[tid][2] += v[2];
+	virial_thr[tid][3] += v[3];
+	virial_thr[tid][4] += v[4];
+	virial_thr[tid][5] += v[5];
+      } else {
+	if (i < nlocal) {
+	  virial_thr[tid][0] += 0.5*v[0];
+	  virial_thr[tid][1] += 0.5*v[1];
+	  virial_thr[tid][2] += 0.5*v[2];
+	  virial_thr[tid][3] += 0.5*v[3];
+	  virial_thr[tid][4] += 0.5*v[4];
+	  virial_thr[tid][5] += 0.5*v[5];
+	}
+	if (j < nlocal) {
+	  virial_thr[tid][0] += 0.5*v[0];
+	  virial_thr[tid][1] += 0.5*v[1];
+	  virial_thr[tid][2] += 0.5*v[2];
+	  virial_thr[tid][3] += 0.5*v[3];
+	  virial_thr[tid][4] += 0.5*v[4];
+	  virial_thr[tid][5] += 0.5*v[5];
+	}
+      }
+    }
+
+    if (pair->vflag_atom) {
+      if (newton_pair || i < nlocal) {
+	vatom_thr[tid][i][0] += 0.5*v[0];
+	vatom_thr[tid][i][1] += 0.5*v[1];
+	vatom_thr[tid][i][2] += 0.5*v[2];
+	vatom_thr[tid][i][3] += 0.5*v[3];
+	vatom_thr[tid][i][4] += 0.5*v[4];
+	vatom_thr[tid][i][5] += 0.5*v[5];
+      }
+      if (newton_pair || j < nlocal) {
+	vatom_thr[tid][j][0] += 0.5*v[0];
+	vatom_thr[tid][j][1] += 0.5*v[1];
+	vatom_thr[tid][j][2] += 0.5*v[2];
+	vatom_thr[tid][j][3] += 0.5*v[3];
+	vatom_thr[tid][j][4] += 0.5*v[4];
+	vatom_thr[tid][j][5] += 0.5*v[5];
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   tally eng_vdwl and virial into global and per-atom accumulators
+   called by SW and hbond potentials, newton_pair is always on
+   virial = riFi + rjFj + rkFk = (rj-ri) Fj + (rk-ri) Fk = drji*fj + drki*fk
+ ------------------------------------------------------------------------- */
+
+void ThrOMP::ev_tally3_thr(Pair *pair, int i, int j, int k, double evdwl, double ecoul,
+			   double *fj, double *fk, double *drji, double *drki, int tid)
+{
+  double epairthird,v[6];
+
+  if (pair->eflag_either) {
+    if (pair->eflag_global) {
+      eng_vdwl_thr[tid] += evdwl;
+      eng_coul_thr[tid] += ecoul;
+    }
+    if (pair->eflag_atom) {
+      epairthird = THIRD * (evdwl + ecoul);
+      eatom_thr[tid][i] += epairthird;
+      eatom_thr[tid][j] += epairthird;
+      eatom_thr[tid][k] += epairthird;
+    }
+  }
+
+  if (pair->vflag_either) {
+    v[0] = drji[0]*fj[0] + drki[0]*fk[0];
+    v[1] = drji[1]*fj[1] + drki[1]*fk[1];
+    v[2] = drji[2]*fj[2] + drki[2]*fk[2];
+    v[3] = drji[0]*fj[1] + drki[0]*fk[1];
+    v[4] = drji[0]*fj[2] + drki[0]*fk[2];
+    v[5] = drji[1]*fj[2] + drki[1]*fk[2];
+      
+    if (pair->vflag_global) {
+      virial_thr[tid][0] += v[0];
+      virial_thr[tid][1] += v[1];
+      virial_thr[tid][2] += v[2];
+      virial_thr[tid][3] += v[3];
+      virial_thr[tid][4] += v[4];
+      virial_thr[tid][5] += v[5];
+    }
+
+    if (pair->vflag_atom) {
+      for (int n=0; n < 6; ++n) {
+	vatom_thr[tid][i][n] += THIRD*v[n];
+	vatom_thr[tid][j][n] += THIRD*v[n];
+	vatom_thr[tid][k][n] += THIRD*v[n];
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
    tally ecoul and virial into each of n atoms in list
    called by TIP4P potential, newton_pair is always on
    changes v values by dividing by n
@@ -407,15 +553,15 @@ void ThrOMP::force_reduce_thr(double *fall, int nall,
   if (nthreads == 1) return;
 #pragma omp barrier
   {
-    const int idelta = 1 + nall/nthreads;
-    const int ifrom = 3*tid*idelta;
-    const int ito   = 3*(((ifrom + idelta) > nall) ? nall : (ifrom + idelta));
+    const int nvals = 3*nall;
+    const int idelta = nvals/nthreads + 1;
+    const int ifrom = tid*idelta;
+    const int ito   = ((ifrom + idelta) > nvals) ? nvals : (ifrom + idelta);
 
     for (int m = ifrom; m < ito; ++m) {
-      const int toffs = 3*nall;
       for (int n = 1; n < nthreads; ++n) {
-	fall[m] += fall[n*toffs + m];
-	fall[n*toffs + m] = 0.0;
+	fall[m] += fall[n*nvals + m];
+	fall[n*nvals + m] = 0.0;
       }
     }
   }

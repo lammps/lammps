@@ -17,29 +17,25 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(dpd/tstat/omp,PairDPDTstatOMP)
+PairStyle(lj/class2/coul/cut/omp,PairLJClass2CoulCutOMP)
 
 #else
 
-#ifndef LMP_PAIR_DPD_TSTAT_OMP_H
-#define LMP_PAIR_DPD_TSTAT_OMP_H
+#ifndef LMP_PAIR_LJ_CLASS2_COUL_CUT_OMP_H
+#define LMP_PAIR_LJ_CLASS2_COUL_CUT_OMP_H
 
-#include "pair_dpd_tstat.h"
+#include "pair_lj_class2_coul_cut.h"
 #include "thr_omp.h"
 
 namespace LAMMPS_NS {
 
-class PairDPDTstatOMP : public PairDPDTstat, public ThrOMP {
+class PairLJClass2CoulCutOMP : public PairLJClass2CoulCut, public ThrOMP {
 
  public:
-  PairDPDTstatOMP(class LAMMPS *);
-  virtual ~PairDPDTstatOMP();
+  PairLJClass2CoulCutOMP(class LAMMPS *);
 
   virtual void compute(int, int);
   virtual double memory_usage();
-
- protected:
-  class RanMars **random_thr;
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_PAIR>

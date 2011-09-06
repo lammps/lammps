@@ -26,6 +26,11 @@ namespace LAMMPS_NS {
 class Pair;
 class Dihedral;
 
+namespace ThrConst {
+  static const double THIRD = 1.0/3.0;
+  static const double MY_PI = 3.14159265358979323846;
+}
+
 class ThrOMP {
 
  protected:
@@ -66,6 +71,10 @@ class ThrOMP {
   // threading adapted versions of the ev_tally infrastructure
   void ev_tally_thr(Pair *, int, int, int, int, double, double,
 		    double, double, double, double, int);
+  void ev_tally_xyz_thr(Pair *, int, int, int, int, double, double,
+			double, double, double, double, double, double, int);
+  void ev_tally3_thr(Pair *, int, int, int, double, double,
+		     double *, double *, double *, double *, int);
   void ev_tally_list_thr(Pair *, int, int *, double , double *, int);
 
  protected:

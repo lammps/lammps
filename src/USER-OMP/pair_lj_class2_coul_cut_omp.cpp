@@ -13,44 +13,26 @@
 ------------------------------------------------------------------------- */
 
 #include "math.h"
-#include "pair_dpd_tstat_omp.h"
+#include "pair_lj_class2_coul_cut_omp.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "update.h"
-#include "random_mars.h"
 
 using namespace LAMMPS_NS;
 
-#define EPSILON 1.0e-10
-
 /* ---------------------------------------------------------------------- */
 
-PairDPDTstatOMP::PairDPDTstatOMP(LAMMPS *lmp) :
-  PairDPDTstat(lmp), ThrOMP(lmp, PAIR)
+PairLJClass2CoulCutOMP::PairLJClass2CoulCutOMP(LAMMPS *lmp) :
+  PairLJClass2CoulCut(lmp), ThrOMP(lmp, PAIR)
 {
   respa_enable = 0;
-  random_thr = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
 
-PairDPDTstatOMP::~PairDPDTstatOMP() 
-{
-  if (random_thr) {
-    for (int i=1; i < comm->nthreads; ++i)
-      delete random_thr[i];
-
-    delete[] random_thr;
-    random_thr = NULL;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void PairDPDTstatOMP::compute(int eflag, int vflag)
+void PairLJClass2CoulCutOMP::compute(int eflag, int vflag)
 {
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
@@ -61,11 +43,6 @@ void PairDPDTstatOMP::compute(int eflag, int vflag)
   const int nthreads = comm->nthreads;
   const int inum = list->inum;
 
-  if (!random_thr)
-    random_thr = new RanMars*[nthreads];
-  
-  random_thr[0] = random;
-
 #if defined(_OPENMP)
 #pragma omp parallel default(shared)
 #endif
@@ -74,10 +51,6 @@ void PairDPDTstatOMP::compute(int eflag, int vflag)
     double **f;
 
     f = loop_setup_thr(atom->f, ifrom, ito, tid, inum, nall, nthreads);
-
-    if (random_thr && tid > 0)
-      random_thr[tid] = new RanMars(Pair::lmp, seed + comm->me 
-				    + comm->nprocs*tid);
 
     if (evflag) {
       if (eflag) {
@@ -101,37 +74,27 @@ void PairDPDTstatOMP::compute(int eflag, int vflag)
   if (vflag_fdotr) virial_fdotr_compute();
 }
 
+/* ---------------------------------------------------------------------- */
+
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-void PairDPDTstatOMP::eval(double **f, int iifrom, int iito, int tid)
+void PairLJClass2CoulCutOMP::eval(double **f, int iifrom, int iito, int tid)
 {
   int i,j,ii,jj,jnum,itype,jtype;
-  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double vxtmp,vytmp,vztmp,delvx,delvy,delvz;
-  double rsq,r,rinv,dot,wd,randnum,factor_dpd;
+  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
+  double rsq,rinv,r2inv,r3inv,r6inv,forcecoul,forcelj;
+  double factor_coul,factor_lj;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
-  evdwl = 0.0;
+  evdwl = ecoul = 0.0;
 
   double **x = atom->x;
-  double **v = atom->v;
+  double *q = atom->q;
   int *type = atom->type;
   int nlocal = atom->nlocal;
+  double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
-  double dtinvsqrt = 1.0/sqrt(update->dt);
+  double qqrd2e = force->qqrd2e;
   double fxtmp,fytmp,fztmp;
-  RanMars &rng = *random_thr[tid];
-
-  // adjust sigma if target T is changing
-
-  if (t_start != t_stop) {
-    double delta = update->ntimestep - update->beginstep;
-    delta /= update->endstep - update->beginstep;
-    temperature = t_start + delta * (t_stop-t_start);
-    double boltz = force->boltz;
-    for (i = 1; i <= atom->ntypes; i++)
-      for (j = i; j <= atom->ntypes; j++)
-	sigma[i][j] = sigma[j][i] = sqrt(2.0*boltz*temperature*gamma[i][j]);
-  }
 
   ilist = list->ilist;
   numneigh = list->numneigh;
@@ -142,12 +105,10 @@ void PairDPDTstatOMP::eval(double **f, int iifrom, int iito, int tid)
   for (ii = iifrom; ii < iito; ++ii) {
 
     i = ilist[ii];
+    qtmp = q[i];
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
-    vxtmp = v[i][0];
-    vytmp = v[i][1];
-    vztmp = v[i][2];
     itype = type[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
@@ -155,7 +116,8 @@ void PairDPDTstatOMP::eval(double **f, int iifrom, int iito, int tid)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      factor_dpd = special_lj[sbmask(j)];
+      factor_lj = special_lj[sbmask(j)];
+      factor_coul = special_coul[sbmask(j)];
       j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];
@@ -165,22 +127,22 @@ void PairDPDTstatOMP::eval(double **f, int iifrom, int iito, int tid)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-	r = sqrt(rsq);
-	if (r < EPSILON) continue;     // r can be 0.0 in DPD systems
-	rinv = 1.0/r;
-	delvx = vxtmp - v[j][0];
-	delvy = vytmp - v[j][1];
-	delvz = vztmp - v[j][2];
-	dot = delx*delvx + dely*delvy + delz*delvz;
-	wd = 1.0 - r/cut[itype][jtype];
-	randnum = rng.gaussian();
+	r2inv = 1.0/rsq;
+	rinv = sqrt(r2inv);
 
-	// drag force = -gamma * wd^2 * (delx dot delv) / r
-	// random force = sigma * wd * rnd * dtinvsqrt;
+	if (rsq < cut_coulsq[itype][jtype]) {
+	  forcecoul = qqrd2e * qtmp*q[j]*rinv;
+	  forcecoul *= factor_coul;
+	} else forcecoul = 0.0;
 
-	fpair = -gamma[itype][jtype]*wd*wd*dot*rinv;
-	fpair += sigma[itype][jtype]*wd*randnum*dtinvsqrt;
-	fpair *= factor_dpd*rinv;	
+	if (rsq < cut_ljsq[itype][jtype]) {
+	  r3inv = r2inv*rinv;
+	  r6inv = r3inv*r3inv;
+	  forcelj = r6inv * (lj1[itype][jtype]*r3inv - lj2[itype][jtype]);
+	  forcelj *= factor_lj;
+	} else forcelj = 0.0;
+
+	fpair = (forcecoul + forcelj) * r2inv;
 
 	fxtmp += delx*fpair;
 	fytmp += dely*fpair;
@@ -191,8 +153,19 @@ void PairDPDTstatOMP::eval(double **f, int iifrom, int iito, int tid)
 	  f[j][2] -= delz*fpair;
 	}
 
+	if (EFLAG) {
+	  if (rsq < cut_coulsq[itype][jtype])
+	    ecoul = factor_coul * qqrd2e * qtmp*q[j]*rinv;
+	  else ecoul = 0.0;
+	  if (rsq < cut_ljsq[itype][jtype]) {
+	    evdwl = r6inv*(lj3[itype][jtype]*r3inv-lj4[itype][jtype]) -
+	      offset[itype][jtype];
+	    evdwl *= factor_lj;
+	  } else evdwl = 0.0;
+	}
+	
 	if (EVFLAG) ev_tally_thr(this, i,j,nlocal,NEWTON_PAIR,
-				 0.0,0.0,fpair,delx,dely,delz,tid);
+				 evdwl,ecoul,fpair,delx,dely,delz,tid);
       }
     }
     f[i][0] += fxtmp;
@@ -203,12 +176,10 @@ void PairDPDTstatOMP::eval(double **f, int iifrom, int iito, int tid)
 
 /* ---------------------------------------------------------------------- */
 
-double PairDPDTstatOMP::memory_usage()
+double PairLJClass2CoulCutOMP::memory_usage()
 {
   double bytes = memory_usage_thr();
-  bytes += PairDPDTstat::memory_usage();
-  bytes += comm->nthreads * sizeof(RanMars*);
-  bytes += comm->nthreads * sizeof(RanMars);
+  bytes += PairLJClass2CoulCut::memory_usage();
 
   return bytes;
 }

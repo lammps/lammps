@@ -27,8 +27,8 @@ namespace LAMMPS_NS {
 class PairYukawaColloid : public PairYukawa {
  public:
   PairYukawaColloid(class LAMMPS *);
-  ~PairYukawaColloid() {}
-  void compute(int, int);
+  virtual ~PairYukawaColloid() {}
+  virtual void compute(int, int);
   void init_style();
   double init_one(int, int);
   double single(int, int, int, int, double, double, double, double &);

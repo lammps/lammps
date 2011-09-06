@@ -17,23 +17,23 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(dpd/tstat/omp,PairDPDTstatOMP)
+PairStyle(lubricate/omp,PairLubricateOMP)
 
 #else
 
-#ifndef LMP_PAIR_DPD_TSTAT_OMP_H
-#define LMP_PAIR_DPD_TSTAT_OMP_H
+#ifndef LMP_PAIR_LUBRICATE_OMP_H
+#define LMP_PAIR_LUBRICATE_OMP_H
 
-#include "pair_dpd_tstat.h"
+#include "pair_lubricate.h"
 #include "thr_omp.h"
 
 namespace LAMMPS_NS {
 
-class PairDPDTstatOMP : public PairDPDTstat, public ThrOMP {
+class PairLubricateOMP : public PairLubricate, public ThrOMP {
 
  public:
-  PairDPDTstatOMP(class LAMMPS *);
-  virtual ~PairDPDTstatOMP();
+  PairLubricateOMP(class LAMMPS *);
+  virtual ~PairLubricateOMP();
 
   virtual void compute(int, int);
   virtual double memory_usage();
@@ -43,7 +43,7 @@ class PairDPDTstatOMP : public PairDPDTstat, public ThrOMP {
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-  void eval(double **f, int ifrom, int ito, int tid);
+  void eval(double **f, double **torque, int ifrom, int ito, int tid);
 };
 
 }

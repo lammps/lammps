@@ -13,44 +13,26 @@
 ------------------------------------------------------------------------- */
 
 #include "math.h"
-#include "pair_dpd_tstat_omp.h"
+#include "pair_yukawa_colloid_omp.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "update.h"
-#include "random_mars.h"
 
 using namespace LAMMPS_NS;
 
-#define EPSILON 1.0e-10
-
 /* ---------------------------------------------------------------------- */
 
-PairDPDTstatOMP::PairDPDTstatOMP(LAMMPS *lmp) :
-  PairDPDTstat(lmp), ThrOMP(lmp, PAIR)
+PairYukawaColloidOMP::PairYukawaColloidOMP(LAMMPS *lmp) :
+  PairYukawaColloid(lmp), ThrOMP(lmp, PAIR)
 {
   respa_enable = 0;
-  random_thr = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
 
-PairDPDTstatOMP::~PairDPDTstatOMP() 
-{
-  if (random_thr) {
-    for (int i=1; i < comm->nthreads; ++i)
-      delete random_thr[i];
-
-    delete[] random_thr;
-    random_thr = NULL;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void PairDPDTstatOMP::compute(int eflag, int vflag)
+void PairYukawaColloidOMP::compute(int eflag, int vflag)
 {
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
@@ -61,11 +43,6 @@ void PairDPDTstatOMP::compute(int eflag, int vflag)
   const int nthreads = comm->nthreads;
   const int inum = list->inum;
 
-  if (!random_thr)
-    random_thr = new RanMars*[nthreads];
-  
-  random_thr[0] = random;
-
 #if defined(_OPENMP)
 #pragma omp parallel default(shared)
 #endif
@@ -74,10 +51,6 @@ void PairDPDTstatOMP::compute(int eflag, int vflag)
     double **f;
 
     f = loop_setup_thr(atom->f, ifrom, ito, tid, inum, nall, nthreads);
-
-    if (random_thr && tid > 0)
-      random_thr[tid] = new RanMars(Pair::lmp, seed + comm->me 
-				    + comm->nprocs*tid);
 
     if (evflag) {
       if (eflag) {
@@ -102,36 +75,21 @@ void PairDPDTstatOMP::compute(int eflag, int vflag)
 }
 
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-void PairDPDTstatOMP::eval(double **f, int iifrom, int iito, int tid)
+void PairYukawaColloidOMP::eval(double **f, int iifrom, int iito, int tid)
 {
   int i,j,ii,jj,jnum,itype,jtype;
-  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double vxtmp,vytmp,vztmp,delvx,delvy,delvz;
-  double rsq,r,rinv,dot,wd,randnum,factor_dpd;
+  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair,radi,radj;
+  double rsq,r,rinv,r2inv,screening,forceyukawa,factor;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
 
   double **x = atom->x;
-  double **v = atom->v;
+  double *radius = atom->radius;
   int *type = atom->type;
   int nlocal = atom->nlocal;
   double *special_lj = force->special_lj;
-  double dtinvsqrt = 1.0/sqrt(update->dt);
   double fxtmp,fytmp,fztmp;
-  RanMars &rng = *random_thr[tid];
-
-  // adjust sigma if target T is changing
-
-  if (t_start != t_stop) {
-    double delta = update->ntimestep - update->beginstep;
-    delta /= update->endstep - update->beginstep;
-    temperature = t_start + delta * (t_stop-t_start);
-    double boltz = force->boltz;
-    for (i = 1; i <= atom->ntypes; i++)
-      for (j = i; j <= atom->ntypes; j++)
-	sigma[i][j] = sigma[j][i] = sqrt(2.0*boltz*temperature*gamma[i][j]);
-  }
 
   ilist = list->ilist;
   numneigh = list->numneigh;
@@ -145,9 +103,7 @@ void PairDPDTstatOMP::eval(double **f, int iifrom, int iito, int tid)
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
-    vxtmp = v[i][0];
-    vytmp = v[i][1];
-    vztmp = v[i][2];
+    radi = radius[i];
     itype = type[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
@@ -155,32 +111,24 @@ void PairDPDTstatOMP::eval(double **f, int iifrom, int iito, int tid)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      factor_dpd = special_lj[sbmask(j)];
+      factor = special_lj[sbmask(j)];
       j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
+      radj = radius[j];
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
+	r2inv = 1.0/rsq;
 	r = sqrt(rsq);
-	if (r < EPSILON) continue;     // r can be 0.0 in DPD systems
 	rinv = 1.0/r;
-	delvx = vxtmp - v[j][0];
-	delvy = vytmp - v[j][1];
-	delvz = vztmp - v[j][2];
-	dot = delx*delvx + dely*delvy + delz*delvz;
-	wd = 1.0 - r/cut[itype][jtype];
-	randnum = rng.gaussian();
+	screening = exp(-kappa*(r-(radi+radj)));
+	forceyukawa = a[itype][jtype] * screening;
 
-	// drag force = -gamma * wd^2 * (delx dot delv) / r
-	// random force = sigma * wd * rnd * dtinvsqrt;
-
-	fpair = -gamma[itype][jtype]*wd*wd*dot*rinv;
-	fpair += sigma[itype][jtype]*wd*randnum*dtinvsqrt;
-	fpair *= factor_dpd*rinv;	
+	fpair = factor*forceyukawa * rinv;
 
 	fxtmp += delx*fpair;
 	fytmp += dely*fpair;
@@ -191,8 +139,12 @@ void PairDPDTstatOMP::eval(double **f, int iifrom, int iito, int tid)
 	  f[j][2] -= delz*fpair;
 	}
 
+	if (EFLAG) {
+	  evdwl = a[itype][jtype]/kappa * screening - offset[itype][jtype];
+	  evdwl *= factor;
+	}
 	if (EVFLAG) ev_tally_thr(this, i,j,nlocal,NEWTON_PAIR,
-				 0.0,0.0,fpair,delx,dely,delz,tid);
+				 evdwl,0.0,fpair,delx,dely,delz,tid);
       }
     }
     f[i][0] += fxtmp;
@@ -203,12 +155,10 @@ void PairDPDTstatOMP::eval(double **f, int iifrom, int iito, int tid)
 
 /* ---------------------------------------------------------------------- */
 
-double PairDPDTstatOMP::memory_usage()
+double PairYukawaColloidOMP::memory_usage()
 {
   double bytes = memory_usage_thr();
-  bytes += PairDPDTstat::memory_usage();
-  bytes += comm->nthreads * sizeof(RanMars*);
-  bytes += comm->nthreads * sizeof(RanMars);
+  bytes += PairYukawaColloid::memory_usage();
 
   return bytes;
 }

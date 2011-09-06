@@ -38,6 +38,8 @@ class PairGayBerne : public Pair {
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
 
+  enum{SPHERE_SPHERE,SPHERE_ELLIPSE,ELLIPSE_SPHERE,ELLIPSE_ELLIPSE};
+
  protected:
   double cut_global;
   double **cut;

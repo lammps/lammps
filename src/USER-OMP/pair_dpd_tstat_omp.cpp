@@ -39,11 +39,13 @@ PairDPDTstatOMP::PairDPDTstatOMP(LAMMPS *lmp) :
 
 PairDPDTstatOMP::~PairDPDTstatOMP() 
 {
-  for (int i=1; i < comm->nthreads; ++i)
-    delete random_thr[i];
+  if (random_thr) {
+    for (int i=1; i < comm->nthreads; ++i)
+      delete random_thr[i];
 
-  delete[] random_thr;
-  random_thr = NULL;
+    delete[] random_thr;
+    random_thr = NULL;
+  }
 }
 
 /* ---------------------------------------------------------------------- */

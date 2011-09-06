@@ -29,9 +29,6 @@ PairStyle(dpd/tstat/omp,PairDPDTstatOMP)
 
 namespace LAMMPS_NS {
 
-// forward declaration
-class RanMars;
-  
 class PairDPDTstatOMP : public PairDPDTstat, public ThrOMP {
 
  public:
@@ -42,7 +39,7 @@ class PairDPDTstatOMP : public PairDPDTstat, public ThrOMP {
   virtual double memory_usage();
 
  protected:
-  RanMars **random_thr;
+  class RanMars **random_thr;
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_PAIR>

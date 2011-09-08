@@ -13,7 +13,7 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>tad N t_event T_lo T_hi delta tmax compute-ID seed keyword value ... 
+<PRE>tad N t_event T_lo T_hi delta tmax compute-ID keyword value ... 
 </PRE>
 <UL><LI>N = # of timesteps to run (not including dephasing/quenching) 
 
@@ -52,8 +52,8 @@
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>tad 2000 50 1800 2300 0.01 0.01 event 54985
-tad 2000 50 1800 2300 0.01 0.01 event 54985 &
+<PRE>tad 2000 50 1800 2300 0.01 0.01 event
+tad 2000 50 1800 2300 0.01 0.01 event &
     min 1e-05 1e-05 100 100 &
     neb 0.0 0.01 200 200 20 &
     min_style cg &

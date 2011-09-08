@@ -11,7 +11,7 @@ tad command :h3
 [Syntax:]
 
 tad N t_event T_lo T_hi delta tmax compute-ID \
-seed keyword value ... :pre
+keyword value ... :pre
 
 N = # of timesteps to run (not including dephasing/quenching) :ulb,l
 t_event = timestep interval between event checks :l
@@ -41,8 +41,8 @@ keyword = {min} or {neb} or {min_style} or {neb_style} or {neb_log} :l
 
 [Examples:]
 
-tad 2000 50 1800 2300 0.01 0.01 event 54985
-tad 2000 50 1800 2300 0.01 0.01 event 54985 &
+tad 2000 50 1800 2300 0.01 0.01 event
+tad 2000 50 1800 2300 0.01 0.01 event &
     min 1e-05 1e-05 100 100 &
     neb 0.0 0.01 200 200 20 &
     min_style cg &

@@ -202,10 +202,13 @@ high-temperature time since entering the current basin, scaled by an
 exponential factor that depends on the hi/lo temperature ratio and the
 energy barrier for that event.
 </P>
-<P>On lines for executed events, with status <I>E</I>, the global event number
-is incremented by one, and the timestep, local event number, energy
-barrier, <I>t_lo</I>, and <I>delt_lo</I> match the last event with status <I>DF</I>
-in the immediately preceding block of detected events.
+<P>On lines for executed events, with status <I>E</I>, the global event number 
+is incremented by one, 
+the local event number and time margin are reset to zero, 
+while the global event number, energy barrier, and 
+<I>delt_lo</I> match the last event with status <I>DF</I> 
+in the immediately preceding block of detected events.  
+The low-temperature event time <I>t_lo</I> is incremented by <I>delt_lo</I>.
 </P>
 <P>The NEB statistics are written to the file specified by the <I>neb_log</I>
 keyword. If the keyword value is "none", then no NEB statistics are

@@ -642,14 +642,14 @@ void FixNH::setup(int vflag)
   tdof = temperature->dof;
 
   // t_target is needed by NPH and NPT in compute_scalar()
-  // If no thermostat, 
+  // If no thermostat or using fix nphug, 
   // t_target must be defined by other means.
 
-  if (tstat_flag) {
+  if (tstat_flag && strcmp(style,"nphug") != 0) {
     compute_temp_target();
   } else if (pstat_flag) {
 
-    // t0 = initial value for piston mass and energy conservation
+    // t0 = reference temperature for masses
     // cannot be done in init() b/c temperature cannot be called there
     // is b/c Modify::init() inits computes after fixes due to dof dependence
     // guesstimate a unit-dependent t0 if actual T = 0.0
@@ -675,7 +675,7 @@ void FixNH::setup(int vflag)
     pressure->addstep(update->ntimestep+1);
   }
 
-  // initial forces on thermostat variables
+  // masses and initial forces on thermostat variables
 
   if (tstat_flag) {
     eta_mass[0] = tdof * boltz * t_target / (t_freq*t_freq);
@@ -686,6 +686,8 @@ void FixNH::setup(int vflag)
 			 boltz * t_target) / eta_mass[ich];
     }
   }
+
+  // masses and initial forces on barostat variables
 
   if (pstat_flag) {
     double kt = boltz * t_target;
@@ -700,7 +702,7 @@ void FixNH::setup(int vflag)
 	if (p_flag[i]) omega_mass[i] = nkt/(p_freq[i]*p_freq[i]);
     }
 
-  // initial forces on barostat thermostat variables
+  // masses and initial forces on barostat thermostat variables
 
     if (mpchain) {
       etap_mass[0] = boltz * t_target / (p_freq_max*p_freq_max);
@@ -729,9 +731,6 @@ void FixNH::initial_integrate(int vflag)
 
   if (tstat_flag) {
     compute_temp_target();
-    eta_mass[0] = tdof * boltz * t_target / (t_freq*t_freq);
-    for (int ich = 1; ich < mtchain; ich++)
-      eta_mass[ich] = boltz * t_target / (t_freq*t_freq);
     nhc_temp_integrate();
   }
 
@@ -828,9 +827,6 @@ void FixNH::initial_integrate_respa(int vflag, int ilevel, int iloop)
 
     if (tstat_flag) {
       compute_temp_target();
-      eta_mass[0] = tdof * boltz * t_target / (t_freq*t_freq);
-      for (int ich = 1; ich < mtchain; ich++)
-	eta_mass[ich] = boltz * t_target / (t_freq*t_freq);
       nhc_temp_integrate();
     }
 
@@ -1119,6 +1115,28 @@ void FixNH::remap()
 
 void FixNH::write_restart(FILE *fp)
 {
+  int nsize = size_restart();
+
+  double *list;
+  memory->create(list,nsize,"nh:list");
+
+  int n = pack_restart_data(list);
+
+  if (comm->me == 0) {
+    int size = nsize * sizeof(double);
+    fwrite(&size,sizeof(int),1,fp);
+    fwrite(list,sizeof(double),nsize,fp);
+  }
+
+  memory->destroy(list);
+}
+
+/* ----------------------------------------------------------------------
+    calculate the number of data to be packed
+------------------------------------------------------------------------- */
+
+int FixNH::size_restart()
+{
   int nsize = 2;
   if (tstat_flag) nsize += 1 + 2*mtchain;
   if (pstat_flag) {
@@ -1126,9 +1144,15 @@ void FixNH::write_restart(FILE *fp)
     if (deviatoric_flag) nsize += 6;
   }
 
-  double *list;
-  memory->create(list,nsize,"nh:list");
+  return nsize;
+}
 
+/* ----------------------------------------------------------------------
+   pack restart data 
+------------------------------------------------------------------------- */
+
+int FixNH::pack_restart_data(double *list)
+{
   int n = 0;
 
   list[n++] = tstat_flag;
@@ -1175,13 +1199,7 @@ void FixNH::write_restart(FILE *fp)
     }
   }
 
-  if (comm->me == 0) {
-    int size = nsize * sizeof(double);
-    fwrite(&size,sizeof(int),1,fp);
-    fwrite(list,sizeof(double),nsize,fp);
-  }
-
-  memory->destroy(list);
+  return n;
 }
 
 /* ----------------------------------------------------------------------

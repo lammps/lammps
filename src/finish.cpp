@@ -351,6 +351,19 @@ void Finish::end(int flag)
       time = timer->get_wall(Timer::BOND);
       MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
       time = tmp/nprocs;
+#if defined(_OPENMP)
+      time_cpu = timer->get_cpu(Timer::BOND);
+      MPI_Allreduce(&time_cpu,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+      time_cpu = tmp/nprocs;
+      if (me == 0) {
+	if (screen) 
+	  fprintf(screen,"Bond  time (%%) = %g (%g)  (%%CPU = %g)\n",
+		  time,time/time_loop*100.0,time_cpu/time*100.0);
+	if (logfile) 
+	  fprintf(logfile,"Bond  time (%%) = %g (%g)  (%%CPU = %g)\n",
+		  time,time/time_loop*100.0,time_cpu/time*100.0);
+      }
+#else
       if (me == 0) {
 	if (screen) 
 	  fprintf(screen,"Bond  time (%%) = %g (%g)\n",
@@ -359,6 +372,7 @@ void Finish::end(int flag)
 	  fprintf(logfile,"Bond  time (%%) = %g (%g)\n",
 		  time,time/time_loop*100.0);
       }
+#endif
     }
     
     if (force->kspace) {
@@ -414,6 +428,19 @@ void Finish::end(int flag)
     time = timer->get_wall(Timer::MODIFY);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
+#if defined(_OPENMP)
+    time_cpu = timer->get_cpu(Timer::MODIFY);
+    MPI_Allreduce(&time_cpu,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+    time_cpu = tmp/nprocs;
+    if (me == 0) {
+      if (screen) 
+	fprintf(screen,"Modfy time (%%) = %g (%g)  (%%CPU = %g)\n",
+		time,time/time_loop*100.0,time_cpu/time*100.0);
+      if (logfile) 
+	fprintf(logfile,"Modfy time (%%) = %g (%g)  (%%CPU = %g)\n",
+		time,time/time_loop*100.0,time_cpu/time*100.0);
+    }
+#else
     if (me == 0) {
       if (screen) 
 	fprintf(screen,"Modfy time (%%) = %g (%g)\n",
@@ -422,6 +449,7 @@ void Finish::end(int flag)
 	fprintf(logfile,"Modfy time (%%) = %g (%g)\n",
 		time,time/time_loop*100.0);
     }
+#endif
     
     time = time_other;
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);

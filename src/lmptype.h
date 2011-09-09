@@ -115,11 +115,8 @@ typedef int64_t bigint;
 // for machines that do not support 64-bit ints
 // 32-bit smallint and tagint and bigint
 
-<<<<<<< HEAD
-=======
 #ifdef LAMMPS_SMALLSMALL
 
->>>>>>> 5df6dd7b53e450b0b10ef67d21450aab55646203
 typedef int smallint;
 typedef int tagint;
 typedef int bigint;
@@ -136,11 +133,8 @@ typedef int bigint;
 
 #define ATOTAGINT atoi
 #define ATOBIGINT atoi
-<<<<<<< HEAD
-=======
 
 #endif
->>>>>>> 5df6dd7b53e450b0b10ef67d21450aab55646203
 
 }
 

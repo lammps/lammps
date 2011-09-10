@@ -38,7 +38,7 @@ class PairSWOMP : public PairSW, public ThrOMP {
   virtual double memory_usage();
 
  private:
-  template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
+  template <int EVFLAG, int EFLAG>
   void eval(double **f, int ifrom, int ito, int tid);
 };
 

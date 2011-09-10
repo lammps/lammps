@@ -54,16 +54,11 @@ void PairSWOMP::compute(int eflag, int vflag)
 
     if (evflag) {
       if (eflag) {
-	if (force->newton_pair) eval<1,1,1>(f, ifrom, ito, tid);
-	else eval<1,1,0>(f, ifrom, ito, tid);
+	eval<1,1>(f, ifrom, ito, tid);
       } else {
-	if (force->newton_pair) eval<1,0,1>(f, ifrom, ito, tid);
-	else eval<1,0,0>(f, ifrom, ito, tid);
+	eval<1,0>(f, ifrom, ito, tid);
       }
-    } else {
-      if (force->newton_pair) eval<0,0,1>(f, ifrom, ito, tid);
-      else eval<0,0,0>(f, ifrom, ito, tid);
-    }
+    } else eval<0,0>(f, ifrom, ito, tid);
 
     // reduce per thread forces into global force array.
     force_reduce_thr(&(atom->f[0][0]), nall, nthreads, tid);
@@ -74,7 +69,7 @@ void PairSWOMP::compute(int eflag, int vflag)
   if (vflag_fdotr) virial_fdotr_compute();
 }
 
-template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
+template <int EVFLAG, int EFLAG>
 void PairSWOMP::eval(double **f, int iifrom, int iito, int tid)
 {
   int i,j,k,ii,jj,kk,jnum,jnumm1,itag,jtag;
@@ -148,7 +143,7 @@ void PairSWOMP::eval(double **f, int iifrom, int iito, int tid)
       f[j][1] -= dely*fpair;
       f[j][2] -= delz*fpair;
 
-      if (EVFLAG) ev_tally_thr(this,i,j,nlocal,NEWTON_PAIR,
+      if (EVFLAG) ev_tally_thr(this,i,j,nlocal,/* newton_pair */ 1,
 			       evdwl,0.0,fpair,delx,dely,delz,tid);
     }
 

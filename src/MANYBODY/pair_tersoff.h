@@ -28,7 +28,7 @@ class PairTersoff : public Pair {
  public:
   PairTersoff(class LAMMPS *);
   virtual ~PairTersoff();
-  void compute(int, int);
+  virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
   void init_style();

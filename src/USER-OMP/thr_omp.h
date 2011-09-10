@@ -76,6 +76,7 @@ class ThrOMP {
   void ev_tally3_thr(Pair *, int, int, int, double, double,
 		     double *, double *, double *, double *, int);
   void ev_tally_list_thr(Pair *, int, int *, double , double *, int);
+  void v_tally3_thr(int, int, int, double *, double *, double *, double *, int);
 
  protected:
   // set loop range, thread id, and force array offset for threaded runs.

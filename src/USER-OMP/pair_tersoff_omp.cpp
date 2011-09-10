@@ -74,7 +74,7 @@ void PairTersoffOMP::compute(int eflag, int vflag)
 template <int EVFLAG, int EFLAG, int VFLAG_ATOM>
 void PairTersoffOMP::eval(double **f, int iifrom, int iito, int tid)
 {
-  int i,j,k,ii,jj,kk,inum,jnum;
+  int i,j,k,ii,jj,kk,jnum;
   int itag,jtag,itype,jtype,ktype,iparam_ij,iparam_ijk;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq,rsq1,rsq2;
@@ -189,7 +189,7 @@ void PairTersoffOMP::eval(double **f, int iifrom, int iito, int tid)
 
       // pairwise force due to zeta
 
-      force_zeta(&params[iparam_ij],rsq1,zeta_ij,fpair,prefactor,eflag,evdwl);
+      force_zeta(&params[iparam_ij],rsq1,zeta_ij,fpair,prefactor,EFLAG,evdwl);
 
       fxtmp += delr1[0]*fpair;
       fytmp += delr1[1]*fpair;

@@ -114,9 +114,7 @@ void FixQEQComb::init()
     error->all("Fix qeq/comb requires atom attribute q");
 
   comb = (PairComb *) force->pair_match("comb",1);
-  if (comb == NULL)
-    comb = (PairComb *) force->pair_match("comb/omp",1);
-  if (comb == NULL) error->all("Must use pair_style comb or comb/omp with fix qeq/comb");
+  if (comb == NULL) error->all("Must use pair_style comb with fix qeq/comb");
 
   if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
@@ -191,16 +189,10 @@ void FixQEQComb::post_force(int vflag)
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-#if defined(_OPENMP)
-#pragma omp parallel for private(i) default(shared)
-#endif
   for (i = 0; i < nlocal; i++)
     q1[i] = q2[i] = qf[i] = 0.0;
 
   for (iloop = 0; iloop < loopmax; iloop ++ ) {
-#if defined(_OPENMP)
-#pragma omp parallel for private(i) default(shared)
-#endif
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
 	q1[i] += qf[i]*dtq2 - heatpq*q1[i];
@@ -211,9 +203,6 @@ void FixQEQComb::post_force(int vflag)
     enegtot /= ngroup;
     enegchk = enegmax = 0.0;
 
-#if defined(_OPENMP)
-#pragma omp parallel for private(i) default(shared)
-#endif
     for (i = 0; i < nlocal ; i++)
       if (mask[i] & groupbit) {
 	q2[i] = enegtot-qf[i];
@@ -234,9 +223,6 @@ void FixQEQComb::post_force(int vflag)
 	      "enegmax %.6g, fq deviation: %.6g\n",
 	      iloop,enegtot,enegmax,enegchk); 
     
-#if defined(_OPENMP)
-#pragma omp parallel for private(i) default(shared)
-#endif
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
 	q1[i] += qf[i]*dtq2 - heatpq*q1[i]; 

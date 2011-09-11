@@ -507,6 +507,31 @@ void ThrOMP::ev_reduce_thr(Pair *pair)
   }
 }
 
+/* ----------------------------------------------------------------------
+   tally virial into per-atom accumulators
+   called by AIREBO and Tersoff potential, newton_pair is always on
+------------------------------------------------------------------------- */
+
+void ThrOMP::v_tally3_thr(int i, int j, int k, double *fi, double *fj,
+			  double *drik, double *drjk, int tid)
+{
+  double v[6];
+  
+  v[0] = THIRD * (drik[0]*fi[0] + drjk[0]*fj[0]);
+  v[1] = THIRD * (drik[1]*fi[1] + drjk[1]*fj[1]);
+  v[2] = THIRD * (drik[2]*fi[2] + drjk[2]*fj[2]);
+  v[3] = THIRD * (drik[0]*fi[1] + drjk[0]*fj[1]);
+  v[4] = THIRD * (drik[0]*fi[2] + drjk[0]*fj[2]);
+  v[5] = THIRD * (drik[1]*fi[2] + drjk[1]*fj[2]);
+
+  vatom_thr[tid][i][0] += v[0]; vatom_thr[tid][i][1] += v[1]; vatom_thr[tid][i][2] += v[2];
+  vatom_thr[tid][i][3] += v[3]; vatom_thr[tid][i][4] += v[4]; vatom_thr[tid][i][5] += v[5];
+  vatom_thr[tid][j][0] += v[0]; vatom_thr[tid][j][1] += v[1]; vatom_thr[tid][j][2] += v[2];
+  vatom_thr[tid][j][3] += v[3]; vatom_thr[tid][j][4] += v[4]; vatom_thr[tid][j][5] += v[5];
+  vatom_thr[tid][k][0] += v[0]; vatom_thr[tid][k][1] += v[1]; vatom_thr[tid][k][2] += v[2];
+  vatom_thr[tid][k][3] += v[3]; vatom_thr[tid][k][4] += v[4]; vatom_thr[tid][k][5] += v[5];
+}
+
 /* ---------------------------------------------------------------------- */
 
 // set loop range thread id, and force array offset for threaded runs.

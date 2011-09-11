@@ -3,11 +3,6 @@
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
-   Copyright (2003) Sandia Corporation.  Under the terms of Contract
-   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
-   the GNU General Public License.
-
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
@@ -17,28 +12,28 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(sw/omp,PairSWOMP)
+PairStyle(tersoff/omp,PairTersoffOMP)
 
 #else
 
-#ifndef LMP_PAIR_SW_OMP_H
-#define LMP_PAIR_SW_OMP_H
+#ifndef LMP_PAIR_TERSOFF_OMP_H
+#define LMP_PAIR_TERSOFF_OMP_H
 
-#include "pair_sw.h"
+#include "pair_tersoff.h"
 #include "thr_omp.h"
 
 namespace LAMMPS_NS {
 
-class PairSWOMP : public PairSW, public ThrOMP {
+class PairTersoffOMP : public PairTersoff, public ThrOMP {
 
  public:
-  PairSWOMP(class LAMMPS *);
+  PairTersoffOMP(class LAMMPS *);
 
   virtual void compute(int, int);
   virtual double memory_usage();
 
  private:
-  template <int EVFLAG, int EFLAG>
+  template <int EVFLAG, int EFLAG, int VFLAG_ATOM>
   void eval(double **f, int ifrom, int ito, int tid);
 };
 

@@ -28,7 +28,7 @@ class PairComb : public Pair {
  public:
   PairComb(class LAMMPS *);
   virtual ~PairComb();
-  void compute(int, int);
+  virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
   void init_style();
@@ -37,7 +37,7 @@ class PairComb : public Pair {
 
   double yasu_char(double *, int &);
 
- private:
+ protected:
   struct Param {
     double lam11,lam12,lam21,lam22;
     double c,d,h;

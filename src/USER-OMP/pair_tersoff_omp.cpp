@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 #include "math.h"
-#include "pair_sw_omp.h"
+#include "pair_tersoff_omp.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -24,20 +24,20 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairSWOMP::PairSWOMP(LAMMPS *lmp) :
-  PairSW(lmp), ThrOMP(lmp, PAIR)
+PairTersoffOMP::PairTersoffOMP(LAMMPS *lmp) :
+  PairTersoff(lmp), ThrOMP(lmp, PAIR)
 {
   respa_enable = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairSWOMP::compute(int eflag, int vflag)
+void PairTersoffOMP::compute(int eflag, int vflag)
 {
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
     ev_setup_thr(this);
-  } else evflag = vflag_fdotr = 0;
+  } else evflag = vflag_fdotr = vflag_atom = 0;
 
   const int nall = atom->nlocal + atom->nghost;
   const int nthreads = comm->nthreads;
@@ -54,11 +54,13 @@ void PairSWOMP::compute(int eflag, int vflag)
 
     if (evflag) {
       if (eflag) {
-	eval<1,1>(f, ifrom, ito, tid);
+	if (vflag_atom) eval<1,1,1>(f, ifrom, ito, tid);
+	else eval<1,1,0>(f, ifrom, ito, tid);
       } else {
-	eval<1,0>(f, ifrom, ito, tid);
+	if (vflag_atom) eval<1,0,1>(f, ifrom, ito, tid);
+	else eval<1,0,0>(f, ifrom, ito, tid);
       }
-    } else eval<0,0>(f, ifrom, ito, tid);
+    } else eval<0,0,0>(f, ifrom, ito, tid);
 
     // reduce per thread forces into global force array.
     force_reduce_thr(&(atom->f[0][0]), nall, nthreads, tid);
@@ -69,14 +71,15 @@ void PairSWOMP::compute(int eflag, int vflag)
   if (vflag_fdotr) virial_fdotr_compute();
 }
 
-template <int EVFLAG, int EFLAG>
-void PairSWOMP::eval(double **f, int iifrom, int iito, int tid)
+template <int EVFLAG, int EFLAG, int VFLAG_ATOM>
+void PairTersoffOMP::eval(double **f, int iifrom, int iito, int tid)
 {
-  int i,j,k,ii,jj,kk,jnum,jnumm1,itag,jtag;
-  int itype,jtype,ktype,ijparam,ikparam,ijkparam;
+  int i,j,k,ii,jj,kk,jnum;
+  int itag,jtag,itype,jtype,ktype,iparam_ij,iparam_ijk;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq,rsq1,rsq2;
-  double delr1[3],delr2[3],fj[3],fk[3];
+  double delr1[3],delr2[3],fi[3],fj[3],fk[3];
+  double zeta_ij,prefactor;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
@@ -92,7 +95,7 @@ void PairSWOMP::eval(double **f, int iifrom, int iito, int tid)
 
   double fxtmp,fytmp,fztmp;
 
-  // loop over neighbors of my atoms
+  // loop over full neighbor list of my atoms
 
   for (ii = iifrom; ii < iito; ++ii) {
 
@@ -131,10 +134,10 @@ void PairSWOMP::eval(double **f, int iifrom, int iito, int tid)
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
 
-      ijparam = elem2param[itype][jtype][jtype];
-      if (rsq > params[ijparam].cutsq) continue;
+      iparam_ij = elem2param[itype][jtype][jtype];
+      if (rsq > params[iparam_ij].cutsq) continue;
 
-      twobody(&params[ijparam],rsq,fpair,EFLAG,evdwl);
+      repulsive(&params[iparam_ij],rsq,fpair,EFLAG,evdwl);
 
       fxtmp += delx*fpair;
       fytmp += dely*fpair;
@@ -147,41 +150,78 @@ void PairSWOMP::eval(double **f, int iifrom, int iito, int tid)
 			       evdwl,0.0,fpair,delx,dely,delz,tid);
     }
 
-    jnumm1 = jnum - 1;
+    // three-body interactions
+    // skip immediately if I-J is not within cutoff
+    double fjxtmp,fjytmp,fjztmp;
 
-    for (jj = 0; jj < jnumm1; jj++) {
+    for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
       jtype = map[type[j]];
-      ijparam = elem2param[itype][jtype][jtype];
+      iparam_ij = elem2param[itype][jtype][jtype];
+
       delr1[0] = x[j][0] - xtmp;
       delr1[1] = x[j][1] - ytmp;
       delr1[2] = x[j][2] - ztmp;
       rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
-      if (rsq1 > params[ijparam].cutsq) continue;
+      if (rsq1 > params[iparam_ij].cutsq) continue;
 
-      double fjxtmp,fjytmp,fjztmp;
+      // accumulate bondorder zeta for each i-j interaction via loop over k
+
       fjxtmp = fjytmp = fjztmp = 0.0;
+      zeta_ij = 0.0;
 
-      for (kk = jj+1; kk < jnum; kk++) {
+      for (kk = 0; kk < jnum; kk++) {
+	if (jj == kk) continue;
 	k = jlist[kk];
 	k &= NEIGHMASK;
 	ktype = map[type[k]];
-	ikparam = elem2param[itype][ktype][ktype];
-	ijkparam = elem2param[itype][jtype][ktype];
+	iparam_ijk = elem2param[itype][jtype][ktype];
 
 	delr2[0] = x[k][0] - xtmp;
 	delr2[1] = x[k][1] - ytmp;
 	delr2[2] = x[k][2] - ztmp;
 	rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
-	if (rsq2 > params[ikparam].cutsq) continue;
+	if (rsq2 > params[iparam_ijk].cutsq) continue;
 
-	threebody(&params[ijparam],&params[ikparam],&params[ijkparam],
-		  rsq1,rsq2,delr1,delr2,fj,fk,EFLAG,evdwl);
+	zeta_ij += zeta(&params[iparam_ijk],rsq1,rsq2,delr1,delr2);
+      }
 
-	fxtmp -= fj[0] + fk[0];
-	fytmp -= fj[1] + fk[1];
-	fztmp -= fj[2] + fk[2];
+      // pairwise force due to zeta
+
+      force_zeta(&params[iparam_ij],rsq1,zeta_ij,fpair,prefactor,EFLAG,evdwl);
+
+      fxtmp += delr1[0]*fpair;
+      fytmp += delr1[1]*fpair;
+      fztmp += delr1[2]*fpair;
+      fjxtmp -= delr1[0]*fpair;
+      fjytmp -= delr1[1]*fpair;
+      fjztmp -= delr1[2]*fpair;
+
+      if (EVFLAG) ev_tally_thr(this,i,j,nlocal,/* newton_pair */ 1,evdwl,0.0,
+			       -fpair,-delr1[0],-delr1[1],-delr1[2],tid);
+
+      // attractive term via loop over k
+
+      for (kk = 0; kk < jnum; kk++) {
+	if (jj == kk) continue;
+	k = jlist[kk];
+	k &= NEIGHMASK;
+	ktype = map[type[k]];
+	iparam_ijk = elem2param[itype][jtype][ktype];
+
+	delr2[0] = x[k][0] - xtmp;
+	delr2[1] = x[k][1] - ytmp;
+	delr2[2] = x[k][2] - ztmp;
+	rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
+	if (rsq2 > params[iparam_ijk].cutsq) continue;
+
+	attractive(&params[iparam_ijk],prefactor,
+		   rsq1,rsq2,delr1,delr2,fi,fj,fk);
+
+	fxtmp += fi[0];
+	fytmp += fi[1];
+	fztmp += fi[2];
 	fjxtmp += fj[0];
 	fjytmp += fj[1];
 	fjztmp += fj[2];
@@ -189,7 +229,7 @@ void PairSWOMP::eval(double **f, int iifrom, int iito, int tid)
 	f[k][1] += fk[1];
 	f[k][2] += fk[2];
 
-	if (EVFLAG) ev_tally3_thr(this,i,j,k,evdwl,0.0,fj,fk,delr1,delr2,tid);
+	if (VFLAG_ATOM) v_tally3_thr(i,j,k,fj,fk,delr1,delr2,tid);
       }
       f[j][0] += fjxtmp;
       f[j][1] += fjytmp;
@@ -203,10 +243,10 @@ void PairSWOMP::eval(double **f, int iifrom, int iito, int tid)
 
 /* ---------------------------------------------------------------------- */
 
-double PairSWOMP::memory_usage()
+double PairTersoffOMP::memory_usage()
 {
   double bytes = memory_usage_thr();
-  bytes += PairSW::memory_usage();
+  bytes += PairTersoff::memory_usage();
 
   return bytes;
 }

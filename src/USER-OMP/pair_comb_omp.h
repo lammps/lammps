@@ -12,22 +12,22 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(tersoff/omp,PairTersoffOMP)
+PairStyle(comb/omp,PairCombOMP)
 
 #else
 
-#ifndef LMP_PAIR_TERSOFF_OMP_H
-#define LMP_PAIR_TERSOFF_OMP_H
+#ifndef LMP_PAIR_COMB_OMP_H
+#define LMP_PAIR_COMB_OMP_H
 
-#include "pair_tersoff.h"
+#include "pair_comb.h"
 #include "thr_omp.h"
 
 namespace LAMMPS_NS {
 
-class PairTersoffOMP : public PairTersoff, public ThrOMP {
+class PairCombOMP : public PairComb, public ThrOMP {
 
  public:
-  PairTersoffOMP(class LAMMPS *);
+  PairCombOMP(class LAMMPS *);
 
   virtual void compute(int, int);
   virtual double memory_usage();

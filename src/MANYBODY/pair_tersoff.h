@@ -64,7 +64,7 @@ class PairTersoff : public Pair {
   void setup();
   virtual void repulsive(Param *, double, double &, int, double &);
   double zeta(Param *, double, double, double *, double *);
-  void force_zeta(Param *, double, double, double &, double &, int, double &);
+  virtual void force_zeta(Param *, double, double, double &, double &, int, double &);
   void attractive(Param *, double, double, double, double *, double *,
 		  double *, double *, double *);
 

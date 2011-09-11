@@ -36,6 +36,24 @@ using namespace LAMMPS_NS;
 #define MAXLINE 1024
 #define DELTA 4
 
+/* ----------------------------------------------------------------------
+   Fermi-like smoothing function
+------------------------------------------------------------------------- */
+
+static double F_fermi(const double r, const double expsc, const double cut)
+{
+  return 1.0 / (1.0 + exp(-expsc*(r-cut)));
+}
+
+/* ----------------------------------------------------------------------
+   Fermi-like smoothing function derivative with respect to r
+------------------------------------------------------------------------- */
+
+static double F_fermi_d(const double r, const double expsc, const double cut)
+{
+  return expsc*exp(-expsc*(r-cut)) / pow(1.0 + exp(-expsc*(r-cut)),2.0);
+}
+
 /* ---------------------------------------------------------------------- */
 
 PairTersoffZBLOMP::PairTersoffZBLOMP(LAMMPS *lmp) : PairTersoffOMP(lmp)
@@ -205,6 +223,33 @@ void PairTersoffZBLOMP::read_file(char *file)
 
 /* ---------------------------------------------------------------------- */
 
+void PairTersoffZBLOMP::force_zeta(Param *param, double rsq, double zeta_ij,
+				   double &fforce, double &prefactor,
+				   int eflag, double &eng)
+{
+  double r,fa,fa_d,bij;
+
+  r = sqrt(rsq);
+
+  fa = (r > param->bigr + param->bigd) ? 0.0 :
+    -param->bigb * exp(-param->lam2 * r) * ters_fc(r,param) * 
+    F_fermi(r,param->ZBLexpscale,param->ZBLcut);
+
+  fa_d = (r > param->bigr + param->bigd) ? 0.0 :
+    param->bigb * exp(-param->lam2 * r) *
+    (param->lam2 * ters_fc(r,param) * 
+     F_fermi(r,param->ZBLexpscale,param->ZBLcut) - 
+     ters_fc_d(r,param) * F_fermi(r,param->ZBLexpscale,param->ZBLcut)
+     - ters_fc(r,param) * F_fermi_d(r,param->ZBLexpscale,param->ZBLcut));
+
+  bij = ters_bij(zeta_ij,param);
+  fforce = 0.5*bij*fa_d / r;
+  prefactor = -0.5*fa * ters_bij_d(zeta_ij,param);
+  if (eflag) eng = 0.5*bij*fa;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void PairTersoffZBLOMP::repulsive(Param *param, double rsq, double &fforce,
 			       int eflag, double &eng)
 {
@@ -237,49 +282,13 @@ void PairTersoffZBLOMP::repulsive(Param *param, double rsq, double &fforce,
   
   // combine two parts with smoothing by Fermi-like function
 
-  fforce = -(-F_fermi_d(r,param) * eng_ZBL + 
-	     (1.0 - F_fermi(r,param))*fforce_ZBL + 
-	     F_fermi_d(r,param)*eng_ters + F_fermi(r,param)*fforce_ters) / r;
+  fforce = -(-F_fermi_d(r,param->ZBLexpscale,param->ZBLcut) * eng_ZBL +
+	     (1.0 - F_fermi(r,param->ZBLexpscale,param->ZBLcut))*fforce_ZBL +
+	     F_fermi_d(r,param->ZBLexpscale,param->ZBLcut)*eng_ters +
+	     F_fermi(r,param->ZBLexpscale,param->ZBLcut)*fforce_ters) / r;
   
   if (eflag)
-    eng = (1.0 - F_fermi(r,param))*eng_ZBL + F_fermi(r,param)*eng_ters;
+    eng = (1.0 - F_fermi(r,param->ZBLexpscale,param->ZBLcut))*eng_ZBL +
+      F_fermi(r,param->ZBLexpscale,param->ZBLcut)*eng_ters;
 }
 
-/* ---------------------------------------------------------------------- */
-
-double PairTersoffZBLOMP::ters_fa(double r, Param *param)
-{
-  if (r > param->bigr + param->bigd) return 0.0;
-  return -param->bigb * exp(-param->lam2 * r) * ters_fc(r,param) * 
-    F_fermi(r,param);
-}   
-
-/* ---------------------------------------------------------------------- */
-
-double PairTersoffZBLOMP::ters_fa_d(double r, Param *param)
-{
-  if (r > param->bigr + param->bigd) return 0.0;
-  return param->bigb * exp(-param->lam2 * r) *
-    (param->lam2 * ters_fc(r,param) * F_fermi(r,param) - 
-     ters_fc_d(r,param) * F_fermi(r,param) - ters_fc(r,param) * 
-     F_fermi_d(r,param));
-}
-
-/* ----------------------------------------------------------------------
-   Fermi-like smoothing function
-------------------------------------------------------------------------- */
-
-double PairTersoffZBLOMP::F_fermi(double r, Param *param)
-{
-  return 1.0 / (1.0 + exp(-param->ZBLexpscale*(r-param->ZBLcut)));
-}
-
-/* ----------------------------------------------------------------------
-   Fermi-like smoothing function derivative with respect to r
-------------------------------------------------------------------------- */
-
-double PairTersoffZBLOMP::F_fermi_d(double r, Param *param)
-{
-  return param->ZBLexpscale*exp(-param->ZBLexpscale*(r-param->ZBLcut)) / 
-    pow(1.0 + exp(-param->ZBLexpscale*(r-param->ZBLcut)),2.0);
-}

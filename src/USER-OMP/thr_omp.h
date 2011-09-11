@@ -69,14 +69,23 @@ class ThrOMP {
 
  protected:
   // threading adapted versions of the ev_tally infrastructure
+  // style specific versions (need access to style class flags)
   void ev_tally_thr(Pair *, int, int, int, int, double, double,
 		    double, double, double, double, int);
   void ev_tally_xyz_thr(Pair *, int, int, int, int, double, double,
 			double, double, double, double, double, double, int);
   void ev_tally3_thr(Pair *, int, int, int, double, double,
 		     double *, double *, double *, double *, int);
+  void ev_tally4_thr(Pair *, int, int, int, int, double, 
+		     double *, double *, double *,
+		     double *, double *, double *, int);
   void ev_tally_list_thr(Pair *, int, int *, double , double *, int);
+
+  // style independent versions
+  void v_tally2_thr(int, int, double, double *, int);
   void v_tally3_thr(int, int, int, double *, double *, double *, double *, int);
+  void v_tally4_thr(int, int, int, int, double *, double *, double *,
+		    double *, double *, double *, int);
 
  protected:
   // set loop range, thread id, and force array offset for threaded runs.

@@ -28,7 +28,7 @@ class PairAIREBO : public Pair {
  public:
   PairAIREBO(class LAMMPS *);
   virtual ~PairAIREBO();
-  void compute(int, int);
+  virtual void compute(int, int);
   virtual void settings(int, char **);
   void coeff(int, char **);
   void init_style();

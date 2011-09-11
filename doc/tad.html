@@ -13,7 +13,7 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>tad N t_event T_lo T_hi delta tmax compute-ID seed keyword value ... 
+<PRE>tad N t_event T_lo T_hi delta tmax compute-ID keyword value ... 
 </PRE>
 <UL><LI>N = # of timesteps to run (not including dephasing/quenching) 
 
@@ -52,8 +52,8 @@
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>tad 2000 50 1800 2300 0.01 0.01 event 54985
-tad 2000 50 1800 2300 0.01 0.01 event 54985 &
+<PRE>tad 2000 50 1800 2300 0.01 0.01 event
+tad 2000 50 1800 2300 0.01 0.01 event &
     min 1e-05 1e-05 100 100 &
     neb 0.0 0.01 200 200 20 &
     min_style cg &
@@ -202,10 +202,13 @@ high-temperature time since entering the current basin, scaled by an
 exponential factor that depends on the hi/lo temperature ratio and the
 energy barrier for that event.
 </P>
-<P>On lines for executed events, with status <I>E</I>, the global event number
-is incremented by one, and the timestep, local event number, energy
-barrier, <I>t_lo</I>, and <I>delt_lo</I> match the last event with status <I>DF</I>
-in the immediately preceding block of detected events.
+<P>On lines for executed events, with status <I>E</I>, the global event number 
+is incremented by one, 
+the local event number and time margin are reset to zero, 
+while the global event number, energy barrier, and 
+<I>delt_lo</I> match the last event with status <I>DF</I> 
+in the immediately preceding block of detected events.  
+The low-temperature event time <I>t_lo</I> is incremented by <I>delt_lo</I>.
 </P>
 <P>The NEB statistics are written to the file specified by the <I>neb_log</I>
 keyword. If the keyword value is "none", then no NEB statistics are

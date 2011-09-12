@@ -34,7 +34,9 @@ int AtomT::bytes_per_atom() const {
   int id_space=0;
   if (_gpu_nbor==1)
     id_space=2;
-  int bytes=4*sizeof(numtyp)+id_space;
+  else if (_gpu_nbor==2)
+    id_space=4;
+  int bytes=4*sizeof(numtyp)+id_space*sizeof(int);
   if (_rot)
     bytes+=4*sizeof(numtyp);
   if (_charge)
@@ -119,15 +121,20 @@ bool AtomT::alloc(const int nall) {
     }
   }
   if (_gpu_nbor>0) {
-    if (_gpu_nbor==1) {
-      success=success && (dev_cell_id.alloc(_max_atoms,*dev)==UCL_SUCCESS);
-      success=success && (dev_particle_id.alloc(_max_atoms,*dev)==UCL_SUCCESS);
-      gpu_bytes+=dev_cell_id.row_bytes()+dev_particle_id.row_bytes();
-    }
+    success=success && (dev_particle_id.alloc(_max_atoms,*dev)==UCL_SUCCESS);
+    gpu_bytes+=dev_particle_id.row_bytes();
     if (_bonds) {
       success=success && (dev_tag.alloc(_max_atoms,*dev)==UCL_SUCCESS);
       gpu_bytes+=dev_tag.row_bytes();
     }
+    if (_gpu_nbor==1) {
+      success=success && (dev_cell_id.alloc(_max_atoms,*dev)==UCL_SUCCESS);
+      gpu_bytes+=dev_cell_id.row_bytes();
+    } else {
+      success=success && (host_particle_id.alloc(_max_atoms,*dev)==UCL_SUCCESS);
+      success=success && 
+             (host_cell_id.alloc(_max_atoms,*dev,UCL_NOT_PINNED)==UCL_SUCCESS);
+    }             
   }
 
   gpu_bytes+=dev_x.row_bytes();
@@ -237,6 +244,11 @@ void AtomT::clear_resize() {
   #ifndef USE_OPENCL
   if (_gpu_nbor==1) cudppDestroyPlan(sort_plan);
   #endif
+  
+  if (_gpu_nbor==2) {
+    host_particle_id.clear();
+    host_cell_id.clear();
+  }
 }
 
 template <class numtyp, class acctyp>

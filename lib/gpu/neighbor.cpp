@@ -23,6 +23,8 @@ using namespace LAMMPS_AL;
 int Neighbor::bytes_per_atom(const int max_nbors) const {
   if (_gpu_nbor==1)
     return (max_nbors+2)*sizeof(int);
+  else if (_gpu_nbor==2)
+    return (max_nbors+3)*sizeof(int);
   else if (_use_packing)
     return ((max_nbors+2)*2)*sizeof(int);
   else

@@ -35,7 +35,7 @@ class PairComb : public Pair {
   double init_one(int, int);
   double memory_usage();
 
-  double yasu_char(double *, int &);
+  virtual double yasu_char(double *, int &);
 
  protected:
   struct Param {

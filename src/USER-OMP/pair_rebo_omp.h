@@ -11,41 +11,23 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef FIX_CLASS
+#ifdef PAIR_CLASS
 
-FixStyle(qeq/comb,FixQEQComb)
+PairStyle(rebo/omp,PairREBOOMP)
 
 #else
 
-#ifndef LMP_FIX_QEQ_COMB_H
-#define LMP_FIX_QEQ_COMB_H
+#ifndef LMP_PAIR_REBO_OMP_H
+#define LMP_PAIR_REBO_OMP_H
 
-#include "stdio.h"
-#include "fix.h"
+#include "pair_airebo_omp.h"
 
 namespace LAMMPS_NS {
 
-class FixQEQComb : public Fix {
+class PairREBOOMP : public PairAIREBOOMP {
  public:
-  FixQEQComb(class LAMMPS *, int, char **);
-  virtual ~FixQEQComb();
-  int setmask();
-  virtual void init();
-  void setup(int);
-  virtual void post_force(int);
-  void post_force_respa(int,int,int);
-  double memory_usage();
-
- protected:
-  int me,firstflag;
-  double precision;
-  int nlevels_respa;
-  bigint ngroup;
-  FILE *fp;
-
-  class PairComb *comb;
-  int nmax;
-  double *qf,*q1,*q2;
+  PairREBOOMP(class LAMMPS *);
+  virtual void settings(int, char **);
 };
 
 }

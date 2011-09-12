@@ -1198,60 +1198,6 @@ void PairAIREBO::TORSION(int eflag, int vflag)
   }
 }
 
-// ----------------------------------------------------------------------
-// S'(t) and S(t) cutoff functions
-// ----------------------------------------------------------------------
-
-/* ----------------------------------------------------------------------
-   cutoff function Sprime
-   return cutoff and dX = derivative
-------------------------------------------------------------------------- */
-
-double PairAIREBO::Sp(double Xij, double Xmin, double Xmax, double &dX)
-{
-  double cutoff;
-
-  double t = (Xij-Xmin) / (Xmax-Xmin);
-  if (t <= 0.0) {
-    cutoff = 1.0;
-    dX = 0.0;
-  } 
-  else if (t >= 1.0) {
-    cutoff = 0.0;
-    dX = 0.0;
-  } 
-  else {
-    cutoff = 0.5 * (1.0+cos(PI*t));
-    dX = (-0.5*PI*sin(PI*t)) / (Xmax-Xmin);
-  }
-  return cutoff;
-}
-
-/* ----------------------------------------------------------------------
-   LJ cutoff function Sp2
-   return cutoff and dX = derivative
-------------------------------------------------------------------------- */
-
-double PairAIREBO::Sp2(double Xij, double Xmin, double Xmax, double &dX)
-{
-  double cutoff;
-
-  double t = (Xij-Xmin) / (Xmax-Xmin);
-  if (t <= 0.0) {
-    cutoff = 1.0;
-    dX = 0.0;
-  } 
-  if (t >= 1.0) {
-    cutoff = 0.0;
-    dX = 0.0;
-  } 
-  if (t>0.0 && t<1.0) {
-    cutoff = (1.0-(t*t*(3.0-2.0*t)));
-    dX = 6.0*(t*t-t) / (Xmax-Xmin);
-  }
-  return cutoff;
-}
-
 /* ----------------------------------------------------------------------
    Bij function
 ------------------------------------------------------------------------- */
@@ -3340,18 +3286,6 @@ double PairAIREBO::TijSpline(double Nij, double Nji,
 }
 
 /* ----------------------------------------------------------------------
-   Kronecker delta function
-------------------------------------------------------------------------- */
-
-double PairAIREBO::kronecker(int a, int b)
-{
-  double kd;
-  if (a == b) kd = 1.0;
-  else kd = 0.0;
-  return kd;
-}
-
-/* ----------------------------------------------------------------------
    add pages to REBO neighbor list, starting at npage
 ------------------------------------------------------------------------- */
 
@@ -3956,17 +3890,23 @@ void PairAIREBO::read_file(char *filename)
 
 double PairAIREBO::Sp5th(double x, double coeffs[6], double *df)
 {
-  double f;
-  int i;
-  i = 0;
-  f = 0.0;
-  *df = 0.0;
+  double f, d;
+  const double x2 = x*x;
+  const double x3 = x2*x;
 
-  for (i = 0; i<6; i++) {
-    f += coeffs[i]*pow(x,((double) i));
-    if (i > 0) *df += coeffs[i]*((double) i)*pow(x,((double) i-1.0));
-  }
+  f  = coeffs[0];
+  f += coeffs[1]*x;
+  d  = coeffs[1];
+  f += coeffs[2]*x2;
+  d += 2.0*coeffs[2]*x;
+  f += coeffs[3]*x3;
+  d += 3.0*coeffs[3]*x2;
+  f += coeffs[4]*x2*x2;
+  d += 4.0*coeffs[4]*x3;
+  f += coeffs[5]*x2*x3;
+  d += 5.0*coeffs[5]*x2*x2;
 
+  *df = d;
   return f;
 }
 

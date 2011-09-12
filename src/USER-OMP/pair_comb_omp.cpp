@@ -16,6 +16,7 @@
 #include "pair_comb_omp.h"
 #include "atom.h"
 #include "comm.h"
+#include "group.h"
 #include "force.h"
 #include "memory.h"
 #include "neighbor.h"
@@ -43,6 +44,7 @@ void PairCombOMP::compute(int eflag, int vflag)
   const int nall = atom->nlocal + atom->nghost;
   const int nthreads = comm->nthreads;
   const int inum = list->inum;
+
   // grow coordination array if necessary
 
   if (atom->nmax > nmax) {
@@ -117,7 +119,7 @@ void PairCombOMP::eval(double **f, int iifrom, int iito, int tid)
   // self energy correction term: potal
 
   potal_calc(potal,fac11,fac11e);
- 
+
   // loop over full neighbor list of my atoms
 
   for (ii = iifrom; ii < iito; ++ii) {
@@ -140,7 +142,7 @@ void PairCombOMP::eval(double **f, int iifrom, int iito, int tid)
 
     if (EVFLAG) ev_tally_thr(this,i,i,nlocal,0,yaself,
 			     0.0,0.0,0.0,0.0,0.0,tid);
- 
+
     // two-body interactions (long and short repulsive)
 
     jlist = firstneigh[i];
@@ -184,36 +186,36 @@ void PairCombOMP::eval(double **f, int iifrom, int iito, int tid)
       tri_point(rsq, mr1, mr2, mr3, sr1, sr2, sr3, itype);
 
       // 1/r energy and forces
-      
+
       direct(inty,mr1,mr2,mr3,rsq,sr1,sr2,sr3,iq,jq,
 	     potal,fac11,fac11e,vionij,fvionij);
 
       // field correction to self energy
-      
+
       field(&params[iparam_ij],rsq,iq,jq,vionij,fvionij);
-      
+
       // polarization field
       // sums up long range forces
-      
+
       fxtmp += delx*fvionij;
       fytmp += dely*fvionij;
       fztmp += delz*fvionij;
       f[j][0] -= delx*fvionij;
       f[j][1] -= dely*fvionij;
       f[j][2] -= delz*fvionij;
-      
+
       if (EVFLAG) 
 	ev_tally_thr(this,i,j,nlocal,/* newton_pair */ 1,
 		     0.0,vionij,fvionij,delx,dely,delz,tid);
-      
+
       // short range q-independent
-      
+
       if (rsq > params[iparam_ij].cutsq) continue;
-      
+
       repulsive(&params[iparam_ij],rsq,fpair,EFLAG,evdwl,iq,jq);
-      
+
       // repulsion is pure two-body, sums up pair repulsive forces
-      
+
       fxtmp += delx*fpair;
       fytmp += dely*fpair;
       fztmp += delz*fpair;
@@ -372,6 +374,159 @@ void PairCombOMP::eval(double **f, int iifrom, int iito, int tid)
     if (cuo_flag) params[iparam_i].cutsq *= 0.65;
   }
   cuo_flag = 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double PairCombOMP::yasu_char(double *qf_fix, int &igroup)
+{
+  int ii;
+  double potal,fac11,fac11e;
+
+  const double * const * const x = atom->x;
+  const double * const q = atom->q;
+  const int * const type = atom->type;
+
+  const int inum = list->inum;
+  const int * const ilist = list->ilist;
+  const int * const numneigh = list->numneigh;
+  const int * const * const firstneigh = list->firstneigh;
+
+  const int * const mask = atom->mask;
+  const int groupbit = group->bitmask[igroup];
+
+  qf = qf_fix;
+  for (ii = 0; ii < inum; ii++) {
+    const int i = ilist[ii];
+    if (mask[i] & groupbit)
+      qf[i] = 0.0;
+  }
+
+  // communicating charge force to all nodes, first forward then reverse
+
+  comm->forward_comm_pair(this);
+
+  // self energy correction term: potal
+
+  potal_calc(potal,fac11,fac11e);
+
+  // loop over full neighbor list of my atoms
+#if defined(_OPENMP)
+#pragma omp parallel for private(ii) default(none) shared(potal,fac11e)
+#endif
+  for (ii = 0; ii < inum; ii ++) {
+    double fqi,fqj,fqij,fqji,fqjj,delr1[3],delr2[3];
+    double sr1,sr2,sr3;
+    int mr1,mr2,mr3;
+
+    const int i = ilist[ii];
+
+    if (mask[i] & groupbit) {
+      fqi = fqj = fqij = fqji = fqjj = 0.0; // should not be needed.
+      int itype = map[type[i]];
+      const double xtmp = x[i][0];
+      const double ytmp = x[i][1];
+      const double ztmp = x[i][2];
+      const double iq = q[i];
+      const int iparam_i = elem2param[itype][itype][itype];
+
+      // charge force from self energy
+
+      fqi = qfo_self(&params[iparam_i],iq,potal);
+
+      // two-body interactions
+
+      const int * const jlist = firstneigh[i];
+      const int jnum = numneigh[i];
+
+      for (int jj = 0; jj < jnum; jj++) {
+        const int j = jlist[jj] & NEIGHMASK;
+        const int jtype = map[type[j]];
+        double jq = q[j];
+
+        delr1[0] = x[j][0] - xtmp;
+        delr1[1] = x[j][1] - ytmp;
+        delr1[2] = x[j][2] - ztmp;
+        double rsq1 = vec3_dot(delr1,delr1);
+
+        const int iparam_ij = elem2param[itype][jtype][jtype];
+
+        // long range q-dependent
+
+        if (rsq1 > params[iparam_ij].lcutsq) continue;
+
+        const int inty = intype[itype][jtype];
+
+        // polynomial three-point interpolation
+
+        tri_point(rsq1,mr1,mr2,mr3,sr1,sr2,sr3,itype);
+
+        // 1/r charge forces
+
+        qfo_direct(inty,mr1,mr2,mr3,rsq1,sr1,sr2,sr3,fac11e,fqij);
+
+        // field correction to self energy and charge force
+
+        qfo_field(&params[iparam_ij],rsq1,iq,jq,fqji,fqjj);
+        fqi   += jq * fqij + fqji;
+#if defined(_OPENMP)
+#pragma omp atomic
+#endif
+        qf[j] += (iq * fqij + fqjj);
+
+        // polarization field charge force
+        // three-body interactions
+
+        if (rsq1 > params[iparam_ij].cutsq) continue;
+
+        double zeta_ij = 0.0;
+
+        for (int kk = 0; kk < jnum; kk++) {
+	  if (jj == kk) continue;
+	  const int k = jlist[kk] & NEIGHMASK;
+	  const int ktype = map[type[k]];
+	  const int iparam_ijk = elem2param[itype][jtype][ktype];
+	 
+	  delr2[0] = x[k][0] - xtmp;
+	  delr2[1] = x[k][1] - ytmp;
+	  delr2[2] = x[k][2] - ztmp;
+	  const double rsq2 = vec3_dot(delr2,delr2);
+	 
+	  if (rsq2 > params[iparam_ijk].cutsq) continue;
+	  zeta_ij += zeta(&params[iparam_ijk],rsq1,rsq2,delr1,delr2);
+        }
+
+        // charge force in Aij and Bij
+
+        qfo_short(&params[iparam_ij],rsq1,zeta_ij,iq,jq,fqij,fqjj);
+        fqi += fqij;  
+#if defined(_OPENMP)
+#pragma omp atomic
+#endif
+	qf[j] += fqjj;
+      }
+
+#if defined(_OPENMP)
+#pragma omp atomic
+#endif
+      qf[i] += fqi;
+
+    }
+  }
+
+  comm->reverse_comm_pair(this);
+
+  // sum charge force on each node and return it
+
+  double eneg = 0.0;
+  for (ii = 0; ii < inum; ii++) {
+    const int i = ilist[ii];
+    if (mask[i] & groupbit)
+      eneg += qf[i];
+  }
+  double enegtot;
+  MPI_Allreduce(&eneg,&enegtot,1,MPI_DOUBLE,MPI_SUM,world);
+  return enegtot;
 }
 
 /* ---------------------------------------------------------------------- */

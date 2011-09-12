@@ -12,109 +12,45 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Tzu-Ray Shan (U Florida, rayshan@ufl.edu)
+   Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
 #include "lmptype.h"
 #include "mpi.h"
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
-#include "fix_qeq_comb.h"
+#include <math.h>
+#include "fix_qeq_comb_omp.h"
 #include "atom.h"
 #include "force.h"
 #include "group.h"
-#include "respa.h"
-#include "pair_comb.h"
-#include "update.h"
 #include "memory.h"
 #include "error.h"
+#include "respa.h"
+#include "update.h"
+#include "pair_comb_omp.h"
 
 using namespace LAMMPS_NS;
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
+#define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 /* ---------------------------------------------------------------------- */
 
-FixQEQComb::FixQEQComb(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
+FixQEQCombOMP::FixQEQCombOMP(LAMMPS *lmp, int narg, char **arg) 
+  : FixQEQComb(lmp, narg, arg)
 {
-  if (narg < 5) error->all("Illegal fix qeq/comb command");
-
-  peratom_flag = 1;
-  size_peratom_cols = 0;
-  peratom_freq = 1;
-
-  nevery = force->inumeric(arg[3]);
-  precision = force->numeric(arg[4]);
-
-  if (nevery <= 0 || precision <= 0.0)
-    error->all("Illegal fix qeq/comb command");
-
-  MPI_Comm_rank(world,&me);
-
-  // optional args
-
-  fp = NULL;
-
-  int iarg = 5;
-  while (iarg < narg) {
-    if (strcmp(arg[iarg],"file") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix qeq/comb command");
-      if (me == 0) {
-	fp = fopen(arg[iarg+1],"w");
-	if (fp == NULL) {
-	  char str[128];
-	  sprintf(str,"Cannot open fix qeq/comb file %s",arg[iarg+1]);
-	  error->one(str);
-	}
-      }
-      iarg += 2;
-    } else error->all("Illegal fix qeq/comb command");
-  }
-  
-  nmax = atom->nmax;
-  memory->create(qf,nmax,"qeq:qf");
-  memory->create(q1,nmax,"qeq:q1");
-  memory->create(q2,nmax,"qeq:q2");
-  vector_atom = qf;
-
-  // zero the vector since dump may access it on timestep 0
-  // zero the vector since a variable may access it before first run
-
-  int nlocal = atom->nlocal;
-  for (int i = 0; i < nlocal; i++) qf[i] = 0.0;
+  if (narg < 5) error->all("Illegal fix qeq/comb/omp command");
 }
 
 /* ---------------------------------------------------------------------- */
 
-FixQEQComb::~FixQEQComb()
-{
-  if (me == 0 && fp) fclose(fp);
-  memory->destroy(qf);
-  memory->destroy(q1);
-  memory->destroy(q2);
-}
-
-/* ---------------------------------------------------------------------- */
-
-int FixQEQComb::setmask()
-{
-  int mask = 0;
-  mask |= POST_FORCE;
-  mask |= POST_FORCE_RESPA;
-  return mask;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixQEQComb::init()
+void FixQEQCombOMP::init()
 {
   if (!atom->q_flag)
-    error->all("Fix qeq/comb requires atom attribute q");
+    error->all("Fix qeq/comb/omp requires atom attribute q");
 
-  comb = (PairComb *) force->pair_match("comb",1);
-  if (comb == NULL) error->all("Must use pair_style comb with fix qeq/comb");
+  comb = (PairComb *) force->pair_match("comb/omp",1);
+  if (comb == NULL)
+    comb = (PairComb *) force->pair_match("comb",1);
+  if (comb == NULL) error->all("Must use pair_style comb or comb/omp with fix qeq/comb");
 
   if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
@@ -125,22 +61,7 @@ void FixQEQComb::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEQComb::setup(int vflag)
-{
-  firstflag = 1;
-  if (strstr(update->integrate_style,"verlet"))
-    post_force(vflag);
-  else {
-    ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
-    post_force_respa(vflag,nlevels_respa-1,0);
-    ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
-  }
-  firstflag = 0;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixQEQComb::post_force(int vflag)
+void FixQEQCombOMP::post_force(int vflag)
 {
   int i,iloop,loopmax;
   double heatpq,qmass,dtq,dtq2;
@@ -163,7 +84,7 @@ void FixQEQComb::post_force(int vflag)
     memory->create(q2,nmax,"qeq:q2");
     vector_atom = qf;
   }
-  
+
   // more loops for first-time charge equilibrium
 
   iloop = 0; 
@@ -175,7 +96,7 @@ void FixQEQComb::post_force(int vflag)
   if (me == 0 && fp)
     fprintf(fp,"Charge equilibration on step " BIGINT_FORMAT "\n",
 	    update->ntimestep);
-  
+
   heatpq = 0.05;
   qmass  = 0.000548580;
   dtq    = 0.0006;
@@ -203,6 +124,9 @@ void FixQEQComb::post_force(int vflag)
     enegtot /= ngroup;
     enegchk = enegmax = 0.0;
 
+#if defined(_OPENMP)
+#pragma omp parallel for private(i) default(shared)
+#endif
     for (i = 0; i < nlocal ; i++)
       if (mask[i] & groupbit) {
 	q2[i] = enegtot-qf[i];
@@ -215,14 +139,17 @@ void FixQEQComb::post_force(int vflag)
     enegchk = enegchkall/ngroup;
     MPI_Allreduce(&enegmax,&enegmaxall,1,MPI_DOUBLE,MPI_MAX,world);
     enegmax = enegmaxall;
-  
+
     if (enegchk <= precision && enegmax <= 100.0*precision) break;
 
     if (me == 0 && fp)
       fprintf(fp,"  iteration: %d, enegtot %.6g, "
 	      "enegmax %.6g, fq deviation: %.6g\n",
 	      iloop,enegtot,enegmax,enegchk); 
-    
+
+#if defined(_OPENMP)
+#pragma omp parallel for private(i) default(shared)
+#endif
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
 	q1[i] += qf[i]*dtq2 - heatpq*q1[i]; 
@@ -237,19 +164,3 @@ void FixQEQComb::post_force(int vflag)
   }
 }
 
-/* ---------------------------------------------------------------------- */
-
-void FixQEQComb::post_force_respa(int vflag, int ilevel, int iloop)
-{
-  if (ilevel == nlevels_respa-1) post_force(vflag);
-}
-
-/* ----------------------------------------------------------------------
-   memory usage of local atom-based arrays
-------------------------------------------------------------------------- */
-
-double FixQEQComb::memory_usage()
-{
-  double bytes = atom->nmax*3 * sizeof(double);
-  return bytes;
-}

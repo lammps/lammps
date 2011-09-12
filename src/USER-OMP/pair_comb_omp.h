@@ -32,6 +32,8 @@ class PairCombOMP : public PairComb, public ThrOMP {
   virtual void compute(int, int);
   virtual double memory_usage();
 
+  virtual double yasu_char(double *, int &);
+
  private:
   template <int EVFLAG, int EFLAG, int VFLAG_ATOM>
   void eval(double **f, int ifrom, int ito, int tid);

@@ -11,44 +11,23 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef FIX_CLASS
+#include "pair_rebo_omp.h"
+#include "error.h"
 
-FixStyle(qeq/comb,FixQEQComb)
+using namespace LAMMPS_NS;
 
-#else
+/* ---------------------------------------------------------------------- */
 
-#ifndef LMP_FIX_QEQ_COMB_H
-#define LMP_FIX_QEQ_COMB_H
+PairREBOOMP::PairREBOOMP(LAMMPS *lmp) : PairAIREBOOMP(lmp) {}
 
-#include "stdio.h"
-#include "fix.h"
+/* ----------------------------------------------------------------------
+   global settings
+------------------------------------------------------------------------- */
 
-namespace LAMMPS_NS {
+void PairREBOOMP::settings(int narg, char **arg)
+{
+  if (narg != 0) error->all("Illegal pair_style command");
 
-class FixQEQComb : public Fix {
- public:
-  FixQEQComb(class LAMMPS *, int, char **);
-  virtual ~FixQEQComb();
-  int setmask();
-  virtual void init();
-  void setup(int);
-  virtual void post_force(int);
-  void post_force_respa(int,int,int);
-  double memory_usage();
-
- protected:
-  int me,firstflag;
-  double precision;
-  int nlevels_respa;
-  bigint ngroup;
-  FILE *fp;
-
-  class PairComb *comb;
-  int nmax;
-  double *qf,*q1,*q2;
-};
-
+  cutlj = 0.0;
+  ljflag = torflag = 0;
 }
-
-#endif
-#endif

@@ -21,6 +21,7 @@ PairStyle(airebo,PairAIREBO)
 #define LMP_PAIR_AIREBO_H
 
 #include "pair.h"
+#include <math.h>
 
 namespace LAMMPS_NS {
 
@@ -28,7 +29,7 @@ class PairAIREBO : public Pair {
  public:
   PairAIREBO(class LAMMPS *);
   virtual ~PairAIREBO();
-  void compute(int, int);
+  virtual void compute(int, int);
   virtual void settings(int, char **);
   void coeff(int, char **);
   void init_style();
@@ -95,15 +96,68 @@ class PairAIREBO : public Pair {
   double bondorderLJ(int, int, double *, double, double,
 		     double *, double, double **, int);
 
-  double Sp(double, double, double, double &);
-  double Sp2(double, double, double, double &);
+  // ----------------------------------------------------------------------
+  // S'(t) and S(t) cutoff functions
+  // added to header for inlining
+  // ----------------------------------------------------------------------
+
+  /* ----------------------------------------------------------------------
+     cutoff function Sprime
+     return cutoff and dX = derivative
+     no side effects
+  ------------------------------------------------------------------------- */
+
+  double Sp(double Xij, double Xmin, double Xmax, double &dX) const {
+    double cutoff;
+
+    double t = (Xij-Xmin) / (Xmax-Xmin);
+    if (t <= 0.0) {
+      cutoff = 1.0;
+      dX = 0.0;
+    } else if (t >= 1.0) {
+      cutoff = 0.0;
+      dX = 0.0;
+    } else {
+      cutoff = 0.5 * (1.0+cos(PI*t));
+      dX = (-0.5*PI*sin(PI*t)) / (Xmax-Xmin);
+    }
+    return cutoff;
+  };
+
+  /* ----------------------------------------------------------------------
+     LJ cutoff function Sp2
+     return cutoff and dX = derivative
+     no side effects
+  ------------------------------------------------------------------------- */
+
+  double Sp2(double Xij, double Xmin, double Xmax, double &dX) const {
+    double cutoff;
+
+    double t = (Xij-Xmin) / (Xmax-Xmin);
+    if (t <= 0.0) {
+      cutoff = 1.0;
+      dX = 0.0;
+    }
+    if (t >= 1.0) {
+      cutoff = 0.0;
+      dX = 0.0;
+    }
+    if (t>0.0 && t<1.0) {
+      cutoff = (1.0-(t*t*(3.0-2.0*t)));
+      dX = 6.0*(t*t-t) / (Xmax-Xmin);
+    }
+    return cutoff;
+  };
 
   double gSpline(double, double, int, double *, double *);
   double PijSpline(double, double, int, int, double *);
   double piRCSpline(double, double, double, int, int, double *);
   double TijSpline(double, double, double, double *);
 
-  double kronecker(int, int);
+  /* kronecker delta function returning a double */
+  double kronecker(const int a, const int b) const {
+    return (a == b) ? 1.0 : 0.0;
+  };
 
   void add_pages(int);
   void read_file(char *);

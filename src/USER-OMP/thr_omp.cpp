@@ -183,6 +183,44 @@ void ThrOMP::ev_reduce_thr(Dihedral *dihed)
 }
 
 /* ----------------------------------------------------------------------
+   reduce the per thread accumulated E/V data into the canonical accumulators.
+------------------------------------------------------------------------- */
+void ThrOMP::ev_reduce_thr(Pair *pair)
+{
+  const int nthreads = lmp->comm->nthreads;
+  const int ntotal = (lmp->force->newton) ? 
+    (lmp->atom->nlocal + lmp->atom->nghost) : lmp->atom->nlocal;
+
+  for (int n = 0; n < nthreads; ++n) {
+    pair->eng_vdwl += eng_vdwl_thr[n];
+    pair->eng_coul += eng_coul_thr[n];
+    if (pair->vflag_either) {
+      pair->virial[0] += virial_thr[n][0];
+      pair->virial[1] += virial_thr[n][1];
+      pair->virial[2] += virial_thr[n][2];
+      pair->virial[3] += virial_thr[n][3];
+      pair->virial[4] += virial_thr[n][4];
+      pair->virial[5] += virial_thr[n][5];
+      if (pair->vflag_atom) {
+        for (int i = 0; i < ntotal; ++i) {
+          pair->vatom[i][0] += vatom_thr[n][i][0];
+          pair->vatom[i][1] += vatom_thr[n][i][1];
+          pair->vatom[i][2] += vatom_thr[n][i][2];
+          pair->vatom[i][3] += vatom_thr[n][i][3];
+          pair->vatom[i][4] += vatom_thr[n][i][4];
+          pair->vatom[i][5] += vatom_thr[n][i][5];
+        }
+      }
+    }
+    if (pair->eflag_atom) {
+      for (int i = 0; i < ntotal; ++i) {
+        pair->eatom[i] += eatom_thr[n][i];
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
    tally eng_vdwl and virial into per thread global and per-atom accumulators
    need i < nlocal test since called by bond_quartic and dihedral_charmm
 ------------------------------------------------------------------------- */
@@ -422,6 +460,47 @@ void ThrOMP::ev_tally3_thr(Pair *pair, int i, int j, int k, double evdwl, double
 }
 
 /* ----------------------------------------------------------------------
+   tally eng_vdwl and virial into global and per-atom accumulators
+   called by AIREBO potential, newton_pair is always on
+ ------------------------------------------------------------------------- */
+
+void ThrOMP::ev_tally4_thr(Pair *pair, int i, int j, int k, int m, double evdwl,
+			   double *fi, double *fj, double *fk,
+			   double *drim, double *drjm, double *drkm,int tid)
+{
+  double epairfourth,v[6];
+
+  if (pair->eflag_either) {
+    if (pair->eflag_global) eng_vdwl_thr[tid] += evdwl;
+    if (pair->eflag_atom) {
+      epairfourth = 0.25 * evdwl;
+      eatom_thr[tid][i] += epairfourth;
+      eatom_thr[tid][j] += epairfourth;
+      eatom_thr[tid][k] += epairfourth;
+      eatom_thr[tid][m] += epairfourth;
+    }
+  }
+
+  if (pair->vflag_atom) {
+    v[0] = 0.25 * (drim[0]*fi[0] + drjm[0]*fj[0] + drkm[0]*fk[0]);
+    v[1] = 0.25 * (drim[1]*fi[1] + drjm[1]*fj[1] + drkm[1]*fk[1]);
+    v[2] = 0.25 * (drim[2]*fi[2] + drjm[2]*fj[2] + drkm[2]*fk[2]);
+    v[3] = 0.25 * (drim[0]*fi[1] + drjm[0]*fj[1] + drkm[0]*fk[1]);
+    v[4] = 0.25 * (drim[0]*fi[2] + drjm[0]*fj[2] + drkm[0]*fk[2]);
+    v[5] = 0.25 * (drim[1]*fi[2] + drjm[1]*fj[2] + drkm[1]*fk[2]);
+    
+    vatom_thr[tid][i][0] += v[0]; vatom_thr[tid][i][1] += v[1]; vatom_thr[tid][i][2] += v[2];
+    vatom_thr[tid][i][3] += v[3]; vatom_thr[tid][i][4] += v[4]; vatom_thr[tid][i][5] += v[5];
+    vatom_thr[tid][j][0] += v[0]; vatom_thr[tid][j][1] += v[1]; vatom_thr[tid][j][2] += v[2];
+    vatom_thr[tid][j][3] += v[3]; vatom_thr[tid][j][4] += v[4]; vatom_thr[tid][j][5] += v[5];
+    vatom_thr[tid][k][0] += v[0]; vatom_thr[tid][k][1] += v[1]; vatom_thr[tid][k][2] += v[2];
+    vatom_thr[tid][k][3] += v[3]; vatom_thr[tid][k][4] += v[4]; vatom_thr[tid][k][5] += v[5];
+    vatom_thr[tid][m][0] += v[0]; vatom_thr[tid][m][1] += v[1]; vatom_thr[tid][m][2] += v[2];
+    vatom_thr[tid][m][3] += v[3]; vatom_thr[tid][m][4] += v[4]; vatom_thr[tid][m][5] += v[5];
+  }
+}
+
+/* ----------------------------------------------------------------------
    tally ecoul and virial into each of n atoms in list
    called by TIP4P potential, newton_pair is always on
    changes v values by dividing by n
@@ -470,41 +549,26 @@ void ThrOMP::ev_tally_list_thr(Pair *pair, int n, int *list, double ecoul, doubl
 }
 
 /* ----------------------------------------------------------------------
-   reduce the per thread accumulated E/V data into the canonical accumulators.
+   tally virial into per-atom accumulators
+   called by AIREBO potential, newton_pair is always on
+   fpair is magnitude of force on atom I
 ------------------------------------------------------------------------- */
-void ThrOMP::ev_reduce_thr(Pair *pair)
-{
-  const int nthreads = lmp->comm->nthreads;
-  const int ntotal = (lmp->force->newton) ? 
-    (lmp->atom->nlocal + lmp->atom->nghost) : lmp->atom->nlocal;
 
-  for (int n = 0; n < nthreads; ++n) {
-    pair->eng_vdwl += eng_vdwl_thr[n];
-    pair->eng_coul += eng_coul_thr[n];
-    if (pair->vflag_either) {
-      pair->virial[0] += virial_thr[n][0];
-      pair->virial[1] += virial_thr[n][1];
-      pair->virial[2] += virial_thr[n][2];
-      pair->virial[3] += virial_thr[n][3];
-      pair->virial[4] += virial_thr[n][4];
-      pair->virial[5] += virial_thr[n][5];
-      if (pair->vflag_atom) {
-        for (int i = 0; i < ntotal; ++i) {
-          pair->vatom[i][0] += vatom_thr[n][i][0];
-          pair->vatom[i][1] += vatom_thr[n][i][1];
-          pair->vatom[i][2] += vatom_thr[n][i][2];
-          pair->vatom[i][3] += vatom_thr[n][i][3];
-          pair->vatom[i][4] += vatom_thr[n][i][4];
-          pair->vatom[i][5] += vatom_thr[n][i][5];
-        }
-      }
-    }
-    if (pair->eflag_atom) {
-      for (int i = 0; i < ntotal; ++i) {
-        pair->eatom[i] += eatom_thr[n][i];
-      }
-    }
-  }
+void ThrOMP::v_tally2_thr(int i, int j, double fpair, double *drij, int tid)
+{
+  double v[6];
+  
+  v[0] = 0.5 * drij[0]*drij[0]*fpair;
+  v[1] = 0.5 * drij[1]*drij[1]*fpair;
+  v[2] = 0.5 * drij[2]*drij[2]*fpair;
+  v[3] = 0.5 * drij[0]*drij[1]*fpair;
+  v[4] = 0.5 * drij[0]*drij[2]*fpair;
+  v[5] = 0.5 * drij[1]*drij[2]*fpair;
+
+  vatom_thr[tid][i][0] += v[0]; vatom_thr[tid][i][1] += v[1]; vatom_thr[tid][i][2] += v[2];
+  vatom_thr[tid][i][3] += v[3]; vatom_thr[tid][i][4] += v[4]; vatom_thr[tid][i][5] += v[5];
+  vatom_thr[tid][j][0] += v[0]; vatom_thr[tid][j][1] += v[1]; vatom_thr[tid][j][2] += v[2];
+  vatom_thr[tid][j][3] += v[3]; vatom_thr[tid][j][4] += v[4]; vatom_thr[tid][j][5] += v[5];
 }
 
 /* ----------------------------------------------------------------------
@@ -530,6 +594,34 @@ void ThrOMP::v_tally3_thr(int i, int j, int k, double *fi, double *fj,
   vatom_thr[tid][j][3] += v[3]; vatom_thr[tid][j][4] += v[4]; vatom_thr[tid][j][5] += v[5];
   vatom_thr[tid][k][0] += v[0]; vatom_thr[tid][k][1] += v[1]; vatom_thr[tid][k][2] += v[2];
   vatom_thr[tid][k][3] += v[3]; vatom_thr[tid][k][4] += v[4]; vatom_thr[tid][k][5] += v[5];
+}
+
+/* ----------------------------------------------------------------------
+   tally virial into per-atom accumulators
+   called by AIREBO potential, newton_pair is always on
+------------------------------------------------------------------------- */
+
+void ThrOMP::v_tally4_thr(int i, int j, int k, int m,
+			  double *fi, double *fj, double *fk,
+			  double *drim, double *drjm, double *drkm, int tid)
+{
+  double v[6];
+
+  v[0] = 0.25 * (drim[0]*fi[0] + drjm[0]*fj[0] + drkm[0]*fk[0]);
+  v[1] = 0.25 * (drim[1]*fi[1] + drjm[1]*fj[1] + drkm[1]*fk[1]);
+  v[2] = 0.25 * (drim[2]*fi[2] + drjm[2]*fj[2] + drkm[2]*fk[2]);
+  v[3] = 0.25 * (drim[0]*fi[1] + drjm[0]*fj[1] + drkm[0]*fk[1]);
+  v[4] = 0.25 * (drim[0]*fi[2] + drjm[0]*fj[2] + drkm[0]*fk[2]);
+  v[5] = 0.25 * (drim[1]*fi[2] + drjm[1]*fj[2] + drkm[1]*fk[2]);
+
+  vatom_thr[tid][i][0] += v[0]; vatom_thr[tid][i][1] += v[1]; vatom_thr[tid][i][2] += v[2];
+  vatom_thr[tid][i][3] += v[3]; vatom_thr[tid][i][4] += v[4]; vatom_thr[tid][i][5] += v[5];
+  vatom_thr[tid][j][0] += v[0]; vatom_thr[tid][j][1] += v[1]; vatom_thr[tid][j][2] += v[2];
+  vatom_thr[tid][j][3] += v[3]; vatom_thr[tid][j][4] += v[4]; vatom_thr[tid][j][5] += v[5];
+  vatom_thr[tid][k][0] += v[0]; vatom_thr[tid][k][1] += v[1]; vatom_thr[tid][k][2] += v[2];
+  vatom_thr[tid][k][3] += v[3]; vatom_thr[tid][k][4] += v[4]; vatom_thr[tid][k][5] += v[5];
+  vatom_thr[tid][m][0] += v[0]; vatom_thr[tid][m][1] += v[1]; vatom_thr[tid][m][2] += v[2];
+  vatom_thr[tid][m][3] += v[3]; vatom_thr[tid][m][4] += v[4]; vatom_thr[tid][m][5] += v[5];
 }
 
 /* ---------------------------------------------------------------------- */

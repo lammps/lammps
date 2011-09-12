@@ -54,7 +54,6 @@ class Device {
     * \param nlocal Total number of local particles to allocate memory for
     * \param host_nlocal Initial number of host particles to allocate memory for
     * \param nall Total number of local+ghost particles
-    * \param gpu_nbor True if neighboring is performed on device
     * \param gpu_host 0 if host will not perform force calculations,
     *                 1 if gpu_nbor is true, and host needs a half nbor list,
     *                 2 if gpu_nbor is true, and host needs a full nbor list
@@ -189,7 +188,7 @@ class Device {
   inline int gpu_rank() const { return _gpu_rank; }
   /// MPI Barrier for gpu
   inline void gpu_barrier() { MPI_Barrier(_comm_gpu); }
-  /// Return the 'mode' for acceleration: GPU_FORCE or GPU_NEIGH
+  /// Return the 'mode' for acceleration: GPU_FORCE, GPU_NEIGH or GPU_HYB_NEIGH
   inline int gpu_mode() const { return _gpu_mode; }
   /// Index of first device used by a node
   inline int first_device() const { return _first_device; }
@@ -243,7 +242,7 @@ class Device {
   /// Geryon Device
   UCL_Device *gpu;
 
-  enum{GPU_FORCE, GPU_NEIGH};
+  enum{GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH};
 
   // --------------------------- ATOM DATA -------------------------- 
 

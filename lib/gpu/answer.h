@@ -52,8 +52,7 @@ class Answer {
   int bytes_per_atom() const; 
 
   /// Clear any previous data and set up for a new LAMMPS run
-  /** \param rot True if atom storage needs quaternions
-    * \param gpu_nbor True if neighboring will be performed on device **/
+  /** \param rot True if atom storage needs quaternions **/
   bool init(const int inum, const bool charge, const bool rot, UCL_Device &dev);
   
   /// Check if we have enough device storage and realloc if not
@@ -66,8 +65,7 @@ class Answer {
   }
   
   /// If already initialized by another LAMMPS style, add fields as necessary
-  /** \param rot True if atom storage needs quaternions
-    * \param gpu_nbor True if neighboring will be performed on device **/
+  /** \param rot True if atom storage needs quaternions **/
   bool add_fields(const bool charge, const bool rot);
   
   /// Free all memory on host and device needed to realloc for more atoms

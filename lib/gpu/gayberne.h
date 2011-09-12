@@ -28,8 +28,7 @@ class GayBerne : public BaseEllipsoid<numtyp, acctyp> {
   ~GayBerne(); 
 
   /// Clear any previous data and set up for a new LAMMPS run
-  /** \param gpu_nbor true if neighboring performed on device
-    * \param max_nbors initial number of rows in the neighbor matrix
+  /** \param max_nbors initial number of rows in the neighbor matrix
     * \param cell_size cutoff + skin
     * \param gpu_split fraction of particles handled by device 
     * \return false if there is not sufficient memory or device init prob

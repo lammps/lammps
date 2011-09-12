@@ -65,7 +65,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJClass2GPU::PairLJClass2GPU(LAMMPS *lmp) : PairLJClass2(lmp), gpu_mode(GPU_PAIR)
+PairLJClass2GPU::PairLJClass2GPU(LAMMPS *lmp) : PairLJClass2(lmp), gpu_mode(GPU_FORCE)
 {
   cpu_time = 0.0;
 }
@@ -91,7 +91,7 @@ void PairLJClass2GPU::compute(int eflag, int vflag)
   
   bool success = true;
   int *ilist, *numneigh, **firstneigh;  
-  if (gpu_mode == GPU_NEIGH) {
+  if (gpu_mode != GPU_FORCE) {
     inum = atom->nlocal;
     firstneigh = lj96_gpu_compute_n(neighbor->ago, inum, nall, atom->x,
 				    atom->type, domain->sublo, domain->subhi,
@@ -153,7 +153,7 @@ void PairLJClass2GPU::init_style()
 			      cell_size, gpu_mode, screen);
   GPU_EXTRA::check_flag(success,error,world);
 
-  if (gpu_mode != GPU_NEIGH) {
+  if (gpu_mode == GPU_FORCE) {
     int irequest = neighbor->request(this);
     neighbor->requests[irequest]->half = 0;
     neighbor->requests[irequest]->full = 1;

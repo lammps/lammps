@@ -28,7 +28,7 @@
 
 using namespace LAMMPS_NS;
 
-enum{GPU_FORCE, GPU_NEIGH};
+enum{GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH};
 
 extern int lmp_init_device(MPI_Comm world, MPI_Comm replica,
                            const int first_gpu, const int last_gpu,
@@ -56,6 +56,10 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
     _gpu_mode = GPU_NEIGH;
     if (domain->triclinic)
       error->all("Cannot use force/neigh with triclinic box");
+  } else if (strcmp(arg[3],"force/hybrid_neigh") == 0) {
+    _gpu_mode = GPU_HYB_NEIGH;
+    if (domain->triclinic)
+      error->all("Cannot use force/hybrid_neigh with triclinic box");
   } else
     error->all("Illegal fix GPU command");
 
@@ -117,7 +121,7 @@ void FixGPU::init()
   if ((void*)modify->fix[0] != (void*)this)
     error->all("GPU is not the first fix for this run");
   // Hybrid cannot be used with force/neigh option
-  if (_gpu_mode == GPU_NEIGH)
+  if (_gpu_mode == GPU_NEIGH || _gpu_mode == GPU_HYB_NEIGH)
     if (force->pair_match("hybrid",1) != NULL ||
 	force->pair_match("hybrid/overlay",1) != NULL)
       error->all("Cannot use pair hybrid with GPU neighbor builds");

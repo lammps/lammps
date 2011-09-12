@@ -34,7 +34,7 @@ class PairLJCutTGPU : public PairLJCut {
   void init_style();
   double memory_usage();
 
- enum { GPU_PAIR, GPU_NEIGH };
+ enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
 
  private:
   int gpu_mode;

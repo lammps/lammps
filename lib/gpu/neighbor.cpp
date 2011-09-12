@@ -21,7 +21,7 @@
 using namespace LAMMPS_AL;
 
 int Neighbor::bytes_per_atom(const int max_nbors) const {
-  if (_gpu_nbor)
+  if (_gpu_nbor==1)
     return (max_nbors+2)*sizeof(int);
   else if (_use_packing)
     return ((max_nbors+2)*2)*sizeof(int);
@@ -32,7 +32,7 @@ int Neighbor::bytes_per_atom(const int max_nbors) const {
 bool Neighbor::init(NeighborShared *shared, const int inum,
                        const int host_inum, const int max_nbors, 
                        const int maxspecial, UCL_Device &devi, 
-                       const bool gpu_nbor, const int gpu_host, 
+                       const int gpu_nbor, const int gpu_host, 
                        const bool pre_cut, const int block_cell_2d,
                        const int block_cell_id, const int block_nbor_build) {
   clear();
@@ -51,7 +51,7 @@ bool Neighbor::init(NeighborShared *shared, const int inum,
     // Not yet implemented
     assert(0==1);
   
-  if (pre_cut || gpu_nbor==false)
+  if (pre_cut || gpu_nbor==0)
     _alloc_packed=true;
   else
     _alloc_packed=false;
@@ -72,10 +72,10 @@ bool Neighbor::init(NeighborShared *shared, const int inum,
   _max_nbors=max_nbors;
 
   _maxspecial=maxspecial;
-  if (gpu_nbor==false)
+  if (gpu_nbor==0)
     _maxspecial=0;
 
-  if (gpu_nbor==false)
+  if (gpu_nbor==0)
     success=success && (host_packed.alloc(2*IJ_SIZE,*dev,
                                           UCL_WRITE_OPTIMIZED)==UCL_SUCCESS);
   alloc(success);
@@ -92,7 +92,7 @@ void Neighbor::alloc(bool &success) {
   dev_nbor.clear();
   host_acc.clear();
   int nt=_max_atoms+_max_host;
-  if (_use_packing==false || _gpu_nbor) 
+  if (_use_packing==false || _gpu_nbor>0) 
     success=success && (dev_nbor.alloc((_max_nbors+2)*_max_atoms,*dev,
                                        UCL_READ_ONLY)==UCL_SUCCESS);
   else 
@@ -181,7 +181,7 @@ void Neighbor::clear() {
 }
 
 double Neighbor::host_memory_usage() const {
-  if (_gpu_nbor) {
+  if (_gpu_nbor>0) {
     if (_gpu_host)
       return host_nbor.row_bytes()*host_nbor.rows()+host_ilist.row_bytes()+
              host_jlist.row_bytes();

@@ -59,9 +59,11 @@ class Atom {
 
   /// Clear any previous data and set up for a new LAMMPS run
   /** \param rot True if atom storage needs quaternions
-    * \param gpu_nbor True if neighboring will be performed on device **/
+    * \param gpu_nbor 0 if neighboring will be performed on host
+    *        gpu_nbor 1 if neighboring will be performed on device
+    *        gpu_nbor 2 if binning on host and neighboring on device **/
   bool init(const int nall, const bool charge, const bool rot, 
-            UCL_Device &dev, const bool gpu_nbor=false, const bool bonds=false);
+            UCL_Device &dev, const int gpu_nbor=0, const bool bonds=false);
   
   /// Check if we have enough device storage and realloc if not
   /** Returns true if resized with any call during this timestep **/
@@ -77,8 +79,10 @@ class Atom {
   
   /// If already initialized by another LAMMPS style, add fields as necessary
   /** \param rot True if atom storage needs quaternions
-    * \param gpu_nbor True if neighboring will be performed on device **/
-  bool add_fields(const bool charge, const bool rot, const bool gpu_nbor,
+    * \param gpu_nbor 0 if neighboring will be performed on host
+    *        gpu_nbor 1 if neighboring will be performed on device
+    *        gpu_nbor 2 if binning on host and neighboring on device **/
+  bool add_fields(const bool charge, const bool rot, const int gpu_nbor,
                   const bool bonds);
   
   /// Returns true if GPU is using charges
@@ -401,8 +405,8 @@ class Atom {
   bool alloc(const int nall);
   
   bool _allocated, _rot, _charge, _other;
-  int _max_atoms, _nall;
-  bool _gpu_nbor, _bonds;
+  int _max_atoms, _nall, _gpu_nbor;
+  bool _bonds;
   double _time_cast;
   
   double _max_gpu_bytes;

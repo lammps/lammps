@@ -48,9 +48,11 @@ int BaseChargeT::init_atomic(const int nlocal, const int nall,
   nbor_time_avail=false;
   screen=_screen;
 
-  bool gpu_nbor=false;
+  int gpu_nbor=0;
   if (device->gpu_mode()==Device<numtyp,acctyp>::GPU_NEIGH)
-    gpu_nbor=true;
+    gpu_nbor=1;
+  else if (device->gpu_mode()==Device<numtyp,acctyp>::GPU_HYB_NEIGH)
+    gpu_nbor=2;
 
   int _gpu_host=0;
   int host_nlocal=hd_balancer.first_host_count(nlocal,gpu_split,gpu_nbor);
@@ -58,7 +60,7 @@ int BaseChargeT::init_atomic(const int nlocal, const int nall,
     _gpu_host=1;
 
   _threads_per_atom=device->threads_per_charge();
-  if (_threads_per_atom>1 && gpu_nbor==false) {
+  if (_threads_per_atom>1 && gpu_nbor==0) {
     nbor->packing(true);
     _nbor_data=&(nbor->dev_packed);
   } else

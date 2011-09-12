@@ -52,7 +52,9 @@ class Neighbor {
   /** \param inum Initial number of particles whose neighbors stored on device
     * \param host_inum Initial number of particles whose nbors copied to host
     * \param max_nbors Initial number of rows in the neighbor matrix
-    * \param gpu_nbor True if device will perform neighboring
+    * \param gpu_nbor 0 if neighboring will be performed on host
+    *        gpu_nbor 1 if neighboring will be performed on device
+    *        gpu_nbor 2 if binning on host and neighboring on device
     * \param gpu_host 0 if host will not perform force calculations,
     *                 1 if gpu_nbor is true, and host needs a half nbor list,
     *                 2 if gpu_nbor is true, and host needs a full nbor list
@@ -60,7 +62,7 @@ class Neighbor {
     *                than the force kernel **/
   bool init(NeighborShared *shared, const int inum, const int host_inum,
             const int max_nbors, const int maxspecial, UCL_Device &dev,
-            const bool gpu_nbor, const int gpu_host, const bool pre_cut,
+            const int gpu_nbor, const int gpu_host, const bool pre_cut,
             const int block_cell_2d, const int block_cell_id, 
             const int block_nbor_build);
 
@@ -108,8 +110,11 @@ class Neighbor {
   /// Total host memory used by class
   double host_memory_usage() const;
   
-  /// True if neighboring performed on GPU
-  inline bool gpu_nbor() const { return _gpu_nbor; }
+  /// Returns the type of neighboring:
+  /** - 0 if neighboring will be performed on host
+    * - 1 if neighboring will be performed on device
+    * - 2 if binning on host and neighboring on device **/
+  inline int gpu_nbor() const { return _gpu_nbor; }
   
   /// Make a copy of unpacked nbor lists in the packed storage area (for gb)
   inline void copy_unpacked(const int inum, const int maxj) 
@@ -146,7 +151,7 @@ class Neighbor {
   /// Return the number of bytes used on device
   inline double gpu_bytes() {
     double res = _gpu_bytes + _c_bytes + _cell_bytes;
-    if (_gpu_nbor==false)
+    if (_gpu_nbor==0)
       res += 2*IJ_SIZE*sizeof(int);
 
     return res;
@@ -191,8 +196,8 @@ class Neighbor {
   NeighborShared *_shared;
   UCL_Device *dev;
   bool _allocated, _use_packing;
-  int _max_atoms, _max_nbors, _max_host, _nbor_pitch, _maxspecial;
-  bool _gpu_nbor, _gpu_host, _alloc_packed;
+  int _gpu_nbor, _max_atoms, _max_nbors, _max_host, _nbor_pitch, _maxspecial;
+  bool _gpu_host, _alloc_packed;
   double _cell_size;
 
   double _gpu_bytes, _c_bytes, _cell_bytes;

@@ -154,13 +154,15 @@ int DeviceT::init(Answer<numtyp,acctyp> &ans, const bool charge,
   if (_particle_split<1.0 && _particle_split>0.0)
     ef_nlocal=static_cast<int>(_particle_split*nlocal);
 
-  bool gpu_nbor=false;
-  if (_gpu_mode==GPU_NEIGH)
-    gpu_nbor=true;
-    
+  int gpu_nbor=0;
+  if (_gpu_mode==Device<numtyp,acctyp>::GPU_NEIGH)
+    gpu_nbor=1;
+  else if (_gpu_mode==Device<numtyp,acctyp>::GPU_HYB_NEIGH)
+    gpu_nbor=2;
+
   if (_init_count==0) {
     // Initialize atom and nbor data
-    if (!atom.init(nall,charge,rot,*gpu,gpu_nbor,gpu_nbor && maxspecial>0))
+    if (!atom.init(nall,charge,rot,*gpu,gpu_nbor,gpu_nbor>0 && maxspecial>0))
       return -3;
       
     _data_in_estimate++;
@@ -173,7 +175,7 @@ int DeviceT::init(Answer<numtyp,acctyp> &ans, const bool charge,
       _data_in_estimate++;
     if (atom.quat()==false && rot)
       _data_in_estimate++;
-    if (!atom.add_fields(charge,rot,gpu_nbor,gpu_nbor && maxspecial))
+    if (!atom.add_fields(charge,rot,gpu_nbor,gpu_nbor>0 && maxspecial))
       return -3;
   }
   
@@ -420,7 +422,7 @@ void DeviceT::output_times(UCL_Timer &time_pair,
         fprintf(screen,"Data Transfer:   %.4f s.\n",times[0]/_replica_size);
         fprintf(screen,"Data Cast/Pack:  %.4f s.\n",times[4]/_replica_size);
         fprintf(screen,"Neighbor copy:   %.4f s.\n",times[1]/_replica_size);
-        if (nbor.gpu_nbor())
+        if (nbor.gpu_nbor()>0)
           fprintf(screen,"Neighbor build:  %.4f s.\n",times[2]/_replica_size);
         else
           fprintf(screen,"Neighbor unpack: %.4f s.\n",times[2]/_replica_size);

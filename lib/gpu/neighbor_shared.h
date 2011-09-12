@@ -44,7 +44,7 @@ class NeighborShared {
   UCL_Texture neigh_tex;
 
   /// Compile kernels for neighbor lists
-  void compile_kernels(UCL_Device &dev, const bool gpu_nbor);
+  void compile_kernels(UCL_Device &dev, const int gpu_nbor);
 
   // ----------------------------- Kernels
   UCL_Program *nbor_program, *build_program;
@@ -52,7 +52,8 @@ class NeighborShared {
   UCL_Kernel k_transpose, k_special;
 
  private:
-  bool _compiled, _gpu_nbor;
+  bool _compiled;
+  int _gpu_nbor;
 };
 
 }

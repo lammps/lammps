@@ -33,7 +33,7 @@ class Balance {
   inline ~Balance() { clear(); }
 
   /// Clear any old data and setup for new LAMMPS run
-  inline void init(Device<numtyp, acctyp> *gpu, const bool gpu_nbor,
+  inline void init(Device<numtyp, acctyp> *gpu, const int gpu_nbor,
                    const double split);
 
   /// Clear all host and device data
@@ -50,9 +50,9 @@ class Balance {
 
   /// Get a count of the number of particles host will handle for initial alloc
   inline int first_host_count(const int nlocal, const double gpu_split,
-                              const bool gpu_nbor) const {
+                              const int gpu_nbor) const {
     int host_nlocal=0;
-    if (gpu_nbor && gpu_split!=1.0) {
+    if (gpu_nbor>0 && gpu_split!=1.0) {
       if (gpu_split>0)
         host_nlocal=static_cast<int>(ceil((1.0-gpu_split)*nlocal));
       else
@@ -109,7 +109,8 @@ class Balance {
  private:
   Device<numtyp,acctyp> *_device;
   UCL_Timer _device_time;
-  bool _init_done, _gpu_nbor;
+  bool _init_done;
+  int _gpu_nbor;
   
   bool _load_balance;
   double _actual_split, _avg_split, _desired_split, _max_split;
@@ -123,7 +124,7 @@ class Balance {
 
 template <class numtyp, class acctyp>
 void BalanceT::init(Device<numtyp, acctyp> *gpu, 
-                           const bool gpu_nbor, const double split) {
+                           const int gpu_nbor, const double split) {
   clear();
   _gpu_nbor=gpu_nbor;
   _init_done=true;
@@ -190,13 +191,12 @@ void BalanceT::balance(const double cpu_time) {
     if (_desired_split<0.0)
       _desired_split=0.0;
 
-    if (!_gpu_nbor) {
+    if (_gpu_nbor==0) {
       if (_desired_split<_max_split)
         _actual_split=_desired_split;
       else
         _actual_split=_max_split;
     }
-//std::cout << gpu_time << " " << max_gpu_time << " " << cpu_other_time << " " << cpu_time_per_atom << " " << cpu_time << " " << _desired_split << " " << host_inum << std::endl;
   }
   _avg_split+=_desired_split;
   _avg_count++;

@@ -55,9 +55,11 @@ int BaseEllipsoidT::init_base(const int nlocal, const int nall,
   screen=_screen;
   _ellipsoid_sphere=ellip_sphere;
 
-  bool gpu_nbor=false;
+  int gpu_nbor=0;
   if (device->gpu_mode()==Device<numtyp,acctyp>::GPU_NEIGH)
-    gpu_nbor=true;
+    gpu_nbor=1;
+  else if (device->gpu_mode()==Device<numtyp,acctyp>::GPU_HYB_NEIGH)
+    gpu_nbor=2;
 
   int _gpu_host=0;
   int host_nlocal=hd_balancer.first_host_count(nlocal,gpu_split,gpu_nbor);
@@ -204,7 +206,7 @@ void BaseEllipsoidT::output_times() {
         fprintf(screen,"Data Transfer:   %.4f s.\n",times[0]/replica_size);
         fprintf(screen,"Data Cast/Pack:  %.4f s.\n",times[5]/replica_size);
         fprintf(screen,"Neighbor copy:   %.4f s.\n",times[1]/replica_size);
-        if (nbor->gpu_nbor())
+        if (nbor->gpu_nbor()>0)
           fprintf(screen,"Neighbor build:  %.4f s.\n",times[2]/replica_size);
         else
           fprintf(screen,"Neighbor unpack: %.4f s.\n",times[2]/replica_size);

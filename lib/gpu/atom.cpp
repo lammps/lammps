@@ -32,7 +32,7 @@ AtomT::Atom() : _compiled(false),_allocated(false),
 template <class numtyp, class acctyp>
 int AtomT::bytes_per_atom() const { 
   int id_space=0;
-  if (_gpu_nbor)
+  if (_gpu_nbor==1)
     id_space=2;
   int bytes=4*sizeof(numtyp)+id_space;
   if (_rot)
@@ -55,7 +55,7 @@ bool AtomT::alloc(const int nall) {
     
   // Allocate storage for CUDPP sort
   #ifndef USE_OPENCL
-  if (_gpu_nbor) {
+  if (_gpu_nbor==1) {
     CUDPPResult result = cudppPlan(&sort_plan, sort_config, _max_atoms, 1, 0);  
     if (CUDPP_SUCCESS != result)
       return false;
@@ -118,10 +118,12 @@ bool AtomT::alloc(const int nall) {
       gpu_bytes+=dev_quat.row_bytes();
     }
   }
-  if (_gpu_nbor) {
-    success=success && (dev_cell_id.alloc(_max_atoms,*dev)==UCL_SUCCESS);
-    success=success && (dev_particle_id.alloc(_max_atoms,*dev)==UCL_SUCCESS);
-    gpu_bytes+=dev_cell_id.row_bytes()+dev_particle_id.row_bytes();
+  if (_gpu_nbor>0) {
+    if (_gpu_nbor==1) {
+      success=success && (dev_cell_id.alloc(_max_atoms,*dev)==UCL_SUCCESS);
+      success=success && (dev_particle_id.alloc(_max_atoms,*dev)==UCL_SUCCESS);
+      gpu_bytes+=dev_cell_id.row_bytes()+dev_particle_id.row_bytes();
+    }
     if (_bonds) {
       success=success && (dev_tag.alloc(_max_atoms,*dev)==UCL_SUCCESS);
       gpu_bytes+=dev_tag.row_bytes();
@@ -138,7 +140,7 @@ bool AtomT::alloc(const int nall) {
 
 template <class numtyp, class acctyp>
 bool AtomT::add_fields(const bool charge, const bool rot,
-                              const bool gpu_nbor, const bool bonds) {
+                       const int gpu_nbor, const bool bonds) {
   bool realloc=false;
   if (charge && _charge==false) {
     _charge=true;
@@ -148,8 +150,8 @@ bool AtomT::add_fields(const bool charge, const bool rot,
     _rot=true;
     realloc=true;
   }
-  if (gpu_nbor && _gpu_nbor==false) {
-    _gpu_nbor=true;
+  if (gpu_nbor>0 && _gpu_nbor==0) {
+    _gpu_nbor=gpu_nbor;
     realloc=true;
   }
   if (bonds && _bonds==false) {
@@ -167,8 +169,7 @@ bool AtomT::add_fields(const bool charge, const bool rot,
 
 template <class numtyp, class acctyp>
 bool AtomT::init(const int nall, const bool charge, const bool rot,
-                        UCL_Device &devi, const bool gpu_nbor,
-                        const bool bonds) {
+                 UCL_Device &devi, const int gpu_nbor, const bool bonds) {
   clear();
 
   bool success=true;
@@ -234,7 +235,7 @@ void AtomT::clear_resize() {
   #endif
 
   #ifndef USE_OPENCL
-  if (_gpu_nbor) cudppDestroyPlan(sort_plan);
+  if (_gpu_nbor==1) cudppDestroyPlan(sort_plan);
   #endif
 }
 

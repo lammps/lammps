@@ -62,7 +62,7 @@ void PairAIREBOOMP::compute(int eflag, int vflag)
     FREBO_thr(f,ifrom,ito,evflag,eflag,vflag_atom,tid);
     if (ljflag) FLJ_thr(f,ifrom,ito,evflag,eflag,vflag_atom,tid);
     if (torflag) TORSION_thr(f,ifrom,ito,evflag,eflag,tid);
- 
+
     // reduce per thread forces into global force array.
     force_reduce_thr(&(atom->f[0][0]), nall, nthreads, tid);
   } // end of omp parallel region
@@ -110,7 +110,7 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3],
 
   double **x = atom->x;
   int *type = atom->type;
-  
+
   atomi = i;
   atomj = j;
   itype = map[type[i]];
@@ -129,7 +129,7 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3],
   NconjtmpI = 0.0;
   NconjtmpJ = 0.0;
   Etmp = 0.0;
-  
+
   REBO_neighs = REBO_firstneigh[i];
   for (k = 0; k < REBO_numneigh[i]; k++) {
     atomk = REBO_neighs[k];
@@ -139,12 +139,12 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3],
       rik[1] = x[atomi][1]-x[atomk][1];
       rik[2] = x[atomi][2]-x[atomk][2];
       rikmag = sqrt((rik[0]*rik[0])+(rik[1]*rik[1])+(rik[2]*rik[2]));
-      lamdajik = 4.0*kronecker(itype,1) * 
+      lamdajik = 4.0*kronecker(itype,1) *
 	((rho[ktype][1]-rikmag)-(rho[jtype][1]-rijmag));
       wik = Sp(rikmag,rcmin[itype][ktype],rcmax[itype][ktype],dS);
       Nki = nC[atomk]-(wik*kronecker(itype,0))+nH[atomk] -
 	(wik*kronecker(itype,1));
-      cosjik = ((rij[0]*rik[0])+(rij[1]*rik[1])+(rij[2]*rik[2])) / 
+      cosjik = ((rij[0]*rik[0])+(rij[1]*rik[1])+(rij[2]*rik[2])) /
 	(rijmag*rikmag);
       cosjik = MIN(cosjik,1.0);
       cosjik = MAX(cosjik,-1.0);
@@ -152,7 +152,7 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3],
       // evaluate splines g and derivatives dg
 
       g = gSpline(cosjik,(NijC+NijH),itype,&dgdc,&dgdN);
-      Etmp = Etmp+(wik*g*exp(lamdajik)); 
+      Etmp = Etmp+(wik*g*exp(lamdajik));
       tmp3 = tmp3+(wik*dgdN*exp(lamdajik));
       NconjtmpI = NconjtmpI+(kronecker(ktype,0)*wik*Sp(Nki,Nmin,Nmax,dS));
     }
@@ -162,8 +162,11 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3],
   dN2[0] = 0.0;
   dN2[1] = 0.0;
   PijS = PijSpline(NijC,NijH,itype,jtype,dN2);
-  pij = pow(1.0+Etmp+PijS,-0.5); 
-  tmp = -0.5*pow(pij,3.0);
+  pij = 1.0/sqrt(1.0+Etmp+PijS);
+  tmp = -0.5*pij*pij*pij;
+
+  const double invrijm = 1.0/rijmag;
+  const double invrijm2 = invrijm*invrijm;
 
   // pij forces
 
@@ -176,32 +179,30 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3],
       rik[1] = x[atomi][1]-x[atomk][1];
       rik[2] = x[atomi][2]-x[atomk][2];
       rikmag = sqrt((rik[0]*rik[0])+(rik[1]*rik[1])+(rik[2]*rik[2]));
-      lamdajik = 4.0*kronecker(itype,1) * 
+      lamdajik = 4.0*kronecker(itype,1) *
 	((rho[ktype][1]-rikmag)-(rho[jtype][1]-rijmag));
       wik = Sp(rikmag,rcmin[itype][ktype],rcmax[itype][ktype],dwik);
-      cosjik = (rij[0]*rik[0] + rij[1]*rik[1] + rij[2]*rik[2]) / 
-	(rijmag*rikmag);
+
+      const double invrikm = 1.0/rikmag;
+      const double invrijkm = invrijm*invrikm;
+      const double invrikm2 = invrikm*invrikm;
+
+      cosjik = (rij[0]*rik[0] + rij[1]*rik[1] + rij[2]*rik[2]) * invrijkm;
       cosjik = MIN(cosjik,1.0);
       cosjik = MAX(cosjik,-1.0);
 
-      dcosjikdri[0] = ((rij[0]+rik[0])/(rijmag*rikmag)) - 
-	(cosjik*((rij[0]/(rijmag*rijmag))+(rik[0]/(rikmag*rikmag))));
-      dcosjikdri[1] = ((rij[1]+rik[1])/(rijmag*rikmag)) - 
-	(cosjik*((rij[1]/(rijmag*rijmag))+(rik[1]/(rikmag*rikmag))));
-      dcosjikdri[2] = ((rij[2]+rik[2])/(rijmag*rikmag)) - 
-	(cosjik*((rij[2]/(rijmag*rijmag))+(rik[2]/(rikmag*rikmag))));
-      dcosjikdrk[0] = (-rij[0]/(rijmag*rikmag)) + 
-	(cosjik*(rik[0]/(rikmag*rikmag)));
-      dcosjikdrk[1] = (-rij[1]/(rijmag*rikmag)) + 
-	(cosjik*(rik[1]/(rikmag*rikmag)));
-      dcosjikdrk[2] = (-rij[2]/(rijmag*rikmag)) + 
-	(cosjik*(rik[2]/(rikmag*rikmag)));
-      dcosjikdrj[0] = (-rik[0]/(rijmag*rikmag)) + 
-	(cosjik*(rij[0]/(rijmag*rijmag)));
-      dcosjikdrj[1] = (-rik[1]/(rijmag*rikmag)) + 
-	(cosjik*(rij[1]/(rijmag*rijmag)));
-      dcosjikdrj[2] = (-rik[2]/(rijmag*rikmag)) + 
-	(cosjik*(rij[2]/(rijmag*rijmag)));
+      dcosjikdri[0] = ((rij[0]+rik[0])*invrijkm) -
+	(cosjik*((rij[0]*invrijm2)+(rik[0]*invrikm2)));
+      dcosjikdri[1] = ((rij[1]+rik[1])*invrijkm) -
+	(cosjik*((rij[1]*invrijm2)+(rik[1]*invrikm2)));
+      dcosjikdri[2] = ((rij[2]+rik[2])*invrijkm) -
+	(cosjik*((rij[2]*invrijm2)+(rik[2]*invrikm2)));
+      dcosjikdrk[0] = (-rij[0]*invrijkm) + (cosjik*(rik[0]*invrikm2));
+      dcosjikdrk[1] = (-rij[1]*invrijkm) + (cosjik*(rik[1]*invrikm2));
+      dcosjikdrk[2] = (-rij[2]*invrijkm) + (cosjik*(rik[2]*invrikm2));
+      dcosjikdrj[0] = (-rik[0]*invrijkm) + (cosjik*(rij[0]*invrijm2));
+      dcosjikdrj[1] = (-rik[1]*invrijkm) + (cosjik*(rij[1]*invrijm2));
+      dcosjikdrj[2] = (-rik[2]*invrijkm) + (cosjik*(rij[2]*invrijm2));
 
       g = gSpline(cosjik,(NijC+NijH),itype,&dgdc,&dgdN);
       tmp2 = VA*.5*(tmp*wik*dgdc*exp(lamdajik));
@@ -216,21 +217,21 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3],
       fk[2] = -tmp2*dcosjikdrk[2];
 
       tmp2 = VA*.5*(tmp*wik*g*exp(lamdajik)*4.0*kronecker(itype,1));
-      fj[0] -= tmp2*(-rij[0]/rijmag);
-      fj[1] -= tmp2*(-rij[1]/rijmag);
-      fj[2] -= tmp2*(-rij[2]/rijmag);
-      fi[0] -= tmp2*((-rik[0]/rikmag)+(rij[0]/rijmag));
-      fi[1] -= tmp2*((-rik[1]/rikmag)+(rij[1]/rijmag));
-      fi[2] -= tmp2*((-rik[2]/rikmag)+(rij[2]/rijmag));
-      fk[0] -= tmp2*(rik[0]/rikmag);
-      fk[1] -= tmp2*(rik[1]/rikmag);
-      fk[2] -= tmp2*(rik[2]/rikmag);
+      fj[0] -= tmp2*(-rij[0]*invrijm);
+      fj[1] -= tmp2*(-rij[1]*invrijm);
+      fj[2] -= tmp2*(-rij[2]*invrijm);
+      fi[0] -= tmp2*((-rik[0]*invrikm)+(rij[0]*invrijm));
+      fi[1] -= tmp2*((-rik[1]*invrikm)+(rij[1]*invrijm));
+      fi[2] -= tmp2*((-rik[2]*invrikm)+(rij[2]*invrijm));
+      fk[0] -= tmp2*(rik[0]*invrikm);
+      fk[1] -= tmp2*(rik[1]*invrikm);
+      fk[2] -= tmp2*(rik[2]*invrikm);
 
       // coordination forces
 
       // dwik forces
 
-      tmp2 = VA*.5*(tmp*dwik*g*exp(lamdajik))/rikmag;
+      tmp2 = VA*.5*(tmp*dwik*g*exp(lamdajik))*invrikm;
       fi[0] -= tmp2*rik[0];
       fi[1] -= tmp2*rik[1];
       fi[2] -= tmp2*rik[2];
@@ -240,7 +241,7 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3],
 
       // PIJ forces
 
-      tmp2 = VA*.5*(tmp*dN2[ktype]*dwik)/rikmag;
+      tmp2 = VA*.5*(tmp*dN2[ktype]*dwik)*invrikm;
       fi[0] -= tmp2*rik[0];
       fi[1] -= tmp2*rik[1];
       fi[2] -= tmp2*rik[2];
@@ -250,13 +251,13 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3],
 
       // dgdN forces
 
-      tmp2 = VA*.5*(tmp*tmp3*dwik)/rikmag;
+      tmp2 = VA*.5*(tmp*tmp3*dwik)*invrikm;
       fi[0] -= tmp2*rik[0];
       fi[1] -= tmp2*rik[1];
       fi[2] -= tmp2*rik[2];
       fk[0] += tmp2*rik[0];
       fk[1] += tmp2*rik[1];
-      fk[2] += tmp2*rik[2]; 
+      fk[2] += tmp2*rik[2];
 
       f[atomi][0] += fi[0]; f[atomi][1] += fi[1]; f[atomi][2] += fi[2];
       f[atomj][0] += fj[0]; f[atomj][1] += fj[1]; f[atomj][2] += fj[2];
@@ -284,12 +285,12 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3],
       rjl[1] = x[atomj][1]-x[atoml][1];
       rjl[2] = x[atomj][2]-x[atoml][2];
       rjlmag = sqrt((rjl[0]*rjl[0])+(rjl[1]*rjl[1])+(rjl[2]*rjl[2]));
-      lamdaijl = 4.0*kronecker(jtype,1) * 
+      lamdaijl = 4.0*kronecker(jtype,1) *
 	((rho[ltype][1]-rjlmag)-(rho[itype][1]-rijmag));
       wjl = Sp(rjlmag,rcmin[jtype][ltype],rcmax[jtype][ltype],dS);
-      Nlj = nC[atoml]-(wjl*kronecker(jtype,0)) + 
+      Nlj = nC[atoml]-(wjl*kronecker(jtype,0)) +
 	nH[atoml]-(wjl*kronecker(jtype,1));
-      cosijl = -1.0*((rij[0]*rjl[0])+(rij[1]*rjl[1])+(rij[2]*rjl[2])) / 
+      cosijl = -1.0*((rij[0]*rjl[0])+(rij[1]*rjl[1])+(rij[2]*rjl[2])) /
 	(rijmag*rjlmag);
       cosijl = MIN(cosijl,1.0);
       cosijl = MAX(cosijl,-1.0);
@@ -297,8 +298,8 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3],
       // evaluate splines g and derivatives dg
 
       g = gSpline(cosijl,NjiC+NjiH,jtype,&dgdc,&dgdN);
-      Etmp = Etmp+(wjl*g*exp(lamdaijl)); 
-      tmp3 = tmp3+(wjl*dgdN*exp(lamdaijl)); 
+      Etmp = Etmp+(wjl*g*exp(lamdaijl));
+      tmp3 = tmp3+(wjl*dgdN*exp(lamdaijl));
       NconjtmpJ = NconjtmpJ+(kronecker(ltype,0)*wjl*Sp(Nlj,Nmin,Nmax,dS));
     }
   }
@@ -306,9 +307,9 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3],
   PjiS = 0.0;
   dN2[0] = 0.0;
   dN2[1] = 0.0;
-  PjiS = PijSpline(NjiC,NjiH,jtype,itype,dN2);  
-  pji = pow(1.0+Etmp+PjiS,-0.5);
-  tmp = -0.5*pow(pji,3.0);
+  PjiS = PijSpline(NjiC,NjiH,jtype,itype,dN2);
+  pji = 1.0/sqrt(1.0+Etmp+PjiS);
+  tmp = -0.5*pji*pji*pji;
 
   REBO_neighs = REBO_firstneigh[j];
   for (l = 0; l < REBO_numneigh[j]; l++) {
@@ -319,60 +320,63 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3],
       rjl[1] = x[atomj][1]-x[atoml][1];
       rjl[2] = x[atomj][2]-x[atoml][2];
       rjlmag = sqrt((rjl[0]*rjl[0])+(rjl[1]*rjl[1])+(rjl[2]*rjl[2]));
-      lamdaijl = 4.0*kronecker(jtype,1) * 
+      lamdaijl = 4.0*kronecker(jtype,1) *
 	((rho[ltype][1]-rjlmag)-(rho[itype][1]-rijmag));
       wjl = Sp(rjlmag,rcmin[jtype][ltype],rcmax[jtype][ltype],dwjl);
-      cosijl = (-1.0*((rij[0]*rjl[0])+(rij[1]*rjl[1])+(rij[2]*rjl[2]))) / 
-	(rijmag*rjlmag);
+
+      const double invrjlm = 1.0/rjlmag;
+      const double invrijlm = invrijm*invrjlm;
+      const double invrjlm2 = invrjlm*invrjlm;
+
+      cosijl = (-1.0*((rij[0]*rjl[0])+(rij[1]*rjl[1])+(rij[2]*rjl[2])))
+	* invrijlm;
+
       cosijl = MIN(cosijl,1.0);
       cosijl = MAX(cosijl,-1.0);
 
-      dcosijldri[0] = (-rjl[0]/(rijmag*rjlmag)) - 
-	(cosijl*rij[0]/(rijmag*rijmag));
-      dcosijldri[1] = (-rjl[1]/(rijmag*rjlmag)) - 
-	(cosijl*rij[1]/(rijmag*rijmag));
-      dcosijldri[2] = (-rjl[2]/(rijmag*rjlmag)) - 
-	(cosijl*rij[2]/(rijmag*rijmag));
-      dcosijldrj[0] = ((-rij[0]+rjl[0])/(rijmag*rjlmag)) + 
-	(cosijl*((rij[0]/pow(rijmag,2.0))-(rjl[0]/(rjlmag*rjlmag))));
-      dcosijldrj[1] = ((-rij[1]+rjl[1])/(rijmag*rjlmag)) + 
-	(cosijl*((rij[1]/pow(rijmag,2.0))-(rjl[1]/(rjlmag*rjlmag))));
-      dcosijldrj[2] = ((-rij[2]+rjl[2])/(rijmag*rjlmag)) + 
-	(cosijl*((rij[2]/pow(rijmag,2.0))-(rjl[2]/(rjlmag*rjlmag))));
-      dcosijldrl[0] = (rij[0]/(rijmag*rjlmag))+(cosijl*rjl[0]/(rjlmag*rjlmag));
-      dcosijldrl[1] = (rij[1]/(rijmag*rjlmag))+(cosijl*rjl[1]/(rjlmag*rjlmag));
-      dcosijldrl[2] = (rij[2]/(rijmag*rjlmag))+(cosijl*rjl[2]/(rjlmag*rjlmag));
+      dcosijldri[0] = (-rjl[0]*invrijlm) - (cosijl*rij[0]*invrijm2);
+      dcosijldri[1] = (-rjl[1]*invrijlm) - (cosijl*rij[1]*invrijm2);
+      dcosijldri[2] = (-rjl[2]*invrijlm) - (cosijl*rij[2]*invrijm2);
+      dcosijldrj[0] = ((-rij[0]+rjl[0])*invrijlm) +
+	(cosijl*((rij[0]*invrijm2)-(rjl[0]*invrjlm2)));
+      dcosijldrj[1] = ((-rij[1]+rjl[1])*invrijlm) +
+	(cosijl*((rij[1]*invrijm2)-(rjl[1]*invrjlm2)));
+      dcosijldrj[2] = ((-rij[2]+rjl[2])*invrijlm) +
+	(cosijl*((rij[2]*invrijm2)-(rjl[2]*invrjlm2)));
+      dcosijldrl[0] = (rij[0]*invrijlm)+(cosijl*rjl[0]*invrjlm2);
+      dcosijldrl[1] = (rij[1]*invrijlm)+(cosijl*rjl[1]*invrjlm2);
+      dcosijldrl[2] = (rij[2]*invrijlm)+(cosijl*rjl[2]*invrjlm2);
 
       // evaluate splines g and derivatives dg
 
       g = gSpline(cosijl,NjiC+NjiH,jtype,&dgdc,&dgdN);
       tmp2 = VA*.5*(tmp*wjl*dgdc*exp(lamdaijl));
-      fi[0] = -tmp2*dcosijldri[0]; 
-      fi[1] = -tmp2*dcosijldri[1]; 
-      fi[2] = -tmp2*dcosijldri[2]; 
-      fj[0] = -tmp2*dcosijldrj[0]; 
-      fj[1] = -tmp2*dcosijldrj[1]; 
-      fj[2] = -tmp2*dcosijldrj[2]; 
-      fl[0] = -tmp2*dcosijldrl[0]; 
-      fl[1] = -tmp2*dcosijldrl[1]; 
-      fl[2] = -tmp2*dcosijldrl[2]; 
+      fi[0] = -tmp2*dcosijldri[0];
+      fi[1] = -tmp2*dcosijldri[1];
+      fi[2] = -tmp2*dcosijldri[2];
+      fj[0] = -tmp2*dcosijldrj[0];
+      fj[1] = -tmp2*dcosijldrj[1];
+      fj[2] = -tmp2*dcosijldrj[2];
+      fl[0] = -tmp2*dcosijldrl[0];
+      fl[1] = -tmp2*dcosijldrl[1];
+      fl[2] = -tmp2*dcosijldrl[2];
 
       tmp2 = VA*.5*(tmp*wjl*g*exp(lamdaijl)*4.0*kronecker(jtype,1));
-      fi[0] -= tmp2*(rij[0]/rijmag);
-      fi[1] -= tmp2*(rij[1]/rijmag);
-      fi[2] -= tmp2*(rij[2]/rijmag);
-      fj[0] -= tmp2*((-rjl[0]/rjlmag)-(rij[0]/rijmag));
-      fj[1] -= tmp2*((-rjl[1]/rjlmag)-(rij[1]/rijmag));
-      fj[2] -= tmp2*((-rjl[2]/rjlmag)-(rij[2]/rijmag));
-      fl[0] -= tmp2*(rjl[0]/rjlmag);
-      fl[1] -= tmp2*(rjl[1]/rjlmag);
-      fl[2] -= tmp2*(rjl[2]/rjlmag);
+      fi[0] -= tmp2*(rij[0]*invrijm);
+      fi[1] -= tmp2*(rij[1]*invrijm);
+      fi[2] -= tmp2*(rij[2]*invrijm);
+      fj[0] -= tmp2*((-rjl[0]*invrjlm)-(rij[0]*invrijm));
+      fj[1] -= tmp2*((-rjl[1]*invrjlm)-(rij[1]*invrijm));
+      fj[2] -= tmp2*((-rjl[2]*invrjlm)-(rij[2]*invrijm));
+      fl[0] -= tmp2*(rjl[0]*invrjlm);
+      fl[1] -= tmp2*(rjl[1]*invrjlm);
+      fl[2] -= tmp2*(rjl[2]*invrjlm);
 
       // coordination forces
-      
+
       // dwik forces
 
-      tmp2 = VA*.5*(tmp*dwjl*g*exp(lamdaijl))/rjlmag;
+      tmp2 = VA*.5*(tmp*dwjl*g*exp(lamdaijl))*invrjlm;
       fj[0] -= tmp2*rjl[0];
       fj[1] -= tmp2*rjl[1];
       fj[2] -= tmp2*rjl[2];
@@ -380,9 +384,9 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3],
       fl[1] += tmp2*rjl[1];
       fl[2] += tmp2*rjl[2];
 
-      // PIJ forces 
+      // PIJ forces
 
-      tmp2 = VA*.5*(tmp*dN2[ltype]*dwjl)/rjlmag;
+      tmp2 = VA*.5*(tmp*dN2[ltype]*dwjl)*invrjlm;
       fj[0] -= tmp2*rjl[0];
       fj[1] -= tmp2*rjl[1];
       fj[2] -= tmp2*rjl[2];
@@ -392,13 +396,13 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3],
 
       // dgdN forces
 
-      tmp2 = VA*.5*(tmp*tmp3*dwjl)/rjlmag;
+      tmp2 = VA*.5*(tmp*tmp3*dwjl)*invrjlm;
       fj[0] -= tmp2*rjl[0];
       fj[1] -= tmp2*rjl[1];
       fj[2] -= tmp2*rjl[2];
       fl[0] += tmp2*rjl[0];
       fl[1] += tmp2*rjl[1];
-      fl[2] += tmp2*rjl[2];  
+      fl[2] += tmp2*rjl[2];
 
       f[atomi][0] += fi[0]; f[atomi][1] += fi[1]; f[atomi][2] += fi[2];
       f[atomj][0] += fj[0]; f[atomj][1] += fj[1]; f[atomj][2] += fj[2];
@@ -409,13 +413,13 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3],
 	v_tally3_thr(atomi,atomj,atoml,fi,fl,rij,rlj,tid);
       }
     }
-  }	
-  
+  }
+
   // evaluate Nij conj
 
   Nijconj = 1.0+(NconjtmpI*NconjtmpI)+(NconjtmpJ*NconjtmpJ);
   piRC = piRCSpline(NijC+NijH,NjiC+NjiH,Nijconj,itype,jtype,dN3);
-  
+
   // piRC forces
 
   REBO_neighs_i = REBO_firstneigh[i];
@@ -428,26 +432,26 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3],
       rik[2] = x[atomi][2]-x[atomk][2];
       rikmag = sqrt((rik[0]*rik[0])+(rik[1]*rik[1])+(rik[2]*rik[2]));
       wik = Sp(rikmag,rcmin[itype][ktype],rcmax[itype][ktype],dwik);
-      Nki = nC[atomk]-(wik*kronecker(itype,0))+nH[atomk] - 
+      Nki = nC[atomk]-(wik*kronecker(itype,0))+nH[atomk] -
 	(wik*kronecker(itype,1));
       SpN = Sp(Nki,Nmin,Nmax,dNki);
 
       tmp2 = VA*dN3[0]*dwik/rikmag;
-      f[atomi][0] -= tmp2*rik[0]; 
-      f[atomi][1] -= tmp2*rik[1]; 
-      f[atomi][2] -= tmp2*rik[2]; 
-      f[atomk][0] += tmp2*rik[0]; 
-      f[atomk][1] += tmp2*rik[1]; 
-      f[atomk][2] += tmp2*rik[2]; 
+      f[atomi][0] -= tmp2*rik[0];
+      f[atomi][1] -= tmp2*rik[1];
+      f[atomi][2] -= tmp2*rik[2];
+      f[atomk][0] += tmp2*rik[0];
+      f[atomk][1] += tmp2*rik[1];
+      f[atomk][2] += tmp2*rik[2];
 
       if (vflag_atom) v_tally2_thr(atomi,atomk,-tmp2,rik,tid);
 
       tmp2 = VA*dN3[2]*(2.0*NconjtmpI*dwik*SpN)/rikmag;
-      f[atomi][0] -= tmp2*rik[0]; 
-      f[atomi][1] -= tmp2*rik[1]; 
-      f[atomi][2] -= tmp2*rik[2]; 
-      f[atomk][0] += tmp2*rik[0]; 
-      f[atomk][1] += tmp2*rik[1]; 
+      f[atomi][0] -= tmp2*rik[0];
+      f[atomi][1] -= tmp2*rik[1];
+      f[atomi][2] -= tmp2*rik[2];
+      f[atomk][0] += tmp2*rik[0];
+      f[atomk][1] += tmp2*rik[1];
       f[atomk][2] += tmp2*rik[2];
 
       if (vflag_atom) v_tally2_thr(atomi,atomk,-tmp2,rik,tid);
@@ -465,20 +469,20 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3],
 	    Sp(rknmag,rcmin[ktype][ntype],rcmax[ktype][ntype],dwkn);
 
 	    tmp2 = VA*dN3[2]*(2.0*NconjtmpI*wik*dNki*dwkn)/rknmag;
-	    f[atomk][0] -= tmp2*rkn[0]; 
-	    f[atomk][1] -= tmp2*rkn[1]; 
-	    f[atomk][2] -= tmp2*rkn[2]; 
-	    f[atomn][0] += tmp2*rkn[0]; 
-	    f[atomn][1] += tmp2*rkn[1]; 
+	    f[atomk][0] -= tmp2*rkn[0];
+	    f[atomk][1] -= tmp2*rkn[1];
+	    f[atomk][2] -= tmp2*rkn[2];
+	    f[atomn][0] += tmp2*rkn[0];
+	    f[atomn][1] += tmp2*rkn[1];
 	    f[atomn][2] += tmp2*rkn[2];
 
 	    if (vflag_atom) v_tally2_thr(atomk,atomn,-tmp2,rkn,tid);
 	  }
 	}
-      } 
+      }
     }
-  }  
-  
+  }
+
   // piRC forces
 
   REBO_neighs = REBO_firstneigh[atomj];
@@ -491,26 +495,26 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3],
       rjl[2] = x[atomj][2]-x[atoml][2];
       rjlmag = sqrt((rjl[0]*rjl[0])+(rjl[1]*rjl[1])+(rjl[2]*rjl[2]));
       wjl = Sp(rjlmag,rcmin[jtype][ltype],rcmax[jtype][ltype],dwjl);
-      Nlj = nC[atoml]-(wjl*kronecker(jtype,0))+nH[atoml] - 
+      Nlj = nC[atoml]-(wjl*kronecker(jtype,0))+nH[atoml] -
 	(wjl*kronecker(jtype,1));
       SpN = Sp(Nlj,Nmin,Nmax,dNlj);
 
       tmp2 = VA*dN3[1]*dwjl/rjlmag;
-      f[atomj][0] -= tmp2*rjl[0]; 
-      f[atomj][1] -= tmp2*rjl[1]; 
+      f[atomj][0] -= tmp2*rjl[0];
+      f[atomj][1] -= tmp2*rjl[1];
       f[atomj][2] -= tmp2*rjl[2];
-      f[atoml][0] += tmp2*rjl[0]; 
-      f[atoml][1] += tmp2*rjl[1]; 
+      f[atoml][0] += tmp2*rjl[0];
+      f[atoml][1] += tmp2*rjl[1];
       f[atoml][2] += tmp2*rjl[2];
 
       if (vflag_atom) v_tally2_thr(atomj,atoml,-tmp2,rjl,tid);
 
       tmp2 = VA*dN3[2]*(2.0*NconjtmpJ*dwjl*SpN)/rjlmag;
-      f[atomj][0] -= tmp2*rjl[0]; 
-      f[atomj][1] -= tmp2*rjl[1]; 
+      f[atomj][0] -= tmp2*rjl[0];
+      f[atomj][1] -= tmp2*rjl[1];
       f[atomj][2] -= tmp2*rjl[2];
-      f[atoml][0] += tmp2*rjl[0]; 
-      f[atoml][1] += tmp2*rjl[1]; 
+      f[atoml][0] += tmp2*rjl[0];
+      f[atoml][1] += tmp2*rjl[1];
       f[atoml][2] += tmp2*rjl[2];
 
       if (vflag_atom) v_tally2_thr(atomj,atoml,-tmp2,rjl,tid);
@@ -528,20 +532,20 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3],
 	    Sp(rlnmag,rcmin[ltype][ntype],rcmax[ltype][ntype],dwln);
 
 	    tmp2 = VA*dN3[2]*(2.0*NconjtmpJ*wjl*dNlj*dwln)/rlnmag;
-	    f[atoml][0] -= tmp2*rln[0]; 
-	    f[atoml][1] -= tmp2*rln[1]; 
+	    f[atoml][0] -= tmp2*rln[0];
+	    f[atoml][1] -= tmp2*rln[1];
 	    f[atoml][2] -= tmp2*rln[2];
-	    f[atomn][0] += tmp2*rln[0]; 
-	    f[atomn][1] += tmp2*rln[1]; 
+	    f[atomn][0] += tmp2*rln[0];
+	    f[atomn][1] += tmp2*rln[1];
 	    f[atomn][2] += tmp2*rln[2];
-	    
+
 	    if (vflag_atom) v_tally2_thr(atoml,atomn,-tmp2,rln,tid);
 	  }
 	}
-      } 
+      }
     }
-  }   
-  
+  }
+
   Tij = 0.0;
   dN3[0] = 0.0;
   dN3[1] = 0.0;
@@ -571,7 +575,7 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3],
 	r21[1] = x[atom2][1]-x[atom1][1];
 	r21[2] = x[atom2][2]-x[atom1][2];
 	r21mag = sqrt(r21[0]*r21[0] + r21[1]*r21[1] + r21[2]*r21[2]);
-	cos321 = -1.0*((r21[0]*r32[0])+(r21[1]*r32[1])+(r21[2]*r32[2])) / 
+	cos321 = -1.0*((r21[0]*r32[0])+(r21[1]*r32[1])+(r21[2]*r32[2])) /
 	  (r21mag*r32mag);
 	cos321 = MIN(cos321,1.0);
 	cos321 = MAX(cos321,-1.0);
@@ -609,7 +613,7 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3],
 	      r34[1] = x[atom3][1]-x[atom4][1];
 	      r34[2] = x[atom3][2]-x[atom4][2];
 	      r34mag = sqrt((r34[0]*r34[0])+(r34[1]*r34[1])+(r34[2]*r34[2]));
-	      cos234 = (r32[0]*r34[0] + r32[1]*r34[1] + r32[2]*r34[2]) / 
+	      cos234 = (r32[0]*r34[0] + r32[1]*r34[1] + r32[2]*r34[2]) /
 		(r32mag*r34mag);
 	      cos234 = MIN(cos234,1.0);
 	      cos234 = MAX(cos234,-1.0);
@@ -643,70 +647,70 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3],
 		cross234[1] = (r23[2]*r34[0])-(r23[0]*r34[2]);
 		cross234[2] = (r23[0]*r34[1])-(r23[1]*r34[0]);
 
-		cwnum = (cross321[0]*cross234[0]) + 
+		cwnum = (cross321[0]*cross234[0]) +
 		  (cross321[1]*cross234[1]) + (cross321[2]*cross234[2]);
 		cwnom = r21mag*r34mag*r23mag*r23mag*sin321*sin234;
 		om1234 = cwnum/cwnom;
 		cw = om1234;
-		Etmp += ((1.0-pow(om1234,2.0))*w21*w34) * 
+		Etmp += ((1.0-(om1234*om1234))*w21*w34) *
 		  (1.0-tspjik)*(1.0-tspijl);
-		
+
 		dt1dik = (rik2i)-(dctik*sink2i*cos321);
 		dt1djk = (-dctjk*sink2i*cos321);
 		dt1djl = (rjl2i)-(dctjl*sinl2i*cos234);
 		dt1dil = (-dctil*sinl2i*cos234);
-		dt1dij = (2.0/(r23mag*r23mag))-(dctij*sink2i*cos321) - 
+		dt1dij = (2.0/(r23mag*r23mag))-(dctij*sink2i*cos321) -
 		  (dctji*sinl2i*cos234);
-		
+
 		dt2dik[0] = (-r23[2]*cross234[1])+(r23[1]*cross234[2]);
 		dt2dik[1] = (-r23[0]*cross234[2])+(r23[2]*cross234[0]);
 		dt2dik[2] = (-r23[1]*cross234[0])+(r23[0]*cross234[1]);
-		
+
 		dt2djl[0] = (-r23[1]*cross321[2])+(r23[2]*cross321[1]);
 		dt2djl[1] = (-r23[2]*cross321[0])+(r23[0]*cross321[2]);
 		dt2djl[2] = (-r23[0]*cross321[1])+(r23[1]*cross321[0]);
-		
-		dt2dij[0] = (r21[2]*cross234[1])-(r34[2]*cross321[1]) - 
+
+		dt2dij[0] = (r21[2]*cross234[1])-(r34[2]*cross321[1]) -
 		  (r21[1]*cross234[2])+(r34[1]*cross321[2]);
-		dt2dij[1] = (r21[0]*cross234[2])-(r34[0]*cross321[2]) - 
+		dt2dij[1] = (r21[0]*cross234[2])-(r34[0]*cross321[2]) -
 		  (r21[2]*cross234[0])+(r34[2]*cross321[0]);
-		dt2dij[2] = (r21[1]*cross234[0])-(r34[1]*cross321[0]) - 
+		dt2dij[2] = (r21[1]*cross234[0])-(r34[1]*cross321[0]) -
 		  (r21[0]*cross234[1])+(r34[0]*cross321[1]);
-		
-		aa = (prefactor*2.0*cw/cwnom)*w21*w34 * 
+
+		aa = (prefactor*2.0*cw/cwnom)*w21*w34 *
 		  (1.0-tspjik)*(1.0-tspijl);
-		aaa1 = -prefactor*(1.0-pow(om1234,2.0)) * 
+		aaa1 = -prefactor*(1.0-(om1234*om1234)) *
 		  (1.0-tspjik)*(1.0-tspijl);
 		aaa2 = aaa1*w21*w34;
 		at2 = aa*cwnum;
-		
-		fcijpc = (-dt1dij*at2)+(aaa2*dtsjik*dctij*(1.0-tspijl)) + 
+
+		fcijpc = (-dt1dij*at2)+(aaa2*dtsjik*dctij*(1.0-tspijl)) +
 		  (aaa2*dtsijl*dctji*(1.0-tspjik));
 		fcikpc = (-dt1dik*at2)+(aaa2*dtsjik*dctik*(1.0-tspijl));
 		fcjlpc = (-dt1djl*at2)+(aaa2*dtsijl*dctjl*(1.0-tspjik));
 		fcjkpc = (-dt1djk*at2)+(aaa2*dtsjik*dctjk*(1.0-tspijl));
 		fcilpc = (-dt1dil*at2)+(aaa2*dtsijl*dctil*(1.0-tspjik));
-		
+
 		F23[0] = (fcijpc*r23[0])+(aa*dt2dij[0]);
 		F23[1] = (fcijpc*r23[1])+(aa*dt2dij[1]);
 		F23[2] = (fcijpc*r23[2])+(aa*dt2dij[2]);
-		
+
 		F12[0] = (fcikpc*r21[0])+(aa*dt2dik[0]);
 		F12[1] = (fcikpc*r21[1])+(aa*dt2dik[1]);
 		F12[2] = (fcikpc*r21[2])+(aa*dt2dik[2]);
-		
+
 		F34[0] = (fcjlpc*r34[0])+(aa*dt2djl[0]);
 		F34[1] = (fcjlpc*r34[1])+(aa*dt2djl[1]);
 		F34[2] = (fcjlpc*r34[2])+(aa*dt2djl[2]);
-		
+
 		F31[0] = (fcjkpc*rjk[0]);
 		F31[1] = (fcjkpc*rjk[1]);
 		F31[2] = (fcjkpc*rjk[2]);
-		
+
 		F24[0] = (fcilpc*ril[0]);
 		F24[1] = (fcilpc*ril[1]);
 		F24[2] = (fcilpc*ril[2]);
-		
+
 		f1[0] = -F12[0]-F31[0];
 		f1[1] = -F12[1]-F31[1];
 		f1[2] = -F12[2]-F31[2];
@@ -719,10 +723,10 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3],
 		f4[0] = -F34[0]-F24[0];
 		f4[1] = -F34[1]-F24[1];
 		f4[2] = -F34[2]-F24[2];
-		
+
 		// coordination forces
 
-		tmp2 = VA*Tij*((1.0-(om1234*om1234))) * 
+		tmp2 = VA*Tij*((1.0-(om1234*om1234))) *
 		  (1.0-tspjik)*(1.0-tspijl)*dw21*w34/r21mag;
 		f2[0] -= tmp2*r21[0];
 		f2[1] -= tmp2*r21[1];
@@ -730,15 +734,15 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3],
 		f1[0] += tmp2*r21[0];
 		f1[1] += tmp2*r21[1];
 		f1[2] += tmp2*r21[2];
-		
-		tmp2 = VA*Tij*((1.0-(om1234*om1234))) * 
+
+		tmp2 = VA*Tij*((1.0-(om1234*om1234))) *
 		  (1.0-tspjik)*(1.0-tspijl)*w21*dw34/r34mag;
 		f3[0] -= tmp2*r34[0];
 		f3[1] -= tmp2*r34[1];
 		f3[2] -= tmp2*r34[2];
 		f4[0] += tmp2*r34[0];
 		f4[1] += tmp2*r34[1];
-		f4[2] += tmp2*r34[2];  
+		f4[2] += tmp2*r34[2];
 
 		f[atom1][0] += f1[0]; f[atom1][1] += f1[1];
 		f[atom1][2] += f1[2];
@@ -748,7 +752,7 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3],
 		f[atom3][2] += f3[2];
 		f[atom4][0] += f4[0]; f[atom4][1] += f4[1];
 		f[atom4][2] += f4[2];
-		
+
 		if (vflag_atom) {
 		  r13[0] = -rjk[0]; r13[1] = -rjk[1]; r13[2] = -rjk[2];
 		  r43[0] = -r34[0]; r43[1] = -r34[1]; r43[2] = -r34[2];
@@ -760,7 +764,7 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3],
 	}
       }
     }
-    
+
     // Tij forces now that we have Etmp
 
     REBO_neighs = REBO_firstneigh[i];
@@ -773,27 +777,27 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3],
 	rik[2] = x[atomi][2]-x[atomk][2];
 	rikmag = sqrt((rik[0]*rik[0])+(rik[1]*rik[1])+(rik[2]*rik[2]));
 	wik = Sp(rikmag,rcmin[itype][ktype],rcmax[itype][ktype],dwik);
-	Nki = nC[atomk]-(wik*kronecker(itype,0))+nH[atomk] - 
+	Nki = nC[atomk]-(wik*kronecker(itype,0))+nH[atomk] -
 	  (wik*kronecker(itype,1));
 	SpN = Sp(Nki,Nmin,Nmax,dNki);
 
 	tmp2 = VA*dN3[0]*dwik*Etmp/rikmag;
-	f[atomi][0] -= tmp2*rik[0]; 
-	f[atomi][1] -= tmp2*rik[1]; 
-	f[atomi][2] -= tmp2*rik[2]; 
-	f[atomk][0] += tmp2*rik[0]; 
-	f[atomk][1] += tmp2*rik[1]; 
-	f[atomk][2] += tmp2*rik[2]; 
+	f[atomi][0] -= tmp2*rik[0];
+	f[atomi][1] -= tmp2*rik[1];
+	f[atomi][2] -= tmp2*rik[2];
+	f[atomk][0] += tmp2*rik[0];
+	f[atomk][1] += tmp2*rik[1];
+	f[atomk][2] += tmp2*rik[2];
 
 	if (vflag_atom) v_tally2_thr(atomi,atomk,-tmp2,rik,tid);
 
 	tmp2 = VA*dN3[2]*(2.0*NconjtmpI*dwik*SpN)*Etmp/rikmag;
-	f[atomi][0] -= tmp2*rik[0]; 
-	f[atomi][1] -= tmp2*rik[1]; 
-	f[atomi][2] -= tmp2*rik[2]; 
-	f[atomk][0] += tmp2*rik[0]; 
-	f[atomk][1] += tmp2*rik[1]; 
-	f[atomk][2] += tmp2*rik[2]; 
+	f[atomi][0] -= tmp2*rik[0];
+	f[atomi][1] -= tmp2*rik[1];
+	f[atomi][2] -= tmp2*rik[2];
+	f[atomk][0] += tmp2*rik[0];
+	f[atomk][1] += tmp2*rik[1];
+	f[atomk][2] += tmp2*rik[2];
 
 	if (vflag_atom) v_tally2_thr(atomi,atomk,-tmp2,rik,tid);
 
@@ -810,12 +814,12 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3],
 	      Sp(rknmag,rcmin[ktype][ntype],rcmax[ktype][ntype],dwkn);
 
 	      tmp2 = VA*dN3[2]*(2.0*NconjtmpI*wik*dNki*dwkn)*Etmp/rknmag;
-	      f[atomk][0] -= tmp2*rkn[0]; 
-	      f[atomk][1] -= tmp2*rkn[1]; 
-	      f[atomk][2] -= tmp2*rkn[2]; 
-	      f[atomn][0] += tmp2*rkn[0]; 
-	      f[atomn][1] += tmp2*rkn[1]; 
-	      f[atomn][2] += tmp2*rkn[2]; 
+	      f[atomk][0] -= tmp2*rkn[0];
+	      f[atomk][1] -= tmp2*rkn[1];
+	      f[atomk][2] -= tmp2*rkn[2];
+	      f[atomn][0] += tmp2*rkn[0];
+	      f[atomn][1] += tmp2*rkn[1];
+	      f[atomn][2] += tmp2*rkn[2];
 
 	      if (vflag_atom) v_tally2_thr(atomk,atomn,-tmp2,rkn,tid);
 	    }
@@ -836,27 +840,27 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3],
 	rjl[2] = x[atomj][2]-x[atoml][2];
 	rjlmag = sqrt((rjl[0]*rjl[0])+(rjl[1]*rjl[1])+(rjl[2]*rjl[2]));
 	wjl = Sp(rjlmag,rcmin[jtype][ltype],rcmax[jtype][ltype],dwjl);
-	Nlj = nC[atoml]-(wjl*kronecker(jtype,0))+nH[atoml] - 
+	Nlj = nC[atoml]-(wjl*kronecker(jtype,0))+nH[atoml] -
 	  (wjl*kronecker(jtype,1));
 	SpN = Sp(Nlj,Nmin,Nmax,dNlj);
 
 	tmp2 = VA*dN3[1]*dwjl*Etmp/rjlmag;
-	f[atomj][0] -= tmp2*rjl[0]; 
-	f[atomj][1] -= tmp2*rjl[1]; 
-	f[atomj][2] -= tmp2*rjl[2]; 
-	f[atoml][0] += tmp2*rjl[0]; 
-	f[atoml][1] += tmp2*rjl[1]; 
-	f[atoml][2] += tmp2*rjl[2]; 
+	f[atomj][0] -= tmp2*rjl[0];
+	f[atomj][1] -= tmp2*rjl[1];
+	f[atomj][2] -= tmp2*rjl[2];
+	f[atoml][0] += tmp2*rjl[0];
+	f[atoml][1] += tmp2*rjl[1];
+	f[atoml][2] += tmp2*rjl[2];
 
 	if (vflag_atom) v_tally2_thr(atomj,atoml,-tmp2,rjl,tid);
 
 	tmp2 = VA*dN3[2]*(2.0*NconjtmpJ*dwjl*SpN)*Etmp/rjlmag;
-	f[atomj][0] -= tmp2*rjl[0]; 
-	f[atomj][1] -= tmp2*rjl[1]; 
-	f[atomj][2] -= tmp2*rjl[2]; 
-	f[atoml][0] += tmp2*rjl[0]; 
-	f[atoml][1] += tmp2*rjl[1]; 
-	f[atoml][2] += tmp2*rjl[2]; 
+	f[atomj][0] -= tmp2*rjl[0];
+	f[atomj][1] -= tmp2*rjl[1];
+	f[atomj][2] -= tmp2*rjl[2];
+	f[atoml][0] += tmp2*rjl[0];
+	f[atoml][1] += tmp2*rjl[1];
+	f[atoml][2] += tmp2*rjl[2];
 
 	if (vflag_atom) v_tally2_thr(atomj,atoml,-tmp2,rjl,tid);
 
@@ -926,7 +930,7 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
   double rjk[3],ril[3],dt1dik,dt1djk,dt1djl,dt1dil,dt1dij;
   double dNlj;
   double PijS,PjiS;
-  double rij2,tspjik,dtsjik,tspijl,dtsijl,costmp; 
+  double rij2,tspjik,dtsjik,tspijl,dtsijl,costmp;
   int *REBO_neighs,*REBO_neighs_i,*REBO_neighs_j,*REBO_neighs_k,*REBO_neighs_l;
   double F12[3],F23[3],F34[3],F31[3],F24[3];
   double fi[3],fj[3],fk[3],fl[3],f1[3],f2[3],f3[3],f4[4];
@@ -934,7 +938,7 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
 
   double **x = atom->x;
   int *type = atom->type;
-  
+
   atomi = i;
   atomj = j;
   itype = map[type[atomi]];
@@ -944,12 +948,12 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
   NijH = nH[atomi]-(wij*kronecker(jtype,1));
   NjiC = nC[atomj]-(wij*kronecker(itype,0));
   NjiH = nH[atomj]-(wij*kronecker(itype,1));
-  
+
   rij[0] = rij0[0];
   rij[1] = rij0[1];
   rij[2] = rij0[2];
-  rijmag = rij0mag; 
-  
+  rijmag = rij0mag;
+
   bij = 0.0;
   tmp = 0.0;
   tmp2 = 0.0;
@@ -969,12 +973,12 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
       rik[1] = x[atomi][1]-x[atomk][1];
       rik[2] = x[atomi][2]-x[atomk][2];
       rikmag = sqrt((rik[0]*rik[0])+(rik[1]*rik[1])+(rik[2]*rik[2]));
-      lamdajik = 4.0*kronecker(itype,1) * 
-	((rho[ktype][1]-rikmag)-(rho[jtype][1]-rijmag));		
+      lamdajik = 4.0*kronecker(itype,1) *
+	((rho[ktype][1]-rikmag)-(rho[jtype][1]-rijmag));
       wik = Sp(rikmag,rcmin[itype][ktype],rcmax[itype][ktype],dS);
-      Nki = nC[atomk]-(wik*kronecker(itype,0)) + 
+      Nki = nC[atomk]-(wik*kronecker(itype,0)) +
 	nH[atomk]-(wik*kronecker(itype,1));
-      cosjik = ((rij[0]*rik[0])+(rij[1]*rik[1])+(rij[2]*rik[2])) / 
+      cosjik = ((rij[0]*rik[0])+(rij[1]*rik[1])+(rij[2]*rik[2])) /
 	(rijmag*rikmag);
       cosjik = MIN(cosjik,1.0);
       cosjik = MAX(cosjik,-1.0);
@@ -982,7 +986,7 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
       // evaluate splines g and derivatives dg
 
       g = gSpline(cosjik,(NijC+NijH),itype,&dgdc,&dgdN);
-      Etmp = Etmp+(wik*g*exp(lamdajik)); 
+      Etmp = Etmp+(wik*g*exp(lamdajik));
       tmp3 = tmp3+(wik*dgdN*exp(lamdajik));
       NconjtmpI = NconjtmpI+(kronecker(ktype,0)*wik*Sp(Nki,Nmin,Nmax,dS));
     }
@@ -992,8 +996,8 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
   dN2PIJ[0] = 0.0;
   dN2PIJ[1] = 0.0;
   PijS = PijSpline(NijC,NijH,itype,jtype,dN2PIJ);
-  pij = pow(1.0+Etmp+PijS,-0.5); 
-  tmppij = -.5*pow(pij,3.0);
+  pij = 1.0/sqrt(1.0+Etmp+PijS);
+  tmppij = -.5*pij*pij*pij;
   tmp3pij = tmp3;
   tmp = 0.0;
   tmp2 = 0.0;
@@ -1009,12 +1013,12 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
       rjl[1] = x[atomj][1]-x[atoml][1];
       rjl[2] = x[atomj][2]-x[atoml][2];
       rjlmag = sqrt((rjl[0]*rjl[0])+(rjl[1]*rjl[1])+(rjl[2]*rjl[2]));
-      lamdaijl = 4.0*kronecker(jtype,1) * 
+      lamdaijl = 4.0*kronecker(jtype,1) *
 	((rho[ltype][1]-rjlmag)-(rho[itype][1]-rijmag));
       wjl = Sp(rjlmag,rcmin[jtype][ltype],rcmax[jtype][ltype],dS);
-      Nlj = nC[atoml]-(wjl*kronecker(jtype,0))+nH[atoml] - 
+      Nlj = nC[atoml]-(wjl*kronecker(jtype,0))+nH[atoml] -
 	(wjl*kronecker(jtype,1));
-      cosijl = -1.0*((rij[0]*rjl[0])+(rij[1]*rjl[1])+(rij[2]*rjl[2])) / 
+      cosijl = -1.0*((rij[0]*rjl[0])+(rij[1]*rjl[1])+(rij[2]*rjl[2])) /
 	(rijmag*rjlmag);
       cosijl = MIN(cosijl,1.0);
       cosijl = MAX(cosijl,-1.0);
@@ -1022,8 +1026,8 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
       // evaluate splines g and derivatives dg
 
       g = gSpline(cosijl,NjiC+NjiH,jtype,&dgdc,&dgdN);
-      Etmp = Etmp+(wjl*g*exp(lamdaijl)); 
-      tmp3 = tmp3+(wjl*dgdN*exp(lamdaijl)); 
+      Etmp = Etmp+(wjl*g*exp(lamdaijl));
+      tmp3 = tmp3+(wjl*dgdN*exp(lamdaijl));
       NconjtmpJ = NconjtmpJ+(kronecker(ltype,0)*wjl*Sp(Nlj,Nmin,Nmax,dS));
     }
   }
@@ -1032,8 +1036,8 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
   dN2PJI[0] = 0.0;
   dN2PJI[1] = 0.0;
   PjiS = PijSpline(NjiC,NjiH,jtype,itype,dN2PJI);
-  pji = pow(1.0+Etmp+PjiS,-0.5);
-  tmppji = -.5*pow(pji,3.0);
+  pji = 1.0/sqrt(1.0+Etmp+PjiS);
+  tmppji = -.5*pji*pji*pji;
   tmp3pji = tmp3;
 
   // evaluate Nij conj
@@ -1058,7 +1062,7 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
 	rik[1] = x[atomi][1]-x[atomk][1];
 	rik[2] = x[atomi][2]-x[atomk][2];
 	rikmag = sqrt((rik[0]*rik[0])+(rik[1]*rik[1])+(rik[2]*rik[2]));
-	cos321 = ((rij[0]*rik[0])+(rij[1]*rik[1])+(rij[2]*rik[2])) / 
+	cos321 = ((rij[0]*rik[0])+(rij[1]*rik[1])+(rij[2]*rik[2])) /
 	  (rijmag*rikmag);
 	cos321 = MIN(cos321,1.0);
 	cos321 = MAX(cos321,-1.0);
@@ -1083,7 +1087,7 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
 	      rjl[1] = x[atomj][1]-x[atoml][1];
 	      rjl[2] = x[atomj][2]-x[atoml][2];
 	      rjlmag = sqrt(rjl[0]*rjl[0] + rjl[1]*rjl[1] + rjl[2]*rjl[2]);
-	      cos234 = -((rij[0]*rjl[0])+(rij[1]*rjl[1])+(rij[2]*rjl[2])) / 
+	      cos234 = -((rij[0]*rjl[0])+(rij[1]*rjl[1])+(rij[2]*rjl[2])) /
 		(rijmag*rjlmag);
 	      cos234 = MIN(cos234,1.0);
 	      cos234 = MAX(cos234,-1.0);
@@ -1102,29 +1106,29 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
 		crosskij[0] = (rij[1]*rik[2]-rij[2]*rik[1]);
 		crosskij[1] = (rij[2]*rik[0]-rij[0]*rik[2]);
 		crosskij[2] = (rij[0]*rik[1]-rij[1]*rik[0]);
-		crosskijmag = sqrt(crosskij[0]*crosskij[0] + 
-				   crosskij[1]*crosskij[1] + 
+		crosskijmag = sqrt(crosskij[0]*crosskij[0] +
+				   crosskij[1]*crosskij[1] +
 				   crosskij[2]*crosskij[2]);
 		crossijl[0] = (rij[1]*rjl[2]-rij[2]*rjl[1]);
 		crossijl[1] = (rij[2]*rjl[0]-rij[0]*rjl[2]);
 		crossijl[2] = (rij[0]*rjl[1]-rij[1]*rjl[0]);
-		crossijlmag = sqrt(crossijl[0]*crossijl[0] + 
-				   crossijl[1]*crossijl[1] + 
+		crossijlmag = sqrt(crossijl[0]*crossijl[0] +
+				   crossijl[1]*crossijl[1] +
 				   crossijl[2]*crossijl[2]);
-		omkijl = -1.0*(((crosskij[0]*crossijl[0]) + 
-				(crosskij[1]*crossijl[1]) + 
-				(crosskij[2]*crossijl[2])) / 
+		omkijl = -1.0*(((crosskij[0]*crossijl[0]) +
+				(crosskij[1]*crossijl[1]) +
+				(crosskij[2]*crossijl[2])) /
 			       (crosskijmag*crossijlmag));
-		Etmp += ((1.0-pow(omkijl,2.0))*wik*wjl) * 
+		Etmp += ((1.0-(omkijl*omkijl))*wik*wjl) *
 		  (1.0-tspjik)*(1.0-tspijl);
-	      }	
+	      }
 	    }
 	  }
 	}
       }
     }
   }
-  
+
   bij = (.5*(pij+pji))+piRC+(Tij*Etmp);
   Stb = Sp2(bij,bLJmin[itype][jtype],bLJmax[itype][jtype],dStb);
   VA = VA*dStb;
@@ -1135,104 +1139,106 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
     dN2[1] = dN2PIJ[1];
     tmp3 = tmp3pij;
 
+    const double invrijm = 1.0/rijmag;
+    const double invrijm2 = invrijm*invrijm;
+
     // pij forces
 
     REBO_neighs_i = REBO_firstneigh[i];
     for (k = 0; k < REBO_numneigh[i]; k++) {
       atomk = REBO_neighs_i[k];
       if (atomk != atomj) {
-	lamdajik = 0.0; 
+	lamdajik = 0.0;
 	rik[0] = x[atomi][0]-x[atomk][0];
 	rik[1] = x[atomi][1]-x[atomk][1];
 	rik[2] = x[atomi][2]-x[atomk][2];
 	rikmag = sqrt(rik[0]*rik[0] + rik[1]*rik[1] + rik[2]*rik[2]);
-	lamdajik = 4.0*kronecker(itype,1) * 
+	lamdajik = 4.0*kronecker(itype,1) *
 	  ((rho[ktype][1]-rikmag)-(rho[jtype][1]-rijmag));
 	wik = Sp(rikmag,rcmin[itype][ktype],rcmax[itype][ktype],dwik);
-	cosjik = ((rij[0]*rik[0])+(rij[1]*rik[1])+(rij[2]*rik[2])) / 
-	  (rijmag*rikmag);
+
+	const double invrikm = 1.0/rikmag;
+	const double invrijkm = invrijm*invrikm;
+	const double invrikm2 = invrikm*invrikm;
+
+	cosjik = ((rij[0]*rik[0])+(rij[1]*rik[1])+(rij[2]*rik[2]))
+	  * invrijkm;
 	cosjik = MIN(cosjik,1.0);
 	cosjik = MAX(cosjik,-1.0);
 
-	dcosjikdri[0] = ((rij[0]+rik[0])/(rijmag*rikmag)) - 
-	  (cosjik*((rij[0]/(rijmag*rijmag))+(rik[0]/(rikmag*rikmag))));
-	dcosjikdri[1] = ((rij[1]+rik[1])/(rijmag*rikmag)) - 
-	  (cosjik*((rij[1]/(rijmag*rijmag))+(rik[1]/(rikmag*rikmag))));
-	dcosjikdri[2] = ((rij[2]+rik[2])/(rijmag*rikmag)) - 
-	  (cosjik*((rij[2]/(rijmag*rijmag))+(rik[2]/(rikmag*rikmag))));
-	dcosjikdrk[0] = (-rij[0]/(rijmag*rikmag)) + 
-	  (cosjik*(rik[0]/(rikmag*rikmag)));
-	dcosjikdrk[1] = (-rij[1]/(rijmag*rikmag)) + 
-	  (cosjik*(rik[1]/(rikmag*rikmag)));
-	dcosjikdrk[2] = (-rij[2]/(rijmag*rikmag)) + 
-	  (cosjik*(rik[2]/(rikmag*rikmag)));
-	dcosjikdrj[0] = (-rik[0]/(rijmag*rikmag)) + 
-	  (cosjik*(rij[0]/(rijmag*rijmag)));
-	dcosjikdrj[1] = (-rik[1]/(rijmag*rikmag)) + 
-	  (cosjik*(rij[1]/(rijmag*rijmag)));
-	dcosjikdrj[2] = (-rik[2]/(rijmag*rikmag)) + 
-	  (cosjik*(rij[2]/(rijmag*rijmag)));
+	dcosjikdri[0] = ((rij[0]+rik[0])*invrijkm) -
+	  (cosjik*((rij[0]*invrijm2)+(rik[0]*invrikm2)));
+	dcosjikdri[1] = ((rij[1]+rik[1])*invrijkm) -
+	  (cosjik*((rij[1]*invrijm2)+(rik[1]*invrikm2)));
+	dcosjikdri[2] = ((rij[2]+rik[2])*invrijkm) -
+	  (cosjik*((rij[2]*invrijm2)+(rik[2]*invrikm2)));
+	dcosjikdrk[0] = (-rij[0]*invrijkm) + (cosjik*(rik[0]*invrikm2));
+	dcosjikdrk[1] = (-rij[1]*invrijkm) + (cosjik*(rik[1]*invrikm2));
+	dcosjikdrk[2] = (-rij[2]*invrijkm) + (cosjik*(rik[2]*invrikm2));
+	dcosjikdrj[0] = (-rik[0]*invrijkm) + (cosjik*(rij[0]*invrijm2));
+	dcosjikdrj[1] = (-rik[1]*invrijkm) + (cosjik*(rij[1]*invrijm2));
+	dcosjikdrj[2] = (-rik[2]*invrijkm) + (cosjik*(rij[2]*invrijm2));
 
 	g = gSpline(cosjik,(NijC+NijH),itype,&dgdc,&dgdN);
 
 	tmp2 = VA*.5*(tmp*wik*dgdc*exp(lamdajik));
-	fj[0] = -tmp2*dcosjikdrj[0]; 
-	fj[1] = -tmp2*dcosjikdrj[1]; 
-	fj[2] = -tmp2*dcosjikdrj[2]; 
-	fi[0] = -tmp2*dcosjikdri[0]; 
-	fi[1] = -tmp2*dcosjikdri[1]; 
-	fi[2] = -tmp2*dcosjikdri[2]; 
-	fk[0] = -tmp2*dcosjikdrk[0]; 
-	fk[1] = -tmp2*dcosjikdrk[1]; 
-	fk[2] = -tmp2*dcosjikdrk[2]; 
+	fj[0] = -tmp2*dcosjikdrj[0];
+	fj[1] = -tmp2*dcosjikdrj[1];
+	fj[2] = -tmp2*dcosjikdrj[2];
+	fi[0] = -tmp2*dcosjikdri[0];
+	fi[1] = -tmp2*dcosjikdri[1];
+	fi[2] = -tmp2*dcosjikdri[2];
+	fk[0] = -tmp2*dcosjikdrk[0];
+	fk[1] = -tmp2*dcosjikdrk[1];
+	fk[2] = -tmp2*dcosjikdrk[2];
 
 	tmp2 = VA*.5*(tmp*wik*g*exp(lamdajik)*4.0*kronecker(itype,1));
-	fj[0] -= tmp2*(-rij[0]/rijmag);
-	fj[1] -= tmp2*(-rij[1]/rijmag);
-	fj[2] -= tmp2*(-rij[2]/rijmag);
-	fi[0] -= tmp2*((-rik[0]/rikmag)+(rij[0]/rijmag));
-	fi[1] -= tmp2*((-rik[1]/rikmag)+(rij[1]/rijmag));
-	fi[2] -= tmp2*((-rik[2]/rikmag)+(rij[2]/rijmag));
+	fj[0] -= tmp2*(-rij[0]*invrijm);
+	fj[1] -= tmp2*(-rij[1]*invrijm);
+	fj[2] -= tmp2*(-rij[2]*invrijm);
+	fi[0] -= tmp2*((-rik[0]/rikmag)+(rij[0]*invrijm));
+	fi[1] -= tmp2*((-rik[1]/rikmag)+(rij[1]*invrijm));
+	fi[2] -= tmp2*((-rik[2]/rikmag)+(rij[2]*invrijm));
 	fk[0] -= tmp2*(rik[0]/rikmag);
 	fk[1] -= tmp2*(rik[1]/rikmag);
 	fk[2] -= tmp2*(rik[2]/rikmag);
 
 	// coordination forces
-	
+
 	// dwik forces
 
 	tmp2 = VA*.5*(tmp*dwik*g*exp(lamdajik))/rikmag;
-	fi[0] -= tmp2*rik[0]; 
-	fi[1] -= tmp2*rik[1]; 
-	fi[2] -= tmp2*rik[2]; 
-	fk[0] += tmp2*rik[0]; 
-	fk[1] += tmp2*rik[1]; 
-	fk[2] += tmp2*rik[2]; 
+	fi[0] -= tmp2*rik[0];
+	fi[1] -= tmp2*rik[1];
+	fi[2] -= tmp2*rik[2];
+	fk[0] += tmp2*rik[0];
+	fk[1] += tmp2*rik[1];
+	fk[2] += tmp2*rik[2];
 
 	// PIJ forces
 
 	tmp2 = VA*.5*(tmp*dN2[ktype]*dwik)/rikmag;
-	fi[0] -= tmp2*rik[0]; 
-	fi[1] -= tmp2*rik[1]; 
-	fi[2] -= tmp2*rik[2]; 
-	fk[0] += tmp2*rik[0]; 
-	fk[1] += tmp2*rik[1]; 
-	fk[2] += tmp2*rik[2]; 
+	fi[0] -= tmp2*rik[0];
+	fi[1] -= tmp2*rik[1];
+	fi[2] -= tmp2*rik[2];
+	fk[0] += tmp2*rik[0];
+	fk[1] += tmp2*rik[1];
+	fk[2] += tmp2*rik[2];
 
 	// dgdN forces
 
 	tmp2 = VA*.5*(tmp*tmp3*dwik)/rikmag;
-	fi[0] -= tmp2*rik[0]; 
-	fi[1] -= tmp2*rik[1]; 
-	fi[2] -= tmp2*rik[2]; 
-	fk[0] += tmp2*rik[0]; 
-	fk[1] += tmp2*rik[1]; 
+	fi[0] -= tmp2*rik[0];
+	fi[1] -= tmp2*rik[1];
+	fi[2] -= tmp2*rik[2];
+	fk[0] += tmp2*rik[0];
+	fk[1] += tmp2*rik[1];
 	fk[2] += tmp2*rik[2];
 
 	f[atomi][0] += fi[0]; f[atomi][1] += fi[1]; f[atomi][2] += fi[2];
 	f[atomj][0] += fj[0]; f[atomj][1] += fj[1]; f[atomj][2] += fj[2];
 	f[atomk][0] += fk[0]; f[atomk][1] += fk[1]; f[atomk][2] += fk[2];
-	
+
 	if (vflag_atom) {
 	  rji[0] = -rij[0]; rji[1] = -rij[1]; rji[2] = -rij[2];
 	  rki[0] = -rik[0]; rki[1] = -rik[1]; rki[2] = -rik[2];
@@ -1254,62 +1260,61 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
 	rjl[1] = x[atomj][1]-x[atoml][1];
 	rjl[2] = x[atomj][2]-x[atoml][2];
 	rjlmag = sqrt((rjl[0]*rjl[0])+(rjl[1]*rjl[1])+(rjl[2]*rjl[2]));
-	lamdaijl = 4.0*kronecker(jtype,1) * 
+	lamdaijl = 4.0*kronecker(jtype,1) *
 	  ((rho[ltype][1]-rjlmag)-(rho[itype][1]-rijmag));
 	wjl = Sp(rjlmag,rcmin[jtype][ltype],rcmax[jtype][ltype],dwjl);
-	cosijl = (-1.0*((rij[0]*rjl[0])+(rij[1]*rjl[1])+(rij[2]*rjl[2]))) / 
-	  (rijmag*rjlmag);
+
+	const double invrjlm = 1.0/rjlmag;
+	const double invrijlm = invrijm*invrjlm;
+	const double invrjlm2 = invrjlm*invrjlm;
+
+	cosijl = (-1.0*((rij[0]*rjl[0])+(rij[1]*rjl[1])+(rij[2]*rjl[2]))) *
+	  invrijlm;
 	cosijl = MIN(cosijl,1.0);
 	cosijl = MAX(cosijl,-1.0);
 
-	dcosijldri[0] = (-rjl[0]/(rijmag*rjlmag)) - 
-	  (cosijl*rij[0]/(rijmag*rijmag));
-	dcosijldri[1] = (-rjl[1]/(rijmag*rjlmag)) - 
-	  (cosijl*rij[1]/(rijmag*rijmag));
-	dcosijldri[2] = (-rjl[2]/(rijmag*rjlmag)) - 
-	  (cosijl*rij[2]/(rijmag*rijmag));
-	dcosijldrj[0] = ((-rij[0]+rjl[0])/(rijmag*rjlmag)) + 
-	  (cosijl*((rij[0]/pow(rijmag,2.0))-(rjl[0]/(rjlmag*rjlmag))));
-	dcosijldrj[1] = ((-rij[1]+rjl[1])/(rijmag*rjlmag)) + 
-	  (cosijl*((rij[1]/pow(rijmag,2.0))-(rjl[1]/(rjlmag*rjlmag))));
-	dcosijldrj[2] = ((-rij[2]+rjl[2])/(rijmag*rjlmag)) + 
-	  (cosijl*((rij[2]/pow(rijmag,2.0))-(rjl[2]/(rjlmag*rjlmag))));
-	dcosijldrl[0] = (rij[0]/(rijmag*rjlmag)) + 
-	  (cosijl*rjl[0]/(rjlmag*rjlmag));
-	dcosijldrl[1] = (rij[1]/(rijmag*rjlmag)) + 
-	  (cosijl*rjl[1]/(rjlmag*rjlmag));
-	dcosijldrl[2] = (rij[2]/(rijmag*rjlmag)) + 
-	  (cosijl*rjl[2]/(rjlmag*rjlmag));
+	dcosijldri[0] = (-rjl[0]*invrijlm) - (cosijl*rij[0]*invrijm2);
+	dcosijldri[1] = (-rjl[1]*invrijlm) - (cosijl*rij[1]*invrijm2);
+	dcosijldri[2] = (-rjl[2]*invrijlm) - (cosijl*rij[2]*invrijm2);
+	dcosijldrj[0] = ((-rij[0]+rjl[0])*invrijlm) +
+	  (cosijl*((rij[0]*invrijm2)-(rjl[0]*invrjlm2)));
+	dcosijldrj[1] = ((-rij[1]+rjl[1])*invrijlm) +
+	  (cosijl*((rij[1]*invrijm2)-(rjl[1]*invrjlm2)));
+	dcosijldrj[2] = ((-rij[2]+rjl[2])*invrijlm) +
+	  (cosijl*((rij[2]*invrijm2)-(rjl[2]*invrjlm2)));
+	dcosijldrl[0] = (rij[0]*invrijlm) + (cosijl*rjl[0]*invrjlm2);
+	dcosijldrl[1] = (rij[1]*invrijlm) + (cosijl*rjl[1]*invrjlm2);
+	dcosijldrl[2] = (rij[2]*invrijlm) + (cosijl*rjl[2]*invrjlm2);
 
 	// evaluate splines g and derivatives dg
 
 	g = gSpline(cosijl,NjiC+NjiH,jtype,&dgdc,&dgdN);
 	tmp2 = VA*.5*(tmp*wjl*dgdc*exp(lamdaijl));
-	fi[0] = -tmp2*dcosijldri[0]; 
-	fi[1] = -tmp2*dcosijldri[1]; 
-	fi[2] = -tmp2*dcosijldri[2]; 
-	fj[0] = -tmp2*dcosijldrj[0]; 
-	fj[1] = -tmp2*dcosijldrj[1]; 
-	fj[2] = -tmp2*dcosijldrj[2]; 
-	fl[0] = -tmp2*dcosijldrl[0]; 
-	fl[1] = -tmp2*dcosijldrl[1]; 
-	fl[2] = -tmp2*dcosijldrl[2]; 
+	fi[0] = -tmp2*dcosijldri[0];
+	fi[1] = -tmp2*dcosijldri[1];
+	fi[2] = -tmp2*dcosijldri[2];
+	fj[0] = -tmp2*dcosijldrj[0];
+	fj[1] = -tmp2*dcosijldrj[1];
+	fj[2] = -tmp2*dcosijldrj[2];
+	fl[0] = -tmp2*dcosijldrl[0];
+	fl[1] = -tmp2*dcosijldrl[1];
+	fl[2] = -tmp2*dcosijldrl[2];
 
 	tmp2 = VA*.5*(tmp*wjl*g*exp(lamdaijl)*4.0*kronecker(jtype,1));
-	fi[0] -= tmp2*(rij[0]/rijmag);
-	fi[1] -= tmp2*(rij[1]/rijmag);
-	fi[2] -= tmp2*(rij[2]/rijmag);
-	fj[0] -= tmp2*((-rjl[0]/rjlmag)-(rij[0]/rijmag));
-	fj[1] -= tmp2*((-rjl[1]/rjlmag)-(rij[1]/rijmag));
-	fj[2] -= tmp2*((-rjl[2]/rjlmag)-(rij[2]/rijmag));
-	fl[0] -= tmp2*(rjl[0]/rjlmag);
-	fl[1] -= tmp2*(rjl[1]/rjlmag);
-	fl[2] -= tmp2*(rjl[2]/rjlmag); 
+	fi[0] -= tmp2*(rij[0]*invrijm);
+	fi[1] -= tmp2*(rij[1]*invrijm);
+	fi[2] -= tmp2*(rij[2]*invrijm);
+	fj[0] -= tmp2*((-rjl[0]*invrjlm)-(rij[0]*invrijm));
+	fj[1] -= tmp2*((-rjl[1]*invrjlm)-(rij[1]*invrijm));
+	fj[2] -= tmp2*((-rjl[2]*invrjlm)-(rij[2]*invrijm));
+	fl[0] -= tmp2*(rjl[0]*invrjlm);
+	fl[1] -= tmp2*(rjl[1]*invrjlm);
+	fl[2] -= tmp2*(rjl[2]*invrjlm);
 
  	// coordination forces
 	// dwik forces
 
-	tmp2 = VA*.5*(tmp*dwjl*g*exp(lamdaijl))/rjlmag;
+	tmp2 = VA*.5*(tmp*dwjl*g*exp(lamdaijl))*invrjlm;
 	fj[0] -= tmp2*rjl[0];
 	fj[1] -= tmp2*rjl[1];
 	fj[2] -= tmp2*rjl[2];
@@ -1319,7 +1324,7 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
 
 	// PIJ forces
 
-	tmp2 = VA*.5*(tmp*dN2[ltype]*dwjl)/rjlmag;
+	tmp2 = VA*.5*(tmp*dN2[ltype]*dwjl)*invrjlm;
 	fj[0] -= tmp2*rjl[0];
 	fj[1] -= tmp2*rjl[1];
 	fj[2] -= tmp2*rjl[2];
@@ -1329,7 +1334,7 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
 
 	// dgdN forces
 
-	tmp2=VA*.5*(tmp*tmp3*dwjl)/rjlmag;
+	tmp2=VA*.5*(tmp*tmp3*dwjl)*invrjlm;
 	fj[0] -= tmp2*rjl[0];
 	fj[1] -= tmp2*rjl[1];
 	fj[2] -= tmp2*rjl[2];
@@ -1340,14 +1345,14 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
 	f[atomi][0] += fi[0]; f[atomi][1] += fi[1]; f[atomi][2] += fi[2];
 	f[atomj][0] += fj[0]; f[atomj][1] += fj[1]; f[atomj][2] += fj[2];
 	f[atoml][0] += fl[0]; f[atoml][1] += fl[1]; f[atoml][2] += fl[2];
-	
+
 	if (vflag_atom) {
 	  rlj[0] = -rjl[0]; rlj[1] = -rjl[1]; rlj[2] = -rjl[2];
 	  v_tally3_thr(atomi,atomj,atoml,fi,fl,rij,rlj,tid);
 	}
       }
-    }	
-    
+    }
+
     // piRC forces
 
     dN3[0] = dN3piRC[0];
@@ -1369,21 +1374,21 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
 	SpN = Sp(Nki,Nmin,Nmax,dNki);
 
 	tmp2 = VA*dN3[0]*dwik/rikmag;
-	f[atomi][0] -= tmp2*rik[0]; 
-	f[atomi][1] -= tmp2*rik[1]; 
-	f[atomi][2] -= tmp2*rik[2]; 
-	f[atomk][0] += tmp2*rik[0]; 
-	f[atomk][1] += tmp2*rik[1]; 
-	f[atomk][2] += tmp2*rik[2]; 
+	f[atomi][0] -= tmp2*rik[0];
+	f[atomi][1] -= tmp2*rik[1];
+	f[atomi][2] -= tmp2*rik[2];
+	f[atomk][0] += tmp2*rik[0];
+	f[atomk][1] += tmp2*rik[1];
+	f[atomk][2] += tmp2*rik[2];
 
 	if (vflag_atom) v_tally2_thr(atomi,atomk,-tmp2,rik,tid);
 
 	tmp2 = VA*dN3[2]*(2.0*NconjtmpI*dwik*SpN)/rikmag;
-	f[atomi][0] -= tmp2*rik[0]; 
-	f[atomi][1] -= tmp2*rik[1]; 
-	f[atomi][2] -= tmp2*rik[2]; 
-	f[atomk][0] += tmp2*rik[0]; 
-	f[atomk][1] += tmp2*rik[1]; 
+	f[atomi][0] -= tmp2*rik[0];
+	f[atomi][1] -= tmp2*rik[1];
+	f[atomi][2] -= tmp2*rik[2];
+	f[atomk][0] += tmp2*rik[0];
+	f[atomk][1] += tmp2*rik[1];
 	f[atomk][2] += tmp2*rik[2];
 
 	if (vflag_atom) v_tally2_thr(atomi,atomk,-tmp2,rik,tid);
@@ -1401,11 +1406,11 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
 	      Sp(rknmag,rcmin[ktype][ntype],rcmax[ktype][ntype],dwkn);
 
 	      tmp2 = VA*dN3[2]*(2.0*NconjtmpI*wik*dNki*dwkn)/rknmag;
-	      f[atomk][0] -= tmp2*rkn[0]; 
-	      f[atomk][1] -= tmp2*rkn[1]; 
-	      f[atomk][2] -= tmp2*rkn[2]; 
-	      f[atomn][0] += tmp2*rkn[0]; 
-	      f[atomn][1] += tmp2*rkn[1]; 
+	      f[atomk][0] -= tmp2*rkn[0];
+	      f[atomk][1] -= tmp2*rkn[1];
+	      f[atomk][2] -= tmp2*rkn[2];
+	      f[atomn][0] += tmp2*rkn[0];
+	      f[atomn][1] += tmp2*rkn[1];
 	      f[atomn][2] += tmp2*rkn[2];
 
 	      if (vflag_atom) v_tally2_thr(atomk,atomn,-tmp2,rkn,tid);
@@ -1427,26 +1432,26 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
 	rjl[2] = x[atomj][2]-x[atoml][2];
 	rjlmag = sqrt((rjl[0]*rjl[0])+(rjl[1]*rjl[1])+(rjl[2]*rjl[2]));
 	wjl = Sp(rjlmag,rcmin[jtype][ltype],rcmax[jtype][ltype],dwjl);
-	Nlj = nC[atoml]-(wjl*kronecker(jtype,0))+nH[atoml] - 
+	Nlj = nC[atoml]-(wjl*kronecker(jtype,0))+nH[atoml] -
 	  (wjl*kronecker(jtype,1));
 	SpN = Sp(Nlj,Nmin,Nmax,dNlj);
 
 	tmp2 = VA*dN3[1]*dwjl/rjlmag;
-	f[atomj][0] -= tmp2*rjl[0]; 
-	f[atomj][1] -= tmp2*rjl[1]; 
+	f[atomj][0] -= tmp2*rjl[0];
+	f[atomj][1] -= tmp2*rjl[1];
 	f[atomj][2] -= tmp2*rjl[2];
-	f[atoml][0] += tmp2*rjl[0]; 
-	f[atoml][1] += tmp2*rjl[1]; 
+	f[atoml][0] += tmp2*rjl[0];
+	f[atoml][1] += tmp2*rjl[1];
 	f[atoml][2] += tmp2*rjl[2];
 
 	if (vflag_atom) v_tally2_thr(atomj,atoml,-tmp2,rjl,tid);
 
 	tmp2 = VA*dN3[2]*(2.0*NconjtmpJ*dwjl*SpN)/rjlmag;
-	f[atomj][0] -= tmp2*rjl[0]; 
-	f[atomj][1] -= tmp2*rjl[1]; 
+	f[atomj][0] -= tmp2*rjl[0];
+	f[atomj][1] -= tmp2*rjl[1];
 	f[atomj][2] -= tmp2*rjl[2];
-	f[atoml][0] += tmp2*rjl[0]; 
-	f[atoml][1] += tmp2*rjl[1]; 
+	f[atoml][0] += tmp2*rjl[0];
+	f[atoml][1] += tmp2*rjl[1];
 	f[atoml][2] += tmp2*rjl[2];
 
 	if (vflag_atom) v_tally2_thr(atomj,atoml,-tmp2,rjl,tid);
@@ -1464,11 +1469,11 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
 	      Sp(rlnmag,rcmin[ltype][ntype],rcmax[ltype][ntype],dwln);
 
 	      tmp2 = VA*dN3[2]*(2.0*NconjtmpJ*wjl*dNlj*dwln)/rlnmag;
-	      f[atoml][0] -= tmp2*rln[0]; 
-	      f[atoml][1] -= tmp2*rln[1]; 
+	      f[atoml][0] -= tmp2*rln[0];
+	      f[atoml][1] -= tmp2*rln[1];
 	      f[atoml][2] -= tmp2*rln[2];
-	      f[atomn][0] += tmp2*rln[0]; 
-	      f[atomn][1] += tmp2*rln[1]; 
+	      f[atomn][0] += tmp2*rln[0];
+	      f[atomn][1] += tmp2*rln[1];
 	      f[atomn][2] += tmp2*rln[2];
 
 	      if (vflag_atom) v_tally2_thr(atoml,atomn,-tmp2,rln,tid);
@@ -1503,7 +1508,7 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
 	  r21[1] = x[atom2][1]-x[atom1][1];
 	  r21[2] = x[atom2][2]-x[atom1][2];
 	  r21mag = sqrt(r21[0]*r21[0] + r21[1]*r21[1] + r21[2]*r21[2]);
-	  cos321 = ((r21[0]*rij[0])+(r21[1]*rij[1])+(r21[2]*rij[2])) / 
+	  cos321 = ((r21[0]*rij[0])+(r21[1]*rij[1])+(r21[2]*rij[2])) /
 	    (r21mag*rijmag);
 	  cos321 = MIN(cos321,1.0);
 	  cos321 = MAX(cos321,-1.0);
@@ -1511,7 +1516,7 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
 	  sink2i = 1.0/(sin321*sin321);
 	  rik2i = 1.0/(r21mag*r21mag);
 
-	  if (sin321 != 0.0) { 
+	  if (sin321 != 0.0) {
 	    rr = (rijmag*rijmag)-(r21mag*r21mag);
 	    rjk[0] = r21[0]-rij[0];
 	    rjk[1] = r21[1]-rij[1];
@@ -1523,13 +1528,13 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
 	    dctij = (rr+rjk2)/(rijrik*rijmag*rijmag);
 	    dctjk = -2.0/rijrik;
 	    w21 = Sp(r21mag,rcmin[itype][ktype],rcmaxp[itype][ktype],dw21);
-	    rikmag = r21mag; 
+	    rikmag = r21mag;
 	    rij2 = r32mag*r32mag;
 	    rik2 = r21mag*r21mag;
 	    costmp = 0.5*(rij2+rik2-rjk2)/rijmag/rikmag;
 	    tspjik = Sp2(costmp,thmin,thmax,dtsjik);
 	    dtsjik = -dtsjik;
- 
+
 	    REBO_neighs_j = REBO_firstneigh[j];
 	    for (l = 0; l < REBO_numneigh[j]; l++) {
 	      atoml = REBO_neighs_j[l];
@@ -1540,7 +1545,7 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
 		r34[1] = x[atom3][1]-x[atom4][1];
 		r34[2] = x[atom3][2]-x[atom4][2];
 		r34mag = sqrt(r34[0]*r34[0] + r34[1]*r34[1] + r34[2]*r34[2]);
-		cos234 = -1.0*((rij[0]*r34[0])+(rij[1]*r34[1]) + 
+		cos234 = -1.0*((rij[0]*r34[0])+(rij[1]*r34[1]) +
 			       (rij[2]*r34[2]))/(rijmag*r34mag);
 		cos234 = MIN(cos234,1.0);
 		cos234 = MAX(cos234,-1.0);
@@ -1575,73 +1580,73 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
 		  cross234[1] = (r23[2]*r34[0])-(r23[0]*r34[2]);
 		  cross234[2] = (r23[0]*r34[1])-(r23[1]*r34[0]);
 
-		  cwnum = (cross321[0]*cross234[0]) + 
+		  cwnum = (cross321[0]*cross234[0]) +
 		    (cross321[1]*cross234[1])+(cross321[2]*cross234[2]);
 		  cwnom = r21mag*r34mag*r23mag*r23mag*sin321*sin234;
 		  om1234 = cwnum/cwnom;
 		  cw = om1234;
-		  Etmp += ((1.0-pow(om1234,2.0))*w21*w34) * 
+		  Etmp += ((1.0-(om1234*om1234))*w21*w34) *
 		    (1.0-tspjik)*(1.0-tspijl);
-		  
+
 		  dt1dik = (rik2i)-(dctik*sink2i*cos321);
 		  dt1djk = (-dctjk*sink2i*cos321);
 		  dt1djl = (rjl2i)-(dctjl*sinl2i*cos234);
 		  dt1dil = (-dctil*sinl2i*cos234);
-		  dt1dij = (2.0/(r23mag*r23mag)) - 
+		  dt1dij = (2.0/(r23mag*r23mag)) -
 		    (dctij*sink2i*cos321)-(dctji*sinl2i*cos234);
-		  
+
 		  dt2dik[0] = (-r23[2]*cross234[1])+(r23[1]*cross234[2]);
 		  dt2dik[1] = (-r23[0]*cross234[2])+(r23[2]*cross234[0]);
 		  dt2dik[2] = (-r23[1]*cross234[0])+(r23[0]*cross234[1]);
-		  
+
 		  dt2djl[0] = (-r23[1]*cross321[2])+(r23[2]*cross321[1]);
 		  dt2djl[1] = (-r23[2]*cross321[0])+(r23[0]*cross321[2]);
 		  dt2djl[2] = (-r23[0]*cross321[1])+(r23[1]*cross321[0]);
-		  
-		  dt2dij[0] = (r21[2]*cross234[1]) - 
-		    (r34[2]*cross321[1])-(r21[1]*cross234[2]) + 
+
+		  dt2dij[0] = (r21[2]*cross234[1]) -
+		    (r34[2]*cross321[1])-(r21[1]*cross234[2]) +
 		    (r34[1]*cross321[2]);
-		  dt2dij[1] = (r21[0]*cross234[2]) - 
-		    (r34[0]*cross321[2])-(r21[2]*cross234[0]) + 
+		  dt2dij[1] = (r21[0]*cross234[2]) -
+		    (r34[0]*cross321[2])-(r21[2]*cross234[0]) +
 		    (r34[2]*cross321[0]);
 		  dt2dij[2] = (r21[1]*cross234[0]) -
-		    (r34[1]*cross321[0])-(r21[0]*cross234[1]) + 
+		    (r34[1]*cross321[0])-(r21[0]*cross234[1]) +
 		    (r34[0]*cross321[1]);
-		  
-		  aa = (prefactor*2.0*cw/cwnom)*w21*w34 * 
+
+		  aa = (prefactor*2.0*cw/cwnom)*w21*w34 *
 		    (1.0-tspjik)*(1.0-tspijl);
-		  aaa1 = -prefactor*(1.0-pow(om1234,2.0)) * 
+		  aaa1 = -prefactor*(1.0-(om1234*om1234)) *
 		    (1.0-tspjik)*(1.0-tspijl);
 		  aaa2 = aaa1*w21*w34;
 		  at2 = aa*cwnum;
-		  
-		  fcijpc = (-dt1dij*at2)+(aaa2*dtsjik*dctij*(1.0-tspijl)) + 
+
+		  fcijpc = (-dt1dij*at2)+(aaa2*dtsjik*dctij*(1.0-tspijl)) +
 		    (aaa2*dtsijl*dctji*(1.0-tspjik));
 		  fcikpc = (-dt1dik*at2)+(aaa2*dtsjik*dctik*(1.0-tspijl));
 		  fcjlpc = (-dt1djl*at2)+(aaa2*dtsijl*dctjl*(1.0-tspjik));
 		  fcjkpc = (-dt1djk*at2)+(aaa2*dtsjik*dctjk*(1.0-tspijl));
 		  fcilpc = (-dt1dil*at2)+(aaa2*dtsijl*dctil*(1.0-tspjik));
-		  
+
 		  F23[0] = (fcijpc*r23[0])+(aa*dt2dij[0]);
 		  F23[1] = (fcijpc*r23[1])+(aa*dt2dij[1]);
 		  F23[2] = (fcijpc*r23[2])+(aa*dt2dij[2]);
-		  
+
 		  F12[0] = (fcikpc*r21[0])+(aa*dt2dik[0]);
 		  F12[1] = (fcikpc*r21[1])+(aa*dt2dik[1]);
 		  F12[2] = (fcikpc*r21[2])+(aa*dt2dik[2]);
-		  
+
 		  F34[0] = (fcjlpc*r34[0])+(aa*dt2djl[0]);
 		  F34[1] = (fcjlpc*r34[1])+(aa*dt2djl[1]);
 		  F34[2] = (fcjlpc*r34[2])+(aa*dt2djl[2]);
-		  
+
 		  F31[0] = (fcjkpc*rjk[0]);
 		  F31[1] = (fcjkpc*rjk[1]);
 		  F31[2] = (fcjkpc*rjk[2]);
-		  
+
 		  F24[0] = (fcilpc*ril[0]);
 		  F24[1] = (fcilpc*ril[1]);
 		  F24[2] = (fcilpc*ril[2]);
-		  
+
 		  f1[0] = -F12[0]-F31[0];
 		  f1[1] = -F12[1]-F31[1];
 		  f1[2] = -F12[2]-F31[2];
@@ -1654,10 +1659,10 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
 		  f4[0] = -F34[0]-F24[0];
 		  f4[1] = -F34[1]-F24[1];
 		  f4[2] = -F34[2]-F24[2];
-		  
+
 		  // coordination forces
 
-		  tmp2 = VA*Tij*((1.0-(om1234*om1234))) * 
+		  tmp2 = VA*Tij*((1.0-(om1234*om1234))) *
 		    (1.0-tspjik)*(1.0-tspijl)*dw21*w34/r21mag;
 		  f2[0] -= tmp2*r21[0];
 		  f2[1] -= tmp2*r21[1];
@@ -1665,15 +1670,15 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
 		  f1[0] += tmp2*r21[0];
 		  f1[1] += tmp2*r21[1];
 		  f1[2] += tmp2*r21[2];
-		  
-		  tmp2 = VA*Tij*((1.0-(om1234*om1234))) * 
+
+		  tmp2 = VA*Tij*((1.0-(om1234*om1234))) *
 		    (1.0-tspjik)*(1.0-tspijl)*w21*dw34/r34mag;
 		  f3[0] -= tmp2*r34[0];
 		  f3[1] -= tmp2*r34[1];
 		  f3[2] -= tmp2*r34[2];
 		  f4[0] += tmp2*r34[0];
-		  f4[1] += tmp2*r34[1];  
-		  f4[2] += tmp2*r34[2]; 
+		  f4[1] += tmp2*r34[1];
+		  f4[2] += tmp2*r34[2];
 
 		  f[atom1][0] += f1[0]; f[atom1][1] += f1[1];
 		  f[atom1][2] += f1[2];
@@ -1683,7 +1688,7 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
 		  f[atom3][2] += f3[2];
 		  f[atom4][0] += f4[0]; f[atom4][1] += f4[1];
 		  f[atom4][2] += f4[2];
-		  
+
 		  if (vflag_atom) {
 		    r13[0] = -rjk[0]; r13[1] = -rjk[1]; r13[2] = -rjk[2];
 		    r43[0] = -r34[0]; r43[1] = -r34[1]; r43[2] = -r34[2];
@@ -1695,7 +1700,7 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
 	  }
 	}
       }
-      
+
       REBO_neighs = REBO_firstneigh[i];
       for (k = 0; k < REBO_numneigh[i]; k++) {
 	atomk = REBO_neighs[k];
@@ -1706,27 +1711,27 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
 	  rik[2] = x[atomi][2]-x[atomk][2];
 	  rikmag = sqrt((rik[0]*rik[0])+(rik[1]*rik[1])+(rik[2]*rik[2]));
 	  wik = Sp(rikmag,rcmin[itype][ktype],rcmax[itype][ktype],dwik);
-	  Nki = nC[atomk]-(wik*kronecker(itype,0))+nH[atomk] - 
+	  Nki = nC[atomk]-(wik*kronecker(itype,0))+nH[atomk] -
 	    (wik*kronecker(itype,1));
 	  SpN = Sp(Nki,Nmin,Nmax,dNki);
 
 	  tmp2 = VA*dN3[0]*dwik*Etmp/rikmag;
-	  f[atomi][0] -= tmp2*rik[0]; 
-	  f[atomi][1] -= tmp2*rik[1]; 
-	  f[atomi][2] -= tmp2*rik[2]; 
-	  f[atomk][0] += tmp2*rik[0]; 
-	  f[atomk][1] += tmp2*rik[1]; 
-	  f[atomk][2] += tmp2*rik[2]; 
+	  f[atomi][0] -= tmp2*rik[0];
+	  f[atomi][1] -= tmp2*rik[1];
+	  f[atomi][2] -= tmp2*rik[2];
+	  f[atomk][0] += tmp2*rik[0];
+	  f[atomk][1] += tmp2*rik[1];
+	  f[atomk][2] += tmp2*rik[2];
 
 	  if (vflag_atom) v_tally2_thr(atomi,atomk,-tmp2,rik,tid);
 
 	  tmp2 = VA*dN3[2]*(2.0*NconjtmpI*dwik*SpN)*Etmp/rikmag;
-	  f[atomi][0] -= tmp2*rik[0]; 
-	  f[atomi][1] -= tmp2*rik[1]; 
-	  f[atomi][2] -= tmp2*rik[2]; 
-	  f[atomk][0] += tmp2*rik[0]; 
-	  f[atomk][1] += tmp2*rik[1]; 
-	  f[atomk][2] += tmp2*rik[2]; 
+	  f[atomi][0] -= tmp2*rik[0];
+	  f[atomi][1] -= tmp2*rik[1];
+	  f[atomi][2] -= tmp2*rik[2];
+	  f[atomk][0] += tmp2*rik[0];
+	  f[atomk][1] += tmp2*rik[1];
+	  f[atomk][2] += tmp2*rik[2];
 
 	  if (vflag_atom) v_tally2_thr(atomi,atomk,-tmp2,rik,tid);
 
@@ -1743,12 +1748,12 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
 		Sp(rknmag,rcmin[ktype][ntype],rcmax[ktype][ntype],dwkn);
 
 		tmp2 = VA*dN3[2]*(2.0*NconjtmpI*wik*dNki*dwkn)*Etmp/rknmag;
-		f[atomk][0] -= tmp2*rkn[0]; 
-		f[atomk][1] -= tmp2*rkn[1]; 
-		f[atomk][2] -= tmp2*rkn[2]; 
-		f[atomn][0] += tmp2*rkn[0]; 
-		f[atomn][1] += tmp2*rkn[1]; 
-		f[atomn][2] += tmp2*rkn[2]; 
+		f[atomk][0] -= tmp2*rkn[0];
+		f[atomk][1] -= tmp2*rkn[1];
+		f[atomk][2] -= tmp2*rkn[2];
+		f[atomn][0] += tmp2*rkn[0];
+		f[atomn][1] += tmp2*rkn[1];
+		f[atomn][2] += tmp2*rkn[2];
 
 		if (vflag_atom) v_tally2_thr(atomk,atomn,-tmp2,rkn,tid);
 	      }
@@ -1769,27 +1774,27 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
 	  rjl[2] = x[atomj][2]-x[atoml][2];
 	  rjlmag = sqrt((rjl[0]*rjl[0])+(rjl[1]*rjl[1])+(rjl[2]*rjl[2]));
 	  wjl = Sp(rjlmag,rcmin[jtype][ltype],rcmax[jtype][ltype],dwjl);
-	  Nlj = nC[atoml]-(wjl*kronecker(jtype,0))+nH[atoml] - 
+	  Nlj = nC[atoml]-(wjl*kronecker(jtype,0))+nH[atoml] -
 	    (wjl*kronecker(jtype,1));
 	  SpN = Sp(Nlj,Nmin,Nmax,dNlj);
 
 	  tmp2 = VA*dN3[1]*dwjl*Etmp/rjlmag;
-	  f[atomj][0] -= tmp2*rjl[0]; 
-	  f[atomj][1] -= tmp2*rjl[1]; 
-	  f[atomj][2] -= tmp2*rjl[2]; 
-	  f[atoml][0] += tmp2*rjl[0]; 
-	  f[atoml][1] += tmp2*rjl[1]; 
-	  f[atoml][2] += tmp2*rjl[2]; 
+	  f[atomj][0] -= tmp2*rjl[0];
+	  f[atomj][1] -= tmp2*rjl[1];
+	  f[atomj][2] -= tmp2*rjl[2];
+	  f[atoml][0] += tmp2*rjl[0];
+	  f[atoml][1] += tmp2*rjl[1];
+	  f[atoml][2] += tmp2*rjl[2];
 
 	  if (vflag_atom) v_tally2_thr(atomj,atoml,-tmp2,rjl,tid);
 
 	  tmp2 = VA*dN3[2]*(2.0*NconjtmpJ*dwjl*SpN)*Etmp/rjlmag;
-	  f[atomj][0] -= tmp2*rjl[0]; 
-	  f[atomj][1] -= tmp2*rjl[1]; 
-	  f[atomj][2] -= tmp2*rjl[2]; 
-	  f[atoml][0] += tmp2*rjl[0]; 
-	  f[atoml][1] += tmp2*rjl[1]; 
-	  f[atoml][2] += tmp2*rjl[2]; 
+	  f[atomj][0] -= tmp2*rjl[0];
+	  f[atomj][1] -= tmp2*rjl[1];
+	  f[atomj][2] -= tmp2*rjl[2];
+	  f[atoml][0] += tmp2*rjl[0];
+	  f[atoml][1] += tmp2*rjl[1];
+	  f[atoml][2] += tmp2*rjl[2];
 
 	  if (vflag_atom) v_tally2_thr(atomj,atoml,-tmp2,rjl,tid);
 
@@ -1829,7 +1834,7 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
    REBO forces and energy
 ------------------------------------------------------------------------- */
 
-void PairAIREBOOMP::FREBO_thr(double **f, int ifrom, int ito, 
+void PairAIREBOOMP::FREBO_thr(double **f, int ifrom, int ito,
 			      int evflag, int eflag, int vflag_atom, int tid)
 {
   int i,j,k,m,ii,itype,jtype,itag,jtag;
@@ -1882,7 +1887,7 @@ void PairAIREBOOMP::FREBO_thr(double **f, int ifrom, int ito,
       rij = sqrt(rsq);
       wij = Sp(rij,rcmin[itype][jtype],rcmax[itype][jtype],dwij);
       if (wij <= TOL) continue;
-      
+
       Qij = Q[itype][jtype];
       Aij = A[itype][jtype];
       alphaij = alpha[itype][jtype];
@@ -1925,7 +1930,7 @@ void PairAIREBOOMP::FREBO_thr(double **f, int ifrom, int ito,
    find 3- and 4-step paths between atoms I,J via REBO neighbor lists
 ------------------------------------------------------------------------- */
 
-void PairAIREBOOMP::FLJ_thr(double **f, int ifrom, int ito, 
+void PairAIREBOOMP::FLJ_thr(double **f, int ifrom, int ito,
 			    int evflag, int eflag, int vflag_atom, int tid)
 {
   int i,j,k,m,ii,jj,kk,mm,jnum,itype,jtype,ktype,mtype,itag,jtag;
@@ -2007,7 +2012,7 @@ void PairAIREBOOMP::FLJ_thr(double **f, int ifrom, int ito,
       // if outside of 2-path cutoff but inside 4-path cutoff,
       //   best = 0.0, test 3-,4-paths
       // if inside 2-path cutoff, best = wij, only test 3-,4-paths if best < 1
-	
+
       if (rijsq >= cutljsq[itype][jtype]) continue;
       rij = sqrt(rijsq);
       if (rij >= cut3rebo) {
@@ -2071,7 +2076,7 @@ void PairAIREBOOMP::FLJ_thr(double **f, int ifrom, int ito,
 	    	wkjS = wkj;
 	    	dwkjS = dwkj;
 		if (best == 1.0) {
-		  done = 1; 
+		  done = 1;
 		  break;
 		}
 	      }
@@ -2139,7 +2144,7 @@ void PairAIREBOOMP::FLJ_thr(double **f, int ifrom, int ito,
 	  }
 	}
       }
-		
+
       cij = 1.0 - best;
       if (cij == 0.0) continue;
 
@@ -2148,11 +2153,11 @@ void PairAIREBOOMP::FLJ_thr(double **f, int ifrom, int ito,
       sigwid = 0.84;
       sigcut = 3.0;
       sigmin = sigcut - sigwid;
- 
+
       rljmin = sigma[itype][jtype];
       rljmax = sigcut * rljmin;
       rljmin = sigmin * rljmin;
- 
+
       if (rij > rljmax){
          slw = 0.0;
          dslw = 0.0;}
@@ -2160,7 +2165,7 @@ void PairAIREBOOMP::FLJ_thr(double **f, int ifrom, int ito,
          drij = rij - rljmin;
          swidth = rljmax - rljmin;
          tee = drij / swidth;
-         tee2 = pow (tee,2);
+         tee2 = tee*tee;
          slw = 1.0 - tee2 * (3.0 - 2.0 * tee);
          dslw = 6.0 * tee * (1.0 - tee) / rij / swidth;
       }
@@ -2175,7 +2180,7 @@ void PairAIREBOOMP::FLJ_thr(double **f, int ifrom, int ito,
       dvdw = -r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]) / rij;
 
       // VLJ now becomes vdw * slw, derivaties, etc.
-      
+
       VLJ = vdw * slw;
       dVLJ = dvdw * slw + vdw * dslw;
 
@@ -2192,14 +2197,14 @@ void PairAIREBOOMP::FLJ_thr(double **f, int ifrom, int ito,
 
       fpair = -(dStr * (Stb*cij*VLJ - cij*VLJ) +
 		dVLJ * (Str*Stb*cij + cij - Str*cij)) / rij;
-      
+
       f[i][0] += delij[0]*fpair;
       f[i][1] += delij[1]*fpair;
       f[i][2] += delij[2]*fpair;
       f[j][0] -= delij[0]*fpair;
       f[j][1] -= delij[1]*fpair;
       f[j][2] -= delij[2]*fpair;
-      
+
       if (eflag) evdwl = VA*Stb + (1.0-Str)*cij*VLJ;
       if (evflag) ev_tally_thr(this,i,j,nlocal,/* newton_pair */ 1,
 			       evdwl,0.0,fpair,delij[0],delij[1],delij[2],tid);
@@ -2237,7 +2242,7 @@ void PairAIREBOOMP::FLJ_thr(double **f, int ifrom, int ito,
 	  f[atomk][1] -= fi[1] + fj[1];
 	  f[atomk][2] -= fi[2] + fj[2];
 
-	  if (vflag_atom) 
+	  if (vflag_atom)
 	    v_tally3_thr(atomi,atomj,atomk,fi,fj,delikS,deljkS,tid);
 
 	} else {
@@ -2280,7 +2285,7 @@ void PairAIREBOOMP::FLJ_thr(double **f, int ifrom, int ito,
 	    v_tally4_thr(atomi,atomj,atomk,atomm,fi,fj,fk,delimS,deljmS,delkmS,tid);
 	  }
 	}
-      } 
+      }
     }
   }
 }
@@ -2373,7 +2378,7 @@ void PairAIREBOOMP::TORSION_thr(double **f, int ifrom, int ito,
 	cos321 = MAX(cos321,-1.0);
 	sin321 = sqrt(1.0 - cos321*cos321);
 	if (sin321 < TOL) continue;
-	
+
 	deljk[0] = del21[0]-del23[0];
 	deljk[1] = del21[1]-del23[1];
 	deljk[2] = del21[2]-del23[2];
@@ -2418,7 +2423,7 @@ void PairAIREBOOMP::TORSION_thr(double **f, int ifrom, int ito,
 	  rjl2 = r34*r34;
 	  costmp = 0.5*(rij2+rjl2-ril2)/rij/rjl;
 	  tspijl = Sp2(costmp,thmin,thmax,dtsijl);
-	  dtsijl = -dtsijl; //need minus sign 
+	  dtsijl = -dtsijl; //need minus sign
 	  cross321[0] = (del32[1]*del21[2])-(del32[2]*del21[1]);
 	  cross321[1] = (del32[2]*del21[0])-(del32[0]*del21[2]);
 	  cross321[2] = (del32[0]*del21[1])-(del32[1]*del21[0]);
@@ -2435,57 +2440,57 @@ void PairAIREBOOMP::TORSION_thr(double **f, int ifrom, int ito,
 	    (cross321[1]*cross234[1])+(cross321[2]*cross234[2]);
 	  cwnom = r21*r34*r32*r32*sin321*sin234;
 	  cw = cwnum/cwnom;
-	  
+
 	  cw2 = (.5*(1.0-cw));
 	  ekijl = epsilonT[ktype][ltype];
 	  Ec = 256.0*ekijl/405.0;
 	  Vtors = (Ec*(pow(cw2,5.0)))-(ekijl/10.0);
 
 	  if (eflag) evdwl = Vtors*w21*w23*w34*(1.0-tspjik)*(1.0-tspijl);
-	  
+
 	  dndij[0] = (cross234[1]*del21[2])-(cross234[2]*del21[1]);
 	  dndij[1] = (cross234[2]*del21[0])-(cross234[0]*del21[2]);
-	  dndij[2] = (cross234[0]*del21[1])-(cross234[1]*del21[0]); 
-	  
+	  dndij[2] = (cross234[0]*del21[1])-(cross234[1]*del21[0]);
+
 	  tmpvec[0] = (del34[1]*cross321[2])-(del34[2]*cross321[1]);
 	  tmpvec[1] = (del34[2]*cross321[0])-(del34[0]*cross321[2]);
-	  tmpvec[2] = (del34[0]*cross321[1])-(del34[1]*cross321[0]); 
-	  
+	  tmpvec[2] = (del34[0]*cross321[1])-(del34[1]*cross321[0]);
+
 	  dndij[0] = dndij[0]+tmpvec[0];
 	  dndij[1] = dndij[1]+tmpvec[1];
 	  dndij[2] = dndij[2]+tmpvec[2];
-	  
+
 	  dndik[0] = (del23[1]*cross234[2])-(del23[2]*cross234[1]);
 	  dndik[1] = (del23[2]*cross234[0])-(del23[0]*cross234[2]);
 	  dndik[2] = (del23[0]*cross234[1])-(del23[1]*cross234[0]);
-	  
+
 	  dndjl[0] = (cross321[1]*del23[2])-(cross321[2]*del23[1]);
 	  dndjl[1] = (cross321[2]*del23[0])-(cross321[0]*del23[2]);
-	  dndjl[2] = (cross321[0]*del23[1])-(cross321[1]*del23[0]); 
-	  
+	  dndjl[2] = (cross321[0]*del23[1])-(cross321[1]*del23[0]);
+
 	  dcidij = ((r23*r23)-(r21*r21)+(rjk*rjk))/(2.0*r23*r23*r21);
 	  dcidik = ((r21*r21)-(r23*r23)+(rjk*rjk))/(2.0*r23*r21*r21);
 	  dcidjk = (-rjk)/(r23*r21);
 	  dcjdji = ((r23*r23)-(r34*r34)+(ril*ril))/(2.0*r23*r23*r34);
 	  dcjdjl = ((r34*r34)-(r23*r23)+(ril*ril))/(2.0*r23*r34*r34);
 	  dcjdil = (-ril)/(r23*r34);
-	  
+
 	  dsidij = (-cos321/sin321)*dcidij;
 	  dsidik = (-cos321/sin321)*dcidik;
 	  dsidjk = (-cos321/sin321)*dcidjk;
-	  
+
 	  dsjdji = (-cos234/sin234)*dcjdji;
 	  dsjdjl = (-cos234/sin234)*dcjdjl;
 	  dsjdil = (-cos234/sin234)*dcjdil;
-	  
+
 	  dxidij = (r21*sin321)+(r23*r21*dsidij);
 	  dxidik = (r23*sin321)+(r23*r21*dsidik);
 	  dxidjk = (r23*r21*dsidjk);
-	  
+
 	  dxjdji = (r34*sin234)+(r23*r34*dsjdji);
 	  dxjdjl = (r23*sin234)+(r23*r34*dsjdjl);
 	  dxjdil = (r23*r34*dsjdil);
-	  
+
 	  ddndij = (dxidij*cross234mag)+(cross321mag*dxjdji);
 	  ddndik = dxidik*cross234mag;
 	  ddndjk = dxidjk*cross234mag;
@@ -2493,7 +2498,7 @@ void PairAIREBOOMP::TORSION_thr(double **f, int ifrom, int ito,
 	  ddndil = cross321mag*dxjdil;
 	  dcwddn = -cwnum/(cwnom*cwnom);
 	  dcwdn = 1.0/cwnom;
-	  dvpdcw = (-1.0)*Ec*(-.5)*5.0*pow(cw2,4.0) * 
+	  dvpdcw = (-1.0)*Ec*(-.5)*5.0*pow(cw2,4.0) *
 	    w23*w21*w34*(1.0-tspjik)*(1.0-tspijl);
 
 	  Ftmp[0] = dvpdcw*((dcwdn*dndij[0])+(dcwddn*ddndij*del23[0]/r23));
@@ -2505,7 +2510,7 @@ void PairAIREBOOMP::TORSION_thr(double **f, int ifrom, int ito,
 	  fj[0] = -Ftmp[0];
 	  fj[1] = -Ftmp[1];
 	  fj[2] = -Ftmp[2];
-	  
+
 	  Ftmp[0] = dvpdcw*((dcwdn*dndik[0])+(dcwddn*ddndik*del21[0]/r21));
 	  Ftmp[1] = dvpdcw*((dcwdn*dndik[1])+(dcwddn*ddndik*del21[1]/r21));
 	  Ftmp[2] = dvpdcw*((dcwdn*dndik[2])+(dcwddn*ddndik*del21[2]/r21));
@@ -2515,7 +2520,7 @@ void PairAIREBOOMP::TORSION_thr(double **f, int ifrom, int ito,
 	  fk[0] = -Ftmp[0];
 	  fk[1] = -Ftmp[1];
 	  fk[2] = -Ftmp[2];
-	  
+
 	  Ftmp[0] = (dvpdcw*dcwddn*ddndjk*deljk[0])/rjk;
 	  Ftmp[1] = (dvpdcw*dcwddn*ddndjk*deljk[1])/rjk;
 	  Ftmp[2] = (dvpdcw*dcwddn*ddndjk*deljk[2])/rjk;
@@ -2525,7 +2530,7 @@ void PairAIREBOOMP::TORSION_thr(double **f, int ifrom, int ito,
 	  fk[0] -= Ftmp[0];
 	  fk[1] -= Ftmp[1];
 	  fk[2] -= Ftmp[2];
-	  
+
 	  Ftmp[0] = dvpdcw*((dcwdn*dndjl[0])+(dcwddn*ddndjl*del34[0]/r34));
 	  Ftmp[1] = dvpdcw*((dcwdn*dndjl[1])+(dcwddn*ddndjl*del34[1]/r34));
 	  Ftmp[2] = dvpdcw*((dcwdn*dndjl[2])+(dcwddn*ddndjl*del34[2]/r34));
@@ -2535,7 +2540,7 @@ void PairAIREBOOMP::TORSION_thr(double **f, int ifrom, int ito,
 	  fl[0] = -Ftmp[0];
 	  fl[1] = -Ftmp[1];
 	  fl[2] = -Ftmp[2];
-	  
+
 	  Ftmp[0] = (dvpdcw*dcwddn*ddndil*delil[0])/ril;
 	  Ftmp[1] = (dvpdcw*dcwddn*ddndil*delil[1])/ril;
 	  Ftmp[2] = (dvpdcw*dcwddn*ddndil*delil[2])/ril;
@@ -2545,9 +2550,9 @@ void PairAIREBOOMP::TORSION_thr(double **f, int ifrom, int ito,
 	  fl[0] -= Ftmp[0];
 	  fl[1] -= Ftmp[1];
 	  fl[2] -= Ftmp[2];
-	  
+
 	  // coordination forces
-	  
+
 	  fpair = Vtors*dw21*w23*w34*(1.0-tspjik)*(1.0-tspijl) / r21;
 	  fi[0] -= del21[0]*fpair;
 	  fi[1] -= del21[1]*fpair;
@@ -2555,7 +2560,7 @@ void PairAIREBOOMP::TORSION_thr(double **f, int ifrom, int ito,
 	  fk[0] += del21[0]*fpair;
 	  fk[1] += del21[1]*fpair;
 	  fk[2] += del21[2]*fpair;
-	  
+
 	  fpair = Vtors*w21*dw23*w34*(1.0-tspjik)*(1.0-tspijl) / r23;
 	  fi[0] -= del23[0]*fpair;
 	  fi[1] -= del23[1]*fpair;
@@ -2563,7 +2568,7 @@ void PairAIREBOOMP::TORSION_thr(double **f, int ifrom, int ito,
 	  fj[0] += del23[0]*fpair;
 	  fj[1] += del23[1]*fpair;
 	  fj[2] += del23[2]*fpair;
-	  
+
 	  fpair = Vtors*w21*w23*dw34*(1.0-tspjik)*(1.0-tspijl) / r34;
 	  fj[0] -= del34[0]*fpair;
 	  fj[1] -= del34[1]*fpair;
@@ -2598,7 +2603,7 @@ void PairAIREBOOMP::TORSION_thr(double **f, int ifrom, int ito,
 	  fk[0] -= fpair*deljk[0];
 	  fk[1] -= fpair*deljk[1];
 	  fk[2] -= fpair*deljk[2];
-	  
+
 	  fcpc = -Vtors*w21*w23*w34*(1.0-tspjik)*dtsijl;
 	  fpair = fcpc*dcjdji/rij;
 	  fi[0] += fpair*del23[0];

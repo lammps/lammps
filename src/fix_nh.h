@@ -105,6 +105,8 @@ class FixNH : public Fix {
   double mtk_term1,mtk_term2;      // Martyna-Tobias-Klein corrections
 
   int eta_mass_flag;               // 1 if eta_mass updated, 0 if not.
+  int omega_mass_flag;             // 1 if omega_mass updated, 0 if not.
+  int etap_mass_flag;              // 1 if etap_mass updated, 0 if not.
 
   int scaleyz;                     // 1 if yz scaled with lz 
   int scalexz;                     // 1 if xz scaled with lz 

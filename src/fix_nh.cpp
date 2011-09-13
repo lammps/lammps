@@ -73,6 +73,8 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   deviatoric_flag = 0;
   nreset_h0 = 0;
   eta_mass_flag = 1;
+  omega_mass_flag = 0;
+  etap_mass_flag = 0;
 
   // turn on tilt factor scaling, whenever applicable
 
@@ -732,11 +734,6 @@ void FixNH::initial_integrate(int vflag)
 
   if (tstat_flag) {
     compute_temp_target();
-    if (eta_mass_flag) { 
-      eta_mass[0] = tdof * boltz * t_target / (t_freq*t_freq);
-      for (int ich = 1; ich < mtchain; ich++)
-	eta_mass[ich] = boltz * t_target / (t_freq*t_freq);
-    }
     nhc_temp_integrate();
   }
 
@@ -833,11 +830,6 @@ void FixNH::initial_integrate_respa(int vflag, int ilevel, int iloop)
 
     if (tstat_flag) {
       compute_temp_target();
-      if (eta_mass_flag) { 
-	eta_mass[0] = tdof * boltz * t_target / (t_freq*t_freq);
-	for (int ich = 1; ich < mtchain; ich++)
-	  eta_mass[ich] = boltz * t_target / (t_freq*t_freq);
-      }
       nhc_temp_integrate();
     }
 
@@ -1597,8 +1589,16 @@ void FixNH::nhc_temp_integrate()
 {
   int ich;
   double expfac;
-
   double kecurrent = tdof * boltz * t_current;
+
+  // Update masses, to preserve initial freq, if flag set
+
+  if (eta_mass_flag) { 
+    eta_mass[0] = tdof * boltz * t_target / (t_freq*t_freq);
+    for (int ich = 1; ich < mtchain; ich++)
+      eta_mass[ich] = boltz * t_target / (t_freq*t_freq);
+  }
+
   eta_dotdot[0] = (kecurrent - ke_target)/eta_mass[0];
 
   double ncfac = 1.0/nc_tchain;
@@ -1657,6 +1657,32 @@ void FixNH::nhc_press_integrate()
   double expfac,factor_etap,kecurrent;
   double kt = boltz * t_target;
   double lkt_press = kt;
+
+  // Update masses, to preserve initial freq, if flag set
+
+  if (omega_mass_flag) { 
+    double nkt = atom->natoms * kt;
+    for (int i = 0; i < 3; i++)
+      if (p_flag[i])
+	omega_mass[i] = nkt/(p_freq[i]*p_freq[i]);
+
+    if (pstyle == TRICLINIC) {
+      for (int i = 3; i < 6; i++)
+	if (p_flag[i]) omega_mass[i] = nkt/(p_freq[i]*p_freq[i]);
+    }
+  }
+
+  if (etap_mass_flag) { 
+    if (mpchain) {
+      etap_mass[0] = boltz * t_target / (p_freq_max*p_freq_max);
+      for (int ich = 1; ich < mpchain; ich++)
+	etap_mass[ich] = boltz * t_target / (p_freq_max*p_freq_max);
+      for (int ich = 1; ich < mpchain; ich++)
+	etap_dotdot[ich] = 
+	  (etap_mass[ich-1]*etap_dot[ich-1]*etap_dot[ich-1] -
+	   boltz * t_target) / etap_mass[ich];
+    }
+  }
 
   kecurrent = 0.0;
   for (i = 0; i < 3; i++)

@@ -36,9 +36,11 @@ FixNPHug::FixNPHug(LAMMPS *lmp, int narg, char **arg) :
   FixNH(lmp, narg, arg)
 {
 
-  // Prevent eta_mass from being updated every timestep
+  // Prevent masses from being updated every timestep
 
   eta_mass_flag = 0;
+  omega_mass_flag = 0;
+  etap_mass_flag = 0;
 
   // extend vector of base-class computes
 

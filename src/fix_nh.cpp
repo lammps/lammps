@@ -72,6 +72,7 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   mtk_flag = 1;
   deviatoric_flag = 0;
   nreset_h0 = 0;
+  eta_mass_flag = 1;
 
   // turn on tilt factor scaling, whenever applicable
 
@@ -731,6 +732,11 @@ void FixNH::initial_integrate(int vflag)
 
   if (tstat_flag) {
     compute_temp_target();
+    if (eta_mass_flag) { 
+      eta_mass[0] = tdof * boltz * t_target / (t_freq*t_freq);
+      for (int ich = 1; ich < mtchain; ich++)
+	eta_mass[ich] = boltz * t_target / (t_freq*t_freq);
+    }
     nhc_temp_integrate();
   }
 
@@ -827,6 +833,11 @@ void FixNH::initial_integrate_respa(int vflag, int ilevel, int iloop)
 
     if (tstat_flag) {
       compute_temp_target();
+      if (eta_mass_flag) { 
+	eta_mass[0] = tdof * boltz * t_target / (t_freq*t_freq);
+	for (int ich = 1; ich < mtchain; ich++)
+	  eta_mass[ich] = boltz * t_target / (t_freq*t_freq);
+      }
       nhc_temp_integrate();
     }
 
@@ -1570,48 +1581,11 @@ void FixNH::reset_dt()
   
   if (strstr(update->integrate_style,"respa"))
     dto = 0.5*step_respa[0];
-  
-  p_freq_max = 0.0;
-  if (pstat_flag) {
-    p_freq_max = MAX(p_freq[0],p_freq[1]);
-    p_freq_max = MAX(p_freq_max,p_freq[2]);
-    if (pstyle == TRICLINIC) {
-      p_freq_max = MAX(p_freq_max,p_freq[3]);
-      p_freq_max = MAX(p_freq_max,p_freq[4]);
-      p_freq_max = MAX(p_freq_max,p_freq[5]);
-    }
 
-    double kt = boltz * t_target;
-    double nkt = atom->natoms * kt;
-
-    for (int i = 0; i < 3; i++)
-      if (p_flag[i])
-	omega_mass[i] = nkt/(p_freq[i]*p_freq[i]);
-
-    if (pstyle == TRICLINIC) {
-      for (int i = 3; i < 6; i++)
-	if (p_flag[i]) omega_mass[i] = nkt/(p_freq[i]*p_freq[i]);
-    }
-
-  // masses and initial forces on barostat thermostat variables
-
-    if (mpchain) {
-      etap_mass[0] = boltz * t_target / (p_freq_max*p_freq_max);
-      for (int ich = 1; ich < mpchain; ich++)
-	etap_mass[ich] = boltz * t_target / (p_freq_max*p_freq_max);
-      for (int ich = 1; ich < mpchain; ich++)
-	etap_dotdot[ich] = 
-	  (etap_mass[ich-1]*etap_dot[ich-1]*etap_dot[ich-1] -
-	   boltz * t_target) / etap_mass[ich];
-    }
-
+  if (pstat_flag)
     pdrag_factor = 1.0 - (update->dt * p_freq_max * drag / nc_pchain);
-  }
-
+  
   if (tstat_flag)
-    eta_mass[0] = tdof * boltz * t_target / (t_freq*t_freq);
-    for (int ich = 1; ich < mtchain; ich++)
-      eta_mass[ich] = boltz * t_target / (t_freq*t_freq);
     tdrag_factor = 1.0 - (update->dt * t_freq * drag / nc_tchain);
 }
 

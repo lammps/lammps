@@ -401,6 +401,9 @@ void FixQEqReax::pre_force(int vflag)
   if (update->ntimestep % nevery) return;
   if( comm->me == 0 ) t_start = MPI_Wtime();
 
+  if (domain->xprd < swb || domain->yprd < swb || domain->zprd < swb) 
+    error->warning("FixQEqReax cutoff greater than periodic dimension");
+
   n = atom->nlocal;
   N = atom->nlocal + atom->nghost;
   // grow arrays if necessary

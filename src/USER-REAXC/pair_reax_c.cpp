@@ -27,6 +27,7 @@
 #include "fix.h"
 #include "fix_reax_c.h"
 #include "memory.h"
+#include "domain.h"
 #include "error.h"
 
 #include "reaxc_types.h"
@@ -377,6 +378,9 @@ void PairReaxC::compute(int eflag, int vflag)
 {
   double evdwl,ecoul;
   double t_start, t_end;
+
+  if (domain->xprd < cutmax || domain->yprd < cutmax || domain->zprd < cutmax) 
+    error->warning("PairReaxC cutoff greater than periodic dimension");
 
   // communicate num_bonds once every reneighboring
   // 2 num arrays stored by fix, grab ptr to them

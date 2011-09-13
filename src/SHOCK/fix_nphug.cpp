@@ -375,8 +375,7 @@ double FixNPHug::compute_vector(int n)
 
   // index not found, look in base class
 
-  FixNH::compute_vector(n);
-
+  return FixNH::compute_vector(n);
 }
 
 /* ----------------------------------------------------------------------

@@ -429,6 +429,7 @@ of each style or click on the style itself for a full description:
 "msst"_fix_msst.html,
 "neb"_fix_neb.html,
 "nph"_fix_nh.html,
+"nphug"_fix_nphug.html,
 "nph/asphere"_fix_nph_asphere.html,
 "nph/sphere"_fix_nph_sphere.html,
 "npt"_fix_nh.html,

@@ -188,7 +188,7 @@ list of fix styles available in LAMMPS:
 "nph"_fix_nh.html - constant NPH time integration via Nose/Hoover
 "nph/asphere"_fix_nph_asphere.html - NPH for aspherical particles
 "nph/sphere"_fix_nph_sphere.html - NPH for spherical particles
-"nphug"_fix_nphug.html - Constant-stress Hugoniostat integration
+"nphug"_fix_nphug.html - constant-stress Hugoniostat integration
 "npt"_fix_nh.html - constant NPT time integration via Nose/Hoover
 "npt/asphere"_fix_npt_asphere.html - NPT for aspherical particles
 "npt/sphere"_fix_npt_sphere.html - NPT for spherical particles

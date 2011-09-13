@@ -166,7 +166,7 @@ template <class numtyp, class acctyp>
 void BaseEllipsoidT::output_times() {
   // Output any timing information
   acc_timers();
-  double single[9], times[9];
+  double single[10], times[10];
 
   single[0]=atom->transfer_time()+ans->transfer_time();
   single[1]=nbor->time_nbor.total_seconds();
@@ -182,8 +182,9 @@ void BaseEllipsoidT::output_times() {
   single[6]=_gpu_overhead;
   single[7]=_driver_overhead;
   single[8]=ans->cpu_idle_time();
+  single[9]=nbor->bin_time();
 
-  MPI_Reduce(single,times,9,MPI_DOUBLE,MPI_SUM,0,device->replica());
+  MPI_Reduce(single,times,10,MPI_DOUBLE,MPI_SUM,0,device->replica());
   double avg_split=hd_balancer.all_avg_split();
 
   _max_bytes+=atom->max_gpu_bytes();
@@ -213,6 +214,8 @@ void BaseEllipsoidT::output_times() {
         fprintf(screen,"Force calc:      %.4f s.\n",times[3]/replica_size);
         fprintf(screen,"LJ calc:         %.4f s.\n",times[4]/replica_size);
       }
+      if (nbor->gpu_nbor()==2)
+        fprintf(screen,"Neighbor (CPU):  %.4f s.\n",times[9]/replica_size);
       fprintf(screen,"GPU Overhead:    %.4f s.\n",times[6]/replica_size);
       fprintf(screen,"Average split:   %.4f.\n",avg_split);
       fprintf(screen,"Threads / atom:  %d.\n",_threads_per_atom);      

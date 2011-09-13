@@ -40,7 +40,7 @@ namespace LAMMPS_AL {
 
 class Neighbor {
  public:
-  Neighbor() : _allocated(false), _use_packing(false) {}
+  Neighbor() : _allocated(false), _use_packing(false), _ncells(0) {}
   ~Neighbor() { clear(); }
  
   /// Determine whether neighbor unpacking should be used
@@ -132,6 +132,9 @@ class Neighbor {
 
   /// Return the maximum number of nbors for a particle based on current alloc
   inline int max_nbors() const { return _max_nbors; }
+  
+  /// Return the time spent binning on the CPU for hybrid neighbor builds
+  inline double bin_time() const { return _bin_time; }
 
   /// Loop through neighbor count array and return maximum nbors for a particle
   inline int max_nbor_loop(const int inum, int *numj, int *ilist) const {
@@ -188,6 +191,11 @@ class Neighbor {
   UCL_D_Vec<int> dev_nspecial;
   /// Device storage for special neighbors
   UCL_D_Vec<int> dev_special, dev_special_t;
+  /// Host storage for number of particles per cell
+  UCL_H_Vec<int> host_cell_counts;
+  int *cell_iter;
+  /// Device storage for number of particles per cell
+  UCL_D_Vec<int> dev_cell_counts;
 
   /// Device timers
   UCL_Timer time_nbor, time_kernel;
@@ -198,12 +206,12 @@ class Neighbor {
   bool _allocated, _use_packing;
   int _gpu_nbor, _max_atoms, _max_nbors, _max_host, _nbor_pitch, _maxspecial;
   bool _gpu_host, _alloc_packed;
-  double _cell_size;
+  double _cell_size, _bin_time;
 
   double _gpu_bytes, _c_bytes, _cell_bytes;
   void alloc(bool &success);
   
-  int _block_cell_2d, _block_cell_id, _block_nbor_build;
+  int _block_cell_2d, _block_cell_id, _block_nbor_build, _ncells;
 };
 
 }

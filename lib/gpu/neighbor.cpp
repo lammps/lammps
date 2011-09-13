@@ -161,6 +161,15 @@ void Neighbor::clear() {
   _gpu_bytes=0.0;
   _cell_bytes=0.0;
   _c_bytes=0.0;
+  _bin_time=0.0;
+  if (_ncells>0) {
+    _ncells=0;
+    dev_cell_counts.clear();
+    if (_gpu_nbor==2) {
+      host_cell_counts.clear();
+      delete [] cell_iter;
+    }
+  }
   if (_allocated) {
     _allocated=false;
 
@@ -265,6 +274,81 @@ void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
                                int **nspecial, int **special, bool &success,
                                int &mn) {
   const int nt=inum+host_inum;
+
+  // Calculate number of cells and allocate storage for binning as necessary
+  int ncellx, ncelly, ncellz, ncell_3d;
+  ncellx = static_cast<int>(ceil(((subhi[0] - sublo[0]) +
+                                  2.0*_cell_size)/_cell_size));
+  ncelly = static_cast<int>(ceil(((subhi[1] - sublo[1]) +
+                                  2.0*_cell_size)/_cell_size));
+  ncellz = static_cast<int>(ceil(((subhi[2] - sublo[2]) +
+                                  2.0*_cell_size)/_cell_size));
+  ncell_3d = ncellx * ncelly * ncellz;
+  if (ncell_3d+1>_ncells) {
+    dev_cell_counts.clear();
+    dev_cell_counts.alloc(ncell_3d+1,dev_nbor);
+    if (_gpu_nbor==2) {
+      if (_ncells>0) {
+        host_cell_counts.clear();
+        delete [] cell_iter;
+      }
+      cell_iter = new int[ncell_3d+1];
+      host_cell_counts.alloc(ncell_3d+1,dev_nbor);
+    }
+    _ncells=ncell_3d+1;
+    _cell_bytes=dev_cell_counts.row_bytes();
+  }
+
+  const numtyp cell_size_cast=static_cast<numtyp>(_cell_size);
+
+  // If binning on CPU, do this now
+  if (_gpu_nbor==2) {
+    double stime = MPI_Wtime();
+    int *cell_id=atom.host_cell_id.begin();
+    int *particle_id=atom.host_particle_id.begin();
+    
+    // Build cell list on CPU                               
+    host_cell_counts.zero();
+    double m_cell_size=-_cell_size;
+    double dx=subhi[0]-sublo[0]+_cell_size;
+    double dy=subhi[1]-sublo[1]+_cell_size;
+    double dz=subhi[2]-sublo[2]+_cell_size;
+
+    for (int i=0; i<nall; i++) {
+      double px, py, pz;
+      px=x[i][0]-sublo[0];
+      py=x[i][1]-sublo[1];
+      pz=x[i][2]-sublo[2];
+      if (px<m_cell_size) px=m_cell_size;
+      if (py<m_cell_size) py=m_cell_size;
+      if (pz<m_cell_size) pz=m_cell_size;
+      if (px>dx) px=dx;            
+      if (py>dy) py=dy;            
+      if (pz>dz) pz=dz;            
+    
+      int id=static_cast<int>(px/_cell_size + 1.0) + 
+             static_cast<int>(py/_cell_size + 1.0) * ncellx +
+             static_cast<int>(pz/_cell_size + 1.0) * ncellx * ncelly;
+    
+      cell_id[i]=id;
+      host_cell_counts[id+1]++;
+    }
+    cell_iter[0]=0;
+    for (int i=1; i<_ncells; i++) {
+      host_cell_counts[i]+=host_cell_counts[i-1];
+      cell_iter[i]=host_cell_counts[i];
+    }
+    ucl_copy(dev_cell_counts,host_cell_counts,true);
+    for (int i=0; i<nall; i++) {
+      int celli=cell_id[i];
+      int ploc=cell_iter[celli];
+      cell_iter[celli]++;
+      particle_id[ploc]=i;
+    }
+    ucl_copy(atom.dev_particle_id,atom.host_particle_id,true);
+    _bin_time+=MPI_Wtime()-stime;
+  }        
+
   if (_maxspecial>0) {
     time_nbor.start();
     UCL_H_Vec<int> view_nspecial, view_special, view_tag;
@@ -290,22 +374,8 @@ void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
   _nbor_pitch=inum;
   _shared->neigh_tex.bind_float(atom.dev_x,4);
 
-  int ncellx, ncelly, ncellz, ncell_3d;
-  ncellx = static_cast<int>(ceil(((subhi[0] - sublo[0]) +
-                                  2.0*_cell_size)/_cell_size));
-  ncelly = static_cast<int>(ceil(((subhi[1] - sublo[1]) +
-                                  2.0*_cell_size)/_cell_size));
-  ncellz = static_cast<int>(ceil(((subhi[2] - sublo[2]) +
-                                  2.0*_cell_size)/_cell_size));
-  ncell_3d = ncellx * ncelly * ncellz;
-
-  UCL_D_Vec<int> cell_counts;
-  cell_counts.alloc(ncell_3d+1,dev_nbor);
-  _cell_bytes=cell_counts.row_bytes();
-  const numtyp cell_size_cast=static_cast<numtyp>(_cell_size);
-
+  // If binning on GPU, do this now
   if (_gpu_nbor==1) {
-    /* build cell list on GPU */
     const int neigh_block=_block_cell_id;
     const int GX=(int)ceil((float)nall/neigh_block);
     const numtyp sublo0=static_cast<numtyp>(sublo[0]);
@@ -324,63 +394,15 @@ void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
 
     /* calculate cell count */
     _shared->k_cell_counts.set_size(GX,neigh_block);
-    _shared->k_cell_counts.run(&atom.dev_cell_id.begin(), &cell_counts.begin(), 
-                               &nall, &ncell_3d);
-  } else {
-    int *cell_id=atom.host_cell_id.begin();
-    int *particle_id=atom.host_particle_id.begin();
-    
-    // Build cell list on CPU                               
-    UCL_H_Vec<int> h_cell_counts;
-    int ncells=ncell_3d+1;
-    h_cell_counts.alloc(ncells,dev_nbor);
-    h_cell_counts.zero();
-    double m_cell_size=-_cell_size;
-    double dx=subhi[0]-sublo[0]+_cell_size;
-    double dy=subhi[1]-sublo[1]+_cell_size;
-    double dz=subhi[2]-sublo[2]+_cell_size;
-
-    for (int i=0; i<nall; i++) {
-      double px, py, pz;
-      px=x[i][0]-sublo[0];
-      py=x[i][1]-sublo[1];
-      pz=x[i][2]-sublo[2];
-      if (px<m_cell_size) px=m_cell_size;
-      if (py<m_cell_size) py=m_cell_size;
-      if (pz<m_cell_size) pz=m_cell_size;
-      if (px>dx) px=dx;            
-      if (py>dy) py=dy;            
-      if (pz>dz) pz=dz;            
-    
-      int id=static_cast<int>(px/_cell_size + 1.0) + 
-             static_cast<int>(py/_cell_size + 1.0) * ncellx +
-             static_cast<int>(pz/_cell_size + 1.0) * ncellx * ncelly;
-    
-      cell_id[i]=id;
-      h_cell_counts[id+1]++;
-    }
-    int *cell_iter=new int[ncells];
-    cell_iter[0]=0;
-    for (int i=1; i<ncells; i++) {
-      h_cell_counts[i]+=h_cell_counts[i-1];
-      cell_iter[i]=h_cell_counts[i];
-    }
-    ucl_copy(cell_counts,h_cell_counts,true);
-    for (int i=0; i<nall; i++) {
-      int celli=cell_id[i];
-      int ploc=cell_iter[celli];
-      cell_iter[celli]++;
-      particle_id[ploc]=i;
-    }
-    ucl_copy(atom.dev_particle_id,atom.host_particle_id,false);
-    delete [] cell_iter;
-  }        
-
+    _shared->k_cell_counts.run(&atom.dev_cell_id.begin(), 
+                               &dev_cell_counts.begin(), &nall, &ncell_3d);
+  } 
+  
   /* build the neighbor list */
   const int cell_block=_block_nbor_build;
   _shared->k_build_nbor.set_size(ncellx, ncelly*ncellz, cell_block, 1);
   _shared->k_build_nbor.run(&atom.dev_x.begin(), &atom.dev_particle_id.begin(),
-                            &cell_counts.begin(), &dev_nbor.begin(),
+                            &dev_cell_counts.begin(), &dev_nbor.begin(),
                             &dev_host_nbor.begin(), &dev_host_numj.begin(),
                             &_max_nbors,&cell_size_cast,
                             &ncellx, &ncelly, &ncellz, &inum, &nt, &nall);

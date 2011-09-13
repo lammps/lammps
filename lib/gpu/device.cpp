@@ -392,7 +392,7 @@ void DeviceT::output_times(UCL_Timer &time_pair,
                                   const double gpu_overhead,
                                   const double driver_overhead, 
                                   const int threads_per_atom, FILE *screen) {
-  double single[8], times[8];
+  double single[9], times[9];
 
   single[0]=atom.transfer_time()+ans.transfer_time();
   single[1]=nbor.time_nbor.total_seconds();
@@ -402,8 +402,9 @@ void DeviceT::output_times(UCL_Timer &time_pair,
   single[5]=gpu_overhead;
   single[6]=driver_overhead;
   single[7]=ans.cpu_idle_time();
+  single[8]=nbor.bin_time();
 
-  MPI_Reduce(single,times,8,MPI_DOUBLE,MPI_SUM,0,_comm_replica);
+  MPI_Reduce(single,times,9,MPI_DOUBLE,MPI_SUM,0,_comm_replica);
 
   double my_max_bytes=max_bytes+atom.max_gpu_bytes();
   double mpi_max_bytes;
@@ -428,6 +429,8 @@ void DeviceT::output_times(UCL_Timer &time_pair,
           fprintf(screen,"Neighbor unpack: %.4f s.\n",times[2]/_replica_size);
         fprintf(screen,"Force calc:      %.4f s.\n",times[3]/_replica_size);
       }
+      if (nbor.gpu_nbor()==2)
+        fprintf(screen,"Neighbor (CPU):  %.4f s.\n",times[8]/_replica_size);
       fprintf(screen,"GPU Overhead:    %.4f s.\n",times[5]/_replica_size);
       fprintf(screen,"Average split:   %.4f.\n",avg_split);
       fprintf(screen,"Threads / atom:  %d.\n",threads_per_atom);

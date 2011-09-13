@@ -1118,7 +1118,7 @@ void FixNH::remap()
 
 void FixNH::write_restart(FILE *fp)
 {
-  int nsize = size_restart();
+  int nsize = size_restart_global();
 
   double *list;
   memory->create(list,nsize,"nh:list");
@@ -1138,7 +1138,7 @@ void FixNH::write_restart(FILE *fp)
     calculate the number of data to be packed
 ------------------------------------------------------------------------- */
 
-int FixNH::size_restart()
+int FixNH::size_restart_global()
 {
   int nsize = 2;
   if (tstat_flag) nsize += 1 + 2*mtchain;

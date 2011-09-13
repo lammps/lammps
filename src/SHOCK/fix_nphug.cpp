@@ -402,13 +402,13 @@ int FixNPHug::pack_restart_data(double *list)
    calculate the number of data to be packed
 ------------------------------------------------------------------------- */
 
-int FixNPHug::size_restart()
+int FixNPHug::size_restart_global()
 {
   int nsize = 3;
 
   // call the base class function
 
-  nsize += FixNH::size_restart();
+  nsize += FixNH::size_restart_global();
 
   return nsize;
 }

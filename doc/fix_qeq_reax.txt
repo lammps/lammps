@@ -74,6 +74,10 @@ This fix is part of the USER-REAXC package.  It is only enabled if
 LAMMPS was built with that package.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.
 
+This fix does not correctly handle interactions
+involving multiple periodic images of the same atom. Hence, it should not
+be used for periodic cell dimensions less than 10 angstroms. 
+
 [Related commands:]
 
 "pair_style reax/c"_pair_reax_c.html

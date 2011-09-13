@@ -254,6 +254,10 @@ use another command that tries to calculate these quantities using
 this pair style, a warning message will be printed and the quantities
 will be 0.0.
 
+This pair style does not correctly handle interactions
+involving multiple periodic images of the same atom. Hence, it should not
+be used for periodic cell dimensions less than 10 angstroms. 
+
 [Related commands:]
 
 "pair_coeff"_pair_coeff.html, "fix_qeq_reax"_fix_qeq_reax.html,
@@ -269,5 +273,6 @@ The keyword default is checkqeq = yes.
 [(Chenoweth_2008)] Chenoweth, van Duin and Goddard, 
 Journal of Physical Chemistry A, 112, 1040-1053 (2008).
 
-:link(Aktulga) [(Aktulga)] Aktulga, Fogarty, Pandit, Grama, Parallel
+:link(Aktulga) 
+[(Aktulga)] Aktulga, Fogarty, Pandit, Grama, Parallel
 Computing, to appear (2011).

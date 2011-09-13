@@ -259,12 +259,11 @@ void Neighbor::get_host(const int inum, int *ilist, int *numj,
 }
 
 template <class numtyp, class acctyp>
-void Neighbor::build_nbor_list(const int inum, const int host_inum,
-                                  const int nall, 
-                                  Atom<numtyp,acctyp> &atom, 
-                                  double *sublo, double *subhi, int *tag, 
-                                  int **nspecial, int **special, bool &success,
-                                  int &mn) {
+void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
+                               const int nall, Atom<numtyp,acctyp> &atom, 
+                               double *sublo, double *subhi, int *tag, 
+                               int **nspecial, int **special, bool &success,
+                               int &mn) {
   const int nt=inum+host_inum;
   if (_maxspecial>0) {
     time_nbor.start();
@@ -299,32 +298,83 @@ void Neighbor::build_nbor_list(const int inum, const int host_inum,
   ncellz = static_cast<int>(ceil(((subhi[2] - sublo[2]) +
                                   2.0*_cell_size)/_cell_size));
   ncell_3d = ncellx * ncelly * ncellz;
+
   UCL_D_Vec<int> cell_counts;
   cell_counts.alloc(ncell_3d+1,dev_nbor);
   _cell_bytes=cell_counts.row_bytes();
-
-  /* build cell list on GPU */
-  const int neigh_block=_block_cell_id;
-  const int GX=(int)ceil((float)nall/neigh_block);
-  const numtyp sublo0=static_cast<numtyp>(sublo[0]);
-  const numtyp sublo1=static_cast<numtyp>(sublo[1]);
-  const numtyp sublo2=static_cast<numtyp>(sublo[2]);
-  const numtyp subhi0=static_cast<numtyp>(subhi[0]);
-  const numtyp subhi1=static_cast<numtyp>(subhi[1]);
-  const numtyp subhi2=static_cast<numtyp>(subhi[2]);
   const numtyp cell_size_cast=static_cast<numtyp>(_cell_size);
-  _shared->k_cell_id.set_size(GX,neigh_block);
-  _shared->k_cell_id.run(&atom.dev_x.begin(), &atom.dev_cell_id.begin(), 
-                         &atom.dev_particle_id.begin(),
-  				               &sublo0, &sublo1, &sublo2, &subhi0, &subhi1, 
-  				               &subhi2, &cell_size_cast, &ncellx, &ncelly, &nall);
 
-  atom.sort_neighbor(nall);
+  if (_gpu_nbor==1) {
+    /* build cell list on GPU */
+    const int neigh_block=_block_cell_id;
+    const int GX=(int)ceil((float)nall/neigh_block);
+    const numtyp sublo0=static_cast<numtyp>(sublo[0]);
+    const numtyp sublo1=static_cast<numtyp>(sublo[1]);
+    const numtyp sublo2=static_cast<numtyp>(sublo[2]);
+    const numtyp subhi0=static_cast<numtyp>(subhi[0]);
+    const numtyp subhi1=static_cast<numtyp>(subhi[1]);
+    const numtyp subhi2=static_cast<numtyp>(subhi[2]);
+    _shared->k_cell_id.set_size(GX,neigh_block);
+    _shared->k_cell_id.run(&atom.dev_x.begin(), &atom.dev_cell_id.begin(), 
+                           &atom.dev_particle_id.begin(),
+    				               &sublo0, &sublo1, &sublo2, &subhi0, &subhi1, 
+    				               &subhi2, &cell_size_cast, &ncellx, &ncelly, &nall);
 
-  /* calculate cell count */
-  _shared->k_cell_counts.set_size(GX,neigh_block);
-  _shared->k_cell_counts.run(&atom.dev_cell_id.begin(), &cell_counts.begin(), 
-                             &nall, &ncell_3d);
+    atom.sort_neighbor(nall);
+
+    /* calculate cell count */
+    _shared->k_cell_counts.set_size(GX,neigh_block);
+    _shared->k_cell_counts.run(&atom.dev_cell_id.begin(), &cell_counts.begin(), 
+                               &nall, &ncell_3d);
+  } else {
+    int *cell_id=atom.host_cell_id.begin();
+    int *particle_id=atom.host_particle_id.begin();
+    
+    // Build cell list on CPU                               
+    UCL_H_Vec<int> h_cell_counts;
+    int ncells=ncell_3d+1;
+    h_cell_counts.alloc(ncells,dev_nbor);
+    h_cell_counts.zero();
+    double m_cell_size=-_cell_size;
+    double dx=subhi[0]-sublo[0]+_cell_size;
+    double dy=subhi[1]-sublo[1]+_cell_size;
+    double dz=subhi[2]-sublo[2]+_cell_size;
+
+    for (int i=0; i<nall; i++) {
+      double px, py, pz;
+      px=x[i][0]-sublo[0];
+      py=x[i][1]-sublo[1];
+      pz=x[i][2]-sublo[2];
+      if (px<m_cell_size) px=m_cell_size;
+      if (py<m_cell_size) py=m_cell_size;
+      if (pz<m_cell_size) pz=m_cell_size;
+      if (px>dx) px=dx;            
+      if (py>dy) py=dy;            
+      if (pz>dz) pz=dz;            
+    
+      int id=static_cast<int>(px/_cell_size + 1.0) + 
+             static_cast<int>(py/_cell_size + 1.0) * ncellx +
+             static_cast<int>(pz/_cell_size + 1.0) * ncellx * ncelly;
+    
+      cell_id[i]=id;
+      h_cell_counts[id+1]++;
+    }
+    int *cell_iter=new int[ncells];
+    cell_iter[0]=0;
+    for (int i=1; i<ncells; i++) {
+      h_cell_counts[i]+=h_cell_counts[i-1];
+      cell_iter[i]=h_cell_counts[i];
+    }
+    ucl_copy(cell_counts,h_cell_counts,true);
+    for (int i=0; i<nall; i++) {
+      int celli=cell_id[i];
+      int ploc=cell_iter[celli];
+      cell_iter[celli]++;
+      particle_id[ploc]=i;
+    }
+    ucl_copy(atom.dev_particle_id,atom.host_particle_id,false);
+    delete [] cell_iter;
+  }        
 
   /* build the neighbor list */
   const int cell_block=_block_nbor_build;
@@ -379,7 +429,7 @@ void Neighbor::build_nbor_list(const int inum, const int host_inum,
     _max_nbors=mn;
     time_kernel.stop();
     time_kernel.add_to_total();
-    build_nbor_list(inum, host_inum, nall, atom, sublo, subhi, tag, nspecial,
+    build_nbor_list(x, inum, host_inum, nall, atom, sublo, subhi, tag, nspecial,
                     special, success, mn);
     return;
   }
@@ -401,7 +451,7 @@ void Neighbor::build_nbor_list(const int inum, const int host_inum,
 }
 
 template void Neighbor::build_nbor_list<PRECISION,ACC_PRECISION>
-     (const int inum, const int host_inum, const int nall,
+     (double **x, const int inum, const int host_inum, const int nall,
       Atom<PRECISION,ACC_PRECISION> &atom, double *sublo, double *subhi,
       int *, int **, int **, bool &success, int &mn);
 

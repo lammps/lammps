@@ -148,13 +148,12 @@ int * BaseAtomicT::reset_nbors(const int nall, const int inum, int *ilist,
 // Build neighbor list on device
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-inline void BaseAtomicT::build_nbor_list(const int inum,
-                                              const int host_inum,
-                                              const int nall, double **host_x,
-                                              int *host_type, double *sublo,
-                                              double *subhi, int *tag,
-                                              int **nspecial, int **special,
-                                              bool &success) {
+inline void BaseAtomicT::build_nbor_list(const int inum, const int host_inum,
+                                         const int nall, double **host_x,
+                                         int *host_type, double *sublo,
+                                         double *subhi, int *tag,
+                                         int **nspecial, int **special,
+                                         bool &success) {
   nbor_time_avail=true;
 
   success=true;
@@ -165,7 +164,7 @@ inline void BaseAtomicT::build_nbor_list(const int inum,
   atom->cast_copy_x(host_x,host_type);
 
   int mn;
-  nbor->build_nbor_list(inum, host_inum, nall, *atom, sublo, subhi, tag,
+  nbor->build_nbor_list(host_x, inum, host_inum, nall, *atom, sublo, subhi, tag,
                         nspecial, special, success, mn);
 
   double bytes=ans->gpu_bytes()+nbor->gpu_bytes();

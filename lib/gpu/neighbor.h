@@ -143,8 +143,8 @@ class Neighbor {
 
   /// Build nbor list on the device
   template <class numtyp, class acctyp>
-  void build_nbor_list(const int inum, const int host_inum, const int nall,
-                       Atom<numtyp,acctyp> &atom, double *sublo,
+  void build_nbor_list(double **x, const int inum, const int host_inum, 
+                       const int nall, Atom<numtyp,acctyp> &atom, double *sublo,
                        double *subhi, int *tag, int **nspecial, int **special, 
                        bool &success, int &max_nbors);
 

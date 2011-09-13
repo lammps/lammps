@@ -321,7 +321,7 @@ inline void BaseEllipsoidT::build_nbor_list(const int inum, const int host_inum,
   atom->cast_copy_x(host_x,host_type);
 
   int mn;
-  nbor->build_nbor_list(inum, host_inum, nall, *atom, sublo, subhi, tag,
+  nbor->build_nbor_list(host_x, inum, host_inum, nall, *atom, sublo, subhi, tag,
                         nspecial, special, success, mn);
   nbor->copy_unpacked(inum,mn);
   _last_ellipse=inum;

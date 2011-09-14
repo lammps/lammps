@@ -14,7 +14,7 @@ SHELL = /bin/sh
 
 # System-specific settings
 
-CUDA_INSTALL_PATH = /usr/local/cuda-3.2
+CUDA_INSTALL_PATH = /usr/local/cuda
 # e.g. in Gentoo
 # CUDA_INSTALL_PATH = /opt/cuda
 
@@ -35,8 +35,8 @@ endif
 
 #shell echo "Compiling with precision = " ${precision} ", arch = " ${arch} ", cufft = " ${cufft} ", dbg = " ${dbg} ", prec_timer = " ${prec_timer}
 
-CUDA_FLAGS := -DUNIX 
-CUDA_USRLIB_CONDITIONAL := 
+CUDA_FLAGS := -I${CUDA_INSTALL_PATH}/include -DUNIX 
+CUDA_USRLIB_CONDITIONAL := -L${CUDA_INSTALL_PATH}/lib -L${CUDA_INSTALL_PATH}/lib64
 
 # debug setting
 ifeq ($(strip $(dbg)), 1)

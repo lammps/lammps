@@ -159,6 +159,17 @@ print Coord = $q
 particular atom between runs.  Note that the variable "$q" will
 be evaluated afresh each time the print command is executed.
 </P>
+<P>IMPORTANT NOTE: You might think you could specify a command
+that exits the run by jumping out of the loop, e.g.
+one of these two cases:
+</P>
+<PRE>run		100 every 1 "jump SELF afterrun"
+run		100 every 1 "if '$t < 1.0' then 'jump SELF afterrun'" 
+</PRE>
+<P>Unfortunately this will not currently work.  The run command simply
+executes each command one at a time each time it pauses, then
+continues the run.
+</P>
 <P>Note that by using the line continuation character "&", the run every
 command can be spread across many lines, though it is still a single
 command:
@@ -173,6 +184,18 @@ command:
 <I>every</I> keyword, then the 1st run will do the full setup and the last
 run will print the full timing summary, but these operations will be
 skipped for intermediate runs.
+</P>
+<P>IMPORTANT NOTE: You might think you could use the <I>every</I> option to
+perform a test that exits the run by jumping or breaking out of the
+loop, e.g. similar to this logic, which tests on the current
+temperature:
+</P>
+<PRE>variable t equal temp
+run 10000 every 100 "if '$t < 300.0' then 'jump SELF afterrun'" 
+</PRE>
+<P>Unfortunately this will not currently work.  The run command simply
+executes the command(s) each time it pauses, then continues the run
+until completed.
 </P>
 <P><B>Restrictions:</B>
 </P>

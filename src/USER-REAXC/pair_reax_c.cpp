@@ -13,6 +13,12 @@
 
 /* ----------------------------------------------------------------------
    Contributing author: Hasan Metin Aktulga, Purdue University
+   (now at Lawrence Berkeley National Laboratory, hmaktulga@lbl.gov)
+
+   Please cite the related publication:
+   H. M. Aktulga, J. C. Fogarty, S. A. Pandit, A. Y. Grama,
+   "Parallel Reactive Molecular Dynamics: Numerical Methods and
+   Algorithmic Techniques", Parallel Computing, in press.
 ------------------------------------------------------------------------- */
 
 #include "pair_reax_c.h"
@@ -27,7 +33,6 @@
 #include "fix.h"
 #include "fix_reax_c.h"
 #include "memory.h"
-#include "domain.h"
 #include "error.h"
 
 #include "reaxc_types.h"
@@ -379,9 +384,6 @@ void PairReaxC::compute(int eflag, int vflag)
   double evdwl,ecoul;
   double t_start, t_end;
 
-  if (domain->xprd < cutmax || domain->yprd < cutmax || domain->zprd < cutmax) 
-    error->warning("PairReaxC cutoff greater than periodic dimension");
-
   // communicate num_bonds once every reneighboring
   // 2 num arrays stored by fix, grab ptr to them
 
@@ -628,16 +630,17 @@ int PairReaxC::estimate_reax_lists()
 
 int PairReaxC::write_reax_lists()
 {
-  int itr_i, itr_j, itr_g, i, j, g;
+  int itr_i, itr_j, itr_g, i, j, g, flag;
   int nlocal, nghost, num_nbrs;
-  int *ilist, *jlist, *numneigh, **firstneigh, *marked;
+  int *ilist, *jlist, *numneigh, **firstneigh, *marked, *tag;
   double d_sqr, g_d, g_d_sqr;
   rvec dvec, g_dvec;
-  double *dist, **x;
+  double *dist, **x, SMALL = 0.0001;
   reax_list *far_nbrs;
   far_neighbor_data *far_list;
 
   x = atom->x;
+  tag = atom->tag;
   nlocal = atom->nlocal;
   nghost = atom->nghost;
   ilist = list->ilist;

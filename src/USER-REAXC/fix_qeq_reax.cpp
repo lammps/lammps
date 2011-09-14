@@ -13,6 +13,12 @@
 
 /* ----------------------------------------------------------------------
    Contributing author: Hasan Metin Aktulga, Purdue University
+   (now at Lawrence Berkeley National Laboratory, hmaktulga@lbl.gov)
+
+   Please cite the related publication:
+   H. M. Aktulga, J. C. Fogarty, S. A. Pandit, A. Y. Grama,
+   "Parallel Reactive Molecular Dynamics: Numerical Methods and
+   Algorithmic Techniques", Parallel Computing, in press.
 ------------------------------------------------------------------------- */
 
 #include "math.h"
@@ -401,9 +407,6 @@ void FixQEqReax::pre_force(int vflag)
   if (update->ntimestep % nevery) return;
   if( comm->me == 0 ) t_start = MPI_Wtime();
 
-  if (domain->xprd < swb || domain->yprd < swb || domain->zprd < swb) 
-    error->warning("FixQEqReax cutoff greater than periodic dimension");
-
   n = atom->nlocal;
   N = atom->nlocal + atom->nghost;
   // grow arrays if necessary
@@ -474,19 +477,20 @@ void FixQEqReax::init_matvec()
 void FixQEqReax::compute_H()
 {
   int inum, jnum, *ilist, *jlist, *numneigh, **firstneigh;
-  int i, j, ii, jj, temp, newnbr;
-  int *type;
-  double **x;
+  int i, j, ii, jj, temp, newnbr, flag;
+  int *type, *tag;
+  double **x, SMALL = 0.0001;
   double dx, dy, dz, r_sqr;
 
   type = atom->type;
+  tag = atom->tag;
   x = atom->x;
 
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-
+  
   // fill in the H matrix
   m_fill = 0;
   r_sqr = 0;
@@ -495,16 +499,30 @@ void FixQEqReax::compute_H()
     jlist = firstneigh[i];
     jnum = numneigh[i];
     H.firstnbr[i] = m_fill;
-
+    
     for( jj = 0; jj < jnum; jj++ ) {
       j = jlist[jj];
-
-      dx = x[i][0] - x[j][0];
-      dy = x[i][1] - x[j][1];
-      dz = x[i][2] - x[j][2];
+      
+      dx = x[j][0] - x[i][0];
+      dy = x[j][1] - x[i][1];
+      dz = x[j][2] - x[i][2];
       r_sqr = SQR(dx) + SQR(dy) + SQR(dz);
       
-      if( r_sqr <= SQR(swb) && (j < n || atom->tag[i] <= atom->tag[j]) ) {
+      flag = 0;
+      if (r_sqr <= SQR(swb)) {
+        if (j < n) flag = 1;
+        else if (tag[i] < tag[j]) flag = 1;
+	else if (tag[i] == tag[j]) {
+          if (dz > SMALL) flag = 1;
+          else if (fabs(dz) < SMALL) {
+            if (dy > SMALL) flag = 1;
+            else if (fabs(dy) < SMALL && dx > SMALL)
+              flag = 1;
+          }
+        }
+      }
+      
+      if( flag ) {
 	H.jlist[m_fill] = j;
 	H.val[m_fill] = calculate_H( sqrt(r_sqr), shld[type[i]][type[j]] );
 	m_fill++;

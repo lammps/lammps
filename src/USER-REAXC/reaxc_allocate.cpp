@@ -1,11 +1,16 @@
 /*----------------------------------------------------------------------
   PuReMD - Purdue ReaxFF Molecular Dynamics Program
-  
+
   Copyright (2010) Purdue University
-  Hasan Metin Aktulga, haktulga@cs.purdue.edu
+  Hasan Metin Aktulga, hmaktulga@lbl.gov
   Joseph Fogarty, jcfogart@mail.usf.edu
   Sagar Pandit, pandit@usf.edu
   Ananth Y Grama, ayg@cs.purdue.edu
+
+  Please cite the related publication:
+  H. M. Aktulga, J. C. Fogarty, S. A. Pandit, A. Y. Grama,
+  "Parallel Reactive Molecular Dynamics: Numerical Methods and
+  Algorithmic Techniques", Parallel Computing, in press.
 
   This program is free software; you can redistribute it and/or
   modify it under the terms of the GNU General Public License as
@@ -744,7 +749,7 @@ void ReAllocate( reax_system *system, control_params *control,
 {
   int i, j, k, p;
   int num_bonds, est_3body, nflag, Nflag, Hflag, mpi_flag, ret, total_send;
-  int renbr;
+  int renbr, newsize;
   reallocate_data *realloc;
   reax_list *far_nbrs;
   sparse_matrix *H;
@@ -781,14 +786,14 @@ void ReAllocate( reax_system *system, control_params *control,
   if( system->n >= DANGER_ZONE * system->local_cap ||
       (0 && system->n <= LOOSE_ZONE * system->local_cap) ) {
     nflag = 1;
-    system->local_cap = (int)(system->n * SAFE_ZONE);
+    system->local_cap = MAX( (int)(system->n * SAFE_ZONE), MIN_CAP );
   }
 
   Nflag = 0;
   if( system->N >= DANGER_ZONE * system->total_cap ||
       (0 && system->N <= LOOSE_ZONE * system->total_cap) ) {
     Nflag = 1;
-    system->total_cap = (int)(system->N * SAFE_ZONE);
+    system->total_cap = MAX( (int)(system->N * SAFE_ZONE), MIN_CAP );
   }
 
   if( Nflag ) {
@@ -831,15 +836,16 @@ void ReAllocate( reax_system *system, control_params *control,
 		 data->step, realloc->num_far, far_nbrs->num_intrs );
 	MPI_Abort( comm, INSUFFICIENT_MEMORY );
       }
+
+      newsize = static_cast<int> 
+	(MAX( realloc->num_far*SAFE_ZONE, MIN_CAP*MIN_NBRS ));      
 #if defined(DEBUG_FOCUS)
       fprintf( stderr, "p%d: reallocating far_nbrs: num_fars=%d, space=%dMB\n", 
 	       system->my_rank, (int)(realloc->num_far*SAFE_ZONE), 
-	       (int)(realloc->num_far*SAFE_ZONE*sizeof(far_neighbor_data)/
-		     (1024*1024)) );
-#endif      
-      Reallocate_Neighbor_List( far_nbrs, system->total_cap, 
-				(int)(realloc->num_far*SAFE_ZONE), 
-				comm );
+	       (newsize*sizeof(far_neighbor_data)/(1024*1024)) );
+#endif
+      
+      Reallocate_Neighbor_List( far_nbrs, system->total_cap, newsize, comm );
       realloc->num_far = 0;
     }
   }
@@ -860,8 +866,11 @@ void ReAllocate( reax_system *system, control_params *control,
 	     (int)(realloc->Htop * SAFE_ZONE * sizeof(sparse_matrix_entry) / 
 		   (1024*1024)) );
 #endif
+
+    newsize = static_cast<int> 
+	(MAX( realloc->Htop*SAFE_ZONE, MIN_CAP*MIN_NBRS ));
     Reallocate_Matrix( &(workspace->H), system->local_cap, 
-		       realloc->Htop*SAFE_ZONE, "H", comm );
+		       newsize, "H", comm );
     //Deallocate_Matrix( workspace->L );
     //Deallocate_Matrix( workspace->U );
     workspace->L = NULL;
@@ -876,7 +885,7 @@ void ReAllocate( reax_system *system, control_params *control,
     if( system->numH >= DANGER_ZONE * system->Hcap || 
 	(0 && system->numH <= LOOSE_ZONE * system->Hcap) ) {
       Hflag = 1;
-      system->Hcap = (int)(system->numH * SAFE_ZONE);
+      system->Hcap = MAX( system->numH * SAFER_ZONE, MIN_CAP );
     }
 
     if( Hflag || realloc->hbonds ) {

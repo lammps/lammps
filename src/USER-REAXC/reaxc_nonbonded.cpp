@@ -1,11 +1,16 @@
 /*----------------------------------------------------------------------
   PuReMD - Purdue ReaxFF Molecular Dynamics Program
-  
+
   Copyright (2010) Purdue University
-  Hasan Metin Aktulga, haktulga@cs.purdue.edu
+  Hasan Metin Aktulga, hmaktulga@lbl.gov
   Joseph Fogarty, jcfogart@mail.usf.edu
   Sagar Pandit, pandit@usf.edu
   Ananth Y Grama, ayg@cs.purdue.edu
+
+  Please cite the related publication:
+  H. M. Aktulga, J. C. Fogarty, S. A. Pandit, A. Y. Grama,
+  "Parallel Reactive Molecular Dynamics: Numerical Methods and
+  Algorithmic Techniques", Parallel Computing, in press.
 
   This program is free software; you can redistribute it and/or
   modify it under the terms of the GNU General Public License as
@@ -38,13 +43,13 @@ void vdW_Coulomb_Energy( reax_system *system, control_params *control,
 			 reax_list **lists, output_controls *out_control )
 {
   int i, j, pj, natoms;
-  int start_i, end_i, orig_i, orig_j;
+  int start_i, end_i, orig_i, orig_j, flag;
   real p_vdW1, p_vdW1i;
   real powr_vdW1, powgi_vdW1;
   real tmp, r_ij, fn13, exp1, exp2;
   real Tap, dTap, dfn13, CEvd, CEclmb, de_core;
   real dr3gamij_1, dr3gamij_3;
-  real e_ele, e_vdW, e_core;
+  real e_ele, e_vdW, e_core, SMALL = 0.0001;
   rvec temp, ext_press;
   two_body_parameters *twbp;
   far_neighbor_data *nbr_pj;
@@ -69,9 +74,27 @@ void vdW_Coulomb_Energy( reax_system *system, control_params *control,
       j = nbr_pj->nbr;
       orig_j  = system->my_atoms[j].orig_id;
 
+#if defined(PURE_REAX)
       if( nbr_pj->d <= control->nonb_cut && (j < natoms || orig_i < orig_j) ) {
-	r_ij = nbr_pj->d;
-	twbp = &(system->reax_param.tbp[ system->my_atoms[i].type ]
+#elif defined(LAMMPS_REAX)
+      flag = 0;
+      if(nbr_pj->d <= control->nonb_cut) { 
+	if (j < natoms) flag = 1;
+	else if (orig_i < orig_j) flag = 1;
+	else if (orig_i == orig_j) {
+	  if (nbr_pj->dvec[2] > SMALL) flag = 1;
+	  else if (fabs(nbr_pj->dvec[2]) < SMALL) {
+	    if (nbr_pj->dvec[1] > SMALL) flag = 1;
+	    else if (fabs(nbr_pj->dvec[1]) < SMALL && nbr_pj->dvec[0] > SMALL)
+	      flag = 1;
+	  }
+	}
+      }
+      
+      if (flag) {
+#endif
+      r_ij = nbr_pj->d;
+      twbp = &(system->reax_param.tbp[ system->my_atoms[i].type ]
 		                       [ system->my_atoms[j].type ]);
 
       /* Calculate Taper and its derivative */
@@ -212,10 +235,10 @@ void Tabulated_vdW_Coulomb_Energy( reax_system *system,control_params *control,
 {
   int i, j, pj, r, natoms, steps, update_freq, update_energies;
   int type_i, type_j, tmin, tmax;
-  int start_i, end_i, orig_i, orig_j;
+  int start_i, end_i, orig_i, orig_j, flag;
   real r_ij, base, dif;
   real e_vdW, e_ele;
-  real CEvd, CEclmb;
+  real CEvd, CEclmb, SMALL = 0.0001;
   rvec temp, ext_press;
   far_neighbor_data *nbr_pj;
   reax_list *far_nbrs;
@@ -239,7 +262,25 @@ void Tabulated_vdW_Coulomb_Energy( reax_system *system,control_params *control,
       j = nbr_pj->nbr;
       orig_j  = system->my_atoms[j].orig_id;
 
+#if defined(PURE_REAX)
       if( nbr_pj->d <= control->nonb_cut && (j < natoms || orig_i < orig_j) ) {
+#elif defined(LAMMPS_REAX)
+      flag = 0;
+      if(nbr_pj->d <= control->nonb_cut) { 
+	if (j < natoms) flag = 1;
+	else if (orig_i < orig_j) flag = 1;
+	else if (orig_i == orig_j) {
+	  if (nbr_pj->dvec[2] > SMALL) flag = 1;
+	  else if (fabs(nbr_pj->dvec[2]) < SMALL) {
+	    if (nbr_pj->dvec[1] > SMALL) flag = 1;
+	    else if (fabs(nbr_pj->dvec[1]) < SMALL && nbr_pj->dvec[0] > SMALL)
+	      flag = 1;
+	  }
+	}
+      }
+      
+      if (flag) {
+#endif
       j = nbr_pj->nbr;
       type_j = system->my_atoms[j].type;
       r_ij   = nbr_pj->d;

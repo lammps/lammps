@@ -19,8 +19,11 @@ pair_coeff * * Si.edip Si
 
 [Description:]
 
-The {edip} style computes a 3-body "EDIP"_#EDIP
-potential for the energy E of a system of atoms as
+The {edip} style computes a 3-body "EDIP"_#EDIP potential which is
+popular for modeling silicon materials where it can have advantages
+over other models such as the "Stillinger-Weber"_pair_sw.html or
+"Tersoff"_pair_tersoff.html potentials.  In EDIP, the energy E of a
+system of atoms is
 
 :c,image(Eqs/pair_edip.jpg)
 

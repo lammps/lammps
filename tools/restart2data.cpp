@@ -335,7 +335,17 @@ int main (int narg, char **arg)
 
   int iarg = 1;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"-s") == 0) {
+    if (strcmp(arg[iarg],"-h") == 0) {
+      printf("Syntax: restart2data switch arg ... "
+	     "restart-file data-file (input-file)\n");
+      printf("  optional switch = -s");
+      printf("    arg = suffix to remove from style names");
+      printf("  restart-file and data-file are mandatory");
+      printf("  input-file is optional");
+      printf("    if specified it will contain LAMMPS input script commands");
+      printf("    for mass and force field info");
+      printf("    only a few force field styles support this option");
+    } else if (strcmp(arg[iarg],"-s") == 0) {
       if (iarg+2 > narg) {
 	printf("Syntax: restart2data switch arg ... "
 	       "restart-file data-file (input-file)\n");

@@ -148,7 +148,6 @@ if (test $1 = 1) then
   cp pair_lj_gromacs_cuda.cpp ..
   cp pair_lj_smooth_cuda.cpp ..
   cp pair_morse_cuda.cpp ..
-  cp pppm_cuda.cpp ..
   cp verlet_cuda.cpp ..
 
   cp cuda.cpp ..

@@ -678,6 +678,7 @@ package"_Section_start.html#start_3.
 "cg/cmm/coul/long"_pair_cmm.html,
 "dipole/sf"_pair_dipole.html,
 "eam/cd"_pair_eam.html,
+"edip"_pair_edip.html,
 "eff/cut"_pair_eff.html,
 "lj/coul"_pair_lj_coul.html,
 "lj/sf"_pair_lj_sf.html,

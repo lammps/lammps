@@ -15,7 +15,7 @@ if (test $1 = 1) then
     sed -i -e 's|^PKG_SYSPATH =[ \t]*|&$(user-cuda_SYSPATH) |' ../Makefile.package
   fi
 
-  if (test -e ../Makefile.package.include) then
+  if (test -e ../Makefile.package.settings) then
     sed -i -e '/^include.*cuda.*$/d' ../Makefile.package.settings
     sed -i '4 i include ..\/..\/lib\/cuda\/Makefile.lammps' ../Makefile.package.settings
   fi
@@ -148,7 +148,6 @@ if (test $1 = 1) then
   cp pair_lj_gromacs_cuda.cpp ..
   cp pair_lj_smooth_cuda.cpp ..
   cp pair_morse_cuda.cpp ..
-  cp pppm_cuda.cpp ..
   cp verlet_cuda.cpp ..
 
   cp cuda.cpp ..

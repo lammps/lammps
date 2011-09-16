@@ -28,6 +28,7 @@ dihedral_style cosine/shift/exp, Carsten Svaneborg, science at zqex.dk, 8 Aug 11
 fix addtorque, Laurent Joly (U Lyon), ljoly.ulyon at gmail.com, 8 Aug 11
 fix imd, Axel Kohlmeyer, akohlmey at gmail.com, 9 Nov 2009
 fix smd, Axel Kohlmeyer, akohlmey at gmail.com, 19 May 2008
-pair dipole/sf, Mario Orsi, orsimario at gmail.com, 8 Aug 11
-pair eam/cd, Alexander Stukowski, stukowski at mm.tu-darmstadt.de, 
-pair lj/sf, Laurent Joly (U Lyon), ljoly.ulyon at gmail.com, 8 Aug 11
+pair_style dipole/sf, Mario Orsi, orsimario at gmail.com, 8 Aug 11
+pair_style edip, Luca Ferraro, luca.ferraro at caspur.it, 15 Sep 11
+pair_style eam/cd, Alexander Stukowski, stukowski at mm.tu-darmstadt.de, 7 Nov 09
+pair_style lj/sf, Laurent Joly (U Lyon), ljoly.ulyon at gmail.com, 8 Aug 11

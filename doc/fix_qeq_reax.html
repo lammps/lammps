@@ -77,6 +77,10 @@ be used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A> 
 LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
 LAMMPS</A> section for more info.
 </P>
+<P>This fix does not correctly handle interactions
+involving multiple periodic images of the same atom. Hence, it should not
+be used for periodic cell dimensions less than 10 angstroms. 
+</P>
 <P><B>Related commands:</B>
 </P>
 <P><A HREF = "pair_reax_c.html">pair_style reax/c</A>

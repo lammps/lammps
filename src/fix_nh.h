@@ -34,7 +34,6 @@ class FixNH : public Fix {
   virtual double compute_vector(int);
   void write_restart(FILE *);
   virtual int pack_restart_data(double *); // pack restart data
-  virtual int size_restart();              // return size
   virtual void restart(char *);
   int modify_param(int, char **);
   void reset_target(double);
@@ -104,6 +103,10 @@ class FixNH : public Fix {
 
   double mtk_term1,mtk_term2;      // Martyna-Tobias-Klein corrections
 
+  int eta_mass_flag;               // 1 if eta_mass updated, 0 if not.
+  int omega_mass_flag;             // 1 if omega_mass updated, 0 if not.
+  int etap_mass_flag;              // 1 if etap_mass updated, 0 if not.
+
   int scaleyz;                     // 1 if yz scaled with lz 
   int scalexz;                     // 1 if xz scaled with lz 
   int scalexy;                     // 1 if xy scaled with ly 
@@ -118,6 +121,7 @@ class FixNH : public Fix {
   virtual void nh_v_press();
   virtual void nh_v_temp();
   virtual void compute_temp_target();
+  virtual int size_restart_global();
 
   void compute_sigma();
   void compute_deviatoric();

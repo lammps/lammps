@@ -30,7 +30,7 @@ value = x, y, z, vx, vy, vz, fx, fy, fz, c_ID, c_ID\[i\], f_ID, f_ID\[i\], v_nam
 [Examples:]
 
 fix 1 all ave/atom 1 100 100 vx vy vz
-fix 1 all ave/atom 10 20 1000 c_my_stress[1] :pre
+fix 1 all ave/atom 10 20 1000 c_my_stress\[1\] :pre
 
 [Description:]
 

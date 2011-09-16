@@ -36,6 +36,12 @@ FixNPHug::FixNPHug(LAMMPS *lmp, int narg, char **arg) :
   FixNH(lmp, narg, arg)
 {
 
+  // Prevent masses from being updated every timestep
+
+  eta_mass_flag = 0;
+  omega_mass_flag = 0;
+  etap_mass_flag = 0;
+
   // extend vector of base-class computes
 
   size_vector += 3;
@@ -369,8 +375,7 @@ double FixNPHug::compute_vector(int n)
 
   // index not found, look in base class
 
-  FixNH::compute_vector(n);
-
+  return FixNH::compute_vector(n);
 }
 
 /* ----------------------------------------------------------------------
@@ -396,13 +401,13 @@ int FixNPHug::pack_restart_data(double *list)
    calculate the number of data to be packed
 ------------------------------------------------------------------------- */
 
-int FixNPHug::size_restart()
+int FixNPHug::size_restart_global()
 {
   int nsize = 3;
 
   // call the base class function
 
-  nsize += FixNH::size_restart();
+  nsize += FixNH::size_restart_global();
 
   return nsize;
 }

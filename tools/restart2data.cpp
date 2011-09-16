@@ -329,10 +329,15 @@ int main (int narg, char **arg)
   // process command-line args
 
   int iarg = 1;
-
-  if ((narg-iarg != 2) && (narg-iarg != 3)) {
-    printf("Syntax: restart2data restart-file data-file (input-file)\n");
-    return 1;
+  if (strcmp(arg[iarg],"-h") == 0) {
+    printf("Syntax: restart2data switch arg ... "
+	   "restart-file data-file (input-file)\n");
+    printf("  restart-file and data-file are mandatory");
+    printf("  input-file is optional");
+    printf("    if specified it will contain LAMMPS input script commands");
+    printf("    for mass and force field info");
+    printf("    only a few force field styles support this option");
+    return 0;
   }
 
   char *restartfile = arg[iarg];

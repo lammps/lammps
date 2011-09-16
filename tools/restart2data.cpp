@@ -340,6 +340,12 @@ int main (int narg, char **arg)
     return 0;
   }
 
+  if ((narg-iarg != 2) && (narg-iarg != 3)) {
+    printf("Syntax: restart2data switch arg ... "
+	   "restart-file data-file (input-file)\n");
+    return 1;
+  }
+
   char *restartfile = arg[iarg];
   char *datafile = arg[iarg+1];
   char *inputfile = NULL;

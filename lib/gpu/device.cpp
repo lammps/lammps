@@ -253,9 +253,13 @@ void DeviceT::init_message(FILE *screen, const char *name,
     if (last>gpu->num_devices())
       last=gpu->num_devices();
     for (int i=first_gpu; i<last; i++) {
-      std::string sname=gpu->name(i)+", "+toa(gpu->cores(i))+" cores, "+fs+
-                        toa(gpu->gigabytes(i))+" GB, "+toa(gpu->clock_rate(i))+
-                        " GHZ (";
+      std::string sname;
+      if (i==first_gpu)
+        sname=gpu->name(i)+", "+toa(gpu->cores(i))+" cores, "+fs+
+              toa(gpu->gigabytes(i))+" GB, "+toa(gpu->clock_rate(i))+" GHZ (";
+      else              
+        sname=gpu->name(i)+", "+toa(gpu->cores(i))+" cores, "+fs+
+              toa(gpu->clock_rate(i))+" GHZ (";
       if (sizeof(PRECISION)==4) {
         if (sizeof(ACC_PRECISION)==4)
           sname+="Single Precision)";

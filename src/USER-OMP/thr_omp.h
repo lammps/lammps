@@ -91,9 +91,6 @@ class ThrOMP {
   // set loop range, thread id, and force array offset for threaded runs.
   double **loop_setup_thr(double **, int &, int &, int &, int, int, int);
 
-  // reduce per thread forces into the first part of the force array
-  void force_reduce_thr(double *, int, int, int);
-
   // reduce per thread data into the first part of the array
   void data_reduce_thr(double *, int, int, int, int);
 

@@ -93,6 +93,10 @@ class ThrOMP {
 
   // reduce per thread forces into the first part of the force array
   void force_reduce_thr(double *, int, int, int);
+
+  // reduce per thread data into the first part of the array
+  void data_reduce_thr(double *, int, int, int, int);
+
 };
 
 }

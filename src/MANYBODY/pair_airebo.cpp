@@ -3917,25 +3917,29 @@ double PairAIREBO::Sp5th(double x, double coeffs[6], double *df)
 double PairAIREBO::Spbicubic(double x, double y,
 			     double coeffs[16], double df[2])
 {
-  double f;
+  double f,xn,yn,xn1,yn1,coeff;
   int i,j,cn;
   
   f = 0.0;
   df[0] = 0.0;
   df[1] = 0.0;
   cn = 0;
+  xn = 1.0;
 
-  for (i = 0; i < 4; i++) {
+  for (i = 1; i < 4; i++) {
+    yn = 1.0;
     for (j = 0; j < 4; j++) {
-      f += coeffs[cn]*pow(x,((double) i))*pow(y,((double) j));
-      if (i > 0) df[0] +=
-		   (coeffs[cn]*((double) i)*pow(x,((double) i-1.0)) *
-		    pow(y,((double) j)));
-      if (j > 0) df[1] += 
-		   (coeffs[cn]*((double) j)*pow(x,((double) i)) * 
-		    pow(y,((double) j-1.0)));
-      cn++;
+      coeff = coeffs[i*4+j];
+
+      f += coeff*xn*yn;
+      if (i > 0) df[0] += coeff * ((double) i) * xn1 * yn; 
+      if (j > 0) df[1] += coeff * ((double) j) * xn * yn1;
+
+      yn1 = yn;
+      yn *= y;
     }
+    xn1 = xn;
+    xn *= x;
   }
 
   return f;
@@ -3948,7 +3952,7 @@ double PairAIREBO::Spbicubic(double x, double y,
 double PairAIREBO::Sptricubic(double x, double y, double z,
 			      double coeffs[64], double df[3])
 {
-  double f,ir,jr,kr;
+  double f,ir,jr,kr,xn,yn,zn,xn1,yn1,zn1,coeff;
   int i,j,k,cn;
 
   f = 0.0;
@@ -3956,23 +3960,29 @@ double PairAIREBO::Sptricubic(double x, double y, double z,
   df[1] = 0.0;
   df[2] = 0.0;
   cn = 0;
+  xn = 1.0;
 
   for (i = 0; i < 4; i++) {
     ir = (double) i;
+    yn = 1.0;
     for (j = 0; j < 4; j++) {
       jr = (double) j;
+      zn = 1.0;
       for (k = 0; k < 4; k++) {
 	kr = (double) k;
-	f += (coeffs[cn]*pow(x,ir)*pow(y,jr)*pow(z,kr));
-	if (i > 0) df[0] +=
-		     (coeffs[cn]*ir*pow(x,ir-1.0)*pow(y,jr)*pow(z,kr));
-	if (j > 0) df[1] +=
-		     (coeffs[cn]*jr*pow(x,ir)*pow(y,jr-1.0)*pow(z,kr));
-	if (k > 0) df[2] +=
-		     (coeffs[cn]*kr*pow(x,ir)*pow(y,jr)*pow(z,kr-1.0));
-	cn++;
+	coeff = coeffs[16*i+4*j+k];
+	f += coeff*xn*yn*zn;
+	if (i > 0) df[0] += coeff * ir * xn1 * yn * zn;
+	if (j > 0) df[1] += coeff * jr * xn * yn1 * zn;
+	if (k > 0) df[2] += coeff * kr * xn * yn * zn1;
+	zn1 = zn;
+	zn *= z;
       }
+      yn1 = yn;
+      yn *= y;
     }
+    xn1 = xn;
+    xn *= x;
   }
 
   return f;

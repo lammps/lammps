@@ -554,15 +554,17 @@ void PairEDIP::allocateGrids(void)
 
 void PairEDIP::allocatePreLoops(void)
 {
-  memory->create(preInvR_ij,leadDimInteractionList,"edip:preInvR_ij");
-  memory->create(preExp3B_ij,leadDimInteractionList,"edip:preExp3B_ij");
-  memory->create(preExp3BDerived_ij,leadDimInteractionList,
+  int nthreads = comm->nthreads;
+  
+  memory->create(preInvR_ij,nthreads*leadDimInteractionList,"edip:preInvR_ij");
+  memory->create(preExp3B_ij,nthreads*leadDimInteractionList,"edip:preExp3B_ij");
+  memory->create(preExp3BDerived_ij,nthreads*leadDimInteractionList,
 		 "edip:preExp3BDerived_ij");
-  memory->create(preExp2B_ij,leadDimInteractionList,"edip:preExp2B_ij");
-  memory->create(preExp2BDerived_ij,leadDimInteractionList,
+  memory->create(preExp2B_ij,nthreads*leadDimInteractionList,"edip:preExp2B_ij");
+  memory->create(preExp2BDerived_ij,nthreads*leadDimInteractionList,
 		 "edip:preExp2BDerived_ij");
-  memory->create(prePow2B_ij,leadDimInteractionList,"edip:prePow2B_ij");
-  memory->create(preForceCoord,5*leadDimInteractionList,"edip:preForceCoord");
+  memory->create(prePow2B_ij,nthreads*leadDimInteractionList,"edip:prePow2B_ij");
+  memory->create(preForceCoord,5*nthreads*leadDimInteractionList,"edip:preForceCoord");
 }
 
 /* ----------------------------------------------------------------------

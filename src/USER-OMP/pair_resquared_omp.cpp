@@ -69,8 +69,8 @@ void PairRESquaredOMP::compute(int eflag, int vflag)
     }
 
     // reduce per thread forces and torques into global arrays.
-    force_reduce_thr(&(atom->f[0][0]), nall, nthreads, tid);
-    force_reduce_thr(&(atom->torque[0][0]), nall, nthreads, tid);
+    data_reduce_thr(&(atom->f[0][0]), nall, nthreads, 3, tid);
+    data_reduce_thr(&(atom->torque[0][0]), nall, nthreads, 3, tid);
   } // end of omp parallel region
 
   // reduce per thread energy and virial, if requested.

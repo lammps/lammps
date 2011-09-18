@@ -55,6 +55,13 @@ class ThrOMP {
 
   double memory_usage_thr();
 
+  inline void sync_threads() {
+#if defined(_OPENMP)
+#pragma omp barrier
+#endif
+      { ; }
+    };
+
  protected:
   // extra ev_tally work for threaded styles
   void ev_setup_thr(Pair *);

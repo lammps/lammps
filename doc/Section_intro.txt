@@ -136,7 +136,7 @@ commands)
     Yukawa, soft, class 2 (COMPASS), hydrogen bond, tabulated
   charged pairwise potentials: Coulombic, point-dipole
   manybody potentials: EAM, Finnis/Sinclair EAM, modified EAM (MEAM), \
-    embedded ion method (EIM), ADP, Stillinger-Weber, Tersoff, REBO, AIREBO, ReaxFF, COMB
+    embedded ion method (EIM), EDIP, ADP, Stillinger-Weber, Tersoff, REBO, AIREBO, ReaxFF, COMB
   electron force field (eFF, AWPMD)
   coarse-grained potentials: DPD, GayBerne, REsquared, colloidal, DLVO
   mesoscopic potentials: granular, Peridynamics, SPH

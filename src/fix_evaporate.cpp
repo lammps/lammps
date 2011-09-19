@@ -232,7 +232,7 @@ void FixEvaporate::pre_exchange()
   // keep ndel,ndeltopo,ncount,nall,nbefore current after each mol deletion
 
   } else {
-    int me,proc,iatom,imolecule,ndelone,ndelall;
+    int me,proc,iatom,imolecule,ndelone;
     int *molecule = atom->molecule;
 
     ndeltopo[0] = ndeltopo[1] = ndeltopo[2] = ndeltopo[3] = 0;
@@ -316,7 +316,7 @@ void FixEvaporate::pre_exchange()
 
       // update ndel,ncount,nall,nbefore
 
-      MPI_Allreduce(&ndelone,&ndelall,1,MPI_INT,MPI_SUM,world);
+      MPI_Allreduce(&ndelone,&ndel,1,MPI_INT,MPI_SUM,world);
       MPI_Allreduce(&ncount,&nall,1,MPI_INT,MPI_SUM,world);
       MPI_Scan(&ncount,&nbefore,1,MPI_INT,MPI_SUM,world);
       nbefore -= ncount;

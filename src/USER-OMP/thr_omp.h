@@ -55,6 +55,13 @@ class ThrOMP {
 
   double memory_usage_thr();
 
+  inline void sync_threads() {
+#if defined(_OPENMP)
+#pragma omp barrier
+#endif
+      { ; }
+    };
+
  protected:
   // extra ev_tally work for threaded styles
   void ev_setup_thr(Pair *);
@@ -91,8 +98,9 @@ class ThrOMP {
   // set loop range, thread id, and force array offset for threaded runs.
   double **loop_setup_thr(double **, int &, int &, int &, int, int, int);
 
-  // reduce per thread forces into the first part of the force array
-  void force_reduce_thr(double *, int, int, int);
+  // reduce per thread data into the first part of the array
+  void data_reduce_thr(double *, int, int, int, int);
+
 };
 
 }

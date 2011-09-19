@@ -72,6 +72,9 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   mtk_flag = 1;
   deviatoric_flag = 0;
   nreset_h0 = 0;
+  eta_mass_flag = 1;
+  omega_mass_flag = 0;
+  etap_mass_flag = 0;
 
   // turn on tilt factor scaling, whenever applicable
 
@@ -1115,7 +1118,7 @@ void FixNH::remap()
 
 void FixNH::write_restart(FILE *fp)
 {
-  int nsize = size_restart();
+  int nsize = size_restart_global();
 
   double *list;
   memory->create(list,nsize,"nh:list");
@@ -1135,7 +1138,7 @@ void FixNH::write_restart(FILE *fp)
     calculate the number of data to be packed
 ------------------------------------------------------------------------- */
 
-int FixNH::size_restart()
+int FixNH::size_restart_global()
 {
   int nsize = 2;
   if (tstat_flag) nsize += 1 + 2*mtchain;
@@ -1570,48 +1573,11 @@ void FixNH::reset_dt()
   
   if (strstr(update->integrate_style,"respa"))
     dto = 0.5*step_respa[0];
-  
-  p_freq_max = 0.0;
-  if (pstat_flag) {
-    p_freq_max = MAX(p_freq[0],p_freq[1]);
-    p_freq_max = MAX(p_freq_max,p_freq[2]);
-    if (pstyle == TRICLINIC) {
-      p_freq_max = MAX(p_freq_max,p_freq[3]);
-      p_freq_max = MAX(p_freq_max,p_freq[4]);
-      p_freq_max = MAX(p_freq_max,p_freq[5]);
-    }
 
-    double kt = boltz * t_target;
-    double nkt = atom->natoms * kt;
-
-    for (int i = 0; i < 3; i++)
-      if (p_flag[i])
-	omega_mass[i] = nkt/(p_freq[i]*p_freq[i]);
-
-    if (pstyle == TRICLINIC) {
-      for (int i = 3; i < 6; i++)
-	if (p_flag[i]) omega_mass[i] = nkt/(p_freq[i]*p_freq[i]);
-    }
-
-  // masses and initial forces on barostat thermostat variables
-
-    if (mpchain) {
-      etap_mass[0] = boltz * t_target / (p_freq_max*p_freq_max);
-      for (int ich = 1; ich < mpchain; ich++)
-	etap_mass[ich] = boltz * t_target / (p_freq_max*p_freq_max);
-      for (int ich = 1; ich < mpchain; ich++)
-	etap_dotdot[ich] = 
-	  (etap_mass[ich-1]*etap_dot[ich-1]*etap_dot[ich-1] -
-	   boltz * t_target) / etap_mass[ich];
-    }
-
+  if (pstat_flag)
     pdrag_factor = 1.0 - (update->dt * p_freq_max * drag / nc_pchain);
-  }
-
+  
   if (tstat_flag)
-    eta_mass[0] = tdof * boltz * t_target / (t_freq*t_freq);
-    for (int ich = 1; ich < mtchain; ich++)
-      eta_mass[ich] = boltz * t_target / (t_freq*t_freq);
     tdrag_factor = 1.0 - (update->dt * t_freq * drag / nc_tchain);
 }
 
@@ -1623,8 +1589,16 @@ void FixNH::nhc_temp_integrate()
 {
   int ich;
   double expfac;
-
   double kecurrent = tdof * boltz * t_current;
+
+  // Update masses, to preserve initial freq, if flag set
+
+  if (eta_mass_flag) { 
+    eta_mass[0] = tdof * boltz * t_target / (t_freq*t_freq);
+    for (int ich = 1; ich < mtchain; ich++)
+      eta_mass[ich] = boltz * t_target / (t_freq*t_freq);
+  }
+
   eta_dotdot[0] = (kecurrent - ke_target)/eta_mass[0];
 
   double ncfac = 1.0/nc_tchain;
@@ -1683,6 +1657,32 @@ void FixNH::nhc_press_integrate()
   double expfac,factor_etap,kecurrent;
   double kt = boltz * t_target;
   double lkt_press = kt;
+
+  // Update masses, to preserve initial freq, if flag set
+
+  if (omega_mass_flag) { 
+    double nkt = atom->natoms * kt;
+    for (int i = 0; i < 3; i++)
+      if (p_flag[i])
+	omega_mass[i] = nkt/(p_freq[i]*p_freq[i]);
+
+    if (pstyle == TRICLINIC) {
+      for (int i = 3; i < 6; i++)
+	if (p_flag[i]) omega_mass[i] = nkt/(p_freq[i]*p_freq[i]);
+    }
+  }
+
+  if (etap_mass_flag) { 
+    if (mpchain) {
+      etap_mass[0] = boltz * t_target / (p_freq_max*p_freq_max);
+      for (int ich = 1; ich < mpchain; ich++)
+	etap_mass[ich] = boltz * t_target / (p_freq_max*p_freq_max);
+      for (int ich = 1; ich < mpchain; ich++)
+	etap_dotdot[ich] = 
+	  (etap_mass[ich-1]*etap_dot[ich-1]*etap_dot[ich-1] -
+	   boltz * t_target) / etap_mass[ich];
+    }
+  }
 
   kecurrent = 0.0;
   for (i = 0; i < 3; i++)

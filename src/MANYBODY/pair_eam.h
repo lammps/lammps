@@ -46,7 +46,7 @@ class PairEAM : public Pair {
 
   PairEAM(class LAMMPS *);
   virtual ~PairEAM();
-  void compute(int, int);
+  virtual void compute(int, int);
   void settings(int, char **);
   virtual void coeff(int, char **);
   void init_style();

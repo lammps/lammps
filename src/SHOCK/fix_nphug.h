@@ -32,7 +32,6 @@ class FixNPHug : public FixNH {
   void setup(int);
   int modify_param(int, char **);
   int pack_restart_data(double *); // pack restart data
-  int size_restart();              // return size
   void restart(char *);
  
  private:
@@ -52,6 +51,8 @@ class FixNPHug : public FixNH {
   double v0,p0,e0,rho0;
   int idir;
   int uniaxial;
+
+  int size_restart_global();
 };
 
 }

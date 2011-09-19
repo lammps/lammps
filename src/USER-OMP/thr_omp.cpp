@@ -656,29 +656,30 @@ double **ThrOMP::loop_setup_thr(double **f, int &ifrom, int &ito, int &tid,
 
 /* ---------------------------------------------------------------------- */
 
-// reduce per thread forces into the first part of the force
+// reduce per thread data into the first part of the data
 // array that is used for the non-threaded parts and reset
-// the temporary storage to 0.0. this routine depends on the
-// forces arrays stored in this order x1,y1,z1,x2,y2,z2,...
+// the temporary storage to 0.0. this routine depends on
+// multi-dimensional arrays like force stored in this order
+// x1,y1,z1,x2,y2,z2,...
 // we need to post a barrier to wait until all threads are done
-// with computing forces.
-void ThrOMP::force_reduce_thr(double *fall, int nall,
-			      int nthreads, int tid)
+// with writing to the array .
+void ThrOMP::data_reduce_thr(double *dall, int nall, int nthreads,
+			     int ndim, int tid)
 {
 #if defined(_OPENMP)
   // NOOP in non-threaded execution.
   if (nthreads == 1) return;
 #pragma omp barrier
   {
-    const int nvals = 3*nall;
+    const int nvals = ndim*nall;
     const int idelta = nvals/nthreads + 1;
     const int ifrom = tid*idelta;
     const int ito   = ((ifrom + idelta) > nvals) ? nvals : (ifrom + idelta);
 
     for (int m = ifrom; m < ito; ++m) {
       for (int n = 1; n < nthreads; ++n) {
-	fall[m] += fall[n*nvals + m];
-	fall[n*nvals + m] = 0.0;
+	dall[m] += dall[n*nvals + m];
+	dall[n*nvals + m] = 0.0;
       }
     }
   }

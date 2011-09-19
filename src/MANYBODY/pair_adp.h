@@ -27,8 +27,8 @@ namespace LAMMPS_NS {
 class PairADP : public Pair {
  public:
   PairADP(class LAMMPS *);
-  ~PairADP();
-  void compute(int, int);
+  virtual ~PairADP();
+  virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
   void init_style();
@@ -40,7 +40,7 @@ class PairADP : public Pair {
   void unpack_reverse_comm(int, int *, double *);
   double memory_usage();
   
- private:
+ protected:
   int nmax;                   // allocated size of per-atom arrays
   double cutforcesq,cutmax;
 

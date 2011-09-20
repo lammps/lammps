@@ -3052,6 +3052,7 @@ double PairAIREBO::PijSpline(double NijC, double NijH, int typei, int typej,
   y = 0;
   dN2[0] = 0.0;
   dN2[1] = 0.0;
+  Pij = 0.0;
   done = 0;
 
   // if inputs are out of bounds set them back to a point in bounds
@@ -3126,6 +3127,7 @@ double PairAIREBO::piRCSpline(double Nij, double Nji, double Nijconj,
   y=0;
   z=0;
   i=0;
+  piRC=0.0;
 
   done=0;
 
@@ -3918,15 +3920,14 @@ double PairAIREBO::Spbicubic(double x, double y,
 			     double coeffs[16], double df[2])
 {
   double f,xn,yn,xn1,yn1,coeff;
-  int i,j,cn;
+  int i,j;
   
   f = 0.0;
   df[0] = 0.0;
   df[1] = 0.0;
-  cn = 0;
-  xn = 1.0;
 
-  for (i = 1; i < 4; i++) {
+  xn = 1.0;
+  for (i = 0; i < 4; i++) {
     yn = 1.0;
     for (j = 0; j < 4; j++) {
       coeff = coeffs[i*4+j];
@@ -3953,15 +3954,14 @@ double PairAIREBO::Sptricubic(double x, double y, double z,
 			      double coeffs[64], double df[3])
 {
   double f,ir,jr,kr,xn,yn,zn,xn1,yn1,zn1,coeff;
-  int i,j,k,cn;
+  int i,j,k;
 
   f = 0.0;
   df[0] = 0.0;
   df[1] = 0.0;
   df[2] = 0.0;
-  cn = 0;
-  xn = 1.0;
 
+  xn = 1.0;
   for (i = 0; i < 4; i++) {
     ir = (double) i;
     yn = 1.0;

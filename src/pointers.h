@@ -16,7 +16,7 @@
 // every LAMMPS class inherits from Pointers to access lammps.h ptrs
 // these variables are auto-initialized by Pointer class constructor
 // *& variables are really pointers to the pointers in lammps.h
-// & enables them to be accessed directly in any class, e.g. error->all()
+// & enables them to be accessed directly in any class, e.g. atom->x
 
 #ifndef LMP_POINTERS_H
 #define LMP_POINTERS_H

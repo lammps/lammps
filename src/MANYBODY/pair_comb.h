@@ -100,8 +100,24 @@ class PairComb : public Pair {
   virtual double comb_fa_d(double, Param *, double,double);
   double comb_bij(double, Param *);
   double comb_bij_d(double, Param *);
-  double comb_gijk(double, Param *);
-  double comb_gijk_d(double, Param *);
+
+  inline double comb_gijk(const double costheta, const Param * const param) const {
+    const double comb_c = param->c * param->c;
+    const double comb_d = param->d * param->d;
+    const double hcth = param->h - costheta;
+
+    return param->gamma*(1.0 + comb_c/comb_d - comb_c / (comb_d + hcth*hcth));
+  }
+
+  inline double comb_gijk_d(const double costheta, const Param * const param) const {
+    const double comb_c = param->c * param->c;
+    const double comb_d = param->d * param->d;
+    const double hcth = param->h - costheta;
+    const double numerator = -2.0 * comb_c * hcth;
+    const double denominator = 1.0/(comb_d + hcth*hcth);
+    return param->gamma*numerator*denominator*denominator;
+  }
+
   void comb_zetaterm_d(double, double *, double, double *, double,
 			       double *, double *, double *, Param *);
   void costheta_d(double *, double, double *, double,

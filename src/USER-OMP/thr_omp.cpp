@@ -31,8 +31,10 @@
 #include <omp.h>
 #endif
 
+#include "math_const.h"
+
 using namespace LAMMPS_NS;
-using namespace ThrConst;
+using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 

@@ -32,7 +32,10 @@
 #include "memory.h"
 #include "error.h"
 
+#include "math_const.h"
+
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define VARDELTA 4
 #define MAXLEVEL 4
@@ -91,8 +94,6 @@ Variable::Variable(LAMMPS *lmp) : Pointers(lmp)
   precedence[MULTIPLY] = precedence[DIVIDE] = 6;
   precedence[CARAT] = 7;
   precedence[UNARY] = precedence[NOT] = 8;
-
-  PI = 4.0*atan(1.0);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1770,7 +1771,7 @@ double Variable::collapse_tree(Tree *tree)
     tree->type = VALUE;
     if (arg3 == 0.0) error->one("Invalid math function in variable formula");
     double delta = update->ntimestep - update->beginstep;
-    double omega = 2.0*PI/arg3;
+    double omega = 2.0*MY_PI/arg3;
     tree->value = arg1 + arg2*sin(omega*delta*update->dt);
     return tree->value;
   }
@@ -1784,7 +1785,7 @@ double Variable::collapse_tree(Tree *tree)
     tree->type = VALUE;
     if (arg3 == 0.0) error->one("Invalid math function in variable formula");
     double delta = update->ntimestep - update->beginstep;
-    double omega = 2.0*PI/arg3;
+    double omega = 2.0*MY_PI/arg3;
     tree->value = arg1 + arg2*(1.0-cos(omega*delta*update->dt));
     return tree->value;
   }
@@ -2000,7 +2001,7 @@ double Variable::eval_tree(Tree *tree, int i)
     arg3 = eval_tree(tree->right,i);
     if (arg3 == 0.0) error->one("Invalid math function in variable formula");
     double delta = update->ntimestep - update->beginstep;
-    double omega = 2.0*PI/arg3;
+    double omega = 2.0*MY_PI/arg3;
     arg = arg1 + arg2*sin(omega*delta*update->dt);
     return arg;
   }
@@ -2011,7 +2012,7 @@ double Variable::eval_tree(Tree *tree, int i)
     arg3 = eval_tree(tree->right,i);
     if (arg3 == 0.0) error->one("Invalid math function in variable formula");
     double delta = update->ntimestep - update->beginstep;
-    double omega = 2.0*PI/arg3;
+    double omega = 2.0*MY_PI/arg3;
     arg = arg1 + arg2*(1.0-cos(omega*delta*update->dt));
     return arg;
   }
@@ -2388,7 +2389,7 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
       if (value3 == 0.0)
 	error->all("Invalid math function in variable formula");
       double delta = update->ntimestep - update->beginstep;
-      double omega = 2.0*PI/value3;
+      double omega = 2.0*MY_PI/value3;
       double value = value1 + value2*sin(omega*delta*update->dt);
       argstack[nargstack++] = value;
     }
@@ -2402,7 +2403,7 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
       if (value3 == 0.0)
 	error->all("Invalid math function in variable formula");
       double delta = update->ntimestep - update->beginstep;
-      double omega = 2.0*PI/value3;
+      double omega = 2.0*MY_PI/value3;
       double value = value1 + value2*(1.0-cos(omega*delta*update->dt));
       argstack[nargstack++] = value;
     }
@@ -3061,7 +3062,7 @@ int Variable::is_constant(char *word)
 
 double Variable::constant(char *word)
 {
-  if (strcmp(word,"PI") == 0) return PI;
+  if (strcmp(word,"PI") == 0) return MY_PI;
   return 0.0;
 }
 

@@ -26,7 +26,7 @@ namespace LAMMPS_NS {
 
 class Set : protected Pointers {
  public:
-  Set(class LAMMPS *);
+  Set(class LAMMPS *lmp) : Pointers(lmp) {};
   void command(int, char **);
 
  private:

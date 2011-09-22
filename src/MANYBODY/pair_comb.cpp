@@ -33,7 +33,10 @@
 #include "error.h"
 #include "group.h"
 
+#include "math_const.h"
+
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define MAXLINE 1024
 #define DELTA 4
@@ -44,11 +47,6 @@ PairComb::PairComb(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
   one_coeff = 1;
-
-  PI = 4.0*atan(1.0);
-  PI2 = 2.0*atan(1.0);
-  PI4 = atan(1.0);
-  PIsq = sqrt(PI);
 
   nmax = 0;
   NCo = NULL;
@@ -901,7 +899,7 @@ double PairComb::elp(Param *param, double rsqij, double rsqik,
     double rij,rik,costheta,lp1,lp3,lp6;
     double rmu,rmu2,comtt,fck;
     double pplp1 = param->plp1, pplp3 = param->plp3, pplp6 = param->plp6;
-    double c123 = cos(param->a123*PI/180.0);
+    double c123 = cos(param->a123*MY_PI/180.0);
     
     // cos(theta) of the i-j-k
     // cutoff function of rik
@@ -955,7 +953,7 @@ void PairComb::flp(Param *param, double rsqij, double rsqik,
     double pplp1 = param->plp1;
     double pplp3 = param->plp3;
     double pplp6 = param->plp6;
-    double c123 = cos(param->a123*PI/180.0);
+    double c123 = cos(param->a123*MY_PI/180.0);
     
     // fck_d = derivative of cutoff function
     
@@ -1052,7 +1050,7 @@ double PairComb::comb_fc(double r, Param *param)
   
   if (r < comb_R-comb_D) return 1.0;
   if (r > comb_R+comb_D) return 0.0;
-  return 0.5*(1.0 + cos(PI*(r - comb_R)/comb_D));
+  return 0.5*(1.0 + cos(MY_PI*(r - comb_R)/comb_D));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1064,7 +1062,7 @@ double PairComb::comb_fc_d(double r, Param *param)
   
   if (r < comb_R-comb_D) return 0.0;
   if (r > comb_R+comb_D) return 0.0;
-  return -(PI2/comb_D) * sin(PI*(r - comb_R)/comb_D);
+  return -(MY_PI2/comb_D) * sin(MY_PI*(r - comb_R)/comb_D);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1076,7 +1074,7 @@ double PairComb::comb_fc2(double r)
   
   if (r < comb_R) return 0.0;
   if (r > comb_D) return 1.0;
-  return 0.5*(1.0 + cos(PI*(r - comb_R)/(comb_D-comb_R)));
+  return 0.5*(1.0 + cos(MY_PI*(r - comb_R)/(comb_D-comb_R)));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1088,7 +1086,7 @@ double PairComb::comb_fc2_d(double r)
   
   if (r < comb_R) return 0.0;
   if (r > comb_D) return 0.0;
-  return -(PI2/(comb_D-comb_R)) * sin(PI*(r - comb_R)/(comb_D-comb_R));
+  return -(MY_PI2/(comb_D-comb_R)) * sin(MY_PI*(r - comb_R)/(comb_D-comb_R));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1100,7 +1098,7 @@ double PairComb::comb_fc3(double r)
   
   if (r < comb_R) return 1.0;
   if (r > comb_D) return 0.0;
-  return 0.5*(1.0 + cos(PI*(r - comb_R)/(comb_D-comb_R)));
+  return 0.5*(1.0 + cos(MY_PI*(r - comb_R)/(comb_D-comb_R)));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1112,7 +1110,7 @@ double PairComb::comb_fc3_d(double r)
   
   if (r < comb_R) return 0.0;
   if (r > comb_D) return 0.0;
-  return -(PI2/(comb_D-comb_R)) * sin(PI*(r - comb_R)/(comb_D-comb_R));
+  return -(MY_PI2/(comb_D-comb_R)) * sin(MY_PI*(r - comb_R)/(comb_D-comb_R));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1213,27 +1211,6 @@ double PairComb::comb_bij_d(double zeta, Param *param)
 }
 
 /* ---------------------------------------------------------------------- */
-
-double PairComb::comb_gijk(double costheta, Param *param)
-{
-  double comb_c = param->c;
-  double comb_d = param->d;
-
-  return (1.0 + pow(comb_c/comb_d,2.0) -
-    pow(comb_c,2.0) / (pow(comb_d,2.0) + pow(param->h - costheta,2.0)));
-}
-
-/* ---------------------------------------------------------------------- */
-
-double PairComb::comb_gijk_d(double costheta, Param *param)
-{
-  double numerator = -2.0 * pow(param->c,2) * (param->h - costheta);
-  double denominator = pow(pow(param->d,2.0) + 
-			   pow(param->h - costheta,2.0),2.0);
-  return numerator/denominator;
-}
-
-/*------------------------------------------------------------------------- */
 
 void PairComb::attractive(Param *param, double prefactor,
 			  double rsqij, double rsqik,
@@ -1504,10 +1481,10 @@ void PairComb::potal_calc(double &calc1, double &calc2, double &calc3)
   alf = 0.20;
   esucon = force->qqr2e;
 
-  calc2 = (erfc(rcoul*alf)/rcoul/rcoul+2.0*alf/PIsq*
+  calc2 = (erfc(rcoul*alf)/rcoul/rcoul+2.0*alf/MY_PIS*
 	   exp(-alf*alf*rcoul*rcoul)/rcoul)*esucon/rcoul;
   calc3 = (erfc(rcoul*alf)/rcoul)*esucon;
-  calc1 = -(alf/PIsq*esucon+calc3*0.5);
+  calc1 = -(alf/MY_PIS*esucon+calc3*0.5);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1553,7 +1530,7 @@ void PairComb::direct(int inty, int mr1, int mr2, int mr3, double rsq,
  r = sqrt(rsq);
  r3 = r * rsq;
  alf = 0.20;
- alfdpi = 2.0*alf/PIsq;
+ alfdpi = 2.0*alf/MY_PIS;
  esucon = force->qqr2e;
  pot_tmp = 0.0;
  pot_d = 0.0;

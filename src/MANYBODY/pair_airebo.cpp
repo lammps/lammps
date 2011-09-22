@@ -55,8 +55,6 @@ PairAIREBO::PairAIREBO(LAMMPS *lmp) : Pair(lmp)
   maxpage = 0;
   pages = NULL;
   nC = nH = NULL;
-
-  PI = 4.0*atan(1.0);
 }
 
 /* ----------------------------------------------------------------------

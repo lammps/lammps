@@ -11,39 +11,19 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef COMMAND_CLASS
-
-CommandStyle(set,Set)
-
-#else
-
-#ifndef LMP_SET_H
-#define LMP_SET_H
-
-#include "pointers.h"
+#ifndef LMP_MATH_CONST_H
+#define LMP_MATH_CONST_H
 
 namespace LAMMPS_NS {
 
-class Set : protected Pointers {
- public:
-  Set(class LAMMPS *lmp) : Pointers(lmp) {};
-  void command(int, char **);
-
- private:
-  char *id;
-  int *select;
-  int style,ivalue,newtype,count;
-  int ximage,yimage,zimage,ximageflag,yimageflag,zimageflag;
-  double dvalue,xvalue,yvalue,zvalue,wvalue,fraction;
-  double PI;
-
-  void selection(int);
-  void set(int);
-  void setrandom(int);
-  void topology(int);
-};
+namespace MathConst {
+  static const double THIRD  = 1.0/3.0;
+  static const double MY_PI  = 3.14159265358979323846; // pi
+  static const double MY_PI2 = 1.57079632679489661923; // pi/2
+  static const double MY_PI4 = 0.78539816339744830962; // pi/4
+  static const double MY_PIS = 1.77245385090551602729; // sqrt(pi)
+}
 
 }
 
-#endif
 #endif

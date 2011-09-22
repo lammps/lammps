@@ -37,17 +37,16 @@ class PairAIREBO : public Pair {
   double memory_usage();
 
  protected:
+  int **pages;                     // neighbor list pages
+  int *map;                        // 0 (C), 1 (H), or -1 (NULL) for each type
   int me;
   int ljflag,torflag;              // 0/1 if LJ,torsion terms included
   int maxlocal;                    // size of numneigh, firstneigh arrays
-  int **pages;                     // neighbor list pages
   int maxpage;                     // # of pages currently allocated
   int pgsize;                      // size of neighbor page
   int oneatom;                     // max # of neighbors for one atom
   int npage;                       // current page in page list
-  int *map;                        // 0 (C), 1 (H), or -1 (NULL) for each type
 
-  double PI;
   double cutlj;                    // user-specified LJ cutoff
   double cutljrebosq;              // cut for when to compute
                                    // REBO neighs of ghost atoms
@@ -118,8 +117,8 @@ class PairAIREBO : public Pair {
       cutoff = 0.0;
       dX = 0.0;
     } else {
-      cutoff = 0.5 * (1.0+cos(PI*t));
-      dX = (-0.5*PI*sin(PI*t)) / (Xmax-Xmin);
+      cutoff = 0.5 * (1.0+cos(M_PI*t));
+      dX = (-0.5*M_PI*sin(M_PI*t)) / (Xmax-Xmin);
     }
     return cutoff;
   };
@@ -137,12 +136,10 @@ class PairAIREBO : public Pair {
     if (t <= 0.0) {
       cutoff = 1.0;
       dX = 0.0;
-    }
-    if (t >= 1.0) {
+    } else if (t >= 1.0) {
       cutoff = 0.0;
       dX = 0.0;
-    }
-    if (t>0.0 && t<1.0) {
+    } else {
       cutoff = (1.0-(t*t*(3.0-2.0*t)));
       dX = 6.0*(t*t-t) / (Xmax-Xmin);
     }

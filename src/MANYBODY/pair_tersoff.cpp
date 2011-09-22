@@ -29,7 +29,10 @@
 #include "memory.h"
 #include "error.h"
 
+#include "math_const.h"
+
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define MAXLINE 1024
 #define DELTA 4
@@ -40,10 +43,6 @@ PairTersoff::PairTersoff(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
   one_coeff = 1;
-
-  PI = 4.0*atan(1.0);
-  PI2 = 2.0*atan(1.0);
-  PI4 = atan(1.0);
 
   nelements = 0;
   elements = NULL;
@@ -634,7 +633,7 @@ double PairTersoff::ters_fc(double r, Param *param)
   
   if (r < ters_R-ters_D) return 1.0;
   if (r > ters_R+ters_D) return 0.0;
-  return 0.5*(1.0 - sin(PI2*(r - ters_R)/ters_D));
+  return 0.5*(1.0 - sin(MY_PI2*(r - ters_R)/ters_D));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -646,7 +645,7 @@ double PairTersoff::ters_fc_d(double r, Param *param)
   
   if (r < ters_R-ters_D) return 0.0;
   if (r > ters_R+ters_D) return 0.0;
-  return -(PI4/ters_D) * cos(PI2*(r - ters_R)/ters_D);
+  return -(MY_PI4/ters_D) * cos(MY_PI2*(r - ters_R)/ters_D);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -696,27 +695,6 @@ double PairTersoff::ters_bij_d(double zeta, Param *param)
 			  
   double tmp_n = pow(tmp,param->powern);
   return -0.5 * pow(1.0+tmp_n, -1.0-(1.0/(2.0*param->powern)))*tmp_n / zeta;
-}
-
-/* ---------------------------------------------------------------------- */
-
-double PairTersoff::ters_gijk(double costheta, Param *param)
-{
-  double ters_c = param->c;
-  double ters_d = param->d;
-
-  return param->gamma*(1.0 + pow(ters_c/ters_d,2.0) -
-    pow(ters_c,2.0) / (pow(ters_d,2.0) + pow(param->h - costheta,2.0)));
-};
-
-/* ---------------------------------------------------------------------- */
-
-double PairTersoff::ters_gijk_d(double costheta, Param *param)
-{
-  double numerator = -2.0 * pow(param->c,2) * (param->h - costheta);
-  double denominator = pow(pow(param->d,2.0) + 
-			   pow(param->h - costheta,2.0),2.0);
-  return param->gamma*numerator/denominator;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -794,4 +772,4 @@ void PairTersoff::costheta_d(double *rij_hat, double rij,
   vec3_scale(1.0/rik,drk,drk);
   vec3_add(drj,drk,dri);
   vec3_scale(-1.0,dri,dri);
-};
+}

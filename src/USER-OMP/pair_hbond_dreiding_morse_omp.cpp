@@ -21,8 +21,10 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 
+#include "math_const.h"
+
 using namespace LAMMPS_NS;
-using namespace ThrConst;
+using namespace MathConst;
 
 #define SMALL 0.001
 

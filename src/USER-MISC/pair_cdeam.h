@@ -35,7 +35,7 @@ public:
   virtual ~PairCDEAM();
 
   /// Calculates the energies and forces for all atoms in the system.
-  void compute(int, int);
+  virtual void compute(int, int);
   
   /// Parses the pair_coeff command parameters for this pair style.
   void coeff(int, char **);

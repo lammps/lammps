@@ -49,8 +49,10 @@ FixEvaporate::FixEvaporate(LAMMPS *lmp, int narg, char **arg) :
   strcpy(idregion,arg[5]);
   int seed = atoi(arg[6]);
 
-  if (nevery <= 0 || nflux <= 0) error->all(FLERR,"Illegal fix evaporate command");
-  if (iregion == -1) error->all(FLERR,"Region ID for fix evaporate does not exist");
+  if (nevery <= 0 || nflux <= 0)
+    error->all(FLERR,"Illegal fix evaporate command");
+  if (iregion == -1)
+    error->all(FLERR,"Region ID for fix evaporate does not exist");
   if (seed <= 0) error->all(FLERR,"Illegal fix evaporate command");
 
   // random number generator, same for all procs
@@ -149,7 +151,8 @@ void FixEvaporate::init()
   }
 
   if (molflag && atom->molecule_flag == 0)
-      error->all(FLERR,"Fix evaporate molecule requires atom attribute molecule");
+      error->all(FLERR,
+		 "Fix evaporate molecule requires atom attribute molecule");
 }
 
 /* ----------------------------------------------------------------------
@@ -178,10 +181,11 @@ void FixEvaporate::pre_exchange()
   // ncount = # of deletable atoms in region that I own
   // nall = # on all procs
   // nbefore = # on procs before me
-  // list[ncount] = list of local indices
+  // list[ncount] = list of local indices of atoms I can delete
 
   double **x = atom->x;
   int *mask = atom->mask;
+  int *tag = atom->tag;
   int nlocal = atom->nlocal;
 
   int ncount = 0;
@@ -229,7 +233,7 @@ void FixEvaporate::pre_exchange()
   // keep ndel,ndeltopo,ncount,nall,nbefore current after each mol deletion
 
   } else {
-    int me,proc,iatom,imolecule,ndelone;
+    int me,proc,iatom,imolecule,ndelone,ndelall;
     int *molecule = atom->molecule;
 
     ndeltopo[0] = ndeltopo[1] = ndeltopo[2] = ndeltopo[3] = 0;
@@ -249,6 +253,7 @@ void FixEvaporate::pre_exchange()
       // bcast mol ID to delete all atoms from
       // if mol ID > 0, delete any atom in molecule and decrement counters
       // if mol ID == 0, delete single iatom
+      // be careful to delete correct # of bond,angle,etc for newton on or off
 
       MPI_Allreduce(&me,&proc,1,MPI_INT,MPI_MAX,world);
       MPI_Bcast(&imolecule,1,MPI_INT,proc,world);
@@ -262,8 +267,7 @@ void FixEvaporate::pre_exchange()
 	    if (force->newton_bond) ndeltopo[0] += atom->num_bond[i];
 	    else {
 	      for (j = 0; j < atom->num_bond[i]; j++) {
-		m = atom->map(atom->bond_atom[i][j]);
-		if (m >= 0 && m < nlocal) ndeltopo[0]++;
+		if (tag[i] < atom->bond_atom[i][j]) ndeltopo[0]++;
 	      }
 	    }
 	  }
@@ -312,8 +316,11 @@ void FixEvaporate::pre_exchange()
       }
 
       // update ndel,ncount,nall,nbefore
+      // ndelall is total atoms deleted on this iteration
+      // ncount is already correct, so resum to get nall and nbefore
 
-      MPI_Allreduce(&ndelone,&ndel,1,MPI_INT,MPI_SUM,world);
+      MPI_Allreduce(&ndelone,&ndelall,1,MPI_INT,MPI_SUM,world);
+      ndel += ndelall;
       MPI_Allreduce(&ncount,&nall,1,MPI_INT,MPI_SUM,world);
       MPI_Scan(&ncount,&nbefore,1,MPI_INT,MPI_SUM,world);
       nbefore -= ncount;

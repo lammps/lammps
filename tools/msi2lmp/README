@@ -1,3 +1,12 @@
+Stephanie Teich-McGoldrick (Sandai) is the current maintainer
+of the msi2lmp tool.  She can be contacted at steichm at sandia.gov
+
+23 Sep 2011
+
+added support for triclinic boxes
+see msi2lmp/TriclinicModification.pdf doc for details
+
+-----------------------------
 
  msi2lmp V3.6 4/10/2005
 

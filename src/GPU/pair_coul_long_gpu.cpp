@@ -37,9 +37,6 @@
 #include "kspace.h"
 #include "gpu_extra.h"
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 #define EWALD_F   1.12837917
 #define EWALD_P   0.3275911
 #define A1        0.254829592
@@ -123,7 +120,7 @@ void PairCoulLongGPU::compute(int eflag, int vflag)
 		   atom->nlocal, domain->boxlo, domain->prd);
   }
   if (!success)
-    error->one("Out of memory on GPGPU");
+    error->one(FLERR,"Out of memory on GPGPU");
 
   if (host_start<inum) {
     cpu_time = MPI_Wtime();
@@ -141,9 +138,9 @@ void PairCoulLongGPU::init_style()
   cut_respa = NULL;
 
   if (!atom->q_flag)
-    error->all("Pair style coul/long/gpu requires atom attribute q");
+    error->all(FLERR,"Pair style coul/long/gpu requires atom attribute q");
   if (force->newton_pair) 
-    error->all("Cannot use newton pair with coul/long/gpu pair style");
+    error->all(FLERR,"Cannot use newton pair with coul/long/gpu pair style");
 
   // Repeat cutsq calculation because done after call to init_style
   double cell_size = sqrt(cut_coul) + neighbor->skin;
@@ -153,7 +150,7 @@ void PairCoulLongGPU::init_style()
   // insure use of KSpace long-range solver, set g_ewald
 
   if (force->kspace == NULL)
-    error->all("Pair style is incompatible with KSpace style");
+    error->all(FLERR,"Pair style is incompatible with KSpace style");
   g_ewald = force->kspace->g_ewald;
 
   // setup force tables

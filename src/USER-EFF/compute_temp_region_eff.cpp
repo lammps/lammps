@@ -36,13 +36,13 @@ ComputeTempRegionEff::ComputeTempRegionEff(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
   if (!atom->electron_flag) 
-    error->all("Compute temp/region/eff requires atom style electron");
+    error->all(FLERR,"Compute temp/region/eff requires atom style electron");
 
-  if (narg != 4) error->all("Illegal compute temp/region/eff command");
+  if (narg != 4) error->all(FLERR,"Illegal compute temp/region/eff command");
 
   iregion = domain->find_region(arg[3]);
   if (iregion == -1)
-    error->all("Region ID for compute temp/region/eff does not exist");
+    error->all(FLERR,"Region ID for compute temp/region/eff does not exist");
   int n = strlen(arg[3]) + 1;
   idregion = new char[n];
   strcpy(idregion,arg[3]);
@@ -76,7 +76,7 @@ void ComputeTempRegionEff::init()
 
   iregion = domain->find_region(idregion);
   if (iregion == -1)
-    error->all("Region ID for compute temp/region/eff does not exist");
+    error->all(FLERR,"Region ID for compute temp/region/eff does not exist");
 
   dof = 0.0;
 }

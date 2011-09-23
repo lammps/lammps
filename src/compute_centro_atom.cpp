@@ -37,14 +37,14 @@ using namespace LAMMPS_NS;
 ComputeCentroAtom::ComputeCentroAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg != 4) error->all("Illegal compute centro/atom command");
+  if (narg != 4) error->all(FLERR,"Illegal compute centro/atom command");
   
   if (strcmp(arg[3],"fcc") == 0) nnn = 12;
   else if (strcmp(arg[3],"bcc") == 0) nnn = 8;
   else nnn = atoi(arg[3]);
 
   if (nnn <= 0 || nnn % 2)
-    error->all("Illegal neighbor value for compute centro/atom command");
+    error->all(FLERR,"Illegal neighbor value for compute centro/atom command");
 
   peratom_flag = 1;
   size_peratom_cols = 0;
@@ -70,13 +70,13 @@ ComputeCentroAtom::~ComputeCentroAtom()
 void ComputeCentroAtom::init()
 {
   if (force->pair == NULL) 
-    error->all("Compute centro/atom requires a pair style be defined");
+    error->all(FLERR,"Compute centro/atom requires a pair style be defined");
 
   int count = 0;
   for (int i = 0; i < modify->ncompute; i++)
     if (strcmp(modify->compute[i]->style,"centro/atom") == 0) count++;
   if (count > 1 && comm->me == 0)
-    error->warning("More than one compute centro/atom");
+    error->warning(FLERR,"More than one compute centro/atom");
 
   // need an occasional full neighbor list
 

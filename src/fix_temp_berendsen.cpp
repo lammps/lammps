@@ -33,7 +33,7 @@ enum{NOBIAS,BIAS};
 FixTempBerendsen::FixTempBerendsen(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg != 6) error->all("Illegal fix temp/berendsen command");
+  if (narg != 6) error->all(FLERR,"Illegal fix temp/berendsen command");
 
   // Berendsen thermostat should be applied every step
 
@@ -48,7 +48,7 @@ FixTempBerendsen::FixTempBerendsen(LAMMPS *lmp, int narg, char **arg) :
 
   // error checks
 
-  if (t_period <= 0.0) error->all("Fix temp/berendsen period must be > 0.0");
+  if (t_period <= 0.0) error->all(FLERR,"Fix temp/berendsen period must be > 0.0");
 
   // create a new compute temp style
   // id = fix-ID + temp, compute group = fix group
@@ -95,7 +95,7 @@ void FixTempBerendsen::init()
 {
   int icompute = modify->find_compute(id_temp);
   if (icompute < 0)
-    error->all("Temperature ID for fix temp/berendsen does not exist");
+    error->all(FLERR,"Temperature ID for fix temp/berendsen does not exist");
   temperature = modify->compute[icompute];
 
   if (temperature->tempbias) which = BIAS;
@@ -108,7 +108,7 @@ void FixTempBerendsen::end_of_step()
 {
   double t_current = temperature->compute_scalar();
   if (t_current == 0.0)
-    error->all("Computed temperature for fix temp/berendsen cannot be 0.0");
+    error->all(FLERR,"Computed temperature for fix temp/berendsen cannot be 0.0");
 
   double delta = update->ntimestep - update->beginstep;
   delta /= update->endstep - update->beginstep;
@@ -153,7 +153,7 @@ void FixTempBerendsen::end_of_step()
 int FixTempBerendsen::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"temp") == 0) {
-    if (narg < 2) error->all("Illegal fix_modify command");
+    if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
     if (tflag) {
       modify->delete_compute(id_temp);
       tflag = 0;
@@ -164,13 +164,13 @@ int FixTempBerendsen::modify_param(int narg, char **arg)
     strcpy(id_temp,arg[1]);
 
     int icompute = modify->find_compute(id_temp);
-    if (icompute < 0) error->all("Could not find fix_modify temperature ID");
+    if (icompute < 0) error->all(FLERR,"Could not find fix_modify temperature ID");
     temperature = modify->compute[icompute];
 
     if (temperature->tempflag == 0)
-      error->all("Fix_modify temperature ID does not compute temperature");
+      error->all(FLERR,"Fix_modify temperature ID does not compute temperature");
     if (temperature->igroup != igroup && comm->me == 0)
-      error->warning("Group for fix_modify temp != fix group");
+      error->warning(FLERR,"Group for fix_modify temp != fix group");
     return 2;
   }
   return 0;

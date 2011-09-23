@@ -28,7 +28,7 @@ FixNVE::FixNVE(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   if (strcmp(style,"nve/sphere") != 0 && narg < 3)
-    error->all("Illegal fix nve command");
+    error->all(FLERR,"Illegal fix nve command");
 
   time_integrate = 1;
 }

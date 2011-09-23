@@ -23,9 +23,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 #define DELTA 10000
 
 /* ---------------------------------------------------------------------- */
@@ -61,7 +58,7 @@ void AtomVecAngle::grow(int n)
   else nmax = n;
   atom->nmax = nmax;
   if (nmax < 0 || nmax > MAXSMALLINT)
-    error->one("Per-processor system is too big");
+    error->one(FLERR,"Per-processor system is too big");
 
   tag = memory->grow(atom->tag,nmax,"atom:tag");
   type = memory->grow(atom->type,nmax,"atom:type");
@@ -763,13 +760,13 @@ void AtomVecAngle::data_atom(double *coord, int imagetmp, char **values)
 
   tag[nlocal] = atoi(values[0]);
   if (tag[nlocal] <= 0)
-    error->one("Invalid atom ID in Atoms section of data file");
+    error->one(FLERR,"Invalid atom ID in Atoms section of data file");
 
   molecule[nlocal] = atoi(values[1]);
 
   type[nlocal] = atoi(values[2]);
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
-    error->one("Invalid atom type in Atoms section of data file");
+    error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
   x[nlocal][0] = coord[0];
   x[nlocal][1] = coord[1];

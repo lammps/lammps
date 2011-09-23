@@ -34,7 +34,7 @@ using namespace LAMMPS_NS;
 ComputeDamageAtom::ComputeDamageAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg != 3) error->all("Illegal compute damage/atom command");
+  if (narg != 3) error->all(FLERR,"Illegal compute damage/atom command");
 
   peratom_flag = 1;
   size_peratom_cols = 0;
@@ -58,7 +58,7 @@ void ComputeDamageAtom::init()
   for (int i = 0; i < modify->ncompute; i++)
     if (strcmp(modify->compute[i]->style,"damage/peri") == 0) count++;
   if (count > 1 && comm->me == 0)
-    error->warning("More than one compute damage/atom");
+    error->warning(FLERR,"More than one compute damage/atom");
 
   // find associated PERI_NEIGH fix that must exist
 
@@ -66,7 +66,7 @@ void ComputeDamageAtom::init()
   for (int i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"PERI_NEIGH") == 0) ifix_peri = i;
   if (ifix_peri == -1)
-    error->all("Compute damage/atom requires peridynamic potential");
+    error->all(FLERR,"Compute damage/atom requires peridynamic potential");
 }
 
 /* ---------------------------------------------------------------------- */

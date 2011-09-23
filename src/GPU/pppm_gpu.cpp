@@ -52,9 +52,6 @@ using namespace LAMMPS_NS;
 #define ONEF  1.0
 #endif
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 
 // External functions from cuda library for atom decomposition
 #ifdef FFT_SINGLE
@@ -82,7 +79,7 @@ double PPPM_GPU_API(bytes)();
 
 PPPMGPU::PPPMGPU(LAMMPS *lmp, int narg, char **arg) : PPPM(lmp, narg, arg)
 {
-  if (narg != 1) error->all("Illegal kspace_style pppm/gpu command");
+  if (narg != 1) error->all(FLERR,"Illegal kspace_style pppm/gpu command");
 
   density_brick_gpu = vd_brick = NULL;
 }
@@ -106,7 +103,7 @@ void PPPMGPU::init()
   
   // GPU precision specific init.
   if (order>8)
-    error->all("Cannot use order greater than 8 with pppm/gpu.");
+    error->all(FLERR,"Cannot use order greater than 8 with pppm/gpu.");
   PPPM_GPU_API(clear)(poisson_time);
 
   int success;
@@ -140,9 +137,9 @@ void PPPMGPU::compute(int eflag, int vflag)
 			     atom->q, domain->boxlo, delxinv, delyinv,
 			     delzinv);
   if (!success)
-    error->one("Out of memory on GPGPU");
+    error->one(FLERR,"Out of memory on GPGPU");
   if (flag != 0)
-    error->one("Out of range atoms - cannot compute PPPM");
+    error->one(FLERR,"Out of range atoms - cannot compute PPPM");
 
   int i;
 

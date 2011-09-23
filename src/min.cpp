@@ -47,9 +47,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 /* ---------------------------------------------------------------------- */
 
 Min::Min(LAMMPS *lmp) : Pointers(lmp)
@@ -160,7 +157,7 @@ void Min::init()
   
   if (neigh_every != 1 || neigh_delay != 0 || neigh_dist_check != 1) {
     if (comm->me == 0) 
-      error->warning("Resetting reneighboring criteria during minimization");
+      error->warning(FLERR,"Resetting reneighboring criteria during minimization");
   }
 
   neighbor->every = 1;
@@ -191,7 +188,7 @@ void Min::setup()
   // compute for potential energy
 
   int id = modify->find_compute("thermo_pe");
-  if (id < 0) error->all("Minimization could not find thermo_pe compute");
+  if (id < 0) error->all(FLERR,"Minimization could not find thermo_pe compute");
   pe_compute = modify->compute[id];
 
   // style-specific setup does two tasks
@@ -230,9 +227,9 @@ void Min::setup()
   // remove these restriction eventually
 
   if (nextra_global && searchflag == 0)
-    error->all("Cannot use a damped dynamics min style with fix box/relax");
+    error->all(FLERR,"Cannot use a damped dynamics min style with fix box/relax");
   if (nextra_atom && searchflag == 0)
-    error->all("Cannot use a damped dynamics min style with per-atom DOF");
+    error->all(FLERR,"Cannot use a damped dynamics min style with per-atom DOF");
 
   // atoms may have migrated in comm->exchange()
 
@@ -584,21 +581,21 @@ int Min::request(Pair *pair, int peratom, double maxvalue)
 
 void Min::modify_params(int narg, char **arg)
 {
-  if (narg == 0) error->all("Illegal min_modify command");
+  if (narg == 0) error->all(FLERR,"Illegal min_modify command");
 
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"dmax") == 0) {
-      if (iarg+2 > narg) error->all("Illegal min_modify command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
       dmax = atof(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"line") == 0) {
-      if (iarg+2 > narg) error->all("Illegal min_modify command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
       if (strcmp(arg[iarg+1],"backtrack") == 0) linestyle = 0;
       else if (strcmp(arg[iarg+1],"quadratic") == 0) linestyle = 1;
-      else error->all("Illegal min_modify command");
+      else error->all(FLERR,"Illegal min_modify command");
       iarg += 2;
-    } else error->all("Illegal min_modify command");
+    } else error->all(FLERR,"Illegal min_modify command");
   }
 }
 

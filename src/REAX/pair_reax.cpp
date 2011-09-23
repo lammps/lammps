@@ -39,8 +39,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
 #define SMALL 0.0001
 
 /* ---------------------------------------------------------------------- */
@@ -278,7 +276,7 @@ void PairREAX::write_reax_positions()
   FORTRAN(rsmall, RSMALL).na_local = nlocal;
 
   if (nlocal+nghost > ReaxParams::nat)
-    error->one("Reax_defs.h setting for NATDEF is too small");
+    error->one(FLERR,"Reax_defs.h setting for NATDEF is too small");
 
   jx = 0;
   jy = ReaxParams::nat;
@@ -361,7 +359,7 @@ void PairREAX::write_reax_vlist()
 	  jjj = i+1;
 	}
 	if (nvpair >= nvpairmax) 
-	  error->one("Reax_defs.h setting for NNEIGHMAXDEF is too small");
+	  error->one(FLERR,"Reax_defs.h setting for NNEIGHMAXDEF is too small");
 	
 	FORTRAN(cbkpairs, CBKPAIRS).nvl1[nvpair] = iii;
 	FORTRAN(cbkpairs, CBKPAIRS).nvl2[nvpair] = jjj;
@@ -420,7 +418,7 @@ void PairREAX::write_reax_vlist()
 	jjj = j+1;
 	      
 	if (nvpair >= nvpairmax) 
-	  error->one("Reax_defs.h setting for NNEIGHMAXDEF is too small");
+	  error->one(FLERR,"Reax_defs.h setting for NNEIGHMAXDEF is too small");
 	
 	FORTRAN(cbkpairs, CBKPAIRS).nvl1[nvpair] = iii;
 	FORTRAN(cbkpairs, CBKPAIRS).nvl2[nvpair] = jjj;
@@ -485,7 +483,7 @@ void PairREAX::allocate()
 
 void PairREAX::settings(int narg, char **arg)
 {
-  if (narg != 0 && narg !=4) error->all("Illegal pair_style command");
+  if (narg != 0 && narg !=4) error->all(FLERR,"Illegal pair_style command");
   
   if (narg == 4) {
     hbcut = force->numeric(arg[0]);
@@ -497,7 +495,7 @@ void PairREAX::settings(int narg, char **arg)
 	(ihbnew != 0 && ihbnew != 1) || 
 	(itripstaball != 0 && itripstaball != 1) || 
 	precision <= 0.0)
-      error->all("Illegal pair_style command");
+      error->all(FLERR,"Illegal pair_style command");
   }
 }
 
@@ -510,17 +508,17 @@ void PairREAX::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   if (narg != 3 + atom->ntypes)
-    error->all("Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients");
 
   // insure I,J args are * *
 
   if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all("Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients");
 
   // insure filename is ffield.reax
 
   if (strcmp(arg[2],"ffield.reax") != 0) 
-    error->all("Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read args that map atom types to elements in potential file
   // map[i] = which element the Ith atom type is, -1 if NULL
@@ -530,7 +528,7 @@ void PairREAX::coeff(int narg, char **arg)
   for (int i = 3; i < narg; i++) {
     if (strcmp(arg[i],"NULL") == 0) {
       map[i-2] = -1;
-      error->all("Cannot currently use pair reax with pair hybrid");
+      error->all(FLERR,"Cannot currently use pair reax with pair hybrid");
       continue;
     }
     map[i-2] = force->inumeric(arg[i]);
@@ -545,7 +543,7 @@ void PairREAX::coeff(int narg, char **arg)
       count++;
     }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -555,11 +553,11 @@ void PairREAX::coeff(int narg, char **arg)
 void PairREAX::init_style()
 {
   if (atom->tag_enable == 0)
-    error->all("Pair style reax requires atom IDs");
+    error->all(FLERR,"Pair style reax requires atom IDs");
   if (force->newton_pair == 0)
-    error->all("Pair style reax requires newton pair on");
+    error->all(FLERR,"Pair style reax requires newton pair on");
   if (strcmp(update->unit_style,"real") != 0 && comm->me == 0)
-    error->warning("Not using real units with pair reax");
+    error->warning(FLERR,"Not using real units with pair reax");
 
   int irequest = neighbor->request(this);
   neighbor->requests[irequest]->newton = 2;
@@ -595,7 +593,7 @@ void PairREAX::init_style()
   double chi, eta, gamma;
   for (int itype = 1; itype <= atom->ntypes; itype++) {
     if (map[itype] < 1 || map[itype] > nelements)
-      error->all("Invalid REAX atom type");
+      error->all(FLERR,"Invalid REAX atom type");
     chi = FORTRAN(cbkchb, CBKCHB).chi[map[itype]-1];
     eta = FORTRAN(cbkchb, CBKCHB).eta[map[itype]-1];
     gamma = FORTRAN(cbkchb, CBKCHB).gam[map[itype]-1];

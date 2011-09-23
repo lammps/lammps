@@ -43,12 +43,12 @@ FixFreezeCuda::FixFreezeCuda(LAMMPS *lmp, int narg, char **arg) :
 {
   cuda = lmp->cuda;
   if(cuda == NULL)
-        error->all("You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
+        error->all(FLERR,"You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
 
-  if (narg != 3) error->all("Illegal fix freeze command");
+  if (narg != 3) error->all(FLERR,"Illegal fix freeze command");
 
   if (!atom->torque_flag)
-    error->all("Fix freeze requires atom attribute torque");
+    error->all(FLERR,"Fix freeze requires atom attribute torque");
 
   vector_flag = 1;
   size_vector = 3;
@@ -81,7 +81,7 @@ void FixFreezeCuda::init()
   int count = 0;
   for (int i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"freeze") == 0) count++;
-  if (count > 1) error->all("More than one fix freeze");
+  if (count > 1) error->all(FLERR,"More than one fix freeze");
 }
 
 /* ---------------------------------------------------------------------- */

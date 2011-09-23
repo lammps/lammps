@@ -27,7 +27,7 @@ using namespace LAMMPS_NS;
 ComputeKE::ComputeKE(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg != 3) error->all("Illegal compute ke command");
+  if (narg != 3) error->all(FLERR,"Illegal compute ke command");
 
   scalar_flag = 1;
   extscalar = 1;

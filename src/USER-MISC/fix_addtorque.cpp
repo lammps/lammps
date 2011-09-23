@@ -39,7 +39,7 @@ enum{NONE,CONSTANT,EQUAL,ATOM};
 FixAddTorque::FixAddTorque(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg != 6) error->all("Illegal fix addtorque command");
+  if (narg != 6) error->all(FLERR,"Illegal fix addtorque command");
 
   scalar_flag = 1;
   vector_flag = 1;
@@ -108,21 +108,21 @@ void FixAddTorque::init()
 
   if (xstr) {
     xvar = input->variable->find(xstr);
-    if (xvar < 0) error->all("Variable name for fix addtorque does not exist");
+    if (xvar < 0) error->all(FLERR,"Variable name for fix addtorque does not exist");
     if (input->variable->equalstyle(xvar)) xstyle = EQUAL;
-    else error->all("Variable for fix addtorque is invalid style");
+    else error->all(FLERR,"Variable for fix addtorque is invalid style");
   }
   if (ystr) {
     yvar = input->variable->find(ystr);
-    if (yvar < 0) error->all("Variable name for fix addtorque does not exist");
+    if (yvar < 0) error->all(FLERR,"Variable name for fix addtorque does not exist");
     if (input->variable->equalstyle(yvar)) ystyle = EQUAL;
-    else error->all("Variable for fix addtorque is invalid style");
+    else error->all(FLERR,"Variable for fix addtorque is invalid style");
   }
   if (zstr) {
     zvar = input->variable->find(zstr);
-    if (zvar < 0) error->all("Variable name for fix addtorque does not exist");
+    if (zvar < 0) error->all(FLERR,"Variable name for fix addtorque does not exist");
     if (input->variable->equalstyle(zvar)) zstyle = EQUAL;
-    else error->all("Variable for fix addtorque is invalid style");
+    else error->all(FLERR,"Variable for fix addtorque is invalid style");
   }
 
   if (xstyle == EQUAL || ystyle == EQUAL || zstyle == EQUAL)

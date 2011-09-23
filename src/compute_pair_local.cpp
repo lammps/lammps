@@ -34,7 +34,7 @@ using namespace LAMMPS_NS;
 ComputePairLocal::ComputePairLocal(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg < 4) error->all("Illegal compute pair/local command");
+  if (narg < 4) error->all(FLERR,"Illegal compute pair/local command");
 
   local_flag = 1;
   nvalues = narg - 3;
@@ -50,7 +50,7 @@ ComputePairLocal::ComputePairLocal(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg],"dist") == 0) dflag = nvalues++;
     else if (strcmp(arg[iarg],"eng") == 0) eflag = nvalues++;
     else if (strcmp(arg[iarg],"force") == 0) fflag = nvalues++;
-    else error->all("Invalid keyword in compute pair/local command");
+    else error->all(FLERR,"Invalid keyword in compute pair/local command");
   }
 
   nmax = 0;
@@ -71,9 +71,9 @@ ComputePairLocal::~ComputePairLocal()
 void ComputePairLocal::init()
 {
   if (force->pair == NULL) 
-    error->all("No pair style is defined for compute pair/local");
+    error->all(FLERR,"No pair style is defined for compute pair/local");
   if (force->pair->single_enable == 0)
-    error->all("Pair style does not support compute pair/local");
+    error->all(FLERR,"Pair style does not support compute pair/local");
 
   // need an occasional half neighbor list
 

@@ -27,18 +27,15 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 /* ---------------------------------------------------------------------- */
 
 FixNEB::FixNEB(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg != 4) error->all("Illegal fix neb command");
+  if (narg != 4) error->all(FLERR,"Illegal fix neb command");
 
   kspring = atof(arg[3]);
-  if (kspring <= 0.0) error->all("Illegal fix neb command");
+  if (kspring <= 0.0) error->all(FLERR,"Illegal fix neb command");
 
   // nreplica = number of partitions
   // ireplica = which world I am in universe
@@ -98,7 +95,7 @@ void FixNEB::init()
 {
   int icompute = modify->find_compute(id_pe);
   if (icompute < 0)
-    error->all("Potential energy ID for fix neb does not exist");
+    error->all(FLERR,"Potential energy ID for fix neb does not exist");
   pe = modify->compute[icompute];
 
   // turn off climbing mode, NEB command turns it on after init()
@@ -156,7 +153,7 @@ void FixNEB::min_post_force(int vflag)
   double **x = atom->x;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  if (nlocal != nebatoms) error->one("Atom count changed in fix neb");
+  if (nlocal != nebatoms) error->one(FLERR,"Atom count changed in fix neb");
 
   if (ireplica > 0)
     MPI_Irecv(xprev[0],3*nlocal,MPI_DOUBLE,procprev,0,uworld,&request);

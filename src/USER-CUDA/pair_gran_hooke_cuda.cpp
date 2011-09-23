@@ -63,16 +63,13 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 PairGranHookeCuda::PairGranHookeCuda(LAMMPS *lmp) : PairGranHooke(lmp)
 {
   cuda = lmp->cuda;
    if(cuda == NULL)
-        error->all("You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
+        error->all(FLERR,"You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
 
 	allocated2 = false;
 	cuda->shared_data.pair.cudable_force = 1;
@@ -163,9 +160,9 @@ void PairGranHookeCuda::init_style()
   }
 
   if (!atom->radius_flag || !atom->omega_flag || !atom->torque_flag)
-    error->all("Pair granular requires atom attributes radius, omega, torque");
+    error->all(FLERR,"Pair granular requires atom attributes radius, omega, torque");
   if (comm->ghost_velocity == 0)
-    error->all("Pair granular requires ghost atoms store velocity");
+    error->all(FLERR,"Pair granular requires ghost atoms store velocity");
 
   // need a half neigh list and optionally a granular history neigh list
 

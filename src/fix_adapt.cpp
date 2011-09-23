@@ -32,16 +32,13 @@ using namespace LAMMPS_NS;
 enum{PAIR,KSPACE,ATOM};
 enum{DIAMETER};
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 /* ---------------------------------------------------------------------- */
 
 FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 {
-  if (narg < 5) error->all("Illegal fix adapt command");
+  if (narg < 5) error->all(FLERR,"Illegal fix adapt command");
   nevery = atoi(arg[3]);
-  if (nevery < 0) error->all("Illegal fix adapt command");
+  if (nevery < 0) error->all(FLERR,"Illegal fix adapt command");
 
   // count # of adaptations
 
@@ -50,21 +47,21 @@ FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   int iarg = 4;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"pair") == 0) {
-      if (iarg+6 > narg) error->all("Illegal fix adapt command");
+      if (iarg+6 > narg) error->all(FLERR,"Illegal fix adapt command");
       nadapt++;
       iarg += 6;
     } else if (strcmp(arg[iarg],"kspace") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix adapt command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix adapt command");
       nadapt++;
       iarg += 2;
     } else if (strcmp(arg[iarg],"atom") == 0) {
-      if (iarg+3 > narg) error->all("Illegal fix adapt command");
+      if (iarg+3 > narg) error->all(FLERR,"Illegal fix adapt command");
       nadapt++;
       iarg += 3;
     } else break;
   }
 
-  if (nadapt == 0) error->all("Illegal fix adapt command");
+  if (nadapt == 0) error->all(FLERR,"Illegal fix adapt command");
   adapt = new Adapt[nadapt];
 
   // parse keywords
@@ -75,7 +72,7 @@ FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   iarg = 4;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"pair") == 0) {
-      if (iarg+6 > narg) error->all("Illegal fix adapt command");
+      if (iarg+6 > narg) error->all(FLERR,"Illegal fix adapt command");
       adapt[nadapt].which = PAIR;
       int n = strlen(arg[iarg+1]) + 1;
       adapt[nadapt].pstyle = new char[n];
@@ -91,31 +88,31 @@ FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 	n = strlen(&arg[iarg+5][2]) + 1;
 	adapt[nadapt].var = new char[n];
 	strcpy(adapt[nadapt].var,&arg[iarg+5][2]);
-      } else error->all("Illegal fix adapt command");
+      } else error->all(FLERR,"Illegal fix adapt command");
       nadapt++;
       iarg += 6;
     } else if (strcmp(arg[iarg],"kspace") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix adapt command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix adapt command");
       adapt[nadapt].which = KSPACE;
       if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
 	int n = strlen(&arg[iarg+1][2]) + 1;
 	adapt[nadapt].var = new char[n];
 	strcpy(adapt[nadapt].var,&arg[iarg+1][2]);
-      } else error->all("Illegal fix adapt command");
+      } else error->all(FLERR,"Illegal fix adapt command");
       nadapt++;
       iarg += 2;
     } else if (strcmp(arg[iarg],"atom") == 0) {
-      if (iarg+3 > narg) error->all("Illegal fix adapt command");
+      if (iarg+3 > narg) error->all(FLERR,"Illegal fix adapt command");
       adapt[nadapt].which = ATOM;
       if (strcmp(arg[iarg+1],"diameter") == 0) {
 	adapt[nadapt].aparam = DIAMETER;
 	diamflag = 1;
-      } else error->all("Illegal fix adapt command");
+      } else error->all(FLERR,"Illegal fix adapt command");
       if (strstr(arg[iarg+2],"v_") == arg[iarg+2]) {
 	int n = strlen(&arg[iarg+2][2]) + 1;
 	adapt[nadapt].var = new char[n];
 	strcpy(adapt[nadapt].var,&arg[iarg+2][2]);
-      } else error->all("Illegal fix adapt command");
+      } else error->all(FLERR,"Illegal fix adapt command");
       nadapt++;
       iarg += 3;
     } else break;
@@ -128,18 +125,18 @@ FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"reset") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix adapt command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix adapt command");
       if (strcmp(arg[iarg+1],"no") == 0) resetflag = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) resetflag = 1;
-      else error->all("Illegal fix adapt command");
+      else error->all(FLERR,"Illegal fix adapt command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"scale") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix adapt command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix adapt command");
       if (strcmp(arg[iarg+1],"no") == 0) scaleflag = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) scaleflag = 1;
-      else error->all("Illegal fix adapt command");
+      else error->all(FLERR,"Illegal fix adapt command");
       iarg += 2;
-    } else error->all("Illegal fix adapt command");
+    } else error->all(FLERR,"Illegal fix adapt command");
   }
 
   // allocate pair style arrays
@@ -190,17 +187,17 @@ void FixAdapt::init()
 
     ad->ivar = input->variable->find(ad->var);
     if (ad->ivar < 0)
-      error->all("Variable name for fix adapt does not exist");
+      error->all(FLERR,"Variable name for fix adapt does not exist");
     if (!input->variable->equalstyle(ad->ivar))
-      error->all("Variable for fix adapt is invalid style");
+      error->all(FLERR,"Variable for fix adapt is invalid style");
 
     if (ad->which == PAIR) {
       anypair = 1;
 
       Pair *pair = force->pair_match(ad->pstyle,1);
-      if (pair == NULL) error->all("Fix adapt pair style does not exist");
+      if (pair == NULL) error->all(FLERR,"Fix adapt pair style does not exist");
       void *ptr = pair->extract(ad->pparam,ad->pdim);
-      if (ptr == NULL) error->all("Fix adapt pair style param not supported");
+      if (ptr == NULL) error->all(FLERR,"Fix adapt pair style param not supported");
 
       ad->pdim = 2;
       if (ad->pdim == 0) ad->scalar = (double *) ptr;
@@ -214,19 +211,19 @@ void FixAdapt::init()
 	for (i = ad->ilo; i <= ad->ihi; i++)
 	  for (j = MAX(ad->jlo,i); j <= ad->jhi; j++)
 	    if (!pair->check_ijtype(i,j,ad->pstyle))
-	      error->all("Fix adapt type pair range is not valid for "
+	      error->all(FLERR,"Fix adapt type pair range is not valid for "
 			 "pair hybrid sub-style");
       }
 
     } else if (ad->which == KSPACE) {
       if (force->kspace == NULL) 
-	error->all("Fix adapt kspace style does not exist");
+	error->all(FLERR,"Fix adapt kspace style does not exist");
       kspace_scale = (double *) force->kspace->extract("scale");
 
     } else if (ad->which == ATOM) {
       if (ad->aparam == DIAMETER) {
 	if (!atom->radius_flag)
-	  error->all("Fix adapt requires atom attribute diameter");
+	  error->all(FLERR,"Fix adapt requires atom attribute diameter");
       }
     }
   }

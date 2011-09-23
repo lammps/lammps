@@ -157,7 +157,7 @@ void Input::file()
 
     MPI_Bcast(&n,1,MPI_INT,0,world);
     if (n == 0) {
-      if (label_active) error->all("Label wasn't found in input script");
+      if (label_active) error->all(FLERR,"Label wasn't found in input script");
       if (me == 0) {
 	if (infile != stdin) fclose(infile);
 	nfile--;
@@ -175,7 +175,7 @@ void Input::file()
     if (n == MAXLINE) {
       char str[MAXLINE+32];
       sprintf(str,"Input line too long: %s",line);
-      error->all(str);
+      error->all(FLERR,str);
     }
 
     // echo the command unless scanning for label
@@ -200,7 +200,7 @@ void Input::file()
     if (execute_command()) {
       char str[MAXLINE];
       sprintf(str,"Unknown command: %s",line);
-      error->all(str);
+      error->all(FLERR,str);
     }
   }
 }
@@ -217,13 +217,13 @@ void Input::file(const char *filename)
 
   if (me == 0) {
     if (nfile > 1)
-      error->one("Another input script is already being processed");
+      error->one(FLERR,"Another input script is already being processed");
     if (infile != stdin) fclose(infile);
     infile = fopen(filename,"r");
     if (infile == NULL) {
       char str[128];
       sprintf(str,"Cannot open input script %s",filename);
-      error->one(str);
+      error->one(FLERR,str);
     }
     infiles[0] = infile;
   } else infile = NULL;
@@ -262,7 +262,7 @@ char *Input::one(const char *single)
   if (execute_command()) {
     char str[MAXLINE];
     sprintf(str,"Unknown command: %s",line);
-    error->all(str);
+    error->all(FLERR,str);
   }
 
   return command;
@@ -339,7 +339,7 @@ void Input::parse()
     narg++;
   }
 
-  if (quote) error->all("Unbalanced quotes in input line");
+  if (quote) error->all(FLERR,"Unbalanced quotes in input line");
 }
 
 /* ----------------------------------------------------------------------
@@ -367,7 +367,7 @@ void Input::substitute(char *str, int flag)
 	var = ptr+2;
 	int i = 0;
 	while (var[i] != '\0' && var[i] != '}') i++;
-	if (var[i] == '\0') error->one("Invalid variable name");
+	if (var[i] == '\0') error->one(FLERR,"Invalid variable name");
 	var[i] = '\0';
 	beyond = ptr + strlen(var) + 3;
       } else {
@@ -377,15 +377,15 @@ void Input::substitute(char *str, int flag)
 	beyond = ptr + strlen(var) + 1;
       }
       value = variable->retrieve(var);
-      if (value == NULL) error->one("Substitution for illegal variable");
+      if (value == NULL) error->one(FLERR,"Substitution for illegal variable");
 
       *ptr = '\0';
       strcpy(work,str);
       if (strlen(work)+strlen(value) >= MAXLINE)
-	error->one("Input line too long after variable substitution");
+	error->one(FLERR,"Input line too long after variable substitution");
       strcat(work,value);
       if (strlen(work)+strlen(beyond) >= MAXLINE)
-	error->one("Input line too long after variable substitution");
+	error->one(FLERR,"Input line too long after variable substitution");
       strcat(work,beyond);
       strcpy(str,work);
       ptr += strlen(value);
@@ -506,7 +506,7 @@ int Input::execute_command()
 
 void Input::clear()
 {
-  if (narg > 0) error->all("Illegal clear command");
+  if (narg > 0) error->all(FLERR,"Illegal clear command");
   lmp->destroy();
   lmp->create();
 }
@@ -515,7 +515,7 @@ void Input::clear()
 
 void Input::echo()
 {
-  if (narg != 1) error->all("Illegal echo command");
+  if (narg != 1) error->all(FLERR,"Illegal echo command");
 
   if (strcmp(arg[0],"none") == 0) {
     echo_screen = 0;
@@ -529,14 +529,14 @@ void Input::echo()
   } else if (strcmp(arg[0],"both") == 0) {
     echo_screen = 1;
     echo_log = 1;
-  } else error->all("Illegal echo command");
+  } else error->all(FLERR,"Illegal echo command");
 }
 
 /* ---------------------------------------------------------------------- */
 
 void Input::ifthenelse()
 {
-  if (narg < 3) error->all("Illegal if command");
+  if (narg < 3) error->all(FLERR,"Illegal if command");
 
   // substitute for variables in Boolean expression for "if"
   // in case expression was enclosed in quotes
@@ -552,7 +552,7 @@ void Input::ifthenelse()
 
   // bound "then" commands
 
-  if (strcmp(arg[1],"then") != 0) error->all("Illegal if command");
+  if (strcmp(arg[1],"then") != 0) error->all(FLERR,"Illegal if command");
 
   int first = 2;
   int iarg = first;
@@ -567,13 +567,13 @@ void Input::ifthenelse()
 
   if (btest != 0.0) {
     int ncommands = last-first + 1;
-    if (ncommands <= 0) error->all("Illegal if command");
+    if (ncommands <= 0) error->all(FLERR,"Illegal if command");
 
     char **commands = new char*[ncommands];
     ncommands = 0;
     for (int i = first; i <= last; i++) {
       int n = strlen(arg[i]) + 1;
-      if (n == 1) error->all("Illegal if command");
+      if (n == 1) error->all(FLERR,"Illegal if command");
       commands[ncommands] = new char[n];
       strcpy(commands[ncommands],arg[i]);
       ncommands++;
@@ -601,7 +601,7 @@ void Input::ifthenelse()
   // bound and execute "elif" or "else" commands
 
   while (1) {
-    if (iarg+2 > narg) error->all("Illegal if command");
+    if (iarg+2 > narg) error->all(FLERR,"Illegal if command");
     if (strcmp(arg[iarg],"elif") == 0) {
       strcpy(scopy,arg[iarg+1]);
       substitute(scopy,0);
@@ -621,13 +621,13 @@ void Input::ifthenelse()
     if (btest == 0.0) continue;
 
     int ncommands = last-first + 1;
-    if (ncommands <= 0) error->all("Illegal if command");
+    if (ncommands <= 0) error->all(FLERR,"Illegal if command");
 
     char **commands = new char*[ncommands];
     ncommands = 0;
     for (int i = first; i <= last; i++) {
       int n = strlen(arg[i]) + 1;
-      if (n == 1) error->all("Illegal if command");
+      if (n == 1) error->all(FLERR,"Illegal if command");
       commands[ncommands] = new char[n];
       strcpy(commands[ncommands],arg[i]);
       ncommands++;
@@ -651,7 +651,7 @@ void Input::ifthenelse()
 
 void Input::include()
 {
-  if (narg != 1) error->all("Illegal include command");
+  if (narg != 1) error->all(FLERR,"Illegal include command");
 
   if (me == 0) {
     if (nfile == maxfile) {
@@ -663,7 +663,7 @@ void Input::include()
     if (infile == NULL) {
       char str[128];
       sprintf(str,"Cannot open input script %s",arg[0]);
-      error->one(str);
+      error->one(FLERR,str);
     }
     infiles[nfile++] = infile;
   }
@@ -673,7 +673,7 @@ void Input::include()
 
 void Input::jump()
 {
-  if (narg < 1 || narg > 2) error->all("Illegal jump command");
+  if (narg < 1 || narg > 2) error->all(FLERR,"Illegal jump command");
 
   if (jump_skip) {
     jump_skip = 0;
@@ -688,7 +688,7 @@ void Input::jump()
       if (infile == NULL) {
 	char str[128];
 	sprintf(str,"Cannot open input script %s",arg[0]);
-	error->one(str);
+	error->one(FLERR,str);
       }
       infiles[nfile-1] = infile;
     }
@@ -707,7 +707,7 @@ void Input::jump()
 
 void Input::label()
 {
-  if (narg != 1) error->all("Illegal label command");
+  if (narg != 1) error->all(FLERR,"Illegal label command");
   if (label_active && strcmp(labelstr,arg[0]) == 0) label_active = 0;
 }
 
@@ -715,7 +715,7 @@ void Input::label()
 
 void Input::log()
 {
-  if (narg != 1) error->all("Illegal log command");
+  if (narg != 1) error->all(FLERR,"Illegal log command");
 
   if (me == 0) {
     if (logfile) fclose(logfile);
@@ -725,7 +725,7 @@ void Input::log()
       if (logfile == NULL) {
 	char str[128];
 	sprintf(str,"Cannot open logfile %s",arg[0]);
-	error->one(str);
+	error->one(FLERR,str);
       }
     }
     if (universe->nworlds == 1) universe->ulogfile = logfile;
@@ -743,7 +743,7 @@ void Input::next_command()
 
 void Input::print()
 {
-  if (narg != 1) error->all("Illegal print command");
+  if (narg != 1) error->all(FLERR,"Illegal print command");
 
   // substitute for $ variables (no printing) and print arg
 
@@ -758,14 +758,14 @@ void Input::print()
 
 void Input::shell()
 {
-  if (narg < 1) error->all("Illegal shell command");
+  if (narg < 1) error->all(FLERR,"Illegal shell command");
 
   if (strcmp(arg[0],"cd") == 0) {
-    if (narg != 2) error->all("Illegal shell command");
+    if (narg != 2) error->all(FLERR,"Illegal shell command");
     chdir(arg[1]);
 
   } else if (strcmp(arg[0],"mkdir") == 0) {
-    if (narg < 2) error->all("Illegal shell command");
+    if (narg < 2) error->all(FLERR,"Illegal shell command");
 #if !defined(WINDOWS) && !defined(__MINGW32_VERSION) 
     if (me == 0)
       for (int i = 1; i < narg; i++)
@@ -773,16 +773,16 @@ void Input::shell()
 #endif
 
   } else if (strcmp(arg[0],"mv") == 0) {
-    if (narg != 3) error->all("Illegal shell command");
+    if (narg != 3) error->all(FLERR,"Illegal shell command");
     if (me == 0) rename(arg[1],arg[2]);
 
   } else if (strcmp(arg[0],"rm") == 0) {
-    if (narg < 2) error->all("Illegal shell command");
+    if (narg < 2) error->all(FLERR,"Illegal shell command");
     if (me == 0)
       for (int i = 1; i < narg; i++) unlink(arg[i]);
 
   } else if (strcmp(arg[0],"rmdir") == 0) {
-    if (narg < 2) error->all("Illegal shell command");
+    if (narg < 2) error->all(FLERR,"Illegal shell command");
     if (me == 0)
       for (int i = 1; i < narg; i++) rmdir(arg[i]);
 
@@ -819,11 +819,11 @@ void Input::variable_command()
 void Input::angle_coeff()
 {
   if (domain->box_exist == 0)
-    error->all("Angle_coeff command before simulation box is defined");
+    error->all(FLERR,"Angle_coeff command before simulation box is defined");
   if (force->angle == NULL) 
-    error->all("Angle_coeff command before angle_style is defined");
+    error->all(FLERR,"Angle_coeff command before angle_style is defined");
   if (atom->avec->angles_allow == 0) 
-    error->all("Angle_coeff command when no angles allowed");
+    error->all(FLERR,"Angle_coeff command when no angles allowed");
   force->angle->coeff(narg,arg);
 }
 
@@ -831,9 +831,9 @@ void Input::angle_coeff()
 
 void Input::angle_style()
 {
-  if (narg < 1) error->all("Illegal angle_style command");
+  if (narg < 1) error->all(FLERR,"Illegal angle_style command");
   if (atom->avec->angles_allow == 0) 
-    error->all("Angle_style command when no angles allowed");
+    error->all(FLERR,"Angle_style command when no angles allowed");
   force->create_angle(arg[0]);
   if (force->angle) force->angle->settings(narg-1,&arg[1]);
 }
@@ -849,9 +849,9 @@ void Input::atom_modify()
 
 void Input::atom_style()
 {
-  if (narg < 1) error->all("Illegal atom_style command");
+  if (narg < 1) error->all(FLERR,"Illegal atom_style command");
   if (domain->box_exist) 
-    error->all("Atom_style command after simulation box is defined");
+    error->all(FLERR,"Atom_style command after simulation box is defined");
   atom->create_avec(arg[0],narg-1,&arg[1],lmp->suffix);
 }
 
@@ -860,11 +860,11 @@ void Input::atom_style()
 void Input::bond_coeff()
 {
   if (domain->box_exist == 0)
-    error->all("Bond_coeff command before simulation box is defined");
+    error->all(FLERR,"Bond_coeff command before simulation box is defined");
   if (force->bond == NULL) 
-    error->all("Bond_coeff command before bond_style is defined");
+    error->all(FLERR,"Bond_coeff command before bond_style is defined");
   if (atom->avec->bonds_allow == 0) 
-    error->all("Bond_coeff command when no bonds allowed");
+    error->all(FLERR,"Bond_coeff command when no bonds allowed");
   force->bond->coeff(narg,arg);
 }
 
@@ -872,9 +872,9 @@ void Input::bond_coeff()
 
 void Input::bond_style()
 {
-  if (narg < 1) error->all("Illegal bond_style command");
+  if (narg < 1) error->all(FLERR,"Illegal bond_style command");
   if (atom->avec->bonds_allow == 0) 
-    error->all("Bond_style command when no bonds allowed");
+    error->all(FLERR,"Bond_style command when no bonds allowed");
   force->create_bond(arg[0]);
   if (force->bond) force->bond->settings(narg-1,&arg[1]);
 }
@@ -884,7 +884,7 @@ void Input::bond_style()
 void Input::boundary()
 {
   if (domain->box_exist)
-    error->all("Boundary command after simulation box is defined");
+    error->all(FLERR,"Boundary command after simulation box is defined");
   domain->set_boundary(narg,arg);
 }
 
@@ -913,7 +913,7 @@ void Input::compute_modify()
 
 void Input::dielectric()
 {
-  if (narg != 1) error->all("Illegal dielectric command");
+  if (narg != 1) error->all(FLERR,"Illegal dielectric command");
   force->dielectric = atof(arg[0]);
 }
 
@@ -922,11 +922,11 @@ void Input::dielectric()
 void Input::dihedral_coeff()
 {
   if (domain->box_exist == 0)
-    error->all("Dihedral_coeff command before simulation box is defined");
+    error->all(FLERR,"Dihedral_coeff command before simulation box is defined");
   if (force->dihedral == NULL) 
-    error->all("Dihedral_coeff command before dihedral_style is defined");
+    error->all(FLERR,"Dihedral_coeff command before dihedral_style is defined");
   if (atom->avec->dihedrals_allow == 0) 
-    error->all("Dihedral_coeff command when no dihedrals allowed");
+    error->all(FLERR,"Dihedral_coeff command when no dihedrals allowed");
   force->dihedral->coeff(narg,arg);
 }
 
@@ -934,9 +934,9 @@ void Input::dihedral_coeff()
 
 void Input::dihedral_style()
 {
-  if (narg < 1) error->all("Illegal dihedral_style command");
+  if (narg < 1) error->all(FLERR,"Illegal dihedral_style command");
   if (atom->avec->dihedrals_allow == 0) 
-    error->all("Dihedral_style command when no dihedrals allowed");
+    error->all(FLERR,"Dihedral_style command when no dihedrals allowed");
   force->create_dihedral(arg[0]);
   if (force->dihedral) force->dihedral->settings(narg-1,&arg[1]);
 }
@@ -945,12 +945,12 @@ void Input::dihedral_style()
 
 void Input::dimension()
 {
-  if (narg != 1) error->all("Illegal dimension command");
+  if (narg != 1) error->all(FLERR,"Illegal dimension command");
   if (domain->box_exist) 
-    error->all("Dimension command after simulation box is defined");
+    error->all(FLERR,"Dimension command after simulation box is defined");
   domain->dimension = atoi(arg[0]);
   if (domain->dimension != 2 && domain->dimension != 3)
-    error->all("Illegal dimension command");
+    error->all(FLERR,"Illegal dimension command");
 
   // must reset default extra_dof of all computes
   // since some were created before dimension command is encountered
@@ -999,11 +999,11 @@ void Input::group_command()
 void Input::improper_coeff()
 {
   if (domain->box_exist == 0)
-    error->all("Improper_coeff command before simulation box is defined");
+    error->all(FLERR,"Improper_coeff command before simulation box is defined");
   if (force->improper == NULL) 
-    error->all("Improper_coeff command before improper_style is defined");
+    error->all(FLERR,"Improper_coeff command before improper_style is defined");
   if (atom->avec->impropers_allow == 0) 
-    error->all("Improper_coeff command when no impropers allowed");
+    error->all(FLERR,"Improper_coeff command when no impropers allowed");
   force->improper->coeff(narg,arg);
 }
 
@@ -1011,9 +1011,9 @@ void Input::improper_coeff()
 
 void Input::improper_style()
 {
-  if (narg < 1) error->all("Illegal improper_style command");
+  if (narg < 1) error->all(FLERR,"Illegal improper_style command");
   if (atom->avec->impropers_allow == 0) 
-    error->all("Improper_style command when no impropers allowed");
+    error->all(FLERR,"Improper_style command when no impropers allowed");
   force->create_improper(arg[0]);
   if (force->improper) force->improper->settings(narg-1,&arg[1]);
 }
@@ -1022,7 +1022,7 @@ void Input::improper_style()
 
 void Input::kspace_modify()
 {
-  if (force->kspace == NULL) error->all("KSpace style has not yet been set");
+  if (force->kspace == NULL) error->all(FLERR,"KSpace style has not yet been set");
   force->kspace->modify_params(narg,arg);
 }
 
@@ -1044,9 +1044,9 @@ void Input::lattice()
 
 void Input::mass()
 {
-  if (narg != 2) error->all("Illegal mass command");
+  if (narg != 2) error->all(FLERR,"Illegal mass command");
   if (domain->box_exist == 0)
-    error->all("Mass command before simulation box is defined");
+    error->all(FLERR,"Mass command before simulation box is defined");
   atom->set_mass(narg,arg);
 }
 
@@ -1062,7 +1062,7 @@ void Input::min_modify()
 void Input::min_style()
 {
   if (domain->box_exist == 0)
-    error->all("Min_style command before simulation box is defined");
+    error->all(FLERR,"Min_style command before simulation box is defined");
   update->create_minimize(narg,arg);
 }
 
@@ -1089,25 +1089,25 @@ void Input::newton()
   if (narg == 1) {
     if (strcmp(arg[0],"off") == 0) newton_pair = newton_bond = 0;
     else if (strcmp(arg[0],"on") == 0) newton_pair = newton_bond = 1;
-    else error->all("Illegal newton command");
+    else error->all(FLERR,"Illegal newton command");
   } else if (narg == 2) {
     if (strcmp(arg[0],"off") == 0) newton_pair = 0;
     else if (strcmp(arg[0],"on") == 0) newton_pair= 1;
-    else error->all("Illegal newton command");
+    else error->all(FLERR,"Illegal newton command");
     if (strcmp(arg[1],"off") == 0) newton_bond = 0;
     else if (strcmp(arg[1],"on") == 0) newton_bond = 1;
-    else error->all("Illegal newton command");
-  } else error->all("Illegal newton command");
+    else error->all(FLERR,"Illegal newton command");
+  } else error->all(FLERR,"Illegal newton command");
 
   force->newton_pair = newton_pair;
 
   if (newton_bond == 0) {
     if (domain->box_exist && force->newton_bond == 1) 
-      error->all("Newton bond change after simulation box is defined");
+      error->all(FLERR,"Newton bond change after simulation box is defined");
     force->newton_bond = 0;
   } else {
     if (domain->box_exist && force->newton_bond == 0) 
-      error->all("Newton bond change after simulation box is defined");
+      error->all(FLERR,"Newton bond change after simulation box is defined");
     force->newton_bond = 1;
   }
 
@@ -1120,12 +1120,12 @@ void Input::newton()
 void Input::package()
 {
   if (domain->box_exist) 
-    error->all("Package command after simulation box is defined");
-  if (narg < 1) error->all("Illegal package command");
+    error->all(FLERR,"Package command after simulation box is defined");
+  if (narg < 1) error->all(FLERR,"Illegal package command");
 
   if (strcmp(arg[0],"cuda") == 0) {
     if (!lmp->cuda)
-      error->all("Package cuda command without USER-CUDA installed");
+      error->all(FLERR,"Package cuda command without USER-CUDA installed");
     lmp->cuda->accelerator(narg-1,&arg[1]);
 
   } else if (strcmp(arg[0],"gpu") == 0) {
@@ -1142,9 +1142,9 @@ void Input::package()
   } else if (strcmp(arg[0],"omp") == 0) {
 
 #ifdef _OPENMP
-    if (narg != 2) error->all("Illegal package command");
+    if (narg != 2) error->all(FLERR,"Illegal package command");
     comm->nthreads = atoi(arg[1]);
-    if (comm->nthreads < 1) error->all("Illegal package command");
+    if (comm->nthreads < 1) error->all(FLERR,"Illegal package command");
 
     omp_set_num_threads(comm->nthreads);
     if (me == 0) {
@@ -1156,10 +1156,10 @@ void Input::package()
 		comm->nthreads);
     }
 #else
-    error->all("Cannot use package omp command with no OpenMP support");
+    error->all(FLERR,"Cannot use package omp command with no OpenMP support");
 #endif
 
-  } else error->all("Illegal package command");
+  } else error->all(FLERR,"Illegal package command");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1167,9 +1167,9 @@ void Input::package()
 void Input::pair_coeff()
 {
   if (domain->box_exist == 0)
-    error->all("Pair_coeff command before simulation box is defined");
+    error->all(FLERR,"Pair_coeff command before simulation box is defined");
   if (force->pair == NULL) 
-    error->all("Pair_coeff command before pair_style is defined");
+    error->all(FLERR,"Pair_coeff command before pair_style is defined");
   force->pair->coeff(narg,arg);
 }
 
@@ -1178,7 +1178,7 @@ void Input::pair_coeff()
 void Input::pair_modify()
 {
   if (force->pair == NULL) 
-    error->all("Pair_modify command before pair_style is defined");
+    error->all(FLERR,"Pair_modify command before pair_style is defined");
   force->pair->modify_params(narg,arg);
 }
 
@@ -1189,7 +1189,7 @@ void Input::pair_modify()
 
 void Input::pair_style()
 {
-  if (narg < 1) error->all("Illegal pair_style command");
+  if (narg < 1) error->all(FLERR,"Illegal pair_style command");
   if (force->pair && strcmp(arg[0],force->pair_style) == 0) {
     force->pair->settings(narg-1,&arg[1]);
     return;
@@ -1203,7 +1203,7 @@ void Input::pair_style()
 void Input::pair_write()
 {
   if (force->pair == NULL) 
-    error->all("Pair_write command before pair_style is defined");
+    error->all(FLERR,"Pair_write command before pair_style is defined");
   force->pair->write_file(narg,arg);
 }
 
@@ -1211,9 +1211,9 @@ void Input::pair_write()
 
 void Input::processors()
 {
-  if (narg != 3) error->all("Illegal processors command");
+  if (narg != 3) error->all(FLERR,"Illegal processors command");
   if (domain->box_exist)
-    error->all("Processors command after simulation box is defined");
+    error->all(FLERR,"Processors command after simulation box is defined");
 
   if (strcmp(arg[0],"*") == 0) comm->user_procgrid[0] = 0;
   else comm->user_procgrid[0] = atoi(arg[0]);
@@ -1223,7 +1223,7 @@ void Input::processors()
   else comm->user_procgrid[2] = atoi(arg[2]);
 
   if (comm->user_procgrid[0] < 0 || comm->user_procgrid[1] < 0 ||
-      comm->user_procgrid[2] < 0) error->all("Illegal processors command");
+      comm->user_procgrid[2] < 0) error->all(FLERR,"Illegal processors command");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1252,7 +1252,7 @@ void Input::restart()
 void Input::run_style()
 {
   if (domain->box_exist == 0)
-    error->all("Run_style command before simulation box is defined");
+    error->all(FLERR,"Run_style command before simulation box is defined");
   update->create_integrate(narg,arg,lmp->suffix);
 }
 
@@ -1291,7 +1291,7 @@ void Input::special_bonds()
 
 void Input::suffix()
 {
-  if (narg != 1) error->all("Illegal suffix command");
+  if (narg != 1) error->all(FLERR,"Illegal suffix command");
   
   if (strcmp(arg[0],"off") == 0) lmp->suffix_enable = 0;
   else if (strcmp(arg[0],"on") == 0) lmp->suffix_enable = 1;
@@ -1308,7 +1308,7 @@ void Input::suffix()
 
 void Input::thermo()
 {
-  if (narg != 1) error->all("Illegal thermo command");
+  if (narg != 1) error->all(FLERR,"Illegal thermo command");
   output->thermo_every = atoi(arg[0]);
 }
 
@@ -1330,7 +1330,7 @@ void Input::thermo_style()
 
 void Input::timestep()
 {
-  if (narg != 1) error->all("Illegal timestep command");
+  if (narg != 1) error->all(FLERR,"Illegal timestep command");
   update->dt = atof(arg[0]);
 }
 
@@ -1338,7 +1338,7 @@ void Input::timestep()
 
 void Input::uncompute()
 {
-  if (narg != 1) error->all("Illegal uncompute command");
+  if (narg != 1) error->all(FLERR,"Illegal uncompute command");
   modify->delete_compute(arg[0]);
 }
 
@@ -1346,7 +1346,7 @@ void Input::uncompute()
 
 void Input::undump()
 {
-  if (narg != 1) error->all("Illegal undump command");
+  if (narg != 1) error->all(FLERR,"Illegal undump command");
   output->delete_dump(arg[0]);
 }
 
@@ -1354,7 +1354,7 @@ void Input::undump()
 
 void Input::unfix()
 {
-  if (narg != 1) error->all("Illegal unfix command");
+  if (narg != 1) error->all(FLERR,"Illegal unfix command");
   modify->delete_fix(arg[0]);
 }
 
@@ -1362,8 +1362,8 @@ void Input::unfix()
 
 void Input::units()
 {
-  if (narg != 1) error->all("Illegal units command");
+  if (narg != 1) error->all(FLERR,"Illegal units command");
   if (domain->box_exist) 
-    error->all("Units command after simulation box is defined");
+    error->all(FLERR,"Units command after simulation box is defined");
   update->set_units(arg[0]);
 }

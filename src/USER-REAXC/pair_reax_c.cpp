@@ -162,7 +162,7 @@ void PairReaxC::allocate( )
 
 void PairReaxC::settings(int narg, char **arg)
 {
-  if (narg != 1 && narg != 3) error->all("Illegal pair_style command");
+  if (narg != 1 && narg != 3) error->all(FLERR,"Illegal pair_style command");
 
   // read name of control file or use default controls
 
@@ -196,12 +196,12 @@ void PairReaxC::settings(int narg, char **arg)
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"checkqeq") == 0) {
-      if (iarg+2 > narg) error->all("Illegal pair_style reax/c command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style reax/c command");
       if (strcmp(arg[iarg+1],"yes") == 0) qeqflag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) qeqflag = 0;
-      else error->all("Illegal pair_style reax/c command");
+      else error->all(FLERR,"Illegal pair_style reax/c command");
       iarg += 2;
-    } else error->all("Illegal pair_style reax/c command");
+    } else error->all(FLERR,"Illegal pair_style reax/c command");
   }
 
   // LAMMPS is responsible for generating nbrs
@@ -216,12 +216,12 @@ void PairReaxC::coeff( int nargs, char **args )
   if (!allocated) allocate();
 
   if (nargs != 3 + atom->ntypes)
-    error->all("Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients");
 
   // insure I,J args are * *
 
   if (strcmp(args[0],"*") != 0 || strcmp(args[1],"*") != 0)
-    error->all("Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read ffield file
 
@@ -244,7 +244,7 @@ void PairReaxC::coeff( int nargs, char **args )
     // error check
 
     if (itmp < 0 || itmp >= nreax_types)
-      error->all("Non-existent ReaxFF type");
+      error->all(FLERR,"Non-existent ReaxFF type");
 
   }
 
@@ -257,21 +257,21 @@ void PairReaxC::coeff( int nargs, char **args )
       count++;
     }
     
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ---------------------------------------------------------------------- */
 
 void PairReaxC::init_style( )
 {
-  if (!atom->q_flag) error->all("Pair reax/c requires atom attribute q");
+  if (!atom->q_flag) error->all(FLERR,"Pair reax/c requires atom attribute q");
   firstwarn = 1;
 
   int iqeq;
   for (iqeq = 0; iqeq < modify->nfix; iqeq++)
     if (strcmp(modify->fix[iqeq]->style,"qeq/reax") == 0) break;
   if (iqeq == modify->nfix && qeqflag == 1) 
-    error->all("Pair reax/c requires use of fix qeq/reax");
+    error->all(FLERR,"Pair reax/c requires use of fix qeq/reax");
 
   system->n = atom->nlocal; // my atoms
   system->N = atom->nlocal + atom->nghost; // mine + ghosts
@@ -284,9 +284,9 @@ void PairReaxC::init_style( )
   system->big_box.box_norms[2] = 0;
 
   if (atom->tag_enable == 0)
-    error->all("Pair style reax/c requires atom IDs");
+    error->all(FLERR,"Pair style reax/c requires atom IDs");
   if (force->newton_pair == 0)
-    error->all("Pair style reax/c requires newton pair on");
+    error->all(FLERR,"Pair style reax/c requires newton pair on");
 
   // need a half neighbor list w/ Newton off
   // built whenever re-neighboring occurs
@@ -343,7 +343,7 @@ void PairReaxC::setup( )
     int num_nbrs = estimate_reax_lists();
     if(!Make_List(system->total_cap, num_nbrs, TYP_FAR_NEIGHBOR, 
 		  lists+FAR_NBRS, world))
-      error->all("Pair reax/c problem in far neighbor list");
+      error->all(FLERR,"Pair reax/c problem in far neighbor list");
   
     write_reax_lists();
     Initialize( system, control, data, workspace, &lists, out_control, 
@@ -398,7 +398,7 @@ void PairReaxC::compute(int eflag, int vflag)
   if ((eflag_atom || vflag_atom) && firstwarn) {
     firstwarn = 0;
     if (comm->me == 0) 
-      error->warning("Pair reax/c cannot yet compute "
+      error->warning(FLERR,"Pair reax/c cannot yet compute "
 		     "per-atom energy or stress");
   }
 

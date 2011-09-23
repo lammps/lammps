@@ -82,7 +82,7 @@ void PPPMTIP4P::particle_map()
 
   int flag_all;
   MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
-  if (flag_all) error->all("Out of range atoms - cannot compute PPPM");
+  if (flag_all) error->all(FLERR,"Out of range atoms - cannot compute PPPM");
 }
 
 /* ----------------------------------------------------------------------
@@ -253,9 +253,9 @@ void PPPMTIP4P::find_M(int i, int &iH1, int &iH2, double *xM)
   iH1 = atom->map(atom->tag[i] + 1);
   iH2 = atom->map(atom->tag[i] + 2);
 
-  if (iH1 == -1 || iH2 == -1) error->one("TIP4P hydrogen is missing");
+  if (iH1 == -1 || iH2 == -1) error->one(FLERR,"TIP4P hydrogen is missing");
   if (atom->type[iH1] != typeH || atom->type[iH2] != typeH)
-    error->one("TIP4P hydrogen has incorrect atom type");
+    error->one(FLERR,"TIP4P hydrogen has incorrect atom type");
 
   double **x = atom->x; 
 

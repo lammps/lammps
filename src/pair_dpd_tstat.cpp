@@ -23,9 +23,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 #define EPSILON 1.0e-10
 
 /* ---------------------------------------------------------------------- */
@@ -141,7 +138,7 @@ void PairDPDTstat::compute(int eflag, int vflag)
 
 void PairDPDTstat::settings(int narg, char **arg)
 {
-  if (narg != 4) error->all("Illegal pair_style command");
+  if (narg != 4) error->all(FLERR,"Illegal pair_style command");
 
   t_start = force->numeric(arg[0]);
   t_stop = force->numeric(arg[1]);
@@ -152,7 +149,7 @@ void PairDPDTstat::settings(int narg, char **arg)
 
   // initialize Marsaglia RNG with processor-unique seed
 
-  if (seed <= 0) error->all("Illegal pair_style command");
+  if (seed <= 0) error->all(FLERR,"Illegal pair_style command");
   delete random;
   random = new RanMars(lmp,seed + comm->me);
 
@@ -172,7 +169,7 @@ void PairDPDTstat::settings(int narg, char **arg)
 
 void PairDPDTstat::coeff(int narg, char **arg)
 {
-  if (narg < 3 || narg > 4) error->all("Incorrect args for pair coefficients");
+  if (narg < 3 || narg > 4) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -196,7 +193,7 @@ void PairDPDTstat::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------

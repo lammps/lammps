@@ -156,7 +156,7 @@ void ImproperCvff::compute(int eflag, int vflag)
 		"Improper problem: %d " BIGINT_FORMAT " %d %d %d %d",
 		me,update->ntimestep,
 		atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
-	error->warning(str,0);
+	error->warning(FLERR,str,0);
 	fprintf(screen,"  1st atom: %d %g %g %g\n",
 		me,x[i1][0],x[i1][1],x[i1][2]);
 	fprintf(screen,"  2nd atom: %d %g %g %g\n",
@@ -295,7 +295,7 @@ void ImproperCvff::allocate()
 
 void ImproperCvff::coeff(int narg, char **arg)
 {
-  if (narg != 4) error->all("Incorrect args for improper coefficients");
+  if (narg != 4) error->all(FLERR,"Incorrect args for improper coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -314,7 +314,7 @@ void ImproperCvff::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all("Incorrect args for improper coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for improper coefficients");
 }
 
 /* ----------------------------------------------------------------------

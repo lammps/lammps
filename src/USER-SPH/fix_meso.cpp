@@ -38,11 +38,11 @@ FixMeso::FixMeso(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg) {
 
   if ((atom->e_flag != 1) || (atom->rho_flag != 1))
-    error->all(
+    error->all(FLERR,
         "fix meso command requires atom_style with both energy and density");
 
   if (narg != 3)
-    error->all("Illegal number of arguments for fix meso command");
+    error->all(FLERR,"Illegal number of arguments for fix meso command");
 
   time_integrate = 1;
 }

@@ -39,8 +39,6 @@ enum{PERATOM,LOCAL};
 #define INVOKED_PERATOM 8
 #define INVOKED_LOCAL 16
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
 #define BIG 1.0e20
 
 /* ---------------------------------------------------------------------- */
@@ -50,14 +48,14 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
 {
   int iarg;
   if (strcmp(style,"reduce") == 0) {
-    if (narg < 5) error->all("Illegal compute reduce command");
+    if (narg < 5) error->all(FLERR,"Illegal compute reduce command");
     idregion = NULL;
     iarg = 3;
   } else if (strcmp(style,"reduce/region") == 0) {
-    if (narg < 6) error->all("Illegal compute reduce/region command");
+    if (narg < 6) error->all(FLERR,"Illegal compute reduce/region command");
     iregion = domain->find_region(arg[3]);
     if (iregion == -1)
-      error->all("Region ID for compute reduce/region does not exist");
+      error->all(FLERR,"Region ID for compute reduce/region does not exist");
     int n = strlen(arg[3]) + 1;
     idregion = new char[n];
     strcpy(idregion,arg[3]);
@@ -68,7 +66,7 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
   else if (strcmp(arg[iarg],"min") == 0) mode = MINN;
   else if (strcmp(arg[iarg],"max") == 0) mode = MAXX;
   else if (strcmp(arg[iarg],"ave") == 0) mode = AVE;
-  else error->all("Illegal compute reduce command");
+  else error->all(FLERR,"Illegal compute reduce command");
   iarg++;
 
   MPI_Comm_rank(world,&me);
@@ -129,7 +127,7 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
       char *ptr = strchr(suffix,'[');
       if (ptr) {
 	if (suffix[strlen(suffix)-1] != ']')
-	  error->all("Illegal compute reduce command");
+	  error->all(FLERR,"Illegal compute reduce command");
 	argindex[nvalues] = atoi(ptr+1);
 	*ptr = '\0';
       } else argindex[nvalues] = 0;
@@ -152,19 +150,19 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"replace") == 0) {
-      if (iarg+3 > narg) error->all("Illegal compute reduce command");
+      if (iarg+3 > narg) error->all(FLERR,"Illegal compute reduce command");
       if (mode != MINN && mode != MAXX)
-	error->all("Compute reduce replace requires min or max mode");
+	error->all(FLERR,"Compute reduce replace requires min or max mode");
       int col1 = atoi(arg[iarg+1]) - 1;
       int col2 = atoi(arg[iarg+2]) - 1;
       if (col1 < 0 || col1 >= nvalues || col2 < 0 || col2 >= nvalues)
-	error->all("Illegal compute reduce command");
-      if (col1 == col2)	error->all("Illegal compute reduce command");
+	error->all(FLERR,"Illegal compute reduce command");
+      if (col1 == col2)	error->all(FLERR,"Illegal compute reduce command");
       if (replace[col1] >= 0 || replace[col2] >= 0)
-	error->all("Invalid replace values in compute reduce"); 
+	error->all(FLERR,"Invalid replace values in compute reduce"); 
       replace[col1] = col2;
       iarg += 3;
-    } else error->all("Illegal compute reduce command");
+    } else error->all(FLERR,"Illegal compute reduce command");
   }
 
   // delete replace if not set
@@ -186,69 +184,69 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
     else if (which[i] == COMPUTE) {
       int icompute = modify->find_compute(ids[i]);
       if (icompute < 0)
-	error->all("Compute ID for compute reduce does not exist");
+	error->all(FLERR,"Compute ID for compute reduce does not exist");
       if (modify->compute[icompute]->peratom_flag) {
 	flavor[i] = PERATOM;
 	if (argindex[i] == 0 && 
 	    modify->compute[icompute]->size_peratom_cols != 0)
-	  error->all("Compute reduce compute does not "
+	  error->all(FLERR,"Compute reduce compute does not "
 		     "calculate a per-atom vector");
 	if (argindex[i] && modify->compute[icompute]->size_peratom_cols == 0)
-	  error->all("Compute reduce compute does not "
+	  error->all(FLERR,"Compute reduce compute does not "
 		     "calculate a per-atom array");
 	if (argindex[i] && 
 	    argindex[i] > modify->compute[icompute]->size_peratom_cols)
-	  error->all("Compute reduce compute array is accessed out-of-range");
+	  error->all(FLERR,"Compute reduce compute array is accessed out-of-range");
       } else if (modify->compute[icompute]->local_flag) {
 	flavor[i] = LOCAL;
 	if (argindex[i] == 0 && 
 	    modify->compute[icompute]->size_local_cols != 0)
-	  error->all("Compute reduce compute does not "
+	  error->all(FLERR,"Compute reduce compute does not "
 		     "calculate a local vector");
 	if (argindex[i] && modify->compute[icompute]->size_local_cols == 0)
-	  error->all("Compute reduce compute does not "
+	  error->all(FLERR,"Compute reduce compute does not "
 		     "calculate a local array");
 	if (argindex[i] && 
 	    argindex[i] > modify->compute[icompute]->size_local_cols)
-	  error->all("Compute reduce compute array is accessed out-of-range");
-      } else error->all("Compute reduce compute calculates global values");
+	  error->all(FLERR,"Compute reduce compute array is accessed out-of-range");
+      } else error->all(FLERR,"Compute reduce compute calculates global values");
 
     } else if (which[i] == FIX) {
       int ifix = modify->find_fix(ids[i]);
       if (ifix < 0)
-	error->all("Fix ID for compute reduce does not exist");
+	error->all(FLERR,"Fix ID for compute reduce does not exist");
       if (modify->fix[ifix]->peratom_flag) {
 	flavor[i] = PERATOM;
 	if (argindex[i] == 0 && 
 	    modify->fix[ifix]->size_peratom_cols != 0)
-	  error->all("Compute reduce fix does not "
+	  error->all(FLERR,"Compute reduce fix does not "
 		     "calculate a per-atom vector");
 	if (argindex[i] && modify->fix[ifix]->size_peratom_cols == 0)
-	  error->all("Compute reduce fix does not "
+	  error->all(FLERR,"Compute reduce fix does not "
 		     "calculate a per-atom array");
 	if (argindex[i] && 
 	    argindex[i] > modify->fix[ifix]->size_peratom_cols)
-	  error->all("Compute reduce fix array is accessed out-of-range");
+	  error->all(FLERR,"Compute reduce fix array is accessed out-of-range");
       } else if (modify->fix[ifix]->local_flag) {
 	flavor[i] = LOCAL;
 	if (argindex[i] == 0 && 
 	    modify->fix[ifix]->size_local_cols != 0)
-	  error->all("Compute reduce fix does not "
+	  error->all(FLERR,"Compute reduce fix does not "
 		     "calculate a local vector");
 	if (argindex[i] && modify->fix[ifix]->size_local_cols == 0)
-	  error->all("Compute reduce fix does not "
+	  error->all(FLERR,"Compute reduce fix does not "
 		     "calculate a local array");
 	if (argindex[i] && 
 	    argindex[i] > modify->fix[ifix]->size_local_cols)
-	  error->all("Compute reduce fix array is accessed out-of-range");
-      } else error->all("Compute reduce fix calculates global values");
+	  error->all(FLERR,"Compute reduce fix array is accessed out-of-range");
+      } else error->all(FLERR,"Compute reduce fix calculates global values");
 
     } else if (which[i] == VARIABLE) {
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
-	error->all("Variable name for compute reduce does not exist");
+	error->all(FLERR,"Variable name for compute reduce does not exist");
       if (input->variable->atomstyle(ivariable) == 0)
-	error->all("Compute reduce variable is not atom-style variable");
+	error->all(FLERR,"Compute reduce variable is not atom-style variable");
       flavor[i] = PERATOM;
     }
   }
@@ -307,19 +305,19 @@ void ComputeReduce::init()
     if (which[m] == COMPUTE) {
       int icompute = modify->find_compute(ids[m]);
       if (icompute < 0)
-	error->all("Compute ID for compute reduce does not exist");
+	error->all(FLERR,"Compute ID for compute reduce does not exist");
       value2index[m] = icompute;
       
     } else if (which[m] == FIX) {
       int ifix = modify->find_fix(ids[m]);
       if (ifix < 0) 
-	error->all("Fix ID for compute reduce does not exist");
+	error->all(FLERR,"Fix ID for compute reduce does not exist");
       value2index[m] = ifix;
 
     } else if (which[m] == VARIABLE) {
       int ivariable = input->variable->find(ids[m]);
       if (ivariable < 0) 
-	error->all("Variable name for compute reduce does not exist");
+	error->all(FLERR,"Variable name for compute reduce does not exist");
       value2index[m] = ivariable;
 
     } else value2index[m] = -1;
@@ -330,7 +328,7 @@ void ComputeReduce::init()
   if (idregion) {
     iregion = domain->find_region(idregion);
     if (iregion == -1)
-      error->all("Region ID for compute reduce/region does not exist");
+      error->all(FLERR,"Region ID for compute reduce/region does not exist");
   }
 }
 
@@ -531,7 +529,7 @@ double ComputeReduce::compute_one(int m, int flag)
 
   } else if (which[m] == FIX) {
     if (update->ntimestep % modify->fix[vidx]->peratom_freq)
-      error->all("Fix used in compute reduce not computed at compatible time");
+      error->all(FLERR,"Fix used in compute reduce not computed at compatible time");
     Fix *fix = modify->fix[vidx];
 
     if (flavor[m] == PERATOM) {

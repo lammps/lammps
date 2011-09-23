@@ -29,20 +29,17 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 /* ---------------------------------------------------------------------- */
 
 FixBondBreak::FixBondBreak(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 6) error->all("Illegal fix bond/break command");
+  if (narg < 6) error->all(FLERR,"Illegal fix bond/break command");
 
   MPI_Comm_rank(world,&me);
 
   nevery = atoi(arg[3]);
-  if (nevery <= 0) error->all("Illegal fix bond/break command");
+  if (nevery <= 0) error->all(FLERR,"Illegal fix bond/break command");
 
   force_reneighbor = 1;
   next_reneighbor = -1;
@@ -55,8 +52,8 @@ FixBondBreak::FixBondBreak(LAMMPS *lmp, int narg, char **arg) :
   double cutoff = atof(arg[5]);
 
   if (btype < 1 || btype > atom->nbondtypes)
-    error->all("Invalid bond type in fix bond/break command");
-  if (cutoff < 0.0) error->all("Illegal fix bond/break command");
+    error->all(FLERR,"Invalid bond type in fix bond/break command");
+  if (cutoff < 0.0) error->all(FLERR,"Illegal fix bond/break command");
 
   cutsq = cutoff*cutoff;
 
@@ -68,20 +65,20 @@ FixBondBreak::FixBondBreak(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 6;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"prob") == 0) {
-      if (iarg+3 > narg) error->all("Illegal fix bond/break command");
+      if (iarg+3 > narg) error->all(FLERR,"Illegal fix bond/break command");
       fraction = atof(arg[iarg+1]);
       seed = atoi(arg[iarg+2]);
       if (fraction < 0.0 || fraction > 1.0)
-	error->all("Illegal fix bond/break command");
-      if (seed <= 0) error->all("Illegal fix bond/break command");
+	error->all(FLERR,"Illegal fix bond/break command");
+      if (seed <= 0) error->all(FLERR,"Illegal fix bond/break command");
       iarg += 3;
-    } else error->all("Illegal fix bond/break command");
+    } else error->all(FLERR,"Illegal fix bond/break command");
   }
 
   // error check
 
   if (atom->molecular == 0)
-    error->all("Cannot use fix bond/break with non-molecular systems");
+    error->all(FLERR,"Cannot use fix bond/break with non-molecular systems");
 
   // initialize Marsaglia RNG with processor-unique seed
 
@@ -137,13 +134,13 @@ void FixBondBreak::init()
       force->special_lj[3] != 1.0) flag = 1;
   if (force->special_coul[1] != 0.0 || force->special_coul[2] != 1.0 ||
       force->special_coul[3] != 1.0) flag = 1;
-  if (flag) error->all("Fix bond/break requires special_bonds = 0,1,1");
+  if (flag) error->all(FLERR,"Fix bond/break requires special_bonds = 0,1,1");
 
   // warn if angles, dihedrals, impropers are being used
 
   if (force->angle || force->dihedral || force->improper) {
     if (me == 0) 
-      error->warning("Broken bonds will not alter angles, "
+      error->warning(FLERR,"Broken bonds will not alter angles, "
 		     "dihedrals, or impropers");
   }
 

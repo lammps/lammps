@@ -24,9 +24,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 PairSPHIdealGas::PairSPHIdealGas(LAMMPS *lmp) :
@@ -201,7 +198,7 @@ void PairSPHIdealGas::allocate() {
 
 void PairSPHIdealGas::settings(int narg, char **arg) {
   if (narg != 0)
-    error->all(
+    error->all(FLERR,
         "Illegal number of setting arguments for pair_style sph/idealgas");
 }
 
@@ -211,7 +208,7 @@ void PairSPHIdealGas::settings(int narg, char **arg) {
 
 void PairSPHIdealGas::coeff(int narg, char **arg) {
   if (narg != 4)
-    error->all("Incorrect number of args for pair_style sph/idealgas coefficients");
+    error->all(FLERR,"Incorrect number of args for pair_style sph/idealgas coefficients");
   if (!allocated)
     allocate();
 
@@ -234,7 +231,7 @@ void PairSPHIdealGas::coeff(int narg, char **arg) {
   }
 
   if (count == 0)
-    error->all("Incorrect args for pair sph/idealgas coefficients");
+    error->all(FLERR,"Incorrect args for pair sph/idealgas coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -244,7 +241,7 @@ void PairSPHIdealGas::coeff(int narg, char **arg) {
 double PairSPHIdealGas::init_one(int i, int j) {
 
   if (setflag[i][j] == 0) {
-      error->all("All pair sph/idealgas coeffs are not set");
+      error->all(FLERR,"All pair sph/idealgas coeffs are not set");
   }
 
   cut[j][i] = cut[i][j];

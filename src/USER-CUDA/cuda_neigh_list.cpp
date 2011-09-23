@@ -37,7 +37,7 @@ CudaNeighList::CudaNeighList(LAMMPS *lmp, class NeighList* neigh_list) : Pointer
 {
         cuda = lmp->cuda;
    if(cuda == NULL)
-        error->all("You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
+        error->all(FLERR,"You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
 
 	MYDBG(printf("# CUDA: CudaNeighList::cudaNeighList() ... start\n");)
 	this->neigh_list = neigh_list;

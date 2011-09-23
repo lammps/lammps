@@ -26,7 +26,7 @@ using namespace LAMMPS_NS;
 FixEnforce2D::FixEnforce2D(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg != 3) error->all("Illegal fix enforce2d command");
+  if (narg != 3) error->all(FLERR,"Illegal fix enforce2d command");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -45,7 +45,7 @@ int FixEnforce2D::setmask()
 void FixEnforce2D::init()
 {
   if (domain->dimension == 3)
-    error->all("Cannot use fix enforce2d with 3d simulation");
+    error->all(FLERR,"Cannot use fix enforce2d with 3d simulation");
 }
 
 /* ---------------------------------------------------------------------- */

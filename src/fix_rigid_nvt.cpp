@@ -51,16 +51,16 @@ FixRigidNVT::FixRigidNVT(LAMMPS *lmp, int narg, char **arg) :
   // convert input period to frequency
 
   if (tempflag == 0)
-    error->all("Did not set temp for fix rigid/nvt");
+    error->all(FLERR,"Did not set temp for fix rigid/nvt");
   if (t_start < 0.0 || t_stop <= 0.0)
-    error->all("Target temperature for fix rigid/nvt cannot be 0.0");
-  if (t_period <= 0.0) error->all("Fix rigid/nvt period must be > 0.0");
+    error->all(FLERR,"Target temperature for fix rigid/nvt cannot be 0.0");
+  if (t_period <= 0.0) error->all(FLERR,"Fix rigid/nvt period must be > 0.0");
   t_freq = 1.0 / t_period;
 
-  if (t_chain < 1) error->all("Illegal fix_modify command");
-  if (t_iter < 1) error->all("Illegal fix_modify command");
+  if (t_chain < 1) error->all(FLERR,"Illegal fix_modify command");
+  if (t_iter < 1) error->all(FLERR,"Illegal fix_modify command");
   if (t_order != 3 && t_order != 5) 
-    error->all("Fix_modify order must be 3 or 5"); 
+    error->all(FLERR,"Fix_modify order must be 3 or 5"); 
   
   allocate_chain();
   allocate_order();
@@ -647,7 +647,7 @@ void FixRigidNVT::restart(char *buf)
   
   int t_chain_prev = static_cast<int> (list[n++]);
   if (t_chain_prev != t_chain)
-    error->all("Cannot restart fix rigid/nvt with different # of chains");
+    error->all(FLERR,"Cannot restart fix rigid/nvt with different # of chains");
 
   for (int i = 0; i < t_chain; i++) {
     eta_t[i] = list[n++];

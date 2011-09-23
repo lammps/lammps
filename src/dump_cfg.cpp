@@ -46,15 +46,15 @@ DumpCFG::DumpCFG(LAMMPS *lmp, int narg, char **arg) :
       (strcmp(arg[7],"xs") != 0 && strcmp(arg[7],"xsu") != 0) || 
       (strcmp(arg[8],"ys") != 0 && strcmp(arg[8],"ysu") != 0) ||
       (strcmp(arg[9],"zs") != 0 && strcmp(arg[9],"zsu") != 0))
-    error->all("Dump cfg arguments must start with "
+    error->all(FLERR,"Dump cfg arguments must start with "
 	       "'id type xs ys zs' or 'id type xsu ysu zsu'");
 
   if (strcmp(arg[7],"xs") == 0)
     if (strcmp(arg[8],"ysu") == 0 || strcmp(arg[9],"zsu") == 0)
-      error->all("Dump cfg arguments can not mix xs|ys|zs with xsu|ysu|zsu");
+      error->all(FLERR,"Dump cfg arguments can not mix xs|ys|zs with xsu|ysu|zsu");
     else unwrapflag = 0;
   else if (strcmp(arg[8],"ys") == 0 || strcmp(arg[9],"zs") == 0)
-    error->all("Dump cfg arguments can not mix xs|ys|zs with xsu|ysu|zsu");
+    error->all(FLERR,"Dump cfg arguments can not mix xs|ys|zs with xsu|ysu|zsu");
   else unwrapflag = 1;
     
   // arrays for data rearrangement
@@ -80,7 +80,7 @@ DumpCFG::DumpCFG(LAMMPS *lmp, int narg, char **arg) :
       char *ptr = strchr(suffix,'[');
       if (ptr) {
 	if (suffix[strlen(suffix)-1] != ']')
-	  error->all("Invalid keyword in dump cfg command");
+	  error->all(FLERR,"Invalid keyword in dump cfg command");
 	*ptr = '\0';
 	*(ptr+2) = '\0';
 	auxname[i] = new char[strlen(suffix) + 3];
@@ -117,7 +117,7 @@ DumpCFG::~DumpCFG()
 
 void DumpCFG::init_style()
 {
-  if (multifile == 0) error->all("Dump cfg requires one snapshot per file");
+  if (multifile == 0) error->all(FLERR,"Dump cfg requires one snapshot per file");
 
   DumpCustom::init_style();
 }

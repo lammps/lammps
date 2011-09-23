@@ -40,7 +40,7 @@ void KSpace::modify_params(int narg, char **arg)
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"mesh") == 0) {
-      if (iarg+4 > narg) error->all("Illegal kspace_modify command");
+      if (iarg+4 > narg) error->all(FLERR,"Illegal kspace_modify command");
       nx_pppm = atoi(arg[iarg+1]);
       ny_pppm = atoi(arg[iarg+2]);
       nz_pppm = atoi(arg[iarg+3]);
@@ -48,26 +48,26 @@ void KSpace::modify_params(int narg, char **arg)
       else gridflag = 1;
       iarg += 4;
     } else if (strcmp(arg[iarg],"order") == 0) {
-      if (iarg+2 > narg) error->all("Illegal kspace_modify command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
       order = atoi(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"gewald") == 0) {
-      if (iarg+2 > narg) error->all("Illegal kspace_modify command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
       g_ewald = atof(arg[iarg+1]);
       if (g_ewald == 0.0) gewaldflag = 0;
       else gewaldflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"slab") == 0) {
-      if (iarg+2 > narg) error->all("Illegal kspace_modify command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
       slab_volfactor = atof(arg[iarg+1]);
       iarg += 2;
       if (slab_volfactor <= 1.0)
-	error->all("Bad kspace_modify slab parameter");
+	error->all(FLERR,"Bad kspace_modify slab parameter");
       if (slab_volfactor < 2.0 && comm->me == 0) 
-	error->warning("Kspace_modify slab param < 2.0 may "
+	error->warning(FLERR,"Kspace_modify slab param < 2.0 may "
 		       "cause unphysical behavior");
       slabflag = 1;
-    } else error->all("Illegal kspace_modify command");
+    } else error->all(FLERR,"Illegal kspace_modify command");
   }
 }
 

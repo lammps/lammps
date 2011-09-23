@@ -38,9 +38,6 @@
 #include "string.h"
 #include "gpu_extra.h"
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 // External functions from cuda library for atom decomposition
 
 int re_gpu_init(const int ntypes, double **shape, double **well,
@@ -76,7 +73,7 @@ PairRESquaredGPU::PairRESquaredGPU(LAMMPS *lmp) : PairRESquared(lmp),
 {
   avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
   if (!avec) 
-    error->all("Pair gayberne requires atom style ellipsoid");
+    error->all(FLERR,"Pair gayberne requires atom style ellipsoid");
   quat_nmax = 0;
   quat = NULL;
 }
@@ -139,7 +136,7 @@ void PairRESquaredGPU::compute(int eflag, int vflag)
 			   cpu_time, success, quat);
   }
   if (!success)
-    error->one("Out of memory on GPGPU");
+    error->one(FLERR,"Out of memory on GPGPU");
 
   if (host_start < inum) {
     cpu_time = MPI_Wtime();
@@ -155,9 +152,9 @@ void PairRESquaredGPU::compute(int eflag, int vflag)
 void PairRESquaredGPU::init_style()
 {
   if (force->newton_pair) 
-    error->all("Cannot use newton pair with resquared/gpu pair style");
+    error->all(FLERR,"Cannot use newton pair with resquared/gpu pair style");
   if (!atom->ellipsoid_flag)
-    error->all("Pair resquared/gpu requires atom style ellipsoid");
+    error->all(FLERR,"Pair resquared/gpu requires atom style ellipsoid");
 
   // per-type shape precalculations
   // require that atom shapes are identical within each type
@@ -165,7 +162,7 @@ void PairRESquaredGPU::init_style()
 
   for (int i = 1; i <= atom->ntypes; i++) {
     if (!atom->shape_consistency(i,shape1[i][0],shape1[i][1],shape1[i][2]))
-      error->all("Pair resquared/gpu requires atoms with same type have same shape");
+      error->all(FLERR,"Pair resquared/gpu requires atoms with same type have same shape");
     if (setwell[i]) {
       shape2[i][0] = shape1[i][0]*shape1[i][0];
       shape2[i][1] = shape1[i][1]*shape1[i][1];

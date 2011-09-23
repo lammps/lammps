@@ -34,9 +34,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 #define MAXLINE 1024
 #define TOL 1.0e-9
 #define PGDELTA 1
@@ -135,7 +132,7 @@ void PairAIREBO::allocate()
 
 void PairAIREBO::settings(int narg, char **arg)
 {
-  if (narg != 1 && narg != 3) error->all("Illegal pair_style command");
+  if (narg != 1 && narg != 3) error->all(FLERR,"Illegal pair_style command");
 
   cutlj = force->numeric(arg[0]);
 
@@ -155,12 +152,12 @@ void PairAIREBO::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   if (narg != 3 + atom->ntypes)
-    error->all("Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients");
 
   // insure I,J args are * *
 
   if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all("Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read args that map atom types to C and H
   // map[i] = which element (0,1) the Ith atom type is, -1 if NULL
@@ -173,7 +170,7 @@ void PairAIREBO::coeff(int narg, char **arg)
       map[i-2] = 0;
     } else if (strcmp(arg[i],"H") == 0) {
       map[i-2] = 1;
-    } else error->all("Incorrect args for pair coefficients");
+    } else error->all(FLERR,"Incorrect args for pair coefficients");
   }
 
   // read potential file and initialize fitting splines
@@ -198,7 +195,7 @@ void PairAIREBO::coeff(int narg, char **arg)
 	count++;
       }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -208,9 +205,9 @@ void PairAIREBO::coeff(int narg, char **arg)
 void PairAIREBO::init_style()
 {
   if (atom->tag_enable == 0)
-    error->all("Pair style AIREBO requires atom IDs");
+    error->all(FLERR,"Pair style AIREBO requires atom IDs");
   if (force->newton_pair == 0)
-    error->all("Pair style AIREBO requires newton pair on");
+    error->all(FLERR,"Pair style AIREBO requires newton pair on");
 
   // need a full neighbor list, including neighbors of ghosts
 
@@ -232,7 +229,7 @@ void PairAIREBO::init_style()
 
 double PairAIREBO::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all("All pair coeffs are not set");
+  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
   // convert to C,H types
 
@@ -371,7 +368,7 @@ void PairAIREBO::REBO_neigh()
     REBO_numneigh[i] = n;
     npnt += n;
     if (npnt >= pgsize)
-      error->one("Neighbor list overflow, boost neigh_modify one or page");
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
   }
 }
 
@@ -3401,7 +3398,7 @@ void PairAIREBO::read_file(char *filename)
     if (fp == NULL) {
       char str[128];
       sprintf(str,"Cannot open AIREBO potential file %s",filename);
-      error->one(str);
+      error->one(FLERR,str);
     }
 
     // skip initial comment lines

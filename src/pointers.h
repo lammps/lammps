@@ -27,6 +27,13 @@
 
 namespace LAMMPS_NS {
 
+// universal defines inside namespace
+
+#define FLERR __FILE__,__LINE__
+
+#define MIN(A,B) ((A) < (B)) ? (A) : (B)
+#define MAX(A,B) ((A) > (B)) ? (A) : (B)
+
 class Pointers {
  public:
   Pointers(LAMMPS *ptr) : 

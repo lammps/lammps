@@ -27,9 +27,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 #define EWALD_F   1.12837917
 #define EWALD_P   0.3275911
 #define A1        0.254829592
@@ -202,7 +199,7 @@ void PairBuckCoulLong::allocate()
 
 void PairBuckCoulLong::settings(int narg, char **arg)
 {
-  if (narg < 1 || narg > 2) error->all("Illegal pair_style command");
+  if (narg < 1 || narg > 2) error->all(FLERR,"Illegal pair_style command");
 
   cut_lj_global = force->numeric(arg[0]);
   if (narg == 1) cut_coul = cut_lj_global;
@@ -224,7 +221,7 @@ void PairBuckCoulLong::settings(int narg, char **arg)
 
 void PairBuckCoulLong::coeff(int narg, char **arg)
 {
-  if (narg < 5 || narg > 6) error->all("Incorrect args for pair coefficients");
+  if (narg < 5 || narg > 6) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -233,7 +230,7 @@ void PairBuckCoulLong::coeff(int narg, char **arg)
 
   double a_one = force->numeric(arg[2]);
   double rho_one = force->numeric(arg[3]);
-  if (rho_one <= 0) error->all("Incorrect args for pair coefficients");
+  if (rho_one <= 0) error->all(FLERR,"Incorrect args for pair coefficients");
   double c_one = force->numeric(arg[4]);
 
   double cut_lj_one = cut_lj_global;
@@ -251,7 +248,7 @@ void PairBuckCoulLong::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -260,7 +257,7 @@ void PairBuckCoulLong::coeff(int narg, char **arg)
 
 double PairBuckCoulLong::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all("All pair coeffs are not set");
+  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
   double cut = MAX(cut_lj[i][j],cut_coul);
   cut_ljsq[i][j] = cut_lj[i][j] * cut_lj[i][j];
@@ -322,14 +319,14 @@ double PairBuckCoulLong::init_one(int i, int j)
 void PairBuckCoulLong::init_style()
 {
   if (!atom->q_flag)
-    error->all("Pair style buck/coul/long requires atom attribute q");
+    error->all(FLERR,"Pair style buck/coul/long requires atom attribute q");
 
   cut_coulsq = cut_coul * cut_coul;
 
   // insure use of KSpace long-range solver, set g_ewald
 
   if (force->kspace == NULL)
-    error->all("Pair style is incompatible with KSpace style");
+    error->all(FLERR,"Pair style is incompatible with KSpace style");
   g_ewald = force->kspace->g_ewald;
 
   neighbor->request(this);

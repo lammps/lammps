@@ -31,21 +31,18 @@ using namespace LAMMPS_NS;
 
 #define BIG 1.0e10
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 /* ---------------------------------------------------------------------- */
 
 FixThermalConductivity::FixThermalConductivity(LAMMPS *lmp,
 					       int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 6) error->all("Illegal fix thermal/conductivity command");
+  if (narg < 6) error->all(FLERR,"Illegal fix thermal/conductivity command");
 
   MPI_Comm_rank(world,&me);
 
   nevery = atoi(arg[3]);
-  if (nevery <= 0) error->all("Illegal fix thermal/conductivity command");
+  if (nevery <= 0) error->all(FLERR,"Illegal fix thermal/conductivity command");
 
   scalar_flag = 1;
   global_freq = nevery;
@@ -54,11 +51,11 @@ FixThermalConductivity::FixThermalConductivity(LAMMPS *lmp,
   if (strcmp(arg[4],"x") == 0) edim = 0;
   else if (strcmp(arg[4],"y") == 0) edim = 1;
   else if (strcmp(arg[4],"z") == 0) edim = 2;
-  else error->all("Illegal fix thermal/conductivity command");
+  else error->all(FLERR,"Illegal fix thermal/conductivity command");
 
   nbin = atoi(arg[5]);
   if (nbin % 2 || nbin <= 2) 
-    error->all("Illegal fix thermal/conductivity command");
+    error->all(FLERR,"Illegal fix thermal/conductivity command");
 
   // optional keywords
 
@@ -68,12 +65,12 @@ FixThermalConductivity::FixThermalConductivity(LAMMPS *lmp,
   while (iarg < narg) {
     if (strcmp(arg[iarg],"swap") == 0) {
       if (iarg+2 > narg)
-	error->all("Illegal fix thermal/conductivity command");
+	error->all(FLERR,"Illegal fix thermal/conductivity command");
       nswap = atoi(arg[iarg+1]);
       if (nswap <= 0)
-	error->all("Fix thermal/conductivity swap value must be positive");
+	error->all(FLERR,"Fix thermal/conductivity swap value must be positive");
       iarg += 2;
-    } else error->all("Illegal fix thermal/conductivity command");
+    } else error->all(FLERR,"Illegal fix thermal/conductivity command");
   }
 
   // initialize array sizes to nswap+1 so have space to shift values down
@@ -116,7 +113,7 @@ void FixThermalConductivity::init()
   for (int i = 0; i < modify->nfix; i++) {
     if (modify->fix[i] == this) foundme = 1;
     if (foundme && strcmp(modify->fix[i]->style,"ave/spatial") == 0 && me == 0)
-      error->warning("Fix thermal/conductivity comes before fix ave/spatial");
+      error->warning(FLERR,"Fix thermal/conductivity comes before fix ave/spatial");
   }
 
   // set bounds of 2 slabs in edim

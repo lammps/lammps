@@ -38,9 +38,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 // same as read_restart.cpp and tools/restart2data.cpp
 
 enum{VERSION,SMALLINT,TAGINT,BIGINT,
@@ -76,8 +73,8 @@ WriteRestart::WriteRestart(LAMMPS *lmp) : Pointers(lmp)
 void WriteRestart::command(int narg, char **arg)
 {
   if (domain->box_exist == 0)
-    error->all("Write_restart command before simulation box is defined");
-  if (narg != 1) error->all("Illegal write_restart command");
+    error->all(FLERR,"Write_restart command before simulation box is defined");
+  if (narg != 1) error->all(FLERR,"Illegal write_restart command");
 
   // if filename contains a "*", replace with current timestep
 
@@ -135,7 +132,7 @@ void WriteRestart::write(char *file)
   bigint nblocal = atom->nlocal;
   MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
   if (natoms != atom->natoms && output->thermo->lostflag == ERROR) 
-    error->all("Atom count is inconsistent, cannot write restart file");
+    error->all(FLERR,"Atom count is inconsistent, cannot write restart file");
 
   // check if filename contains "%"
 
@@ -158,7 +155,7 @@ void WriteRestart::write(char *file)
     if (fp == NULL) {
       char str[128];
       sprintf(str,"Cannot open restart file %s",hfile);
-      error->one(str);
+      error->one(FLERR,str);
     }
     if (multiproc) delete [] hfile;
   }
@@ -284,7 +281,7 @@ void WriteRestart::write(char *file)
     if (fp == NULL) {
       char str[128];
       sprintf(str,"Cannot open restart file %s",perproc);
-      error->one(str);
+      error->one(FLERR,str);
     }
     delete [] perproc;
     fwrite(&send_size,sizeof(int),1,fp);

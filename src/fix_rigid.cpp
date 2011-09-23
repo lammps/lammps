@@ -36,9 +36,6 @@ using namespace LAMMPS_NS;
 #define TOLERANCE 1.0e-6
 #define EPSILON 1.0e-7
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 /* ---------------------------------------------------------------------- */
 
 FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
@@ -71,7 +68,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   // parse args for rigid body specification
   // set nbody and body[i] for each atom
 
-  if (narg < 4) error->all("Illegal fix rigid command");
+  if (narg < 4) error->all(FLERR,"Illegal fix rigid command");
   int iarg;
 
   // single rigid body
@@ -99,7 +96,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   } else if (strcmp(arg[3],"molecule") == 0) {
     iarg = 4;
     if (atom->molecule_flag == 0)
-      error->all("Fix rigid molecule requires atom attribute molecule");
+      error->all(FLERR,"Fix rigid molecule requires atom attribute molecule");
 
     int *mask = atom->mask;
     int *molecule = atom->molecule;
@@ -141,17 +138,17 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   // error if atom belongs to more than 1 rigid body
 
   } else if (strcmp(arg[3],"group") == 0) {
-    if (narg < 5) error->all("Illegal fix rigid command");
+    if (narg < 5) error->all(FLERR,"Illegal fix rigid command");
     nbody = atoi(arg[4]);
-    if (nbody <= 0) error->all("Illegal fix rigid command");
-    if (narg < 5+nbody) error->all("Illegal fix rigid command");
+    if (nbody <= 0) error->all(FLERR,"Illegal fix rigid command");
+    if (narg < 5+nbody) error->all(FLERR,"Illegal fix rigid command");
     iarg = 5+nbody;
 
     int *igroups = new int[nbody];
     for (ibody = 0; ibody < nbody; ibody++) {
       igroups[ibody] = group->find(arg[5+ibody]);
       if (igroups[ibody] == -1) 
-	error->all("Could not find fix rigid group ID");
+	error->all(FLERR,"Could not find fix rigid group ID");
     }
 
     int *mask = atom->mask;
@@ -171,15 +168,15 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
     int flagall;
     MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
     if (flagall) 
-      error->all("One or more atoms belong to multiple rigid bodies");
+      error->all(FLERR,"One or more atoms belong to multiple rigid bodies");
 
     delete [] igroups;
 
-  } else error->all("Illegal fix rigid command");
+  } else error->all(FLERR,"Illegal fix rigid command");
 
   // error check on nbody
 
-  if (nbody == 0) error->all("No rigid bodies defined");
+  if (nbody == 0) error->all(FLERR,"No rigid bodies defined");
 
   // create all nbody-length arrays
 
@@ -233,7 +230,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"force") == 0) {
-      if (iarg+5 > narg) error->all("Illegal fix rigid command");
+      if (iarg+5 > narg) error->all(FLERR,"Illegal fix rigid command");
 
       int mlo,mhi;
       force->bounds(arg[iarg+1],nbody,mlo,mhi);
@@ -241,16 +238,16 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
       double xflag,yflag,zflag;
       if (strcmp(arg[iarg+2],"off") == 0) xflag = 0.0;
       else if (strcmp(arg[iarg+2],"on") == 0) xflag = 1.0;
-      else error->all("Illegal fix rigid command");
+      else error->all(FLERR,"Illegal fix rigid command");
       if (strcmp(arg[iarg+3],"off") == 0) yflag = 0.0;
       else if (strcmp(arg[iarg+3],"on") == 0) yflag = 1.0;
-      else error->all("Illegal fix rigid command");
+      else error->all(FLERR,"Illegal fix rigid command");
       if (strcmp(arg[iarg+4],"off") == 0) zflag = 0.0;
       else if (strcmp(arg[iarg+4],"on") == 0) zflag = 1.0;
-      else error->all("Illegal fix rigid command");
+      else error->all(FLERR,"Illegal fix rigid command");
 
       if (domain->dimension == 2 && zflag == 1.0)
-	error->all("Fix rigid z force cannot be on for 2d simulation");
+	error->all(FLERR,"Fix rigid z force cannot be on for 2d simulation");
 
       int count = 0;
       for (int m = mlo; m <= mhi; m++) {
@@ -259,12 +256,12 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 	fflag[m-1][2] = zflag;
 	count++;
       }
-      if (count == 0) error->all("Illegal fix rigid command");
+      if (count == 0) error->all(FLERR,"Illegal fix rigid command");
 
       iarg += 5;
 
     } else if (strcmp(arg[iarg],"torque") == 0) {
-      if (iarg+5 > narg) error->all("Illegal fix rigid command");
+      if (iarg+5 > narg) error->all(FLERR,"Illegal fix rigid command");
 
       int mlo,mhi;
       force->bounds(arg[iarg+1],nbody,mlo,mhi);
@@ -272,16 +269,16 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
       double xflag,yflag,zflag;
       if (strcmp(arg[iarg+2],"off") == 0) xflag = 0.0;
       else if (strcmp(arg[iarg+2],"on") == 0) xflag = 1.0;
-      else error->all("Illegal fix rigid command");
+      else error->all(FLERR,"Illegal fix rigid command");
       if (strcmp(arg[iarg+3],"off") == 0) yflag = 0.0;
       else if (strcmp(arg[iarg+3],"on") == 0) yflag = 1.0;
-      else error->all("Illegal fix rigid command");
+      else error->all(FLERR,"Illegal fix rigid command");
       if (strcmp(arg[iarg+4],"off") == 0) zflag = 0.0;
       else if (strcmp(arg[iarg+4],"on") == 0) zflag = 1.0;
-      else error->all("Illegal fix rigid command");
+      else error->all(FLERR,"Illegal fix rigid command");
 
       if (domain->dimension == 2 && (xflag == 1.0 || yflag == 1.0))
-	  error->all("Fix rigid xy torque cannot be on for 2d simulation");
+	  error->all(FLERR,"Fix rigid xy torque cannot be on for 2d simulation");
 
       int count = 0;
       for (int m = mlo; m <= mhi; m++) {
@@ -290,28 +287,28 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 	tflag[m-1][2] = zflag;
 	count++;
       }
-      if (count == 0) error->all("Illegal fix rigid command");
+      if (count == 0) error->all(FLERR,"Illegal fix rigid command");
 
       iarg += 5;
 
     } else if (strcmp(arg[iarg],"langevin") == 0) {
-      if (iarg+5 > narg) error->all("Illegal fix rigid command");
+      if (iarg+5 > narg) error->all(FLERR,"Illegal fix rigid command");
       if (strcmp(style,"rigid") != 0 && strcmp(style,"rigid/nve") != 0)
-	error->all("Illegal fix rigid command");
+	error->all(FLERR,"Illegal fix rigid command");
       langflag = 1;
       t_start = atof(arg[iarg+1]);
       t_stop = atof(arg[iarg+2]);
       t_period = atof(arg[iarg+3]);
       seed = atoi(arg[iarg+4]);
       if (t_period <= 0.0) 
-	error->all("Fix rigid langevin period must be > 0.0");
-      if (seed <= 0) error->all("Illegal fix rigid command");
+	error->all(FLERR,"Fix rigid langevin period must be > 0.0");
+      if (seed <= 0) error->all(FLERR,"Illegal fix rigid command");
       iarg += 5;
 
     } else if (strcmp(arg[iarg],"temp") == 0) {
-      if (iarg+4 > narg) error->all("Illegal fix rigid command");
+      if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid command");
       if (strcmp(style,"rigid/nvt") != 0 && strcmp(style,"rigid/npt") != 0)
-	error->all("Illegal fix rigid command");
+	error->all(FLERR,"Illegal fix rigid command");
       tempflag = 1;
       t_start = atof(arg[iarg+1]);
       t_stop = atof(arg[iarg+2]);
@@ -319,9 +316,9 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
       iarg += 4;
 
     } else if (strcmp(arg[iarg],"press") == 0) {
-      if (iarg+4 > narg) error->all("Illegal fix rigid command");
+      if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid command");
       if (strcmp(style,"rigid/npt") != 0)
-	error->all("Illegal fix rigid command");
+	error->all(FLERR,"Illegal fix rigid command");
       pressflag = 1;
       p_start = atof(arg[iarg+1]);
       p_stop = atof(arg[iarg+2]);
@@ -329,22 +326,22 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
       iarg += 4;
 
     } else if (strcmp(arg[iarg],"tparam") == 0) {
-      if (iarg+4 > narg) error->all("Illegal fix rigid command");
+      if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid command");
       if (strcmp(style,"rigid/nvt") != 0)
-	error->all("Illegal fix rigid command");
+	error->all(FLERR,"Illegal fix rigid command");
       t_chain = atoi(arg[iarg+1]);
       t_iter = atoi(arg[iarg+2]);
       t_order = atoi(arg[iarg+3]);
       iarg += 4;
 
     } else if (strcmp(arg[iarg],"pparam") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix rigid command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid command");
       if (strcmp(style,"rigid/npt") != 0)
-	error->all("Illegal fix rigid command");
+	error->all(FLERR,"Illegal fix rigid command");
       p_chain = atoi(arg[iarg+1]);
       iarg += 2;
 
-    } else error->all("Illegal fix rigid command");
+    } else error->all(FLERR,"Illegal fix rigid command");
   }
 
   // initialize Marsaglia RNG with processor-unique seed
@@ -376,7 +373,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   delete [] ncount;
 
   for (ibody = 0; ibody < nbody; ibody++)
-    if (nrigid[ibody] <= 1) error->all("One or zero atoms in rigid body");
+    if (nrigid[ibody] <= 1) error->all(FLERR,"One or zero atoms in rigid body");
 
   // set image flags for each rigid body to default values
   // will be reset during init() based on xcm and then by pre_neighbor()
@@ -481,7 +478,7 @@ void FixRigid::init()
   int count = 0;
   for (i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"rigid") == 0) count++;
-  if (count > 1 && me == 0) error->warning("More than one fix rigid");
+  if (count > 1 && me == 0) error->warning(FLERR,"More than one fix rigid");
 
   // error if npt,nph fix comes before rigid fix
 
@@ -492,7 +489,7 @@ void FixRigid::init()
   if (i < modify->nfix) {
     for (int j = i; j < modify->nfix; j++)
       if (strcmp(modify->fix[j]->style,"rigid") == 0)
-	error->all("Rigid fix must come before NPT/NPH fix");
+	error->all(FLERR,"Rigid fix must come before NPT/NPH fix");
   }
 
   // timestep info
@@ -595,7 +592,7 @@ void FixRigid::init()
 
     if ((xbox && !periodicity[0]) || (ybox && !periodicity[1]) ||
 	(zbox && !periodicity[2]))
-	error->one("Fix rigid atom has non-zero image flag "
+	error->one(FLERR,"Fix rigid atom has non-zero image flag "
 		   "in a non-periodic dimension");
 
     if (triclinic == 0) {
@@ -718,7 +715,7 @@ void FixRigid::init()
     tensor[0][1] = tensor[1][0] = all[ibody][5];
 
     ierror = MathExtra::jacobi(tensor,inertia[ibody],evectors);
-    if (ierror) error->all("Insufficient Jacobi rotations for rigid body");
+    if (ierror) error->all(FLERR,"Insufficient Jacobi rotations for rigid body");
 
     ex_space[ibody][0] = evectors[0][0];
     ex_space[ibody][1] = evectors[1][0];
@@ -864,30 +861,30 @@ void FixRigid::init()
   for (ibody = 0; ibody < nbody; ibody++) {
     if (inertia[ibody][0] == 0.0) {
       if (fabs(all[ibody][0]) > TOLERANCE)
-	error->all("Fix rigid: Bad principal moments");
+	error->all(FLERR,"Fix rigid: Bad principal moments");
     } else {
       if (fabs((all[ibody][0]-inertia[ibody][0])/inertia[ibody][0]) > 
-	  TOLERANCE) error->all("Fix rigid: Bad principal moments");
+	  TOLERANCE) error->all(FLERR,"Fix rigid: Bad principal moments");
     }
     if (inertia[ibody][1] == 0.0) {
       if (fabs(all[ibody][1]) > TOLERANCE)
-	error->all("Fix rigid: Bad principal moments");
+	error->all(FLERR,"Fix rigid: Bad principal moments");
     } else {
       if (fabs((all[ibody][1]-inertia[ibody][1])/inertia[ibody][1]) > 
-	  TOLERANCE) error->all("Fix rigid: Bad principal moments");
+	  TOLERANCE) error->all(FLERR,"Fix rigid: Bad principal moments");
     }
     if (inertia[ibody][2] == 0.0) {
       if (fabs(all[ibody][2]) > TOLERANCE)
-	error->all("Fix rigid: Bad principal moments");
+	error->all(FLERR,"Fix rigid: Bad principal moments");
     } else {
       if (fabs((all[ibody][2]-inertia[ibody][2])/inertia[ibody][2]) > 
-	  TOLERANCE) error->all("Fix rigid: Bad principal moments");
+	  TOLERANCE) error->all(FLERR,"Fix rigid: Bad principal moments");
     }
     norm = (inertia[ibody][0] + inertia[ibody][1] + inertia[ibody][2]) / 3.0;
     if (fabs(all[ibody][3]/norm) > TOLERANCE || 
 	fabs(all[ibody][4]/norm) > TOLERANCE ||
 	fabs(all[ibody][5]/norm) > TOLERANCE)
-      error->all("Fix rigid: Bad principal moments");
+      error->all(FLERR,"Fix rigid: Bad principal moments");
   }
 
   // temperature scale factor
@@ -1459,7 +1456,7 @@ int FixRigid::dof(int igroup)
 	nall[ibody]+mall[ibody] != nrigid[ibody]) flag = 1;
   }
   if (flag && me == 0)
-    error->warning("Computing temperature of portions of rigid bodies");
+    error->warning(FLERR,"Computing temperature of portions of rigid bodies");
 
   // remove appropriate DOFs for each rigid body wholly in temperature group
   // N = # of point particles in body

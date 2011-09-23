@@ -77,5 +77,5 @@ void FixWallLJ126::wall_particle(int m, int which, double coord)
       ewall[m+1] += fwall;
     }
 
-  if (onflag) error->one("Particle on or inside fix wall surface");
+  if (onflag) error->one(FLERR,"Particle on or inside fix wall surface");
 }

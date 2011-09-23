@@ -34,7 +34,7 @@ enum{LJ93,LJ126,COLLOID,HARMONIC};
 FixWallRegion::FixWallRegion(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg != 8) error->all("Illegal fix wall/region command");
+  if (narg != 8) error->all(FLERR,"Illegal fix wall/region command");
 
   scalar_flag = 1;
   vector_flag = 1;
@@ -47,7 +47,7 @@ FixWallRegion::FixWallRegion(LAMMPS *lmp, int narg, char **arg) :
 
   iregion = domain->find_region(arg[3]);
   if (iregion == -1)
-    error->all("Region ID for fix wall/region does not exist");
+    error->all(FLERR,"Region ID for fix wall/region does not exist");
   int n = strlen(arg[3]) + 1;
   idregion = new char[n];
   strcpy(idregion,arg[3]);
@@ -56,13 +56,13 @@ FixWallRegion::FixWallRegion(LAMMPS *lmp, int narg, char **arg) :
   else if (strcmp(arg[4],"lj126") == 0) style = LJ126;
   else if (strcmp(arg[4],"colloid") == 0) style = COLLOID;
   else if (strcmp(arg[4],"harmonic") == 0) style = HARMONIC;
-  else error->all("Illegal fix wall/region command");
+  else error->all(FLERR,"Illegal fix wall/region command");
 
   epsilon = atof(arg[5]);
   sigma = atof(arg[6]);
   cutoff = atof(arg[7]);
 
-  if (cutoff <= 0.0) error->all("Fix wall/region cutoff <= 0.0");
+  if (cutoff <= 0.0) error->all(FLERR,"Fix wall/region cutoff <= 0.0");
 
   eflag = 0;
   ewall[0] = ewall[1] = ewall[2] = ewall[3] = 0.0;
@@ -95,14 +95,14 @@ void FixWallRegion::init()
 
   iregion = domain->find_region(idregion);
   if (iregion == -1)
-    error->all("Region ID for fix wall/region does not exist");
+    error->all(FLERR,"Region ID for fix wall/region does not exist");
 
   // error checks for style COLLOID
   // insure all particles in group are extended particles
 
   if (style == COLLOID) {
     if (!atom->sphere_flag) 
-      error->all("Fix wall/region colloid requires atom style sphere");
+      error->all(FLERR,"Fix wall/region colloid requires atom style sphere");
 
     double *radius = atom->radius;
     int *mask = atom->mask;
@@ -116,7 +116,7 @@ void FixWallRegion::init()
     int flagall;
     MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
     if (flagall) 
-      error->all("Fix wall/region colloid requires extended particles");
+      error->all(FLERR,"Fix wall/region colloid requires extended particles");
   }
 
   // setup coefficients for each style
@@ -231,7 +231,7 @@ void FixWallRegion::post_force(int vflag)
       }
     }
 
-  if (onflag) error->one("Particle on or inside surface of region "
+  if (onflag) error->one(FLERR,"Particle on or inside surface of region "
 			 "used in fix wall/region");
 }
 

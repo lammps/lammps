@@ -34,7 +34,7 @@ FixNVEEff::FixNVEEff(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   if (!atom->electron_flag) 
-    error->all("Fix nve/eff requires atom style electron");
+    error->all(FLERR,"Fix nve/eff requires atom style electron");
 
   time_integrate = 1;
 }

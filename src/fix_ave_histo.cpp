@@ -40,15 +40,12 @@ enum{IGNORE,END,EXTRA};
 #define INVOKED_LOCAL 16
 
 #define BIG 1.0e20
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 /* ---------------------------------------------------------------------- */
 
 FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 10) error->all("Illegal fix ave/histo command");
+  if (narg < 10) error->all(FLERR,"Illegal fix ave/histo command");
 
   MPI_Comm_rank(world,&me);
 
@@ -179,7 +176,7 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
       char *ptr = strchr(suffix,'[');
       if (ptr) {
 	if (suffix[strlen(suffix)-1] != ']')
-	  error->all("Illegal fix ave/histo command");
+	  error->all(FLERR,"Illegal fix ave/histo command");
 	argindex[nvalues] = atoi(ptr+1);
 	*ptr = '\0';
       } else argindex[nvalues] = 0;
@@ -193,7 +190,7 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
 	  argindex[nvalues] == 0) {
 	int icompute = modify->find_compute(ids[nvalues]);
 	if (icompute < 0)
-	  error->all("Compute ID for fix ave/histo does not exist");
+	  error->all(FLERR,"Compute ID for fix ave/histo does not exist");
 	if (modify->compute[icompute]->array_flag) {
 	  int ncols = modify->compute[icompute]->size_array_cols;
 	  maxvalues += ncols-1;
@@ -213,7 +210,7 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
 		 argindex[nvalues] == 0) {
 	int ifix = modify->find_fix(ids[nvalues]);
 	if (ifix < 0)
-	  error->all("Fix ID for fix ave/histo does not exist");
+	  error->all(FLERR,"Fix ID for fix ave/histo does not exist");
 	if (modify->fix[ifix]->array_flag) {
 	  int ncols = modify->fix[ifix]->size_array_cols;
 	  maxvalues += ncols-1;
@@ -240,11 +237,11 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   // for fix inputs, check that fix frequency is acceptable
 
   if (nevery <= 0 || nrepeat <= 0 || nfreq <= 0)
-    error->all("Illegal fix ave/histo command");
+    error->all(FLERR,"Illegal fix ave/histo command");
   if (nfreq % nevery || (nrepeat-1)*nevery >= nfreq)
-    error->all("Illegal fix ave/histo command");
-  if (lo >= hi) error->all("Illegal fix ave/histo command");
-  if (nbins <= 0) error->all("Illegal fix ave/histo command");
+    error->all(FLERR,"Illegal fix ave/histo command");
+  if (lo >= hi) error->all(FLERR,"Illegal fix ave/histo command");
+  if (nbins <= 0) error->all(FLERR,"Illegal fix ave/histo command");
 
   int kindflag;
   for (int i = 0; i < nvalues; i++) {
@@ -255,161 +252,161 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
 	kindflag = GLOBAL;
       else if (compute->peratom_flag) kindflag = PERATOM;
       else if (compute->local_flag) kindflag = LOCAL;
-      else error->all("Fix ave/histo input is invalid compute");
+      else error->all(FLERR,"Fix ave/histo input is invalid compute");
     } else if (which[i] == FIX) {
       Fix *fix = modify->fix[modify->find_fix(ids[0])];
       if (fix->scalar_flag || fix->vector_flag || fix->array_flag)
 	kindflag = GLOBAL;
       else if (fix->peratom_flag) kindflag = PERATOM;
       else if (fix->local_flag) kindflag = LOCAL;
-      else error->all("Fix ave/histo input is invalid fix");
+      else error->all(FLERR,"Fix ave/histo input is invalid fix");
     } else if (which[i] == VARIABLE) {
       int ivariable = input->variable->find(ids[i]);
       if (input->variable->equalstyle(ivariable)) kindflag = GLOBAL;
       else if (input->variable->atomstyle(ivariable)) kindflag = PERATOM;
-      else error->all("Fix ave/histo input is invalid variable");
+      else error->all(FLERR,"Fix ave/histo input is invalid variable");
     }
     if (i == 0) kind = kindflag;
     else if (kindflag != kind)
-      error->all("Fix ave/histo inputs are not all global, peratom, or local");
+      error->all(FLERR,"Fix ave/histo inputs are not all global, peratom, or local");
   }
 
   if (kind == PERATOM && mode == SCALAR) 
-    error->all("Fix ave/histo cannot input per-atom values in scalar mode");
+    error->all(FLERR,"Fix ave/histo cannot input per-atom values in scalar mode");
   if (kind == LOCAL && mode == SCALAR)
-    error->all("Fix ave/histo cannot input local values in scalar mode");
+    error->all(FLERR,"Fix ave/histo cannot input local values in scalar mode");
 
   for (int i = 0; i < nvalues; i++) {
     if (which[i] == COMPUTE && kind == GLOBAL && mode == SCALAR) {
       int icompute = modify->find_compute(ids[i]);
       if (icompute < 0)
-	error->all("Compute ID for fix ave/histo does not exist");
+	error->all(FLERR,"Compute ID for fix ave/histo does not exist");
       if (argindex[i] == 0 && modify->compute[icompute]->scalar_flag == 0)
-	error->all("Fix ave/histo compute does not calculate a global scalar");
+	error->all(FLERR,"Fix ave/histo compute does not calculate a global scalar");
       if (argindex[i] && modify->compute[icompute]->vector_flag == 0)
-	error->all("Fix ave/histo compute does not calculate a global vector");
+	error->all(FLERR,"Fix ave/histo compute does not calculate a global vector");
       if (argindex[i] && argindex[i] > modify->compute[icompute]->size_vector)
-	error->all("Fix ave/histo compute vector is accessed out-of-range");
+	error->all(FLERR,"Fix ave/histo compute vector is accessed out-of-range");
 
     } else if (which[i] == COMPUTE && kind == GLOBAL && mode == VECTOR) {
       int icompute = modify->find_compute(ids[i]);
       if (icompute < 0)
-	error->all("Compute ID for fix ave/histo does not exist");
+	error->all(FLERR,"Compute ID for fix ave/histo does not exist");
       if (argindex[i] == 0 && modify->compute[icompute]->vector_flag == 0)
-	error->all("Fix ave/histo compute does not calculate a global vector");
+	error->all(FLERR,"Fix ave/histo compute does not calculate a global vector");
       if (argindex[i] && modify->compute[icompute]->array_flag == 0)
-	error->all("Fix ave/histo compute does not calculate a global array");
+	error->all(FLERR,"Fix ave/histo compute does not calculate a global array");
       if (argindex[i] && 
 	  argindex[i] > modify->compute[icompute]->size_array_cols)
-	error->all("Fix ave/histo compute array is accessed out-of-range");
+	error->all(FLERR,"Fix ave/histo compute array is accessed out-of-range");
 
     } else if (which[i] == COMPUTE && kind == PERATOM) {
       int icompute = modify->find_compute(ids[i]);
       if (icompute < 0)
-	error->all("Compute ID for fix ave/histo does not exist");
+	error->all(FLERR,"Compute ID for fix ave/histo does not exist");
       if (modify->compute[icompute]->peratom_flag == 0)
-	error->all("Fix ave/histo compute does not calculate per-atom values");
+	error->all(FLERR,"Fix ave/histo compute does not calculate per-atom values");
       if (argindex[i] == 0 && 
 	  modify->compute[icompute]->size_peratom_cols != 0)
-	error->all("Fix ave/histo compute does not "
+	error->all(FLERR,"Fix ave/histo compute does not "
 		   "calculate a per-atom vector");
       if (argindex[i] && modify->compute[icompute]->size_peratom_cols == 0)
-	error->all("Fix ave/histo compute does not "
+	error->all(FLERR,"Fix ave/histo compute does not "
 		   "calculate a per-atom array");
       if (argindex[i] && 
 	  argindex[i] > modify->compute[icompute]->size_peratom_cols)
-	error->all("Fix ave/histo compute array is accessed out-of-range");
+	error->all(FLERR,"Fix ave/histo compute array is accessed out-of-range");
 
     } else if (which[i] == COMPUTE && kind == LOCAL) {
       int icompute = modify->find_compute(ids[i]);
       if (icompute < 0)
-	error->all("Compute ID for fix ave/histo does not exist");
+	error->all(FLERR,"Compute ID for fix ave/histo does not exist");
       if (modify->compute[icompute]->local_flag == 0)
-	error->all("Fix ave/histo compute does not calculate local values");
+	error->all(FLERR,"Fix ave/histo compute does not calculate local values");
       if (argindex[i] == 0 && 
 	  modify->compute[icompute]->size_local_cols != 0)
-	error->all("Fix ave/histo compute does not "
+	error->all(FLERR,"Fix ave/histo compute does not "
 		   "calculate a local vector");
       if (argindex[i] && modify->compute[icompute]->size_local_cols == 0)
-	error->all("Fix ave/histo compute does not "
+	error->all(FLERR,"Fix ave/histo compute does not "
 		   "calculate a local array");
       if (argindex[i] && 
 	  argindex[i] > modify->compute[icompute]->size_local_cols)
-	error->all("Fix ave/histo compute array is accessed out-of-range");
+	error->all(FLERR,"Fix ave/histo compute array is accessed out-of-range");
 
     } else if (which[i] == FIX && kind == GLOBAL && mode == SCALAR) {
       int ifix = modify->find_fix(ids[i]);
       if (ifix < 0)
-	error->all("Fix ID for fix ave/histo does not exist");
+	error->all(FLERR,"Fix ID for fix ave/histo does not exist");
       if (argindex[i] == 0 && modify->fix[ifix]->scalar_flag == 0)
-	error->all("Fix ave/histo fix does not calculate a global scalar");
+	error->all(FLERR,"Fix ave/histo fix does not calculate a global scalar");
       if (argindex[i] && modify->fix[ifix]->vector_flag == 0)
-	error->all("Fix ave/histo fix does not calculate a global vector");
+	error->all(FLERR,"Fix ave/histo fix does not calculate a global vector");
       if (argindex[i] && argindex[i] > modify->fix[ifix]->size_vector)
-	error->all("Fix ave/histo fix vector is accessed out-of-range");
+	error->all(FLERR,"Fix ave/histo fix vector is accessed out-of-range");
       if (nevery % modify->fix[ifix]->global_freq)
-	error->all("Fix for fix ave/histo not computed at compatible time");
+	error->all(FLERR,"Fix for fix ave/histo not computed at compatible time");
 
     } else if (which[i] == FIX && kind == GLOBAL && mode == VECTOR) {
       int ifix = modify->find_fix(ids[i]);
       if (ifix < 0)
-	error->all("Fix ID for fix ave/histo does not exist");
+	error->all(FLERR,"Fix ID for fix ave/histo does not exist");
       if (argindex[i] == 0 && modify->fix[ifix]->vector_flag == 0)
-	error->all("Fix ave/histo fix does not calculate a global vector");
+	error->all(FLERR,"Fix ave/histo fix does not calculate a global vector");
       if (argindex[i] && modify->fix[ifix]->array_flag == 0)
-	error->all("Fix ave/histo fix does not calculate a global array");
+	error->all(FLERR,"Fix ave/histo fix does not calculate a global array");
       if (argindex[i] && argindex[i] > modify->fix[ifix]->size_array_cols)
-	error->all("Fix ave/histo fix array is accessed out-of-range");
+	error->all(FLERR,"Fix ave/histo fix array is accessed out-of-range");
       if (nevery % modify->fix[ifix]->global_freq)
-	error->all("Fix for fix ave/histo not computed at compatible time");
+	error->all(FLERR,"Fix for fix ave/histo not computed at compatible time");
 
     } else if (which[i] == FIX && kind == PERATOM) {
       int ifix = modify->find_fix(ids[i]);
       if (ifix < 0)
-	error->all("Fix ID for fix ave/histo does not exist");
+	error->all(FLERR,"Fix ID for fix ave/histo does not exist");
       if (modify->fix[ifix]->peratom_flag == 0)
-	error->all("Fix ave/histo fix does not calculate per-atom values");
+	error->all(FLERR,"Fix ave/histo fix does not calculate per-atom values");
       if (argindex[i] == 0 && 
 	  modify->fix[ifix]->size_peratom_cols != 0)
-	error->all("Fix ave/histo fix does not "
+	error->all(FLERR,"Fix ave/histo fix does not "
 		   "calculate a per-atom vector");
       if (argindex[i] && modify->fix[ifix]->size_peratom_cols == 0)
-	error->all("Fix ave/histo fix does not "
+	error->all(FLERR,"Fix ave/histo fix does not "
 		   "calculate a per-atom array");
       if (argindex[i] && 
 	  argindex[i] > modify->fix[ifix]->size_peratom_cols)
-	error->all("Fix ave/histo fix array is accessed out-of-range");
+	error->all(FLERR,"Fix ave/histo fix array is accessed out-of-range");
       if (nevery % modify->fix[ifix]->global_freq)
-	error->all("Fix for fix ave/histo not computed at compatible time");
+	error->all(FLERR,"Fix for fix ave/histo not computed at compatible time");
 
     } else if (which[i] == FIX && kind == LOCAL) {
       int ifix = modify->find_fix(ids[i]);
       if (ifix < 0)
-	error->all("Fix ID for fix ave/histo does not exist");
+	error->all(FLERR,"Fix ID for fix ave/histo does not exist");
       if (modify->fix[ifix]->local_flag == 0)
-	error->all("Fix ave/histo fix does not calculate local values");
+	error->all(FLERR,"Fix ave/histo fix does not calculate local values");
       if (argindex[i] == 0 && 
 	  modify->fix[ifix]->size_local_cols != 0)
-	error->all("Fix ave/histo fix does not "
+	error->all(FLERR,"Fix ave/histo fix does not "
 		   "calculate a local vector");
       if (argindex[i] && modify->fix[ifix]->size_local_cols == 0)
-	error->all("Fix ave/histo fix does not "
+	error->all(FLERR,"Fix ave/histo fix does not "
 		   "calculate a local array");
       if (argindex[i] && 
 	  argindex[i] > modify->fix[ifix]->size_local_cols)
-	error->all("Fix ave/histo fix array is accessed out-of-range");
+	error->all(FLERR,"Fix ave/histo fix array is accessed out-of-range");
       if (nevery % modify->fix[ifix]->global_freq)
-	error->all("Fix for fix ave/histo not computed at compatible time");
+	error->all(FLERR,"Fix for fix ave/histo not computed at compatible time");
 
     } else if (which[i] == VARIABLE && kind == GLOBAL) {
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
-	error->all("Variable name for fix ave/histo does not exist");
+	error->all(FLERR,"Variable name for fix ave/histo does not exist");
 
     } else if (which[i] == VARIABLE && kind == PERATOM) {
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
-	error->all("Variable name for fix ave/histo does not exist");
+	error->all(FLERR,"Variable name for fix ave/histo does not exist");
     }
   }
 
@@ -524,19 +521,19 @@ void FixAveHisto::init()
     if (which[i] == COMPUTE) {
       int icompute = modify->find_compute(ids[i]);
       if (icompute < 0)
-	error->all("Compute ID for fix ave/histo does not exist");
+	error->all(FLERR,"Compute ID for fix ave/histo does not exist");
       value2index[i] = icompute;
 
     } else if (which[i] == FIX) {
       int ifix = modify->find_fix(ids[i]);
       if (ifix < 0) 
-	error->all("Fix ID for fix ave/histo does not exist");
+	error->all(FLERR,"Fix ID for fix ave/histo does not exist");
       value2index[i] = ifix;
 
     } else if (which[i] == VARIABLE) {
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0) 
-	error->all("Variable name for fix ave/histo does not exist");
+	error->all(FLERR,"Variable name for fix ave/histo does not exist");
       value2index[i] = ivariable;
     }
   }
@@ -901,68 +898,68 @@ void FixAveHisto::options(int narg, char **arg)
   int iarg = 9 + nvalues;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"file") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix ave/histo command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/histo command");
       if (me == 0) {
 	fp = fopen(arg[iarg+1],"w");
 	if (fp == NULL) {
 	  char str[128];
 	  sprintf(str,"Cannot open fix ave/histo file %s",arg[iarg+1]);
-	  error->one(str);
+	  error->one(FLERR,str);
 	}
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"ave") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix ave/histo command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/histo command");
       if (strcmp(arg[iarg+1],"one") == 0) ave = ONE;
       else if (strcmp(arg[iarg+1],"running") == 0) ave = RUNNING;
       else if (strcmp(arg[iarg+1],"window") == 0) ave = WINDOW;
-      else error->all("Illegal fix ave/histo command");
+      else error->all(FLERR,"Illegal fix ave/histo command");
       if (ave == WINDOW) {
-	if (iarg+3 > narg) error->all("Illegal fix ave/histo command");
+	if (iarg+3 > narg) error->all(FLERR,"Illegal fix ave/histo command");
 	nwindow = atoi(arg[iarg+2]);
-	if (nwindow <= 0) error->all("Illegal fix ave/histo command");
+	if (nwindow <= 0) error->all(FLERR,"Illegal fix ave/histo command");
       }
       iarg += 2;
       if (ave == WINDOW) iarg++;
     } else if (strcmp(arg[iarg],"start") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix ave/histo command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/histo command");
       startstep = atoi(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"mode") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix ave/histo command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/histo command");
       if (strcmp(arg[iarg+1],"scalar") == 0) mode = SCALAR;
       else if (strcmp(arg[iarg+1],"vector") == 0) mode = VECTOR;
-      else error->all("Illegal fix ave/histo command");
+      else error->all(FLERR,"Illegal fix ave/histo command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"beyond") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix ave/histo command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/histo command");
       if (strcmp(arg[iarg+1],"ignore") == 0) beyond = IGNORE;
       else if (strcmp(arg[iarg+1],"end") == 0) beyond = END;
       else if (strcmp(arg[iarg+1],"extra") == 0) beyond = EXTRA;
-      else error->all("Illegal fix ave/histo command");
+      else error->all(FLERR,"Illegal fix ave/histo command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"title1") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix ave/spatial command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/spatial command");
       delete [] title1;
       int n = strlen(arg[iarg+1]) + 1;
       title1 = new char[n];
       strcpy(title1,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"title2") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix ave/spatial command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/spatial command");
       delete [] title2;
       int n = strlen(arg[iarg+1]) + 1;
       title2 = new char[n];
       strcpy(title2,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"title3") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix ave/spatial command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/spatial command");
       delete [] title3;
       int n = strlen(arg[iarg+1]) + 1;
       title3 = new char[n];
       strcpy(title3,arg[iarg+1]);
       iarg += 2;
-    } else error->all("Illegal fix ave/histo command");
+    } else error->all(FLERR,"Illegal fix ave/histo command");
   }
 }
 

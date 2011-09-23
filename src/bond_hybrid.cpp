@@ -161,7 +161,7 @@ void BondHybrid::settings(int narg, char **arg)
 {
   int i,m,istyle;
 
-  if (narg < 1) error->all("Illegal bond_style command");
+  if (narg < 1) error->all(FLERR,"Illegal bond_style command");
 
   // delete old lists, since cannot just change settings
 
@@ -211,11 +211,11 @@ void BondHybrid::settings(int narg, char **arg)
   while (i < narg) {
     for (m = 0; m < nstyles; m++)
       if (strcmp(arg[i],keywords[m]) == 0) 
-	error->all("Bond style hybrid cannot use same pair style twice");
+	error->all(FLERR,"Bond style hybrid cannot use same pair style twice");
     if (strcmp(arg[i],"hybrid") == 0) 
-      error->all("Bond style hybrid cannot have hybrid as an argument");
+      error->all(FLERR,"Bond style hybrid cannot have hybrid as an argument");
     if (strcmp(arg[i],"none") == 0) 
-      error->all("Bond style hybrid cannot have none as an argument");
+      error->all(FLERR,"Bond style hybrid cannot have none as an argument");
     styles[nstyles] = force->new_bond(arg[i]);
     keywords[nstyles] = new char[strlen(arg[i])+1];
     strcpy(keywords[nstyles],arg[i]);
@@ -249,7 +249,7 @@ void BondHybrid::coeff(int narg, char **arg)
   int none = 0;
   if (m == nstyles) {
     if (strcmp(arg[1],"none") == 0) none = 1;
-    else error->all("Bond coeff for hybrid has invalid style");
+    else error->all(FLERR,"Bond coeff for hybrid has invalid style");
   }
 
   // move 1st arg to 2nd arg
@@ -285,7 +285,7 @@ void BondHybrid::init_style()
 
 double BondHybrid::equilibrium_distance(int i)
 {
-  if (map[i] < 0) error->one("Invoked bond equil distance on bond style none");
+  if (map[i] < 0) error->one(FLERR,"Invoked bond equil distance on bond style none");
   return styles[map[i]]->equilibrium_distance(i);
 }
 
@@ -334,7 +334,7 @@ void BondHybrid::read_restart(FILE *fp)
 
 double BondHybrid::single(int type, double rsq, int i, int j)
 {
-  if (map[type] < 0) error->one("Invoked bond single on bond style none");
+  if (map[type] < 0) error->one(FLERR,"Invoked bond single on bond style none");
   return styles[map[type]]->single(type,rsq,i,j);
 }
 

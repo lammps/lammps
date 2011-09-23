@@ -28,7 +28,7 @@ using namespace LAMMPS_NS;
 ComputeMSD::ComputeMSD(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg < 3) error->all("Illegal compute msd command");
+  if (narg < 3) error->all(FLERR,"Illegal compute msd command");
 
   vector_flag = 1;
   size_vector = 4;
@@ -41,12 +41,12 @@ ComputeMSD::ComputeMSD(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 3;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"com") == 0) {
-      if (iarg+2 > narg) error->all("Illegal compute msd command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal compute msd command");
       if (strcmp(arg[iarg+1],"no") == 0) comflag = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) comflag = 1;
-      else error->all("Illegal compute msd command");
+      else error->all(FLERR,"Illegal compute msd command");
       iarg += 2;
-    } else error->all("Illegal compute msd command");
+    } else error->all(FLERR,"Illegal compute msd command");
   }
 
   // create a new fix store/state style with or without com keyword
@@ -93,7 +93,7 @@ void ComputeMSD::init()
   // set fix which stores original atom coords
 
   int ifix = modify->find_fix(id_fix);
-  if (ifix < 0) error->all("Could not find compute msd fix ID");
+  if (ifix < 0) error->all(FLERR,"Could not find compute msd fix ID");
   fix = modify->fix[ifix];
 
   // nmsd = # of atoms in group

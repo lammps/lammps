@@ -32,7 +32,7 @@ FixNHSphere::FixNHSphere(LAMMPS *lmp, int narg, char **arg) :
   FixNH(lmp, narg, arg)
 {
   if (!atom->sphere_flag)
-    error->all("Fix nvt/nph/npt sphere requires atom style sphere");
+    error->all(FLERR,"Fix nvt/nph/npt sphere requires atom style sphere");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -49,7 +49,7 @@ void FixNHSphere::init()
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
       if (radius[i] == 0.0)
-	error->one("Fix nvt/sphere requires extended particles");
+	error->one(FLERR,"Fix nvt/sphere requires extended particles");
 
   FixNH::init();
 }

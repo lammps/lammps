@@ -30,9 +30,6 @@ using namespace LAMMPS_NS;
 
 enum{MOVE,RAMP,RANDOM};
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 DisplaceAtoms::DisplaceAtoms(LAMMPS *lmp) : Pointers(lmp) {}
@@ -44,10 +41,10 @@ void DisplaceAtoms::command(int narg, char **arg)
   int i;
 
   if (domain->box_exist == 0) 
-    error->all("Displace_atoms command before simulation box is defined");
-  if (narg < 2) error->all("Illegal displace_atoms command");
+    error->all(FLERR,"Displace_atoms command before simulation box is defined");
+  if (narg < 2) error->all(FLERR,"Illegal displace_atoms command");
   if (modify->nfix_restart_peratom) 
-    error->all("Cannot displace_atoms after "
+    error->all(FLERR,"Cannot displace_atoms after "
 	       "reading restart file with per-atom info");
 
   if (comm->me == 0 && screen) fprintf(screen,"Displacing atoms ...\n");
@@ -55,14 +52,14 @@ void DisplaceAtoms::command(int narg, char **arg)
   // group and style
 
   int igroup = group->find(arg[0]);
-  if (igroup == -1) error->all("Could not find displace_atoms group ID");
+  if (igroup == -1) error->all(FLERR,"Could not find displace_atoms group ID");
   int groupbit = group->bitmask[igroup];
 
   int style;
   if (strcmp(arg[1],"move") == 0) style = MOVE;
   else if (strcmp(arg[1],"ramp") == 0) style = RAMP;
   else if (strcmp(arg[1],"random") == 0) style = RANDOM;
-  else error->all("Illegal displace_atoms command");
+  else error->all(FLERR,"Illegal displace_atoms command");
 
   // set option defaults
 
@@ -77,7 +74,7 @@ void DisplaceAtoms::command(int narg, char **arg)
   // setup scaling
 
   if (scaleflag && domain->lattice == NULL)
-    error->all("Use of displace_atoms with undefined lattice");
+    error->all(FLERR,"Use of displace_atoms with undefined lattice");
 
   double xscale,yscale,zscale;
   if (scaleflag) {
@@ -116,7 +113,7 @@ void DisplaceAtoms::command(int narg, char **arg)
     if (strcmp(arg[2],"x") == 0) d_dim = 0;
     else if (strcmp(arg[2],"y") == 0) d_dim = 1;
     else if (strcmp(arg[2],"z") == 0) d_dim = 2;
-    else error->all("Illegal displace_atoms ramp command");
+    else error->all(FLERR,"Illegal displace_atoms ramp command");
 
     double d_lo,d_hi;
     if (d_dim == 0) {
@@ -134,7 +131,7 @@ void DisplaceAtoms::command(int narg, char **arg)
     if (strcmp(arg[5],"x") == 0) coord_dim = 0;
     else if (strcmp(arg[5],"y") == 0) coord_dim = 1;
     else if (strcmp(arg[5],"z") == 0) coord_dim = 2;
-    else error->all("Illegal displace_atoms ramp command");
+    else error->all(FLERR,"Illegal displace_atoms ramp command");
 
     double coord_lo,coord_hi;
     if (coord_dim == 0) {
@@ -175,7 +172,7 @@ void DisplaceAtoms::command(int narg, char **arg)
     double dy = yscale*atof(arg[3]);
     double dz = zscale*atof(arg[4]);
     int seed = atoi(arg[5]);
-    if (seed <= 0) error->all("Illegal displace_atoms random command");
+    if (seed <= 0) error->all(FLERR,"Illegal displace_atoms random command");
 
     double **x = atom->x;
     int *mask = atom->mask;
@@ -218,7 +215,7 @@ void DisplaceAtoms::command(int narg, char **arg)
     char str[128];
     sprintf(str,"Lost atoms via displace_atoms: original " BIGINT_FORMAT 
 	    " current " BIGINT_FORMAT,atom->natoms,natoms);
-    error->all(str);
+    error->all(FLERR,str);
   }
 }
 
@@ -228,16 +225,16 @@ void DisplaceAtoms::command(int narg, char **arg)
 
 void DisplaceAtoms::options(int narg, char **arg)
 {
-  if (narg < 0) error->all("Illegal displace_atoms command");
+  if (narg < 0) error->all(FLERR,"Illegal displace_atoms command");
 
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"units") == 0) {
-      if (iarg+2 > narg) error->all("Illegal displace_atoms command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal displace_atoms command");
       if (strcmp(arg[iarg+1],"box") == 0) scaleflag = 0;
       else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = 1;
-      else error->all("Illegal displace_atoms command");
+      else error->all(FLERR,"Illegal displace_atoms command");
       iarg += 2;
-    } else error->all("Illegal displace_atoms command");
+    } else error->all(FLERR,"Illegal displace_atoms command");
   }
 }

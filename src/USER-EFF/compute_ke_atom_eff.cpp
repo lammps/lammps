@@ -33,7 +33,7 @@ using namespace LAMMPS_NS;
 ComputeKEAtomEff::ComputeKEAtomEff(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg != 3) error->all("Illegal compute ke/atom/eff command");
+  if (narg != 3) error->all(FLERR,"Illegal compute ke/atom/eff command");
 
   peratom_flag = 1;
   size_peratom_cols = 0;
@@ -44,7 +44,7 @@ ComputeKEAtomEff::ComputeKEAtomEff(LAMMPS *lmp, int narg, char **arg) :
   // error check
 
   if (!atom->electron_flag) 
-    error->all("Compute ke/atom/eff requires atom style electron");
+    error->all(FLERR,"Compute ke/atom/eff requires atom style electron");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -62,7 +62,7 @@ void ComputeKEAtomEff::init()
   for (int i = 0; i < modify->ncompute; i++)
     if (strcmp(modify->compute[i]->style,"ke/atom/eff") == 0) count++;
   if (count > 1 && comm->me == 0)
-    error->warning("More than one compute ke/atom/eff");
+    error->warning(FLERR,"More than one compute ke/atom/eff");
 }
 
 /* ---------------------------------------------------------------------- */

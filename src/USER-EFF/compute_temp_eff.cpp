@@ -36,7 +36,7 @@ ComputeTempEff::ComputeTempEff(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
   if (!atom->electron_flag) 
-    error->all("Compute temp/eff requires atom style electron");
+    error->all(FLERR,"Compute temp/eff requires atom style electron");
 
   scalar_flag = vector_flag = 1;
   size_vector = 6;

@@ -53,9 +53,6 @@ enum{NO_REMAP,X_REMAP,V_REMAP};                   // same as fix_deform.cpp
 #define BIG 1.0e20
 #define VBINSIZE 5
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 //#define SRD_DEBUG 1
 //#define SRD_DEBUG_ATOMID 58
 //#define SRD_DEBUG_TIMESTEP 449
@@ -64,7 +61,7 @@ enum{NO_REMAP,X_REMAP,V_REMAP};                   // same as fix_deform.cpp
 
 FixSRD::FixSRD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 {
-  if (narg < 8) error->all("Illegal fix srd command");
+  if (narg < 8) error->all(FLERR,"Illegal fix srd command");
 
   restart_pbc = 1;
   vector_flag = 1;
@@ -101,85 +98,85 @@ FixSRD::FixSRD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   int iarg = 8;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"lamda") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix srd command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix srd command");
       lamda = atof(arg[iarg+1]);
       lamdaflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"collision") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix srd command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix srd command");
       if (strcmp(arg[iarg+1],"slip") == 0) collidestyle = SLIP;
       else if (strcmp(arg[iarg+1],"noslip") == 0) collidestyle = NOSLIP;
-      else error->all("Illegal fix srd command");
+      else error->all(FLERR,"Illegal fix srd command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"overlap") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix srd command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix srd command");
       if (strcmp(arg[iarg+1],"yes") == 0) overlap = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) overlap = 0;
-      else error->all("Illegal fix srd command");
+      else error->all(FLERR,"Illegal fix srd command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"inside") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix srd command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix srd command");
       if (strcmp(arg[iarg+1],"error") == 0) insideflag = INSIDE_ERROR;
       else if (strcmp(arg[iarg+1],"warn") == 0) insideflag = INSIDE_WARN;
       else if (strcmp(arg[iarg+1],"ignore") == 0) insideflag = INSIDE_IGNORE;
-      else error->all("Illegal fix srd command");
+      else error->all(FLERR,"Illegal fix srd command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"exact") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix srd command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix srd command");
       if (strcmp(arg[iarg+1],"yes") == 0) exactflag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) exactflag = 0;
-      else error->all("Illegal fix srd command");
+      else error->all(FLERR,"Illegal fix srd command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"radius") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix srd command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix srd command");
       radfactor = atof(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"bounce") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix srd command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix srd command");
       maxbounceallow = atoi(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"search") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix srd command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix srd command");
       gridsearch = atof(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"cubic") == 0) {
-      if (iarg+3 > narg) error->all("Illegal fix srd command");
+      if (iarg+3 > narg) error->all(FLERR,"Illegal fix srd command");
       if (strcmp(arg[iarg+1],"error") == 0) cubicflag = CUBIC_ERROR;
       else if (strcmp(arg[iarg+1],"warn") == 0) cubicflag = CUBIC_WARN;
-      else error->all("Illegal fix srd command");
+      else error->all(FLERR,"Illegal fix srd command");
       cubictol = atof(arg[iarg+2]);
       iarg += 3;
     } else if (strcmp(arg[iarg],"shift") == 0) {
-      if (iarg+3 > narg) error->all("Illegal fix srd command");
+      if (iarg+3 > narg) error->all(FLERR,"Illegal fix srd command");
       else if (strcmp(arg[iarg+1],"no") == 0) shiftuser = SHIFT_NO;
       else if (strcmp(arg[iarg+1],"yes") == 0) shiftuser = SHIFT_YES;
       else if (strcmp(arg[iarg+1],"possible") == 0) shiftuser = SHIFT_POSSIBLE;
-      else error->all("Illegal fix srd command");
+      else error->all(FLERR,"Illegal fix srd command");
       shiftseed = atoi(arg[iarg+2]);
       iarg += 3;
     } else if (strcmp(arg[iarg],"stream") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix srd command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix srd command");
       if (strcmp(arg[iarg+1],"yes") == 0) streamflag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) streamflag = 0;
-      else error->all("Illegal fix srd command");
+      else error->all(FLERR,"Illegal fix srd command");
       iarg += 2;
-    } else error->all("Illegal fix srd command");
+    } else error->all(FLERR,"Illegal fix srd command");
   }
 
   // error check
 
-  if (nevery <= 0) error->all("Illegal fix srd command");
-  if (bigexist && biggroup < 0) error->all("Could not find fix srd group ID");
-  if (gridsrd <= 0.0) error->all("Illegal fix srd command");
-  if (temperature_srd <= 0.0) error->all("Illegal fix srd command");
-  if (seed <= 0) error->all("Illegal fix srd command");
-  if (radfactor <= 0.0) error->all("Illegal fix srd command");
-  if (maxbounceallow < 0) error->all("Illegal fix srd command");
-  if (lamdaflag && lamda <= 0.0) error->all("Illegal fix srd command");
-  if (gridsearch <= 0.0) error->all("Illegal fix srd command");
-  if (cubictol < 0.0 || cubictol > 1.0) error->all("Illegal fix srd command");
+  if (nevery <= 0) error->all(FLERR,"Illegal fix srd command");
+  if (bigexist && biggroup < 0) error->all(FLERR,"Could not find fix srd group ID");
+  if (gridsrd <= 0.0) error->all(FLERR,"Illegal fix srd command");
+  if (temperature_srd <= 0.0) error->all(FLERR,"Illegal fix srd command");
+  if (seed <= 0) error->all(FLERR,"Illegal fix srd command");
+  if (radfactor <= 0.0) error->all(FLERR,"Illegal fix srd command");
+  if (maxbounceallow < 0) error->all(FLERR,"Illegal fix srd command");
+  if (lamdaflag && lamda <= 0.0) error->all(FLERR,"Illegal fix srd command");
+  if (gridsearch <= 0.0) error->all(FLERR,"Illegal fix srd command");
+  if (cubictol < 0.0 || cubictol > 1.0) error->all(FLERR,"Illegal fix srd command");
   if ((shiftuser == SHIFT_YES || shiftuser == SHIFT_POSSIBLE) && 
-      shiftseed <= 0) error->all("Illegal fix srd command");
+      shiftseed <= 0) error->all(FLERR,"Illegal fix srd command");
 
   // initialize Marsaglia RNG with processor-unique seed
 
@@ -290,13 +287,13 @@ void FixSRD::init()
 {
   // error checks
 
-  if (force->newton_pair == 0) error->all("Fix srd requires newton pair on");
+  if (force->newton_pair == 0) error->all(FLERR,"Fix srd requires newton pair on");
   if (bigexist && comm->ghost_velocity == 0)
-    error->all("Fix srd requires ghost atoms store velocity");
+    error->all(FLERR,"Fix srd requires ghost atoms store velocity");
   if (bigexist && collidestyle == NOSLIP && !atom->torque_flag)
-    error->all("Fix SRD no-slip requires atom attribute torque");
+    error->all(FLERR,"Fix SRD no-slip requires atom attribute torque");
   if (initflag && update->dt != dt_big)
-    error->all("Cannot change timestep once fix srd is setup");
+    error->all(FLERR,"Cannot change timestep once fix srd is setup");
 
   // orthogonal vs triclinic simulation box
   // could be static or shearing box
@@ -308,7 +305,7 @@ void FixSRD::init()
   wallexist = 0;
   for (int m = 0; m < modify->nfix; m++) {
     if (strcmp(modify->fix[m]->style,"wall/srd") == 0) {
-      if (wallexist) error->all("Cannot use fix wall/srd more than once");
+      if (wallexist) error->all(FLERR,"Cannot use fix wall/srd more than once");
       wallexist = 1;
       wallfix = (FixWallSRD *) modify->fix[m];
       nwall = wallfix->nwall;
@@ -320,7 +317,7 @@ void FixSRD::init()
       fwall = wallfix->fwall;
       walltrigger = 0.5 * neighbor->skin;
       if (wallfix->overlap && overlap == 0 && me == 0)
-	error->warning("Fix SRD walls overlap but fix srd overlap not set");
+	error->warning(FLERR,"Fix SRD walls overlap but fix srd overlap not set");
     }
   }
 
@@ -335,7 +332,7 @@ void FixSRD::init()
       if (strcmp(modify->fix[i]->style,"deform") == 0) {
 	FixDeform *deform = (FixDeform *) modify->fix[i];
 	if (deform->box_change_shape && deform->remapflag != V_REMAP)
-	  error->all("Using fix srd with inconsistent "
+	  error->all(FLERR,"Using fix srd with inconsistent "
 		     "fix deform remap option");
       }
     }
@@ -392,7 +389,7 @@ void FixSRD::setup(int vflag)
   setup_bounds();
 
   if (dist_srd_reneigh < nevery*dt_big*vmax && me == 0)
-    error->warning("Fix srd SRD moves may trigger frequent reneighboring");
+    error->warning(FLERR,"Fix srd SRD moves may trigger frequent reneighboring");
 
   // setup search bins and search stencil based on these distances
 
@@ -513,7 +510,7 @@ void FixSRD::pre_neighbor()
 
 	if (ix < 0 || ix >= nbin2x || iy < 0 || iy >= nbin2y || 
 	    iz < 0 || iz >= nbin2z)
-	  error->one("Fix SRD: bad search bin assignment");
+	  error->one(FLERR,"Fix SRD: bad search bin assignment");
       
 	cutbinsq = biglist[nbig].cutbinsq;
 	for (j = 0; j < nstencil; j++) {
@@ -527,13 +524,13 @@ void FixSRD::pre_neighbor()
 		   atom->tag[i],i,x[i][0],x[i][1],x[i][2]);
 	    printf("Bin indices: %d %d %d, %d %d %d, %d %d %d\n",
 		   ix,iy,iz,jx,jy,jz,nbin2x,nbin2y,nbin2z);
-	    error->one("Fix SRD: bad stencil bin for big particle");
+	    error->one(FLERR,"Fix SRD: bad stencil bin for big particle");
 	  }
 	  rsq = point_bin_distance(x[i],jx,jy,jz);
 	  if (rsq < cutbinsq) {
 	    jbin = ibin + stencil[j][3];
 	    if (nbinbig[jbin] == ATOMPERBIN)
-	      error->one("Fix SRD: too many big particles in bin");
+	      error->one(FLERR,"Fix SRD: too many big particles in bin");
 	    binbig[jbin][nbinbig[jbin]++] = nbig;
 	  }
 	}
@@ -562,12 +559,12 @@ void FixSRD::pre_neighbor()
 	if (side == 0) {
 	  hi = static_cast<int> ((xwall[m]+delta-xblo2)*bininv2x);
 	  if (hi < 0) continue;
-	  if (hi >= nbin2x) error->all("Fix SRD: bad search bin assignment");
+	  if (hi >= nbin2x) error->all(FLERR,"Fix SRD: bad search bin assignment");
 	  lo = 0;
 	} else {
 	  lo = static_cast<int> ((xwall[m]-delta-xblo2)*bininv2x);
 	  if (lo >= nbin2x) continue;
-	  if (lo < 0) error->all("Fix SRD: bad search bin assignment");
+	  if (lo < 0) error->all(FLERR,"Fix SRD: bad search bin assignment");
 	  hi = nbin2x-1;
 	}
 
@@ -576,7 +573,7 @@ void FixSRD::pre_neighbor()
 	    for (iz = 0; iz < nbin2z; iz++) {
 	      ibin = iz*nbin2y*nbin2x + iy*nbin2x + ix;
 	      if (nbinbig[ibin] == ATOMPERBIN)
-		error->all("Fix SRD: too many walls in bin");
+		error->all(FLERR,"Fix SRD: too many walls in bin");
 	      binbig[ibin][nbinbig[ibin]++] = nbig+m;
 	    }
 
@@ -584,12 +581,12 @@ void FixSRD::pre_neighbor()
 	if (side == 0) {
 	  hi = static_cast<int> ((xwall[m]+delta-yblo2)*bininv2y);
 	  if (hi < 0) continue;
-	  if (hi >= nbin2y) error->all("Fix SRD: bad search bin assignment");
+	  if (hi >= nbin2y) error->all(FLERR,"Fix SRD: bad search bin assignment");
 	  lo = 0;
 	} else {
 	  lo = static_cast<int> ((xwall[m]-delta-yblo2)*bininv2y);
 	  if (lo >= nbin2y) continue;
-	  if (lo < 0) error->all("Fix SRD: bad search bin assignment");
+	  if (lo < 0) error->all(FLERR,"Fix SRD: bad search bin assignment");
 	  hi = nbin2y-1;
 	}
 
@@ -598,7 +595,7 @@ void FixSRD::pre_neighbor()
 	    for (iz = 0; iz < nbin2z; iz++) {
 	      ibin = iz*nbin2y*nbin2x + iy*nbin2x + ix;
 	      if (nbinbig[ibin] == ATOMPERBIN)
-		error->all("Fix SRD: too many walls in bin");
+		error->all(FLERR,"Fix SRD: too many walls in bin");
 	      binbig[ibin][nbinbig[ibin]++] = nbig+m;
 	    }
 
@@ -606,12 +603,12 @@ void FixSRD::pre_neighbor()
 	if (side == 0) {
 	  hi = static_cast<int> ((xwall[m]+delta-zblo2)*bininv2z);
 	  if (hi < 0) continue;
-	  if (hi >= nbin2z) error->all("Fix SRD: bad search bin assignment");
+	  if (hi >= nbin2z) error->all(FLERR,"Fix SRD: bad search bin assignment");
 	  lo = 0;
 	} else {
 	  lo = static_cast<int> ((xwall[m]-delta-zblo2)*bininv2z);
 	  if (lo >= nbin2z) continue;
-	  if (lo < 0) error->all("Fix SRD: bad search bin assignment");
+	  if (lo < 0) error->all(FLERR,"Fix SRD: bad search bin assignment");
 	  hi = nbin2z-1;
 	}
 
@@ -620,7 +617,7 @@ void FixSRD::pre_neighbor()
 	    for (iy = 0; iy < nbin2y; iy++) {
 	      ibin = iz*nbin2y*nbin2x + iy*nbin2x + ix;
 	      if (nbinbig[ibin] == ATOMPERBIN)
-		error->all("Fix SRD: too many walls in bin");
+		error->all(FLERR,"Fix SRD: too many walls in bin");
 	      binbig[ibin][nbinbig[ibin]++] = nbig+m;
 	    }
       }
@@ -696,7 +693,7 @@ void FixSRD::post_force(int vflag)
 	    fprintf(screen,"ix,iy,iz nx,ny,nz = %d %d %d %d %d %d\n",
 		    ix,iy,iz,nbin2x,nbin2y,nbin2z);
 	  }
-	  error->one("Fix SRD: bad bin assignment for SRD advection");
+	  error->one(FLERR,"Fix SRD: bad bin assignment for SRD advection");
 	}
       }
 
@@ -1155,8 +1152,8 @@ void FixSRD::collisions_single()
 			"inside big particle %d on step " BIGINT_FORMAT 
 			" bounce %d\n",
 			atom->tag[i],atom->tag[j],update->ntimestep,ibounce+1);
-	      if (insideflag == INSIDE_ERROR) error->one(str);
-	      error->warning(str);
+	      if (insideflag == INSIDE_ERROR) error->one(FLERR,str);
+	      error->warning(FLERR,str);
 	    }
 	    break;
 	  }
@@ -1294,8 +1291,8 @@ void FixSRD::collisions_multi()
 		      "inside big particle %d on step " BIGINT_FORMAT 
 		      " bounce %d\n",
 		      atom->tag[i],atom->tag[j],update->ntimestep,ibounce+1);
-	      if (insideflag == INSIDE_ERROR) error->one(str);
-	      error->warning(str);
+	      if (insideflag == INSIDE_ERROR) error->one(FLERR,str);
+	      error->warning(FLERR,str);
 	    }
 	    t_first = 0.0;
 	    break;
@@ -2066,7 +2063,7 @@ int FixSRD::update_srd(int i, double dt, double *xscoll, double *vsnew,
       xs[1] < srdlo[1] || xs[1] > srdhi[1] || 
       xs[2] < srdlo[2] || xs[2] > srdhi[2]) {
     if (screen) {
-      error->warning("Fix srd particle moved outside valid domain");
+      error->warning(FLERR,"Fix srd particle moved outside valid domain");
       fprintf(screen,"  particle %d on proc %d at timestep " BIGINT_FORMAT,
 	      atom->tag[i],me,update->ntimestep);
       fprintf(screen,"  xnew %g %g %g\n",xs[0],xs[1],xs[2]);
@@ -2127,7 +2124,7 @@ void FixSRD::parameterize()
 	minbigdiam = MIN(minbigdiam,2.0*shape[1]);
 	minbigdiam = MIN(minbigdiam,2.0*shape[2]);
       } else 
-	error->one("Big particle in fix srd cannot be point particle");
+	error->one(FLERR,"Big particle in fix srd cannot be point particle");
     }
 
   double tmp = maxbigdiam;
@@ -2169,7 +2166,7 @@ void FixSRD::parameterize()
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_MAX,world);
   if (flagall) 
-    error->all("Fix srd requires SRD particles all have same mass");
+    error->all(FLERR,"Fix srd requires SRD particles all have same mass");
 
   // set temperature and lamda of SRD particles from each other
   // lamda = dt_srd * sqrt(boltz * temperature_srd / mass_srd);
@@ -2339,7 +2336,7 @@ void FixSRD::parameterize()
 
   if (nbin1x < comm->procgrid[0] || nbin1y < comm->procgrid[1] || 
       nbin1z < comm->procgrid[2]) 
-    error->all("Fewer SRD bins than processors in some dimension");
+    error->all(FLERR,"Fewer SRD bins than processors in some dimension");
 
   // check if SRD bins are within tolerance for shape and size
 
@@ -2353,9 +2350,9 @@ void FixSRD::parameterize()
 
   if (tolflag) {
     if (cubicflag == CUBIC_ERROR)
-      error->all("SRD bins for fix srd are not cubic enough");
+      error->all(FLERR,"SRD bins for fix srd are not cubic enough");
     if (me == 0)
-      error->warning("SRD bins for fix srd are not cubic enough");
+      error->warning(FLERR,"SRD bins for fix srd are not cubic enough");
   }
 
   tolflag = 0;
@@ -2370,9 +2367,9 @@ void FixSRD::parameterize()
 
   if (tolflag) {
     if (cubicflag == CUBIC_ERROR)
-      error->all("SRD bin size for fix srd differs from user request");
+      error->all(FLERR,"SRD bin size for fix srd differs from user request");
     if (me == 0)
-      error->warning("SRD bin size for fix srd differs from user request");
+      error->warning(FLERR,"SRD bin size for fix srd differs from user request");
   }
 
   // error if lamda < 0.6 of SRD grid size and no shifting allowed
@@ -2383,21 +2380,21 @@ void FixSRD::parameterize()
 
   shiftflag = 0;
   if (lamda < 0.6*maxgridsrd && shiftuser == SHIFT_NO)
-    error->all("Fix srd lamda must be >= 0.6 of SRD grid size");
+    error->all(FLERR,"Fix srd lamda must be >= 0.6 of SRD grid size");
   else if (lamda < 0.6*maxgridsrd && shiftuser == SHIFT_POSSIBLE) {
     shiftflag = 1;
     if (me == 0) 
-      error->warning("SRD bin shifting turned on due to small lamda");
+      error->warning(FLERR,"SRD bin shifting turned on due to small lamda");
   } else if (shiftuser == SHIFT_YES) shiftflag = 1;
 
   // warnings
 
   if (bigexist && maxgridsrd > 0.25 * minbigdiam && me == 0)
-    error->warning("Fix srd grid size > 1/4 of big particle diameter");
+    error->warning(FLERR,"Fix srd grid size > 1/4 of big particle diameter");
   if (viscosity < 0.0 && me == 0)
-    error->warning("Fix srd viscosity < 0.0 due to low SRD density");
+    error->warning(FLERR,"Fix srd viscosity < 0.0 due to low SRD density");
   if (bigexist && dt_big*vmax > minbigdiam && me == 0)
-    error->warning("Fix srd particles may move > big particle diameter");
+    error->warning(FLERR,"Fix srd particles may move > big particle diameter");
 }
 
 /* ----------------------------------------------------------------------

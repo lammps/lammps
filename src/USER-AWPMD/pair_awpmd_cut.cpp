@@ -36,9 +36,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 PairAWPMDCut::PairAWPMDCut(LAMMPS *lmp) : Pair(lmp)
@@ -241,7 +238,7 @@ void PairAWPMDCut::compute(int eflag, int vflag)
       etmap[etag[i]].push_back(i);   
     }
     else
-      error->all(fmt("Invalid spin value (%d) for particle %d !",spin[i],i));
+      error->all(FLERR,fmt("Invalid spin value (%d) for particle %d !",spin[i],i));
   }
   // ion force vector
   Vector_3 *fi=NULL;
@@ -258,7 +255,7 @@ void PairAWPMDCut::compute(int eflag, int vflag)
     for(size_t k=0;k<el.size();k++){
       int i=el[k];
       if(spin[el[0]]!=spin[i])
-        error->all(fmt("WP splits for one electron should have the same spin (at particles %d, %d)!",el[0],i));
+        error->all(FLERR,fmt("WP splits for one electron should have the same spin (at particles %d, %d)!",el[0],i));
       double m= atom->mass ? atom->mass[type[i]] : force->e_mass;
       Vector_3 xx=Vector_3(x[i][0],x[i][1],x[i][2]);
       Vector_3 rv=m*Vector_3(v[i][0],v[i][1],v[i][2]);
@@ -411,7 +408,7 @@ void PairAWPMDCut::allocate()
 // -1 for length means default setting (L/2 for cutoff and L for width PBC)
 
 void PairAWPMDCut::settings(int narg, char **arg){ 
-  if (narg < 1) error->all("Illegal pair_style command");
+  if (narg < 1) error->all(FLERR,"Illegal pair_style command");
 
   cut_global = force->numeric(arg[0]);
   
@@ -432,21 +429,21 @@ void PairAWPMDCut::settings(int narg, char **arg){
       wpmd->constraint=AWPMD::FIX;
       i++;
       if(i>=narg)
-        error->all("Setting 'fix' should be followed by a number in awpmd/cut");
+        error->all(FLERR,"Setting 'fix' should be followed by a number in awpmd/cut");
       wpmd->w0=force->numeric(arg[i]);
     }
     else if(!strcmp(arg[i],"harm")){
       wpmd->constraint=AWPMD::HARM;
       i++;
       if(i>=narg)
-        error->all("Setting 'harm' should be followed by a number in awpmd/cut");
+        error->all(FLERR,"Setting 'harm' should be followed by a number in awpmd/cut");
       wpmd->w0=force->numeric(arg[i]);
       wpmd->set_harm_constr(wpmd->w0);
     }
     else if(!strcmp(arg[i],"pbc")){
       i++;
       if(i>=narg)
-        error->all("Setting 'pbc' should be followed by a number in awpmd/cut");
+        error->all(FLERR,"Setting 'pbc' should be followed by a number in awpmd/cut");
       width_pbc=force->numeric(arg[i]);
     }
     else if(!strcmp(arg[i],"relax"))
@@ -454,7 +451,7 @@ void PairAWPMDCut::settings(int narg, char **arg){
     else if(!strcmp(arg[i],"ermscale")){
       i++;
       if(i>=narg)
-        error->all("Setting 'ermscale' should be followed by a number in awpmd/cut");
+        error->all(FLERR,"Setting 'ermscale' should be followed by a number in awpmd/cut");
       ermscale=force->numeric(arg[i]);
     }
     else if(!strcmp(arg[i],"flex_press"))
@@ -478,7 +475,7 @@ void PairAWPMDCut::settings(int narg, char **arg){
 // pair settings are as usual
 void PairAWPMDCut::coeff(int narg, char **arg)
 {
-  if (narg < 2 || narg > 3) error->all("Incorrect args for pair coefficients");
+  if (narg < 2 || narg > 3) error->all(FLERR,"Incorrect args for pair coefficients");
   
   /*if(domain->xperiodic == 1 || domain->yperiodic == 1 || 
     domain->zperiodic == 1) {*/
@@ -515,7 +512,7 @@ void PairAWPMDCut::coeff(int narg, char **arg)
     }
   }
   
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -528,13 +525,13 @@ void PairAWPMDCut::init_style()
 
   if (!atom->q_flag || !atom->spin_flag || 
       !atom->eradius_flag || !atom->erforce_flag )  // TO DO: adjust this to match approximation used
-    error->all("Pair awpmd/cut requires atom attributes "
+    error->all(FLERR,"Pair awpmd/cut requires atom attributes "
 	       "q, spin, eradius, erforce");
 
   /*
   if(vflag_atom){ // can't compute virial per atom
     //warning->
-    error->all("Pair style awpmd can't compute per atom virials");
+    error->all(FLERR,"Pair style awpmd can't compute per atom virials");
   }*/
 
   // add hook to minimizer for eradius and erforce
@@ -546,7 +543,7 @@ void PairAWPMDCut::init_style()
 
   /*if (update->whichflag == 1) { 
     if (force->qqr2e == 332.06371 && update->dt == 1.0)
-      error->all("You must lower the default real units timestep for pEFF ");
+      error->all(FLERR,"You must lower the default real units timestep for pEFF ");
   }*/
 
   // need a half neigh list and optionally a granular history neigh list
@@ -554,19 +551,19 @@ void PairAWPMDCut::init_style()
   //int irequest = neighbor->request(this);
 
   //if (atom->tag_enable == 0)
-  //  error->all("Pair style reax requires atom IDs");
+  //  error->all(FLERR,"Pair style reax requires atom IDs");
   
   //if (force->newton_pair == 0)
-    //error->all("Pair style awpmd requires newton pair on");
+    //error->all(FLERR,"Pair style awpmd requires newton pair on");
   
   //if (strcmp(update->unit_style,"real") != 0 && comm->me == 0)
-    //error->warning("Not using real units with pair reax");
+    //error->warning(FLERR,"Not using real units with pair reax");
 
   int irequest = neighbor->request(this);
   neighbor->requests[irequest]->newton = 2;
   
   if(force->e_mass==0. || force->hhmrr2e==0. || force->mvh2r==0.)
-    error->all("Pair style awpmd requires e_mass and conversions hhmrr2e, mvh2r to be properly set for unit system");
+    error->all(FLERR,"Pair style awpmd requires e_mass and conversions hhmrr2e, mvh2r to be properly set for unit system");
 
   wpmd->me=force->e_mass;
   wpmd->h2_me=force->hhmrr2e/force->e_mass;

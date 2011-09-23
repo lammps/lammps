@@ -34,7 +34,7 @@ enum{NONE,CONSTANT,EQUAL,ATOM};
 FixSetForce::FixSetForce(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 6) error->all("Illegal fix setforce command");
+  if (narg < 6) error->all(FLERR,"Illegal fix setforce command");
 
   vector_flag = 1;
   size_vector = 3;
@@ -82,15 +82,15 @@ FixSetForce::FixSetForce(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 6;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"region") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix setforce command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix setforce command");
       iregion = domain->find_region(arg[iarg+1]);
       if (iregion == -1)
-	error->all("Region ID for fix setforce does not exist");
+	error->all(FLERR,"Region ID for fix setforce does not exist");
       int n = strlen(arg[iarg+1]) + 1;
       idregion = new char[n];
       strcpy(idregion,arg[iarg+1]);
       iarg += 2;
-    } else error->all("Illegal fix setforce command");
+    } else error->all(FLERR,"Illegal fix setforce command");
   }
 
   force_flag = 0;
@@ -130,31 +130,31 @@ void FixSetForce::init()
 
   if (xstr) {
     xvar = input->variable->find(xstr);
-    if (xvar < 0) error->all("Variable name for fix setforce does not exist");
+    if (xvar < 0) error->all(FLERR,"Variable name for fix setforce does not exist");
     if (input->variable->equalstyle(xvar)) xstyle = EQUAL;
     else if (input->variable->atomstyle(xvar)) xstyle = ATOM;
-    else error->all("Variable for fix setforce is invalid style");
+    else error->all(FLERR,"Variable for fix setforce is invalid style");
   }
   if (ystr) {
     yvar = input->variable->find(ystr);
-    if (yvar < 0) error->all("Variable name for fix setforce does not exist");
+    if (yvar < 0) error->all(FLERR,"Variable name for fix setforce does not exist");
     if (input->variable->equalstyle(yvar)) ystyle = EQUAL;
     else if (input->variable->atomstyle(yvar)) ystyle = ATOM;
-    else error->all("Variable for fix setforce is invalid style");
+    else error->all(FLERR,"Variable for fix setforce is invalid style");
   }
   if (zstr) {
     zvar = input->variable->find(zstr);
-    if (zvar < 0) error->all("Variable name for fix setforce does not exist");
+    if (zvar < 0) error->all(FLERR,"Variable name for fix setforce does not exist");
     if (input->variable->equalstyle(zvar)) zstyle = EQUAL;
     else if (input->variable->atomstyle(zvar)) zstyle = ATOM;
-    else error->all("Variable for fix setforce is invalid style");
+    else error->all(FLERR,"Variable for fix setforce is invalid style");
   }
 
   // set index and check validity of region
 
   if (iregion >= 0) {
     iregion = domain->find_region(idregion);
-    if (iregion == -1) error->all("Region ID for fix setforce does not exist");
+    if (iregion == -1) error->all(FLERR,"Region ID for fix setforce does not exist");
   }
 
   if (xstyle == ATOM || ystyle == ATOM || zstyle == ATOM) 
@@ -179,7 +179,7 @@ void FixSetForce::init()
     if (zstyle == CONSTANT && zvalue != 0.0) flag = 1;
   }
   if (flag) 
-    error->all("Cannot use non-zero forces in an energy minimization");
+    error->all(FLERR,"Cannot use non-zero forces in an energy minimization");
 }
 
 /* ---------------------------------------------------------------------- */

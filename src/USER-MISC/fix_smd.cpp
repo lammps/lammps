@@ -57,20 +57,20 @@ FixSMD::FixSMD(LAMMPS *lmp, int narg, char **arg) :
 
   int argoffs=3;
   if (strcmp(arg[argoffs],"cvel") == 0) {
-    if (narg < argoffs+3) error->all("Illegal fix smd command");
+    if (narg < argoffs+3) error->all(FLERR,"Illegal fix smd command");
     styleflag |= SMD_CVEL;
     k_smd = atof(arg[argoffs+1]);
     v_smd = atof(arg[argoffs+2]); // to be multiplied by update->dt when used.
     argoffs += 3;
   } else if (strcmp(arg[argoffs],"cfor") == 0) {
-    if (narg < argoffs+2) error->all("Illegal fix smd command");
+    if (narg < argoffs+2) error->all(FLERR,"Illegal fix smd command");
     styleflag |= SMD_CFOR;
     f_smd = atof(arg[argoffs+1]);
     argoffs += 2;
-  } else error->all("Illegal fix smd command");
+  } else error->all(FLERR,"Illegal fix smd command");
   
   if (strcmp(arg[argoffs],"tether") == 0) {
-    if (narg < argoffs+5) error->all("Illegal fix smd command");
+    if (narg < argoffs+5) error->all(FLERR,"Illegal fix smd command");
     styleflag |= SMD_TETHER;
     if (strcmp(arg[argoffs+1],"NULL") == 0) xflag = 0;
     else xc = atof(arg[argoffs+1]);
@@ -79,16 +79,16 @@ FixSMD::FixSMD(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[argoffs+3],"NULL") == 0) zflag = 0;
     else zc = atof(arg[argoffs+3]);
     r0 = atof(arg[argoffs+4]);
-    if (r0 < 0) error->all("R0 < 0 for fix smd command");
+    if (r0 < 0) error->all(FLERR,"R0 < 0 for fix smd command");
     argoffs += 5;
   } else if (strcmp(arg[argoffs],"couple") == 0) {
-    if (narg < argoffs+6) error->all("Illegal fix smd command");
+    if (narg < argoffs+6) error->all(FLERR,"Illegal fix smd command");
     styleflag |= SMD_COUPLE;
     igroup2 = group->find(arg[argoffs+1]);
     if (igroup2 == -1) 
-      error->all("Could not find fix smd couple group ID"); 
+      error->all(FLERR,"Could not find fix smd couple group ID"); 
     if (igroup2 == igroup) 
-      error->all("Two groups cannot be the same in fix smd couple"); 
+      error->all(FLERR,"Two groups cannot be the same in fix smd couple"); 
     group2bit = group->bitmask[igroup2];
 
     if (strcmp(arg[argoffs+2],"NULL") == 0) xflag = 0;
@@ -102,9 +102,9 @@ FixSMD::FixSMD(LAMMPS *lmp, int narg, char **arg) :
     else zc = atof(arg[argoffs+4]);
     
     r0 = atof(arg[argoffs+5]);
-    if (r0 < 0) error->all("R0 < 0 for fix smd command");
+    if (r0 < 0) error->all(FLERR,"R0 < 0 for fix smd command");
     argoffs +=6;
-  } else error->all("Illegal fix smd command");
+  } else error->all(FLERR,"Illegal fix smd command");
 
   force_flag = 0;
   ftotal[0] = ftotal[1] = ftotal[2] = 0.0;

@@ -26,7 +26,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
 #define SMALL 1.0e-6
 
 /* ---------------------------------------------------------------------- */
@@ -102,7 +101,7 @@ void PairCMMCommon::allocate()
 // args = cutoff (cutoff2 (kappa))
 void PairCMMCommon::settings(int narg, char **arg)
 {
-  if ((narg < 1) || (narg > 3)) error->all("Illegal pair_style command");
+  if ((narg < 1) || (narg > 3)) error->all(FLERR,"Illegal pair_style command");
 
   cut_lj_global = force->numeric(arg[0]);
   if (narg == 1) cut_coul_global = cut_lj_global;
@@ -137,7 +136,7 @@ void PairCMMCommon::settings(int narg, char **arg)
 
 void PairCMMCommon::coeff(int narg, char **arg)
 {
-  if (narg < 5 || narg > 7) error->all("Incorrect args for pair coefficients");
+  if (narg < 5 || narg > 7) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -145,7 +144,7 @@ void PairCMMCommon::coeff(int narg, char **arg)
   force->bounds(arg[1],atom->ntypes,jlo,jhi);
 
   int cg_type_one=find_cg_type(arg[2]);
-  if (cg_type_one == CG_NOT_SET) error->all("Error reading CG type flag.");
+  if (cg_type_one == CG_NOT_SET) error->all(FLERR,"Error reading CG type flag.");
   
   double epsilon_one = force->numeric(arg[3]);
   double sigma_one = force->numeric(arg[4]);
@@ -174,7 +173,7 @@ void PairCMMCommon::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -240,13 +239,13 @@ void PairCMMCommon::init_list(int id, NeighList *ptr)
 double PairCMMCommon::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) {
-    error->all("for CG styles, epsilon and sigma need to be set explicitly for all pairs.");
+    error->all(FLERR,"for CG styles, epsilon and sigma need to be set explicitly for all pairs.");
   }
 
   const int cgt = cg_type[i][j];
 
   if (cgt == CG_NOT_SET)
-    error->all("unrecognized LJ parameter flag");
+    error->all(FLERR,"unrecognized LJ parameter flag");
   
   lj1[i][j] = cg_prefact[cgt] * cg_pow1[cgt] * epsilon[i][j] * pow(sigma[i][j],cg_pow1[cgt]);
   lj2[i][j] = cg_prefact[cgt] * cg_pow2[cgt] * epsilon[i][j] * pow(sigma[i][j],cg_pow2[cgt]);
@@ -290,7 +289,7 @@ double PairCMMCommon::init_one(int i, int j)
   // count total # of atoms of type I and J via Allreduce
   if (tail_flag) {
 #if 1
-    error->all("tail correction not (yet) supported by CG potentials.");
+    error->all(FLERR,"tail correction not (yet) supported by CG potentials.");
 #else
     int *type = atom->type;
     int nlocal = atom->nlocal;
@@ -456,18 +455,18 @@ double PairCMMCommon::eval_single(int coul_type, int i, int j, int itype, int jt
   
   if (rsq < cut_coul[itype][jtype]) {
     if(coul_type == CG_COUL_LONG) {
-      error->all("single energy computation with long-range coulomb not supported by CG potentials.");
+      error->all(FLERR,"single energy computation with long-range coulomb not supported by CG potentials.");
     } else if ((coul_type == CG_COUL_CUT) || (coul_type == CG_COUL_DEBYE)) {
       const double r2inv = 1.0/rsq;
       const double rinv = sqrt(r2inv);
       const double qscreen=exp(-kappa*sqrt(rsq));
       coul_force = force->qqrd2e * atom->q[i]*atom->q[j]*rinv * qscreen * (kappa + rinv);
       coul_erg   = force->qqrd2e * atom->q[i]*atom->q[j]*rinv * qscreen;
-      // error->all("single energy computation with coulomb not supported by CG potentials.");
+      // error->all(FLERR,"single energy computation with coulomb not supported by CG potentials.");
     } else if (coul_type == CG_COUL_NONE) {
       ; // do nothing
     } else {
-      error->all("unknown coulomb type with CG potentials.");
+      error->all(FLERR,"unknown coulomb type with CG potentials.");
     }
   }
 

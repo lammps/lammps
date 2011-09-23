@@ -56,7 +56,7 @@ void AtomVecAtomic::grow(int n)
   else nmax = n;
   atom->nmax = nmax;
   if (nmax < 0 || nmax > MAXSMALLINT)
-    error->one("Per-processor system is too big");
+    error->one(FLERR,"Per-processor system is too big");
 
   tag = memory->grow(atom->tag,nmax,"atom:tag");
   type = memory->grow(atom->type,nmax,"atom:type");
@@ -596,11 +596,11 @@ void AtomVecAtomic::data_atom(double *coord, int imagetmp, char **values)
 
   tag[nlocal] = atoi(values[0]);
   if (tag[nlocal] <= 0)
-    error->one("Invalid atom ID in Atoms section of data file");
+    error->one(FLERR,"Invalid atom ID in Atoms section of data file");
 
   type[nlocal] = atoi(values[1]);
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
-    error->one("Invalid atom type in Atoms section of data file");
+    error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
   x[nlocal][0] = coord[0];
   x[nlocal][1] = coord[1];

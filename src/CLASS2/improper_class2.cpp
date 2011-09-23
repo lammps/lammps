@@ -162,7 +162,7 @@ void ImproperClass2::compute(int eflag, int vflag)
 		  "Improper problem: %d " BIGINT_FORMAT " %d %d %d %d",
 		  me,update->ntimestep,
 		  atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
-	  error->warning(str,0);
+	  error->warning(FLERR,str,0);
 	  fprintf(screen,"  1st atom: %d %g %g %g\n",
 		  me,x[i1][0],x[i1][1],x[i1][2]);
 	  fprintf(screen,"  2nd atom: %d %g %g %g\n",
@@ -526,7 +526,7 @@ void ImproperClass2::allocate()
 
 void ImproperClass2::coeff(int narg, char **arg)
 {
-  if (narg < 2) error->all("Incorrect args for improper coefficients");
+  if (narg < 2) error->all(FLERR,"Incorrect args for improper coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -535,7 +535,7 @@ void ImproperClass2::coeff(int narg, char **arg)
   int count = 0;
 
   if (strcmp(arg[1],"aa") == 0) {
-    if (narg != 8) error->all("Incorrect args for improper coefficients");
+    if (narg != 8) error->all(FLERR,"Incorrect args for improper coefficients");
 
     double k1_one = force->numeric(arg[2]);
     double k2_one = force->numeric(arg[3]);
@@ -558,7 +558,7 @@ void ImproperClass2::coeff(int narg, char **arg)
     }
 
   } else {
-    if (narg != 3) error->all("Incorrect args for improper coefficients");
+    if (narg != 3) error->all(FLERR,"Incorrect args for improper coefficients");
 
     double k0_one = force->numeric(arg[1]);
     double chi0_one = force->numeric(arg[2]);
@@ -573,7 +573,7 @@ void ImproperClass2::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for improper coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for improper coefficients");
 
   for (int i = ilo; i <= ihi; i++)
     if (setflag_i[i] == 1 && setflag_aa[i] == 1) setflag[i] = 1;

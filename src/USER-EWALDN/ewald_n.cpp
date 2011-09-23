@@ -44,7 +44,7 @@ enum{GEOMETRIC,ARITHMETIC,SIXTHPOWER};         // same as in pair.cpp
 
 EwaldN::EwaldN(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
 {
-  if (narg!=1) error->all(KSPACE_ILLEGAL);
+  if (narg!=1) error->all(FLERR,KSPACE_ILLEGAL);
   precision = fabs(atof(arg[0]));
   memset(function, 0, EWALD_NORDER*sizeof(int));
   kenergy = kvirial = NULL;
@@ -78,13 +78,13 @@ void EwaldN::init()
   }
 
   if (domain->dimension == 2)				// check for errors
-    error->all("Cannot use EwaldN with 2d simulation");
+    error->all(FLERR,"Cannot use EwaldN with 2d simulation");
   if (slabflag == 0 && domain->nonperiodic > 0)
-    error->all("Cannot use nonperiodic boundaries with EwaldN");
+    error->all(FLERR,"Cannot use nonperiodic boundaries with EwaldN");
   if (slabflag == 1) {
     if (domain->xperiodic != 1 || domain->yperiodic != 1 || 
 	domain->boundary[2][0] != 1 || domain->boundary[2][1] != 1)
-      error->all("Incorrect boundaries with slab EwaldN");
+      error->all(FLERR,"Incorrect boundaries with slab EwaldN");
   }
 
   qqrd2e = force->qqrd2e;				// check pair_style
@@ -98,7 +98,7 @@ void EwaldN::init()
   int *ptr = pair ? (int *) pair->extract("ewald_order",tmp) : NULL;
   double *cutoff = pair ? (double *) pair->extract("cut_coul",tmp) : NULL;
   if (!(ptr||cutoff)) 
-    error->all("KSpace style is incompatible with Pair style");
+    error->all(FLERR,"KSpace style is incompatible with Pair style");
   int ewald_order = ptr ? *((int *) ptr) : 1<<1;
   int ewald_mix = ptr ? *((int *) pair->extract("ewald_mix",tmp)) : GEOMETRIC;
   memset(function, 0, EWALD_NFUNCS*sizeof(int));
@@ -115,10 +115,10 @@ void EwaldN::init()
 	  if (ewald_mix==GEOMETRIC) { k = 1; break; }
 	  else if (ewald_mix==ARITHMETIC) { k = 2; break; }
 	  sprintf(str, "%s pair_style %s", KSPACE_MIX, force->pair_style);
-	  error->all(str);
+	  error->all(FLERR,str);
 	default:
 	  sprintf(str, "%s pair_style %s", KSPACE_ORDER, force->pair_style);
-	  error->all(str);
+	  error->all(FLERR,str);
       }
       nfunctions += function[k] = 1;
       nsums += n[k];
@@ -309,7 +309,7 @@ void EwaldN::init_coeffs()				// local pair coeffs
     double **epsilon = (double **) force->pair->extract("epsilon",tmp);
     double **sigma = (double **) force->pair->extract("sigma",tmp);
     if (!(epsilon&&sigma))
-      error->all("epsilon or sigma reference not set by pair style in ewald/n");
+      error->all(FLERR,"epsilon or sigma reference not set by pair style in ewald/n");
     double eps_i, sigma_i, sigma_n, *bi = B = new double[7*n+7];
     double c[7] = {
       1.0, sqrt(6.0), sqrt(15.0), sqrt(20.0), sqrt(15.0), sqrt(6.0), 1.0};

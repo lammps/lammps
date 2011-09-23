@@ -41,7 +41,7 @@ using namespace LAMMPS_NS;
 FixMSST::FixMSST(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 4) error->all("Illegal fix msst command");
+  if (narg < 4) error->all(FLERR,"Illegal fix msst command");
 
   restart_global = 1;
   box_change = 1;
@@ -76,12 +76,12 @@ FixMSST::FixMSST(LAMMPS *lmp, int narg, char **arg) :
   else if ( strcmp(arg[3],"z") == 0 )
     direction = 2;
   else {
-    error->all("Illegal fix msst command");
+    error->all(FLERR,"Illegal fix msst command");
   }
 
   velocity = atof(arg[4]);   
   if ( velocity < 0 )
-    error->all("Illegal fix msst command");
+    error->all(FLERR,"Illegal fix msst command");
 
   for ( int iarg = 5; iarg < narg; iarg++ ) {
     if ( strcmp(arg[iarg],"q") == 0 ) {
@@ -105,9 +105,9 @@ FixMSST::FixMSST(LAMMPS *lmp, int narg, char **arg) :
     } else if ( strcmp(arg[iarg],"tscale") == 0 ) {
       tscale = atof(arg[iarg+1]);
       if (tscale < 0.0 || tscale > 1.0)
-	error->all("Fix msst tscale must satisfy 0 <= tscale < 1");
+	error->all(FLERR,"Fix msst tscale must satisfy 0 <= tscale < 1");
       iarg++;
-    } else error->all("Illegal fix msst command");
+    } else error->all(FLERR,"Illegal fix msst command");
   }
 
   if (comm->me == 0) {
@@ -161,7 +161,7 @@ FixMSST::FixMSST(LAMMPS *lmp, int narg, char **arg) :
 
   // check for periodicity in controlled dimensions
 
-  if (domain->nonperiodic) error->all("Fix msst requires a periodic box");
+  if (domain->nonperiodic) error->all(FLERR,"Fix msst requires a periodic box");
 
   // create a new compute temp style
   // id = fix-ID + temp
@@ -267,7 +267,7 @@ int FixMSST::setmask()
 void FixMSST::init()
 {
   if (atom->mass == NULL)
-    error->all("Cannot use fix msst without per-type mass defined");
+    error->all(FLERR,"Cannot use fix msst without per-type mass defined");
 
   // set compute ptrs
 
@@ -275,13 +275,13 @@ void FixMSST::init()
   int ipress = modify->find_compute(id_press);
   int ipe = modify->find_compute(id_pe);
   if (itemp < 0 || ipress < 0|| ipe < 0)
-    error->all("Could not find fix msst compute ID");
+    error->all(FLERR,"Could not find fix msst compute ID");
   if (modify->compute[itemp]->tempflag == 0)
-    error->all("Fix msst compute ID does not compute temperature");
+    error->all(FLERR,"Fix msst compute ID does not compute temperature");
   if (modify->compute[ipress]->pressflag == 0)
-    error->all("Fix msst compute ID does not compute pressure");
+    error->all(FLERR,"Fix msst compute ID does not compute pressure");
   if (modify->compute[ipe]->peflag == 0)
-    error->all("Fix msst compute ID does not compute potential energy");
+    error->all(FLERR,"Fix msst compute ID does not compute potential energy");
 
   temperature = modify->compute[itemp];
   pressure = modify->compute[ipress];
@@ -739,7 +739,7 @@ void FixMSST::restart(char *buf)
 int FixMSST::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"temp") == 0) {
-    if (narg < 2) error->all("Illegal fix_modify command");
+    if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
     if (tflag) {
       modify->delete_compute(id_temp);
       tflag = 0;
@@ -750,18 +750,18 @@ int FixMSST::modify_param(int narg, char **arg)
     strcpy(id_temp,arg[1]);
 
     int icompute = modify->find_compute(id_temp);
-    if (icompute < 0) error->all("Could not find fix_modify temperature ID");
+    if (icompute < 0) error->all(FLERR,"Could not find fix_modify temperature ID");
     temperature = modify->compute[icompute];
 
     if (temperature->tempflag == 0)
-      error->all("Fix_modify temperature ID does not compute temperature");
+      error->all(FLERR,"Fix_modify temperature ID does not compute temperature");
     if (temperature->igroup != 0 && comm->me == 0)
-      error->warning("Temperature for MSST is not for group all");
+      error->warning(FLERR,"Temperature for MSST is not for group all");
 
     return 2;
 
   } else if (strcmp(arg[0],"press") == 0) {
-    if (narg < 2) error->all("Illegal fix_modify command");
+    if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
     if (pflag) {
       modify->delete_compute(id_press);
       pflag = 0;
@@ -772,11 +772,11 @@ int FixMSST::modify_param(int narg, char **arg)
     strcpy(id_press,arg[1]);
 
     int icompute = modify->find_compute(id_press);
-    if (icompute < 0) error->all("Could not find fix_modify pressure ID");
+    if (icompute < 0) error->all(FLERR,"Could not find fix_modify pressure ID");
     pressure = modify->compute[icompute];
 
     if (pressure->pressflag == 0)
-      error->all("Fix_modify pressure ID does not compute pressure");
+      error->all(FLERR,"Fix_modify pressure ID does not compute pressure");
     return 2;
   }
   return 0;

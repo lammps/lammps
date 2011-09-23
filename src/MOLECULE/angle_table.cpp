@@ -29,9 +29,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 enum{LINEAR,SPLINE};
 
 #define MAXLINE 1024
@@ -183,14 +180,14 @@ void AngleTable::allocate()
 
 void AngleTable::settings(int narg, char **arg)
 {
-  if (narg != 2) error->all("Illegal angle_style command");
+  if (narg != 2) error->all(FLERR,"Illegal angle_style command");
 
   if (strcmp(arg[0],"linear") == 0) tabstyle = LINEAR;
   else if (strcmp(arg[0],"spline") == 0) tabstyle = SPLINE;
-  else error->all("Unknown table style in angle style table");
+  else error->all(FLERR,"Unknown table style in angle style table");
 
   tablength = force->inumeric(arg[1]);
-  if (tablength < 2) error->all("Illegal number of angle table entries");
+  if (tablength < 2) error->all(FLERR,"Illegal number of angle table entries");
 
   // delete old tables, since cannot just change settings
 
@@ -213,7 +210,7 @@ void AngleTable::settings(int narg, char **arg)
 
 void AngleTable::coeff(int narg, char **arg)
 {
-  if (narg != 3) error->all("Illegal angle_coeff command");
+  if (narg != 3) error->all(FLERR,"Illegal angle_coeff command");
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -230,13 +227,13 @@ void AngleTable::coeff(int narg, char **arg)
 
   // error check on table parameters
 
-  if (tb->ninput <= 1) error->one("Invalid angle table length");
+  if (tb->ninput <= 1) error->one(FLERR,"Invalid angle table length");
 
   double alo,ahi;
   alo = tb->afile[0];
   ahi = tb->afile[tb->ninput-1];
   if (fabs(alo-0.0) > TINY || fabs(ahi-180.0) > TINY)
-    error->all("Angle table must range from 0 to 180 degrees");
+    error->all(FLERR,"Angle table must range from 0 to 180 degrees");
     
   // convert theta from degrees to radians
 
@@ -261,7 +258,7 @@ void AngleTable::coeff(int narg, char **arg)
   }
   ntables++;
 
-  if (count == 0) error->all("Illegal angle_coeff command");
+  if (count == 0) error->all(FLERR,"Illegal angle_coeff command");
 }
 
 /* ----------------------------------------------------------------------
@@ -372,14 +369,14 @@ void AngleTable::read_table(Table *tb, char *file, char *keyword)
   if (fp == NULL) {
     char str[128];
     sprintf(str,"Cannot open file %s",file);
-    error->one(str);
+    error->one(FLERR,str);
   }
 
   // loop until section found with matching keyword
 
   while (1) {
     if (fgets(line,MAXLINE,fp) == NULL)
-      error->one("Did not find keyword in table file");
+      error->one(FLERR,"Did not find keyword in table file");
     if (strspn(line," \t\n") == strlen(line)) continue;    // blank line
     if (line[0] == '#') continue;                          // comment
     if (strstr(line,keyword) == line) break;               // matching keyword
@@ -510,12 +507,12 @@ void AngleTable::param_extract(Table *tb, char *line)
       word = strtok(NULL," \t\n\r\f");
       tb->theta0 = atof(word);
     } else {
-      error->one("Invalid keyword in angle table parameters");
+      error->one(FLERR,"Invalid keyword in angle table parameters");
     }
     word = strtok(NULL," \t\n\r\f");
   }
 
-  if (tb->ninput == 0) error->one("Angle table parameters did not set N");
+  if (tb->ninput == 0) error->one(FLERR,"Angle table parameters did not set N");
 }
 
 /* ----------------------------------------------------------------------

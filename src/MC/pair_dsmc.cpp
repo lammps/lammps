@@ -32,9 +32,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 PairDSMC::PairDSMC(LAMMPS *lmp) : Pair(lmp)
@@ -157,9 +154,9 @@ void PairDSMC::compute(int eflag, int vflag)
 	  convert_double_to_equivalent_int(num_of_collisions_double);
 
         if (num_of_collisions > number_of_A) 
-	  error->warning("Pair dsmc: num_of_collisions > number_of_A",0);
+	  error->warning(FLERR,"Pair dsmc: num_of_collisions > number_of_A",0);
         if (num_of_collisions > number_of_B) 
-	  error->warning("Pair dsmc: num_of_collisions > number_of_B",0);
+	  error->warning(FLERR,"Pair dsmc: num_of_collisions > number_of_B",0);
 
         // perform collisions on pairs of particles in icell
 
@@ -208,7 +205,7 @@ void PairDSMC::allocate()
 
 void PairDSMC::settings(int narg, char **arg)
 {
-  if (narg != 6) error->all("Illegal pair_style command");
+  if (narg != 6) error->all(FLERR,"Illegal pair_style command");
 
   cut_global = 0.0;
   max_cell_size = force->numeric(arg[0]);
@@ -220,8 +217,8 @@ void PairDSMC::settings(int narg, char **arg)
 
   // initialize Marsaglia RNG with processor-unique seed
 
-  if (max_cell_size <= 0.0) error->all("Illegal pair_style command");
-  if (seed <= 0) error->all("Illegal pair_style command");
+  if (max_cell_size <= 0.0) error->all(FLERR,"Illegal pair_style command");
+  if (seed <= 0) error->all(FLERR,"Illegal pair_style command");
   if (random) delete random;
   random = new RanMars(lmp,seed + comm->me);
 
@@ -243,7 +240,7 @@ void PairDSMC::settings(int narg, char **arg)
 
 void PairDSMC::coeff(int narg, char **arg)
 {
-  if (narg < 3 || narg > 4) error->all("Incorrect args for pair coefficients");
+  if (narg < 3 || narg > 4) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -265,7 +262,7 @@ void PairDSMC::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -518,7 +515,7 @@ void PairDSMC::scatter_random(int i, int j, int icell)
 int PairDSMC::convert_double_to_equivalent_int(double input_double)
 {
   if (input_double > INT_MAX)
-    error->all("Tried to convert a double to int, but input_double > INT_MAX");
+    error->all(FLERR,"Tried to convert a double to int, but input_double > INT_MAX");
 
   int output_int = static_cast<int>(input_double + random->uniform());
   return output_int;

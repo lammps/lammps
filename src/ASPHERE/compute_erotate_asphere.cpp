@@ -29,7 +29,7 @@ ComputeERotateAsphere::
 ComputeERotateAsphere(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg != 3) error->all("Illegal compute erotate/asphere command");
+  if (narg != 3) error->all(FLERR,"Illegal compute erotate/asphere command");
 
   scalar_flag = 1;
   extscalar = 1;
@@ -38,7 +38,7 @@ ComputeERotateAsphere(LAMMPS *lmp, int narg, char **arg) :
 
   avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
   if (!avec) 
-    error->all("Compute erotate/asphere requires atom style ellipsoid");
+    error->all(FLERR,"Compute erotate/asphere requires atom style ellipsoid");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -55,7 +55,7 @@ void ComputeERotateAsphere::init()
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
       if (ellipsoid[i] < 0)
-	error->one("Compute erotate/asphere requires extended particles");
+	error->one(FLERR,"Compute erotate/asphere requires extended particles");
 
   pfactor = 0.5 * force->mvv2e;
 }

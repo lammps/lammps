@@ -30,9 +30,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 PairEAMOpt::PairEAMOpt(LAMMPS *lmp) : PairEAM(lmp) {}

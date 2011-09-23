@@ -42,7 +42,7 @@ FixViscousCuda::FixViscousCuda(LAMMPS *lmp, int narg, char **arg) :
 {
   cuda = lmp->cuda;
    if(cuda == NULL)
-        error->all("You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
+        error->all(FLERR,"You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
 
 	cu_gamma=NULL;
 }

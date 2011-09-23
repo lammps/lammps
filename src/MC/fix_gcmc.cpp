@@ -40,7 +40,7 @@ using namespace LAMMPS_NS;
 FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 11) error->all("Illegal fix GCMC command");
+  if (narg < 11) error->all(FLERR,"Illegal fix GCMC command");
 
   vector_flag = 1;
   size_vector = 6;
@@ -61,12 +61,12 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
   displace = atof(arg[10]);
 
   if (ntype <= 0 || ntype > atom->ntypes) 
-    error->all("Invalid atom type in fix GCMC command");
-  if (nexchanges < 0) error->all("Illegal fix GCMC command");
-  if (nmcmoves < 0) error->all("Illegal fix GCMC command");
-  if (seed <= 0) error->all("Illegal fix GCMC command");
-  if (reservoir_temperature < 0.0) error->all("Illegal fix GCMC command");  
-  if (displace < 0.0) error->all("Illegal fix GCMC command"); 
+    error->all(FLERR,"Invalid atom type in fix GCMC command");
+  if (nexchanges < 0) error->all(FLERR,"Illegal fix GCMC command");
+  if (nmcmoves < 0) error->all(FLERR,"Illegal fix GCMC command");
+  if (seed <= 0) error->all(FLERR,"Illegal fix GCMC command");
+  if (reservoir_temperature < 0.0) error->all(FLERR,"Illegal fix GCMC command");  
+  if (displace < 0.0) error->all(FLERR,"Illegal fix GCMC command"); 
 
   // compute beta, lambda, sigma, and the zz factor
   
@@ -157,7 +157,7 @@ void FixGCMC::init()
     MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
 
     if (flagall)
-      error->all("Cannot do GCMC on atoms in atom_modify first group");
+      error->all(FLERR,"Cannot do GCMC on atoms in atom_modify first group");
   }
 
   // if molflag not set, warn if any deletable atom has a mol ID
@@ -173,16 +173,16 @@ void FixGCMC::init()
     int flagall;
     MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
     if (flagall && comm->me == 0)
-      error->warning("Fix GCMC may delete atom with non-zero molecule ID");
+      error->warning(FLERR,"Fix GCMC may delete atom with non-zero molecule ID");
   }
 
   if (molflag && atom->molecule_flag == 0)
-      error->all("Fix GCMC molecule command requires atom attribute molecule");
+      error->all(FLERR,"Fix GCMC molecule command requires atom attribute molecule");
       
-  if (molflag != 0) error->all("Fix GCMC molecule feature does not yet work"); 
+  if (molflag != 0) error->all(FLERR,"Fix GCMC molecule feature does not yet work"); 
   
   if (force->pair->single_enable == 0) 
-    error->all("Fix GCMC incompatible with given pair_style");
+    error->all(FLERR,"Fix GCMC incompatible with given pair_style");
 }
 
 /* ----------------------------------------------------------------------
@@ -485,17 +485,17 @@ double FixGCMC::energy(int i, double *coord)
 
 void FixGCMC::options(int narg, char **arg)
 {
-  if (narg < 0) error->all("Illegal fix GCMC command");
+  if (narg < 0) error->all(FLERR,"Illegal fix GCMC command");
 
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"molecule") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix GCMC command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix GCMC command");
       if (strcmp(arg[iarg+1],"no") == 0) molflag = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) molflag = 1;
-      else error->all("Illegal fix evaporate command");
+      else error->all(FLERR,"Illegal fix evaporate command");
       iarg += 2;
-    } else error->all("Illegal fix GCMC command");
+    } else error->all(FLERR,"Illegal fix GCMC command");
   }
 }
 

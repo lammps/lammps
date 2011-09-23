@@ -30,15 +30,12 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 /* ---------------------------------------------------------------------- */
 
 FixEvaporate::FixEvaporate(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 7) error->all("Illegal fix evaporate command");
+  if (narg < 7) error->all(FLERR,"Illegal fix evaporate command");
 
   scalar_flag = 1;
   global_freq = 1;
@@ -52,9 +49,9 @@ FixEvaporate::FixEvaporate(LAMMPS *lmp, int narg, char **arg) :
   strcpy(idregion,arg[5]);
   int seed = atoi(arg[6]);
 
-  if (nevery <= 0 || nflux <= 0) error->all("Illegal fix evaporate command");
-  if (iregion == -1) error->all("Region ID for fix evaporate does not exist");
-  if (seed <= 0) error->all("Illegal fix evaporate command");
+  if (nevery <= 0 || nflux <= 0) error->all(FLERR,"Illegal fix evaporate command");
+  if (iregion == -1) error->all(FLERR,"Region ID for fix evaporate does not exist");
+  if (seed <= 0) error->all(FLERR,"Illegal fix evaporate command");
 
   // random number generator, same for all procs
 
@@ -67,12 +64,12 @@ FixEvaporate::FixEvaporate(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 7;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"molecule") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix evaporate command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix evaporate command");
       if (strcmp(arg[iarg+1],"no") == 0) molflag = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) molflag = 1;
-      else error->all("Illegal fix evaporate command");
+      else error->all(FLERR,"Illegal fix evaporate command");
       iarg += 2;
-    } else error->all("Illegal fix evaporate command");
+    } else error->all(FLERR,"Illegal fix evaporate command");
   }
 
   // set up reneighboring
@@ -113,7 +110,7 @@ void FixEvaporate::init()
 
   iregion = domain->find_region(idregion);
   if (iregion == -1)
-    error->all("Region ID for fix evaporate does not exist");
+    error->all(FLERR,"Region ID for fix evaporate does not exist");
 
   // check that no deletable atoms are in atom->firstgroup
   // deleting such an atom would not leave firstgroup atoms first
@@ -131,7 +128,7 @@ void FixEvaporate::init()
     MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
 
     if (flagall)
-      error->all("Cannot evaporate atoms in atom_modify first group");
+      error->all(FLERR,"Cannot evaporate atoms in atom_modify first group");
   }
 
   // if molflag not set, warn if any deletable atom has a mol ID
@@ -147,12 +144,12 @@ void FixEvaporate::init()
     int flagall;
     MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
     if (flagall && comm->me == 0)
-      error->
-	warning("Fix evaporate may delete atom with non-zero molecule ID");
+      error->warning(FLERR,
+		     "Fix evaporate may delete atom with non-zero molecule ID");
   }
 
   if (molflag && atom->molecule_flag == 0)
-      error->all("Fix evaporate molecule requires atom attribute molecule");
+      error->all(FLERR,"Fix evaporate molecule requires atom attribute molecule");
 }
 
 /* ----------------------------------------------------------------------

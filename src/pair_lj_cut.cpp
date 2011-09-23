@@ -34,9 +34,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 PairLJCut::PairLJCut(LAMMPS *lmp) : Pair(lmp)
@@ -427,7 +424,7 @@ void PairLJCut::allocate()
 
 void PairLJCut::settings(int narg, char **arg)
 {
-  if (narg != 1) error->all("Illegal pair_style command");
+  if (narg != 1) error->all(FLERR,"Illegal pair_style command");
 
   cut_global = force->numeric(arg[0]);
 
@@ -447,7 +444,7 @@ void PairLJCut::settings(int narg, char **arg)
 
 void PairLJCut::coeff(int narg, char **arg)
 {
-  if (narg < 4 || narg > 5) error->all("Incorrect args for pair coefficients");
+  if (narg < 4 || narg > 5) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -471,7 +468,7 @@ void PairLJCut::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -569,7 +566,7 @@ double PairLJCut::init_one(int i, int j)
   // check interior rRESPA cutoff
 
   if (cut_respa && cut[i][j] < cut_respa[3])
-    error->all("Pair cutoff < Respa interior cutoff");
+    error->all(FLERR,"Pair cutoff < Respa interior cutoff");
 
   // compute I,J contribution to long-range tail correction
   // count total # of atoms of type I and J via Allreduce

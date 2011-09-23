@@ -36,18 +36,15 @@ enum{HOOKE,HOOKE_HISTORY,HERTZ_HISTORY};
 
 #define BIG 1.0e20
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 /* ---------------------------------------------------------------------- */
 
 FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 10) error->all("Illegal fix wall/gran command");
+  if (narg < 10) error->all(FLERR,"Illegal fix wall/gran command");
 
   if (!atom->sphere_flag)
-    error->all("Fix wall/gran requires atom style sphere");
+    error->all(FLERR,"Fix wall/gran requires atom style sphere");
 
   restart_peratom = 1;
   create_attribute = 1;
@@ -69,7 +66,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
 
   if (kn < 0.0 || kt < 0.0 || gamman < 0.0 || gammat < 0.0 || 
       xmu < 0.0 || xmu > 1.0 || dampflag < 0 || dampflag > 1)
-    error->all("Illegal fix wall/gran command");
+    error->all(FLERR,"Illegal fix wall/gran command");
 
   // convert Kn and Kt from pressure units to force/distance^2 if Hertzian
 
@@ -82,7 +79,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
 
   int iarg = 9;
   if (strcmp(arg[iarg],"xplane") == 0) {
-    if (narg < iarg+3) error->all("Illegal fix wall/gran command");
+    if (narg < iarg+3) error->all(FLERR,"Illegal fix wall/gran command");
     wallstyle = XPLANE;
     if (strcmp(arg[iarg+1],"NULL") == 0) lo = -BIG;
     else lo = atof(arg[iarg+1]);
@@ -90,7 +87,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
     else hi = atof(arg[iarg+2]);
     iarg += 3;
   } else if (strcmp(arg[iarg],"yplane") == 0) {
-    if (narg < iarg+3) error->all("Illegal fix wall/gran command");
+    if (narg < iarg+3) error->all(FLERR,"Illegal fix wall/gran command");
     wallstyle = YPLANE;
     if (strcmp(arg[iarg+1],"NULL") == 0) lo = -BIG;
     else lo = atof(arg[iarg+1]);
@@ -98,7 +95,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
     else hi = atof(arg[iarg+2]);
     iarg += 3;
   } else if (strcmp(arg[iarg],"zplane") == 0) {
-    if (narg < iarg+3) error->all("Illegal fix wall/gran command");
+    if (narg < iarg+3) error->all(FLERR,"Illegal fix wall/gran command");
     wallstyle = ZPLANE;
     if (strcmp(arg[iarg+1],"NULL") == 0) lo = -BIG;
     else lo = atof(arg[iarg+1]);
@@ -106,7 +103,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
     else hi = atof(arg[iarg+2]);
     iarg += 3;
   } else if (strcmp(arg[iarg],"zcylinder") == 0) {
-    if (narg < iarg+2) error->all("Illegal fix wall/gran command");
+    if (narg < iarg+2) error->all(FLERR,"Illegal fix wall/gran command");
     wallstyle = ZCYLINDER;
     lo = hi = 0.0;
     cylradius = atof(arg[iarg+1]);
@@ -120,45 +117,45 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"wiggle") == 0) {
-      if (iarg+4 > narg) error->all("Illegal fix wall/gran command");
+      if (iarg+4 > narg) error->all(FLERR,"Illegal fix wall/gran command");
       if (strcmp(arg[iarg+1],"x") == 0) axis = 0;
       else if (strcmp(arg[iarg+1],"y") == 0) axis = 1;
       else if (strcmp(arg[iarg+1],"z") == 0) axis = 2;
-      else error->all("Illegal fix wall/gran command");
+      else error->all(FLERR,"Illegal fix wall/gran command");
       amplitude = atof(arg[iarg+2]);
       period = atof(arg[iarg+3]);
       wiggle = 1;
       iarg += 4;
     } else if (strcmp(arg[iarg],"shear") == 0) {
-      if (iarg+3 > narg) error->all("Illegal fix wall/gran command");
+      if (iarg+3 > narg) error->all(FLERR,"Illegal fix wall/gran command");
       if (strcmp(arg[iarg+1],"x") == 0) axis = 0;
       else if (strcmp(arg[iarg+1],"y") == 0) axis = 1;
       else if (strcmp(arg[iarg+1],"z") == 0) axis = 2;
-      else error->all("Illegal fix wall/gran command");
+      else error->all(FLERR,"Illegal fix wall/gran command");
       vshear = atof(arg[iarg+2]);
       wshear = 1;
       iarg += 3;
-    } else error->all("Illegal fix wall/gran command");
+    } else error->all(FLERR,"Illegal fix wall/gran command");
   }
 
   if (wallstyle == XPLANE && domain->xperiodic)
-    error->all("Cannot use wall in periodic dimension");
+    error->all(FLERR,"Cannot use wall in periodic dimension");
   if (wallstyle == YPLANE && domain->yperiodic)
-    error->all("Cannot use wall in periodic dimension");
+    error->all(FLERR,"Cannot use wall in periodic dimension");
   if (wallstyle == ZPLANE && domain->zperiodic)
-    error->all("Cannot use wall in periodic dimension");
+    error->all(FLERR,"Cannot use wall in periodic dimension");
   if (wallstyle == ZCYLINDER && (domain->xperiodic || domain->yperiodic))
-    error->all("Cannot use wall in periodic dimension");
+    error->all(FLERR,"Cannot use wall in periodic dimension");
 
-  if (wiggle && wshear) error->all("Cannot wiggle and shear fix wall/gran");
+  if (wiggle && wshear) error->all(FLERR,"Cannot wiggle and shear fix wall/gran");
   if (wiggle && wallstyle == ZCYLINDER && axis != 2)
-    error->all("Invalid wiggle direction for fix wall/gran");
+    error->all(FLERR,"Invalid wiggle direction for fix wall/gran");
   if (wshear && wallstyle == XPLANE && axis == 0)
-    error->all("Invalid shear direction for fix wall/gran");
+    error->all(FLERR,"Invalid shear direction for fix wall/gran");
   if (wshear && wallstyle == YPLANE && axis == 1)
-    error->all("Invalid shear direction for fix wall/gran");
+    error->all(FLERR,"Invalid shear direction for fix wall/gran");
   if (wshear && wallstyle == ZPLANE && axis == 2)
-    error->all("Invalid shear direction for fix wall/gran");
+    error->all(FLERR,"Invalid shear direction for fix wall/gran");
 
   // setup oscillations
 
@@ -226,7 +223,7 @@ void FixWallGran::init()
     pairstyle = HOOKE_HISTORY;
   else if (force->pair_match("gran/hertz/history",1))
     pairstyle = HERTZ_HISTORY;
-  else error->all("Fix wall/gran is incompatible with Pair style");
+  else error->all(FLERR,"Fix wall/gran is incompatible with Pair style");
 }
 
 /* ---------------------------------------------------------------------- */

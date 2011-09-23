@@ -444,11 +444,11 @@ FixIMD::FixIMD(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   if (narg < 4) 
-    error->all("Illegal fix imd command");
+    error->all(FLERR,"Illegal fix imd command");
 
   imd_port = atoi(arg[3]); 
   if (imd_port < 1024)
-    error->all("Illegal fix imd parameter: port < 1024");
+    error->all(FLERR,"Illegal fix imd parameter: port < 1024");
 
   /* default values for optional flags */
   unwrap_flag = 0;
@@ -477,17 +477,17 @@ FixIMD::FixIMD(LAMMPS *lmp, int narg, char **arg) :
     } else if (0 == strcmp(arg[argsdone], "trate")) {
       imd_trate = atoi(arg[argsdone+1]);
     } else {
-      error->all("Unknown fix imd parameter");
+      error->all(FLERR,"Unknown fix imd parameter");
     }
     ++argsdone; ++argsdone;
   }
 
   /* sanity check on parameters */
   if (imd_trate < 1)
-    error->all("Illegal fix imd parameter. trate < 1.");
+    error->all(FLERR,"Illegal fix imd parameter. trate < 1.");
 
   bigint n = group->count(igroup);
-  if (n > MAXSMALLINT) error->all("Too many atoms for fix imd");
+  if (n > MAXSMALLINT) error->all(FLERR,"Too many atoms for fix imd");
   num_coords = static_cast<int> (n);
 
   MPI_Comm_rank(world,&me);
@@ -522,7 +522,7 @@ FixIMD::FixIMD(LAMMPS *lmp, int narg, char **arg) :
   }
   MPI_Bcast(&imd_terminate, 1, MPI_INT, 0, world);
   if (imd_terminate)
-    error->all("LAMMPS Terminated on error in IMD.");
+    error->all(FLERR,"LAMMPS Terminated on error in IMD.");
     
   /* storage required to communicate a single coordinate or force. */
   size_one = sizeof(struct commdata);
@@ -702,7 +702,7 @@ void FixIMD::setup(int)
   MPI_Bcast(&imd_inactive, 1, MPI_INT, 0, world);
   MPI_Bcast(&imd_terminate, 1, MPI_INT, 0, world);
   if (imd_terminate)
-    error->all("LAMMPS terminated on error in setting up IMD connection.");
+    error->all(FLERR,"LAMMPS terminated on error in setting up IMD connection.");
 
   /* initialize and build hashtable. */
   inthash_t *hashtable=new inthash_t;
@@ -815,7 +815,7 @@ void FixIMD::post_force(int vflag)
     MPI_Bcast(&imd_inactive, 1, MPI_INT, 0, world);
     MPI_Bcast(&imd_terminate, 1, MPI_INT, 0, world);
     if (imd_terminate)
-      error->all("LAMMPS terminated on error in setting up IMD connection.");
+      error->all(FLERR,"LAMMPS terminated on error in setting up IMD connection.");
     if (imd_inactive)
       return;     /* IMD client has detached and not yet come back. do nothing. */
   }
@@ -951,7 +951,7 @@ void FixIMD::post_force(int vflag)
   MPI_Bcast(&imd_forces, 1, MPI_INT, 0, world);
   MPI_Bcast(&imd_terminate, 1, MPI_INT, 0, world);
   if (imd_terminate)
-    error->all("LAMMPS terminated on IMD request.");
+    error->all(FLERR,"LAMMPS terminated on IMD request.");
 
   if (imd_forces > 0) {
     /* check if we need to readjust the forces comm buffer on the receiving nodes. */

@@ -98,7 +98,8 @@ void Error::one(const char *file, int line, const char *str)
 {
   int me;
   MPI_Comm_rank(world,&me);
-  if (screen) fprintf(screen,"ERROR on proc %d: %s (%s:%d)\n",me,str,file,line);
+  if (screen) fprintf(screen,"ERROR on proc %d: %s (%s:%d)\n",
+		      me,str,file,line);
   if (universe->nworlds > 1)
     fprintf(universe->uscreen,"ERROR on proc %d: %s (%s:%d)\n",
 	    universe->me,str,file,line);

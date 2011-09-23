@@ -15,7 +15,6 @@
 
 #include "math.h"
 #include "random_park.h"
-#include "domain.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -40,7 +39,8 @@ using namespace LAMMPS_NS;
 
 RanPark::RanPark(LAMMPS *lmp, int seed_init) : Pointers(lmp)
 {
-  if (seed_init <= 0) error->all(FLERR,"Invalid seed for Park random # generator");
+  if (seed_init <= 0)
+    error->all(FLERR,"Invalid seed for Park random # generator");
   seed = seed_init;
   save = 0;
 }
@@ -89,7 +89,8 @@ double RanPark::gaussian()
 
 void RanPark::reset(int seed_init)
 {
-  if (seed_init <= 0) error->all(FLERR,"Invalid seed for Park random # generator");
+  if (seed_init <= 0)
+    error->all(FLERR,"Invalid seed for Park random # generator");
   seed = seed_init;
   save = 0;
 }

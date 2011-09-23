@@ -217,7 +217,7 @@ void DumpCFG::write_data(int n, double *mybuf)
 		  fprintf(fp,vformat[j],static_cast<int> (rbuf[i][j]));
 		else fprintf(fp,vformat[j],rbuf[i][j]);
 	      }
-	    else
+	    else {
 
 	      // Unwrapped scaled coordinates are shifted to
 	      // center of expanded box, to prevent
@@ -234,7 +234,7 @@ void DumpCFG::write_data(int n, double *mybuf)
 		  fprintf(fp,vformat[j],static_cast<int> (rbuf[i][j]));
 		else fprintf(fp,vformat[j],rbuf[i][j]);
 	      }
-
+	    }
 	    fprintf(fp,"\n");
 	  }
 	}

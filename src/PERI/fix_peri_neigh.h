@@ -26,7 +26,9 @@ namespace LAMMPS_NS {
 
 class FixPeriNeigh : public Fix {
   friend class PairPeriPMB;
+  friend class PairPeriPMBOMP;
   friend class PairPeriLPS;
+  friend class PairPeriLPSOMP;
   friend class ComputeDamageAtom;
 
  public:

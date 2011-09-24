@@ -50,12 +50,12 @@ FixTempRescaleCuda::FixTempRescaleCuda(LAMMPS *lmp, int narg, char **arg) :
 {
   cuda = lmp->cuda;
    if(cuda == NULL)
-        error->all("You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
+        error->all(FLERR,"You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
 
-  if (narg < 8) error->all("Illegal fix temp/rescale/cuda command");
+  if (narg < 8) error->all(FLERR,"Illegal fix temp/rescale/cuda command");
 
   nevery = atoi(arg[3]);
-  if (nevery <= 0) error->all("Illegal fix temp/rescale/cuda command");
+  if (nevery <= 0) error->all(FLERR,"Illegal fix temp/rescale/cuda command");
 
   scalar_flag = 1;
   global_freq = nevery;
@@ -111,10 +111,10 @@ void FixTempRescaleCuda::init()
 {
   int icompute = modify->find_compute(id_temp);
   if (icompute < 0) 
-    error->all("Temperature ID for fix temp/rescale/cuda does not exist");
+    error->all(FLERR,"Temperature ID for fix temp/rescale/cuda does not exist");
   temperature = modify->compute[icompute];
   if(not temperature->cudable) 
-	error->warning("Fix temp/rescale/cuda uses non cudable temperature compute");
+	error->warning(FLERR,"Fix temp/rescale/cuda uses non cudable temperature compute");
   if (temperature->tempbias) which = BIAS;
   else which = NOBIAS;
 }
@@ -127,7 +127,7 @@ void FixTempRescaleCuda::end_of_step()
   if(not temperature->cudable) {cuda->cu_x->download();cuda->cu_v->download();}
   t_current = temperature->compute_scalar();
   if (t_current == 0.0)
-    error->all("Computed temperature for fix temp/rescale/cuda cannot be 0.0");
+    error->all(FLERR,"Computed temperature for fix temp/rescale/cuda cannot be 0.0");
 
   double delta = update->ntimestep - update->beginstep;
   delta /= update->endstep - update->beginstep;
@@ -181,7 +181,7 @@ void FixTempRescaleCuda::end_of_step()
 int FixTempRescaleCuda::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"temp") == 0) {
-    if (narg < 2) error->all("Illegal fix_modify command");
+    if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
     if (tflag) {
       modify->delete_compute(id_temp);
       tflag = 0;
@@ -192,15 +192,15 @@ int FixTempRescaleCuda::modify_param(int narg, char **arg)
     strcpy(id_temp,arg[1]);
 
     int icompute = modify->find_compute(id_temp);
-    if (icompute < 0) error->all("Could not find fix_modify temperature ID");
+    if (icompute < 0) error->all(FLERR,"Could not find fix_modify temperature ID");
     temperature = modify->compute[icompute];
 
     if (temperature->tempflag == 0)
-      error->all("Fix_modify temperature ID does not compute temperature");
+      error->all(FLERR,"Fix_modify temperature ID does not compute temperature");
     if (temperature->igroup != igroup && comm->me == 0)
-      error->warning("Group for fix_modify temp != fix group");
+      error->warning(FLERR,"Group for fix_modify temp != fix group");
     if(not temperature->cudable) 
-	  error->warning("Fix temp/rescale/cuda uses non cudable temperature compute");
+	  error->warning(FLERR,"Fix temp/rescale/cuda uses non cudable temperature compute");
     return 2;
   }
   return 0;

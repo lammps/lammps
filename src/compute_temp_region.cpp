@@ -30,11 +30,11 @@ using namespace LAMMPS_NS;
 ComputeTempRegion::ComputeTempRegion(LAMMPS *lmp, int narg, char **arg) : 
   Compute(lmp, narg, arg)
 {
-  if (narg != 4) error->all("Illegal compute temp/region command");
+  if (narg != 4) error->all(FLERR,"Illegal compute temp/region command");
 
   iregion = domain->find_region(arg[3]);
   if (iregion == -1) 
-    error->all("Region ID for compute temp/region does not exist");
+    error->all(FLERR,"Region ID for compute temp/region does not exist");
   int n = strlen(arg[3]) + 1;
   idregion = new char[n];
   strcpy(idregion,arg[3]);
@@ -68,7 +68,7 @@ void ComputeTempRegion::init()
 
   iregion = domain->find_region(idregion);
   if (iregion == -1)
-    error->all("Region ID for compute temp/region does not exist");
+    error->all(FLERR,"Region ID for compute temp/region does not exist");
 
   dof = 0.0;
 }

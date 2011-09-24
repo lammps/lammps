@@ -35,7 +35,7 @@ using namespace LAMMPS_NS;
 ComputeHeatFlux::ComputeHeatFlux(LAMMPS *lmp, int narg, char **arg) : 
   Compute(lmp, narg, arg)
 {
-  if (narg != 6) error->all("Illegal compute heat/flux command");
+  if (narg != 6) error->all(FLERR,"Illegal compute heat/flux command");
 
   vector_flag = 1;
   size_vector = 6;
@@ -60,13 +60,13 @@ ComputeHeatFlux::ComputeHeatFlux(LAMMPS *lmp, int narg, char **arg) :
   int ipe = modify->find_compute(id_pe);
   int istress = modify->find_compute(id_stress);
   if (ike < 0 || ipe < 0 || istress < 0)
-    error->all("Could not find compute heat/flux compute ID");
+    error->all(FLERR,"Could not find compute heat/flux compute ID");
   if (strcmp(modify->compute[ike]->style,"ke/atom") != 0)
-    error->all("Compute heat/flux compute ID does not compute ke/atom");
+    error->all(FLERR,"Compute heat/flux compute ID does not compute ke/atom");
   if (modify->compute[ipe]->peatomflag == 0)
-    error->all("Compute heat/flux compute ID does not compute pe/atom");
+    error->all(FLERR,"Compute heat/flux compute ID does not compute pe/atom");
   if (modify->compute[istress]->pressatomflag == 0)
-    error->all("Compute heat/flux compute ID does not compute stress/atom");
+    error->all(FLERR,"Compute heat/flux compute ID does not compute stress/atom");
 
   vector = new double[6];
 }
@@ -91,7 +91,7 @@ void ComputeHeatFlux::init()
   int ipe = modify->find_compute(id_pe);
   int istress = modify->find_compute(id_stress);
   if (ike < 0 || ipe < 0 || istress < 0)
-    error->all("Could not find compute heat/flux compute ID");
+    error->all(FLERR,"Could not find compute heat/flux compute ID");
 
   c_ke = modify->compute[ike];
   c_pe = modify->compute[ipe];

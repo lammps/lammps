@@ -37,11 +37,14 @@ void WriteDataFile(FILE *DatF,char *nameroot,int forcefield)
      if (no_oop_types > 0)
        fprintf  (DatF, " %3d improper types\n", no_oop_types);
    }
-
+   
+   
    fprintf(DatF, "\n");
-   fprintf(DatF, " %15.9f %15.9f xlo xhi\n", pbc[0], pbc[3]);
-   fprintf(DatF, " %15.9f %15.9f ylo yhi\n", pbc[1], pbc[4]);
-   fprintf(DatF, " %15.9f %15.9f zlo zhi\n", pbc[2], pbc[5]);
+   fprintf(DatF, " %15.9f %15.9f xlo xhi\n", 0.0, pbc[0]);
+   fprintf(DatF, " %15.9f %15.9f ylo yhi\n", 0.0, pbc[1]);
+   fprintf(DatF, " %15.9f %15.9f zlo zhi\n", 0.0, pbc[2]);
+   fprintf(DatF, " %15.9f %15.9f %15.9f xy xz yz\n", pbc[3], pbc[4], pbc[5]);
+   
 
    /* MASSES */
 

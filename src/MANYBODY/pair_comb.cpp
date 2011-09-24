@@ -417,7 +417,7 @@ void PairComb::allocate()
 
 void PairComb::settings(int narg, char **arg)
 {
-  if (narg > 0) error->all("Illegal pair_style command");
+  if (narg > 0) error->all(FLERR,"Illegal pair_style command");
 }
 
 /* ----------------------------------------------------------------------
@@ -431,12 +431,12 @@ void PairComb::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   if (narg != 3 + atom->ntypes)
-    error->all("Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients");
 
   // insure I,J args are * *
 
   if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all("Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read args that map atom types to elements in potential file
   // map[i] = which element the Ith atom type is, -1 if NULL
@@ -502,7 +502,7 @@ void PairComb::coeff(int narg, char **arg)
 	count++;
       }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -512,11 +512,11 @@ void PairComb::coeff(int narg, char **arg)
 void PairComb::init_style()
 {
   if (atom->tag_enable == 0)
-    error->all("Pair style COMB requires atom IDs");
+    error->all(FLERR,"Pair style COMB requires atom IDs");
   if (force->newton_pair == 0)
-    error->all("Pair style COMB requires newton pair on");
+    error->all(FLERR,"Pair style COMB requires newton pair on");
   if (!atom->q_flag)
-    error->all("Pair style COMB requires atom attribute q");
+    error->all(FLERR,"Pair style COMB requires atom attribute q");
 
   // ptr to QEQ fix
 
@@ -538,7 +538,7 @@ void PairComb::init_style()
 
 double PairComb::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all("All pair coeffs are not set");
+  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
   return cutmax;
 }
 
@@ -561,7 +561,7 @@ void PairComb::read_file(char *file)
     if (fp == NULL) {
       char str[128];
       sprintf(str,"Cannot open COMB potential file %s",file);
-      error->one(str);
+      error->one(FLERR,str);
     }
   }
 
@@ -611,7 +611,7 @@ void PairComb::read_file(char *file)
     }
 
     if (nwords != params_per_line)
-      error->all("Incorrect format in COMB potential file");
+      error->all(FLERR,"Incorrect format in COMB potential file");
 
     // words = ptrs to all words in line
 
@@ -719,13 +719,13 @@ void PairComb::read_file(char *file)
 //	params[nparams].dj < 0.0 || params[nparams].dk < 0.0 || 
 //	params[nparams].dl < 0.0 || params[nparams].dm < 0.0 || 
 	params[nparams].esm1 < 0.0) 
-      error->all("Illegal COMB parameter");
+      error->all(FLERR,"Illegal COMB parameter");
 
     if (params[nparams].lam11 < params[nparams].lam21 || 
         params[nparams].lam12 < params[nparams].lam22 || 
 	params[nparams].biga1< params[nparams].bigb1 ||
 	params[nparams].biga2< params[nparams].bigb2)
-      error->all("Illegal COMB parameter");
+      error->all(FLERR,"Illegal COMB parameter");
 
     nparams++;
   }
@@ -753,11 +753,11 @@ void PairComb::setup()
 	for (m = 0; m < nparams; m++) {
 	  if (i == params[m].ielement && j == params[m].jelement && 
 	      k == params[m].kelement) {
-	    if (n >= 0) error->all("Potential file has duplicate entry");
+	    if (n >= 0) error->all(FLERR,"Potential file has duplicate entry");
 	    n = m;
 	  }
 	}
-	if (n < 0) error->all("Potential file is missing an entry");
+	if (n < 0) error->all(FLERR,"Potential file is missing an entry");
 	elem2param[i][j][k] = n;
       }
 
@@ -1779,14 +1779,14 @@ double PairComb::qfo_self(Param *param, double qi, double selfpot)
    // char str[128];
    // sprintf(str,"Pair COMB charge %.10f with force %.10f hit min barrier",
    // qi,self_d);
-   // error->warning(str,0);
+   // error->warning(FLERR,str,0);
    self_d += 4.0 * cmin * pow((qi-qmin),3);
  }
  if (qi > qmax) {
    // char str[128];
    // sprintf(str,"Pair COMB charge %.10f with force %.10f hit max barrier",
    //	   qi,self_d);
-   // error->warning(str,0);
+   // error->warning(FLERR,str,0);
    self_d += 4.0 * cmax * pow((qi-qmax),3);
  }
 

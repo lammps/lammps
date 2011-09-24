@@ -46,16 +46,13 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 PairBuckCuda::PairBuckCuda(LAMMPS *lmp) : PairBuck(lmp)
 {
   cuda = lmp->cuda;
    if(cuda == NULL)
-        error->all("You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
+        error->all(FLERR,"You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
 
 	allocated2 = false;
 	cuda->shared_data.pair.cudable_force = 1;
@@ -124,12 +121,12 @@ void PairBuckCuda::coeff(int narg, char **arg)
 void PairBuckCuda::init_style()
 {
   if (!atom->q_flag)
-    error->all("Pair style buck/coul/long requires atom attribute q");
+    error->all(FLERR,"Pair style buck/coul/long requires atom attribute q");
   // request regular or rRESPA neighbor lists
 
   int irequest;
  
-  if (strstr(update->integrate_style,"respa")) error->all("Integrate Style Respa is not supported by pair style buck/coul/long/cuda");
+  if (strstr(update->integrate_style,"respa")) error->all(FLERR,"Integrate Style Respa is not supported by pair style buck/coul/long/cuda");
   	
   	irequest = neighbor->request(this);
     neighbor->requests[irequest]->full = 1;
@@ -140,7 +137,7 @@ void PairBuckCuda::init_style()
   cuda->shared_data.pppm.qqrd2e=force->qqrd2e;
   
 
-  if(ncoultablebits) error->warning("# CUDA: You asked for the useage of Coulomb Tables. This is not supported in CUDA Pair forces. Setting is ignored.\n");
+  if(ncoultablebits) error->warning(FLERR,"# CUDA: You asked for the useage of Coulomb Tables. This is not supported in CUDA Pair forces. Setting is ignored.\n");
 }
 
 void PairBuckCuda::init_list(int id, NeighList *ptr)

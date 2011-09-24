@@ -23,9 +23,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 PairYukawa::PairYukawa(LAMMPS *lmp) : Pair(lmp) {}
@@ -152,7 +149,7 @@ void PairYukawa::allocate()
 
 void PairYukawa::settings(int narg, char **arg)
 {
-  if (narg != 2) error->all("Illegal pair_style command");
+  if (narg != 2) error->all(FLERR,"Illegal pair_style command");
 
   kappa = force->numeric(arg[0]);
   cut_global = force->numeric(arg[1]);
@@ -173,7 +170,7 @@ void PairYukawa::settings(int narg, char **arg)
 
 void PairYukawa::coeff(int narg, char **arg)
 {
-  if (narg < 3 || narg > 4) error->all("Incorrect args for pair coefficients");
+  if (narg < 3 || narg > 4) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -195,7 +192,7 @@ void PairYukawa::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------

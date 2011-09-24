@@ -42,8 +42,6 @@ using namespace LAMMPS_NS;
 #define BIG   1.0e20
 #define SMALL 1.0e-4
 #define DELTA 1
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 enum{NO_REMAP,X_REMAP,V_REMAP};                   // same as fix_deform.cpp
 
@@ -55,7 +53,7 @@ DomainCuda::DomainCuda(LAMMPS *lmp) : Domain(lmp)
 {
   cuda = lmp->cuda;
    if(cuda == NULL)
-        error->all("You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
+        error->all(FLERR,"You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -180,21 +178,21 @@ void DomainCuda::reset_box()
       else if (boundary[0][0] == 3) boxlo[0] = MIN(-all[0][0]-SMALL,minxlo);
       if (boundary[0][1] == 2) boxhi[0] = all[0][1] + SMALL;
       else if (boundary[0][1] == 3) boxhi[0] = MAX(all[0][1]+SMALL,minxhi);
-      if (boxlo[0] > boxhi[0]) error->all("Illegal simulation box");
+      if (boxlo[0] > boxhi[0]) error->all(FLERR,"Illegal simulation box");
     }
     if (yperiodic == 0) {
       if (boundary[1][0] == 2) boxlo[1] = -all[1][0] - SMALL;
       else if (boundary[1][0] == 3) boxlo[1] = MIN(-all[1][0]-SMALL,minylo);
       if (boundary[1][1] == 2) boxhi[1] = all[1][1] + SMALL;
       else if (boundary[1][1] == 3) boxhi[1] = MAX(all[1][1]+SMALL,minyhi);
-      if (boxlo[1] > boxhi[1]) error->all("Illegal simulation box");
+      if (boxlo[1] > boxhi[1]) error->all(FLERR,"Illegal simulation box");
     }
     if (zperiodic == 0) {
       if (boundary[2][0] == 2) boxlo[2] = -all[2][0] - SMALL;
       else if (boundary[2][0] == 3) boxlo[2] = MIN(-all[2][0]-SMALL,minzlo);
       if (boundary[2][1] == 2) boxhi[2] = all[2][1] + SMALL;
       else if (boundary[2][1] == 3) boxhi[2] = MAX(all[2][1]+SMALL,minzhi);
-      if (boxlo[2] > boxhi[2]) error->all("Illegal simulation box");
+      if (boxlo[2] > boxhi[2]) error->all(FLERR,"Illegal simulation box");
     }
   }
 

@@ -46,9 +46,6 @@ using namespace LAMMPS_NS;
 #define BUFFACTOR 1.5
 #define BUFMIN 1000
 #define BUFEXTRA 1000
-
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
 #define BIG 1.0e20
 
 enum{SINGLE,MULTI};
@@ -138,9 +135,9 @@ void Comm::set_procs()
   procs2box();
 
   if (procgrid[0]*procgrid[1]*procgrid[2] != nprocs)
-    error->all("Bad grid of processors");
+    error->all(FLERR,"Bad grid of processors");
   if (domain->dimension == 2 && procgrid[2] != 1)
-    error->all("Processor count in z must be 1 for 2d simulation");
+    error->all(FLERR,"Processor count in z must be 1 for 2d simulation");
 
   if (grid2proc) memory->destroy(grid2proc);
   memory->create(grid2proc,procgrid[0],procgrid[1],procgrid[2],
@@ -1341,36 +1338,36 @@ void Comm::free_multi()
 
 void Comm::set(int narg, char **arg)
 {
-  if (narg < 1) error->all("Illegal communicate command");
+  if (narg < 1) error->all(FLERR,"Illegal communicate command");
 
   if (strcmp(arg[0],"single") == 0) style = SINGLE;
   else if (strcmp(arg[0],"multi") == 0) style = MULTI;
-  else error->all("Illegal communicate command");
+  else error->all(FLERR,"Illegal communicate command");
 
   int iarg = 1;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"group") == 0) {
-      if (iarg+2 > narg) error->all("Illegal communicate command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal communicate command");
       bordergroup = group->find(arg[iarg+1]);
       if (bordergroup < 0)
-	error->all("Invalid group in communicate command");
+	error->all(FLERR,"Invalid group in communicate command");
       if (bordergroup && (atom->firstgroupname == NULL || 
 			  strcmp(arg[iarg+1],atom->firstgroupname) != 0))
-	error->all("Communicate group != atom_modify first group");
+	error->all(FLERR,"Communicate group != atom_modify first group");
       iarg += 2;
     } else if (strcmp(arg[iarg],"cutoff") == 0) {
-      if (iarg+2 > narg) error->all("Illegal communicate command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal communicate command");
       cutghostuser = atof(arg[iarg+1]);
       if (cutghostuser < 0.0) 
-	error->all("Invalid cutoff in communicate command");
+	error->all(FLERR,"Invalid cutoff in communicate command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"vel") == 0) {
-      if (iarg+2 > narg) error->all("Illegal communicate command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal communicate command");
       if (strcmp(arg[iarg+1],"yes") == 0) ghost_velocity = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) ghost_velocity = 0;
-      else error->all("Illegal communicate command");
+      else error->all(FLERR,"Illegal communicate command");
       iarg += 2;
-    } else error->all("Illegal communicate command");
+    } else error->all(FLERR,"Illegal communicate command");
   }
 }
 

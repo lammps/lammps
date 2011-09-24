@@ -30,9 +30,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 enum{SMALL_SMALL,SMALL_LARGE,LARGE_LARGE};
 
 /* ---------------------------------------------------------------------- */
@@ -144,7 +141,7 @@ void PairColloid::compute(int eflag, int vflag)
 	  evdwl = 2.0/9.0*fR * 
 	    (1.0-(K[1]*(K[1]*(K[1]/3.0+3.0*K[2])+4.2*K[4])+K[2]*K[4]) *
 	     sigma6[itype][jtype]/K[6]) - offset[itype][jtype];
-	if (rsq <= K[1]) error->one("Overlapping small/large in pair colloid");
+	if (rsq <= K[1]) error->one(FLERR,"Overlapping small/large in pair colloid");
 	break;
 
       case LARGE_LARGE:
@@ -182,7 +179,7 @@ void PairColloid::compute(int eflag, int vflag)
 	if (eflag)
 	  evdwl += a12[itype][jtype]/6.0 * 
 	    (2.0*K[0]*(K[7]+K[8])-log(K[8]/K[7])) - offset[itype][jtype];
-	if (r <= K[1]) error->one("Overlapping large/large in pair colloid");
+	if (r <= K[1]) error->one(FLERR,"Overlapping large/large in pair colloid");
 	break;
       }
       
@@ -245,7 +242,7 @@ void PairColloid::allocate()
 
 void PairColloid::settings(int narg, char **arg)
 {
-  if (narg != 1) error->all("Illegal pair_style command");
+  if (narg != 1) error->all(FLERR,"Illegal pair_style command");
 
   cut_global = force->numeric(arg[0]);
 
@@ -265,7 +262,7 @@ void PairColloid::settings(int narg, char **arg)
 
 void PairColloid::coeff(int narg, char **arg)
 {
-  if (narg < 6 || narg > 7) error->all("Incorrect args for pair coefficients");
+  if (narg < 6 || narg > 7) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -281,7 +278,7 @@ void PairColloid::coeff(int narg, char **arg)
   if (narg == 7) cut_one = force->numeric(arg[6]);
 
   if (d1_one < 0.0 || d2_one < 0.0) 
-    error->all("Invalid d1 or d2 value for pair colloid coeff");
+    error->all(FLERR,"Invalid d1 or d2 value for pair colloid coeff");
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -289,7 +286,7 @@ void PairColloid::coeff(int narg, char **arg)
       a12[i][j] = a12_one;
       sigma[i][j] = sigma_one;
       if (i == j && d1_one != d2_one)
-	error->all("Invalid d1 or d2 value for pair colloid coeff");
+	error->all(FLERR,"Invalid d1 or d2 value for pair colloid coeff");
       d1[i][j] = d1_one;
       d2[i][j] = d2_one;
       diameter[i][j] = 0.5*(d1_one+d2_one);
@@ -299,7 +296,7 @@ void PairColloid::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------

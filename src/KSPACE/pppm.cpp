@@ -51,14 +51,11 @@ using namespace LAMMPS_NS;
 #define ONEF  1.0
 #endif
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 PPPM::PPPM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
 {
-  if (narg < 1) error->all("Illegal kspace_style pppm command");
+  if (narg < 1) error->all(FLERR,"Illegal kspace_style pppm command");
 
   precision = atof(arg[0]);
   PI = 4.0*atan(1.0);
@@ -115,23 +112,23 @@ void PPPM::init()
   // error check
 
   if (domain->triclinic)
-    error->all("Cannot (yet) use PPPM with triclinic box");
-  if (domain->dimension == 2) error->all("Cannot use PPPM with 2d simulation");
+    error->all(FLERR,"Cannot (yet) use PPPM with triclinic box");
+  if (domain->dimension == 2) error->all(FLERR,"Cannot use PPPM with 2d simulation");
 
-  if (!atom->q_flag) error->all("Kspace style requires atom attribute q");
+  if (!atom->q_flag) error->all(FLERR,"Kspace style requires atom attribute q");
 
   if (slabflag == 0 && domain->nonperiodic > 0)
-    error->all("Cannot use nonperiodic boundaries with PPPM");
+    error->all(FLERR,"Cannot use nonperiodic boundaries with PPPM");
   if (slabflag == 1) {
     if (domain->xperiodic != 1 || domain->yperiodic != 1 || 
 	domain->boundary[2][0] != 1 || domain->boundary[2][1] != 1)
-      error->all("Incorrect boundaries with slab PPPM");
+      error->all(FLERR,"Incorrect boundaries with slab PPPM");
   }
 
   if (order > MAXORDER) {
     char str[128];
     sprintf(str,"PPPM order cannot be greater than %d",MAXORDER);
-    error->all(str);
+    error->all(FLERR,str);
   }
 
   // free all arrays previously allocated
@@ -144,11 +141,11 @@ void PPPM::init()
   scale = 1.0;
 
   if (force->pair == NULL)
-    error->all("KSpace style is incompatible with Pair style");
+    error->all(FLERR,"KSpace style is incompatible with Pair style");
   int itmp;
   double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
   if (p_cutoff == NULL)
-    error->all("KSpace style is incompatible with Pair style");
+    error->all(FLERR,"KSpace style is incompatible with Pair style");
   cutoff = *p_cutoff;
 
   // if kspace is TIP4P, extract TIP4P params from pair style
@@ -158,14 +155,14 @@ void PPPM::init()
 
   if (strcmp(force->kspace_style,"pppm/tip4p") == 0) {
     if (force->pair == NULL)
-      error->all("KSpace style is incompatible with Pair style");
+      error->all(FLERR,"KSpace style is incompatible with Pair style");
     double *p_qdist = (double *) force->pair->extract("qdist",itmp);
     int *p_typeO = (int *) force->pair->extract("typeO",itmp);
     int *p_typeH = (int *) force->pair->extract("typeH",itmp);
     int *p_typeA = (int *) force->pair->extract("typeA",itmp);
     int *p_typeB = (int *) force->pair->extract("typeB",itmp);
     if (!p_qdist || !p_typeO || !p_typeH || !p_typeA || !p_typeB)
-      error->all("KSpace style is incompatible with Pair style");
+      error->all(FLERR,"KSpace style is incompatible with Pair style");
     qdist = *p_qdist;
     typeO = *p_typeO;
     typeH = *p_typeH;
@@ -173,13 +170,13 @@ void PPPM::init()
     int typeB = *p_typeB;
 
     if (force->angle == NULL || force->bond == NULL)
-      error->all("Bond and angle potentials must be defined for TIP4P");
+      error->all(FLERR,"Bond and angle potentials must be defined for TIP4P");
     if (typeA < 1 || typeA > atom->nangletypes || 
 	force->angle->setflag[typeA] == 0)
-      error->all("Bad TIP4P angle type for PPPM/TIP4P");
+      error->all(FLERR,"Bad TIP4P angle type for PPPM/TIP4P");
     if (typeB < 1 || typeB > atom->nbondtypes || 
 	force->bond->setflag[typeB] == 0)
-      error->all("Bad TIP4P bond type for PPPM/TIP4P");
+      error->all(FLERR,"Bad TIP4P bond type for PPPM/TIP4P");
     double theta = force->angle->equilibrium_angle(typeA);
     double blen = force->bond->equilibrium_distance(typeB);
     alpha = qdist / (cos(0.5*theta) * blen);
@@ -200,11 +197,11 @@ void PPPM::init()
   qsqsum = tmp;
 
   if (qsqsum == 0.0)
-    error->all("Cannot use kspace solver on system with no charge");
+    error->all(FLERR,"Cannot use kspace solver on system with no charge");
   if (fabs(qsum) > SMALL && me == 0) {
     char str[128];
     sprintf(str,"System is not charge neutral, net charge = %g",qsum);
-    error->warning(str);
+    error->warning(FLERR,str);
   }
 
   // setup FFT grid resolution and g_ewald
@@ -216,14 +213,14 @@ void PPPM::init()
   while (order > 0) {
 
     if (iteration && me == 0)
-      error->warning("Reducing PPPM order b/c stencil extends "
+      error->warning(FLERR,"Reducing PPPM order b/c stencil extends "
 		     "beyond neighbor processor");
     iteration++;
 
     set_grid();
 
     if (nx_pppm >= OFFSET || ny_pppm >= OFFSET || nz_pppm >= OFFSET)
-      error->all("PPPM grid is too large");
+      error->all(FLERR,"PPPM grid is too large");
 
     // global indices of PPPM grid range from 0 to N-1
     // nlo_in,nhi_in = lower/upper limits of the 3d sub-brick of
@@ -394,7 +391,7 @@ void PPPM::init()
     order--;
   }
 
-  if (order == 0) error->all("PPPM order has been reduced to 0");
+  if (order == 0) error->all(FLERR,"PPPM order has been reduced to 0");
 
   // decomposition of FFT mesh
   // global indices range from 0 to N-1
@@ -946,7 +943,7 @@ void PPPM::set_grid()
     g_ewald = gew2;
     fmid = diffpr(h_x,h_y,h_z,q2,acons);
 
-    if (f*fmid >= 0.0) error->all("Cannot compute PPPM G");
+    if (f*fmid >= 0.0) error->all(FLERR,"Cannot compute PPPM G");
     rtb = f < 0.0 ? (dgew=gew2-gew1,gew1) : (dgew=gew1-gew2,gew2);
     ncount = 0;
     while (fabs(dgew) > SMALL && fmid != 0.0) {
@@ -955,7 +952,7 @@ void PPPM::set_grid()
       fmid = diffpr(h_x,h_y,h_z,q2,acons);      
       if (fmid <= 0.0) rtb = g_ewald;
       ncount++;
-      if (ncount > LARGE) error->all("Cannot compute PPPM G");
+      if (ncount > LARGE) error->all(FLERR,"Cannot compute PPPM G");
     }
   }
 
@@ -1499,7 +1496,7 @@ void PPPM::particle_map()
 	nz+nlower < nzlo_out || nz+nupper > nzhi_out) flag = 1;
   }
 
-  if (flag) error->one("Out of range atoms - cannot compute PPPM");
+  if (flag) error->one(FLERR,"Out of range atoms - cannot compute PPPM");
 }
 
 /* ----------------------------------------------------------------------

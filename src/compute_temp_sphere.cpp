@@ -35,7 +35,7 @@ enum{ROTATE,ALL};
 ComputeTempSphere::ComputeTempSphere(LAMMPS *lmp, int narg, char **arg) : 
   Compute(lmp, narg, arg)
 {
-  if (narg < 3) error->all("Illegal compute temp/sphere command");
+  if (narg < 3) error->all(FLERR,"Illegal compute temp/sphere command");
 
   scalar_flag = vector_flag = 1;
   size_vector = 6;
@@ -50,19 +50,19 @@ ComputeTempSphere::ComputeTempSphere(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 3;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"bias") == 0) {
-      if (iarg+2 > narg) error->all("Illegal compute temp/sphere command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal compute temp/sphere command");
       tempbias = 1;
       int n = strlen(arg[iarg+1]) + 1;
       id_bias = new char[n];
       strcpy(id_bias,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"dof") == 0) {
-      if (iarg+2 > narg) error->all("Illegal compute temp/sphere command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal compute temp/sphere command");
       if (strcmp(arg[iarg+1],"rotate") == 0) mode = ROTATE;
       else if (strcmp(arg[iarg+1],"all") == 0) mode = ALL;
-      else error->all("Illegal compute temp/sphere command");
+      else error->all(FLERR,"Illegal compute temp/sphere command");
       iarg += 2;
-    } else error->all("Illegal compute temp/sphere command");
+    } else error->all(FLERR,"Illegal compute temp/sphere command");
   }
 
   vector = new double[6];
@@ -70,7 +70,7 @@ ComputeTempSphere::ComputeTempSphere(LAMMPS *lmp, int narg, char **arg) :
   // error checks
 
   if (!atom->sphere_flag) 
-    error->all("Compute temp/sphere requires atom style sphere");
+    error->all(FLERR,"Compute temp/sphere requires atom style sphere");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -87,14 +87,14 @@ void ComputeTempSphere::init()
 {
   if (tempbias) {
     int i = modify->find_compute(id_bias);
-    if (i < 0) error->all("Could not find compute ID for temperature bias");
+    if (i < 0) error->all(FLERR,"Could not find compute ID for temperature bias");
     tbias = modify->compute[i];
     if (tbias->tempflag == 0)
-      error->all("Bias compute does not calculate temperature");
+      error->all(FLERR,"Bias compute does not calculate temperature");
     if (tbias->tempbias == 0)
-      error->all("Bias compute does not calculate a velocity bias");
+      error->all(FLERR,"Bias compute does not calculate a velocity bias");
     if (tbias->igroup != igroup)
-      error->all("Bias compute group does not match compute group");
+      error->all(FLERR,"Bias compute group does not match compute group");
     tbias->init();
     if (strcmp(tbias->style,"temp/region") == 0) tempbias = 2;
     else tempbias = 1;

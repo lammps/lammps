@@ -34,9 +34,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 /* ---------------------------------------------------------------------- */
 
 FixPeriNeigh::FixPeriNeigh(LAMMPS *lmp,int narg, char **arg) : 
@@ -251,7 +248,7 @@ void FixPeriNeigh::setup(int vflag)
       for (jj = 0; jj < jnum; jj++) {
         for (int kk = jj+1; kk < jnum; kk++) {
           if (partner[i][jj] == partner[i][kk])
-	    error->one("Duplicate particle in PeriDynamic bond - "
+	    error->one(FLERR,"Duplicate particle in PeriDynamic bond - "
 		       "simulation box is too small");
         }
       }

@@ -40,7 +40,7 @@ using namespace LAMMPS_NS;
 
 PPPMCG::PPPMCG(LAMMPS *lmp, int narg, char **arg) : PPPM(lmp, narg, arg)
 {
-  if ((narg < 1) || (narg > 2)) error->all("Illegal kspace_style pppm/cg command");
+  if ((narg < 1) || (narg > 2)) error->all(FLERR,"Illegal kspace_style pppm/cg command");
 
   if (narg == 2)
     smallq = atof(arg[1]);
@@ -232,7 +232,7 @@ void PPPMCG::particle_map()
 	nz+nlower < nzlo_out || nz+nupper > nzhi_out) flag = 1;
   }
 
-  if (flag) error->one("Out of range atoms - cannot compute PPPM");
+  if (flag) error->one(FLERR,"Out of range atoms - cannot compute PPPM");
 }
 
 /* ----------------------------------------------------------------------

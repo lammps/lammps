@@ -46,16 +46,13 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 PairLJCharmmCoulCharmmCuda::PairLJCharmmCoulCharmmCuda(LAMMPS *lmp) : PairLJCharmmCoulCharmm(lmp)
 {
   cuda = lmp->cuda;
    if(cuda == NULL)
-        error->all("You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
+        error->all(FLERR,"You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
 
 	allocated2 = false;
 	cuda->shared_data.pair.cudable_force = 1;
@@ -130,7 +127,7 @@ void PairLJCharmmCoulCharmmCuda::coeff(int narg, char **arg)
 void PairLJCharmmCoulCharmmCuda::init_style()
 {
   if (!atom->q_flag)
-    error->all("Pair style lj/charmm/coul/long requires atom attribute q");
+    error->all(FLERR,"Pair style lj/charmm/coul/long requires atom attribute q");
   // request regular or rRESPA neighbor lists
 
 	if(atom->molecular)
@@ -146,7 +143,7 @@ void PairLJCharmmCoulCharmmCuda::init_style()
     neighbor->requests[irequest]->cudable = 1; 
 
    if (cut_lj_inner >= cut_lj || cut_coul_inner >= cut_coul)
-    error->all("Pair inner cutoff >= Pair outer cutoff");
+    error->all(FLERR,"Pair inner cutoff >= Pair outer cutoff");
 
   cut_lj_innersq = cut_lj_inner * cut_lj_inner;
   cut_ljsq = cut_lj * cut_lj;

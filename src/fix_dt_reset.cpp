@@ -33,15 +33,12 @@ using namespace LAMMPS_NS;
 
 #define BIG 1.0e20
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 /* ---------------------------------------------------------------------- */
 
 FixDtReset::FixDtReset(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 7) error->all("Illegal fix dt/reset command");
+  if (narg < 7) error->all(FLERR,"Illegal fix dt/reset command");
 
   time_depend = 1;
   scalar_flag = 1;
@@ -52,7 +49,7 @@ FixDtReset::FixDtReset(LAMMPS *lmp, int narg, char **arg) :
   extvector = 0;
 
   nevery = atoi(arg[3]);
-  if (nevery <= 0) error->all("Illegal fix dt/reset command");
+  if (nevery <= 0) error->all(FLERR,"Illegal fix dt/reset command");
 
   minbound = maxbound = 1;
   tmin = tmax = 0.0;
@@ -62,29 +59,29 @@ FixDtReset::FixDtReset(LAMMPS *lmp, int narg, char **arg) :
   else tmax = atof(arg[5]);
   xmax = atof(arg[6]);
 
-  if (minbound && tmin < 0.0) error->all("Illegal fix dt/reset command");
-  if (maxbound && tmax < 0.0) error->all("Illegal fix dt/reset command");
+  if (minbound && tmin < 0.0) error->all(FLERR,"Illegal fix dt/reset command");
+  if (maxbound && tmax < 0.0) error->all(FLERR,"Illegal fix dt/reset command");
   if (minbound && maxbound && tmin >= tmax)
-    error->all("Illegal fix dt/reset command");
-  if (xmax <= 0.0) error->all("Illegal fix dt/reset command");
+    error->all(FLERR,"Illegal fix dt/reset command");
+  if (xmax <= 0.0) error->all(FLERR,"Illegal fix dt/reset command");
 
   int scaleflag = 1;
 
   int iarg = 7;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"units") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix dt/reset command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix dt/reset command");
       if (strcmp(arg[iarg+1],"box") == 0) scaleflag = 0;
       else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = 1;
-      else error->all("Illegal fix dt/reset command");
+      else error->all(FLERR,"Illegal fix dt/reset command");
       iarg += 2;
-    } else error->all("Illegal fix dt/reset command");
+    } else error->all(FLERR,"Illegal fix dt/reset command");
   }
 
   // setup scaling, based on xlattice parameter
 
   if (scaleflag && domain->lattice == NULL)
-    error->all("Use of fix dt/reset with undefined lattice");
+    error->all(FLERR,"Use of fix dt/reset with undefined lattice");
   if (scaleflag) xmax *= domain->lattice->xlattice;
 
   // initializations
@@ -116,7 +113,7 @@ void FixDtReset::init()
   for (int i = 0; i < output->ndump; i++)
     if ((strcmp(output->dump[i]->style,"dcd") == 0 ||
 	strcmp(output->dump[i]->style,"xtc") == 0) && comm->me == 0)
-      error->warning("Dump dcd/xtc timestamp may be wrong with fix dt/reset");
+      error->warning(FLERR,"Dump dcd/xtc timestamp may be wrong with fix dt/reset");
 
   ftm2v = force->ftm2v;
 }

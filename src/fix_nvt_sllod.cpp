@@ -38,9 +38,9 @@ FixNVTSllod::FixNVTSllod(LAMMPS *lmp, int narg, char **arg) :
   FixNH(lmp, narg, arg)
 {
   if (!tstat_flag)
-    error->all("Temperature control must be used with fix nvt/sllod");
+    error->all(FLERR,"Temperature control must be used with fix nvt/sllod");
   if (pstat_flag)
-    error->all("Pressure control can not be used with fix nvt/sllod");
+    error->all(FLERR,"Pressure control can not be used with fix nvt/sllod");
 
   // default values
 
@@ -72,7 +72,7 @@ void FixNVTSllod::init()
   FixNH::init();
 
   if (!temperature->tempbias)
-    error->all("Temperature for fix nvt/sllod does not have a bias");
+    error->all(FLERR,"Temperature for fix nvt/sllod does not have a bias");
 
   nondeformbias = 0;
   if (strcmp(temperature->style,"temp/deform") != 0) nondeformbias = 1;
@@ -83,12 +83,12 @@ void FixNVTSllod::init()
   for (i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"deform") == 0) {
       if (((FixDeform *) modify->fix[i])->remapflag != V_REMAP)
-	error->all("Using fix nvt/sllod with inconsistent fix deform "
+	error->all(FLERR,"Using fix nvt/sllod with inconsistent fix deform "
 		   "remap option");
       break;
     }
   if (i == modify->nfix)
-    error->all("Using fix nvt/sllod with no fix deform defined");
+    error->all(FLERR,"Using fix nvt/sllod with no fix deform defined");
 }
 
 /* ----------------------------------------------------------------------

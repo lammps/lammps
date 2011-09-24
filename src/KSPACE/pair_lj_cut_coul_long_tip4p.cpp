@@ -37,9 +37,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 #define EWALD_F   1.12837917
 #define EWALD_P   0.3275911
 #define A1        0.254829592
@@ -369,7 +366,7 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
 
 void PairLJCutCoulLongTIP4P::settings(int narg, char **arg)
 {
-  if (narg < 6 || narg > 7) error->all("Illegal pair_style command");
+  if (narg < 6 || narg > 7) error->all(FLERR,"Illegal pair_style command");
 
   typeO = force->inumeric(arg[0]);
   typeH = force->inumeric(arg[1]);
@@ -398,17 +395,17 @@ void PairLJCutCoulLongTIP4P::settings(int narg, char **arg)
 void PairLJCutCoulLongTIP4P::init_style()
 {
   if (atom->tag_enable == 0)
-    error->all("Pair style lj/cut/coul/long/tip4p requires atom IDs");
+    error->all(FLERR,"Pair style lj/cut/coul/long/tip4p requires atom IDs");
   if (!force->newton_pair) 
-    error->all("Pair style lj/cut/coul/long/tip4p requires newton pair on");
+    error->all(FLERR,"Pair style lj/cut/coul/long/tip4p requires newton pair on");
   if (!atom->q_flag)
-    error->all("Pair style lj/cut/coul/long/tip4p requires atom attribute q");
+    error->all(FLERR,"Pair style lj/cut/coul/long/tip4p requires atom attribute q");
   if (strcmp(force->kspace_style,"pppm/tip4p") != 0)
-    error->all("Pair style is incompatible with KSpace style");
+    error->all(FLERR,"Pair style is incompatible with KSpace style");
   if (force->bond == NULL)
-    error->all("Must use a bond style with TIP4P potential");
+    error->all(FLERR,"Must use a bond style with TIP4P potential");
   if (force->angle == NULL)
-    error->all("Must use an angle style with TIP4P potential");
+    error->all(FLERR,"Must use an angle style with TIP4P potential");
 
   PairLJCutCoulLong::init_style();
 
@@ -482,9 +479,9 @@ void PairLJCutCoulLongTIP4P::find_M(int i, int &iH1, int &iH2, double *xM)
   iH1 = atom->map(atom->tag[i] + 1);
   iH2 = atom->map(atom->tag[i] + 2);
 
-  if (iH1 == -1 || iH2 == -1) error->one("TIP4P hydrogen is missing");
+  if (iH1 == -1 || iH2 == -1) error->one(FLERR,"TIP4P hydrogen is missing");
   if (atom->type[iH1] != typeH || atom->type[iH2] != typeH)
-    error->one("TIP4P hydrogen has incorrect atom type");
+    error->one(FLERR,"TIP4P hydrogen has incorrect atom type");
 
   double **x = atom->x; 
 

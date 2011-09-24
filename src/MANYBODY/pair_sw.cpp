@@ -215,7 +215,7 @@ void PairSW::allocate()
 
 void PairSW::settings(int narg, char **arg)
 {
-  if (narg != 0) error->all("Illegal pair_style command");
+  if (narg != 0) error->all(FLERR,"Illegal pair_style command");
 }
 
 /* ----------------------------------------------------------------------
@@ -229,12 +229,12 @@ void PairSW::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   if (narg != 3 + atom->ntypes)
-    error->all("Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients");
 
   // insure I,J args are * *
 
   if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all("Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read args that map atom types to elements in potential file
   // map[i] = which element the Ith atom type is, -1 if NULL
@@ -287,7 +287,7 @@ void PairSW::coeff(int narg, char **arg)
 	count++;
       }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -297,9 +297,9 @@ void PairSW::coeff(int narg, char **arg)
 void PairSW::init_style()
 {
   if (atom->tag_enable == 0)
-    error->all("Pair style Stillinger-Weber requires atom IDs");
+    error->all(FLERR,"Pair style Stillinger-Weber requires atom IDs");
   if (force->newton_pair == 0)
-    error->all("Pair style Stillinger-Weber requires newton pair on");
+    error->all(FLERR,"Pair style Stillinger-Weber requires newton pair on");
 
   // need a full neighbor list
 
@@ -314,7 +314,7 @@ void PairSW::init_style()
 
 double PairSW::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all("All pair coeffs are not set");
+  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
   return cutmax;
 }
@@ -338,7 +338,7 @@ void PairSW::read_file(char *file)
     if (fp == NULL) {
       char str[128];
       sprintf(str,"Cannot open Stillinger-Weber potential file %s",file);
-      error->one(str);
+      error->one(FLERR,str);
     }
   }
 
@@ -389,7 +389,7 @@ void PairSW::read_file(char *file)
     }
 
     if (nwords != params_per_line)
-      error->all("Incorrect format in Stillinger-Weber potential file");
+      error->all(FLERR,"Incorrect format in Stillinger-Weber potential file");
 
     // words = ptrs to all words in line
 
@@ -439,7 +439,7 @@ void PairSW::read_file(char *file)
 	params[nparams].gamma < 0.0 || params[nparams].biga < 0.0 || 
 	params[nparams].bigb < 0.0 || params[nparams].powerp < 0.0 ||
 	params[nparams].powerq < 0.0 || params[nparams].tol < 0.0)
-      error->all("Illegal Stillinger-Weber parameter");
+      error->all(FLERR,"Illegal Stillinger-Weber parameter");
 
     nparams++;
   }
@@ -468,11 +468,11 @@ void PairSW::setup()
 	for (m = 0; m < nparams; m++) {
 	  if (i == params[m].ielement && j == params[m].jelement && 
 	      k == params[m].kelement) {
-	    if (n >= 0) error->all("Potential file has duplicate entry");
+	    if (n >= 0) error->all(FLERR,"Potential file has duplicate entry");
 	    n = m;
 	  }
 	}
-	if (n < 0) error->all("Potential file is missing an entry");
+	if (n < 0) error->all(FLERR,"Potential file is missing an entry");
 	elem2param[i][j][k] = n;
       }
 

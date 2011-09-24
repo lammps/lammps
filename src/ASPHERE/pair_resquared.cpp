@@ -31,9 +31,6 @@
 #include "memory.h"
 #include "error.h"
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 using namespace LAMMPS_NS;
 
 enum{SPHERE_SPHERE,SPHERE_ELLIPSE,ELLIPSE_SPHERE,ELLIPSE_ELLIPSE};
@@ -45,7 +42,7 @@ PairRESquared::PairRESquared(LAMMPS *lmp) : Pair(lmp),
                                             cr60(pow(60.0,1.0/3.0))
 {
   avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-  if (!avec) error->all("Pair resquared requires atom style ellipsoid");
+  if (!avec) error->all(FLERR,"Pair resquared requires atom style ellipsoid");
 
   single_enable = 0;
 
@@ -250,7 +247,7 @@ void PairRESquared::allocate()
 
 void PairRESquared::settings(int narg, char **arg)
 {
-  if (narg != 1) error->all("Illegal pair_style command");
+  if (narg != 1) error->all(FLERR,"Illegal pair_style command");
 
   cut_global = force->numeric(arg[0]);
   
@@ -271,7 +268,7 @@ void PairRESquared::settings(int narg, char **arg)
 void PairRESquared::coeff(int narg, char **arg)
 {
   if (narg < 10 || narg > 11)
-    error->all("Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -315,7 +312,7 @@ void PairRESquared::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -331,7 +328,7 @@ void PairRESquared::init_style()
 
   for (int i = 1; i <= atom->ntypes; i++) {
     if (!atom->shape_consistency(i,shape1[i][0],shape1[i][1],shape1[i][2]))
-      error->all("Pair gayberne requires atoms with same type have same shape");
+      error->all(FLERR,"Pair gayberne requires atoms with same type have same shape");
     if (setwell[i]) {
       shape2[i][0] = shape1[i][0]*shape1[i][0];
       shape2[i][1] = shape1[i][1]*shape1[i][1];
@@ -348,7 +345,7 @@ void PairRESquared::init_style()
 double PairRESquared::init_one(int i, int j)
 {
   if (setwell[i] == 0 || setwell[j] == 0)
-    error->all("Pair resquared epsilon a,b,c coeffs are not all set");
+    error->all(FLERR,"Pair resquared epsilon a,b,c coeffs are not all set");
 
   int ishape = 0;
   if (shape1[i][0] != 0.0 && shape1[i][1] != 0.0 && shape1[i][2] != 0.0) 
@@ -381,7 +378,7 @@ double PairRESquared::init_one(int i, int j)
         sigma[i][j] = mix_distance(sigma[i][i],sigma[j][j]);
         cut[i][j] = mix_distance(cut[i][i],cut[j][j]);
       } else
-        error->all("Pair resquared epsilon and sigma coeffs are not all set");
+        error->all(FLERR,"Pair resquared epsilon and sigma coeffs are not all set");
     }
     epsilon[i][j] = epsilon[j][i];
     sigma[i][j] = sigma[j][i];
@@ -612,7 +609,7 @@ double PairRESquared::resquared_analytic(const int i, const int j,
   double temp[3][3];
   MathExtra::plus3(wi.gamma,wj.gamma,temp);
   int ierror = MathExtra::mldivide3(temp,rhat,s);
-  if (ierror) error->all("Bad matrix inversion in mldivide3");
+  if (ierror) error->all(FLERR,"Bad matrix inversion in mldivide3");
 
   sigma12 = 1.0/sqrt(0.5*MathExtra::dot3(s,rhat));
   MathExtra::matvec(wi.A,rhat,z1);
@@ -644,7 +641,7 @@ double PairRESquared::resquared_analytic(const int i, const int j,
   MathExtra::times3(wj.aTe,wj.A,temp2);
   MathExtra::plus3(temp,temp2,temp);
   ierror = MathExtra::mldivide3(temp,rhat,w);
-  if (ierror) error->all("Bad matrix inversion in mldivide3");
+  if (ierror) error->all(FLERR,"Bad matrix inversion in mldivide3");
 
   h12 = rnorm-sigma12;
   eta = lambda/nu;
@@ -898,7 +895,7 @@ double PairRESquared::resquared_lj(const int i, const int j,
   // energy
 
   int ierror = MathExtra::mldivide3(gamma,rhat,s);
-  if (ierror) error->all("Bad matrix inversion in mldivide3");
+  if (ierror) error->all(FLERR,"Bad matrix inversion in mldivide3");
 
   sigma12 = 1.0/sqrt(0.5*MathExtra::dot3(s,rhat));
   double temp[3][3];
@@ -907,7 +904,7 @@ double PairRESquared::resquared_lj(const int i, const int j,
   temp[1][1] += 1.0;
   temp[2][2] += 1.0;
   ierror = MathExtra::mldivide3(temp,rhat,w);
-  if (ierror) error->all("Bad matrix inversion in mldivide3");
+  if (ierror) error->all(FLERR,"Bad matrix inversion in mldivide3");
 
   h12 = rnorm-sigma12;
   chi = 2.0*MathExtra::dot3(rhat,w);

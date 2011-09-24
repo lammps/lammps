@@ -22,9 +22,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 Special::Special(LAMMPS *lmp) : Pointers(lmp)
@@ -374,7 +371,7 @@ void Special::build()
   j = 0;
   for (i = 0; i < nlocal; i++) {
     if (buf[j+3] != nspecial[i][1])
-      error->one("1-3 bond count is inconsistent");
+      error->one(FLERR,"1-3 bond count is inconsistent");
     j += 4 + nspecial[i][0];
     for (k = 0; k < nspecial[i][1]; k++) 
       onethree[i][k] = buf[j++];
@@ -537,7 +534,7 @@ void Special::build()
   j = 0;
   for (i = 0; i < nlocal; i++) {
     if (buf[j+2] != nspecial[i][2])
-      error->one("1-4 bond count is inconsistent");
+      error->one(FLERR,"1-4 bond count is inconsistent");
     j += 3 + nspecial[i][1];
     for (k = 0; k < nspecial[i][2]; k++) 
       onefour[i][k] = buf[j++];

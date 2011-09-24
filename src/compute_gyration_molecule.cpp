@@ -27,10 +27,10 @@ ComputeGyrationMolecule::ComputeGyrationMolecule(LAMMPS *lmp,
 						 int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg != 3) error->all("Illegal compute gyration/molecule command");
+  if (narg != 3) error->all(FLERR,"Illegal compute gyration/molecule command");
 
   if (atom->molecular == 0)
-    error->all("Compute gyration/molecule requires molecular atom style");
+    error->all(FLERR,"Compute gyration/molecule requires molecular atom style");
 
   vector_flag = 1;
   extvector = 0;
@@ -93,7 +93,7 @@ void ComputeGyrationMolecule::init()
 {
   int ntmp = molecules_in_group(idlo,idhi);
   if (ntmp != nmolecules)
-    error->all("Molecule count changed in compute gyration/molecule");
+    error->all(FLERR,"Molecule count changed in compute gyration/molecule");
 }
 
 /* ---------------------------------------------------------------------- */

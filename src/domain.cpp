@@ -39,8 +39,6 @@ using namespace LAMMPS_NS;
 #define BIG   1.0e20
 #define SMALL 1.0e-4
 #define DELTA 1
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 enum{NO_REMAP,X_REMAP,V_REMAP};                   // same as fix_deform.cpp
 
@@ -132,24 +130,24 @@ void Domain::set_initial_box()
   // error checks for orthogonal and triclinic domains
 
   if (boxlo[0] >= boxhi[0] || boxlo[1] >= boxhi[1] || boxlo[2] >= boxhi[2])
-    error->one("Box bounds are invalid");
+    error->one(FLERR,"Box bounds are invalid");
 
   if (triclinic) {
     if (domain->dimension == 2 && (xz != 0.0 || yz != 0.0))
-      error->all("Cannot skew triclinic box in z for 2d simulation");
+      error->all(FLERR,"Cannot skew triclinic box in z for 2d simulation");
     if (xy != 0.0 && (!xperiodic || !yperiodic))
-      error->all("Triclinic box must be periodic in skewed dimensions");
+      error->all(FLERR,"Triclinic box must be periodic in skewed dimensions");
     if (xz != 0.0 && (!xperiodic || !zperiodic))
-      error->all("Triclinic box must be periodic in skewed dimensions");
+      error->all(FLERR,"Triclinic box must be periodic in skewed dimensions");
     if (yz != 0.0 && (!yperiodic || !zperiodic))
-      error->all("Triclinic box must be periodic in skewed dimensions");
+      error->all(FLERR,"Triclinic box must be periodic in skewed dimensions");
 
     if (fabs(xy/(boxhi[0]-boxlo[0])) > 0.5)
-      error->all("Triclinic box skew is too large");
+      error->all(FLERR,"Triclinic box skew is too large");
     if (fabs(xz/(boxhi[0]-boxlo[0])) > 0.5)
-      error->all("Triclinic box skew is too large");
+      error->all(FLERR,"Triclinic box skew is too large");
     if (fabs(yz/(boxhi[1]-boxlo[1])) > 0.5)
-      error->all("Triclinic box skew is too large");
+      error->all(FLERR,"Triclinic box skew is too large");
   }
 
   // adjust box lo/hi for shrink-wrapped dims
@@ -319,21 +317,21 @@ void Domain::reset_box()
       else if (boundary[0][0] == 3) boxlo[0] = MIN(-all[0][0]-SMALL,minxlo);
       if (boundary[0][1] == 2) boxhi[0] = all[0][1] + SMALL;
       else if (boundary[0][1] == 3) boxhi[0] = MAX(all[0][1]+SMALL,minxhi);
-      if (boxlo[0] > boxhi[0]) error->all("Illegal simulation box");
+      if (boxlo[0] > boxhi[0]) error->all(FLERR,"Illegal simulation box");
     }
     if (yperiodic == 0) {
       if (boundary[1][0] == 2) boxlo[1] = -all[1][0] - SMALL;
       else if (boundary[1][0] == 3) boxlo[1] = MIN(-all[1][0]-SMALL,minylo);
       if (boundary[1][1] == 2) boxhi[1] = all[1][1] + SMALL;
       else if (boundary[1][1] == 3) boxhi[1] = MAX(all[1][1]+SMALL,minyhi);
-      if (boxlo[1] > boxhi[1]) error->all("Illegal simulation box");
+      if (boxlo[1] > boxhi[1]) error->all(FLERR,"Illegal simulation box");
     }
     if (zperiodic == 0) {
       if (boundary[2][0] == 2) boxlo[2] = -all[2][0] - SMALL;
       else if (boundary[2][0] == 3) boxlo[2] = MIN(-all[2][0]-SMALL,minzlo);
       if (boundary[2][1] == 2) boxhi[2] = all[2][1] + SMALL;
       else if (boundary[2][1] == 3) boxhi[2] = MAX(all[2][1]+SMALL,minzhi);
-      if (boxlo[2] > boxhi[2]) error->all("Illegal simulation box");
+      if (boxlo[2] > boxhi[2]) error->all(FLERR,"Illegal simulation box");
     }
   }
 
@@ -992,14 +990,14 @@ void Domain::set_lattice(int narg, char **arg)
 
 void Domain::add_region(int narg, char **arg)
 {
-  if (narg < 2) error->all("Illegal region command");
+  if (narg < 2) error->all(FLERR,"Illegal region command");
 
   if (strcmp(arg[1],"delete") == 0) {
     delete_region(narg,arg);
     return;
   }
 
-  if (find_region(arg[0]) >= 0) error->all("Reuse of region ID");
+  if (find_region(arg[0]) >= 0) error->all(FLERR,"Reuse of region ID");
 
   // extend Region list if necessary
 
@@ -1011,7 +1009,7 @@ void Domain::add_region(int narg, char **arg)
 
   // create the Region
 
-  if (strcmp(arg[1],"none") == 0) error->all("Invalid region style");
+  if (strcmp(arg[1],"none") == 0) error->all(FLERR,"Invalid region style");
 
 #define REGION_CLASS
 #define RegionStyle(key,Class) \
@@ -1020,7 +1018,7 @@ void Domain::add_region(int narg, char **arg)
 #include "style_region.h"
 #undef REGION_CLASS
 
-  else error->all("Invalid region style");
+  else error->all(FLERR,"Invalid region style");
 
   nregion++;
 }
@@ -1031,10 +1029,10 @@ void Domain::add_region(int narg, char **arg)
 
 void Domain::delete_region(int narg, char **arg)
 {
-  if (narg != 2) error->all("Illegal region command");
+  if (narg != 2) error->all(FLERR,"Illegal region command");
 
   int iregion = find_region(arg[0]);
-  if (iregion == -1) error->all("Delete region ID does not exist");
+  if (iregion == -1) error->all(FLERR,"Delete region ID does not exist");
 
   delete regions[iregion];
   regions[iregion] = regions[nregion-1];
@@ -1059,7 +1057,7 @@ int Domain::find_region(char *name)
 
 void Domain::set_boundary(int narg, char **arg)
 {
-  if (narg != 3) error->all("Illegal boundary command");
+  if (narg != 3) error->all(FLERR,"Illegal boundary command");
 
   char c;
   for (int idim = 0; idim < 3; idim++)
@@ -1072,13 +1070,13 @@ void Domain::set_boundary(int narg, char **arg)
       else if (c == 'f') boundary[idim][iside] = 1;
       else if (c == 's') boundary[idim][iside] = 2;
       else if (c == 'm') boundary[idim][iside] = 3;
-      else error->all("Illegal boundary command");
+      else error->all(FLERR,"Illegal boundary command");
     }
 
   for (int idim = 0; idim < 3; idim++)
     if ((boundary[idim][0] == 0 && boundary[idim][1]) ||
 	(boundary[idim][0] && boundary[idim][1] == 0))
-      error->all("Both sides of boundary must be periodic");
+      error->all(FLERR,"Both sides of boundary must be periodic");
 
   if (boundary[0][0] == 0) xperiodic = 1;
   else xperiodic = 0;

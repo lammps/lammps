@@ -32,7 +32,7 @@ using namespace LAMMPS_NS;
 FixSpringSelf::FixSpringSelf(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg != 4) error->all("Illegal fix spring/self command");
+  if (narg != 4) error->all(FLERR,"Illegal fix spring/self command");
 
   restart_peratom = 1;
   scalar_flag = 1;
@@ -40,7 +40,7 @@ FixSpringSelf::FixSpringSelf(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 1;
 
   k = atof(arg[3]);
-  if (k <= 0.0) error->all("Illegal fix spring/self command");
+  if (k <= 0.0) error->all(FLERR,"Illegal fix spring/self command");
 
   // perform initial allocation of atom-based array
   // register with Atom class

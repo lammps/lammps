@@ -34,9 +34,6 @@ using namespace LAMMPS_NS;
 
 enum{BOX,REGION,SINGLE,RANDOM};
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 CreateAtoms::CreateAtoms(LAMMPS *lmp) : Pointers(lmp) {}
@@ -46,17 +43,17 @@ CreateAtoms::CreateAtoms(LAMMPS *lmp) : Pointers(lmp) {}
 void CreateAtoms::command(int narg, char **arg)
 {
   if (domain->box_exist == 0) 
-    error->all("Create_atoms command before simulation box is defined");
+    error->all(FLERR,"Create_atoms command before simulation box is defined");
   if (modify->nfix_restart_peratom) 
-    error->all("Cannot create_atoms after "
+    error->all(FLERR,"Cannot create_atoms after "
 	       "reading restart file with per-atom info");
 
   // parse arguments
 
-  if (narg < 2) error->all("Illegal create_atoms command");
+  if (narg < 2) error->all(FLERR,"Illegal create_atoms command");
   itype = atoi(arg[0]);
   if (itype <= 0 || itype > atom->ntypes) 
-    error->all("Invalid atom type in create_atoms command");
+    error->all(FLERR,"Invalid atom type in create_atoms command");
 
   int iarg;
   if (strcmp(arg[1],"box") == 0) {
@@ -64,29 +61,29 @@ void CreateAtoms::command(int narg, char **arg)
     iarg = 2;
   } else if (strcmp(arg[1],"region") == 0) {
     style = REGION;
-    if (narg < 3) error->all("Illegal create_atoms command");
+    if (narg < 3) error->all(FLERR,"Illegal create_atoms command");
     nregion = domain->find_region(arg[2]);
-    if (nregion == -1) error->all("Create_atoms region ID does not exist");
+    if (nregion == -1) error->all(FLERR,"Create_atoms region ID does not exist");
     iarg = 3;;
   } else if (strcmp(arg[1],"single") == 0) {
     style = SINGLE;
-    if (narg < 5) error->all("Illegal create_atoms command");
+    if (narg < 5) error->all(FLERR,"Illegal create_atoms command");
     xone[0] = atof(arg[2]);
     xone[1] = atof(arg[3]);
     xone[2] = atof(arg[4]);
     iarg = 5;
   } else if (strcmp(arg[1],"random") == 0) {
     style = RANDOM;
-    if (narg < 5) error->all("Illegal create_atoms command");
+    if (narg < 5) error->all(FLERR,"Illegal create_atoms command");
     nrandom = atoi(arg[2]);
     seed = atoi(arg[3]);
     if (strcmp(arg[4],"NULL") == 0) nregion = -1;
     else {
       nregion = domain->find_region(arg[4]);
-      if (nregion == -1) error->all("Create_atoms region ID does not exist");
+      if (nregion == -1) error->all(FLERR,"Create_atoms region ID does not exist");
     }
     iarg = 5;
-  } else error->all("Illegal create_atoms command");
+  } else error->all(FLERR,"Illegal create_atoms command");
 
   // process optional keywords
 
@@ -100,30 +97,30 @@ void CreateAtoms::command(int narg, char **arg)
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"basis") == 0) {
-      if (iarg+3 > narg) error->all("Illegal create_atoms command");
+      if (iarg+3 > narg) error->all(FLERR,"Illegal create_atoms command");
       if (domain->lattice == NULL)
-	error->all("Cannot create atoms with undefined lattice");
+	error->all(FLERR,"Cannot create atoms with undefined lattice");
       int ibasis = atoi(arg[iarg+1]);
       itype = atoi(arg[iarg+2]);
       if (ibasis <= 0 || ibasis > nbasis || 
 	  itype <= 0 || itype > atom->ntypes) 
-	error->all("Illegal create_atoms command");
+	error->all(FLERR,"Illegal create_atoms command");
       basistype[ibasis-1] = itype;
       iarg += 3;
     } else if (strcmp(arg[iarg],"units") == 0) {
-      if (iarg+2 > narg) error->all("Illegal create_atoms command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal create_atoms command");
       if (strcmp(arg[iarg+1],"box") == 0) scaleflag = 0;
       else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = 1;
-      else error->all("Illegal create_atoms command");
+      else error->all(FLERR,"Illegal create_atoms command");
       iarg += 2;
-    } else error->all("Illegal create_atoms command");
+    } else error->all(FLERR,"Illegal create_atoms command");
   }
 
   // error checks
 
   if (style == RANDOM) {
-    if (nrandom < 0) error->all("Illegal create_atoms command");
-    if (seed <= 0) error->all("Illegal create_atoms command");
+    if (nrandom < 0) error->all(FLERR,"Illegal create_atoms command");
+    if (seed <= 0) error->all(FLERR,"Illegal create_atoms command");
   }
 
   // demand lattice be defined
@@ -134,10 +131,10 @@ void CreateAtoms::command(int narg, char **arg)
 
   if (style == BOX || style == REGION) {
     if (domain->lattice == NULL)
-      error->all("Cannot create atoms with undefined lattice");
+      error->all(FLERR,"Cannot create atoms with undefined lattice");
   } else if (scaleflag == 1) {
     if (domain->lattice == NULL)
-      error->all("Cannot create atoms with undefined lattice");
+      error->all(FLERR,"Cannot create atoms with undefined lattice");
     xone[0] *= domain->lattice->xlattice;
     xone[1] *= domain->lattice->ylattice;
     xone[2] *= domain->lattice->zlattice;
@@ -171,7 +168,7 @@ void CreateAtoms::command(int narg, char **arg)
   bigint nblocal = atom->nlocal;
   MPI_Allreduce(&nblocal,&atom->natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
   if (atom->natoms < 0 || atom->natoms > MAXBIGINT)
-    error->all("Too many total atoms");
+    error->all(FLERR,"Too many total atoms");
 
   // print status
 

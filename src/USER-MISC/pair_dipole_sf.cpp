@@ -28,9 +28,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 PairDipoleSF::PairDipoleSF(LAMMPS *lmp) : Pair(lmp)
@@ -326,7 +323,7 @@ void PairDipoleSF::allocate()
 void PairDipoleSF::settings(int narg, char **arg)
 {
   if (narg < 1 || narg > 2)
-    error->all("Incorrect args in pair_style command");
+    error->all(FLERR,"Incorrect args in pair_style command");
 
   cut_lj_global = force->numeric(arg[0]);
   if (narg == 1) cut_coul_global = cut_lj_global;
@@ -352,7 +349,7 @@ void PairDipoleSF::settings(int narg, char **arg)
 void PairDipoleSF::coeff(int narg, char **arg)
 {
   if (narg < 4 || narg > 6) 
-    error->all("Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -379,7 +376,7 @@ void PairDipoleSF::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -389,7 +386,7 @@ void PairDipoleSF::coeff(int narg, char **arg)
 void PairDipoleSF::init_style()
 {
   if (!atom->q_flag || !atom->mu_flag || !atom->torque_flag)
-    error->all("Pair dipole/sf requires atom attributes q, mu, torque");
+    error->all(FLERR,"Pair dipole/sf requires atom attributes q, mu, torque");
 
   neighbor->request(this);
 }

@@ -896,17 +896,17 @@ void AtomVecWavepacket::data_atom(double *coord, int imagetmp, char **values)
   
   tag[nlocal] = atoi(values[0]);
   if (tag[nlocal] <= 0)
-    error->one("Invalid atom ID in Atoms section of data file (ID tag must be >0)");
+    error->one(FLERR,"Invalid atom ID in Atoms section of data file (ID tag must be >0)");
   
   type[nlocal] = atoi(values[1]);
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
-    error->one("Invalid atom type in Atoms section of data file");
+    error->one(FLERR,"Invalid atom type in Atoms section of data file");
   
   q[nlocal] = atof(values[2]);
   spin[nlocal] = atoi(values[3]);
   eradius[nlocal] = atof(values[4]);
   if (eradius[nlocal] < 0.0)
-    error->one("Invalid eradius in Atoms section of data file");
+    error->one(FLERR,"Invalid eradius in Atoms section of data file");
   
 
   etag[nlocal] = atoi(values[5]);
@@ -940,7 +940,7 @@ int AtomVecWavepacket::data_atom_hybrid(int nlocal, char **values)
   spin[nlocal] = atoi(values[1]);
   eradius[nlocal] = atof(values[2]);
   if (eradius[nlocal] < 0.0)
-    error->one("Invalid eradius in Atoms section of data file");
+    error->one(FLERR,"Invalid eradius in Atoms section of data file");
   
   etag[nlocal] = atoi(values[3]);
   cs[2*nlocal] = atoi(values[4]);

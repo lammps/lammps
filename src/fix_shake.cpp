@@ -37,8 +37,6 @@ using namespace LAMMPS_NS;
 
 #define BIG 1.0e20
 #define MASSDELTA 0.1
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 /* ---------------------------------------------------------------------- */
 
@@ -56,7 +54,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   // error check
 
   if (atom->molecular == 0)
-    error->all("Cannot use fix shake with non-molecular system");
+    error->all(FLERR,"Cannot use fix shake with non-molecular system");
 
   // perform initial allocation of atom-based arrays
   // register with Atom class
@@ -74,7 +72,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
 
   // parse SHAKE args
 
-  if (narg < 8) error->all("Illegal fix shake command");
+  if (narg < 8) error->all(FLERR,"Illegal fix shake command");
 
   tolerance = atof(arg[3]);
   max_iter = atoi(arg[4]);
@@ -109,28 +107,28 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
     } else if (mode == 'b') {
       int i = atoi(arg[next]);
       if (i < 1 || i > atom->nbondtypes) 
-	error->all("Invalid bond type index for fix shake");
+	error->all(FLERR,"Invalid bond type index for fix shake");
       bond_flag[i] = 1;
 
     } else if (mode == 'a') {
       int i = atoi(arg[next]);
       if (i < 1 || i > atom->nangletypes) 
-	error->all("Invalid angle type index for fix shake");
+	error->all(FLERR,"Invalid angle type index for fix shake");
       angle_flag[i] = 1;
 
     } else if (mode == 't') {
       int i = atoi(arg[next]);
       if (i < 1 || i > atom->ntypes) 
-	error->all("Invalid atom type index for fix shake");
+	error->all(FLERR,"Invalid atom type index for fix shake");
       type_flag[i] = 1;
 
     } else if (mode == 'm') {
       double massone = atof(arg[next]);
-      if (massone == 0.0) error->all("Invalid atom mass for fix shake");
-      if (nmass == atom->ntypes) error->all("Too many masses for fix shake");
+      if (massone == 0.0) error->all(FLERR,"Invalid atom mass for fix shake");
+      if (nmass == atom->ntypes) error->all(FLERR,"Too many masses for fix shake");
       mass_list[nmass++] = massone;
 
-    } else error->all("Illegal fix shake command");
+    } else error->all(FLERR,"Illegal fix shake command");
     next++;
   }
 
@@ -280,13 +278,13 @@ void FixShake::init()
   int count = 0;
   for (i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"shake") == 0) count++;
-  if (count > 1) error->all("More than one fix shake");
+  if (count > 1) error->all(FLERR,"More than one fix shake");
 
   // cannot use with minimization since SHAKE turns off bonds
   // that should contribute to potential energy
 
   if (update->whichflag == 2)
-    error->all("Fix shake cannot be used with minimization");
+    error->all(FLERR,"Fix shake cannot be used with minimization");
 
   // error if npt,nph fix comes before shake fix
 
@@ -297,7 +295,7 @@ void FixShake::init()
   if (i < modify->nfix) {
     for (int j = i; j < modify->nfix; j++)
       if (strcmp(modify->fix[j]->style,"shake") == 0)
-	error->all("Shake fix must come before NPT/NPH fix");
+	error->all(FLERR,"Shake fix must come before NPT/NPH fix");
   }
 
   // if rRESPA, find associated fix that must exist
@@ -315,7 +313,7 @@ void FixShake::init()
   // set equilibrium bond distances
 
   if (force->bond == NULL)
-    error->all("Bond potential must be defined for SHAKE");
+    error->all(FLERR,"Bond potential must be defined for SHAKE");
   for (i = 1; i <= atom->nbondtypes; i++) 
     bond_distance[i] = force->bond->equilibrium_distance(i);
 
@@ -326,7 +324,7 @@ void FixShake::init()
   for (i = 1; i <= atom->nangletypes; i++) {
     if (angle_flag[i] == 0) continue;
     if (force->angle == NULL)
-      error->all("Angle potential must be defined for SHAKE");
+      error->all(FLERR,"Angle potential must be defined for SHAKE");
 
     // scan all atoms for a SHAKE angle cluster
     // extract bond types for the 2 bonds in the cluster
@@ -353,7 +351,7 @@ void FixShake::init()
     // error check for any bond types that are not the same
     
     MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_MAX,world);
-    if (flag_all) error->all("Shake angles have different bond types");
+    if (flag_all) error->all(FLERR,"Shake angles have different bond types");
     
     // insure all procs have bond types
     
@@ -458,7 +456,7 @@ void FixShake::pre_neighbor()
 	  sprintf(str,
 		  "Shake atoms %d %d missing on proc %d at step " BIGINT_FORMAT,
 		  shake_atom[i][0],shake_atom[i][1],me,update->ntimestep);
-	  error->one(str);
+	  error->one(FLERR,str);
 	}
 	if (i <= atom1 && i <= atom2) list[nlist++] = i;
       } else if (shake_flag[i] % 2 == 1) {
@@ -472,7 +470,7 @@ void FixShake::pre_neighbor()
 		  BIGINT_FORMAT,
 		  shake_atom[i][0],shake_atom[i][1],shake_atom[i][2],
 		  me,update->ntimestep);
-	  error->one(str);
+	  error->one(FLERR,str);
 	}
 	if (i <= atom1 && i <= atom2 && i <= atom3) list[nlist++] = i;
       } else {
@@ -488,7 +486,7 @@ void FixShake::pre_neighbor()
 		  shake_atom[i][0],shake_atom[i][1],
 		  shake_atom[i][2],shake_atom[i][3],
 		  me,update->ntimestep);
-	  error->one(str);
+	  error->one(FLERR,str);
 	}
 	if (i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4) 
 	  list[nlist++] = i;
@@ -813,7 +811,7 @@ void FixShake::find_clusters()
     }
 
   MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
-  if (flag_all) error->all("Did not find fix shake partner info");
+  if (flag_all) error->all(FLERR,"Did not find fix shake partner info");
 
   // -----------------------------------------------------
   // identify SHAKEable bonds
@@ -947,7 +945,7 @@ void FixShake::find_clusters()
   flag = 0;
   for (i = 0; i < nlocal; i++) if (nshake[i] > 3) flag = 1;
   MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
-  if (flag_all) error->all("Shake cluster of more than 4 atoms");
+  if (flag_all) error->all(FLERR,"Shake cluster of more than 4 atoms");
 
   flag = 0;
   for (i = 0; i < nlocal; i++) {
@@ -956,7 +954,7 @@ void FixShake::find_clusters()
       if (partner_shake[i][j] && partner_nshake[i][j] > 1) flag = 1;
   }
   MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
-  if (flag_all) error->all("Shake clusters are connected");
+  if (flag_all) error->all(FLERR,"Shake clusters are connected");
 
   // -----------------------------------------------------
   // set SHAKE arrays that are stored with atoms & add angle constraints
@@ -1349,7 +1347,7 @@ void FixShake::shake2(int m)
 
   double determ = b*b - 4.0*a*c;
   if (determ < 0.0) {
-    error->warning("Shake determinant < 0.0",0);
+    error->warning(FLERR,"Shake determinant < 0.0",0);
     determ = 0.0;
   }
 
@@ -1469,7 +1467,7 @@ void FixShake::shake3(int m)
   // inverse of matrix
 
   double determ = a11*a22 - a12*a21;
-  if (determ == 0.0) error->one("Shake determinant = 0.0");
+  if (determ == 0.0) error->one(FLERR,"Shake determinant = 0.0");
   double determinv = 1.0/determ;
   
   double a11inv = a22*determinv;
@@ -1663,7 +1661,7 @@ void FixShake::shake4(int m)
 
   double determ = a11*a22*a33 + a12*a23*a31 + a13*a21*a32 -
     a11*a23*a32 - a12*a21*a33 - a13*a22*a31;
-  if (determ == 0.0) error->one("Shake determinant = 0.0");
+  if (determ == 0.0) error->one(FLERR,"Shake determinant = 0.0");
   double determinv = 1.0/determ;
   
   double a11inv = determinv * (a22*a33 - a23*a32);
@@ -1903,7 +1901,7 @@ void FixShake::shake3angle(int m)
 
   double determ = a11*a22*a33 + a12*a23*a31 + a13*a21*a32 -
     a11*a23*a32 - a12*a21*a33 - a13*a22*a31;
-  if (determ == 0.0) error->one("Shake determinant = 0.0");
+  if (determ == 0.0) error->one(FLERR,"Shake determinant = 0.0");
   double determinv = 1.0/determ;
   
   double a11inv = determinv * (a22*a33 - a23*a32);

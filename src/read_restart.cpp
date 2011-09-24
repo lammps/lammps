@@ -69,10 +69,10 @@ ReadRestart::ReadRestart(LAMMPS *lmp) : Pointers(lmp) {}
 
 void ReadRestart::command(int narg, char **arg)
 {
-  if (narg != 1) error->all("Illegal read_restart command");
+  if (narg != 1) error->all(FLERR,"Illegal read_restart command");
 
   if (domain->box_exist) 
-    error->all("Cannot read_restart after simulation box is defined");
+    error->all(FLERR,"Cannot read_restart after simulation box is defined");
 
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
@@ -112,7 +112,7 @@ void ReadRestart::command(int narg, char **arg)
     if (fp == NULL) {
       char str[128];
       sprintf(str,"Cannot open restart file %s",hfile);
-      error->one(str);
+      error->one(FLERR,str);
     }
     if (multiproc) delete [] hfile;
   }
@@ -226,7 +226,7 @@ void ReadRestart::command(int narg, char **arg)
       if (fp == NULL) {
 	char str[128];
 	sprintf(str,"Cannot open restart file %s",perproc);
-	error->one(str);
+	error->one(FLERR,str);
       }
 
       fread(&n,sizeof(int),1,fp);
@@ -307,7 +307,7 @@ void ReadRestart::command(int narg, char **arg)
     if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " atoms\n",natoms);
   }
 
-  if (natoms != atom->natoms) error->all("Did not assign all atoms correctly");
+  if (natoms != atom->natoms) error->all(FLERR,"Did not assign all atoms correctly");
 
   if (me == 0) {
     if (atom->nbonds) {
@@ -411,7 +411,7 @@ void ReadRestart::file_search(char *infile, char *outfile)
   struct dirent *ep;
   DIR *dp = opendir(dirname);
   if (dp == NULL) 
-    error->one("Cannot open dir to search for restart file");
+    error->one(FLERR,"Cannot open dir to search for restart file");
   while (ep = readdir(dp)) {
     if (strstr(ep->d_name,begin) != ep->d_name) continue;
     if ((ptr = strstr(&ep->d_name[nbegin],end)) == NULL) continue;
@@ -423,7 +423,7 @@ void ReadRestart::file_search(char *infile, char *outfile)
     }
   }
   closedir(dp);
-  if (maxnum < 0) error->one("Found no restart file matching pattern");
+  if (maxnum < 0) error->one(FLERR,"Found no restart file matching pattern");
 
   // create outfile with maxint substituted for "*"
   // use original infile, not pattern, since need to retain "%" in filename
@@ -463,7 +463,7 @@ void ReadRestart::header()
     if (flag == VERSION) {
       char *version = read_char();
       if (strcmp(version,universe->version) != 0 && me == 0) {
-	error->warning("Restart file version does not match LAMMPS version");
+	error->warning(FLERR,"Restart file version does not match LAMMPS version");
 	if (screen) fprintf(screen,"  restart file = %s, LAMMPS = %s\n",
 			    version,universe->version);
       }
@@ -474,15 +474,15 @@ void ReadRestart::header()
     } else if (flag == SMALLINT) {
       int size = read_int();
       if (size != sizeof(smallint))
-	error->all("Smallint setting in lmptype.h is not compatible");
+	error->all(FLERR,"Smallint setting in lmptype.h is not compatible");
     } else if (flag == TAGINT) {
       int size = read_int();
       if (size != sizeof(tagint))
-	error->all("Tagint setting in lmptype.h is not compatible");
+	error->all(FLERR,"Tagint setting in lmptype.h is not compatible");
     } else if (flag == BIGINT) {
       int size = read_int();
       if (size != sizeof(bigint))
-	error->all("Bigint setting in lmptype.h is not compatible");
+	error->all(FLERR,"Bigint setting in lmptype.h is not compatible");
 
       // reset unit_style only if different
       // so that timestep,neighbor-skin are not changed
@@ -501,14 +501,14 @@ void ReadRestart::header()
       int dimension = read_int();
       domain->dimension = dimension;
       if (domain->dimension == 2 && domain->zperiodic == 0)
-	error->all("Cannot run 2d simulation with nonperiodic Z dimension");
+	error->all(FLERR,"Cannot run 2d simulation with nonperiodic Z dimension");
 
       // read nprocs from restart file, warn if different
 
     } else if (flag == NPROCS) {
       nprocs_file = read_int();
       if (nprocs_file != comm->nprocs && me == 0)
-	error->warning("Restart file used different # of processors");
+	error->warning(FLERR,"Restart file used different # of processors");
 
       // don't set procgrid, warn if different
 
@@ -521,7 +521,7 @@ void ReadRestart::header()
       if (comm->user_procgrid[0] != 0 && 
 	  (px != comm->user_procgrid[0] || py != comm->user_procgrid[1] || 
 	   pz != comm->user_procgrid[2]) && me == 0)
-	error->warning("Restart file used different 3d processor grid");
+	error->warning(FLERR,"Restart file used different 3d processor grid");
 
     // don't set newton_pair, leave input script value unchanged
     // set newton_bond from restart file
@@ -531,14 +531,14 @@ void ReadRestart::header()
       int newton_pair_file = read_int();
       if (force->newton_pair != 1) {
 	if (newton_pair_file != force->newton_pair && me == 0)
-	  error->warning("Restart file used different newton pair setting, "
+	  error->warning(FLERR,"Restart file used different newton pair setting, "
 			 "using input script value");
       }
     } else if (flag == NEWTON_BOND) {
       int newton_bond_file = read_int();
       if (force->newton_bond != 1) {
 	if (newton_bond_file != force->newton_bond && me == 0)
-	  error->warning("Restart file used different newton bond setting, "
+	  error->warning(FLERR,"Restart file used different newton bond setting, "
 			 "using restart file value");
       }
       force->newton_bond = newton_bond_file;
@@ -577,7 +577,7 @@ void ReadRestart::header()
 	    boundary[2][0] != domain->boundary[2][0] ||
 	    boundary[2][1] != domain->boundary[2][1]) {
 	  if (me == 0) 
-	    error->warning("Restart file used different boundary settings, "
+	    error->warning(FLERR,"Restart file used different boundary settings, "
 			   "using restart file values");
 	}
       }
@@ -687,7 +687,7 @@ void ReadRestart::header()
       domain->triclinic = 1;
       domain->yz = read_double();
 
-    } else error->all("Invalid flag in header section of restart file");
+    } else error->all(FLERR,"Invalid flag in header section of restart file");
 
     flag = read_int();
   }
@@ -707,7 +707,7 @@ void ReadRestart::type_arrays()
       atom->set_mass(mass);
       delete [] mass;
 
-    } else error->all("Invalid flag in type arrays section of restart file");
+    } else error->all(FLERR,"Invalid flag in type arrays section of restart file");
 
     flag = read_int();
   }
@@ -778,7 +778,7 @@ void ReadRestart::force_fields()
       delete [] style;
       force->improper->read_restart(fp);
 
-    } else error->all("Invalid flag in force field section of restart file");
+    } else error->all(FLERR,"Invalid flag in force field section of restart file");
 
     flag = read_int();
   }

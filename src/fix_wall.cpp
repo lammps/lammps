@@ -51,7 +51,7 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
     if ((strcmp(arg[iarg],"xlo") == 0) || (strcmp(arg[iarg],"xhi") == 0) ||
 	(strcmp(arg[iarg],"ylo") == 0) || (strcmp(arg[iarg],"yhi") == 0) ||
 	(strcmp(arg[iarg],"zlo") == 0) || (strcmp(arg[iarg],"zhi") == 0)) {
-      if (iarg+5 > narg) error->all("Illegal fix wall command");
+      if (iarg+5 > narg) error->all(FLERR,"Illegal fix wall command");
 
       int newwall;
       if (strcmp(arg[iarg],"xlo") == 0) newwall = XLO;
@@ -63,7 +63,7 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
 
       for (int m = 0; m < nwall; m++)
 	if (newwall == wallwhich[m])
-	  error->all("Wall defined twice in fix wall command");
+	  error->all(FLERR,"Wall defined twice in fix wall command");
 
       wallwhich[nwall] = newwall;
       if (strcmp(arg[iarg+1],"EDGE") == 0) {
@@ -89,35 +89,35 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
       iarg += 5;
 
     } else if (strcmp(arg[iarg],"units") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix wall command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix wall command");
       if (strcmp(arg[iarg+1],"box") == 0) scaleflag = 0;
       else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = 1;
-      else error->all("Illegal fix wall command");
+      else error->all(FLERR,"Illegal fix wall command");
       iarg += 2;
-    } else error->all("Illegal fix wall command");
+    } else error->all(FLERR,"Illegal fix wall command");
   }
 
   size_vector = nwall;
 
   // error check
 
-  if (nwall == 0) error->all("Illegal fix wall command");
+  if (nwall == 0) error->all(FLERR,"Illegal fix wall command");
   for (int m = 0; m < nwall; m++)
     if (cutoff[m] <= 0.0)
-      error->all("Fix wall cutoff <= 0.0");
+      error->all(FLERR,"Fix wall cutoff <= 0.0");
 
   for (int m = 0; m < nwall; m++) {
     if ((wallwhich[m] == XLO || wallwhich[m] == XHI) && domain->xperiodic)
-      error->all("Cannot use fix wall in periodic dimension");
+      error->all(FLERR,"Cannot use fix wall in periodic dimension");
     if ((wallwhich[m] == YLO || wallwhich[m] == YHI) && domain->yperiodic)
-      error->all("Cannot use fix wall in periodic dimension");
+      error->all(FLERR,"Cannot use fix wall in periodic dimension");
     if ((wallwhich[m] == ZLO || wallwhich[m] == ZHI) && domain->zperiodic)
-      error->all("Cannot use fix wall in periodic dimension");
+      error->all(FLERR,"Cannot use fix wall in periodic dimension");
   }
 
   for (int m = 0; m < nwall; m++)
     if ((wallwhich[m] == ZLO || wallwhich[m] == ZHI) && domain->dimension == 2)
-      error->all("Cannot use fix wall zlo/zhi for a 2d simulation");
+      error->all(FLERR,"Cannot use fix wall zlo/zhi for a 2d simulation");
   
   // scale coord for CONSTANT walls
 
@@ -127,7 +127,7 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
 
   if (flag) {
     if (scaleflag && domain->lattice == NULL)
-      error->all("Use of fix wall with undefined lattice");
+      error->all(FLERR,"Use of fix wall with undefined lattice");
 
     double xscale,yscale,zscale;
     if (scaleflag) {
@@ -186,9 +186,9 @@ void FixWall::init()
     if (wallstyle[m] != VARIABLE) continue;
     varindex[m] = input->variable->find(varstr[m]);
     if (varindex[m] < 0)
-      error->all("Variable name for fix wall does not exist");
+      error->all(FLERR,"Variable name for fix wall does not exist");
     if (!input->variable->equalstyle(varindex[m]))
-      error->all("Variable for fix wall is invalid style");
+      error->all(FLERR,"Variable for fix wall is invalid style");
   }
 
   // setup coefficients

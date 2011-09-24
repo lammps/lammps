@@ -40,7 +40,7 @@ using namespace LAMMPS_NS;
 void NeighborCuda::full_bin_cuda(NeighList *list)
 {
   MYDBG(printf(" # CUDA::NeighFullBinCuda ... start\n");)
-  if(includegroup) error->warning("Warning using inlcudegroup neighborbuild. This is not yet supported by CUDA neighborbuild styles.\n");
+  if(includegroup) error->warning(FLERR,"Warning using inlcudegroup neighborbuild. This is not yet supported by CUDA neighborbuild styles.\n");
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
  
@@ -93,7 +93,7 @@ void NeighborCuda::full_bin_cuda(NeighList *list)
     	slist->binned_id=(int*) CudaWrapper_AllocCudaData(slist->bin_dim[0]*slist->bin_dim[1]*slist->bin_dim[2]*slist->bin_nmax*sizeof(int));
  	  //printf("slist->bin: %i %i %i %i \n", bin_dim_tmp[0],bin_dim_tmp[1],bin_dim_tmp[2],bin_nmax_tmp);
     }
-    //if(list->cuda_list->sneighlist.bin_nmax>512) error->all("To many atoms per bin. Likely cause is very long pair cutoff. This needs major rewrite of code and is not yet scheduled to be done.\n");
+    //if(list->cuda_list->sneighlist.bin_nmax>512) error->all(FLERR,"To many atoms per bin. Likely cause is very long pair cutoff. This needs major rewrite of code and is not yet scheduled to be done.\n");
   }while(Cuda_BinAtoms(&cuda->shared_data, &list->cuda_list->sneighlist));
 
  // cuda->cu_debugdata->memset_device(0);

@@ -33,14 +33,11 @@ using namespace LAMMPS_NS;
 
 #define SMALL 0.00001
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 Ewald::Ewald(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
 {
-  if (narg != 1) error->all("Illegal kspace_style ewald command");
+  if (narg != 1) error->all(FLERR,"Illegal kspace_style ewald command");
 
   precision = atof(arg[0]);
   PI = 4.0*atan(1.0);
@@ -81,18 +78,18 @@ void Ewald::init()
 
   // error check
 
-  if (domain->triclinic) error->all("Cannot use Ewald with triclinic box");
+  if (domain->triclinic) error->all(FLERR,"Cannot use Ewald with triclinic box");
   if (domain->dimension == 2) 
-    error->all("Cannot use Ewald with 2d simulation");
+    error->all(FLERR,"Cannot use Ewald with 2d simulation");
 
-  if (!atom->q_flag) error->all("Kspace style requires atom attribute q");
+  if (!atom->q_flag) error->all(FLERR,"Kspace style requires atom attribute q");
 
   if (slabflag == 0 && domain->nonperiodic > 0)
-    error->all("Cannot use nonperiodic boundaries with Ewald");
+    error->all(FLERR,"Cannot use nonperiodic boundaries with Ewald");
   if (slabflag == 1) {
     if (domain->xperiodic != 1 || domain->yperiodic != 1 || 
 	domain->boundary[2][0] != 1 || domain->boundary[2][1] != 1)
-      error->all("Incorrect boundaries with slab Ewald");
+      error->all(FLERR,"Incorrect boundaries with slab Ewald");
   }
 
   // extract short-range Coulombic cutoff from pair style
@@ -101,11 +98,11 @@ void Ewald::init()
   scale = 1.0;
 
   if (force->pair == NULL)
-    error->all("KSpace style is incompatible with Pair style");
+    error->all(FLERR,"KSpace style is incompatible with Pair style");
   int itmp;
   double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
   if (p_cutoff == NULL)
-    error->all("KSpace style is incompatible with Pair style");
+    error->all(FLERR,"KSpace style is incompatible with Pair style");
   double cutoff = *p_cutoff;
 
   qsum = qsqsum = 0.0;
@@ -121,11 +118,11 @@ void Ewald::init()
   qsqsum = tmp;
 
   if (qsqsum == 0.0)
-    error->all("Cannot use kspace solver on system with no charge");
+    error->all(FLERR,"Cannot use kspace solver on system with no charge");
   if (fabs(qsum) > SMALL && comm->me == 0) {
     char str[128];
     sprintf(str,"System is not charge neutral, net charge = %g",qsum);
-    error->warning(str);
+    error->warning(FLERR,str);
   }
 
   // setup K-space resolution

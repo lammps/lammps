@@ -24,9 +24,9 @@ FixNPHSphere::FixNPHSphere(LAMMPS *lmp, int narg, char **arg) :
   FixNHSphere(lmp, narg, arg)
 {
   if (tstat_flag)
-    error->all("Temperature control can not be used with fix nph/sphere");
+    error->all(FLERR,"Temperature control can not be used with fix nph/sphere");
   if (!pstat_flag)
-    error->all("Pressure control must be used with fix nph/sphere");
+    error->all(FLERR,"Pressure control must be used with fix nph/sphere");
 
   // create a new compute temp style
   // id = fix-ID + temp

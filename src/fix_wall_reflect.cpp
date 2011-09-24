@@ -34,7 +34,7 @@ enum{NONE,EDGE,CONSTANT,VARIABLE};
 FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 4) error->all("Illegal fix wall/reflect command");
+  if (narg < 4) error->all(FLERR,"Illegal fix wall/reflect command");
 
   // parse args
 
@@ -46,7 +46,7 @@ FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
     if ((strcmp(arg[iarg],"xlo") == 0) || (strcmp(arg[iarg],"xhi") == 0) ||
 	(strcmp(arg[iarg],"ylo") == 0) || (strcmp(arg[iarg],"yhi") == 0) ||
 	(strcmp(arg[iarg],"zlo") == 0) || (strcmp(arg[iarg],"zhi") == 0)) {
-      if (iarg+2 > narg) error->all("Illegal fix wall/reflect command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix wall/reflect command");
 
       int newwall;
       if (strcmp(arg[iarg],"xlo") == 0) newwall = XLO;
@@ -58,7 +58,7 @@ FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
 
       for (int m = 0; m < nwall; m++)
 	if (newwall == wallwhich[m])
-	  error->all("Wall defined twice in fix wall/reflect command");
+	  error->all(FLERR,"Wall defined twice in fix wall/reflect command");
 
       wallwhich[nwall] = newwall;
       if (strcmp(arg[iarg+1],"EDGE") == 0) {
@@ -81,30 +81,30 @@ FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"units") == 0) {
-      if (iarg+2 > narg) error->all("Illegal wall/reflect command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal wall/reflect command");
       if (strcmp(arg[iarg+1],"box") == 0) scaleflag = 0;
       else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = 1;
-      else error->all("Illegal fix wall/reflect command");
+      else error->all(FLERR,"Illegal fix wall/reflect command");
       iarg += 2;
-    } else error->all("Illegal fix wall/reflect command");
+    } else error->all(FLERR,"Illegal fix wall/reflect command");
   }
 
   // error check
 
-  if (nwall == 0) error->all("Illegal fix wall command");
+  if (nwall == 0) error->all(FLERR,"Illegal fix wall command");
 
   for (int m = 0; m < nwall; m++) {
     if ((wallwhich[m] == XLO || wallwhich[m] == XHI) && domain->xperiodic)
-      error->all("Cannot use fix wall/reflect in periodic dimension");
+      error->all(FLERR,"Cannot use fix wall/reflect in periodic dimension");
     if ((wallwhich[m] == YLO || wallwhich[m] == YHI) && domain->yperiodic)
-      error->all("Cannot use fix wall/reflect in periodic dimension");
+      error->all(FLERR,"Cannot use fix wall/reflect in periodic dimension");
     if ((wallwhich[m] == ZLO || wallwhich[m] == ZHI) && domain->zperiodic)
-      error->all("Cannot use fix wall/reflect in periodic dimension");
+      error->all(FLERR,"Cannot use fix wall/reflect in periodic dimension");
   }
 
   for (int m = 0; m < nwall; m++)
     if ((wallwhich[m] == ZLO || wallwhich[m] == ZHI) && domain->dimension == 2)
-      error->all("Cannot use fix wall/reflect zlo/zhi for a 2d simulation");
+      error->all(FLERR,"Cannot use fix wall/reflect zlo/zhi for a 2d simulation");
 
   // scale coord for CONSTANT walls
 
@@ -114,7 +114,7 @@ FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
 
   if (flag) {
     if (scaleflag && domain->lattice == NULL)
-      error->all("Use of fix wall with undefined lattice");
+      error->all(FLERR,"Use of fix wall with undefined lattice");
 
     double xscale,yscale,zscale;
     if (scaleflag) {
@@ -166,9 +166,9 @@ void FixWallReflect::init()
     if (wallstyle[m] != VARIABLE) continue;
     varindex[m] = input->variable->find(varstr[m]);
     if (varindex[m] < 0)
-      error->all("Variable name for fix wall/reflect does not exist");
+      error->all(FLERR,"Variable name for fix wall/reflect does not exist");
     if (!input->variable->equalstyle(varindex[m]))
-      error->all("Variable for fix wall/reflect is invalid style");
+      error->all(FLERR,"Variable for fix wall/reflect is invalid style");
   }
 
   int nrigid = 0;
@@ -176,7 +176,7 @@ void FixWallReflect::init()
     if (modify->fix[i]->rigid_flag) nrigid++;
 
   if (nrigid && comm->me == 0) 
-    error->warning("Should not allow rigid bodies to bounce off "
+    error->warning(FLERR,"Should not allow rigid bodies to bounce off "
 		   "relecting walls");
 }
 

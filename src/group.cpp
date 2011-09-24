@@ -38,9 +38,6 @@ enum{LT,LE,GT,GE,EQ,NEQ,BETWEEN};
 
 #define BIG 1.0e20
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ----------------------------------------------------------------------
    initialize group memory
 ------------------------------------------------------------------------- */
@@ -87,27 +84,27 @@ void Group::assign(int narg, char **arg)
   int i;
 
   if (domain->box_exist == 0) 
-    error->all("Group command before simulation box is defined");
-  if (narg < 2) error->all("Illegal group command");
+    error->all(FLERR,"Group command before simulation box is defined");
+  if (narg < 2) error->all(FLERR,"Illegal group command");
 
   // delete the group if not being used elsewhere
   // clear mask of each atom assigned to this group
 
   if (strcmp(arg[1],"delete") == 0) {
     int igroup = find(arg[0]);
-    if (igroup == -1) error->all("Could not find group delete group ID");
-    if (igroup == 0) error->all("Cannot delete group all");
+    if (igroup == -1) error->all(FLERR,"Could not find group delete group ID");
+    if (igroup == 0) error->all(FLERR,"Cannot delete group all");
     for (i = 0; i < modify->nfix; i++)
       if (modify->fix[i]->igroup == igroup)
-	error->all("Cannot delete group currently used by a fix");
+	error->all(FLERR,"Cannot delete group currently used by a fix");
     for (i = 0; i < modify->ncompute; i++)
       if (modify->compute[i]->igroup == igroup)
-	error->all("Cannot delete group currently used by a compute");
+	error->all(FLERR,"Cannot delete group currently used by a compute");
     for (i = 0; i < output->ndump; i++)
       if (output->dump[i]->igroup == igroup)
-	error->all("Cannot delete group currently used by a dump");
+	error->all(FLERR,"Cannot delete group currently used by a dump");
     if (atom->firstgroupname && strcmp(arg[0],atom->firstgroupname) == 0)
-      error->all("Cannot delete group currently used by atom_modify first");
+      error->all(FLERR,"Cannot delete group currently used by atom_modify first");
 
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
@@ -127,7 +124,7 @@ void Group::assign(int narg, char **arg)
   int igroup = find(arg[0]);
 
   if (igroup == -1) {
-    if (ngroup == MAX_GROUP) error->all("Too many groups");
+    if (ngroup == MAX_GROUP) error->all(FLERR,"Too many groups");
     igroup = find_unused();
     int n = strlen(arg[0]) + 1;
     names[igroup] = new char[n];
@@ -146,10 +143,10 @@ void Group::assign(int narg, char **arg)
 
   if (strcmp(arg[1],"region") == 0) {
 
-    if (narg != 3) error->all("Illegal group command");
+    if (narg != 3) error->all(FLERR,"Illegal group command");
     
     int iregion = domain->find_region(arg[2]);
-    if (iregion == -1) error->all("Group region ID does not exist");
+    if (iregion == -1) error->all(FLERR,"Group region ID does not exist");
     domain->init();
 
     for (i = 0; i < nlocal; i++)
@@ -163,13 +160,13 @@ void Group::assign(int narg, char **arg)
 	      strcmp(arg[2],"<=") == 0 || strcmp(arg[2],">=") == 0 || 
 	      strcmp(arg[2],"<>") == 0)) {
 
-    if (narg < 4 || narg > 5) error->all("Illegal group command");
+    if (narg < 4 || narg > 5) error->all(FLERR,"Illegal group command");
     int category,condition,bound1,bound2;
 
     if (strcmp(arg[1],"type") == 0) category = TYPE;
     else if (strcmp(arg[1],"molecule") == 0) category = MOLECULE;
     else if (strcmp(arg[1],"id") == 0) category = ID;
-    else error->all("Illegal group command");
+    else error->all(FLERR,"Illegal group command");
     
     if (strcmp(arg[2],"<") == 0) condition = LT;
     else if (strcmp(arg[2],"<=") == 0) condition = LE;
@@ -178,13 +175,13 @@ void Group::assign(int narg, char **arg)
     else if (strcmp(arg[2],"==") == 0) condition = EQ;
     else if (strcmp(arg[2],"!=") == 0) condition = NEQ;
     else if (strcmp(arg[2],"<>") == 0) condition = BETWEEN;
-    else error->all("Illegal group command");
+    else error->all(FLERR,"Illegal group command");
 
     bound1 = atoi(arg[3]);
     bound2 = -1;
 
     if (condition == BETWEEN) {
-      if (narg != 5) error->all("Illegal group command");
+      if (narg != 5) error->all(FLERR,"Illegal group command");
       bound2 = atoi(arg[4]);
     }
 
@@ -217,7 +214,7 @@ void Group::assign(int narg, char **arg)
   } else if (strcmp(arg[1],"type") == 0 || strcmp(arg[1],"molecule") == 0 ||
 	     strcmp(arg[1],"id") == 0) {
 
-    if (narg < 3) error->all("Illegal group command");
+    if (narg < 3) error->all(FLERR,"Illegal group command");
 
     int length = narg-2;
     int *list = new int[length];
@@ -226,7 +223,7 @@ void Group::assign(int narg, char **arg)
     if (strcmp(arg[1],"type") == 0) category = TYPE;
     else if (strcmp(arg[1],"molecule") == 0) category = MOLECULE;
     else if (strcmp(arg[1],"id") == 0) category = ID;
-    else error->all("Illegal group command");
+    else error->all(FLERR,"Illegal group command");
     
     length = narg - 2;
     for (int iarg = 2; iarg < narg; iarg++) list[iarg-2] = atoi(arg[iarg]);
@@ -248,7 +245,7 @@ void Group::assign(int narg, char **arg)
 
   } else if (strcmp(arg[1],"subtract") == 0) {
 
-    if (narg < 4) error->all("Illegal group command");
+    if (narg < 4) error->all(FLERR,"Illegal group command");
     
     int length = narg-2;
     int *list = new int[length];
@@ -256,7 +253,7 @@ void Group::assign(int narg, char **arg)
     int jgroup;
     for (int iarg = 2; iarg < narg; iarg++) {
       jgroup = find(arg[iarg]);
-      if (jgroup == -1) error->all("Group ID does not exist");
+      if (jgroup == -1) error->all(FLERR,"Group ID does not exist");
       list[iarg-2] = jgroup;
     }
 
@@ -284,7 +281,7 @@ void Group::assign(int narg, char **arg)
 
   } else if (strcmp(arg[1],"union") == 0) {
 
-    if (narg < 3) error->all("Illegal group command");
+    if (narg < 3) error->all(FLERR,"Illegal group command");
     
     int length = narg-2;
     int *list = new int[length];
@@ -292,7 +289,7 @@ void Group::assign(int narg, char **arg)
     int jgroup;
     for (int iarg = 2; iarg < narg; iarg++) {
       jgroup = find(arg[iarg]);
-      if (jgroup == -1) error->all("Group ID does not exist");
+      if (jgroup == -1) error->all(FLERR,"Group ID does not exist");
       list[iarg-2] = jgroup;
     }
 
@@ -312,7 +309,7 @@ void Group::assign(int narg, char **arg)
 
   } else if (strcmp(arg[1],"intersect") == 0) {
 
-    if (narg < 4) error->all("Illegal group command");
+    if (narg < 4) error->all(FLERR,"Illegal group command");
     
     int length = narg-2;
     int *list = new int[length];
@@ -320,7 +317,7 @@ void Group::assign(int narg, char **arg)
     int jgroup;
     for (int iarg = 2; iarg < narg; iarg++) {
       jgroup = find(arg[iarg]);
-      if (jgroup == -1) error->all("Group ID does not exist");
+      if (jgroup == -1) error->all(FLERR,"Group ID does not exist");
       list[iarg-2] = jgroup;
     }
 
@@ -341,7 +338,7 @@ void Group::assign(int narg, char **arg)
 
   // not a valid group style
 
-  } else error->all("Illegal group command");
+  } else error->all(FLERR,"Illegal group command");
 
   // print stats for changed group
 
@@ -374,7 +371,7 @@ void Group::create(char *name, int *flag)
   int igroup = find(name);
 
   if (igroup == -1) {
-    if (ngroup == MAX_GROUP) error->all("Too many groups");
+    if (ngroup == MAX_GROUP) error->all(FLERR,"Too many groups");
     igroup = find_unused();
     int n = strlen(name) + 1;
     names[igroup] = new char[n];

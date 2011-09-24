@@ -81,7 +81,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
     if (strcmp(arg[iarg],"-partition") == 0 || 
 	strcmp(arg[iarg],"-p") == 0) {
       universe->existflag = 1;
-      if (iarg+2 > narg) error->universe_all("Invalid command-line argument");
+      if (iarg+2 > narg) error->universe_all(FLERR,"Invalid command-line argument");
       iarg++;
       while (iarg < narg && arg[iarg][0] != '-') {
 	universe->add_world(arg[iarg]);
@@ -89,50 +89,50 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
       }
     } else if (strcmp(arg[iarg],"-in") == 0 || 
 	       strcmp(arg[iarg],"-i") == 0) {
-      if (iarg+2 > narg) error->universe_all("Invalid command-line argument");
+      if (iarg+2 > narg) error->universe_all(FLERR,"Invalid command-line argument");
       inflag = iarg + 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"-screen") == 0 || 
 	       strcmp(arg[iarg],"-sc") == 0) {
-      if (iarg+2 > narg) error->universe_all("Invalid command-line argument");
+      if (iarg+2 > narg) error->universe_all(FLERR,"Invalid command-line argument");
       screenflag = iarg + 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"-log") == 0 || 
 	       strcmp(arg[iarg],"-l") == 0) {
-      if (iarg+2 > narg) error->universe_all("Invalid command-line argument");
+      if (iarg+2 > narg) error->universe_all(FLERR,"Invalid command-line argument");
       logflag = iarg + 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"-var") == 0 || 
 	       strcmp(arg[iarg],"-v") == 0) {
-      if (iarg+3 > narg) error->universe_all("Invalid command-line argument");
+      if (iarg+3 > narg) error->universe_all(FLERR,"Invalid command-line argument");
       iarg += 2;
       while (iarg < narg && arg[iarg][0] != '-') iarg++;
     } else if (strcmp(arg[iarg],"-echo") == 0 || 
 	       strcmp(arg[iarg],"-e") == 0) {
-      if (iarg+2 > narg) error->universe_all("Invalid command-line argument");
+      if (iarg+2 > narg) error->universe_all(FLERR,"Invalid command-line argument");
       iarg += 2;
     } else if (strcmp(arg[iarg],"-pscreen") == 0 || 
 	       strcmp(arg[iarg],"-ps") == 0) {
       if (iarg+2 > narg) 
-       error->universe_all("Invalid command-line argument");
+       error->universe_all(FLERR,"Invalid command-line argument");
       partscreenflag = iarg + 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"-plog") == 0 || 
 	       strcmp(arg[iarg],"-pl") == 0) {
       if (iarg+2 > narg) 
-       error->universe_all("Invalid command-line argument");
+       error->universe_all(FLERR,"Invalid command-line argument");
       partlogflag = iarg + 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"-cuda") == 0 || 
 	       strcmp(arg[iarg],"-c") == 0) {
-      if (iarg+2 > narg) error->universe_all("Invalid command-line argument");
+      if (iarg+2 > narg) error->universe_all(FLERR,"Invalid command-line argument");
       if (strcmp(arg[iarg+1],"on") == 0) cudaflag = 1;
       else if (strcmp(arg[iarg+1],"off") == 0) cudaflag = 0;
-      else error->universe_all("Invalid command-line argument");
+      else error->universe_all(FLERR,"Invalid command-line argument");
       iarg += 2;
     } else if (strcmp(arg[iarg],"-suffix") == 0 || 
 	       strcmp(arg[iarg],"-sf") == 0) {
-      if (iarg+2 > narg) error->universe_all("Invalid command-line argument");
+      if (iarg+2 > narg) error->universe_all(FLERR,"Invalid command-line argument");
       delete [] suffix;
       int n = strlen(arg[iarg+1]) + 1;
       suffix = new char[n];
@@ -141,10 +141,10 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
       iarg += 2;
     } else if (strcmp(arg[iarg],"-help") == 0 || 
 	       strcmp(arg[iarg],"-h") == 0) {
-      if (iarg+1 > narg) error->universe_all("Invalid command-line argument");
+      if (iarg+1 > narg) error->universe_all(FLERR,"Invalid command-line argument");
       helpflag = 1;
       iarg += 1;
-    } else error->universe_all("Invalid command-line argument");
+    } else error->universe_all(FLERR,"Invalid command-line argument");
   }
 
   // if no partition command-line switch, universe is one world w/ all procs
@@ -154,22 +154,22 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   // sum of procs in all worlds must equal total # of procs
 
   if (!universe->consistent())
-    error->universe_all("Processor partitions are inconsistent");
+    error->universe_all(FLERR,"Processor partitions are inconsistent");
 
   // universe cannot use stdin for input file
 
   if (universe->existflag && inflag == 0)
-    error->universe_all("Must use -in switch with multiple partitions");
+    error->universe_all(FLERR,"Must use -in switch with multiple partitions");
 
   // if no partition command-line switch, cannot use -pscreen option
 
   if (universe->existflag == 0 && partscreenflag)
-    error->universe_all("Can only use -pscreen with multiple partitions");
+    error->universe_all(FLERR,"Can only use -pscreen with multiple partitions");
 
   // if no partition command-line switch, cannot use -plog option
 
   if (universe->existflag == 0 && partlogflag)
-    error->universe_all("Can only use -plog with multiple partitions");
+    error->universe_all(FLERR,"Can only use -plog with multiple partitions");
 
   // set universe screen and logfile
 
@@ -181,18 +181,18 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
     else {
       universe->uscreen = fopen(arg[screenflag],"w");
       if (universe->uscreen == NULL) 
-	error->universe_one("Cannot open universe screen file");
+	error->universe_one(FLERR,"Cannot open universe screen file");
     }
     if (logflag == 0) {
       universe->ulogfile = fopen("log.lammps","w");
       if (universe->ulogfile == NULL) 
-	error->universe_one("Cannot open log.lammps");
+	error->universe_one(FLERR,"Cannot open log.lammps");
     } else if (strcmp(arg[logflag],"none") == 0)
       universe->ulogfile = NULL;
     else {
       universe->ulogfile = fopen(arg[logflag],"w");
       if (universe->ulogfile == NULL) 
-	error->universe_one("Cannot open universe log file");
+	error->universe_one(FLERR,"Cannot open universe log file");
     }
   }
 
@@ -219,7 +219,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
       if (infile == NULL) {
 	char str[128];
 	sprintf(str,"Cannot open input script %s",arg[inflag]);
-	error->one(str);
+	error->one(FLERR,str);
       }
     }
 
@@ -244,14 +244,14 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
          char str[32];
          sprintf(str,"screen.%d",universe->iworld);
          screen = fopen(str,"w");
-         if (screen == NULL) error->one("Cannot open screen file");
+         if (screen == NULL) error->one(FLERR,"Cannot open screen file");
        } else if (strcmp(arg[screenflag],"none") == 0)
          screen = NULL;
        else {
          char str[128];
          sprintf(str,"%s.%d",arg[screenflag],universe->iworld);
          screen = fopen(str,"w");
-         if (screen == NULL) error->one("Cannot open screen file");
+         if (screen == NULL) error->one(FLERR,"Cannot open screen file");
        }
       else if (strcmp(arg[partscreenflag],"none") == 0)
 	screen = NULL;
@@ -259,7 +259,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
 	char str[128];
 	sprintf(str,"%s.%d",arg[partscreenflag],universe->iworld);
 	screen = fopen(str,"w");
-	if (screen == NULL) error->one("Cannot open screen file");
+	if (screen == NULL) error->one(FLERR,"Cannot open screen file");
       } else screen = NULL;
     
     if (me == 0)
@@ -268,14 +268,14 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
          char str[32];
          sprintf(str,"log.lammps.%d",universe->iworld);
          logfile = fopen(str,"w");
-         if (logfile == NULL) error->one("Cannot open logfile");
+         if (logfile == NULL) error->one(FLERR,"Cannot open logfile");
        } else if (strcmp(arg[logflag],"none") == 0)
          logfile = NULL;
        else {
          char str[128];
          sprintf(str,"%s.%d",arg[logflag],universe->iworld);
          logfile = fopen(str,"w");
-         if (logfile == NULL) error->one("Cannot open logfile");
+         if (logfile == NULL) error->one(FLERR,"Cannot open logfile");
        }
       else if (strcmp(arg[partlogflag],"none") == 0)
 	logfile = NULL;
@@ -283,7 +283,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
 	char str[128];
 	sprintf(str,"%s.%d",arg[partlogflag],universe->iworld);
 	logfile = fopen(str,"w");
-	if (logfile == NULL) error->one("Cannot open logfile");
+	if (logfile == NULL) error->one(FLERR,"Cannot open logfile");
       } else logfile = NULL;
     
     if (me == 0) {
@@ -291,7 +291,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
       if (infile == NULL) {
 	char str[128];
 	sprintf(str,"Cannot open input script %s",arg[inflag]);
-	error->one(str);
+	error->one(FLERR,str);
       }
     } else infile = NULL;
     
@@ -325,34 +325,34 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   // check datatype settings in lmptype.h
 
   if (sizeof(smallint) != sizeof(int))
-    error->all("Smallint setting in lmptype.h is invalid");
+    error->all(FLERR,"Smallint setting in lmptype.h is invalid");
   if (sizeof(tagint) < sizeof(smallint))
-    error->all("Tagint setting in lmptype.h is invalid");
+    error->all(FLERR,"Tagint setting in lmptype.h is invalid");
   if (sizeof(bigint) < sizeof(tagint))
-    error->all("Bigint setting in lmptype.h is invalid");
+    error->all(FLERR,"Bigint setting in lmptype.h is invalid");
 
   int mpisize;
   MPI_Type_size(MPI_LMP_TAGINT,&mpisize);
   if (mpisize != sizeof(tagint))
-      error->all("MPI_LMP_TAGINT and tagint in lmptype.h are not compatible");
+      error->all(FLERR,"MPI_LMP_TAGINT and tagint in lmptype.h are not compatible");
   MPI_Type_size(MPI_LMP_BIGINT,&mpisize);
   if (mpisize != sizeof(bigint))
-      error->all("MPI_LMP_BIGINT and bigint in lmptype.h are not compatible");
+      error->all(FLERR,"MPI_LMP_BIGINT and bigint in lmptype.h are not compatible");
 
 #ifdef LAMMPS_SMALLBIG
   if (sizeof(smallint) != 4 || sizeof(tagint) != 4 || sizeof(bigint) != 8)
-    error->all("Small, tag, big integers are not sized correctly");
+    error->all(FLERR,"Small, tag, big integers are not sized correctly");
 #endif
 #ifdef LAMMPS_BIGBIG
   if (sizeof(smallint) != 4 || sizeof(tagint) != 8 || sizeof(bigint) != 8)
-    error->all("Small, tag, big integers are not sized correctly");
+    error->all(FLERR,"Small, tag, big integers are not sized correctly");
 #endif
 #ifdef LAMMPS_SMALLSMALL
   if (sizeof(smallint) != 4 || sizeof(tagint) != 4 || sizeof(bigint) != 4)
-    error->all("Small, tag, big integers are not sized correctly");
+    error->all(FLERR,"Small, tag, big integers are not sized correctly");
 #endif
 
-  if (sizeof(tagint) == 8) error->all("64-bit atom IDs are not yet supported");
+  if (sizeof(tagint) == 8) error->all(FLERR,"64-bit atom IDs are not yet supported");
 
   // create CUDA class if USER-CUDA installed, unless explicitly switched off
   // instantiation creates dummy CUDA class if USER-CUDA is not installed
@@ -362,7 +362,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   } else if (cudaflag == 1) {
     cuda = new Cuda(this);
     if (!cuda->cuda_exists)
-      error->all("Cannot use -cuda on without USER-CUDA installed");
+      error->all(FLERR,"Cannot use -cuda on without USER-CUDA installed");
   } else {
     cuda = new Cuda(this);
     if (!cuda->cuda_exists) {
@@ -373,7 +373,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   
   int me;
   MPI_Comm_rank(world,&me);
-  if (cuda && me == 0) error->message("USER-CUDA mode is enabled");
+  if (cuda && me == 0) error->message(FLERR,"USER-CUDA mode is enabled");
 
   // allocate input class now that MPI is fully setup
 

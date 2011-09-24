@@ -50,6 +50,7 @@
 
 #ifdef FFT_CUFFT
 #endif
+
 #define MIN(A,B) ((A) < (B)) ? (A) : (B)
 #define MAX(A,B) ((A) > (B)) ? (A) : (B)
 
@@ -182,7 +183,7 @@ struct fft_plan_3d *fft_3d_create_plan_cuda(
   MPI_Comm_size(comm,&nprocs);
 
 #ifndef FFT_CUFFT
-    error->all("ERROR: Trying to use cuda fft without FFT_CUFFT set. Recompile with make option 'cufft=1'.");
+    error->all(FLERR,"ERROR: Trying to use cuda fft without FFT_CUFFT set. Recompile with make option 'cufft=1'.");
 #endif
   // compute division of procs in 2 dimensions not on-processor 
   bifactor_cuda(nprocs,&np1,&np2);

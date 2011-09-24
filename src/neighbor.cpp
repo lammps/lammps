@@ -49,9 +49,6 @@ using namespace LAMMPS_NS;
 #define BIG 1.0e20
 #define CUT2BIN_RATIO 100
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 enum{NSQ,BIN,MULTI};     // also in neigh_list.cpp
 
 //#define NEIGH_LIST_DEBUG 1
@@ -196,10 +193,10 @@ void Neighbor::init()
   // error check
 
   if (delay > 0 && (delay % every) != 0)
-    error->all("Neighbor delay must be 0 or multiple of every setting");
+    error->all(FLERR,"Neighbor delay must be 0 or multiple of every setting");
 
   if (pgsize < 10*oneatom)
-    error->all("Neighbor page size must be >= 10x the one atom setting");
+    error->all(FLERR,"Neighbor page size must be >= 10x the one atom setting");
 
   // ------------------------------------------------------------------
   // settings
@@ -382,7 +379,7 @@ void Neighbor::init()
     for (i = 0; i < nex_type; i++) {
       if (ex1_type[i] <= 0 || ex1_type[i] > n || 
 	  ex2_type[i] <= 0 || ex2_type[i] > n)
-	error->all("Invalid atom type in neighbor exclusion list");
+	error->all(FLERR,"Invalid atom type in neighbor exclusion list");
       ex_type[ex1_type[i]][ex2_type[i]] = 1;
       ex_type[ex2_type[i]][ex1_type[i]] = 1;
     }
@@ -857,16 +854,16 @@ void Neighbor::choose_build(int index, NeighRequest *rq)
     if (style == NSQ) {
       if (rq->ghost == 0) pb = &Neighbor::full_nsq;
       else if (includegroup) 
-	error->all("Neighbor include group not allowed with ghost neighbors");
+	error->all(FLERR,"Neighbor include group not allowed with ghost neighbors");
       else if (rq->ghost == 1) pb = &Neighbor::full_nsq_ghost;
     } else if (style == BIN) {
       if (rq->ghost == 0) pb = &Neighbor::full_bin;
       else if (includegroup) 
-	error->all("Neighbor include group not allowed with ghost neighbors");
+	error->all(FLERR,"Neighbor include group not allowed with ghost neighbors");
       else if (rq->ghost == 1) pb = &Neighbor::full_bin_ghost;
     } else if (style == MULTI) {
       if (rq->ghost == 0) pb = &Neighbor::full_multi;
-      else error->all("Neighbor multi not yet enabled for ghost neighbors");
+      else error->all(FLERR,"Neighbor multi not yet enabled for ghost neighbors");
     }
 
   } else if (rq->gran) {
@@ -878,7 +875,7 @@ void Neighbor::choose_build(int index, NeighRequest *rq)
       else if (triclinic == 0) pb = &Neighbor::granular_bin_newton;
       else if (triclinic == 1) pb = &Neighbor::granular_bin_newton_tri;
     } else if (style == MULTI)
-      error->all("Neighbor multi not yet enabled for granular");
+      error->all(FLERR,"Neighbor multi not yet enabled for granular");
 
   } else if (rq->respaouter) {
     if (style == NSQ) {
@@ -889,13 +886,13 @@ void Neighbor::choose_build(int index, NeighRequest *rq)
       else if (triclinic == 0) pb = &Neighbor::respa_bin_newton;
       else if (triclinic == 1) pb = &Neighbor::respa_bin_newton_tri;
     } else if (style == MULTI)
-      error->all("Neighbor multi not yet enabled for rRESPA");
+      error->all(FLERR,"Neighbor multi not yet enabled for rRESPA");
   }
 
   // general error check
 
   if (rq->ghost && !rq->full)
-    error->all("Neighbors of ghost atoms only allowed for full neighbor lists");
+    error->all(FLERR,"Neighbors of ghost atoms only allowed for full neighbor lists");
 
   pair_build[index] = pb;
 }
@@ -1181,7 +1178,7 @@ void Neighbor::build()
   // check that neighbor list with special bond flags will not overflow
 
   if (atom->nlocal+atom->nghost > NEIGHMASK)
-    error->one("Too many local+ghost atoms for neighbor list");
+    error->one(FLERR,"Too many local+ghost atoms for neighbor list");
 
   // invoke building of pair and molecular neighbor lists
   // only for pairwise lists with buildflag set
@@ -1224,7 +1221,7 @@ void Neighbor::build_one(int i)
   // check that neighbor list with special bond flags will not overflow
 
   if (atom->nlocal+atom->nghost > NEIGHMASK)
-    error->one("Too many local+ghost atoms for neighbor list");
+    error->one(FLERR,"Too many local+ghost atoms for neighbor list");
 
   // when occasional list built, LAMMPS can crash if atoms have moved too far
   // why is this?, give warning if this is the case
@@ -1235,7 +1232,7 @@ void Neighbor::build_one(int i)
   int flag = 0;
   if (dist_check && update->whichflag) flag = check_distance();
   if (flag && me == 0)
-    error->warning("Building an occasional neighobr list when "
+    error->warning(FLERR,"Building an occasional neighobr list when "
 		   "atoms may have moved too far");
 
   (this->*pair_build[i])(lists[i]);
@@ -1313,7 +1310,7 @@ void Neighbor::setup_bins()
 
   if (bbox[0]*binsizeinv > MAXSMALLINT || bbox[1]*binsizeinv > MAXSMALLINT ||
       bbox[2]*binsizeinv > MAXSMALLINT)
-    error->all("Domain too large for neighbor bins");
+    error->all(FLERR,"Domain too large for neighbor bins");
 
   // create actual bins
   // always have one bin even if cutoff > bbox
@@ -1345,7 +1342,7 @@ void Neighbor::setup_bins()
   if (binsize_optimal*bininvx > CUT2BIN_RATIO || 
       binsize_optimal*bininvy > CUT2BIN_RATIO || 
       binsize_optimal*bininvz > CUT2BIN_RATIO)
-    error->all("Cannot use neighbor bins - box size << cutoff");
+    error->all(FLERR,"Cannot use neighbor bins - box size << cutoff");
   
   // mbinlo/hi = lowest and highest global bins my ghost atoms could be in
   // coord = lowest and highest values of coords for my ghost atoms
@@ -1395,7 +1392,7 @@ void Neighbor::setup_bins()
   // memory for bin ptrs
 
   bigint bbin = mbinx*mbiny*mbinz;
-  if (bbin > MAXSMALLINT) error->one("Too many neighbor bins");
+  if (bbin > MAXSMALLINT) error->one(FLERR,"Too many neighbor bins");
   mbins = bbin;
   if (mbins > maxhead) {
     maxhead = mbins;
@@ -1455,15 +1452,15 @@ double Neighbor::bin_distance(int i, int j, int k)
 
 void Neighbor::set(int narg, char **arg)
 {
-  if (narg != 2) error->all("Illegal neighbor command");
+  if (narg != 2) error->all(FLERR,"Illegal neighbor command");
 
   skin = atof(arg[0]);
-  if (skin < 0.0) error->all("Illegal neighbor command");
+  if (skin < 0.0) error->all(FLERR,"Illegal neighbor command");
 
   if (strcmp(arg[1],"nsq") == 0) style = NSQ;
   else if (strcmp(arg[1],"bin") == 0) style = BIN;
   else if (strcmp(arg[1],"multi") == 0) style = MULTI;
-  else error->all("Illegal neighbor command");
+  else error->all(FLERR,"Illegal neighbor command");
 }
 
 /* ----------------------------------------------------------------------
@@ -1475,55 +1472,55 @@ void Neighbor::modify_params(int narg, char **arg)
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"every") == 0) {
-      if (iarg+2 > narg) error->all("Illegal neigh_modify command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal neigh_modify command");
       every = atoi(arg[iarg+1]);
-      if (every <= 0) error->all("Illegal neigh_modify command");
+      if (every <= 0) error->all(FLERR,"Illegal neigh_modify command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"delay") == 0) {
-      if (iarg+2 > narg) error->all("Illegal neigh_modify command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal neigh_modify command");
       delay = atoi(arg[iarg+1]);
-      if (delay < 0) error->all("Illegal neigh_modify command");
+      if (delay < 0) error->all(FLERR,"Illegal neigh_modify command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"check") == 0) {
-      if (iarg+2 > narg) error->all("Illegal neigh_modify command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal neigh_modify command");
       if (strcmp(arg[iarg+1],"yes") == 0) dist_check = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) dist_check = 0;
-      else error->all("Illegal neigh_modify command");
+      else error->all(FLERR,"Illegal neigh_modify command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"once") == 0) {
-      if (iarg+2 > narg) error->all("Illegal neigh_modify command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal neigh_modify command");
       if (strcmp(arg[iarg+1],"yes") == 0) build_once = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) build_once = 0;
-      else error->all("Illegal neigh_modify command");
+      else error->all(FLERR,"Illegal neigh_modify command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"page") == 0) {
-      if (iarg+2 > narg) error->all("Illegal neigh_modify command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal neigh_modify command");
       pgsize = atoi(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"one") == 0) {
-      if (iarg+2 > narg) error->all("Illegal neigh_modify command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal neigh_modify command");
       oneatom = atoi(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"binsize") == 0) {
-      if (iarg+2 > narg) error->all("Illegal neigh_modify command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal neigh_modify command");
       binsize_user = atof(arg[iarg+1]);
       if (binsize_user <= 0.0) binsizeflag = 0;
       else binsizeflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"include") == 0) {
-      if (iarg+2 > narg) error->all("Illegal neigh_modify command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal neigh_modify command");
       includegroup = group->find(arg[iarg+1]);
       if (includegroup < 0)
-	error->all("Invalid group ID in neigh_modify command");
+	error->all(FLERR,"Invalid group ID in neigh_modify command");
       if (includegroup && (atom->firstgroupname == NULL ||
 			    strcmp(arg[iarg+1],atom->firstgroupname) != 0))
-	error->all("Neigh_modify include group != atom_modify first group");
+	error->all(FLERR,"Neigh_modify include group != atom_modify first group");
       iarg += 2;
     } else if (strcmp(arg[iarg],"exclude") == 0) {
-      if (iarg+2 > narg) error->all("Illegal neigh_modify command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal neigh_modify command");
 
       if (strcmp(arg[iarg+1],"type") == 0) {
-	if (iarg+4 > narg) error->all("Illegal neigh_modify command");
+	if (iarg+4 > narg) error->all(FLERR,"Illegal neigh_modify command");
 	if (nex_type == maxex_type) {
 	  maxex_type += EXDELTA;
 	  memory->grow(ex1_type,maxex_type,"neigh:ex1_type");
@@ -1535,7 +1532,7 @@ void Neighbor::modify_params(int narg, char **arg)
 	iarg += 4;
 
       } else if (strcmp(arg[iarg+1],"group") == 0) {
-	if (iarg+4 > narg) error->all("Illegal neigh_modify command");
+	if (iarg+4 > narg) error->all(FLERR,"Illegal neigh_modify command");
 	if (nex_group == maxex_group) {
 	  maxex_group += EXDELTA;
 	  memory->grow(ex1_group,maxex_group,"neigh:ex1_group");
@@ -1544,16 +1541,16 @@ void Neighbor::modify_params(int narg, char **arg)
 	ex1_group[nex_group] = group->find(arg[iarg+2]);
 	ex2_group[nex_group] = group->find(arg[iarg+3]);
 	if (ex1_group[nex_group] == -1 || ex2_group[nex_group] == -1)
-	  error->all("Invalid group ID in neigh_modify command");
+	  error->all(FLERR,"Invalid group ID in neigh_modify command");
 	nex_group++;
 	iarg += 4;
 
       } else if (strcmp(arg[iarg+1],"molecule") == 0) {
-	if (iarg+3 > narg) error->all("Illegal neigh_modify command");
+	if (iarg+3 > narg) error->all(FLERR,"Illegal neigh_modify command");
 	if (atom->molecule_flag == 0) {
 	  char *str = (char *)
 	    "Neigh_modify exclude molecule requires atom attribute molecule";
-	  error->all(str);
+	  error->all(FLERR,str);
 	}
 	if (nex_mol == maxex_mol) {
 	  maxex_mol += EXDELTA;
@@ -1561,16 +1558,16 @@ void Neighbor::modify_params(int narg, char **arg)
 	}
 	ex_mol_group[nex_mol] = group->find(arg[iarg+2]);
 	if (ex_mol_group[nex_mol] == -1)
-	  error->all("Invalid group ID in neigh_modify command");
+	  error->all(FLERR,"Invalid group ID in neigh_modify command");
 	nex_mol++;
 	iarg += 3;
 
       } else if (strcmp(arg[iarg+1],"none") == 0) {
 	nex_type = nex_group = nex_mol = 0;
 	iarg += 2;
-      } else error->all("Illegal neigh_modify command");
+      } else error->all(FLERR,"Illegal neigh_modify command");
 
-    } else error->all("Illegal neigh_modify command");
+    } else error->all(FLERR,"Illegal neigh_modify command");
   }
 }
 

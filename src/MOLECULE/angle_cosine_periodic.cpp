@@ -199,7 +199,7 @@ void AngleCosinePeriodic::allocate()
 
 void AngleCosinePeriodic::coeff(int narg, char **arg)
 {
-  if (narg != 4) error->all("Incorrect args for angle coefficients");
+  if (narg != 4) error->all(FLERR,"Incorrect args for angle coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -208,7 +208,7 @@ void AngleCosinePeriodic::coeff(int narg, char **arg)
   double c_one = atof(arg[1]);
   int b_one = atoi(arg[2]);
   int n_one = atoi(arg[3]);
-  if (n_one <= 0) error->all("Incorrect args for angle coefficients");
+  if (n_one <= 0) error->all(FLERR,"Incorrect args for angle coefficients");
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -219,7 +219,7 @@ void AngleCosinePeriodic::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all("Incorrect args for angle coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for angle coefficients");
 }
 
 /* ---------------------------------------------------------------------- */

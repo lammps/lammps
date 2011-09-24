@@ -32,9 +32,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 #define MAXLINE 1024
 
 enum{FCC,BCC,HCP,DIM,DIAMOND,B1,C11,L12,B2};
@@ -247,7 +244,7 @@ void PairMEAM::compute(int eflag, int vflag)
     if (errorflag) {
       char str[128];
       sprintf(str,"MEAM library error %d",errorflag);
-      error->one(str);
+      error->one(FLERR,str);
     }
     offset += numneigh_half[i];
   }
@@ -262,7 +259,7 @@ void PairMEAM::compute(int eflag, int vflag)
   if (errorflag) {
     char str[128];
     sprintf(str,"MEAM library error %d",errorflag);
-    error->one(str);
+    error->one(FLERR,str);
   }
 
   comm->forward_comm_pair(this);
@@ -290,7 +287,7 @@ void PairMEAM::compute(int eflag, int vflag)
     if (errorflag) {
       char str[128];
       sprintf(str,"MEAM library error %d",errorflag);
-      error->one(str);
+      error->one(FLERR,str);
     }
     offset += numneigh_half[i];
   }
@@ -323,7 +320,7 @@ void PairMEAM::allocate()
 
 void PairMEAM::settings(int narg, char **arg)
 {
-  if (narg != 0) error->all("Illegal pair_style command");
+  if (narg != 0) error->all(FLERR,"Illegal pair_style command");
 }
 
 /* ----------------------------------------------------------------------
@@ -336,12 +333,12 @@ void PairMEAM::coeff(int narg, char **arg)
 
   if (!allocated) allocate();
 
-  if (narg < 6) error->all("Incorrect args for pair coefficients");
+  if (narg < 6) error->all(FLERR,"Incorrect args for pair coefficients");
 
   // insure I,J args are * *
 
   if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all("Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read MEAM element names between 2 filenames
   // nelements = # of MEAM elements
@@ -353,7 +350,7 @@ void PairMEAM::coeff(int narg, char **arg)
     delete [] mass;
   }
   nelements = narg - 4 - atom->ntypes;
-  if (nelements < 1) error->all("Incorrect args for pair coefficients");
+  if (nelements < 1) error->all(FLERR,"Incorrect args for pair coefficients");
   elements = new char*[nelements];
   mass = new double[nelements];
   
@@ -379,7 +376,7 @@ void PairMEAM::coeff(int narg, char **arg)
       if (strcmp(arg[i],elements[j]) == 0) break;
     if (j < nelements) map[m] = j;
     else if (strcmp(arg[i],"NULL") == 0) map[m] = -1;
-    else error->all("Incorrect args for pair coefficients");
+    else error->all(FLERR,"Incorrect args for pair coefficients");
   }
 
   // clear setflag since coeff() called once with I,J = * *
@@ -401,7 +398,7 @@ void PairMEAM::coeff(int narg, char **arg)
 	count++;
       }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -411,7 +408,7 @@ void PairMEAM::coeff(int narg, char **arg)
 void PairMEAM::init_style()
 {
   if (force->newton_pair == 0)
-    error->all("Pair style MEAM requires newton pair on");
+    error->all(FLERR,"Pair style MEAM requires newton pair on");
 
   // need full and half neighbor list
 
@@ -464,7 +461,7 @@ void PairMEAM::read_files(char *globalfile, char *userfile)
     if (fp == NULL) {
       char str[128];
       sprintf(str,"Cannot open MEAM potential file %s",globalfile);
-      error->one(str);
+      error->one(FLERR,str);
     }
   }
 
@@ -544,7 +541,7 @@ void PairMEAM::read_files(char *globalfile, char *userfile)
     }
 
     if (nwords != params_per_line)
-      error->all("Incorrect format in MEAM potential file");
+      error->all(FLERR,"Incorrect format in MEAM potential file");
 
     // words = ptrs to all words in line
     // strip single and double quotes from words
@@ -571,7 +568,7 @@ void PairMEAM::read_files(char *globalfile, char *userfile)
     else if (strcmp(words[1],"hcp") == 0) lat[i] = HCP;
     else if (strcmp(words[1],"dim") == 0) lat[i] = DIM;
     else if (strcmp(words[1],"dia") == 0) lat[i] = DIAMOND;
-    else error->all("Unrecognized lattice type in MEAM file 1");
+    else error->all(FLERR,"Unrecognized lattice type in MEAM file 1");
 
     // store parameters
 
@@ -599,7 +596,7 @@ void PairMEAM::read_files(char *globalfile, char *userfile)
   // error if didn't find all elements in file
 
   if (nset != nelements)
-    error->all("Did not find all elements in MEAM library file");
+    error->all(FLERR,"Did not find all elements in MEAM library file");
 
   // pass element parameters to MEAM package
 
@@ -645,7 +642,7 @@ void PairMEAM::read_files(char *globalfile, char *userfile)
     if (fp == NULL) {
       char str[128];
       sprintf(str,"Cannot open MEAM potential file %s",userfile);
-      error->one(str);
+      error->one(FLERR,str);
     }
   }
 
@@ -695,7 +692,7 @@ void PairMEAM::read_files(char *globalfile, char *userfile)
       char str[128];
       sprintf(str,"Keyword %s in MEAM parameter file not recognized",
 	      params[0]);
-      error->all(str);
+      error->all(FLERR,str);
     }
     nindex = nparams - 2;
     for (i = 0; i < nindex; i++) index[i] = atoi(params[i+1]);
@@ -712,7 +709,7 @@ void PairMEAM::read_files(char *globalfile, char *userfile)
       else if (strcmp(params[nparams-1],"c11") == 0) value = C11;
       else if (strcmp(params[nparams-1],"l12") == 0) value = L12;
       else if (strcmp(params[nparams-1],"b2")  == 0) value = B2;
-      else error->all("Unrecognized lattice type in MEAM file 2");
+      else error->all(FLERR,"Unrecognized lattice type in MEAM file 2");
     }
     else value = atof(params[nparams-1]);
 
@@ -723,7 +720,7 @@ void PairMEAM::read_files(char *globalfile, char *userfile)
     if (errorflag) {
       char str[128];
       sprintf(str,"MEAM library error %d",errorflag);
-      error->all(str);
+      error->all(FLERR,str);
     }
   }
 

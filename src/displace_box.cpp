@@ -43,10 +43,10 @@ void DisplaceBox::command(int narg, char **arg)
   int i;
 
   if (domain->box_exist == 0) 
-    error->all("Displace_box command before simulation box is defined");
-  if (narg < 2) error->all("Illegal displace_box command");
+    error->all(FLERR,"Displace_box command before simulation box is defined");
+  if (narg < 2) error->all(FLERR,"Illegal displace_box command");
   if (modify->nfix_restart_peratom) 
-    error->all("Cannot displace_box after "
+    error->all(FLERR,"Cannot displace_box after "
 	       "reading restart file with per-atom info");
 
   if (comm->me == 0 && screen) fprintf(screen,"Displacing box ...\n");
@@ -54,7 +54,7 @@ void DisplaceBox::command(int narg, char **arg)
   // group
 
   int igroup = group->find(arg[0]);
-  if (igroup == -1) error->all("Could not find displace_box group ID");
+  if (igroup == -1) error->all(FLERR,"Could not find displace_box group ID");
   int groupbit = group->bitmask[igroup];
 
   // set defaults
@@ -76,48 +76,48 @@ void DisplaceBox::command(int narg, char **arg)
       else if (strcmp(arg[iarg],"y") == 0) index = 1;
       else if (strcmp(arg[iarg],"z") == 0) index = 2;
 
-      if (iarg+2 > narg) error->all("Illegal displace_box command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal displace_box command");
       if (strcmp(arg[iarg+1],"final") == 0) {
-	if (iarg+4 > narg) error->all("Illegal displace_box command");
+	if (iarg+4 > narg) error->all(FLERR,"Illegal displace_box command");
 	set[index].style = FINAL;
 	set[index].flo = atof(arg[iarg+2]);
 	set[index].fhi = atof(arg[iarg+3]);
 	iarg += 4;
       } else if (strcmp(arg[iarg+1],"delta") == 0) {
-	if (iarg+4 > narg) error->all("Illegal displace_box command");
+	if (iarg+4 > narg) error->all(FLERR,"Illegal displace_box command");
 	set[index].style = DELTA;
 	set[index].dlo = atof(arg[iarg+2]);
 	set[index].dhi = atof(arg[iarg+3]);
 	iarg += 4;
       } else if (strcmp(arg[iarg+1],"scale") == 0) {
-	if (iarg+3 > narg) error->all("Illegal displace_box command");
+	if (iarg+3 > narg) error->all(FLERR,"Illegal displace_box command");
 	set[index].style = SCALE;
 	set[index].scale = atof(arg[iarg+2]);
 	iarg += 3;
       } else if (strcmp(arg[iarg+1],"volume") == 0) {
 	set[index].style = VOLUME;
 	iarg += 2;
-      } else error->all("Illegal displace_box command");
+      } else error->all(FLERR,"Illegal displace_box command");
 
     } else if (strcmp(arg[iarg],"xy") == 0 || strcmp(arg[iarg],"xz") == 0 ||
 	strcmp(arg[iarg],"yz") == 0) {
       if (triclinic == 0)
-	error->all("Displace_box tilt factors require triclinic box");
+	error->all(FLERR,"Displace_box tilt factors require triclinic box");
       if (strcmp(arg[iarg],"xy") == 0) index = 5;
       else if (strcmp(arg[iarg],"xz") == 0) index = 4;
       else if (strcmp(arg[iarg],"yz") == 0) index = 3;
-      if (iarg+2 > narg) error->all("Illegal displace_box command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal displace_box command");
       if (strcmp(arg[iarg+1],"final") == 0) {
-	if (iarg+3 > narg) error->all("Illegal displace_box command");
+	if (iarg+3 > narg) error->all(FLERR,"Illegal displace_box command");
 	set[index].style = FINAL;
 	set[index].ftilt = atof(arg[iarg+2]);
 	iarg += 3;
       } else if (strcmp(arg[iarg+1],"delta") == 0) {
-	if (iarg+3 > narg) error->all("Illegal displace_box command");
+	if (iarg+3 > narg) error->all(FLERR,"Illegal displace_box command");
 	set[index].style = DELTA;
 	set[index].dtilt = atof(arg[iarg+2]);
 	iarg += 3;
-      } else error->all("Illegal displace_box command");
+      } else error->all(FLERR,"Illegal displace_box command");
 
     } else break;
   }
@@ -131,14 +131,14 @@ void DisplaceBox::command(int narg, char **arg)
   if ((set[0].style && domain->xperiodic == 0) ||
       (set[1].style && domain->yperiodic == 0) ||
       (set[2].style && domain->zperiodic == 0))
-    error->all("Cannot displace_box on a non-periodic boundary");
+    error->all(FLERR,"Cannot displace_box on a non-periodic boundary");
 
   if (set[3].style && (domain->yperiodic == 0 || domain->zperiodic == 0))
-    error->all("Cannot displace_box on a non-periodic boundary");
+    error->all(FLERR,"Cannot displace_box on a non-periodic boundary");
   if (set[4].style && (domain->xperiodic == 0 || domain->zperiodic == 0))
-    error->all("Cannot displace_box on a non-periodic boundary");
+    error->all(FLERR,"Cannot displace_box on a non-periodic boundary");
   if (set[5].style && (domain->xperiodic == 0 || domain->yperiodic == 0))
-    error->all("Cannot displace_box on a non-periodic boundary");
+    error->all(FLERR,"Cannot displace_box on a non-periodic boundary");
 
   // apply scaling to FINAL,DELTA since they have distance units
 
@@ -147,7 +147,7 @@ void DisplaceBox::command(int narg, char **arg)
     if (set[i].style == FINAL || set[i].style == DELTA) flag = 1;
 
   if (flag && scaleflag && domain->lattice == NULL)
-    error->all("Use of displace_box with undefined lattice");
+    error->all(FLERR,"Use of displace_box with undefined lattice");
 
   double xscale,yscale,zscale;
   if (flag && scaleflag) {
@@ -224,25 +224,25 @@ void DisplaceBox::command(int narg, char **arg)
 
     if (set[other1].style == NONE) {
       if (set[other2].style == NONE || set[other2].style == VOLUME)
-	error->all("Fix deform volume setting is invalid");
+	error->all(FLERR,"Fix deform volume setting is invalid");
       set[i].substyle = ONE_FROM_ONE;
       set[i].fixed = other1;
       set[i].dynamic1 = other2;
     } else if (set[other2].style == NONE) {
       if (set[other1].style == NONE || set[other1].style == VOLUME)
-	error->all("Fix deform volume setting is invalid");
+	error->all(FLERR,"Fix deform volume setting is invalid");
       set[i].substyle = ONE_FROM_ONE;
       set[i].fixed = other2;
       set[i].dynamic1 = other1;
     } else if (set[other1].style == VOLUME) {
       if (set[other2].style == NONE || set[other2].style == VOLUME)
-	error->all("Fix deform volume setting is invalid");
+	error->all(FLERR,"Fix deform volume setting is invalid");
       set[i].substyle = TWO_FROM_ONE;
       set[i].fixed = other1;
       set[i].dynamic1 = other2;
     } else if (set[other2].style == VOLUME) {
       if (set[other1].style == NONE || set[other1].style == VOLUME)
-	error->all("Fix deform volume setting is invalid");
+	error->all(FLERR,"Fix deform volume setting is invalid");
       set[i].substyle = TWO_FROM_ONE;
       set[i].fixed = other2;
       set[i].dynamic1 = other1;
@@ -310,7 +310,7 @@ void DisplaceBox::command(int narg, char **arg)
   if (set[3].tilt_stop < -0.5*yprd_stop || set[3].tilt_stop > 0.5*yprd_stop ||
       set[4].tilt_stop < -0.5*xprd_stop || set[4].tilt_stop > 0.5*xprd_stop ||
       set[5].tilt_stop < -0.5*xprd_stop || set[5].tilt_stop > 0.5*xprd_stop)
-    error->all("Induced tilt by displace_box is too large");
+    error->all(FLERR,"Induced tilt by displace_box is too large");
 
   // convert atoms to lamda coords
 
@@ -384,7 +384,7 @@ void DisplaceBox::command(int narg, char **arg)
     char str[128];
     sprintf(str,"Lost atoms via displace_box: original " BIGINT_FORMAT 
 	    " current " BIGINT_FORMAT,atom->natoms,natoms);
-    error->all(str);
+    error->all(FLERR,str);
   }
 }
 
@@ -394,7 +394,7 @@ void DisplaceBox::command(int narg, char **arg)
 
 void DisplaceBox::options(int narg, char **arg)
 {
-  if (narg < 0) error->all("Illegal displace_box command");
+  if (narg < 0) error->all(FLERR,"Illegal displace_box command");
 
   remapflag = X_REMAP;
   scaleflag = 1;
@@ -402,17 +402,17 @@ void DisplaceBox::options(int narg, char **arg)
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"remap") == 0) {
-      if (iarg+2 > narg) error->all("Illegal displace_box command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal displace_box command");
       if (strcmp(arg[iarg+1],"x") == 0) remapflag = X_REMAP;
       else if (strcmp(arg[iarg+1],"none") == 0) remapflag = NO_REMAP;
-      else error->all("Illegal displace_box command");
+      else error->all(FLERR,"Illegal displace_box command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"units") == 0) {
-      if (iarg+2 > narg) error->all("Illegal displace_box command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal displace_box command");
       if (strcmp(arg[iarg+1],"box") == 0) scaleflag = 0;
       else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = 1;
-      else error->all("Illegal displace_box command");
+      else error->all(FLERR,"Illegal displace_box command");
       iarg += 2;
-    } else error->all("Illegal displace_box command");
+    } else error->all(FLERR,"Illegal displace_box command");
   }
 }

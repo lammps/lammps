@@ -41,7 +41,7 @@ using namespace LAMMPS_NS;
 FixBondSwap::FixBondSwap(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg != 6) error->all("Illegal fix bond/swap command");
+  if (narg != 6) error->all(FLERR,"Illegal fix bond/swap command");
 
   vector_flag = 1;
   size_vector = 2;
@@ -111,11 +111,11 @@ void FixBondSwap::init()
   // require an atom style with molecule IDs
 
   if (atom->molecule == NULL)
-    error->all("Must use atom style with molecule IDs with fix bond/swap");
+    error->all(FLERR,"Must use atom style with molecule IDs with fix bond/swap");
 
   int icompute = modify->find_compute(id_temp);
   if (icompute < 0) 
-    error->all("Temperature ID for fix bond/swap does not exist");
+    error->all(FLERR,"Temperature ID for fix bond/swap does not exist");
   temperature = modify->compute[icompute];
 
   // pair and bonds must be defined
@@ -123,20 +123,20 @@ void FixBondSwap::init()
   // special bonds must be 0 1 1
 
   if (force->pair == NULL || force->bond == NULL)
-    error->all("Fix bond/swap requires pair and bond styles");
+    error->all(FLERR,"Fix bond/swap requires pair and bond styles");
 
   if (force->pair->single_enable == 0)
-    error->all("Pair style does not support fix bond/swap");
+    error->all(FLERR,"Pair style does not support fix bond/swap");
 
   if (force->angle == NULL && atom->nangles > 0 && comm->me == 0)
-    error->warning("Fix bond/swap will ignore defined angles");
+    error->warning(FLERR,"Fix bond/swap will ignore defined angles");
 
   if (force->dihedral || force->improper)
-    error->all("Fix bond/swap cannot use dihedral or improper styles");
+    error->all(FLERR,"Fix bond/swap cannot use dihedral or improper styles");
 
   if (force->special_lj[1] != 0.0 || force->special_lj[2] != 1.0 ||
       force->special_lj[3] != 1.0)
-    error->all("Fix bond/swap requires special_bonds = 0,1,1");
+    error->all(FLERR,"Fix bond/swap requires special_bonds = 0,1,1");
 
   // need a half neighbor list, built when ever re-neighboring occurs
 
@@ -596,7 +596,7 @@ void FixBondSwap::pre_neighbor()
 int FixBondSwap::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"temp") == 0) {
-    if (narg < 2) error->all("Illegal fix_modify command");
+    if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
     if (tflag) {
       modify->delete_compute(id_temp);
       tflag = 0;
@@ -607,13 +607,13 @@ int FixBondSwap::modify_param(int narg, char **arg)
     strcpy(id_temp,arg[1]);
 
     int icompute = modify->find_compute(id_temp);
-    if (icompute < 0) error->all("Could not find fix_modify temperature ID");
+    if (icompute < 0) error->all(FLERR,"Could not find fix_modify temperature ID");
     temperature = modify->compute[icompute];
 
     if (temperature->tempflag == 0)
-      error->all("Fix_modify temperature ID does not compute temperature");
+      error->all(FLERR,"Fix_modify temperature ID does not compute temperature");
     if (temperature->igroup != igroup && comm->me == 0)
-      error->warning("Group for fix_modify temp != fix group");
+      error->warning(FLERR,"Group for fix_modify temp != fix group");
     return 2;
   }
   return 0;

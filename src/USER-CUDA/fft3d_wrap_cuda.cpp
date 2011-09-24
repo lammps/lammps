@@ -61,7 +61,7 @@ FFT3dCuda::FFT3dCuda(LAMMPS *lmp, MPI_Comm comm, int nfast, int nmid, int nslow,
 			    out_ilo,out_ihi,out_jlo,out_jhi,out_klo,out_khi,
 			    scaled,permute,nbuf);
 #endif
-  if (plan == NULL) error->one("Could not create 3d FFT plan");
+  if (plan == NULL) error->one(FLERR,"Could not create 3d FFT plan");
 }
 
 /* ---------------------------------------------------------------------- */

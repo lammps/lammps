@@ -33,7 +33,7 @@ enum{COMPUTE,FIX};
 ComputeSlice::ComputeSlice(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg < 7) error->all("Illegal compute slice command");
+  if (narg < 7) error->all(FLERR,"Illegal compute slice command");
 
   MPI_Comm_rank(world,&me);
 
@@ -42,7 +42,7 @@ ComputeSlice::ComputeSlice(LAMMPS *lmp, int narg, char **arg) :
   nskip = atoi(arg[5]);
 
   if (nstart < 1 || nstop < nstart || nskip < 1)
-    error->all("Illegal compute slice command");
+    error->all(FLERR,"Illegal compute slice command");
 
   // parse remaining values until one isn't recognized
 
@@ -65,7 +65,7 @@ ComputeSlice::ComputeSlice(LAMMPS *lmp, int narg, char **arg) :
       char *ptr = strchr(suffix,'[');
       if (ptr) {
 	if (suffix[strlen(suffix)-1] != ']')
-	  error->all("Illegal compute slice command");
+	  error->all(FLERR,"Illegal compute slice command");
 	argindex[nvalues] = atoi(ptr+1);
 	*ptr = '\0';
       } else argindex[nvalues] = 0;
@@ -76,7 +76,7 @@ ComputeSlice::ComputeSlice(LAMMPS *lmp, int narg, char **arg) :
       nvalues++;
       delete [] suffix;
 
-    } else error->all("Illegal compute slice command");
+    } else error->all(FLERR,"Illegal compute slice command");
   }
 
   // setup and error check
@@ -85,38 +85,38 @@ ComputeSlice::ComputeSlice(LAMMPS *lmp, int narg, char **arg) :
     if (which[i] == COMPUTE) {
       int icompute = modify->find_compute(ids[i]);
       if (icompute < 0)
-	error->all("Compute ID for compute slice does not exist");
+	error->all(FLERR,"Compute ID for compute slice does not exist");
       if (modify->compute[icompute]->vector_flag) {
 	if (argindex[i])
-	  error->all("Compute slice compute does not calculate a global array");
+	  error->all(FLERR,"Compute slice compute does not calculate a global array");
 	if (nstop > modify->compute[icompute]->size_vector)
-	  error->all("Compute slice compute vector is accessed out-of-range");
+	  error->all(FLERR,"Compute slice compute vector is accessed out-of-range");
       } else if (modify->compute[icompute]->array_flag) {
 	if (argindex[i] == 0)
-	  error->all("Compute slice compute does not calculate a global vector");
+	  error->all(FLERR,"Compute slice compute does not calculate a global vector");
 	if (argindex[i] > modify->compute[icompute]->size_array_cols)
-	  error->all("Compute slice compute array is accessed out-of-range");
+	  error->all(FLERR,"Compute slice compute array is accessed out-of-range");
 	if (nstop > modify->compute[icompute]->size_array_rows)
-	  error->all("Compute slice compute array is accessed out-of-range");
-      } else error->all("Compute slice compute does not calculate "
+	  error->all(FLERR,"Compute slice compute array is accessed out-of-range");
+      } else error->all(FLERR,"Compute slice compute does not calculate "
 			"global vector or array");
     } else if (which[i] == FIX) {
       int ifix = modify->find_fix(ids[i]);
       if (ifix < 0)
-	error->all("Fix ID for compute slice does not exist");
+	error->all(FLERR,"Fix ID for compute slice does not exist");
       if (modify->fix[ifix]->vector_flag) {
 	if (argindex[i])
-	  error->all("Compute slice fix does not calculate a global array");
+	  error->all(FLERR,"Compute slice fix does not calculate a global array");
 	if (nstop > modify->fix[ifix]->size_vector)
-	  error->all("Compute slice fix vector is accessed out-of-range");
+	  error->all(FLERR,"Compute slice fix vector is accessed out-of-range");
       } else if (modify->fix[ifix]->array_flag) {
 	if (argindex[i] == 0) 
-	  error->all("Compute slice fix does not calculate a global vector");
+	  error->all(FLERR,"Compute slice fix does not calculate a global vector");
 	if (argindex[i] > modify->fix[ifix]->size_array_cols)
-	  error->all("Compute slice fix array is accessed out-of-range");
+	  error->all(FLERR,"Compute slice fix array is accessed out-of-range");
 	if (nstop > modify->fix[ifix]->size_array_rows)
-	  error->all("Compute slice fix array is accessed out-of-range");
-      } else error->all("Compute slice fix does not calculate "
+	  error->all(FLERR,"Compute slice fix array is accessed out-of-range");
+      } else error->all(FLERR,"Compute slice fix does not calculate "
 			"global vector or array");
     }
   }
@@ -217,12 +217,12 @@ void ComputeSlice::init()
     if (which[m] == COMPUTE) {
       int icompute = modify->find_compute(ids[m]);
       if (icompute < 0)
-	error->all("Compute ID for compute slice does not exist");
+	error->all(FLERR,"Compute ID for compute slice does not exist");
       value2index[m] = icompute;
     } else if (which[m] == FIX) {
       int ifix = modify->find_fix(ids[m]);
       if (ifix < 0) 
-	error->all("Fix ID for compute slice does not exist");
+	error->all(FLERR,"Fix ID for compute slice does not exist");
       value2index[m] = ifix;
     }
   }
@@ -291,7 +291,7 @@ void ComputeSlice::extract_one(int m, double *vec, int stride)
     
   } else if (which[m] == FIX) {
     if (update->ntimestep % modify->fix[value2index[m]]->global_freq)
-      error->all("Fix used in compute slice not computed at compatible time");
+      error->all(FLERR,"Fix used in compute slice not computed at compatible time");
     Fix *fix = modify->fix[value2index[m]];
 
     if (argindex[m] == 0) {

@@ -60,7 +60,7 @@ FixNPHug::FixNPHug(LAMMPS *lmp, int narg, char **arg) :
   if (p_start[0] != p_stop[0] ||
       p_start[1] != p_stop[1] ||  
       p_start[2] != p_stop[2])
-    error->all("Invalid argument for fix nphug");
+    error->all(FLERR,"Invalid argument for fix nphug");
 
   // uniaxial = 0 means hydrostatic compression
   // uniaxial = 1 means uniaxial compression
@@ -96,7 +96,7 @@ FixNPHug::FixNPHug(LAMMPS *lmp, int narg, char **arg) :
       uniaxial = 1;
       idir = 2;
 
-    } else error->all("Invalid argument for fix nphug");
+    } else error->all(FLERR,"Invalid argument for fix nphug");
 
     // triclinic hydrostatic compression
 
@@ -109,13 +109,13 @@ FixNPHug::FixNPHug(LAMMPS *lmp, int narg, char **arg) :
 	p_start[5] == 0.0 )
       uniaxial = 0;
 
-    else error->all("Invalid argument for fix nphug");
+    else error->all(FLERR,"Invalid argument for fix nphug");
   }
 
   if (!tstat_flag)
-    error->all("Temperature control must be used with fix nphug");
+    error->all(FLERR,"Temperature control must be used with fix nphug");
   if (!pstat_flag)
-    error->all("Pressure control must be used with fix nphug");
+    error->all(FLERR,"Pressure control must be used with fix nphug");
 
   // create a new compute temp style
   // id = fix-ID + temp
@@ -195,7 +195,7 @@ void FixNPHug::init()
 
   int icompute = modify->find_compute(id_pe);
   if (icompute < 0) 
-    error->all("Potential energy ID for fix nvt/nph/npt does not exist");
+    error->all(FLERR,"Potential energy ID for fix nvt/nph/npt does not exist");
   pe = modify->compute[icompute];
 }
 
@@ -440,17 +440,17 @@ void FixNPHug::restart(char *buf)
 int FixNPHug::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"e0") == 0) {
-    if (narg < 2) error->all("Illegal fix nphug command");
+    if (narg < 2) error->all(FLERR,"Illegal fix nphug command");
     e0 = atof(arg[1]);
     e0_set = 1;
     return 2;
   } else if (strcmp(arg[0],"v0") == 0) {
-    if (narg < 2) error->all("Illegal fix nphug command");
+    if (narg < 2) error->all(FLERR,"Illegal fix nphug command");
     v0 = atof(arg[1]);
     v0_set = 1;
     return 2;
   } else if (strcmp(arg[0],"p0") == 0) {
-    if (narg < 2) error->all("Illegal fix nphug command");
+    if (narg < 2) error->all(FLERR,"Illegal fix nphug command");
     p0 = atof(arg[1]);
     p0_set = 1;
     return 2;

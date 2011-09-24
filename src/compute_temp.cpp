@@ -30,7 +30,7 @@ using namespace LAMMPS_NS;
 ComputeTemp::ComputeTemp(LAMMPS *lmp, int narg, char **arg) : 
   Compute(lmp, narg, arg)
 {
-  if (narg != 3) error->all("Illegal compute temp command");
+  if (narg != 3) error->all(FLERR,"Illegal compute temp command");
 
   scalar_flag = vector_flag = 1;
   size_vector = 6;

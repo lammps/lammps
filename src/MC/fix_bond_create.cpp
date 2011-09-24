@@ -33,20 +33,17 @@ using namespace LAMMPS_NS;
 
 #define BIG 1.0e20
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 /* ---------------------------------------------------------------------- */
 
 FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 8) error->all("Illegal fix bond/create command");
+  if (narg < 8) error->all(FLERR,"Illegal fix bond/create command");
 
   MPI_Comm_rank(world,&me);
 
   nevery = atoi(arg[3]);
-  if (nevery <= 0) error->all("Illegal fix bond/create command");
+  if (nevery <= 0) error->all(FLERR,"Illegal fix bond/create command");
 
   force_reneighbor = 1;
   next_reneighbor = -1;
@@ -62,10 +59,10 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
 
   if (iatomtype < 1 || iatomtype > atom->ntypes || 
       jatomtype < 1 || jatomtype > atom->ntypes)
-    error->all("Invalid atom type in fix bond/create command");
-  if (cutoff < 0.0) error->all("Illegal fix bond/create command");
+    error->all(FLERR,"Invalid atom type in fix bond/create command");
+  if (cutoff < 0.0) error->all(FLERR,"Illegal fix bond/create command");
   if (btype < 1 || btype > atom->nbondtypes)
-    error->all("Invalid bond type in fix bond/create command");
+    error->all(FLERR,"Invalid bond type in fix bond/create command");
 
   cutsq = cutoff*cutoff;
 
@@ -81,39 +78,39 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 8;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"iparam") == 0) {
-      if (iarg+3 > narg) error->all("Illegal fix bond/create command");
+      if (iarg+3 > narg) error->all(FLERR,"Illegal fix bond/create command");
       imaxbond = atoi(arg[iarg+1]);
       inewtype = atoi(arg[iarg+2]);
-      if (imaxbond < 0) error->all("Illegal fix bond/create command");
+      if (imaxbond < 0) error->all(FLERR,"Illegal fix bond/create command");
       if (inewtype < 1 || inewtype > atom->ntypes)
-	error->all("Invalid atom type in fix bond/create command");
+	error->all(FLERR,"Invalid atom type in fix bond/create command");
       iarg += 3;
     } else if (strcmp(arg[iarg],"jparam") == 0) {
-      if (iarg+3 > narg) error->all("Illegal fix bond/create command");
+      if (iarg+3 > narg) error->all(FLERR,"Illegal fix bond/create command");
       jmaxbond = atoi(arg[iarg+1]);
       jnewtype = atoi(arg[iarg+2]);
-      if (jmaxbond < 0) error->all("Illegal fix bond/create command");
+      if (jmaxbond < 0) error->all(FLERR,"Illegal fix bond/create command");
       if (jnewtype < 1 || jnewtype > atom->ntypes)
-	error->all("Invalid atom type in fix bond/create command");
+	error->all(FLERR,"Invalid atom type in fix bond/create command");
       iarg += 3;
     } else if (strcmp(arg[iarg],"prob") == 0) {
-      if (iarg+3 > narg) error->all("Illegal fix bond/create command");
+      if (iarg+3 > narg) error->all(FLERR,"Illegal fix bond/create command");
       fraction = atof(arg[iarg+1]);
       seed = atoi(arg[iarg+2]);
       if (fraction < 0.0 || fraction > 1.0)
-	error->all("Illegal fix bond/create command");
-      if (seed <= 0) error->all("Illegal fix bond/create command");
+	error->all(FLERR,"Illegal fix bond/create command");
+      if (seed <= 0) error->all(FLERR,"Illegal fix bond/create command");
       iarg += 3;
-    } else error->all("Illegal fix bond/create command");
+    } else error->all(FLERR,"Illegal fix bond/create command");
   }
 
   // error check
 
   if (atom->molecular == 0)
-    error->all("Cannot use fix bond/create with non-molecular systems");
+    error->all(FLERR,"Cannot use fix bond/create with non-molecular systems");
   if (iatomtype == jatomtype && 
       ((imaxbond != jmaxbond) || (inewtype != jnewtype)))
-    error->all("Inconsistent iparam/jparam values in fix bond/create command");
+    error->all(FLERR,"Inconsistent iparam/jparam values in fix bond/create command");
 
   // initialize Marsaglia RNG with processor-unique seed
 
@@ -179,24 +176,24 @@ void FixBondCreate::init()
   // check cutoff for iatomtype,jatomtype
 
   if (force->pair == NULL || cutsq > force->pair->cutsq[iatomtype][jatomtype]) 
-    error->all("Fix bond/create cutoff is longer than pairwise cutoff");
+    error->all(FLERR,"Fix bond/create cutoff is longer than pairwise cutoff");
   
   // require special bonds = 0,1,1
 
   if (force->special_lj[1] != 0.0 || force->special_lj[2] != 1.0 ||
       force->special_lj[3] != 1.0)
-    error->all("Fix bond/create requires special_bonds lj = 0,1,1");
+    error->all(FLERR,"Fix bond/create requires special_bonds lj = 0,1,1");
 
   if (atom->q_flag)
     if (force->special_coul[1] != 0.0 || force->special_coul[2] != 1.0 ||
 	force->special_coul[3] != 1.0)
-      error->all("Fix bond/create requires special_bonds coul = 0,1,1");
+      error->all(FLERR,"Fix bond/create requires special_bonds coul = 0,1,1");
 
   // warn if angles, dihedrals, impropers are being used
 
   if (force->angle || force->dihedral || force->improper) {
     if (me == 0) 
-      error->warning("Created bonds will not create angles, "
+      error->warning(FLERR,"Created bonds will not create angles, "
 		     "dihedrals, or impropers");
   }
 
@@ -251,7 +248,7 @@ void FixBondCreate::setup(int vflag)
 	if (newton_bond) {
 	  m = atom->map(bond_atom[i][j]);
 	  if (m < 0)
-	    error->one("Could not count initial bonds in fix bond/create");
+	    error->one(FLERR,"Could not count initial bonds in fix bond/create");
 	  bondcount[m]++;
 	}
       }
@@ -411,7 +408,7 @@ void FixBondCreate::post_integrate()
 
     if (!newton_bond || tag[i] < tag[j]) {
       if (num_bond[i] == atom->bond_per_atom)
-	error->one("New bond exceeded bonds per atom in fix bond/create");
+	error->one(FLERR,"New bond exceeded bonds per atom in fix bond/create");
       bond_type[i][num_bond[i]] = btype;
       bond_atom[i][num_bond[i]] = tag[j];
       num_bond[i]++;
@@ -424,7 +421,7 @@ void FixBondCreate::post_integrate()
     n1 = nspecial[i][0];
     n3 = nspecial[i][2];
     if (n3 == atom->maxspecial)
-      error->one("New bond exceeded special list size in fix bond/create");
+      error->one(FLERR,"New bond exceeded special list size in fix bond/create");
     for (m = n3; m > n1; m--) slist[m+1] = slist[m];
     slist[n1] = tag[j];
     nspecial[i][0]++;

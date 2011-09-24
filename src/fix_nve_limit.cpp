@@ -29,7 +29,7 @@ using namespace LAMMPS_NS;
 FixNVELimit::FixNVELimit(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg != 4) error->all("Illegal fix nve/limit command");
+  if (narg != 4) error->all(FLERR,"Illegal fix nve/limit command");
 
   time_integrate = 1;
   scalar_flag = 1;

@@ -151,7 +151,7 @@ void DihedralCharmm::compute(int eflag, int vflag)
 	sprintf(str,"Dihedral problem: %d " BIGINT_FORMAT " %d %d %d %d",
 		me,update->ntimestep,
 		atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
-	error->warning(str,0);
+	error->warning(FLERR,str,0);
 	fprintf(screen,"  1st atom: %d %g %g %g\n",
 		me,x[i1][0],x[i1][1],x[i1][2]);
 	fprintf(screen,"  2nd atom: %d %g %g %g\n",
@@ -324,7 +324,7 @@ void DihedralCharmm::allocate()
 
 void DihedralCharmm::coeff(int narg, char **arg)
 {
-  if (narg != 5) error->all("Incorrect args for dihedral coefficients");
+  if (narg != 5) error->all(FLERR,"Incorrect args for dihedral coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -340,9 +340,9 @@ void DihedralCharmm::coeff(int narg, char **arg)
   double weight_one = force->numeric(arg[4]);
 
   if (multiplicity_one < 0)
-    error->all("Incorrect multiplicity arg for dihedral coefficients");
+    error->all(FLERR,"Incorrect multiplicity arg for dihedral coefficients");
   if (weight_one < 0.0 || weight_one > 1.0) 
-    error->all("Incorrect weight arg for dihedral coefficients");
+    error->all(FLERR,"Incorrect weight arg for dihedral coefficients");
 
   double PI = 4.0*atan(1.0);
                        
@@ -358,7 +358,7 @@ void DihedralCharmm::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all("Incorrect args for dihedral coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for dihedral coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -377,14 +377,14 @@ void DihedralCharmm::init_style()
   if (weightflag) {
     int itmp;
     if (force->pair == NULL)
-      error->all("Dihedral charmm is incompatible with Pair style");
+      error->all(FLERR,"Dihedral charmm is incompatible with Pair style");
     lj14_1 = (double **) force->pair->extract("lj14_1",itmp);
     lj14_2 = (double **) force->pair->extract("lj14_2",itmp);
     lj14_3 = (double **) force->pair->extract("lj14_3",itmp);
     lj14_4 = (double **) force->pair->extract("lj14_4",itmp);
     int *ptr = (int *) force->pair->extract("implicit",itmp);
     if (!lj14_1 || !lj14_2 || !lj14_3 || !lj14_4 || !ptr)
-      error->all("Dihedral charmm is incompatible with Pair style");
+      error->all(FLERR,"Dihedral charmm is incompatible with Pair style");
     implicit = *ptr;
   }
 }

@@ -36,8 +36,8 @@ using namespace LAMMPS_NS;
 ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg < 4) error->all("Illegal compute pressure command");
-  if (igroup) error->all("Compute pressure must use group all");
+  if (narg < 4) error->all(FLERR,"Illegal compute pressure command");
+  if (igroup) error->all(FLERR,"Compute pressure must use group all");
 
   scalar_flag = vector_flag = 1;
   size_vector = 6;
@@ -55,9 +55,9 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
 
   int icompute = modify->find_compute(id_temp);
   if (icompute < 0) 
-    error->all("Could not find compute pressure temperature ID");
+    error->all(FLERR,"Could not find compute pressure temperature ID");
   if (modify->compute[icompute]->tempflag == 0)
-    error->all("Compute pressure temperature ID does not compute temperature");
+    error->all(FLERR,"Compute pressure temperature ID does not compute temperature");
 
   // process optional args
 
@@ -85,7 +85,7 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
 	pairflag = 1;
 	bondflag = angleflag = dihedralflag = improperflag = 1;
 	kspaceflag = fixflag = 1;
-      } else error->all("Illegal compute pressure command");
+      } else error->all(FLERR,"Illegal compute pressure command");
       iarg++;
     }
   }
@@ -117,7 +117,7 @@ void ComputePressure::init()
 
   int icompute = modify->find_compute(id_temp);
   if (icompute < 0) 
-    error->all("Could not find compute pressure temperature ID");
+    error->all(FLERR,"Could not find compute pressure temperature ID");
   temperature = modify->compute[icompute];
 
   // detect contributions to virial
@@ -166,7 +166,7 @@ double ComputePressure::compute_scalar()
 {
   invoked_scalar = update->ntimestep;
   if (update->vflag_global != invoked_scalar)
-    error->all("Virial was not tallied on needed timestep");
+    error->all(FLERR,"Virial was not tallied on needed timestep");
 
   // invoke temperature it it hasn't been already
 
@@ -207,7 +207,7 @@ void ComputePressure::compute_vector()
 {
   invoked_vector = update->ntimestep;
   if (update->vflag_global != invoked_vector)
-    error->all("Virial was not tallied on needed timestep");
+    error->all(FLERR,"Virial was not tallied on needed timestep");
 
   // invoke temperature if it hasn't been already
 

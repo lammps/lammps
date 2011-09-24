@@ -38,9 +38,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 PairGranHookeHistory::PairGranHookeHistory(LAMMPS *lmp) : Pair(lmp)
@@ -311,7 +308,7 @@ void PairGranHookeHistory::allocate()
 
 void PairGranHookeHistory::settings(int narg, char **arg)
 {
-  if (narg != 6) error->all("Illegal pair_style command");
+  if (narg != 6) error->all(FLERR,"Illegal pair_style command");
 
   kn = force->numeric(arg[0]);
   if (strcmp(arg[1],"NULL") == 0) kt = kn * 2.0/7.0;
@@ -327,7 +324,7 @@ void PairGranHookeHistory::settings(int narg, char **arg)
 
   if (kn < 0.0 || kt < 0.0 || gamman < 0.0 || gammat < 0.0 || 
       xmu < 0.0 || xmu > 1.0 || dampflag < 0 || dampflag > 1)
-    error->all("Illegal pair_style command");
+    error->all(FLERR,"Illegal pair_style command");
 }
 
 /* ----------------------------------------------------------------------
@@ -336,7 +333,7 @@ void PairGranHookeHistory::settings(int narg, char **arg)
 
 void PairGranHookeHistory::coeff(int narg, char **arg)
 {
-  if (narg > 2) error->all("Incorrect args for pair coefficients");
+  if (narg > 2) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -351,7 +348,7 @@ void PairGranHookeHistory::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -365,9 +362,9 @@ void PairGranHookeHistory::init_style()
   // error and warning checks
 
   if (!atom->sphere_flag)
-    error->all("Pair granular requires atom style sphere");
+    error->all(FLERR,"Pair granular requires atom style sphere");
   if (comm->ghost_velocity == 0)
-    error->all("Pair granular requires ghost atoms store velocity");
+    error->all(FLERR,"Pair granular requires ghost atoms store velocity");
 
   // need a half neigh list and optionally a granular history neigh list
 
@@ -389,7 +386,7 @@ void PairGranHookeHistory::init_style()
   // if first init, create Fix needed for storing shear history
 
   if (history && force->newton_pair == 1)
-    error->all("Pair granular with shear history requires newton pair off");
+    error->all(FLERR,"Pair granular with shear history requires newton pair off");
 
   if (history && fix_history == NULL) {
     char **fixarg = new char*[3];

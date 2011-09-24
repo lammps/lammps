@@ -34,9 +34,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 #define EWALD_F   1.12837917
 #define EWALD_P   0.3275911
 #define A1        0.254829592
@@ -199,7 +196,7 @@ void PairCoulLong::allocate()
 
 void PairCoulLong::settings(int narg, char **arg)
 {
-  if (narg != 1) error->all("Illegal pair_style command");
+  if (narg != 1) error->all(FLERR,"Illegal pair_style command");
 
   cut_coul = force->numeric(arg[0]);
 }
@@ -210,7 +207,7 @@ void PairCoulLong::settings(int narg, char **arg)
 
 void PairCoulLong::coeff(int narg, char **arg)
 {
-  if (narg != 2) error->all("Incorrect args for pair coefficients");
+  if (narg != 2) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -226,7 +223,7 @@ void PairCoulLong::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -236,7 +233,7 @@ void PairCoulLong::coeff(int narg, char **arg)
 void PairCoulLong::init_style()
 {
   if (!atom->q_flag)
-    error->all("Pair style lj/cut/coul/long requires atom attribute q");
+    error->all(FLERR,"Pair style lj/cut/coul/long requires atom attribute q");
 
   neighbor->request(this);
 
@@ -248,13 +245,13 @@ void PairCoulLong::init_style()
       ((Respa *) update->integrate)->level_inner >= 0) {
     cut_respa = ((Respa *) update->integrate)->cutoff;
     if (cut_coul < cut_respa[3])
-      error->all("Pair cutoff < Respa interior cutoff");
+      error->all(FLERR,"Pair cutoff < Respa interior cutoff");
   } else cut_respa = NULL;
 
   // insure use of KSpace long-range solver, set g_ewald
 
  if (force->kspace == NULL) 
-    error->all("Pair style is incompatible with KSpace style");
+    error->all(FLERR,"Pair style is incompatible with KSpace style");
   g_ewald = force->kspace->g_ewald;
 
   // setup force tables

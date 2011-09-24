@@ -32,9 +32,6 @@ using namespace LAMMPS_NS;
 
 enum{GEOMETRIC,ARITHMETIC,SIXTHPOWER};   // same as in pair.cpp
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 PairLJCharmmCoulCharmm::PairLJCharmmCoulCharmm(LAMMPS *lmp) : Pair(lmp)
@@ -227,7 +224,7 @@ void PairLJCharmmCoulCharmm::allocate()
 void PairLJCharmmCoulCharmm::settings(int narg, char **arg)
 {
   if (narg != 2 && narg != 4) 
-    error->all("Illegal pair_style command");
+    error->all(FLERR,"Illegal pair_style command");
 
   cut_lj_inner = force->numeric(arg[0]);
   cut_lj = force->numeric(arg[1]);
@@ -247,7 +244,7 @@ void PairLJCharmmCoulCharmm::settings(int narg, char **arg)
 void PairLJCharmmCoulCharmm::coeff(int narg, char **arg)
 {
   if (narg != 4 && narg != 6) 
-    error->all("Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -275,7 +272,7 @@ void PairLJCharmmCoulCharmm::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -285,14 +282,14 @@ void PairLJCharmmCoulCharmm::coeff(int narg, char **arg)
 void PairLJCharmmCoulCharmm::init_style()
 {
   if (!atom->q_flag)
-    error->all("Pair style lj/charmm/coul/charmm requires atom attribute q");
+    error->all(FLERR,"Pair style lj/charmm/coul/charmm requires atom attribute q");
 
   neighbor->request(this);
 
   // require cut_lj_inner < cut_lj, cut_coul_inner < cut_coul
 
   if (cut_lj_inner >= cut_lj || cut_coul_inner >= cut_coul)
-    error->all("Pair inner cutoff >= Pair outer cutoff");
+    error->all(FLERR,"Pair inner cutoff >= Pair outer cutoff");
 
   cut_lj_innersq = cut_lj_inner * cut_lj_inner;
   cut_ljsq = cut_lj * cut_lj;

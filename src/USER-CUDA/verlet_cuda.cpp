@@ -21,7 +21,6 @@
    This software is distributed under the GNU General Public License.
 ------------------------------------------------------------------------- */
 
-
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
@@ -55,14 +54,12 @@
 
 using namespace LAMMPS_NS;
 
-#define MAX(a, b) ((a)>(b) ? (a) : (b))
 #define MAKETIMEING
-
 
 VerletCuda::VerletCuda(LAMMPS *lmp, int narg, char **arg) : Verlet(lmp, narg, arg) {	
   cuda = lmp->cuda;
    if(cuda == NULL)
-        error->all("You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
+        error->all(FLERR,"You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
 
 	modify_cuda=(ModifyCuda*) modify;
 }
@@ -541,17 +538,17 @@ void VerletCuda::run(int n)
 	if(cuda->shared_data.me==0)
 	{
 	  if((not cuda->shared_data.pair.cudable_force)&&(force->pair))
-		  error->warning("# CUDA: You asked for a Verlet integration using Cuda, "
+		  error->warning(FLERR,"# CUDA: You asked for a Verlet integration using Cuda, "
 			             "but selected a pair force which has not yet been ported to Cuda");
 	  if((not cuda->shared_data.pppm.cudable_force)&&(force->kspace))
-		  error->warning("# CUDA: You asked for a Verlet integration using Cuda, "
+		  error->warning(FLERR,"# CUDA: You asked for a Verlet integration using Cuda, "
 						 "but selected a kspace force which has not yet been ported to Cuda");
       if(modify_cuda->n_post_integrate_host+modify_cuda->n_pre_exchange_host+modify_cuda->n_pre_neighbor_host+modify_cuda->n_pre_force_host+modify_cuda->n_post_force_host+modify_cuda->n_end_of_step_host+modify_cuda->n_initial_integrate_host+modify_cuda->n_final_integrate_host)
-		  error->warning("# CUDA: You asked for a Verlet integration using Cuda, "
+		  error->warning(FLERR,"# CUDA: You asked for a Verlet integration using Cuda, "
 						 "but several fixes have not yet been ported to Cuda.\n"
 						 "This can cause a severe speed penalty due to frequent data synchronization between host and GPU.");
 	  if(atom->firstgroupname) 
-		  error->warning("Warning: firstgroupname is used, this will cause additional data transfers.");
+		  error->warning(FLERR,"Warning: firstgroupname is used, this will cause additional data transfers.");
 	}
     cuda->uploadAll();
   

@@ -38,9 +38,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 Force::Force(LAMMPS *lmp) : Pointers(lmp)
@@ -168,7 +165,7 @@ Pair *Force::new_pair(const char *style, char *suffix, int &sflag)
 #include "style_pair.h"
 #undef PAIR_CLASS
 
-  else error->all("Invalid pair style");
+  else error->all(FLERR,"Invalid pair style");
 
   return NULL;
 }
@@ -247,7 +244,7 @@ Bond *Force::new_bond(const char *style)
 #include "style_bond.h"
 #undef BOND_CLASS
 
-  else error->all("Invalid bond style");
+  else error->all(FLERR,"Invalid bond style");
   return NULL;
 }
 
@@ -295,7 +292,7 @@ Angle *Force::new_angle(const char *style)
 #include "style_angle.h"
 #undef ANGLE_CLASS
 
-  else error->all("Invalid angle style");
+  else error->all(FLERR,"Invalid angle style");
   return NULL;
 }
 
@@ -328,7 +325,7 @@ Dihedral *Force::new_dihedral(const char *style)
 #include "style_dihedral.h"
 #undef DIHEDRAL_CLASS
 
-  else error->all("Invalid dihedral style");
+  else error->all(FLERR,"Invalid dihedral style");
   return NULL;
 }
 
@@ -361,7 +358,7 @@ Improper *Force::new_improper(const char *style)
 #include "style_improper.h"
 #undef IMPROPER_CLASS
 
-  else error->all("Invalid improper style");
+  else error->all(FLERR,"Invalid improper style");
   return NULL;
 }
 
@@ -382,7 +379,7 @@ void Force::create_kspace(int narg, char **arg)
 #include "style_kspace.h"
 #undef KSPACE_CLASS
 
-  else error->all("Invalid kspace style");
+  else error->all(FLERR,"Invalid kspace style");
 
   int n = strlen(arg[0]) + 1;
   kspace_style = new char[n];
@@ -395,12 +392,12 @@ void Force::create_kspace(int narg, char **arg)
 
 void Force::set_special(int narg, char **arg)
 {
-  if (narg == 0) error->all("Illegal special_bonds command");
+  if (narg == 0) error->all(FLERR,"Illegal special_bonds command");
 
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"amber") == 0) {
-      if (iarg+1 > narg) error->all("Illegal special_bonds command");
+      if (iarg+1 > narg) error->all(FLERR,"Illegal special_bonds command");
       special_lj[1] = 0.0;
       special_lj[2] = 0.0;
       special_lj[3] = 0.5;
@@ -409,7 +406,7 @@ void Force::set_special(int narg, char **arg)
       special_coul[3] = 5.0/6.0;
       iarg += 1;
     } else if (strcmp(arg[iarg],"charmm") == 0) {
-      if (iarg+1 > narg) error->all("Illegal special_bonds command");
+      if (iarg+1 > narg) error->all(FLERR,"Illegal special_bonds command");
       special_lj[1] = 0.0;
       special_lj[2] = 0.0;
       special_lj[3] = 0.0;
@@ -418,7 +415,7 @@ void Force::set_special(int narg, char **arg)
       special_coul[3] = 0.0;
       iarg += 1;
     } else if (strcmp(arg[iarg],"dreiding") == 0) {
-      if (iarg+1 > narg) error->all("Illegal special_bonds command");
+      if (iarg+1 > narg) error->all(FLERR,"Illegal special_bonds command");
       special_lj[1] = 0.0;
       special_lj[2] = 0.0;
       special_lj[3] = 1.0;
@@ -427,7 +424,7 @@ void Force::set_special(int narg, char **arg)
       special_coul[3] = 1.0;
       iarg += 1;
     } else if (strcmp(arg[iarg],"fene") == 0) {
-      if (iarg+1 > narg) error->all("Illegal special_bonds command");
+      if (iarg+1 > narg) error->all(FLERR,"Illegal special_bonds command");
       special_lj[1] = 0.0;
       special_lj[2] = 1.0;
       special_lj[3] = 1.0;
@@ -436,48 +433,48 @@ void Force::set_special(int narg, char **arg)
       special_coul[3] = 1.0;
       iarg += 1;
     } else if (strcmp(arg[iarg],"lj/coul") == 0) {
-      if (iarg+4 > narg) error->all("Illegal special_bonds command");
+      if (iarg+4 > narg) error->all(FLERR,"Illegal special_bonds command");
       special_lj[1] = special_coul[1] = atof(arg[iarg+1]);
       special_lj[2] = special_coul[2] = atof(arg[iarg+2]);
       special_lj[3] = special_coul[3] = atof(arg[iarg+3]);
       iarg += 4;
     } else if (strcmp(arg[iarg],"lj") == 0) {
-      if (iarg+4 > narg) error->all("Illegal special_bonds command");
+      if (iarg+4 > narg) error->all(FLERR,"Illegal special_bonds command");
       special_lj[1] = atof(arg[iarg+1]);
       special_lj[2] = atof(arg[iarg+2]);
       special_lj[3] = atof(arg[iarg+3]);
       iarg += 4;
     } else if (strcmp(arg[iarg],"coul") == 0) {
-      if (iarg+4 > narg) error->all("Illegal special_bonds command");
+      if (iarg+4 > narg) error->all(FLERR,"Illegal special_bonds command");
       special_coul[1] = atof(arg[iarg+1]);
       special_coul[2] = atof(arg[iarg+2]);
       special_coul[3] = atof(arg[iarg+3]);
       iarg += 4;
     } else if (strcmp(arg[iarg],"angle") == 0) {
-      if (iarg+2 > narg) error->all("Illegal special_bonds command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal special_bonds command");
       if (strcmp(arg[iarg+1],"no") == 0) special_angle = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) special_angle = 1;
-      else error->all("Illegal special_bonds command");
+      else error->all(FLERR,"Illegal special_bonds command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"dihedral") == 0) {
-      if (iarg+2 > narg) error->all("Illegal special_bonds command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal special_bonds command");
       if (strcmp(arg[iarg+1],"no") == 0) special_dihedral = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) special_dihedral = 1;
-      else error->all("Illegal special_bonds command");
+      else error->all(FLERR,"Illegal special_bonds command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"extra") == 0) {
-      if (iarg+2 > narg) error->all("Illegal special_bonds command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal special_bonds command");
       special_extra = atoi(arg[iarg+1]);
       iarg += 2;
-    } else error->all("Illegal special_bonds command");
+    } else error->all(FLERR,"Illegal special_bonds command");
   }
 
   for (int i = 1; i <= 3; i++)
     if (special_lj[i] < 0.0 || special_lj[i] > 1.0 ||
 	special_coul[i] < 0.0 || special_coul[i] > 1.0)
-      error->all("Illegal special_bonds command");
+      error->all(FLERR,"Illegal special_bonds command");
 
-  if (special_extra < 0) error->all("Illegal special_bonds command");
+  if (special_extra < 0) error->all(FLERR,"Illegal special_bonds command");
 }
 
 /* ----------------------------------------------------------------------
@@ -524,7 +521,7 @@ double Force::numeric(char *str)
     if (isdigit(str[i])) continue;
     if (str[i] == '-' || str[i] == '+' || str[i] == '.') continue;
     if (str[i] == 'e' || str[i] == 'E') continue;
-    error->all("Expected floating point parameter in "
+    error->all(FLERR,"Expected floating point parameter in "
 	       "input script or data file");
   }
 
@@ -542,7 +539,7 @@ int Force::inumeric(char *str)
   int n = strlen(str);
   for (int i = 0; i < n; i++) {
     if (isdigit(str[i]) || str[i] == '-' || str[i] == '+') continue;
-    error->all("Expected integer parameter in input script or data file");
+    error->all(FLERR,"Expected integer parameter in input script or data file");
   }
 
   return atoi(str);

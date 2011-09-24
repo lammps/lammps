@@ -48,7 +48,7 @@ enum{NOBIAS,BIAS};
 FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 7) error->all("Illegal fix langevin command");
+  if (narg < 7) error->all(FLERR,"Illegal fix langevin command");
 
   scalar_flag = 1;
   global_freq = 1;
@@ -60,8 +60,8 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
   t_period = atof(arg[5]);
   int seed = atoi(arg[6]);
 
-  if (t_period <= 0.0) error->all("Fix langevin period must be > 0.0");
-  if (seed <= 0) error->all("Illegal fix langevin command");
+  if (t_period <= 0.0) error->all(FLERR,"Fix langevin period must be > 0.0");
+  if (seed <= 0) error->all(FLERR,"Illegal fix langevin command");
 
   // initialize Marsaglia RNG with processor-unique seed
 
@@ -83,38 +83,38 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 7;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"angmom") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix langevin command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix langevin command");
       if (strcmp(arg[iarg+1],"no") == 0) aflag = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) aflag = 1;
-      else error->all("Illegal fix langevin command");
+      else error->all(FLERR,"Illegal fix langevin command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"omega") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix langevin command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix langevin command");
       if (strcmp(arg[iarg+1],"no") == 0) oflag = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) oflag = 1;
-      else error->all("Illegal fix langevin command");
+      else error->all(FLERR,"Illegal fix langevin command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"scale") == 0) {
-      if (iarg+3 > narg) error->all("Illegal fix langevin command");
+      if (iarg+3 > narg) error->all(FLERR,"Illegal fix langevin command");
       int itype = atoi(arg[iarg+1]);
       double scale = atof(arg[iarg+2]);
       if (itype <= 0 || itype > atom->ntypes)
-	error->all("Illegal fix langevin command");
+	error->all(FLERR,"Illegal fix langevin command");
       ratio[itype] = scale;
       iarg += 3;
     } else if (strcmp(arg[iarg],"tally") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix langevin command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix langevin command");
       if (strcmp(arg[iarg+1],"no") == 0) tally = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) tally = 1;
-      else error->all("Illegal fix langevin command");
+      else error->all(FLERR,"Illegal fix langevin command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"zero") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix langevin command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix langevin command");
       if (strcmp(arg[iarg+1],"no") == 0) zeroflag = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) zeroflag = 1;
-      else error->all("Illegal fix langevin command");
+      else error->all(FLERR,"Illegal fix langevin command");
       iarg += 2;
-    } else error->all("Illegal fix langevin command");
+    } else error->all(FLERR,"Illegal fix langevin command");
   }
 
   // error check
@@ -122,7 +122,7 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
   if (aflag) {
     avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
     if (!avec) 
-      error->all("Fix langevin angmom requires atom style ellipsoid");
+      error->all(FLERR,"Fix langevin angmom requires atom style ellipsoid");
   }
 
   // set temperature = NULL, user can override via fix_modify if wants bias
@@ -167,9 +167,9 @@ int FixLangevin::setmask()
 void FixLangevin::init()
 {
   if (oflag && !atom->sphere_flag)
-    error->all("Fix langevin omega require atom style sphere");
+    error->all(FLERR,"Fix langevin omega require atom style sphere");
   if (aflag && !atom->ellipsoid_flag)
-    error->all("Fix langevin angmom require atom style ellipsoid");
+    error->all(FLERR,"Fix langevin angmom require atom style ellipsoid");
 
   // if oflag or aflag set, check that all group particles are finite-size
 
@@ -181,7 +181,7 @@ void FixLangevin::init()
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
 	if (radius[i] == 0.0)
-	  error->one("Fix langevin omega requires extended particles");
+	  error->one(FLERR,"Fix langevin omega requires extended particles");
   }
 
   if (aflag) {
@@ -192,7 +192,7 @@ void FixLangevin::init()
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
 	if (ellipsoid[i] < 0)
-	  error->one("Fix langevin angmom requires extended particles");
+	  error->one(FLERR,"Fix langevin angmom requires extended particles");
   }
 
   // set force prefactors
@@ -283,7 +283,7 @@ void FixLangevin::post_force_no_tally()
   if (zeroflag) {
     count = group->count(igroup);
     if (count == 0)
-      error->all("Cannot zero Langevin force of 0 atoms");
+      error->all(FLERR,"Cannot zero Langevin force of 0 atoms");
   }
   
   if (rmass) {
@@ -656,20 +656,20 @@ void FixLangevin::reset_dt()
 int FixLangevin::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"temp") == 0) {
-    if (narg < 2) error->all("Illegal fix_modify command");
+    if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
     delete [] id_temp;
     int n = strlen(arg[1]) + 1;
     id_temp = new char[n];
     strcpy(id_temp,arg[1]);
 
     int icompute = modify->find_compute(id_temp);
-    if (icompute < 0) error->all("Could not find fix_modify temperature ID");
+    if (icompute < 0) error->all(FLERR,"Could not find fix_modify temperature ID");
     temperature = modify->compute[icompute];
 
     if (temperature->tempflag == 0)
-      error->all("Fix_modify temperature ID does not compute temperature");
+      error->all(FLERR,"Fix_modify temperature ID does not compute temperature");
     if (temperature->igroup != igroup && comm->me == 0)
-      error->warning("Group for fix_modify temp != fix group");
+      error->warning(FLERR,"Group for fix_modify temp != fix group");
     return 2;
   }
   return 0;

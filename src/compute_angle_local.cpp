@@ -32,10 +32,10 @@ using namespace LAMMPS_NS;
 ComputeAngleLocal::ComputeAngleLocal(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg < 4) error->all("Illegal compute angle/local command");
+  if (narg < 4) error->all(FLERR,"Illegal compute angle/local command");
 
   if (atom->avec->angles_allow == 0)
-    error->all("Compute angle/local used when angles are not allowed");
+    error->all(FLERR,"Compute angle/local used when angles are not allowed");
 
   local_flag = 1;
   nvalues = narg - 3;
@@ -50,7 +50,7 @@ ComputeAngleLocal::ComputeAngleLocal(LAMMPS *lmp, int narg, char **arg) :
     i = iarg-3;
     if (strcmp(arg[iarg],"theta") == 0) tflag = nvalues++;
     else if (strcmp(arg[iarg],"eng") == 0) eflag = nvalues++;
-    else error->all("Invalid keyword in compute angle/local command");
+    else error->all(FLERR,"Invalid keyword in compute angle/local command");
   }
 
   nmax = 0;
@@ -71,7 +71,7 @@ ComputeAngleLocal::~ComputeAngleLocal()
 void ComputeAngleLocal::init()
 {
   if (force->angle == NULL) 
-    error->all("No angle style is defined for compute angle/local");
+    error->all(FLERR,"No angle style is defined for compute angle/local");
 
   // do initial memory allocation so that memory_usage() is correct
 

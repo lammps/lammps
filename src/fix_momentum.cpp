@@ -30,16 +30,16 @@ using namespace LAMMPS_NS;
 FixMomentum::FixMomentum(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 4) error->all("Illegal fix momentum command");
+  if (narg < 4) error->all(FLERR,"Illegal fix momentum command");
   nevery = atoi(arg[3]);
-  if (nevery <= 0) error->all("Illegal fix momentum command");
+  if (nevery <= 0) error->all(FLERR,"Illegal fix momentum command");
 
   linear = angular = 0;
 
   int iarg = 4;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"linear") == 0) {
-      if (iarg+4 > narg) error->all("Illegal fix momentum command");
+      if (iarg+4 > narg) error->all(FLERR,"Illegal fix momentum command");
       linear = 1;
       xflag = atoi(arg[iarg+1]);
       yflag = atoi(arg[iarg+2]);
@@ -48,20 +48,20 @@ FixMomentum::FixMomentum(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"angular") == 0) {
       angular = 1;
       iarg += 1;
-    } else error->all("Illegal fix momentum command");
+    } else error->all(FLERR,"Illegal fix momentum command");
   }
 
   if (linear == 0 && angular == 0)
-    error->all("Illegal fix momentum command");
+    error->all(FLERR,"Illegal fix momentum command");
 
   if (linear)
     if (xflag < 0 || xflag > 1 || yflag < 0 || yflag > 1 || 
-	zflag < 0 || zflag > 1) error->all("Illegal fix momentum command");
+	zflag < 0 || zflag > 1) error->all(FLERR,"Illegal fix momentum command");
 
   // cannot have 0 atoms in group
 
   if (group->count(igroup) == 0)
-    error->all("Fix momentum group has no atoms");
+    error->all(FLERR,"Fix momentum group has no atoms");
 }
 
 /* ---------------------------------------------------------------------- */

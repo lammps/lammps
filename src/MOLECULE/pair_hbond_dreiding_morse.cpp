@@ -32,9 +32,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 #define SMALL 0.001
 #define CHUNK 8
 
@@ -216,7 +213,7 @@ void PairHbondDreidingMorse::compute(int eflag, int vflag)
 void PairHbondDreidingMorse::coeff(int narg, char **arg)
 {
   if (narg < 8 || narg > 11)
-    error->all("Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi,klo,khi;
@@ -227,7 +224,7 @@ void PairHbondDreidingMorse::coeff(int narg, char **arg)
   int donor_flag;
   if (strcmp(arg[3],"i") == 0) donor_flag = 0;
   else if (strcmp(arg[3],"j") == 0) donor_flag = 1;
-  else error->all("Incorrect args for pair coefficients");
+  else error->all(FLERR,"Incorrect args for pair coefficients");
 
   double d0_one = force->numeric(arg[4]);
   double alpha_one = force->numeric(arg[5]);
@@ -242,7 +239,7 @@ void PairHbondDreidingMorse::coeff(int narg, char **arg)
     cut_outer_one = force->numeric(arg[9]);
   }
   if (cut_inner_one>cut_outer_one)
-    error->all("Pair inner cutoff >= Pair outer cutoff");
+    error->all(FLERR,"Pair inner cutoff >= Pair outer cutoff");
   double cut_angle_one = cut_angle_global;
   if (narg > 10) cut_angle_one = force->numeric(arg[10]) * PI/180.0;
 
@@ -280,7 +277,7 @@ void PairHbondDreidingMorse::coeff(int narg, char **arg)
       }
   nparams++;
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -295,14 +292,14 @@ void PairHbondDreidingMorse::init_style()
   //   and computing forces on A,H which may be on different procs
 
   if (atom->molecular == 0)
-    error->all("Pair style hbond/dreiding requires molecular system");
+    error->all(FLERR,"Pair style hbond/dreiding requires molecular system");
   if (atom->tag_enable == 0)
-    error->all("Pair style hbond/dreiding requires atom IDs");
+    error->all(FLERR,"Pair style hbond/dreiding requires atom IDs");
   if (atom->map_style == 0) 
-    error->all("Pair style hbond/dreiding requires an atom map, "
+    error->all(FLERR,"Pair style hbond/dreiding requires an atom map, "
 	       "see atom_modify");
   if (force->newton_pair == 0)
-    error->all("Pair style hbond/dreiding requires newton pair on");
+    error->all(FLERR,"Pair style hbond/dreiding requires newton pair on");
 
   // set donor[M]/acceptor[M] if any atom of type M is a donor/acceptor
 
@@ -318,7 +315,7 @@ void PairHbondDreidingMorse::init_style()
 	  acceptor[j] = 1;
 	}
 
-  if (!anyflag) error->all("No pair hbond/dreiding coefficients set");
+  if (!anyflag) error->all(FLERR,"No pair hbond/dreiding coefficients set");
 
   // set additional param values
   // offset is for Morse only, angle term is not included

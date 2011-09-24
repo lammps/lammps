@@ -53,9 +53,9 @@ Dihedral::~Dihedral()
 
 void Dihedral::init()
 {
-  if (!allocated) error->all("Dihedral coeffs are not set");
+  if (!allocated) error->all(FLERR,"Dihedral coeffs are not set");
   for (int i = 1; i <= atom->ndihedraltypes; i++)
-    if (setflag[i] == 0) error->all("All dihedral coeffs are not set");
+    if (setflag[i] == 0) error->all(FLERR,"All dihedral coeffs are not set");
   init_style();
 }
 

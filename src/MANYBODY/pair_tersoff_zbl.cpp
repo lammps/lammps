@@ -54,7 +54,7 @@ PairTersoffZBL::PairTersoffZBL(LAMMPS *lmp) : PairTersoff(lmp)
     global_a_0 = 0.529;
     global_epsilon_0 = 0.00552635 * 0.043365121;
     global_e = 1.0;
-  } else error->all("Pair tersoff/zbl requires metal or real units");
+  } else error->all(FLERR,"Pair tersoff/zbl requires metal or real units");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -76,7 +76,7 @@ void PairTersoffZBL::read_file(char *file)
     if (fp == NULL) {
       char str[128];
       sprintf(str,"Cannot open Tersoff potential file %s",file);
-      error->one(str);
+      error->one(FLERR,str);
     }
   }
 
@@ -126,7 +126,7 @@ void PairTersoffZBL::read_file(char *file)
     }
 
     if (nwords != params_per_line)
-      error->all("Incorrect format in Tersoff potential file");
+      error->all(FLERR,"Incorrect format in Tersoff potential file");
 
     // words = ptrs to all words in line
 
@@ -195,7 +195,7 @@ void PairTersoffZBL::read_file(char *file)
 	params[nparams].gamma < 0.0 ||
 	params[nparams].Z_i < 1.0 || params[nparams].Z_j < 1.0 ||
 	params[nparams].ZBLcut < 0.0 || params[nparams].ZBLexpscale < 0.0)
-      error->all("Illegal Tersoff parameter");
+      error->all(FLERR,"Illegal Tersoff parameter");
 
     nparams++;
   }

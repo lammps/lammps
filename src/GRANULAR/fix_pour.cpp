@@ -39,12 +39,12 @@ using namespace LAMMPS_NS;
 FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 6) error->all("Illegal fix pour command");
+  if (narg < 6) error->all(FLERR,"Illegal fix pour command");
 
   time_depend = 1;
 
   if (!atom->radius_flag || !atom->rmass_flag)
-    error->all("Fix pour requires atom attributes radius, rmass");
+    error->all(FLERR,"Fix pour requires atom attributes radius, rmass");
 
   // required args
 
@@ -52,7 +52,7 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
   ntype = atoi(arg[4]);
   seed = atoi(arg[5]);
 
-  if (seed <= 0) error->all("Illegal fix pour command");
+  if (seed <= 0) error->all(FLERR,"Illegal fix pour command");
 
   PI = 4.0*atan(1.0);
 
@@ -71,32 +71,32 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 6;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"region") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix pour command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix pour command");
       iregion = domain->find_region(arg[iarg+1]);
-      if (iregion == -1) error->all("Fix pour region ID does not exist");
+      if (iregion == -1) error->all(FLERR,"Fix pour region ID does not exist");
       iarg += 2;
     } else if (strcmp(arg[iarg],"diam") == 0) {
-      if (iarg+3 > narg) error->all("Illegal fix pour command");
+      if (iarg+3 > narg) error->all(FLERR,"Illegal fix pour command");
       radius_lo = 0.5 * atof(arg[iarg+1]);
       radius_hi = 0.5 * atof(arg[iarg+2]);
       iarg += 3;
     } else if (strcmp(arg[iarg],"dens") == 0) {
-      if (iarg+3 > narg) error->all("Illegal fix pour command");
+      if (iarg+3 > narg) error->all(FLERR,"Illegal fix pour command");
       density_lo = atof(arg[iarg+1]);
       density_hi = atof(arg[iarg+2]);
       iarg += 3;
     } else if (strcmp(arg[iarg],"vol") == 0) {
-      if (iarg+3 > narg) error->all("Illegal fix pour command");
+      if (iarg+3 > narg) error->all(FLERR,"Illegal fix pour command");
       volfrac = atof(arg[iarg+1]);
       maxattempt = atoi(arg[iarg+2]);
       iarg += 3;
     } else if (strcmp(arg[iarg],"rate") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix pour command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix pour command");
       rate = atof(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"vel") == 0) {
       if (domain->dimension == 3) {
-	if (iarg+6 > narg) error->all("Illegal fix pour command");
+	if (iarg+6 > narg) error->all(FLERR,"Illegal fix pour command");
 	vxlo = atof(arg[iarg+1]);
 	vxhi = atof(arg[iarg+2]);
 	vylo = atof(arg[iarg+3]);
@@ -104,23 +104,23 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
 	vz = atof(arg[iarg+5]);
 	iarg += 6;
       } else {
-	if (iarg+4 > narg) error->all("Illegal fix pour command");
+	if (iarg+4 > narg) error->all(FLERR,"Illegal fix pour command");
 	vxlo = atof(arg[iarg+1]);
 	vxhi = atof(arg[iarg+2]);
 	vy = atof(arg[iarg+3]);
 	vz = 0.0;
 	iarg += 4;
       }
-    } else error->all("Illegal fix pour command");
+    } else error->all(FLERR,"Illegal fix pour command");
   }
 
   // error checks on region and its extent being inside simulation box
 
-  if (iregion == -1) error->all("Must specify a region in fix pour");
+  if (iregion == -1) error->all(FLERR,"Must specify a region in fix pour");
   if (domain->regions[iregion]->bboxflag == 0)
-    error->all("Fix pour region does not support a bounding box");
+    error->all(FLERR,"Fix pour region does not support a bounding box");
   if (domain->regions[iregion]->dynamic_check())
-    error->all("Fix pour region cannot be dynamic");
+    error->all(FLERR,"Fix pour region cannot be dynamic");
 
   if (strcmp(domain->regions[iregion]->style,"block") == 0) {
     region_style = 1;
@@ -133,7 +133,7 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
     if (xlo < domain->boxlo[0] || xhi > domain->boxhi[0] || 
 	ylo < domain->boxlo[1] || yhi > domain->boxhi[1] || 
 	zlo < domain->boxlo[2] || zhi > domain->boxhi[2])
-      error->all("Insertion region extends outside simulation box");
+      error->all(FLERR,"Insertion region extends outside simulation box");
   } else if (strcmp(domain->regions[iregion]->style,"cylinder") == 0) {
     region_style = 2;
     char axis = ((RegCylinder *) domain->regions[iregion])->axis;
@@ -143,15 +143,15 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
     zlo = ((RegCylinder *) domain->regions[iregion])->lo;
     zhi = ((RegCylinder *) domain->regions[iregion])->hi;
     if (axis != 'z')
-      error->all("Must use a z-axis cylinder with fix pour");
+      error->all(FLERR,"Must use a z-axis cylinder with fix pour");
     if (xc-rc < domain->boxlo[0] || xc+rc > domain->boxhi[0] || 
 	yc-rc < domain->boxlo[1] || yc+rc > domain->boxhi[1] || 
 	zlo < domain->boxlo[2] || zhi > domain->boxhi[2])
-      error->all("Insertion region extends outside simulation box");
-  } else error->all("Must use a block or cylinder region with fix pour");
+      error->all(FLERR,"Insertion region extends outside simulation box");
+  } else error->all(FLERR,"Must use a block or cylinder region with fix pour");
 
   if (region_style == 2 && domain->dimension == 2)
-    error->all("Must use a block region with fix pour for 2d simulations");
+    error->all(FLERR,"Must use a block region with fix pour for 2d simulations");
 
   // random number generator, same for all procs
 
@@ -171,7 +171,7 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
   for (ifix = 0; ifix < modify->nfix; ifix++)
     if (strcmp(modify->fix[ifix]->style,"gravity") == 0) break;
   if (ifix == modify->nfix) 
-    error->all("No fix gravity defined for fix pour");
+    error->all(FLERR,"No fix gravity defined for fix pour");
   grav = - ((FixGravity *) modify->fix[ifix])->magnitude * force->ftm2v;
 
   // nfreq = timesteps between insertions
@@ -260,7 +260,7 @@ int FixPour::setmask()
 
 void FixPour::init()
 {
-  if (domain->triclinic) error->all("Cannot use fix pour with triclinic box");
+  if (domain->triclinic) error->all(FLERR,"Cannot use fix pour with triclinic box");
 
   // insure gravity fix exists
   // for 3d must point in -z, for 2d must point in -y
@@ -270,7 +270,7 @@ void FixPour::init()
   for (ifix = 0; ifix < modify->nfix; ifix++)
     if (strcmp(modify->fix[ifix]->style,"gravity") == 0) break;
   if (ifix == modify->nfix) 
-    error->all("No fix gravity defined for fix pour");
+    error->all(FLERR,"No fix gravity defined for fix pour");
 
   double xgrav = ((FixGravity *) modify->fix[ifix])->xgrav;
   double ygrav = ((FixGravity *) modify->fix[ifix])->ygrav;
@@ -279,16 +279,16 @@ void FixPour::init()
   if (domain->dimension == 3) {
     if (fabs(xgrav) > EPSILON || fabs(ygrav) > EPSILON ||
 	fabs(zgrav+1.0) > EPSILON)
-      error->all("Gravity must point in -z to use with fix pour in 3d");
+      error->all(FLERR,"Gravity must point in -z to use with fix pour in 3d");
   } else {
     if (fabs(xgrav) > EPSILON || fabs(ygrav+1.0) > EPSILON ||
 	fabs(zgrav) > EPSILON)
-      error->all("Gravity must point in -y to use with fix pour in 2d");
+      error->all(FLERR,"Gravity must point in -y to use with fix pour in 2d");
   }
 
   double gnew = - ((FixGravity *) modify->fix[ifix])->magnitude * force->ftm2v;
   if (gnew != grav)
-    error->all("Gravity changed since fix pour was created");
+    error->all(FLERR,"Gravity changed since fix pour was created");
 }
 
 /* ----------------------------------------------------------------------
@@ -415,7 +415,7 @@ void FixPour::pre_exchange()
 
   ninserted += nnear-nprevious;
   if (nnear - nprevious < nnew && me == 0)
-    error->warning("Less insertions than requested",0);
+    error->warning(FLERR,"Less insertions than requested",0);
 
   // check if new atom is in my sub-box or above it if I'm highest proc
   // if so, add to my list via create_atom()
@@ -573,5 +573,5 @@ void FixPour::xyz_random(double h, double *coord)
 
 void FixPour::reset_dt()
 {
-  error->all("Cannot change timestep with fix pour");
+  error->all(FLERR,"Cannot change timestep with fix pour");
 }

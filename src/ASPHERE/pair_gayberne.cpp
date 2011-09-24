@@ -31,9 +31,6 @@
 #include "memory.h"
 #include "error.h"
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 using namespace LAMMPS_NS;
 
 enum{SPHERE_SPHERE,SPHERE_ELLIPSE,ELLIPSE_SPHERE,ELLIPSE_ELLIPSE};
@@ -43,7 +40,7 @@ enum{SPHERE_SPHERE,SPHERE_ELLIPSE,ELLIPSE_SPHERE,ELLIPSE_ELLIPSE};
 PairGayBerne::PairGayBerne(LAMMPS *lmp) : Pair(lmp)
 {
   avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-  if (!avec) error->all("Pair gayberne requires atom style ellipsoid");
+  if (!avec) error->all(FLERR,"Pair gayberne requires atom style ellipsoid");
 
   single_enable = 0;
 }
@@ -262,7 +259,7 @@ void PairGayBerne::allocate()
 
 void PairGayBerne::settings(int narg, char **arg)
 {
-  if (narg != 4) error->all("Illegal pair_style command");
+  if (narg != 4) error->all(FLERR,"Illegal pair_style command");
 
   gamma = force->numeric(arg[0]);
   upsilon = force->numeric(arg[1])/2.0;
@@ -286,7 +283,7 @@ void PairGayBerne::settings(int narg, char **arg)
 void PairGayBerne::coeff(int narg, char **arg)
 {
   if (narg < 10 || narg > 11)
-    error->all("Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -330,7 +327,7 @@ void PairGayBerne::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 
@@ -348,7 +345,7 @@ void PairGayBerne::init_style()
 
   for (int i = 1; i <= atom->ntypes; i++) {
     if (!atom->shape_consistency(i,shape1[i][0],shape1[i][1],shape1[i][2]))
-      error->all("Pair gayberne requires atoms with same type have same shape");
+      error->all(FLERR,"Pair gayberne requires atoms with same type have same shape");
     if (shape1[i][0] == 0.0)
       shape1[i][0] = shape1[i][1] = shape1[i][2] = 1.0;
     shape2[i][0] = shape1[i][0]*shape1[i][0];
@@ -366,7 +363,7 @@ void PairGayBerne::init_style()
 double PairGayBerne::init_one(int i, int j)
 {
   if (setwell[i] == 0 || setwell[j] == 0)
-    error->all("Pair gayberne epsilon a,b,c coeffs are not all set");
+    error->all(FLERR,"Pair gayberne epsilon a,b,c coeffs are not all set");
 
   if (setflag[i][j] == 0) {
     epsilon[i][j] = mix_energy(epsilon[i][i],epsilon[j][j],
@@ -545,7 +542,7 @@ double PairGayBerne::gayberne_analytic(const int i,const int j,double a1[3][3],
   MathExtra::plus3(g1,g2,g12);
   double kappa[3];
   int ierror = MathExtra::mldivide3(g12,r12,kappa);
-  if (ierror) error->all("Bad matrix inversion in mldivide3");
+  if (ierror) error->all(FLERR,"Bad matrix inversion in mldivide3");
 
   // tempv = G12^-1*r12hat
 
@@ -576,7 +573,7 @@ double PairGayBerne::gayberne_analytic(const int i,const int j,double a1[3][3],
   double iota[3];
   MathExtra::plus3(b1,b2,b12);
   ierror = MathExtra::mldivide3(b12,r12,iota);
-  if (ierror) error->all("Bad matrix inversion in mldivide3");
+  if (ierror) error->all(FLERR,"Bad matrix inversion in mldivide3");
 
   // tempv = G12^-1*r12hat
 
@@ -726,7 +723,7 @@ double PairGayBerne::gayberne_lj(const int i,const int j,double a1[3][3],
   g12[1][2] = g1[1][2]; g12[2][1] = g1[2][1];
   double kappa[3];
   int ierror = MathExtra::mldivide3(g12,r12,kappa);
-  if (ierror) error->all("Bad matrix inversion in mldivide3");
+  if (ierror) error->all(FLERR,"Bad matrix inversion in mldivide3");
 
   // tempv = G12^-1*r12hat
 
@@ -762,7 +759,7 @@ double PairGayBerne::gayberne_lj(const int i,const int j,double a1[3][3],
   b12[0][2] = b1[0][2]; b12[2][0] = b1[2][0];
   b12[1][2] = b1[1][2]; b12[2][1] = b1[2][1];
   ierror = MathExtra::mldivide3(b12,r12,iota);
-  if (ierror) error->all("Bad matrix inversion in mldivide3");
+  if (ierror) error->all(FLERR,"Bad matrix inversion in mldivide3");
 
   // tempv = G12^-1*r12hat
 

@@ -41,9 +41,6 @@ using namespace LAMMPS_NS;
 #define BUFFACTOR 1.5
 #define BUFMIN 1000
 #define BUFEXTRA 1000
-
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
 #define BIG 1.0e20
 
 enum{SINGLE,MULTI};
@@ -56,7 +53,7 @@ CommCuda::CommCuda(LAMMPS *lmp):Comm(lmp)
 {
   cuda = lmp->cuda;
    if(cuda == NULL)
-        error->all("You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
+        error->all(FLERR,"You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
 
   cu_pbc=NULL;
   cu_slablo=NULL;
@@ -279,7 +276,7 @@ cuda->shared_data.cuda_timings.comm_forward_mpi_lower+=
 	    if (sendnum[iswap])
 		{
           n = Cuda_CommCuda_PackComm_Self(&cuda->shared_data,sendnum[iswap],iswap,firstrecv[iswap],pbc[iswap],pbc_flag[iswap]);
-          if(n<0) error->all(" # CUDA ERRROR on PackComm_Self");
+          if(n<0) error->all(FLERR," # CUDA ERRROR on PackComm_Self");
           if((sizeof(X_FLOAT)!=sizeof(double)) && n)
             n=(n+1)*sizeof(X_FLOAT)/sizeof(double);
 		}
@@ -382,7 +379,7 @@ clock_gettime(CLOCK_REALTIME,&time2);
 	    if (sendnum[iswap])
 		{
           n = Cuda_CommCuda_PackComm_Self(&cuda->shared_data,sendnum[iswap],iswap,firstrecv[iswap],pbc[iswap],pbc_flag[iswap]);
-          if(n<0) error->all(" # CUDA ERRROR on PackComm_Self");
+          if(n<0) error->all(FLERR," # CUDA ERRROR on PackComm_Self");
           if((sizeof(X_FLOAT)!=sizeof(double)) && n)
             n=(n+1)*sizeof(X_FLOAT)/sizeof(double);
 		}

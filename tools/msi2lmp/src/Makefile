@@ -18,7 +18,7 @@ OBJS     = $(SRCS:.c=.o)
 HEADERS  = Msi2LMP2.h Forcefield.h
 
 CC       = gcc
-CFLAGS   = -O2
+CFLAGS   = -O3
 FRCFILE  = cvff.frc
 FRCFILE2 = cff91.frc
 README   = README

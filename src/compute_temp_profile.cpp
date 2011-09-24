@@ -27,15 +27,12 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 /* ---------------------------------------------------------------------- */
 
 ComputeTempProfile::ComputeTempProfile(LAMMPS *lmp, int narg, char **arg) : 
   Compute(lmp, narg, arg)
 {
-  if (narg < 7) error->all("Illegal compute temp/profile command");
+  if (narg < 7) error->all(FLERR,"Illegal compute temp/profile command");
 
   scalar_flag = vector_flag = 1;
   size_vector = 6;
@@ -48,7 +45,7 @@ ComputeTempProfile::ComputeTempProfile(LAMMPS *lmp, int narg, char **arg) :
   yflag = atoi(arg[4]);
   zflag = atoi(arg[5]);
   if (zflag && domain->dimension == 2)
-    error->all("Compute temp/profile cannot use vz for 2d systemx");
+    error->all(FLERR,"Compute temp/profile cannot use vz for 2d systemx");
 
   ncount = 0;
   ivx = ivy = ivz = 0;
@@ -59,43 +56,43 @@ ComputeTempProfile::ComputeTempProfile(LAMMPS *lmp, int narg, char **arg) :
   nbinx = nbiny = nbinz = 1;
 
   if (strcmp(arg[6],"x") == 0) {
-    if (narg != 8) error->all("Illegal compute temp/profile command");
+    if (narg != 8) error->all(FLERR,"Illegal compute temp/profile command");
     nbinx = atoi(arg[7]);
   } else if (strcmp(arg[6],"y") == 0) {
-    if (narg != 8) error->all("Illegal compute temp/profile command");
+    if (narg != 8) error->all(FLERR,"Illegal compute temp/profile command");
     nbiny = atoi(arg[7]);
   } else if (strcmp(arg[6],"z") == 0) {
-    if (narg != 8) error->all("Illegal compute temp/profile command");
+    if (narg != 8) error->all(FLERR,"Illegal compute temp/profile command");
     if (domain->dimension == 2)
-      error->all("Compute temp/profile cannot bin z for 2d systems");
+      error->all(FLERR,"Compute temp/profile cannot bin z for 2d systems");
     nbinz = atoi(arg[7]);
   } else if (strcmp(arg[6],"xy") == 0) {
-    if (narg != 9) error->all("Illegal compute temp/profile command");
+    if (narg != 9) error->all(FLERR,"Illegal compute temp/profile command");
     nbinx = atoi(arg[7]);
     nbiny = atoi(arg[8]);
   } else if (strcmp(arg[6],"yz") == 0) {
-    if (narg != 9) error->all("Illegal compute temp/profile command");
+    if (narg != 9) error->all(FLERR,"Illegal compute temp/profile command");
     if (domain->dimension == 2)
-      error->all("Compute temp/profile cannot bin z for 2d systems");
+      error->all(FLERR,"Compute temp/profile cannot bin z for 2d systems");
     nbiny = atoi(arg[7]);
     nbinz = atoi(arg[8]);
   } else if (strcmp(arg[6],"xz") == 0) {
-    if (narg != 9) error->all("Illegal compute temp/profile command");
+    if (narg != 9) error->all(FLERR,"Illegal compute temp/profile command");
     if (domain->dimension == 2)
-      error->all("Compute temp/profile cannot bin z for 2d systems");
+      error->all(FLERR,"Compute temp/profile cannot bin z for 2d systems");
     nbinx = atoi(arg[7]);
     nbinz = atoi(arg[8]);
   } else if (strcmp(arg[6],"xyz") == 0) {
-    if (narg != 10) error->all("Illegal compute temp/profile command");
+    if (narg != 10) error->all(FLERR,"Illegal compute temp/profile command");
     if (domain->dimension == 2)
-      error->all("Compute temp/profile cannot bin z for 2d systems");
+      error->all(FLERR,"Compute temp/profile cannot bin z for 2d systems");
     nbinx = atoi(arg[7]);
     nbiny = atoi(arg[8]);
     nbinz = atoi(arg[9]);
-  } else error->all("Illegal compute temp/profile command");
+  } else error->all(FLERR,"Illegal compute temp/profile command");
 
   nbins = nbinx*nbiny*nbinz;
-  if (nbins <= 0) error->all("Illegal compute temp/profile command");
+  if (nbins <= 0) error->all(FLERR,"Illegal compute temp/profile command");
 
   memory->create(vbin,nbins,ncount+1,"temp/profile:vbin");
   memory->create(binave,nbins,ncount+1,"temp/profile:binave");

@@ -26,9 +26,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 enum{NSQ,BIN,MULTI};     // also in neigh_list.cpp
 
 /* ---------------------------------------------------------------------- */
@@ -37,7 +34,7 @@ NeighborCuda::NeighborCuda(LAMMPS *lmp) : Neighbor(lmp)
 {
   cuda = lmp->cuda;
    if(cuda == NULL)
-        error->all("You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
+        error->all(FLERR,"You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -206,7 +203,7 @@ void NeighborCuda::build()
   // check that neighbor list with special bond flags will not overflow
 
   if (atom->nlocal+atom->nghost > NEIGHMASK)
-    error->one("Too many local+ghost atoms for neighbor list");
+    error->one(FLERR,"Too many local+ghost atoms for neighbor list");
 
   // invoke building of pair and molecular neighbor lists
   // only for pairwise lists with buildflag set

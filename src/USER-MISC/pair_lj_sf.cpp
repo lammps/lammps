@@ -28,9 +28,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 PairLJShiftedForce::PairLJShiftedForce(LAMMPS *lmp) : Pair(lmp) {}
@@ -173,12 +170,12 @@ void PairLJShiftedForce::allocate()
 
 void PairLJShiftedForce::settings(int narg, char **arg)
 {
-  if (narg != 1) error->all("Illegal pair_style command");
+  if (narg != 1) error->all(FLERR,"Illegal pair_style command");
 
   cut_global = force->numeric(arg[0]);
 
   if (cut_global <= 0.0)
-    error->all("Illegal pair_style command");
+    error->all(FLERR,"Illegal pair_style command");
   
   // reset cutoffs that have been explicitly set
 
@@ -196,7 +193,7 @@ void PairLJShiftedForce::settings(int narg, char **arg)
 
 void PairLJShiftedForce::coeff(int narg, char **arg)
 {
-  if (narg < 4 || narg > 5) error->all("Incorrect args for pair coefficients");
+  if (narg < 4 || narg > 5) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -210,7 +207,7 @@ void PairLJShiftedForce::coeff(int narg, char **arg)
   if (narg == 5) cut_one = force->numeric(arg[4]);
 
   if (cut_one <= 0.0)
-    error->all("Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients");
   
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -223,7 +220,7 @@ void PairLJShiftedForce::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------

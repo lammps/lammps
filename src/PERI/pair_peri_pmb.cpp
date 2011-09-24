@@ -185,7 +185,7 @@ void PairPeriPMB::compute(int eflag, int vflag)
 
   // grow bond forces array if necessary
 
-  if (nlocal > nmax) {
+  if (atom->nmax > nmax) {
     memory->destroy(s0_new);
     nmax = atom->nmax;
     memory->create(s0_new,nmax,"pair:s0_new");

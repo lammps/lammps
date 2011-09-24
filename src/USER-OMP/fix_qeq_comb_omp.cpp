@@ -37,7 +37,7 @@ using namespace LAMMPS_NS;
 FixQEQCombOMP::FixQEQCombOMP(LAMMPS *lmp, int narg, char **arg) 
   : FixQEQComb(lmp, narg, arg)
 {
-  if (narg < 5) error->all("Illegal fix qeq/comb/omp command");
+  if (narg < 5) error->all(FLERR,"Illegal fix qeq/comb/omp command");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -45,18 +45,18 @@ FixQEQCombOMP::FixQEQCombOMP(LAMMPS *lmp, int narg, char **arg)
 void FixQEQCombOMP::init()
 {
   if (!atom->q_flag)
-    error->all("Fix qeq/comb/omp requires atom attribute q");
+    error->all(FLERR,"Fix qeq/comb/omp requires atom attribute q");
 
   comb = (PairComb *) force->pair_match("comb/omp",1);
   if (comb == NULL)
     comb = (PairComb *) force->pair_match("comb",1);
-  if (comb == NULL) error->all("Must use pair_style comb or comb/omp with fix qeq/comb");
+  if (comb == NULL) error->all(FLERR,"Must use pair_style comb or comb/omp with fix qeq/comb");
 
   if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
   ngroup = group->count(igroup);
-  if (ngroup == 0) error->all("Fix qeq/comb group has no atoms");
+  if (ngroup == 0) error->all(FLERR,"Fix qeq/comb group has no atoms");
 }
 
 /* ---------------------------------------------------------------------- */

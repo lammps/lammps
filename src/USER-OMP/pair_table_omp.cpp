@@ -126,24 +126,24 @@ void PairTableOMP::eval(double **f, int iifrom, int iito, int tid)
       if (rsq < cutsq[itype][jtype]) {
 	tb = &tables[tabindex[itype][jtype]];
 	if (rsq < tb->innersq)
-	  error->one("Pair distance < table inner cutoff");
+	  error->one(FLERR,"Pair distance < table inner cutoff");
  
 	if (tabstyle == LOOKUP) {
 	  itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
 	  if (itable >= tlm1)
-	    error->one("Pair distance > table outer cutoff");
+	    error->one(FLERR,"Pair distance > table outer cutoff");
 	  fpair = factor_lj * tb->f[itable];
 	} else if (tabstyle == LINEAR) {
 	  itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
 	  if (itable >= tlm1)
-	    error->one("Pair distance > table outer cutoff");
+	    error->one(FLERR,"Pair distance > table outer cutoff");
 	  fraction = (rsq - tb->rsq[itable]) * tb->invdelta;
 	  value = tb->f[itable] + fraction*tb->df[itable];
 	  fpair = factor_lj * value;
 	} else if (tabstyle == SPLINE) {
 	  itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
 	  if (itable >= tlm1)
-	    error->one("Pair distance > table outer cutoff");
+	    error->one(FLERR,"Pair distance > table outer cutoff");
 	  b = (rsq - tb->rsq[itable]) * tb->invdelta;
 	  a = 1.0 - b;
 	  value = a * tb->f[itable] + b * tb->f[itable+1] + 

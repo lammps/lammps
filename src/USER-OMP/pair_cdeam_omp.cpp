@@ -40,7 +40,7 @@ using namespace LAMMPS_NS;
 	inline void my_failure(Error* error, const char* file, int line) {
 		char str[1024];
 		sprintf(str,"Assertion failure: File %s, line %i", file, line);
-		error->one(str);
+		error->one(FLERR,str);
 	}
 #else
 	#define ASSERT(cond)
@@ -138,7 +138,7 @@ void PairCDEAMOMP::compute(int eflag, int vflag)
 #if defined(_OPENMP)
 #pragma omp master
 #endif
-    error->all("unsupported eam/cd pair style variant");
+    error->all(FLERR,"unsupported eam/cd pair style variant");
     }
     
     // reduce per thread forces into global force array.
@@ -313,7 +313,7 @@ void PairCDEAMOMP::eval(double **f, double *rho_t, double *rhoB_t,
   //
   //for(i = 0; i < nlocal + atom->nghost; i++) {
   //	if(rho[i] == 0 && (type[i] == speciesA || type[i] == speciesB))
-  //		error->one("CD-EAM potential routine: Detected atom with zero electron density.");
+  //		error->one(FLERR,"CD-EAM potential routine: Detected atom with zero electron density.");
   //}
 
   // Stage II

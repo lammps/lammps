@@ -28,14 +28,14 @@ namespace LAMMPS_NS {
 class DihedralCharmm : public Dihedral {
  public:
   DihedralCharmm(class LAMMPS *);
-  ~DihedralCharmm();
-  void compute(int, int);
+  virtual ~DihedralCharmm();
+  virtual void compute(int, int);
   void coeff(int, char **);
   void init_style();
   void write_restart(FILE *);
   void read_restart(FILE *);
 
- private:
+ protected:
   double *k,*weight,*cos_shift,*sin_shift;
   int *multiplicity,*shift;
   double **lj14_1,**lj14_2,**lj14_3,**lj14_4;

@@ -28,13 +28,13 @@ namespace LAMMPS_NS {
 class DihedralMultiHarmonic : public Dihedral {
  public:
   DihedralMultiHarmonic(class LAMMPS *);
-  ~DihedralMultiHarmonic();
-  void compute(int, int);
+  virtual ~DihedralMultiHarmonic();
+  virtual void compute(int, int);
   void coeff(int, char **);
   void write_restart(FILE *);
   void read_restart(FILE *);
 
- private:
+ protected:
   double *a1,*a2,*a3,*a4,*a5;
 
   void allocate();

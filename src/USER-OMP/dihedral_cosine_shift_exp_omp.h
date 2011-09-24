@@ -11,34 +11,35 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Axel Kohlmeyer (Temple U)
+------------------------------------------------------------------------- */
+
 #ifdef DIHEDRAL_CLASS
 
-DihedralStyle(harmonic,DihedralHarmonic)
+DihedralStyle(cosine/shift/exp/omp,DihedralCosineShiftExpOMP)
 
 #else
 
-#ifndef LMP_DIHEDRAL_HARMONIC_H
-#define LMP_DIHEDRAL_HARMONIC_H
+#ifndef LMP_DIHEDRAL_COSINE_SHIFT_EXP_OMP_H
+#define LMP_DIHEDRAL_COSINE_SHIFT_EXP_OMP_H
 
-#include "stdio.h"
-#include "dihedral.h"
+#include "dihedral_cosine_shift_exp.h"
+#include "thr_omp.h"
 
 namespace LAMMPS_NS {
 
-class DihedralHarmonic : public Dihedral {
+class DihedralCosineShiftExpOMP : public DihedralCosineShiftExp, public ThrOMP {
+
  public:
-  DihedralHarmonic(class LAMMPS *);
-  virtual ~DihedralHarmonic();
+    DihedralCosineShiftExpOMP(class LAMMPS *lmp) : 
+      DihedralCosineShiftExp(lmp), ThrOMP(lmp,DIHEDRAL) {};
+
   virtual void compute(int, int);
-  void coeff(int, char **);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
 
- protected:
-  double *k,*cos_shift,*sin_shift;
-  int *sign,*multiplicity;
-
-  void allocate();
+ private:
+  template <int EVFLAG, int EFLAG, int NEWTON_BOND>
+  void eval(double **f, int ifrom, int ito, int tid);
 };
 
 }

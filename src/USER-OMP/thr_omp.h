@@ -83,6 +83,10 @@ class ThrOMP {
 		     double *, double *, double *, int);
   void ev_tally_list_thr(Pair *, int, int *, double , double *, int);
 
+  void ev_tally_thr(Dihedral *, int, int, int, int, int, int, double,
+		    double *, double *, double *, double, double, double,
+		    double, double, double, double, double, double, int);
+
   // style independent versions
   void v_tally2_thr(int, int, double, double *, int);
   void v_tally3_thr(int, int, int, double *, double *, double *, double *, int);

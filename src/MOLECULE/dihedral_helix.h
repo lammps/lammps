@@ -28,13 +28,13 @@ namespace LAMMPS_NS {
 class DihedralHelix : public Dihedral {
  public:
   DihedralHelix(class LAMMPS *);
-  ~DihedralHelix();
-  void compute(int, int);
+  virtual ~DihedralHelix();
+  virtual void compute(int, int);
   void coeff(int, char **);
   void write_restart(FILE *);
   void read_restart(FILE *);
 
- private:
+ protected:
   double *aphi,*bphi,*cphi;
 
   void allocate();

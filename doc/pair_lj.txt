@@ -19,7 +19,9 @@ pair_style lj/cut/coul/debye/cuda command :h3
 pair_style lj/cut/coul/long command :h3
 pair_style lj/cut/coul/long/cuda command :h3
 pair_style lj/cut/coul/long/gpu command :h3
+pair_style lj/cut/coul/long/opt command :h3
 pair_style lj/cut/coul/long/tip4p command :h3
+pair_style lj/cut/coul/long/tip4p/opt command :h3
 
 [Syntax:]
 

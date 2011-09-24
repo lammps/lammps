@@ -29,14 +29,11 @@ using namespace LAMMPS_NS;
 #define DELTA 4
 #define BIG 2000000000
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 /* ---------------------------------------------------------------------- */
 
 Compute::Compute(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 {
-  if (narg < 3) error->all("Illegal compute command");
+  if (narg < 3) error->all(FLERR,"Illegal compute command");
 
   // compute ID, group, and style
   // ID must be all alphanumeric chars or underscores
@@ -47,10 +44,10 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   for (int i = 0; i < n-1; i++)
     if (!isalnum(id[i]) && id[i] != '_')
-      error->all("Compute ID must be alphanumeric or underscore characters");
+      error->all(FLERR,"Compute ID must be alphanumeric or underscore characters");
 
   igroup = group->find(arg[1]);
-  if (igroup == -1) error->all("Could not find compute group ID");
+  if (igroup == -1) error->all(FLERR,"Could not find compute group ID");
   groupbit = group->bitmask[igroup];
 
   n = strlen(arg[2]) + 1;
@@ -103,27 +100,27 @@ Compute::~Compute()
 
 void Compute::modify_params(int narg, char **arg)
 {
-  if (narg == 0) error->all("Illegal compute_modify command");
+  if (narg == 0) error->all(FLERR,"Illegal compute_modify command");
 
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"extra") == 0) {
-      if (iarg+2 > narg) error->all("Illegal compute_modify command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal compute_modify command");
       extra_dof = atoi(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"dynamic") == 0) {
-      if (iarg+2 > narg) error->all("Illegal compute_modify command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal compute_modify command");
       if (strcmp(arg[iarg+1],"no") == 0) dynamic = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) dynamic = 1;
-      else error->all("Illegal compute_modify command");
+      else error->all(FLERR,"Illegal compute_modify command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"thermo") == 0) {
-      if (iarg+2 > narg) error->all("Illegal compute_modify command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal compute_modify command");
       if (strcmp(arg[iarg+1],"no") == 0) thermoflag = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) thermoflag = 1;
-      else error->all("Illegal compute_modify command");
+      else error->all(FLERR,"Illegal compute_modify command");
       iarg += 2;
-    } else error->all("Illegal compute_modify command");
+    } else error->all(FLERR,"Illegal compute_modify command");
   }
 }
 
@@ -140,7 +137,7 @@ void Compute::reset_extra_dof()
 
 void Compute::reset_extra_compute_fix(char *)
 {
-  error->all("Compute does not allow an extra compute or fix to be reset");
+  error->all(FLERR,"Compute does not allow an extra compute or fix to be reset");
 }
 
 /* ----------------------------------------------------------------------
@@ -238,7 +235,7 @@ int Compute::molecules_in_group(int &idlo, int &idhi)
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
   if (flagall && comm->me == 0)
-    error->warning("Atom with molecule ID = 0 included in "
+    error->warning(FLERR,"Atom with molecule ID = 0 included in "
 		   "compute molecule group");
 
   MPI_Allreduce(&lo,&idlo,1,MPI_INT,MPI_MIN,world);
@@ -280,7 +277,7 @@ int Compute::molecules_in_group(int &idlo, int &idhi)
 
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
   if (flagall && comm->me == 0)
-    error->warning("One or more compute molecules has atoms not in group");
+    error->warning(FLERR,"One or more compute molecules has atoms not in group");
 
   // if molmap simply stores 1 to Nmolecules, then free it
 

@@ -200,7 +200,7 @@ void BondQuartic::allocate()
 
 void BondQuartic::coeff(int narg, char **arg)
 {
-  if (narg != 6) error->all("Incorrect args for bond coefficients");
+  if (narg != 6) error->all(FLERR,"Incorrect args for bond coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -223,7 +223,7 @@ void BondQuartic::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all("Incorrect args for bond coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for bond coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -233,19 +233,19 @@ void BondQuartic::coeff(int narg, char **arg)
 void BondQuartic::init_style()
 {
   if (force->pair == NULL || force->pair->single_enable == 0)
-    error->all("Pair style does not support bond_style quartic");
+    error->all(FLERR,"Pair style does not support bond_style quartic");
   if (force->angle)
-    error->all("Bond style quartic cannot be used with 3,4-body interactions");
+    error->all(FLERR,"Bond style quartic cannot be used with 3,4-body interactions");
   if (force->dihedral)
-    error->all("Bond style quartic cannot be used with 3,4-body interactions");
+    error->all(FLERR,"Bond style quartic cannot be used with 3,4-body interactions");
   if (force->improper)
-    error->all("Bond style quartic cannot be used with 3,4-body interactions");
+    error->all(FLERR,"Bond style quartic cannot be used with 3,4-body interactions");
 
   // special bonds must be 1 1 1
 
   if (force->special_lj[1] != 1.0 || force->special_lj[2] != 1.0 ||
       force->special_lj[3] != 1.0)
-    error->all("Bond style quartic requires special_bonds = 1,1,1");
+    error->all(FLERR,"Bond style quartic requires special_bonds = 1,1,1");
 }
 
 /* ----------------------------------------------------------------------

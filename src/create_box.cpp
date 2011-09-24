@@ -33,21 +33,21 @@ CreateBox::CreateBox(LAMMPS *lmp) : Pointers(lmp) {}
 
 void CreateBox::command(int narg, char **arg)
 {
-  if (narg != 2) error->all("Illegal create_box command");
+  if (narg != 2) error->all(FLERR,"Illegal create_box command");
 
   if (domain->box_exist) 
-    error->all("Cannot create_box after simulation box is defined");
+    error->all(FLERR,"Cannot create_box after simulation box is defined");
   if (domain->dimension == 2 && domain->zperiodic == 0)
-    error->all("Cannot run 2d simulation with nonperiodic Z dimension");
+    error->all(FLERR,"Cannot run 2d simulation with nonperiodic Z dimension");
 
   domain->box_exist = 1;
 
   // region check
 
   int iregion = domain->find_region(arg[1]);
-  if (iregion == -1) error->all("Create_box region ID does not exist");
+  if (iregion == -1) error->all(FLERR,"Create_box region ID does not exist");
   if (domain->regions[iregion]->bboxflag == 0)
-    error->all("Create_box region does not support a bounding box");
+    error->all(FLERR,"Create_box region does not support a bounding box");
 
   // if region not prism:
   //   setup orthogonal domain

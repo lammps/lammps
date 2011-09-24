@@ -24,9 +24,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 PairSPHTaitwater::PairSPHTaitwater(LAMMPS *lmp) :
@@ -229,7 +226,7 @@ void PairSPHTaitwater::allocate() {
 
 void PairSPHTaitwater::settings(int narg, char **arg) {
   if (narg != 0)
-    error->all(
+    error->all(FLERR,
         "Illegal number of setting arguments for pair_style sph/taitwater");
 }
 
@@ -239,7 +236,7 @@ void PairSPHTaitwater::settings(int narg, char **arg) {
 
 void PairSPHTaitwater::coeff(int narg, char **arg) {
   if (narg != 6)
-    error->all(
+    error->all(FLERR,
         "Incorrect args for pair_style sph/taitwater coefficients");
   if (!allocated)
     allocate();
@@ -274,7 +271,7 @@ void PairSPHTaitwater::coeff(int narg, char **arg) {
   }
 
   if (count == 0)
-    error->all("Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -284,7 +281,7 @@ void PairSPHTaitwater::coeff(int narg, char **arg) {
 double PairSPHTaitwater::init_one(int i, int j) {
 
   if (setflag[i][j] == 0) {
-    error->all("Not all pair sph/taitwater coeffs are set");
+    error->all(FLERR,"Not all pair sph/taitwater coeffs are set");
   }
 
   cut[j][i] = cut[i][j];

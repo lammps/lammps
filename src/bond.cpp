@@ -50,9 +50,9 @@ Bond::~Bond()
 
 void Bond::init()
 {
-  if (!allocated) error->all("Bond coeffs are not set");
+  if (!allocated) error->all(FLERR,"Bond coeffs are not set");
   for (int i = 1; i <= atom->nbondtypes; i++)
-    if (setflag[i] == 0) error->all("All bond coeffs are not set");
+    if (setflag[i] == 0) error->all(FLERR,"All bond coeffs are not set");
   init_style();
 }
 

@@ -32,7 +32,7 @@ using namespace LAMMPS_NS;
 ComputeKEEff::ComputeKEEff(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg != 3) error->all("Illegal compute ke/eff command");
+  if (narg != 3) error->all(FLERR,"Illegal compute ke/eff command");
 
   scalar_flag = 1;
   extscalar = 1;
@@ -40,7 +40,7 @@ ComputeKEEff::ComputeKEEff(LAMMPS *lmp, int narg, char **arg) :
   // error check
 
   if (!atom->electron_flag) 
-    error->all("Compute ke/eff requires atom style electron");
+    error->all(FLERR,"Compute ke/eff requires atom style electron");
 }
 
 /* ---------------------------------------------------------------------- */

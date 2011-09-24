@@ -27,7 +27,7 @@ using namespace LAMMPS_NS;
 FixStoreForce::FixStoreForce(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 3) error->all("Illegal fix store/coord command");
+  if (narg < 3) error->all(FLERR,"Illegal fix store/coord command");
 
   peratom_flag = 1;
   size_peratom_cols = 3;

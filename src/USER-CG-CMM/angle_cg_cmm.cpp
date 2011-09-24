@@ -297,7 +297,7 @@ void AngleCGCMM::allocate()
 
 void AngleCGCMM::coeff(int narg, char **arg)
 {
-  if (narg != 6) error->all("Incorrect args for angle coefficients");
+  if (narg != 6) error->all(FLERR,"Incorrect args for angle coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -307,7 +307,7 @@ void AngleCGCMM::coeff(int narg, char **arg)
   double theta0_one = atof(arg[2]);
 
   int cg_type_one=find_cg_type(arg[3]);
-  if (cg_type_one == CG_NOT_SET) error->all("Error reading CG type flag.");
+  if (cg_type_one == CG_NOT_SET) error->all(FLERR,"Error reading CG type flag.");
   
   double epsilon_one = atof(arg[4]);
   double sigma_one = atof(arg[5]);
@@ -332,7 +332,7 @@ void AngleCGCMM::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all("Incorrect args for angle coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for angle coefficients");
 }
 
 /* ---------------------------------------------------------------------- */

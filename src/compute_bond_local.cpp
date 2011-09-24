@@ -32,10 +32,10 @@ using namespace LAMMPS_NS;
 ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg < 4) error->all("Illegal compute bond/local command");
+  if (narg < 4) error->all(FLERR,"Illegal compute bond/local command");
 
   if (atom->avec->bonds_allow == 0)
-    error->all("Compute bond/local used when bonds are not allowed");
+    error->all(FLERR,"Compute bond/local used when bonds are not allowed");
 
   local_flag = 1;
   nvalues = narg - 3;
@@ -50,7 +50,7 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
     i = iarg-3;
     if (strcmp(arg[iarg],"dist") == 0) dflag = nvalues++;
     else if (strcmp(arg[iarg],"eng") == 0) eflag = nvalues++;
-    else error->all("Invalid keyword in compute bond/local command");
+    else error->all(FLERR,"Invalid keyword in compute bond/local command");
   }
 
   nmax = 0;
@@ -71,7 +71,7 @@ ComputeBondLocal::~ComputeBondLocal()
 void ComputeBondLocal::init()
 {
   if (force->bond == NULL) 
-    error->all("No bond style is defined for compute bond/local");
+    error->all(FLERR,"No bond style is defined for compute bond/local");
 
   // do initial memory allocation so that memory_usage() is correct
 

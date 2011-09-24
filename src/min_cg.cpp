@@ -31,9 +31,6 @@ using namespace LAMMPS_NS;
 
 enum{MAXITER,MAXEVAL,ETOL,FTOL,DOWNHILL,ZEROALPHA,ZEROFORCE,ZEROQUAD};
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 /* ---------------------------------------------------------------------- */
 
 MinCG::MinCG(LAMMPS *lmp) : MinLineSearch(lmp) {}

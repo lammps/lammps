@@ -33,7 +33,7 @@ RegSphere::RegSphere(LAMMPS *lmp, int narg, char **arg) :
 
   // error check
 
-  if (radius < 0.0) error->all("Illegal region sphere command");
+  if (radius < 0.0) error->all(FLERR,"Illegal region sphere command");
 
   // extent of sphere
 

@@ -32,9 +32,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 enum{NONE,XYZ,XY,YZ,XZ};
 enum{ISO,ANISO,TRICLINIC};
 
@@ -45,7 +42,7 @@ enum{ISO,ANISO,TRICLINIC};
 FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 5) error->all("Illegal fix box/relax command");
+  if (narg < 5) error->all(FLERR,"Illegal fix box/relax command");
 
   scalar_flag = 1;
   extscalar = 1;
@@ -74,7 +71,7 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"iso") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix box/relax command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
       pcouple = XYZ;
       p_target[0] = p_target[1] = p_target[2] = atof(arg[iarg+1]);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
@@ -84,7 +81,7 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
       }
       iarg += 2; 
     } else if (strcmp(arg[iarg],"aniso") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix box/relax command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
       pcouple = NONE;
       p_target[0] = p_target[1] = p_target[2] = atof(arg[iarg+1]);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
@@ -94,7 +91,7 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"tri") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix box/relax command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
       pcouple = NONE;
       p_target[0] = p_target[1] = p_target[2] = atof(arg[iarg+1]);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
@@ -107,75 +104,75 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"x") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix box/relax command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
       p_target[0] = atof(arg[iarg+1]);
       p_flag[0] = 1;
       deviatoric_flag = 1;
       iarg += 2; 
     } else if (strcmp(arg[iarg],"y") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix box/relax command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
       p_target[1] = atof(arg[iarg+1]);
       p_flag[1] = 1;
       deviatoric_flag = 1;
       iarg += 2; 
     } else if (strcmp(arg[iarg],"z") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix box/relax command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
       p_target[2] = atof(arg[iarg+1]);
       p_flag[2] = 1;
       deviatoric_flag = 1;
       iarg += 2; 
       if (dimension == 2)
-	error->all("Invalid fix box/relax command for a 2d simulation");
+	error->all(FLERR,"Invalid fix box/relax command for a 2d simulation");
 
     } else if (strcmp(arg[iarg],"yz") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix box/relax command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
       p_target[3] = atof(arg[iarg+1]);
       p_flag[3] = 1;
       deviatoric_flag = 1;
       iarg += 2; 
       if (dimension == 2)
-	error->all("Invalid fix box/relax command for a 2d simulation");
+	error->all(FLERR,"Invalid fix box/relax command for a 2d simulation");
     } else if (strcmp(arg[iarg],"xz") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix box/relax command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
       p_target[4] = atof(arg[iarg+1]);
       p_flag[4] = 1;
       deviatoric_flag = 1;
       iarg += 2; 
       if (dimension == 2)
-	error->all("Invalid fix box/relax command for a 2d simulation");
+	error->all(FLERR,"Invalid fix box/relax command for a 2d simulation");
     } else if (strcmp(arg[iarg],"xy") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix box/relax command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
       p_target[5] = atof(arg[iarg+1]);
       p_flag[5] = 1;
       deviatoric_flag = 1;
       iarg += 2; 
 
     } else if (strcmp(arg[iarg],"couple") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix box/relax command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
       if (strcmp(arg[iarg+1],"xyz") == 0) pcouple = XYZ;
       else if (strcmp(arg[iarg+1],"xy") == 0) pcouple = XY;
       else if (strcmp(arg[iarg+1],"yz") == 0) pcouple = YZ;
       else if (strcmp(arg[iarg+1],"xz") == 0) pcouple = XZ;
       else if (strcmp(arg[iarg+1],"none") == 0) pcouple = NONE;
-      else error->all("Illegal fix box/relax command");
+      else error->all(FLERR,"Illegal fix box/relax command");
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"dilate") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix box/relax command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
       if (strcmp(arg[iarg+1],"all") == 0) allremap = 1;
       else if (strcmp(arg[iarg+1],"partial") == 0) allremap = 0;
-      else error->all("Illegal fix box/relax command");
+      else error->all(FLERR,"Illegal fix box/relax command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"vmax") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix box/relax command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
       vmax = atof(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"nreset") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix box/relax command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
       nreset_h0 = atoi(arg[iarg+1]);
-      if (nreset_h0 < 0) error->all("Illegal fix box/relax command");
+      if (nreset_h0 < 0) error->all(FLERR,"Illegal fix box/relax command");
       iarg += 2;
-    } else error->all("Illegal fix box/relax command");
+    } else error->all(FLERR,"Illegal fix box/relax command");
   }
 
   if (p_flag[0] || p_flag[1] || p_flag[2]) box_change_size = 1;
@@ -185,51 +182,51 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
   // error checks
 
   if (dimension == 2 && (p_flag[2] || p_flag[3] || p_flag[4]))
-    error->all("Invalid fix box/relax command for a 2d simulation");
+    error->all(FLERR,"Invalid fix box/relax command for a 2d simulation");
   if (dimension == 2 && (pcouple == YZ || pcouple == XZ))
-    error->all("Invalid fix box/relax command for a 2d simulation");
+    error->all(FLERR,"Invalid fix box/relax command for a 2d simulation");
 
   if (pcouple == XYZ && (p_flag[0] == 0 || p_flag[1] == 0))
-    error->all("Invalid fix box/relax command pressure settings");
+    error->all(FLERR,"Invalid fix box/relax command pressure settings");
   if (pcouple == XYZ && dimension == 3 && p_flag[2] == 0)
-    error->all("Invalid fix box/relax command pressure settings");
+    error->all(FLERR,"Invalid fix box/relax command pressure settings");
   if (pcouple == XY && (p_flag[0] == 0 || p_flag[1] == 0))
-    error->all("Invalid fix box/relax command pressure settings");
+    error->all(FLERR,"Invalid fix box/relax command pressure settings");
   if (pcouple == YZ && (p_flag[1] == 0 || p_flag[2] == 0))
-    error->all("Invalid fix box/relax command pressure settings");
+    error->all(FLERR,"Invalid fix box/relax command pressure settings");
   if (pcouple == XZ && (p_flag[0] == 0 || p_flag[2] == 0))
-    error->all("Invalid fix box/relax command pressure settings");
+    error->all(FLERR,"Invalid fix box/relax command pressure settings");
 
   if (p_flag[0] && domain->xperiodic == 0)
-    error->all("Cannot use fix box/relax on a non-periodic dimension");
+    error->all(FLERR,"Cannot use fix box/relax on a non-periodic dimension");
   if (p_flag[1] && domain->yperiodic == 0)
-    error->all("Cannot use fix box/relax on a non-periodic dimension");
+    error->all(FLERR,"Cannot use fix box/relax on a non-periodic dimension");
   if (p_flag[2] && domain->zperiodic == 0)
-    error->all("Cannot use fix box/relax on a non-periodic dimension");
+    error->all(FLERR,"Cannot use fix box/relax on a non-periodic dimension");
   if (p_flag[3] && domain->zperiodic == 0)
-    error->all("Cannot use fix box/relax on a 2nd non-periodic dimension");
+    error->all(FLERR,"Cannot use fix box/relax on a 2nd non-periodic dimension");
   if (p_flag[4] && domain->zperiodic == 0)
-    error->all("Cannot use fix box/relax on a 2nd non-periodic dimension");
+    error->all(FLERR,"Cannot use fix box/relax on a 2nd non-periodic dimension");
   if (p_flag[5] && domain->yperiodic == 0)
-    error->all("Cannot use fix box/relax on a 2nd non-periodic dimension");
+    error->all(FLERR,"Cannot use fix box/relax on a 2nd non-periodic dimension");
 
   if (!domain->triclinic && (p_flag[3] || p_flag[4] || p_flag[5])) 
-    error->all("Can not specify Pxy/Pxz/Pyz in "
+    error->all(FLERR,"Can not specify Pxy/Pxz/Pyz in "
 	       "fix box/relax with non-triclinic box");
 
   if (pcouple == XYZ && dimension == 3 &&
       (p_target[0] != p_target[1] || p_target[0] != p_target[2]))
-    error->all("Invalid fix box/relax pressure settings");
+    error->all(FLERR,"Invalid fix box/relax pressure settings");
   if (pcouple == XYZ && dimension == 2 && p_target[0] != p_target[1])
-    error->all("Invalid fix box/relax pressure settings");
+    error->all(FLERR,"Invalid fix box/relax pressure settings");
   if (pcouple == XY && p_target[0] != p_target[1])
-    error->all("Invalid fix box/relax pressure settings");
+    error->all(FLERR,"Invalid fix box/relax pressure settings");
   if (pcouple == YZ && p_target[1] != p_target[2])
-    error->all("Invalid fix box/relax pressure settings");
+    error->all(FLERR,"Invalid fix box/relax pressure settings");
   if (pcouple == XZ && p_target[0] != p_target[2])
-    error->all("Invalid fix box/relax pressure settings");
+    error->all(FLERR,"Invalid fix box/relax pressure settings");
 
-  if (vmax <= 0.0) error->all("Illegal fix box/relax command");
+  if (vmax <= 0.0) error->all(FLERR,"Illegal fix box/relax command");
 
   // pstyle = TRICLINIC if any off-diagonal term is controlled -> 6 dof
   // else pstyle = ISO if XYZ coupling or XY coupling in 2d -> 1 dof
@@ -314,11 +311,11 @@ void FixBoxRelax::init()
 
   int icompute = modify->find_compute(id_temp);
   if (icompute < 0) 
-    error->all("Temperature ID for fix box/relax does not exist");
+    error->all(FLERR,"Temperature ID for fix box/relax does not exist");
   temperature = modify->compute[icompute];
 
   icompute = modify->find_compute(id_press);
-  if (icompute < 0) error->all("Pressure ID for fix box/relax does not exist");
+  if (icompute < 0) error->all(FLERR,"Pressure ID for fix box/relax does not exist");
   pressure = modify->compute[icompute];
 
   pv2e = 1.0 / force->nktv2p;
@@ -473,7 +470,7 @@ void FixBoxRelax::min_clearstore()
 void FixBoxRelax::min_pushstore()
 {
   if (current_lifo >= MAX_LIFO_DEPTH) {
-    error->all("Attempt to push beyond stack limit in fix box/relax");
+    error->all(FLERR,"Attempt to push beyond stack limit in fix box/relax");
     return;
   }
   current_lifo++;
@@ -487,7 +484,7 @@ void FixBoxRelax::min_pushstore()
 void FixBoxRelax::min_popstore()
 {
   if (current_lifo <= 0) {
-    error->all("Attempt to pop empty stack in fix box/relax");
+    error->all(FLERR,"Attempt to pop empty stack in fix box/relax");
     return;
   }
   current_lifo--;
@@ -611,7 +608,7 @@ void FixBoxRelax::remap()
       domain->boxlo[i] = currentBoxLo0 + (currentBoxLo0-ctr)*ds[i]/s0[i];
       domain->boxhi[i] = currentBoxHi0 + (currentBoxHi0-ctr)*ds[i]/s0[i];
       if (domain->boxlo[i] >= domain->boxhi[i])
-	error->all("Fix box/relax generated negative box length");
+	error->all(FLERR,"Fix box/relax generated negative box length");
     }
 
   if (pstyle == TRICLINIC) {
@@ -680,7 +677,7 @@ void FixBoxRelax::couple()
 int FixBoxRelax::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"temp") == 0) {
-    if (narg < 2) error->all("Illegal fix_modify command");
+    if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
     if (tflag) {
       modify->delete_compute(id_temp);
       tflag = 0;
@@ -691,24 +688,24 @@ int FixBoxRelax::modify_param(int narg, char **arg)
     strcpy(id_temp,arg[1]);
 
     int icompute = modify->find_compute(arg[1]);
-    if (icompute < 0) error->all("Could not find fix_modify temperature ID");
+    if (icompute < 0) error->all(FLERR,"Could not find fix_modify temperature ID");
     temperature = modify->compute[icompute];
 
     if (temperature->tempflag == 0)
-      error->all("Fix_modify temperature ID does not compute temperature");
+      error->all(FLERR,"Fix_modify temperature ID does not compute temperature");
     if (temperature->igroup != 0 && comm->me == 0)
-      error->warning("Temperature for fix modify is not for group all");
+      error->warning(FLERR,"Temperature for fix modify is not for group all");
 
     // reset id_temp of pressure to new temperature ID
     
     icompute = modify->find_compute(id_press);
-    if (icompute < 0) error->all("Pressure ID for fix modify does not exist");
+    if (icompute < 0) error->all(FLERR,"Pressure ID for fix modify does not exist");
     modify->compute[icompute]->reset_extra_compute_fix(id_temp);
 
     return 2;
 
   } else if (strcmp(arg[0],"press") == 0) {
-    if (narg < 2) error->all("Illegal fix_modify command");
+    if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
     if (pflag) {
       modify->delete_compute(id_press);
       pflag = 0;
@@ -719,11 +716,11 @@ int FixBoxRelax::modify_param(int narg, char **arg)
     strcpy(id_press,arg[1]);
 
     int icompute = modify->find_compute(arg[1]);
-    if (icompute < 0) error->all("Could not find fix_modify pressure ID");
+    if (icompute < 0) error->all(FLERR,"Could not find fix_modify pressure ID");
     pressure = modify->compute[icompute];
 
     if (pressure->pressflag == 0)
-      error->all("Fix_modify pressure ID does not compute pressure");
+      error->all(FLERR,"Fix_modify pressure ID does not compute pressure");
     return 2;
   }
   return 0;

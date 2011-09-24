@@ -41,7 +41,7 @@ FixRestrain::FixRestrain(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   int iarg = 6;
-  if (narg < iarg) error->all("Illegal fix restrain command");
+  if (narg < iarg) error->all(FLERR,"Illegal fix restrain command");
 
   scalar_flag = 1;
   global_freq = 1;
@@ -56,11 +56,11 @@ FixRestrain::FixRestrain(LAMMPS *lmp, int narg, char **arg) :
   if (strcmp(arg[5], "dihedral") == 0) {
     rstyle = DIHEDRAL;
     n_atoms = 4;
-  } else error->all("Illegal fix restrain command");
+  } else error->all(FLERR,"Illegal fix restrain command");
 
   n_bonds = (narg - iarg) / (n_atoms + 1);
   if (narg != iarg + n_bonds * (n_atoms + 1))
-    error->all("Illegal fix restrain command");
+    error->all(FLERR,"Illegal fix restrain command");
 
   // allocate arrays
 
@@ -98,7 +98,7 @@ FixRestrain::FixRestrain(LAMMPS *lmp, int narg, char **arg) :
   // require atom map to lookup atom IDs
 
   if (atom->map_style == 0) 
-    error->all("Fix restrain requires an atom map, see atom_modify");
+    error->all(FLERR,"Fix restrain requires an atom map, see atom_modify");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -218,7 +218,7 @@ void FixRestrain::restrain_dihedral()
 		BIGINT_FORMAT,
 		atom_id[n][0],atom_id[n][1],atom_id[n][2],atom_id[n][3],
 		comm->me,update->ntimestep);
-	error->one(str);
+	error->one(FLERR,str);
       }
     } else {
       if ((i1 == -1 || i1 >= nlocal) && (i2 == -1 || i2 >= nlocal) &&
@@ -230,7 +230,7 @@ void FixRestrain::restrain_dihedral()
 		BIGINT_FORMAT,
 		atom_id[n][0],atom_id[n][1],atom_id[n][2],atom_id[n][3],
 		comm->me,update->ntimestep);
-	error->one(str);
+	error->one(FLERR,str);
       }
     }
 
@@ -291,7 +291,7 @@ void FixRestrain::restrain_dihedral()
 	sprintf(str,"Restrain problem: %d " BIGINT_FORMAT " %d %d %d %d",
 		me,update->ntimestep,
 		atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
-	error->warning(str);
+	error->warning(FLERR,str);
 	fprintf(screen,"  1st atom: %d %g %g %g\n",
 		me,x[i1][0],x[i1][1],x[i1][2]);
 	fprintf(screen,"  2nd atom: %d %g %g %g\n",

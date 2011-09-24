@@ -26,9 +26,9 @@ FixNVTEff::FixNVTEff(LAMMPS *lmp, int narg, char **arg) :
   FixNHEff(lmp, narg, arg)
 {
   if (!tstat_flag)
-    error->all("Temperature control must be used with fix nvt/eff");
+    error->all(FLERR,"Temperature control must be used with fix nvt/eff");
   if (pstat_flag)
-    error->all("Pressure control can not be used with fix nvt/eff");
+    error->all(FLERR,"Pressure control can not be used with fix nvt/eff");
 
   // create a new compute temp style
   // id = fix-ID + temp

@@ -618,7 +618,7 @@ void PairEDIP::allocate()
 
 void PairEDIP::settings(int narg, char **arg)
 {
-  if (narg != 0) error->all("Illegal pair_style command");
+  if (narg != 0) error->all(FLERR,"Illegal pair_style command");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -759,12 +759,12 @@ void PairEDIP::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   if (narg != 3 + atom->ntypes)
-    error->all("Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients");
 
   // insure I,J args are * *
 
   if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all("Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read args that map atom types to elements in potential file
   // map[i] = which element the Ith atom type is, -1 if NULL
@@ -817,7 +817,7 @@ void PairEDIP::coeff(int narg, char **arg)
 	count++;
       }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 
   // allocate tables and internal structures
 
@@ -833,9 +833,9 @@ void PairEDIP::coeff(int narg, char **arg)
 void PairEDIP::init_style()
 {
   if (atom->tag_enable == 0)
-    error->all("Pair style EDIP requires atom IDs");
+    error->all(FLERR,"Pair style EDIP requires atom IDs");
   if (force->newton_pair == 0)
-    error->all("Pair style EDIP requires newton pair on");
+    error->all(FLERR,"Pair style EDIP requires newton pair on");
 
   // need a full neighbor list
 
@@ -850,7 +850,7 @@ void PairEDIP::init_style()
 
 double PairEDIP::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all("All pair coeffs are not set");
+  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
   return cutmax;
 }
@@ -874,7 +874,7 @@ void PairEDIP::read_file(char *file)
     if (fp == NULL) {
       char str[128];
       sprintf(str,"Cannot open EDIP potential file %s",file);
-      error->one(str);
+      error->one(FLERR,str);
     }
   }
 
@@ -925,7 +925,7 @@ void PairEDIP::read_file(char *file)
     }
 
     if (nwords != params_per_line)
-      error->all("Incorrect format in EDIP potential file");
+      error->all(FLERR,"Incorrect format in EDIP potential file");
 
     // words = ptrs to all words in line
 
@@ -982,7 +982,7 @@ void PairEDIP::read_file(char *file)
 	params[nparams].eta < 0.0 || params[nparams].gamm < 0.0 ||
 	params[nparams].lambda < 0.0 || params[nparams].mu < 0.0 ||
 	params[nparams].rho < 0.0 || params[nparams].sigma < 0.0)
-      error->all("Illegal EDIP parameter");
+      error->all(FLERR,"Illegal EDIP parameter");
     
     nparams++;
   }
@@ -1011,11 +1011,11 @@ void PairEDIP::setup()
 	for (m = 0; m < nparams; m++) {
 	  if (i == params[m].ielement && j == params[m].jelement && 
 	      k == params[m].kelement) {
-	    if (n >= 0) error->all("Potential file has duplicate entry");
+	    if (n >= 0) error->all(FLERR,"Potential file has duplicate entry");
 	    n = m;
 	  }
 	}
-	if (n < 0) error->all("Potential file is missing an entry");
+	if (n < 0) error->all(FLERR,"Potential file is missing an entry");
 	elem2param[i][j][k] = n;
       }
 

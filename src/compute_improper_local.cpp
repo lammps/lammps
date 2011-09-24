@@ -34,10 +34,10 @@ using namespace LAMMPS_NS;
 ComputeImproperLocal::ComputeImproperLocal(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg < 4) error->all("Illegal compute improper/local command");
+  if (narg < 4) error->all(FLERR,"Illegal compute improper/local command");
 
   if (atom->avec->impropers_allow == 0)
-    error->all("Compute improper/local used when impropers are not allowed");
+    error->all(FLERR,"Compute improper/local used when impropers are not allowed");
 
   local_flag = 1;
   nvalues = narg - 3;
@@ -51,7 +51,7 @@ ComputeImproperLocal::ComputeImproperLocal(LAMMPS *lmp, int narg, char **arg) :
   for (int iarg = 3; iarg < narg; iarg++) {
     i = iarg-3;
     if (strcmp(arg[iarg],"chi") == 0) cflag = nvalues++;
-    else error->all("Invalid keyword in compute improper/local command");
+    else error->all(FLERR,"Invalid keyword in compute improper/local command");
   }
 
   nmax = 0;
@@ -72,7 +72,7 @@ ComputeImproperLocal::~ComputeImproperLocal()
 void ComputeImproperLocal::init()
 {
   if (force->improper == NULL) 
-    error->all("No improper style is defined for compute improper/local");
+    error->all(FLERR,"No improper style is defined for compute improper/local");
 
   // do initial memory allocation so that memory_usage() is correct
 

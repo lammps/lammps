@@ -26,9 +26,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 PairCoulDebye::PairCoulDebye(LAMMPS *lmp) : PairCoulCut(lmp) {}
@@ -117,7 +114,7 @@ void PairCoulDebye::compute(int eflag, int vflag)
 
 void PairCoulDebye::settings(int narg, char **arg)
 {
-  if (narg != 2) error->all("Illegal pair_style command");
+  if (narg != 2) error->all(FLERR,"Illegal pair_style command");
 
   kappa = force->numeric(arg[0]);
   cut_global = force->numeric(arg[1]);

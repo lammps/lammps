@@ -65,10 +65,10 @@ Temper::~Temper()
 void Temper::command(int narg, char **arg)
 {
   if (universe->nworlds == 1) 
-    error->all("Must have more than one processor partition to temper");
+    error->all(FLERR,"Must have more than one processor partition to temper");
   if (domain->box_exist == 0) 
-    error->all("Temper command before simulation box is defined");
-  if (narg != 6 && narg != 7) error->universe_all("Illegal temper command");
+    error->all(FLERR,"Temper command before simulation box is defined");
+  if (narg != 6 && narg != 7) error->universe_all(FLERR,"Illegal temper command");
 
   int nsteps = atoi(arg[0]);
   nevery = atoi(arg[1]);
@@ -77,7 +77,7 @@ void Temper::command(int narg, char **arg)
   for (whichfix = 0; whichfix < modify->nfix; whichfix++)
     if (strcmp(arg[3],modify->fix[whichfix]->id) == 0) break;
   if (whichfix == modify->nfix) 
-    error->universe_all("Tempering fix ID is not defined");
+    error->universe_all(FLERR,"Tempering fix ID is not defined");
 
   seed_swap = atoi(arg[4]);
   seed_boltz = atoi(arg[5]);
@@ -87,10 +87,10 @@ void Temper::command(int narg, char **arg)
 
   // swap frequency must evenly divide total # of timesteps
 
-  if (nevery == 0) error->universe_all("Invalid frequency in temper command");
+  if (nevery == 0) error->universe_all(FLERR,"Invalid frequency in temper command");
   nswaps = nsteps/nevery;
   if (nswaps*nevery != nsteps) 
-    error->universe_all("Non integer # of swaps in temper command");
+    error->universe_all(FLERR,"Non integer # of swaps in temper command");
 
   // fix style must be appropriate for temperature control
 
@@ -98,7 +98,7 @@ void Temper::command(int narg, char **arg)
       (strcmp(modify->fix[whichfix]->style,"langevin") != 0) &&
       (strcmp(modify->fix[whichfix]->style,"temp/berendsen") != 0) &&
       (strcmp(modify->fix[whichfix]->style,"temp/rescale") != 0))
-    error->universe_all("Tempering temperature fix is not valid");
+    error->universe_all(FLERR,"Tempering temperature fix is not valid");
 
   // setup for long tempering run
 
@@ -107,7 +107,7 @@ void Temper::command(int narg, char **arg)
   update->beginstep = update->firststep = update->ntimestep;
   update->endstep = update->laststep = update->firststep + nsteps;
   if (update->laststep < 0 || update->laststep > MAXBIGINT)
-    error->all("Too many timesteps");
+    error->all(FLERR,"Too many timesteps");
 
   lmp->init();
 
@@ -123,7 +123,7 @@ void Temper::command(int narg, char **arg)
   // notify compute it will be called at first swap
 
   int id = modify->find_compute("thermo_pe");
-  if (id < 0) error->all("Tempering could not find thermo_pe compute");
+  if (id < 0) error->all(FLERR,"Tempering could not find thermo_pe compute");
   Compute *pe_compute = modify->compute[id];
   pe_compute->addstep(update->ntimestep + nevery);
 

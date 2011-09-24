@@ -28,8 +28,8 @@ enum{EPAIR,EVDWL,ECOUL};
 ComputePair::ComputePair(LAMMPS *lmp, int narg, char **arg) : 
   Compute(lmp, narg, arg)
 {
-  if (narg < 4 || narg > 5) error->all("Illegal compute pair command");
-  if (igroup) error->all("Compute pair must use group all");
+  if (narg < 4 || narg > 5) error->all(FLERR,"Illegal compute pair command");
+  if (igroup) error->all(FLERR,"Compute pair must use group all");
 
   scalar_flag = 1;
   extscalar = 1;
@@ -47,7 +47,7 @@ ComputePair::ComputePair(LAMMPS *lmp, int narg, char **arg) :
   } else evalue = EPAIR;
 
   pair = force->pair_match(pstyle,1);
-  if (!pair) error->all("Unrecognized pair style in compute pair command");
+  if (!pair) error->all(FLERR,"Unrecognized pair style in compute pair command");
   npair = pair->nextra;
 
   if (npair) {
@@ -75,7 +75,7 @@ void ComputePair::init()
   // recheck for pair style in case it has been deleted
 
   pair = force->pair_match(pstyle,1);
-  if (!pair) error->all("Unrecognized pair style in compute pair command");
+  if (!pair) error->all(FLERR,"Unrecognized pair style in compute pair command");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -84,7 +84,7 @@ double ComputePair::compute_scalar()
 {
   invoked_scalar = update->ntimestep;
   if (update->eflag_global != invoked_scalar)
-    error->all("Energy was not tallied on needed timestep");
+    error->all(FLERR,"Energy was not tallied on needed timestep");
 
   double eng;
   if (evalue == EPAIR) eng = pair->eng_vdwl + pair->eng_coul;
@@ -101,7 +101,7 @@ void ComputePair::compute_vector()
 {
   invoked_vector = update->ntimestep;
   if (update->eflag_global != invoked_vector)
-    error->all("Energy was not tallied on needed timestep");
+    error->all(FLERR,"Energy was not tallied on needed timestep");
 
   for (int i = 0; i < npair; i++)
     one[i] = pair->pvector[i];

@@ -44,9 +44,6 @@ using namespace LAMMPS_NS;
 #define EPSILON 1.0e-7
 #define MAXJACOBI 50
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 /* ----------------------------------------------------------------------
    define rigid bodies and joints, initiate POEMS
 ------------------------------------------------------------------------- */
@@ -91,19 +88,19 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
   // set natom2body, atom2body for all atoms and nbody = # of rigid bodies
   // atoms must also be in fix group to be in a body
 
-  if (narg < 4) error->all("Illegal fix poems command");
+  if (narg < 4) error->all(FLERR,"Illegal fix poems command");
 
   // group = arg has list of groups
 
   if (strcmp(arg[3],"group") == 0) {
     nbody = narg-4;
-    if (nbody <= 0) error->all("Illegal fix poems command");
+    if (nbody <= 0) error->all(FLERR,"Illegal fix poems command");
 
     int *igroups = new int[nbody];
     for (ibody = 0; ibody < nbody; ibody++) {
       igroups[ibody] = group->find(arg[ibody+4]);
       if (igroups[ibody] == -1) 
-	error->all("Could not find fix poems group ID");
+	error->all(FLERR,"Could not find fix poems group ID");
     }
 
     int *mask = atom->mask;
@@ -138,9 +135,9 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
   // use nall as incremented ptr to set atom2body[] values for each atom
 
   } else if (strcmp(arg[3],"molecule") == 0) {
-    if (narg != 4) error->all("Illegal fix poems command");
+    if (narg != 4) error->all(FLERR,"Illegal fix poems command");
     if (atom->molecular == 0)
-      error->all("Must use a molecular atom style with fix poems molecule");
+      error->all(FLERR,"Must use a molecular atom style with fix poems molecule");
 
     int *mask = atom->mask;
     int *molecule = atom->molecule;
@@ -179,19 +176,19 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
     delete [] ncount;
     delete [] nall;
 
-  } else error->all("Illegal fix poems command");
+  } else error->all(FLERR,"Illegal fix poems command");
 
   // error if no bodies
   // error if any atom in too many bodies
 
-  if (nbody == 0) error->all("No rigid bodies defined");
+  if (nbody == 0) error->all(FLERR,"No rigid bodies defined");
 
   int flag = 0;
   for (int i = 0; i < nlocal; i++)
     if (natom2body[i] > MAXBODY) flag = 1;
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-  if (flagall) error->all("Atom in too many rigid bodies - boost MAXBODY");
+  if (flagall) error->all(FLERR,"Atom in too many rigid bodies - boost MAXBODY");
 
   // create all nbody-length arrays
 
@@ -226,7 +223,7 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
   delete [] ncount;
 
   for (ibody = 0; ibody < nbody; ibody++)
-    if (nrigid[ibody] <= 1) error->all("One or zero atoms in rigid body"); 
+    if (nrigid[ibody] <= 1) error->all(FLERR,"One or zero atoms in rigid body"); 
 
   // build list of joint connections and check for cycles and trees
 
@@ -331,7 +328,7 @@ void FixPOEMS::init()
   int count = 0;
   for (int i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"poems") == 0) count++;
-  if (count > 1 && comm->me == 0) error->warning("More than one fix poems");
+  if (count > 1 && comm->me == 0) error->warning(FLERR,"More than one fix poems");
 
   // error if npt,nph fix comes before rigid fix
 
@@ -342,7 +339,7 @@ void FixPOEMS::init()
   if (i < modify->nfix) {
     for (int j = i; j < modify->nfix; j++)
       if (strcmp(modify->fix[j]->style,"poems") == 0)
-	error->all("POEMS fix must come before NPT/NPH fix");
+	error->all(FLERR,"POEMS fix must come before NPT/NPH fix");
   }
 
   // timestep info
@@ -456,7 +453,7 @@ void FixPOEMS::init()
     tensor[0][2] = tensor[2][0] = all[ibody][5];
   
     ierror = jacobi(tensor,inertia[ibody],evectors);
-    if (ierror) error->all("Insufficient Jacobi rotations for POEMS body");
+    if (ierror) error->all(FLERR,"Insufficient Jacobi rotations for POEMS body");
 
     ex_space[ibody][0] = evectors[0][0];
     ex_space[ibody][1] = evectors[1][0];
@@ -480,7 +477,7 @@ void FixPOEMS::init()
     if (inertia[ibody][0] < EPSILON*max ||
 	inertia[ibody][1] < EPSILON*max ||
 	inertia[ibody][2] < EPSILON*max)
-      error->all("Rigid body has degenerate moment of inertia");
+      error->all(FLERR,"Rigid body has degenerate moment of inertia");
 
     // enforce 3 evectors as a right-handed coordinate system
     // flip 3rd evector if needed
@@ -576,11 +573,11 @@ void FixPOEMS::init()
     if (fabs(all[ibody][0]-inertia[ibody][0]) > TOLERANCE || 
 	fabs(all[ibody][1]-inertia[ibody][1]) > TOLERANCE ||
 	fabs(all[ibody][2]-inertia[ibody][2]) > TOLERANCE)
-      error->all("Bad principal moments");
+      error->all(FLERR,"Bad principal moments");
     if (fabs(all[ibody][3]) > TOLERANCE || 
 	fabs(all[ibody][4]) > TOLERANCE ||
 	fabs(all[ibody][5]) > TOLERANCE)
-      error->all("Bad principal moments");
+      error->all(FLERR,"Bad principal moments");
   }
 }
 
@@ -888,7 +885,7 @@ void FixPOEMS::readfile(char *file)
     if (fp == NULL) {
       char str[128];
       sprintf(str,"Cannot open fix poems file %s",file);
-      error->one(str);
+      error->one(FLERR,str);
     }
   }
 
@@ -1020,7 +1017,7 @@ void FixPOEMS::jointbuild()
   // warning if no joints
 
   if (njoint == 0 && me == 0)
-    error->warning("No joints between rigid bodies, use fix rigid instead");
+    error->warning(FLERR,"No joints between rigid bodies, use fix rigid instead");
 
   // sort joint list in ascending order by body indices
   // check for loops in joint connections between rigid bodies
@@ -1029,7 +1026,7 @@ void FixPOEMS::jointbuild()
   sortlist(njoint,jlist);
 
   if (loopcheck(nbody,njoint,jlist))
-    error->all("Cyclic loop in joint connections");
+    error->all(FLERR,"Cyclic loop in joint connections");
 
   int *bodyflag = new int[nbody];
   for (i = 0; i < nbody; i++) bodyflag[i] = 0;
@@ -1038,7 +1035,7 @@ void FixPOEMS::jointbuild()
     bodyflag[jlist[i][1]]++;
   }
   for (i = 0; i < nbody; i++)
-    if (bodyflag[i] > 2) error->all("Tree structure in joint connections");
+    if (bodyflag[i] > 2) error->all(FLERR,"Tree structure in joint connections");
   delete [] bodyflag;
 
   // allocate and setup joint arrays

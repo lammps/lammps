@@ -162,7 +162,7 @@ void AngleHybrid::settings(int narg, char **arg)
 {
   int i,m,istyle;
 
-  if (narg < 1) error->all("Illegal angle_style command");
+  if (narg < 1) error->all(FLERR,"Illegal angle_style command");
 
   // delete old lists, since cannot just change settings
 
@@ -212,11 +212,11 @@ void AngleHybrid::settings(int narg, char **arg)
   while (i < narg) {
     for (m = 0; m < nstyles; m++)
       if (strcmp(arg[i],keywords[m]) == 0) 
-	error->all("Angle style hybrid cannot use same pair style twice");
+	error->all(FLERR,"Angle style hybrid cannot use same pair style twice");
     if (strcmp(arg[i],"hybrid") == 0) 
-      error->all("Angle style hybrid cannot have hybrid as an argument");
+      error->all(FLERR,"Angle style hybrid cannot have hybrid as an argument");
     if (strcmp(arg[i],"none") == 0) 
-      error->all("Angle style hybrid cannot have none as an argument");
+      error->all(FLERR,"Angle style hybrid cannot have none as an argument");
     styles[nstyles] = force->new_angle(arg[i]);
     keywords[nstyles] = new char[strlen(arg[i])+1];
     strcpy(keywords[nstyles],arg[i]);
@@ -252,7 +252,7 @@ void AngleHybrid::coeff(int narg, char **arg)
   if (m == nstyles) {
     if (strcmp(arg[1],"none") == 0) none = 1;
     else if (strcmp(arg[1],"skip") == 0) none = skip = 1;
-    else error->all("Angle coeff for hybrid has invalid style");
+    else error->all(FLERR,"Angle coeff for hybrid has invalid style");
   }
 
   // move 1st arg to 2nd arg
@@ -286,7 +286,8 @@ void AngleHybrid::coeff(int narg, char **arg)
 
 double AngleHybrid::equilibrium_angle(int i)
 {
-  if (map[i] < 0) error->one("Invoked angle equil angle on angle style none");
+  if (map[i] < 0)
+    error->one(FLERR,"Invoked angle equil angle on angle style none");
   return styles[map[i]]->equilibrium_angle(i);
 }
 
@@ -335,7 +336,7 @@ void AngleHybrid::read_restart(FILE *fp)
 
 double AngleHybrid::single(int type, int i1, int i2, int i3)
 {
-  if (map[type] < 0) error->one("Invoked angle single on angle style none");
+  if (map[type] < 0) error->one(FLERR,"Invoked angle single on angle style none");
   return styles[map[type]]->single(type,i1,i2,i3);
 }
 

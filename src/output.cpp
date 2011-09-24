@@ -125,9 +125,9 @@ void Output::init()
   else if (var_thermo) {
     ivar_thermo = input->variable->find(var_thermo);
     if (ivar_thermo < 0)
-      error->all("Variable name for thermo every does not exist");
+      error->all(FLERR,"Variable name for thermo every does not exist");
     if (!input->variable->equalstyle(ivar_thermo))
-      error->all("Variable for thermo every is invalid style");
+      error->all(FLERR,"Variable for thermo every is invalid style");
   }
 
   for (int i = 0; i < ndump; i++) dump[i]->init();
@@ -135,9 +135,9 @@ void Output::init()
     if (every_dump[i] == 0) {
       ivar_dump[i] = input->variable->find(var_dump[i]);
       if (ivar_dump[i] < 0)
-	error->all("Variable name for dump every does not exist");
+	error->all(FLERR,"Variable name for dump every does not exist");
       if (!input->variable->equalstyle(ivar_dump[i]))
-	error->all("Variable for dump every is invalid style");
+	error->all(FLERR,"Variable for dump every is invalid style");
     }
 }
 
@@ -180,7 +180,7 @@ void Output::setup(int flag)
 	int nextdump = static_cast<int> 
 	  (input->variable->compute_equal(ivar_dump[idump]));
 	if (nextdump <= ntimestep)
-	  error->all("Dump every variable returned a bad timestep");
+	  error->all(FLERR,"Dump every variable returned a bad timestep");
 	next_dump[idump] = nextdump;
       }
       if (dump[idump]->clearstep) {
@@ -223,7 +223,7 @@ void Output::setup(int flag)
     next_thermo = static_cast<int> 
       (input->variable->compute_equal(ivar_thermo));
     if (next_thermo <= ntimestep)
-      error->all("Thermo every variable returned a bad timestep");
+      error->all(FLERR,"Thermo every variable returned a bad timestep");
   } else next_thermo = update->laststep;
 
   modify->addstep_compute(next_thermo);
@@ -260,7 +260,7 @@ void Output::write(bigint ntimestep)
 	  int nextdump = static_cast<int> 
 	    (input->variable->compute_equal(ivar_dump[idump]));
 	  if (nextdump <= ntimestep)
-	    error->all("Dump every variable returned a bad timestep");
+	    error->all(FLERR,"Dump every variable returned a bad timestep");
 	  next_dump[idump] = nextdump;
 	}
         if (dump[idump]->clearstep) modify->addstep_compute(next_dump[idump]);
@@ -309,7 +309,7 @@ void Output::write(bigint ntimestep)
       next_thermo = static_cast<int> 
 	(input->variable->compute_equal(ivar_thermo));
       if (next_thermo <= ntimestep)
-	error->all("Thermo every variable returned a bad timestep");
+	error->all(FLERR,"Thermo every variable returned a bad timestep");
     } else next_thermo = update->laststep;
     next_thermo = MYMIN(next_thermo,update->laststep);
     modify->addstep_compute(next_thermo);
@@ -364,15 +364,15 @@ void Output::write_restart(bigint ntimestep)
 
 void Output::add_dump(int narg, char **arg)
 {
-  if (narg < 5) error->all("Illegal dump command");
+  if (narg < 5) error->all(FLERR,"Illegal dump command");
 
   // error checks
 
   for (int idump = 0; idump < ndump; idump++)
-    if (strcmp(arg[0],dump[idump]->id) == 0) error->all("Reuse of dump ID");
+    if (strcmp(arg[0],dump[idump]->id) == 0) error->all(FLERR,"Reuse of dump ID");
   int igroup = group->find(arg[1]);
-  if (igroup == -1) error->all("Could not find dump group ID");
-  if (atoi(arg[3]) <= 0) error->all("Invalid dump frequency");
+  if (igroup == -1) error->all(FLERR,"Could not find dump group ID");
+  if (atoi(arg[3]) <= 0) error->all(FLERR,"Invalid dump frequency");
 
   // extend Dump list if necessary
 
@@ -398,10 +398,10 @@ void Output::add_dump(int narg, char **arg)
 #include "style_dump.h"
 #undef DUMP_CLASS
 
-  else error->all("Invalid dump style");
+  else error->all(FLERR,"Invalid dump style");
 
   every_dump[ndump] = atoi(arg[3]);
-  if (every_dump[ndump] <= 0) error->all("Illegal dump command");
+  if (every_dump[ndump] <= 0) error->all(FLERR,"Illegal dump command");
   last_dump[ndump] = -1;
   var_dump[ndump] = NULL;
   ndump++;
@@ -413,14 +413,14 @@ void Output::add_dump(int narg, char **arg)
 
 void Output::modify_dump(int narg, char **arg)
 {
-  if (narg < 1) error->all("Illegal dump_modify command");
+  if (narg < 1) error->all(FLERR,"Illegal dump_modify command");
 
   // find which dump it is
 
   int idump;
   for (idump = 0; idump < ndump; idump++)
     if (strcmp(arg[0],dump[idump]->id) == 0) break;
-  if (idump == ndump) error->all("Cound not find dump_modify ID");
+  if (idump == ndump) error->all(FLERR,"Cound not find dump_modify ID");
 
   dump[idump]->modify_params(narg-1,&arg[1]);
 }
@@ -436,7 +436,7 @@ void Output::delete_dump(char *id)
   int idump;
   for (idump = 0; idump < ndump; idump++)
     if (strcmp(id,dump[idump]->id) == 0) break;
-  if (idump == ndump) error->all("Could not find undump ID");
+  if (idump == ndump) error->all(FLERR,"Could not find undump ID");
 
   delete dump[idump];
   delete [] var_dump[idump];
@@ -460,17 +460,17 @@ void Output::delete_dump(char *id)
 
 void Output::create_thermo(int narg, char **arg)
 {
-  if (narg < 1) error->all("Illegal thermo_style command");
+  if (narg < 1) error->all(FLERR,"Illegal thermo_style command");
 
   // don't allow this so that dipole style can safely allocate inertia vector
 
   if (domain->box_exist == 0) 
-    error->all("Thermo_style command before simulation box is defined");
+    error->all(FLERR,"Thermo_style command before simulation box is defined");
 
   // warn if previous thermo had been modified via thermo_modify command
 
   if (thermo->modified && comm->me == 0)
-    error->warning("New thermo_style command, "
+    error->warning(FLERR,"New thermo_style command, "
 		   "previous thermo_modify settings will be lost");
 
   // set thermo = NULL in case new Thermo throws an error
@@ -487,7 +487,7 @@ void Output::create_thermo(int narg, char **arg)
 
 void Output::create_restart(int narg, char **arg)
 {
-  if (narg < 1) error->all("Illegal restart command");
+  if (narg < 1) error->all(FLERR,"Illegal restart command");
 
   if (restart) delete restart;
   delete [] restart1;
@@ -498,7 +498,7 @@ void Output::create_restart(int narg, char **arg)
 
   restart_every = atoi(arg[0]);
   if (restart_every == 0) {
-    if (narg != 1) error->all("Illegal restart command");
+    if (narg != 1) error->all(FLERR,"Illegal restart command");
     return;
   }
 
@@ -517,7 +517,7 @@ void Output::create_restart(int narg, char **arg)
     n = strlen(arg[2]) + 1;
     restart2 = new char[n];
     strcpy(restart2,arg[2]);
-  } else error->all("Illegal restart command");
+  } else error->all(FLERR,"Illegal restart command");
 }
 
 /* ----------------------------------------------------------------------

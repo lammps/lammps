@@ -35,9 +35,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 #define EWALD_F   1.12837917
 #define EWALD_P   0.3275911
 #define A1        0.254829592
@@ -593,7 +590,7 @@ void PairLJCutCoulLong::allocate()
 
 void PairLJCutCoulLong::settings(int narg, char **arg)
 {
- if (narg < 1 || narg > 2) error->all("Illegal pair_style command");
+ if (narg < 1 || narg > 2) error->all(FLERR,"Illegal pair_style command");
 
   cut_lj_global = force->numeric(arg[0]);
   if (narg == 1) cut_coul = cut_lj_global;
@@ -615,7 +612,7 @@ void PairLJCutCoulLong::settings(int narg, char **arg)
 
 void PairLJCutCoulLong::coeff(int narg, char **arg)
 {
-  if (narg < 4 || narg > 5) error->all("Incorrect args for pair coefficients");
+  if (narg < 4 || narg > 5) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -639,7 +636,7 @@ void PairLJCutCoulLong::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -649,7 +646,7 @@ void PairLJCutCoulLong::coeff(int narg, char **arg)
 void PairLJCutCoulLong::init_style()
 {
   if (!atom->q_flag)
-    error->all("Pair style lj/cut/coul/long requires atom attribute q");
+    error->all(FLERR,"Pair style lj/cut/coul/long requires atom attribute q");
 
   // request regular or rRESPA neighbor lists
 
@@ -699,7 +696,7 @@ void PairLJCutCoulLong::init_style()
   // insure use of KSpace long-range solver, set g_ewald
 
   if (force->kspace == NULL)
-    error->all("Pair style is incompatible with KSpace style");
+    error->all(FLERR,"Pair style is incompatible with KSpace style");
   g_ewald = force->kspace->g_ewald;
 
   // setup force tables
@@ -756,7 +753,7 @@ double PairLJCutCoulLong::init_one(int i, int j)
   // check interior rRESPA cutoff
 
   if (cut_respa && MIN(cut_lj[i][j],cut_coul) < cut_respa[3])
-    error->all("Pair cutoff < Respa interior cutoff");
+    error->all(FLERR,"Pair cutoff < Respa interior cutoff");
 
   // compute I,J contribution to long-range tail correction
   // count total # of atoms of type I and J via Allreduce

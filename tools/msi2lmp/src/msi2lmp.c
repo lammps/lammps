@@ -131,7 +131,7 @@ int main (int argc, char *argv[])
    extern void CheckLists();
    extern void WriteDataFile(FILE *,char *,int);
 
-
+    
    outv = 2005;
    pflag = 1;
    forcefield = 1;		/* Variable that identifies forcefield to use */
@@ -140,9 +140,9 @@ int main (int argc, char *argv[])
    frc_dir_name = (char *) calloc(160,sizeof(char));
 
    frc_dir_name = getenv("BIOSYM_LIBRARY");
-
+    
    if (frc_dir_name == NULL) {
-     frc_file_name = strcpy(frc_file_name,"./cvff.frc");
+    frc_file_name = strcpy(frc_file_name,"../biosym_frc_files/clayff.frc");
    }
    else {
      for (i=0; i < strlen(frc_dir_name); i++)
@@ -150,12 +150,14 @@ int main (int argc, char *argv[])
      frc_file_name = strcat(frc_file_name,"/cvff.frc");
    }
 
+    
+    
    if (argc < 2) { /* If no rootname was supplied, prompt for it */
      fprintf(stderr,"The rootname of the .car and .mdf files must be entered\n");
    }
    else /* rootname was supplied as first argument, copy to rootname */
      sprintf(rootname,"%s",argv[1]);
-
+    
    n = 2;
    while (n < argc) {
      if (strcmp(argv[n],"-class") == 0) {
@@ -223,20 +225,21 @@ int main (int argc, char *argv[])
    }
 
  /* Read in .car file */
-
+    printf("I am before read car file\n");
    ReadCarFile();
-
+   printf("I am after read car file\n");
  /*Read in .mdf file */
 
    ReadMdfFile();
-
+   printf("I am after read mdf file\n");
  /* Define bonds, angles, etc...*/
 
    if (pflag > 0) fprintf(stderr,"\n Building internal coordinate lists \n");
    MakeLists();
 
  /* Read .frc file into memory */
-
+	
+  // Commented out to create conversion file suitable for non-orthogonal boxes Sept 13, 2010 SLTM  	
    if (pflag > 0) fprintf(stderr,"\n Reading forcefield file \n");
    ReadFrcFile();
 

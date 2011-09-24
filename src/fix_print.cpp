@@ -29,9 +29,9 @@ using namespace LAMMPS_NS;
 FixPrint::FixPrint(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 5) error->all("Illegal fix print command");
+  if (narg < 5) error->all(FLERR,"Illegal fix print command");
   nevery = atoi(arg[3]);
-  if (nevery <= 0) error->all("Illegal fix print command");
+  if (nevery <= 0) error->all(FLERR,"Illegal fix print command");
 
   MPI_Comm_rank(world,&me);
 
@@ -48,31 +48,31 @@ FixPrint::FixPrint(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 5;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"file") == 0 || strcmp(arg[iarg],"append") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix print command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix print command");
       if (me == 0) {
 	if (strcmp(arg[iarg],"file") == 0) fp = fopen(arg[iarg+1],"w");
 	else fp = fopen(arg[iarg+1],"a");
 	if (fp == NULL) {
 	  char str[128];
 	  sprintf(str,"Cannot open fix print file %s",arg[iarg+1]);
-	  error->one(str);
+	  error->one(FLERR,str);
 	}
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"screen") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix print command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix print command");
       if (strcmp(arg[iarg+1],"yes") == 0) screenflag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) screenflag = 0;
-      else error->all("Illegal fix print command");
+      else error->all(FLERR,"Illegal fix print command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"title") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix print command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix print command");
       delete [] title;
       int n = strlen(arg[iarg+1]) + 1;
       title = new char[n];
       strcpy(title,arg[iarg+1]);
       iarg += 2;
-    } else error->all("Illegal fix print command");
+    } else error->all(FLERR,"Illegal fix print command");
   }
 
   // print file comment line

@@ -42,9 +42,9 @@ FixSetForceCuda::FixSetForceCuda(LAMMPS *lmp, int narg, char **arg) :
 {
   cuda = lmp->cuda;
   if(cuda == NULL)
-        error->all("You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
+        error->all(FLERR,"You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
   
-  if (narg != 6) error->all("Illegal fix setforce/cuda command");
+  if (narg != 6) error->all(FLERR,"Illegal fix setforce/cuda command");
 
   vector_flag = 1;
   size_vector = 3;

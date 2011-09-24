@@ -25,9 +25,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 PairLJClass2CoulCut::PairLJClass2CoulCut(LAMMPS *lmp) : Pair(lmp) {}
@@ -187,7 +184,7 @@ void PairLJClass2CoulCut::allocate()
 
 void PairLJClass2CoulCut::settings(int narg, char **arg)
 {
-  if (narg < 1 || narg > 2) error->all("Illegal pair_style command");
+  if (narg < 1 || narg > 2) error->all(FLERR,"Illegal pair_style command");
 
   cut_lj_global = force->numeric(arg[0]);
   if (narg == 1) cut_coul_global = cut_lj_global;
@@ -212,7 +209,7 @@ void PairLJClass2CoulCut::settings(int narg, char **arg)
 
 void PairLJClass2CoulCut::coeff(int narg, char **arg)
 {
-  if (narg < 4 || narg > 6) error->all("Incorrect args for pair coefficients");
+  if (narg < 4 || narg > 6) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -239,7 +236,7 @@ void PairLJClass2CoulCut::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -249,7 +246,7 @@ void PairLJClass2CoulCut::coeff(int narg, char **arg)
 void PairLJClass2CoulCut::init_style()
 {
   if (!atom->q_flag)
-    error->all("Pair style lj/class2/coul/cut requires atom attribute q");
+    error->all(FLERR,"Pair style lj/class2/coul/cut requires atom attribute q");
 
   neighbor->request(this);
 }

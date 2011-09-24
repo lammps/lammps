@@ -168,12 +168,12 @@ void DihedralHybrid::settings(int narg, char **arg)
   for (int m = 0; m < nstyles; m++) {
     for (int i = 0; i < m; i++)
       if (strcmp(arg[m],arg[i]) == 0) 
-	error->all("Dihedral style hybrid cannot use "
+	error->all(FLERR,"Dihedral style hybrid cannot use "
 		   "same dihedral style twice");
     if (strcmp(arg[m],"hybrid") == 0) 
-      error->all("Dihedral style hybrid cannot have hybrid as an argument");
+      error->all(FLERR,"Dihedral style hybrid cannot have hybrid as an argument");
     if (strcmp(arg[m],"none") == 0) 
-      error->all("Dihedral style hybrid cannot have none as an argument");
+      error->all(FLERR,"Dihedral style hybrid cannot have none as an argument");
     styles[m] = force->new_dihedral(arg[m]);
     keywords[m] = new char[strlen(arg[m])+1];
     strcpy(keywords[m],arg[m]);
@@ -203,7 +203,7 @@ void DihedralHybrid::coeff(int narg, char **arg)
   if (m == nstyles) {
     if (strcmp(arg[1],"none") == 0) none = 1;
     else if (strcmp(arg[1],"skip") == 0) none = skip = 1;
-    else error->all("Dihedral coeff for hybrid has invalid style");
+    else error->all(FLERR,"Dihedral coeff for hybrid has invalid style");
   }
 
   // move 1st arg to 2nd arg

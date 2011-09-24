@@ -29,9 +29,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 PairBuckCoulCut::PairBuckCoulCut(LAMMPS *lmp) : Pair(lmp) {}
@@ -113,14 +110,14 @@ void PairBuckCoulCut::compute(int eflag, int vflag)
 
       if (rsq < cutsq[itype][jtype]) {
 	r2inv = 1.0/rsq;
+        r = sqrt(rsq);
 
 	if (rsq < cut_coulsq[itype][jtype])
-	  forcecoul = qqrd2e * qtmp*q[j]*sqrt(r2inv);
+	  forcecoul = qqrd2e * qtmp*q[j]/r;
 	else forcecoul = 0.0;
 
 	if (rsq < cut_ljsq[itype][jtype]) {
 	  r6inv = r2inv*r2inv*r2inv;
-          r = sqrt(rsq);
 	  rexp = exp(-r*rhoinv[itype][jtype]);
 	  forcebuck = buck1[itype][jtype]*r*rexp - buck2[itype][jtype]*r6inv;
 	} else forcebuck = 0.0;
@@ -138,7 +135,7 @@ void PairBuckCoulCut::compute(int eflag, int vflag)
 
 	if (eflag) {
 	  if (rsq < cut_coulsq[itype][jtype])
-	    ecoul = factor_coul * qqrd2e * qtmp*q[j]*sqrt(r2inv);
+	    ecoul = factor_coul * qqrd2e * qtmp*q[j]/r;
 	  else ecoul = 0.0;
 	  if (rsq < cut_ljsq[itype][jtype]) {
 	    evdwl = a[itype][jtype]*rexp - c[itype][jtype]*r6inv -
@@ -192,7 +189,7 @@ void PairBuckCoulCut::allocate()
 
 void PairBuckCoulCut::settings(int narg, char **arg)
 {
-  if (narg < 1 || narg > 2) error->all("Illegal pair_style command");
+  if (narg < 1 || narg > 2) error->all(FLERR,"Illegal pair_style command");
 
   cut_lj_global = force->numeric(arg[0]);
   if (narg == 1) cut_coul_global = cut_lj_global;
@@ -217,7 +214,7 @@ void PairBuckCoulCut::settings(int narg, char **arg)
 
 void PairBuckCoulCut::coeff(int narg, char **arg)
 {
-  if (narg < 5 || narg > 7) error->all("Incorrect args for pair coefficients");
+  if (narg < 5 || narg > 7) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -226,7 +223,7 @@ void PairBuckCoulCut::coeff(int narg, char **arg)
 
   double a_one = force->numeric(arg[2]);
   double rho_one = force->numeric(arg[3]);
-  if (rho_one <= 0) error->all("Incorrect args for pair coefficients");
+  if (rho_one <= 0) error->all(FLERR,"Incorrect args for pair coefficients");
   double c_one = force->numeric(arg[4]);
 
   double cut_lj_one = cut_lj_global;
@@ -247,7 +244,7 @@ void PairBuckCoulCut::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -257,7 +254,7 @@ void PairBuckCoulCut::coeff(int narg, char **arg)
 void PairBuckCoulCut::init_style()
 {
   if (!atom->q_flag)
-    error->all("Pair style buck/coul/cut requires atom attribute q");
+    error->all(FLERR,"Pair style buck/coul/cut requires atom attribute q");
 
   neighbor->request(this);
 }
@@ -268,7 +265,7 @@ void PairBuckCoulCut::init_style()
 
 double PairBuckCoulCut::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all("All pair coeffs are not set");
+  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
   double cut = MAX(cut_lj[i][j],cut_coul[i][j]);
   cut_ljsq[i][j] = cut_lj[i][j] * cut_lj[i][j];

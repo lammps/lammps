@@ -31,9 +31,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 #define TOLERANCE 0.05
 #define SMALL     0.0000001
 
@@ -214,7 +211,7 @@ void DihedralClass2::compute(int eflag, int vflag)
 	sprintf(str,"Dihedral problem: %d " BIGINT_FORMAT " %d %d %d %d",
 		me,update->ntimestep,
 		atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
-	error->warning(str,0);
+	error->warning(FLERR,str,0);
 	fprintf(screen,"  1st atom: %d %g %g %g\n",
 		me,x[i1][0],x[i1][1],x[i1][2]);
 	fprintf(screen,"  2nd atom: %d %g %g %g\n",
@@ -629,7 +626,7 @@ void DihedralClass2::allocate()
 
 void DihedralClass2::coeff(int narg, char **arg)
 {
-  if (narg < 2) error->all("Invalid coeffs for this dihedral style");
+  if (narg < 2) error->all(FLERR,"Invalid coeffs for this dihedral style");
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -638,7 +635,7 @@ void DihedralClass2::coeff(int narg, char **arg)
   int count = 0;
 
   if (strcmp(arg[1],"mbt") == 0) {
-    if (narg != 6) error->all("Incorrect args for dihedral coefficients");
+    if (narg != 6) error->all(FLERR,"Incorrect args for dihedral coefficients");
 
     double f1_one = force->numeric(arg[2]);
     double f2_one = force->numeric(arg[3]);
@@ -655,7 +652,7 @@ void DihedralClass2::coeff(int narg, char **arg)
     }
 
   } else if (strcmp(arg[1],"ebt") == 0) {
-    if (narg != 10) error->all("Incorrect args for dihedral coefficients");
+    if (narg != 10) error->all(FLERR,"Incorrect args for dihedral coefficients");
 
     double f1_1_one = force->numeric(arg[2]);
     double f2_1_one = force->numeric(arg[3]);
@@ -680,7 +677,7 @@ void DihedralClass2::coeff(int narg, char **arg)
     }
 
   } else if (strcmp(arg[1],"at") == 0) {
-    if (narg != 10) error->all("Incorrect args for dihedral coefficients");
+    if (narg != 10) error->all(FLERR,"Incorrect args for dihedral coefficients");
 
     double f1_1_one = force->numeric(arg[2]);
     double f2_1_one = force->numeric(arg[3]);
@@ -707,7 +704,7 @@ void DihedralClass2::coeff(int narg, char **arg)
     }
 
   } else if (strcmp(arg[1],"aat") == 0) {
-    if (narg != 5) error->all("Incorrect args for dihedral coefficients");
+    if (narg != 5) error->all(FLERR,"Incorrect args for dihedral coefficients");
 
     double k_one = force->numeric(arg[2]);
     double theta0_1_one = force->numeric(arg[3]);
@@ -724,7 +721,7 @@ void DihedralClass2::coeff(int narg, char **arg)
     }
 
   } else if (strcmp(arg[1],"bb13") == 0) {
-    if (narg != 5) error->all("Incorrect args for dihedral coefficients");
+    if (narg != 5) error->all(FLERR,"Incorrect args for dihedral coefficients");
 
     double k_one = force->numeric(arg[2]);
     double r10_one = force->numeric(arg[3]);
@@ -739,7 +736,7 @@ void DihedralClass2::coeff(int narg, char **arg)
     }
 
   } else {
-    if (narg != 7) error->all("Incorrect args for dihedral coefficients");
+    if (narg != 7) error->all(FLERR,"Incorrect args for dihedral coefficients");
 
     double k1_one = force->numeric(arg[1]);
     double phi1_one = force->numeric(arg[2]);
@@ -762,7 +759,7 @@ void DihedralClass2::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for dihedral coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for dihedral coefficients");
 
   for (int i = ilo; i <= ihi; i++)
     if (setflag_d[i] == 1 && setflag_mbt[i] == 1 && setflag_ebt[i] == 1 &&

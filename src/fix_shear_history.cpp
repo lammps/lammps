@@ -86,7 +86,7 @@ int FixShearHistory::setmask()
 void FixShearHistory::init()
 {
   if (atom->tag_enable == 0) 
-    error->all("Pair style granular with history requires atoms have IDs");
+    error->all(FLERR,"Pair style granular with history requires atoms have IDs");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -166,7 +166,7 @@ void FixShearHistory::pre_exchange()
     if (npartner[i] >= MAXTOUCH) flag = 1;
   int flag_all;
   MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
-  if (flag_all) error->all("Too many touching neighbors - boost MAXTOUCH");
+  if (flag_all) error->all(FLERR,"Too many touching neighbors - boost MAXTOUCH");
 }
 
 /* ----------------------------------------------------------------------

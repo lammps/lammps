@@ -24,9 +24,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 PairSPHLJ::PairSPHLJ(LAMMPS *lmp) :
@@ -208,7 +205,7 @@ void PairSPHLJ::allocate() {
 
 void PairSPHLJ::settings(int narg, char **arg) {
   if (narg != 0)
-    error->all(
+    error->all(FLERR,
         "Illegal number of setting arguments for pair_style sph/lj");
 }
 
@@ -218,7 +215,7 @@ void PairSPHLJ::settings(int narg, char **arg) {
 
 void PairSPHLJ::coeff(int narg, char **arg) {
   if (narg != 4)
-    error->all(
+    error->all(FLERR,
         "Incorrect args for pair_style sph/lj coefficients");
   if (!allocated)
     allocate();
@@ -242,7 +239,7 @@ void PairSPHLJ::coeff(int narg, char **arg) {
   }
 
   if (count == 0)
-    error->all("Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -252,7 +249,7 @@ void PairSPHLJ::coeff(int narg, char **arg) {
 double PairSPHLJ::init_one(int i, int j) {
 
   if (setflag[i][j] == 0) {
-    error->all("All pair sph/lj coeffs are not set");
+    error->all(FLERR,"All pair sph/lj coeffs are not set");
   }
 
   cut[j][i] = cut[i][j];

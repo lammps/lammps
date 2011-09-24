@@ -23,8 +23,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
 #define BIG 1.0e30
 
 enum{NONE,SC,BCC,FCC,HCP,DIAMOND,SQ,SQ2,HEX,CUSTOM};
@@ -38,7 +36,7 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   // parse style arg
 
-  if (narg < 1) error->all("Illegal lattice command");
+  if (narg < 1) error->all(FLERR,"Illegal lattice command");
 
   if (strcmp(arg[0],"none") == 0) style = NONE;
   else if (strcmp(arg[0],"sc") == 0) style = SC;
@@ -50,10 +48,10 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   else if (strcmp(arg[0],"sq2") == 0) style = SQ2;
   else if (strcmp(arg[0],"hex") == 0) style = HEX;
   else if (strcmp(arg[0],"custom") == 0) style = CUSTOM;
-  else error->all("Illegal lattice command");
+  else error->all(FLERR,"Illegal lattice command");
 
   if (style == NONE) {
-    if (narg > 1) error->all("Illegal lattice command");
+    if (narg > 1) error->all(FLERR,"Illegal lattice command");
     return;
   }
 
@@ -64,18 +62,18 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   if (dimension == 2) {
     if (style == SC || style == BCC || style == FCC || style == HCP ||
 	style == DIAMOND)
-      error->all("Lattice style incompatible with simulation dimension");
+      error->all(FLERR,"Lattice style incompatible with simulation dimension");
   }
   if (dimension == 3) {
     if (style == SQ || style == SQ2 || style == HEX)
-      error->all("Lattice style incompatible with simulation dimension");
+      error->all(FLERR,"Lattice style incompatible with simulation dimension");
   }
 
   // scale = conversion factor between lattice and box units
 
-  if (narg < 2) error->all("Illegal lattice command");
+  if (narg < 2) error->all(FLERR,"Illegal lattice command");
   scale = atof(arg[1]);
-  if (scale <= 0.0) error->all("Illegal lattice command");
+  if (scale <= 0.0) error->all(FLERR,"Illegal lattice command");
 
   // set basis atoms for each style
   // x,y,z = fractional coords within unit cell
@@ -140,23 +138,23 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   int iarg = 2;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"origin") == 0) {
-      if (iarg+4 > narg) error->all("Illegal lattice command");
+      if (iarg+4 > narg) error->all(FLERR,"Illegal lattice command");
       origin[0] = atof(arg[iarg+1]);
       origin[1] = atof(arg[iarg+2]);
       origin[2] = atof(arg[iarg+3]);
       if (origin[0] < 0.0 || origin[0] >= 1.0 ||
 	  origin[1] < 0.0 || origin[1] >= 1.0 ||
 	  origin[2] < 0.0 || origin[2] >= 1.0)
-	error->all("Illegal lattice command");
+	error->all(FLERR,"Illegal lattice command");
       iarg += 4;
 
     } else if (strcmp(arg[iarg],"orient") == 0) {
-      if (iarg+5 > narg) error->all("Illegal lattice command");
+      if (iarg+5 > narg) error->all(FLERR,"Illegal lattice command");
       int dim;
       if (strcmp(arg[iarg+1],"x") == 0) dim = 0;
       else if (strcmp(arg[iarg+1],"y") == 0) dim = 1;
       else if (strcmp(arg[iarg+1],"z") == 0) dim = 2;
-      else error->all("Illegal lattice command");
+      else error->all(FLERR,"Illegal lattice command");
       int *orient;
       if (dim == 0) orient = orientx;
       else if (dim == 1) orient = orienty;
@@ -167,7 +165,7 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
       iarg += 5;
 
     } else if (strcmp(arg[iarg],"spacing") == 0) {
-      if (iarg+4 > narg) error->all("Illegal lattice command");
+      if (iarg+4 > narg) error->all(FLERR,"Illegal lattice command");
       spaceflag = 1;
       xlattice = atof(arg[iarg+1]);
       ylattice = atof(arg[iarg+2]);
@@ -175,67 +173,67 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
       iarg += 4;
 
     } else if (strcmp(arg[iarg],"a1") == 0) {
-      if (iarg+4 > narg) error->all("Illegal lattice command");
+      if (iarg+4 > narg) error->all(FLERR,"Illegal lattice command");
       if (style != CUSTOM) 
-	error->all("Invalid option in lattice command for non-custom style");
+	error->all(FLERR,"Invalid option in lattice command for non-custom style");
       a1[0] = atof(arg[iarg+1]);
       a1[1] = atof(arg[iarg+2]);
       a1[2] = atof(arg[iarg+3]);
       iarg += 4;
     } else if (strcmp(arg[iarg],"a2") == 0) {
-      if (iarg+4 > narg) error->all("Illegal lattice command");
+      if (iarg+4 > narg) error->all(FLERR,"Illegal lattice command");
       if (style != CUSTOM) 
-	error->all("Invalid option in lattice command for non-custom style");
+	error->all(FLERR,"Invalid option in lattice command for non-custom style");
       a2[0] = atof(arg[iarg+1]);
       a2[1] = atof(arg[iarg+2]);
       a2[2] = atof(arg[iarg+3]);
       iarg += 4;
     } else if (strcmp(arg[iarg],"a3") == 0) {
-      if (iarg+4 > narg) error->all("Illegal lattice command");
+      if (iarg+4 > narg) error->all(FLERR,"Illegal lattice command");
       if (style != CUSTOM) 
-	error->all("Invalid option in lattice command for non-custom style");
+	error->all(FLERR,"Invalid option in lattice command for non-custom style");
       a3[0] = atof(arg[iarg+1]);
       a3[1] = atof(arg[iarg+2]);
       a3[2] = atof(arg[iarg+3]);
       iarg += 4;
 
     } else if (strcmp(arg[iarg],"basis") == 0) {
-      if (iarg+4 > narg) error->all("Illegal lattice command");
+      if (iarg+4 > narg) error->all(FLERR,"Illegal lattice command");
       if (style != CUSTOM) 
-	error->all("Invalid option in lattice command for non-custom style");
+	error->all(FLERR,"Invalid option in lattice command for non-custom style");
       double x = atof(arg[iarg+1]);
       double y = atof(arg[iarg+2]);
       double z = atof(arg[iarg+3]);
       if (x < 0.0 || x >= 1.0 || y < 0.0 || y >= 1.0 || z < 0.0 || z >= 1.0)
-	error->all("Illegal lattice command");
+	error->all(FLERR,"Illegal lattice command");
       add_basis(x,y,z);
       iarg += 4;
-    } else error->all("Illegal lattice command");
+    } else error->all(FLERR,"Illegal lattice command");
   }
 
   // check settings for errors
 
-  if (nbasis == 0) error->all("No basis atoms in lattice");
+  if (nbasis == 0) error->all(FLERR,"No basis atoms in lattice");
   if (!orthogonal())
-    error->all("Lattice orient vectors are not orthogonal");
+    error->all(FLERR,"Lattice orient vectors are not orthogonal");
   if (!right_handed())
-    error->all("Lattice orient vectors are not right-handed");
+    error->all(FLERR,"Lattice orient vectors are not right-handed");
   if (collinear())
-    error->all("Lattice primitive vectors are collinear");
+    error->all(FLERR,"Lattice primitive vectors are collinear");
 
   if (dimension == 2) {
     if (origin[2] != 0.0)
-      error->all("Lattice settings are not compatible with 2d simulation");
+      error->all(FLERR,"Lattice settings are not compatible with 2d simulation");
     if (orientx[2] != 0 || orienty[2] != 0 || 
 	orientz[0] != 0 || orientz[1] != 0)
-      error->all("Lattice settings are not compatible with 2d simulation");
+      error->all(FLERR,"Lattice settings are not compatible with 2d simulation");
     if (a1[2] != 0.0 || a2[2] != 0.0 || a3[0] != 0.0 || a3[1] != 0.0)
-      error->all("Lattice settings are not compatible with 2d simulation");
+      error->all(FLERR,"Lattice settings are not compatible with 2d simulation");
   }
 
   if (spaceflag) {
     if (xlattice <= 0.0 || ylattice <= 0.0 || zlattice <= 0.0)
-      error->all("Lattice spacings are invalid");
+      error->all(FLERR,"Lattice spacings are invalid");
   }
 
   // reset scale for LJ units (input scale is rho*)
@@ -376,7 +374,7 @@ void Lattice::setup_transform()
     primitive[0][1]*primitive[1][0]*primitive[2][2] -
     primitive[0][2]*primitive[1][1]*primitive[2][0];
 
-  if (determinant == 0.0) error->all("Degenerate lattice primitive vectors");
+  if (determinant == 0.0) error->all(FLERR,"Degenerate lattice primitive vectors");
 
   priminv[0][0] = (primitive[1][1]*primitive[2][2] - 
 		   primitive[1][2]*primitive[2][1]) / determinant;
@@ -404,7 +402,7 @@ void Lattice::setup_transform()
   int lensq = orientx[0]*orientx[0] + orientx[1]*orientx[1] +
     orientx[2]*orientx[2];
   length = sqrt((double) lensq);
-  if (length == 0.0) error->all("Zero-length lattice orient vector");
+  if (length == 0.0) error->all(FLERR,"Zero-length lattice orient vector");
 
   rotaterow[0][0] = orientx[0] / length;
   rotaterow[0][1] = orientx[1] / length;
@@ -413,7 +411,7 @@ void Lattice::setup_transform()
   lensq = orienty[0]*orienty[0] + orienty[1]*orienty[1] +
     orienty[2]*orienty[2];
   length = sqrt((double) lensq);
-  if (length == 0.0) error->all("Zero-length lattice orient vector");
+  if (length == 0.0) error->all(FLERR,"Zero-length lattice orient vector");
   
   rotaterow[1][0] = orienty[0] / length;
   rotaterow[1][1] = orienty[1] / length;
@@ -422,7 +420,7 @@ void Lattice::setup_transform()
   lensq = orientz[0]*orientz[0] + orientz[1]*orientz[1] +
     orientz[2]*orientz[2];
   length = sqrt((double) lensq);
-  if (length == 0.0) error->all("Zero-length lattice orient vector");
+  if (length == 0.0) error->all(FLERR,"Zero-length lattice orient vector");
 
   rotaterow[2][0] = orientz[0] / length;
   rotaterow[2][1] = orientz[1] / length;

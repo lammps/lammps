@@ -99,7 +99,7 @@ void Neighbor::full_nsq(NeighList *list)
     numneigh[i] = n;
     npnt += n;
     if (n > oneatom || npnt >= pgsize)
-      error->one("Neighbor list overflow, boost neigh_modify one or page");
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
   }
 
   list->inum = inum;
@@ -201,7 +201,7 @@ void Neighbor::full_nsq_ghost(NeighList *list)
     numneigh[i] = n;
     npnt += n;
     if (n > oneatom || npnt >= pgsize)
-      error->one("Neighbor list overflow, boost neigh_modify one or page");
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
   }
 
   list->inum = atom->nlocal;
@@ -295,7 +295,7 @@ void Neighbor::full_bin(NeighList *list)
     numneigh[i] = n;
     npnt += n;
     if (n > oneatom || npnt >= pgsize)
-      error->one("Neighbor list overflow, boost neigh_modify one or page");
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
   }
 
   list->inum = inum;
@@ -423,7 +423,7 @@ void Neighbor::full_bin_ghost(NeighList *list)
     numneigh[i] = n;
     npnt += n;
     if (n > oneatom || npnt >= pgsize)
-      error->one("Neighbor list overflow, boost neigh_modify one or page");
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
   }
 
   list->inum = atom->nlocal;
@@ -525,7 +525,7 @@ void Neighbor::full_multi(NeighList *list)
     numneigh[i] = n;
     npnt += n;
     if (n > oneatom || npnt >= pgsize)
-      error->one("Neighbor list overflow, boost neigh_modify one or page");
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
   }
 
   list->inum = inum;

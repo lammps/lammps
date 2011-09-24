@@ -30,9 +30,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 #define MAXLINE 1024
 
 /* ---------------------------------------------------------------------- */
@@ -344,7 +341,7 @@ void PairEIM::allocate()
 
 void PairEIM::settings(int narg, char **arg)
 {
-  if (narg > 0) error->all("Illegal pair_style command");
+  if (narg > 0) error->all(FLERR,"Illegal pair_style command");
 }
 
 /* ----------------------------------------------------------------------
@@ -357,12 +354,12 @@ void PairEIM::coeff(int narg, char **arg)
 
   if (!allocated) allocate();
 
-  if (narg < 5) error->all("Incorrect args for pair coefficients");
+  if (narg < 5) error->all(FLERR,"Incorrect args for pair coefficients");
 
   // insure I,J args are * *
 
   if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all("Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read EIM element names before filename
   // nelements = # of EIM elements to read from file
@@ -373,7 +370,7 @@ void PairEIM::coeff(int narg, char **arg)
     delete [] elements;
   }
   nelements = narg - 3 - atom->ntypes;
-  if (nelements < 1) error->all("Incorrect args for pair coefficients");
+  if (nelements < 1) error->all(FLERR,"Incorrect args for pair coefficients");
   elements = new char*[nelements];
   
   for (i = 0; i < nelements; i++) {
@@ -397,7 +394,7 @@ void PairEIM::coeff(int narg, char **arg)
       if (strcmp(arg[i],elements[j]) == 0) break;
     if (j < nelements) map[m] = j;
     else if (strcmp(arg[i],"NULL") == 0) map[m] = -1;
-    else error->all("Incorrect args for pair coefficients");
+    else error->all(FLERR,"Incorrect args for pair coefficients");
   }
 
   // clear setflag since coeff() called once with I,J = * *
@@ -419,7 +416,7 @@ void PairEIM::coeff(int narg, char **arg)
 	count++;
       }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -462,7 +459,7 @@ void PairEIM::read_file(char *filename)
     if (fptr == NULL) {
       char str[128];
       sprintf(str,"Cannot open EIM potential file %s",filename);
-      error->one(str);
+      error->one(FLERR,str);
     }
   }
 
@@ -491,7 +488,7 @@ void PairEIM::read_file(char *filename)
 
   if (me == 0)
     if (!grabglobal(fptr))
-      error->one("Could not grab global entry from EIM potential file");
+      error->one(FLERR,"Could not grab global entry from EIM potential file");
   MPI_Bcast(&setfl->division,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&setfl->rbig,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&setfl->rsmall,1,MPI_DOUBLE,0,world);
@@ -499,7 +496,7 @@ void PairEIM::read_file(char *filename)
   for (int i = 0; i < nelements; i++) {
     if (me == 0)
       if (!grabsingle(fptr,i))
-	error->one("Could not grab element entry from EIM potential file");
+	error->one(FLERR,"Could not grab element entry from EIM potential file");
     MPI_Bcast(&setfl->ielement[i],1,MPI_INT,0,world);
     MPI_Bcast(&setfl->mass[i],1,MPI_DOUBLE,0,world);
     MPI_Bcast(&setfl->negativity[i],1,MPI_DOUBLE,0,world);
@@ -517,7 +514,7 @@ void PairEIM::read_file(char *filename)
       else ij = nelements*(j+1) - (j+1)*(j+2)/2 + i;
       if (me == 0)
         if (grabpair(fptr,i,j) == 0)
-	  error->one("Could not grab pair entry from EIM potential file");
+	  error->one(FLERR,"Could not grab pair entry from EIM potential file");
       MPI_Bcast(&setfl->rcutphiA[ij],1,MPI_DOUBLE,0,world);
       MPI_Bcast(&setfl->rcutphiR[ij],1,MPI_DOUBLE,0,world);
       MPI_Bcast(&setfl->Eb[ij],1,MPI_DOUBLE,0,world);

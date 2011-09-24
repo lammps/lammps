@@ -31,10 +31,10 @@ Minimize::Minimize(LAMMPS *lmp) : Pointers(lmp) {}
 
 void Minimize::command(int narg, char **arg)
 {
-  if (narg != 4) error->all("Illegal minimize command");
+  if (narg != 4) error->all(FLERR,"Illegal minimize command");
 
   if (domain->box_exist == 0)
-    error->all("Minimize command before simulation box is defined");
+    error->all(FLERR,"Minimize command before simulation box is defined");
 
   update->etol = atof(arg[0]);
   update->ftol = atof(arg[1]);
@@ -42,13 +42,13 @@ void Minimize::command(int narg, char **arg)
   update->max_eval = atoi(arg[3]);
 
   if (update->etol < 0.0 || update->ftol < 0.0)
-    error->all("Illegal minimize command");
+    error->all(FLERR,"Illegal minimize command");
 
   update->whichflag = 2;
   update->beginstep = update->firststep = update->ntimestep;
   update->endstep = update->laststep = update->firststep + update->nsteps;
   if (update->laststep < 0 || update->laststep > MAXBIGINT)
-    error->all("Too many iterations");
+    error->all(FLERR,"Too many iterations");
 
   lmp->init();
   update->minimize->setup();

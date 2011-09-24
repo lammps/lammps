@@ -147,13 +147,17 @@ causing the problem.
 <P>These are two alphabetic lists of the <A HREF = "#error">ERROR</A> and
 <A HREF = "#warn">WARNING</A> messages LAMMPS prints out and the reason why.  If the
 explanation here is not sufficient, the documentation for the
-offending command may help.  Grepping the source files for the text of
-the error message and staring at the source code and comments is also
-not a bad idea!  Note that sometimes the same message can be printed
-from multiple places in the code.
+offending command may help.  
+Error and warning messages also list the source file and line number
+where the error was generated.  For example, this message
 </P>
-<P>Also note that error messages from <A HREF = "Section_start.html#start_3">user-contributed
-packages</A> are not listed here.  Is such an
+<P>ERROR: Illegal velocity command (velocity.cpp:78)
+</P>
+<P>means that line #78 in the file src/velocity.cpp generated the error.
+Looking in the source code may help you figure out what went wrong.
+</P>
+<P>Note that error messages from <A HREF = "Section_start.html#start_3">user-contributed
+packages</A> are not listed here.  If such an
 error occurs and is not self-explanatory, you'll need to look in the
 source code or contact the author of the package.
 </P>

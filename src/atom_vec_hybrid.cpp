@@ -24,9 +24,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 #define DELTA 10000
 
 /* ---------------------------------------------------------------------- */
@@ -36,7 +33,7 @@ AtomVecHybrid::AtomVecHybrid(LAMMPS *lmp, int narg, char **arg) :
 {
   int i,k,dummy;
 
-  if (narg < 1) error->all("Illegal atom_style command");
+  if (narg < 1) error->all(FLERR,"Illegal atom_style command");
 
   // create sub-styles
 
@@ -47,9 +44,9 @@ AtomVecHybrid::AtomVecHybrid(LAMMPS *lmp, int narg, char **arg) :
   for (i = 0; i < narg; i++) {
     for (k = 0; k < i; k++)
       if (strcmp(arg[i],keywords[k]) == 0) 
-	error->all("Atom style hybrid cannot use same atom style twice");
+	error->all(FLERR,"Atom style hybrid cannot use same atom style twice");
     if (strcmp(arg[i],"hybrid") == 0) 
-      error->all("Atom style hybrid cannot have hybrid as an argument");
+      error->all(FLERR,"Atom style hybrid cannot have hybrid as an argument");
     styles[i] = atom->new_avec(arg[i],0,NULL,NULL,dummy);
     keywords[i] = new char[strlen(arg[i])+1];
     strcpy(keywords[i],arg[i]);
@@ -121,7 +118,7 @@ void AtomVecHybrid::grow(int n)
   else nmax = n;
   atom->nmax = nmax;
   if (nmax < 0 || nmax > MAXSMALLINT)
-    error->one("Per-processor system is too big");
+    error->one(FLERR,"Per-processor system is too big");
 
   // sub-styles perform all reallocation
   // turn off nextra_grow so hybrid can do that once below
@@ -814,11 +811,11 @@ void AtomVecHybrid::data_atom(double *coord, int imagetmp, char **values)
 
   tag[nlocal] = atoi(values[0]);
   if (tag[nlocal] <= 0)
-    error->one("Invalid atom ID in Atoms section of data file");
+    error->one(FLERR,"Invalid atom ID in Atoms section of data file");
 
   type[nlocal] = atoi(values[1]);
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
-    error->one("Invalid atom type in Atoms section of data file");
+    error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
   x[nlocal][0] = coord[0];
   x[nlocal][1] = coord[1];

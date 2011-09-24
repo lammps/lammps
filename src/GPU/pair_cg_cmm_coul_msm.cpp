@@ -16,18 +16,16 @@
    Contributing author: Mike Brown <brownw@ornl.gov>
 ------------------------------------------------------------------------- */
 
+#include "string.h"
 #include "pair_cg_cmm_coul_msm.h"
 #include "memory.h"
 #include "atom.h"
 #include "force.h"
 #include "kspace.h"
 
-#include "string.h"
-
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-enum {C3=0,C4=1};
-
 using namespace LAMMPS_NS;
+
+enum {C3=0,C4=1};
 
 /* ---------------------------------------------------------------------- */
 
@@ -73,13 +71,13 @@ void PairCGCMMCoulMSM::settings(int narg, char **arg)
 {
   // strip off smoothing type and send args to parent
 
-  if (narg < 1) error->all("Illegal pair_style command");
+  if (narg < 1) error->all(FLERR,"Illegal pair_style command");
 
   if (strcmp(arg[0],"C3") == 0)
     _smooth = C3;
   else if (strcmp(arg[0],"C4") == 0)
     _smooth = C4;
-  else error->all("Illegal pair_style command");
+  else error->all(FLERR,"Illegal pair_style command");
 
   PairCMMCommon::settings(narg-1,&arg[1]);
 }
@@ -89,7 +87,7 @@ void PairCGCMMCoulMSM::settings(int narg, char **arg)
 void PairCGCMMCoulMSM::init_style()
 {
   if (!atom->q_flag)
-    error->all("Pair style cg/cut/coul/msm requires atom attribute q");
+    error->all(FLERR,"Pair style cg/cut/coul/msm requires atom attribute q");
   
   PairCMMCommon::init_style();
   _ia=-1.0/cut_coul_global;

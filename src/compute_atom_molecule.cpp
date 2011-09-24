@@ -36,10 +36,10 @@ ComputeAtomMolecule::
 ComputeAtomMolecule(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg < 4) error->all("Illegal compute atom/molecule command");
+  if (narg < 4) error->all(FLERR,"Illegal compute atom/molecule command");
 
   if (atom->molecular == 0)
-    error->all("Compute atom/molecule requires molecular atom style");
+    error->all(FLERR,"Compute atom/molecule requires molecular atom style");
 
   // parse args
 
@@ -65,7 +65,7 @@ ComputeAtomMolecule(LAMMPS *lmp, int narg, char **arg) :
       char *ptr = strchr(suffix,'[');
       if (ptr) {
 	if (suffix[strlen(suffix)-1] != ']')
-	  error->all("Illegal compute reduce command");
+	  error->all(FLERR,"Illegal compute reduce command");
 	argindex[nvalues] = atoi(ptr+1);
 	*ptr = '\0';
       } else argindex[nvalues] = 0;
@@ -75,7 +75,7 @@ ComputeAtomMolecule(LAMMPS *lmp, int narg, char **arg) :
       strcpy(ids[nvalues],suffix);
       nvalues++;
       delete [] suffix;
-    } else error->all("Illegal compute atom/molecule command");
+    } else error->all(FLERR,"Illegal compute atom/molecule command");
 
     iarg++;
   }
@@ -86,46 +86,46 @@ ComputeAtomMolecule(LAMMPS *lmp, int narg, char **arg) :
     if (which[i] == COMPUTE) {
       int icompute = modify->find_compute(ids[i]);
       if (icompute < 0)
-	error->all("Compute ID for compute atom/molecule does not exist");
+	error->all(FLERR,"Compute ID for compute atom/molecule does not exist");
       if (modify->compute[icompute]->peratom_flag == 0)
-	error->all("Compute atom/molecule compute does not "
+	error->all(FLERR,"Compute atom/molecule compute does not "
 		   "calculate per-atom values");
       if (argindex[i] == 0 && 
 	  modify->compute[icompute]->size_peratom_cols != 0)
-	error->all("Compute atom/molecule compute does not "
+	error->all(FLERR,"Compute atom/molecule compute does not "
 		   "calculate a per-atom vector");
       if (argindex[i] && modify->compute[icompute]->size_peratom_cols == 0)
-	error->all("Compute atom/molecule compute does not "
+	error->all(FLERR,"Compute atom/molecule compute does not "
 		   "calculate a per-atom array");
       if (argindex[i] && 
 	  argindex[i] > modify->compute[icompute]->size_peratom_cols)
-	error->all("Compute atom/molecule compute array is "
+	error->all(FLERR,"Compute atom/molecule compute array is "
 		   "accessed out-of-range");
 
     } else if (which[i] == FIX) {
       int ifix = modify->find_fix(ids[i]);
       if (ifix < 0)
-	error->all("Fix ID for compute atom/molecule does not exist");
+	error->all(FLERR,"Fix ID for compute atom/molecule does not exist");
       if (modify->fix[ifix]->peratom_flag)
-	error->all("Compute atom/molecule fix does not "
+	error->all(FLERR,"Compute atom/molecule fix does not "
 		   "calculate per-atom values");
       if (argindex[i] == 0 && 
 	  modify->fix[ifix]->size_peratom_cols != 0)
-	error->all("Compute atom/molecule fix does not "
+	error->all(FLERR,"Compute atom/molecule fix does not "
 		   "calculate a per-atom vector");
       if (argindex[i] && modify->fix[ifix]->size_peratom_cols == 0)
-	error->all("Compute atom/molecule fix does not "
+	error->all(FLERR,"Compute atom/molecule fix does not "
 		   "calculate a per-atom array");
       if (argindex[i] && 
 	  argindex[i] > modify->fix[ifix]->size_peratom_cols)
-	error->all("Compute atom/molecule fix array is accessed out-of-range");
+	error->all(FLERR,"Compute atom/molecule fix array is accessed out-of-range");
 
     } else if (which[i] == VARIABLE) {
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
-	error->all("Variable name for compute atom/molecule does not exist");
+	error->all(FLERR,"Variable name for compute atom/molecule does not exist");
       if (input->variable->atomstyle(ivariable) == 0)
-	error->all("Compute atom/molecule variable is not "
+	error->all(FLERR,"Compute atom/molecule variable is not "
 		   "atom-style variable");
     }
   }
@@ -179,7 +179,7 @@ void ComputeAtomMolecule::init()
 {
   int ntmp = molecules_in_group(idlo,idhi);
   if (ntmp != nmolecules)
-    error->all("Molecule count changed in compute atom/molecule");
+    error->all(FLERR,"Molecule count changed in compute atom/molecule");
 
   // set indices and check validity of all computes,fixes,variables
 
@@ -187,19 +187,19 @@ void ComputeAtomMolecule::init()
     if (which[m] == COMPUTE) {
       int icompute = modify->find_compute(ids[m]);
       if (icompute < 0)
-	error->all("Compute ID for compute atom/molecule does not exist");
+	error->all(FLERR,"Compute ID for compute atom/molecule does not exist");
       value2index[m] = icompute;
       
     } else if (which[m] == FIX) {
       int ifix = modify->find_fix(ids[m]);
       if (ifix < 0) 
-	error->all("Fix ID for compute atom/molecule does not exist");
+	error->all(FLERR,"Fix ID for compute atom/molecule does not exist");
       value2index[m] = ifix;
 
     } else if (which[m] == VARIABLE) {
       int ivariable = input->variable->find(ids[m]);
       if (ivariable < 0) 
-	error->all("Variable name for compute atom/molecule does not exist");
+	error->all(FLERR,"Variable name for compute atom/molecule does not exist");
       value2index[m] = ivariable;
 
     } else value2index[m] = -1;
@@ -301,7 +301,7 @@ void ComputeAtomMolecule::compute_one(int m)
 
   } else if (which[m] == FIX) {
     if (update->ntimestep % modify->fix[vidx]->peratom_freq)
-      error->all("Fix used in compute atom/molecule not computed "
+      error->all(FLERR,"Fix used in compute atom/molecule not computed "
 		 "at compatible time");
     Fix *fix = modify->fix[vidx];
 

@@ -49,9 +49,9 @@ Angle::~Angle()
 
 void Angle::init()
 {
-  if (!allocated) error->all("Angle coeffs are not set");
+  if (!allocated) error->all(FLERR,"Angle coeffs are not set");
   for (int i = 1; i <= atom->nangletypes; i++)
-    if (setflag[i] == 0) error->all("All angle coeffs are not set");
+    if (setflag[i] == 0) error->all(FLERR,"All angle coeffs are not set");
 }
 
 /* ----------------------------------------------------------------------

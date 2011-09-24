@@ -32,20 +32,17 @@ using namespace LAMMPS_NS;
 
 #define BIG 1.0e10
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 /* ---------------------------------------------------------------------- */
 
 FixViscosity::FixViscosity(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 7) error->all("Illegal fix viscosity command");
+  if (narg < 7) error->all(FLERR,"Illegal fix viscosity command");
 
   MPI_Comm_rank(world,&me);
 
   nevery = atoi(arg[3]);
-  if (nevery <= 0) error->all("Illegal fix viscosity command");
+  if (nevery <= 0) error->all(FLERR,"Illegal fix viscosity command");
 
   scalar_flag = 1;
   global_freq = nevery;
@@ -54,15 +51,15 @@ FixViscosity::FixViscosity(LAMMPS *lmp, int narg, char **arg) :
   if (strcmp(arg[4],"x") == 0) vdim = 0;
   else if (strcmp(arg[4],"y") == 0) vdim = 1;
   else if (strcmp(arg[4],"z") == 0) vdim = 2;
-  else error->all("Illegal fix viscosity command");
+  else error->all(FLERR,"Illegal fix viscosity command");
 
   if (strcmp(arg[5],"x") == 0) pdim = 0;
   else if (strcmp(arg[5],"y") == 0) pdim = 1;
   else if (strcmp(arg[5],"z") == 0) pdim = 2;
-  else error->all("Illegal fix viscosity command");
+  else error->all(FLERR,"Illegal fix viscosity command");
 
   nbin = atoi(arg[6]);
-  if (nbin % 2 || nbin <= 2) error->all("Illegal fix viscosity command");
+  if (nbin % 2 || nbin <= 2) error->all(FLERR,"Illegal fix viscosity command");
 
   // optional keywords
 
@@ -72,18 +69,18 @@ FixViscosity::FixViscosity(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 7;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"swap") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix viscosity command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix viscosity command");
       nswap = atoi(arg[iarg+1]);
-      if (nswap <= 0) error->all("Fix viscosity swap value must be positive");
+      if (nswap <= 0) error->all(FLERR,"Fix viscosity swap value must be positive");
       iarg += 2;
     } else if (strcmp(arg[iarg],"vtarget") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix viscosity command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix viscosity command");
       if (strcmp(arg[iarg+1],"INF") == 0) vtarget = BIG;
       else vtarget = atof(arg[iarg+1]);
       if (vtarget <= 0.0)
-	error->all("Fix viscosity vtarget value must be positive");
+	error->all(FLERR,"Fix viscosity vtarget value must be positive");
       iarg += 2;
-    } else error->all("Illegal fix viscosity command");
+    } else error->all(FLERR,"Illegal fix viscosity command");
   }
 
   // initialize array sizes to nswap+1 so have space to shift values down
@@ -126,7 +123,7 @@ void FixViscosity::init()
   for (int i = 0; i < modify->nfix; i++) {
     if (modify->fix[i] == this) foundme = 1;
     if (foundme && strcmp(modify->fix[i]->style,"ave/spatial") == 0 && me == 0)
-      error->warning("Fix viscosity comes before fix ave/spatial");
+      error->warning(FLERR,"Fix viscosity comes before fix ave/spatial");
   }
 
   // set bounds of 2 slabs in pdim

@@ -38,12 +38,12 @@ DeleteBonds::DeleteBonds(LAMMPS *lmp) : Pointers(lmp) {}
 void DeleteBonds::command(int narg, char **arg)
 {
   if (domain->box_exist == 0) 
-    error->all("Delete_bonds command before simulation box is defined");
+    error->all(FLERR,"Delete_bonds command before simulation box is defined");
   if (atom->natoms == 0)
-    error->all("Delete_bonds command with no atoms existing");
+    error->all(FLERR,"Delete_bonds command with no atoms existing");
   if (atom->molecular == 0)
-    error->all("Cannot use delete_bonds with non-molecular system");
-  if (narg < 2) error->all("Illegal delete_bonds command");
+    error->all(FLERR,"Cannot use delete_bonds with non-molecular system");
+  if (narg < 2) error->all(FLERR,"Illegal delete_bonds command");
 
   // init entire system since comm->borders is done
   // comm::init needs neighbor::init needs pair::init needs kspace::init, etc
@@ -57,7 +57,7 @@ void DeleteBonds::command(int narg, char **arg)
   // identify group
 
   int igroup = group->find(arg[0]);
-  if (igroup == -1) error->all("Cannot find delete_bonds group ID");
+  if (igroup == -1) error->all(FLERR,"Cannot find delete_bonds group ID");
   int groupbit = group->bitmask[igroup];
   
   // set style and which = type value
@@ -70,12 +70,12 @@ void DeleteBonds::command(int narg, char **arg)
   else if (strcmp(arg[1],"dihedral") == 0) style = DIHEDRAL;
   else if (strcmp(arg[1],"improper") == 0) style = IMPROPER;
   else if (strcmp(arg[1],"stats") == 0) style = STATS;
-  else error->all("Illegal delete_bonds command");
+  else error->all(FLERR,"Illegal delete_bonds command");
 
   int iarg = 2;
   int which;
   if (style != MULTI && style != STATS) {
-    if (narg < 3) error->all("Illegal delete_bonds command");
+    if (narg < 3) error->all(FLERR,"Illegal delete_bonds command");
     which = atoi(arg[2]);
     iarg++;
   }
@@ -90,7 +90,7 @@ void DeleteBonds::command(int narg, char **arg)
     if (strcmp(arg[iarg],"undo") == 0) undo_flag = 1;
     else if (strcmp(arg[iarg],"remove") == 0) remove_flag = 1;
     else if (strcmp(arg[iarg],"special") == 0) special_flag = 1;
-    else error->all("Illegal delete_bonds command");
+    else error->all(FLERR,"Illegal delete_bonds command");
     iarg++;
   }
 
@@ -130,7 +130,7 @@ void DeleteBonds::command(int narg, char **arg)
     for (i = 0; i < nlocal; i++) {
       for (m = 0; m < num_bond[i]; m++) {
 	atom1 = atom->map(atom->bond_atom[i][m]);
-	if (atom1 == -1) error->one("Bond atom missing in delete_bonds");
+	if (atom1 == -1) error->one(FLERR,"Bond atom missing in delete_bonds");
 	if (mask[i] & groupbit && mask[atom1] & groupbit) {
 	  flag = 0;
 	  if (style == MULTI) flag = 1;
@@ -158,7 +158,7 @@ void DeleteBonds::command(int narg, char **arg)
 	atom2 = atom->map(atom->angle_atom2[i][m]);
 	atom3 = atom->map(atom->angle_atom3[i][m]);
 	if (atom1 == -1 || atom2 == -1 || atom3 == -1)
-	  error->one("Angle atom missing in delete_bonds");
+	  error->one(FLERR,"Angle atom missing in delete_bonds");
 	if (mask[atom1] & groupbit && mask[atom2] & groupbit &&
 	    mask[atom3] & groupbit) {
 	  flag = 0;
@@ -189,7 +189,7 @@ void DeleteBonds::command(int narg, char **arg)
 	atom3 = atom->map(atom->dihedral_atom3[i][m]);
 	atom4 = atom->map(atom->dihedral_atom4[i][m]);
 	if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1)
-	  error->one("Dihedral atom missing in delete_bonds");
+	  error->one(FLERR,"Dihedral atom missing in delete_bonds");
 	if (mask[atom1] & groupbit && mask[atom2] & groupbit &&
 	    mask[atom3] & groupbit && mask[atom4] & groupbit) {
 	  flag = 0;
@@ -220,7 +220,7 @@ void DeleteBonds::command(int narg, char **arg)
 	atom3 = atom->map(atom->improper_atom3[i][m]);
 	atom4 = atom->map(atom->improper_atom4[i][m]);
 	if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1)
-	  error->one("Improper atom missing in delete_bonds");
+	  error->one(FLERR,"Improper atom missing in delete_bonds");
 	if (mask[atom1] & groupbit && mask[atom2] & groupbit &&
 	    mask[atom3] & groupbit && mask[atom4] & groupbit) {
 	  flag = 0;

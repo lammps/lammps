@@ -43,9 +43,6 @@ enum{NONE,CONSTANT,EQUAL,ATOM};
 #define WARMUP 100
 #define SMALL  0.001
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 Velocity::Velocity(LAMMPS *lmp) : Pointers(lmp) {}
@@ -54,12 +51,12 @@ Velocity::Velocity(LAMMPS *lmp) : Pointers(lmp) {}
 
 void Velocity::command(int narg, char **arg)
 {
-  if (narg < 2) error->all("Illegal velocity command");
+  if (narg < 2) error->all(FLERR,"Illegal velocity command");
 
   if (domain->box_exist == 0) 
-    error->all("Velocity command before simulation box is defined");
+    error->all(FLERR,"Velocity command before simulation box is defined");
   if (atom->natoms == 0)
-    error->all("Velocity command with no atoms existing");
+    error->all(FLERR,"Velocity command with no atoms existing");
 
   // atom masses must all be set
 
@@ -68,7 +65,7 @@ void Velocity::command(int narg, char **arg)
   // identify group
 
   igroup = group->find(arg[0]);
-  if (igroup == -1) error->all("Could not find velocity group ID");
+  if (igroup == -1) error->all(FLERR,"Could not find velocity group ID");
   groupbit = group->bitmask[igroup];
 
   // identify style
@@ -78,7 +75,7 @@ void Velocity::command(int narg, char **arg)
   else if (strcmp(arg[1],"scale") == 0) style = SCALE;
   else if (strcmp(arg[1],"ramp") == 0) style = RAMP;
   else if (strcmp(arg[1],"zero") == 0) style = ZERO;
-  else error->all("Illegal velocity command");
+  else error->all(FLERR,"Illegal velocity command");
 
   // set defaults
 
@@ -120,7 +117,7 @@ void Velocity::command(int narg, char **arg)
 void Velocity::init_external(char *extgroup)
 {
   igroup = group->find(extgroup);
-  if (igroup == -1) error->all("Could not find velocity group ID");
+  if (igroup == -1) error->all(FLERR,"Could not find velocity group ID");
   groupbit = group->bitmask[igroup];
 
   temperature = NULL;
@@ -138,7 +135,7 @@ void Velocity::create(double t_desired, int seed)
 {
   int i;
 
-  if (seed <= 0) error->all("Illegal velocity create command");
+  if (seed <= 0) error->all(FLERR,"Illegal velocity create command");
 
   // if temperature = NULL, create a new ComputeTemp with the velocity group
 
@@ -157,7 +154,7 @@ void Velocity::create(double t_desired, int seed)
   // warn if groups don't match
 
   if (igroup != temperature->igroup && comm->me == 0)
-    error->warning("Mismatch between velocity and compute groups");
+    error->warning(FLERR,"Mismatch between velocity and compute groups");
   temperature->init();
 
   // store a copy of current velocities
@@ -214,11 +211,11 @@ void Velocity::create(double t_desired, int seed)
     // error check
 
     if (atom->natoms > MAXSMALLINT)
-      error->all("Too big a problem to use velocity create loop all");
+      error->all(FLERR,"Too big a problem to use velocity create loop all");
     if (atom->tag_enable == 0)
-      error->all("Cannot use velocity create loop all unless atoms have IDs");
+      error->all(FLERR,"Cannot use velocity create loop all unless atoms have IDs");
     if (atom->tag_consecutive() == 0)
-      error->all("Atom IDs must be consecutive for velocity create loop all");
+      error->all(FLERR,"Atom IDs must be consecutive for velocity create loop all");
 
     // loop over all atoms in system
     // generate RNGs for all atoms, only assign to ones I own
@@ -379,19 +376,19 @@ void Velocity::set(int narg, char **arg)
 
   if (xstyle && !xstr) {
     if (scale_flag && domain->lattice == NULL)
-      error->all("Use of velocity with undefined lattice");
+      error->all(FLERR,"Use of velocity with undefined lattice");
     if (scale_flag) xscale = domain->lattice->xlattice;
     vx *= xscale;
   }
   if (ystyle && !ystr) {
     if (scale_flag && domain->lattice == NULL)
-      error->all("Use of velocity with undefined lattice");
+      error->all(FLERR,"Use of velocity with undefined lattice");
     if (scale_flag) yscale = domain->lattice->ylattice;
     vy *= yscale;
   }
   if (zstyle && !zstr) {
     if (scale_flag && domain->lattice == NULL)
-      error->all("Use of velocity with undefined lattice");
+      error->all(FLERR,"Use of velocity with undefined lattice");
     if (scale_flag) zscale = domain->lattice->zlattice;
     vz *= zscale;
   }
@@ -400,24 +397,24 @@ void Velocity::set(int narg, char **arg)
 
   if (xstr) {
     xvar = input->variable->find(xstr);
-    if (xvar < 0) error->all("Variable name for velocity set does not exist");
+    if (xvar < 0) error->all(FLERR,"Variable name for velocity set does not exist");
     if (input->variable->equalstyle(xvar)) xstyle = EQUAL;
     else if (input->variable->atomstyle(xvar)) xstyle = ATOM;
-    else error->all("Variable for velocity set is invalid style");
+    else error->all(FLERR,"Variable for velocity set is invalid style");
   }
   if (ystr) {
     yvar = input->variable->find(ystr);
-    if (yvar < 0) error->all("Variable name for velocity set does not exist");
+    if (yvar < 0) error->all(FLERR,"Variable name for velocity set does not exist");
     if (input->variable->equalstyle(yvar)) ystyle = EQUAL;
     else if (input->variable->atomstyle(yvar)) ystyle = ATOM;
-    else error->all("Variable for velocity set is invalid style");
+    else error->all(FLERR,"Variable for velocity set is invalid style");
   }
   if (zstr) {
     zvar = input->variable->find(zstr);
-    if (zvar < 0) error->all("Variable name for velocity set does not exist");
+    if (zvar < 0) error->all(FLERR,"Variable name for velocity set does not exist");
     if (input->variable->equalstyle(zvar)) zstyle = EQUAL;
     else if (input->variable->atomstyle(zvar)) zstyle = ATOM;
-    else error->all("Variable for velocity set is invalid style");
+    else error->all(FLERR,"Variable for velocity set is invalid style");
   }
 
   if (xstyle == ATOM || ystyle == ATOM || zstyle == ATOM)
@@ -430,9 +427,9 @@ void Velocity::set(int narg, char **arg)
 
   if (domain->dimension == 2) {
     if (zstyle == CONSTANT && vz != 0.0)
-      error->all("Cannot set non-zero z velocity for 2d simulation");
+      error->all(FLERR,"Cannot set non-zero z velocity for 2d simulation");
     if (zstyle == EQUAL || zstyle == ATOM)
-      error->all("Cannot set variable z velocity for 2d simulation");
+      error->all(FLERR,"Cannot set variable z velocity for 2d simulation");
   }
 
   // allocate vfield array if necessary
@@ -527,7 +524,7 @@ void Velocity::scale(int narg, char **arg)
   // warn if groups don't match
 
   if (igroup != temperature->igroup && comm->me == 0)
-    error->warning("Mismatch between velocity and compute groups");
+    error->warning(FLERR,"Mismatch between velocity and compute groups");
   temperature->init();
 
   // scale temp to desired value
@@ -549,7 +546,7 @@ void Velocity::ramp(int narg, char **arg)
   // set scale factors
 
   if (scale_flag && domain->lattice == NULL)
-    error->all("Use of velocity with undefined lattice");
+    error->all(FLERR,"Use of velocity with undefined lattice");
 
   if (scale_flag) {
     xscale = domain->lattice->xlattice;
@@ -564,10 +561,10 @@ void Velocity::ramp(int narg, char **arg)
   if (strcmp(arg[0],"vx") == 0) v_dim = 0;
   else if (strcmp(arg[0],"vy") == 0) v_dim = 1;
   else if (strcmp(arg[0],"vz") == 0) v_dim = 2;
-  else error->all("Illegal velocity command");
+  else error->all(FLERR,"Illegal velocity command");
 
   if (v_dim == 2 && domain->dimension == 2) 
-    error->all("Velocity ramp in z for a 2d problem");
+    error->all(FLERR,"Velocity ramp in z for a 2d problem");
 
   double v_lo,v_hi;
   if (v_dim == 0) {
@@ -585,7 +582,7 @@ void Velocity::ramp(int narg, char **arg)
   if (strcmp(arg[3],"x") == 0) coord_dim = 0;
   else if (strcmp(arg[3],"y") == 0) coord_dim = 1;
   else if (strcmp(arg[3],"z") == 0) coord_dim = 2;
-  else error->all("Illegal velocity command");
+  else error->all(FLERR,"Illegal velocity command");
 
   double coord_lo,coord_hi;
   if (coord_dim == 0) {
@@ -628,7 +625,7 @@ void Velocity::zero(int narg, char **arg)
 {
   if (strcmp(arg[0],"linear") == 0) zero_momentum();
   else if (strcmp(arg[0],"angular") == 0) zero_rotation();
-  else error->all("Illegal velocity command");
+  else error->all(FLERR,"Illegal velocity command");
 }
 
 /* ----------------------------------------------------------------------
@@ -637,7 +634,7 @@ void Velocity::zero(int narg, char **arg)
 
 void Velocity::rescale(double t_old, double t_new)
 {
-  if (t_old == 0.0) error->all("Attempting to rescale a 0.0 temperature");
+  if (t_old == 0.0) error->all(FLERR,"Attempting to rescale a 0.0 temperature");
 
   double factor = sqrt(t_new/t_old);
 
@@ -662,7 +659,7 @@ void Velocity::zero_momentum()
   // cannot have 0 atoms in group
 
   if (group->count(igroup) == 0)
-    error->all("Cannot zero momentum of 0 atoms");
+    error->all(FLERR,"Cannot zero momentum of 0 atoms");
 
   // compute velocity of center-of-mass of group
 
@@ -695,7 +692,7 @@ void Velocity::zero_rotation()
   // cannot have 0 atoms in group
 
   if (group->count(igroup) == 0)
-    error->all("Cannot zero momentum of 0 atoms");
+    error->all(FLERR,"Cannot zero momentum of 0 atoms");
 
   // compute omega (angular velocity) of group around center-of-mass
 
@@ -742,58 +739,58 @@ void Velocity::zero_rotation()
 
 void Velocity::options(int narg, char **arg)
 {
-  if (narg < 0) error->all("Illegal velocity command");
+  if (narg < 0) error->all(FLERR,"Illegal velocity command");
 
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"dist") == 0) {
-      if (iarg+2 > narg) error->all("Illegal velocity command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal velocity command");
       if (strcmp(arg[iarg+1],"uniform") == 0) dist_flag = 0;
       else if (strcmp(arg[iarg+1],"gaussian") == 0) dist_flag = 1;
-      else error->all("Illegal velocity command");
+      else error->all(FLERR,"Illegal velocity command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"sum") == 0) {
-      if (iarg+2 > narg) error->all("Illegal velocity command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal velocity command");
       if (strcmp(arg[iarg+1],"no") == 0) sum_flag = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) sum_flag = 1;
-      else error->all("Illegal velocity command");
+      else error->all(FLERR,"Illegal velocity command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"mom") == 0) {
-      if (iarg+2 > narg) error->all("Illegal velocity command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal velocity command");
       if (strcmp(arg[iarg+1],"no") == 0) momentum_flag = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) momentum_flag = 1;
-      else error->all("Illegal velocity command");
+      else error->all(FLERR,"Illegal velocity command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"rot") == 0) {
-      if (iarg+2 > narg) error->all("Illegal velocity command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal velocity command");
       if (strcmp(arg[iarg+1],"no") == 0) rotation_flag = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) rotation_flag = 1;
-      else error->all("Illegal velocity command");
+      else error->all(FLERR,"Illegal velocity command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"temp") == 0) {
-      if (iarg+2 > narg) error->all("Illegal velocity command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal velocity command");
       int icompute;
       for (icompute = 0; icompute < modify->ncompute; icompute++)
 	if (strcmp(arg[iarg+1],modify->compute[icompute]->id) == 0) break;
       if (icompute == modify->ncompute) 
-	error->all("Could not find velocity temperature ID");
+	error->all(FLERR,"Could not find velocity temperature ID");
       temperature = modify->compute[icompute];
       if (temperature->tempflag == 0)
-	error->all("Velocity temperature ID does not compute temperature");
+	error->all(FLERR,"Velocity temperature ID does not compute temperature");
       iarg += 2;
     } else if (strcmp(arg[iarg],"loop") == 0) {
-      if (iarg+2 > narg) error->all("Illegal velocity command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal velocity command");
       if (strcmp(arg[iarg+1],"all") == 0) loop_flag = ALL;
       else if (strcmp(arg[iarg+1],"local") == 0) loop_flag = LOCAL;
       else if (strcmp(arg[iarg+1],"geom") == 0) loop_flag = GEOM;
-      else error->all("Illegal velocity command");
+      else error->all(FLERR,"Illegal velocity command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"units") == 0) {
-      if (iarg+2 > narg) error->all("Illegal velocity command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal velocity command");
       if (strcmp(arg[iarg+1],"box") == 0) scale_flag = 0;
       else if (strcmp(arg[iarg+1],"lattice") == 0) scale_flag = 1;
-      else error->all("Illegal velocity command");
+      else error->all(FLERR,"Illegal velocity command");
       iarg += 2;
-    } else error->all("Illegal velocity command");
+    } else error->all(FLERR,"Illegal velocity command");
   }
 }

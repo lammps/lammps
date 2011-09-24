@@ -27,9 +27,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 #define MAXLINE 2048
 
 /* ---------------------------------------------------------------------- */
@@ -40,10 +37,10 @@ Run::Run(LAMMPS *lmp) : Pointers(lmp) {}
 
 void Run::command(int narg, char **arg)
 {
-  if (narg < 1) error->all("Illegal run command");
+  if (narg < 1) error->all(FLERR,"Illegal run command");
 
   if (domain->box_exist == 0)
-    error->all("Run command before simulation box is defined");
+    error->all(FLERR,"Run command before simulation box is defined");
 
   bigint nsteps_input = ATOBIGINT(arg[0]);
 
@@ -62,30 +59,30 @@ void Run::command(int narg, char **arg)
   int iarg = 1;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"upto") == 0) {
-      if (iarg+1 > narg) error->all("Illegal run command");
+      if (iarg+1 > narg) error->all(FLERR,"Illegal run command");
       uptoflag = 1;
       iarg += 1;
     } else if (strcmp(arg[iarg],"start") == 0) {
-      if (iarg+2 > narg) error->all("Illegal run command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal run command");
       startflag = 1;
       start = ATOBIGINT(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"stop") == 0) {
-      if (iarg+2 > narg) error->all("Illegal run command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal run command");
       stopflag = 1;
       stop = ATOBIGINT(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"pre") == 0) {
-      if (iarg+2 > narg) error->all("Illegal run command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal run command");
       if (strcmp(arg[iarg+1],"no") == 0) preflag = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) preflag = 1;
-      else error->all("Illegal run command");
+      else error->all(FLERR,"Illegal run command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"post") == 0) {
-      if (iarg+2 > narg) error->all("Illegal run command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal run command");
       if (strcmp(arg[iarg+1],"no") == 0) postflag = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) postflag = 1;
-      else error->all("Illegal run command");
+      else error->all(FLERR,"Illegal run command");
       iarg += 2;
 
       // all remaining args are commands
@@ -93,15 +90,15 @@ void Run::command(int narg, char **arg)
       // set ncommands = 0 if single command and it is NULL
 
     } else if (strcmp(arg[iarg],"every") == 0) {
-      if (iarg+3 > narg) error->all("Illegal run command");
+      if (iarg+3 > narg) error->all(FLERR,"Illegal run command");
       nevery = atoi(arg[iarg+1]);
-      if (nevery <= 0) error->all("Illegal run command");
+      if (nevery <= 0) error->all(FLERR,"Illegal run command");
       first = iarg+2;
       last = narg-1;
       ncommands = last-first + 1;
       if (ncommands == 1 && strcmp(arg[first],"NULL") == 0) ncommands = 0;
       iarg = narg;
-    } else error->all("Illegal run command");
+    } else error->all(FLERR,"Illegal run command");
   }
 
   // set nsteps as integer, using upto value if specified
@@ -109,12 +106,12 @@ void Run::command(int narg, char **arg)
   int nsteps;
   if (!uptoflag) {
     if (nsteps_input < 0 || nsteps_input > MAXSMALLINT)
-      error->all("Invalid run command N value");
+      error->all(FLERR,"Invalid run command N value");
     nsteps = static_cast<int> (nsteps_input);
   } else {
     bigint delta = nsteps_input - update->ntimestep;
     if (delta < 0 || delta > MAXSMALLINT)
-      error->all("Invalid run command upto value");
+      error->all(FLERR,"Invalid run command upto value");
     nsteps = static_cast<int> (delta);
   }
 
@@ -122,15 +119,15 @@ void Run::command(int narg, char **arg)
 
   if (startflag) {
     if (start < 0 || start > MAXBIGINT)
-      error->all("Invalid run command start/stop value");
+      error->all(FLERR,"Invalid run command start/stop value");
     if (start > update->ntimestep)
-      error->all("Run command start value is after start of run");
+      error->all(FLERR,"Run command start value is after start of run");
   }
   if (stopflag) {
     if (stop < 0 || stop > MAXBIGINT)
-      error->all("Invalid run command start/stop value");
+      error->all(FLERR,"Invalid run command start/stop value");
     if (stop < update->ntimestep + nsteps)
-      error->all("Run command stop value is before end of run");
+      error->all(FLERR,"Run command stop value is before end of run");
   }
 
   // if nevery, make copies of arg strings that are commands
@@ -161,7 +158,7 @@ void Run::command(int narg, char **arg)
     update->firststep = update->ntimestep;
     update->laststep = update->ntimestep + nsteps;
     if (update->laststep < 0 || update->laststep > MAXBIGINT)
-      error->all("Too many timesteps");
+      error->all(FLERR,"Too many timesteps");
 
     if (startflag) update->beginstep = start;
     else update->beginstep = update->firststep;
@@ -201,7 +198,7 @@ void Run::command(int narg, char **arg)
       update->firststep = update->ntimestep;
       update->laststep = update->ntimestep + nsteps;
       if (update->laststep < 0 || update->laststep > MAXBIGINT)
-	error->all("Too many timesteps");
+	error->all(FLERR,"Too many timesteps");
 
       if (startflag) update->beginstep = start;
       else update->beginstep = update->firststep;

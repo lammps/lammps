@@ -30,9 +30,6 @@ using namespace LAMMPS_NS;
 
 #define SMALL 1.0e-10
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 enum{TETHER,COUPLE};
 
 /* ---------------------------------------------------------------------- */
@@ -40,7 +37,7 @@ enum{TETHER,COUPLE};
 FixSpring::FixSpring(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 9) error->all("Illegal fix spring command");
+  if (narg < 9) error->all(FLERR,"Illegal fix spring command");
 
   scalar_flag = 1;
   vector_flag = 1;
@@ -52,7 +49,7 @@ FixSpring::FixSpring(LAMMPS *lmp, int narg, char **arg) :
   group2 = NULL;
 
   if (strcmp(arg[3],"tether") == 0) {
-    if (narg != 9) error->all("Illegal fix spring command");
+    if (narg != 9) error->all(FLERR,"Illegal fix spring command");
     styleflag = TETHER;
     k_spring = atof(arg[4]);
     xflag = yflag = zflag = 1;
@@ -63,10 +60,10 @@ FixSpring::FixSpring(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[7],"NULL") == 0) zflag = 0;
     else zc = atof(arg[7]);
     r0 = atof(arg[8]);
-    if (r0 < 0) error->all("R0 < 0 for fix spring command");
+    if (r0 < 0) error->all(FLERR,"R0 < 0 for fix spring command");
 
   } else if (strcmp(arg[3],"couple") == 0) {
-    if (narg != 10) error->all("Illegal fix spring command");
+    if (narg != 10) error->all(FLERR,"Illegal fix spring command");
     styleflag = COUPLE;
 
     int n = strlen(arg[4]) + 1;
@@ -74,9 +71,9 @@ FixSpring::FixSpring(LAMMPS *lmp, int narg, char **arg) :
     strcpy(group2,arg[4]);
     igroup2 = group->find(arg[4]);
     if (igroup2 == -1) 
-      error->all("Fix spring couple group ID does not exist"); 
+      error->all(FLERR,"Fix spring couple group ID does not exist"); 
     if (igroup2 == igroup) 
-      error->all("Two groups cannot be the same in fix spring couple"); 
+      error->all(FLERR,"Two groups cannot be the same in fix spring couple"); 
     group2bit = group->bitmask[igroup2];
 
     k_spring = atof(arg[5]);
@@ -88,9 +85,9 @@ FixSpring::FixSpring(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[8],"NULL") == 0) zflag = 0;
     else zc = atof(arg[8]);
     r0 = atof(arg[9]);
-    if (r0 < 0) error->all("R0 < 0 for fix spring command");
+    if (r0 < 0) error->all(FLERR,"R0 < 0 for fix spring command");
 
-  } else error->all("Illegal fix spring command");
+  } else error->all(FLERR,"Illegal fix spring command");
 
   ftotal[0] = ftotal[1] = ftotal[2] = ftotal[3] = 0.0;
 }
@@ -123,7 +120,7 @@ void FixSpring::init()
   if (group2) {
     igroup2 = group->find(group2);
     if (igroup2 == -1) 
-      error->all("Fix spring couple group ID does not exist"); 
+      error->all(FLERR,"Fix spring couple group ID does not exist"); 
     group2bit = group->bitmask[igroup2];
   }
 

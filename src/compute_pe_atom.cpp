@@ -32,7 +32,7 @@ using namespace LAMMPS_NS;
 ComputePEAtom::ComputePEAtom(LAMMPS *lmp, int narg, char **arg) : 
   Compute(lmp, narg, arg)
 {
-  if (narg < 3) error->all("Illegal compute pe/atom command");
+  if (narg < 3) error->all(FLERR,"Illegal compute pe/atom command");
 
   peratom_flag = 1;
   size_peratom_cols = 0;
@@ -53,7 +53,7 @@ ComputePEAtom::ComputePEAtom(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[iarg],"angle") == 0) angleflag = 1;
       else if (strcmp(arg[iarg],"dihedral") == 0) dihedralflag = 1;
       else if (strcmp(arg[iarg],"improper") == 0) improperflag = 1;
-      else error->all("Illegal compute pe/atom command");
+      else error->all(FLERR,"Illegal compute pe/atom command");
       iarg++;
     }
   }
@@ -77,7 +77,7 @@ void ComputePEAtom::compute_peratom()
 
   invoked_peratom = update->ntimestep;
   if (update->eflag_atom != invoked_peratom)
-    error->all("Per-atom energy was not tallied on needed timestep");
+    error->all(FLERR,"Per-atom energy was not tallied on needed timestep");
 
   // grow local energy array if necessary
   // needs to be atom->nmax in length

@@ -32,9 +32,6 @@
 using namespace LAMMPS_NS;
 using namespace PairLJCubicConstants;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 PairLJCubic::PairLJCubic(LAMMPS *lmp) : Pair(lmp) {}
@@ -180,7 +177,7 @@ void PairLJCubic::allocate()
 
 void PairLJCubic::settings(int narg, char **arg)
 {
-  if (narg != 0) error->all("Illegal pair_style command");
+  if (narg != 0) error->all(FLERR,"Illegal pair_style command");
 
   // reset cutoffs that have been explicitly set
 
@@ -199,7 +196,7 @@ void PairLJCubic::settings(int narg, char **arg)
 void PairLJCubic::coeff(int narg, char **arg)
 {
   if (narg != 4)
-    error->all("Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -222,7 +219,7 @@ void PairLJCubic::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------

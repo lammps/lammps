@@ -34,9 +34,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 PairLubricate::PairLubricate(LAMMPS *lmp) : Pair(lmp)
@@ -305,7 +302,7 @@ void PairLubricate::allocate()
 
 void PairLubricate::settings(int narg, char **arg)
 {
-  if (narg != 9) error->all("Illegal pair_style command");
+  if (narg != 9) error->all(FLERR,"Illegal pair_style command");
 
   mu = force->numeric(arg[0]);
   flag1 = force->inumeric(arg[1]);
@@ -319,7 +316,7 @@ void PairLubricate::settings(int narg, char **arg)
 
   // initialize Marsaglia RNG with processor-unique seed
 
-  if (seed <= 0) error->all("Illegal pair_style command");
+  if (seed <= 0) error->all(FLERR,"Illegal pair_style command");
   delete random;
   random = new RanMars(lmp,seed + comm->me);
 
@@ -343,7 +340,7 @@ void PairLubricate::settings(int narg, char **arg)
 void PairLubricate::coeff(int narg, char **arg)
 {
   if (narg != 2 && narg != 4)
-    error->all("Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients");
 
   if (!allocated) allocate();
 
@@ -368,7 +365,7 @@ void PairLubricate::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -378,9 +375,9 @@ void PairLubricate::coeff(int narg, char **arg)
 void PairLubricate::init_style()
 {
   if (!atom->sphere_flag)
-    error->all("Pair lubricate requires atom style sphere");
+    error->all(FLERR,"Pair lubricate requires atom style sphere");
   if (comm->ghost_velocity == 0)
-    error->all("Pair lubricate requires ghost atoms store velocity");
+    error->all(FLERR,"Pair lubricate requires ghost atoms store velocity");
 
   neighbor->request(this);
 
@@ -390,9 +387,9 @@ void PairLubricate::init_style()
   double rad,radtype;
   for (int i = 1; i <= atom->ntypes; i++) {
     if (!atom->radius_consistency(i,radtype))
-      error->all("Pair lubricate requires monodisperse particles");
+      error->all(FLERR,"Pair lubricate requires monodisperse particles");
     if (i > 1 && radtype != rad)
-      error->all("Pair lubricate requires monodisperse particles");
+      error->all(FLERR,"Pair lubricate requires monodisperse particles");
     rad = radtype;
   }
 }

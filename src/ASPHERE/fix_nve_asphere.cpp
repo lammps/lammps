@@ -38,7 +38,7 @@ FixNVEAsphere::FixNVEAsphere(LAMMPS *lmp, int narg, char **arg) :
 {
   avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
   if (!avec) 
-    error->all("Compute nve/asphere requires atom style ellipsoid");
+    error->all(FLERR,"Compute nve/asphere requires atom style ellipsoid");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -55,7 +55,7 @@ void FixNVEAsphere::init()
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
       if (ellipsoid[i] < 0)
-	error->one("Fix nve/asphere requires extended particles");
+	error->one(FLERR,"Fix nve/asphere requires extended particles");
 
   FixNVE::init();
 }

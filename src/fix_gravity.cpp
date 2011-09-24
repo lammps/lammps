@@ -31,7 +31,7 @@ enum{CHUTE,SPHERICAL,GRADIENT,VECTOR};
 FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 5) error->all("Illegal fix gravity command");
+  if (narg < 5) error->all(FLERR,"Illegal fix gravity command");
 
   time_depend = 1;
   scalar_flag = 1;
@@ -41,29 +41,29 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
   magnitude = atof(arg[3]);
 
   if (strcmp(arg[4],"chute") == 0) {
-    if (narg != 6) error->all("Illegal fix gravity command");
+    if (narg != 6) error->all(FLERR,"Illegal fix gravity command");
     style = CHUTE;
     phi = 0.0;
     theta = 180.0 - atof(arg[5]);
   } else if (strcmp(arg[4],"spherical") == 0) {
-    if (narg != 7) error->all("Illegal fix gravity command");
+    if (narg != 7) error->all(FLERR,"Illegal fix gravity command");
     style = SPHERICAL;
     phi = atof(arg[5]);
     theta = atof(arg[6]);
   } else if (strcmp(arg[4],"gradient") == 0) {
-    if (narg != 9) error->all("Illegal fix gravity command");
+    if (narg != 9) error->all(FLERR,"Illegal fix gravity command");
     style = GRADIENT;
     phi = atof(arg[5]);
     theta = atof(arg[6]);
     phigrad = atof(arg[7]);
     thetagrad = atof(arg[8]);
   } else if (strcmp(arg[4],"vector") == 0) {
-    if (narg != 8) error->all("Illegal fix gravity command");
+    if (narg != 8) error->all(FLERR,"Illegal fix gravity command");
     style = VECTOR;
     xdir = atof(arg[5]);
     ydir = atof(arg[6]);
     zdir = atof(arg[7]);
-  } else error->all("Illegal fix gravity command");
+  } else error->all(FLERR,"Illegal fix gravity command");
 
   double PI = 4.0*atan(1.0);
   degree2rad = PI/180.0;

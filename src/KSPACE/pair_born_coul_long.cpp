@@ -31,9 +31,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 #define EWALD_F   1.12837917
 #define EWALD_P   0.3275911
 #define A1        0.254829592
@@ -125,9 +122,9 @@ void PairBornCoulLong::compute(int eflag, int vflag)
 
       if (rsq < cutsq[itype][jtype]) {
 	r2inv = 1.0/rsq;
+	r = sqrt(rsq);
 
 	if (rsq < cut_coulsq) {
-	  r = sqrt(rsq);
 	  grij = g_ewald * r;
 	  expm2 = exp(-grij*grij);
 	  t = 1.0 / (1.0 + EWALD_P*grij);
@@ -139,7 +136,6 @@ void PairBornCoulLong::compute(int eflag, int vflag)
 
 	if (rsq < cut_ljsq[itype][jtype]) {
 	  r6inv = r2inv*r2inv*r2inv;
-          r = sqrt(rsq);
 	  rexp = exp((sigma[itype][jtype]-r)*rhoinv[itype][jtype]);
 	  forceborn = born1[itype][jtype]*r*rexp - born2[itype][jtype]*r6inv
 	    + born3[itype][jtype]*r2inv*r6inv;
@@ -213,7 +209,7 @@ void PairBornCoulLong::allocate()
 
 void PairBornCoulLong::settings(int narg, char **arg)
 {
-  if (narg < 1 || narg > 2) error->all("Illegal pair_style command");
+  if (narg < 1 || narg > 2) error->all(FLERR,"Illegal pair_style command");
 
   cut_lj_global = force->numeric(arg[0]);
   if (narg == 1) cut_coul = cut_lj_global;
@@ -235,7 +231,7 @@ void PairBornCoulLong::settings(int narg, char **arg)
 
 void PairBornCoulLong::coeff(int narg, char **arg)
 {
-  if (narg < 7 || narg > 8) error->all("Incorrect args for pair coefficients");
+  if (narg < 7 || narg > 8) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -245,7 +241,7 @@ void PairBornCoulLong::coeff(int narg, char **arg)
   double a_one = force->numeric(arg[2]);
   double rho_one = force->numeric(arg[3]);
   double sigma_one = force->numeric(arg[4]);
-  if (rho_one <= 0) error->all("Incorrect args for pair coefficients");
+  if (rho_one <= 0) error->all(FLERR,"Incorrect args for pair coefficients");
   double c_one = force->numeric(arg[5]);
   double d_one = force->numeric(arg[6]);
 
@@ -266,7 +262,7 @@ void PairBornCoulLong::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -275,7 +271,7 @@ void PairBornCoulLong::coeff(int narg, char **arg)
 
 double PairBornCoulLong::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all("All pair coeffs are not set");
+  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
   double cut = MAX(cut_lj[i][j],cut_coul);
   cut_ljsq[i][j] = cut_lj[i][j] * cut_lj[i][j];
@@ -345,14 +341,14 @@ double PairBornCoulLong::init_one(int i, int j)
 void PairBornCoulLong::init_style()
 {
   if (!atom->q_flag)
-    error->all("Pair style born/coul/long requires atom attribute q");
+    error->all(FLERR,"Pair style born/coul/long requires atom attribute q");
 
   cut_coulsq = cut_coul * cut_coul;
 
   // insure use of KSpace long-range solver, set g_ewald
 
   if (force->kspace == NULL)
-    error->all("Pair style is incompatible with KSpace style");
+    error->all(FLERR,"Pair style is incompatible with KSpace style");
   g_ewald = force->kspace->g_ewald;
 
   neighbor->request(this);

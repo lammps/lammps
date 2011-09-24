@@ -41,7 +41,7 @@ using namespace LAMMPS_NS;
 	inline void my_failure(Error* error, const char* file, int line) {
 		char str[1024];
 		sprintf(str,"Assertion failure: File %s, line %i", file, line);
-		error->one(str);
+		error->one(FLERR,str);
 	}
 #else
 	#define ASSERT(cond)
@@ -66,7 +66,7 @@ PairCDEAM::PairCDEAM(LAMMPS *lmp, int _cdeamVersion) : PairEAM(lmp), PairEAMAllo
 		comm_reverse = 2;
 	}
 	else {
-		error->all("Invalid CD-EAM potential version.");
+		error->all(FLERR,"Invalid CD-EAM potential version.");
 	}
 }
 
@@ -202,7 +202,7 @@ void PairCDEAM::compute(int eflag, int vflag)
 	//
 	//for(i = 0; i < nlocal + atom->nghost; i++) {
 	//	if(rho[i] == 0 && (type[i] == speciesA || type[i] == speciesB))
-	//		error->one("CD-EAM potential routine: Detected atom with zero electron density.");
+	//		error->one(FLERR,"CD-EAM potential routine: Detected atom with zero electron density.");
 	//}
 
 	// Stage II
@@ -421,7 +421,7 @@ void PairCDEAM::coeff(int narg, char **arg)
 
 	// Make sure the EAM file is a CD-EAM binary alloy.
 	if(setfl->nelements < 2)
-		error->all("The EAM file must contain at least 2 elements to be used with the eam/cd pair style.");
+		error->all(FLERR,"The EAM file must contain at least 2 elements to be used with the eam/cd pair style.");
 
 	// Read in the coefficients of the h polynomial from the end of the EAM file.
 	read_h_coeff(arg[2]);
@@ -434,19 +434,19 @@ void PairCDEAM::coeff(int narg, char **arg)
 	for(int i = 1; i <= atom->ntypes; i++) {
 		if(map[i] == 0) {
 			if(speciesA >= 0)
-				error->all("The first element from the EAM file may only be mapped to a single atom type.");
+				error->all(FLERR,"The first element from the EAM file may only be mapped to a single atom type.");
 			speciesA = i;
 		}
 		if(map[i] == 1) {
 			if(speciesB >= 0)
-				error->all("The second element from the EAM file may only be mapped to a single atom type.");
+				error->all(FLERR,"The second element from the EAM file may only be mapped to a single atom type.");
 			speciesB = i;
 		}
 	}
 	if(speciesA < 0)
-		error->all("The first element from the EAM file must be mapped to exactly one atom type.");
+		error->all(FLERR,"The first element from the EAM file must be mapped to exactly one atom type.");
 	if(speciesB < 0)
-		error->all("The second element from the EAM file must be mapped to exactly one atom type.");
+		error->all(FLERR,"The second element from the EAM file must be mapped to exactly one atom type.");
 }
 
 /* ----------------------------------------------------------------------
@@ -463,7 +463,7 @@ void PairCDEAM::read_h_coeff(char *filename)
 		if (fp == NULL) {
 			char str[128];
 			sprintf(str,"Cannot open EAM potential file %s", filename);
-			error->one(str);
+			error->one(FLERR,str);
 		}
 
 		// h coefficients are stored at the end of the file.
@@ -480,7 +480,7 @@ void PairCDEAM::read_h_coeff(char *filename)
 			hcoeff[i++] = atof(ptr);
 		}
 		if(i != nhcoeff || nhcoeff < 1)
-			error->one("Failed to read h(x) function coefficients from EAM file.");
+			error->one(FLERR,"Failed to read h(x) function coefficients from EAM file.");
 
 		// Close the potential file.
 		fclose(fp);

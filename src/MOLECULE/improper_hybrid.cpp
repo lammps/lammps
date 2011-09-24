@@ -168,11 +168,11 @@ void ImproperHybrid::settings(int narg, char **arg)
   for (int m = 0; m < nstyles; m++) {
     for (int i = 0; i < m; i++)
       if (strcmp(arg[m],arg[i]) == 0) 
-	error->all("Improper style hybrid cannot use same improper style twice");
+	error->all(FLERR,"Improper style hybrid cannot use same improper style twice");
     if (strcmp(arg[m],"hybrid") == 0) 
-      error->all("Improper style hybrid cannot have hybrid as an argument");
+      error->all(FLERR,"Improper style hybrid cannot have hybrid as an argument");
     if (strcmp(arg[m],"none") == 0) 
-      error->all("Improper style hybrid cannot have none as an argument");
+      error->all(FLERR,"Improper style hybrid cannot have none as an argument");
     styles[m] = force->new_improper(arg[m]);
     keywords[m] = new char[strlen(arg[m])+1];
     strcpy(keywords[m],arg[m]);
@@ -200,7 +200,7 @@ void ImproperHybrid::coeff(int narg, char **arg)
   int none = 0;
   if (m == nstyles) {
     if (strcmp(arg[1],"none") == 0) none = 1;
-    else error->all("Improper coeff for hybrid has invalid style");
+    else error->all(FLERR,"Improper coeff for hybrid has invalid style");
   }
 
   // move 1st arg to 2nd arg

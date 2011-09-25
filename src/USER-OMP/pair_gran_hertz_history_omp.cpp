@@ -40,8 +40,7 @@ void PairGranHertzHistoryOMP::compute(int eflag, int vflag)
     ev_setup_thr(this);
   } else evflag = vflag_fdotr = 0;
 
-  int shearupdate = 0;
-  if (update->ntimestep > laststep) shearupdate = 1;
+  const int shearupdate = (update->ntimestep > laststep) ? 1 : 0;
 
   const int nall = atom->nlocal + atom->nghost;
   const int nthreads = comm->nthreads;
@@ -58,9 +57,11 @@ void PairGranHertzHistoryOMP::compute(int eflag, int vflag)
     torque = atom->torque + tid*nall;
 
     if (evflag)
-      eval<1>(f, torque, ifrom, ito, tid);
+      if (shearupdate) eval<1,1>(f, torque, ifrom, ito, tid);
+      else eval<1,0>(f, torque, ifrom, ito, tid);
     else 
-      eval<0>(f, torque, ifrom, ito, tid);
+      if (shearupdate) eval<0,1>(f, torque, ifrom, ito, tid);
+      else eval<0,0>(f, torque, ifrom, ito, tid);
 
     // reduce per thread forces and torque into global arrays.
     data_reduce_thr(&(atom->f[0][0]), nall, nthreads, 3, tid);
@@ -73,7 +74,7 @@ void PairGranHertzHistoryOMP::compute(int eflag, int vflag)
   laststep = update->ntimestep;
 }
 
-template <int EVFLAG>
+template <int EVFLAG, int SHEARUPDATE>
 void PairGranHertzHistoryOMP::eval(double **f, double **torque, int iifrom, int iito, int tid)
 {
   int i,j,ii,jj,jnum,itype,jtype;
@@ -205,7 +206,7 @@ void PairGranHertzHistoryOMP::eval(double **f, double **torque, int iifrom, int 
 	touch[jj] = 1;
 	shear = &allshear[3*jj];
 
-	if (shearupdate) {
+	if (SHEARUPDATE) {
 	  shear[0] += vtr1*dt;
 	  shear[1] += vtr2*dt;
 	  shear[2] += vtr3*dt;
@@ -217,7 +218,7 @@ void PairGranHertzHistoryOMP::eval(double **f, double **torque, int iifrom, int 
 
 	rsht = shear[0]*delx + shear[1]*dely + shear[2]*delz;
 	rsht *= rsqinv;
-	if (shearupdate) {
+	if (SHEARUPDATE) {
 	  shear[0] -= rsht*delx;
 	  shear[1] -= rsht*dely;
 	  shear[2] -= rsht*delz;

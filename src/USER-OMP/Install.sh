@@ -8,7 +8,7 @@ for file in *_omp.cpp *_omp.h; do
   if (test $1 = 1) then
 
     if (test $file = "thr_omp.h") || (test $file = "thr_omp.cpp") then
-      :  # do install those files.
+      :  # always install those files.
     elif (test ! -e ../$ofile) then
       continue
     fi

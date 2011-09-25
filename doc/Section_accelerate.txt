@@ -155,14 +155,17 @@ different.  Two different variants, one for MPICH and OpenMPI, respectively
 are shown above.  Please check the documentation of your MPI installation
 for additional details.  Alternatively, the value provided by OMP_NUM_THREADS
 can be overridded with the "package omp"_package.html command.
-You should see a reduction in the "Pair time" printed out at the end
-of the run.
+Depending on which styles are accelerated in your input, you should
+see a reduction in the "Pair time" and/or "Bond time" and "Loop time"
+printed out at the end of the run. The optimal ratio of MPI to OpenMP
+can vary a lot and should always be confirmed through some benchmark
+runs for the current system and on the current machine.
 
 [Restrictions:]
 
 None of the pair styles in the USER-OMP package support the "inner",
 "middle", "outer" options for r-RESPA integration, only the "pair"
-options is supported.
+option is supported.
 
 [Parallel efficiency and performance tips:]
 
@@ -184,7 +187,7 @@ degradation, so that running with 4 or even only 2 MPI tasks per
 nodes is faster. Running in hybrid MPI+OpenMP mode will reduce the
 inter-node communication bandwidth contention in the same way,
 but offers and additional speedup from utilizing the otherwise
-idle CPU cores :ulb,l
+idle CPU cores. :ulb,l
 
 The interconnect used for MPI communication is not able to provide
 sufficient bandwidth for a large number of MPI tasks per node.

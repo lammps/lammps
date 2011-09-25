@@ -10,7 +10,7 @@ OPENMP= -fopenmp -DLMP_OPENMP
 
 CC =		mpic++ $(OPENMP)
 CCFLAGS =	-O2 -fomit-frame-pointer -fno-rtti -fno-exceptions \
-			-march=native -ffast-math -mpc64 -g \
+			-march=native -ffast-math -mpc64 -g -finline-functions \
 			-funroll-loops -fstrict-aliasing -Wall -W -Wno-uninitialized
 DEPFLAGS =	-M
 LINK =		mpic++ $(OPENMP)

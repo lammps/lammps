@@ -29,9 +29,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 #define TOLERANCE 0.05
 #define SMALL     0.001
 #define SMALLER   0.00001

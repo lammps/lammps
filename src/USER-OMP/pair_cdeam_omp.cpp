@@ -24,12 +24,7 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 
-
 using namespace LAMMPS_NS;
-
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 
 // This is for debugging purposes. The ASSERT() macro is used in the code to check
 // if everything runs as expected. Change this to #if 0 if you don't need the checking.

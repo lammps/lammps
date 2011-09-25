@@ -30,8 +30,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 FixQEQCombOMP::FixQEQCombOMP(LAMMPS *lmp, int narg, char **arg) 

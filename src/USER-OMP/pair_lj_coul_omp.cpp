@@ -23,9 +23,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 #define EWALD_F   1.12837917
 #define EWALD_P   0.3275911
 #define A1        0.254829592

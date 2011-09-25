@@ -970,18 +970,18 @@ partition screen files file.N.
 -suffix style :pre
 
 Use variants of various styles if they exist.  The specified style can
-be {opt} or {gpu} or {cuda}.  These refer to optional packages that
+be {opt}, {omp}, {gpu}, or {cuda}.  These refer to optional packages that
 LAMMPS can be built with, as described above in "Section
 2.3"_#start_3.  The "opt" style corrsponds to the OPT package, the
-"gpu" style to the GPU package, and the "cuda" style to the USER-CUDA
-package.
+"omp" style to the USER-OMP package, the "gpu" style to the GPU 
+package, and the "cuda" style to the USER-CUDA package.
 
 As an example, all of the packages provide a "pair_style
-lj/cut"_pair_lj.html variant, with style names lj/cut/opt or
-lj/cut/gpu or lj/cut/cuda.  A variant styles can be specified
+lj/cut"_pair_lj.html variant, with style names lj/cut/opt, lj/cut/omp,
+lj/cut/gpu, or lj/cut/cuda.  A variant styles can be specified
 explicitly in your input script, e.g. pair_style lj/cut/gpu.  If the
 -suffix switch is used, you do not need to modify your input script.
-The specified suffix (opt,gpu,cuda) is automatically appended whenever
+The specified suffix (opt,omp,gpu,cuda) is automatically appended whenever
 your input script command creates a new "atom"_atom_style.html,
 "pair"_pair_style.html, "fix"_fix.html, "compute"_compute.html, or
 "run"_run_style.html style.  atom, pair, fix, compute, or integrate

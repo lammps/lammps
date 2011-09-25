@@ -221,7 +221,11 @@ void FixWallGran::init()
     pairstyle = HOOKE;
   else if (force->pair_match("gran/hooke/history",1))
     pairstyle = HOOKE_HISTORY;
+  else if (force->pair_match("gran/hooke/history/omp",1))
+    pairstyle = HOOKE_HISTORY;
   else if (force->pair_match("gran/hertz/history",1))
+    pairstyle = HERTZ_HISTORY;
+  else if (force->pair_match("gran/hertz/history/omp",1))
     pairstyle = HERTZ_HISTORY;
   else error->all(FLERR,"Fix wall/gran is incompatible with Pair style");
 }

@@ -13,28 +13,24 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(nve/sphere,FixNVESphere)
+FixStyle(nve/sphere/omp,FixNVESphereOMP)
 
 #else
 
-#ifndef LMP_FIX_NVE_SPHERE_H
-#define LMP_FIX_NVE_SPHERE_H
+#ifndef LMP_FIX_NVE_SPHERE_OMP_H
+#define LMP_FIX_NVE_SPHERE_OMP_H
 
-#include "fix_nve.h"
+#include "fix_nve_sphere.h"
 
 namespace LAMMPS_NS {
 
-class FixNVESphere : public FixNVE {
+class FixNVESphereOMP : public FixNVESphere {
  public:
-  FixNVESphere(class LAMMPS *, int, char **);
-  virtual ~FixNVESphere() {}
-  int setmask();
-  void init();
+  FixNVESphereOMP(class LAMMPS *lmp, int narg, char **arg) :
+    FixNVESphere(lmp, narg, arg) {};
+
   virtual void initial_integrate(int);
   virtual void final_integrate();
-
- protected:
-  int extra;
 };
 
 }

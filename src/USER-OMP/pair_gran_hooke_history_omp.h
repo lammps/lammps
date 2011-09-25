@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -11,24 +11,35 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Axel Kohlmeyer (Temple U)
+------------------------------------------------------------------------- */
+
 #ifdef PAIR_CLASS
 
-PairStyle(gran/hertz/history,PairGranHertzHistory)
+PairStyle(gran/hooke/history/omp,PairGranHookeHistoryOMP)
 
 #else
 
-#ifndef LMP_PAIR_GRAN_HERTZ_HISTORY_H
-#define LMP_PAIR_GRAN_HERTZ_HISTORY_H
+#ifndef LMP_PAIR_GRAN_HOOKE_HISTORY_OMP_H
+#define LMP_PAIR_GRAN_HOOKE_HISTORY_OMP_H
 
 #include "pair_gran_hooke_history.h"
+#include "thr_omp.h"
 
 namespace LAMMPS_NS {
 
-class PairGranHertzHistory : public PairGranHookeHistory {
+class PairGranHookeHistoryOMP : public PairGranHookeHistory, public ThrOMP {
+
  public:
-  PairGranHertzHistory(class LAMMPS *);
+  PairGranHookeHistoryOMP(class LAMMPS *);
+
   virtual void compute(int, int);
-  void settings(int, char **);
+  virtual double memory_usage();
+
+ private:
+  template <int EVFLAG>
+  void eval(double **f, double **torque, int ifrom, int ito, int tid);
 };
 
 }

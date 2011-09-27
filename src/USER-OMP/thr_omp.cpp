@@ -762,26 +762,21 @@ double **ThrOMP::loop_setup_thr(double **f, int &ifrom, int &ito, int &tid,
 				int inum, int nall, int nthreads)
 {
 #if defined(_OPENMP)
-  if (nthreads > 1) {
-    tid = omp_get_thread_num();
+  tid = omp_get_thread_num();
 
-    // each thread works on a fixed chunk of atoms.
-    const int idelta = 1 + inum/nthreads;
-    ifrom = tid*idelta;
-    ito   = ifrom + idelta;
-    if (ito > inum)
-      ito = inum;
-
-    return f + nall*tid;
-
-  } else {
-#endif
-    tid = 0;
-    ifrom = 0;
+  // each thread works on a fixed chunk of atoms.
+  const int idelta = 1 + inum/nthreads;
+  ifrom = tid*idelta;
+  ito   = ifrom + idelta;
+  if (ito > inum)
     ito = inum;
-    return f;
-#if defined(_OPENMP)
-  }
+
+  return f + nall*tid;
+#else
+  tid = 0;
+  ifrom = 0;
+  ito = inum;
+  return f;
 #endif
 }
 

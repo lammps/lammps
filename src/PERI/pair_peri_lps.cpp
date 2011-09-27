@@ -371,11 +371,11 @@ void PairPeriLPS::coeff(int narg, char **arg)
   force->bounds(arg[0],atom->ntypes,ilo,ihi);
   force->bounds(arg[1],atom->ntypes,jlo,jhi);
 
-  double bulkmodulus_one = atof(arg[2]);	
-  double shearmodulus_one = atof(arg[3]);		
-  double cut_one = atof(arg[4]);			
-  double s00_one = atof(arg[5]);			
-  double alpha_one = atof(arg[6]);			
+  double bulkmodulus_one = atof(arg[2]);
+  double shearmodulus_one = atof(arg[3]);
+  double cut_one = atof(arg[4]);
+  double s00_one = atof(arg[5]);
+  double alpha_one = atof(arg[6]);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -401,10 +401,11 @@ double PairPeriLPS::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
-  bulkmodulus[j][i] = bulkmodulus[i][j];		
-  shearmodulus[j][i] = shearmodulus[i][j];		
-  s00[j][i] = s00[i][j];		
-  alpha[j][i] = alpha[i][j];		
+  bulkmodulus[j][i] = bulkmodulus[i][j];
+  shearmodulus[j][i] = shearmodulus[i][j];
+  s00[j][i] = s00[i][j];
+  alpha[j][i] = alpha[i][j];
+  cut[j][i] = cut[i][j];
 
   return cut[i][j];
 }

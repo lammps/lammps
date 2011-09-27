@@ -345,6 +345,7 @@ double PairPeriPMB::init_one(int i, int j)
   kspring[j][i] = kspring[i][j];
   alpha[j][i] = alpha[i][j];
   s00[j][i] = s00[i][j];
+  cut[j][i] = cut[i][j];
 
   return cut[i][j];
 }

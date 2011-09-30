@@ -105,7 +105,8 @@ NOTE: For graphics cards with compute capability>=1.3 (e.g. Tesla C1060),
       make sure that -arch=sm_13 is set on the CUDA_ARCH line.
 
 NOTE: For newer graphics card (a.k.a. "Fermi", e.g. Tesla C2050), make 
-      sure that -arch=sm_20 is set on the CUDA_ARCH line.
+      sure that either -arch=sm_20 or -arch=sm_21 is set on the 
+      CUDA_ARCH line, depending on hardware and CUDA toolkit version.
 
 NOTE: The gayberne/gpu pair style will only be installed if the ASPHERE
       package has been installed.
@@ -114,11 +115,10 @@ NOTE: The cg/cmm/gpu and cg/cmm/coul/long/gpu pair styles will only be
       installed if the USER-CG-CMM package has been installed.
 
 NOTE: The lj/cut/coul/long/gpu, cg/cmm/coul/long/gpu, coul/long/gpu,
-      and pppm/gpu styles will only be installed if the KSPACE package
-      has been installed.
+      lj/charmm/coul/long/gpu and pppm/gpu styles will only be installed
+      if the KSPACE package has been installed.
 
-NOTE: The lj/charmm/coul/long will only be installed if the MOLECULE package
-      has been installed.
+
 
                       EXAMPLE BUILD PROCESS
                     

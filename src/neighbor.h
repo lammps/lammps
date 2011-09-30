@@ -208,6 +208,8 @@ class Neighbor : protected Pointers {
   void half_bin_no_newton(class NeighList *);
   void half_bin_newton(class NeighList *);
   void half_bin_newton_tri(class NeighList *);
+  // for multi-threaded versions
+  void half_bin_newton_omp(class NeighList *);
 
   void half_multi_no_newton(class NeighList *);
   void half_multi_newton(class NeighList *);

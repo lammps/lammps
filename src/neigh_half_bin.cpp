@@ -17,7 +17,9 @@
 #include "comm.h"
 #include "error.h"
 
+#if defined(_OPENMP)
 #include <omp.h>
+#endif
 
 using namespace LAMMPS_NS;
 

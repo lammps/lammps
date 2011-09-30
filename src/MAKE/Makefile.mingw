@@ -101,4 +101,4 @@ mpi.o:  ../STUBS/mpi.c ../STUBS/mpi.h
 	$(CC) $(CCFLAGS) $(EXTRA_INC) -c $<
 
 DEPENDS = $(OBJ:.o=.d)
---include $(DEPENDS)
+sinclude $(DEPENDS)

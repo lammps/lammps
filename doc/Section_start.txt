@@ -243,14 +243,15 @@ Failing this, with these 3 variables you can specify where the mpi.h
 file (MPI_INC) and the MPI library file (MPI_PATH) are found and the
 name of the library file (MPI_LIB).
 
-If you are installing MPI yourself, we recommend Argonne's MPICH 1.2
-or 2.0 or OpenMPI.  MPICH can be downloaded from the "Argonne MPI
-site"_http://www-unix.mcs.anl.gov/mpi.  OpenMPI can be downloaded the
-"OpenMPI site"_http://www.open-mpi.org.  LAM MPI should also work.  If
-you are running on a big parallel platform, your system people or the
-vendor should have already installed a version of MPI, which will be
-faster than MPICH or OpenMPI or LAM, so find out how to build and link
-with it.  If you use MPICH or OpenMPI or LAM, you will have to
+If you are installing MPI yourself, we recommend Argonne's MPICH2
+or OpenMPI.  MPICH can be downloaded from the "Argonne MPI
+site"_http://www.mcs.anl.gov/research/projects/mpich2/.  OpenMPI can
+be downloaded from the "OpenMPI site"_http://www.open-mpi.org.
+Other MPI packages should also work. If you are running on a big
+parallel platform, your system people or the vendor should have
+already installed a version of MPI, which is likely to be faster
+than a self-installed MPICH or OpenMPI, so find out how to build
+and link with it.  If you use MPICH or OpenMPI, you will have to
 configure and build it for your platform.  The MPI configure script
 should have compiler options to enable you to use the same compiler
 you are using for the LAMMPS build, which can avoid problems that can

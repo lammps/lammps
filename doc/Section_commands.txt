@@ -728,6 +728,8 @@ package"_Section_accelerate.html.
 "lj/cut/coul/debye/cuda"_pair_lj.html,
 "lj/cut/coul/long/cuda"_pair_lj.html,
 "lj/cut/coul/long/gpu"_pair_lj.html,
+"lj/cut/coul/long/opt"_pair_lj.html,
+"lj/cut/coul/long/tip4p/opt"_pair_lj.html,
 "lj/cut/cuda"_pair_lj.html,
 "lj/cut/experimental/cuda"_pair_lj.html,
 "lj/cut/gpu"_pair_lj.html,

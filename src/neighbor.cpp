@@ -1693,6 +1693,34 @@ int Neighbor::coord2bin(double *x, int &ix, int &iy, int &iz)
 }
 
 /* ----------------------------------------------------------------------
+   test if atom pair i,j is excluded from neighbor list
+   due to type, group, molecule settings from neigh_modify command
+   return 1 if should be excluded, 0 if included
+------------------------------------------------------------------------- */
+
+int Neighbor::exclusion(int i, int j, int itype, int jtype,
+			int *mask, int *molecule) const {
+  int m;
+
+  if (nex_type && ex_type[itype][jtype]) return 1;
+
+  if (nex_group) {
+    for (m = 0; m < nex_group; m++) {
+      if (mask[i] & ex1_bit[m] && mask[j] & ex2_bit[m]) return 1;
+      if (mask[i] & ex2_bit[m] && mask[j] & ex1_bit[m]) return 1;
+    }
+  }
+
+  if (nex_mol) {
+    for (m = 0; m < nex_mol; m++)
+      if (mask[i] & ex_mol_bit[m] && mask[j] & ex_mol_bit[m] &&
+	  molecule[i] == molecule[j]) return 1;
+  }
+
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 

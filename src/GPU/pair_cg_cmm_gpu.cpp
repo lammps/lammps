@@ -126,7 +126,7 @@ void PairCGCMMGPU::init_style()
   cut_respa = NULL;
 
   if (force->newton_pair) 
-    error->all(FLERR,"Cannot use newton pair with GPU CGCMM pair style");
+    error->all(FLERR,"Cannot use newton pair with cg/cmm/gpu pair style");
 
   // Repeat cutsq calculation because done after call to init_style
   double maxcut = -1.0;

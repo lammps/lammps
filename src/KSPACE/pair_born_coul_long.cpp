@@ -122,9 +122,9 @@ void PairBornCoulLong::compute(int eflag, int vflag)
 
       if (rsq < cutsq[itype][jtype]) {
 	r2inv = 1.0/rsq;
+	r = sqrt(rsq);
 
 	if (rsq < cut_coulsq) {
-	  r = sqrt(rsq);
 	  grij = g_ewald * r;
 	  expm2 = exp(-grij*grij);
 	  t = 1.0 / (1.0 + EWALD_P*grij);
@@ -136,7 +136,6 @@ void PairBornCoulLong::compute(int eflag, int vflag)
 
 	if (rsq < cut_ljsq[itype][jtype]) {
 	  r6inv = r2inv*r2inv*r2inv;
-          r = sqrt(rsq);
 	  rexp = exp((sigma[itype][jtype]-r)*rhoinv[itype][jtype]);
 	  forceborn = born1[itype][jtype]*r*rexp - born2[itype][jtype]*r6inv
 	    + born3[itype][jtype]*r2inv*r6inv;

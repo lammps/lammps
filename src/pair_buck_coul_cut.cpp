@@ -110,14 +110,14 @@ void PairBuckCoulCut::compute(int eflag, int vflag)
 
       if (rsq < cutsq[itype][jtype]) {
 	r2inv = 1.0/rsq;
+        r = sqrt(rsq);
 
 	if (rsq < cut_coulsq[itype][jtype])
-	  forcecoul = qqrd2e * qtmp*q[j]*sqrt(r2inv);
+	  forcecoul = qqrd2e * qtmp*q[j]/r;
 	else forcecoul = 0.0;
 
 	if (rsq < cut_ljsq[itype][jtype]) {
 	  r6inv = r2inv*r2inv*r2inv;
-          r = sqrt(rsq);
 	  rexp = exp(-r*rhoinv[itype][jtype]);
 	  forcebuck = buck1[itype][jtype]*r*rexp - buck2[itype][jtype]*r6inv;
 	} else forcebuck = 0.0;
@@ -135,7 +135,7 @@ void PairBuckCoulCut::compute(int eflag, int vflag)
 
 	if (eflag) {
 	  if (rsq < cut_coulsq[itype][jtype])
-	    ecoul = factor_coul * qqrd2e * qtmp*q[j]*sqrt(r2inv);
+	    ecoul = factor_coul * qqrd2e * qtmp*q[j]/r;
 	  else ecoul = 0.0;
 	  if (rsq < cut_ljsq[itype][jtype]) {
 	    evdwl = a[itype][jtype]*rexp - c[itype][jtype]*r6inv -

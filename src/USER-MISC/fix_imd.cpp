@@ -1234,7 +1234,7 @@ void *imdsock_accept(void * v) {
 #elif defined(SOCKLEN_T)
   SOCKLEN_T len;
 #define _SOCKLEN_TYPE SOCKLEN_T
-#elif defined(_POSIX_SOURCE)
+#elif defined(_POSIX_SOURCE) || (defined(__APPLE__) && defined(__MACH__)) || defined(__linux)
   socklen_t len;
 #define _SOCKLEN_TYPE socklen_t
 #else

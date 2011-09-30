@@ -98,4 +98,4 @@ lib:	$(OBJ)
 # Individual dependencies
 
 DEPENDS = $(OBJ:.o=.d)
--include $(DEPENDS)
+--include $(DEPENDS)

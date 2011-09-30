@@ -833,10 +833,10 @@ void Neighbor::choose_build(int index, NeighRequest *rq)
     } else if (style == BIN) {
       if (rq->newton == 0) {
 	if (newton_pair == 0) pb = &Neighbor::half_bin_no_newton;
-	else if (triclinic == 0) pb = &Neighbor::half_bin_newton_omp;
+	else if (triclinic == 0) pb = &Neighbor::half_bin_newton;
 	else if (triclinic == 1) pb = &Neighbor::half_bin_newton_tri;
       } else if (rq->newton == 1) {
-	if (triclinic == 0) pb = &Neighbor::half_bin_newton_omp;
+	if (triclinic == 0) pb = &Neighbor::half_bin_newton;
 	else if (triclinic == 1) pb = &Neighbor::half_bin_newton_tri;
       } else if (rq->newton == 2) pb = &Neighbor::half_bin_no_newton;
     } else if (style == MULTI) {

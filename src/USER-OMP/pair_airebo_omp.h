@@ -45,6 +45,7 @@ class PairAIREBOOMP : public PairAIREBO, public ThrOMP {
 	       int evflag, int eflag, int vflag_atom, int tid);
   void TORSION_thr(double **f, int ifrom, int ito,
 		   int evflag, int eflag, int tid);
+  void REBO_neigh_thr();
 };
 
 }

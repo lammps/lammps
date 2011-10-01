@@ -247,8 +247,8 @@ void PairLJCutCoulLongTIP4POpt::eval()
 	  x2 = mpos[j];
 	  jH1 = h1idx[j];
 	  jH2 = h2idx[j];
-      if (jtype == typeO && ( jH1 < 0 || jH2 < 0))
-        error->one(FLERR,"TIP4P hydrogen is missing");
+	  if (jtype == typeO && ( jH1 < 0 || jH2 < 0))
+	    error->one(FLERR,"TIP4P hydrogen is missing");
 	  delx = x1[0] - x2[0];
 	  dely = x1[1] - x2[1];
 	  delz = x1[2] - x2[2];

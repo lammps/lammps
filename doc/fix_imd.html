@@ -50,10 +50,11 @@ visualization program</A>, so that it can monitor the progress of the
 simulation and interactively apply forces to selected atoms.
 </P>
 <P>If LAMMPS is compiled with the preprocessor flag -DLAMMPS_ASYNC_IMD
-then fix imd will use posix threads to spawn a thread on MPI rank 0 in
-order to offload data reading and writing from the main execution
-thread and potentiall lower the inferred latencies for slow
-communication links.  This feature has only been tested under linux.
+then fix imd will use POSIX threads to spawn a IMD communication
+thread on MPI rank 0 in order to offload data reading and writing
+from the main execution thread and potentially lower the inferred
+latencies for slow communication links. This feature has only been
+tested under linux.
 </P>
 <P>There are example scripts for using this package with LAMMPS in
 examples/USER/imd. Additional examples and a driver for use with the
@@ -154,13 +155,6 @@ This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>
 <P>This fix is part of the USER-MISC package.  It is only enabled if
 LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
 LAMMPS</A> section for more info.
-</P>
-<P>On platforms that support multi-threading, this fix can be compiled in
-a way that the coordinate transfers to the IMD client can be handled
-from a separate thread, when LAMMPS is compiled with the
--DLAMMPS_ASYNC_IMD preprocessor flag. This should to keep MD loop
-times low and transfer rates high, especially for systems with many
-atoms and for slow connections.
 </P>
 <P>When used in combination with VMD, a topology or coordinate file has
 to be loaded, which matches (in number and ordering of atoms) the

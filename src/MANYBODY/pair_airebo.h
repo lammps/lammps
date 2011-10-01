@@ -156,7 +156,7 @@ class PairAIREBO : public Pair {
     return (a == b) ? 1.0 : 0.0;
   };
 
-  void add_pages(int);
+  void add_pages(int, int howmany=1);
   void read_file(char *);
 
   double Sp5th(double, double *, double *);

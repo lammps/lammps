@@ -149,15 +149,10 @@ template <int EVFLAG, int EFLAG, int NEWTON_PAIR, int CDEAMVERSION>
 void PairCDEAMOMP::eval(double **f, double *rho_t, double *rhoB_t, 
 		      double *D_values_t, int iifrom, int iito, int tid)
 {
-  int i,j,ii,jj,m,jnum,itype,jtype;
+  int i,j,ii,jj,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double rsq,r,p,rhoip,rhojp,z2,z2p,recip,phip,psip,phi;
-  double u2,u2p,w2,w2p,nu;
-  double *coeff;
+  double rsq,rhoip,rhojp,recip,phi;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  double delmux,delmuy,delmuz,trdelmu,tradellam;
-  double adpx,adpy,adpz,fx,fy,fz;
-  double sumlamxx,sumlamyy,sumlamzz,sumlamyz,sumlamxz,sumlamxy;
 
   evdwl = 0.0;
 

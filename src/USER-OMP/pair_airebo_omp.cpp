@@ -2682,7 +2682,7 @@ void PairAIREBOOMP::REBO_neigh_thr()
 #pragma omp parallel default(shared)
 #endif
   {
-    int i,j,ii,jj,n,allnum,jnum,itype,jtype;
+    int i,j,ii,jj,n,jnum,itype,jtype;
     double xtmp,ytmp,ztmp,delx,dely,delz,rsq,dS;
     int *ilist,*jlist,*numneigh,**firstneigh;
     int *neighptr;
@@ -2690,7 +2690,7 @@ void PairAIREBOOMP::REBO_neigh_thr()
     double **x = atom->x;
     int *type = atom->type;
 
-    allnum = list->inum + list->gnum;
+    const int allnum = list->inum + list->gnum;
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;

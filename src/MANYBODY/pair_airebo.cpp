@@ -322,7 +322,7 @@ void PairAIREBO::REBO_neigh()
   // store all REBO neighs of owned and ghost atoms
   // scan full neighbor list of I
 
-  npage = 0;
+  int npage = 0;
   int npnt = 0;
 
   for (ii = 0; ii < allnum; ii++) {
@@ -331,7 +331,7 @@ void PairAIREBO::REBO_neigh()
     if (pgsize - npnt < oneatom) {
       npnt = 0;
       npage++;
-      if (npage == maxpage) add_pages(npage);
+      if (npage == maxpage) add_pages();
     }
     neighptr = &pages[npage][npnt];
     n = 0;
@@ -3286,8 +3286,9 @@ double PairAIREBO::TijSpline(double Nij, double Nji,
    add pages to REBO neighbor list, starting at npage
 ------------------------------------------------------------------------- */
 
-void PairAIREBO::add_pages(int npage, int howmany)
+void PairAIREBO::add_pages(int howmany)
 {
+  int npage = maxpage;
   maxpage += howmany;
   pages = (int **) 
     memory->srealloc(pages,maxpage*sizeof(int *),"AIREBO:pages");

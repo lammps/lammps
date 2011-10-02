@@ -45,7 +45,6 @@ class PairAIREBO : public Pair {
   int maxpage;                     // # of pages currently allocated
   int pgsize;                      // size of neighbor page
   int oneatom;                     // max # of neighbors for one atom
-  int npage;                       // current page in page list
 
   double cutlj;                    // user-specified LJ cutoff
   double cutljrebosq;              // cut for when to compute
@@ -156,7 +155,7 @@ class PairAIREBO : public Pair {
     return (a == b) ? 1.0 : 0.0;
   };
 
-  void add_pages(int, int howmany=1);
+  void add_pages(int howmany=1);
   void read_file(char *);
 
   double Sp5th(double, double *, double *);

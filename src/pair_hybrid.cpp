@@ -39,7 +39,6 @@ PairHybrid::PairHybrid(LAMMPS *lmp) : Pair(lmp)
 
 PairHybrid::~PairHybrid()
 {
-  if (suffix) delete[] suffix;
   if (nstyles) {
     for (int m = 0; m < nstyles; m++) delete styles[m];
     delete [] styles;
@@ -584,7 +583,7 @@ void PairHybrid::read_restart(FILE *fp)
     keywords[m] = new char[n];
     if (me == 0) fread(keywords[m],sizeof(char),n,fp);
     MPI_Bcast(keywords[m],n,MPI_CHAR,0,world);
-    styles[m] = force->new_pair(keywords[m],NULL,dummy);
+    styles[m] = force->new_pair(keywords[m],suffix,dummy);
     styles[m]->read_restart_settings(fp);
   }
 }

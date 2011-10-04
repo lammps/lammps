@@ -43,6 +43,7 @@ ThrOMP::ThrOMP(LAMMPS *ptr, int style) : thr_style(style), lmp(ptr)
   // initialize fixed size per thread storage
   eng_vdwl_thr = eng_coul_thr = eng_bond_thr = NULL;
   virial_thr = NULL;
+
   lmp->memory->create(eng_vdwl_thr,lmp->comm->nthreads,"thr_omp:eng_vdwl_thr");
   lmp->memory->create(eng_coul_thr,lmp->comm->nthreads,"thr_omp:eng_coul_thr");
   lmp->memory->create(eng_bond_thr,lmp->comm->nthreads,"thr_omp:eng_bond_thr");
@@ -51,6 +52,7 @@ ThrOMP::ThrOMP(LAMMPS *ptr, int style) : thr_style(style), lmp(ptr)
   // variable size per thread, per atom storage
   // the actually allocation happens via memory->grow() in ev_steup_thr()
   maxeatom_thr = maxvatom_thr = 0;
+  evflag_global = evflag_atom = 0;
   eatom_thr = NULL;
   vatom_thr = NULL;
 }
@@ -69,10 +71,13 @@ ThrOMP::~ThrOMP()
 
 /* ---------------------------------------------------------------------- */
 
-void ThrOMP::ev_zero_acc_thr(int ntotal, int eflag_global, int vflag_global,
+void ThrOMP::ev_setup_acc_thr(int ntotal, int eflag_global, int vflag_global,
 			     int eflag_atom, int vflag_atom, int nthreads)
 {
   int t,i;
+
+  evflag_global = (eflag_global || vflag_global);
+  evflag_atom = (eflag_atom || vflag_atom);
   
   for (t = 0; t < nthreads; ++t) {
 
@@ -118,9 +123,9 @@ void ThrOMP::ev_setup_thr(Dihedral *dihed)
   int ntotal = (lmp->force->newton_bond) ? 
     (lmp->atom->nlocal + lmp->atom->nghost) : lmp->atom->nlocal;
 
-  // zero per thread accumulators
-  ev_zero_acc_thr(ntotal, dihed->eflag_global, dihed->vflag_global,
-		  dihed->eflag_atom, dihed->vflag_atom, nthreads);
+  // set up per thread accumulators
+  ev_setup_acc_thr(ntotal, dihed->eflag_global, dihed->vflag_global,
+		   dihed->eflag_atom, dihed->vflag_atom, nthreads);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -142,9 +147,9 @@ void ThrOMP::ev_setup_thr(Pair *pair)
   int ntotal = (lmp->force->newton) ?
     (lmp->atom->nlocal + lmp->atom->nghost) : lmp->atom->nlocal;
 
-  // zero per thread accumulators
-  ev_zero_acc_thr(ntotal, pair->eflag_global, pair->vflag_global,
-		  pair->eflag_atom, pair->vflag_atom, nthreads);
+  // set up per thread accumulators
+  ev_setup_acc_thr(ntotal, pair->eflag_global, pair->vflag_global,
+		   pair->eflag_atom, pair->vflag_atom, nthreads);
 }
 
 /* ----------------------------------------------------------------------

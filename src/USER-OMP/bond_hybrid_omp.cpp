@@ -12,13 +12,13 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "pair_hybrid_omp.h"
+#include "bond_hybrid_omp.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairHybridOMP::PairHybridOMP(LAMMPS *lmp) : PairHybrid(lmp)
+BondHybridOMP::BondHybridOMP(LAMMPS *lmp) : BondHybrid(lmp)
 {
   suffix = "omp";
 }

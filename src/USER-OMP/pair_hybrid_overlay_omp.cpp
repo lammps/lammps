@@ -13,7 +13,6 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_hybrid_overlay_omp.h"
-#include "string.h"
 
 using namespace LAMMPS_NS;
 
@@ -21,7 +20,6 @@ using namespace LAMMPS_NS;
 
 PairHybridOverlayOMP::PairHybridOverlayOMP(LAMMPS *lmp) : PairHybridOverlay(lmp)
 {
-  suffix = new char[4];
-  memcpy(suffix,"omp",4);
+  suffix = "omp";
 }
 

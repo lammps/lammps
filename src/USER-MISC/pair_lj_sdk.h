@@ -11,6 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#if 0
+
 #ifdef PAIR_CLASS
 
 PairStyle(lj/sdk,PairLJSDK)
@@ -46,4 +48,7 @@ namespace LAMMPS_NS {
 }
 
 #endif
+#endif
+
+
 #endif

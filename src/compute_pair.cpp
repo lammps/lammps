@@ -37,6 +37,7 @@ ComputePair::ComputePair(LAMMPS *lmp, int narg, char **arg) :
   timeflag = 1;
 
   int n = strlen(arg[3]) + 1;
+  if (lmp->suffix) n += strlen(lmp->suffix) + 1;
   pstyle = new char[n];
   strcpy(pstyle,arg[3]);
 
@@ -47,6 +48,12 @@ ComputePair::ComputePair(LAMMPS *lmp, int narg, char **arg) :
   } else evalue = EPAIR;
 
   pair = force->pair_match(pstyle,1);
+  // check if /suffix style exists
+  if (!pair && lmp->suffix) {
+    strcat(pstyle,"/");
+    strcat(pstyle,lmp->suffix);
+    pair = force->pair_match(pstyle,1);
+  }
   if (!pair) error->all(FLERR,"Unrecognized pair style in compute pair command");
   npair = pair->nextra;
 

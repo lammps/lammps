@@ -76,7 +76,7 @@ void PairHbondDreidingLJ::compute(int eflag, int vflag)
 {
   int i,j,k,m,ii,jj,kk,inum,jnum,knum,itype,jtype,ktype;
   double delx,dely,delz,rsq,rsq1,rsq2,r1,r2;
-  double factor_hb,force_angle,force_kernel,evdwl,eng_lj;
+  double factor_hb,force_angle,force_kernel,evdwl,evdwl_total,eng_lj;
   double c,s,a,b,ac,a11,a12,a22,vx1,vx2,vy1,vy2,vz1,vz2;
   double fi[3],fj[3],delr1[3],delr2[3];
   double r2inv,r10inv;
@@ -84,7 +84,7 @@ void PairHbondDreidingLJ::compute(int eflag, int vflag)
   int *ilist,*jlist,*klist,*numneigh,**firstneigh;
   Param *pm;
 
-  evdwl = 0.0;
+  evdwl_total = evdwl = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
   
@@ -223,9 +223,13 @@ void PairHbondDreidingLJ::compute(int eflag, int vflag)
 
 	    // KIJ instead of IJK b/c delr1/delr2 are both with respect to k
 
-	    if (evflag) ev_tally3(k,i,j,evdwl,0.0,fi,fj,delr1,delr2);
-
-	    hbcount++;
+	    if (evflag) {
+	      ev_tally3(k,i,j,evdwl,0.0,fi,fj,delr1,delr2);
+	      if (eflag_global) {
+		hbcount++;
+		evdwl_total += evdwl;
+	      }
+	    }
 	  }
         }
       }
@@ -234,7 +238,7 @@ void PairHbondDreidingLJ::compute(int eflag, int vflag)
   
   if (eflag_global) {
     pvector[0] = hbcount;
-    pvector[1] = evdwl;
+    pvector[1] = evdwl_total;
   }
 }
 

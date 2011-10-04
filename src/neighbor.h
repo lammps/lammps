@@ -164,7 +164,7 @@ class Neighbor : protected Pointers {
   int coord2bin(double *);              // mapping atom coord to a bin
   int coord2bin(double *, int &, int &, int&); // ditto
 
-  int exclusion(int, int, int, int, int *, int *);  // test for pair exclusion
+  int exclusion(int, int, int, int, int *, int *) const;  // test for pair exclusion
   virtual void choose_build(int, class NeighRequest *);
   void choose_stencil(int, class NeighRequest *);
 
@@ -288,6 +288,39 @@ class Neighbor : protected Pointers {
     return 0;
   };
 };
+
+// these macros hide some ugly and redundant OpenMP related stuff
+#if defined(_OPENMP)
+
+// make sure we have at least one page for each thread
+#define NEIGH_OMP_INIT					\
+  if (nthreads > list->maxpage)				\
+    list->add_pages(nthreads - list->maxpage)
+
+// get thread id and then assign each thread a fixed chunk of atoms
+#define NEIGH_OMP_SETUP(num)				\
+  {							\
+    const int tid = omp_get_thread_num();		\
+    const int idelta = 1 + num/nthreads;		\
+    const int ifrom = tid*idelta;			\
+    int ito   = ifrom + idelta;				\
+    if (ito > num)					\
+      ito = num
+
+#define NEIGH_OMP_CLOSE }
+
+#else /* !defined(_OPENMP) */
+
+#define NEIGH_OMP_INIT
+
+#define NEIGH_OMP_SETUP(num)				\
+    const int tid = 0;					\
+    const int ifrom = 0;				\
+    const int ito = num
+
+#define NEIGH_OMP_CLOSE
+
+#endif
 
 }
 

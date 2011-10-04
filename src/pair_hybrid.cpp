@@ -32,12 +32,14 @@ using namespace LAMMPS_NS;
 PairHybrid::PairHybrid(LAMMPS *lmp) : Pair(lmp)
 {
   nstyles = 0;
+  suffix = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
 
 PairHybrid::~PairHybrid()
 {
+  if (suffix) delete[] suffix;
   if (nstyles) {
     for (int m = 0; m < nstyles; m++) delete styles[m];
     delete [] styles;
@@ -238,7 +240,7 @@ void PairHybrid::settings(int narg, char **arg)
       error->all(FLERR,"Pair style hybrid cannot have hybrid as an argument");
     if (strcmp(arg[i],"none") == 0) 
       error->all(FLERR,"Pair style hybrid cannot have none as an argument");
-    styles[nstyles] = force->new_pair(arg[i],NULL,dummy);
+    styles[nstyles] = force->new_pair(arg[i],suffix,dummy);
     keywords[nstyles] = new char[strlen(arg[i])+1];
     strcpy(keywords[nstyles],arg[i]);
     istyle = i;

@@ -31,6 +31,48 @@
 
 using namespace LAMMPS_NS;
 
+static void print_timings(const char *label, Timer *t, enum Timer::ttype tt,
+			  MPI_Comm world, const int nprocs, const int me,
+			  double time_loop, FILE *screen, FILE *logfile)
+{
+  double tmp;
+  double time = t->get_wall(tt);
+
+#if defined(_OPENMP)
+  double time_cpu = t->get_cpu(tt);
+  if (time == 0.0)
+    time_cpu = 0.0;
+  else
+    time_cpu = time_cpu / time * 100.0;
+#endif
+
+  MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+  time = tmp/nprocs;
+
+#if defined(_OPENMP)
+  MPI_Allreduce(&time_cpu,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+  time_cpu = tmp/nprocs;
+
+  if (me == 0) {
+    if (screen)
+      fprintf(screen,"%5s time (%%) = %g (%g)  (%%CPU = %g)\n",
+	      label,time,time/time_loop*100.0,time_cpu);
+    if (logfile)
+      fprintf(logfile,"%5s  time (%%) = %g (%g)  (%%CPU = %g)\n",
+	      label,time,time/time_loop*100.0,time_cpu);
+  }
+#else
+  if (me == 0) {
+    if (screen)
+      fprintf(screen,"%5s time (%%) = %g (%g)\n",
+	      label,time,time/time_loop*100.0);
+    if (logfile)
+      fprintf(logfile,"%5s time (%%) = %g (%g)\n",
+	      label,time,time/time_loop*100.0);
+  }
+#endif
+}
+
 /* ---------------------------------------------------------------------- */
 
 Finish::Finish(LAMMPS *lmp) : Pointers(lmp) {}
@@ -43,7 +85,7 @@ void Finish::end(int flag)
   int histo[10];
   int loopflag,minflag,prdflag,tadflag,timeflag,fftflag,histoflag,neighflag;
   double time,tmp,ave,max,min;
-  double time_loop,time_other,time_cpu;
+  double time_loop,time_other;
 
   int me,nprocs;
   MPI_Comm_rank(world,&me);
@@ -318,136 +360,19 @@ void Finish::end(int flag)
       if (logfile) fprintf(logfile,"\n");
     }
 
-    time = timer->get_wall(Timer::PAIR);
-    MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
-    time = tmp/nprocs;
-#if defined(_OPENMP)
-    time_cpu = timer->get_cpu(Timer::PAIR);
-    MPI_Allreduce(&time_cpu,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
-    time_cpu = tmp/nprocs;
-    if (me == 0) {
-      if (screen) 
-	fprintf(screen,"Pair  time (%%) = %g (%g)  (%%CPU = %g)\n",
-		time,time/time_loop*100.0,time_cpu/time*100.0);
-      if (logfile) 
-	fprintf(logfile,"Pair  time (%%) = %g (%g)  (%%CPU = %g)\n",
-		time,time/time_loop*100.0,time_cpu/time*100.0);
-    }
-#else
-    if (me == 0) {
-      if (screen) 
-	fprintf(screen,"Pair  time (%%) = %g (%g)\n",
-		time,time/time_loop*100.0);
-      if (logfile) 
-	fprintf(logfile,"Pair  time (%%) = %g (%g)\n",
-		time,time/time_loop*100.0);
-    }
-#endif
+    print_timings("Pair ",timer,Timer::PAIR,world,nprocs,me,time_loop,screen,logfile);
 
-    if (atom->molecular) {
-      time = timer->get_wall(Timer::BOND);
-      MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
-      time = tmp/nprocs;
-#if defined(_OPENMP)
-      time_cpu = timer->get_cpu(Timer::BOND);
-      MPI_Allreduce(&time_cpu,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
-      time_cpu = tmp/nprocs;
-      if (me == 0) {
-	if (screen) 
-	  fprintf(screen,"Bond  time (%%) = %g (%g)  (%%CPU = %g)\n",
-		  time,time/time_loop*100.0,time_cpu/time*100.0);
-	if (logfile) 
-	  fprintf(logfile,"Bond  time (%%) = %g (%g)  (%%CPU = %g)\n",
-		  time,time/time_loop*100.0,time_cpu/time*100.0);
-      }
-#else
-      if (me == 0) {
-	if (screen) 
-	  fprintf(screen,"Bond  time (%%) = %g (%g)\n",
-		  time,time/time_loop*100.0);
-	if (logfile)
-	  fprintf(logfile,"Bond  time (%%) = %g (%g)\n",
-		  time,time/time_loop*100.0);
-      }
-#endif
-    }
+    if (atom->molecular)
+      print_timings("Bond ",timer,Timer::BOND,world,nprocs,me,time_loop,screen,logfile);
     
-    if (force->kspace) {
-      time = timer->get_wall(Timer::KSPACE);
-      MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
-      time = tmp/nprocs;
-      if (me == 0) {
-	if (screen) 
-	  fprintf(screen,"Kspce time (%%) = %g (%g)\n",
-		  time,time/time_loop*100.0);
-	if (logfile)
-	  fprintf(logfile,"Kspce time (%%) = %g (%g)\n",
-		  time,time/time_loop*100.0);
-      }
-    }
-    
-    time = timer->get_wall(Timer::NEIGHBOR);
-    MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
-    time = tmp/nprocs;
-    if (me == 0) {
-      if (screen) 
-	fprintf(screen,"Neigh time (%%) = %g (%g)\n",
-		time,time/time_loop*100.0);
-      if (logfile) 
-	fprintf(logfile,"Neigh time (%%) = %g (%g)\n",
-		time,time/time_loop*100.0);
-    }
-    
-    time = timer->get_wall(Timer::COMM);
-    MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
-    time = tmp/nprocs;
-    if (me == 0) {
-      if (screen) 
-	fprintf(screen,"Comm  time (%%) = %g (%g)\n",
-		time,time/time_loop*100.0);
-      if (logfile) 
-	fprintf(logfile,"Comm  time (%%) = %g (%g)\n",
-		time,time/time_loop*100.0);
-    }
-    
-    time = timer->get_wall(Timer::OUTPUT);
-    MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
-    time = tmp/nprocs;
-    if (me == 0) {
-      if (screen) 
-	fprintf(screen,"Outpt time (%%) = %g (%g)\n",
-		time,time/time_loop*100.0);
-      if (logfile) 
-	fprintf(logfile,"Outpt time (%%) = %g (%g)\n",
-		time,time/time_loop*100.0);
-    }
-    
-    time = timer->get_wall(Timer::MODIFY);
-    MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
-    time = tmp/nprocs;
-#if defined(_OPENMP)
-    time_cpu = timer->get_cpu(Timer::MODIFY);
-    MPI_Allreduce(&time_cpu,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
-    time_cpu = tmp/nprocs;
-    if (me == 0) {
-      if (screen) 
-	fprintf(screen,"Modfy time (%%) = %g (%g)  (%%CPU = %g)\n",
-		time,time/time_loop*100.0,time_cpu/time*100.0);
-      if (logfile) 
-	fprintf(logfile,"Modfy time (%%) = %g (%g)  (%%CPU = %g)\n",
-		time,time/time_loop*100.0,time_cpu/time*100.0);
-    }
-#else
-    if (me == 0) {
-      if (screen) 
-	fprintf(screen,"Modfy time (%%) = %g (%g)\n",
-		time,time/time_loop*100.0);
-      if (logfile) 
-	fprintf(logfile,"Modfy time (%%) = %g (%g)\n",
-		time,time/time_loop*100.0);
-    }
-#endif
-    
+    if (force->kspace)
+      print_timings("Kspce",timer,Timer::KSPACE,world,nprocs,me,time_loop,screen,logfile);
+
+    print_timings("Neigh",timer,Timer::NEIGHBOR,world,nprocs,me,time_loop,screen,logfile);
+    print_timings("Comm ",timer,Timer::COMM,    world,nprocs,me,time_loop,screen,logfile);
+    print_timings("Outpt",timer,Timer::OUTPUT,  world,nprocs,me,time_loop,screen,logfile);
+    print_timings("Modfy",timer,Timer::MODIFY,  world,nprocs,me,time_loop,screen,logfile);
+
     time = time_other;
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;

@@ -13,40 +13,23 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(gravity,FixGravity)
+FixStyle(SHEAR_HISTORY/omp,FixShearHistoryOMP)
 
 #else
 
-#ifndef LMP_FIX_GRAVITY_H
-#define LMP_FIX_GRAVITY_H
+#ifndef LMP_FIX_SHEAR_HISTORY_OMP_H
+#define LMP_FIX_SHEAR_HISTORY_OMP_H
 
-#include "fix.h"
+#include "fix_shear_history.h"
 
 namespace LAMMPS_NS {
 
-class FixGravity : public Fix {
-  friend class FixPour;
+class FixShearHistoryOMP : public FixShearHistory {
 
  public:
-  FixGravity(class LAMMPS *, int, char **);
-  int setmask();
-  void init();
-  void setup(int);
-  virtual void post_force(int);
-  virtual void post_force_respa(int, int, int);
-  double compute_scalar();
-
- protected:
-  int style;
-  double magnitude,dt;
-  double phi,theta,phigrad,thetagrad;
-  double xdir,ydir,zdir;
-  double xgrav,ygrav,zgrav,xacc,yacc,zacc;
-  double degree2rad;
-  int nlevels_respa;
-  int time_origin;
-  int eflag;
-  double egrav,egrav_all;
+  FixShearHistoryOMP(class LAMMPS *lmp, int narg, char **argv)
+    : FixShearHistory(lmp,narg,argv) {};
+  virtual void pre_exchange();
 };
 
 }

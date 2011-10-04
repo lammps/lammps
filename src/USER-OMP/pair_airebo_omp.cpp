@@ -16,9 +16,15 @@
 #include "pair_airebo_omp.h"
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
+#include "memory.h"
 #include "neighbor.h"
 #include "neigh_list.h"
+
+#if defined(_OPENMP)
+#include <omp.h>
+#endif
 
 using namespace LAMMPS_NS;
 
@@ -41,11 +47,11 @@ void PairAIREBOOMP::compute(int eflag, int vflag)
     ev_setup_thr(this);
   } else evflag = vflag_fdotr = vflag_atom = 0;
 
+  REBO_neigh_thr();
+
   const int nall = atom->nlocal + atom->nghost;
   const int nthreads = comm->nthreads;
   const int inum = list->inum;
-
-  REBO_neigh();
 
 #if defined(_OPENMP)
 #pragma omp parallel default(shared)
@@ -2641,6 +2647,120 @@ void PairAIREBOOMP::TORSION_thr(double **f, int ifrom, int ito,
 	  }
 	}
       }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   create REBO neighbor list from main neighbor list
+   REBO neighbor list stores neighbors of ghost atoms
+------------------------------------------------------------------------- */
+
+void PairAIREBOOMP::REBO_neigh_thr()
+{
+  const int nlocal = atom->nlocal;
+  const int nall = nlocal + atom->nghost;
+  const int nthreads = comm->nthreads;
+
+  if (nall > maxlocal) {
+    maxlocal = atom->nmax;
+    memory->destroy(REBO_numneigh);
+    memory->sfree(REBO_firstneigh);
+    memory->destroy(nC);
+    memory->destroy(nH);
+    memory->create(REBO_numneigh,maxlocal,"AIREBO:numneigh");
+    REBO_firstneigh = (int **) memory->smalloc(maxlocal*sizeof(int *),
+					       "AIREBO:firstneigh");
+    memory->create(nC,maxlocal,"AIREBO:nC");
+    memory->create(nH,maxlocal,"AIREBO:nH");
+  }
+
+  if (nthreads > maxpage)
+    add_pages(nthreads - maxpage);
+
+#if defined(_OPENMP)
+#pragma omp parallel default(shared)
+#endif
+  {
+    int i,j,ii,jj,n,jnum,itype,jtype;
+    double xtmp,ytmp,ztmp,delx,dely,delz,rsq,dS;
+    int *ilist,*jlist,*numneigh,**firstneigh;
+    int *neighptr;
+
+    double **x = atom->x;
+    int *type = atom->type;
+
+    const int allnum = list->inum + list->gnum;
+    ilist = list->ilist;
+    numneigh = list->numneigh;
+    firstneigh = list->firstneigh;
+
+#if defined(_OPENMP)
+    const int tid = omp_get_thread_num();
+#else
+    const int tid = 0;
+#endif
+
+    const int iidelta = 1 + allnum/nthreads;
+    const int iifrom = tid*iidelta;
+    int iito   = iifrom + iidelta;
+    if (iito > allnum)
+      iito = allnum;
+
+    // store all REBO neighs of owned and ghost atoms
+    // scan full neighbor list of I
+
+    int npage = tid;
+    int npnt = 0;
+
+    for (ii = iifrom; ii < iito; ii++) {
+      i = ilist[ii];
+
+      if (pgsize - npnt < oneatom) {
+	npnt = 0;
+	npage += nthreads;
+	// only one thread at a time may check whether we 
+	// need new neighbor list pages and then add to them.
+#if defined(_OPENMP)
+#pragma omp critical
+#endif
+	if (npage >= maxpage) add_pages(nthreads);
+      }
+      neighptr = &(pages[npage][npnt]);
+      n = 0;
+
+      xtmp = x[i][0];
+      ytmp = x[i][1];
+      ztmp = x[i][2];
+      itype = map[type[i]];
+      nC[i] = nH[i] = 0.0;
+      jlist = firstneigh[i];
+      jnum = numneigh[i];
+
+      for (jj = 0; jj < jnum; jj++) {
+	j = jlist[jj];
+	j &= NEIGHMASK;
+	jtype = map[type[j]];
+	delx = xtmp - x[j][0];
+	dely = ytmp - x[j][1];
+	delz = ztmp - x[j][2];
+	rsq = delx*delx + dely*dely + delz*delz;
+
+	if (rsq < rcmaxsq[itype][jtype]) {
+	  neighptr[n++] = j;
+	  if (jtype == 0)
+	    nC[i] += Sp(sqrt(rsq),rcmin[itype][jtype],rcmax[itype][jtype],dS);
+	  else
+	    nH[i] += Sp(sqrt(rsq),rcmin[itype][jtype],rcmax[itype][jtype],dS);
+	}
+      }
+
+      REBO_firstneigh[i] = neighptr;
+      REBO_numneigh[i] = n;
+      npnt += n;
+
+      if (npnt >= pgsize)
+	error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
     }
   }
 }

@@ -11,44 +11,38 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef FIX_CLASS
+#ifdef PAIR_CLASS
 
-FixStyle(gravity,FixGravity)
+PairStyle(lj/sdk,PairLJSDK)
+PairStyle(cg/cmm,PairLJSDK)
 
 #else
 
-#ifndef LMP_FIX_GRAVITY_H
-#define LMP_FIX_GRAVITY_H
+#ifndef LMP_PAIR_LJ_SDK_H
+#define LMP_PAIR_LJ_SDK_H
 
-#include "fix.h"
+#include "lj_sdk_common.h"
 
 namespace LAMMPS_NS {
 
-class FixGravity : public Fix {
-  friend class FixPour;
+  class PairLJSDK : PairLJSDKCommon {
 
- public:
-  FixGravity(class LAMMPS *, int, char **);
-  int setmask();
-  void init();
-  void setup(int);
-  virtual void post_force(int);
-  virtual void post_force_respa(int, int, int);
-  double compute_scalar();
+    public:
 
- protected:
-  int style;
-  double magnitude,dt;
-  double phi,theta,phigrad,thetagrad;
-  double xdir,ydir,zdir;
-  double xgrav,ygrav,zgrav,xacc,yacc,zacc;
-  double degree2rad;
-  int nlevels_respa;
-  int time_origin;
-  int eflag;
-  double egrav,egrav_all;
-};
+    PairLJSDK(class LAMMPS *);
+    virtual ~PairLJSDK();
 
+    virtual void compute(int, int);
+
+    void write_restart(FILE *);
+    void read_restart(FILE *);
+
+    virtual double single(int, int, int, int, double, double, double, double &);
+
+    private:
+    // disable default constructor
+    PairLJSDK();
+  };
 }
 
 #endif

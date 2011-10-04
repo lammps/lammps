@@ -8,7 +8,7 @@ SHELL = /bin/sh
 
 CC =		mpic++
 CCFLAGS =	-O2 -fomit-frame-pointer -fno-rtti -fno-exceptions -g \
-			-march=native -ffast-math -mpc64 \
+			-march=native -ffast-math -mpc64 -finline-functions \
 			-funroll-loops -fstrict-aliasing -Wall -W -Wno-uninitialized
 DEPFLAGS =	-M
 LINK =		mpic++

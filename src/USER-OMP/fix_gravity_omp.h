@@ -13,40 +13,23 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(gravity,FixGravity)
+FixStyle(gravity/omp,FixGravityOMP)
 
 #else
 
-#ifndef LMP_FIX_GRAVITY_H
-#define LMP_FIX_GRAVITY_H
+#ifndef LMP_FIX_GRAVITY_OMP_H
+#define LMP_FIX_GRAVITY_OMP_H
 
-#include "fix.h"
+#include "fix_gravity.h"
 
 namespace LAMMPS_NS {
 
-class FixGravity : public Fix {
-  friend class FixPour;
+class FixGravityOMP : public FixGravity {
 
  public:
-  FixGravity(class LAMMPS *, int, char **);
-  int setmask();
-  void init();
-  void setup(int);
+  FixGravityOMP(class LAMMPS *, int, char **);
   virtual void post_force(int);
   virtual void post_force_respa(int, int, int);
-  double compute_scalar();
-
- protected:
-  int style;
-  double magnitude,dt;
-  double phi,theta,phigrad,thetagrad;
-  double xdir,ydir,zdir;
-  double xgrav,ygrav,zgrav,xacc,yacc,zacc;
-  double degree2rad;
-  int nlevels_respa;
-  int time_origin;
-  int eflag;
-  double egrav,egrav_all;
 };
 
 }

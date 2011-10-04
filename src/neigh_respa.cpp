@@ -14,8 +14,13 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "atom.h"
+#include "comm.h"
 #include "group.h"
 #include "error.h"
+
+#if defined(_OPENMP)
+#include <omp.h>
+#endif
 
 using namespace LAMMPS_NS;
 
@@ -28,7 +33,29 @@ using namespace LAMMPS_NS;
 
 void Neighbor::respa_nsq_no_newton(NeighList *list)
 {
-  int i,j,n,itype,jtype,which,n_inner,n_middle,bitmask;
+  const int nthreads = comm->nthreads;
+  const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;
+  const int bitmask = (includegroup) ? group->bitmask[includegroup] : 0;
+
+  NeighList *listinner = list->listinner;
+  if (nthreads > listinner->maxpage)
+    listinner->add_pages(nthreads - listinner->maxpage);
+
+  NeighList *listmiddle;
+  const int respamiddle = list->respamiddle;
+  if (respamiddle) {
+    listmiddle = list->listmiddle;
+    if (nthreads > listmiddle->maxpage)
+      listmiddle->add_pages(nthreads - listmiddle->maxpage);
+  }
+
+  NEIGH_OMP_INIT;
+#if defined(_OPENMP)
+#pragma omp parallel default(none) shared(list,listinner,listmiddle)
+#endif
+  NEIGH_OMP_SETUP(nlocal);
+
+  int i,j,n,itype,jtype,which,n_inner,n_middle;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr,*neighptr_inner,*neighptr_middle;
 
@@ -42,71 +69,71 @@ void Neighbor::respa_nsq_no_newton(NeighList *list)
   int *type = atom->type;
   int *mask = atom->mask;
   int *molecule = atom->molecule;
-  int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
+  int nall = atom->nlocal + atom->nghost;
   int molecular = atom->molecular;
-  if (includegroup) {
-    nlocal = atom->nfirst;
-    bitmask = group->bitmask[includegroup];
-  }
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
-  int **pages = list->pages;
 
-  NeighList *listinner = list->listinner;
   int *ilist_inner = listinner->ilist;
   int *numneigh_inner = listinner->numneigh;
   int **firstneigh_inner = listinner->firstneigh;
-  int **pages_inner = listinner->pages;
 
-  NeighList *listmiddle;
-  int *ilist_middle,*numneigh_middle,**firstneigh_middle,**pages_middle;
-  int respamiddle = list->respamiddle;
+  int *ilist_middle,*numneigh_middle,**firstneigh_middle;
   if (respamiddle) {
-    listmiddle = list->listmiddle;
     ilist_middle = listmiddle->ilist;
     numneigh_middle = listmiddle->numneigh;
     firstneigh_middle = listmiddle->firstneigh;
-    pages_middle = listmiddle->pages;
   }
 
-  int inum = 0;
-  int npage = 0;
+  int npage = tid;
   int npnt = 0;
-  int npage_inner = 0;
+  int npage_inner = tid;
   int npnt_inner = 0;
-  int npage_middle = 0;
+  int npage_middle = tid;
   int npnt_middle = 0;
 
-  for (i = 0; i < nlocal; i++) {
+  for (i = ifrom; i < ito; i++) {
 
     if (pgsize - npnt < oneatom) {
       npnt = 0;
-      npage++;
-      if (npage == list->maxpage) pages = list->add_pages();
+      npage += nthreads;
+      // only one thread at a time may check whether we
+      // need new neighbor list pages and then add to them.
+#if defined(_OPENMP)
+#pragma omp critical
+#endif
+      if (npage == list->maxpage) list->add_pages(nthreads);
     }
-    neighptr = &pages[npage][npnt];
+    neighptr = &(list->pages[npage][npnt]);
     n = 0;
 
     if (pgsize - npnt_inner < oneatom) {
       npnt_inner = 0;
-      npage_inner++;
-      if (npage_inner == listinner->maxpage)
-	pages_inner = listinner->add_pages();
+      npage_inner += nthreads;
+      // only one thread at a time may check whether we
+      // need new neighbor list pages and then add to them.
+#if defined(_OPENMP)
+#pragma omp critical
+#endif
+      if (npage_inner == listinner->maxpage) listinner->add_pages(nthreads);
     }
-    neighptr_inner = &pages_inner[npage_inner][npnt_inner];
+    neighptr_inner = &(listinner->pages[npage_inner][npnt_inner]);
     n_inner = 0;
 
     if (respamiddle) {
       if (pgsize - npnt_middle < oneatom) {
 	npnt_middle = 0;
-	npage_middle++;
-	if (npage_middle == listmiddle->maxpage)
-	  pages_middle = listmiddle->add_pages();
+	npage_middle += nthreads;
+	// only one thread at a time may check whether we
+	// need new neighbor list pages and then add to them.
+#if defined(_OPENMP)
+#pragma omp critical
+#endif
+	if (npage_middle == listmiddle->maxpage) listmiddle->add_pages(nthreads);
       }
-      neighptr_middle = &pages_middle[npage_middle][npnt_middle];
+      neighptr_middle = &(listmiddle->pages[npage_middle][npnt_middle]);
       n_middle = 0;
     }
 
@@ -146,14 +173,14 @@ void Neighbor::respa_nsq_no_newton(NeighList *list)
       }
     }
 
-    ilist[inum] = i;
+    ilist[i] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
     if (n > oneatom || npnt >= pgsize)
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
 
-    ilist_inner[inum] = i;
+    ilist_inner[i] = i;
     firstneigh_inner[i] = neighptr_inner;
     numneigh_inner[i] = n_inner;
     npnt_inner += n_inner;
@@ -161,20 +188,18 @@ void Neighbor::respa_nsq_no_newton(NeighList *list)
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
 
     if (respamiddle) {
-      ilist_middle[inum] = i;
+      ilist_middle[i] = i;
       firstneigh_middle[i] = neighptr_middle;
       numneigh_middle[i] = n_middle;
       npnt_middle += n_middle;
       if (npnt_middle >= pgsize)
 	error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
     }
-
-    inum++;
   }
-
-  list->inum = inum;
-  listinner->inum = inum;
-  if (respamiddle) listmiddle->inum = inum;
+  NEIGH_OMP_CLOSE;
+  list->inum = nlocal;
+  listinner->inum = nlocal;
+  if (respamiddle) listmiddle->inum = nlocal;
 }
 
 /* ----------------------------------------------------------------------
@@ -187,7 +212,29 @@ void Neighbor::respa_nsq_no_newton(NeighList *list)
 
 void Neighbor::respa_nsq_newton(NeighList *list)
 {
-  int i,j,n,itype,jtype,itag,jtag,which,n_inner,n_middle,bitmask;
+  const int nthreads = comm->nthreads;
+  const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;
+  const int bitmask = (includegroup) ? group->bitmask[includegroup] : 0;
+
+  NeighList *listinner = list->listinner;
+  if (nthreads > listinner->maxpage)
+    listinner->add_pages(nthreads - listinner->maxpage);
+
+  NeighList *listmiddle;
+  const int respamiddle = list->respamiddle;
+  if (respamiddle) {
+    listmiddle = list->listmiddle;
+    if (nthreads > listmiddle->maxpage)
+      listmiddle->add_pages(nthreads - listmiddle->maxpage);
+  }
+
+  NEIGH_OMP_INIT;
+#if defined(_OPENMP)
+#pragma omp parallel default(none) shared(list,listinner,listmiddle)
+#endif
+  NEIGH_OMP_SETUP(nlocal);
+
+  int i,j,n,itype,jtype,itag,jtag,which,n_inner,n_middle;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr,*neighptr_inner,*neighptr_middle;
 
@@ -201,71 +248,71 @@ void Neighbor::respa_nsq_newton(NeighList *list)
   int *type = atom->type;
   int *mask = atom->mask;
   int *molecule = atom->molecule;
-  int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
+  int nall = atom->nlocal + atom->nghost;
   int molecular = atom->molecular;
-  if (includegroup) {
-    nlocal = atom->nfirst;
-    bitmask = group->bitmask[includegroup];
-  }
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
-  int **pages = list->pages;
 
-  NeighList *listinner = list->listinner;
   int *ilist_inner = listinner->ilist;
   int *numneigh_inner = listinner->numneigh;
   int **firstneigh_inner = listinner->firstneigh;
-  int **pages_inner = listinner->pages;
 
-  NeighList *listmiddle;
-  int *ilist_middle,*numneigh_middle,**firstneigh_middle,**pages_middle;
-  int respamiddle = list->respamiddle;
+  int *ilist_middle,*numneigh_middle,**firstneigh_middle;
   if (respamiddle) {
-    listmiddle = list->listmiddle;
     ilist_middle = listmiddle->ilist;
     numneigh_middle = listmiddle->numneigh;
     firstneigh_middle = listmiddle->firstneigh;
-    pages_middle = listmiddle->pages;
   }
 
-  int inum = 0;
-  int npage = 0;
+  int npage = tid;
   int npnt = 0;
-  int npage_inner = 0;
+  int npage_inner = tid;
   int npnt_inner = 0;
-  int npage_middle = 0;
+  int npage_middle = tid;
   int npnt_middle = 0;
 
-  for (i = 0; i < nlocal; i++) {
+  for (i = ifrom; i < ito; i++) {
 
     if (pgsize - npnt < oneatom) {
       npnt = 0;
-      npage++;
-      if (npage == list->maxpage) pages = list->add_pages();
+      npage += nthreads;
+      // only one thread at a time may check whether we
+      // need new neighbor list pages and then add to them.
+#if defined(_OPENMP)
+#pragma omp critical
+#endif
+      if (npage == list->maxpage) list->add_pages(nthreads);
     }
-    neighptr = &pages[npage][npnt];
+    neighptr = &(list->pages[npage][npnt]);
     n = 0;
 
     if (pgsize - npnt_inner < oneatom) {
       npnt_inner = 0;
-      npage_inner++;
-      if (npage_inner == listinner->maxpage)
-	pages_inner = listinner->add_pages();
+      npage_inner += nthreads;
+      // only one thread at a time may check whether we
+      // need new neighbor list pages and then add to them.
+#if defined(_OPENMP)
+#pragma omp critical
+#endif
+      if (npage_inner == listinner->maxpage) listinner->add_pages(nthreads);
     }
-    neighptr_inner = &pages_inner[npage_inner][npnt_inner];
+    neighptr_inner = &(listinner->pages[npage_inner][npnt_inner]);
     n_inner = 0;
 
     if (respamiddle) {
       if (pgsize - npnt_middle < oneatom) {
 	npnt_middle = 0;
-	npage_middle++;
-	if (npage_middle == listmiddle->maxpage)
-	  pages_middle = listmiddle->add_pages();
+	npage_middle += nthreads;
+	// only one thread at a time may check whether we
+	// need new neighbor list pages and then add to them.
+#if defined(_OPENMP)
+#pragma omp critical
+#endif
+	if (npage_middle == listmiddle->maxpage) listmiddle->add_pages(nthreads);
       }
-      neighptr_middle = &pages_middle[npage_middle][npnt_middle];
+      neighptr_middle = &(listmiddle->pages[npage_middle][npnt_middle]);
       n_middle = 0;
     }
 
@@ -323,14 +370,14 @@ void Neighbor::respa_nsq_newton(NeighList *list)
       }
     }
 
-    ilist[inum] = i;
+    ilist[i] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
     if (n > oneatom || npnt >= pgsize)
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
 
-    ilist_inner[inum] = i;
+    ilist_inner[i] = i;
     firstneigh_inner[i] = neighptr_inner;
     numneigh_inner[i] = n_inner;
     npnt_inner += n_inner;
@@ -338,20 +385,18 @@ void Neighbor::respa_nsq_newton(NeighList *list)
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
 
     if (respamiddle) {
-      ilist_middle[inum] = i;
+      ilist_middle[i] = i;
       firstneigh_middle[i] = neighptr_middle;
       numneigh_middle[i] = n_middle;
       npnt_middle += n_middle;
       if (npnt_middle >= pgsize)
 	error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
     }
-
-    inum++;
   }
-
-  list->inum = inum;
-  listinner->inum = inum;
-  if (respamiddle) listmiddle->inum = inum;
+  NEIGH_OMP_CLOSE;
+  list->inum = nlocal;
+  listinner->inum = nlocal;
+  if (respamiddle) listmiddle->inum = nlocal;
 }
 
 /* ----------------------------------------------------------------------
@@ -364,13 +409,34 @@ void Neighbor::respa_nsq_newton(NeighList *list)
 
 void Neighbor::respa_bin_no_newton(NeighList *list)
 {
-  int i,j,k,n,itype,jtype,ibin,which,n_inner,n_middle;
-  double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
-  int *neighptr,*neighptr_inner,*neighptr_middle;
-
   // bin local & ghost atoms
 
   bin_atoms();
+
+  const int nthreads = comm->nthreads;
+  const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;
+
+  NeighList *listinner = list->listinner;
+  if (nthreads > listinner->maxpage)
+    listinner->add_pages(nthreads - listinner->maxpage);
+
+  NeighList *listmiddle;
+  const int respamiddle = list->respamiddle;
+  if (respamiddle) {
+    listmiddle = list->listmiddle;
+    if (nthreads > listmiddle->maxpage)
+      listmiddle->add_pages(nthreads - listmiddle->maxpage);
+  }
+
+  NEIGH_OMP_INIT;
+#if defined(_OPENMP)
+#pragma omp parallel default(none) shared(list,listinner,listmiddle)
+#endif
+  NEIGH_OMP_SETUP(nlocal);
+
+  int i,j,k,n,itype,jtype,ibin,which,n_inner,n_middle;
+  double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
+  int *neighptr,*neighptr_inner,*neighptr_middle;
 
   // loop over each atom, storing neighbors
 
@@ -382,69 +448,72 @@ void Neighbor::respa_bin_no_newton(NeighList *list)
   int *type = atom->type;
   int *mask = atom->mask;
   int *molecule = atom->molecule;
-  int nlocal = atom->nlocal;
   int molecular = atom->molecular;
-  if (includegroup) nlocal = atom->nfirst;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
-  int **pages = list->pages;
   int nstencil = list->nstencil;
   int *stencil = list->stencil;
 
-  NeighList *listinner = list->listinner;
   int *ilist_inner = listinner->ilist;
   int *numneigh_inner = listinner->numneigh;
   int **firstneigh_inner = listinner->firstneigh;
-  int **pages_inner = listinner->pages;
 
-  NeighList *listmiddle;
-  int *ilist_middle,*numneigh_middle,**firstneigh_middle,**pages_middle;
-  int respamiddle = list->respamiddle;
+  int *ilist_middle,*numneigh_middle,**firstneigh_middle;
   if (respamiddle) {
-    listmiddle = list->listmiddle;
     ilist_middle = listmiddle->ilist;
     numneigh_middle = listmiddle->numneigh;
     firstneigh_middle = listmiddle->firstneigh;
-    pages_middle = listmiddle->pages;
   }
 
-  int inum = 0;
-  int npage = 0;
+  int npage = tid;
   int npnt = 0;
-  int npage_inner = 0;
+  int npage_inner = tid;
   int npnt_inner = 0;
-  int npage_middle = 0;
+  int npage_middle = tid;
   int npnt_middle = 0;
 
-  for (i = 0; i < nlocal; i++) {
+  for (i = ifrom; i < ito; i++) {
 
     if (pgsize - npnt < oneatom) {
       npnt = 0;
-      npage++;
-      if (npage == list->maxpage) pages = list->add_pages();
+      npage += nthreads;
+      // only one thread at a time may check whether we
+      // need new neighbor list pages and then add to them.
+#if defined(_OPENMP)
+#pragma omp critical
+#endif
+      if (npage == list->maxpage) list->add_pages(nthreads);
     }
-    neighptr = &pages[npage][npnt];
+    neighptr = &(list->pages[npage][npnt]);
     n = 0;
 
     if (pgsize - npnt_inner < oneatom) {
       npnt_inner = 0;
-      npage_inner++;
-      if (npage_inner == listinner->maxpage)
-	pages_inner = listinner->add_pages();
+      npage_inner += nthreads;
+      // only one thread at a time may check whether we
+      // need new neighbor list pages and then add to them.
+#if defined(_OPENMP)
+#pragma omp critical
+#endif
+      if (npage_inner == listinner->maxpage) listinner->add_pages(nthreads);
     }
-    neighptr_inner = &pages_inner[npage_inner][npnt_inner];
+    neighptr_inner = &(listinner->pages[npage_inner][npnt_inner]);
     n_inner = 0;
 
     if (respamiddle) {
       if (pgsize - npnt_middle < oneatom) {
 	npnt_middle = 0;
-	npage_middle++;
-	if (npage_middle == listmiddle->maxpage)
-	  pages_middle = listmiddle->add_pages();
+	npage_middle += nthreads;
+	// only one thread at a time may check whether we
+	// need new neighbor list pages and then add to them.
+#if defined(_OPENMP)
+#pragma omp critical
+#endif
+	if (npage_middle == listmiddle->maxpage) listmiddle->add_pages(nthreads);
       }
-      neighptr_middle = &pages_middle[npage_middle][npnt_middle];
+      neighptr_middle = &(listmiddle->pages[npage_middle][npnt_middle]);
       n_middle = 0;
     }
 
@@ -493,14 +562,14 @@ void Neighbor::respa_bin_no_newton(NeighList *list)
       }
     }
 
-    ilist[inum] = i;
+    ilist[i] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
     if (n > oneatom || npnt >= pgsize)
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
 
-    ilist_inner[inum] = i;
+    ilist_inner[i] = i;
     firstneigh_inner[i] = neighptr_inner;
     numneigh_inner[i] = n_inner;
     npnt_inner += n_inner;
@@ -508,20 +577,18 @@ void Neighbor::respa_bin_no_newton(NeighList *list)
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
 
     if (respamiddle) {
-      ilist_middle[inum] = i;
+      ilist_middle[i] = i;
       firstneigh_middle[i] = neighptr_middle;
       numneigh_middle[i] = n_middle;
       npnt_middle += n_middle;
       if (npnt_middle >= pgsize)
 	error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
     }
-
-    inum++;
   }
-
-  list->inum = inum;
-  listinner->inum = inum;
-  if (respamiddle) listmiddle->inum = inum;
+  NEIGH_OMP_CLOSE;
+  list->inum = nlocal;
+  listinner->inum = nlocal;
+  if (respamiddle) listmiddle->inum = nlocal;
 }
       
 /* ----------------------------------------------------------------------
@@ -533,13 +600,34 @@ void Neighbor::respa_bin_no_newton(NeighList *list)
 
 void Neighbor::respa_bin_newton(NeighList *list)
 {
-  int i,j,k,n,itype,jtype,ibin,which,n_inner,n_middle;
-  double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
-  int *neighptr,*neighptr_inner,*neighptr_middle;
-
   // bin local & ghost atoms
 
   bin_atoms();
+
+  const int nthreads = comm->nthreads;
+  const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;
+
+  NeighList *listinner = list->listinner;
+  if (nthreads > listinner->maxpage)
+    listinner->add_pages(nthreads - listinner->maxpage);
+
+  NeighList *listmiddle;
+  const int respamiddle = list->respamiddle;
+  if (respamiddle) {
+    listmiddle = list->listmiddle;
+    if (nthreads > listmiddle->maxpage)
+      listmiddle->add_pages(nthreads - listmiddle->maxpage);
+  }
+
+  NEIGH_OMP_INIT;
+#if defined(_OPENMP)
+#pragma omp parallel default(none) shared(list,listinner,listmiddle)
+#endif
+  NEIGH_OMP_SETUP(nlocal);
+
+  int i,j,k,n,itype,jtype,ibin,which,n_inner,n_middle;
+  double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
+  int *neighptr,*neighptr_inner,*neighptr_middle;
 
   // loop over each atom, storing neighbors
 
@@ -551,69 +639,72 @@ void Neighbor::respa_bin_newton(NeighList *list)
   int *type = atom->type;
   int *mask = atom->mask;
   int *molecule = atom->molecule;
-  int nlocal = atom->nlocal;
   int molecular = atom->molecular;
-  if (includegroup) nlocal = atom->nfirst;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
-  int **pages = list->pages;
   int nstencil = list->nstencil;
   int *stencil = list->stencil;
 
-  NeighList *listinner = list->listinner;
   int *ilist_inner = listinner->ilist;
   int *numneigh_inner = listinner->numneigh;
   int **firstneigh_inner = listinner->firstneigh;
-  int **pages_inner = listinner->pages;
 
-  NeighList *listmiddle;
-  int *ilist_middle,*numneigh_middle,**firstneigh_middle,**pages_middle;
-  int respamiddle = list->respamiddle;
+  int *ilist_middle,*numneigh_middle,**firstneigh_middle;
   if (respamiddle) {
-    listmiddle = list->listmiddle;
     ilist_middle = listmiddle->ilist;
     numneigh_middle = listmiddle->numneigh;
     firstneigh_middle = listmiddle->firstneigh;
-    pages_middle = listmiddle->pages;
   }
 
-  int inum = 0;
-  int npage = 0;
+  int npage = tid;
   int npnt = 0;
-  int npage_inner = 0;
+  int npage_inner = tid;
   int npnt_inner = 0;
-  int npage_middle = 0;
+  int npage_middle = tid;
   int npnt_middle = 0;
 
-  for (i = 0; i < nlocal; i++) {
+  for (i = ifrom; i < ito; i++) {
 
     if (pgsize - npnt < oneatom) {
       npnt = 0;
-      npage++;
-      if (npage == list->maxpage) pages = list->add_pages();
+      npage += nthreads;
+      // only one thread at a time may check whether we
+      // need new neighbor list pages and then add to them.
+#if defined(_OPENMP)
+#pragma omp critical
+#endif
+      if (npage == list->maxpage) list->add_pages(nthreads);
     }
-    neighptr = &pages[npage][npnt];
+    neighptr = &(list->pages[npage][npnt]);
     n = 0;
 
     if (pgsize - npnt_inner < oneatom) {
       npnt_inner = 0;
-      npage_inner++;
-      if (npage_inner == listinner->maxpage)
-	pages_inner = listinner->add_pages();
+      npage_inner += nthreads;
+      // only one thread at a time may check whether we
+      // need new neighbor list pages and then add to them.
+#if defined(_OPENMP)
+#pragma omp critical
+#endif
+      if (npage_inner == listinner->maxpage) listinner->add_pages(nthreads);
     }
-    neighptr_inner = &pages_inner[npage_inner][npnt_inner];
+    neighptr_inner = &(listinner->pages[npage_inner][npnt_inner]);
     n_inner = 0;
 
     if (respamiddle) {
       if (pgsize - npnt_middle < oneatom) {
 	npnt_middle = 0;
-	npage_middle++;
-	if (npage_middle == listmiddle->maxpage)
-	  pages_middle = listmiddle->add_pages();
+	npage_middle += nthreads;
+	// only one thread at a time may check whether we
+	// need new neighbor list pages and then add to them.
+#if defined(_OPENMP)
+#pragma omp critical
+#endif
+	if (npage_middle == listmiddle->maxpage) listmiddle->add_pages(nthreads);
       }
-      neighptr_middle = &pages_middle[npage_middle][npnt_middle];
+      neighptr_middle = &(listmiddle->pages[npage_middle][npnt_middle]);
       n_middle = 0;
     }
 
@@ -698,14 +789,14 @@ void Neighbor::respa_bin_newton(NeighList *list)
       }
     }
 
-    ilist[inum] = i;
+    ilist[i] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
     if (n > oneatom || npnt >= pgsize)
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
 
-    ilist_inner[inum] = i;
+    ilist_inner[i] = i;
     firstneigh_inner[i] = neighptr_inner;
     numneigh_inner[i] = n_inner;
     npnt_inner += n_inner;
@@ -713,20 +804,18 @@ void Neighbor::respa_bin_newton(NeighList *list)
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
 
     if (respamiddle) {
-      ilist_middle[inum] = i;
+      ilist_middle[i] = i;
       firstneigh_middle[i] = neighptr_middle;
       numneigh_middle[i] = n_middle;
       npnt_middle += n_middle;
       if (npnt_middle >= pgsize)
 	error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
     }
-
-    inum++;
   }
-
-  list->inum = inum;
-  listinner->inum = inum;
-  if (respamiddle) listmiddle->inum = inum;
+  NEIGH_OMP_CLOSE;
+  list->inum = nlocal;
+  listinner->inum = nlocal;
+  if (respamiddle) listmiddle->inum = nlocal;
 }
 
 /* ----------------------------------------------------------------------
@@ -738,13 +827,34 @@ void Neighbor::respa_bin_newton(NeighList *list)
 
 void Neighbor::respa_bin_newton_tri(NeighList *list)
 {
-  int i,j,k,n,itype,jtype,ibin,which,n_inner,n_middle;
-  double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
-  int *neighptr,*neighptr_inner,*neighptr_middle;
-
   // bin local & ghost atoms
 
   bin_atoms();
+
+  const int nthreads = comm->nthreads;
+  const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;
+
+  NeighList *listinner = list->listinner;
+  if (nthreads > listinner->maxpage)
+    listinner->add_pages(nthreads - listinner->maxpage);
+
+  NeighList *listmiddle;
+  const int respamiddle = list->respamiddle;
+  if (respamiddle) {
+    listmiddle = list->listmiddle;
+    if (nthreads > listmiddle->maxpage)
+      listmiddle->add_pages(nthreads - listmiddle->maxpage);
+  }
+
+  NEIGH_OMP_INIT;
+#if defined(_OPENMP)
+#pragma omp parallel default(none) shared(list,listinner,listmiddle)
+#endif
+  NEIGH_OMP_SETUP(nlocal);
+
+  int i,j,k,n,itype,jtype,ibin,which,n_inner,n_middle;
+  double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
+  int *neighptr,*neighptr_inner,*neighptr_middle;
 
   // loop over each atom, storing neighbors
 
@@ -756,69 +866,72 @@ void Neighbor::respa_bin_newton_tri(NeighList *list)
   int *type = atom->type;
   int *mask = atom->mask;
   int *molecule = atom->molecule;
-  int nlocal = atom->nlocal;
   int molecular = atom->molecular;
-  if (includegroup) nlocal = atom->nfirst;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
-  int **pages = list->pages;
   int nstencil = list->nstencil;
   int *stencil = list->stencil;
 
-  NeighList *listinner = list->listinner;
   int *ilist_inner = listinner->ilist;
   int *numneigh_inner = listinner->numneigh;
   int **firstneigh_inner = listinner->firstneigh;
-  int **pages_inner = listinner->pages;
 
-  NeighList *listmiddle;
-  int *ilist_middle,*numneigh_middle,**firstneigh_middle,**pages_middle;
-  int respamiddle = list->respamiddle;
+  int *ilist_middle,*numneigh_middle,**firstneigh_middle;
   if (respamiddle) {
-    listmiddle = list->listmiddle;
     ilist_middle = listmiddle->ilist;
     numneigh_middle = listmiddle->numneigh;
     firstneigh_middle = listmiddle->firstneigh;
-    pages_middle = listmiddle->pages;
   }
 
-  int inum = 0;
-  int npage = 0;
+  int npage = tid;
   int npnt = 0;
-  int npage_inner = 0;
+  int npage_inner = tid;
   int npnt_inner = 0;
-  int npage_middle = 0;
+  int npage_middle = tid;
   int npnt_middle = 0;
 
-  for (i = 0; i < nlocal; i++) {
+  for (i = ifrom; i < ito; i++) {
 
     if (pgsize - npnt < oneatom) {
       npnt = 0;
-      npage++;
-      if (npage == list->maxpage) pages = list->add_pages();
+      npage += nthreads;
+      // only one thread at a time may check whether we
+      // need new neighbor list pages and then add to them.
+#if defined(_OPENMP)
+#pragma omp critical
+#endif
+      if (npage == list->maxpage) list->add_pages(nthreads);
     }
-    neighptr = &pages[npage][npnt];
+    neighptr = &(list->pages[npage][npnt]);
     n = 0;
 
     if (pgsize - npnt_inner < oneatom) {
       npnt_inner = 0;
-      npage_inner++;
-      if (npage_inner == listinner->maxpage)
-	pages_inner = listinner->add_pages();
+      npage_inner += nthreads;
+      // only one thread at a time may check whether we
+      // need new neighbor list pages and then add to them.
+#if defined(_OPENMP)
+#pragma omp critical
+#endif
+      if (npage_inner == listinner->maxpage) listinner->add_pages(nthreads);
     }
-    neighptr_inner = &pages_inner[npage_inner][npnt_inner];
+    neighptr_inner = &(listinner->pages[npage_inner][npnt_inner]);
     n_inner = 0;
 
     if (respamiddle) {
       if (pgsize - npnt_middle < oneatom) {
 	npnt_middle = 0;
-	npage_middle++;
-	if (npage_middle == listmiddle->maxpage)
-	  pages_middle = listmiddle->add_pages();
+	npage_middle += nthreads;
+	// only one thread at a time may check whether we
+	// need new neighbor list pages and then add to them.
+#if defined(_OPENMP)
+#pragma omp critical
+#endif
+	if (npage_middle == listmiddle->maxpage) listmiddle->add_pages(nthreads);
       }
-      neighptr_middle = &pages_middle[npage_middle][npnt_middle];
+      neighptr_middle = &(listmiddle->pages[npage_middle][npnt_middle]);
       n_middle = 0;
     }
 
@@ -875,14 +988,14 @@ void Neighbor::respa_bin_newton_tri(NeighList *list)
       }
     }
 
-    ilist[inum] = i;
+    ilist[i] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
     if (n > oneatom || npnt >= pgsize)
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
 
-    ilist_inner[inum] = i;
+    ilist_inner[i] = i;
     firstneigh_inner[i] = neighptr_inner;
     numneigh_inner[i] = n_inner;
     npnt_inner += n_inner;
@@ -890,18 +1003,16 @@ void Neighbor::respa_bin_newton_tri(NeighList *list)
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
 
     if (respamiddle) {
-      ilist_middle[inum] = i;
+      ilist_middle[i] = i;
       firstneigh_middle[i] = neighptr_middle;
       numneigh_middle[i] = n_middle;
       npnt_middle += n_middle;
       if (npnt_middle >= pgsize)
 	error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
     }
-
-    inum++;
   }
-
-  list->inum = inum;
-  listinner->inum = inum;
-  if (respamiddle) listmiddle->inum = inum;
+  NEIGH_OMP_CLOSE;
+  list->inum = nlocal;
+  listinner->inum = nlocal;
+  if (respamiddle) listmiddle->inum = nlocal;
 }

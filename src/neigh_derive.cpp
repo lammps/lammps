@@ -14,7 +14,12 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "atom.h"
+#include "comm.h"
 #include "error.h"
+
+#if defined(_OPENMP)
+#include <omp.h>
+#endif
 
 using namespace LAMMPS_NS;
 
@@ -27,33 +32,45 @@ using namespace LAMMPS_NS;
 
 void Neighbor::half_from_full_no_newton(NeighList *list)
 {
+  const int nthreads = comm->nthreads;
+  const int inum_full = list->listfull->inum;
+
+  NEIGH_OMP_INIT;
+#if defined(_OPENMP)
+#pragma omp parallel default(none) shared(list)
+#endif
+  NEIGH_OMP_SETUP(inum_full);
+
   int i,j,ii,jj,n,jnum,joriginal;
   int *neighptr,*jlist;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
-  int **pages = list->pages;
   int *ilist_full = list->listfull->ilist;
   int *numneigh_full = list->listfull->numneigh;
   int **firstneigh_full = list->listfull->firstneigh;
-  int inum_full = list->listfull->inum;
 
-  int inum = 0;
-  int npage = 0;
+  // each thread works on its own page
+  int npage = tid;
   int npnt = 0;
 
   // loop over atoms in full list
 
-  for (ii = 0; ii < inum_full; ii++) {
+  for (ii = ifrom; ii < ito; ii++) {
 
     if (pgsize - npnt < oneatom) {
       npnt = 0;
-      npage++;
-      if (npage == list->maxpage) pages = list->add_pages();
+      npage += nthreads;
+      // only one thread at a time may check whether we 
+      // need new neighbor list pages and then add to them.
+#if defined(_OPENMP)
+#pragma omp critical
+#endif
+      if (npage >= list->maxpage) list->add_pages(nthreads);
     }
 
-    neighptr = &pages[npage][npnt];
+    neighptr = &(list->pages[npage][npnt]);
     n = 0;
 
     // loop over parent full list
@@ -68,15 +85,15 @@ void Neighbor::half_from_full_no_newton(NeighList *list)
       if (j > i) neighptr[n++] = joriginal;
     }
 
-    ilist[inum++] = i;
+    ilist[ii] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
     if (n > oneatom || npnt >= pgsize)
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
   }
-
-  list->inum = inum;
+  NEIGH_OMP_CLOSE;
+  list->inum = inum_full;
 }
 
 /* ----------------------------------------------------------------------
@@ -88,6 +105,15 @@ void Neighbor::half_from_full_no_newton(NeighList *list)
 
 void Neighbor::half_from_full_newton(NeighList *list)
 {
+  const int nthreads = comm->nthreads;
+  const int inum_full = list->listfull->inum;
+
+  NEIGH_OMP_INIT;
+#if defined(_OPENMP)
+#pragma omp parallel default(none) shared(list)
+#endif
+  NEIGH_OMP_SETUP(inum_full);
+
   int i,j,ii,jj,n,jnum,joriginal;
   int *neighptr,*jlist;
   double xtmp,ytmp,ztmp;
@@ -98,27 +124,30 @@ void Neighbor::half_from_full_newton(NeighList *list)
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
-  int **pages = list->pages;
   int *ilist_full = list->listfull->ilist;
   int *numneigh_full = list->listfull->numneigh;
   int **firstneigh_full = list->listfull->firstneigh;
-  int inum_full = list->listfull->inum;
 
-  int inum = 0;
-  int npage = 0;
+  // each thread works on its own page
+  int npage = tid;
   int npnt = 0;
 
   // loop over parent full list
 
-  for (ii = 0; ii < inum_full; ii++) {
+  for (ii = ifrom; ii < ito; ii++) {
 
     if (pgsize - npnt < oneatom) {
       npnt = 0;
-      npage++;
-      if (npage == list->maxpage) pages = list->add_pages();
+      npage += nthreads;
+      // only one thread at a time may check  whether we
+      // need new neighbor list pages and then add to them.
+#if defined(_OPENMP)
+#pragma omp critical
+#endif
+      if (npage >= list->maxpage) list->add_pages(nthreads);
     }
 
-    neighptr = &pages[npage][npnt];
+    neighptr = &(list->pages[npage][npnt]);
     n = 0;
 
     i = ilist_full[ii];
@@ -146,15 +175,15 @@ void Neighbor::half_from_full_newton(NeighList *list)
       neighptr[n++] = joriginal;
     }
 
-    ilist[inum++] = i;
+    ilist[ii] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
     if (n > oneatom || npnt >= pgsize)
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
   }
-
-  list->inum = inum;
+  NEIGH_OMP_CLOSE;
+  list->inum = inum_full;
 }
 
 /* ----------------------------------------------------------------------

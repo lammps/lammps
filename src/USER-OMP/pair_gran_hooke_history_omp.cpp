@@ -21,6 +21,8 @@
 #include "neigh_list.h"
 #include "update.h"
 
+#include "string.h"
+
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -29,6 +31,9 @@ PairGranHookeHistoryOMP::PairGranHookeHistoryOMP(LAMMPS *lmp) :
   PairGranHookeHistory(lmp), ThrOMP(lmp, PAIR)
 {
   respa_enable = 0;
+  // trigger use of OpenMP version of FixShearHistory
+  suffix = new char[4];
+  memcpy(suffix,"omp",4);
 }
 
 /* ---------------------------------------------------------------------- */

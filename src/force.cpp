@@ -185,26 +185,26 @@ Pair *Force::pair_match(const char *word, int exact)
   if (exact && strcmp(pair_style,word) == 0) return pair;
   else if (!exact && strstr(pair_style,word)) return pair;
 
-  else if (strcmp(pair_style,"hybrid") == 0) {
-    PairHybrid *hybrid = (PairHybrid *) pair;
-    count = 0;
-    for (int i = 0; i < hybrid->nstyles; i++) {
-      if (exact && strcmp(hybrid->keywords[i],word) == 0)
-	return hybrid->styles[i];
-      if (!exact && strstr(hybrid->keywords[i],word)) {
-	iwhich = i;
-	count++;
-      }
-    }
-    if (!exact && count == 1) return hybrid->styles[iwhich];
-
-  } else if (strcmp(pair_style,"hybrid/overlay") == 0) {
+  else if (strncmp(pair_style,"hybrid/overlay",14) == 0) {
     PairHybridOverlay *hybrid = (PairHybridOverlay *) pair;
     count = 0;
     for (int i = 0; i < hybrid->nstyles; i++) {
       if (exact && strcmp(hybrid->keywords[i],word) == 0)
 	return hybrid->styles[i];
       else if (!exact && strstr(hybrid->keywords[i],word)) {
+	iwhich = i;
+	count++;
+      }
+    }
+    if (!exact && count == 1) return hybrid->styles[iwhich];
+
+  } else if (strncmp(pair_style,"hybrid",6) == 0) {
+    PairHybrid *hybrid = (PairHybrid *) pair;
+    count = 0;
+    for (int i = 0; i < hybrid->nstyles; i++) {
+      if (exact && strcmp(hybrid->keywords[i],word) == 0)
+	return hybrid->styles[i];
+      if (!exact && strstr(hybrid->keywords[i],word)) {
 	iwhich = i;
 	count++;
       }

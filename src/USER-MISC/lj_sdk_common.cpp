@@ -11,6 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#if 0
+
 /* ----------------------------------------------------------------------
    Common functionality for the SDK coarse grained MD potentials.
    Contributing author: Axel Kohlmeyer <akohlmey@gmail.com>
@@ -392,3 +394,5 @@ double PairLJSDKCommon::eval_single(int coul_type, int i, int j, int itype, int 
   fforce = factor_lj*lj_force + factor_coul*coul_force;
   return factor_lj*lj_erg + factor_coul*coul_erg;
 }
+
+#endif

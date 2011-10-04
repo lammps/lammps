@@ -10,6 +10,7 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
+#if 0
 
 /* ----------------------------------------------------------------------
    Common data for the Shinoda, DeVane, Klein (SDK) coars grain model
@@ -92,4 +93,7 @@ namespace LAMMPS_NS {
     PairLJSDKCommon();
 
 }
+#endif
+
+
 #endif

@@ -11,6 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#if 0
+
 /* ----------------------------------------------------------------------
    Shinoda, DeVane, Klein (SDK) model potential for coarse grained MD. 
    Plain version w/o charges.
@@ -103,3 +105,5 @@ double PairLJSDK::single(int i, int j, int itype, int jtype, double rsq,
 {
   return eval_single(CG_COUL_NONE,i,j,itype,jtype,rsq,factor_coul,factor_lj,fforce);
 }
+
+#endif

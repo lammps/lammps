@@ -30,7 +30,7 @@ class PairHybrid : public Pair {
   int nstyles;                  // # of different sub-styles
   Pair **styles;                // list of Pair style classes
   char **keywords;              // style name of each Pair style
-  char *suffix;                 // suffix when called as hybrid/suffix style
+  const char *suffix;		// suffix when called as hybrid/suffix style
 
   PairHybrid(class LAMMPS *);
   virtual ~PairHybrid();

@@ -38,6 +38,9 @@ class AngleHybrid : public Angle {
   double single(int, int, int, int);
   double memory_usage();
 
+ protected:
+  const char *suffix;		// suffix when called as hybrid/suffix style
+  
  private:
   int nstyles;                  // # of different angle styles
   Angle **styles;               // class list for each Angle style

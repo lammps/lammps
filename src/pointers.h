@@ -31,8 +31,8 @@ namespace LAMMPS_NS {
 
 #define FLERR __FILE__,__LINE__
 
-template <class T> inline const T& MAX(const T &a, const T &b) { return ((a>b) ? a : b);}
-template <class T> inline const T& MIN(const T &a, const T &b) { return ((a<b) ? a : b);}
+template <typename T> inline const T& MAX(const T &a, const T &b) { return ((a>b) ? a : b);}
+template <typename T> inline const T& MIN(const T &a, const T &b) { return ((a<b) ? a : b);}
 
 class Pointers {
  public:

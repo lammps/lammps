@@ -256,6 +256,7 @@ Bond *Force::new_bond(const char *style, const char *suffix, int &sflag)
 #define BondStyle(key,Class) \
     else if (strcmp(estyle,#key) == 0) return new Class(lmp);
 #include "style_bond.h"
+#undef BondStyle
 #undef BOND_CLASS
   }
 
@@ -330,6 +331,7 @@ Angle *Force::new_angle(const char *style, const char *suffix, int &sflag)
 #define AngleStyle(key,Class) \
     else if (strcmp(estyle,#key) == 0) return new Class(lmp);
 #include "style_angle.h"
+#undef AngleStyle
 #undef ANGLE_CLASS
 
   }
@@ -402,6 +404,7 @@ Dihedral *Force::new_dihedral(const char *style, const char *suffix, int &sflag)
 #define DihedralStyle(key,Class) \
   else if (strcmp(style,#key) == 0) return new Class(lmp);
 #include "style_dihedral.h"
+#undef DihedralStyle
 #undef DIHEDRAL_CLASS
 
   else error->all(FLERR,"Invalid dihedral style");
@@ -450,6 +453,7 @@ Improper *Force::new_improper(const char *style, const char *suffix, int &sflag)
 #define ImproperStyle(key,Class) \
     else if (strcmp(estyle,#key) == 0) return new Class(lmp);
 #include "style_improper.h"
+#undef ImproperStyle
 #undef IMPROPER_CLASS
 
   }

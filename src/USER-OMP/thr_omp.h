@@ -27,6 +27,13 @@ class Pair;
 class Dihedral;
 
 class ThrOMP {
+ public:
+  struct global {
+    double eng_vdwl;
+    double eng_coul;
+    double eng_bond;
+    double virial[6];
+  };
 
  protected:
   const int thr_style;
@@ -43,6 +50,7 @@ class ThrOMP {
   double ***vatom_thr;   // per thread per atom virial
 
   int maxeatom_thr, maxvatom_thr;
+  int evflag_global, evflag_atom;
   
  public:
   ThrOMP(LAMMPS *, int);
@@ -67,7 +75,7 @@ class ThrOMP {
 
  private:
   // internal method to be used by multiple ev_setup_thr() methods
-  void ev_zero_acc_thr(int, int, int, int, int, int);
+  void ev_setup_acc_thr(int, int, int, int, int, int);
 
  protected:
   // threading adapted versions of the ev_tally infrastructure

@@ -509,6 +509,7 @@ package"_Section_accelerate.html.
 "aveforce/cuda"_fix_aveforce.html,
 "enforce2d/cuda"_fix_enforce2d.html,
 "gravity/cuda"_fix_gravity.html,
+"gravity/omp"_fix_gravity.html,
 "npt/cuda"_fix_nh.html,
 "nve/cuda"_fix_nh.html,
 "nve/sphere/omp"_fix_nve_sphere.html,

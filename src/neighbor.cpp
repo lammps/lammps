@@ -1102,7 +1102,7 @@ int Neighbor::check_distance()
 
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_MAX,world);
-  if (flagall && ago == MAX(every,delay)) ndanger++;
+  if (flagall && ago == (MAX(every,delay))) ndanger++;
   return flagall;
 }
 

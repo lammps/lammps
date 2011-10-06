@@ -287,7 +287,8 @@ void BondHybrid::init_style()
 
 double BondHybrid::equilibrium_distance(int i)
 {
-  if (map[i] < 0) error->one(FLERR,"Invoked bond equil distance on bond style none");
+  if (map[i] < 0) 
+    error->one(FLERR,"Invoked bond equil distance on bond style none");
   return styles[map[i]]->equilibrium_distance(i);
 }
 

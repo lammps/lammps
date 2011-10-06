@@ -165,16 +165,19 @@ void DihedralHybrid::settings(int narg, char **arg)
   styles = new Dihedral*[nstyles];
   keywords = new char*[nstyles];
 
+  int dummy;
+
   for (int m = 0; m < nstyles; m++) {
     for (int i = 0; i < m; i++)
       if (strcmp(arg[m],arg[i]) == 0) 
 	error->all(FLERR,"Dihedral style hybrid cannot use "
 		   "same dihedral style twice");
     if (strcmp(arg[m],"hybrid") == 0) 
-      error->all(FLERR,"Dihedral style hybrid cannot have hybrid as an argument");
+      error->all(FLERR,
+		 "Dihedral style hybrid cannot have hybrid as an argument");
     if (strcmp(arg[m],"none") == 0) 
       error->all(FLERR,"Dihedral style hybrid cannot have none as an argument");
-    styles[m] = force->new_dihedral(arg[m]);
+    styles[m] = force->new_dihedral(arg[m],lmp->suffix,dummy);
     keywords[m] = new char[strlen(arg[m])+1];
     strcpy(keywords[m],arg[m]);
   }
@@ -269,14 +272,14 @@ void DihedralHybrid::read_restart(FILE *fp)
 
   allocate();
 
-  int n;
+  int n,dummy;
   for (int m = 0; m < nstyles; m++) {
     if (me == 0) fread(&n,sizeof(int),1,fp);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     keywords[m] = new char[n];
     if (me == 0) fread(keywords[m],sizeof(char),n,fp);
     MPI_Bcast(keywords[m],n,MPI_CHAR,0,world);
-    styles[m] = force->new_dihedral(keywords[m]);
+    styles[m] = force->new_dihedral(keywords[m],lmp->suffix,dummy);
   }
 }
 

@@ -27,14 +27,14 @@ namespace LAMMPS_NS {
 class PairEDIP : public Pair {
  public:
   PairEDIP(class LAMMPS *);
-  ~PairEDIP();
-  void compute(int, int);
+  virtual ~PairEDIP();
+  virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
   double init_one(int, int);
   void init_style();
 
- private:
+ protected:
   struct Param {
     double A, B;
     double cutoffA, cutoffC, cutsq;

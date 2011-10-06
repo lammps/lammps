@@ -28,15 +28,15 @@ namespace LAMMPS_NS {
 class FixQEQComb : public Fix {
  public:
   FixQEQComb(class LAMMPS *, int, char **);
-  ~FixQEQComb();
+  virtual ~FixQEQComb();
   int setmask();
-  void init();
+  virtual void init();
   void setup(int);
-  void post_force(int);
+  virtual void post_force(int);
   void post_force_respa(int,int,int);
   double memory_usage();
 
- private:
+ protected:
   int me,firstflag;
   double precision;
   int nlevels_respa;

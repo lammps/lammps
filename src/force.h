@@ -69,22 +69,22 @@ class Force : protected Pointers {
   ~Force();
   void init();
 
-  void create_pair(const char *, char *suffix = NULL);
-  class Pair *new_pair(const char *, char *, int &);
+  void create_pair(const char *, const char *suffix = NULL);
+  class Pair *new_pair(const char *, const char *, int &);
   class Pair *pair_match(const char *, int);
 
-  void create_bond(const char *);
-  class Bond *new_bond(const char *);
+  void create_bond(const char *, const char *suffix = NULL);
+  class Bond *new_bond(const char *, const char *, int &);
   class Bond *bond_match(const char *); 
 
-  void create_angle(const char *);
-  class Angle *new_angle(const char *);
+  void create_angle(const char *, const char *suffix = NULL);
+  class Angle *new_angle(const char *, const char *, int &);
 
-  void create_dihedral(const char *);
-  class Dihedral *new_dihedral(const char *);
+  void create_dihedral(const char *, const char *suffix = NULL);
+  class Dihedral *new_dihedral(const char *, const char *, int &);
 
-  void create_improper(const char *);
-  class Improper *new_improper(const char *);
+  void create_improper(const char *, const char *suffix = NULL);
+  class Improper *new_improper(const char *, const char *, int &);
 
   void create_kspace(int, char **);
 

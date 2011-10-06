@@ -78,7 +78,7 @@ void AtomVecElectron::grow(int n)
   spin = memory->grow(atom->spin,nmax,"atom:spin");
   eradius = memory->grow(atom->eradius,nmax,"atom:eradius");
   ervel = memory->grow(atom->ervel,nmax,"atom:ervel");
-  erforce = memory->grow(atom->erforce,nmax,"atom:erforce");
+  erforce = memory->grow(atom->erforce,nmax*comm->nthreads,"atom:erforce");
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++) 
@@ -845,7 +845,7 @@ bigint AtomVecElectron::memory_usage()
   if (atom->memcheck("spin")) bytes += memory->usage(spin,nmax);
   if (atom->memcheck("eradius")) bytes += memory->usage(eradius,nmax);
   if (atom->memcheck("ervel")) bytes += memory->usage(ervel,nmax);
-  if (atom->memcheck("erforce")) bytes += memory->usage(erforce,nmax);
+  if (atom->memcheck("erforce")) bytes += memory->usage(erforce,nmax*comm->nthreads);
   
   return bytes;
 }

@@ -33,8 +33,6 @@
 
 using namespace LAMMPS_NS;
 
-enum{SPHERE_SPHERE,SPHERE_ELLIPSE,ELLIPSE_SPHERE,ELLIPSE_ELLIPSE};
-
 /* ---------------------------------------------------------------------- */
 
 PairRESquared::PairRESquared(LAMMPS *lmp) : Pair(lmp), 

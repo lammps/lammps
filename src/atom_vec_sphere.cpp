@@ -102,7 +102,7 @@ void AtomVecSphere::grow(int n)
   radius = memory->grow(atom->radius,nmax,"atom:radius");
   rmass = memory->grow(atom->rmass,nmax,"atom:rmass");
   omega = memory->grow(atom->omega,nmax,3,"atom:omega");
-  torque = memory->grow(atom->torque,nmax,3,"atom:torque");
+  torque = memory->grow(atom->torque,nmax*comm->nthreads,3,"atom:torque");
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
@@ -1053,7 +1053,7 @@ bigint AtomVecSphere::memory_usage()
   if (atom->memcheck("radius")) bytes += memory->usage(radius,nmax);
   if (atom->memcheck("rmass")) bytes += memory->usage(rmass,nmax);
   if (atom->memcheck("omega")) bytes += memory->usage(omega,nmax,3);
-  if (atom->memcheck("torque")) bytes += memory->usage(torque,nmax,3);
+  if (atom->memcheck("torque")) bytes += memory->usage(torque,nmax*comm->nthreads,3);
 
   return bytes;
 }

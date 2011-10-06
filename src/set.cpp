@@ -30,7 +30,10 @@
 #include "math_extra.h"
 #include "error.h"
 
+#include "math_const.h"
+
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 enum{ATOM_SELECT,MOL_SELECT,TYPE_SELECT,GROUP_SELECT,REGION_SELECT};
 enum{TYPE,TYPE_FRACTION,MOLECULE,X,Y,Z,CHARGE,MASS,SHAPE,
@@ -39,13 +42,6 @@ enum{TYPE,TYPE_FRACTION,MOLECULE,X,Y,Z,CHARGE,MASS,SHAPE,
      MESO_E,MESO_CV,MESO_RHO};
 
 #define BIG INT_MAX
-
-/* ---------------------------------------------------------------------- */
-
-Set::Set(LAMMPS *lmp) : Pointers(lmp)
-{
-  PI = 4.0*atan(1.0);
-}
 
 /* ---------------------------------------------------------------------- */
 
@@ -415,11 +411,11 @@ void Set::set(int keyword)
 
     else if (keyword == DENSITY) {
       if (atom->radius_flag && atom->radius[i] > 0.0)
-	atom->rmass[i] = 4.0*PI/3.0 * 
+	atom->rmass[i] = 4.0*MY_PI*THIRD * 
 	  atom->radius[i]*atom->radius[i]*atom->radius[i] * dvalue;
       else if (atom->ellipsoid_flag && atom->ellipsoid[i] >= 0) {
 	double *shape = avec_ellipsoid->bonus[atom->ellipsoid[i]].shape;
-	atom->rmass[i] = 4.0*PI/3.0 * shape[0]*shape[1]*shape[2] * dvalue;
+	atom->rmass[i] = 4.0*MY_PI*THIRD * shape[0]*shape[1]*shape[2] * dvalue;
       } else atom->rmass[i] = dvalue;
 
     // reset any or all of 3 image flags
@@ -450,7 +446,7 @@ void Set::set(int keyword)
       if (atom->ellipsoid[i] < 0)
 	error->one(FLERR,"Cannot set quaternion for atom that is not an ellipsoid");
       double *quat = avec_ellipsoid->bonus[atom->ellipsoid[i]].quat;
-      double theta2 = 0.5 * PI * wvalue/180.0;
+      double theta2 = MY_PI2 * wvalue/180.0;
       double sintheta2 = sin(theta2);
       quat[0] = cos(theta2);
       quat[1] = xvalue * sintheta2;
@@ -554,8 +550,8 @@ void Set::setrandom(int keyword)
 	  s = random->uniform();
 	  t1 = sqrt(1.0-s);
 	  t2 = sqrt(s);
-	  theta1 = 2.0*PI*random->uniform();
-	  theta2 = 2.0*PI*random->uniform();
+	  theta1 = 2.0*MY_PI*random->uniform();
+	  theta2 = 2.0*MY_PI*random->uniform();
 	  quat[0] = cos(theta2)*t2;
 	  quat[1] = sin(theta1)*t1;
 	  quat[2] = cos(theta1)*t1;
@@ -572,7 +568,7 @@ void Set::setrandom(int keyword)
 		       "that is not an ellipsoid");
 	  quat = bonus[ellipsoid[i]].quat;
 	  random->reset(seed,x[i]);
-	  theta2 = PI*random->uniform();
+	  theta2 = MY_PI*random->uniform();
 	  quat[0] = cos(theta2);
 	  quat[1] = 0.0;
 	  quat[2] = 0.0;

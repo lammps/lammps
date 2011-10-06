@@ -161,7 +161,7 @@ void PairPeriPMB::compute(int eflag, int vflag)
         dr = r - d_ij;
 
         rk = (15.0 * kspring[itype][jtype] * vfrac[j]) * 
-	  (dr / sqrt(cutsq[itype][jtype]));
+	  (dr / cut[itype][jtype]);
         if (r > 0.0) fpair = -(rk/r);
         else fpair = 0.0;
 
@@ -182,7 +182,7 @@ void PairPeriPMB::compute(int eflag, int vflag)
 
   // grow bond forces array if necessary
 
-  if (nlocal > nmax) {
+  if (atom->nmax > nmax) {
     memory->destroy(s0_new);
     nmax = atom->nmax;
     memory->create(s0_new,nmax,"pair:s0_new");
@@ -223,7 +223,7 @@ void PairPeriPMB::compute(int eflag, int vflag)
       if (periodic) domain->minimum_image(delx,dely,delz);
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
-      delta = sqrt(cutsq[itype][jtype]);
+      delta = cut[itype][jtype];
       r = sqrt(rsq);
       dr = r - r0[i][jj];
 
@@ -345,6 +345,7 @@ double PairPeriPMB::init_one(int i, int j)
   kspring[j][i] = kspring[i][j];
   alpha[j][i] = alpha[i][j];
   s00[j][i] = s00[i][j];
+  cut[j][i] = cut[i][j];
 
   return cut[i][j];
 }

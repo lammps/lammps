@@ -46,6 +46,7 @@ PairGranHookeHistory::PairGranHookeHistory(LAMMPS *lmp) : Pair(lmp)
   no_virial_fdotr_compute = 1;
   history = 1;
   fix_history = NULL;
+  suffix = NULL;
 
   laststep = -1;
 }
@@ -55,6 +56,7 @@ PairGranHookeHistory::PairGranHookeHistory(LAMMPS *lmp) : Pair(lmp)
 PairGranHookeHistory::~PairGranHookeHistory()
 {
   if (fix_history) modify->delete_fix("SHEAR_HISTORY");
+  if (suffix) delete[] suffix;
 
   if (allocated) {
     memory->destroy(setflag);
@@ -393,7 +395,7 @@ void PairGranHookeHistory::init_style()
     fixarg[0] = (char *) "SHEAR_HISTORY";
     fixarg[1] = (char *) "all";
     fixarg[2] = (char *) "SHEAR_HISTORY";
-    modify->add_fix(3,fixarg);
+    modify->add_fix(3,fixarg,suffix);
     delete [] fixarg;
     fix_history = (FixShearHistory *) modify->fix[modify->nfix-1];
     fix_history->pair = this;

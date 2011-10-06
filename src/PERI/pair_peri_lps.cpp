@@ -174,7 +174,7 @@ void PairPeriLPS::compute(int eflag, int vflag)
 
         double kshort = (15.0 * 18.0 * bulkmodulus[itype][itype]) /
 	  (3.141592653589793 * cutsq[itype][jtype] * cutsq[itype][jtype]);
-        rk = (kshort * vfrac[j]) * (dr / sqrt(cutsq[itype][jtype]));
+        rk = (kshort * vfrac[j]) * (dr / cut[itype][jtype]);
 
         if (r > 0.0) fpair = -(rk/r);
         else fpair = 0.0;
@@ -214,9 +214,9 @@ void PairPeriLPS::compute(int eflag, int vflag)
     comm->forward_comm_fix(modify->fix[ifix_peri]);
 
   // Volume-dependent part of the energy
-  for (i = 0; i < nlocal; i++) {   
-    itype = type[i];
-    if (eflag) {
+  if (eflag) {
+    for (i = 0; i < nlocal; i++) {   
+      itype = type[i];
       if (eflag_global)
 	eng_vdwl += 0.5 * bulkmodulus[itype][itype] * (theta[i] * theta[i]);
       if (eflag_atom)
@@ -266,7 +266,7 @@ void PairPeriLPS::compute(int eflag, int vflag)
       delz0 = ztmp0 - x0[j][2];						
       if (periodic) domain->minimum_image(delx0,dely0,delz0);   
       jtype = type[j];
-      delta = sqrt(cutsq[itype][jtype]);
+      delta = cut[itype][jtype];
       r = sqrt(rsq);
       dr = r - r0[i][jj];
 
@@ -316,8 +316,7 @@ void PairPeriLPS::compute(int eflag, int vflag)
       if (first)
          s0_new[i] = s00[itype][jtype] - (alpha[itype][jtype] * stretch);
       else
-         s0_new[i] = MAX(s0_new[i],
-                         s00[itype][jtype] - (alpha[itype][jtype] * stretch));
+         s0_new[i] = MAX(s0_new[i],s00[itype][jtype] - (alpha[itype][jtype] * stretch));
 
       first = false;
     }
@@ -372,11 +371,11 @@ void PairPeriLPS::coeff(int narg, char **arg)
   force->bounds(arg[0],atom->ntypes,ilo,ihi);
   force->bounds(arg[1],atom->ntypes,jlo,jhi);
 
-  double bulkmodulus_one = atof(arg[2]);	
-  double shearmodulus_one = atof(arg[3]);		
-  double cut_one = atof(arg[4]);			
-  double s00_one = atof(arg[5]);			
-  double alpha_one = atof(arg[6]);			
+  double bulkmodulus_one = atof(arg[2]);
+  double shearmodulus_one = atof(arg[3]);
+  double cut_one = atof(arg[4]);
+  double s00_one = atof(arg[5]);
+  double alpha_one = atof(arg[6]);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -402,10 +401,11 @@ double PairPeriLPS::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
-  bulkmodulus[j][i] = bulkmodulus[i][j];		
-  shearmodulus[j][i] = shearmodulus[i][j];		
-  s00[j][i] = s00[i][j];		
-  alpha[j][i] = alpha[i][j];		
+  bulkmodulus[j][i] = bulkmodulus[i][j];
+  shearmodulus[j][i] = shearmodulus[i][j];
+  s00[j][i] = s00[i][j];
+  alpha[j][i] = alpha[i][j];
+  cut[j][i] = cut[i][j];
 
   return cut[i][j];
 }
@@ -689,7 +689,7 @@ void PairPeriLPS::compute_dilatation()
       if (fabs(dr) < 2.2204e-016) dr = 0.0;
 
       jtype = type[j];
-      delta = sqrt(cutsq[itype][jtype]);
+      delta = cut[itype][jtype];
 
       // scale vfrac[j] if particle j near the horizon
 

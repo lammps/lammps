@@ -834,7 +834,7 @@ void Input::angle_style()
   if (narg < 1) error->all(FLERR,"Illegal angle_style command");
   if (atom->avec->angles_allow == 0) 
     error->all(FLERR,"Angle_style command when no angles allowed");
-  force->create_angle(arg[0]);
+  force->create_angle(arg[0],lmp->suffix);
   if (force->angle) force->angle->settings(narg-1,&arg[1]);
 }
 
@@ -875,7 +875,7 @@ void Input::bond_style()
   if (narg < 1) error->all(FLERR,"Illegal bond_style command");
   if (atom->avec->bonds_allow == 0) 
     error->all(FLERR,"Bond_style command when no bonds allowed");
-  force->create_bond(arg[0]);
+  force->create_bond(arg[0],lmp->suffix);
   if (force->bond) force->bond->settings(narg-1,&arg[1]);
 }
 
@@ -937,7 +937,7 @@ void Input::dihedral_style()
   if (narg < 1) error->all(FLERR,"Illegal dihedral_style command");
   if (atom->avec->dihedrals_allow == 0) 
     error->all(FLERR,"Dihedral_style command when no dihedrals allowed");
-  force->create_dihedral(arg[0]);
+  force->create_dihedral(arg[0],lmp->suffix);
   if (force->dihedral) force->dihedral->settings(narg-1,&arg[1]);
 }
 
@@ -1014,7 +1014,7 @@ void Input::improper_style()
   if (narg < 1) error->all(FLERR,"Illegal improper_style command");
   if (atom->avec->impropers_allow == 0) 
     error->all(FLERR,"Improper_style command when no impropers allowed");
-  force->create_improper(arg[0]);
+  force->create_improper(arg[0],lmp->suffix);
   if (force->improper) force->improper->settings(narg-1,&arg[1]);
 }
 

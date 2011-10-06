@@ -27,8 +27,8 @@ namespace LAMMPS_NS {
 class PairLubricate : public Pair {
  public:
   PairLubricate(class LAMMPS *);
-  ~PairLubricate();
-  void compute(int, int);
+  virtual ~PairLubricate();
+  virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
   double init_one(int, int);

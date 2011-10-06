@@ -112,7 +112,7 @@ void Force::init()
    create a pair style, called from input script or restart file
 ------------------------------------------------------------------------- */
 
-void Force::create_pair(const char *style, char *suffix)
+void Force::create_pair(const char *style, const char *suffix)
 {
   delete [] pair_style;
   if (pair) delete pair;
@@ -137,7 +137,7 @@ void Force::create_pair(const char *style, char *suffix)
    generate a pair class, first with suffix appended
 ------------------------------------------------------------------------- */
 
-Pair *Force::new_pair(const char *style, char *suffix, int &sflag)
+Pair *Force::new_pair(const char *style, const char *suffix, int &sflag)
 {
   if (suffix && lmp->suffix_enable) {
     sflag = 1;
@@ -185,26 +185,26 @@ Pair *Force::pair_match(const char *word, int exact)
   if (exact && strcmp(pair_style,word) == 0) return pair;
   else if (!exact && strstr(pair_style,word)) return pair;
 
-  else if (strcmp(pair_style,"hybrid") == 0) {
-    PairHybrid *hybrid = (PairHybrid *) pair;
-    count = 0;
-    for (int i = 0; i < hybrid->nstyles; i++) {
-      if (exact && strcmp(hybrid->keywords[i],word) == 0)
-	return hybrid->styles[i];
-      if (!exact && strstr(hybrid->keywords[i],word)) {
-	iwhich = i;
-	count++;
-      }
-    }
-    if (!exact && count == 1) return hybrid->styles[iwhich];
-
-  } else if (strcmp(pair_style,"hybrid/overlay") == 0) {
+  else if (strstr(pair_style,"hybrid/overlay")) {
     PairHybridOverlay *hybrid = (PairHybridOverlay *) pair;
     count = 0;
     for (int i = 0; i < hybrid->nstyles; i++) {
       if (exact && strcmp(hybrid->keywords[i],word) == 0)
 	return hybrid->styles[i];
       else if (!exact && strstr(hybrid->keywords[i],word)) {
+	iwhich = i;
+	count++;
+      }
+    }
+    if (!exact && count == 1) return hybrid->styles[iwhich];
+
+  } else if (strstr(pair_style,"hybrid")) {
+    PairHybrid *hybrid = (PairHybrid *) pair;
+    count = 0;
+    for (int i = 0; i < hybrid->nstyles; i++) {
+      if (exact && strcmp(hybrid->keywords[i],word) == 0)
+	return hybrid->styles[i];
+      if (!exact && strstr(hybrid->keywords[i],word)) {
 	iwhich = i;
 	count++;
       }
@@ -219,23 +219,50 @@ Pair *Force::pair_match(const char *word, int exact)
    create a bond style, called from input script or restart file
 ------------------------------------------------------------------------- */
 
-void Force::create_bond(const char *style)
+void Force::create_bond(const char *style, const char *suffix)
 {
   delete [] bond_style;
   if (bond) delete bond;
 
-  bond = new_bond(style);
-  int n = strlen(style) + 1;
-  bond_style = new char[n];
-  strcpy(bond_style,style);
+  int sflag;
+  bond = new_bond(style,suffix,sflag);
+
+  if (sflag) {
+    char estyle[256];
+    sprintf(estyle,"%s/%s",style,suffix);
+    int n = strlen(estyle) + 1;
+    bond_style = new char[n];
+    strcpy(bond_style,estyle);
+  } else {
+    int n = strlen(style) + 1;
+    bond_style = new char[n];
+    strcpy(bond_style,style);
+  }
 }
 
 /* ----------------------------------------------------------------------
-   generate a bond class
+   generate a bond class, fist with suffix appended
 ------------------------------------------------------------------------- */
 
-Bond *Force::new_bond(const char *style)
+Bond *Force::new_bond(const char *style, const char *suffix, int &sflag)
 {
+  if (suffix && lmp->suffix_enable) {
+    sflag = 1;
+    char estyle[256];
+    sprintf(estyle,"%s/%s",style,suffix);
+
+    if (0) return NULL;
+
+#define BOND_CLASS
+#define BondStyle(key,Class) \
+    else if (strcmp(estyle,#key) == 0) return new Class(lmp);
+#include "style_bond.h"
+#undef BondStyle
+#undef BOND_CLASS
+  }
+
+  sflag = 0;
+
   if (strcmp(style,"none") == 0) return NULL;
 
 #define BOND_CLASS
@@ -267,23 +294,51 @@ Bond *Force::bond_match(const char *style)
    create an angle style, called from input script or restart file
 ------------------------------------------------------------------------- */
 
-void Force::create_angle(const char *style)
+void Force::create_angle(const char *style, const char *suffix)
 {
   delete [] angle_style;
   if (angle) delete angle;
 
-  angle = new_angle(style);
-  int n = strlen(style) + 1;
-  angle_style = new char[n];
-  strcpy(angle_style,style);
+  int sflag;
+  angle = new_angle(style,suffix,sflag);
+
+  if (sflag) {
+    char estyle[256];
+    sprintf(estyle,"%s/%s",style,suffix);
+    int n = strlen(estyle) + 1;
+    angle_style = new char[n];
+    strcpy(angle_style,estyle);
+  } else {
+    int n = strlen(style) + 1;
+    angle_style = new char[n];
+    strcpy(angle_style,style);
+  }
 }
 
 /* ----------------------------------------------------------------------
    generate an angle class
 ------------------------------------------------------------------------- */
 
-Angle *Force::new_angle(const char *style)
+Angle *Force::new_angle(const char *style, const char *suffix, int &sflag)
 {
+  if (suffix && lmp->suffix_enable) {
+    sflag = 1;
+    char estyle[256];
+    sprintf(estyle,"%s/%s",style,suffix);
+
+    if (0) return NULL;
+
+#define ANGLE_CLASS
+#define AngleStyle(key,Class) \
+    else if (strcmp(estyle,#key) == 0) return new Class(lmp);
+#include "style_angle.h"
+#undef AngleStyle
+#undef ANGLE_CLASS
+
+  }
+
+  sflag = 0;
+
   if (strcmp(style,"none") == 0) return NULL;
 
 #define ANGLE_CLASS
@@ -300,29 +355,58 @@ Angle *Force::new_angle(const char *style)
    create a dihedral style, called from input script or restart file
 ------------------------------------------------------------------------- */
 
-void Force::create_dihedral(const char *style)
+void Force::create_dihedral(const char *style, const char *suffix)
 {
   delete [] dihedral_style;
   if (dihedral) delete dihedral;
 
-  dihedral = new_dihedral(style);
-  int n = strlen(style) + 1;
-  dihedral_style = new char[n];
-  strcpy(dihedral_style,style);
+  int sflag;
+  dihedral = new_dihedral(style,suffix,sflag);
+
+  if (sflag) {
+    char estyle[256];
+    sprintf(estyle,"%s/%s",style,suffix);
+    int n = strlen(estyle) + 1;
+    dihedral_style = new char[n];
+    strcpy(dihedral_style,estyle);
+  } else {
+    int n = strlen(style) + 1;
+    dihedral_style = new char[n];
+    strcpy(dihedral_style,style);
+  }
 }
 
 /* ----------------------------------------------------------------------
    generate a dihedral class
 ------------------------------------------------------------------------- */
 
-Dihedral *Force::new_dihedral(const char *style)
+Dihedral *Force::new_dihedral(const char *style, const char *suffix, int &sflag)
 {
+  if (suffix && lmp->suffix_enable) {
+    sflag = 1;
+    char estyle[256];
+    sprintf(estyle,"%s/%s",style,suffix);
+
+    if (0) return NULL;
+
+#define DIHEDRAL_CLASS
+#define DihedralStyle(key,Class) \
+    else if (strcmp(estyle,#key) == 0) return new Class(lmp);
+#include "style_dihedral.h"
+#undef DihedralStyle
+#undef DIHEDRAL_CLASS
+
+  }
+
+  sflag = 0;
+
   if (strcmp(style,"none") == 0) return NULL;
 
 #define DIHEDRAL_CLASS
 #define DihedralStyle(key,Class) \
   else if (strcmp(style,#key) == 0) return new Class(lmp);
 #include "style_dihedral.h"
+#undef DihedralStyle
 #undef DIHEDRAL_CLASS
 
   else error->all(FLERR,"Invalid dihedral style");
@@ -333,23 +417,51 @@ Dihedral *Force::new_dihedral(const char *style)
    create an improper style, called from input script or restart file
 ------------------------------------------------------------------------- */
 
-void Force::create_improper(const char *style)
+void Force::create_improper(const char *style, const char *suffix)
 {
   delete [] improper_style;
   if (improper) delete improper;
 
-  improper = new_improper(style);
-  int n = strlen(style) + 1;
-  improper_style = new char[n];
-  strcpy(improper_style,style);
+  int sflag;
+  improper = new_improper(style,suffix,sflag);
+
+  if (sflag) {
+    char estyle[256];
+    sprintf(estyle,"%s/%s",style,suffix);
+    int n = strlen(estyle) + 1;
+    improper_style = new char[n];
+    strcpy(improper_style,estyle);
+  } else {
+    int n = strlen(style) + 1;
+    improper_style = new char[n];
+    strcpy(improper_style,style);
+  }
 }
 
 /* ----------------------------------------------------------------------
    generate a improper class
 ------------------------------------------------------------------------- */
 
-Improper *Force::new_improper(const char *style)
+Improper *Force::new_improper(const char *style, const char *suffix, int &sflag)
 {
+  if (suffix && lmp->suffix_enable) {
+    sflag = 1;
+    char estyle[256];
+    sprintf(estyle,"%s/%s",style,suffix);
+
+    if (0) return NULL;
+
+#define IMPROPER_CLASS
+#define ImproperStyle(key,Class) \
+    else if (strcmp(estyle,#key) == 0) return new Class(lmp);
+#include "style_improper.h"
+#undef ImproperStyle
+#undef IMPROPER_CLASS
+
+  }
+
+  sflag = 0;
+
   if (strcmp(style,"none") == 0) return NULL;
 
 #define IMPROPER_CLASS

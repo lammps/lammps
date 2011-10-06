@@ -27,8 +27,9 @@ namespace LAMMPS_NS {
 class PairTable : public Pair {
  public:
   PairTable(class LAMMPS *);
-  ~PairTable();
-  void compute(int, int);
+  virtual ~PairTable();
+
+  virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
   double init_one(int, int);
@@ -39,8 +40,9 @@ class PairTable : public Pair {
   double single(int, int, int, int, double, double, double, double &);
   void *extract(char *, int &);
 
- private:
+ protected:
   int tabstyle,tablength;
+  enum {LOOKUP=0, LINEAR=1, SPLINE=2, BITMAP=3};
   struct Table {
     int ninput,rflag,fpflag,match,ntablebits;
     int nshiftbits,nmask;

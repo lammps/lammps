@@ -90,7 +90,7 @@ void AtomVecEllipsoid::grow(int n)
 
   rmass = memory->grow(atom->rmass,nmax,"atom:rmass");
   angmom = memory->grow(atom->angmom,nmax,3,"atom:angmom");
-  torque = memory->grow(atom->torque,nmax,3,"atom:torque");
+  torque = memory->grow(atom->torque,nmax*comm->nthreads,3,"atom:torque");
   ellipsoid = memory->grow(atom->ellipsoid,nmax,"atom:ellipsoid");
 
   if (atom->nextra_grow)
@@ -1250,7 +1250,7 @@ bigint AtomVecEllipsoid::memory_usage()
 
   if (atom->memcheck("rmass")) bytes += memory->usage(rmass,nmax);
   if (atom->memcheck("angmom")) bytes += memory->usage(angmom,nmax,3);
-  if (atom->memcheck("torque")) bytes += memory->usage(torque,nmax,3);
+  if (atom->memcheck("torque")) bytes += memory->usage(torque,nmax*comm->nthreads,3);
   if (atom->memcheck("ellipsoid")) bytes += memory->usage(ellipsoid,nmax);
   
   bytes += nmax_bonus*sizeof(Bonus);

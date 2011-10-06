@@ -30,8 +30,6 @@
 
 using namespace LAMMPS_NS;
 
-enum{SMALL_SMALL,SMALL_LARGE,LARGE_LARGE};
-
 /* ---------------------------------------------------------------------- */
 
 PairColloid::PairColloid(LAMMPS *lmp) : Pair(lmp) {}

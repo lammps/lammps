@@ -35,7 +35,7 @@ public:
   virtual ~PairCDEAM();
 
   /// Calculates the energies and forces for all atoms in the system.
-  void compute(int, int);
+  virtual void compute(int, int);
   
   /// Parses the pair_coeff command parameters for this pair style.
   void coeff(int, char **);
@@ -62,7 +62,7 @@ public:
       v = (v + hcoeff[i]) * x;
     }
     return v + hcoeff[0];
-  }
+  };
   
   // Calculates the derivative of the h(x) polynomial.
   inline double evalHprime(double x) const {
@@ -71,7 +71,7 @@ public:
       v = (v + (double)i * hcoeff[i]) * x;
     }
     return v + hcoeff[1];
-  }
+  };
   
   // We have two versions of the CD-EAM potential. The user can choose which one he wants to use:
   //
@@ -124,7 +124,7 @@ public:
     index.p -= index.m;
     index.p = index.p <= 1.0 ? index.p : 1.0;
     return index;
-  }
+  };
   
   // Converts a density value to an index value to be used in a spline table lookup.
   inline EAMTableIndex rhoToTableIndex(double rho) const {
@@ -135,43 +135,43 @@ public:
     index.p -= index.m;
     index.p = index.p <= 1.0 ? index.p : 1.0;
     return index;
-  }
+  };
   
   // Computes the derivative of rho(r)
   inline double RhoPrimeOfR(const EAMTableIndex& index, int itype, int jtype) const {
     const double* coeff = rhor_spline[type2rhor[itype][jtype]][index.m];
     return (coeff[0]*index.p + coeff[1])*index.p + coeff[2];
-  }
+  };
   
   // Computes rho(r)
   inline double RhoOfR(const EAMTableIndex& index, int itype, int jtype) const {
     const double* coeff = rhor_spline[type2rhor[itype][jtype]][index.m];
     return ((coeff[3]*index.p + coeff[4])*index.p + coeff[5])*index.p + coeff[6];
-  }
+  };
   
   // Computes the derivative of F(rho)
   inline double FPrimeOfRho(const EAMTableIndex& index, int itype) const {
     const double* coeff = frho_spline[type2frho[itype]][index.m];
     return (coeff[0]*index.p + coeff[1])*index.p + coeff[2];
-  }
+  };
   
   // Computes F(rho)
   inline double FofRho(const EAMTableIndex& index, int itype) const {
     const double* coeff = frho_spline[type2frho[itype]][index.m];
     return ((coeff[3]*index.p + coeff[4])*index.p + coeff[5])*index.p + coeff[6];
-  }
+  };
   
   // Computes the derivative of z2(r)
   inline double Z2PrimeOfR(const EAMTableIndex& index, int itype, int jtype) const {
     const double* coeff = z2r_spline[type2z2r[itype][jtype]][index.m];
     return (coeff[0]*index.p + coeff[1])*index.p + coeff[2];
-  }
-  
+  };
+
   // Computes z2(r)
   inline double Z2OfR(const EAMTableIndex& index, int itype, int jtype) const {
     const double* coeff = z2r_spline[type2z2r[itype][jtype]][index.m];
     return ((coeff[3]*index.p + coeff[4])*index.p + coeff[5])*index.p + coeff[6];
-  }
+  };
   
   // Computes pair potential V_ij(r).
   inline double PhiOfR(const EAMTableIndex& index, int itype, int jtype, const double oneOverR) const {
@@ -180,7 +180,7 @@ public:
     const double* coeff = z2r_spline[type2z2r[itype][jtype]][index.m];
     const double z2 = ((coeff[3]*index.p + coeff[4])*index.p + coeff[5])*index.p + coeff[6];
     return z2 * oneOverR;
-  }
+  };
   
   // Computes pair potential V_ij(r) and its derivative.
   inline double PhiOfR(const EAMTableIndex& index, int itype, int jtype, const double oneOverR, double& phid) const {
@@ -194,7 +194,7 @@ public:
     const double phi = z2 * oneOverR;
     phid = z2p * oneOverR - phi * oneOverR;
     return phi;
-  }
+  };
   
   // Parameters
   
@@ -224,7 +224,7 @@ public:
      PairCDEAM_TwoSite(class LAMMPS* lmp) : PairEAM(lmp), PairCDEAM(lmp, 2) {}
    };
  
-};
+}
 
 #endif
 #endif

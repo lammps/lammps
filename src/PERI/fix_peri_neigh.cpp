@@ -260,8 +260,8 @@ void FixPeriNeigh::setup(int vflag)
   double **x0 = atom->x0;
   double half_lc = 0.5*(domain->lattice->xlattice);
   double vfrac_scale;
-  PairPeriLPS *pairlps = dynamic_cast<PairPeriLPS*>(anypair);
-  PairPeriPMB *pairpmb = dynamic_cast<PairPeriPMB*>(anypair);
+  PairPeriLPS *pairlps = static_cast<PairPeriLPS*>(anypair);
+  PairPeriPMB *pairpmb = static_cast<PairPeriPMB*>(anypair);
   for (i = 0; i < nlocal; i++) {
     double xtmp0 = x0[i][0];
     double ytmp0 = x0[i][1];

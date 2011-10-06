@@ -84,7 +84,7 @@ void AtomVecWavepacket::grow(int n)
   spin = memory->grow(atom->spin,nmax,"atom:spin");
   eradius = memory->grow(atom->eradius,nmax,"atom:eradius");
   ervel = memory->grow(atom->ervel,nmax,"atom:ervel");
-  erforce = memory->grow(atom->erforce,nmax,"atom:erforce");
+  erforce = memory->grow(atom->erforce,nmax*comm->nthreads,"atom:erforce");
 
   cs = memory->grow(atom->cs,2*nmax,"atom:cs");
   csforce = memory->grow(atom->csforce,2*nmax,"atom:csforce");
@@ -997,7 +997,7 @@ bigint AtomVecWavepacket::memory_usage()
   if (atom->memcheck("spin")) bytes += memory->usage(spin,nmax);
   if (atom->memcheck("eradius")) bytes += memory->usage(eradius,nmax);
   if (atom->memcheck("ervel")) bytes += memory->usage(ervel,nmax);
-  if (atom->memcheck("erforce")) bytes += memory->usage(erforce,nmax);
+  if (atom->memcheck("erforce")) bytes += memory->usage(erforce,nmax*comm->nthreads);
 
   if (atom->memcheck("ervelforce")) bytes += memory->usage(ervelforce,nmax);
   if (atom->memcheck("cs")) bytes += memory->usage(cs,2*nmax);

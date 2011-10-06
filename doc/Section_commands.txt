@@ -835,12 +835,6 @@ package"_Section_start.html#start_3.
 "harmonic/shift"_bond_harmonic_shift.html,
 "harmonic/shift/cut"_bond_harmonic_shift_cut.html :tb(c=4,ea=c)
 
-These are accelerated bond styles, which can be used if LAMMPS is
-built with the "appropriate accelerated
-package"_Section_accelerate.html.
-
-"hybrid/omp"_bond_hybrid.html :tb(c=4,ea=c)
-
 :line
 
 Angle_style potentials :h4
@@ -866,12 +860,6 @@ package"_Section_start.html#start_3.
 "cg/cmm"_angle_cmm.html,
 "cosine/shift"_angle_cosine_shift.html,
 "cosine/shift/exp"_angle_cosine_shift_exp.html :tb(c=4,ea=c)
-
-These are accelerated angle styles, which can be used if LAMMPS is
-built with the "appropriate accelerated
-package"_Section_accelerate.html.
-
-"hybrid/omp"_angle_hybrid.html :tb(c=4,ea=c)
 
 :line
 
@@ -900,7 +888,6 @@ These are accelerated dihedral styles, which can be used if LAMMPS is
 built with the "appropriate accelerated
 package"_Section_accelerate.html.
 
-"hybrid/omp"_dihedral_hybrid.html,
 "charmm/omp"_dihedral_charmm.html,
 "class2/omp"_dihedral_class2.html,
 "cosine/shift/exp/omp"_dihedral_cosine_shift_exp.html,
@@ -923,12 +910,6 @@ description:
 "cvff"_improper_cvff.html,
 "harmonic"_improper_harmonic.html,
 "umbrella"_improper_umbrella.html :tb(c=4,ea=c,w=100)
-
-These are accelerated improper styles, which can be used if LAMMPS is
-built with the "appropriate accelerated
-package"_Section_accelerate.html.
-
-"hybrid/omp"_improper_hybrid.html :tb(c=4,ea=c,w=100)
 
 :line
 

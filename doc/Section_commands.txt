@@ -682,7 +682,7 @@ package"_Section_start.html#start_3.
 "eff/cut"_pair_eff.html,
 "lj/coul"_pair_lj_coul.html,
 "lj/sf"_pair_lj_sf.html,
-"reax/c"_pair_reax_c.html
+"reax/c"_pair_reax_c.html,
 "sph/heatconduction"_pair_heatconduction.html,
 "sph/idealgas"_pair_idealgas.html,
 "sph/lj"_pair_lj.html,

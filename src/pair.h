@@ -71,6 +71,17 @@ class Pair : protected Pointers {
   void init_bitmap(double, double, int, int &, int &, int &, int &);
   virtual void modify_params(int, char **);
 
+  // need to be public, so can be called by pair_style reaxc
+
+  void v_tally(int, double *);
+  void ev_tally(int, int, int, int, double, double, double,
+		double, double, double);
+  void ev_tally3(int, int, int, double, double,
+		 double *, double *, double *, double *);
+  void v_tally3(int, int, int, double *, double *, double *, double *);
+  void v_tally4(int, int, int, int, double *, double *, double *,
+		double *, double *, double *);
+
   // general child-class methods
 
   virtual void compute(int, int) = 0;
@@ -125,26 +136,20 @@ class Pair : protected Pointers {
   int evflag;                          // energy,virial settings
   int eflag_either,eflag_global,eflag_atom;
   int vflag_either,vflag_global,vflag_atom;
+
   int vflag_fdotr;
   int maxeatom,maxvatom;
 
   virtual void ev_setup(int, int);
-  void ev_tally(int, int, int, int, double, double, double,
-		double, double, double);
   void ev_tally_full(int, double, double, double, double, double, double);
   void ev_tally_xyz(int, int, int, int, double, double,
 		    double, double, double, double, double, double);
   void ev_tally_xyz_full(int, double, double,
 			 double, double, double, double, double, double);
-  void ev_tally3(int, int, int, double, double,
-		 double *, double *, double *, double *);
   void ev_tally4(int, int, int, int, double,
 		 double *, double *, double *, double *, double *, double *);
   void ev_tally_list(int, int *, double, double *);
   void v_tally2(int, int, double, double *);
-  void v_tally3(int, int, int, double *, double *, double *, double *);
-  void v_tally4(int, int, int, int, double *, double *, double *,
-		double *, double *, double *);
   void v_tally_tensor(int, int, int, int,
 		      double, double, double, double, double, double);
   void virial_fdotr_compute();

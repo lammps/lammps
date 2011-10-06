@@ -24,7 +24,7 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "reaxc_types.h"
+#include "pair_reax_c.h"
 #if defined(PURE_REAX)
 #include "bonds.h"
 #include "bond_orders.h"
@@ -79,7 +79,7 @@ void Bonds( reax_system *system, control_params *control,
 	sbp_j = &( system->reax_param.sbp[type_j] );
 	twbp = &( system->reax_param.tbp[type_i][type_j] );
 	bo_ij = &( bonds->select.bond_list[pj].bo_data );
-	      
+
 	/* calculate the constants */
 	pow_BOs_be2 = pow( bo_ij->BO_s, twbp->p_be2 );
 	exp_be12 = exp( twbp->p_be1 * ( 1.0 - pow_BOs_be2 ) );
@@ -91,7 +91,11 @@ void Bonds( reax_system *system, control_params *control,
 	  -twbp->De_s * bo_ij->BO_s * exp_be12 
 	  -twbp->De_p * bo_ij->BO_pi 
 	  -twbp->De_pp * bo_ij->BO_pi2;
-	      
+	
+	/* tally into per-atom energy */
+        if( system->evflag)
+          system->pair_ptr->ev_tally(i,j,natoms,1,ebond,0.0,0.0,0.0,0.0,0.0);
+	
 	/* calculate derivatives of Bond Orders */
 	bo_ij->Cdbo += CEbo;
 	bo_ij->Cdbopi -= (CEbo + twbp->De_p);
@@ -130,6 +134,10 @@ void Bonds( reax_system *system, control_params *control,
 	      (gp3*exphua1 + 25.0*gp4*exphuov*hulpov*(exphua1+exphub1));
 	    decobdboub = -gp10 * exphu * hulpov *
 	      (gp3*exphub1 + 25.0*gp4*exphuov*hulpov*(exphua1+exphub1));
+	    
+	    /* tally into per-atom energy */
+	    if( system->evflag)
+	      system->pair_ptr->ev_tally(i,j,natoms,1,estriph,0.0,0.0,0.0,0.0,0.0);
 	    
 	    bo_ij->Cdbo += decobdbo;
 	    workspace->CdDelta[i] += decobdboua;

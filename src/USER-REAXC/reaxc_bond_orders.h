@@ -53,7 +53,7 @@ void Add_dDelta( reax_system*, reax_list**, int, real, rvec* );
 void Add_dDelta_to_Forces( reax_system *, reax_list**, int, real );
 #endif
 
-void Add_dBond_to_Forces( int, int, storage*, reax_list** );
+void Add_dBond_to_Forces( reax_system*, int, int, storage*, reax_list** );
 void Add_dBond_to_Forces_NPT( int, int, simulation_data*, 
 			      storage*, reax_list** );
 int BOp(storage*, reax_list*, real, int, int, far_neighbor_data*,

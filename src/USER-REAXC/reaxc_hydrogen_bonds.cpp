@@ -24,7 +24,7 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "reaxc_types.h"
+#include "pair_reax_c.h"
 #if defined(PURE_REAX)
 #include "hydrogen_bonds.h"
 #include "bond_orders.h"
@@ -63,6 +63,9 @@ void Hydrogen_Bonds( reax_system *system, control_params *control,
   reax_list *bonds, *hbonds;
   bond_data *bond_list;
   hbond_data *hbond_list;
+
+  // tally variables
+  real fi_tmp[3], fk_tmp[3], delij[3], delkj[3];
 
   bonds = (*lists) + BONDS;
   bond_list = bonds->select.bond_list;
@@ -134,14 +137,16 @@ void Hydrogen_Bonds( reax_system *system, control_params *control,
 	    exp_hb2 = exp( -hbp->p_hb2 * bo_ij->BO );
 	    exp_hb3 = exp( -hbp->p_hb3 * ( hbp->r0_hb / r_jk + 
 					   r_jk / hbp->r0_hb - 2.0 ) );
-
+	    
 	    data->my_en.e_hb += e_hb = 
 	      hbp->p_hb1 * (1.0 - exp_hb2) * exp_hb3 * sin_xhz4;
-
+	    
 	    CEhb1 = hbp->p_hb1 * hbp->p_hb2 * exp_hb2 * exp_hb3 * sin_xhz4;
 	    CEhb2 = -hbp->p_hb1/2.0 * (1.0 - exp_hb2) * exp_hb3 * cos_xhz1;
 	    CEhb3 = -hbp->p_hb3 * 
 	      (-hbp->r0_hb / SQR(r_jk) + 1.0 / hbp->r0_hb) * e_hb;
+
+	    fprintf(stderr,"	H bond called \n");
 		    
 	    /*fprintf( stdout, 
 	      "%6d%6d%6d%12.6f%12.6f%12.6f%12.6f%12.6f%12.6f%12.6f%12.6f%12.6f\n",
@@ -184,6 +189,20 @@ void Hydrogen_Bonds( reax_system *system, control_params *control,
 	      rvec_Add( workspace->f[k], force );
 	      rvec_iMultiply( ext_press, rel_jk, force );
 	      rvec_ScaledAdd( data->my_ext_press, 1.0, ext_press );
+	    }
+
+	    /* tally into per-atom virials */
+	    if (system->vflag_atom || system->evflag) {
+	      rvec_ScaledSum( delij, 1., system->my_atoms[i].x,
+				    -1., system->my_atoms[j].x );
+	      rvec_ScaledSum( delkj, 1., system->my_atoms[k].x,
+	 			    -1., system->my_atoms[j].x );
+
+	      rvec_Scale(fi_tmp, CEhb2, dcos_theta_di);
+	      rvec_Scale(fk_tmp, CEhb2, dcos_theta_dk);
+	      rvec_ScaledAdd(fk_tmp, CEhb3/r_jk, dvec_jk);
+
+              system->pair_ptr->ev_tally3(i,j,k,e_hb,0.0,fi_tmp,fk_tmp,delij,delkj);
 	    }
 
 #ifdef TEST_ENERGY

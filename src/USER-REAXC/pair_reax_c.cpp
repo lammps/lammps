@@ -86,6 +86,7 @@ PairReaxC::PairReaxC(LAMMPS *lmp) : Pair(lmp)
   system->bndry_cuts.ghost_bond = 0;
   system->bndry_cuts.ghost_cutoff = 0;
   system->my_atoms = NULL;
+  system->pair_ptr = this;
 
   fix_reax = NULL;
 
@@ -265,7 +266,7 @@ void PairReaxC::coeff( int nargs, char **args )
 void PairReaxC::init_style( )
 {
   if (!atom->q_flag) error->all(FLERR,"Pair reax/c requires atom attribute q");
-  firstwarn = 1;
+  // firstwarn = 1;
 
   int iqeq;
   for (iqeq = 0; iqeq < modify->nfix; iqeq++)
@@ -395,12 +396,12 @@ void PairReaxC::compute(int eflag, int vflag)
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = eflag_global = vflag_global = 0;
 
-  if ((eflag_atom || vflag_atom) && firstwarn) {
+/*  if ((eflag_atom || vflag_atom) && firstwarn) {
     firstwarn = 0;
     if (comm->me == 0) 
       error->warning(FLERR,"Pair reax/c cannot yet compute "
 		     "per-atom energy or stress");
-  }
+  } */
 
   if (vflag_global) control->virial = 1;
   else control->virial = 0;
@@ -455,8 +456,8 @@ void PairReaxC::compute(int eflag, int vflag)
     ecoul += data->my_en.e_ele;
     ecoul += data->my_en.e_pol;
 
-    eng_vdwl += evdwl;
-    eng_coul += ecoul;
+    // eng_vdwl += evdwl;
+    // eng_coul += ecoul;
 
     // Store the different parts of the energy
     // in a list for output by compute pair command

@@ -396,13 +396,6 @@ void PairReaxC::compute(int eflag, int vflag)
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = eflag_global = vflag_global = 0;
 
-/*  if ((eflag_atom || vflag_atom) && firstwarn) {
-    firstwarn = 0;
-    if (comm->me == 0) 
-      error->warning(FLERR,"Pair reax/c cannot yet compute "
-		     "per-atom energy or stress");
-  } */
-
   if (vflag_global) control->virial = 1;
   else control->virial = 0;
 
@@ -414,6 +407,10 @@ void PairReaxC::compute(int eflag, int vflag)
   system->big_box.box_norms[0] = 0; 
   system->big_box.box_norms[1] = 0; 
   system->big_box.box_norms[2] = 0;
+
+  system->evflag = evflag;
+  system->vflag_atom = vflag_atom;
+
   if( comm->me == 0 ) t_start = MPI_Wtime();
 
   // setup data structures

@@ -89,6 +89,7 @@ USER-CG-CMM, coarse-graining model, Axel Kohlmeyer (Temple U), "pair_style cg/cm
 USER-CUDA, NVIDIA GPU styles, Christian Trott (U Tech Ilmenau), "accelerate"_Section_accelerate.html#acc_4, USER/cuda, -, lib/cuda
 USER-EFF, electron force field, Andres Jaramillo-Botero (Caltech), "pair_style eff/cut"_pair_eff.html, USER/eff, "eff"_eff, -
 USER-EWALDN, Ewald for 1/R^n, Pieter in' t Veld (BASF), "kspace_style"_kspace_style.html, -, -, -
+USER-OMP, OpenMP threaded styles, Axel Kohlmeyer (Temple U), "accelerate"_Section_accelerate.html#acc_2, -, -, -
 USER-REAXC, C version of ReaxFF, Metin Aktulga (LBNL), "pair_style reaxc"_pair_reax_c.html, reax, -, -
 USER-SPH, smoothed particle hydrodynamics, Georg Ganzenmuller (EMI), "SPH_LAMMPS_userguide.pdf"_USER/sph/SPH_LAMMPS_userguide.pdf, USER/sph, "sph"_sph, -
 :tb(ea=c)
@@ -312,6 +313,21 @@ See the doc pages for these commands for details.
 The person who created these files is Pieter in' t Veld while at
 Sandia.  He is now at BASF (pieter.intveld at basf.com).  Contact him
 directly if you have questions.
+
+:line
+
+USER-OMP package :h4
+
+This package provides OpenMP multi-threading support and
+other optimizations of various LAMMPS pair styles, dihedral
+styles, and fix styles.
+ 
+See this section of the manual to get started:
+
+"Section_accelerate"_Section_accelerate.html#acc_2
+
+The person who created this package is Axel Kohlmeyer at Temple U
+(akohlmey at gmail.com).  Contact him directly if you have questions.
 
 :line
 

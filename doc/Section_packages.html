@@ -97,6 +97,7 @@ E.g. "peptide" refers to the examples/peptide directory.
 <TR ALIGN="center"><TD >USER-CUDA</TD><TD > NVIDIA GPU styles</TD><TD > Christian Trott (U Tech Ilmenau)</TD><TD > <A HREF = "Section_accelerate.html#acc_4">accelerate</A></TD><TD > USER/cuda</TD><TD > -</TD><TD > lib/cuda</TD></TR>
 <TR ALIGN="center"><TD >USER-EFF</TD><TD > electron force field</TD><TD > Andres Jaramillo-Botero (Caltech)</TD><TD > <A HREF = "pair_eff.html">pair_style eff/cut</A></TD><TD > USER/eff</TD><TD > <A HREF = "http://lammps.sandia.gov/movies.html#eff">eff</A></TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-EWALDN</TD><TD > Ewald for 1/R^n</TD><TD > Pieter in' t Veld (BASF)</TD><TD > <A HREF = "kspace_style.html">kspace_style</A></TD><TD > -</TD><TD > -</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >USER-OMP</TD><TD > OpenMP threaded styles</TD><TD > Axel Kohlmeyer (Temple U)</TD><TD > <A HREF = "Section_accelerate.html#acc_2">accelerate</A></TD><TD > -</TD><TD > -</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-REAXC</TD><TD > C version of ReaxFF</TD><TD > Metin Aktulga (LBNL)</TD><TD > <A HREF = "pair_reax_c.html">pair_style reaxc</A></TD><TD > reax</TD><TD > -</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-SPH</TD><TD > smoothed particle hydrodynamics</TD><TD > Georg Ganzenmuller (EMI)</TD><TD > <A HREF = "USER/sph/SPH_LAMMPS_userguide.pdf">SPH_LAMMPS_userguide.pdf</A></TD><TD > USER/sph</TD><TD > <A HREF = "http://lammps.sandia.gov/movies.html#sph">sph</A></TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >
@@ -324,6 +325,21 @@ such as PPPM and ewald.
 <P>The person who created these files is Pieter in' t Veld while at
 Sandia.  He is now at BASF (pieter.intveld at basf.com).  Contact him
 directly if you have questions.
+</P>
+<HR>
+
+<H4>USER-OMP package 
+</H4>
+<P>This package provides OpenMP multi-threading support and
+other optimizations of various LAMMPS pair styles, dihedral
+styles, and fix styles.
+</P>
+<P>See this section of the manual to get started:
+</P>
+<P><A HREF = "Section_accelerate.html#acc_2">Section_accelerate</A>
+</P>
+<P>The person who created this package is Axel Kohlmeyer at Temple U
+(akohlmey at gmail.com).  Contact him directly if you have questions.
 </P>
 <HR>
 

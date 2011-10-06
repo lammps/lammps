@@ -12,7 +12,7 @@ suffix command :h3
 
 suffix style :pre
 
-style = {off} or {on} or {opt} or {gpu} or {cuda} :ul
+style = {off} or {on} or {opt} or {omp} or {gpu} or {cuda} :ul
 
 [Examples:]
 
@@ -27,24 +27,26 @@ exist.  In that respect it operates the same as the "-suffix
 command-line switch"_Section_start.html#start_6.  It also has options
 to turn off/on any suffix setting made via the command line.
 
-The specified style can be {opt} or {gpu} or {cuda}.  These refer to
+The specified style can be {opt}, {omp}, {gpu}, or {cuda}.  These refer to
 optional packages that LAMMPS can be built with, as described in "this
 section of the manual"_Section_start.html#start_3.  The "opt" style
-corrsponds to the OPT package, the "gpu" style to the GPU package, and
-the "cuda" style to the USER-CUDA package.
+corrsponds to the OPT package, the "omp" style to the USER-OMP package, 
+the "gpu" style to the GPU package, and the "cuda" style to the
+USER-CUDA package.
 
 These are the variants these packages provide:
 
 OPT = a handful of pair styles, cache-optimized for faster CPU performance
+USER-OMP = a collection of pair, dihedral and fix styles with support for OpenMP multi-threading
 GPU = a handful of pair styles and the PPPM kspace_style, optimized to run on one or more GPUs or multicore CPU/GPU nodes
 USER-CUDA = a collection of atom, pair, fix, compute, and intergrate styles, optimized to run on one or more NVIDIA GPUs :ul
 
 As an example, all of the packages provide a "pair_style
-lj/cut"_pair_lj.html variant, with style names lj/cut/opt or
-lj/cut/gpu or lj/cut/cuda.  A variant styles can be specified
+lj/cut"_pair_lj.html variant, with style names lj/cut/opt, lj/cut/omp,
+lj/cut/gpu, or lj/cut/cuda.  A variant styles can be specified
 explicitly in your input script, e.g. pair_style lj/cut/gpu.  If the
 suffix command is used with the appropriate style, you do not need to
-modify your input script.  The specified suffix (opt,gpu,cuda) is
+modify your input script.  The specified suffix (opt,omp,gpu,cuda) is
 automatically appended whenever your input script command creates a
 new "atom"_atom_style.html, "pair"_pair_style.html, "fix"_fix.html,
 "compute"_compute.html, or "run"_run_style.html style.  If the variant

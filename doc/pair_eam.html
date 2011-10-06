@@ -13,19 +13,27 @@
 </H3>
 <H3>pair_style eam/cuda command 
 </H3>
+<H3>pair_style eam/omp command 
+</H3>
 <H3>pair_style eam/opt command 
 </H3>
 <H3>pair_style eam/alloy command 
 </H3>
 <H3>pair_style eam/alloy/cuda command 
 </H3>
+<H3>pair_style eam/alloy/omp command 
+</H3>
 <H3>pair_style eam/alloy/opt command 
 </H3>
 <H3>pair_style eam/cd command 
 </H3>
+<H3>pair_style eam/cd/omp command 
+</H3>
 <H3>pair_style eam/fs command 
 </H3>
 <H3>pair_style eam/fs/cuda command 
+</H3>
+<H3>pair_style eam/fs/omp command 
 </H3>
 <H3>pair_style eam/fs/opt command 
 </H3>
@@ -365,15 +373,15 @@ are listed.
 </P>
 <HR>
 
-<P>Styles with a <I>cuda</I>, <I>gpu</I>, or <I>opt</I> suffix are functionally the same
-as the corresponding style without the suffix.  They have been
-optimized to run faster, depending on your available hardware, as
-discussed in <A HREF = "Section_accelerate.html">this section</A> of the manual.
+<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>omp</I>, or <I>opt</I> suffix are functionally 
+the same as the corresponding style without the suffix.  They have 
+been optimized to run faster, depending on your available hardware, 
+as discussed in <A HREF = "Section_accelerate.html">this section</A> of the manual.
 The accelerated styles take the same arguments and should produce the
 same results, except for round-off and precision issues.
 </P>
-<P>These accelerated styles are part of the USER-CUDA, GPU, and OPT
-packages respectively.  They are only enabled if LAMMPS was built with
+<P>These accelerated styles are part of the USER-CUDA, GPU, USER-OMP and OPT
+packages, respectively.  They are only enabled if LAMMPS was built with
 those packages.  See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A>
 section for more info.
 </P>

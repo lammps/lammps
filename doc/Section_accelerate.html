@@ -47,10 +47,11 @@ input script.
 speed-up the pairwise calculations of your simulation by 5-25%.
 </P>
 <P>Styles with an "omp" suffix are part of the USER-OMP package and allow
-a pair-style to be run in threaded mode using OpenMP.  This can be
-useful on nodes with high-core counts when using less MPI processes
+a pair-style to be run in multi-threaded mode using OpenMP.  This can
+be useful on nodes with high-core counts when using less MPI processes
 than cores is advantageous, e.g. when running with PPPM so that FFTs
-are run on fewer MPI processors.
+are run on fewer MPI processors or when the many MPI tasks would
+overload the available bandwidth for communication.
 </P>
 <P>Styles with a "gpu" or "cuda" suffix are part of the GPU or USER-CUDA
 packages, and can be run on NVIDIA GPUs associated with your CPUs.
@@ -114,8 +115,120 @@ to 20% savings.
 
 <H4><A NAME = "acc_2"></A>5.2 USER-OMP package 
 </H4>
-<P>This section will be written when the USER-OMP package is released
-in main LAMMPS.
+<P>The USER-OMP package was developed by Axel Kohlmeyer at Temple University.
+It provides multi-threaded versions of most pair styles, all dihedral
+styles and a few fixes in LAMMPS. The package currently uses the OpenMP
+interface which requires using a specific compiler flag in the makefile
+to enable multiple threads; without this flag the corresponding pair
+styles will still be compiled and work, but do not support multi-threading.
+</P>
+<P><B>Building LAMMPS with the USER-OMP package:</B>
+</P>
+<P>The procedure for building LAMMPS with the USER-OMP package is simple.
+You have to edit your machine specific makefile to add the flag to
+enable OpenMP support to the CCFLAGS and LINKFLAGS variables. For the
+GNU compilers for example this flag is called <I>-fopenmp</I>. Check your
+compiler documentation to find out which flag you need to add.
+The rest of the compilation is the same as for any other package which
+has no additional library dependencies:
+</P>
+<PRE>make yes-user-omp
+make machine 
+</PRE>
+<P>Please note that this will only install accelerated versions
+of styles that are already installed, so you want to install
+this package as the last package, or else you may be missing
+some accelerated styles. If you plan to uninstall some package,
+you should first uninstall the USER-OMP package then the other
+package and then re-install USER-OMP, to make sure that there
+are no orphaned <I>omp</I> style files present, which would lead to
+compilation errors.
+</P>
+<P>If your input script uses one of regular styles that are also
+exist as an OpenMP version in the USER-OMP package you can run
+it as follows:
+</P>
+<PRE>env OMP_NUM_THREADS=4 lmp_serial -sf omp -in in.script
+env OMP_NUM_THREADS=2 mpirun -np 2 lmp_machine -sf omp -in in.script
+mpirun -x OMP_NUM_THRADS=2 -np 2 lmp_machine -sf omp -in in.script 
+</PRE>
+<P>The value of the environment variable OMP_NUM_THREADS determines how
+many threads per MPI task are launched. All three examples above use
+a total of 4 CPU cores.  For different MPI implementations the method
+to pass the OMP_NUM_THREADS environment variable to all processes is
+different.  Two different variants, one for MPICH and OpenMPI, respectively
+are shown above.  Please check the documentation of your MPI installation
+for additional details.  Alternatively, the value provided by OMP_NUM_THREADS
+can be overridded with the <A HREF = "package.html">package omp</A> command.
+Depending on which styles are accelerated in your input, you should
+see a reduction in the "Pair time" and/or "Bond time" and "Loop time"
+printed out at the end of the run. The optimal ratio of MPI to OpenMP
+can vary a lot and should always be confirmed through some benchmark
+runs for the current system and on the current machine.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>None of the pair styles in the USER-OMP package support the "inner",
+"middle", "outer" options for r-RESPA integration, only the "pair"
+option is supported.
+</P>
+<P><B>Parallel efficiency and performance tips:</B>
+</P>
+<P>In most simple cases the MPI parallelization in LAMMPS is more
+efficient than multi-threading implemented in the USER-OMP package.
+Also the parallel efficiency varies between individual styles.
+On the other hand, in many cases you still want to use the <I>omp</I> version
+- even when compiling or running without OpenMP support - since they
+all contain optimizations similar to those in the OPT package, which
+can result in serial speedup.
+</P>
+<P>Using multi-threading is most effective under the following circumstances:
+</P>
+<UL><LI>Individual compute nodes have a significant number of CPU cores
+but the CPU itself has limited memory bandwidth, e.g. Intel Xeon 53xx
+(Clovertown) and 54xx (Harpertown) quad core processors. Running
+one MPI task per CPU core will result in significant performance
+degradation, so that running with 4 or even only 2 MPI tasks per
+nodes is faster. Running in hybrid MPI+OpenMP mode will reduce the
+inter-node communication bandwidth contention in the same way,
+but offers and additional speedup from utilizing the otherwise
+idle CPU cores. 
+
+<LI>The interconnect used for MPI communication is not able to provide
+sufficient bandwidth for a large number of MPI tasks per node.
+This applies for example to running over gigabit ethernet or
+on Cray XT4 or XT5 series supercomputers. Same as in the aforementioned
+case this effect worsens with using an increasing number of nodes. 
+
+<LI>The input is a system that has an inhomogeneous particle density
+which cannot be mapped well to the domain decomposition scheme
+that LAMMPS employs. While this can be to some degree alleviated
+through using the <A HREF = "processors.html">processors</A> keyword, multi-threading
+provides a parallelism that parallelizes over the number of particles
+not their distribution in space. 
+
+<LI>Finally, multi-threaded styles can improve performance when running
+LAMMPS in "capability mode", i.e. near the point where the MPI
+parallelism scales out. This can happen in particular when using
+as kspace style for long-range electrostatics. Here the scaling
+of the kspace style is the performance limiting factor and using
+multi-threaded styles allows to operate the kspace style at the
+limit of scaling and then increase performance parallelizing
+the real space calculations with hybrid MPI+OpenMP. Sometimes
+additional speedup can be achived by increasing the real-space
+coulomb cutoff and thus reducing the work in the kspace part. 
+</UL>
+<P>The best parallel efficiency from <I>omp</I> styles is typically 
+achieved when there is at least one MPI task per physical 
+processor, i.e. socket or die.
+</P>
+<P>Using threads on hyper-threading enabled cores is usually
+counterproductive, as the cost in additional memory bandwidth
+requirements is not offset by the gain in CPU utilization
+through hyper-threading.
+</P>
+<P>A description of the multi-threading strategy and some performance
+examples are <A HREF = "http://sites.google.com/site/akohlmey/software/lammps-icms/lammps-icms-tms2011-talk.pdf?attredirects=0&d=1">presented here</A>
 </P>
 <HR>
 

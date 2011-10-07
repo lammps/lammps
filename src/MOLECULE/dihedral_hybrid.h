@@ -37,9 +37,6 @@ class DihedralHybrid : public Dihedral {
   void read_restart(FILE *);
   double memory_usage();
 
- protected:
-  const char *suffix;		// suffix when called as hybrid/suffix style
-  
  private:
   int nstyles;                  // # of different dihedral styles
   Dihedral **styles;            // class list for each Dihedral style

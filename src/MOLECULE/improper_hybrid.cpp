@@ -31,7 +31,6 @@ using namespace LAMMPS_NS;
 ImproperHybrid::ImproperHybrid(LAMMPS *lmp) : Improper(lmp)
 {
   nstyles = 0;
-  suffix = NULL;
 }
 
 /* ---------------------------------------------------------------------- */

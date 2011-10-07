@@ -31,7 +31,6 @@ using namespace LAMMPS_NS;
 DihedralHybrid::DihedralHybrid(LAMMPS *lmp) : Dihedral(lmp)
 {
   nstyles = 0;
-  suffix = NULL;
 }
 
 /* ---------------------------------------------------------------------- */

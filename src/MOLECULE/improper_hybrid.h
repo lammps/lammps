@@ -36,9 +36,6 @@ class ImproperHybrid : public Improper {
   void read_restart(FILE *);
   double memory_usage();
 
- protected:
-  const char *suffix;		// suffix when called as hybrid/suffix style
-  
  private:
   int nstyles;                  // # of different improper styles
   Improper **styles;            // class list for each Improper style

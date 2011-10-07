@@ -185,7 +185,7 @@ Pair *Force::pair_match(const char *word, int exact)
   if (exact && strcmp(pair_style,word) == 0) return pair;
   else if (!exact && strstr(pair_style,word)) return pair;
 
-  else if (strncmp(pair_style,"hybrid/overlay",14) == 0) {
+  else if (strstr(pair_style,"hybrid/overlay")) {
     PairHybridOverlay *hybrid = (PairHybridOverlay *) pair;
     count = 0;
     for (int i = 0; i < hybrid->nstyles; i++) {
@@ -198,7 +198,7 @@ Pair *Force::pair_match(const char *word, int exact)
     }
     if (!exact && count == 1) return hybrid->styles[iwhich];
 
-  } else if (strncmp(pair_style,"hybrid",6) == 0) {
+  } else if (strstr(pair_style,"hybrid")) {
     PairHybrid *hybrid = (PairHybrid *) pair;
     count = 0;
     for (int i = 0; i < hybrid->nstyles; i++) {
@@ -226,6 +226,7 @@ void Force::create_bond(const char *style, const char *suffix)
 
   int sflag;
   bond = new_bond(style,suffix,sflag);
+
   if (sflag) {
     char estyle[256];
     sprintf(estyle,"%s/%s",style,suffix);
@@ -392,6 +393,7 @@ Dihedral *Force::new_dihedral(const char *style, const char *suffix, int &sflag)
 #define DihedralStyle(key,Class) \
     else if (strcmp(estyle,#key) == 0) return new Class(lmp);
 #include "style_dihedral.h"
+#undef DihedralStyle
 #undef DIHEDRAL_CLASS
 
   }

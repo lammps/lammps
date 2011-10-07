@@ -27,6 +27,7 @@
 #ifndef __VECTOR_H_
 #define __VECTOR_H_
 
+#include "pair.h"
 #include "reaxc_types.h"
 #include "reaxc_defs.h"
 

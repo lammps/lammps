@@ -208,9 +208,9 @@ void BondHybrid::settings(int narg, char **arg)
   // need a better way to skip these exceptions
 
   int dummy;
-
   nstyles = 0;
   i = 0;
+
   while (i < narg) {
     for (m = 0; m < nstyles; m++)
       if (strcmp(arg[i],keywords[m]) == 0) 
@@ -219,7 +219,7 @@ void BondHybrid::settings(int narg, char **arg)
       error->all(FLERR,"Bond style hybrid cannot have hybrid as an argument");
     if (strcmp(arg[i],"none") == 0) 
       error->all(FLERR,"Bond style hybrid cannot have none as an argument");
-    styles[nstyles] = force->new_bond(arg[i],suffix,dummy);
+    styles[nstyles] = force->new_bond(arg[i],lmp->suffix,dummy);
     keywords[nstyles] = new char[strlen(arg[i])+1];
     strcpy(keywords[nstyles],arg[i]);
     istyle = i;
@@ -288,7 +288,8 @@ void BondHybrid::init_style()
 
 double BondHybrid::equilibrium_distance(int i)
 {
-  if (map[i] < 0) error->one(FLERR,"Invoked bond equil distance on bond style none");
+  if (map[i] < 0) 
+    error->one(FLERR,"Invoked bond equil distance on bond style none");
   return styles[map[i]]->equilibrium_distance(i);
 }
 
@@ -329,7 +330,7 @@ void BondHybrid::read_restart(FILE *fp)
     keywords[m] = new char[n];
     if (me == 0) fread(keywords[m],sizeof(char),n,fp);
     MPI_Bcast(keywords[m],n,MPI_CHAR,0,world);
-    styles[m] = force->new_bond(keywords[m],suffix,dummy);
+    styles[m] = force->new_bond(keywords[m],lmp->suffix,dummy);
   }
 }
 

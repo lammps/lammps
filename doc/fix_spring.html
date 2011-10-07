@@ -91,6 +91,17 @@ below the z = 0 center plane of the pore (umbrella sampling).  The
 last example holds the ion a distance 5 away from the pore axis
 (assuming the center-of-mass of the pore in x,y is the pore axis).
 </P>
+<P>IMPORTANT NOTE: The center of mass of a group of atoms is calculated
+in "unwrapped" coordinates using atom image flags, which means that
+the group can straddle a periodic boundary.  See the <A HREF = "dump.html">dump</A>
+doc page for a discussion of unwrapped coordinates.  It also means
+that a spring connecting two groups or a group and the tether point
+can cross a periodic boundary and its length be calculated correctly.
+One exception is for rigid bodies, which should not be used with the
+fix spring command, if the rigid body will cross a periodic boundary.
+This is because image flags for rigid bodies are used in a different
+way, as explained on the <A HREF = "doc/fix_rigid.html">fix rigid</A> doc page.
+</P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
 <P>No information about this fix is written to <A HREF = "restart.html">binary restart

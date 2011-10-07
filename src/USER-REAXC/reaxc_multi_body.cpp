@@ -24,7 +24,7 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "reaxc_types.h"
+#include "pair_reax_c.h"
 #if defined(PURE_REAX)
 #include "multi_body.h"
 #include "bond_orders.h"
@@ -53,6 +53,7 @@ void Atom_Energy( reax_system *system, control_params *control,
   real e_un, CEunder1, CEunder2, CEunder3, CEunder4;
   real p_lp1, p_lp2, p_lp3;
   real p_ovun2, p_ovun3, p_ovun4, p_ovun5, p_ovun6, p_ovun7, p_ovun8;
+  real eng_tmp, f_tmp;
 
   single_body_parameters *sbp_i, *sbp_j;
   two_body_parameters *twbp;
@@ -82,12 +83,16 @@ void Atom_Energy( reax_system *system, control_params *control,
     /* calculate the energy */
     data->my_en.e_lp += e_lp = 
       p_lp2 * workspace->Delta_lp[i] * inv_expvd2;
-	
+    
     dElp = p_lp2 * inv_expvd2 + 
       75 * p_lp2 * workspace->Delta_lp[i] * expvd2 * SQR(inv_expvd2);
     CElp = dElp * workspace->dDelta_lp[i];
 
     workspace->CdDelta[i] += CElp;  // lp - 1st term  
+
+    /* tally into per-atom energy */
+    if( system->evflag)
+      system->pair_ptr->ev_tally(i,i,system->n,1,e_lp,0.0,0.0,0.0,0.0,0.0);
 
 #ifdef TEST_ENERGY
 //  fprintf( out_control->elp, "%24.15e%24.15e%24.15e%24.15e\n",
@@ -115,12 +120,17 @@ void Atom_Energy( reax_system *system, control_params *control,
 
 	  if( vov3 > 3. ) {
 	    data->my_en.e_lp += e_lph = p_lp3 * SQR(vov3-3.0);
-		
+	    
 	    deahu2dbo = 2.*p_lp3*(vov3 - 3.);
 	    deahu2dsbo = 2.*p_lp3*(vov3 - 3.)*(-1. - 0.16*pow(Di, 3.));
 		
 	    bo_ij->Cdbo += deahu2dbo;
 	    workspace->CdDelta[i] += deahu2dsbo;
+
+	    /* tally into per-atom energy */
+	    if( system->evflag)
+              system->pair_ptr->ev_tally(i,j,system->n,1,e_lph,0.0,0.0,0.0,0.0,0.0);
+		
 #ifdef TEST_ENERGY
 	    fprintf(out_control->elp,"C2cor%6d%6d%12.6f%12.6f%12.6f\n",
 	            system->my_atoms[i].orig_id, system->my_atoms[j].orig_id,
@@ -207,7 +217,13 @@ void Atom_Energy( reax_system *system, control_params *control,
     CEunder3 = CEunder1 * (1.0 - dfvl*workspace->dDelta_lp[i]*inv_exp_ovun1);
     CEunder4 = CEunder1 * (dfvl*workspace->Delta_lp_temp[i]) * 
       p_ovun4 * exp_ovun1 * SQR(inv_exp_ovun1) + CEunder2;
-
+    
+    /* tally into per-atom energy */
+    if( system->evflag) {
+      eng_tmp = e_ov + e_un;
+      f_tmp = CEover3 + CEunder3;
+      system->pair_ptr->ev_tally(i,i,system->n,1,eng_tmp,0.0,0.0,0.0,0.0,0.0);
+    }
 
     /* forces */
     workspace->CdDelta[i] += CEover3;   // OvCoor - 2nd term

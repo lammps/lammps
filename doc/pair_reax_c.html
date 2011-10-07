@@ -253,15 +253,6 @@ the ReaxFF potential with any LAMMPS units, but you would need to
 create your own potential file with coefficients listed in the
 appropriate units if your simulation doesn't use "real" units.
 </P>
-<P>This pair style cannot yet compute per-atom energy or stress.  If you
-use another command that tries to calculate these quantities using
-this pair style, a warning message will be printed and the quantities
-will be 0.0.
-</P>
-<P>This pair style does not correctly handle interactions
-involving multiple periodic images of the same atom. Hence, it should not
-be used for periodic cell dimensions less than 10 angstroms. 
-</P>
 <P><B>Related commands:</B>
 </P>
 <P><A HREF = "pair_coeff.html">pair_coeff</A>, <A HREF = "fix_qeq_reax.html">fix_qeq_reax</A>,
@@ -280,7 +271,7 @@ Journal of Physical Chemistry A, 112, 1040-1053 (2008).
 </P>
 <A NAME = "Aktulga"></A>
 
-<P><B>(Aktulga)</B> Aktulga, Fogarty, Pandit, Grama, Parallel
-Computing, to appear (2011).
+<P><B>(Aktulga)</B> Aktulga, Fogarty, Pandit, Grama, Parallel Computing, to
+appear (2011).
 </P>
 </HTML>

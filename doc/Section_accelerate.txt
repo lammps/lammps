@@ -143,13 +143,13 @@ If your input script uses one of regular styles that are also
 exist as an OpenMP version in the USER-OMP package you can run
 it as follows:
 
-env OMP_NUM_THREADS=4 lmp_machine -sf omp < in.script
-env OMP_NUM_THREADS=2 mpirun -np 2 lmp_machine -sf opt < in.script
-mpirun -x OMP_NUM_THRADS=2 -np 2 lmp_machine -sf opt < in.script :pre
+env OMP_NUM_THREADS=4 lmp_serial -sf omp -in in.script
+env OMP_NUM_THREADS=2 mpirun -np 2 lmp_machine -sf omp -in in.script
+mpirun -x OMP_NUM_THRADS=2 -np 2 lmp_machine -sf omp -in in.script :pre
 
 The value of the environment variable OMP_NUM_THREADS determines how
 many threads per MPI task are launched. All three examples above use
-a total for 4 CPU cores.  For different MPI implementations the method
+a total of 4 CPU cores.  For different MPI implementations the method
 to pass the OMP_NUM_THREADS environment variable to all processes is
 different.  Two different variants, one for MPICH and OpenMPI, respectively
 are shown above.  Please check the documentation of your MPI installation

@@ -24,6 +24,7 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
+#include "pair_reax_c.h"
 #include "reaxc_types.h"
 #if defined(PURE_REAX)
 #include "bond_orders.h"
@@ -544,7 +545,7 @@ void Add_dBond_to_Forces_NPT( int i, int pj, simulation_data *data,
 
 
 
-void Add_dBond_to_Forces( int i, int pj, 
+void Add_dBond_to_Forces( reax_system *system, int i, int pj, 
 			  storage *workspace, reax_list **lists )
 {
   reax_list *bonds = (*lists) + BONDS;
@@ -552,6 +553,10 @@ void Add_dBond_to_Forces( int i, int pj,
   bond_order_data *bo_ij, *bo_ji; 
   dbond_coefficients coef;
   int pk, k, j;
+
+  /* Virial Tallying variables */
+  int ii;
+  real f_scaler, fi_tmp[3], fj_tmp[3], fk_tmp[3];
 
   /* Initializations */ 
   nbr_j = &(bonds->select.bond_list[pj]);
@@ -589,6 +594,13 @@ void Add_dBond_to_Forces( int i, int pj,
     rvec_ScaledAdd( workspace->f[k], -coef.C3dbopi, nbr_k->bo_data.dBOp );
     /*3rd, dBOpi2*/
     rvec_ScaledAdd( workspace->f[k], -coef.C3dbopi2, nbr_k->bo_data.dBOp );
+
+    // tally into per-atom virial
+    if( system->vflag_atom ) {
+      f_scaler = -(coef.C2dbo + coef.C2dDelta + coef.C3dbopi + coef.C3dbopi2);
+      rvec_Scale( fk_tmp, -f_scaler, nbr_k->bo_data.dBOp);
+      system->pair_ptr->v_tally(k, fk_tmp);
+    }
   }
  
   /*1st, dBO*/
@@ -628,6 +640,13 @@ void Add_dBond_to_Forces( int i, int pj,
     rvec_ScaledAdd( workspace->f[k], -coef.C4dbopi, nbr_k->bo_data.dBOp );
     /*4th, dBOpi2*/
     rvec_ScaledAdd( workspace->f[k], -coef.C4dbopi2, nbr_k->bo_data.dBOp );
+
+    // tally into per-atom virial
+    if( system->vflag_atom ) {
+      f_scaler = -(coef.C3dbo + coef.C3dDelta + coef.C4dbopi + coef.C4dbopi2);
+      rvec_Scale( fk_tmp, -f_scaler, nbr_k->bo_data.dBOp);
+      system->pair_ptr->v_tally(k, fk_tmp);
+    }	
   }
   
   /*1st,dBO*/
@@ -653,6 +672,33 @@ void Add_dBond_to_Forces( int i, int pj,
   rvec_ScaledAdd( workspace->f[j], -coef.C2dbopi2, bo_ij->dBOp );
   /*3rd, dBOpi2*/
   rvec_ScaledAdd( workspace->f[j], coef.C4dbopi2, workspace->dDeltap_self[j] );
+
+  if( system->vflag_atom) {
+
+    // forces on i 
+    f_scaler = coef.C1dbo + coef.C1dDelta + coef.C2dbopi + coef.C2dbopi2;
+    rvec_Scale( fi_tmp, -f_scaler, bo_ij->dBOp);
+    f_scaler = coef.C2dbo + coef.C2dDelta + coef.C3dbopi + coef.C3dbopi2;
+    rvec_ScaledAdd( fi_tmp, -f_scaler, workspace->dDeltap_self[i]);
+    f_scaler = coef.C1dbopi ;
+    rvec_ScaledAdd( fi_tmp, -f_scaler, bo_ij->dln_BOp_pi);
+    f_scaler = coef.C1dbopi2 ;
+    rvec_ScaledAdd( fi_tmp, -f_scaler, bo_ij->dln_BOp_pi2);
+
+    // forces on j
+    f_scaler = -(coef.C1dbo + coef.C1dDelta + coef.C2dbopi + coef.C2dbopi2);
+    rvec_Scale( fj_tmp, -f_scaler, bo_ij->dBOp);
+    f_scaler = coef.C3dbo + coef.C3dDelta + coef.C4dbopi + coef.C4dbopi2;
+    rvec_ScaledAdd( fj_tmp, -f_scaler, workspace->dDeltap_self[j]);
+    f_scaler = -coef.C1dbopi ;
+    rvec_ScaledAdd( fj_tmp, -f_scaler, bo_ij->dln_BOp_pi);
+    f_scaler = -coef.C1dbopi2 ;
+    rvec_ScaledAdd( fj_tmp, -f_scaler, bo_ij->dln_BOp_pi2);
+
+    system->pair_ptr->v_tally(i, fi_tmp);
+    system->pair_ptr->v_tally(j, fj_tmp);
+
+  }
 }
 
 

@@ -7,10 +7,10 @@ SHELL = /bin/sh
 # generally no need to edit this section
 # unless additional compiler/linker flags or libraries needed for your machine
 
-CC =		g++4
+CC =		g++
 CCFLAGS =	-O
 DEPFLAGS =	-M
-LINK =		g++4
+LINK =		g++
 LINKFLAGS =	-O
 LIB =           
 ARCHIVE =	ar

@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Tzu-Ray Shan (U Florida, rayshan@ufl.edu)
+   Contributing author: Tzu-Ray Shan (U Florida, present: tnshan@sandia.gov)
    LAMMPS implementation of the Charge-optimized many-body (COMB) potential 
    based on the HELL MD program (Prof Simon Phillpot, UF, sphil@mse.ufl.edu)
    and Aidan Thompson's Tersoff code in LAMMPS
@@ -32,11 +32,13 @@
 #include "memory.h"
 #include "error.h"
 #include "group.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 
 #define MAXLINE 1024
 #define DELTA 4
+#define PGDELTA 1
 
 /* ---------------------------------------------------------------------- */
 
@@ -52,6 +54,7 @@ PairComb::PairComb(LAMMPS *lmp) : Pair(lmp)
 
   nmax = 0;
   NCo = NULL;
+  bbij = NULL;
 
   nelements = 0;
   elements = NULL;
@@ -67,6 +70,11 @@ PairComb::PairComb(LAMMPS *lmp) : Pair(lmp)
   phin = NULL;
   dphin = NULL;
   erpaw = NULL;
+
+  sht_num = NULL;
+  sht_first = NULL;
+  maxpage = 0;
+  pages = NULL;
 
   // set comm size needed by this Pair
 
@@ -84,6 +92,7 @@ PairComb::~PairComb()
 
   if (elements)
     for (int i = 0; i < nelements; i++) delete [] elements[i];
+
   delete [] elements;
   memory->sfree(params);
   memory->destroy(elem2param);
@@ -95,6 +104,9 @@ PairComb::~PairComb()
   memory->destroy(phin);
   memory->destroy(dphin);
   memory->destroy(erpaw);
+  memory->destroy(bbij);
+  memory->destroy(sht_num);
+  memory->destroy(sht_first);
   
   if (allocated) {
     memory->destroy(setflag);
@@ -122,17 +134,25 @@ void PairComb::compute(int eflag, int vflag)
   double yaself;
   double potal,fac11,fac11e;
   double vionij,fvionij,sr1,sr2,sr3,Eov,Fov;
+  int sht_jnum, *sht_jlist;
 
   evdwl = ecoul = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = vflag_atom = 0;
 
-  // grow coordination array if necessary
+  // Build short range neighbor list
+  // int every=neighbor->every;
+  // int ntimestep=update->ntimestep;
+  // if(ntimestep <= 1 || (ntimestep % every == 0))
+    Short_neigh();
 
+  // grow coordination array if necessary
   if (atom->nmax > nmax) {
     memory->destroy(NCo);
+    memory->destroy(bbij);
     nmax = atom->nmax;
     memory->create(NCo,nmax,"pair:NCo");
+    memory->create(bbij,nmax,nmax,"pair:bbij");
   }
 
   double **x = atom->x;
@@ -177,6 +197,8 @@ void PairComb::compute(int eflag, int vflag)
 
     jlist = firstneigh[i];
     jnum = numneigh[i];
+    sht_jlist = sht_first[i];
+    sht_jnum = sht_num[i];
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -258,8 +280,8 @@ void PairComb::compute(int eflag, int vflag)
     // accumulate coordination number information
 
     if (cor_flag) {
-      for (jj = 0; jj < jnum; jj++) {
-        j = jlist[jj];
+      for (jj = 0; jj < sht_jnum; jj++) {
+        j = sht_jlist[jj];
 	j &= NEIGHMASK;
 	jtype = map[type[j]];
 	iparam_ij = elem2param[itype][jtype][jtype];
@@ -277,11 +299,12 @@ void PairComb::compute(int eflag, int vflag)
     }
 
     // three-body interactions 
-    // skip immediately if I-J is not within cutoff
+    // half i-j loop
 
-    for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
+    for (jj = 0; jj < sht_jnum; jj++) {
+      j = sht_jlist[jj];
       j &= NEIGHMASK;
+
       jtype = map[type[j]];
       iparam_ij = elem2param[itype][jtype][jtype];
 
@@ -301,9 +324,9 @@ void PairComb::compute(int eflag, int vflag)
       zeta_ij = 0.0; 
       cuo_flag1 = 0; cuo_flag2 = 0;
 
-      for (kk = 0; kk < jnum; kk++) {
-	if (jj == kk) continue;
-	k = jlist[kk];
+      for (kk = 0; kk < sht_jnum; kk++) {
+	k = sht_jlist[kk];
+	if (j == k) continue;
 	k &= NEIGHMASK;
 	ktype = map[type[k]];
 	iparam_ijk = elem2param[itype][jtype][ktype];
@@ -324,9 +347,9 @@ void PairComb::compute(int eflag, int vflag)
       if (cuo_flag1 && cuo_flag2) cuo_flag = 1;
       else cuo_flag = 0;
 
-      force_zeta(&params[iparam_ij],rsq1,zeta_ij,fpair,
-		 prefactor,eflag,evdwl,iq,jq);
-      
+      force_zeta(&params[iparam_ij],eflag,i,j,rsq1,zeta_ij,
+		 iq,jq,fpair,prefactor,evdwl);
+
       // over-coordination correction for HfO2
 
       if (cor_flag && NCo[i] != 0)
@@ -346,9 +369,9 @@ void PairComb::compute(int eflag, int vflag)
 
       // attractive term via loop over k (3-body forces)
 
-      for (kk = 0; kk < jnum; kk++) {
-	if (jj == kk) continue;
-	k = jlist[kk];
+      for (kk = 0; kk < sht_jnum; kk++) {
+	k = sht_jlist[kk];
+	if (j == k) continue;
 	k &= NEIGHMASK;
 	ktype = map[type[k]];
 	iparam_ijk = elem2param[itype][jtype][ktype];
@@ -530,6 +553,11 @@ void PairComb::init_style()
   int irequest = neighbor->request(this);
   neighbor->requests[irequest]->half = 0;
   neighbor->requests[irequest]->full = 1;
+  neighbor->requests[irequest]->ghost = 1;
+
+  pgsize = neighbor->pgsize;
+  oneatom = neighbor->oneatom;
+  if (maxpage == 0) add_pages(0);
 }
 
 /* ----------------------------------------------------------------------
@@ -799,11 +827,12 @@ void PairComb::setup()
 
   // set cutmax to max of all params
 
-  cutmax = 0.0;
+  cutmax = cutmin = 0.0;
   cor_flag = 0; 
   for (m = 0; m < nparams; m++) {
     if (params[m].cut > cutmax) cutmax = params[m].cut;
     if (params[m].lcut > cutmax) cutmax = params[m].lcut;
+    if (params[m].cutsq > cutmin) cutmin = params[m].cutsq+1.0;
     if (params[m].hfocor > 0.0001) cor_flag = 1;
   }
 }  
@@ -930,7 +959,7 @@ double PairComb::elp(Param *param, double rsqij, double rsqik,
 	comtt += param->aconf *(4.0-(rmu-c123)*(rmu-c123));
     }
     
-    return 0.5 * fck * comtt;
+    return 1.0 * fck * comtt;
   }
   
   return 0.0;
@@ -996,10 +1025,10 @@ void PairComb::flp(Param *param, double rsqij, double rsqik,
     com4k = fcj * fck_d * comtt;
     com5 = fcj * fck * comtt_d;
     
-    ffj1 =-0.5*(com5/(rij*rik)); 
-    ffj2 = 0.5*(com5*rmu/rsqij);
+    ffj1 =-1.0*(com5/(rij*rik)); 
+    ffj2 = 1.0*(com5*rmu/rsqij);
     ffk1 = ffj1;
-    ffk2 = 0.5*(-com4k/rik+com5*rmu/rsqik);
+    ffk2 = 1.0*(-com4k/rik+com5*rmu/rsqik);
     
   } else {
     ffj1 = 0.0; ffj2 = 0.0;
@@ -1024,9 +1053,9 @@ void PairComb::flp(Param *param, double rsqij, double rsqik,
 
 /* ---------------------------------------------------------------------- */
 
-void PairComb::force_zeta(Param *param, double rsq, double zeta_ij,
-			     double &fforce, double &prefactor,
-			     int eflag, double &eng, double iq, double jq)
+void PairComb::force_zeta(Param *param, int eflag, int i, int j, double rsq, 
+		double zeta_ij, double iq, double jq, double &fforce, 
+		double &prefactor, double &eng)
 {
   double r,fa,fa_d,bij;
 
@@ -1035,11 +1064,13 @@ void PairComb::force_zeta(Param *param, double rsq, double zeta_ij,
   fa = comb_fa(r,param,iq,jq);
   fa_d = comb_fa_d(r,param,iq,jq);
   bij = comb_bij(zeta_ij,param);
+  bbij[i][j] = bij;
+
+  // force
   fforce = 0.5*bij*fa_d / r;
   prefactor = -0.5*fa * comb_bij_d(zeta_ij,param);
   
   // eng = attractive energy
-
   if (eflag) eng = 0.5*bij*fa;
 }
 
@@ -1343,6 +1374,7 @@ void PairComb::sm_table()
   double exp2ear,exp2ebr,exp2earsh,exp2ebrsh,fafbsh,dfafbsh;
 
   int n = atom->ntypes;
+  int nmax = atom->nmax;
   
   dra  = 0.001;  // lookup table step size
   drin = 0.1;    // starting distance of 1/r 
@@ -1351,7 +1383,7 @@ void PairComb::sm_table()
   
   nntypes = int((n+1)*n/2); // interaction types
   ncoul = int((rc-drin)/dra)+1;
-  
+/*  
   memory->destroy(intype);
   memory->destroy(fafb);
   memory->destroy(dfafb);
@@ -1359,7 +1391,7 @@ void PairComb::sm_table()
   memory->destroy(phin);
   memory->destroy(dphin);
   memory->destroy(erpaw);
-  
+*/  
   // allocate arrays
   
   memory->create(intype,n,n,"pair:intype");
@@ -1369,6 +1401,11 @@ void PairComb::sm_table()
   memory->create(phin,ncoul,nntypes,"pair:phin");
   memory->create(dphin,ncoul,nntypes,"pair:dphin");
   memory->create(erpaw,25000,2,"pair:erpaw");
+  memory->create(NCo,nmax,"pair:NCo");
+  memory->create(bbij,nmax,nmax,"pair:bbij");
+  memory->create(sht_num,nmax,"pair:sht_num");
+  sht_first = (int **) memory->smalloc(nmax*sizeof(int *),
+	    "pair:sht_first");
   
   // set interaction number: 0-0=0, 1-1=1, 0-1=1-0=2
   
@@ -1614,7 +1651,7 @@ void PairComb::field(Param *param, double rsq, double iq,double jq,
 
 double PairComb::yasu_char(double *qf_fix, int &igroup)
 {
-  int i,j,k,ii,jj,kk,jnum;
+  int i,j,k,ii,jj,kk,jnum,itag,jtag;
   int itype,jtype,ktype,iparam_i,iparam_ij,iparam_ijk;
   double xtmp,ytmp,ztmp;
   double rsq1,rsq2,delr1[3],delr2[3],zeta_ij;
@@ -1622,10 +1659,12 @@ double PairComb::yasu_char(double *qf_fix, int &igroup)
   double iq,jq,fqi,fqj,fqij,fqjj;
   double potal,fac11,fac11e,sr1,sr2,sr3;
   int mr1,mr2,mr3,inty;
+  int sht_jnum, *sht_jlist;
   
   double **x = atom->x;
   double *q = atom->q;
   int *type = atom->type;
+  int *tag = atom->tag;
   
   int inum = list->inum;
   ilist = list->ilist;
@@ -1656,6 +1695,7 @@ double PairComb::yasu_char(double *qf_fix, int &igroup)
 
   for (ii = 0; ii < inum; ii ++) {
     i = ilist[ii];
+    itag = tag[i];
     if (mask[i] & groupbit) {
       itype = map[type[i]];
       xtmp = x[i][0];
@@ -1672,10 +1712,24 @@ double PairComb::yasu_char(double *qf_fix, int &igroup)
 
       jlist = firstneigh[i];
       jnum = numneigh[i];
+      sht_jlist = sht_first[i];
+      sht_jnum = sht_num[i];
 
       for (jj = 0; jj < jnum; jj++) {
         j = jlist[jj];
 	j &= NEIGHMASK;
+        jtag = tag[j];
+
+        if (itag > jtag) {
+          if ((itag+jtag) % 2 == 0) continue;
+        } else if (itag < jtag) {
+          if ((itag+jtag) % 2 == 1) continue;
+        } else {
+          if (x[j][2] < x[i][2]) continue;
+          if (x[j][2] == ztmp && x[j][1] < ytmp) continue;
+          if (x[j][2] == ztmp && x[j][1] == ytmp && x[j][0] < xtmp) continue;
+        } 
+
         jtype = map[type[j]];
         jq = q[j];
 
@@ -1706,38 +1760,31 @@ double PairComb::yasu_char(double *qf_fix, int &igroup)
         qfo_field(&params[iparam_ij],rsq1,iq,jq,fqij,fqjj);
         fqi += fqij;
         qf[j] += fqjj;
+      }
       
-        // polarization field charge force
         // three-body interactions
+	
+      for (jj = 0; jj < jnum; jj++) {
+        j = jlist[jj];
+	j &= NEIGHMASK;
+        jtype = map[type[j]];
+        jq = q[j];
+
+        delr1[0] = x[j][0] - xtmp;
+        delr1[1] = x[j][1] - ytmp;
+        delr1[2] = x[j][2] - ztmp;
+        rsq1 = vec3_dot(delr1,delr1);
+
+        iparam_ij = elem2param[itype][jtype][jtype];
 
         if (rsq1 > params[iparam_ij].cutsq) continue;
 
-        zeta_ij = 0.0;
-
-        for (kk = 0; kk < jnum; kk++) {
-	  if (jj == kk) continue;
-	  k = jlist[kk];
-	  k &= NEIGHMASK;
-	  ktype = map[type[k]];
-	  iparam_ijk = elem2param[itype][jtype][ktype];
-	 
-	  delr2[0] = x[k][0] - xtmp;
-	  delr2[1] = x[k][1] - ytmp;
-	  delr2[2] = x[k][2] - ztmp;
-	  rsq2 = vec3_dot(delr2,delr2);
-	 
-	  if (rsq2 > params[iparam_ijk].cutsq) continue;
-	  zeta_ij += zeta(&params[iparam_ijk],rsq1,rsq2,delr1,delr2);
-        }
-
         // charge force in Aij and Bij
       
-        qfo_short(&params[iparam_ij],rsq1,zeta_ij,iq,jq,fqij,fqjj);
+        qfo_short(&params[iparam_ij],i,j,rsq1,iq,jq,fqij,fqjj);
         fqi += fqij;  qf[j] += fqjj;
       }
-    
       qf[i] += fqi;
-
     }
   }
   
@@ -1809,7 +1856,7 @@ void PairComb::qfo_direct(int inty, int mr1, int mr2, int mr3,
  erfcc = sr1*erpaw[mr1][0]   + sr2*erpaw[mr2][0]   + sr3*erpaw[mr3][0];
  fafbn1= sr1*fafb[mr1][inty] + sr2*fafb[mr2][inty] + sr3*fafb[mr3][inty];
  vm = (erfcc/r * esucon - fac11e);
- fqij = 0.5 * (vm+esucon*fafbn1);
+ fqij = 1.0 * (vm+esucon*fafbn1);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1835,13 +1882,13 @@ void PairComb::qfo_field(Param *param, double rsq,double iq,double jq,
 
  // field correction charge force
 
- fqij = 0.5 * rf5 * (cmj1 + 2.0 * iq * cmj2);
- fqjj = 0.5 * rf5 * (cmi1 + 2.0 * jq * cmi2);
+ fqij = 1.0 * rf5 * (cmj1 + 2.0 * iq * cmj2);
+ fqjj = 1.0 * rf5 * (cmi1 + 2.0 * jq * cmi2);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairComb::qfo_short(Param *param, double rsq, double zeta_ij,
+void PairComb::qfo_short(Param *param, int i, int j, double rsq,
 			 double iq, double jq, double &fqij, double &fqjj)
 {
   double r,tmp_fc,tmp_fc_d,tmp_exp1,tmp_exp2;
@@ -1866,7 +1913,7 @@ void PairComb::qfo_short(Param *param, double rsq, double zeta_ij,
   tmp_fc_d = comb_fc_d(r,param);
   tmp_exp1 = exp(-param->rlm1 * r);
   tmp_exp2 = exp(-param->rlm2 * r);
-  bij = comb_bij(zeta_ij,param);
+  bij = bbij[i][j]; //comb_bij(zeta_ij,param);
 
   arr1 = 2.22850; arr2 = 1.89350;
   fc2j = comb_fc2(r);
@@ -2025,5 +2072,86 @@ double PairComb::memory_usage()
   double bytes = maxeatom * sizeof(double);
   bytes += maxvatom*6 * sizeof(double);
   bytes += nmax * sizeof(int);
+  bytes += nmax * nmax * sizeof(int);
   return bytes;
 }
+/* ---------------------------------------------------------------------- */
+
+void PairComb::Short_neigh()
+{
+  int nj,npntj,*neighptrj,itype,jtype;
+  int iparam_ij,*ilist,*jlist,*numneigh,**firstneigh;
+  int inum,jnum,i,j,ii,jj;
+  double xtmp,ytmp,ztmp,rr,rsq,delrj[3];
+  double **x = atom->x;
+  int *type  = atom->type;
+  int nlocal = atom->nlocal;
+  int ntype = atom->ntypes;
+
+  if (atom->nmax > nmax) {
+    nmax = int(1.0 * atom->nmax);
+    memory->sfree(sht_num);
+    memory->sfree(sht_first);
+    memory->create(sht_num,nmax,"pair:sht_num");
+    sht_first = (int **) memory->smalloc(nmax*sizeof(int *),
+	    "pair:sht_first");
+  }
+
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
+  npage = npntj = 0;
+
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
+    itype = type[i];
+
+    if(pgsize - npntj < oneatom) {
+      npntj = 0;
+      npage++;
+      if (npage == maxpage) add_pages(npage);
+    }
+ 
+    nj = 0;
+    neighptrj = &pages[npage][npntj];
+
+    xtmp = x[i][0];
+    ytmp = x[i][1];
+    ztmp = x[i][2];
+
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
+
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
+      j &= NEIGHMASK;
+      jtype = type[j];
+      iparam_ij = elem2param[itype][jtype][jtype];
+
+      delrj[0] = xtmp - x[j][0];
+      delrj[1] = ytmp - x[j][1];
+      delrj[2] = ztmp - x[j][2];
+      rsq = vec3_dot(delrj,delrj);
+      
+      if (rsq > cutmin) continue;
+      neighptrj[nj++] = j;
+    }
+    sht_first[i] = neighptrj;
+    sht_num[i] = nj;
+    npntj += nj;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairComb::add_pages(int npage)
+{
+  maxpage += PGDELTA;
+  pages = (int **)
+  memory->srealloc(pages,maxpage*sizeof(int *),"pair:pages");
+  for (int i = npage; i < maxpage; i++)
+    memory->create(pages[i],pgsize,"pair:pages[i]");
+}
+
+/* ---------------------------------------------------------------------- */

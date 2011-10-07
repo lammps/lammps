@@ -28,6 +28,8 @@
 #include "update.h"
 #include "pair_comb_omp.h"
 
+#include <string.h>
+
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */

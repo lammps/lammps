@@ -32,7 +32,6 @@ using namespace LAMMPS_NS;
 AngleHybrid::AngleHybrid(LAMMPS *lmp) : Angle(lmp)
 {
   nstyles = 0;
-  suffix = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -207,7 +206,6 @@ void AngleHybrid::settings(int narg, char **arg)
   // define subset of args for a sub-style by skipping numeric args
   // one exception is 1st arg of style "table", which is non-numeric
   // need a better way to skip these exceptions
-  int dummy;
 
   int dummy;
   nstyles = 0;

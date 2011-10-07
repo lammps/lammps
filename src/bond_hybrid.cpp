@@ -32,7 +32,6 @@ using namespace LAMMPS_NS;
 BondHybrid::BondHybrid(LAMMPS *lmp) : Bond(lmp)
 {
   nstyles = 0;
-  suffix = NULL;
 }
 
 /* ---------------------------------------------------------------------- */

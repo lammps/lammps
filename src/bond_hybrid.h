@@ -41,9 +41,6 @@ class BondHybrid : public Bond {
   double single(int, double, int, int);
   double memory_usage();
 
- protected:
-  const char *suffix;           // suffix when called as hybrid/suffix style
-
  private:
   int nstyles;                  // # of different bond styles
   Bond **styles;                // class list for each Bond style

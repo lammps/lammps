@@ -32,7 +32,6 @@ using namespace LAMMPS_NS;
 PairHybrid::PairHybrid(LAMMPS *lmp) : Pair(lmp)
 {
   nstyles = 0;
-  suffix = NULL;
 }
 
 /* ---------------------------------------------------------------------- */

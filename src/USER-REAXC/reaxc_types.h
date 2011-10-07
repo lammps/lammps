@@ -456,7 +456,7 @@ typedef struct
   real ghost_cutoff;
 } boundary_cutoff;
 
-
+using LAMMPS_NS::Pair;
 
 typedef struct
 {
@@ -474,6 +474,10 @@ typedef struct
   boundary_cutoff  bndry_cuts;
 
   reax_atom       *my_atoms;
+
+  int evflag;
+  int vflag_atom;
+  class Pair *pair_ptr;
 } reax_system;
 
 

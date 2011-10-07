@@ -24,7 +24,7 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "reaxc_types.h"
+#include "pair_reax_c.h"
 #if defined(PURE_REAX)
 #include "init_md.h"
 #include "allocate.h"

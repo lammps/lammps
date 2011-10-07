@@ -900,7 +900,6 @@ These are accelerated dihedral styles, which can be used if LAMMPS is
 built with the "appropriate accelerated
 package"_Section_accelerate.html.
 
-"hybrid/omp"_dihedral_hybrid.html,
 "charmm/omp"_dihedral_charmm.html,
 "class2/omp"_dihedral_class2.html,
 "cosine/shift/exp/omp"_dihedral_cosine_shift_exp.html,

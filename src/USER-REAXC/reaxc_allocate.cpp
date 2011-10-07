@@ -24,7 +24,7 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "reaxc_types.h"
+#include "pair_reax_c.h"
 #if defined(PURE_REAX)
 #include "allocate.h"
 #include "list.h"
@@ -885,7 +885,7 @@ void ReAllocate( reax_system *system, control_params *control,
     if( system->numH >= DANGER_ZONE * system->Hcap || 
 	(0 && system->numH <= LOOSE_ZONE * system->Hcap) ) {
       Hflag = 1;
-      system->Hcap = MAX( system->numH * SAFER_ZONE, MIN_CAP );
+      system->Hcap = int(MAX( system->numH * SAFER_ZONE, MIN_CAP ));
     }
 
     if( Hflag || realloc->hbonds ) {

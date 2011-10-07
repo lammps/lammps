@@ -37,7 +37,7 @@ USER-CUDA package.
 These are the variants these packages provide:
 
 OPT = a handful of pair styles, cache-optimized for faster CPU performance
-OMP = a collection of pair, dihedral and fix styles with support for OpenMP multi-threading
+USER-OMP = a collection of pair, dihedral and fix styles with support for OpenMP multi-threading
 GPU = a handful of pair styles and the PPPM kspace_style, optimized to run on one or more GPUs or multicore CPU/GPU nodes
 USER-CUDA = a collection of atom, pair, fix, compute, and intergrate styles, optimized to run on one or more NVIDIA GPUs :ul
 

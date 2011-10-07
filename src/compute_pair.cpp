@@ -47,14 +47,17 @@ ComputePair::ComputePair(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[4],"ecoul") == 0) evalue = ECOUL;
   } else evalue = EPAIR;
 
+  // check if pair style with and without suffix exists
+
   pair = force->pair_match(pstyle,1);
-  // check if /suffix style exists
   if (!pair && lmp->suffix) {
     strcat(pstyle,"/");
     strcat(pstyle,lmp->suffix);
     pair = force->pair_match(pstyle,1);
   }
-  if (!pair) error->all(FLERR,"Unrecognized pair style in compute pair command");
+
+  if (!pair) 
+    error->all(FLERR,"Unrecognized pair style in compute pair command");
   npair = pair->nextra;
 
   if (npair) {
@@ -82,7 +85,8 @@ void ComputePair::init()
   // recheck for pair style in case it has been deleted
 
   pair = force->pair_match(pstyle,1);
-  if (!pair) error->all(FLERR,"Unrecognized pair style in compute pair command");
+  if (!pair) 
+    error->all(FLERR,"Unrecognized pair style in compute pair command");
 }
 
 /* ---------------------------------------------------------------------- */

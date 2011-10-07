@@ -24,7 +24,7 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "reaxc_types.h"
+#include "pair_reax_c.h"
 #if defined(PURE_REAX)
 #include "valence_angles.h"
 #include "bond_orders.h"
@@ -106,6 +106,10 @@ void Valence_Angles( reax_system *system, control_params *control,
   rvec force, ext_press;
   // rtensor temp_rtensor, total_rtensor;
 
+  // Tallying variables
+  real eng_tmp, f_scaler, fi_tmp[3], fj_tmp[3], fk_tmp[3];
+  real delij[3], delkj[3];
+
   three_body_header *thbh;
   three_body_parameters *thbp;
   three_body_interaction_data *p_ijk, *p_kji;
@@ -113,7 +117,6 @@ void Valence_Angles( reax_system *system, control_params *control,
   bond_order_data *bo_ij, *bo_jk, *bo_jt;
   reax_list *bonds = (*lists) + BONDS;
   reax_list *thb_intrs =  (*lists) + THREE_BODIES;
-
 
   /* global parameters used in these calculations */
   p_val6 = system->reax_param.gp.l[14];
@@ -123,7 +126,7 @@ void Valence_Angles( reax_system *system, control_params *control,
   num_thb_intrs = 0;
 
   
-  for( j = 0; j < system->N; ++j ) {
+  for( j = 0; j < system->N; ++j ) { 	// Ray: the first one with system->N
     // fprintf( out_control->eval, "j: %d\n", j );
     type_j = system->my_atoms[j].type;
     start_j = Start_Index(j, bonds);
@@ -366,6 +369,7 @@ void Valence_Angles( reax_system *system, control_params *control,
 		CEcoa5 = -2 * p_coa3 * 
 		  (workspace->total_bond_order[k]-BOA_jk) * e_coa;
 		/* END COALITION ENERGY */
+
 		
 		/* FORCES */
 		bo_ij->Cdbo += (CEval1 + CEpen2 + (CEcoa1 - CEcoa4));
@@ -390,7 +394,6 @@ void Valence_Angles( reax_system *system, control_params *control,
 		    bo_jt->Cdbopi2 += CEval5;
 		}		      
 		
-		
 		if( control->virial == 0 ) {
 		  rvec_ScaledAdd( workspace->f[i], CEval8, p_ijk->dcos_di );
 		  rvec_ScaledAdd( workspace->f[j], CEval8, p_ijk->dcos_dj );
@@ -410,6 +413,27 @@ void Valence_Angles( reax_system *system, control_params *control,
 		  rvec_Add( workspace->f[k], force );
 		  rvec_iMultiply( ext_press, pbond_jk->rel_box, force );
 		  rvec_Add( data->my_ext_press, ext_press );
+		}
+
+		/* tally into per-atom virials */
+		if( system->vflag_atom || system->evflag) {
+			
+		  /* Acquire vectors */
+		  rvec_ScaledSum( delij, 1., system->my_atoms[i].x,
+					-1., system->my_atoms[j].x );
+		  rvec_ScaledSum( delkj, 1., system->my_atoms[k].x,
+					-1., system->my_atoms[j].x );
+		  
+		  rvec_Scale( fi_tmp, -CEval8, p_ijk->dcos_di );
+		  rvec_Scale( fj_tmp, -CEval8, p_ijk->dcos_dj );
+		  rvec_Scale( fk_tmp, -CEval8, p_ijk->dcos_dk );
+		  
+		  eng_tmp = e_ang + e_pen + e_coa;
+
+		  if( system->evflag)
+			  system->pair_ptr->ev_tally(j,j,system->N,1,eng_tmp,0.0,0.0,0.0,0.0,0.0);
+		  if( system->vflag_atom)
+			  system->pair_ptr->v_tally3(i,j,k,fi_tmp,fk_tmp,delij,delkj);
 		}
 		
 #ifdef TEST_ENERGY

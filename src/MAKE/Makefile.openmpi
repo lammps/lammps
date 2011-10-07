@@ -35,7 +35,7 @@ LMP_INC =	-DLAMMPS_GZIP
 # PATH = path for MPI library
 # LIB = name of MPI library
 
-MPI_INC =       
+MPI_INC =       -DOMPI_SKIP_MPICXX=1
 MPI_PATH = 
 MPI_LIB =	
 

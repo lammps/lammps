@@ -555,7 +555,7 @@ void PairComb::init_style()
 
   pgsize = neighbor->pgsize;
   oneatom = neighbor->oneatom;
-  if (maxpage == 0) add_pages(0);
+  if (maxpage == 0) add_pages();
 }
 
 /* ----------------------------------------------------------------------
@@ -2087,7 +2087,7 @@ void PairComb::Short_neigh()
     if(pgsize - npntj < oneatom) {
       npntj = 0;
       npage++;
-      if (npage == maxpage) add_pages(npage);
+      if (npage == maxpage) add_pages();
     }
  
     nj = 0;
@@ -2122,11 +2122,12 @@ void PairComb::Short_neigh()
 
 /* ---------------------------------------------------------------------- */
 
-void PairComb::add_pages(int npage)
+void PairComb::add_pages(int howmany)
 {
-  maxpage += PGDELTA;
+  int npage = maxpage;
+  maxpage += howmany;
   pages = (int **)
-  memory->srealloc(pages,maxpage*sizeof(int *),"pair:pages");
+    memory->srealloc(pages,maxpage*sizeof(int *),"pair:pages");
   for (int i = npage; i < maxpage; i++)
     memory->create(pages[i],pgsize,"pair:pages[i]");
 }

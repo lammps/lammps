@@ -145,7 +145,7 @@ class PairComb : public Pair {
   void unpack_comm(int , int , double *);
 
   // Short range neighbor list
-  void add_pages(int );
+  void add_pages(int howmany=1);
   void Short_neigh();
   int npage, maxpage, pgsize, oneatom, **pages;
   int *sht_num, **sht_first;	// short-range neighbor list

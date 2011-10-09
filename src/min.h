@@ -19,6 +19,7 @@
 namespace LAMMPS_NS {
 
 class Min : protected Pointers {
+ friend class FixOMP;
  public:
   double einitial,efinal,eprevious;
   double fnorm2_init,fnorminf_init,fnorm2_final,fnorminf_final;

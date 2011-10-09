@@ -19,6 +19,7 @@
 namespace LAMMPS_NS {
 
 class Integrate : protected Pointers {
+ friend class FixOMP;
  public:
   Integrate(class LAMMPS *, int, char **);
   virtual ~Integrate();

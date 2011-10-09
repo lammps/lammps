@@ -23,35 +23,21 @@
 namespace LAMMPS_NS {
 
 // forward declarations
+class Fix;
 class Pair;
+class Bond;
+class Angle;
 class Dihedral;
+class Improper;
 
 class ThrOMP {
- public:
-  struct global {
-    double eng_vdwl;
-    double eng_coul;
-    double eng_bond;
-    double virial[6];
-  };
-
  protected:
+  LAMMPS *lmp; // reference to base lammps object.
+  Fix *fix;    // pointer to fix_omp;
+
   const int thr_style;
   enum {PAIR=1, BOND, ANGLE, DIHEDRAL, IMPROPER, KSPACE, FIX, COMPUTE};
 
-  LAMMPS *lmp;           // reference to base lammps object.
-
-  double *eng_vdwl_thr;  // per thread accumulated vdw energy
-  double *eng_coul_thr;  // per thread accumulated coulomb energies
-  double *eng_bond_thr;  // per thread accumlated bonded energy
-
-  double **virial_thr;   // per thread virial
-  double **eatom_thr;    // per thread per atom energy
-  double ***vatom_thr;   // per thread per atom virial
-
-  int maxeatom_thr, maxvatom_thr;
-  int evflag_global, evflag_atom;
-  
  public:
   ThrOMP(LAMMPS *, int);
   virtual ~ThrOMP();

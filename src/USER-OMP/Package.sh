@@ -26,3 +26,13 @@ for file in *_omp.cpp *_omp.h; do
   fi
 done
 
+for file in thr_data.h thr_data.cpp; do
+  if (test ! -e ../$file) then
+    echo "  creating src/$file"
+    cp $file ..
+  elif ! cmp -s $file ../$file ; then
+    echo "  updating src/$file"
+    cp $file ..
+  fi
+done
+

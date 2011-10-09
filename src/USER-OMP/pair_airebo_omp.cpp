@@ -2679,7 +2679,7 @@ void PairAIREBOOMP::REBO_neigh_thr()
     add_pages(nthreads - maxpage);
 
 #if defined(_OPENMP)
-#pragma omp parallel default(shared)
+#pragma omp parallel default(none)
 #endif
   {
     int i,j,ii,jj,n,jnum,itype,jtype;
@@ -2716,14 +2716,14 @@ void PairAIREBOOMP::REBO_neigh_thr()
     for (ii = iifrom; ii < iito; ii++) {
       i = ilist[ii];
 
+#if defined(_OPENMP)
+#pragma omp critical
+#endif
       if (pgsize - npnt < oneatom) {
 	npnt = 0;
 	npage += nthreads;
 	// only one thread at a time may check whether we 
 	// need new neighbor list pages and then add to them.
-#if defined(_OPENMP)
-#pragma omp critical
-#endif
 	if (npage >= maxpage) add_pages(nthreads);
       }
       neighptr = &(pages[npage][npnt]);
@@ -2760,7 +2760,7 @@ void PairAIREBOOMP::REBO_neigh_thr()
       npnt += n;
 
       if (npnt >= pgsize)
-	error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+	error->one(FLERR,"REBO list overflow, boost neigh_modify one or page");
     }
   }
 }

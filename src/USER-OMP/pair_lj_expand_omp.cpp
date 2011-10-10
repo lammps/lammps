@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 #include "math.h"
-#include "pair_lj_cut_omp.h"
+#include "pair_lj_expand_omp.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -24,15 +24,15 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutOMP::PairLJCutOMP(LAMMPS *lmp) :
-  PairLJCut(lmp), ThrOMP(lmp, PAIR)
+PairLJExpandOMP::PairLJExpandOMP(LAMMPS *lmp) :
+  PairLJExpand(lmp), ThrOMP(lmp, PAIR)
 {
   respa_enable = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJCutOMP::compute(int eflag, int vflag)
+void PairLJExpandOMP::compute(int eflag, int vflag)
 {
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
@@ -75,11 +75,12 @@ void PairLJCutOMP::compute(int eflag, int vflag)
 }
 
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-void PairLJCutOMP::eval(double **f, int iifrom, int iito, int tid)
+void PairLJExpandOMP::eval(double **f, int iifrom, int iito, int tid)
 {
   int i,j,ii,jj,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq,r2inv,r6inv,forcelj,factor_lj;
+  double r,rshift,rshiftsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
@@ -119,10 +120,13 @@ void PairLJCutOMP::eval(double **f, int iifrom, int iito, int tid)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-	r2inv = 1.0/rsq;
+	r = sqrt(rsq);
+	rshift = r - shift[itype][jtype];
+	rshiftsq = rshift*rshift;
+	r2inv = 1.0/rshiftsq;
 	r6inv = r2inv*r2inv*r2inv;
 	forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-	fpair = factor_lj*forcelj*r2inv;
+	fpair = factor_lj*forcelj/rshift/r;
 
 	fxtmp += delx*fpair;
 	fytmp += dely*fpair;
@@ -151,10 +155,10 @@ void PairLJCutOMP::eval(double **f, int iifrom, int iito, int tid)
 
 /* ---------------------------------------------------------------------- */
 
-double PairLJCutOMP::memory_usage()
+double PairLJExpandOMP::memory_usage()
 {
   double bytes = memory_usage_thr();
-  bytes += PairLJCut::memory_usage();
+  bytes += PairLJExpand::memory_usage();
 
   return bytes;
 }

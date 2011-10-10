@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 #include "math.h"
-#include "pair_lj_cut_omp.h"
+#include "pair_soft_omp.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -22,17 +22,19 @@
 
 using namespace LAMMPS_NS;
 
+#define SMALL 1.0e-4
+
 /* ---------------------------------------------------------------------- */
 
-PairLJCutOMP::PairLJCutOMP(LAMMPS *lmp) :
-  PairLJCut(lmp), ThrOMP(lmp, PAIR)
+PairSoftOMP::PairSoftOMP(LAMMPS *lmp) :
+  PairSoft(lmp), ThrOMP(lmp, PAIR)
 {
   respa_enable = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJCutOMP::compute(int eflag, int vflag)
+void PairSoftOMP::compute(int eflag, int vflag)
 {
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
@@ -75,11 +77,11 @@ void PairLJCutOMP::compute(int eflag, int vflag)
 }
 
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-void PairLJCutOMP::eval(double **f, int iifrom, int iito, int tid)
+void PairSoftOMP::eval(double **f, int iifrom, int iito, int tid)
 {
   int i,j,ii,jj,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double rsq,r2inv,r6inv,forcelj,factor_lj;
+  double r,rsq,arg,factor_lj;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
@@ -119,10 +121,11 @@ void PairLJCutOMP::eval(double **f, int iifrom, int iito, int tid)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-	r2inv = 1.0/rsq;
-	r6inv = r2inv*r2inv*r2inv;
-	forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-	fpair = factor_lj*forcelj*r2inv;
+	r = sqrt(rsq);
+	arg = PI/cut[itype][jtype];
+	if (r > SMALL) fpair = factor_lj * prefactor[itype][jtype] * 
+		       sin(arg*r) * arg/r;
+	else fpair = 0.0;
 
 	fxtmp += delx*fpair;
 	fytmp += dely*fpair;
@@ -133,11 +136,8 @@ void PairLJCutOMP::eval(double **f, int iifrom, int iito, int tid)
 	  f[j][2] -= delz*fpair;
 	}
 
-	if (EFLAG) {
-	  evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype])
-	    - offset[itype][jtype];
-	  evdwl *= factor_lj;
-	}
+	if (EFLAG)
+	  evdwl = factor_lj * prefactor[itype][jtype] * (1.0+cos(arg*r));
 
 	if (EVFLAG) ev_tally_thr(this, i,j,nlocal,NEWTON_PAIR,
 				 evdwl,0.0,fpair,delx,dely,delz,tid);
@@ -151,10 +151,10 @@ void PairLJCutOMP::eval(double **f, int iifrom, int iito, int tid)
 
 /* ---------------------------------------------------------------------- */
 
-double PairLJCutOMP::memory_usage()
+double PairSoftOMP::memory_usage()
 {
   double bytes = memory_usage_thr();
-  bytes += PairLJCut::memory_usage();
+  bytes += PairSoft::memory_usage();
 
   return bytes;
 }

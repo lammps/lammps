@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 #include "math.h"
-#include "pair_lj_cut_omp.h"
+#include "pair_lj_class2_omp.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -24,15 +24,15 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutOMP::PairLJCutOMP(LAMMPS *lmp) :
-  PairLJCut(lmp), ThrOMP(lmp, PAIR)
+PairLJClass2OMP::PairLJClass2OMP(LAMMPS *lmp) :
+  PairLJClass2(lmp), ThrOMP(lmp, PAIR)
 {
   respa_enable = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJCutOMP::compute(int eflag, int vflag)
+void PairLJClass2OMP::compute(int eflag, int vflag)
 {
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
@@ -75,11 +75,11 @@ void PairLJCutOMP::compute(int eflag, int vflag)
 }
 
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-void PairLJCutOMP::eval(double **f, int iifrom, int iito, int tid)
+void PairLJClass2OMP::eval(double **f, int iifrom, int iito, int tid)
 {
   int i,j,ii,jj,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double rsq,r2inv,r6inv,forcelj,factor_lj;
+  double rsq,r2inv,r3inv,r6inv,forcelj,factor_lj;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
@@ -121,7 +121,9 @@ void PairLJCutOMP::eval(double **f, int iifrom, int iito, int tid)
       if (rsq < cutsq[itype][jtype]) {
 	r2inv = 1.0/rsq;
 	r6inv = r2inv*r2inv*r2inv;
-	forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
+	r3inv = sqrt(r6inv);
+
+	forcelj = r6inv * (lj1[itype][jtype]*r3inv - lj2[itype][jtype]);
 	fpair = factor_lj*forcelj*r2inv;
 
 	fxtmp += delx*fpair;
@@ -134,7 +136,7 @@ void PairLJCutOMP::eval(double **f, int iifrom, int iito, int tid)
 	}
 
 	if (EFLAG) {
-	  evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype])
+	  evdwl = r6inv*(lj3[itype][jtype]*r3inv-lj4[itype][jtype])
 	    - offset[itype][jtype];
 	  evdwl *= factor_lj;
 	}
@@ -151,10 +153,10 @@ void PairLJCutOMP::eval(double **f, int iifrom, int iito, int tid)
 
 /* ---------------------------------------------------------------------- */
 
-double PairLJCutOMP::memory_usage()
+double PairLJClass2OMP::memory_usage()
 {
   double bytes = memory_usage_thr();
-  bytes += PairLJCut::memory_usage();
+  bytes += PairLJClass2::memory_usage();
 
   return bytes;
 }

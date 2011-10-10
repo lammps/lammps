@@ -13,9 +13,10 @@
 ------------------------------------------------------------------------- */
 
 #include "math.h"
-#include "pair_lj_cut_omp.h"
+#include "pair_table_omp.h"
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -24,15 +25,15 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutOMP::PairLJCutOMP(LAMMPS *lmp) :
-  PairLJCut(lmp), ThrOMP(lmp, PAIR)
+PairTableOMP::PairTableOMP(LAMMPS *lmp) :
+  PairTable(lmp), ThrOMP(lmp, PAIR)
 {
   respa_enable = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJCutOMP::compute(int eflag, int vflag)
+void PairTableOMP::compute(int eflag, int vflag)
 {
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
@@ -75,12 +76,16 @@ void PairLJCutOMP::compute(int eflag, int vflag)
 }
 
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-void PairLJCutOMP::eval(double **f, int iifrom, int iito, int tid)
+void PairTableOMP::eval(double **f, int iifrom, int iito, int tid)
 {
-  int i,j,ii,jj,jnum,itype,jtype;
+  int i,j,ii,jj,jnum,itype,jtype,itable;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double rsq,r2inv,r6inv,forcelj,factor_lj;
+  double rsq,factor_lj,fraction,value,a,b;
   int *ilist,*jlist,*numneigh,**firstneigh;
+  Table *tb;
+  
+  union_int_float_t rsq_lookup;
+  int tlm1 = tablength - 1;
 
   evdwl = 0.0;
 
@@ -117,12 +122,42 @@ void PairLJCutOMP::eval(double **f, int iifrom, int iito, int tid)
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
-
+      
       if (rsq < cutsq[itype][jtype]) {
-	r2inv = 1.0/rsq;
-	r6inv = r2inv*r2inv*r2inv;
-	forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-	fpair = factor_lj*forcelj*r2inv;
+	tb = &tables[tabindex[itype][jtype]];
+	if (rsq < tb->innersq)
+	  error->one(FLERR,"Pair distance < table inner cutoff");
+ 
+	if (tabstyle == LOOKUP) {
+	  itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
+	  if (itable >= tlm1)
+	    error->one(FLERR,"Pair distance > table outer cutoff");
+	  fpair = factor_lj * tb->f[itable];
+	} else if (tabstyle == LINEAR) {
+	  itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
+	  if (itable >= tlm1)
+	    error->one(FLERR,"Pair distance > table outer cutoff");
+	  fraction = (rsq - tb->rsq[itable]) * tb->invdelta;
+	  value = tb->f[itable] + fraction*tb->df[itable];
+	  fpair = factor_lj * value;
+	} else if (tabstyle == SPLINE) {
+	  itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
+	  if (itable >= tlm1)
+	    error->one(FLERR,"Pair distance > table outer cutoff");
+	  b = (rsq - tb->rsq[itable]) * tb->invdelta;
+	  a = 1.0 - b;
+	  value = a * tb->f[itable] + b * tb->f[itable+1] + 
+	    ((a*a*a-a)*tb->f2[itable] + (b*b*b-b)*tb->f2[itable+1]) * 
+            tb->deltasq6;
+	  fpair = factor_lj * value;
+	} else {
+	  rsq_lookup.f = rsq;
+	  itable = rsq_lookup.i & tb->nmask;
+	  itable >>= tb->nshiftbits;
+	  fraction = (rsq_lookup.f - tb->rsq[itable]) * tb->drsq[itable];
+	  value = tb->f[itable] + fraction*tb->df[itable];
+	  fpair = factor_lj * value;
+	}
 
 	fxtmp += delx*fpair;
 	fytmp += dely*fpair;
@@ -134,15 +169,22 @@ void PairLJCutOMP::eval(double **f, int iifrom, int iito, int tid)
 	}
 
 	if (EFLAG) {
-	  evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype])
-	    - offset[itype][jtype];
+	  if (tabstyle == LOOKUP)
+	    evdwl = tb->e[itable];
+	  else if (tabstyle == LINEAR || tabstyle == BITMAP)
+	    evdwl = tb->e[itable] + fraction*tb->de[itable];
+	  else
+	    evdwl = a * tb->e[itable] + b * tb->e[itable+1] + 
+	      ((a*a*a-a)*tb->e2[itable] + (b*b*b-b)*tb->e2[itable+1]) * 
+	      tb->deltasq6;
 	  evdwl *= factor_lj;
 	}
 
-	if (EVFLAG) ev_tally_thr(this, i,j,nlocal,NEWTON_PAIR,
+	if (EVFLAG) ev_tally_thr(this,i,j,nlocal,NEWTON_PAIR,
 				 evdwl,0.0,fpair,delx,dely,delz,tid);
       }
     }
+
     f[i][0] += fxtmp;
     f[i][1] += fytmp;
     f[i][2] += fztmp;
@@ -151,10 +193,10 @@ void PairLJCutOMP::eval(double **f, int iifrom, int iito, int tid)
 
 /* ---------------------------------------------------------------------- */
 
-double PairLJCutOMP::memory_usage()
+double PairTableOMP::memory_usage()
 {
   double bytes = memory_usage_thr();
-  bytes += PairLJCut::memory_usage();
+  bytes += PairTable::memory_usage();
 
   return bytes;
 }

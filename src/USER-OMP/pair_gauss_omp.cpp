@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 #include "math.h"
-#include "pair_lj_cut_omp.h"
+#include "pair_gauss_omp.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -22,17 +22,18 @@
 
 using namespace LAMMPS_NS;
 
+#define EPSILON 1.0e-10
 /* ---------------------------------------------------------------------- */
 
-PairLJCutOMP::PairLJCutOMP(LAMMPS *lmp) :
-  PairLJCut(lmp), ThrOMP(lmp, PAIR)
+PairGaussOMP::PairGaussOMP(LAMMPS *lmp) :
+  PairGauss(lmp), ThrOMP(lmp, PAIR)
 {
   respa_enable = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJCutOMP::compute(int eflag, int vflag)
+void PairGaussOMP::compute(int eflag, int vflag)
 {
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
@@ -75,12 +76,13 @@ void PairLJCutOMP::compute(int eflag, int vflag)
 }
 
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-void PairLJCutOMP::eval(double **f, int iifrom, int iito, int tid)
+void PairGaussOMP::eval(double **f, int iifrom, int iito, int tid)
 {
   int i,j,ii,jj,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double rsq,r2inv,r6inv,forcelj,factor_lj;
+  double r,rsq,r2inv,forcelj,factor_lj;
   int *ilist,*jlist,*numneigh,**firstneigh;
+  int occ = 0;
 
   evdwl = 0.0;
 
@@ -118,10 +120,17 @@ void PairLJCutOMP::eval(double **f, int iifrom, int iito, int tid)
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
 
+      // define a Gaussian well to be occupied if
+      // the site it interacts with is within the force maximum    
+    
+      if (EFLAG)
+	if (eflag_global && rsq < 0.5/b[itype][jtype]) occ++;
+
       if (rsq < cutsq[itype][jtype]) {
 	r2inv = 1.0/rsq;
-	r6inv = r2inv*r2inv*r2inv;
-	forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
+	r = sqrt(rsq);
+	forcelj = - 2.0*a[itype][jtype]*b[itype][jtype] * rsq * 
+	  exp(-b[itype][jtype]*rsq); 
 	fpair = factor_lj*forcelj*r2inv;
 
 	fxtmp += delx*fpair;
@@ -134,8 +143,8 @@ void PairLJCutOMP::eval(double **f, int iifrom, int iito, int tid)
 	}
 
 	if (EFLAG) {
-	  evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype])
-	    - offset[itype][jtype];
+	  evdwl = -(a[itype][jtype]*exp(-b[itype][jtype]*rsq) -
+		    offset[itype][jtype]);
 	  evdwl *= factor_lj;
 	}
 
@@ -147,14 +156,15 @@ void PairLJCutOMP::eval(double **f, int iifrom, int iito, int tid)
     f[i][1] += fytmp;
     f[i][2] += fztmp;
   }
+  if (eflag_global) pvector[0] = occ;
 }
 
 /* ---------------------------------------------------------------------- */
 
-double PairLJCutOMP::memory_usage()
+double PairGaussOMP::memory_usage()
 {
   double bytes = memory_usage_thr();
-  bytes += PairLJCut::memory_usage();
+  bytes += PairGauss::memory_usage();
 
   return bytes;
 }

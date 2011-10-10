@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 #include "math.h"
-#include "pair_lj_cut_omp.h"
+#include "pair_yukawa_colloid_omp.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -24,15 +24,15 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutOMP::PairLJCutOMP(LAMMPS *lmp) :
-  PairLJCut(lmp), ThrOMP(lmp, PAIR)
+PairYukawaColloidOMP::PairYukawaColloidOMP(LAMMPS *lmp) :
+  PairYukawaColloid(lmp), ThrOMP(lmp, PAIR)
 {
   respa_enable = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJCutOMP::compute(int eflag, int vflag)
+void PairYukawaColloidOMP::compute(int eflag, int vflag)
 {
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
@@ -75,16 +75,17 @@ void PairLJCutOMP::compute(int eflag, int vflag)
 }
 
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-void PairLJCutOMP::eval(double **f, int iifrom, int iito, int tid)
+void PairYukawaColloidOMP::eval(double **f, int iifrom, int iito, int tid)
 {
   int i,j,ii,jj,jnum,itype,jtype;
-  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double rsq,r2inv,r6inv,forcelj,factor_lj;
+  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair,radi,radj;
+  double rsq,r,rinv,r2inv,screening,forceyukawa,factor;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
 
   double **x = atom->x;
+  double *radius = atom->radius;
   int *type = atom->type;
   int nlocal = atom->nlocal;
   double *special_lj = force->special_lj;
@@ -102,6 +103,7 @@ void PairLJCutOMP::eval(double **f, int iifrom, int iito, int tid)
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
+    radi = radius[i];
     itype = type[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
@@ -109,20 +111,24 @@ void PairLJCutOMP::eval(double **f, int iifrom, int iito, int tid)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      factor_lj = special_lj[sbmask(j)];
+      factor = special_lj[sbmask(j)];
       j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
+      radj = radius[j];
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
 	r2inv = 1.0/rsq;
-	r6inv = r2inv*r2inv*r2inv;
-	forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-	fpair = factor_lj*forcelj*r2inv;
+	r = sqrt(rsq);
+	rinv = 1.0/r;
+	screening = exp(-kappa*(r-(radi+radj)));
+	forceyukawa = a[itype][jtype] * screening;
+
+	fpair = factor*forceyukawa * rinv;
 
 	fxtmp += delx*fpair;
 	fytmp += dely*fpair;
@@ -134,11 +140,9 @@ void PairLJCutOMP::eval(double **f, int iifrom, int iito, int tid)
 	}
 
 	if (EFLAG) {
-	  evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype])
-	    - offset[itype][jtype];
-	  evdwl *= factor_lj;
+	  evdwl = a[itype][jtype]/kappa * screening - offset[itype][jtype];
+	  evdwl *= factor;
 	}
-
 	if (EVFLAG) ev_tally_thr(this, i,j,nlocal,NEWTON_PAIR,
 				 evdwl,0.0,fpair,delx,dely,delz,tid);
       }
@@ -151,10 +155,10 @@ void PairLJCutOMP::eval(double **f, int iifrom, int iito, int tid)
 
 /* ---------------------------------------------------------------------- */
 
-double PairLJCutOMP::memory_usage()
+double PairYukawaColloidOMP::memory_usage()
 {
   double bytes = memory_usage_thr();
-  bytes += PairLJCut::memory_usage();
+  bytes += PairYukawaColloid::memory_usage();
 
   return bytes;
 }

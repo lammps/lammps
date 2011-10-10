@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 #include "math.h"
-#include "pair_lj_cut_omp.h"
+#include "pair_lj_gromacs_omp.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -24,15 +24,15 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutOMP::PairLJCutOMP(LAMMPS *lmp) :
-  PairLJCut(lmp), ThrOMP(lmp, PAIR)
+PairLJGromacsOMP::PairLJGromacsOMP(LAMMPS *lmp) :
+  PairLJGromacs(lmp), ThrOMP(lmp, PAIR)
 {
   respa_enable = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJCutOMP::compute(int eflag, int vflag)
+void PairLJGromacsOMP::compute(int eflag, int vflag)
 {
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
@@ -75,11 +75,12 @@ void PairLJCutOMP::compute(int eflag, int vflag)
 }
 
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-void PairLJCutOMP::eval(double **f, int iifrom, int iito, int tid)
+void PairLJGromacsOMP::eval(double **f, int iifrom, int iito, int tid)
 {
   int i,j,ii,jj,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq,r2inv,r6inv,forcelj,factor_lj;
+  double r,t,fswitch,eswitch;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
@@ -122,6 +123,13 @@ void PairLJCutOMP::eval(double **f, int iifrom, int iito, int tid)
 	r2inv = 1.0/rsq;
 	r6inv = r2inv*r2inv*r2inv;
 	forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
+        if (rsq > cut_inner_sq[itype][jtype]) {
+          r = sqrt(rsq); 
+	  t = r - cut_inner[itype][jtype];
+	  fswitch = r*t*t*(ljsw1[itype][jtype] + ljsw2[itype][jtype]*t);
+	  forcelj += fswitch;
+        }
+
 	fpair = factor_lj*forcelj*r2inv;
 
 	fxtmp += delx*fpair;
@@ -134,8 +142,12 @@ void PairLJCutOMP::eval(double **f, int iifrom, int iito, int tid)
 	}
 
 	if (EFLAG) {
-	  evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype])
-	    - offset[itype][jtype];
+	  evdwl = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]); 
+	  evdwl += ljsw5[itype][jtype];
+          if (rsq > cut_inner_sq[itype][jtype]) {
+            eswitch = t*t*t*(ljsw3[itype][jtype] + ljsw4[itype][jtype]*t);
+            evdwl += eswitch;
+          }
 	  evdwl *= factor_lj;
 	}
 
@@ -151,10 +163,10 @@ void PairLJCutOMP::eval(double **f, int iifrom, int iito, int tid)
 
 /* ---------------------------------------------------------------------- */
 
-double PairLJCutOMP::memory_usage()
+double PairLJGromacsOMP::memory_usage()
 {
   double bytes = memory_usage_thr();
-  bytes += PairLJCut::memory_usage();
+  bytes += PairLJGromacs::memory_usage();
 
   return bytes;
 }

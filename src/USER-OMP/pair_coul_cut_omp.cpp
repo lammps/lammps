@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 #include "math.h"
-#include "pair_lj_cut_omp.h"
+#include "pair_coul_cut_omp.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -24,15 +24,15 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutOMP::PairLJCutOMP(LAMMPS *lmp) :
-  PairLJCut(lmp), ThrOMP(lmp, PAIR)
+PairCoulCutOMP::PairCoulCutOMP(LAMMPS *lmp) :
+  PairCoulCut(lmp), ThrOMP(lmp, PAIR)
 {
   respa_enable = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJCutOMP::compute(int eflag, int vflag)
+void PairCoulCutOMP::compute(int eflag, int vflag)
 {
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
@@ -74,20 +74,24 @@ void PairLJCutOMP::compute(int eflag, int vflag)
   if (vflag_fdotr) virial_fdotr_compute();
 }
 
+/* ---------------------------------------------------------------------- */
+
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-void PairLJCutOMP::eval(double **f, int iifrom, int iito, int tid)
+void PairCoulCutOMP::eval(double **f, int iifrom, int iito, int tid)
 {
   int i,j,ii,jj,jnum,itype,jtype;
-  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double rsq,r2inv,r6inv,forcelj,factor_lj;
+  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,ecoul,fpair;
+  double rsq,r2inv,rinv,forcecoul,factor_coul;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
-  evdwl = 0.0;
+  ecoul = 0.0;
 
   double **x = atom->x;
+  double *q = atom->q;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  double *special_lj = force->special_lj;
+  double *special_coul = force->special_coul;
+  double qqrd2e = force->qqrd2e;
   double fxtmp,fytmp,fztmp;
 
   ilist = list->ilist;
@@ -99,6 +103,7 @@ void PairLJCutOMP::eval(double **f, int iifrom, int iito, int tid)
   for (ii = iifrom; ii < iito; ++ii) {
 
     i = ilist[ii];
+    qtmp = q[i];
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
@@ -109,7 +114,7 @@ void PairLJCutOMP::eval(double **f, int iifrom, int iito, int tid)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      factor_lj = special_lj[sbmask(j)];
+      factor_coul = special_coul[sbmask(j)];
       j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];
@@ -120,9 +125,9 @@ void PairLJCutOMP::eval(double **f, int iifrom, int iito, int tid)
 
       if (rsq < cutsq[itype][jtype]) {
 	r2inv = 1.0/rsq;
-	r6inv = r2inv*r2inv*r2inv;
-	forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-	fpair = factor_lj*forcelj*r2inv;
+	rinv = sqrt(r2inv);
+	forcecoul = qqrd2e * scale[itype][jtype] * qtmp*q[j]*rinv;
+	fpair = factor_coul*forcecoul * r2inv;
 
 	fxtmp += delx*fpair;
 	fytmp += dely*fpair;
@@ -133,14 +138,11 @@ void PairLJCutOMP::eval(double **f, int iifrom, int iito, int tid)
 	  f[j][2] -= delz*fpair;
 	}
 
-	if (EFLAG) {
-	  evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype])
-	    - offset[itype][jtype];
-	  evdwl *= factor_lj;
-	}
+	if (EFLAG)
+	  ecoul = factor_coul * qqrd2e * scale[itype][jtype] * qtmp*q[j]*rinv;
 
 	if (EVFLAG) ev_tally_thr(this, i,j,nlocal,NEWTON_PAIR,
-				 evdwl,0.0,fpair,delx,dely,delz,tid);
+				 0.0,ecoul,fpair,delx,dely,delz,tid);
       }
     }
     f[i][0] += fxtmp;
@@ -151,10 +153,10 @@ void PairLJCutOMP::eval(double **f, int iifrom, int iito, int tid)
 
 /* ---------------------------------------------------------------------- */
 
-double PairLJCutOMP::memory_usage()
+double PairCoulCutOMP::memory_usage()
 {
   double bytes = memory_usage_thr();
-  bytes += PairLJCut::memory_usage();
+  bytes += PairCoulCut::memory_usage();
 
   return bytes;
 }

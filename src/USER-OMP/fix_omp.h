@@ -36,14 +36,16 @@ class FixOMP : public Fix {
   virtual void pre_force(int);
   virtual void post_force(int);
 
+  virtual double memory_usage();
+
  protected:
   class ThrData **thr;
-  int _ndata;  // number of per thread data sets
-  int _nlocal; // cached number of local atoms
-  int _nall;   // cached number of local + ghost atoms
-  int _nmax;   // cached number of max atoms per MPI task
+  int _ndata;    // number of per thread data sets
+  int _nall;     // cached number of local + ghost atoms
+  int _nmax;     // cached number of max atoms per MPI task
+  int _redflags; // flags for reduction
   
-  virtual double memory_usage();
+  void add_reduce(int flags) {_redflags |= flags; };
 
 #if 0
   virtual void initial_integrate(int);

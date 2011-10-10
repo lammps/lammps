@@ -29,6 +29,7 @@ class Bond;
 class Angle;
 class Dihedral;
 class Improper;
+class Kspace;
 
 class ThrOMP {
  protected:
@@ -52,12 +53,13 @@ class ThrOMP {
     };
 
  protected:
-  // extra ev_tally work for threaded styles
-  void ev_setup_thr(Pair *);
-  void ev_setup_thr(Dihedral *);
-
-  void ev_reduce_thr(Pair *);
-  void ev_reduce_thr(Dihedral *);
+  // extra ev_tally setup work for threaded styles
+  void ev_setup_thr(Pair *, int, int);
+  void ev_setup_thr(Bond *, int, int);
+  void ev_setup_thr(Angle *, int, int);
+  void ev_setup_thr(Dihedral *, int, int);
+  void ev_setup_thr(Improper *, int, int);
+  void ev_setup_thr(Kspace *, int, int);
 
  private:
   // internal method to be used by multiple ev_setup_thr() methods

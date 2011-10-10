@@ -18,14 +18,14 @@
 
 #include "thr_omp.h"
 
-#include "memory.h"
-
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
+#include "memory.h"
+#include "modify.h"
 
-#include "pair.h"
-#include "dihedral.h"
+#include "thr_data.h"
 
 #if defined(_OPENMP)
 #include <omp.h>
@@ -38,37 +38,71 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-ThrOMP::ThrOMP(LAMMPS *ptr, int style) : thr_style(style), lmp(ptr)
+ThrOMP::ThrOMP(LAMMPS *ptr, int style) : lmp(ptr), fix(NULL), thr_style(style)
 {
-  // initialize fixed size per thread storage
-  eng_vdwl_thr = eng_coul_thr = eng_bond_thr = NULL;
-  virial_thr = NULL;
-
-  lmp->memory->create(eng_vdwl_thr,lmp->comm->nthreads,"thr_omp:eng_vdwl_thr");
-  lmp->memory->create(eng_coul_thr,lmp->comm->nthreads,"thr_omp:eng_coul_thr");
-  lmp->memory->create(eng_bond_thr,lmp->comm->nthreads,"thr_omp:eng_bond_thr");
-  lmp->memory->create(virial_thr,lmp->comm->nthreads,6,"thr_omp:virial_thr");
-
-  // variable size per thread, per atom storage
-  // the actually allocation happens via memory->grow() in ev_steup_thr()
-  maxeatom_thr = maxvatom_thr = 0;
-  evflag_global = evflag_atom = 0;
-  eatom_thr = NULL;
-  vatom_thr = NULL;
+  // register fix omp
+  int ifix = lmp->modify->find_fix("OMP");
+  if (ifix < 0)
+    lmp->error->all(FLERR,"The 'package omp' command is required for /omp styles");
+  fix = lmp->modify->fix[ifix];
 }
 
 /* ---------------------------------------------------------------------- */
 
 ThrOMP::~ThrOMP()
 {
-  lmp->memory->destroy(eng_vdwl_thr);
-  lmp->memory->destroy(eng_coul_thr);
-  lmp->memory->destroy(eng_bond_thr);
-  lmp->memory->destroy(virial_thr);
-  lmp->memory->destroy(eatom_thr);
-  lmp->memory->destroy(vatom_thr);
+  // nothing to do?
 }
 
+/* ---------------------------------------------------------------------- */
+
+void ThrOMP::ev_setup_thr(Pair *pair, int eflag, int vflag)
+{
+  
+}
+
+
+/* ---------------------------------------------------------------------- */
+
+void ThrOMP::ev_setup_thr(Bond *bond, int eflag, int vflag)
+{
+  
+}
+
+
+/* ---------------------------------------------------------------------- */
+
+void ThrOMP::ev_setup_thr(Angle *angle, int eflag, int vflag)
+{
+  
+}
+
+
+/* ---------------------------------------------------------------------- */
+
+void ThrOMP::ev_setup_thr(Dihedral *dihed, int eflag, int vflag)
+{
+  
+}
+
+
+/* ---------------------------------------------------------------------- */
+
+void ThrOMP::ev_setup_thr(Improper *imprp, int eflag, int vflag)
+{
+  
+}
+
+
+/* ---------------------------------------------------------------------- */
+
+void ThrOMP::ev_setup_thr(Kspace *kspce, int eflag, int vflag)
+{
+  
+}
+
+
+#if 0
 /* ---------------------------------------------------------------------- */
 
 void ThrOMP::ev_setup_acc_thr(int ntotal, int eflag_global, int vflag_global,
@@ -226,7 +260,9 @@ void ThrOMP::ev_reduce_thr(Pair *pair)
     }
   }
 }
+#endif
 
+#if 0
 /* ----------------------------------------------------------------------
    tally eng_vdwl and virial into per thread global and per-atom accumulators
    need i < nlocal test since called by bond_quartic and dihedral_charmm
@@ -235,7 +271,7 @@ void ThrOMP::ev_reduce_thr(Pair *pair)
 void ThrOMP::ev_tally_thr(Pair *pair, int i, int j, int nlocal,
 			  int newton_pair, double evdwl, double ecoul,
 			  double fpair, double delx, double dely,
-			  double delz, int tid)
+			  double delz, ThrData &thr)
 {
   double evdwlhalf,ecoulhalf,epairhalf,v[6];
 
@@ -760,39 +796,14 @@ void ThrOMP::v_tally4_thr(int i, int j, int k, int m,
   vatom_thr[tid][m][3] += v[3]; vatom_thr[tid][m][4] += v[4]; vatom_thr[tid][m][5] += v[5];
 }
 
-/* ---------------------------------------------------------------------- */
-
-// set loop range thread id, and force array offset for threaded runs.
-double **ThrOMP::loop_setup_thr(double **f, int &ifrom, int &ito, int &tid,
-				int inum, int nall, int nthreads)
-{
-#if defined(_OPENMP)
-  tid = omp_get_thread_num();
-
-  // each thread works on a fixed chunk of atoms.
-  const int idelta = 1 + inum/nthreads;
-  ifrom = tid*idelta;
-  ito   = ifrom + idelta;
-  if (ito > inum)
-    ito = inum;
-
-  return f + nall*tid;
-#else
-  tid = 0;
-  ifrom = 0;
-  ito = inum;
-  return f;
 #endif
-}
 
 /* ---------------------------------------------------------------------- */
 
 double ThrOMP::memory_usage_thr() 
 {
   const int nthreads=lmp->comm->nthreads;
-
-  double bytes = nthreads * (3 + 7) * sizeof(double);
-  bytes += nthreads * maxeatom_thr * sizeof(double);
-  bytes += nthreads * maxvatom_thr * 6 * sizeof(double);
+  double bytes=0.0;
+  
   return bytes;
 }

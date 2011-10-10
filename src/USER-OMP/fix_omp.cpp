@@ -28,6 +28,7 @@
 #include "thr_data.h"
 
 #include <string.h>
+#include <stdio.h>
 
 #if defined(_OPENMP)
 #include <omp.h>
@@ -47,7 +48,7 @@ static int get_tid()
 /* ---------------------------------------------------------------------- */
 
 FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg),
-  thr(NULL),_ndata(0), _nlocal(0), _nall(0), _nmax(0)
+  thr(NULL),_ndata(0), _nall(0), _nmax(0)
 {
   if ((narg < 4) || (narg > 6)) error->all(FLERR,"Illegal fix OMP command");
   if (strcmp(arg[1],"all") != 0) error->all(FLERR,"Illegal fix OMP command");
@@ -134,6 +135,7 @@ int FixOMP::setmask()
 
 void FixOMP::grow_arrays(int nmax)
 {
+  fprintf(stderr,"%s, nmax=%d->%d\n", __FUNCTION__, _nmax, nmax);
   _nmax=nmax;
 }
 
@@ -141,6 +143,7 @@ void FixOMP::grow_arrays(int nmax)
 
 void FixOMP::setup_pre_force(int vflag)
 {
+  fprintf(stderr,"%s, vflag=%d\n", __FUNCTION__, vflag);
   pre_force(vflag);
 }
 
@@ -148,15 +151,16 @@ void FixOMP::setup_pre_force(int vflag)
 
 void FixOMP::setup_post_force(int vflag)
 {
+  fprintf(stderr,"%s, vflag=%d\n", __FUNCTION__, vflag);
   post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
 
 // adjust size and clear out per thread accumulator arrays
-void FixOMP::pre_force(int)
+void FixOMP::pre_force(int _vflag)
 {
-  _nlocal = atom->nlocal;
+  fprintf(stderr,"%s, vflag=%d\n", __FUNCTION__, _vflag);
   _nall = atom->nlocal + atom->nghost;
   const int nall = _nall;
   const int nmax = _nmax;
@@ -198,6 +202,7 @@ void FixOMP::pre_force(int)
 
 void FixOMP::post_force(int vflag)
 {
+  fprintf(stderr,"%s, vflag=%d\n", __FUNCTION__, vflag);
   const int nthreads = comm->nthreads;
   const int nlocal = atom->nlocal;
   const int nall = nlocal + atom->nghost;
@@ -221,6 +226,7 @@ double FixOMP::memory_usage()
 {
   double bytes = _ndata * sizeof(ThrData *);
   bytes += _ndata * thr[0]->memory_usage();
+  fprintf(stderr,"%s, bytes=%g\n", __FUNCTION__, bytes);
   
   return bytes;
 }

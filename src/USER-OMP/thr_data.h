@@ -32,7 +32,7 @@ class ThrData {
   void clear(int);             // erase accumulator contents
   void grow_arrays(int);       // grow per atom arrays
   void set_accflags(int flags) { _accflags = flags; }; // flag which accumulators to prepare
-  void signal_reduce(int flag) { _redflags |= flag; }; // signal which reductions are needed
+//  void set_redflags(int flags) { _redflags = flags; }; // flag which accumulators to reduce
 
  protected:
   double eng_vdwl;        // non-bonded non-coulomb energy
@@ -111,6 +111,29 @@ static void data_reduce_thr(double *dall, int nall, int nthreads, int ndim, int 
 #else
   // NOOP in non-threaded execution.
   return;
+#endif
+}
+
+/* ---------------------------------------------------------------------- */
+
+// set loop range thread id, and force array offset for threaded runs.
+static double **loop_setup_thr(double **f, int &ifrom, int &ito, int &tid,
+			       int inum, int nall, int nthreads)
+{
+#if defined(_OPENMP)
+  tid = omp_get_thread_num();
+
+  // each thread works on a fixed chunk of atoms.
+  const int idelta = 1 + inum/nthreads;
+  ifrom = tid*idelta;
+  ito   = ((ifrom + idelta) > inum) ? inum : ifrom + idelta;
+
+  return f + nall*tid;
+#else
+  tid = 0;
+  ifrom = 0;
+  ito = inum;
+  return f;
 #endif
 }
 

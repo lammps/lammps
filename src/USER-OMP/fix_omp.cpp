@@ -139,10 +139,16 @@ void FixOMP::grow_arrays(int nmax)
 
 /* ---------------------------------------------------------------------- */
 
-// clear out per thread accumulator arrays
 void FixOMP::setup_pre_force(int vflag)
 {
   pre_force(vflag);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixOMP::setup_post_force(int vflag)
+{
+  post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -192,11 +198,19 @@ void FixOMP::pre_force(int)
 
 void FixOMP::post_force(int vflag)
 {
+  const int nthreads = comm->nthreads;
+  const int nlocal = atom->nlocal;
+  const int nall = nlocal + atom->nghost;
+
 #if defined(_OPENMP)
 #pragma omp parallel default(none) shared(thr,force)
 #endif
   {
     const int tid = get_tid();
+    data_reduce_thr(&(atom->f[0][0]), nall, nthreads, 3, tid);
+    if (atom->torque)
+      data_reduce_thr(&(atom->torque[0][0]), nall, nthreads, 3, tid);
+    //thr[tid]->reduce();
   }
 }
 

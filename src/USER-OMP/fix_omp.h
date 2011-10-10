@@ -32,6 +32,7 @@ class FixOMP : public Fix {
   virtual void grow_arrays(int);
 
   virtual void setup_pre_force(int);
+  virtual void setup_post_force(int);
   virtual void pre_force(int);
   virtual void post_force(int);
 

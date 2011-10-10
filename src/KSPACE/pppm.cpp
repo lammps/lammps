@@ -35,7 +35,10 @@
 #include "memory.h"
 #include "error.h"
 
+#include "math_const.h"
+
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define MAXORDER 7
 #define OFFSET 16384
@@ -58,7 +61,6 @@ PPPM::PPPM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
   if (narg < 1) error->all(FLERR,"Illegal kspace_style pppm command");
 
   precision = atof(arg[0]);
-  PI = 4.0*atan(1.0);
   
   nfactors = 3;
   factors = new int[nfactors];
@@ -520,9 +522,9 @@ void PPPM::setup()
 
   delvolinv = delxinv*delyinv*delzinv;
 
-  double unitkx = (2.0*PI/xprd);
-  double unitky = (2.0*PI/yprd);
-  double unitkz = (2.0*PI/zprd_slab);
+  double unitkx = (2.0*MY_PI/xprd);
+  double unitky = (2.0*MY_PI/yprd);
+  double unitkz = (2.0*MY_PI/zprd_slab);
 
   // fkx,fky,fkz for my FFT grid pts
 
@@ -581,11 +583,11 @@ void PPPM::setup()
   double sum1,dot1,dot2;
   double numerator,denominator;
 
-  int nbx = static_cast<int> ((g_ewald*xprd/(PI*nx_pppm)) * 
+  int nbx = static_cast<int> ((g_ewald*xprd/(MY_PI*nx_pppm)) * 
 			      pow(-log(EPS_HOC),0.25));
-  int nby = static_cast<int> ((g_ewald*yprd/(PI*ny_pppm)) * 
+  int nby = static_cast<int> ((g_ewald*yprd/(MY_PI*ny_pppm)) * 
 			      pow(-log(EPS_HOC),0.25));
-  int nbz = static_cast<int> ((g_ewald*zprd_slab/(PI*nz_pppm)) * 
+  int nbz = static_cast<int> ((g_ewald*zprd_slab/(MY_PI*nz_pppm)) * 
 			      pow(-log(EPS_HOC),0.25));
 
   double form = 1.0;
@@ -708,7 +710,7 @@ void PPPM::compute(int eflag, int vflag)
    
     energy *= 0.5*volume;
     energy -= g_ewald*qsqsum/1.772453851 +
-      0.5*PI*qsum*qsum / (g_ewald*g_ewald*volume);
+      MY_PI2*qsum*qsum / (g_ewald*g_ewald*volume);
     energy *= qqrd2e*scale;
   }
 
@@ -1027,7 +1029,7 @@ double PPPM::rms(double h, double prd, bigint natoms,
   for (int m = 0; m < order; m++) 
     sum += acons[order][m] * pow(h*g_ewald,2.0*m);
   double value = q2 * pow(h*g_ewald,order) *
-    sqrt(g_ewald*prd*sqrt(2.0*PI)*sum/natoms) / (prd*prd);
+    sqrt(g_ewald*prd*sqrt(2.0*MY_PI)*sum/natoms) / (prd*prd);
   return value;
 }
 
@@ -1873,13 +1875,13 @@ void PPPM::slabcorr(int eflag)
 
   // compute corrections
   
-  double e_slabcorr = 2.0*PI*dipole_all*dipole_all/volume;
+  double e_slabcorr = 2.0*MY_PI*dipole_all*dipole_all/volume;
   
   if (eflag) energy += qqrd2e*scale * e_slabcorr;
 
   // add on force corrections
 
-  double ffact = -4.0*PI*dipole_all/volume; 
+  double ffact = -4.0*MY_PI*dipole_all/volume; 
   double **f = atom->f;
 
   for (int i = 0; i < nlocal; i++) f[i][2] += qqrd2e*scale * q[i]*ffact;

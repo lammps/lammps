@@ -81,7 +81,8 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
     if (strcmp(arg[iarg],"-partition") == 0 || 
 	strcmp(arg[iarg],"-p") == 0) {
       universe->existflag = 1;
-      if (iarg+2 > narg) error->universe_all(FLERR,"Invalid command-line argument");
+      if (iarg+2 > narg) 
+	error->universe_all(FLERR,"Invalid command-line argument");
       iarg++;
       while (iarg < narg && arg[iarg][0] != '-') {
 	universe->add_world(arg[iarg]);
@@ -89,27 +90,32 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
       }
     } else if (strcmp(arg[iarg],"-in") == 0 || 
 	       strcmp(arg[iarg],"-i") == 0) {
-      if (iarg+2 > narg) error->universe_all(FLERR,"Invalid command-line argument");
+      if (iarg+2 > narg) 
+	error->universe_all(FLERR,"Invalid command-line argument");
       inflag = iarg + 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"-screen") == 0 || 
 	       strcmp(arg[iarg],"-sc") == 0) {
-      if (iarg+2 > narg) error->universe_all(FLERR,"Invalid command-line argument");
+      if (iarg+2 > narg) 
+	error->universe_all(FLERR,"Invalid command-line argument");
       screenflag = iarg + 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"-log") == 0 || 
 	       strcmp(arg[iarg],"-l") == 0) {
-      if (iarg+2 > narg) error->universe_all(FLERR,"Invalid command-line argument");
+      if (iarg+2 > narg) 
+	error->universe_all(FLERR,"Invalid command-line argument");
       logflag = iarg + 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"-var") == 0 || 
 	       strcmp(arg[iarg],"-v") == 0) {
-      if (iarg+3 > narg) error->universe_all(FLERR,"Invalid command-line argument");
-      iarg += 2;
+      if (iarg+3 > narg) 
+	error->universe_all(FLERR,"Invalid command-line argument");
+      iarg += 3;
       while (iarg < narg && arg[iarg][0] != '-') iarg++;
     } else if (strcmp(arg[iarg],"-echo") == 0 || 
 	       strcmp(arg[iarg],"-e") == 0) {
-      if (iarg+2 > narg) error->universe_all(FLERR,"Invalid command-line argument");
+      if (iarg+2 > narg) 
+	error->universe_all(FLERR,"Invalid command-line argument");
       iarg += 2;
     } else if (strcmp(arg[iarg],"-pscreen") == 0 || 
 	       strcmp(arg[iarg],"-ps") == 0) {
@@ -125,14 +131,16 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
       iarg += 2;
     } else if (strcmp(arg[iarg],"-cuda") == 0 || 
 	       strcmp(arg[iarg],"-c") == 0) {
-      if (iarg+2 > narg) error->universe_all(FLERR,"Invalid command-line argument");
+      if (iarg+2 > narg) 
+	error->universe_all(FLERR,"Invalid command-line argument");
       if (strcmp(arg[iarg+1],"on") == 0) cudaflag = 1;
       else if (strcmp(arg[iarg+1],"off") == 0) cudaflag = 0;
       else error->universe_all(FLERR,"Invalid command-line argument");
       iarg += 2;
     } else if (strcmp(arg[iarg],"-suffix") == 0 || 
 	       strcmp(arg[iarg],"-sf") == 0) {
-      if (iarg+2 > narg) error->universe_all(FLERR,"Invalid command-line argument");
+      if (iarg+2 > narg) 
+	error->universe_all(FLERR,"Invalid command-line argument");
       delete [] suffix;
       int n = strlen(arg[iarg+1]) + 1;
       suffix = new char[n];
@@ -141,7 +149,8 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
       iarg += 2;
     } else if (strcmp(arg[iarg],"-help") == 0 || 
 	       strcmp(arg[iarg],"-h") == 0) {
-      if (iarg+1 > narg) error->universe_all(FLERR,"Invalid command-line argument");
+      if (iarg+1 > narg) 
+	error->universe_all(FLERR,"Invalid command-line argument");
       helpflag = 1;
       iarg += 1;
     } else error->universe_all(FLERR,"Invalid command-line argument");
@@ -334,10 +343,12 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   int mpisize;
   MPI_Type_size(MPI_LMP_TAGINT,&mpisize);
   if (mpisize != sizeof(tagint))
-      error->all(FLERR,"MPI_LMP_TAGINT and tagint in lmptype.h are not compatible");
+      error->all(FLERR,
+		 "MPI_LMP_TAGINT and tagint in lmptype.h are not compatible");
   MPI_Type_size(MPI_LMP_BIGINT,&mpisize);
   if (mpisize != sizeof(bigint))
-      error->all(FLERR,"MPI_LMP_BIGINT and bigint in lmptype.h are not compatible");
+      error->all(FLERR,
+		 "MPI_LMP_BIGINT and bigint in lmptype.h are not compatible");
 
 #ifdef LAMMPS_SMALLBIG
   if (sizeof(smallint) != 4 || sizeof(tagint) != 4 || sizeof(bigint) != 8)
@@ -352,7 +363,8 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
     error->all(FLERR,"Small, tag, big integers are not sized correctly");
 #endif
 
-  if (sizeof(tagint) == 8) error->all(FLERR,"64-bit atom IDs are not yet supported");
+  if (sizeof(tagint) == 8) 
+    error->all(FLERR,"64-bit atom IDs are not yet supported");
 
   // create CUDA class if USER-CUDA installed, unless explicitly switched off
   // instantiation creates dummy CUDA class if USER-CUDA is not installed

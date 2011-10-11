@@ -1,8 +1,8 @@
 CUDA_HOME = /usr/local/cuda
 NVCC = nvcc
 
-CUDA_ARCH = -arch=sm_11
-CUDA_PRECISION = -D_SINGLE_SINGLE
+CUDA_ARCH = -arch=sm_20
+CUDA_PRECISION = -D_SINGLE_DOUBLE
 CUDA_INCLUDE = -I/usr/local/cuda/include
 CUDA_LIB = -L/usr/local/cuda/lib64
 CUDA_OPTS = -DUNIX -O3 -Xptxas -v --use_fast_math

@@ -46,6 +46,7 @@ class FixOMP : public Fix {
   int _redflags; // flags for reduction
   
   void add_reduce(int flags) {_redflags |= flags; };
+  ThrData *get_thr(int tid)  { return thr[tid]; };
 
 #if 0
   virtual void initial_integrate(int);

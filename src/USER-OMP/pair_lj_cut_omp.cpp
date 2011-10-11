@@ -36,7 +36,7 @@ void PairLJCutOMP::compute(int eflag, int vflag)
 {
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
-    ev_setup_thr(this);
+    ev_setup_thr(eflag,vflag);
   } else evflag = vflag_fdotr = 0;
 
   const int nall = atom->nlocal + atom->nghost;
@@ -51,31 +51,27 @@ void PairLJCutOMP::compute(int eflag, int vflag)
     double **f;
 
     f = loop_setup_thr(atom->f, ifrom, ito, tid, inum, nall, nthreads);
+    ThrData *thr = fix->get_thr(tid);
 
     if (evflag) {
       if (eflag) {
-	if (force->newton_pair) eval<1,1,1>(f, ifrom, ito, tid);
-	else eval<1,1,0>(f, ifrom, ito, tid);
+	if (force->newton_pair) eval<1,1,1>(f, ifrom, ito, thr);
+	else eval<1,1,0>(f, ifrom, ito, thr);
       } else {
-	if (force->newton_pair) eval<1,0,1>(f, ifrom, ito, tid);
-	else eval<1,0,0>(f, ifrom, ito, tid);
+	if (force->newton_pair) eval<1,0,1>(f, ifrom, ito, thr);
+	else eval<1,0,0>(f, ifrom, ito, thr);
       }
     } else {
-      if (force->newton_pair) eval<0,0,1>(f, ifrom, ito, tid);
-      else eval<0,0,0>(f, ifrom, ito, tid);
+      if (force->newton_pair) eval<0,0,1>(f, ifrom, ito, thr);
+      else eval<0,0,0>(f, ifrom, ito, thr);
     }
-
-    // reduce per thread forces into global force array.
-    data_reduce_thr(&(atom->f[0][0]), nall, nthreads, 3, tid);
+    if (vflag_fdotr) virial_fdotr_compute_thr(f, ifrom, ito, thr);
   } // end of omp parallel region
 
-  // reduce per thread energy and virial, if requested.
-  if (evflag) ev_reduce_thr(this);
-  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-void PairLJCutOMP::eval(double **f, int iifrom, int iito, int tid)
+void PairLJCutOMP::eval(double **f, int iifrom, int iito, ThrData *thr)
 {
   int i,j,ii,jj,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;

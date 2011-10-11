@@ -56,51 +56,38 @@ ThrOMP::~ThrOMP()
 
 /* ---------------------------------------------------------------------- */
 
-void ThrOMP::ev_setup_thr(Pair *pair, int eflag, int vflag)
+void ThrOMP::ev_setup_thr(int eflag, int vflag)
 {
-  
+  switch (ttype) {
+  case PAIR:
+    fix->add_reduce(ThrData::THR_PAIR);
+    break;
+  case BOND: 
+    fix->add_reduce(ThrData::THR_BOND);
+    break;
+  case ANGLE:
+    fix->add_reduce(ThrData::THR_ANGLE);
+    break;
+  case DIHEDRAL:
+    fix->add_reduce(ThrData::THR_DIHEDRAL);
+    break;
+  case IMPROPER:
+    fix->add_reduce(ThrData::THR_IMPROPER);
+    break;
+  case KSPACE:
+    fix->add_reduce(ThrData::THR_KSPACE);
+    break;
+  case FIX:
+    break;
+  default:
+    break;
+  }
+
+  if (eflag & 1) fix->add_reduce(ThrData::THR_ENERGY);
+  if (eflag & 2) fix->add_reduce(ThrData::THR_EATOM);
+  if (vflag & 3) fix->add_reduce(ThrData::THR_VIRIAL);
+  if (vflag & 4) fix->add_reduce(ThrData::THR_VATOM);
 }
-
-
-/* ---------------------------------------------------------------------- */
-
-void ThrOMP::ev_setup_thr(Bond *bond, int eflag, int vflag)
-{
-  
-}
-
-
-/* ---------------------------------------------------------------------- */
-
-void ThrOMP::ev_setup_thr(Angle *angle, int eflag, int vflag)
-{
-  
-}
-
-
-/* ---------------------------------------------------------------------- */
-
-void ThrOMP::ev_setup_thr(Dihedral *dihed, int eflag, int vflag)
-{
-  
-}
-
-
-/* ---------------------------------------------------------------------- */
-
-void ThrOMP::ev_setup_thr(Improper *imprp, int eflag, int vflag)
-{
-  
-}
-
-
-/* ---------------------------------------------------------------------- */
-
-void ThrOMP::ev_setup_thr(Kspace *kspce, int eflag, int vflag)
-{
-  
-}
-
 
 #if 0
 /* ---------------------------------------------------------------------- */

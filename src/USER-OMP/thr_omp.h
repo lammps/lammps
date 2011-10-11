@@ -54,12 +54,7 @@ class ThrOMP {
 
  protected:
   // extra ev_tally setup work for threaded styles
-  void ev_setup_thr(Pair *, int, int);
-  void ev_setup_thr(Bond *, int, int);
-  void ev_setup_thr(Angle *, int, int);
-  void ev_setup_thr(Dihedral *, int, int);
-  void ev_setup_thr(Improper *, int, int);
-  void ev_setup_thr(Kspace *, int, int);
+  void ev_setup_thr(int, int);
 
  private:
   // internal method to be used by multiple ev_setup_thr() methods

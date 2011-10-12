@@ -16,7 +16,6 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "fix_omp.h"
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
@@ -25,14 +24,12 @@
 #include "integrate.h"
 #include "min.h"
 
+#include "fix_omp.h"
 #include "thr_data.h"
 
 #include <string.h>
+#include <stdlib.h>
 #include <stdio.h>
-
-#if defined(_OPENMP)
-#include <omp.h>
-#endif
 
 using namespace LAMMPS_NS;
 
@@ -40,7 +37,7 @@ static int get_tid()
 {
   int tid = 0;
 #if defined(_OPENMP)
-  int tid = omp_get_thread_num();
+  tid = omp_get_thread_num();
 #endif
   return tid;
 }
@@ -91,7 +88,7 @@ FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg),
   // allocate per thread accumulator manager class
   thr = new ThrData *[nthreads];
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(thr)
+#pragma omp parallel default(none)
 #endif
   {
     const int tid = get_tid();
@@ -104,7 +101,7 @@ FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg),
 FixOMP::~FixOMP()
 {
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(thr)
+#pragma omp parallel default(none)
 #endif
   {
     const int tid = get_tid();
@@ -121,8 +118,6 @@ int FixOMP::setmask()
   mask |= PRE_FORCE;
   mask |= POST_FORCE;
 #if 0
-  mask |= INITIAL_INTEGRATE;
-  mask |= INITIAL_INTEGRATE_RESPA;
   mask |= PRE_FORCE_RESPA;
   mask |= POST_FORCE_RESPA;
   mask |= MIN_PRE_FORCE;
@@ -135,7 +130,7 @@ int FixOMP::setmask()
 
 void FixOMP::grow_arrays(int nmax)
 {
-  fprintf(stderr,"%s, nmax=%d->%d\n", __FUNCTION__, _nmax, nmax);
+  fprintf(stderr,"%s: nmax=%d\n",__FUNCTION__, nmax);
   _nmax=nmax;
 }
 
@@ -143,58 +138,38 @@ void FixOMP::grow_arrays(int nmax)
 
 void FixOMP::setup_pre_force(int vflag)
 {
-  fprintf(stderr,"%s, vflag=%d\n", __FUNCTION__, vflag);
+  fprintf(stderr,"%s: vflag=%d\n",__FUNCTION__, vflag);
   pre_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixOMP::setup_post_force(int vflag)
+void FixOMP::setup(int vflag)
 {
-  fprintf(stderr,"%s, vflag=%d\n", __FUNCTION__, vflag);
+  fprintf(stderr,"%s: vflag=%d\n",__FUNCTION__, vflag);
   post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
 
 // adjust size and clear out per thread accumulator arrays
-void FixOMP::pre_force(int _vflag)
+void FixOMP::pre_force(int)
 {
-  fprintf(stderr,"%s, vflag=%d\n", __FUNCTION__, _vflag);
-  _nall = atom->nlocal + atom->nghost;
-  const int nall = _nall;
-  const int nmax = _nmax;
-
-  int accflags = ThrData::THR_NONE;
-  if (force->pair)     accflags |= ThrData::THR_PAIR;
-  if (force->bond)     accflags |= ThrData::THR_BOND;
-  if (force->angle)    accflags |= ThrData::THR_ANGLE;
-  if (force->dihedral) accflags |= ThrData::THR_DIHEDRAL;
-  if (force->improper) accflags |= ThrData::THR_IMPROPER;
-  if (force->kspace)   accflags |= ThrData::THR_KSPACE;
-
-  int eflag,vflag;
-  if (update->integrate) {
-    eflag = update->integrate->eflag;
-    vflag = update->integrate->vflag;
-  } else if (update->minimize) {
-    eflag = update->minimize->eflag;
-    vflag = update->minimize->vflag;
-  }
-  if (eflag & 1) accflags |= ThrData::THR_ENERGY;
-  if (eflag & 2) accflags |= ThrData::THR_EATOM;
-  if (vflag & 3) accflags |= ThrData::THR_VIRIAL;
-  if (vflag & 2) accflags |= ThrData::THR_VFDOTR;
-  if (vflag & 4) accflags |= ThrData::THR_VATOM;
+  const int nall = atom->nlocal + atom->nghost;
+  _nall = nall;
+  const int nthreads = comm->nthreads;
+  
+  double * const f = &(atom->f[0][0]);
+  
+  memset(f,0,3*nthreads*nall*sizeof(double));
   
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(thr,accflags)
+#pragma omp parallel default(none)
 #endif
   {
     const int tid = get_tid();
-    thr[tid]->set_accflags(accflags);
-    thr[tid]->grow_arrays(nmax);
-    thr[tid]->clear(nall);
+    thr[tid]->check_tid(tid);
+    thr[tid]->clear();
   }
 }
 
@@ -202,20 +177,19 @@ void FixOMP::pre_force(int _vflag)
 
 void FixOMP::post_force(int vflag)
 {
-  fprintf(stderr,"%s, vflag=%d\n", __FUNCTION__, vflag);
   const int nthreads = comm->nthreads;
   const int nlocal = atom->nlocal;
   const int nall = nlocal + atom->nghost;
+  double * const f = &(atom->f[0][0]);
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(thr,force)
+#pragma omp parallel default(none)
 #endif
   {
     const int tid = get_tid();
     data_reduce_thr(&(atom->f[0][0]), nall, nthreads, 3, tid);
     if (atom->torque)
       data_reduce_thr(&(atom->torque[0][0]), nall, nthreads, 3, tid);
-    //thr[tid]->reduce();
   }
 }
 
@@ -224,9 +198,8 @@ void FixOMP::post_force(int vflag)
 
 double FixOMP::memory_usage()
 {
-  double bytes = _ndata * sizeof(ThrData *);
-  bytes += _ndata * thr[0]->memory_usage();
-  fprintf(stderr,"%s, bytes=%g\n", __FUNCTION__, bytes);
+  double bytes = comm->nthreads * sizeof(ThrData *);
+  bytes += comm->nthreads * thr[0]->memory_usage();
   
   return bytes;
 }

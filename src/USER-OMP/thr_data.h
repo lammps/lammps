@@ -18,6 +18,10 @@
 #ifndef LMP_THR_DATA_H
 #define LMP_THR_DATA_H
 
+#if defined(_OPENMP)
+#include <omp.h>
+#endif
+
 namespace LAMMPS_NS {
 
 // per thread data accumulators
@@ -26,15 +30,13 @@ class ThrData {
   friend class ThrOMP;
 
  public:
-  ThrData(int tid);
-  ~ThrData();
+  ThrData(int tid) : _tid(tid) {};
+  ~ThrData() {};
 
-  void clear(int);             // erase accumulator contents
-  void grow_arrays(int);       // grow per atom arrays
-  void set_accflags(int flags) { _accflags = flags; }; // flag which accumulators to prepare
-//  void set_redflags(int flags) { _redflags = flags; }; // flag which accumulators to reduce
+  void clear();           // erase accumulator contents
+  void check_tid(int);    // thread id consistency check
 
- protected:
+ public:
   double eng_vdwl;        // non-bonded non-coulomb energy
   double eng_coul;        // non-bonded coulomb energy
   double virial_pair[6];  // virial contribution from non-bonded
@@ -49,25 +51,11 @@ class ThrData {
   double eng_kspce;       // kspace energy
   double virial_kspce[6]; // virial contribution from kspace
 
-  double *eatom_pair;     // per atom total energy from non-bonded
-  double *vatom_pair;     // per atom virial from non-bonded
-  double *eatom_bond;     // per atom total energy from bonds
-  double *vatom_bond;     // per atom virial from bonds
-  double *eatom_angle;    // per atom total energy from angles
-  double *vatom_angle;    // per atom virial from angles
-  double *eatom_dihed;    // per atom total energy from dihedrals
-  double *vatom_dihed;    // per atom virial from dihedrals
-  double *eatom_imprp;    // per atom total energy from impropers
-  double *vatom_imprp;    // per atom virial from impropers
-  double *eatom_kspce;    // per atom total energy from kspace
-  double *vatom_kspce;    // per atom virial from kspace
+  double *eatom;          // per atom energy array segment for this thread
+  double **vatom;         // per atom virial array segment for this thread
 
  private:
-  int _maxeatom;          // size of eatom array
-  int _maxvatom;          // size of vatom array
   int _tid;               // my thread id
-  int _accflags;          // flags indicating which accumulators to provide
-  int _redflags;          // flags indicating which property to reduce
 
  public:
   enum {THR_NONE=0,THR_ENERGY=1<<0,THR_VIRIAL=1<<1,THR_EATOM=1<<2,THR_VATOM=1<<3,
@@ -82,38 +70,13 @@ class ThrData {
   ThrData() {};
 };
 
-// reduce per thread data into the first part of the data
-// array that is used for the non-threaded parts and reset
-// the temporary storage to 0.0. this routine depends on
-// multi-dimensional arrays like force stored in this order
-// x1,y1,z1,x2,y2,z2,...
-// we need to post a barrier to wait until all threads are done
-// with writing to the array .
-static void data_reduce_thr(double *dall, int nall, int nthreads, int ndim, int tid)
-{
-#if defined(_OPENMP)
-  // NOOP in non-threaded execution.
-  if (nthreads == 1) return;
-#pragma omp barrier
-  {
-    const int nvals = ndim*nall;
-    const int idelta = nvals/nthreads + 1;
-    const int ifrom = tid*idelta;
-    const int ito   = ((ifrom + idelta) > nvals) ? nvals : (ifrom + idelta);
-
-    for (int m = ifrom; m < ito; ++m) {
-      for (int n = 1; n < nthreads; ++n) {
-	dall[m] += dall[n*nvals + m];
-	dall[n*nvals + m] = 0.0;
-      }
-    }
-  }
-#else
-  // NOOP in non-threaded execution.
-  return;
-#endif
-}
-
+////////////////////////////////////////////////////////////////////////
+//  helper functions operating on data replicated for thread support  //
+////////////////////////////////////////////////////////////////////////
+// compute global per thread virial contribution from per-thread force
+void virial_fdotr_compute_thr(double * const, double *, double *, int, int, int);
+// generic per thread data reduction for continous arrays of nthreads*nmax size
+void data_reduce_thr(double *, int, int, int, int);
 /* ---------------------------------------------------------------------- */
 
 // set loop range thread id, and force array offset for threaded runs.

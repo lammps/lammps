@@ -22,9 +22,14 @@ FixStyle(OMP,FixOMP)
 
 #include "fix.h"
 
+
 namespace LAMMPS_NS {
 
+class ThrData;
+
 class FixOMP : public Fix {
+  friend class ThrOMP;
+
  public:
   FixOMP(class LAMMPS *, int, char **);
   virtual ~FixOMP();
@@ -32,21 +37,22 @@ class FixOMP : public Fix {
   virtual void grow_arrays(int);
 
   virtual void setup_pre_force(int);
-  virtual void setup_post_force(int);
+  virtual void setup(int);
   virtual void pre_force(int);
   virtual void post_force(int);
 
   virtual double memory_usage();
 
+  ThrData *get_thr(int tid)  { return thr[tid]; };
+
  protected:
-  class ThrData **thr;
+  ThrData **thr;
   int _ndata;    // number of per thread data sets
   int _nall;     // cached number of local + ghost atoms
   int _nmax;     // cached number of max atoms per MPI task
   int _redflags; // flags for reduction
   
   void add_reduce(int flags) {_redflags |= flags; };
-  ThrData *get_thr(int tid)  { return thr[tid]; };
 
 #if 0
   virtual void initial_integrate(int);

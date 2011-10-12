@@ -16,8 +16,6 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "thr_omp.h"
-
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
@@ -25,11 +23,13 @@
 #include "memory.h"
 #include "modify.h"
 
-#include "thr_data.h"
+#include "thr_omp.h"
 
-#if defined(_OPENMP)
-#include <omp.h>
-#endif
+#include "pair.h"
+#include "bond.h"
+#include "angle.h"
+#include "dihedral.h"
+#include "improper.h"
 
 #include "math_const.h"
 
@@ -41,10 +41,10 @@ using namespace MathConst;
 ThrOMP::ThrOMP(LAMMPS *ptr, int style) : lmp(ptr), fix(NULL), thr_style(style)
 {
   // register fix omp
-  int ifix = lmp->modify->find_fix("OMP");
+  int ifix = lmp->modify->find_fix("package_omp");
   if (ifix < 0)
     lmp->error->all(FLERR,"The 'package omp' command is required for /omp styles");
-  fix = lmp->modify->fix[ifix];
+  fix = static_cast<FixOMP *>(lmp->modify->fix[ifix]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -54,39 +54,15 @@ ThrOMP::~ThrOMP()
   // nothing to do?
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   Hook up per thread per atom arrays into the tally infrastructure
+   ---------------------------------------------------------------------- */
 
-void ThrOMP::ev_setup_thr(int eflag, int vflag)
+void ThrOMP::ev_setup_thr(int eflag, int vflag, int nall, double *eatom,
+			  double **vatom, ThrData *thr)
 {
-  switch (ttype) {
-  case PAIR:
-    fix->add_reduce(ThrData::THR_PAIR);
-    break;
-  case BOND: 
-    fix->add_reduce(ThrData::THR_BOND);
-    break;
-  case ANGLE:
-    fix->add_reduce(ThrData::THR_ANGLE);
-    break;
-  case DIHEDRAL:
-    fix->add_reduce(ThrData::THR_DIHEDRAL);
-    break;
-  case IMPROPER:
-    fix->add_reduce(ThrData::THR_IMPROPER);
-    break;
-  case KSPACE:
-    fix->add_reduce(ThrData::THR_KSPACE);
-    break;
-  case FIX:
-    break;
-  default:
-    break;
-  }
-
-  if (eflag & 1) fix->add_reduce(ThrData::THR_ENERGY);
-  if (eflag & 2) fix->add_reduce(ThrData::THR_EATOM);
-  if (vflag & 3) fix->add_reduce(ThrData::THR_VIRIAL);
-  if (vflag & 4) fix->add_reduce(ThrData::THR_VATOM);
+  
+  
 }
 
 #if 0
@@ -249,7 +225,6 @@ void ThrOMP::ev_reduce_thr(Pair *pair)
 }
 #endif
 
-#if 0
 /* ----------------------------------------------------------------------
    tally eng_vdwl and virial into per thread global and per-atom accumulators
    need i < nlocal test since called by bond_quartic and dihedral_charmm
@@ -258,32 +233,32 @@ void ThrOMP::ev_reduce_thr(Pair *pair)
 void ThrOMP::ev_tally_thr(Pair *pair, int i, int j, int nlocal,
 			  int newton_pair, double evdwl, double ecoul,
 			  double fpair, double delx, double dely,
-			  double delz, ThrData &thr)
+			  double delz, ThrData *thr)
 {
   double evdwlhalf,ecoulhalf,epairhalf,v[6];
 
   if (pair->eflag_either) {
     if (pair->eflag_global) {
       if (newton_pair) {
-	eng_vdwl_thr[tid] += evdwl;
-	eng_coul_thr[tid] += ecoul;
+	thr->eng_vdwl += evdwl;
+	thr->eng_coul += ecoul;
       } else {
 	evdwlhalf = 0.5*evdwl;
 	ecoulhalf = 0.5*ecoul;
 	if (i < nlocal) {
-	  eng_vdwl_thr[tid] += evdwlhalf;
-	  eng_coul_thr[tid] += ecoulhalf;
+	  thr->eng_vdwl += evdwlhalf;
+	  thr->eng_coul += ecoulhalf;
 	}
 	if (j < nlocal) {
-	  eng_vdwl_thr[tid] += evdwlhalf;
-	  eng_coul_thr[tid] += ecoulhalf;
+	  thr->eng_vdwl += evdwlhalf;
+	  thr->eng_coul += ecoulhalf;
 	}
       }
     }
     if (pair->eflag_atom) {
       epairhalf = 0.5 * (evdwl + ecoul);
-      if (newton_pair || i < nlocal) eatom_thr[tid][i] += epairhalf;
-      if (newton_pair || j < nlocal) eatom_thr[tid][j] += epairhalf;
+      if (newton_pair || i < nlocal) thr->eatom[i] += epairhalf;
+      if (newton_pair || j < nlocal) thr->eatom[j] += epairhalf;
     }
   }
 
@@ -296,54 +271,58 @@ void ThrOMP::ev_tally_thr(Pair *pair, int i, int j, int nlocal,
     v[5] = dely*delz*fpair;
 
     if (pair->vflag_global) {
+      double * const va = thr->virial_pair;
       if (newton_pair) {
-	virial_thr[tid][0] += v[0];
-	virial_thr[tid][1] += v[1];
-	virial_thr[tid][2] += v[2];
-	virial_thr[tid][3] += v[3];
-	virial_thr[tid][4] += v[4];
-	virial_thr[tid][5] += v[5];
+	va[0] += v[0];
+	va[1] += v[1];
+	va[2] += v[2];
+	va[3] += v[3];
+	va[4] += v[4];
+	va[5] += v[5];
       } else {
 	if (i < nlocal) {
-	  virial_thr[tid][0] += 0.5*v[0];
-	  virial_thr[tid][1] += 0.5*v[1];
-	  virial_thr[tid][2] += 0.5*v[2];
-	  virial_thr[tid][3] += 0.5*v[3];
-	  virial_thr[tid][4] += 0.5*v[4];
-	  virial_thr[tid][5] += 0.5*v[5];
+	  va[0] += 0.5*v[0];
+	  va[1] += 0.5*v[1];
+	  va[2] += 0.5*v[2];
+	  va[3] += 0.5*v[3];
+	  va[4] += 0.5*v[4];
+	  va[5] += 0.5*v[5];
 	}
 	if (j < nlocal) {
-	  virial_thr[tid][0] += 0.5*v[0];
-	  virial_thr[tid][1] += 0.5*v[1];
-	  virial_thr[tid][2] += 0.5*v[2];
-	  virial_thr[tid][3] += 0.5*v[3];
-	  virial_thr[tid][4] += 0.5*v[4];
-	  virial_thr[tid][5] += 0.5*v[5];
+	  va[0] += 0.5*v[0];
+	  va[1] += 0.5*v[1];
+	  va[2] += 0.5*v[2];
+	  va[3] += 0.5*v[3];
+	  va[4] += 0.5*v[4];
+	  va[5] += 0.5*v[5];
 	}
       }
     }
 
     if (pair->vflag_atom) {
       if (newton_pair || i < nlocal) {
-	vatom_thr[tid][i][0] += 0.5*v[0];
-	vatom_thr[tid][i][1] += 0.5*v[1];
-	vatom_thr[tid][i][2] += 0.5*v[2];
-	vatom_thr[tid][i][3] += 0.5*v[3];
-	vatom_thr[tid][i][4] += 0.5*v[4];
-	vatom_thr[tid][i][5] += 0.5*v[5];
+	double * const va = thr->vatom[i];
+	va[0] += 0.5*v[0];
+	va[1] += 0.5*v[1];
+	va[2] += 0.5*v[2];
+	va[3] += 0.5*v[3];
+	va[4] += 0.5*v[4];
+	va[5] += 0.5*v[5];
       }
       if (newton_pair || j < nlocal) {
-	vatom_thr[tid][j][0] += 0.5*v[0];
-	vatom_thr[tid][j][1] += 0.5*v[1];
-	vatom_thr[tid][j][2] += 0.5*v[2];
-	vatom_thr[tid][j][3] += 0.5*v[3];
-	vatom_thr[tid][j][4] += 0.5*v[4];
-	vatom_thr[tid][j][5] += 0.5*v[5];
+	double * const va = thr->vatom[j];
+	va[0] += 0.5*v[0];
+	va[1] += 0.5*v[1];
+	va[2] += 0.5*v[2];
+	va[3] += 0.5*v[3];
+	va[4] += 0.5*v[4];
+	va[5] += 0.5*v[5];
       }
     }
   }
 }
 
+#if 0
 /* ----------------------------------------------------------------------
    tally eng_vdwl and virial into global and per-atom accumulators
    for virial, have delx,dely,delz and fx,fy,fz
@@ -793,4 +772,98 @@ double ThrOMP::memory_usage_thr()
   double bytes=0.0;
   
   return bytes;
+}
+/* ----------------------------------------------------------------------
+   compute global pair virial via summing F dot r over own & ghost atoms
+   at this point, only pairwise forces have been accumulated in atom->f
+------------------------------------------------------------------------- */
+
+void ThrOMP::virial_fdotr_compute_thr(double * const virial, const double * const * const x,
+				      const double * const * const f, const int nlocal,
+				      const int nghost, const int nfirst)
+{
+
+  // sum over force on all particles including ghosts
+
+  if (nfirst < 0) {
+    int nall = nlocal + nghost;
+    for (int i = 0; i < nall; i++) {
+      virial[0] += f[i][0]*x[i][0];
+      virial[1] += f[i][1]*x[i][1];
+      virial[2] += f[i][2]*x[i][2];
+      virial[3] += f[i][1]*x[i][0];
+      virial[4] += f[i][2]*x[i][0];
+      virial[5] += f[i][2]*x[i][1];
+    }
+
+  // neighbor includegroup flag is set
+  // sum over force on initial nfirst particles and ghosts
+
+  } else {
+    int nall = nfirst;
+    for (int i = 0; i < nall; i++) {
+      virial[0] += f[i][0]*x[i][0];
+      virial[1] += f[i][1]*x[i][1];
+      virial[2] += f[i][2]*x[i][2];
+      virial[3] += f[i][1]*x[i][0];
+      virial[4] += f[i][2]*x[i][0];
+      virial[5] += f[i][2]*x[i][1];
+    }
+
+    nall = nlocal + nghost;
+    for (int i = nlocal; i < nall; i++) {
+      virial[0] += f[i][0]*x[i][0];
+      virial[1] += f[i][1]*x[i][1];
+      virial[2] += f[i][2]*x[i][2];
+      virial[3] += f[i][1]*x[i][0];
+      virial[4] += f[i][2]*x[i][0];
+      virial[5] += f[i][2]*x[i][1];
+    }
+  }
+
+#if 0
+  // sum over force on all particles including ghosts
+
+  if (nfirst < 0) {
+    const double * const fmax = f + (nlocal + nghost);
+    const double *xp = x;
+    const double *fp = f;
+    for (; fp < fmax; fp+=3, xp+=3) {
+      v[0] += fp[0]*xp[0];
+      v[1] += fp[1]*xp[1];
+      v[2] += fp[2]*xp[2];
+      v[3] += fp[1]*xp[0];
+      v[4] += fp[2]*xp[0];
+      v[5] += fp[2]*xp[1];
+    }
+
+  // neighbor includegroup flag is set
+  // sum over force on initial nfirst particles and ghosts
+
+  } else {
+    const double *fmax = f + nfirst;
+    const double *xp = x;
+    const double *fp = f;
+    for (; fp < fmax; fp+=3, xp+=3) {
+      v[0] += fp[0]*xp[0];
+      v[1] += fp[1]*xp[1];
+      v[2] += fp[2]*xp[2];
+      v[3] += fp[1]*xp[0];
+      v[4] += fp[2]*xp[0];
+      v[5] += fp[2]*xp[1];
+    }
+
+    fmax = f + (nlocal + nghost);
+    xp = x + nlocal;
+    fp = f + nlocal;
+    for (; fp < fmax; fp+=3, xp+=3) {
+      v[0] += fp[0]*xp[0];
+      v[1] += fp[1]*xp[1];
+      v[2] += fp[2]*xp[2];
+      v[3] += fp[1]*xp[0];
+      v[4] += fp[2]*xp[0];
+      v[5] += fp[2]*xp[1];
+    }
+  }
+#endif
 }

@@ -19,33 +19,22 @@
 #include "thr_data.h"
 
 #include <string.h>
+#include <stdio.h>
 
 using namespace LAMMPS_NS;
 
+
 /* ---------------------------------------------------------------------- */
 
-ThrData::ThrData(int tid) : _tid(tid)
+void ThrData::check_tid(int tid)
 {
-  eatom_pair = vatom_pair = NULL;
-  eatom_bond = vatom_bond = NULL;
-  eatom_angle = vatom_angle = NULL;
-  eatom_dihed = vatom_dihed = NULL;
-  eatom_imprp = vatom_imprp = NULL;
-  eatom_kspce = vatom_kspce = NULL;
-  _maxeatom = _maxvatom = 0;
+  if (tid != _tid)
+    fprintf(stderr,"WARNING: external and internal tid mismatch %d != %d\n",tid,_tid);
 }
 
 /* ---------------------------------------------------------------------- */
 
-ThrData::~ThrData()
-{
-  if (eatom_pair) delete[] eatom_pair;
-  if (vatom_pair) delete[] vatom_pair;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void ThrData::clear(int nall)
+void ThrData::clear()
 {
   eng_vdwl=eng_coul=eng_bond=eng_angle=eng_dihed=eng_imprp=eng_kspce=0.0;
   memset(virial_pair,0,6*sizeof(double));
@@ -55,72 +44,10 @@ void ThrData::clear(int nall)
   memset(virial_imprp,0,6*sizeof(double));
   memset(virial_kspce,0,6*sizeof(double));
 
-  if (_accflags & THR_EATOM) {
-    if (_accflags & THR_PAIR)
-      memset(eatom_pair,0,nall*sizeof(double));
-    if (_accflags & THR_BOND)
-      memset(eatom_bond,0,nall*sizeof(double));
-    if (_accflags & THR_ANGLE)
-      memset(eatom_angle,0,nall*sizeof(double));
-    if (_accflags & THR_DIHEDRAL)
-      memset(eatom_dihed,0,nall*sizeof(double));
-    if (_accflags & THR_IMPROPER)
-      memset(eatom_imprp,0,nall*sizeof(double));
-    if (_accflags & THR_KSPACE)
-      memset(eatom_kspce,0,nall*sizeof(double));
-  }
-
-  if (_accflags & THR_VATOM) {
-    if (_accflags & THR_PAIR)
-      memset(vatom_pair,0,6*nall*sizeof(double));
-    if (_accflags & THR_BOND)
-      memset(vatom_bond,0,6*nall*sizeof(double));
-    if (_accflags & THR_ANGLE)
-      memset(vatom_angle,0,6*nall*sizeof(double));
-    if (_accflags & THR_DIHEDRAL)
-      memset(vatom_dihed,0,6*nall*sizeof(double));
-    if (_accflags & THR_IMPROPER)
-      memset(vatom_imprp,0,6*nall*sizeof(double));
-    if (_accflags & THR_KSPACE)
-      memset(vatom_kspce,0,6*nall*sizeof(double));
-  }
-
-  _redflags = THR_NONE;
+  eatom = NULL;
+  vatom = NULL;
 }
 
-/* ---------------------------------------------------------------------- */
-#define GrowMe(array,type,flag)				 \
-  if (_redflags & flag) {				 \
-    if (array ## _ ## type) delete[] array ## _ ## type; \
-    array ## _ ## type = new double[_max ## array];	 \
-  }
-
-void ThrData::grow_arrays(int nmax)
-{
-  if (_accflags & THR_EATOM) {
-    if (_maxeatom < nmax) {
-      _maxeatom = nmax;
-      GrowMe(eatom,pair,THR_PAIR);
-      GrowMe(eatom,bond,THR_BOND);
-      GrowMe(eatom,angle,THR_ANGLE);
-      GrowMe(eatom,dihed,THR_DIHEDRAL);
-      GrowMe(eatom,imprp,THR_IMPROPER);
-      GrowMe(eatom,kspce,THR_KSPACE);
-    }
-  }
-  if (_accflags & THR_VATOM) {
-    if (_maxvatom < nmax) {
-      _maxvatom = nmax;
-      GrowMe(vatom,pair,THR_PAIR);
-      GrowMe(vatom,bond,THR_BOND);
-      GrowMe(vatom,angle,THR_ANGLE);
-      GrowMe(vatom,dihed,THR_DIHEDRAL);
-      GrowMe(vatom,imprp,THR_IMPROPER);
-      GrowMe(vatom,kspce,THR_KSPACE);
-    }
-  }
-}
-#undef GrowMe
 /* ---------------------------------------------------------------------- */
 
 double ThrData::memory_usage() 
@@ -129,16 +56,40 @@ double ThrData::memory_usage()
   bytes += 2 * sizeof(double*);
   bytes += 4 * sizeof(int);
 
-  int count = 0;
-  if (_redflags & THR_PAIR) ++count;
-  if (_redflags & THR_BOND) ++count;
-  if (_redflags & THR_ANGLE) ++count;
-  if (_redflags & THR_DIHEDRAL) ++count;
-  if (_redflags & THR_IMPROPER) ++count;
-  if (_redflags & THR_KSPACE) ++count;
-  bytes += count * _maxeatom * sizeof(double);
-  bytes += count * 6 * _maxvatom * sizeof(double);
-
   return bytes;
+}
+
+/* additional helper functions */
+
+// reduce per thread data into the first part of the data
+// array that is used for the non-threaded parts and reset
+// the temporary storage to 0.0. this routine depends on
+// multi-dimensional arrays like force stored in this order
+// x1,y1,z1,x2,y2,z2,...
+// we need to post a barrier to wait until all threads are done
+// with writing to the array .
+void LAMMPS_NS::data_reduce_thr(double *dall, int nall, int nthreads, int ndim, int tid)
+{
+#if defined(_OPENMP)
+  // NOOP in non-threaded execution.
+  if (nthreads == 1) return;
+#pragma omp barrier
+  {
+    const int nvals = ndim*nall;
+    const int idelta = nvals/nthreads + 1;
+    const int ifrom = tid*idelta;
+    const int ito   = ((ifrom + idelta) > nvals) ? nvals : (ifrom + idelta);
+
+    for (int m = ifrom; m < ito; ++m) {
+      for (int n = 1; n < nthreads; ++n) {
+	dall[m] += dall[n*nvals + m];
+	dall[n*nvals + m] = 0.0;
+      }
+    }
+  }
+#else
+  // NOOP in non-threaded execution.
+  return;
+#endif
 }
 

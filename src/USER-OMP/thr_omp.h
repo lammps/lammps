@@ -19,11 +19,12 @@
 #define LMP_THR_OMP_H
 
 #include "pointers.h"
+#include "fix_omp.h"
+#include "thr_data.h"
 
 namespace LAMMPS_NS {
 
 // forward declarations
-class Fix;
 class Pair;
 class Bond;
 class Angle;
@@ -34,10 +35,9 @@ class Kspace;
 class ThrOMP {
  protected:
   LAMMPS *lmp; // reference to base lammps object.
-  Fix *fix;    // pointer to fix_omp;
+  FixOMP *fix; // pointer to fix_omp;
 
   const int thr_style;
-  enum {PAIR=1, BOND, ANGLE, DIHEDRAL, IMPROPER, KSPACE, FIX, COMPUTE};
 
  public:
   ThrOMP(LAMMPS *, int);
@@ -54,7 +54,15 @@ class ThrOMP {
 
  protected:
   // extra ev_tally setup work for threaded styles
-  void ev_setup_thr(int, int);
+  void ev_setup_thr(int, int, int, double *, double **, ThrData *);
+
+  ////////////////////////////////////////////////////////////////////////
+  //  helper functions operating on data replicated for thread support  //
+  ////////////////////////////////////////////////////////////////////////
+  // compute global per thread virial contribution from per-thread force
+  void virial_fdotr_compute_thr(double * const, const double * const * const, 
+				const double * const * const,
+				const int, const int, const int);
 
  private:
   // internal method to be used by multiple ev_setup_thr() methods
@@ -64,7 +72,7 @@ class ThrOMP {
   // threading adapted versions of the ev_tally infrastructure
   // style specific versions (need access to style class flags)
   void ev_tally_thr(Pair *, int, int, int, int, double, double,
-		    double, double, double, double, int);
+		    double, double, double, double, ThrData *);
   void ev_tally_xyz_thr(Pair *, int, int, int, int, double, double,
 			double, double, double, double, double, double, int);
   void ev_tally3_thr(Pair *, int, int, int, double, double,
@@ -83,13 +91,6 @@ class ThrOMP {
   void v_tally3_thr(int, int, int, double *, double *, double *, double *, int);
   void v_tally4_thr(int, int, int, int, double *, double *, double *,
 		    double *, double *, double *, int);
-
- protected:
-  // set loop range, thread id, and force array offset for threaded runs.
-  double **loop_setup_thr(double **, int &, int &, int &, int, int, int);
-
-  // reduce per thread data into the first part of the array
-  void data_reduce_thr(double *, int, int, int, int);
 
 };
 

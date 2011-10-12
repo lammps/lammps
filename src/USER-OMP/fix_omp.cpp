@@ -45,7 +45,7 @@ static int get_tid()
 /* ---------------------------------------------------------------------- */
 
 FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg),
-  thr(NULL),_ndata(0), _nall(0), _nmax(0)
+  thr(NULL)
 {
   if ((narg < 4) || (narg > 6)) error->all(FLERR,"Illegal fix OMP command");
   if (strcmp(arg[1],"all") != 0) error->all(FLERR,"Illegal fix OMP command");
@@ -53,6 +53,7 @@ FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg),
   int nthreads = 1;
 #if defined(_OPENMP)
   if (strcmp(arg[3],"*") == 0)
+#pragma omp parallel default(none) shared(nthreads)
     nthreads = omp_get_num_threads();
   else
     nthreads = atoi(arg[3]);
@@ -128,10 +129,29 @@ int FixOMP::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-void FixOMP::grow_arrays(int nmax)
+void FixOMP::init()
 {
-  fprintf(stderr,"%s: nmax=%d\n",__FUNCTION__, nmax);
-  _nmax=nmax;
+  fprintf(stderr,"%s:\n",__FUNCTION__);
+  last_omp_style = THR_NONE;
+
+#define CheckStyleForOMP(name,def)			\
+  if (force->name) {					\
+    int len = strlen(force->name ## _style);		\
+    char *suffix = force->name ## _style + len - 4;	\
+    if (strcmp(suffix,"/omp") == 0)			\
+      last_omp_style = def;				\
+  }
+
+  // determine which is the last force style with OpenMP
+  // support as this is the one that has to reduce the forces
+  CheckStyleForOMP(pair,THR_PAIR);
+  CheckStyleForOMP(bond,THR_BOND);
+  CheckStyleForOMP(angle,THR_ANGLE);
+  CheckStyleForOMP(dihedral,THR_DIHEDRAL);
+  CheckStyleForOMP(improper,THR_IMPROPER);
+  CheckStyleForOMP(kspace,THR_KSPACE);
+
+#undef CheckStyleForOMP
 }
 
 /* ---------------------------------------------------------------------- */
@@ -156,7 +176,6 @@ void FixOMP::setup(int vflag)
 void FixOMP::pre_force(int)
 {
   const int nall = atom->nlocal + atom->nghost;
-  _nall = nall;
   const int nthreads = comm->nthreads;
   
   double * const f = &(atom->f[0][0]);

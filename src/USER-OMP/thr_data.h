@@ -24,6 +24,9 @@
 
 namespace LAMMPS_NS {
 
+enum {THR_NONE=0,THR_PAIR=1,THR_BOND=1<<1,THR_ANGLE=1<<2,
+      THR_DIHEDRAL=1<<3,THR_IMPROPER=1<<4,THR_KSPACE=1<<5};
+    
 // per thread data accumulators
 class ThrData {
   friend class FixOMP;
@@ -57,11 +60,6 @@ class ThrData {
  private:
   int _tid;               // my thread id
 
- public:
-  enum {THR_NONE=0,THR_ENERGY=1<<0,THR_VIRIAL=1<<1,THR_EATOM=1<<2,THR_VATOM=1<<3,
-	THR_PAIR=1<<4,THR_BOND=1<<5,THR_ANGLE=1<<6,THR_DIHEDRAL=1<<7,
-	THR_IMPROPER=1<<8,THR_KSPACE=1<<9,THR_VFDOTR=1<<10};
-    
  public:
   double memory_usage();
 

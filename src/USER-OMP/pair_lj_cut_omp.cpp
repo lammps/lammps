@@ -82,7 +82,8 @@ void PairLJCutOMP::compute(int eflag, int vflag)
       for (int i=0; i < 6; ++i)
 	virial[i] += thr->virial_pair[i];
     }
-    data_reduce_thr(&(atom->f[0][0]), nall, nthreads, 3, tid);
+    if (thr_style == fix->last_omp_style)
+      data_reduce_thr(&(atom->f[0][0]), nall, nthreads, 3, tid);
 
   } // end of omp parallel region
 }

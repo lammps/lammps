@@ -34,7 +34,7 @@ class FixOMP : public Fix {
   FixOMP(class LAMMPS *, int, char **);
   virtual ~FixOMP();
   virtual int setmask();
-  virtual void grow_arrays(int);
+  virtual void init();
 
   virtual void setup_pre_force(int);
   virtual void setup(int);
@@ -47,13 +47,9 @@ class FixOMP : public Fix {
 
  protected:
   ThrData **thr;
-  int _ndata;    // number of per thread data sets
-  int _nall;     // cached number of local + ghost atoms
-  int _nmax;     // cached number of max atoms per MPI task
-  int _redflags; // flags for reduction
+  int last_omp_style; // indicate which style needs
+                      // to do the force reduction
   
-  void add_reduce(int flags) {_redflags |= flags; };
-
 #if 0
   virtual void initial_integrate(int);
   virtual void initial_integrate(int,int,int);

@@ -46,49 +46,81 @@ static int get_tid()
 /* ---------------------------------------------------------------------- */
 
 FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg),
-  thr(NULL)
+  thr(NULL), last_omp_style(ThrOMP::THR_NONE), _nthr(-1), _neighbor(true), _newton(false)
 {
   if ((narg < 4) || (narg > 6)) error->all(FLERR,"Illegal fix OMP command");
   if (strcmp(arg[1],"all") != 0) error->all(FLERR,"Illegal fix OMP command");
 
   int nthreads = 1;
+  if (narg > 3) {
 #if defined(_OPENMP)
-  if (strcmp(arg[3],"*") == 0)
+    if (strcmp(arg[3],"*") == 0)
 #pragma omp parallel default(none) shared(nthreads)
-    nthreads = omp_get_num_threads();
-  else
-    nthreads = atoi(arg[3]);
+      nthreads = omp_get_num_threads();
+    else
+      nthreads = atoi(arg[3]);
 #endif
+  }
 
   if (nthreads < 1)
     error->all(FLERR,"Illegal number of threads requested.");
+
+  if (nthreads != comm->nthreads) {
 #if defined(_OPENMP)
-  omp_set_num_threads(nthreads);
+    omp_set_num_threads(nthreads);
 #endif
-  comm->nthreads = nthreads;
-  if (comm->me == 0) {
-    if (screen)
-      fprintf(screen,"  reset %d OpenMP thread(s) per MPI task\n", nthreads);
-    if (logfile)
-      fprintf(logfile,"  reset %d OpenMP thread(s) per MPI task\n", nthreads);
+    comm->nthreads = nthreads;
+    if (comm->me == 0) {
+      if (screen)
+	fprintf(screen,"  reset %d OpenMP thread(s) per MPI task\n", nthreads);
+      if (logfile)
+	fprintf(logfile,"  reset %d OpenMP thread(s) per MPI task\n", nthreads);
+    }
+  }
+
+  if (narg > 4) {
+    if (strcmp(arg[4],"force/neigh") == 0)
+      _neighbor = true;
+    else if (strcmp(arg[4],"force") == 0)
+      _neighbor = false;
+    else
+      error->all(FLERR,"Illegal fix omp mode requested.");
+
+    if (comm->me == 0) {
+      const char * const mode = _neighbor ? "OpenMP" : "serial";
+      
+      if (screen)
+	fprintf(screen,"  using /omp styles with %s neighbor list builds\n", mode);
+      if (logfile)
+	fprintf(logfile,"  using /omp styles with %s neighbor list builds\n", mode);
+    }
   }
 
 #if 0 /* to be enabled when we can switch between half and full neighbor lists */
-  _newton = true;
   if (narg > 5) {
-    if (strcmp(arg[4],"newton") == 0) {
-      if (strcmp(arg[5],"off") == 0)
+    if (strcmp(arg[5],"neigh/half") == 0)
+      _newton = true;
+    else if (strcmp(arg[5],"neigh/full") == 0)
 	_newton = false;
-      else if (strcmp(arg[5],"on") == 0)
-	_newton = true;
-      else
-	error->all(FLERR,"Illegal fix OMP command");
-    } else error->all(FLERR,"Illegal fix OMP command");
+    else
+      error->all(FLERR,"Illegal fix OMP command");
+
+    if (comm->me == 0) {
+      const char * const mode = _newton ? "half" : "full";
+      
+      if (screen)
+	fprintf(screen,"  using /omp styles with %s neighbor list builds\n", mode);
+      if (logfile)
+	fprintf(logfile,"  using /omp styles with %s neighbor list builds\n", mode);
+    }
   }
 #endif
 
-  // allocate per thread accumulator manager class
+  // allocate list for per thread accumulator manager class instances
+  // and then have each thread create an instance of this class to 
+  // encourage the OS to use storage that is "close" to each thread's CPU.
   thr = new ThrData *[nthreads];
+  _nthr = nthreads;
 #if defined(_OPENMP)
 #pragma omp parallel default(none)
 #endif

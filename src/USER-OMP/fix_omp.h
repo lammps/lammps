@@ -45,20 +45,22 @@ class FixOMP : public Fix {
 
   virtual double memory_usage();
 
-  ThrData *get_thr(int tid)  { return thr[tid]; };
+  ThrData *get_thr(int tid) { return thr[tid]; };
+  int get_nthr() const { return _nthr; }
 
  protected:
   ThrData **thr;
   int last_omp_style; // indicate which style needs
                       // to do the force reduction
-#if 0
+  
  public:
-  bool get_newton() const {return _newton;};
+  bool get_neighbor() const {return _neighbor;};
+  bool get_newton() const   {return _newton;};
 
  private:
-  bool _newton;  // en/disable newton's 3rd law for local atoms.
-#endif
-
+  int  _nthr;     // number of currently active ThrData object
+  bool _neighbor; // en/disable threads for neighbor list construction
+  bool _newton;   // en/disable newton's 3rd law for local atoms.
 };
 
 }

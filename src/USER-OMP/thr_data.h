@@ -37,8 +37,15 @@ class ThrData {
 
   // erase accumulator contents
   void clear(int, double **, double **, double *, double *, double *);
+
   void check_tid(int);    // thread id consistency check
   int get_tid() const { return _tid; }; // our thread id.
+
+  // give access to per-thread offset arrays
+  double **get_f() const { return _f; };
+  double **get_torque() const { return _torque; };
+  double *get_de() const { return _de; };
+  double *get_drho() const { return _drho; };
 
  protected:
   double eng_vdwl;        // non-bonded non-coulomb energy
@@ -84,28 +91,5 @@ class ThrData {
 ////////////////////////////////////////////////////////////////////////
 // generic per thread data reduction for continous arrays of nthreads*nmax size
 void data_reduce_thr(double *, int, int, int, int);
-/* ---------------------------------------------------------------------- */
-
-// set loop range thread id, and force array offset for threaded runs.
-static double **loop_setup_thr(double **f, int &ifrom, int &ito, int &tid,
-			       int inum, int nall, int nthreads)
-{
-#if defined(_OPENMP)
-  tid = omp_get_thread_num();
-
-  // each thread works on a fixed chunk of atoms.
-  const int idelta = 1 + inum/nthreads;
-  ifrom = tid*idelta;
-  ito   = ((ifrom + idelta) > inum) ? inum : ifrom + idelta;
-
-  return f + nall*tid;
-#else
-  tid = 0;
-  ifrom = 0;
-  ito = inum;
-  return f;
-#endif
-}
-
 }
 #endif

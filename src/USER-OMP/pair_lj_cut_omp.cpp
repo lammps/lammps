@@ -47,23 +47,22 @@ void PairLJCutOMP::compute(int eflag, int vflag)
 #endif
   {
     int ifrom, ito, tid;
-    double **f;
 
-    f = loop_setup_thr(atom->f, ifrom, ito, tid, inum, nall, nthreads);
+    loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     ev_setup_thr(eflag,vflag,nall,eatom,vatom,thr);
 
     if (evflag) {
       if (eflag) {
-	if (force->newton_pair) eval<1,1,1>(f, ifrom, ito, thr);
-	else eval<1,1,0>(f, ifrom, ito, thr);
+	if (force->newton_pair) eval<1,1,1>(ifrom, ito, thr);
+	else eval<1,1,0>(ifrom, ito, thr);
       } else {
-	if (force->newton_pair) eval<1,0,1>(f, ifrom, ito, thr);
-	else eval<1,0,0>(f, ifrom, ito, thr);
+	if (force->newton_pair) eval<1,0,1>(ifrom, ito, thr);
+	else eval<1,0,0>(ifrom, ito, thr);
       }
     } else {
-      if (force->newton_pair) eval<0,0,1>(f, ifrom, ito, thr);
-      else eval<0,0,0>(f, ifrom, ito, thr);
+      if (force->newton_pair) eval<0,0,1>(ifrom, ito, thr);
+      else eval<0,0,0>(ifrom, ito, thr);
     }
 
     reduce_thr(eflag,vflag,thr);
@@ -71,7 +70,7 @@ void PairLJCutOMP::compute(int eflag, int vflag)
 }
 
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-void PairLJCutOMP::eval(double **f, int iifrom, int iito, ThrData * const thr)
+void PairLJCutOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
   int i,j,ii,jj,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
@@ -80,7 +79,8 @@ void PairLJCutOMP::eval(double **f, int iifrom, int iito, ThrData * const thr)
 
   evdwl = 0.0;
 
-  double **x = atom->x;
+  double const * const * const x = atom->x;
+  double * const * const f = thr->get_f();
   int *type = atom->type;
   int nlocal = atom->nlocal;
   double *special_lj = force->special_lj;

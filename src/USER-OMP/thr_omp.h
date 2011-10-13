@@ -98,5 +98,22 @@ class ThrOMP {
 
 };
 
+// set loop range thread id, and force array offset for threaded runs.
+static void loop_setup_thr(int &ifrom, int &ito, int &tid, int inum, int nthreads)
+{
+#if defined(_OPENMP)
+  tid = omp_get_thread_num();
+
+  // each thread works on a fixed chunk of atoms.
+  const int idelta = 1 + inum/nthreads;
+  ifrom = tid*idelta;
+  ito   = ((ifrom + idelta) > inum) ? inum : ifrom + idelta;
+#else
+  tid = 0;
+  ifrom = 0;
+  ito = inum;
+#endif
+};
+
 }
 #endif

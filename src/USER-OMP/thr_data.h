@@ -35,8 +35,8 @@ class ThrData {
   ThrData(int tid) : _tid(tid) {};
   ~ThrData() {};
 
-  // erase accumulator contents
-  void clear(int, double **, double **, double *, double *, double *);
+  // erase accumulator contents and hook up force arrays
+  void init_clear(int, double **, double **, double *, double *, double *);
 
   void check_tid(int);    // thread id consistency check
   int get_tid() const { return _tid; }; // our thread id.
@@ -47,7 +47,7 @@ class ThrData {
   double *get_de() const { return _de; };
   double *get_drho() const { return _drho; };
 
- protected:
+ private:
   double eng_vdwl;        // non-bonded non-coulomb energy
   double eng_coul;        // non-bonded coulomb energy
   double virial_pair[6];  // virial contribution from non-bonded
@@ -68,12 +68,13 @@ class ThrData {
   double *_erforce;
   double *_de;
   double *_drho;
+
   // these are re-assigned per style
   double *_eatom;
   double **_vatom;
 
- private:
-  int _tid;               // my thread id
+  // my thread id
+   int _tid;
 
  public:
   // compute global per thread virial contribution from per-thread force

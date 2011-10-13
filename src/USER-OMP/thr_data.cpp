@@ -34,8 +34,8 @@ void ThrData::check_tid(int tid)
 
 /* ---------------------------------------------------------------------- */
 
-void ThrData::clear(int nall, double **f, double **torque, 
-		    double *erforce, double *de, double *drho)
+void ThrData::init_clear(int nall, double **f, double **torque,
+			 double *erforce, double *de, double *drho)
 {
   eng_vdwl=eng_coul=eng_bond=eng_angle=eng_dihed=eng_imprp=eng_kspce=0.0;
   memset(virial_pair,0,6*sizeof(double));

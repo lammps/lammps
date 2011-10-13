@@ -22,6 +22,7 @@
 #include "force.h"
 #include "memory.h"
 #include "modify.h"
+#include "neighbor.h"
 
 #include "thr_omp.h"
 
@@ -30,6 +31,7 @@
 #include "angle.h"
 #include "dihedral.h"
 #include "improper.h"
+#include "kspace.h"
 
 #include "math_const.h"
 
@@ -40,7 +42,7 @@ using namespace MathConst;
 
 ThrOMP::ThrOMP(LAMMPS *ptr, int style) : lmp(ptr), fix(NULL), thr_style(style)
 {
-  // register fix omp
+  // register fix omp with this class
   int ifix = lmp->modify->find_fix("package_omp");
   if (ifix < 0)
     lmp->error->all(FLERR,"The 'package omp' command is required for /omp styles");
@@ -61,169 +63,144 @@ ThrOMP::~ThrOMP()
 void ThrOMP::ev_setup_thr(int eflag, int vflag, int nall, double *eatom,
 			  double **vatom, ThrData *thr)
 {
+  const int tid = thr->get_tid();
   
+  if (eflag & 2)
+    thr->_eatom = eatom + tid*nall;
+
+  if (vflag & 4)
+    thr->_vatom = vatom + tid*nall;
   
-}
-
-#if 0
-/* ---------------------------------------------------------------------- */
-
-void ThrOMP::ev_setup_acc_thr(int ntotal, int eflag_global, int vflag_global,
-			     int eflag_atom, int vflag_atom, int nthreads)
-{
-  int t,i;
-
-  evflag_global = (eflag_global || vflag_global);
-  evflag_atom = (eflag_atom || vflag_atom);
-  
-  for (t = 0; t < nthreads; ++t) {
-
-    if (eflag_global) 
-      eng_vdwl_thr[t] = eng_coul_thr[t] = eng_bond_thr[t] = 0.0;
-
-    if (vflag_global) 
-      for (i = 0; i < 6; ++i)
-	virial_thr[t][i] = 0.0;
-
-    if (eflag_atom)
-      for (i = 0; i < ntotal; ++i)
-	eatom_thr[t][i] = 0.0;
-    
-    if (vflag_atom)
-      for (i = 0; i < ntotal; ++i) {
-        vatom_thr[t][i][0] = 0.0;
-        vatom_thr[t][i][1] = 0.0;
-        vatom_thr[t][i][2] = 0.0;
-        vatom_thr[t][i][3] = 0.0;
-        vatom_thr[t][i][4] = 0.0;
-        vatom_thr[t][i][5] = 0.0;
-      }
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void ThrOMP::ev_setup_thr(Dihedral *dihed)
-{
-  int nthreads = lmp->comm->nthreads;
-
-  // reallocate per-atom arrays if necessary
-  if (dihed->eflag_atom && lmp->atom->nmax > maxeatom_thr) {
-    maxeatom_thr = lmp->atom->nmax;
-    lmp->memory->grow(eatom_thr,nthreads,maxeatom_thr,"thr_omp:eatom_thr");
-  }
-  if (dihed->vflag_atom && lmp->atom->nmax > maxvatom_thr) {
-    maxvatom_thr = lmp->atom->nmax;
-    lmp->memory->grow(vatom_thr,nthreads,maxeatom_thr,6,"thr_omp:vatom_thr");
-  }
-
-  int ntotal = (lmp->force->newton_bond) ? 
-    (lmp->atom->nlocal + lmp->atom->nghost) : lmp->atom->nlocal;
-
-  // set up per thread accumulators
-  ev_setup_acc_thr(ntotal, dihed->eflag_global, dihed->vflag_global,
-		   dihed->eflag_atom, dihed->vflag_atom, nthreads);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void ThrOMP::ev_setup_thr(Pair *pair)
-{
-  int nthreads = lmp->comm->nthreads;
-
-  // reallocate per-atom arrays if necessary
-  if (pair->eflag_atom && lmp->atom->nmax > maxeatom_thr) {
-    maxeatom_thr = lmp->atom->nmax;
-    lmp->memory->grow(eatom_thr,nthreads,maxeatom_thr,"thr_omp:eatom_thr");
-  }
-  if (pair->vflag_atom && lmp->atom->nmax > maxvatom_thr) {
-    maxvatom_thr = lmp->atom->nmax;
-    lmp->memory->grow(vatom_thr,nthreads,maxeatom_thr,6,"thr_omp:vatom_thr");
-  }
-
-  int ntotal = (lmp->force->newton) ?
-    (lmp->atom->nlocal + lmp->atom->nghost) : lmp->atom->nlocal;
-
-  // set up per thread accumulators
-  ev_setup_acc_thr(ntotal, pair->eflag_global, pair->vflag_global,
-		   pair->eflag_atom, pair->vflag_atom, nthreads);
 }
 
 /* ----------------------------------------------------------------------
-   reduce the per thread accumulated E/V data into the canonical accumulators.
-------------------------------------------------------------------------- */
-void ThrOMP::ev_reduce_thr(Dihedral *dihed)
-{
-  int nthreads = lmp->comm->nthreads;
-  int ntotal = (lmp->force->newton_bond) ?
-    (lmp->atom->nlocal + lmp->atom->nghost) : lmp->atom->nlocal;
+   Reduce per thread data into the regular structures
+   ---------------------------------------------------------------------- */
 
-  for (int n = 0; n < nthreads; ++n) {
-    dihed->energy += eng_bond_thr[n];
-    if (dihed->vflag_either) {
-      dihed->virial[0] += virial_thr[n][0];
-      dihed->virial[1] += virial_thr[n][1];
-      dihed->virial[2] += virial_thr[n][2];
-      dihed->virial[3] += virial_thr[n][3];
-      dihed->virial[4] += virial_thr[n][4];
-      dihed->virial[5] += virial_thr[n][5];
-      if (dihed->vflag_atom) {
-        for (int i = 0; i < ntotal; ++i) {
-          dihed->vatom[i][0] += vatom_thr[n][i][0];
-          dihed->vatom[i][1] += vatom_thr[n][i][1];
-          dihed->vatom[i][2] += vatom_thr[n][i][2];
-          dihed->vatom[i][3] += vatom_thr[n][i][3];
-          dihed->vatom[i][4] += vatom_thr[n][i][4];
-          dihed->vatom[i][5] += vatom_thr[n][i][5];
-        }
-      }
-    }
-    if (dihed->eflag_atom) {
-      for (int i = 0; i < ntotal; ++i) {
-        dihed->eatom[i] += eatom_thr[n][i];
-      }
-    }
-  }
-}
-
-/* ----------------------------------------------------------------------
-   reduce the per thread accumulated E/V data into the canonical accumulators.
-------------------------------------------------------------------------- */
-void ThrOMP::ev_reduce_thr(Pair *pair)
+void ThrOMP::reduce_thr(const int eflag, const int vflag, ThrData *const thr)
 {
+  const int nlocal = lmp->atom->nlocal;
+  const int nghost = lmp->atom->nghost;
+  const int nall = nlocal + nghost;
+  const int nfirst = lmp->atom->nfirst;
   const int nthreads = lmp->comm->nthreads;
-  const int ntotal = (lmp->force->newton) ? 
-    (lmp->atom->nlocal + lmp->atom->nghost) : lmp->atom->nlocal;
+  const int evflag = eflag | vflag;
+  
+  const int tid = thr->get_tid();
+  double **f = lmp->atom->f;
+  double **x = lmp->atom->x;
 
-  for (int n = 0; n < nthreads; ++n) {
-    pair->eng_vdwl += eng_vdwl_thr[n];
-    pair->eng_coul += eng_coul_thr[n];
-    if (pair->vflag_either) {
-      pair->virial[0] += virial_thr[n][0];
-      pair->virial[1] += virial_thr[n][1];
-      pair->virial[2] += virial_thr[n][2];
-      pair->virial[3] += virial_thr[n][3];
-      pair->virial[4] += virial_thr[n][4];
-      pair->virial[5] += virial_thr[n][5];
-      if (pair->vflag_atom) {
-        for (int i = 0; i < ntotal; ++i) {
-          pair->vatom[i][0] += vatom_thr[n][i][0];
-          pair->vatom[i][1] += vatom_thr[n][i][1];
-          pair->vatom[i][2] += vatom_thr[n][i][2];
-          pair->vatom[i][3] += vatom_thr[n][i][3];
-          pair->vatom[i][4] += vatom_thr[n][i][4];
-          pair->vatom[i][5] += vatom_thr[n][i][5];
-        }
-      }
+  switch (thr_style) {
+
+  case THR_PAIR: {
+    Pair * const pair = lmp->force->pair;
+    
+    if (pair->vflag_fdotr) {
+      sync_threads();
+
+      if (lmp->neighbor->includegroup == 0)
+	thr->virial_fdotr_compute(x, nlocal, nghost, -1);
+      else
+	thr->virial_fdotr_compute(x, nlocal, nghost, nfirst);
     }
-    if (pair->eflag_atom) {
-      for (int i = 0; i < ntotal; ++i) {
-        pair->eatom[i] += eatom_thr[n][i];
+
+    if (evflag) {
+      sync_threads();
+#if defined(_OPENMP)
+#pragma omp critical
+#endif
+      {
+	if (eflag & 1) {
+	  pair->eng_vdwl += thr->eng_vdwl;
+	  pair->eng_coul += thr->eng_coul;
+	}
+	if (vflag & 3)
+	for (int i=0; i < 6; ++i)
+	  pair->virial[i] += thr->virial_pair[i];
       }
     }
   }
-}
+    break;
+
+  case THR_BOND: {
+    Bond *bond = lmp->force->bond;
+
+#if defined(_OPENMP)
+#pragma omp critical
 #endif
+    {
+      bond->energy += thr->eng_bond;
+      for (int i=0; i < 6; ++i)
+	bond->virial[i] += thr->virial_bond[i];
+    }
+  }
+    break;
+
+  case THR_ANGLE: {
+    Angle *angle = lmp->force->angle;
+
+#if defined(_OPENMP)
+#pragma omp critical
+#endif
+    {
+      angle->energy += thr->eng_angle;
+      for (int i=0; i < 6; ++i)
+	angle->virial[i] += thr->virial_angle[i];
+    }
+  }
+    break;
+
+  case THR_DIHEDRAL: {
+    Dihedral *dihedral = lmp->force->dihedral;
+
+#if defined(_OPENMP)
+#pragma omp critical
+#endif
+    {
+      dihedral->energy += thr->eng_dihed;
+      for (int i=0; i < 6; ++i)
+	dihedral->virial[i] += thr->virial_dihed[i];
+    }
+  }
+    break;
+
+  case THR_IMPROPER: {
+    Improper *improper = lmp->force->improper;
+
+#if defined(_OPENMP)
+#pragma omp critical
+#endif
+    {
+      improper->energy += thr->eng_imprp;
+      for (int i=0; i < 6; ++i)
+	improper->virial[i] += thr->virial_imprp[i];
+    }
+  }
+    break;
+
+  case THR_KSPACE: {
+    KSpace *kspace = lmp->force->kspace;
+
+#if defined(_OPENMP)
+#pragma omp critical
+#endif
+    {
+      kspace->energy += thr->eng_kspce;
+      for (int i=0; i < 6; ++i)
+	kspace->virial[i] += thr->virial_kspce[i];
+    }
+  }
+    break;
+
+  }
+    
+  if (thr_style == fix->last_omp_style) {
+    sync_threads();
+    data_reduce_thr(&(f[0][0]), nall, nthreads, 3, tid);
+    if (lmp->atom->torque)
+      data_reduce_thr(&(lmp->atom->torque[0][0]), nall, nthreads, 3, tid);
+  }
+}
 
 /* ----------------------------------------------------------------------
    tally eng_vdwl and virial into per thread global and per-atom accumulators
@@ -257,8 +234,8 @@ void ThrOMP::ev_tally_thr(Pair *pair, int i, int j, int nlocal,
     }
     if (pair->eflag_atom) {
       epairhalf = 0.5 * (evdwl + ecoul);
-      if (newton_pair || i < nlocal) thr->eatom[i] += epairhalf;
-      if (newton_pair || j < nlocal) thr->eatom[j] += epairhalf;
+      if (newton_pair || i < nlocal) thr->_eatom[i] += epairhalf;
+      if (newton_pair || j < nlocal) thr->_eatom[j] += epairhalf;
     }
   }
 
@@ -301,7 +278,7 @@ void ThrOMP::ev_tally_thr(Pair *pair, int i, int j, int nlocal,
 
     if (pair->vflag_atom) {
       if (newton_pair || i < nlocal) {
-	double * const va = thr->vatom[i];
+	double * const va = thr->_vatom[i];
 	va[0] += 0.5*v[0];
 	va[1] += 0.5*v[1];
 	va[2] += 0.5*v[2];
@@ -310,7 +287,7 @@ void ThrOMP::ev_tally_thr(Pair *pair, int i, int j, int nlocal,
 	va[5] += 0.5*v[5];
       }
       if (newton_pair || j < nlocal) {
-	double * const va = thr->vatom[j];
+	double * const va = thr->_vatom[j];
 	va[0] += 0.5*v[0];
 	va[1] += 0.5*v[1];
 	va[2] += 0.5*v[2];
@@ -772,98 +749,4 @@ double ThrOMP::memory_usage_thr()
   double bytes=0.0;
   
   return bytes;
-}
-/* ----------------------------------------------------------------------
-   compute global pair virial via summing F dot r over own & ghost atoms
-   at this point, only pairwise forces have been accumulated in atom->f
-------------------------------------------------------------------------- */
-
-void ThrOMP::virial_fdotr_compute_thr(double * const virial, const double * const * const x,
-				      const double * const * const f, const int nlocal,
-				      const int nghost, const int nfirst)
-{
-
-  // sum over force on all particles including ghosts
-
-  if (nfirst < 0) {
-    int nall = nlocal + nghost;
-    for (int i = 0; i < nall; i++) {
-      virial[0] += f[i][0]*x[i][0];
-      virial[1] += f[i][1]*x[i][1];
-      virial[2] += f[i][2]*x[i][2];
-      virial[3] += f[i][1]*x[i][0];
-      virial[4] += f[i][2]*x[i][0];
-      virial[5] += f[i][2]*x[i][1];
-    }
-
-  // neighbor includegroup flag is set
-  // sum over force on initial nfirst particles and ghosts
-
-  } else {
-    int nall = nfirst;
-    for (int i = 0; i < nall; i++) {
-      virial[0] += f[i][0]*x[i][0];
-      virial[1] += f[i][1]*x[i][1];
-      virial[2] += f[i][2]*x[i][2];
-      virial[3] += f[i][1]*x[i][0];
-      virial[4] += f[i][2]*x[i][0];
-      virial[5] += f[i][2]*x[i][1];
-    }
-
-    nall = nlocal + nghost;
-    for (int i = nlocal; i < nall; i++) {
-      virial[0] += f[i][0]*x[i][0];
-      virial[1] += f[i][1]*x[i][1];
-      virial[2] += f[i][2]*x[i][2];
-      virial[3] += f[i][1]*x[i][0];
-      virial[4] += f[i][2]*x[i][0];
-      virial[5] += f[i][2]*x[i][1];
-    }
-  }
-
-#if 0
-  // sum over force on all particles including ghosts
-
-  if (nfirst < 0) {
-    const double * const fmax = f + (nlocal + nghost);
-    const double *xp = x;
-    const double *fp = f;
-    for (; fp < fmax; fp+=3, xp+=3) {
-      v[0] += fp[0]*xp[0];
-      v[1] += fp[1]*xp[1];
-      v[2] += fp[2]*xp[2];
-      v[3] += fp[1]*xp[0];
-      v[4] += fp[2]*xp[0];
-      v[5] += fp[2]*xp[1];
-    }
-
-  // neighbor includegroup flag is set
-  // sum over force on initial nfirst particles and ghosts
-
-  } else {
-    const double *fmax = f + nfirst;
-    const double *xp = x;
-    const double *fp = f;
-    for (; fp < fmax; fp+=3, xp+=3) {
-      v[0] += fp[0]*xp[0];
-      v[1] += fp[1]*xp[1];
-      v[2] += fp[2]*xp[2];
-      v[3] += fp[1]*xp[0];
-      v[4] += fp[2]*xp[0];
-      v[5] += fp[2]*xp[1];
-    }
-
-    fmax = f + (nlocal + nghost);
-    xp = x + nlocal;
-    fp = f + nlocal;
-    for (; fp < fmax; fp+=3, xp+=3) {
-      v[0] += fp[0]*xp[0];
-      v[1] += fp[1]*xp[1];
-      v[2] += fp[2]*xp[2];
-      v[3] += fp[1]*xp[0];
-      v[4] += fp[2]*xp[0];
-      v[5] += fp[2]*xp[1];
-    }
-  }
-#endif
 }

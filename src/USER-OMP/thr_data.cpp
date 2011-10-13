@@ -34,7 +34,8 @@ void ThrData::check_tid(int tid)
 
 /* ---------------------------------------------------------------------- */
 
-void ThrData::clear()
+void ThrData::clear(int nall, double **f, double **torque, 
+		    double *erforce, double *de, double *drho)
 {
   eng_vdwl=eng_coul=eng_bond=eng_angle=eng_dihed=eng_imprp=eng_kspce=0.0;
   memset(virial_pair,0,6*sizeof(double));
@@ -44,8 +45,78 @@ void ThrData::clear()
   memset(virial_imprp,0,6*sizeof(double));
   memset(virial_kspce,0,6*sizeof(double));
 
-  eatom = NULL;
-  vatom = NULL;
+  _eatom = NULL;
+  _vatom = NULL;
+
+  _f = f + _tid*nall;
+  memset(&(_f[0][0]),0,nall*3*sizeof(double));
+
+  if (torque) {
+    _torque = torque + _tid*nall;
+    memset(&(_torque[0][0]),0,nall*3*sizeof(double));
+  } else _torque = NULL;
+
+  if (erforce) {
+    _erforce = erforce + _tid*nall;
+    memset(&(_erforce[0]),0,nall*sizeof(double));
+  } else _erforce = NULL;
+
+  if (de) {
+    _de = de + _tid*nall;
+    memset(&(_de[0]),0,nall*sizeof(double));
+  } else _de = NULL;
+
+  if (drho) {
+    _drho = drho + _tid*nall;
+    memset(&(_drho[0]),0,nall*sizeof(double));
+  } else _drho = NULL;
+}
+
+/* ----------------------------------------------------------------------
+   compute global pair virial via summing F dot r over own & ghost atoms
+   at this point, only pairwise forces have been accumulated in atom->f
+------------------------------------------------------------------------- */
+
+void ThrData::virial_fdotr_compute(double **x, int nlocal, int nghost, int nfirst)
+{
+
+  // sum over force on all particles including ghosts
+
+  if (nfirst < 0) {
+    int nall = nlocal + nghost;
+    for (int i = 0; i < nall; i++) {
+      virial_pair[0] += _f[i][0]*x[i][0];
+      virial_pair[1] += _f[i][1]*x[i][1];
+      virial_pair[2] += _f[i][2]*x[i][2];
+      virial_pair[3] += _f[i][1]*x[i][0];
+      virial_pair[4] += _f[i][2]*x[i][0];
+      virial_pair[5] += _f[i][2]*x[i][1];
+    }
+
+  // neighbor includegroup flag is set
+  // sum over force on initial nfirst particles and ghosts
+
+  } else {
+    int nall = nfirst;
+    for (int i = 0; i < nall; i++) {
+      virial_pair[0] += _f[i][0]*x[i][0];
+      virial_pair[1] += _f[i][1]*x[i][1];
+      virial_pair[2] += _f[i][2]*x[i][2];
+      virial_pair[3] += _f[i][1]*x[i][0];
+      virial_pair[4] += _f[i][2]*x[i][0];
+      virial_pair[5] += _f[i][2]*x[i][1];
+    }
+
+    nall = nlocal + nghost;
+    for (int i = nlocal; i < nall; i++) {
+      virial_pair[0] += _f[i][0]*x[i][0];
+      virial_pair[1] += _f[i][1]*x[i][1];
+      virial_pair[2] += _f[i][2]*x[i][2];
+      virial_pair[3] += _f[i][1]*x[i][0];
+      virial_pair[4] += _f[i][2]*x[i][0];
+      virial_pair[5] += _f[i][2]*x[i][1];
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */

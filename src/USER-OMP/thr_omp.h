@@ -33,6 +33,7 @@ class Improper;
 class Kspace;
 
 class ThrOMP {
+
  protected:
   LAMMPS *lmp; // reference to base lammps object.
   FixOMP *fix; // pointer to fix_omp;
@@ -52,17 +53,20 @@ class ThrOMP {
       { ; }
     };
 
+  enum {THR_NONE=0,THR_PAIR=1,THR_BOND=1<<1,THR_ANGLE=1<<2,
+	THR_DIHEDRAL=1<<3,THR_IMPROPER=1<<4,THR_KSPACE=1<<5};
+
  protected:
   // extra ev_tally setup work for threaded styles
   void ev_setup_thr(int, int, int, double *, double **, ThrData *);
 
-  ////////////////////////////////////////////////////////////////////////
-  //  helper functions operating on data replicated for thread support  //
-  ////////////////////////////////////////////////////////////////////////
   // compute global per thread virial contribution from per-thread force
   void virial_fdotr_compute_thr(double * const, const double * const * const, 
 				const double * const * const,
 				const int, const int, const int);
+
+  // reduce per thread data as needed
+  void reduce_thr(int eflag, int vflag, ThrData *thr);
 
  private:
   // internal method to be used by multiple ev_setup_thr() methods

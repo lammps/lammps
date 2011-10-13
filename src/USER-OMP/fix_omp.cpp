@@ -26,6 +26,7 @@
 
 #include "fix_omp.h"
 #include "thr_data.h"
+#include "thr_omp.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -131,15 +132,14 @@ int FixOMP::setmask()
 
 void FixOMP::init()
 {
-  fprintf(stderr,"%s:\n",__FUNCTION__);
-  last_omp_style = THR_NONE;
+  last_omp_style = ThrOMP::THR_NONE;
 
 #define CheckStyleForOMP(name,def)			\
   if (force->name) {					\
     int len = strlen(force->name ## _style);		\
     char *suffix = force->name ## _style + len - 4;	\
     if (strcmp(suffix,"/omp") == 0)			\
-      last_omp_style = def;				\
+      last_omp_style = ThrOMP::def;			\
   }
 
   // determine which is the last force style with OpenMP
@@ -152,13 +152,14 @@ void FixOMP::init()
   CheckStyleForOMP(kspace,THR_KSPACE);
 
 #undef CheckStyleForOMP
+
+  fprintf(stderr,"%s:%d last_omp_style=%d\n",__FILE__, __LINE__, last_omp_style);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixOMP::setup_pre_force(int vflag)
 {
-  fprintf(stderr,"%s: vflag=%d\n",__FUNCTION__, vflag);
   pre_force(vflag);
 }
 
@@ -166,7 +167,6 @@ void FixOMP::setup_pre_force(int vflag)
 
 void FixOMP::setup(int vflag)
 {
-  fprintf(stderr,"%s: vflag=%d\n",__FUNCTION__, vflag);
   post_force(vflag);
 }
 
@@ -177,18 +177,20 @@ void FixOMP::pre_force(int)
 {
   const int nall = atom->nlocal + atom->nghost;
   const int nthreads = comm->nthreads;
-  
-  double * const f = &(atom->f[0][0]);
-  
-  memset(f,0,3*nthreads*nall*sizeof(double));
-  
+
+  double **f = atom->f;
+  double **torque = atom->torque;
+  double *erforce = atom->erforce;
+  double *de = atom->de;
+  double *drho = atom->drho;
+
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel default(none) shared(f,torque,erforce,de,drho)
 #endif
   {
     const int tid = get_tid();
     thr[tid]->check_tid(tid);
-    thr[tid]->clear();
+    thr[tid]->clear(nall,f,torque,erforce,de,drho);
   }
 }
 
@@ -196,20 +198,6 @@ void FixOMP::pre_force(int)
 
 void FixOMP::post_force(int vflag)
 {
-  const int nthreads = comm->nthreads;
-  const int nlocal = atom->nlocal;
-  const int nall = nlocal + atom->nghost;
-  double * const f = &(atom->f[0][0]);
-
-#if defined(_OPENMP)
-#pragma omp parallel default(none)
-#endif
-  {
-    const int tid = get_tid();
-    data_reduce_thr(&(atom->f[0][0]), nall, nthreads, 3, tid);
-    if (atom->torque)
-      data_reduce_thr(&(atom->torque[0][0]), nall, nthreads, 3, tid);
-  }
 }
 
 

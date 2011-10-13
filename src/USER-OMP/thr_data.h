@@ -24,9 +24,6 @@
 
 namespace LAMMPS_NS {
 
-enum {THR_NONE=0,THR_PAIR=1,THR_BOND=1<<1,THR_ANGLE=1<<2,
-      THR_DIHEDRAL=1<<3,THR_IMPROPER=1<<4,THR_KSPACE=1<<5};
-    
 // per thread data accumulators
 class ThrData {
   friend class FixOMP;
@@ -36,10 +33,12 @@ class ThrData {
   ThrData(int tid) : _tid(tid) {};
   ~ThrData() {};
 
-  void clear();           // erase accumulator contents
+  // erase accumulator contents
+  void clear(int, double **, double **, double *, double *, double *);
   void check_tid(int);    // thread id consistency check
+  int get_tid() const { return _tid; };
 
- public:
+ protected:
   double eng_vdwl;        // non-bonded non-coulomb energy
   double eng_coul;        // non-bonded coulomb energy
   double virial_pair[6];  // virial contribution from non-bonded
@@ -54,13 +53,23 @@ class ThrData {
   double eng_kspce;       // kspace energy
   double virial_kspce[6]; // virial contribution from kspace
 
-  double *eatom;          // per atom energy array segment for this thread
-  double **vatom;         // per atom virial array segment for this thread
+  // per thread segments of various force or similar arrays
+  double **_f;
+  double **_torque;
+  double *_erforce;
+  double *_de;
+  double *_drho;
+  // these are re-assigned per style
+  double *_eatom;
+  double **_vatom;
 
  private:
   int _tid;               // my thread id
 
  public:
+  // compute global per thread virial contribution from per-thread force
+  void virial_fdotr_compute(double **, int, int, int);
+
   double memory_usage();
 
  // disabled default methods
@@ -71,8 +80,6 @@ class ThrData {
 ////////////////////////////////////////////////////////////////////////
 //  helper functions operating on data replicated for thread support  //
 ////////////////////////////////////////////////////////////////////////
-// compute global per thread virial contribution from per-thread force
-void virial_fdotr_compute_thr(double * const, double *, double *, int, int, int);
 // generic per thread data reduction for continous arrays of nthreads*nmax size
 void data_reduce_thr(double *, int, int, int, int);
 /* ---------------------------------------------------------------------- */

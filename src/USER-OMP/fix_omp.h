@@ -49,17 +49,16 @@ class FixOMP : public Fix {
   ThrData **thr;
   int last_omp_style; // indicate which style needs
                       // to do the force reduction
+  int torqueflag;
+  int erforceflag;
+  int e_flag;
+  int rho_flag;
   
 #if 0
-  virtual void initial_integrate(int);
-  virtual void initial_integrate(int,int,int);
-  virtual void setup_pre_force(int);
-  virtual void setup_post_force(int);
   virtual void pre_force_respa(int);
   virtual void post_force_respa(int);
   virtual void min_pre_force(int);
   virtual void min_post_force(int);
-
 
  public:
   bool get_newton() const {return _newton;};

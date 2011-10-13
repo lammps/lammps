@@ -25,10 +25,9 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairLJCutOMP::PairLJCutOMP(LAMMPS *lmp) :
-  PairLJCut(lmp), ThrOMP(lmp, ThrData::THR_PAIR)
+  PairLJCut(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
-  no_virial_fdotr_compute = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -66,25 +65,8 @@ void PairLJCutOMP::compute(int eflag, int vflag)
       if (force->newton_pair) eval<0,0,1>(f, ifrom, ito, thr);
       else eval<0,0,0>(f, ifrom, ito, thr);
     }
-    if (vflag_fdotr)
-      if (neighbor->includegroup)
-	virial_fdotr_compute_thr(thr->virial_pair, atom->x, f,
-				 atom->nlocal, atom->nghost, atom->nfirst);
-      else
-	virial_fdotr_compute_thr(thr->virial_pair, atom->x, f,
-				 atom->nlocal, atom->nghost, -1);
-#if defined(_OPENMP)
-#pragma omp critical
-#endif
-    {
-      eng_vdwl += thr->eng_vdwl;
-      eng_coul += thr->eng_coul;
-      for (int i=0; i < 6; ++i)
-	virial[i] += thr->virial_pair[i];
-    }
-    if (thr_style == fix->last_omp_style)
-      data_reduce_thr(&(atom->f[0][0]), nall, nthreads, 3, tid);
 
+    reduce_thr(eflag,vflag,thr);
   } // end of omp parallel region
 }
 

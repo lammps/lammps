@@ -99,7 +99,7 @@ class ThrOMP {
 };
 
 // set loop range thread id, and force array offset for threaded runs.
-static void loop_setup_thr(int &ifrom, int &ito, int &tid, int inum, int nthreads)
+static inline void loop_setup_thr(int &ifrom, int &ito, int &tid, int inum, int nthreads)
 {
 #if defined(_OPENMP)
   tid = omp_get_thread_num();
@@ -113,7 +113,7 @@ static void loop_setup_thr(int &ifrom, int &ito, int &tid, int inum, int nthread
   ifrom = 0;
   ito = inum;
 #endif
-};
+}
 
 }
 #endif

@@ -37,11 +37,11 @@ class FixOMP : public Fix {
   virtual void init();
   virtual void pre_force(int);
 
-  virtual void setup_pre_force(int vflag)       { pre_force(vflag); };
-  virtual void setup_pre_force_respa(int vflag) { pre_force(vflag); };
-  virtual void pre_force_respa(int vflag)       { pre_force(vflag); };
-  virtual void min_setup_pre_force(int vflag)   { pre_force(vflag); };
-  virtual void min_pre_force(int vflag)         { pre_force(vflag); };
+  virtual void setup_pre_force(int vflag)           { pre_force(vflag); };
+  virtual void min_setup_pre_force(int vflag)       { pre_force(vflag); };
+  virtual void min_pre_force(int vflag)             { pre_force(vflag); };
+  virtual void setup_pre_force_respa(int vflag,int) { pre_force(vflag); };
+  virtual void pre_force_respa(int vflag,int,int)   { pre_force(vflag); };
 
   virtual double memory_usage();
 

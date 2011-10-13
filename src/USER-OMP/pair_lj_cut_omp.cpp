@@ -50,7 +50,7 @@ void PairLJCutOMP::compute(int eflag, int vflag)
 
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
-    ev_setup_thr(eflag,vflag,nall,eatom,vatom,thr);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
     if (evflag) {
       if (eflag) {
@@ -65,7 +65,7 @@ void PairLJCutOMP::compute(int eflag, int vflag)
       else eval<0,0,0>(ifrom, ito, thr);
     }
 
-    reduce_thr(eflag,vflag,thr);
+    reduce_thr(eflag, vflag, thr);
   } // end of omp parallel region
 }
 

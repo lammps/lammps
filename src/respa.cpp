@@ -277,6 +277,10 @@ void Respa::init()
 
   ev_setup();
 
+  // detect if fix omp is present and will clear force arrays for us
+  int ifix = modify->find_fix("package_omp");
+  if (ifix >= 0) external_force_clear = 1;
+
   // set flags for what arrays to clear in force_clear()
   // need to clear additionals arrays if they exist
 
@@ -615,6 +619,8 @@ void Respa::recurse(int ilevel)
 
 void Respa::force_clear(int newtonflag)
 {
+  if (external_force_clear) return;
+
   int i;
 
   // clear global force array
@@ -624,7 +630,7 @@ void Respa::force_clear(int newtonflag)
   if (newtonflag) nall = atom->nlocal + atom->nghost;
   else nall = atom->nlocal;
 
-  size_t nbytes = sizeof(double) * nall * comm->nthreads;
+  size_t nbytes = sizeof(double) * nall;
 
   memset(&(atom->f[0][0]),0,3*nbytes);
   if (torqueflag)  memset(&(atom->torque[0][0]),0,3*nbytes);

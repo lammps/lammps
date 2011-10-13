@@ -118,13 +118,8 @@ int FixOMP::setmask()
 {
   int mask = 0;
   mask |= PRE_FORCE;
-  mask |= POST_FORCE;
-#if 0
   mask |= PRE_FORCE_RESPA;
-  mask |= POST_FORCE_RESPA;
   mask |= MIN_PRE_FORCE;
-  mask |= MIN_POST_FORCE;
-#endif
   return mask;
 }
 
@@ -158,25 +153,10 @@ void FixOMP::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixOMP::setup_pre_force(int vflag)
-{
-  pre_force(vflag);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixOMP::setup(int vflag)
-{
-  post_force(vflag);
-}
-
-/* ---------------------------------------------------------------------- */
-
 // adjust size and clear out per thread accumulator arrays
 void FixOMP::pre_force(int)
 {
   const int nall = atom->nlocal + atom->nghost;
-  const int nthreads = comm->nthreads;
 
   double **f = atom->f;
   double **torque = atom->torque;
@@ -193,13 +173,6 @@ void FixOMP::pre_force(int)
     thr[tid]->clear(nall,f,torque,erforce,de,drho);
   }
 }
-
-/* ---------------------------------------------------------------------- */
-
-void FixOMP::post_force(int vflag)
-{
-}
-
 
 /* ---------------------------------------------------------------------- */
 

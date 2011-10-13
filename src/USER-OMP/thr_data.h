@@ -25,6 +25,8 @@
 namespace LAMMPS_NS {
 
 // per thread data accumulators
+// there should be one instance
+// of this class for each thread.
 class ThrData {
   friend class FixOMP;
   friend class ThrOMP;
@@ -36,7 +38,7 @@ class ThrData {
   // erase accumulator contents
   void clear(int, double **, double **, double *, double *, double *);
   void check_tid(int);    // thread id consistency check
-  int get_tid() const { return _tid; };
+  int get_tid() const { return _tid; }; // our thread id.
 
  protected:
   double eng_vdwl;        // non-bonded non-coulomb energy

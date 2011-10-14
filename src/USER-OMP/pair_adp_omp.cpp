@@ -125,18 +125,6 @@ void PairADPOMP::eval(int iifrom, int iito, ThrData * const thr)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  // zero out density 
-
-  if (NEWTON_PAIR) {
-    memset(rho_t, 0, nall*sizeof(double));
-    memset(&(mu_t[0][0]), 0, 3*nall*sizeof(double));
-    memset(&(lambda_t[0][0]), 0, 6*nall*sizeof(double));
-  } else {
-    memset(rho_t, 0, nlocal*sizeof(double));
-    memset(&(mu_t[0][0]), 0, 3*nlocal*sizeof(double));
-    memset(&(lambda_t[0][0]), 0, 6*nlocal*sizeof(double));
-  }
-
   // rho = density at each atom
   // loop over neighbors of my atoms
 

@@ -24,6 +24,14 @@
 using namespace LAMMPS_NS;
 
 
+ThrData::ThrData(int tid) 
+  : _f(NULL), _torque(NULL), _erforce(NULL), _de(NULL), _drho(NULL), _mu(NULL),
+    _lambda(NULL), _rhoB(NULL), _D_values(NULL), _rho(NULL), _fp(NULL), _tid(tid) 
+{
+  // nothing else to do.
+}
+
+
 /* ---------------------------------------------------------------------- */
 
 void ThrData::check_tid(int tid)
@@ -70,6 +78,28 @@ void ThrData::init_clear(int nall, double **f, double **torque,
     _drho = drho + _tid*nall;
     memset(&(_drho[0]),0,nall*sizeof(double));
   } else _drho = NULL;
+}
+
+/* ----------------------------------------------------------------------
+   set up and clear out locally managed per atom arrays
+------------------------------------------------------------------------- */
+
+void ThrData::init_eam(int nall, double *rho)
+{
+  _rho = rho + _tid*nall;
+  memset(&(_rho[0]),0,nall*sizeof(double));
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ThrData::init_adp(int nall, double *rho, double **mu, double **lambda)
+{
+  init_eam(nall, rho);
+
+  _mu = mu + _tid*nall;
+  _lambda = lambda + _tid*nall;
+  memset(&(_mu[0][0]),0,nall*3*sizeof(double));
+  memset(&(_lambda[0][0]),0,nall*6*sizeof(double));
 }
 
 /* ----------------------------------------------------------------------

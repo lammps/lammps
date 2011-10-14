@@ -32,20 +32,34 @@ class ThrData {
   friend class ThrOMP;
 
  public:
-  ThrData(int tid) : _tid(tid) {};
+  ThrData(int tid);
   ~ThrData() {};
-
-  // erase accumulator contents and hook up force arrays
-  void init_clear(int, double **, double **, double *, double *, double *);
 
   void check_tid(int);    // thread id consistency check
   int get_tid() const { return _tid; }; // our thread id.
+
+  // erase accumulator contents and hook up force arrays
+  void init_clear(int, double **, double **, double *, double *, double *);
 
   // give access to per-thread offset arrays
   double **get_f() const { return _f; };
   double **get_torque() const { return _torque; };
   double *get_de() const { return _de; };
   double *get_drho() const { return _drho; };
+
+  // resize and erase per atom arrays that we manage
+  void init_adp(int, double *, double **, double **); // ADP (+ EAM)
+  void init_cdeam(int); // CDEAM (+ EAM)
+  void init_eam(int, double *);   // EAM 
+  void init_eim(int,int);   // EIM (+ EAM)
+
+  // access methods for arrays that we handle in this class
+  double **get_lambda() const { return _lambda; };
+  double **get_mu() const { return _mu; };
+  double *get_D_values() const { return _D_values; };
+  double *get_fp() const { return _fp; };
+  double *get_rho() const { return _rho; };
+  double *get_rhoB() const { return _rhoB; };
 
  private:
   double eng_vdwl;        // non-bonded non-coulomb energy
@@ -63,18 +77,25 @@ class ThrData {
   double virial_kspce[6]; // virial contribution from kspace
 
   // per thread segments of various force or similar arrays
+  // these are maintained by atom styles
   double **_f;
   double **_torque;
   double *_erforce;
   double *_de;
   double *_drho;
 
-  // these are re-assigned per style
+  // these are re-assigned per force style
   double *_eatom;
   double **_vatom;
 
+  // these are maintained by individual pair styles
+  double **_mu, **_lambda;   // ADP (+ EAM)
+  double *_rhoB, *_D_values; // CDEAM (+ EAM)
+  double *_rho;              // EAM
+  double *_fp;               // EIM (+ EAM)
+
   // my thread id
-   int _tid;
+  const int _tid;
 
  public:
   // compute global per thread virial contribution from per-thread force
@@ -84,7 +105,7 @@ class ThrData {
 
  // disabled default methods
  private:
-  ThrData() {};
+  ThrData() : _tid(-1) {};
 };
 
 ////////////////////////////////////////////////////////////////////////

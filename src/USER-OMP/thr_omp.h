@@ -68,17 +68,22 @@ class ThrOMP {
   // reduce per thread data as needed
   void reduce_thr(int eflag, int vflag, ThrData *thr);
 
- private:
-  // internal method to be used by multiple ev_setup_thr() methods
-  void ev_setup_acc_thr(int, int, int, int, int, int);
-
  protected:
   // threading adapted versions of the ev_tally infrastructure
   // style specific versions (need access to style class flags)
-  void ev_tally_thr(Pair *, int, int, int, int, double, double,
-		    double, double, double, double, ThrData *);
-  void ev_tally_xyz_thr(Pair *, int, int, int, int, double, double,
-			double, double, double, double, double, double, int);
+  void e_tally_thr(Pair * const, const int, const int, const int,
+		   const int, const double, const double, ThrData * const);
+  void v_tally_thr(Pair * const, const int, const int, const int,
+		   const int, const double * const, ThrData * const);
+
+  void ev_tally_thr(Pair * const, const int, const int, const int, const int,
+		    const double, const double, const double, const double,
+		    const double, const double, ThrData * const);
+  void ev_tally_xyz_thr(Pair * const, const int, const int, const int,
+			const int, const double, const double, const double,
+			const double, const double, const double,
+			const double, const double, ThrData * const);
+#if 0
   void ev_tally3_thr(Pair *, int, int, int, double, double,
 		     double *, double *, double *, double *, int);
   void ev_tally4_thr(Pair *, int, int, int, int, double, 
@@ -95,7 +100,7 @@ class ThrOMP {
   void v_tally3_thr(int, int, int, double *, double *, double *, double *, int);
   void v_tally4_thr(int, int, int, int, double *, double *, double *,
 		    double *, double *, double *, int);
-
+#endif
 };
 
 // set loop range thread id, and force array offset for threaded runs.

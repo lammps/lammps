@@ -210,7 +210,7 @@ void FixOMP::pre_force(int)
 
 double FixOMP::memory_usage()
 {
-  double bytes = comm->nthreads * sizeof(ThrData *);
+  double bytes = comm->nthreads * (sizeof(ThrData *) + sizeof(ThrData));
   bytes += comm->nthreads * thr[0]->memory_usage();
   
   return bytes;

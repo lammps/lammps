@@ -203,43 +203,111 @@ void ThrOMP::reduce_thr(const int eflag, const int vflag, ThrData *const thr)
 }
 
 /* ----------------------------------------------------------------------
+   tally eng_vdwl and eng_coul into per thread global and per-atom accumulators
+------------------------------------------------------------------------- */
+
+void ThrOMP::e_tally_thr(Pair * const pair, const int i, const int j, 
+			 const int nlocal, const int newton_pair,
+			 const double evdwl, const double ecoul, ThrData * const thr)
+{
+  if (pair->eflag_global) {
+    if (newton_pair) {
+      thr->eng_vdwl += evdwl;
+      thr->eng_coul += ecoul;
+    } else {
+      const double evdwlhalf = 0.5*evdwl;
+      const double ecoulhalf = 0.5*ecoul;
+      if (i < nlocal) {
+	thr->eng_vdwl += evdwlhalf;
+	thr->eng_coul += ecoulhalf;
+      }
+      if (j < nlocal) {
+	thr->eng_vdwl += evdwlhalf;
+	thr->eng_coul += ecoulhalf;
+      }
+    }
+  }
+  if (pair->eflag_atom) {
+    const double epairhalf = 0.5 * (evdwl + ecoul);
+    if (newton_pair || i < nlocal) thr->_eatom[i] += epairhalf;
+    if (newton_pair || j < nlocal) thr->_eatom[j] += epairhalf;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   tally virial into per thread global and per-atom accumulators
+------------------------------------------------------------------------- */
+void ThrOMP::v_tally_thr(Pair * const pair, const int i, const int j, 
+			 const int nlocal, const int newton_pair,
+			 const double * const v, ThrData * const thr)
+{
+  if (pair->vflag_global) {
+    double * const va = thr->virial_pair;
+    if (newton_pair) {
+      va[0] += v[0];
+      va[1] += v[1];
+      va[2] += v[2];
+      va[3] += v[3];
+      va[4] += v[4];
+      va[5] += v[5];
+    } else {
+      if (i < nlocal) {
+	va[0] += 0.5*v[0];
+	va[1] += 0.5*v[1];
+	va[2] += 0.5*v[2];
+	va[3] += 0.5*v[3];
+	va[4] += 0.5*v[4];
+	va[5] += 0.5*v[5];
+      }
+      if (j < nlocal) {
+	va[0] += 0.5*v[0];
+	va[1] += 0.5*v[1];
+	va[2] += 0.5*v[2];
+	va[3] += 0.5*v[3];
+	va[4] += 0.5*v[4];
+	va[5] += 0.5*v[5];
+      }
+    }
+  }
+
+  if (pair->vflag_atom) {
+    if (newton_pair || i < nlocal) {
+      double * const va = thr->_vatom[i];
+      va[0] += 0.5*v[0];
+      va[1] += 0.5*v[1];
+      va[2] += 0.5*v[2];
+      va[3] += 0.5*v[3];
+      va[4] += 0.5*v[4];
+      va[5] += 0.5*v[5];
+    }
+    if (newton_pair || j < nlocal) {
+      double * const va = thr->_vatom[j];
+      va[0] += 0.5*v[0];
+      va[1] += 0.5*v[1];
+      va[2] += 0.5*v[2];
+      va[3] += 0.5*v[3];
+      va[4] += 0.5*v[4];
+      va[5] += 0.5*v[5];
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
    tally eng_vdwl and virial into per thread global and per-atom accumulators
    need i < nlocal test since called by bond_quartic and dihedral_charmm
 ------------------------------------------------------------------------- */
 
-void ThrOMP::ev_tally_thr(Pair *pair, int i, int j, int nlocal,
-			  int newton_pair, double evdwl, double ecoul,
-			  double fpair, double delx, double dely,
-			  double delz, ThrData *thr)
+void ThrOMP::ev_tally_thr(Pair * const pair, const int i, const int j, const int nlocal,
+			  const int newton_pair, const double evdwl, const double ecoul,
+			  const double fpair, const double delx, const double dely,
+			  const double delz, ThrData * const thr)
 {
-  double evdwlhalf,ecoulhalf,epairhalf,v[6];
 
-  if (pair->eflag_either) {
-    if (pair->eflag_global) {
-      if (newton_pair) {
-	thr->eng_vdwl += evdwl;
-	thr->eng_coul += ecoul;
-      } else {
-	evdwlhalf = 0.5*evdwl;
-	ecoulhalf = 0.5*ecoul;
-	if (i < nlocal) {
-	  thr->eng_vdwl += evdwlhalf;
-	  thr->eng_coul += ecoulhalf;
-	}
-	if (j < nlocal) {
-	  thr->eng_vdwl += evdwlhalf;
-	  thr->eng_coul += ecoulhalf;
-	}
-      }
-    }
-    if (pair->eflag_atom) {
-      epairhalf = 0.5 * (evdwl + ecoul);
-      if (newton_pair || i < nlocal) thr->_eatom[i] += epairhalf;
-      if (newton_pair || j < nlocal) thr->_eatom[j] += epairhalf;
-    }
-  }
+  if (pair->eflag_either)
+    e_tally_thr(pair, i, j, nlocal, newton_pair, evdwl, ecoul, thr);
 
   if (pair->vflag_either) {
+    double v[6];
     v[0] = delx*delx*fpair;
     v[1] = dely*dely*fpair;
     v[2] = delz*delz*fpair;
@@ -247,97 +315,28 @@ void ThrOMP::ev_tally_thr(Pair *pair, int i, int j, int nlocal,
     v[4] = delx*delz*fpair;
     v[5] = dely*delz*fpair;
 
-    if (pair->vflag_global) {
-      double * const va = thr->virial_pair;
-      if (newton_pair) {
-	va[0] += v[0];
-	va[1] += v[1];
-	va[2] += v[2];
-	va[3] += v[3];
-	va[4] += v[4];
-	va[5] += v[5];
-      } else {
-	if (i < nlocal) {
-	  va[0] += 0.5*v[0];
-	  va[1] += 0.5*v[1];
-	  va[2] += 0.5*v[2];
-	  va[3] += 0.5*v[3];
-	  va[4] += 0.5*v[4];
-	  va[5] += 0.5*v[5];
-	}
-	if (j < nlocal) {
-	  va[0] += 0.5*v[0];
-	  va[1] += 0.5*v[1];
-	  va[2] += 0.5*v[2];
-	  va[3] += 0.5*v[3];
-	  va[4] += 0.5*v[4];
-	  va[5] += 0.5*v[5];
-	}
-      }
-    }
-
-    if (pair->vflag_atom) {
-      if (newton_pair || i < nlocal) {
-	double * const va = thr->_vatom[i];
-	va[0] += 0.5*v[0];
-	va[1] += 0.5*v[1];
-	va[2] += 0.5*v[2];
-	va[3] += 0.5*v[3];
-	va[4] += 0.5*v[4];
-	va[5] += 0.5*v[5];
-      }
-      if (newton_pair || j < nlocal) {
-	double * const va = thr->_vatom[j];
-	va[0] += 0.5*v[0];
-	va[1] += 0.5*v[1];
-	va[2] += 0.5*v[2];
-	va[3] += 0.5*v[3];
-	va[4] += 0.5*v[4];
-	va[5] += 0.5*v[5];
-      }
-    }
+    v_tally_thr(pair, i, j, nlocal, newton_pair, v, thr);
   }
 }
 
-#if 0
 /* ----------------------------------------------------------------------
    tally eng_vdwl and virial into global and per-atom accumulators
    for virial, have delx,dely,delz and fx,fy,fz
 ------------------------------------------------------------------------- */
 
-void ThrOMP::ev_tally_xyz_thr(Pair *pair, int i, int j, int nlocal,
-			      int newton_pair, double evdwl, double ecoul,
-			      double fx, double fy, double fz,
-			      double delx, double dely, double delz, int tid)
+void ThrOMP::ev_tally_xyz_thr(Pair * const pair, const int i, const int j,
+			      const int nlocal, const int newton_pair, 
+			      const double evdwl, const double ecoul,
+			      const double fx, const double fy, const double fz,
+			      const double delx, const double dely, const double delz,
+			      ThrData * const thr)
 {
-  double evdwlhalf,ecoulhalf,epairhalf,v[6];
 
-  if (pair->eflag_either) {
-    if (pair->eflag_global) {
-      if (newton_pair) {
-	eng_vdwl_thr[tid] += evdwl;
-	eng_coul_thr[tid] += ecoul;
-      } else {
-	evdwlhalf = 0.5*evdwl;
-	ecoulhalf = 0.5*ecoul;
-	if (i < nlocal) {
-	  eng_vdwl_thr[tid] += evdwlhalf;
-	  eng_coul_thr[tid] += ecoulhalf;
-	}
-	if (j < nlocal) {
-	  eng_vdwl_thr[tid] += evdwlhalf;
-	  eng_coul_thr[tid] += ecoulhalf;
-	}
-      }
-    }
-    if (pair->eflag_atom) {
-      epairhalf = 0.5 * (evdwl + ecoul);
-      if (newton_pair || i < nlocal) eatom_thr[tid][i] += epairhalf;
-      if (newton_pair || j < nlocal) eatom_thr[tid][j] += epairhalf;
-    }
-  }
+  if (pair->eflag_either)
+    e_tally_thr(pair, i, j, nlocal, newton_pair, evdwl, ecoul, thr);
 
   if (pair->vflag_either) {
+    double v[6];
     v[0] = delx*fx;
     v[1] = dely*fy;
     v[2] = delz*fz;
@@ -345,55 +344,11 @@ void ThrOMP::ev_tally_xyz_thr(Pair *pair, int i, int j, int nlocal,
     v[4] = delx*fz;
     v[5] = dely*fz;
 
-    if (pair->vflag_global) {
-      if (newton_pair) {
-	virial_thr[tid][0] += v[0];
-	virial_thr[tid][1] += v[1];
-	virial_thr[tid][2] += v[2];
-	virial_thr[tid][3] += v[3];
-	virial_thr[tid][4] += v[4];
-	virial_thr[tid][5] += v[5];
-      } else {
-	if (i < nlocal) {
-	  virial_thr[tid][0] += 0.5*v[0];
-	  virial_thr[tid][1] += 0.5*v[1];
-	  virial_thr[tid][2] += 0.5*v[2];
-	  virial_thr[tid][3] += 0.5*v[3];
-	  virial_thr[tid][4] += 0.5*v[4];
-	  virial_thr[tid][5] += 0.5*v[5];
-	}
-	if (j < nlocal) {
-	  virial_thr[tid][0] += 0.5*v[0];
-	  virial_thr[tid][1] += 0.5*v[1];
-	  virial_thr[tid][2] += 0.5*v[2];
-	  virial_thr[tid][3] += 0.5*v[3];
-	  virial_thr[tid][4] += 0.5*v[4];
-	  virial_thr[tid][5] += 0.5*v[5];
-	}
-      }
-    }
-
-    if (pair->vflag_atom) {
-      if (newton_pair || i < nlocal) {
-	vatom_thr[tid][i][0] += 0.5*v[0];
-	vatom_thr[tid][i][1] += 0.5*v[1];
-	vatom_thr[tid][i][2] += 0.5*v[2];
-	vatom_thr[tid][i][3] += 0.5*v[3];
-	vatom_thr[tid][i][4] += 0.5*v[4];
-	vatom_thr[tid][i][5] += 0.5*v[5];
-      }
-      if (newton_pair || j < nlocal) {
-	vatom_thr[tid][j][0] += 0.5*v[0];
-	vatom_thr[tid][j][1] += 0.5*v[1];
-	vatom_thr[tid][j][2] += 0.5*v[2];
-	vatom_thr[tid][j][3] += 0.5*v[3];
-	vatom_thr[tid][j][4] += 0.5*v[4];
-	vatom_thr[tid][j][5] += 0.5*v[5];
-      }
-    }
+    v_tally_thr(pair, i, j, nlocal, newton_pair, v, thr);
   }
 }
 
+#if 0
 /* ----------------------------------------------------------------------
    tally eng_vdwl and virial into global and per-atom accumulators
    called by SW and hbond potentials, newton_pair is always on

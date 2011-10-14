@@ -27,7 +27,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairCombOMP::PairCombOMP(LAMMPS *lmp) :
-  PairComb(lmp), ThrOMP(lmp, PAIR)
+  PairComb(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
 }

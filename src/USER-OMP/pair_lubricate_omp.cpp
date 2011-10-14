@@ -31,7 +31,7 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 PairLubricateOMP::PairLubricateOMP(LAMMPS *lmp) :
-  PairLubricate(lmp), ThrOMP(lmp, PAIR)
+  PairLubricate(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
   random_thr = NULL;

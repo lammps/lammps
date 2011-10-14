@@ -25,7 +25,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairLJSmoothOMP::PairLJSmoothOMP(LAMMPS *lmp) :
-  PairLJSmooth(lmp), ThrOMP(lmp, PAIR)
+  PairLJSmooth(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
 }

@@ -34,7 +34,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairLJCoulOMP::PairLJCoulOMP(LAMMPS *lmp) :
-  PairLJCoul(lmp), ThrOMP(lmp, PAIR)
+  PairLJCoul(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
 }

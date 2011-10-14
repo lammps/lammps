@@ -25,7 +25,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairSWOMP::PairSWOMP(LAMMPS *lmp) :
-  PairSW(lmp), ThrOMP(lmp, PAIR)
+  PairSW(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
 }

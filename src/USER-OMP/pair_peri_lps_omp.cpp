@@ -32,7 +32,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairPeriLPSOMP::PairPeriLPSOMP(LAMMPS *lmp) :
-  PairPeriLPS(lmp), ThrOMP(lmp, PAIR)
+  PairPeriLPS(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
 }

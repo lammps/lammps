@@ -33,7 +33,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairAIREBOOMP::PairAIREBOOMP(LAMMPS *lmp) :
-  PairAIREBO(lmp), ThrOMP(lmp, PAIR)
+  PairAIREBO(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
 }

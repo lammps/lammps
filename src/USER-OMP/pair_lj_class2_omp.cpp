@@ -25,7 +25,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairLJClass2OMP::PairLJClass2OMP(LAMMPS *lmp) :
-  PairLJClass2(lmp), ThrOMP(lmp, PAIR)
+  PairLJClass2(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
 }

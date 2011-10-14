@@ -27,7 +27,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairRESquaredOMP::PairRESquaredOMP(LAMMPS *lmp) :
-  PairRESquared(lmp), ThrOMP(lmp, PAIR)
+  PairRESquared(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
 }

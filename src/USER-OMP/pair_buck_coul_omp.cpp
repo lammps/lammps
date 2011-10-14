@@ -34,7 +34,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairBuckCoulOMP::PairBuckCoulOMP(LAMMPS *lmp) :
-  PairBuckCoul(lmp), ThrOMP(lmp, PAIR)
+  PairBuckCoul(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
 }

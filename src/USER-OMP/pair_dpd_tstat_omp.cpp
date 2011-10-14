@@ -29,7 +29,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairDPDTstatOMP::PairDPDTstatOMP(LAMMPS *lmp) :
-  PairDPDTstat(lmp), ThrOMP(lmp, PAIR)
+  PairDPDTstat(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
   random_thr = NULL;

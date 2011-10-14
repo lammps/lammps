@@ -25,7 +25,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairTersoffOMP::PairTersoffOMP(LAMMPS *lmp) :
-  PairTersoff(lmp), ThrOMP(lmp, PAIR)
+  PairTersoff(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
 }

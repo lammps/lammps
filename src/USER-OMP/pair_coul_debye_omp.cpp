@@ -25,7 +25,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairCoulDebyeOMP::PairCoulDebyeOMP(LAMMPS *lmp) :
-  PairCoulDebye(lmp), ThrOMP(lmp, PAIR)
+  PairCoulDebye(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
 }

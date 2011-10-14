@@ -31,7 +31,7 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 PairHbondDreidingLJOMP::PairHbondDreidingLJOMP(LAMMPS *lmp) :
-  PairHbondDreidingLJ(lmp), ThrOMP(lmp, PAIR)
+  PairHbondDreidingLJ(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
   hbcount_thr = hbeng_thr = NULL;

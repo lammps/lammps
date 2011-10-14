@@ -25,7 +25,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairLJShiftedForceOMP::PairLJShiftedForceOMP(LAMMPS *lmp) :
-  PairLJShiftedForce(lmp), ThrOMP(lmp, PAIR)
+  PairLJShiftedForce(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
 }

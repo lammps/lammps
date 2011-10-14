@@ -26,7 +26,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairGranHertzHistoryOMP::PairGranHertzHistoryOMP(LAMMPS *lmp) :
-  PairGranHertzHistory(lmp), ThrOMP(lmp, PAIR)
+  PairGranHertzHistory(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
 }

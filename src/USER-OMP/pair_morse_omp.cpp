@@ -25,7 +25,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairMorseOMP::PairMorseOMP(LAMMPS *lmp) :
-  PairMorse(lmp), ThrOMP(lmp, PAIR)
+  PairMorse(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
 }

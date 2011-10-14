@@ -25,7 +25,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairLJCutCoulDebyeOMP::PairLJCutCoulDebyeOMP(LAMMPS *lmp) :
-  PairLJCutCoulDebye(lmp), ThrOMP(lmp, PAIR)
+  PairLJCutCoulDebye(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
 }

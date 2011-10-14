@@ -36,7 +36,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairLJCutCoulLongTIP4POMP::PairLJCutCoulLongTIP4POMP(LAMMPS *lmp) :
-  PairLJCutCoulLongTIP4P(lmp), ThrOMP(lmp, PAIR)
+  PairLJCutCoulLongTIP4P(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
 

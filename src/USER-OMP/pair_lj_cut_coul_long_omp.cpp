@@ -33,7 +33,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairLJCutCoulLongOMP::PairLJCutCoulLongOMP(LAMMPS *lmp) :
-  PairLJCutCoulLong(lmp), ThrOMP(lmp, PAIR)
+  PairLJCutCoulLong(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
 }

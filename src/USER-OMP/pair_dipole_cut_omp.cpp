@@ -25,7 +25,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairDipoleCutOMP::PairDipoleCutOMP(LAMMPS *lmp) :
-  PairDipoleCut(lmp), ThrOMP(lmp, PAIR)
+  PairDipoleCut(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
 }

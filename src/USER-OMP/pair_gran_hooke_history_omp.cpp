@@ -28,7 +28,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairGranHookeHistoryOMP::PairGranHookeHistoryOMP(LAMMPS *lmp) :
-  PairGranHookeHistory(lmp), ThrOMP(lmp, PAIR)
+  PairGranHookeHistory(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
   // trigger use of OpenMP version of FixShearHistory

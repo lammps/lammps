@@ -25,7 +25,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairLJCutCoulCutOMP::PairLJCutCoulCutOMP(LAMMPS *lmp) :
-  PairLJCutCoulCut(lmp), ThrOMP(lmp, PAIR)
+  PairLJCutCoulCut(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
 }

@@ -25,7 +25,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairDipoleSFOMP::PairDipoleSFOMP(LAMMPS *lmp) :
-  PairDipoleSF(lmp), ThrOMP(lmp, PAIR)
+  PairDipoleSF(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
 }

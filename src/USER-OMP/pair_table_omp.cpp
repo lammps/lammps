@@ -26,7 +26,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairTableOMP::PairTableOMP(LAMMPS *lmp) :
-  PairTable(lmp), ThrOMP(lmp, PAIR)
+  PairTable(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
 }

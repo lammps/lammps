@@ -31,7 +31,7 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 PairHbondDreidingMorseOMP::PairHbondDreidingMorseOMP(LAMMPS *lmp) :
-  PairHbondDreidingMorse(lmp), ThrOMP(lmp, PAIR)
+  PairHbondDreidingMorse(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
   hbcount_thr = hbeng_thr = NULL;

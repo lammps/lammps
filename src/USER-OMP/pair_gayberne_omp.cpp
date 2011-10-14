@@ -27,7 +27,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairGayBerneOMP::PairGayBerneOMP(LAMMPS *lmp) :
-  PairGayBerne(lmp), ThrOMP(lmp, PAIR)
+  PairGayBerne(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
 }

@@ -25,7 +25,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairLJCharmmCoulCharmmOMP::PairLJCharmmCoulCharmmOMP(LAMMPS *lmp) :
-  PairLJCharmmCoulCharmm(lmp), ThrOMP(lmp, PAIR)
+  PairLJCharmmCoulCharmm(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
 }

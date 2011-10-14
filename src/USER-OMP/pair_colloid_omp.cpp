@@ -26,7 +26,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairColloidOMP::PairColloidOMP(LAMMPS *lmp) :
-  PairColloid(lmp), ThrOMP(lmp, PAIR)
+  PairColloid(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
 }

@@ -25,7 +25,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairLJExpandOMP::PairLJExpandOMP(LAMMPS *lmp) :
-  PairLJExpand(lmp), ThrOMP(lmp, PAIR)
+  PairLJExpand(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
 }

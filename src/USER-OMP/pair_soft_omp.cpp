@@ -27,7 +27,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairSoftOMP::PairSoftOMP(LAMMPS *lmp) :
-  PairSoft(lmp), ThrOMP(lmp, PAIR)
+  PairSoft(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
 }

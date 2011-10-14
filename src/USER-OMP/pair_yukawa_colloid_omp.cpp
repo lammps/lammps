@@ -25,7 +25,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairYukawaColloidOMP::PairYukawaColloidOMP(LAMMPS *lmp) :
-  PairYukawaColloid(lmp), ThrOMP(lmp, PAIR)
+  PairYukawaColloid(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
 }

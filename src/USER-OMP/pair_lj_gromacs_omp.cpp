@@ -25,7 +25,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairLJGromacsOMP::PairLJGromacsOMP(LAMMPS *lmp) :
-  PairLJGromacs(lmp), ThrOMP(lmp, PAIR)
+  PairLJGromacs(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
 }

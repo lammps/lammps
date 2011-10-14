@@ -79,7 +79,7 @@ void PairLJCutOMP::eval(int iifrom, int iito, ThrData * const thr)
 
   evdwl = 0.0;
 
-  double const * const * const x = atom->x;
+  const double * const * const x = atom->x;
   double * const * const f = thr->get_f();
   int *type = atom->type;
   int nlocal = atom->nlocal;

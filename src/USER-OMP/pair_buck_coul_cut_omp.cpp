@@ -25,7 +25,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairBuckCoulCutOMP::PairBuckCoulCutOMP(LAMMPS *lmp) :
-  PairBuckCoulCut(lmp), ThrOMP(lmp, PAIR)
+  PairBuckCoulCut(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
 }

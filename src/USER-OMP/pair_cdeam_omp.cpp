@@ -44,7 +44,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairCDEAMOMP::PairCDEAMOMP(LAMMPS *lmp, int _cdeamVersion) :
-  PairCDEAM(lmp,_cdeamVersion), PairEAM(lmp), ThrOMP(lmp, PAIR)
+  PairCDEAM(lmp,_cdeamVersion), PairEAM(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
 }

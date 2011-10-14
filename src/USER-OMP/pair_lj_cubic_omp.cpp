@@ -26,7 +26,7 @@ using namespace PairLJCubicConstants;
 /* ---------------------------------------------------------------------- */
 
 PairLJCubicOMP::PairLJCubicOMP(LAMMPS *lmp) :
-  PairLJCubic(lmp), ThrOMP(lmp, PAIR)
+  PairLJCubic(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
 }

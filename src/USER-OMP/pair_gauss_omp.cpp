@@ -26,7 +26,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairGaussOMP::PairGaussOMP(LAMMPS *lmp) :
-  PairGauss(lmp), ThrOMP(lmp, PAIR)
+  PairGauss(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
 }

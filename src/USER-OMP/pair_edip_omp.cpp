@@ -25,7 +25,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairEDIPOMP::PairEDIPOMP(LAMMPS *lmp) :
-  PairEDIP(lmp), ThrOMP(lmp, PAIR)
+  PairEDIP(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
 }

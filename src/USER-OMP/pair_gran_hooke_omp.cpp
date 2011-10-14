@@ -25,7 +25,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairGranHookeOMP::PairGranHookeOMP(LAMMPS *lmp) :
-  PairGranHooke(lmp), ThrOMP(lmp, PAIR)
+  PairGranHooke(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
 }

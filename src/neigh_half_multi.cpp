@@ -76,14 +76,12 @@ void Neighbor::half_multi_no_newton(NeighList *list)
 
   for (i = ifrom; i < ito; i++) {
 
-    if (pgsize - npnt < oneatom) {
-      npnt = 0;
-      npage += nthreads;
-      // only one thread at a time may check whether we 
-      // need new neighbor list pages and then add to them.
 #if defined(_OPENMP)
 #pragma omp critical
 #endif
+    if (pgsize - npnt < oneatom) {
+      npnt = 0;
+      npage += nthreads;
       if (npage >= list->maxpage) list->add_pages(nthreads);
     }
 
@@ -191,14 +189,12 @@ void Neighbor::half_multi_newton(NeighList *list)
 
   for (i = ifrom; i < ito; i++) {
 
-    if (pgsize - npnt < oneatom) {
-      npnt = 0;
-      npage += nthreads;
-      // only one thread at a time may check  whether we
-      // need new neighbor list pages and then add to them.
 #if defined(_OPENMP)
 #pragma omp critical
 #endif
+    if (pgsize - npnt < oneatom) {
+      npnt = 0;
+      npage += nthreads;
       if (npage >= list->maxpage) list->add_pages(nthreads);
     }
 
@@ -331,14 +327,12 @@ void Neighbor::half_multi_newton_tri(NeighList *list)
 
   for (i = ifrom; i < ito; i++) {
 
-    if (pgsize - npnt < oneatom) {
-      npnt = 0;
-      npage += nthreads;
-      // only one thread at a time may check  whether we
-      // need new neighbor list pages and then add to them.
 #if defined(_OPENMP)
 #pragma omp critical
 #endif
+    if (pgsize - npnt < oneatom) {
+      npnt = 0;
+      npage += nthreads;
       if (npage >= list->maxpage) list->add_pages(nthreads);
     }
 

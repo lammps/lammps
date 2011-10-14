@@ -96,41 +96,35 @@ void Neighbor::respa_nsq_no_newton(NeighList *list)
 
   for (i = ifrom; i < ito; i++) {
 
-    if (pgsize - npnt < oneatom) {
-      npnt = 0;
-      npage += nthreads;
-      // only one thread at a time may check whether we
-      // need new neighbor list pages and then add to them.
 #if defined(_OPENMP)
 #pragma omp critical
 #endif
+    if (pgsize - npnt < oneatom) {
+      npnt = 0;
+      npage += nthreads;
       if (npage == list->maxpage) list->add_pages(nthreads);
     }
     neighptr = &(list->pages[npage][npnt]);
     n = 0;
 
-    if (pgsize - npnt_inner < oneatom) {
-      npnt_inner = 0;
-      npage_inner += nthreads;
-      // only one thread at a time may check whether we
-      // need new neighbor list pages and then add to them.
 #if defined(_OPENMP)
 #pragma omp critical
 #endif
+    if (pgsize - npnt_inner < oneatom) {
+      npnt_inner = 0;
+      npage_inner += nthreads;
       if (npage_inner == listinner->maxpage) listinner->add_pages(nthreads);
     }
     neighptr_inner = &(listinner->pages[npage_inner][npnt_inner]);
     n_inner = 0;
 
+#if defined(_OPENMP)
+#pragma omp critical
+#endif
     if (respamiddle) {
       if (pgsize - npnt_middle < oneatom) {
 	npnt_middle = 0;
 	npage_middle += nthreads;
-	// only one thread at a time may check whether we
-	// need new neighbor list pages and then add to them.
-#if defined(_OPENMP)
-#pragma omp critical
-#endif
 	if (npage_middle == listmiddle->maxpage) listmiddle->add_pages(nthreads);
       }
       neighptr_middle = &(listmiddle->pages[npage_middle][npnt_middle]);
@@ -275,41 +269,35 @@ void Neighbor::respa_nsq_newton(NeighList *list)
 
   for (i = ifrom; i < ito; i++) {
 
-    if (pgsize - npnt < oneatom) {
-      npnt = 0;
-      npage += nthreads;
-      // only one thread at a time may check whether we
-      // need new neighbor list pages and then add to them.
 #if defined(_OPENMP)
 #pragma omp critical
 #endif
+    if (pgsize - npnt < oneatom) {
+      npnt = 0;
+      npage += nthreads;
       if (npage == list->maxpage) list->add_pages(nthreads);
     }
     neighptr = &(list->pages[npage][npnt]);
     n = 0;
 
-    if (pgsize - npnt_inner < oneatom) {
-      npnt_inner = 0;
-      npage_inner += nthreads;
-      // only one thread at a time may check whether we
-      // need new neighbor list pages and then add to them.
 #if defined(_OPENMP)
 #pragma omp critical
 #endif
+    if (pgsize - npnt_inner < oneatom) {
+      npnt_inner = 0;
+      npage_inner += nthreads;
       if (npage_inner == listinner->maxpage) listinner->add_pages(nthreads);
     }
     neighptr_inner = &(listinner->pages[npage_inner][npnt_inner]);
     n_inner = 0;
 
+#if defined(_OPENMP)
+#pragma omp critical
+#endif
     if (respamiddle) {
       if (pgsize - npnt_middle < oneatom) {
 	npnt_middle = 0;
 	npage_middle += nthreads;
-	// only one thread at a time may check whether we
-	// need new neighbor list pages and then add to them.
-#if defined(_OPENMP)
-#pragma omp critical
-#endif
 	if (npage_middle == listmiddle->maxpage) listmiddle->add_pages(nthreads);
       }
       neighptr_middle = &(listmiddle->pages[npage_middle][npnt_middle]);
@@ -476,41 +464,35 @@ void Neighbor::respa_bin_no_newton(NeighList *list)
 
   for (i = ifrom; i < ito; i++) {
 
-    if (pgsize - npnt < oneatom) {
-      npnt = 0;
-      npage += nthreads;
-      // only one thread at a time may check whether we
-      // need new neighbor list pages and then add to them.
 #if defined(_OPENMP)
 #pragma omp critical
 #endif
+    if (pgsize - npnt < oneatom) {
+      npnt = 0;
+      npage += nthreads;
       if (npage == list->maxpage) list->add_pages(nthreads);
     }
     neighptr = &(list->pages[npage][npnt]);
     n = 0;
 
-    if (pgsize - npnt_inner < oneatom) {
-      npnt_inner = 0;
-      npage_inner += nthreads;
-      // only one thread at a time may check whether we
-      // need new neighbor list pages and then add to them.
 #if defined(_OPENMP)
 #pragma omp critical
 #endif
+    if (pgsize - npnt_inner < oneatom) {
+      npnt_inner = 0;
+      npage_inner += nthreads;
       if (npage_inner == listinner->maxpage) listinner->add_pages(nthreads);
     }
     neighptr_inner = &(listinner->pages[npage_inner][npnt_inner]);
     n_inner = 0;
 
+#if defined(_OPENMP)
+#pragma omp critical
+#endif
     if (respamiddle) {
       if (pgsize - npnt_middle < oneatom) {
 	npnt_middle = 0;
 	npage_middle += nthreads;
-	// only one thread at a time may check whether we
-	// need new neighbor list pages and then add to them.
-#if defined(_OPENMP)
-#pragma omp critical
-#endif
 	if (npage_middle == listmiddle->maxpage) listmiddle->add_pages(nthreads);
       }
       neighptr_middle = &(listmiddle->pages[npage_middle][npnt_middle]);
@@ -667,41 +649,35 @@ void Neighbor::respa_bin_newton(NeighList *list)
 
   for (i = ifrom; i < ito; i++) {
 
-    if (pgsize - npnt < oneatom) {
-      npnt = 0;
-      npage += nthreads;
-      // only one thread at a time may check whether we
-      // need new neighbor list pages and then add to them.
 #if defined(_OPENMP)
 #pragma omp critical
 #endif
+    if (pgsize - npnt < oneatom) {
+      npnt = 0;
+      npage += nthreads;
       if (npage == list->maxpage) list->add_pages(nthreads);
     }
     neighptr = &(list->pages[npage][npnt]);
     n = 0;
 
-    if (pgsize - npnt_inner < oneatom) {
-      npnt_inner = 0;
-      npage_inner += nthreads;
-      // only one thread at a time may check whether we
-      // need new neighbor list pages and then add to them.
 #if defined(_OPENMP)
 #pragma omp critical
 #endif
+    if (pgsize - npnt_inner < oneatom) {
+      npnt_inner = 0;
+      npage_inner += nthreads;
       if (npage_inner == listinner->maxpage) listinner->add_pages(nthreads);
     }
     neighptr_inner = &(listinner->pages[npage_inner][npnt_inner]);
     n_inner = 0;
 
+#if defined(_OPENMP)
+#pragma omp critical
+#endif
     if (respamiddle) {
       if (pgsize - npnt_middle < oneatom) {
 	npnt_middle = 0;
 	npage_middle += nthreads;
-	// only one thread at a time may check whether we
-	// need new neighbor list pages and then add to them.
-#if defined(_OPENMP)
-#pragma omp critical
-#endif
 	if (npage_middle == listmiddle->maxpage) listmiddle->add_pages(nthreads);
       }
       neighptr_middle = &(listmiddle->pages[npage_middle][npnt_middle]);
@@ -894,41 +870,35 @@ void Neighbor::respa_bin_newton_tri(NeighList *list)
 
   for (i = ifrom; i < ito; i++) {
 
-    if (pgsize - npnt < oneatom) {
-      npnt = 0;
-      npage += nthreads;
-      // only one thread at a time may check whether we
-      // need new neighbor list pages and then add to them.
 #if defined(_OPENMP)
 #pragma omp critical
 #endif
+    if (pgsize - npnt < oneatom) {
+      npnt = 0;
+      npage += nthreads;
       if (npage == list->maxpage) list->add_pages(nthreads);
     }
     neighptr = &(list->pages[npage][npnt]);
     n = 0;
 
-    if (pgsize - npnt_inner < oneatom) {
-      npnt_inner = 0;
-      npage_inner += nthreads;
-      // only one thread at a time may check whether we
-      // need new neighbor list pages and then add to them.
 #if defined(_OPENMP)
 #pragma omp critical
 #endif
+    if (pgsize - npnt_inner < oneatom) {
+      npnt_inner = 0;
+      npage_inner += nthreads;
       if (npage_inner == listinner->maxpage) listinner->add_pages(nthreads);
     }
     neighptr_inner = &(listinner->pages[npage_inner][npnt_inner]);
     n_inner = 0;
 
+#if defined(_OPENMP)
+#pragma omp critical
+#endif
     if (respamiddle) {
       if (pgsize - npnt_middle < oneatom) {
 	npnt_middle = 0;
 	npage_middle += nthreads;
-	// only one thread at a time may check whether we
-	// need new neighbor list pages and then add to them.
-#if defined(_OPENMP)
-#pragma omp critical
-#endif
 	if (npage_middle == listmiddle->maxpage) listmiddle->add_pages(nthreads);
       }
       neighptr_middle = &(listmiddle->pages[npage_middle][npnt_middle]);

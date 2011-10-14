@@ -67,14 +67,12 @@ void Neighbor::full_nsq(NeighList *list)
 
   for (i = ifrom; i < ito; i++) {
 
-    if (pgsize - npnt < oneatom) {
-      npnt = 0;
-      npage += nthreads;
-      // only one thread at a time may check  whether we
-      // need new neighbor list pages and then add to them.
 #if defined(_OPENMP)
 #pragma omp critical
 #endif
+    if (pgsize - npnt < oneatom) {
+      npnt = 0;
+      npage += nthreads;
       if (npage >= list->maxpage) list->add_pages(nthreads);
     }
 
@@ -162,14 +160,12 @@ void Neighbor::full_nsq_ghost(NeighList *list)
 
   for (i = ifrom; i < ito; i++) {
 
-    if (pgsize - npnt < oneatom) {
-      npnt = 0;
-      npage += nthreads;
-      // only one thread at a time may check  whether we
-      // need new neighbor list pages and then add to them.
 #if defined(_OPENMP)
 #pragma omp critical
 #endif
+    if (pgsize - npnt < oneatom) {
+      npnt = 0;
+      npage += nthreads;
       if (npage >= list->maxpage) list->add_pages(nthreads);
     }
 
@@ -279,14 +275,12 @@ void Neighbor::full_bin(NeighList *list)
 
   for (i = ifrom; i < ito; i++) {
 
-    if (pgsize - npnt < oneatom) {
-      npnt = 0;
-      npage += nthreads;
-      // only one thread at a time may check  whether we
-      // need new neighbor list pages and then add to them.
 #if defined(_OPENMP)
 #pragma omp critical
 #endif
+    if (pgsize - npnt < oneatom) {
+      npnt = 0;
+      npage += nthreads;
       if (npage >= list->maxpage) list->add_pages(nthreads);
     }
 
@@ -387,14 +381,12 @@ void Neighbor::full_bin_ghost(NeighList *list)
 
   for (i = ifrom; i < ito; i++) {
 
-    if (pgsize - npnt < oneatom) {
-      npnt = 0;
-      npage += nthreads;
-      // only one thread at a time may check  whether we
-      // need new neighbor list pages and then add to them.
 #if defined(_OPENMP)
 #pragma omp critical
 #endif
+    if (pgsize - npnt < oneatom) {
+      npnt = 0;
+      npage += nthreads;
       if (npage >= list->maxpage) list->add_pages(nthreads);
     }
 
@@ -525,14 +517,12 @@ void Neighbor::full_multi(NeighList *list)
 
   for (i = ifrom; i < ito; i++) {
 
-    if (pgsize - npnt < oneatom) {
-      npnt = 0;
-      npage += nthreads;
-      // only one thread at a time may check  whether we
-      // need new neighbor list pages and then add to them.
 #if defined(_OPENMP)
 #pragma omp critical
 #endif
+    if (pgsize - npnt < oneatom) {
+      npnt = 0;
+      npage += nthreads;
       if (npage >= list->maxpage) list->add_pages(nthreads);
     }
 

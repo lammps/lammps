@@ -301,7 +301,7 @@ void PairAIREBO::REBO_neigh()
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
 
-  if (nall > maxlocal) {
+  if (atom->nmax > maxlocal) {
     maxlocal = atom->nmax;
     memory->destroy(REBO_numneigh);
     memory->sfree(REBO_firstneigh);

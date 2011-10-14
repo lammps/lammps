@@ -2661,7 +2661,7 @@ void PairAIREBOOMP::REBO_neigh_thr()
   const int nall = nlocal + atom->nghost;
   const int nthreads = comm->nthreads;
 
-  if (nall > maxlocal) {
+  if (atom->nmax > maxlocal) {
     maxlocal = atom->nmax;
     memory->destroy(REBO_numneigh);
     memory->sfree(REBO_firstneigh);

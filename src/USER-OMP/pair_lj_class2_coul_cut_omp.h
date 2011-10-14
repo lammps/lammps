@@ -39,7 +39,7 @@ class PairLJClass2CoulCutOMP : public PairLJClass2CoulCut, public ThrOMP {
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-  void eval(double **f, int ifrom, int ito, int tid);
+  void eval(int ifrom, int ito, ThrData * const thr);
 };
 
 }

@@ -36,7 +36,7 @@ class PairCombOMP : public PairComb, public ThrOMP {
 
  private:
   template <int EVFLAG, int EFLAG, int VFLAG_ATOM>
-  void eval(double **f, int ifrom, int ito, int tid);
+  void eval(int ifrom, int ito, ThrData * const thr);
 };
 
 }

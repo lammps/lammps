@@ -34,17 +34,16 @@ class PairAIREBOOMP : public PairAIREBO, public ThrOMP {
 
  protected:
   double bondorder_thr(int i, int j, double rij[3], double rijmag,
-		     double VA, double **f, int vflag_atom, int tid);
+		     double VA, int vflag_atom, ThrData * const thr);
   double bondorderLJ_thr(int i, int j, double rij[3], double rijmag,
 		       double VA, double rij0[3], double rijmag0,
-		       double **f, int vflag_atom, int tid);
+		       int vflag_atom, ThrData * const thr);
 
-  void FREBO_thr(double **f, int ifrom, int ito,
-		 int evflag, int eflag, int vflag_atom, int tid);
-  void FLJ_thr(double **f, int ifrom, int ito,
-	       int evflag, int eflag, int vflag_atom, int tid);
-  void TORSION_thr(double **f, int ifrom, int ito,
-		   int evflag, int eflag, int tid);
+  void FREBO_thr(int ifrom, int ito, int evflag, int eflag,
+		 int vflag_atom, ThrData * const thr);
+  void FLJ_thr(int ifrom, int ito, int evflag, int eflag,
+	       int vflag_atom, ThrData * const thr);
+  void TORSION_thr(int ifrom, int ito, int evflag, int eflag, ThrData * const thr);
   void REBO_neigh_thr();
 };
 

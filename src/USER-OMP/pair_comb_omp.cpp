@@ -54,26 +54,26 @@ void PairCombOMP::compute(int eflag, int vflag)
   }
 
 #if defined(_OPENMP)
-#pragma omp parallel default(shared)
+#pragma omp parallel default(none) shared(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;
     double **f;
 
-    f = loop_setup_thr(atom->f, ifrom, ito, tid, inum, nall, nthreads);
+    loop_setup_thr(ifrom, ito, tid, inum, nthreads);
 
     if (evflag) {
       if (eflag) {
-	if (vflag_atom) eval<1,1,1>(f, ifrom, ito, tid);
-	else eval<1,1,0>(f, ifrom, ito, tid);
+	if (vflag_atom) eval<1,1,1>(ifrom, ito, thr);
+	else eval<1,1,0>(ifrom, ito, thr);
       } else {
-	if (vflag_atom) eval<1,0,1>(f, ifrom, ito, tid);
-	else eval<1,0,0>(f, ifrom, ito, tid);
+	if (vflag_atom) eval<1,0,1>(ifrom, ito, thr);
+	else eval<1,0,0>(ifrom, ito, thr);
       }
-    } else eval<0,0,0>(f, ifrom, ito, tid);
+    } else eval<0,0,0>(ifrom, ito, thr);
 
     // reduce per thread forces into global force array.
-    data_reduce_thr(&(atom->f[0][0]), nall, nthreads, 3, tid);
+    reduce_thr(eflag, vflag, thr);
   } // end of omp parallel region
 
   // reduce per thread energy and virial, if requested.
@@ -82,7 +82,7 @@ void PairCombOMP::compute(int eflag, int vflag)
 }
 
 template <int EVFLAG, int EFLAG, int VFLAG_ATOM>
-void PairCombOMP::eval(double **f, int iifrom, int iito, int tid)
+void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
   int i,j,k,ii,jj,kk,jnum,iparam_i;
   int itag,jtag,itype,jtype,ktype,iparam_ij,iparam_ijk;

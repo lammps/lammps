@@ -54,20 +54,20 @@ void PairAIREBOOMP::compute(int eflag, int vflag)
   const int inum = list->inum;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(shared)
+#pragma omp parallel default(none) shared(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;
     double **f;
 
-    f = loop_setup_thr(atom->f, ifrom, ito, tid, inum, nall, nthreads);
+    loop_setup_thr(ifrom, ito, tid, inum, nthreads);
 
     FREBO_thr(f,ifrom,ito,evflag,eflag,vflag_atom,tid);
     if (ljflag) FLJ_thr(f,ifrom,ito,evflag,eflag,vflag_atom,tid);
     if (torflag) TORSION_thr(f,ifrom,ito,evflag,eflag,tid);
 
     // reduce per thread forces into global force array.
-    data_reduce_thr(&(atom->f[0][0]), nall, nthreads, 3, tid);
+    reduce_thr(eflag, vflag, thr);
   } // end of omp parallel region
 
   // reduce per thread energy and virial, if requested.
@@ -2679,7 +2679,7 @@ void PairAIREBOOMP::REBO_neigh_thr()
     add_pages(nthreads - maxpage);
 
 #if defined(_OPENMP)
-#pragma omp parallel default(shared)
+#pragma omp parallel default(none) shared(eflag,vflag)
 #endif
   {
     int i,j,ii,jj,n,jnum,itype,jtype;

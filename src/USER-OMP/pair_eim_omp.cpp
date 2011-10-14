@@ -58,13 +58,13 @@ void PairEIMOMP::compute(int eflag, int vflag)
   }
 
 #if defined(_OPENMP)
-#pragma omp parallel default(shared)
+#pragma omp parallel default(none) shared(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;
     double **f, *rho_t, *fp_t;
 
-    f = loop_setup_thr(atom->f, ifrom, ito, tid, inum, nall, nthreads);
+    loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     if (force->newton_pair) {
       rho_t = rho + tid*nall;
       fp_t = fp + tid*nall;
@@ -87,7 +87,7 @@ void PairEIMOMP::compute(int eflag, int vflag)
     }
 
     // reduce per thread forces into global force array.
-    data_reduce_thr(&(atom->f[0][0]), nall, nthreads, 3, tid);
+    reduce_thr(eflag, vflag, thr);
   } // end of omp parallel region
 
   // reduce per thread energy and virial, if requested.

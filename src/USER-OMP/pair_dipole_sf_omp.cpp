@@ -44,13 +44,13 @@ void PairDipoleSFOMP::compute(int eflag, int vflag)
   const int inum = list->inum;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(shared)
+#pragma omp parallel default(none) shared(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;
     double **f, **torque;
 
-    f = loop_setup_thr(atom->f, ifrom, ito, tid, inum, nall, nthreads);
+    loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     torque = atom->torque + tid*nall;
 
     if (evflag) {
@@ -67,7 +67,7 @@ void PairDipoleSFOMP::compute(int eflag, int vflag)
     }
 
     // reduce per thread forces and torques into global arrays.
-    data_reduce_thr(&(atom->f[0][0]), nall, nthreads, 3, tid);
+    reduce_thr(eflag, vflag, thr);
     data_reduce_thr(&(atom->torque[0][0]), nall, nthreads, 3, tid);
   } // end of omp parallel region
 

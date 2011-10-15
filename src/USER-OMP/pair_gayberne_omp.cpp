@@ -38,7 +38,6 @@ void PairGayBerneOMP::compute(int eflag, int vflag)
 {
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
-    ev_setup_thr(this);
   } else evflag = vflag_fdotr = 0;
 
   const int nall = atom->nlocal + atom->nghost;
@@ -50,36 +49,30 @@ void PairGayBerneOMP::compute(int eflag, int vflag)
 #endif
   {
     int ifrom, ito, tid;
-    double **f, **torque;
 
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
-    torque = atom->torque + tid*nall;
+    ThrData *thr = fix->get_thr(tid);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
     if (evflag) {
       if (eflag) {
-	if (force->newton_pair) eval<1,1,1>(f, torque, ifrom, ito, tid);
-	else eval<1,1,0>(f, torque, ifrom, ito, tid);
+	if (force->newton_pair) eval<1,1,1>(ifrom, ito, thr);
+	else eval<1,1,0>(ifrom, ito, thr);
       } else {
-	if (force->newton_pair) eval<1,0,1>(f, torque, ifrom, ito, tid);
-	else eval<1,0,0>(f, torque, ifrom, ito, tid);
+	if (force->newton_pair) eval<1,0,1>(ifrom, ito, thr);
+	else eval<1,0,0>(ifrom, ito, thr);
       }
     } else {
-      if (force->newton_pair) eval<0,0,1>(f, torque, ifrom, ito, tid);
-      else eval<0,0,0>(f, torque, ifrom, ito, tid);
+      if (force->newton_pair) eval<0,0,1>(ifrom, ito, thr);
+      else eval<0,0,0>(ifrom, ito, thr);
     }
 
-    // reduce per thread forces and torques into global arrays.
     reduce_thr(eflag, vflag, thr);
-    data_reduce_thr(&(atom->torque[0][0]), nall, nthreads, 3, tid);
   } // end of omp parallel region
-
-  // reduce per thread energy and virial, if requested.
-  if (evflag) ev_reduce_thr(this);
-  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-void PairGayBerneOMP::eval(double **f, double **tor, int iifrom, int iito, int tid)
+void PairGayBerneOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
   int i,j,ii,jj,jnum,itype,jtype;
   double evdwl,one_eng,rsq,r2inv,r6inv,forcelj,factor_lj;
@@ -88,11 +81,13 @@ void PairGayBerneOMP::eval(double **f, double **tor, int iifrom, int iito, int t
   int *ilist,*jlist,*numneigh,**firstneigh;
   double *iquat,*jquat;
 
-  double **x = atom->x;
-  int *ellipsoid = atom->ellipsoid;
-  int *type = atom->type;
-  int nlocal = atom->nlocal;
-  double *special_lj = force->special_lj;
+  const double * const * const x = atom->x;
+  double * const * const f = thr->get_f();
+  double * const * const tor = thr->get_torque();
+  const int * const type = atom->type;
+  const int nlocal = atom->nlocal;
+  const double * const special_lj = force->special_lj;
+  const int * const ellipsoid = atom->ellipsoid;
 
   AtomVecEllipsoid::Bonus *bonus = avec->bonus;
 
@@ -210,7 +205,7 @@ void PairGayBerneOMP::eval(double **f, double **tor, int iifrom, int iito, int t
 
 	if (EVFLAG) ev_tally_xyz_thr(this,i,j,nlocal,NEWTON_PAIR,
 				     evdwl,0.0,fforce[0],fforce[1],fforce[2],
-				     -r12[0],-r12[1],-r12[2],tid);
+				     -r12[0],-r12[1],-r12[2],thr);
       }
     }
   }

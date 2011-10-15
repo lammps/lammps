@@ -39,7 +39,7 @@ class PairGaussOMP : public PairGauss, public ThrOMP {
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-  void eval(int ifrom, int ito, ThrData * const thr);
+  double eval(int ifrom, int ito, ThrData * const thr);
 };
 
 }

@@ -32,6 +32,7 @@ void Neighbor::half_from_full_no_newton_omp(NeighList *list)
   const int inum_full = list->listfull->inum;
 
   NEIGH_OMP_INIT;
+
 #if defined(_OPENMP)
 #pragma omp parallel default(none) shared(list)
 #endif

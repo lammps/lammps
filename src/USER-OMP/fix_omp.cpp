@@ -20,6 +20,8 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "neighbor.h"
+#include "neigh_request.h"
 #include "update.h"
 #include "integrate.h"
 #include "min.h"
@@ -87,12 +89,12 @@ FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg),
       error->all(FLERR,"Illegal fix omp mode requested.");
 
     if (comm->me == 0) {
-      const char * const mode = _neighbor ? "OpenMP" : "serial";
+      const char * const mode = _neighbor ? "OpenMP capable" : "serial";
       
       if (screen)
-	fprintf(screen,"  using /omp styles with %s neighbor list builds\n", mode);
+	fprintf(screen,"  using %s neighbor list builds\n", mode);
       if (logfile)
-	fprintf(logfile,"  using /omp styles with %s neighbor list builds\n", mode);
+	fprintf(logfile,"  using %s neighbor list builds\n", mode);
     }
   }
 

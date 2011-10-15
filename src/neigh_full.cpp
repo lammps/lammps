@@ -186,8 +186,12 @@ void Neighbor::full_nsq_ghost(NeighList *list)
 	delz = ztmp - x[j][2];
 	rsq = delx*delx + dely*dely + delz*delz;
 
-	if (rsq <= cutneighsq[itype][jtype])
-	  neighptr[n++] = j;
+	if (rsq <= cutneighsq[itype][jtype]) {
+	  if (molecular) {
+	    which = find_special(special[i],nspecial[i],tag[j]);
+	    if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
+	  } else neighptr[n++] = j;
+	}
       }
     } else {
       for (j = 0; j < nall; j++) {
@@ -400,8 +404,12 @@ void Neighbor::full_bin_ghost(NeighList *list)
 	  delz = ztmp - x[j][2];
 	  rsq = delx*delx + dely*dely + delz*delz;
 
-	  if (rsq <= cutneighsq[itype][jtype])
-	    neighptr[n++] = j;
+	  if (rsq <= cutneighsq[itype][jtype]) {
+	    if (molecular) {
+	      which = find_special(special[i],nspecial[i],tag[j]);
+	      if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
+	    } else neighptr[n++] = j;
+	  }
 	}
       }
 

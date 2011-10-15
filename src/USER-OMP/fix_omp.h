@@ -35,6 +35,7 @@ class FixOMP : public Fix {
   virtual ~FixOMP();
   virtual int setmask();
   virtual void init();
+  virtual void pre_neighbor();
   virtual void pre_force(int);
 
   virtual void setup_pre_force(int vflag)           { pre_force(vflag); };

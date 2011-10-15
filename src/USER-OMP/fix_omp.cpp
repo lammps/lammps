@@ -151,6 +151,7 @@ int FixOMP::setmask()
   int mask = 0;
   mask |= PRE_FORCE;
   mask |= PRE_FORCE_RESPA;
+  mask |= PRE_NEIGHBOR;
   mask |= MIN_PRE_FORCE;
   return mask;
 }
@@ -204,6 +205,20 @@ void FixOMP::pre_force(int)
     thr[tid]->check_tid(tid);
     thr[tid]->init_clear(nall,f,torque,erforce,de,drho);
   }
+}
+
+/* ----------------------------------------------------------------------
+   select or deselect multi-threaded neighbor
+   list build depending on setting in package omp.
+   ---------------------------------------------------------------------- */
+
+void FixOMP::pre_neighbor()
+{
+  const int neigh_omp = _neighbor ? 1 : 0;
+  const int nrequest = neighbor->nrequest;
+
+  for (int i = 0; i < nrequest; ++i)
+    neighbor->requests[i]->omp = neigh_omp;
 }
 
 /* ---------------------------------------------------------------------- */

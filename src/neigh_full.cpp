@@ -119,7 +119,7 @@ void Neighbor::full_nsq(NeighList *list)
 
 /* ----------------------------------------------------------------------
    N^2 search for all neighbors
-   include neighbors of ghost atoms
+   include neighbors of ghost atoms, thus cannot handle "special neighbors"
    every neighbor pair appears in list of both atoms i and j
 ------------------------------------------------------------------------- */
 
@@ -135,19 +135,14 @@ void Neighbor::full_nsq_ghost(NeighList *list)
 #endif
   NEIGH_OMP_SETUP(nall);
 
-  int i,j,n,itype,jtype,which;
+  int i,j,n,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr;
-
-  int **special = atom->special;
-  int **nspecial = atom->nspecial;
-  int *tag = atom->tag;
 
   double **x = atom->x;
   int *type = atom->type;
   int *mask = atom->mask;
   int *molecule = atom->molecule;
-  int molecular = atom->molecular;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -190,12 +185,9 @@ void Neighbor::full_nsq_ghost(NeighList *list)
 	dely = ytmp - x[j][1];
 	delz = ztmp - x[j][2];
 	rsq = delx*delx + dely*dely + delz*delz;
-	if (rsq <= cutneighsq[itype][jtype]) {
-	  if (molecular) {
-	    which = find_special(special[i],nspecial[i],tag[j]);
-	    if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
-	  } else neighptr[n++] = j;
-	}
+
+	if (rsq <= cutneighsq[itype][jtype])
+	  neighptr[n++] = j;
       }
     } else {
       for (j = 0; j < nall; j++) {
@@ -207,12 +199,9 @@ void Neighbor::full_nsq_ghost(NeighList *list)
 	dely = ytmp - x[j][1];
 	delz = ztmp - x[j][2];
 	rsq = delx*delx + dely*dely + delz*delz;
-	if (rsq <= cutneighghostsq[itype][jtype]) {
-	  if (molecular) {
-	    which = find_special(special[i],nspecial[i],tag[j]);
-	    if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
-	  } else neighptr[n++] = j;
-	}
+
+	if (rsq <= cutneighghostsq[itype][jtype])
+	  neighptr[n++] = j;
       }
     }
 
@@ -332,7 +321,7 @@ void Neighbor::full_bin(NeighList *list)
 
 /* ----------------------------------------------------------------------
    binned neighbor list construction for all neighbors
-   include neighbors of ghost atoms
+   include neighbors of ghost atoms, thus cannot handle "special neighbors"
    every neighbor pair appears in list of both atoms i and j
 ------------------------------------------------------------------------- */
 
@@ -352,20 +341,15 @@ void Neighbor::full_bin_ghost(NeighList *list)
 #endif
   NEIGH_OMP_SETUP(nall);
 
-  int i,j,k,n,itype,jtype,ibin,which;
+  int i,j,k,n,itype,jtype,ibin;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int xbin,ybin,zbin,xbin2,ybin2,zbin2;
   int *neighptr;
-
-  int **special = atom->special;
-  int **nspecial = atom->nspecial;
-  int *tag = atom->tag;
 
   double **x = atom->x;
   int *type = atom->type;
   int *mask = atom->mask;
   int *molecule = atom->molecule;
-  int molecular = atom->molecular;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -415,13 +399,9 @@ void Neighbor::full_bin_ghost(NeighList *list)
 	  dely = ytmp - x[j][1];
 	  delz = ztmp - x[j][2];
 	  rsq = delx*delx + dely*dely + delz*delz;
-	
-	  if (rsq <= cutneighsq[itype][jtype]) {
-	    if (molecular) {
-	      which = find_special(special[i],nspecial[i],tag[j]);
-	      if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
-	    } else neighptr[n++] = j;
-	  }
+
+	  if (rsq <= cutneighsq[itype][jtype])
+	    neighptr[n++] = j;
 	}
       }
 
@@ -444,13 +424,9 @@ void Neighbor::full_bin_ghost(NeighList *list)
 	  dely = ytmp - x[j][1];
 	  delz = ztmp - x[j][2];
 	  rsq = delx*delx + dely*dely + delz*delz;
-	
-	  if (rsq <= cutneighghostsq[itype][jtype]) {
-	    if (molecular) {
-	      which = find_special(special[i],nspecial[i],tag[j]);
-	      if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
-	    } else neighptr[n++] = j;
-	  }
+
+	  if (rsq <= cutneighghostsq[itype][jtype])
+	    neighptr[n++] = j;
 	}
       }
     }

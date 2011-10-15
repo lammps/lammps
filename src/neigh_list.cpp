@@ -186,10 +186,10 @@ void NeighList::stencil_allocate(int smax, int style)
    add PGDELTA pages to neighbor list
 ------------------------------------------------------------------------- */
 
-int **NeighList::add_pages()
+int **NeighList::add_pages(int howmany)
 {
   int npage = maxpage;
-  maxpage += PGDELTA;
+  maxpage += howmany;
 
   pages = (int **) 
     memory->srealloc(pages,maxpage*sizeof(int *),"neighlist:pages");

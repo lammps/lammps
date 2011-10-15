@@ -44,6 +44,8 @@ NeighRequest::NeighRequest(LAMMPS *lmp) : Pointers(lmp)
   // default is encode special bond flags
   // default is no auxiliary floating point values
   // default is no neighbors of ghosts
+  // default is no CUDA neighbor list builds
+  // default is no multi-threads neighbor list builds
 
   occasional = 0;
   newton = 0;
@@ -51,6 +53,7 @@ NeighRequest::NeighRequest(LAMMPS *lmp) : Pointers(lmp)
   dnum = 0;
   ghost = 0;
   cudable = 0;
+  omp = 0;
 
   // default is no copy or skip
 

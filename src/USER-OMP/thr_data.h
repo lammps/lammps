@@ -50,8 +50,8 @@ class ThrData {
   // resize and erase per atom arrays that we manage
   void init_adp(int, double *, double **, double **); // ADP (+ EAM)
   void init_cdeam(int, double *, double *, double *); // CDEAM (+ EAM)
-  void init_eam(int, double *);   // EAM 
-  void init_eim(int,int);   // EIM (+ EAM)
+  void init_eam(int, double *);                       // EAM 
+  void init_eim(int, double *, double *);             // EIM (+ EAM)
 
   // access methods for arrays that we handle in this class
   double **get_lambda() const { return _lambda; };

@@ -154,9 +154,9 @@ void PairCDEAMOMP::eval(int iifrom, int iito, ThrData * const thr)
   const int tid = thr->get_tid();
   const int nthreads = comm->nthreads;
 
-  int *type = atom->type;
-  int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
+  const int * const type = atom->type;
+  const int nlocal = atom->nlocal;
+  const int nall = nlocal + atom->nghost;
 
   double fxtmp,fytmp,fztmp;
 

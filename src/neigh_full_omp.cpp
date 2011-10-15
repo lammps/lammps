@@ -115,7 +115,7 @@ void Neighbor::full_nsq_omp(NeighList *list)
 
 /* ----------------------------------------------------------------------
    N^2 search for all neighbors
-   include neighbors of ghost atoms, thus cannot handle "special neighbors"
+   include neighbors of ghost atoms (no "special neighbors" for ghosts)
    every neighbor pair appears in list of both atoms i and j
 ------------------------------------------------------------------------- */
 
@@ -130,14 +130,19 @@ void Neighbor::full_nsq_ghost_omp(NeighList *list)
 #endif
   NEIGH_OMP_SETUP(nall);
 
-  int i,j,n,itype,jtype;
+  int i,j,n,itype,jtype,which;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr;
+
+  int **special = atom->special;
+  int **nspecial = atom->nspecial;
+  int *tag = atom->tag;
 
   double **x = atom->x;
   int *type = atom->type;
   int *mask = atom->mask;
   int *molecule = atom->molecule;
+  int molecular = atom->molecular;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -319,7 +324,7 @@ void Neighbor::full_bin_omp(NeighList *list)
 
 /* ----------------------------------------------------------------------
    binned neighbor list construction for all neighbors
-   include neighbors of ghost atoms, thus cannot handle "special neighbors"
+   include neighbors of ghost atoms (no "special neighbors" for ghosts)
    every neighbor pair appears in list of both atoms i and j
 ------------------------------------------------------------------------- */
 
@@ -338,15 +343,20 @@ void Neighbor::full_bin_ghost_omp(NeighList *list)
 #endif
   NEIGH_OMP_SETUP(nall);
 
-  int i,j,k,n,itype,jtype,ibin;
+  int i,j,k,n,itype,jtype,ibin,which;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int xbin,ybin,zbin,xbin2,ybin2,zbin2;
   int *neighptr;
+
+  int **special = atom->special;
+  int **nspecial = atom->nspecial;
+  int *tag = atom->tag;
 
   double **x = atom->x;
   int *type = atom->type;
   int *mask = atom->mask;
   int *molecule = atom->molecule;
+  int molecular = atom->molecular;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;

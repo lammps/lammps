@@ -14,13 +14,8 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "atom.h"
-#include "comm.h"
 #include "group.h"
 #include "error.h"
-
-#if defined(_OPENMP)
-#include <omp.h>
-#endif
 
 using namespace LAMMPS_NS;
 
@@ -31,17 +26,7 @@ using namespace LAMMPS_NS;
 
 void Neighbor::full_nsq(NeighList *list)
 {
-  const int nthreads = comm->nthreads;
-  const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;
-  const int bitmask = (includegroup) ? group->bitmask[includegroup] : 0;
-
-  NEIGH_OMP_INIT;
-#if defined(_OPENMP)
-#pragma omp parallel default(none) shared(list)
-#endif
-  NEIGH_OMP_SETUP(nlocal);
-
-  int i,j,n,itype,jtype,which;
+  int i,j,n,itype,jtype,which,bitmask;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr;
 
@@ -53,30 +38,34 @@ void Neighbor::full_nsq(NeighList *list)
   int *type = atom->type;
   int *mask = atom->mask;
   int *molecule = atom->molecule;
-  int nall = atom->nlocal + atom->nghost;
+  int nlocal = atom->nlocal;
+  int nall = nlocal + atom->nghost;
   int molecular = atom->molecular;
+  if (includegroup) {
+    nlocal = atom->nfirst;
+    bitmask = group->bitmask[includegroup];
+  }
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
+  int **pages = list->pages;
 
-  int npage = tid;
+  int inum = 0;
+  int npage = 0;
   int npnt = 0;
 
   // loop over owned atoms, storing neighbors
 
-  for (i = ifrom; i < ito; i++) {
+  for (i = 0; i < nlocal; i++) {
 
-#if defined(_OPENMP)
-#pragma omp critical
-#endif
     if (pgsize - npnt < oneatom) {
       npnt = 0;
-      npage += nthreads;
-      if (npage >= list->maxpage) list->add_pages(nthreads);
+      npage++;
+      if (npage == list->maxpage) pages = list->add_pages();
     }
 
-    neighptr = &(list->pages[npage][npnt]);
+    neighptr = &pages[npage][npnt];
     n = 0;
 
     itype = type[i];
@@ -105,66 +94,62 @@ void Neighbor::full_nsq(NeighList *list)
       }
     }
 
-    ilist[i] = i;
+    ilist[inum++] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
     if (n > oneatom || npnt >= pgsize)
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
   }
-  NEIGH_OMP_CLOSE;
-  list->inum = nlocal;
+
+  list->inum = inum;
   list->gnum = 0;
 }
 
 /* ----------------------------------------------------------------------
    N^2 search for all neighbors
-   include neighbors of ghost atoms, thus cannot handle "special neighbors"
+   include neighbors of ghost atoms (no "special neighbors" for ghosts)
    every neighbor pair appears in list of both atoms i and j
 ------------------------------------------------------------------------- */
 
 void Neighbor::full_nsq_ghost(NeighList *list)
 {
-  const int nthreads = comm->nthreads;
-  const int nlocal = atom->nlocal;
-  const int nall = nlocal + atom->nghost;
-
-  NEIGH_OMP_INIT;
-#if defined(_OPENMP)
-#pragma omp parallel default(none) shared(list)
-#endif
-  NEIGH_OMP_SETUP(nall);
-
-  int i,j,n,itype,jtype;
+  int i,j,n,itype,jtype,which;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr;
+
+  int **special = atom->special;
+  int **nspecial = atom->nspecial;
+  int *tag = atom->tag;
 
   double **x = atom->x;
   int *type = atom->type;
   int *mask = atom->mask;
   int *molecule = atom->molecule;
+  int nlocal = atom->nlocal;
+  int nall = nlocal + atom->nghost;
+  int molecular = atom->molecular;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
+  int **pages = list->pages;
 
-  int npage = tid;
+  int inum = 0;
+  int npage = 0;
   int npnt = 0;
 
   // loop over owned & ghost atoms, storing neighbors
 
-  for (i = ifrom; i < ito; i++) {
+  for (i = 0; i < nall; i++) {
 
-#if defined(_OPENMP)
-#pragma omp critical
-#endif
     if (pgsize - npnt < oneatom) {
       npnt = 0;
-      npage += nthreads;
-      if (npage >= list->maxpage) list->add_pages(nthreads);
+      npage++;
+      if (npage == list->maxpage) pages = list->add_pages();
     }
 
-    neighptr = &(list->pages[npage][npnt]);
+    neighptr = &pages[npage][npnt];
     n = 0;
 
     itype = type[i];
@@ -185,7 +170,6 @@ void Neighbor::full_nsq_ghost(NeighList *list)
 	dely = ytmp - x[j][1];
 	delz = ztmp - x[j][2];
 	rsq = delx*delx + dely*dely + delz*delz;
-
 	if (rsq <= cutneighsq[itype][jtype]) {
 	  if (molecular) {
 	    which = find_special(special[i],nspecial[i],tag[j]);
@@ -209,16 +193,16 @@ void Neighbor::full_nsq_ghost(NeighList *list)
       }
     }
 
-    ilist[i] = i;
+    ilist[inum++] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
     if (n > oneatom || npnt >= pgsize)
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
   }
-  NEIGH_OMP_CLOSE;
-  list->inum = nlocal;
-  list->gnum = nall - nlocal;
+
+  list->inum = atom->nlocal;
+  list->gnum = inum - atom->nlocal;
 }
 
 /* ----------------------------------------------------------------------
@@ -228,22 +212,13 @@ void Neighbor::full_nsq_ghost(NeighList *list)
 
 void Neighbor::full_bin(NeighList *list)
 {
-  // bin owned & ghost atoms
-
-  bin_atoms();
-
-  const int nthreads = comm->nthreads;
-  const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;
-
-  NEIGH_OMP_INIT;
-#if defined(_OPENMP)
-#pragma omp parallel default(none) shared(list)
-#endif
-  NEIGH_OMP_SETUP(nlocal);
-
   int i,j,k,n,itype,jtype,ibin,which;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr;
+
+  // bin owned & ghost atoms
+
+  bin_atoms();
 
   int **special = atom->special;
   int **nspecial = atom->nspecial;
@@ -253,31 +228,32 @@ void Neighbor::full_bin(NeighList *list)
   int *type = atom->type;
   int *mask = atom->mask;
   int *molecule = atom->molecule;
+  int nlocal = atom->nlocal;
   int molecular = atom->molecular;
+  if (includegroup) nlocal = atom->nfirst;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
+  int **pages = list->pages;
   int nstencil = list->nstencil;
   int *stencil = list->stencil;
 
-  int npage = tid;
+  int inum = 0;
+  int npage = 0;
   int npnt = 0;
 
   // loop over owned atoms, storing neighbors
 
-  for (i = ifrom; i < ito; i++) {
+  for (i = 0; i < nlocal; i++) {
 
-#if defined(_OPENMP)
-#pragma omp critical
-#endif
     if (pgsize - npnt < oneatom) {
       npnt = 0;
-      npage += nthreads;
-      if (npage >= list->maxpage) list->add_pages(nthreads);
+      npage++;
+      if (npage == list->maxpage) pages = list->add_pages();
     }
 
-    neighptr = &(list->pages[npage][npnt]);
+    neighptr = &pages[npage][npnt];
     n = 0;
 
     itype = type[i];
@@ -311,74 +287,70 @@ void Neighbor::full_bin(NeighList *list)
       }
     }
 
-    ilist[i] = i;
+    ilist[inum++] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
     if (n > oneatom || npnt >= pgsize)
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
   }
-  NEIGH_OMP_CLOSE;
-  list->inum = nlocal;
+
+  list->inum = inum;
   list->gnum = 0;
 }
 
 /* ----------------------------------------------------------------------
    binned neighbor list construction for all neighbors
-   include neighbors of ghost atoms, thus cannot handle "special neighbors"
+   include neighbors of ghost atoms (no "special neighbors" for ghosts)
    every neighbor pair appears in list of both atoms i and j
 ------------------------------------------------------------------------- */
 
 void Neighbor::full_bin_ghost(NeighList *list)
 {
+  int i,j,k,n,itype,jtype,ibin,which;
+  double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
+  int xbin,ybin,zbin,xbin2,ybin2,zbin2;
+  int *neighptr;
+
   // bin owned & ghost atoms
 
   bin_atoms();
 
-  const int nthreads = comm->nthreads;
-  const int nlocal = atom->nlocal;
-  const int nall = nlocal + atom->nghost;
-
-  NEIGH_OMP_INIT;
-#if defined(_OPENMP)
-#pragma omp parallel default(none) shared(list)
-#endif
-  NEIGH_OMP_SETUP(nall);
-
-  int i,j,k,n,itype,jtype,ibin;
-  double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
-  int xbin,ybin,zbin,xbin2,ybin2,zbin2;
-  int *neighptr;
+  int **special = atom->special;
+  int **nspecial = atom->nspecial;
+  int *tag = atom->tag;
 
   double **x = atom->x;
   int *type = atom->type;
   int *mask = atom->mask;
   int *molecule = atom->molecule;
+  int nlocal = atom->nlocal;
+  int nall = nlocal + atom->nghost;
+  int molecular = atom->molecular;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
+  int **pages = list->pages;
   int nstencil = list->nstencil;
   int *stencil = list->stencil;
   int **stencilxyz = list->stencilxyz;
 
-  int npage = tid;
+  int inum = 0;
+  int npage = 0;
   int npnt = 0;
 
   // loop over owned & ghost atoms, storing neighbors
 
-  for (i = ifrom; i < ito; i++) {
+  for (i = 0; i < nall; i++) {
 
-#if defined(_OPENMP)
-#pragma omp critical
-#endif
     if (pgsize - npnt < oneatom) {
       npnt = 0;
-      npage += nthreads;
-      if (npage >= list->maxpage) list->add_pages(nthreads);
+      npage++;
+      if (npage == list->maxpage) pages = list->add_pages();
     }
 
-    neighptr = &(list->pages[npage][npnt]);
+    neighptr = &pages[npage][npnt];
     n = 0;
 
     itype = type[i];
@@ -403,7 +375,7 @@ void Neighbor::full_bin_ghost(NeighList *list)
 	  dely = ytmp - x[j][1];
 	  delz = ztmp - x[j][2];
 	  rsq = delx*delx + dely*dely + delz*delz;
-
+	
 	  if (rsq <= cutneighsq[itype][jtype]) {
 	    if (molecular) {
 	      which = find_special(special[i],nspecial[i],tag[j]);
@@ -439,16 +411,16 @@ void Neighbor::full_bin_ghost(NeighList *list)
       }
     }
 
-    ilist[i] = i;
+    ilist[inum++] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
     if (n > oneatom || npnt >= pgsize)
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
   }
-  NEIGH_OMP_CLOSE;
-  list->inum = nlocal;
-  list->gnum = nall - nlocal;
+
+  list->inum = atom->nlocal;
+  list->gnum = inum - atom->nlocal;
 }
 
 /* ----------------------------------------------------------------------
@@ -459,23 +431,14 @@ void Neighbor::full_bin_ghost(NeighList *list)
 
 void Neighbor::full_multi(NeighList *list)
 {
-  // bin local & ghost atoms
-
-  bin_atoms();
-
-  const int nthreads = comm->nthreads;
-  const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;
-
-  NEIGH_OMP_INIT;
-#if defined(_OPENMP)
-#pragma omp parallel default(none) shared(list)
-#endif
-  NEIGH_OMP_SETUP(nlocal);
-
   int i,j,k,n,itype,jtype,ibin,which,ns;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr,*s;
   double *cutsq,*distsq;
+
+  // bin local & ghost atoms
+
+  bin_atoms();
 
   // loop over each atom, storing neighbors
 
@@ -487,30 +450,31 @@ void Neighbor::full_multi(NeighList *list)
   int *type = atom->type;
   int *mask = atom->mask;
   int *molecule = atom->molecule;
+  int nlocal = atom->nlocal;
   int molecular = atom->molecular;
+  if (includegroup) nlocal = atom->nfirst;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
+  int **pages = list->pages;
   int *nstencil_multi = list->nstencil_multi;
   int **stencil_multi = list->stencil_multi;
   double **distsq_multi = list->distsq_multi;
 
-  int npage = tid;
+  int inum = 0;
+  int npage = 0;
   int npnt = 0;
 
-  for (i = ifrom; i < ito; i++) {
+  for (i = 0; i < nlocal; i++) {
 
-#if defined(_OPENMP)
-#pragma omp critical
-#endif
     if (pgsize - npnt < oneatom) {
       npnt = 0;
-      npage += nthreads;
-      if (npage >= list->maxpage) list->add_pages(nthreads);
+      npage++;
+      if (npage == list->maxpage) pages = list->add_pages();
     }
 
-    neighptr = &(list->pages[npage][npnt]);
+    neighptr = &pages[npage][npnt];
     n = 0;
 
     itype = type[i];
@@ -549,14 +513,14 @@ void Neighbor::full_multi(NeighList *list)
       }
     }
 
-    ilist[i] = i;
+    ilist[inum++] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
     if (n > oneatom || npnt >= pgsize)
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
   }
-  NEIGH_OMP_CLOSE;
-  list->inum = nlocal;
+
+  list->inum = inum;
   list->gnum = 0;
 }

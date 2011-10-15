@@ -14,14 +14,9 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "atom.h"
-#include "comm.h"
 #include "group.h"
 #include "fix_shear_history.h"
 #include "error.h"
-
-#if defined(_OPENMP)
-#include <omp.h>
-#endif
 
 using namespace LAMMPS_NS;
 
@@ -35,33 +30,19 @@ using namespace LAMMPS_NS;
 
 void Neighbor::granular_nsq_no_newton(NeighList *list)
 {
-  const int nthreads = comm->nthreads;
-  const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;
-  const int bitmask = (includegroup) ? group->bitmask[includegroup] : 0;
-
-  FixShearHistory * const fix_history = list->fix_history;
-  NeighList * listgranhistory = list->listgranhistory;
-
-  if (fix_history)
-    if (nthreads > listgranhistory->maxpage)
-      listgranhistory->add_pages(nthreads - listgranhistory->maxpage);
-
-  NEIGH_OMP_INIT;
-#if defined(_OPENMP)
-#pragma omp parallel default(none) shared(list,listgranhistory)
-#endif
-  NEIGH_OMP_SETUP(nlocal);
-
-  int i,j,m,n,nn;
+  int i,j,m,n,nn,bitmask;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   double radi,radsum,cutsq;
   int *neighptr,*touchptr;
   double *shearptr;
 
+  NeighList *listgranhistory;
   int *npartner,**partner;
   double ***shearpartner;
   int **firsttouch;
   double **firstshear;
+  int **pages_touch;
+  double **pages_shear;
 
   double **x = atom->x;
   double *radius = atom->radius;
@@ -69,45 +50,54 @@ void Neighbor::granular_nsq_no_newton(NeighList *list)
   int *type = atom->type;
   int *mask = atom->mask;
   int *molecule = atom->molecule;
-  int nall = atom->nlocal + atom->nghost;
+  int nlocal = atom->nlocal;
+  int nall = nlocal + atom->nghost;
+  if (includegroup) {
+    nlocal = atom->nfirst;
+    bitmask = group->bitmask[includegroup];
+  }
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
+  int **pages = list->pages;
 
+  FixShearHistory *fix_history = list->fix_history;
   if (fix_history) {
     npartner = fix_history->npartner;
     partner = fix_history->partner;
     shearpartner = fix_history->shearpartner;
+    listgranhistory = list->listgranhistory;
     firsttouch = listgranhistory->firstneigh;
     firstshear = listgranhistory->firstdouble;
+    pages_touch = listgranhistory->pages;
+    pages_shear = listgranhistory->dpages;
   }
 
-  int npage = tid;
+  int inum = 0;
+  int npage = 0;
   int npnt = 0;
 
-  for (i = ifrom; i < ito; i++) {
+  for (i = 0; i < nlocal; i++) {
 
-#if defined(_OPENMP)
-#pragma omp critical
-#endif
-    {
-      if (pgsize - npnt < oneatom) {
-	npnt = 0;
-	npage += nthreads;
-	if (npage >= list->maxpage) {
-	  list->add_pages(nthreads);
-	  if (fix_history)
-	    listgranhistory->add_pages(nthreads);
+    if (pgsize - npnt < oneatom) {
+      npnt = 0;
+      npage++;
+      if (npage == list->maxpage) {
+	pages = list->add_pages();
+	if (fix_history) {
+	  pages_touch = listgranhistory->add_pages();
+	  pages_shear = listgranhistory->dpages;
 	}
       }
+    }
 
-      n = nn = 0;
-      neighptr = &(list->pages[npage][npnt]);
-      if (fix_history) {
-	touchptr = &(listgranhistory->pages[npage][npnt]);
-	shearptr = &(listgranhistory->dpages[npage][3*npnt]);
-      }
+    n = 0;
+    neighptr = &pages[npage][npnt];
+    if (fix_history) {
+      nn = 0;
+      touchptr = &pages_touch[npage][npnt];
+      shearptr = &pages_shear[npage][3*npnt];
     }
 
     xtmp = x[i][0];
@@ -156,9 +146,9 @@ void Neighbor::granular_nsq_no_newton(NeighList *list)
 
 	n++;
       }
-    }
+    }	       
 
-    ilist[i] = i;
+    ilist[inum++] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     if (fix_history) {
@@ -169,8 +159,8 @@ void Neighbor::granular_nsq_no_newton(NeighList *list)
     if (n > oneatom || npnt >= pgsize)
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
   }
-  NEIGH_OMP_CLOSE;
-  list->inum = nlocal;
+
+  list->inum = inum;
 }
 
 /* ----------------------------------------------------------------------
@@ -184,17 +174,7 @@ void Neighbor::granular_nsq_no_newton(NeighList *list)
 
 void Neighbor::granular_nsq_newton(NeighList *list)
 {
-  const int nthreads = comm->nthreads;
-  const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;
-  const int bitmask = (includegroup) ? group->bitmask[includegroup] : 0;
-
-  NEIGH_OMP_INIT;
-#if defined(_OPENMP)
-#pragma omp parallel default(none) shared(list)
-#endif
-  NEIGH_OMP_SETUP(nlocal);
-
-  int i,j,n,itag,jtag;
+  int i,j,n,itag,jtag,bitmask;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   double radi,radsum,cutsq;
   int *neighptr;
@@ -205,28 +185,32 @@ void Neighbor::granular_nsq_newton(NeighList *list)
   int *type = atom->type;
   int *mask = atom->mask;
   int *molecule = atom->molecule;
-  int nall = atom->nlocal + atom->nghost;
+  int nlocal = atom->nlocal;
+  int nall = nlocal + atom->nghost;
+  if (includegroup) {
+    nlocal = atom->nfirst;
+    bitmask = group->bitmask[includegroup];
+  }
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
+  int **pages = list->pages;
 
-  int npage = tid;
+  int inum = 0;
+  int npage = 0;
   int npnt = 0;
 
-  for (i = ifrom; i < ito; i++) {
+  for (i = 0; i < nlocal; i++) {
 
-#if defined(_OPENMP)
-#pragma omp critical
-#endif
     if (pgsize - npnt < oneatom) {
       npnt = 0;
-      npage += nthreads;
-      if (npage >= list->maxpage) list->add_pages(nthreads);
+      npage++;
+      if (npage == list->maxpage) pages = list->add_pages();
     }
 
-    neighptr = &(list->pages[npage][npnt]);
     n = 0;
+    neighptr = &pages[npage][npnt];
 
     itag = tag[i];
     xtmp = x[i][0];
@@ -266,15 +250,15 @@ void Neighbor::granular_nsq_newton(NeighList *list)
       if (rsq <= cutsq) neighptr[n++] = j;
     }
 
-    ilist[i] = i;
+    ilist[inum++] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
     if (n > oneatom || npnt >= pgsize)
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
   }
-  NEIGH_OMP_CLOSE;
-  list->inum = nlocal;
+
+  list->inum = inum;
 }
 
 /* ----------------------------------------------------------------------
@@ -288,36 +272,23 @@ void Neighbor::granular_nsq_newton(NeighList *list)
 
 void Neighbor::granular_bin_no_newton(NeighList *list)
 {
-  // bin local & ghost atoms
-
-  bin_atoms();
-
-  const int nthreads = comm->nthreads;
-  const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;
-
-  FixShearHistory * const fix_history = list->fix_history;
-  NeighList * listgranhistory = list->listgranhistory;
-
-  if (fix_history)
-    if (nthreads > listgranhistory->maxpage)
-      listgranhistory->add_pages(nthreads - listgranhistory->maxpage);
-
-  NEIGH_OMP_INIT;
-#if defined(_OPENMP)
-#pragma omp parallel default(none) shared(list,listgranhistory)
-#endif
-  NEIGH_OMP_SETUP(nlocal);
-
   int i,j,k,m,n,nn,ibin;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   double radi,radsum,cutsq;
   int *neighptr,*touchptr;
   double *shearptr;
 
+  NeighList *listgranhistory;
   int *npartner,**partner;
   double ***shearpartner;
   int **firsttouch;
   double **firstshear;
+  int **pages_touch;
+  double **pages_shear;
+
+  // bin local & ghost atoms
+
+  bin_atoms();
 
   // loop over each atom, storing neighbors
 
@@ -327,6 +298,8 @@ void Neighbor::granular_bin_no_newton(NeighList *list)
   int *type = atom->type;
   int *mask = atom->mask;
   int *molecule = atom->molecule;
+  int nlocal = atom->nlocal;
+  if (includegroup) nlocal = atom->nfirst;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -335,39 +308,42 @@ void Neighbor::granular_bin_no_newton(NeighList *list)
   int nstencil = list->nstencil;
   int *stencil = list->stencil;
 
+  FixShearHistory *fix_history = list->fix_history;
   if (fix_history) {
     npartner = fix_history->npartner;
     partner = fix_history->partner;
     shearpartner = fix_history->shearpartner;
+    listgranhistory = list->listgranhistory;
     firsttouch = listgranhistory->firstneigh;
     firstshear = listgranhistory->firstdouble;
+    pages_touch = listgranhistory->pages;
+    pages_shear = listgranhistory->dpages;
   }
 
-  int npage = tid;
+  int inum = 0;
+  int npage = 0;
   int npnt = 0;
 
-  for (i = ifrom; i < ito; i++) {
+  for (i = 0; i < nlocal; i++) {
 
-#if defined(_OPENMP)
-#pragma omp critical
-#endif
-    {
-      if (pgsize - npnt < oneatom) {
-	npnt = 0;
-	npage += nthreads;
-	if (npage >= list->maxpage) {
-	  list->add_pages(nthreads);
-	  if (fix_history)
-	    listgranhistory->add_pages(nthreads);
+    if (pgsize - npnt < oneatom) {
+      npnt = 0;
+      npage++;
+      if (npage == list->maxpage) {
+	pages = list->add_pages();
+	if (fix_history) {
+	  pages_touch = listgranhistory->add_pages();
+	  pages_shear = listgranhistory->dpages;
 	}
       }
+    }
 
-      n = nn = 0;
-      neighptr = &(list->pages[npage][npnt]);
-      if (fix_history) {
-	touchptr = &(listgranhistory->pages[npage][npnt]);
-	shearptr = &(listgranhistory->dpages[npage][3*npnt]);
-      }
+    n = 0;
+    neighptr = &pages[npage][npnt];
+    if (fix_history) {
+      nn = 0;
+      touchptr = &pages_touch[npage][npnt];
+      shearptr = &pages_shear[npage][3*npnt];
     }
 
     xtmp = x[i][0];
@@ -424,7 +400,7 @@ void Neighbor::granular_bin_no_newton(NeighList *list)
       }
     }
 
-    ilist[i] = i;
+    ilist[inum++] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     if (fix_history) {
@@ -435,8 +411,8 @@ void Neighbor::granular_bin_no_newton(NeighList *list)
     if (n > oneatom || npnt >= pgsize)
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
   }
-  NEIGH_OMP_CLOSE;
-  list->inum = nlocal;
+
+  list->inum = inum;
 }
 
 /* ----------------------------------------------------------------------
@@ -449,23 +425,14 @@ void Neighbor::granular_bin_no_newton(NeighList *list)
 
 void Neighbor::granular_bin_newton(NeighList *list)
 {
-  // bin local & ghost atoms
-
-  bin_atoms();
-
-  const int nthreads = comm->nthreads;
-  const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;
-
-  NEIGH_OMP_INIT;
-#if defined(_OPENMP)
-#pragma omp parallel default(none) shared(list)
-#endif
-  NEIGH_OMP_SETUP(nlocal);
-
   int i,j,k,n,ibin;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   double radi,radsum,cutsq;
   int *neighptr;
+
+  // bin local & ghost atoms
+
+  bin_atoms();
 
   // loop over each atom, storing neighbors
 
@@ -474,29 +441,30 @@ void Neighbor::granular_bin_newton(NeighList *list)
   int *type = atom->type;
   int *mask = atom->mask;
   int *molecule = atom->molecule;
+  int nlocal = atom->nlocal;
+  if (includegroup) nlocal = atom->nfirst;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
+  int **pages = list->pages;
   int nstencil = list->nstencil;
   int *stencil = list->stencil;
 
-  int npage = tid;
+  int inum = 0;
+  int npage = 0;
   int npnt = 0;
 
-  for (i = ifrom; i < ito; i++) {
+  for (i = 0; i < nlocal; i++) {
 
-#if defined(_OPENMP)
-#pragma omp critical
-#endif
     if (pgsize - npnt < oneatom) {
       npnt = 0;
-      npage += nthreads;
-      if (npage >= list->maxpage) list->add_pages(nthreads);
+      npage++;
+      if (npage == list->maxpage) pages = list->add_pages();
     }
 
     n = 0;
-    neighptr = &(list->pages[npage][npnt]);
+    neighptr = &pages[npage][npnt];
 
     xtmp = x[i][0];
     ytmp = x[i][1];
@@ -546,15 +514,15 @@ void Neighbor::granular_bin_newton(NeighList *list)
       }
     }
 
-    ilist[i] = i;
+    ilist[inum++] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
     if (n > oneatom || npnt >= pgsize)
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
   }
-  NEIGH_OMP_CLOSE;
-  list->inum = nlocal;
+
+  list->inum = inum;
 }
 
 /* ----------------------------------------------------------------------
@@ -567,23 +535,14 @@ void Neighbor::granular_bin_newton(NeighList *list)
 
 void Neighbor::granular_bin_newton_tri(NeighList *list)
 {
-  // bin local & ghost atoms
-
-  bin_atoms();
-
-  const int nthreads = comm->nthreads;
-  const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;
-
-  NEIGH_OMP_INIT;
-#if defined(_OPENMP)
-#pragma omp parallel default(none) shared(list)
-#endif
-  NEIGH_OMP_SETUP(nlocal);
-
   int i,j,k,n,ibin;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   double radi,radsum,cutsq;
   int *neighptr;
+
+  // bin local & ghost atoms
+
+  bin_atoms();
 
   // loop over each atom, storing neighbors
 
@@ -592,29 +551,30 @@ void Neighbor::granular_bin_newton_tri(NeighList *list)
   int *type = atom->type;
   int *mask = atom->mask;
   int *molecule = atom->molecule;
+  int nlocal = atom->nlocal;
+  if (includegroup) nlocal = atom->nfirst;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
+  int **pages = list->pages;
   int nstencil = list->nstencil;
   int *stencil = list->stencil;
 
-  int npage = tid;
+  int inum = 0;
+  int npage = 0;
   int npnt = 0;
 
-  for (i = ifrom; i < ito; i++) {
+  for (i = 0; i < nlocal; i++) {
 
-#if defined(_OPENMP)
-#pragma omp critical
-#endif
     if (pgsize - npnt < oneatom) {
       npnt = 0;
-      npage += nthreads;
-      if (npage >= list->maxpage) list->add_pages(nthreads);
+      npage++;
+      if (npage == list->maxpage) pages = list->add_pages();
     }
 
     n = 0;
-    neighptr = &(list->pages[npage][npnt]);
+    neighptr = &pages[npage][npnt];
 
     xtmp = x[i][0];
     ytmp = x[i][1];
@@ -652,13 +612,13 @@ void Neighbor::granular_bin_newton_tri(NeighList *list)
       }
     }
 
-    ilist[i] = i;
+    ilist[inum++] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
     if (n > oneatom || npnt >= pgsize)
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
   }
-  NEIGH_OMP_CLOSE;
-  list->inum = nlocal;
+
+  list->inum = inum;
 }

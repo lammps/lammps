@@ -209,6 +209,40 @@ class Neighbor : protected Pointers {
   void respa_bin_newton(class NeighList *);
   void respa_bin_newton_tri(class NeighList *);
 
+  // OpenMP multi-threaded neighbor list build versions
+
+  void half_nsq_no_newton_omp(class NeighList *);
+  void half_nsq_newton_omp(class NeighList *);
+
+  void half_bin_no_newton_omp(class NeighList *);
+  void half_bin_newton_omp(class NeighList *);
+  void half_bin_newton_tri_omp(class NeighList *);
+
+  void half_multi_no_newton_omp(class NeighList *);
+  void half_multi_newton_omp(class NeighList *);
+  void half_multi_newton_tri_omp(class NeighList *);
+
+  void full_nsq_omp(class NeighList *);
+  void full_nsq_ghost_omp(class NeighList *);
+  void full_bin_omp(class NeighList *);
+  void full_bin_ghost_omp(class NeighList *);
+  void full_multi_omp(class NeighList *);
+
+  void half_from_full_no_newton_omp(class NeighList *);
+  void half_from_full_newton_omp(class NeighList *);
+
+  void granular_nsq_no_newton_omp(class NeighList *);
+  void granular_nsq_newton_omp(class NeighList *);
+  void granular_bin_no_newton_omp(class NeighList *);
+  void granular_bin_newton_omp(class NeighList *);
+  void granular_bin_newton_tri_omp(class NeighList *);
+
+  void respa_nsq_no_newton_omp(class NeighList *);
+  void respa_nsq_newton_omp(class NeighList *);
+  void respa_bin_no_newton_omp(class NeighList *);
+  void respa_bin_newton_omp(class NeighList *);
+  void respa_bin_newton_tri_omp(class NeighList *);
+
   // pairwise stencil creation functions
 
   typedef void (Neighbor::*StencilPtr)(class NeighList *, int, int, int);
@@ -288,39 +322,6 @@ class Neighbor : protected Pointers {
     return 0;
   };
 };
-
-// these macros hide some ugly and redundant OpenMP related stuff
-#if defined(_OPENMP)
-
-// make sure we have at least one page for each thread
-#define NEIGH_OMP_INIT					\
-  if (nthreads > list->maxpage)				\
-    list->add_pages(nthreads - list->maxpage)
-
-// get thread id and then assign each thread a fixed chunk of atoms
-#define NEIGH_OMP_SETUP(num)				\
-  {							\
-    const int tid = omp_get_thread_num();		\
-    const int idelta = 1 + num/nthreads;		\
-    const int ifrom = tid*idelta;			\
-    int ito   = ifrom + idelta;				\
-    if (ito > num)					\
-      ito = num
-
-#define NEIGH_OMP_CLOSE }
-
-#else /* !defined(_OPENMP) */
-
-#define NEIGH_OMP_INIT
-
-#define NEIGH_OMP_SETUP(num)				\
-    const int tid = 0;					\
-    const int ifrom = 0;				\
-    const int ito = num
-
-#define NEIGH_OMP_CLOSE
-
-#endif
 
 }
 

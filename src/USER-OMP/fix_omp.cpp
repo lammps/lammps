@@ -92,9 +92,9 @@ FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg),
       const char * const mode = _neighbor ? "OpenMP capable" : "serial";
       
       if (screen)
-	fprintf(screen,"  using %s neighbor list builds\n", mode);
+	fprintf(screen,"  using %s neighbor list subroutines\n", mode);
       if (logfile)
-	fprintf(logfile,"  using %s neighbor list builds\n", mode);
+	fprintf(logfile,"  using %s neighbor list subroutines\n", mode);
     }
   }
 

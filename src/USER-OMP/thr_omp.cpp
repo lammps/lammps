@@ -448,16 +448,19 @@ void ThrOMP::ev_tally_list_thr(Pair * const pair, const int n,
       v_tally(thr->virial_pair,v);
 
     if (pair->vflag_atom) {
-      v[0] /= n;
-      v[1] /= n;
-      v[2] /= n;
-      v[3] /= n;
-      v[4] /= n;
-      v[5] /= n;
+      const double s = 1.0/static_cast<double>(n);
+      double vtmp[6];
+
+      vtmp[0] = s * v[0];
+      vtmp[1] = s * v[1];
+      vtmp[2] = s * v[2];
+      vtmp[3] = s * v[3];
+      vtmp[4] = s * v[4];
+      vtmp[5] = s * v[5];
 
       for (int i = 0; i < n; i++) {
-	j = list[i];
-	v_tally(thr->_vatom[j],v);
+	const int j = list[i];
+	v_tally(thr->_vatom[j],vtmp);
       }
     }
   }

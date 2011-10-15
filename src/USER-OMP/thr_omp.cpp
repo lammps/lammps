@@ -425,34 +425,27 @@ void ThrOMP::ev_tally4_thr(Pair * const pair, const int i, const int j,
   }
 }
 
-#if 0
 /* ----------------------------------------------------------------------
    tally ecoul and virial into each of n atoms in list
    called by TIP4P potential, newton_pair is always on
    changes v values by dividing by n
  ------------------------------------------------------------------------- */
 
-void ThrOMP::ev_tally_list_thr(Pair *pair, int n, int *list, double ecoul, double *v, int tid)
+void ThrOMP::ev_tally_list_thr(Pair * const pair, const int n,
+			       const int * const list, const double ecoul,
+			       const double * const v, ThrData * const thr)
 {
-  int i,j;
-
   if (pair->eflag_either) {
-    if (pair->eflag_global) eng_coul_thr[tid] += ecoul;
+    if (pair->eflag_global) thr->eng_coul += ecoul;
     if (pair->eflag_atom) {
-      double epairatom = ecoul/n;
-      for (i = 0; i < n; i++) eatom_thr[tid][list[i]] += epairatom;
+      double epairatom = ecoul/static_cast<double>(n);
+      for (int i = 0; i < n; i++) thr->_eatom[list[i]] += epairatom;
     }
   }
 
   if (pair->vflag_either) {
-    if (pair->vflag_global) {
-      virial_thr[tid][0] += v[0];
-      virial_thr[tid][1] += v[1];
-      virial_thr[tid][2] += v[2];
-      virial_thr[tid][3] += v[3];
-      virial_thr[tid][4] += v[4];
-      virial_thr[tid][5] += v[5];
-    }
+    if (pair->vflag_global)
+      v_tally(thr->virial_pair,v);
 
     if (pair->vflag_atom) {
       v[0] /= n;
@@ -461,19 +454,16 @@ void ThrOMP::ev_tally_list_thr(Pair *pair, int n, int *list, double ecoul, doubl
       v[3] /= n;
       v[4] /= n;
       v[5] /= n;
-      for (i = 0; i < n; i++) {
+
+      for (int i = 0; i < n; i++) {
 	j = list[i];
-	vatom_thr[tid][j][0] += v[0];
-	vatom_thr[tid][j][1] += v[1];
-	vatom_thr[tid][j][2] += v[2];
-	vatom_thr[tid][j][3] += v[3];
-	vatom_thr[tid][j][4] += v[4];
-	vatom_thr[tid][j][5] += v[5];
+	v_tally(thr->_vatom[j],v);
       }
     }
   }
 }
 
+#if 0
 /* ----------------------------------------------------------------------
    tally energy and virial into global and per-atom accumulators
    virial = r1F1 + r2F2 + r3F3 + r4F4 = (r1-r2) F1 + (r3-r2) F3 + (r4-r2) F4

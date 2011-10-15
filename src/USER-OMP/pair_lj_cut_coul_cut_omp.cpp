@@ -36,7 +36,6 @@ void PairLJCutCoulCutOMP::compute(int eflag, int vflag)
 {
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
-    ev_setup_thr(this);
   } else evflag = vflag_fdotr = 0;
 
   const int nall = atom->nlocal + atom->nghost;
@@ -48,9 +47,10 @@ void PairLJCutCoulCutOMP::compute(int eflag, int vflag)
 #endif
   {
     int ifrom, ito, tid;
-    double **f;
 
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
+    ThrData *thr = fix->get_thr(tid);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
     if (evflag) {
       if (eflag) {
@@ -65,13 +65,8 @@ void PairLJCutCoulCutOMP::compute(int eflag, int vflag)
       else eval<0,0,0>(ifrom, ito, thr);
     }
 
-    // reduce per thread forces into global force array.
     reduce_thr(eflag, vflag, thr);
   } // end of omp parallel region
-
-  // reduce per thread energy and virial, if requested.
-  if (evflag) ev_reduce_thr(this);
-  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -86,13 +81,14 @@ void PairLJCutCoulCutOMP::eval(int iifrom, int iito, ThrData * const thr)
 
   evdwl = ecoul = 0.0;
 
-  double **x = atom->x;
-  double *q = atom->q;
-  int *type = atom->type;
-  int nlocal = atom->nlocal;
-  double *special_coul = force->special_coul;
-  double *special_lj = force->special_lj;
-  double qqrd2e = force->qqrd2e;
+  const double * const * const x = atom->x;
+  double * const * const f = thr->get_f();
+  const double * const q = atom->q;
+  const int * const type = atom->type;
+  const int nlocal = atom->nlocal;
+  const double * const special_coul = force->special_coul;
+  const double * const special_lj = force->special_lj;
+  const double qqrd2e = force->qqrd2e;
   double fxtmp,fytmp,fztmp;
 
   ilist = list->ilist;
@@ -159,11 +155,11 @@ void PairLJCutCoulCutOMP::eval(int iifrom, int iito, ThrData * const thr)
 	    evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
 	      offset[itype][jtype];
 	    evdwl *= factor_lj;
-	  }
-	} else evdwl = 0.0;
+	  } else evdwl = 0.0;
+	}
 
 	if (EVFLAG) ev_tally_thr(this, i,j,nlocal,NEWTON_PAIR,
-				 evdwl,ecoul,fpair,delx,dely,delz,tid);
+				 evdwl,ecoul,fpair,delx,dely,delz,thr);
       }
     }
     f[i][0] += fxtmp;

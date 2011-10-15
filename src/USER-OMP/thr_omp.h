@@ -98,9 +98,10 @@ class ThrOMP {
   void v_tally4_thr(const int, const int, const int, const int, const double * const,
 		    const double * const, const double * const, const double * const,
 		    const double * const, const double * const, ThrData * const);
-#if 0
-  void ev_tally_list_thr(Pair *, int, int *, double , double *, int);
+  void ev_tally_list_thr(Pair * const, const int, const int * const,
+			 const double , const double * const , ThrData * const);
 
+#if 0
   void ev_tally_thr(Dihedral *, int, int, int, int, int, int, double,
 		    double *, double *, double *, double, double, double,
 		    double, double, double, double, double, double, int);

@@ -103,6 +103,7 @@ void PairGayBerneOMP::eval(int iifrom, int iito, ThrData * const thr)
 
     i = ilist[ii];
     itype = type[i];
+    fxtmp=fytmp=fztmp=t1tmp=t2tmp=t3tmp=0.0;
 
     if (form[itype][itype] == ELLIPSE_ELLIPSE) {
       iquat = bonus[ellipsoid[i]].quat;
@@ -182,12 +183,12 @@ void PairGayBerneOMP::eval(int iifrom, int iito, ThrData * const thr)
 	ttor[1] *= factor_lj;
 	ttor[2] *= factor_lj;
 
-        f[i][0] += fforce[0];
-	f[i][1] += fforce[1];
-	f[i][2] += fforce[2];
-        tor[i][0] += ttor[0];
-	tor[i][1] += ttor[1];
-	tor[i][2] += ttor[2];
+        fxtmp += fforce[0];
+	fytmp += fforce[1];
+	fztmp += fforce[2];
+        t1tmp += ttor[0];
+	t2tmp += ttor[1];
+	t3tmp += ttor[2];
 
         if (NEWTON_PAIR || j < nlocal) {
           rtor[0] *= factor_lj;
@@ -208,6 +209,12 @@ void PairGayBerneOMP::eval(int iifrom, int iito, ThrData * const thr)
 				     -r12[0],-r12[1],-r12[2],thr);
       }
     }
+    f[i][0] += fxtmp;
+    f[i][1] += fytmp;
+    f[i][2] += fztmp;
+    tor[i][0] += t1tmp;
+    tor[i][1] += t2tmp;
+    tor[i][2] += t3tmp;
   }
 }
 

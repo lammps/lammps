@@ -113,17 +113,21 @@ void ThrOMP::reduce_thr(const int eflag, const int vflag, ThrData *const thr)
 	if (eflag & 1) {
 	  pair->eng_vdwl += thr->eng_vdwl;
 	  pair->eng_coul += thr->eng_coul;
+	  thr->eng_vdwl = 0.0;
+	  thr->eng_coul = 0.0;
 	}
 	if (vflag & 3)
-	for (int i=0; i < 6; ++i)
-	  pair->virial[i] += thr->virial_pair[i];
+	  for (int i=0; i < 6; ++i) {
+	    pair->virial[i] += thr->virial_pair[i];
+	    thr->virial_pair[i] = 0.0;
+	  }
       }
     }
   }
     break;
 
   case THR_BOND: {
-    Bond *bond = lmp->force->bond;
+    Bond * const bond = lmp->force->bond;
 
 #if defined(_OPENMP)
 #pragma omp critical
@@ -137,7 +141,7 @@ void ThrOMP::reduce_thr(const int eflag, const int vflag, ThrData *const thr)
     break;
 
   case THR_ANGLE: {
-    Angle *angle = lmp->force->angle;
+    Angle * const angle = lmp->force->angle;
 
 #if defined(_OPENMP)
 #pragma omp critical
@@ -151,7 +155,7 @@ void ThrOMP::reduce_thr(const int eflag, const int vflag, ThrData *const thr)
     break;
 
   case THR_DIHEDRAL: {
-    Dihedral *dihedral = lmp->force->dihedral;
+    Dihedral * const dihedral = lmp->force->dihedral;
 
 #if defined(_OPENMP)
 #pragma omp critical
@@ -160,6 +164,30 @@ void ThrOMP::reduce_thr(const int eflag, const int vflag, ThrData *const thr)
       dihedral->energy += thr->eng_dihed;
       for (int i=0; i < 6; ++i)
 	dihedral->virial[i] += thr->virial_dihed[i];
+    }
+  }
+    break;
+
+  case THR_DIHEDRAL|THR_CHARMM: { // special case for CHARMM dihedrals
+    Dihedral * const dihedral = lmp->force->dihedral;
+    Pair * const pair = lmp->force->pair;
+
+#if defined(_OPENMP)
+#pragma omp critical
+#endif
+    {
+      if (eflag & 1) {
+	dihedral->energy += thr->eng_dihed;
+     	pair->eng_vdwl += thr->eng_vdwl;
+	pair->eng_coul += thr->eng_coul;
+      }
+
+      if (vflag & 3) {
+	for (int i=0; i < 6; ++i) {
+	  dihedral->virial[i] += thr->virial_dihed[i];
+	  pair->virial[i] += thr->virial_pair[i];
+	}
+      }
     }
   }
     break;
@@ -194,7 +222,7 @@ void ThrOMP::reduce_thr(const int eflag, const int vflag, ThrData *const thr)
 
   }
     
-  if (thr_style == fix->last_omp_style) {
+  if (thr_style & fix->last_omp_style) {
     sync_threads();
     data_reduce_thr(&(f[0][0]), nall, nthreads, 3, tid);
     if (lmp->atom->torque)

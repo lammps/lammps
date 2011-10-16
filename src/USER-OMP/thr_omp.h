@@ -91,6 +91,12 @@ class ThrOMP {
 		     const double * const, const double * const, const double * const,
 		     const double * const, ThrData * const);
 
+  void ev_tally_thr(Dihedral * const, const int, const int, const int, const int, const int,
+		    const int, const double, const double * const, const double * const,
+		    const double * const, const double, const double, const double,
+		    const double, const double, const double, const double, const double,
+		    const double, ThrData * const);
+
   // style independent versions
   void v_tally2_thr(const int, const int, const double, const double * const, ThrData * const);
   void v_tally3_thr(const int, const int, const int, const double * const, const double * const,
@@ -101,12 +107,6 @@ class ThrOMP {
   void ev_tally_list_thr(Pair * const, const int, const int * const,
 			 const double , const double * const , ThrData * const);
 
-#if 0
-  void ev_tally_thr(Dihedral *, int, int, int, int, int, int, double,
-		    double *, double *, double *, double, double, double,
-		    double, double, double, double, double, double, int);
-
-#endif
 };
 
 // set loop range thread id, and force array offset for threaded runs.

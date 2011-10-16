@@ -20,6 +20,7 @@
 namespace LAMMPS_NS {
 
 class Improper : protected Pointers {
+  friend class ThrOMP;
  public:
   int allocated;
   int *setflag;

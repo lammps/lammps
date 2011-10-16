@@ -126,6 +126,30 @@ void ThrOMP::reduce_thr(const int eflag, const int vflag, ThrData *const thr)
   }
     break;
 
+  case THR_PAIR|THR_PROXY: {
+    Pair * const pair = lmp->force->pair;
+    
+    if (evflag) {
+#if defined(_OPENMP)
+#pragma omp critical
+#endif
+      {
+	if (eflag & 1) {
+	  pair->eng_vdwl += thr->eng_vdwl;
+	  pair->eng_coul += thr->eng_coul;
+	  thr->eng_vdwl = 0.0;
+	  thr->eng_coul = 0.0;
+	}
+	if (vflag & 3)
+	  for (int i=0; i < 6; ++i) {
+	    pair->virial[i] += thr->virial_pair[i];
+	    thr->virial_pair[i] = 0.0;
+	  }
+      }
+    }
+  }
+    break;
+
   case THR_BOND: {
     Bond * const bond = lmp->force->bond;
 
@@ -220,6 +244,23 @@ void ThrOMP::reduce_thr(const int eflag, const int vflag, ThrData *const thr)
   }
     break;
 
+  case THR_PROXY: {
+    KSpace * const kspace = lmp->force->kspace;
+    
+    if (evflag) {
+#if defined(_OPENMP)
+#pragma omp critical
+#endif
+      {
+	if (eflag & 1) {  
+	}
+	if (vflag & 3) {
+	}
+	
+      }
+    }
+  }
+    break;
   }
     
   if (thr_style & fix->last_omp_style) {
@@ -496,6 +537,159 @@ void ThrOMP::ev_tally_list_thr(Pair * const pair, const int n,
 
 /* ----------------------------------------------------------------------
    tally energy and virial into global and per-atom accumulators
+------------------------------------------------------------------------- */
+
+void ThrOMP::ev_tally_thr(Bond * const bond, const int i, const int j, const int nlocal,
+			  const int newton_bond, const double ebond, const double fbond,
+			  const double delx, const double dely, const double delz,
+			  ThrData * const thr)
+{
+  if (bond->eflag_either) {
+    const double ebondhalf = 0.5*ebond;
+    if (newton_bond) {
+      if (bond->eflag_global)
+	thr->eng_bond += ebond;
+      if (bond->eflag_atom) {
+	thr->_eatom[i] += ebondhalf;
+	thr->_eatom[j] += ebondhalf;
+      }
+    } else {
+      if (bond->eflag_global) {
+	if (i < nlocal) thr->eng_bond += ebondhalf;
+	if (j < nlocal) thr->eng_bond += ebondhalf;
+      }
+      if (bond->eflag_atom) {
+	if (i < nlocal) thr->_eatom[i] += ebondhalf;
+	if (j < nlocal) thr->_eatom[j] += ebondhalf;
+      }
+    }
+  }
+
+  if (bond->vflag_either) {
+    double v[6];
+
+    v[0] = delx*delx*fbond;
+    v[1] = dely*dely*fbond;
+    v[2] = delz*delz*fbond;
+    v[3] = delx*dely*fbond;
+    v[4] = delx*delz*fbond;
+    v[5] = dely*delz*fbond;
+
+    if (bond->vflag_global) {
+      if (newton_bond)
+	v_tally(thr->virial_bond,v);
+      else {
+	if (i < nlocal)
+	  v_tally(thr->virial_bond,0.5,v);
+	if (j < nlocal)
+	  v_tally(thr->virial_bond,0.5,v);
+      }
+    }
+
+    if (bond->vflag_atom) {
+      v[0] *= 0.5;
+      v[1] *= 0.5;
+      v[2] *= 0.5;
+      v[3] *= 0.5;
+      v[4] *= 0.5;
+      v[5] *= 0.5;
+
+      if (newton_bond) {
+	v_tally(thr->_vatom[i],v);
+	v_tally(thr->_vatom[j],v);
+      } else {
+	if (j < nlocal)
+	  v_tally(thr->_vatom[i],v);
+	if (j < nlocal)
+	  v_tally(thr->_vatom[j],v);
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   tally energy and virial into global and per-atom accumulators
+   virial = r1F1 + r2F2 + r3F3 = (r1-r2) F1 + (r3-r2) F3 = del1*f1 + del2*f3
+------------------------------------------------------------------------- */
+
+void ThrOMP::ev_tally_thr(Angle * const angle, const int i, const int j, const int k,
+			  const int nlocal, const int newton_bond, const double eangle,
+			  const double * const f1, const double * const f3,
+			  const double delx1, const double dely1, const double delz1,
+			  const double delx2, const double dely2, const double delz2,
+			  ThrData * const thr)
+{
+  if (angle->eflag_either) {
+    const double eanglethird = THIRD*eangle;
+    if (newton_bond) {
+      if (angle->eflag_global)
+	thr->eng_angle += eangle;
+      if (angle->eflag_atom) {
+	thr->_eatom[i] += eanglethird;
+	thr->_eatom[j] += eanglethird;
+	thr->_eatom[j] += eanglethird;
+      }
+    } else {
+      if (angle->eflag_global) {
+	if (i < nlocal) thr->eng_angle += eanglethird;
+	if (j < nlocal) thr->eng_angle += eanglethird;
+	if (k < nlocal) thr->eng_angle += eanglethird;
+      }
+      if (angle->eflag_atom) {
+	if (i < nlocal) thr->_eatom[i] += eanglethird;
+	if (j < nlocal) thr->_eatom[j] += eanglethird;
+	if (j < nlocal) thr->_eatom[j] += eanglethird;
+      }
+    }
+  }
+
+  if (angle->vflag_either) {
+    double v[6];
+
+    v[0] = delx1*f1[0] + delx2*f3[0];
+    v[1] = dely1*f1[1] + dely2*f3[1];
+    v[2] = delz1*f1[2] + delz2*f3[2];
+    v[3] = delx1*f1[1] + delx2*f3[1];
+    v[4] = delx1*f1[2] + delx2*f3[2];
+    v[5] = dely1*f1[2] + dely2*f3[2];
+
+    if (angle->vflag_global) {
+      if (newton_bond)
+	v_tally(thr->virial_angle,v);
+      else {
+	if (i < nlocal)
+	  v_tally(thr->virial_angle,THIRD,v);
+	if (j < nlocal)
+	  v_tally(thr->virial_angle,THIRD,v);
+      }
+    }
+
+    if (angle->vflag_atom) {
+      v[0] *= THIRD;
+      v[1] *= THIRD;
+      v[2] *= THIRD;
+      v[3] *= THIRD;
+      v[4] *= THIRD;
+      v[5] *= THIRD;
+
+      if (newton_bond) {
+	v_tally(thr->_vatom[i],v);
+	v_tally(thr->_vatom[j],v);
+	v_tally(thr->_vatom[k],v);
+      } else {
+	if (j < nlocal)
+	  v_tally(thr->_vatom[i],v);
+	if (j < nlocal)
+	  v_tally(thr->_vatom[j],v);
+	if (k < nlocal)
+	  v_tally(thr->_vatom[k],v);
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   tally energy and virial into global and per-atom accumulators
    virial = r1F1 + r2F2 + r3F3 + r4F4 = (r1-r2) F1 + (r3-r2) F3 + (r4-r2) F4
           = (r1-r2) F1 + (r3-r2) F3 + (r4-r3 + r3-r2) F4
 	  = vb1*f1 + vb2*f3 + (vb3+vb2)*f4
@@ -514,7 +708,7 @@ void ThrOMP::ev_tally_thr(Dihedral * const dihed, const int i1, const int i2,
   if (dihed->eflag_either) {
     if (dihed->eflag_global) {
       if (newton_bond) {
-	thr->eng_bond += edihedral;
+	thr->eng_dihed += edihedral;
       } else {
 	const double edihedralquarter = 0.25*edihedral;
 	int cnt = 0;
@@ -522,7 +716,7 @@ void ThrOMP::ev_tally_thr(Dihedral * const dihed, const int i1, const int i2,
 	if (i2 < nlocal) ++cnt;
 	if (i3 < nlocal) ++cnt;
 	if (i4 < nlocal) ++cnt;
-	thr->eng_bond += static_cast<double>(cnt) * edihedralquarter;
+	thr->eng_dihed += static_cast<double>(cnt) * edihedralquarter;
       }
     }
     if (dihed->eflag_atom) {

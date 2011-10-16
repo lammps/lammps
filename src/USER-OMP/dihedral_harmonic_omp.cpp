@@ -264,4 +264,3 @@ void DihedralHarmonicOMP::eval(int nfrom, int nto, ThrData * const thr)
 		   vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,thr);
   }
 }
-

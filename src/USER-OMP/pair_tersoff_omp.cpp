@@ -36,7 +36,6 @@ void PairTersoffOMP::compute(int eflag, int vflag)
 {
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
-    ev_setup_thr(this);
   } else evflag = vflag_fdotr = vflag_atom = 0;
 
   const int nall = atom->nlocal + atom->nghost;
@@ -48,9 +47,10 @@ void PairTersoffOMP::compute(int eflag, int vflag)
 #endif
   {
     int ifrom, ito, tid;
-    double **f;
 
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
+    ThrData *thr = fix->get_thr(tid);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
     if (evflag) {
       if (eflag) {
@@ -62,13 +62,8 @@ void PairTersoffOMP::compute(int eflag, int vflag)
       }
     } else eval<0,0,0>(ifrom, ito, thr);
 
-    // reduce per thread forces into global force array.
     reduce_thr(eflag, vflag, thr);
   } // end of omp parallel region
-
-  // reduce per thread energy and virial, if requested.
-  if (evflag) ev_reduce_thr(this);
-  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 template <int EVFLAG, int EFLAG, int VFLAG_ATOM>
@@ -84,10 +79,11 @@ void PairTersoffOMP::eval(int iifrom, int iito, ThrData * const thr)
 
   evdwl = 0.0;
 
-  double **x = atom->x;
-  int *tag = atom->tag;
-  int *type = atom->type;
-  int nlocal = atom->nlocal;
+  const double * const * const x = atom->x;
+  double * const * const f = thr->get_f();
+  const int * const tag = atom->tag;
+  const int * const type = atom->type;
+  const int nlocal = atom->nlocal;
 
   ilist = list->ilist;
   numneigh = list->numneigh;
@@ -147,7 +143,7 @@ void PairTersoffOMP::eval(int iifrom, int iito, ThrData * const thr)
       f[j][2] -= delz*fpair;
 
       if (EVFLAG) ev_tally_thr(this,i,j,nlocal,/* newton_pair */ 1,
-			       evdwl,0.0,fpair,delx,dely,delz,tid);
+			       evdwl,0.0,fpair,delx,dely,delz,thr);
     }
 
     // three-body interactions
@@ -199,7 +195,7 @@ void PairTersoffOMP::eval(int iifrom, int iito, ThrData * const thr)
       fjztmp -= delr1[2]*fpair;
 
       if (EVFLAG) ev_tally_thr(this,i,j,nlocal,/* newton_pair */ 1,evdwl,0.0,
-			       -fpair,-delr1[0],-delr1[1],-delr1[2],tid);
+			       -fpair,-delr1[0],-delr1[1],-delr1[2],thr);
 
       // attractive term via loop over k
 
@@ -229,7 +225,7 @@ void PairTersoffOMP::eval(int iifrom, int iito, ThrData * const thr)
 	f[k][1] += fk[1];
 	f[k][2] += fk[2];
 
-	if (VFLAG_ATOM) v_tally3_thr(i,j,k,fj,fk,delr1,delr2,tid);
+	if (VFLAG_ATOM) v_tally3_thr(i,j,k,fj,fk,delr1,delr2,thr);
       }
       f[j][0] += fjxtmp;
       f[j][1] += fjytmp;

@@ -37,7 +37,6 @@ void PairTableOMP::compute(int eflag, int vflag)
 {
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
-    ev_setup_thr(this);
   } else evflag = vflag_fdotr = 0;
 
   const int nall = atom->nlocal + atom->nghost;
@@ -49,9 +48,10 @@ void PairTableOMP::compute(int eflag, int vflag)
 #endif
   {
     int ifrom, ito, tid;
-    double **f;
 
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
+    ThrData *thr = fix->get_thr(tid);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
     if (evflag) {
       if (eflag) {
@@ -66,13 +66,8 @@ void PairTableOMP::compute(int eflag, int vflag)
       else eval<0,0,0>(ifrom, ito, thr);
     }
 
-    // reduce per thread forces into global force array.
     reduce_thr(eflag, vflag, thr);
   } // end of omp parallel region
-
-  // reduce per thread energy and virial, if requested.
-  if (evflag) ev_reduce_thr(this);
-  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
@@ -89,10 +84,11 @@ void PairTableOMP::eval(int iifrom, int iito, ThrData * const thr)
 
   evdwl = 0.0;
 
-  double **x = atom->x;
-  int *type = atom->type;
-  int nlocal = atom->nlocal;
-  double *special_lj = force->special_lj;
+  const double * const * const x = atom->x;
+  double * const * const f = thr->get_f();
+  const int * const type = atom->type;
+  const int nlocal = atom->nlocal;
+  const double * const special_lj = force->special_lj;
   double fxtmp,fytmp,fztmp;
 
   ilist = list->ilist;
@@ -122,7 +118,7 @@ void PairTableOMP::eval(int iifrom, int iito, ThrData * const thr)
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
-      
+
       if (rsq < cutsq[itype][jtype]) {
 	tb = &tables[tabindex[itype][jtype]];
 	if (rsq < tb->innersq)
@@ -181,7 +177,7 @@ void PairTableOMP::eval(int iifrom, int iito, ThrData * const thr)
 	}
 
 	if (EVFLAG) ev_tally_thr(this,i,j,nlocal,NEWTON_PAIR,
-				 evdwl,0.0,fpair,delx,dely,delz,tid);
+				 evdwl,0.0,fpair,delx,dely,delz,thr);
       }
     }
 

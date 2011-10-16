@@ -35,7 +35,6 @@ class FixOMP : public Fix {
   virtual ~FixOMP();
   virtual int setmask();
   virtual void init();
-  virtual void pre_neighbor();
   virtual void pre_force(int);
 
   virtual void setup_pre_force(int vflag)           { pre_force(vflag); };
@@ -62,6 +61,8 @@ class FixOMP : public Fix {
   int  _nthr;     // number of currently active ThrData object
   bool _neighbor; // en/disable threads for neighbor list construction
   bool _newton;   // en/disable newton's 3rd law for local atoms.
+
+  void set_neighbor_omp();
 };
 
 }

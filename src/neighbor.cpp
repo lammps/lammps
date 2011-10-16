@@ -808,7 +808,7 @@ void Neighbor::choose_build(int index, NeighRequest *rq)
 {
   PairPtr pb = NULL;
 
-  if (rq->omp) {
+  if (rq->omp == 0) {
 
     if (rq->copy) pb = &Neighbor::copy_from;
 

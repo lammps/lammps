@@ -26,6 +26,7 @@ Integrate::Integrate(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 {
   elist_global = elist_atom = NULL;
   vlist_global = vlist_atom = NULL;
+  external_force_clear = 0;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -301,7 +301,7 @@ void PairAIREBO::REBO_neigh()
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
 
-  if (nall > maxlocal) {
+  if (atom->nmax > maxlocal) {
     maxlocal = atom->nmax;
     memory->destroy(REBO_numneigh);
     memory->sfree(REBO_firstneigh);
@@ -3915,7 +3915,7 @@ double PairAIREBO::Sp5th(double x, double coeffs[6], double *df)
 double PairAIREBO::Spbicubic(double x, double y,
 			     double coeffs[16], double df[2])
 {
-  double f,xn,yn,xn1,yn1,coeff;
+  double f,xn,yn,xn1,yn1,c;
   int i,j;
   
   f = 0.0;
@@ -3926,11 +3926,11 @@ double PairAIREBO::Spbicubic(double x, double y,
   for (i = 0; i < 4; i++) {
     yn = 1.0;
     for (j = 0; j < 4; j++) {
-      coeff = coeffs[i*4+j];
+      c = coeffs[i*4+j];
 
-      f += coeff*xn*yn;
-      if (i > 0) df[0] += coeff * ((double) i) * xn1 * yn; 
-      if (j > 0) df[1] += coeff * ((double) j) * xn * yn1;
+      f += c*xn*yn;
+      if (i > 0) df[0] += c * ((double) i) * xn1 * yn; 
+      if (j > 0) df[1] += c * ((double) j) * xn * yn1;
 
       yn1 = yn;
       yn *= y;
@@ -3949,7 +3949,7 @@ double PairAIREBO::Spbicubic(double x, double y,
 double PairAIREBO::Sptricubic(double x, double y, double z,
 			      double coeffs[64], double df[3])
 {
-  double f,ir,jr,kr,xn,yn,zn,xn1,yn1,zn1,coeff;
+  double f,ir,jr,kr,xn,yn,zn,xn1,yn1,zn1,c;
   int i,j,k;
 
   f = 0.0;
@@ -3966,11 +3966,11 @@ double PairAIREBO::Sptricubic(double x, double y, double z,
       zn = 1.0;
       for (k = 0; k < 4; k++) {
 	kr = (double) k;
-	coeff = coeffs[16*i+4*j+k];
-	f += coeff*xn*yn*zn;
-	if (i > 0) df[0] += coeff * ir * xn1 * yn * zn;
-	if (j > 0) df[1] += coeff * jr * xn * yn1 * zn;
-	if (k > 0) df[2] += coeff * kr * xn * yn * zn1;
+	c = coeffs[16*i+4*j+k];
+	f += c*xn*yn*zn;
+	if (i > 0) df[0] += c * ir * xn1 * yn * zn;
+	if (j > 0) df[1] += c * jr * xn * yn1 * zn;
+	if (k > 0) df[2] += c * kr * xn * yn * zn1;
 	zn1 = zn;
 	zn *= z;
       }

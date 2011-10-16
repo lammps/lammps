@@ -21,3 +21,15 @@ for file in *_omp.cpp *_omp.h; do
   fi
 done
 
+
+if (test $1 = 1) then
+
+  cp thr_data.h ..
+  cp thr_data.cpp ..
+
+elif (test $1 = 0) then
+
+  rm -f ../thr_data.h
+  rm -f ../thr_data.cpp
+
+fi

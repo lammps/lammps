@@ -109,8 +109,7 @@ PPPMCuda::PPPMCuda(LAMMPS *lmp, int narg, char **arg) : PPPM(lmp, (narg==2?1:nar
   if(narg>1)
   precisionmodify=arg[1][0];
   else precisionmodify='=';
-  PI = 4.0*atan(1.0);
-  
+
   nfactors = 3;
   factors = new int[nfactors];
   factors[0] = 2;
@@ -648,9 +647,9 @@ void PPPMCuda::setup()
 
   delvolinv = delxinv*delyinv*delzinv;
 
-  double unitkx = (2.0*PI/xprd);
-  double unitky = (2.0*PI/yprd);
-  double unitkz = (2.0*PI/zprd_slab);
+  double unitkx = (2.0*MY_PI/xprd);
+  double unitky = (2.0*MY_PI/yprd);
+  double unitkz = (2.0*MY_PI/zprd_slab);
 
   // fkx,fky,fkz for my FFT grid pts
   Cuda_PPPM_Setup_fkxyz_vg(nx_pppm, ny_pppm,nz_pppm,unitkx,unitky,unitkz,g_ewald);
@@ -747,11 +746,11 @@ double sqk;
   double sum1,dot1,dot2;
   double numerator,denominator;
 
-  int nbx = static_cast<int> ((g_ewald*xprd/(PI*nx_pppm)) * 
+  int nbx = static_cast<int> ((g_ewald*xprd/(MY_PI*nx_pppm)) * 
 			      pow(-log(EPS_HOC),0.25));
-  int nby = static_cast<int> ((g_ewald*yprd/(PI*ny_pppm)) * 
+  int nby = static_cast<int> ((g_ewald*yprd/(MY_PI*ny_pppm)) * 
 			      pow(-log(EPS_HOC),0.25));
-  int nbz = static_cast<int> ((g_ewald*zprd_slab/(PI*nz_pppm)) * 
+  int nbz = static_cast<int> ((g_ewald*zprd_slab/(MY_PI*nz_pppm)) * 
 			      pow(-log(EPS_HOC),0.25));
   Cuda_PPPM_setup_greensfn(nx_pppm,ny_pppm,nz_pppm,unitkx,unitky,unitkz,g_ewald,
 nbx,nby,nbz,xprd,yprd,zprd_slab);
@@ -967,7 +966,7 @@ else
    
     energy *= 0.5*volume;
     energy -= g_ewald*qsqsum/1.772453851 +
-      0.5*PI*qsum*qsum / (g_ewald*g_ewald*volume);
+      0.5*MY_PI*qsum*qsum / (g_ewald*g_ewald*volume);
     energy *= qqrd2e;
   }
 
@@ -1728,11 +1727,11 @@ void PPPMCuda::slabcorr(int eflag)
 
   // compute corrections
   
-  double e_slabcorr = 2.0*PI*dipole_all*dipole_all/volume;
+  double e_slabcorr = 2.0*MY_PI*dipole_all*dipole_all/volume;
   
   if (eflag) energy += qqrd2e*scale * e_slabcorr;
   
-  double ffact = -4.0*PI*dipole_all/volume; 
+  double ffact = -4.0*MY_PI*dipole_all/volume; 
  
   cuda_slabcorr_force(&cuda->shared_data,ffact);
 }

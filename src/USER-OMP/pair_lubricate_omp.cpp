@@ -31,7 +31,7 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 PairLubricateOMP::PairLubricateOMP(LAMMPS *lmp) :
-  PairLubricate(lmp), ThrOMP(lmp, PAIR)
+  PairLubricate(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
   random_thr = NULL;
@@ -56,7 +56,6 @@ void PairLubricateOMP::compute(int eflag, int vflag)
 {
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
-    ev_setup_thr(this);
   } else evflag = vflag_fdotr = 0;
 
   const int nall = atom->nlocal + atom->nghost;
@@ -69,14 +68,14 @@ void PairLubricateOMP::compute(int eflag, int vflag)
   random_thr[0] = random;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(shared)
+#pragma omp parallel default(none) shared(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;
-    double **f, **torque;
 
-    f = loop_setup_thr(atom->f, ifrom, ito, tid, inum, nall, nthreads);
-    torque = atom->torque + tid*nall;
+    loop_setup_thr(ifrom, ito, tid, inum, nthreads);
+    ThrData *thr = fix->get_thr(tid);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
     if (random_thr && tid > 0)
       random_thr[tid] = new RanMars(Pair::lmp, seed + comm->me 
@@ -84,29 +83,23 @@ void PairLubricateOMP::compute(int eflag, int vflag)
 
     if (evflag) {
       if (eflag) {
-	if (force->newton_pair) eval<1,1,1>(f, torque, ifrom, ito, tid);
-	else eval<1,1,0>(f, torque, ifrom, ito, tid);
+	if (force->newton_pair) eval<1,1,1>(ifrom, ito, thr);
+	else eval<1,1,0>(ifrom, ito, thr);
       } else {
-	if (force->newton_pair) eval<1,0,1>(f, torque, ifrom, ito, tid);
-	else eval<1,0,0>(f, torque, ifrom, ito, tid);
+	if (force->newton_pair) eval<1,0,1>(ifrom, ito, thr);
+	else eval<1,0,0>(ifrom, ito, thr);
       }
     } else {
-      if (force->newton_pair) eval<0,0,1>(f, torque, ifrom, ito, tid);
-      else eval<0,0,0>(f, torque, ifrom, ito, tid);
+      if (force->newton_pair) eval<0,0,1>(ifrom, ito, thr);
+      else eval<0,0,0>(ifrom, ito, thr);
     }
 
-    // reduce per thread forces and torques into global arrays.
-    data_reduce_thr(&(atom->f[0][0]), nall, nthreads, 3, tid);
-    data_reduce_thr(&(atom->torque[0][0]), nall, nthreads, 3, tid);
+    reduce_thr(eflag, vflag, thr);
   } // end of omp parallel region
-
-  // reduce per thread energy and virial, if requested.
-  if (evflag) ev_reduce_thr(this);
-  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-void PairLubricateOMP::eval(double **f, double **torque, int iifrom, int iito, int tid)
+void PairLubricateOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
   int i,j,ii,jj,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,fpair,fx,fy,fz,tx,ty,tz;
@@ -120,19 +113,21 @@ void PairLubricateOMP::eval(double **f, double **torque, int iifrom, int iito, i
   double a_squeeze,a_shear,a_pump,a_twist;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
-  double **x = atom->x;
-  double **v = atom->v;
-  double **omega = atom->omega;
-  double *radius = atom->radius;
-  int *type = atom->type;
-  int nlocal = atom->nlocal;
-  double vxmu2f = force->vxmu2f;
-  RanMars &rng = *random_thr[tid];
+  const double * const * const x = atom->x;
+  const double * const * const v = atom->v;
+  const double * const * const omega = atom->omega;
+  const double * const radius = atom->radius;
+  double * const * const f = thr->get_f();
+  double * const * const torque = thr->get_torque();
+  const int * const type = atom->type;
+  const int nlocal = atom->nlocal;
+  const double vxmu2f = force->vxmu2f;
+  RanMars &rng = *random_thr[thr->get_tid()];
 
   double prethermostat = sqrt(2.0 * force->boltz * t_target / update->dt);
   prethermostat *= sqrt(force->vxmu2f/force->ftm2v/force->mvv2e);
 
-  double fxtmp,fytmp,fztmp;
+  double fxtmp,fytmp,fztmp,t1tmp,t2tmp,t3tmp;
 
   ilist = list->ilist;
   numneigh = list->numneigh;
@@ -152,7 +147,7 @@ void PairLubricateOMP::eval(double **f, double **torque, int iifrom, int iito, i
     itype = type[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
-    fxtmp=fytmp=fztmp=0.0;
+    fxtmp=fytmp=fztmp=t1tmp=t2tmp=t3tmp=0.0;
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -269,9 +264,9 @@ void PairLubricateOMP::eval(double **f, double **torque, int iifrom, int iito, i
 	    a_pump*P_dot_wrel_2 - a_twist*wn2;
 	  tz = -(2.0/r)*a_shear*v_shear3 - a_shear*omega_t_3 - 
 	    a_pump*P_dot_wrel_3 - a_twist*wn3;
-	  torque[i][0] += vxmu2f * tx;
-	  torque[i][1] += vxmu2f * ty;
-	  torque[i][2] += vxmu2f * tz;
+	  t1tmp += vxmu2f * tx;
+	  t2tmp += vxmu2f * ty;
+	  t3tmp += vxmu2f * tz;
 
         } else {
 	  a_squeeze = (3.0*MY_PI*mu*2.0*radi/2.0) * 
@@ -288,9 +283,9 @@ void PairLubricateOMP::eval(double **f, double **torque, int iifrom, int iito, i
 	  fz = fpair * delz/r;
 	}
 
-    	f[i][0] += fx;
-	f[i][1] += fy;
-	f[i][2] += fz;
+    	fxtmp += fx;
+	fytmp += fy;
+	fztmp += fz;
 
 	if (NEWTON_PAIR || j < nlocal) {
 	  f[j][0] -= fx;
@@ -311,9 +306,15 @@ void PairLubricateOMP::eval(double **f, double **torque, int iifrom, int iito, i
 	}
 
 	if (EVFLAG) ev_tally_xyz_thr(this,i,j,nlocal,NEWTON_PAIR,
-				     0.0,0.0,fx,fy,fz,delx,dely,delz,tid);
+				     0.0,0.0,fx,fy,fz,delx,dely,delz,thr);
       }
     }
+    f[i][0] += fxtmp;
+    f[i][1] += fytmp;
+    f[i][2] += fztmp;
+    torque[i][0] += t1tmp;
+    torque[i][1] += t2tmp;
+    torque[i][2] += t3tmp;
   }
 }
 

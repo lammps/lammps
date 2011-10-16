@@ -39,7 +39,7 @@ class PairDipoleSFOMP : public PairDipoleSF, public ThrOMP {
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-  void eval(double **f, double **torque, int ifrom, int ito, int tid);
+  void eval(int ifrom, int ito, ThrData * const thr);
 };
 
 }

@@ -254,6 +254,7 @@ void NeighList::print_attributes()
   printf("\n");
   printf("  %d = occasional\n",rq->occasional);
   printf("  %d = dnum\n",rq->dnum);
+  printf("  %d = omp\n",rq->omp);
   printf("  %d = ghost\n",rq->ghost);
   printf("  %d = copy\n",rq->copy);
   printf("  %d = skip\n",rq->skip);

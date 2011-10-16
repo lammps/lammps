@@ -14,6 +14,7 @@
 #include "mpi.h"
 #include "lammps.h"
 #include "input.h"
+#include "string.h"
 
 using namespace LAMMPS_NS;
 
@@ -26,6 +27,14 @@ int main(int argc, char **argv)
   MPI_Init(&argc,&argv);
 
   LAMMPS *lammps = new LAMMPS(argc,argv,MPI_COMM_WORLD);
+
+  // using /omp suffix implies running the "package omp"
+  // command with default settings.
+  if (lammps->suffix && lammps->suffix_enable) {
+    if (strcmp(lammps->suffix,"omp") == 0)
+      lammps->input->one("package omp *");
+  }
+
   lammps->input->file();
   delete lammps;
 

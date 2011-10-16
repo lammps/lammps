@@ -35,7 +35,7 @@ class FixPeriNeigh : public Fix {
   FixPeriNeigh(class LAMMPS *,int, char **);
   ~FixPeriNeigh();
   int setmask();
-  void init();
+  virtual void init();
   void init_list(int, class NeighList *);
   void setup(int);
   void min_setup(int);
@@ -54,9 +54,10 @@ class FixPeriNeigh : public Fix {
   int pack_comm(int, int *, double *, int, int *);
   void unpack_comm(int, int, double *);
 
+ protected:
+  int first;                 // flag for first time initialization
 
  private:
-  int first;                 // flag for first time initialization
   int maxpartner;            // max # of peridynamic neighs for any atom
   int *npartner;             // # of neighbors for each atom
   int **partner;             // neighs for each atom, stored as global IDs

@@ -76,6 +76,10 @@ class NeighRequest : protected Pointers {
 
   int cudable;
 
+  // 1 if using multi-threaded neighbor list build
+
+  int omp;
+
   // set by neighbor and pair_hybrid after all requests are made
   // these settings do not change kind value
 

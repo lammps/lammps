@@ -28,9 +28,8 @@
 #include "pair.h"
 #include "random_park.h"
 #include "math_extra.h"
-#include "error.h"
-
 #include "math_const.h"
+#include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -95,7 +94,8 @@ void Set::command(int narg, char **arg)
 	error->all(FLERR,"Invalid value in set command");
       if (fraction < 0.0 || fraction > 1.0) 
 	error->all(FLERR,"Invalid value in set command");
-      if (ivalue <= 0) error->all(FLERR,"Invalid random number seed in set command");
+      if (ivalue <= 0) 
+	error->all(FLERR,"Invalid random number seed in set command");
       setrandom(TYPE_FRACTION);
       iarg += 4;
     } else if (strcmp(arg[iarg],"mol") == 0) {
@@ -165,8 +165,10 @@ void Set::command(int narg, char **arg)
       dvalue = atof(arg[iarg+2]);
       if (!atom->mu_flag)
 	error->all(FLERR,"Cannot set this attribute for this atom style");
-      if (ivalue <= 0) error->all(FLERR,"Invalid random number seed in set command");
-      if (dvalue <= 0.0) error->all(FLERR,"Invalid dipole length in set command");
+      if (ivalue <= 0) 
+	error->all(FLERR,"Invalid random number seed in set command");
+      if (dvalue <= 0.0) 
+	error->all(FLERR,"Invalid dipole length in set command");
       setrandom(DIPOLE_RANDOM);
       iarg += 3;
     } else if (strcmp(arg[iarg],"quat") == 0) {
@@ -184,7 +186,8 @@ void Set::command(int narg, char **arg)
       ivalue = atoi(arg[iarg+1]);
       if (!atom->ellipsoid_flag)
 	error->all(FLERR,"Cannot set this attribute for this atom style");
-      if (ivalue <= 0) error->all(FLERR,"Invalid random number seed in set command");
+      if (ivalue <= 0) 
+	error->all(FLERR,"Invalid random number seed in set command");
       setrandom(QUAT_RANDOM);
       iarg += 2;
     } else if (strcmp(arg[iarg],"diameter") == 0) {
@@ -225,11 +228,14 @@ void Set::command(int narg, char **arg)
 	zimage = atoi(arg[iarg+3]);
       }
       if (ximageflag && ximage && !domain->xperiodic) 
-	error->all(FLERR,"Cannot set non-zero image flag for non-periodic dimension");
+	error->all(FLERR,
+		   "Cannot set non-zero image flag for non-periodic dimension");
       if (yimageflag && yimage && !domain->yperiodic) 
-	error->all(FLERR,"Cannot set non-zero image flag for non-periodic dimension");
+	error->all(FLERR,
+		   "Cannot set non-zero image flag for non-periodic dimension");
       if (zimageflag && zimage && !domain->zperiodic) 
-	error->all(FLERR,"Cannot set non-zero image flag for non-periodic dimension");
+	error->all(FLERR,
+		   "Cannot set non-zero image flag for non-periodic dimension");
       set(IMAGE);
       iarg += 4;
     } else if (strcmp(arg[iarg],"bond") == 0) {
@@ -444,7 +450,8 @@ void Set::set(int keyword)
 
     } else if (keyword == QUAT) {
       if (atom->ellipsoid[i] < 0)
-	error->one(FLERR,"Cannot set quaternion for atom that is not an ellipsoid");
+	error->one(FLERR,
+		   "Cannot set quaternion for atom that is not an ellipsoid");
       double *quat = avec_ellipsoid->bonus[atom->ellipsoid[i]].quat;
       double theta2 = MY_PI2 * wvalue/180.0;
       double sintheta2 = sin(theta2);

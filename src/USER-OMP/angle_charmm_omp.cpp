@@ -185,7 +185,7 @@ void AngleCharmmOMP::eval(int nfrom, int nto, ThrData * const thr)
       f[i3][2] += f3[2];
     }
 
-    if (EVFLAG) ev_tally(i1,i2,i3,nlocal,NEWTON_BOND,eangle,f1,f3,
-			 delx1,dely1,delz1,delx2,dely2,delz2);
+    if (EVFLAG) ev_tally_thr(this,i1,i2,i3,nlocal,NEWTON_BOND,eangle,f1,f3,
+			     delx1,dely1,delz1,delx2,dely2,delz2,thr);
   }
 }

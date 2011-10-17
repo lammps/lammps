@@ -1515,8 +1515,7 @@ void PPPM::make_rho()
 
   // clear 3d density array
 
-  FFT_SCALAR *vec = &density_brick[nzlo_out][nylo_out][nxlo_out];
-  for (i = 0; i < ngrid; i++) vec[i] = ZEROF;
+  memset(&(density_brick[nzlo_out][nylo_out][nxlo_out]),0,ngrid*sizeof(FFT_SCALAR));
 
   // loop over my charges, add their contribution to nearby grid points
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge

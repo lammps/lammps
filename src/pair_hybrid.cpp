@@ -209,7 +209,7 @@ void PairHybrid::settings(int narg, char **arg)
     if (strcmp(arg[i],"buck/coul") == 0) i += 2;
     if (strcmp(arg[i],"reax/c") == 0) i++;
     i++;
-    while (i < narg && !isalpha(arg[i][0])) i++;
+    while (i < narg && (!isalpha(arg[i][0]) || strcmp(arg[i],"NULL") == 0)) i++;
     nstyles++;
   }
 
@@ -247,7 +247,7 @@ void PairHybrid::settings(int narg, char **arg)
     if (strcmp(arg[i],"buck/coul") == 0) i += 2;
     if (strcmp(arg[i],"reax/c") == 0) i++;
     i++;
-    while (i < narg && !isalpha(arg[i][0])) i++;
+    while (i < narg && (!isalpha(arg[i][0]) || strcmp(arg[i],"NULL") == 0)) i++;
     styles[nstyles]->settings(i-istyle-1,&arg[istyle+1]);
     nstyles++;
   }

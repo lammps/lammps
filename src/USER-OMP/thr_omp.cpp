@@ -105,6 +105,8 @@ void ThrOMP::ev_setup_thr(int eflag, int vflag, int nall, double *eatom,
       thr->vatom_imprp = vatom + tid*nall;
   }
 
+/* not supported */
+#if 0
   if (thr_style & THR_KSPACE) {
     if (eflag & 2)
       thr->eatom_kspce = eatom + tid*nall;
@@ -112,6 +114,7 @@ void ThrOMP::ev_setup_thr(int eflag, int vflag, int nall, double *eatom,
     if (vflag & 4)
       thr->vatom_kspce = vatom + tid*nall;
   }
+#endif
 }
 
 /* ----------------------------------------------------------------------
@@ -273,7 +276,7 @@ void ThrOMP::reduce_thr(const int eflag, const int vflag, ThrData *const thr)
 
   case THR_KSPACE: {
     KSpace *kspace = lmp->force->kspace;
-
+#if 0
 #if defined(_OPENMP)
 #pragma omp critical
 #endif
@@ -282,6 +285,7 @@ void ThrOMP::reduce_thr(const int eflag, const int vflag, ThrData *const thr)
       for (int i=0; i < 6; ++i)
 	kspace->virial[i] += thr->virial_kspce[i];
     }
+#endif
   }
     break;
 

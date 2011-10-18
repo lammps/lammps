@@ -35,8 +35,10 @@
 #include "memory.h"
 #include "error.h"
 #include "gpu_extra.h"
+#include "math_const.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define MAXORDER 7
 #define OFFSET 16384

@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -11,35 +11,35 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Axel Kohlmeyer (Temple U)
+------------------------------------------------------------------------- */
+
 #ifdef BOND_CLASS
 
-BondStyle(morse,BondMorse)
+BondStyle(fene/omp,BondFENEOMP)
 
 #else
 
-#ifndef LMP_BOND_MORSE_H
-#define LMP_BOND_MORSE_H
+#ifndef LMP_BOND_FENE_OMP_H
+#define LMP_BOND_FENE_OMP_H
 
-#include "stdio.h"
-#include "bond.h"
+#include "bond_fene.h"
+#include "thr_omp.h"
 
 namespace LAMMPS_NS {
 
-class BondMorse : public Bond {
+class BondFENEOMP : public BondFENE, public ThrOMP {
+
  public:
-  BondMorse(class LAMMPS *);
-  virtual ~BondMorse();
+    BondFENEOMP(class LAMMPS *lmp) : 
+      BondFENE(lmp), ThrOMP(lmp,THR_BOND) {};
+
   virtual void compute(int, int);
-  void coeff(int, char **);
-  double equilibrium_distance(int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  double single(int, double, int, int);
 
- protected:
-  double *d0,*alpha,*r0;
-
-  void allocate();
+ private:
+  template <int EVFLAG, int EFLAG, int NEWTON_BOND>
+  void eval(int ifrom, int ito, ThrData * const thr);
 };
 
 }

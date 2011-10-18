@@ -293,7 +293,7 @@ void ThrOMP::reduce_thr(const int eflag, const int vflag, ThrData *const thr, co
 
   default:
   {
-    printf("tid:%d unhandled thr_style case %d\n", thr_style);
+    printf("tid:%d unhandled thr_style case %d\n", tid, thr_style);
   }
     break;
   }

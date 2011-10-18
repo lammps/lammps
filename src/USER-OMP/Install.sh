@@ -27,9 +27,20 @@ if (test $1 = 1) then
   cp thr_data.h ..
   cp thr_data.cpp ..
 
+  cp pppm_proxy.h ..
+  cp pppm_proxy.cpp ..
+
+  cp pair_lj_charmm_coul_pppm_omp.h ..
+  cp pair_lj_charmm_coul_pppm_omp.cpp ..
+
 elif (test $1 = 0) then
 
   rm -f ../thr_data.h
   rm -f ../thr_data.cpp
 
+  rm -f ../pppm_proxy.h
+  rm -f ../pppm_proxy.cpp
+
+  rm -f ../pair_lj_charmm_coul_pppm_omp.h
+  rm -f ../pair_lj_charmm_coul_pppm_omp.cpp
 fi

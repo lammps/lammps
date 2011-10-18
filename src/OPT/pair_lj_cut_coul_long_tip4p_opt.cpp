@@ -162,7 +162,7 @@ void PairLJCutCoulLongTIP4POpt::eval()
   double r,r2inv,r6inv,forcecoul,forcelj,cforce;
   double factor_coul,factor_lj;
   double grij,expm2,prefactor,t,erfc,ddotf;
-  double xiM[3],xjM[3],v[6],xH1[3],xH2[3];
+  double v[6],xH1[3],xH2[3];
   double fdx,fdy,fdz,f1x,f1y,f1z,fOx,fOy,fOz,fHx,fHy,fHz;
   double *x1,*x2;
   int *ilist,*jlist,*numneigh,**firstneigh;

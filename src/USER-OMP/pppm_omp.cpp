@@ -66,6 +66,7 @@ void PPPMOMP::allocate()
     ThrData *thr = fix->get_thr(tid);
     thr->init_pppm(rho1d_thr);
   }
+
   // reallocate density brick, so it fits our needs
   memory->destroy3d_offset(density_brick,nzlo_out,nylo_out,nxlo_out);
   memory->create3d_offset(density_brick,nzlo_out,nzend,nylo_out,nyhi_out,
@@ -115,6 +116,7 @@ void PPPMOMP::deallocate()
     ThrData * thr = fix->get_thr(i);
     double ** rho1d_thr = static_cast<double **>(thr->get_rho1d());
     memory->destroy2d_offset(rho1d_thr,-order/2);
+    rho1d_thr = NULL;
   }
 }
 

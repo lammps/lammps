@@ -35,8 +35,10 @@
 #include "memory.h"
 #include "error.h"
 #include "gpu_extra.h"
+#include "math_const.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define MAXORDER 7
 #define OFFSET 16384
@@ -189,7 +191,7 @@ void PPPMGPU::compute(int eflag, int vflag)
    
     energy *= 0.5*volume;
     energy -= g_ewald*qsqsum/1.772453851 +
-      0.5*PI*qsum*qsum / (g_ewald*g_ewald*volume);
+      0.5*MY_PI*qsum*qsum / (g_ewald*g_ewald*volume);
     energy *= qqrd2e*scale;
   }
 

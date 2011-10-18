@@ -800,7 +800,7 @@ package"_Section_accelerate.html.
 "peri/lps/omp"_pair_peri.html,
 "peri/pmb/omp"_pair_peri.html,
 "rebo/omp"_pair_airebo.html,
-"resquared/gpu"_pair_resquared.html 
+"resquared/gpu"_pair_resquared.html,
 "resquared/omp"_pair_resquared.html,
 "soft/omp"_pair_soft.html,
 "sw/omp"_pair_sw.html,
@@ -839,7 +839,16 @@ These are accelerated bond styles, which can be used if LAMMPS is
 built with the "appropriate accelerated
 package"_Section_accelerate.html.
 
-"hybrid/omp"_bond_hybrid.html :tb(c=4,ea=c)
+"class2/omp"_bond_class2.html,
+"fene/omp"_bond_fene.html,
+"fene/expand/omp"_bond_fene_expand.html,
+"harmonic/omp"_bond_harmonic.html,
+"harmonic/shift/omp"_bond_harmonic_shift.html,
+"harmonic/shift/cut/omp"_bond_harmonic_shift_cut.html,
+"morse/omp"_bond_morse.html,
+"nonlinear/omp"_bond_nonlinear.html,
+"quartic/omp"_bond_quartic.html,
+"table/omp"_bond_table.html :tb(c=4,ea=c,w=100)
 
 :line
 

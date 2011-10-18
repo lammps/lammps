@@ -26,9 +26,10 @@ using namespace LAMMPS_NS;
 
 ThrData::ThrData(int tid) 
   : _f(NULL), _torque(NULL), _erforce(NULL), _de(NULL), _drho(NULL), _mu(NULL),
-    _lambda(NULL), _rhoB(NULL), _D_values(NULL), _rho(NULL), _fp(NULL), _tid(tid) 
+    _lambda(NULL), _rhoB(NULL), _D_values(NULL), _rho(NULL), _fp(NULL),
+    _rho1d(NULL), _tid(tid) 
 {
-  // nothing else to do.
+  // nothing else to do here.
 }
 
 

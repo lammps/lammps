@@ -105,8 +105,7 @@ void ThrOMP::ev_setup_thr(int eflag, int vflag, int nall, double *eatom,
       thr->vatom_imprp = vatom + tid*nall;
   }
 
-/* not supported */
-#if 0
+#if 0 /* not supported (yet) */
   if (thr_style & THR_KSPACE) {
     if (eflag & 2)
       thr->eatom_kspce = eatom + tid*nall;
@@ -121,7 +120,7 @@ void ThrOMP::ev_setup_thr(int eflag, int vflag, int nall, double *eatom,
    Reduce per thread data into the regular structures
    ---------------------------------------------------------------------- */
 
-void ThrOMP::reduce_thr(const int eflag, const int vflag, ThrData *const thr)
+void ThrOMP::reduce_thr(const int eflag, const int vflag, ThrData *const thr, const int nproxy)
 {
   const int nlocal = lmp->atom->nlocal;
   const int nghost = lmp->atom->nghost;
@@ -140,8 +139,6 @@ void ThrOMP::reduce_thr(const int eflag, const int vflag, ThrData *const thr)
     Pair * const pair = lmp->force->pair;
     
     if (pair->vflag_fdotr) {
-      sync_threads();
-
       if (lmp->neighbor->includegroup == 0)
 	thr->virial_fdotr_compute(x, nlocal, nghost, -1);
       else
@@ -149,7 +146,6 @@ void ThrOMP::reduce_thr(const int eflag, const int vflag, ThrData *const thr)
     }
 
     if (evflag) {
-      sync_threads();
 #if defined(_OPENMP)
 #pragma omp critical
 #endif
@@ -173,22 +169,37 @@ void ThrOMP::reduce_thr(const int eflag, const int vflag, ThrData *const thr)
   case THR_PAIR|THR_PROXY: {
     Pair * const pair = lmp->force->pair;
     
+    if (tid >= nproxy && pair->vflag_fdotr) {
+      if (lmp->neighbor->includegroup == 0)
+	thr->virial_fdotr_compute(x, nlocal, nghost, -1);
+      else
+	thr->virial_fdotr_compute(x, nlocal, nghost, nfirst);
+    }
+    
     if (evflag) {
 #if defined(_OPENMP)
 #pragma omp critical
 #endif
       {
-	if (eflag & 1) {
-	  pair->eng_vdwl += thr->eng_vdwl;
-	  pair->eng_coul += thr->eng_coul;
-	  thr->eng_vdwl = 0.0;
-	  thr->eng_coul = 0.0;
-	}
-	if (vflag & 3)
-	  for (int i=0; i < 6; ++i) {
-	    pair->virial[i] += thr->virial_pair[i];
-	    thr->virial_pair[i] = 0.0;
+	if (tid < nproxy) {
+	  // nothing to do for kspace?
+	  if (vflag & 3)
+	    for (int i=0; i < 6; ++i) {
+	      thr->virial_pair[i] = 0.0;
+	    }
+	} else {
+	  if (eflag & 1) {
+	    pair->eng_vdwl += thr->eng_vdwl;
+	    pair->eng_coul += thr->eng_coul;
+	    thr->eng_vdwl = 0.0;
+	    thr->eng_coul = 0.0;
 	  }
+	  if (vflag & 3)
+	    for (int i=0; i < 6; ++i) {
+	      pair->virial[i] += thr->virial_pair[i];
+	      thr->virial_pair[i] = 0.0;
+	    }
+	}
       }
     }
   }
@@ -274,36 +285,15 @@ void ThrOMP::reduce_thr(const int eflag, const int vflag, ThrData *const thr)
   }
     break;
 
+  case THR_KSPACE|THR_PROXY: // fallthrough
   case THR_KSPACE: {
-    KSpace *kspace = lmp->force->kspace;
-#if 0
-#if defined(_OPENMP)
-#pragma omp critical
-#endif
-    {
-      kspace->energy += thr->eng_kspce;
-      for (int i=0; i < 6; ++i)
-	kspace->virial[i] += thr->virial_kspce[i];
-    }
-#endif
+    // nothing to do
   }
     break;
 
-  case THR_PROXY: {
-    KSpace * const kspace = lmp->force->kspace;
-    
-    if (evflag) {
-#if defined(_OPENMP)
-#pragma omp critical
-#endif
-      {
-	if (eflag & 1) {  
-	}
-	if (vflag & 3) {
-	}
-	
-      }
-    }
+  default:
+  {
+    printf("tid:%d unhandled thr_style case %d\n", thr_style);
   }
     break;
   }

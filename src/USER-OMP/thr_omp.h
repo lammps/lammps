@@ -67,7 +67,7 @@ class ThrOMP {
 				const int, const int, const int);
 
   // reduce per thread data as needed
-  void reduce_thr(int eflag, int vflag, ThrData *thr);
+  void reduce_thr(const int eflag, const int vflag, ThrData * const thr, const int nproxy=0);
 
  protected:
   // threading adapted versions of the ev_tally infrastructure
@@ -120,25 +120,8 @@ class ThrOMP {
 };
 
 // set loop range thread id, and force array offset for threaded runs.
-static inline void loop_setup_thr(int &ifrom, int &ito, int &tid, int inum, int nthreads)
-{
-#if defined(_OPENMP)
-  tid = omp_get_thread_num();
-
-  // each thread works on a fixed chunk of atoms.
-  const int idelta = 1 + inum/nthreads;
-  ifrom = tid*idelta;
-  ito   = ((ifrom + idelta) > inum) ? inum : ifrom + idelta;
-#else
-  tid = 0;
-  ifrom = 0;
-  ito = inum;
-#endif
-}
-
-// set loop range thread id, and force array offset for threaded runs.
-  static inline void loop_setup_proxy(int &ifrom, int &ito, int &tid,
-				      int inum, int nthreads, int nproxy)
+static inline void loop_setup_thr(int &ifrom, int &ito, int &tid,
+				  int inum, int nthreads, int nproxy=0)
 {
 #if defined(_OPENMP)
   tid = omp_get_thread_num();

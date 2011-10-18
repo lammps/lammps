@@ -53,8 +53,8 @@ void ThrData::init_clear(int nall, double **f, double **torque,
   memset(virial_imprp,0,6*sizeof(double));
   memset(virial_kspce,0,6*sizeof(double));
 
-  _eatom = NULL;
-  _vatom = NULL;
+  eatom_pair=eatom_bond=eatom_angle=eatom_dihed=eatom_imprp=eatom_kspce=NULL;
+  vatom_pair=vatom_bond=vatom_angle=vatom_dihed=vatom_imprp=vatom_kspce=NULL;
 
   _f = f + _tid*nall;
   memset(&(_f[0][0]),0,nall*3*sizeof(double));

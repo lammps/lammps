@@ -11,35 +11,31 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef BOND_CLASS
+#ifdef KSPACE_CLASS
 
-BondStyle(harmonic,BondHarmonic)
+KSpaceStyle(pppm/proxy,PPPMProxy)
 
 #else
 
-#ifndef LMP_BOND_HARMONIC_H
-#define LMP_BOND_HARMONIC_H
+#ifndef LMP_PPPM_PROXY_H
+#define LMP_PPPM_PROXY_H
 
-#include "stdio.h"
-#include "bond.h"
+#include "pppm.h"
+#include "thr_omp.h"
 
 namespace LAMMPS_NS {
 
-class BondHarmonic : public Bond {
+  class PPPMProxy : public PPPM, public ThrOMP {
  public:
-  BondHarmonic(class LAMMPS *);
-  virtual ~BondHarmonic();
+  PPPMProxy(class LAMMPS *, int, char **);
+  virtual ~PPPMProxy () {};
+
   virtual void compute(int, int);
-  void coeff(int, char **);
-  double equilibrium_distance(int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  double single(int, double, int, int);
+  virtual void compute_proxy(int eflag, int vflag);
 
- protected:
-  double *k,*r0;
-
-  void allocate();
+  // nothing to do in setup
+  virtual void setup() {};
+  virtual void setup_proxy();
 };
 
 }

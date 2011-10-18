@@ -11,35 +11,36 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef BOND_CLASS
+#ifdef KSPACE_CLASS
 
-BondStyle(harmonic,BondHarmonic)
+KSpaceStyle(pppm/omp,PPPMOMP)
 
 #else
 
-#ifndef LMP_BOND_HARMONIC_H
-#define LMP_BOND_HARMONIC_H
+#ifndef LMP_PPPM_OMP_H
+#define LMP_PPPM_OMP_H
 
-#include "stdio.h"
-#include "bond.h"
+#include "pppm.h"
+#include "thr_omp.h"
 
 namespace LAMMPS_NS {
 
-class BondHarmonic : public Bond {
+  class PPPMOMP : public PPPM, public ThrOMP {
  public:
-  BondHarmonic(class LAMMPS *);
-  virtual ~BondHarmonic();
-  virtual void compute(int, int);
-  void coeff(int, char **);
-  double equilibrium_distance(int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  double single(int, double, int, int);
+  PPPMOMP(class LAMMPS *, int, char **);
+  virtual ~PPPMOMP () {};
 
  protected:
-  double *k,*r0;
+  virtual void allocate();
+  virtual void deallocate();
+  virtual void fieldforce();
+  virtual void make_rho();
+  virtual void compute(int, int);
+  void compute_rho1d_thr(double * const * const, const FFT_SCALAR &,
+			 const FFT_SCALAR &, const FFT_SCALAR &);
+//  void compute_rho_coeff();
+//  void slabcorr(int);
 
-  void allocate();
 };
 
 }

@@ -189,7 +189,7 @@ void PPPMGPU::compute(int eflag, int vflag)
    
     energy *= 0.5*volume;
     energy -= g_ewald*qsqsum/1.772453851 +
-      0.5*PI*qsum*qsum / (g_ewald*g_ewald*volume);
+      0.5*MY_PI*qsum*qsum / (g_ewald*g_ewald*volume);
     energy *= qqrd2e*scale;
   }
 

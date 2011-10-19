@@ -945,7 +945,10 @@ These are accelerated improper styles, which can be used if LAMMPS is
 built with the "appropriate accelerated
 package"_Section_accelerate.html.
 
-"hybrid/omp"_improper_hybrid.html :tb(c=4,ea=c,w=100)
+"class2/omp"_improper_class2.html,
+"cvff/omp"_improper_cvff.html,
+"harmonic/omp"_improper_harmonic.html,
+"umbrella/omp"_improper_umbrella.html :tb(c=4,ea=c,w=100)
 
 :line
 

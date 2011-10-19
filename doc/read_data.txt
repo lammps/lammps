@@ -156,7 +156,7 @@ space in LAMMPS data structures for storing the new bonds.
 The "ellipsoids" setting is only used with atom_style
 ellipsoid"_atom_style.html and specifies how many of the atoms are
 finite-size ellipsoids; the remainder are point particles.  See the
-discussion of ellipseflag and the {Ellipsoids} section below.
+discussion of ellipsoidflag and the {Ellipsoids} section below.
 
 :line
 
@@ -321,7 +321,7 @@ keep track of molecule assignments.
 The diameter specifies the size of a finite-size spherical particle.
 It can be set to 0.0, which means that atom is a point particle.
 
-The ellipseflag determines whether the particle is a finite-size
+The ellipsoidflag determines whether the particle is a finite-size
 ellipsoid of finite size, or a point particle.  Additional attributes
 must be defined for each ellipsoid in the {Ellipsoids} section.
 
@@ -481,10 +481,8 @@ line syntax: atom-ID shapex shapey shapez quatw quati quatj quatk :l
   atom-ID = ID of atom which is an ellipsoid
   shapex,shapey,shapez = 3 diameters of ellipsoid (distance units)
   quatw,quati,quatj,quatk = quaternion components for orientation of atom
-type = bond type (1-Nbondtype)
-  atom1,atom2 = IDs of 1st,2nd atoms in bond :pre
 example: :l
-  12 3 17 29 :pre
+  12 1 2 1 1 0 0 0 :pre
 :ule
 
 The {Ellipsoids} section must appear if "atom_style

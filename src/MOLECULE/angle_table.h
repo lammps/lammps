@@ -28,8 +28,8 @@ namespace LAMMPS_NS {
 class AngleTable : public Angle {
  public:
   AngleTable(class LAMMPS *);
-  ~AngleTable();
-  void compute(int, int);
+  virtual ~AngleTable();
+  virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
   double equilibrium_angle(int);
@@ -37,7 +37,7 @@ class AngleTable : public Angle {
   void read_restart(FILE *);
   double single(int, int, int, int);
 
- private:
+ protected:
   int tabstyle,tablength;
   double *theta0;
 

@@ -101,7 +101,7 @@ void AngleCosine::compute(int eflag, int vflag)
     a11 = a*c / rsq1;
     a12 = -a / (r1*r2);
     a22 = a*c / rsq2;
-        
+
     f1[0] = a11*delx1 + a12*delx2;
     f1[1] = a11*dely1 + a12*dely2;
     f1[2] = a11*delz1 + a12*delz2;

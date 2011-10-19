@@ -880,7 +880,16 @@ These are accelerated angle styles, which can be used if LAMMPS is
 built with the "appropriate accelerated
 package"_Section_accelerate.html.
 
-"hybrid/omp"_angle_hybrid.html :tb(c=4,ea=c)
+"charmm/omp"_angle_charmm.html,
+"class2/omp"_angle_class2.html,
+"cosine/omp"_angle_cosine.html,
+"cosine/delta/omp"_angle_cosine_delta.html,
+"cosine/periodic/omp"_angle_cosine_periodic.html,
+"cosine/shift/omp"_angle_cosine_shift.html,
+"cosine/shift/exp/omp"_angle_cosine_shift_exp.html,
+"cosine/squared/omp"_angle_cosine_squared.html,
+"harmonic/omp"_angle_harmonic.html,
+"table/omp"_angle_table.html :tb(c=4,ea=c,w=100)
 
 :line
 
@@ -936,7 +945,10 @@ These are accelerated improper styles, which can be used if LAMMPS is
 built with the "appropriate accelerated
 package"_Section_accelerate.html.
 
-"hybrid/omp"_improper_hybrid.html :tb(c=4,ea=c,w=100)
+"class2/omp"_improper_class2.html,
+"cvff/omp"_improper_cvff.html,
+"harmonic/omp"_improper_harmonic.html,
+"umbrella/omp"_improper_umbrella.html :tb(c=4,ea=c,w=100)
 
 :line
 

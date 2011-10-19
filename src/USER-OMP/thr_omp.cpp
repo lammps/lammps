@@ -721,6 +721,7 @@ void ThrOMP::ev_tally_thr(Angle * const angle, const int i, const int j, const i
   }
 }
 
+
 /* ----------------------------------------------------------------------
    tally energy and virial into global and per-atom accumulators
    virial = r1F1 + r2F2 + r3F3 + r4F4 = (r1-r2) F1 + (r3-r2) F3 + (r4-r2) F4
@@ -808,6 +809,98 @@ void ThrOMP::ev_tally_thr(Dihedral * const dihed, const int i1, const int i2,
 	if (i2 < nlocal) v_tally(thr->vatom_dihed[i2],v);
 	if (i3 < nlocal) v_tally(thr->vatom_dihed[i3],v);
 	if (i4 < nlocal) v_tally(thr->vatom_dihed[i4],v);
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   tally energy and virial into global and per-atom accumulators
+   virial = r1F1 + r2F2 + r3F3 + r4F4 = (r1-r2) F1 + (r3-r2) F3 + (r4-r2) F4
+          = (r1-r2) F1 + (r3-r2) F3 + (r4-r3 + r3-r2) F4
+	  = vb1*f1 + vb2*f3 + (vb3+vb2)*f4
+------------------------------------------------------------------------- */
+
+void ThrOMP::ev_tally_thr(Improper * const imprp, const int i1, const int i2,
+			  const int i3, const int i4, const int nlocal,
+			  const int newton_bond, const double eimproper,
+			  const double * const f1, const double * const f3,
+			  const double * const f4, const double vb1x,
+			  const double vb1y, const double vb1z, const double vb2x,
+			  const double vb2y, const double vb2z, const double vb3x,
+			  const double vb3y, const double vb3z, ThrData * const thr)
+{
+
+  if (imprp->eflag_either) {
+    if (imprp->eflag_global) {
+      if (newton_bond) {
+	thr->eng_imprp += eimproper;
+      } else {
+	const double eimproperquarter = 0.25*eimproper;
+	int cnt = 0;
+	if (i1 < nlocal) ++cnt;
+	if (i2 < nlocal) ++cnt;
+	if (i3 < nlocal) ++cnt;
+	if (i4 < nlocal) ++cnt;
+	thr->eng_imprp += static_cast<double>(cnt)*eimproperquarter;
+      }
+    }
+    if (imprp->eflag_atom) {
+      const double eimproperquarter = 0.25*eimproper;
+      if (newton_bond) {
+	thr->eatom_imprp[i1] += eimproperquarter;
+	thr->eatom_imprp[i2] += eimproperquarter;
+	thr->eatom_imprp[i3] += eimproperquarter;
+	thr->eatom_imprp[i4] += eimproperquarter;
+      } else {
+	if (i1 < nlocal) thr->eatom_imprp[i1] +=  eimproperquarter;
+	if (i2 < nlocal) thr->eatom_imprp[i2] +=  eimproperquarter;
+	if (i3 < nlocal) thr->eatom_imprp[i3] +=  eimproperquarter;
+	if (i4 < nlocal) thr->eatom_imprp[i4] +=  eimproperquarter;
+      }
+    }
+  }
+
+  if (imprp->vflag_either) {
+    double v[6];
+    v[0] = vb1x*f1[0] + vb2x*f3[0] + (vb3x+vb2x)*f4[0];
+    v[1] = vb1y*f1[1] + vb2y*f3[1] + (vb3y+vb2y)*f4[1];
+    v[2] = vb1z*f1[2] + vb2z*f3[2] + (vb3z+vb2z)*f4[2];
+    v[3] = vb1x*f1[1] + vb2x*f3[1] + (vb3x+vb2x)*f4[1];
+    v[4] = vb1x*f1[2] + vb2x*f3[2] + (vb3x+vb2x)*f4[2];
+    v[5] = vb1y*f1[2] + vb2y*f3[2] + (vb3y+vb2y)*f4[2];
+
+    if (imprp->vflag_global) {
+      if (newton_bond) {
+	v_tally(thr->virial_imprp,v);
+      } else {
+	int cnt = 0;
+	if (i1 < nlocal) ++cnt;
+	if (i2 < nlocal) ++cnt;
+	if (i3 < nlocal) ++cnt;
+	if (i4 < nlocal) ++cnt;
+	v_tally(thr->virial_imprp,0.25*static_cast<double>(cnt),v);
+      }
+    }
+
+    v[0] *= 0.25;
+    v[1] *= 0.25;
+    v[2] *= 0.25;
+    v[3] *= 0.25;
+    v[4] *= 0.25;
+    v[5] *= 0.25;
+    
+    if (imprp->vflag_atom) {
+      if (newton_bond) {
+	v_tally(thr->vatom_imprp[i1],v);
+	v_tally(thr->vatom_imprp[i2],v);
+	v_tally(thr->vatom_imprp[i3],v);
+	v_tally(thr->vatom_imprp[i4],v);
+      } else {
+	if (i1 < nlocal) v_tally(thr->vatom_imprp[i1],v);
+	if (i2 < nlocal) v_tally(thr->vatom_imprp[i2],v);
+	if (i3 < nlocal) v_tally(thr->vatom_imprp[i3],v);
+	if (i4 < nlocal) v_tally(thr->vatom_imprp[i4],v);
       }
     }
   }

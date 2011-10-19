@@ -28,13 +28,13 @@ namespace LAMMPS_NS {
 class ImproperUmbrella : public Improper {
  public:
   ImproperUmbrella(class LAMMPS *);
-  ~ImproperUmbrella();
-  void compute(int, int);
+  virtual ~ImproperUmbrella();
+  virtual void compute(int, int);
   void coeff(int, char **);
   void write_restart(FILE *);
   void read_restart(FILE *);
 
- private:
+ protected:
   double *kw, *w0, *C;
 
   void allocate();

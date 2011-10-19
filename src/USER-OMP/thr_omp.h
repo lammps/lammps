@@ -107,6 +107,12 @@ class ThrOMP {
 		    const double, const double, const double, const double, const double,
 		    const double, ThrData * const);
 
+  void ev_tally_thr(Improper * const, const int, const int, const int, const int, const int,
+		    const int, const double, const double * const, const double * const,
+		    const double * const, const double, const double, const double,
+		    const double, const double, const double, const double, const double,
+		    const double, ThrData * const);
+
   // style independent versions
   void v_tally2_thr(const int, const int, const double, const double * const, ThrData * const);
   void v_tally3_thr(const int, const int, const int, const double * const, const double * const,

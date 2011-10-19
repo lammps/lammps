@@ -114,8 +114,8 @@ int FixGPU::setmask()
 void FixGPU::init()
 {
   // Can only have 1 gpu fix that must be the first fix for a run
-  if ((void*)modify->fix[0] != (void*)this)
-    error->all(FLERR,"GPU is not the first fix for this run");
+//  if ((void*)modify->fix[0] != (void*)this)
+//    error->all(FLERR,"GPU is not the first fix for this run");
   // Hybrid cannot be used with force/neigh option
   if (_gpu_mode == GPU_NEIGH)
     if (force->pair_match("hybrid",1) != NULL ||

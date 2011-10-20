@@ -136,8 +136,7 @@ This command cannot be used after the simulation box is defined by a
 
 The {angle}, {bond}, {full}, and {molecular} styles are part of the
 MOLECULAR package.  The {dipole} style is part of the "dipole"
-package.  The {ellipsoid}, {line}, and {tri} styles are part of the
-"asphere" package.  The {peri} style is part of the PERI package for
+package.  The {peri} style is part of the PERI package for
 Peridynamics.  The {electron} style is part of the USER-EFF package
 for "electronic force fields"_pair_eff.html.  The {meso} style is part
 of the USER-SPH package for smoothed particle hydrodyanmics (SPH).

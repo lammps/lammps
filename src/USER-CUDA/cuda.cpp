@@ -46,6 +46,8 @@
 
 using namespace LAMMPS_NS;
 
+
+
 Cuda::Cuda(LAMMPS *lmp) : Pointers(lmp)
 {
 	cuda_exists=true;
@@ -309,6 +311,7 @@ void Cuda::setSharedDataZero()
 	shared_data.pair.special_lj = 0;
 	shared_data.pair.special_coul = 0;
 	
+	shared_data.pair.neighall = false;
 	
 	shared_data.pppm.cudable_force = 0;
 	

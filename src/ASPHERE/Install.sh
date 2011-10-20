@@ -12,7 +12,9 @@ if (test $1 = 1) then
   cp fix_nve_tri.cpp ..
   cp fix_nvt_asphere.cpp ..
   cp pair_gayberne.cpp ..
+  cp pair_line.cpp ..
   cp pair_resquared.cpp ..
+  cp pair_tri.cpp ..
 
   cp compute_erotate_asphere.h ..
   cp compute_temp_asphere.h ..
@@ -24,7 +26,9 @@ if (test $1 = 1) then
   cp fix_nve_tri.h ..
   cp fix_nvt_asphere.h ..
   cp pair_gayberne.h ..
+  cp pair_line.h ..
   cp pair_resquared.h ..
+  cp pair_tri.h ..
 
 elif (test $1 = 0) then
 
@@ -38,7 +42,9 @@ elif (test $1 = 0) then
   rm -f ../fix_nve_tri.cpp
   rm -f ../fix_nvt_asphere.cpp
   rm -f ../pair_gayberne.cpp
+  rm -f ../pair_line.cpp
   rm -f ../pair_resquared.cpp
+  rm -f ../pair_tri.cpp
 
   rm -f ../compute_erotate_asphere.h
   rm -f ../compute_temp_asphere.h
@@ -50,6 +56,8 @@ elif (test $1 = 0) then
   rm -f ../fix_nve_tri.h
   rm -f ../fix_nvt_asphere.h
   rm -f ../pair_gayberne.h
+  rm -f ../pair_line.h
   rm -f ../pair_resquared.h
+  rm -f ../pair_tri.h
 
 fi

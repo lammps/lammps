@@ -11,30 +11,31 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef COMPUTE_CLASS
+#ifdef FIX_CLASS
 
-ComputeStyle(erotate/asphere,ComputeERotateAsphere)
+FixStyle(nve/line,FixNVELine)
 
 #else
 
-#ifndef LMP_COMPUTE_EROTATE_ASPHERE_H
-#define LMP_COMPUTE_EROTATE_ASPHERE_H
+#ifndef LMP_FIX_NVE_LINE_H
+#define LMP_FIX_NVE_LINE_H
 
-#include "compute.h"
+#include "fix_nve.h"
 
 namespace LAMMPS_NS {
 
-class ComputeERotateAsphere : public Compute {
+class FixNVELine : public FixNVE {
  public:
-  ComputeERotateAsphere(class LAMMPS *, int, char **);
+  FixNVELine(class LAMMPS *, int, char **);
+  ~FixNVELine() {}
+  int setmask();
   void init();
-  double compute_scalar();
+  void initial_integrate(int);
+  void final_integrate();
 
  private:
-  double pfactor;
-  class AtomVecEllipsoid *avec_ellipsoid;
-  class AtomVecLine *avec_line;
-  class AtomVecTri *avec_tri;
+  double MINUSPI,TWOPI;
+  class AtomVecLine *avec;
 };
 
 }
